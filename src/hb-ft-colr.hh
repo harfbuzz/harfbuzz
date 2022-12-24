@@ -238,12 +238,12 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       };
 
       c->funcs->linear_gradient (c->data, &cl,
-				    paint.u.linear_gradient.p0.x / 65536.f,
-				    paint.u.linear_gradient.p0.y / 65536.f,
-				    paint.u.linear_gradient.p1.x / 65536.f,
-				    paint.u.linear_gradient.p1.y / 65536.f,
-				    paint.u.linear_gradient.p2.x / 65536.f,
-				    paint.u.linear_gradient.p2.y / 65536.f);
+				 paint.u.linear_gradient.p0.x / 65536.f,
+				 paint.u.linear_gradient.p0.y / 65536.f,
+				 paint.u.linear_gradient.p1.x / 65536.f,
+				 paint.u.linear_gradient.p1.y / 65536.f,
+				 paint.u.linear_gradient.p2.x / 65536.f,
+				 paint.u.linear_gradient.p2.y / 65536.f);
     }
     break;
     case FT_COLR_PAINTFORMAT_RADIAL_GRADIENT:
@@ -255,12 +255,12 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       };
 
       c->funcs->radial_gradient (c->data, &cl,
-				    paint.u.radial_gradient.c0.x / 65536.f,
-				    paint.u.radial_gradient.c0.y / 65536.f,
-				    paint.u.radial_gradient.r0 / 65536.f,
-				    paint.u.radial_gradient.c1.x / 65536.f,
-				    paint.u.radial_gradient.c1.y / 65536.f,
-				    paint.u.radial_gradient.r1 / 65536.f);
+				 paint.u.radial_gradient.c0.x / 65536.f,
+				 paint.u.radial_gradient.c0.y / 65536.f,
+				 paint.u.radial_gradient.r0 / 65536.f,
+				 paint.u.radial_gradient.c1.x / 65536.f,
+				 paint.u.radial_gradient.c1.y / 65536.f,
+				 paint.u.radial_gradient.r1 / 65536.f);
     }
     break;
     case FT_COLR_PAINTFORMAT_SWEEP_GRADIENT:
@@ -272,10 +272,10 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       };
 
       c->funcs->sweep_gradient (c->data, &cl,
-				   paint.u.sweep_gradient.center.x / 65536.f,
-				   paint.u.sweep_gradient.center.y / 65536.f,
-				   (paint.u.sweep_gradient.start_angle / 65536.f + 1) * (float) M_PI,
-				   (paint.u.sweep_gradient.end_angle / 65536.f + 1) * (float) M_PI);
+				paint.u.sweep_gradient.center.x / 65536.f,
+				paint.u.sweep_gradient.center.y / 65536.f,
+				(paint.u.sweep_gradient.start_angle / 65536.f + 1) * (float) M_PI,
+				(paint.u.sweep_gradient.end_angle / 65536.f + 1) * (float) M_PI);
     }
     break;
     case FT_COLR_PAINTFORMAT_GLYPH:
@@ -305,10 +305,10 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 
         if (has_clip_box)
           c->funcs->push_clip_rectangle (c->data,
-					    clip_box.bottom_left.x / 64.f,
-					    clip_box.bottom_left.y / 64.f,
-					    clip_box.top_right.x / 64.f,
-					    clip_box.top_right.y / 64.f);
+					 clip_box.bottom_left.x / 64.f,
+					 clip_box.bottom_left.y / 64.f,
+					 clip_box.top_right.x / 64.f,
+					 clip_box.top_right.y / 64.f);
 	c->recurse (other_paint);
         if (has_clip_box)
           c->funcs->pop_clip (c->data);
@@ -318,12 +318,12 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     case FT_COLR_PAINTFORMAT_TRANSFORM:
     {
       c->funcs->push_transform (c->data,
-				   paint.u.transform.affine.xx / 65536.f,
-				   paint.u.transform.affine.yx / 65536.f,
-				   paint.u.transform.affine.xy / 65536.f,
-				   paint.u.transform.affine.yy / 65536.f,
-				   paint.u.transform.affine.dx / 65536.f,
-				   paint.u.transform.affine.dy / 65536.f);
+				paint.u.transform.affine.xx / 65536.f,
+				paint.u.transform.affine.yx / 65536.f,
+				paint.u.transform.affine.xy / 65536.f,
+				paint.u.transform.affine.yy / 65536.f,
+				paint.u.transform.affine.dx / 65536.f,
+				paint.u.transform.affine.dy / 65536.f);
       c->recurse (paint.u.transform.paint);
       c->funcs->pop_transform (c->data);
     }
@@ -331,9 +331,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     case FT_COLR_PAINTFORMAT_TRANSLATE:
     {
       c->funcs->push_transform (c->data,
-				   0.f, 0.f, 0.f, 0.f,
-				   paint.u.translate.dx / 65536.f,
-				   paint.u.translate.dy / 65536.f);
+				0.f, 0.f, 0.f, 0.f,
+				paint.u.translate.dx / 65536.f,
+				paint.u.translate.dy / 65536.f);
       c->recurse (paint.u.translate.paint);
       c->funcs->pop_transform (c->data);
     }
@@ -343,19 +343,19 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       bool has_translate = paint.u.scale.center_x != 0 || paint.u.scale.center_y != 0;
       if (has_translate)
         c->funcs->push_transform (c->data,
-				     1.f, 0.f, 0.f, 1.f,
-				     +paint.u.scale.center_x / 65536.f,
-				     +paint.u.scale.center_y / 65536.f);
+				  1.f, 0.f, 0.f, 1.f,
+				  +paint.u.scale.center_x / 65536.f,
+				  +paint.u.scale.center_y / 65536.f);
       c->funcs->push_transform (c->data,
-				   paint.u.scale.scale_x / 65536.f,
-				   0.f, 0.f,
-				   paint.u.scale.scale_y / 65536.f,
-				   0.f, 0.f);
+				paint.u.scale.scale_x / 65536.f,
+				0.f, 0.f,
+				paint.u.scale.scale_y / 65536.f,
+				0.f, 0.f);
       if (has_translate)
         c->funcs->push_transform (c->data,
-				     1.f, 0.f, 0.f, 1.f,
-				     -paint.u.scale.center_x / 65536.f,
-				     -paint.u.scale.center_y / 65536.f);
+				  1.f, 0.f, 0.f, 1.f,
+				  -paint.u.scale.center_x / 65536.f,
+				  -paint.u.scale.center_y / 65536.f);
       c->recurse (paint.u.scale.paint);
       c->funcs->pop_transform (c->data);
       if (has_translate)
@@ -371,14 +371,14 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float cc = cosf (a * (float) M_PI);
       float ss = sinf (a * (float) M_PI);
       c->funcs->push_transform (c->data,
-				   1.f, 0.f, 0.f, 1.f,
-				   +paint.u.rotate.center_x / 65536.f,
-				   +paint.u.rotate.center_y / 65536.f);
+				1.f, 0.f, 0.f, 1.f,
+				+paint.u.rotate.center_x / 65536.f,
+				+paint.u.rotate.center_y / 65536.f);
       c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
       c->funcs->push_transform (c->data,
-				   1.f, 0.f, 0.f, 1.f,
-				   -paint.u.rotate.center_x / 65536.f,
-				   -paint.u.rotate.center_y / 65536.f);
+				1.f, 0.f, 0.f, 1.f,
+				-paint.u.rotate.center_x / 65536.f,
+				-paint.u.rotate.center_y / 65536.f);
       c->recurse (paint.u.rotate.paint);
       c->funcs->pop_transform (c->data);
       c->funcs->pop_transform (c->data);
@@ -390,14 +390,14 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float x = +tanf (paint.u.skew.x_skew_angle / 65536.f * (float) M_PI);
       float y = -tanf (paint.u.skew.y_skew_angle / 65536.f * (float) M_PI);
       c->funcs->push_transform (c->data,
-				   1.f, 0.f, 0.f, 1.f,
-				   +paint.u.skew.center_x / 65536.f,
-				   +paint.u.skew.center_y / 65536.f);
+				1.f, 0.f, 0.f, 1.f,
+				+paint.u.skew.center_x / 65536.f,
+				+paint.u.skew.center_y / 65536.f);
       c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
       c->funcs->push_transform (c->data,
-				   1.f, 0.f, 0.f, 1.f,
-				   -paint.u.skew.center_x / 65536.f,
-				   -paint.u.skew.center_y / 65536.f);
+				1.f, 0.f, 0.f, 1.f,
+				-paint.u.skew.center_x / 65536.f,
+				-paint.u.skew.center_y / 65536.f);
       c->recurse (paint.u.skew.paint);
       c->funcs->pop_transform (c->data);
       c->funcs->pop_transform (c->data);
