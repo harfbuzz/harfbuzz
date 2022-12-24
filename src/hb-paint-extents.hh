@@ -36,7 +36,23 @@ typedef struct hb_extents_t
   hb_extents_t (float xmin, float ymin, float xmax, float ymax) :
     xmin (xmin), ymin (ymin), xmax (xmax), ymax (ymax) {}
 
-  bool is_empty () const { return xmin > xmax; }
+  bool is_empty () const { return xmin >= xmax || ymin >= ymax; }
+
+  void union_ (const hb_extents_t &o)
+  {
+    xmin = hb_min (xmin, o.xmin);
+    ymin = hb_min (ymin, o.ymin);
+    xmax = hb_max (xmax, o.xmax);
+    ymax = hb_max (ymax, o.ymax);
+  }
+
+  void intersect (const hb_extents_t &o)
+  {
+    xmin = hb_max (xmin, o.xmin);
+    ymin = hb_max (ymin, o.ymin);
+    xmax = hb_min (xmax, o.xmax);
+    ymax = hb_min (ymax, o.ymax);
+  }
 
   float xmin = 0.f;
   float ymin = 0.f;
@@ -132,6 +148,37 @@ typedef struct hb_bounds_t
   hb_bounds_t (const hb_extents_t &extents) :
     status (extents.is_empty () ? EMPTY : BOUNDED), extents (extents) {}
 
+  void union_ (const hb_bounds_t &o)
+  {
+    if (o.status == UNBOUNDED)
+      status = UNBOUNDED;
+    else if (o.status == BOUNDED)
+    {
+      if (status == EMPTY)
+	*this = o;
+      else if (status == BOUNDED)
+        extents.union_ (o.extents);
+    }
+  }
+
+  void intersect (const hb_bounds_t &o)
+  {
+    if (o.status == EMPTY)
+      status = EMPTY;
+    else if (o.status == BOUNDED)
+    {
+      if (status == UNBOUNDED)
+	*this = o;
+      else if (status == BOUNDED)
+      {
+        extents.intersect (o.extents);
+	if (extents.xmin >= extents.xmax ||
+	    extents.ymin >= extents.ymax)
+	  status = EMPTY;
+      }
+    }
+  }
+
   status_t status;
   hb_extents_t extents;
 } hb_bounds_t;
@@ -208,76 +255,20 @@ struct hb_paint_extents_context_t {
 	break;
       case HB_PAINT_COMPOSITE_MODE_SRC_IN:
       case HB_PAINT_COMPOSITE_MODE_DEST_IN:
-	// Intersect
-	if (src_bounds.status == hb_bounds_t::EMPTY)
-	  backdrop_bounds.status = hb_bounds_t::EMPTY;
-	else if (src_bounds.status == hb_bounds_t::BOUNDED)
-	{
-	  if (backdrop_bounds.status == hb_bounds_t::UNBOUNDED)
-	    backdrop_bounds = src_bounds;
-	  else if (backdrop_bounds.status == hb_bounds_t::BOUNDED)
-	  {
-	    backdrop_bounds.extents.xmin = hb_max (backdrop_bounds.extents.xmin, src_bounds.extents.xmin);
-	    backdrop_bounds.extents.ymin = hb_max (backdrop_bounds.extents.ymin, src_bounds.extents.ymin);
-	    backdrop_bounds.extents.xmax = hb_min (backdrop_bounds.extents.xmax, src_bounds.extents.xmax);
-	    backdrop_bounds.extents.ymax = hb_min (backdrop_bounds.extents.ymax, src_bounds.extents.ymax);
-	    if (backdrop_bounds.extents.xmin >= backdrop_bounds.extents.xmax ||
-	        backdrop_bounds.extents.ymin >= backdrop_bounds.extents.ymax)
-	      backdrop_bounds.status = hb_bounds_t::EMPTY;
-	  }
-	}
+	backdrop_bounds.intersect (src_bounds);
 	break;
       default:
-	// Union
-	if (src_bounds.status == hb_bounds_t::UNBOUNDED)
-	  backdrop_bounds.status = hb_bounds_t::UNBOUNDED;
-	else if (src_bounds.status == hb_bounds_t::BOUNDED)
-	{
-	  if (backdrop_bounds.status == hb_bounds_t::EMPTY)
-	    backdrop_bounds = src_bounds;
-	  else if (backdrop_bounds.status == hb_bounds_t::BOUNDED)
-	  {
-	    backdrop_bounds.extents.xmin = hb_min (backdrop_bounds.extents.xmin, src_bounds.extents.xmin);
-	    backdrop_bounds.extents.ymin = hb_min (backdrop_bounds.extents.ymin, src_bounds.extents.ymin);
-	    backdrop_bounds.extents.xmax = hb_max (backdrop_bounds.extents.xmax, src_bounds.extents.xmax);
-	    backdrop_bounds.extents.ymax = hb_max (backdrop_bounds.extents.ymax, src_bounds.extents.ymax);
-	  }
-	}
+	backdrop_bounds.union_ (src_bounds);
 	break;
      }
   }
 
   void paint ()
   {
-    /* Union current clip bounds with current group bounds. */
     const hb_bounds_t &clip = clips.tail ();
     hb_bounds_t &group = groups.tail ();
 
-    if (clip.status == hb_bounds_t::EMPTY)
-      return; // Shouldn't happen
-
-    if (group.status == hb_bounds_t::UNBOUNDED)
-      return;
-
-    if (group.status == hb_bounds_t::EMPTY)
-    {
-      group = clip;
-      return;
-    }
-
-    /* Group is bounded now.  Clip is not empty. */
-
-    if (clip.status == hb_bounds_t::UNBOUNDED)
-    {
-      group.status = hb_bounds_t::UNBOUNDED;
-      return;
-    }
-
-    /* Both are bounded. Union. */
-    group.extents.xmin = hb_min (group.extents.xmin, clip.extents.xmin);
-    group.extents.ymin = hb_min (group.extents.ymin, clip.extents.ymin);
-    group.extents.xmax = hb_max (group.extents.xmax, clip.extents.xmax);
-    group.extents.ymax = hb_max (group.extents.ymax, clip.extents.ymax);
+    group.union_ (clip);
   }
 
   hb_vector_t<hb_bounds_t> clips;
