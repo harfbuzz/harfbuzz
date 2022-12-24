@@ -324,58 +324,52 @@ add_point (hb_extents_t *extents,
 }
 
 static void
-move_to (hb_draw_funcs_t *dfuncs,
-         void *data,
-         hb_draw_state_t *st,
-         float to_x, float to_y,
-         void *)
+hb_draw_extents_move_to (hb_draw_funcs_t *dfuncs,
+			 void *data,
+			 hb_draw_state_t *st,
+			 float to_x, float to_y,
+			 void *)
 {
   hb_extents_t *extents = (hb_extents_t *)data;
+
   add_point (extents, to_x, to_y);
 }
 
 static void
-line_to (hb_draw_funcs_t *dfuncs,
-         void *data,
-         hb_draw_state_t *st,
-         float to_x, float to_y,
-         void *)
+hb_draw_extents_line_to (hb_draw_funcs_t *dfuncs,
+			 void *data,
+			 hb_draw_state_t *st,
+			 float to_x, float to_y,
+			 void *)
 {
   hb_extents_t *extents = (hb_extents_t *)data;
+
   add_point (extents, to_x, to_y);
 }
 
 static void
-cubic_to (hb_draw_funcs_t *dfuncs,
-          void *data,
-          hb_draw_state_t *st,
-          float control1_x, float control1_y,
-          float control2_x, float control2_y,
-          float to_x, float to_y,
-          void *)
+hb_draw_extents_cubic_to (hb_draw_funcs_t *dfuncs,
+			  void *data,
+			  hb_draw_state_t *st,
+			  float control1_x, float control1_y,
+			  float control2_x, float control2_y,
+			  float to_x, float to_y,
+			  void *)
 {
   hb_extents_t *extents = (hb_extents_t *)data;
+
   add_point (extents, control1_x, control1_y);
   add_point (extents, control2_x, control2_y);
   add_point (extents, to_x, to_y);
-}
-
-static void
-close_path (hb_draw_funcs_t *dfuncs,
-            void *data,
-            hb_draw_state_t *st,
-            void *)
-{
 }
 
 static hb_draw_funcs_t *
 hb_draw_extent_get_funcs ()
 {
   hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
-  hb_draw_funcs_set_move_to_func (funcs, move_to, nullptr, nullptr);
-  hb_draw_funcs_set_line_to_func (funcs, line_to, nullptr, nullptr);
-  hb_draw_funcs_set_cubic_to_func (funcs, cubic_to, nullptr, nullptr);
-  hb_draw_funcs_set_close_path_func (funcs, close_path, nullptr, nullptr);
+  hb_draw_funcs_set_move_to_func (funcs, hb_draw_extents_move_to, nullptr, nullptr);
+  hb_draw_funcs_set_line_to_func (funcs, hb_draw_extents_line_to, nullptr, nullptr);
+  hb_draw_funcs_set_cubic_to_func (funcs, hb_draw_extents_cubic_to, nullptr, nullptr);
   return funcs;
 }
 
