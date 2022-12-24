@@ -7,6 +7,7 @@
 #include "../../hb-ot-hmtx-table.hh"
 #include "../../hb-ot-var-gvar-table.hh"
 #include "../../hb-draw.hh"
+#include "../../hb-paint.hh"
 
 #include "glyf-helpers.hh"
 #include "Glyph.hh"
@@ -330,6 +331,15 @@ struct glyf_accelerator_t
       return get_points (font, gid, points_aggregator_t (font, extents, nullptr, true));
 #endif
     return glyph_for_gid (gid).get_extents_without_var_scaled (font, *this, extents);
+  }
+
+  bool paint_glyph (hb_font_t *font, hb_codepoint_t gid, hb_paint_funcs_t *funcs, void *data, hb_color_t foreground) const
+  {
+    funcs->push_clip_glyph (data, gid, font);
+    funcs->color (data, true, foreground);
+    funcs->pop_clip (data);
+
+    return true;
   }
 
   const glyf_impl::Glyph

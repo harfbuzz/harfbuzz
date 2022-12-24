@@ -14,7 +14,10 @@ libs:
 
 EXTRA_DIST += meson.build
 
-EXTRA_DIST += fonts
+EXTRA_DIST += \
+	fonts \
+	results \
+	$(NULL)
 
 LINK = $(CXXLINK)
 
@@ -56,6 +59,7 @@ TEST_PROGS = \
 	test-ot-tag \
 	test-ot-extents-cff \
 	test-ot-metrics-tt-var \
+	test-paint \
 	test-set \
 	test-shape \
 	test-style \
@@ -86,6 +90,9 @@ TEST_PROGS = \
 
 test_draw_CPPFLAGS = $(AM_CPPFLAGS)
 test_draw_LDADD = $(LDADD)
+
+test_paint_CPPFLAGS = $(AM_CPPFLAGS)
+test_paint_LDADD = $(LDADD)
 
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
@@ -132,6 +139,9 @@ endif
 if HAVE_FREETYPE
 test_draw_CPPFLAGS += $(FREETYPE_CFLAGS)
 test_draw_LDADD += $(FREETYPE_LIBS)
+
+test_paint_CPPFLAGS += $(FREETYPE_CFLAGS)
+test_paint_LDADD += $(FREETYPE_LIBS)
 
 TEST_PROGS += \
 	test-ot-math \

@@ -480,6 +480,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_has_data);
   hb_test_add (test_hb_ot_color_png);
   hb_test_add (test_hb_ot_color_svg);
+
   status = hb_test_run();
   hb_face_destroy (cpal_v0);
   hb_face_destroy (cpal_v1);

@@ -69,6 +69,7 @@ HB_BASE_sources = \
 	hb-ot-cmap-table.hh \
 	hb-ot-color-cbdt-table.hh \
 	hb-ot-color-colr-table.hh \
+	hb-ot-color-colr-table.cc \
 	hb-ot-color-cpal-table.hh \
 	hb-ot-color-sbix-table.hh \
 	hb-ot-color-svg-table.hh \
@@ -88,6 +89,9 @@ HB_BASE_sources = \
 	hb-ot-layout-common.hh \
 	hb-ot-layout-gdef-table.hh \
 	hb-ot-layout-gpos-table.hh \
+	hb-paint.cc \
+	hb-paint.hh \
+	hb-paint-extents.hh \
 	hb-ot-layout-gsub-table.hh \
 	OT/glyf/glyf.hh \
 	OT/glyf/glyf-helpers.hh \
@@ -290,6 +294,7 @@ HB_BASE_headers = \
 	hb-ot-shape.h \
 	hb-ot-var.h \
 	hb-ot.h \
+	hb-paint.h \
 	hb-set.h \
 	hb-shape-plan.h \
 	hb-shape.h \
@@ -301,7 +306,7 @@ HB_BASE_headers = \
 
 # Optional Sources and Headers with external deps
 
-HB_FT_sources = hb-ft.cc
+HB_FT_sources = hb-ft.cc hb-ft-colr.hh
 HB_FT_headers = hb-ft.h
 
 HB_GLIB_sources = hb-glib.cc

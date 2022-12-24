@@ -46,6 +46,7 @@
 #include "hb-ot-color-cbdt-table.hh"
 #include "hb-ot-color-sbix-table.hh"
 #include "hb-ot-color-colr-table.hh"
+#include "hb-ot-color-svg-table.hh"
 
 
 /**
@@ -424,17 +425,43 @@ hb_ot_get_font_v_extents (hb_font_t *font,
 
 #ifndef HB_NO_DRAW
 static void
-hb_ot_get_glyph_shape (hb_font_t *font,
-		       void *font_data HB_UNUSED,
-		       hb_codepoint_t glyph,
-		       hb_draw_funcs_t *draw_funcs, void *draw_data,
-		       void *user_data)
+hb_ot_draw_glyph (hb_font_t *font,
+		  void *font_data HB_UNUSED,
+		  hb_codepoint_t glyph,
+		  hb_draw_funcs_t *draw_funcs, void *draw_data,
+		  void *user_data)
 {
   hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
   if (font->face->table.glyf->get_path (font, glyph, draw_session)) return;
 #ifndef HB_NO_CFF
   if (font->face->table.cff1->get_path (font, glyph, draw_session)) return;
   if (font->face->table.cff2->get_path (font, glyph, draw_session)) return;
+#endif
+}
+#endif
+
+#ifndef HB_NO_PAINT
+static void
+hb_ot_paint_glyph (hb_font_t *font,
+                   void *font_data,
+                   hb_codepoint_t glyph,
+                   hb_paint_funcs_t *paint_funcs, void *paint_data,
+                   unsigned int palette,
+                   hb_color_t foreground,
+                   void *user_data)
+{
+#ifndef HB_NO_COLOR
+  if (font->face->table.COLR->paint_glyph (font, glyph, paint_funcs, paint_data, palette, foreground)) return;
+  if (font->face->table.SVG->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+#ifndef HB_NO_OT_FONT_BITMAP
+  if (font->face->table.CBDT->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.sbix->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+#endif
+#endif
+  if (font->face->table.glyf->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
+#ifndef HB_NO_CFF
+  if (font->face->table.cff1->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
+  if (font->face->table.cff2->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
 #endif
 }
 #endif
@@ -462,7 +489,11 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
 #endif
 
 #ifndef HB_NO_DRAW
-    hb_font_funcs_set_glyph_shape_func (funcs, hb_ot_get_glyph_shape, nullptr, nullptr);
+    hb_font_funcs_set_draw_glyph_func (funcs, hb_ot_draw_glyph, nullptr, nullptr);
+#endif
+
+#ifndef HB_NO_PAINT
+    hb_font_funcs_set_paint_glyph_func (funcs, hb_ot_paint_glyph, nullptr, nullptr);
 #endif
 
     hb_font_funcs_set_glyph_extents_func (funcs, hb_ot_get_glyph_extents, nullptr, nullptr);

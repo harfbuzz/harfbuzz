@@ -167,6 +167,10 @@ hb_ot_color_palette_get_flags (hb_face_t *face,
  * for allocating a buffer of suitable size before calling
  * hb_ot_color_palette_get_colors() a second time.
  *
+ * The RGBA values in the palette are unpremultiplied. See the
+ * OpenType spec [CPAL](https://learn.microsoft.com/en-us/typography/opentype/spec/cpal)
+ * section for details.
+ *
  * Return value: the total number of colors in the palette
  *
  * Since: 2.1.0
@@ -190,7 +194,8 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
  * hb_ot_color_has_layers:
  * @face: #hb_face_t to work upon
  *
- * Tests whether a face includes any `COLR` color layers.
+ * Tests whether a face includes a `COLR` table
+ * with data according to COLRv0.
  *
  * Return value: `true` if data found, `false` otherwise
  *
@@ -199,7 +204,24 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
 hb_bool_t
 hb_ot_color_has_layers (hb_face_t *face)
 {
-  return face->table.COLR->has_data ();
+  return face->table.COLR->has_v0_data ();
+}
+
+/**
+ * hb_ot_color_has_paint:
+ * @face: #hb_face_t to work upon
+ *
+ * Tests where a face includes a `COLR` table
+ * with data according to COLRv1.
+ *
+ * Return value: `true` if data found, `false` otherwise
+ *
+ * Since: REPLACEME
+ */
+hb_bool_t
+hb_ot_color_has_paint (hb_face_t *face)
+{
+  return face->table.COLR->has_v1_data ();
 }
 
 /**

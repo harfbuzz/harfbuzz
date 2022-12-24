@@ -33,17 +33,19 @@
 
 #include "hb-ft.h"
 
+#include "hb-cache.hh"
 #include "hb-draw.hh"
 #include "hb-font.hh"
 #include "hb-machinery.hh"
-#include "hb-cache.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-shaper-arabic-pua.hh"
+#include "hb-paint.hh"
 
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H
 #include FT_OUTLINE_H
 #include FT_TRUETYPE_TABLES_H
+#include FT_COLOR_H
 
 
 /**
@@ -777,11 +779,11 @@ _hb_ft_cubic_to (const FT_Vector *control1,
 }
 
 static void
-hb_ft_get_glyph_shape (hb_font_t *font HB_UNUSED,
-		       void *font_data,
-		       hb_codepoint_t glyph,
-		       hb_draw_funcs_t *draw_funcs, void *draw_data,
-		       void *user_data HB_UNUSED)
+hb_ft_draw_glyph (hb_font_t *font HB_UNUSED,
+		  void *font_data,
+		  hb_codepoint_t glyph,
+		  hb_draw_funcs_t *draw_funcs, void *draw_data,
+		  void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
@@ -808,6 +810,88 @@ hb_ft_get_glyph_shape (hb_font_t *font HB_UNUSED,
   FT_Outline_Decompose (&ft_face->glyph->outline,
 			&outline_funcs,
 			&draw_session);
+}
+#endif
+
+#ifndef HB_NO_PAINT
+
+#include "hb-ft-colr.hh"
+
+static void
+hb_ft_paint_glyph (hb_font_t *font,
+                   void *font_data,
+                   hb_codepoint_t gid,
+                   hb_paint_funcs_t *paint_funcs, void *paint_data,
+                   unsigned int palette_index,
+                   hb_color_t foreground,
+                   void *user_data)
+{
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
+  FT_Face ft_face = ft_font->ft_face;
+
+  /* We release the lock before calling into callbacks, such that
+   * eg. draw API can call back into the face.*/
+
+  if (unlikely (FT_Load_Glyph (ft_face, gid,
+			       ft_font->load_flags | FT_LOAD_COLOR)))
+    return;
+
+  if (ft_face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)
+  {
+    if (hb_ft_paint_glyph_colr (font, font_data, gid,
+				paint_funcs, paint_data,
+				palette_index, foreground,
+				user_data))
+      return;
+
+    /* Simple outline. */
+    ft_font->lock.unlock ();
+    paint_funcs->push_clip_glyph (paint_data, gid, font);
+    ft_font->lock.lock ();
+    paint_funcs->color (paint_data, true, foreground);
+    paint_funcs->pop_clip (paint_data);
+
+    return;
+  }
+
+  auto *glyph = ft_face->glyph;
+  if (glyph->format == FT_GLYPH_FORMAT_BITMAP)
+  {
+    auto &bitmap = glyph->bitmap;
+    if (bitmap.pixel_mode == FT_PIXEL_MODE_BGRA)
+    {
+      if (bitmap.pitch != (signed) bitmap.width * 4)
+        return;
+
+      ft_font->lock.unlock ();
+
+      hb_blob_t *blob = hb_blob_create ((const char *) bitmap.buffer,
+					bitmap.pitch * bitmap.rows,
+					HB_MEMORY_MODE_DUPLICATE,
+					nullptr, nullptr);
+
+      hb_glyph_extents_t extents;
+      if (!hb_font_get_glyph_extents (font, gid, &extents))
+	goto out;
+
+      paint_funcs->image (paint_data,
+			  blob,
+			  bitmap.width,
+			  bitmap.rows,
+			  HB_PAINT_IMAGE_FORMAT_BGRA,
+			  font->slant_xy,
+			  &extents);
+
+    out:
+      hb_blob_destroy (blob);
+      ft_font->lock.lock ();
+    }
+
+    return;
+  }
+
+  /* TODO Support image, COLRv0/1. */
 }
 #endif
 
@@ -844,7 +928,11 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
     hb_font_funcs_set_glyph_from_name_func (funcs, hb_ft_get_glyph_from_name, nullptr, nullptr);
 
 #ifndef HB_NO_DRAW
-    hb_font_funcs_set_glyph_shape_func (funcs, hb_ft_get_glyph_shape, nullptr, nullptr);
+    hb_font_funcs_set_draw_glyph_func (funcs, hb_ft_draw_glyph, nullptr, nullptr);
+#endif
+
+#ifndef HB_NO_PAINT
+    hb_font_funcs_set_paint_glyph_func (funcs, hb_ft_paint_glyph, nullptr, nullptr);
 #endif
 
     hb_font_funcs_make_immutable (funcs);

@@ -118,6 +118,9 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
+#ifdef CAIRO_COLOR_PALETTE_DEFAULT
+  cairo_font_options_set_color_palette (font_options, font_opts->palette);
+#endif
 
   cairo_scaled_font_t *scaled_font = cairo_scaled_font_create (cairo_face,
 							       &font_matrix,

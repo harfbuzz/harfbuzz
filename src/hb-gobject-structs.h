@@ -53,6 +53,10 @@ hb_gobject_draw_funcs_get_type (void);
 #define HB_GOBJECT_TYPE_DRAW_FUNCS (hb_gobject_draw_funcs_get_type ())
 
 HB_EXTERN GType
+hb_gobject_paint_funcs_get_type (void);
+#define HB_GOBJECT_TYPE_PAINT_FUNCS (hb_gobject_paint_funcs_get_type ())
+
+HB_EXTERN GType
 hb_gobject_face_get_type (void);
 #define HB_GOBJECT_TYPE_FACE (hb_gobject_face_get_type ())
 

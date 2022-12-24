@@ -44,6 +44,9 @@ hb_base_sources = files(
   'hb-dispatch.hh',
   'hb-draw.cc',
   'hb-draw.hh',
+  'hb-paint.cc',
+  'hb-paint.hh',
+  'hb-paint-extents.hh',
   'hb-face.cc',
   'hb-face.hh',
   'hb-fallback-shape.cc',
@@ -73,6 +76,7 @@ hb_base_sources = files(
   'hb-ot-cmap-table.hh',
   'hb-ot-color-cbdt-table.hh',
   'hb-ot-color-colr-table.hh',
+  'hb-ot-color-colr-table.cc',
   'hb-ot-color-cpal-table.hh',
   'hb-ot-color-sbix-table.hh',
   'hb-ot-color-svg-table.hh',
@@ -276,6 +280,7 @@ hb_base_headers = files(
   'hb-cplusplus.hh',
   'hb-deprecated.h',
   'hb-draw.h',
+  'hb-paint.h',
   'hb-face.h',
   'hb-font.h',
   'hb-map.h',
@@ -301,7 +306,7 @@ hb_base_headers += hb_version_h
 
 # Optional Sources and Headers with external deps
 
-hb_ft_sources = files('hb-ft.cc')
+hb_ft_sources = files('hb-ft.cc', 'hb-ft-colr.hh')
 hb_ft_headers = files('hb-ft.h')
 
 hb_glib_sources = files('hb-glib.cc')
