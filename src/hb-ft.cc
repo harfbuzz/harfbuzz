@@ -831,7 +831,7 @@ hb_ft_paint_glyph (hb_font_t *font,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
-  /* We release the lock before calling into callbacks, such that
+  /* We release the lock before calling into glyph callback, such that
    * eg. draw API can call back into the face.*/
 
   if (unlikely (FT_Load_Glyph (ft_face, gid,
