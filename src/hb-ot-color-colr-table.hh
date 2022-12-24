@@ -2005,7 +2005,7 @@ struct COLR
     hb_extents_t e = extents_data.get_extents ();
     extents->x_bearing = e.xmin;
     extents->y_bearing = e.ymax;
-    extents->width = e.xmax - e.xmin,
+    extents->width = e.xmax - e.xmin;
     extents->height = e.ymin - e.ymax;
 
     hb_paint_funcs_destroy (extents_funcs);
