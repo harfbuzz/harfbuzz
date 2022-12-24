@@ -142,8 +142,8 @@ struct hb_paint_extents_context_t {
 
   hb_paint_extents_context_t ()
   {
-    clips.push (hb_bounds_t{hb_bounds_t::status_t::UNBOUNDED});
-    groups.push (hb_bounds_t{hb_bounds_t::status_t::EMPTY});
+    clips.push (hb_bounds_t{hb_bounds_t::UNBOUNDED});
+    groups.push (hb_bounds_t{hb_bounds_t::EMPTY});
     transforms.push (hb_transform_t{});
   }
 
@@ -154,7 +154,7 @@ struct hb_paint_extents_context_t {
 
   bool is_bounded ()
   {
-    return groups.tail().status != hb_bounds_t::status_t::UNBOUNDED;
+    return groups.tail().status != hb_bounds_t::UNBOUNDED;
   }
 
   void push_transform (const hb_transform_t &trans)
@@ -186,7 +186,7 @@ struct hb_paint_extents_context_t {
 
   void push_group ()
   {
-    groups.push (hb_bounds_t{hb_bounds_t::status_t::EMPTY});
+    groups.push (hb_bounds_t{hb_bounds_t::EMPTY});
   }
 
   void pop_group (hb_paint_composite_mode_t mode)
@@ -197,7 +197,7 @@ struct hb_paint_extents_context_t {
     switch ((int) mode)
     {
       case HB_PAINT_COMPOSITE_MODE_CLEAR:
-	backdrop_bounds.status = hb_bounds_t::status_t::EMPTY;
+	backdrop_bounds.status = hb_bounds_t::EMPTY;
 	break;
       case HB_PAINT_COMPOSITE_MODE_SRC:
       case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
@@ -209,13 +209,13 @@ struct hb_paint_extents_context_t {
       case HB_PAINT_COMPOSITE_MODE_SRC_IN:
       case HB_PAINT_COMPOSITE_MODE_DEST_IN:
 	// Intersect
-	if (src_bounds.status == hb_bounds_t::status_t::EMPTY)
-	  backdrop_bounds.status = hb_bounds_t::status_t::EMPTY;
-	else if (src_bounds.status == hb_bounds_t::status_t::BOUNDED)
+	if (src_bounds.status == hb_bounds_t::EMPTY)
+	  backdrop_bounds.status = hb_bounds_t::EMPTY;
+	else if (src_bounds.status == hb_bounds_t::BOUNDED)
 	{
-	  if (backdrop_bounds.status == hb_bounds_t::status_t::UNBOUNDED)
+	  if (backdrop_bounds.status == hb_bounds_t::UNBOUNDED)
 	    backdrop_bounds = src_bounds;
-	  else if (backdrop_bounds.status == hb_bounds_t::status_t::BOUNDED)
+	  else if (backdrop_bounds.status == hb_bounds_t::BOUNDED)
 	  {
 	    backdrop_bounds.extents.xmin = hb_max (backdrop_bounds.extents.xmin, src_bounds.extents.xmin);
 	    backdrop_bounds.extents.ymin = hb_max (backdrop_bounds.extents.ymin, src_bounds.extents.ymin);
@@ -223,19 +223,19 @@ struct hb_paint_extents_context_t {
 	    backdrop_bounds.extents.ymax = hb_min (backdrop_bounds.extents.ymax, src_bounds.extents.ymax);
 	    if (backdrop_bounds.extents.xmin >= backdrop_bounds.extents.xmax ||
 	        backdrop_bounds.extents.ymin >= backdrop_bounds.extents.ymax)
-	      backdrop_bounds.status = hb_bounds_t::status_t::EMPTY;
+	      backdrop_bounds.status = hb_bounds_t::EMPTY;
 	  }
 	}
 	break;
       default:
 	// Union
-	if (src_bounds.status == hb_bounds_t::status_t::UNBOUNDED)
-	  backdrop_bounds.status = hb_bounds_t::status_t::UNBOUNDED;
-	else if (src_bounds.status == hb_bounds_t::status_t::BOUNDED)
+	if (src_bounds.status == hb_bounds_t::UNBOUNDED)
+	  backdrop_bounds.status = hb_bounds_t::UNBOUNDED;
+	else if (src_bounds.status == hb_bounds_t::BOUNDED)
 	{
-	  if (backdrop_bounds.status == hb_bounds_t::status_t::EMPTY)
+	  if (backdrop_bounds.status == hb_bounds_t::EMPTY)
 	    backdrop_bounds = src_bounds;
-	  else if (backdrop_bounds.status == hb_bounds_t::status_t::BOUNDED)
+	  else if (backdrop_bounds.status == hb_bounds_t::BOUNDED)
 	  {
 	    backdrop_bounds.extents.xmin = hb_min (backdrop_bounds.extents.xmin, src_bounds.extents.xmin);
 	    backdrop_bounds.extents.ymin = hb_min (backdrop_bounds.extents.ymin, src_bounds.extents.ymin);
@@ -253,13 +253,13 @@ struct hb_paint_extents_context_t {
     const hb_bounds_t &clip = clips.tail ();
     hb_bounds_t &group = groups.tail ();
 
-    if (clip.status == hb_bounds_t::status_t::EMPTY)
+    if (clip.status == hb_bounds_t::EMPTY)
       return; // Shouldn't happen
 
-    if (group.status == hb_bounds_t::status_t::UNBOUNDED)
+    if (group.status == hb_bounds_t::UNBOUNDED)
       return;
 
-    if (group.status == hb_bounds_t::status_t::EMPTY)
+    if (group.status == hb_bounds_t::EMPTY)
     {
       group = clip;
       return;
@@ -267,9 +267,9 @@ struct hb_paint_extents_context_t {
 
     /* Group is bounded now.  Clip is not empty. */
 
-    if (clip.status == hb_bounds_t::status_t::UNBOUNDED)
+    if (clip.status == hb_bounds_t::UNBOUNDED)
     {
-      group.status = hb_bounds_t::status_t::UNBOUNDED;
+      group.status = hb_bounds_t::UNBOUNDED;
       return;
     }
 
