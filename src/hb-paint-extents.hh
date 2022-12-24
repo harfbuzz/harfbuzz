@@ -36,6 +36,8 @@ typedef struct hb_extents_t
   hb_extents_t (float xmin, float ymin, float xmax, float ymax) :
     xmin (xmin), ymin (ymin), xmax (xmax), ymax (ymax) {}
 
+  bool is_empty () const { return xmin > xmax; }
+
   float xmin = 0.f;
   float ymin = 0.f;
   float xmax = -1.f;
@@ -128,7 +130,7 @@ typedef struct hb_bounds_t
 
   hb_bounds_t (status_t status) : status (status) {}
   hb_bounds_t (const hb_extents_t &extents) :
-    status (extents.xmin <= extents.xmax ? BOUNDED : EMPTY), extents (extents) {}
+    status (extents.is_empty () ? EMPTY : BOUNDED), extents (extents) {}
 
   status_t status;
   hb_extents_t extents;
