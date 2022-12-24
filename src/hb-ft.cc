@@ -462,6 +462,9 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
     else
     {
       FT_Get_Advance (ft_face, glyph, load_flags, &v);
+      /* Work around bug that FreeType seems to return negative advance
+       * for variable-set fonts if x_scale is negative! */
+      v = abs (v);
       ft_font->advance_cache.set (glyph, v);
     }
 
