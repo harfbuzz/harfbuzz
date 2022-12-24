@@ -438,7 +438,7 @@ hb_paint_extents_pop_group (hb_paint_funcs_t *funcs HB_UNUSED,
   c->pop_group (mode);
 }
 
-static void
+static hb_bool_t
 hb_paint_extents_paint_image (hb_paint_funcs_t *funcs HB_UNUSED,
 			      void *paint_data,
 			      hb_blob_t *blob HB_UNUSED,
@@ -458,6 +458,8 @@ hb_paint_extents_paint_image (hb_paint_funcs_t *funcs HB_UNUSED,
   c->push_clip (extents);
   c->paint ();
   c->pop_clip ();
+
+  return true;
 }
 
 static void

@@ -75,7 +75,7 @@ hb_paint_color_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     hb_color_t color,
                     void *user_data) {}
 
-static void
+static hb_bool_t
 hb_paint_image_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     hb_blob_t *image,
                     unsigned int width,
@@ -83,7 +83,7 @@ hb_paint_image_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     hb_tag_t format,
                     float slant_xy,
                     hb_glyph_extents_t *extents,
-                    void *user_data) {}
+                    void *user_data) { return false; }
 
 static void
 hb_paint_linear_gradient_nil (hb_paint_funcs_t *funcs, void *paint_data,

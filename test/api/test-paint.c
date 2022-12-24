@@ -40,7 +40,9 @@ typedef struct {
   GString *string;
 } paint_data_t;
 
-static void
+static void print (paint_data_t *data, const char *format, ...) __attribute__((format (printf, 2, 3)));
+
+void
 print (paint_data_t *data,
        const char *format,
        ...)
@@ -133,7 +135,7 @@ paint_color (hb_paint_funcs_t *funcs,
          hb_color_get_alpha (color));
 }
 
-static void
+static hb_bool_t
 paint_image (hb_paint_funcs_t *funcs,
              void *paint_data,
              hb_blob_t *blob,
@@ -151,6 +153,8 @@ paint_image (hb_paint_funcs_t *funcs,
   print (data, "image type %s size %u %u slant %f extents %d %d %d %d\n",
          buf, width, height, slant,
          extents->x_bearing, extents->y_bearing, extents->width, extents->height);
+
+  return TRUE;
 }
 
 static void

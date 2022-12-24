@@ -270,17 +270,19 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * The image dimensions and glyph extents are provided if available,
  * and should be used to size and position the image.
  *
+ * Return value: Whether the operation was successful.
+ *
  * Since: REPLACEME
  */
-typedef void (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
-                                       void *paint_data,
-                                       hb_blob_t *image,
-                                       unsigned int width,
-                                       unsigned int height,
-                                       hb_tag_t format,
-                                       float slant,
-                                       hb_glyph_extents_t *extents,
-                                       void *user_data);
+typedef hb_bool_t (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
+					    void *paint_data,
+					    hb_blob_t *image,
+					    unsigned int width,
+					    unsigned int height,
+					    hb_tag_t format,
+					    float slant,
+					    hb_glyph_extents_t *extents,
+					    void *user_data);
 
 /**
  * hb_color_stop_t:

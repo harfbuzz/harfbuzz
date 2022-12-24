@@ -282,7 +282,7 @@ paint_color (hb_paint_funcs_t *funcs,
   cairo_paint (cr);
 }
 
-static void
+static hb_bool_t
 paint_image (hb_paint_funcs_t *funcs,
              void *paint_data,
              hb_blob_t *blob,
@@ -302,7 +302,7 @@ paint_image (hb_paint_funcs_t *funcs,
          buf, width, height, (double) slant,
          extents->x_bearing, extents->y_bearing, extents->width, extents->height);
 
-  hb_cairo_paint_glyph_image (cr, blob, width, height, format, slant, extents);
+  return hb_cairo_paint_glyph_image (cr, blob, width, height, format, slant, extents);
 }
 
 static void

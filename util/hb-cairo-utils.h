@@ -70,13 +70,13 @@ hb_paint_composite_mode_to_cairo (hb_paint_composite_mode_t mode)
   return CAIRO_OPERATOR_SOURCE;
 }
 
-void hb_cairo_paint_glyph_image (cairo_t *cr,
-                                 hb_blob_t *blob,
-                                 unsigned width,
-                                 unsigned height,
-                                 hb_tag_t format,
-                                 float slant,
-                                 hb_glyph_extents_t *extents);
+hb_bool_t hb_cairo_paint_glyph_image (cairo_t *cr,
+                                      hb_blob_t *blob,
+                                      unsigned width,
+                                      unsigned height,
+                                      hb_tag_t format,
+                                      float slant,
+                                      hb_glyph_extents_t *extents);
 
 void hb_cairo_paint_linear_gradient (cairo_t *cr,
                                      hb_color_line_t *color_line,
