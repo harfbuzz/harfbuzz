@@ -321,6 +321,22 @@ struct hb_unicode_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unicode_funcs_t, Sub
   static const hb_unicode_funcs_t *get_null ()
   { return hb_unicode_funcs_get_empty (); }
 };
+template <typename Subclass>
+struct hb_draw_funcs_lazy_loader_t : hb_lazy_loader_t<hb_draw_funcs_t, Subclass>
+{
+  static void destroy (hb_draw_funcs_t *p)
+  { hb_draw_funcs_destroy (p); }
+  static const hb_draw_funcs_t *get_null ()
+  { return hb_draw_funcs_get_empty (); }
+};
+template <typename Subclass>
+struct hb_paint_funcs_lazy_loader_t : hb_lazy_loader_t<hb_paint_funcs_t, Subclass>
+{
+  static void destroy (hb_paint_funcs_t *p)
+  { hb_paint_funcs_destroy (p); }
+  static const hb_paint_funcs_t *get_null ()
+  { return hb_paint_funcs_get_empty (); }
+};
 
 
 #endif /* HB_MACHINERY_HH */

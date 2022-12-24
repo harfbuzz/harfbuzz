@@ -25,6 +25,7 @@
 #include "hb.hh"
 #include "hb-paint-extents.hh"
 #include "hb-draw.h"
+#include "hb-machinery.hh"
 
 /*
  * This file implements bounds-extraction as well as boundedness
@@ -114,14 +115,35 @@ hb_draw_extents_cubic_to (hb_draw_funcs_t *dfuncs,
   add_point (extents, to_x, to_y);
 }
 
-static hb_draw_funcs_t *
-hb_draw_extent_get_funcs ()
+static inline void free_static_draw_extents_funcs ();
+
+static struct hb_draw_extents_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_draw_extents_funcs_lazy_loader_t>
 {
-  hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
-  hb_draw_funcs_set_move_to_func (funcs, hb_draw_extents_move_to, nullptr, nullptr);
-  hb_draw_funcs_set_line_to_func (funcs, hb_draw_extents_line_to, nullptr, nullptr);
-  hb_draw_funcs_set_cubic_to_func (funcs, hb_draw_extents_cubic_to, nullptr, nullptr);
-  return funcs;
+  static hb_draw_funcs_t *create ()
+  {
+    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+    hb_draw_funcs_set_move_to_func (funcs, hb_draw_extents_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, hb_draw_extents_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (funcs, hb_draw_extents_cubic_to, nullptr, nullptr);
+
+    hb_draw_funcs_make_immutable (funcs);
+
+    hb_atexit (free_static_draw_extents_funcs);
+
+    return funcs;
+  }
+} static_draw_extents_funcs;
+
+static inline
+void free_static_draw_extents_funcs ()
+{
+  static_draw_extents_funcs.free_instance ();
+}
+
+static hb_draw_funcs_t *
+hb_draw_extents_get_funcs ()
+{
+  return static_draw_extents_funcs.get_unconst ();
 }
 
 static void
@@ -134,9 +156,8 @@ hb_paint_extents_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
   hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
 
   hb_extents_t extents;
-  hb_draw_funcs_t *draw_extent_funcs = hb_draw_extent_get_funcs ();
+  hb_draw_funcs_t *draw_extent_funcs = hb_draw_extents_get_funcs ();
   hb_font_draw_glyph (font, glyph, draw_extent_funcs, &extents);
-  hb_draw_funcs_destroy (draw_extent_funcs);
   c->push_clip (extents);
 }
 
