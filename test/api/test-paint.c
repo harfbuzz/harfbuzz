@@ -526,6 +526,7 @@ test_color_stops (hb_bool_t use_ft)
 
   g_assert_true (result);
 
+  hb_paint_funcs_destroy (funcs);
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
