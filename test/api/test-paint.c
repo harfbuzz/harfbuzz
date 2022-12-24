@@ -294,7 +294,9 @@ static paint_test_t paint_tests[] = {
   { ROCHER_ABC, 120, 0,    3, 200, "rocher-120-0-3" },
 };
 
+#ifdef HB_HAS_FREETYPE
 static FT_Library library;
+#endif
 
 static void
 test_hb_paint (gconstpointer d,
@@ -546,6 +548,8 @@ test_color_stops_ft (void)
 int
 main (int argc, char **argv)
 {
+  int status = 0;
+
 #ifdef HB_HAS_FREETYPE
   FT_Init_FreeType (&library);
 #endif
@@ -559,5 +563,7 @@ main (int argc, char **argv)
   hb_test_add (test_color_stops_ot);
   hb_test_add (test_color_stops_ft);
 
-  return hb_test_run();
+  status = hb_test_run();
+
+  return status;
 }
