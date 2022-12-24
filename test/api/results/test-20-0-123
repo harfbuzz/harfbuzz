@@ -1,43 +1,45 @@
 start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-  push group
-    start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
-      start clip glyph 3
-        start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-          solid 0 0 0 255
-        end transform
-      end clip
-    end transform
-  pop group mode 3
-  push group
+  start clip rectangle 0.000000 0.000000 1000.000000 1000.000000
     push group
-      start transform 0.000000 0.000000 0.000000 0.000000 333.000000 667.000000
-        start transform 8192.000000 0.000000 0.000000 8192.000000 0.000000 0.000000
-          start transform 0.000000 0.000000 0.000000 0.000000 -333.000000 -667.000000
-            start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
-              start clip glyph 2
-                start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-                  solid 255 220 1 255
-                end transform
-              end clip
-            end transform
+      start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+        start clip glyph 3
+          start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+            solid 0 0 0 255
           end transform
-        end transform
+        end clip
       end transform
+    pop group mode 3
+    push group
       push group
-        start transform 0.000000 0.000000 0.000000 0.000000 667.000000 333.000000
+        start transform 0.000000 0.000000 0.000000 0.000000 333.000000 667.000000
           start transform 8192.000000 0.000000 0.000000 8192.000000 0.000000 0.000000
-            start transform 0.000000 0.000000 0.000000 0.000000 -667.000000 -333.000000
+            start transform 0.000000 0.000000 0.000000 0.000000 -333.000000 -667.000000
               start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
                 start clip glyph 2
                   start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-                    solid 104 199 232 255
+                    solid 255 220 1 255
                   end transform
                 end clip
               end transform
             end transform
           end transform
         end transform
-      pop group mode 5
+        push group
+          start transform 0.000000 0.000000 0.000000 0.000000 667.000000 333.000000
+            start transform 8192.000000 0.000000 0.000000 8192.000000 0.000000 0.000000
+              start transform 0.000000 0.000000 0.000000 0.000000 -667.000000 -333.000000
+                start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+                  start clip glyph 2
+                    start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+                      solid 104 199 232 255
+                    end transform
+                  end clip
+                end transform
+              end transform
+            end transform
+          end transform
+        pop group mode 5
+      pop group mode 3
     pop group mode 3
-  pop group mode 3
+  end clip
 end transform

@@ -1,26 +1,28 @@
-start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-  push group
-    start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
-      start clip glyph 3
-        start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-          solid 0 0 255 127
-        end transform
-      end clip
-    end transform
+start clip rectangle 5.000000 5.000000 15.000000 15.000000
+  start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
     push group
-      start transform 0.000000 0.000000 0.000000 0.000000 1000.000000 1000.000000
-        start transform 1.000000 -0.363874 -0.176283 1.000000 0.000000 0.000000
-          start transform 0.000000 0.000000 0.000000 0.000000 -1000.000000 -1000.000000
-            start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
-              start clip glyph 3
-                start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-                  solid 255 165 0 178
-                end transform
-              end clip
+      start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+        start clip glyph 3
+          start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+            solid 0 0 255 127
+          end transform
+        end clip
+      end transform
+      push group
+        start transform 0.000000 0.000000 0.000000 0.000000 1000.000000 1000.000000
+          start transform 1.000000 -0.363874 -0.176283 1.000000 0.000000 0.000000
+            start transform 0.000000 0.000000 0.000000 0.000000 -1000.000000 -1000.000000
+              start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+                start clip glyph 3
+                  start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+                    solid 255 165 0 178
+                  end transform
+                end clip
+              end transform
             end transform
           end transform
         end transform
-      end transform
-    pop group mode 4
-  pop group mode 3
-end transform
+      pop group mode 4
+    pop group mode 3
+  end transform
+end clip
