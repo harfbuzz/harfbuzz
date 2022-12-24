@@ -29,6 +29,12 @@
 #include "hb-paint.hh"
 #include "hb-draw.h"
 
+/*
+ * This file implements bounds-extraction as well as boundedness
+ * computation of COLRv1 fonts as described in:
+ *
+ * https://learn.microsoft.com/en-us/typography/opentype/spec/colr#glyph-metrics-and-boundedness
+ */
 
 typedef struct hb_extents_t
 {
@@ -240,6 +246,7 @@ struct hb_paint_extents_context_t {
     const hb_bounds_t src_bounds = groups.pop ();
     hb_bounds_t &backdrop_bounds = groups.tail ();
 
+    // https://learn.microsoft.com/en-us/typography/opentype/spec/colr#format-32-paintcomposite
     switch ((int) mode)
     {
       case HB_PAINT_COMPOSITE_MODE_CLEAR:
