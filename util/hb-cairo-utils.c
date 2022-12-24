@@ -143,6 +143,7 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
       return;
 
     unsigned char *data;
+#ifdef __BYTE_ORDER
     if (__BYTE_ORDER == __BIG_ENDIAN)
     {
       data = (unsigned char *) hb_blob_get_data_writable (blob, NULL);
@@ -162,6 +163,7 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
       }
     }
     else
+#endif
       data = (unsigned char *) hb_blob_get_data (blob, NULL);
 
     surface = cairo_image_surface_create_for_data (data,
