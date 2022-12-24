@@ -479,8 +479,6 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 					extents.ymin,
 					extents.xmax,
 					extents.ymax);
-
-      hb_paint_funcs_destroy (extents_funcs);
     }
 
     paint_funcs->push_root_transform (paint_data, font);

@@ -2008,8 +2008,6 @@ struct COLR
     extents->width = e.xmax - e.xmin;
     extents->height = e.ymin - e.ymax;
 
-    hb_paint_funcs_destroy (extents_funcs);
-
     return true;
   }
 
@@ -2066,8 +2064,6 @@ struct COLR
 					  extents.ymin,
 					  extents.xmax,
 					  extents.ymax);
-
-	    hb_paint_funcs_destroy (extents_funcs);
 
 	    c.funcs->push_root_transform (c.data, font);
 
