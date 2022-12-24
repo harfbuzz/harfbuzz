@@ -456,42 +456,45 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			        FT_COLOR_NO_ROOT_TRANSFORM,
 			        &paint))
   {
-    bool is_bounded = true;
-    FT_ClipBox clip_box;
-    if (FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box))
-      paint_funcs->push_clip_rectangle (paint_data,
-                                        clip_box.bottom_left.x - font->slant_xy * clip_box.bottom_left.y,
-                                        clip_box.bottom_left.y,
-                                        clip_box.top_right.x - font->slant_xy * clip_box.top_right.y,
-                                        clip_box.top_right.y);
-    else
-    {
-      auto *extents_funcs = hb_paint_extents_get_funcs ();
-      hb_paint_extents_context_t extents_data;
-      hb_ft_paint_context_t c (ft_font, font,
-			       extents_funcs, &extents_data,
-			       palette, foreground);
-      c.recurse (paint);
-      hb_extents_t extents = extents_data.get_extents ();
-      is_bounded = extents_data.is_bounded ();
-      paint_funcs->push_clip_rectangle (paint_data,
-					extents.xmin,
-					extents.ymin,
-					extents.xmax,
-					extents.ymax);
-    }
-
-    paint_funcs->push_root_transform (paint_data, font);
-
     hb_ft_paint_context_t c (ft_font, font,
 			     paint_funcs, paint_data,
 			     palette, foreground);
 
+    bool is_bounded = true;
+    FT_ClipBox clip_box;
+    if (FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box))
+    {
+      c.funcs->push_clip_rectangle (c.data,
+				    clip_box.bottom_left.x - font->slant_xy * clip_box.bottom_left.y,
+				    clip_box.bottom_left.y,
+				    clip_box.top_right.x - font->slant_xy * clip_box.top_right.y,
+				    clip_box.top_right.y);
+    }
+    else
+    {
+      auto *extents_funcs = hb_paint_extents_get_funcs ();
+      hb_paint_extents_context_t extents_data;
+      hb_ft_paint_context_t ce (ft_font, font,
+			        extents_funcs, &extents_data,
+			        palette, foreground);
+      ce.recurse (paint);
+      hb_extents_t extents = extents_data.get_extents ();
+      is_bounded = extents_data.is_bounded ();
+
+      c.funcs->push_clip_rectangle (c.data,
+				    extents.xmin,
+				    extents.ymin,
+				    extents.xmax,
+				    extents.ymax);
+    }
+
+    c.funcs->push_root_transform (c.data, font);
+
     if (is_bounded)
       c.recurse (paint);
 
-    paint_funcs->pop_root_transform (paint_data);
-    paint_funcs->pop_clip (paint_data);
+    c.funcs->pop_root_transform (c.data);
+    c.funcs->pop_clip (c.data);
 
     return true;
   }
