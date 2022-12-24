@@ -443,6 +443,7 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
     FT_Matrix matrix;
     FT_Get_Transform (ft_face, &matrix, nullptr);
     x_mult = sqrtf ((float)matrix.xx * matrix.xx + (float)matrix.xy * matrix.xy) / 65536.f;
+    x_mult *= font->x_scale < 0 ? -1 : +1;
   }
   else
 #endif
@@ -487,6 +488,7 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
     FT_Matrix matrix;
     FT_Get_Transform (ft_font->ft_face, &matrix, nullptr);
     y_mult = sqrtf ((float)matrix.yx * matrix.yx + (float)matrix.yy * matrix.yy) / 65536.f;
+    y_mult *= font->y_scale < 0 ? -1 : +1;
   }
   else
 #endif
@@ -525,7 +527,9 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
     FT_Matrix matrix;
     FT_Get_Transform (ft_face, &matrix, nullptr);
     x_mult = sqrtf ((float)matrix.xx * matrix.xx + (float)matrix.xy * matrix.xy) / 65536.f;
+    x_mult *= font->x_scale < 0 ? -1 : +1;
     y_mult = sqrtf ((float)matrix.yx * matrix.yx + (float)matrix.yy * matrix.yy) / 65536.f;
+    y_mult *= font->y_scale < 0 ? -1 : +1;
   }
   else
 #endif
@@ -586,7 +590,9 @@ hb_ft_get_glyph_extents (hb_font_t *font,
     FT_Matrix matrix;
     FT_Get_Transform (ft_face, &matrix, nullptr);
     x_mult = sqrtf ((float)matrix.xx * matrix.xx + (float)matrix.xy * matrix.xy) / 65536.f;
+    x_mult *= font->x_scale < 0 ? -1 : +1;
     y_mult = sqrtf ((float)matrix.yx * matrix.yx + (float)matrix.yy * matrix.yy) / 65536.f;
+    y_mult *= font->y_scale < 0 ? -1 : +1;
   }
   else
 #endif
