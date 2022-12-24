@@ -706,6 +706,7 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
     FT_Matrix matrix;
     FT_Get_Transform (ft_face, &matrix, nullptr);
     y_mult = sqrtf ((float)matrix.yx * matrix.yx + (float)matrix.yy * matrix.yy) / 65536.f;
+    y_mult *= font->y_scale < 0 ? -1 : +1;
   }
   else
 #endif
