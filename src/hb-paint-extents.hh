@@ -32,7 +32,14 @@
 
 typedef struct hb_extents_t
 {
-  float xmin, ymin, xmax, ymax;
+  hb_extents_t () {}
+  hb_extents_t (float xmin, float ymin, float xmax, float ymax) :
+    xmin (xmin), ymin (ymin), xmax (xmax), ymax (ymax) {}
+
+  float xmin = 0.f;
+  float ymin = 0.f;
+  float xmax = -1.f;
+  float ymax = -1.f;
 } hb_extents_t;
 
 typedef struct hb_transform_t
@@ -124,7 +131,7 @@ typedef struct hb_bounds_t
     status (extents.xmin <= extents.xmax ? BOUNDED : EMPTY), extents (extents) {}
 
   status_t status;
-  hb_extents_t extents = {0, 0, 0, 0};
+  hb_extents_t extents;
 } hb_bounds_t;
 
 typedef struct  hb_paint_extents_context_t hb_paint_extents_context_t;
@@ -382,7 +389,7 @@ hb_paint_extents_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
 {
   hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
 
-  hb_extents_t extents = { 0, 0, -1, -1 };
+  hb_extents_t extents;
   hb_draw_funcs_t *draw_extent_funcs = hb_draw_extent_get_funcs ();
   hb_font_draw_glyph (font, glyph, draw_extent_funcs, &extents);
   hb_draw_funcs_destroy (draw_extent_funcs);
