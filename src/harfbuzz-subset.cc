@@ -41,6 +41,7 @@
 #include "hb-ot-shaper-vowel-constraints.cc"
 #include "hb-ot-tag.cc"
 #include "hb-ot-var.cc"
+#include "hb-paint-extents.cc"
 #include "hb-paint.cc"
 #include "hb-set.cc"
 #include "hb-shape-plan.cc"

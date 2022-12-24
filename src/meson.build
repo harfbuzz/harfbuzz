@@ -46,6 +46,7 @@ hb_base_sources = files(
   'hb-draw.hh',
   'hb-paint.cc',
   'hb-paint.hh',
+  'hb-paint-extents.cc',
   'hb-paint-extents.hh',
   'hb-face.cc',
   'hb-face.hh',

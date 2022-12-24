@@ -91,6 +91,7 @@ HB_BASE_sources = \
 	hb-ot-layout-gpos-table.hh \
 	hb-paint.cc \
 	hb-paint.hh \
+	hb-paint-extents.cc \
 	hb-paint-extents.hh \
 	hb-ot-layout-gsub-table.hh \
 	OT/glyf/glyf.hh \
