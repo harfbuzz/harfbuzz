@@ -159,9 +159,9 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
   {
 #ifdef HAVE_FT_GET_TRANSFORM
     /* Bitmap font, eg. bitmap color emoji. */
-    /* TODO Pick largest size? */
-    int x_scale  = ft_face->available_sizes[0].x_ppem;
-    int y_scale = ft_face->available_sizes[0].y_ppem;
+    /* Pick largest size? */
+    int x_scale  = ft_face->available_sizes[ft_face->num_fixed_sizes - 1].x_ppem;
+    int y_scale = ft_face->available_sizes[ft_face->num_fixed_sizes - 1].y_ppem;
     FT_Set_Char_Size (ft_face,
 		      x_scale, y_scale,
 		      0, 0);
