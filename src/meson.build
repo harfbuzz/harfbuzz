@@ -577,6 +577,25 @@ libharfbuzz_subset_dep = declare_dependency(
   dependencies: [m_dep])
 meson.override_dependency('harfbuzz-subset', libharfbuzz_subset_dep)
 
+hb_cairo_sources = [
+  'hb-cairo.c',
+  'hb-cairo-utils.c'
+]
+
+cairo_dep = dependency('cairo')
+
+libharfbuzz_cairo = library('harfbuzz-cairo', hb_cairo_sources,
+  include_directories: incconfig,
+  dependencies: [m_dep, cairo_dep],
+  link_with: [libharfbuzz],
+  cpp_args: cpp_args + extra_hb_cpp_args,
+  soversion: hb_so_version,
+  version: version,
+  install: true,
+  darwin_versions: darwin_versions,
+  link_language: 'c',
+)
+
 if get_option('tests').enabled()
   # TODO: MSVC gives the following,
   # error LNK2019: unresolved external symbol "unsigned __int64 const * const _hb_NullPool"
