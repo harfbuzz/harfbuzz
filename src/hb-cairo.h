@@ -39,6 +39,18 @@ hb_cairo_font_face_create (hb_font_t *font);
 HB_EXTERN hb_font_t *
 hb_cairo_font_face_get_font (cairo_font_face_t *font_face);
 
+HB_EXTERN void
+hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
+			     const char *text,
+			     int text_len,
+			     hb_bool_t utf8_clusters,
+			     int scale_factor,
+			     cairo_glyph_t **glyphs,
+			     unsigned int *num_glyphs,
+			     cairo_text_cluster_t **clusters,
+			     unsigned int *num_clusters,
+			     cairo_text_cluster_flags_t *cluster_flags);
+
 HB_END_DECLS
 
 #endif /* HB_CAIRO_H */
