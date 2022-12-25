@@ -386,47 +386,25 @@ user_font_face_create (hb_font_t *font)
   return cairo_face;
 }
 
-cairo_scaled_font_t *
-hb_cairo_scaled_font_create (hb_font_t    *font,
-                             unsigned int  palette)
+cairo_font_face_t *
+hb_cairo_font_face_create (hb_face_t    *face)
 {
   cairo_font_face_t *cairo_face;
-  cairo_matrix_t ctm, font_matrix;
-  int x_scale, y_scale;
-  cairo_font_options_t *font_options;
-  cairo_scaled_font_t *scaled_font;
+
+  hb_font_t *font = hb_font_create (face);
 
   cairo_face = user_font_face_create (font);
 
-  hb_font_get_scale (font, &x_scale, &y_scale);
-  cairo_matrix_init_identity (&ctm);
-  cairo_matrix_init_scale (&font_matrix, x_scale, y_scale);
+  hb_font_destroy (font);
 
-  font_options = cairo_font_options_create ();
-  cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
-  cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
-#ifdef CAIRO_COLOR_PALETTE_DEFAULT
-  cairo_font_options_set_color_palette (font_options, palette);
-#endif
-
-  scaled_font = cairo_scaled_font_create (cairo_face,
-                                          &font_matrix,
-                                          &ctm,
-                                          font_options);
-
-  cairo_font_options_destroy (font_options);
-  cairo_font_face_destroy (cairo_face);
-
-  return scaled_font;
+  return cairo_face;
 }
 
-hb_font_t *
-hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
+hb_face_t *
+hb_cairo_font_face_get_face (cairo_font_face_t *font_face)
 {
-  cairo_font_face_t *font_face;
-
-  font_face = cairo_scaled_font_get_font_face (scaled_font);
-
-  return (hb_font_t *) cairo_font_face_get_user_data (font_face, &hb_cairo_font_user_data_key);
-
+  hb_font_t *font = cairo_font_face_get_user_data (font_face, &hb_cairo_font_user_data_key);
+  if (!font)
+    return NULL;
+  return hb_font_get_face (font);
 }

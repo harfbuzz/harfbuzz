@@ -97,16 +97,14 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   use_hb_draw = helper_cairo_use_hb_draw (font_opts);
 #endif
 
-  if (use_hb_draw)
-  {
-    hb_font_set_scale (font, font_opts->font_size_x, font_opts->font_size_y);
-    hb_font_set_synthetic_slant (font, font_opts->slant);
-    return hb_cairo_scaled_font_create (font, font_opts->palette);
-  }
 
-#ifdef HAVE_CAIRO_FT
   cairo_font_face_t *cairo_face;
-  cairo_face = helper_cairo_create_ft_font_face (font_opts);
+  if (use_hb_draw)
+    cairo_face = hb_cairo_font_face_create (hb_font_get_face (font));
+#ifdef HAVE_CAIRO_FT
+  else
+    cairo_face = helper_cairo_create_ft_font_face (font_opts);
+#endif
 
   cairo_matrix_t ctm, font_matrix;
   cairo_font_options_t *font_options;
@@ -135,23 +133,22 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   static cairo_user_data_key_t key;
   if (cairo_scaled_font_set_user_data (scaled_font,
 				       &key,
-				       (void *) font,
+				       (void *) hb_font_reference (font),
 				       (cairo_destroy_func_t) hb_font_destroy))
     hb_font_destroy (font);
 
   return scaled_font;
-#endif
 }
 
 static inline bool
 helper_cairo_scaled_font_has_color (cairo_scaled_font_t *scaled_font)
 {
+  hb_face_t *face = hb_cairo_font_face_get_face (cairo_scaled_font_get_font_face (scaled_font));
+
 #ifdef HAVE_CAIRO_FT
-  if (!hb_cairo_scaled_font_get_font (scaled_font))
+  if (!face)
     return helper_cairo_ft_scaled_font_has_color (scaled_font);
 #endif
-  hb_font_t *font = hb_cairo_scaled_font_get_font (scaled_font);
-  hb_face_t *face = hb_font_get_face (font);
 
   return hb_ot_color_has_png (face) ||
          hb_ot_color_has_layers (face) ||
