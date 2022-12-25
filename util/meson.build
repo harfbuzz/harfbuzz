@@ -1,6 +1,5 @@
 hb_view_sources = [
   'hb-view.cc',
-  'hb-cairo-utils.c'
 ]
 
 hb_shape_sources = [
@@ -23,7 +22,7 @@ if conf.get('HAVE_GLIB', 0) == 1
       cpp_args: cpp_args,
       include_directories: [incconfig, incsrc],
       dependencies: [util_deps, chafa_dep],
-      link_with: [libharfbuzz],
+      link_with: [libharfbuzz, libharfbuzz_cairo],
       install: true,
     )
     meson.override_find_program('hb-view', hb_view)
