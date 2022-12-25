@@ -364,13 +364,12 @@ render_color_glyph (cairo_scaled_font_t  *scaled_font,
 static cairo_font_face_t *
 user_font_face_create (hb_font_t *font)
 {
-  hb_face_t *face;
   cairo_font_face_t *cairo_face;
 
   cairo_face = cairo_user_font_face_create ();
   cairo_user_font_face_set_render_glyph_func (cairo_face, render_glyph);
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
-  face = hb_font_get_face (font);
+  hb_face_t *face = hb_font_get_face (font);
   if (hb_ot_color_has_png (face) || hb_ot_color_has_layers (face) || hb_ot_color_has_paint (face))
     cairo_user_font_face_set_render_color_glyph_func (cairo_face, render_color_glyph);
 #endif
