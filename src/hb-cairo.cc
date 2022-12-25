@@ -24,14 +24,11 @@
  * Red Hat Author(s): Matthias Clasen
  */
 
-#include "config.h"
-
-#include <stddef.h>
-
-#include "hb-ot.h"
+#include "hb.hh"
 
 #include "hb-cairo.h"
-#include "hb-cairo-utils.h"
+
+#include "hb-cairo-utils.hh"
 
 static void
 move_to (hb_draw_funcs_t *dfuncs,
@@ -397,5 +394,5 @@ hb_cairo_font_face_create (hb_font_t *font)
 hb_font_t *
 hb_cairo_font_face_get_font (cairo_font_face_t *font_face)
 {
-  return cairo_font_face_get_user_data (font_face, &hb_cairo_font_user_data_key);
+  return (hb_font_t *) cairo_font_face_get_user_data (font_face, &hb_cairo_font_user_data_key);
 }

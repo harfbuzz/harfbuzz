@@ -578,8 +578,8 @@ libharfbuzz_subset_dep = declare_dependency(
 meson.override_dependency('harfbuzz-subset', libharfbuzz_subset_dep)
 
 hb_cairo_sources = [
-  'hb-cairo.c',
-  'hb-cairo-utils.c'
+  'hb-cairo.cc',
+  'hb-cairo-utils.cc'
 ]
 
 cairo_dep = dependency('cairo')
