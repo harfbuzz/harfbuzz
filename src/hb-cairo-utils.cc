@@ -39,7 +39,7 @@ typedef struct {
 } color_t;
 
 static inline cairo_extend_t
-cairo_extend (hb_paint_extend_t extend)
+hb_cairo_extend (hb_paint_extend_t extend)
 {
   switch (extend)
     {
@@ -299,7 +299,7 @@ hb_cairo_paint_linear_gradient (cairo_t *cr,
   yyy1 = yy0 + max * (yy1 - yy0);
 
   pattern = cairo_pattern_create_linear (xxx0, yyy0, xxx1, yyy1);
-  cairo_pattern_set_extend (pattern, cairo_extend (hb_color_line_get_extend (color_line)));
+  cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
   for (unsigned int i = 0; i < len; i++)
     {
       double r, g, b, a;
@@ -348,7 +348,7 @@ hb_cairo_paint_radial_gradient (cairo_t *cr,
   rr1 = r0 + max * (r1 - r0);
 
   pattern = cairo_pattern_create_radial (xx0, yy0, rr0, xx1, yy1, rr1);
-  cairo_pattern_set_extend (pattern, cairo_extend (hb_color_line_get_extend (color_line)));
+  cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
 
   for (unsigned int i = 0; i < len; i++)
     {
@@ -813,7 +813,7 @@ hb_cairo_paint_sweep_gradient (cairo_t *cr,
   max_y = (float) hb_max ((y1 - (double) cy) * (y1 - (double) cy), (y2 - (double) cy) * (y2 - (double) cy));
   radius = sqrt (max_x + max_y);
 
-  extend = cairo_extend (hb_color_line_get_extend (color_line));
+  extend = hb_cairo_extend (hb_color_line_get_extend (color_line));
   pattern = cairo_pattern_create_mesh ();
 
   add_sweep_gradient_patches (stops, len, extend, cx, cy,
