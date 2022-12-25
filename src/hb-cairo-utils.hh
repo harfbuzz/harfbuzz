@@ -24,12 +24,12 @@
  * Google Author(s): Matthias Clasen
  */
 
-#pragma once
+#ifndef HB_CAIRO_UTILS_H
+#define HB_CAIRO_UTILS_H
 
-#include <hb.h>
-#include <cairo.h>
+#include "hb.hh"
+#include "hb-cairo.h"
 
-HB_BEGIN_DECLS
 
 static inline cairo_operator_t
 hb_paint_composite_mode_to_cairo (hb_paint_composite_mode_t mode)
@@ -94,4 +94,5 @@ void hb_cairo_paint_sweep_gradient (cairo_t *cr,
                                     float x0, float y0,
                                     float start_angle, float end_angle);
 
-HB_END_DECLS
+
+#endif /* HB_CAIRO_UTILS_H */

@@ -28,6 +28,7 @@
 #define HB_CAIRO_H
 
 #include "hb.h"
+
 #include <cairo.h>
 
 HB_BEGIN_DECLS
