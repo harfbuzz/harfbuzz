@@ -46,7 +46,7 @@ hb_cairo_extend (hb_paint_extend_t extend)
     case HB_PAINT_EXTEND_PAD: return CAIRO_EXTEND_PAD;
     case HB_PAINT_EXTEND_REPEAT: return CAIRO_EXTEND_REPEAT;
     case HB_PAINT_EXTEND_REFLECT: return CAIRO_EXTEND_REFLECT;
-    default:;
+    default: break;
     }
 
   return CAIRO_EXTEND_PAD;
