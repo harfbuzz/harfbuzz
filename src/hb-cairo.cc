@@ -84,10 +84,10 @@ get_cairo_draw_funcs (void)
   if (!funcs)
   {
     funcs = hb_draw_funcs_create ();
-    hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) move_to, NULL, NULL);
-    hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) line_to, NULL, NULL);
-    hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) cubic_to, NULL, NULL);
-    hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) close_path, NULL, NULL);
+    hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) line_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) cubic_to, nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) close_path, nullptr, nullptr);
   }
 
   return funcs;
@@ -272,18 +272,18 @@ get_cairo_paint_funcs ()
   {
     funcs = hb_paint_funcs_create ();
 
-    hb_paint_funcs_set_push_transform_func (funcs, push_transform, NULL, NULL);
-    hb_paint_funcs_set_pop_transform_func (funcs, pop_transform, NULL, NULL);
-    hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph, NULL, NULL);
-    hb_paint_funcs_set_push_clip_rectangle_func (funcs, push_clip_rectangle, NULL, NULL);
-    hb_paint_funcs_set_pop_clip_func (funcs, pop_clip, NULL, NULL);
-    hb_paint_funcs_set_push_group_func (funcs, push_group, NULL, NULL);
-    hb_paint_funcs_set_pop_group_func (funcs, pop_group, NULL, NULL);
-    hb_paint_funcs_set_color_func (funcs, paint_color, NULL, NULL);
-    hb_paint_funcs_set_image_func (funcs, paint_image, NULL, NULL);
-    hb_paint_funcs_set_linear_gradient_func (funcs, paint_linear_gradient, NULL, NULL);
-    hb_paint_funcs_set_radial_gradient_func (funcs, paint_radial_gradient, NULL, NULL);
-    hb_paint_funcs_set_sweep_gradient_func (funcs, paint_sweep_gradient, NULL, NULL);
+    hb_paint_funcs_set_push_transform_func (funcs, push_transform, nullptr, nullptr);
+    hb_paint_funcs_set_pop_transform_func (funcs, pop_transform, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_rectangle_func (funcs, push_clip_rectangle, nullptr, nullptr);
+    hb_paint_funcs_set_pop_clip_func (funcs, pop_clip, nullptr, nullptr);
+    hb_paint_funcs_set_push_group_func (funcs, push_group, nullptr, nullptr);
+    hb_paint_funcs_set_pop_group_func (funcs, pop_group, nullptr, nullptr);
+    hb_paint_funcs_set_color_func (funcs, paint_color, nullptr, nullptr);
+    hb_paint_funcs_set_image_func (funcs, paint_image, nullptr, nullptr);
+    hb_paint_funcs_set_linear_gradient_func (funcs, paint_linear_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_radial_gradient_func (funcs, paint_radial_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_sweep_gradient_func (funcs, paint_sweep_gradient, nullptr, nullptr);
   }
 
   return funcs;
