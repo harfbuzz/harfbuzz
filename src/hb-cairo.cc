@@ -33,34 +33,40 @@
 #include "hb-utf.hh"
 
 static void
-move_to (hb_draw_funcs_t *dfuncs,
-         cairo_t *cr,
-         hb_draw_state_t *st,
-         float to_x, float to_y,
-         void *)
+hb_cairo_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+		  void *draw_data,
+		  hb_draw_state_t *st HB_UNUSED,
+		  float to_x, float to_y,
+		  void *user_data HB_UNUSED)
 {
+  cairo_t *cr = (cairo_t *) draw_data;
+
   cairo_move_to (cr, (double) to_x, (double) to_y);
 }
 
 static void
-line_to (hb_draw_funcs_t *dfuncs,
-         cairo_t *cr,
-         hb_draw_state_t *st,
-         float to_x, float to_y,
-         void *)
+hb_cairo_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+		  void *draw_data,
+		  hb_draw_state_t *st HB_UNUSED,
+		  float to_x, float to_y,
+		  void *user_data HB_UNUSED)
 {
+  cairo_t *cr = (cairo_t *) draw_data;
+
   cairo_line_to (cr, (double) to_x, (double) to_y);
 }
 
 static void
-cubic_to (hb_draw_funcs_t *dfuncs,
-          cairo_t *cr,
-          hb_draw_state_t *st,
-          float control1_x, float control1_y,
-          float control2_x, float control2_y,
-          float to_x, float to_y,
-          void *)
+hb_cairo_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+		   void *draw_data,
+		   hb_draw_state_t *st HB_UNUSED,
+		   float control1_x, float control1_y,
+		   float control2_x, float control2_y,
+		   float to_x, float to_y,
+		   void *user_data HB_UNUSED)
 {
+  cairo_t *cr = (cairo_t *) draw_data;
+
   cairo_curve_to (cr,
                   (double) control1_x, (double) control1_y,
                   (double) control2_x, (double) control2_y,
@@ -68,11 +74,13 @@ cubic_to (hb_draw_funcs_t *dfuncs,
 }
 
 static void
-close_path (hb_draw_funcs_t *dfuncs,
-            cairo_t *cr,
-            hb_draw_state_t *st,
-            void *)
+hb_cairo_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
+		     void *draw_data,
+		     hb_draw_state_t *st HB_UNUSED,
+		     void *user_data HB_UNUSED)
 {
+  cairo_t *cr = (cairo_t *) draw_data;
+
   cairo_close_path (cr);
 }
 
@@ -84,10 +92,10 @@ get_cairo_draw_funcs (void)
   if (!funcs)
   {
     funcs = hb_draw_funcs_create ();
-    hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) move_to, nullptr, nullptr);
-    hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) line_to, nullptr, nullptr);
-    hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) cubic_to, nullptr, nullptr);
-    hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) close_path, nullptr, nullptr);
+    hb_draw_funcs_set_move_to_func (funcs, hb_cairo_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, hb_cairo_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (funcs, hb_cairo_cubic_to, nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func (funcs, hb_cairo_close_path, nullptr, nullptr);
   }
 
   return funcs;
@@ -96,14 +104,14 @@ get_cairo_draw_funcs (void)
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
 
 static void
-push_transform (hb_paint_funcs_t *funcs,
-                void *paint_data,
-                float xx, float yx,
-                float xy, float yy,
-                float dx, float dy,
-                void *user_data)
+hb_cairo_push_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
+			 void *paint_data,
+			 float xx, float yx,
+			 float xy, float yy,
+			 float dx, float dy,
+			 void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
   cairo_matrix_t m;
 
   cairo_save (cr);
@@ -114,23 +122,23 @@ push_transform (hb_paint_funcs_t *funcs,
 }
 
 static void
-pop_transform (hb_paint_funcs_t *funcs,
-               void *paint_data,
-               void *user_data)
+hb_cairo_pop_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
+		        void *paint_data,
+		        void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
 
   cairo_restore (cr);
 }
 
 static void
-push_clip_glyph (hb_paint_funcs_t *funcs,
-                 void *paint_data,
-                 hb_codepoint_t glyph,
-                 hb_font_t *font,
-                 void *user_data)
+hb_cairo_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
+			  void *paint_data,
+			  hb_codepoint_t glyph,
+			  hb_font_t *font,
+			  void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
 
   cairo_save (cr);
   cairo_new_path (cr);
@@ -140,12 +148,12 @@ push_clip_glyph (hb_paint_funcs_t *funcs,
 }
 
 static void
-push_clip_rectangle (hb_paint_funcs_t *funcs,
-                     void *paint_data,
-                     float xmin, float ymin, float xmax, float ymax,
-                     void *user_data)
+hb_cairo_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
+			      void *paint_data,
+			      float xmin, float ymin, float xmax, float ymax,
+			      void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
 
   cairo_save (cr);
   cairo_rectangle (cr,
@@ -155,33 +163,33 @@ push_clip_rectangle (hb_paint_funcs_t *funcs,
 }
 
 static void
-pop_clip (hb_paint_funcs_t *funcs,
-          void *paint_data,
-          void *user_data)
+hb_cairo_pop_clip (hb_paint_funcs_t *pfuncs HB_UNUSED,
+		   void *paint_data,
+		   void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
 
   cairo_restore (cr);
 }
 
 static void
-push_group (hb_paint_funcs_t *funcs,
-            void *paint_data,
-            void *user_data)
+hb_cairo_push_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
+		     void *paint_data,
+		     void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
 
   cairo_save (cr);
   cairo_push_group (cr);
 }
 
 static void
-pop_group (hb_paint_funcs_t *funcs,
-           void *paint_data,
-           hb_paint_composite_mode_t mode,
-           void *user_data)
+hb_cairo_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
+		    void *paint_data,
+		    hb_paint_composite_mode_t mode,
+		    void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
 
   cairo_pop_group_to_source (cr);
   cairo_set_operator (cr, hb_paint_composite_mode_to_cairo (mode));
@@ -191,13 +199,13 @@ pop_group (hb_paint_funcs_t *funcs,
 }
 
 static void
-paint_color (hb_paint_funcs_t *funcs,
-             void *paint_data,
-             hb_bool_t use_foreground,
-             hb_color_t color,
-             void *user_data)
+hb_cairo_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
+		      void *paint_data,
+		      hb_bool_t use_foreground,
+		      hb_color_t color,
+		      void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
 
   cairo_set_source_rgba (cr,
                          hb_color_get_red (color) / 255.,
@@ -208,29 +216,29 @@ paint_color (hb_paint_funcs_t *funcs,
 }
 
 static hb_bool_t
-paint_image (hb_paint_funcs_t *funcs,
-             void *paint_data,
-             hb_blob_t *blob,
-             unsigned width,
-             unsigned height,
-             hb_tag_t format,
-             float slant,
-             hb_glyph_extents_t *extents,
-             void *user_data)
+hb_cairo_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
+		      void *paint_data,
+		      hb_blob_t *blob,
+		      unsigned width,
+		      unsigned height,
+		      hb_tag_t format,
+		      float slant,
+		      hb_glyph_extents_t *extents,
+		      void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
 
   return hb_cairo_paint_glyph_image (cr, blob, width, height, format, slant, extents);
 }
 
 static void
-paint_linear_gradient (hb_paint_funcs_t *funcs,
-                       void *paint_data,
-                       hb_color_line_t *color_line,
-                       float x0, float y0,
-                       float x1, float y1,
-                       float x2, float y2,
-                       void *user_data)
+hb_cairo_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
+				void *paint_data,
+				hb_color_line_t *color_line,
+				float x0, float y0,
+				float x1, float y1,
+				float x2, float y2,
+				void *user_data HB_UNUSED)
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
@@ -238,12 +246,12 @@ paint_linear_gradient (hb_paint_funcs_t *funcs,
 }
 
 static void
-paint_radial_gradient (hb_paint_funcs_t *funcs,
-                       void *paint_data,
-                       hb_color_line_t *color_line,
-                       float x0, float y0, float r0,
-                       float x1, float y1, float r1,
-                       void *user_data)
+hb_cairo_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
+				void *paint_data,
+				hb_color_line_t *color_line,
+				float x0, float y0, float r0,
+				float x1, float y1, float r1,
+				void *user_data HB_UNUSED)
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
@@ -251,14 +259,14 @@ paint_radial_gradient (hb_paint_funcs_t *funcs,
 }
 
 static void
-paint_sweep_gradient (hb_paint_funcs_t *funcs,
-                      void *paint_data,
-                      hb_color_line_t *color_line,
-                      float x0, float y0,
-                      float start_angle, float end_angle,
-                      void *user_data)
+hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
+			       void *paint_data,
+			       hb_color_line_t *color_line,
+			       float x0, float y0,
+			       float start_angle, float end_angle,
+			       void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  cairo_t *cr = (cairo_t *) paint_data;
 
   hb_cairo_paint_sweep_gradient (cr, color_line, x0, y0, start_angle, end_angle);
 }
@@ -272,18 +280,18 @@ get_cairo_paint_funcs ()
   {
     funcs = hb_paint_funcs_create ();
 
-    hb_paint_funcs_set_push_transform_func (funcs, push_transform, nullptr, nullptr);
-    hb_paint_funcs_set_pop_transform_func (funcs, pop_transform, nullptr, nullptr);
-    hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph, nullptr, nullptr);
-    hb_paint_funcs_set_push_clip_rectangle_func (funcs, push_clip_rectangle, nullptr, nullptr);
-    hb_paint_funcs_set_pop_clip_func (funcs, pop_clip, nullptr, nullptr);
-    hb_paint_funcs_set_push_group_func (funcs, push_group, nullptr, nullptr);
-    hb_paint_funcs_set_pop_group_func (funcs, pop_group, nullptr, nullptr);
-    hb_paint_funcs_set_color_func (funcs, paint_color, nullptr, nullptr);
-    hb_paint_funcs_set_image_func (funcs, paint_image, nullptr, nullptr);
-    hb_paint_funcs_set_linear_gradient_func (funcs, paint_linear_gradient, nullptr, nullptr);
-    hb_paint_funcs_set_radial_gradient_func (funcs, paint_radial_gradient, nullptr, nullptr);
-    hb_paint_funcs_set_sweep_gradient_func (funcs, paint_sweep_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_push_transform_func (funcs, hb_cairo_push_transform, nullptr, nullptr);
+    hb_paint_funcs_set_pop_transform_func (funcs, hb_cairo_pop_transform, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_glyph_func (funcs, hb_cairo_push_clip_glyph, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_rectangle_func (funcs, hb_cairo_push_clip_rectangle, nullptr, nullptr);
+    hb_paint_funcs_set_pop_clip_func (funcs, hb_cairo_pop_clip, nullptr, nullptr);
+    hb_paint_funcs_set_push_group_func (funcs, hb_cairo_push_group, nullptr, nullptr);
+    hb_paint_funcs_set_pop_group_func (funcs, hb_cairo_pop_group, nullptr, nullptr);
+    hb_paint_funcs_set_color_func (funcs, hb_cairo_paint_color, nullptr, nullptr);
+    hb_paint_funcs_set_image_func (funcs, hb_cairo_paint_image, nullptr, nullptr);
+    hb_paint_funcs_set_linear_gradient_func (funcs, hb_cairo_paint_linear_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_radial_gradient_func (funcs, hb_cairo_paint_radial_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_sweep_gradient_func (funcs, hb_cairo_paint_sweep_gradient, nullptr, nullptr);
   }
 
   return funcs;
