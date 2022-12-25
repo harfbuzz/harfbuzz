@@ -387,24 +387,15 @@ user_font_face_create (hb_font_t *font)
 }
 
 cairo_font_face_t *
-hb_cairo_font_face_create (hb_face_t    *face)
+hb_cairo_font_face_create (hb_font_t *font)
 {
-  cairo_font_face_t *cairo_face;
+  hb_font_make_immutable (font);
 
-  hb_font_t *font = hb_font_create (face);
-
-  cairo_face = user_font_face_create (font);
-
-  hb_font_destroy (font);
-
-  return cairo_face;
+  return user_font_face_create (font);
 }
 
-hb_face_t *
-hb_cairo_font_face_get_face (cairo_font_face_t *font_face)
+hb_font_t *
+hb_cairo_font_face_get_font (cairo_font_face_t *font_face)
 {
-  hb_font_t *font = cairo_font_face_get_user_data (font_face, &hb_cairo_font_user_data_key);
-  if (!font)
-    return NULL;
-  return hb_font_get_face (font);
+  return cairo_font_face_get_user_data (font_face, &hb_cairo_font_user_data_key);
 }
