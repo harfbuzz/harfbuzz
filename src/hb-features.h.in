@@ -84,6 +84,13 @@ HB_BEGIN_DECLS
  */
 #mesondefine HB_HAS_ICU
 
+/**
+ * HB_HAS_CAIRO:
+ *
+ * Defined if Harfbuzz has been built with cairo support.
+ */
+#mesondefine HB_HAS_CAIRO
+
 
 HB_END_DECLS
 
