@@ -595,7 +595,7 @@ hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
  * @text: (nullable): the text that was shaped in @buffer
  * @text_len: the length of @text in bytes
  * @utf8_clusters: `true` to provide cluster positions in bytes, instead of characters
- * @scale_factor: scale factor to scale positions by
+ * @scale_factor: scale factor to divide hb_positions_t values by
  * @glyphs: return location for an array of `cairo_glyph_t`
  * @num_glyphs: return location for the length of @glyphs
  * @clusters: return location for an array of cluster positions
@@ -612,7 +612,7 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 			     const char *text,
 			     int text_len,
 			     hb_bool_t utf8_clusters,
-			     int scale_factor,
+			     double scale_factor,
 			     cairo_glyph_t **glyphs,
 			     unsigned int *num_glyphs,
 			     cairo_text_cluster_t **clusters,
