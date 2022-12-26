@@ -55,6 +55,7 @@ hb_base_sources = files(
   'hb-font.hh',
   'hb-iter.hh',
   'hb-kern.hh',
+  'hb-limits.hh',
   'hb-machinery.hh',
   'hb-map.cc',
   'hb-map.hh',

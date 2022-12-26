@@ -18,11 +18,6 @@ struct glyf_accelerator_t;
 namespace glyf_impl {
 
 
-#ifndef HB_GLYF_MAX_POINTS
-#define HB_GLYF_MAX_POINTS 10000
-#endif
-
-
 enum phantom_point_index_t
 {
   PHANTOM_LEFT   = 0,

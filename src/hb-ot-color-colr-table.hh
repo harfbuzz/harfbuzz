@@ -41,14 +41,6 @@
  */
 #define HB_OT_TAG_COLR HB_TAG('C','O','L','R')
 
-#ifndef HB_COLRV1_MAX_NESTING_LEVEL
-#define HB_COLRV1_MAX_NESTING_LEVEL	128
-#endif
-
-#ifndef HB_COLRV1_MAX_EDGE_COUNT
-#define HB_COLRV1_MAX_EDGE_COUNT	1024
-#endif
-
 
 namespace OT {
 struct hb_paint_context_t;
@@ -78,7 +70,7 @@ public:
   unsigned int palette;
   hb_color_t foreground;
   VarStoreInstancer &instancer;
-  int depth_left = HB_COLRV1_MAX_NESTING_LEVEL;
+  int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
 
   hb_paint_context_t (const void *base_,
@@ -174,7 +166,7 @@ struct hb_colrv1_closure_context_t :
                                hb_set_t *glyphs_,
                                hb_set_t *layer_indices_,
                                hb_set_t *palette_indices_,
-                               unsigned nesting_level_left_ = HB_COLRV1_MAX_NESTING_LEVEL) :
+                               unsigned nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
                           base (base_),
                           glyphs (glyphs_),
                           layer_indices (layer_indices_),
@@ -1524,7 +1516,7 @@ struct Paint
   {
     TRACE_SANITIZE (this);
 
-    if (unlikely (!c->check_start_recursion (HB_COLRV1_MAX_NESTING_LEVEL)))
+    if (unlikely (!c->check_start_recursion (HB_MAX_NESTING_LEVEL)))
       return_trace (c->no_dispatch_return_value ());
 
     return_trace (c->end_recursion (this->dispatch (c, std::forward<Ts> (ds)...)));

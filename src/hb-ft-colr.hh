@@ -35,13 +35,6 @@
 
 #ifdef TT_SUPPORT_COLRV1
 
-#ifndef HB_COLRV1_MAX_NESTING_LEVEL
-#define HB_COLRV1_MAX_NESTING_LEVEL     128
-#endif
-
-#ifndef HB_COLRV1_MAX_EDGE_COUNT
-#define HB_COLRV1_MAX_EDGE_COUNT        1024
-#endif
 
 static hb_paint_composite_mode_t
 _hb_ft_paint_composite_mode (FT_Composite_Mode mode)
@@ -115,7 +108,7 @@ struct hb_ft_paint_context_t
   void *data;
   FT_Color *palette;
   hb_color_t foreground;
-  int depth_left = HB_COLRV1_MAX_NESTING_LEVEL;
+  int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
 };
 

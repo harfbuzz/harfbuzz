@@ -44,42 +44,6 @@ using OT::Layout::Common::RangeRecord;
 using OT::Layout::SmallTypes;
 using OT::Layout::MediumTypes;
 
-#ifndef HB_MAX_NESTING_LEVEL
-#define HB_MAX_NESTING_LEVEL	64
-#endif
-#ifndef HB_MAX_CONTEXT_LENGTH
-#define HB_MAX_CONTEXT_LENGTH	64
-#endif
-#ifndef HB_CLOSURE_MAX_STAGES
-/*
- * The maximum number of times a lookup can be applied during shaping.
- * Used to limit the number of iterations of the closure algorithm.
- * This must be larger than the number of times add_gsub_pause() is
- * called in a collect_features call of any shaper.
- */
-#define HB_CLOSURE_MAX_STAGES	12
-#endif
-
-#ifndef HB_MAX_SCRIPTS
-#define HB_MAX_SCRIPTS	500
-#endif
-
-#ifndef HB_MAX_LANGSYS
-#define HB_MAX_LANGSYS	2000
-#endif
-
-#ifndef HB_MAX_LANGSYS_FEATURE_COUNT
-#define HB_MAX_LANGSYS_FEATURE_COUNT 50000
-#endif
-
-#ifndef HB_MAX_FEATURE_INDICES
-#define HB_MAX_FEATURE_INDICES	1500
-#endif
-
-#ifndef HB_MAX_LOOKUP_VISIT_COUNT
-#define HB_MAX_LOOKUP_VISIT_COUNT	35000
-#endif
-
 
 namespace OT {
 
