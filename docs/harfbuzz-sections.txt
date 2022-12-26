@@ -544,6 +544,7 @@ hb_ot_color_glyph_reference_png
 hb_ot_color_glyph_reference_svg
 hb_ot_color_has_layers
 hb_ot_color_has_paint
+hb_ot_color_glyph_has_paint
 hb_ot_color_has_palettes
 hb_ot_color_has_png
 hb_ot_color_has_svg
