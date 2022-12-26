@@ -675,7 +675,7 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * @buffer: a `hb_buffer_t` containing glyphs
  * @text: (nullable): the text that was shaped in @buffer
  * @text_len: the length of @text in bytes
- * @utf8_clusters: `true` to provide cluster positions in bytes, instead of characters
+ * @utf8_clusters: `true` to if @buffer clusters are in bytes, instead of characters
  * @scale_factor: scale factor to divide hb_positions_t values by
  * @glyphs: return location for an array of `cairo_glyph_t`
  * @num_glyphs: return location for the length of @glyphs
