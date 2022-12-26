@@ -49,6 +49,13 @@ HB_EXTERN hb_font_t *
 hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font);
 
 HB_EXTERN void
+hb_cairo_font_face_set_scale_factor (cairo_font_face_t *font_face,
+				     unsigned int scale_factor);
+
+HB_EXTERN unsigned int
+hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face);
+
+HB_EXTERN void
 hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 			     const char *text,
 			     int text_len,

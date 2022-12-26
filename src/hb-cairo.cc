@@ -353,6 +353,7 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
 
 static const cairo_user_data_key_t hb_cairo_face_user_data_key = {0};
 static const cairo_user_data_key_t hb_cairo_font_user_data_key = {0};
+static const cairo_user_data_key_t hb_cairo_scale_factor_user_data_key = {0};
 
 static void hb_cairo_face_destroy (void *p) { hb_face_destroy ((hb_face_t *) p); }
 static void hb_cairo_font_destroy (void *p) { hb_font_destroy ((hb_font_t *) p); }
@@ -362,12 +363,14 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
 			   cairo_t              *cr HB_UNUSED,
 			   cairo_font_extents_t *extents)
 {
-  hb_font_t *font = (hb_font_t *) cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
+  cairo_font_face_t *font_face = cairo_scaled_font_get_font_face (scaled_font);
+
+  hb_font_t *font = (hb_font_t *) cairo_font_face_get_user_data (font_face,
 								 &hb_cairo_font_user_data_key);
 
   if (!font)
   {
-    hb_face_t *face = (hb_face_t *) cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
+    hb_face_t *face = (hb_face_t *) cairo_font_face_get_user_data (font_face,
 								   &hb_cairo_face_user_data_key);
     font = hb_font_create (face);
 
@@ -390,7 +393,16 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
 
     cairo_font_options_destroy (font_options);
 
-    // TODO Set (what?) scale; Note, should NOT set slant.
+    // Set scale; Note: should NOT set slant, or we'll double-slant.
+    unsigned scale_factor = hb_cairo_font_face_get_scale_factor (font_face);
+    if (scale_factor)
+    {
+      cairo_matrix_t font_matrix;
+      cairo_scaled_font_get_scale_matrix (scaled_font, &font_matrix);
+      hb_font_set_scale (font,
+			 round (font_matrix.xx * scale_factor),
+			 round (font_matrix.yy * scale_factor));
+    }
 
     hb_font_make_immutable (font);
   }
@@ -588,6 +600,46 @@ hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
 {
   return (hb_font_t *) cairo_scaled_font_get_user_data (scaled_font, &hb_cairo_font_user_data_key);
 }
+
+
+/**
+ * hb_cairo_font_face_set_scale_factor:
+ * @font_face: a `cairo_font_face_t`
+ *
+ * Sets the scale factor of the @font_face. Default scale
+ * factor is zero.
+ *
+ * Since: REPLACEME
+ */
+void
+hb_cairo_font_face_set_scale_factor (cairo_font_face_t *font_face,
+				     unsigned int scale_factor)
+{
+  cairo_font_face_set_user_data (font_face,
+				 &hb_cairo_scale_factor_user_data_key,
+				 (void *) (uintptr_t) scale_factor,
+				 nullptr);
+}
+
+/**
+ * hb_cairo_font_face_get_scale_factor:
+ * @font_face: a `cairo_font_face_t`
+ *
+ * Gets the scale factor set on the @font_face. Defaults to zero.
+ * See hb_cairo_font_face_set_scale_factor() for details.
+ *
+ * Returns: the scale factor of @font_face
+ *
+ * Since: REPLACEME
+ */
+unsigned int
+hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
+{
+  return (unsigned int) (uintptr_t)
+	 cairo_font_face_get_user_data (font_face,
+					&hb_cairo_scale_factor_user_data_key);
+}
+
 
 /**
  * hb_cairo_glyphs_from_buffer:
