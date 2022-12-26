@@ -609,6 +609,35 @@ hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
  * Sets the scale factor of the @font_face. Default scale
  * factor is zero.
  *
+ * When a #cairo_font_face_t is created from a #hb_face_t using
+ * hb_cairo_font_face_create_for_face(), such face will create
+ * #hb_font_t objects during scaled-font creation.  The scale
+ * factor defines how the scale set on such #hb_font_t objects
+ * relates to the font-matrix (as such font size) of the cairo
+ * scaled-font.
+ *
+ * If the scale-factor is zero (default), then the scale of the
+ * #hb_font_t object will be left at default, which is the UPEM
+ * value of the respective #hb_face_t.
+ *
+ * If the scale-factor is set to non-zero, then the X and Y scale
+ * of the #hb_font_t object will be respectively set to the
+ * @scale_factor times the xx and yy elements of the scale-matrix
+ * of the cairo scaled-font being created.
+ *
+ * When using the hb_cairo_glyphs_from_buffer() API to convert
+ * HarfBuzz glyph buffer resulted from shaping with such a hb_font_t,
+ * if the scale-factor was non-zero, you can pass it directly to
+ * that API.  If the scale-factor was zero however, you need to
+ * calculate the correct scale-factor to pass to that API by
+ * dividing the #hb_font_t scale-factor by the cairo scaled-font's
+ * scale-matrix scale-factor. This assumes a uniform scale.
+ *
+ * If the cairo-face was created using the alternative constructor
+ * hb_cairo_font_face_create_for_font(), you are on your own
+ * computing the correct scale-factor to pass to
+ * hb_cairo_glyphs_from_buffer().
+ *
  * Since: REPLACEME
  */
 void
@@ -656,6 +685,9 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  *
  * Extracts information from @buffer in a form that can be
  * passed to cairo_show_text_glyphs().
+ *
+ * See hb_cairo_font_face_set_scale_factor() for the details of
+ * the @scale_factor argument.
  *
  * Since: REPLACEME
  */
