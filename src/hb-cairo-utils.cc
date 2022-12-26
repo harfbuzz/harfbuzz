@@ -253,7 +253,7 @@ _hb_cairo_normalize_color_line (hb_color_stop_t *stops,
 {
   float min, max;
 
-  qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
+  hb_qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
 
   min = max = stops[0].offset;
   for (unsigned int i = 0; i < len; i++)
@@ -808,7 +808,7 @@ hb_cairo_paint_sweep_gradient (cairo_t *cr,
     stops = (hb_color_stop_t *) malloc (len * sizeof (hb_color_stop_t));
   hb_color_line_get_color_stops (color_line, 0, &len, stops);
 
-  qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
+  hb_qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
 
   cairo_clip_extents (cr, &x1, &y1, &x2, &y2);
   max_x = (float) hb_max ((x1 - (double) cx) * (x1 - (double) cx), (x2 - (double) cx) * (x2 - (double) cx));
