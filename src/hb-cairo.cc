@@ -722,15 +722,18 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * @y: Y position to place first glyph
  * @utf8: (nullable): the text that was shaped in @buffer
  * @utf8_len: the length of @utf8 in bytes
- * @glyphs: return location for an array of `cairo_glyph_t`
- * @num_glyphs: return location for the length of @glyphs
- * @clusters: return location for an array of cluster positions
- * @num_clusters: return location for the length of @clusters
- * @cluster_flags: return location for cluster flags
+ * @glyphs: (out): return location for an array of `cairo_glyph_t`
+ * @num_glyphs: (out): return location for the length of @glyphs
+ * @clusters: (out) (nullable): return location for an array of cluster positions
+ * @num_clusters: (out) (nullable): return location for the length of @clusters
+ * @cluster_flags: (out) (nullable): return location for cluster flags
  *
  * Extracts information from @buffer in a form that can be
  * passed to cairo_show_text_glyphs() or cairo_show_glyphs().
  * This API is modeled after cairo_scaled_font_text_to_glyphs().
+ *
+ * If @utf8 is provided, then cluster fields must also be provided and
+ * they will be returned.
  *
  * See hb_cairo_font_face_set_scale_factor() for the details of
  * the @scale_factor argument.
