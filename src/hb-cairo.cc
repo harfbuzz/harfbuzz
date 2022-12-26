@@ -334,19 +334,19 @@ hb_cairo_paint_get_funcs ()
 }
 
 static cairo_status_t
-render_color_glyph (cairo_scaled_font_t  *scaled_font,
-                    unsigned long         glyph,
-                    cairo_t              *cr,
-                    cairo_text_extents_t *extents);
+hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
+			     unsigned long         glyph,
+			     cairo_t              *cr,
+			     cairo_text_extents_t *extents);
 #endif
 
 static const cairo_user_data_key_t hb_cairo_font_user_data_key = {0};
 
 static cairo_status_t
-render_glyph (cairo_scaled_font_t  *scaled_font,
-              unsigned long         glyph,
-              cairo_t              *cr,
-              cairo_text_extents_t *extents)
+hb_cairo_render_glyph (cairo_scaled_font_t  *scaled_font,
+		       unsigned long         glyph,
+		       cairo_t              *cr,
+		       cairo_text_extents_t *extents)
 {
   hb_font_t *font;
   hb_position_t x_scale, y_scale;
@@ -367,10 +367,10 @@ render_glyph (cairo_scaled_font_t  *scaled_font,
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
 
 static cairo_status_t
-render_color_glyph (cairo_scaled_font_t  *scaled_font,
-                    unsigned long         glyph,
-                    cairo_t              *cr,
-                    cairo_text_extents_t *extents)
+hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
+			     unsigned long         glyph,
+			     cairo_t              *cr,
+			     cairo_text_extents_t *extents)
 {
   hb_font_t *font;
   unsigned int palette = 0;
@@ -413,11 +413,11 @@ user_font_face_create (hb_font_t *font)
   cairo_font_face_t *cairo_face;
 
   cairo_face = cairo_user_font_face_create ();
-  cairo_user_font_face_set_render_glyph_func (cairo_face, render_glyph);
+  cairo_user_font_face_set_render_glyph_func (cairo_face, hb_cairo_render_glyph);
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
   hb_face_t *face = hb_font_get_face (font);
   if (hb_ot_color_has_png (face) || hb_ot_color_has_layers (face) || hb_ot_color_has_paint (face))
-    cairo_user_font_face_set_render_color_glyph_func (cairo_face, render_color_glyph);
+    cairo_user_font_face_set_render_color_glyph_func (cairo_face, hb_cairo_render_color_glyph);
 #endif
 
   cairo_font_face_set_user_data (cairo_face,
