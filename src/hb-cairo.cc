@@ -30,7 +30,9 @@
 
 #include "hb-cairo-utils.hh"
 
+#include "hb-machinery.hh"
 #include "hb-utf.hh"
+
 
 static void
 hb_cairo_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
@@ -84,22 +86,39 @@ hb_cairo_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
   cairo_close_path (cr);
 }
 
-static hb_draw_funcs_t *
-get_cairo_draw_funcs (void)
-{
-  static hb_draw_funcs_t *funcs;
+static inline void free_static_cairo_draw_funcs ();
 
-  if (!funcs)
+static struct hb_cairo_draw_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_cairo_draw_funcs_lazy_loader_t>
+{
+  static hb_draw_funcs_t *create ()
   {
-    funcs = hb_draw_funcs_create ();
+    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+
     hb_draw_funcs_set_move_to_func (funcs, hb_cairo_move_to, nullptr, nullptr);
     hb_draw_funcs_set_line_to_func (funcs, hb_cairo_line_to, nullptr, nullptr);
     hb_draw_funcs_set_cubic_to_func (funcs, hb_cairo_cubic_to, nullptr, nullptr);
     hb_draw_funcs_set_close_path_func (funcs, hb_cairo_close_path, nullptr, nullptr);
-  }
 
-  return funcs;
+    hb_draw_funcs_make_immutable (funcs);
+
+    hb_atexit (free_static_cairo_draw_funcs);
+
+    return funcs;
+  }
+} static_cairo_draw_funcs;
+
+static inline
+void free_static_cairo_draw_funcs ()
+{
+  static_cairo_draw_funcs.free_instance ();
 }
+
+static hb_draw_funcs_t *
+hb_cairo_draw_get_funcs ()
+{
+  return static_cairo_draw_funcs.get_unconst ();
+}
+
 
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
 
@@ -142,7 +161,7 @@ hb_cairo_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   cairo_save (cr);
   cairo_new_path (cr);
-  hb_font_draw_glyph (font, glyph, get_cairo_draw_funcs (), cr);
+  hb_font_draw_glyph (font, glyph, hb_cairo_draw_get_funcs (), cr);
   cairo_close_path (cr);
   cairo_clip (cr);
 }
@@ -271,14 +290,13 @@ hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_cairo_paint_sweep_gradient (cr, color_line, x0, y0, start_angle, end_angle);
 }
 
-static hb_paint_funcs_t *
-get_cairo_paint_funcs ()
-{
-  static hb_paint_funcs_t *funcs;
+static inline void free_static_cairo_paint_funcs ();
 
-  if (!funcs)
+static struct hb_cairo_paint_funcs_lazy_loader_t : hb_paint_funcs_lazy_loader_t<hb_cairo_paint_funcs_lazy_loader_t>
+{
+  static hb_paint_funcs_t *create ()
   {
-    funcs = hb_paint_funcs_create ();
+    hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
 
     hb_paint_funcs_set_push_transform_func (funcs, hb_cairo_push_transform, nullptr, nullptr);
     hb_paint_funcs_set_pop_transform_func (funcs, hb_cairo_pop_transform, nullptr, nullptr);
@@ -292,9 +310,25 @@ get_cairo_paint_funcs ()
     hb_paint_funcs_set_linear_gradient_func (funcs, hb_cairo_paint_linear_gradient, nullptr, nullptr);
     hb_paint_funcs_set_radial_gradient_func (funcs, hb_cairo_paint_radial_gradient, nullptr, nullptr);
     hb_paint_funcs_set_sweep_gradient_func (funcs, hb_cairo_paint_sweep_gradient, nullptr, nullptr);
-  }
 
-  return funcs;
+    hb_paint_funcs_make_immutable (funcs);
+
+    hb_atexit (free_static_cairo_paint_funcs);
+
+    return funcs;
+  }
+} static_cairo_paint_funcs;
+
+static inline
+void free_static_cairo_paint_funcs ()
+{
+  static_cairo_paint_funcs.free_instance ();
+}
+
+static hb_paint_funcs_t *
+hb_cairo_paint_get_funcs ()
+{
+  return static_cairo_paint_funcs.get_unconst ();
 }
 
 static cairo_status_t
@@ -321,7 +355,7 @@ render_glyph (cairo_scaled_font_t  *scaled_font,
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
-  hb_font_draw_glyph (font, glyph, get_cairo_draw_funcs (), cr);
+  hb_font_draw_glyph (font, glyph, hb_cairo_draw_get_funcs (), cr);
 
   cairo_fill (cr);
 
@@ -364,7 +398,7 @@ render_color_glyph (cairo_scaled_font_t  *scaled_font,
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
-  hb_font_paint_glyph (font, glyph, get_cairo_paint_funcs (), cr, palette, color);
+  hb_font_paint_glyph (font, glyph, hb_cairo_paint_get_funcs (), cr, palette, color);
 
   return CAIRO_STATUS_SUCCESS;
 }

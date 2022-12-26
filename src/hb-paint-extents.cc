@@ -24,8 +24,11 @@
 
 #include "hb.hh"
 #include "hb-paint-extents.hh"
+
 #include "hb-draw.h"
+
 #include "hb-machinery.hh"
+
 
 /*
  * This file implements bounds-extraction as well as boundedness
