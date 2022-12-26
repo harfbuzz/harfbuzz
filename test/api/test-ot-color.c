@@ -102,6 +102,7 @@ static hb_face_t *cbdt = NULL;
 static hb_face_t *sbix = NULL;
 static hb_face_t *svg = NULL;
 static hb_face_t *empty = NULL;
+static hb_face_t *colrv1 = NULL;
 
 #define assert_color_rgba(colors, i, r, g, b, a) G_STMT_START {	\
   const hb_color_t *_colors = (colors); \
@@ -354,6 +355,7 @@ test_hb_ot_color_has_data (void)
   g_assert (hb_ot_color_has_layers (cbdt) == FALSE);
   g_assert (hb_ot_color_has_layers (sbix) == FALSE);
   g_assert (hb_ot_color_has_layers (svg) == FALSE);
+  g_assert (hb_ot_color_has_layers (colrv1) == FALSE);
 
   g_assert (hb_ot_color_has_palettes (empty) == FALSE);
   g_assert (hb_ot_color_has_palettes (cpal_v0) == TRUE);
@@ -362,6 +364,7 @@ test_hb_ot_color_has_data (void)
   g_assert (hb_ot_color_has_palettes (cbdt) == FALSE);
   g_assert (hb_ot_color_has_palettes (sbix) == FALSE);
   g_assert (hb_ot_color_has_palettes (svg) == FALSE);
+  g_assert (hb_ot_color_has_palettes (colrv1) == TRUE);
 
   g_assert (hb_ot_color_has_svg (empty) == FALSE);
   g_assert (hb_ot_color_has_svg (cpal_v0) == FALSE);
@@ -370,6 +373,7 @@ test_hb_ot_color_has_data (void)
   g_assert (hb_ot_color_has_svg (cbdt) == FALSE);
   g_assert (hb_ot_color_has_svg (sbix) == FALSE);
   g_assert (hb_ot_color_has_svg (svg) == TRUE);
+  g_assert (hb_ot_color_has_svg (colrv1) == FALSE);
 
   g_assert (hb_ot_color_has_png (empty) == FALSE);
   g_assert (hb_ot_color_has_png (cpal_v0) == FALSE);
@@ -378,6 +382,16 @@ test_hb_ot_color_has_data (void)
   g_assert (hb_ot_color_has_png (cbdt) == TRUE);
   g_assert (hb_ot_color_has_png (sbix) == TRUE);
   g_assert (hb_ot_color_has_png (svg) == FALSE);
+  g_assert (hb_ot_color_has_png (colrv1) == FALSE);
+
+  g_assert (hb_ot_color_has_paint (empty) == FALSE);
+  g_assert (hb_ot_color_has_paint (cpal_v0) == FALSE);
+  g_assert (hb_ot_color_has_paint (cpal_v1) == FALSE);
+  g_assert (hb_ot_color_has_paint (cpal) == FALSE);
+  g_assert (hb_ot_color_has_paint (cbdt) == FALSE);
+  g_assert (hb_ot_color_has_paint (sbix) == FALSE);
+  g_assert (hb_ot_color_has_paint (svg) == FALSE);
+  g_assert (hb_ot_color_has_paint (colrv1) == TRUE);
 }
 
 static void
@@ -464,6 +478,7 @@ main (int argc, char **argv)
   cbdt = hb_test_open_font_file ("fonts/chromacheck-cbdt.ttf");
   sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");
   svg = hb_test_open_font_file ("fonts/chromacheck-svg.ttf");
+  colrv1 = hb_test_open_font_file ("fonts/noto_handwriting-cff2_colr_1.otf");
   empty = hb_face_get_empty ();
   hb_test_add (test_hb_ot_color_palette_get_count);
   hb_test_add (test_hb_ot_color_palette_get_name_id_empty);
@@ -488,5 +503,6 @@ main (int argc, char **argv)
   hb_face_destroy (cbdt);
   hb_face_destroy (sbix);
   hb_face_destroy (svg);
+  hb_face_destroy (colrv1);
   return status;
 }
