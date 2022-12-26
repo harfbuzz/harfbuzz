@@ -585,7 +585,8 @@ libharfbuzz_cairo_dep = null_dep
 if conf.get('HAVE_CAIRO', 0) == 1
   hb_cairo_sources = [
     'hb-cairo.cc',
-    'hb-cairo-utils.cc'
+    'hb-cairo-utils.cc',
+    'hb-static.cc'
   ]
 
   hb_cairo_headers = [
