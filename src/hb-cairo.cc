@@ -677,7 +677,9 @@ hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
  * If the cairo-face was created using the alternative constructor
  * hb_cairo_font_face_create_for_font(), you are on your own
  * computing the correct scale-factor to pass to
- * hb_cairo_glyphs_from_buffer().
+ * hb_cairo_glyphs_from_buffer(), but it is generally the x_scale
+ * of the #hb_font_t divided by the xx factor of the scaled-font's
+ * scale-matrix.
  *
  * Since: REPLACEME
  */
