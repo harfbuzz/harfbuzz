@@ -274,6 +274,7 @@ typedef struct {
 
 #define NOTO_HAND   "fonts/noto_handwriting-cff2_colr_1.otf"
 #define TEST_GLYPHS "fonts/test_glyphs-glyf_colr_1.ttf"
+#define BAD_COLRV1  "fonts/bad_colrv1.ttf"
 #define ROCHER_ABC  "fonts/RocherColorGX.abc.ttf"
 
 /* To verify the rendering visually, use
@@ -294,6 +295,7 @@ static paint_test_t paint_tests[] = {
   { TEST_GLYPHS, 20, 0,  123,   0, "test-20-0-123" },
   { TEST_GLYPHS, 20, 0,  165,   0, "test-20-0-165" }, // linear gradient
   { TEST_GLYPHS, 20, 0,  175,   0, "test-20-0-175" }, // layers
+  { BAD_COLRV1,  20, 0,  154,   0, "bad-20-0-154" },  // recursion
   /* COLRv0 */
   { ROCHER_ABC, 120, 0.3,  1,   0, "rocher-120-0.3-1" },
   { ROCHER_ABC, 120, 0.3,  2,   2, "rocher-120-0.3-2" },
