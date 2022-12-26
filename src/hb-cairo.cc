@@ -36,6 +36,17 @@
 #include "hb-utf.hh"
 
 
+/**
+ * SECTION:hb-cairo
+ * @title: hb-cairo
+ * @short_description: Cairo integration
+ * @include: hb-cairo.h
+ *
+ * Functions for using HarfBuzz with the cairo library.
+ *
+ * HarfBuzz supports using cairo for rendering.
+ **/
+
 static void
 hb_cairo_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		  void *draw_data,
@@ -444,6 +455,19 @@ user_font_face_create (hb_font_t *font)
   return cairo_face;
 }
 
+/**
+ * hb_cairo_font_face_create:
+ * @font: a `hb_font_t`
+ *
+ * Creates a `cairo_font_face_t` for rendering text according
+ * to @font.
+ *
+ * Note that the scale of @font does not affect the rendering.
+ *
+ * Returns: a newly created `cairo_font_face_t`
+ *
+ * Since: REPLACEME
+ */
 cairo_font_face_t *
 hb_cairo_font_face_create (hb_font_t *font)
 {
@@ -452,13 +476,40 @@ hb_cairo_font_face_create (hb_font_t *font)
   return user_font_face_create (font);
 }
 
+/**
+ * hb_cairo_font_face_get_font:
+ * @font_face: a `cairo_font_face_t`
+ *
+ * Gets the `hb_font_t` that @font_face was created for.
+ *
+ * Returns: (nullable): the `hb_font_t` that @font_face was created for
+ *
+ * Since: REPLACEME
+ */
 hb_font_t *
 hb_cairo_font_face_get_font (cairo_font_face_t *font_face)
 {
   return (hb_font_t *) cairo_font_face_get_user_data (font_face, &hb_cairo_font_user_data_key);
 }
 
-
+/**
+ * hb_cairo_glyphs_from_buffer:
+ * @buffer: a `hb_buffer_t` containing glyphs
+ * @text: (nullable): the text that was shaped in @buffer
+ * @text_len: the length of @text in bytes
+ * @utf8_clusters: `true` to provide cluster positions in bytes, instead of characters
+ * @scale_factor: scale factor to scale positions by
+ * @glyphs: return location for an array of `cairo_glyph_t`
+ * @num_glyphs: return location for the length of @glyphs
+ * @clusters: return location for an array of cluster positions
+ * @num_clusters: return location for the length of @clusters
+ * @cluster_flags: return location for cluster flags
+ *
+ * Extracts information from @buffer in a form that can be
+ * passed to cairo_show_text_glyphs().
+ *
+ * Since: REPLACEME
+ */
 void
 hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 			     const char *text,

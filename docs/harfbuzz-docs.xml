@@ -97,6 +97,7 @@
         <xi:include href="xml/hb-uniscribe.xml"/>
         <xi:include href="xml/hb-gdi.xml"/>
         <xi:include href="xml/hb-directwrite.xml"/>
+        <xi:include href="xml/hb-cairo.xml"/>
       </chapter>
 
       <chapter id="style-api">

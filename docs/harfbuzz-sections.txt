@@ -861,3 +861,10 @@ hb_object_t
 hb_subset_repack_or_fail
 hb_subset_input_override_name_table
 </SECTION>
+
+<SECTION>
+<FILE>hb-cairo</FILE>
+hb_cairo_font_face_create
+hb_cairo_font_face_get_font
+hb_cairo_glyphs_from_buffer
+</SECTION>
