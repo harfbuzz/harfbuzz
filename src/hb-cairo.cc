@@ -473,6 +473,17 @@ user_font_face_create (hb_face_t *face)
   return cairo_face;
 }
 
+/**
+ * hb_cairo_font_face_create_for_face:
+ * @face: a `hb_face_t`
+ *
+ * Creates a `cairo_font_face_t` for rendering text according
+ * to @face.
+ *
+ * Returns: a newly created `cairo_font_face_t`
+ *
+ * Since: REPLACEME
+ */
 cairo_font_face_t *
 hb_cairo_font_face_create_for_face (hb_face_t *face)
 {
@@ -481,6 +492,16 @@ hb_cairo_font_face_create_for_face (hb_face_t *face)
   return user_font_face_create (face);
 }
 
+/**
+ * hb_cairo_font_face_get_face:
+ * @font_face: a `cairo_font_face_t`
+ *
+ * Gets the `hb_face_t` associated with @font_face.
+ *
+ * Returns: (nullable): the `hb_face_t` associated with @font_face
+ *
+ * Since: REPLACEME
+ */
 hb_face_t *
 hb_cairo_font_face_get_face (cairo_font_face_t *font_face)
 {
@@ -531,6 +552,16 @@ hb_cairo_font_face_get_font (cairo_font_face_t *font_face)
   return (hb_font_t *) cairo_font_face_get_user_data (font_face, &hb_cairo_font_user_data_key);
 }
 
+/**
+ * hb_cairo_scaled_font_get_font:
+ * @scaled_font: a `cairo_scaled_font_t`
+ *
+ * Gets the `hb_font_t` associated with @scaled_font.
+ *
+ * Returns: (nullable): the `hb_font_t` associated with @scaled_font
+ *
+ * Since: REPLACEME
+ */
 hb_font_t *
 hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
 {
