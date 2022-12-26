@@ -372,7 +372,9 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
     font = hb_font_create (face);
 
     // TODO Set variations
-    // TODO Set (what?) scale and slant
+    // TODO Set (what?) scale; Note, should NOT set slant.
+
+    hb_font_make_immutable (font);
   }
 
   cairo_scaled_font_set_user_data (scaled_font,
