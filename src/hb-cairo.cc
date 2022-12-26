@@ -426,6 +426,46 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
 }
 
 static cairo_status_t
+hb_cairo_text_to_glyphs (cairo_scaled_font_t        *scaled_font,
+			 const char	            *utf8,
+			 int		             utf8_len,
+			 cairo_glyph_t	           **glyphs,
+			 int		            *num_glyphs,
+			 cairo_text_cluster_t      **clusters,
+			 int		            *num_clusters,
+			 cairo_text_cluster_flags_t *cluster_flags)
+{
+  hb_font_t *font = (hb_font_t *) cairo_scaled_font_get_user_data (scaled_font,
+								   &hb_cairo_font_user_data_key);
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (buffer, utf8, utf8_len, 0, utf8_len);
+  hb_buffer_guess_segment_properties (buffer);
+  hb_shape (font, buffer, nullptr, 0);
+
+  double scale_factor = hb_cairo_font_face_get_scale_factor (cairo_scaled_font_get_font_face (scaled_font));
+  if (!scale_factor)
+  {
+    cairo_matrix_t font_matrix;
+    cairo_scaled_font_get_scale_matrix (scaled_font, &font_matrix);
+    scale_factor = font->x_scale / font_matrix.xx;
+  }
+
+  hb_cairo_glyphs_from_buffer (buffer,
+			       false,
+			       scale_factor,
+			       0., 0.,
+			       utf8, utf8_len,
+			       glyphs, (unsigned *) num_glyphs,
+			       clusters, (unsigned *) num_clusters,
+			       cluster_flags);
+
+  hb_buffer_destroy (buffer);
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static cairo_status_t
 hb_cairo_render_glyph (cairo_scaled_font_t  *scaled_font,
 		       unsigned long         glyph,
 		       cairo_t              *cr,
@@ -491,6 +531,7 @@ user_font_face_create (hb_face_t *face)
 
   cairo_face = cairo_user_font_face_create ();
   cairo_user_font_face_set_init_func (cairo_face, hb_cairo_init_scaled_font);
+  cairo_user_font_face_set_text_to_glyphs_func (cairo_face, hb_cairo_text_to_glyphs);
   cairo_user_font_face_set_render_glyph_func (cairo_face, hb_cairo_render_glyph);
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
   if (hb_ot_color_has_png (face) || hb_ot_color_has_layers (face) || hb_ot_color_has_paint (face))
