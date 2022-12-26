@@ -395,6 +395,14 @@ test_hb_ot_color_has_data (void)
 }
 
 static void
+test_hb_ot_color_glyph_has_paint (void)
+{
+  g_assert (hb_ot_color_has_paint (colrv1));
+  g_assert (hb_ot_color_glyph_has_paint (colrv1, 10));
+  g_assert (!hb_ot_color_glyph_has_paint (colrv1, 20));
+}
+
+static void
 test_hb_ot_color_svg (void)
 {
   hb_blob_t *blob;
@@ -495,6 +503,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_has_data);
   hb_test_add (test_hb_ot_color_png);
   hb_test_add (test_hb_ot_color_svg);
+  hb_test_add (test_hb_ot_color_glyph_has_paint);
 
   status = hb_test_run();
   hb_face_destroy (cpal_v0);
