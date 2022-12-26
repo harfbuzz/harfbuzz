@@ -425,25 +425,25 @@ normalize (Point p)
 {
   float len = sqrt (dot (p, p));
 
-  return (Point) { p.x / len, p.y / len };
+  return Point { p.x / len, p.y / len };
 }
 
 static inline Point
 sum (Point p, Point q)
 {
-  return (Point) { p.x + q.x, p.y + q.y };
+  return Point { p.x + q.x, p.y + q.y };
 }
 
 static inline Point
 difference (Point p, Point q)
 {
-  return (Point) { p.x - q.x, p.y - q.y };
+  return Point { p.x - q.x, p.y - q.y };
 }
 
 static inline Point
 scale (Point p, float f)
 {
-  return (Point) { p.x * f, p.y * f };
+  return Point { p.x * f, p.y * f };
 }
 
 typedef struct {
@@ -493,13 +493,13 @@ add_sweep_gradient_patches1 (float cx, float cy, float radius,
                              float a1, color_t *c1,
                              cairo_pattern_t *pattern)
 {
-  Point center = (Point) { cx, cy };
+  Point center = Point { cx, cy };
   int num_splits;
   Point p0;
   color_t color0, color1;
 
   num_splits = ceilf (fabs (a1 - a0) / MAX_ANGLE);
-  p0 = (Point) { cosf (a0), sinf (a0) };
+  p0 = Point { cosf (a0), sinf (a0) };
   color0 = *c0;
 
   for (int a = 0; a < num_splits; a++)
@@ -517,12 +517,12 @@ add_sweep_gradient_patches1 (float cx, float cy, float radius,
       patch.color0 = color0;
       patch.color1 = color1;
 
-      p1 = (Point) { cosf (angle1), sinf (angle1) };
+      p1 = Point { cosf (angle1), sinf (angle1) };
       patch.p0 = sum (center, scale (p0, radius));
       patch.p1 = sum (center, scale (p1, radius));
 
       A = normalize (sum (p0, p1));
-      U = (Point) { -A.y, A.x };
+      U = Point { -A.y, A.x };
       C0 = sum (A, scale (U, dot (difference (p0, A), p0) / dot (U, p0)));
       C1 = sum (A, scale (U, dot (difference (p1, A), p1) / dot (U, p1)));
 
