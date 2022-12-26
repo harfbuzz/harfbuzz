@@ -35,6 +35,14 @@
 
 #ifdef TT_SUPPORT_COLRV1
 
+#ifndef HB_COLRV1_MAX_NESTING_LEVEL
+#define HB_COLRV1_MAX_NESTING_LEVEL     128
+#endif
+
+#ifndef HB_COLRV1_MAX_EDGE_COUNT
+#define HB_COLRV1_MAX_EDGE_COUNT        1024
+#endif
+
 static hb_paint_composite_mode_t
 _hb_ft_paint_composite_mode (FT_Composite_Mode mode)
 {
@@ -94,7 +102,9 @@ struct hb_ft_paint_context_t
   void recurse (FT_OpaquePaint paint)
   {
     if (depth_left <= 0) return;
+    if (edge_count <= 0) return;
     depth_left--;
+    edge_count--;
     _hb_ft_paint (this, paint);
     depth_left++;
   }
@@ -105,7 +115,8 @@ struct hb_ft_paint_context_t
   void *data;
   FT_Color *palette;
   hb_color_t foreground;
-  int depth_left = 128;
+  int depth_left = HB_COLRV1_MAX_NESTING_LEVEL;
+  int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
 };
 
 static unsigned
