@@ -26,6 +26,8 @@
 
 #include "hb.hh"
 
+#ifdef HAVE_CAIRO
+
 #include "hb-cairo.h"
 
 #include "hb-cairo-utils.hh"
@@ -562,3 +564,5 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
     }
   }
 }
+
+#endif

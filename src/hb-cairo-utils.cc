@@ -26,6 +26,8 @@
 
 #include "hb.hh"
 
+#ifdef HAVE_CAIRO
+
 #include "hb-cairo-utils.hh"
 
 #include <cairo.h>
@@ -827,3 +829,5 @@ hb_cairo_paint_sweep_gradient (cairo_t *cr,
   if (stops != stops_)
     free (stops);
 }
+
+#endif
