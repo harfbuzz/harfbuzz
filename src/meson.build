@@ -613,6 +613,13 @@ if conf.get('HAVE_CAIRO', 0) == 1
     include_directories: incsrc,
     dependencies: [m_dep, cairo_dep])
   meson.override_dependency('harfbuzz-cairo', libharfbuzz_cairo_dep)
+
+  pkgmod.generate(libharfbuzz_cairo,
+    description: 'HarfBuzz cairo support',
+    requires: ['harfbuzz = @0@'.format(meson.project_version())],
+    subdirs: [meson.project_name()],
+    version: meson.project_version(),
+  )
 endif
 
 if get_option('tests').enabled()
