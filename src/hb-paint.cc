@@ -392,7 +392,7 @@ hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs)
  * may be out of order. It is the callers responsibility to ensure that
  * color stops are sorted by their offset before they are used.
  *
- * Return value: the total number of color stops in @cl
+ * Return value: the total number of color stops in @color_line
  *
  * Since: REPLACEME
  */
@@ -414,6 +414,8 @@ hb_color_line_get_color_stops (hb_color_line_t *color_line,
  * @color_line: a #hb_color_line_t object
  *
  * Fetches the extend mode of the color line object.
+ *
+ * Return value: the extend mode of @color_line
  *
  * Since: REPLACEME
  */
