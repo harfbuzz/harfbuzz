@@ -535,7 +535,8 @@ hb_cairo_font_face_get_face (cairo_font_face_t *font_face)
  * Creates a `cairo_font_face_t` for rendering text according
  * to @font.
  *
- * Note that the scale of @font does not affect the rendering.
+ * Note that the scale of @font does not affect the rendering,
+ * but the variations that are set on @font do.
  *
  * Returns: a newly created `cairo_font_face_t`
  *
