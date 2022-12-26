@@ -200,11 +200,11 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
 }
 
 static void
-reduce_anchors (float x0, float y0,
-                float x1, float y1,
-                float x2, float y2,
-                float *xx0, float *yy0,
-                float *xx1, float *yy1)
+_hb_cairo_reduce_anchors (float x0, float y0,
+			  float x1, float y1,
+			  float x2, float y2,
+			  float *xx0, float *yy0,
+			  float *xx1, float *yy1)
 {
   float q1x, q1y, q2x, q2y;
   float s;
@@ -231,8 +231,8 @@ reduce_anchors (float x0, float y0,
 }
 
 static int
-cmp_color_stop (const void *p1,
-                const void *p2)
+_hb_cairo_cmp_color_stop (const void *p1,
+			  const void *p2)
 {
   const hb_color_stop_t *c1 = (const hb_color_stop_t *) p1;
   const hb_color_stop_t *c2 = (const hb_color_stop_t *) p2;
@@ -246,14 +246,14 @@ cmp_color_stop (const void *p1,
 }
 
 static void
-normalize_color_line (hb_color_stop_t *stops,
-                      unsigned int len,
-                      float *omin,
-                      float *omax)
+_hb_cairo_normalize_color_line (hb_color_stop_t *stops,
+				unsigned int len,
+				float *omin,
+				float *omax)
 {
   float min, max;
 
-  qsort (stops, len, sizeof (hb_color_stop_t), cmp_color_stop);
+  qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
 
   min = max = stops[0].offset;
   for (unsigned int i = 0; i < len; i++)
@@ -292,8 +292,8 @@ hb_cairo_paint_linear_gradient (cairo_t *cr,
     stops = (hb_color_stop_t *) malloc (len * sizeof (hb_color_stop_t));
   hb_color_line_get_color_stops (color_line, 0, &len, stops);
 
-  reduce_anchors (x0, y0, x1, y1, x2, y2, &xx0, &yy0, &xx1, &yy1);
-  normalize_color_line (stops, len, &min, &max);
+  _hb_cairo_reduce_anchors (x0, y0, x1, y1, x2, y2, &xx0, &yy0, &xx1, &yy1);
+  _hb_cairo_normalize_color_line (stops, len, &min, &max);
 
   xxx0 = xx0 + min * (xx1 - xx0);
   yyy0 = yy0 + min * (yy1 - yy0);
@@ -340,7 +340,7 @@ hb_cairo_paint_radial_gradient (cairo_t *cr,
     stops = (hb_color_stop_t *) malloc (len * sizeof (hb_color_stop_t));
   hb_color_line_get_color_stops (color_line, 0, &len, stops);
 
-  normalize_color_line (stops, len, &min, &max);
+  _hb_cairo_normalize_color_line (stops, len, &min, &max);
 
   xx0 = x0 + min * (x1 - x0);
   yy0 = y0 + min * (y1 - y0);
@@ -376,13 +376,13 @@ typedef struct {
 } hb_cairo_point_t;
 
 static inline float
-interpolate (float f0, float f1, float f)
+_hb_cairo_interpolate (float f0, float f1, float f)
 {
   return f0 + f * (f1 - f0);
 }
 
 static inline void
-premultiply (hb_cairo_color_t *c)
+_hb_cairo_premultiply (hb_cairo_color_t *c)
 {
   c->r *= c->a;
   c->g *= c->a;
@@ -390,7 +390,7 @@ premultiply (hb_cairo_color_t *c)
 }
 
 static inline void
-unpremultiply (hb_cairo_color_t *c)
+_hb_cairo_unpremultiply (hb_cairo_color_t *c)
 {
   if (c->a != 0.f)
   {
@@ -401,47 +401,47 @@ unpremultiply (hb_cairo_color_t *c)
 }
 
 static void
-interpolate_colors (hb_cairo_color_t *c0, hb_cairo_color_t *c1, float k, hb_cairo_color_t *c)
+_hb_cairo_interpolate_colors (hb_cairo_color_t *c0, hb_cairo_color_t *c1, float k, hb_cairo_color_t *c)
 {
   // According to the COLR specification, gradients
   // should be interpolated in premultiplied form
-  premultiply (c0);
-  premultiply (c1);
+  _hb_cairo_premultiply (c0);
+  _hb_cairo_premultiply (c1);
   c->r = c0->r + k * (c1->r - c0->r);
   c->g = c0->g + k * (c1->g - c0->g);
   c->b = c0->b + k * (c1->b - c0->b);
   c->a = c0->a + k * (c1->a - c0->a);
-  unpremultiply (c);
+  _hb_cairo_unpremultiply (c);
 }
 
 static inline float
-dot (hb_cairo_point_t p, hb_cairo_point_t q)
+_hb_cairo_dot (hb_cairo_point_t p, hb_cairo_point_t q)
 {
   return p.x * q.x + p.y * q.y;
 }
 
 static inline hb_cairo_point_t
-normalize (hb_cairo_point_t p)
+_hb_cairo_normalize (hb_cairo_point_t p)
 {
-  float len = sqrt (dot (p, p));
+  float len = sqrt (_hb_cairo_dot (p, p));
 
   return hb_cairo_point_t { p.x / len, p.y / len };
 }
 
 static inline hb_cairo_point_t
-sum (hb_cairo_point_t p, hb_cairo_point_t q)
+_hb_cairo_sum (hb_cairo_point_t p, hb_cairo_point_t q)
 {
   return hb_cairo_point_t { p.x + q.x, p.y + q.y };
 }
 
 static inline hb_cairo_point_t
-difference (hb_cairo_point_t p, hb_cairo_point_t q)
+_hb_cairo_difference (hb_cairo_point_t p, hb_cairo_point_t q)
 {
   return hb_cairo_point_t { p.x - q.x, p.y - q.y };
 }
 
 static inline hb_cairo_point_t
-scale (hb_cairo_point_t p, float f)
+_hb_cairo_scale (hb_cairo_point_t p, float f)
 {
   return hb_cairo_point_t { p.x * f, p.y * f };
 }
@@ -452,7 +452,7 @@ typedef struct {
 } hb_cairo_patch_t;
 
 static void
-add_patch (cairo_pattern_t *pattern, hb_cairo_point_t *center, hb_cairo_patch_t *p)
+_hb_cairo_add_patch (cairo_pattern_t *pattern, hb_cairo_point_t *center, hb_cairo_patch_t *p)
 {
   cairo_mesh_pattern_begin_patch (pattern);
   cairo_mesh_pattern_move_to (pattern, center->x, center->y);
@@ -488,10 +488,10 @@ add_patch (cairo_pattern_t *pattern, hb_cairo_point_t *center, hb_cairo_patch_t 
 #define MAX_ANGLE (M_PI / 8.)
 
 static void
-add_sweep_gradient_patches1 (float cx, float cy, float radius,
-                             float a0, hb_cairo_color_t *c0,
-                             float a1, hb_cairo_color_t *c1,
-                             cairo_pattern_t *pattern)
+_hb_cairo_add_sweep_gradient_patches1 (float cx, float cy, float radius,
+				       float a0, hb_cairo_color_t *c0,
+				       float a1, hb_cairo_color_t *c1,
+				       cairo_pattern_t *pattern)
 {
   hb_cairo_point_t center = hb_cairo_point_t { cx, cy };
   int num_splits;
@@ -511,25 +511,25 @@ add_sweep_gradient_patches1 (float cx, float cy, float radius,
       hb_cairo_point_t C0, C1;
       hb_cairo_patch_t patch;
 
-      angle1 = interpolate (a0, a1, k);
-      interpolate_colors (c0, c1, k, &color1);
+      angle1 = _hb_cairo_interpolate (a0, a1, k);
+      _hb_cairo_interpolate_colors (c0, c1, k, &color1);
 
       patch.color0 = color0;
       patch.color1 = color1;
 
       p1 = hb_cairo_point_t { cosf (angle1), sinf (angle1) };
-      patch.p0 = sum (center, scale (p0, radius));
-      patch.p1 = sum (center, scale (p1, radius));
+      patch.p0 = _hb_cairo_sum (center, _hb_cairo_scale (p0, radius));
+      patch.p1 = _hb_cairo_sum (center, _hb_cairo_scale (p1, radius));
 
-      A = normalize (sum (p0, p1));
+      A = _hb_cairo_normalize (_hb_cairo_sum (p0, p1));
       U = hb_cairo_point_t { -A.y, A.x };
-      C0 = sum (A, scale (U, dot (difference (p0, A), p0) / dot (U, p0)));
-      C1 = sum (A, scale (U, dot (difference (p1, A), p1) / dot (U, p1)));
+      C0 = _hb_cairo_sum (A, _hb_cairo_scale (U, _hb_cairo_dot (_hb_cairo_difference (p0, A), p0) / _hb_cairo_dot (U, p0)));
+      C1 = _hb_cairo_sum (A, _hb_cairo_scale (U, _hb_cairo_dot (_hb_cairo_difference (p1, A), p1) / _hb_cairo_dot (U, p1)));
 
-      patch.c0 = sum (center, scale (sum (C0, scale (difference (C0, p0), 0.33333)), radius));
-      patch.c1 = sum (center, scale (sum (C1, scale (difference (C1, p1), 0.33333)), radius));
+      patch.c0 = _hb_cairo_sum (center, _hb_cairo_scale (_hb_cairo_sum (C0, _hb_cairo_scale (_hb_cairo_difference (C0, p0), 0.33333)), radius));
+      patch.c1 = _hb_cairo_sum (center, _hb_cairo_scale (_hb_cairo_sum (C1, _hb_cairo_scale (_hb_cairo_difference (C1, p1), 0.33333)), radius));
 
-      add_patch (pattern, &center, &patch);
+      _hb_cairo_add_patch (pattern, &center, &patch);
 
       p0 = p1;
       color0 = color1;
@@ -537,14 +537,14 @@ add_sweep_gradient_patches1 (float cx, float cy, float radius,
 }
 
 static void
-add_sweep_gradient_patches (hb_color_stop_t *stops,
-                            unsigned int n_stops,
-                            cairo_extend_t extend,
-                            float cx, float cy,
-                            float radius,
-                            float start_angle,
-                            float end_angle,
-                            cairo_pattern_t *pattern)
+_hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
+				      unsigned int n_stops,
+				      cairo_extend_t extend,
+				      float cx, float cy,
+				      float radius,
+				      float start_angle,
+				      float end_angle,
+				      cairo_pattern_t *pattern)
 {
   float angles_[PREALLOCATED_COLOR_STOPS];
   float *angles = angles_;
@@ -563,10 +563,10 @@ add_sweep_gradient_patches (hb_color_stop_t *stops,
               c.g = hb_color_get_green (stops[0].color) / 255.;
               c.b = hb_color_get_blue (stops[0].color) / 255.;
               c.a = hb_color_get_alpha (stops[0].color) / 255.;
-              add_sweep_gradient_patches1 (cx, cy, radius,
-                                           0.,          &c,
-                                           start_angle, &c,
-                                           pattern);
+              _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+						     0.,          &c,
+						     start_angle, &c,
+						     pattern);
             }
           if (end_angle < _2_M_PIf)
             {
@@ -574,10 +574,10 @@ add_sweep_gradient_patches (hb_color_stop_t *stops,
               c.g = hb_color_get_green (stops[n_stops - 1].color) / 255.;
               c.b = hb_color_get_blue (stops[n_stops - 1].color) / 255.;
               c.a = hb_color_get_alpha (stops[n_stops - 1].color) / 255.;
-              add_sweep_gradient_patches1 (cx, cy, radius,
-                                           end_angle, &c,
-                                           _2_M_PIf,  &c,
-                                           pattern);
+              _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+						     end_angle, &c,
+						     _2_M_PIf,  &c,
+						     pattern);
             }
         }
       return;
@@ -627,7 +627,7 @@ add_sweep_gradient_patches (hb_color_stop_t *stops,
               if (pos > 0)
                 {
                   float k = (0 - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
-                  interpolate_colors (&colors[pos-1], &colors[pos], k, &color0);
+                  _hb_cairo_interpolate_colors (&colors[pos-1], &colors[pos], k, &color0);
                 }
               break;
             }
@@ -636,35 +636,35 @@ add_sweep_gradient_patches (hb_color_stop_t *stops,
         {
           /* everything is below 0 */
           color0 = colors[n_stops-1];
-          add_sweep_gradient_patches1 (cx, cy, radius,
-                                       0.,       &color0,
-                                       _2_M_PIf, &color0,
-                                       pattern);
+          _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+						 0.,       &color0,
+						 _2_M_PIf, &color0,
+						 pattern);
           goto done;
         }
 
-      add_sweep_gradient_patches1 (cx, cy, radius,
-                                   0.,          &color0,
-                                   angles[pos], &colors[pos],
-                                   pattern);
+      _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+					     0.,          &color0,
+					     angles[pos], &colors[pos],
+					     pattern);
 
       for (pos++; pos < n_stops; pos++)
         {
           if (angles[pos] <= _2_M_PIf)
             {
-              add_sweep_gradient_patches1 (cx, cy, radius,
-                                           angles[pos - 1], &colors[pos-1],
-                                           angles[pos],     &colors[pos],
-                                           pattern);
+              _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+						     angles[pos - 1], &colors[pos-1],
+						     angles[pos],     &colors[pos],
+						     pattern);
             }
           else
             {
               float k = (_2_M_PIf - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
-              interpolate_colors (&colors[pos - 1], &colors[pos], k, &color1);
-              add_sweep_gradient_patches1 (cx, cy, radius,
-                                           angles[pos - 1], &colors[pos - 1],
-                                           _2_M_PIf,        &color1,
-                                           pattern);
+              _hb_cairo_interpolate_colors (&colors[pos - 1], &colors[pos], k, &color1);
+              _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+						     angles[pos - 1], &colors[pos - 1],
+						     _2_M_PIf,        &color1,
+						     pattern);
               break;
             }
         }
@@ -673,10 +673,10 @@ add_sweep_gradient_patches (hb_color_stop_t *stops,
         {
           /* everything is below 2*M_PI */
           color0 = colors[n_stops - 1];
-          add_sweep_gradient_patches1 (cx, cy, radius,
-                                       angles[n_stops - 1], &color0,
-                                       _2_M_PIf,            &color0,
-                                       pattern);
+          _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+						 angles[n_stops - 1], &color0,
+						 _2_M_PIf,            &color0,
+						 pattern);
           goto done;
         }
     }
@@ -752,29 +752,29 @@ add_sweep_gradient_patches (hb_color_stop_t *stops,
                 {
                   hb_cairo_color_t color;
                   float f = (0 - a0)/(a1 - a0);
-                  interpolate_colors (c0, c1, f, &color);
-                  add_sweep_gradient_patches1 (cx, cy, radius,
-                                               0,  &color,
-                                               a1, c1,
-                                               pattern);
+                  _hb_cairo_interpolate_colors (c0, c1, f, &color);
+                  _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+							 0,  &color,
+							 a1, c1,
+							 pattern);
                 }
               else if (a1 >= _2_M_PIf)
                 {
                   hb_cairo_color_t color;
                   float f = (_2_M_PIf - a0)/(a1 - a0);
-                  interpolate_colors (c0, c1, f, &color);
-                  add_sweep_gradient_patches1 (cx, cy, radius,
-                                               a0,       c0,
-                                               _2_M_PIf, &color,
-                                               pattern);
+                  _hb_cairo_interpolate_colors (c0, c1, f, &color);
+                  _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+							 a0,       c0,
+							 _2_M_PIf, &color,
+							 pattern);
                   goto done;
                 }
               else
                 {
-                  add_sweep_gradient_patches1 (cx, cy, radius,
-                                               a0, c0,
-                                               a1, c1,
-                                               pattern);
+                  _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+							 a0, c0,
+							 a1, c1,
+							 pattern);
                 }
             }
         }
@@ -808,7 +808,7 @@ hb_cairo_paint_sweep_gradient (cairo_t *cr,
     stops = (hb_color_stop_t *) malloc (len * sizeof (hb_color_stop_t));
   hb_color_line_get_color_stops (color_line, 0, &len, stops);
 
-  qsort (stops, len, sizeof (hb_color_stop_t), cmp_color_stop);
+  qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
 
   cairo_clip_extents (cr, &x1, &y1, &x2, &y2);
   max_x = (float) hb_max ((x1 - (double) cx) * (x1 - (double) cx), (x2 - (double) cx) * (x2 - (double) cx));
@@ -818,8 +818,8 @@ hb_cairo_paint_sweep_gradient (cairo_t *cr,
   extend = hb_cairo_extend (hb_color_line_get_extend (color_line));
   pattern = cairo_pattern_create_mesh ();
 
-  add_sweep_gradient_patches (stops, len, extend, cx, cy,
-                              radius, start_angle, end_angle, pattern);
+  _hb_cairo_add_sweep_gradient_patches (stops, len, extend, cx, cy,
+					radius, start_angle, end_angle, pattern);
 
   cairo_set_source (cr, pattern);
   cairo_paint (cr);
