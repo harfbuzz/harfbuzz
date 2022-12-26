@@ -36,8 +36,7 @@ LDADD = \
 
 if HAVE_GLIB
 
-if HAVE_FREETYPE
-if HAVE_CAIRO_FT
+if HAVE_CAIRO
 hb_view_SOURCES = $(HB_VIEW_sources)
 hb_view_LDADD = \
 	$(LDADD) \
@@ -46,8 +45,7 @@ hb_view_LDADD = \
 	$(CHAFA_LIBS) \
 	$(NULL)
 bin_PROGRAMS += hb-view
-endif # HAVE_CAIRO_FT
-endif # HAVE_FREETYPE
+endif # HAVE_CAIRO
 
 hb_shape_SOURCES = $(HB_SHAPE_sources)
 bin_PROGRAMS += hb-shape
