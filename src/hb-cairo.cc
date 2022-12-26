@@ -343,17 +343,36 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
 static const cairo_user_data_key_t hb_cairo_font_user_data_key = {0};
 
 static cairo_status_t
+hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
+			   cairo_t              *cr HB_UNUSED,
+			   cairo_font_extents_t *extents)
+{
+  hb_font_t *font = (hb_font_t *) cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
+								 &hb_cairo_font_user_data_key);
+
+  hb_position_t x_scale, y_scale;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+
+  hb_font_extents_t hb_extents;
+  hb_font_get_h_extents (font, &hb_extents);
+
+  extents->ascent  = (double)  hb_extents.ascender  / y_scale;
+  extents->descent = (double) -hb_extents.descender / y_scale;
+  extents->height  = extents->ascent + extents->descent;
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static cairo_status_t
 hb_cairo_render_glyph (cairo_scaled_font_t  *scaled_font,
 		       unsigned long         glyph,
 		       cairo_t              *cr,
 		       cairo_text_extents_t *extents)
 {
-  hb_font_t *font;
+  hb_font_t *font = (hb_font_t *) cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
+								 &hb_cairo_font_user_data_key);
+
   hb_position_t x_scale, y_scale;
-
-  font = (hb_font_t *) cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
-                                                      &hb_cairo_font_user_data_key);
-
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
@@ -372,23 +391,18 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
 			     cairo_t              *cr,
 			     cairo_text_extents_t *extents)
 {
-  hb_font_t *font;
+  hb_font_t *font = (hb_font_t *) cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
+								 &hb_cairo_font_user_data_key);
+
   unsigned int palette = 0;
-  cairo_font_options_t *options;
-  hb_color_t color;
-  hb_position_t x_scale, y_scale;
-
-  font = (hb_font_t *) cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
-                                                      &hb_cairo_font_user_data_key);
-
 #ifdef CAIRO_COLOR_PALETTE_DEFAULT
-  options = cairo_font_options_create ();
+  cairo_font_options_t *options = cairo_font_options_create ();
   cairo_scaled_font_get_font_options (scaled_font, options);
   palette = cairo_font_options_get_color_palette (options);
   cairo_font_options_destroy (options);
 #endif
 
-  color = HB_COLOR (0, 0, 0, 255);
+  hb_color_t color = HB_COLOR (0, 0, 0, 255);
   cairo_pattern_t *pattern = cairo_get_source (cr);
   if (cairo_pattern_get_type (pattern) == CAIRO_PATTERN_TYPE_SOLID)
   {
@@ -397,6 +411,7 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
     color = HB_COLOR ((int)(b * 255.), (int)(g * 255.), (int) (r * 255.), (int)(a * 255.));
   }
 
+  hb_position_t x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
@@ -413,6 +428,7 @@ user_font_face_create (hb_font_t *font)
   cairo_font_face_t *cairo_face;
 
   cairo_face = cairo_user_font_face_create ();
+  cairo_user_font_face_set_init_func (cairo_face, hb_cairo_init_scaled_font);
   cairo_user_font_face_set_render_glyph_func (cairo_face, hb_cairo_render_glyph);
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
   hb_face_t *face = hb_font_get_face (font);
