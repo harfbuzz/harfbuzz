@@ -45,6 +45,10 @@
 #define HB_COLRV1_MAX_NESTING_LEVEL	128
 #endif
 
+#ifndef HB_COLRV1_MAX_EDGE_COUNT
+#define HB_COLRV1_MAX_EDGE_COUNT	1024
+#endif
+
 
 namespace OT {
 struct hb_paint_context_t;
@@ -75,6 +79,7 @@ public:
   hb_color_t foreground;
   VarStoreInstancer &instancer;
   int depth_left = HB_COLRV1_MAX_NESTING_LEVEL;
+  int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
 
   hb_paint_context_t (const void *base_,
 		      hb_paint_funcs_t *funcs_,
@@ -2151,7 +2156,8 @@ void
 hb_paint_context_t::recurse (const Paint &paint)
 {
   depth_left--;
-  if (depth_left > 0)
+  edge_count--;
+  if (depth_left > 0 && edge_count > 0)
     paint.dispatch (this);
   depth_left++;
 }
