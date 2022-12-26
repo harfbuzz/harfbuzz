@@ -452,7 +452,7 @@ hb_cairo_text_to_glyphs (cairo_scaled_font_t        *scaled_font,
   }
 
   hb_cairo_glyphs_from_buffer (buffer,
-			       false,
+			       true,
 			       scale_factor,
 			       0., 0.,
 			       utf8, utf8_len,
