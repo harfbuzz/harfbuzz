@@ -193,6 +193,16 @@ harfbuzz-subset.cc: Makefile.sources
 	|| ($(RM) $(srcdir)/harfbuzz-subset.cc; false)
 BUILT_SOURCES += harfbuzz-subset.cc
 
+lib_LTLIBRARIES += libharfbuzz-cairo.la
+libharfbuzz_cairo_la_LINK = $(chosen_linker) $(libharfbuzz_cairo_la_LDFLAGS)
+libharfbuzz_cairo_la_SOURCES = $(HB_CAIRO_sources)
+libharfbuzz_cairo_la_CPPFLAGS = $(HBCFLAGS) $(CODE_COVERAGE_CFLAGS)
+libharfbuzz_cairo_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset) $(CODE_COVERAGE_LDFLAGS)
+libharfbuzz_cairo_la_LIBADD = libharfbuzz.la
+pkginclude_HEADERS += $(HB_CAIRO_headers)
+pkgconfig_DATA += harfbuzz-cairo.pc
+EXTRA_DIST += harfbuzz-cairo.pc.in
+
 if HAVE_ICU
 if HAVE_ICU_BUILTIN
 HBCFLAGS += $(ICU_CFLAGS)
