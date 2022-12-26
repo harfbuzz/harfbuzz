@@ -371,7 +371,25 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
 								   &hb_cairo_face_user_data_key);
     font = hb_font_create (face);
 
-    // TODO Set variations
+    cairo_font_options_t *font_options = cairo_font_options_create ();
+
+    // Set variations
+    cairo_scaled_font_get_font_options (scaled_font, font_options);
+    const char *variations = cairo_font_options_get_variations (font_options);
+    hb_vector_t<hb_variation_t> vars;
+    const char *p = variations;
+    while (p && *p)
+    {
+      const char *end = strpbrk ((char *) p, ", ");
+      hb_variation_t var;
+      if (hb_variation_from_string (p, end ? end - p : -1, &var))
+	vars.push (var);
+      p = end ? end + 1 : nullptr;
+    }
+    hb_font_set_variations (font, &vars[0], vars.length);
+
+    cairo_font_options_destroy (font_options);
+
     // TODO Set (what?) scale; Note, should NOT set slant.
 
     hb_font_make_immutable (font);
