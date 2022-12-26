@@ -730,6 +730,7 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  *
  * Extracts information from @buffer in a form that can be
  * passed to cairo_show_text_glyphs() or cairo_show_glyphs().
+ * This API is modeled after cairo_scaled_font_text_to_glyphs().
  *
  * See hb_cairo_font_face_set_scale_factor() for the details of
  * the @scale_factor argument.
