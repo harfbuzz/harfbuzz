@@ -225,6 +225,25 @@ hb_ot_color_has_paint (hb_face_t *face)
 }
 
 /**
+ * hb_ot_color_glyph_has_paint:
+ * @face: #hb_face_t to work upon
+ * @glyph: The glyph index to query
+ *
+ * Tests where a face includes COLRv1 paint
+ * data for @glyph.
+ *
+ * Return value: `true` if data found, `false` otherwise
+ *
+ * Since: REPLACEME
+ */
+hb_bool_t
+hb_ot_color_glyph_has_paint (hb_face_t      *face,
+                             hb_codepoint_t  glyph)
+{
+  return face->table.COLR->has_paint_for_glyph (glyph);
+}
+
+/**
  * hb_ot_color_glyph_get_layers:
  * @face: #hb_face_t to work upon
  * @glyph: The glyph index to query

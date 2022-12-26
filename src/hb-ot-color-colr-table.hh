@@ -2012,6 +2012,19 @@ struct COLR
   }
 
   bool
+  has_paint_for_glyph (hb_codepoint_t glyph) const
+  {
+    if (version == 1)
+    {
+      const Paint *paint = get_base_glyph_paint (glyph);
+
+      return paint != nullptr;
+    }
+
+    return false;
+  }
+
+  bool
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette, hb_color_t foreground, bool clip = true) const
   {
     VarStoreInstancer instancer (this+varStore,
