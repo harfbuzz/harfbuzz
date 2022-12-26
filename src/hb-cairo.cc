@@ -354,6 +354,9 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
 static const cairo_user_data_key_t hb_cairo_face_user_data_key = {0};
 static const cairo_user_data_key_t hb_cairo_font_user_data_key = {0};
 
+static void hb_cairo_face_destroy (void *p) { hb_face_destroy ((hb_face_t *) p); }
+static void hb_cairo_font_destroy (void *p) { hb_font_destroy ((hb_font_t *) p); }
+
 static cairo_status_t
 hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
 			   cairo_t              *cr HB_UNUSED,
@@ -375,7 +378,7 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
   cairo_scaled_font_set_user_data (scaled_font,
 				   &hb_cairo_font_user_data_key,
 				   (void *) hb_font_reference (font),
-				   (cairo_destroy_func_t) hb_font_destroy);
+				   hb_cairo_font_destroy);
 
   hb_position_t x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
@@ -465,7 +468,7 @@ user_font_face_create (hb_face_t *face)
   cairo_font_face_set_user_data (cairo_face,
                                  &hb_cairo_face_user_data_key,
                                  (void *) hb_face_reference (face),
-                                 (cairo_destroy_func_t) hb_face_destroy);
+                                 hb_cairo_face_destroy);
 
   return cairo_face;
 }
@@ -507,7 +510,7 @@ hb_cairo_font_face_create_for_font (hb_font_t *font)
   cairo_font_face_set_user_data (cairo_face,
                                  &hb_cairo_font_user_data_key,
                                  (void *) hb_font_reference (font),
-                                 (cairo_destroy_func_t) hb_font_destroy);
+                                 hb_cairo_font_destroy);
 
   return cairo_face;
 }
