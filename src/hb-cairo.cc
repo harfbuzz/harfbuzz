@@ -675,6 +675,8 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * @buffer: a `hb_buffer_t` containing glyphs
  * @utf8_clusters: `true` to if @buffer clusters are in bytes, instead of characters
  * @scale_factor: scale factor to divide hb_positions_t values by
+ * @x: X position to place first glyph
+ * @y: Y position to place first glyph
  * @utf8: (nullable): the text that was shaped in @buffer
  * @utf8_len: the length of @utf8 in bytes
  * @glyphs: return location for an array of `cairo_glyph_t`
@@ -695,6 +697,8 @@ void
 hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 			     hb_bool_t utf8_clusters,
 			     double scale_factor,
+			     double x,
+			     double y,
 			     const char *utf8,
 			     int utf8_len,
 			     cairo_glyph_t **glyphs,
@@ -746,21 +750,21 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
   }
 
   double iscale = scale_factor ? 1. / scale_factor : 0.;
-  hb_position_t x = 0, y = 0;
+  hb_position_t hx = 0, hy = 0;
   int i;
   for (i = 0; i < (int) *num_glyphs; i++)
   {
     (*glyphs)[i].index = hb_glyph[i].codepoint;
-    (*glyphs)[i].x = (+hb_position->x_offset + x) * iscale;
-    (*glyphs)[i].y = (-hb_position->y_offset + y) * iscale;
-    x +=  hb_position->x_advance;
-    y += -hb_position->y_advance;
+    (*glyphs)[i].x = x + (+hb_position->x_offset + hx) * iscale;
+    (*glyphs)[i].y = y + (-hb_position->y_offset + hy) * iscale;
+    hx +=  hb_position->x_advance;
+    hy += -hb_position->y_advance;
 
     hb_position++;
   }
   (*glyphs)[i].index = -1;
-  (*glyphs)[i].x = x * iscale;
-  (*glyphs)[i].y = y * iscale;
+  (*glyphs)[i].x = round (hx * iscale);
+  (*glyphs)[i].y = round (hy * iscale);
 
   if (*num_clusters)
   {

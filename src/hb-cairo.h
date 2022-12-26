@@ -59,6 +59,8 @@ HB_EXTERN void
 hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 			     hb_bool_t utf8_clusters,
 			     double scale_factor,
+			     double x,
+			     double y,
 			     const char *utf8,
 			     int utf8_len,
 			     cairo_glyph_t **glyphs,
