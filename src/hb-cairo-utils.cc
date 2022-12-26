@@ -59,14 +59,14 @@ typedef struct
 {
   hb_blob_t *blob;
   unsigned int offset;
-} read_blob_data_t;
+} hb_cairo_read_blob_data_t;
 
 static cairo_status_t
-read_blob (void *closure,
-           unsigned char *data,
-           unsigned int length)
+hb_cairo_read_blob (void *closure,
+		    unsigned char *data,
+		    unsigned int length)
 {
-  read_blob_data_t *r = (read_blob_data_t *) closure;
+  hb_cairo_read_blob_data_t *r = (hb_cairo_read_blob_data_t *) closure;
   const char *d;
   unsigned int size;
 
@@ -107,10 +107,10 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
   if (format == HB_PAINT_IMAGE_FORMAT_PNG)
   {
-    read_blob_data_t r;
+    hb_cairo_read_blob_data_t r;
     r.blob = blob;
     r.offset = 0;
-    surface = cairo_image_surface_create_from_png_stream (read_blob, &r);
+    surface = cairo_image_surface_create_from_png_stream (hb_cairo_read_blob, &r);
 
     /* For PNG, width,height can be unreliable, as is the case for NotoColorEmoji :(.
      * Just pull them out of the surface. */
