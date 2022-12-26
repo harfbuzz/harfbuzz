@@ -40,9 +40,11 @@ typedef struct {
   GString *string;
 } paint_data_t;
 
+#ifndef _MSC_VER
 static void print (paint_data_t *data, const char *format, ...) __attribute__((format (printf, 2, 3)));
+#endif
 
-void
+static void
 print (paint_data_t *data,
        const char *format,
        ...)
