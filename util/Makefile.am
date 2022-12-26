@@ -39,6 +39,7 @@ if HAVE_GLIB
 if HAVE_CAIRO
 hb_view_SOURCES = $(HB_VIEW_sources)
 hb_view_LDADD = \
+	$(top_builddir)/src/libharfbuzz-cairo.la \
 	$(LDADD) \
 	$(CAIRO_LIBS) \
 	$(CAIRO_FT_LIBS) \

@@ -266,6 +266,7 @@ DISTCLEANFILES += \
 
 hb-features.h: hb-features.h.in $(top_builddir)/config.status
 	$(AM_V_GEN) $(SED) \
+		-e 's/mesondefine HB_HAS_CAIRO/$(HB_HAS_CAIRO_DEF)/' \
 		-e 's/mesondefine HB_HAS_FREETYPE/$(HB_HAS_FREETYPE_DEF)/' \
 		-e 's/mesondefine HB_HAS_GDI/$(HB_HAS_GDI_DEF)/' \
 		-e 's/mesondefine HB_HAS_GDI/$(HB_HAS_GDI_DEF)/' \
