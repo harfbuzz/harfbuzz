@@ -57,10 +57,10 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face);
 
 HB_EXTERN void
 hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
-			     const char *text,
-			     int text_len,
 			     hb_bool_t utf8_clusters,
 			     double scale_factor,
+			     const char *utf8,
+			     int utf8_len,
 			     cairo_glyph_t **glyphs,
 			     unsigned int *num_glyphs,
 			     cairo_text_cluster_t **clusters,

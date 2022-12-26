@@ -673,10 +673,10 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
 /**
  * hb_cairo_glyphs_from_buffer:
  * @buffer: a `hb_buffer_t` containing glyphs
- * @text: (nullable): the text that was shaped in @buffer
- * @text_len: the length of @text in bytes
  * @utf8_clusters: `true` to if @buffer clusters are in bytes, instead of characters
  * @scale_factor: scale factor to divide hb_positions_t values by
+ * @utf8: (nullable): the text that was shaped in @buffer
+ * @utf8_len: the length of @utf8 in bytes
  * @glyphs: return location for an array of `cairo_glyph_t`
  * @num_glyphs: return location for the length of @glyphs
  * @clusters: return location for an array of cluster positions
@@ -684,7 +684,7 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * @cluster_flags: return location for cluster flags
  *
  * Extracts information from @buffer in a form that can be
- * passed to cairo_show_text_glyphs().
+ * passed to cairo_show_text_glyphs() or cairo_show_glyphs().
  *
  * See hb_cairo_font_face_set_scale_factor() for the details of
  * the @scale_factor argument.
@@ -693,25 +693,25 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  */
 void
 hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
-			     const char *text,
-			     int text_len,
 			     hb_bool_t utf8_clusters,
 			     double scale_factor,
+			     const char *utf8,
+			     int utf8_len,
 			     cairo_glyph_t **glyphs,
 			     unsigned int *num_glyphs,
 			     cairo_text_cluster_t **clusters,
 			     unsigned int *num_clusters,
 			     cairo_text_cluster_flags_t *cluster_flags)
 {
-  if (text && text_len < 0)
-    text_len = strlen (text);
+  if (utf8 && utf8_len < 0)
+    utf8_len = strlen (utf8);
 
   *num_glyphs = hb_buffer_get_length (buffer);
   hb_glyph_info_t *hb_glyph = hb_buffer_get_glyph_infos (buffer, nullptr);
   hb_glyph_position_t *hb_position = hb_buffer_get_glyph_positions (buffer, nullptr);
   *glyphs = cairo_glyph_allocate (*num_glyphs + 1);
 
-  if (text)
+  if (utf8)
   {
     *num_clusters = *num_glyphs ? 1 : 0;
     for (unsigned int i = 1; i < *num_glyphs; i++)
@@ -768,7 +768,7 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
     hb_bool_t backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
     *cluster_flags = backward ? CAIRO_TEXT_CLUSTER_FLAG_BACKWARD : (cairo_text_cluster_flags_t) 0;
     unsigned int cluster = 0;
-    const char *start = text, *end;
+    const char *start = utf8, *end;
     (*clusters)[cluster].num_glyphs++;
     if (backward)
     {
@@ -788,7 +788,7 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 	}
 	(*clusters)[cluster].num_glyphs++;
       }
-      (*clusters)[cluster].num_bytes = text + text_len - start;
+      (*clusters)[cluster].num_bytes = utf8 + utf8_len - start;
     }
     else
     {
@@ -808,7 +808,7 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 	}
 	(*clusters)[cluster].num_glyphs++;
       }
-      (*clusters)[cluster].num_bytes = text + text_len - start;
+      (*clusters)[cluster].num_bytes = utf8 + utf8_len - start;
     }
   }
 }
