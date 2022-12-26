@@ -34,10 +34,19 @@
 HB_BEGIN_DECLS
 
 HB_EXTERN cairo_font_face_t *
-hb_cairo_font_face_create (hb_font_t *font);
+hb_cairo_font_face_create_for_face (hb_face_t *face);
+
+HB_EXTERN hb_face_t *
+hb_cairo_font_face_get_face (cairo_font_face_t *font_face);
+
+HB_EXTERN cairo_font_face_t *
+hb_cairo_font_face_create_for_font (hb_font_t *font);
 
 HB_EXTERN hb_font_t *
 hb_cairo_font_face_get_font (cairo_font_face_t *font_face);
+
+HB_EXTERN hb_font_t *
+hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font);
 
 HB_EXTERN void
 hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
