@@ -502,14 +502,14 @@ hb_cairo_font_face_create_for_font (hb_font_t *font)
 {
   hb_font_make_immutable (font);
 
-  auto *cr_face =  user_font_face_create (font->face);
+  auto *cairo_face =  user_font_face_create (font->face);
 
-  cairo_font_face_set_user_data (cr_face,
+  cairo_font_face_set_user_data (cairo_face,
                                  &hb_cairo_font_user_data_key,
                                  (void *) hb_font_reference (font),
                                  (cairo_destroy_func_t) hb_font_destroy);
 
-  return cr_face;
+  return cairo_face;
 }
 
 /**
