@@ -325,6 +325,8 @@ typedef struct {
  *
  * See the OpenType spec [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
  * section for details.
+ *
+ * Since: REPLACEME
  */
 typedef enum {
   HB_PAINT_EXTEND_PAD,
@@ -515,6 +517,62 @@ typedef void (*hb_paint_sweep_gradient_func_t)  (hb_paint_funcs_t *funcs,
 
 /**
  * hb_paint_composite_mode_t:
+ * @HB_PAINT_COMPOSITE_MODE_CLEAR: clear destination layer (bounded)
+ * @HB_PAINT_COMPOSITE_MODE_SRC: replace destination layer (bounded)
+ * @HB_PAINT_COMPOSITE_MODE_SRC_OVER: draw source layer on top of destination layer
+ * (bounded)
+ * @HB_PAINT_COMPOSITE_MODE_SRC_IN: draw source where there was destination content
+ * (unbounded)
+ * @HB_PAINT_COMPOSITE_MODE_SRC_OUT: draw source where there was no destination
+ * content (unbounded)
+ * @HB_PAINT_COMPOSITE_MODE_SRC_ATOP: draw source on top of destination content and
+ * only there
+ * @HB_PAINT_COMPOSITE_MODE_DEST: ignore the source
+ * @HB_PAINT_COMPOSITE_MODE_DEST_OVER: draw destination on top of source
+ * @HB_PAINT_COMPOSITE_MODE_DEST_IN: leave destination only where there was
+ * source content (unbounded)
+ * @HB_PAINT_COMPOSITE_MODE_DEST_OUT: leave destination only where there was no
+ * source content
+ * @HB_PAINT_COMPOSITE_MODE_DEST_ATOP: leave destination on top of source content
+ * and only there (unbounded)
+ * @HB_PAINT_COMPOSITE_MODE_XOR: source and destination are shown where there is only
+ * one of them
+ * @HB_PAINT_COMPOSITE_MODE_PLUS: source and destination layers are accumulated
+ * @HB_PAINT_COMPOSITE_MODE_MULTIPLY: source and destination layers are multiplied.
+ * This causes the result to be at least as dark as the darker inputs.
+ * @HB_PAINT_COMPOSITE_MODE_SCREEN: source and destination are complemented and
+ * multiplied. This causes the result to be at least as light as the lighter
+ * inputs.
+ * @HB_PAINT_COMPOSITE_MODE_OVERLAY: multiplies or screens, depending on the
+ * lightness of the destination color.
+ * @HB_PAINT_COMPOSITE_MODE_DARKEN: replaces the destination with the source if it
+ * is darker, otherwise keeps the source.
+ * @HB_PAINT_COMPOSITE_MODE_LIGHTEN: replaces the destination with the source if it
+ * is lighter, otherwise keeps the source.
+ * @HB_PAINT_COMPOSITE_MODE_COLOR_DODGE: brightens the destination color to reflect
+ * the source color.
+ * @HB_PAINT_COMPOSITE_MODE_COLOR_BURN: darkens the destination color to reflect
+ * the source color.
+ * @HB_PAINT_COMPOSITE_MODE_HARD_LIGHT: Multiplies or screens, dependent on source
+ * color.
+ * @HB_PAINT_COMPOSITE_MODE_SOFT_LIGHT: Darkens or lightens, dependent on source
+ * color.
+ * @HB_PAINT_COMPOSITE_MODE_DIFFERENCE: Takes the difference of the source and
+ * destination color.
+ * @HB_PAINT_COMPOSITE_MODE_EXCLUSION: Produces an effect similar to difference, but
+ * with lower contrast.
+ * @HB_PAINT_COMPOSITE_MODE_HSL_HUE: Creates a color with the hue of the source
+ * and the saturation and luminosity of the target.
+ * @HB_PAINT_COMPOSITE_MODE_HSL_SATURATION: Creates a color with the saturation
+ * of the source and the hue and luminosity of the target. Painting with
+ * this mode onto a gray area produces no change.
+ * @HB_PAINT_COMPOSITE_MODE_HSL_COLOR: Creates a color with the hue and saturation
+ * of the source and the luminosity of the target. This preserves the gray
+ * levels of the target and is useful for coloring monochrome images or
+ * tinting color images.
+ * @HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY: Creates a color with the luminosity of
+ * the source and the hue and saturation of the target. This produces an
+ * inverse effect to @HB_PAINT_COMPOSITE_MODE_HSL_COLOR.
  *
  * The values of this enumeration describe the compositing modes
  * that can be used when combining temporary redirected drawing
@@ -522,6 +580,8 @@ typedef void (*hb_paint_sweep_gradient_func_t)  (hb_paint_funcs_t *funcs,
  *
  * See the OpenType spec [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
  * section for details.
+ *
+ * Since: REPLACEME
  */
 typedef enum {
   HB_PAINT_COMPOSITE_MODE_CLEAR,
