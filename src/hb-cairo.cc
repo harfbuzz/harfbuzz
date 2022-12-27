@@ -413,7 +413,7 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
     {
       void *user_data = cairo_font_face_get_user_data (font_face,
 						       &hb_cairo_font_init_user_data_user_data_key);
-      init_func (font, scaled_font, user_data);
+      font = init_func (font, scaled_font, user_data);
     }
 
     hb_font_make_immutable (font);

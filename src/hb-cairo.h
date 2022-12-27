@@ -55,11 +55,13 @@ hb_cairo_font_face_get_face (cairo_font_face_t *font_face);
  * face created using hb_cairo_font_face_create_for_face()
  * creates an #hb_font_t for a #cairo_scaled_font_t.
  *
+ * Return value: the #hb_font_t value to use; in most cases same as @font
+ *
  * Since: REPLACEME
  */
-typedef void (*hb_cairo_font_init_func_t) (hb_font_t *font,
-					   cairo_scaled_font_t *scaled_font,
-					   void *user_data);
+typedef hb_font_t * (*hb_cairo_font_init_func_t) (hb_font_t *font,
+						  cairo_scaled_font_t *scaled_font,
+						  void *user_data);
 
 HB_EXTERN void
 hb_cairo_font_face_set_font_init_func (cairo_font_face_t *font_face,
