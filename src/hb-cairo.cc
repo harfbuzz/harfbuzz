@@ -353,6 +353,8 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
 
 static const cairo_user_data_key_t hb_cairo_face_user_data_key = {0};
 static const cairo_user_data_key_t hb_cairo_font_user_data_key = {0};
+static const cairo_user_data_key_t hb_cairo_font_init_func_user_data_key = {0};
+static const cairo_user_data_key_t hb_cairo_font_init_user_data_user_data_key = {0};
 static const cairo_user_data_key_t hb_cairo_scale_factor_user_data_key = {0};
 
 static void hb_cairo_face_destroy (void *p) { hb_face_destroy ((hb_face_t *) p); }
@@ -402,6 +404,16 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
       hb_font_set_scale (font,
 			 round (font_matrix.xx * scale_factor),
 			 round (font_matrix.yy * scale_factor));
+    }
+
+    auto *init_func = (hb_cairo_font_init_func_t)
+		      cairo_font_face_get_user_data (font_face,
+						     &hb_cairo_font_init_func_user_data_key);
+    if (init_func)
+    {
+      void *user_data = cairo_font_face_get_user_data (font_face,
+						       &hb_cairo_font_init_user_data_user_data_key);
+      init_func (font, scaled_font, user_data);
     }
 
     hb_font_make_immutable (font);
@@ -547,51 +559,16 @@ user_font_face_create (hb_face_t *face)
 }
 
 /**
- * hb_cairo_font_face_create_for_face:
- * @face: a `hb_face_t`
- *
- * Creates a `cairo_font_face_t` for rendering text according
- * to @face.
- *
- * Returns: a newly created `cairo_font_face_t`
- *
- * Since: REPLACEME
- */
-cairo_font_face_t *
-hb_cairo_font_face_create_for_face (hb_face_t *face)
-{
-  hb_face_make_immutable (face);
-
-  return user_font_face_create (face);
-}
-
-/**
- * hb_cairo_font_face_get_face:
- * @font_face: a `cairo_font_face_t`
- *
- * Gets the `hb_face_t` associated with @font_face.
- *
- * Returns: (nullable): the `hb_face_t` associated with @font_face
- *
- * Since: REPLACEME
- */
-hb_face_t *
-hb_cairo_font_face_get_face (cairo_font_face_t *font_face)
-{
-  return (hb_face_t *) cairo_font_face_get_user_data (font_face, &hb_cairo_face_user_data_key);
-}
-
-/**
  * hb_cairo_font_face_create_for_font:
- * @font: a `hb_font_t`
+ * @font: a #hb_font_t
  *
- * Creates a `cairo_font_face_t` for rendering text according
+ * Creates a #cairo_font_face_t for rendering text according
  * to @font.
  *
  * Note that the scale of @font does not affect the rendering,
  * but the variations and slant that are set on @font do.
  *
- * Returns: a newly created `cairo_font_face_t`
+ * Returns: a newly created #cairo_font_face_t
  *
  * Since: REPLACEME
  */
@@ -612,27 +589,93 @@ hb_cairo_font_face_create_for_font (hb_font_t *font)
 
 /**
  * hb_cairo_font_face_get_font:
- * @font_face: a `cairo_font_face_t`
+ * @font_face: a #cairo_font_face_t
  *
- * Gets the `hb_font_t` that @font_face was created from.
+ * Gets the #hb_font_t that @font_face was created from.
  *
- * Returns: (nullable): the `hb_font_t` that @font_face was created from
+ * Returns: (nullable): the #hb_font_t that @font_face was created from
  *
  * Since: REPLACEME
  */
 hb_font_t *
 hb_cairo_font_face_get_font (cairo_font_face_t *font_face)
 {
-  return (hb_font_t *) cairo_font_face_get_user_data (font_face, &hb_cairo_font_user_data_key);
+  return (hb_font_t *) cairo_font_face_get_user_data (font_face,
+						      &hb_cairo_font_user_data_key);
+}
+
+/**
+ * hb_cairo_font_face_create_for_face:
+ * @face: a #hb_face_t
+ *
+ * Creates a #cairo_font_face_t for rendering text according
+ * to @face.
+ *
+ * Returns: a newly created #cairo_font_face_t
+ *
+ * Since: REPLACEME
+ */
+cairo_font_face_t *
+hb_cairo_font_face_create_for_face (hb_face_t *face)
+{
+  hb_face_make_immutable (face);
+
+  return user_font_face_create (face);
+}
+
+/**
+ * hb_cairo_font_face_get_face:
+ * @font_face: a #cairo_font_face_t
+ *
+ * Gets the #hb_face_t associated with @font_face.
+ *
+ * Returns: (nullable): the #hb_face_t associated with @font_face
+ *
+ * Since: REPLACEME
+ */
+hb_face_t *
+hb_cairo_font_face_get_face (cairo_font_face_t *font_face)
+{
+  return (hb_face_t *) cairo_font_face_get_user_data (font_face,
+						      &hb_cairo_face_user_data_key);
+}
+
+/**
+ * hb_cairo_font_face_set_font_init_func:
+ * @font_face: a #cairo_font_face_t
+ * @func: The virtual method to use
+ * @user_data: user data accompanying the method
+ * @destroy: function to call when @user_data is not needed anymore
+ *
+ * Set the virtual method to be called when a cairo
+ * face created using hb_cairo_font_face_create_for_face()
+ * creates an #hb_font_t for a #cairo_scaled_font_t.
+ *
+ * Since: REPLACEME
+ */
+void
+hb_cairo_font_face_set_font_init_func (cairo_font_face_t *font_face,
+				       hb_cairo_font_init_func_t func,
+				       void *user_data,
+				       hb_destroy_func_t destroy)
+{
+  cairo_font_face_set_user_data (font_face,
+				 &hb_cairo_font_init_func_user_data_key,
+				 (void *) func,
+				 nullptr);
+  cairo_font_face_set_user_data (font_face,
+				 &hb_cairo_font_init_user_data_user_data_key,
+				 (void *) user_data,
+				 destroy);
 }
 
 /**
  * hb_cairo_scaled_font_get_font:
- * @scaled_font: a `cairo_scaled_font_t`
+ * @scaled_font: a #cairo_scaled_font_t
  *
- * Gets the `hb_font_t` associated with @scaled_font.
+ * Gets the #hb_font_t associated with @scaled_font.
  *
- * Returns: (nullable): the `hb_font_t` associated with @scaled_font
+ * Returns: (nullable): the #hb_font_t associated with @scaled_font
  *
  * Since: REPLACEME
  */
@@ -645,7 +688,8 @@ hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
 
 /**
  * hb_cairo_font_face_set_scale_factor:
- * @font_face: a `cairo_font_face_t`
+ * @scale_factor: The scale factor to use. See below
+ * @font_face: a #cairo_font_face_t
  *
  * Sets the scale factor of the @font_face. Default scale
  * factor is zero.
@@ -695,7 +739,7 @@ hb_cairo_font_face_set_scale_factor (cairo_font_face_t *font_face,
 
 /**
  * hb_cairo_font_face_get_scale_factor:
- * @font_face: a `cairo_font_face_t`
+ * @font_face: a #cairo_font_face_t
  *
  * Gets the scale factor set on the @font_face. Defaults to zero.
  * See hb_cairo_font_face_set_scale_factor() for details.
@@ -715,14 +759,14 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
 
 /**
  * hb_cairo_glyphs_from_buffer:
- * @buffer: a `hb_buffer_t` containing glyphs
+ * @buffer: a #hb_buffer_t containing glyphs
  * @utf8_clusters: `true` to if @buffer clusters are in bytes, instead of characters
  * @scale_factor: scale factor to divide hb_positions_t values by
  * @x: X position to place first glyph
  * @y: Y position to place first glyph
  * @utf8: (nullable): the text that was shaped in @buffer
  * @utf8_len: the length of @utf8 in bytes
- * @glyphs: (out): return location for an array of `cairo_glyph_t`
+ * @glyphs: (out): return location for an array of #cairo_glyph_t
  * @num_glyphs: (out): return location for the length of @glyphs
  * @clusters: (out) (nullable): return location for an array of cluster positions
  * @num_clusters: (out) (nullable): return location for the length of @clusters

@@ -864,10 +864,12 @@ hb_subset_input_override_name_table
 
 <SECTION>
 <FILE>hb-cairo</FILE>
-hb_cairo_font_face_create_for_face
-hb_cairo_font_face_get_face
 hb_cairo_font_face_create_for_font
 hb_cairo_font_face_get_font
+hb_cairo_font_face_create_for_face
+hb_cairo_font_face_get_face
+hb_cairo_font_init_func_t
+hb_cairo_font_face_set_font_init_func
 hb_cairo_scaled_font_get_font
 hb_cairo_font_face_set_scale_factor
 hb_cairo_font_face_get_scale_factor
