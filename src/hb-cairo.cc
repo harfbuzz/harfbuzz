@@ -36,6 +36,9 @@
 #include "hb-utf.hh"
 
 
+/* TODO Error handling in cairo set_user_data calls? */
+
+
 /**
  * SECTION:hb-cairo
  * @title: hb-cairo
