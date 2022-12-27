@@ -5,7 +5,6 @@ HB_VIEW_sources = \
 	hb-view.cc \
 	helper-cairo-ansi.hh \
 	helper-cairo-ft.hh \
-	helper-cairo-user.hh \
 	helper-cairo.hh \
 	main-font-text.hh \
 	options.hh \
