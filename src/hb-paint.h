@@ -310,6 +310,14 @@ typedef struct {
 
 /**
  * hb_paint_extend_t:
+ * @HB_PAINT_EXTEND_PAD: Outside the defined interval,
+ *   the color of the closest color stop is used.
+ * @HB_PAINT_EXTEND_REPEAT: The color line is repeated over
+ *   repeated multiples of the defined interval
+ * @HB_PAINT_EXTEND_REFLECT: The color line is repeated over
+ *      repeated intervals, as for the repeat mode.
+ *      However, in each repeated interval, the ordering of
+ *      color stops is the reverse of the adjacent interval.
  *
  * The values of this enumeration determine how color values
  * outside the minimum and maximum defined offset on a #hb_color_line_t
