@@ -184,11 +184,7 @@ view_cairo_t::render (const font_options_t *font_opts)
       cairo_restore (cr);
     }
 
-    if (0 && cairo_surface_get_type (cairo_get_target (cr)) == CAIRO_SURFACE_TYPE_IMAGE) {
-      /* cairo_show_glyphs() doesn't support subpixel positioning */
-      cairo_glyph_path (cr, l.glyphs, l.num_glyphs);
-      cairo_fill (cr);
-    } else if (l.num_clusters)
+    if (l.num_clusters)
       cairo_show_text_glyphs (cr,
 			      l.utf8, l.utf8_len,
 			      l.glyphs, l.num_glyphs,
