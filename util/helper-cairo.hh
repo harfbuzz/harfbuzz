@@ -606,7 +606,7 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
 
   hb_cairo_glyphs_from_buffer (buffer,
 			       utf8_clusters,
-			       1 << -scale_bits,
+			       1 << -scale_bits, 1 << -scale_bits,
 			       0., 0.,
 			       l->utf8, l->utf8_len,
 			       &l->glyphs, &l->num_glyphs,

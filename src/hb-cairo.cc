@@ -458,11 +458,9 @@ hb_cairo_text_to_glyphs (cairo_scaled_font_t        *scaled_font,
   hb_buffer_guess_segment_properties (buffer);
   hb_shape (font, buffer, nullptr, 0);
 
-  double scale_factor = font->x_scale;
-
   hb_cairo_glyphs_from_buffer (buffer,
 			       true,
-			       scale_factor,
+			       font->x_scale, font->y_scale,
 			       0., 0.,
 			       utf8, utf8_len,
 			       glyphs, (unsigned *) num_glyphs,
@@ -710,17 +708,17 @@ hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
  * When using the hb_cairo_glyphs_from_buffer() API to convert
  * HarfBuzz glyph buffer resulted from shaping with such a hb_font_t,
  * if the scale-factor was non-zero, you can pass it directly to
- * that API.  If the scale-factor was zero however, you need to
- * calculate the correct scale-factor to pass to that API by
- * dividing the #hb_font_t scale-factor by the cairo scaled-font's
- * scale-matrix scale-factor. This assumes a uniform scale.
+ * that API as both X and Y scale factors.
  *
- * If the cairo-face was created using the alternative constructor
- * hb_cairo_font_face_create_for_font(), you are on your own
- * computing the correct scale-factor to pass to
- * hb_cairo_glyphs_from_buffer(), but it is generally the x_scale
- * of the #hb_font_t divided by the xx factor of the scaled-font's
- * scale-matrix.
+ * If the scale-factor was zero however, or the cairo face was
+ * created using the alternative constructor
+ * hb_cairo_font_face_create_for_font(), you need to calculate the
+ * correct X/Y scale-factors to pass to hb_cairo_glyphs_from_buffer()
+ * by dividing the #hb_font_t X/Y scale-factors by the
+ * cairo scaled-font's scale-matrix XX/YY components respectively
+ * and use those values.  Or if you know that relationship offhand
+ * (because you set the scale of the #hb_font_t yourself), use
+ * the conversation rate involved.
  *
  * Since: REPLACEME
  */
@@ -758,7 +756,8 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * hb_cairo_glyphs_from_buffer:
  * @buffer: a #hb_buffer_t containing glyphs
  * @utf8_clusters: `true` to if @buffer clusters are in bytes, instead of characters
- * @scale_factor: scale factor to divide hb_positions_t values by
+ * @x_scale_factor: scale factor to divide hb_positions_t Y values by
+ * @y_scale_factor: scale factor to divide hb_positions_t X values by
  * @x: X position to place first glyph
  * @y: Y position to place first glyph
  * @utf8: (nullable): the text that was shaped in @buffer
@@ -787,7 +786,8 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
 void
 hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
 			     hb_bool_t utf8_clusters,
-			     double scale_factor,
+			     double x_scale_factor,
+			     double y_scale_factor,
 			     double x,
 			     double y,
 			     const char *utf8,
@@ -834,22 +834,23 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
     return;
   }
 
-  double iscale = scale_factor ? 1. / scale_factor : 0.;
+  double x_scale = x_scale_factor ? 1. / x_scale_factor : 0.;
+  double y_scale = y_scale_factor ? 1. / y_scale_factor : 0.;
   hb_position_t hx = 0, hy = 0;
   int i;
   for (i = 0; i < (int) *num_glyphs; i++)
   {
     (*glyphs)[i].index = hb_glyph[i].codepoint;
-    (*glyphs)[i].x = x + (+hb_position->x_offset + hx) * iscale;
-    (*glyphs)[i].y = y + (-hb_position->y_offset + hy) * iscale;
+    (*glyphs)[i].x = x + (+hb_position->x_offset + hx) * x_scale;
+    (*glyphs)[i].y = y + (-hb_position->y_offset + hy) * y_scale;
     hx +=  hb_position->x_advance;
     hy += -hb_position->y_advance;
 
     hb_position++;
   }
   (*glyphs)[i].index = -1;
-  (*glyphs)[i].x = round (hx * iscale);
-  (*glyphs)[i].y = round (hy * iscale);
+  (*glyphs)[i].x = round (hx * x_scale);
+  (*glyphs)[i].y = round (hy * y_scale);
 
   if (clusters && *num_clusters)
   {
