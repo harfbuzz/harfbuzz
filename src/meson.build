@@ -618,7 +618,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
   harfbuzz_cairo_def = custom_target('harfbuzz-cairo.def',
     command: [gen_def, '@OUTPUT@', '@INPUT@'],
     input: hb_cairo_headers,
-    output: 'harfbuzz-cairot .def')
+    output: 'harfbuzz-cairo.def')
   defs_list += [harfbuzz_cairo_def]
 
   pkgmod.generate(libharfbuzz_cairo,
