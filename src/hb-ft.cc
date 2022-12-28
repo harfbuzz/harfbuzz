@@ -226,6 +226,9 @@ _hb_ft_hb_font_check_changed (hb_font_t *font,
  * For more information, see 
  * https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_load_xxx
  *
+ * This function works with #hb_font_t objects created by
+ * hb_ft_font_create() or hb_ft_font_create_referenced().
+ *
  * Since: 1.0.5
  **/
 void
@@ -251,7 +254,10 @@ hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
  * For more information, see 
  * https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_load_xxx
  *
- * Return value: FT_Load_Glyph flags found
+ * This function works with #hb_font_t objects created by
+ * hb_ft_font_create() or hb_ft_font_create_referenced().
+ *
+ * Return value: FT_Load_Glyph flags found, or 0
  *
  * Since: 1.0.5
  **/
@@ -273,6 +279,9 @@ hb_ft_font_get_load_flags (hb_font_t *font)
  * Fetches the FT_Face associated with the specified #hb_font_t
  * font object.
  *
+ * This function works with #hb_font_t objects created by
+ * hb_ft_font_create() or hb_ft_font_create_referenced().
+ *
  * Return value: (nullable): the FT_Face found or `NULL`
  *
  * Since: 0.9.2
@@ -292,8 +301,13 @@ hb_ft_font_get_face (hb_font_t *font)
  * hb_ft_font_lock_face: (skip)
  * @font: #hb_font_t to work upon
  *
- * Gets the FT_Face associated with @font, This face will be kept around until
- * you call hb_ft_font_unlock_face().
+ * Gets the FT_Face associated with @font.
+ *
+ * This face will be kept around and access to the FT_Face object
+ * from other HarfBuzz API wil be blocked until you call hb_ft_font_unlock_face().
+ *
+ * This function works with #hb_font_t objects created by
+ * hb_ft_font_create() or hb_ft_font_create_referenced().
  *
  * Return value: (nullable) (transfer none): the FT_Face associated with @font or `NULL`
  * Since: 2.6.5
