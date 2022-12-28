@@ -458,13 +458,7 @@ hb_cairo_text_to_glyphs (cairo_scaled_font_t        *scaled_font,
   hb_buffer_guess_segment_properties (buffer);
   hb_shape (font, buffer, nullptr, 0);
 
-  double scale_factor = hb_cairo_font_face_get_scale_factor (cairo_scaled_font_get_font_face (scaled_font));
-  if (!scale_factor)
-  {
-    cairo_matrix_t font_matrix;
-    cairo_scaled_font_get_scale_matrix (scaled_font, &font_matrix);
-    scale_factor = font->x_scale / font_matrix.xx;
-  }
+  double scale_factor = font->x_scale;
 
   hb_cairo_glyphs_from_buffer (buffer,
 			       true,
