@@ -779,8 +779,7 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * passed to cairo_show_text_glyphs() or cairo_show_glyphs().
  * This API is modeled after cairo_scaled_font_text_to_glyphs().
  *
- * If @utf8 is provided, then cluster fields must also be provided and
- * they will be returned.
+ * If cluster information is requested, @utf8 must be provided.
  *
  * See hb_cairo_font_face_set_scale_factor() for the details of
  * the @scale_factor argument.
@@ -813,19 +812,13 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
   hb_glyph_position_t *hb_position = hb_buffer_get_glyph_positions (buffer, nullptr);
   *glyphs = cairo_glyph_allocate (*num_glyphs + 1);
 
-  if (utf8)
+  if (clusters)
   {
     *num_clusters = *num_glyphs ? 1 : 0;
     for (unsigned int i = 1; i < *num_glyphs; i++)
       if (hb_glyph[i].cluster != hb_glyph[i-1].cluster)
 	(*num_clusters)++;
     *clusters = cairo_text_cluster_allocate (*num_clusters);
-  }
-  else if (clusters)
-  {
-    *clusters = nullptr;
-    *num_clusters = 0;
-    *cluster_flags = (cairo_text_cluster_flags_t) 0;
   }
 
   if ((*num_glyphs && !*glyphs) ||
@@ -864,7 +857,7 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
   (*glyphs)[i].x = round (hx * iscale);
   (*glyphs)[i].y = round (hy * iscale);
 
-  if (*num_clusters)
+  if (clusters && *num_clusters)
   {
     memset ((void *) *clusters, 0, *num_clusters * sizeof ((*clusters)[0]));
     hb_bool_t backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
