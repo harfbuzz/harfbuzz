@@ -1032,6 +1032,10 @@ _hb_ft_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data
  *
  * Creates an #hb_face_t face object from the specified FT_Face.
  *
+ * Note that this is using the FT_Face object just to get at the underlying
+ * font data, and fonts created from the returned #hb_face_t will use the native
+ * HarfBuzz font implementation.
+ *
  * This variant of the function does not provide any life-cycle management.
  *
  * Most client programs should use hb_ft_face_create_referenced()
@@ -1076,6 +1080,10 @@ hb_ft_face_create (FT_Face           ft_face,
  *
  * Creates an #hb_face_t face object from the specified FT_Face.
  *
+ * Note that this is using the FT_Face object just to get at the underlying
+ * font data, and fonts created from the returned #hb_face_t will use the native
+ * HarfBuzz font implementation.
+ *
  * This is the preferred variant of the hb_ft_face_create*
  * function family, because it calls FT_Reference_Face() on @ft_face,
  * ensuring that @ft_face remains alive as long as the resulting
@@ -1107,6 +1115,10 @@ hb_ft_face_finalize (void *arg)
  * @ft_face: FT_Face to work upon
  *
  * Creates an #hb_face_t face object from the specified FT_Face.
+ *
+ * Note that this is using the FT_Face object just to get at the underlying
+ * font data, and fonts created from the returned #hb_face_t will use the native
+ * HarfBuzz font implementation.
  *
  * This variant of the function caches the newly created #hb_face_t
  * face object, using the @generic pointer of @ft_face. Subsequent function
