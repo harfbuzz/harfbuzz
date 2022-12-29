@@ -182,7 +182,7 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
   /* Undo slant in the extents and apply it in the context. */
   extents->width -= extents->height * slant;
   extents->x_bearing -= extents->y_bearing * slant;
-  cairo_matrix_t cairo_matrix = {1., 0., slant, 1., 0., 0.};
+  cairo_matrix_t cairo_matrix = {1., 0., (double) slant, 1., 0., 0.};
   cairo_transform (cr, &cairo_matrix);
 
   cairo_translate (cr, extents->x_bearing, extents->y_bearing);
@@ -300,7 +300,7 @@ hb_cairo_paint_linear_gradient (cairo_t *cr,
   xxx1 = xx0 + max * (xx1 - xx0);
   yyy1 = yy0 + max * (yy1 - yy0);
 
-  pattern = cairo_pattern_create_linear (xxx0, yyy0, xxx1, yyy1);
+  pattern = cairo_pattern_create_linear ((double) xxx0, (double) yyy0, (double) xxx1, (double) yyy1);
   cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
   for (unsigned int i = 0; i < len; i++)
     {
@@ -309,7 +309,7 @@ hb_cairo_paint_linear_gradient (cairo_t *cr,
       g = hb_color_get_green (stops[i].color) / 255.;
       b = hb_color_get_blue (stops[i].color) / 255.;
       a = hb_color_get_alpha (stops[i].color) / 255.;
-      cairo_pattern_add_color_stop_rgba (pattern, stops[i].offset, r, g, b, a);
+      cairo_pattern_add_color_stop_rgba (pattern, (double) stops[i].offset, r, g, b, a);
     }
 
   cairo_set_source (cr, pattern);
@@ -349,7 +349,7 @@ hb_cairo_paint_radial_gradient (cairo_t *cr,
   rr0 = r0 + min * (r1 - r0);
   rr1 = r0 + max * (r1 - r0);
 
-  pattern = cairo_pattern_create_radial (xx0, yy0, rr0, xx1, yy1, rr1);
+  pattern = cairo_pattern_create_radial ((double) xx0, (double) yy0, (double) rr0, (double) xx1, (double) yy1, (double) rr1);
   cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
 
   for (unsigned int i = 0; i < len; i++)
@@ -359,7 +359,7 @@ hb_cairo_paint_radial_gradient (cairo_t *cr,
       g = hb_color_get_green (stops[i].color) / 255.;
       b = hb_color_get_blue (stops[i].color) / 255.;
       a = hb_color_get_alpha (stops[i].color) / 255.;
-      cairo_pattern_add_color_stop_rgba (pattern, stops[i].offset, r, g, b, a);
+      cairo_pattern_add_color_stop_rgba (pattern, (double) stops[i].offset, r, g, b, a);
     }
 
   cairo_set_source (cr, pattern);
@@ -455,37 +455,37 @@ static void
 _hb_cairo_add_patch (cairo_pattern_t *pattern, hb_cairo_point_t *center, hb_cairo_patch_t *p)
 {
   cairo_mesh_pattern_begin_patch (pattern);
-  cairo_mesh_pattern_move_to (pattern, center->x, center->y);
-  cairo_mesh_pattern_line_to (pattern, p->p0.x, p->p0.y);
+  cairo_mesh_pattern_move_to (pattern, (double) center->x, (double) center->y);
+  cairo_mesh_pattern_line_to (pattern, (double) p->p0.x, (double) p->p0.y);
   cairo_mesh_pattern_curve_to (pattern,
-                               p->c0.x, p->c0.y,
-                               p->c1.x, p->c1.y,
-                               p->p1.x, p->p1.y);
-  cairo_mesh_pattern_line_to (pattern, center->x, center->y);
+                               (double) p->c0.x, (double) p->c0.y,
+                               (double) p->c1.x, (double) p->c1.y,
+                               (double) p->p1.x, (double) p->p1.y);
+  cairo_mesh_pattern_line_to (pattern, (double) center->x, (double) center->y);
   cairo_mesh_pattern_set_corner_color_rgba (pattern, 0,
-                                            p->color0.r,
-                                            p->color0.g,
-                                            p->color0.b,
-                                            p->color0.a);
+                                            (double) p->color0.r,
+                                            (double) p->color0.g,
+                                            (double) p->color0.b,
+                                            (double) p->color0.a);
   cairo_mesh_pattern_set_corner_color_rgba (pattern, 1,
-                                            p->color0.r,
-                                            p->color0.g,
-                                            p->color0.b,
-                                            p->color0.a);
+                                            (double) p->color0.r,
+                                            (double) p->color0.g,
+                                            (double) p->color0.b,
+                                            (double) p->color0.a);
   cairo_mesh_pattern_set_corner_color_rgba (pattern, 2,
-                                            p->color1.r,
-                                            p->color1.g,
-                                            p->color1.b,
-                                            p->color1.a);
+                                            (double) p->color1.r,
+                                            (double) p->color1.g,
+                                            (double) p->color1.b,
+                                            (double) p->color1.a);
   cairo_mesh_pattern_set_corner_color_rgba (pattern, 3,
-                                            p->color1.r,
-                                            p->color1.g,
-                                            p->color1.b,
-                                            p->color1.a);
+                                            (double) p->color1.r,
+                                            (double) p->color1.g,
+                                            (double) p->color1.b,
+                                            (double) p->color1.a);
   cairo_mesh_pattern_end_patch (pattern);
 }
 
-#define MAX_ANGLE (M_PI / 8.)
+#define MAX_ANGLE ((float) M_PI / 8.f)
 
 static void
 _hb_cairo_add_sweep_gradient_patches1 (float cx, float cy, float radius,
@@ -498,7 +498,7 @@ _hb_cairo_add_sweep_gradient_patches1 (float cx, float cy, float radius,
   hb_cairo_point_t p0;
   hb_cairo_color_t color0, color1;
 
-  num_splits = ceilf (fabs (a1 - a0) / MAX_ANGLE);
+  num_splits = ceilf (fabsf (a1 - a0) / MAX_ANGLE);
   p0 = hb_cairo_point_t { cosf (a0), sinf (a0) };
   color0 = *c0;
 
