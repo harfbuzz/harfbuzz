@@ -55,7 +55,7 @@
       shaping. The typeface must be set to a specific point size in
       order for some details (such as hinting) to work. In addition,
       if the font file in question is an OpenType Variable Font, then
-      you may need to specify one or variation-axis settings (or a
+      you may need to specify one or more variation-axis settings (or a
       named instance) in order to get the output you need.
     </para>
     <para>
@@ -256,6 +256,18 @@
     <para>
       <function>hb_font_get_glyph_from_name_func_t</function>: returns
       the glyph index that corresponds to a given glyph name.
+    </para>
+      </listitem>
+      <listitem>
+    <para>
+      <function>hb_font_draw_glyph_func_t</function>: gets the outlines
+      of a glyph (by calling #hb_draw_funcs_t callbacks).
+    </para>
+      </listitem>
+      <listitem>
+    <para>
+      <function>hb_font_paint_glyph_func_t</function>: paints a glyph
+      (by calling #hb_paint_funcs_t callbacks).
     </para>
       </listitem>
     </itemizedlist>
