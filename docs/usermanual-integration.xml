@@ -308,7 +308,49 @@
       it when it is unneeded.
     </para>
   </section>
-  
+
+  <section id="integration-cairo">
+    <title>Cairo integration</title>
+
+    <para>
+      Cairo is a 2D graphics library that is frequently used together
+      with GTK and Pango. Cairo supports rendering text using FreeType, or
+      by using callback-based 'user fonts'.
+    </para>
+    <para>
+      HarfBuzz provides integration points with cairo for fonts as well as
+      for buffers. To use the Cairo-integration API, link against libharfbuzz-cairo,
+      and include the <filename>hb-cairo.h</filename> header. For easy buildsystem
+      integration, HarfBuzz comes with a <filename>harfbuzz-cairo.pc</filename>
+      pkg-config file.
+    </para>
+    <para>
+      To create a <type>cairo_scaled_font_t</type> font from a HarfBuzz
+      <type>hb_font_t</type>, you can use <function>hb_cairo_font_face_create_for_font()</function>
+      or <function>hb_cairo_font_face_create_for_face()</function>. The former API
+      applies variations and synthetic slant from the <type>hb_font_t</type> when
+      rendering, the latter takes them from the <type>cairo_font_options_t</type>
+      that were passed when creating the <type>cairo_scaled_font_t</type>.
+    </para>
+    <para>
+      The Cairo fonts created in this way make use of Cairo's user-font facilities.
+      They can be used to render on any Cairo context, and provide full support for
+      font rendering features, including color. One current limitation of the
+      implementation is that it does not support hinting for glyph outlines.
+    </para>
+    <para>
+      When using color fonts with this API, the color palette index is taken from
+      the <type>cairo_font_options_t</type> (with new enough Cairo), and the foreground
+      color is extracted from the source of the Cairo context.
+    </para>
+    <para>
+      To render the results of shaping a piece of text, use
+      <function>hb_cairo_glyphs_from_buffer()</function> to obtain the glyphs in
+      a form that can be passed to <function>cairo_show_text_glyphs()</function> or
+      <function>cairo_show_glyphs()</function>.
+    </para>
+  </section>
+
   <section id="integration-uniscribe">
     <title>Uniscribe integration</title>
     <para>
