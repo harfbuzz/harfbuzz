@@ -816,7 +816,7 @@ hb_font_funcs_set_glyph_from_name_func (hb_font_funcs_t *ffuncs,
  *
  * Since: 4.0.0
  *
- * Deprecated: REPLACEME: Use hb_font_set_draw_glyph_func() instead
+ * Deprecated: REPLACEME: Use hb_font_funcs_set_draw_glyph_func() instead
  **/
 HB_EXTERN void
 hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t *ffuncs,
