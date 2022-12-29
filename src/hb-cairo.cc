@@ -705,8 +705,8 @@ hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
  * @scale_factor times the xx and yy elements of the scale-matrix
  * of the cairo scaled-font being created.
  *
- * When using the hb_cairo_glyphs_from_buffer() API to convert
- * HarfBuzz glyph buffer resulted from shaping with such a hb_font_t,
+ * When using the hb_cairo_glyphs_from_buffer() API to convert the
+ * HarfBuzz glyph buffer that resulted from shaping with such a #hb_font_t,
  * if the scale-factor was non-zero, you can pass it directly to
  * that API as both X and Y scale factors.
  *
@@ -718,7 +718,7 @@ hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
  * cairo scaled-font's scale-matrix XX/YY components respectively
  * and use those values.  Or if you know that relationship offhand
  * (because you set the scale of the #hb_font_t yourself), use
- * the conversation rate involved.
+ * the conversion rate involved.
  *
  * Since: REPLACEME
  */
