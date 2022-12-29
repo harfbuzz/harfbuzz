@@ -842,25 +842,6 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
       *clusters = cairo_text_cluster_allocate (*num_clusters);
   }
 
-  if ((*num_glyphs && !*glyphs) ||
-      (clusters && *num_clusters && !*clusters))
-  {
-    if (*glyphs)
-    {
-      cairo_glyph_free (*glyphs);
-      *glyphs = nullptr;
-      *num_glyphs = 0;
-    }
-    if (clusters && *clusters)
-    {
-      cairo_text_cluster_free (*clusters);
-      *clusters = nullptr;
-      *num_clusters = 0;
-      *cluster_flags = (cairo_text_cluster_flags_t) 0;
-    }
-    return;
-  }
-
   double x_scale = x_scale_factor ? 1. / x_scale_factor : 0.;
   double y_scale = y_scale_factor ? 1. / y_scale_factor : 0.;
   hb_position_t hx = 0, hy = 0;
