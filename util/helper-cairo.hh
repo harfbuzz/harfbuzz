@@ -604,6 +604,8 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
 			       int                  scale_bits,
 			       hb_bool_t            utf8_clusters)
 {
+  memset (l, 0, sizeof (*l));
+
   l->utf8 = text ? g_strndup (text, text_len) : nullptr;
   l->utf8_len = text ? text_len : 0;
 
