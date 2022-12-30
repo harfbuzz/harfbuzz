@@ -85,7 +85,7 @@ hb_draw_extents_move_to (hb_draw_funcs_t *dfuncs,
 			 float to_x, float to_y,
 			 void *)
 {
-  hb_extents_t *extents = (hb_extents_t *)data;
+  hb_extents_t *extents = (hb_extents_t *) data;
 
   add_point (extents, to_x, to_y);
 }
@@ -97,7 +97,7 @@ hb_draw_extents_line_to (hb_draw_funcs_t *dfuncs,
 			 float to_x, float to_y,
 			 void *)
 {
-  hb_extents_t *extents = (hb_extents_t *)data;
+  hb_extents_t *extents = (hb_extents_t *) data;
 
   add_point (extents, to_x, to_y);
 }
@@ -110,7 +110,7 @@ hb_draw_extents_quadratic_to (hb_draw_funcs_t *dfuncs,
 			      float to_x, float to_y,
 			      void *)
 {
-  hb_extents_t *extents = (hb_extents_t *)data;
+  hb_extents_t *extents = (hb_extents_t *) data;
 
   add_point (extents, control_x, control_y);
   add_point (extents, to_x, to_y);
@@ -125,7 +125,7 @@ hb_draw_extents_cubic_to (hb_draw_funcs_t *dfuncs,
 			  float to_x, float to_y,
 			  void *)
 {
-  hb_extents_t *extents = (hb_extents_t *)data;
+  hb_extents_t *extents = (hb_extents_t *) data;
 
   add_point (extents, control1_x, control1_y);
   add_point (extents, control2_x, control2_y);
