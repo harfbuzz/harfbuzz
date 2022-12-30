@@ -64,7 +64,7 @@ static void
 add_point (hb_extents_t *extents,
            float x, float y)
 {
-  if (extents->xmax < extents->xmin)
+  if (unlikely (extents->xmax < extents->xmin))
   {
     extents->xmin = extents->xmax = x;
     extents->ymin = extents->ymax = y;
