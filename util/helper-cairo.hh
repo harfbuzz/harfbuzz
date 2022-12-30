@@ -134,13 +134,6 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   cairo_font_options_destroy (font_options);
   cairo_font_face_destroy (cairo_face);
 
-  static cairo_user_data_key_t key;
-  if (cairo_scaled_font_set_user_data (scaled_font,
-				       &key,
-				       (void *) hb_font_reference (font),
-				       (cairo_destroy_func_t) hb_font_destroy))
-    hb_font_destroy (font);
-
   return scaled_font;
 }
 
