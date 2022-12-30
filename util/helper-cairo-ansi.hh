@@ -119,7 +119,7 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride, in
   write_func (closure, (const unsigned char *) gs->str, gs->len);
 
   if (pixel_mode != CHAFA_PIXEL_MODE_SIXELS)
-    fputc ('\n', stdout);
+    write_func (closure, (const unsigned char *) "\n", 1);
 
   /* Free resources */
 
