@@ -51,8 +51,6 @@ lround (double x)
 }
 #endif
 
-#define ESC_E (char)27
-
 #define CELL_W 8
 #define CELL_H (2 * CELL_W)
 
@@ -394,7 +392,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
       bi.set (cell);
       if (bi.unicolor) {
 	if (last_bg != bi.bg) {
-	  printf ("%c[%dm", ESC_E, 40 + bi.bg);
+	  printf ("\e[%dm", 40 + bi.bg);
 	  last_bg = bi.bg;
 	}
 	printf (" ");
@@ -404,13 +402,13 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	const char *c = block_best (bi, &inverse);
 	if (inverse) {
 	  if (last_bg != bi.fg || last_fg != bi.bg) {
-	    printf ("%c[%d;%dm", ESC_E, 30 + bi.bg, 40 + bi.fg);
+	    printf ("\e[%d;%dm", 30 + bi.bg, 40 + bi.fg);
 	    last_bg = bi.fg;
 	    last_fg = bi.bg;
 	  }
 	} else {
 	  if (last_bg != bi.bg || last_fg != bi.fg) {
-	    printf ("%c[%d;%dm", ESC_E, 40 + bi.bg, 30 + bi.fg);
+	    printf ("\e[%d;%dm", 40 + bi.bg, 30 + bi.fg);
 	    last_bg = bi.bg;
 	    last_fg = bi.fg;
 	  }
@@ -418,7 +416,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	printf ("%s", c);
       }
     }
-    printf ("%c[0m\n", ESC_E); /* Reset */
+    printf ("\e[0m\n"); /* Reset */
     last_bg = last_fg = -1;
   }
 }
