@@ -98,7 +98,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
 #endif
 
 
-  cairo_font_face_t *cairo_face;
+  cairo_font_face_t *cairo_face = nullptr;
   if (use_hb_draw)
   {
     cairo_face = hb_cairo_font_face_create_for_font (font);
