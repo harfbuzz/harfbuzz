@@ -33,6 +33,10 @@
 #  include "helper-cairo-ft.hh"
 #endif
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h> /* for isatty() */
+#endif
+
 #include <cairo.h>
 #include <hb.h>
 #include <hb-cairo.h>

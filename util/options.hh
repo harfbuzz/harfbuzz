@@ -38,9 +38,6 @@
 #include <locale.h>
 #include <errno.h>
 #include <fcntl.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h> /* for isatty() */
-#endif
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include <io.h> /* for setmode() under Windows */
 #endif

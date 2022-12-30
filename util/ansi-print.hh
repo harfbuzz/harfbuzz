@@ -35,12 +35,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-#include <stdio.h>
 #include <math.h>
-#include <fcntl.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h> /* for isatty() */
-#endif
 
 #if defined (_MSC_VER) && (_MSC_VER < 1800)
 static inline long int
