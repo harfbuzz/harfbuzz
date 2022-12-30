@@ -134,6 +134,7 @@ struct post
       pool = &StructAfter<uint8_t> (v2.glyphNameIndex);
 
       const uint8_t *end = (const uint8_t *) (const void *) table + table_length;
+      index_to_offset.alloc (hb_min (face->get_num_glyphs (), table_length / 8));
       for (const uint8_t *data = pool;
 	   index_to_offset.length < 65535 && data < end && data + *data < end;
 	   data += 1 + *data)
