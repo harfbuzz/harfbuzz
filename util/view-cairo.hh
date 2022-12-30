@@ -63,8 +63,7 @@ struct view_cairo_t : view_options_t, output_options_t<>
 		       hb_bool_t     utf8_clusters)
   {
     direction = hb_buffer_get_direction (buffer);
-    helper_cairo_line_t l;
-    helper_cairo_line_from_buffer (&l, buffer, text, text_len, scale_bits, utf8_clusters);
+    helper_cairo_line_t l (text, text_len, buffer, utf8_clusters, scale_bits);
     g_array_append_val (lines, l);
   }
   void finish (hb_buffer_t *buffer, const font_options_t *font_opts)
