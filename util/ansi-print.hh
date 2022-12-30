@@ -384,7 +384,6 @@ ansi_print_image_rgb24 (const uint32_t *data,
 		        void			*closure)
 {
   image_t image (width, height, data, stride);
-  char buf[16];
 
   unsigned int rows = (height + CELL_H - 1) / CELL_H;
   unsigned int cols = (width +  CELL_W - 1) / CELL_W;
@@ -401,8 +400,9 @@ ansi_print_image_rgb24 (const uint32_t *data,
       {
 	if (last_bg != bi.bg)
 	{
-	  snprintf (buf, sizeof (buf), "\e[%dm", 40 + bi.bg);
-	  write_func (closure, (unsigned char *) buf, strlen (buf));
+	  char buf[] = "\e[40m";
+	  buf[3] += bi.bg;
+	  write_func (closure, (unsigned char *) buf, 5);
 	  last_bg = bi.bg;
 	}
 	write_func (closure, (unsigned char *) " ", 1);
@@ -414,8 +414,10 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	{
 	  if (last_bg != bi.fg || last_fg != bi.bg)
 	  {
-	    snprintf (buf, sizeof (buf), "\e[%d;%dm", 30 + bi.bg, 40 + bi.fg);
-	    write_func (closure, (unsigned char *) buf, strlen (buf));
+	    char buf[] = "\e[30;40m";
+	    buf[3] += bi.bg;
+	    buf[6] += bi.fg;
+	    write_func (closure, (unsigned char *) buf, 8);
 	    last_bg = bi.fg;
 	    last_fg = bi.bg;
 	  }
@@ -424,8 +426,10 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	{
 	  if (last_bg != bi.bg || last_fg != bi.fg)
 	  {
-	    snprintf (buf, sizeof (buf), "\e[%d;%dm", 40 + bi.bg, 30 + bi.fg);
-	    write_func (closure, (unsigned char *) buf, strlen (buf));
+	    char buf[] = "\e[40;30m";
+	    buf[3] += bi.bg;
+	    buf[6] += bi.fg;
+	    write_func (closure, (unsigned char *) buf, 8);
 	    last_bg = bi.bg;
 	    last_fg = bi.fg;
 	  }
@@ -433,8 +437,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	write_func (closure, (unsigned char *) c, strlen (c));
       }
     }
-    snprintf (buf, sizeof (buf), "\e[0m\n"); /* Reset */
-    write_func (closure, (unsigned char *) buf, strlen (buf));
+    write_func (closure, (unsigned char *) "\e[0m\n", 5); /* Reset */
     last_bg = last_fg = -1;
   }
 }
