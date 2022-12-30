@@ -41,6 +41,10 @@
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include <io.h> /* for setmode() under Windows */
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h> /* for isatty() */
+#endif
+
 
 #include <hb.h>
 #include <hb-ot.h>
