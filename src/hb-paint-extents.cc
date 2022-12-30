@@ -103,6 +103,20 @@ hb_draw_extents_line_to (hb_draw_funcs_t *dfuncs,
 }
 
 static void
+hb_draw_extents_quadratic_to (hb_draw_funcs_t *dfuncs,
+			      void *data,
+			      hb_draw_state_t *st,
+			      float control_x, float control_y,
+			      float to_x, float to_y,
+			      void *)
+{
+  hb_extents_t *extents = (hb_extents_t *)data;
+
+  add_point (extents, control_x, control_y);
+  add_point (extents, to_x, to_y);
+}
+
+static void
 hb_draw_extents_cubic_to (hb_draw_funcs_t *dfuncs,
 			  void *data,
 			  hb_draw_state_t *st,
@@ -128,6 +142,7 @@ static struct hb_draw_extents_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<
 
     hb_draw_funcs_set_move_to_func (funcs, hb_draw_extents_move_to, nullptr, nullptr);
     hb_draw_funcs_set_line_to_func (funcs, hb_draw_extents_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (funcs, hb_draw_extents_quadratic_to, nullptr, nullptr);
     hb_draw_funcs_set_cubic_to_func (funcs, hb_draw_extents_cubic_to, nullptr, nullptr);
 
     hb_draw_funcs_make_immutable (funcs);
