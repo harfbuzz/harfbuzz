@@ -423,7 +423,7 @@ _hb_cairo_dot (hb_cairo_point_t p, hb_cairo_point_t q)
 static inline hb_cairo_point_t
 _hb_cairo_normalize (hb_cairo_point_t p)
 {
-  float len = sqrt (_hb_cairo_dot (p, p));
+  float len = sqrtf (_hb_cairo_dot (p, p));
 
   return hb_cairo_point_t { p.x / len, p.y / len };
 }
@@ -813,7 +813,7 @@ hb_cairo_paint_sweep_gradient (cairo_t *cr,
   cairo_clip_extents (cr, &x1, &y1, &x2, &y2);
   max_x = (float) hb_max ((x1 - (double) cx) * (x1 - (double) cx), (x2 - (double) cx) * (x2 - (double) cx));
   max_y = (float) hb_max ((y1 - (double) cy) * (y1 - (double) cy), (y2 - (double) cy) * (y2 - (double) cy));
-  radius = sqrt (max_x + max_y);
+  radius = sqrtf (max_x + max_y);
 
   extend = hb_cairo_extend (hb_color_line_get_extend (color_line));
   pattern = cairo_pattern_create_mesh ();
