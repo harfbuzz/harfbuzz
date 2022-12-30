@@ -33,7 +33,7 @@
 
 #ifndef HB_NO_PAINT
 
-#ifdef TT_SUPPORT_COLRV1
+#if defined(TT_SUPPORT_COLRV1) and (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21101
 
 
 static hb_paint_composite_mode_t
