@@ -585,13 +585,13 @@ struct helper_cairo_line_t {
 		       unsigned             utf8_len_,
 		       hb_buffer_t         *buffer,
 		       hb_bool_t            utf8_clusters,
-		       int                  scale_bits) :
+		       unsigned             subpixel_bits) :
     utf8 (utf8_ ? g_strndup (utf8_, utf8_len_) : nullptr),
     utf8_len (utf8_len_)
   {
     hb_cairo_glyphs_from_buffer (buffer,
 				 utf8_clusters,
-				 1 << -scale_bits, 1 << -scale_bits,
+				 1 << subpixel_bits, 1 << subpixel_bits,
 				 0., 0.,
 				 utf8, utf8_len,
 				 &glyphs, &num_glyphs,

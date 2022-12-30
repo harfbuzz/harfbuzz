@@ -48,7 +48,7 @@ struct view_cairo_t : view_options_t, output_options_t<>
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
     lines = g_array_new (false, false, sizeof (helper_cairo_line_t));
-    scale_bits = - (int) font_opts->subpixel_bits;
+    subpixel_bits = font_opts->subpixel_bits;
   }
   void new_line () {}
   void consume_text (hb_buffer_t  *buffer,
@@ -63,7 +63,7 @@ struct view_cairo_t : view_options_t, output_options_t<>
 		       hb_bool_t     utf8_clusters)
   {
     direction = hb_buffer_get_direction (buffer);
-    helper_cairo_line_t l (text, text_len, buffer, utf8_clusters, scale_bits);
+    helper_cairo_line_t l (text, text_len, buffer, utf8_clusters, subpixel_bits);
     g_array_append_val (lines, l);
   }
   void finish (hb_buffer_t *buffer, const font_options_t *font_opts)
@@ -87,7 +87,7 @@ struct view_cairo_t : view_options_t, output_options_t<>
 
   hb_direction_t direction = HB_DIRECTION_INVALID; // Remove this, make segment_properties accessible
   GArray *lines = nullptr;
-  int scale_bits = 0;
+  unsigned subpixel_bits = 0;
 };
 
 inline void
@@ -106,9 +106,9 @@ view_cairo_t::render (const font_options_t *font_opts)
   {
     hb_font_extents_t hb_extents;
     hb_font_get_extents_for_direction (font, direction, &hb_extents);
-    font_extents.ascent = scalbn ((double) hb_extents.ascender, scale_bits);
-    font_extents.descent = -scalbn ((double) hb_extents.descender, scale_bits);
-    font_extents.line_gap = scalbn ((double) hb_extents.line_gap, scale_bits);
+    font_extents.ascent = scalbn ((double) hb_extents.ascender, - (int) subpixel_bits);
+    font_extents.descent = -scalbn ((double) hb_extents.descender, - (int) subpixel_bits);
+    font_extents.line_gap = scalbn ((double) hb_extents.line_gap, - (int) subpixel_bits);
     have_font_extents = true;
   }
 
