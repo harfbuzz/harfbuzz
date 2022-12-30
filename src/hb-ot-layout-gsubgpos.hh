@@ -4020,6 +4020,7 @@ struct hb_ot_layout_lookup_accelerator_t
   void init (const TLookup &lookup)
   {
     subtables.init ();
+    subtables.alloc (lookup.get_subtable_count ());
     hb_accelerate_subtables_context_t c_accelerate_subtables (subtables);
     lookup.dispatch (&c_accelerate_subtables);
 
