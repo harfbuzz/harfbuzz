@@ -563,7 +563,7 @@ user_font_face_create (hb_face_t *face)
  * Note that the scale of @font does not affect the rendering,
  * but the variations and slant that are set on @font do.
  *
- * Returns: a newly created #cairo_font_face_t
+ * Returns: (transfer full): a newly created #cairo_font_face_t
  *
  * Since: REPLACEME
  */
@@ -588,7 +588,7 @@ hb_cairo_font_face_create_for_font (hb_font_t *font)
  *
  * Gets the #hb_font_t that @font_face was created from.
  *
- * Returns: (nullable): the #hb_font_t that @font_face was created from
+ * Returns: (nullable) (transfer none): the #hb_font_t that @font_face was created from
  *
  * Since: REPLACEME
  */
@@ -606,7 +606,7 @@ hb_cairo_font_face_get_font (cairo_font_face_t *font_face)
  * Creates a #cairo_font_face_t for rendering text according
  * to @face.
  *
- * Returns: a newly created #cairo_font_face_t
+ * Returns: (transfer full): a newly created #cairo_font_face_t
  *
  * Since: REPLACEME
  */
@@ -624,7 +624,7 @@ hb_cairo_font_face_create_for_face (hb_face_t *face)
  *
  * Gets the #hb_face_t associated with @font_face.
  *
- * Returns: (nullable): the #hb_face_t associated with @font_face
+ * Returns: (nullable) (transfer none): the #hb_face_t associated with @font_face
  *
  * Since: REPLACEME
  */
@@ -670,7 +670,7 @@ hb_cairo_font_face_set_font_init_func (cairo_font_face_t *font_face,
  *
  * Gets the #hb_font_t associated with @scaled_font.
  *
- * Returns: (nullable): the #hb_font_t associated with @scaled_font
+ * Returns: (nullable) (transfer none): the #hb_font_t associated with @scaled_font
  *
  * Since: REPLACEME
  */
