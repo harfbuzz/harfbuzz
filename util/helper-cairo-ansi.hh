@@ -41,7 +41,9 @@
 # define CELL_H (2 * CELL_W)
 
 static void
-chafa_print_image_rgb24 (const void *data, int width, int height, int stride, int level)
+chafa_print_image_rgb24 (const void *data, int width, int height, int stride, int level,
+			 cairo_write_func_t	write_func,
+			 void			*closure)
 {
   ChafaTermInfo *term_info;
   ChafaSymbolMap *symbol_map;
@@ -114,7 +116,7 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride, in
 
   /* Print the string */
 
-  fwrite (gs->str, sizeof (char), gs->len, stdout);
+  write_func (closure, (const unsigned char *) gs->str, gs->len);
 
   if (pixel_mode != CHAFA_PIXEL_MODE_SIXELS)
     fputc ('\n', stdout);
@@ -209,10 +211,12 @@ helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
     if (env)
       chafa_level = atoi (env);
     if (chafa_level)
-      chafa_print_image_rgb24 (data, width, height, stride, chafa_level);
+      chafa_print_image_rgb24 (data, width, height, stride, chafa_level,
+			       write_func, closure);
     else
 #endif
-      ansi_print_image_rgb24 (data, width, height, stride / 4);
+      ansi_print_image_rgb24 (data, width, height, stride / 4,
+			      write_func, closure);
   }
 
   cairo_surface_destroy (surface);

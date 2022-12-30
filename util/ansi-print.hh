@@ -29,6 +29,8 @@
 
 #include "hb.hh"
 
+#include <cairo.h>
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -377,9 +379,12 @@ static inline void
 ansi_print_image_rgb24 (const uint32_t *data,
 			unsigned int width,
 			unsigned int height,
-			unsigned int stride)
+			unsigned int stride,
+		        cairo_write_func_t	write_func,
+		        void			*closure)
 {
   image_t image (width, height, data, stride);
+  char buf[16];
 
   unsigned int rows = (height + CELL_H - 1) / CELL_H;
   unsigned int cols = (width +  CELL_W - 1) / CELL_W;
@@ -392,31 +397,35 @@ ansi_print_image_rgb24 (const uint32_t *data,
       bi.set (cell);
       if (bi.unicolor) {
 	if (last_bg != bi.bg) {
-	  printf ("\e[%dm", 40 + bi.bg);
+	  snprintf (buf, sizeof (buf), "\e[%dm", 40 + bi.bg);
+	  write_func (closure, (unsigned char *) buf, strlen (buf));
 	  last_bg = bi.bg;
 	}
-	printf (" ");
+	write_func (closure, (unsigned char *) " ", 1);
       } else {
 	/* Figure out the closest character to the biimage */
 	bool inverse = false;
 	const char *c = block_best (bi, &inverse);
 	if (inverse) {
 	  if (last_bg != bi.fg || last_fg != bi.bg) {
-	    printf ("\e[%d;%dm", 30 + bi.bg, 40 + bi.fg);
+	    snprintf (buf, sizeof (buf), "\e[%d;%dm", 30 + bi.bg, 40 + bi.fg);
+	    write_func (closure, (unsigned char *) buf, strlen (buf));
 	    last_bg = bi.fg;
 	    last_fg = bi.bg;
 	  }
 	} else {
 	  if (last_bg != bi.bg || last_fg != bi.fg) {
-	    printf ("\e[%d;%dm", 40 + bi.bg, 30 + bi.fg);
+	    snprintf (buf, sizeof (buf), "\e[%d;%dm", 40 + bi.bg, 30 + bi.fg);
+	    write_func (closure, (unsigned char *) buf, strlen (buf));
 	    last_bg = bi.bg;
 	    last_fg = bi.fg;
 	  }
 	}
-	printf ("%s", c);
+	write_func (closure, (unsigned char *) c, strlen (c));
       }
     }
-    printf ("\e[0m\n"); /* Reset */
+    snprintf (buf, sizeof (buf), "\e[0m\n"); /* Reset */
+    write_func (closure, (unsigned char *) buf, strlen (buf));
     last_bg = last_fg = -1;
   }
 }
