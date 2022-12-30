@@ -391,12 +391,16 @@ ansi_print_image_rgb24 (const uint32_t *data,
   image_t cell (CELL_W, CELL_H);
   biimage_t bi (CELL_W, CELL_H);
   unsigned int last_bg = -1, last_fg = -1;
-  for (unsigned int row = 0; row < rows; row++) {
-    for (unsigned int col = 0; col < cols; col++) {
+  for (unsigned int row = 0; row < rows; row++)
+  {
+    for (unsigned int col = 0; col < cols; col++)
+    {
       image.copy_sub_image (cell, col * CELL_W, row * CELL_H, CELL_W, CELL_H);
       bi.set (cell);
-      if (bi.unicolor) {
-	if (last_bg != bi.bg) {
+      if (bi.unicolor)
+      {
+	if (last_bg != bi.bg)
+	{
 	  snprintf (buf, sizeof (buf), "\e[%dm", 40 + bi.bg);
 	  write_func (closure, (unsigned char *) buf, strlen (buf));
 	  last_bg = bi.bg;
@@ -406,15 +410,20 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	/* Figure out the closest character to the biimage */
 	bool inverse = false;
 	const char *c = block_best (bi, &inverse);
-	if (inverse) {
-	  if (last_bg != bi.fg || last_fg != bi.bg) {
+	if (inverse)
+	{
+	  if (last_bg != bi.fg || last_fg != bi.bg)
+	  {
 	    snprintf (buf, sizeof (buf), "\e[%d;%dm", 30 + bi.bg, 40 + bi.fg);
 	    write_func (closure, (unsigned char *) buf, strlen (buf));
 	    last_bg = bi.fg;
 	    last_fg = bi.bg;
 	  }
-	} else {
-	  if (last_bg != bi.bg || last_fg != bi.fg) {
+	}
+	else
+	{
+	  if (last_bg != bi.bg || last_fg != bi.fg)
+	  {
 	    snprintf (buf, sizeof (buf), "\e[%d;%dm", 40 + bi.bg, 30 + bi.fg);
 	    write_func (closure, (unsigned char *) buf, strlen (buf));
 	    last_bg = bi.bg;
