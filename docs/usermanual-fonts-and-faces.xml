@@ -467,12 +467,23 @@
       range actually implemented in the font's variation axis. After
       all, a font might only provide lighter-than-regular weights, and
       setting a heavier value on the <literal>wght</literal> axis will
-      not change that. 
+      not change that.
     </para>
     <para>
       Once your variation settings are specified on your font object,
       however, shaping with a variable font is just like shaping a
       static font.
+    </para>
+    <para>
+      In addition to providing the variation axes themselves, fonts may also
+      pre-define certain variation coordinates as named instances. HarfBuzz
+      makes these coordinates (and their associated names) available via
+      <function>hb_ot_var_named_instance_get_design_coords()</function> and
+      <function>hb_ot_var_named_instance_get_subfamily_name_id()</function>.
+    </para>
+    <para>
+      Applications should treat named instances like multiple independent,
+      static fonts.
     </para>
   </section>
 
