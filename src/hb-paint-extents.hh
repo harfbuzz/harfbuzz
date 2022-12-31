@@ -238,8 +238,7 @@ struct hb_paint_extents_context_t {
     hb_transform_t &t = transforms.tail ();
     t.transform_extents (extents);
 
-    hb_bounds_t b {extents};
-    clips.push (b);
+    clips.push (hb_bounds_t {extents});
   }
 
   void pop_clip ()
@@ -249,7 +248,7 @@ struct hb_paint_extents_context_t {
 
   void push_group ()
   {
-    groups.push (hb_bounds_t{hb_bounds_t::EMPTY});
+    groups.push (hb_bounds_t {hb_bounds_t::EMPTY});
   }
 
   void pop_group (hb_paint_composite_mode_t mode)
