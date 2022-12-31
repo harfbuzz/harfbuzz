@@ -119,6 +119,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
       region_count = varStore->varStore.get_region_index_count (get_ivs ());
       if (do_blend)
       {
+        scalars.alloc (region_count, true);
 	if (unlikely (!scalars.resize (region_count)))
 	  SUPER::set_error ();
 	else
