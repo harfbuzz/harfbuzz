@@ -250,7 +250,7 @@ _try_subset (const TableType *table,
              HB_UNTAG (c->table_tag), buf_size);
 
   if (unlikely (buf_size > c->source_blob->length * 16 ||
-		!buf->alloc (buf_size)))
+		!buf->alloc (buf_size, true)))
   {
     DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c failed to reallocate %u bytes.",
                HB_UNTAG (c->table_tag), buf_size);
