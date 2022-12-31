@@ -45,6 +45,7 @@ struct blend_arg_t : number_t
     numValues = numValues_;
     valueIndex = valueIndex_;
     unsigned numBlends = blends_.length;
+    deltas.alloc (numBlends, true); /* Exact-size allocation. */
     if (unlikely (!deltas.resize (numBlends)))
       return;
     for (unsigned int i = 0; i < numBlends; i++)
