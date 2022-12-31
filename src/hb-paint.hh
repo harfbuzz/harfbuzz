@@ -187,6 +187,20 @@ struct hb_paint_funcs_t
     if (dx || dy)
       pop_transform (paint_data);
   }
+
+  void push_scale (void *paint_data,
+                   float sx, float sy)
+  {
+    if (sx != 1.f || sy != 1.f)
+      push_transform (paint_data,
+		      sx, 0.f, 0.f, sy, 0.f, 0.f);
+  }
+  void pop_scale (void *paint_data,
+                  float sx, float sy)
+  {
+    if (sx != 1.f || sy != 1.f)
+      pop_transform (paint_data);
+  }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
 

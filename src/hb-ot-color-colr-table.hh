@@ -921,13 +921,11 @@ struct PaintScale
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->push_transform (c->data,
-			      scaleX.to_float (c->instancer (varIdxBase, 0)),
-			      0., 0.,
-			      scaleY.to_float (c->instancer (varIdxBase, 1)),
-			      0., 0.);
+    float sx = scaleX.to_float (c->instancer (varIdxBase, 0));
+    float sy = scaleY.to_float (c->instancer (varIdxBase, 1));
+    c->funcs->push_scale (c->data, sx, sy);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_scale (c->data, sx, sy);
   }
 
   HBUINT8		format; /* format = 16 (noVar) or 17(Var) */
@@ -959,18 +957,16 @@ struct PaintScaleAroundCenter
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
+    float sx = scaleX.to_float (c->instancer (varIdxBase, 0));
+    float sy = scaleY.to_float (c->instancer (varIdxBase, 1));
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
     c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
-    c->funcs->push_transform (c->data,
-			      scaleX.to_float (c->instancer (varIdxBase, 0)),
-			      0., 0.,
-			      scaleY.to_float (c->instancer (varIdxBase, 1)),
-			      0., 0.);
+    c->funcs->push_scale (c->data, sx, sy);
     c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->recurse (this+src);
     c->funcs->pop_translate (c->data, -tCenterX, -tCenterY);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_scale (c->data, sx, sy);
     c->funcs->pop_translate (c->data, +tCenterX, +tCenterY);
   }
 
@@ -1006,9 +1002,9 @@ struct PaintScaleUniform
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
     float s = scale + c->instancer (varIdxBase, 0);
-    c->funcs->push_transform (c->data, s, 0., 0., s, 0., 0.);
+    c->funcs->push_scale (c->data, s, s);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_scale (c->data, s, s);
   }
 
   HBUINT8		format; /* format = 20 (noVar) or 21(Var) */
@@ -1043,11 +1039,11 @@ struct PaintScaleUniformAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
     c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
-    c->funcs->push_transform (c->data, s, 0., 0., s, 0., 0.);
+    c->funcs->push_scale (c->data, s, s);
     c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->recurse (this+src);
     c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_scale (c->data, s, s);
     c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
   }
 

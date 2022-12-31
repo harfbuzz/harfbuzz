@@ -345,16 +345,14 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     {
       float dx = paint.u.scale.center_x / 65536.f;
       float dy = paint.u.scale.center_y / 65536.f;
+      float sx = paint.u.scale.scale_x / 65536.f;
+      float sy = paint.u.scale.scale_y / 65536.f;
       c->funcs->push_translate (c->data, +dx, +dy);
-      c->funcs->push_transform (c->data,
-				paint.u.scale.scale_x / 65536.f,
-				0.f, 0.f,
-				paint.u.scale.scale_y / 65536.f,
-				0.f, 0.f);
+      c->funcs->push_scale (c->data, sx, sy);
       c->funcs->push_translate (c->data, -dx, -dy);
       c->recurse (paint.u.scale.paint);
       c->funcs->pop_translate (c->data, -dx, -dy);
-      c->funcs->pop_transform (c->data);
+      c->funcs->pop_scale (c->data, sx, sy);
       c->funcs->pop_translate (c->data, +dx, +dy);
     }
     break;
