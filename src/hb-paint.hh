@@ -173,6 +173,20 @@ struct hb_paint_funcs_t
     func.pop_transform (this, paint_data,
                         !user_data ? nullptr : user_data->pop_transform);
   }
+
+  void push_translate (void *paint_data,
+                       float dx, float dy)
+  {
+    if (dx || dy)
+      push_transform (paint_data,
+		      1.f, 0.f, 0.f, 1.f, dx, dy);
+  }
+  void pop_translate (void *paint_data,
+                      float dx, float dy)
+  {
+    if (dx || dy)
+      pop_transform (paint_data);
+  }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
 

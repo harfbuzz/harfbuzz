@@ -885,12 +885,11 @@ struct PaintTranslate
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->push_transform (c->data,
-			      1., 0., 0., 1.,
-			      dx + c->instancer (varIdxBase, 0),
-			      dy + c->instancer (varIdxBase, 0));
+    float ddx = dx + c->instancer (varIdxBase, 0);
+    float ddy = dy + c->instancer (varIdxBase, 1);
+    c->funcs->push_translate (c->data, ddx, ddy);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_translate (c->data, ddx, ddy);
   }
 
   HBUINT8		format; /* format = 14(noVar) or 15 (Var) */
@@ -962,17 +961,17 @@ struct PaintScaleAroundCenter
   {
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
+    c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
     c->funcs->push_transform (c->data,
 			      scaleX.to_float (c->instancer (varIdxBase, 0)),
 			      0., 0.,
 			      scaleY.to_float (c->instancer (varIdxBase, 1)),
 			      0., 0.);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
+    c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->recurse (this+src);
+    c->funcs->pop_translate (c->data, -tCenterX, -tCenterY);
     c->funcs->pop_transform (c->data);
-    c->funcs->pop_transform (c->data);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_translate (c->data, +tCenterX, +tCenterY);
   }
 
   HBUINT8		format; /* format = 18 (noVar) or 19(Var) */
@@ -1043,13 +1042,13 @@ struct PaintScaleUniformAroundCenter
     float s = scale + c->instancer (varIdxBase, 0);
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
+    c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
     c->funcs->push_transform (c->data, s, 0., 0., s, 0., 0.);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
+    c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->recurse (this+src);
+    c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->funcs->pop_transform (c->data);
-    c->funcs->pop_transform (c->data);
-    c->funcs->pop_transform (c->data);
+    c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
   }
 
   HBUINT8		format; /* format = 22 (noVar) or 23(Var) */
@@ -1123,13 +1122,13 @@ struct PaintRotateAroundCenter
     float ss = sinf (a * (float) M_PI);
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
+    c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
     c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
+    c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->recurse (this+src);
+    c->funcs->pop_translate (c->data, -tCenterX, -tCenterY);
     c->funcs->pop_transform (c->data);
-    c->funcs->pop_transform (c->data);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_translate (c->data, +tCenterX, +tCenterY);
   }
 
   HBUINT8		format; /* format = 26 (noVar) or 27(Var) */
@@ -1202,13 +1201,13 @@ struct PaintSkewAroundCenter
     float y = -tanf (ySkewAngle.to_float(c->instancer (varIdxBase, 1)) * (float) M_PI);
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
+    c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
     c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
+    c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->recurse (this+src);
+    c->funcs->pop_translate (c->data, -tCenterX, -tCenterY);
     c->funcs->pop_transform (c->data);
-    c->funcs->pop_transform (c->data);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_translate (c->data, +tCenterX, +tCenterY);
   }
 
   HBUINT8		format; /* format = 30(noVar) or 31 (Var) */

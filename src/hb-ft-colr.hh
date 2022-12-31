@@ -334,78 +334,59 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_TRANSLATE:
     {
-      c->funcs->push_transform (c->data,
-				0.f, 0.f, 0.f, 0.f,
-				paint.u.translate.dx / 65536.f,
-				paint.u.translate.dy / 65536.f);
+      float dx = paint.u.translate.dx / 65536.f;
+      float dy = paint.u.translate.dy / 65536.f;
+      c->funcs->push_translate (c->data, dx, dy);
       c->recurse (paint.u.translate.paint);
-      c->funcs->pop_transform (c->data);
+      c->funcs->pop_translate (c->data, dx, dy);
     }
     break;
     case FT_COLR_PAINTFORMAT_SCALE:
     {
-      bool has_translate = paint.u.scale.center_x != 0 || paint.u.scale.center_y != 0;
-      if (has_translate)
-        c->funcs->push_transform (c->data,
-				  1.f, 0.f, 0.f, 1.f,
-				  +paint.u.scale.center_x / 65536.f,
-				  +paint.u.scale.center_y / 65536.f);
+      float dx = paint.u.scale.center_x / 65536.f;
+      float dy = paint.u.scale.center_y / 65536.f;
+      c->funcs->push_translate (c->data, +dx, +dy);
       c->funcs->push_transform (c->data,
 				paint.u.scale.scale_x / 65536.f,
 				0.f, 0.f,
 				paint.u.scale.scale_y / 65536.f,
 				0.f, 0.f);
-      if (has_translate)
-        c->funcs->push_transform (c->data,
-				  1.f, 0.f, 0.f, 1.f,
-				  -paint.u.scale.center_x / 65536.f,
-				  -paint.u.scale.center_y / 65536.f);
+      c->funcs->push_translate (c->data, -dx, -dy);
       c->recurse (paint.u.scale.paint);
+      c->funcs->pop_translate (c->data, -dx, -dy);
       c->funcs->pop_transform (c->data);
-      if (has_translate)
-      {
-        c->funcs->pop_transform (c->data);
-        c->funcs->pop_transform (c->data);
-      }
+      c->funcs->pop_translate (c->data, +dx, +dy);
     }
     break;
     case FT_COLR_PAINTFORMAT_ROTATE:
     {
+      float dx = paint.u.rotate.center_x / 65536.f;
+      float dy = paint.u.rotate.center_y / 65536.f;
       float a = paint.u.rotate.angle / 65536.f;
       float cc = cosf (a * (float) M_PI);
       float ss = sinf (a * (float) M_PI);
-      c->funcs->push_transform (c->data,
-				1.f, 0.f, 0.f, 1.f,
-				+paint.u.rotate.center_x / 65536.f,
-				+paint.u.rotate.center_y / 65536.f);
+      c->funcs->push_translate (c->data, +dx, +dy);
       c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
-      c->funcs->push_transform (c->data,
-				1.f, 0.f, 0.f, 1.f,
-				-paint.u.rotate.center_x / 65536.f,
-				-paint.u.rotate.center_y / 65536.f);
+      c->funcs->push_translate (c->data, -dx, -dy);
       c->recurse (paint.u.rotate.paint);
+      c->funcs->pop_translate (c->data, -dx, -dy);
       c->funcs->pop_transform (c->data);
-      c->funcs->pop_transform (c->data);
-      c->funcs->pop_transform (c->data);
+      c->funcs->pop_translate (c->data, +dx, +dy);
     }
     break;
     case FT_COLR_PAINTFORMAT_SKEW:
     {
+      float dx = paint.u.skew.center_x / 65536.f;
+      float dy = paint.u.skew.center_y / 65536.f;
       float x = +tanf (paint.u.skew.x_skew_angle / 65536.f * (float) M_PI);
       float y = -tanf (paint.u.skew.y_skew_angle / 65536.f * (float) M_PI);
-      c->funcs->push_transform (c->data,
-				1.f, 0.f, 0.f, 1.f,
-				+paint.u.skew.center_x / 65536.f,
-				+paint.u.skew.center_y / 65536.f);
+      c->funcs->push_translate (c->data, +dx, +dy);
       c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
-      c->funcs->push_transform (c->data,
-				1.f, 0.f, 0.f, 1.f,
-				-paint.u.skew.center_x / 65536.f,
-				-paint.u.skew.center_y / 65536.f);
+      c->funcs->push_translate (c->data, -dx, -dy);
       c->recurse (paint.u.skew.paint);
+      c->funcs->pop_translate (c->data, -dx, -dy);
       c->funcs->pop_transform (c->data);
-      c->funcs->pop_transform (c->data);
-      c->funcs->pop_transform (c->data);
+      c->funcs->pop_translate (c->data, +dx, +dy);
     }
     break;
     case FT_COLR_PAINTFORMAT_COMPOSITE:
