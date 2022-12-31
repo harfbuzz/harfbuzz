@@ -425,7 +425,7 @@ struct name
     hb_vector_t<hb_ot_name_record_ids_t> insert_name_records;
     if (!name_table_overrides->is_empty ())
     {
-      if (unlikely (!insert_name_records.alloc (name_table_overrides->get_population ())))
+      if (unlikely (!insert_name_records.alloc (name_table_overrides->get_population (), true)))
         return_trace (false);
       for (const auto& record_ids : name_table_overrides->keys ())
       {
@@ -475,7 +475,7 @@ struct name
       const hb_array_t<const NameRecord> all_names (this->table->nameRecordZ.arrayZ,
 						    this->table->count);
 
-      this->names.alloc (all_names.length);
+      this->names.alloc (all_names.length, true);
 
       for (unsigned int i = 0; i < all_names.length; i++)
       {
