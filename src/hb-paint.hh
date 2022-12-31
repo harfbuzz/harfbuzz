@@ -138,6 +138,9 @@ struct hb_paint_funcs_t
                     mode,
                     !user_data ? nullptr : user_data->pop_group); }
 
+
+  /* Internal specializations. */
+
   void push_root_transform (void *paint_data,
                             const hb_font_t *font)
   {
@@ -145,9 +148,8 @@ struct hb_paint_funcs_t
     int xscale = font->x_scale, yscale = font->y_scale;
     float slant = font->slant_xy;
 
-    func.push_transform (this, paint_data,
-                         xscale/upem, 0, slant * yscale/upem, yscale/upem, 0, 0,
-                         !user_data ? nullptr : user_data->push_transform);
+    push_transform (paint_data,
+		    xscale/upem, 0, slant * yscale/upem, yscale/upem, 0, 0);
   }
   void pop_root_transform (void *paint_data)
   {
@@ -163,9 +165,8 @@ struct hb_paint_funcs_t
     int yscale = font->y_scale ? font->y_scale : upem;
     float slant = font->slant_xy;
 
-    func.push_transform (this, paint_data,
-                         upem/xscale, 0, -slant * upem/xscale, upem/yscale, 0, 0,
-                         !user_data ? nullptr : user_data->push_transform);
+    push_transform (paint_data,
+		    upem/xscale, 0, -slant * upem/xscale, upem/yscale, 0, 0);
   }
   void pop_inverse_root_transform (void *paint_data)
   {
