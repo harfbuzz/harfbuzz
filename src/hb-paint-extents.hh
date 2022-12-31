@@ -102,7 +102,7 @@ typedef struct hb_transform_t
     *this = r;
   }
 
-  void transform_distance (float &dx, float &dy)
+  void transform_distance (float &dx, float &dy) const
   {
     float new_x = xx * dx + xy * dy;
     float new_y = yx * dx + yy * dy;
@@ -110,14 +110,14 @@ typedef struct hb_transform_t
     dy = new_y;
   }
 
-  void transform_point (float &x, float &y)
+  void transform_point (float &x, float &y) const
   {
     transform_distance (x, y);
     x += x0;
     y += y0;
   }
 
-  void transform_extents (hb_extents_t extents)
+  void transform_extents (hb_extents_t extents) const
   {
     float quad_x[4], quad_y[4];
 
@@ -235,7 +235,7 @@ struct hb_paint_extents_context_t {
   void push_clip (hb_extents_t extents)
   {
     /* Transform extents and push a new clip. */
-    hb_transform_t &t = transforms.tail ();
+    const hb_transform_t &t = transforms.tail ();
     t.transform_extents (extents);
 
     clips.push (hb_bounds_t {extents});
