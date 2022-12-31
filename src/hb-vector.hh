@@ -337,7 +337,7 @@ struct hb_vector_t
   }
 
   /* Allocate for size but don't adjust length. */
-  bool alloc (unsigned int size)
+  bool alloc (unsigned int size, bool exact=false)
   {
     if (unlikely (in_error ()))
       return false;
@@ -347,8 +347,8 @@ struct hb_vector_t
 
     /* Reallocate */
 
-    unsigned int new_allocated = allocated;
-    while (size >= new_allocated)
+    unsigned int new_allocated = exact ? size : allocated;
+    while (size > new_allocated)
       new_allocated += (new_allocated >> 1) + 8;
 
     Type *new_array = nullptr;

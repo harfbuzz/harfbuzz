@@ -429,7 +429,7 @@ glyf::_create_font_for_instancing (const hb_subset_plan_t *plan) const
   if (unlikely (font == hb_font_get_empty ())) return nullptr;
 
   hb_vector_t<hb_variation_t> vars;
-  if (unlikely (!vars.alloc (plan->user_axes_location->get_population ())))
+  if (unlikely (!vars.alloc (plan->user_axes_location->get_population (), true)))
     return nullptr;
 
   for (auto _ : *plan->user_axes_location)

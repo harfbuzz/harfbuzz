@@ -184,7 +184,7 @@ struct SimpleGlyph
     if (unlikely (!bytes.check_range (&endPtsOfContours[num_contours]))) return false;
     unsigned int num_points = endPtsOfContours[num_contours - 1] + 1;
 
-    points_.alloc (num_points + 4); // Allocate for phantom points, to avoid a possible copy
+    points_.alloc (num_points + 4, true); // Allocate for phantom points, to avoid a possible copy
     if (!points_.resize (num_points)) return false;
     if (phantom_only) return true;
 
@@ -272,9 +272,9 @@ struct SimpleGlyph
     unsigned num_points = all_points.length - 4;
 
     hb_vector_t<uint8_t> flags, x_coords, y_coords;
-    if (unlikely (!flags.alloc (num_points))) return false;
-    if (unlikely (!x_coords.alloc (2*num_points))) return false;
-    if (unlikely (!y_coords.alloc (2*num_points))) return false;
+    if (unlikely (!flags.alloc (num_points, true))) return false;
+    if (unlikely (!x_coords.alloc (2*num_points, true))) return false;
+    if (unlikely (!y_coords.alloc (2*num_points, true))) return false;
 
     uint8_t lastflag = 255, repeat = 0;
     int prev_x = 0, prev_y = 0;

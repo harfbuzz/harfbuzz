@@ -115,7 +115,7 @@ bool _promote_extensions_if_needed (graph::gsubgpos_graph_context_t& ext_context
   if (!ext_context.lookups) return true;
 
   hb_vector_t<lookup_size_t> lookup_sizes;
-  lookup_sizes.alloc (ext_context.lookups.get_population ());
+  lookup_sizes.alloc (ext_context.lookups.get_population (), true);
 
   for (unsigned lookup_index : ext_context.lookups.keys ())
   {
