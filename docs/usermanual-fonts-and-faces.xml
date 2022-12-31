@@ -387,20 +387,6 @@
     </para>
   </section>
 
-
-  <!-- Commenting out FreeType integration section-holder for now. May move
-       to the full-blown Integration Chapter. -->
-  
-  <!--   <section id="fonts-and-faces-freetype">
-    <title>Using FreeType</title>
-    <para>
-
-    </para>
-    <para>
-      
-    </para>
-  </section> -->
-
   <section id="fonts-and-faces-variable">
     <title>Working with OpenType Variable Fonts</title>
     <para>
