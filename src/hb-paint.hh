@@ -141,8 +141,8 @@ struct hb_paint_funcs_t
   void push_root_transform (void *paint_data,
                             const hb_font_t *font)
   {
-    int xscale = font->x_scale, yscale = font->y_scale;
     float upem = font->face->get_upem ();
+    int xscale = font->x_scale, yscale = font->y_scale;
     float slant = font->slant_xy;
 
     func.push_transform (this, paint_data,
@@ -158,8 +158,9 @@ struct hb_paint_funcs_t
   void push_inverse_root_transform (void *paint_data,
                                     hb_font_t *font)
   {
-    int xscale = font->x_scale, yscale = font->y_scale;
     float upem = font->face->get_upem ();
+    int xscale = font->x_scale ? font->x_scale : upem;
+    int yscale = font->y_scale ? font->y_scale : upem;
     float slant = font->slant_xy;
 
     func.push_transform (this, paint_data,
