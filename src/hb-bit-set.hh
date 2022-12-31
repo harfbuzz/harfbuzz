@@ -422,6 +422,7 @@ struct hb_bit_set_t
   private:
   bool allocate_compact_workspace (hb_vector_t<unsigned>& workspace)
   {
+    workspace.alloc (pages.length, true);
     if (unlikely (!workspace.resize (pages.length)))
     {
       successful = false;
