@@ -290,9 +290,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       c->ft_font->lock.lock ();
       c->funcs->push_root_transform (c->data, c->font);
       c->recurse (paint.u.glyph.paint);
-      c->funcs->pop_root_transform (c->data);
+      c->funcs->pop_transform (c->data);
       c->funcs->pop_clip (c->data);
-      c->funcs->pop_inverse_root_transform (c->data);
+      c->funcs->pop_transform (c->data);
     }
     break;
     case FT_COLR_PAINTFORMAT_COLR_GLYPH:
@@ -337,9 +337,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float dx = paint.u.translate.dx / 65536.f;
       float dy = paint.u.translate.dy / 65536.f;
 
-      c->funcs->push_translate (c->data, dx, dy);
+      bool p1 = c->funcs->push_translate (c->data, dx, dy);
       c->recurse (paint.u.translate.paint);
-      c->funcs->pop_translate (c->data, dx, dy);
+      if (p1) c->funcs->pop_transform (c->data);
     }
     break;
     case FT_COLR_PAINTFORMAT_SCALE:
@@ -349,13 +349,13 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float sx = paint.u.scale.scale_x / 65536.f;
       float sy = paint.u.scale.scale_y / 65536.f;
 
-      c->funcs->push_translate (c->data, +dx, +dy);
-      c->funcs->push_scale (c->data, sx, sy);
-      c->funcs->push_translate (c->data, -dx, -dy);
+      bool p1 = c->funcs->push_translate (c->data, +dx, +dy);
+      bool p2 = c->funcs->push_scale (c->data, sx, sy);
+      bool p3 = c->funcs->push_translate (c->data, -dx, -dy);
       c->recurse (paint.u.scale.paint);
-      c->funcs->pop_translate (c->data, -dx, -dy);
-      c->funcs->pop_scale (c->data, sx, sy);
-      c->funcs->pop_translate (c->data, +dx, +dy);
+      if (p3) c->funcs->pop_transform (c->data);
+      if (p2) c->funcs->pop_transform (c->data);
+      if (p1) c->funcs->pop_transform (c->data);
     }
     break;
     case FT_COLR_PAINTFORMAT_ROTATE:
@@ -364,13 +364,13 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float dy = paint.u.rotate.center_y / 65536.f;
       float a = paint.u.rotate.angle / 65536.f;
 
-      c->funcs->push_translate (c->data, +dx, +dy);
-      c->funcs->push_rotate (c->data, a);
-      c->funcs->push_translate (c->data, -dx, -dy);
+      bool p1 = c->funcs->push_translate (c->data, +dx, +dy);
+      bool p2 = c->funcs->push_rotate (c->data, a);
+      bool p3 = c->funcs->push_translate (c->data, -dx, -dy);
       c->recurse (paint.u.rotate.paint);
-      c->funcs->pop_translate (c->data, -dx, -dy);
-      c->funcs->pop_rotate (c->data, a);
-      c->funcs->pop_translate (c->data, +dx, +dy);
+      if (p3) c->funcs->pop_transform (c->data);
+      if (p2) c->funcs->pop_transform (c->data);
+      if (p1) c->funcs->pop_transform (c->data);
     }
     break;
     case FT_COLR_PAINTFORMAT_SKEW:
@@ -380,13 +380,13 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float sx = paint.u.skew.x_skew_angle / 65536.f;
       float sy = paint.u.skew.y_skew_angle / 65536.f;
 
-      c->funcs->push_translate (c->data, +dx, +dy);
-      c->funcs->push_skew (c->data, sx, sy);
-      c->funcs->push_translate (c->data, -dx, -dy);
+      bool p1 = c->funcs->push_translate (c->data, +dx, +dy);
+      bool p2 = c->funcs->push_skew (c->data, sx, sy);
+      bool p3 = c->funcs->push_translate (c->data, -dx, -dy);
       c->recurse (paint.u.skew.paint);
-      c->funcs->pop_translate (c->data, -dx, -dy);
-      c->funcs->pop_skew (c->data, sx, sy);
-      c->funcs->pop_translate (c->data, +dx, +dy);
+      if (p3) c->funcs->pop_transform (c->data);
+      if (p2) c->funcs->pop_transform (c->data);
+      if (p1) c->funcs->pop_transform (c->data);
     }
     break;
     case FT_COLR_PAINTFORMAT_COMPOSITE:
@@ -478,7 +478,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
     if (is_bounded)
       c.recurse (paint);
 
-    c.funcs->pop_root_transform (c.data);
+    c.funcs->pop_transform (c.data);
     c.funcs->pop_clip (c.data);
 
     return true;
