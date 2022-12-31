@@ -88,6 +88,8 @@ struct hb_bit_set_t
   bool resize (unsigned int count, bool clear = true)
   {
     if (unlikely (!successful)) return false;
+    pages.alloc (count, true); /* Exact allocation. */
+    page_map.alloc (count, true); /* Exact allocation. */
     if (unlikely (!pages.resize (count, clear) || !page_map.resize (count, clear)))
     {
       pages.resize (page_map.length);
