@@ -36,6 +36,7 @@ typedef struct hb_extents_t
     xmin (xmin), ymin (ymin), xmax (xmax), ymax (ymax) {}
 
   bool is_empty () const { return xmin >= xmax || ymin >= ymax; }
+  bool is_void () const { return xmin > xmax; }
 
   void union_ (const hb_extents_t &o)
   {
@@ -51,6 +52,23 @@ typedef struct hb_extents_t
     ymin = hb_max (ymin, o.ymin);
     xmax = hb_min (xmax, o.xmax);
     ymax = hb_min (ymax, o.ymax);
+  }
+
+  void
+  add_point (float x, float y)
+  {
+    if (unlikely (is_void ()))
+    {
+      xmin = xmax = x;
+      ymin = ymax = y;
+    }
+    else
+    {
+      xmin = hb_min (xmin, x);
+      ymin = hb_min (ymin, y);
+      xmax = hb_max (xmax, x);
+      ymax = hb_max (ymax, y);
+    }
   }
 
   float xmin = 0.f;
