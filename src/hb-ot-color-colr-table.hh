@@ -887,6 +887,7 @@ struct PaintTranslate
   {
     float ddx = dx + c->instancer (varIdxBase, 0);
     float ddy = dy + c->instancer (varIdxBase, 1);
+
     c->funcs->push_translate (c->data, ddx, ddy);
     c->recurse (this+src);
     c->funcs->pop_translate (c->data, ddx, ddy);
@@ -923,6 +924,7 @@ struct PaintScale
   {
     float sx = scaleX.to_float (c->instancer (varIdxBase, 0));
     float sy = scaleY.to_float (c->instancer (varIdxBase, 1));
+
     c->funcs->push_scale (c->data, sx, sy);
     c->recurse (this+src);
     c->funcs->pop_scale (c->data, sx, sy);
@@ -961,6 +963,7 @@ struct PaintScaleAroundCenter
     float sy = scaleY.to_float (c->instancer (varIdxBase, 1));
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
+
     c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
     c->funcs->push_scale (c->data, sx, sy);
     c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
@@ -1002,6 +1005,7 @@ struct PaintScaleUniform
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
     float s = scale + c->instancer (varIdxBase, 0);
+
     c->funcs->push_scale (c->data, s, s);
     c->recurse (this+src);
     c->funcs->pop_scale (c->data, s, s);
@@ -1038,13 +1042,14 @@ struct PaintScaleUniformAroundCenter
     float s = scale + c->instancer (varIdxBase, 0);
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
+
     c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
     c->funcs->push_scale (c->data, s, s);
     c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->recurse (this+src);
-    c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
+    c->funcs->pop_translate (c->data, -tCenterX, -tCenterY);
     c->funcs->pop_scale (c->data, s, s);
-    c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
+    c->funcs->pop_translate (c->data, +tCenterX, +tCenterY);
   }
 
   HBUINT8		format; /* format = 22 (noVar) or 23(Var) */
@@ -1078,6 +1083,7 @@ struct PaintRotate
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
     float a = angle.to_float (c->instancer (varIdxBase, 0));
+
     c->funcs->push_rotate (c->data, a);
     c->recurse (this+src);
     c->funcs->pop_rotate (c->data, a);
@@ -1114,6 +1120,7 @@ struct PaintRotateAroundCenter
     float a = angle.to_float (c->instancer (varIdxBase, 0));
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
+
     c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
     c->funcs->push_rotate (c->data, a);
     c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
@@ -1155,6 +1162,7 @@ struct PaintSkew
   {
     float sx = xSkewAngle.to_float(c->instancer (varIdxBase, 0));
     float sy = ySkewAngle.to_float(c->instancer (varIdxBase, 1));
+
     c->funcs->push_skew (c->data, sx, sy);
     c->recurse (this+src);
     c->funcs->pop_skew (c->data, sx, sy);
@@ -1193,6 +1201,7 @@ struct PaintSkewAroundCenter
     float sy = ySkewAngle.to_float(c->instancer (varIdxBase, 1));
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
+
     c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
     c->funcs->push_skew (c->data, sx, sy);
     c->funcs->push_translate (c->data, -tCenterX, -tCenterY);

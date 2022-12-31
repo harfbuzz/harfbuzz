@@ -336,6 +336,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     {
       float dx = paint.u.translate.dx / 65536.f;
       float dy = paint.u.translate.dy / 65536.f;
+
       c->funcs->push_translate (c->data, dx, dy);
       c->recurse (paint.u.translate.paint);
       c->funcs->pop_translate (c->data, dx, dy);
@@ -347,6 +348,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float dy = paint.u.scale.center_y / 65536.f;
       float sx = paint.u.scale.scale_x / 65536.f;
       float sy = paint.u.scale.scale_y / 65536.f;
+
       c->funcs->push_translate (c->data, +dx, +dy);
       c->funcs->push_scale (c->data, sx, sy);
       c->funcs->push_translate (c->data, -dx, -dy);
@@ -361,6 +363,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float dx = paint.u.rotate.center_x / 65536.f;
       float dy = paint.u.rotate.center_y / 65536.f;
       float a = paint.u.rotate.angle / 65536.f;
+
       c->funcs->push_translate (c->data, +dx, +dy);
       c->funcs->push_rotate (c->data, a);
       c->funcs->push_translate (c->data, -dx, -dy);
@@ -376,6 +379,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float dy = paint.u.skew.center_y / 65536.f;
       float sx = paint.u.skew.x_skew_angle / 65536.f;
       float sy = paint.u.skew.y_skew_angle / 65536.f;
+
       c->funcs->push_translate (c->data, +dx, +dy);
       c->funcs->push_skew (c->data, sx, sy);
       c->funcs->push_translate (c->data, -dx, -dy);
