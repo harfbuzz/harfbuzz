@@ -1153,11 +1153,11 @@ struct PaintSkew
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    float x = +tanf (xSkewAngle.to_float(c->instancer (varIdxBase, 0)) * (float) M_PI);
-    float y = -tanf (ySkewAngle.to_float(c->instancer (varIdxBase, 1)) * (float) M_PI);
-    c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
+    float sx = xSkewAngle.to_float(c->instancer (varIdxBase, 0));
+    float sy = ySkewAngle.to_float(c->instancer (varIdxBase, 1));
+    c->funcs->push_skew (c->data, sx, sy);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_skew (c->data, sx, sy);
   }
 
   HBUINT8		format; /* format = 28(noVar) or 29 (Var) */
@@ -1189,16 +1189,16 @@ struct PaintSkewAroundCenter
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    float x = +tanf (xSkewAngle.to_float(c->instancer (varIdxBase, 0)) * (float) M_PI);
-    float y = -tanf (ySkewAngle.to_float(c->instancer (varIdxBase, 1)) * (float) M_PI);
+    float sx = xSkewAngle.to_float(c->instancer (varIdxBase, 0));
+    float sy = ySkewAngle.to_float(c->instancer (varIdxBase, 1));
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
     c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
-    c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
+    c->funcs->push_skew (c->data, sx, sy);
     c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->recurse (this+src);
     c->funcs->pop_translate (c->data, -tCenterX, -tCenterY);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_skew (c->data, sx, sy);
     c->funcs->pop_translate (c->data, +tCenterX, +tCenterY);
   }
 

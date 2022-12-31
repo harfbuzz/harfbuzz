@@ -218,6 +218,23 @@ struct hb_paint_funcs_t
     if (a)
       pop_transform (paint_data);
   }
+
+  void push_skew (void *paint_data,
+                  float sx, float sy)
+  {
+    if (sx || sy)
+    {
+      float x = +tanf (sx * (float) M_PI);
+      float y = -tanf (sy * (float) M_PI);
+      push_transform (paint_data, 1.f, y, x, 1.f, 0.f, 0.f);
+    }
+  }
+  void pop_skew (void *paint_data,
+                  float sx, float sy)
+  {
+    if (sx || sy)
+      pop_transform (paint_data);
+  }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
 

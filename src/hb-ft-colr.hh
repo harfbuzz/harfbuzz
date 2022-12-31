@@ -374,14 +374,14 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     {
       float dx = paint.u.skew.center_x / 65536.f;
       float dy = paint.u.skew.center_y / 65536.f;
-      float x = +tanf (paint.u.skew.x_skew_angle / 65536.f * (float) M_PI);
-      float y = -tanf (paint.u.skew.y_skew_angle / 65536.f * (float) M_PI);
+      float sx = paint.u.skew.x_skew_angle / 65536.f;
+      float sy = paint.u.skew.y_skew_angle / 65536.f;
       c->funcs->push_translate (c->data, +dx, +dy);
-      c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
+      c->funcs->push_skew (c->data, sx, sy);
       c->funcs->push_translate (c->data, -dx, -dy);
       c->recurse (paint.u.skew.paint);
       c->funcs->pop_translate (c->data, -dx, -dy);
-      c->funcs->pop_transform (c->data);
+      c->funcs->pop_skew (c->data, sx, sy);
       c->funcs->pop_translate (c->data, +dx, +dy);
     }
     break;
