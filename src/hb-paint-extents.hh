@@ -222,9 +222,9 @@ struct hb_paint_extents_context_t {
 
   void push_transform (const hb_transform_t &trans)
   {
-    hb_transform_t r = transforms.tail ();
-    r.multiply (trans);
-    transforms.push (r);
+    hb_transform_t t = transforms.tail ();
+    t.multiply (trans);
+    transforms.push (t);
   }
 
   void pop_transform ()
@@ -235,8 +235,8 @@ struct hb_paint_extents_context_t {
   void push_clip (hb_extents_t extents)
   {
     /* Transform extents and push a new clip. */
-    hb_transform_t &r = transforms.tail ();
-    r.transform_extents (extents);
+    hb_transform_t &t = transforms.tail ();
+    t.transform_extents (extents);
 
     hb_bounds_t b {extents};
     clips.push (b);
