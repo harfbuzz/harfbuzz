@@ -205,9 +205,9 @@ struct hb_paint_extents_context_t {
 
   hb_paint_extents_context_t ()
   {
+    transforms.push (hb_transform_t{});
     clips.push (hb_bounds_t{hb_bounds_t::UNBOUNDED});
     groups.push (hb_bounds_t{hb_bounds_t::EMPTY});
-    transforms.push (hb_transform_t{});
   }
 
   hb_extents_t get_extents ()
@@ -287,9 +287,10 @@ struct hb_paint_extents_context_t {
     group.union_ (clip);
   }
 
+  protected:
+  hb_vector_t<hb_transform_t> transforms;
   hb_vector_t<hb_bounds_t> clips;
   hb_vector_t<hb_bounds_t> groups;
-  hb_vector_t<hb_transform_t> transforms;
 };
 
 HB_INTERNAL hb_paint_funcs_t *
