@@ -644,7 +644,7 @@ struct subr_subsetter_t
       ENV env (str, acc, fd);
       cs_interpreter_t<ENV, OPSET, subr_subset_param_t> interp (env);
 
-      parsed_charstrings[i].alloc (str.length / 2);
+      parsed_charstrings[i].alloc (str.length);
       subr_subset_param_t  param (&parsed_charstrings[i],
                                   &parsed_global_subrs_storage,
                                   &parsed_local_subrs_storage[fd],
