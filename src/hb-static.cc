@@ -38,7 +38,6 @@
 #include "hb-ot-head-table.hh"
 #include "hb-ot-maxp-table.hh"
 
-#ifndef HB_NO_VISIBILITY
 #include "hb-ot-name-language-static.hh"
 
 uint64_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (uint64_t) - 1) / sizeof (uint64_t)] = {};
@@ -139,6 +138,3 @@ hb_user_data_array_t::get (hb_user_data_key_t *key)
 
   return items.find (key, &item, lock) ? item.data : nullptr;
 }
-
-
-#endif
