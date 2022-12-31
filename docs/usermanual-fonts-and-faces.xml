@@ -473,4 +473,46 @@
     </para>
   </section>
 
+  <section>
+    <title>Glyphs and rendering</title>
+
+    <para>
+      The main purpose of HarfBuzz is shaping, which creates a list of positioned
+      glyphs as output. The remaining task for text layout is to convert this list
+      into rendered output. While HarfBuzz does not handle rasterization of glyphs
+      per se, it does have APIs that provide access to the font data that is needed
+      to perform this task.
+    </para>
+    <para>
+      Traditionally, the shapes of glyphs in scalable fonts are provided as quadratic
+      or cubic Beziér curves defining outlines to be filled. To obtain the outlines
+      for a glyph, call <function>hb_font_draw_glyph()</function> and pass a
+      <type>hb_draw_funcs_t</type> struct. The callbacks in that struct will be called
+      for each segment of the outline. Note that this API provides access to outlines
+      as they are defined in the font, without applying hinting to fit the curves
+      to the pixel grid.
+    </para>
+    <para>
+      Fonts may provide pre-rendered images for glyphs instead of or in addition to
+      outlines. This is most common for fonts that contain colored glyphs, such as
+      Emoji. To access these images, use <function>hb_ot_color_reference_png()</function>
+      or <function>hb_ot_color_reference_svg()</function>.
+    </para>
+    <para>
+      Another way in which fonts provide colored glyphs is via paint graphs that
+      combine glyph outlines with gradients and allow for transformations and
+      compositing. In its simplest form, this can be presented as a series of
+      layers that are rendered on top of each other, each with its own color.
+      HarfBuzz has the <function>hb_ot_color_glyph_get_layers()</function> to
+      access glyph data in this form.
+    </para>
+    <para>
+      In the general case, you have to use <function>hb_font_paint_glyph()</function>
+      and pass a <type>hb_paint_funcs_t</type> struct with callbacks to obtain paint
+      graphs for glyphs that have them. The <function>hb_font_paint_glyph()</function>
+      API can handle outline and image glyphs as well, so it provides a unified API for
+      access to glyph rendering information.
+    </para>
+  </section>
+
  </chapter>
