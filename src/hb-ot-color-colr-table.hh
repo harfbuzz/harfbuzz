@@ -1078,11 +1078,9 @@ struct PaintRotate
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
     float a = angle.to_float (c->instancer (varIdxBase, 0));
-    float cc = cosf (a * (float) M_PI);
-    float ss = sinf (a * (float) M_PI);
-    c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
+    c->funcs->push_rotate (c->data, a);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_rotate (c->data, a);
   }
 
   HBUINT8		format; /* format = 24 (noVar) or 25(Var) */
@@ -1114,16 +1112,14 @@ struct PaintRotateAroundCenter
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
     float a = angle.to_float (c->instancer (varIdxBase, 0));
-    float cc = cosf (a * (float) M_PI);
-    float ss = sinf (a * (float) M_PI);
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
     c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
-    c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
+    c->funcs->push_rotate (c->data, a);
     c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
     c->recurse (this+src);
     c->funcs->pop_translate (c->data, -tCenterX, -tCenterY);
-    c->funcs->pop_transform (c->data);
+    c->funcs->pop_rotate (c->data, a);
     c->funcs->pop_translate (c->data, +tCenterX, +tCenterY);
   }
 

@@ -361,14 +361,12 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float dx = paint.u.rotate.center_x / 65536.f;
       float dy = paint.u.rotate.center_y / 65536.f;
       float a = paint.u.rotate.angle / 65536.f;
-      float cc = cosf (a * (float) M_PI);
-      float ss = sinf (a * (float) M_PI);
       c->funcs->push_translate (c->data, +dx, +dy);
-      c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
+      c->funcs->push_rotate (c->data, a);
       c->funcs->push_translate (c->data, -dx, -dy);
       c->recurse (paint.u.rotate.paint);
       c->funcs->pop_translate (c->data, -dx, -dy);
-      c->funcs->pop_transform (c->data);
+      c->funcs->pop_rotate (c->data, a);
       c->funcs->pop_translate (c->data, +dx, +dy);
     }
     break;

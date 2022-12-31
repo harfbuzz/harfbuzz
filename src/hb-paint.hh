@@ -201,6 +201,23 @@ struct hb_paint_funcs_t
     if (sx != 1.f || sy != 1.f)
       pop_transform (paint_data);
   }
+
+  void push_rotate (void *paint_data,
+                    float a)
+  {
+    if (a)
+    {
+      float cc = cosf (a * (float) M_PI);
+      float ss = sinf (a * (float) M_PI);
+      push_transform (paint_data, cc, ss, -ss, cc, 0.f, 0.f);
+    }
+  }
+  void pop_rotate (void *paint_data,
+                    float a)
+  {
+    if (a)
+      pop_transform (paint_data);
+  }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
 
