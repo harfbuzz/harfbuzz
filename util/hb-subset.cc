@@ -927,7 +927,9 @@ subset_main_t::add_options ()
     {"no-prune-unicode-ranges",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES>,	"Don't change the 'OS/2 ulUnicodeRange*' bits.", nullptr},
     {"glyph-names",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_GLYPH_NAMES>,		"Keep PS glyph names in TT-flavored fonts. ", nullptr},
     {"passthrough-tables",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED>,	"Do not drop tables that the tool does not know how to subset.", nullptr},
-    {"preprocess-face",		0, 0, G_OPTION_ARG_NONE, &this->preprocess,
+    {"preprocess-face",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &this->preprocess,
+     "Alternative name for --preprocess.", nullptr},
+    {"preprocess",		0, 0, G_OPTION_ARG_NONE, &this->preprocess,
      "If set preprocesses the face with the add accelerator option before actually subsetting.", nullptr},
     {nullptr}
   };
