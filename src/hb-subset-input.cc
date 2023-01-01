@@ -395,6 +395,42 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
   return hb_object_get_user_data (input, key);
 }
 
+/**
+ * hb_subset_input_keep_everything:
+ * @input: a #hb_subset_input_t object
+ *
+ * Configure input object to keep everything in the font face.
+ * That is, all Unicodes, glyphs, names, layout items,
+ * glyph names, etc.
+ *
+ * The input can be tailored afterwards by the caller.
+ *
+ * Since: REPLACEME
+ */
+void
+hb_subset_input_keep_everything (hb_subset_input_t *input)
+{
+  const hb_subset_sets_t indices[] = {HB_SUBSET_SETS_UNICODE,
+				      HB_SUBSET_SETS_GLYPH_INDEX,
+				      HB_SUBSET_SETS_NAME_ID,
+				      HB_SUBSET_SETS_NAME_LANG_ID,
+				      HB_SUBSET_SETS_LAYOUT_FEATURE_TAG,
+				      HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG};
+
+  for (auto idx : hb_iter (indices))
+  {
+    hb_set_t *set = hb_subset_input_set (input, idx);
+    hb_set_clear (set);
+    hb_set_invert (set);
+  }
+
+  hb_subset_input_set_flags (input,
+			     HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
+			     HB_SUBSET_FLAGS_GLYPH_NAMES |
+			     HB_SUBSET_FLAGS_RETAIN_GIDS |
+			     HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES);
+}
+
 #ifndef HB_NO_VAR
 /**
  * hb_subset_input_pin_axis_to_default: (skip)
@@ -482,25 +518,7 @@ hb_subset_preprocess (hb_face_t *source)
   if (!input)
     return hb_face_reference (source);
 
-  const hb_subset_sets_t indices[] = {HB_SUBSET_SETS_UNICODE,
-				      HB_SUBSET_SETS_GLYPH_INDEX,
-				      HB_SUBSET_SETS_NAME_ID,
-				      HB_SUBSET_SETS_NAME_LANG_ID,
-				      HB_SUBSET_SETS_LAYOUT_FEATURE_TAG,
-				      HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG};
-
-  for (auto idx : hb_iter (indices))
-  {
-    hb_set_t *set = hb_subset_input_set (input, idx);
-    hb_set_clear (set);
-    hb_set_invert (set);
-  }
-
-  hb_subset_input_set_flags(input,
-                            HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
-                            HB_SUBSET_FLAGS_GLYPH_NAMES |
-                            HB_SUBSET_FLAGS_RETAIN_GIDS |
-                            HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES);
+  hb_subset_input_keep_everything (input);
 
   input->attach_accelerator_data = true;
 

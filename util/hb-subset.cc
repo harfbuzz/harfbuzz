@@ -528,6 +528,19 @@ parse_name_languages (const char *name,
   return true;
 }
 
+static gboolean
+_keep_everything (const char *name,
+		  const char *arg,
+		  gpointer    data,
+		  GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+
+  hb_subset_input_keep_everything (subset_main->input);
+
+  return true;
+}
+
 template <hb_subset_flags_t flag>
 static gboolean
 set_flag (const char *name,
@@ -918,6 +931,8 @@ subset_main_t::add_options ()
 
   GOptionEntry flag_entries[] =
   {
+    {"keep-everything",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &_keep_everything,
+     "Keep everything by default. Options after this can override the operation.", nullptr},
     {"no-hinting",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_HINTING>,		"Whether to drop hints", nullptr},
     {"retain-gids",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,		"If set don't renumber glyph ids in the subset.", nullptr},
     {"desubroutinize",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,		"Remove CFF/CFF2 use of subroutines", nullptr},

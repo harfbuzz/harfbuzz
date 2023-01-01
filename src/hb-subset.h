@@ -149,6 +149,9 @@ HB_EXTERN void *
 hb_subset_input_get_user_data (const hb_subset_input_t *input,
 			       hb_user_data_key_t      *key);
 
+HB_EXTERN void
+hb_subset_input_keep_everything (hb_subset_input_t *input);
+
 HB_EXTERN hb_set_t *
 hb_subset_input_unicode_set (hb_subset_input_t *input);
 
