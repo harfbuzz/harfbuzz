@@ -31,10 +31,6 @@
 
 #include FT_COLOR_H
 
-#ifndef HB_NO_PAINT
-
-#if defined(TT_SUPPORT_COLRV1) and (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21101
-
 
 static hb_paint_composite_mode_t
 _hb_ft_paint_composite_mode (FT_Composite_Mode mode)
@@ -406,7 +402,6 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
   }
 }
 
-#endif
 
 static bool
 hb_ft_paint_glyph_colr (hb_font_t *font,
@@ -434,7 +429,6 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
   if (error)
     palette = NULL;
 
-#ifdef TT_SUPPORT_COLRV1
   /* COLRv1 */
   FT_OpaquePaint paint = {0};
   if (FT_Get_Color_Glyph_Paint (ft_face, gid,
@@ -483,7 +477,6 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
     return true;
   }
-#endif
 
   /* COLRv0 */
   iterator.p  = NULL;
@@ -526,8 +519,6 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
   return false;
 }
-
-#endif
 
 
 #endif /* HB_FT_COLR_HH */
