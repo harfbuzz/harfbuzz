@@ -25,12 +25,12 @@
  * Google Author(s): Calder Kitagawa
  */
 
-#ifndef HB_OT_COLOR_SBIX_TABLE_HH
-#define HB_OT_COLOR_SBIX_TABLE_HH
+#ifndef OT_COLOR_SBIX_SBIX_HH
+#define OT_COLOR_SBIX_SBIX_HH
 
-#include "hb-open-type.hh"
-#include "hb-ot-layout-common.hh"
-#include "hb-paint.hh"
+#include "../../../hb-open-type.hh"
+#include "../../../hb-ot-layout-common.hh"
+#include "../../../hb-paint.hh"
 
 /*
  * sbix -- Standard Bitmap Graphics
@@ -450,4 +450,4 @@ struct sbix_accelerator_t : sbix::accelerator_t {
 
 } /* namespace OT */
 
-#endif /* HB_OT_COLOR_SBIX_TABLE_HH */
+#endif /* OT_COLOR_SBIX_SBIX_HH */

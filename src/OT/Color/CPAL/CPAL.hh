@@ -25,12 +25,12 @@
  * Google Author(s): Sascha Brawer
  */
 
-#ifndef HB_OT_COLOR_CPAL_TABLE_HH
-#define HB_OT_COLOR_CPAL_TABLE_HH
+#ifndef OT_COLOR_CPAL_CPAL_HH
+#define OT_COLOR_CPAL_CPAL_HH
 
-#include "hb-open-type.hh"
-#include "hb-ot-color.h"
-#include "hb-ot-name.h"
+#include "../../../hb-open-type.hh"
+#include "../../../hb-ot-color.h"
+#include "../../../hb-ot-name.h"
 
 
 /*
@@ -319,4 +319,4 @@ struct CPAL
 } /* namespace OT */
 
 
-#endif /* HB_OT_COLOR_CPAL_TABLE_HH */
+#endif /* OT_COLOR_CPAL_CPAL_HH */
