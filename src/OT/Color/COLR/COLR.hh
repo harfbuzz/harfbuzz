@@ -25,15 +25,15 @@
  * Google Author(s): Calder Kitagawa
  */
 
-#ifndef HB_OT_COLOR_COLR_TABLE_HH
-#define HB_OT_COLOR_COLR_TABLE_HH
+#ifndef OT_COLOR_COLR_COLR_HH
+#define OT_COLOR_COLR_COLR_HH
 
-#include "hb.hh"
-#include "hb-open-type.hh"
-#include "hb-ot-layout-common.hh"
-#include "hb-ot-var-common.hh"
-#include "hb-paint.hh"
-#include "hb-paint-extents.hh"
+#include "../../../hb.hh"
+#include "../../../hb-open-type.hh"
+#include "../../../hb-ot-layout-common.hh"
+#include "../../../hb-ot-var-common.hh"
+#include "../../../hb-paint.hh"
+#include "../../../hb-paint-extents.hh"
 
 /*
  * COLR -- Color
@@ -2178,4 +2178,4 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 
 } /* namespace OT */
 
-#endif /* HB_OT_COLOR_COLR_TABLE_HH */
+#endif /* OT_COLOR_COLR_COLR_HH */

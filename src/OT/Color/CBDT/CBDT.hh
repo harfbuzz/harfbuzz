@@ -24,11 +24,11 @@
  * Google Author(s): Seigo Nonaka, Calder Kitagawa
  */
 
-#ifndef HB_OT_COLOR_CBDT_TABLE_HH
-#define HB_OT_COLOR_CBDT_TABLE_HH
+#ifndef OT_COLOR_CBDT_CBDT_HH
+#define OT_COLOR_CBDT_CBDT_HH
 
-#include "hb-open-type.hh"
-#include "hb-paint.hh"
+#include "../../../hb-open-type.hh"
+#include "../../../hb-paint.hh"
 
 /*
  * CBLC -- Color Bitmap Location
@@ -1027,4 +1027,4 @@ struct CBDT_accelerator_t : CBDT::accelerator_t {
 
 } /* namespace OT */
 
-#endif /* HB_OT_COLOR_CBDT_TABLE_HH */
+#endif /* OT_COLOR_CBDT_CBDT_HH */

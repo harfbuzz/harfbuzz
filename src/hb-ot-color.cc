@@ -31,11 +31,11 @@
 
 #include "hb-ot.h"
 
-#include "hb-ot-color-cbdt-table.hh"
-#include "hb-ot-color-colr-table.hh"
-#include "hb-ot-color-cpal-table.hh"
-#include "hb-ot-color-sbix-table.hh"
-#include "hb-ot-color-svg-table.hh"
+#include "OT/Color/CBDT/CBDT.hh"
+#include "OT/Color/COLR/COLR.hh"
+#include "OT/Color/CPAL/CPAL.hh"
+#include "OT/Color/sbix/sbix.hh"
+#include "OT/Color/svg/svg.hh"
 
 
 /**

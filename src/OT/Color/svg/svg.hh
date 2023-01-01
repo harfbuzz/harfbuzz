@@ -22,12 +22,12 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_OT_COLOR_SVG_TABLE_HH
-#define HB_OT_COLOR_SVG_TABLE_HH
+#ifndef OT_COLOR_SVG_SVG_HH
+#define OT_COLOR_SVG_SVG_HH
 
-#include "hb-open-type.hh"
-#include "hb-blob.hh"
-#include "hb-paint.hh"
+#include "../../../hb-open-type.hh"
+#include "../../../hb-blob.hh"
+#include "../../../hb-paint.hh"
 
 /*
  * SVG -- SVG (Scalable Vector Graphics)
@@ -148,4 +148,4 @@ struct SVG_accelerator_t : SVG::accelerator_t {
 } /* namespace OT */
 
 
-#endif /* HB_OT_COLOR_SVG_TABLE_HH */
+#endif /* OT_COLOR_SVG_SVG_HH */

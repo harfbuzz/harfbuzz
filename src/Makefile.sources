@@ -68,11 +68,6 @@ HB_BASE_sources = \
 	hb-ot-cff2-table.cc \
 	hb-ot-cff2-table.hh \
 	hb-ot-cmap-table.hh \
-	hb-ot-color-cbdt-table.hh \
-	hb-ot-color-colr-table.hh \
-	hb-ot-color-cpal-table.hh \
-	hb-ot-color-sbix-table.hh \
-	hb-ot-color-svg-table.hh \
 	hb-ot-color.cc \
 	hb-ot-face-table-list.hh \
 	hb-ot-face.cc \
@@ -94,6 +89,11 @@ HB_BASE_sources = \
 	hb-paint-extents.cc \
 	hb-paint-extents.hh \
 	hb-ot-layout-gsub-table.hh \
+	OT/Color/CBDT/CBDT.hh \
+	OT/Color/COLR/COLR.hh \
+	OT/Color/CPAL/CPAL.hh \
+	OT/Color/sbix/sbix.hh \
+	OT/Color/svg/svg.hh \
 	OT/glyf/glyf.hh \
 	OT/glyf/glyf-helpers.hh \
 	OT/glyf/loca.hh \
@@ -340,7 +340,6 @@ HB_SUBSET_sources = \
 	hb-number.hh \
 	hb-ot-cff1-table.cc \
 	hb-ot-cff2-table.cc \
-	hb-ot-color-colrv1-closure.hh \
 	hb-ot-post-table-v2subset.hh \
 	hb-static.cc \
 	hb-subset-cff-common.cc \
@@ -368,6 +367,7 @@ HB_SUBSET_sources = \
 	graph/markbasepos-graph.hh \
 	graph/split-helpers.hh \
 	graph/serialize.hh \
+	OT/Color/COLR/colrv1-closure.hh \
 	$(NULL)
 
 HB_SUBSET_headers = \
