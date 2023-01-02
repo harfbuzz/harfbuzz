@@ -8,11 +8,11 @@ meson 	--cross-file=.ci/win32-cross-file.txt \
 	-Dcairo:fontconfig=disabled \
 	-Dcairo:freetype=disabled \
 	-Dcairo:dwrite=disabled \
+	-Dcairo:tests=disabled \
 	-Dglib=enabled \
 	-Dfreetype=disabled \
 	-Dgdi=enabled \
 	-Ddirectwrite=enabled \
-	-Dcairo=enabled \
 	win32build \
 	$@
 
