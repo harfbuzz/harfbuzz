@@ -678,16 +678,21 @@ struct subr_subsetter_t
       }
 
       /* Doing this here one by one instead of compacting all at the en
-       * has massive peak-memory saving. */
-      if (plan->inprogress_accelerator)
+       * has massive peak-memory saving.
+       *
+       * The compacting both saves memory and makes further operations
+       * faster.
+       */
+      //if (plan->inprogress_accelerator)
 	compact_string (parsed_charstrings[i]);
     }
 
-    // Since parsed strings were loaded from accelerator, we still need
-    // to compute the subroutine closures which would have normally happened during
-    // parsing.
-    //
-    // Or if we are dropping hinting, redo closure to get actually used subrs.
+    /* Since parsed strings were loaded from accelerator, we still need
+     * to compute the subroutine closures which would have normally happened during
+     * parsing.
+     *
+     * Or if we are dropping hinting, redo closure to get actually used subrs.
+     */
     if ((cff_accelerator ||
 	(!cff_accelerator && plan->flags & HB_SUBSET_FLAGS_NO_HINTING)) &&
         !closure_subroutines(*parsed_global_subrs,
