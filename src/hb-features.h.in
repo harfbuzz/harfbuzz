@@ -29,6 +29,27 @@ HB_BEGIN_DECLS
 
 
 /**
+ * HB_HAS_CAIRO:
+ *
+ * Defined if Harfbuzz has been built with cairo support.
+ */
+#mesondefine HB_HAS_CAIRO
+
+/**
+ * HB_HAS_CORETEXT:
+ *
+ * Defined if Harfbuzz has been built with CoreText support.
+ */
+#mesondefine HB_HAS_CORETEXT
+
+/**
+ * HB_HAS_DIRECTWRITE:
+ *
+ * Defined if Harfbuzz has been built with DirectWrite support.
+ */
+#mesondefine HB_HAS_DIRECTWRITE
+
+/**
  * HB_HAS_FREETYPE:
  *
  * Defined if Harfbuzz has been built with Freetype support.
@@ -43,13 +64,6 @@ HB_BEGIN_DECLS
 #mesondefine HB_HAS_GDI
 
 /**
- * HB_HAS_GRAPHITE:
- *
- * Defined if Harfbuzz has been built with Graphite support.
- */
-#mesondefine HB_HAS_GRAPHITE
-
-/**
  * HB_HAS_GLIB:
  *
  * Defined if Harfbuzz has been built with GLib support.
@@ -57,25 +71,11 @@ HB_BEGIN_DECLS
 #mesondefine HB_HAS_GLIB
 
 /**
- * HB_HAS_UNISCRIBE:
+ * HB_HAS_GRAPHITE:
  *
- * Defined if Harfbuzz has been built with Uniscribe support.
+ * Defined if Harfbuzz has been built with Graphite support.
  */
-#mesondefine HB_HAS_UNISCRIBE
-
-/**
- * HB_HAS_DIRECTWRITE:
- *
- * Defined if Harfbuzz has been built with DirectWrite support.
- */
-#mesondefine HB_HAS_DIRECTWRITE
-
-/**
- * HB_HAS_CORETEXT:
- *
- * Defined if Harfbuzz has been built with CoreText support.
- */
-#mesondefine HB_HAS_CORETEXT
+#mesondefine HB_HAS_GRAPHITE
 
 /**
  * HB_HAS_ICU:
@@ -85,11 +85,11 @@ HB_BEGIN_DECLS
 #mesondefine HB_HAS_ICU
 
 /**
- * HB_HAS_CAIRO:
+ * HB_HAS_UNISCRIBE:
  *
- * Defined if Harfbuzz has been built with cairo support.
+ * Defined if Harfbuzz has been built with Uniscribe support.
  */
-#mesondefine HB_HAS_CAIRO
+#mesondefine HB_HAS_UNISCRIBE
 
 
 HB_END_DECLS
