@@ -45,7 +45,7 @@ struct hb_vector_t
   hb_vector_t () = default;
   hb_vector_t (std::initializer_list<Type> lst) : hb_vector_t ()
   {
-    alloc (lst.size ());
+    alloc (lst.size (), true);
     for (auto&& item : lst)
       push (item);
   }
@@ -55,12 +55,12 @@ struct hb_vector_t
   {
     auto iter = hb_iter (o);
     if (iter.is_random_access_iterator)
-      alloc (hb_len (iter));
+      alloc (hb_len (iter), true);
     hb_copy (iter, *this);
   }
   hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
   {
-    alloc (o.length);
+    alloc (o.length, true);
     if (unlikely (in_error ())) return;
     copy_vector (o);
   }
