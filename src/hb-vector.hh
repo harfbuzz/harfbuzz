@@ -233,6 +233,11 @@ struct hb_vector_t
   Type *
   realloc_vector (unsigned new_allocated)
   {
+    if (!new_allocated)
+    {
+      hb_free (arrayZ);
+      return nullptr;
+    }
     return (Type *) hb_realloc (arrayZ, new_allocated * sizeof (Type));
   }
   template <typename T = Type,
@@ -240,6 +245,11 @@ struct hb_vector_t
   Type *
   realloc_vector (unsigned new_allocated)
   {
+    if (!new_allocated)
+    {
+      hb_free (arrayZ);
+      return nullptr;
+    }
     Type *new_array = (Type *) hb_malloc (new_allocated * sizeof (Type));
     if (likely (new_array))
     {
@@ -366,13 +376,18 @@ struct hb_vector_t
 
     /* Reallocate */
 
-    Type *new_array = nullptr;
     bool overflows =
       (int) in_error () ||
       (new_allocated < size) ||
       hb_unsigned_mul_overflows (new_allocated, sizeof (Type));
-    if (likely (!overflows))
-      new_array = realloc_vector (new_allocated);
+
+    if (unlikely (overflows))
+    {
+      allocated = -1;
+      return false;
+    }
+
+    Type *new_array = realloc_vector (new_allocated);
 
     if (unlikely (new_allocated && !new_array))
     {
