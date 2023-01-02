@@ -361,6 +361,35 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
 
   bool has_calls () const          { return has_calls_; }
 
+  void compact ()
+  {
+    unsigned count = values.length;
+    if (unlikely (!count)) return;
+    auto &opstr = values.arrayZ;
+    unsigned j = 0;
+    for (unsigned i = 1; i < count; i++)
+    {
+      /* See if we can combine op j and op i. */
+      bool combine =
+        (opstr[j].op != OpCode_callsubr && opstr[j].op != OpCode_callgsubr) &&
+        (opstr[i].op != OpCode_callsubr && opstr[i].op != OpCode_callgsubr) &&
+        (opstr[j].is_hinting () == opstr[i].is_hinting ()) &&
+        (opstr[j].ptr + opstr[j].length == opstr[i].ptr) &&
+        (opstr[j].length + opstr[i].length <= 255);
+
+      if (combine)
+      {
+	opstr[j].length += opstr[i].length;
+	opstr[j].op = OpCode_Invalid;
+      }
+      else
+      {
+	opstr[++j] = opstr[i];
+      }
+    }
+    values.shrink (j + 1);
+  }
+
   protected:
   bool    parsed : 1;
   bool    hint_dropped : 1;
@@ -684,7 +713,7 @@ struct subr_subsetter_t
        * faster.
        */
       //if (plan->inprogress_accelerator)
-	compact_string (parsed_charstrings[i]);
+	parsed_charstrings[i].compact ();
     }
 
     /* Since parsed strings were loaded from accelerator, we still need
@@ -1003,39 +1032,10 @@ struct subr_subsetter_t
   void compact_parsed_subrs () const
   {
     for (auto &cs : parsed_global_subrs_storage)
-      compact_string (cs);
+      cs.compact ();
     for (auto &vec : parsed_local_subrs_storage)
       for (auto &cs : vec)
-	compact_string (cs);
-  }
-
-  static void compact_string (parsed_cs_str_t &str)
-  {
-    unsigned count = str.values.length;
-    if (unlikely (!count)) return;
-    auto &opstr = str.values.arrayZ;
-    unsigned j = 0;
-    for (unsigned i = 1; i < count; i++)
-    {
-      /* See if we can combine op j and op i. */
-      bool combine =
-        (opstr[j].op != OpCode_callsubr && opstr[j].op != OpCode_callgsubr) &&
-        (opstr[i].op != OpCode_callsubr && opstr[i].op != OpCode_callgsubr) &&
-        (opstr[j].is_hinting () == opstr[i].is_hinting ()) &&
-        (opstr[j].ptr + opstr[j].length == opstr[i].ptr) &&
-        (opstr[j].length + opstr[i].length <= 255);
-
-      if (combine)
-      {
-	opstr[j].length += opstr[i].length;
-	opstr[j].op = OpCode_Invalid;
-      }
-      else
-      {
-	opstr[++j] = opstr[i];
-      }
-    }
-    str.values.shrink (j + 1);
+	cs.compact ();
   }
 
   void populate_subset_accelerator () const
