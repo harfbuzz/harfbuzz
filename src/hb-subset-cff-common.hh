@@ -486,7 +486,7 @@ struct subr_subset_param_t
     else
     {
       if (!parsed_str->is_parsed ())
-        parsed_str->alloc (env.str_ref.total_size () / 2);
+        parsed_str->alloc (env.str_ref.total_size ());
       current_parsed_str = parsed_str;
     }
   }
