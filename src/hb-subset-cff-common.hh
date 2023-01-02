@@ -657,28 +657,10 @@ struct subr_subsetter_t
 
       /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
       SUBSETTER::complete_parsed_str (interp.env, param, parsed_charstrings[i]);
-    }
 
-    // Since parsed strings were loaded from accelerator, we still need
-    // to compute the subroutine closures which would have normally happened during
-    // parsing.
-    if (cff_accelerator &&
-        !closure_subroutines(*parsed_global_subrs,
-                             *parsed_local_subrs))
-      return false;
-
-    if ((plan->flags & HB_SUBSET_FLAGS_NO_HINTING && !cff_accelerator) ||
-	plan->inprogress_accelerator)
-    {
       /* mark hint ops and arguments for drop */
-      for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
+      if ((plan->flags & HB_SUBSET_FLAGS_NO_HINTING) || plan->inprogress_accelerator)
       {
-	hb_codepoint_t  glyph;
-	if (!plan->old_gid_for_new_gid (i, &glyph))
-	  continue;
-	unsigned int fd = acc.fdSelect->get_fd (glyph);
-	if (unlikely (fd >= acc.fdCount))
-	  return false;
 	subr_subset_param_t  param (&parsed_charstrings[i],
 				    &parsed_global_subrs_storage,
 				    &parsed_local_subrs_storage[fd],
@@ -694,12 +676,18 @@ struct subr_subsetter_t
 	    parsed_charstrings[i].set_vsindex_dropped ();
 	}
       }
-
-      /* after dropping hints recreate closures of actually used subrs */
-      if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING &&
-	  !cff_accelerator &&
-	  !closure_subroutines(*parsed_global_subrs, *parsed_local_subrs)) return false;
     }
+
+    // Since parsed strings were loaded from accelerator, we still need
+    // to compute the subroutine closures which would have normally happened during
+    // parsing.
+    //
+    // Or if we are dropping hinting, redo closure to get actually used subrs.
+    if ((cff_accelerator ||
+	(!cff_accelerator && plan->flags & HB_SUBSET_FLAGS_NO_HINTING)) &&
+        !closure_subroutines(*parsed_global_subrs,
+                             *parsed_local_subrs))
+      return false;
 
     remaps.create (closures);
 
