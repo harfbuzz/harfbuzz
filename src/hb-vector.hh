@@ -116,7 +116,7 @@ struct hb_vector_t
   hb_vector_t& operator = (const hb_vector_t &o)
   {
     reset ();
-    alloc (o.length);
+    alloc (o.length, true);
     if (unlikely (in_error ())) return *this;
 
     copy_vector (o);
