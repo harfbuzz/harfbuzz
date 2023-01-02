@@ -28,6 +28,7 @@
 
 #include "hb.hh"
 #include "hb-machinery.hh"
+#include "hb-script-lang-table.h"
 
 #if !defined(HB_NO_SETLOCALE) && (!defined(HAVE_NEWLOCALE) || !defined(HAVE_USELOCALE))
 #define HB_NO_SETLOCALE 1
@@ -663,6 +664,125 @@ hb_script_get_horizontal_direction (hb_script_t script)
   }
 
   return HB_DIRECTION_LTR;
+}
+
+static int
+lang_compare_first_component (const void *pa,
+                              const void *pb)
+{
+  const char *a = (const char *) pa;
+  const char *b = (const char *) pb;
+  unsigned int da, db;
+  const char *p;
+
+  p = strstr (a, "-");
+  da = p ? (unsigned int) (p - a) : strlen (a);
+
+  p = strstr (b, "-");
+  db = p ? (unsigned int) (p - b) : strlen (b);
+
+  return strncmp (a, b, hb_max (da, db));
+}
+
+static const HbScriptForLang *
+find_best_lang_match (hb_language_t language)
+{
+  const char *lang_str;
+  const char *record, *start, *end;
+  const char *records;
+  unsigned int record_size;
+  unsigned int num_records;
+
+  if (language == nullptr)
+    return nullptr;
+
+  lang_str = language->s;
+
+  records = (const char *) hb_script_for_lang;
+  record_size = sizeof (HbScriptForLang);
+  num_records = sizeof (hb_script_for_lang) / record_size;
+  record = (const char *) bsearch (lang_str,
+                                   records, num_records,
+                                   record_size,
+                                   lang_compare_first_component);
+  if (!record)
+    return nullptr;
+
+  start = records;
+  end   = start + num_records * record_size;
+
+  /* find the best match among all those that have the same first-component */
+
+  /* go to the final one matching in the first component */
+  while (record < end - record_size &&
+         lang_compare_first_component (lang_str, record + record_size) == 0)
+
+  /* go back, find which one matches completely */
+  while (start <= record &&
+         lang_compare_first_component (lang_str, record) == 0)
+    {
+      hb_language_t l;
+
+      l = hb_language_from_string (record, -1);
+      if (hb_language_matches (language, l))
+        return (const HbScriptForLang *) record;
+
+      record -= record_size;
+    }
+
+  return nullptr;
+}
+
+/**
+ * hb_language_get_scripts:
+ * @language: a #hb_language_t
+ * @script_count: (inout) (optional): Input = the maximum number of scripts to return;
+ *      Output = the actual number of scripts returned (may be zero)
+ * @scripts: (out) (array length=script_count): the array of #hb_script_t found
+ *
+ * Fetches the scripts that can be used with @language.
+ *
+ * Return value: the total number of scripts
+ *
+ * Since: REPLACEME
+ */
+HB_EXTERN unsigned int
+hb_language_get_scripts (hb_language_t language,
+                         unsigned int *script_count,
+                         hb_script_t *scripts)
+{
+  const HbScriptForLang *script_for_lang;
+  unsigned int count;
+  unsigned int i;
+
+  script_for_lang = find_best_lang_match (language);
+
+  if (!script_for_lang || script_for_lang->scripts[0] == 0)
+  {
+    if (script_count)
+      *script_count = 0;
+
+    return 0;
+  }
+
+  for (i = 0; i < sizeof (script_for_lang->scripts) / sizeof (hb_script_t); i++)
+    if (script_for_lang->scripts[i] == 0)
+      break;
+
+  count = i;
+
+  if (script_count)
+  {
+    for (i = 0; i < count; i++)
+      {
+        scripts[i] = script_for_lang->scripts[i];
+        if (i == *script_count)
+          break;
+      }
+    *script_count = i;
+  }
+
+  return count;
 }
 
 

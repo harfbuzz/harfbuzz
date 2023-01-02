@@ -758,6 +758,10 @@ hb_script_to_iso15924_tag (hb_script_t script);
 HB_EXTERN hb_direction_t
 hb_script_get_horizontal_direction (hb_script_t script);
 
+HB_EXTERN unsigned int
+hb_language_get_scripts (hb_language_t language,
+                         unsigned int *script_count,
+                         hb_script_t *scripts);
 
 /* User data */
 

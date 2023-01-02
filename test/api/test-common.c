@@ -210,6 +210,45 @@ test_types_language (void)
   g_assert (HB_LANGUAGE_INVALID != hb_language_get_default ());
 }
 
+static void
+test_language_get_scripts (void)
+{
+  hb_script_t scripts[10];
+  unsigned int n_scripts;
+  unsigned int count;
+
+  n_scripts = 10;
+  count = hb_language_get_scripts (hb_language_from_string ("en", -1), &n_scripts, scripts);
+
+  g_assert (count == 1);
+  g_assert (n_scripts == 1);
+  g_assert (scripts[0] == HB_SCRIPT_LATIN);
+
+  n_scripts = 10;
+  count = hb_language_get_scripts (hb_language_from_string ("cv", -1), &n_scripts, scripts);
+
+  g_assert (count == 2);
+  g_assert (n_scripts == 2);
+  g_assert (scripts[0] == HB_SCRIPT_CYRILLIC);
+  g_assert (scripts[1] == HB_SCRIPT_LATIN);
+
+  n_scripts = 1;
+  count = hb_language_get_scripts (hb_language_from_string ("cv", -1), &n_scripts, scripts);
+
+  g_assert (count == 2);
+  g_assert (n_scripts == 1);
+  g_assert (scripts[0] == HB_SCRIPT_CYRILLIC);
+
+  n_scripts = 10;
+  count = hb_language_get_scripts (hb_language_from_string ("ja", -1), &n_scripts, scripts);
+
+  g_assert (count == 3);
+  g_assert (n_scripts == 3);
+  g_assert (scripts[0] == HB_SCRIPT_HAN);
+  g_assert (scripts[1] == HB_SCRIPT_KATAKANA);
+  g_assert (scripts[2] == HB_SCRIPT_HIRAGANA);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -220,6 +259,7 @@ main (int argc, char **argv)
   hb_test_add (test_types_tag);
   hb_test_add (test_types_script);
   hb_test_add (test_types_language);
+  hb_test_add (test_language_get_scripts);
 
   return hb_test_run();
 }
