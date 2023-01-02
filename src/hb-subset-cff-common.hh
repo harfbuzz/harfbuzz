@@ -676,6 +676,11 @@ struct subr_subsetter_t
 	    parsed_charstrings[i].set_vsindex_dropped ();
 	}
       }
+
+      /* Doing this here one by one instead of compacting all at the en
+       * has massive peak-memory saving. */
+      if (plan->inprogress_accelerator)
+	compact_string (parsed_charstrings[i]);
     }
 
     // Since parsed strings were loaded from accelerator, we still need
@@ -990,10 +995,8 @@ struct subr_subsetter_t
     return !encoder.in_error ();
   }
 
-  void compact_parsed_strings () const
+  void compact_parsed_subrs () const
   {
-    for (auto &cs : parsed_charstrings)
-      compact_string (cs);
     for (auto &cs : parsed_global_subrs_storage)
       compact_string (cs);
     for (auto &vec : parsed_local_subrs_storage)
@@ -1034,7 +1037,7 @@ struct subr_subsetter_t
   {
     if (!plan->inprogress_accelerator) return;
 
-    compact_parsed_strings ();
+    compact_parsed_subrs ();
 
     plan->inprogress_accelerator->cff_accelerator =
         cff_subset_accelerator_t::create(acc.blob,
