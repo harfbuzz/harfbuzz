@@ -171,7 +171,7 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   public:
 
   unsigned num_iterations = 1;
-  gboolean preprocess;
+  gboolean preprocess = false;
   hb_subset_input_t *input = nullptr;
 };
 
