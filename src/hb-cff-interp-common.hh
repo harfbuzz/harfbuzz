@@ -525,17 +525,7 @@ struct parsed_values_t
     values.alloc (n, true);
   }
 
-  void add_op (op_code_t op, const byte_str_ref_t& str_ref = byte_str_ref_t ())
-  {
-    VAL *val = values.push ();
-    val->op = op;
-    auto arr = str_ref.sub_array (opStart, str_ref.get_offset () - opStart);
-    val->ptr = arr.arrayZ;
-    val->length = arr.length;
-    opStart = str_ref.get_offset ();
-  }
-
-  void add_op (op_code_t op, const byte_str_ref_t& str_ref, const VAL &v)
+  void add_op (op_code_t op, const byte_str_ref_t& str_ref = byte_str_ref_t (), const VAL &v = VAL ())
   {
     VAL *val = values.push (v);
     val->op = op;
