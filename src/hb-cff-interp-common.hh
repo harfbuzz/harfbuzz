@@ -488,7 +488,7 @@ struct op_str_t
 
   const unsigned char *ptr = nullptr;
 
-  op_code_t  op;
+  op_code_t  op = OpCode_Invalid;
 
   uint8_t length = 0;
 };
