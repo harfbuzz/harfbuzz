@@ -401,10 +401,10 @@ struct hb_vector_t
     return true;
   }
 
-  bool resize (int size_, bool initialize = true)
+  bool resize (int size_, bool initialize = true, bool exact = false)
   {
     unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
-    if (!alloc (size))
+    if (!alloc (size, exact))
       return false;
 
     if (size > length)
@@ -420,6 +420,10 @@ struct hb_vector_t
 
     length = size;
     return true;
+  }
+  bool resize_exact (int size_, bool initialize = true)
+  {
+    return resize (size_, initialize, true);
   }
 
   Type pop ()
