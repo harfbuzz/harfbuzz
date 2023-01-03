@@ -712,8 +712,7 @@ struct subr_subsetter_t
        * The compacting both saves memory and makes further operations
        * faster.
        */
-      //if (plan->inprogress_accelerator)
-	parsed_charstrings[i].compact ();
+      parsed_charstrings[i].compact ();
     }
 
     /* Since parsed strings were loaded from accelerator, we still need
