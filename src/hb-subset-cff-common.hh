@@ -364,7 +364,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
   void compact ()
   {
     unsigned count = values.length;
-    if (unlikely (!count)) return;
+    if (!count) return;
     auto &opstr = values.arrayZ;
     unsigned j = 0;
     for (unsigned i = 1; i < count; i++)
