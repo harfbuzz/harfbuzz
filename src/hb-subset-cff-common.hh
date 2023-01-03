@@ -235,6 +235,7 @@ struct subr_flattener_t
   bool flatten (str_buff_vec_t &flat_charstrings)
   {
     unsigned count = plan->num_output_glyphs ();
+    flat_charstrings.alloc (count, true);
     if (!flat_charstrings.resize (count))
       return false;
     for (unsigned int i = 0; i < count; i++)
@@ -270,6 +271,7 @@ struct subr_closures_t
 {
   subr_closures_t (unsigned int fd_count) : global_closure (), local_closures ()
   {
+    local_closures.alloc (fd_count, true);
     local_closures.resize (fd_count);
   }
 
@@ -618,11 +620,14 @@ struct subr_subsetter_t
     if (cff_accelerator) {
       // If we are not dropping hinting then charstrings are not modified so we can
       // just use a reference to the cached copies.
+      cached_charstrings.alloc (plan->num_output_glyphs (), true);
       cached_charstrings.resize (plan->num_output_glyphs ());
       parsed_global_subrs = &cff_accelerator->parsed_global_subrs;
       parsed_local_subrs = &cff_accelerator->parsed_local_subrs;
     } else {
+      parsed_charstrings.alloc (plan->num_output_glyphs (), true);
       parsed_charstrings.resize (plan->num_output_glyphs ());
+      parsed_global_subrs_storage.alloc (acc.globalSubrs->count, true);
       parsed_global_subrs_storage.resize (acc.globalSubrs->count);
 
       if (unlikely (!parsed_local_subrs_storage.resize (fd_count))) return false;
@@ -735,6 +740,7 @@ struct subr_subsetter_t
 
   bool encode_charstrings (str_buff_vec_t &buffArray) const
   {
+    buffArray.alloc (plan->num_output_glyphs (), true);
     if (unlikely (!buffArray.resize (plan->num_output_glyphs ())))
       return false;
     for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
@@ -759,6 +765,7 @@ struct subr_subsetter_t
   {
     unsigned int  count = remap.get_population ();
 
+    buffArray.alloc (count, true);
     if (unlikely (!buffArray.resize (count)))
       return false;
     for (unsigned int new_num = 0; new_num < count; new_num++)
