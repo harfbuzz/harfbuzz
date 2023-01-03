@@ -88,9 +88,7 @@ struct hb_bit_set_t
   bool resize (unsigned int count, bool clear = true)
   {
     if (unlikely (!successful)) return false;
-    pages.alloc (count, true); /* Exact allocation. */
-    page_map.alloc (count, true); /* Exact allocation. */
-    if (unlikely (!pages.resize (count, clear) || !page_map.resize (count, clear)))
+    if (unlikely (!pages.resize (count, clear, true) || !page_map.resize (count, clear, true)))
     {
       pages.resize (page_map.length);
       successful = false;
@@ -424,8 +422,7 @@ struct hb_bit_set_t
   private:
   bool allocate_compact_workspace (hb_vector_t<unsigned>& workspace)
   {
-    workspace.alloc (pages.length, true);
-    if (unlikely (!workspace.resize (pages.length)))
+    if (unlikely (!workspace.resize_exact (pages.length)))
     {
       successful = false;
       return false;
