@@ -893,6 +893,32 @@ hb_buffer_get_user_data (const hb_buffer_t  *buffer,
  * Sets the type of @buffer contents. Buffers are either empty, contain
  * characters (before shaping), or contain glyphs (the result of shaping).
  *
+ * You rarely need to call this function, since a number of other
+ * functions transition the content type for you. Namely:
+ *
+ * - A newly created buffer starts with content type
+ *   %HB_BUFFER_CONTENT_TYPE_INVALID. Calling hb_buffer_reset(),
+ *   hb_buffer_clear_contents(), as well as calling hb_buffer_set_length()
+ *   with an argument of zero all set the buffer content type to invalid
+ *   as well.
+ *
+ * - Calling hb_buffer_add_utf8(), hb_buffer_add_utf16(),
+ *   hb_buffer_add_utf32(), hb_buffer_add_codepoints() and
+ *   hb_buffer_add_latin1() expect that buffer is either empty and
+ *   have a content type of invalid, or that buffer content type is
+ *   %HB_BUFFER_CONTENT_TYPE_UNICODE, and they also set the content
+ *   type to Unicode if they added anything to an empty buffer.
+ *
+ * - Finally hb_shape() and hb_shape_full() expect that the buffer
+ *   is either empty and have content type of invalid, or that buffer
+ *   content type is %HB_BUFFER_CONTENT_TYPE_UNICODE, and upon
+ *   success they set the buffer content type to
+ *   %HB_BUFFER_CONTENT_TYPE_GLYPHS.
+ *
+ * The above transitions are designed such that one can use a buffer
+ * in a loop of "reset : add-text : shape" without needing to ever
+ * modify the content type manually.
+ *
  * Since: 0.9.5
  **/
 void
