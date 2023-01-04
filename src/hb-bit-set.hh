@@ -90,7 +90,7 @@ struct hb_bit_set_t
     if (unlikely (!successful)) return false;
     if (unlikely (!pages.resize (count, clear, exact_size) || !page_map.resize (count, clear, exact_size)))
     {
-      pages.resize (page_map.length);
+      pages.resize (page_map.length, clear, exact_size);
       successful = false;
       return false;
     }
