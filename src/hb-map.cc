@@ -354,6 +354,8 @@ hb_map_hash (const hb_map_t *map)
  *
  * If the map is modified during iteration, the behavior is undefined.
  *
+ * The order in which the key/values are returned is undefined.
+ *
  * Return value: `true` if there was a next value, `false` otherwise
  *
  * Since: REPLACEME
