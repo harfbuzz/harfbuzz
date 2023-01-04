@@ -352,6 +352,8 @@ hb_map_hash (const hb_map_t *map)
  *
  * Set @idx to -1 to get started.
  *
+ * If the map is modified during iteration, the behavior is undefined.
+ *
  * Return value: `true` if there was a next value, `false` otherwise
  *
  * Since: REPLACEME
