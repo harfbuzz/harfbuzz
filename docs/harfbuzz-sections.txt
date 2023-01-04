@@ -546,6 +546,7 @@ hb_map_get_population
 hb_map_is_empty
 hb_map_is_equal
 hb_map_hash
+hb_map_next
 HB_MAP_VALUE_INVALID
 hb_map_t
 </SECTION>

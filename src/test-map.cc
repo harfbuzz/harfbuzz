@@ -301,6 +301,33 @@ main (int argc, char **argv)
     m.set (1, hb_set_t {1, 2, 3});
     m.reset ();
   }
+  /* Test iteration. */
+  {
+    hb_map_t m;
+    m.set (1, 1);
+    m.set (4, 3);
+    m.set (5, 5);
+    m.set (2, 1);
+    m.set (3, 2);
+    m.set (6, 8);
+
+    hb_codepoint_t k;
+    hb_codepoint_t v;
+    unsigned pop = 0;
+    for (signed i;
+	 m.next (&i, &k, &v);)
+    {
+      pop++;
+           if (k == 1) assert (v == 1);
+      else if (k == 2) assert (v == 1);
+      else if (k == 3) assert (v == 2);
+      else if (k == 4) assert (v == 3);
+      else if (k == 5) assert (v == 5);
+      else if (k == 6) assert (v == 8);
+      else assert (false);
+    }
+    assert (pop = m.get_population ());
+  }
 
   return 0;
 }

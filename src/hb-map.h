@@ -118,6 +118,12 @@ HB_EXTERN hb_bool_t
 hb_map_has (const hb_map_t *map,
 	    hb_codepoint_t  key);
 
+/* Pass -1 in for idx to get started. */
+HB_EXTERN hb_bool_t
+hb_map_next (const hb_map_t *map,
+	     int *idx,
+	     hb_codepoint_t *key,
+	     hb_codepoint_t *value);
 
 HB_END_DECLS
 

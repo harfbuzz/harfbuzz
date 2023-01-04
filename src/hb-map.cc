@@ -335,9 +335,32 @@ hb_map_is_equal (const hb_map_t *map,
  *
  * Since: 4.4.0
  **/
-HB_EXTERN unsigned int
+unsigned int
 hb_map_hash (const hb_map_t *map)
 {
   return map->hash ();
 }
 
+/**
+ * hb_map_next:
+ * @map: A map
+ * @idx: (inout): Iterator internal state
+ * @key: (out): Key retrieved
+ * @value: (out): Value retrieved
+ *
+ * Fetches the next key/value paire in @map.
+ *
+ * Set @idx to -1 to get started.
+ *
+ * Return value: `true` if there was a next value, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_map_next (const hb_map_t *map,
+	     int *idx,
+	     hb_codepoint_t *key,
+	     hb_codepoint_t *value)
+{
+  return map->next (idx, key, value);
+}
