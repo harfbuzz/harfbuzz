@@ -207,13 +207,13 @@ hb_subset_plan_create_or_fail (hb_face_t                 *face,
 HB_EXTERN void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);
 
-HB_EXTERN const hb_map_t*
+HB_EXTERN hb_map_t *
 hb_subset_plan_old_to_new_glyph_mapping (const hb_subset_plan_t *plan);
 
-HB_EXTERN const hb_map_t*
+HB_EXTERN hb_map_t *
 hb_subset_plan_new_to_old_glyph_mapping (const hb_subset_plan_t *plan);
 
-HB_EXTERN const hb_map_t*
+HB_EXTERN hb_map_t *
 hb_subset_plan_unicode_to_old_glyph_mapping (const hb_subset_plan_t *plan);
 
 

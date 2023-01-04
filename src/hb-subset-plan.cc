@@ -1005,7 +1005,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
  *
  * Since: 4.0.0
  **/
-const hb_map_t*
+hb_map_t *
 hb_subset_plan_old_to_new_glyph_mapping (const hb_subset_plan_t *plan)
 {
   return plan->glyph_map;
@@ -1023,7 +1023,7 @@ hb_subset_plan_old_to_new_glyph_mapping (const hb_subset_plan_t *plan)
  *
  * Since: 4.0.0
  **/
-const hb_map_t*
+hb_map_t *
 hb_subset_plan_new_to_old_glyph_mapping (const hb_subset_plan_t *plan)
 {
   return plan->reverse_glyph_map;
@@ -1041,7 +1041,7 @@ hb_subset_plan_new_to_old_glyph_mapping (const hb_subset_plan_t *plan)
  *
  * Since: 4.0.0
  **/
-const hb_map_t*
+hb_map_t *
 hb_subset_plan_unicode_to_old_glyph_mapping (const hb_subset_plan_t *plan)
 {
   return plan->codepoint_to_glyph;
