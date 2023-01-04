@@ -308,6 +308,13 @@ struct hb_hashmap_t
 
   unsigned int get_population () const { return population; }
 
+  void update (const hb_hashmap_t &other)
+  {
+    if (unlikely (!successful)) return;
+
+    hb_copy (other, *this);
+  }
+
   /*
    * Iterator
    */

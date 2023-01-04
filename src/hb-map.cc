@@ -342,6 +342,22 @@ hb_map_hash (const hb_map_t *map)
 }
 
 /**
+ * hb_map_update:
+ * @map: A map
+ * @other: Another map
+ *
+ * Add the contents of @other to @map.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN void
+hb_map_update (hb_map_t *map,
+	       const hb_map_t *other)
+{
+  map->update (*other);
+}
+
+/**
  * hb_map_next:
  * @map: A map
  * @idx: (inout): Iterator internal state

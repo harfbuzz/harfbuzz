@@ -314,7 +314,7 @@ main (int argc, char **argv)
     hb_codepoint_t k;
     hb_codepoint_t v;
     unsigned pop = 0;
-    for (signed i;
+    for (signed i = -1;
 	 m.next (&i, &k, &v);)
     {
       pop++;
@@ -326,7 +326,19 @@ main (int argc, char **argv)
       else if (k == 6) assert (v == 8);
       else assert (false);
     }
-    assert (pop = m.get_population ());
+    assert (pop == m.get_population ());
+  }
+  /* Test update */
+  {
+    hb_map_t m1, m2;
+    m1.set (1, 2);
+    m1.set (2, 4);
+    m2.set (1, 3);
+
+    m1.update (m2);
+    assert (m1.get_population () == 2);
+    assert (m1[1] == 3);
+    assert (m1[2] == 4);
   }
 
   return 0;
