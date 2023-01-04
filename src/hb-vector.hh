@@ -391,6 +391,9 @@ struct hb_vector_t
 
     if (unlikely (new_allocated && !new_array))
     {
+      if (exact and new_allocated == length)
+        return true; // shrinking failed; it's okay; happens in our fuzzer
+
       allocated = -1;
       return false;
     }
