@@ -145,6 +145,12 @@ struct hb_closure_context_t :
 
   hb_set_t& push_cur_active_glyphs ()
   {
+    if (set_pool)
+    {
+      auto &s = *active_glyphs_stack.push (set_pool.pop ());
+      s.clear ();
+      return s;
+    }
     return *active_glyphs_stack.push ();
   }
 
@@ -153,7 +159,7 @@ struct hb_closure_context_t :
     if (!active_glyphs_stack)
       return false;
 
-    active_glyphs_stack.pop ();
+    set_pool.push (active_glyphs_stack.pop ());
     return true;
   }
 
@@ -161,6 +167,7 @@ struct hb_closure_context_t :
   hb_set_t *glyphs;
   hb_set_t output[1];
   hb_vector_t<hb_set_t> active_glyphs_stack;
+  hb_vector_t<hb_set_t> set_pool;
   recurse_func_t recurse_func = nullptr;
   unsigned int nesting_level_left;
 
