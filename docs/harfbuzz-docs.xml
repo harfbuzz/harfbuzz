@@ -187,7 +187,7 @@
 
   <note>
     <para>
-      The current HarfBuzz codebase is versioned 2.x.x and is stable
+      The current HarfBuzz codebase is stable
       and under active maintenance. This is what is used in latest
       versions of Firefox, GNOME, ChromeOS, Chrome, LibreOffice,
       XeTeX, Android, and KDE, among other places.
