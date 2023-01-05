@@ -358,6 +358,9 @@ main (int argc, char **argv)
 
     assert (keys.is_equal (hb_set_t ({1, 2, 3, 4, 5, 6})));
     assert (values.is_equal (hb_set_t ({1, 1, 2, 3, 5, 8})));
+
+    assert (keys.is_equal (hb_set_t (m.keys ())));
+    assert (values.is_equal (hb_set_t (m.values ())));
   }
 
   return 0;
