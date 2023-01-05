@@ -1590,7 +1590,7 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
 
     covered_seq_indicies.add (seqIndex);
     if (has_pos_glyphs) {
-      c->push_cur_active_glyphs () = std::move (pos_glyphs);
+      hb_swap (c->push_cur_active_glyphs (), pos_glyphs);
     } else {
       c->push_cur_active_glyphs ().set (*c->glyphs);
     }
