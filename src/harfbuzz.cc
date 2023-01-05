@@ -8,6 +8,7 @@
 #include "hb-coretext.cc"
 #include "hb-directwrite.cc"
 #include "hb-draw.cc"
+#include "hb-face-builder.cc"
 #include "hb-face.cc"
 #include "hb-fallback-shape.cc"
 #include "hb-font.cc"

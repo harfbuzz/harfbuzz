@@ -42,6 +42,7 @@ HB_BASE_sources = \
 	hb-draw.hh \
 	hb-face.cc \
 	hb-face.hh \
+	hb-face-builder.cc \
 	hb-fallback-shape.cc \
 	hb-font.cc \
 	hb-font.hh \

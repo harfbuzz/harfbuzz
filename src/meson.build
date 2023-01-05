@@ -50,6 +50,7 @@ hb_base_sources = files(
   'hb-paint-extents.hh',
   'hb-face.cc',
   'hb-face.hh',
+  'hb-face-builder.cc',
   'hb-fallback-shape.cc',
   'hb-font.cc',
   'hb-font.hh',
