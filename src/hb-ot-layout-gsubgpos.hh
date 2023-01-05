@@ -196,8 +196,6 @@ struct hb_closure_context_t :
     active_glyphs_stack.reset ();
   }
 
-  public:
-  hb_set_t pos_glyphs; // Cache
   private:
   hb_map_t *done_lookups_glyph_count;
   hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *done_lookups_glyph_set;
@@ -1548,7 +1546,7 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
 					     void *cache)
 {
   hb_set_t covered_seq_indicies;
-  hb_set_t &pos_glyphs = c->pos_glyphs;
+  hb_set_t pos_glyphs;
   for (unsigned int i = 0; i < lookupCount; i++)
   {
     unsigned seqIndex = lookupRecord[i].sequenceIndex;
