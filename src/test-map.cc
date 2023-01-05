@@ -340,6 +340,25 @@ main (int argc, char **argv)
     assert (m1[1] == 3);
     assert (m1[2] == 4);
   }
+  /* Test keys / values */
+  {
+    hb_map_t m;
+    m.set (1, 1);
+    m.set (4, 3);
+    m.set (5, 5);
+    m.set (2, 1);
+    m.set (3, 2);
+    m.set (6, 8);
+
+    hb_set_t keys;
+    hb_set_t values;
+
+    m.keys (keys);
+    m.values (values);
+
+    assert (keys.is_equal (hb_set_t ({1, 2, 3, 4, 5, 6})));
+    assert (values.is_equal (hb_set_t ({1, 1, 2, 3, 5, 8})));
+  }
 
   return 0;
 }
