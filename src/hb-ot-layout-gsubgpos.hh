@@ -1538,18 +1538,19 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
 					     intersected_glyphs_func_t intersected_glyphs_func,
 					     void *cache)
 {
-  hb_set_t *covered_seq_indicies = hb_set_create ();
+  hb_set_t covered_seq_indicies;
+  hb_set_t pos_glyphs;
   for (unsigned int i = 0; i < lookupCount; i++)
   {
     unsigned seqIndex = lookupRecord[i].sequenceIndex;
     if (seqIndex >= inputCount) continue;
 
     bool has_pos_glyphs = false;
-    hb_set_t pos_glyphs;
 
-    if (!hb_set_has (covered_seq_indicies, seqIndex))
+    if (!covered_seq_indicies.has (seqIndex))
     {
       has_pos_glyphs = true;
+      pos_glyphs.clear ();
       if (seqIndex == 0)
       {
         switch (context_format) {
@@ -1578,7 +1579,7 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
       }
     }
 
-    covered_seq_indicies->add (seqIndex);
+    covered_seq_indicies.add (seqIndex);
     if (has_pos_glyphs) {
       c->push_cur_active_glyphs () = std::move (pos_glyphs);
     } else {
@@ -1589,12 +1590,10 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
     if (context_format == ContextFormat::CoverageBasedContext)
       endIndex += 1;
 
-    c->recurse (lookupRecord[i].lookupListIndex, covered_seq_indicies, seqIndex, endIndex);
+    c->recurse (lookupRecord[i].lookupListIndex, &covered_seq_indicies, seqIndex, endIndex);
 
     c->pop_cur_done_glyphs ();
   }
-
-  hb_set_destroy (covered_seq_indicies);
 }
 
 template <typename context_t>
