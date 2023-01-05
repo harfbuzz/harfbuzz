@@ -375,7 +375,7 @@ struct hb_hashmap_t
     unsigned i = (unsigned) (*idx + 1);
 
     unsigned count = size ();
-    while (i <= count && !items[i].is_real ())
+    while (i < count && !items[i].is_real ())
       i++;
 
     if (i >= count)
