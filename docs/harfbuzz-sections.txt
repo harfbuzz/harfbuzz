@@ -354,6 +354,7 @@ hb_face_get_upem
 hb_face_reference_blob
 hb_face_reference_table
 hb_face_collect_unicodes
+hb_face_collect_nominal_glyph_mapping
 hb_face_collect_variation_selectors
 hb_face_collect_variation_unicodes
 hb_face_builder_create

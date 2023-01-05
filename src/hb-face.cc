@@ -580,7 +580,7 @@ hb_face_get_table_tags (const hb_face_t *face,
 /**
  * hb_face_collect_unicodes:
  * @face: A face object
- * @out: The set to add Unicode characters to
+ * @out: (out): The set to add Unicode characters to
  *
  * Collects all of the Unicode characters covered by @face and adds
  * them to the #hb_set_t set @out.
@@ -594,9 +594,30 @@ hb_face_collect_unicodes (hb_face_t *face,
   face->table.cmap->collect_unicodes (out, face->get_num_glyphs ());
 }
 /**
+ * hb_face_collect_nominal_glyph_mapping:
+ * @face: A face object
+ * @mapping: (out): The map to add Unicode-to-glyph mapping to
+ * @unicodes: (nullable) (out): The set to add Unicode characters to, or %NULL
+ *
+ * Collects the mapping from Unicode characters to nominal glyphs of the @face,
+ * and optionall all of the Unicode characters covered by @face.
+ *
+ * Since: REPLACEME
+ */
+void
+hb_face_collect_nominal_glyph_mapping (hb_face_t *face,
+				       hb_map_t  *mapping,
+				       hb_set_t  *unicodes)
+{
+  hb_set_t static_unicodes;
+  if (!unicodes)
+    unicodes = &static_unicodes;
+  face->table.cmap->collect_mapping (unicodes, mapping, face->get_num_glyphs ());
+}
+/**
  * hb_face_collect_variation_selectors:
  * @face: A face object
- * @out: The set to add Variation Selector characters to
+ * @out: (out): The set to add Variation Selector characters to
  *
  * Collects all Unicode "Variation Selector" characters covered by @face and adds
  * them to the #hb_set_t set @out.
@@ -613,7 +634,7 @@ hb_face_collect_variation_selectors (hb_face_t *face,
  * hb_face_collect_variation_unicodes:
  * @face: A face object
  * @variation_selector: The Variation Selector to query
- * @out: The set to add Unicode characters to
+ * @out: (out): The set to add Unicode characters to
  *
  * Collects all Unicode characters for @variation_selector covered by @face and adds
  * them to the #hb_set_t set @out.

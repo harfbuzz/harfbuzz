@@ -97,20 +97,32 @@ test_collect_unicodes (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
   hb_set_t *codepoints = hb_set_create();
+  hb_set_t *codepoints2 = hb_set_create();
+  hb_map_t *mapping = hb_map_create();
   hb_codepoint_t cp;
 
   hb_face_collect_unicodes (face, codepoints);
+  hb_face_collect_nominal_glyph_mapping (face, mapping, codepoints2);
+
+  g_assert (hb_set_is_equal (codepoints, codepoints2));
+  g_assert_cmpuint (hb_set_get_population (codepoints), ==, 3);
+  g_assert_cmpuint (hb_map_get_population (mapping), ==, 3);
 
   cp = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next (codepoints, &cp));
+  g_assert (hb_map_has (mapping, cp));
   g_assert_cmpuint (0x61, ==, cp);
   g_assert (hb_set_next (codepoints, &cp));
+  g_assert (hb_map_has (mapping, cp));
   g_assert_cmpuint (0x62, ==, cp);
   g_assert (hb_set_next (codepoints, &cp));
+  g_assert (hb_map_has (mapping, cp));
   g_assert_cmpuint (0x63, ==, cp);
   g_assert (!hb_set_next (codepoints, &cp));
 
   hb_set_destroy (codepoints);
+  hb_set_destroy (codepoints2);
+  hb_map_destroy (mapping);
   hb_face_destroy (face);
 }
 
