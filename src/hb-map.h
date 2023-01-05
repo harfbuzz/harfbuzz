@@ -129,6 +129,14 @@ hb_map_next (const hb_map_t *map,
 	     hb_codepoint_t *key,
 	     hb_codepoint_t *value);
 
+HB_EXTERN void
+hb_map_keys (const hb_map_t *map,
+	     hb_set_t *keys);
+
+HB_EXTERN void
+hb_map_values (const hb_map_t *map,
+	       hb_set_t *values);
+
 HB_END_DECLS
 
 #endif /* HB_MAP_H */

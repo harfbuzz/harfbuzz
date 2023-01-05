@@ -29,6 +29,8 @@
 
 #include "hb.hh"
 
+#include "hb-set.hh"
+
 
 /*
  * hb_hashmap_t
@@ -313,6 +315,16 @@ struct hb_hashmap_t
     if (unlikely (!successful)) return;
 
     hb_copy (other, *this);
+  }
+
+  void keys (hb_set_t &keys_) const
+  {
+    hb_copy (keys() , keys_);
+  }
+
+  void values (hb_set_t &values_) const
+  {
+    hb_copy (values() , values_);
   }
 
   /*

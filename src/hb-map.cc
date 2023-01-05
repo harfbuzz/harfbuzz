@@ -384,3 +384,35 @@ hb_map_next (const hb_map_t *map,
 {
   return map->next (idx, key, value);
 }
+
+/**
+ * hb_map_keys:
+ * @map: A map
+ * @keys: A set
+ *
+ * Add the keys of @map to @keys.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_map_keys (const hb_map_t *map,
+	     hb_set_t *keys)
+{
+  map->keys (*keys);
+}
+
+/**
+ * hb_map_values:
+ * @map: A map
+ * @values: A set
+ *
+ * Add the values of @map to @values.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_map_values (const hb_map_t *map,
+	       hb_set_t *values)
+{
+  map->values (*values);
+}
