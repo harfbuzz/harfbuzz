@@ -23,6 +23,9 @@
  */
 
 #include "hb.hh"
+
+#ifndef HB_NO_PAINT
+
 #include "hb-paint-extents.hh"
 
 #include "hb-draw.h"
@@ -322,3 +325,6 @@ hb_paint_extents_get_funcs ()
 {
   return static_paint_extents_funcs.get_unconst ();
 }
+
+
+#endif
