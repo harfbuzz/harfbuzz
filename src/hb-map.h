@@ -32,6 +32,7 @@
 #define HB_MAP_H
 
 #include "hb-common.h"
+#include "hb-set.h"
 
 HB_BEGIN_DECLS
 
