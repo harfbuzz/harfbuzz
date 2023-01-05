@@ -132,7 +132,8 @@ main (int argc, char **argv)
     assert (last == 4);
     assert (!s.previous_range (&start, &last));
 
-    /* Inverted set returns true for invalid value. */
+    assert (s.is_inverted ());
+    /* Inverted set returns true for invalid value; oh well. */
     assert (s.has (HB_SET_VALUE_INVALID));
   }
 

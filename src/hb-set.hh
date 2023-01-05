@@ -79,6 +79,7 @@ struct hb_sparseset_t
   void reset () { s.reset (); }
   void clear () { s.clear (); }
   void invert () { s.invert (); }
+  bool is_inverted () const { return s.is_inverted (); }
   bool is_empty () const { return s.is_empty (); }
   uint32_t hash () const { return s.hash (); }
 

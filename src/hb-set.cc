@@ -492,6 +492,22 @@ hb_set_invert (hb_set_t *set)
 }
 
 /**
+ * hb_set_is_inverted:
+ * @set: A set
+ *
+ * Returns whether the set is inverted.
+ *
+ * Return value: `true` if the set is inverted, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_set_is_inverted (const hb_set_t *set)
+{
+  return set->is_inverted ();
+}
+
+/**
  * hb_set_get_population:
  * @set: A set
  *
