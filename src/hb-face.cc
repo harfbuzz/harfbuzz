@@ -600,7 +600,7 @@ hb_face_collect_unicodes (hb_face_t *face,
  * @unicodes: (nullable) (out): The set to add Unicode characters to, or %NULL
  *
  * Collects the mapping from Unicode characters to nominal glyphs of the @face,
- * and optionall all of the Unicode characters covered by @face.
+ * and optionally all of the Unicode characters covered by @face.
  *
  * Since: REPLACEME
  */
