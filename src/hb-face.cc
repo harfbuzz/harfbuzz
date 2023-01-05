@@ -609,9 +609,9 @@ hb_face_collect_nominal_glyph_mapping (hb_face_t *face,
 				       hb_map_t  *mapping,
 				       hb_set_t  *unicodes)
 {
-  hb_set_t static_unicodes;
+  hb_set_t stack_unicodes;
   if (!unicodes)
-    unicodes = &static_unicodes;
+    unicodes = &stack_unicodes;
   face->table.cmap->collect_mapping (unicodes, mapping, face->get_num_glyphs ());
 }
 /**
