@@ -169,7 +169,9 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
   const	 CFF2VariationStore *varStore;
   unsigned int  region_count;
   unsigned int  ivs;
+  public:
   hb_vector_t<float>  scalars;
+  protected:
   bool	  do_blend;
   bool	  seen_vsindex_;
   bool	  seen_blend;

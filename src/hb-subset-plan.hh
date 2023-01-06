@@ -190,6 +190,7 @@ struct hb_subset_plan_t
   hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_blob_t>>* sanitized_table_cache;
   //normalized axes location map
   hb_hashmap_t<hb_tag_t, int> *axes_location;
+  hb_vector_t<int> normalized_coords;
   //user specified axes location map
   hb_hashmap_t<hb_tag_t, float> *user_axes_location;
   //retained old axis index -> new axis index mapping in fvar axis array

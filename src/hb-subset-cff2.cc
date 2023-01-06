@@ -122,8 +122,43 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
     SUPER::flush_args (env, param);
   }
 
+  static double instantiate_blends (const blend_arg_t &arg, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
+  {
+    double v = arg.to_real ();
+
+    auto &scalars = env.scalars;
+    auto &deltas = arg.deltas;
+
+    if (scalars.length != deltas.length)
+      return v;
+
+    unsigned count = scalars.length;
+    for (unsigned i = 0; i < count; i++)
+      v += (double) scalars.arrayZ[i] * deltas.arrayZ[i].to_real ();
+
+    return v;
+  }
+
   static void flatten_blends (const blend_arg_t &arg, unsigned int i, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
   {
+    if (!param.plan->pinned_at_default)
+    {
+      str_encoder_t  encoder (param.flatStr);
+      for (unsigned int j = 0; j < arg.numValues; j++)
+      {
+	blend_arg_t arg1 = env.argStack[i + j];
+	if (unlikely (!((arg1.blending () && (arg.numValues == arg1.numValues) && (arg1.valueIndex == j) &&
+		(arg1.deltas.length == env.get_region_count ())))))
+	{
+	  env.set_error ();
+	  return;
+	}
+	arg1.set_real (instantiate_blends (arg1, env, param));
+	encoder.encode_num (arg1);
+      }
+      return;
+    }
+
     /* flatten the default values */
     str_encoder_t  encoder (param.flatStr);
     for (unsigned int j = 0; j < arg.numValues; j++)
@@ -240,7 +275,8 @@ struct cff2_subset_plan {
     orig_fdcount = acc.fdArray->count;
 
     drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
-    desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE;
+    desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE ||
+		     !plan->pinned_at_default;
 
     if (desubroutinize)
     {

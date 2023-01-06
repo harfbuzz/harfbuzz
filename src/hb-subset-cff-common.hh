@@ -223,6 +223,7 @@ struct flatten_param_t
 {
   str_buff_t     &flatStr;
   bool	drop_hints;
+  const hb_subset_plan_t *plan;
 };
 
 template <typename ACC, typename ENV, typename OPSET, op_code_t endchar_op=OpCode_Invalid>
@@ -250,11 +251,15 @@ struct subr_flattener_t
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
-      ENV env (str, acc, fd);
+
+
+      ENV env (str, acc, fd,
+	       plan->normalized_coords.arrayZ, plan->normalized_coords.length);
       cs_interpreter_t<ENV, OPSET, flatten_param_t> interp (env);
       flatten_param_t  param = {
         flat_charstrings.arrayZ[i],
-        (bool) (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
+        (bool) (plan->flags & HB_SUBSET_FLAGS_NO_HINTING),
+	plan
       };
       if (unlikely (!interp.interpret (param)))
 	return false;
