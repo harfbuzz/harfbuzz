@@ -122,7 +122,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
     SUPER::flush_args (env, param);
   }
 
-  static double instantiate_blends (const blend_arg_t &arg, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
+  static double instantiate_blend (const blend_arg_t &arg, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
   {
     double v = arg.to_real ();
 
@@ -153,7 +153,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 	  env.set_error ();
 	  return;
 	}
-	arg1.set_real (instantiate_blends (arg1, env, param));
+	arg1.set_real (instantiate_blend (arg1, env, param));
 	encoder.encode_num (arg1);
       }
       return;
