@@ -778,7 +778,7 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
 
   bool axis_not_pinned = false;
   unsigned old_axis_idx = 0, new_axis_idx = 0;
-  unsigned int i;
+  unsigned int i = 0;
   for (const auto& axis : axes)
   {
     hb_tag_t axis_tag = axis.get_axis_tag ();
