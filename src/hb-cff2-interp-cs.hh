@@ -163,15 +163,14 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
     return v;
   }
 
-  protected:
+  public:
   const int     *coords;
   unsigned int  num_coords;
+  protected:
   const	 CFF2VariationStore *varStore;
   unsigned int  region_count;
   unsigned int  ivs;
-  public:
   hb_vector_t<float>  scalars;
-  protected:
   bool	  do_blend;
   bool	  seen_vsindex_;
   bool	  seen_blend;
@@ -224,7 +223,10 @@ struct cff2_cs_opset_t : cs_opset_t<ELEM, OPSET, cff2_cs_interp_env_t<ELEM>, PAR
 				 const hb_array_t<const ELEM> blends,
 				 unsigned n, unsigned i)
   {
-    arg.set_blends (n, i, blends);
+    if (env.num_coords)
+      arg.set_int (round (arg.to_real () + env.blend_deltas (blends)));
+    else
+      arg.set_blends (n, i, blends);
   }
   template <typename T = ELEM,
 	    hb_enable_if (!hb_is_same (T, blend_arg_t))>
@@ -233,7 +235,7 @@ struct cff2_cs_opset_t : cs_opset_t<ELEM, OPSET, cff2_cs_interp_env_t<ELEM>, PAR
 				 const hb_array_t<const ELEM> blends,
 				 unsigned n, unsigned i)
   {
-    arg.set_real (arg.to_real () + env.blend_deltas (blends));
+    arg.set_int (round (arg.to_real () + env.blend_deltas (blends)));
   }
 
   static void process_blend (cff2_cs_interp_env_t<ELEM> &env, PARAM& param)
