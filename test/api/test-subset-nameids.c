@@ -83,7 +83,7 @@ test_subset_name_overrides (void)
  
   hb_set_t *name_ids = hb_set_create();
   hb_face_t *face_subset;
-  hb_set_add_range (name_ids, 0, 15);
+  hb_set_add_range (name_ids, 0, 13);
 
   hb_subset_input_t *subset_input = hb_subset_test_create_input_from_nameids (name_ids);
   hb_subset_input_override_name_table (subset_input, 1, 1, 0, 0, str1, -1);
