@@ -235,7 +235,7 @@ struct cff2_cs_opset_t : cs_opset_t<ELEM, OPSET, cff2_cs_interp_env_t<ELEM>, PAR
 				 const hb_array_t<const ELEM> blends,
 				 unsigned n, unsigned i)
   {
-    arg.set_int (round (arg.to_real () + env.blend_deltas (blends)));
+    arg.set_real (arg.to_real () + env.blend_deltas (blends));
   }
 
   static void process_blend (cff2_cs_interp_env_t<ELEM> &env, PARAM& param)
