@@ -14,7 +14,7 @@ hb_version_minor = hb_version_arr[1].to_int()
 hb_version_micro = hb_version_arr[2].to_int()
 
 # libtool versioning
-hb_version_int = hb_version_major*10000 + hb_version_minor*100 + hb_version_micro
+hb_version_int = 60000 + hb_version_major*100 + hb_version_minor*10 + hb_version_micro
 hb_libtool_version_info = '@0@:0:@0@'.format(hb_version_int)
 
 pkgmod = import('pkgconfig')
