@@ -141,7 +141,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 
   static void flatten_blends (const blend_arg_t &arg, unsigned int i, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
   {
-    if (!param.plan->pinned_at_default)
+    if (param.plan->normalized_coords)
     {
       str_encoder_t  encoder (param.flatStr);
       for (unsigned int j = 0; j < arg.numValues; j++)
@@ -276,7 +276,7 @@ struct cff2_subset_plan {
 
     drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
     desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE ||
-		     !plan->pinned_at_default;
+		     plan->normalized_coords;
 
     if (desubroutinize)
     {
