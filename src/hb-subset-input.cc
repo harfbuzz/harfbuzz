@@ -440,8 +440,8 @@ hb_subset_input_keep_everything (hb_subset_input_t *input)
  *
  * Pin an axis to its default location in the given subset input object.
  *
- * Currently only works for fonts with 'glyf' tables. CFF and CFF2 is not
- * yet supported. Additionally all axes in a font must be pinned.
+ * All axes in a font must be pinned. Additionally, `CFF2` table, if present,
+ * will be de-subroutinized.
  *
  * Return value: `true` if success, `false` otherwise
  *
@@ -468,8 +468,8 @@ hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
  *
  * Pin an axis to a fixed location in the given subset input object.
  *
- * Currently only works for fonts with 'glyf' tables. CFF and CFF2 is not
- * yet supported. Additionally all axes in a font must be pinned.
+ * All axes in a font must be pinned. Additionally, `CFF2` table, if present,
+ * will be de-subroutinized.
  *
  * Return value: `true` if success, `false` otherwise
  *
