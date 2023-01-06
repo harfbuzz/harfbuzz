@@ -153,7 +153,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 	  env.set_error ();
 	  return;
 	}
-	arg1.set_real (instantiate_blend (arg1, env, param));
+	arg1.set_int (round (instantiate_blend (arg1, env, param)));
 	encoder.encode_num (arg1);
       }
       return;
