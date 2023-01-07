@@ -392,12 +392,10 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_COMPOSITE:
     {
-      c->funcs->push_group (c->data);
       c->recurse (paint.u.composite.backdrop_paint);
       c->funcs->push_group (c->data);
       c->recurse (paint.u.composite.source_paint);
       c->funcs->pop_group (c->data, _hb_ft_paint_composite_mode (paint.u.composite.composite_mode));
-      c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
     }
     break;
 
