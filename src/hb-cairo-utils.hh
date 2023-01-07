@@ -64,10 +64,8 @@ hb_paint_composite_mode_to_cairo (hb_paint_composite_mode_t mode)
     case HB_PAINT_COMPOSITE_MODE_HSL_SATURATION: return CAIRO_OPERATOR_HSL_SATURATION;
     case HB_PAINT_COMPOSITE_MODE_HSL_COLOR: return CAIRO_OPERATOR_HSL_COLOR;
     case HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY: return CAIRO_OPERATOR_HSL_LUMINOSITY;
-    default:;
+    default: return CAIRO_OPERATOR_CLEAR;
     }
-
-  return CAIRO_OPERATOR_SOURCE;
 }
 
 HB_INTERNAL hb_bool_t
