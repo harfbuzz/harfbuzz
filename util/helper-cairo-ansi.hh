@@ -70,8 +70,8 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride, in
     pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
     mode = CHAFA_CANVAS_MODE_TRUECOLOR;
   }
-//  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_DIRECT))
-//    mode = CHAFA_CANVAS_MODE_TRUECOLOR;
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_DIRECT))
+    mode = CHAFA_CANVAS_MODE_TRUECOLOR;
   else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_256))
     mode = CHAFA_CANVAS_MODE_INDEXED_240;
   else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_16))
