@@ -454,12 +454,15 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
     }
     else
     {
+
       auto *extents_funcs = hb_paint_extents_get_funcs ();
       hb_paint_extents_context_t extents_data;
       hb_ft_paint_context_t ce (ft_font, font,
 			        extents_funcs, &extents_data,
 			        palette, foreground);
+      ce.funcs->push_root_transform (ce.data, font);
       ce.recurse (paint);
+      ce.funcs->pop_transform (ce.data);
       hb_extents_t extents = extents_data.get_extents ();
       is_bounded = extents_data.is_bounded ();
 

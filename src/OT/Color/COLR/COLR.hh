@@ -2045,7 +2045,6 @@ struct COLR
 				     hb_array (font->coords, font->num_coords));
 
 	bool is_bounded = true;
-	bool pop_clip_first = true;
 	if (clip)
 	{
 	  hb_glyph_extents_t extents;
@@ -2063,6 +2062,8 @@ struct COLR
 	  }
 	  else
 	  {
+	    c.funcs->push_root_transform (c.data, font);
+
 	    auto *extents_funcs = hb_paint_extents_get_funcs ();
 	    hb_paint_extents_context_t extents_data;
 
@@ -2078,23 +2079,15 @@ struct COLR
 					  extents.ymin,
 					  extents.xmax,
 					  extents.ymax);
-
-	    c.funcs->push_root_transform (c.data, font);
-
-	    pop_clip_first = false;
 	  }
 	}
 
 	if (is_bounded)
 	  c.recurse (*paint);
 
-	if (clip && pop_clip_first)
-	  c.funcs->pop_clip (c.data);
+	c.funcs->pop_clip (c.data);
 
         c.funcs->pop_transform (c.data);
-
-	if (clip && !pop_clip_first)
-	  c.funcs->pop_clip (c.data);
 
         return true;
       }
