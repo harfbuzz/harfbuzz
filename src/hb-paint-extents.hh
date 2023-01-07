@@ -117,7 +117,7 @@ typedef struct hb_transform_t
     y += y0;
   }
 
-  void transform_extents (hb_extents_t extents) const
+  void transform_extents (hb_extents_t &extents) const
   {
     float quad_x[4], quad_y[4];
 
