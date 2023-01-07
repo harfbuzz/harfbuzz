@@ -1004,7 +1004,7 @@ struct PaintScaleUniform
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    float s = scale + c->instancer (varIdxBase, 0);
+    float s = scale.to_float () + c->instancer (varIdxBase, 0);
 
     bool p1 = c->funcs->push_scale (c->data, s, s);
     c->recurse (this+src);
@@ -1039,7 +1039,7 @@ struct PaintScaleUniformAroundCenter
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    float s = scale + c->instancer (varIdxBase, 0);
+    float s = scale.to_float () + c->instancer (varIdxBase, 0);
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
 
