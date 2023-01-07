@@ -141,7 +141,12 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 				  &stop,
 				  &cl->color_stop_iterator))
     {
-      color_stops->offset = stop.stop_offset / 16384.f;
+      // https://github.com/harfbuzz/harfbuzz/issues/4013
+      if (sizeof stop.stop_offset == 2)
+	color_stops->offset = stop.stop_offset / 16384.f;
+      else
+	color_stops->offset = stop.stop_offset / 65536.f;
+
       color_stops->is_foreground = stop.color.palette_index == 0xFFFF;
       if (color_stops->is_foreground)
 	color_stops->color = HB_COLOR (hb_color_get_blue (c->foreground),
