@@ -2085,9 +2085,9 @@ struct COLR
 	if (is_bounded)
 	  c.recurse (*paint);
 
+	// We push root transform first and clip after in this backend
 	c.funcs->pop_clip (c.data);
-
-        c.funcs->pop_transform (c.data);
+	c.funcs->pop_transform (c.data);
 
         return true;
       }
