@@ -2233,7 +2233,7 @@ struct VarRegionAxis
 {
   float evaluate (int coord) const
   {
-    int start = startCoord, peak = peakCoord, end = endCoord;
+    int start = startCoord.to_int (), peak = peakCoord.to_int (), end = endCoord.to_int ();
 
     /* TODO Move these to sanitize(). */
     if (unlikely (start > peak || peak > end))
@@ -2863,8 +2863,8 @@ struct ConditionFormat1
     {
       // add axisIndex->value into the hashmap so we can check if the record is
       // unique with variations
-      int16_t min_val = filterRangeMinValue;
-      int16_t max_val = filterRangeMaxValue;
+      int16_t min_val = filterRangeMinValue.to_int ();
+      int16_t max_val = filterRangeMaxValue.to_int ();
       hb_codepoint_t val = (max_val << 16) + min_val;
 
       condition_map->set (axisIndex, val);
@@ -2876,7 +2876,7 @@ struct ConditionFormat1
     int v = c->axes_location->get (axis_tag);
 
     //condition not met, drop the entire record
-    if (v < filterRangeMinValue || v > filterRangeMaxValue)
+    if (v < filterRangeMinValue.to_int () || v > filterRangeMaxValue.to_int ())
       return DROP_RECORD_WITH_VAR;
 
     //axis pinned and condition met, drop the condition
@@ -2886,7 +2886,7 @@ struct ConditionFormat1
   bool evaluate (const int *coords, unsigned int coord_len) const
   {
     int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
-    return filterRangeMinValue <= coord && coord <= filterRangeMaxValue;
+    return filterRangeMinValue.to_int () <= coord && coord <= filterRangeMaxValue.to_int ();
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

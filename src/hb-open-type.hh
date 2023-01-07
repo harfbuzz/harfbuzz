@@ -148,6 +148,9 @@ struct HBFixed : Type
   static_assert (Type::static_size * 8 > fraction_bits, "");
 
   HBFixed& operator = (typename Type::type i ) { Type::operator= (i); return *this; }
+  operator signed () const = delete;
+  operator unsigned () const = delete;
+  int32_t to_int () const { return Type::v; }
   float to_float (float offset = 0) const  { return ((int32_t) Type::v + offset) / shift; }
   void set_float (float f) { Type::v = roundf (f * shift); }
   public:

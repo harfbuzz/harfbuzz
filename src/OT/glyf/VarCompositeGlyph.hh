@@ -187,7 +187,7 @@ struct VarCompositeGlyphRecord
     if (flags & AXES_HAVE_VARIATION)
     {
       for (unsigned i = 0; i < count; i++)
-	rec_points[i].x = *q++;
+	rec_points[i].x = q++->to_int ();
       rec_points += count;
     }
     else
@@ -197,11 +197,11 @@ struct VarCompositeGlyphRecord
 
     if (flags & HAVE_TRANSLATE_X)	translateX = * (const FWORD *) p++;
     if (flags & HAVE_TRANSLATE_Y)	translateY = * (const FWORD *) p++;
-    if (flags & HAVE_ROTATION)		rotation = * (const F4DOT12 *) p++;
-    if (flags & HAVE_SCALE_X)		scaleX = * (const F6DOT10 *) p++;
-    if (flags & HAVE_SCALE_Y)		scaleY = * (const F6DOT10 *) p++;
-    if (flags & HAVE_SKEW_X)		skewX = * (const F4DOT12 *) p++;
-    if (flags & HAVE_SKEW_Y)		skewY = * (const F4DOT12 *) p++;
+    if (flags & HAVE_ROTATION)		rotation = ((const F4DOT12 *) p++)->to_int ();
+    if (flags & HAVE_SCALE_X)		scaleX = ((const F6DOT10 *) p++)->to_int ();
+    if (flags & HAVE_SCALE_Y)		scaleY = ((const F6DOT10 *) p++)->to_int ();
+    if (flags & HAVE_SKEW_X)		skewX = ((const F4DOT12 *) p++)->to_int ();
+    if (flags & HAVE_SKEW_Y)		skewY = ((const F4DOT12 *) p++)->to_int ();
     if (flags & HAVE_TCENTER_X)		tCenterX = * (const FWORD *) p++;
     if (flags & HAVE_TCENTER_Y)		tCenterY = * (const FWORD *) p++;
 
@@ -316,7 +316,7 @@ struct VarCompositeGlyphRecord
     {
       unsigned axis_index = axis_width == 1 ? (unsigned) *p++ : (unsigned) *q++;
 
-      signed v = have_variations ? rec_points[i].x : *a++;
+      signed v = have_variations ? rec_points[i].x : a++->to_int ();
 
       v = hb_clamp (v, -(1<<14), (1<<14));
       setter[axis_index] = v;
