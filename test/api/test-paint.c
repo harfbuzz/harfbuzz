@@ -394,6 +394,22 @@ test_hb_paint (gconstpointer d,
   else
     expected = g_strsplit (buffer, "\n", 0);
 
+  /* Strip initial comments */
+  int i;
+  for (i = 0; expected[i]; i++)
+    {
+      if (expected[i][0] != '#')
+        {
+          if (i > 0)
+            {
+              char **tmp = g_strdupv (expected + i);
+              g_strfreev (expected);
+              expected = tmp;
+            }
+          break;
+        }
+    }
+
   if (g_strv_length (lines) != g_strv_length (expected))
   {
     g_test_message ("Unexpected number of lines in output (%d instead of %d)", g_strv_length (lines), g_strv_length (expected));
