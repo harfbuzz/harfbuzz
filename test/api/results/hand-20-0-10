@@ -1,5 +1,9 @@
+# random seed: R02Sd5438917343eb7947eecc7c286375174
+# Start of hb tests
+# Start of paint tests
+# Start of ot tests
 start transform 0.019531 0.000000 0.000000 0.019531 0.000000 0.000000
-  start clip rectangle 64.000000 -224.000000 1216.000000 928.000000
+  start clip rectangle 64.000 -224.000 1216.000 928.000
     push group
       start transform 51.200001 0.000000 -0.000000 51.200001 0.000000 0.000000
         start clip glyph 13
