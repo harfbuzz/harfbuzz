@@ -1,6 +1,16 @@
+# random seed: R02S4d8792212546d80a17c24f3863c0fe64
+# Start of hb tests
+# Start of paint tests
+# Start of ot tests
 start clip rectangle 0 500 500 1e+03
   start transform 1 0 0 1 0 0
     push group
+      start transform 1 0 -0 1 0 0
+        start clip glyph 159
+          start transform 1 0 0 1 0 0
+          end transform
+        end clip
+      end transform
     pop group mode 3
     push group
       start transform 1 0 -0 1 0 0
