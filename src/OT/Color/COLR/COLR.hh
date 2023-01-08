@@ -2072,15 +2072,6 @@ struct COLR
 	    hb_extents_t extents = extents_data.get_extents ();
 	    is_bounded = extents_data.is_bounded ();
 
-	    /* Transform extents... */
-	    /* Copied from paint.hh push_root_transform(). */
-	    float upem = font->face->get_upem ();
-	    int xscale = font->x_scale, yscale = font->y_scale;
-	    float slant = font->slant_xy;
-	    hb_transform_t t (xscale/upem, 0, slant * yscale/upem, yscale/upem, 0, 0);
-
-	    t.transform_extents (extents);
-
 	    c.funcs->push_clip_rectangle (c.data,
 					  extents.xmin,
 					  extents.ymin,
@@ -2095,7 +2086,9 @@ struct COLR
 	  c.recurse (*paint);
 
 	c.funcs->pop_transform (c.data);
-	c.funcs->pop_clip (c.data);
+
+	if (clip)
+	  c.funcs->pop_clip (c.data);
 
         return true;
       }
