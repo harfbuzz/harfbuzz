@@ -831,7 +831,7 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
   if (orig_num_glyphs < *num_glyphs + 1)
     *glyphs = cairo_glyph_allocate (*num_glyphs + 1);
 
-  if (clusters)
+  if (clusters && utf8)
   {
     unsigned orig_num_clusters = *num_clusters;
     *num_clusters = *num_glyphs ? 1 : 0;
@@ -860,7 +860,7 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
   (*glyphs)[i].x = round (hx * x_scale);
   (*glyphs)[i].y = round (hy * y_scale);
 
-  if (clusters && *num_clusters)
+  if (clusters && *num_clusters && utf8)
   {
     memset ((void *) *clusters, 0, *num_clusters * sizeof ((*clusters)[0]));
     hb_bool_t backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
@@ -909,6 +909,8 @@ hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,
       (*clusters)[cluster].num_bytes = utf8 + utf8_len - start;
     }
   }
+  else if (num_clusters)
+    *num_clusters = 0;
 }
 
 #endif
