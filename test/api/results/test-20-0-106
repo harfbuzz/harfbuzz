@@ -1,5 +1,9 @@
-start clip rectangle 5.000000 5.000000 15.000000 15.000000
-  start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+# random seed: R02Sd8ba8572df09a4a1a751e54c8e409ff5
+# Start of hb tests
+# Start of paint tests
+# Start of ot tests
+start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+  start clip rectangle 250.000000 250.000000 882.212341 1022.905273
     start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
       start clip glyph 3
         start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
@@ -22,5 +26,5 @@ start clip rectangle 5.000000 5.000000 15.000000 15.000000
         end transform
       end transform
     pop group mode 4
-  end transform
-end clip
+  end clip
+end transform
