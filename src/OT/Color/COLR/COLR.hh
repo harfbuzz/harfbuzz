@@ -2052,8 +2052,7 @@ struct COLR
 					   &extents,
 					   instancer))
 	  {
-	    c.funcs->push_root_transform (c.data, font);
-
+	    font->scale_glyph_extents (&extents);
 	    c.funcs->push_clip_rectangle (c.data,
 					  extents.x_bearing,
 					  extents.y_bearing + extents.height,
@@ -2062,8 +2061,6 @@ struct COLR
 	  }
 	  else
 	  {
-	    c.funcs->push_root_transform (c.data, font);
-
 	    auto *extents_funcs = hb_paint_extents_get_funcs ();
 	    hb_paint_extents_context_t extents_data;
 
@@ -2074,6 +2071,16 @@ struct COLR
 
 	    hb_extents_t extents = extents_data.get_extents ();
 	    is_bounded = extents_data.is_bounded ();
+
+	    /* Transform extents... */
+	    /* Copied from paint.hh push_root_transform(). */
+	    float upem = font->face->get_upem ();
+	    int xscale = font->x_scale, yscale = font->y_scale;
+	    float slant = font->slant_xy;
+	    hb_transform_t t (xscale/upem, 0, slant * yscale/upem, yscale/upem, 0, 0);
+
+	    t.transform_extents (extents);
+
 	    c.funcs->push_clip_rectangle (c.data,
 					  extents.xmin,
 					  extents.ymin,
@@ -2082,12 +2089,13 @@ struct COLR
 	  }
 	}
 
+	c.funcs->push_root_transform (c.data, font);
+
 	if (is_bounded)
 	  c.recurse (*paint);
 
-	// We push root transform first and clip after in this backend
-	c.funcs->pop_clip (c.data);
 	c.funcs->pop_transform (c.data);
+	c.funcs->pop_clip (c.data);
 
         return true;
       }
