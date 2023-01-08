@@ -1,5 +1,9 @@
+# random seed: R02Sc0912bbd8819573b3782e05cfc8874f9
+# Start of hb tests
+# Start of paint tests
+# Start of ot tests
 start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-  start clip rectangle 0.000000 0.000000 1000.000000 1000.000000
+  start clip rectangle 0.000 0.000 1000.000 1000.000
     push group
       start transform 1.000000 0.000000 0.000000 1.000000 150.000000 0.000000
         start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000

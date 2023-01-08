@@ -106,7 +106,7 @@ push_clip_rectangle (hb_paint_funcs_t *funcs,
 {
   paint_data_t *data = user_data;
 
-  print (data, "start clip rectangle %f %f %f %f", xmin, ymin, xmax, ymax);
+  print (data, "start clip rectangle %.3f %.3f %.3f %.3f", xmin, ymin, xmax, ymax);
   data->level++;
 }
 
