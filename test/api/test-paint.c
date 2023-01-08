@@ -406,7 +406,7 @@ test_hb_paint (gconstpointer d,
           if (lines[i][pos] != expected[i][pos])
             break;
 
-        g_test_message ("Unxpected output at %d:%d (%#x instead of %#x):\n%s", i, pos, (unsigned int)lines[i][pos], (unsigned int)expected[i][pos], data.string->str);
+        g_test_message ("Unexpected output at %d:%d (%c instead of %c):\n%s", i, pos, lines[i][pos], expected[i][pos], data.string->str);
         g_test_fail ();
       }
     }
