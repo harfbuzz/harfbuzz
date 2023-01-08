@@ -302,10 +302,6 @@ static paint_test_t paint_tests[] = {
   { ROCHER_ABC, 120, 0,    3, 200, "rocher-120-0-3" },
 };
 
-#ifdef HB_HAS_FREETYPE
-static FT_Library library;
-#endif
-
 static void
 test_hb_paint (gconstpointer d,
                hb_bool_t     use_ft)
@@ -540,10 +536,6 @@ int
 main (int argc, char **argv)
 {
   int status = 0;
-
-#ifdef HB_HAS_FREETYPE
-  FT_Init_FreeType (&library);
-#endif
 
   hb_test_init (&argc, &argv);
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
