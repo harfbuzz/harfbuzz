@@ -320,31 +320,14 @@ test_hb_paint (gconstpointer d,
   gsize len;
   GError *error = NULL;
 
+  face = hb_test_open_font_file (test->font_file);
+  font = hb_font_create (face);
+
 #ifdef HB_HAS_FREETYPE
   if (use_ft)
-  {
-    FT_Face ft_face;
-    char *path;
-
-    path = g_test_build_filename (G_TEST_DIST, test->font_file, NULL);
-    if (FT_New_Face (library, path, 0, &ft_face) != 0)
-    {
-      g_test_message ("Failed to create FT_Face for %s", path);
-      g_test_fail ();
-      g_free (path);
-      return;
-    }
-    face = hb_ft_face_create_referenced (ft_face);
-    FT_Done_Face (ft_face);
-    g_free (path);
-  }
-  else
+    hb_ft_font_set_funcs (font);
 #endif
-  {
-    face = hb_test_open_font_file (test->font_file);
-  }
 
-  font = hb_font_create (face);
   hb_font_set_scale (font, test->scale, test->scale);
   hb_font_set_synthetic_slant (font, test->slant);
 
@@ -521,29 +504,13 @@ test_color_stops (hb_bool_t use_ft)
   hb_paint_funcs_t *funcs;
   hb_bool_t result = FALSE;
 
+  face = hb_test_open_font_file (NOTO_HAND);
+  font = hb_font_create (face);
+
 #ifdef HB_HAS_FREETYPE
   if (use_ft)
-  {
-    FT_Face ft_face;
-    char *path;
-
-    path = g_test_build_filename (G_TEST_DIST, NOTO_HAND, NULL);
-    if (FT_New_Face (library, path, 0, &ft_face) != 0)
-    {
-      g_test_message ("Failed to create FT_Face for %s", path);
-      g_test_fail ();
-      g_free (path);
-      return;
-    }
-    face = hb_ft_face_create_referenced (ft_face);
-    FT_Done_Face (ft_face);
-    g_free (path);
-  }
-  else
+    hb_ft_font_set_funcs (font);
 #endif
-    face = hb_test_open_font_file (NOTO_HAND);
-
-  font = hb_font_create (face);
 
   funcs = hb_paint_funcs_create ();
   hb_paint_funcs_set_linear_gradient_func (funcs, scrutinize_linear_gradient, NULL, NULL);
