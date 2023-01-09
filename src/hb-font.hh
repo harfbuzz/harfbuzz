@@ -184,8 +184,8 @@ struct hb_font_t
   {
     extents->x_bearing = em_scale_x (extents->x_bearing);
     extents->y_bearing = em_scale_y (extents->y_bearing);
-    extents->width = em_scale_x (extents->width);
-    extents->height = em_scale_y (extents->height);
+    extents->width = em_scale_x (extents->x_bearing + extents->width) - extents->x_bearing;
+    extents->height = em_scale_y (extents->y_bearing + extents->height) - extents->y_bearing;
 
     /* Apply slant. */
     extents->x_bearing += roundf (extents->y_bearing * slant_xy);
