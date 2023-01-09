@@ -29,6 +29,9 @@
 
 #ifdef HB_HAS_FREETYPE
 #include <hb-ft.h>
+#if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21101
+#define HAVE_FT_COLRv1
+#endif
 #endif
 
 /* Unit tests for hb-paint.h */
@@ -348,7 +351,7 @@ test_hb_paint (gconstpointer d,
 
   hb_font_set_synthetic_slant (font, test->slant);
 
-#ifdef HB_HAS_FREETYPE
+#ifdef HAVE_FT_COLRv1
   if (use_ft)
     hb_ft_font_set_funcs (font);
 #endif
@@ -448,7 +451,7 @@ test_compare_ot_ft (gconstpointer d)
   GString *ot_str;
   paint_data_t data;
 
-#ifndef HB_HAS_FREETYPE
+#ifndef HAVE_FT_COLRv1
   g_test_skip_printf ("freetype support not present");
   return;
 #endif
@@ -494,10 +497,10 @@ test_hb_paint_ot (gconstpointer data)
 static void
 test_hb_paint_ft (gconstpointer data)
 {
-#ifdef HB_HAS_FREETYPE
+#ifdef HAVE_FT_COLRv1
   test_hb_paint (data, 1);
 #else
-  g_test_skip_printf ("freetype support not present");
+  g_test_skip_printf ("FreeType COLRv1 support not present");
 #endif
 }
 
@@ -563,7 +566,7 @@ test_color_stops (hb_bool_t use_ft)
   face = hb_test_open_font_file (NOTO_HAND);
   font = hb_font_create (face);
 
-#ifdef HB_HAS_FREETYPE
+#ifdef HAVE_FT_COLRv1
   if (use_ft)
     hb_ft_font_set_funcs (font);
 #endif
@@ -589,7 +592,11 @@ test_color_stops_ot (void)
 static void
 test_color_stops_ft (void)
 {
+#ifdef HAVE_FT_COLRv1
   test_color_stops (1);
+#else
+  g_test_skip_printf ("FreeType COLRv1 support not present");
+#endif
 }
 
 int
