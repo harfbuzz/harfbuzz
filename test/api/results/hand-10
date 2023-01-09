@@ -1,64 +1,64 @@
-# random seed: R02Sfe3faff817e7ab3e4b8259ff59adc0ba
+# random seed: R02Sdee1b629f80ebe7cea3c793d13a31f83
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
-start clip rectangle 64.000 -224.000 1216.000 928.000
-  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+start clip rectangle 64 -224 1.22e+03 928
+  start transform 1 0 0 1 0 0
     push group
-      start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 -0 1 0 0
         start clip glyph 13
-          start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
-            start transform 1.000000 0.000000 0.000000 0.976807 0.000000 0.000000
+          start transform 1 0 0 1 0 0
+            start transform 1 0 0 0.977 0 0
               radial gradient
-                p0 280.000000 440.000000 radius 0.000000
-                p1 280.000000 440.000000 radius 467.000000
+                p0 280 440 radius 0
+                p1 280 440 radius 467
                 colors
-                  0.000000 186 141 104 255
-                  0.448792 183 138 103 255
-                  0.808594 173 130 100 255
-                  1.000000 164 123 98 255
+                  0 186 141 104 255
+                  0.449 183 138 103 255
+                  0.809 173 130 100 255
+                  1 164 123 98 255
             end transform
           end transform
         end clip
       end transform
     pop group mode 3
     push group
-      start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 -0 1 0 0
         start clip glyph 14
-          start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+          start transform 1 0 0 1 0 0
             linear gradient
-              p0 231.000000 -27.000000
-              p1 1019.000000 -27.000000
-              p2 231.000000 -815.000000
+              p0 231 -27
+              p1 1.02e+03 -27
+              p2 231 -815
               colors
-                0.000000 164 123 98 255
-                1.000000 164 123 98 255
+                0 164 123 98 255
+                1 164 123 98 255
           end transform
         end clip
       end transform
     pop group mode 3
     push group
-      start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 -0 1 0 0
         start clip glyph 15
-          start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+          start transform 1 0 0 1 0 0
             solid 145 103 77 255
           end transform
         end clip
       end transform
     pop group mode 3
     push group
-      start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 -0 1 0 0
         start clip glyph 16
-          start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+          start transform 1 0 0 1 0 0
             solid 30 136 229 255
           end transform
         end clip
       end transform
     pop group mode 3
     push group
-      start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 -0 1 0 0
         start clip glyph 21
-          start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+          start transform 1 0 0 1 0 0
             solid 145 103 77 255
           end transform
         end clip
@@ -66,24 +66,24 @@ start clip rectangle 64.000 -224.000 1216.000 928.000
     pop group mode 3
     push group
       push group
-        start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+        start transform 1 0 -0 1 0 0
           start clip glyph 16
-            start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+            start transform 1 0 0 1 0 0
               linear gradient
-                p0 669.000000 776.000000
-                p1 180.000000 -106.000000
-                p2 -212.000000 1265.000000
+                p0 669 776
+                p1 180 -106
+                p2 -212 1.26e+03
                 colors
-                  0.000000 100 181 246 255
-                  1.000000 33 150 243 255
+                  0 100 181 246 255
+                  1 33 150 243 255
             end transform
           end clip
         end transform
       pop group mode 3
       push group
-        start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+        start transform 1 0 -0 1 0 0
           start clip glyph 18
-            start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+            start transform 1 0 0 1 0 0
               solid 66 66 66 51
             end transform
           end clip
@@ -91,27 +91,27 @@ start clip rectangle 64.000 -224.000 1216.000 928.000
       pop group mode 3
     pop group mode 3
     push group
-      start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 -0 1 0 0
         start clip glyph 19
-          start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
-            start transform 1.000000 0.000000 0.000000 0.969116 0.000000 0.000000
+          start transform 1 0 0 1 0 0
+            start transform 1 0 0 0.969 0 0
               radial gradient
-                p0 588.000000 198.000000 radius 0.000000
-                p1 588.000000 198.000000 radius 342.000000
+                p0 588 198 radius 0
+                p1 588 198 radius 342
                 colors
-                  0.000000 186 141 104 255
-                  0.448792 183 138 103 255
-                  0.808594 173 130 100 255
-                  1.000000 164 123 98 255
+                  0 186 141 104 255
+                  0.449 183 138 103 255
+                  0.809 173 130 100 255
+                  1 164 123 98 255
             end transform
           end transform
         end clip
       end transform
     pop group mode 3
     push group
-      start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 -0 1 0 0
         start clip glyph 20
-          start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+          start transform 1 0 0 1 0 0
             solid 145 103 77 255
           end transform
         end clip

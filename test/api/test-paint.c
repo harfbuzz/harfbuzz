@@ -70,7 +70,7 @@ push_transform (hb_paint_funcs_t *funcs,
 {
   paint_data_t *data = user_data;
 
-  print (data, "start transform %f %f %f %f %f %f", xx, yx, xy, yy, dx, dy);
+  print (data, "start transform %.3g %.3g %.3g %.3g %.3g %.3g", xx, yx, xy, yy, dx, dy);
   data->level++;
 }
 
@@ -106,7 +106,7 @@ push_clip_rectangle (hb_paint_funcs_t *funcs,
 {
   paint_data_t *data = user_data;
 
-  print (data, "start clip rectangle %.3f %.3f %.3f %.3f", xmin, ymin, xmax, ymax);
+  print (data, "start clip rectangle %.3g %.3g %.3g %.3g", xmin, ymin, xmax, ymax);
   data->level++;
 }
 
@@ -152,7 +152,7 @@ paint_image (hb_paint_funcs_t *funcs,
   char buf[5] = { 0, };
 
   hb_tag_to_string (format, buf);
-  print (data, "image type %s size %u %u slant %f extents %d %d %d %d\n",
+  print (data, "image type %s size %u %u slant %.3g extents %d %d %d %d\n",
          buf, width, height, slant,
          extents->x_bearing, extents->y_bearing, extents->width, extents->height);
 
@@ -173,7 +173,7 @@ print_color_line (paint_data_t *data,
   print (data, "colors");
   data->level += 1;
   for (unsigned int i = 0; i < len; i++)
-    print (data, "%f %d %d %d %d",
+    print (data, "%.3g %d %d %d %d",
            stops[i].offset,
            hb_color_get_red (stops[i].color),
            hb_color_get_green (stops[i].color),
@@ -195,9 +195,9 @@ paint_linear_gradient (hb_paint_funcs_t *funcs,
 
   print (data, "linear gradient");
   data->level += 1;
-  print (data, "p0 %f %f", x0, y0);
-  print (data, "p1 %f %f", x1, y1);
-  print (data, "p2 %f %f", x2, y2);
+  print (data, "p0 %.3g %.3g", x0, y0);
+  print (data, "p1 %.3g %.3g", x1, y1);
+  print (data, "p2 %.3g %.3g", x2, y2);
 
   print_color_line (data, color_line);
   data->level -= 1;
@@ -215,8 +215,8 @@ paint_radial_gradient (hb_paint_funcs_t *funcs,
 
   print (data, "radial gradient");
   data->level += 1;
-  print (data, "p0 %f %f radius %f", x0, y0, r0);
-  print (data, "p1 %f %f radius %f", x1, y1, r1);
+  print (data, "p0 %.3g %.3g radius %.3g", x0, y0, r0);
+  print (data, "p1 %.3g %.3g radius %.3g", x1, y1, r1);
 
   print_color_line (data, color_line);
   data->level -= 1;
@@ -235,8 +235,8 @@ paint_sweep_gradient (hb_paint_funcs_t *funcs,
 
   print (data, "sweep gradient");
   data->level++;
-  print (data, "center %f %f", cx, cy);
-  print (data, "angles %f %f", start_angle, end_angle);
+  print (data, "center %.3g %.3g", cx, cy);
+  print (data, "angles %.3g %.3g", start_angle, end_angle);
 
   print_color_line (data, color_line);
   data->level -= 1;
@@ -265,7 +265,6 @@ pop_group (hb_paint_funcs_t *funcs,
 
 typedef struct {
   const char *font_file;
-  int scale;
   float slant;
   hb_codepoint_t glyph;
   unsigned int palette;
@@ -285,21 +284,21 @@ typedef struct {
  */
 static paint_test_t paint_tests[] = {
   /* COLRv1 */
-  { NOTO_HAND,   1500, 0.,  10,   0, "hand-10" },
-  { NOTO_HAND,   1000, 0.2, 10,   0, "hand-10.2" },
-  { TEST_GLYPHS, 1000, 0,    6,   0, "test-6" },   // linear gradient
-  { TEST_GLYPHS, 1000, 0,   10,   0, "test-10" },  // sweep gradient
-  { TEST_GLYPHS, 1000, 0,   92,   0, "test-92" },  // radial gradient
-  { TEST_GLYPHS, 1000, 0,  106,   0, "test-106" },
-  { TEST_GLYPHS, 1000, 0,  116,   0, "test-116" }, // compositing
-  { TEST_GLYPHS, 1000, 0,  123,   0, "test-123" },
-  { TEST_GLYPHS, 1000, 0,  165,   0, "test-165" }, // linear gradient
-  { TEST_GLYPHS, 1000, 0,  175,   0, "test-175" }, // layers
-  { BAD_COLRV1,  1000, 0,  154,   0, "bad-154" },  // recursion
+  { NOTO_HAND,   0.,  10,   0, "hand-10" },
+  { NOTO_HAND,   0.2, 10,   0, "hand-10.2" },
+  { TEST_GLYPHS, 0,    6,   0, "test-6" },   // linear gradient
+  { TEST_GLYPHS, 0,   10,   0, "test-10" },  // sweep gradient
+  { TEST_GLYPHS, 0,   92,   0, "test-92" },  // radial gradient
+  { TEST_GLYPHS, 0,  106,   0, "test-106" },
+  { TEST_GLYPHS, 0,  116,   0, "test-116" }, // compositing
+  { TEST_GLYPHS, 0,  123,   0, "test-123" },
+  { TEST_GLYPHS, 0,  165,   0, "test-165" }, // linear gradient
+  { TEST_GLYPHS, 0,  175,   0, "test-175" }, // layers
+  { BAD_COLRV1,  0,  154,   0, "bad-154" },  // recursion
   /* COLRv0 */
-  { ROCHER_ABC, 1000, 0.3,  1,   0, "rocher-1" },
-  { ROCHER_ABC, 1000, 0.3,  2,   2, "rocher-2" },
-  { ROCHER_ABC, 1000, 0,    3, 200, "rocher-3" },
+  { ROCHER_ABC, 0.3,  1,   0, "rocher-1" },
+  { ROCHER_ABC, 0.3,  2,   2, "rocher-2" },
+  { ROCHER_ABC, 0,    3, 200, "rocher-3" },
 };
 
 static void
@@ -319,7 +318,6 @@ test_hb_paint (gconstpointer d,
   face = hb_test_open_font_file (test->font_file);
   font = hb_font_create (face);
 
-  hb_font_set_scale (font, test->scale, test->scale);
   hb_font_set_synthetic_slant (font, test->slant);
 
 #ifdef HB_HAS_FREETYPE

@@ -1,25 +1,25 @@
-# random seed: R02Se15453cc9fdc9e200591def4c128392b
+# random seed: R02S8d1571dc3f9024010eb4bf6074127320
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
-start clip rectangle 0.000 0.000 1000.000 1000.000
-  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+start clip rectangle 0 0 1e+03 1e+03
+  start transform 1 0 0 1 0 0
     push group
-      start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 -0 1 0 0
         start clip glyph 3
-          start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+          start transform 1 0 0 1 0 0
             solid 0 0 0 255
           end transform
         end clip
       end transform
     pop group mode 3
     push group
-      start transform 1.000000 0.000000 0.000000 1.000000 333.000000 667.000000
-        start transform 0.500000 0.000000 0.000000 0.500000 0.000000 0.000000
-          start transform 1.000000 0.000000 0.000000 1.000000 -333.000000 -667.000000
-            start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 0 1 333 667
+        start transform 0.5 0 0 0.5 0 0
+          start transform 1 0 0 1 -333 -667
+            start transform 1 0 -0 1 0 0
               start clip glyph 2
-                start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+                start transform 1 0 0 1 0 0
                   solid 255 220 1 255
                 end transform
               end clip
@@ -28,12 +28,12 @@ start clip rectangle 0.000 0.000 1000.000 1000.000
         end transform
       end transform
       push group
-        start transform 1.000000 0.000000 0.000000 1.000000 667.000000 333.000000
-          start transform 0.500000 0.000000 0.000000 0.500000 0.000000 0.000000
-            start transform 1.000000 0.000000 0.000000 1.000000 -667.000000 -333.000000
-              start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+        start transform 1 0 0 1 667 333
+          start transform 0.5 0 0 0.5 0 0
+            start transform 1 0 0 1 -667 -333
+              start transform 1 0 -0 1 0 0
                 start clip glyph 2
-                  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+                  start transform 1 0 0 1 0 0
                     solid 104 199 232 255
                   end transform
                 end clip

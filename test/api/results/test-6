@@ -1,19 +1,19 @@
-# random seed: R02Se9d3fcbe22c6d1bdeba50c1bb5925c63
+# random seed: R02S60be6df530a67ddecbb0a926facb59d9
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
-start clip rectangle 100.000 250.000 900.000 950.000
-  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
-    start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+start clip rectangle 100 250 900 950
+  start transform 1 0 0 1 0 0
+    start transform 1 0 -0 1 0 0
       start clip glyph 6
-        start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+        start transform 1 0 0 1 0 0
           linear gradient
-            p0 100.000000 250.000000
-            p1 900.000000 250.000000
-            p2 100.000000 300.000000
+            p0 100 250
+            p1 900 250
+            p2 100 300
             colors
-              0.000000 255 0 0 255
-              1.000000 0 0 255 255
+              0 255 0 0 255
+              1 0 0 255 255
         end transform
       end clip
     end transform

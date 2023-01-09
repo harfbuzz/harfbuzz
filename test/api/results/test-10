@@ -1,20 +1,20 @@
-# random seed: R02S6a47a2a3dcd4dd467bc06d257976e1a9
+# random seed: R02S6881f224d108394ed8714867c314f5ac
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
-start clip rectangle 0.000 0.000 1000.000 1000.000
-  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
-    start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+start clip rectangle 0 0 1e+03 1e+03
+  start transform 1 0 0 1 0 0
+    start transform 1 0 -0 1 0 0
       start clip glyph 174
-        start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+        start transform 1 0 0 1 0 0
           sweep gradient
-            center 500.000000 600.000000
-            angles 0.000000 6.283185
+            center 500 600
+            angles 0 6.28
             colors
-              0.250000 250 240 230 255
-              0.416687 0 0 255 255
-              0.583313 255 0 0 255
-              0.750000 47 79 79 255
+              0.25 250 240 230 255
+              0.417 0 0 255 255
+              0.583 255 0 0 255
+              0.75 47 79 79 255
         end transform
       end clip
     end transform

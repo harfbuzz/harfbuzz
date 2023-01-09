@@ -1,23 +1,23 @@
-# random seed: R02S854533ba425571f0b03ae88b9901992e
+# random seed: R02S82402462bc1b63cdb271c35656bf0115
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
-start clip rectangle 250.000 250.000 882.212 1022.905
-  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
-    start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+start clip rectangle 250 250 882 1.02e+03
+  start transform 1 0 0 1 0 0
+    start transform 1 0 -0 1 0 0
       start clip glyph 3
-        start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+        start transform 1 0 0 1 0 0
           solid 0 0 255 127
         end transform
       end clip
     end transform
     push group
-      start transform 1.000000 0.000000 0.000000 1.000000 1000.000000 1000.000000
-        start transform 1.000000 -0.363874 -0.176283 1.000000 0.000000 0.000000
-          start transform 1.000000 0.000000 0.000000 1.000000 -1000.000000 -1000.000000
-            start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
+      start transform 1 0 0 1 1e+03 1e+03
+        start transform 1 -0.364 -0.176 1 0 0
+          start transform 1 0 0 1 -1e+03 -1e+03
+            start transform 1 0 -0 1 0 0
               start clip glyph 3
-                start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+                start transform 1 0 0 1 0 0
                   solid 255 165 0 178
                 end transform
               end clip
