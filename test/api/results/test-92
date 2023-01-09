@@ -1,12 +1,12 @@
-# random seed: R02S26929ce222d63c24c49dac8cfca51b99
+# random seed: R02S6934716f3c5231a8f497bb1e0ce1c95f
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
-start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-  start clip rectangle 0.000 0.000 1000.000 1000.000
-    start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+start clip rectangle 0.000 0.000 1000.000 1000.000
+  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
+    start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
       start clip glyph 2
-        start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+        start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
           radial gradient
             p0 166.000000 768.000000 radius 0.000000
             p1 166.000000 768.000000 radius 256.000000
@@ -17,5 +17,5 @@ start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
         end transform
       end clip
     end transform
-  end clip
-end transform
+  end transform
+end clip

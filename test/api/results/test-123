@@ -1,13 +1,13 @@
-# random seed: R02Sfe87285ffd48bfb962003fac6c5f609f
+# random seed: R02Sbbbff92a3739f39f9860a30de577f48e
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
-start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-  start clip rectangle 0.000 0.000 1000.000 1000.000
+start clip rectangle 0.000 0.000 1000.000 1000.000
+  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
     push group
-      start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+      start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
         start clip glyph 3
-          start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+          start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
             solid 0 0 0 255
           end transform
         end clip
@@ -17,9 +17,9 @@ start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
       start transform 1.000000 0.000000 0.000000 1.000000 333.000000 667.000000
         start transform 0.500000 0.000000 0.000000 0.500000 0.000000 0.000000
           start transform 1.000000 0.000000 0.000000 1.000000 -333.000000 -667.000000
-            start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+            start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
               start clip glyph 2
-                start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+                start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
                   solid 255 220 1 255
                 end transform
               end clip
@@ -31,9 +31,9 @@ start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
         start transform 1.000000 0.000000 0.000000 1.000000 667.000000 333.000000
           start transform 0.500000 0.000000 0.000000 0.500000 0.000000 0.000000
             start transform 1.000000 0.000000 0.000000 1.000000 -667.000000 -333.000000
-              start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+              start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
                 start clip glyph 2
-                  start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+                  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
                     solid 104 199 232 255
                   end transform
                 end clip
@@ -43,5 +43,5 @@ start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
         end transform
       pop group mode 5
     pop group mode 3
-  end clip
-end transform
+  end transform
+end clip

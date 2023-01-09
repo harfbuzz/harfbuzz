@@ -285,21 +285,21 @@ typedef struct {
  */
 static paint_test_t paint_tests[] = {
   /* COLRv1 */
-  { NOTO_HAND,   20, 0.,  10,   0, "hand-20-0-10" },
-  { NOTO_HAND,   20, 0.2, 10,   0, "hand-20-0.2-10" },
-  { TEST_GLYPHS, 20, 0,    6,   0, "test-20-0-6" },   // linear gradient
-  { TEST_GLYPHS, 20, 0,   10,   0, "test-20-0-10" },  // sweep gradient
-  { TEST_GLYPHS, 20, 0,   92,   0, "test-20-0-92" },  // radial gradient
-  { TEST_GLYPHS, 20, 0,  106,   0, "test-20-0-106" },
-  { TEST_GLYPHS, 20, 0,  116,   0, "test-20-0-116" }, // compositing
-  { TEST_GLYPHS, 20, 0,  123,   0, "test-20-0-123" },
-  { TEST_GLYPHS, 20, 0,  165,   0, "test-20-0-165" }, // linear gradient
-  { TEST_GLYPHS, 20, 0,  175,   0, "test-20-0-175" }, // layers
-  { BAD_COLRV1,  20, 0,  154,   0, "bad-20-0-154" },  // recursion
+  { NOTO_HAND,   1500, 0.,  10,   0, "hand-10" },
+  { NOTO_HAND,   1000, 0.2, 10,   0, "hand-10.2" },
+  { TEST_GLYPHS, 1000, 0,    6,   0, "test-6" },   // linear gradient
+  { TEST_GLYPHS, 1000, 0,   10,   0, "test-10" },  // sweep gradient
+  { TEST_GLYPHS, 1000, 0,   92,   0, "test-92" },  // radial gradient
+  { TEST_GLYPHS, 1000, 0,  106,   0, "test-106" },
+  { TEST_GLYPHS, 1000, 0,  116,   0, "test-116" }, // compositing
+  { TEST_GLYPHS, 1000, 0,  123,   0, "test-123" },
+  { TEST_GLYPHS, 1000, 0,  165,   0, "test-165" }, // linear gradient
+  { TEST_GLYPHS, 1000, 0,  175,   0, "test-175" }, // layers
+  { BAD_COLRV1,  1000, 0,  154,   0, "bad-154" },  // recursion
   /* COLRv0 */
-  { ROCHER_ABC, 120, 0.3,  1,   0, "rocher-120-0.3-1" },
-  { ROCHER_ABC, 120, 0.3,  2,   2, "rocher-120-0.3-2" },
-  { ROCHER_ABC, 120, 0,    3, 200, "rocher-120-0-3" },
+  { ROCHER_ABC, 1000, 0.3,  1,   0, "rocher-1" },
+  { ROCHER_ABC, 1000, 0.3,  2,   2, "rocher-2" },
+  { ROCHER_ABC, 1000, 0,    3, 200, "rocher-3" },
 };
 
 static void

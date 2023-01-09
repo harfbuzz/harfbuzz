@@ -1,14 +1,14 @@
-# random seed: R02Sc0912bbd8819573b3782e05cfc8874f9
+# random seed: R02S61d67babbd5a3f6ac722e106937620c5
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
-start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
-  start clip rectangle 0.000 0.000 1000.000 1000.000
+start clip rectangle 0.000 0.000 1000.000 1000.000
+  start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
     push group
       start transform 1.000000 0.000000 0.000000 1.000000 150.000000 0.000000
-        start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+        start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
           start clip glyph 174
-            start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+            start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
               solid 0 128 0 255
             end transform
           end clip
@@ -17,9 +17,9 @@ start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
     pop group mode 3
     push group
       start transform 1.000000 0.000000 0.000000 1.000000 -150.000000 0.000000
-        start transform 50.000000 0.000000 -0.000000 50.000000 0.000000 0.000000
+        start transform 1.000000 0.000000 -0.000000 1.000000 0.000000 0.000000
           start clip glyph 174
-            start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+            start transform 1.000000 0.000000 0.000000 1.000000 0.000000 0.000000
               linear gradient
                 p0 500.000000 250.000000
                 p1 500.000000 950.000000
@@ -32,5 +32,5 @@ start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
         end transform
       end transform
     pop group mode 3
-  end clip
-end transform
+  end transform
+end clip
