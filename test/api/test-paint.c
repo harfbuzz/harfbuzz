@@ -319,13 +319,13 @@ test_hb_paint (gconstpointer d,
   face = hb_test_open_font_file (test->font_file);
   font = hb_font_create (face);
 
+  hb_font_set_scale (font, test->scale, test->scale);
+  hb_font_set_synthetic_slant (font, test->slant);
+
 #ifdef HB_HAS_FREETYPE
   if (use_ft)
     hb_ft_font_set_funcs (font);
 #endif
-
-  hb_font_set_scale (font, test->scale, test->scale);
-  hb_font_set_synthetic_slant (font, test->slant);
 
   funcs = hb_paint_funcs_create ();
   hb_paint_funcs_set_push_transform_func (funcs, push_transform, &data, NULL);
