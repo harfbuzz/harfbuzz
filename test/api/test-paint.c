@@ -405,7 +405,7 @@ test_hb_paint (gconstpointer d,
 
   if (g_strv_length (lines) != g_strv_length (expected))
   {
-    g_test_message ("Unexpected number of lines in output (%d instead of %d)", g_strv_length (lines), g_strv_length (expected));
+    g_test_message ("Unexpected number of lines in output (%d instead of %d):\n%s", g_strv_length (lines), g_strv_length (expected), data.string->str);
     g_test_fail ();
   }
   else
