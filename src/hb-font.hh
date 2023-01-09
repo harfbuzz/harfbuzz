@@ -182,14 +182,20 @@ struct hb_font_t
 
   void scale_glyph_extents (hb_glyph_extents_t *extents)
   {
-    extents->x_bearing = em_scale_x (extents->x_bearing);
-    extents->y_bearing = em_scale_y (extents->y_bearing);
-    extents->width = em_scale_x (extents->x_bearing + extents->width) - extents->x_bearing;
-    extents->height = em_scale_y (extents->y_bearing + extents->height) - extents->y_bearing;
+    float x1 = em_fscale_x (extents->x_bearing);
+    float y1 = em_fscale_y (extents->y_bearing);
+    float x2 = em_fscale_x (extents->x_bearing + extents->width);
+    float y2 = em_fscale_y (extents->y_bearing + extents->height);
 
     /* Apply slant. */
-    extents->x_bearing += roundf (extents->y_bearing * slant_xy);
-    extents->width += roundf (extents->height * slant_xy);
+    x1 += hb_min (y1 * slant_xy, y2 * slant_xy);
+    x2 += hb_max (y1 * slant_xy, y2 * slant_xy);
+
+    extents->x_bearing = floorf (x1);
+    extents->y_bearing = floorf (y1);
+    extents->width = ceilf (x2) - extents->x_bearing;
+    extents->height = ceilf (y2) - extents->y_bearing;
+
   }
 
 
