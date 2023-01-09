@@ -1140,7 +1140,7 @@ test_hb_draw_compare_ot_ft (void)
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
   hb_font_t *font = hb_font_create (face);
 
-  hb_font_set_scale (font, 20, 20);
+  hb_font_set_scale (font, 100, 100);
 
   hb_font_draw_glyph (font, 1, funcs, &draw_data);
   draw_data.str[draw_data.consumed] = '\0';
