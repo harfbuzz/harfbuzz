@@ -624,6 +624,8 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
     return false;
 
+  /* Copied from hb_font_t::scale_glyph_extents. */
+
   float x1 = x_mult * ft_face->glyph->metrics.horiBearingX;
   float y1 = y_mult * ft_face->glyph->metrics.horiBearingY;
   float x2 = x1 + x_mult *  ft_face->glyph->metrics.width;
