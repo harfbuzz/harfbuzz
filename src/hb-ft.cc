@@ -630,8 +630,11 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   float y2 = y1 + y_mult * -ft_face->glyph->metrics.height;
 
   /* Apply slant. */
-  x1 += hb_min (y1 * slant_xy, y2 * slant_xy);
-  x2 += hb_max (y1 * slant_xy, y2 * slant_xy);
+  if (slant_xy)
+  {
+    x1 += hb_min (y1 * slant_xy, y2 * slant_xy);
+    x2 += hb_max (y1 * slant_xy, y2 * slant_xy);
+  }
 
   extents->x_bearing = floorf (x1);
   extents->y_bearing = floorf (y1);
