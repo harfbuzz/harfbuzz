@@ -603,6 +603,7 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   float x_mult, y_mult;
+  float slant_xy = font->slant_xy;
 #ifdef HAVE_FT_GET_TRANSFORM
   if (ft_font->transform)
   {
@@ -623,14 +624,19 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
     return false;
 
-  extents->x_bearing = (hb_position_t) (x_mult * ft_face->glyph->metrics.horiBearingX);
-  extents->y_bearing = (hb_position_t) (y_mult * ft_face->glyph->metrics.horiBearingY);
-  extents->width  = (hb_position_t) (x_mult *  ft_face->glyph->metrics.width);
-  extents->height = (hb_position_t) (y_mult * -ft_face->glyph->metrics.height);
+  float x1 = x_mult * ft_face->glyph->metrics.horiBearingX;
+  float y1 = y_mult * ft_face->glyph->metrics.horiBearingY;
+  float x2 = x1 + x_mult *  ft_face->glyph->metrics.width;
+  float y2 = y1 + y_mult * -ft_face->glyph->metrics.height;
 
   /* Apply slant. */
-  extents->x_bearing += roundf (extents->y_bearing * font->slant_xy);
-  extents->width += roundf (extents->height * font->slant_xy);
+  x1 += hb_min (y1 * slant_xy, y2 * slant_xy);
+  x2 += hb_max (y1 * slant_xy, y2 * slant_xy);
+
+  extents->x_bearing = floorf (x1);
+  extents->y_bearing = floorf (y1);
+  extents->width = ceilf (x2) - extents->x_bearing;
+  extents->height = ceilf (y2) - extents->y_bearing;
 
   return true;
 }
