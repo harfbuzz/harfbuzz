@@ -452,8 +452,7 @@ test_compare_ot_ft (gconstpointer d)
   paint_data_t data;
 
 #ifndef HAVE_FT_COLRv1
-  g_test_message ("FreeType COLRv1 support not present");
-  g_test_skip ();
+  g_test_skip ("FreeType COLRv1 support not present");
   return;
 #endif
 
@@ -501,8 +500,7 @@ test_hb_paint_ft (gconstpointer data)
 #ifdef HAVE_FT_COLRv1
   test_hb_paint (data, 1);
 #else
-  g_test_message ("FreeType COLRv1 support not present");
-  g_test_skip ();
+  g_test_skip ("FreeType COLRv1 support not present");
 #endif
 }
 
@@ -597,8 +595,7 @@ test_color_stops_ft (void)
 #ifdef HAVE_FT_COLRv1
   test_color_stops (1);
 #else
-  g_test_message ("FreeType COLRv1 support not present");
-  g_test_skip ();
+  g_test_skip ("FreeType COLRv1 support not present");
 #endif
 }
 
