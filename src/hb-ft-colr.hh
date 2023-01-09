@@ -90,8 +90,7 @@ struct hb_ft_paint_context_t
 
   void recurse (FT_OpaquePaint paint)
   {
-    if (depth_left <= 0) return;
-    if (edge_count <= 0) return;
+    if (unlikely (depth_left <= 0 || edge_count <= 0)) return;
     depth_left--;
     edge_count--;
     _hb_ft_paint (this, paint);

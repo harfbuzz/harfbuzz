@@ -2139,10 +2139,10 @@ struct COLR_accelerator_t : COLR::accelerator_t {
 void
 hb_paint_context_t::recurse (const Paint &paint)
 {
+  if (unlikely (depth_left <= 0 || edge_count <= 0)) return;
   depth_left--;
   edge_count--;
-  if (depth_left > 0 && edge_count > 0)
-    paint.dispatch (this);
+  paint.dispatch (this);
   depth_left++;
 }
 
