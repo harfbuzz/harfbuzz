@@ -1120,6 +1120,41 @@ static void test_hb_draw_ft (void)
     hb_font_destroy (font);
   }
 }
+
+static void
+test_hb_draw_compare_ot_ft (void)
+{
+  char str[1024];
+  draw_data_t draw_data = {
+    .str = str,
+    .size = sizeof (str),
+    .consumed = 0
+  };
+  char str2[1024];
+  draw_data_t draw_data2 = {
+    .str = str2,
+    .size = sizeof (str2),
+    .consumed = 0
+  };
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
+  hb_font_t *font = hb_font_create (face);
+
+  hb_font_set_scale (font, 20, 20);
+
+  hb_font_draw_glyph (font, 1, funcs, &draw_data);
+  draw_data.str[draw_data.consumed] = '\0';
+
+  hb_ft_font_set_funcs (font);
+
+  hb_font_draw_glyph (font, 1, funcs, &draw_data2);
+  draw_data2.str[draw_data2.consumed] = '\0';
+
+  g_assert_cmpstr (draw_data.str, ==, draw_data2.str);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
 #endif
 
 int
@@ -1158,6 +1193,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_immutable);
 #ifdef HAVE_FREETYPE
   hb_test_add (test_hb_draw_ft);
+  hb_test_add (test_hb_draw_compare_ot_ft);
 #endif
   unsigned result = hb_test_run ();
 
