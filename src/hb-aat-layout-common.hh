@@ -783,6 +783,8 @@ struct StateTableDriver
     if (!c->in_place)
       buffer->clear_output ();
 
+    buffer->unsafe_to_concat ();
+
     int state = StateTableT::STATE_START_OF_TEXT;
     auto *last_range = ac->range_flags && (*ac->range_flags) ? &(*ac->range_flags)[0] : nullptr;
     for (buffer->idx = 0; buffer->successful;)
