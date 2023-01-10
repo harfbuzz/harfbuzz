@@ -169,7 +169,7 @@ struct RearrangementSubtable
     driver_context_t dc (this);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c);
 
     return_trace (dc.ret);
   }
@@ -325,7 +325,7 @@ struct ContextualSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c);
 
     return_trace (dc.ret);
   }
@@ -577,7 +577,7 @@ struct LigatureSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c);
 
     return_trace (dc.ret);
   }
@@ -820,7 +820,7 @@ struct InsertionSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c);
 
     return_trace (dc.ret);
   }
@@ -968,7 +968,7 @@ struct Chain
 	// Check whether this type/setting pair was requested in the map, and if so, apply its flags.
 	// (The search here only looks at the type and setting fields of feature_info_t.)
 	hb_aat_map_builder_t::feature_info_t info = { type, setting, false, 0 };
-	if (map->features.bsearch (info))
+	if (map->current_features.bsearch (info))
 	{
 	  flags &= feature.disableFlags;
 	  flags |= feature.enableFlags;
@@ -994,8 +994,7 @@ struct Chain
     return flags;
   }
 
-  void apply (hb_aat_apply_context_t *c,
-	      hb_mask_t flags) const
+  void apply (hb_aat_apply_context_t *c) const
   {
     const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types>> (featureZ.as_array (featureCount));
     unsigned int count = subtableCount;
@@ -1003,8 +1002,9 @@ struct Chain
     {
       bool reverse;
 
-      if (!(subtable->subFeatureFlags & flags))
+      if (c->range_flags->length == 1 && !(subtable->subFeatureFlags & (*c->range_flags)[0].flags))
 	goto skip;
+      c->subtable_flags = subtable->subFeatureFlags;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
 	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
@@ -1120,14 +1120,18 @@ struct mortmorx
   {
     const Chain<Types> *chain = &firstChain;
     unsigned int count = chainCount;
+    map->chain_flags.resize (count);
     for (unsigned int i = 0; i < count; i++)
     {
-      map->chain_flags.push (chain->compile_flags (mapper));
+      map->chain_flags[i].push (hb_aat_map_t::range_flags_t {chain->compile_flags (mapper),
+							     mapper->range_first,
+							     mapper->range_last});
       chain = &StructAfter<Chain<Types>> (*chain);
     }
   }
 
-  void apply (hb_aat_apply_context_t *c) const
+  void apply (hb_aat_apply_context_t *c,
+	      const hb_aat_map_t &map) const
   {
     if (unlikely (!c->buffer->successful)) return;
     c->set_lookup_index (0);
@@ -1135,7 +1139,8 @@ struct mortmorx
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      chain->apply (c, c->plan->aat_map.chain_flags[i]);
+      c->range_flags = &map.chain_flags[i];
+      chain->apply (c);
       if (unlikely (!c->buffer->successful)) return;
       chain = &StructAfter<Chain<Types>> (*chain);
     }
