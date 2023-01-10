@@ -471,6 +471,8 @@ hb_face_get_index (const hb_face_t *face)
  *
  * Sets the units-per-em (upem) for a face object to the specified value.
  *
+ * This API is used in rare circumstances.
+ *
  * Since: 0.9.2
  **/
 void
@@ -508,6 +510,8 @@ hb_face_get_upem (const hb_face_t *face)
  * @glyph_count: The glyph-count value to assign
  *
  * Sets the glyph count for a face object to the specified value.
+ *
+ * This API is used in rare circumstances.
  *
  * Since: 0.9.7
  **/
