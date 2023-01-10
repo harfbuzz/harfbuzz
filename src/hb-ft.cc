@@ -1391,6 +1391,10 @@ _release_blob (void *arg)
  * is preconfigured for FreeType font functions and does not
  * require this function to be used.
  *
+ * Note that if you modify the underlying #hb_font_t after
+ * calling this function, you need to call hb_ft_hb_font_changed()
+ * to update the underlying FT_Face.
+ *
  * <note>Note: Internally, this function creates an FT_Face.
 * </note>
  *
