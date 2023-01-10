@@ -1,3 +1,6 @@
+# https://github.com/harfbuzz/harfbuzz/issues/4020
+/System/Library/Fonts/LucidaGrande.ttc;--features=-liga[3:5];U+0066,U+0066,U+0020,U+0066,U+0066,U+0066,U+0020,U+0066,U+0066;[ff=0+1443|space=2+648|f=3+753|f=4+753|f=5+753|space=6+648|ff=7+1443]
+
 # https://github.com/harfbuzz/harfbuzz/issues/1373
 /System/Library/Fonts/Supplemental/BigCaslon.ttf;;U+0107;[cacute=0+432]
 /System/Library/Fonts/Supplemental/BigCaslon.ttf;--language=pl;U+0107;[cacute.polish=0+432]
@@ -11,11 +14,11 @@
 # https://github.com/harfbuzz/harfbuzz/issues/3535
 /System/Library/Fonts/LucidaGrande.ttc;;U+20DD,U+1F174,U+1F175;[circlecmb=0+0|.notdef=1+1536|.notdef=2+1536]
 
-# https;//github.com/harfbuzz/harfbuzz/issues/3008
+# https://github.com/harfbuzz/harfbuzz/issues/3008
 /System/Library/Fonts/ヒラギノ丸ゴ\ ProN\ W4.ttc;--features=palt;U+FF11;[gid781=0@-78,0+842]
 
-# https;//github.com/harfbuzz/harfbuzz/pull/2871
-/System/Library/Fonts/LucidaGrande.ttc;--font-funcs ot --show-flags;U+0041,U+0042,U+0043,U+0044;[A=0+1413|B=1+1178|C=2+1417|D=3+1534]
+# https://github.com/harfbuzz/harfbuzz/pull/2871
+/System/Library/Fonts/LucidaGrande.ttc;--font-funcs ot --show-flags;U+0041,U+0042,U+0043,U+0044;[A=0+1413|B=1+1178#2|C=2+1417#2|D=3+1534#2]
 
 # 10.12.6 https;//gist.github.com/ebraminio/1704341fa16b06979e605aafd88198cf
 /System/Library/Fonts/Helvetica.dfont@c7bec2785a4c402b7809b5e35337c3d24c18e281;--font-funcs ot;U+006D,U+0300;[m=0+1706|gravecmb=0@-284,10+0]
