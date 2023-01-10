@@ -622,6 +622,7 @@ struct NoncontextualSubtable
     auto *last_range = c->range_flags && (c->range_flags->length > 1) ? &(*c->range_flags)[0] : nullptr;
     for (unsigned int i = 0; i < count; i++)
     {
+      /* This block copied from StateTableDriver::drive. Keep in sync. */
       if (last_range)
       {
 	auto *range = last_range;

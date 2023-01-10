@@ -790,6 +790,7 @@ struct StateTableDriver
     auto *last_range = ac->range_flags && (ac->range_flags->length > 1) ? &(*ac->range_flags)[0] : nullptr;
     for (buffer->idx = 0; buffer->successful;)
     {
+      /* This block is copied in NoncontextualSubtable::apply. Keep in sync. */
       if (last_range)
       {
 	auto *range = last_range;
