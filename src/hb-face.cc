@@ -487,7 +487,10 @@ hb_face_set_upem (hb_face_t    *face,
  * hb_face_get_upem:
  * @face: A face object
  *
- * Fetches the units-per-em (upem) value of the specified face object.
+ * Fetches the units-per-em (UPEM) value of the specified face object.
+ *
+ * Typical UPEM values for fonts are 1000, or 2048, but any value
+ * in between 16 and 16,384 is allowed for OpenType fonts.
  *
  * Return value: The upem value of @face
  *
