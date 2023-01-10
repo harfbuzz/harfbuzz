@@ -798,8 +798,6 @@ struct StateTableDriver
 	  while (cluster > range->cluster_last)
 	    range++;
 
-	  if (range != last_range)
-	    state = StateTableT::STATE_START_OF_TEXT;
 
 	  last_range = range;
 	}
@@ -808,6 +806,7 @@ struct StateTableDriver
 	  if (buffer->idx == buffer->len || unlikely (!buffer->successful))
 	    break;
 
+	  state = StateTableT::STATE_START_OF_TEXT;
 	  (void) buffer->next_glyph ();
 	  continue;
 	}
