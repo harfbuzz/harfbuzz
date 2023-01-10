@@ -869,6 +869,8 @@ struct KerxTable
 
   bool apply (AAT::hb_aat_apply_context_t *c) const
   {
+    c->buffer->unsafe_to_concat ();
+
     typedef typename T::SubTable SubTable;
 
     bool ret = false;

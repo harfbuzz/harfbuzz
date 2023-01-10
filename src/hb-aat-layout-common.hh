@@ -783,8 +783,6 @@ struct StateTableDriver
     if (!c->in_place)
       buffer->clear_output ();
 
-    buffer->unsafe_to_concat ();
-
     int state = StateTableT::STATE_START_OF_TEXT;
     // If there's only one range, we already checked the flag.
     auto *last_range = ac->range_flags && (ac->range_flags->length > 1) ? &(*ac->range_flags)[0] : nullptr;

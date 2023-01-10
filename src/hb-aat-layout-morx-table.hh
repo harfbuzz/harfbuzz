@@ -1154,6 +1154,9 @@ struct mortmorx
 	      const hb_aat_map_t &map) const
   {
     if (unlikely (!c->buffer->successful)) return;
+
+    c->buffer->unsafe_to_concat ();
+
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;
     unsigned int count = chainCount;
