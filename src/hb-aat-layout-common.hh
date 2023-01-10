@@ -740,7 +740,7 @@ struct StateTableDriver
 	      num_glyphs (face_->get_num_glyphs ()) {}
 
   template <typename context_t>
-  void drive (context_t *c, hb_mask_t mask)
+  void drive (context_t *c)
   {
     if (!c->in_place)
       buffer->clear_output ();
@@ -753,7 +753,7 @@ struct StateTableDriver
 			   (unsigned) StateTableT::CLASS_END_OF_TEXT;
       DEBUG_MSG (APPLY, nullptr, "c%u at %u", klass, buffer->idx);
       const EntryT &entry = machine.get_entry (state, klass);
-      int next_state = machine.new_state (entry.newState);
+      const int next_state = machine.new_state (entry.newState);
 
       /* Conditions under which it's guaranteed safe-to-break before current glyph:
        *
@@ -822,10 +822,7 @@ struct StateTableDriver
       if (!safe_to_break && buffer->backtrack_len () && buffer->idx < buffer->len)
 	buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
 
-      if (buffer->idx < buffer->len ? buffer->cur().mask & mask : true) // Ugly
-	c->transition (this, entry);
-      else
-        next_state = StateTableT::STATE_START_OF_TEXT;
+      c->transition (this, entry);
 
       state = next_state;
       DEBUG_MSG (APPLY, nullptr, "s%d", state);
@@ -867,10 +864,8 @@ struct hb_aat_apply_context_t :
   const ankr *ankr_table;
   const OT::GDEF *gdef_table;
 
-  hb_mask_t mask;
   /* Unused. For debug tracing only. */
   unsigned int lookup_index;
-
 
   HB_INTERNAL hb_aat_apply_context_t (const hb_ot_shape_plan_t *plan_,
 				      hb_font_t *font_,
@@ -882,7 +877,6 @@ struct hb_aat_apply_context_t :
   HB_INTERNAL void set_ankr_table (const AAT::ankr *ankr_table_);
 
   void set_lookup_index (unsigned int i) { lookup_index = i; }
-  void set_mask (hb_mask_t mask_) { mask = mask_; }
 };
 
 
