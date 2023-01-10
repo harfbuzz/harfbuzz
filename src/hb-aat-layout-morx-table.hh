@@ -1021,7 +1021,8 @@ struct Chain
     {
       bool reverse;
 
-      if (c->range_flags->length == 1 && !(subtable->subFeatureFlags & (*c->range_flags)[0].flags))
+      if (hb_none (hb_iter (c->range_flags) |
+		   hb_map ([&subtable] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable->subFeatureFlags & (_.flags); })))
 	goto skip;
       c->subtable_flags = subtable->subFeatureFlags;
 
