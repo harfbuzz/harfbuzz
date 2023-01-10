@@ -80,9 +80,9 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
 					      const hb_segment_properties_t &props) :
 						face (face),
 						props (props),
-						map (face, props),
+						map (face, props)
 #ifndef HB_NO_AAT_SHAPE
-						apply_morx (_hb_apply_morx (face, props))
+						, apply_morx (_hb_apply_morx (face, props))
 #endif
 {
   shaper = hb_ot_shaper_categorize (this);
