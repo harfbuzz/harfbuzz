@@ -45,6 +45,7 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag, unsigned value)
     if (!face->table.feat->exposes_feature (HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_ALTERNATIVES))
       return;
     feature_info_t *info = features.push();
+    info->tag = tag;
     info->type = HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_ALTERNATIVES;
     info->setting = (hb_aat_layout_feature_selector_t) value;
     info->seq = features.length;
@@ -58,7 +59,7 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag, unsigned value)
   const AAT::FeatureName* feature = &face->table.feat->get_feature (mapping->aatFeatureType);
   if (!feature->has_data ())
   {
-    /* Special case: Chain::compile_flags will fall back to the deprecated version of
+    /* Special case: Chain::compile_info will fall back to the deprecated version of
      * small-caps if necessary, so we need to check for that possibility.
      * https://github.com/harfbuzz/harfbuzz/issues/2307 */
     if (mapping->aatFeatureType == HB_AAT_LAYOUT_FEATURE_TYPE_LOWER_CASE &&
@@ -71,6 +72,7 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag, unsigned value)
   }
 
   feature_info_t *info = features.push();
+  info->tag = tag;
   info->type = mapping->aatFeatureType;
   info->setting = value ? mapping->selectorToEnable : mapping->selectorToDisable;
   info->seq = features.length;
@@ -78,7 +80,7 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag, unsigned value)
 }
 
 void
-hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
+hb_aat_map_builder_t::compile (hb_aat_map_t &m, const hb_ot_map_t &ot_m)
 {
   /* Sort features and merge duplicates */
   if (features.length)
@@ -95,7 +97,7 @@ hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
     features.shrink (j + 1);
   }
 
-  hb_aat_layout_compile_map (this, &m);
+  hb_aat_layout_compile_map (this, &m, &ot_m);
 }
 
 
