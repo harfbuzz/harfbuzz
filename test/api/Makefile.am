@@ -44,6 +44,7 @@ TEST_PROGS = \
 	test-draw \
 	test-font \
 	test-font-scale \
+	test-instance-cff2 \
 	test-map \
 	test-object \
 	test-ot-alternates \
@@ -94,6 +95,7 @@ test_draw_LDADD = $(LDADD)
 test_paint_CPPFLAGS = $(AM_CPPFLAGS)
 test_paint_LDADD = $(LDADD)
 
+test_instance_cff2_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_drop_tables_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
