@@ -2345,7 +2345,11 @@ hb_font_get_scale (hb_font_t *font,
  * @x_ppem: Horizontal ppem value to assign
  * @y_ppem: Vertical ppem value to assign
  *
- * Sets the horizontal and vertical pixels-per-em (ppem) of a font.
+ * Sets the horizontal and vertical pixels-per-em (PPEM) of a font.
+ *
+ * These values are used for pixel-size-specific adjustment to
+ * shaping and draw results, though for the most part they are
+ * unused and can be left unset.
  *
  * Since: 0.9.2
  **/
