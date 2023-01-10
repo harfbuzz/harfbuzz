@@ -2283,7 +2283,17 @@ hb_font_set_funcs_data (hb_font_t         *font,
  * types and you need to leave room for fractional values
  * in there.
  *
- * The choice is yours but needs to be consistent between
+ * For example, to set the font size to 20, with 64
+ * levels of fractional precision you would call
+ * `hb_font_set_scale(font, 20 * 64, 20 * 64)`.
+ *
+ * In the example above, even what font size 20 means is up to
+ * you. It might be 20 pixels, or 20 points, or 20 millimeters.
+ * HarfBuzz does not care about that.  You can set the point
+ * size of the font using hb_font_set_ptem(), and the pixel
+ * size using hb_font_set_ppem().
+ *
+ * The choice of scale is yours but needs to be consistent between
  * what you set here, and what you expect out of #hb_position_t
  * as well has draw / paint API output values.
  *
