@@ -2287,6 +2287,8 @@ hb_font_set_funcs_data (hb_font_t         *font,
  * what you set here, and what you expect out of #hb_position_t
  * as well has draw / paint API output values.
  *
+ * Fonts default to a scale equal to the UPEM value of their face.
+ *
  * Since: 0.9.2
  **/
 void
