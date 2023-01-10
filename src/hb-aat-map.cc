@@ -162,6 +162,10 @@ hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
 	active_features.remove_ordered (feature - active_features.arrayZ);
     }
   }
+
+  for (auto &chain_flags : m.chain_flags)
+    // With our above setup this value is one less than desired; adjust it.
+    chain_flags.tail().cluster_last = HB_FEATURE_GLOBAL_END;
 }
 
 
