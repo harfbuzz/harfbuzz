@@ -2275,6 +2275,18 @@ hb_font_set_funcs_data (hb_font_t         *font,
  *
  * Sets the horizontal and vertical scale of a font.
  *
+ * The font scale is a number related to, but not the same as,
+ * font size. Typically the client establishes a scale factor
+ * to be used between the two. For example, 64, or 256, which
+ * would be the fractional-precision part of the font scale.
+ * This is necessary because #hb_position_t values are integer
+ * types and you need to leave room for fractional values
+ * in there.
+ *
+ * The choice is yours but needs to be consistent between
+ * what you set here, and what you expect out of #hb_position_t
+ * as well has draw / paint API output values.
+ *
  * Since: 0.9.2
  **/
 void
