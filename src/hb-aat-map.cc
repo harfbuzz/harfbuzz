@@ -85,80 +85,81 @@ void
 hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
 {
   /* Compute active features per range, and compile each. */
-  if (features.length)
+
+  /* Sort features by start/end events. */
+  hb_vector_t<feature_event_t> feature_events;
+  for (unsigned int i = 0; i < features.length; i++)
   {
-    /* Sort features by start/end events. */
-    hb_vector_t<feature_event_t> feature_events;
-    for (unsigned int i = 0; i < features.length; i++)
+    auto &feature = features[i];
+
+    if (features[i].start == features[i].end)
+      continue;
+
+    feature_event_t *event;
+
+    event = feature_events.push ();
+    event->index = features[i].start;
+    event->start = true;
+    event->feature = feature.info;
+
+    event = feature_events.push ();
+    event->index = features[i].end;
+    event->start = false;
+    event->feature = feature.info;
+  }
+  feature_events.qsort ();
+  /* Add a strategic final event. */
+  {
+    feature_info_t feature;
+    feature.seq = features.length + 1;
+
+    feature_event_t *event = feature_events.push ();
+    event->index = -1; /* This value does magic. */
+    event->start = false;
+    event->feature = feature;
+  }
+
+  /* Scan events and save features for each range. */
+  hb_sorted_vector_t<feature_info_t> active_features;
+  unsigned int last_index = 0;
+  for (unsigned int i = 0; i < feature_events.length; i++)
+  {
+    feature_event_t *event = &feature_events[i];
+
+    if (event->index != last_index)
     {
-      auto &feature = features[i];
+      /* Save a snapshot of active features and the range. */
 
-      feature_event_t *event;
-
-      event = feature_events.push ();
-      event->index = features[i].start;
-      event->start = true;
-      event->feature = feature.info;
-
-      event = feature_events.push ();
-      event->index = features[i].end;
-      event->start = false;
-      event->feature = feature.info;
-    }
-    feature_events.qsort ();
-    /* Add a strategic final event. */
-    {
-      feature_info_t feature;
-      feature.seq = features.length + 1;
-
-      feature_event_t *event = feature_events.push ();
-      event->index = 0; /* This value does magic. */
-      event->start = false;
-      event->feature = feature;
-    }
-
-    /* Scan events and save features for each range. */
-    hb_sorted_vector_t<feature_info_t> active_features;
-    unsigned int last_index = 0;
-    for (unsigned int i = 0; i < feature_events.length; i++)
-    {
-      feature_event_t *event = &feature_events[i];
-
-      if (event->index != last_index)
+      /* Sort features and merge duplicates */
+      current_features = active_features;
+      range_first = last_index;
+      range_last = event->index - 1;
+      if (current_features.length)
       {
-	/* Save a snapshot of active features and the range. */
-
-	/* Sort features and merge duplicates */
-	current_features = active_features;
-	range_first = last_index;
-	range_last = event->index - 1;
-	if (current_features.length)
-	{
-	  current_features.qsort ();
-	  unsigned int j = 0;
-	  for (unsigned int i = 1; i < current_features.length; i++)
-	    if (current_features[i].type != current_features[j].type ||
-		/* Nonexclusive feature selectors come in even/odd pairs to turn a setting on/off
-		 * respectively, so we mask out the low-order bit when checking for "duplicates"
-		 * (selectors referring to the same feature setting) here. */
-		(!current_features[i].is_exclusive && ((current_features[i].setting & ~1) != (current_features[j].setting & ~1))))
-	      current_features[++j] = current_features[i];
-	  current_features.shrink (j + 1);
-	}
-
-	hb_aat_layout_compile_map (this, &m);
-
-	last_index = event->index;
+	current_features.qsort ();
+	unsigned int j = 0;
+	for (unsigned int i = 1; i < current_features.length; i++)
+	  if (current_features[i].type != current_features[j].type ||
+	      /* Nonexclusive feature selectors come in even/odd pairs to turn a setting on/off
+	       * respectively, so we mask out the low-order bit when checking for "duplicates"
+	       * (selectors referring to the same feature setting) here. */
+	      (!current_features[i].is_exclusive && ((current_features[i].setting & ~1) != (current_features[j].setting & ~1))))
+	    current_features[++j] = current_features[i];
+	current_features.shrink (j + 1);
       }
 
-      if (event->start)
-      {
-	active_features.push (event->feature);
-      } else {
-	feature_info_t *feature = active_features.lsearch (event->feature);
-	if (feature)
-	  active_features.remove_ordered (feature - active_features.arrayZ);
-      }
+      hb_aat_layout_compile_map (this, &m);
+
+      last_index = event->index;
+    }
+
+    if (event->start)
+    {
+      active_features.push (event->feature);
+    } else {
+      feature_info_t *feature = active_features.lsearch (event->feature);
+      if (feature)
+	active_features.remove_ordered (feature - active_features.arrayZ);
     }
   }
 }
