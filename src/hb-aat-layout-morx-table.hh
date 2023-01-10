@@ -169,7 +169,7 @@ struct RearrangementSubtable
     driver_context_t dc (this);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c->mask);
 
     return_trace (dc.ret);
   }
@@ -325,7 +325,7 @@ struct ContextualSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c->mask);
 
     return_trace (dc.ret);
   }
@@ -577,7 +577,7 @@ struct LigatureSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c->mask);
 
     return_trace (dc.ret);
   }
@@ -820,7 +820,7 @@ struct InsertionSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c->mask);
 
     return_trace (dc.ret);
   }
@@ -954,9 +954,11 @@ struct Chain
 {
   typedef typename Types::HBUINT HBUINT;
 
-  hb_mask_t compile_flags (const hb_aat_map_builder_t *map) const
+  hb_aat_map_t::chain_info_t compile_info (const hb_aat_map_builder_t *map,
+					   const hb_ot_map_t *ot_map) const
   {
     hb_mask_t flags = defaultFlags;
+    hb_mask_t mask = (hb_mask_t) -1;
     {
       unsigned int count = featureCount;
       for (unsigned i = 0; i < count; i++)
@@ -967,9 +969,11 @@ struct Chain
       retry:
 	// Check whether this type/setting pair was requested in the map, and if so, apply its flags.
 	// (The search here only looks at the type and setting fields of feature_info_t.)
-	hb_aat_map_builder_t::feature_info_t info = { type, setting, false, 0 };
-	if (map->features.bsearch (info))
+	hb_aat_map_builder_t::feature_info_t info = { HB_TAG_NONE, type, setting, false, 0 };
+	auto *found = map->features.bsearch (info);
+	if (found)
 	{
+	  mask = ot_map->get_mask (found->tag);
 	  flags &= feature.disableFlags;
 	  flags |= feature.enableFlags;
 	}
@@ -991,11 +995,14 @@ struct Chain
 #endif
       }
     }
-    return flags;
+    hb_aat_map_t::chain_info_t info;
+    info.flags = flags;
+    info.mask = mask;
+    return info;
   }
 
   void apply (hb_aat_apply_context_t *c,
-	      hb_mask_t flags) const
+	      hb_aat_map_t::chain_info_t info) const
   {
     const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types>> (featureZ.as_array (featureCount));
     unsigned int count = subtableCount;
@@ -1003,7 +1010,7 @@ struct Chain
     {
       bool reverse;
 
-      if (!(subtable->subFeatureFlags & flags))
+      if (!(subtable->subFeatureFlags & info.flags) && info.mask == (hb_mask_t) -1)
 	goto skip;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
@@ -1048,6 +1055,8 @@ struct Chain
 
       if (reverse)
 	c->buffer->reverse ();
+
+      c->set_mask (info.mask);
 
       subtable->apply (c);
 
@@ -1115,14 +1124,15 @@ struct mortmorx
 
   bool has_data () const { return version != 0; }
 
-  void compile_flags (const hb_aat_map_builder_t *mapper,
-		      hb_aat_map_t *map) const
+  void compile_info (const hb_aat_map_builder_t *mapper,
+		     hb_aat_map_t *map,
+		     const hb_ot_map_t *ot_map) const
   {
     const Chain<Types> *chain = &firstChain;
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      map->chain_flags.push (chain->compile_flags (mapper));
+      map->chain_info.push (chain->compile_info (mapper, ot_map));
       chain = &StructAfter<Chain<Types>> (*chain);
     }
   }
@@ -1135,7 +1145,7 @@ struct mortmorx
     unsigned int count = chainCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      chain->apply (c, c->plan->aat_map.chain_flags[i]);
+      chain->apply (c, c->plan->aat_map.chain_info[i]);
       if (unlikely (!c->buffer->successful)) return;
       chain = &StructAfter<Chain<Types>> (*chain);
     }
