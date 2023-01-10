@@ -203,20 +203,19 @@ hb_aat_layout_find_feature_mapping (hb_tag_t tag)
 
 void
 hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
-			   hb_aat_map_t *map,
-			   const hb_ot_map_t *ot_map)
+			   hb_aat_map_t *map)
 {
   const AAT::morx& morx = *mapper->face->table.morx;
   if (morx.has_data ())
   {
-    morx.compile_info (mapper, map, ot_map);
+    morx.compile_flags (mapper, map);
     return;
   }
 
   const AAT::mort& mort = *mapper->face->table.mort;
   if (mort.has_data ())
   {
-    mort.compile_info (mapper, map, ot_map);
+    mort.compile_flags (mapper, map);
     return;
   }
 }

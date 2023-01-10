@@ -29,8 +29,6 @@
 
 #include "hb.hh"
 
-#include "hb-ot-map.hh"
-
 
 struct hb_aat_map_t
 {
@@ -38,21 +36,15 @@ struct hb_aat_map_t
 
   public:
 
-  struct chain_info_t
-  {
-    hb_mask_t flags;
-    hb_mask_t mask;
-  };
-
   void init ()
   {
     hb_memset (this, 0, sizeof (*this));
-    chain_info.init ();
+    chain_flags.init ();
   }
-  void fini () { chain_info.fini (); }
+  void fini () { chain_flags.fini (); }
 
   public:
-  hb_vector_t<chain_info_t> chain_info;
+  hb_vector_t<hb_mask_t> chain_flags;
 };
 
 struct hb_aat_map_builder_t
@@ -66,12 +58,11 @@ struct hb_aat_map_builder_t
 
   HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value=1);
 
-  HB_INTERNAL void compile (hb_aat_map_t &m, const hb_ot_map_t &ot_m);
+  HB_INTERNAL void compile (hb_aat_map_t  &m);
 
   public:
   struct feature_info_t
   {
-    hb_tag_t tag;
     hb_aat_layout_feature_type_t  type;
     hb_aat_layout_feature_selector_t  setting;
     bool is_exclusive;

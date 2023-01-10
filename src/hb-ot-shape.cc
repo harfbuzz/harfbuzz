@@ -107,7 +107,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   map.compile (plan.map, key);
 #ifndef HB_NO_AAT_SHAPE
   if (apply_morx)
-    aat_map.compile (plan.aat_map, plan.map);
+    aat_map.compile (plan.aat_map);
 #endif
 
 #ifndef HB_NO_OT_SHAPE_FRACTIONS
@@ -397,18 +397,12 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t *planner,
     map->enable_feature (HB_TAG ('v','e','r','t'), F_GLOBAL_SEARCH);
   }
 
-  hb_ot_map_feature_flags_t flags = F_NONE;
-#ifndef HB_NO_AAT_SHAPE
-  if (planner->apply_morx)
-    flags |= F_HAS_FALLBACK; // Allocate bits for all user features so AAT planner can use
-#endif
-
   for (unsigned int i = 0; i < num_user_features; i++)
   {
     const hb_feature_t *feature = &user_features[i];
     map->add_feature (feature->tag,
-		      ((feature->start == HB_FEATURE_GLOBAL_START &&
-		        feature->end == HB_FEATURE_GLOBAL_END) ?  F_GLOBAL : F_NONE) | flags,
+		      (feature->start == HB_FEATURE_GLOBAL_START &&
+		       feature->end == HB_FEATURE_GLOBAL_END) ?  F_GLOBAL : F_NONE,
 		      feature->value);
   }
 

@@ -48,8 +48,7 @@ hb_aat_layout_find_feature_mapping (hb_tag_t tag);
 
 HB_INTERNAL void
 hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
-			   hb_aat_map_t *map,
-			   const hb_ot_map_t *ot_map);
+			   hb_aat_map_t *map);
 
 HB_INTERNAL void
 hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
