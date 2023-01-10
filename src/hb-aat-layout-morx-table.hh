@@ -1137,7 +1137,8 @@ struct mortmorx
   {
     const Chain<Types> *chain = &firstChain;
     unsigned int count = chainCount;
-    map->chain_flags.resize (count);
+    if (unlikely (!map->chain_flags.resize (count)))
+      return;
     for (unsigned int i = 0; i < count; i++)
     {
       map->chain_flags[i].push (hb_aat_map_t::range_flags_t {chain->compile_flags (mapper),
