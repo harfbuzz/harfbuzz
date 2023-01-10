@@ -618,7 +618,8 @@ struct NoncontextualSubtable
 
     hb_glyph_info_t *info = c->buffer->info;
     unsigned int count = c->buffer->len;
-    auto *last_range = c->range_flags && (*c->range_flags) ? &(*c->range_flags)[0] : nullptr;
+    // If there's only one range, we already checked the flag.
+    auto *last_range = c->range_flags && (c->range_flags->length > 1) ? &(*c->range_flags)[0] : nullptr;
     for (unsigned int i = 0; i < count; i++)
     {
       if (last_range)
