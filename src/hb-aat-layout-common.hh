@@ -803,7 +803,6 @@ struct StateTableDriver
 
 	  last_range = range;
 	}
-
 	if (!(range->flags & ac->subtable_flags))
 	{
 	  if (buffer->idx == buffer->len || unlikely (!buffer->successful))

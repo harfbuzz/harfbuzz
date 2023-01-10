@@ -618,8 +618,25 @@ struct NoncontextualSubtable
 
     hb_glyph_info_t *info = c->buffer->info;
     unsigned int count = c->buffer->len;
+    auto *last_range = c->range_flags && (*c->range_flags) ? &(*c->range_flags)[0] : nullptr;
     for (unsigned int i = 0; i < count; i++)
     {
+      if (last_range)
+      {
+	auto *range = last_range;
+	{
+	  unsigned cluster = info[i].cluster;
+	  while (cluster < range->cluster_first)
+	    range--;
+	  while (cluster > range->cluster_last)
+	    range++;
+
+	  last_range = range;
+	}
+	if (!(range->flags & c->subtable_flags))
+	  continue;
+      }
+
       const HBGlyphID16 *replacement = substitute.get_value (info[i].codepoint, num_glyphs);
       if (replacement)
       {
