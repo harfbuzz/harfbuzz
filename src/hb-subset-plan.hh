@@ -52,7 +52,6 @@ struct hb_subset_plan_t
     hb_set_destroy (name_ids);
     hb_set_destroy (name_languages);
     hb_set_destroy (layout_features);
-    hb_set_destroy (layout_scripts);
     hb_set_destroy (glyphs_requested);
     hb_set_destroy (drop_tables);
     hb_set_destroy (no_subset_tables);
@@ -127,7 +126,7 @@ struct hb_subset_plan_t
   hb_set_t *layout_features;
 
   // layout scripts which will be preserved.
-  hb_set_t *layout_scripts;
+  hb_set_t layout_scripts;
 
   //glyph ids requested to retain
   hb_set_t *glyphs_requested;

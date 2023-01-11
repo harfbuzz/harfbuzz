@@ -1145,7 +1145,7 @@ struct Script
   {
     TRACE_SUBSET (this);
     if (!l->visitScript ()) return_trace (false);
-    if (tag && !c->plan->layout_scripts->has (*tag))
+    if (tag && !c->plan->layout_scripts.has (*tag))
       return false;
 
     auto *out = c->serializer->start_embed (*this);

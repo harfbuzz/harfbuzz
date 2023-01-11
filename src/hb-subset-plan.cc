@@ -145,7 +145,7 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
   hb_vector_t<hb_tag_t> scripts;
   if (!plan->check_success (scripts.resize (num_scripts))) return;
   table.get_script_tags (0, &num_scripts, scripts.arrayZ);
-  bool retain_all_scripts = !_filter_tag_list (&scripts, plan->layout_scripts);
+  bool retain_all_scripts = !_filter_tag_list (&scripts, &plan->layout_scripts);
 
   if (!plan->check_success (!features.in_error ()) || !features
       || !plan->check_success (!scripts.in_error ()) || !scripts)
@@ -301,7 +301,7 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
   _GSUBGPOS_find_duplicate_features (*table, lookups, &feature_indices, feature_substitutes_map, &duplicate_feature_map);
 
   feature_indices.clear ();
-  table->prune_langsys (&duplicate_feature_map, plan->layout_scripts, langsys_map, &feature_indices);
+  table->prune_langsys (&duplicate_feature_map, &plan->layout_scripts, langsys_map, &feature_indices);
   _remap_indexes (&feature_indices, features);
 
   table.destroy ();
@@ -845,7 +845,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->name_ids = hb_set_copy (input->sets.name_ids);
   plan->name_languages = hb_set_copy (input->sets.name_languages);
   plan->layout_features = hb_set_copy (input->sets.layout_features);
-  plan->layout_scripts = hb_set_copy (input->sets.layout_scripts);
+  plan->layout_scripts = *input->sets.layout_scripts;
   plan->glyphs_requested = hb_set_copy (input->sets.glyphs);
   plan->drop_tables = hb_set_copy (input->sets.drop_tables);
   plan->no_subset_tables = hb_set_copy (input->sets.no_subset_tables);
