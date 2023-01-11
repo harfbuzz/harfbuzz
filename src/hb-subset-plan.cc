@@ -862,7 +862,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->check_success (plan->layout_variation_idx_delta_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
   plan->gdef_varstore_inner_maps.init ();
 
-  plan->check_success (plan->sanitized_table_cache = hb_hashmap_create<hb_tag_t, hb::unique_ptr<hb_blob_t>> ());
   plan->check_success (plan->axes_location = hb_hashmap_create<hb_tag_t, int> ());
   plan->check_success (plan->user_axes_location = hb_hashmap_create<hb_tag_t, float> ());
   if (plan->user_axes_location && input->axes_location)

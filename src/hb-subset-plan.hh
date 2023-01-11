@@ -64,7 +64,6 @@ struct hb_subset_plan_t
     hb_map_destroy (axes_old_index_tag_map);
 
     hb_hashmap_destroy (axes_location);
-    hb_hashmap_destroy (sanitized_table_cache);
     hb_hashmap_destroy (hmtx_map);
     hb_hashmap_destroy (vmtx_map);
     hb_hashmap_destroy (layout_variation_idx_delta_map);
@@ -169,7 +168,7 @@ struct hb_subset_plan_t
   //gdef varstore retained varidx mapping
   hb_vector_t<hb_inc_bimap_t> gdef_varstore_inner_maps;
 
-  hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_blob_t>>* sanitized_table_cache;
+  hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_blob_t>> sanitized_table_cache;
   //normalized axes location map
   hb_hashmap_t<hb_tag_t, int> *axes_location;
   hb_vector_t<int> normalized_coords;
@@ -204,7 +203,7 @@ struct hb_subset_plan_t
   {
     hb_lock_t (accelerator ? &accelerator->sanitized_table_cache_lock : nullptr);
 
-    auto *cache = accelerator ? &accelerator->sanitized_table_cache : sanitized_table_cache;
+    auto *cache = accelerator ? &accelerator->sanitized_table_cache : &sanitized_table_cache;
     if (cache
         && !cache->in_error ()
         && cache->has (+T::tableTag)) {
