@@ -67,7 +67,7 @@ struct InstanceRecord
           fabsf (axes_location->get (*axis_tag) - coords[i].to_float ()) > 0.001f)
         return_trace (false);
 
-      if (!c->plan->axes_index_map->has (i))
+      if (!c->plan->axes_index_map.has (i))
         continue;
 
       if (!c->serializer->embed (coords[i]))
@@ -362,7 +362,7 @@ struct fvar
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    unsigned retained_axis_count = c->plan->axes_index_map->get_population ();
+    unsigned retained_axis_count = c->plan->axes_index_map.get_population ();
     if (!retained_axis_count) //all axes are pinned
       return_trace (false);
 
@@ -383,7 +383,7 @@ struct fvar
     auto axes_records = get_axes ();
     for (unsigned i = 0 ; i < (unsigned)axisCount; i++)
     {
-      if (!c->plan->axes_index_map->has (i)) continue;
+      if (!c->plan->axes_index_map.has (i)) continue;
       if (unlikely (!c->serializer->embed (axes_records[i])))
         return_trace (false);
     }

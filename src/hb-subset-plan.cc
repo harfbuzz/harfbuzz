@@ -787,7 +787,7 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     if (!plan->user_axes_location->has (axis_tag))
     {
       axis_not_pinned = true;
-      plan->axes_index_map->set (old_axis_idx, new_axis_idx);
+      plan->axes_index_map.set (old_axis_idx, new_axis_idx);
       new_axis_idx++;
     }
     else
@@ -860,7 +860,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->check_success (plan->user_axes_location = hb_hashmap_create<hb_tag_t, float> ());
   if (plan->user_axes_location && input->axes_location)
       *plan->user_axes_location = *input->axes_location;
-  plan->check_success (plan->axes_index_map = hb_map_create ());
   plan->all_axes_pinned = false;
   plan->pinned_at_default = true;
 

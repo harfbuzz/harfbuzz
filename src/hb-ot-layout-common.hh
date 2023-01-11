@@ -2838,7 +2838,7 @@ struct ConditionFormat1
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    const hb_map_t *index_map = c->plan->axes_index_map;
+    const hb_map_t *index_map = &c->plan->axes_index_map;
     if (index_map->is_empty ()) return_trace (true);
 
     if (!index_map->has (axisIndex))
