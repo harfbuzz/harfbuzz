@@ -1,4 +1,4 @@
-# random seed: R02Se18673abb30681f00ebfae2450ceb094
+# random seed: R02S730db577e65f80492e3e3eacc21152fa
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
@@ -10,7 +10,7 @@ start clip rectangle 0 0 1e+03 1e+03
           sweep gradient
             center 500 600
             angles 0 6.28
-            colors
+            colors 0
               0.25 250 240 230 255
               0.417 0 0 255 255
               0.583 255 0 0 255

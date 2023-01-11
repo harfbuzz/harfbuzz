@@ -1,4 +1,4 @@
-# random seed: R02S44305390d95bd0132defe151ebe3a9a6
+# random seed: R02Sba94a82eea093a3b08429f774ffebb38
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
@@ -10,7 +10,7 @@ start clip rectangle 0 500 500 1e+03
           radial gradient
             p0 166 768 radius 0
             p1 166 768 radius 256
-            colors
+            colors 2
               0 0 128 0 255
               0.5 255 255 255 255
               1 255 0 0 255

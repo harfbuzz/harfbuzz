@@ -173,7 +173,7 @@ print_color_line (paint_data_t *data,
   stops = alloca (len * sizeof (hb_color_stop_t));
   hb_color_line_get_color_stops (color_line, 0, &len, stops);
 
-  print (data, "colors");
+  print (data, "colors %d", hb_color_line_get_extend (color_line));
   data->level += 1;
   for (unsigned int i = 0; i < len; i++)
     print (data, "%.3g %d %d %d %d",

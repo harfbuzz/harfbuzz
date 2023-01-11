@@ -1,4 +1,4 @@
-# random seed: R02S4b5d19f08491119b5a167428e9bb5b6e
+# random seed: R02Sd7e42dc5034eae428f9fdf486603e319
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
@@ -11,7 +11,7 @@ start clip rectangle 100 250 1.2e+03 950
             p0 100 950
             p1 2.3e+03 950
             p2 -1e+03 250
-            colors
+            colors 0
               0 255 0 0 255
               0.5 0 0 255 255
               1 255 255 0 255
