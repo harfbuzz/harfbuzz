@@ -34,7 +34,8 @@
 /* Compiler-assisted vectorization. */
 
 /* Type behaving similar to vectorized vars defined using __attribute__((vector_size(...))),
- * basically a fixed-size bitset. */
+ * basically a fixed-size bitset. We can't use the compiler type because hb_vector_t cannot
+ * guarantee alignment requirements. */
 template <typename elt_t, unsigned int byte_size>
 struct hb_vector_size_t
 {
