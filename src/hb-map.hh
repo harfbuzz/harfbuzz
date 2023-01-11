@@ -494,37 +494,5 @@ struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
   hb_map_t (const Iterable &o) : hashmap (o) {}
 };
 
-template <typename K, typename V>
-static inline
-hb_hashmap_t<K, V>* hb_hashmap_create ()
-{
-  using hashmap = hb_hashmap_t<K, V>;
-  hashmap* map;
-  if (!(map = hb_object_create<hashmap> ()))
-    return nullptr;
-
-  return map;
-}
-
-template <typename K, typename V>
-static inline
-void hb_hashmap_destroy (hb_hashmap_t<K, V>* map)
-{
-  if (!hb_object_destroy (map))
-    return;
-
-  hb_free (map);
-}
-
-namespace hb {
-
-template <typename K, typename V>
-struct vtable<hb_hashmap_t<K, V>>
-{
-  static constexpr auto destroy = hb_hashmap_destroy<K,V>;
-};
-
-}
-
 
 #endif /* HB_MAP_HH */

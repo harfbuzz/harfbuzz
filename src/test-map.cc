@@ -237,16 +237,6 @@ main (int argc, char **argv)
     m.keys_ref ();
     m.values_ref ();
   }
-  /* Test more complex unique_ptr's. */
-  {
-    hb_hashmap_t<int, hb::unique_ptr<hb_hashmap_t<int, int>>> m;
-
-    m.get (0);
-    const hb::unique_ptr<hb_hashmap_t<int, int>> *v1;
-    m.has (0, &v1);
-    hb::unique_ptr<hb_hashmap_t<int, int>> *v2;
-    m.has (0, &v2);
-  }
   /* Test hashmap with complex shared_ptrs as keys. */
   {
     hb_hashmap_t<hb::shared_ptr<hb_map_t>, unsigned> m;
