@@ -73,7 +73,7 @@ struct hmtxvmtx
     return_trace (true);
   }
 
-  const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>>* get_mtx_map (const hb_subset_plan_t *plan) const
+  const hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>>* get_mtx_map (const hb_subset_plan_t *plan) const
   { return T::is_horizontal ? &plan->hmtx_map : &plan->vmtx_map; }
 
   bool subset_update_header (hb_subset_plan_t *plan,
@@ -132,7 +132,7 @@ struct hmtxvmtx
 
     accelerator_t _mtx (c->plan->source);
     unsigned num_long_metrics;
-    const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *mtx_map = get_mtx_map (c->plan);
+    const hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> *mtx_map = get_mtx_map (c->plan);
     {
       /* Determine num_long_metrics to encode. */
       auto& plan = c->plan;
