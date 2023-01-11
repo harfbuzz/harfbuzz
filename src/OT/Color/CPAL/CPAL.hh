@@ -239,7 +239,7 @@ struct CPAL
     TRACE_SUBSET (this);
     if (!numPalettes) return_trace (false);
 
-    const hb_map_t *color_index_map = c->plan->colr_palettes;
+    const hb_map_t *color_index_map = &c->plan->colr_palettes;
     if (color_index_map->is_empty ()) return_trace (false);
 
     hb_set_t retained_color_indices;

@@ -58,7 +58,6 @@ struct hb_subset_plan_t
     hb_map_destroy (glyph_map);
     hb_map_destroy (reverse_glyph_map);
     hb_map_destroy (glyph_map_gsub);
-    hb_map_destroy (colr_palettes);
     hb_map_destroy (axes_index_map);
     hb_map_destroy (axes_old_index_tag_map);
 
@@ -159,7 +158,7 @@ struct hb_subset_plan_t
 
   //active layers/palettes we'd like to retain
   hb_map_t colrv1_layers;
-  hb_map_t *colr_palettes;
+  hb_map_t colr_palettes;
 
   //Old layout item variation index -> (New varidx, delta) mapping
   hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map;
