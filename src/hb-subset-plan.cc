@@ -382,7 +382,7 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
   OT::hb_collect_variation_indices_context_t c (&varidx_set,
                                                 plan->layout_variation_idx_delta_map,
                                                 font, var_store,
-                                                plan->_glyphset_gsub,
+                                                &plan->_glyphset_gsub,
                                                 &plan->gpos_lookups,
                                                 store_cache);
   gdef->collect_variation_indices (&c);
@@ -569,7 +569,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     {
       if (gid >= plan->source->get_num_glyphs ())
 	break;
-      plan->_glyphset_gsub->add (gid);
+      plan->_glyphset_gsub.add (gid);
     }
   }
 
@@ -577,7 +577,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   if (arr.length)
   {
     plan->unicodes->add_sorted_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
-    plan->_glyphset_gsub->add_array (&arr.arrayZ->second, arr.length, sizeof (*arr.arrayZ));
+    plan->_glyphset_gsub.add_array (&arr.arrayZ->second, arr.length, sizeof (*arr.arrayZ));
   }
 }
 
@@ -619,16 +619,16 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   OT::cff1::accelerator_t cff (plan->source);
 #endif
 
-  plan->_glyphset_gsub->add (0); // Not-def
+  plan->_glyphset_gsub.add (0); // Not-def
 
-  _cmap_closure (plan->source, plan->unicodes, plan->_glyphset_gsub);
+  _cmap_closure (plan->source, plan->unicodes, &plan->_glyphset_gsub);
 
 #ifndef HB_NO_SUBSET_LAYOUT
   if (!drop_tables->has (HB_OT_TAG_GSUB))
     // closure all glyphs/lookups/features needed for GSUB substitutions.
     _closure_glyphs_lookups_features<GSUB> (
         plan,
-        plan->_glyphset_gsub,
+        &plan->_glyphset_gsub,
         &plan->gsub_lookups,
         &plan->gsub_features,
         plan->gsub_langsys,
@@ -638,16 +638,16 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   if (!drop_tables->has (HB_OT_TAG_GPOS))
     _closure_glyphs_lookups_features<GPOS> (
         plan,
-        plan->_glyphset_gsub,
+        &plan->_glyphset_gsub,
         &plan->gpos_lookups,
         &plan->gpos_features,
         plan->gpos_langsys,
         plan->gpos_feature_record_cond_idx_map,
         plan->gpos_feature_substitutes_map);
 #endif
-  _remove_invalid_gids (plan->_glyphset_gsub, plan->source->get_num_glyphs ());
+  _remove_invalid_gids (&plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
-  hb_set_set (plan->_glyphset_mathed, plan->_glyphset_gsub);
+  hb_set_set (plan->_glyphset_mathed, &plan->_glyphset_gsub);
   if (!drop_tables->has (HB_OT_TAG_MATH))
   {
     _math_closure (plan, plan->_glyphset_mathed);
@@ -852,7 +852,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
 
-  plan->_glyphset_gsub = hb_set_create ();
   plan->_glyphset_mathed = hb_set_create ();
   plan->_glyphset_colred = hb_set_create ();
   plan->codepoint_to_glyph = hb_map_create ();
@@ -934,7 +933,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 				  &plan->_num_output_glyphs);
 
   _create_glyph_map_gsub (
-      plan->_glyphset_gsub,
+      &plan->_glyphset_gsub,
       plan->glyph_map,
       plan->glyph_map_gsub);
 
