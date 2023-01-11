@@ -383,7 +383,7 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
                                                 plan->layout_variation_idx_delta_map,
                                                 font, var_store,
                                                 plan->_glyphset_gsub,
-                                                plan->gpos_lookups,
+                                                &plan->gpos_lookups,
                                                 store_cache);
   gdef->collect_variation_indices (&c);
 
@@ -629,7 +629,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
     _closure_glyphs_lookups_features<GSUB> (
         plan,
         plan->_glyphset_gsub,
-        plan->gsub_lookups,
+        &plan->gsub_lookups,
         &plan->gsub_features,
         plan->gsub_langsys,
         plan->gsub_feature_record_cond_idx_map,
@@ -639,7 +639,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
     _closure_glyphs_lookups_features<GPOS> (
         plan,
         plan->_glyphset_gsub,
-        plan->gpos_lookups,
+        &plan->gpos_lookups,
         &plan->gpos_features,
         plan->gpos_langsys,
         plan->gpos_feature_record_cond_idx_map,
@@ -860,8 +860,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->glyph_map = hb_map_create ();
   plan->reverse_glyph_map = hb_map_create ();
   plan->glyph_map_gsub = hb_map_create ();
-  plan->gsub_lookups = hb_map_create ();
-  plan->gpos_lookups = hb_map_create ();
 
   plan->check_success (plan->gsub_langsys = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());
   plan->check_success (plan->gpos_langsys = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());

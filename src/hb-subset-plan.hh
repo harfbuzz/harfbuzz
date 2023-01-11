@@ -62,8 +62,6 @@ struct hb_subset_plan_t
     hb_set_destroy (_glyphset_gsub);
     hb_set_destroy (_glyphset_mathed);
     hb_set_destroy (_glyphset_colred);
-    hb_map_destroy (gsub_lookups);
-    hb_map_destroy (gpos_lookups);
     hb_map_destroy (colrv1_layers);
     hb_map_destroy (colr_palettes);
     hb_map_destroy (axes_index_map);
@@ -151,8 +149,8 @@ struct hb_subset_plan_t
   hb_set_t *_glyphset_colred;
 
   //active lookups we'd like to retain
-  hb_map_t *gsub_lookups;
-  hb_map_t *gpos_lookups;
+  hb_map_t gsub_lookups;
+  hb_map_t gpos_lookups;
 
   //active langsys we'd like to retain
   hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *gsub_langsys;
