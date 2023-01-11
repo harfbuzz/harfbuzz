@@ -304,12 +304,13 @@ typedef struct {
 
 #define NOTO_HAND   "fonts/noto_handwriting-cff2_colr_1.otf"
 #define TEST_GLYPHS "fonts/test_glyphs-glyf_colr_1.ttf"
+#define TEST_GLYPHS_VF "fonts/test_glyphs-glyf_colr_1_variable.ttf"
 #define BAD_COLRV1  "fonts/bad_colrv1.ttf"
 #define ROCHER_ABC  "fonts/RocherColorGX.abc.ttf"
 
 /* To verify the rendering visually, use
  *
- * hb-view --font-size SCALE --font-slant SLANT --font-palette PALETTE FONT --glyphs [gidGID=0+1000]
+ * hb-view --font-slant SLANT --font-palette PALETTE FONT --glyphs [gidGID=0+1000]
  *
  * where GID is the glyph value of the test.
  */
@@ -317,6 +318,7 @@ static paint_test_t paint_tests[] = {
   /* COLRv1 */
   { NOTO_HAND,   0.,  10,   0, "hand-10" },
   { NOTO_HAND,   0.2, 10,   0, "hand-10.2" },
+
   { TEST_GLYPHS, 0,    6,   0, "test-6" },   // linear gradient
   { TEST_GLYPHS, 0,   10,   0, "test-10" },  // sweep gradient
   { TEST_GLYPHS, 0,   92,   0, "test-92" },  // radial gradient
@@ -326,7 +328,19 @@ static paint_test_t paint_tests[] = {
   { TEST_GLYPHS, 0,  154,   0, "test-154" },
   { TEST_GLYPHS, 0,  165,   0, "test-165" }, // linear gradient
   { TEST_GLYPHS, 0,  175,   0, "test-175" }, // layers
+
+  { TEST_GLYPHS_VF, 0,    6,   0, "testvf-6" },
+  { TEST_GLYPHS_VF, 0,   10,   0, "testvf-10" },
+  { TEST_GLYPHS_VF, 0,   92,   0, "testvf-92" },
+  { TEST_GLYPHS_VF, 0,  106,   0, "testvf-106" },
+  { TEST_GLYPHS_VF, 0,  116,   0, "testvf-116" },
+  { TEST_GLYPHS_VF, 0,  123,   0, "testvf-123" },
+  { TEST_GLYPHS_VF, 0,  154,   0, "testvf-154" },
+  { TEST_GLYPHS_VF, 0,  165,   0, "testvf-165" },
+  { TEST_GLYPHS_VF, 0,  175,   0, "testvf-175" },
+
   { BAD_COLRV1,  0,  154,   0, "bad-154" },  // recursion
+
   /* COLRv0 */
   { ROCHER_ABC, 0.3,  1,   0, "rocher-1" },
   { ROCHER_ABC, 0.3,  2,   2, "rocher-2" },
@@ -443,21 +457,15 @@ test_hb_paint (gconstpointer d,
 }
 
 static void
-test_compare_ot_ft (gconstpointer d)
+test_compare_ot_ft (const char *file, hb_codepoint_t glyph)
 {
-  hb_codepoint_t glyph = GPOINTER_TO_UINT (d);
   hb_face_t *face;
   hb_font_t *font;
   hb_paint_funcs_t *funcs;
   GString *ot_str;
   paint_data_t data;
 
-#ifndef HAVE_FT_COLRv1
-  g_test_skip ("FreeType COLRv1 support not present");
-  return;
-#endif
-
-  face = hb_test_open_font_file (TEST_GLYPHS);
+  face = hb_test_open_font_file (file);
   font = hb_font_create (face);
 
   funcs = get_test_paint_funcs ();
@@ -471,7 +479,9 @@ test_compare_ot_ft (gconstpointer d)
 
   ot_str = data.string;
 
+#ifdef HAVE_FT_COLRv1
   hb_ft_font_set_funcs (font);
+#endif
 
   data.string = g_string_new ("");
   data.level = 0;
@@ -500,6 +510,26 @@ test_hb_paint_ft (gconstpointer data)
 {
 #ifdef HAVE_FT_COLRv1
   test_hb_paint (data, 1);
+#else
+  g_test_skip ("FreeType COLRv1 support not present");
+#endif
+}
+
+static void
+test_compare_ot_ft_novf (gconstpointer d)
+{
+#ifdef HAVE_FT_COLRv1
+  test_compare_ot_ft (TEST_GLYPHS, GPOINTER_TO_UINT (d));
+#else
+  g_test_skip ("FreeType COLRv1 support not present");
+#endif
+}
+
+static void
+test_compare_ot_ft_vf (gconstpointer d)
+{
+#ifdef HAVE_FT_COLRv1
+  test_compare_ot_ft (TEST_GLYPHS_VF, GPOINTER_TO_UINT (d));
 #else
   g_test_skip ("FreeType COLRv1 support not present");
 #endif
@@ -617,7 +647,8 @@ main (int argc, char **argv)
   {
     char buf[20];
     snprintf (buf, 20, "test-%u", i);
-    hb_test_add_data_flavor (GUINT_TO_POINTER (i), buf, test_compare_ot_ft);
+    hb_test_add_data_flavor (GUINT_TO_POINTER (i), buf, test_compare_ot_ft_novf);
+    hb_test_add_data_flavor (GUINT_TO_POINTER (i), buf, test_compare_ot_ft_vf);
   }
   hb_face_destroy (face);
 
