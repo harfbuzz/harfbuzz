@@ -96,12 +96,12 @@ struct Glyph
     unsigned hori_aw = roundf (rightSideX - leftSideX);
     if (hori_aw < 0) hori_aw = 0;
     int lsb = roundf (xMin - leftSideX);
-    plan->hmtx_map->set (new_gid, hb_pair (hori_aw, lsb));
+    plan->hmtx_map.set (new_gid, hb_pair (hori_aw, lsb));
 
     unsigned vert_aw = roundf (topSideY - bottomSideY);
     if (vert_aw < 0) vert_aw = 0;
     int tsb = roundf (topSideY - yMax);
-    plan->vmtx_map->set (new_gid, hb_pair (vert_aw, tsb));
+    plan->vmtx_map.set (new_gid, hb_pair (vert_aw, tsb));
   }
 
   bool compile_header_bytes (const hb_subset_plan_t *plan,

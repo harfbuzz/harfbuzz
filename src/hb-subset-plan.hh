@@ -58,8 +58,6 @@ struct hb_subset_plan_t
     hb_map_destroy (axes_old_index_tag_map);
 
     hb_hashmap_destroy (axes_location);
-    hb_hashmap_destroy (hmtx_map);
-    hb_hashmap_destroy (vmtx_map);
 
 #ifdef HB_EXPERIMENTAL_API
     if (name_table_overrides)
@@ -172,9 +170,9 @@ struct hb_subset_plan_t
   bool has_seac;
 
   //hmtx metrics map: new gid->(advance, lsb)
-  hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> *hmtx_map;
+  mutable hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> hmtx_map;
   //vmtx metrics map: new gid->(advance, lsb)
-  hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> *vmtx_map;
+  mutable hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> vmtx_map;
 
 #ifdef HB_EXPERIMENTAL_API
   // name table overrides map: hb_ot_name_record_ids_t-> name string new value or

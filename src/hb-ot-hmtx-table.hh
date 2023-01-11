@@ -74,7 +74,7 @@ struct hmtxvmtx
   }
 
   const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>>* get_mtx_map (const hb_subset_plan_t *plan) const
-  { return T::is_horizontal ? plan->hmtx_map : plan->vmtx_map; }
+  { return T::is_horizontal ? &plan->hmtx_map : &plan->vmtx_map; }
 
   bool subset_update_header (hb_subset_plan_t *plan,
 			     unsigned int num_hmetrics) const
