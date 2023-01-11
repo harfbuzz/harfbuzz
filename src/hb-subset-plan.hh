@@ -64,7 +64,6 @@ struct hb_subset_plan_t
     hb_hashmap_destroy (axes_location);
     hb_hashmap_destroy (hmtx_map);
     hb_hashmap_destroy (vmtx_map);
-    hb_hashmap_destroy (layout_variation_idx_delta_map);
 
 #ifdef HB_EXPERIMENTAL_API
     if (name_table_overrides)
@@ -161,7 +160,7 @@ struct hb_subset_plan_t
   hb_map_t colr_palettes;
 
   //Old layout item variation index -> (New varidx, delta) mapping
-  hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map;
+  hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> layout_variation_idx_delta_map;
 
   //gdef varstore retained varidx mapping
   hb_vector_t<hb_inc_bimap_t> gdef_varstore_inner_maps;

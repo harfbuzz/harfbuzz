@@ -206,9 +206,9 @@ struct CaretValueFormat3
     if (!c->serializer->embed (coordinate)) return_trace (false);
 
     unsigned varidx = (this+deviceTable).get_variation_index ();
-    if (c->plan->layout_variation_idx_delta_map->has (varidx))
+    if (c->plan->layout_variation_idx_delta_map.has (varidx))
     {
-      int delta = hb_second (c->plan->layout_variation_idx_delta_map->get (varidx));
+      int delta = hb_second (c->plan->layout_variation_idx_delta_map.get (varidx));
       if (delta != 0)
       {
         if (!c->serializer->check_assign (out->coordinate, coordinate + delta, HB_SERIALIZE_ERROR_INT_OVERFLOW))
@@ -223,7 +223,7 @@ struct CaretValueFormat3
       return_trace (false);
 
     return_trace (out->deviceTable.serialize_copy (c->serializer, deviceTable, this, c->serializer->to_bias (out),
-						   hb_serialize_context_t::Head, c->plan->layout_variation_idx_delta_map));
+						   hb_serialize_context_t::Head, &c->plan->layout_variation_idx_delta_map));
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const

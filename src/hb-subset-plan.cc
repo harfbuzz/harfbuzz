@@ -380,7 +380,7 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
   }
 
   OT::hb_collect_variation_indices_context_t c (&varidx_set,
-                                                plan->layout_variation_idx_delta_map,
+                                                &plan->layout_variation_idx_delta_map,
                                                 font, var_store,
                                                 &plan->_glyphset_gsub,
                                                 &plan->gpos_lookups,
@@ -393,7 +393,7 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
   hb_font_destroy (font);
   var_store->destroy_cache (store_cache);
 
-  gdef->remap_layout_variation_indices (&varidx_set, plan->layout_variation_idx_delta_map);
+  gdef->remap_layout_variation_indices (&varidx_set, &plan->layout_variation_idx_delta_map);
 
   unsigned subtable_count = gdef->has_var_store () ? gdef->get_var_store ().get_sub_table_count () : 0;
   _generate_varstore_inner_maps (varidx_set, subtable_count, plan->gdef_varstore_inner_maps);
@@ -857,7 +857,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->reverse_glyph_map = hb_map_create ();
   plan->glyph_map_gsub = hb_map_create ();
 
-  plan->check_success (plan->layout_variation_idx_delta_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
   plan->gdef_varstore_inner_maps.init ();
 
   plan->check_success (plan->axes_location = hb_hashmap_create<hb_tag_t, int> ());

@@ -144,7 +144,7 @@ struct SinglePosFormat1
     ;
 
     bool ret = bool (it);
-    SinglePos_serialize (c->serializer, this, it, c->plan->layout_variation_idx_delta_map, c->plan->all_axes_pinned);
+    SinglePos_serialize (c->serializer, this, it, &c->plan->layout_variation_idx_delta_map, c->plan->all_axes_pinned);
     return_trace (ret);
   }
 };
