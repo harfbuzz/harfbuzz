@@ -338,7 +338,7 @@ struct hmtxvmtx
   /* get advance: when no variations, call get_advance_without_var_unscaled.
    * when there're variations, get advance value from mtx_map in subset_plan*/
   unsigned get_new_gid_advance_unscaled (const hb_subset_plan_t *plan,
-                                         const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *mtx_map,
+                                         const hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> *mtx_map,
                                          unsigned new_gid,
                                          const accelerator_t &_mtx) const
   {
