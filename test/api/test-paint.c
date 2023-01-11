@@ -323,6 +323,7 @@ static paint_test_t paint_tests[] = {
   { TEST_GLYPHS, 0,  106,   0, "test-106" },
   { TEST_GLYPHS, 0,  116,   0, "test-116" }, // compositing
   { TEST_GLYPHS, 0,  123,   0, "test-123" },
+  { TEST_GLYPHS, 0,  154,   0, "test-154" },
   { TEST_GLYPHS, 0,  165,   0, "test-165" }, // linear gradient
   { TEST_GLYPHS, 0,  175,   0, "test-175" }, // layers
   { BAD_COLRV1,  0,  154,   0, "bad-154" },  // recursion
