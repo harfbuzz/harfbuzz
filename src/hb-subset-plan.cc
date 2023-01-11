@@ -630,7 +630,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         plan,
         plan->_glyphset_gsub,
         plan->gsub_lookups,
-        plan->gsub_features,
+        &plan->gsub_features,
         plan->gsub_langsys,
         plan->gsub_feature_record_cond_idx_map,
         plan->gsub_feature_substitutes_map);
@@ -640,7 +640,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         plan,
         plan->_glyphset_gsub,
         plan->gpos_lookups,
-        plan->gpos_features,
+        &plan->gpos_features,
         plan->gpos_langsys,
         plan->gpos_feature_record_cond_idx_map,
         plan->gpos_feature_substitutes_map);
@@ -865,9 +865,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   plan->check_success (plan->gsub_langsys = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());
   plan->check_success (plan->gpos_langsys = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());
-
-  plan->gsub_features = hb_map_create ();
-  plan->gpos_features = hb_map_create ();
 
   plan->check_success (plan->gsub_feature_record_cond_idx_map = hb_hashmap_create<unsigned, hb::shared_ptr<hb_set_t>> ());
   plan->check_success (plan->gpos_feature_record_cond_idx_map = hb_hashmap_create<unsigned, hb::shared_ptr<hb_set_t>> ());

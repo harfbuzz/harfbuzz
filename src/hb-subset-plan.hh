@@ -64,8 +64,6 @@ struct hb_subset_plan_t
     hb_set_destroy (_glyphset_colred);
     hb_map_destroy (gsub_lookups);
     hb_map_destroy (gpos_lookups);
-    hb_map_destroy (gsub_features);
-    hb_map_destroy (gpos_features);
     hb_map_destroy (colrv1_layers);
     hb_map_destroy (colr_palettes);
     hb_map_destroy (axes_index_map);
@@ -161,8 +159,8 @@ struct hb_subset_plan_t
   hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *gpos_langsys;
 
   //active features after removing redundant langsys and prune_features
-  hb_map_t *gsub_features;
-  hb_map_t *gpos_features;
+  hb_map_t gsub_features;
+  hb_map_t gpos_features;
 
   //active feature variation records/condition index with variations
   hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *gsub_feature_record_cond_idx_map;
