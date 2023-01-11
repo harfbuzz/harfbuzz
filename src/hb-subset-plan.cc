@@ -855,7 +855,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->codepoint_to_glyph = hb_map_create ();
   plan->glyph_map = hb_map_create ();
   plan->reverse_glyph_map = hb_map_create ();
-  plan->glyph_map_gsub = hb_map_create ();
 
   plan->gdef_varstore_inner_maps.init ();
 
@@ -920,7 +919,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   _create_glyph_map_gsub (
       &plan->_glyphset_gsub,
       plan->glyph_map,
-      plan->glyph_map_gsub);
+      &plan->glyph_map_gsub);
 
   // Now that we have old to new gid map update the unicode to new gid list.
   for (unsigned i = 0; i < plan->unicode_to_new_gid_list.length; i++)

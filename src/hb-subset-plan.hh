@@ -54,7 +54,6 @@ struct hb_subset_plan_t
     hb_map_destroy (codepoint_to_glyph);
     hb_map_destroy (glyph_map);
     hb_map_destroy (reverse_glyph_map);
-    hb_map_destroy (glyph_map_gsub);
     hb_map_destroy (axes_index_map);
     hb_map_destroy (axes_old_index_tag_map);
 
@@ -119,7 +118,7 @@ struct hb_subset_plan_t
   // Old -> New glyph id mapping
   hb_map_t *glyph_map;
   hb_map_t *reverse_glyph_map;
-  hb_map_t *glyph_map_gsub;
+  hb_map_t glyph_map_gsub;
 
   // Plan is only good for a specific source/dest so keep them with it
   hb_face_t *source;

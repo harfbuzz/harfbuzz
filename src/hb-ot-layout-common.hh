@@ -1532,7 +1532,7 @@ struct ClassDefFormat1_3
                const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
-    const hb_map_t &glyph_map = *c->plan->glyph_map_gsub;
+    const hb_map_t &glyph_map = c->plan->glyph_map_gsub;
 
     hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> glyph_and_klass;
     hb_set_t orig_klasses;
@@ -1777,7 +1777,7 @@ struct ClassDefFormat2_4
                const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
-    const hb_map_t &glyph_map = *c->plan->glyph_map_gsub;
+    const hb_map_t &glyph_map = c->plan->glyph_map_gsub;
     const hb_set_t &glyph_set = *c->plan->glyphset_gsub ();
 
     hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> glyph_and_klass;
