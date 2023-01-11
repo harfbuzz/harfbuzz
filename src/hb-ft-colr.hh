@@ -308,7 +308,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 
 	/* The FreeType ClipBox is in scaled coordinates, whereas we need
 	 * unscaled clipbox here. Oh well... */
-        has_clip_box = 0;
+        has_clip_box = false;
 
         if (has_clip_box)
           c->funcs->push_clip_rectangle (c->data,
