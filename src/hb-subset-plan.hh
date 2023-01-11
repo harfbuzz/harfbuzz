@@ -58,7 +58,6 @@ struct hb_subset_plan_t
     hb_map_destroy (glyph_map);
     hb_map_destroy (reverse_glyph_map);
     hb_map_destroy (glyph_map_gsub);
-    hb_set_destroy (_glyphset);
     hb_set_destroy (_glyphset_gsub);
     hb_set_destroy (_glyphset_mathed);
     hb_set_destroy (_glyphset_colred);
@@ -143,7 +142,7 @@ struct hb_subset_plan_t
   hb_face_t *dest;
 
   unsigned int _num_output_glyphs;
-  hb_set_t *_glyphset;
+  hb_set_t _glyphset;
   hb_set_t *_glyphset_gsub;
   hb_set_t *_glyphset_mathed;
   hb_set_t *_glyphset_colred;
@@ -246,7 +245,7 @@ struct hb_subset_plan_t
   inline const hb_set_t *
   glyphset () const
   {
-    return _glyphset;
+    return &_glyphset;
   }
 
   /*
@@ -273,7 +272,7 @@ struct hb_subset_plan_t
    */
   inline bool is_empty_glyph (hb_codepoint_t gid) const
   {
-    return !_glyphset->has (gid);
+    return !_glyphset.has (gid);
   }
 
   inline bool new_gid_for_codepoint (hb_codepoint_t codepoint,

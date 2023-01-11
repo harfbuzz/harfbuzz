@@ -667,23 +667,23 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
    * composite glyphs. */
   if (glyf.has_data ())
     for (hb_codepoint_t gid : cur_glyphset)
-      _glyf_add_gid_and_children (glyf, gid, plan->_glyphset,
+      _glyf_add_gid_and_children (glyf, gid, &plan->_glyphset,
 				  cur_glyphset.get_population () * HB_COMPOSITE_OPERATIONS_PER_GLYPH);
   else
-    plan->_glyphset->union_ (cur_glyphset);
+    plan->_glyphset.union_ (cur_glyphset);
 #ifndef HB_NO_SUBSET_CFF
   if (!plan->accelerator || plan->accelerator->has_seac)
   {
     bool has_seac = false;
     if (cff.is_valid ())
       for (hb_codepoint_t gid : cur_glyphset)
-	if (_add_cff_seac_components (cff, gid, plan->_glyphset))
+	if (_add_cff_seac_components (cff, gid, &plan->_glyphset))
 	  has_seac = true;
     plan->has_seac = has_seac;
   }
 #endif
 
-  _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
+  _remove_invalid_gids (&plan->_glyphset, plan->source->get_num_glyphs ());
 
 
 #ifndef HB_NO_VAR
@@ -852,7 +852,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
 
-  plan->_glyphset = hb_set_create ();
   plan->_glyphset_gsub = hb_set_create ();
   plan->_glyphset_mathed = hb_set_create ();
   plan->_glyphset_colred = hb_set_create ();
@@ -929,7 +928,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   _create_old_gid_to_new_gid_map (face,
                                   input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
-				  plan->_glyphset,
+				  &plan->_glyphset,
 				  plan->glyph_map,
 				  plan->reverse_glyph_map,
 				  &plan->_num_output_glyphs);
