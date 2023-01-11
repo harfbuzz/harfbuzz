@@ -139,7 +139,7 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
   hb_vector_t<hb_tag_t> features;
   if (!plan->check_success (features.resize (num_features))) return;
   table.get_feature_tags (0, &num_features, features.arrayZ);
-  bool retain_all_features = !_filter_tag_list (&features, plan->layout_features);
+  bool retain_all_features = !_filter_tag_list (&features, &plan->layout_features);
 
   unsigned num_scripts = table.get_script_count ();
   hb_vector_t<hb_tag_t> scripts;
@@ -844,7 +844,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   plan->name_ids = hb_set_copy (input->sets.name_ids);
   plan->name_languages = hb_set_copy (input->sets.name_languages);
-  plan->layout_features = hb_set_copy (input->sets.layout_features);
+  plan->layout_features = *input->sets.layout_features;
   plan->layout_scripts = *input->sets.layout_scripts;
   plan->glyphs_requested = hb_set_copy (input->sets.glyphs);
   plan->drop_tables = hb_set_copy (input->sets.drop_tables);

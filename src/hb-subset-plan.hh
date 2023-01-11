@@ -51,7 +51,6 @@ struct hb_subset_plan_t
     hb_set_destroy (unicodes);
     hb_set_destroy (name_ids);
     hb_set_destroy (name_languages);
-    hb_set_destroy (layout_features);
     hb_set_destroy (glyphs_requested);
     hb_set_destroy (drop_tables);
     hb_set_destroy (no_subset_tables);
@@ -123,7 +122,7 @@ struct hb_subset_plan_t
   hb_set_t *name_languages;
 
   //layout features which will be preserved
-  hb_set_t *layout_features;
+  hb_set_t layout_features;
 
   // layout scripts which will be preserved.
   hb_set_t layout_scripts;
