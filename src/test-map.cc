@@ -273,6 +273,7 @@ main (int argc, char **argv)
 
     m.set (1, bytes);
     assert (m.has (1));
+    assert (m.get (1) == hb_bytes_t {"Test"});
   }
   /* Test operators. */
   {
