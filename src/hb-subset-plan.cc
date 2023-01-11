@@ -842,7 +842,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   plan->unicode_to_new_gid_list.init ();
 
-  plan->name_ids = hb_set_copy (input->sets.name_ids);
+  plan->name_ids = *input->sets.name_ids;
   plan->name_languages = *input->sets.name_languages;
   plan->layout_features = *input->sets.layout_features;
   plan->layout_scripts = *input->sets.layout_scripts;
@@ -952,7 +952,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
         plan->glyph_map->get(plan->unicode_to_new_gid_list.arrayZ[i].second);
   }
 
-  _nameid_closure (face, plan->name_ids, plan->all_axes_pinned, plan->user_axes_location);
+  _nameid_closure (face, &plan->name_ids, plan->all_axes_pinned, plan->user_axes_location);
   if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
     return nullptr;

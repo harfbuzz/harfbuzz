@@ -49,7 +49,6 @@ struct hb_subset_plan_t
   ~hb_subset_plan_t()
   {
     hb_set_destroy (unicodes);
-    hb_set_destroy (name_ids);
     hb_set_destroy (glyphs_requested);
     hb_set_destroy (drop_tables);
     hb_set_destroy (no_subset_tables);
@@ -115,7 +114,7 @@ struct hb_subset_plan_t
   hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> unicode_to_new_gid_list;
 
   // name_ids we would like to retain
-  hb_set_t *name_ids;
+  hb_set_t name_ids;
 
   // name_languages we would like to retain
   hb_set_t name_languages;
