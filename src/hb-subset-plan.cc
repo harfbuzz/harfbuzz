@@ -843,7 +843,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->unicode_to_new_gid_list.init ();
 
   plan->name_ids = hb_set_copy (input->sets.name_ids);
-  plan->name_languages = hb_set_copy (input->sets.name_languages);
+  plan->name_languages = *input->sets.name_languages;
   plan->layout_features = *input->sets.layout_features;
   plan->layout_scripts = *input->sets.layout_scripts;
   plan->glyphs_requested = hb_set_copy (input->sets.glyphs);
