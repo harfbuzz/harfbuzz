@@ -50,13 +50,15 @@ struct hb_subset_plan_t
   {
     hb_face_destroy (source);
     hb_face_destroy (dest);
+
     hb_map_destroy (codepoint_to_glyph);
     hb_map_destroy (glyph_map);
     hb_map_destroy (reverse_glyph_map);
+
     hb_map_destroy (axes_index_map);
     hb_map_destroy (axes_old_index_tag_map);
-
     hb_hashmap_destroy (axes_location);
+    hb_hashmap_destroy (user_axes_location);
 
 #ifdef HB_EXPERIMENTAL_API
     if (name_table_overrides)
@@ -69,8 +71,6 @@ struct hb_subset_plan_t
 
     if (inprogress_accelerator)
       hb_subset_accelerator_t::destroy ((void*) inprogress_accelerator);
-
-    hb_hashmap_destroy (user_axes_location);
   }
 
   hb_object_header_t header;
