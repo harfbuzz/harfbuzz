@@ -862,19 +862,16 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->pinned_at_default = true;
 
 #ifdef HB_EXPERIMENTAL_API
-  if (input->name_table_overrides)
+  for (auto _ : input->name_table_overrides)
   {
-    for (auto _ : *input->name_table_overrides)
-    {
-      hb_bytes_t name_bytes = _.second;
-      unsigned len = name_bytes.length;
-      char *name_str = (char *) hb_malloc (len);
-      if (unlikely (!plan->check_success (name_str)))
-        break;
+    hb_bytes_t name_bytes = _.second;
+    unsigned len = name_bytes.length;
+    char *name_str = (char *) hb_malloc (len);
+    if (unlikely (!plan->check_success (name_str)))
+      break;
 
-      hb_memcpy (name_str, name_bytes.arrayZ, len);
-      plan->name_table_overrides.set (_.first, hb_bytes_t (name_str, len));
-    }
+    hb_memcpy (name_str, name_bytes.arrayZ, len);
+    plan->name_table_overrides.set (_.first, hb_bytes_t (name_str, len));
   }
 #endif
 

@@ -48,15 +48,7 @@ hb_subset_input_create_or_fail (void)
   for (auto& set : input->sets_iter ())
     set = hb_set_create ();
 
-#ifdef HB_EXPERIMENTAL_API
-  input->name_table_overrides = hb_hashmap_create<hb_ot_name_record_ids_t, hb_bytes_t> ();
-#endif
-
-  if (
-#ifdef HB_EXPERIMENTAL_API
-      !input->name_table_overrides ||
-#endif
-      input->in_error ())
+  if (input->in_error ())
   {
     hb_subset_input_destroy (input);
     return nullptr;
@@ -253,12 +245,8 @@ hb_subset_input_destroy (hb_subset_input_t *input)
     hb_set_destroy (set);
 
 #ifdef HB_EXPERIMENTAL_API
-  if (input->name_table_overrides)
-  {
-    for (auto _ : *input->name_table_overrides)
-      _.second.fini ();
-  }
-  hb_hashmap_destroy (input->name_table_overrides);
+  for (auto _ : input->name_table_overrides)
+    _.second.fini ();
 #endif
 
   hb_free (input);
@@ -599,7 +587,7 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
     hb_memcpy (override_name, name_str, str_len);
     name_bytes = hb_bytes_t (override_name, str_len);
   }
-  input->name_table_overrides->set (hb_ot_name_record_ids_t (platform_id, encoding_id, language_id, name_id), name_bytes);
+  input->name_table_overrides.set (hb_ot_name_record_ids_t (platform_id, encoding_id, language_id, name_id), name_bytes);
   return true;
 }
 
