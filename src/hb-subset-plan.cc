@@ -661,7 +661,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
     _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
   }
 
-  hb_set_set (plan->_glyphset_colred, &cur_glyphset);
+  plan->_glyphset_colred = cur_glyphset;
 
   /* Populate a full set of glyphs to retain by adding all referenced
    * composite glyphs. */
@@ -852,7 +852,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
 
-  plan->_glyphset_colred = hb_set_create ();
   plan->codepoint_to_glyph = hb_map_create ();
   plan->glyph_map = hb_map_create ();
   plan->reverse_glyph_map = hb_map_create ();

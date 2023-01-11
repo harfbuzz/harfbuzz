@@ -1456,7 +1456,7 @@ struct ClipList
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
     if (!c->serializer->check_assign (out->format, format, HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
 
-    const hb_set_t& glyphset = *c->plan->_glyphset_colred;
+    const hb_set_t& glyphset = c->plan->_glyphset_colred;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_map_t new_gid_offset_map;
@@ -1641,7 +1641,7 @@ struct BaseGlyphList : SortedArray32Of<BaseGlyphPaintRecord>
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!c->serializer->extend_min (out)))  return_trace (false);
-    const hb_set_t* glyphset = c->plan->_glyphset_colred;
+    const hb_set_t* glyphset = &c->plan->_glyphset_colred;
 
     for (const auto& _ : as_array ())
     {
@@ -1882,7 +1882,7 @@ struct COLR
     TRACE_SUBSET (this);
 
     const hb_map_t &reverse_glyph_map = *c->plan->reverse_glyph_map;
-    const hb_set_t& glyphset = *c->plan->_glyphset_colred;
+    const hb_set_t& glyphset = c->plan->_glyphset_colred;
 
     auto base_it =
     + hb_range (c->plan->num_output_glyphs ())
