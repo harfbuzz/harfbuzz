@@ -56,7 +56,6 @@ struct hb_subset_plan_t
     hb_map_destroy (reverse_glyph_map);
 
     hb_map_destroy (axes_index_map);
-    hb_map_destroy (axes_old_index_tag_map);
     hb_hashmap_destroy (axes_location);
     hb_hashmap_destroy (user_axes_location);
 
@@ -163,7 +162,7 @@ struct hb_subset_plan_t
   //retained old axis index -> new axis index mapping in fvar axis array
   hb_map_t *axes_index_map;
   //axis_index->axis_tag mapping in fvar axis array
-  hb_map_t *axes_old_index_tag_map;
+  hb_map_t axes_old_index_tag_map;
   bool all_axes_pinned;
   bool pinned_at_default;
   bool has_seac;

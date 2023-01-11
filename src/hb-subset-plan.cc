@@ -165,7 +165,7 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
     hb_hashmap_t<hb::shared_ptr<hb_map_t>, unsigned> conditionset_map;
     OT::hb_collect_feature_substitutes_with_var_context_t c =
     {
-      plan->axes_old_index_tag_map,
+      &plan->axes_old_index_tag_map,
       plan->axes_location,
       feature_record_cond_idx_map,
       feature_substitutes_map,
@@ -782,7 +782,7 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
   for (const auto& axis : axes)
   {
     hb_tag_t axis_tag = axis.get_axis_tag ();
-    plan->axes_old_index_tag_map->set (old_axis_idx, axis_tag);
+    plan->axes_old_index_tag_map.set (old_axis_idx, axis_tag);
 
     if (!plan->user_axes_location->has (axis_tag))
     {
@@ -862,7 +862,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   if (plan->user_axes_location && input->axes_location)
       *plan->user_axes_location = *input->axes_location;
   plan->check_success (plan->axes_index_map = hb_map_create ());
-  plan->check_success (plan->axes_old_index_tag_map = hb_map_create ());
   plan->all_axes_pinned = false;
   plan->pinned_at_default = true;
 

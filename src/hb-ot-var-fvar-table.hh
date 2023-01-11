@@ -61,7 +61,7 @@ struct InstanceRecord
     {
       uint32_t *axis_tag;
       // only keep instances whose coordinates == pinned axis location
-      if (!c->plan->axes_old_index_tag_map->has (i, &axis_tag)) continue;
+      if (!c->plan->axes_old_index_tag_map.has (i, &axis_tag)) continue;
 
       if (axes_location->has (*axis_tag) &&
           fabsf (axes_location->get (*axis_tag) - coords[i].to_float ()) > 0.001f)
