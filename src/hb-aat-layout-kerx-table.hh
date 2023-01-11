@@ -350,7 +350,7 @@ struct KerxSubTableFormat1
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->font->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c);
 
     return_trace (true);
   }
@@ -594,7 +594,7 @@ struct KerxSubTableFormat4
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->font->face);
-    driver.drive (&dc);
+    driver.drive (&dc, c);
 
     return_trace (true);
   }
@@ -869,6 +869,8 @@ struct KerxTable
 
   bool apply (AAT::hb_aat_apply_context_t *c) const
   {
+    c->buffer->unsafe_to_concat ();
+
     typedef typename T::SubTable SubTable;
 
     bool ret = false;
