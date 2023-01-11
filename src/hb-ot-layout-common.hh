@@ -157,7 +157,7 @@ struct hb_subset_layout_context_t :
     if (tag_ == HB_OT_TAG_GSUB)
     {
       lookup_index_map = &c_->plan->gsub_lookups;
-      script_langsys_map = c_->plan->gsub_langsys;
+      script_langsys_map = &c_->plan->gsub_langsys;
       feature_index_map = &c_->plan->gsub_features;
       feature_substitutes_map = c_->plan->gsub_feature_substitutes_map;
       feature_record_cond_idx_map = c_->plan->user_axes_location->is_empty () ? nullptr : c_->plan->gsub_feature_record_cond_idx_map;
@@ -165,7 +165,7 @@ struct hb_subset_layout_context_t :
     else
     {
       lookup_index_map = &c_->plan->gpos_lookups;
-      script_langsys_map = c_->plan->gpos_langsys;
+      script_langsys_map = &c_->plan->gpos_langsys;
       feature_index_map = &c_->plan->gpos_features;
       feature_substitutes_map = c_->plan->gpos_feature_substitutes_map;
       feature_record_cond_idx_map = c_->plan->user_axes_location->is_empty () ? nullptr : c_->plan->gpos_feature_record_cond_idx_map;

@@ -63,8 +63,6 @@ struct hb_subset_plan_t
     hb_map_destroy (axes_index_map);
     hb_map_destroy (axes_old_index_tag_map);
 
-    hb_hashmap_destroy (gsub_langsys);
-    hb_hashmap_destroy (gpos_langsys);
     hb_hashmap_destroy (gsub_feature_record_cond_idx_map);
     hb_hashmap_destroy (gpos_feature_record_cond_idx_map);
     hb_hashmap_destroy (gsub_feature_substitutes_map);
@@ -149,8 +147,8 @@ struct hb_subset_plan_t
   hb_map_t gpos_lookups;
 
   //active langsys we'd like to retain
-  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *gsub_langsys;
-  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *gpos_langsys;
+  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> gsub_langsys;
+  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> gpos_langsys;
 
   //active features after removing redundant langsys and prune_features
   hb_map_t gsub_features;
