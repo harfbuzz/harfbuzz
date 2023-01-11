@@ -93,12 +93,12 @@ struct Glyph
     float topSideY = all_points[len - 2].y;
     float bottomSideY = all_points[len - 1].y;
 
-    int hori_aw = roundf (rightSideX - leftSideX);
+    unsigned hori_aw = roundf (rightSideX - leftSideX);
     if (hori_aw < 0) hori_aw = 0;
     int lsb = roundf (xMin - leftSideX);
     plan->hmtx_map->set (new_gid, hb_pair (hori_aw, lsb));
 
-    int vert_aw = roundf (topSideY - bottomSideY);
+    unsigned vert_aw = roundf (topSideY - bottomSideY);
     if (vert_aw < 0) vert_aw = 0;
     int tsb = roundf (topSideY - yMax);
     plan->vmtx_map->set (new_gid, hb_pair (vert_aw, tsb));

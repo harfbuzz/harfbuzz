@@ -867,8 +867,8 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->all_axes_pinned = false;
   plan->pinned_at_default = true;
 
-  plan->check_success (plan->vmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
-  plan->check_success (plan->hmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
+  plan->check_success (plan->vmtx_map = hb_hashmap_create<hb_codepoint_t, hb_pair_t<unsigned, int>> ());
+  plan->check_success (plan->hmtx_map = hb_hashmap_create<hb_codepoint_t, hb_pair_t<unsigned, int>> ());
 
 #ifdef HB_EXPERIMENTAL_API
   plan->check_success (plan->name_table_overrides = hb_hashmap_create<hb_ot_name_record_ids_t, hb_bytes_t> ());
