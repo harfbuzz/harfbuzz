@@ -391,7 +391,7 @@ struct name
 
 #ifdef HB_EXPERIMENTAL_API
     const hb_hashmap_t<hb_ot_name_record_ids_t, hb_bytes_t> *name_table_overrides =
-        c->plan->name_table_overrides;
+        &c->plan->name_table_overrides;
 #endif
     
     auto it =

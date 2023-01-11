@@ -863,8 +863,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->pinned_at_default = true;
 
 #ifdef HB_EXPERIMENTAL_API
-  plan->check_success (plan->name_table_overrides = hb_hashmap_create<hb_ot_name_record_ids_t, hb_bytes_t> ());
-  if (plan->name_table_overrides && input->name_table_overrides)
+  if (input->name_table_overrides)
   {
     for (auto _ : *input->name_table_overrides)
     {
@@ -875,7 +874,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
         break;
 
       hb_memcpy (name_str, name_bytes.arrayZ, len);
-      plan->name_table_overrides->set (_.first, hb_bytes_t (name_str, len));
+      plan->name_table_overrides.set (_.first, hb_bytes_t (name_str, len));
     }
   }
 #endif
