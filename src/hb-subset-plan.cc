@@ -657,7 +657,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   hb_set_t cur_glyphset = plan->_glyphset_mathed;
   if (!drop_tables->has (HB_OT_TAG_COLR))
   {
-    _colr_closure (plan->source, plan->colrv1_layers, plan->colr_palettes, &cur_glyphset);
+    _colr_closure (plan->source, &plan->colrv1_layers, plan->colr_palettes, &cur_glyphset);
     _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
   }
 
@@ -857,7 +857,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->reverse_glyph_map = hb_map_create ();
   plan->glyph_map_gsub = hb_map_create ();
 
-  plan->colrv1_layers = hb_map_create ();
   plan->colr_palettes = hb_map_create ();
   plan->check_success (plan->layout_variation_idx_delta_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
   plan->gdef_varstore_inner_maps.init ();

@@ -550,7 +550,7 @@ struct PaintColrLayers
     TRACE_SUBSET (this);
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
-    return_trace (c->serializer->check_assign (out->firstLayerIndex, c->plan->colrv1_layers->get (firstLayerIndex),
+    return_trace (c->serializer->check_assign (out->firstLayerIndex, c->plan->colrv1_layers.get (firstLayerIndex),
                                                HB_SERIALIZE_ERROR_INT_OVERFLOW));
 
     return_trace (true);
