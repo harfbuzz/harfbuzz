@@ -149,9 +149,9 @@ typedef struct hb_transform_t
 typedef struct hb_bounds_t
 {
   enum status_t {
-    EMPTY,
-    BOUNDED,
     UNBOUNDED,
+    BOUNDED,
+    EMPTY,
   };
 
   hb_bounds_t (status_t status) : status (status) {}
