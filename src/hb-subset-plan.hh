@@ -63,8 +63,6 @@ struct hb_subset_plan_t
     hb_map_destroy (axes_index_map);
     hb_map_destroy (axes_old_index_tag_map);
 
-    hb_hashmap_destroy (gsub_feature_record_cond_idx_map);
-    hb_hashmap_destroy (gpos_feature_record_cond_idx_map);
     hb_hashmap_destroy (gsub_feature_substitutes_map);
     hb_hashmap_destroy (gpos_feature_substitutes_map);
     hb_hashmap_destroy (axes_location);
@@ -155,8 +153,8 @@ struct hb_subset_plan_t
   hb_map_t gpos_features;
 
   //active feature variation records/condition index with variations
-  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *gsub_feature_record_cond_idx_map;
-  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *gpos_feature_record_cond_idx_map;
+  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> gsub_feature_record_cond_idx_map;
+  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> gpos_feature_record_cond_idx_map;
 
   //feature index-> address of substituation feature table mapping with
   //variations
