@@ -168,11 +168,11 @@ _get_table_tags (const hb_subset_plan_t* plan,
       hb_concat (
           + hb_array (known_tables)
           | hb_filter ([&] (hb_tag_t tag) {
-            return !_table_is_empty (plan->source, tag) && !plan->no_subset_tables->has (tag);
+            return !_table_is_empty (plan->source, tag) && !plan->no_subset_tables.has (tag);
           })
           | hb_map ([] (hb_tag_t tag) -> hb_tag_t { return tag; }),
 
-          plan->no_subset_tables->iter ()
+          plan->no_subset_tables.iter ()
           | hb_filter([&] (hb_tag_t tag) {
             return !_table_is_empty (plan->source, tag);
           }));
@@ -355,7 +355,7 @@ _is_table_present (hb_face_t *source, hb_tag_t tag)
 static bool
 _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
 {
-  if (plan->drop_tables->has (tag))
+  if (plan->drop_tables.has (tag))
     return true;
 
   switch (tag)
@@ -424,7 +424,7 @@ _subset_table (hb_subset_plan_t *plan,
 	       hb_vector_t<char> &buf,
 	       hb_tag_t tag)
 {
-  if (plan->no_subset_tables->has (tag)) {
+  if (plan->no_subset_tables.has (tag)) {
     return _passthrough (plan, tag);
   }
 
