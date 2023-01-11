@@ -56,7 +56,7 @@ struct InstanceRecord
     if (unlikely (!c->serializer->embed (flags))) return_trace (false);
 
     const hb_array_t<const F16DOT16> coords = get_coordinates (axis_count);
-    const hb_hashmap_t<hb_tag_t, float> *axes_location = c->plan->user_axes_location;
+    const hb_hashmap_t<hb_tag_t, float> *axes_location = &c->plan->user_axes_location;
     for (unsigned i = 0 ; i < axis_count; i++)
     {
       uint32_t *axis_tag;

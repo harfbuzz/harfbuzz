@@ -160,7 +160,7 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
 
 #ifndef HB_NO_VAR
   // collect feature substitutes with variations
-  if (!plan->user_axes_location->is_empty ())
+  if (!plan->user_axes_location.is_empty ())
   {
     hb_hashmap_t<hb::shared_ptr<hb_map_t>, unsigned> conditionset_map;
     OT::hb_collect_feature_substitutes_with_var_context_t c =
@@ -294,7 +294,7 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 
   // prune features
   table->prune_features (lookups,
-                         plan->user_axes_location->is_empty () ? nullptr : feature_record_cond_idx_map,
+                         plan->user_axes_location.is_empty () ? nullptr : feature_record_cond_idx_map,
                          feature_substitutes_map,
                          &feature_indices);
   hb_map_t duplicate_feature_map;
@@ -335,9 +335,9 @@ _get_hb_font_with_variations (const hb_subset_plan_t *plan)
   hb_font_t *font = hb_font_create (plan->source);
 
   hb_vector_t<hb_variation_t> vars;
-  vars.alloc (plan->user_axes_location->get_population ());
+  vars.alloc (plan->user_axes_location.get_population ());
 
-  for (auto _ : *plan->user_axes_location)
+  for (auto _ : plan->user_axes_location)
   {
     hb_variation_t var;
     var.tag = _.first;
@@ -346,7 +346,7 @@ _get_hb_font_with_variations (const hb_subset_plan_t *plan)
   }
 
 #ifndef HB_NO_VAR
-  hb_font_set_variations (font, vars.arrayZ, plan->user_axes_location->get_population ());
+  hb_font_set_variations (font, vars.arrayZ, plan->user_axes_location.get_population ());
 #endif
   return font;
 }
@@ -765,7 +765,7 @@ _nameid_closure (hb_face_t *face,
 static void
 _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
 {
-  if (plan->user_axes_location->is_empty ())
+  if (plan->user_axes_location.is_empty ())
     return;
 
   hb_array_t<const OT::AxisRecord> axes = face->table.fvar->get_axes ();
@@ -784,7 +784,7 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     hb_tag_t axis_tag = axis.get_axis_tag ();
     plan->axes_old_index_tag_map.set (old_axis_idx, axis_tag);
 
-    if (!plan->user_axes_location->has (axis_tag))
+    if (!plan->user_axes_location.has (axis_tag))
     {
       axis_not_pinned = true;
       plan->axes_index_map.set (old_axis_idx, new_axis_idx);
@@ -792,7 +792,7 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     }
     else
     {
-      int normalized_v = axis.normalize_axis_value (plan->user_axes_location->get (axis_tag));
+      int normalized_v = axis.normalize_axis_value (plan->user_axes_location.get (axis_tag));
       if (has_avar && old_axis_idx < face->table.avar->get_axis_count ())
       {
         normalized_v = seg_maps->map (normalized_v);
@@ -857,9 +857,8 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   plan->gdef_varstore_inner_maps.init ();
 
-  plan->check_success (plan->user_axes_location = hb_hashmap_create<hb_tag_t, float> ());
-  if (plan->user_axes_location && input->axes_location)
-      *plan->user_axes_location = *input->axes_location;
+  if (input->axes_location)
+      plan->user_axes_location = *input->axes_location;
   plan->all_axes_pinned = false;
   plan->pinned_at_default = true;
 
@@ -922,7 +921,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
         plan->glyph_map->get(plan->unicode_to_new_gid_list.arrayZ[i].second);
   }
 
-  _nameid_closure (face, &plan->name_ids, plan->all_axes_pinned, plan->user_axes_location);
+  _nameid_closure (face, &plan->name_ids, plan->all_axes_pinned, &plan->user_axes_location);
   if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
     return nullptr;

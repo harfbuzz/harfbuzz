@@ -429,10 +429,10 @@ glyf::_create_font_for_instancing (const hb_subset_plan_t *plan) const
   if (unlikely (font == hb_font_get_empty ())) return nullptr;
 
   hb_vector_t<hb_variation_t> vars;
-  if (unlikely (!vars.alloc (plan->user_axes_location->get_population (), true)))
+  if (unlikely (!vars.alloc (plan->user_axes_location.get_population (), true)))
     return nullptr;
 
-  for (auto _ : *plan->user_axes_location)
+  for (auto _ : plan->user_axes_location)
   {
     hb_variation_t var;
     var.tag = _.first;
@@ -441,7 +441,7 @@ glyf::_create_font_for_instancing (const hb_subset_plan_t *plan) const
   }
 
 #ifndef HB_NO_VAR
-  hb_font_set_variations (font, vars.arrayZ, plan->user_axes_location->get_population ());
+  hb_font_set_variations (font, vars.arrayZ, plan->user_axes_location.get_population ());
 #endif
   return font;
 }

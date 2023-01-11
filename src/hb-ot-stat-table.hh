@@ -112,7 +112,7 @@ struct AxisValueFormat1
                const hb_array_t<const StatAxisRecord> axis_records) const
   {
     TRACE_SUBSET (this);
-    const hb_hashmap_t<hb_tag_t, float>*  user_axes_location = c->plan->user_axes_location;
+    const hb_hashmap_t<hb_tag_t, float>* user_axes_location = &c->plan->user_axes_location;
 
     if (keep_axis_value (axis_records, user_axes_location))
       return_trace (c->serializer->embed (this));
@@ -171,7 +171,7 @@ struct AxisValueFormat2
                const hb_array_t<const StatAxisRecord> axis_records) const
   {
     TRACE_SUBSET (this);
-    const hb_hashmap_t<hb_tag_t, float>*  user_axes_location = c->plan->user_axes_location;
+    const hb_hashmap_t<hb_tag_t, float>* user_axes_location = &c->plan->user_axes_location;
 
     if (keep_axis_value (axis_records, user_axes_location))
       return_trace (c->serializer->embed (this));
@@ -234,7 +234,7 @@ struct AxisValueFormat3
                const hb_array_t<const StatAxisRecord> axis_records) const
   {
     TRACE_SUBSET (this);
-    const hb_hashmap_t<hb_tag_t, float>* user_axes_location = c->plan->user_axes_location;
+    const hb_hashmap_t<hb_tag_t, float>* user_axes_location = &c->plan->user_axes_location;
 
     if (keep_axis_value (axis_records, user_axes_location))
       return_trace (c->serializer->embed (this));
@@ -313,7 +313,7 @@ struct AxisValueFormat4
                const hb_array_t<const StatAxisRecord> axis_records) const
   {
     TRACE_SUBSET (this);
-    const hb_hashmap_t<hb_tag_t, float> *user_axes_location = c->plan->user_axes_location;
+    const hb_hashmap_t<hb_tag_t, float> *user_axes_location = &c->plan->user_axes_location;
     if (!keep_axis_value (axis_records, user_axes_location))
       return_trace (false);
 
