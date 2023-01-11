@@ -847,7 +847,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->layout_features = *input->sets.layout_features;
   plan->layout_scripts = *input->sets.layout_scripts;
   plan->glyphs_requested = hb_set_copy (input->sets.glyphs);
-  plan->drop_tables = hb_set_copy (input->sets.drop_tables);
+  plan->drop_tables = *input->sets.drop_tables;
   plan->no_subset_tables = hb_set_copy (input->sets.no_subset_tables);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();

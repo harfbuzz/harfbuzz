@@ -355,7 +355,7 @@ _is_table_present (hb_face_t *source, hb_tag_t tag)
 static bool
 _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
 {
-  if (plan->drop_tables->has (tag))
+  if (plan->drop_tables.has (tag))
     return true;
 
   switch (tag)

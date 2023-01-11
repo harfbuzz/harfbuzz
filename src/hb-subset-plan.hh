@@ -50,7 +50,6 @@ struct hb_subset_plan_t
   {
     hb_set_destroy (unicodes);
     hb_set_destroy (glyphs_requested);
-    hb_set_destroy (drop_tables);
     hb_set_destroy (no_subset_tables);
     hb_face_destroy (source);
     hb_face_destroy (dest);
@@ -114,7 +113,7 @@ struct hb_subset_plan_t
   hb_set_t *no_subset_tables;
 
   // Tables which should be dropped.
-  hb_set_t *drop_tables;
+  hb_set_t drop_tables;
 
   // The glyph subset
   hb_map_t *codepoint_to_glyph;
