@@ -58,7 +58,6 @@ struct hb_subset_plan_t
     hb_map_destroy (glyph_map);
     hb_map_destroy (reverse_glyph_map);
     hb_map_destroy (glyph_map_gsub);
-    hb_set_destroy (_glyphset_mathed);
     hb_set_destroy (_glyphset_colred);
     hb_map_destroy (colrv1_layers);
     hb_map_destroy (colr_palettes);
@@ -143,7 +142,7 @@ struct hb_subset_plan_t
   unsigned int _num_output_glyphs;
   hb_set_t _glyphset;
   hb_set_t _glyphset_gsub;
-  hb_set_t *_glyphset_mathed;
+  hb_set_t _glyphset_mathed;
   hb_set_t *_glyphset_colred;
 
   //active lookups we'd like to retain

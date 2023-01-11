@@ -647,14 +647,14 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 #endif
   _remove_invalid_gids (&plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
-  hb_set_set (plan->_glyphset_mathed, &plan->_glyphset_gsub);
+  plan->_glyphset_mathed = plan->_glyphset_gsub;
   if (!drop_tables->has (HB_OT_TAG_MATH))
   {
-    _math_closure (plan, plan->_glyphset_mathed);
-    _remove_invalid_gids (plan->_glyphset_mathed, plan->source->get_num_glyphs ());
+    _math_closure (plan, &plan->_glyphset_mathed);
+    _remove_invalid_gids (&plan->_glyphset_mathed, plan->source->get_num_glyphs ());
   }
 
-  hb_set_t cur_glyphset = *plan->_glyphset_mathed;
+  hb_set_t cur_glyphset = plan->_glyphset_mathed;
   if (!drop_tables->has (HB_OT_TAG_COLR))
   {
     _colr_closure (plan->source, plan->colrv1_layers, plan->colr_palettes, &cur_glyphset);
@@ -852,7 +852,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
 
-  plan->_glyphset_mathed = hb_set_create ();
   plan->_glyphset_colred = hb_set_create ();
   plan->codepoint_to_glyph = hb_map_create ();
   plan->glyph_map = hb_map_create ();
