@@ -73,11 +73,7 @@ struct hb_subset_plan_t
     if (inprogress_accelerator)
       hb_subset_accelerator_t::destroy ((void*) inprogress_accelerator);
 
-    if (user_axes_location)
-    {
-      hb_object_destroy (user_axes_location);
-      hb_free (user_axes_location);
-    }
+    hb_hashmap_destroy (user_axes_location);
   }
 
   hb_object_header_t header;
@@ -113,11 +109,11 @@ struct hb_subset_plan_t
   hb_set_t drop_tables;
 
   // The glyph subset
-  hb_map_t *codepoint_to_glyph;
+  hb_map_t *codepoint_to_glyph; // Needs to be heap-allocated
 
   // Old -> New glyph id mapping
-  hb_map_t *glyph_map;
-  hb_map_t *reverse_glyph_map;
+  hb_map_t *glyph_map; // Needs to be heap-allocated
+  hb_map_t *reverse_glyph_map; // Needs to be heap-allocated
   hb_map_t glyph_map_gsub;
 
   // Plan is only good for a specific source/dest so keep them with it
