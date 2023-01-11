@@ -48,12 +48,11 @@ hb_subset_input_create_or_fail (void)
   for (auto& set : input->sets_iter ())
     set = hb_set_create ();
 
-  input->axes_location = hb_hashmap_create<hb_tag_t, float> ();
 #ifdef HB_EXPERIMENTAL_API
   input->name_table_overrides = hb_hashmap_create<hb_ot_name_record_ids_t, hb_bytes_t> ();
 #endif
 
-  if (!input->axes_location ||
+  if (
 #ifdef HB_EXPERIMENTAL_API
       !input->name_table_overrides ||
 #endif
@@ -252,8 +251,6 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 
   for (hb_set_t* set : input->sets_iter ())
     hb_set_destroy (set);
-
-  hb_hashmap_destroy (input->axes_location);
 
 #ifdef HB_EXPERIMENTAL_API
   if (input->name_table_overrides)
@@ -456,7 +453,7 @@ hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
   if (!hb_ot_var_find_axis_info (face, axis_tag, &axis_info))
     return false;
 
-  return input->axes_location->set (axis_tag, axis_info.default_value);
+  return input->axes_location.set (axis_tag, axis_info.default_value);
 }
 
 /**
@@ -486,7 +483,7 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
     return false;
 
   float val = hb_clamp(axis_value, axis_info.min_value, axis_info.max_value);
-  return input->axes_location->set (axis_tag, val);
+  return input->axes_location.set (axis_tag, val);
 }
 #endif
 

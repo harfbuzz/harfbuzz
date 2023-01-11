@@ -857,8 +857,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   plan->gdef_varstore_inner_maps.init ();
 
-  if (input->axes_location)
-      plan->user_axes_location = *input->axes_location;
+  plan->user_axes_location = input->axes_location;
   plan->all_axes_pinned = false;
   plan->pinned_at_default = true;
 

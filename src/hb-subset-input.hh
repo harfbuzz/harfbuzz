@@ -106,7 +106,7 @@ struct hb_subset_input_t
   // If set loca format will always be the long version.
   bool force_long_loca = false;
 
-  hb_hashmap_t<hb_tag_t, float> *axes_location;
+  hb_hashmap_t<hb_tag_t, float> axes_location;
 #ifdef HB_EXPERIMENTAL_API
   hb_hashmap_t<hb_ot_name_record_ids_t, hb_bytes_t> *name_table_overrides;
 #endif
@@ -129,7 +129,7 @@ struct hb_subset_input_t
         return true;
     }
 
-    return axes_location->in_error ()
+    return axes_location.in_error ()
 #ifdef HB_EXPERIMENTAL_API
 	|| name_table_overrides->in_error ()
 #endif
