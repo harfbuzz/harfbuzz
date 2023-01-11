@@ -30,6 +30,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-ot-os2-unicode-ranges.hh"
+#include "hb-ot-var-mvar-table.hh"
 
 #include "hb-set.hh"
 
@@ -62,6 +63,7 @@ struct OS2V2Tail
   bool has_data () const { return sxHeight || sCapHeight; }
 
   const OS2V2Tail * operator -> () const { return this; }
+  OS2V2Tail * operator -> () { return this; }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -212,6 +214,37 @@ struct OS2
     TRACE_SUBSET (this);
     OS2 *os2_prime = c->serializer->embed (this);
     if (unlikely (!os2_prime)) return_trace (false);
+
+#ifndef HB_NO_VAR
+    if (c->plan->normalized_coords)
+    {
+      auto &MVAR = *c->plan->source->table.MVAR;
+      auto *table = os2_prime;
+
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER,         sTypoAscender);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER,        sTypoDescender);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP,         sTypoLineGap);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_ASCENT,  usWinAscent);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_DESCENT, usWinDescent);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_SUBSCRIPT_EM_X_SIZE,         ySubscriptXSize);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_SUBSCRIPT_EM_Y_SIZE,         ySubscriptYSize);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_SUBSCRIPT_EM_X_OFFSET,       ySubscriptXOffset);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_SUBSCRIPT_EM_Y_OFFSET,       ySubscriptYOffset);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_SUPERSCRIPT_EM_X_SIZE,       ySuperscriptXSize);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_SUPERSCRIPT_EM_Y_SIZE,       ySuperscriptYSize);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_SUPERSCRIPT_EM_X_OFFSET,     ySuperscriptXOffset);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_SUPERSCRIPT_EM_Y_OFFSET,     ySuperscriptYOffset);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_STRIKEOUT_SIZE,              yStrikeoutSize);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_STRIKEOUT_OFFSET,            yStrikeoutPosition);
+
+      if (os2_prime->version >= 2)
+      {
+        auto *table = & const_cast<OS2V2Tail &> (os2_prime->v2 ());
+        HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_X_HEIGHT,                   sxHeight);
+        HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_CAP_HEIGHT,                 sCapHeight);
+      }
+    }
+#endif
 
     if (c->plan->user_axes_location.has (HB_TAG ('w','g','h','t')) &&
         !c->plan->pinned_at_default)
