@@ -239,11 +239,11 @@ struct OS2
     /* when --gids option is not used, no need to do collect_mapping that is
      * iterating all codepoints in each subtable, which is not efficient */
     uint16_t min_cp, max_cp;
-    find_min_and_max_codepoint (c->plan->unicodes, &min_cp, &max_cp);
+    find_min_and_max_codepoint (&c->plan->unicodes, &min_cp, &max_cp);
     os2_prime->usFirstCharIndex = min_cp;
     os2_prime->usLastCharIndex = max_cp;
 
-    _update_unicode_ranges (c->plan->unicodes, os2_prime->ulUnicodeRange);
+    _update_unicode_ranges (&c->plan->unicodes, os2_prime->ulUnicodeRange);
 
     return_trace (true);
   }

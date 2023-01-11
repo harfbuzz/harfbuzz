@@ -1414,7 +1414,7 @@ struct CmapSubtable
     switch (format) {
     case  4: return u.format4.serialize (c, it);
     case 12: return u.format12.serialize (c, it);
-    case 14: return u.format14.serialize (c, plan->unicodes, &plan->glyphs_requested, plan->glyph_map, base);
+    case 14: return u.format14.serialize (c, &plan->unicodes, &plan->glyphs_requested, plan->glyph_map, base);
     default: return;
     }
   }

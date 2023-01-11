@@ -48,7 +48,6 @@ struct hb_subset_plan_t
 
   ~hb_subset_plan_t()
   {
-    hb_set_destroy (unicodes);
     hb_face_destroy (source);
     hb_face_destroy (dest);
     hb_map_destroy (codepoint_to_glyph);
@@ -82,7 +81,7 @@ struct hb_subset_plan_t
   bool force_long_loca = false;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
-  hb_set_t *unicodes;
+  hb_set_t unicodes;
   hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> unicode_to_new_gid_list;
 
   // name_ids we would like to retain

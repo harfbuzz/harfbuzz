@@ -576,7 +576,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   auto &arr = plan->unicode_to_new_gid_list;
   if (arr.length)
   {
-    plan->unicodes->add_sorted_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
+    plan->unicodes.add_sorted_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
     plan->_glyphset_gsub.add_array (&arr.arrayZ->second, arr.length, sizeof (*arr.arrayZ));
   }
 }
@@ -621,7 +621,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   plan->_glyphset_gsub.add (0); // Not-def
 
-  _cmap_closure (plan->source, plan->unicodes, &plan->_glyphset_gsub);
+  _cmap_closure (plan->source, &plan->unicodes, &plan->_glyphset_gsub);
 
 #ifndef HB_NO_SUBSET_LAYOUT
   if (!drop_tables->has (HB_OT_TAG_GSUB))
@@ -838,7 +838,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   plan->successful = true;
   plan->flags = input->flags;
-  plan->unicodes = hb_set_create ();
 
   plan->unicode_to_new_gid_list.init ();
 
@@ -939,7 +938,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
     hb_map_t &unicode_to_gid = *plan->codepoint_to_glyph;
 
-    for (auto unicode : *plan->unicodes)
+    for (auto unicode : plan->unicodes)
     {
       auto gid = unicode_to_gid[unicode];
       gid_to_unicodes.add (gid, unicode);
@@ -948,7 +947,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
     plan->inprogress_accelerator =
       hb_subset_accelerator_t::create (*plan->codepoint_to_glyph,
 				       gid_to_unicodes,
-                                       *plan->unicodes,
+                                       plan->unicodes,
 				       plan->has_seac);
   }
 
