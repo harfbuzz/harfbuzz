@@ -813,6 +813,112 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
   plan->all_axes_pinned = !axis_not_pinned;
 }
 #endif
+
+hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
+				    const hb_subset_input_t *input)
+{
+  successful = true;
+  flags = input->flags;
+
+  unicode_to_new_gid_list.init ();
+
+  name_ids = *input->sets.name_ids;
+  name_languages = *input->sets.name_languages;
+  layout_features = *input->sets.layout_features;
+  layout_scripts = *input->sets.layout_scripts;
+  glyphs_requested = *input->sets.glyphs;
+  drop_tables = *input->sets.drop_tables;
+  no_subset_tables = *input->sets.no_subset_tables;
+  source = hb_face_reference (face);
+  dest = hb_face_builder_create ();
+
+  codepoint_to_glyph = hb_map_create ();
+  glyph_map = hb_map_create ();
+  reverse_glyph_map = hb_map_create ();
+
+  gdef_varstore_inner_maps.init ();
+
+  user_axes_location = input->axes_location;
+  all_axes_pinned = false;
+  pinned_at_default = true;
+
+#ifdef HB_EXPERIMENTAL_API
+  for (auto _ : input->name_table_overrides)
+  {
+    hb_bytes_t name_bytes = _.second;
+    unsigned len = name_bytes.length;
+    char *name_str = (char *) hb_malloc (len);
+    if (unlikely (!check_success (name_str)))
+      break;
+
+    hb_memcpy (name_str, name_bytes.arrayZ, len);
+    name_table_overrides.set (_.first, hb_bytes_t (name_str, len));
+  }
+#endif
+
+  void* accel = hb_face_get_user_data(face, hb_subset_accelerator_t::user_data_key());
+
+  attach_accelerator_data = input->attach_accelerator_data;
+  force_long_loca = input->force_long_loca;
+  if (accel)
+    accelerator = (hb_subset_accelerator_t*) accel;
+
+
+  if (unlikely (in_error ()))
+    return;
+
+#ifndef HB_NO_VAR
+  _normalize_axes_location (face, this);
+#endif
+
+  _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, this);
+
+  _populate_gids_to_retain (this, input->sets.drop_tables);
+
+  _create_old_gid_to_new_gid_map (face,
+                                  input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
+				  &_glyphset,
+				  glyph_map,
+				  reverse_glyph_map,
+				  &_num_output_glyphs);
+
+  _create_glyph_map_gsub (
+      &_glyphset_gsub,
+      glyph_map,
+      &glyph_map_gsub);
+
+  // Now that we have old to new gid map update the unicode to new gid list.
+  for (unsigned i = 0; i < unicode_to_new_gid_list.length; i++)
+  {
+    // Use raw array access for performance.
+    unicode_to_new_gid_list.arrayZ[i].second =
+        glyph_map->get(unicode_to_new_gid_list.arrayZ[i].second);
+  }
+
+  _nameid_closure (face, &name_ids, all_axes_pinned, &user_axes_location);
+  if (unlikely (in_error ()))
+    return;
+
+  if (attach_accelerator_data)
+  {
+    hb_multimap_t gid_to_unicodes;
+
+    hb_map_t &unicode_to_gid = *codepoint_to_glyph;
+
+    for (auto unicode : unicodes)
+    {
+      auto gid = unicode_to_gid[unicode];
+      gid_to_unicodes.add (gid, unicode);
+    }
+
+    inprogress_accelerator =
+      hb_subset_accelerator_t::create (*codepoint_to_glyph,
+				       gid_to_unicodes,
+                                       unicodes,
+				       has_seac);
+  }
+}
+
 /**
  * hb_subset_plan_create_or_fail:
  * @face: font face to create the plan for.
@@ -833,115 +939,14 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
                                const hb_subset_input_t *input)
 {
   hb_subset_plan_t *plan;
-  if (unlikely (!(plan = hb_object_create<hb_subset_plan_t> ())))
+  if (unlikely (!(plan = hb_object_create<hb_subset_plan_t> (face, input))))
     return nullptr;
 
-  plan->successful = true;
-  plan->flags = input->flags;
-
-  plan->unicode_to_new_gid_list.init ();
-
-  plan->name_ids = *input->sets.name_ids;
-  plan->name_languages = *input->sets.name_languages;
-  plan->layout_features = *input->sets.layout_features;
-  plan->layout_scripts = *input->sets.layout_scripts;
-  plan->glyphs_requested = *input->sets.glyphs;
-  plan->drop_tables = *input->sets.drop_tables;
-  plan->no_subset_tables = *input->sets.no_subset_tables;
-  plan->source = hb_face_reference (face);
-  plan->dest = hb_face_builder_create ();
-
-  plan->codepoint_to_glyph = hb_map_create ();
-  plan->glyph_map = hb_map_create ();
-  plan->reverse_glyph_map = hb_map_create ();
-
-  plan->gdef_varstore_inner_maps.init ();
-
-  plan->user_axes_location = input->axes_location;
-  plan->all_axes_pinned = false;
-  plan->pinned_at_default = true;
-
-#ifdef HB_EXPERIMENTAL_API
-  for (auto _ : input->name_table_overrides)
+  if (unlikely (plan->in_error ()))
   {
-    hb_bytes_t name_bytes = _.second;
-    unsigned len = name_bytes.length;
-    char *name_str = (char *) hb_malloc (len);
-    if (unlikely (!plan->check_success (name_str)))
-      break;
-
-    hb_memcpy (name_str, name_bytes.arrayZ, len);
-    plan->name_table_overrides.set (_.first, hb_bytes_t (name_str, len));
-  }
-#endif
-
-  void* accel = hb_face_get_user_data(face, hb_subset_accelerator_t::user_data_key());
-
-  plan->attach_accelerator_data = input->attach_accelerator_data;
-  plan->force_long_loca = input->force_long_loca;
-  if (accel)
-    plan->accelerator = (hb_subset_accelerator_t*) accel;
-
-
-  if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
     return nullptr;
   }
-
-#ifndef HB_NO_VAR
-  _normalize_axes_location (face, plan);
-#endif
-
-  _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, plan);
-
-  _populate_gids_to_retain (plan, input->sets.drop_tables);
-
-  _create_old_gid_to_new_gid_map (face,
-                                  input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
-				  &plan->_glyphset,
-				  plan->glyph_map,
-				  plan->reverse_glyph_map,
-				  &plan->_num_output_glyphs);
-
-  _create_glyph_map_gsub (
-      &plan->_glyphset_gsub,
-      plan->glyph_map,
-      &plan->glyph_map_gsub);
-
-  // Now that we have old to new gid map update the unicode to new gid list.
-  for (unsigned i = 0; i < plan->unicode_to_new_gid_list.length; i++)
-  {
-    // Use raw array access for performance.
-    plan->unicode_to_new_gid_list.arrayZ[i].second =
-        plan->glyph_map->get(plan->unicode_to_new_gid_list.arrayZ[i].second);
-  }
-
-  _nameid_closure (face, &plan->name_ids, plan->all_axes_pinned, &plan->user_axes_location);
-  if (unlikely (plan->in_error ())) {
-    hb_subset_plan_destroy (plan);
-    return nullptr;
-  }
-
-
-  if (plan->attach_accelerator_data)
-  {
-    hb_multimap_t gid_to_unicodes;
-
-    hb_map_t &unicode_to_gid = *plan->codepoint_to_glyph;
-
-    for (auto unicode : plan->unicodes)
-    {
-      auto gid = unicode_to_gid[unicode];
-      gid_to_unicodes.add (gid, unicode);
-    }
-
-    plan->inprogress_accelerator =
-      hb_subset_accelerator_t::create (*plan->codepoint_to_glyph,
-				       gid_to_unicodes,
-                                       plan->unicodes,
-				       plan->has_seac);
-  }
-
 
   return plan;
 }

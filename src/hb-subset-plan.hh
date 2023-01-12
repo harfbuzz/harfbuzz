@@ -43,6 +43,9 @@ struct Feature;
 
 struct hb_subset_plan_t
 {
+  HB_INTERNAL hb_subset_plan_t (hb_face_t *,
+				const hb_subset_input_t *input);
+
   ~hb_subset_plan_t()
   {
     hb_face_destroy (source);
