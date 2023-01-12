@@ -301,10 +301,10 @@ struct hb_bit_page_t
   static constexpr hb_codepoint_t INVALID = HB_SET_VALUE_INVALID;
 
   typedef unsigned long long elt_t;
-  static constexpr unsigned PAGE_BITS = 512;
-  static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
-  static constexpr unsigned PAGE_BITS_LOG_2 = 9;
+  static constexpr unsigned PAGE_BITS_LOG_2 = 9; // 512 bits
+  static constexpr unsigned PAGE_BITS = 1 << PAGE_BITS_LOG_2;
   static_assert (1 << PAGE_BITS_LOG_2 == PAGE_BITS, "");
+  static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
   static constexpr unsigned PAGE_BITMASK = PAGE_BITS - 1;
 
   static unsigned int elt_get_min (const elt_t &elt) { return hb_ctz (elt); }
