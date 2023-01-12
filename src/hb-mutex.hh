@@ -97,6 +97,9 @@ struct hb_mutex_t
   /* Create space for, but do not initialize m. */
   alignas(hb_mutex_impl_t) char m[sizeof (hb_mutex_impl_t)];
 
+  hb_mutex_t () { init (); }
+  ~hb_mutex_t () { fini (); }
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
   void init   () { hb_mutex_impl_init   ((hb_mutex_impl_t *) m); }

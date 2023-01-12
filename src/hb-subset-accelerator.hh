@@ -88,10 +88,7 @@ struct hb_subset_accelerator_t
     destroy_cmap_cache(nullptr),
     has_seac(has_seac_),
     cff_accelerator(nullptr),
-    destroy_cff_accelerator(nullptr)
-  {
-    sanitized_table_cache_lock.init ();
-  }
+    destroy_cff_accelerator(nullptr) {}
 
   ~hb_subset_accelerator_t ()
   {
@@ -100,8 +97,6 @@ struct hb_subset_accelerator_t
 
     if (cmap_cache && destroy_cmap_cache)
       destroy_cmap_cache ((void*) cmap_cache);
-
-    sanitized_table_cache_lock.fini ();
   }
 
   // Generic
