@@ -39,7 +39,6 @@
 #include "hb-ot-maxp-table.hh"
 
 #ifndef HB_NO_VISIBILITY
-#include "hb-ot-name-language-static.hh"
 
 uint64_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (uint64_t) - 1) / sizeof (uint64_t)] = {};
 /*thread_local*/ uint64_t _hb_CrapPool[(HB_NULL_POOL_SIZE + sizeof (uint64_t) - 1) / sizeof (uint64_t)] = {};
