@@ -43,9 +43,6 @@ struct Feature;
 
 struct hb_subset_plan_t
 {
-  hb_subset_plan_t ()
-  {}
-
   ~hb_subset_plan_t()
   {
     hb_face_destroy (source);

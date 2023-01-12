@@ -82,6 +82,17 @@ HB_MARK_AS_FLAG_T (hb_subset_flags_t);
 
 struct hb_subset_input_t
 {
+  ~hb_subset_input_t ()
+  {
+    for (hb_set_t* set : sets_iter ())
+      hb_set_destroy (set);
+
+#ifdef HB_EXPERIMENTAL_API
+    for (auto _ : name_table_overrides)
+      _.second.fini ();
+#endif
+  }
+
   hb_object_header_t header;
 
   struct sets_t {

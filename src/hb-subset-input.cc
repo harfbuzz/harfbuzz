@@ -241,14 +241,6 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 {
   if (!hb_object_destroy (input)) return;
 
-  for (hb_set_t* set : input->sets_iter ())
-    hb_set_destroy (set);
-
-#ifdef HB_EXPERIMENTAL_API
-  for (auto _ : input->name_table_overrides)
-    _.second.fini ();
-#endif
-
   hb_free (input);
 }
 
