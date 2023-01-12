@@ -46,7 +46,7 @@ hb_subset_input_create_or_fail (void)
     return nullptr;
 
   for (auto& set : input->sets_iter ())
-    set = hb_set_create ();
+    set = hb::shared_ptr<hb_set_t> (hb_set_create ());
 
   if (input->in_error ())
   {
