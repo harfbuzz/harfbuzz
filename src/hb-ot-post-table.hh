@@ -28,6 +28,7 @@
 #define HB_OT_POST_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-var-mvar-table.hh"
 
 #define HB_STRING_ARRAY_NAME format1_names
 #define HB_STRING_ARRAY_LIST "hb-ot-post-macroman.hh"
@@ -97,6 +98,17 @@ struct post
     TRACE_SUBSET (this);
     post *post_prime = c->serializer->start_embed<post> ();
     if (unlikely (!post_prime)) return_trace (false);
+
+#ifndef HB_NO_VAR
+    if (c->plan->normalized_coords)
+    {
+      auto &MVAR = *c->plan->source->table.MVAR;
+      auto *table = post_prime;
+
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_UNDERLINE_SIZE,   underlineThickness);
+      HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_UNDERLINE_OFFSET, underlinePosition);
+    }
+#endif
 
     bool glyph_names = c->plan->flags & HB_SUBSET_FLAGS_GLYPH_NAMES;
     if (!serialize (c->serializer, glyph_names))

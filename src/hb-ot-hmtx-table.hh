@@ -31,6 +31,7 @@
 #include "hb-ot-maxp-table.hh"
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-var-hvar-table.hh"
+#include "hb-ot-var-mvar-table.hh"
 #include "hb-ot-metrics.hh"
 
 /*
@@ -76,10 +77,10 @@ struct hmtxvmtx
   const hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>>* get_mtx_map (const hb_subset_plan_t *plan) const
   { return T::is_horizontal ? &plan->hmtx_map : &plan->vmtx_map; }
 
-  bool subset_update_header (hb_subset_plan_t *plan,
+  bool subset_update_header (hb_subset_context_t *c,
 			     unsigned int num_hmetrics) const
   {
-    hb_blob_t *src_blob = hb_sanitize_context_t ().reference_table<H> (plan->source, H::tableTag);
+    hb_blob_t *src_blob = hb_sanitize_context_t ().reference_table<H> (c->plan->source, H::tableTag);
     hb_blob_t *dest_blob = hb_blob_copy_writable_or_fail (src_blob);
     hb_blob_destroy (src_blob);
 
@@ -91,7 +92,26 @@ struct hmtxvmtx
     H *table = (H *) hb_blob_get_data (dest_blob, &length);
     table->numberOfLongMetrics = num_hmetrics;
 
-    bool result = plan->add_table (H::tableTag, dest_blob);
+#ifndef HB_NO_VAR
+    if (c->plan->normalized_coords)
+    {
+      auto &MVAR = *c->plan->source->table.MVAR;
+      if (T::is_horizontal)
+      {
+	HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE,   caretSlopeRise);
+	HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN,    caretSlopeRun);
+	HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_HORIZONTAL_CARET_OFFSET, caretOffset);
+      }
+      else
+      {
+	HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_VERTICAL_CARET_RISE,     caretSlopeRise);
+	HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_VERTICAL_CARET_RUN,      caretSlopeRun);
+	HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_VERTICAL_CARET_OFFSET,   caretOffset);
+      }
+    }
+#endif
+
+    bool result = c->plan->add_table (H::tableTag, dest_blob);
     hb_blob_destroy (dest_blob);
 
     return result;
@@ -169,7 +189,7 @@ struct hmtxvmtx
       return_trace (false);
 
     // Amend header num hmetrics
-    if (unlikely (!subset_update_header (c->plan, num_long_metrics)))
+    if (unlikely (!subset_update_header (c, num_long_metrics)))
       return_trace (false);
 
     return_trace (true);
