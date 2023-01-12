@@ -115,8 +115,8 @@ struct hb_aat_map_builder_t
   public:
   hb_sorted_vector_t<feature_range_t> features;
   hb_sorted_vector_t<feature_info_t> current_features;
-  unsigned range_first;
-  unsigned range_last;
+  unsigned range_first = HB_FEATURE_GLOBAL_START;
+  unsigned range_last = HB_FEATURE_GLOBAL_END;
 };
 
 
