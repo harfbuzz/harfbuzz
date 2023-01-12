@@ -86,12 +86,11 @@ struct hb_subset_input_t
 
   ~hb_subset_input_t ()
   {
-    for (auto& set : sets_iter ())
-      set = hb::shared_ptr<hb_set_t> ();
+    sets.~sets_t ();
 
 #ifdef HB_EXPERIMENTAL_API
-    for (auto _ : name_table_overrides)
-      _.second.fini ();
+    for (auto _ : name_table_overrides.values ())
+      _.fini ();
 #endif
   }
 
