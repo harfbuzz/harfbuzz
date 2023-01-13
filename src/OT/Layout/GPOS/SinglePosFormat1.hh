@@ -63,7 +63,7 @@ struct SinglePosFormat1
     if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
     {
       c->buffer->message (c->font,
-			  "positioning glyph at %d",
+			  "positioning glyph at %u",
 			  c->buffer->idx);
     }
 
@@ -72,7 +72,7 @@ struct SinglePosFormat1
     if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
     {
       c->buffer->message (c->font,
-			  "positioned glyph at %d",
+			  "positioned glyph at %u",
 			  c->buffer->idx);
     }
 

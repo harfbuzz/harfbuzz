@@ -525,7 +525,7 @@ struct LigatureSubtable
 	  if (unlikely (!componentData.sanitize (&c->sanitizer))) break;
 	  ligature_idx += componentData;
 
-	  DEBUG_MSG (APPLY, nullptr, "Action store %u last %u",
+	  DEBUG_MSG (APPLY, nullptr, "Action store %d last %d",
 		     bool (action & LigActionStore),
 		     bool (action & LigActionLast));
 	  if (action & (LigActionStore | LigActionLast))
@@ -1063,7 +1063,7 @@ struct Chain
 		bool (subtable->get_coverage () & ChainSubtable<Types>::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
-      if (!c->buffer->message (c->font, "start chainsubtable %d", c->lookup_index))
+      if (!c->buffer->message (c->font, "start chainsubtable %u", c->lookup_index))
 	goto skip;
 
       if (reverse)
@@ -1074,7 +1074,7 @@ struct Chain
       if (reverse)
 	c->buffer->reverse ();
 
-      (void) c->buffer->message (c->font, "end chainsubtable %d", c->lookup_index);
+      (void) c->buffer->message (c->font, "end chainsubtable %u", c->lookup_index);
 
       if (unlikely (!c->buffer->successful)) return;
 

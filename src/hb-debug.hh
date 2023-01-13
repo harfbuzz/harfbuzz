@@ -113,7 +113,7 @@ _hb_print_func (const char *func)
     const char *paren = strchr (func, '(');
     if (paren)
       func_len = paren - func;
-    fprintf (stderr, "%.*s", func_len, func);
+    fprintf (stderr, "%.*s", (int) func_len, func);
   }
 }
 

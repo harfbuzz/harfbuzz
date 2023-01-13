@@ -273,7 +273,7 @@ font_options_t::add_options (option_parser_t *parser)
     font_size_text = (char *) "Font size (default: upem)";
   else
   {
-    font_size_text = g_strdup_printf ("Font size (default: %d)", DEFAULT_FONT_SIZE);
+    font_size_text = g_strdup_printf ("Font size (default: %u)", DEFAULT_FONT_SIZE);
     parser->free_later (font_size_text);
   }
 

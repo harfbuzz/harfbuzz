@@ -25,7 +25,7 @@ _write_loca (IteratorIn&& it, bool short_offsets, IteratorOut&& dest)
   | hb_map ([=, &offset] (unsigned int padded_size)
 	    {
 	      offset += padded_size;
-	      DEBUG_MSG (SUBSET, nullptr, "loca entry offset %d", offset);
+	      DEBUG_MSG (SUBSET, nullptr, "loca entry offset %u", offset);
 	      return offset >> right_shift;
 	    })
   | hb_sink (dest)
@@ -61,7 +61,7 @@ _add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets, bool use_s
 
   if (unlikely (!loca_prime_data)) return false;
 
-  DEBUG_MSG (SUBSET, nullptr, "loca entry_size %d num_offsets %d size %d",
+  DEBUG_MSG (SUBSET, nullptr, "loca entry_size %u num_offsets %u size %u",
 	     entry_size, num_offsets, entry_size * num_offsets);
 
   if (use_short_loca)
