@@ -78,7 +78,9 @@ struct hmtxvmtx
   { return T::is_horizontal ? &plan->hmtx_map : &plan->vmtx_map; }
 
   bool subset_update_header (hb_subset_context_t *c,
-			     unsigned int num_hmetrics) const
+			     unsigned int num_hmetrics,
+			     const hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> *mtx_map,
+			     const hb_map_t *bounds_map) const
   {
     hb_blob_t *src_blob = hb_sanitize_context_t ().reference_table<H> (c->plan->source, H::tableTag);
     hb_blob_t *dest_blob = hb_blob_copy_writable_or_fail (src_blob);
@@ -107,6 +109,36 @@ struct hmtxvmtx
 	HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_VERTICAL_CARET_RISE,     caretSlopeRise);
 	HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_VERTICAL_CARET_RUN,      caretSlopeRun);
 	HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_VERTICAL_CARET_OFFSET,   caretOffset);
+      }
+
+      int min_lsb = 0x7FFF;
+      int min_training_sb = 0x7FFF;
+      int max_extent = -0x7FFF;
+      unsigned max_adv = 0;
+      for (const auto _ : *mtx_map)
+      {
+        hb_codepoint_t gid = _.first;
+        unsigned adv = _.second.first;
+        int lsb = _.second.second;
+        max_adv = hb_max (max_adv, adv);
+
+        if (bounds_map->has (gid))
+        {
+          unsigned bound_width = bounds_map->get (gid);
+          int rsb = adv - lsb - bound_width;
+          int extent = lsb + bound_width;
+          min_lsb = hb_min (min_lsb, lsb);
+          min_training_sb = hb_min (min_training_sb, rsb);
+          max_extent = hb_max (max_extent, extent);
+        }
+      }
+
+      table->advanceMax = max_adv;
+      if (!bounds_map->is_empty ())
+      {
+        table->minLeadingBearing = min_lsb;
+        table->minTrailingBearing = min_training_sb;
+        table->maxExtent = max_extent;
       }
     }
 #endif
@@ -189,7 +221,8 @@ struct hmtxvmtx
       return_trace (false);
 
     // Amend header num hmetrics
-    if (unlikely (!subset_update_header (c, num_long_metrics)))
+    if (unlikely (!subset_update_header (c, num_long_metrics, mtx_map,
+                                         T::is_horizontal ? &c->plan->bounds_width_map : &c->plan->bounds_height_map)))
       return_trace (false);
 
     return_trace (true);
@@ -362,15 +395,13 @@ struct hmtxvmtx
                                          unsigned new_gid,
                                          const accelerator_t &_mtx) const
   {
-    if (mtx_map->is_empty () ||
-        (new_gid == 0 && !mtx_map->has (new_gid)))
+    if (mtx_map->is_empty ())
     {
       hb_codepoint_t old_gid = 0;
       return plan->old_gid_for_new_gid (new_gid, &old_gid) ?
              _mtx.get_advance_without_var_unscaled (old_gid) : 0;
     }
-    else
-    { return mtx_map->get (new_gid).first; }
+    return mtx_map->get (new_gid).first;
   }
 
   protected:

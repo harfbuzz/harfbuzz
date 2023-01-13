@@ -163,6 +163,10 @@ struct hb_subset_plan_t
   mutable hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> hmtx_map;
   //vmtx metrics map: new gid->(advance, lsb)
   mutable hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> vmtx_map;
+  //boundsWidth map: new gid->boundsWidth, boundWidth=xMax - xMin
+  mutable hb_map_t bounds_width_map;
+  //boundsHeight map: new gid->boundsHeight, boundsHeight=yMax - yMin
+  mutable hb_map_t bounds_height_map;
 
 #ifdef HB_EXPERIMENTAL_API
   // name table overrides map: hb_ot_name_record_ids_t-> name string new value or

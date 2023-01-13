@@ -80,12 +80,19 @@ struct Glyph
   }
 
   void update_mtx (const hb_subset_plan_t *plan,
-                   int xMin, int yMax,
+                   int xMin, int xMax,
+                   int yMin, int yMax,
                    const contour_point_vector_t &all_points) const
   {
     hb_codepoint_t new_gid = 0;
     if (!plan->new_gid_for_old_gid (gid, &new_gid))
       return;
+
+    if (type != EMPTY)
+    {
+      plan->bounds_width_map.set (new_gid, xMax - xMin);
+      plan->bounds_height_map.set (new_gid, yMax - yMin);
+    }
 
     unsigned len = all_points.length;
     float leftSideX = all_points[len - 4].x;
@@ -133,7 +140,7 @@ struct Glyph
       yMax = hb_max (yMax, y);
     }
 
-    update_mtx (plan, roundf (xMin), roundf (yMax), all_points);
+    update_mtx (plan, roundf (xMin), roundf (xMax), roundf (yMin), roundf (yMax), all_points);
 
     /*for empty glyphs: all_points only include phantom points.
      *just update metrics and then return */
