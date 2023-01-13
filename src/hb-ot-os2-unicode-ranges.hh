@@ -34,10 +34,10 @@ namespace OT {
 struct OS2Range
 {
   int cmp (hb_codepoint_t key) const
-  { return (key < start) ? -1 : key <= end ? 0 : +1; }
+  { return (key < first) ? -1 : key <= last ? 0 : +1; }
 
-  hb_codepoint_t start;
-  hb_codepoint_t end;
+  hb_codepoint_t first;
+  hb_codepoint_t last;
   unsigned int bit;
 };
 
