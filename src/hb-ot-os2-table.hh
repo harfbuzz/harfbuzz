@@ -284,6 +284,9 @@ struct OS2
     for (unsigned int i = 0; i < 4; i++)
       newBits[i] = 0;
 
+    /* This block doesn't show up in profiles. If it ever did,
+     * we can rewrite it to iterate over OS/2 ranges and use
+     * set iteration to check if the range matches. */
     for (hb_codepoint_t cp = HB_SET_VALUE_INVALID;
 	 codepoints->next (&cp);)
     {
