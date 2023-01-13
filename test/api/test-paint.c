@@ -643,7 +643,8 @@ main (int argc, char **argv)
   }
 
   hb_face_t *face = hb_test_open_font_file (TEST_GLYPHS);
-  for (unsigned int i = 1; i < hb_face_get_glyph_count (face); i++)
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+  for (unsigned int i = 1; i < glyph_count; i++)
   {
     char buf[20];
     snprintf (buf, 20, "test-%u", i);
