@@ -3,10 +3,10 @@ MPLUS1-Variable.ttf
 
 PROFILES:
 default.txt
-notdef-outline.txt
 
 SUBSETS:
-*
+ポ
 
 INSTANCES:
+wght=100
 wght=400
