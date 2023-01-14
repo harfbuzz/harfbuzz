@@ -4142,8 +4142,11 @@ struct GSUBGPOSVersion1_2
   bool subset (hb_subset_layout_context_t *c) const
   {
     TRACE_SUBSET (this);
-    auto *out = c->subset_context->serializer->embed (*this);
-    if (unlikely (!out)) return_trace (false);
+
+    auto *out = c->subset_context->serializer->start_embed (this);
+    if (unlikely (!c->subset_context->serializer->extend_min (out))) return_trace (false);
+
+    out->version = version;
 
     typedef LookupOffsetList<TLookup, typename Types::HBUINT> TLookupList;
     reinterpret_cast<typename Types::template OffsetTo<TLookupList> &> (out->lookupList)
@@ -4166,9 +4169,23 @@ struct GSUBGPOSVersion1_2
 #ifndef HB_NO_VAR
     if (version.to_int () >= 0x00010001u)
     {
-      bool ret = out->featureVars.serialize_subset (c->subset_context, featureVars, this, c);
+      auto snapshot = c->subset_context->serializer->snapshot ();
+      if (!c->subset_context->serializer->extend_min (&out->featureVars))
+        return_trace (false);
+
+      // TODO(qxliu76): the current implementation doesn't correctly handle feature variations
+      //                that are dropped by instancing when the associated conditions don't trigger.
+      //                Since partial instancing isn't yet supported this isn't an issue yet but will
+      //                need to be fixed for partial instancing.
+
+
+
+      // if all axes are pinned all feature vars are dropped.
+      bool ret = !c->subset_context->plan->all_axes_pinned
+                 && out->featureVars.serialize_subset (c->subset_context, featureVars, this, c);
       if (!ret && version.major == 1)
       {
+        c->subset_context->serializer->revert (snapshot);
 	out->version.major = 1;
 	out->version.minor = 0;
       }

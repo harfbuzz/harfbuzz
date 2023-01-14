@@ -188,7 +188,17 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
     f->add_lookup_indexes_to (lookup_indices);
   }
 
-  table.feature_variation_collect_lookups (feature_indices, feature_substitutes_map, lookup_indices);
+  // If all axes are pinned then all feature variations will be dropped so there's no need
+  // to collect lookups from them.
+  if (!plan->all_axes_pinned)
+  {
+    // TODO(qxliu76): this collection doesn't work correctly for feature variations that are dropped
+    //                but not applied. The collection will collect and retain the lookup indices
+    //                associated with those dropped but not activated rules. Since partial instancing
+    //                isn't yet supported this isn't an issue yet but will need to be fixed for
+    //                partial instancing.
+    table.feature_variation_collect_lookups (feature_indices, feature_substitutes_map, lookup_indices);
+  }
 }
 
 
