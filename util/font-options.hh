@@ -267,14 +267,16 @@ _list_variations (hb_face_t *face)
 			   &name_len, name);
 
       unsigned coords_count = hb_ot_var_named_instance_get_design_coords (face, i, nullptr, nullptr);
-      hb_vector_t<float> coords;
-      coords.resize (coords_count);
+      float* coords;
+      coords = (float *) calloc (coords_count, sizeof (float));
       hb_ot_var_named_instance_get_design_coords (face, i, &coords_count, coords.arrayZ);
 
       printf ("%u. %-32s", i, name);
       for (unsigned j = 0; j < coords.length; j++)
 	printf ("%g, ", (double) coords[j]);
       printf ("\n");
+
+      free (coords);
     }
   }
 
