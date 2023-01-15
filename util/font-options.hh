@@ -181,7 +181,8 @@ _list_variations (hb_face_t *face)
 
   auto language = hb_language_get_default ();
 
-  printf ("tag:	min	default	max	name\n");
+  printf ("Non-hidden varitation axes:\n");
+  printf ("tag:	min	default	max	name\n\n");
   for (const auto &axis : axes)
   {
     if (axis.flags & HB_OT_VAR_AXIS_FLAG_HIDDEN)
@@ -200,6 +201,33 @@ _list_variations (hb_face_t *face)
 	    (double) axis.default_value,
 	    (double) axis.max_value,
 	    name);
+  }
+
+  count = hb_ot_var_get_named_instance_count (face);
+  if (count)
+  {
+    printf ("\n\nNamed instances: \n\n");
+
+    for (unsigned i = 0; i < count; i++)
+    {
+      char name[64];
+      unsigned name_len = sizeof name;
+
+      hb_ot_name_id_t name_id = hb_ot_var_named_instance_get_subfamily_name_id (face, i);
+      hb_ot_name_get_utf8 (face, name_id,
+			   language,
+			   &name_len, name);
+
+      unsigned coords_count = hb_ot_var_named_instance_get_design_coords (face, i, nullptr, nullptr);
+      hb_vector_t<float> coords;
+      coords.resize (coords_count);
+      hb_ot_var_named_instance_get_design_coords (face, i, &coords_count, coords.arrayZ);
+
+      printf ("%s	", name);
+      for (unsigned j = 0; j < coords.length; j++)
+	printf ("%g, ", (double) coords[j]);
+      printf ("\n");
+    }
   }
 
   exit(0);
