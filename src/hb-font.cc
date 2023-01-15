@@ -1776,6 +1776,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   0, /* y_ppem */
   0, /* ptem */
 
+  (unsigned) -1, /* instance_index */
   0, /* num_coords */
   nullptr, /* coords */
   nullptr, /* design_coords */
@@ -1805,6 +1806,7 @@ _hb_font_create (hb_face_t *face)
   font->x_scale = font->y_scale = face->get_upem ();
   font->x_multf = font->y_multf = 1.f;
   font->x_mult = font->y_mult = 1 << 16;
+  font->instance_index = (unsigned) -1;
 
   return font;
 }
@@ -2513,7 +2515,7 @@ hb_font_set_variations (hb_font_t            *font,
 
   font->serial_coords = ++font->serial;
 
-  if (!variations_length)
+  if (!variations_length && font->instance_index == (unsigned) -1)
   {
     hb_font_set_var_coords_normalized (font, nullptr, 0);
     return;
@@ -2533,9 +2535,17 @@ hb_font_set_variations (hb_font_t            *font,
     return;
   }
 
-  /* Initialize design coords to default from fvar. */
-  for (unsigned int i = 0; i < coords_length; i++)
-    design_coords[i] = axes[i].get_default ();
+  /* Initialize design coords. */
+  if (font->instance_index == (unsigned) -1)
+    for (unsigned int i = 0; i < coords_length; i++)
+      design_coords[i] = axes[i].get_default ();
+  else
+  {
+    unsigned count = coords_length;
+    hb_ot_var_named_instance_get_design_coords (font->face, font->instance_index,
+						&count, design_coords);
+    assert (count == coords_length);
+  }
 
   for (unsigned int i = 0; i < variations_length; i++)
   {
@@ -2543,13 +2553,11 @@ hb_font_set_variations (hb_font_t            *font,
     const auto v = variations[i].value;
     for (unsigned axis_index = 0; axis_index < coords_length; axis_index++)
       if (axes[axis_index].axisTag == tag)
-      {
 	design_coords[axis_index] = v;
-	normalized[axis_index] = fvar.normalize_axis_value (axis_index, v);
-      }
   }
   font->face->table.avar->map_coords (normalized, coords_length);
 
+  hb_ot_var_normalize_coords (font->face, coords_length, design_coords, normalized);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
 }
 
@@ -2611,17 +2619,13 @@ hb_font_set_var_named_instance (hb_font_t *font,
   if (hb_object_is_immutable (font))
     return;
 
-  font->serial_coords = ++font->serial;
-
-  unsigned int coords_length = hb_ot_var_named_instance_get_design_coords (font->face, instance_index, nullptr, nullptr);
-
-  float *coords = coords_length ? (float *) hb_calloc (coords_length, sizeof (float)) : nullptr;
-  if (unlikely (coords_length && !coords))
+  if (font->instance_index == instance_index)
     return;
 
-  hb_ot_var_named_instance_get_design_coords (font->face, instance_index, &coords_length, coords);
-  hb_font_set_var_coords_design (font, coords, coords_length);
-  hb_free (coords);
+  font->serial_coords = ++font->serial;
+
+  font->instance_index = instance_index;
+  hb_font_set_variations (font, nullptr, 0);
 }
 
 /**

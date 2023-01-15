@@ -126,6 +126,7 @@ struct hb_font_t
   float ptem;
 
   /* Font variation coordinates. */
+  unsigned int instance_index;
   unsigned int num_coords;
   int *coords;
   float *design_coords;
