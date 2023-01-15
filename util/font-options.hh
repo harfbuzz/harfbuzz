@@ -175,19 +175,20 @@ font_options_t::post_parse (GError **error)
 static G_GNUC_NORETURN void
 _list_variations (hb_face_t *face)
 {
-  hb_vector_t<hb_ot_var_axis_info_t> axes;
+  hb_ot_var_axis_info_t *axes;
 
   unsigned count = hb_ot_var_get_axis_infos (face, 0, nullptr, nullptr);
-  axes.resize (count);
-  hb_ot_var_get_axis_infos (face, 0, &count, axes.arrayZ);
+  axes = (hb_ot_var_axis_info_t *) calloc (count, sizeof (hb_ot_var_axis_info_t));
+  hb_ot_var_get_axis_infos (face, 0, &count, axes);
 
   auto language = hb_language_get_default ();
   bool has_hidden = false;
 
   printf ("Varitation axes:\n");
   printf ("Tag:	Minimum	Default	Maximum	Name\n\n");
-  for (const auto &axis : axes)
+  for (unsigned i = 0; i < count; i++)
   {
+    const auto &axis = axes[i];
     if (axis.flags & HB_OT_VAR_AXIS_FLAG_HIDDEN)
       has_hidden = true;
 
@@ -208,6 +209,9 @@ _list_variations (hb_face_t *face)
   }
   if (has_hidden)
     printf ("\n[*] Hidden axis\n");
+
+  free (axes);
+  axes = nullptr;
 
   count = hb_ot_var_get_named_instance_count (face);
   if (count)
