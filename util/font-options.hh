@@ -227,7 +227,7 @@ _list_variations (hb_face_t *face)
       coords.resize (coords_count);
       hb_ot_var_named_instance_get_design_coords (face, i, &coords_count, coords.arrayZ);
 
-      printf ("%-32s", name);
+      printf ("%u. %-32s", i, name);
       for (unsigned j = 0; j < coords.length; j++)
 	printf ("%g, ", (double) coords[j]);
       printf ("\n");
