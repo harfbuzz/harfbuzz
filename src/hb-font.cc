@@ -1776,7 +1776,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   0, /* y_ppem */
   0, /* ptem */
 
-  (unsigned) -1, /* instance_index */
+  HB_FONT_NO_VAR_NAMED_INSTANCE, /* instance_index */
   0, /* num_coords */
   nullptr, /* coords */
   nullptr, /* design_coords */
@@ -1806,7 +1806,7 @@ _hb_font_create (hb_face_t *face)
   font->x_scale = font->y_scale = face->get_upem ();
   font->x_multf = font->y_multf = 1.f;
   font->x_mult = font->y_mult = 1 << 16;
-  font->instance_index = (unsigned) -1;
+  font->instance_index = HB_FONT_NO_VAR_NAMED_INSTANCE;
 
   return font;
 }
@@ -2515,7 +2515,7 @@ hb_font_set_variations (hb_font_t            *font,
 
   font->serial_coords = ++font->serial;
 
-  if (!variations_length && font->instance_index == (unsigned) -1)
+  if (!variations_length && font->instance_index == HB_FONT_NO_VAR_NAMED_INSTANCE)
   {
     hb_font_set_var_coords_normalized (font, nullptr, 0);
     return;
@@ -2536,7 +2536,7 @@ hb_font_set_variations (hb_font_t            *font,
   }
 
   /* Initialize design coords. */
-  if (font->instance_index == (unsigned) -1)
+  if (font->instance_index == HB_FONT_NO_VAR_NAMED_INSTANCE)
     for (unsigned int i = 0; i < coords_length; i++)
       design_coords[i] = axes[i].get_default ();
   else
@@ -2608,13 +2608,13 @@ hb_font_set_var_coords_design (hb_font_t    *font,
  * @font: a font.
  * @instance_index: named instance index.
  *
- * Sets design coords of a font from a named instance index.
+ * Sets design coords of a font from a named-instance index.
  *
  * Since: 2.6.0
  */
 void
 hb_font_set_var_named_instance (hb_font_t *font,
-				unsigned instance_index)
+				unsigned int instance_index)
 {
   if (hb_object_is_immutable (font))
     return;
@@ -2626,6 +2626,22 @@ hb_font_set_var_named_instance (hb_font_t *font,
 
   font->instance_index = instance_index;
   hb_font_set_variations (font, nullptr, 0);
+}
+
+/**
+ * hb_font_get_var_named_instance:
+ * @font: a font.
+ *
+ * Returns the currently-set named-instance index of the font.
+ *
+ * Return value: Named-instance index or %HB_FONT_NO_VAR_NAMED_INSTANCE.
+ *
+ * Since: REPLACEME
+ **/
+unsigned int
+hb_font_get_var_named_instance (hb_font_t *font)
+{
+  return font->instance_index;
 }
 
 /**

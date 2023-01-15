@@ -1160,10 +1160,23 @@ HB_EXTERN const int *
 hb_font_get_var_coords_normalized (hb_font_t *font,
 				   unsigned int *length);
 
+/**
+ * HB_FONT_NO_VAR_NAMED_INSTANCE:
+ *
+ * Constant signifying that a font does not have any
+ * named-instance index set.  This is the default of
+ * a font.
+ *
+ * Since: REPLACEME
+ */
+#define HB_FONT_NO_VAR_NAMED_INSTANCE 0xFFFFFFFF
+
 HB_EXTERN void
 hb_font_set_var_named_instance (hb_font_t *font,
-				unsigned instance_index);
+				unsigned int instance_index);
 
+HB_EXTERN unsigned int
+hb_font_get_var_named_instance (hb_font_t *font);
 
 HB_END_DECLS
 
