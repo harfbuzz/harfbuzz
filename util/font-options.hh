@@ -56,6 +56,7 @@ struct font_options_t : face_options_t
   void post_parse (GError **error);
 
   hb_bool_t sub_font = false;
+  hb_bool_t list_features = false;
 #ifndef HB_NO_VAR
   hb_bool_t list_variations = false;
   hb_variation_t *variations = nullptr;
@@ -89,6 +90,7 @@ static struct supported_font_funcs_t {
 };
 
 
+static G_GNUC_NORETURN void _list_features (hb_face_t *face);
 #ifndef HB_NO_VAR
 static G_GNUC_NORETURN void _list_variations (hb_face_t *face);
 #endif
@@ -164,12 +166,48 @@ font_options_t::post_parse (GError **error)
     hb_font_destroy (old_font);
   }
 
+  if (list_features)
+    _list_features (face);
+
 #ifndef HB_NO_VAR
   if (list_variations)
     _list_variations (face);
 #endif
 }
 
+static G_GNUC_NORETURN void
+_list_features (hb_face_t *face)
+{
+  hb_set_t *features = hb_set_create ();
+
+  hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
+  for (unsigned int i = 0; table_tags[i]; i++)
+  {
+    hb_tag_t feature_array[32];
+    unsigned feature_count = sizeof feature_array / sizeof feature_array[0];
+    unsigned start_offset = 0;
+    do
+    {
+      hb_ot_layout_table_get_feature_tags (face, table_tags[i],
+					   start_offset,
+					   &feature_count,
+					   feature_array);
+      start_offset += feature_count;
+
+      for (unsigned j = 0; j < feature_count; j++)
+        hb_set_add (features, feature_array[j]);
+    }
+    while (feature_count == sizeof feature_array / sizeof feature_array[0]);
+  }
+
+  for (hb_codepoint_t tag = HB_SET_VALUE_INVALID;
+       hb_set_next (features, &tag);)
+  {
+    printf ("%c%c%c%c\n", HB_UNTAG (tag));
+  }
+
+  exit (0);
+}
 
 #ifndef HB_NO_VAR
 static G_GNUC_NORETURN void
@@ -376,6 +414,7 @@ font_options_t::add_options (option_parser_t *parser)
     {"sub-font",	0, G_OPTION_FLAG_HIDDEN,
 			      G_OPTION_ARG_NONE,	&this->sub_font,		"Create a sub-font (default: false)",		"boolean"},
     {"ft-load-flags",	0, 0, G_OPTION_ARG_INT,		&this->ft_load_flags,		"Set FreeType load-flags (default: 2)",		"integer"},
+    {"list-features",	0, 0, G_OPTION_ARG_NONE,	&this->list_features,		"List available font features and quit",	nullptr},
     {nullptr}
   };
   parser->add_group (entries,
