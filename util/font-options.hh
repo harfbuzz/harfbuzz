@@ -180,13 +180,14 @@ _list_variations (hb_face_t *face)
   hb_ot_var_get_axis_infos (face, 0, &count, axes.arrayZ);
 
   auto language = hb_language_get_default ();
+  bool has_hidden = false;
 
-  printf ("Non-hidden varitation axes:\n");
-  printf ("tag:	min	default	max	name\n\n");
+  printf ("Varitation axes:\n");
+  printf ("Tag:	Minimum	Default	Maximum	Name\n\n");
   for (const auto &axis : axes)
   {
     if (axis.flags & HB_OT_VAR_AXIS_FLAG_HIDDEN)
-      continue;
+      has_hidden = true;
 
     char name[64];
     unsigned name_len = sizeof name;
@@ -195,13 +196,16 @@ _list_variations (hb_face_t *face)
 			 language,
 			 &name_len, name);
 
-    printf ("%c%c%c%c:	%g	%g	%g	%s\n",
+    printf ("%c%c%c%c%s:	%g	%g	%g	%s\n",
 	    HB_UNTAG (axis.tag),
+	    axis.flags & HB_OT_VAR_AXIS_FLAG_HIDDEN ? "*" : "",
 	    (double) axis.min_value,
 	    (double) axis.default_value,
 	    (double) axis.max_value,
 	    name);
   }
+  if (has_hidden)
+    printf ("\n[*] Hidden axis\n");
 
   count = hb_ot_var_get_named_instance_count (face);
   if (count)
@@ -223,7 +227,7 @@ _list_variations (hb_face_t *face)
       coords.resize (coords_count);
       hb_ot_var_named_instance_get_design_coords (face, i, &coords_count, coords.arrayZ);
 
-      printf ("%s	", name);
+      printf ("%-32s", name);
       for (unsigned j = 0; j < coords.length; j++)
 	printf ("%g, ", (double) coords[j]);
       printf ("\n");
