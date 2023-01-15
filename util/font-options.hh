@@ -57,6 +57,7 @@ struct font_options_t : face_options_t
 
   hb_bool_t sub_font = false;
 #ifndef HB_NO_VAR
+  hb_bool_t list_variations = false;
   hb_variation_t *variations = nullptr;
   unsigned int num_variations = 0;
 #endif
@@ -86,6 +87,10 @@ static struct supported_font_funcs_t {
 #endif
 };
 
+
+#ifndef HB_NO_VAR
+static G_GNUC_NORETURN void _list_variations (hb_face_t *face);
+#endif
 
 void
 font_options_t::post_parse (GError **error)
@@ -156,10 +161,50 @@ font_options_t::post_parse (GError **error)
     hb_font_set_scale (old_font, scale_x * 2, scale_y * 2);
     hb_font_destroy (old_font);
   }
+
+#ifndef HB_NO_VAR
+  if (list_variations)
+    _list_variations (face);
+#endif
 }
 
 
 #ifndef HB_NO_VAR
+static G_GNUC_NORETURN void
+_list_variations (hb_face_t *face)
+{
+  hb_vector_t<hb_ot_var_axis_info_t> axes;
+
+  unsigned count = hb_ot_var_get_axis_infos (face, 0, nullptr, nullptr);
+  axes.resize (count);
+  hb_ot_var_get_axis_infos (face, 0, &count, axes.arrayZ);
+
+  auto language = hb_language_get_default ();
+
+  printf ("tag:	min	default	max	name\n");
+  for (const auto &axis : axes)
+  {
+    if (axis.flags & HB_OT_VAR_AXIS_FLAG_HIDDEN)
+      continue;
+
+    char name[64];
+    unsigned name_len = sizeof name;
+
+    hb_ot_name_get_utf8 (face, axis.name_id,
+			 language,
+			 &name_len, name);
+
+    printf ("%c%c%c%c:	%g	%g	%g	%s\n",
+	    HB_UNTAG (axis.tag),
+	    (double) axis.min_value,
+	    (double) axis.default_value,
+	    (double) axis.max_value,
+	    name);
+  }
+
+  exit(0);
+}
+
 static gboolean
 parse_variations (const char *name G_GNUC_UNUSED,
 		  const char *arg,
@@ -317,6 +362,7 @@ font_options_t::add_options (option_parser_t *parser)
 
   GOptionEntry entries2[] =
   {
+    {"list-variations",	0, 0, G_OPTION_ARG_NONE,	&this->list_variations,		"List available font variations and quit",	nullptr},
     {"variations",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_variations,	variations_help,	"list"},
     {nullptr}
   };
