@@ -269,10 +269,10 @@ _list_variations (hb_face_t *face)
       unsigned coords_count = hb_ot_var_named_instance_get_design_coords (face, i, nullptr, nullptr);
       float* coords;
       coords = (float *) calloc (coords_count, sizeof (float));
-      hb_ot_var_named_instance_get_design_coords (face, i, &coords_count, coords.arrayZ);
+      hb_ot_var_named_instance_get_design_coords (face, i, &coords_count, coords);
 
       printf ("%u. %-32s", i, name);
-      for (unsigned j = 0; j < coords.length; j++)
+      for (unsigned j = 0; j < coords_count; j++)
 	printf ("%g, ", (double) coords[j]);
       printf ("\n");
 
