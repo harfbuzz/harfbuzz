@@ -71,6 +71,7 @@ struct font_options_t : face_options_t
   char *font_funcs = nullptr;
   int ft_load_flags = 2;
   unsigned int palette = 0;
+  unsigned int named_instance = 0;
 
   hb_font_t *font = nullptr;
 };
@@ -113,6 +114,7 @@ font_options_t::post_parse (GError **error)
   hb_font_set_scale (font, scale_x, scale_y);
 
 #ifndef HB_NO_VAR
+  hb_font_set_var_named_instance (font, named_instance);
   hb_font_set_variations (font, variations, num_variations);
 #endif
 
@@ -395,6 +397,7 @@ font_options_t::add_options (option_parser_t *parser)
   GOptionEntry entries2[] =
   {
     {"list-variations",	0, 0, G_OPTION_ARG_NONE,	&this->list_variations,		"List available font variations and quit",	nullptr},
+    {"named-instance",	0, 0, G_OPTION_ARG_INT,         &this->named_instance,		"Set named-instance index (default: none)",	"index"},
     {"variations",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_variations,	variations_help,	"list"},
     {nullptr}
   };
