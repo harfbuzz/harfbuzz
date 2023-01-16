@@ -178,69 +178,102 @@ font_options_t::post_parse (GError **error)
 static G_GNUC_NORETURN void
 _list_features (hb_face_t *face)
 {
-  hb_set_t *features = hb_set_create ();
-  hb_map_t *feature_index = hb_map_create ();
-  hb_map_t *feature_table = hb_map_create ();
-
   hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
+  auto language = hb_language_get_default ();
+  hb_set_t *features = hb_set_create ();
+
   for (unsigned int i = 0; table_tags[i]; i++)
   {
+    printf ("Table: %c%c%c%c\n", HB_UNTAG (table_tags[i]));
+
+    hb_tag_t script_array[32];
+    unsigned script_count = sizeof script_array / sizeof script_array[0];
+    unsigned script_offset = 0;
+    do
+    {
+      hb_ot_layout_table_get_script_tags (face, table_tags[i],
+					  script_offset,
+					  &script_count,
+					  script_array);
+
+      for (unsigned script_index = 0; script_index < script_count; script_index++)
+      {
+        printf ("  Script: %c%c%c%c\n", HB_UNTAG (script_array[script_index]));
+
+	hb_tag_t language_array[32];
+	unsigned language_count = sizeof language_array / sizeof language_array[0];
+	unsigned language_offset = 0;
+	do
+	{
+	  hb_ot_layout_script_get_language_tags (face, table_tags[i],
+						 script_offset + script_index,
+						 language_offset,
+						 &language_count,
+						 language_array);
+
+	  for (unsigned language_index = 0; language_index < language_count; language_index++)
+	  {
+	    printf ("    Language: %c%c%c%c\n", HB_UNTAG (language_array[language_index]));
+	  }
+
+	  language_offset += language_count;
+	}
+	while (language_count == sizeof language_array / sizeof language_array[0]);
+      }
+
+      script_offset += script_count;
+    }
+    while (script_count == sizeof script_array / sizeof script_array[0]);
+
     hb_tag_t feature_array[32];
     unsigned feature_count = sizeof feature_array / sizeof feature_array[0];
-    unsigned start_offset = 0;
+    unsigned feature_offset = 0;
     do
     {
       hb_ot_layout_table_get_feature_tags (face, table_tags[i],
-					   start_offset,
+					   feature_offset,
 					   &feature_count,
 					   feature_array);
 
-      for (unsigned j = 0; j < feature_count; j++)
+      for (unsigned feature_index = 0; feature_index < feature_count; feature_index++)
       {
-	hb_set_add (features, feature_array[j]);
-	hb_map_set (feature_index, feature_array[j], start_offset + j);
-	hb_map_set (feature_table, feature_array[j], table_tags[i]);
+        if (hb_set_has (features, feature_array[feature_index]))
+	  continue;
+	hb_set_add (features, feature_array[feature_index]);
+
+	hb_ot_name_id_t label_id;
+
+	hb_ot_layout_feature_get_name_ids (face,
+					   table_tags[i],
+					   feature_offset + feature_index,
+					   &label_id,
+					   nullptr,
+					   nullptr,
+					   nullptr,
+					   nullptr);
+
+	char name[64];
+	unsigned name_len = sizeof name;
+
+	hb_ot_name_get_utf8 (face, label_id,
+			     language,
+			     &name_len, name);
+
+	printf ("  Feature: %c%c%c%c", HB_UNTAG (feature_array[feature_index]));
+
+	if (*name)
+	  printf (" %s", name);
+
+	printf ("\n");
       }
 
-      start_offset += feature_count;
+      feature_offset += feature_count;
     }
     while (feature_count == sizeof feature_array / sizeof feature_array[0]);
   }
 
-  auto language = hb_language_get_default ();
-
-  for (hb_codepoint_t tag = HB_SET_VALUE_INVALID;
-       hb_set_next (features, &tag);)
-  {
-    hb_ot_name_id_t label_id;
-
-    hb_ot_layout_feature_get_name_ids (face,
-				       hb_map_get (feature_table, tag),
-				       hb_map_get (feature_index, tag),
-				       &label_id,
-				       nullptr,
-				       nullptr,
-				       nullptr,
-				       nullptr);
-
-    char name[64];
-    unsigned name_len = sizeof name;
-
-    hb_ot_name_get_utf8 (face, label_id,
-			 language,
-			 &name_len, name);
-
-    printf ("%c%c%c%c", HB_UNTAG (tag));
-
-    if (*name)
-      printf ("	%s", name);
-
-    printf ("\n");
-  }
-
   hb_set_destroy (features);
-  hb_map_destroy (feature_index);
-  hb_map_destroy (feature_table);
+
   exit (0);
 }
 
