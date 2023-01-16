@@ -39,7 +39,7 @@ have_ft_colrv1 (void)
 {
 #if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21101
   // https://github.com/harfbuzz/harfbuzz/issues/4013
-  return sizeof (FT_ColorStop) == 8;
+  return sizeof (FT_ColorStop) == 2 * sizeof (FT_Fixed);
 #endif
   return FALSE;
 }
