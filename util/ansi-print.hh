@@ -401,7 +401,9 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	  last_bg = bi.bg;
 	}
 	write_func (closure, (unsigned char *) " ", 1);
-      } else {
+      }
+      else
+      {
 	/* Figure out the closest character to the biimage */
 	bool inverse = false;
 	const char *c = block_best (bi, &inverse);
