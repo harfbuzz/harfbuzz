@@ -72,7 +72,7 @@ struct font_options_t : face_options_t
   char *font_funcs = nullptr;
   int ft_load_flags = 2;
   unsigned int palette = 0;
-  unsigned int named_instance = 0;
+  unsigned int named_instance = HB_FONT_NO_VAR_NAMED_INSTANCE;
 
   hb_font_t *font = nullptr;
 };
