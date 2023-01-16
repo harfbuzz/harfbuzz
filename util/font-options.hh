@@ -179,6 +179,8 @@ static G_GNUC_NORETURN void
 _list_features (hb_face_t *face)
 {
   hb_set_t *features = hb_set_create ();
+  hb_map_t *feature_index = hb_map_create ();
+  hb_map_t *feature_table = hb_map_create ();
 
   hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
   for (unsigned int i = 0; table_tags[i]; i++)
@@ -192,20 +194,53 @@ _list_features (hb_face_t *face)
 					   start_offset,
 					   &feature_count,
 					   feature_array);
-      start_offset += feature_count;
 
       for (unsigned j = 0; j < feature_count; j++)
-        hb_set_add (features, feature_array[j]);
+      {
+	hb_set_add (features, feature_array[j]);
+	hb_map_set (feature_index, feature_array[j], start_offset + j);
+	hb_map_set (feature_table, feature_array[j], table_tags[i]);
+      }
+
+      start_offset += feature_count;
     }
     while (feature_count == sizeof feature_array / sizeof feature_array[0]);
   }
 
+  auto language = hb_language_get_default ();
+
   for (hb_codepoint_t tag = HB_SET_VALUE_INVALID;
        hb_set_next (features, &tag);)
   {
-    printf ("%c%c%c%c\n", HB_UNTAG (tag));
+    hb_ot_name_id_t label_id;
+
+    hb_ot_layout_feature_get_name_ids (face,
+				       hb_map_get (feature_table, tag),
+				       hb_map_get (feature_index, tag),
+				       &label_id,
+				       nullptr,
+				       nullptr,
+				       nullptr,
+				       nullptr);
+
+    char name[64];
+    unsigned name_len = sizeof name;
+
+    hb_ot_name_get_utf8 (face, label_id,
+			 language,
+			 &name_len, name);
+
+    printf ("%c%c%c%c", HB_UNTAG (tag));
+
+    if (*name)
+      printf ("	%s", name);
+
+    printf ("\n");
   }
 
+  hb_set_destroy (features);
+  hb_map_destroy (feature_index);
+  hb_map_destroy (feature_table);
   exit (0);
 }
 
