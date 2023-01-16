@@ -174,7 +174,7 @@ hb_set_allocation_successful (const hb_set_t  *set)
  *
  * Allocate a copy of @set.
  *
- * Return value: Newly-allocated set.
+ * Return value: (transfer full): Newly-allocated set.
  *
  * Since: 2.8.2
  **/
@@ -182,7 +182,9 @@ hb_set_t *
 hb_set_copy (const hb_set_t *set)
 {
   hb_set_t *copy = hb_set_create ();
-  if (unlikely (!copy)) return nullptr;
+  if (unlikely (copy->in_error ()))
+    return hb_set_get_empty ();
+
   copy->set (*set);
   return copy;
 }
