@@ -225,6 +225,7 @@ _list_features (hb_face_t *face)
     }
     while (script_count == sizeof script_array / sizeof script_array[0]);
 
+    hb_set_clear (features);
     hb_tag_t feature_array[32];
     unsigned feature_count = sizeof feature_array / sizeof feature_array[0];
     unsigned feature_offset = 0;
