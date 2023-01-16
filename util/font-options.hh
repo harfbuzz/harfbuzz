@@ -203,7 +203,33 @@ _list_features (hb_face_t *face)
   for (hb_codepoint_t tag = HB_SET_VALUE_INVALID;
        hb_set_next (features, &tag);)
   {
-    printf ("%c%c%c%c\n", HB_UNTAG (tag));
+    hb_tag_t script_tag = HB_TAG('l','a','t','n');
+    unsigned int script_index;
+    unsigned int lang_index = HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX;
+    unsigned int feature_index;
+    hb_ot_name_id_t label_id;
+    char *text = NULL;
+
+    if (hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB, script_tag, &script_index) &&
+        hb_ot_layout_language_find_feature (face, HB_OT_TAG_GSUB, script_index, lang_index,
+                                            tag, &feature_index) &&
+        hb_ot_layout_feature_get_name_ids (face, HB_OT_TAG_GSUB,
+                                           feature_index,
+                                           &label_id,
+                                           NULL,
+                                           NULL,
+                                           NULL,
+                                           NULL))
+    {
+      unsigned int len;
+
+      len = hb_ot_name_get_utf8 (face, label_id, HB_LANGUAGE_INVALID, NULL, NULL);
+      len++;
+      text = (char *) alloca (len);
+      hb_ot_name_get_utf8 (face, label_id, HB_LANGUAGE_INVALID, &len, text);
+    }
+
+    printf ("%c%c%c%c%s%s\n", HB_UNTAG (tag), text ? ": " : "", text ? text : "");
   }
 
   exit (0);
