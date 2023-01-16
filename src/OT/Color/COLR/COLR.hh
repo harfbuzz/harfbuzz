@@ -1991,9 +1991,7 @@ struct COLR
 				 this+varIdxMap,
 				 hb_array (font->coords, font->num_coords));
 
-    if ((this+clipList).get_extents (glyph,
-				     extents,
-				     instancer))
+    if (get_clip (glyph, extents, instancer))
     {
       font->scale_glyph_extents (extents);
       return true;
@@ -2025,6 +2023,15 @@ struct COLR
     return false;
   }
 
+  bool get_clip (hb_codepoint_t glyph,
+		 hb_glyph_extents_t *extents,
+		 const VarStoreInstancer instancer) const
+  {
+    return (this+clipList).get_extents (glyph,
+					extents,
+					instancer);
+  }
+
   bool
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette, hb_color_t foreground, bool clip = true) const
   {
@@ -2048,9 +2055,7 @@ struct COLR
 	if (clip)
 	{
 	  hb_glyph_extents_t extents;
-	  if ((this+clipList).get_extents (glyph,
-					   &extents,
-					   instancer))
+	  if (get_clip (glyph, &extents, instancer))
 	  {
 	    font->scale_glyph_extents (&extents);
 	    c.funcs->push_clip_rectangle (c.data,
@@ -2163,9 +2168,21 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
   const COLR *colr_table = c->get_colr_table ();
   const Paint *paint = colr_table->get_base_glyph_paint (gid);
 
-  // TODO apply clipbox
+  hb_glyph_extents_t extents = {0};
+  bool has_clip_box = colr_table->get_clip (gid, &extents, c->instancer);
+
+  if (has_clip_box)
+    c->funcs->push_clip_rectangle (c->data,
+				   extents.x_bearing,
+				   extents.y_bearing + extents.height,
+				   extents.x_bearing + extents.width,
+				   extents.y_bearing);
+
   if (paint)
     c->recurse (*paint);
+
+  if (has_clip_box)
+    c->funcs->pop_clip (c->data);
 }
 
 } /* namespace OT */

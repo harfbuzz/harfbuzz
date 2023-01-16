@@ -306,17 +306,25 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
         FT_ClipBox clip_box;
         has_clip_box = FT_Get_Color_Glyph_ClipBox (ft_face, paint.u.colr_glyph.glyphID, &clip_box);
 
-	/* The FreeType ClipBox is in scaled coordinates, whereas we need
-	 * unscaled clipbox here. Oh well... */
-        has_clip_box = false;
-
         if (has_clip_box)
+	{
+	  /* The FreeType ClipBox is in scaled coordinates, whereas we need
+	   * unscaled clipbox here. Oh well...
+	   */
+
+	  float upem = c->font->face->get_upem ();
+	  float xscale = upem / (c->font->x_scale ? c->font->x_scale : upem);
+	  float yscale = upem / (c->font->y_scale ? c->font->y_scale : upem);
+
           c->funcs->push_clip_rectangle (c->data,
-					 clip_box.bottom_left.x / 64.f,
-					 clip_box.bottom_left.y / 64.f,
-					 clip_box.top_right.x / 64.f,
-					 clip_box.top_right.y / 64.f);
+					 clip_box.bottom_left.x * xscale,
+					 clip_box.bottom_left.y * yscale,
+					 clip_box.top_right.x * xscale,
+					 clip_box.top_right.y * yscale);
+	}
+
 	c->recurse (other_paint);
+
         if (has_clip_box)
           c->funcs->pop_clip (c->data);
       }
