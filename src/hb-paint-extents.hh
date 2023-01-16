@@ -194,8 +194,8 @@ typedef struct hb_bounds_t
 
 typedef struct  hb_paint_extents_context_t hb_paint_extents_context_t;
 
-struct hb_paint_extents_context_t {
-
+struct hb_paint_extents_context_t
+{
   hb_paint_extents_context_t ()
   {
     transforms.push (hb_transform_t{});
