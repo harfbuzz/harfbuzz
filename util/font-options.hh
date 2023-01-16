@@ -263,7 +263,7 @@ _list_features (hb_face_t *face)
 	printf ("  Feature: %c%c%c%c", HB_UNTAG (feature_array[feature_index]));
 
 	if (*name)
-	  printf (" %s", name);
+	  printf (" \"%s\"", name);
 
 	printf ("\n");
       }
