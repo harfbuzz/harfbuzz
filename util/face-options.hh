@@ -137,7 +137,13 @@ static G_GNUC_NORETURN void _list_tables (hb_face_t *face)
 
   for (unsigned i = 0; i < count; i++)
   {
-    printf ("%c%c%c%c\n", HB_UNTAG (tags[i]));
+    hb_tag_t tag = tags[i];
+
+    hb_blob_t *blob = hb_face_reference_table (face, tag);
+
+    printf ("%c%c%c%c: %8u bytes\n", HB_UNTAG (tag), hb_blob_get_length (blob));
+
+    hb_blob_destroy (blob);
   }
 
   free (tags);
