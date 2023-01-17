@@ -212,7 +212,7 @@ _hb_cairo_reduce_anchors (float x0, float y0,
 
   q2x = x2 - x0;
   q2y = y2 - y0;
-  q1x = y1 - x0;
+  q1x = x1 - x0;
   q1y = y1 - y0;
 
   s = q2x * q2x + q2y * q2y;
