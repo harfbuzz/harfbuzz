@@ -33,6 +33,10 @@ jobs:
         shell: msys2 {0}
     steps:
       - uses: actions/checkout@v3
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          variant: sccache
+          key: ${{ github.job }}-${{ matrix.MSYSTEM }}-${{ matrix.MSYS2_ARCH }}
       - uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.MSYSTEM }}
@@ -57,6 +61,8 @@ jobs:
           pip install --upgrade fonttools
       - name: Build
         run: |
+          export PATH=$PATH:$(cygpath -u $USERPROFILE/.cargo/bin)
+          sccache --version
           meson build \
             --wrap-mode=nodownload \
             --auto-features=enabled \
