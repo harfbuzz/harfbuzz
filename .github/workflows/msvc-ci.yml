@@ -42,9 +42,6 @@ jobs:
           pip install --upgrade meson ninja fonttools
       - name: Build
         run: |
-          # This dir contains a pkg-config which meson will happily use and later fail, so remove it
-          $env:path = ($env:path.Split(';') | Where-Object { $_ -ne 'C:\Strawberry\perl\bin' }) -join ';'
-
           meson setup build `
             --wrap-mode=forcefallback `
             --buildtype=release `
