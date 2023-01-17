@@ -54,9 +54,7 @@ typedef struct {
   GString *string;
 } paint_data_t;
 
-#ifndef _MSC_VER
-static void print (paint_data_t *data, const char *format, ...) __attribute__((format (printf, 2, 3)));
-#endif
+static void print (paint_data_t *data, const char *format, ...) G_GNUC_PRINTF (2, 3);
 
 static void
 print (paint_data_t *data,
