@@ -14,15 +14,38 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: hendrikmuhs/ccache-action@v1.2
-    - name: install dependencies
-      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install meson pkg-config freetype glib glib-utils cairo icu4c graphite2 gobject-introspection gtk-doc ninja
-    - run: pip3 install fonttools
-    - name: run
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup Ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+    - name: Install Dependencies
+      run: |
+        export HOMEBREW_NO_AUTO_UPDATE=1
+        brew install \
+          cairo \
+          freetype \
+          glib \
+          glib-utils \
+          gobject-introspection \
+          graphite2 \
+          gtk-doc \
+          icu4c \
+          meson \
+          ninja \
+          pkg-config
+    - name: Install Python Dependencies
+      run: pip3 install fonttools
+    - name: Setup Meson
       run: |
         export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig"
         ccache --version
-        meson setup build -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled -Dchafa=disabled -Doptimization=2
-    - name: ci
+        meson setup build \
+          -Dauto_features=enabled \
+          -Dchafa=disabled \
+          -Dcoretext=enabled \
+          -Dgraphite=enabled \
+          -Doptimization=2
+    - name: Build
+      run: meson compile -Cbuild
+    - name: Test
       run: meson test --print-errorlogs -Cbuild
