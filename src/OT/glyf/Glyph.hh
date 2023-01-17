@@ -141,6 +141,19 @@ struct Glyph
     }
 
     update_mtx (plan, roundf (xMin), roundf (xMax), roundf (yMin), roundf (yMax), all_points);
+ 
+    int rounded_xMin = roundf (xMin);
+    int rounded_xMax = roundf (xMax);
+    int rounded_yMin = roundf (yMin);
+    int rounded_yMax = roundf (yMax);
+
+    if (type != EMPTY)
+    {
+      plan->head_maxp_info.xMin = hb_min (plan->head_maxp_info.xMin, rounded_xMin);
+      plan->head_maxp_info.yMin = hb_min (plan->head_maxp_info.yMin, rounded_yMin);
+      plan->head_maxp_info.xMax = hb_max (plan->head_maxp_info.xMax, rounded_xMax);
+      plan->head_maxp_info.yMax = hb_max (plan->head_maxp_info.yMax, rounded_yMax);
+    }
 
     /*for empty glyphs: all_points only include phantom points.
      *just update metrics and then return */
@@ -148,10 +161,11 @@ struct Glyph
       return true;
 
     glyph_header->numberOfContours = header->numberOfContours;
-    glyph_header->xMin = roundf (xMin);
-    glyph_header->yMin = roundf (yMin);
-    glyph_header->xMax = roundf (xMax);
-    glyph_header->yMax = roundf (yMax);
+
+    glyph_header->xMin = rounded_xMin;
+    glyph_header->yMin = rounded_yMin;
+    glyph_header->xMax = rounded_xMax;
+    glyph_header->yMax = rounded_yMax;
 
     dest_bytes = hb_bytes_t ((const char *)glyph_header, GlyphHeader::static_size);
     return true;
@@ -164,7 +178,8 @@ struct Glyph
                                   hb_bytes_t &dest_end /* OUT */)
   {
     contour_point_vector_t all_points, deltas;
-    if (!get_points (font, glyf, all_points, &deltas, false, false))
+    unsigned composite_contours = 0;
+    if (!get_points (font, glyf, all_points, &deltas, &plan->head_maxp_info, &composite_contours, false, false))
       return false;
 
     // .notdef, set type to empty so we only update metrics and don't compile bytes for
@@ -210,6 +225,8 @@ struct Glyph
   bool get_points (hb_font_t *font, const accelerator_t &glyf_accelerator,
 		   contour_point_vector_t &all_points /* OUT */,
 		   contour_point_vector_t *deltas = nullptr, /* OUT */
+		   head_maxp_info_t * head_maxp_info = nullptr, /* OUT */
+		   unsigned *composite_contours = nullptr, /* OUT */
 		   bool shift_points_hori = true,
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
@@ -222,6 +239,11 @@ struct Glyph
     if (!edge_count) edge_count = &stack_edge_count;
     if (unlikely (*edge_count > HB_GLYF_MAX_EDGE_COUNT)) return false;
     (*edge_count)++;
+    
+    if (head_maxp_info)
+    {
+      head_maxp_info->maxComponentDepth = hb_max (head_maxp_info->maxComponentDepth, depth);
+    }
 
     if (!coords)
       coords = hb_array (font->coords, font->num_coords);
@@ -233,6 +255,10 @@ struct Glyph
 
     switch (type) {
     case SIMPLE:
+      if (depth == 0 && head_maxp_info)
+        head_maxp_info->maxContours = hb_max (head_maxp_info->maxContours, (unsigned) header->numberOfContours);
+      if (depth > 0 && composite_contours)
+        *composite_contours += (unsigned) header->numberOfContours;
       if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
 	return false;
       break;
@@ -308,6 +334,8 @@ struct Glyph
 
     switch (type) {
     case SIMPLE:
+      if (depth == 0 && head_maxp_info)
+        head_maxp_info->maxPoints = hb_max (head_maxp_info->maxPoints, points.length - 4);
       if (!inplace)
 	all_points.extend (points.as_array ());
       break;
@@ -318,12 +346,13 @@ struct Glyph
       for (auto &item : get_composite_iterator ())
       {
         comp_points.reset ();
-
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
 				       .get_points (font,
 						    glyf_accelerator,
 						    comp_points,
 						    deltas,
+						    head_maxp_info,
+						    composite_contours,
 						    shift_points_hori,
 						    use_my_metrics,
 						    phantom_only,
@@ -365,6 +394,13 @@ struct Glyph
 	comp_index++;
       }
 
+      if (head_maxp_info && depth == 0)
+      {
+        if (composite_contours)
+          head_maxp_info->maxCompositeContours = hb_max (head_maxp_info->maxCompositeContours, *composite_contours);
+        head_maxp_info->maxCompositePoints = hb_max (head_maxp_info->maxCompositePoints, all_points.length);
+        head_maxp_info->maxComponentElements = hb_max (head_maxp_info->maxComponentElements, comp_index);
+      }
       all_points.extend (phantoms);
     } break;
 #ifndef HB_NO_VAR_COMPOSITES
@@ -390,6 +426,8 @@ struct Glyph
 						    glyf_accelerator,
 						    comp_points,
 						    deltas,
+						    head_maxp_info,
+						    nullptr,
 						    shift_points_hori,
 						    use_my_metrics,
 						    phantom_only,
