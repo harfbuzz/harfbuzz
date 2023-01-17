@@ -92,7 +92,7 @@ struct hb_bit_page_t
   void init0 () { v.init0 (); }
   void init1 () { v.init1 (); }
 
-  constexpr unsigned len () const
+  static inline constexpr unsigned len ()
   { return ARRAY_LENGTH_CONST (v); }
 
   bool is_empty () const
