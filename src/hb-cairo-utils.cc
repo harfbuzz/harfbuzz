@@ -91,13 +91,13 @@ _hb_cairo_destroy_blob (void *p)
 }
 
 hb_bool_t
-hb_cairo_paint_glyph_image (cairo_t *cr,
-                            hb_blob_t *blob,
-                            unsigned width,
-                            unsigned height,
-                            hb_tag_t format,
-                            float slant,
-                            hb_glyph_extents_t *extents)
+_hb_cairo_paint_glyph_image (cairo_t *cr,
+			     hb_blob_t *blob,
+			     unsigned width,
+			     unsigned height,
+			     hb_tag_t format,
+			     float slant,
+			     hb_glyph_extents_t *extents)
 {
   if (!extents) /* SVG currently. */
     return false;
@@ -273,11 +273,11 @@ _hb_cairo_normalize_color_line (hb_color_stop_t *stops,
 }
 
 void
-hb_cairo_paint_linear_gradient (cairo_t *cr,
-                                hb_color_line_t *color_line,
-                                float x0, float y0,
-                                float x1, float y1,
-                                float x2, float y2)
+_hb_cairo_paint_linear_gradient (cairo_t *cr,
+				 hb_color_line_t *color_line,
+				 float x0, float y0,
+				 float x1, float y1,
+				 float x2, float y2)
 {
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
   hb_color_stop_t *stops = stops_;
@@ -322,10 +322,10 @@ hb_cairo_paint_linear_gradient (cairo_t *cr,
 }
 
 void
-hb_cairo_paint_radial_gradient (cairo_t *cr,
-                                hb_color_line_t *color_line,
-                                float x0, float y0, float r0,
-                                float x1, float y1, float r1)
+_hb_cairo_paint_radial_gradient (cairo_t *cr,
+				 hb_color_line_t *color_line,
+				 float x0, float y0, float r0,
+				 float x1, float y1, float r1)
 {
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
   hb_color_stop_t *stops = stops_;
@@ -789,11 +789,11 @@ done:
 }
 
 void
-hb_cairo_paint_sweep_gradient (cairo_t *cr,
-                               hb_color_line_t *color_line,
-                               float cx, float cy,
-                               float start_angle,
-                               float end_angle)
+_hb_cairo_paint_sweep_gradient (cairo_t *cr,
+				hb_color_line_t *color_line,
+				float cx, float cy,
+				float start_angle,
+				float end_angle)
 {
   unsigned int len;
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];

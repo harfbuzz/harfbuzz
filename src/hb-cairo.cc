@@ -227,7 +227,7 @@ hb_cairo_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
   cairo_t *cr = (cairo_t *) paint_data;
 
   cairo_pop_group_to_source (cr);
-  cairo_set_operator (cr, hb_paint_composite_mode_to_cairo (mode));
+  cairo_set_operator (cr, _hb_paint_composite_mode_to_cairo (mode));
   cairo_paint (cr);
 
   cairo_restore (cr);
@@ -263,7 +263,7 @@ hb_cairo_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 {
   cairo_t *cr = (cairo_t *) paint_data;
 
-  return hb_cairo_paint_glyph_image (cr, blob, width, height, format, slant, extents);
+  return _hb_cairo_paint_glyph_image (cr, blob, width, height, format, slant, extents);
 }
 
 static void
@@ -277,7 +277,7 @@ hb_cairo_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
-  hb_cairo_paint_linear_gradient (cr, color_line, x0, y0, x1, y1, x2, y2);
+  _hb_cairo_paint_linear_gradient (cr, color_line, x0, y0, x1, y1, x2, y2);
 }
 
 static void
@@ -290,7 +290,7 @@ hb_cairo_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
-  hb_cairo_paint_radial_gradient (cr, color_line, x0, y0, r0, x1, y1, r1);
+  _hb_cairo_paint_radial_gradient (cr, color_line, x0, y0, r0, x1, y1, r1);
 }
 
 static void
@@ -303,7 +303,7 @@ hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 {
   cairo_t *cr = (cairo_t *) paint_data;
 
-  hb_cairo_paint_sweep_gradient (cr, color_line, x0, y0, start_angle, end_angle);
+  _hb_cairo_paint_sweep_gradient (cr, color_line, x0, y0, start_angle, end_angle);
 }
 
 static inline void free_static_cairo_paint_funcs ();

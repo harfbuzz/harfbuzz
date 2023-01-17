@@ -32,7 +32,7 @@
 
 
 static inline cairo_operator_t
-hb_paint_composite_mode_to_cairo (hb_paint_composite_mode_t mode)
+_hb_paint_composite_mode_to_cairo (hb_paint_composite_mode_t mode)
 {
   switch (mode)
     {
@@ -69,32 +69,32 @@ hb_paint_composite_mode_to_cairo (hb_paint_composite_mode_t mode)
 }
 
 HB_INTERNAL hb_bool_t
-hb_cairo_paint_glyph_image (cairo_t *cr,
-			    hb_blob_t *blob,
-			    unsigned width,
-			    unsigned height,
-			    hb_tag_t format,
-			    float slant,
-			    hb_glyph_extents_t *extents);
+_hb_cairo_paint_glyph_image (cairo_t *cr,
+			     hb_blob_t *blob,
+			     unsigned width,
+			     unsigned height,
+			     hb_tag_t format,
+			     float slant,
+			     hb_glyph_extents_t *extents);
 
 HB_INTERNAL void
-hb_cairo_paint_linear_gradient (cairo_t *cr,
-			        hb_color_line_t *color_line,
-			        float x0, float y0,
-			        float x1, float y1,
-			        float x2, float y2);
+_hb_cairo_paint_linear_gradient (cairo_t *cr,
+				 hb_color_line_t *color_line,
+				 float x0, float y0,
+				 float x1, float y1,
+				 float x2, float y2);
 
 HB_INTERNAL void
-hb_cairo_paint_radial_gradient (cairo_t *cr,
-			        hb_color_line_t *color_line,
-			        float x0, float y0, float r0,
-			        float x1, float y1, float r1);
+_hb_cairo_paint_radial_gradient (cairo_t *cr,
+				 hb_color_line_t *color_line,
+				 float x0, float y0, float r0,
+				 float x1, float y1, float r1);
 
 HB_INTERNAL void
-hb_cairo_paint_sweep_gradient (cairo_t *cr,
-			       hb_color_line_t *color_line,
-			       float x0, float y0,
-			       float start_angle, float end_angle);
+_hb_cairo_paint_sweep_gradient (cairo_t *cr,
+				hb_color_line_t *color_line,
+				float x0, float y0,
+				float start_angle, float end_angle);
 
 
 #endif /* HB_CAIRO_UTILS_H */
