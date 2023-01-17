@@ -52,7 +52,6 @@ jobs:
             mingw-w64-${{ matrix.MSYS2_ARCH }}-pkg-config
             mingw-w64-${{ matrix.MSYS2_ARCH }}-python
             mingw-w64-${{ matrix.MSYS2_ARCH }}-python-pip
-            mingw-w64-${{ matrix.MSYS2_ARCH }}-ragel
       - name: Install Python Dependencies
         run: |
           pip install --upgrade fonttools
