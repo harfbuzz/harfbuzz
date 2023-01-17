@@ -28,6 +28,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          variant: sccache
+          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.ARCH }}
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
@@ -42,6 +46,7 @@ jobs:
           pip install --upgrade meson ninja fonttools
       - name: Build
         run: |
+          sccache --version
           meson setup build `
             --wrap-mode=forcefallback `
             --buildtype=release `
