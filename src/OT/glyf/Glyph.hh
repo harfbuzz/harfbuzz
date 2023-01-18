@@ -187,7 +187,11 @@ struct Glyph
     // it
     if (gid == 0 &&
         !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
+    {
       type = EMPTY;
+      dest_start = hb_bytes_t ();
+      dest_end = hb_bytes_t ();
+    }
 
     //dont compile bytes when pinned at default, just recalculate bounds
     if (!plan->pinned_at_default) {

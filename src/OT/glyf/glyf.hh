@@ -407,7 +407,7 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 
     if (unlikely (new_gid == 0 &&
                   !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE)) &&
-                  plan->pinned_at_default)
+                  !plan->normalized_coords)
       subset_glyph.source_glyph = glyf_impl::Glyph ();
     else
     {
