@@ -80,7 +80,7 @@ struct glyf
     _populate_subset_glyphs (c->plan, glyphs);
 
     hb_font_t *font = nullptr;
-    if (!c->plan->pinned_at_default)
+    if (c->plan->normalized_coords)
     {
       font = _create_font_for_instancing (c->plan);
       if (unlikely (!font)) return false;
@@ -108,7 +108,8 @@ struct glyf
 
     if (font)
     {
-      _free_compiled_subset_glyphs (&glyphs);
+      if (!c->plan->pinned_at_default)
+        _free_compiled_subset_glyphs (&glyphs);
       hb_font_destroy (font);
     }
 

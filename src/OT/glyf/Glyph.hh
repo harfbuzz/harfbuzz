@@ -116,7 +116,7 @@ struct Glyph
                              hb_bytes_t &dest_bytes /* OUT */) const
   {
     GlyphHeader *glyph_header = nullptr;
-    if (type != EMPTY && all_points.length > 4)
+    if (!plan->pinned_at_default && type != EMPTY && all_points.length > 4)
     {
       glyph_header = (GlyphHeader *) hb_calloc (1, GlyphHeader::static_size);
       if (unlikely (!glyph_header)) return false;
@@ -155,8 +155,9 @@ struct Glyph
       plan->head_maxp_info.yMax = hb_max (plan->head_maxp_info.yMax, rounded_yMax);
     }
 
-    /*for empty glyphs: all_points only include phantom points.
-     *just update metrics and then return */
+    /* when pinned at default, no need to compile glyph header
+     * and for empty glyphs: all_points only include phantom points.
+     * just update metrics and then return */
     if (!glyph_header)
       return true;
 
@@ -188,25 +189,28 @@ struct Glyph
         !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
       type = EMPTY;
 
-    switch (type) {
-    case COMPOSITE:
-      if (!CompositeGlyph (*header, bytes).compile_bytes_with_deltas (dest_start,
-                                                                      deltas,
-                                                                      dest_end))
-        return false;
-      break;
-    case SIMPLE:
-      if (!SimpleGlyph (*header, bytes).compile_bytes_with_deltas (all_points,
-                                                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
-                                                                   dest_end))
-        return false;
-      break;
-    default:
-      /* set empty bytes for empty glyph
-       * do not use source glyph's pointers */
-      dest_start = hb_bytes_t ();
-      dest_end = hb_bytes_t ();
-      break;
+    //dont compile bytes when pinned at default, just recalculate bounds
+    if (!plan->pinned_at_default) {
+      switch (type) {
+      case COMPOSITE:
+        if (!CompositeGlyph (*header, bytes).compile_bytes_with_deltas (dest_start,
+                                                                        deltas,
+                                                                        dest_end))
+          return false;
+        break;
+      case SIMPLE:
+        if (!SimpleGlyph (*header, bytes).compile_bytes_with_deltas (all_points,
+                                                                     plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
+                                                                     dest_end))
+          return false;
+        break;
+      default:
+        /* set empty bytes for empty glyph
+         * do not use source glyph's pointers */
+        dest_start = hb_bytes_t ();
+        dest_end = hb_bytes_t ();
+        break;
+      }
     }
 
     if (!compile_header_bytes (plan, all_points, dest_start))
