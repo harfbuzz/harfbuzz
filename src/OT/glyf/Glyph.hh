@@ -365,7 +365,11 @@ struct Glyph
 
         comp_points.reset ();
 
-	coord_setter_t coord_setter (hb_array (font->coords, font->num_coords));
+	auto component_coords = coords;
+	if (item.is_reset_unspecified_axes ())
+	  component_coords = hb_array (font->coords, font->num_coords);
+
+	coord_setter_t coord_setter (component_coords);
 	item.set_variations (coord_setter, record_points);
 
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())

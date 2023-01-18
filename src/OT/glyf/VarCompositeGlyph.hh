@@ -29,6 +29,7 @@ struct VarCompositeGlyphRecord
     HAVE_TCENTER_Y		= 0x0800,
     GID_IS_24			= 0x1000,
     AXES_HAVE_VARIATION		= 0x2000,
+    RESET_UNSPECIFIED_AXES	= 0x4000,
   };
 
   public:
@@ -60,6 +61,7 @@ struct VarCompositeGlyphRecord
   bool has_more () const { return true; }
 
   bool is_use_my_metrics () const { return flags & USE_MY_METRICS; }
+  bool is_reset_unspecified_axes () const { return flags & RESET_UNSPECIFIED_AXES; }
 
   hb_codepoint_t get_gid () const
   {
