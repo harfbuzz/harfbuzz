@@ -154,16 +154,22 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
       const auto &components = ligature_table[first_glyph_idx].ligatures[ligature_idx].components;
       unsigned component_count = ARRAY_LENGTH_CONST (components);
 
-      for (unsigned i = 0; i < component_count; i++)
+      bool matched = true;
+      for (unsigned j = 0; j < component_count; j++)
       {
-	hb_codepoint_t component_u   = ligature_table[first_glyph_idx].ligatures[ligature_idx].components[i];
+	hb_codepoint_t component_u   = ligature_table[first_glyph_idx].ligatures[ligature_idx].components[j];
 	hb_codepoint_t component_glyph;
 	if (!component_u ||
-	    !hb_font_get_glyph (font, component_u,   0, &component_glyph))
-	  continue;
+	    !hb_font_get_nominal_glyph (font, component_u, &component_glyph))
+	{
+	  matched = false;
+	  break;
+	}
 
 	component_list[num_components++] = component_glyph;
       }
+      if (!matched)
+        continue;
 
       component_count_list[num_ligatures] = 1 + component_count;
       ligature_list[num_ligatures] = ligature_glyph;
