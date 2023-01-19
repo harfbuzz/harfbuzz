@@ -83,10 +83,11 @@ struct hb_ft_paint_context_t
 			 hb_font_t *font,
 			 hb_paint_funcs_t *paint_funcs, void *paint_data,
 			 FT_Color *palette,
+			 unsigned palette_index,
 			 hb_color_t foreground) :
     ft_font (ft_font), font(font),
     funcs (paint_funcs), data (paint_data),
-    palette (palette), foreground (foreground) {}
+    palette (palette), palette_index (palette_index), foreground (foreground) {}
 
   void recurse (FT_OpaquePaint paint)
   {
@@ -102,6 +103,7 @@ struct hb_ft_paint_context_t
   hb_paint_funcs_t *funcs;
   void *data;
   FT_Color *palette;
+  unsigned palette_index;
   hb_color_t foreground;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
@@ -154,11 +156,22 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 				       (hb_color_get_alpha (c->foreground) * stop.color.alpha) >> 14);
       else
       {
-	FT_Color ft_color = c->palette[stop.color.palette_index];
-	color_stops->color = HB_COLOR (ft_color.blue,
-				       ft_color.green,
-				       ft_color.red,
-				       (ft_color.alpha * stop.color.alpha) >> 14);
+        if (c->palette_index == HB_PAINT_PALETTE_INDEX_CUSTOM)
+	{
+	  hb_color_t color = c->funcs->custom_palette_color (c->data, stop.color.palette_index);
+	  color_stops->color = HB_COLOR (hb_color_get_blue (color),
+					 hb_color_get_green (color),
+					 hb_color_get_red (color),
+					 (hb_color_get_alpha (color) * stop.color.alpha) >> 14);
+	}
+	else
+	{
+	  FT_Color ft_color = c->palette[stop.color.palette_index];
+	  color_stops->color = HB_COLOR (ft_color.blue,
+					 ft_color.green,
+					 ft_color.red,
+					 (ft_color.alpha * stop.color.alpha) >> 14);
+	}
       }
 
       color_stops++;
@@ -224,11 +237,22 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 			  (hb_color_get_alpha (c->foreground) * paint.u.solid.color.alpha) >> 14);
       else
       {
-	FT_Color ft_color = c->palette[paint.u.solid.color.palette_index];
-	color = HB_COLOR (ft_color.blue,
-			  ft_color.green,
-			  ft_color.red,
-			  (ft_color.alpha * paint.u.solid.color.alpha) >> 14);
+        if (c->palette_index == HB_PAINT_PALETTE_INDEX_CUSTOM)
+	{
+	  color = c->funcs->custom_palette_color (c->data, paint.u.solid.color.palette_index);
+	  color = HB_COLOR (hb_color_get_blue (color),
+			    hb_color_get_green (color),
+			    hb_color_get_red (color),
+			    (hb_color_get_alpha (color) * paint.u.solid.color.alpha) >> 14);
+	}
+	else
+	{
+	  FT_Color ft_color = c->palette[paint.u.solid.color.palette_index];
+	  color = HB_COLOR (ft_color.blue,
+			    ft_color.green,
+			    ft_color.red,
+			    (ft_color.alpha * paint.u.solid.color.alpha) >> 14);
+	}
       }
       c->funcs->color (c->data, is_foreground, color);
     }
@@ -450,7 +474,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
   {
     hb_ft_paint_context_t c (ft_font, font,
 			     paint_funcs, paint_data,
-			     palette, foreground);
+			     palette, palette_index, foreground);
 
     bool is_bounded = true;
     FT_ClipBox clip_box;
@@ -473,7 +497,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
       hb_paint_extents_context_t extents_data;
       hb_ft_paint_context_t ce (ft_font, font,
 			        extents_funcs, &extents_data,
-			        palette, foreground);
+			        palette, palette_index, foreground);
       ce.funcs->push_root_transform (ce.data, font);
       ce.recurse (paint);
       ce.funcs->pop_transform (ce.data);
