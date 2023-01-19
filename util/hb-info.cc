@@ -428,7 +428,7 @@ struct info_t
     if (verbose && count)
     {
       printf ("Varitation axes:\n\n");
-      printf ("Tag:	Minimum	Default	Maximum	Name\n\n");
+      printf ("Tag:	Minimum	Default	Maximum	Name\n");
     }
     for (unsigned i = 0; i < count; i++)
     {
@@ -462,7 +462,7 @@ struct info_t
     {
       if (verbose)
       {
-	printf ("Named instances:\n\n");
+	printf ("\nNamed instances:\n\n");
       }
 
       for (unsigned i = 0; i < count; i++)
