@@ -122,12 +122,11 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
-#ifdef CAIRO_COLOR_PALETTE_DEFAULT
-  cairo_font_options_set_color_palette (font_options, font_opts->palette);
-#endif
+  unsigned palette_index = font_opts->palette;
 #ifdef CAIRO_COLOR_PALETTE_CUSTOM
   if (font_opts->custom_palette)
   {
+    palette_index = HB_PAINT_PALETTE_INDEX_CUSTOM;
     char **entries = g_strsplit (font_opts->custom_palette, ",", -1);
     for (unsigned int i = 0; entries[i]; i++)
     {
@@ -136,6 +135,9 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
         cairo_font_options_set_custom_palette_color (font_options, idx, fr / 255., fg / 255., fb / 255., fa / 255.);
     }
   }
+#endif
+#ifdef CAIRO_COLOR_PALETTE_DEFAULT
+  cairo_font_options_set_color_palette (font_options, palette_index);
 #endif
 
   cairo_scaled_font_t *scaled_font = cairo_scaled_font_create (cairo_face,
