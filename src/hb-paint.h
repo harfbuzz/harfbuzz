@@ -893,11 +893,11 @@ hb_paint_funcs_set_pop_group_func (hb_paint_funcs_t          *funcs,
 /**
  * hb_paint_funcs_set_custom_palette_color_func:
  * @funcs: A paint functions struct
- * @func: (closure user_data) (destroy destroy) (scope notified): The get-custom-palette-color callback
+ * @func: (closure user_data) (destroy destroy) (scope notified): The custom-palette-color callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): Function to call when @user_data is no longer needed
  *
- * Sets the get-custom-paletter-color callback on the paint functions struct.
+ * Sets the custom-palette-color callback on the paint functions struct.
  *
  * Since: REPLACEME
  */
