@@ -102,7 +102,6 @@ struct info_t
       show_all =
       list_all =
       true;
-      first_item = false;
     }
 
     if (show_all)
@@ -111,6 +110,7 @@ struct info_t
       show_unicode_count =
       show_glyph_count =
       true;
+      first_item = false;
     }
 
     if (list_all)
