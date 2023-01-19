@@ -42,6 +42,7 @@ struct info_t
       {"list-tables",	0, 0, G_OPTION_ARG_NONE,	&this->list_tables,		"List tables",			nullptr},
       {"list-unicodes",	0, 0, G_OPTION_ARG_NONE,	&this->list_unicodes,		"List characters",		nullptr},
       {"list-glyphs",	0, 0, G_OPTION_ARG_NONE,	&this->list_glyphs,		"List glyphs",			nullptr},
+      {"list-scripts",	0, 0, G_OPTION_ARG_NONE,	&this->list_scripts,		"List layout scripts",		nullptr},
       {"list-features",	0, 0, G_OPTION_ARG_NONE,	&this->list_features,		"List layout features",		nullptr},
 #ifndef HB_NO_VAR
       {"list-variations",0, 0, G_OPTION_ARG_NONE,	&this->list_variations,		"List variations",		nullptr},
@@ -67,6 +68,7 @@ struct info_t
   hb_bool_t list_tables = false;
   hb_bool_t list_unicodes = false;
   hb_bool_t list_glyphs = false;
+  hb_bool_t list_scripts = false;
   hb_bool_t list_features = false;
 #ifndef HB_NO_VAR
   hb_bool_t list_variations = false;
@@ -86,6 +88,7 @@ struct info_t
       list_tables =
       list_unicodes =
       list_glyphs =
+      list_scripts =
       list_features =
 #ifndef HB_NO_VAR
       list_variations =
@@ -96,6 +99,7 @@ struct info_t
     if (list_tables)	  _list_tables ();
     if (list_unicodes)	  _list_unicodes ();
     if (list_glyphs)	  _list_glyphs ();
+    if (list_scripts)	  _list_scripts ();
     if (list_features)	  _list_features ();
 #ifndef HB_NO_VAR
     if (list_variations)  _list_variations ();
@@ -227,17 +231,15 @@ struct info_t
   }
 
   void
-  _list_features ()
+  _list_scripts ()
   {
     if (verbose)
     {
       separator ();
-      printf ("Layout features information:\n\n");
+      printf ("Layout script information:\n\n");
     }
 
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
-    auto language = hb_language_get_default ();
-    hb_set_t *features = hb_set_create ();
 
     for (unsigned int i = 0; table_tags[i]; i++)
     {
@@ -281,6 +283,27 @@ struct info_t
 	script_offset += script_count;
       }
       while (script_count == sizeof script_array / sizeof script_array[0]);
+
+    }
+
+  }
+
+  void
+  _list_features ()
+  {
+    if (verbose)
+    {
+      separator ();
+      printf ("Layout features information:\n\n");
+    }
+
+    hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
+    auto language = hb_language_get_default ();
+    hb_set_t *features = hb_set_create ();
+
+    for (unsigned int i = 0; table_tags[i]; i++)
+    {
+      printf ("Table: %c%c%c%c\n", HB_UNTAG (table_tags[i]));
 
       hb_set_clear (features);
       hb_tag_t feature_array[32];
