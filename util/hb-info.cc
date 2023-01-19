@@ -38,7 +38,12 @@ struct info_t
   {
     GOptionEntry entries[] =
     {
-      {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List everything",		nullptr},
+      {"all",		0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show everything",		nullptr},
+
+      {"show-all",	0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show all short information",	nullptr},
+      {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"List everything",		nullptr},
+
+      {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long list",		nullptr},
       {"list-tables",	0, 0, G_OPTION_ARG_NONE,	&this->list_tables,		"List tables",			nullptr},
       {"list-unicodes",	0, 0, G_OPTION_ARG_NONE,	&this->list_unicodes,		"List characters",		nullptr},
       {"list-glyphs",	0, 0, G_OPTION_ARG_NONE,	&this->list_glyphs,		"List glyphs",			nullptr},
@@ -64,6 +69,11 @@ struct info_t
   hb_bool_t verbose = true;
   hb_bool_t first_item = true;
 
+  hb_bool_t all = false;
+
+  hb_bool_t show_all = false;
+  hb_bool_t show_upem = false;
+
   hb_bool_t list_all = false;
   hb_bool_t list_tables = false;
   hb_bool_t list_unicodes = false;
@@ -83,6 +93,19 @@ struct info_t
     font = hb_font_reference (((font_options_t *) app)->font);
     verbose = !app->quiet;
 
+    if (all)
+    {
+      show_all =
+      list_all =
+      true;
+    }
+
+    if (show_all)
+    {
+      show_upem =
+      true;
+    }
+
     if (list_all)
     {
       list_tables =
@@ -95,6 +118,8 @@ struct info_t
 #endif
       true;
     }
+
+    if (show_upem)	  _show_upem ();
 
     if (list_tables)	  _list_tables ();
     if (list_unicodes)	  _list_unicodes ();
@@ -119,6 +144,17 @@ struct info_t
       return;
     }
     printf ("\n---\n\n");
+  }
+
+  void _show_upem ()
+  {
+    if (verbose)
+    {
+      separator ();
+      printf ("Font Units-Per-EM: ");
+    }
+
+    printf ("%u\n", hb_face_get_upem (face));
   }
 
   void _list_tables ()
