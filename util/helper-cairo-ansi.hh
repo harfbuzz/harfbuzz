@@ -59,6 +59,8 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride, in
   /* Adapt to terminal; use sixels if available, and fall back to symbols
    * with as many colors as are supported */
 
+  chafa_set_n_threads (1); // https://github.com/hpjansson/chafa/issues/125#issuecomment-1397475217
+
   environ = g_get_environ ();
   term_info = chafa_term_db_detect (chafa_term_db_get_default (),
                                     environ);
