@@ -57,18 +57,23 @@ struct info_t
   }
 
   private:
-  hb_bool_t list_all;
-  hb_bool_t list_tables;
-  hb_bool_t list_unicodes;
-  hb_bool_t list_glyphs;
-  hb_bool_t list_features;
+  hb_face_t *face = nullptr;
+  hb_font_t *font = nullptr;
+  hb_bool_t list_all = false;
+  hb_bool_t list_tables = false;
+  hb_bool_t list_unicodes = false;
+  hb_bool_t list_glyphs = false;
+  hb_bool_t list_features = false;
 #ifndef HB_NO_VAR
-  hb_bool_t list_variations;
+  hb_bool_t list_variations = false;
 #endif
   public:
 
   void operator () (font_options_t *font_opts)
   {
+    face = hb_face_reference (font_opts->face);
+    font = hb_font_reference (font_opts->font);
+
     if (list_all)
     {
       list_tables =
@@ -81,16 +86,21 @@ struct info_t
       true;
     }
 
-    if (list_tables)	  _list_tables		(font_opts->face);
-    if (list_unicodes)	  _list_unicodes	(font_opts->font);
-    if (list_glyphs)	  _list_glyphs		(font_opts->font);
-    if (list_features)	  _list_features	(font_opts->face);
+    if (list_tables)	  _list_tables ();
+    if (list_unicodes)	  _list_unicodes ();
+    if (list_glyphs)	  _list_glyphs ();
+    if (list_features)	  _list_features ();
 #ifndef HB_NO_VAR
-    if (list_variations)  _list_variations	(font_opts->face);
+    if (list_variations)  _list_variations ();
 #endif
+
+    hb_font_destroy (font);
+    hb_face_destroy (face);
   }
 
-  void _list_tables (hb_face_t *face)
+  private:
+
+  void _list_tables ()
   {
     unsigned count = hb_face_get_table_tags (face, 0, nullptr, nullptr);
     hb_tag_t *tags = (hb_tag_t *) calloc (count, sizeof (hb_tag_t));
@@ -111,7 +121,7 @@ struct info_t
   }
 
   void
-  _list_unicodes (hb_font_t *font)
+  _list_unicodes ()
   {
     hb_face_t *face = hb_font_get_face (font);
 
@@ -166,7 +176,7 @@ struct info_t
   }
 
   void
-  _list_glyphs (hb_font_t *font)
+  _list_glyphs ()
   {
     hb_face_t *face = hb_font_get_face (font);
 
@@ -183,7 +193,7 @@ struct info_t
   }
 
   void
-  _list_features (hb_face_t *face)
+  _list_features ()
   {
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
     auto language = hb_language_get_default ();
@@ -285,7 +295,7 @@ struct info_t
 
 #ifndef HB_NO_VAR
   void
-  _list_variations (hb_face_t *face)
+  _list_variations ()
   {
     hb_ot_var_axis_info_t *axes;
 
