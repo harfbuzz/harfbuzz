@@ -514,7 +514,7 @@ struct info_t
     if (verbose && count)
     {
       printf ("Varitation axes:\n\n");
-      printf ("Tag 	Minimum	Default	Maximum	Name\n------------------------------------\n");
+      printf ("Tag	Minimum	Default	Maximum	Name\n------------------------------------\n");
     }
     for (unsigned i = 0; i < count; i++)
     {
@@ -549,6 +549,7 @@ struct info_t
       if (verbose)
       {
 	printf ("\nNamed instances:\n\n");
+      printf ("Index	Name				Position\n------------------------------------------------\n");
       }
 
       for (unsigned i = 0; i < count; i++)
@@ -566,7 +567,7 @@ struct info_t
 	coords = (float *) calloc (coords_count, sizeof (float));
 	hb_ot_var_named_instance_get_design_coords (face, i, &coords_count, coords);
 
-	printf ("%u. %-32s", i, name);
+	printf ("%u	%-32s", i, name);
 	for (unsigned j = 0; j < coords_count; j++)
 	  printf ("%g, ", (double) coords[j]);
 	printf ("\n");
