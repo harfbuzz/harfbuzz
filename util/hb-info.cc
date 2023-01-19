@@ -154,8 +154,6 @@ struct info_t
       printf ("Unicode	Glyph name\n\n");
     }
 
-    hb_face_t *face = hb_font_get_face (font);
-
     hb_set_t *unicodes = hb_set_create ();
     hb_map_t *cmap = hb_map_create ();
 
@@ -215,8 +213,6 @@ struct info_t
       printf ("Glyph-set information:\n\n");
       printf ("GlyphID	Glyph name\n\n");
     }
-
-    hb_face_t *face = hb_font_get_face (font);
 
     unsigned num_glyphs = hb_face_get_glyph_count (face);
 
