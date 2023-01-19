@@ -46,6 +46,7 @@ struct info_t
       {"show-glyph-count",0, 0, G_OPTION_ARG_NONE,	&this->show_glyph_count,	"Show glyph count",		nullptr},
 
       {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long information",	nullptr},
+      {"list-names",	'l', 0, G_OPTION_ARG_NONE,	&this->list_names,		"List names",			nullptr},
       {"list-tables",	'l', 0, G_OPTION_ARG_NONE,	&this->list_tables,		"List tables",			nullptr},
       {"list-unicodes",	0, 0, G_OPTION_ARG_NONE,	&this->list_unicodes,		"List characters",		nullptr},
       {"list-glyphs",	0, 0, G_OPTION_ARG_NONE,	&this->list_glyphs,		"List glyphs",			nullptr},
@@ -79,6 +80,7 @@ struct info_t
   hb_bool_t show_glyph_count = false;
 
   hb_bool_t list_all = false;
+  hb_bool_t list_names = false;
   hb_bool_t list_tables = false;
   hb_bool_t list_unicodes = false;
   hb_bool_t list_glyphs = false;
@@ -115,6 +117,7 @@ struct info_t
 
     if (list_all)
     {
+      list_names =
       list_tables =
       list_unicodes =
       list_glyphs =
@@ -130,6 +133,7 @@ struct info_t
     if (show_unicode_count) _show_unicode_count ();
     if (show_glyph_count) _show_glyph_count ();
 
+    if (list_names)	  _list_names ();
     if (list_tables)	  _list_tables ();
     if (list_unicodes)	  _list_unicodes ();
     if (list_glyphs)	  _list_glyphs ();
@@ -190,12 +194,37 @@ struct info_t
     printf ("%u\n", hb_face_get_glyph_count (face));
   }
 
+  void _list_names ()
+  {
+    if (verbose)
+    {
+      separator ();
+      printf ("Name information:\n\n");
+      printf ("Id	Text\n\n");
+    }
+
+    auto language = hb_language_get_default ();
+
+    unsigned count;
+    const auto *entries = hb_ot_name_list_names (face, &count);
+    for (unsigned i = 0; i < count; i++)
+    {
+      char name[128];
+      unsigned name_len = sizeof name;
+      hb_ot_name_get_utf8 (face, entries[i].name_id,
+			   language,
+			   &name_len, name);
+
+      printf ("%u	%s\n", entries[i].name_id, name);
+    }
+  }
+
   void _list_tables ()
   {
     if (verbose)
     {
       separator ();
-      printf ("Font table information:\n\n");
+      printf ("Table information:\n\n");
       printf ("Tag	Size\n\n");
     }
 
