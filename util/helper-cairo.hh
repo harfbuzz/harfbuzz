@@ -131,9 +131,9 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
     char **entries = g_strsplit (font_opts->custom_palette, ",", -1);
     for (unsigned int i = 0; entries[i]; i++)
     {
-      unsigned int idx, fr, fg, fb, fa;
-      if (sscanf (entries[i], "%u:%2x%2x%2x%2x", &idx, &fr, &fg, &fb, &fa) == 5)
-        cairo_font_options_set_custom_palette_color (font_options, idx, fr / 255., fg / 255., fb / 255., fa / 255.);
+      unsigned int fr, fg, fb, fa;
+      if (sscanf (entries[i], "%2x%2x%2x%2x", &fr, &fg, &fb, &fa) == 4)
+        cairo_font_options_set_custom_palette_color (font_options, i, fr / 255., fg / 255., fb / 255., fa / 255.);
     }
     g_strfreev (entries);
   }
