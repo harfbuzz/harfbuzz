@@ -225,6 +225,8 @@ hb_draw_state_t
 
 <SECTION>
 <FILE>hb-paint</FILE>
+HB_PAINT_PALETTE_INDEX_CUSTOM
+
 hb_paint_funcs_t
 hb_paint_funcs_create
 hb_paint_funcs_get_empty
@@ -270,6 +272,8 @@ hb_paint_push_group_func_t
 hb_paint_funcs_set_push_group_func
 hb_paint_pop_group_func_t
 hb_paint_funcs_set_pop_group_func
+hb_paint_custom_palette_color_func_t
+hb_paint_funcs_set_custom_palette_color_func
 
 hb_paint_push_transform
 hb_paint_pop_transform
@@ -283,6 +287,7 @@ hb_paint_radial_gradient
 hb_paint_sweep_gradient
 hb_paint_push_group
 hb_paint_pop_group
+hb_paint_custom_palette_color
 </SECTION>
 
 <SECTION>
