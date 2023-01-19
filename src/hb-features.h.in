@@ -27,6 +27,14 @@
 
 HB_BEGIN_DECLS
 
+/**
+ * SECTION: hb-features
+ * @title: hb-features
+ * @short_description: Feature detection
+ * @include: hb-features.h
+ *
+ * Macros for detecting optional HarfBuzz features at build time.
+ **/
 
 /**
  * HB_HAS_CAIRO:
