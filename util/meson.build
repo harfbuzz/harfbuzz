@@ -6,6 +6,10 @@ hb_shape_sources = [
   'hb-shape.cc',
 ]
 
+hb_info_sources = [
+  'hb-info.cc',
+]
+
 hb_ot_shape_closure_sources = [
   'hb-ot-shape-closure.cc',
 ]
@@ -36,6 +40,15 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: true,
   )
   meson.override_find_program('hb-shape', hb_shape)
+
+  hb_info = executable('hb-info', hb_info_sources,
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    dependencies: util_deps,
+    link_with: [libharfbuzz],
+    install: true,
+  )
+  meson.override_find_program('hb-info', hb_info)
 
   hb_subset = executable('hb-subset', hb_subset_cli_sources,
     cpp_args: cpp_args,

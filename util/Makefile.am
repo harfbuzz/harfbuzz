@@ -51,6 +51,9 @@ endif # HAVE_CAIRO
 hb_shape_SOURCES = $(HB_SHAPE_sources)
 bin_PROGRAMS += hb-shape
 
+hb_info_SOURCES = $(HB_INFO_sources)
+bin_PROGRAMS += hb-info
+
 hb_subset_SOURCES = $(HB_SUBSET_CLI_sources)
 hb_subset_LDADD = \
 	$(top_builddir)/src/libharfbuzz-subset.la \
