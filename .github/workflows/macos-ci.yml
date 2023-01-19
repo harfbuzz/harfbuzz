@@ -29,7 +29,6 @@ jobs:
           glib-utils \
           gobject-introspection \
           graphite2 \
-          gtk-doc \
           icu4c \
           meson \
           ninja \
@@ -42,6 +41,7 @@ jobs:
         ccache --version
         meson setup build \
           -Dauto_features=enabled \
+          -Ddocs=disabled \
           -Dchafa=disabled \
           -Dcoretext=enabled \
           -Dgraphite=enabled \
