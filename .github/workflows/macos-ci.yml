@@ -26,7 +26,6 @@ jobs:
           cairo \
           freetype \
           glib \
-          glib-utils \
           gobject-introspection \
           graphite2 \
           icu4c \
