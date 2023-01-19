@@ -33,6 +33,18 @@
 
 HB_BEGIN_DECLS
 
+
+/**
+ * HB_PAINT_PALETTE_INDEX_CUSTOM
+ *
+ * A palette index signifying that custom colors are in use.
+ * Such colors are fetched from the client using the
+ * custom-palette-color callback of the paint functions.
+ *
+ * Since: REPLACEME
+ **/
+#define HB_PAINT_PALETTE_INDEX_CUSTOM 0xFFFFFFFF
+
 /**
  * hb_paint_funcs_t:
  *
