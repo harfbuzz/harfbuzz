@@ -562,7 +562,7 @@ font_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,					"1/2 integers or 'upem'"},
     {"font-ppem",	0, font_size_flags,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
-    {"font-ptem",	0, 0,
+    {"font-ptem",	0, font_size_flags,
 			      G_OPTION_ARG_DOUBLE,	&this->ptem,			"Set font point-size (default: 0; disabled)",	"point-size"},
     {"font-slant",	0, 0,
 			      G_OPTION_ARG_DOUBLE,	&this->slant,			"Set synthetic slant (default: 0)",		 "slant ratio; eg. 0.2"},
