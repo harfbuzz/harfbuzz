@@ -40,7 +40,7 @@ struct info_t
     {
       {"all",		'a', 0, G_OPTION_ARG_NONE,	&this->all,			"Show everything",		nullptr},
 
-      {"show-all",	0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show all short information",	nullptr},
+      {"show-all",	0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show all short information (default)",	nullptr},
       {"show-family",	0, 0, G_OPTION_ARG_NONE,	&this->show_family,		"Show family name",		nullptr},
       {"show-style",	0, 0, G_OPTION_ARG_NONE,	&this->show_style,		"Show style name",		nullptr},
       {"show-unique-name",0, 0, G_OPTION_ARG_NONE,	&this->show_unique_name,	"Show unique name",		nullptr},
