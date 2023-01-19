@@ -329,16 +329,7 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
   cairo_font_options_destroy (options);
 #endif
 
-  // Fall back to the default palette
-  cairo_scaled_font_t *scaled_font = cairo_get_scaled_font (cr);
-  hb_font_t *font = hb_cairo_scaled_font_get_font (scaled_font);
-  hb_face_t *face = hb_font_get_face (font);
-  hb_color_t color;
-  unsigned int len = 1;
-
-  hb_ot_color_palette_get_colors (face, 0, color_index, &len, &color);
-
-  return color;
+  return HB_COLOR (0, 0, 0, 0);
 }
 
 static inline void free_static_cairo_paint_funcs ();
