@@ -378,7 +378,7 @@ struct info_t
 	      (double) axis.max_value,
 	      name);
     }
-    if (has_hidden)
+    if (verbose && has_hidden)
       printf ("\n[*] Hidden axis\n\n");
 
     free (axes);
