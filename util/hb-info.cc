@@ -201,10 +201,29 @@ struct info_t
     printf ("%s\n", name);
   }
   void _show_family ()		{ _show_name ("Family", 1); }
-  void _show_style ()		{ _show_name ("Style", 2); /* TODO Check named-instance. */ }
+  void _show_style ()
+  {
+    hb_ot_name_id_t name_id = 2;
+
+    unsigned named_instance = hb_font_get_var_named_instance (font);
+    if (named_instance != HB_FONT_NO_VAR_NAMED_INSTANCE)
+      name_id = hb_ot_var_named_instance_get_subfamily_name_id (face, named_instance);
+
+    _show_name ("Style", name_id);
+  }
   void _show_unique_name ()	{ _show_name ("Unique name", 3); }
   void _show_full_name ()	{ _show_name ("Full name", 4); }
-  void _show_postscript_name ()	{ _show_name ("Postscript name", 6); /* TODO Check named-instance. */ }
+  void _show_postscript_name ()
+  {
+    hb_ot_name_id_t name_id = 6;
+
+    unsigned named_instance = hb_font_get_var_named_instance (font);
+    if (named_instance != HB_FONT_NO_VAR_NAMED_INSTANCE)
+      name_id = hb_ot_var_named_instance_get_postscript_name_id (face, named_instance);
+
+
+    _show_name ("Postscript name", name_id);
+  }
   void _show_version ()		{ _show_name ("Version", 5); }
 
   void _show_upem ()
