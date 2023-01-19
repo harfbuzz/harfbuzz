@@ -42,6 +42,7 @@
   HB_PAINT_FUNC_IMPLEMENT (sweep_gradient) \
   HB_PAINT_FUNC_IMPLEMENT (push_group) \
   HB_PAINT_FUNC_IMPLEMENT (pop_group) \
+  HB_PAINT_FUNC_IMPLEMENT (custom_palette_color) \
   /* ^--- Add new callbacks here */
 
 struct hb_paint_funcs_t
@@ -137,6 +138,11 @@ struct hb_paint_funcs_t
   { func.pop_group (this, paint_data,
                     mode,
                     !user_data ? nullptr : user_data->pop_group); }
+  hb_color_t custom_palette_color (void *paint_data,
+                             unsigned int color_index)
+  { return func.custom_palette_color (this, paint_data,
+                                      color_index,
+                                      !user_data ? nullptr : user_data->custom_palette_color); }
 
 
   /* Internal specializations. */

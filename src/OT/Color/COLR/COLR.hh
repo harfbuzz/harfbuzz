@@ -67,7 +67,7 @@ public:
   hb_paint_funcs_t *funcs;
   void *data;
   hb_font_t *font;
-  unsigned int palette;
+  unsigned int palette_index;
   hb_color_t foreground;
   VarStoreInstancer &instancer;
   int depth_left = HB_MAX_NESTING_LEVEL;
@@ -84,7 +84,7 @@ public:
     funcs (funcs_),
     data (data_),
     font (font_),
-    palette (palette_),
+    palette_index (palette_),
     foreground (foreground_),
     instancer (instancer_)
   { }
@@ -97,10 +97,16 @@ public:
 
     if (color_index != 0xffff)
     {
-      unsigned int clen = 1;
-      hb_face_t *face = hb_font_get_face (font);
+      if (palette_index != HB_PAINT_PALETTE_INDEX_CUSTOM)
+      {
+	unsigned int clen = 1;
+	hb_face_t *face = hb_font_get_face (font);
 
-      hb_ot_color_palette_get_colors (face, palette, color_index, &clen, &color);
+	hb_ot_color_palette_get_colors (face, palette_index, color_index, &clen, &color);
+      }
+      else
+	color = funcs->custom_palette_color (data, color_index);
+
       *is_foreground = false;
     }
 
@@ -2033,12 +2039,12 @@ struct COLR
   }
 
   bool
-  paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette, hb_color_t foreground, bool clip = true) const
+  paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette_index, hb_color_t foreground, bool clip = true) const
   {
     VarStoreInstancer instancer (this+varStore,
 	                         this+varIdxMap,
 	                         hb_array (font->coords, font->num_coords));
-    hb_paint_context_t c (this, funcs, data, font, palette, foreground, instancer);
+    hb_paint_context_t c (this, funcs, data, font, palette_index, foreground, instancer);
 
     if (version == 1)
     {
@@ -2071,7 +2077,7 @@ struct COLR
 
 	    paint_glyph (font, glyph,
 			 extents_funcs, &extents_data,
-			 palette, foreground,
+			 palette_index, foreground,
 			 false);
 
 	    hb_extents_t extents = extents_data.get_extents ();

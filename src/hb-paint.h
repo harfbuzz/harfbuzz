@@ -33,6 +33,18 @@
 
 HB_BEGIN_DECLS
 
+
+/**
+ * HB_PAINT_PALETTE_INDEX_CUSTOM
+ *
+ * A palette index signifying that custom colors are in use.
+ * Such colors are fetched from the client using the
+ * custom-palette-color callback of the paint functions.
+ *
+ * Since: REPLACEME
+ **/
+#define HB_PAINT_PALETTE_INDEX_CUSTOM 0xFFFFFFFF
+
 /**
  * hb_paint_funcs_t:
  *
@@ -656,6 +668,25 @@ typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
                                            void *user_data);
 
 /**
+ * hb_paint_custom_palette_color_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
+ * @color_index: the color index
+ * @user_data: User data pointer passed to hb_paint_funcs_set_pop_group_func()
+ *
+ * A virtual method for the #hb_paint_funcs_t to fetch a color from the custom
+ * color palette.
+ *
+ * Return value: the color
+ * Since: REPLACEME
+ */
+typedef hb_color_t (*hb_paint_custom_palette_color_func_t) (hb_paint_funcs_t *funcs,
+                                                            void *paint_data,
+                                                            unsigned int color_index,
+                                                            void *user_data);
+
+
+/**
  * hb_paint_funcs_set_push_transform_func:
  * @funcs: A paint functions struct
  * @func: (closure user_data) (destroy destroy) (scope notified): The push-transform callback
@@ -859,6 +890,22 @@ hb_paint_funcs_set_pop_group_func (hb_paint_funcs_t          *funcs,
                                    void                       *user_data,
                                    hb_destroy_func_t           destroy);
 
+/**
+ * hb_paint_funcs_set_custom_palette_color_func:
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The custom-palette-color callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the custom-palette-color callback on the paint functions struct.
+ *
+ * Since: REPLACEME
+ */
+HB_EXTERN void
+hb_paint_funcs_set_custom_palette_color_func (hb_paint_funcs_t                     *funcs,
+                                              hb_paint_custom_palette_color_func_t  func,
+                                              void                                 *user_data,
+                                              hb_destroy_func_t                     destroy);
 /*
  * Manual API
  */
@@ -926,6 +973,10 @@ hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data);
 HB_EXTERN void
 hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
                     hb_paint_composite_mode_t mode);
+
+HB_EXTERN hb_color_t
+hb_paint_custom_palette_color (hb_paint_funcs_t *funcs, void *paint_data,
+                               unsigned int color_index);
 
 HB_END_DECLS
 

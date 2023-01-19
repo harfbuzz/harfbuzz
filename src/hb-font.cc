@@ -1429,7 +1429,7 @@ hb_font_draw_glyph (hb_font_t *font,
  * @glyph: The glyph ID
  * @pfuncs: #hb_paint_funcs_t to paint with
  * @paint_data: User data to pass to paint callbacks
- * @palette: The index of the font's color palette to use
+ * @palette_index: The index of the font's color palette to use
  * @foreground: The foreground color, unpremultipled
  *
  * Paints the glyph.
@@ -1439,8 +1439,9 @@ hb_font_draw_glyph (hb_font_t *font,
  * to them.
  *
  * If the font has color palettes (see hb_ot_color_has_palettes()),
- * then @palette selects the palette to use. If the font doesn't
- * have palettes, passing 0 is fine.
+ * then @palette_index selects the palette to use. If the font only
+ * has one palette, this will be 0.  Use %HB_PAINT_PALETTE_INDEX_CUSTOM
+ * for custom palette.
  *
  * Since: REPLACEME
  */
@@ -1448,10 +1449,10 @@ void
 hb_font_paint_glyph (hb_font_t *font,
                      hb_codepoint_t glyph,
                      hb_paint_funcs_t *pfuncs, void *paint_data,
-                     unsigned int palette,
+                     unsigned int palette_index,
                      hb_color_t foreground)
 {
-  font->paint_glyph (glyph, pfuncs, paint_data, palette, foreground);
+  font->paint_glyph (glyph, pfuncs, paint_data, palette_index, foreground);
 }
 
 /* A bit higher-level, and with fallback */

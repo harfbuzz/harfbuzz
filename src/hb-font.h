@@ -531,7 +531,7 @@ typedef void (*hb_font_draw_glyph_func_t) (hb_font_t *font, void *font_data,
  * @glyph: The glyph ID to query
  * @paint_funcs: The paint functions to use
  * @paint_data: The data accompanying the paint functions
- * @palette: The color palette to use
+ * @palette_index: The color palette to use
  * @foreground: The foreground color
  * @user_data: User data pointer passed by the caller
  *
@@ -542,7 +542,7 @@ typedef void (*hb_font_draw_glyph_func_t) (hb_font_t *font, void *font_data,
 typedef void (*hb_font_paint_glyph_func_t) (hb_font_t *font, void *font_data,
                                             hb_codepoint_t glyph,
                                             hb_paint_funcs_t *paint_funcs, void *paint_data,
-                                            unsigned int palette,
+                                            unsigned int palette_index,
                                             hb_color_t foreground,
                                             void *user_data);
 
@@ -950,7 +950,7 @@ HB_EXTERN void
 hb_font_paint_glyph (hb_font_t *font,
                      hb_codepoint_t glyph,
                      hb_paint_funcs_t *pfuncs, void *paint_data,
-                     unsigned int palette,
+                     unsigned int palette_index,
                      hb_color_t foreground);
 
 /* high-level funcs, with fallback */
