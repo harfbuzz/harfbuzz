@@ -522,6 +522,10 @@ struct main_font_t :
   int operator () (int argc, char **argv)
   {
     add_options ();
+
+    if (argc == 2)
+      consumer_t::show_all = true;
+
     parse (&argc, &argv);
 
     consumer_t::operator () (this);
