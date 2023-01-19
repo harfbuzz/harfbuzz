@@ -46,6 +46,7 @@ struct info_t
       {"show-unique-name",0, 0, G_OPTION_ARG_NONE,	&this->show_unique_name,	"Show unique name",		nullptr},
       {"show-full-name",0, 0, G_OPTION_ARG_NONE,	&this->show_full_name,		"Show full name",		nullptr},
       {"show-postscript-name",0, 0, G_OPTION_ARG_NONE,	&this->show_postscript_name,	"Show Postscript name",		nullptr},
+      {"show-version",	0, 0, G_OPTION_ARG_NONE,	&this->show_version,		"Show version",			nullptr},
       {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"Show Units-Per-EM",		nullptr},
       {"show-unicode-count",0, 0, G_OPTION_ARG_NONE,	&this->show_unicode_count,	"Show Unicode count",		nullptr},
       {"show-glyph-count",0, 0, G_OPTION_ARG_NONE,	&this->show_glyph_count,	"Show glyph count",		nullptr},
@@ -85,6 +86,7 @@ struct info_t
   hb_bool_t show_unique_name = false;
   hb_bool_t show_full_name = false;
   hb_bool_t show_postscript_name = false;
+  hb_bool_t show_version = false;
   hb_bool_t show_upem = false;
   hb_bool_t show_unicode_count = false;
   hb_bool_t show_glyph_count = false;
@@ -123,6 +125,7 @@ struct info_t
       show_unique_name =
       show_full_name =
       show_postscript_name =
+      show_version =
       show_upem =
       show_unicode_count =
       show_glyph_count =
@@ -149,6 +152,7 @@ struct info_t
     if (show_unique_name) _show_unique_name ();
     if (show_full_name)	  _show_full_name ();
     if (show_postscript_name)_show_postscript_name ();
+    if (show_version)	  _show_version ();
     if (show_upem)	  _show_upem ();
     if (show_unicode_count)_show_unicode_count ();
     if (show_glyph_count) _show_glyph_count ();
@@ -201,6 +205,7 @@ struct info_t
   void _show_unique_name ()	{ _show_name ("Unique name", 3); }
   void _show_full_name ()	{ _show_name ("Full name", 4); }
   void _show_postscript_name ()	{ _show_name ("Postscript name", 6); }
+  void _show_version ()		{ _show_name ("Version", 5); }
 
   void _show_upem ()
   {
