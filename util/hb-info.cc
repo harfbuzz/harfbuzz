@@ -38,10 +38,11 @@ struct info_t
   {
     GOptionEntry entries[] =
     {
-      {"all",		0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show everything",		nullptr},
+      {"all",		0, 0, G_OPTION_ARG_NONE,	&this->all,			"Show everything",		nullptr},
 
       {"show-all",	0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show all short information",	nullptr},
-      {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"List everything",		nullptr},
+      {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"Show Units-Per-EM",		nullptr},
+      {"show-glyph-count",0, 0, G_OPTION_ARG_NONE,	&this->show_glyph_count,	"Show glyph count",		nullptr},
 
       {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long list",		nullptr},
       {"list-tables",	0, 0, G_OPTION_ARG_NONE,	&this->list_tables,		"List tables",			nullptr},
@@ -73,6 +74,7 @@ struct info_t
 
   hb_bool_t show_all = false;
   hb_bool_t show_upem = false;
+  hb_bool_t show_glyph_count = false;
 
   hb_bool_t list_all = false;
   hb_bool_t list_tables = false;
@@ -98,11 +100,13 @@ struct info_t
       show_all =
       list_all =
       true;
+      first_item = false;
     }
 
     if (show_all)
     {
       show_upem =
+      show_glyph_count =
       true;
     }
 
@@ -120,6 +124,7 @@ struct info_t
     }
 
     if (show_upem)	  _show_upem ();
+    if (show_glyph_count) _show_glyph_count ();
 
     if (list_tables)	  _list_tables ();
     if (list_unicodes)	  _list_unicodes ();
@@ -150,11 +155,20 @@ struct info_t
   {
     if (verbose)
     {
-      separator ();
-      printf ("Font Units-Per-EM: ");
+      printf ("Units-Per-EM: ");
     }
 
     printf ("%u\n", hb_face_get_upem (face));
+  }
+
+  void _show_glyph_count ()
+  {
+    if (verbose)
+    {
+      printf ("Glyph count: ");
+    }
+
+    printf ("%u\n", hb_face_get_glyph_count (face));
   }
 
   void _list_tables ()
