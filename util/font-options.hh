@@ -422,9 +422,8 @@ _list_unicodes (hb_font_t *font)
     hb_codepoint_t gid = hb_map_get (cmap, u);
 
     char glyphname[64];
-    if (!hb_font_get_glyph_name (font, gid,
-				 glyphname, sizeof glyphname))
-      snprintf (glyphname, sizeof glyphname, "gid%u", gid);
+    hb_font_glyph_to_string (font, gid,
+			     glyphname, sizeof glyphname);
 
     printf ("U+%04X	%s\n", u, glyphname);
   }
@@ -451,9 +450,8 @@ _list_unicodes (hb_font_t *font)
       assert (b);
 
       char glyphname[64];
-      if (!hb_font_get_glyph_name (font, gid,
-				   glyphname, sizeof glyphname))
-	snprintf (glyphname, sizeof glyphname, "gid%u", gid);
+      hb_font_glyph_to_string (font, gid,
+			       glyphname, sizeof glyphname);
 
       printf ("U+%04X,U+%04X	%s\n", vs, u, glyphname);
     }
@@ -475,9 +473,8 @@ _list_glyphs (hb_font_t *font)
   for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
   {
     char glyphname[64];
-    if (!hb_font_get_glyph_name (font, gid,
-				 glyphname, sizeof glyphname))
-      snprintf (glyphname, sizeof glyphname, "gid%u", gid);
+    hb_font_glyph_to_string (font, gid,
+			     glyphname, sizeof glyphname);
 
     printf ("%u	%s\n", gid, glyphname);
   }
