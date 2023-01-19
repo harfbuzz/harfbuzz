@@ -60,14 +60,11 @@ struct face_options_t
 
   char *font_file = nullptr;
   unsigned face_index = 0;
-  hb_bool_t list_tables = false;
 
   hb_blob_t *blob = nullptr;
   hb_face_t *face = nullptr;
 };
 
-
-static G_GNUC_NORETURN void _list_tables (hb_face_t *face);
 
 face_options_t::cache_t face_options_t::cache {};
 
@@ -124,31 +121,6 @@ face_options_t::post_parse (GError **error)
 
   blob = cache.blob;
   face = cache.face;
-
-  if (list_tables)
-    _list_tables (face);
-}
-
-static G_GNUC_NORETURN void _list_tables (hb_face_t *face)
-{
-  unsigned count = hb_face_get_table_tags (face, 0, nullptr, nullptr);
-  hb_tag_t *tags = (hb_tag_t *) calloc (count, sizeof (hb_tag_t));
-  hb_face_get_table_tags (face, 0, &count, tags);
-
-  for (unsigned i = 0; i < count; i++)
-  {
-    hb_tag_t tag = tags[i];
-
-    hb_blob_t *blob = hb_face_reference_table (face, tag);
-
-    printf ("%c%c%c%c: %8u bytes\n", HB_UNTAG (tag), hb_blob_get_length (blob));
-
-    hb_blob_destroy (blob);
-  }
-
-  free (tags);
-
-  exit (0);
 }
 
 void
@@ -158,7 +130,6 @@ face_options_t::add_options (option_parser_t *parser)
   {
     {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Set font file-name",				"filename"},
     {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Set face index (default: 0)",			"index"},
-    {"list-tables",	0, 0, G_OPTION_ARG_NONE,	&this->list_tables,		"List font tables and quit",			nullptr},
     {nullptr}
   };
   parser->add_group (entries,
