@@ -306,6 +306,41 @@ hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   _hb_cairo_paint_sweep_gradient (cr, color_line, x0, y0, start_angle, end_angle);
 }
 
+static hb_color_t
+hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
+                                     void *paint_data,
+                                     unsigned int color_index,
+                                     void *user_data HB_UNUSED)
+{
+  cairo_t *cr = (cairo_t *) paint_data;
+
+#ifdef CAIRO_COLOR_PALETTE_CUSTOM
+  cairo_font_options_t *options;
+  double red, green, blue, alpha;
+
+  options = cairo_font_options_create ();
+  cairo_get_font_options (cr, options);
+  if (cairo_font_options_get_custom_palette_color (options, color_index,
+                                                   &red, &green, &blue, &alpha))
+  {
+    cairo_font_options_destroy (options);
+    return HB_COLOR (255 * blue, 255 * green, 255 * red, 255 * alpha);
+  }
+  cairo_font_options_destroy (options);
+#endif
+
+  // Fall back to the default palette
+  cairo_scaled_font_t *scaled_font = cairo_get_scaled_font (cr);
+  hb_font_t *font = hb_cairo_scaled_font_get_font (scaled_font);
+  hb_face_t *face = hb_font_get_face (font);
+  hb_color_t color;
+  unsigned int len = 1;
+
+  hb_ot_color_palette_get_colors (face, 0, color_index, &len, &color);
+
+  return color;
+}
+
 static inline void free_static_cairo_paint_funcs ();
 
 static struct hb_cairo_paint_funcs_lazy_loader_t : hb_paint_funcs_lazy_loader_t<hb_cairo_paint_funcs_lazy_loader_t>
@@ -326,6 +361,7 @@ static struct hb_cairo_paint_funcs_lazy_loader_t : hb_paint_funcs_lazy_loader_t<
     hb_paint_funcs_set_linear_gradient_func (funcs, hb_cairo_paint_linear_gradient, nullptr, nullptr);
     hb_paint_funcs_set_radial_gradient_func (funcs, hb_cairo_paint_radial_gradient, nullptr, nullptr);
     hb_paint_funcs_set_sweep_gradient_func (funcs, hb_cairo_paint_sweep_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_custom_palette_color_func (funcs, hb_cairo_paint_custom_palette_color, nullptr, nullptr);
 
     hb_paint_funcs_make_immutable (funcs);
 
