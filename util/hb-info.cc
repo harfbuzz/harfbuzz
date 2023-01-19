@@ -42,6 +42,7 @@ struct info_t
 
       {"show-all",	0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show all short information",	nullptr},
       {"show-family",	0, 0, G_OPTION_ARG_NONE,	&this->show_family,		"Show family name",		nullptr},
+      {"show-style",	0, 0, G_OPTION_ARG_NONE,	&this->show_style,		"Show style name",		nullptr},
       {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"Show Units-Per-EM",		nullptr},
       {"show-unicode-count",0, 0, G_OPTION_ARG_NONE,	&this->show_unicode_count,	"Show Unicode count",		nullptr},
       {"show-glyph-count",0, 0, G_OPTION_ARG_NONE,	&this->show_glyph_count,	"Show glyph count",		nullptr},
@@ -77,6 +78,7 @@ struct info_t
 
   hb_bool_t show_all = false;
   hb_bool_t show_family = false;
+  hb_bool_t show_style = false;
   hb_bool_t show_upem = false;
   hb_bool_t show_unicode_count = false;
   hb_bool_t show_glyph_count = false;
@@ -111,6 +113,7 @@ struct info_t
     if (show_all)
     {
       show_family =
+      show_style =
       show_upem =
       show_unicode_count =
       show_glyph_count =
@@ -133,6 +136,7 @@ struct info_t
     }
 
     if (show_family)	  _show_family ();
+    if (show_style)	  _show_style ();
     if (show_upem)	  _show_upem ();
     if (show_unicode_count) _show_unicode_count ();
     if (show_glyph_count) _show_glyph_count ();
@@ -184,6 +188,11 @@ struct info_t
   void _show_family ()
   {
     _show_name ("Family", 1);
+  }
+
+  void _show_style ()
+  {
+    _show_name ("Style", 2);
   }
 
   void _show_upem ()
