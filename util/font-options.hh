@@ -426,13 +426,41 @@ _list_unicodes (hb_font_t *font)
 				 glyphname, sizeof glyphname))
       snprintf (glyphname, sizeof glyphname, "gid%u", gid);
 
-    printf ("U+%04X %s\n", u, glyphname);
+    printf ("U+%04X	%s\n", u, glyphname);
   }
 
   hb_map_destroy (cmap);
-  hb_set_destroy (unicodes);
 
-  /* TODO: List variation-selector sequences. */
+
+  /* List variation-selector sequences. */
+  hb_set_t *vars = hb_set_create ();
+
+  hb_face_collect_variation_selectors (face, vars);
+
+  for (hb_codepoint_t vs = HB_SET_VALUE_INVALID;
+       hb_set_next (vars, &vs);)
+  {
+    hb_set_clear (unicodes);
+    hb_face_collect_variation_unicodes (face, vs, unicodes);
+
+    for (hb_codepoint_t u = HB_SET_VALUE_INVALID;
+	 hb_set_next (unicodes, &u);)
+    {
+      hb_codepoint_t gid = 0;
+      bool b = hb_font_get_variation_glyph (font, u, vs, &gid);
+      assert (b);
+
+      char glyphname[64];
+      if (!hb_font_get_glyph_name (font, gid,
+				   glyphname, sizeof glyphname))
+	snprintf (glyphname, sizeof glyphname, "gid%u", gid);
+
+      printf ("U+%04X,U+%04X	%s\n", vs, u, glyphname);
+    }
+  }
+
+  hb_set_destroy (vars);
+  hb_set_destroy (unicodes);
 
   exit(0);
 }
@@ -451,7 +479,7 @@ _list_glyphs (hb_font_t *font)
 				 glyphname, sizeof glyphname))
       snprintf (glyphname, sizeof glyphname, "gid%u", gid);
 
-    printf ("%u %s\n", gid, glyphname);
+    printf ("%u	%s\n", gid, glyphname);
   }
 
   exit(0);
