@@ -156,7 +156,7 @@ struct info_t
       first_item = false;
       return;
     }
-    printf ("\n---\n\n");
+    printf ("\n===\n\n");
   }
 
   void _show_upem ()
