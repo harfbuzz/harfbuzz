@@ -122,6 +122,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
+#ifdef CAIRO_COLOR_PALETTE_DEFAULT
   unsigned palette_index = font_opts->palette;
 #ifdef CAIRO_COLOR_PALETTE_CUSTOM
   if (font_opts->custom_palette)
@@ -136,7 +137,6 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
     }
   }
 #endif
-#ifdef CAIRO_COLOR_PALETTE_DEFAULT
   cairo_font_options_set_color_palette (font_options, palette_index);
 #endif
 
