@@ -88,7 +88,8 @@ helper_cairo_use_hb_draw (const font_options_t *font_opts)
 }
 
 static inline cairo_scaled_font_t *
-helper_cairo_create_scaled_font (const font_options_t *font_opts)
+helper_cairo_create_scaled_font (const font_options_t *font_opts,
+				 const view_options_t *view_opts)
 {
   hb_font_t *font = font_opts->font;
   bool use_hb_draw = true;
@@ -123,12 +124,12 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
 #ifdef CAIRO_COLOR_PALETTE_DEFAULT
-  unsigned palette_index = font_opts->palette;
+  unsigned palette_index = view_opts->palette;
 #ifdef CAIRO_COLOR_PALETTE_CUSTOM
-  if (font_opts->custom_palette)
+  if (view_opts->custom_palette)
   {
     palette_index = HB_PAINT_PALETTE_INDEX_CUSTOM;
-    char **entries = g_strsplit (font_opts->custom_palette, ",", -1);
+    char **entries = g_strsplit (view_opts->custom_palette, ",", -1);
     for (unsigned int i = 0; entries[i]; i++)
     {
       unsigned int fr, fg, fb, fa;
