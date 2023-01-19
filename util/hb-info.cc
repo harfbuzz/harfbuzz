@@ -238,7 +238,7 @@ struct info_t
     {
       separator ();
       printf ("Name information:\n\n");
-      printf ("Id	Text\n\n");
+      printf ("Id	Text\n------------\n");
     }
 
     auto language = hb_language_get_default ();
@@ -263,7 +263,7 @@ struct info_t
     {
       separator ();
       printf ("Table information:\n\n");
-      printf ("Tag	Size\n\n");
+      printf ("Tag	Size\n------------\n");
     }
 
     unsigned count = hb_face_get_table_tags (face, 0, nullptr, nullptr);
@@ -291,7 +291,7 @@ struct info_t
     {
       separator ();
       printf ("Character-set information:\n\n");
-      printf ("Unicode	Glyph name\n\n");
+      printf ("Unicode	Glyph name\n------------------\n");
     }
 
     hb_set_t *unicodes = hb_set_create ();
@@ -351,7 +351,7 @@ struct info_t
     {
       separator ();
       printf ("Glyph-set information:\n\n");
-      printf ("GlyphID	Glyph name\n\n");
+      printf ("GlyphID	Glyph name\n------------------\n");
     }
 
     unsigned num_glyphs = hb_face_get_glyph_count (face);
@@ -514,7 +514,7 @@ struct info_t
     if (verbose && count)
     {
       printf ("Varitation axes:\n\n");
-      printf ("Tag:	Minimum	Default	Maximum	Name\n");
+      printf ("Tag 	Minimum	Default	Maximum	Name\n------------------------------------\n");
     }
     for (unsigned i = 0; i < count; i++)
     {
@@ -529,7 +529,7 @@ struct info_t
 			   language,
 			   &name_len, name);
 
-      printf ("%c%c%c%c%s:	%g	%g	%g	%s\n",
+      printf ("%c%c%c%c%s	%g	%g	%g	%s\n",
 	      HB_UNTAG (axis.tag),
 	      axis.flags & HB_OT_VAR_AXIS_FLAG_HIDDEN ? "*" : "",
 	      (double) axis.min_value,
