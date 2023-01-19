@@ -61,6 +61,9 @@ struct info_t
 #ifndef HB_NO_VAR
       {"list-variations",0, 0, G_OPTION_ARG_NONE,	&this->list_variations,		"List variations",		nullptr},
 #endif
+
+      {"dump-table",	0, 0, G_OPTION_ARG_STRING,	&this->dump_table,		"Dump font table",		"TABLE-TAG"},
+
       {nullptr}
     };
     parser->add_group (entries,
@@ -101,6 +104,8 @@ struct info_t
 #ifndef HB_NO_VAR
   hb_bool_t list_variations = false;
 #endif
+
+  char *dump_table = nullptr;
 
   public:
 
@@ -166,6 +171,8 @@ struct info_t
 #ifndef HB_NO_VAR
     if (list_variations)  _list_variations ();
 #endif
+
+    if (dump_table)	  _dump_table ();
 
     hb_font_destroy (font);
     hb_face_destroy (face);
@@ -606,6 +613,16 @@ struct info_t
     }
   }
 #endif
+
+  void
+  _dump_table ()
+  {
+    hb_blob_t *blob = hb_face_reference_table (face, hb_tag_from_string (dump_table, -1));
+    unsigned count = 0;
+    const char *data = hb_blob_get_data (blob, &count);
+    fwrite (data, 1, count, stdout);
+    hb_blob_destroy (blob);
+  }
 };
 
 
