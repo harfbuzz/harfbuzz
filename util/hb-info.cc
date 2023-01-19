@@ -50,6 +50,7 @@ struct info_t
       {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"Show Units-Per-EM",		nullptr},
       {"show-unicode-count",0, 0, G_OPTION_ARG_NONE,	&this->show_unicode_count,	"Show Unicode count",		nullptr},
       {"show-glyph-count",0, 0, G_OPTION_ARG_NONE,	&this->show_glyph_count,	"Show glyph count",		nullptr},
+      {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Show extents",			nullptr},
 
       {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long information",	nullptr},
       {"list-names",	0, 0, G_OPTION_ARG_NONE,	&this->list_names,		"List names",			nullptr},
@@ -93,6 +94,7 @@ struct info_t
   hb_bool_t show_upem = false;
   hb_bool_t show_unicode_count = false;
   hb_bool_t show_glyph_count = false;
+  hb_bool_t show_extents = false;
 
   hb_bool_t list_all = false;
   hb_bool_t list_names = false;
@@ -134,6 +136,7 @@ struct info_t
       show_upem =
       show_unicode_count =
       show_glyph_count =
+      show_extents =
       true;
       first_item = false;
     }
@@ -161,6 +164,7 @@ struct info_t
     if (show_upem)	  _show_upem ();
     if (show_unicode_count)_show_unicode_count ();
     if (show_glyph_count) _show_glyph_count ();
+    if (show_extents)	  _show_extents ();
 
     if (list_names)	  _list_names ();
     if (list_tables)	  _list_tables ();
@@ -197,7 +201,7 @@ struct info_t
       printf ("%s: ", label);
     }
 
-    auto language = hb_language_get_default ();
+    auto language = hb_language_get_default (); // TODO
 
     char name[128];
     unsigned name_len = sizeof name;
@@ -268,6 +272,23 @@ struct info_t
     printf ("%u\n", hb_face_get_glyph_count (face));
   }
 
+  void _show_extents ()
+  {
+    hb_direction_t direction = HB_DIRECTION_LTR; // TODO
+
+    hb_font_extents_t extents;
+    hb_font_get_extents_for_direction (font, direction, &extents);
+
+    if (verbose) printf ("Ascender: ");
+    printf ("%d\n", extents.ascender);
+
+    if (verbose) printf ("Descender: ");
+    printf ("%d\n", extents.descender);
+
+    if (verbose) printf ("Line gap: ");
+    printf ("%d\n", extents.line_gap);
+  }
+
   void _list_names ()
   {
     if (verbose)
@@ -277,7 +298,7 @@ struct info_t
       printf ("Id	Text\n------------\n");
     }
 
-    auto language = hb_language_get_default ();
+    auto language = hb_language_get_default (); // TODO
 
     unsigned count;
     const auto *entries = hb_ot_name_list_names (face, &count);
@@ -470,7 +491,7 @@ struct info_t
     }
 
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
-    auto language = hb_language_get_default ();
+    auto language = hb_language_get_default (); // TODO
     hb_set_t *features = hb_set_create ();
 
     for (unsigned int i = 0; table_tags[i]; i++)
@@ -544,7 +565,7 @@ struct info_t
     axes = (hb_ot_var_axis_info_t *) calloc (count, sizeof (hb_ot_var_axis_info_t));
     hb_ot_var_get_axis_infos (face, 0, &count, axes);
 
-    auto language = hb_language_get_default ();
+    auto language = hb_language_get_default (); // TODO
     bool has_hidden = false;
 
     if (verbose && count)
