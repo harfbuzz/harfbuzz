@@ -56,9 +56,12 @@ struct info_t
 		       false /* We add below. */);
   }
 
-  private:
+  protected:
   hb_face_t *face = nullptr;
   hb_font_t *font = nullptr;
+
+  hb_bool_t verbose = true;
+
   hb_bool_t list_all = false;
   hb_bool_t list_tables = false;
   hb_bool_t list_unicodes = false;
@@ -67,12 +70,15 @@ struct info_t
 #ifndef HB_NO_VAR
   hb_bool_t list_variations = false;
 #endif
+
   public:
 
-  void operator () (font_options_t *font_opts)
+  template <typename app_t>
+  void operator () (app_t *app)
   {
-    face = hb_face_reference (font_opts->face);
-    font = hb_font_reference (font_opts->font);
+    face = hb_face_reference (((font_options_t *) app)->face);
+    font = hb_font_reference (((font_options_t *) app)->font);
+    verbose = !app->quiet;
 
     if (list_all)
     {
@@ -98,10 +104,16 @@ struct info_t
     hb_face_destroy (face);
   }
 
-  private:
+  protected:
 
   void _list_tables ()
   {
+    if (verbose)
+    {
+      printf ("\nFont table information:");
+      printf ("\nTag	Size\n");
+    }
+
     unsigned count = hb_face_get_table_tags (face, 0, nullptr, nullptr);
     hb_tag_t *tags = (hb_tag_t *) calloc (count, sizeof (hb_tag_t));
     hb_face_get_table_tags (face, 0, &count, tags);
@@ -123,6 +135,12 @@ struct info_t
   void
   _list_unicodes ()
   {
+    if (verbose)
+    {
+      printf ("\nCharacter-set information:");
+      printf ("\nUnicode	Glyph name\n");
+    }
+
     hb_face_t *face = hb_font_get_face (font);
 
     hb_set_t *unicodes = hb_set_create ();
@@ -178,6 +196,12 @@ struct info_t
   void
   _list_glyphs ()
   {
+    if (verbose)
+    {
+      printf ("\nGlyph-set information:");
+      printf ("\nGlyphID	Glyph name\n");
+    }
+
     hb_face_t *face = hb_font_get_face (font);
 
     unsigned num_glyphs = hb_face_get_glyph_count (face);
@@ -195,6 +219,11 @@ struct info_t
   void
   _list_features ()
   {
+    if (verbose)
+    {
+      printf ("\nLayout features information:\n");
+    }
+
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
     auto language = hb_language_get_default ();
     hb_set_t *features = hb_set_create ();
@@ -297,6 +326,11 @@ struct info_t
   void
   _list_variations ()
   {
+    if (verbose)
+    {
+      printf ("\nFace variations information:\n");
+    }
+
     hb_ot_var_axis_info_t *axes;
 
     unsigned count = hb_ot_var_get_axis_infos (face, 0, nullptr, nullptr);
@@ -306,8 +340,11 @@ struct info_t
     auto language = hb_language_get_default ();
     bool has_hidden = false;
 
-    printf ("Varitation axes:\n");
-    printf ("Tag:	Minimum	Default	Maximum	Name\n\n");
+    if (verbose && count)
+    {
+      printf ("Varitation axes:\n");
+      printf ("Tag:	Minimum	Default	Maximum	Name\n\n");
+    }
     for (unsigned i = 0; i < count; i++)
     {
       const auto &axis = axes[i];
@@ -338,7 +375,10 @@ struct info_t
     count = hb_ot_var_get_named_instance_count (face);
     if (count)
     {
-      printf ("\n\nNamed instances: \n\n");
+      if (verbose)
+      {
+	printf ("\n\nNamed instances: \n\n");
+      }
 
       for (unsigned i = 0; i < count; i++)
       {
@@ -394,6 +434,7 @@ struct main_font_t :
 
     GOptionEntry entries[] =
     {
+      {"quiet",		'q', 0, G_OPTION_ARG_NONE,	&this->quiet,			"Generate machine-readable output",	nullptr},
       {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
 				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE]"},
       {nullptr}
@@ -422,6 +463,9 @@ struct main_font_t :
 		 "Too many arguments on the command line");
     return false;
   }
+
+  public:
+  hb_bool_t quiet = false;
 };
 
 int
