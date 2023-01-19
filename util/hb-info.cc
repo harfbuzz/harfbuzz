@@ -42,6 +42,7 @@ struct info_t
 
       {"show-all",	0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show all short information",	nullptr},
       {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"Show Units-Per-EM",		nullptr},
+      {"show-unicode-count",0, 0, G_OPTION_ARG_NONE,	&this->show_unicode_count,	"Show Unicode count",		nullptr},
       {"show-glyph-count",0, 0, G_OPTION_ARG_NONE,	&this->show_glyph_count,	"Show glyph count",		nullptr},
 
       {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long list",		nullptr},
@@ -74,6 +75,7 @@ struct info_t
 
   hb_bool_t show_all = false;
   hb_bool_t show_upem = false;
+  hb_bool_t show_unicode_count = false;
   hb_bool_t show_glyph_count = false;
 
   hb_bool_t list_all = false;
@@ -106,6 +108,7 @@ struct info_t
     if (show_all)
     {
       show_upem =
+      show_unicode_count =
       show_glyph_count =
       true;
     }
@@ -124,6 +127,7 @@ struct info_t
     }
 
     if (show_upem)	  _show_upem ();
+    if (show_unicode_count) _show_unicode_count ();
     if (show_glyph_count) _show_glyph_count ();
 
     if (list_tables)	  _list_tables ();
@@ -159,6 +163,21 @@ struct info_t
     }
 
     printf ("%u\n", hb_face_get_upem (face));
+  }
+
+  void _show_unicode_count ()
+  {
+    if (verbose)
+    {
+      printf ("Unicode count: ");
+    }
+
+    hb_set_t *unicodes = hb_set_create ();
+    hb_face_collect_unicodes (face, unicodes);
+
+    printf ("%u\n", hb_set_get_population (unicodes));
+
+    hb_set_destroy (unicodes);
   }
 
   void _show_glyph_count ()
