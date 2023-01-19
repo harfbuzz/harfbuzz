@@ -125,6 +125,18 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
 #ifdef CAIRO_COLOR_PALETTE_DEFAULT
   cairo_font_options_set_color_palette (font_options, font_opts->palette);
 #endif
+#ifdef CAIRO_COLOR_PALETTE_CUSTOM
+  if (font_opts->custom_palette)
+  {
+    char **entries = g_strsplit (font_opts->custom_palette, ",", -1);
+    for (unsigned int i = 0; entries[i]; i++)
+    {
+      unsigned int idx, fr, fg, fb, fa;
+      if (sscanf (entries[i], "%u:%2x%2x%2x%2x", &idx, &fr, &fg, &fb, &fa) == 5)
+        cairo_font_options_set_custom_palette_color (font_options, idx, fr / 255., fg / 255., fb / 255., fa / 255.);
+    }
+  }
+#endif
 
   cairo_scaled_font_t *scaled_font = cairo_scaled_font_create (cairo_face,
 							       &font_matrix,
