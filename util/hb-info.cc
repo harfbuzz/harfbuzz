@@ -61,6 +61,7 @@ struct info_t
   hb_font_t *font = nullptr;
 
   hb_bool_t verbose = true;
+  hb_bool_t first_item = true;
 
   hb_bool_t list_all = false;
   hb_bool_t list_tables = false;
@@ -106,12 +107,23 @@ struct info_t
 
   protected:
 
+  void separator ()
+  {
+    if (first_item)
+    {
+      first_item = false;
+      return;
+    }
+    printf ("\n---\n\n");
+  }
+
   void _list_tables ()
   {
     if (verbose)
     {
-      printf ("\nFont table information:");
-      printf ("\nTag	Size\n");
+      separator ();
+      printf ("Font table information:\n\n");
+      printf ("Tag	Size\n\n");
     }
 
     unsigned count = hb_face_get_table_tags (face, 0, nullptr, nullptr);
@@ -137,8 +149,9 @@ struct info_t
   {
     if (verbose)
     {
-      printf ("\nCharacter-set information:");
-      printf ("\nUnicode	Glyph name\n");
+      separator ();
+      printf ("Character-set information:\n\n");
+      printf ("Unicode	Glyph name\n\n");
     }
 
     hb_face_t *face = hb_font_get_face (font);
@@ -198,8 +211,9 @@ struct info_t
   {
     if (verbose)
     {
-      printf ("\nGlyph-set information:");
-      printf ("\nGlyphID	Glyph name\n");
+      separator ();
+      printf ("Glyph-set information:\n\n");
+      printf ("GlyphID	Glyph name\n\n");
     }
 
     hb_face_t *face = hb_font_get_face (font);
@@ -221,7 +235,8 @@ struct info_t
   {
     if (verbose)
     {
-      printf ("\nLayout features information:\n");
+      separator ();
+      printf ("Layout features information:\n\n");
     }
 
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
@@ -328,7 +343,8 @@ struct info_t
   {
     if (verbose)
     {
-      printf ("\nFace variations information:\n");
+      separator ();
+      printf ("Face variations information:\n\n");
     }
 
     hb_ot_var_axis_info_t *axes;
@@ -342,7 +358,7 @@ struct info_t
 
     if (verbose && count)
     {
-      printf ("Varitation axes:\n");
+      printf ("Varitation axes:\n\n");
       printf ("Tag:	Minimum	Default	Maximum	Name\n\n");
     }
     for (unsigned i = 0; i < count; i++)
@@ -367,7 +383,7 @@ struct info_t
 	      name);
     }
     if (has_hidden)
-      printf ("\n[*] Hidden axis\n");
+      printf ("\n[*] Hidden axis\n\n");
 
     free (axes);
     axes = nullptr;
@@ -377,7 +393,7 @@ struct info_t
     {
       if (verbose)
       {
-	printf ("\n\nNamed instances: \n\n");
+	printf ("Named instances:\n\n");
       }
 
       for (unsigned i = 0; i < count; i++)
