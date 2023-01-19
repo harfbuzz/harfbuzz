@@ -312,9 +312,9 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
                                      unsigned int color_index,
                                      void *user_data HB_UNUSED)
 {
+#ifdef CAIRO_COLOR_PALETTE_CUSTOM
   cairo_t *cr = (cairo_t *) paint_data;
 
-#ifdef CAIRO_COLOR_PALETTE_CUSTOM
   cairo_font_options_t *options;
   double red, green, blue, alpha;
 
