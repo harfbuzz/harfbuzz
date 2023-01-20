@@ -577,12 +577,9 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
 
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
   cairo_pattern_t *pattern = cairo_get_source (cr);
-  if (cairo_pattern_get_type (pattern) == CAIRO_PATTERN_TYPE_SOLID)
-  {
-    double r, g, b, a;
-    cairo_pattern_get_rgba (pattern, &r, &g, &b, &a);
+  double r, g, b, a;
+  if (cairo_pattern_get_rgba (pattern, &r, &g, &b, &a) == CAIRO_STATUS_SUCCESS)
     color = HB_COLOR ((int)(b * 255.), (int)(g * 255.), (int) (r * 255.), (int)(a * 255.));
-  }
 
   hb_position_t x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
