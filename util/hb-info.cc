@@ -573,7 +573,7 @@ struct info_t
 	  printf ("%c%c%c%c", HB_UNTAG (feature_array[feature_index]));
 
 	  if (*name)
-	    printf (" \"%s\"", name);
+	    printf ("	%s", name);
 
 	  printf ("\n");
 	}
