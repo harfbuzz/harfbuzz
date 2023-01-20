@@ -100,6 +100,9 @@ struct info_t
   char *direction_str = nullptr;
   char *script_str = nullptr;
   char *language_str = nullptr;
+  hb_direction_t direction = HB_DIRECTION_LTR;
+  hb_script_t script = HB_SCRIPT_INVALID;
+  hb_language_t language = HB_LANGUAGE_INVALID;
 
   hb_bool_t all = false;
 
@@ -136,6 +139,13 @@ struct info_t
     face = hb_face_reference (((font_options_t *) app)->face);
     font = hb_font_reference (((font_options_t *) app)->font);
     verbose = !app->quiet;
+    if (direction_str)
+      direction = hb_direction_from_string (direction_str, -1);
+    if (script_str)
+      script = hb_script_from_string (script_str, -1);
+    language = hb_language_get_default ();
+    if (language_str)
+      language = hb_language_from_string (language_str, -1);
 
     if (all)
     {
@@ -220,10 +230,6 @@ struct info_t
       printf ("%s: ", label);
     }
 
-    auto language = hb_language_get_default ();
-    if (language_str)
-      language = hb_language_from_string (language_str, -1);
-
     char name[16384];
     unsigned name_len = sizeof name;
     hb_ot_name_get_utf8 (face, name_id,
@@ -295,10 +301,6 @@ struct info_t
 
   void _show_extents ()
   {
-    hb_direction_t direction = HB_DIRECTION_LTR;
-    if (direction_str)
-      direction = hb_direction_from_string (direction_str, -1);
-
     hb_font_extents_t extents;
     hb_font_get_extents_for_direction (font, direction, &extents);
 
@@ -320,10 +322,6 @@ struct info_t
       printf ("Name information:\n\n");
       printf ("Id	Text\n------------\n");
     }
-
-    auto language = hb_language_get_default ();
-    if (language_str)
-      language = hb_language_from_string (language_str, -1);
 
     unsigned count;
     const auto *entries = hb_ot_name_list_names (face, &count);
@@ -517,10 +515,6 @@ struct info_t
 
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
 
-    auto language = hb_language_get_default ();
-    if (language_str)
-      language = hb_language_from_string (language_str, -1);
-
     hb_set_t *features = hb_set_create ();
 
     for (unsigned int i = 0; table_tags[i]; i++)
@@ -595,10 +589,6 @@ struct info_t
     unsigned count = hb_ot_var_get_axis_infos (face, 0, nullptr, nullptr);
     axes = (hb_ot_var_axis_info_t *) calloc (count, sizeof (hb_ot_var_axis_info_t));
     hb_ot_var_get_axis_infos (face, 0, &count, axes);
-
-    auto language = hb_language_get_default ();
-    if (language_str)
-      language = hb_language_from_string (language_str, -1);
 
     bool has_hidden = false;
 
