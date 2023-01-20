@@ -214,6 +214,7 @@ if cairo_dep.found()
   else
     check_funcs += [['cairo_user_font_face_set_render_color_glyph_func', {'deps': cairo_dep}]]
   endif
+  check_funcs += [['cairo_font_options_get_custom_palette_color', {'deps': cairo_dep}]]
 endif
 
 if cairo_ft_dep.found()

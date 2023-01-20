@@ -313,7 +313,7 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
                                      hb_color_t *color,
                                      void *user_data HB_UNUSED)
 {
-#ifdef CAIRO_COLOR_PALETTE_CUSTOM
+#ifdef HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR
   cairo_t *cr = (cairo_t *) paint_data;
 
   cairo_font_options_t *options;
@@ -321,7 +321,8 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
 
   options = cairo_font_options_create ();
   cairo_get_font_options (cr, options);
-  if (cairo_font_options_get_custom_palette_color (options, color_index,
+  if (CAIRO_STATUS_SUCCESS ==
+      cairo_font_options_get_custom_palette_color (options, color_index,
                                                    &red, &green, &blue, &alpha))
   {
     cairo_font_options_destroy (options);

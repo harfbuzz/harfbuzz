@@ -126,7 +126,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
 #ifdef CAIRO_COLOR_PALETTE_DEFAULT
   cairo_font_options_set_color_palette (font_options, view_opts->palette);
 #endif
-#ifdef CAIRO_COLOR_PALETTE_CUSTOM
+#ifdef HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR
   if (view_opts->custom_palette)
   {
     char **entries = g_strsplit (view_opts->custom_palette, ",", -1);
