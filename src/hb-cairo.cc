@@ -409,12 +409,6 @@ hb_cairo_paint_get_funcs ()
 {
   return static_cairo_paint_funcs.get_unconst ();
 }
-
-static cairo_status_t
-hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
-			     unsigned long         glyph,
-			     cairo_t              *cr,
-			     cairo_text_extents_t *extents);
 #endif
 
 static const cairo_user_data_key_t hb_cairo_face_user_data_key = {0};
