@@ -356,7 +356,7 @@ struct info_t
 
       hb_blob_t *blob = hb_face_reference_table (face, tag);
 
-      printf ("%c%c%c%c: %8u bytes\n", HB_UNTAG (tag), hb_blob_get_length (blob));
+      printf ("%c%c%c%c %8u bytes\n", HB_UNTAG (tag), hb_blob_get_length (blob));
 
       hb_blob_destroy (blob);
     }
