@@ -213,8 +213,8 @@ if cairo_dep.found()
     conf.set('HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC', 1)
   else
     check_funcs += [['cairo_user_font_face_set_render_color_glyph_func', {'deps': cairo_dep}]]
+    check_funcs += [['cairo_font_options_get_custom_palette_color', {'deps': cairo_dep}]]
   endif
-  check_funcs += [['cairo_font_options_get_custom_palette_color', {'deps': cairo_dep}]]
 endif
 
 if cairo_ft_dep.found()
