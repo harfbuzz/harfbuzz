@@ -306,6 +306,8 @@ hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   _hb_cairo_paint_sweep_gradient (cr, color_line, x0, y0, start_angle, end_angle);
 }
 
+static const cairo_user_data_key_t color_cache_key = {0};
+
 static hb_bool_t
 hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
                                      void *paint_data,
@@ -315,6 +317,16 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
 {
 #ifdef HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR
   cairo_t *cr = (cairo_t *) paint_data;
+
+#define DEADBEEF HB_TAG(0xDE,0xAD,0xBE,0xEF)
+
+  hb_map_t *color_cache = (hb_map_t *) cairo_get_user_data (cr, &color_cache_key);
+  hb_codepoint_t *c;
+  if (likely (color_cache && color_cache->has (color_index, &c)))
+  {
+    *color = *c;
+    return true;
+  }
 
   cairo_font_options_t *options;
   double red, green, blue, alpha;
@@ -327,10 +339,17 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
   {
     cairo_font_options_destroy (options);
     *color = HB_COLOR (255 * blue, 255 * green, 255 * red, 255 * alpha);
+
+    if (likely (color_cache && *color != DEADBEEF))
+      color_cache->set (color_index, *color);
+
     return true;
   }
   cairo_font_options_destroy (options);
 #endif
+
+  if (likely (color_cache))
+    color_cache->set (color_index, DEADBEEF);
 
   return false;
 }
@@ -556,7 +575,12 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
+  hb_map_t color_cache;
+  cairo_set_user_data (cr, &color_cache_key, &color_cache, nullptr);
+
   hb_font_paint_glyph (font, glyph, hb_cairo_paint_get_funcs (), cr, palette, color);
+
+  cairo_set_user_data (cr, &color_cache_key, nullptr, nullptr);
 
   return CAIRO_STATUS_SUCCESS;
 }
