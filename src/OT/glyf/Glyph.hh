@@ -207,9 +207,14 @@ struct Glyph
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
 		   hb_array_t<int> coords = hb_array_t<int> (),
-		   unsigned int depth = 0) const
+		   unsigned int depth = 0,
+		   unsigned *edge_count = nullptr) const
   {
     if (unlikely (depth > HB_MAX_NESTING_LEVEL)) return false;
+    unsigned stack_edge_count = 0;
+    if (!edge_count) edge_count = &stack_edge_count;
+    if (unlikely (*edge_count > HB_GLYF_MAX_EDGE_COUNT)) return false;
+    (*edge_count)++;
 
     if (!coords)
       coords = hb_array (font->coords, font->num_coords);
@@ -316,7 +321,8 @@ struct Glyph
 						    use_my_metrics,
 						    phantom_only,
 						    coords,
-						    depth + 1)))
+						    depth + 1,
+						    edge_count)))
 	  return false;
 
 	/* Copy phantom points from component if USE_MY_METRICS flag set */
@@ -381,7 +387,8 @@ struct Glyph
 						    use_my_metrics,
 						    phantom_only,
 						    coord_setter.get_coords (),
-						    depth + 1)))
+						    depth + 1,
+						    edge_count)))
 	  return false;
 
 	/* Apply component transformation */
