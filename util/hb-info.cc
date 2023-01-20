@@ -533,6 +533,8 @@ struct info_t
       unsigned feature_offset = 0;
       do
       {
+        // TODO Select features based on script/language
+
 	hb_ot_layout_table_get_feature_tags (face, table_tags[i],
 					     feature_offset,
 					     &feature_count,
