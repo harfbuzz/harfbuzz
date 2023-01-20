@@ -66,9 +66,9 @@ struct info_t
       {"show-postscript-name",0, 0, G_OPTION_ARG_NONE,	&this->show_postscript_name,	"Show Postscript name",		nullptr},
       {"show-version",	0, 0, G_OPTION_ARG_NONE,	&this->show_version,		"Show version",			nullptr},
       {"show-technology",0, 0, G_OPTION_ARG_NONE,	&this->show_technology,		"Show technology",		nullptr},
-      {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"Show Units-Per-EM",		nullptr},
       {"show-unicode-count",0, 0, G_OPTION_ARG_NONE,	&this->show_unicode_count,	"Show Unicode count",		nullptr},
       {"show-glyph-count",0, 0, G_OPTION_ARG_NONE,	&this->show_glyph_count,	"Show glyph count",		nullptr},
+      {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"Show Units-Per-EM",		nullptr},
       {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Show extents",			nullptr},
 
       {"get-metric",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_metric,		"Get metric",			"metric tag; eg. 'hasc'"},
@@ -126,9 +126,9 @@ struct info_t
   hb_bool_t show_postscript_name = false;
   hb_bool_t show_version = false;
   hb_bool_t show_technology = false;
-  hb_bool_t show_upem = false;
   hb_bool_t show_unicode_count = false;
   hb_bool_t show_glyph_count = false;
+  hb_bool_t show_upem = false;
   hb_bool_t show_extents = false;
 
   char **get_metric = nullptr;
@@ -182,9 +182,9 @@ struct info_t
       show_postscript_name =
       show_version =
       show_technology =
-      show_upem =
       show_unicode_count =
       show_glyph_count =
+      show_upem =
       show_extents =
       true;
       first_item = false;
@@ -213,9 +213,9 @@ struct info_t
     if (show_postscript_name)_show_postscript_name ();
     if (show_version)	  _show_version ();
     if (show_technology)  _show_technology ();
-    if (show_upem)	  _show_upem ();
     if (show_unicode_count)_show_unicode_count ();
     if (show_glyph_count) _show_glyph_count ();
+    if (show_upem)	  _show_upem ();
     if (show_extents)	  _show_extents ();
 
     if (get_metric)	  _get_metric ();
@@ -339,16 +339,6 @@ struct info_t
     if (_has_blob (HB_TAG('f','v','a','r')))  printf ("Has variations\n");
   }
 
-  void _show_upem ()
-  {
-    if (verbose)
-    {
-      printf ("Units-Per-EM: ");
-    }
-
-    printf ("%u\n", hb_face_get_upem (face));
-  }
-
   void _show_unicode_count ()
   {
     if (verbose)
@@ -372,6 +362,16 @@ struct info_t
     }
 
     printf ("%u\n", hb_face_get_glyph_count (face));
+  }
+
+  void _show_upem ()
+  {
+    if (verbose)
+    {
+      printf ("Units-Per-EM: ");
+    }
+
+    printf ("%u\n", hb_face_get_upem (face));
   }
 
   void _show_extents ()
