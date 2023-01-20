@@ -39,10 +39,10 @@ struct info_t
     GOptionEntry misc_entries[] =
     {
       {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction_str,		"Set direction (default: ltr)",		"ltr/rtl/ttb/btt"},
-      {"script",	0, 0, G_OPTION_ARG_STRING,	&this->script_str,		"Set script (default: none)",		"ISO-15924 tag, eg. 'Latn'"},
-      {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language_str,		"Set language (default: $LANG)",	"BCP 47 tag, eg. 'en'"},
-      {"ot-script",	0, 0, G_OPTION_ARG_STRING,	&this->ot_script_str,		"Set OpenType script tag (default: none)","tag, eg. 'latn'"},
-      {"ot-language",	0, 0, G_OPTION_ARG_STRING,	&this->ot_language_str,		"Set OpenType language tag (default: none)",	"tag, eg. 'ENG'"},
+      {"script",	0, 0, G_OPTION_ARG_STRING,	&this->script_str,		"Set script (default: none)",		"ISO-15924 tag; eg. 'Latn'"},
+      {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language_str,		"Set language (default: $LANG)",	"BCP 47 tag; eg. 'en'"},
+      {"ot-script",	0, 0, G_OPTION_ARG_STRING,	&this->ot_script_str,		"Set OpenType script tag (default: none)","tag; eg. 'latn'"},
+      {"ot-language",	0, 0, G_OPTION_ARG_STRING,	&this->ot_language_str,		"Set OpenType language tag (default: none)",	"tag; eg. 'ENG'"},
 
       {nullptr}
     };
@@ -69,6 +69,8 @@ struct info_t
       {"show-glyph-count",0, 0, G_OPTION_ARG_NONE,	&this->show_glyph_count,	"Show glyph count",		nullptr},
       {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Show extents",			nullptr},
 
+      {"get-metric",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_metric,		"Get metric",			"metric tag; eg. 'hasc'"},
+
       {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long information",	nullptr},
       {"list-names",	0, 0, G_OPTION_ARG_NONE,	&this->list_names,		"List names",			nullptr},
       {"list-tables",	'l', 0, G_OPTION_ARG_NONE,	&this->list_tables,		"List tables",			nullptr},
@@ -80,7 +82,7 @@ struct info_t
       {"list-variations",0, 0, G_OPTION_ARG_NONE,	&this->list_variations,		"List variations",		nullptr},
 #endif
 
-      {"dump-table",	0, 0, G_OPTION_ARG_STRING,	&this->dump_table,		"Dump font table",		"TABLE-TAG"},
+      {"dump-table",	0, 0, G_OPTION_ARG_STRING,	&this->dump_table,		"Dump font table",		"table tag; eg. 'cmap'"},
 
       {nullptr}
     };
@@ -121,6 +123,8 @@ struct info_t
   hb_bool_t show_unicode_count = false;
   hb_bool_t show_glyph_count = false;
   hb_bool_t show_extents = false;
+
+  char **get_metric = nullptr;
 
   hb_bool_t list_all = false;
   hb_bool_t list_names = false;
@@ -198,6 +202,8 @@ struct info_t
     if (show_unicode_count)_show_unicode_count ();
     if (show_glyph_count) _show_glyph_count ();
     if (show_extents)	  _show_extents ();
+
+    if (get_metric)	  _get_metric ();
 
     if (list_names)	  _list_names ();
     if (list_tables)	  _list_tables ();
@@ -316,6 +322,21 @@ struct info_t
 
     if (verbose) printf ("Line gap: ");
     printf ("%d\n", extents.line_gap);
+  }
+
+  void _get_metric ()
+  {
+    for (char **p = get_metric; *p; p++)
+    {
+      hb_tag_t tag = hb_tag_from_string (*p, -1);
+      hb_position_t position;
+      hb_ot_metrics_get_position_with_fallback (font,
+						(hb_ot_metrics_tag_t) tag,
+						&position);
+      if (verbose)
+	printf ("%c%c%c%c: ", HB_UNTAG (tag));
+      printf ("%d\n", position);
+    }
   }
 
   void _list_names ()
