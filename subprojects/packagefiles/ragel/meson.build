@@ -1,6 +1,14 @@
 project('ragel', 'c', 'cpp',
-  version : '6.10'
+  version : '6.10',
+  default_options: [
+    'cpp_eh=default',
+  ],
 )
+
+cpp = meson.get_compiler('cpp')
+add_project_arguments(cpp.get_supported_arguments([
+  '-fexceptions',
+]), language: 'cpp')
 
 conf = configuration_data()
 conf.set_quoted('PACKAGE', meson.project_name())
