@@ -476,8 +476,13 @@ struct info_t
 	{
 	  printf ("	");
 	  if (verbose) printf ("Script: ");
+
+	  hb_tag_t hb_sc = hb_script_to_iso15924_tag (hb_ot_tag_to_script (script_array[script_index]));
+	  if (script_array[script_index] == HB_TAG ('D','F','L','T'))
+	    hb_sc = HB_SCRIPT_COMMON;
+
 	  printf ("%c%c%c%c (%c%c%c%c)\n",
-		  HB_UNTAG (hb_script_to_iso15924_tag (hb_ot_tag_to_script (script_array[script_index]))),
+		  HB_UNTAG (hb_sc),
 		  HB_UNTAG (script_array[script_index]));
 
 	  hb_tag_t language_array[32];
