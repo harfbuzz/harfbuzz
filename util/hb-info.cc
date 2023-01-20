@@ -36,7 +36,22 @@ struct info_t
 {
   void add_options (option_parser_t *parser)
   {
-    GOptionEntry entries[] =
+    GOptionEntry misc_entries[] =
+    {
+      {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction_str,		"Set direction (default: ltr)",		"ltr/rtl/ttb/btt"},
+      {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language_str,		"Set language (default: $LANG)",	"BCP 47 tag"},
+      {"script",	0, 0, G_OPTION_ARG_STRING,	&this->script_str,		"Set script (default: none)",		"ISO-15924 tag"},
+
+      {nullptr}
+    };
+    parser->add_group (misc_entries,
+		       "misc",
+		       "Miscellaneaous options:",
+		       "Miscellaneaous options affecting queries",
+		       this,
+		       false /* We add below. */);
+
+    GOptionEntry query_entries[] =
     {
       {"all",		'a', 0, G_OPTION_ARG_NONE,	&this->all,			"Show everything",		nullptr},
 
@@ -67,7 +82,7 @@ struct info_t
 
       {nullptr}
     };
-    parser->add_group (entries,
+    parser->add_group (query_entries,
 		       "query",
 		       "Query options:",
 		       "Options to query the font instance",
@@ -81,6 +96,10 @@ struct info_t
 
   hb_bool_t verbose = true;
   hb_bool_t first_item = true;
+
+  char *direction_str = nullptr;
+  char *script_str = nullptr;
+  char *language_str = nullptr;
 
   hb_bool_t all = false;
 
@@ -201,7 +220,9 @@ struct info_t
       printf ("%s: ", label);
     }
 
-    auto language = hb_language_get_default (); // TODO
+    auto language = hb_language_get_default ();
+    if (language_str)
+      language = hb_language_from_string (language_str, -1);
 
     char name[128];
     unsigned name_len = sizeof name;
@@ -274,7 +295,9 @@ struct info_t
 
   void _show_extents ()
   {
-    hb_direction_t direction = HB_DIRECTION_LTR; // TODO
+    hb_direction_t direction = HB_DIRECTION_LTR;
+    if (direction_str)
+      direction = hb_direction_from_string (direction_str, -1);
 
     hb_font_extents_t extents;
     hb_font_get_extents_for_direction (font, direction, &extents);
@@ -298,7 +321,9 @@ struct info_t
       printf ("Id	Text\n------------\n");
     }
 
-    auto language = hb_language_get_default (); // TODO
+    auto language = hb_language_get_default ();
+    if (language_str)
+      language = hb_language_from_string (language_str, -1);
 
     unsigned count;
     const auto *entries = hb_ot_name_list_names (face, &count);
@@ -491,7 +516,11 @@ struct info_t
     }
 
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
-    auto language = hb_language_get_default (); // TODO
+
+    auto language = hb_language_get_default ();
+    if (language_str)
+      language = hb_language_from_string (language_str, -1);
+
     hb_set_t *features = hb_set_create ();
 
     for (unsigned int i = 0; table_tags[i]; i++)
@@ -565,7 +594,10 @@ struct info_t
     axes = (hb_ot_var_axis_info_t *) calloc (count, sizeof (hb_ot_var_axis_info_t));
     hb_ot_var_get_axis_infos (face, 0, &count, axes);
 
-    auto language = hb_language_get_default (); // TODO
+    auto language = hb_language_get_default ();
+    if (language_str)
+      language = hb_language_from_string (language_str, -1);
+
     bool has_hidden = false;
 
     if (verbose && count)
