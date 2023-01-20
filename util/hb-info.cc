@@ -82,6 +82,7 @@ struct info_t
 #ifndef HB_NO_VAR
       {"list-variations",0, 0, G_OPTION_ARG_NONE,	&this->list_variations,		"List variations",		nullptr},
 #endif
+      {"list-palettes",	0, 0, G_OPTION_ARG_NONE,	&this->list_palettes,		"List color palettes",		nullptr},
 
       {"dump-table",	0, 0, G_OPTION_ARG_STRING,	&this->dump_table,		"Dump font table",		"table tag; eg. 'cmap'"},
 
@@ -138,6 +139,7 @@ struct info_t
 #ifndef HB_NO_VAR
   hb_bool_t list_variations = false;
 #endif
+  hb_bool_t list_palettes = false;
 
   char *dump_table = nullptr;
 
@@ -191,6 +193,7 @@ struct info_t
 #ifndef HB_NO_VAR
       list_variations =
 #endif
+      list_palettes =
       true;
     }
 
@@ -217,6 +220,7 @@ struct info_t
 #ifndef HB_NO_VAR
     if (list_variations)  _list_variations ();
 #endif
+    if (list_palettes)	  _list_palettes ();
 
     if (dump_table)	  _dump_table ();
 
@@ -801,7 +805,7 @@ struct info_t
     if (verbose)
     {
       separator ();
-      printf ("Face variations information:\n\n");
+      printf ("Variations information:\n\n");
     }
 
     hb_ot_var_axis_info_t *axes;
@@ -878,6 +882,59 @@ struct info_t
     }
   }
 #endif
+
+  void
+  _list_palettes ()
+  {
+    if (verbose)
+    {
+      separator ();
+      printf ("Color palettes information:\n");
+    }
+
+    {
+      if (verbose)
+      {
+	printf ("\nPalettes:\n\n");
+	printf ("Index	Name\n------------\n");
+      }
+      unsigned count = hb_ot_color_palette_get_count (face);
+      for (unsigned i = 0; i < count; i++)
+      {
+	hb_ot_name_id_t name_id = hb_ot_color_palette_get_name_id (face, i);
+
+	char name[64];
+	unsigned name_len = sizeof name;
+	hb_ot_name_get_utf8 (face, name_id,
+			     language,
+			     &name_len, name);
+
+	printf ("%u	%s\n", i, name);
+      }
+    }
+
+    {
+      if (verbose)
+      {
+	printf ("\nColors:\n\n");
+	printf ("Index	Name\n------------\n");
+      }
+      unsigned count = hb_ot_color_palette_get_colors (face, 0, 0, nullptr, nullptr);
+      for (unsigned i = 0; i < count; i++)
+      {
+	hb_ot_name_id_t name_id = hb_ot_color_palette_color_get_name_id (face, i);
+
+	char name[64];
+	unsigned name_len = sizeof name;
+	hb_ot_name_get_utf8 (face, name_id,
+			     language,
+			     &name_len, name);
+
+	printf ("%u	%s\n", i, name);
+      }
+    }
+  }
+
 
   void
   _dump_table ()
