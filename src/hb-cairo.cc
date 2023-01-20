@@ -776,7 +776,7 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * cairo_user_scaled_font_text_to_glyphs_func_t.
  *
  * The @num_glyphs argument should be preset to the number of glyph entries available
- * in the @glyphs buffer. If the @glyphs buffer is %NULL, the value of
+ * in the @glyphs buffer. If the @glyphs buffer is `NULL`, the value of
  * @num_glyphs must be zero.  If the provided glyph array is too short for
  * the conversion (or for convenience), a new glyph array may be allocated
  * using cairo_glyph_allocate() and placed in @glyphs.  Upon return,
@@ -785,11 +785,11 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * allocated glyph array using cairo_glyph_free().  The caller will also free
  * the original value of @glyphs, so this function shouldn't do so.
  *
- * If @clusters is not %NULL, then @num_clusters and @cluster_flags
+ * If @clusters is not `NULL`, then @num_clusters and @cluster_flags
  * should not be either, and @utf8 must be provided, and cluster
  * mapping will be computed. The semantics of how
  * cluster array allocation works is similar to the glyph array.  That is,
- * if @clusters initially points to a non-%NULL value, that array may be used
+ * if @clusters initially points to a non-`NULL` value, that array may be used
  * as a cluster buffer, and @num_clusters points to the number of cluster
  * entries available there.  If the provided cluster array is too short for
  * the conversion (or for convenience), a new cluster array may be allocated

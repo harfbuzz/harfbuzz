@@ -604,7 +604,7 @@ hb_face_collect_unicodes (hb_face_t *face,
  * hb_face_collect_nominal_glyph_mapping:
  * @face: A face object
  * @mapping: (out): The map to add Unicode-to-glyph mapping to
- * @unicodes: (nullable) (out): The set to add Unicode characters to, or %NULL
+ * @unicodes: (nullable) (out): The set to add Unicode characters to, or `NULL`
  *
  * Collects the mapping from Unicode characters to nominal glyphs of the @face,
  * and optionally all of the Unicode characters covered by @face.
