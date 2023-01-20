@@ -242,4 +242,44 @@ __inline float scalbnf (float x, int exp)
 }
 #endif
 
+static inline bool
+parse_color (const char *s,
+	     unsigned &r,
+	     unsigned &g,
+	     unsigned &b,
+	     unsigned &a)
+{
+  bool ret = false;
+
+  while (*s == ' ') s++;
+  if (*s == '#') s++;
+
+  unsigned sr, sg, sb, sa;
+  sa = 255;
+  if (sscanf (s, "%2x%2x%2x%2x", &sr, &sg, &sb, &sa) <= 2)
+  {
+    if (sscanf (s, "%1x%1x%1x%1x", &sr, &sg, &sb, &sa) >= 3)
+    {
+      sr *= 17;
+      sg *= 17;
+      sb *= 17;
+      sa *= 17;
+      ret = true;
+    }
+  }
+  else
+    ret = true;
+
+  if (ret)
+  {
+    r = sr;
+    g = sg;
+    b = sb;
+    a = sa;
+  }
+
+  return ret;
+}
+
+
 #endif

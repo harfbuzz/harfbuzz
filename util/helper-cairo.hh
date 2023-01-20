@@ -130,11 +130,12 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
   {
     palette_index = HB_PAINT_PALETTE_INDEX_CUSTOM;
     char **entries = g_strsplit (view_opts->custom_palette, ",", -1);
-    for (unsigned int i = 0; entries[i]; i++)
+    for (unsigned i = 0; entries[i]; i++)
     {
-      unsigned int fr, fg, fb, fa;
-      if (sscanf (entries[i], "%2x%2x%2x%2x", &fr, &fg, &fb, &fa) == 4)
-        cairo_font_options_set_custom_palette_color (font_options, i, fr / 255., fg / 255., fb / 255., fa / 255.);
+      unsigned fr, fg, fb, fa;
+      fr = fg = fb = fa = 0;
+      parse_color (entries[i], fr, fg,fb, fa);
+      cairo_font_options_set_custom_palette_color (font_options, i, fr / 255., fg / 255., fb / 255., fa / 255.);
     }
     g_strfreev (entries);
   }
@@ -510,10 +511,10 @@ helper_cairo_create_context (double w, double h,
   const char *color;
   br = bg = bb = ba = 255;
   color = view_opts->back ? view_opts->back : DEFAULT_BACK;
-  sscanf (color + (*color=='#'), "%2x%2x%2x%2x", &br, &bg, &bb, &ba);
+  parse_color (color, br, bg, bb, ba);
   fr = fg = fb = 0; fa = 255;
   color = view_opts->fore ? view_opts->fore : DEFAULT_FORE;
-  sscanf (color + (*color=='#'), "%2x%2x%2x%2x", &fr, &fg, &fb, &fa);
+  parse_color (color, fr, fg, fb, fa);
 
   if (content == CAIRO_CONTENT_ALPHA)
   {
