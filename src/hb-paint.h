@@ -35,17 +35,6 @@ HB_BEGIN_DECLS
 
 
 /**
- * HB_PAINT_PALETTE_INDEX_CUSTOM
- *
- * A palette index signifying that custom colors are in use.
- * Such colors are fetched from the client using the
- * custom-palette-color callback of the paint functions.
- *
- * Since: REPLACEME
- **/
-#define HB_PAINT_PALETTE_INDEX_CUSTOM 0xFFFFFFFF
-
-/**
  * hb_paint_funcs_t:
  *
  * Glyph paint callbacks.
@@ -680,10 +669,11 @@ typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
  * Return value: the color
  * Since: REPLACEME
  */
-typedef hb_color_t (*hb_paint_custom_palette_color_func_t) (hb_paint_funcs_t *funcs,
-                                                            void *paint_data,
-                                                            unsigned int color_index,
-                                                            void *user_data);
+typedef hb_bool_t (*hb_paint_custom_palette_color_func_t) (hb_paint_funcs_t *funcs,
+                                                           void *paint_data,
+                                                           unsigned int color_index,
+                                                           hb_color_t *color,
+                                                           void *user_data);
 
 
 /**
@@ -974,9 +964,10 @@ HB_EXTERN void
 hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
                     hb_paint_composite_mode_t mode);
 
-HB_EXTERN hb_color_t
+HB_EXTERN hb_bool_t
 hb_paint_custom_palette_color (hb_paint_funcs_t *funcs, void *paint_data,
-                               unsigned int color_index);
+                               unsigned int color_index,
+                               hb_color_t *color);
 
 HB_END_DECLS
 

@@ -306,10 +306,11 @@ hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   _hb_cairo_paint_sweep_gradient (cr, color_line, x0, y0, start_angle, end_angle);
 }
 
-static hb_color_t
+static hb_bool_t
 hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
                                      void *paint_data,
                                      unsigned int color_index,
+                                     hb_color_t *color,
                                      void *user_data HB_UNUSED)
 {
 #ifdef CAIRO_COLOR_PALETTE_CUSTOM
@@ -324,12 +325,13 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
                                                    &red, &green, &blue, &alpha))
   {
     cairo_font_options_destroy (options);
-    return HB_COLOR (255 * blue, 255 * green, 255 * red, 255 * alpha);
+    *color = HB_COLOR (255 * blue, 255 * green, 255 * red, 255 * alpha);
+    return true;
   }
   cairo_font_options_destroy (options);
 #endif
 
-  return HB_COLOR (0, 0, 0, 0);
+  return false;
 }
 
 static inline void free_static_cairo_paint_funcs ();

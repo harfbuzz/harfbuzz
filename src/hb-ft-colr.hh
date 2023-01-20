@@ -156,9 +156,9 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 				       (hb_color_get_alpha (c->foreground) * stop.color.alpha) >> 14);
       else
       {
-        if (c->palette_index == HB_PAINT_PALETTE_INDEX_CUSTOM)
+	hb_color_t color;
+        if (c->funcs->custom_palette_color (c->data, stop.color.palette_index, &color))
 	{
-	  hb_color_t color = c->funcs->custom_palette_color (c->data, stop.color.palette_index);
 	  color_stops->color = HB_COLOR (hb_color_get_blue (color),
 					 hb_color_get_green (color),
 					 hb_color_get_red (color),
@@ -237,9 +237,8 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 			  (hb_color_get_alpha (c->foreground) * paint.u.solid.color.alpha) >> 14);
       else
       {
-        if (c->palette_index == HB_PAINT_PALETTE_INDEX_CUSTOM)
+	if (c->funcs->custom_palette_color (c->data, paint.u.solid.color.palette_index, &color))
 	{
-	  color = c->funcs->custom_palette_color (c->data, paint.u.solid.color.palette_index);
 	  color = HB_COLOR (hb_color_get_blue (color),
 			    hb_color_get_green (color),
 			    hb_color_get_red (color),

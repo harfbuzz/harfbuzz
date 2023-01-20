@@ -124,23 +124,21 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
 #ifdef CAIRO_COLOR_PALETTE_DEFAULT
-  unsigned palette_index = view_opts->palette;
+  cairo_font_options_set_color_palette (font_options, view_opts->palette);
+#endif
 #ifdef CAIRO_COLOR_PALETTE_CUSTOM
   if (view_opts->custom_palette)
   {
-    palette_index = HB_PAINT_PALETTE_INDEX_CUSTOM;
     char **entries = g_strsplit (view_opts->custom_palette, ",", -1);
     for (unsigned i = 0; entries[i]; i++)
     {
       unsigned fr, fg, fb, fa;
       fr = fg = fb = fa = 0;
-      parse_color (entries[i], fr, fg,fb, fa);
-      cairo_font_options_set_custom_palette_color (font_options, i, fr / 255., fg / 255., fb / 255., fa / 255.);
+      if (parse_color (entries[i], fr, fg,fb, fa))
+	cairo_font_options_set_custom_palette_color (font_options, i, fr / 255., fg / 255., fb / 255., fa / 255.);
     }
     g_strfreev (entries);
   }
-#endif
-  cairo_font_options_set_color_palette (font_options, palette_index);
 #endif
 
   cairo_scaled_font_t *scaled_font = cairo_scaled_font_create (cairo_face,

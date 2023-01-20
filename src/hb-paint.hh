@@ -138,10 +138,12 @@ struct hb_paint_funcs_t
   { func.pop_group (this, paint_data,
                     mode,
                     !user_data ? nullptr : user_data->pop_group); }
-  hb_color_t custom_palette_color (void *paint_data,
-                             unsigned int color_index)
+  bool custom_palette_color (void *paint_data,
+                             unsigned int color_index,
+                             hb_color_t *color)
   { return func.custom_palette_color (this, paint_data,
                                       color_index,
+                                      color,
                                       !user_data ? nullptr : user_data->custom_palette_color); }
 
 
