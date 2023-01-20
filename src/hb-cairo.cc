@@ -308,6 +308,12 @@ hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 static const cairo_user_data_key_t color_cache_key = {0};
 
+static void
+_hb_cairo_destroy_map (void *p)
+{
+  hb_map_destroy ((hb_map_t *) p);
+}
+
 static hb_bool_t
 hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
                                      void *paint_data,
@@ -490,6 +496,9 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
   extents->descent = (double) -hb_extents.descender / y_scale;
   extents->height  = extents->ascent + extents->descent;
 
+  hb_map_t *color_cache = hb_map_create ();
+  cairo_scaled_font_set_user_data (scaled_font, &color_cache_key, color_cache, _hb_cairo_destroy_map);
+
   return CAIRO_STATUS_SUCCESS;
 }
 
@@ -577,8 +586,8 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
-  hb_map_t color_cache;
-  cairo_set_user_data (cr, &color_cache_key, &color_cache, nullptr);
+  void *color_cache = cairo_scaled_font_get_user_data (scaled_font, &color_cache_key);
+  cairo_set_user_data (cr, &color_cache_key, color_cache, nullptr);
 
   hb_font_paint_glyph (font, glyph, hb_cairo_paint_get_funcs (), cr, palette, color);
 
