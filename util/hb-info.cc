@@ -95,7 +95,7 @@ struct info_t
 		       "Query options:",
 		       "Options to query the font instance",
 		       this,
-		       false /* We add below. */);
+		       false);
   }
 
   protected:
