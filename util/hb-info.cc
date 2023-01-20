@@ -39,8 +39,10 @@ struct info_t
     GOptionEntry misc_entries[] =
     {
       {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction_str,		"Set direction (default: ltr)",		"ltr/rtl/ttb/btt"},
-      {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language_str,		"Set language (default: $LANG)",	"BCP 47 tag"},
-      {"script",	0, 0, G_OPTION_ARG_STRING,	&this->script_str,		"Set script (default: none)",		"ISO-15924 tag"},
+      {"script",	0, 0, G_OPTION_ARG_STRING,	&this->script_str,		"Set script (default: none)",		"ISO-15924 tag, eg. 'Latn'"},
+      {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language_str,		"Set language (default: $LANG)",	"BCP 47 tag, eg. 'en'"},
+      {"ot-script",	0, 0, G_OPTION_ARG_STRING,	&this->ot_script_str,		"Set OpenType script tag (default: none)","tag, eg. 'latn'"},
+      {"ot-language",	0, 0, G_OPTION_ARG_STRING,	&this->ot_language_str,		"Set OpenType language tag (default: none)",	"tag, eg. 'ENG'"},
 
       {nullptr}
     };
@@ -103,6 +105,8 @@ struct info_t
   hb_direction_t direction = HB_DIRECTION_LTR;
   hb_script_t script = HB_SCRIPT_INVALID;
   hb_language_t language = HB_LANGUAGE_INVALID;
+  char *ot_script_str = nullptr;
+  char *ot_language_str = nullptr;
 
   hb_bool_t all = false;
 
@@ -521,6 +525,11 @@ struct info_t
   void
   _list_features_no_script ()
   {
+    if (verbose)
+    {
+      printf ("Showing all font features with duplicates removed.\n\n");
+    }
+
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
 
     hb_set_t *features = hb_set_create ();
@@ -594,7 +603,7 @@ struct info_t
 
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
 
-    if (script == HB_SCRIPT_INVALID)
+    if (script == HB_SCRIPT_INVALID && !ot_script_str)
     {
       _list_features_no_script ();
       return;
@@ -616,16 +625,41 @@ struct info_t
 					   &script_count, script_tags,
 					   &language_count, language_tags);
 
+      if (ot_script_str)
+      {
+	script_tags[0] = hb_tag_from_string (ot_script_str, -1);
+	script_count = 1;
+      }
+      if (ot_language_str)
+      {
+	language_tags[0] = hb_tag_from_string (ot_language_str, -1);
+	language_count = 1;
+      }
+
       unsigned script_index;
+      hb_tag_t chosen_script;
       hb_ot_layout_table_select_script (face, table_tag,
 					script_count, script_tags,
-					&script_index, nullptr);
+					&script_index, &chosen_script);
 
       unsigned language_index;
-      hb_ot_layout_script_select_language (face, table_tag,
+      hb_tag_t chosen_language;
+      hb_ot_layout_script_select_language2 (face, table_tag,
 					   script_index,
 					   language_count, language_tags,
-					   &language_index);
+					   &language_index, &chosen_language);
+
+      if (verbose)
+      {
+        if (chosen_script)
+	{
+	  printf ("	Script: %c%c%c%c\n", HB_UNTAG (chosen_script));
+	  if (chosen_language)
+	    printf ("	Language: %c%c%c%c\n", HB_UNTAG (chosen_language));
+	  else
+	    printf ("	Language: Default\n");
+	}
+      }
 
       unsigned feature_array[32];
       unsigned feature_count = sizeof feature_array / sizeof feature_array[0];
