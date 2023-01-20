@@ -321,10 +321,10 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
                                      hb_color_t *color,
                                      void *user_data HB_UNUSED)
 {
+#define HB_DEADBEEF HB_TAG(0xDE,0xAD,0xBE,0xEF)
+
 #ifdef HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR
   cairo_t *cr = (cairo_t *) paint_data;
-
-#define HB_DEADBEEF HB_TAG(0xDE,0xAD,0xBE,0xEF)
 
   hb_map_t *color_cache = (hb_map_t *) cairo_get_user_data (cr, &color_cache_key);
   hb_codepoint_t *c;
