@@ -225,8 +225,6 @@ hb_draw_state_t
 
 <SECTION>
 <FILE>hb-paint</FILE>
-HB_PAINT_PALETTE_INDEX_CUSTOM
-
 hb_paint_funcs_t
 hb_paint_funcs_create
 hb_paint_funcs_get_empty

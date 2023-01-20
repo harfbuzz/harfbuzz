@@ -684,10 +684,11 @@ hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
  * @color_index: color index
+ * @color: (out): fetched color
  *
  * Gets the custom palette color for @color_index.
  *
- * Return value: the custom color
+ * Return value: `true` if found, `false` otherwise
  *
  * Since: REPLACEME
  */
