@@ -496,8 +496,10 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
   extents->descent = (double) -hb_extents.descender / y_scale;
   extents->height  = extents->ascent + extents->descent;
 
+#ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
   hb_map_t *color_cache = hb_map_create ();
   cairo_scaled_font_set_user_data (scaled_font, &color_cache_key, color_cache, _hb_cairo_destroy_map);
+#endif
 
   return CAIRO_STATUS_SUCCESS;
 }
