@@ -70,6 +70,7 @@ struct info_t
       {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Show extents",			nullptr},
 
       {"get-metric",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_metric,		"Get metric",			"metric tag; eg. 'hasc'"},
+      {"get-baseline",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_baseline,		"Get baseline",			"baseline tag; eg. 'hang'"},
 
       {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long information",	nullptr},
       {"list-names",	0, 0, G_OPTION_ARG_NONE,	&this->list_names,		"List names",			nullptr},
@@ -125,6 +126,7 @@ struct info_t
   hb_bool_t show_extents = false;
 
   char **get_metric = nullptr;
+  char **get_baseline = nullptr;
 
   hb_bool_t list_all = false;
   hb_bool_t list_names = false;
@@ -204,6 +206,7 @@ struct info_t
     if (show_extents)	  _show_extents ();
 
     if (get_metric)	  _get_metric ();
+    if (get_baseline)	  _get_baseline ();
 
     if (list_names)	  _list_names ();
     if (list_tables)	  _list_tables ();
@@ -333,13 +336,58 @@ struct info_t
       hb_position_t position;
 
       if (verbose)
-	printf ("%c%c%c%c: ", HB_UNTAG (tag));
+	printf ("Metric %c%c%c%c: ", HB_UNTAG (tag));
 
       if (hb_ot_metrics_get_position (font, tag, &position))
 	printf ("%d\n", position);
       else
       {
 	hb_ot_metrics_get_position_with_fallback (font, tag, &position);
+	printf ("%d	*\n", position);
+	fallback = true;
+      }
+    }
+
+    if (verbose && fallback)
+    {
+      printf ("\n[*] Fallback value\n");
+    }
+  }
+
+  void _get_baseline ()
+  {
+
+    hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
+    hb_tag_t language_tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
+    unsigned script_count = HB_OT_MAX_TAGS_PER_SCRIPT;
+    unsigned language_count = HB_OT_MAX_TAGS_PER_LANGUAGE;
+
+    hb_ot_tags_from_script_and_language (script, language,
+					 &script_count, script_tags,
+					 &language_count, language_tags);
+
+    hb_tag_t script_tag = script_count ? script_tags[script_count - 1] : HB_TAG_NONE;
+    hb_tag_t language_tag = language_count ? language_tags[0] : HB_TAG_NONE;
+
+    if (ot_script_str)
+      script_tag = hb_tag_from_string (ot_script_str, -1);
+    if (ot_language_str)
+      language_tag = hb_tag_from_string (ot_language_str, -1);
+
+    bool fallback = false;
+    for (char **p = get_baseline; *p; p++)
+    {
+      hb_ot_layout_baseline_tag_t tag = (hb_ot_layout_baseline_tag_t) hb_tag_from_string (*p, -1);
+      hb_position_t position;
+
+      if (verbose)
+	printf ("Baseline %c%c%c%c: ", HB_UNTAG (tag));
+
+      if (hb_ot_layout_get_baseline (font, tag, direction, script_tag, language_tag, &position))
+	printf ("%d\n", position);
+      else
+      {
+	hb_ot_layout_get_baseline_with_fallback (font, tag, direction, script_tag, language_tag, &position);
 	printf ("%d	*\n", position);
 	fallback = true;
       }
