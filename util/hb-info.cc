@@ -326,16 +326,28 @@ struct info_t
 
   void _get_metric ()
   {
+    bool fallback = false;
     for (char **p = get_metric; *p; p++)
     {
-      hb_tag_t tag = hb_tag_from_string (*p, -1);
+      hb_ot_metrics_tag_t tag = (hb_ot_metrics_tag_t) hb_tag_from_string (*p, -1);
       hb_position_t position;
-      hb_ot_metrics_get_position_with_fallback (font,
-						(hb_ot_metrics_tag_t) tag,
-						&position);
+
       if (verbose)
 	printf ("%c%c%c%c: ", HB_UNTAG (tag));
-      printf ("%d\n", position);
+
+      if (hb_ot_metrics_get_position (font, tag, &position))
+	printf ("%d\n", position);
+      else
+      {
+	hb_ot_metrics_get_position_with_fallback (font, tag, &position);
+	printf ("%d	*\n", position);
+	fallback = true;
+      }
+    }
+
+    if (verbose && fallback)
+    {
+      printf ("\n[*] Fallback value\n");
     }
   }
 
@@ -779,7 +791,7 @@ struct info_t
 	      name);
     }
     if (verbose && has_hidden)
-      printf ("\n[*] Hidden axis\n\n");
+      printf ("\n[*] Hidden axis\n");
 
     free (axes);
     axes = nullptr;
@@ -789,7 +801,7 @@ struct info_t
     {
       if (verbose)
       {
-	printf ("\nNamed instances:\n\n");
+	printf ("\n\nNamed instances:\n\n");
       printf ("Index	Name				Position\n------------------------------------------------\n");
       }
 
