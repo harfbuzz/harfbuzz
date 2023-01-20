@@ -473,7 +473,9 @@ struct info_t
 
 	for (unsigned script_index = 0; script_index < script_count; script_index++)
 	{
-	  printf ("  Script: %c%c%c%c\n", HB_UNTAG (script_array[script_index]));
+	  printf ("  Script: %c%c%c%c (ISO 15924: %c%c%c%c)\n",
+		  HB_UNTAG (script_array[script_index]),
+		  HB_UNTAG (hb_script_to_iso15924_tag (hb_ot_tag_to_script (script_array[script_index]))));
 
 	  hb_tag_t language_array[32];
 	  unsigned language_count = sizeof language_array / sizeof language_array[0];
@@ -488,7 +490,9 @@ struct info_t
 
 	    for (unsigned language_index = 0; language_index < language_count; language_index++)
 	    {
-	      printf ("    Language: %c%c%c%c\n", HB_UNTAG (language_array[language_index]));
+	      printf ("    Language: %c%c%c%c (BCP 47: %s)\n",
+		      HB_UNTAG (language_array[language_index]),
+		      hb_language_to_string (hb_ot_tag_to_language (language_array[language_index])));
 	    }
 
 	    language_offset += language_count;
