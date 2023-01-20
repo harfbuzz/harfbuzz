@@ -324,6 +324,8 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
   hb_codepoint_t *c;
   if (likely (color_cache && color_cache->has (color_index, &c)))
   {
+    if (*c == DEADBEEF)
+      return false;
     *color = *c;
     return true;
   }
