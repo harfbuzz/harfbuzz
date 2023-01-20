@@ -514,14 +514,8 @@ struct info_t
   }
 
   void
-  _list_features ()
+  _list_features_no_script ()
   {
-    if (verbose)
-    {
-      separator ();
-      printf ("Layout features information:\n\n");
-    }
-
     hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
 
     hb_set_t *features = hb_set_create ();
@@ -537,8 +531,6 @@ struct info_t
       unsigned feature_offset = 0;
       do
       {
-        // TODO Select features based on script/language
-
 	hb_ot_layout_table_get_feature_tags (face, table_tags[i],
 					     feature_offset,
 					     &feature_count,
@@ -584,6 +576,102 @@ struct info_t
     }
 
     hb_set_destroy (features);
+  }
+
+  void
+  _list_features ()
+  {
+    if (verbose)
+    {
+      separator ();
+      printf ("Layout features information:\n\n");
+    }
+
+    hb_tag_t table_tags[] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_TAG_NONE};
+
+    if (script == HB_SCRIPT_INVALID)
+    {
+      _list_features_no_script ();
+      return;
+    }
+
+    for (unsigned int i = 0; table_tags[i]; i++)
+    {
+      if (verbose) printf ("Table: ");
+      printf ("%c%c%c%c\n", HB_UNTAG (table_tags[i]));
+
+      auto table_tag = table_tags[i];
+
+      hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
+      hb_tag_t language_tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
+      unsigned script_count = HB_OT_MAX_TAGS_PER_SCRIPT;
+      unsigned language_count = HB_OT_MAX_TAGS_PER_LANGUAGE;
+
+      hb_ot_tags_from_script_and_language (script, language,
+					   &script_count, script_tags,
+					   &language_count, language_tags);
+
+      unsigned script_index;
+      hb_ot_layout_table_select_script (face, table_tag,
+					script_count, script_tags,
+					&script_index, nullptr);
+
+      unsigned language_index;
+      hb_ot_layout_script_select_language (face, table_tag,
+					   script_index,
+					   language_count, language_tags,
+					   &language_index);
+
+      unsigned feature_array[32];
+      unsigned feature_count = sizeof feature_array / sizeof feature_array[0];
+      unsigned feature_offset = 0;
+      do
+      {
+	hb_ot_layout_language_get_feature_indexes (face, table_tag,
+						   script_index, language_index,
+						   feature_offset,
+						   &feature_count,
+						   feature_array);
+
+	for (unsigned feature_index = 0; feature_index < feature_count; feature_index++)
+	{
+	  hb_ot_name_id_t label_id;
+
+	  hb_ot_layout_feature_get_name_ids (face,
+					     table_tags[i],
+					     feature_array[feature_index],
+					     &label_id,
+					     nullptr,
+					     nullptr,
+					     nullptr,
+					     nullptr);
+
+	  char name[64];
+	  unsigned name_len = sizeof name;
+
+	  hb_ot_name_get_utf8 (face, label_id,
+			       language,
+			       &name_len, name);
+
+	  printf ("	");
+	  if (verbose) printf ("Feature: ");
+	  hb_tag_t feature_tag;
+	  unsigned f_count = 1;
+	  hb_ot_layout_table_get_feature_tags (face, table_tag,
+					       feature_array[feature_index],
+					       &f_count, &feature_tag);
+	  printf ("%c%c%c%c", HB_UNTAG (feature_tag));
+
+	  if (*name)
+	    printf ("	%s", name);
+
+	  printf ("\n");
+	}
+
+	feature_offset += feature_count;
+      }
+      while (feature_count == sizeof feature_array / sizeof feature_array[0]);
+    }
   }
 
 #ifndef HB_NO_VAR
