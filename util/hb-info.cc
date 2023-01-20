@@ -459,7 +459,8 @@ struct info_t
 
     for (unsigned int i = 0; table_tags[i]; i++)
     {
-      printf ("Table: %c%c%c%c\n", HB_UNTAG (table_tags[i]));
+      if (verbose) printf ("Table: ");
+      printf ("%c%c%c%c\n", HB_UNTAG (table_tags[i]));
 
       hb_tag_t script_array[32];
       unsigned script_count = sizeof script_array / sizeof script_array[0];
@@ -473,7 +474,9 @@ struct info_t
 
 	for (unsigned script_index = 0; script_index < script_count; script_index++)
 	{
-	  printf ("  Script: %c%c%c%c (%c%c%c%c)\n",
+	  printf ("	");
+	  if (verbose) printf ("Script: ");
+	  printf ("%c%c%c%c (%c%c%c%c)\n",
 		  HB_UNTAG (hb_script_to_iso15924_tag (hb_ot_tag_to_script (script_array[script_index]))),
 		  HB_UNTAG (script_array[script_index]));
 
@@ -490,7 +493,9 @@ struct info_t
 
 	    for (unsigned language_index = 0; language_index < language_count; language_index++)
 	    {
-	      printf ("    Language: %s (%c%c%c%c)\n",
+	      printf ("		");
+	      if (verbose) printf ("Language: ");
+	      printf ("%s (%c%c%c%c)\n",
 		      hb_language_to_string (hb_ot_tag_to_language (language_array[language_index])),
 		      HB_UNTAG (language_array[language_index]));
 	    }
@@ -523,7 +528,8 @@ struct info_t
 
     for (unsigned int i = 0; table_tags[i]; i++)
     {
-      printf ("Table: %c%c%c%c\n", HB_UNTAG (table_tags[i]));
+      if (verbose) printf ("Table: ");
+      printf ("%c%c%c%c\n", HB_UNTAG (table_tags[i]));
 
       hb_set_clear (features);
       hb_tag_t feature_array[32];
@@ -562,7 +568,9 @@ struct info_t
 			       language,
 			       &name_len, name);
 
-	  printf ("  Feature: %c%c%c%c", HB_UNTAG (feature_array[feature_index]));
+	  printf ("	");
+	  if (verbose) printf ("Feature: ");
+	  printf ("%c%c%c%c", HB_UNTAG (feature_array[feature_index]));
 
 	  if (*name)
 	    printf (" \"%s\"", name);
