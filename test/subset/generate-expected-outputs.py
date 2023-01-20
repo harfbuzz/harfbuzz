@@ -33,7 +33,6 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 		instance_path = os.path.join(tempfile.mkdtemp (), font_name)
 		args = ["fonttools", "varLib.instancer",
 			"--no-overlap-flag",
-			"--no-recalc-bounds",
 			"--no-recalc-timestamp",
 			"--output=%s" % instance_path,
 			input_file]
@@ -43,6 +42,8 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 
 	fonttools_path = os.path.join(tempfile.mkdtemp (), font_name)
 	args = ["fonttools", "subset", input_path]
+	if instance_flags:
+		args.extend(["--recalc-bounds"])
 	args.extend(["--drop-tables+=DSIG",
 		     "--drop-tables-=sbix",
 		     "--no-harfbuzz-repacker", # disable harfbuzz repacker so we aren't comparing to ourself.
