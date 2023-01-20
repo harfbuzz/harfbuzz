@@ -130,12 +130,24 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
   if (view_opts->custom_palette)
   {
     char **entries = g_strsplit (view_opts->custom_palette, ",", -1);
+    unsigned idx = 0;
     for (unsigned i = 0; entries[i]; i++)
     {
+      const char *p = strchr (entries[i], '=');
+      if (!p)
+        p = entries[i];
+      else
+      {
+	sscanf (entries[i], "%u", &idx);
+        p++;
+      }
+
       unsigned fr, fg, fb, fa;
       fr = fg = fb = fa = 0;
-      if (parse_color (entries[i], fr, fg,fb, fa))
-	cairo_font_options_set_custom_palette_color (font_options, i, fr / 255., fg / 255., fb / 255., fa / 255.);
+      if (parse_color (p, fr, fg,fb, fa))
+	cairo_font_options_set_custom_palette_color (font_options, idx, fr / 255., fg / 255., fb / 255., fa / 255.);
+
+      idx++;
     }
     g_strfreev (entries);
   }
