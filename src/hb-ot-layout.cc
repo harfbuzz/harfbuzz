@@ -500,8 +500,8 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
  * @face: #hb_face_t to work upon
  * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_tags: Array of #hb_tag_t script tags
- * @script_index: (out): The index of the requested script tag
- * @chosen_script: (out): #hb_tag_t of the script tag requested
+ * @script_index: (out): The index of the chosen script
+ * @chosen_script: (out): #hb_tag_t of the chosen script
  *
  * Deprecated since 2.0.0
  **/
@@ -531,8 +531,8 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
  *
  * If the table does not have any of the requested scripts, then `DFLT`,
  * `dflt`, and `latn` tags are tried in that order. If the table still does not
- * have any of these scripts, @script_index and @chosen_script are set to
- * #HB_OT_LAYOUT_NO_SCRIPT_INDEX.
+ * have any of these scripts, @script_index is set to
+ * #HB_OT_LAYOUT_NO_SCRIPT_INDEX and @chosen_script is set to #HB_TAG_NONE.
  *
  * Return value:
  * `true` if one of the requested scripts is selected, `false` if a fallback
@@ -727,6 +727,66 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 
 
 /**
+ * hb_ot_layout_script_select_language2:
+ * @face: #hb_face_t to work upon
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
+ * @script_index: The index of the requested script tag
+ * @language_count: The number of languages in the specified script
+ * @language_tags: The array of language tags
+ * @language_index: (out): The index of the chosen language
+ * @chosen_language: (out): #hb_tag_t of the chosen language
+ *
+ * Fetches the index of the first language tag fom @language_tags that is present
+ * in the specified face's GSUB or GPOS table, underneath the specified script
+ * index.
+ *
+ * If none of the given language tags is found, `false` is returned and
+ * @language_index is set to #HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX and
+ * @chosen_language is set to #HB_TAG_NONE.
+ *
+ * Return value: `true` if one of the given language tags is found, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_ot_layout_script_select_language2 (hb_face_t      *face,
+				     hb_tag_t        table_tag,
+				     unsigned int    script_index,
+				     unsigned int    language_count,
+				     const hb_tag_t *language_tags,
+				     unsigned int   *language_index /* OUT */,
+				     hb_tag_t       *chosen_language /* OUT */)
+{
+  static_assert ((OT::Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX), "");
+  const OT::Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
+  unsigned int i;
+
+  for (i = 0; i < language_count; i++)
+  {
+    if (s.find_lang_sys_index (language_tags[i], language_index))
+    {
+      if (chosen_language)
+        *chosen_language = language_tags[i];
+      return true;
+    }
+  }
+
+  /* try finding 'dflt' */
+  if (s.find_lang_sys_index (HB_OT_TAG_DEFAULT_LANGUAGE, language_index))
+  {
+    if (chosen_language)
+      *chosen_language = HB_OT_TAG_DEFAULT_LANGUAGE;
+    return false;
+  }
+
+  if (language_index)
+    *language_index = HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX;
+  if (chosen_language)
+    *chosen_language = HB_TAG_NONE;
+  return false;
+}
+
+/**
  * hb_ot_layout_script_select_language:
  * @face: #hb_face_t to work upon
  * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
@@ -754,25 +814,11 @@ hb_ot_layout_script_select_language (hb_face_t      *face,
 				     const hb_tag_t *language_tags,
 				     unsigned int   *language_index /* OUT */)
 {
-  static_assert ((OT::Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX), "");
-  const OT::Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
-  unsigned int i;
-
-  for (i = 0; i < language_count; i++)
-  {
-    if (s.find_lang_sys_index (language_tags[i], language_index))
-      return true;
-  }
-
-  /* try finding 'dflt' */
-  if (s.find_lang_sys_index (HB_OT_TAG_DEFAULT_LANGUAGE, language_index))
-    return false;
-
-  if (language_index)
-    *language_index = HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX;
-  return false;
+  return hb_ot_layout_script_select_language2 (face, table_tag,
+					       script_index,
+					       language_count, language_tags,
+					       language_index, nullptr);
 }
-
 
 /**
  * hb_ot_layout_language_get_required_feature_index:
