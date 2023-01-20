@@ -586,7 +586,7 @@ hb_ot_layout_table_select_script (hb_face_t      *face,
 
   if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
   if (chosen_script)
-    *chosen_script = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
+    *chosen_script = HB_TAG_NONE;
   return false;
 }
 
