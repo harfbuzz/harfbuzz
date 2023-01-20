@@ -224,7 +224,7 @@ struct info_t
     if (language_str)
       language = hb_language_from_string (language_str, -1);
 
-    char name[128];
+    char name[16384];
     unsigned name_len = sizeof name;
     hb_ot_name_get_utf8 (face, name_id,
 			 language,
@@ -329,7 +329,7 @@ struct info_t
     const auto *entries = hb_ot_name_list_names (face, &count);
     for (unsigned i = 0; i < count; i++)
     {
-      char name[128];
+      char name[16384];
       unsigned name_len = sizeof name;
       hb_ot_name_get_utf8 (face, entries[i].name_id,
 			   language,
