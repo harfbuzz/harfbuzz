@@ -58,6 +58,7 @@ struct info_t
       {"all",		'a', 0, G_OPTION_ARG_NONE,	&this->all,			"Show everything",		nullptr},
 
       {"show-all",	0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show all short information (default)",	nullptr},
+      {"show-face-count",0, 0, G_OPTION_ARG_NONE,	&this->show_face_count,		"Show face count",		nullptr},
       {"show-family",	0, 0, G_OPTION_ARG_NONE,	&this->show_family,		"Show family name",		nullptr},
       {"show-style",	0, 0, G_OPTION_ARG_NONE,	&this->show_style,		"Show style name",		nullptr},
       {"show-unique-name",0, 0, G_OPTION_ARG_NONE,	&this->show_unique_name,	"Show unique name",		nullptr},
@@ -98,6 +99,7 @@ struct info_t
   }
 
   protected:
+  hb_blob_t *blob = nullptr;
   hb_face_t *face = nullptr;
   hb_font_t *font = nullptr;
 
@@ -116,6 +118,7 @@ struct info_t
   hb_bool_t all = false;
 
   hb_bool_t show_all = false;
+  hb_bool_t show_face_count = false;
   hb_bool_t show_family = false;
   hb_bool_t show_style = false;
   hb_bool_t show_unique_name = false;
@@ -150,6 +153,7 @@ struct info_t
   template <typename app_t>
   void operator () (app_t *app)
   {
+    blob = hb_blob_reference (((font_options_t *) app)->blob);
     face = hb_face_reference (((font_options_t *) app)->face);
     font = hb_font_reference (((font_options_t *) app)->font);
     verbose = !app->quiet;
@@ -170,6 +174,7 @@ struct info_t
 
     if (show_all)
     {
+      show_face_count =
       show_family =
       show_style =
       show_unique_name =
@@ -200,6 +205,7 @@ struct info_t
       true;
     }
 
+    if (show_face_count)  _show_face_count ();
     if (show_family)	  _show_family ();
     if (show_style)	  _show_style ();
     if (show_unique_name) _show_unique_name ();
@@ -230,6 +236,7 @@ struct info_t
 
     hb_font_destroy (font);
     hb_face_destroy (face);
+    hb_blob_destroy (blob);
   }
 
   protected:
@@ -244,7 +251,14 @@ struct info_t
     printf ("\n===\n\n");
   }
 
-  void _show_name (const char *label, hb_ot_name_id_t name_id)
+  void
+  _show_face_count ()
+  {
+    printf ("Face count: %u\n", hb_face_count (blob));
+  }
+
+  void
+  _show_name (const char *label, hb_ot_name_id_t name_id)
   {
     if (verbose)
     {
