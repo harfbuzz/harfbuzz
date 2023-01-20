@@ -896,12 +896,13 @@ struct info_t
       if (verbose)
       {
 	printf ("\nPalettes:\n\n");
-	printf ("Index	Name\n------------\n");
+	printf ("Index	Name	Flags\n---------------------\n");
       }
       unsigned count = hb_ot_color_palette_get_count (face);
       for (unsigned i = 0; i < count; i++)
       {
 	hb_ot_name_id_t name_id = hb_ot_color_palette_get_name_id (face, i);
+	hb_ot_color_palette_flags_t flags = hb_ot_color_palette_get_flags (face, i);
 
 	char name[64];
 	unsigned name_len = sizeof name;
@@ -909,7 +910,15 @@ struct info_t
 			     language,
 			     &name_len, name);
 
-	printf ("%u	%s\n", i, name);
+	printf ("%u	%s	", i, name);
+	if (flags)
+	{
+	  if (flags & HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_LIGHT_BACKGROUND)
+	    printf ("Usable with light background,");
+	  if (flags & HB_OT_COLOR_PALETTE_FLAG_USABLE_WITH_DARK_BACKGROUND)
+	    printf ("Usable with dark background,");
+	}
+	printf ("\n");
       }
     }
 
