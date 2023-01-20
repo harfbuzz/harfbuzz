@@ -324,13 +324,13 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
 #ifdef HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR
   cairo_t *cr = (cairo_t *) paint_data;
 
-#define DEADBEEF HB_TAG(0xDE,0xAD,0xBE,0xEF)
+#define HB_DEADBEEF HB_TAG(0xDE,0xAD,0xBE,0xEF)
 
   hb_map_t *color_cache = (hb_map_t *) cairo_get_user_data (cr, &color_cache_key);
   hb_codepoint_t *c;
   if (likely (color_cache && color_cache->has (color_index, &c)))
   {
-    if (*c == DEADBEEF)
+    if (*c == HB_DEADBEEF)
       return false;
     *color = *c;
     return true;
@@ -348,7 +348,7 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
     cairo_font_options_destroy (options);
     *color = HB_COLOR (255 * blue, 255 * green, 255 * red, 255 * alpha);
 
-    if (likely (color_cache && *color != DEADBEEF))
+    if (likely (color_cache && *color != HB_DEADBEEF))
       color_cache->set (color_index, *color);
 
     return true;
@@ -357,7 +357,9 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
 #endif
 
   if (likely (color_cache))
-    color_cache->set (color_index, DEADBEEF);
+    color_cache->set (color_index, HB_DEADBEEF);
+
+#undef HB_DEADBEEF
 
   return false;
 }
