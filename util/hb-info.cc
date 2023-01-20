@@ -64,6 +64,7 @@ struct info_t
       {"show-full-name",0, 0, G_OPTION_ARG_NONE,	&this->show_full_name,		"Show full name",		nullptr},
       {"show-postscript-name",0, 0, G_OPTION_ARG_NONE,	&this->show_postscript_name,	"Show Postscript name",		nullptr},
       {"show-version",	0, 0, G_OPTION_ARG_NONE,	&this->show_version,		"Show version",			nullptr},
+      {"show-technology",0, 0, G_OPTION_ARG_NONE,	&this->show_technology,		"Show technology",		nullptr},
       {"show-upem",	0, 0, G_OPTION_ARG_NONE,	&this->show_upem,		"Show Units-Per-EM",		nullptr},
       {"show-unicode-count",0, 0, G_OPTION_ARG_NONE,	&this->show_unicode_count,	"Show Unicode count",		nullptr},
       {"show-glyph-count",0, 0, G_OPTION_ARG_NONE,	&this->show_glyph_count,	"Show glyph count",		nullptr},
@@ -121,6 +122,7 @@ struct info_t
   hb_bool_t show_full_name = false;
   hb_bool_t show_postscript_name = false;
   hb_bool_t show_version = false;
+  hb_bool_t show_technology = false;
   hb_bool_t show_upem = false;
   hb_bool_t show_unicode_count = false;
   hb_bool_t show_glyph_count = false;
@@ -174,6 +176,7 @@ struct info_t
       show_full_name =
       show_postscript_name =
       show_version =
+      show_technology =
       show_upem =
       show_unicode_count =
       show_glyph_count =
@@ -203,6 +206,7 @@ struct info_t
     if (show_full_name)	  _show_full_name ();
     if (show_postscript_name)_show_postscript_name ();
     if (show_version)	  _show_version ();
+    if (show_technology)  _show_technology ();
     if (show_upem)	  _show_upem ();
     if (show_unicode_count)_show_unicode_count ();
     if (show_glyph_count) _show_glyph_count ();
@@ -280,6 +284,46 @@ struct info_t
     _show_name ("Postscript name", name_id);
   }
   void _show_version ()		{ _show_name ("Version", 5); }
+
+  bool _has_blob (hb_tag_t tag)
+  {
+    hb_blob_t *blob = hb_face_reference_table (face, tag);
+    bool ret = hb_blob_get_length (blob);
+    hb_blob_destroy (blob);
+    return ret;
+  }
+
+  void _show_technology ()
+  {
+    if (_has_blob (HB_TAG('g','l','y','f')))
+      printf ("Has TrueType outlines\n");
+    if (_has_blob (HB_TAG('C','F','F',' ')) || _has_blob (HB_TAG('C','F','F','2')))
+      printf ("Has Postscript outlines\n");
+
+    if (_has_blob (HB_TAG('f','p','g','m')) || _has_blob (HB_TAG('p','r','e','p')) || _has_blob (HB_TAG('c','v','t',' ')))
+      printf ("Has TrueType hinting\n");
+
+    if (_has_blob (HB_TAG('G','S','U','B')) || _has_blob (HB_TAG('G','P','O','S')))
+      printf ("Has OpenType layout\n");
+    if (_has_blob (HB_TAG('m','o','r','x')) || _has_blob (HB_TAG('k','e','r','x')))
+      printf ("Has AAT layout\n");
+    if (_has_blob (HB_TAG('S','i','l','f')))
+      printf ("Has Graphite layout\n");
+    if (_has_blob (HB_TAG('k','e','r','n')))
+      printf ("Has legacy kerning\n");
+
+    if (_has_blob (HB_TAG('E','B','D','T')))
+      printf ("Has monochrome bitmaps\n");
+
+    if (_has_blob (HB_TAG('C','B','D','T')) || _has_blob (HB_TAG('s','b','i','x')))
+      printf ("Has color bitmaps\n");
+    if (_has_blob (HB_TAG('S','V','G',' ')))
+      printf ("Has color SVGs\n");
+    if (_has_blob (HB_TAG('C','O','L','R')))
+      printf ("Has color paintings\n");
+
+    if (_has_blob (HB_TAG('f','v','a','r')))  printf ("Has variations\n");
+  }
 
   void _show_upem ()
   {
