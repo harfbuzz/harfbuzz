@@ -508,7 +508,7 @@ helper_cairo_create_context (double w, double h,
 
   unsigned int fr, fg, fb, fa, br, bg, bb, ba;
   const char *color;
-  br = bg = bb = 0; ba = 255;
+  br = bg = bb = ba = 255;
   color = view_opts->back ? view_opts->back : DEFAULT_BACK;
   sscanf (color + (*color=='#'), "%2x%2x%2x%2x", &br, &bg, &bb, &ba);
   fr = fg = fb = 0; fa = 255;
