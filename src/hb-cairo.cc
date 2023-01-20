@@ -346,7 +346,10 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
                                                    &red, &green, &blue, &alpha))
   {
     cairo_font_options_destroy (options);
-    *color = HB_COLOR (255 * blue, 255 * green, 255 * red, 255 * alpha);
+    *color = HB_COLOR (round (255 * blue),
+		       round (255 * green),
+		       round (255 * red),
+		       round (255 * alpha));
 
     if (likely (color_cache && *color != HB_DEADBEEF))
       color_cache->set (color_index, *color);
