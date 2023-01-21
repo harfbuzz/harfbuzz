@@ -326,7 +326,7 @@ typedef struct {
 static paint_test_t paint_tests[] = {
   /* COLRv1 */
   { NOTO_HAND,   0.,  10,   0, "hand-10" },
-  { NOTO_HAND,   0.2, 10,   0, "hand-10.2" },
+  { NOTO_HAND,   0.2f,10,   0, "hand-10.2" },
 
   { TEST_GLYPHS, 0,    6,   0, "test-6" },   // linear gradient
   { TEST_GLYPHS, 0,   10,   0, "test-10" },  // sweep gradient
@@ -351,8 +351,8 @@ static paint_test_t paint_tests[] = {
   { BAD_COLRV1,  0,  154,   0, "bad-154" },  // recursion
 
   /* COLRv0 */
-  { ROCHER_ABC, 0.3,  1,   0, "rocher-1" },
-  { ROCHER_ABC, 0.3,  2,   2, "rocher-2" },
+  { ROCHER_ABC, 0.3f, 1,   0, "rocher-1" },
+  { ROCHER_ABC, 0.3f, 2,   2, "rocher-2" },
   { ROCHER_ABC, 0,    3, 200, "rocher-3" },
 };
 
