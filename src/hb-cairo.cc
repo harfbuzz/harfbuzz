@@ -306,6 +306,68 @@ hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   _hb_cairo_paint_sweep_gradient (cr, color_line, x0, y0, start_angle, end_angle);
 }
 
+static const cairo_user_data_key_t color_cache_key = {0};
+
+static void
+_hb_cairo_destroy_map (void *p)
+{
+  hb_map_destroy ((hb_map_t *) p);
+}
+
+static hb_bool_t
+hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
+                                     void *paint_data,
+                                     unsigned int color_index,
+                                     hb_color_t *color,
+                                     void *user_data HB_UNUSED)
+{
+#ifdef HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR
+  cairo_t *cr = (cairo_t *) paint_data;
+
+#define HB_DEADBEEF HB_TAG(0xDE,0xAD,0xBE,0xEF)
+
+  hb_map_t *color_cache = (hb_map_t *) cairo_get_user_data (cr, &color_cache_key);
+  hb_codepoint_t *c;
+  if (likely (color_cache && color_cache->has (color_index, &c)))
+  {
+    if (*c == HB_DEADBEEF)
+      return false;
+    *color = *c;
+    return true;
+  }
+
+  cairo_font_options_t *options;
+  double red, green, blue, alpha;
+
+  options = cairo_font_options_create ();
+  cairo_get_font_options (cr, options);
+  if (CAIRO_STATUS_SUCCESS ==
+      cairo_font_options_get_custom_palette_color (options, color_index,
+                                                   &red, &green, &blue, &alpha))
+  {
+    cairo_font_options_destroy (options);
+    *color = HB_COLOR (round (255 * blue),
+		       round (255 * green),
+		       round (255 * red),
+		       round (255 * alpha));
+
+    if (likely (color_cache && *color != HB_DEADBEEF))
+      color_cache->set (color_index, *color);
+
+    return true;
+  }
+  cairo_font_options_destroy (options);
+
+  if (likely (color_cache))
+    color_cache->set (color_index, HB_DEADBEEF);
+
+#undef HB_DEADBEEF
+
+#endif
+
+  return false;
+}
+
 static inline void free_static_cairo_paint_funcs ();
 
 static struct hb_cairo_paint_funcs_lazy_loader_t : hb_paint_funcs_lazy_loader_t<hb_cairo_paint_funcs_lazy_loader_t>
@@ -326,6 +388,7 @@ static struct hb_cairo_paint_funcs_lazy_loader_t : hb_paint_funcs_lazy_loader_t<
     hb_paint_funcs_set_linear_gradient_func (funcs, hb_cairo_paint_linear_gradient, nullptr, nullptr);
     hb_paint_funcs_set_radial_gradient_func (funcs, hb_cairo_paint_radial_gradient, nullptr, nullptr);
     hb_paint_funcs_set_sweep_gradient_func (funcs, hb_cairo_paint_sweep_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_custom_palette_color_func (funcs, hb_cairo_paint_custom_palette_color, nullptr, nullptr);
 
     hb_paint_funcs_make_immutable (funcs);
 
@@ -346,12 +409,6 @@ hb_cairo_paint_get_funcs ()
 {
   return static_cairo_paint_funcs.get_unconst ();
 }
-
-static cairo_status_t
-hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
-			     unsigned long         glyph,
-			     cairo_t              *cr,
-			     cairo_text_extents_t *extents);
 #endif
 
 static const cairo_user_data_key_t hb_cairo_face_user_data_key = {0};
@@ -439,6 +496,11 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
   extents->descent = (double) -hb_extents.descender / y_scale;
   extents->height  = extents->ascent + extents->descent;
 
+#ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
+  hb_map_t *color_cache = hb_map_create ();
+  cairo_scaled_font_set_user_data (scaled_font, &color_cache_key, color_cache, _hb_cairo_destroy_map);
+#endif
+
   return CAIRO_STATUS_SUCCESS;
 }
 
@@ -515,18 +577,20 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
 
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
   cairo_pattern_t *pattern = cairo_get_source (cr);
-  if (cairo_pattern_get_type (pattern) == CAIRO_PATTERN_TYPE_SOLID)
-  {
-    double r, g, b, a;
-    cairo_pattern_get_rgba (pattern, &r, &g, &b, &a);
-    color = HB_COLOR ((int)(b * 255.), (int)(g * 255.), (int) (r * 255.), (int)(a * 255.));
-  }
+  double r, g, b, a;
+  if (cairo_pattern_get_rgba (pattern, &r, &g, &b, &a) == CAIRO_STATUS_SUCCESS)
+    color = HB_COLOR (round (b * 255.), round (g * 255.), round (r * 255.), round (a * 255.));
 
   hb_position_t x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
+  void *color_cache = cairo_scaled_font_get_user_data (scaled_font, &color_cache_key);
+  cairo_set_user_data (cr, &color_cache_key, color_cache, nullptr);
+
   hb_font_paint_glyph (font, glyph, hb_cairo_paint_get_funcs (), cr, palette, color);
+
+  cairo_set_user_data (cr, &color_cache_key, nullptr, nullptr);
 
   return CAIRO_STATUS_SUCCESS;
 }

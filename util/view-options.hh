@@ -39,6 +39,7 @@ struct view_options_t
   {
     g_free (fore);
     g_free (back);
+    g_free (custom_palette);
   }
 
   void add_options (option_parser_t *parser);
@@ -46,6 +47,8 @@ struct view_options_t
   hb_bool_t annotate = false;
   char *fore = nullptr;
   char *back = nullptr;
+  unsigned int palette = 0;
+  char *custom_palette = nullptr;
   double line_space = 0;
   bool have_font_extents = false;
   struct font_extents_t {
@@ -108,6 +111,8 @@ view_options_t::add_options (option_parser_t *parser)
     {"annotate",	0, 0, G_OPTION_ARG_NONE,	&this->annotate,		"Annotate output rendering",				nullptr},
     {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,			"Set background color (default: " DEFAULT_BACK ")",	"rrggbb/rrggbbaa"},
     {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,			"Set foreground color (default: " DEFAULT_FORE ")",	"rrggbb/rrggbbaa"},
+    {"font-palette",    0, 0, G_OPTION_ARG_INT,         &this->palette,                 "Set font palette (default: 0)",                "index"},
+    {"custom-palette",  0, 0, G_OPTION_ARG_STRING,      &this->custom_palette,          "Custom palette",                               "comma-separated colors"},
     {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&this->line_space,		"Set space between lines (default: 0)",			"units"},
     {"font-extents",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_extents,	"Set font ascent/descent/line-gap (default: auto)","one to three numbers"},
     {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: " G_STRINGIFY(DEFAULT_MARGIN) ")","one to four numbers"},

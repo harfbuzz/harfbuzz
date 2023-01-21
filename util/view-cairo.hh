@@ -131,7 +131,8 @@ view_cairo_t::render (const font_options_t *font_opts)
       w =  MAX (w, x_sign * x_advance);
   }
 
-  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts);
+  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts,
+								      this);
 
   /* See if font needs color. */
   cairo_content_t content = CAIRO_CONTENT_ALPHA;
