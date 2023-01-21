@@ -73,16 +73,12 @@ helper_cairo_use_hb_draw (const font_options_t *font_opts)
 {
   const char *env = getenv ("HB_DRAW");
   if (!env)
-#if 1
-    /* Following branch disabled because we prefer our
-     * OpenType extensions working, ie going through hb-draw,
-     * over avoiding the obscure cairo bug. */
-    return true;
-#else
     /* Older cairo had a bug in rendering COLRv0 fonts in
-     * right-to-left direction. */
+     * right-to-left direction as well as clipping issue
+     * with user-fonts.
+     *
+     * https://github.com/harfbuzz/harfbuzz/issues/4051 */
     return cairo_version () >= CAIRO_VERSION_ENCODE (1, 17, 5);
-#endif
 
   return atoi (env);
 }
