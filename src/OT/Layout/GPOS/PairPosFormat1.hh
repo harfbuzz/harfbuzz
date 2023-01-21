@@ -43,7 +43,7 @@ struct PairPosFormat1_3
     {
       valueFormat,
       len1,
-      Types::HBGlyphID::static_size + HBUINT16::static_size * (len1 + len2)
+      PairSet::get_size (len1, len2)
     };
 
     return_trace (coverage.sanitize (c, this) && pairSet.sanitize (c, this, &closure));
