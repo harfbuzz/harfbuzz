@@ -43,7 +43,7 @@ struct PairPosFormat1_3
     {
       valueFormat,
       len1,
-      1 + len1 + len2
+      Types::HBGlyphID::static_size + HBUINT16::static_size * (len1 + len2)
     };
 
     return_trace (coverage.sanitize (c, this) && pairSet.sanitize (c, this, &closure));
@@ -179,7 +179,7 @@ struct PairPosFormat1_3
   {
     unsigned len1 = valueFormat[0].get_len ();
     unsigned len2 = valueFormat[1].get_len ();
-    unsigned record_size = HBUINT16::static_size + Value::static_size * (len1 + len2);
+    unsigned record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
 
     unsigned format1 = 0;
     unsigned format2 = 0;

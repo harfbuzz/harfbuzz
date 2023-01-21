@@ -49,7 +49,7 @@ struct PairPosFormat2_4
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
-    unsigned int stride = len1 + len2;
+    unsigned int stride = HBUINT16::static_size * (len1 + len2);
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
     return_trace (c->check_range ((const void *) values,

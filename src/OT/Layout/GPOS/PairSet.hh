@@ -28,7 +28,7 @@ struct PairSet
   {
     const ValueFormat *valueFormats;
     unsigned int len1; /* valueFormats[0].get_len() */
-    unsigned int stride; /* 1 + len1 + len2 */
+    unsigned int stride; /* bytes */
   };
 
   bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) const
@@ -37,7 +37,6 @@ struct PairSet
     if (!(c->check_struct (this)
        && c->check_range (&firstPairValueRecord,
                           len,
-                          HBUINT16::static_size,
                           closure->stride))) return_trace (false);
 
     unsigned int count = len;
@@ -51,7 +50,7 @@ struct PairSet
   {
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
-    unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
+    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
 
     const PairValueRecord *record = &firstPairValueRecord;
     unsigned int count = len;
@@ -69,7 +68,7 @@ struct PairSet
   {
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
-    unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
+    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
 
     const PairValueRecord *record = &firstPairValueRecord;
     c->input->add_array (&record->secondGlyph, len, record_size);
@@ -80,7 +79,7 @@ struct PairSet
   {
     unsigned len1 = valueFormats[0].get_len ();
     unsigned len2 = valueFormats[1].get_len ();
-    unsigned record_size = HBUINT16::static_size * (1 + len1 + len2);
+    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
 
     const PairValueRecord *record = &firstPairValueRecord;
     unsigned count = len;
@@ -101,7 +100,7 @@ struct PairSet
     hb_buffer_t *buffer = c->buffer;
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
-    unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
+    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
 
     const PairValueRecord *record = hb_bsearch (buffer->info[pos].codepoint,
                                                 &firstPairValueRecord,
@@ -168,7 +167,7 @@ struct PairSet
 
     unsigned len1 = valueFormats[0].get_len ();
     unsigned len2 = valueFormats[1].get_len ();
-    unsigned record_size = HBUINT16::static_size + Value::static_size * (len1 + len2);
+    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
 
     typename PairValueRecord::context_t context =
     {
