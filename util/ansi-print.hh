@@ -395,7 +395,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
       {
 	if (last_bg != bi.bg)
 	{
-	  char buf[] = "\e[40m";
+	  char buf[] = "\033[40m";
 	  buf[3] += bi.bg;
 	  write_func (closure, (unsigned char *) buf, 5);
 	  last_bg = bi.bg;
@@ -411,7 +411,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	{
 	  if (last_bg != bi.fg || last_fg != bi.bg)
 	  {
-	    char buf[] = "\e[30;40m";
+	    char buf[] = "\033[30;40m";
 	    buf[3] += bi.bg;
 	    buf[6] += bi.fg;
 	    write_func (closure, (unsigned char *) buf, 8);
@@ -423,7 +423,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	{
 	  if (last_bg != bi.bg || last_fg != bi.fg)
 	  {
-	    char buf[] = "\e[40;30m";
+	    char buf[] = "\033[40;30m";
 	    buf[3] += bi.bg;
 	    buf[6] += bi.fg;
 	    write_func (closure, (unsigned char *) buf, 8);
@@ -434,7 +434,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	write_func (closure, (unsigned char *) c, strlen (c));
       }
     }
-    write_func (closure, (unsigned char *) "\e[0m\n", 5); /* Reset */
+    write_func (closure, (unsigned char *) "\033[0m\n", 5); /* Reset */
     last_bg = last_fg = -1;
   }
 }
