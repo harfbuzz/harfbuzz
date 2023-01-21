@@ -24,11 +24,15 @@ struct PairSet
   public:
   DEFINE_SIZE_MIN (2);
 
+  static unsigned get_size (unsigned len1, unsigned len2)
+  {
+    return Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
+  }
   static unsigned get_size (const ValueFormat valueFormats[2])
   {
     unsigned len1 = valueFormats[0].get_len ();
     unsigned len2 = valueFormats[1].get_len ();
-    return Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
+    return get_size (len1, len2);
   }
 
   struct sanitize_closure_t
@@ -101,7 +105,7 @@ struct PairSet
     hb_buffer_t *buffer = c->buffer;
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
-    unsigned record_size = get_size (valueFormats);
+    unsigned record_size = get_size (len1, len2);
 
     const PairValueRecord *record = hb_bsearch (buffer->info[pos].codepoint,
                                                 &firstPairValueRecord,
@@ -167,7 +171,8 @@ struct PairSet
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     unsigned len1 = valueFormats[0].get_len ();
-    unsigned record_size = get_size (valueFormats);
+    unsigned len2 = valueFormats[1].get_len ();
+    unsigned record_size = get_size (len1, len2);
 
     typename PairValueRecord::context_t context =
     {
