@@ -24,6 +24,13 @@ struct PairSet
   public:
   DEFINE_SIZE_MIN (2);
 
+  static unsigned get_size (const ValueFormat valueFormats[2])
+  {
+    unsigned len1 = valueFormats[0].get_len ();
+    unsigned len2 = valueFormats[1].get_len ();
+    return Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
+  }
+
   struct sanitize_closure_t
   {
     const ValueFormat *valueFormats;
@@ -48,9 +55,7 @@ struct PairSet
   bool intersects (const hb_set_t *glyphs,
                    const ValueFormat *valueFormats) const
   {
-    unsigned int len1 = valueFormats[0].get_len ();
-    unsigned int len2 = valueFormats[1].get_len ();
-    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
+    unsigned record_size = get_size (valueFormats);
 
     const PairValueRecord *record = &firstPairValueRecord;
     unsigned int count = len;
@@ -66,9 +71,7 @@ struct PairSet
   void collect_glyphs (hb_collect_glyphs_context_t *c,
                        const ValueFormat *valueFormats) const
   {
-    unsigned int len1 = valueFormats[0].get_len ();
-    unsigned int len2 = valueFormats[1].get_len ();
-    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
+    unsigned record_size = get_size (valueFormats);
 
     const PairValueRecord *record = &firstPairValueRecord;
     c->input->add_array (&record->secondGlyph, len, record_size);
@@ -77,9 +80,7 @@ struct PairSet
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
                                   const ValueFormat *valueFormats) const
   {
-    unsigned len1 = valueFormats[0].get_len ();
-    unsigned len2 = valueFormats[1].get_len ();
-    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
+    unsigned record_size = get_size (valueFormats);
 
     const PairValueRecord *record = &firstPairValueRecord;
     unsigned count = len;
@@ -100,7 +101,7 @@ struct PairSet
     hb_buffer_t *buffer = c->buffer;
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
-    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
+    unsigned record_size = get_size (valueFormats);
 
     const PairValueRecord *record = hb_bsearch (buffer->info[pos].codepoint,
                                                 &firstPairValueRecord,
@@ -166,8 +167,7 @@ struct PairSet
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     unsigned len1 = valueFormats[0].get_len ();
-    unsigned len2 = valueFormats[1].get_len ();
-    unsigned int record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
+    unsigned record_size = get_size (valueFormats);
 
     typename PairValueRecord::context_t context =
     {

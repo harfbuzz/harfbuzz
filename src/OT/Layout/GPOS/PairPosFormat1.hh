@@ -177,9 +177,7 @@ struct PairPosFormat1_3
 
   hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_set_t& glyphset) const
   {
-    unsigned len1 = valueFormat[0].get_len ();
-    unsigned len2 = valueFormat[1].get_len ();
-    unsigned record_size = Types::HBGlyphID::static_size + Value::static_size * (len1 + len2);
+    unsigned record_size = PairSet::get_size (valueFormat);
 
     unsigned format1 = 0;
     unsigned format2 = 0;
