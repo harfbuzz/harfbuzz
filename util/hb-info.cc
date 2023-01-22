@@ -31,6 +31,27 @@
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
 const unsigned SUBPIXEL_BITS = 0;
 
+static void
+_hb_ot_name_get_utf8 (hb_face_t       *face,
+		      hb_ot_name_id_t  name_id,
+		      hb_language_t    language,
+		      unsigned int    *text_size /* IN/OUT */,
+		      char            *text      /* OUT */)
+{
+  static hb_language_t en = hb_language_from_string ("en", -1);
+
+  unsigned len = *text_size;
+  if (!hb_ot_name_get_utf8 (face, name_id,
+			    language,
+			    &len, text))
+  {
+    len = *text_size;
+    hb_ot_name_get_utf8 (face, name_id,
+			 en,
+			 &len, text);
+  }
+  *text_size = len;
+}
 
 struct info_t
 {
@@ -267,9 +288,9 @@ struct info_t
 
     char name[16384];
     unsigned name_len = sizeof name;
-    hb_ot_name_get_utf8 (face, name_id,
-			 language,
-			 &name_len, name);
+    _hb_ot_name_get_utf8 (face, name_id,
+			  language,
+			  &name_len, name);
 
     printf ("%s\n", name);
   }
@@ -495,9 +516,9 @@ struct info_t
     {
       char name[16384];
       unsigned name_len = sizeof name;
-      hb_ot_name_get_utf8 (face, entries[i].name_id,
-			   language,
-			   &name_len, name);
+      _hb_ot_name_get_utf8 (face, entries[i].name_id,
+			    language,
+			    &name_len, name);
 
       printf ("%u	%s\n", entries[i].name_id, name);
     }
@@ -732,9 +753,9 @@ struct info_t
 	  char name[64];
 	  unsigned name_len = sizeof name;
 
-	  hb_ot_name_get_utf8 (face, label_id,
-			       language,
-			       &name_len, name);
+	  _hb_ot_name_get_utf8 (face, label_id,
+				language,
+				&name_len, name);
 
 	  printf ("	");
 	  if (verbose) printf ("Feature: ");
@@ -850,9 +871,9 @@ struct info_t
 	  char name[64];
 	  unsigned name_len = sizeof name;
 
-	  hb_ot_name_get_utf8 (face, label_id,
-			       language,
-			       &name_len, name);
+	  _hb_ot_name_get_utf8 (face, label_id,
+				language,
+				&name_len, name);
 
 	  printf ("	");
 	  if (verbose) printf ("Feature: ");
@@ -907,9 +928,9 @@ struct info_t
       char name[64];
       unsigned name_len = sizeof name;
 
-      hb_ot_name_get_utf8 (face, axis.name_id,
-			   language,
-			   &name_len, name);
+      _hb_ot_name_get_utf8 (face, axis.name_id,
+			    language,
+			    &name_len, name);
 
       printf ("%c%c%c%c%s	%g	%g	%g	%s\n",
 	      HB_UNTAG (axis.tag),
@@ -940,9 +961,9 @@ struct info_t
 	unsigned name_len = sizeof name;
 
 	hb_ot_name_id_t name_id = hb_ot_var_named_instance_get_subfamily_name_id (face, i);
-	hb_ot_name_get_utf8 (face, name_id,
-			     language,
-			     &name_len, name);
+	_hb_ot_name_get_utf8 (face, name_id,
+			      language,
+			      &name_len, name);
 
 	unsigned coords_count = hb_ot_var_named_instance_get_design_coords (face, i, nullptr, nullptr);
 	float* coords;
@@ -984,9 +1005,9 @@ struct info_t
 	char name[64];
 	unsigned name_len = sizeof name;
 
-	hb_ot_name_get_utf8 (face, name_id,
-			     language,
-			     &name_len, name);
+	_hb_ot_name_get_utf8 (face, name_id,
+			      language,
+			      &name_len, name);
         const char *type = "";
 	if (flags)
 	{
@@ -1019,9 +1040,9 @@ struct info_t
 
 	char name[64];
 	unsigned name_len = sizeof name;
-	hb_ot_name_get_utf8 (face, name_id,
-			     language,
-			     &name_len, name);
+	_hb_ot_name_get_utf8 (face, name_id,
+			      language,
+			      &name_len, name);
 
 	printf ("%u	%s\n", i, name);
       }
