@@ -116,7 +116,7 @@ struct info_t
 		       "Query options:",
 		       "Options to query the font instance",
 		       this,
-		       false);
+		       true);
   }
 
   protected:
@@ -171,13 +171,9 @@ struct info_t
 
   public:
 
-  template <typename app_t>
-  void operator () (app_t *app)
+  void
+  post_parse (GError **error)
   {
-    blob = hb_blob_reference (((font_options_t *) app)->blob);
-    face = hb_face_reference (((font_options_t *) app)->face);
-    font = hb_font_reference (((font_options_t *) app)->font);
-    verbose = !app->quiet;
     if (direction_str)
       direction = hb_direction_from_string (direction_str, -1);
     if (script_str)
@@ -185,6 +181,15 @@ struct info_t
     language = hb_language_get_default ();
     if (language_str)
       language = hb_language_from_string (language_str, -1);
+  }
+
+  template <typename app_t>
+  void operator () (app_t *app)
+  {
+    blob = hb_blob_reference (((font_options_t *) app)->blob);
+    face = hb_face_reference (((font_options_t *) app)->face);
+    font = hb_font_reference (((font_options_t *) app)->font);
+    verbose = !app->quiet;
 
     if (all)
     {
