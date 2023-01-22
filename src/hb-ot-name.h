@@ -33,6 +33,13 @@
 
 HB_BEGIN_DECLS
 
+/**
+ * hb_ot_name_id_predefined_t:
+ *
+ * An enum type representing the pre-defined name IDs.
+ *
+ * Since: REPLACEME
+ **/
 
 /**
  * hb_ot_name_id_t:

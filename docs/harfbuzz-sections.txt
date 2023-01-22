@@ -598,6 +598,7 @@ hb_ot_name_get_utf16
 hb_ot_name_get_utf32
 hb_ot_name_get_utf8
 hb_ot_name_id_t
+hb_ot_name_id_predefined_t
 hb_ot_name_entry_t
 </SECTION>
 
