@@ -99,6 +99,9 @@ struct info_t
 
       {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long information",	nullptr},
       {"list-names",	0, 0, G_OPTION_ARG_NONE,	&this->list_names,		"List names",			nullptr},
+#ifdef HB_HAS_GOBJECT
+      {"list-metrics",	0, 0, G_OPTION_ARG_NONE,	&this->list_metrics,		"List metrics",			nullptr},
+#endif
       {"list-tables",	'l', 0, G_OPTION_ARG_NONE,	&this->list_tables,		"List tables",			nullptr},
       {"list-unicodes",	0, 0, G_OPTION_ARG_NONE,	&this->list_unicodes,		"List characters",		nullptr},
       {"list-glyphs",	0, 0, G_OPTION_ARG_NONE,	&this->list_glyphs,		"List glyphs",			nullptr},
@@ -159,6 +162,9 @@ struct info_t
 
   hb_bool_t list_all = false;
   hb_bool_t list_names = false;
+#ifdef HB_HAS_GOBJECT
+  hb_bool_t list_metrics = false;
+#endif
   hb_bool_t list_tables = false;
   hb_bool_t list_unicodes = false;
   hb_bool_t list_glyphs = false;
@@ -219,6 +225,9 @@ struct info_t
     if (list_all)
     {
       list_names =
+#ifdef HB_HAS_GOBJECT
+      list_metrics =
+#endif
       list_tables =
       list_unicodes =
       list_glyphs =
@@ -250,6 +259,9 @@ struct info_t
     if (get_table)	  _get_table ();
 
     if (list_names)	  _list_names ();
+#ifdef HB_HAS_GOBJECT
+    if (list_metrics)	  _list_metrics ();
+#endif
     if (list_tables)	  _list_tables ();
     if (list_unicodes)	  _list_unicodes ();
     if (list_glyphs)	  _list_glyphs ();
@@ -512,7 +524,7 @@ struct info_t
     {
       separator ();
       printf ("Name information:\n\n");
-      printf ("Id				Text\n------------------------------------\n");
+      printf ("Id: Name			Text\n------------------------------------\n");
     }
 
 #ifdef HB_HAS_GOBJECT
@@ -540,6 +552,31 @@ struct info_t
 	printf ("%u	%s\n", entries[i].name_id, name);
     }
   }
+
+#ifdef HB_HAS_GOBJECT
+  void _list_metrics ()
+  {
+    if (verbose)
+    {
+      separator ();
+      printf ("Metric information:\n\n");
+      printf ("Tag:  Name				Value\n---------------------------------------------\n");
+    }
+
+    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref ((GType) HB_GOBJECT_TYPE_OT_METRICS_TAG);
+
+    unsigned count = enum_class->n_values;
+    const auto *entries = enum_class->values;
+    for (unsigned i = 0; i < count; i++)
+    {
+	hb_position_t v;
+	if (hb_ot_metrics_get_position (font,
+					(hb_ot_metrics_tag_t) entries[i].value,
+					&v))
+	  printf ("%c%c%c%c: %-33s	%d\n", HB_UNTAG(entries[i].value), entries[i].value_nick, v);
+    }
+  }
+#endif
 
   void _list_tables ()
   {
