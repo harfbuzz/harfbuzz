@@ -565,15 +565,32 @@ struct info_t
 
     GEnumClass *enum_class = (GEnumClass *) g_type_class_ref ((GType) HB_GOBJECT_TYPE_OT_METRICS_TAG);
 
+    bool any_fallback = false;
+
     unsigned count = enum_class->n_values;
     const auto *entries = enum_class->values;
     for (unsigned i = 0; i < count; i++)
     {
+	bool fallback = false;
 	hb_position_t v;
-	if (hb_ot_metrics_get_position (font,
+	if (!hb_ot_metrics_get_position (font,
 					(hb_ot_metrics_tag_t) entries[i].value,
 					&v))
-	  printf ("%c%c%c%c: %-33s	%d\n", HB_UNTAG(entries[i].value), entries[i].value_nick, v);
+	{
+	  hb_ot_metrics_get_position_with_fallback (font,
+						    (hb_ot_metrics_tag_t) entries[i].value,
+						    &v);
+	  any_fallback = fallback = true;
+	}
+	printf ("%c%c%c%c: %-33s	%d", HB_UNTAG(entries[i].value), entries[i].value_nick, v);
+	if (fallback)
+	  printf ("	*");
+	printf ("\n");
+    }
+
+    if (verbose && any_fallback)
+    {
+      printf ("\n[*] Fallback value\n");
     }
   }
 #endif
