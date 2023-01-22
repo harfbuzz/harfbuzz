@@ -85,7 +85,7 @@ struct info_t
       {"show-all",	0, 0, G_OPTION_ARG_NONE,	&this->show_all,		"Show all short information (default)",	nullptr},
       {"show-face-count",0, 0, G_OPTION_ARG_NONE,	&this->show_face_count,		"Show face count",		nullptr},
       {"show-family",	0, 0, G_OPTION_ARG_NONE,	&this->show_family,		"Show family name",		nullptr},
-      {"show-style",	0, 0, G_OPTION_ARG_NONE,	&this->show_style,		"Show style name",		nullptr},
+      {"show-subfamily",0, 0, G_OPTION_ARG_NONE,	&this->show_subfamily,		"Show subfamily name",		nullptr},
       {"show-unique-name",0, 0, G_OPTION_ARG_NONE,	&this->show_unique_name,	"Show unique name",		nullptr},
       {"show-full-name",0, 0, G_OPTION_ARG_NONE,	&this->show_full_name,		"Show full name",		nullptr},
       {"show-postscript-name",0, 0, G_OPTION_ARG_NONE,	&this->show_postscript_name,	"Show Postscript name",		nullptr},
@@ -148,7 +148,7 @@ struct info_t
   hb_bool_t show_all = false;
   hb_bool_t show_face_count = false;
   hb_bool_t show_family = false;
-  hb_bool_t show_style = false;
+  hb_bool_t show_subfamily = false;
   hb_bool_t show_unique_name = false;
   hb_bool_t show_full_name = false;
   hb_bool_t show_postscript_name = false;
@@ -212,7 +212,7 @@ struct info_t
     {
       show_face_count =
       show_family =
-      show_style =
+      show_subfamily =
       show_unique_name =
       show_full_name =
       show_postscript_name =
@@ -246,7 +246,7 @@ struct info_t
 
     if (show_face_count)  _show_face_count ();
     if (show_family)	  _show_family ();
-    if (show_style)	  _show_style ();
+    if (show_subfamily)	  _show_subfamily ();
     if (show_unique_name) _show_unique_name ();
     if (show_full_name)	  _show_full_name ();
     if (show_postscript_name)_show_postscript_name ();
@@ -316,7 +316,7 @@ struct info_t
     printf ("%s\n", name);
   }
   void _show_family ()		{ _show_name ("Family", 1); }
-  void _show_style ()
+  void _show_subfamily ()
   {
     hb_ot_name_id_t name_id = 2;
 
