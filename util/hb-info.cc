@@ -105,6 +105,7 @@ struct info_t
       {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long information",	nullptr},
       {"list-names",	0, 0, G_OPTION_ARG_NONE,	&this->list_names,		"List names",			nullptr},
 #ifdef HB_HAS_GOBJECT
+      {"list-style",	0, 0, G_OPTION_ARG_NONE,	&this->list_style,		"List style",			nullptr},
       {"list-metrics",	0, 0, G_OPTION_ARG_NONE,	&this->list_metrics,		"List metrics",			nullptr},
 #endif
       {"list-tables",	'l', 0, G_OPTION_ARG_NONE,	&this->list_tables,		"List tables",			nullptr},
@@ -169,6 +170,7 @@ struct info_t
   hb_bool_t list_all = false;
   hb_bool_t list_names = false;
 #ifdef HB_HAS_GOBJECT
+  hb_bool_t list_style = false;
   hb_bool_t list_metrics = false;
 #endif
   hb_bool_t list_tables = false;
@@ -232,6 +234,7 @@ struct info_t
     {
       list_names =
 #ifdef HB_HAS_GOBJECT
+      list_style =
       list_metrics =
 #endif
       list_tables =
@@ -267,6 +270,7 @@ struct info_t
 
     if (list_names)	  _list_names ();
 #ifdef HB_HAS_GOBJECT
+    if (list_style)	  _list_style ();
     if (list_metrics)	  _list_metrics ();
 #endif
     if (list_tables)	  _list_tables ();
@@ -575,12 +579,35 @@ struct info_t
   }
 
 #ifdef HB_HAS_GOBJECT
+  void _list_style ()
+  {
+    if (verbose)
+    {
+      separator ();
+      printf ("Style information:\n\n");
+      printf ("Tag:  Name				Value\n---------------------------------------------\n");
+    }
+
+    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref ((GType) HB_GOBJECT_TYPE_STYLE_TAG);
+
+    unsigned count = enum_class->n_values;
+    const auto *entries = enum_class->values;
+    for (unsigned i = 0; i < count; i++)
+    {
+	float v = hb_style_get_value (font, (hb_style_tag_t) entries[i].value);
+	printf ("%c%c%c%c", HB_UNTAG(entries[i].value));
+	if (verbose)
+	  printf (": %-33s", entries[i].value_nick);
+	printf ("	%g\n", (double) v);
+    }
+  }
+
   void _list_metrics ()
   {
     if (verbose)
     {
       separator ();
-      printf ("Metric information:\n\n");
+      printf ("Metrics information:\n\n");
       printf ("Tag:  Name				Value\n---------------------------------------------\n");
     }
 
