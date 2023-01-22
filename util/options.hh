@@ -49,9 +49,6 @@
 #include <hb-features.h>
 #include <hb.h>
 #include <hb-ot.h>
-#ifdef HB_HAS_GOBJECT
-#include <hb-gobject.h>
-#endif
 
 #include <glib.h>
 #include <glib/gprintf.h>

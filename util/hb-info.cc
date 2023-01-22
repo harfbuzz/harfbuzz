@@ -28,6 +28,10 @@
 #include "batch.hh"
 #include "font-options.hh"
 
+#ifdef HB_HAS_GOBJECT
+#include <hb-gobject.h>
+#endif
+
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
 const unsigned SUBPIXEL_BITS = 0;
 
