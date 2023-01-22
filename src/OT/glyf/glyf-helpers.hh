@@ -44,6 +44,13 @@ _add_head_and_set_loca_version (hb_subset_plan_t *plan, bool use_short_loca)
 
   head *head_prime = (head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
   head_prime->indexToLocFormat = use_short_loca ? 0 : 1;
+  if (plan->normalized_coords)
+  {
+    head_prime->xMin = plan->head_maxp_info.xMin;
+    head_prime->xMax = plan->head_maxp_info.xMax;
+    head_prime->yMin = plan->head_maxp_info.yMin;
+    head_prime->yMax = plan->head_maxp_info.yMax;
+  }
   bool success = plan->add_table (HB_OT_TAG_head, head_prime_blob);
 
   hb_blob_destroy (head_prime_blob);

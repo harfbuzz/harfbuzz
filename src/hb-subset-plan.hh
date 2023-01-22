@@ -41,6 +41,30 @@ namespace OT {
 struct Feature;
 }
 
+struct head_maxp_info_t
+{
+  head_maxp_info_t ()
+      :xMin (0x7FFF), xMax (-0x7FFF), yMin (0x7FFF), yMax (-0x7FFF),
+      maxPoints (0), maxContours (0),
+      maxCompositePoints (0),
+      maxCompositeContours (0),
+      maxComponentElements (0),
+      maxComponentDepth (0) {}
+
+  int xMin;
+  int xMax;
+  int yMin;
+  int yMax;
+  unsigned maxPoints;
+  unsigned maxContours;
+  unsigned maxCompositePoints;
+  unsigned maxCompositeContours;
+  unsigned maxComponentElements;
+  unsigned maxComponentDepth;
+};
+
+typedef struct head_maxp_info_t head_maxp_info_t;
+
 struct hb_subset_plan_t
 {
   HB_INTERNAL hb_subset_plan_t (hb_face_t *,
@@ -163,6 +187,13 @@ struct hb_subset_plan_t
   mutable hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> hmtx_map;
   //vmtx metrics map: new gid->(advance, lsb)
   mutable hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> vmtx_map;
+  //boundsWidth map: new gid->boundsWidth, boundWidth=xMax - xMin
+  mutable hb_map_t bounds_width_map;
+  //boundsHeight map: new gid->boundsHeight, boundsHeight=yMax - yMin
+  mutable hb_map_t bounds_height_map;
+
+  //recalculated head/maxp table info after instancing
+  mutable head_maxp_info_t head_maxp_info;
 
 #ifdef HB_EXPERIMENTAL_API
   // name table overrides map: hb_ot_name_record_ids_t-> name string new value or

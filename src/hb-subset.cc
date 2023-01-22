@@ -413,7 +413,8 @@ _dependencies_satisfied (hb_subset_plan_t *plan, hb_tag_t tag,
   {
   case HB_OT_TAG_hmtx:
   case HB_OT_TAG_vmtx:
-    return plan->pinned_at_default || !pending_subset_tags.has (HB_OT_TAG_glyf);
+  case HB_OT_TAG_maxp:
+    return !plan->normalized_coords || !pending_subset_tags.has (HB_OT_TAG_glyf);
   default:
     return true;
   }
