@@ -335,7 +335,7 @@ struct info_t
     if (named_instance != HB_FONT_NO_VAR_NAMED_INSTANCE)
       name_id = hb_ot_var_named_instance_get_subfamily_name_id (face, named_instance);
 
-    _show_name ("Style", name_id);
+    _show_name ("Subfamily", name_id);
   }
   void _show_unique_name ()	{ _show_name ("Unique name", 3); }
   void _show_full_name ()	{ _show_name ("Full name", 4); }
