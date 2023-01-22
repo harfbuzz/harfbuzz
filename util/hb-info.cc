@@ -97,6 +97,7 @@ struct info_t
       {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Show extents",			nullptr},
 
       {"get-name",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_name,		"Get name",			"name id; eg. '13'"},
+      {"get-style",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_style,		"Get style",			"style tag; eg. 'wght'"},
       {"get-metric",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_metric,		"Get metric",			"metric tag; eg. 'hasc'"},
       {"get-baseline",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_baseline,		"Get baseline",			"baseline tag; eg. 'hang'"},
       {"get-table",	0, 0, G_OPTION_ARG_STRING,	&this->get_table,		"Get font table",		"table tag; eg. 'cmap'"},
@@ -160,6 +161,7 @@ struct info_t
   hb_bool_t show_extents = false;
 
   char **get_name = nullptr;
+  char **get_style = nullptr;
   char **get_metric = nullptr;
   char **get_baseline = nullptr;
   char *get_table = nullptr;
@@ -258,6 +260,7 @@ struct info_t
     if (show_extents)	  _show_extents ();
 
     if (get_name)	  _get_name ();
+    if (get_style)	  _get_style ();
     if (get_metric)	  _get_metric ();
     if (get_baseline)	  _get_baseline ();
     if (get_table)	  _get_table ();
@@ -437,6 +440,20 @@ struct info_t
     {
       hb_ot_name_id_t name_id = (hb_ot_name_id_t) atoi (*p);
       _show_name (*p, name_id);
+    }
+  }
+
+  void _get_style ()
+  {
+    for (char **p = get_style; *p; p++)
+    {
+      hb_style_tag_t tag = (hb_style_tag_t) hb_tag_from_string (*p, -1);
+
+      if (verbose)
+	printf ("Style %c%c%c%c: ", HB_UNTAG (tag));
+
+      float v = hb_style_get_value (font, tag);
+      printf ("%g\n", (double) v);
     }
   }
 
