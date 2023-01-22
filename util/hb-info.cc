@@ -74,6 +74,7 @@ struct info_t
       {"get-name",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_name,		"Get name",			"name id; eg. '13'"},
       {"get-metric",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_metric,		"Get metric",			"metric tag; eg. 'hasc'"},
       {"get-baseline",	0, 0, G_OPTION_ARG_STRING_ARRAY,&this->get_baseline,		"Get baseline",			"baseline tag; eg. 'hang'"},
+      {"get-table",	0, 0, G_OPTION_ARG_STRING,	&this->get_table,		"Get font table",		"table tag; eg. 'cmap'"},
 
       {"list-all",	0, 0, G_OPTION_ARG_NONE,	&this->list_all,		"List all long information",	nullptr},
       {"list-names",	0, 0, G_OPTION_ARG_NONE,	&this->list_names,		"List names",			nullptr},
@@ -86,8 +87,6 @@ struct info_t
       {"list-variations",0, 0, G_OPTION_ARG_NONE,	&this->list_variations,		"List variations",		nullptr},
 #endif
       {"list-palettes",	0, 0, G_OPTION_ARG_NONE,	&this->list_palettes,		"List color palettes",		nullptr},
-
-      {"dump-table",	0, 0, G_OPTION_ARG_STRING,	&this->dump_table,		"Dump font table",		"table tag; eg. 'cmap'"},
 
       {nullptr}
     };
@@ -135,6 +134,7 @@ struct info_t
   char **get_name = nullptr;
   char **get_metric = nullptr;
   char **get_baseline = nullptr;
+  char *get_table = nullptr;
 
   hb_bool_t list_all = false;
   hb_bool_t list_names = false;
@@ -147,8 +147,6 @@ struct info_t
   hb_bool_t list_variations = false;
 #endif
   hb_bool_t list_palettes = false;
-
-  char *dump_table = nullptr;
 
   public:
 
@@ -223,6 +221,7 @@ struct info_t
     if (get_name)	  _get_name ();
     if (get_metric)	  _get_metric ();
     if (get_baseline)	  _get_baseline ();
+    if (get_table)	  _get_table ();
 
     if (list_names)	  _list_names ();
     if (list_tables)	  _list_tables ();
@@ -234,8 +233,6 @@ struct info_t
     if (list_variations)  _list_variations ();
 #endif
     if (list_palettes)	  _list_palettes ();
-
-    if (dump_table)	  _dump_table ();
 
     hb_font_destroy (font);
     hb_face_destroy (face);
@@ -471,6 +468,16 @@ struct info_t
     {
       printf ("\n[*] Fallback value\n");
     }
+  }
+
+  void
+  _get_table ()
+  {
+    hb_blob_t *blob = hb_face_reference_table (face, hb_tag_from_string (get_table, -1));
+    unsigned count = 0;
+    const char *data = hb_blob_get_data (blob, &count);
+    fwrite (data, 1, count, stdout);
+    hb_blob_destroy (blob);
   }
 
   void _list_names ()
@@ -1019,17 +1026,6 @@ struct info_t
 	printf ("%u	%s\n", i, name);
       }
     }
-  }
-
-
-  void
-  _dump_table ()
-  {
-    hb_blob_t *blob = hb_face_reference_table (face, hb_tag_from_string (dump_table, -1));
-    unsigned count = 0;
-    const char *data = hb_blob_get_data (blob, &count);
-    fwrite (data, 1, count, stdout);
-    hb_blob_destroy (blob);
   }
 };
 
