@@ -473,7 +473,7 @@ struct info_t
 	printf ("Metric %c%c%c%c: ", HB_UNTAG (tag));
 
       if (hb_ot_metrics_get_position (font, tag, &position))
-	printf ("%d\n", position);
+	printf ("%d	\n", position);
       else
       {
 	hb_ot_metrics_get_position_with_fallback (font, tag, &position);
@@ -518,7 +518,7 @@ struct info_t
 	printf ("Baseline %c%c%c%c: ", HB_UNTAG (tag));
 
       if (hb_ot_layout_get_baseline (font, tag, direction, script_tag, language_tag, &position))
-	printf ("%d\n", position);
+	printf ("%d	\n", position);
       else
       {
 	hb_ot_layout_get_baseline_with_fallback (font, tag, direction, script_tag, language_tag, &position);
@@ -630,9 +630,13 @@ struct info_t
 						    &v);
 	  any_fallback = fallback = true;
 	}
-	printf ("%c%c%c%c: %-33s	%d", HB_UNTAG(entries[i].value), entries[i].value_nick, v);
+	printf ("%c%c%c%c", HB_UNTAG(entries[i].value));
+	if (verbose)
+	  printf (": %-33s", entries[i].value_nick);
+	printf ("	%d	", v);
+
 	if (fallback)
-	  printf ("	*");
+	  printf ("*");
 	printf ("\n");
     }
 
