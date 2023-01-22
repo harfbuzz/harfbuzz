@@ -254,6 +254,9 @@ hb-gobject-enums.%: hb-gobject-enums.%.tmpl $(HBHEADERS)
 		--template $^ | \
 	sed 's/_t_get_type/_get_type/g; s/_T (/ (/g' > "$@" \
 	|| ($(RM) "$@"; false)
+HB_HAS_GOBJECT_DEF = define HB_HAS_GOBJECT 1
+else
+HB_HAS_GOBJECT_DEF = undef HB_HAS_GOBJECT
 endif
 EXTRA_DIST += \
 	harfbuzz-gobject.pc.in \
@@ -275,6 +278,7 @@ hb-features.h: hb-features.h.in $(top_builddir)/config.status
 		-e 's/mesondefine HB_HAS_GDI/$(HB_HAS_GDI_DEF)/' \
 		-e 's/mesondefine HB_HAS_GRAPHITE/$(HB_HAS_GRAPHITE_DEF)/' \
 		-e 's/mesondefine HB_HAS_GLIB/$(HB_HAS_GLIB_DEF)/' \
+		-e 's/mesondefine HB_HAS_GOBJECT/$(HB_HAS_GOBJECT_DEF)/' \
 		-e 's/mesondefine HB_HAS_UNISCRIBE/$(HB_HAS_UNISCRIBE_DEF)/' \
 		-e 's/mesondefine HB_HAS_DIRECTWRITE/$(HB_HAS_DIRECTWRITE_DEF)/' \
 		-e 's/mesondefine HB_HAS_CORETEXT/$(HB_HAS_CORETEXT_DEF)/' \

@@ -71,6 +71,13 @@ HB_BEGIN_DECLS
 #mesondefine HB_HAS_GLIB
 
 /**
+ * HB_HAS_GOBJECT:
+ *
+ * Defined if Harfbuzz has been built with GObject support.
+ */
+#mesondefine HB_HAS_GOBJECT
+
+/**
  * HB_HAS_GRAPHITE:
  *
  * Defined if Harfbuzz has been built with Graphite support.

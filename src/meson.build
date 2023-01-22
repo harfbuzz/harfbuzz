@@ -438,6 +438,10 @@ if conf.get('HAVE_GLIB', 0) == 1
   hb_features.set('HB_HAS_GLIB', 1)
 endif
 
+if conf.get('HAVE_GOBJECT', 0) == 1
+  hb_features.set('HB_HAS_GOBJECT', 1)
+endif
+
 # We set those here to not include the sources below that are of no use to
 # GObject Introspection
 gir_sources = hb_sources + hb_gobject_sources
