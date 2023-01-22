@@ -1028,7 +1028,7 @@ struct info_t
           }
 	}
 
-	printf ("%u	%-*s   %s\n", i, (int)strlen ("Light"), type, name);
+	printf ("%u	%s	%s\n", i, type, name);
       }
     }
 
