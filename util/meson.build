@@ -44,8 +44,8 @@ if conf.get('HAVE_GLIB', 0) == 1
   hb_info = executable('hb-info', hb_info_sources,
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
-    dependencies: util_deps,
-    link_with: [libharfbuzz],
+    dependencies: [util_deps, gobject_dep],
+    link_with: [libharfbuzz, libharfbuzz_gobject],
     install: true,
   )
   meson.override_find_program('hb-info', hb_info)

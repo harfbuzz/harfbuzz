@@ -512,8 +512,12 @@ struct info_t
     {
       separator ();
       printf ("Name information:\n\n");
-      printf ("Id	Text\n------------\n");
+      printf ("Id				Text\n------------------------------------\n");
     }
+
+#ifdef HB_HAS_GOBJECT
+    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref ((GType) HB_GOBJECT_TYPE_OT_NAME_ID_PREDEFINED);
+#endif
 
     unsigned count;
     const auto *entries = hb_ot_name_list_names (face, &count);
@@ -525,7 +529,15 @@ struct info_t
 			    language,
 			    &name_len, name);
 
-      printf ("%u	%s\n", entries[i].name_id, name);
+#ifdef HB_HAS_GOBJECT
+      if (verbose)
+      {
+	GEnumValue *enum_value = g_enum_get_value (enum_class, entries[i].name_id);
+	printf ("%u: %-27s	%s\n", entries[i].name_id, enum_value ? enum_value->value_nick : "", name);
+      }
+      else
+#endif
+	printf ("%u	%s\n", entries[i].name_id, name);
     }
   }
 

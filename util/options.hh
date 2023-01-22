@@ -46,10 +46,16 @@
 #endif
 
 
+#include <hb-features.h>
 #include <hb.h>
 #include <hb-ot.h>
+#ifdef HB_HAS_GOBJECT
+#include <hb-gobject.h>
+#endif
+
 #include <glib.h>
 #include <glib/gprintf.h>
+
 
 
 static inline void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
