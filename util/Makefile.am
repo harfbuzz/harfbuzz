@@ -52,13 +52,17 @@ hb_shape_SOURCES = $(HB_SHAPE_sources)
 bin_PROGRAMS += hb-shape
 
 hb_info_SOURCES = $(HB_INFO_sources)
+#if HAVE_GOBJECT
+hb_info_LDADD = \
+	$(top_builddir)/src/libharfbuzz-gobject.la \
+	$(LDADD)
+#endif
 bin_PROGRAMS += hb-info
 
 hb_subset_SOURCES = $(HB_SUBSET_CLI_sources)
 hb_subset_LDADD = \
 	$(top_builddir)/src/libharfbuzz-subset.la \
 	$(LDADD)
-
 bin_PROGRAMS += hb-subset
 
 hb_ot_shape_closure_SOURCES = $(HB_OT_SHAPE_CLOSURE_sources)
