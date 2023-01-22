@@ -107,6 +107,7 @@ struct info_t
 #ifdef HB_HAS_GOBJECT
       {"list-style",	0, 0, G_OPTION_ARG_NONE,	&this->list_style,		"List style",			nullptr},
       {"list-metrics",	0, 0, G_OPTION_ARG_NONE,	&this->list_metrics,		"List metrics",			nullptr},
+      {"list-baselines",0, 0, G_OPTION_ARG_NONE,	&this->list_baselines,		"List baselines",		nullptr},
 #endif
       {"list-tables",	'l', 0, G_OPTION_ARG_NONE,	&this->list_tables,		"List tables",			nullptr},
       {"list-unicodes",	0, 0, G_OPTION_ARG_NONE,	&this->list_unicodes,		"List characters",		nullptr},
@@ -172,6 +173,7 @@ struct info_t
 #ifdef HB_HAS_GOBJECT
   hb_bool_t list_style = false;
   hb_bool_t list_metrics = false;
+  hb_bool_t list_baselines = false;
 #endif
   hb_bool_t list_tables = false;
   hb_bool_t list_unicodes = false;
@@ -236,6 +238,7 @@ struct info_t
 #ifdef HB_HAS_GOBJECT
       list_style =
       list_metrics =
+      list_baselines =
 #endif
       list_tables =
       list_unicodes =
@@ -272,6 +275,7 @@ struct info_t
 #ifdef HB_HAS_GOBJECT
     if (list_style)	  _list_style ();
     if (list_metrics)	  _list_metrics ();
+    if (list_baselines)	  _list_baselines ();
 #endif
     if (list_tables)	  _list_tables ();
     if (list_unicodes)	  _list_unicodes ();
@@ -490,7 +494,6 @@ struct info_t
 
   void _get_baseline ()
   {
-
     hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
     hb_tag_t language_tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
     unsigned script_count = HB_OT_MAX_TAGS_PER_SCRIPT;
@@ -507,6 +510,7 @@ struct info_t
       script_tag = hb_tag_from_string (ot_script_str, -1);
     if (ot_language_str)
       language_tag = hb_tag_from_string (ot_language_str, -1);
+
 
     bool fallback = false;
     for (char **p = get_baseline; *p; p++)
@@ -628,6 +632,68 @@ struct info_t
 	  hb_ot_metrics_get_position_with_fallback (font,
 						    (hb_ot_metrics_tag_t) entries[i].value,
 						    &v);
+	  any_fallback = fallback = true;
+	}
+	printf ("%c%c%c%c", HB_UNTAG(entries[i].value));
+	if (verbose)
+	  printf (": %-33s", entries[i].value_nick);
+	printf ("	%d	", v);
+
+	if (fallback)
+	  printf ("*");
+	printf ("\n");
+    }
+
+    if (verbose && any_fallback)
+    {
+      printf ("\n[*] Fallback value\n");
+    }
+  }
+
+  void _list_baselines ()
+  {
+    hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
+    hb_tag_t language_tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
+    unsigned script_count = HB_OT_MAX_TAGS_PER_SCRIPT;
+    unsigned language_count = HB_OT_MAX_TAGS_PER_LANGUAGE;
+
+    hb_ot_tags_from_script_and_language (script, language,
+					 &script_count, script_tags,
+					 &language_count, language_tags);
+
+    hb_tag_t script_tag = script_count ? script_tags[script_count - 1] : HB_TAG_NONE;
+    hb_tag_t language_tag = language_count ? language_tags[0] : HB_TAG_NONE;
+
+    if (ot_script_str)
+      script_tag = hb_tag_from_string (ot_script_str, -1);
+    if (ot_language_str)
+      language_tag = hb_tag_from_string (ot_language_str, -1);
+
+
+    if (verbose)
+    {
+      separator ();
+      printf ("Baselines information:\n\n");
+      printf ("Tag:  Name				Value\n---------------------------------------------\n");
+    }
+
+    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref ((GType) HB_GOBJECT_TYPE_OT_LAYOUT_BASELINE_TAG);
+
+    bool any_fallback = false;
+
+    unsigned count = enum_class->n_values;
+    const auto *entries = enum_class->values;
+    for (unsigned i = 0; i < count; i++)
+    {
+	bool fallback = false;
+	hb_position_t v;
+	if (!hb_ot_layout_get_baseline (font, (hb_ot_layout_baseline_tag_t) entries[i].value,
+					direction, script_tag, language_tag,
+					&v))
+	{
+	  hb_ot_layout_get_baseline_with_fallback (font, (hb_ot_layout_baseline_tag_t) entries[i].value,
+						   direction, script_tag, language_tag,
+						   &v);
 	  any_fallback = fallback = true;
 	}
 	printf ("%c%c%c%c", HB_UNTAG(entries[i].value));
