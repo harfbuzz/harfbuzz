@@ -112,7 +112,7 @@ struct hmtxvmtx
       }
 
       int min_lsb = 0x7FFF;
-      int min_training_sb = 0x7FFF;
+      int min_rsb = 0x7FFF;
       int max_extent = -0x7FFF;
       unsigned max_adv = 0;
       for (const auto _ : *mtx_map)
@@ -128,7 +128,7 @@ struct hmtxvmtx
           int rsb = adv - lsb - bound_width;
           int extent = lsb + bound_width;
           min_lsb = hb_min (min_lsb, lsb);
-          min_training_sb = hb_min (min_training_sb, rsb);
+          min_rsb = hb_min (min_rsb, rsb);
           max_extent = hb_max (max_extent, extent);
         }
       }
@@ -137,7 +137,7 @@ struct hmtxvmtx
       if (!bounds_map->is_empty ())
       {
         table->minLeadingBearing = min_lsb;
-        table->minTrailingBearing = min_training_sb;
+        table->minTrailingBearing = min_rsb;
         table->maxExtent = max_extent;
       }
     }
