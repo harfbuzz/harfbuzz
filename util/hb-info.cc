@@ -57,10 +57,14 @@ _hb_ot_name_get_utf8 (hb_face_t       *face,
   *text_size = len;
 }
 
-struct info_t
+struct info_t :
+       option_parser_t,
+       font_options_t
 {
-  void add_options (option_parser_t *parser)
+  void add_options ()
   {
+    font_options_t::add_options (this);
+
     GOptionEntry misc_entries[] =
     {
       {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction_str,		"Set direction (default: ltr)",		"ltr/rtl/ttb/btt"},
@@ -71,12 +75,12 @@ struct info_t
 
       {nullptr}
     };
-    parser->add_group (misc_entries,
-		       "misc",
-		       "Miscellaneaous options:",
-		       "Miscellaneaous options affecting queries",
-		       this,
-		       false /* We add below. */);
+    add_group (misc_entries,
+	       "misc",
+	       "Miscellaneaous options:",
+	       "Miscellaneaous options affecting queries",
+	       this,
+	       false /* We add below. */);
 
     GOptionEntry query_entries[] =
     {
@@ -121,18 +125,46 @@ struct info_t
 
       {nullptr}
     };
-    parser->add_group (query_entries,
-		       "query",
-		       "Query options:",
-		       "Options to query the font instance",
-		       this,
-		       true);
+    add_group (query_entries,
+	       "query",
+	       "Query options:",
+	       "Options to query the font instance",
+	       this,
+	       true);
+
+    GOptionEntry entries[] =
+    {
+      {"quiet",		'q', G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->verbose,	"Generate machine-readable output",	nullptr},
+      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
+				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE]"},
+      {nullptr}
+    };
+    add_main_group (entries, this);
+
+    option_parser_t::add_options ();
   }
 
+  static gboolean
+  collect_rest (const char *name G_GNUC_UNUSED,
+		const char *arg,
+		gpointer    data,
+		GError    **error)
+  {
+    info_t *thiz = (info_t *) data;
+
+    if (!thiz->font_file)
+    {
+      thiz->font_file = g_strdup (arg);
+      return true;
+    }
+
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		 "Too many arguments on the command line");
+    return false;
+  }
+
+
   protected:
-  hb_blob_t *blob = nullptr;
-  hb_face_t *face = nullptr;
-  hb_font_t *font = nullptr;
 
   hb_bool_t verbose = true;
   hb_bool_t first_item = true;
@@ -199,13 +231,15 @@ struct info_t
       language = hb_language_from_string (language_str, -1);
   }
 
-  template <typename app_t>
-  void operator () (app_t *app)
+  int
+  operator () (int argc, char **argv)
   {
-    blob = hb_blob_reference (((font_options_t *) app)->blob);
-    face = hb_face_reference (((font_options_t *) app)->face);
-    font = hb_font_reference (((font_options_t *) app)->font);
-    verbose = !app->quiet;
+    add_options ();
+
+    if (argc == 2)
+      show_all = true;
+
+    parse (&argc, &argv);
 
     if (all)
     {
@@ -287,9 +321,7 @@ struct info_t
 #endif
     if (list_palettes)	  _list_palettes ();
 
-    hb_font_destroy (font);
-    hb_face_destroy (face);
-    hb_blob_destroy (blob);
+    return 0;
   }
 
   protected:
@@ -1260,53 +1292,10 @@ struct main_font_t :
 
     return 0;
   }
-
-  protected:
-
-  void add_options ()
-  {
-    font_options_type::add_options (this);
-    consumer_t::add_options (this);
-
-    GOptionEntry entries[] =
-    {
-      {"quiet",		'q', 0, G_OPTION_ARG_NONE,	&this->quiet,			"Generate machine-readable output",	nullptr},
-      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
-				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE]"},
-      {nullptr}
-    };
-    add_main_group (entries, this);
-    option_parser_t::add_options ();
-  }
-
-  private:
-
-  static gboolean
-  collect_rest (const char *name G_GNUC_UNUSED,
-		const char *arg,
-		gpointer    data,
-		GError    **error)
-  {
-    main_font_t *thiz = (main_font_t *) data;
-
-    if (!thiz->font_file)
-    {
-      thiz->font_file = g_strdup (arg);
-      return true;
-    }
-
-    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
-		 "Too many arguments on the command line");
-    return false;
-  }
-
-  public:
-  hb_bool_t quiet = false;
 };
 
 int
 main (int argc, char **argv)
 {
-  using main_t = main_font_t<info_t, font_options_t>;
-  return batch_main<main_t> (argc, argv);
+  return batch_main<info_t> (argc, argv);
 }
