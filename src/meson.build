@@ -758,6 +758,8 @@ configure_file(input: 'harfbuzz-config.cmake.in',
   install_dir: get_option('libdir') / 'cmake' / 'harfbuzz',
 )
 
+gobject_enums_c = []
+gobject_enums_h = []
 libharfbuzz_gobject_dep = null_dep
 if have_gobject
   gnome = import('gnome')
@@ -780,13 +782,13 @@ if have_gobject
     symbol_prefix: 'hb_gobject',
   )
 
-  enum_c = custom_target('hb-gobject-enums.cc',
+  gobject_enums_c = custom_target('hb-gobject-enums.cc',
     input: enums[0],
     output: 'hb-gobject-enums.cc',
     command: [find_program('fix_get_types.py'), '@INPUT@', '@OUTPUT@']
   )
 
-  enum_h = custom_target('hb-gobject-enums.h',
+  gobject_enums_h = custom_target('hb-gobject-enums.h',
     input: enums[1],
     output: 'hb-gobject-enums.h',
     command: [find_program('fix_get_types.py'), '@INPUT@', '@OUTPUT@'],
@@ -794,15 +796,15 @@ if have_gobject
     install_dir: get_option('prefix') / get_option('includedir') / meson.project_name(),
   )
 
-  hb_gobject_sources += [enum_c]
+  hb_gobject_sources += [gobject_enums_c]
 
   harfbuzz_gobject_def = custom_target('harfbuzz-gobject.def',
     command: [gen_def, '@OUTPUT@', '@INPUT@'],
-    input: [hb_gobject_headers, enum_h],
+    input: [hb_gobject_headers, gobject_enums_h],
     output: 'harfbuzz-gobject.def')
   defs_list += [harfbuzz_gobject_def]
 
-  libharfbuzz_gobject = library('harfbuzz-gobject', [hb_gobject_sources, enum_c, enum_h],
+  libharfbuzz_gobject = library('harfbuzz-gobject', [hb_gobject_sources, gobject_enums_c, gobject_enums_h],
     include_directories: incconfig,
     dependencies: [glib_dep, gobject_dep],
     link_with: [libharfbuzz],
@@ -825,7 +827,7 @@ if have_gobject
   if build_gir
     conf.set('HAVE_INTROSPECTION', 1)
     hb_gen_files_gir = gnome.generate_gir(libharfbuzz_gobject,
-      sources: [gir_headers, gir_sources, enum_h],
+      sources: [gir_headers, gir_sources, gobject_enums_h],
       dependencies: libharfbuzz_dep,
       namespace: 'HarfBuzz',
       nsversion: '0.0',

@@ -41,7 +41,7 @@ if conf.get('HAVE_GLIB', 0) == 1
   )
   meson.override_find_program('hb-shape', hb_shape)
 
-  hb_info = executable('hb-info', [hb_info_sources, enum_h],
+  hb_info = executable('hb-info', [hb_info_sources, gobject_enums_h],
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
     dependencies: [util_deps, libharfbuzz_gobject_dep],
