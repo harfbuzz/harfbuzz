@@ -423,28 +423,22 @@ harfbuzz_deps = [thread_dep, m_dep] + harfbuzz_extra_deps
 libharfbuzz_link_language = 'c'
 
 hb_features = configuration_data()
-hb_supported_features = configuration_data()
 
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
   hb_headers += hb_ft_headers
   harfbuzz_deps += [freetype_dep]
-  hb_features.set('HB_HAS_FREETYPE', 1)
 endif
-hb_supported_features.set('HB_HAS_FREETYPE', 1)
+hb_features.set('HB_HAS_FREETYPE', conf.get('HAVE_FREETYPE', 0))
 
 if conf.get('HAVE_GLIB', 0) == 1
   hb_sources += hb_glib_sources
   hb_headers += hb_glib_headers
   harfbuzz_deps += [glib_dep]
-  hb_features.set('HB_HAS_GLIB', 1)
 endif
-hb_supported_features.set('HB_HAS_GLIB', 1)
+hb_features.set('HB_HAS_GLIB', conf.get('HAVE_GLIB', 0))
 
-if conf.get('HAVE_GOBJECT', 0) == 1
-  hb_features.set('HB_HAS_GOBJECT', 1)
-endif
-hb_supported_features.set('HB_HAS_GOBJECT', 1)
+hb_features.set('HB_HAS_GOBJECT', conf.get('HAVE_GOBJECT', 0))
 
 # We set those here to not include the sources below that are of no use to
 # GObject Introspection
@@ -455,41 +449,36 @@ if conf.get('HAVE_GDI', 0) == 1
   hb_sources += hb_gdi_sources
   hb_headers += hb_gdi_headers
   harfbuzz_deps += gdi_uniscribe_deps
-  hb_features.set('HB_HAS_GDI', 1)
 endif
-hb_supported_features.set('HB_HAS_GDI', 1)
+hb_features.set('HB_HAS_GDI', conf.get('HAVE_GDI', 0))
 
 if conf.get('HAVE_GRAPHITE2', 0) == 1
   hb_sources += hb_graphite2_sources
   hb_headers += hb_graphite2_headers
   harfbuzz_deps += [graphite2_dep, graphite_dep]
-  hb_features.set('HB_HAS_GRAPHITE', 1)
 endif
-hb_supported_features.set('HB_HAS_GRAPHITE', 1)
+hb_features.set('HB_HAS_GRAPHITE', conf.get('HAVE_GRAPHITE', 0))
 
 if conf.get('HAVE_UNISCRIBE', 0) == 1
   hb_sources += hb_uniscribe_sources
   hb_headers += hb_uniscribe_headers
-  hb_features.set('HB_HAS_UNISCRIBE', 1)
 endif
-hb_supported_features.set('HB_HAS_UNISCRIBE', 1)
+hb_features.set('HB_HAS_UNISCRIBE', conf.get('HAVE_UNISCRIBE', 0))
 
 if conf.get('HAVE_DIRECTWRITE', 0) == 1
   hb_sources += hb_directwrite_sources
   hb_headers += hb_directwrite_headers
   # hb-directwrite needs a C++ linker
   libharfbuzz_link_language = 'cpp'
-  hb_features.set('HB_HAS_DIRECTWRITE', 1)
 endif
-hb_supported_features.set('HB_HAS_DIRECTWRITE', 1)
+hb_features.set('HB_HAS_DIRECTWRITE', conf.get('HAVE_DIRECTWRITE', 0))
 
 if conf.get('HAVE_CORETEXT', 0) == 1
   hb_sources += hb_coretext_sources
   hb_headers += hb_coretext_headers
   harfbuzz_deps += coretext_deps
-  hb_features.set('HB_HAS_CORETEXT', 1)
 endif
-hb_supported_features.set('HB_HAS_CORETEXT', 1)
+hb_features.set('HB_HAS_CORETEXT', conf.get('HAVE_CORETEXT', 0))
 
 have_icu = conf.get('HAVE_ICU', 0) == 1
 have_icu_builtin = conf.get('HAVE_ICU_BUILTIN', 0) == 1
@@ -498,15 +487,22 @@ if have_icu and have_icu_builtin
   hb_sources += hb_icu_sources
   hb_headers += hb_icu_headers
   harfbuzz_deps += [icu_dep]
-  hb_features.set('HB_HAS_ICU', 1)
 endif
-hb_supported_features.set('HB_HAS_ICU', 1)
+hb_features.set('HB_HAS_ICU', conf.get('HAVE_ICU', 0))
 
-if conf.get('HAVE_CAIRO', 0) == 1
-  hb_features.set('HB_HAS_CAIRO', 1)
-endif
-hb_supported_features.set('HB_HAS_CAIRO', 1)
+hb_features.set('HB_HAS_CAIRO', conf.get('HAVE_CAIRO', 0))
 
+hb_supported_features = configuration_data()
+foreach key : hb_features.keys()
+  # Set any feature to 1 here, see below
+  hb_supported_features.set(key, 1)
+  if hb_features.get(key) == 0
+    # Set to false so meson undefs them, instead of defining to 0.
+    hb_features.set(key, false)
+  endif
+endforeach
+
+# The enabled features. This file is installed.
 hb_features_h = configure_file(input: 'hb-features.h.in',
                                output: 'hb-features.h',
                                configuration: hb_features,
