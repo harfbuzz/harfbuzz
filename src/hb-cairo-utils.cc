@@ -288,9 +288,14 @@ _hb_cairo_get_color_stops (hb_cairo_context_t *c,
     if ((*stops)[i].is_foreground)
     {
       double r, g, b, a;
-      cairo_user_scaled_font_get_foreground_color (c->scaled_font, &r, &g, &b, &a);
-      (*stops)[i].color = HB_COLOR (round (b * 255.), round (g * 255.), round (r * 255.),
-				    round (a * hb_color_get_alpha ((*stops)[i].color)));
+      cairo_pattern_t *foreground;
+
+      foreground = cairo_user_scaled_font_get_foreground_source (c->scaled_font);
+      if (cairo_pattern_get_rgba (foreground, &r, &g, &b, &a) == CAIRO_STATUS_SUCCESS)
+        (*stops)[i].color = HB_COLOR (round (b * 255.), round (g * 255.), round (r * 255.),
+                                      round (a * hb_color_get_alpha ((*stops)[i].color)));
+      else
+        (*stops)[i].color = HB_COLOR (0, 0, 0, hb_color_get_alpha ((*stops)[i].color));
     }
 
   *count = len;

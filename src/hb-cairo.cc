@@ -253,11 +253,14 @@ hb_cairo_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   if (use_foreground)
   {
+    cairo_pattern_t *foreground;
     double r, g, b, a;
-    cairo_user_scaled_font_get_foreground_color (c->scaled_font,
-						 &r, &g, &b, &a);
-    cairo_set_source_rgba (cr, r, g, b,
-			   a * hb_color_get_alpha (color) / 255.);
+
+    foreground = cairo_user_scaled_font_get_foreground_source (c->scaled_font);
+    if (cairo_pattern_get_rgba (foreground, &r, &g, &b, &a) != CAIRO_STATUS_SUCCESS)
+      cairo_set_source_rgba (cr, r, g, b, a * hb_color_get_alpha (color) / 255.);
+    else
+      cairo_set_source_rgba (cr, 0, 0, 0, hb_color_get_alpha (color) / 255.);
   }
   else
     cairo_set_source_rgba (cr,
@@ -595,7 +598,6 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
 #endif
 
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
-
   hb_position_t x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
