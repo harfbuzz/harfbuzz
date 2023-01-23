@@ -257,7 +257,7 @@ hb_cairo_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
     double r, g, b, a;
 
     foreground = cairo_user_scaled_font_get_foreground_source (c->scaled_font);
-    if (cairo_pattern_get_rgba (foreground, &r, &g, &b, &a) != CAIRO_STATUS_SUCCESS)
+    if (cairo_pattern_get_rgba (foreground, &r, &g, &b, &a) == CAIRO_STATUS_SUCCESS)
       cairo_set_source_rgba (cr, r, g, b, a * hb_color_get_alpha (color) / 255.);
     else
       cairo_set_source_rgba (cr, 0, 0, 0, hb_color_get_alpha (color) / 255.);
