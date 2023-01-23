@@ -274,6 +274,28 @@ _hb_cairo_normalize_color_line (hb_color_stop_t *stops,
   *omax = max;
 }
 
+static void
+_hb_cairo_get_color_stops (hb_cairo_context_t *c,
+			   hb_color_line_t *color_line,
+			   unsigned *count,
+			   hb_color_stop_t **stops)
+{
+  unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  if (len > *count)
+    *stops = (hb_color_stop_t *) hb_malloc (len * sizeof (hb_color_stop_t));
+  hb_color_line_get_color_stops (color_line, 0, &len, *stops);
+  for (unsigned i = 0; i < len; i++)
+    if ((*stops)[i].is_foreground)
+    {
+      double r, g, b, a;
+      cairo_user_scaled_font_get_foreground_color (c->scaled_font, &r, &g, &b, &a);
+      (*stops)[i].color = HB_COLOR (round (b * 255.), round (g * 255.), round (r * 255.),
+				    round (a * hb_color_get_alpha ((*stops)[i].color)));
+    }
+
+  *count = len;
+}
+
 void
 _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 				 hb_color_line_t *color_line,
@@ -285,19 +307,16 @@ _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
   hb_color_stop_t *stops = stops_;
-  unsigned int len;
+  unsigned int len = PREALLOCATED_COLOR_STOPS;
   float xx0, yy0, xx1, yy1;
   float xxx0, yyy0, xxx1, yyy1;
   float min, max;
   cairo_pattern_t *pattern;
 
-  len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (len > PREALLOCATED_COLOR_STOPS)
-    stops = (hb_color_stop_t *) hb_malloc (len * sizeof (hb_color_stop_t));
-  hb_color_line_get_color_stops (color_line, 0, &len, stops);
+  _hb_cairo_get_color_stops (c, color_line, &len, &stops);
+  _hb_cairo_normalize_color_line (stops, len, &min, &max);
 
   _hb_cairo_reduce_anchors (x0, y0, x1, y1, x2, y2, &xx0, &yy0, &xx1, &yy1);
-  _hb_cairo_normalize_color_line (stops, len, &min, &max);
 
   xxx0 = xx0 + min * (xx1 - xx0);
   yyy0 = yy0 + min * (yy1 - yy0);
@@ -341,11 +360,7 @@ _hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
   float rr0, rr1;
   cairo_pattern_t *pattern;
 
-  len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (len > PREALLOCATED_COLOR_STOPS)
-    stops = (hb_color_stop_t *) hb_malloc (len * sizeof (hb_color_stop_t));
-  hb_color_line_get_color_stops (color_line, 0, &len, stops);
-
+  _hb_cairo_get_color_stops (c, color_line, &len, &stops);
   _hb_cairo_normalize_color_line (stops, len, &min, &max);
 
   xx0 = x0 + min * (x1 - x0);
@@ -808,10 +823,7 @@ _hb_cairo_paint_sweep_gradient (hb_cairo_context_t *c,
   float max_x, max_y, radius;
   cairo_pattern_t *pattern;
 
-  len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
-  if (len > PREALLOCATED_COLOR_STOPS)
-    stops = (hb_color_stop_t *) hb_malloc (len * sizeof (hb_color_stop_t));
-  hb_color_line_get_color_stops (color_line, 0, &len, stops);
+  _hb_cairo_get_color_stops (c, color_line, &len, &stops);
 
   hb_qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
 
