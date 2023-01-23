@@ -146,7 +146,9 @@ hb_cairo_push_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			 float dx, float dy,
 			 void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
+
   cairo_matrix_t m;
 
   cairo_save (cr);
@@ -161,7 +163,8 @@ hb_cairo_pop_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		        void *paint_data,
 		        void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
 
   cairo_restore (cr);
 }
@@ -173,7 +176,8 @@ hb_cairo_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			  hb_font_t *font,
 			  void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
 
   cairo_save (cr);
   cairo_new_path (cr);
@@ -188,7 +192,8 @@ hb_cairo_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			      float xmin, float ymin, float xmax, float ymax,
 			      void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
 
   cairo_save (cr);
   cairo_rectangle (cr,
@@ -202,7 +207,8 @@ hb_cairo_pop_clip (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		   void *paint_data,
 		   void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
 
   cairo_restore (cr);
 }
@@ -212,7 +218,8 @@ hb_cairo_push_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		     void *paint_data,
 		     void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
 
   cairo_save (cr);
   cairo_push_group (cr);
@@ -224,7 +231,8 @@ hb_cairo_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		    hb_paint_composite_mode_t mode,
 		    void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
 
   cairo_pop_group_to_source (cr);
   cairo_set_operator (cr, _hb_paint_composite_mode_to_cairo (mode));
@@ -240,7 +248,8 @@ hb_cairo_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		      hb_color_t color,
 		      void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
 
   cairo_set_source_rgba (cr,
                          hb_color_get_red (color) / 255.,
@@ -261,9 +270,9 @@ hb_cairo_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 		      hb_glyph_extents_t *extents,
 		      void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
 
-  return _hb_cairo_paint_glyph_image (cr, blob, width, height, format, slant, extents);
+  return _hb_cairo_paint_glyph_image (c, blob, width, height, format, slant, extents);
 }
 
 static void
@@ -275,9 +284,9 @@ hb_cairo_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 				float x2, float y2,
 				void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
 
-  _hb_cairo_paint_linear_gradient (cr, color_line, x0, y0, x1, y1, x2, y2);
+  _hb_cairo_paint_linear_gradient (c, color_line, x0, y0, x1, y1, x2, y2);
 }
 
 static void
@@ -288,9 +297,9 @@ hb_cairo_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 				float x1, float y1, float r1,
 				void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *)paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
 
-  _hb_cairo_paint_radial_gradient (cr, color_line, x0, y0, r0, x1, y1, r1);
+  _hb_cairo_paint_radial_gradient (c, color_line, x0, y0, r0, x1, y1, r1);
 }
 
 static void
@@ -301,9 +310,9 @@ hb_cairo_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			       float start_angle, float end_angle,
 			       void *user_data HB_UNUSED)
 {
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
 
-  _hb_cairo_paint_sweep_gradient (cr, color_line, x0, y0, start_angle, end_angle);
+  _hb_cairo_paint_sweep_gradient (c, color_line, x0, y0, start_angle, end_angle);
 }
 
 static const cairo_user_data_key_t color_cache_key = {0};
@@ -322,17 +331,18 @@ hb_cairo_paint_custom_palette_color (hb_paint_funcs_t *funcs,
                                      void *user_data HB_UNUSED)
 {
 #ifdef HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR
-  cairo_t *cr = (cairo_t *) paint_data;
+  hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
+  cairo_t *cr = c->cr;
 
 #define HB_DEADBEEF HB_TAG(0xDE,0xAD,0xBE,0xEF)
 
-  hb_map_t *color_cache = (hb_map_t *) cairo_get_user_data (cr, &color_cache_key);
-  hb_codepoint_t *c;
-  if (likely (color_cache && color_cache->has (color_index, &c)))
+  hb_map_t *color_cache = c->color_cache;
+  hb_codepoint_t *v;
+  if (likely (color_cache && color_cache->has (color_index, &v)))
   {
-    if (*c == HB_DEADBEEF)
+    if (*v == HB_DEADBEEF)
       return false;
-    *color = *c;
+    *color = *v;
     return true;
   }
 
@@ -585,12 +595,13 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
-  void *color_cache = cairo_scaled_font_get_user_data (scaled_font, &color_cache_key);
-  cairo_set_user_data (cr, &color_cache_key, color_cache, nullptr);
+  hb_cairo_context_t c;
+  c.scaled_font = scaled_font;
+  c.cr = cr;
+  c.color_cache = (hb_map_t *) cairo_scaled_font_get_user_data (scaled_font, &color_cache_key);
 
-  hb_font_paint_glyph (font, glyph, hb_cairo_paint_get_funcs (), cr, palette, color);
+  hb_font_paint_glyph (font, glyph, hb_cairo_paint_get_funcs (), &c, palette, color);
 
-  cairo_set_user_data (cr, &color_cache_key, nullptr, nullptr);
 
   return CAIRO_STATUS_SUCCESS;
 }

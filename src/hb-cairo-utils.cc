@@ -91,7 +91,7 @@ _hb_cairo_destroy_blob (void *p)
 }
 
 hb_bool_t
-_hb_cairo_paint_glyph_image (cairo_t *cr,
+_hb_cairo_paint_glyph_image (hb_cairo_context_t *c,
 			     hb_blob_t *blob,
 			     unsigned width,
 			     unsigned height,
@@ -99,6 +99,8 @@ _hb_cairo_paint_glyph_image (cairo_t *cr,
 			     float slant,
 			     hb_glyph_extents_t *extents)
 {
+  cairo_t *cr = c->cr;
+
   if (!extents) /* SVG currently. */
     return false;
 
@@ -273,12 +275,14 @@ _hb_cairo_normalize_color_line (hb_color_stop_t *stops,
 }
 
 void
-_hb_cairo_paint_linear_gradient (cairo_t *cr,
+_hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 				 hb_color_line_t *color_line,
 				 float x0, float y0,
 				 float x1, float y1,
 				 float x2, float y2)
 {
+  cairo_t *cr = c->cr;
+
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
   hb_color_stop_t *stops = stops_;
   unsigned int len;
@@ -322,11 +326,13 @@ _hb_cairo_paint_linear_gradient (cairo_t *cr,
 }
 
 void
-_hb_cairo_paint_radial_gradient (cairo_t *cr,
+_hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
 				 hb_color_line_t *color_line,
 				 float x0, float y0, float r0,
 				 float x1, float y1, float r1)
 {
+  cairo_t *cr = c->cr;
+
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
   hb_color_stop_t *stops = stops_;
   unsigned int len;
@@ -790,12 +796,14 @@ done:
 }
 
 void
-_hb_cairo_paint_sweep_gradient (cairo_t *cr,
+_hb_cairo_paint_sweep_gradient (hb_cairo_context_t *c,
 				hb_color_line_t *color_line,
 				float cx, float cy,
 				float start_angle,
 				float end_angle)
 {
+  cairo_t *cr = c->cr;
+
   unsigned int len;
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
   hb_color_stop_t *stops = stops_;
