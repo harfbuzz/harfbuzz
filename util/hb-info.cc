@@ -77,8 +77,8 @@ struct info_t :
     };
     add_group (misc_entries,
 	       "misc",
-	       "Miscellaneaous options:",
-	       "Miscellaneaous options affecting queries",
+	       "Miscellaneous options:",
+	       "Miscellaneous options affecting queries",
 	       this,
 	       false /* We add below. */);
 
