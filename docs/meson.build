@@ -36,6 +36,7 @@ html_images = [
 ]
 
 ignore_headers = [
+  'hb-features.h',
   'hb-gobject.h',
   'hb-gobject-enums.h',
   'hb-gobject-enums-tmp.h',
