@@ -700,6 +700,9 @@ struct graph_t
       }
     }
 
+    if (in_error ())
+      return false;
+
     if (!made_changes)
       return false;
 
@@ -833,7 +836,11 @@ struct graph_t
     if (index_map.has (node_idx))
       return;
 
-    index_map.set (node_idx, duplicate (node_idx));
+    unsigned clone_idx = duplicate (node_idx);
+    if (!check_success (clone_idx != (unsigned) -1))
+      return;
+
+    index_map.set (node_idx, clone_idx);
     for (const auto& l : object (node_idx).all_links ()) {
       duplicate_subgraph (l.objidx, index_map);
     }
