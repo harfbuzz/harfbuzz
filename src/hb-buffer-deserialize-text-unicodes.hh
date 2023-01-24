@@ -157,7 +157,7 @@ static const int deserialize_text_unicodes_error = 0;
 static const int deserialize_text_unicodes_en_main = 1;
 
 
-#line 80 "hb-buffer-deserialize-text-unicodes.rl"
+#line 79 "hb-buffer-deserialize-text-unicodes.rl"
 
 
 static hb_bool_t
@@ -177,7 +177,7 @@ _hb_buffer_deserialize_text_unicodes (hb_buffer_t *buffer,
   const char *tok = nullptr;
   int cs;
   hb_glyph_info_t info = {0};
-  hb_glyph_position_t pos = {0};
+  const hb_glyph_position_t pos = {0};
   
 #line 176 "hb-buffer-deserialize-text-unicodes.hh"
 	{
@@ -213,23 +213,22 @@ _resume:
 #line 38 "hb-buffer-deserialize-text-unicodes.rl"
 	{
 	hb_memset (&info, 0, sizeof (info));
-	hb_memset (&pos , 0, sizeof (pos ));
 }
 	break;
 	case 2:
-#line 52 "hb-buffer-deserialize-text-unicodes.rl"
+#line 51 "hb-buffer-deserialize-text-unicodes.rl"
 	{
 	tok = p;
 }
 	break;
 	case 4:
-#line 56 "hb-buffer-deserialize-text-unicodes.rl"
+#line 55 "hb-buffer-deserialize-text-unicodes.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
 	break;
 	case 3:
-#line 56 "hb-buffer-deserialize-text-unicodes.rl"
+#line 55 "hb-buffer-deserialize-text-unicodes.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
-#line 43 "hb-buffer-deserialize-text-unicodes.rl"
+#line 42 "hb-buffer-deserialize-text-unicodes.rl"
 	{
 	buffer->add_info (info);
 	if (unlikely (!buffer->successful))
@@ -240,9 +239,9 @@ _resume:
 }
 	break;
 	case 5:
-#line 58 "hb-buffer-deserialize-text-unicodes.rl"
+#line 57 "hb-buffer-deserialize-text-unicodes.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
-#line 43 "hb-buffer-deserialize-text-unicodes.rl"
+#line 42 "hb-buffer-deserialize-text-unicodes.rl"
 	{
 	buffer->add_info (info);
 	if (unlikely (!buffer->successful))
@@ -252,7 +251,7 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-#line 239 "hb-buffer-deserialize-text-unicodes.hh"
+#line 238 "hb-buffer-deserialize-text-unicodes.hh"
 	}
 
 _again:
@@ -264,7 +263,7 @@ _again:
 	_out: {}
 	}
 
-#line 103 "hb-buffer-deserialize-text-unicodes.rl"
+#line 102 "hb-buffer-deserialize-text-unicodes.rl"
 
 
   *end_ptr = p;

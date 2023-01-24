@@ -37,7 +37,6 @@ write data;
 
 action clear_item {
 	hb_memset (&info, 0, sizeof (info));
-	hb_memset (&pos , 0, sizeof (pos ));
 }
 
 action add_item {
@@ -96,7 +95,7 @@ _hb_buffer_deserialize_text_unicodes (hb_buffer_t *buffer,
   const char *tok = nullptr;
   int cs;
   hb_glyph_info_t info = {0};
-  hb_glyph_position_t pos = {0};
+  const hb_glyph_position_t pos = {0};
   %%{
     write init;
     write exec;
