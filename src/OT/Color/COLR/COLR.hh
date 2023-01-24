@@ -2006,10 +2006,20 @@ struct COLR
     bool ret = paint_glyph (font, glyph, extents_funcs, &extents_data, 0, HB_COLOR(0,0,0,0));
 
     hb_extents_t e = extents_data.get_extents ();
-    extents->x_bearing = e.xmin;
-    extents->y_bearing = e.ymax;
-    extents->width = e.xmax - e.xmin;
-    extents->height = e.ymin - e.ymax;
+    if (e.is_void ())
+    {
+      extents->x_bearing = 0;
+      extents->y_bearing = 0;
+      extents->width = 0;
+      extents->height = 0;
+    }
+    else
+    {
+      extents->x_bearing = e.xmin;
+      extents->y_bearing = e.ymax;
+      extents->width = e.xmax - e.xmin;
+      extents->height = e.ymin - e.ymax;
+    }
 
     return ret;
   }
