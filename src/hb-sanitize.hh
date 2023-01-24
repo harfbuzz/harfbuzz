@@ -248,15 +248,25 @@ struct hb_sanitize_context_t :
     return likely (ok);
   }
 
-  template <typename T, typename ...Ts>
+  template <typename T>
   bool check_range (const T *base,
 		    unsigned int a,
-		    unsigned int b,
-		    Ts&... ds) const
+		    unsigned int b) const
   {
     unsigned m;
     return !hb_unsigned_mul_overflows (a, b, &m) &&
-	   this->check_range (base, m, ds...);
+	   this->check_range (base, m);
+  }
+
+  template <typename T>
+  bool check_range (const T *base,
+		    unsigned int a,
+		    unsigned int b,
+		    unsigned int c) const
+  {
+    unsigned m;
+    return !hb_unsigned_mul_overflows (a, b, &m) &&
+	   this->check_range (base, m, c);
   }
 
   template <typename T>
