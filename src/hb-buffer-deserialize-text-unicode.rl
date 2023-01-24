@@ -61,7 +61,7 @@ num	= '-'? unum;
 
 cluster	= '=' (unum >tok %parse_cluster);
 
-unicode = 'U' '+' xdigit+ >tok %parse_hexdigits;
+unicode = [Uu] '+'? xdigit+ >tok %parse_hexdigits;
 
 unicode_item	=
 	(
