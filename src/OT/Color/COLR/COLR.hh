@@ -2003,7 +2003,7 @@ struct COLR
 
     auto *extents_funcs = hb_paint_extents_get_funcs ();
     hb_paint_extents_context_t extents_data;
-    paint_glyph (font, glyph, extents_funcs, &extents_data, 0, HB_COLOR(0,0,0,0));
+    bool ret = paint_glyph (font, glyph, extents_funcs, &extents_data, 0, HB_COLOR(0,0,0,0));
 
     hb_extents_t e = extents_data.get_extents ();
     extents->x_bearing = e.xmin;
@@ -2011,7 +2011,7 @@ struct COLR
     extents->width = e.xmax - e.xmin;
     extents->height = e.ymin - e.ymax;
 
-    return true;
+    return ret;
   }
 
   bool
