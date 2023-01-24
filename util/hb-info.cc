@@ -32,6 +32,10 @@
 #include <hb-gobject.h>
 #endif
 
+#ifdef HAVE_CHAFA
+# include <chafa.h>
+#endif
+
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
 const unsigned SUBPIXEL_BITS = 0;
 
@@ -1202,6 +1206,81 @@ struct info_t :
   }
 #endif
 
+#ifdef HAVE_CHAFA
+  GString *
+  _palette_chafa_str (unsigned palette_index)
+  {
+    unsigned count = hb_ot_color_palette_get_colors (face, palette_index, 0,
+						     nullptr, nullptr);
+
+    hb_color_t *palette = (hb_color_t *) malloc (count * sizeof (hb_color_t));
+    hb_ot_color_palette_get_colors (face, palette_index, 0,
+				    &count, palette);
+
+#define REPEAT 8
+    hb_color_t *data = (hb_color_t *) malloc (count * REPEAT * sizeof (hb_color_t));
+    for (unsigned i = 0; i < count; i++)
+      for (unsigned j = 0; j < REPEAT; j++)
+	data[i * REPEAT + j] = palette[i];
+    free (palette);
+    palette = nullptr;
+
+    chafa_set_n_threads (1); // https://github.com/hpjansson/chafa/issues/125#issuecomment-1397475217
+			     //
+    gchar **environ = g_get_environ ();
+    ChafaTermInfo *term_info = chafa_term_db_detect (chafa_term_db_get_default (),
+						     environ);
+
+    ChafaCanvasMode mode;
+    ChafaPixelMode pixel_mode = CHAFA_PIXEL_MODE_SYMBOLS;
+    if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_DIRECT))
+      mode = CHAFA_CANVAS_MODE_TRUECOLOR;
+    else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_256))
+      mode = CHAFA_CANVAS_MODE_INDEXED_240;
+    else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_16))
+      mode = CHAFA_CANVAS_MODE_INDEXED_16;
+    else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_INVERT_COLORS))
+      mode = CHAFA_CANVAS_MODE_FGBG_BGFG;
+    else
+      mode = CHAFA_CANVAS_MODE_FGBG;
+
+    ChafaSymbolMap *symbol_map = chafa_symbol_map_new ();
+    chafa_symbol_map_add_by_tags (symbol_map,
+				  (ChafaSymbolTags) (CHAFA_SYMBOL_TAG_BLOCK));
+
+    ChafaCanvasConfig *config = chafa_canvas_config_new ();
+    chafa_canvas_config_set_canvas_mode (config, mode);
+    chafa_canvas_config_set_pixel_mode (config, pixel_mode);
+    chafa_canvas_config_set_cell_geometry (config, REPEAT, 1);
+    chafa_canvas_config_set_geometry (config, 2 * count, 1);
+    chafa_canvas_config_set_symbol_map (config, symbol_map);
+    chafa_canvas_config_set_color_extractor (config, CHAFA_COLOR_EXTRACTOR_MEDIAN);
+    chafa_canvas_config_set_work_factor (config, 1.0f);
+
+    ChafaCanvas *canvas = chafa_canvas_new (config);
+    chafa_canvas_draw_all_pixels (canvas,
+				  G_BYTE_ORDER == G_BIG_ENDIAN
+				    ? CHAFA_PIXEL_BGRA8_UNASSOCIATED
+				    : CHAFA_PIXEL_ARGB8_UNASSOCIATED,
+				  (const guint8 *) data,
+				  count * REPEAT,
+				  1,
+				  sizeof (hb_color_t));
+
+    free (data);
+
+    auto gs = chafa_canvas_print (canvas, term_info);
+
+    chafa_canvas_unref (canvas);
+    chafa_canvas_config_unref (config);
+    chafa_symbol_map_unref (symbol_map);
+    chafa_term_info_unref (term_info);
+    g_strfreev (environ);
+
+    return gs;
+  }
+#endif
+
   void
   _list_palettes ()
   {
@@ -1244,7 +1323,17 @@ struct info_t :
           }
 	}
 
-	printf ("%u	%s	%s\n", i, type, name);
+#ifdef HAVE_CHAFA
+	if (verbose)
+	{
+	  GString *chafa_str = _palette_chafa_str (i);
+	  printf ("%u	%s	%-23s	%*s\n", i, type, name,
+		  (int) chafa_str->len, chafa_str->str);
+	  g_string_free (chafa_str, TRUE);
+	}
+	else
+#endif
+	  printf ("%u	%s	%s\n", i, type, name);
       }
     }
 

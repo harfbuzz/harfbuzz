@@ -44,7 +44,7 @@ if conf.get('HAVE_GLIB', 0) == 1
   hb_info = executable('hb-info', [hb_info_sources, gobject_enums_h],
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
-    dependencies: [util_deps, libharfbuzz_gobject_dep],
+    dependencies: [util_deps, libharfbuzz_gobject_dep, chafa_dep],
     link_with: [libharfbuzz],
     install: true,
   )
