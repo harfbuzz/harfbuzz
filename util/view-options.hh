@@ -44,6 +44,12 @@ struct view_options_t
 
   void add_options (option_parser_t *parser);
 
+  void post_parse (GError **error)
+  {
+    if (annotate)
+      show_extents = true;
+  }
+
   hb_bool_t annotate = false;
   char *fore = nullptr;
   char *back = nullptr;
