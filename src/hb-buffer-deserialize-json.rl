@@ -106,7 +106,7 @@ item	=
 	@add_item
 	;
 
-main := space* item (comma item)* space* (','|']')?;
+main := space* item (comma item)* space* (','|']');
 
 }%%
 

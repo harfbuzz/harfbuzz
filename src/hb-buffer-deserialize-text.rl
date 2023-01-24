@@ -109,8 +109,8 @@ unicode_item	=
 	%add_item
 	;
 
-glyphs = glyph_item (space* '|' space* glyph_item)* space* ('|'|']')?;
-unicodes = unicode_item (space* '|' space* unicode_item)* space* ('|'|'>')?;
+glyphs = glyph_item (space* '|' space* glyph_item)* space* ('|'|']');
+unicodes = unicode_item (space* '|' space* unicode_item)* space* ('|'|'>');
 
 main := space* ( ('[' glyphs) | ('<' unicodes) );
 
@@ -131,7 +131,7 @@ _hb_buffer_deserialize_text (hb_buffer_t *buffer,
   while (p < pe && ISSPACE (*p))
     p++;
 
-  const char *eof = pe, *tok = nullptr;
+  const char *tok = nullptr;
   int cs;
   hb_glyph_info_t info = {0};
   hb_glyph_position_t pos = {0};
