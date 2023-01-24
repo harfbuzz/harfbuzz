@@ -24,14 +24,14 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_BUFFER_DESERIALIZE_TEXT_UNICODES_HH
-#define HB_BUFFER_DESERIALIZE_TEXT_UNICODES_HH
+#ifndef HB_BUFFER_DESERIALIZE_TEXT_UNICODE_HH
+#define HB_BUFFER_DESERIALIZE_TEXT_UNICODE_HH
 
 #include "hb.hh"
 
 %%{
 
-machine deserialize_text_unicodes;
+machine deserialize_text_unicode;
 alphtype unsigned char;
 write data;
 
@@ -79,11 +79,11 @@ main := space* unicodes;
 }%%
 
 static hb_bool_t
-_hb_buffer_deserialize_text_unicodes (hb_buffer_t *buffer,
-				      const char *buf,
-				      unsigned int buf_len,
-				      const char **end_ptr,
-				      hb_font_t *font)
+_hb_buffer_deserialize_text_unicode (hb_buffer_t *buffer,
+				     const char *buf,
+				     unsigned int buf_len,
+				     const char **end_ptr,
+				     hb_font_t *font)
 {
   const char *p = buf, *pe = buf + buf_len;
 
@@ -106,4 +106,4 @@ _hb_buffer_deserialize_text_unicodes (hb_buffer_t *buffer,
   return p == pe && *(p-1) != ']';
 }
 
-#endif /* HB_BUFFER_DESERIALIZE_TEXT_UNICODES_HH */
+#endif /* HB_BUFFER_DESERIALIZE_TEXT_UNICODE_HH */

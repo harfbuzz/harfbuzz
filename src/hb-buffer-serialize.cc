@@ -722,7 +722,7 @@ parse_hex (const char *pp, const char *end, uint32_t *pv)
 
 #include "hb-buffer-deserialize-json.hh"
 #include "hb-buffer-deserialize-text-glyphs.hh"
-#include "hb-buffer-deserialize-text-unicodes.hh"
+#include "hb-buffer-deserialize-text-unicode.hh"
 
 /**
  * hb_buffer_deserialize_glyphs:
@@ -850,9 +850,9 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
   switch (format)
   {
     case HB_BUFFER_SERIALIZE_FORMAT_TEXT:
-      return _hb_buffer_deserialize_text_unicodes (buffer,
-						   buf, buf_len, end_ptr,
-						   font);
+      return _hb_buffer_deserialize_text_unicode (buffer,
+						  buf, buf_len, end_ptr,
+						  font);
 
     case HB_BUFFER_SERIALIZE_FORMAT_JSON:
       return _hb_buffer_deserialize_json (buffer,

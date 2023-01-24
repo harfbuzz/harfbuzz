@@ -1,5 +1,5 @@
 
-#line 1 "hb-buffer-deserialize-text-unicodes.rl"
+#line 1 "hb-buffer-deserialize-text-unicode.rl"
 /*
  * Copyright © 2013  Google, Inc.
  *
@@ -26,29 +26,29 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_BUFFER_DESERIALIZE_TEXT_UNICODES_HH
-#define HB_BUFFER_DESERIALIZE_TEXT_UNICODES_HH
+#ifndef HB_BUFFER_DESERIALIZE_TEXT_UNICODE_HH
+#define HB_BUFFER_DESERIALIZE_TEXT_UNICODE_HH
 
 #include "hb.hh"
 
 
-#line 33 "hb-buffer-deserialize-text-unicodes.hh"
-static const unsigned char _deserialize_text_unicodes_trans_keys[] = {
+#line 33 "hb-buffer-deserialize-text-unicode.hh"
+static const unsigned char _deserialize_text_unicode_trans_keys[] = {
 	0u, 0u, 9u, 85u, 43u, 43u, 48u, 102u, 9u, 124u, 9u, 124u, 48u, 57u, 9u, 124u, 
 	9u, 124u, 0u, 0u, 9u, 85u, 0
 };
 
-static const char _deserialize_text_unicodes_key_spans[] = {
+static const char _deserialize_text_unicode_key_spans[] = {
 	0, 77, 1, 55, 116, 116, 10, 116, 
 	116, 0, 77
 };
 
-static const short _deserialize_text_unicodes_index_offsets[] = {
+static const short _deserialize_text_unicode_index_offsets[] = {
 	0, 0, 78, 80, 136, 253, 370, 381, 
 	498, 615, 616
 };
 
-static const char _deserialize_text_unicodes_indicies[] = {
+static const char _deserialize_text_unicode_indicies[] = {
 	0, 0, 0, 0, 0, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
@@ -138,34 +138,34 @@ static const char _deserialize_text_unicodes_indicies[] = {
 	1, 1, 1, 1, 1, 2, 1, 0
 };
 
-static const char _deserialize_text_unicodes_trans_targs[] = {
+static const char _deserialize_text_unicode_trans_targs[] = {
 	1, 0, 2, 3, 4, 5, 4, 6, 
 	9, 10, 5, 9, 10, 7, 8, 5, 
 	9, 10, 8
 };
 
-static const char _deserialize_text_unicodes_trans_actions[] = {
+static const char _deserialize_text_unicode_trans_actions[] = {
 	0, 0, 1, 0, 2, 3, 0, 4, 
 	3, 3, 0, 0, 0, 2, 2, 5, 
 	5, 5, 0
 };
 
-static const int deserialize_text_unicodes_start = 1;
-static const int deserialize_text_unicodes_first_final = 9;
-static const int deserialize_text_unicodes_error = 0;
+static const int deserialize_text_unicode_start = 1;
+static const int deserialize_text_unicode_first_final = 9;
+static const int deserialize_text_unicode_error = 0;
 
-static const int deserialize_text_unicodes_en_main = 1;
+static const int deserialize_text_unicode_en_main = 1;
 
 
-#line 79 "hb-buffer-deserialize-text-unicodes.rl"
+#line 79 "hb-buffer-deserialize-text-unicode.rl"
 
 
 static hb_bool_t
-_hb_buffer_deserialize_text_unicodes (hb_buffer_t *buffer,
-				      const char *buf,
-				      unsigned int buf_len,
-				      const char **end_ptr,
-				      hb_font_t *font)
+_hb_buffer_deserialize_text_unicode (hb_buffer_t *buffer,
+				     const char *buf,
+				     unsigned int buf_len,
+				     const char **end_ptr,
+				     hb_font_t *font)
 {
   const char *p = buf, *pe = buf + buf_len;
 
@@ -179,12 +179,12 @@ _hb_buffer_deserialize_text_unicodes (hb_buffer_t *buffer,
   hb_glyph_info_t info = {0};
   const hb_glyph_position_t pos = {0};
   
-#line 176 "hb-buffer-deserialize-text-unicodes.hh"
+#line 176 "hb-buffer-deserialize-text-unicode.hh"
 	{
-	cs = deserialize_text_unicodes_start;
+	cs = deserialize_text_unicode_start;
 	}
 
-#line 179 "hb-buffer-deserialize-text-unicodes.hh"
+#line 179 "hb-buffer-deserialize-text-unicode.hh"
 	{
 	int _slen;
 	int _trans;
@@ -195,40 +195,40 @@ _hb_buffer_deserialize_text_unicodes (hb_buffer_t *buffer,
 	if ( cs == 0 )
 		goto _out;
 _resume:
-	_keys = _deserialize_text_unicodes_trans_keys + (cs<<1);
-	_inds = _deserialize_text_unicodes_indicies + _deserialize_text_unicodes_index_offsets[cs];
+	_keys = _deserialize_text_unicode_trans_keys + (cs<<1);
+	_inds = _deserialize_text_unicode_indicies + _deserialize_text_unicode_index_offsets[cs];
 
-	_slen = _deserialize_text_unicodes_key_spans[cs];
+	_slen = _deserialize_text_unicode_key_spans[cs];
 	_trans = _inds[ _slen > 0 && _keys[0] <=(*p) &&
 		(*p) <= _keys[1] ?
 		(*p) - _keys[0] : _slen ];
 
-	cs = _deserialize_text_unicodes_trans_targs[_trans];
+	cs = _deserialize_text_unicode_trans_targs[_trans];
 
-	if ( _deserialize_text_unicodes_trans_actions[_trans] == 0 )
+	if ( _deserialize_text_unicode_trans_actions[_trans] == 0 )
 		goto _again;
 
-	switch ( _deserialize_text_unicodes_trans_actions[_trans] ) {
+	switch ( _deserialize_text_unicode_trans_actions[_trans] ) {
 	case 1:
-#line 38 "hb-buffer-deserialize-text-unicodes.rl"
+#line 38 "hb-buffer-deserialize-text-unicode.rl"
 	{
 	hb_memset (&info, 0, sizeof (info));
 }
 	break;
 	case 2:
-#line 51 "hb-buffer-deserialize-text-unicodes.rl"
+#line 51 "hb-buffer-deserialize-text-unicode.rl"
 	{
 	tok = p;
 }
 	break;
 	case 4:
-#line 55 "hb-buffer-deserialize-text-unicodes.rl"
+#line 55 "hb-buffer-deserialize-text-unicode.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
 	break;
 	case 3:
-#line 55 "hb-buffer-deserialize-text-unicodes.rl"
+#line 55 "hb-buffer-deserialize-text-unicode.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
-#line 42 "hb-buffer-deserialize-text-unicodes.rl"
+#line 42 "hb-buffer-deserialize-text-unicode.rl"
 	{
 	buffer->add_info (info);
 	if (unlikely (!buffer->successful))
@@ -239,9 +239,9 @@ _resume:
 }
 	break;
 	case 5:
-#line 57 "hb-buffer-deserialize-text-unicodes.rl"
+#line 57 "hb-buffer-deserialize-text-unicode.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
-#line 42 "hb-buffer-deserialize-text-unicodes.rl"
+#line 42 "hb-buffer-deserialize-text-unicode.rl"
 	{
 	buffer->add_info (info);
 	if (unlikely (!buffer->successful))
@@ -251,7 +251,7 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-#line 238 "hb-buffer-deserialize-text-unicodes.hh"
+#line 238 "hb-buffer-deserialize-text-unicode.hh"
 	}
 
 _again:
@@ -263,7 +263,7 @@ _again:
 	_out: {}
 	}
 
-#line 102 "hb-buffer-deserialize-text-unicodes.rl"
+#line 102 "hb-buffer-deserialize-text-unicode.rl"
 
 
   *end_ptr = p;
@@ -271,4 +271,4 @@ _again:
   return p == pe && *(p-1) != ']';
 }
 
-#endif /* HB_BUFFER_DESERIALIZE_TEXT_UNICODES_HH */
+#endif /* HB_BUFFER_DESERIALIZE_TEXT_UNICODE_HH */
