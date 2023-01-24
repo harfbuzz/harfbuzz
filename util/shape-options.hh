@@ -92,6 +92,21 @@ struct shape_options_t
 				    font,
 				    HB_BUFFER_SERIALIZE_FORMAT_TEXT);
 
+      if (!strchr (glyphs, '+'))
+      {
+        scale_advances = false;
+        unsigned count;
+	hb_direction_t direction = hb_buffer_get_direction (buffer);
+	hb_glyph_info_t *infos = hb_buffer_get_glyph_infos (buffer, &count);
+	hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, &count);
+	for (unsigned i = 0; i < count; i++)
+	  hb_font_get_glyph_advance_for_direction (font,
+						   infos[i].codepoint,
+						   direction,
+						   &positions[i].x_advance,
+						   &positions[i].y_advance);
+      }
+
       if (glyphs != text)
         g_free (glyphs);
 
@@ -137,8 +152,11 @@ struct shape_options_t
 	auto &pos = positions[i];
 	pos.x_offset = pos.x_offset * x_scale / upem;
 	pos.y_offset = pos.y_offset * y_scale / upem;
-	pos.x_advance = pos.x_advance * x_scale / upem;
-	pos.y_advance = pos.y_advance * y_scale / upem;
+	if (scale_advances)
+	{
+	  pos.x_advance = pos.x_advance * x_scale / upem;
+	  pos.y_advance = pos.y_advance * y_scale / upem;
+	}
       }
     }
     else
@@ -190,6 +208,7 @@ struct shape_options_t
   hb_buffer_cluster_level_t cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
   hb_bool_t normalize_glyphs = false;
   hb_bool_t glyphs = false;
+  bool scale_advances = true;
   hb_bool_t verify = false;
   hb_bool_t unsafe_to_concat = false;
   hb_bool_t safe_to_insert_tatweel = false;
