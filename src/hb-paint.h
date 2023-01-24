@@ -672,7 +672,8 @@ typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
  * color palette.
  *
  * Custom palette colors override the colors from the fonts selected color
- * palette. It is possible to override only some of the palette colors.
+ * palette. It is not necessary to override all palette entries; for entries
+ * that should be taken from the font palette, return `false`.
  *
  * This function might get called multiple times, but the custom palette is
  * expected to remain unchanged for duration of a hb_font_paint_glyph() call.
