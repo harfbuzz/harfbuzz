@@ -44,13 +44,6 @@ struct view_options_t
 
   void add_options (option_parser_t *parser);
 
-  void post_parse (GError **error)
-  {
-    if (annotate)
-      show_extents = true;
-  }
-
-  hb_bool_t annotate = false;
   char *fore = nullptr;
   char *back = nullptr;
   unsigned int palette = 0;
@@ -115,7 +108,8 @@ view_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"annotate",	0, 0, G_OPTION_ARG_NONE,	&this->annotate,		"Annotate output rendering",				nullptr},
+    {"annotate",	0, G_OPTION_FLAG_HIDDEN,
+			      G_OPTION_ARG_NONE,	&this->show_extents,		"Annotate output rendering",				nullptr},
     {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,			"Set background color (default: " DEFAULT_BACK ")",	"rrggbb/rrggbbaa"},
     {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,			"Set foreground color (default: " DEFAULT_FORE ")",	"rrggbb/rrggbbaa"},
     {"font-palette",    0, 0, G_OPTION_ARG_INT,         &this->palette,                 "Set font palette (default: 0)",                "index"},

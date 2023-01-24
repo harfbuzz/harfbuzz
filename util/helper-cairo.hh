@@ -524,7 +524,7 @@ helper_cairo_create_context (double w, double h,
 
   if (content == CAIRO_CONTENT_ALPHA)
   {
-    if (view_opts->annotate ||
+    if (view_opts->show_extents ||
 	br != bg || bg != bb ||
 	fr != fg || fg != fb)
       content = CAIRO_CONTENT_COLOR;

@@ -168,13 +168,12 @@ view_cairo_t::render (const font_options_t *font_opts)
 
     cairo_translate (cr, -vert * leading, +horiz * leading);
 
-    if (annotate)
+    if (show_extents)
     {
       cairo_save (cr);
 
-      /* Draw actual glyph origins */
       cairo_set_source_rgba (cr, 1., 0., 0., .5);
-      cairo_set_line_width (cr, 5);
+      cairo_set_line_width (cr, 10);
       cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
       for (unsigned i = 0; i < l.num_glyphs; i++) {
 	cairo_move_to (cr, l.glyphs[i].x, l.glyphs[i].y);
@@ -183,14 +182,10 @@ view_cairo_t::render (const font_options_t *font_opts)
       cairo_stroke (cr);
 
       cairo_restore (cr);
-    }
-    if (show_extents)
-    {
       cairo_save (cr);
 
-      /* Draw actual glyph origins */
-      cairo_set_source_rgba (cr, .5, .5, .5, 1.);
-      cairo_set_line_width (cr, 2);
+      cairo_set_source_rgba (cr, 1., 0., 1., .5);
+      cairo_set_line_width (cr, 3);
       for (unsigned i = 0; i < l.num_glyphs; i++)
       {
 	hb_glyph_extents_t hb_extents;
