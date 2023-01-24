@@ -75,24 +75,24 @@ struct shape_options_t
        * as guess_segment_properties doesn't like glyphs in the buffer. */
 
       setup_buffer (buffer);
-      char *glyphs = (char *) text;
+      char *glyphs_text = (char *) text;
       int glyphs_len = text_len;
       if (glyphs_len < 0)
-	glyphs_len = strlen (glyphs);
+	glyphs_len = strlen (glyphs_text);
 
-      if (glyphs_len && glyphs[glyphs_len - 1] != ']')
+      if (glyphs_len && glyphs_text[glyphs_len - 1] != ']')
       {
-	glyphs = g_strdup_printf ("%*s]", glyphs_len, glyphs);
+	glyphs_text = g_strdup_printf ("%*s]", glyphs_len, glyphs_text);
 	glyphs_len = -1;
       }
 
       hb_buffer_deserialize_glyphs (buffer,
-				    glyphs, glyphs_len,
+				    glyphs_text, glyphs_len,
 				    nullptr,
 				    font,
 				    HB_BUFFER_SERIALIZE_FORMAT_TEXT);
 
-      if (!strchr (glyphs, '+'))
+      if (!strchr (glyphs_text, '+'))
       {
         scale_advances = false;
         unsigned count;
@@ -107,8 +107,8 @@ struct shape_options_t
 						   &positions[i].y_advance);
       }
 
-      if (glyphs != text)
-        g_free (glyphs);
+      if (glyphs_text != text)
+        g_free (glyphs_text);
 
       return;
     }
