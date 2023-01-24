@@ -125,9 +125,7 @@ _hb_buffer_deserialize_json (hb_buffer_t *buffer,
   while (p < pe && ISSPACE (*p))
     p++;
   if (p < pe && *p == (buffer->len ? ',' : '['))
-  {
     *end_ptr = ++p;
-  }
 
   const char *tok = nullptr;
   int cs;

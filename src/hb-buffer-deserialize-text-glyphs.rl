@@ -93,7 +93,7 @@ glyph_item	=
 
 glyphs = glyph_item (space* '|' space* glyph_item)* space* ('|'|']');
 
-main := space* '[' glyphs;
+main := space* glyphs;
 
 }%%
 
@@ -111,6 +111,8 @@ _hb_buffer_deserialize_text_glyphs (hb_buffer_t *buffer,
 
   while (p < pe && ISSPACE (*p))
     p++;
+  if (p < pe && *p == (buffer->len ? ',' : '['))
+    *end_ptr = ++p;
 
   const char *tok = nullptr;
   int cs;

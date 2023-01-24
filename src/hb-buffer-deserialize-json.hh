@@ -548,21 +548,19 @@ _hb_buffer_deserialize_json (hb_buffer_t *buffer,
   while (p < pe && ISSPACE (*p))
     p++;
   if (p < pe && *p == (buffer->len ? ',' : '['))
-  {
     *end_ptr = ++p;
-  }
 
   const char *tok = nullptr;
   int cs;
   hb_glyph_info_t info = {0};
   hb_glyph_position_t pos = {0};
   
-#line 554 "hb-buffer-deserialize-json.hh"
+#line 552 "hb-buffer-deserialize-json.hh"
 	{
 	cs = deserialize_json_start;
 	}
 
-#line 557 "hb-buffer-deserialize-json.hh"
+#line 555 "hb-buffer-deserialize-json.hh"
 	{
 	int _slen;
 	int _trans;
@@ -774,7 +772,7 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-#line 735 "hb-buffer-deserialize-json.hh"
+#line 733 "hb-buffer-deserialize-json.hh"
 	}
 
 _again:
@@ -786,7 +784,7 @@ _again:
 	_out: {}
 	}
 
-#line 139 "hb-buffer-deserialize-json.rl"
+#line 137 "hb-buffer-deserialize-json.rl"
 
 
   *end_ptr = p;

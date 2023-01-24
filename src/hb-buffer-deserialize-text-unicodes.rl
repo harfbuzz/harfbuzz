@@ -75,7 +75,7 @@ unicode_item	=
 
 unicodes = unicode_item (space* '|' space* unicode_item)* space* ('|'|'>');
 
-main := space* '<' unicodes;
+main := space* unicodes;
 
 }%%
 
@@ -90,6 +90,8 @@ _hb_buffer_deserialize_text_unicodes (hb_buffer_t *buffer,
 
   while (p < pe && ISSPACE (*p))
     p++;
+  if (p < pe && *p == (buffer->len ? ',' : '<'))
+    *end_ptr = ++p;
 
   const char *tok = nullptr;
   int cs;
