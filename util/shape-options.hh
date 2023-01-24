@@ -75,11 +75,26 @@ struct shape_options_t
        * as guess_segment_properties doesn't like glyphs in the buffer. */
 
       setup_buffer (buffer);
+      char *glyphs = (char *) text;
+      int glyphs_len = text_len;
+      if (glyphs_len < 0)
+	glyphs_len = strlen (glyphs);
+
+      if (glyphs_len && glyphs[glyphs_len - 1] != ']')
+      {
+	glyphs = g_strdup_printf ("%*s]", glyphs_len, glyphs);
+	glyphs_len = -1;
+      }
+
       hb_buffer_deserialize_glyphs (buffer,
-				    text, text_len,
+				    glyphs, glyphs_len,
 				    nullptr,
 				    font,
 				    HB_BUFFER_SERIALIZE_FORMAT_TEXT);
+
+      if (glyphs != text)
+        g_free (glyphs);
+
       return;
     }
 
