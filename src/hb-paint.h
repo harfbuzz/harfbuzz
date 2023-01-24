@@ -54,6 +54,10 @@ HB_BEGIN_DECLS
  * The paint-image callback is only needed for glyphs
  * with image blobs in the CBDT, sbix or SVG tables.
  *
+ * The custom-palette-color callback is only necessary if
+ * you want to override colors from the font palette with
+ * custom colors.
+ *
  * Since: REPLACEME
  **/
 typedef struct hb_paint_funcs_t hb_paint_funcs_t;
@@ -666,6 +670,12 @@ typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
  *
  * A virtual method for the #hb_paint_funcs_t to fetch a color from the custom
  * color palette.
+ *
+ * Custom palette colors override the colors from the fonts selected color
+ * palette. It is possible to override only some of the palette colors.
+ *
+ * This function might get called multiple times, but the custom palette is
+ * expected to remain unchanged for duration of a hb_font_paint_glyph() call.
  *
  * Return value: `true` if found, `false` otherwise
  *
