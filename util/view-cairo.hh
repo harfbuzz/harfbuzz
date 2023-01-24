@@ -168,7 +168,8 @@ view_cairo_t::render (const font_options_t *font_opts)
 
     cairo_translate (cr, -vert * leading, +horiz * leading);
 
-    if (annotate) {
+    if (annotate)
+    {
       cairo_save (cr);
 
       /* Draw actual glyph origins */
@@ -178,6 +179,28 @@ view_cairo_t::render (const font_options_t *font_opts)
       for (unsigned i = 0; i < l.num_glyphs; i++) {
 	cairo_move_to (cr, l.glyphs[i].x, l.glyphs[i].y);
 	cairo_rel_line_to (cr, 0, 0);
+      }
+      cairo_stroke (cr);
+
+      cairo_restore (cr);
+    }
+    if (show_extents)
+    {
+      cairo_save (cr);
+
+      /* Draw actual glyph origins */
+      cairo_set_source_rgba (cr, .5, .5, .5, 1.);
+      cairo_set_line_width (cr, 2);
+      for (unsigned i = 0; i < l.num_glyphs; i++)
+      {
+	hb_glyph_extents_t hb_extents;
+	hb_font_get_glyph_extents (font, l.glyphs[i].index, &hb_extents);
+	double x1 = scalbn ((double) hb_extents.x_bearing, - (int) subpixel_bits);
+	double y1 = -scalbn ((double) hb_extents.y_bearing, - (int) subpixel_bits);
+	double width = scalbn ((double) hb_extents.width, - (int) subpixel_bits);
+	double height = -scalbn ((double) hb_extents.height, - (int) subpixel_bits);
+
+	cairo_rectangle (cr, l.glyphs[i].x + x1, l.glyphs[i].y + y1, width, height);
       }
       cairo_stroke (cr);
 
