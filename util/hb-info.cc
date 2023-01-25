@@ -1,6 +1,5 @@
 /*
- * Copyright © 2010  Behdad Esfahbod
- * Copyright © 2011,2012  Google, Inc.
+ * Copyright © 2023  Behdad Esfahbod
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
