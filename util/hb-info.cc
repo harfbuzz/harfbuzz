@@ -1217,7 +1217,7 @@ struct info_t :
     hb_ot_color_palette_get_colors (face, palette_index, 0,
 				    &count, palette);
 
-#define REPEAT 8
+#define REPEAT 16
     hb_color_t *data = (hb_color_t *) malloc (count * REPEAT * sizeof (hb_color_t));
     for (unsigned i = 0; i < count; i++)
       for (unsigned j = 0; j < REPEAT; j++)
