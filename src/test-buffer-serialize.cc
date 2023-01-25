@@ -77,7 +77,7 @@ main (int argc, char **argv)
         break;
       }
 
-      if (*p == ']' || *p == '\n')
+      if (*p == '\n')
         break;
       if (p == line)
       {

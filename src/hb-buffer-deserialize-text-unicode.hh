@@ -172,7 +172,7 @@ _hb_buffer_deserialize_text_unicode (hb_buffer_t *buffer,
 				     const char **end_ptr,
 				     hb_font_t *font)
 {
-  const char *p = buf, *pe = buf + buf_len, *eof = pe;
+  const char *p = buf, *pe = buf + buf_len, *eof = pe, *orig_pe = pe;
 
   while (p < pe && ISSPACE (*p))
     p++;
@@ -316,6 +316,13 @@ _again:
 
 #line 115 "hb-buffer-deserialize-text-unicode.rl"
 
+
+  if (pe < orig_pe && *pe == '>')
+  {
+    pe++;
+    if (p == pe)
+      p++;
+  }
 
   *end_ptr = p;
 
