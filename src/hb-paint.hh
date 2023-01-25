@@ -216,8 +216,8 @@ struct hb_paint_funcs_t
     if (!sx && !sy)
       return false;
 
-    float x = -tanf (sx * (float) M_PI);
-    float y = +tanf (sy * (float) M_PI);
+    float x = tanf (-sx * (float) M_PI);
+    float y = tanf (+sy * (float) M_PI);
     push_transform (paint_data, 1.f, y, x, 1.f, 0.f, 0.f);
     return true;
   }
