@@ -183,7 +183,19 @@ struct Glyph
   {
     contour_point_vector_t all_points, deltas;
     unsigned composite_contours = 0;
-    if (!get_points (font, glyf, all_points, &deltas, &plan->head_maxp_info, &composite_contours, false, false))
+    head_maxp_info_t *head_maxp_info_p = &plan->head_maxp_info;
+    unsigned *composite_contours_p = &composite_contours;
+
+    // don't compute head/maxp values when glyph has no contours(type is EMPTY)
+    // also ignore .notdef glyph when --notdef-outline is not enabled
+    if (type == EMPTY ||
+        (gid == 0 && !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE)))
+    {
+      head_maxp_info_p = nullptr;
+      composite_contours_p = nullptr;
+    }
+
+    if (!get_points (font, glyf, all_points, &deltas, head_maxp_info_p, composite_contours_p, false, false))
       return false;
 
     // .notdef, set type to empty so we only update metrics and don't compile bytes for

@@ -2,6 +2,7 @@ FONTS:
 Handjet.ttf
 
 PROFILES:
+default.txt
 notdef-outline.txt
 
 SUBSETS:
