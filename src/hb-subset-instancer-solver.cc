@@ -28,8 +28,6 @@
  *
  * https://github.com/fonttools/fonttools/blob/f73220816264fc383b8a75f2146e8d69e455d398/Lib/fontTools/varLib/instancer/solver.py
  *
- * See XXX markers for unfinished parts.
- *
  * Where that file returns None for a triple, we return Triple{}.
  * This should be safe.
  */
@@ -45,6 +43,13 @@ struct Triple {
   Triple (float minimum_, float middle_, float maximum_) :
     minimum (minimum_), middle (middle_), maximum (maximum_) {}
 
+  bool operator == (const Triple &o)
+  {
+    return minimum == o.minimum &&
+	   middle  == o.middle  &&
+	   maximum == o.maximum;
+  }
+
   float minimum;
   float middle;
   float maximum;
@@ -52,6 +57,31 @@ struct Triple {
 
 static inline Triple _reverse_negate(const Triple &v)
 { return {-v.maximum, -v.middle, -v.minimum}; }
+
+
+static inline float supportScalar (float coord, const Triple &tent)
+{
+  /* Copied from VarRegionAxis::evaluate() */
+  float start = tent.minimum, peak = tent.middle, end = tent.maximum;
+
+  if (unlikely (start > peak || peak > end))
+    return 1.;
+  if (unlikely (start < 0 && end > 0 && peak != 0))
+    return 1.;
+
+  if (peak == 0 || coord == peak)
+    return 1.;
+
+  if (coord <= start || end <= coord)
+    return 0.;
+
+  /* Interpolate */
+  if (coord < peak)
+    return (coord - start) / (peak - start);
+  else
+    return  (end - coord) / (end - peak);
+}
+
 
 using result_item_t = hb_pair_t<float, Triple>;
 using result_t = hb_vector_t<result_item_t>;
@@ -124,7 +154,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
    */
   if (axisMax < peak)
   {
-    float mult = 1.f; //XXX supportScalar({"tag": axisMax}, {"tag": tent})
+    float mult = supportScalar (axisMax, tent);
     tent = Triple{lower, axisMax, axisMax};
 
     result_t vec = _solve (tent, axisLimit);
@@ -137,13 +167,13 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
 
   // lower <= axisDef <= peak <= axisMax
 
-  float gain = 1.0f; // XXX supportScalar({"tag": axisDef}, {"tag": tent})
+  float gain = supportScalar (axisDef, tent);
   result_t out {hb_pair (gain, Triple{})};
 
   // First, the positive side
 
   // outGain is the scalar of axisMax at the tent.
-  float outGain = 1.f; // XXX supportScalar({"tag": axisMax}, {"tag": tent})
+  float outGain = supportScalar (axisMax, tent);
 
   /* Case 3a: Gain is more than outGain. The tent down-slope crosses
    * the axis into negative. We have to split it into multiples.
@@ -183,7 +213,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     if (upper >= axisMax)
     {
       Triple loc {crossing, axisMax, axisMax};
-      float scalar = 1.f; // XXX supportScalar({"tag": axisMax}, {"tag": tent})
+      float scalar = supportScalar (axisMax, tent);
 
       out.push (hb_pair (scalar - gain, loc));
     }
@@ -294,7 +324,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     float scalar1 = 1.f;
 
     Triple loc2 {peak, axisMax, axisMax};
-    float scalar2 = 1.f; // XXX supportScalar({"tag": axisMax}, {"tag": tent})
+    float scalar2 = supportScalar (axisMax, tent);
 
     out.push (hb_pair (scalar1 - gain, loc1));
     // Don't add a dirac delta!
@@ -321,7 +351,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
   if (lower <= axisMin)
   {
     Triple loc {axisMin, axisMin, axisDef};
-    float scalar = 1.f; // XXX supportScalar({"tag": axisMin}, {"tag": tent})
+    float scalar = supportScalar (axisMin, tent);
 
     out.push (hb_pair (scalar - gain, loc));
   }
@@ -362,6 +392,36 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
   return out;
 }
 
+/* Normalizes value based on a min/default/max triple. */
+static inline float normalizeValue (float v, const Triple &triple, bool extrapolate = false)
+{
+  /*
+  >>> normalizeValue(400, (100, 400, 900))
+  0.0
+  >>> normalizeValue(100, (100, 400, 900))
+  -1.0
+  >>> normalizeValue(650, (100, 400, 900))
+  0.5
+  */
+  float lower = triple.minimum, def = triple.middle, upper = triple.maximum;
+  assert (lower <= def && def <= upper);
+
+  if (!extrapolate)
+      v = hb_max (hb_min (v, upper), lower);
+
+  if ((v == def) || (lower == upper))
+    return 0.f;
+
+  if ((v < def && lower != def) || (v > def && upper == def))
+    return (v - def) / (def - lower);
+  else
+  {
+    assert ((v > def && upper != def) ||
+	    (v < def && lower == def));
+    return (v - def) / (upper - def);
+  }
+}
+
 /* Given a tuple (lower,peak,upper) "tent" and new axis limits
  * (axisMin,axisDefault,axisMax), solves how to represent the tent
  * under the new axis configuration.  All values are in normalized
@@ -391,15 +451,21 @@ rebase_tent (Triple tent, Triple axisLimit)
 
   result_t sols = _solve (tent, axisLimit);
 
-#if 0
-  // XXX
-  n = lambda v: normalizeValue(v, axisLimit, extrapolate=True)
-  sols = [
-      (scalar, (n(v[0]), n(v[1]), n(v[2])) if v is not None else None)
-      for scalar, v in sols
-      if scalar
-  ]
-#endif
+  auto n = [&axisLimit] (float v) { return normalizeValue (v, axisLimit, true); };
+
+  result_t out;
+  for (auto &p : sols)
+  {
+    if (!p.first) continue;
+    if (p.second == Triple{})
+    {
+      out.push (p);
+      continue;
+    }
+    Triple t = p.second;
+    out.push (hb_pair (p.first,
+		       Triple{n (t.minimum), n (t.middle), n (t.maximum)}));
+  }
 
   return sols;
 }
