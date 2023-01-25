@@ -72,7 +72,7 @@ unicode_item	=
 	%add_item
 	;
 
-unicodes = unicode_item (space* '|' space* unicode_item)* space* ('|'|'>');
+unicodes = unicode_item (space* '|' space* unicode_item)* space*;
 
 main := space* unicodes;
 
@@ -92,7 +92,7 @@ _hb_buffer_deserialize_text_unicode (hb_buffer_t *buffer,
   if (p < pe && *p == (buffer->len ? '|' : '<'))
     *end_ptr = ++p;
 
-  const char *end = strchr ((char *) p, ']');
+  const char *end = strchr ((char *) p, '>');
   if (end)
     pe = eof = end;
   else
