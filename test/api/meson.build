@@ -18,6 +18,7 @@ tests = [
   'test-extents.c',
   'test-font.c',
   'test-font-scale.c',
+  'test-glyph-names.c',
   'test-instance-cff2.c',
   'test-map.c',
   'test-object.c',
