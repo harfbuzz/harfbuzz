@@ -559,52 +559,52 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
   hb_cairo_color_t color0, color1;
 
   if (start_angle == end_angle)
+  {
+    if (extend == CAIRO_EXTEND_PAD)
     {
-      if (extend == CAIRO_EXTEND_PAD)
-        {
-          hb_cairo_color_t c;
-          if (start_angle > 0)
-            {
-              c.r = hb_color_get_red (stops[0].color) / 255.;
-              c.g = hb_color_get_green (stops[0].color) / 255.;
-              c.b = hb_color_get_blue (stops[0].color) / 255.;
-              c.a = hb_color_get_alpha (stops[0].color) / 255.;
-              _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-						     0.,          &c,
-						     start_angle, &c,
-						     pattern);
-            }
-          if (end_angle < _2_M_PIf)
-            {
-              c.r = hb_color_get_red (stops[n_stops - 1].color) / 255.;
-              c.g = hb_color_get_green (stops[n_stops - 1].color) / 255.;
-              c.b = hb_color_get_blue (stops[n_stops - 1].color) / 255.;
-              c.a = hb_color_get_alpha (stops[n_stops - 1].color) / 255.;
-              _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-						     end_angle, &c,
-						     _2_M_PIf,  &c,
-						     pattern);
-            }
-        }
-      return;
+      hb_cairo_color_t c;
+      if (start_angle > 0)
+      {
+	c.r = hb_color_get_red (stops[0].color) / 255.;
+	c.g = hb_color_get_green (stops[0].color) / 255.;
+	c.b = hb_color_get_blue (stops[0].color) / 255.;
+	c.a = hb_color_get_alpha (stops[0].color) / 255.;
+	_hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+					       0.,          &c,
+					       start_angle, &c,
+					       pattern);
+      }
+      if (end_angle < _2_M_PIf)
+      {
+	c.r = hb_color_get_red (stops[n_stops - 1].color) / 255.;
+	c.g = hb_color_get_green (stops[n_stops - 1].color) / 255.;
+	c.b = hb_color_get_blue (stops[n_stops - 1].color) / 255.;
+	c.a = hb_color_get_alpha (stops[n_stops - 1].color) / 255.;
+	_hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+					       end_angle, &c,
+					       _2_M_PIf,  &c,
+					       pattern);
+      }
     }
+    return;
+  }
 
   assert (start_angle != end_angle);
 
   /* handle directions */
   if (end_angle < start_angle)
-    {
-      float angle = end_angle;
-      end_angle = start_angle;
-      start_angle = angle;
+  {
+    float angle = end_angle;
+    end_angle = start_angle;
+    start_angle = angle;
 
-      for (unsigned i = 0; i < n_stops - 1 - i; i++)
-        {
-          hb_color_stop_t stop = stops[i];
-          stops[i] = stops[n_stops - 1 - i];
-          stops[n_stops - 1 - i] = stop;
-        }
+    for (unsigned i = 0; i < n_stops - 1 - i; i++)
+    {
+      hb_color_stop_t stop = stops[i];
+      stops[i] = stops[n_stops - 1 - i];
+      stops[n_stops - 1 - i] = stop;
     }
+  }
 
   if (n_stops > PREALLOCATED_COLOR_STOPS)
   {
@@ -613,179 +613,179 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
   }
 
   for (unsigned i = 0; i < n_stops; i++)
-    {
-      angles[i] = start_angle + stops[i].offset * (end_angle - start_angle);
-      colors[i].r = hb_color_get_red (stops[i].color) / 255.;
-      colors[i].g = hb_color_get_green (stops[i].color) / 255.;
-      colors[i].b = hb_color_get_blue (stops[i].color) / 255.;
-      colors[i].a = hb_color_get_alpha (stops[i].color) / 255.;
-    }
+  {
+    angles[i] = start_angle + stops[i].offset * (end_angle - start_angle);
+    colors[i].r = hb_color_get_red (stops[i].color) / 255.;
+    colors[i].g = hb_color_get_green (stops[i].color) / 255.;
+    colors[i].b = hb_color_get_blue (stops[i].color) / 255.;
+    colors[i].a = hb_color_get_alpha (stops[i].color) / 255.;
+  }
 
   if (extend == CAIRO_EXTEND_PAD)
+  {
+    unsigned pos;
+
+    color0 = colors[0];
+    for (pos = 0; pos < n_stops; pos++)
     {
-      unsigned pos;
-
-      color0 = colors[0];
-      for (pos = 0; pos < n_stops; pos++)
-        {
-          if (angles[pos] >= 0)
-            {
-              if (pos > 0)
-                {
-                  float k = (0 - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
-                  _hb_cairo_interpolate_colors (&colors[pos-1], &colors[pos], k, &color0);
-                }
-              break;
-            }
-        }
-      if (pos == n_stops)
-        {
-          /* everything is below 0 */
-          color0 = colors[n_stops-1];
-          _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-						 0.,       &color0,
-						 _2_M_PIf, &color0,
-						 pattern);
-          goto done;
-        }
-
+      if (angles[pos] >= 0)
+      {
+	if (pos > 0)
+	{
+	  float k = (0 - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
+	  _hb_cairo_interpolate_colors (&colors[pos-1], &colors[pos], k, &color0);
+	}
+	break;
+      }
+    }
+    if (pos == n_stops)
+    {
+      /* everything is below 0 */
+      color0 = colors[n_stops-1];
       _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-					     0.,          &color0,
-					     angles[pos], &colors[pos],
+					     0.,       &color0,
+					     _2_M_PIf, &color0,
 					     pattern);
-
-      for (pos++; pos < n_stops; pos++)
-        {
-          if (angles[pos] <= _2_M_PIf)
-            {
-              _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-						     angles[pos - 1], &colors[pos-1],
-						     angles[pos],     &colors[pos],
-						     pattern);
-            }
-          else
-            {
-              float k = (_2_M_PIf - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
-              _hb_cairo_interpolate_colors (&colors[pos - 1], &colors[pos], k, &color1);
-              _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-						     angles[pos - 1], &colors[pos - 1],
-						     _2_M_PIf,        &color1,
-						     pattern);
-              break;
-            }
-        }
-
-      if (pos == n_stops)
-        {
-          /* everything is below 2*M_PI */
-          color0 = colors[n_stops - 1];
-          _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-						 angles[n_stops - 1], &color0,
-						 _2_M_PIf,            &color0,
-						 pattern);
-          goto done;
-        }
+      goto done;
     }
-  else
+
+    _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+					   0.,          &color0,
+					   angles[pos], &colors[pos],
+					   pattern);
+
+    for (pos++; pos < n_stops; pos++)
     {
-      int k;
-      float span;
-
-      span = angles[n_stops - 1] - angles[0];
-      k = 0;
-      if (angles[0] >= 0)
-        {
-          float ss = angles[0];
-          while (ss > 0)
-            {
-              if (span > 0)
-                {
-                  ss -= span;
-                  k--;
-                }
-              else
-                {
-                  ss += span;
-                  k++;
-                }
-            }
-        }
-      else if (angles[0] < 0)
-        {
-          float ee = angles[n_stops - 1];
-          while (ee < 0)
-            {
-              if (span > 0)
-                {
-                  ee += span;
-                  k++;
-                }
-              else
-                {
-                  ee -= span;
-                  k--;
-                }
-            }
-        }
-
-      //assert (angles[0] + k * span <= 0 && 0 < angles[n_stops - 1] + k * span);
-      span = fabs (span);
-
-     for (unsigned l = k; l < 1000; l++)
-        {
-          for (unsigned i = 1; i < n_stops; i++)
-            {
-              float a0, a1;
-              hb_cairo_color_t *c0, *c1;
-
-              if ((l % 2 != 0) && (extend == CAIRO_EXTEND_REFLECT))
-                {
-                  a0 = angles[0] + angles[n_stops - 1] - angles[n_stops - 1 - (i-1)] + l * span;
-                  a1 = angles[0] + angles[n_stops - 1] - angles[n_stops - 1 - i] + l * span;
-                  c0 = &colors[n_stops - 1 - (i - 1)];
-                  c1 = &colors[n_stops - 1 - i];
-                }
-              else
-                {
-                  a0 = angles[i-1] + l * span;
-                  a1 = angles[i] + l * span;
-                  c0 = &colors[i-1];
-                  c1 = &colors[i];
-                }
-
-              if (a1 < 0)
-                continue;
-              if (a0 < 0)
-                {
-                  hb_cairo_color_t color;
-                  float f = (0 - a0)/(a1 - a0);
-                  _hb_cairo_interpolate_colors (c0, c1, f, &color);
-                  _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-							 0,  &color,
-							 a1, c1,
-							 pattern);
-                }
-              else if (a1 >= _2_M_PIf)
-                {
-                  hb_cairo_color_t color;
-                  float f = (_2_M_PIf - a0)/(a1 - a0);
-                  _hb_cairo_interpolate_colors (c0, c1, f, &color);
-                  _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-							 a0,       c0,
-							 _2_M_PIf, &color,
-							 pattern);
-                  goto done;
-                }
-              else
-                {
-                  _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
-							 a0, c0,
-							 a1, c1,
-							 pattern);
-                }
-            }
-        }
+      if (angles[pos] <= _2_M_PIf)
+      {
+	_hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+					       angles[pos - 1], &colors[pos-1],
+					       angles[pos],     &colors[pos],
+					       pattern);
+      }
+      else
+      {
+	float k = (_2_M_PIf - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
+	_hb_cairo_interpolate_colors (&colors[pos - 1], &colors[pos], k, &color1);
+	_hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+					       angles[pos - 1], &colors[pos - 1],
+					       _2_M_PIf,        &color1,
+					       pattern);
+	break;
+      }
     }
+
+    if (pos == n_stops)
+    {
+      /* everything is below 2*M_PI */
+      color0 = colors[n_stops - 1];
+      _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+					     angles[n_stops - 1], &color0,
+					     _2_M_PIf,            &color0,
+					     pattern);
+      goto done;
+    }
+  }
+  else
+  {
+    int k;
+    float span;
+
+    span = angles[n_stops - 1] - angles[0];
+    k = 0;
+    if (angles[0] >= 0)
+    {
+      float ss = angles[0];
+      while (ss > 0)
+      {
+	if (span > 0)
+	{
+	  ss -= span;
+	  k--;
+	}
+	else
+	{
+	  ss += span;
+	  k++;
+	}
+      }
+    }
+    else if (angles[0] < 0)
+    {
+      float ee = angles[n_stops - 1];
+      while (ee < 0)
+      {
+	if (span > 0)
+	{
+	  ee += span;
+	  k++;
+	}
+	else
+	{
+	  ee -= span;
+	  k--;
+	}
+      }
+    }
+
+    //assert (angles[0] + k * span <= 0 && 0 < angles[n_stops - 1] + k * span);
+    span = fabs (span);
+
+    for (unsigned l = k; l < 1000; l++)
+    {
+      for (unsigned i = 1; i < n_stops; i++)
+      {
+        float a0, a1;
+	hb_cairo_color_t *c0, *c1;
+
+	if ((l % 2 != 0) && (extend == CAIRO_EXTEND_REFLECT))
+	{
+	  a0 = angles[0] + angles[n_stops - 1] - angles[n_stops - 1 - (i-1)] + l * span;
+	  a1 = angles[0] + angles[n_stops - 1] - angles[n_stops - 1 - i] + l * span;
+	  c0 = &colors[n_stops - 1 - (i - 1)];
+	  c1 = &colors[n_stops - 1 - i];
+	}
+	else
+	{
+	  a0 = angles[i-1] + l * span;
+	  a1 = angles[i] + l * span;
+	  c0 = &colors[i-1];
+	  c1 = &colors[i];
+	}
+
+	if (a1 < 0)
+	  continue;
+	if (a0 < 0)
+	{
+	  hb_cairo_color_t color;
+	  float f = (0 - a0)/(a1 - a0);
+	  _hb_cairo_interpolate_colors (c0, c1, f, &color);
+	  _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+						 0,  &color,
+						 a1, c1,
+						 pattern);
+	}
+	else if (a1 >= _2_M_PIf)
+	{
+	  hb_cairo_color_t color;
+	  float f = (_2_M_PIf - a0)/(a1 - a0);
+	  _hb_cairo_interpolate_colors (c0, c1, f, &color);
+	  _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+						 a0,       c0,
+						 _2_M_PIf, &color,
+						 pattern);
+	  goto done;
+	}
+	else
+	{
+	  _hb_cairo_add_sweep_gradient_patches1 (cx, cy, radius,
+						 a0, c0,
+						 a1, c1,
+						 pattern);
+	}
+      }
+    }
+  }
 
 done:
 
