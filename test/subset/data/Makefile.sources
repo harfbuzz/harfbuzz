@@ -51,6 +51,7 @@ TESTS = \
 	tests/instance_feature_variations.tests \
 	tests/instantiate_glyf.tests \
 	tests/pin_all_at_default.tests \
+	tests/instance_no_double_free.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.

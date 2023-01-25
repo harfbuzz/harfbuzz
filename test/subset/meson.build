@@ -53,6 +53,7 @@ tests = [
   'instantiate_glyf',
   'full_instance',
   'instance_feature_variations',
+  'instance_no_double_free',
 ]
 
 repack_tests = [
