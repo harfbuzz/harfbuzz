@@ -45,6 +45,7 @@ TEST_PROGS = \
 	test-extents \
 	test-font \
 	test-font-scale \
+	test-glyph-names \
 	test-instance-cff2 \
 	test-map \
 	test-object \
