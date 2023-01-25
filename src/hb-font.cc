@@ -1715,6 +1715,9 @@ hb_font_get_glyph_contour_point_for_origin (hb_font_t      *font,
  * If the glyph ID has no name in @font, a string of the form `gidDDD` is
  * generated, with `DDD` being the glyph ID.
  *
+ * According to the OpenType specification, glyph names are limited to 63
+ * characters and can only contain (a subset of) ASCII.
+ *
  * Since: 0.9.2
  **/
 void
