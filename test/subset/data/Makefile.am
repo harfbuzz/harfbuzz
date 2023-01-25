@@ -61,6 +61,7 @@ EXTRA_DIST += \
 	expected/instantiate_glyf \
 	expected/pin_all_at_default \
 	expected/instance_no_double_free \
+	expected/mvar_full_instance \
 	fonts \
 	profiles \
 	$(NULL)

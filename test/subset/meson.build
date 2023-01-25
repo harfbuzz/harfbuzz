@@ -54,6 +54,7 @@ tests = [
   'full_instance',
   'instance_feature_variations',
   'instance_no_double_free',
+  'mvar_full_instance',
 ]
 
 repack_tests = [
