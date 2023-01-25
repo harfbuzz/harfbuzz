@@ -49,7 +49,8 @@ struct head_maxp_info_t
       maxCompositePoints (0),
       maxCompositeContours (0),
       maxComponentElements (0),
-      maxComponentDepth (0) {}
+      maxComponentDepth (0),
+      allXMinIsLsb (true) {}
 
   int xMin;
   int xMax;
@@ -61,6 +62,7 @@ struct head_maxp_info_t
   unsigned maxCompositeContours;
   unsigned maxComponentElements;
   unsigned maxComponentDepth;
+  bool allXMinIsLsb;
 };
 
 typedef struct head_maxp_info_t head_maxp_info_t;

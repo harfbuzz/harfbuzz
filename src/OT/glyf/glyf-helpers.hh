@@ -50,6 +50,13 @@ _add_head_and_set_loca_version (hb_subset_plan_t *plan, bool use_short_loca)
     head_prime->xMax = plan->head_maxp_info.xMax;
     head_prime->yMin = plan->head_maxp_info.yMin;
     head_prime->yMax = plan->head_maxp_info.yMax;
+
+    unsigned orig_flag = head_prime->flags;
+    if (plan->head_maxp_info.allXMinIsLsb)
+      orig_flag |= 1 << 1;
+    else
+      orig_flag &= ~(1 << 1);
+    head_prime->flags = orig_flag;
   }
   bool success = plan->add_table (HB_OT_TAG_head, head_prime_blob);
 

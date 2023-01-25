@@ -97,6 +97,7 @@ struct head
 					 * entire font as HBUINT32, then store
 					 * 0xB1B0AFBAu - sum. */
   HBUINT32	magicNumber;		/* Set to 0x5F0F3CF5u. */
+  public:
   HBUINT16	flags;			/* Bit 0: Baseline for font at y=0;
 					 * Bit 1: Left sidebearing point at x=0;
 					 * Bit 2: Instructions may depend on point size;
@@ -141,6 +142,7 @@ struct head
 					 * encoded in the cmap subtables represent proper
 					 * support for those code points.
 					 * Bit 15: Reserved, set to 0. */
+  protected:
   HBUINT16	unitsPerEm;		/* Valid range is from 16 to 16384. This value
 					 * should be a power of 2 for fonts that have
 					 * TrueType outlines. */
