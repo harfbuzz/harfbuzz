@@ -396,7 +396,8 @@ build_summary = {
      'ICU': conf.get('HAVE_ICU', 0) == 1,
     },
   'Font callbacks (the more the merrier)':
-    {'FreeType': conf.get('HAVE_FREETYPE', 0) == 1,
+    {'Builtin' : true,
+     'FreeType': conf.get('HAVE_FREETYPE', 0) == 1,
     },
   'Dependencies used for command-line utilities':
     {'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
@@ -413,6 +414,7 @@ build_summary = {
   'Other features':
     {'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,
      'GObject bindings': conf.get('HAVE_GOBJECT', 0) == 1,
+     'Cairo integration': conf.get('HAVE_CAIRO', 0) == 1,
      'Introspection': conf.get('HAVE_INTROSPECTION', 0) == 1,
      'Experimental APIs': conf.get('HB_EXPERIMENTAL_API', 0) == 1,
     },
