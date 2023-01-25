@@ -65,14 +65,31 @@ main (int argc, char **argv)
   {
     hb_buffer_clear_contents (buf);
 
-    const char *p = line;
-    while (hb_buffer_deserialize_glyphs (buf,
+    while (true)
+    {
+      const char *p = line;
+      if (!hb_buffer_deserialize_glyphs (buf,
 					 p, -1, &p,
 					 font,
 					 HB_BUFFER_SERIALIZE_FORMAT_TEXT))
-      ;
-    if (*p && *p != '\n')
-      ret = false;
+      {
+        ret = false;
+        break;
+      }
+
+      if (*p == ']' || *p == '\n')
+        break;
+      if (p == line)
+      {
+	ret = false;
+	break;
+      }
+
+      unsigned len = strlen (p);
+      memmove (line, p, len);
+      if (!fgets (line + len, sizeof(line) - len, stdin))
+        line[len] = '\0';
+    }
 
     unsigned count = hb_buffer_get_length (buf);
     for (unsigned offset = 0; offset < count;)

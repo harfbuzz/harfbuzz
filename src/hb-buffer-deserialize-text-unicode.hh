@@ -183,24 +183,37 @@ _hb_buffer_deserialize_text_unicode (hb_buffer_t *buffer,
 				     const char **end_ptr,
 				     hb_font_t *font)
 {
-  const char *p = buf, *pe = buf + buf_len;
+  const char *p = buf, *pe = buf + buf_len, *eof = pe;
 
   while (p < pe && ISSPACE (*p))
     p++;
-  if (p < pe && *p == (buffer->len ? ',' : '<'))
+  if (p < pe && *p == (buffer->len ? '|' : '<'))
     *end_ptr = ++p;
+
+  const char *end = strchr ((char *) p, ']');
+  if (end)
+    pe = eof = end;
+  else
+  {
+    end = strrchr ((char *) p, '|');
+    if (end)
+      pe = eof = end;
+    else
+      pe = eof = p;
+  }
+
 
   const char *tok = nullptr;
   int cs;
   hb_glyph_info_t info = {0};
   const hb_glyph_position_t pos = {0};
   
-#line 192 "hb-buffer-deserialize-text-unicode.hh"
+#line 205 "hb-buffer-deserialize-text-unicode.hh"
 	{
 	cs = deserialize_text_unicode_start;
 	}
 
-#line 195 "hb-buffer-deserialize-text-unicode.hh"
+#line 208 "hb-buffer-deserialize-text-unicode.hh"
 	{
 	int _slen;
 	int _trans;
@@ -267,7 +280,7 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-#line 254 "hb-buffer-deserialize-text-unicode.hh"
+#line 267 "hb-buffer-deserialize-text-unicode.hh"
 	}
 
 _again:
@@ -279,12 +292,12 @@ _again:
 	_out: {}
 	}
 
-#line 102 "hb-buffer-deserialize-text-unicode.rl"
+#line 115 "hb-buffer-deserialize-text-unicode.rl"
 
 
   *end_ptr = p;
 
-  return p == pe && *(p-1) != ']';
+  return p == pe;
 }
 
 #endif /* HB_BUFFER_DESERIALIZE_TEXT_UNICODE_HH */
