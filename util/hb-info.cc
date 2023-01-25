@@ -1324,7 +1324,7 @@ struct info_t :
 	}
 
 #ifdef HAVE_CHAFA
-	if (verbose)
+	if (verbose && isatty (fileno (stdout)))
 	{
 	  GString *chafa_str = _palette_chafa_str (i);
 	  printf ("%u	%s	%-23s	%*s\n", i, type, name,
