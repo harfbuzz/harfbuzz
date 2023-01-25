@@ -1294,7 +1294,7 @@ struct info_t :
       if (verbose)
       {
 	printf ("\nPalettes:\n\n");
-	printf ("Index	Flags	Name\n---------------------\n");
+	printf ("Index	Flags	Name\n--------------------\n");
       }
       unsigned count = hb_ot_color_palette_get_count (face);
       for (unsigned i = 0; i < count; i++)
