@@ -90,7 +90,7 @@
 
 
 #ifndef HB_GLYF_MAX_POINTS
-#define HB_GLYF_MAX_POINTS 10000
+#define HB_GLYF_MAX_POINTS 20000
 #endif
 
 #ifndef HB_GLYF_MAX_EDGE_COUNT

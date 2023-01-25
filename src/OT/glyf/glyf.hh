@@ -98,7 +98,9 @@ struct glyf
       use_short_loca = max_offset < 0x1FFFF;
     }
 
-    glyf_prime->serialize (c->serializer, glyphs.writer (), use_short_loca, c->plan, font);
+    if (!glyf_prime->serialize (c->serializer, glyphs.writer (), use_short_loca, c->plan, font))
+      return false;
+
     if (!use_short_loca) {
       padded_offsets =
           + hb_iter (glyphs)
