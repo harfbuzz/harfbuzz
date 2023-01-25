@@ -353,6 +353,7 @@ hb_subset_sources = files(
   'hb-subset-cff2.hh',
   'hb-subset-input.cc',
   'hb-subset-input.hh',
+  'hb-subset-instancer-solver.cc',
   'hb-subset-plan.cc',
   'hb-subset-plan.hh',
   'hb-subset-repacker.cc',
