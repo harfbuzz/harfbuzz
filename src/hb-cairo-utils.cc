@@ -594,16 +594,10 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
   /* handle directions */
   if (end_angle < start_angle)
   {
-    float angle = end_angle;
-    end_angle = start_angle;
-    start_angle = angle;
+    hb_swap (start_angle, end_angle);
 
     for (unsigned i = 0; i < n_stops - 1 - i; i++)
-    {
-      hb_color_stop_t stop = stops[i];
-      stops[i] = stops[n_stops - 1 - i];
-      stops[n_stops - 1 - i] = stop;
-    }
+      hb_swap (stops[i], stops[n_stops - 1 - i]);
   }
 
   if (n_stops > PREALLOCATED_COLOR_STOPS)
