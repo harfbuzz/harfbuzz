@@ -1398,7 +1398,7 @@ struct info_t :
     {
       if (verbose)
       {
-	printf ("Tag	Data\n------------\n");
+	printf ("\nTag	Data\n------------\n");
       }
       unsigned count = hb_ot_meta_get_entry_tags (face, 0, nullptr, nullptr);
       for (unsigned i = 0; i < count; i++)
