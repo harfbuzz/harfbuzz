@@ -104,6 +104,9 @@ struct Glyph
     if (hori_aw < 0) hori_aw = 0;
     int lsb = roundf (xMin - leftSideX);
     plan->hmtx_map.set (new_gid, hb_pair ((unsigned) hori_aw, lsb));
+    //flag value should be computed using non-empty glyphs
+    if (type != EMPTY && lsb != xMin)
+      plan->head_maxp_info.allXMinIsLsb = false;
 
     signed vert_aw = roundf (topSideY - bottomSideY);
     if (vert_aw < 0) vert_aw = 0;
