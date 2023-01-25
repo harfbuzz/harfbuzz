@@ -343,7 +343,7 @@ _hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
 
   len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
   if (len > PREALLOCATED_COLOR_STOPS)
-    stops = (hb_color_stop_t *) malloc (len * sizeof (hb_color_stop_t));
+    stops = (hb_color_stop_t *) hb_malloc (len * sizeof (hb_color_stop_t));
   hb_color_line_get_color_stops (color_line, 0, &len, stops);
 
   _hb_cairo_normalize_color_line (stops, len, &min, &max);
@@ -602,8 +602,8 @@ _hb_cairo_add_sweep_gradient_patches (hb_color_stop_t *stops,
 
   if (n_stops > PREALLOCATED_COLOR_STOPS)
   {
-    angles = (float *) malloc (sizeof (float) * n_stops);
-    colors = (hb_cairo_color_t *) malloc (sizeof (hb_cairo_color_t) * n_stops);
+    angles = (float *) hb_malloc (sizeof (float) * n_stops);
+    colors = (hb_cairo_color_t *) hb_malloc (sizeof (hb_cairo_color_t) * n_stops);
   }
 
   for (unsigned i = 0; i < n_stops; i++)
@@ -808,7 +808,7 @@ _hb_cairo_paint_sweep_gradient (hb_cairo_context_t *c,
 
   len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
   if (len > PREALLOCATED_COLOR_STOPS)
-    stops = (hb_color_stop_t *) malloc (len * sizeof (hb_color_stop_t));
+    stops = (hb_color_stop_t *) hb_malloc (len * sizeof (hb_color_stop_t));
   hb_color_line_get_color_stops (color_line, 0, &len, stops);
 
   hb_qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
