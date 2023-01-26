@@ -43,7 +43,7 @@ struct Triple {
   Triple (float minimum_, float middle_, float maximum_) :
     minimum (minimum_), middle (middle_), maximum (maximum_) {}
 
-  bool operator == (const Triple &o)
+  bool operator == (const Triple &o) const
   {
     return minimum == o.minimum &&
 	   middle  == o.middle  &&
