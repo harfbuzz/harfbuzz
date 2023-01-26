@@ -4024,7 +4024,7 @@ struct hb_ot_layout_lookup_accelerator_t
     lookup.dispatch (&c_accelerate_subtables);
 
     digest.init ();
-    for (auto& subtable : hb_iter (subtables))
+    for (auto& subtable : subtables)
       digest.add (subtable.digest);
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
