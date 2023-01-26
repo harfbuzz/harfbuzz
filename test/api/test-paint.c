@@ -30,18 +30,18 @@
 #ifdef HB_HAS_FREETYPE
 #include <hb-ft.h>
 
-#if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21101
+#if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21300
 #include FT_COLOR_H
 #endif
 
 static inline hb_bool_t
 have_ft_colrv1 (void)
 {
-#if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21101
-  // https://github.com/harfbuzz/harfbuzz/issues/4013
-  return sizeof (FT_ColorStop) == 2 * sizeof (FT_Fixed);
-#endif
+#if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21300
+  return TRUE;
+#else
   return FALSE;
+#endif
 }
 #endif
 
