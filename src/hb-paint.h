@@ -269,7 +269,7 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  *
  * This method is called for glyphs with image blobs in the CBDT,
  * sbix or SVG tables. The @format identifies the kind of data that
- * is contained in @image. Possible values include #HB_PAINT_IMAGE_FORMAT_PNG
+ * is contained in @image. Possible values include #HB_PAINT_IMAGE_FORMAT_PNG,
  * #HB_PAINT_IMAGE_FORMAT_SVG and #HB_PAINT_IMAGE_FORMAT_BGRA.
  *
  * The image dimensions and glyph extents are provided if available,
