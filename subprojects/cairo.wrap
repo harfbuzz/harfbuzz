@@ -2,7 +2,7 @@
 directory=cairo
 url=https://gitlab.freedesktop.org/cairo/cairo.git
 depth=1
-revision=ea51a5d66aaae74cdb436d5de4c429e1f1609aba
+revision=055ca7fb09842caa2595cf7864fa3afd417ebd37
 
 [provide]
 dependency_names = cairo
