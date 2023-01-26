@@ -36,9 +36,6 @@
 #include "hb-utf.hh"
 
 
-/* TODO Error handling in cairo set_user_data calls? */
-
-
 /**
  * SECTION:hb-cairo
  * @title: hb-cairo
@@ -520,7 +517,11 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
 
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
   hb_map_t *color_cache = hb_map_create ();
-  cairo_scaled_font_set_user_data (scaled_font, &color_cache_key, color_cache, _hb_cairo_destroy_map);
+  if (unlikely (CAIRO_STATUS_SUCCESS != cairo_scaled_font_set_user_data (scaled_font,
+									 &color_cache_key,
+									 color_cache,
+									 _hb_cairo_destroy_map)))
+    hb_map_destroy (color_cache);
 #endif
 
   return CAIRO_STATUS_SUCCESS;
@@ -629,10 +630,11 @@ user_font_face_create (hb_face_t *face)
     cairo_user_font_face_set_render_color_glyph_func (cairo_face, hb_cairo_render_color_glyph);
 #endif
 
-  cairo_font_face_set_user_data (cairo_face,
-                                 &hb_cairo_face_user_data_key,
-                                 (void *) hb_face_reference (face),
-                                 hb_cairo_face_destroy);
+  if (unlikely (CAIRO_STATUS_SUCCESS != cairo_font_face_set_user_data (cairo_face,
+								       &hb_cairo_face_user_data_key,
+								       (void *) hb_face_reference (face),
+								       hb_cairo_face_destroy)))
+    hb_face_destroy (face);
 
   return cairo_face;
 }
@@ -658,10 +660,11 @@ hb_cairo_font_face_create_for_font (hb_font_t *font)
 
   auto *cairo_face =  user_font_face_create (font->face);
 
-  cairo_font_face_set_user_data (cairo_face,
-                                 &hb_cairo_font_user_data_key,
-                                 (void *) hb_font_reference (font),
-                                 hb_cairo_font_destroy);
+  if (unlikely (CAIRO_STATUS_SUCCESS != cairo_font_face_set_user_data (cairo_face,
+								       &hb_cairo_font_user_data_key,
+								       (void *) hb_font_reference (font),
+								       hb_cairo_font_destroy)))
+    hb_font_destroy (font);
 
   return cairo_face;
 }
@@ -742,10 +745,17 @@ hb_cairo_font_face_set_font_init_func (cairo_font_face_t *font_face,
 				 &hb_cairo_font_init_func_user_data_key,
 				 (void *) func,
 				 nullptr);
-  cairo_font_face_set_user_data (font_face,
-				 &hb_cairo_font_init_user_data_user_data_key,
-				 (void *) user_data,
-				 destroy);
+  if (unlikely (CAIRO_STATUS_SUCCESS != cairo_font_face_set_user_data (font_face,
+								       &hb_cairo_font_init_user_data_user_data_key,
+								       (void *) user_data,
+								       destroy)) && destroy)
+  {
+    destroy (user_data);
+    cairo_font_face_set_user_data (font_face,
+				   &hb_cairo_font_init_func_user_data_key,
+				   nullptr,
+				   nullptr);
+  }
 }
 
 /**
