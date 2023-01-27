@@ -3538,7 +3538,7 @@ struct ChainContextFormat2_5
      */
 
     struct ChainContextApplyLookupContext lookup_context = {
-      {{cached && &backtrack_class_def == &input_class_def ? match_class_cached : match_class,
+      {{cached && &backtrack_class_def == &lookahead_class_def ? match_class_cached : match_class,
         cached && &input_class_def == &lookahead_class_def ? match_class_cached : match_class,
         cached ? match_class_cached : match_class}},
       {&backtrack_class_def,
