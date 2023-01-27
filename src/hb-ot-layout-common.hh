@@ -2353,6 +2353,9 @@ struct VarRegionList
 
 struct VarData
 {
+  unsigned int get_item_count () const
+  { return itemCount; }
+
   unsigned int get_region_index_count () const
   { return regionIndices.len; }
 
@@ -2756,6 +2759,29 @@ struct VariationStore
     }
 
     return_trace (true);
+  }
+
+  VariationStore *copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->start_embed (this);
+    if (unlikely (!out)) return_trace (nullptr);
+
+    hb_vector_t <hb_inc_bimap_t> inner_maps;
+    unsigned count = dataSets.len;
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_inc_bimap_t *map = inner_maps.push ();
+      auto &data = this+dataSets[i];
+
+      unsigned itemCount = data.get_item_count ();
+      for (unsigned j = 0; j < itemCount; j++)
+	map->add (j);
+    }
+
+    if (unlikely (!out->serialize (c, this, inner_maps))) return_trace (nullptr);
+
+    return_trace (out);
   }
 
   bool subset (hb_subset_context_t *c, const hb_array_t<const hb_inc_bimap_t> &inner_maps) const

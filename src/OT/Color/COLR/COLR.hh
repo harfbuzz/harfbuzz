@@ -1968,7 +1968,7 @@ struct COLR
     colr_prime->layerList.serialize_subset (c, layerList, this);
     colr_prime->clipList.serialize_subset (c, clipList, this);
     colr_prime->varIdxMap.serialize_copy (c->serializer, varIdxMap, this);
-    //TODO: subset varStore once it's implemented in fonttools
+    colr_prime->varStore.serialize_copy (c->serializer, varStore, this);
     return_trace (true);
   }
 
