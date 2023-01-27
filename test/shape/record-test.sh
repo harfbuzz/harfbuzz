@@ -30,11 +30,11 @@ if test "x${fontfile:0:1}" == 'x-'; then
 fi
 shift
 if ! echo "$hb_subset" | grep -q 'subset'; then
-	echo "Specify hb-subset (or \"fonttools subset\"): got "$hb_subset"." >&2
+	echo "Specify hb-subset (or \"fonttools subset\"): got '$hb_subset'." >&2
 	exit 1
 fi
 if ! echo "$hb_shape" | grep -q 'hb-shape'; then
-	echo "Specify hb-shape (not hb-view, etc): got "$hb_shape"." >&2
+	echo "Specify hb-shape (not hb-view, etc): got '$hb_shape'." >&2
 	exit 1
 fi
 options=
