@@ -205,13 +205,19 @@ endif
 
 if cairo_dep.found()
   conf.set('HAVE_CAIRO', 1)
+  check_cairo_funcs = [
+    ['cairo_user_font_face_set_render_color_glyph_func', {'deps': cairo_dep}],
+    ['cairo_font_options_get_custom_palette_color', {'deps': cairo_dep}],
+    ['cairo_user_scaled_font_get_foreground_source', {'deps': cairo_dep}],
+  ]
+
   if cairo_dep.type_name() == 'internal'
-    conf.set('HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC', 1)
-    conf.set('HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR', 1)
+    foreach func: check_cairo_funcs
+      name = func[0]
+      conf.set('HAVE_@0@'.format(name.to_upper()), 1)
+    endforeach
   else
-    check_funcs += [['cairo_user_font_face_set_render_color_glyph_func', {'deps': cairo_dep}]]
-    check_funcs += [['cairo_font_options_get_custom_palette_color', {'deps': cairo_dep}]]
-    check_funcs += [['cairo_user_scaled_font_get_foreground_source', {'deps': cairo_dep}]]
+    check_funcs += check_cairo_funcs
   endif
 endif
 
