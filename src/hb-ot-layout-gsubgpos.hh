@@ -957,17 +957,15 @@ struct hb_accelerate_subtables_context_t :
   template <typename T>
   return_t dispatch (const T &obj)
   {
-    hb_applicable_t entry;
+    hb_applicable_t *entry = array.push ();
 
-    entry.init (obj,
-		apply_to<T>
+    entry->init (obj,
+		 apply_to<T>
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-		, apply_cached_to<T>
-		, cache_func_to<T>
+		 , apply_cached_to<T>
+		 , cache_func_to<T>
 #endif
-		);
-
-    array.push (entry);
+		 );
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     /* Cache handling
