@@ -10,6 +10,7 @@ TESTS = \
 	tests/colr.tests \
 	tests/colr_glyphs.tests \
 	tests/colrv1.tests \
+	tests/colrv1_copy_varstore.tests \
 	tests/colr_with_components.tests \
 	tests/full-font.tests \
 	tests/glyf_bug_3131.tests \
