@@ -29,9 +29,9 @@
 #ifndef OT_LAYOUT_GDEF_GDEF_HH
 #define OT_LAYOUT_GDEF_GDEF_HH
 
-#include "hb-ot-layout-common.hh"
+#include "../../../hb-ot-layout-common.hh"
 
-#include "hb-font.hh"
+#include "../../../hb-font.hh"
 
 
 namespace OT {
