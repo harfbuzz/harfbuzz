@@ -113,6 +113,7 @@ hb_base_sources = files(
   'OT/Layout/Common/CoverageFormat1.hh',
   'OT/Layout/Common/CoverageFormat2.hh',
   'OT/Layout/Common/RangeRecord.hh',
+  'OT/Layout/GDEF/GDEF.hh',
   'OT/Layout/GPOS/AnchorFormat1.hh',
   'OT/Layout/GPOS/AnchorFormat2.hh',
   'OT/Layout/GPOS/AnchorFormat3.hh',
