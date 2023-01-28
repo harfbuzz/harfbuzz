@@ -167,6 +167,7 @@ hb_base_sources = files(
   'OT/Layout/GSUB/SingleSubst.hh',
   'OT/Layout/GSUB/SubstLookup.hh',
   'OT/Layout/GSUB/SubstLookupSubTable.hh',
+  'OT/name/name.hh',
   'hb-ot-layout-gsubgpos.hh',
   'hb-ot-layout-jstf-table.hh',
   'hb-ot-layout.cc',
