@@ -28,7 +28,6 @@
 #define OT_COLOR_COLR_COLRV1_CLOSURE_HH
 
 #include "../../../hb-open-type.hh"
-//#include "../../../hb-ot-layout-common.hh"
 #include "COLR.hh"
 
 /*
