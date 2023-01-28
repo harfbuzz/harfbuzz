@@ -51,7 +51,6 @@ struct hb_cache_t
   hb_cache_t () { init (); }
 
   void init () { clear (); }
-  void fini () {}
 
   void clear ()
   {

@@ -90,10 +90,7 @@ _hb_ot_font_destroy (void *font_data)
 
   auto *cache = ot_font->advance_cache.get_relaxed ();
   if (cache)
-  {
-    cache->fini ();
     hb_free (cache);
-  }
 
   hb_free (ot_font);
 }
