@@ -30,7 +30,6 @@
 
 #include "../../../hb.hh"
 #include "../../../hb-open-type.hh"
-#include "../../../hb-ot-layout-common.hh"
 #include "../../../hb-ot-var-common.hh"
 #include "../../../hb-paint.hh"
 #include "../../../hb-paint-extents.hh"
