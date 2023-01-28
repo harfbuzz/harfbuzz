@@ -770,6 +770,7 @@ configure_file(input: 'harfbuzz-config.cmake.in',
   output: 'harfbuzz-config.cmake',
   configuration: cmake_config,
   install_dir: get_option('libdir') / 'cmake' / 'harfbuzz',
+  install_tag: 'devel',
 )
 
 gobject_enums_c = []
