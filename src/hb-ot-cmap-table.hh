@@ -1901,20 +1901,37 @@ struct cmap
       if (unlikely (!this->get_glyph_funcZ)) return false;
       return this->get_glyph_funcZ (this->get_glyph_data, unicode, glyph);
     }
+
+    template <typename cache_t = void>
+    inline bool _cached_get (hb_codepoint_t unicode,
+			     hb_codepoint_t *glyph,
+			     cache_t *cache) const
+    {
+      unsigned v;
+      if (cache && cache->get (unicode, &v))
+      {
+        *glyph = v;
+	return true;
+      }
+      bool ret = this->get_glyph_funcZ (this->get_glyph_data, unicode, glyph);
+      if (cache && ret)
+	cache->set (unicode, *glyph);
+      return ret;
+    }
+
+    template <typename cache_t = void>
     unsigned int get_nominal_glyphs (unsigned int count,
 				     const hb_codepoint_t *first_unicode,
 				     unsigned int unicode_stride,
 				     hb_codepoint_t *first_glyph,
-				     unsigned int glyph_stride) const
+				     unsigned int glyph_stride,
+				     cache_t *cache = nullptr) const
     {
       if (unlikely (!this->get_glyph_funcZ)) return 0;
 
-      hb_cmap_get_glyph_func_t get_glyph_funcZ = this->get_glyph_funcZ;
-      const void *get_glyph_data = this->get_glyph_data;
-
       unsigned int done;
       for (done = 0;
-	   done < count && get_glyph_funcZ (get_glyph_data, *first_unicode, first_glyph);
+	   done < count && _cached_get (*first_unicode, first_glyph, cache);
 	   done++)
       {
 	first_unicode = &StructAtOffsetUnaligned<hb_codepoint_t> (first_unicode, unicode_stride);

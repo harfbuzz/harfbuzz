@@ -60,11 +60,16 @@
  * never need to call these functions directly.
  **/
 
+using hb_ot_font_cmap_cache_t    = hb_cache_t<21, 16, 8, true>;
 using hb_ot_font_advance_cache_t = hb_cache_t<24, 16, 8, true>;
+
+static hb_user_data_key_t hb_ot_font_cmap_cache_user_data_key;
 
 struct hb_ot_font_t
 {
   const hb_ot_face_t *ot_face;
+
+  hb_ot_font_cmap_cache_t *cmap_cache;
 
   /* h_advance caching */
   mutable hb_atomic_int_t cached_coords_serial;
@@ -79,6 +84,31 @@ _hb_ot_font_create (hb_font_t *font)
     return nullptr;
 
   ot_font->ot_face = &font->face->table;
+
+  auto *cmap_cache  = (hb_ot_font_cmap_cache_t *) hb_face_get_user_data (font->face,
+									 &hb_ot_font_cmap_cache_user_data_key);
+  if (!cmap_cache)
+  {
+    cmap_cache = (hb_ot_font_cmap_cache_t *) hb_malloc (sizeof (hb_ot_font_cmap_cache_t));
+    if (unlikely (!cmap_cache)) goto out;
+    cmap_cache->init ();
+    if (!hb_face_set_user_data (font->face,
+				&hb_ot_font_cmap_cache_user_data_key,
+				cmap_cache,
+				hb_free,
+				false))
+    {
+      /* Normally we would retry after this, but that would
+       * infinite-loop if the face is the empty-face.
+       * Just let it go and this font will be uncached if it
+       * happened to collide with anothe thread creating the
+       * cache at the same time. */
+      hb_free (cmap_cache);
+      cmap_cache = nullptr;
+    }
+  }
+  out:
+  ot_font->cmap_cache = cmap_cache;
 
   return ot_font;
 }
@@ -121,7 +151,8 @@ hb_ot_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
   const hb_ot_face_t *ot_face = ot_font->ot_face;
   return ot_face->cmap->get_nominal_glyphs (count,
 					    first_unicode, unicode_stride,
-					    first_glyph, glyph_stride);
+					    first_glyph, glyph_stride,
+					    ot_font->cmap_cache);
 }
 
 static hb_bool_t
