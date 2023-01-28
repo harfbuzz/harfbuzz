@@ -1,5 +1,5 @@
 project('harfbuzz', 'c', 'cpp',
-  meson_version: '>= 0.55.0',
+  meson_version: '>= 0.60.0',
   version: '6.0.0',
   default_options: [
     'cpp_eh=none',          # Just to support msvc, we are passing -fno-exceptions also anyway
