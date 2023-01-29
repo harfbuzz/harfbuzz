@@ -69,7 +69,7 @@ struct hb_lockable_set_t
       item = items.push (v);
       l.unlock ();
     }
-    return item;
+    return items.in_error () ? nullptr : item;
   }
 
   template <typename T>
