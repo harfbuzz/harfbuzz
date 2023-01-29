@@ -1896,9 +1896,8 @@ struct cmap
     ~accelerator_t () { this->table.destroy (); }
 
     bool get_nominal_glyph (hb_codepoint_t  unicode,
-			    hb_codepoint_t *glyph) const
+                            hb_codepoint_t *glyph) const
     {
-      if (unlikely (!this->get_glyph_funcZ)) return false;
       return this->get_glyph_funcZ (this->get_glyph_data, unicode, glyph);
     }
 
@@ -1913,10 +1912,18 @@ struct cmap
         *glyph = v;
 	return true;
       }
-      bool ret = this->get_glyph_funcZ (this->get_glyph_data, unicode, glyph);
+      bool ret  = get_nominal_glyph (unicode, glyph);
       if (cache && ret)
-	cache->set (unicode, *glyph);
+        cache->set (unicode, *glyph);
       return ret;
+    }
+
+    template <typename cache_t = void>
+    bool get_nominal_glyph (hb_codepoint_t  unicode,
+			    hb_codepoint_t *glyph,
+			    cache_t *cache = nullptr) const
+    {
+      return _cached_get (unicode, glyph, cache);
     }
 
     template <typename cache_t = void>
@@ -1940,9 +1947,11 @@ struct cmap
       return done;
     }
 
+    template <typename cache_t = void>
     bool get_variation_glyph (hb_codepoint_t  unicode,
 			      hb_codepoint_t  variation_selector,
-			      hb_codepoint_t *glyph) const
+			      hb_codepoint_t *glyph,
+			      cache_t *cache = nullptr) const
     {
       switch (this->subtable_uvs->get_glyph_variant (unicode,
 						     variation_selector,
@@ -1953,7 +1962,7 @@ struct cmap
 	case GLYPH_VARIANT_USE_DEFAULT:	break;
       }
 
-      return get_nominal_glyph (unicode, glyph);
+      return get_nominal_glyph (unicode, glyph, cache);
     }
 
     void collect_unicodes (hb_set_t *out, unsigned int num_glyphs) const
