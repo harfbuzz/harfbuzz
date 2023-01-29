@@ -92,7 +92,7 @@ _hb_ot_font_create (hb_font_t *font)
     cmap_cache = (hb_ot_font_cmap_cache_t *) hb_malloc (sizeof (hb_ot_font_cmap_cache_t));
     if (unlikely (!cmap_cache)) goto out;
     cmap_cache->init ();
-    if (!unlikely (hb_face_set_user_data (font->face,
+    if (unlikely (!hb_face_set_user_data (font->face,
 					  &hb_ot_font_cmap_cache_user_data_key,
 					  cmap_cache,
 					  hb_free,
