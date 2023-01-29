@@ -101,7 +101,7 @@ _hb_ot_font_create (hb_font_t *font)
       /* Normally we would retry after this, but that would
        * infinite-loop if the face is the empty-face.
        * Just let it go and this font will be uncached if it
-       * happened to collide with anothe thread creating the
+       * happened to collide with another thread creating the
        * cache at the same time. */
       hb_free (cmap_cache);
       cmap_cache = nullptr;
