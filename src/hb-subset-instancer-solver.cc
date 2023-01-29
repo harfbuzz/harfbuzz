@@ -438,16 +438,9 @@ HB_INTERNAL result_t rebase_tent (Triple tent, Triple axisLimit);
 result_t
 rebase_tent (Triple tent, Triple axisLimit)
 {
-  float axisMin = axisLimit.minimum;
-  float axisDef = axisLimit.middle;
-  float axisMax = axisLimit.maximum;
-  float lower = tent.minimum;
-  float peak  = tent.middle;
-  float upper = tent.maximum;
-
-  assert (-1.f <= axisMin && axisMin <= axisDef && axisDef <= axisMax && axisMax <= +1.f);
-  assert (-2.f <= lower && lower <= peak && peak <= upper && upper <= +2.f);
-  assert (peak != 0.f);
+  assert (-1.f <= axisLimit.minimum && axisLimit.minimum <= axisLimit.middle && axisLimit.middle <= axisLimit.maximum && axisLimit.maximum <= +1.f);
+  assert (-2.f <= tent.minimum && tent.minimum <= tent.middle && tent.middle <= tent.maximum && tent.maximum <= +2.f);
+  assert (tent.middle != 0.f);
 
   result_t sols = _solve (tent, axisLimit);
 
