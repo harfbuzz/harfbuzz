@@ -61,7 +61,7 @@ struct CoverageFormat2_4
 
   unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    static hb_cache_t<16, 8, 9, false> cache;
+    static hb_cache_t<16, 8, 9, true> cache;
 
     unsigned v;
     if (cache.get ((glyph_id + (uintptr_t) this) & 0xFFFF, &v))
