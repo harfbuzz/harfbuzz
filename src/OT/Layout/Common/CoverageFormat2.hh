@@ -31,6 +31,8 @@
 
 #include "RangeRecord.hh"
 
+#include "../../../hb-cache.hh"
+
 namespace OT {
 namespace Layout {
 namespace Common {
@@ -59,7 +61,18 @@ struct CoverageFormat2_4
 
   unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
+    static hb_cache_t<16, 8, 9, false> cache;
+
+    unsigned v;
+    if (cache.get ((glyph_id + (uintptr_t) this) & 0xFFFF, &v))
+    {
+      const RangeRecord<Types> &range = rangeRecord[v];
+      if (range.first <= glyph_id && glyph_id <= range.last)
+        return (unsigned int) range.value + (glyph_id - range.first);
+    }
+
     const RangeRecord<Types> &range = rangeRecord.bsearch (glyph_id);
+    cache.set ((glyph_id + (uintptr_t) this) & 0xFFFF, &range - &rangeRecord[0]);
     return likely (range.first <= range.last)
          ? (unsigned int) range.value + (glyph_id - range.first)
          : NOT_COVERED;

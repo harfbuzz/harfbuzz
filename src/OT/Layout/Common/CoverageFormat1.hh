@@ -30,6 +30,8 @@
 #ifndef OT_LAYOUT_COMMON_COVERAGEFORMAT1_HH
 #define OT_LAYOUT_COMMON_COVERAGEFORMAT1_HH
 
+#include "../../../hb-cache.hh"
+
 namespace OT {
 namespace Layout {
 namespace Common {
@@ -57,8 +59,18 @@ struct CoverageFormat1_3
 
   unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
+    static hb_cache_t<16, 8, 9, false> cache;
+
+    unsigned v;
+    if (cache.get ((glyph_id + (uintptr_t) this) & 0xFFFF, &v))
+    {
+      if (glyphArray[v] == glyph_id)
+        return v;
+    }
+
     unsigned int i;
     glyphArray.bfind (glyph_id, &i, HB_NOT_FOUND_STORE, NOT_COVERED);
+    cache.set ((glyph_id + (uintptr_t) this) & 0xFFFF, i);
     return i;
   }
 
