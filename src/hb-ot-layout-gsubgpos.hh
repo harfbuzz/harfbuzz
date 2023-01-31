@@ -4021,6 +4021,11 @@ struct hb_ot_layout_lookup_accelerator_t
 		    HB_VAR_ARRAY * sizeof (hb_accelerate_subtables_context_t::hb_applicable_t) +
 		    count * sizeof (hb_accelerate_subtables_context_t::hb_applicable_t);
 
+    /* The following is a calloc because when we are collecting subtables,
+     * some of them might be invalid and hence not collect; as a result,
+     * we might not fill in all the count entries of the subtables array.
+     * Zeroing it allows the set digest to gatekeep it without having to
+     * initialize it further. */
     auto *thiz = (hb_ot_layout_lookup_accelerator_t *) hb_calloc (1, size);
     if (unlikely (!thiz))
       return nullptr;
