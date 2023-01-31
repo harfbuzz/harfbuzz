@@ -67,7 +67,7 @@ inline bool PosLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_apply
   if (lookup_index < gpos->lookup_count)
   {
     auto &accel = gpos->accels[lookup_index];
-    ret = accel.apply (c, false);
+    ret = accel.apply (c, l.get_subtable_count (), false);
   }
 
   c->set_lookup_index (saved_lookup_index);

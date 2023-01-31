@@ -944,8 +944,6 @@ struct hb_accelerate_subtables_context_t :
     hb_set_digest_t digest;
   };
 
-  typedef hb_vector_t<hb_applicable_t> array_t;
-
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   template <typename T>
   auto cache_cost (const T &obj, hb_priority<1>) HB_AUTO_RETURN ( obj.cache_cost () )
@@ -957,7 +955,7 @@ struct hb_accelerate_subtables_context_t :
   template <typename T>
   return_t dispatch (const T &obj)
   {
-    hb_applicable_t *entry = array.push ();
+    hb_applicable_t *entry = &array[i++];
 
     entry->init (obj,
 		 apply_to<T>
@@ -977,9 +975,9 @@ struct hb_accelerate_subtables_context_t :
      * and we allocate the cache opportunity to the costliest subtable.
      */
     unsigned cost = cache_cost (obj, hb_prioritize);
-    if (cost > cache_user_cost && !array.in_error ())
+    if (cost > cache_user_cost)
     {
-      cache_user_idx = array.length - 1;
+      cache_user_idx = i - 1;
       cache_user_cost = cost;
     }
 #endif
@@ -988,10 +986,11 @@ struct hb_accelerate_subtables_context_t :
   }
   static return_t default_return_value () { return hb_empty_t (); }
 
-  hb_accelerate_subtables_context_t (array_t &array_) :
+  hb_accelerate_subtables_context_t (hb_applicable_t *array_) :
 				     array (array_) {}
 
-  array_t &array;
+  hb_applicable_t *array;
+  unsigned i = 0;
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   unsigned cache_user_idx = (unsigned) -1;
@@ -4016,34 +4015,40 @@ struct hb_ot_layout_lookup_accelerator_t
   template <typename TLookup>
   void init (const TLookup &lookup)
   {
-    subtables.init ();
-    subtables.alloc (lookup.get_subtable_count (), true);
+    unsigned count = lookup.get_subtable_count ();
+    subtables = (hb_accelerate_subtables_context_t::hb_applicable_t *)
+		hb_calloc (count, sizeof (hb_accelerate_subtables_context_t::hb_applicable_t));
+    if (unlikely (!subtables))
+      return;
+
     hb_accelerate_subtables_context_t c_accelerate_subtables (subtables);
     lookup.dispatch (&c_accelerate_subtables);
 
     digest.init ();
-    for (auto& subtable : subtables)
+    for (auto& subtable : hb_iter (subtables, count))
       digest.add (subtable.digest);
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     cache_user_idx = c_accelerate_subtables.cache_user_idx;
-    for (unsigned i = 0; i < subtables.length; i++)
+    for (unsigned i = 0; i < count; i++)
       if (i != cache_user_idx)
 	subtables[i].apply_cached_func = subtables[i].apply_func;
 #endif
   }
-  void fini () { subtables.fini (); }
+  void fini () { hb_free (subtables); }
 
   bool may_have (hb_codepoint_t g) const
   { return digest.may_have (g); }
 
-  bool apply (hb_ot_apply_context_t *c, bool use_cache) const
+  bool apply (hb_ot_apply_context_t *c, unsigned subtables_count, bool use_cache) const
   {
+     if (unlikely (!subtables)) return false;
+
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
       return
-      + hb_iter (subtables)
+      + hb_iter (hb_iter (subtables, subtables_count))
       | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply_cached (c); })
       | hb_any
       ;
@@ -4052,7 +4057,7 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
     {
       return
-      + hb_iter (subtables)
+      + hb_iter (hb_iter (subtables, subtables_count))
       | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply (c); })
       | hb_any
       ;
@@ -4079,7 +4084,7 @@ struct hb_ot_layout_lookup_accelerator_t
 
   hb_set_digest_t digest;
   private:
-  hb_accelerate_subtables_context_t::array_t subtables;
+  hb_accelerate_subtables_context_t::hb_applicable_t *subtables;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   unsigned cache_user_idx = (unsigned) -1;
 #endif
