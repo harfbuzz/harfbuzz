@@ -121,8 +121,7 @@ _hb_ot_font_destroy (void *font_data)
   hb_ot_font_t *ot_font = (hb_ot_font_t *) font_data;
 
   auto *cache = ot_font->advance_cache.get_relaxed ();
-  if (cache)
-    hb_free (cache);
+  hb_free (cache);
 
   hb_free (ot_font);
 }

@@ -4013,37 +4013,40 @@ struct Extension
 struct hb_ot_layout_lookup_accelerator_t
 {
   template <typename TLookup>
-  void init (const TLookup &lookup)
+  static hb_ot_layout_lookup_accelerator_t *create (const TLookup &lookup)
   {
     unsigned count = lookup.get_subtable_count ();
-    subtables = (hb_accelerate_subtables_context_t::hb_applicable_t *)
-		hb_calloc (count, sizeof (hb_accelerate_subtables_context_t::hb_applicable_t));
-    if (unlikely (!subtables))
-      return;
 
-    hb_accelerate_subtables_context_t c_accelerate_subtables (subtables);
+    unsigned size = sizeof (hb_ot_layout_lookup_accelerator_t) -
+		    HB_VAR_ARRAY * sizeof (hb_accelerate_subtables_context_t::hb_applicable_t) +
+		    count * sizeof (hb_accelerate_subtables_context_t::hb_applicable_t);
+
+    auto *thiz = (hb_ot_layout_lookup_accelerator_t *) hb_calloc (1, size);
+    if (unlikely (!thiz))
+      return nullptr;
+
+    hb_accelerate_subtables_context_t c_accelerate_subtables (thiz->subtables);
     lookup.dispatch (&c_accelerate_subtables);
 
-    digest.init ();
-    for (auto& subtable : hb_iter (subtables, count))
-      digest.add (subtable.digest);
+    thiz->digest.init ();
+    for (auto& subtable : hb_iter (thiz->subtables, count))
+      thiz->digest.add (subtable.digest);
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    cache_user_idx = c_accelerate_subtables.cache_user_idx;
+    thiz->cache_user_idx = c_accelerate_subtables.cache_user_idx;
     for (unsigned i = 0; i < count; i++)
-      if (i != cache_user_idx)
-	subtables[i].apply_cached_func = subtables[i].apply_func;
+      if (i != thiz->cache_user_idx)
+	thiz->subtables[i].apply_cached_func = thiz->subtables[i].apply_func;
 #endif
+
+    return thiz;
   }
-  void fini () { hb_free (subtables); }
 
   bool may_have (hb_codepoint_t g) const
   { return digest.may_have (g); }
 
   bool apply (hb_ot_apply_context_t *c, unsigned subtables_count, bool use_cache) const
   {
-     if (unlikely (!subtables)) return false;
-
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
@@ -4084,10 +4087,10 @@ struct hb_ot_layout_lookup_accelerator_t
 
   hb_set_digest_t digest;
   private:
-  hb_accelerate_subtables_context_t::hb_applicable_t *subtables;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   unsigned cache_user_idx = (unsigned) -1;
 #endif
+  hb_accelerate_subtables_context_t::hb_applicable_t subtables[HB_VAR_ARRAY];
 };
 
 template <typename Types>
@@ -4450,28 +4453,47 @@ struct GSUBGPOS
 
       this->lookup_count = table->get_lookup_count ();
 
-      this->accels = (hb_ot_layout_lookup_accelerator_t *) hb_calloc (this->lookup_count, sizeof (hb_ot_layout_lookup_accelerator_t));
+      this->accels = (hb_atomic_ptr_t<hb_ot_layout_lookup_accelerator_t> *) hb_calloc (this->lookup_count, sizeof (*accels));
       if (unlikely (!this->accels))
       {
 	this->lookup_count = 0;
 	this->table.destroy ();
 	this->table = hb_blob_get_empty ();
       }
-
-      for (unsigned int i = 0; i < this->lookup_count; i++)
-	this->accels[i].init (table->get_lookup (i));
     }
     ~accelerator_t ()
     {
       for (unsigned int i = 0; i < this->lookup_count; i++)
-	this->accels[i].fini ();
+	hb_free (this->accels[i]);
       hb_free (this->accels);
       this->table.destroy ();
     }
 
+    hb_ot_layout_lookup_accelerator_t *get_accel (unsigned lookup_index) const
+    {
+      if (unlikely (lookup_index >= lookup_count)) return nullptr;
+
+    retry:
+      auto *accel = accels[lookup_index].get_acquire ();
+      if (unlikely (!accel))
+      {
+	accel = hb_ot_layout_lookup_accelerator_t::create (table->get_lookup (lookup_index));
+	if (unlikely (!accel))
+	  return nullptr;
+
+	if (unlikely (!accels[lookup_index].cmpexch (nullptr, accel)))
+	{
+	  hb_free (accel);
+	  goto retry;
+	}
+      }
+
+      return accel;
+    }
+
     hb_blob_ptr_t<T> table;
     unsigned int lookup_count;
-    hb_ot_layout_lookup_accelerator_t *accels;
+    hb_atomic_ptr_t<hb_ot_layout_lookup_accelerator_t> *accels;
   };
 
   protected:

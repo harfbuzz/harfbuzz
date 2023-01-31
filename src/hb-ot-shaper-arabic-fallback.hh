@@ -228,7 +228,7 @@ struct arabic_fallback_plan_t
 
   hb_mask_t mask_array[ARABIC_FALLBACK_MAX_LOOKUPS];
   OT::SubstLookup *lookup_array[ARABIC_FALLBACK_MAX_LOOKUPS];
-  OT::hb_ot_layout_lookup_accelerator_t accel_array[ARABIC_FALLBACK_MAX_LOOKUPS];
+  OT::hb_ot_layout_lookup_accelerator_t *accel_array[ARABIC_FALLBACK_MAX_LOOKUPS];
 };
 
 #if defined(_WIN32) && !defined(HB_NO_WIN1256)
@@ -278,7 +278,7 @@ arabic_fallback_plan_init_win1256 (arabic_fallback_plan_t *fallback_plan HB_UNUS
       fallback_plan->lookup_array[j] = const_cast<OT::SubstLookup*> (&(&manifest+manifest[i].lookupOffset));
       if (fallback_plan->lookup_array[j])
       {
-	fallback_plan->accel_array[j].init (*fallback_plan->lookup_array[j]);
+	fallback_plan->accel_array[j] = OT::hb_ot_layout_lookup_accelerator_t::create (*fallback_plan->lookup_array[j]);
 	j++;
       }
     }
@@ -308,7 +308,7 @@ arabic_fallback_plan_init_unicode (arabic_fallback_plan_t *fallback_plan,
       fallback_plan->lookup_array[j] = arabic_fallback_synthesize_lookup (plan, font, i);
       if (fallback_plan->lookup_array[j])
       {
-	fallback_plan->accel_array[j].init (*fallback_plan->lookup_array[j]);
+	fallback_plan->accel_array[j] = OT::hb_ot_layout_lookup_accelerator_t::create (*fallback_plan->lookup_array[j]);
 	j++;
       }
     }
@@ -355,7 +355,7 @@ arabic_fallback_plan_destroy (arabic_fallback_plan_t *fallback_plan)
   for (unsigned int i = 0; i < fallback_plan->num_lookups; i++)
     if (fallback_plan->lookup_array[i])
     {
-      fallback_plan->accel_array[i].fini ();
+      hb_free (fallback_plan->accel_array[i]);
       if (fallback_plan->free_lookups)
 	hb_free (fallback_plan->lookup_array[i]);
     }
@@ -372,9 +372,10 @@ arabic_fallback_plan_shape (arabic_fallback_plan_t *fallback_plan,
   for (unsigned int i = 0; i < fallback_plan->num_lookups; i++)
     if (fallback_plan->lookup_array[i]) {
       c.set_lookup_mask (fallback_plan->mask_array[i]);
-      hb_ot_layout_substitute_lookup (&c,
-				      *fallback_plan->lookup_array[i],
-				      fallback_plan->accel_array[i]);
+      if (fallback_plan->accel_array[i])
+	hb_ot_layout_substitute_lookup (&c,
+					*fallback_plan->lookup_array[i],
+					*fallback_plan->accel_array[i]);
     }
 }
 
