@@ -1854,7 +1854,8 @@ struct GPOSProxy
 
 static inline bool
 apply_forward (OT::hb_ot_apply_context_t *c,
-	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
+	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
+	       unsigned subtable_count)
 {
   bool use_cache = accel.cache_enter (c);
 
@@ -1867,7 +1868,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 	(buffer->cur().mask & c->lookup_mask) &&
 	c->check_glyph_property (&buffer->cur(), c->lookup_props))
      {
-       applied = accel.apply (c, use_cache);
+       applied = accel.apply (c, subtable_count, use_cache);
      }
 
     if (applied)
@@ -1884,7 +1885,8 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 
 static inline bool
 apply_backward (OT::hb_ot_apply_context_t *c,
-	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
+	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
+	       unsigned subtable_count)
 {
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
@@ -1893,7 +1895,7 @@ apply_backward (OT::hb_ot_apply_context_t *c,
     if (accel.digest.may_have (buffer->cur().codepoint) &&
 	(buffer->cur().mask & c->lookup_mask) &&
 	c->check_glyph_property (&buffer->cur(), c->lookup_props))
-     ret |= accel.apply (c, false);
+     ret |= accel.apply (c, subtable_count, false);
 
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
     buffer->idx--;
@@ -1911,6 +1913,7 @@ apply_string (OT::hb_ot_apply_context_t *c,
 {
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
+  unsigned subtable_count = lookup.get_subtable_count ();
 
   if (unlikely (!buffer->len || !c->lookup_mask))
     return ret;
@@ -1924,7 +1927,7 @@ apply_string (OT::hb_ot_apply_context_t *c,
       buffer->clear_output ();
 
     buffer->idx = 0;
-    ret = apply_forward (c, accel);
+    ret = apply_forward (c, accel, subtable_count);
 
     if (!Proxy::always_inplace)
       buffer->sync ();
@@ -1934,7 +1937,7 @@ apply_string (OT::hb_ot_apply_context_t *c,
     /* in-place backward substitution/positioning */
     assert (!buffer->have_output);
     buffer->idx = buffer->len - 1;
-    ret = apply_backward (c, accel);
+    ret = apply_backward (c, accel, subtable_count);
   }
 
   return ret;
