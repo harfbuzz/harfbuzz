@@ -84,7 +84,7 @@
  */
 
 
-using hb_ft_advance_cache_t = hb_cache_t<16, 24, 8, false>;
+using hb_ft_advance_cache_t = hb_cache_t<16, 8, 8, false>;
 
 struct hb_ft_font_t
 {
@@ -479,10 +479,11 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
       /* Work around bug that FreeType seems to return negative advance
        * for variable-set fonts if x_scale is negative! */
       v = abs (v);
+      v = (int) (v * x_mult + (1<<9)) >> 10;
       ft_font->advance_cache.set (glyph, v);
     }
 
-    *first_advance = (int) (v * x_mult + (1<<9)) >> 10;
+    *first_advance = v;
     first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
     first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
