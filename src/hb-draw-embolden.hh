@@ -190,6 +190,40 @@ hb_recording_pen_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
   c->contours.push (c->points.length);
 }
 
+static inline void free_static_recording_pen_funcs ();
+
+static struct hb_recording_pen_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_recording_pen_funcs_lazy_loader_t>
+{
+  static hb_draw_funcs_t *create ()
+  {
+    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+
+    hb_draw_funcs_set_move_to_func (funcs, hb_recording_pen_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, hb_recording_pen_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (funcs, hb_recording_pen_quadratic_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (funcs, hb_recording_pen_cubic_to, nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func (funcs, hb_recording_pen_close_path, nullptr, nullptr);
+
+    hb_draw_funcs_make_immutable (funcs);
+
+    hb_atexit (free_static_recording_pen_funcs);
+
+    return funcs;
+  }
+} static_recording_pen_funcs;
+
+static inline
+void free_static_recording_pen_funcs ()
+{
+  static_recording_pen_funcs.free_instance ();
+}
+
+static hb_draw_funcs_t *
+hb_recording_pen_get_funcs ()
+{
+  return static_recording_pen_funcs.get_unconst ();
+}
+
 
 struct hb_draw_embolden_context_t : hb_recording_pen_t
 {
@@ -317,45 +351,7 @@ struct hb_draw_embolden_context_t : hb_recording_pen_t
       first = last + 1;
     }
   }
-
-  hb_draw_funcs_t *pen;
-  void *pen_data;
-  float x_strength, y_strength;
 };
-
-static inline void free_static_recording_pen_funcs ();
-
-static struct hb_recording_pen_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_recording_pen_funcs_lazy_loader_t>
-{
-  static hb_draw_funcs_t *create ()
-  {
-    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
-
-    hb_draw_funcs_set_move_to_func (funcs, hb_recording_pen_move_to, nullptr, nullptr);
-    hb_draw_funcs_set_line_to_func (funcs, hb_recording_pen_line_to, nullptr, nullptr);
-    hb_draw_funcs_set_quadratic_to_func (funcs, hb_recording_pen_quadratic_to, nullptr, nullptr);
-    hb_draw_funcs_set_cubic_to_func (funcs, hb_recording_pen_cubic_to, nullptr, nullptr);
-    hb_draw_funcs_set_close_path_func (funcs, hb_recording_pen_close_path, nullptr, nullptr);
-
-    hb_draw_funcs_make_immutable (funcs);
-
-    hb_atexit (free_static_recording_pen_funcs);
-
-    return funcs;
-  }
-} static_recording_pen_funcs;
-
-static inline
-void free_static_recording_pen_funcs ()
-{
-  static_recording_pen_funcs.free_instance ();
-}
-
-static hb_draw_funcs_t *
-hb_recording_pen_get_funcs ()
-{
-  return static_recording_pen_funcs.get_unconst ();
-}
 
 static hb_draw_funcs_t *
 hb_draw_embolden_get_funcs ()
