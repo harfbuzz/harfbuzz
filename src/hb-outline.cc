@@ -103,6 +103,8 @@ float hb_outline_t::area () const
 
 void hb_outline_t::embolden (float x_strength, float y_strength)
 {
+  /* This function is a straight port of FreeType's FT_Outline_EmboldenXY */
+
   if (!x_strength && !y_strength) return;
   if (!points) return;
 
