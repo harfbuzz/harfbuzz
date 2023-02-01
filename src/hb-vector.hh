@@ -459,7 +459,7 @@ struct hb_vector_t
     length--;
   }
 
-  void shrink (int size_)
+  void shrink (int size_, bool shrink_memory = true)
   {
     unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
     if (size >= length)
@@ -467,7 +467,8 @@ struct hb_vector_t
 
     shrink_vector (size);
 
-    alloc (size, true); /* To force shrinking memory if needed. */
+    if (shrink_memory)
+      alloc (size, true); /* To force shrinking memory if needed. */
   }
 
 

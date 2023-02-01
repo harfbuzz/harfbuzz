@@ -45,6 +45,7 @@
 #include FT_MULTIPLE_MASTERS_H
 #include FT_OUTLINE_H
 #include FT_TRUETYPE_TABLES_H
+#include FT_SYNTHESIS_H
 #if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21300
 #include FT_COLOR_H
 #endif
@@ -815,7 +816,7 @@ _hb_ft_cubic_to (const FT_Vector *control1,
 }
 
 static void
-hb_ft_draw_glyph (hb_font_t *font HB_UNUSED,
+hb_ft_draw_glyph (hb_font_t *font,
 		  void *font_data,
 		  hb_codepoint_t glyph,
 		  hb_draw_funcs_t *draw_funcs, void *draw_data,
@@ -843,6 +844,9 @@ hb_ft_draw_glyph (hb_font_t *font HB_UNUSED,
 
   hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
 
+  hb_position_t xstr = font->x_scale / 20;
+  hb_position_t ystr = font->y_scale / 20;
+  FT_Outline_EmboldenXY (&ft_face->glyph->outline, xstr, ystr);
   FT_Outline_Decompose (&ft_face->glyph->outline,
 			&outline_funcs,
 			&draw_session);
