@@ -844,9 +844,7 @@ hb_ft_draw_glyph (hb_font_t *font,
 
   hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
 
-  hb_position_t xstr = font->x_scale / 20;
-  hb_position_t ystr = font->y_scale / 20;
-  FT_Outline_EmboldenXY (&ft_face->glyph->outline, xstr, ystr);
+  FT_Outline_EmboldenXY (&ft_face->glyph->outline, font->x_shift, font->y_shift);
   FT_Outline_Decompose (&ft_face->glyph->outline,
 			&outline_funcs,
 			&draw_session);

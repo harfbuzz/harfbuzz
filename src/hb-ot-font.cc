@@ -475,9 +475,7 @@ hb_ot_draw_glyph (hb_font_t *font,
 #endif
   {}
 
-  float xstr = font->x_scale / 20;
-  float ystr = font->y_scale / 20;
-  outline.embolden (xstr, ystr);
+  outline.embolden (font->x_shift, font->y_shift);
   outline.replay (draw_funcs, draw_data);
 
 }

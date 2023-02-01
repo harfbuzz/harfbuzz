@@ -113,8 +113,15 @@ struct hb_font_t
 
   int32_t x_scale;
   int32_t y_scale;
+
+  float x_embolden;
+  float y_embolden;
+  int32_t x_shift; /* x_embolden, in scaled units. */
+  int32_t y_shift; /* y_embolden, in scaled units. */
+
   float slant;
   float slant_xy;
+
   float x_multf;
   float y_multf;
   int64_t x_mult;
@@ -666,12 +673,17 @@ struct hb_font_t
   void mults_changed ()
   {
     float upem = face->get_upem ();
+
     x_multf = x_scale / upem;
     y_multf = y_scale / upem;
     bool x_neg = x_scale < 0;
     x_mult = (x_neg ? -((int64_t) -x_scale << 16) : ((int64_t) x_scale << 16)) / upem;
     bool y_neg = y_scale < 0;
     y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) / upem;
+
+    x_shift = roundf (x_scale * x_embolden);
+    y_shift = roundf (y_scale * y_embolden);
+
     slant_xy = y_scale ? slant * x_scale / y_scale : 0.f;
 
     data.fini ();

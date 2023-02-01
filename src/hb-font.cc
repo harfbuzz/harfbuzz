@@ -1772,8 +1772,12 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
 
   1000, /* x_scale */
   1000, /* y_scale */
-  0., /* slant */
-  0., /* slant_xy; */
+  0.f, /* x_embolden */
+  0.f, /* y_embolden */
+  0, /* x_shift */
+  0, /* y_shift */
+  0.f, /* slant */
+  0.f, /* slant_xy; */
   1.f, /* x_multf */
   1.f, /* y_multf */
   1<<16, /* x_mult */
@@ -1895,6 +1899,8 @@ hb_font_create_sub_font (hb_font_t *parent)
 
   font->x_scale = parent->x_scale;
   font->y_scale = parent->y_scale;
+  font->x_embolden = parent->x_embolden;
+  font->y_embolden = parent->y_embolden;
   font->slant = parent->slant;
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
@@ -2440,6 +2446,30 @@ float
 hb_font_get_ptem (hb_font_t *font)
 {
   return font->ptem;
+}
+
+void
+hb_font_set_synthetic_bold (hb_font_t *font, float x_embolden, float y_embolden)
+{
+  if (hb_object_is_immutable (font))
+    return;
+
+  if (font->x_embolden == x_embolden &&
+      font->y_embolden == y_embolden)
+    return;
+
+  font->serial++;
+
+  font->x_embolden = x_embolden;
+  font->y_embolden = y_embolden;
+  font->mults_changed ();
+}
+
+void
+hb_font_get_synthetic_bold (hb_font_t *font, float *x_embolden, float *y_embolden)
+{
+  if (x_embolden) *x_embolden = font->x_embolden;
+  if (y_embolden) *y_embolden = font->y_embolden;
 }
 
 /**
