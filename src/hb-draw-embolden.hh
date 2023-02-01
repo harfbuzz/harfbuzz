@@ -47,81 +47,212 @@ struct hb_outline_point_t
   type_t type;
 };
 
+struct hb_outline_vector_t
+{
+  float normalize_len ()
+  {
+    float len = hypotf (x, y);
+    if (len)
+    {
+      x /= len;
+      y /= len;
+    }
+    return len;
+  }
+
+  float x, y;
+};
+
 struct hb_outline_t
 {
-  void replay (hb_draw_funcs_t *pen, void *pen_data) const
-  {
-    hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+  void reset () { points.shrink (0, false); contours.resize (0); }
 
-    unsigned first = 0;
-    for (unsigned contour : contours)
-    {
-      auto it = points.as_array ().sub_array (first, contour - first);
-      while (it)
-      {
-	hb_outline_point_t p1 = *it++;
-	switch (p1.type)
-	{
-	  case hb_outline_point_t::type_t::MOVE_TO:
-	  {
-	    pen->move_to (pen_data, st,
-			     p1.x, p1.y);
-	  }
-	  break;
-	  case hb_outline_point_t::type_t::LINE_TO:
-	  {
-	    pen->line_to (pen_data, st,
-			     p1.x, p1.y);
-	  }
-	  break;
-	  case hb_outline_point_t::type_t::QUADRATIC_TO:
-	  {
-	    hb_outline_point_t p2 = *it++;
-	    pen->quadratic_to (pen_data, st,
-				  p1.x, p1.y,
-				  p2.x, p2.y);
-	  }
-	  break;
-	  case hb_outline_point_t::type_t::CUBIC_TO:
-	  {
-	    hb_outline_point_t p2 = *it++;
-	    hb_outline_point_t p3 = *it++;
-	    pen->cubic_to (pen_data, st,
-			      p1.x, p1.y,
-			      p2.x, p2.y,
-			      p3.x, p3.y);
-	  }
-	  break;
-	}
-      }
-      pen->close_path (pen_data, st);
-      first = contour;
-    }
-  }
-
-  float area () const
-  {
-    float a = 0;
-    unsigned first = 0;
-    for (unsigned contour : contours)
-    {
-      for (unsigned i = first; i < contour; i++)
-      {
-	unsigned j = i + 1 < contour ? i + 1 : first;
-
-	auto &pi = points[i];
-	auto &pj = points[j];
-        a += pi.x * pj.y - pi.y * pj.x;
-      }
-
-      first = contour;
-    }
-    return a * .5f;
-  }
+  HB_INTERNAL void replay (hb_draw_funcs_t *pen, void *pen_data) const;
+  HB_INTERNAL float area () const;
+  HB_INTERNAL void embolden (float x_strength, float y_strength);
 
   hb_vector_t<hb_outline_point_t> points;
   hb_vector_t<unsigned> contours;
 };
+
+void hb_outline_t::replay (hb_draw_funcs_t *pen, void *pen_data) const
+{
+  hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+
+  unsigned first = 0;
+  for (unsigned contour : contours)
+  {
+    auto it = points.as_array ().sub_array (first, contour - first);
+    while (it)
+    {
+      hb_outline_point_t p1 = *it++;
+      switch (p1.type)
+      {
+	case hb_outline_point_t::type_t::MOVE_TO:
+	{
+	  pen->move_to (pen_data, st,
+			   p1.x, p1.y);
+	}
+	break;
+	case hb_outline_point_t::type_t::LINE_TO:
+	{
+	  pen->line_to (pen_data, st,
+			   p1.x, p1.y);
+	}
+	break;
+	case hb_outline_point_t::type_t::QUADRATIC_TO:
+	{
+	  hb_outline_point_t p2 = *it++;
+	  pen->quadratic_to (pen_data, st,
+				p1.x, p1.y,
+				p2.x, p2.y);
+	}
+	break;
+	case hb_outline_point_t::type_t::CUBIC_TO:
+	{
+	  hb_outline_point_t p2 = *it++;
+	  hb_outline_point_t p3 = *it++;
+	  pen->cubic_to (pen_data, st,
+			    p1.x, p1.y,
+			    p2.x, p2.y,
+			    p3.x, p3.y);
+	}
+	break;
+      }
+    }
+    pen->close_path (pen_data, st);
+    first = contour;
+  }
+}
+
+float hb_outline_t::area () const
+{
+  float a = 0;
+  unsigned first = 0;
+  for (unsigned contour : contours)
+  {
+    for (unsigned i = first; i < contour; i++)
+    {
+      unsigned j = i + 1 < contour ? i + 1 : first;
+
+      auto &pi = points[i];
+      auto &pj = points[j];
+      a += pi.x * pj.y - pi.y * pj.x;
+    }
+
+    first = contour;
+  }
+  return a * .5f;
+}
+
+void hb_outline_t::embolden (float x_strength, float y_strength)
+{
+  if (!x_strength && !y_strength) return;
+  if (!points) return;
+
+  x_strength /= 2.f;
+  y_strength /= 2.f;
+
+  bool orientation_negative = area () < 0;
+
+  signed first = 0;
+  for (unsigned c = 0; c < contours.length; c++)
+  {
+    hb_outline_vector_t in, out, anchor, shift;
+    float l_in, l_out, l_anchor = 0, l, q, d;
+
+    l_in = 0;
+    signed last = (int) contours[c] - 1;
+
+    /* pacify compiler */
+    in.x = in.y = anchor.x = anchor.y = 0;
+
+    /* Counter j cycles though the points; counter i advances only  */
+    /* when points are moved; anchor k marks the first moved point. */
+    for ( signed i = last, j = first, k = -1;
+	  j != i && i != k;
+	  j = j < last ? j + 1 : first )
+    {
+      if ( j != k )
+      {
+	out.x = points[j].x - points[i].x;
+	out.y = points[j].y - points[i].y;
+	l_out = out.normalize_len ();
+
+	if ( l_out == 0 )
+	  continue;
+      }
+      else
+      {
+	out   = anchor;
+	l_out = l_anchor;
+      }
+
+      if ( l_in != 0 )
+      {
+	if ( k < 0 )
+	{
+	  k        = i;
+	  anchor   = in;
+	  l_anchor = l_in;
+	}
+
+	d = in.x * out.x + in.y * out.y;
+
+	/* shift only if turn is less than ~160 degrees */
+	if ( d > -15.f/16.f )
+	{
+	  d = d + 1.f;
+
+	  /* shift components along lateral bisector in proper orientation */
+	  shift.x = in.y + out.y;
+	  shift.y = in.x + out.x;
+
+	  if ( orientation_negative )
+	    shift.x = -shift.x;
+	  else
+	    shift.y = -shift.y;
+
+	  /* restrict shift magnitude to better handle collapsing segments */
+	  q = out.x * in.y - out.y * in.x;
+	  if ( orientation_negative )
+	    q = -q;
+
+	  l = hb_min (l_in, l_out);
+
+	  /* non-strict inequalities avoid divide-by-zero when q == l == 0 */
+	  if (x_strength * q <= l * d)
+	    shift.x = shift.x * x_strength / d;
+	  else
+	    shift.x = shift.x * l / q;
+
+
+	  if (y_strength * q <= l * d)
+	    shift.y = shift.y * y_strength / d;
+	  else
+	    shift.y = shift.y * l / q;
+	}
+	else
+	  shift.x = shift.y = 0;
+
+	for ( ;
+	      i != j;
+	      i = i < last ? i + 1 : first )
+	{
+	  points[i].x += x_strength + shift.x;
+	  points[i].y += y_strength + shift.y;
+	}
+      }
+      else
+	i = j;
+
+      in   = out;
+      l_in = l_out;
+    }
+
+    first = last + 1;
+  }
+}
 
 static void
 hb_outline_recording_pen_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
@@ -222,139 +353,5 @@ hb_outline_recording_pen_get_funcs ()
   return static_outline_recording_pen_funcs.get_unconst ();
 }
 
-
-struct hb_draw_embolden_context_t : hb_outline_t
-{
-  void operator () (float x_strength, float y_strength)
-  {
-    if (!x_strength && !y_strength) return;
-    if (!points) return;
-
-    x_strength /= 2.f;
-    y_strength /= 2.f;
-
-    bool orientation_negative = area () < 0;
-
-    struct vector_t
-    {
-      float normalize_len ()
-      {
-	float len = hypotf (x, y);
-	if (len)
-	{
-	  x /= len;
-	  y /= len;
-	}
-	return len;
-      }
-
-      float x, y;
-    };
-
-    signed first = 0;
-    for (unsigned c = 0; c < contours.length; c++)
-    {
-      vector_t in, out, anchor, shift;
-      float l_in, l_out, l_anchor = 0, l, q, d;
-
-      l_in = 0;
-      signed last = (int) contours[c] - 1;
-
-      /* pacify compiler */
-      in.x = in.y = anchor.x = anchor.y = 0;
-
-      /* Counter j cycles though the points; counter i advances only  */
-      /* when points are moved; anchor k marks the first moved point. */
-      for ( signed i = last, j = first, k = -1;
-	    j != i && i != k;
-	    j = j < last ? j + 1 : first )
-      {
-	if ( j != k )
-	{
-	  out.x = points[j].x - points[i].x;
-	  out.y = points[j].y - points[i].y;
-	  l_out = out.normalize_len ();
-
-	  if ( l_out == 0 )
-	    continue;
-	}
-	else
-	{
-	  out   = anchor;
-	  l_out = l_anchor;
-	}
-
-	if ( l_in != 0 )
-	{
-	  if ( k < 0 )
-	  {
-	    k        = i;
-	    anchor   = in;
-	    l_anchor = l_in;
-	  }
-
-	  d = in.x * out.x + in.y * out.y;
-
-	  /* shift only if turn is less than ~160 degrees */
-	  if ( d > -15.f/16.f )
-	  {
-	    d = d + 1.f;
-
-	    /* shift components along lateral bisector in proper orientation */
-	    shift.x = in.y + out.y;
-	    shift.y = in.x + out.x;
-
-	    if ( orientation_negative )
-	      shift.x = -shift.x;
-	    else
-	      shift.y = -shift.y;
-
-	    /* restrict shift magnitude to better handle collapsing segments */
-	    q = out.x * in.y - out.y * in.x;
-	    if ( orientation_negative )
-	      q = -q;
-
-	    l = hb_min (l_in, l_out);
-
-	    /* non-strict inequalities avoid divide-by-zero when q == l == 0 */
-	    if (x_strength * q <= l * d)
-	      shift.x = shift.x * x_strength / d;
-	    else
-	      shift.x = shift.x * l / q;
-
-
-	    if (y_strength * q <= l * d)
-	      shift.y = shift.y * y_strength / d;
-	    else
-	      shift.y = shift.y * l / q;
-	  }
-	  else
-	    shift.x = shift.y = 0;
-
-	  for ( ;
-		i != j;
-		i = i < last ? i + 1 : first )
-	  {
-	    points[i].x += x_strength + shift.x;
-	    points[i].y += y_strength + shift.y;
-	  }
-	}
-	else
-	  i = j;
-
-	in   = out;
-	l_in = l_out;
-      }
-
-      first = last + 1;
-    }
-  }
-};
-
-static hb_draw_funcs_t *
-hb_draw_embolden_get_funcs ()
-{
-  return hb_outline_recording_pen_get_funcs ();
-}
 
 #endif /* HB_DRAW_EMBOLDEN_HH */

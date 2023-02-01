@@ -464,10 +464,10 @@ hb_ot_draw_glyph (hb_font_t *font,
 		  void *user_data)
 {
 
-  hb_draw_embolden_context_t emboldener;
-  auto *embolden_funcs = hb_draw_embolden_get_funcs ();
+  hb_outline_t outline;
+  auto *pen = hb_outline_recording_pen_get_funcs ();
 
-  hb_draw_session_t draw_session (embolden_funcs, &emboldener, font->slant_xy);
+  hb_draw_session_t draw_session (pen, &outline, font->slant_xy);
   if (!font->face->table.glyf->get_path (font, glyph, draw_session))
 #ifndef HB_NO_CFF
   if (!font->face->table.cff1->get_path (font, glyph, draw_session))
@@ -477,8 +477,8 @@ hb_ot_draw_glyph (hb_font_t *font,
 
   float xstr = font->x_scale / 20;
   float ystr = font->y_scale / 20;
-  emboldener (xstr, ystr);
-  emboldener.replay (draw_funcs, draw_data);
+  outline.embolden (xstr, ystr);
+  outline.replay (draw_funcs, draw_data);
 
 }
 #endif
