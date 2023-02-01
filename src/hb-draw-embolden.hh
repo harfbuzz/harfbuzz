@@ -51,7 +51,7 @@ using hb_contour_t = hb_vector_t<hb_contour_point_t>;
 
 struct hb_recording_pen_t
 {
-  void replay (hb_draw_funcs_t *pen, void *pen_data)
+  void replay (hb_draw_funcs_t *pen, void *pen_data) const
   {
     hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
 
@@ -99,6 +99,26 @@ struct hb_recording_pen_t
       pen->close_path (pen_data, st);
       first = contour;
     }
+  }
+
+  float area () const
+  {
+    float a = 0;
+    unsigned first = 0;
+    for (unsigned contour : contours)
+    {
+      for (unsigned i = first; i < contour; i++)
+      {
+	unsigned j = i + 1 < contour ? i + 1 : first;
+
+	auto &pi = points[i];
+	auto &pj = points[j];
+        a += pi.x * pj.y - pi.y * pj.x;
+      }
+
+      first = contour;
+    }
+    return a * .5f;
   }
 
   hb_vector_t<hb_contour_point_t> points;
@@ -181,7 +201,7 @@ struct hb_draw_embolden_context_t : hb_recording_pen_t
     x_strength /= 2.f;
     y_strength /= 2.f;
 
-    bool orientation_negative = true;
+    bool orientation_negative = area () < 0;
 
     struct vector_t
     {
