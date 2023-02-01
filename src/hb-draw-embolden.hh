@@ -49,8 +49,7 @@ struct hb_contour_point_t
 
 using hb_contour_t = hb_vector_t<hb_contour_point_t>;
 
-template <typename context_t>
-struct hb_filter_outline_t
+struct hb_recording_pen_t
 {
   void replay (hb_draw_funcs_t *pen, void *pen_data)
   {
@@ -106,78 +105,73 @@ struct hb_filter_outline_t
   hb_vector_t<unsigned> contours;
 };
 
-template <typename context_t>
 static void
-hb_filter_outline_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
-			   void *data,
-			   hb_draw_state_t *st,
-			   float to_x, float to_y,
-			   void *user_data HB_UNUSED)
+hb_recording_pen_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			  void *data,
+			  hb_draw_state_t *st,
+			  float to_x, float to_y,
+			  void *user_data HB_UNUSED)
 {
-  context_t *c = (context_t *) data;
+  hb_recording_pen_t *c = (hb_recording_pen_t *) data;
 
   c->points.push (hb_contour_point_t {to_x, to_y, hb_contour_point_t::type_t::MOVE_TO});
 }
 
-template <typename context_t>
 static void
-hb_filter_outline_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
-			   void *data,
-			   hb_draw_state_t *st,
-			   float to_x, float to_y,
-			   void *user_data HB_UNUSED)
+hb_recording_pen_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			  void *data,
+			  hb_draw_state_t *st,
+			  float to_x, float to_y,
+			  void *user_data HB_UNUSED)
 {
-  context_t *c = (context_t *) data;
+  hb_recording_pen_t *c = (hb_recording_pen_t *) data;
 
   c->points.push (hb_contour_point_t {to_x, to_y, hb_contour_point_t::type_t::LINE_TO});
 }
 
-template <typename context_t>
 static void
-hb_filter_outline_quadratic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
-				void *data,
-				hb_draw_state_t *st,
-				float control_x, float control_y,
-				float to_x, float to_y,
-				void *user_data HB_UNUSED)
+hb_recording_pen_quadratic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			       void *data,
+			       hb_draw_state_t *st,
+			       float control_x, float control_y,
+			       float to_x, float to_y,
+			       void *user_data HB_UNUSED)
 {
-  context_t *c = (context_t *) data;
+  hb_recording_pen_t *c = (hb_recording_pen_t *) data;
 
   c->points.push (hb_contour_point_t {control_x, control_y, hb_contour_point_t::type_t::QUADRATIC_TO});
   c->points.push (hb_contour_point_t {to_x, to_y, hb_contour_point_t::type_t::QUADRATIC_TO});
 }
 
-template <typename context_t>
 static void
-hb_filter_outline_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
-			    void *data,
-			    hb_draw_state_t *st,
-			    float control1_x, float control1_y,
-			    float control2_x, float control2_y,
-			    float to_x, float to_y,
-			    void *user_data HB_UNUSED)
+hb_recording_pen_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			   void *data,
+			   hb_draw_state_t *st,
+			   float control1_x, float control1_y,
+			   float control2_x, float control2_y,
+			   float to_x, float to_y,
+			   void *user_data HB_UNUSED)
 {
-  context_t *c = (context_t *) data;
+  hb_recording_pen_t *c = (hb_recording_pen_t *) data;
 
   c->points.push (hb_contour_point_t {control1_x, control1_y, hb_contour_point_t::type_t::CUBIC_TO});
   c->points.push (hb_contour_point_t {control2_x, control2_y, hb_contour_point_t::type_t::CUBIC_TO});
   c->points.push (hb_contour_point_t {to_x, to_y, hb_contour_point_t::type_t::CUBIC_TO});
 }
 
-template <typename context_t>
 static void
-hb_filter_outline_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
-			      void *data,
-			      hb_draw_state_t *st,
-			      void *user_data HB_UNUSED)
+hb_recording_pen_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			     void *data,
+			     hb_draw_state_t *st,
+			     void *user_data HB_UNUSED)
 {
-  context_t *c = (context_t *) data;
+  hb_recording_pen_t *c = (hb_recording_pen_t *) data;
 
   c->contours.push (c->points.length);
 }
 
 
-struct hb_draw_embolden_context_t : hb_filter_outline_t<hb_draw_embolden_context_t>
+struct hb_draw_embolden_context_t : hb_recording_pen_t
 {
   void operator () (float x_strength, float y_strength)
   {
@@ -187,7 +181,7 @@ struct hb_draw_embolden_context_t : hb_filter_outline_t<hb_draw_embolden_context
     x_strength /= 2.f;
     y_strength /= 2.f;
 
-    bool orientation_negative = false;
+    bool orientation_negative = true;
 
     struct vector_t
     {
@@ -309,41 +303,44 @@ struct hb_draw_embolden_context_t : hb_filter_outline_t<hb_draw_embolden_context
   float x_strength, y_strength;
 };
 
-static inline void free_static_draw_embolden_funcs ();
+static inline void free_static_recording_pen_funcs ();
 
-static struct hb_draw_embolden_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_draw_embolden_funcs_lazy_loader_t>
+static struct hb_recording_pen_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_recording_pen_funcs_lazy_loader_t>
 {
   static hb_draw_funcs_t *create ()
   {
     hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
 
-    using t = hb_draw_embolden_context_t;
-
-    hb_draw_funcs_set_move_to_func (funcs, hb_filter_outline_move_to<t>, nullptr, nullptr);
-    hb_draw_funcs_set_line_to_func (funcs, hb_filter_outline_line_to<t>, nullptr, nullptr);
-    hb_draw_funcs_set_quadratic_to_func (funcs, hb_filter_outline_quadratic_to<t>, nullptr, nullptr);
-    hb_draw_funcs_set_cubic_to_func (funcs, hb_filter_outline_cubic_to<t>, nullptr, nullptr);
-    hb_draw_funcs_set_close_path_func (funcs, hb_filter_outline_close_path<t>, nullptr, nullptr);
+    hb_draw_funcs_set_move_to_func (funcs, hb_recording_pen_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, hb_recording_pen_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (funcs, hb_recording_pen_quadratic_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (funcs, hb_recording_pen_cubic_to, nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func (funcs, hb_recording_pen_close_path, nullptr, nullptr);
 
     hb_draw_funcs_make_immutable (funcs);
 
-    hb_atexit (free_static_draw_embolden_funcs);
+    hb_atexit (free_static_recording_pen_funcs);
 
     return funcs;
   }
-} static_draw_embolden_funcs;
+} static_recording_pen_funcs;
 
 static inline
-void free_static_draw_embolden_funcs ()
+void free_static_recording_pen_funcs ()
 {
-  static_draw_embolden_funcs.free_instance ();
+  static_recording_pen_funcs.free_instance ();
+}
+
+static hb_draw_funcs_t *
+hb_recording_pen_get_funcs ()
+{
+  return static_recording_pen_funcs.get_unconst ();
 }
 
 static hb_draw_funcs_t *
 hb_draw_embolden_get_funcs ()
 {
-  return static_draw_embolden_funcs.get_unconst ();
+  return hb_recording_pen_get_funcs ();
 }
-
 
 #endif /* HB_DRAW_EMBOLDEN_HH */
