@@ -94,6 +94,8 @@ hb_base_sources = files(
   'hb-ot-layout-gdef-table.hh',
   'hb-ot-layout-gpos-table.hh',
   'hb-ot-layout-gsub-table.hh',
+  'hb-outline.hh',
+  'hb-outline.cc',
   'OT/Color/CBDT/CBDT.hh',
   'OT/Color/COLR/COLR.hh',
   'OT/Color/CPAL/CPAL.hh',

@@ -85,6 +85,8 @@ HB_BASE_sources = \
 	hb-ot-layout-common.hh \
 	hb-ot-layout-gdef-table.hh \
 	hb-ot-layout-gpos-table.hh \
+	hb-outline.hh \
+	hb-outline.cc \
 	hb-paint.cc \
 	hb-paint.hh \
 	hb-paint-extents.cc \

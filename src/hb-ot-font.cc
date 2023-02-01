@@ -34,7 +34,7 @@
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 #include "hb-ot-face.hh"
-#include "hb-draw-embolden.hh"
+#include "hb-outline.hh"
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"

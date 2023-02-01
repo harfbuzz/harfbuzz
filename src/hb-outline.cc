@@ -22,58 +22,14 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_DRAW_EMBOLDEN_HH
-#define HB_DRAW_EMBOLDEN_HH
-
 #include "hb.hh"
 
-#include "hb-draw.hh"
+#ifndef HB_NO_OUTLINE
 
+#include "hb-outline.hh"
 
-struct hb_outline_point_t
-{
-  enum class type_t
-  {
-    MOVE_TO,
-    LINE_TO,
-    QUADRATIC_TO,
-    CUBIC_TO,
-  };
+#include "hb-machinery.hh"
 
-  hb_outline_point_t (float x, float y, type_t type) :
-    x (x), y (y), type (type) {}
-
-  float x, y;
-  type_t type;
-};
-
-struct hb_outline_vector_t
-{
-  float normalize_len ()
-  {
-    float len = hypotf (x, y);
-    if (len)
-    {
-      x /= len;
-      y /= len;
-    }
-    return len;
-  }
-
-  float x, y;
-};
-
-struct hb_outline_t
-{
-  void reset () { points.shrink (0, false); contours.resize (0); }
-
-  HB_INTERNAL void replay (hb_draw_funcs_t *pen, void *pen_data) const;
-  HB_INTERNAL float area () const;
-  HB_INTERNAL void embolden (float x_strength, float y_strength);
-
-  hb_vector_t<hb_outline_point_t> points;
-  hb_vector_t<unsigned> contours;
-};
 
 void hb_outline_t::replay (hb_draw_funcs_t *pen, void *pen_data) const
 {
@@ -347,11 +303,11 @@ void free_static_outline_recording_pen_funcs ()
   static_outline_recording_pen_funcs.free_instance ();
 }
 
-static hb_draw_funcs_t *
+hb_draw_funcs_t *
 hb_outline_recording_pen_get_funcs ()
 {
   return static_outline_recording_pen_funcs.get_unconst ();
 }
 
 
-#endif /* HB_DRAW_EMBOLDEN_HH */
+#endif
