@@ -12,7 +12,6 @@ permissions:
 
 jobs:
   build:
-    permissions: write-all
     runs-on: ubuntu-20.04
 
     steps:
@@ -53,8 +52,6 @@ jobs:
           -Dragel_subproject=true
     - name: Build
       run: meson compile -Cbuild
-    - name: Collect Workflow Telemetry
-      uses: runforesight/workflow-telemetry-action@v1
     - name: Test
       run: meson test --print-errorlogs -Cbuild
     - name: Generate Documentations

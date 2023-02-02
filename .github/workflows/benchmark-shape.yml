@@ -1,0 +1,48 @@
+name: benchmark-shape
+
+on:
+  push:
+    branches: [ main ]
+    tags: ["*.*.*"]
+  pull_request:
+    branches: [ main ]
+
+permissions: write-all
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup Ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ github.job }}-${{ runner.os }}-${{ runner.arch }}
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install \
+          gcc \
+          libfreetype6-dev \
+          libglib2.0-dev \
+          ninja-build \
+          pkg-config \
+          python3 \
+          python3-setuptools
+    - name: Install Python Dependencies
+      run: sudo pip3 install meson==0.56.0
+    - name: Setup Meson
+      run: |
+        ccache --version
+        meson setup build \
+          -Dbenchmark=enabled \
+          -Dchafa=disabled \
+          --buildtype=release
+    - name: Build
+      run: ninja -Cbuild perf/benchmark-shape
+    - name: Collect Workflow Telemetry
+      uses: runforesight/workflow-telemetry-action@v1
+    - name: Benchmark
+      run: nice build/perf/benchmark-shape
