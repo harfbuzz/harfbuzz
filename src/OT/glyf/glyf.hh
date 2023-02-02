@@ -110,12 +110,11 @@ struct glyf
         padded_offsets[i] = glyphs[i].length ();
     }
 
-    if (!glyf_prime->serialize (c->serializer, glyphs.writer (), use_short_loca, c->plan))
-    {
-      if (c->plan->normalized_coords && !c->plan->pinned_at_default)
-          _free_compiled_subset_glyphs (glyphs, glyphs.length - 1);
-      return false;
-    }
+    bool result = glyf_prime->serialize (c->serializer, glyphs.writer (), use_short_loca, c->plan);
+    if (c->plan->normalized_coords && !c->plan->pinned_at_default)
+      _free_compiled_subset_glyphs (glyphs, glyphs.length - 1);
+
+    if (!result) return false;
 
     if (unlikely (c->serializer->in_error ())) return_trace (false);
 
