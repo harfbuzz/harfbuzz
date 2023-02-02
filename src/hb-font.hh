@@ -681,8 +681,8 @@ struct hb_font_t
     bool y_neg = y_scale < 0;
     y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) / upem;
 
-    x_shift = roundf (x_scale * x_embolden);
-    y_shift = roundf (y_scale * y_embolden);
+    x_shift = fabs (roundf (x_scale * x_embolden));
+    y_shift = fabs (roundf (y_scale * y_embolden));
 
     slant_xy = y_scale ? slant * x_scale / y_scale : 0.f;
 
