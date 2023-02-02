@@ -315,9 +315,9 @@ _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 {
   cairo_t *cr = c->cr;
 
+  unsigned int len = PREALLOCATED_COLOR_STOPS;
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
   hb_color_stop_t *stops = stops_;
-  unsigned int len = PREALLOCATED_COLOR_STOPS;
   float xx0, yy0, xx1, yy1;
   float xxx0, yyy0, xxx1, yyy1;
   float min, max;
@@ -363,9 +363,9 @@ _hb_cairo_paint_radial_gradient (hb_cairo_context_t *c,
 {
   cairo_t *cr = c->cr;
 
+  unsigned int len = PREALLOCATED_COLOR_STOPS;
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
   hb_color_stop_t *stops = stops_;
-  unsigned int len;
   float min, max;
   float xx0, yy0, xx1, yy1;
   float rr0, rr1;
@@ -833,7 +833,7 @@ _hb_cairo_paint_sweep_gradient (hb_cairo_context_t *c,
 {
   cairo_t *cr = c->cr;
 
-  unsigned int len;
+  unsigned int len = PREALLOCATED_COLOR_STOPS;
   hb_color_stop_t stops_[PREALLOCATED_COLOR_STOPS];
   hb_color_stop_t *stops = stops_;
   cairo_extend_t extend;
