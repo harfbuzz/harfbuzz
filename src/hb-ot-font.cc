@@ -467,13 +467,15 @@ hb_ot_draw_glyph (hb_font_t *font,
   hb_outline_t outline;
   auto *pen = hb_outline_recording_pen_get_funcs ();
 
-  hb_draw_session_t draw_session (pen, &outline, font->slant_xy);
-  if (!font->face->table.glyf->get_path (font, glyph, draw_session))
+  { // Need draw_session to be destructed before emboldening.
+    hb_draw_session_t draw_session (pen, &outline, font->slant_xy);
+    if (!font->face->table.glyf->get_path (font, glyph, draw_session))
 #ifndef HB_NO_CFF
-  if (!font->face->table.cff1->get_path (font, glyph, draw_session))
-  if (!font->face->table.cff2->get_path (font, glyph, draw_session))
+    if (!font->face->table.cff1->get_path (font, glyph, draw_session))
+    if (!font->face->table.cff2->get_path (font, glyph, draw_session))
 #endif
-  {}
+    {}
+  }
 
   outline.embolden (font->x_shift, font->y_shift);
   outline.replay (draw_funcs, draw_data);
