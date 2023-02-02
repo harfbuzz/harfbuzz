@@ -2448,6 +2448,27 @@ hb_font_get_ptem (hb_font_t *font)
   return font->ptem;
 }
 
+/**
+ * hb_font_set_synthetic_bold:
+ * @font: #hb_font_t to work upon
+ * @x_embolden: the amount to embolden horizontally
+ * @y_embolden: the amount to embolden vertically
+ *
+ * Sets the "synthetic boldness" of a font.
+ *
+ * Positive values make a font bolder, negative values
+ * thinner. Typical values are in the 0.01 to 0.05 range.
+ * The default value is zero.
+ *
+ * Synthetic boldness is applied by offsetting the contour
+ * points of the glyph shape.
+ *
+ * HarfBuzz applies synthetic boldness when rendering a glyph
+ * via hb_font_draw_glyph(), and also uses the values to adjust
+ * the advance width of emboldened glyphs.
+ *
+ * Since: REPLACEME
+ **/
 void
 hb_font_set_synthetic_bold (hb_font_t *font, float x_embolden, float y_embolden)
 {
@@ -2465,6 +2486,16 @@ hb_font_set_synthetic_bold (hb_font_t *font, float x_embolden, float y_embolden)
   font->mults_changed ();
 }
 
+/**
+ * hb_font_get_synthetic_bold:
+ * @font: #hb_font_t to work upon
+ * @x_embolden: return location for horizontal value
+ * @y_embolden: return location for vertical value
+ *
+ * Fetches the "synthetic boldness" of a font.
+ *
+ * Since: REPLACEME
+ **/
 void
 hb_font_get_synthetic_bold (hb_font_t *font, float *x_embolden, float *y_embolden)
 {
