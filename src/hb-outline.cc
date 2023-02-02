@@ -1,5 +1,9 @@
 /*
  * Copyright © 2023  Behdad Esfahbod
+ * Copyright © 1999  David Turner
+ * Copyright © 2005  Werner Lemberg
+ * Copyright © 2013-2015  Alexei Podtelezhnikov
+ *
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -103,7 +107,9 @@ float hb_outline_t::area () const
 
 void hb_outline_t::embolden (float x_strength, float y_strength)
 {
-  /* This function is a straight port of FreeType's FT_Outline_EmboldenXY */
+  /* This function is a straight port of FreeType's FT_Outline_EmboldenXY.
+   * Permission has been obtained from the FreeType authors of the code
+   * to relicense it under the HarfBuzz license. */
 
   if (!x_strength && !y_strength) return;
   if (!points) return;
