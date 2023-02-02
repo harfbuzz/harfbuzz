@@ -181,9 +181,12 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 			    unsigned advance_stride,
 			    void *user_data HB_UNUSED)
 {
+
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
   const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx;
+
+  hb_position_t *orig_first_advance = first_advance;
 
 #ifndef HB_NO_VAR
   const OT::HVAR &HVAR = *hmtx.var_table;
@@ -258,6 +261,18 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 #ifndef HB_NO_VAR
   OT::VariationStore::destroy_cache (varStore_cache);
 #endif
+
+  if (font->x_shift)
+  {
+    /* Emboldening. */
+    hb_position_t x_shift = font->x_scale >= 0 ? font->x_shift : -font->x_shift;
+    first_advance = orig_first_advance;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance += *first_advance ? x_shift : 0;
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+  }
 }
 
 #ifndef HB_NO_VERTICAL
@@ -273,6 +288,8 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
   const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
+
+  hb_position_t *orig_first_advance = first_advance;
 
   if (vmtx.has_data ())
   {
@@ -305,6 +322,18 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
     {
       *first_advance = advance;
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+  }
+
+  if (font->y_shift)
+  {
+    /* Emboldening. */
+    hb_position_t y_shift = font->y_scale >= 0 ? font->y_shift : -font->y_shift;
+    first_advance = orig_first_advance;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance += *first_advance ? y_shift : 0;
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
   }

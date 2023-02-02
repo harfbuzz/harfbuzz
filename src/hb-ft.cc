@@ -448,6 +448,7 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
 			    void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_position_t *orig_first_advance = first_advance;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   int load_flags = ft_font->load_flags;
@@ -488,6 +489,18 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
     first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
     first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
+
+  if (font->x_shift)
+  {
+    /* Emboldening. */
+    hb_position_t x_shift = font->x_scale >= 0 ? font->x_shift : -font->x_shift;
+    first_advance = orig_first_advance;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance += *first_advance ? x_shift : 0;
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+  }
 }
 
 #ifndef HB_NO_VERTICAL
@@ -523,7 +536,8 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
   /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
    * have a Y growing upward.  Hence the extra negation. */
 
-  return (-v + (1<<9)) >> 10;
+  hb_position_t y_shift = font->y_scale >= 0 ? font->y_shift : -font->y_shift;
+  return ((-v + (1<<9)) >> 10) + y_shift;
 }
 #endif
 
