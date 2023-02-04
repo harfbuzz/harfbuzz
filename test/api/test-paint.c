@@ -33,6 +33,7 @@
 #if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21300
 #include FT_COLOR_H
 #endif
+#endif
 
 static inline hb_bool_t
 have_ft_colrv1 (void)
@@ -43,7 +44,6 @@ have_ft_colrv1 (void)
   return FALSE;
 #endif
 }
-#endif
 
 /* Unit tests for hb-paint.h */
 
