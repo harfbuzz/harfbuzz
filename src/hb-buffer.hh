@@ -584,8 +584,8 @@ struct hb_buffer_t
     if (unlikely (start == end))
       return;
 
-    unsigned cluster_first = info[start].cluster;
-    unsigned cluster_last = info[end - 1].cluster;
+    unsigned cluster_first = infos[start].cluster;
+    unsigned cluster_last = infos[end - 1].cluster;
 
     if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS ||
 	(cluster != cluster_first && cluster != cluster_last))
@@ -604,20 +604,18 @@ struct hb_buffer_t
     if (cluster == cluster_first)
     {
       for (unsigned int i = end; start < i && infos[i - 1].cluster != cluster_first; i--)
-	if (cluster != infos[i - 1].cluster)
-	{
-	  scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
-	  infos[i - 1].mask |= mask;
-	}
+      {
+	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+	infos[i - 1].mask |= mask;
+      }
     }
     else /* cluster == cluster_last */
     {
       for (unsigned int i = start; i < end && infos[i].cluster != cluster_last; i++)
-	if (cluster != infos[i].cluster)
-	{
-	  scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
-	  infos[i].mask |= mask;
-	}
+      {
+	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+	infos[i].mask |= mask;
+      }
     }
   }
   unsigned
