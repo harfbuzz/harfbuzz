@@ -712,6 +712,9 @@ struct hb_ot_apply_context_t :
   uint32_t random_state = 1;
   unsigned new_syllables = (unsigned) -1;
 
+  signed last_base = -1; // GPOS uses
+  unsigned last_base_until = 0; // GPOS uses
+
   hb_ot_apply_context_t (unsigned int table_index_,
 			 hb_font_t *font_,
 			 hb_buffer_t *buffer_) :
@@ -750,7 +753,7 @@ struct hb_ot_apply_context_t :
     iter_context.init (this, true);
   }
 
-  void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; init_iters (); }
+  void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; last_base = -1; last_base_until = 0; init_iters (); }
   void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; init_iters (); }
   void set_auto_zwnj (bool auto_zwnj_) { auto_zwnj = auto_zwnj_; init_iters (); }
   void set_per_syllable (bool per_syllable_) { per_syllable = per_syllable_; init_iters (); }
