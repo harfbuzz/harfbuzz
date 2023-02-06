@@ -588,14 +588,22 @@ struct hb_buffer_t
 	infos[i].mask |= mask;
       }
   }
-  static unsigned
+  unsigned
   _infos_find_min_cluster (const hb_glyph_info_t *infos,
 			   unsigned start, unsigned end,
 			   unsigned cluster = UINT_MAX)
   {
-    for (unsigned int i = start; i < end; i++)
-      cluster = hb_min (cluster, infos[i].cluster);
-    return cluster;
+    if (unlikely (start == end))
+      return cluster;
+
+    if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
+    {
+      for (unsigned int i = start; i < end; i++)
+	cluster = hb_min (cluster, infos[i].cluster);
+      return cluster;
+    }
+
+    return hb_min (cluster, hb_min (infos[start].cluster, infos[end - 1].cluster));
   }
 
   void clear_glyph_flags (hb_mask_t mask = 0)
