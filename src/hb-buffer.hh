@@ -581,12 +581,44 @@ struct hb_buffer_t
 			  unsigned int cluster,
 			  hb_mask_t mask)
   {
-    for (unsigned int i = start; i < end; i++)
-      if (cluster != infos[i].cluster)
-      {
-	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
-	infos[i].mask |= mask;
-      }
+    if (unlikely (start == end))
+      return;
+
+    unsigned cluster_first = info[start].cluster;
+    unsigned cluster_last = info[end - 1].cluster;
+
+    if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS ||
+	(cluster != cluster_first && cluster != cluster_last))
+    {
+      for (unsigned int i = start; i < end; i++)
+	if (cluster != infos[i].cluster)
+	{
+	  scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+	  infos[i].mask |= mask;
+	}
+      return;
+    }
+
+    /* Monotone clusters */
+
+    if (cluster == cluster_first)
+    {
+      for (unsigned int i = end; start < i && infos[i - 1].cluster != cluster_first; i--)
+	if (cluster != infos[i - 1].cluster)
+	{
+	  scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+	  infos[i - 1].mask |= mask;
+	}
+    }
+    else /* cluster == cluster_last */
+    {
+      for (unsigned int i = start; i < end && infos[i].cluster != cluster_last; i++)
+	if (cluster != infos[i].cluster)
+	{
+	  scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+	  infos[i].mask |= mask;
+	}
+    }
   }
   unsigned
   _infos_find_min_cluster (const hb_glyph_info_t *infos,
