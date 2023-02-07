@@ -657,6 +657,22 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   extents->width = ceilf (x2) - extents->x_bearing;
   extents->height = ceilf (y2) - extents->y_bearing;
 
+  if (font->x_strength || font->y_strength)
+  {
+    /* Y */
+    int y_shift = font->y_strength;
+    if (font->y_scale < 0) y_shift = -y_shift;
+    extents->y_bearing += y_shift;
+    extents->height -= y_shift;
+
+    /* X */
+    int x_shift = font->x_strength;
+    if (font->x_scale < 0) x_shift = -x_shift;
+    if (font->embolden_in_place)
+      extents->x_bearing -= x_shift / 2;
+    extents->width += x_shift;
+  }
+
   return true;
 }
 
