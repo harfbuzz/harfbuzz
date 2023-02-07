@@ -104,6 +104,11 @@ struct MarkLigPosFormat1_2
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);
 
+    if (c->last_base_until > buffer->idx)
+    {
+      c->last_base_until = 0;
+      c->last_base = -1;
+    }
     unsigned j;
     for (j = buffer->idx; j > c->last_base_until; j--)
     {
