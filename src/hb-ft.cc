@@ -881,7 +881,7 @@ hb_ft_draw_glyph (hb_font_t *font,
     if (x_shift || y_shift)
     {
       auto &outline = ft_face->glyph->outline;
-      for (auto &point : hb_iter (outline.points, outline.contours[outline.n_contours - 1]))
+      for (auto &point : hb_iter (outline.points, outline.contours[outline.n_contours - 1] + 1))
       {
 	point.x += x_shift;
 	point.y += y_shift;
