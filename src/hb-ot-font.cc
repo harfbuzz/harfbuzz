@@ -466,9 +466,16 @@ hb_ot_get_font_h_extents (hb_font_t *font,
 			  hb_font_extents_t *metrics,
 			  void *user_data HB_UNUSED)
 {
-  return _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, &metrics->ascender) &&
-	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER, &metrics->descender) &&
-	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP, &metrics->line_gap);
+  bool ret = _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, &metrics->ascender) &&
+	     _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER, &metrics->descender) &&
+	     _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP, &metrics->line_gap);
+
+  /* Embolden */
+  int y_shift = font->y_strength;
+  if (font->y_scale < 0) y_shift = -y_shift;
+  metrics->ascender += y_shift;
+
+  return ret;
 }
 
 #ifndef HB_NO_VERTICAL
