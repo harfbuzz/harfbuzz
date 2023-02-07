@@ -238,7 +238,7 @@ _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
 
       const OT::Feature* other_f = &(g.get_feature (other_f_index));
       if (feature_substitutes_map->has (other_f_index, &p))
-        f = *p;
+        other_f = *p;
 
       auto f_iter =
       + hb_iter (f->lookupIndex)
