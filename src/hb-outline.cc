@@ -105,7 +105,8 @@ float hb_outline_t::area () const
   return a * .5f;
 }
 
-void hb_outline_t::embolden (float x_strength, float y_strength)
+void hb_outline_t::embolden (float x_strength, float y_strength,
+			     float x_shift, float y_shift)
 {
   /* This function is a straight port of FreeType's FT_Outline_EmboldenXY.
    * Permission has been obtained from the FreeType authors of the code
@@ -203,8 +204,8 @@ void hb_outline_t::embolden (float x_strength, float y_strength)
 	      i != j;
 	      i = i < last ? i + 1 : first )
 	{
-	  points[i].x += x_strength + shift.x;
-	  points[i].y += y_strength + shift.y;
+	  points[i].x += x_shift + shift.x;
+	  points[i].y += y_shift + shift.y;
 	}
       }
       else

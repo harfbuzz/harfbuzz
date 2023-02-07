@@ -1774,8 +1774,9 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   1000, /* y_scale */
   0.f, /* x_embolden */
   0.f, /* y_embolden */
-  0, /* x_shift */
-  0, /* y_shift */
+  true, /* embolden_in_place */
+  0, /* x_strength */
+  0, /* y_strength */
   0.f, /* slant */
   0.f, /* slant_xy; */
   1.f, /* x_multf */
@@ -1815,6 +1816,7 @@ _hb_font_create (hb_face_t *face)
   font->klass = hb_font_funcs_get_empty ();
   font->data.init0 (font);
   font->x_scale = font->y_scale = face->get_upem ();
+  font->embolden_in_place = true;
   font->x_multf = font->y_multf = 1.f;
   font->x_mult = font->y_mult = 1 << 16;
   font->instance_index = HB_FONT_NO_VAR_NAMED_INSTANCE;
@@ -1901,6 +1903,7 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->y_scale = parent->y_scale;
   font->x_embolden = parent->x_embolden;
   font->y_embolden = parent->y_embolden;
+  font->embolden_in_place = parent->embolden_in_place;
   font->slant = parent->slant;
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
@@ -2453,54 +2456,67 @@ hb_font_get_ptem (hb_font_t *font)
  * @font: #hb_font_t to work upon
  * @x_embolden: the amount to embolden horizontally
  * @y_embolden: the amount to embolden vertically
+ * @in_place: whether to embolden glyphs in-place
  *
  * Sets the "synthetic boldness" of a font.
  *
- * Positive values make a font bolder, negative values
- * thinner. Typical values are in the 0.01 to 0.05 range.
- * The default value is zero.
+ * Positive values for @x_embolden / @y_embolden make a font
+ * bolder, negative values thinner. Typical values are in the
+ * 0.01 to 0.05 range. The default value is zero.
  *
  * Synthetic boldness is applied by offsetting the contour
  * points of the glyph shape.
  *
- * HarfBuzz applies synthetic boldness when rendering a glyph
- * via hb_font_draw_glyph(), and also uses the values to adjust
- * the advance width of emboldened glyphs.
+ * Synthetic boldness is applied when rendering a glyph via
+ * hb_font_draw_glyph().
+ *
+ * If @in_place is %FALSE, then glyph advance-widths are also
+ * adjusted, otherwise they are not.
  *
  * Since: REPLACEME
  **/
 void
-hb_font_set_synthetic_bold (hb_font_t *font, float x_embolden, float y_embolden)
+hb_font_set_synthetic_bold (hb_font_t *font,
+			    float x_embolden,
+			    float y_embolden,
+			    hb_bool_t in_place)
 {
   if (hb_object_is_immutable (font))
     return;
 
   if (font->x_embolden == x_embolden &&
-      font->y_embolden == y_embolden)
+      font->y_embolden == y_embolden &&
+      font->embolden_in_place == in_place)
     return;
 
   font->serial++;
 
   font->x_embolden = x_embolden;
   font->y_embolden = y_embolden;
+  font->embolden_in_place = in_place;
   font->mults_changed ();
 }
 
 /**
  * hb_font_get_synthetic_bold:
  * @font: #hb_font_t to work upon
- * @x_embolden: return location for horizontal value
- * @y_embolden: return location for vertical value
+ * @x_embolden: (out): return location for horizontal value
+ * @y_embolden: (out): return location for vertical value
+ * @in_place: (out): return location for in-place value
  *
- * Fetches the "synthetic boldness" of a font.
+ * Fetches the "synthetic boldness" parameters of a font.
  *
  * Since: REPLACEME
  **/
 void
-hb_font_get_synthetic_bold (hb_font_t *font, float *x_embolden, float *y_embolden)
+hb_font_get_synthetic_bold (hb_font_t *font,
+			    float *x_embolden,
+			    float *y_embolden,
+			    hb_bool_t *in_place)
 {
   if (x_embolden) *x_embolden = font->x_embolden;
   if (y_embolden) *y_embolden = font->y_embolden;
+  if (in_place) *in_place = font->embolden_in_place;
 }
 
 /**

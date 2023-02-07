@@ -116,8 +116,9 @@ struct hb_font_t
 
   float x_embolden;
   float y_embolden;
-  int32_t x_shift; /* x_embolden, in scaled units. */
-  int32_t y_shift; /* y_embolden, in scaled units. */
+  bool embolden_in_place;
+  int32_t x_strength; /* x_embolden, in scaled units. */
+  int32_t y_strength; /* y_embolden, in scaled units. */
 
   float slant;
   float slant_xy;
@@ -681,8 +682,8 @@ struct hb_font_t
     bool y_neg = y_scale < 0;
     y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) / upem;
 
-    x_shift = fabs (roundf (x_scale * x_embolden));
-    y_shift = fabs (roundf (y_scale * y_embolden));
+    x_strength = fabs (roundf (x_scale * x_embolden));
+    y_strength = fabs (roundf (y_scale * y_embolden));
 
     slant_xy = y_scale ? slant * x_scale / y_scale : 0.f;
 

@@ -490,14 +490,14 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
     first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
 
-  if (font->x_shift)
+  if (font->x_strength && !font->embolden_in_place)
   {
     /* Emboldening. */
-    hb_position_t x_shift = font->x_scale >= 0 ? font->x_shift : -font->x_shift;
+    hb_position_t x_strength = font->x_scale >= 0 ? font->x_strength : -font->x_strength;
     first_advance = orig_first_advance;
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance += *first_advance ? x_shift : 0;
+      *first_advance += *first_advance ? x_strength : 0;
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
   }
@@ -536,8 +536,8 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
   /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
    * have a Y growing upward.  Hence the extra negation. */
 
-  hb_position_t y_shift = font->y_scale >= 0 ? font->y_shift : -font->y_shift;
-  return ((-v + (1<<9)) >> 10) + y_shift;
+  hb_position_t y_strength = font->y_scale >= 0 ? font->y_strength : -font->y_strength;
+  return ((-v + (1<<9)) >> 10) + (font->embolden_in_place ? 0 : y_strength);
 }
 #endif
 
@@ -858,7 +858,38 @@ hb_ft_draw_glyph (hb_font_t *font,
 
   hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
 
-  FT_Outline_EmboldenXY (&ft_face->glyph->outline, font->x_shift, font->y_shift);
+  /* Embolden */
+  if (font->x_strength || font->y_strength)
+  {
+    FT_Outline_EmboldenXY (&ft_face->glyph->outline, font->x_strength, font->y_strength);
+
+    int x_shift = 0;
+    int y_shift = 0;
+    if (font->embolden_in_place)
+    {
+      /* Undo the FreeType shift. */
+      x_shift = -font->x_strength / 2;
+      y_shift = 0;
+      if (font->y_scale < 0) y_shift = -font->y_strength;
+    }
+    else
+    {
+      /* FreeType applied things in the wrong direction for negative scale; fix up. */
+      if (font->x_scale < 0) x_shift = -font->x_strength;
+      if (font->y_scale < 0) y_shift = -font->y_strength;
+    }
+    if (x_shift || y_shift)
+    {
+      auto &outline = ft_face->glyph->outline;
+      for (auto &point : hb_iter (outline.points, outline.contours[outline.n_contours - 1]))
+      {
+	point.x += x_shift;
+	point.y += y_shift;
+      }
+    }
+  }
+
+
   FT_Outline_Decompose (&ft_face->glyph->outline,
 			&outline_funcs,
 			&draw_session);

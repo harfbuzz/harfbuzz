@@ -262,14 +262,14 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   OT::VariationStore::destroy_cache (varStore_cache);
 #endif
 
-  if (font->x_shift)
+  if (font->x_strength && !font->embolden_in_place)
   {
     /* Emboldening. */
-    hb_position_t x_shift = font->x_scale >= 0 ? font->x_shift : -font->x_shift;
+    hb_position_t x_strength = font->x_scale >= 0 ? font->x_strength : -font->x_strength;
     first_advance = orig_first_advance;
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance += *first_advance ? x_shift : 0;
+      *first_advance += *first_advance ? x_strength : 0;
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
   }
@@ -326,14 +326,14 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
     }
   }
 
-  if (font->y_shift)
+  if (font->y_strength && !font->embolden_in_place)
   {
     /* Emboldening. */
-    hb_position_t y_shift = font->y_scale >= 0 ? font->y_shift : -font->y_shift;
+    hb_position_t y_strength = font->y_scale >= 0 ? font->y_strength : -font->y_strength;
     first_advance = orig_first_advance;
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance += *first_advance ? y_shift : 0;
+      *first_advance += *first_advance ? y_strength : 0;
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
   }
@@ -492,7 +492,7 @@ hb_ot_draw_glyph (hb_font_t *font,
 		  hb_draw_funcs_t *draw_funcs, void *draw_data,
 		  void *user_data)
 {
-  bool embolden = font->x_shift || font->y_shift;
+  bool embolden = font->x_strength || font->y_strength;
   hb_outline_t outline;
 
   { // Need draw_session to be destructed before emboldening.
@@ -508,7 +508,13 @@ hb_ot_draw_glyph (hb_font_t *font,
 
   if (embolden)
   {
-    outline.embolden (font->x_shift, font->y_shift);
+    float x_shift = font->embolden_in_place ? 0 : font->x_strength / 2;
+    float y_shift = font->y_strength / 2;
+    if (font->x_scale < 0) x_shift = -x_shift;
+    if (font->y_scale < 0) y_shift = -y_shift;
+    outline.embolden (font->x_strength, font->y_strength,
+		      x_shift, y_shift);
+
     outline.replay (draw_funcs, draw_data);
   }
 }
