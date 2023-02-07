@@ -389,6 +389,8 @@ endif
 
 configure_file(output: 'config.h', configuration: conf)
 
+alias_target('lib', libharfbuzz)
+
 build_summary = {
   'Directories':
     {'prefix': get_option('prefix'),
