@@ -390,7 +390,7 @@ endif
 configure_file(output: 'config.h', configuration: conf)
 
 alias_target('lib', libharfbuzz)
-alias_target('libs', [libharfbuzz, libharfbuzz_subset])
+alias_target('libs', libharfbuzz, libharfbuzz_subset)
 
 build_summary = {
   'Directories':
