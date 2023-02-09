@@ -2471,7 +2471,9 @@ hb_font_get_ptem (hb_font_t *font)
  * hb_font_draw_glyph().
  *
  * If @in_place is %FALSE, then glyph advance-widths are also
- * adjusted, otherwise they are not.
+ * adjusted, otherwise they are not.  The in-place mode is
+ * useful for simulating [font grading](https://fonts.google.com/knowledge/glossary/grade).
+ *
  *
  * Since: REPLACEME
  **/
