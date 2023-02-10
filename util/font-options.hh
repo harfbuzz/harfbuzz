@@ -63,6 +63,9 @@ struct font_options_t : face_options_t
   int x_ppem = 0;
   int y_ppem = 0;
   double ptem = 0.;
+  double x_embolden = 0.;
+  double y_embolden = 0.;
+  hb_bool_t embolden_in_place = false;
   double slant = 0.;
   unsigned int subpixel_bits = SUBPIXEL_BITS;
   mutable double font_size_x = DEFAULT_FONT_SIZE;
@@ -101,6 +104,9 @@ font_options_t::post_parse (GError **error)
   hb_font_set_ppem (font, x_ppem, y_ppem);
   hb_font_set_ptem (font, ptem);
 
+  hb_font_set_synthetic_bold (font,
+			      (float) x_embolden, (float) y_embolden,
+			      embolden_in_place);
   hb_font_set_synthetic_slant (font, slant);
 
   int scale_x = (int) scalbnf (font_size_x, subpixel_bits);
@@ -245,6 +251,46 @@ parse_font_ppem (const char *name G_GNUC_UNUSED,
   }
 }
 
+static gboolean
+parse_font_embolden (const char *name G_GNUC_UNUSED,
+		     const char *arg,
+		     gpointer    data,
+		     GError    **error G_GNUC_UNUSED)
+{
+  font_options_t *font_opts = (font_options_t *) data;
+  switch (sscanf (arg, "%lf%*[ ,]%lf", &font_opts->x_embolden, &font_opts->y_embolden)) {
+    case 1: font_opts->y_embolden = font_opts->x_embolden; HB_FALLTHROUGH;
+    case 2: return true;
+    default:
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "%s argument should be one or two space-separated numbers",
+		   name);
+      return false;
+  }
+}
+
+static gboolean
+parse_font_bold (const char *name G_GNUC_UNUSED,
+		 const char *arg,
+		 gpointer    data,
+		 GError    **error G_GNUC_UNUSED)
+{
+  font_options_t *font_opts = (font_options_t *) data;
+  font_opts->embolden_in_place = false;
+  return parse_font_embolden ( name, arg, data, error);
+}
+
+static gboolean
+parse_font_grade (const char *name G_GNUC_UNUSED,
+		  const char *arg,
+		  gpointer    data,
+		  GError    **error G_GNUC_UNUSED)
+{
+  font_options_t *font_opts = (font_options_t *) data;
+  font_opts->embolden_in_place = true;
+  return parse_font_embolden ( name, arg, data, error);
+}
+
 void
 font_options_t::add_options (option_parser_t *parser)
 {
@@ -286,7 +332,11 @@ font_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
     {"font-ptem",	0, font_size_flags,
 			      G_OPTION_ARG_DOUBLE,	&this->ptem,			"Set font point-size (default: 0; disabled)",	"point-size"},
-    {"font-slant",	0, 0,
+    {"font-bold",	0, font_size_flags,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_bold,	"Set synthetic bold (default: 0)",		"1/2 numbers; eg. 0.05"},
+    {"font-grade",	0, font_size_flags,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_grade,	"Set synthetic grade (default: 0)",		"1/2 numbers; eg. 0.05"},
+    {"font-slant",	0, font_size_flags,
 			      G_OPTION_ARG_DOUBLE,	&this->slant,			"Set synthetic slant (default: 0)",		 "slant ratio; eg. 0.2"},
     {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,						"impl"},
     {"sub-font",	0, G_OPTION_FLAG_HIDDEN,
