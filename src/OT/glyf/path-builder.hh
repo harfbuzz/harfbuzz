@@ -38,7 +38,9 @@ struct path_builder_t
   /* based on https://github.com/RazrFalcon/ttf-parser/blob/4f32821/src/glyf.rs#L287
      See also:
      * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM01/Chap1.html
-     * https://stackoverflow.com/a/20772557 */
+     * https://stackoverflow.com/a/20772557
+     *
+     * Cubic support added (incomplete). */
   void consume_point (const contour_point_t &point)
   {
     bool is_on_curve = point.flag & glyf_impl::SimpleGlyph::FLAG_ON_CURVE;
