@@ -346,6 +346,25 @@ struct TupleVariationHeader
 
 struct TupleVariationData
 {
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    // here check on min_size only, TupleVariationHeader and var data will be
+    // checked while accessing through iterator.
+    return_trace (c->check_struct (this));
+  }
+
+  unsigned get_size (unsigned axis_count) const
+  {
+    unsigned total_size = min_size;
+    unsigned count = tupleVarCount;
+    const TupleVariationHeader& tuple_var_header = get_tuple_var_header();
+    for (unsigned i = 0; i < count; i++)
+      total_size += tuple_var_header.get_size (axis_count) + tuple_var_header.get_data_size ();
+
+    return total_size;
+  }
+
   const TupleVariationHeader &get_tuple_var_header (void) const
   { return StructAfter<TupleVariationHeader> (data); }
 
