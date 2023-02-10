@@ -42,7 +42,11 @@ struct path_builder_t
   void consume_point (const contour_point_t &point)
   {
     bool is_on_curve = point.flag & glyf_impl::SimpleGlyph::FLAG_ON_CURVE;
+#ifdef HB_NO_CUBIC_GLYF
+    bool is_cubic = false;
+#else
     bool is_cubic = !is_on_curve && (point.flag & glyf_impl::SimpleGlyph::FLAG_CUBIC);
+#endif
     optional_point_t p (font->em_fscalef_x (point.x), font->em_fscalef_y (point.y));
     if (!first_oncurve)
     {
