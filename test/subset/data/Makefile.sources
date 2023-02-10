@@ -54,6 +54,7 @@ TESTS = \
 	tests/pin_all_at_default.tests \
 	tests/instance_no_double_free.tests \
 	tests/mvar_full_instance.tests \
+	tests/instance_comp_glyph_empty_child.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.
