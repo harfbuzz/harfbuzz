@@ -2,7 +2,7 @@
 set -e
 
 meson 	--cross-file=.ci/win32-cross-file.txt \
-	--wrap-mode=forcefallback \
+	--wrap-mode=default \
 	-Dtests=disabled \
 	-Dcairo=enabled \
 	-Dcairo:fontconfig=disabled \
