@@ -20,7 +20,7 @@ struct SimpleGlyph
     FLAG_X_SAME         = 0x10,
     FLAG_Y_SAME         = 0x20,
     FLAG_OVERLAP_SIMPLE = 0x40,
-    FLAG_RESERVED2      = 0x80
+    FLAG_CUBIC          = 0x80
   };
 
   const GlyphHeader &header;
