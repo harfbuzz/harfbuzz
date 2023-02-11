@@ -349,7 +349,7 @@ hb_map_hash (const hb_map_t *map)
  *
  * Add the contents of @other to @map.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 HB_EXTERN void
 hb_map_update (hb_map_t *map,
@@ -375,7 +375,7 @@ hb_map_update (hb_map_t *map,
  *
  * Return value: `true` if there was a next value, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 hb_bool_t
 hb_map_next (const hb_map_t *map,
@@ -393,7 +393,7 @@ hb_map_next (const hb_map_t *map,
  *
  * Add the keys of @map to @keys.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 void
 hb_map_keys (const hb_map_t *map,
@@ -409,7 +409,7 @@ hb_map_keys (const hb_map_t *map,
  *
  * Add the values of @map to @values.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 void
 hb_map_values (const hb_map_t *map,

@@ -216,7 +216,7 @@ hb_ot_color_has_layers (hb_face_t *face)
  *
  * Return value: `true` if data found, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 hb_bool_t
 hb_ot_color_has_paint (hb_face_t *face)
@@ -234,7 +234,7 @@ hb_ot_color_has_paint (hb_face_t *face)
  *
  * Return value: `true` if data found, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 hb_bool_t
 hb_ot_color_glyph_has_paint (hb_face_t      *face,

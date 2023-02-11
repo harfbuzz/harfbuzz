@@ -746,7 +746,7 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
  *
  * Return value: `true` if one of the given language tags is found, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 hb_bool_t
 hb_ot_layout_script_select_language2 (hb_face_t      *face,

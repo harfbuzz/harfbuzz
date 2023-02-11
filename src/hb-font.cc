@@ -1396,6 +1396,7 @@ hb_font_get_glyph_from_name (hb_font_t      *font,
  * objects, with @draw_data passed to them.
  *
  * Since: 4.0.0
+ * Deprecated: 7.0.0: Use hb_font_draw_glyph() instead
  */
 void
 hb_font_get_glyph_shape (hb_font_t *font,
@@ -1417,7 +1418,7 @@ hb_font_get_glyph_shape (hb_font_t *font,
  * The outline is returned by way of calls to the callbacks of the @dfuncs
  * objects, with @draw_data passed to them.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 void
 hb_font_draw_glyph (hb_font_t *font,
@@ -1446,7 +1447,7 @@ hb_font_draw_glyph (hb_font_t *font,
  * then @palette_index selects the palette to use. If the font only
  * has one palette, this will be 0.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_font_paint_glyph (hb_font_t *font,
@@ -2470,12 +2471,12 @@ hb_font_get_ptem (hb_font_t *font)
  * Synthetic boldness is applied when rendering a glyph via
  * hb_font_draw_glyph().
  *
- * If @in_place is `FALSE`, then glyph advance-widths are also
+ * If @in_place is `false`, then glyph advance-widths are also
  * adjusted, otherwise they are not.  The in-place mode is
  * useful for simulating [font grading](https://fonts.google.com/knowledge/glossary/grade).
  *
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 void
 hb_font_set_synthetic_bold (hb_font_t *font,
@@ -2508,7 +2509,7 @@ hb_font_set_synthetic_bold (hb_font_t *font,
  *
  * Fetches the "synthetic boldness" parameters of a font.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 void
 hb_font_get_synthetic_bold (hb_font_t *font,
@@ -2723,7 +2724,7 @@ hb_font_set_var_named_instance (hb_font_t *font,
  *
  * Return value: Named-instance index or %HB_FONT_NO_VAR_NAMED_INSTANCE.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 unsigned int
 hb_font_get_var_named_instance (hb_font_t *font)

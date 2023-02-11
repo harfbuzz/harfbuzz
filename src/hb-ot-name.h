@@ -69,7 +69,7 @@ HB_BEGIN_DECLS
  * For more information on these fields, see the
  * [OpenType spec](https://docs.microsoft.com/en-us/typography/opentype/spec/name#name-ids).
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 typedef enum
 {

@@ -609,7 +609,7 @@ hb_face_collect_unicodes (hb_face_t *face,
  * Collects the mapping from Unicode characters to nominal glyphs of the @face,
  * and optionally all of the Unicode characters covered by @face.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_face_collect_nominal_glyph_mapping (hb_face_t *face,
