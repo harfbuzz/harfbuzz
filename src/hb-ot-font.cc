@@ -515,8 +515,8 @@ hb_ot_draw_glyph (hb_font_t *font,
 
   if (embolden)
   {
-    float x_shift = font->embolden_in_place ? 0 : font->x_strength / 2;
-    float y_shift = font->y_strength / 2;
+    float x_shift = font->embolden_in_place ? 0 : (float) font->x_strength / 2;
+    float y_shift = (float) font->y_strength / 2;
     if (font->x_scale < 0) x_shift = -x_shift;
     if (font->y_scale < 0) y_shift = -y_shift;
     outline.embolden (font->x_strength, font->y_strength,
