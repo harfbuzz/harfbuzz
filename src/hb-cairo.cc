@@ -651,7 +651,7 @@ user_font_face_create (hb_face_t *face)
  *
  * Returns: (transfer full): a newly created #cairo_font_face_t
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 cairo_font_face_t *
 hb_cairo_font_face_create_for_font (hb_font_t *font)
@@ -677,7 +677,7 @@ hb_cairo_font_face_create_for_font (hb_font_t *font)
  *
  * Returns: (nullable) (transfer none): the #hb_font_t that @font_face was created from
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 hb_font_t *
 hb_cairo_font_face_get_font (cairo_font_face_t *font_face)
@@ -695,7 +695,7 @@ hb_cairo_font_face_get_font (cairo_font_face_t *font_face)
  *
  * Returns: (transfer full): a newly created #cairo_font_face_t
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 cairo_font_face_t *
 hb_cairo_font_face_create_for_face (hb_face_t *face)
@@ -713,7 +713,7 @@ hb_cairo_font_face_create_for_face (hb_face_t *face)
  *
  * Returns: (nullable) (transfer none): the #hb_face_t associated with @font_face
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 hb_face_t *
 hb_cairo_font_face_get_face (cairo_font_face_t *font_face)
@@ -733,7 +733,7 @@ hb_cairo_font_face_get_face (cairo_font_face_t *font_face)
  * face created using hb_cairo_font_face_create_for_face()
  * creates an #hb_font_t for a #cairo_scaled_font_t.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 void
 hb_cairo_font_face_set_font_init_func (cairo_font_face_t *font_face,
@@ -766,7 +766,7 @@ hb_cairo_font_face_set_font_init_func (cairo_font_face_t *font_face,
  *
  * Returns: (nullable) (transfer none): the #hb_font_t associated with @scaled_font
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 hb_font_t *
 hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
@@ -814,7 +814,7 @@ hb_cairo_scaled_font_get_font (cairo_scaled_font_t *scaled_font)
  * (because you set the scale of the #hb_font_t yourself), use
  * the conversion rate involved.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 void
 hb_cairo_font_face_set_scale_factor (cairo_font_face_t *font_face,
@@ -835,7 +835,7 @@ hb_cairo_font_face_set_scale_factor (cairo_font_face_t *font_face,
  *
  * Returns: the scale factor of @font_face
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 unsigned int
 hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
@@ -898,7 +898,7 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * it and the x,y values of the extra entry at the end add up the advance
  * x,y of all the glyphs in the @buffer.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 void
 hb_cairo_glyphs_from_buffer (hb_buffer_t *buffer,

@@ -385,7 +385,7 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
  *
  * The input can be tailored afterwards by the caller.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 void
 hb_subset_input_keep_everything (hb_subset_input_t *input)
@@ -539,7 +539,7 @@ hb_subset_preprocess (hb_face_t *source)
  * Note: for mac platform, we only support name_str with all ascii characters,
  * name_str with non-ascii characters will be ignored.
  *
- * Since: EXPERIMENTAL
+ * XSince: EXPERIMENTAL
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_override_name_table (hb_subset_input_t  *input,

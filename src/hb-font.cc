@@ -1417,7 +1417,7 @@ hb_font_get_glyph_shape (hb_font_t *font,
  * The outline is returned by way of calls to the callbacks of the @dfuncs
  * objects, with @draw_data passed to them.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_font_draw_glyph (hb_font_t *font,
@@ -1446,7 +1446,7 @@ hb_font_draw_glyph (hb_font_t *font,
  * then @palette_index selects the palette to use. If the font only
  * has one palette, this will be 0.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 void
 hb_font_paint_glyph (hb_font_t *font,
@@ -2475,7 +2475,7 @@ hb_font_get_ptem (hb_font_t *font)
  * useful for simulating [font grading](https://fonts.google.com/knowledge/glossary/grade).
  *
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_font_set_synthetic_bold (hb_font_t *font,
@@ -2508,7 +2508,7 @@ hb_font_set_synthetic_bold (hb_font_t *font,
  *
  * Fetches the "synthetic boldness" parameters of a font.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_font_get_synthetic_bold (hb_font_t *font,
@@ -2723,7 +2723,7 @@ hb_font_set_var_named_instance (hb_font_t *font,
  *
  * Return value: Named-instance index or %HB_FONT_NO_VAR_NAMED_INSTANCE.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 unsigned int
 hb_font_get_var_named_instance (hb_font_t *font)

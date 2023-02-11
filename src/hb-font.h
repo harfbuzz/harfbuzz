@@ -516,7 +516,7 @@ typedef void (*hb_font_get_glyph_shape_func_t) (hb_font_t *font, void *font_data
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  *
  **/
 typedef void (*hb_font_draw_glyph_func_t) (hb_font_t *font, void *font_data,
@@ -537,7 +537,7 @@ typedef void (*hb_font_draw_glyph_func_t) (hb_font_t *font, void *font_data,
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_font_paint_glyph_func_t) (hb_font_t *font, void *font_data,
                                             hb_codepoint_t glyph,
@@ -833,7 +833,7 @@ hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t *ffuncs,
  * Sets the implementation function for #hb_font_draw_glyph_func_t,
  * which is the same as #hb_font_get_glyph_shape_func_t.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 HB_EXTERN void
 hb_font_funcs_set_draw_glyph_func (hb_font_funcs_t *ffuncs,
@@ -849,7 +849,7 @@ hb_font_funcs_set_draw_glyph_func (hb_font_funcs_t *ffuncs,
  *
  * Sets the implementation function for #hb_font_paint_glyph_func_t.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_font_funcs_set_paint_glyph_func (hb_font_funcs_t *ffuncs,
@@ -1177,7 +1177,7 @@ hb_font_get_var_coords_normalized (hb_font_t *font,
  * named-instance index set.  This is the default of
  * a font.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 #define HB_FONT_NO_VAR_NAMED_INSTANCE 0xFFFFFFFF
 

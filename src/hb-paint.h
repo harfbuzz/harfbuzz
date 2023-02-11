@@ -58,7 +58,7 @@ HB_BEGIN_DECLS
  * you want to override colors from the font palette with
  * custom colors.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 typedef struct hb_paint_funcs_t hb_paint_funcs_t;
 
@@ -111,7 +111,7 @@ hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs);
  * and remains in effect until a matching call to
  * the #hb_paint_funcs_pop_transform_func_t vfunc.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_push_transform_func_t) (hb_paint_funcs_t *funcs,
                                                 void *paint_data,
@@ -130,7 +130,7 @@ typedef void (*hb_paint_push_transform_func_t) (hb_paint_funcs_t *funcs,
  * the effect of a prior call to the #hb_paint_funcs_push_transform_func_t
  * vfunc.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
                                                void *paint_data,
@@ -154,7 +154,7 @@ typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
  * and remains in effect until a matching call to
  * the #hb_paint_funcs_pop_clip_func_t vfunc.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
                                                  void *paint_data,
@@ -182,7 +182,7 @@ typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
  * and remains in effect until a matching call to
  * the #hb_paint_funcs_pop_clip_func_t vfunc.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_push_clip_rectangle_func_t) (hb_paint_funcs_t *funcs,
                                                      void *paint_data,
@@ -200,7 +200,7 @@ typedef void (*hb_paint_push_clip_rectangle_func_t) (hb_paint_funcs_t *funcs,
  * the effect of a prior call to the #hb_paint_funcs_push_clip_glyph_func_t
  * or #hb_paint_funcs_push_clip_rectangle_func_t vfuncs.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
                                           void *paint_data,
@@ -217,7 +217,7 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
  * A virtual method for the #hb_paint_funcs_t to paint a
  * color everywhere within the current clip.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
                                        void *paint_data,
@@ -230,7 +230,7 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  *
  * Tag identifying PNG images in #hb_paint_image_func_t callbacks.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 #define HB_PAINT_IMAGE_FORMAT_PNG HB_TAG('p','n','g',' ')
 
@@ -239,7 +239,7 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  *
  * Tag identifying SVG images in #hb_paint_image_func_t callbacks.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 #define HB_PAINT_IMAGE_FORMAT_SVG HB_TAG('s','v','g',' ')
 
@@ -249,7 +249,7 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * Tag identifying raw pixel-data images in #hb_paint_image_func_t callbacks.
  * The data is in BGRA pre-multiplied sRGBA color-space format.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 #define HB_PAINT_IMAGE_FORMAT_BGRA HB_TAG('B','G','R','A')
 
@@ -277,7 +277,7 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  *
  * Return value: Whether the operation was successful.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef hb_bool_t (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
 					    void *paint_data,
@@ -305,7 +305,7 @@ typedef hb_bool_t (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
  * [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
  * section for details.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef struct {
   float offset;
@@ -331,7 +331,7 @@ typedef struct {
  * See the OpenType spec [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
  * section for details.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef enum {
   HB_PAINT_EXTEND_PAD,
@@ -355,7 +355,7 @@ typedef struct hb_color_line_t hb_color_line_t;
  *
  * Return value: the total number of color stops in @color_line
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef unsigned int (*hb_color_line_get_color_stops_func_t) (hb_color_line_t *color_line,
 							      void *color_line_data,
@@ -374,7 +374,7 @@ typedef unsigned int (*hb_color_line_get_color_stops_func_t) (hb_color_line_t *c
  *
  * Return value: the extend mode of @color_line
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef hb_paint_extend_t (*hb_color_line_get_extend_func_t) (hb_color_line_t *color_line,
 							      void *color_line_data,
@@ -385,7 +385,7 @@ typedef hb_paint_extend_t (*hb_color_line_get_extend_func_t) (hb_color_line_t *c
  *
  * A struct containing color information for a gradient.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 struct hb_color_line_t {
   void *data;
@@ -441,7 +441,7 @@ hb_color_line_get_extend (hb_color_line_t *color_line);
  * section for details on how the points define the direction
  * of the gradient, and how to interpret the @color_line.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
                                                  void *paint_data,
@@ -477,7 +477,7 @@ typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
  * section for details on how the points define the direction
  * of the gradient, and how to interpret the @color_line.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
                                                  void *paint_data,
@@ -510,7 +510,7 @@ typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
  * section for details on how the points define the direction
  * of the gradient, and how to interpret the @color_line.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_sweep_gradient_func_t)  (hb_paint_funcs_t *funcs,
                                                  void *paint_data,
@@ -586,7 +586,7 @@ typedef void (*hb_paint_sweep_gradient_func_t)  (hb_paint_funcs_t *funcs,
  * See the OpenType spec [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
  * section for details.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef enum {
   HB_PAINT_COMPOSITE_MODE_CLEAR,
@@ -632,7 +632,7 @@ typedef enum {
  * until a matching call to the #hb_paint_funcs_pop_group_func_t
  * vfunc.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
                                             void *paint_data,
@@ -653,7 +653,7 @@ typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
  * and then composites it on the previous surface, using the
  * compositing mode passed to this call.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
                                            void *paint_data,
@@ -680,7 +680,7 @@ typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
  *
  * Return value: `true` if found, `false` otherwise
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef hb_bool_t (*hb_paint_custom_palette_color_func_t) (hb_paint_funcs_t *funcs,
                                                            void *paint_data,
@@ -698,7 +698,7 @@ typedef hb_bool_t (*hb_paint_custom_palette_color_func_t) (hb_paint_funcs_t *fun
  *
  * Sets the push-transform callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_transform_func (hb_paint_funcs_t               *funcs,
@@ -715,7 +715,7 @@ hb_paint_funcs_set_push_transform_func (hb_paint_funcs_t               *funcs,
  *
  * Sets the pop-transform callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_pop_transform_func (hb_paint_funcs_t              *funcs,
@@ -732,7 +732,7 @@ hb_paint_funcs_set_pop_transform_func (hb_paint_funcs_t              *funcs,
  *
  * Sets the push-clip-glyph callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_clip_glyph_func (hb_paint_funcs_t                *funcs,
@@ -749,7 +749,7 @@ hb_paint_funcs_set_push_clip_glyph_func (hb_paint_funcs_t                *funcs,
  *
  * Sets the push-clip-rect callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_clip_rectangle_func (hb_paint_funcs_t                    *funcs,
@@ -766,7 +766,7 @@ hb_paint_funcs_set_push_clip_rectangle_func (hb_paint_funcs_t                   
  *
  * Sets the pop-clip callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_pop_clip_func (hb_paint_funcs_t         *funcs,
@@ -783,7 +783,7 @@ hb_paint_funcs_set_pop_clip_func (hb_paint_funcs_t         *funcs,
  *
  * Sets the paint-color callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_color_func (hb_paint_funcs_t      *funcs,
@@ -800,7 +800,7 @@ hb_paint_funcs_set_color_func (hb_paint_funcs_t      *funcs,
  *
  * Sets the paint-image callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_image_func (hb_paint_funcs_t      *funcs,
@@ -817,7 +817,7 @@ hb_paint_funcs_set_image_func (hb_paint_funcs_t      *funcs,
  *
  * Sets the linear-gradient callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_linear_gradient_func (hb_paint_funcs_t                *funcs,
@@ -834,7 +834,7 @@ hb_paint_funcs_set_linear_gradient_func (hb_paint_funcs_t                *funcs,
  *
  * Sets the radial-gradient callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_radial_gradient_func (hb_paint_funcs_t                *funcs,
@@ -851,7 +851,7 @@ hb_paint_funcs_set_radial_gradient_func (hb_paint_funcs_t                *funcs,
  *
  * Sets the sweep-gradient callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_sweep_gradient_func (hb_paint_funcs_t               *funcs,
@@ -868,7 +868,7 @@ hb_paint_funcs_set_sweep_gradient_func (hb_paint_funcs_t               *funcs,
  *
  * Sets the push-group callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_group_func (hb_paint_funcs_t           *funcs,
@@ -885,7 +885,7 @@ hb_paint_funcs_set_push_group_func (hb_paint_funcs_t           *funcs,
  *
  * Sets the pop-group callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_pop_group_func (hb_paint_funcs_t          *funcs,
@@ -902,7 +902,7 @@ hb_paint_funcs_set_pop_group_func (hb_paint_funcs_t          *funcs,
  *
  * Sets the custom-palette-color callback on the paint functions struct.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_custom_palette_color_func (hb_paint_funcs_t                     *funcs,

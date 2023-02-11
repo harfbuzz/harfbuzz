@@ -207,7 +207,7 @@ DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
  *
  * Return value: (transfer full): The empty draw-functions structure
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_draw_funcs_t *
 hb_draw_funcs_get_empty ()
@@ -276,7 +276,7 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
  *
  * Return value: `true` if success, `false` otherwise
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_bool_t
 hb_draw_funcs_set_user_data (hb_draw_funcs_t *dfuncs,
@@ -298,7 +298,7 @@ hb_draw_funcs_set_user_data (hb_draw_funcs_t *dfuncs,
  *
  * Return value: (transfer none): A pointer to the user data
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void *
 hb_draw_funcs_get_user_data (const hb_draw_funcs_t *dfuncs,

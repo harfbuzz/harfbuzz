@@ -57,7 +57,7 @@ hb_cairo_font_face_get_face (cairo_font_face_t *font_face);
  *
  * Return value: the #hb_font_t value to use; in most cases same as @font
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef hb_font_t * (*hb_cairo_font_init_func_t) (hb_font_t *font,
 						  cairo_scaled_font_t *scaled_font,
