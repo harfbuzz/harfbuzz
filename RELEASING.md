@@ -17,7 +17,7 @@
 
 - [ ] Based on severity of changes, decide whether it's a minor or micro release number bump.
 
-- [ ] Search for REPLACEME on the repository and replace it with the chosen version for the release.
+- [ ] Search for 'XSince: REPLACEME' on the repository and replace it with the chosen version for the release, e.g. 'Since: 1.4.7'.
 
 - [ ] Make sure you have correct date and new version at the top of NEWS file.
 
