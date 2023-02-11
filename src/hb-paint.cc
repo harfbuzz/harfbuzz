@@ -216,7 +216,7 @@ HB_PAINT_FUNCS_IMPLEMENT_CALLBACKS
  *
  * Returns value: (transfer full): the paint-functions structure
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 hb_paint_funcs_t *
 hb_paint_funcs_create ()
@@ -248,7 +248,7 @@ DEFINE_NULL_INSTANCE (hb_paint_funcs_t) =
  *
  * Return value: (transfer full): The empty paint-functions structure
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 hb_paint_funcs_t *
 hb_paint_funcs_get_empty ()
@@ -267,7 +267,7 @@ hb_paint_funcs_get_empty ()
  *
  * Return value: The paint-functions structure
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 hb_paint_funcs_t *
 hb_paint_funcs_reference (hb_paint_funcs_t *funcs)
@@ -284,7 +284,7 @@ hb_paint_funcs_reference (hb_paint_funcs_t *funcs)
  * When the reference count reaches zero, the structure
  * is destroyed, freeing all memory.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_funcs_destroy (hb_paint_funcs_t *funcs)
@@ -316,7 +316,7 @@ hb_paint_funcs_destroy (hb_paint_funcs_t *funcs)
  *
  * Return value: `true` if success, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 hb_bool_t
 hb_paint_funcs_set_user_data (hb_paint_funcs_t *funcs,
@@ -338,7 +338,7 @@ hb_paint_funcs_set_user_data (hb_paint_funcs_t *funcs,
  *
  * Return value: (transfer none): A pointer to the user data
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 void *
 hb_paint_funcs_get_user_data (const hb_paint_funcs_t *funcs,
@@ -356,7 +356,7 @@ hb_paint_funcs_get_user_data (const hb_paint_funcs_t *funcs,
  * After this call, all attempts to set one of the callbacks
  * on @funcs will fail.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_funcs_make_immutable (hb_paint_funcs_t *funcs)
@@ -375,7 +375,7 @@ hb_paint_funcs_make_immutable (hb_paint_funcs_t *funcs)
  *
  * Return value: `true` if @funcs is immutable, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 hb_bool_t
 hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs)
@@ -400,7 +400,7 @@ hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs)
  *
  * Return value: the total number of color stops in @color_line
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 unsigned int
 hb_color_line_get_color_stops (hb_color_line_t *color_line,
@@ -423,7 +423,7 @@ hb_color_line_get_color_stops (hb_color_line_t *color_line,
  *
  * Return value: the extend mode of @color_line
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 hb_paint_extend_t
 hb_color_line_get_extend (hb_color_line_t *color_line)
@@ -447,7 +447,7 @@ hb_color_line_get_extend (hb_color_line_t *color_line)
  *
  * Perform a "push-transform" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
@@ -465,7 +465,7 @@ hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Perform a "pop-transform" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data)
@@ -482,7 +482,7 @@ hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data)
  *
  * Perform a "push-clip-glyph" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
@@ -503,7 +503,7 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Perform a "push-clip-rect" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
@@ -519,7 +519,7 @@ hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Perform a "pop-clip" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data)
@@ -536,7 +536,7 @@ hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data)
  *
  * Perform a "color" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
@@ -559,7 +559,7 @@ hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Perform a "image" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
@@ -587,7 +587,7 @@ hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Perform a "linear-gradient" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,
@@ -613,7 +613,7 @@ hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Perform a "radial-gradient" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
@@ -636,7 +636,7 @@ hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Perform a "sweep-gradient" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_sweep_gradient (hb_paint_funcs_t *funcs, void *paint_data,
@@ -654,7 +654,7 @@ hb_paint_sweep_gradient (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Perform a "push-group" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data)
@@ -670,7 +670,7 @@ hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data)
  *
  * Perform a "pop-group" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
@@ -690,7 +690,7 @@ hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Return value: `true` if found, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 hb_bool_t
 hb_paint_custom_palette_color (hb_paint_funcs_t *funcs, void *paint_data,

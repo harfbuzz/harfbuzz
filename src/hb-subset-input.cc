@@ -385,7 +385,7 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
  *
  * The input can be tailored afterwards by the caller.
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  */
 void
 hb_subset_input_keep_everything (hb_subset_input_t *input)

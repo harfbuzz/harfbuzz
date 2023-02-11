@@ -501,7 +501,7 @@ hb_set_invert (hb_set_t *set)
  *
  * Return value: `true` if the set is inverted, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 7.0.0
  **/
 hb_bool_t
 hb_set_is_inverted (const hb_set_t *set)
