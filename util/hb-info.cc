@@ -848,6 +848,7 @@ struct info_t :
 	hb_codepoint_t gid = 0;
 	bool b = hb_font_get_variation_glyph (font, u, vs, &gid);
 	assert (b);
+  (void) b; //shut up -Werror + release build + musl libc + "unused variable" warning
 
 	char glyphname[64];
 	hb_font_glyph_to_string (font, gid,
