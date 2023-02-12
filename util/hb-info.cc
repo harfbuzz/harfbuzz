@@ -846,7 +846,7 @@ struct info_t :
 	   hb_set_next (unicodes, &u);)
       {
 	hb_codepoint_t gid = 0;
-	bool b = hb_font_get_variation_glyph (font, u, vs, &gid);
+	HB_UNUSED bool b = hb_font_get_variation_glyph (font, u, vs, &gid);
 	assert (b);
 
 	char glyphname[64];
