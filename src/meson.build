@@ -522,16 +522,15 @@ hb_supported_features_h = configure_file(input: 'hb-features.h.in',
 
 # Base and default-included sources and headers
 
-# harfbuzz
 gen_def = find_program('gen-def.py')
-
-harfbuzz_def_command_args = [gen_def, '@OUTPUT@', '@INPUT@']
+gen_def_cmd = [gen_def, '@OUTPUT@', '@INPUT@']
 if get_option('experimental_api')
-  harfbuzz_def_command_args += '--experimental-api'
+  gen_def_cmd += '--experimental-api'
 endif
 
+# harfbuzz
 harfbuzz_def = custom_target('harfbuzz.def',
-    command: harfbuzz_def_command_args,
+    command: gen_def_cmd,
     input: hb_headers,
     output: 'harfbuzz.def')
 defs_list = [harfbuzz_def]
@@ -577,7 +576,7 @@ meson.override_dependency('harfbuzz', libharfbuzz_dep)
 
 # harfbuzz-subset
 harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
-    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    command: gen_def_cmd,
     input: hb_subset_headers,
     output: 'harfbuzz-subset.def')
 defs_list += [harfbuzz_subset_def]
@@ -643,7 +642,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
   meson.override_dependency('harfbuzz-cairo', libharfbuzz_cairo_dep)
 
   harfbuzz_cairo_def = custom_target('harfbuzz-cairo.def',
-    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    command: gen_def_cmd,
     input: hb_cairo_headers,
     output: 'harfbuzz-cairo.def')
   defs_list += [harfbuzz_cairo_def]
@@ -729,7 +728,7 @@ pkgmod.generate(libharfbuzz_subset,
 libharfbuzz_icu_dep = null_dep
 if have_icu and not have_icu_builtin
   harfbuzz_icu_def = custom_target('harfbuzz-icu.def',
-    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    command: gen_def_cmd,
     input: [hb_icu_headers],
     output: 'harfbuzz-icu.def')
   defs_list += [harfbuzz_icu_def]
@@ -817,7 +816,7 @@ if have_gobject
   hb_gobject_sources += [gobject_enums_c]
 
   harfbuzz_gobject_def = custom_target('harfbuzz-gobject.def',
-    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    command: gen_def_cmd,
     input: [hb_gobject_headers, gobject_enums_h],
     output: 'harfbuzz-gobject.def')
   defs_list += [harfbuzz_gobject_def]
