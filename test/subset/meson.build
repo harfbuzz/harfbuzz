@@ -59,6 +59,7 @@ tests = [
   'mvar_full_instance',
   'instance_comp_glyph_empty_child',
   'post_apply_mvar_delta',
+  'apply_cvar_delta',
 ]
 
 repack_tests = [
