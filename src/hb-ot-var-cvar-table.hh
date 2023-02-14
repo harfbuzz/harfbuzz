@@ -48,18 +48,22 @@ struct cvar
 		  tupleVariationData.sanitize (c));
   }
 
-  bool calculate_cvt_deltas (unsigned axis_count,
-                             hb_array_t<int> coords,
-                             unsigned num_cvt_item,
-                             hb_vector_t<float>& cvt_deltas /* OUT */) const
+  const TupleVariationData* get_tuple_var_data (void) const
+  { return &tupleVariationData; }
+
+  static bool calculate_cvt_deltas (unsigned axis_count,
+                                    hb_array_t<int> coords,
+                                    unsigned num_cvt_item,
+                                    const TupleVariationData *tuple_var_data,
+                                    const void *base,
+                                    hb_vector_t<float>& cvt_deltas /* OUT */)
   {
     if (!coords) return true;
     hb_vector_t<unsigned> shared_indices;
     TupleVariationData::tuple_iterator_t iterator;
-    unsigned var_data_length = tupleVariationData.get_size (axis_count);
-    hb_bytes_t var_data_bytes = hb_bytes_t (reinterpret_cast<const char*> (&tupleVariationData), var_data_length);
-    if (!TupleVariationData::get_tuple_iterator (var_data_bytes, axis_count,
-                                                 this,
+    unsigned var_data_length = tuple_var_data->get_size (axis_count);
+    hb_bytes_t var_data_bytes = hb_bytes_t (reinterpret_cast<const char*> (tuple_var_data), var_data_length);
+    if (!TupleVariationData::get_tuple_iterator (var_data_bytes, axis_count, base,
                                                  shared_indices, &iterator))
       return true; /* isn't applied at all */
 
@@ -101,7 +105,9 @@ struct cvar
     return true;
   }
 
-  bool add_cvt_and_apply_deltas (hb_subset_plan_t *plan) const
+  static bool add_cvt_and_apply_deltas (hb_subset_plan_t *plan,
+                                        const TupleVariationData *tuple_var_data,
+                                        const void *base)
   {
     const hb_tag_t cvt = HB_TAG('c','v','t',' ');
     hb_blob_t *cvt_blob = hb_face_reference_table (plan->source, cvt);
@@ -122,7 +128,8 @@ struct cvar
     }
     hb_memset (cvt_deltas.arrayZ, 0, cvt_deltas.get_size ());
 
-    if (!calculate_cvt_deltas (plan->normalized_coords.length, plan->normalized_coords.as_array (), num_cvt_item, cvt_deltas))
+    if (!calculate_cvt_deltas (plan->normalized_coords.length, plan->normalized_coords.as_array (),
+                               num_cvt_item, tuple_var_data, base, cvt_deltas))
     {
       hb_blob_destroy (cvt_prime_blob);
       return false;
