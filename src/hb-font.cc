@@ -2489,7 +2489,7 @@ hb_font_set_synthetic_bold (hb_font_t *font,
 
   if (font->x_embolden == x_embolden &&
       font->y_embolden == y_embolden &&
-      font->embolden_in_place == in_place)
+      font->embolden_in_place == (bool) in_place)
     return;
 
   font->serial++;
