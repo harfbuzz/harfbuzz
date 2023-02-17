@@ -133,7 +133,9 @@ struct MarkBasePosFormat1_2
       auto match = skippy_iter.match (buffer->info[j - 1]);
       if (match == skippy_iter.MATCH)
       {
-	if (!accept (buffer, j - 1))
+        // https://github.com/harfbuzz/harfbuzz/issues/4124
+	if (!accept (buffer, j - 1) &&
+	    NOT_COVERED == (this+baseCoverage).get_coverage  (buffer->info[j - 1].codepoint))
 	  match = skippy_iter.SKIP;
       }
       if (match == skippy_iter.MATCH)
