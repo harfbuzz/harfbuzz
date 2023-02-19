@@ -162,6 +162,17 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
     }
   }
 
+  static void flush_hintmask (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
+  {
+    SUPER::flush_hintmask (op, env, param);
+    if (!param.drop_hints)
+    {
+      str_encoder_t  encoder (param.flatStr);
+      for (unsigned int i = 0; i < env.hintmask_size; i++)
+	encoder.encode_byte (env.str_ref[i]);
+    }
+  }
+
   private:
   typedef cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatten_param_t, blend_arg_t> SUPER;
   typedef cs_opset_t<blend_arg_t, cff2_cs_opset_flatten_t, cff2_cs_opset_flatten_t, cff2_cs_interp_env_t<blend_arg_t>, flatten_param_t> CSOPSET;
