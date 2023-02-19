@@ -59,7 +59,10 @@ struct cff2_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<>
     switch (opstr.op)
     {
       case OpCode_vstore:
-	return_trace (FontDict::serialize_link4_op(c, opstr.op, info.var_store_link));
+        if (info.var_store_link)
+	  return_trace (FontDict::serialize_link4_op(c, opstr.op, info.var_store_link));
+	else
+	  return_trace (true);
 
       default:
 	return_trace (cff_top_dict_op_serializer_t<>::serialize (c, opstr, info));
