@@ -283,9 +283,6 @@ struct cff2_private_dict_opset_t : dict_opset_t
       case OpCode_BlueFuzz:
       case OpCode_ExpansionFactor:
       case OpCode_LanguageGroup:
-	val.single_val = env.argStack.pop_num ();
-	env.clear_args ();
-	break;
       case OpCode_BlueValues:
       case OpCode_OtherBlues:
       case OpCode_FamilyBlues:
