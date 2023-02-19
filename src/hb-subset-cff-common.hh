@@ -738,7 +738,7 @@ struct subr_subsetter_t
     return true;
   }
 
-  bool encode_charstrings (str_buff_vec_t &buffArray) const
+  bool encode_charstrings (str_buff_vec_t &buffArray, bool encode_prefix = true) const
   {
     if (unlikely (!buffArray.resize_exact (plan->num_output_glyphs ())))
       return false;
@@ -754,7 +754,7 @@ struct subr_subsetter_t
       unsigned int  fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
-      if (unlikely (!encode_str (get_parsed_charstring (i), fd, buffArray.arrayZ[i])))
+      if (unlikely (!encode_str (get_parsed_charstring (i), fd, buffArray.arrayZ[i], encode_prefix)))
 	return false;
     }
     return true;
@@ -984,14 +984,14 @@ struct subr_subsetter_t
     }
   }
 
-  bool encode_str (const parsed_cs_str_t &str, const unsigned int fd, str_buff_t &buff) const
+  bool encode_str (const parsed_cs_str_t &str, const unsigned int fd, str_buff_t &buff, bool encode_prefix = true) const
   {
     str_encoder_t  encoder (buff);
     encoder.reset ();
     bool hinting = !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
     /* if a prefix (CFF1 width or CFF2 vsindex) has been removed along with hints,
      * re-insert it at the beginning of charstreing */
-    if (str.has_prefix () && !hinting && str.is_hint_dropped ())
+    if (encode_prefix && str.has_prefix () && !hinting && str.is_hint_dropped ())
     {
       encoder.encode_num (str.prefix_num ());
       if (str.prefix_op () != OpCode_Invalid)

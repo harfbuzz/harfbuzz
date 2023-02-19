@@ -272,7 +272,7 @@ struct cff2_subset_plan
 	return false;
 
       /* encode charstrings, global subrs, local subrs with new subroutine numbers */
-      if (!subr_subsetter.encode_charstrings (subset_charstrings))
+      if (!subr_subsetter.encode_charstrings (subset_charstrings, !pinned))
 	return false;
 
       if (!subr_subsetter.encode_globalsubrs (subset_globalsubrs))
