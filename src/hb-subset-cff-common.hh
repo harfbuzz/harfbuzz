@@ -192,8 +192,8 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
 
 struct cff_private_dict_op_serializer_t : op_serializer_t
 {
-  cff_private_dict_op_serializer_t (bool desubroutinize_, bool drop_hints_)
-    : desubroutinize (desubroutinize_), drop_hints (drop_hints_) {}
+  cff_private_dict_op_serializer_t (bool desubroutinize_, bool drop_hints_, bool pinned_ = false)
+    : desubroutinize (desubroutinize_), drop_hints (drop_hints_), pinned (pinned_) {}
 
   bool serialize (hb_serialize_context_t *c,
 		  const op_str_t &opstr,
@@ -202,7 +202,10 @@ struct cff_private_dict_op_serializer_t : op_serializer_t
     TRACE_SERIALIZE (this);
 
     if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
-      return true;
+      return_trace (true);
+    if (pinned && opstr.op == OpCode_vsindexdict)
+      return_trace (true);
+
     if (opstr.op == OpCode_Subrs)
     {
       if (desubroutinize || !subrs_link)
@@ -215,8 +218,9 @@ struct cff_private_dict_op_serializer_t : op_serializer_t
   }
 
   protected:
-  const bool  desubroutinize;
-  const bool  drop_hints;
+  const bool desubroutinize;
+  const bool drop_hints;
+  const bool pinned;
 };
 
 struct flatten_param_t

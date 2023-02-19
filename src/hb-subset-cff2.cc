@@ -361,7 +361,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
       PrivateDict *pd = c->start_embed<PrivateDict> ();
       if (unlikely (!pd)) return false;
       c->push ();
-      cff_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
+      cff_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints, plan.pinned);
       if (likely (pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link)))
       {
 	unsigned fd = plan.fdmap[i];
