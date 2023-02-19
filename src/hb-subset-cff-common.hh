@@ -190,39 +190,6 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
   }
 };
 
-struct cff_private_dict_op_serializer_t : op_serializer_t
-{
-  cff_private_dict_op_serializer_t (bool desubroutinize_, bool drop_hints_, bool pinned_ = false)
-    : desubroutinize (desubroutinize_), drop_hints (drop_hints_), pinned (pinned_) {}
-
-  bool serialize (hb_serialize_context_t *c,
-		  const op_str_t &opstr,
-		  objidx_t subrs_link) const
-  {
-    TRACE_SERIALIZE (this);
-
-    if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
-      return_trace (true);
-    if (pinned && opstr.op == OpCode_vsindexdict)
-      return_trace (true);
-
-    if (opstr.op == OpCode_Subrs)
-    {
-      if (desubroutinize || !subrs_link)
-	return_trace (true);
-      else
-	return_trace (FontDict::serialize_link2_op (c, opstr.op, subrs_link));
-    }
-    else
-      return_trace (copy_opstr (c, opstr));
-  }
-
-  protected:
-  const bool desubroutinize;
-  const bool drop_hints;
-  const bool pinned;
-};
-
 struct flatten_param_t
 {
   str_buff_t     &flatStr;

@@ -246,6 +246,40 @@ struct cff2_subr_subsetter_t : subr_subsetter_t<cff2_subr_subsetter_t, CFF2Subrs
   }
 };
 
+struct cff2_private_dict_op_serializer_t : op_serializer_t
+{
+  cff2_private_dict_op_serializer_t (bool desubroutinize_, bool drop_hints_, bool pinned_ = false)
+    : desubroutinize (desubroutinize_), drop_hints (drop_hints_), pinned (pinned_) {}
+
+  bool serialize (hb_serialize_context_t *c,
+		  const op_str_t &opstr,
+		  objidx_t subrs_link) const
+  {
+    TRACE_SERIALIZE (this);
+
+    if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
+      return_trace (true);
+    if (pinned && opstr.op == OpCode_vsindexdict)
+      return_trace (true);
+
+    if (opstr.op == OpCode_Subrs)
+    {
+      if (desubroutinize || !subrs_link)
+	return_trace (true);
+      else
+	return_trace (FontDict::serialize_link2_op (c, opstr.op, subrs_link));
+    }
+
+    return_trace (copy_opstr (c, opstr));
+  }
+
+  protected:
+  const bool desubroutinize;
+  const bool drop_hints;
+  const bool pinned;
+};
+
+
 struct cff2_subset_plan
 {
   bool create (const OT::cff2::accelerator_subset_t &acc,
@@ -361,7 +395,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
       PrivateDict *pd = c->start_embed<PrivateDict> ();
       if (unlikely (!pd)) return false;
       c->push ();
-      cff_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints, plan.pinned);
+      cff2_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints, plan.pinned);
       if (likely (pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link)))
       {
 	unsigned fd = plan.fdmap[i];
