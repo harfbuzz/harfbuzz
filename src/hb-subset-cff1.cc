@@ -234,7 +234,7 @@ struct cff1_cs_opset_flatten_t : cff1_cs_opset_t<cff1_cs_opset_flatten_t, flatte
   {
     str_encoder_t  encoder (param.flatStr);
     for (unsigned int i = env.arg_start; i < env.argStack.get_count (); i++)
-      encoder.encode_num (env.eval_arg (i));
+      encoder.encode_num_cs (env.eval_arg (i));
     SUPER::flush_args (env, param);
   }
 
@@ -248,7 +248,7 @@ struct cff1_cs_opset_flatten_t : cff1_cs_opset_t<cff1_cs_opset_flatten_t, flatte
   {
     assert (env.has_width);
     str_encoder_t  encoder (param.flatStr);
-    encoder.encode_num (env.width);
+    encoder.encode_num_cs (env.width);
   }
 
   static void flush_hintmask (op_code_t op, cff1_cs_interp_env_t &env, flatten_param_t& param)

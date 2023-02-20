@@ -118,7 +118,7 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
       else
       {
 	str_encoder_t  encoder (param.flatStr);
-	encoder.encode_num (arg);
+	encoder.encode_num_cs (arg);
 	i++;
       }
     }
@@ -138,14 +138,14 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 	env.set_error ();
 	return;
       }
-      encoder.encode_num (arg1);
+      encoder.encode_num_cs (arg1);
     }
     /* flatten deltas for each value */
     for (unsigned int j = 0; j < arg.numValues; j++)
     {
       const blend_arg_t &arg1 = env.argStack[i + j];
       for (unsigned int k = 0; k < arg1.deltas.length; k++)
-	encoder.encode_num (arg1.deltas[k]);
+	encoder.encode_num_cs (arg1.deltas[k]);
     }
     /* flatten the number of values followed by blend operator */
     encoder.encode_int (arg.numValues);

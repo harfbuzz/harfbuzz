@@ -81,7 +81,7 @@ struct str_encoder_t
     }
   }
 
-  void encode_num (const number_t& n)
+  void encode_num_cs (const number_t& n)
   {
     if (n.in_int_range ())
     {
@@ -964,7 +964,7 @@ struct subr_subsetter_t
      * re-insert it at the beginning of charstreing */
     if (encode_prefix && str.has_prefix () && !hinting && str.is_hint_dropped ())
     {
-      encoder.encode_num (str.prefix_num ());
+      encoder.encode_num_cs (str.prefix_num ());
       if (str.prefix_op () != OpCode_Invalid)
 	encoder.encode_op (str.prefix_op ());
     }
