@@ -81,7 +81,8 @@ struct str_encoder_t
     }
   }
 
-  void encode_num (const number_t& n)
+  // Encode number for CharString
+  void encode_num_cs (const number_t& n)
   {
     if (n.in_int_range ())
     {
@@ -95,6 +96,91 @@ struct str_encoder_t
       encode_byte ((v >> 16) & 0xFF);
       encode_byte ((v >> 8) & 0xFF);
       encode_byte (v & 0xFF);
+    }
+  }
+
+  // Encode number for TopDict / Private
+  void encode_num_tp (const number_t& n)
+  {
+    if (n.in_int_range ())
+    {
+      // TODO longint
+      encode_int (n.to_int ());
+    }
+    else
+    {
+      // Sigh. BCD
+      // https://learn.microsoft.com/en-us/typography/opentype/spec/cff2#table-5-nibble-definitions
+      double v = n.to_real ();
+      encode_byte (OpCode_BCD);
+
+      // Based on:
+      // https://github.com/fonttools/fonttools/blob/97ed3a61cde03e17b8be36f866192fbd56f1d1a7/Lib/fontTools/misc/psCharStrings.py#L265-L294
+
+      char buf[16];
+      /* FontTools has the following comment:
+       *
+       * # Note: 14 decimal digits seems to be the limitation for CFF real numbers
+       * # in macOS. However, we use 8 here to match the implementation of AFDKO.
+       *
+       * We use 8 here to match FontTools X-).
+       */
+
+      hb_locale_t clocale HB_UNUSED;
+      hb_locale_t oldlocale HB_UNUSED;
+      oldlocale = hb_uselocale (clocale = newlocale (LC_ALL_MASK, "C", NULL));
+      snprintf (buf, sizeof (buf), "%.8G", v);
+      (void) hb_uselocale (((void) freelocale (clocale), oldlocale));
+
+      char *s = buf;
+      if (s[0] == '0' && s[1] == '.')
+	s++;
+      else if (s[0] == '-' && s[1] == '0' && s[2] == '.')
+      {
+	s[1] = '-';
+	s++;
+      }
+      hb_vector_t<char> nibbles;
+      while (*s)
+      {
+	char c = s[0];
+	s++;
+
+	switch (c)
+	{
+	  case 'E':
+	  {
+	    char c2 = *s;
+	    if (c2 == '-')
+	    {
+	      s++;
+	      nibbles.push (0x0C); // E-
+	      continue;
+	    }
+	    if (c2 == '+')
+	      s++;
+	    nibbles.push (0x0B); // E
+	    continue;
+	  }
+
+	  case '.': case ',': // Comma for some European locales in case no uselocale available.
+	    nibbles.push (0x0A); // .
+	    continue;
+
+	  case '-':
+	    nibbles.push (0x0E); // .
+	    continue;
+	}
+
+	nibbles.push (c - '0');
+      }
+      nibbles.push (0x0F);
+      if (nibbles.length % 2)
+	nibbles.push (0x0F);
+
+      unsigned count = nibbles.length;
+      for (unsigned i = 0; i < count; i += 2)
+        encode_byte ((nibbles[i] << 4) | nibbles[i+1]);
     }
   }
 
@@ -188,35 +274,6 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
     }
     return_trace (true);
   }
-};
-
-struct cff_private_dict_op_serializer_t : op_serializer_t
-{
-  cff_private_dict_op_serializer_t (bool desubroutinize_, bool drop_hints_)
-    : desubroutinize (desubroutinize_), drop_hints (drop_hints_) {}
-
-  bool serialize (hb_serialize_context_t *c,
-		  const op_str_t &opstr,
-		  objidx_t subrs_link) const
-  {
-    TRACE_SERIALIZE (this);
-
-    if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
-      return true;
-    if (opstr.op == OpCode_Subrs)
-    {
-      if (desubroutinize || !subrs_link)
-	return_trace (true);
-      else
-	return_trace (FontDict::serialize_link2_op (c, opstr.op, subrs_link));
-    }
-    else
-      return_trace (copy_opstr (c, opstr));
-  }
-
-  protected:
-  const bool  desubroutinize;
-  const bool  drop_hints;
 };
 
 struct flatten_param_t
@@ -738,7 +795,7 @@ struct subr_subsetter_t
     return true;
   }
 
-  bool encode_charstrings (str_buff_vec_t &buffArray) const
+  bool encode_charstrings (str_buff_vec_t &buffArray, bool encode_prefix = true) const
   {
     if (unlikely (!buffArray.resize_exact (plan->num_output_glyphs ())))
       return false;
@@ -754,7 +811,7 @@ struct subr_subsetter_t
       unsigned int  fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
-      if (unlikely (!encode_str (get_parsed_charstring (i), fd, buffArray.arrayZ[i])))
+      if (unlikely (!encode_str (get_parsed_charstring (i), fd, buffArray.arrayZ[i], encode_prefix)))
 	return false;
     }
     return true;
@@ -984,16 +1041,16 @@ struct subr_subsetter_t
     }
   }
 
-  bool encode_str (const parsed_cs_str_t &str, const unsigned int fd, str_buff_t &buff) const
+  bool encode_str (const parsed_cs_str_t &str, const unsigned int fd, str_buff_t &buff, bool encode_prefix = true) const
   {
     str_encoder_t  encoder (buff);
     encoder.reset ();
     bool hinting = !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
     /* if a prefix (CFF1 width or CFF2 vsindex) has been removed along with hints,
      * re-insert it at the beginning of charstreing */
-    if (str.has_prefix () && !hinting && str.is_hint_dropped ())
+    if (encode_prefix && str.has_prefix () && !hinting && str.is_hint_dropped ())
     {
-      encoder.encode_num (str.prefix_num ());
+      encoder.encode_num_cs (str.prefix_num ());
       if (str.prefix_op () != OpCode_Invalid)
 	encoder.encode_op (str.prefix_op ());
     }
