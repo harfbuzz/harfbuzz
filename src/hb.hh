@@ -463,6 +463,37 @@ static int HB_UNUSED _hb_errno = 0;
 #endif
 #endif
 
+
+// Locale business
+
+#if !defined(HB_NO_SETLOCALE) && (!defined(HAVE_NEWLOCALE) || !defined(HAVE_USELOCALE))
+#define HB_NO_SETLOCALE 1
+#endif
+
+#ifndef HB_NO_SETLOCALE
+
+#include <locale.h>
+#ifdef HAVE_XLOCALE_H
+#include <xlocale.h> // Needed on BSD/OS X for uselocale
+#endif
+
+#ifdef WIN32
+#define hb_locale_t _locale_t
+#else
+#define hb_locale_t locale_t
+#endif
+#define hb_setlocale setlocale
+#define hb_uselocale uselocale
+
+#else
+
+#define hb_locale_t void *
+#define hb_setlocale(Category, Locale) "C"
+#define hb_uselocale(Locale) ((hb_locale_t) 0)
+
+#endif
+
+
 /* Lets assert int types.  Saves trouble down the road. */
 static_assert ((sizeof (hb_codepoint_t) == 4), "");
 static_assert ((sizeof (hb_position_t) == 4), "");

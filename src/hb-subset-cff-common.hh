@@ -125,7 +125,13 @@ struct str_encoder_t
        *
        * We use 8 here to match FontTools X-).
        */
-      snprintf (buf, sizeof (buf), "%.8G", v); // XXX This is locale-sensitive; Ugh
+
+      hb_locale_t clocale HB_UNUSED;
+      hb_locale_t oldlocale HB_UNUSED;
+      oldlocale = hb_uselocale (clocale = newlocale (LC_ALL_MASK, "C", NULL));
+      snprintf (buf, sizeof (buf), "%.8G", v);
+      (void) hb_uselocale (((void) freelocale (clocale), oldlocale));
+
       char *s = buf;
       if (s[0] == '0' && s[1] == '.')
 	s++;
@@ -157,7 +163,7 @@ struct str_encoder_t
 	    continue;
 	  }
 
-	  case '.': case ',': // Comma for some European locales!!!
+	  case '.': case ',': // Comma for some European locales in case no uselocale available.
 	    nibbles.push (0x0A); // .
 	    continue;
 
