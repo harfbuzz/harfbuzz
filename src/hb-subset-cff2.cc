@@ -296,7 +296,7 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
 				 const hb_array_t<const number_t> blends,
 				 unsigned n, unsigned i)
   {
-    arg.set_real (arg.to_real () + param.blend_deltas (blends));
+    arg.set_int (round (arg.to_real () + param.blend_deltas (blends)));
   }
 
   static void process_blend (cff2_priv_dict_interp_env_t& env, cff2_private_blend_encoder_param_t& param)
