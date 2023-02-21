@@ -1,4 +1,5 @@
 <SUBSECTION Private>
+<FILE>hb</FILE>
 HB_H_IN
 HB_OT_H_IN
 HB_AAT_H_IN
