@@ -26,13 +26,13 @@ struct path_builder_t
 
     optional_point_t lerp (optional_point_t p, float t)
     { return optional_point_t (x + t * (p.x - x), y + t * (p.y - y)); }
-  } first_oncurve, first_offcurve, last_offcurve, last_offcurve2;
+  } first_oncurve, first_offcurve, first_offcurve2, last_offcurve, last_offcurve2;
 
   path_builder_t (hb_font_t *font_, hb_draw_session_t &draw_session_)
   {
     font = font_;
     draw_session = &draw_session_;
-    first_oncurve = first_offcurve = last_offcurve = last_offcurve2 = optional_point_t ();
+    first_oncurve = first_offcurve = first_offcurve2 = last_offcurve = last_offcurve2 = optional_point_t ();
   }
 
   /* based on https://github.com/RazrFalcon/ttf-parser/blob/4f32821/src/glyf.rs#L287
@@ -59,7 +59,12 @@ struct path_builder_t
       }
       else
       {
-	if (first_offcurve)
+	if (is_cubic && !first_offcurve2)
+	{
+	  first_offcurve2 = first_offcurve;
+	  first_offcurve = p;
+	}
+	else if (first_offcurve)
 	{
 	  optional_point_t mid = first_offcurve.lerp (p, .5f);
 	  first_oncurve = mid;
@@ -133,6 +138,10 @@ struct path_builder_t
 	/* now check the rest */
       }
 
+      if (first_offcurve2 && first_offcurve && first_oncurve)
+	draw_session->cubic_to (first_offcurve2.x, first_offcurve2.y,
+				first_offcurve.x, first_offcurve.y,
+				first_oncurve.x, first_oncurve.y);
       if (first_offcurve && first_oncurve)
 	draw_session->quadratic_to (first_offcurve.x, first_offcurve.y,
 				   first_oncurve.x, first_oncurve.y);
