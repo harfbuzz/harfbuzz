@@ -40,7 +40,7 @@ struct path_builder_t
      * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM01/Chap1.html
      * https://stackoverflow.com/a/20772557
      *
-     * Cubic support added (incomplete). */
+     * Cubic support added. */
   void consume_point (const contour_point_t &point)
   {
     bool is_on_curve = point.flag & glyf_impl::SimpleGlyph::FLAG_ON_CURVE;
