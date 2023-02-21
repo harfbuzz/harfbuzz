@@ -131,20 +131,30 @@ struct path_builder_t
     {
       if (first_offcurve && last_offcurve)
       {
-	optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
-	draw_session->quadratic_to (last_offcurve.x, last_offcurve.y,
-				   mid.x, mid.y);
+	optional_point_t mid = last_offcurve.lerp (first_offcurve2 ?
+						   first_offcurve2 :
+						   first_offcurve, .5f);
+	if (last_offcurve2)
+	  draw_session->cubic_to (last_offcurve2.x, last_offcurve2.y,
+				  last_offcurve.x, last_offcurve.y,
+				  mid.x, mid.y);
+	else
+	  draw_session->quadratic_to (last_offcurve.x, last_offcurve.y,
+				     mid.x, mid.y);
 	last_offcurve = optional_point_t ();
-	/* now check the rest */
       }
+      /* now check the rest */
 
-      if (first_offcurve2 && first_offcurve && first_oncurve)
-	draw_session->cubic_to (first_offcurve2.x, first_offcurve2.y,
-				first_offcurve.x, first_offcurve.y,
-				first_oncurve.x, first_oncurve.y);
       if (first_offcurve && first_oncurve)
-	draw_session->quadratic_to (first_offcurve.x, first_offcurve.y,
-				   first_oncurve.x, first_oncurve.y);
+      {
+        if (first_offcurve2)
+	  draw_session->cubic_to (first_offcurve2.x, first_offcurve2.y,
+				  first_offcurve.x, first_offcurve.y,
+				  first_oncurve.x, first_oncurve.y);
+	else
+	  draw_session->quadratic_to (first_offcurve.x, first_offcurve.y,
+				     first_oncurve.x, first_oncurve.y);
+      }
       else if (last_offcurve && first_oncurve)
       {
 	if (last_offcurve2)
