@@ -229,6 +229,8 @@ if chafa_dep.found()
   conf.set('HAVE_CHAFA', 1)
 endif
 
+conf.set('HAVE_WASM', 1)
+
 if graphite2_dep.found() or graphite_dep.found()
   conf.set('HAVE_GRAPHITE2', 1)
 endif

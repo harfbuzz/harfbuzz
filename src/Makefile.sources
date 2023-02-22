@@ -255,6 +255,7 @@ HB_BASE_sources = \
 	hb-unicode.hh \
 	hb-utf.hh \
 	hb-vector.hh \
+	hb-wasm-shape.cc \
 	hb-priority-queue.hh \
 	hb.hh \
 	$(NULL)
