@@ -110,9 +110,10 @@ struct BEInt<Type, 2>
   constexpr operator Type () const
   {
 #if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
-    ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
     defined(__BYTE_ORDER) && \
-    (__BYTE_ORDER == __LITTLE_ENDIAN || __BYTE_ORDER == __BIG_ENDIAN)
+    (__BYTE_ORDER == __BIG_ENDIAN || \
+     (__BYTE_ORDER == __LITTLE_ENDIAN && \
+      hb_has_builtin(__builtin_bswap16)))
     /* Spoon-feed the compiler a big-endian integer with alignment 1.
      * https://github.com/harfbuzz/harfbuzz/pull/1398 */
 #if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -155,9 +156,10 @@ struct BEInt<Type, 4>
   struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
   constexpr operator Type () const {
 #if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
-    ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
     defined(__BYTE_ORDER) && \
-    (__BYTE_ORDER == __LITTLE_ENDIAN || __BYTE_ORDER == __BIG_ENDIAN)
+    (__BYTE_ORDER == __BIG_ENDIAN || \
+     (__BYTE_ORDER == __LITTLE_ENDIAN && \
+      hb_has_builtin(__builtin_bswap32)))
     /* Spoon-feed the compiler a big-endian integer with alignment 1.
      * https://github.com/harfbuzz/harfbuzz/pull/1398 */
 #if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -598,13 +600,17 @@ template <typename T>
 static inline unsigned int
 hb_popcount (T v)
 {
-#if (defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__)
+#if hb_has_builtin(__builtin_popcount)
   if (sizeof (T) <= sizeof (unsigned int))
     return __builtin_popcount (v);
+#endif
 
+#if hb_has_builtin(__builtin_popcountl)
   if (sizeof (T) <= sizeof (unsigned long))
     return __builtin_popcountl (v);
+#endif
 
+#if hb_has_builtin(__builtin_popcountll)
   if (sizeof (T) <= sizeof (unsigned long long))
     return __builtin_popcountll (v);
 #endif
@@ -641,13 +647,17 @@ hb_bit_storage (T v)
 {
   if (unlikely (!v)) return 0;
 
-#if (defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__)
+#if hb_has_builtin(__builtin_clz)
   if (sizeof (T) <= sizeof (unsigned int))
     return sizeof (unsigned int) * 8 - __builtin_clz (v);
+#endif
 
+#if hb_has_builtin(__builtin_clzl)
   if (sizeof (T) <= sizeof (unsigned long))
     return sizeof (unsigned long) * 8 - __builtin_clzl (v);
+#endif
 
+#if hb_has_builtin(__builtin_clzll)
   if (sizeof (T) <= sizeof (unsigned long long))
     return sizeof (unsigned long long) * 8 - __builtin_clzll (v);
 #endif
@@ -715,13 +725,17 @@ hb_ctz (T v)
 {
   if (unlikely (!v)) return 8 * sizeof (T);
 
-#if (defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__)
+#if hb_has_builtin(__builtin_ctz)
   if (sizeof (T) <= sizeof (unsigned int))
     return __builtin_ctz (v);
+#endif
 
+#if hb_has_builtin(__builtin_ctzl)
   if (sizeof (T) <= sizeof (unsigned long))
     return __builtin_ctzl (v);
+#endif
 
+#if hb_has_builtin(__builtin_ctzll)
   if (sizeof (T) <= sizeof (unsigned long long))
     return __builtin_ctzll (v);
 #endif
@@ -875,7 +889,7 @@ hb_in_ranges (T u, T lo1, T hi1, Ts... ds)
 static inline bool
 hb_unsigned_mul_overflows (unsigned int count, unsigned int size, unsigned *result = nullptr)
 {
-#if (defined(__GNUC__) && (__GNUC__ >= 4)) || (defined(__clang__) && (__clang_major__ >= 8))
+#if hb_has_builtin(__builtin_mul_overflow)
   unsigned stack_result;
   if (!result)
     result = &stack_result;
