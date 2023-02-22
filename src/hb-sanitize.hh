@@ -228,6 +228,14 @@ struct hb_sanitize_context_t :
 
   unsigned get_edit_count () { return edit_count; }
 
+
+  bool check_ops(int count)
+  {
+    // Manually decrements the ops counter. Used when the automatic op
+    // counting needs adjustment.
+    return (this->max_ops -= count) > 0;
+  }
+
   bool check_range (const void *base,
 		    unsigned int len) const
   {
