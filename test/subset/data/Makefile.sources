@@ -51,6 +51,7 @@ TESTS = \
 	tests/full_instance.tests \
 	tests/instance_feature_variations.tests \
 	tests/instantiate_glyf.tests \
+	tests/instantiate_cff2.tests \
 	tests/pin_all_at_default.tests \
 	tests/instance_no_double_free.tests \
 	tests/mvar_full_instance.tests \
