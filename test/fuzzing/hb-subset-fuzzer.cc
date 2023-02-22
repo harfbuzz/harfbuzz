@@ -11,9 +11,9 @@ static void
 trySubset (hb_face_t *face,
 	   const hb_codepoint_t text[],
 	   int text_length,
-           unsigned flag_bits)
+           unsigned flag_bits,
+           hb_subset_input_t *input)
 {
-  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   if (!input) return;
 
   hb_subset_input_set_flags (input, (hb_subset_flags_t) flag_bits);
@@ -63,20 +63,53 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 	'3', '@', '_', '%', '&', ')', '*', '$', '!'
       };
 
-  trySubset (face, text, sizeof (text) / sizeof (hb_codepoint_t), flags);
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  trySubset (face, text, sizeof (text) / sizeof (hb_codepoint_t), flags, input);
 
+  unsigned num_axes;
   hb_codepoint_t text_from_data[16];
-  if (size > sizeof (text_from_data) + sizeof (flags)) {
+  if (size > sizeof (text_from_data) + sizeof (flags) + sizeof(num_axes)) {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    size -= sizeof (text_from_data);
     memcpy (text_from_data,
-	    data + size - sizeof (text_from_data),
+	    data + size,
 	    sizeof (text_from_data));
 
+    size -= sizeof (flags);
     memcpy (&flags,
-	    data + size - sizeof (text_from_data) - sizeof (flags),
+	    data + size,
 	    sizeof (flags));
-    unsigned int text_size = sizeof (text_from_data) / sizeof (hb_codepoint_t);
 
-    trySubset (face, text_from_data, text_size, flags);
+    size -= sizeof (num_axes);
+    memcpy (&num_axes,
+	    data + size,
+	    sizeof (num_axes));
+
+    if (num_axes > 0 && size > num_axes * (sizeof(hb_tag_t) + sizeof(float)))
+    {
+      for (unsigned i = 0; i < num_axes; i++) {
+        hb_tag_t tag;
+        int value;
+        size -= sizeof (tag);
+        memcpy (&tag,
+                data + size,
+                sizeof (tag));
+        size -= sizeof (value);
+        memcpy (&value,
+                data + size,
+                sizeof (value));
+
+        hb_subset_input_pin_axis_location(input,
+                                          face,
+                                          tag,
+                                          (float) value);
+      }
+    }
+
+
+
+    unsigned int text_size = sizeof (text_from_data) / sizeof (hb_codepoint_t);
+    trySubset (face, text_from_data, text_size, flags, input);
   }
 
   hb_face_destroy (face);
