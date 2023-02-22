@@ -28,6 +28,25 @@
 
 #ifdef HAVE_WASM
 
+#include <wasm_c_api.h>
+
+#define own // wasm-micro-runtime wasm-c-api/hello.c example has this; no idea why :))
+
+static wasm_store_t *
+get_wasm_store ()
+{
+
+  static wasm_store_t *store;
+  if (!store)
+  {
+    static wasm_engine_t *engine = wasm_engine_new();
+    store = wasm_store_new (engine);
+  }
+
+  return store;
+}
+
+
 /*
  * shaper face data
  */
@@ -36,30 +55,50 @@
 
 struct hb_wasm_face_data_t {
   hb_blob_t *blob;
+  wasm_module_t *mod;
 };
 
 hb_wasm_face_data_t *
 _hb_wasm_shaper_face_data_create (hb_face_t *face)
 {
-  hb_blob_t *wasm_blob = hb_face_reference_table (face, HB_WASM_TAG_WASM);
-  if (!hb_blob_get_length (wasm_blob))
-  {
-    hb_blob_destroy (wasm_blob);
-    return nullptr;
-  }
+  hb_blob_t *wasm_blob = nullptr;
+  own wasm_module_t *wasm_module = nullptr;
+  hb_wasm_face_data_t *data = nullptr;
 
-  hb_wasm_face_data_t *data = (hb_wasm_face_data_t *) hb_calloc (1, sizeof (hb_wasm_face_data_t));
+  wasm_blob = hb_face_reference_table (face, HB_WASM_TAG_WASM);
+  unsigned length = hb_blob_get_length (wasm_blob);
+  if (!length)
+    goto fail;
+
+  wasm_byte_vec_t binary;
+  wasm_byte_vec_new_uninitialized (&binary, length);
+  memcpy (binary.data, hb_blob_get_data (wasm_blob, nullptr), length);
+  wasm_module = wasm_module_new (get_wasm_store (), &binary);
+  if (!wasm_module)
+    goto fail;
+  wasm_byte_vec_delete(&binary);
+
+  data = (hb_wasm_face_data_t *) hb_calloc (1, sizeof (hb_wasm_face_data_t));
   if (unlikely (!data))
-    return nullptr;
+    goto fail;
 
   data->blob = wasm_blob;
+  data->mod = wasm_module;
 
   return data;
+
+fail:
+  if (wasm_module)
+    wasm_module_delete (wasm_module);
+  hb_blob_destroy (wasm_blob);
+  hb_free (data);
+  return nullptr;
 }
 
 void
 _hb_wasm_shaper_face_data_destroy (hb_wasm_face_data_t *data)
 {
+  wasm_module_delete (data->mod);
   hb_blob_destroy (data->blob);
   hb_free (data);
 }

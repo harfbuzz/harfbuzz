@@ -256,7 +256,6 @@ hb_base_sources = files(
   'hb-unicode.hh',
   'hb-utf.hh',
   'hb-vector.hh',
-  'hb-wasm-shape.cc',
   'hb.hh',
 )
 
@@ -324,6 +323,9 @@ hb_glib_headers = files('hb-glib.h')
 
 hb_graphite2_sources = files('hb-graphite2.cc')
 hb_graphite2_headers = files('hb-graphite2.h')
+
+hb_wasm_sources = files('hb-wasm-shape.cc')
+hb_wasm_headers = files()
 
 # System-dependent sources and headers
 
@@ -458,6 +460,12 @@ if conf.get('HAVE_GRAPHITE2', 0) == 1
   hb_sources += hb_graphite2_sources
   hb_headers += hb_graphite2_headers
   harfbuzz_deps += [graphite2_dep, graphite_dep]
+endif
+
+if conf.get('HAVE_WASM', 0) == 1
+  hb_sources += hb_wasm_sources
+  hb_headers += hb_wasm_headers
+  harfbuzz_deps += wasm_dep
 endif
 
 if conf.get('HAVE_UNISCRIBE', 0) == 1
