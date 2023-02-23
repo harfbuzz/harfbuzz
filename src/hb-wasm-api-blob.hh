@@ -40,6 +40,9 @@ blob_free (HB_WASM_EXEC_ENV
     return;
 
   module_free (blob->data);
+
+  blob->data = nullref;
+  blob->length = 0;
 }
 
 

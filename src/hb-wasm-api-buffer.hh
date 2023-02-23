@@ -43,6 +43,10 @@ buffer_contents_free (HB_WASM_EXEC_ENV
 
   module_free (contents->info);
   module_free (contents->pos);
+
+  contents->info = nullref;
+  contents->pos = nullref;
+  contents->length = 0;
 }
 
 void
