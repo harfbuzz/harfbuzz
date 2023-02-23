@@ -140,7 +140,18 @@ typedef struct font_t font_t;
 HB_WASM_API (ptr_t(face_t), font_get_face) (HB_WASM_EXEC_ENV
 					    ptr_t(font_t));
 
+HB_WASM_API (hb_codepoint_t, font_get_glyph) (HB_WASM_EXEC_ENV
+					      ptr_t(font_t),
+					      hb_codepoint_t unicode,
+					      hb_codepoint_t variation_selector);
 
+HB_WASM_API (hb_position_t, font_get_glyph_h_advance) (HB_WASM_EXEC_ENV
+						       ptr_t(font_t),
+						       hb_codepoint_t glyph);
+
+HB_WASM_API (hb_position_t, font_get_glyph_v_advance) (HB_WASM_EXEC_ENV
+						       ptr_t(font_t),
+						       hb_codepoint_t glyph);
 /* shape interface */
 
 HB_WASM_INTERFACE (bool_t, shape) (HB_WASM_EXEC_ENV
