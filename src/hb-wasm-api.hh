@@ -58,9 +58,9 @@
 namespace hb { namespace wasm {
 static void
 debugprint (HB_WASM_EXEC_ENV
-	    char *the_string, uint32_t len)
+	    char *the_string)
 {
-  printf("%.*s", (int) len, the_string);
+  printf("%s", the_string);
 }
 }}
 #endif
@@ -84,7 +84,7 @@ debugprint (HB_WASM_EXEC_ENV
   {
     NATIVE_SYMBOL ("(i)i",	font_get_face),
 #ifdef HB_DEBUG_WASM
-    NATIVE_SYMBOL ("($i)",	debugprint),
+    NATIVE_SYMBOL ("($)",	debugprint),
 #endif
   };
 #undef NATIVE_SYMBOL
