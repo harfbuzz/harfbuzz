@@ -68,6 +68,7 @@ HB_INTERNAL extern hb_user_data_key_t _hb_wasm_ref_type_key;
 		  (void *) hb_wasm_ref_type_##obj)) \
       obj = hb_##obj##_get_empty (); \
   } HB_STMT_END
+
 #define HB_OBJ2REF(obj) \
   uint32_t obj##ref = nullref; \
   HB_STMT_START { \
@@ -89,6 +90,14 @@ HB_INTERNAL extern hb_user_data_key_t _hb_wasm_ref_type_key;
     } \
   } \
   type &name = *_name_ptr
+
+#define HB_STRUCT_TYPE(type, name) \
+  type *name = nullptr; \
+  HB_STMT_START { \
+    if (likely (wasm_runtime_validate_app_addr (module_inst, \
+						name##ptr, sizeof (type)))) \
+      name = (type *) wasm_runtime_addr_app_to_native (module_inst, name##ptr); \
+  } HB_STMT_END
 
 
 #endif /* HB_WASM_API_HH */

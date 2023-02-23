@@ -37,10 +37,9 @@ void
 buffer_contents_free (HB_WASM_EXEC_ENV
 		      ptr_t(buffer_contents_t) contentsptr)
 {
-  if (unlikely (!validate_app_addr (contentsptr, sizeof (buffer_contents_t))))
+  HB_STRUCT_TYPE (buffer_contents_t, contents);
+  if (unlikely (!contents))
     return;
-
-  buffer_contents_t *contents = (buffer_contents_t *) addr_app_to_native (contentsptr);
 
   module_free (contents->info);
   module_free (contents->pos);

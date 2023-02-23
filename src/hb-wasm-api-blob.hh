@@ -35,10 +35,9 @@ void
 blob_free (HB_WASM_EXEC_ENV
 	   ptr_t(blob_t) blobptr)
 {
-  if (unlikely (!validate_app_addr (blobptr, sizeof (blob_t))))
+  HB_STRUCT_TYPE (blob_t, blob);
+  if (unlikely (!blob))
     return;
-
-  blob_t *blob = (blob_t *) addr_app_to_native (blobptr);
 
   module_free (blob->data);
 }
