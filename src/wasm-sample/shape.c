@@ -2,6 +2,8 @@
 
 #include <hb-wasm-api.h>
 
+void free (void*);
+
 void debugprint1 (char *s, int32_t);
 void debugprint2 (char *s, int32_t, int32_t);
 
@@ -13,6 +15,8 @@ shape (font_t font, buffer_t buffer)
   blob_t blob = face_reference_table (face, TAG ('c','m','a','p'));
 
   debugprint1 ("cmap length", blob.length);
+
+  free (blob.data);
 
   buffer_contents_t contents = buffer_copy_contents (buffer);
 
