@@ -32,6 +32,8 @@
 namespace hb {
 namespace wasm {
 
+static_assert (sizeof (glyph_info_t) == sizeof (hb_glyph_info_t), "");
+static_assert (sizeof (glyph_position_t) == sizeof (hb_glyph_position_t), "");
 
 void
 buffer_contents_free (HB_WASM_EXEC_ENV
@@ -59,15 +61,41 @@ buffer_copy_contents (HB_WASM_EXEC_ENV_COMPOUND
   if (buffer->have_output)
     buffer->sync ();
 
-  static_assert (sizeof (glyph_info_t) == sizeof (hb_glyph_info_t), "");
-  static_assert (sizeof (glyph_position_t) == sizeof (hb_glyph_position_t), "");
-
   unsigned length = buffer->len;
   ret.length = length;
   ret.info = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->info, length * sizeof (buffer->info[0]));
   ret.pos = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->pos, length * sizeof (buffer->pos[0]));
 }
 
+
+bool_t
+buffer_set_contents (HB_WASM_EXEC_ENV
+		     ptr_t(buffer_t) bufferref,
+		     ptr_t(const buffer_contents_t) contentsptr)
+{
+  HB_REF2OBJ (buffer);
+  HB_STRUCT_TYPE (buffer_contents_t, contents);
+  if (unlikely (!contents))
+    return false;
+
+  unsigned length = contents->length;
+  unsigned bytes;
+  if (unlikely (hb_unsigned_mul_overflows (length, sizeof (buffer->info[0]), &bytes)))
+    return false;
+
+  if (unlikely (!buffer->resize (length)))
+    return false;
+
+  glyph_info_t *info = (glyph_info_t *) (validate_app_addr (contents->info, bytes) ? addr_app_to_native (contents->info) : nullptr);
+  glyph_position_t *pos = (glyph_position_t *) (validate_app_addr (contents->pos, bytes) ? addr_app_to_native (contents->pos) : nullptr);
+
+  buffer->clear_positions (); /* This is wasteful, but we need it to set have_positions=true. */
+  memcpy (buffer->info, info, bytes);
+  memcpy (buffer->pos, pos, bytes);
+  buffer->len = length;
+
+  return true;
+}
 
 }}
 
