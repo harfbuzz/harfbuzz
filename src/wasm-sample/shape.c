@@ -8,9 +8,9 @@ void debugprint1 (char *s, int32_t);
 void debugprint2 (char *s, int32_t, int32_t);
 
 bool_t
-shape (font_t font, buffer_t buffer)
+shape (font_t *font, buffer_t *buffer)
 {
-  face_t face = font_get_face (font);
+  face_t *face = font_get_face (font);
 
   blob_t blob = face_reference_table (face, TAG ('c','m','a','p'));
 

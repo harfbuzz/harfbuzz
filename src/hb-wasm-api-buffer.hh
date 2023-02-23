@@ -35,7 +35,7 @@ namespace wasm {
 
 void
 buffer_copy_contents (HB_WASM_EXEC_ENV_COMPOUND
-		      buffer_t bufferref)
+		      ptr_t(buffer_t) bufferref)
 {
   HB_RETURN_TYPE (buffer_contents_t, ret);
   HB_REF2OBJ (buffer);

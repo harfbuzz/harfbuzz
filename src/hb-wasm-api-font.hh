@@ -31,9 +31,9 @@ namespace hb {
 namespace wasm {
 
 
-face_t
+ptr_t(face_t)
 font_get_face (HB_WASM_EXEC_ENV
-	       font_t fontref)
+	       ptr_t(font_t) fontref)
 {
   HB_REF2OBJ (font);
 
