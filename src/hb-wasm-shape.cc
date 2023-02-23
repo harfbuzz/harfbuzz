@@ -67,7 +67,7 @@ init_wasm ()
   init_args.native_module_name = "env";
   init_args.native_symbols = _hb_wasm_native_symbols;
 
-  if (!wasm_runtime_full_init (&init_args))
+  if (unlikely (!wasm_runtime_full_init (&init_args)))
   {
     DEBUG_MSG (WASM, nullptr, "Init runtime environment failed.");
     return false;
@@ -95,7 +95,7 @@ _hb_wasm_shaper_face_data_create (hb_face_t *face)
 
   wasm_module = wasm_runtime_load ((uint8_t *) hb_blob_get_data_writable (wasm_blob, nullptr),
 				   length, nullptr, 0);
-  if (!wasm_module)
+  if (unlikely (!wasm_module))
   {
     DEBUG_MSG (WASM, nullptr, "Load wasm module failed.");
     goto fail;
@@ -168,31 +168,31 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
   module_inst = wasm_runtime_instantiate(face_data->wasm_module,
 					 stack_size, heap_size,
 					 nullptr, 0);
-  if (!module_inst)
+  if (unlikely (!module_inst))
   {
     DEBUG_MSG (WASM, face_data->wasm_module, "Instantiate wasm module failed.");
+    return false;
+  }
+
+  // cmake -DWAMR_BUILD_REF_TYPES=1 for these to work
+  HB_OBJ2REF (font);
+  HB_OBJ2REF (buffer);
+  if (unlikely (!fontref || !bufferref))
+  {
+    DEBUG_MSG (WASM, module_inst, "Failed to register objects.");
     goto fail;
   }
 
   exec_env = wasm_runtime_create_exec_env (module_inst, stack_size);
-  if (!exec_env) {
+  if (unlikely (!exec_env)) {
     DEBUG_MSG (WASM, module_inst, "Create wasm execution environment failed.");
     goto fail;
   }
 
-  if (!(shape_func = wasm_runtime_lookup_function (module_inst, "shape", nullptr)))
+  shape_func = wasm_runtime_lookup_function (module_inst, "shape", nullptr);
+  if (unlikely (!shape_func))
   {
     DEBUG_MSG (WASM, module_inst, "Shape function not found.");
-    goto fail;
-  }
-
-  uint32_t font_ref;
-  uint32_t buffer_ref;
-  // cmake -DWAMR_BUILD_REF_TYPES=1 for these to work
-  if (!wasm_externref_obj2ref (module_inst, font, &font_ref) ||
-      !wasm_externref_obj2ref (module_inst, buffer, &buffer_ref))
-  {
-    DEBUG_MSG (WASM, module_inst, "Failed to register objects.");
     goto fail;
   }
 
@@ -201,13 +201,14 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
 
   results[0].kind = WASM_I32;
   arguments[0].kind = WASM_I32;
-  arguments[0].of.i32 = font_ref;
+  arguments[0].of.i32 = fontref;
   arguments[1].kind = WASM_I32;
-  arguments[1].of.i32 = buffer_ref;
+  arguments[1].of.i32 = bufferref;
 
-  if (!wasm_runtime_call_wasm_a (exec_env, shape_func,
-				 ARRAY_LENGTH (results), results,
-				 ARRAY_LENGTH (arguments), arguments))
+   ret = wasm_runtime_call_wasm_a (exec_env, shape_func,
+				   ARRAY_LENGTH (results), results,
+				   ARRAY_LENGTH (arguments), arguments);
+  if (unlikely (!ret))
   {
     DEBUG_MSG (WASM, module_inst, "Calling shape function failed: %s",
 	       wasm_runtime_get_exception(module_inst));
