@@ -59,9 +59,12 @@ HB_WASM_BEGIN_DECLS
 #ifndef bool_t
 #define bool_t uint32_t
 #endif
-typedef uint32_t face_t;
-typedef uint32_t font_t;
-typedef uint32_t buffer_t;
+#ifndef ref_t
+#define ref_t uint32_t
+#endif
+typedef ref_t face_t;
+typedef ref_t font_t;
+typedef ref_t buffer_t;
 
 
 /* font */
