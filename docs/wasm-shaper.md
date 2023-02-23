@@ -33,7 +33,7 @@ wasm-bindgen = "0.2"
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn shape(_font_ref: i32, _buf_ref: i32) -> i32 {
+pub fn shape(_font_ref: u32, _buf_ref: u32) -> i32 {
     1
 }
 ```
@@ -78,7 +78,7 @@ Congratulations! Our shaper did nothing, but in Rust! Now let's do something - i
 
 * To say hello world, we're going to have to use a native function.
 
-In debugging builds of Harfbuzz, we can print some output from the web assembly module to the host's standard output using the `debugprint` function, which takes an array of characters and a length:
+In debugging builds of Harfbuzz, we can print some output from the web assembly module to the host's standard output using the `debugprint` function:
 
 ```
 // We don't use #[wasm_bindgen] here because that makes
@@ -86,16 +86,19 @@ In debugging builds of Harfbuzz, we can print some output from the web assembly 
 // really do just want to import some C symbols and run
 // them in unsafe-land!
 extern "C" {
-    pub fn debugprint(s: *const u8, len: i8);
+    pub fn debugprint(s: *const u8);
 }
 ```
 
 And now let's add a function on the Rust side which makes this a bit more ergonomic to use:
 
 ```
+use std::ffi::CString;
+
 fn print(s: &str) {
+    let c_s = CString::new(s).unwrap();
     unsafe {
-        debugprint(s.as_ptr(), s.len().try_into().unwrap());
+        debugprint(c_s.as_ptr() as *const u8);
     };
 }
 
