@@ -35,14 +35,13 @@ face_t
 font_get_face (HB_WASM_EXEC_ENV
 	       font_t fontref)
 {
-  hb_font_t *font;
-  if (unlikely (!wasm_externref_ref2obj (fontref, (void **) &font)))
-    return 0;
+  HB_REF2OBJ (font);
+  if (unlikely (!font))
+    return nullref;
 
   hb_face_t *face = hb_font_get_face (font);
 
-  uint32_t faceref = 0;
-  (void) wasm_externref_obj2ref (module_inst, face, &faceref);
+  HB_OBJ2REF (face);
   return faceref;
 }
 
