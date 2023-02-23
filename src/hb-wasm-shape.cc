@@ -200,18 +200,34 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
     goto fail;
   }
 
-  if (!(shape_func = wasm_runtime_lookup_function (module_inst, "shape", nullptr))) {
+  if (!(shape_func = wasm_runtime_lookup_function (module_inst, "shape", nullptr)))
+  {
     DEBUG_MSG (WASM, module_inst, "Shape function not found.");
+    goto fail;
+  }
+
+  uint32_t font_ref;
+  uint32_t buffer_ref;
+  // cmake -DWAMR_BUILD_REF_TYPES=1 for these to work
+  if (!wasm_externref_obj2ref (module_inst, font, &font_ref) ||
+      !wasm_externref_obj2ref (module_inst, buffer, &buffer_ref))
+  {
+    DEBUG_MSG (WASM, module_inst, "Failed to register objects.");
+    goto fail;
   }
 
   wasm_val_t results[1];
-  wasm_val_t arguments[1];
+  wasm_val_t arguments[2];
 
   results[0].kind = WASM_I32;
   arguments[0].kind = WASM_I32;
-  arguments[0].of.i32 = 41;
+  arguments[0].of.i32 = font_ref;
+  arguments[1].kind = WASM_I32;
+  arguments[1].of.i32 = buffer_ref;
 
-  if (!wasm_runtime_call_wasm_a (exec_env, shape_func, 1, results, 1, arguments))
+  if (!wasm_runtime_call_wasm_a (exec_env, shape_func,
+				 ARRAY_LENGTH (results), results,
+				 ARRAY_LENGTH (arguments), arguments))
   {
     DEBUG_MSG (WASM, module_inst, "Calling shape function failed: %s",
 	       wasm_runtime_get_exception(module_inst));
