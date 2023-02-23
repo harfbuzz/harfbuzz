@@ -33,9 +33,17 @@ namespace wasm {
 
 face_t
 font_get_face (HB_WASM_EXEC_ENV
-	       font_t)
+	       font_t fontref)
 {
-  return 0;
+  hb_font_t *font;
+  if (unlikely (!wasm_externref_ref2obj (fontref, (void **) &font)))
+    return 0;
+
+  hb_face_t *face = hb_font_get_face (font);
+
+  uint32_t faceref = 0;
+  (void) wasm_externref_obj2ref (module_inst, face, &faceref);
+  return faceref;
 }
 
 

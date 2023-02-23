@@ -25,7 +25,7 @@
 #ifndef HB_WASM_API_HH
 #define HB_WASM_API_HH
 
-#include "hb.h"
+#include "hb.hh"
 
 #include <wasm_export.h>
 
@@ -41,8 +41,13 @@
 #undef HB_WASM_BEGIN_DECLS
 #undef HB_WASM_END_DECLS
 
+#define module_inst wasm_runtime_get_module_inst (exec_env)
+
 
 #include "hb-wasm-font.hh"
+
+
+#undef module_inst
 
 static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) {
 	printf("%*s", len, the_string);
