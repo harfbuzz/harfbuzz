@@ -31,6 +31,7 @@
 #ifdef HAVE_WASM
 
 #include "hb-wasm-api.hh"
+#include "hb-wasm-api-list.hh"
 
 
 /*

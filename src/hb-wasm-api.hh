@@ -42,24 +42,4 @@
 #undef HB_WASM_END_DECLS
 
 
-#define nullref 0
-#define module_inst wasm_runtime_get_module_inst (exec_env)
-#define HB_REF2OBJ(obj) \
-  hb_##obj##_t *obj = nullptr; \
-  (void) wasm_externref_ref2obj (obj##ref, (void **) &obj)
-#define HB_OBJ2REF(obj) \
-  uint32_t obj##ref = nullref; \
-  (void) wasm_externref_obj2ref (module_inst, obj, &obj##ref)
-
-
-#include "hb-wasm-api-list.hh"
-
-
-#undef nullref
-#undef module_inst
-#undef HB_WASM_EXEC_ENV
-#undef HB_REF2OBJ
-#undef HB_OBJ2REF
-
-
 #endif /* HB_WASM_API_HH */
