@@ -22,54 +22,23 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_WASM_API_H
-#define HB_WASM_API_H
+#ifndef HB_WASM_FONT_HH
+#define HB_WASM_FONT_HH
 
-/*
-#include "hb.h"
-*/
+#include <hb-wasm-api.hh>
 
-#include <stdint.h>
+namespace hb {
+namespace wasm {
 
-
-#ifndef HB_WASM_BEGIN_DECLS
-# ifdef __cplusplus
-#  define HB_WASM_BEGIN_DECLS	extern "C" {
-#  define HB_WASM_END_DECLS	}
-# else /* !__cplusplus */
-#  define HB_WASM_BEGIN_DECLS
-#  define HB_WASM_END_DECLS
-# endif /* !__cplusplus */
-#endif
-
-
-HB_WASM_BEGIN_DECLS
-
-#ifndef HB_WASM_API
-#define HB_WASM_API(x) x
-#endif
-
-
-#ifndef bool_t
-#define bool_t uint32_t
-#endif
-typedef uint32_t face_t;
-typedef uint32_t font_t;
-typedef uint32_t buffer_t;
-
-
-/* font */
 
 face_t
-HB_WASM_API (font_get_face) (font_t);
+font_get_face (font_t)
+{
+  return 0;
+}
 
 
-/* shape interface */
 
-bool_t
-HB_WASM_API (shape) (font_t, buffer_t);
+}}
 
-
-HB_WASM_END_DECLS
-
-#endif /* HB_WASM_API_H */
+#endif /* HB_WASM_FONT_HH */

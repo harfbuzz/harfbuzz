@@ -30,6 +30,8 @@
 
 #ifdef HAVE_WASM
 
+#include "hb-wasm-api.hh"
+
 #include <wasm_export.h>
 
 
@@ -44,10 +46,8 @@ struct hb_wasm_face_data_t {
   wasm_module_t wasm_module;
 };
 
-extern "C" {
 static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) {
 	printf("%*s", len, the_string);
-}
 }
 
 static bool
