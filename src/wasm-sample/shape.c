@@ -25,8 +25,8 @@ shape (font_t *font, buffer_t *buffer)
   for (unsigned i = 0; i < contents.length; i++)
   {
     debugprint2 ("Codepoint", i, contents.info[i].codepoint);
-    contents.info[i].codepoint++;
-    contents.pos[i].x_advance = 256 * 64;
+    contents.info[i].codepoint = font_get_glyph (font, contents.info[i].codepoint, 0);
+    contents.pos[i].x_advance = font_get_glyph_h_advance (font, contents.info[i].codepoint);
   }
 
   bool_t ret = buffer_set_contents (buffer, &contents);
