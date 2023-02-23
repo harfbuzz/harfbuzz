@@ -36,7 +36,9 @@
 #define HB_WASM_API_COMPOUND(ret_t, name) HB_INTERNAL void name
 
 #define HB_WASM_EXEC_ENV wasm_exec_env_t exec_env,
-#define HB_WASM_EXEC_ENV_COMPOUND wasm_exec_env_t exec_env, ptr_t retptr,
+#define HB_WASM_EXEC_ENV_COMPOUND wasm_exec_env_t exec_env, ptr_t() retptr,
+
+#define ptr_t(type_t) uint32_t
 
 #include "hb-wasm-api.h"
 

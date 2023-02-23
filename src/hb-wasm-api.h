@@ -69,7 +69,7 @@ HB_WASM_BEGIN_DECLS
 #define ref_t uint32_t
 #endif
 #ifndef ptr_t
-#define ptr_t uint32_t
+#define ptr_t(type_t) type_t *
 #endif
 
 typedef uint32_t tag_t;
@@ -79,8 +79,9 @@ typedef ref_t face_t;
 typedef ref_t font_t;
 typedef ref_t buffer_t;
 
-typedef struct {
-  ref_t data;
+typedef struct
+{
+  ptr_t(char) data;
   uint32_t length;
 } blob_t;
 
