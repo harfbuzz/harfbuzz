@@ -35,7 +35,7 @@
   (void) wasm_externref_obj2ref (module_inst, obj, &obj##ref)
 
 
-#include "hb-wasm-font.hh"
+#include "hb-wasm-api-font.hh"
 
 
 #undef nullref
