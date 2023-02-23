@@ -24,27 +24,13 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#define HB_DEBUG_WASM 1
+
 #include "hb-shaper-impl.hh"
 
 #ifdef HAVE_WASM
 
-#include <wasm_c_api.h>
-
-#define own // wasm-micro-runtime wasm-c-api/hello.c example has this; no idea why :))
-
-static wasm_store_t *
-get_wasm_store ()
-{
-
-  static wasm_store_t *store;
-  if (!store)
-  {
-    static wasm_engine_t *engine = wasm_engine_new();
-    store = wasm_store_new (engine);
-  }
-
-  return store;
-}
+#include <wasm_export.h>
 
 
 /*
@@ -54,63 +40,103 @@ get_wasm_store ()
 #define HB_WASM_TAG_WASM HB_TAG('W','a','s','m')
 
 struct hb_wasm_face_data_t {
-  hb_blob_t *blob;
-  wasm_module_t *mod;
-  unsigned shape_func_idx;
+  hb_blob_t *wasm_blob;
+  wasm_module_t wasm_module;
 };
+
+static bool
+init_wasm ()
+{
+  static bool initialized;
+  if (initialized)
+    return true;
+
+  RuntimeInitArgs init_args;
+  memset (&init_args, 0, sizeof (RuntimeInitArgs));
+
+  // Define an array of NativeSymbol for the APIs to be exported.
+  // Note: the array must be static defined since runtime
+  //            will keep it after registration
+  // For the function signature specifications, goto the link:
+  // https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/doc/export_native_api.md
+
+  static NativeSymbol native_symbols[] = {
+#if 0
+      {
+	  "intToStr", // the name of WASM function name
+	  intToStr,   // the native function pointer
+	  "(i*~i)i",  // the function prototype signature, avoid to use i32
+	  NULL        // attachment is NULL
+      },
+      {
+	  "get_pow", // the name of WASM function name
+	  get_pow,   // the native function pointer
+	  "(ii)i",   // the function prototype signature, avoid to use i32
+	  NULL       // attachment is NULL
+      },
+      { "calculate_native", calculate_native, "(iii)i", NULL }
+#endif
+  };
+
+  init_args.mem_alloc_type = Alloc_With_Allocator;
+  init_args.mem_alloc_option.allocator.malloc_func = (void *) hb_malloc;
+  init_args.mem_alloc_option.allocator.realloc_func = (void *) hb_realloc;
+  init_args.mem_alloc_option.allocator.free_func = (void *) hb_free;
+
+  init_args.mem_alloc_type = Alloc_With_System_Allocator;
+
+  // Native symbols need below registration phase
+  init_args.n_native_symbols = sizeof(native_symbols) / sizeof(NativeSymbol);
+  init_args.native_module_name = "env";
+  init_args.native_symbols = native_symbols;
+
+  if (!wasm_runtime_full_init (&init_args))
+  {
+    DEBUG_MSG (WASM, nullptr, "Init runtime environment failed.");
+    return false;
+  }
+
+
+  initialized = true;
+  return true;
+}
 
 hb_wasm_face_data_t *
 _hb_wasm_shaper_face_data_create (hb_face_t *face)
 {
-  wasm_store_t *wasm_store = nullptr;
-  hb_blob_t *wasm_blob = nullptr;
-  own wasm_module_t *wasm_module = nullptr;
   hb_wasm_face_data_t *data = nullptr;
-  wasm_exporttype_vec_t exports = {};
-  unsigned shape_func_idx = (unsigned) -1;
+  hb_blob_t *wasm_blob = nullptr;
+  wasm_module_t wasm_module = nullptr;
 
   wasm_blob = hb_face_reference_table (face, HB_WASM_TAG_WASM);
   unsigned length = hb_blob_get_length (wasm_blob);
   if (!length)
     goto fail;
 
-  wasm_store = get_wasm_store (); // Do before others to initialize
+  if (!init_wasm ())
+    goto fail;
 
-  wasm_byte_vec_t binary;
-  wasm_byte_vec_new_uninitialized (&binary, length);
-  memcpy (binary.data, hb_blob_get_data (wasm_blob, nullptr), length);
-  wasm_module = wasm_module_new (wasm_store, &binary);
+  wasm_module = wasm_runtime_load ((uint8_t *) hb_blob_get_data_writable (wasm_blob, nullptr),
+				   length, nullptr, 0);
   if (!wasm_module)
-    goto fail;
-  wasm_byte_vec_delete(&binary);
-
-  wasm_module_exports (wasm_module, &exports);
-  for (unsigned i = 0; i < exports.size; i++)
   {
-    auto *name = wasm_exporttype_name(exports.data[i]);
-    if (0 == memcmp ("shape", name->data, name->size))
-    {
-      shape_func_idx = i;
-      break;
-    }
-  }
-  if (shape_func_idx == (unsigned) -1)
+    DEBUG_MSG (WASM, nullptr, "Load wasm module failed.");
     goto fail;
+  }
+
 
   data = (hb_wasm_face_data_t *) hb_calloc (1, sizeof (hb_wasm_face_data_t));
   if (unlikely (!data))
     goto fail;
 
-  data->blob = wasm_blob;
-  data->mod = wasm_module;
-  data->shape_func_idx = shape_func_idx;
+  data->wasm_blob = wasm_blob;
+  data->wasm_module = wasm_module;
 
   return data;
 
 fail:
-  wasm_exporttype_vec_delete (&exports);
   if (wasm_module)
-    wasm_module_delete (wasm_module);
+      wasm_runtime_unload (wasm_module);
   hb_blob_destroy (wasm_blob);
   hb_free (data);
   return nullptr;
@@ -119,8 +145,8 @@ fail:
 void
 _hb_wasm_shaper_face_data_destroy (hb_wasm_face_data_t *data)
 {
-  wasm_module_delete (data->mod);
-  hb_blob_destroy (data->blob);
+  wasm_runtime_unload (data->wasm_module);
+  hb_blob_destroy (data->wasm_blob);
   hb_free (data);
 }
 
@@ -156,35 +182,50 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
 {
   bool ret = true;
   const hb_wasm_face_data_t *face_data = font->face->data.wasm;
-  own wasm_instance_t *instance = nullptr;
-  const wasm_func_t *run_func = nullptr;
-  wasm_trap_t *trap = nullptr;
-  own wasm_extern_vec_t exports = {};
+  constexpr uint32_t stack_size = 8092, heap_size = 8092;
 
-  wasm_val_t as[1] = { WASM_I32_VAL(6) };
-  wasm_val_t rs[1] = { WASM_INIT_VAL };
-  wasm_val_vec_t args = WASM_ARRAY_VEC (as);
-  wasm_val_vec_t results = WASM_ARRAY_VEC (rs);
+  wasm_module_inst_t module_inst = nullptr;
+  wasm_exec_env_t exec_env = nullptr;
+  wasm_function_inst_t shape_func = nullptr;
 
-  instance = wasm_instance_new (get_wasm_store (), face_data->mod, nullptr/*imports*/, nullptr);
-  if (!instance)
-    goto fail;
-
-  wasm_instance_exports (instance, &exports);
-  if (exports.size == 0)
-    goto fail;
-
-  run_func = wasm_extern_as_func (exports.data[face_data->shape_func_idx]);
-  if (!run_func)
-    goto fail;
-
-  trap = wasm_func_call (run_func, &args, &results);
-  if (trap)
+  module_inst = wasm_runtime_instantiate(face_data->wasm_module,
+					 stack_size, heap_size,
+					 nullptr, 0);
+  if (!module_inst)
   {
+    DEBUG_MSG (WASM, face_data->wasm_module, "Instantiate wasm module failed.");
     goto fail;
   }
 
-  ret = bool (rs[0].of.i32);
+  exec_env = wasm_runtime_create_exec_env (module_inst, stack_size);
+  if (!exec_env) {
+    DEBUG_MSG (WASM, module_inst, "Create wasm execution environment failed.");
+    goto fail;
+  }
+
+  if (!(shape_func = wasm_runtime_lookup_function (module_inst, "shape", nullptr))) {
+    DEBUG_MSG (WASM, module_inst, "Shape function not found.");
+  }
+
+  wasm_val_t results[1];
+  wasm_val_t arguments[1];
+
+  results[0].kind = WASM_I32;
+  arguments[0].kind = WASM_I32;
+  arguments[0].of.i32 = 41;
+
+  if (!wasm_runtime_call_wasm_a (exec_env, shape_func, 1, results, 1, arguments))
+  {
+    DEBUG_MSG (WASM, module_inst, "Calling shape function failed: %s",
+	       wasm_runtime_get_exception(module_inst));
+    goto fail;
+  }
+
+  printf ("%i\n", results[0].of.i32);
+
+
+  if (!face_data)
+    goto fail;
 
   if (0)
   {
@@ -192,11 +233,10 @@ fail:
     ret = false;
   }
 
-  wasm_extern_vec_delete (&exports);
-  if (instance)
-    wasm_instance_delete(instance);
-  if (trap)
-    wasm_trap_delete (trap);
+  if (exec_env)
+    wasm_runtime_destroy_exec_env (exec_env);
+  if (module_inst)
+    wasm_runtime_deinstantiate (module_inst);
 
   return ret;
 }
