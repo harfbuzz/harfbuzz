@@ -64,7 +64,7 @@ HB_INTERNAL extern hb_user_data_key_t _hb_wasm_ref_type_key;
     /* This works because all our objects have the same hb_object_t layout. */ \
     if (unlikely (hb_##obj##_get_user_data (obj, &_hb_wasm_ref_type_key) != \
 		  (void *) hb_wasm_ref_type_##obj)) \
-      obj = nullptr; \
+      obj = hb_##obj##_get_empty (); \
   } HB_STMT_END
 #define HB_OBJ2REF(obj) \
   uint32_t obj##ref = nullref; \

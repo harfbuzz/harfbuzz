@@ -36,15 +36,12 @@ font_get_face (HB_WASM_EXEC_ENV
 	       font_t fontref)
 {
   HB_REF2OBJ (font);
-  if (unlikely (!font))
-    return nullref;
 
   hb_face_t *face = hb_font_get_face (font);
 
   HB_OBJ2REF (face);
   return faceref;
 }
-
 
 
 }}

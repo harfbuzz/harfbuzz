@@ -39,8 +39,6 @@ face_reference_table (HB_WASM_EXEC_ENV_COMPOUND
   HB_RETURN_TYPE (blob_t, blob);
 
   HB_REF2OBJ (face);
-  if (unlikely (!face))
-    return;
 
   blob.length = 1;
 }
