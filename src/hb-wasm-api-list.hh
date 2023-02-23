@@ -30,12 +30,18 @@
 
 #ifdef HB_DEBUG_WASM
 namespace hb { namespace wasm {
-static void
-debugprint (HB_WASM_EXEC_ENV
-	    char *the_string)
-{
-  DEBUG_MSG (WASM, exec_env, "%s", the_string);
-}
+
+static void debugprint (HB_WASM_EXEC_ENV char *str)
+{ DEBUG_MSG (WASM, exec_env, "%s", str); }
+static void debugprint1 (HB_WASM_EXEC_ENV char *str, int32_t i1)
+{ DEBUG_MSG (WASM, exec_env, "%s: %d", str, i1); }
+static void debugprint2 (HB_WASM_EXEC_ENV char *str, int32_t i1, int32_t i2)
+{ DEBUG_MSG (WASM, exec_env, "%s: %d, %d", str, i1, i2); }
+static void debugprint3 (HB_WASM_EXEC_ENV char *str, int32_t i1, int32_t i2, int32_t i3)
+{ DEBUG_MSG (WASM, exec_env, "%s: %d, %d, %d", str, i1, i2, i3); }
+static void debugprint4 (HB_WASM_EXEC_ENV char *str, int32_t i1, int32_t i2, int32_t i3, int32_t i4)
+{ DEBUG_MSG (WASM, exec_env, "%s: %d, %d, %d, %d", str, i1, i2, i3, i4); }
+
 }}
 #endif
 
@@ -54,6 +60,10 @@ static NativeSymbol _hb_wasm_native_symbols[] =
   /* debug */
 #ifdef HB_DEBUG_WASM
   NATIVE_SYMBOL ("($)",		debugprint),
+  NATIVE_SYMBOL ("($i)",	debugprint1),
+  NATIVE_SYMBOL ("($ii)",	debugprint2),
+  NATIVE_SYMBOL ("($iii)",	debugprint3),
+  NATIVE_SYMBOL ("($iiii)",	debugprint4),
 #endif
 
 };
