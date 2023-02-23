@@ -63,7 +63,7 @@ static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) 
 #define NATIVE_SYMBOL(signature, name) {#name, (void *) hb::wasm::name, signature, NULL}
   static NativeSymbol _hb_wasm_native_symbols[] =
   {
-    NATIVE_SYMBOL ("(r)r",	font_get_face),
+    NATIVE_SYMBOL ("(i)i",	font_get_face),
 #ifdef HB_DEBUG_WASM
     {
 	    "debugprint",
