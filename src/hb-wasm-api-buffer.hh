@@ -22,35 +22,37 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_WASM_API_FACE_HH
-#define HB_WASM_API_FACE_HH
+#ifndef HB_WASM_API_BUFFER_HH
+#define HB_WASM_API_BUFFER_HH
 
 #include "hb-wasm-api.hh"
+
+#include "hb-buffer.hh"
 
 namespace hb {
 namespace wasm {
 
 
 void
-face_reference_table (HB_WASM_EXEC_ENV_COMPOUND
-		      face_t faceref,
-		      tag_t table_tag)
+buffer_copy_contents (HB_WASM_EXEC_ENV_COMPOUND
+		      buffer_t bufferref)
 {
-  HB_RETURN_TYPE (blob_t, ret);
-  HB_REF2OBJ (face);
+  HB_RETURN_TYPE (buffer_contents_t, ret);
+  HB_REF2OBJ (buffer);
 
-  hb_blob_t *blob = hb_face_reference_table (face, table_tag);
+  if (buffer->have_output)
+    buffer->sync ();
 
-  unsigned length;
-  const char *data = hb_blob_get_data (blob, &length);
+  static_assert (sizeof (glyph_info_t) == sizeof (hb_glyph_info_t), "");
+  static_assert (sizeof (glyph_position_t) == sizeof (hb_glyph_position_t), "");
 
-  ret.data = wasm_runtime_module_dup_data (module_inst, data, length);
+  unsigned length = buffer->len;
   ret.length = length;
-
-  hb_blob_destroy (blob);
+  ret.info = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->info, length * sizeof (buffer->info[0]));
+  ret.pos = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->pos, length * sizeof (buffer->pos[0]));
 }
 
 
 }}
 
-#endif /* HB_WASM_API_FACE_HH */
+#endif /* HB_WASM_API_BUFFER_HH */

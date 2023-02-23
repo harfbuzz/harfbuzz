@@ -72,6 +72,9 @@ HB_WASM_BEGIN_DECLS
 #define ptr_t(type_t) type_t *
 #endif
 
+typedef uint32_t hb_codepoint_t;
+typedef int32_t hb_position_t;
+typedef uint32_t hb_mask_t;
 typedef uint32_t tag_t;
 #define TAG(c1,c2,c3,c4) ((tag_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
 
@@ -79,11 +82,49 @@ typedef ref_t face_t;
 typedef ref_t font_t;
 typedef ref_t buffer_t;
 
+
+/* blob */
+
 typedef struct
 {
-  ptr_t(char) data;
   uint32_t length;
+  ptr_t(char) data;
 } blob_t;
+
+/* TODO blob_free */
+
+
+/* buffer */
+
+typedef struct
+{
+  uint32_t codepoint;
+  uint32_t mask;
+  uint32_t cluster;
+  uint32_t var1;
+  uint32_t var2;
+} glyph_info_t;
+
+typedef struct
+{
+  hb_position_t x_advance;
+  hb_position_t y_advance;
+  hb_position_t x_offset;
+  hb_position_t y_offset;
+  uint32_t var;
+} glyph_position_t;
+
+typedef struct
+{
+  uint32_t length;
+  ptr_t(glyph_info_t) info;
+  ptr_t(glyph_position_t) pos;
+} buffer_contents_t;
+
+/* TODO buffer_contents_free */
+
+HB_WASM_API_COMPOUND (buffer_contents_t, buffer_copy_contents) (HB_WASM_EXEC_ENV_COMPOUND
+								buffer_t bufferref);
 
 
 /* face */

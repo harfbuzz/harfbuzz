@@ -27,6 +27,7 @@
 #define module_inst wasm_runtime_get_module_inst (exec_env)
 
 
+#include "hb-wasm-api-buffer.hh"
 #include "hb-wasm-api-face.hh"
 #include "hb-wasm-api-font.hh"
 

@@ -22,10 +22,10 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_WASM_FONT_HH
-#define HB_WASM_FONT_HH
+#ifndef HB_WASM_API_FONT_HH
+#define HB_WASM_API_FONT_HH
 
-#include <hb-wasm-api.hh>
+#include "hb-wasm-api.hh"
 
 namespace hb {
 namespace wasm {
@@ -46,4 +46,4 @@ font_get_face (HB_WASM_EXEC_ENV
 
 }}
 
-#endif /* HB_WASM_FONT_HH */
+#endif /* HB_WASM_API_FONT_HH */
