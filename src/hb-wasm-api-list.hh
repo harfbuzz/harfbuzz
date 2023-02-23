@@ -52,7 +52,7 @@ static NativeSymbol _hb_wasm_native_symbols[] =
 {
 
   /* face */
-  NATIVE_SYMBOL ("(ii)i",	face_reference_table),
+  NATIVE_SYMBOL ("(iii)",	face_reference_table),
 
   /* font */
   NATIVE_SYMBOL ("(i)i",	font_get_face),
