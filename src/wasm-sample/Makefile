@@ -12,7 +12,7 @@ all: test.wasm.ttf
 		-o $@
 
 %.wasm.ttf: %.ttf shape.so addTable.py
-	python addTable.py
+	python addTable.py $< $@ shape.so
 
 clean:
 	$(RM) test.wasm.ttf shape.so
