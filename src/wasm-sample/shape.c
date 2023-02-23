@@ -2,8 +2,6 @@
 
 #include <hb-wasm-api.h>
 
-void free (void*);
-
 void debugprint1 (char *s, int32_t);
 void debugprint2 (char *s, int32_t, int32_t);
 
