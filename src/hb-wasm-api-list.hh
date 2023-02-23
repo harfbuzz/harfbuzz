@@ -22,44 +22,40 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_WASM_API_HH
-#define HB_WASM_API_HH
+#ifndef HB_WASM_API_LIST_HH
+#define HB_WASM_API_LIST_HH
 
-#include "hb.hh"
+#include "hb-wasm-api.hh"
 
-#include <wasm_export.h>
+#include "hb-wasm-font.hh"
 
-#define HB_WASM_API(x) HB_INTERNAL x
-#define HB_WASM_BEGIN_DECLS namespace hb { namespace wasm {
-#define HB_WASM_END_DECLS }}
+#ifdef HB_DEBUG_WASM
+namespace hb { namespace wasm {
+static void
+debugprint (HB_WASM_EXEC_ENV
+	    char *the_string)
+{
+  DEBUG_MSG (WASM, exec_env, "%s", the_string);
+}
+}}
+#endif
 
-#define HB_WASM_EXEC_ENV wasm_exec_env_t exec_env,
+#define NATIVE_SYMBOL(signature, name) {#name, (void *) hb::wasm::name, signature, NULL}
+/* Note: the array must be static defined since runtime will keep it after registration
+ * https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/doc/export_native_api.md */
+static NativeSymbol _hb_wasm_native_symbols[] =
+{
 
-#include "hb-wasm-api.h"
+  /* font */
+  NATIVE_SYMBOL ("(i)i",	font_get_face),
 
-#undef HB_WASM_API
-#undef HB_WASM_BEGIN_DECLS
-#undef HB_WASM_END_DECLS
+  /* debug */
+#ifdef HB_DEBUG_WASM
+  NATIVE_SYMBOL ("($)",		debugprint),
+#endif
 
-
-#define nullref 0
-#define module_inst wasm_runtime_get_module_inst (exec_env)
-#define HB_REF2OBJ(obj) \
-  hb_##obj##_t *obj = nullptr; \
-  (void) wasm_externref_ref2obj (obj##ref, (void **) &obj)
-#define HB_OBJ2REF(obj) \
-  uint32_t obj##ref = nullref; \
-  (void) wasm_externref_obj2ref (module_inst, obj, &obj##ref)
-
-
-#include "hb-wasm-api-list.hh"
-
-
-#undef nullref
-#undef module_inst
-#undef HB_WASM_EXEC_ENV
-#undef HB_REF2OBJ
-#undef HB_OBJ2REF
+};
+#undef NATIVE_SYMBOL
 
 
-#endif /* HB_WASM_API_HH */
+#endif /* HB_WASM_API_LIST_HH */
