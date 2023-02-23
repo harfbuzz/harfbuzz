@@ -25,5 +25,7 @@ shape (font_t *font, buffer_t *buffer)
   for (unsigned i = 0; i < contents.length; i++)
     debugprint2 ("Codepoint", i, contents.info[i].codepoint);
 
+  buffer_contents_free (&contents);
+
   return 1;
 }

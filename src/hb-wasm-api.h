@@ -85,7 +85,7 @@ typedef struct
 } blob_t;
 
 HB_WASM_API (void, blob_free) (HB_WASM_EXEC_ENV
-			       ptr_t(blob_t) blob);
+			       ptr_t(blob_t));
 
 
 /* buffer */
@@ -115,7 +115,8 @@ typedef struct
   ptr_t(glyph_position_t) pos;
 } buffer_contents_t;
 
-/* TODO buffer_contents_free */
+HB_WASM_API (void, buffer_contents_free) (HB_WASM_EXEC_ENV
+					  ptr_t(buffer_contents_t));
 
 typedef struct buffer_t buffer_t;
 

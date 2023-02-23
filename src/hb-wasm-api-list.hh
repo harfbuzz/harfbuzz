@@ -55,6 +55,7 @@ static NativeSymbol _hb_wasm_native_symbols[] =
   NATIVE_SYMBOL ("(i)",		blob_free),
 
   /* buffer */
+  NATIVE_SYMBOL ("(i)",		buffer_contents_free),
   NATIVE_SYMBOL ("(ii)",	buffer_copy_contents),
 
   /* face */
