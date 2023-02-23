@@ -327,6 +327,7 @@ hb_graphite2_headers = files('hb-graphite2.h')
 hb_wasm_sources = files(
   'hb-wasm-api.cc',
   'hb-wasm-api.hh',
+  'hb-wasm-api-blob.hh',
   'hb-wasm-api-buffer.hh',
   'hb-wasm-api-face.hh',
   'hb-wasm-api-font.hh',

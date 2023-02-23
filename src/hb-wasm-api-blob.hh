@@ -22,17 +22,28 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
+#ifndef HB_WASM_API_BLOB_HH
+#define HB_WASM_API_BLOB_HH
+
 #include "hb-wasm-api.hh"
 
-#define module_inst wasm_runtime_get_module_inst (exec_env)
+namespace hb {
+namespace wasm {
 
 
-#include "hb-wasm-api-blob.hh"
-#include "hb-wasm-api-buffer.hh"
-#include "hb-wasm-api-face.hh"
-#include "hb-wasm-api-font.hh"
+void
+blob_free (HB_WASM_EXEC_ENV
+	   ptr_t(blob_t) blobptr)
+{
+  if (unlikely (!validate_app_addr (blobptr, sizeof (blob_t))))
+    return;
+
+  blob_t *blob = (blob_t *) addr_app_to_native (blobptr);
+
+  module_free (blob->data);
+}
 
 
-#undef module_inst
+}}
 
-hb_user_data_key_t _hb_wasm_ref_type_key = {};
+#endif /* HB_WASM_API_BLOB_HH */

@@ -91,7 +91,8 @@ typedef struct
   ptr_t(char) data;
 } blob_t;
 
-/* TODO blob_free */
+HB_WASM_API (void, blob_free) (HB_WASM_EXEC_ENV
+			       ptr_t(blob_t) blob);
 
 
 /* buffer */

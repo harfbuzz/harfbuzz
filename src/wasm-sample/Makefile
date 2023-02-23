@@ -16,3 +16,5 @@ all: test.wasm.ttf
 
 clean:
 	$(RM) test.wasm.ttf shape.so
+
+.PRECIOUS: shape.so

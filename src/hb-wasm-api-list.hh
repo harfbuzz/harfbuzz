@@ -51,6 +51,9 @@ static void debugprint4 (HB_WASM_EXEC_ENV char *str, int32_t i1, int32_t i2, int
 static NativeSymbol _hb_wasm_native_symbols[] =
 {
 
+  /* blob */
+  NATIVE_SYMBOL ("(i)",		blob_free),
+
   /* buffer */
   NATIVE_SYMBOL ("(ii)",	buffer_copy_contents),
 

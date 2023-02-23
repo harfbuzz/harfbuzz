@@ -16,7 +16,7 @@ shape (font_t font, buffer_t buffer)
 
   debugprint1 ("cmap length", blob.length);
 
-  free (blob.data);
+  blob_free (&blob);
 
   buffer_contents_t contents = buffer_copy_contents (buffer);
 
