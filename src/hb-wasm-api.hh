@@ -60,7 +60,7 @@ static void
 debugprint (HB_WASM_EXEC_ENV
 	    char *the_string)
 {
-  printf("%s", the_string);
+  DEBUG_MSG (WASM, exec_env, "%s", the_string);
 }
 }}
 #endif
