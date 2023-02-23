@@ -68,7 +68,6 @@ And now we can run it!
 
 ```
 % hb-shape test-wasm.ttf abc --shapers=wasm
-1
 [cent=0|sterling=1|fraction=2]
 ```
 
@@ -114,6 +113,5 @@ With this compiled into a WASM module, and installed into our font again, finall
 ```
 $ hb-shape test-wasm.ttf abc
 Hello from Rust!
-1
 [cent=0|sterling=1|fraction=2]
 ```

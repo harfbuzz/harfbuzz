@@ -213,13 +213,7 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
     goto fail;
   }
 
-  printf ("%i\n", results[0].of.i32);
-
-
-  if (!face_data)
-    goto fail;
-
-  if (0)
+  if (!results[0].of.i32)
   {
 fail:
     ret = false;
