@@ -22,42 +22,30 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_WASM_API_LIST_HH
-#define HB_WASM_API_LIST_HH
+#ifndef HB_WASM_FACE_HH
+#define HB_WASM_FACE_HH
 
-#include "hb-wasm-api.hh"
+#include <hb-wasm-api.hh>
+
+namespace hb {
+namespace wasm {
 
 
-#ifdef HB_DEBUG_WASM
-namespace hb { namespace wasm {
-static void
-debugprint (HB_WASM_EXEC_ENV
-	    char *the_string)
+void
+face_reference_table (HB_WASM_EXEC_ENV_COMPOUND
+		      face_t faceref,
+		      tag_t table_tag)
 {
-  DEBUG_MSG (WASM, exec_env, "%s", the_string);
+  HB_RETURN_TYPE (blob_t, blob);
+
+  HB_REF2OBJ (face);
+  if (unlikely (!face))
+    return;
+
+  blob.length = 1;
 }
+
+
 }}
-#endif
 
-#define NATIVE_SYMBOL(signature, name) {#name, (void *) hb::wasm::name, signature, NULL}
-/* Note: the array must be static defined since runtime will keep it after registration
- * https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/doc/export_native_api.md */
-static NativeSymbol _hb_wasm_native_symbols[] =
-{
-
-  /* face */
-  NATIVE_SYMBOL ("(iii)",	face_reference_table),
-
-  /* font */
-  NATIVE_SYMBOL ("(i)i",	font_get_face),
-
-  /* debug */
-#ifdef HB_DEBUG_WASM
-  NATIVE_SYMBOL ("($)",		debugprint),
-#endif
-
-};
-#undef NATIVE_SYMBOL
-
-
-#endif /* HB_WASM_API_LIST_HH */
+#endif /* HB_WASM_FACE_HH */

@@ -29,11 +29,14 @@
 
 #include <wasm_export.h>
 
-#define HB_WASM_API(x) HB_INTERNAL x
 #define HB_WASM_BEGIN_DECLS namespace hb { namespace wasm {
 #define HB_WASM_END_DECLS }}
 
+#define HB_WASM_API(ret_t, name) HB_INTERNAL ret_t name
+#define HB_WASM_API_COMPOUND(ret_t, name) HB_INTERNAL void name
+
 #define HB_WASM_EXEC_ENV wasm_exec_env_t exec_env,
+#define HB_WASM_EXEC_ENV_COMPOUND wasm_exec_env_t exec_env, ptr_t retptr,
 
 #include "hb-wasm-api.h"
 
@@ -63,7 +66,6 @@ HB_INTERNAL extern hb_user_data_key_t _hb_wasm_ref_type_key;
 		  (void *) hb_wasm_ref_type_##obj)) \
       obj = nullptr; \
   } HB_STMT_END
-
 #define HB_OBJ2REF(obj) \
   uint32_t obj##ref = nullref; \
   HB_STMT_START { \
@@ -72,6 +74,19 @@ HB_INTERNAL extern hb_user_data_key_t _hb_wasm_ref_type_key;
 			      nullptr, false); \
     (void) wasm_externref_obj2ref (module_inst, obj, &obj##ref); \
   } HB_STMT_END
+
+#define HB_RETURN_TYPE(type, name) \
+  type *_name_ptr = nullptr; \
+  { \
+    if (likely (wasm_runtime_validate_app_addr (module_inst, \
+						retptr, sizeof (type)))) \
+    { \
+      _name_ptr = (type *) wasm_runtime_addr_app_to_native (module_inst, retptr); \
+      if (unlikely (!_name_ptr)) \
+	return; \
+    } \
+  } \
+  type &name = *_name_ptr
 
 
 #endif /* HB_WASM_API_HH */

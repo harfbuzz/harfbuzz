@@ -27,12 +27,10 @@
 #define module_inst wasm_runtime_get_module_inst (exec_env)
 
 
+#include "hb-wasm-api-face.hh"
 #include "hb-wasm-api-font.hh"
 
 
 #undef module_inst
-#undef HB_WASM_EXEC_ENV
-#undef HB_REF2OBJ
-#undef HB_OBJ2REF
 
 hb_user_data_key_t _hb_wasm_ref_type_key = {};
