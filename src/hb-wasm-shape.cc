@@ -44,6 +44,12 @@ struct hb_wasm_face_data_t {
   wasm_module_t wasm_module;
 };
 
+extern "C" {
+static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) {
+	printf("%*s", len, the_string);
+}
+}
+
 static bool
 init_wasm ()
 {
@@ -61,21 +67,12 @@ init_wasm ()
   // https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/doc/export_native_api.md
 
   static NativeSymbol native_symbols[] = {
-#if 0
-      {
-	  "intToStr", // the name of WASM function name
-	  intToStr,   // the native function pointer
-	  "(i*~i)i",  // the function prototype signature, avoid to use i32
-	  NULL        // attachment is NULL
-      },
-      {
-	  "get_pow", // the name of WASM function name
-	  get_pow,   // the native function pointer
-	  "(ii)i",   // the function prototype signature, avoid to use i32
-	  NULL       // attachment is NULL
-      },
-      { "calculate_native", calculate_native, "(iii)i", NULL }
-#endif
+  	{
+  		"debugprint",
+  		(void *)debugprint,
+  		"($i)",
+  		NULL
+  	}
   };
 
   init_args.mem_alloc_type = Alloc_With_Allocator;
