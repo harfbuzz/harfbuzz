@@ -27,10 +27,13 @@
 
 #include "hb.h"
 
+#include <wasm_export.h>
 
 #define HB_WASM_API(x) HB_INTERNAL x
 #define HB_WASM_BEGIN_DECLS namespace hb { namespace wasm {
 #define HB_WASM_END_DECLS }}
+
+#define HB_WASM_EXEC_ENV wasm_exec_env_t exec_env,
 
 #include "hb-wasm-api.h"
 
@@ -40,6 +43,30 @@
 
 
 #include "hb-wasm-font.hh"
+
+static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) {
+	printf("%*s", len, the_string);
+}
+
+
+  /* Define an array of NativeSymbol for the APIs to be exported.
+   * Note: the array must be static defined since runtime will keep it after registration
+   * For the function signature specifications, goto the link:
+   * https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/doc/export_native_api.md
+   */
+
+#define NATIVE_SYMBOL(signature, name) {#name, (void *) hb::wasm::name, signature, NULL}
+  static NativeSymbol _hb_wasm_native_symbols[] =
+  {
+    NATIVE_SYMBOL ("(r)r",	font_get_face),
+    {
+	    "debugprint",
+	    (void *) debugprint,
+	    "($i)",
+	    NULL
+    }
+  };
+#undef NATIVE_SYMBOL
 
 
 #endif /* HB_WASM_API_HH */

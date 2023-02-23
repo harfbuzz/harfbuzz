@@ -32,8 +32,6 @@
 
 #include "hb-wasm-api.hh"
 
-#include <wasm_export.h>
-
 
 /*
  * shaper face data
@@ -46,10 +44,6 @@ struct hb_wasm_face_data_t {
   wasm_module_t wasm_module;
 };
 
-static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) {
-	printf("%*s", len, the_string);
-}
-
 static bool
 init_wasm ()
 {
@@ -60,21 +54,6 @@ init_wasm ()
   RuntimeInitArgs init_args;
   memset (&init_args, 0, sizeof (RuntimeInitArgs));
 
-  // Define an array of NativeSymbol for the APIs to be exported.
-  // Note: the array must be static defined since runtime
-  //            will keep it after registration
-  // For the function signature specifications, goto the link:
-  // https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/doc/export_native_api.md
-
-  static NativeSymbol native_symbols[] = {
-  	{
-  		"debugprint",
-  		(void *)debugprint,
-  		"($i)",
-  		NULL
-  	}
-  };
-
   init_args.mem_alloc_type = Alloc_With_Allocator;
   init_args.mem_alloc_option.allocator.malloc_func = (void *) hb_malloc;
   init_args.mem_alloc_option.allocator.realloc_func = (void *) hb_realloc;
@@ -83,9 +62,9 @@ init_wasm ()
   init_args.mem_alloc_type = Alloc_With_System_Allocator;
 
   // Native symbols need below registration phase
-  init_args.n_native_symbols = sizeof(native_symbols) / sizeof(NativeSymbol);
+  init_args.n_native_symbols = ARRAY_LENGTH (_hb_wasm_native_symbols);
   init_args.native_module_name = "env";
-  init_args.native_symbols = native_symbols;
+  init_args.native_symbols = _hb_wasm_native_symbols;
 
   if (!wasm_runtime_full_init (&init_args))
   {

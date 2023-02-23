@@ -48,6 +48,9 @@ HB_WASM_BEGIN_DECLS
 #ifndef HB_WASM_API
 #define HB_WASM_API(x) x
 #endif
+#ifndef HB_WASM_EXEC_ENV
+#define HB_WASM_EXEC_ENV
+#endif
 
 
 #ifndef bool_t
@@ -61,13 +64,16 @@ typedef uint32_t buffer_t;
 /* font */
 
 face_t
-HB_WASM_API (font_get_face) (font_t);
+HB_WASM_API (font_get_face) (HB_WASM_EXEC_ENV
+			     font_t);
 
 
 /* shape interface */
 
 bool_t
-HB_WASM_API (shape) (font_t, buffer_t);
+HB_WASM_API (shape) (HB_WASM_EXEC_ENV
+		     font_t,
+		     buffer_t);
 
 
 HB_WASM_END_DECLS

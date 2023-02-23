@@ -32,7 +32,8 @@ namespace wasm {
 
 
 face_t
-font_get_face (font_t)
+font_get_face (HB_WASM_EXEC_ENV
+	       font_t)
 {
   return 0;
 }
