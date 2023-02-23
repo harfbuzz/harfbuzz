@@ -34,7 +34,9 @@ test_maxp_and_loca (void)
   const char maxp_data[] = "\x00\x00\x50\x00" // version
 			   "\x00\x05" // numGlyphs
 			   ;
+#ifndef HB_NO_BEYOND_64K
   const char loca_data[18] = "";
+#endif
 
   face = hb_face_builder_create ();
   g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 0);
@@ -45,7 +47,7 @@ test_maxp_and_loca (void)
   g_assert_cmpuint (hb_face_get_glyph_count (face), ==, 5);
   hb_face_destroy (face);
 
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
   face = hb_face_builder_create ();
   HB_FACE_ADD_TABLE (face, "maxp", maxp_data);
   HB_FACE_ADD_TABLE (face, "loca", loca_data);

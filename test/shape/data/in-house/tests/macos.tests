@@ -1,3 +1,6 @@
+# https://github.com/harfbuzz/harfbuzz/issues/4020
+/System/Library/Fonts/LucidaGrande.ttc;--features=-liga[3:5];U+0066,U+0066,U+0020,U+0066,U+0066,U+0066,U+0020,U+0066,U+0066;[ff=0+1443|space=2+648|f=3+753|f=4+753|f=5+753|space=6+648|ff=7+1443]
+
 # https://github.com/harfbuzz/harfbuzz/issues/1373
 /System/Library/Fonts/Supplemental/BigCaslon.ttf;;U+0107;[cacute=0+432]
 /System/Library/Fonts/Supplemental/BigCaslon.ttf;--language=pl;U+0107;[cacute.polish=0+432]
@@ -11,11 +14,11 @@
 # https://github.com/harfbuzz/harfbuzz/issues/3535
 /System/Library/Fonts/LucidaGrande.ttc;;U+20DD,U+1F174,U+1F175;[circlecmb=0+0|.notdef=1+1536|.notdef=2+1536]
 
-# https;//github.com/harfbuzz/harfbuzz/issues/3008
+# https://github.com/harfbuzz/harfbuzz/issues/3008
 /System/Library/Fonts/ヒラギノ丸ゴ\ ProN\ W4.ttc;--features=palt;U+FF11;[gid781=0@-78,0+842]
 
-# https;//github.com/harfbuzz/harfbuzz/pull/2871
-/System/Library/Fonts/LucidaGrande.ttc;--font-funcs ot --show-flags;U+0041,U+0042,U+0043,U+0044;[A=0+1413|B=1+1178|C=2+1417|D=3+1534]
+# https://github.com/harfbuzz/harfbuzz/pull/2871
+/System/Library/Fonts/LucidaGrande.ttc;--font-funcs ot --show-flags;U+0041,U+0042,U+0043,U+0044;[A=0+1413|B=1+1178#2|C=2+1417#2|D=3+1534#2]
 
 # 10.12.6 https;//gist.github.com/ebraminio/1704341fa16b06979e605aafd88198cf
 /System/Library/Fonts/Helvetica.dfont@c7bec2785a4c402b7809b5e35337c3d24c18e281;--font-funcs ot;U+006D,U+0300;[m=0+1706|gravecmb=0@-284,10+0]
@@ -129,6 +132,8 @@
 /System/Library/Fonts/GeezaPro.ttc@ab26ea45dcaa5e1c5a958e42af10e10d330e7334;--font-funcs ot;U+0631,U+0628;[u0628.beh=1+1415|u0631.reh=0@-202,0+700]
 /System/Library/Fonts/GeezaPro.ttc@ab26ea45dcaa5e1c5a958e42af10e10d330e7334;--font-funcs ot;U+0628,U+064F;[u064f.damma=0@250,-250+250|u0628.beh=0@-250,0+1165]
 /System/Library/Fonts/GeezaPro.ttc@ab26ea45dcaa5e1c5a958e42af10e10d330e7334;--font-funcs ot;U+0644,U+064E,U+0645,U+064E,U+0651,U+0627;[u0627.final.alef=5+647|u064e.fatha=0@-80,160+-80|u064e_u0651.shaddaFatha=0@490,250+490|u0644_u0645.initial.lamMeem=0@-410,0+415]
+/System/Library/Fonts/GeezaPro.ttc@ab26ea45dcaa5e1c5a958e42af10e10d330e7334;--font-funcs ot;U+0644,U+0627;[u0644_u0627.isolated.lamAlef=0+1162]
+/System/Library/Fonts/GeezaPro.ttc@ab26ea45dcaa5e1c5a958e42af10e10d330e7334;--font-funcs ot --features rlig=0;U+0644,U+0627;[u0627.final.alef=1+647|u0644.initial.lam=0+515]
 # SFNS uses opsz variation axis which isn't invoked here, see https;//crbug.com/1005969#c37
 /System/Library/Fonts/SFNS.ttf@253b4b28662acc1de4a86350fd2b26d620ea213c;--font-funcs ot;U+0054,U+0065,U+0020,U+0041,U+0056,U+0020,U+0054,U+0072,U+0020,U+0056,U+0061,U+0020,U+0072,U+0054,U+0020,U+0065,U+0054,U+0020,U+0054,U+0064;[T=0+920|e=1+1049|space=2+420|A=3+1162|V=4+1292|space=5+420|T=6+960|r=7+631|space=8+420|V=9+1142|a=10+1028|space=11+420|r=12+461|T=13+1190|space=14+420|e=15+779|T=16+1190|space=17+420|T=18+920|d=19+1134]
 /System/Library/Fonts/SFNS.ttf@253b4b28662acc1de4a86350fd2b26d620ea213c;--font-ptem 9 --font-funcs ot;U+0054,U+0065,U+0020,U+0041,U+0056,U+0020,U+0054,U+0072,U+0020,U+0056,U+0061,U+0020,U+0072,U+0054,U+0020,U+0065,U+0054,U+0020,U+0054,U+0064;[T=0@19,0+958|e=1@19,0+1087|space=2@19,0+458|A=3@19,0+1200|V=4@19,0+1330|space=5@19,0+458|T=6@19,0+998|r=7@19,0+669|space=8@19,0+458|V=9@19,0+1180|a=10@19,0+1066|space=11@19,0+458|r=12@19,0+499|T=13@19,0+1228|space=14@19,0+458|e=15@19,0+817|T=16@19,0+1228|space=17@19,0+458|T=18@19,0+958|d=19@19,0+1172]

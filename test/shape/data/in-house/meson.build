@@ -4,7 +4,6 @@ in_house_tests = [
   'arabic-fallback-shaping.tests',
   'arabic-feature-order.tests',
   'arabic-like-joining.tests',
-  'arabic-mark-attach.tests',
   'arabic-mark-order.tests',
   'arabic-normalization.tests',
   'arabic-phags-pa.tests',

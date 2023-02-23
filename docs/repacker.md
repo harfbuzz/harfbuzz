@@ -23,11 +23,11 @@ Offset overflows can happen for a variety of reasons and require different strat
    for more flexibility in the ordering.
 *  In GSUB/GPOS overflows from Lookup subtables can be resolved by changing the Lookup to an extension
    lookup which uses a 32 bit offset instead of 16 bit offset.
-   
+
 In general there isn't a simple solution to produce an optimal topological ordering for a given graph.
 Finding an ordering which doesn't overflow is a NP hard problem. Existing solutions use heuristics
 which attempt a combination of the above strategies to attempt to find a non-overflowing configuration.
-   
+
 The harfbuzz subsetting library
 [includes a repacking algorithm](https://github.com/harfbuzz/harfbuzz/blob/main/src/hb-repacker.hh)
 which is used to resolve offset overflows that are present in the subsetted tables it produces. This
@@ -47,16 +47,22 @@ There's four key pieces to the harfbuzz approach:
 
 *  [Topological sorting algorithm](https://en.wikipedia.org/wiki/Topological_sorting): an algorithm
    which given a graph gives a linear sorting of the nodes such that all offsets will be positive.
-   
+
 *  Overflow check: given a graph and a topological sorting it checks if there will be any overflows
    in any of the offsets. If there are overflows it returns a list of (parent, child) tuples that
    will overflow. Since the graph has information on the size of each subtable it's straightforward
    to calculate the final position of each subtable and then check if any offsets to it will
    overflow.
-   
+
+*  Content Aware Preprocessing: if the overflow resolver is aware of the format of the underlying
+   tables (eg. GSUB, GPOS) then in some cases preprocessing can be done to increase the chance of
+   successfully packing the graph. For example for GSUB and GPOS we can preprocess the graph and
+   promote lookups to extension lookups (upgrades a 16 bit offset to 32 bits) or split large lookup
+   subtables into two or more pieces.
+
 *  Offset resolution strategies: given a particular occurrence of an overflow these strategies
    modify the graph to attempt to resolve the overflow.
-   
+
 # High Level Algorithm
 
 ```
@@ -64,6 +70,7 @@ def repack(graph):
   graph.topological_sort()
 
   if (graph.will_overflow())
+    preprocess(graph)
     assign_spaces(graph)
     graph.topological_sort()
 
@@ -85,7 +92,7 @@ The harfbuzz repacker uses two different algorithms for topological sorting:
 Kahn's algorithm is approximately twice as fast as the shortest distance sort so that is attempted
 first (only on the first topological sort). If it fails to eliminate overflows then shortest distance
 sort will be used for all subsequent topological sorting operations.
-   
+
 ## Shortest Distance Sort
 
 This algorithm orders the nodes based on total distance to each node. Nodes with a shorter distance
@@ -113,7 +120,7 @@ operations:
 *  The number of incoming edges to each node is cached. This is required by the Kahn's algorithm
    portion of both sorts. Where possible when the graph is modified we manually update the cached
    edge counts of affected nodes.
-   
+
 *  The distance to each node is cached. Where possible when the graph is modified we manually update
    the cached distances of any affected nodes.
 
@@ -185,6 +192,37 @@ The assign_spaces() step in the high level algorithm is responsible for identify
 subgraphs and assigning unique spaces to each one. More information on the space assignment can be
 found in the next section.
 
+# Graph Preprocessing
+
+For certain table types we can preprocess and modify the graph structure to reduce the occurences
+of overflows. Currently the repacker implements preprocessing only for GPOS and GSUB tables.
+
+## GSUB/GPOS Table Splitting
+
+The GSUB/GPOS preprocessor scans each lookup subtable and determines if the subtable's children are
+so large that no overflow resolution is possible (for example a single subtable that exceeds 65kb
+cannot be pointed over). When such cases are detected table splitting is invoked:
+
+* The subtable is first analyzed to determine the smallest number of split points that will allow
+  for successful offset overflow resolution.
+
+* Then the subtable in the graph representation is modified to actually perform the split at the
+  previously computed split points. At a high level splits are done by inserting new subtables
+  which contain a subset of the data of the original subtable and then shrinking the original subtable.
+
+Table splitting must be aware of the underlying format of each subtable type and thus needs custom
+code for each subtable type. Currently subtable splitting is only supported for GPOS subtable types.
+
+## GSUB/GPOS Extension Lookup Promotion
+
+In GSUB/GPOS tables lookups can be regular lookups which use 16 bit offsets to the children subtables
+or extension lookups which use 32 bit offsets to the children subtables. If the sub graph of all
+regular lookups is too large then it can be difficult to find an overflow free configuration. This
+can be remedied by promoting one or more regular lookups to extension lookups.
+
+During preprocessing the graph is scanned to determine the size of the subgraph of regular lookups.
+If the graph is found to be too big then the analysis finds a set of lookups to promote to reduce
+the subgraph size. Lastly the graph is modified to convert those lookups to extension lookups.
 
 # Offset Resolution Strategies
 
@@ -204,13 +242,13 @@ and then assign each such subgraph to a unique non-zero space. The algorithm is 
 
     a.  Pick a node `n` in set `S` then perform an undirected graph traversal and find the set `Q` of
         nodes that are reachable from `n`.
-       
+
     b.  During traversal if a node, `m`, has a edge to a node in space 0 then `m` must be duplicated
         to disconnect it from space 0.
-  
+
     d.  Remove all nodes in `Q` from `S` and assign all nodes in `Q` to `next_space`.
-       
-       
+
+
     c.  Increment `next_space` by one.
 
 
@@ -226,40 +264,31 @@ of the overflowing link:
 
 *  If the overflowing offset is pointing to a subtable with more than one incoming edge: duplicate
    the node so that the overflowing offset is pointing at it's own copy of that node.
-   
+
 *  Otherwise, attempt to move the child subtable closer to it's parent. This is accomplished by
    raising the priority of all children of the parent. Next time the topological sort is run the
    children will be ordered closer to the parent.
-   
+
 # Test Cases
 
 The harfbuzz repacker has tests defined using generic graphs: https://github.com/harfbuzz/harfbuzz/blob/main/src/test-repacker.cc
-   
+
 # Future Improvements
 
-The above resolution strategies are not sufficient to resolve all overflows. For example consider
-the case where a single subtable is 65k and the graph structure requires an offset to point over it.
+Currently for GPOS tables the repacker implementation is sufficient to handle both subsetting and the
+general case of font compilation repacking. However for GSUB the repacker is only sufficient for
+subsetting related overflows. To enable general case repacking of GSUB, support for splitting of
+GSUB subtables will need to be added. Other table types such as COLRv1 shouldn't require table
+splitting due to the wide use of 24 bit offsets throughout the table.
 
-The current harfbuzz implementation is suitable for the vast majority of subsetting related overflows.
-Subsetting related overflows are typically easy to solve since all subsets are derived from a font
-that was originally overflow free. A more general purpose version of the algorithm suitable for font
-creation purposes will likely need some additional offset resolution strategies:
+Beyond subtable splitting there are a couple of "nice to have" improvements, but these are not required
+to support the general case:
+
+*  Extension demotion: currently extension promotion is supported but in some cases if the non-extension
+   subgraph is underfilled then packed size can be reduced by demoting extension lookups back to regular
+   lookups.
 
 *  Currently only children nodes are moved to resolve offsets. However, in many cases moving a parent
    node closer to it's children will have less impact on the size of other offsets. Thus the algorithm
    should use a heuristic (based on parent and child subtable sizes) to decide if the children's
    priority should be increased or the parent's priority decreased.
-   
-*  Many subtables can be split into two smaller subtables without impacting the overall functionality.
-   This should be done when an overflow is the result of a very large table which can't be moved
-   to avoid offsets pointing over it.
-   
-*  Lookup subtables in GSUB/GPOS can be upgraded to extension lookups which uses a 32 bit offset.
-   Overflows from a Lookup subtable to it's child should be resolved by converting to an extension
-   lookup.
-   
-Once additional resolution strategies are added to the algorithm it's likely that we'll need to
-switch to using a [backtracking algorithm](https://en.wikipedia.org/wiki/Backtracking) to explore
-the various combinations of resolution strategies until a non-overflowing combination is found. This
-will require the ability to restore the graph to an earlier state. It's likely that using a stack
-of undoable resolution commands could be used to accomplish this.

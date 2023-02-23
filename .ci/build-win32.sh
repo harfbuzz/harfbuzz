@@ -2,15 +2,17 @@
 set -e
 
 meson 	--cross-file=.ci/win32-cross-file.txt \
-	--wrap-mode=forcefallback \
+	--wrap-mode=default \
 	-Dtests=disabled \
 	-Dcairo=enabled \
 	-Dcairo:fontconfig=disabled \
+	-Dcairo:freetype=disabled \
+	-Dcairo:dwrite=disabled \
+	-Dcairo:tests=disabled \
 	-Dglib=enabled \
-	-Dfreetype=enabled \
+	-Dfreetype=disabled \
 	-Dgdi=enabled \
 	-Ddirectwrite=enabled \
-	-Dcairo=enabled \
 	win32build \
 	$@
 

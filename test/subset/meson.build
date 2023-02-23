@@ -33,7 +33,6 @@ tests = [
   'layout.duplicate_features',
   'layout.unsorted_featurelist',
   'layout.drop_feature',
-  'layout.default_features',
   'cmap',
   'cmap14',
   'sbix',
@@ -41,15 +40,23 @@ tests = [
   'colr_glyphs',
   'math',
   'math_coverage_offset',
-# TODO: re-enable once colrv1 subsetting is stabilized.
-# 'colrv1.notoemoji',
+  # TODO: re-enable once colrv1 subsetting is stabilized.
+  # 'colrv1.notoemoji',
   'colrv1',
+  'colrv1_copy_varstore',
   'colr_with_components',
   'cbdt',
   'variable',
   'glyph_names',
   'post',
   '32bit_var_store',
+  'pin_all_at_default',
+  'instantiate_glyf',
+  'full_instance',
+  'instance_feature_variations',
+  'instance_no_double_free',
+  'mvar_full_instance',
+  'instance_comp_glyph_empty_child',
 ]
 
 repack_tests = [
@@ -60,7 +67,6 @@ repack_tests = [
   'advanced_prioritization',
   'space_splitting',
 ]
-
 
 run_test = find_program('run-tests.py')
 

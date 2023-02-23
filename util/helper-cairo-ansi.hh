@@ -41,7 +41,9 @@
 # define CELL_H (2 * CELL_W)
 
 static void
-chafa_print_image_rgb24 (const void *data, int width, int height, int stride, int level)
+chafa_print_image_rgb24 (const void *data, int width, int height, int stride, int level,
+			 cairo_write_func_t	write_func,
+			 void			*closure)
 {
   ChafaTermInfo *term_info;
   ChafaSymbolMap *symbol_map;
@@ -57,6 +59,8 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride, in
   /* Adapt to terminal; use sixels if available, and fall back to symbols
    * with as many colors as are supported */
 
+  chafa_set_n_threads (1); // https://github.com/hpjansson/chafa/issues/125#issuecomment-1397475217
+
   environ = g_get_environ ();
   term_info = chafa_term_db_detect (chafa_term_db_get_default (),
                                     environ);
@@ -68,8 +72,8 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride, in
     pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
     mode = CHAFA_CANVAS_MODE_TRUECOLOR;
   }
-//  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_DIRECT))
-//    mode = CHAFA_CANVAS_MODE_TRUECOLOR;
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_DIRECT))
+    mode = CHAFA_CANVAS_MODE_TRUECOLOR;
   else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_256))
     mode = CHAFA_CANVAS_MODE_INDEXED_240;
   else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_16))
@@ -114,10 +118,10 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride, in
 
   /* Print the string */
 
-  fwrite (gs->str, sizeof (char), gs->len, stdout);
+  write_func (closure, (const unsigned char *) gs->str, gs->len);
 
   if (pixel_mode != CHAFA_PIXEL_MODE_SIXELS)
-    fputc ('\n', stdout);
+    write_func (closure, (const unsigned char *) "\n", 1);
 
   /* Free resources */
 
@@ -209,10 +213,12 @@ helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
     if (env)
       chafa_level = atoi (env);
     if (chafa_level)
-      chafa_print_image_rgb24 (data, width, height, stride, chafa_level);
+      chafa_print_image_rgb24 (data, width, height, stride, chafa_level,
+			       write_func, closure);
     else
 #endif
-      ansi_print_image_rgb24 (data, width, height, stride / 4);
+      ansi_print_image_rgb24 (data, width, height, stride / 4,
+			      write_func, closure);
   }
 
   cairo_surface_destroy (surface);

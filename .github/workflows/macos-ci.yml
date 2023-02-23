@@ -14,17 +14,47 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: install dependencies
-      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config freetype glib glib-utils cairo icu4c graphite2 gobject-introspection gtk-doc ninja
-    - run: pip3 install fonttools meson==0.56.0 gcovr==5.0
-    - name: run
-      run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson build -Db_coverage=true -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled -Dchafa=disabled -Doptimization=2
-    - name: ci
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup Ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ github.job }}-${{ runner.os }}-${{ runner.arch }}
+    - name: Install Dependencies
+      run: |
+        export HOMEBREW_NO_AUTO_UPDATE=1
+        export HOMEBREW_NO_INSTALL_CLEANUP=1
+        brew install \
+          cairo \
+          freetype \
+          glib \
+          gobject-introspection \
+          graphite2 \
+          icu4c \
+          meson \
+          ninja \
+          pkg-config
+    - name: Install Python Dependencies
+      run: pip3 install fonttools gcovr==5.0
+    - name: Setup Meson
+      run: |
+        export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig"
+        ccache --version
+        meson setup build \
+          -Dauto_features=enabled \
+          -Ddocs=disabled \
+          -Dchafa=disabled \
+          -Dcoretext=enabled \
+          -Dgraphite=enabled \
+          -Doptimization=2 \
+          -Db_coverage=true \
+    - name: Build
+      run: meson compile -Cbuild
+    - name: Test
       run: meson test --print-errorlogs -Cbuild
-
-    - name: cov
+    - name: Generate Coverage
       run: ninja -Cbuild coverage-xml
-    - uses: codecov/codecov-action@v3
+    - name: Upload Coverage
+      uses: codecov/codecov-action@v3
       with:
         file: build/meson-logs/coverage.xml

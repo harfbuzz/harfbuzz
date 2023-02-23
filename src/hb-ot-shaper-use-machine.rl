@@ -167,14 +167,14 @@ hieroglyph_cluster = SB+ | SB* G SE* (J SE* (G SE*)?)*;
 other = any;
 
 main := |*
-	virama_terminated_cluster		=> { found_syllable (use_virama_terminated_cluster); };
-	sakot_terminated_cluster		=> { found_syllable (use_sakot_terminated_cluster); };
-	standard_cluster			=> { found_syllable (use_standard_cluster); };
-	number_joiner_terminated_cluster	=> { found_syllable (use_number_joiner_terminated_cluster); };
-	numeral_cluster				=> { found_syllable (use_numeral_cluster); };
-	symbol_cluster				=> { found_syllable (use_symbol_cluster); };
-	hieroglyph_cluster			=> { found_syllable (use_hieroglyph_cluster); };
-	broken_cluster				=> { found_syllable (use_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
+	virama_terminated_cluster ZWNJ?		=> { found_syllable (use_virama_terminated_cluster); };
+	sakot_terminated_cluster ZWNJ?		=> { found_syllable (use_sakot_terminated_cluster); };
+	standard_cluster ZWNJ?			=> { found_syllable (use_standard_cluster); };
+	number_joiner_terminated_cluster ZWNJ?	=> { found_syllable (use_number_joiner_terminated_cluster); };
+	numeral_cluster ZWNJ?			=> { found_syllable (use_numeral_cluster); };
+	symbol_cluster ZWNJ?			=> { found_syllable (use_symbol_cluster); };
+	hieroglyph_cluster ZWNJ?		=> { found_syllable (use_hieroglyph_cluster); };
+	broken_cluster ZWNJ?			=> { found_syllable (use_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
 	other					=> { found_syllable (use_non_cluster); };
 *|;
 
@@ -183,11 +183,11 @@ main := |*
 
 #define found_syllable(syllable_type) \
   HB_STMT_START { \
-    if (0) fprintf (stderr, "syllable %d..%d %s\n", (*ts).second.first, (*te).second.first, #syllable_type); \
+    if (0) fprintf (stderr, "syllable %u..%u %s\n", (*ts).second.first, (*te).second.first, #syllable_type); \
     for (unsigned i = (*ts).second.first; i < (*te).second.first; ++i) \
       info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     syllable_serial++; \
-    if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
+    if (syllable_serial == 16) syllable_serial = 1; \
   } HB_STMT_END
 
 

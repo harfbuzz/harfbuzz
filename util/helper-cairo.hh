@@ -29,11 +29,13 @@
 
 #include "view-options.hh"
 #include "output-options.hh"
-#include "helper-cairo-ft.hh"
-#include "helper-cairo-user.hh"
+#ifdef HAVE_CAIRO_FT
+#  include "helper-cairo-ft.hh"
+#endif
 
 #include <cairo.h>
 #include <hb.h>
+#include <hb-cairo.h>
 
 #include "helper-cairo-ansi.hh"
 #ifdef CAIRO_HAS_SVG_SURFACE
@@ -71,21 +73,38 @@ helper_cairo_use_hb_draw (const font_options_t *font_opts)
 {
   const char *env = getenv ("HB_DRAW");
   if (!env)
+    /* Older cairo had a bug in rendering COLRv0 fonts in
+     * right-to-left direction as well as clipping issue
+     * with user-fonts.
+     *
+     * https://github.com/harfbuzz/harfbuzz/issues/4051 */
     return cairo_version () >= CAIRO_VERSION_ENCODE (1, 17, 5);
+
   return atoi (env);
 }
 
 static inline cairo_scaled_font_t *
-helper_cairo_create_scaled_font (const font_options_t *font_opts)
+helper_cairo_create_scaled_font (const font_options_t *font_opts,
+				 const view_options_t *view_opts)
 {
-  bool use_hb_draw = helper_cairo_use_hb_draw (font_opts);
-  hb_font_t *font = hb_font_reference (font_opts->font);
+  hb_font_t *font = font_opts->font;
+  bool use_hb_draw = true;
 
-  cairo_font_face_t *cairo_face;
+#ifdef HAVE_CAIRO_FT
+  use_hb_draw = helper_cairo_use_hb_draw (font_opts);
+#endif
+
+
+  cairo_font_face_t *cairo_face = nullptr;
   if (use_hb_draw)
-    cairo_face = helper_cairo_create_user_font_face (font_opts);
+  {
+    cairo_face = hb_cairo_font_face_create_for_font (font);
+    hb_cairo_font_face_set_scale_factor (cairo_face, 1 << font_opts->subpixel_bits);
+  }
+#ifdef HAVE_CAIRO_FT
   else
     cairo_face = helper_cairo_create_ft_font_face (font_opts);
+#endif
 
   cairo_matrix_t ctm, font_matrix;
   cairo_font_options_t *font_options;
@@ -94,12 +113,41 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   cairo_matrix_init_scale (&font_matrix,
 			   font_opts->font_size_x,
 			   font_opts->font_size_y);
-  if (use_hb_draw)
+  if (!use_hb_draw)
     font_matrix.xy = -font_opts->slant * font_opts->font_size_x;
 
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
+#ifdef CAIRO_COLOR_PALETTE_DEFAULT
+  cairo_font_options_set_color_palette (font_options, view_opts->palette);
+#endif
+#ifdef HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR
+  if (view_opts->custom_palette)
+  {
+    char **entries = g_strsplit (view_opts->custom_palette, ",", -1);
+    unsigned idx = 0;
+    for (unsigned i = 0; entries[i]; i++)
+    {
+      const char *p = strchr (entries[i], '=');
+      if (!p)
+        p = entries[i];
+      else
+      {
+	sscanf (entries[i], "%u", &idx);
+        p++;
+      }
+
+      unsigned fr, fg, fb, fa;
+      fr = fg = fb = fa = 0;
+      if (parse_color (p, fr, fg,fb, fa))
+	cairo_font_options_set_custom_palette_color (font_options, idx, fr / 255., fg / 255., fb / 255., fa / 255.);
+
+      idx++;
+    }
+    g_strfreev (entries);
+  }
+#endif
 
   cairo_scaled_font_t *scaled_font = cairo_scaled_font_create (cairo_face,
 							       &font_matrix,
@@ -109,23 +157,24 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   cairo_font_options_destroy (font_options);
   cairo_font_face_destroy (cairo_face);
 
-  static cairo_user_data_key_t key;
-  if (cairo_scaled_font_set_user_data (scaled_font,
-				       &key,
-				       (void *) font,
-				       (cairo_destroy_func_t) hb_font_destroy))
-    hb_font_destroy (font);
-
   return scaled_font;
 }
 
 static inline bool
 helper_cairo_scaled_font_has_color (cairo_scaled_font_t *scaled_font)
 {
-  if (helper_cairo_user_font_face_has_data (cairo_scaled_font_get_font_face (scaled_font)))
-    return helper_cairo_user_scaled_font_has_color (scaled_font);
-  else
+  hb_font_t *font = hb_cairo_font_face_get_font (cairo_scaled_font_get_font_face (scaled_font));
+
+#ifdef HAVE_CAIRO_FT
+  if (!font)
     return helper_cairo_ft_scaled_font_has_color (scaled_font);
+#endif
+
+  hb_face_t *face = hb_font_get_face (font);
+
+  return hb_ot_color_has_png (face) ||
+         hb_ot_color_has_layers (face) ||
+         hb_ot_color_has_paint (face);
 }
 
 
@@ -410,6 +459,12 @@ helper_cairo_create_context (double w, double h,
 	extension = "png";
 	protocol = image_protocol_t::ITERM2;
       }
+      else if ((name = getenv ("TERM_PROGRAM")) != nullptr &&
+	  0 == g_ascii_strcasecmp (name, "WezTerm"))
+      {
+	extension = "png";
+	protocol = image_protocol_t::ITERM2;
+      }
       else if ((name = getenv ("TERM")) != nullptr &&
 	       0 == g_ascii_strcasecmp (name, "xterm-kitty"))
       {
@@ -460,16 +515,16 @@ helper_cairo_create_context (double w, double h,
 
   unsigned int fr, fg, fb, fa, br, bg, bb, ba;
   const char *color;
-  br = bg = bb = 0; ba = 255;
+  br = bg = bb = ba = 255;
   color = view_opts->back ? view_opts->back : DEFAULT_BACK;
-  sscanf (color + (*color=='#'), "%2x%2x%2x%2x", &br, &bg, &bb, &ba);
+  parse_color (color, br, bg, bb, ba);
   fr = fg = fb = 0; fa = 255;
   color = view_opts->fore ? view_opts->fore : DEFAULT_FORE;
-  sscanf (color + (*color=='#'), "%2x%2x%2x%2x", &fr, &fg, &fb, &fa);
+  parse_color (color, fr, fg, fb, fa);
 
   if (content == CAIRO_CONTENT_ALPHA)
   {
-    if (view_opts->annotate ||
+    if (view_opts->show_extents ||
 	br != bg || bg != bb ||
 	fr != fg || fg != fb)
       content = CAIRO_CONTENT_COLOR;
@@ -534,117 +589,46 @@ helper_cairo_destroy_context (cairo_t *cr)
 
 
 struct helper_cairo_line_t {
-  cairo_glyph_t *glyphs;
-  unsigned int num_glyphs;
-  char *utf8;
-  unsigned int utf8_len;
-  cairo_text_cluster_t *clusters;
-  unsigned int num_clusters;
-  cairo_text_cluster_flags_t cluster_flags;
+  cairo_glyph_t *glyphs = nullptr;
+  unsigned int num_glyphs = 0;
+  char *utf8 = nullptr;
+  unsigned int utf8_len = 0;
+  cairo_text_cluster_t *clusters = nullptr;
+  unsigned int num_clusters = 0;
+  cairo_text_cluster_flags_t cluster_flags = (cairo_text_cluster_flags_t) 0;
 
-  void finish () {
+  helper_cairo_line_t (const char          *utf8_,
+		       unsigned             utf8_len_,
+		       hb_buffer_t         *buffer,
+		       hb_bool_t            utf8_clusters,
+		       unsigned             subpixel_bits) :
+    utf8 (utf8_ ? g_strndup (utf8_, utf8_len_) : nullptr),
+    utf8_len (utf8_len_)
+  {
+    hb_cairo_glyphs_from_buffer (buffer,
+				 utf8_clusters,
+				 1 << subpixel_bits, 1 << subpixel_bits,
+				 0., 0.,
+				 utf8, utf8_len,
+				 &glyphs, &num_glyphs,
+				 &clusters, &num_clusters,
+				 &cluster_flags);
+  }
+
+  void finish ()
+  {
     if (glyphs)
       cairo_glyph_free (glyphs);
     if (clusters)
       cairo_text_cluster_free (clusters);
-    if (utf8)
-      g_free (utf8);
+    g_free (utf8);
   }
 
-  void get_advance (double *x_advance, double *y_advance) {
+  void get_advance (double *x_advance, double *y_advance)
+  {
     *x_advance = glyphs[num_glyphs].x;
     *y_advance = glyphs[num_glyphs].y;
   }
 };
-
-static inline void
-helper_cairo_line_from_buffer (helper_cairo_line_t *l,
-			       hb_buffer_t         *buffer,
-			       const char          *text,
-			       unsigned int         text_len,
-			       int                  scale_bits,
-			       hb_bool_t            utf8_clusters)
-{
-  memset (l, 0, sizeof (*l));
-
-  l->num_glyphs = hb_buffer_get_length (buffer);
-  hb_glyph_info_t *hb_glyph = hb_buffer_get_glyph_infos (buffer, nullptr);
-  hb_glyph_position_t *hb_position = hb_buffer_get_glyph_positions (buffer, nullptr);
-  l->glyphs = cairo_glyph_allocate (l->num_glyphs + 1);
-
-  if (text) {
-    l->utf8 = g_strndup (text, text_len);
-    l->utf8_len = text_len;
-    l->num_clusters = l->num_glyphs ? 1 : 0;
-    for (unsigned int i = 1; i < l->num_glyphs; i++)
-      if (hb_glyph[i].cluster != hb_glyph[i-1].cluster)
-	l->num_clusters++;
-    l->clusters = cairo_text_cluster_allocate (l->num_clusters);
-  }
-
-  if ((l->num_glyphs && !l->glyphs) ||
-      (l->utf8_len && !l->utf8) ||
-      (l->num_clusters && !l->clusters))
-  {
-    l->finish ();
-    return;
-  }
-
-  hb_position_t x = 0, y = 0;
-  int i;
-  for (i = 0; i < (int) l->num_glyphs; i++)
-  {
-    l->glyphs[i].index = hb_glyph[i].codepoint;
-    l->glyphs[i].x = scalbn ((double)  hb_position->x_offset + x, scale_bits);
-    l->glyphs[i].y = scalbn ((double) -hb_position->y_offset + y, scale_bits);
-    x +=  hb_position->x_advance;
-    y += -hb_position->y_advance;
-
-    hb_position++;
-  }
-  l->glyphs[i].index = -1;
-  l->glyphs[i].x = scalbn ((double) x, scale_bits);
-  l->glyphs[i].y = scalbn ((double) y, scale_bits);
-
-  if (l->num_clusters) {
-    memset ((void *) l->clusters, 0, l->num_clusters * sizeof (l->clusters[0]));
-    hb_bool_t backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
-    l->cluster_flags = backward ? CAIRO_TEXT_CLUSTER_FLAG_BACKWARD : (cairo_text_cluster_flags_t) 0;
-    unsigned int cluster = 0;
-    const char *start = l->utf8, *end;
-    l->clusters[cluster].num_glyphs++;
-    if (backward) {
-      for (i = l->num_glyphs - 2; i >= 0; i--) {
-	if (hb_glyph[i].cluster != hb_glyph[i+1].cluster) {
-	  g_assert (hb_glyph[i].cluster > hb_glyph[i+1].cluster);
-	  if (utf8_clusters)
-	    end = start + hb_glyph[i].cluster - hb_glyph[i+1].cluster;
-	  else
-	    end = g_utf8_offset_to_pointer (start, hb_glyph[i].cluster - hb_glyph[i+1].cluster);
-	  l->clusters[cluster].num_bytes = end - start;
-	  start = end;
-	  cluster++;
-	}
-	l->clusters[cluster].num_glyphs++;
-      }
-      l->clusters[cluster].num_bytes = l->utf8 + text_len - start;
-    } else {
-      for (i = 1; i < (int) l->num_glyphs; i++) {
-	if (hb_glyph[i].cluster != hb_glyph[i-1].cluster) {
-	  g_assert (hb_glyph[i].cluster > hb_glyph[i-1].cluster);
-	  if (utf8_clusters)
-	    end = start + hb_glyph[i].cluster - hb_glyph[i-1].cluster;
-	  else
-	    end = g_utf8_offset_to_pointer (start, hb_glyph[i].cluster - hb_glyph[i-1].cluster);
-	  l->clusters[cluster].num_bytes = end - start;
-	  start = end;
-	  cluster++;
-	}
-	l->clusters[cluster].num_glyphs++;
-      }
-      l->clusters[cluster].num_bytes = l->utf8 + text_len - start;
-    }
-  }
-}
 
 #endif

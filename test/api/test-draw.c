@@ -182,7 +182,7 @@ static hb_draw_funcs_t *funcs2; /* this one translates quadratic calls to cubic 
 static void
 test_hb_draw_empty (void)
 {
-  hb_font_get_glyph_shape (hb_font_get_empty (), 3, funcs, NULL);
+  hb_font_draw_glyph (hb_font_get_empty (), 3, funcs, NULL);
 }
 
 static void
@@ -200,10 +200,10 @@ test_hb_draw_glyf (void)
   };
 
   draw_data.consumed = 0;
-  hb_font_get_glyph_shape (font, 4, funcs, &draw_data);
+  hb_font_draw_glyph (font, 4, funcs, &draw_data);
 
   draw_data.consumed = 0;
-  hb_font_get_glyph_shape (font, 3, funcs, &draw_data);
+  hb_font_draw_glyph (font, 3, funcs, &draw_data);
   char expected[] = "M275,442Q232,442 198,420Q164,397 145,353Q126,309 126,245"
 		    "Q126,182 147,139Q167,95 204,73Q240,50 287,50Q330,50 367,70"
 		    "Q404,90 427,128L451,116Q431,54 384,21Q336,-13 266,-13"
@@ -215,7 +215,7 @@ test_hb_draw_glyf (void)
 
   /* Test translating quadratic calls to cubic by a _draw_funcs_t that doesn't set the callback */
   draw_data.consumed = 0;
-  hb_font_get_glyph_shape (font, 3, funcs2, &draw_data);
+  hb_font_draw_glyph (font, 3, funcs2, &draw_data);
   char expected2[] = "M275,442C246,442 221,435 198,420C175,405 158,382 145,353"
 		     "C132,324 126,288 126,245C126,203 133,168 147,139C160,110 179,88 204,73"
 		     "C228,58 256,50 287,50C316,50 342,57 367,70C392,83 412,103 427,128"
@@ -233,7 +233,7 @@ test_hb_draw_glyf (void)
   hb_font_set_variations (font, &var, 1);
 
   draw_data.consumed = 0;
-  hb_font_get_glyph_shape (font, 3, funcs, &draw_data);
+  hb_font_draw_glyph (font, 3, funcs, &draw_data);
   char expected3[] = "M323,448Q297,448 271,430Q244,412 226,371Q209,330 209,261"
 		     "Q209,204 225,166Q242,127 272,107Q303,86 344,86Q378,86 404,101"
 		     "Q430,115 451,137L488,103Q458,42 404,13Q350,-16 279,-16"
@@ -259,7 +259,7 @@ test_hb_draw_cff1 (void)
     .size = sizeof (str),
     .consumed = 0
   };
-  hb_font_get_glyph_shape (font, 3, funcs, &draw_data);
+  hb_font_draw_glyph (font, 3, funcs, &draw_data);
   char expected[] = "M203,367C227,440 248,512 268,588L272,588C293,512 314,440 338,367L369,267L172,267L203,367Z"
 		    "M3,0L88,0L151,200L390,200L452,0L541,0L319,656L225,656L3,0Z"
 		    "M300,653L342,694L201,861L143,806L300,653Z";
@@ -282,7 +282,7 @@ test_hb_draw_cff1_rline (void)
     .size = sizeof (str),
     .consumed = 0
   };
-  hb_font_get_glyph_shape (font, 1, funcs, &draw_data);
+  hb_font_draw_glyph (font, 1, funcs, &draw_data);
   char expected[] = "M775,400C705,400 650,343 650,274L650,250L391,250L713,572L392,893"
 		    "L287,1000C311,942 296,869 250,823C250,823 286,858 321,823L571,572"
 		    "L150,150L750,150L750,276C750,289 761,300 775,300C789,300 800,289 800,276"
@@ -307,7 +307,7 @@ test_hb_draw_cff2 (void)
   };
 
   draw_data.consumed = 0;
-  hb_font_get_glyph_shape (font, 3, funcs, &draw_data);
+  hb_font_draw_glyph (font, 3, funcs, &draw_data);
   char expected[] = "M275,442C303,442 337,435 371,417L325,454L350,366"
 		    "C357,341 370,321 403,321C428,321 443,333 448,358"
 		    "C435,432 361,487 272,487C153,487 43,393 43,236"
@@ -321,7 +321,7 @@ test_hb_draw_cff2 (void)
   hb_font_set_variations (font, &var, 1);
 
   draw_data.consumed = 0;
-  hb_font_get_glyph_shape (font, 3, funcs, &draw_data);
+  hb_font_draw_glyph (font, 3, funcs, &draw_data);
   char expected2[] = "M323,448C356,448 380,441 411,427L333,469L339,401"
 		     "C343,322 379,297 420,297C458,297 480,314 492,352"
 		     "C486,433 412,501 303,501C148,501 25,406 25,241"
@@ -347,19 +347,19 @@ test_hb_draw_ttf_parser_tests (void)
     hb_face_destroy (face);
     {
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, 0, funcs, &draw_data);
+      hb_font_draw_glyph (font, 0, funcs, &draw_data);
       char expected[] = "M50,0L50,750L450,750L450,0L50,0Z";
       g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
     }
     {
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, 1, funcs, &draw_data);
+      hb_font_draw_glyph (font, 1, funcs, &draw_data);
       char expected[] = "M56,416L56,487L514,487L514,416L56,416ZM56,217L56,288L514,288L514,217L56,217Z";
       g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
     }
     {
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, 4, funcs, &draw_data);
+      hb_font_draw_glyph (font, 4, funcs, &draw_data);
       char expected[] = "M332,468L197,468L197,0L109,0L109,468L15,468L15,509L109,539"
 			"L109,570Q109,674 155,720Q201,765 283,765Q315,765 342,760"
 			"Q368,754 387,747L364,678Q348,683 327,688Q306,693 284,693"
@@ -371,13 +371,13 @@ test_hb_draw_ttf_parser_tests (void)
     }
     {
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, 5, funcs, &draw_data);
+      hb_font_draw_glyph (font, 5, funcs, &draw_data);
       char expected[] = "M15,0Q15,0 15,0Z";
       g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
     }
     {
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, 6, funcs, &draw_data);
+      hb_font_draw_glyph (font, 6, funcs, &draw_data);
       char expected[] = "M346,468L211,468L211,0L123,0L123,468L29,468L29,509L123,539"
 			"L123,570Q123,674 169,720Q215,765 297,765Q329,765 356,760"
 			"Q382,754 401,747L378,678Q362,683 341,688Q320,693 298,693"
@@ -394,7 +394,7 @@ test_hb_draw_ttf_parser_tests (void)
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 1, funcs, &draw_data);
+    hb_font_draw_glyph (font, 1, funcs, &draw_data);
     char expected[] = "M0,0C100,0 150,-20 250,-20C350,-20 400,0 500,0C500,100 520,150 520,250"
 		      "C520,350 500,400 500,500C400,500 350,520 250,520C150,520 100,500 0,500"
 		      "C0,400 -20,350 -20,250C-20,150 0,100 0,0ZM50,50C50,130 34,170 34,250"
@@ -411,7 +411,7 @@ test_hb_draw_ttf_parser_tests (void)
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 1, funcs, &draw_data);
+    hb_font_draw_glyph (font, 1, funcs, &draw_data);
     char expected[] = "M82,0L164,0L164,486L82,486L82,0Z"
 		      "M124,586C156,586 181,608 181,639C181,671 156,692 124,692"
 		      "C92,692 67,671 67,639C67,608 92,586 124,586Z";
@@ -438,7 +438,7 @@ test_hb_draw_font_kit_glyphs_tests (void)
 
     /* should get a path for the glyph */
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 37, funcs, &draw_data);
+    hb_font_draw_glyph (font, 37, funcs, &draw_data);
     char expected[] = "M201,1462L614,1462Q905,1462 1035,1375Q1165,1288 1165,1100"
 		      "Q1165,970 1093,886Q1020,801 881,776L881,766Q1214,709 1214,416"
 		      "Q1214,220 1082,110Q949,0 711,0L201,0L201,1462ZM371,836L651,836"
@@ -449,7 +449,7 @@ test_hb_draw_font_kit_glyphs_tests (void)
 
     /* should get a path for the glyph */
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 171, funcs, &draw_data);
+    hb_font_draw_glyph (font, 171, funcs, &draw_data);
     char expected2[] = "M639,-20Q396,-20 256,128Q115,276 115,539Q115,804 246,960Q376,1116 596,1116"
 		       "Q802,1116 922,981Q1042,845 1042,623L1042,518L287,518Q292,325 385,225"
 		       "Q477,125 645,125Q822,125 995,199L995,51Q907,13 829,-3Q750,-20 639,-20Z"
@@ -475,7 +475,7 @@ test_hb_draw_font_kit_glyphs_tests (void)
 
     /* should resolve composite glyphs recursively */
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, codepoint, funcs, &draw_data);
+    hb_font_draw_glyph (font, codepoint, funcs, &draw_data);
     char expected[] = "M581,274L443,274Q409,274 384,259Q359,243 348,219Q336,194 340,166"
 		      "Q343,138 365,111L468,-13Q470,-10 473,-6Q475,-3 477,0L253,0Q225,0 203,8"
 		      "Q180,15 168,32Q155,48 155,73L155,269L50,269L50,73Q50,24 69,-10"
@@ -491,7 +491,7 @@ test_hb_draw_font_kit_glyphs_tests (void)
 
     /* should transform points of a composite glyph */
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 2, funcs, &draw_data); /* 2 == arAlef.fina */
+    hb_font_draw_glyph (font, 2, funcs, &draw_data); /* 2 == arAlef.fina */
     char expected2[] = "M155,624L155,84Q150,90 146,95Q141,99 136,105"
 		       "L292,105L292,0L156,0Q128,0 104,14Q79,27 65,51"
 		       "Q50,74 50,104L50,624L155,624ZM282,105L312,105"
@@ -507,7 +507,7 @@ test_hb_draw_font_kit_glyphs_tests (void)
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 5, funcs, &draw_data);
+    hb_font_draw_glyph (font, 5, funcs, &draw_data);
     char expected[] = "M90,0L258,0C456,0 564,122 564,331C564,539 456,656 254,656L90,656L90,0Z"
 		      "M173,68L173,588L248,588C401,588 478,496 478,331C478,165 401,68 248,68L173,68Z";
     g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
@@ -522,7 +522,7 @@ test_hb_draw_font_kit_glyphs_tests (void)
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 1, funcs, &draw_data);
+    hb_font_draw_glyph (font, 1, funcs, &draw_data);
     char expected[] = "M139,390C175,390 205,419 205,459C205,501 175,530 139,530C103,530 73,501 73,459"
 		      "C73,419 103,390 139,390ZM139,-13C175,-13 205,15 205,56C205,97 175,127 139,127"
 		      "C103,127 73,97 73,56C73,15 103,-13 139,-13Z";
@@ -567,7 +567,7 @@ test_hb_draw_font_kit_variations_tests (void)
     hb_buffer_destroy (buffer);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, codepoint, funcs, &draw_data);
+    hb_font_draw_glyph (font, codepoint, funcs, &draw_data);
     char expected[] = "M371,-102L371,539L914,539L914,-27Q914,-102 840,-102"
 		      "Q796,-102 755,-98L742,-59Q790,-66 836,-66Q871,-66 871,-31L871,504"
 		      "L414,504L414,-102L371,-102ZM203,-94Q138,-94 86,-90L74,-52"
@@ -612,7 +612,7 @@ test_hb_draw_font_kit_variations_tests (void)
     hb_buffer_destroy (buffer);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, codepoint, funcs, &draw_data);
+    hb_font_draw_glyph (font, codepoint, funcs, &draw_data);
     char expected[] = "M371,-102L371,539L914,539L914,-27Q914,-102 840,-102Q796,-102 755,-98"
 		      "L742,-59Q790,-66 836,-66Q871,-66 871,-31L871,504L414,504L414,-102"
 		      "L371,-102ZM203,-94Q138,-94 86,-90L74,-52Q137,-59 188,-59Q211,-59 222,-46"
@@ -656,7 +656,7 @@ test_hb_draw_font_kit_variations_tests (void)
     hb_buffer_destroy (buffer);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, codepoint, funcs, &draw_data);
+    hb_font_draw_glyph (font, codepoint, funcs, &draw_data);
     char expected[] = "M371,-102L371,539L914,539L914,-27Q914,-102 840,-102Q796,-102 755,-98"
 		      "L742,-59Q790,-66 836,-66Q871,-66 871,-31L871,504L414,504L414,-102"
 		      "L371,-102ZM203,-94Q138,-94 86,-90L74,-52Q137,-59 188,-59Q211,-59 222,-46"
@@ -703,7 +703,7 @@ test_hb_draw_font_kit_variations_tests (void)
       hb_buffer_destroy (buffer);
 
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, codepoint, funcs, &draw_data);
+      hb_font_draw_glyph (font, codepoint, funcs, &draw_data);
       char expected[] = "M246,15C188,15 147,27 101,68L142,23L117,117C111,143 96,149 81,149"
 		        "C65,149 56,141 52,126C71,40 137,-13 244,-13C348,-13 436,46 436,156"
 		        "C436,229 405,295 271,349L247,359C160,393 119,439 119,506"
@@ -727,7 +727,7 @@ test_hb_draw_font_kit_variations_tests (void)
       hb_buffer_destroy (buffer);
 
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, codepoint, funcs, &draw_data);
+      hb_font_draw_glyph (font, codepoint, funcs, &draw_data);
       char expected[] = "M251,36C206,36 165,42 118,61L176,21L161,99C151,152 129,167 101,167"
 			"C78,167 61,155 51,131C54,43 133,-14 247,-14C388,-14 474,64 474,171"
 			"C474,258 430,321 294,370L257,383C188,406 150,438 150,499"
@@ -752,7 +752,7 @@ test_hb_draw_font_kit_variations_tests (void)
       hb_buffer_destroy (buffer);
 
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, codepoint, funcs, &draw_data);
+      hb_font_draw_glyph (font, codepoint, funcs, &draw_data);
       char expected[] = "M258,38C197,38 167,48 118,71L192,19L183,103C177,155 155,174 115,174"
 			"C89,174 64,161 51,125C52,36 124,-16 258,-16C417,-16 513,67 513,175"
 			"C513,278 457,328 322,388L289,403C232,429 203,452 203,500C203,562 244,589 301,589"
@@ -787,7 +787,7 @@ test_hb_draw_estedad_vf (void)
     hb_font_set_variations (font, &var, 1);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 156, funcs, &draw_data);
+    hb_font_draw_glyph (font, 156, funcs, &draw_data);
     /* Skip empty path where all the points of a path are equal */
     char expected[] = "M150,1158L182,1158Q256,1158 317,1170Q377,1182 421,1213L421,430L521,430"
 		      "L521,1490L421,1490L421,1320Q393,1279 344,1262Q294,1244 182,1244L150,1244"
@@ -797,7 +797,7 @@ test_hb_draw_estedad_vf (void)
     g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 180, funcs, &draw_data);
+    hb_font_draw_glyph (font, 180, funcs, &draw_data);
     /* Skip empty path where all the points of a path are equal */
     char expected2[] = "M120,693Q120,545 177,414Q233,282 333,182Q433,81 567,24"
 		       "Q701,-33 856,-33Q1010,-33 1144,24Q1277,81 1377,182Q1477,282 1534,414"
@@ -817,7 +817,7 @@ test_hb_draw_estedad_vf (void)
     g_assert_cmpmem (str, draw_data.consumed, expected2, sizeof (expected2) - 1);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 262, funcs, &draw_data);
+    hb_font_draw_glyph (font, 262, funcs, &draw_data);
     /* Skip empty path where all the points of a path are equal */
     char expected3[] = "M422,598Q495,598 545,548Q595,498 595,426Q595,353 545,303Q494,252 422,252"
 		       "Q350,252 300,303Q250,353 250,426Q250,499 300,549Q349,598 422,598ZM422,698"
@@ -847,7 +847,7 @@ test_hb_draw_stroking (void)
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 6, funcs, &draw_data);
+    hb_font_draw_glyph (font, 6, funcs, &draw_data);
     /* Skip empty path where all the points of a path are equal */
     char expected[] = "M436,1522Q436,1280 531,1060Q625,839 784,680Q943,521 1164,427Q1384,332 1626,332"
 		      "Q1868,332 2089,427Q2309,521 2468,680Q2627,839 2722,1060Q2816,1280 2816,1522"
@@ -862,7 +862,7 @@ test_hb_draw_stroking (void)
     g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 7, funcs, &draw_data);
+    hb_font_draw_glyph (font, 7, funcs, &draw_data);
     char expected2[] = "M436,1522Q436,1280 531,1060Q625,839 784,680Q943,521 1164,427"
 		       "Q1384,332 1626,332Q1868,332 2089,427Q2309,521 2468,680"
 		       "Q2627,839 2722,1060Q2816,1280 2816,1522Q2816,1764 2722,1985"
@@ -888,14 +888,14 @@ test_hb_draw_stroking (void)
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 4, funcs, &draw_data);
+    hb_font_draw_glyph (font, 4, funcs, &draw_data);
     /* Skip empty path in CFF */
     char expected[] = "M106,372C106,532 237,662 397,662C557,662 688,532 688,372C688,212 557,81 397,81C237,81 106,212 106,372Z"
 		      "M62,373C62,188 212,39 397,39C582,39 731,188 731,373C731,558 582,708 397,708C212,708 62,558 62,373Z";
     g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 5, funcs, &draw_data);
+    hb_font_draw_glyph (font, 5, funcs, &draw_data);
     /* Fold consequent move-to commands */
     char expected2[] = "M106,372C106,532 237,662 397,662C557,662 688,532 688,372"
 		       "C688,212 557,81 397,81C237,81 106,212 106,372ZM62,373"
@@ -970,7 +970,7 @@ test_hb_draw_synthetic_slant (void)
     hb_font_set_synthetic_slant (font, 0.2f);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 37, funcs, &draw_data);
+    hb_font_draw_glyph (font, 37, funcs, &draw_data);
     char expected[] = "M493,1462L906,1462Q1197,1462 1310,1375Q1423,1288 1385,1100"
 		      "Q1359,970 1270,886Q1180,801 1036,776L1034,766Q1356,709 1297,416"
 		      "Q1258,220 1104,110Q949,0 711,0L201,0L493,1462ZM538,836L818,836"
@@ -988,7 +988,7 @@ test_hb_draw_synthetic_slant (void)
     hb_font_set_synthetic_slant (font, 0.2f);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 5, funcs, &draw_data);
+    hb_font_draw_glyph (font, 5, funcs, &draw_data);
     char expected[] = "M90,0L258,0C456,0 588,122 630,331C672,539 587,656 385,656L221,656L90,0Z"
 		      "M187,68L291,588L366,588C519,588 577,496 544,331C511,165 415,68 262,68L187,68Z";
     g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
@@ -1015,7 +1015,7 @@ test_hb_draw_subfont_scale (void)
     hb_font_set_scale (font2, x*2, y*2);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font1, 37, funcs, &draw_data);
+    hb_font_draw_glyph (font1, 37, funcs, &draw_data);
     char expected1[] = "M201,1462L614,1462Q905,1462 1035,1375Q1165,1288 1165,1100"
 		       "Q1165,970 1093,886Q1020,801 881,776L881,766Q1214,709 1214,416"
 		       "Q1214,220 1082,110Q949,0 711,0L201,0L201,1462ZM371,836L651,836"
@@ -1025,7 +1025,7 @@ test_hb_draw_subfont_scale (void)
     g_assert_cmpmem (str, draw_data.consumed, expected1, sizeof (expected1) - 1);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font2, 37, funcs, &draw_data);
+    hb_font_draw_glyph (font2, 37, funcs, &draw_data);
     char expected2[] = "M402,2924L1228,2924Q1810,2924 2070,2750Q2330,2576 2330,2200"
 		       "Q2330,1940 2185,1771Q2040,1602 1762,1552L1762,1532Q2428,1418 2428,832"
 		       "Q2428,440 2163,220Q1898,0 1422,0L402,0L402,2924ZM742,1672L1302,1672"
@@ -1047,13 +1047,13 @@ test_hb_draw_subfont_scale (void)
     hb_font_set_scale (font2, x*2, y*2);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font1, 5, funcs, &draw_data);
+    hb_font_draw_glyph (font1, 5, funcs, &draw_data);
     char expected1[] = "M90,0L258,0C456,0 564,122 564,331C564,539 456,656 254,656L90,656L90,0Z"
 		       "M173,68L173,588L248,588C401,588 478,496 478,331C478,165 401,68 248,68L173,68Z";
     g_assert_cmpmem (str, draw_data.consumed, expected1, sizeof (expected1) - 1);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font2, 5, funcs, &draw_data);
+    hb_font_draw_glyph (font2, 5, funcs, &draw_data);
     char expected2[] = "M180,0L516,0C912,0 1128,244 1128,662C1128,1078 912,1312 508,1312L180,1312L180,0Z"
 		       "M346,136L346,1176L496,1176C802,1176 956,992 956,662C956,330 802,136 496,136L346,136Z";
     g_assert_cmpmem (str, draw_data.consumed, expected2, sizeof (expected2) - 1);
@@ -1089,13 +1089,13 @@ static void test_hb_draw_ft (void)
     hb_face_destroy (face);
     {
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, 0, funcs, &draw_data);
+      hb_font_draw_glyph (font, 0, funcs, &draw_data);
       char expected[] = "M50,0L50,750L450,750L450,0L50,0Z";
       g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
     }
     {
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, 5, funcs, &draw_data);
+      hb_font_draw_glyph (font, 5, funcs, &draw_data);
       char expected[] = "M15,0Q15,0 15,0Z";
       g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
     }
@@ -1108,7 +1108,7 @@ static void test_hb_draw_ft (void)
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
-    hb_font_get_glyph_shape (font, 1, funcs, &draw_data);
+    hb_font_draw_glyph (font, 1, funcs, &draw_data);
     char expected[] = "M0,0C100,0 150,-20 250,-20C350,-20 400,0 500,0C500,100 520,150 520,250"
 		      "C520,350 500,400 500,500C400,500 350,520 250,520C150,520 100,500 0,500"
 		      "C0,400 -20,350 -20,250C-20,150 0,100 0,0ZM50,50C50,130 34,170 34,250"
@@ -1119,6 +1119,41 @@ static void test_hb_draw_ft (void)
 
     hb_font_destroy (font);
   }
+}
+
+static void
+test_hb_draw_compare_ot_ft (void)
+{
+  char str[1024];
+  draw_data_t draw_data = {
+    .str = str,
+    .size = sizeof (str),
+    .consumed = 0
+  };
+  char str2[1024];
+  draw_data_t draw_data2 = {
+    .str = str2,
+    .size = sizeof (str2),
+    .consumed = 0
+  };
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
+  hb_font_t *font = hb_font_create (face);
+
+  hb_font_set_scale (font, 100, 100);
+
+  hb_font_draw_glyph (font, 1, funcs, &draw_data);
+  draw_data.str[draw_data.consumed] = '\0';
+
+  hb_ft_font_set_funcs (font);
+
+  hb_font_draw_glyph (font, 1, funcs, &draw_data2);
+  draw_data2.str[draw_data2.consumed] = '\0';
+
+  g_assert_cmpstr (draw_data.str, ==, draw_data2.str);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
 }
 #endif
 
@@ -1158,6 +1193,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_immutable);
 #ifdef HAVE_FREETYPE
   hb_test_add (test_hb_draw_ft);
+  hb_test_add (test_hb_draw_compare_ot_ft);
 #endif
   unsigned result = hb_test_run ();
 

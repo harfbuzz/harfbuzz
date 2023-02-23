@@ -7,7 +7,6 @@ lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
 
 EXTRA_DIST = \
-	COPYING \
 	fonts \
 	meson.build \
 	$(TESTS) \

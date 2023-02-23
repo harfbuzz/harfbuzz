@@ -31,6 +31,8 @@
 #include "hb-buffer.hh"
 
 
+#ifndef HB_NO_SHAPER
+
 /**
  * SECTION:hb-shape-plan
  * @title: hb-shape-plan
@@ -74,7 +76,7 @@ hb_shape_plan_key_t::init (bool                           copy,
   this->user_features = copy ? features : user_features;
   if (copy && num_user_features)
   {
-    memcpy (features, user_features, num_user_features * sizeof (hb_feature_t));
+    hb_memcpy (features, user_features, num_user_features * sizeof (hb_feature_t));
     /* Make start/end uniform to easier catch bugs. */
     for (unsigned int i = 0; i < num_user_features; i++)
     {
@@ -225,7 +227,7 @@ hb_shape_plan_create2 (hb_face_t                     *face,
 		       const char * const            *shaper_list)
 {
   DEBUG_MSG_FUNC (SHAPE_PLAN, nullptr,
-		  "face=%p num_features=%d num_coords=%d shaper_list=%p",
+		  "face=%p num_features=%u num_coords=%u shaper_list=%p",
 		  face,
 		  num_user_features,
 		  num_coords,
@@ -389,7 +391,7 @@ _hb_shape_plan_execute_internal (hb_shape_plan_t    *shape_plan,
 				 unsigned int        num_features)
 {
   DEBUG_MSG_FUNC (SHAPE_PLAN, shape_plan,
-		  "num_features=%d shaper_func=%p, shaper_name=%s",
+		  "num_features=%u shaper_func=%p, shaper_name=%s",
 		  num_features,
 		  shape_plan->key.shaper_func,
 		  shape_plan->key.shaper_name);
@@ -518,7 +520,7 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 			      const char * const            *shaper_list)
 {
   DEBUG_MSG_FUNC (SHAPE_PLAN, nullptr,
-		  "face=%p num_features=%d shaper_list=%p",
+		  "face=%p num_features=%u shaper_list=%p",
 		  face,
 		  num_user_features,
 		  shaper_list);
@@ -574,3 +576,6 @@ retry:
 
   return hb_shape_plan_reference (shape_plan);
 }
+
+
+#endif

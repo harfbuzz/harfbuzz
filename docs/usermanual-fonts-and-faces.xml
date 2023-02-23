@@ -55,7 +55,7 @@
       shaping. The typeface must be set to a specific point size in
       order for some details (such as hinting) to work. In addition,
       if the font file in question is an OpenType Variable Font, then
-      you may need to specify one or variation-axis settings (or a
+      you may need to specify one or more variation-axis settings (or a
       named instance) in order to get the output you need.
     </para>
     <para>
@@ -258,6 +258,18 @@
       the glyph index that corresponds to a given glyph name.
     </para>
       </listitem>
+      <listitem>
+    <para>
+      <function>hb_font_draw_glyph_func_t</function>: gets the outlines
+      of a glyph (by calling #hb_draw_funcs_t callbacks).
+    </para>
+      </listitem>
+      <listitem>
+    <para>
+      <function>hb_font_paint_glyph_func_t</function>: paints a glyph
+      (by calling #hb_paint_funcs_t callbacks).
+    </para>
+      </listitem>
     </itemizedlist>
     <para>
       You can create new font-functions by calling
@@ -375,20 +387,6 @@
     </para>
   </section>
 
-
-  <!-- Commenting out FreeType integration section-holder for now. May move
-       to the full-blown Integration Chapter. -->
-  
-  <!--   <section id="fonts-and-faces-freetype">
-    <title>Using FreeType</title>
-    <para>
-
-    </para>
-    <para>
-      
-    </para>
-  </section> -->
-
   <section id="fonts-and-faces-variable">
     <title>Working with OpenType Variable Fonts</title>
     <para>
@@ -455,12 +453,65 @@
       range actually implemented in the font's variation axis. After
       all, a font might only provide lighter-than-regular weights, and
       setting a heavier value on the <literal>wght</literal> axis will
-      not change that. 
+      not change that.
     </para>
     <para>
       Once your variation settings are specified on your font object,
       however, shaping with a variable font is just like shaping a
       static font.
+    </para>
+    <para>
+      In addition to providing the variation axes themselves, fonts may also
+      pre-define certain variation coordinates as named instances. HarfBuzz
+      makes these coordinates (and their associated names) available via
+      <function>hb_ot_var_named_instance_get_design_coords()</function> and
+      <function>hb_ot_var_named_instance_get_subfamily_name_id()</function>.
+    </para>
+    <para>
+      Applications should treat named instances like multiple independent,
+      static fonts.
+    </para>
+  </section>
+
+  <section id="glyphs-and-rendering">
+    <title>Glyphs and rendering</title>
+
+    <para>
+      The main purpose of HarfBuzz is shaping, which creates a list of positioned
+      glyphs as output. The remaining task for text layout is to convert this list
+      into rendered output. While HarfBuzz does not handle rasterization of glyphs
+      per se, it does have APIs that provide access to the font data that is needed
+      to perform this task.
+    </para>
+    <para>
+      Traditionally, the shapes of glyphs in scalable fonts are provided as quadratic
+      or cubic Beziér curves defining outlines to be filled. To obtain the outlines
+      for a glyph, call <function>hb_font_draw_glyph()</function> and pass a
+      <type>hb_draw_funcs_t</type> struct. The callbacks in that struct will be called
+      for each segment of the outline. Note that this API provides access to outlines
+      as they are defined in the font, without applying hinting to fit the curves
+      to the pixel grid.
+    </para>
+    <para>
+      Fonts may provide pre-rendered images for glyphs instead of or in addition to
+      outlines. This is most common for fonts that contain colored glyphs, such as
+      Emoji. To access these images, use <function>hb_ot_color_reference_png()</function>
+      or <function>hb_ot_color_reference_svg()</function>.
+    </para>
+    <para>
+      Another way in which fonts provide colored glyphs is via paint graphs that
+      combine glyph outlines with gradients and allow for transformations and
+      compositing. In its simplest form, this can be presented as a series of
+      layers that are rendered on top of each other, each with its own color.
+      HarfBuzz has the <function>hb_ot_color_glyph_get_layers()</function> to
+      access glyph data in this form.
+    </para>
+    <para>
+      In the general case, you have to use <function>hb_font_paint_glyph()</function>
+      and pass a <type>hb_paint_funcs_t</type> struct with callbacks to obtain paint
+      graphs for glyphs that have them. The <function>hb_font_paint_glyph()</function>
+      API can handle outline and image glyphs as well, so it provides a unified API for
+      access to glyph rendering information.
     </para>
   </section>
 

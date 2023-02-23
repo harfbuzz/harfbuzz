@@ -14,7 +14,10 @@ libs:
 
 EXTRA_DIST += meson.build
 
-EXTRA_DIST += fonts
+EXTRA_DIST += \
+	fonts \
+	results \
+	$(NULL)
 
 LINK = $(CXXLINK)
 
@@ -39,8 +42,11 @@ TEST_PROGS = \
 	test-cplusplus \
 	test-common \
 	test-draw \
+	test-extents \
 	test-font \
 	test-font-scale \
+	test-glyph-names \
+	test-instance-cff2 \
 	test-map \
 	test-object \
 	test-ot-alternates \
@@ -56,6 +62,7 @@ TEST_PROGS = \
 	test-ot-tag \
 	test-ot-extents-cff \
 	test-ot-metrics-tt-var \
+	test-paint \
 	test-set \
 	test-shape \
 	test-style \
@@ -87,6 +94,10 @@ TEST_PROGS = \
 test_draw_CPPFLAGS = $(AM_CPPFLAGS)
 test_draw_LDADD = $(LDADD)
 
+test_paint_CPPFLAGS = $(AM_CPPFLAGS)
+test_paint_LDADD = $(LDADD)
+
+test_instance_cff2_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_drop_tables_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
@@ -133,12 +144,25 @@ if HAVE_FREETYPE
 test_draw_CPPFLAGS += $(FREETYPE_CFLAGS)
 test_draw_LDADD += $(FREETYPE_LIBS)
 
+test_paint_CPPFLAGS += $(FREETYPE_CFLAGS)
+test_paint_LDADD += $(FREETYPE_LIBS)
+
 TEST_PROGS += \
 	test-ot-math \
+	test-ft \
 	$(NULL)
 test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
 test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
+
+test_ft_LDADD = $(LDADD) $(FREETYPE_LIBS)
+test_ft_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 endif # HAVE_FREETYPE
+
+if HAVE_CORETEXT
+TEST_PROGS += \
+	test-coretext \
+	$(NULL)
+endif # HAVE_CORETEXT
 
 # Tests for header compilation
 test_cplusplus_SOURCES = test-cplusplus.cc

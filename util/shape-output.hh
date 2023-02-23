@@ -140,7 +140,7 @@ struct shape_output_t : output_options_t<>
     g_string_append_printf (gs, "trace: %s	buffer: ", message);
     format.serialize (buffer, font, serialize_format, serialize_flags, gs);
     g_string_append_c (gs, '\n');
-    fprintf (out_fp, "%s", gs->str);
+    fprintf (stderr, "%s", gs->str);
   }
 
 
