@@ -64,12 +64,14 @@ static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) 
   static NativeSymbol _hb_wasm_native_symbols[] =
   {
     NATIVE_SYMBOL ("(r)r",	font_get_face),
+#ifdef HB_DEBUG_WASM
     {
 	    "debugprint",
 	    (void *) debugprint,
 	    "($i)",
 	    NULL
     }
+#endif
   };
 #undef NATIVE_SYMBOL
 
