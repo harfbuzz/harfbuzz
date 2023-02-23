@@ -46,12 +46,20 @@
 
 #include "hb-wasm-font.hh"
 
+#ifdef HB_DEBUG_WASM
+namespace hb { namespace wasm {
+static void
+debugprint (HB_WASM_EXEC_ENV
+	    char *the_string, uint32_t len)
+{
+  printf("%.*s", (int) len, the_string);
+}
+}}
+#endif
 
 #undef module_inst
+#undef HB_WASM_EXEC_ENV
 
-static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) {
-	printf("%.*s", len, the_string);
-}
 
 
   /* Define an array of NativeSymbol for the APIs to be exported.
@@ -65,12 +73,7 @@ static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) 
   {
     NATIVE_SYMBOL ("(i)i",	font_get_face),
 #ifdef HB_DEBUG_WASM
-    {
-	    "debugprint",
-	    (void *) debugprint,
-	    "($i)",
-	    NULL
-    }
+    NATIVE_SYMBOL ("($i)",	debugprint),
 #endif
   };
 #undef NATIVE_SYMBOL
