@@ -36,11 +36,18 @@ face_reference_table (HB_WASM_EXEC_ENV_COMPOUND
 		      face_t faceref,
 		      tag_t table_tag)
 {
-  HB_RETURN_TYPE (blob_t, blob);
-
+  HB_RETURN_TYPE (blob_t, ret);
   HB_REF2OBJ (face);
 
-  blob.length = 1;
+  hb_blob_t *blob = hb_face_reference_table (face, table_tag);
+
+  unsigned length;
+  const char *data = hb_blob_get_data (blob, &length);
+
+  ret.data = wasm_runtime_module_dup_data (module_inst, data, length);
+  ret.length = length;
+
+  hb_blob_destroy (blob);
 }
 
 
