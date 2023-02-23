@@ -50,7 +50,7 @@
 #undef module_inst
 
 static void debugprint(wasm_exec_env_t exec_env, char *the_string, uint8_t len) {
-	printf("%*s", len, the_string);
+	printf("%.*s", len, the_string);
 }
 
 
