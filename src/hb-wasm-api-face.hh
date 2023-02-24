@@ -33,7 +33,7 @@ namespace wasm {
 
 void
 face_reference_table (HB_WASM_EXEC_ENV_COMPOUND
-		      ptr_t(face_t) faceref,
+		      ptr_d(face_t, face),
 		      tag_t table_tag)
 {
   HB_RETURN_STRUCT (blob_t, ret);
@@ -52,7 +52,7 @@ face_reference_table (HB_WASM_EXEC_ENV_COMPOUND
 
 unsigned
 face_get_upem (HB_WASM_EXEC_ENV
-	       ptr_t(face_t) faceref)
+	       ptr_d(face_t, face))
 {
   HB_REF2OBJ (face);
 

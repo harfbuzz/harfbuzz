@@ -33,8 +33,8 @@ namespace wasm {
 
 bool_t
 shape_with (HB_WASM_EXEC_ENV
-	    ptr_t(font_t) fontref,
-	    ptr_t(buffer_t) bufferref,
+	    ptr_d(font_t, font),
+	    ptr_d(buffer_t, buffer),
 	    const char *shaper)
 {
   HB_REF2OBJ (font);
