@@ -69,9 +69,9 @@ HB_WASM_BEGIN_DECLS
 #define ptr_t(type_t) type_t *
 #endif
 
-typedef uint32_t hb_codepoint_t;
-typedef int32_t hb_position_t;
-typedef uint32_t hb_mask_t;
+typedef uint32_t codepoint_t;
+typedef int32_t position_t;
+typedef uint32_t mask_t;
 typedef uint32_t tag_t;
 #define TAG(c1,c2,c3,c4) ((tag_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
 
@@ -115,10 +115,10 @@ typedef struct
 
 typedef struct
 {
-  hb_position_t x_advance;
-  hb_position_t y_advance;
-  hb_position_t x_offset;
-  hb_position_t y_offset;
+  position_t x_advance;
+  position_t y_advance;
+  position_t x_offset;
+  position_t y_offset;
   uint32_t var;
 } glyph_position_t;
 
@@ -175,18 +175,18 @@ HB_WASM_API (void, font_get_scale) (HB_WASM_EXEC_ENV
 				    ptr_t(int32_t) x_scale,
 				    ptr_t(int32_t) y_scale);
 
-HB_WASM_API (hb_codepoint_t, font_get_glyph) (HB_WASM_EXEC_ENV
+HB_WASM_API (codepoint_t, font_get_glyph) (HB_WASM_EXEC_ENV
 					      ptr_t(font_t),
-					      hb_codepoint_t unicode,
-					      hb_codepoint_t variation_selector);
+					      codepoint_t unicode,
+					      codepoint_t variation_selector);
 
-HB_WASM_API (hb_position_t, font_get_glyph_h_advance) (HB_WASM_EXEC_ENV
-						       ptr_t(font_t),
-						       hb_codepoint_t glyph);
+HB_WASM_API (position_t, font_get_glyph_h_advance) (HB_WASM_EXEC_ENV
+						    ptr_t(font_t),
+						    codepoint_t glyph);
 
-HB_WASM_API (hb_position_t, font_get_glyph_v_advance) (HB_WASM_EXEC_ENV
-						       ptr_t(font_t),
-						       hb_codepoint_t glyph);
+HB_WASM_API (position_t, font_get_glyph_v_advance) (HB_WASM_EXEC_ENV
+						    ptr_t(font_t),
+						    codepoint_t glyph);
 
 
 /* shape */

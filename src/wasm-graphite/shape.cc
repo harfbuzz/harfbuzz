@@ -87,7 +87,7 @@ shape (font_t *font, buffer_t *buffer)
   uint32_t *gids = (uint32_t *) malloc (length * sizeof (uint32_t));
 
   memset (clusters, 0, sizeof (clusters[0]) * length);
-  hb_codepoint_t *pg = gids;
+  codepoint_t *pg = gids;
   clusters[0].cluster = contents.info[0].cluster;
   unsigned int upem = face_get_upem (face);
   int32_t font_x_scale, font_y_scale;
