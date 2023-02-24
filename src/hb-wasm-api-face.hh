@@ -50,6 +50,15 @@ face_reference_table (HB_WASM_EXEC_ENV_COMPOUND
   hb_blob_destroy (blob);
 }
 
+unsigned
+face_get_upem (HB_WASM_EXEC_ENV
+	       ptr_t(face_t) faceref)
+{
+  HB_REF2OBJ (face);
+
+  return hb_face_get_upem (face);
+}
+
 
 }}
 

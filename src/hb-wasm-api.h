@@ -140,6 +140,9 @@ HB_WASM_API_COMPOUND (blob_t, face_reference_table) (HB_WASM_EXEC_ENV_COMPOUND
 						     ptr_t(face_t),
 						     tag_t table_tag);
 
+HB_WASM_API (unsigned, face_get_upem) (HB_WASM_EXEC_ENV
+				       ptr_t(face_t));
+
 
 /* font */
 
@@ -160,6 +163,8 @@ HB_WASM_API (hb_position_t, font_get_glyph_h_advance) (HB_WASM_EXEC_ENV
 HB_WASM_API (hb_position_t, font_get_glyph_v_advance) (HB_WASM_EXEC_ENV
 						       ptr_t(font_t),
 						       hb_codepoint_t glyph);
+
+
 /* shape interface */
 
 HB_WASM_INTERFACE (bool_t, shape) (HB_WASM_EXEC_ENV

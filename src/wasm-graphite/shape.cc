@@ -85,7 +85,7 @@ shape (font_t *font, buffer_t *buffer)
   memset (clusters, 0, sizeof (clusters[0]) * length);
   hb_codepoint_t *pg = gids;
   clusters[0].cluster = contents.info[0].cluster;
-  unsigned int upem = 2048;//hb_face_get_upem (face);
+  unsigned int upem = face_get_upem (face);
   float xscale = 10;//(float) font->x_scale / upem;
   float yscale = 10;//(float) font->y_scale / upem;
   yscale *= yscale / xscale;
@@ -196,7 +196,7 @@ shape (font_t *font, buffer_t *buffer)
       pPos->x_offset = gr_slot_origin_X (is) * xscale - info->var1 - curradvx + pPos->x_advance;
       pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
     }
-    //hb_buffer_reverse_clusters (buffer);
+    //buffer_reverse_clusters (buffer);
   }
 
   gr_seg_destroy (seg);
