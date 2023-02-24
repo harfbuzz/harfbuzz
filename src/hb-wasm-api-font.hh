@@ -88,6 +88,18 @@ font_get_glyph_v_advance (HB_WASM_EXEC_ENV
   return hb_font_get_glyph_v_advance (font, glyph);
 }
 
+void
+font_glyph_to_string (HB_WASM_EXEC_ENV
+		      ptr_t(font_t) fontref,
+		      codepoint_t glyph,
+		      char *s, uint32_t size)
+{
+  HB_REF2OBJ (font);
+
+  hb_font_glyph_to_string (font, glyph, s, size);
+}
+
+
 }}
 
 #endif /* HB_WASM_API_FONT_HH */
