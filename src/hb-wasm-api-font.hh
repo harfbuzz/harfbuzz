@@ -51,8 +51,8 @@ font_get_scale (HB_WASM_EXEC_ENV
 {
   HB_REF2OBJ (font);
 
-  HB_STRUCT_TYPE(int32_t, x_scale);
-  HB_STRUCT_TYPE(int32_t, y_scale);
+  HB_OUT_PARAM(int32_t, x_scale);
+  HB_OUT_PARAM(int32_t, y_scale);
 
   hb_font_get_scale (font, x_scale, y_scale);
 }

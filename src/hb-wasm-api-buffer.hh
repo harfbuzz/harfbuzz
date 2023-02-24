@@ -39,7 +39,7 @@ void
 buffer_contents_free (HB_WASM_EXEC_ENV
 		      ptr_t(buffer_contents_t) contentsptr)
 {
-  HB_STRUCT_TYPE (buffer_contents_t, contents);
+  HB_OUT_PARAM (buffer_contents_t, contents);
   if (unlikely (!contents))
     return;
 
@@ -56,7 +56,7 @@ void
 			  ptr_t(buffer_contents_t) contentsptr,
 			  uint32_t size)
 {
-  HB_STRUCT_TYPE (buffer_contents_t, contents);
+  HB_OUT_PARAM (buffer_contents_t, contents);
   if (unlikely (!contents))
     return;
 
@@ -105,7 +105,7 @@ buffer_set_contents (HB_WASM_EXEC_ENV
 		     ptr_t(const buffer_contents_t) contentsptr)
 {
   HB_REF2OBJ (buffer);
-  HB_STRUCT_TYPE (buffer_contents_t, contents);
+  HB_OUT_PARAM (buffer_contents_t, contents);
   if (unlikely (!contents))
     return false;
 

@@ -91,7 +91,7 @@ HB_INTERNAL extern hb_user_data_key_t _hb_wasm_ref_type_key;
   } \
   type &name = *_name_ptr
 
-#define HB_STRUCT_TYPE(type, name) \
+#define HB_OUT_PARAM(type, name) \
   type *name = nullptr; \
   HB_STMT_START { \
     if (likely (wasm_runtime_validate_app_addr (module_inst, \
