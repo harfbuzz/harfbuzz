@@ -26,7 +26,10 @@ static const void *copy_table (const void *data, unsigned int tag, size_t *len)
 
 static void free_table (const void *data, const void *table_data)
 {
-  free ((void *) table_data);
+  blob_t blob;
+  blob.length = 0; // Doesn't matter
+  blob.data = (char *) table_data;
+  blob_free (&blob);
 }
 
 bool_t
@@ -41,7 +44,7 @@ shape (font_t *font, buffer_t *buffer)
   buffer_contents_t contents = buffer_copy_contents (buffer);
   direction_t direction = buffer_get_direction (buffer);
 
-  const gr_face_ops ops = {sizeof (gr_face_ops), &copy_table, nullptr};//&free_table};
+  const gr_face_ops ops = {sizeof (gr_face_ops), &copy_table, &free_table};
   gr_face *grface = gr_make_face_with_ops (face, &ops, gr_face_preloadAll);
 
   gr_segment *seg = nullptr;
@@ -205,6 +208,8 @@ shape (font_t *font, buffer_t *buffer)
   }
 
   gr_seg_destroy (seg);
+  free (clusters);
+  free (gids);
 
   bool ret = glyph_count;
 
