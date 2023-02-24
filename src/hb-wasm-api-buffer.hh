@@ -138,6 +138,15 @@ buffer_get_direction (HB_WASM_EXEC_ENV
 }
 
 void
+buffer_reverse (HB_WASM_EXEC_ENV
+		ptr_t(buffer_t) bufferref)
+{
+  HB_REF2OBJ (buffer);
+
+  hb_buffer_reverse (buffer);
+}
+
+void
 buffer_reverse_clusters (HB_WASM_EXEC_ENV
 			 ptr_t(buffer_t) bufferref)
 {

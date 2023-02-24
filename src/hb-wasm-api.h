@@ -148,6 +148,9 @@ HB_WASM_API (bool_t, buffer_set_contents) (HB_WASM_EXEC_ENV
 HB_WASM_API (direction_t, buffer_get_direction) (HB_WASM_EXEC_ENV
 						 ptr_t(buffer_t));
 
+HB_WASM_API (void, buffer_reverse) (HB_WASM_EXEC_ENV
+				    ptr_t(buffer_t));
+
 HB_WASM_API (void, buffer_reverse_clusters) (HB_WASM_EXEC_ENV
 					     ptr_t(buffer_t));
 
