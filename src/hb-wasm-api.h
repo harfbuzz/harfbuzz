@@ -189,6 +189,14 @@ HB_WASM_API (hb_position_t, font_get_glyph_v_advance) (HB_WASM_EXEC_ENV
 						       hb_codepoint_t glyph);
 
 
+/* shape */
+
+HB_WASM_INTERFACE (bool_t, shape_with) (HB_WASM_EXEC_ENV
+				        ptr_t(font_t),
+				        ptr_t(buffer_t),
+					const char *shaper);
+
+
 /* shape interface */
 
 HB_WASM_INTERFACE (bool_t, shape) (HB_WASM_EXEC_ENV

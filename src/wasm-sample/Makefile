@@ -1,6 +1,6 @@
-all: test.wasm.ttf
+all: test-fallback.wasm.ttf test-ot.wasm.ttf
 
-%.so: %.c ../hb-wasm-api.h
+%.wasm: %.cc ../hb-wasm-api.h
 	clang \
 		--target=wasm32-unknown-wasi \
 		-Wl,--no-entry \
@@ -11,10 +11,13 @@ all: test.wasm.ttf
 		$< \
 		-o $@
 
-%.wasm.ttf: %.ttf shape.so addTable.py
-	python addTable.py $< $@ shape.so
+test-fallback.wasm.ttf: test.ttf shape-fallback.wasm addTable.py
+	python addTable.py $< $@ shape-fallback.wasm
+
+test-ot.wasm.ttf: test.ttf shape-ot.wasm addTable.py
+	python addTable.py $< $@ shape-ot.wasm
 
 clean:
-	$(RM) test.wasm.ttf shape.so
+	$(RM) test-fallback.wasm.ttf test-ot.wasm.ttf shape-fallback.wasm shape-ot.wasm
 
-.PRECIOUS: shape.so
+.PRECIOUS: *.wasm

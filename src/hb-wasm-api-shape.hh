@@ -22,18 +22,29 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
+#ifndef HB_WASM_API_SHAPE_HH
+#define HB_WASM_API_SHAPE_HH
+
 #include "hb-wasm-api.hh"
 
-#define module_inst wasm_runtime_get_module_inst (exec_env)
+namespace hb {
+namespace wasm {
 
 
-#include "hb-wasm-api-blob.hh"
-#include "hb-wasm-api-buffer.hh"
-#include "hb-wasm-api-face.hh"
-#include "hb-wasm-api-font.hh"
-#include "hb-wasm-api-shape.hh"
+bool_t
+shape_with (HB_WASM_EXEC_ENV
+	    ptr_t(font_t) fontref,
+	    ptr_t(buffer_t) bufferref,
+	    const char *shaper)
+{
+  HB_REF2OBJ (font);
+  HB_REF2OBJ (buffer);
+
+  const char * shaper_list[] = {shaper, nullptr};
+  return hb_shape_full (font, buffer, nullptr, 0, shaper_list);
+}
 
 
-#undef module_inst
+}}
 
-hb_user_data_key_t _hb_wasm_ref_type_key = {};
+#endif /* HB_WASM_API_SHAPE_HH */

@@ -331,6 +331,7 @@ hb_wasm_sources = files(
   'hb-wasm-api-buffer.hh',
   'hb-wasm-api-face.hh',
   'hb-wasm-api-font.hh',
+  'hb-wasm-api-shape.hh',
   'hb-wasm-shape.cc',
 )
 hb_wasm_headers = files()

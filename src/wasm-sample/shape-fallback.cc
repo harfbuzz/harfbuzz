@@ -2,8 +2,10 @@
 
 #include <hb-wasm-api.h>
 
-void debugprint1 (char *s, int32_t);
-void debugprint2 (char *s, int32_t, int32_t);
+extern "C" {
+void debugprint1 (const char *s, int32_t);
+void debugprint2 (const char *s, int32_t, int32_t);
+}
 
 bool_t
 shape (font_t *font, buffer_t *buffer)
