@@ -78,7 +78,7 @@ HB_INTERNAL extern hb_user_data_key_t _hb_wasm_ref_type_key;
     (void) wasm_externref_obj2ref (module_inst, obj, &obj##ref); \
   } HB_STMT_END
 
-#define HB_RETURN_TYPE(type, name) \
+#define HB_RETURN_STRUCT(type, name) \
   type *_name_ptr = nullptr; \
   { \
     if (likely (wasm_runtime_validate_app_addr (module_inst, \

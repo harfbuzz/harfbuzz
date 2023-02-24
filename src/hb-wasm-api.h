@@ -151,6 +151,11 @@ typedef struct font_t font_t;
 HB_WASM_API (ptr_t(face_t), font_get_face) (HB_WASM_EXEC_ENV
 					    ptr_t(font_t));
 
+HB_WASM_API (void, font_get_scale) (HB_WASM_EXEC_ENV
+				    ptr_t(font_t),
+				    ptr_t(int32_t) x_scale,
+				    ptr_t(int32_t) y_scale);
+
 HB_WASM_API (hb_codepoint_t, font_get_glyph) (HB_WASM_EXEC_ENV
 					      ptr_t(font_t),
 					      hb_codepoint_t unicode,

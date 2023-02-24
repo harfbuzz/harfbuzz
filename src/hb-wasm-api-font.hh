@@ -43,6 +43,20 @@ font_get_face (HB_WASM_EXEC_ENV
   return faceref;
 }
 
+void
+font_get_scale (HB_WASM_EXEC_ENV
+		ptr_t(font_t) fontref,
+		ptr_t(int32_t) x_scaleptr,
+		ptr_t(int32_t) y_scaleptr)
+{
+  HB_REF2OBJ (font);
+
+  HB_STRUCT_TYPE(int32_t, x_scale);
+  HB_STRUCT_TYPE(int32_t, y_scale);
+
+  hb_font_get_scale (font, x_scale, y_scale);
+}
+
 hb_codepoint_t
 font_get_glyph (HB_WASM_EXEC_ENV
 		ptr_t(font_t) fontref,
@@ -55,7 +69,6 @@ font_get_glyph (HB_WASM_EXEC_ENV
   hb_font_get_glyph (font, unicode, variation_selector, &glyph);
   return glyph;
 }
-
 
 hb_position_t
 font_get_glyph_h_advance (HB_WASM_EXEC_ENV

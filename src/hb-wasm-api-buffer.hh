@@ -87,7 +87,7 @@ void
 buffer_copy_contents (HB_WASM_EXEC_ENV_COMPOUND
 		      ptr_t(buffer_t) bufferref)
 {
-  HB_RETURN_TYPE (buffer_contents_t, ret);
+  HB_RETURN_STRUCT (buffer_contents_t, ret);
   HB_REF2OBJ (buffer);
 
   if (buffer->have_output)

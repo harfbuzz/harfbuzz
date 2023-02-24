@@ -36,7 +36,7 @@ face_reference_table (HB_WASM_EXEC_ENV_COMPOUND
 		      ptr_t(face_t) faceref,
 		      tag_t table_tag)
 {
-  HB_RETURN_TYPE (blob_t, ret);
+  HB_RETURN_STRUCT (blob_t, ret);
   HB_REF2OBJ (face);
 
   hb_blob_t *blob = hb_face_reference_table (face, table_tag);

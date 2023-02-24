@@ -86,8 +86,10 @@ shape (font_t *font, buffer_t *buffer)
   hb_codepoint_t *pg = gids;
   clusters[0].cluster = contents.info[0].cluster;
   unsigned int upem = face_get_upem (face);
-  float xscale = 10;//(float) font->x_scale / upem;
-  float yscale = 10;//(float) font->y_scale / upem;
+  int32_t font_x_scale, font_y_scale;
+  font_get_scale (font, &font_x_scale, &font_y_scale);
+  float xscale = (float) font_x_scale / upem;
+  float yscale = (float) font_y_scale / upem;
   yscale *= yscale / xscale;
   unsigned int curradv = 0;
   if (0)//HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
