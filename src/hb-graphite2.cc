@@ -248,6 +248,21 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
       gr_fref_set_feature_value (fref, features[i].value, feats);
   }
 
+  hb_direction_t target_direction = buffer->props.direction;
+  hb_direction_t horiz_dir = hb_script_get_horizontal_direction (buffer->props.script);
+  /* TODO vertical:
+   * The only BTT vertical script is Ogham, but it's not clear to me whether OpenType
+   * Ogham fonts are supposed to be implemented BTT or not.  Need to research that
+   * first. */
+  if ((HB_DIRECTION_IS_HORIZONTAL (target_direction) &&
+       target_direction != horiz_dir && horiz_dir != HB_DIRECTION_INVALID) ||
+      (HB_DIRECTION_IS_VERTICAL   (target_direction) &&
+       target_direction != HB_DIRECTION_TTB))
+  {
+    hb_buffer_reverse_clusters (buffer);
+    buffer->props.direction = HB_DIRECTION_REVERSE (buffer->props.direction);
+  }
+
   gr_segment *seg = nullptr;
   const gr_slot *is;
   unsigned int ci = 0, ic = 0;
@@ -260,8 +275,6 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
 
   for (unsigned int i = 0; i < buffer->len; ++i)
     chars[i] = buffer->info[i].codepoint;
-
-  /* TODO ensure_native_direction. */
 
   seg = gr_make_seg (nullptr, grface,
 		     HB_TAG_NONE, // https://github.com/harfbuzz/harfbuzz/issues/3439#issuecomment-1442650148
@@ -433,6 +446,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
 
   buffer->clear_glyph_flags ();
   buffer->unsafe_to_break ();
+  buffer->props.direction = target_direction;
 
   return true;
 }
