@@ -159,7 +159,7 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
 {
   bool ret = true;
   const hb_wasm_face_data_t *face_data = font->face->data.wasm;
-  constexpr uint32_t stack_size = 8092, heap_size = 8092;
+  constexpr uint32_t stack_size = 8092, heap_size = 2 * 1024 * 1024;
 
   wasm_module_inst_t module_inst = nullptr;
   wasm_exec_env_t exec_env = nullptr;

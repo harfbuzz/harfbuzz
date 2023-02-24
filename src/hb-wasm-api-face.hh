@@ -44,8 +44,8 @@ face_reference_table (HB_WASM_EXEC_ENV_COMPOUND
   unsigned length;
   const char *data = hb_blob_get_data (blob, &length);
 
-  ret.data = wasm_runtime_module_dup_data (module_inst, data, length);
   ret.length = length;
+  ret.data = wasm_runtime_module_dup_data (module_inst, data, length);
 
   hb_blob_destroy (blob);
 }
