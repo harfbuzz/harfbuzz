@@ -191,6 +191,18 @@ HB_WASM_API (position_t, font_get_glyph_v_advance) (HB_WASM_EXEC_ENV
 						    ptr_t(font_t),
 						    codepoint_t glyph);
 
+typedef struct {
+  position_t x_bearing;
+  position_t y_bearing;
+  position_t width;
+  position_t height;
+} glyph_extents_t;
+
+HB_WASM_API (bool_t, font_get_glyph_extents) (HB_WASM_EXEC_ENV
+					      ptr_t(font_t),
+					      codepoint_t glyph,
+					      ptr_t(glyph_extents_t) extents);
+
 HB_WASM_API (void, font_glyph_to_string) (HB_WASM_EXEC_ENV
 					  ptr_t(font_t),
 					  codepoint_t glyph,

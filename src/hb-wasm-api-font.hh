@@ -88,6 +88,23 @@ font_get_glyph_v_advance (HB_WASM_EXEC_ENV
   return hb_font_get_glyph_v_advance (font, glyph);
 }
 
+static_assert (sizeof (glyph_extents_t) == sizeof (hb_glyph_extents_t), "");
+
+bool_t
+font_get_glyph_extents (HB_WASM_EXEC_ENV
+			ptr_t(font_t) fontref,
+			codepoint_t glyph,
+			ptr_t(glyph_extents_t) extentsptr)
+{
+  HB_REF2OBJ (font);
+  HB_OUT_PARAM (glyph_extents_t, extents);
+  if (unlikely (!extents))
+    return false;
+
+  return hb_font_get_glyph_extents (font, glyph,
+				    (hb_glyph_extents_t *) extents);
+}
+
 void
 font_glyph_to_string (HB_WASM_EXEC_ENV
 		      ptr_t(font_t) fontref,
