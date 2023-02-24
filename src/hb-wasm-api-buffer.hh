@@ -52,6 +52,38 @@ buffer_contents_free (HB_WASM_EXEC_ENV
 }
 
 void
+ buffer_contents_realloc (HB_WASM_EXEC_ENV
+			  ptr_t(buffer_contents_t) contentsptr,
+			  uint32_t size)
+{
+  HB_STRUCT_TYPE (buffer_contents_t, contents);
+  if (unlikely (!contents))
+    return;
+
+  if (size <= contents->length)
+    return;
+
+  unsigned bytes;
+  if (hb_unsigned_mul_overflows (size, sizeof (glyph_info_t), &bytes))
+    return;
+
+  // TODO bounds check?
+  uint32_t infoptr = contents->info;
+  uint32_t posptr = contents->pos;
+  const char *info = (const char *) addr_app_to_native (infoptr);
+  const char *pos = (const char *) addr_app_to_native (posptr);
+
+  contents->info = wasm_runtime_module_dup_data (module_inst, info, bytes);
+  contents->pos = wasm_runtime_module_dup_data (module_inst, pos, bytes);
+
+  module_free (infoptr);
+  module_free (posptr);
+
+  // TODO Check success
+  contents->length = size;
+}
+
+void
 buffer_copy_contents (HB_WASM_EXEC_ENV_COMPOUND
 		      ptr_t(buffer_t) bufferref)
 {
@@ -66,7 +98,6 @@ buffer_copy_contents (HB_WASM_EXEC_ENV_COMPOUND
   ret.info = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->info, length * sizeof (buffer->info[0]));
   ret.pos = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->pos, length * sizeof (buffer->pos[0]));
 }
-
 
 bool_t
 buffer_set_contents (HB_WASM_EXEC_ENV

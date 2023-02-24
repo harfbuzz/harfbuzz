@@ -78,8 +78,7 @@ shape (font_t *font, buffer_t *buffer)
   };
 
   length = glyph_count;
-  //contents.info = (glyph_info_t *) realloc (contents.info, length * sizeof (glyph_info_t));
-  //contents.pos = (glyph_position_t *) realloc (contents.pos, length * sizeof (glyph_position_t));
+  buffer_contents_realloc (&contents, length);
   cluster_t *clusters = (cluster_t *) malloc (length * sizeof (cluster_t));
   uint32_t *gids = (uint32_t *) malloc (length * sizeof (uint32_t));
 

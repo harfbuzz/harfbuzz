@@ -115,6 +115,10 @@ typedef struct
   ptr_t(glyph_position_t) pos;
 } buffer_contents_t;
 
+HB_WASM_API (void, buffer_contents_realloc) (HB_WASM_EXEC_ENV
+					     ptr_t(buffer_contents_t),
+					     uint32_t size);
+
 HB_WASM_API (void, buffer_contents_free) (HB_WASM_EXEC_ENV
 					  ptr_t(buffer_contents_t));
 
