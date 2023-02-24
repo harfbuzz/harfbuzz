@@ -40,6 +40,9 @@ shape_with (HB_WASM_EXEC_ENV
   HB_REF2OBJ (font);
   HB_REF2OBJ (buffer);
 
+  if (0 == strcmp (shaper, "wasm"))
+    return false;
+
   const char * shaper_list[] = {shaper, nullptr};
   return hb_shape_full (font, buffer, nullptr, 0, shaper_list);
 }
