@@ -39,6 +39,7 @@ shape (font_t *font, buffer_t *buffer)
   blob_free (&blob);
 
   buffer_contents_t contents = buffer_copy_contents (buffer);
+  direction_t direction = buffer_get_direction (buffer);
 
   const gr_face_ops ops = {sizeof (gr_face_ops), &copy_table, nullptr};//&free_table};
   gr_face *grface = gr_make_face_with_ops (face, &ops, gr_face_preloadAll);
@@ -59,7 +60,7 @@ shape (font_t *font, buffer_t *buffer)
 		     0, // https://github.com/harfbuzz/harfbuzz/issues/3439#issuecomment-1442650148
 		     nullptr,
 		     gr_utf32, chars, contents.length,
-		     2/* | (buffer_get_direction (buffer) == DIRECTION_RTL ? 1 : 0)*/);
+		     2 | (direction == DIRECTION_RTL ? 1 : 0));
 
   free (chars);
 
@@ -92,7 +93,7 @@ shape (font_t *font, buffer_t *buffer)
   float yscale = (float) font_y_scale / upem;
   yscale *= yscale / xscale;
   unsigned int curradv = 0;
-  if (0)//HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
+  if (DIRECTION_IS_BACKWARD (direction))
   {
     curradv = gr_slot_origin_X(gr_seg_first_slot(seg)) * xscale;
     clusters[0].advance = gr_seg_advance_X(seg) * xscale - curradv;
@@ -121,7 +122,7 @@ shape (font_t *font, buffer_t *buffer)
       c->num_chars = before - c->base_char;
       c->base_glyph = ic;
       c->num_glyphs = 0;
-      if (0)//HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
+      if (DIRECTION_IS_BACKWARD (direction))
       {
 	c->advance = curradv - gr_slot_origin_X(is) * xscale;
 	curradv -= c->advance;
@@ -140,7 +141,7 @@ shape (font_t *font, buffer_t *buffer)
 	clusters[ci].num_chars = after + 1 - clusters[ci].base_char;
   }
 
-  if (0)//HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
+  if (DIRECTION_IS_BACKWARD (direction))
     clusters[ci].advance += curradv;
   else
     clusters[ci].advance += gr_seg_advance_X(seg) * xscale - curradv;
@@ -162,7 +163,7 @@ shape (font_t *font, buffer_t *buffer)
   unsigned int currclus = 0xFFFFFFFF;
   const glyph_info_t *info = contents.info;
   glyph_position_t *pPos = contents.pos;
-  if (1)//!HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
+  if (!DIRECTION_IS_BACKWARD (direction))
   {
     curradvx = 0;
     for (is = gr_seg_first_slot (seg); is; pPos++, ++info, is = gr_slot_next_in_segment (is))

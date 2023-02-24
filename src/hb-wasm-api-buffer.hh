@@ -128,6 +128,16 @@ buffer_set_contents (HB_WASM_EXEC_ENV
   return true;
 }
 
+direction_t
+buffer_get_direction (HB_WASM_EXEC_ENV
+		      ptr_t(buffer_t) bufferref)
+{
+  HB_REF2OBJ (buffer);
+
+  return (direction_t) hb_buffer_get_direction (buffer);
+}
+
+
 }}
 
 #endif /* HB_WASM_API_BUFFER_HH */

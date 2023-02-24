@@ -75,6 +75,20 @@ typedef uint32_t hb_mask_t;
 typedef uint32_t tag_t;
 #define TAG(c1,c2,c3,c4) ((tag_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
 
+typedef enum {
+  DIRECTION_INVALID = 0,
+  DIRECTION_LTR = 4,
+  DIRECTION_RTL,
+  DIRECTION_TTB,
+  DIRECTION_BTT
+} direction_t;
+#define DIRECTION_IS_VALID(dir)		((((unsigned int) (dir)) & ~3U) == 4)
+#define DIRECTION_IS_HORIZONTAL(dir)	((((unsigned int) (dir)) & ~1U) == 4)
+#define DIRECTION_IS_VERTICAL(dir)	((((unsigned int) (dir)) & ~1U) == 6)
+#define DIRECTION_IS_FORWARD(dir)	((((unsigned int) (dir)) & ~2U) == 4)
+#define DIRECTION_IS_BACKWARD(dir)	((((unsigned int) (dir)) & ~2U) == 5)
+#define DIRECTION_REVERSE(dir)		((direction_t) (((unsigned int) (dir)) ^ 1))
+
 
 /* blob */
 
@@ -130,6 +144,9 @@ HB_WASM_API_COMPOUND (buffer_contents_t, buffer_copy_contents) (HB_WASM_EXEC_ENV
 HB_WASM_API (bool_t, buffer_set_contents) (HB_WASM_EXEC_ENV
 					   ptr_t(buffer_t),
 					   ptr_t(const buffer_contents_t));
+
+HB_WASM_API (direction_t, buffer_get_direction) (HB_WASM_EXEC_ENV
+						 ptr_t(buffer_t));
 
 
 /* face */
