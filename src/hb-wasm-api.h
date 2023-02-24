@@ -225,17 +225,29 @@ HB_WASM_API (void, font_glyph_to_string) (HB_WASM_EXEC_ENV
 
 /* shape */
 
+typedef struct {
+  tag_t    tag;
+  uint32_t value;
+  uint32_t start;
+  uint32_t end;
+} feature_t;
+#define FEATURE_GLOBAL_START	0
+#define FEATURE_GLOBAL_END	((uint32_t) -1)
+
 HB_WASM_INTERFACE (bool_t, shape_with) (HB_WASM_EXEC_ENV
 				        ptr_d(font_t, font),
 				        ptr_d(buffer_t, buffer),
+				        ptr_d(const feature_t, features),
+				        uint32_t num_features,
 					const char *shaper);
 
-
-/* shape interface */
+/* Implement this in your shaper. */
 
 HB_WASM_INTERFACE (bool_t, shape) (HB_WASM_EXEC_ENV
 				   ptr_d(font_t, font),
-				   ptr_d(buffer_t, buffer));
+				   ptr_d(buffer_t, buffer),
+				   ptr_d(const feature_t, features),
+				   uint32_t num_features);
 
 
 HB_WASM_END_DECLS

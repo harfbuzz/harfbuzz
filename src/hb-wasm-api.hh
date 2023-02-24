@@ -91,11 +91,20 @@ HB_INTERNAL extern hb_user_data_key_t _hb_wasm_ref_type_key;
   } \
   type &name = *_name_ptr
 
-#define HB_OUT_PARAM(type, name) \
+#define HB_PTR_PARAM(type, name) \
   type *name = nullptr; \
   HB_STMT_START { \
     if (likely (wasm_runtime_validate_app_addr (module_inst, \
 						name##ptr, sizeof (type)))) \
+      name = (type *) wasm_runtime_addr_app_to_native (module_inst, name##ptr); \
+  } HB_STMT_END
+
+#define HB_ARRAY_PARAM(type, name, length) \
+  type *name = nullptr; \
+  HB_STMT_START { \
+    if (likely (!hb_unsigned_mul_overflows (length, sizeof (type)) && \
+		wasm_runtime_validate_app_addr (module_inst, \
+						name##ptr, length * sizeof (type)))) \
       name = (type *) wasm_runtime_addr_app_to_native (module_inst, name##ptr); \
   } HB_STMT_END
 

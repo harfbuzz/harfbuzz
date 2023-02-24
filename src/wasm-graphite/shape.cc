@@ -36,7 +36,10 @@ static void free_table (const void *data, const void *table_data)
 }
 
 bool_t
-shape (font_t *font, buffer_t *buffer)
+shape (font_t *font,
+       buffer_t *buffer,
+       const feature_t *features,
+       uint32_t num_features)
 {
   direction_t direction = buffer_get_direction (buffer);
   direction_t horiz_dir = script_get_horizontal_direction (buffer_get_script (buffer));

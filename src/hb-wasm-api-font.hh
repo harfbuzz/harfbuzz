@@ -49,8 +49,8 @@ HB_WASM_API (void, font_get_scale) (HB_WASM_EXEC_ENV
 {
   HB_REF2OBJ (font);
 
-  HB_OUT_PARAM(int32_t, x_scale);
-  HB_OUT_PARAM(int32_t, y_scale);
+  HB_PTR_PARAM(int32_t, x_scale);
+  HB_PTR_PARAM(int32_t, y_scale);
 
   hb_font_get_scale (font, x_scale, y_scale);
 }
@@ -91,7 +91,7 @@ HB_WASM_API (bool_t, font_get_glyph_extents) (HB_WASM_EXEC_ENV
 					      ptr_d(glyph_extents_t, extents))
 {
   HB_REF2OBJ (font);
-  HB_OUT_PARAM (glyph_extents_t, extents);
+  HB_PTR_PARAM (glyph_extents_t, extents);
   if (unlikely (!extents))
     return false;
 

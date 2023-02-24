@@ -80,7 +80,7 @@ static NativeSymbol _hb_wasm_native_symbols[] =
   NATIVE_SYMBOL ("(ii$*)",	font_glyph_to_string),
 
   /* shape */
-  NATIVE_SYMBOL ("(ii$)i",	shape_with),
+  NATIVE_SYMBOL ("(iiii$)i",	shape_with),
 
   /* debug */
 #ifdef HB_DEBUG_WASM

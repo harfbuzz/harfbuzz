@@ -9,7 +9,10 @@ void debugprint2 (const char *s, int32_t, int32_t);
 }
 
 bool_t
-shape (font_t *font, buffer_t *buffer)
+shape (font_t *font,
+       buffer_t *buffer,
+       const feature_t *features,
+       uint32_t num_features)
 {
   face_t *face = font_get_face (font);
 

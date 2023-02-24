@@ -197,17 +197,27 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
   }
 
   wasm_val_t results[1];
-  wasm_val_t arguments[2];
+  wasm_val_t arguments[4];
 
   results[0].kind = WASM_I32;
   arguments[0].kind = WASM_I32;
   arguments[0].of.i32 = fontref;
   arguments[1].kind = WASM_I32;
   arguments[1].of.i32 = bufferref;
+  arguments[2].kind = WASM_I32;
+  arguments[2].of.i32 = wasm_runtime_module_dup_data (module_inst,
+						      (const char *) features,
+						      num_features * sizeof (features[0]));
+  arguments[3].kind = WASM_I32;
+  arguments[3].of.i32 = num_features;
 
    ret = wasm_runtime_call_wasm_a (exec_env, shape_func,
 				   ARRAY_LENGTH (results), results,
 				   ARRAY_LENGTH (arguments), arguments);
+
+
+  wasm_runtime_module_free (module_inst, arguments[2].of.i32);
+
   if (unlikely (!ret))
   {
     DEBUG_MSG (WASM, module_inst, "Calling shape function failed: %s",

@@ -39,7 +39,7 @@ HB_WASM_API (void, buffer_contents_realloc) (HB_WASM_EXEC_ENV
 					     ptr_d(buffer_contents_t, contents),
 					     uint32_t size)
 {
-  HB_OUT_PARAM (buffer_contents_t, contents);
+  HB_PTR_PARAM (buffer_contents_t, contents);
   if (unlikely (!contents))
     return;
 
@@ -69,7 +69,7 @@ HB_WASM_API (void, buffer_contents_realloc) (HB_WASM_EXEC_ENV
 HB_WASM_API (void, buffer_contents_free) (HB_WASM_EXEC_ENV
 					  ptr_d(buffer_contents_t, contents))
 {
-  HB_OUT_PARAM (buffer_contents_t, contents);
+  HB_PTR_PARAM (buffer_contents_t, contents);
   if (unlikely (!contents))
     return;
 
@@ -101,7 +101,7 @@ HB_WASM_API (bool_t, buffer_set_contents) (HB_WASM_EXEC_ENV
 					   ptr_d(const buffer_contents_t, contents))
 {
   HB_REF2OBJ (buffer);
-  HB_OUT_PARAM (buffer_contents_t, contents);
+  HB_PTR_PARAM (buffer_contents_t, contents);
   if (unlikely (!contents))
     return false;
 

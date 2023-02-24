@@ -31,19 +31,29 @@ namespace hb {
 namespace wasm {
 
 
+static_assert (sizeof (feature_t) == sizeof (hb_feature_t), "");
+
 HB_WASM_INTERFACE (bool_t, shape_with) (HB_WASM_EXEC_ENV
 				        ptr_d(font_t, font),
 				        ptr_d(buffer_t, buffer),
+				        ptr_d(const feature_t, features),
+				        uint32_t num_features,
 					const char *shaper)
 {
+  if (unlikely (0 == strcmp (shaper, "wasm")))
+    return false;
+
   HB_REF2OBJ (font);
   HB_REF2OBJ (buffer);
 
-  if (0 == strcmp (shaper, "wasm"))
+  HB_ARRAY_PARAM (const feature_t, features, num_features);
+  if (unlikely (!features && num_features))
     return false;
 
   const char * shaper_list[] = {shaper, nullptr};
-  return hb_shape_full (font, buffer, nullptr, 0, shaper_list);
+  return hb_shape_full (font, buffer,
+			(hb_feature_t *) features, num_features,
+			shaper_list);
 }
 
 
