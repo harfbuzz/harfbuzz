@@ -329,6 +329,7 @@ hb_wasm_sources = files(
   'hb-wasm-api.hh',
   'hb-wasm-api-blob.hh',
   'hb-wasm-api-buffer.hh',
+  'hb-wasm-api-common.hh',
   'hb-wasm-api-face.hh',
   'hb-wasm-api-font.hh',
   'hb-wasm-api-shape.hh',

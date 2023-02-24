@@ -50,6 +50,8 @@ static void debugprint4 (HB_WASM_EXEC_ENV char *str, int32_t i1, int32_t i2, int
  * https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/doc/export_native_api.md */
 static NativeSymbol _hb_wasm_native_symbols[] =
 {
+  /* common */
+  NATIVE_SYMBOL ("(i)i",	script_get_horizontal_direction),
 
   /* blob */
   NATIVE_SYMBOL ("(i)",		blob_free),
@@ -60,6 +62,7 @@ static NativeSymbol _hb_wasm_native_symbols[] =
   NATIVE_SYMBOL ("(ii)",	buffer_copy_contents),
   NATIVE_SYMBOL ("(ii)i",	buffer_set_contents),
   NATIVE_SYMBOL ("(i)i",	buffer_get_direction),
+  NATIVE_SYMBOL ("(i)i",	buffer_get_script),
   NATIVE_SYMBOL ("(i)",		buffer_reverse),
   NATIVE_SYMBOL ("(i)",		buffer_reverse_clusters),
 

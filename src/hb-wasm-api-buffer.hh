@@ -132,6 +132,14 @@ HB_WASM_API (direction_t, buffer_get_direction) (HB_WASM_EXEC_ENV
   return (direction_t) hb_buffer_get_direction (buffer);
 }
 
+HB_WASM_API (script_t, buffer_get_script) (HB_WASM_EXEC_ENV
+					   ptr_d(buffer_t, buffer))
+{
+  HB_REF2OBJ (buffer);
+
+  return hb_script_to_iso15924_tag (hb_buffer_get_script (buffer));
+}
+
 HB_WASM_API (void, buffer_reverse) (HB_WASM_EXEC_ENV
 				    ptr_d(buffer_t, buffer))
 {

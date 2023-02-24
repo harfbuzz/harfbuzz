@@ -38,15 +38,24 @@ static void free_table (const void *data, const void *table_data)
 bool_t
 shape (font_t *font, buffer_t *buffer)
 {
-  face_t *face = font_get_face (font);
-
-  blob_t blob = face_reference_table (face, TAG ('c','m','a','p'));
-
-  blob_free (&blob);
+  direction_t direction = buffer_get_direction (buffer);
+  direction_t horiz_dir = script_get_horizontal_direction (buffer_get_script (buffer));
+  /* TODO vertical:
+   * The only BTT vertical script is Ogham, but it's not clear to me whether OpenType
+   * Ogham fonts are supposed to be implemented BTT or not.  Need to research that
+   * first. */
+  if ((DIRECTION_IS_HORIZONTAL (direction) &&
+       direction != horiz_dir && horiz_dir != DIRECTION_INVALID) ||
+      (DIRECTION_IS_VERTICAL   (direction) &&
+       direction != DIRECTION_TTB))
+  {
+    buffer_reverse_clusters (buffer);
+    direction = DIRECTION_REVERSE (direction);
+  }
 
   buffer_contents_t contents = buffer_copy_contents (buffer);
-  direction_t direction = buffer_get_direction (buffer);
 
+  face_t *face = font_get_face (font);
   const gr_face_ops ops = {sizeof (gr_face_ops), &copy_table, &free_table};
   gr_face *grface = gr_make_face_with_ops (face, &ops, gr_face_preloadAll);
 

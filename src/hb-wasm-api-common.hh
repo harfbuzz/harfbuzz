@@ -22,19 +22,23 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
+#ifndef HB_WASM_API_COMMON_HH
+#define HB_WASM_API_COMMON_HH
+
 #include "hb-wasm-api.hh"
 
-#define module_inst wasm_runtime_get_module_inst (exec_env)
+namespace hb {
+namespace wasm {
 
 
-#include "hb-wasm-api-blob.hh"
-#include "hb-wasm-api-buffer.hh"
-#include "hb-wasm-api-common.hh"
-#include "hb-wasm-api-face.hh"
-#include "hb-wasm-api-font.hh"
-#include "hb-wasm-api-shape.hh"
+HB_WASM_API (direction_t, script_get_horizontal_direction) (HB_WASM_EXEC_ENV
+							    script_t script)
+{
+  return (direction_t)
+	 hb_script_get_horizontal_direction (hb_script_from_iso15924_tag (script));
+}
 
 
-#undef module_inst
+}}
 
-hb_user_data_key_t _hb_wasm_ref_type_key = {};
+#endif /* HB_WASM_API_COMMON_HH */

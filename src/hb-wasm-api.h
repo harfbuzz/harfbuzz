@@ -92,6 +92,14 @@ typedef enum {
 #define DIRECTION_IS_BACKWARD(dir)	((((unsigned int) (dir)) & ~2U) == 5)
 #define DIRECTION_REVERSE(dir)		((direction_t) (((unsigned int) (dir)) ^ 1))
 
+typedef tag_t script_t; /* ISO 15924 representation of Unicode scripts. */
+
+
+/* common */
+
+HB_WASM_API (direction_t, script_get_horizontal_direction) (HB_WASM_EXEC_ENV
+							    script_t script);
+
 
 /* blob */
 
@@ -150,6 +158,9 @@ HB_WASM_API (bool_t, buffer_set_contents) (HB_WASM_EXEC_ENV
 
 HB_WASM_API (direction_t, buffer_get_direction) (HB_WASM_EXEC_ENV
 						 ptr_d(buffer_t, buffer));
+
+HB_WASM_API (script_t, buffer_get_script) (HB_WASM_EXEC_ENV
+					   ptr_d(buffer_t, buffer));
 
 HB_WASM_API (void, buffer_reverse) (HB_WASM_EXEC_ENV
 				    ptr_d(buffer_t, buffer));
