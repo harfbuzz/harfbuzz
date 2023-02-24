@@ -1,4 +1,4 @@
-all: CharisSIL-R.wasm.ttf Scheherazade-R.wasm.ttf
+all: CharisSIL-R.wasm.ttf Scheherazade-R.wasm.ttf AwamiNastaliq-Regular.wasm.ttf
 
 %.wasm: %.cc ../hb-wasm-api.h
 	emcc \

@@ -73,7 +73,6 @@ init_wasm ()
     return false;
   }
 
-
   initialized = true;
   return true;
 }
@@ -100,7 +99,6 @@ _hb_wasm_shaper_face_data_create (hb_face_t *face)
     DEBUG_MSG (WASM, nullptr, "Load wasm module failed.");
     goto fail;
   }
-
 
   data = (hb_wasm_face_data_t *) hb_calloc (1, sizeof (hb_wasm_face_data_t));
   if (unlikely (!data))
@@ -211,10 +209,9 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
   arguments[3].kind = WASM_I32;
   arguments[3].of.i32 = num_features;
 
-   ret = wasm_runtime_call_wasm_a (exec_env, shape_func,
-				   ARRAY_LENGTH (results), results,
-				   ARRAY_LENGTH (arguments), arguments);
-
+  ret = wasm_runtime_call_wasm_a (exec_env, shape_func,
+				  ARRAY_LENGTH (results), results,
+				  ARRAY_LENGTH (arguments), arguments);
 
   wasm_runtime_module_free (module_inst, arguments[2].of.i32);
 
