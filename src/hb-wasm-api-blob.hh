@@ -31,9 +31,8 @@ namespace hb {
 namespace wasm {
 
 
-void
-blob_free (HB_WASM_EXEC_ENV
-	   ptr_d(blob_t, blob))
+HB_WASM_API (void, blob_free) (HB_WASM_EXEC_ENV
+			       ptr_d(blob_t, blob))
 {
   HB_OUT_PARAM (blob_t, blob);
   if (unlikely (!blob))

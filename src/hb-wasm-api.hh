@@ -43,7 +43,6 @@
 
 #include "hb-wasm-api.h"
 
-#undef HB_WASM_API
 #undef HB_WASM_BEGIN_DECLS
 #undef HB_WASM_END_DECLS
 

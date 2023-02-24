@@ -31,11 +31,10 @@ namespace hb {
 namespace wasm {
 
 
-bool_t
-shape_with (HB_WASM_EXEC_ENV
-	    ptr_d(font_t, font),
-	    ptr_d(buffer_t, buffer),
-	    const char *shaper)
+HB_WASM_INTERFACE (bool_t, shape_with) (HB_WASM_EXEC_ENV
+				        ptr_d(font_t, font),
+				        ptr_d(buffer_t, buffer),
+					const char *shaper)
 {
   HB_REF2OBJ (font);
   HB_REF2OBJ (buffer);
