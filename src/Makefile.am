@@ -273,16 +273,17 @@ DISTCLEANFILES += \
 hb-features.h: hb-features.h.in $(top_builddir)/config.status
 	$(AM_V_GEN) $(SED) \
 		-e 's/mesondefine HB_HAS_CAIRO/$(HB_HAS_CAIRO_DEF)/' \
+		-e 's/mesondefine HB_HAS_CORETEXT/$(HB_HAS_CORETEXT_DEF)/' \
+		-e 's/mesondefine HB_HAS_DIRECTWRITE/$(HB_HAS_DIRECTWRITE_DEF)/' \
 		-e 's/mesondefine HB_HAS_FREETYPE/$(HB_HAS_FREETYPE_DEF)/' \
 		-e 's/mesondefine HB_HAS_GDI/$(HB_HAS_GDI_DEF)/' \
 		-e 's/mesondefine HB_HAS_GDI/$(HB_HAS_GDI_DEF)/' \
-		-e 's/mesondefine HB_HAS_GRAPHITE/$(HB_HAS_GRAPHITE_DEF)/' \
 		-e 's/mesondefine HB_HAS_GLIB/$(HB_HAS_GLIB_DEF)/' \
 		-e 's/mesondefine HB_HAS_GOBJECT/$(HB_HAS_GOBJECT_DEF)/' \
-		-e 's/mesondefine HB_HAS_UNISCRIBE/$(HB_HAS_UNISCRIBE_DEF)/' \
-		-e 's/mesondefine HB_HAS_DIRECTWRITE/$(HB_HAS_DIRECTWRITE_DEF)/' \
-		-e 's/mesondefine HB_HAS_CORETEXT/$(HB_HAS_CORETEXT_DEF)/' \
+		-e 's/mesondefine HB_HAS_GRAPHITE/$(HB_HAS_GRAPHITE_DEF)/' \
 		-e 's/mesondefine HB_HAS_ICU/$(HB_HAS_ICU_DEF)/' \
+		-e 's/mesondefine HB_HAS_UNISCRIBE/$(HB_HAS_UNISCRIBE_DEF)/' \
+		-e 's/mesondefine HB_HAS_WASM/$(HB_HAS_WASM_DEF)/' \
 		"$<" > "$@" || ($(RM) "$@"; false)
 
 

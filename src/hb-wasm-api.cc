@@ -22,6 +22,10 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
+#include "hb.hh"
+
+#ifdef HAVE_WASM
+
 #include "hb-wasm-api.hh"
 
 #define module_inst wasm_runtime_get_module_inst (exec_env)
@@ -38,3 +42,5 @@
 #undef module_inst
 
 hb_user_data_key_t _hb_wasm_ref_type_key = {};
+
+#endif

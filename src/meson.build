@@ -429,7 +429,7 @@ custom_target('harfbuzz.cc',
   output: 'harfbuzz.cc',
   input: hb_base_sources + hb_glib_sources + hb_ft_sources +
          hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
-         hb_directwrite_sources + hb_coretext_sources,
+         hb_directwrite_sources + hb_coretext_sources + hb_wasm_sources,
   command: [find_program('gen-harfbuzzcc.py'),
             '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
 )
@@ -515,6 +515,7 @@ features = [
   'GRAPHITE',
   'ICU',
   'UNISCRIBE',
+  'WASM',
 ]
 
 hb_enabled_features = configuration_data()
