@@ -55,6 +55,11 @@ init_wasm ()
   RuntimeInitArgs init_args;
   memset (&init_args, 0, sizeof (RuntimeInitArgs));
 
+  if (wasm_runtime_is_running_mode_supported (Mode_LLVM_JIT))
+    init_args.running_mode = Mode_LLVM_JIT;
+  else if (wasm_runtime_is_running_mode_supported (Mode_Fast_JIT))
+    init_args.running_mode = Mode_Fast_JIT;
+
   init_args.mem_alloc_type = Alloc_With_Allocator;
   init_args.mem_alloc_option.allocator.malloc_func = (void *) hb_malloc;
   init_args.mem_alloc_option.allocator.realloc_func = (void *) hb_realloc;
@@ -157,7 +162,7 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
 {
   bool ret = true;
   const hb_wasm_face_data_t *face_data = font->face->data.wasm;
-  constexpr uint32_t stack_size = 8092, heap_size = 2 * 1024 * 1024;
+  constexpr uint32_t stack_size = 32 * 1024, heap_size = 2 * 1024 * 1024;
 
   wasm_module_inst_t module_inst = nullptr;
   wasm_exec_env_t exec_env = nullptr;
