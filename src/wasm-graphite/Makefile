@@ -1,4 +1,4 @@
-all: test.wasm.ttf
+all: CharisSIL-R.wasm.ttf Scheherazade-R.wasm.ttf
 
 %.wasm: %.cc ../hb-wasm-api.h
 	emcc \

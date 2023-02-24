@@ -60,6 +60,7 @@ static NativeSymbol _hb_wasm_native_symbols[] =
   NATIVE_SYMBOL ("(ii)",	buffer_copy_contents),
   NATIVE_SYMBOL ("(ii)i",	buffer_set_contents),
   NATIVE_SYMBOL ("(i)i",	buffer_get_direction),
+  NATIVE_SYMBOL ("(i)",		buffer_reverse_clusters),
 
   /* face */
   NATIVE_SYMBOL ("(iii)",	face_reference_table),

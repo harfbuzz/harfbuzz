@@ -180,6 +180,7 @@ shape (font_t *font, buffer_t *buffer)
       pPos->y_advance = gr_slot_advance_Y (is, grface, nullptr) * yscale;
       curradvy += pPos->y_advance;
     }
+    buffer_set_contents (buffer, &contents);
   }
   else
   {
@@ -199,12 +200,11 @@ shape (font_t *font, buffer_t *buffer)
       pPos->x_offset = gr_slot_origin_X (is) * xscale - info->var1 - curradvx + pPos->x_advance;
       pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
     }
-    //buffer_reverse_clusters (buffer);
+    buffer_set_contents (buffer, &contents);
+    buffer_reverse_clusters (buffer);
   }
 
   gr_seg_destroy (seg);
-
-  buffer_set_contents (buffer, &contents);
 
   bool ret = glyph_count;
 
