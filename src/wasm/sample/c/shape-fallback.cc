@@ -3,7 +3,6 @@
 #include <hb-wasm-api.h>
 
 extern "C" {
-void abort ();
 void debugprint (const char *s);
 void debugprint1 (const char *s, int32_t);
 void debugprint2 (const char *s, int32_t, int32_t);
@@ -19,8 +18,7 @@ shape (void *shape_plan,
   face_t *face = font_get_face (font);
 
   blob_t blob = BLOB_INIT;
-  if (!face_copy_table (face, TAG ('c','m','a','p'), &blob))
-    abort ();
+  face_copy_table (face, TAG ('c','m','a','p'), &blob);
 
   debugprint1 ("cmap length", blob.length);
 
