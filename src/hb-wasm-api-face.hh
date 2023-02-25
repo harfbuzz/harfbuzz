@@ -48,7 +48,7 @@ HB_WASM_API (bool_t, face_copy_table) (HB_WASM_EXEC_ENV
 
   if (length <= blob->length)
   {
-    char *data = (char *) (validate_app_addr (blob->data, blob->length) ? addr_app_to_native (blob->data) : nullptr);
+    char *data = (char *) (validate_app_addr (blob->data, length) ? addr_app_to_native (blob->data) : nullptr);
 
     if (unlikely (!data))
     {
