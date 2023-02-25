@@ -42,7 +42,7 @@ extern "C" {
     fn font_get_glyph_h_advance(font: u32, glyph: u32) -> i32;
     fn font_get_glyph_v_advance(font: u32, glyph: u32) -> i32;
     fn face_copy_table(font: u32, tag: u32) -> Blob;
-    fn buffer_copy_contents(buffer: u32) -> CBufferContents;
+    fn buffer_copy_contents(buffer: u32, cbuffer: *mut CBufferContents) -> bool;
     fn buffer_set_contents(buffer: u32, cbuffer: &CBufferContents) -> bool;
     fn debugprint(s: *const u8);
     fn shape_with(
@@ -203,7 +203,15 @@ impl<T: BufferItem> Buffer<T> {
     /// The `Buffer` struct implements Drop, meaning that when the shaping
     /// function is finished, the buffer contents are sent back to Harfbuzz.
     pub fn from_ref(ptr: u32) -> Self {
-        let c_contents: CBufferContents = unsafe { buffer_copy_contents(ptr) };
+        let mut c_contents = CBufferContents {
+            info: std::ptr::null_mut(),
+            position: std::ptr::null_mut(),
+            length: 0,
+        };
+
+        unsafe {
+            buffer_copy_contents(ptr, &mut c_contents) || panic!("Couldn't copy buffer contents")
+        };
         let positions: Vec<CGlyphPosition> = unsafe {
             std::slice::from_raw_parts(c_contents.position, c_contents.length as usize).to_vec()
         };

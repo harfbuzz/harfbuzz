@@ -35,12 +35,12 @@ harfbuzz-wasm = { path = "your-harfbuzz-source/src/wasm/rust/harfbuzz-wasm"}
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn shape(_font_ref: u32, _buf_ref: u32, _features: u32, _num_features: u32) -> i32 {
+pub fn shape(_shape_plan: u32, _font_ref: u32, _buf_ref: u32, _features: u32) -> i32 {
     1 // success!
 }
 ```
 
-This exports a shaping function which takes two arguments, tokens representing the font and the buffer, and returns a status value. We can pass these tokens back to Harfbuzz in order to use its native functions on the font and buffer objects. More on native functions later - let's get this shaper compiled and added into a font:
+This exports a shaping function which takes four arguments, tokens representing the shaping plan, the font and the buffer, and returns a status value. We can pass these tokens back to Harfbuzz in order to use its native functions on the font and buffer objects. More on native functions later - let's get this shaper compiled and added into a font:
 
 * To compile the shaper, run `wasm-pack build --target nodejs`:
 
@@ -85,7 +85,7 @@ In debugging builds of Harfbuzz, we can print some output from the web assembly 
 use harfbuzz_wasm::debug;
 
 #[wasm_bindgen]
-pub fn shape(_font_ref: u32, _buf_ref: u32, _features: u32, _num_features: u32) -> i32 {
+pub fn shape(shape_plan, font_ref: u32, buf_ref: u32, _features: u32) -> i32 {
     debug("Hello from Rust!\n");
     1
 }
@@ -106,7 +106,7 @@ use wasm_bindgen::prelude::*;
 use harfbuzz_wasm::{Font, GlyphBuffer};
 
 #[wasm_bindgen]
-pub fn shape(_font_ref: u32, _buf_ref: u32, _features: u32, _num_features: u32) -> i32 {
+pub fn shape(_shape_plan:u32, font_ref: u32, buf_ref: u32, _features: u32) -> i32 {
     let font = Font::from_ref(font_ref);
     let mut buffer = GlyphBuffer::from_ref(buf_ref);
     for mut item in buffer.glyphs.iter_mut() {
