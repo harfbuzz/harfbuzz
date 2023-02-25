@@ -254,10 +254,14 @@ typedef struct
 } glyph_outline_t;
 #define GLYPH_OUTLINE_INIT {0, 0, 0, 0}
 
+HB_WASM_API (void, glyph_outline_free) (HB_WASM_EXEC_ENV
+					ptr_d(glyph_outline_t, outline));
+
 HB_WASM_API (bool_t, font_copy_glyph_outline) (HB_WASM_EXEC_ENV
 					       ptr_d(font_t, font),
 					       codepoint_t glyph,
 					       ptr_d(glyph_outline_t, outline));
+
 
 /* shape */
 

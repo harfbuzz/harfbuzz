@@ -30,9 +30,13 @@ shape (void *shape_plan,
 
   debugprint1 ("buffer length", contents.length);
 
+  glyph_outline_t outline = GLYPH_OUTLINE_INIT;
+
   for (unsigned i = 0; i < contents.length; i++)
   {
     char name[64];
+
+    debugprint1 ("glyph at", i);
 
     font_glyph_to_string (font, contents.info[i].codepoint, name, sizeof (name));
 
@@ -41,10 +45,12 @@ shape (void *shape_plan,
     contents.info[i].codepoint = font_get_glyph (font, contents.info[i].codepoint, 0);
     contents.pos[i].x_advance = font_get_glyph_h_advance (font, contents.info[i].codepoint);
 
-    glyph_outline_t outline = GLYPH_OUTLINE_INIT;
     font_copy_glyph_outline (font, contents.info[i].codepoint, &outline);
+    debugprint1 ("num outline points", outline.n_points);
     debugprint1 ("num outline contours", outline.n_contours);
   }
+
+  glyph_outline_free (&outline);
 
   bool_t ret = buffer_set_contents (buffer, &contents);
 
