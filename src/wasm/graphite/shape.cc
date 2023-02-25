@@ -4,13 +4,8 @@
 
 #include <graphite2/Segment.h>
 
-extern "C" {
-void *malloc(size_t size);
-void *realloc(void *ptr, size_t size);
-void free(void *ptr);
-void abort();
-void *memset(void *s, int c, size_t n);
-}
+#include <stdlib.h>
+#include <string.h>
 
 void debugprint1 (char *s, int32_t);
 void debugprint2 (char *s, int32_t, int32_t);
