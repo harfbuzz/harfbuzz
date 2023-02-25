@@ -72,8 +72,6 @@ init_wasm ()
   init_args.mem_alloc_option.allocator.realloc_func = (void *) hb_realloc;
   init_args.mem_alloc_option.allocator.free_func = (void *) hb_free;
 
-  init_args.mem_alloc_type = Alloc_With_System_Allocator;
-
   // Native symbols need below registration phase
   init_args.n_native_symbols = ARRAY_LENGTH (_hb_wasm_native_symbols);
   init_args.native_module_name = "env";
