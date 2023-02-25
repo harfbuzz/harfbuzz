@@ -348,7 +348,10 @@ retry:
     DEBUG_MSG (WASM, module_inst, "Calling shape() failed: %s",
 	       wasm_runtime_get_exception (module_inst));
     if (retried)
+    {
+      DEBUG_MSG (WASM, font, "Giving up...");
       goto fail;
+    }
     buffer->successful = true;
     retried = true;
     release_shape_plan (face_data, plan);
