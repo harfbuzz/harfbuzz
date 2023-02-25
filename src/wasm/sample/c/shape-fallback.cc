@@ -18,7 +18,7 @@ shape (void *shape_plan,
 {
   face_t *face = font_get_face (font);
 
-  blob_t blob;
+  blob_t blob = BLOB_INIT;
   if (!face_copy_table (face, TAG ('c','m','a','p'), &blob))
     abort ();
 

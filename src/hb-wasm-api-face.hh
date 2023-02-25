@@ -44,10 +44,25 @@ HB_WASM_API (bool_t, face_copy_table) (HB_WASM_EXEC_ENV
   hb_blob_t *hb_blob = hb_face_reference_table (face, table_tag);
 
   unsigned length;
-  const char *data = hb_blob_get_data (hb_blob, &length);
+  const char *hb_data = hb_blob_get_data (hb_blob, &length);
+
+  if (length <= blob->length)
+  {
+    char *data = (char *) (validate_app_addr (blob->data, blob->length) ? addr_app_to_native (blob->data) : nullptr);
+
+    if (unlikely (!data))
+    {
+      blob->length = 0;
+      return false;
+    }
+
+    memcpy (data, hb_data, length);
+
+    return true;
+  }
 
   blob->length = length;
-  blob->data = wasm_runtime_module_dup_data (module_inst, data, length);
+  blob->data = wasm_runtime_module_dup_data (module_inst, hb_data, length);
 
   hb_blob_destroy (hb_blob);
 

@@ -21,7 +21,7 @@ uint32_t heap_size = 2 * 1024 * 1024;
 static const void *copy_table (const void *data, unsigned int tag, size_t *len)
 {
   face_t *face = (face_t *) data;
-  blob_t blob;
+  blob_t blob = BLOB_INIT;
   if (!face_copy_table (face, tag, &blob))
     abort ();
 

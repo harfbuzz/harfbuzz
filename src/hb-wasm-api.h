@@ -108,6 +108,7 @@ typedef struct
   uint32_t length;
   ptr_t(char) data;
 } blob_t;
+#define BLOB_INIT {0, 0}
 
 HB_WASM_API (void, blob_free) (HB_WASM_EXEC_ENV
 			       ptr_d(blob_t, blob));
