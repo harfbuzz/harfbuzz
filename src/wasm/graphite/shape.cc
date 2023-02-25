@@ -117,7 +117,11 @@ shape (void *shape_plan,
   cluster_t *clusters = (cluster_t *) malloc (length * sizeof (cluster_t));
   uint32_t *gids = (uint32_t *) malloc (length * sizeof (uint32_t));
   if (!clusters || !gids)
+  {
+    free (clusters);
+    free (gids);
     return false;
+  }
 
   memset (clusters, 0, sizeof (clusters[0]) * length);
   codepoint_t *pg = gids;
