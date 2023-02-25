@@ -61,7 +61,7 @@ HB_WASM_API (bool_t, face_copy_table) (HB_WASM_EXEC_ENV
     return true;
   }
 
-  blob_free (exec_env, blobptr);
+  module_free (blob->data);
 
   blob->length = length;
   blob->data = wasm_runtime_module_dup_data (module_inst, hb_data, length);

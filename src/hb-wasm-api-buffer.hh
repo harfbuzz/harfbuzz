@@ -130,7 +130,8 @@ HB_WASM_API (bool_t, buffer_copy_contents) (HB_WASM_EXEC_ENV
     return true;
   }
 
-  buffer_contents_free (exec_env, contentsptr);
+  module_free (contents->info);
+  module_free (contents->pos);
 
   contents->length = length;
   contents->info = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->info, length * sizeof (buffer->info[0]));
