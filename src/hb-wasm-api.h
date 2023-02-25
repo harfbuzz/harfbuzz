@@ -207,7 +207,8 @@ HB_WASM_API (position_t, font_get_glyph_v_advance) (HB_WASM_EXEC_ENV
 						    ptr_d(font_t, font),
 						    codepoint_t glyph);
 
-typedef struct {
+typedef struct
+{
   position_t x_bearing;
   position_t y_bearing;
   position_t width;
@@ -225,9 +226,40 @@ HB_WASM_API (void, font_glyph_to_string) (HB_WASM_EXEC_ENV
 					  char *s, uint32_t size);
 
 
+/* outline */
+
+enum glyph_outline_point_type_t
+{
+  MOVE_TO,
+  LINE_TO,
+  QUADRATIC_TO,
+  CUBIC_TO,
+};
+
+typedef struct
+{
+  float x;
+  float y;
+  uint32_t type;
+} glyph_outline_point_t;
+
+typedef struct
+{
+  uint32_t n_points;
+  ptr_t(glyph_outline_point_t) points;
+  uint32_t n_contours;
+  ptr_t(uint32_t) contours;
+} glyph_outline_t;
+
+HB_WASM_API (bool_t, font_copy_glyph_outline) (HB_WASM_EXEC_ENV
+					       ptr_d(font_t, font),
+					       codepoint_t glyph,
+					       ptr_d(glyph_outline_t, outline));
+
 /* shape */
 
-typedef struct {
+typedef struct
+{
   tag_t    tag;
   uint32_t value;
   uint32_t start;

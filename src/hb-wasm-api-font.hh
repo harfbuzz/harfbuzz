@@ -27,6 +27,8 @@
 
 #include "hb-wasm-api.hh"
 
+#include "hb-outline.hh"
+
 namespace hb {
 namespace wasm {
 
@@ -107,6 +109,50 @@ HB_WASM_API (void, font_glyph_to_string) (HB_WASM_EXEC_ENV
   HB_REF2OBJ (font);
 
   hb_font_glyph_to_string (font, glyph, s, size);
+}
+
+static_assert (sizeof (glyph_outline_point_t) == sizeof (hb_outline_point_t), "");
+static_assert (sizeof (uint32_t) == sizeof (hb_outline_t::contours[0]), "");
+
+HB_WASM_API (bool_t, font_copy_glyph_outline) (HB_WASM_EXEC_ENV
+					       ptr_d(font_t, font),
+					       codepoint_t glyph,
+					       ptr_d(glyph_outline_t, outline))
+{
+  HB_REF2OBJ (font);
+  HB_PTR_PARAM (glyph_outline_t, outline);
+  if (unlikely (!outline))
+    return false;
+
+  hb_outline_t hb_outline;
+  auto *funcs = hb_outline_recording_pen_get_funcs ();
+
+  hb_font_draw_glyph (font, glyph, funcs, &hb_outline);
+
+  if (unlikely (hb_outline.points.in_error () ||
+		hb_outline.contours.in_error ()))
+  {
+    outline->n_points = outline->n_contours = 0;
+    return false;
+  }
+
+  outline->n_points = hb_outline.points.length;
+  outline->points = wasm_runtime_module_dup_data (module_inst,
+						  (const char *) hb_outline.points.arrayZ,
+						  hb_outline.points.get_size ());
+  outline->n_contours = hb_outline.contours.length;
+  outline->contours = wasm_runtime_module_dup_data (module_inst,
+						    (const char *) hb_outline.contours.arrayZ,
+						    hb_outline.contours.get_size ());
+
+  if ((outline->n_points && !outline->points) ||
+      (!outline->n_contours && !outline->contours))
+  {
+    outline->n_points = outline->n_contours = 0;
+    return false;
+  }
+
+  return true;
 }
 
 
