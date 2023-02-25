@@ -31,22 +31,33 @@ namespace hb {
 namespace wasm {
 
 
-HB_WASM_API_COMPOUND (blob_t, face_copy_table) (HB_WASM_EXEC_ENV_COMPOUND
-					        ptr_d(face_t, face),
-					        tag_t table_tag)
+HB_WASM_API (bool_t, face_copy_table) (HB_WASM_EXEC_ENV
+				       ptr_d(face_t, face),
+				       tag_t table_tag,
+				       ptr_d(blob_t, blob))
 {
-  HB_RETURN_STRUCT (blob_t, ret);
   HB_REF2OBJ (face);
+  HB_PTR_PARAM (blob_t, blob);
+  if (unlikely (!blob))
+    return false;
 
-  hb_blob_t *blob = hb_face_reference_table (face, table_tag);
+  hb_blob_t *hb_blob = hb_face_reference_table (face, table_tag);
 
   unsigned length;
-  const char *data = hb_blob_get_data (blob, &length);
+  const char *data = hb_blob_get_data (hb_blob, &length);
 
-  ret.length = length;
-  ret.data = wasm_runtime_module_dup_data (module_inst, data, length);
+  blob->length = length;
+  blob->data = wasm_runtime_module_dup_data (module_inst, data, length);
 
-  hb_blob_destroy (blob);
+  hb_blob_destroy (hb_blob);
+
+  if (blob->length && !blob->data)
+  {
+    blob->length = 0;
+    return false;
+  }
+
+  return true;
 }
 
 HB_WASM_API (unsigned, face_get_upem) (HB_WASM_EXEC_ENV
