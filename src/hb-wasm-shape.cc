@@ -371,6 +371,12 @@ fail:
 
   release_shape_plan (face_data, plan, ret);
 
+  if (ret)
+  {
+    buffer->clear_glyph_flags ();
+    buffer->unsafe_to_break ();
+  }
+
   return ret;
 }
 
