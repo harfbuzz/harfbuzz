@@ -35,12 +35,30 @@ static void free_table (const void *data, const void *table_data)
   blob_free (&blob);
 }
 
+void *
+shape_plan_create (face_t *face)
+{
+  const gr_face_ops ops = {sizeof (gr_face_ops), &copy_table, &free_table};
+  gr_face *grface = gr_make_face_with_ops (face, &ops, gr_face_preloadAll);
+  return grface;
+}
+
+void
+shape_plan_destroy (void *data)
+{
+  gr_face_destroy ((gr_face *) data);
+}
+
 bool_t
-shape (font_t *font,
+shape (void *shape_plan,
+       font_t *font,
        buffer_t *buffer,
        const feature_t *features,
        uint32_t num_features)
 {
+  face_t *face = font_get_face (font);
+  gr_face *grface = (gr_face *) shape_plan;
+
   direction_t direction = buffer_get_direction (buffer);
   direction_t horiz_dir = script_get_horizontal_direction (buffer_get_script (buffer));
   /* TODO vertical:
@@ -57,10 +75,6 @@ shape (font_t *font,
   }
 
   buffer_contents_t contents = buffer_copy_contents (buffer);
-
-  face_t *face = font_get_face (font);
-  const gr_face_ops ops = {sizeof (gr_face_ops), &copy_table, &free_table};
-  gr_face *grface = gr_make_face_with_ops (face, &ops, gr_face_preloadAll);
 
   gr_segment *seg = nullptr;
   const gr_slot *is;

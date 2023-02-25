@@ -161,12 +161,14 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
 		unsigned int        num_features)
 {
   bool ret = true;
-  const hb_wasm_face_data_t *face_data = font->face->data.wasm;
+  hb_face_t *face = font->face;
+  const hb_wasm_face_data_t *face_data = face->data.wasm;
   constexpr uint32_t stack_size = 32 * 1024, heap_size = 2 * 1024 * 1024;
 
   wasm_module_inst_t module_inst = nullptr;
   wasm_exec_env_t exec_env = nullptr;
-  wasm_function_inst_t shape_func = nullptr;
+  wasm_function_inst_t func = nullptr;
+  uint32_t shape_planref = nullref;
 
   module_inst = wasm_runtime_instantiate(face_data->wasm_module,
 					 stack_size, heap_size,
@@ -177,10 +179,12 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
     return false;
   }
 
+
   // cmake -DWAMR_BUILD_REF_TYPES=1 for these to work
+  HB_OBJ2REF (face);
   HB_OBJ2REF (font);
   HB_OBJ2REF (buffer);
-  if (unlikely (!fontref || !bufferref))
+  if (unlikely (!faceref || !fontref || !bufferref))
   {
     DEBUG_MSG (WASM, module_inst, "Failed to register objects.");
     goto fail;
@@ -192,29 +196,53 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
     goto fail;
   }
 
-  shape_func = wasm_runtime_lookup_function (module_inst, "shape", nullptr);
-  if (unlikely (!shape_func))
+  func = wasm_runtime_lookup_function (module_inst, "shape_plan_create", nullptr);
+  if (func)
+  {
+    wasm_val_t results[1];
+    wasm_val_t arguments[1];
+
+    results[0].kind = WASM_I32;
+    arguments[0].kind = WASM_I32;
+    arguments[0].of.i32 = faceref;
+    ret = wasm_runtime_call_wasm_a (exec_env, func,
+				    ARRAY_LENGTH (results), results,
+				    ARRAY_LENGTH (arguments), arguments);
+
+    if (unlikely (!ret))
+    {
+      DEBUG_MSG (WASM, module_inst, "Calling shape_plan_create() failed: %s",
+		 wasm_runtime_get_exception(module_inst));
+      goto fail;
+    }
+    shape_planref = results[0].of.i32;
+  }
+
+  func = wasm_runtime_lookup_function (module_inst, "shape", nullptr);
+  if (unlikely (!func))
   {
     DEBUG_MSG (WASM, module_inst, "Shape function not found.");
     goto fail;
   }
 
   wasm_val_t results[1];
-  wasm_val_t arguments[4];
+  wasm_val_t arguments[5];
 
   results[0].kind = WASM_I32;
   arguments[0].kind = WASM_I32;
-  arguments[0].of.i32 = fontref;
+  arguments[0].of.i32 = shape_planref;
   arguments[1].kind = WASM_I32;
-  arguments[1].of.i32 = bufferref;
+  arguments[1].of.i32 = fontref;
   arguments[2].kind = WASM_I32;
-  arguments[2].of.i32 = wasm_runtime_module_dup_data (module_inst,
+  arguments[2].of.i32 = bufferref;
+  arguments[3].kind = WASM_I32;
+  arguments[3].of.i32 = wasm_runtime_module_dup_data (module_inst,
 						      (const char *) features,
 						      num_features * sizeof (features[0]));
-  arguments[3].kind = WASM_I32;
-  arguments[3].of.i32 = num_features;
+  arguments[4].kind = WASM_I32;
+  arguments[4].of.i32 = num_features;
 
-  ret = wasm_runtime_call_wasm_a (exec_env, shape_func,
+  ret = wasm_runtime_call_wasm_a (exec_env, func,
 				  ARRAY_LENGTH (results), results,
 				  ARRAY_LENGTH (arguments), arguments);
 
@@ -222,7 +250,7 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
 
   if (unlikely (!ret))
   {
-    DEBUG_MSG (WASM, module_inst, "Calling shape function failed: %s",
+    DEBUG_MSG (WASM, module_inst, "Calling shape() failed: %s",
 	       wasm_runtime_get_exception(module_inst));
     goto fail;
   }
@@ -234,6 +262,27 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
   {
 fail:
     ret = false;
+  }
+
+  if (ret && shape_planref)
+  {
+    func = wasm_runtime_lookup_function (module_inst, "shape_plan_destroy", nullptr);
+    if (func)
+    {
+      wasm_val_t arguments[1];
+
+      arguments[0].kind = WASM_I32;
+      arguments[0].of.i32 = shape_planref;
+      ret = wasm_runtime_call_wasm_a (exec_env, func,
+				      0, nullptr,
+				      ARRAY_LENGTH (arguments), arguments);
+
+      if (unlikely (!ret))
+      {
+	DEBUG_MSG (WASM, module_inst, "Calling shape_plan_destroy() failed: %s",
+		   wasm_runtime_get_exception(module_inst));
+      }
+    }
   }
 
   if (exec_env)
