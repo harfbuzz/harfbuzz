@@ -55,6 +55,8 @@ struct hb_wasm_face_data_t {
 static bool
 _hb_wasm_init ()
 {
+  /* XXX Umm. Make this threadsafe. How?! */
+
   static bool initialized;
   if (initialized)
     return true;
