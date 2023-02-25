@@ -1,8 +1,11 @@
-all: CharisSIL-R.wasm.ttf Scheherazade-R.wasm.ttf AwamiNastaliq-Regular.wasm.ttf
+FONTS = CharisSIL-R.wasm.ttf Scheherazade-R.wasm.ttf AwamiNastaliq-Regular.wasm.ttf
+ADD_TABLE = ../../addTable.py
 
-%.wasm: %.cc ../hb-wasm-api.h
+all: $(FONTS)
+
+%.wasm: %.cc ../../hb-wasm-api.h
 	emcc \
-		-I .. \
+		-I ../.. \
 		-I ~/graphite/include/ \
 		-fvisibility=hidden \
 		-Wl,--allow-undefined \
@@ -13,10 +16,10 @@ all: CharisSIL-R.wasm.ttf Scheherazade-R.wasm.ttf AwamiNastaliq-Regular.wasm.ttf
 		$< \
 		-o $@
 
-%.wasm.ttf: %.ttf shape.wasm addTable.py
-	python addTable.py $< $@ shape.wasm
+%.wasm.ttf: %.ttf shape.wasm $(ADD_TABLE)
+	python $(ADD_TABLE) $< $@ shape.wasm
 
 clean:
-	$(RM) test.wasm.ttf shape.wasm
+	$(RM) shape.wasm $(FONTS)
 
-.PRECIOUS: shape.wasm
+.PRECIOUS: shap.wasm
