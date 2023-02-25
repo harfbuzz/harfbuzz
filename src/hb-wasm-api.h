@@ -252,6 +252,7 @@ typedef struct
   uint32_t n_contours;
   ptr_t(uint32_t) contours;
 } glyph_outline_t;
+#define GLYPH_OUTLINE_INIT {0, 0, 0, 0}
 
 HB_WASM_API (bool_t, font_copy_glyph_outline) (HB_WASM_EXEC_ENV
 					       ptr_d(font_t, font),

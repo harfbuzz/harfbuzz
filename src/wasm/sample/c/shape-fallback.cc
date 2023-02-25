@@ -41,7 +41,7 @@ shape (void *shape_plan,
     contents.info[i].codepoint = font_get_glyph (font, contents.info[i].codepoint, 0);
     contents.pos[i].x_advance = font_get_glyph_h_advance (font, contents.info[i].codepoint);
 
-    glyph_outline_t outline;
+    glyph_outline_t outline = GLYPH_OUTLINE_INIT;
     font_copy_glyph_outline (font, contents.info[i].codepoint, &outline);
     debugprint1 ("num outline contours", outline.n_contours);
   }
