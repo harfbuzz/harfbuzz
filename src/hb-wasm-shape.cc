@@ -227,7 +227,7 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
     goto fail;
   }
 
-  /* TODO Regularize clusters accordint to direction & cluster level,
+  /* TODO Regularize clusters according to direction & cluster level,
    * such that client doesn't crash with unmet expectations. */
 
   if (!results[0].of.i32)
