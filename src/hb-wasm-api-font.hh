@@ -140,8 +140,8 @@ HB_WASM_API (bool_t, font_copy_glyph_outline) (HB_WASM_EXEC_ENV
   if (hb_outline.points.length <= outline->n_points &&
       hb_outline.contours.length <= outline->n_contours)
   {
-    glyph_outline_point_t *points = (glyph_outline_point_t *) (validate_app_addr (outline->points, hb_outline.points.get_size ()) ? addr_app_to_native (outline->points) : nullptr);
-    uint32_t *contours = (uint32_t *) (validate_app_addr (outline->contours, hb_outline.contours.get_size ()) ? addr_app_to_native (outline->contours) : nullptr);
+    glyph_outline_point_t *points = HB_ARRAY_APP2NATIVE (glyph_outline_point_t, outline->points, hb_outline.points.length);
+    uint32_t *contours = HB_ARRAY_APP2NATIVE (uint32_t, outline->contours, hb_outline.contours.length);
 
     if (unlikely (!points || !contours))
     {

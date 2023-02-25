@@ -108,5 +108,10 @@ HB_INTERNAL extern hb_user_data_key_t _hb_wasm_ref_type_key;
       name = (type *) wasm_runtime_addr_app_to_native (module_inst, name##ptr); \
   } HB_STMT_END
 
+#define HB_ARRAY_APP2NATIVE(type, name, length) \
+    ((type *) (!hb_unsigned_mul_overflows (length, sizeof (type)) && \
+	       validate_app_addr (name, (length) * sizeof (type)) ? \
+	       addr_app_to_native (name) : nullptr))
+
 
 #endif /* HB_WASM_API_HH */

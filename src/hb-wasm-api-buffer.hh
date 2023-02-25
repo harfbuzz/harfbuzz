@@ -113,10 +113,8 @@ HB_WASM_API (bool_t, buffer_copy_contents) (HB_WASM_EXEC_ENV
 
   if (length <= contents->length)
   {
-    unsigned bytes = length * sizeof (hb_glyph_info_t);
-
-    glyph_info_t *info = (glyph_info_t *) (validate_app_addr (contents->info, bytes) ? addr_app_to_native (contents->info) : nullptr);
-    glyph_position_t *pos = (glyph_position_t *) (validate_app_addr (contents->pos, bytes) ? addr_app_to_native (contents->pos) : nullptr);
+    glyph_info_t *info = HB_ARRAY_APP2NATIVE (glyph_info_t, contents->info, length);
+    glyph_position_t *pos = HB_ARRAY_APP2NATIVE (glyph_position_t, contents->pos, length);
 
     if (unlikely (!info || !pos))
     {
@@ -124,6 +122,7 @@ HB_WASM_API (bool_t, buffer_copy_contents) (HB_WASM_EXEC_ENV
       return false;
     }
 
+    unsigned bytes = length * sizeof (hb_glyph_info_t);
     memcpy (info, buffer->info, bytes);
     memcpy (pos, buffer->pos, bytes);
 
