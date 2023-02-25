@@ -13,11 +13,11 @@ all: $(FONTS)
 		-Wl,--strip-all \
 		-sERROR_ON_UNDEFINED_SYMBOLS=0 \
 		~/graphite/src/libgraphite2.a \
+		-Wl,--export=malloc -Wl,--export=free \
 		~/wasm/wasi-sdk-19.0/share/wasi-sysroot/lib/wasm32-wasi/libc.a \
 		$< \
 		-o $@
 
-#		-Wl,--export=malloc -Wl,--export=free \
 
 %.wasm.ttf: %.ttf shape.wasm $(ADD_TABLE)
 	python $(ADD_TABLE) $< $@ shape.wasm
