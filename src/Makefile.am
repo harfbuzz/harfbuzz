@@ -114,6 +114,16 @@ else
 HB_HAS_CORETEXT_DEF = undef HB_HAS_CORETEXT
 endif
 
+if HAVE_WASM
+HBCFLAGS += $(WASM_CFLAGS)
+HBNONPCLIBS += $(WASM_LIBS)
+HBSOURCES += $(HB_WASM_sources)
+HBHEADERS += $(HB_WASM_headers)
+HB_HAS_WASM_DEF = define HB_HAS_WASM 1
+else
+HB_HAS_WASM_DEF = undef HB_HAS_WASM
+endif
+
 
 BUILT_SOURCES += \
 	hb-version.h
