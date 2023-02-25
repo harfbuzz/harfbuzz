@@ -17,6 +17,8 @@ all: $(FONTS)
 		$< \
 		-o $@
 
+#		-Wl,--export=malloc -Wl,--export=free \
+
 %.wasm.ttf: %.ttf shape.wasm $(ADD_TABLE)
 	python $(ADD_TABLE) $< $@ shape.wasm
 
