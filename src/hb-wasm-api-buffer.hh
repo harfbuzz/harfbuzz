@@ -133,8 +133,9 @@ HB_WASM_API (bool_t, buffer_copy_contents) (HB_WASM_EXEC_ENV
   module_free (contents->pos);
 
   contents->length = length;
-  contents->info = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->info, length * sizeof (buffer->info[0]));
-  contents->pos = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->pos, length * sizeof (buffer->pos[0]));
+  unsigned bytes = length * sizeof (hb_glyph_info_t);
+  contents->info = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->info, bytes);
+  contents->pos = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->pos, bytes);
 
   if (length && (!contents->info || !contents->pos))
   {
