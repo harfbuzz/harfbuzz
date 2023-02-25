@@ -139,6 +139,7 @@ typedef struct
   ptr_t(glyph_info_t) info;
   ptr_t(glyph_position_t) pos;
 } buffer_contents_t;
+#define BUFFER_CONTENTS_INIT {0, 0, 0}
 
 HB_WASM_API (bool_t, buffer_contents_realloc) (HB_WASM_EXEC_ENV
 					       ptr_d(buffer_contents_t, contents),

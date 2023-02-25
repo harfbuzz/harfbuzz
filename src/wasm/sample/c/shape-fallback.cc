@@ -26,7 +26,7 @@ shape (void *shape_plan,
 
   blob_free (&blob);
 
-  buffer_contents_t contents;
+  buffer_contents_t contents = BUFFER_CONTENTS_INIT;
   if (!buffer_copy_contents (buffer, &contents))
     return false;
 
