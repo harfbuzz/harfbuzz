@@ -185,7 +185,7 @@ acquire_shape_plan (hb_face_t *face,
     if (unlikely (!ret))
     {
       DEBUG_MSG (WASM, module_inst, "Calling shape_plan_create() failed: %s",
-		 wasm_runtime_get_exception(module_inst));
+		 wasm_runtime_get_exception (module_inst));
       goto fail;
     }
     plan->wasm_shape_planptr = results[0].of.i32;
@@ -233,7 +233,7 @@ release_shape_plan (const hb_wasm_face_data_t *face_data,
       if (unlikely (!ret))
       {
 	DEBUG_MSG (WASM, module_inst, "Calling shape_plan_destroy() failed: %s",
-		   wasm_runtime_get_exception(module_inst));
+		   wasm_runtime_get_exception (module_inst));
       }
     }
   }
@@ -360,6 +360,7 @@ retry:
     buffer->successful = true;
     retried = true;
     release_shape_plan (face_data, plan);
+    plan = nullptr;
     goto retry;
   }
 
