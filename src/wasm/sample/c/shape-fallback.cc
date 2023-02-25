@@ -23,7 +23,9 @@ shape (void *shape_plan,
 
   blob_free (&blob);
 
-  buffer_contents_t contents = buffer_copy_contents (buffer);
+  buffer_contents_t contents;
+  if (!buffer_copy_contents (buffer, &contents))
+    return false;
 
   debugprint1 ("buffer length", contents.length);
 

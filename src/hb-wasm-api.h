@@ -149,8 +149,9 @@ HB_WASM_API (void, buffer_contents_free) (HB_WASM_EXEC_ENV
 
 typedef struct buffer_t buffer_t;
 
-HB_WASM_API_COMPOUND (buffer_contents_t, buffer_copy_contents) (HB_WASM_EXEC_ENV_COMPOUND
-								ptr_d(buffer_t, buffer));
+HB_WASM_API (bool_t, buffer_copy_contents) (HB_WASM_EXEC_ENV
+					    ptr_d(buffer_t, buffer),
+					    ptr_d(buffer_contents_t, contents));
 
 HB_WASM_API (bool_t, buffer_set_contents) (HB_WASM_EXEC_ENV
 					   ptr_d(buffer_t, buffer),

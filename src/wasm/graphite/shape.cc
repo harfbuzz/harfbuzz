@@ -74,8 +74,8 @@ shape (void *shape_plan,
     direction = DIRECTION_REVERSE (direction);
   }
 
-  buffer_contents_t contents = buffer_copy_contents (buffer);
-  if (!contents.length)
+  buffer_contents_t contents;
+  if (!buffer_copy_contents (buffer, &contents))
     return false;
 
   gr_segment *seg = nullptr;

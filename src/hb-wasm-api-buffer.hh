@@ -95,22 +95,30 @@ HB_WASM_API (void, buffer_contents_free) (HB_WASM_EXEC_ENV
   contents->length = 0;
 }
 
-HB_WASM_API_COMPOUND (buffer_contents_t, buffer_copy_contents) (HB_WASM_EXEC_ENV_COMPOUND
-								ptr_d(buffer_t, buffer))
+HB_WASM_API (bool_t, buffer_copy_contents) (HB_WASM_EXEC_ENV
+					    ptr_d(buffer_t, buffer),
+					    ptr_d(buffer_contents_t, contents))
 {
-  HB_RETURN_STRUCT (buffer_contents_t, ret);
   HB_REF2OBJ (buffer);
+  HB_PTR_PARAM (buffer_contents_t, contents);
+  if (unlikely (!contents))
+    return false;
 
   if (buffer->have_output)
     buffer->sync ();
 
   unsigned length = buffer->len;
-  ret.length = length;
-  ret.info = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->info, length * sizeof (buffer->info[0]));
-  ret.pos = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->pos, length * sizeof (buffer->pos[0]));
+  contents->length = length;
+  contents->info = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->info, length * sizeof (buffer->info[0]));
+  contents->pos = wasm_runtime_module_dup_data (module_inst, (const char *) buffer->pos, length * sizeof (buffer->pos[0]));
 
-  if (!ret.info || !ret.pos)
-    ret.length = 0;
+  if (length && (!contents->info || !contents->pos))
+  {
+    contents->length = 0;
+    return false;
+  }
+
+  return true;
 }
 
 HB_WASM_API (bool_t, buffer_set_contents) (HB_WASM_EXEC_ENV

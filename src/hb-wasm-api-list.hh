@@ -59,7 +59,7 @@ static NativeSymbol _hb_wasm_native_symbols[] =
   /* buffer */
   NATIVE_SYMBOL ("(i)",		buffer_contents_free),
   NATIVE_SYMBOL ("(ii)i",	buffer_contents_realloc),
-  NATIVE_SYMBOL ("(ii)",	buffer_copy_contents),
+  NATIVE_SYMBOL ("(ii)i",	buffer_copy_contents),
   NATIVE_SYMBOL ("(ii)i",	buffer_set_contents),
   NATIVE_SYMBOL ("(i)i",	buffer_get_direction),
   NATIVE_SYMBOL ("(i)i",	buffer_get_script),
