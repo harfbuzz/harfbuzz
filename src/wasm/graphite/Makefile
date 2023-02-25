@@ -10,6 +10,7 @@ all: $(FONTS)
 		-fvisibility=hidden \
 		-Wl,--allow-undefined \
 		-Wl,--no-entry \
+		-Wl,--strip-all \
 		-sERROR_ON_UNDEFINED_SYMBOLS=0 \
 		~/graphite/src/libgraphite2.a \
 		~/wasm/wasi-sdk-19.0/share/wasi-sysroot/lib/wasm32-wasi/libc.a \
@@ -22,4 +23,4 @@ all: $(FONTS)
 clean:
 	$(RM) shape.wasm $(FONTS)
 
-.PRECIOUS: shap.wasm
+.PRECIOUS: shape.wasm
