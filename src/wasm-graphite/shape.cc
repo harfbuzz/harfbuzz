@@ -113,7 +113,8 @@ shape (void *shape_plan,
   };
 
   length = glyph_count;
-  buffer_contents_realloc (&contents, length);
+  if (!buffer_contents_realloc (&contents, length))
+    return false;
   cluster_t *clusters = (cluster_t *) malloc (length * sizeof (cluster_t));
   uint32_t *gids = (uint32_t *) malloc (length * sizeof (uint32_t));
   if (!clusters || !gids)

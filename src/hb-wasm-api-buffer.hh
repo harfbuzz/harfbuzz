@@ -35,35 +35,49 @@ namespace wasm {
 static_assert (sizeof (glyph_info_t) == sizeof (hb_glyph_info_t), "");
 static_assert (sizeof (glyph_position_t) == sizeof (hb_glyph_position_t), "");
 
-HB_WASM_API (void, buffer_contents_realloc) (HB_WASM_EXEC_ENV
-					     ptr_d(buffer_contents_t, contents),
-					     uint32_t size)
+HB_WASM_API (bool_t, buffer_contents_realloc) (HB_WASM_EXEC_ENV
+					       ptr_d(buffer_contents_t, contents),
+					       uint32_t size)
 {
   HB_PTR_PARAM (buffer_contents_t, contents);
   if (unlikely (!contents))
-    return;
+    return false;
 
   if (size <= contents->length)
-    return;
+    return true;
 
   unsigned bytes;
   if (hb_unsigned_mul_overflows (size, sizeof (glyph_info_t), &bytes))
-    return;
+    return false;
 
   // TODO bounds check?
   uint32_t infoptr = contents->info;
   uint32_t posptr = contents->pos;
+
   const char *info = (const char *) addr_app_to_native (infoptr);
   const char *pos = (const char *) addr_app_to_native (posptr);
 
-  contents->info = wasm_runtime_module_dup_data (module_inst, info, bytes);
-  contents->pos = wasm_runtime_module_dup_data (module_inst, pos, bytes);
+  uint32_t new_info = wasm_runtime_module_dup_data (module_inst, info, bytes);
+  uint32_t new_pos = wasm_runtime_module_dup_data (module_inst, pos, bytes);
 
-  module_free (infoptr);
-  module_free (posptr);
+  if (likely (new_info))
+  {
+    contents->info = new_info;
+    module_free (infoptr);
+  }
+  if (likely (new_pos))
+  {
+    contents->pos = new_pos;
+    module_free (posptr);
+  }
 
-  // TODO Check success
-  contents->length = size;
+  if (likely (new_info && new_pos))
+  {
+    contents->length = size;
+    return true;
+  }
+
+  return false;
 }
 
 HB_WASM_API (void, buffer_contents_free) (HB_WASM_EXEC_ENV
