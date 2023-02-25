@@ -476,6 +476,7 @@ if conf.get('HAVE_WASM', 0) == 1
   hb_sources += hb_wasm_sources
   hb_headers += hb_wasm_headers
   harfbuzz_deps += wasm_dep
+  #harfbuzz_deps += llvm_dep
 endif
 
 if conf.get('HAVE_UNISCRIBE', 0) == 1
