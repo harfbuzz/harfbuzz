@@ -53,7 +53,7 @@ struct hb_wasm_face_data_t {
 };
 
 static bool
-init_wasm ()
+_hb_wasm_init ()
 {
   static bool initialized;
   if (initialized)
@@ -99,7 +99,7 @@ _hb_wasm_shaper_face_data_create (hb_face_t *face)
   if (!length)
     goto fail;
 
-  if (!init_wasm ())
+  if (!_hb_wasm_init ())
     goto fail;
 
   wasm_module = wasm_runtime_load ((uint8_t *) hb_blob_get_data_writable (wasm_blob, nullptr),
