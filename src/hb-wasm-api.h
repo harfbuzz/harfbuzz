@@ -275,27 +275,24 @@ typedef struct
 #define FEATURE_GLOBAL_START	0
 #define FEATURE_GLOBAL_END	((uint32_t) -1)
 
-HB_WASM_INTERFACE (bool_t, shape_with) (HB_WASM_EXEC_ENV
-				        ptr_d(font_t, font),
-				        ptr_d(buffer_t, buffer),
-				        ptr_d(const feature_t, features),
-				        uint32_t num_features,
-					const char *shaper);
+HB_WASM_API (bool_t, shape_with) (HB_WASM_EXEC_ENV
+				  ptr_d(font_t, font),
+				  ptr_d(buffer_t, buffer),
+				  ptr_d(const feature_t, features),
+				  uint32_t num_features,
+				  const char *shaper);
 
 /* Implement these in your shaper. */
 
-HB_WASM_INTERFACE (ptr_t(void), shape_plan_create) (HB_WASM_EXEC_ENV
-						   ptr_d(face_t, face));
+HB_WASM_INTERFACE (ptr_t(void), shape_plan_create) (ptr_d(face_t, face));
 
-HB_WASM_INTERFACE (bool_t, shape) (HB_WASM_EXEC_ENV
-				   ptr_d(void, shape_plan),
+HB_WASM_INTERFACE (bool_t, shape) (ptr_d(void, shape_plan),
 				   ptr_d(font_t, font),
 				   ptr_d(buffer_t, buffer),
 				   ptr_d(const feature_t, features),
 				   uint32_t num_features);
 
-HB_WASM_INTERFACE (void, shape_plan_destroy) (HB_WASM_EXEC_ENV
-					      ptr_d(void, shape_plan));
+HB_WASM_INTERFACE (void, shape_plan_destroy) (ptr_d(void, shape_plan));
 
 
 HB_WASM_END_DECLS
