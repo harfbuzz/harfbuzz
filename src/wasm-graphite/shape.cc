@@ -83,6 +83,8 @@ shape (void *shape_plan,
   unsigned length = contents.length;
 
   uint32_t *chars = (uint32_t *) malloc (length * sizeof (uint32_t));
+  if (!chars)
+    return false;
   for (unsigned int i = 0; i < contents.length; ++i)
     chars[i] = contents.info[i].codepoint;
 
@@ -114,6 +116,8 @@ shape (void *shape_plan,
   buffer_contents_realloc (&contents, length);
   cluster_t *clusters = (cluster_t *) malloc (length * sizeof (cluster_t));
   uint32_t *gids = (uint32_t *) malloc (length * sizeof (uint32_t));
+  if (!clusters || !gids)
+    return false;
 
   memset (clusters, 0, sizeof (clusters[0]) * length);
   codepoint_t *pg = gids;

@@ -283,9 +283,19 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
 		const hb_feature_t *features,
 		unsigned int        num_features)
 {
+  if (unlikely (buffer->in_error ()))
+    return false;
+
   bool ret = true;
   hb_face_t *face = font->face;
   const hb_wasm_face_data_t *face_data = face->data.wasm;
+
+  bool retried = false;
+  if (0)
+  {
+retry:
+    DEBUG_MSG (WASM, font, "Retrying...");
+  }
 
   wasm_function_inst_t func = nullptr;
 
@@ -340,15 +350,25 @@ _hb_wasm_shape (hb_shape_plan_t    *shape_plan,
 
   if (unlikely (buffer->in_error ()))
   {
-    DEBUG_MSG (WASM, module_inst, "Buffer in error. Memory allocation fail?");
-    goto fail;
+    DEBUG_MSG (WASM, module_inst, "Buffer in error. Memory allocation fail in the wasm?");
+    if (retried)
+      goto fail;
+    buffer->successful = true;
+    retried = true;
+    release_shape_plan (face_data, plan);
+    goto retry;
   }
 
   if (unlikely (!ret))
   {
     DEBUG_MSG (WASM, module_inst, "Calling shape() failed: %s",
 	       wasm_runtime_get_exception(module_inst));
-    goto fail;
+    if (retried)
+      goto fail;
+    buffer->successful = true;
+    retried = true;
+    release_shape_plan (face_data, plan);
+    goto retry;
   }
 
   /* TODO Regularize clusters according to direction & cluster level,
