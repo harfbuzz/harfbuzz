@@ -84,8 +84,6 @@ shape (void *shape_plan,
   for (unsigned int i = 0; i < contents.length; ++i)
     chars[i] = contents.info[i].codepoint;
 
-  /* TODO ensure_native_direction. */
-
   seg = gr_make_seg (nullptr, grface,
 		     0, // https://github.com/harfbuzz/harfbuzz/issues/3439#issuecomment-1442650148
 		     nullptr,
