@@ -52,17 +52,18 @@ hb_shape_SOURCES = $(HB_SHAPE_sources)
 bin_PROGRAMS += hb-shape
 
 hb_info_SOURCES = $(HB_INFO_sources)
-if HAVE_GOBJECT
 hb_info_LDADD = \
-	$(top_builddir)/src/libharfbuzz-gobject.la \
 	$(LDADD) \
+	$(NULL)
+if HAVE_GOBJECT
+hb_info_LDADD += \
+	$(top_builddir)/src/libharfbuzz-gobject.la \
 	$(GOBJECT_LIBS) \
 	$(NULL)
-else
-hb_info_LDADD = \
-	$(LDADD) \
-	$(NULL)
 endif # HAVE_GOBJECT
+if HAVE_CHAFA
+hb_info_LDADD += $(CHAFA_LIBS)
+endif # HAVE_CHAFA
 bin_PROGRAMS += hb-info
 
 hb_subset_SOURCES = $(HB_SUBSET_CLI_sources)
