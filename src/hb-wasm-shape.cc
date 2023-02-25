@@ -133,18 +133,18 @@ static hb_wasm_shape_plan_t *
 acquire_shape_plan (hb_face_t *face,
 		    const hb_wasm_face_data_t *face_data)
 {
-  constexpr uint32_t stack_size = 32 * 1024, heap_size = 2 * 1024 * 1024;
-
-  wasm_module_inst_t module_inst = nullptr;
-  wasm_exec_env_t exec_env = nullptr;
-  wasm_function_inst_t func = nullptr;
-
   /* Fetch cached one if available. */
   hb_wasm_shape_plan_t *plan = face_data->plan.get_acquire ();
   if (likely (plan && face_data->plan.cmpexch (plan, nullptr)))
     return plan;
 
   plan = (hb_wasm_shape_plan_t *) hb_calloc (1, sizeof (hb_wasm_shape_plan_t));
+
+  wasm_module_inst_t module_inst = nullptr;
+  wasm_exec_env_t exec_env = nullptr;
+  wasm_function_inst_t func = nullptr;
+
+  constexpr uint32_t stack_size = 32 * 1024, heap_size = 2 * 1024 * 1024;
 
   module_inst = plan->module_inst = wasm_runtime_instantiate(face_data->wasm_module,
 							     stack_size, heap_size,
