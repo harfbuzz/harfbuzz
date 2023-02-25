@@ -17,7 +17,7 @@ shape (void *shape_plan,
 {
   face_t *face = font_get_face (font);
 
-  blob_t blob = face_reference_table (face, TAG ('c','m','a','p'));
+  blob_t blob = face_copy_table (face, TAG ('c','m','a','p'));
 
   debugprint1 ("cmap length", blob.length);
 

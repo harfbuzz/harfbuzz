@@ -31,9 +31,9 @@ namespace hb {
 namespace wasm {
 
 
-HB_WASM_API_COMPOUND (blob_t, face_reference_table) (HB_WASM_EXEC_ENV_COMPOUND
-						     ptr_d(face_t, face),
-						     tag_t table_tag)
+HB_WASM_API_COMPOUND (blob_t, face_copy_table) (HB_WASM_EXEC_ENV_COMPOUND
+					        ptr_d(face_t, face),
+					        tag_t table_tag)
 {
   HB_RETURN_STRUCT (blob_t, ret);
   HB_REF2OBJ (face);

@@ -41,7 +41,7 @@ extern "C" {
     fn font_glyph_to_string(font: u32, glyph: u32, str: *const u8, len: u32);
     fn font_get_glyph_h_advance(font: u32, glyph: u32) -> i32;
     fn font_get_glyph_v_advance(font: u32, glyph: u32) -> i32;
-    fn face_reference_table(font: u32, tag: u32) -> Blob;
+    fn face_copy_table(font: u32, tag: u32) -> Blob;
     fn buffer_copy_contents(buffer: u32) -> CBufferContents;
     fn buffer_set_contents(buffer: u32, cbuffer: &CBufferContents) -> bool;
     fn debugprint(s: *const u8);
@@ -165,7 +165,7 @@ impl Face {
         tag_u |= (chars.next().unwrap() as u32) << 16;
         tag_u |= (chars.next().unwrap() as u32) << 8;
         tag_u |= chars.next().unwrap() as u32;
-        unsafe { face_reference_table(self.0, tag_u) }
+        unsafe { face_copy_table(self.0, tag_u) }
     }
 
     /// Get the face's design units per em.

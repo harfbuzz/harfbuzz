@@ -173,9 +173,9 @@ HB_WASM_API (void, buffer_reverse_clusters) (HB_WASM_EXEC_ENV
 
 typedef struct face_t face_t;
 
-HB_WASM_API_COMPOUND (blob_t, face_reference_table) (HB_WASM_EXEC_ENV_COMPOUND
-						     ptr_d(face_t, face),
-						     tag_t table_tag);
+HB_WASM_API_COMPOUND (blob_t, face_copy_table) (HB_WASM_EXEC_ENV_COMPOUND
+					        ptr_d(face_t, face),
+					        tag_t table_tag);
 
 HB_WASM_API (unsigned, face_get_upem) (HB_WASM_EXEC_ENV
 				       ptr_d(face_t, face));
