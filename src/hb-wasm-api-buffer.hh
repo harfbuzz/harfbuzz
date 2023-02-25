@@ -50,25 +50,29 @@ HB_WASM_API (bool_t, buffer_contents_realloc) (HB_WASM_EXEC_ENV
   if (hb_unsigned_mul_overflows (size, sizeof (glyph_info_t), &bytes))
     return false;
 
-  // TODO bounds check?
-  uint32_t infoptr = contents->info;
-  uint32_t posptr = contents->pos;
+  glyph_info_t *info = HB_ARRAY_APP2NATIVE (glyph_info_t, contents->info, contents->length);
+  glyph_position_t *pos = HB_ARRAY_APP2NATIVE (glyph_position_t, contents->pos, contents->length);
 
-  const char *info = (const char *) addr_app_to_native (infoptr);
-  const char *pos = (const char *) addr_app_to_native (posptr);
+  if (unlikely (!info || !pos))
+    return false;
 
-  uint32_t new_info = wasm_runtime_module_dup_data (module_inst, info, bytes);
-  uint32_t new_pos = wasm_runtime_module_dup_data (module_inst, pos, bytes);
+  glyph_info_t *new_info = nullptr;
+  uint32_t new_inforef = module_malloc (bytes, (void **) &new_info);
+  glyph_position_t *new_pos = nullptr;
+  uint32_t new_posref = module_malloc (bytes, (void **) &new_pos);
 
-  if (likely (new_info))
+  unsigned old_bytes = contents->length * sizeof (glyph_info_t);
+  if (likely (new_inforef))
   {
-    contents->info = new_info;
-    module_free (infoptr);
+    memcpy (new_info, info, old_bytes);
+    module_free (contents->info);
+    contents->info = new_inforef;
   }
-  if (likely (new_pos))
+  if (likely (new_posref))
   {
-    contents->pos = new_pos;
-    module_free (posptr);
+    memcpy (new_pos, pos, old_bytes);
+    module_free (contents->pos);
+    contents->pos = new_posref;
   }
 
   if (likely (new_info && new_pos))
