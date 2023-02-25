@@ -10,9 +10,6 @@
 void debugprint1 (char *s, int32_t);
 void debugprint2 (char *s, int32_t, int32_t);
 
-__attribute__((visibility("default")))
-uint32_t heap_size = 2 * 1024 * 1024;
-
 static const void *copy_table (const void *data, unsigned int tag, size_t *len)
 {
   face_t *face = (face_t *) data;
