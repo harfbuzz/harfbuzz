@@ -348,21 +348,10 @@ retry:
 
   wasm_runtime_module_free (module_inst, arguments[2].of.i32);
 
-  if (unlikely (buffer->in_error ()))
-  {
-    DEBUG_MSG (WASM, module_inst, "Buffer in error. Memory allocation fail in the wasm?");
-    if (retried)
-      goto fail;
-    buffer->successful = true;
-    retried = true;
-    release_shape_plan (face_data, plan);
-    goto retry;
-  }
-
-  if (unlikely (!ret))
+  if (unlikely (!ret || !results[0].of.i32))
   {
     DEBUG_MSG (WASM, module_inst, "Calling shape() failed: %s",
-	       wasm_runtime_get_exception(module_inst));
+	       wasm_runtime_get_exception (module_inst));
     if (retried)
       goto fail;
     buffer->successful = true;

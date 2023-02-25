@@ -75,6 +75,8 @@ shape (void *shape_plan,
   }
 
   buffer_contents_t contents = buffer_copy_contents (buffer);
+  if (!contents.length)
+    return false;
 
   gr_segment *seg = nullptr;
   const gr_slot *is;
