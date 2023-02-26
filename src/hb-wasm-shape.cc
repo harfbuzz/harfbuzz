@@ -114,7 +114,14 @@ struct hb_wasm_face_data_t {
 static bool
 _hb_wasm_init ()
 {
-  /* XXX Umm. Make this threadsafe. How?! */
+  /* XXX
+   *
+   * Umm. Make this threadsafe. How?!
+   * It's clunky that we can't allocate a static mutex.
+   * So we have to first allocate one on the heap atomically...
+   *
+   * Also, wasm-micro-runtime uses a singleton instance. So if
+   * another library or client uses it, all bets are off. :-( */
 
   static bool initialized;
   if (initialized)
@@ -140,8 +147,8 @@ _hb_wasm_init ()
   }
 
 #ifndef HB_WASM_NO_MODULES
-  wasm_runtime_set_module_reader(_hb_wasm_module_reader,
-				 _hb_wasm_module_destroyer);
+  wasm_runtime_set_module_reader (_hb_wasm_module_reader,
+				  _hb_wasm_module_destroyer);
 #endif
 
   initialized = true;
