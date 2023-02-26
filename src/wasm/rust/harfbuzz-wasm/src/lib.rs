@@ -23,10 +23,10 @@
 //!     1
 //! }
 //! ```
-use std::{
-    ffi::{c_int, CStr, CString},
-    mem,
-};
+use std::ffi::{c_int, CStr, CString};
+
+#[cfg(feature = "kurbo")]
+use kurbo::BezPath;
 
 // We don't use #[wasm_bindgen] here because that makes
 // assumptions about Javascript calling conventions. We
@@ -41,6 +41,7 @@ extern "C" {
     fn font_glyph_to_string(font: u32, glyph: u32, str: *const u8, len: u32);
     fn font_get_glyph_h_advance(font: u32, glyph: u32) -> i32;
     fn font_get_glyph_v_advance(font: u32, glyph: u32) -> i32;
+    fn font_copy_glyph_outline(font: u32, glyph: u32, outline: *mut CGlyphOutline) -> bool;
     fn face_copy_table(font: u32, tag: u32, blob: *mut Blob) -> bool;
     fn buffer_copy_contents(buffer: u32, cbuffer: *mut CBufferContents) -> bool;
     fn buffer_set_contents(buffer: u32, cbuffer: &CBufferContents) -> bool;
@@ -147,6 +148,61 @@ impl Font {
         };
         (x_scale, y_scale)
     }
+
+    #[cfg(feature = "kurbo")]
+    /// Get the outline of a glyph as a vector of bezier paths
+    pub fn get_outline(&self, glyph: u32) -> Vec<BezPath> {
+        let mut outline = CGlyphOutline {
+            n_points: 0,
+            points: std::ptr::null_mut(),
+            n_contours: 0,
+            contours: std::ptr::null_mut(),
+        };
+        let end_pts_of_contours: &[usize] = unsafe {
+            font_copy_glyph_outline(self.0, glyph, &mut outline);
+            std::slice::from_raw_parts(outline.contours, outline.n_contours as usize)
+        };
+        let points: &[CGlyphOutlinePoint] =
+            unsafe { std::slice::from_raw_parts(outline.points, outline.n_points as usize) };
+        let mut results: Vec<BezPath> = vec![];
+        let mut start_pt: usize = 0;
+        for end_pt in end_pts_of_contours {
+            let this_contour = &points[start_pt..*end_pt];
+            start_pt = *end_pt;
+            let mut path = BezPath::new();
+            let mut ix = 0;
+            while ix < this_contour.len() {
+                let point = &this_contour[ix];
+                match point.pointtype {
+                    PointType::MoveTo => path.move_to((point.x as f64, point.y as f64)),
+                    PointType::LineTo => path.line_to((point.x as f64, point.y as f64)),
+                    PointType::QuadraticTo => {
+                        ix += 1;
+                        let end_pt = &this_contour[ix];
+                        path.quad_to(
+                            (point.x as f64, point.y as f64),
+                            (end_pt.x as f64, end_pt.y as f64),
+                        );
+                    }
+                    PointType::CubicTo => {
+                        ix += 1;
+                        let mid_pt = &this_contour[ix];
+                        ix += 1;
+                        let end_pt = &this_contour[ix];
+                        path.curve_to(
+                            (point.x as f64, point.y as f64),
+                            (mid_pt.x as f64, mid_pt.y as f64),
+                            (end_pt.x as f64, end_pt.y as f64),
+                        );
+                    }
+                }
+                ix += 1;
+            }
+            path.close_path();
+            results.push(path);
+        }
+        results
+    }
 }
 
 /// An opaque reference to a font face, equivalent to the `hb_face_t` pointer
@@ -240,7 +296,7 @@ impl<T: BufferItem> Drop for Buffer<T> {
     fn drop(&mut self) {
         let mut positions: Vec<CGlyphPosition>;
         let mut infos: Vec<CGlyphInfo>;
-        let glyphs = mem::take(&mut self.glyphs);
+        let glyphs = std::mem::take(&mut self.glyphs);
         (infos, positions) = glyphs.into_iter().map(|g| g.to_c()).unzip();
         let c_contents = CBufferContents {
             length: positions.len() as u32,
@@ -365,6 +421,32 @@ impl BufferItem for Glyph {
         };
         (info, pos)
     }
+}
+
+#[repr(C)]
+#[allow(clippy::enum_variant_names)]
+#[derive(Clone, Debug)]
+enum PointType {
+    MoveTo,
+    LineTo,
+    QuadraticTo,
+    CubicTo,
+}
+
+#[repr(C)]
+#[derive(Clone, Debug)]
+struct CGlyphOutlinePoint {
+    x: f32,
+    y: f32,
+    pointtype: PointType,
+}
+
+#[repr(C)]
+struct CGlyphOutline {
+    n_points: usize,
+    points: *mut CGlyphOutlinePoint,
+    n_contours: usize,
+    contours: *mut usize,
 }
 
 /// Our default buffer item struct. See also [`Glyph`].
