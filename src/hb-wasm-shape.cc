@@ -25,7 +25,6 @@
  */
 
 #define HB_DEBUG_WASM 1
-#define HB_WASM_NO_MODULES
 
 #include "hb-shaper-impl.hh"
 
@@ -157,6 +156,7 @@ _hb_wasm_init ()
 hb_wasm_face_data_t *
 _hb_wasm_shaper_face_data_create (hb_face_t *face)
 {
+  char error[128];
   hb_wasm_face_data_t *data = nullptr;
   hb_blob_t *wasm_blob = nullptr;
   wasm_module_t wasm_module = nullptr;
@@ -170,10 +170,10 @@ _hb_wasm_shaper_face_data_create (hb_face_t *face)
     goto fail;
 
   wasm_module = wasm_runtime_load ((uint8_t *) hb_blob_get_data_writable (wasm_blob, nullptr),
-				   length, nullptr, 0);
+				   length, error, sizeof (error));
   if (unlikely (!wasm_module))
   {
-    DEBUG_MSG (WASM, nullptr, "Load wasm module failed.");
+    DEBUG_MSG (WASM, nullptr, "Load wasm module failed: %s", error);
     goto fail;
   }
 
