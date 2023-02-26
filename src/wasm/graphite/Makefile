@@ -12,8 +12,8 @@ all: $(FONTS)
 		-Wl,--no-entry \
 		-Wl,--strip-all \
 		-sERROR_ON_UNDEFINED_SYMBOLS=0 \
-		~/graphite/src/libgraphite2.a \
 		-Wl,--export=malloc -Wl,--export=free \
+		~/graphite/src/libgraphite2.a \
 		~/wasm/wasi-sdk-19.0/share/wasi-sysroot/lib/wasm32-wasi/libc.a \
 		$< \
 		-o $@

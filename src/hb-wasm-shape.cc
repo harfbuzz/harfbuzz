@@ -25,13 +25,73 @@
  */
 
 #define HB_DEBUG_WASM 1
+#define HB_WASM_NO_MODULES
 
 #include "hb-shaper-impl.hh"
 
 #ifdef HAVE_WASM
 
+/* Compile wasm-micro-runtime with:
+ *
+ * $ cmake -DWAMR_BUILD_MULTI_MODULE=1 -DWAMR_BUILD_REF_TYPES=1 -DWAMR_BUILD_FAST_JIT=1
+ * $ make
+ *
+ * If you manage to build a wasm shared module successfully and want to use it,
+ * do the following:
+ *
+ *   - Add -DWAMR_BUILD_MULTI_MODULE=1 to your cmake build for wasm-micro-runtime,
+ *
+ *   - Remove the #define HB_WASM_NO_MODULES line below,
+ *
+ *   - Install your shared module with name ending in .wasm in
+ *     $(prefix)/$(libdir)/harfbuzz/wasm/
+ *
+ *   - Build your font's wasm code importing the shared modules with the desired
+ *     name. This can be done eg.: __attribute__((import_module("graphite2")))
+ *     before each symbol in the the shared-module's headers.
+ *
+ *   - Try shaping your font and hope for the best...
+ *
+ * I haven't been able to get this to work since emcc's support for shared libraries
+ * requires support from the host that seems to be missing from wasm-micro-runtime?
+ */
+
 #include "hb-wasm-api.hh"
 #include "hb-wasm-api-list.hh"
+
+#define HB_WASM_NO_MODULES
+
+static bool HB_UNUSED
+_hb_wasm_module_reader (const char *module_name,
+		       uint8_t **p_buffer, uint32_t *p_size)
+{
+  char path[sizeof (HB_WASM_MODULE_DIR) + 64] = HB_WASM_MODULE_DIR "/";
+  strncat (path, module_name, sizeof (path) - sizeof (HB_WASM_MODULE_DIR) - 16);
+  strncat (path, ".wasm", 6);
+
+  auto *blob = hb_blob_create_from_file (path);
+
+  unsigned length;
+  auto *data = hb_blob_get_data (blob, &length);
+
+  *p_buffer = (uint8_t *) hb_malloc (length);
+
+  if (length && !p_buffer)
+    return false;
+
+  memcpy (*p_buffer, data, length);
+  *p_size = length;
+
+  hb_blob_destroy (blob);
+
+  return true;
+}
+
+static void HB_UNUSED
+_hb_wasm_module_destroyer (uint8_t *buffer, uint32_t size)
+{
+  hb_free (buffer);
+}
 
 
 /*
@@ -84,6 +144,11 @@ _hb_wasm_init ()
     DEBUG_MSG (WASM, nullptr, "Init runtime environment failed.");
     return false;
   }
+
+#ifndef HB_WASM_NO_MODULES
+  wasm_runtime_set_module_reader(_hb_wasm_module_reader,
+				 _hb_wasm_module_destroyer);
+#endif
 
   initialized = true;
   return true;
@@ -311,7 +376,6 @@ retry:
   auto *module_inst = plan->module_inst;
   auto *exec_env = plan->exec_env;
 
-  // cmake -DWAMR_BUILD_REF_TYPES=1 for these to work
   HB_OBJ2REF (font);
   HB_OBJ2REF (buffer);
   if (unlikely (!fontref || !bufferref))

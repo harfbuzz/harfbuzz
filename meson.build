@@ -234,6 +234,7 @@ endif
 
 if wasm_dep.found()
   conf.set('HAVE_WASM', 1)
+  conf.set('HB_WASM_MODULE_DIR', '"'+get_option('prefix')+'/'+get_option('libdir')+'/harfbuzz/wasm"')
 endif
 
 if graphite2_dep.found() or graphite_dep.found()
