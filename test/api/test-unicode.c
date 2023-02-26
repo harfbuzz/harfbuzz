@@ -184,6 +184,9 @@ static const test_pair_t combining_class_tests_more[] =
   /* Unicode-14.0 character additions */
   {   0x1DFA, 218 },
 
+  /* Unicode-15.0 character additions */
+  {  0x10EFD, 220 },
+
   { 0x111111, 0 }
 };
 
@@ -266,6 +269,9 @@ static const test_pair_t general_category_tests_more[] =
 
   /* Unicode-14.0 character additions */
   {   0x20C0, HB_UNICODE_GENERAL_CATEGORY_CURRENCY_SYMBOL },
+
+  /* Unicode-15.0 character additions */
+  {   0x0CF3, HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK },
 
   { 0x111111, HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED }
 };
@@ -524,6 +530,10 @@ static const test_pair_t script_tests_more[] =
   {  0x16A70, HB_SCRIPT_TANGSA },
   {  0x1E290, HB_SCRIPT_TOTO },
 
+  /* Unicode-15.0 additions */
+  {  0x11F00, HB_SCRIPT_KAWI },
+  {  0x1E4D0, HB_SCRIPT_NAG_MUNDARI },
+
   { 0x111111, HB_SCRIPT_UNKNOWN }
 };
 
@@ -744,9 +754,9 @@ test_unicode_setters (void)
     /* Since uf is immutable now, the following setter should do nothing. */
     p->func_setter (uf, (get_func_t) a_is_for_arabic_get_script, &data[1], free_up);
 
-    g_assert (data[0].freed && !data[1].freed);
+    g_assert (data[0].freed && data[1].freed);
     hb_unicode_funcs_destroy (uf);
-    g_assert (data[0].freed && !data[1].freed);
+    g_assert (data[0].freed && data[1].freed);
   }
 }
 

@@ -36,8 +36,8 @@ alphtype unsigned char;
 write data;
 
 action clear_item {
-	memset (&info, 0, sizeof (info));
-	memset (&pos , 0, sizeof (pos ));
+	hb_memset (&info, 0, sizeof (info));
+	hb_memset (&pos , 0, sizeof (pos ));
 }
 
 action add_item {
@@ -106,7 +106,7 @@ item	=
 	@add_item
 	;
 
-main := space* item (comma item)* space* (','|']')?;
+main := space* item (comma item)* space* (','|']');
 
 }%%
 
@@ -125,9 +125,7 @@ _hb_buffer_deserialize_json (hb_buffer_t *buffer,
   while (p < pe && ISSPACE (*p))
     p++;
   if (p < pe && *p == (buffer->len ? ',' : '['))
-  {
     *end_ptr = ++p;
-  }
 
   const char *tok = nullptr;
   int cs;

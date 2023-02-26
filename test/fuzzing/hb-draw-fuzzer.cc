@@ -151,7 +151,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   hb_set_t *set = hb_set_create ();
   for (unsigned gid = 0; gid < glyph_count; ++gid)
   {
-    hb_font_get_glyph_shape (font, gid, funcs, &draw_data);
+    hb_font_draw_glyph (font, gid, funcs, &draw_data);
 
     /* Glyph extents also may practices the similar path, call it now that is related */
     hb_glyph_extents_t extents;

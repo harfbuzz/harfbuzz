@@ -347,10 +347,13 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
       hb_ot_var_axis_info_t info;
       unsigned int c = 1;
       hb_ot_var_get_axis_infos (font->face, i, &c, &info);
-      CFDictionarySetValue (variations,
-	CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &info.tag),
-	CFNumberCreate (kCFAllocatorDefault, kCFNumberFloatType, &font->design_coords[i])
-      );
+      float v = hb_clamp (font->design_coords[i], info.min_value, info.max_value);
+
+      CFNumberRef tag_number = CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &info.tag);
+      CFNumberRef value_number = CFNumberCreate (kCFAllocatorDefault, kCFNumberFloatType, &v);
+      CFDictionarySetValue (variations, tag_number, value_number);
+      CFRelease (tag_number);
+      CFRelease (value_number);
     }
 
     CFDictionaryRef attributes =
@@ -508,7 +511,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	buffer->merge_clusters (i - 1, i + 1);
   }
 
-  hb_vector_t<feature_record_t> feature_records;
   hb_vector_t<range_record_t> range_records;
 
   /*
@@ -648,7 +650,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       } else {
 	active_feature_t *feature = active_features.lsearch (event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.arrayZ);
+	  active_features.remove_ordered (feature - active_features.arrayZ);
       }
     }
   }

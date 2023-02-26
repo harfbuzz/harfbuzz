@@ -124,7 +124,7 @@ shape_format_options_t::serialize_line_no (unsigned int  line_no,
 					   GString      *gs)
 {
   if (show_line_num)
-    g_string_append_printf (gs, "%d: ", line_no);
+    g_string_append_printf (gs, "%u: ", line_no);
 }
 inline void
 shape_format_options_t::serialize_buffer_of_text (hb_buffer_t  *buffer,

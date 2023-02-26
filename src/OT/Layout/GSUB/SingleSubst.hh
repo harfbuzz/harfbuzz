@@ -16,7 +16,7 @@ struct SingleSubst
   HBUINT16				format;         /* Format identifier */
   SingleSubstFormat1_3<SmallTypes>	format1;
   SingleSubstFormat2_4<SmallTypes>	format2;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
   SingleSubstFormat1_3<MediumTypes>	format3;
   SingleSubstFormat2_4<MediumTypes>	format4;
 #endif
@@ -27,12 +27,12 @@ struct SingleSubst
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
+    if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
-    if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
     case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
     case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
 #endif
@@ -55,7 +55,7 @@ struct SingleSubst
       format = 1;
       hb_codepoint_t mask = 0xFFFFu;
 
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
        if (+ glyphs
 	   | hb_map_retains_sorting (hb_first)
 	   | hb_filter ([] (hb_codepoint_t gid) { return gid > 0xFFFFu; }))
@@ -78,7 +78,7 @@ struct SingleSubst
                                                | hb_map_retains_sorting (hb_first),
                                                delta));
     case 2: return_trace (u.format2.serialize (c, glyphs));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return_trace (u.format3.serialize (c,
                                                + glyphs
                                                | hb_map_retains_sorting (hb_first),

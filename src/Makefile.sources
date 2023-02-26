@@ -42,16 +42,19 @@ HB_BASE_sources = \
 	hb-draw.hh \
 	hb-face.cc \
 	hb-face.hh \
+	hb-face-builder.cc \
 	hb-fallback-shape.cc \
 	hb-font.cc \
 	hb-font.hh \
 	hb-iter.hh \
 	hb-kern.hh \
+	hb-limits.hh \
 	hb-machinery.hh \
 	hb-map.cc \
 	hb-map.hh \
 	hb-meta.hh \
 	hb-ms-feature-ranges.hh \
+	hb-multimap.hh \
 	hb-mutex.hh \
 	hb-null.hh \
 	hb-number.cc \
@@ -66,11 +69,6 @@ HB_BASE_sources = \
 	hb-ot-cff2-table.cc \
 	hb-ot-cff2-table.hh \
 	hb-ot-cmap-table.hh \
-	hb-ot-color-cbdt-table.hh \
-	hb-ot-color-colr-table.hh \
-	hb-ot-color-cpal-table.hh \
-	hb-ot-color-sbix-table.hh \
-	hb-ot-color-svg-table.hh \
 	hb-ot-color.cc \
 	hb-ot-face-table-list.hh \
 	hb-ot-face.cc \
@@ -87,7 +85,18 @@ HB_BASE_sources = \
 	hb-ot-layout-common.hh \
 	hb-ot-layout-gdef-table.hh \
 	hb-ot-layout-gpos-table.hh \
+	hb-outline.hh \
+	hb-outline.cc \
+	hb-paint.cc \
+	hb-paint.hh \
+	hb-paint-extents.cc \
+	hb-paint-extents.hh \
 	hb-ot-layout-gsub-table.hh \
+	OT/Color/CBDT/CBDT.hh \
+	OT/Color/COLR/COLR.hh \
+	OT/Color/CPAL/CPAL.hh \
+	OT/Color/sbix/sbix.hh \
+	OT/Color/svg/svg.hh \
 	OT/glyf/glyf.hh \
 	OT/glyf/glyf-helpers.hh \
 	OT/glyf/loca.hh \
@@ -95,13 +104,17 @@ HB_BASE_sources = \
 	OT/glyf/Glyph.hh \
 	OT/glyf/GlyphHeader.hh \
 	OT/glyf/SimpleGlyph.hh \
+	OT/glyf/coord-setter.hh \
+	OT/glyf/composite-iter.hh \
 	OT/glyf/CompositeGlyph.hh \
+	OT/glyf/VarCompositeGlyph.hh \
 	OT/glyf/SubsetGlyph.hh \
 	OT/Layout/types.hh \
 	OT/Layout/Common/Coverage.hh \
 	OT/Layout/Common/CoverageFormat1.hh \
 	OT/Layout/Common/CoverageFormat2.hh \
 	OT/Layout/Common/RangeRecord.hh \
+	OT/Layout/GDEF/GDEF.hh \
 	OT/Layout/GPOS/AnchorFormat1.hh \
 	OT/Layout/GPOS/AnchorFormat2.hh \
 	OT/Layout/GPOS/AnchorFormat3.hh \
@@ -156,6 +169,7 @@ HB_BASE_sources = \
 	OT/Layout/GSUB/SingleSubst.hh \
 	OT/Layout/GSUB/SubstLookup.hh \
 	OT/Layout/GSUB/SubstLookupSubTable.hh \
+	OT/name/name.hh \
 	hb-ot-layout-gsubgpos.hh \
 	hb-ot-layout-jstf-table.hh \
 	hb-ot-layout.cc \
@@ -246,7 +260,8 @@ HB_BASE_sources = \
 
 HB_BASE_RAGEL_GENERATED_sources = \
 	hb-buffer-deserialize-json.hh \
-	hb-buffer-deserialize-text.hh \
+	hb-buffer-deserialize-text-glyphs.hh \
+	hb-buffer-deserialize-text-unicode.hh \
 	hb-number-parser.hh \
 	hb-ot-shaper-indic-machine.hh \
 	hb-ot-shaper-khmer-machine.hh \
@@ -255,7 +270,8 @@ HB_BASE_RAGEL_GENERATED_sources = \
 	$(NULL)
 HB_BASE_RAGEL_sources = \
 	hb-buffer-deserialize-json.rl \
-	hb-buffer-deserialize-text.rl \
+	hb-buffer-deserialize-text-glyphs.rl \
+	hb-buffer-deserialize-text-unicode.rl \
 	hb-number-parser.rl \
 	hb-ot-shaper-indic-machine.rl \
 	hb-ot-shaper-khmer-machine.rl \
@@ -286,6 +302,7 @@ HB_BASE_headers = \
 	hb-ot-shape.h \
 	hb-ot-var.h \
 	hb-ot.h \
+	hb-paint.h \
 	hb-set.h \
 	hb-shape-plan.h \
 	hb-shape.h \
@@ -297,7 +314,7 @@ HB_BASE_headers = \
 
 # Optional Sources and Headers with external deps
 
-HB_FT_sources = hb-ft.cc
+HB_FT_sources = hb-ft.cc hb-ft-colr.hh
 HB_FT_headers = hb-ft.h
 
 HB_GLIB_sources = hb-glib.cc
@@ -330,7 +347,6 @@ HB_SUBSET_sources = \
 	hb-number.hh \
 	hb-ot-cff1-table.cc \
 	hb-ot-cff2-table.cc \
-	hb-ot-color-colrv1-closure.hh \
 	hb-ot-post-table-v2subset.hh \
 	hb-static.cc \
 	hb-subset-cff-common.cc \
@@ -341,6 +357,8 @@ HB_SUBSET_sources = \
 	hb-subset-cff2.hh \
 	hb-subset-input.cc \
 	hb-subset-input.hh \
+	hb-subset-instancer-solver.cc \
+	hb-subset-accelerator.hh \
 	hb-subset-plan.cc \
 	hb-subset-plan.hh \
 	hb-subset-repacker.cc \
@@ -351,15 +369,28 @@ HB_SUBSET_sources = \
 	graph/gsubgpos-graph.hh \
 	graph/gsubgpos-context.hh \
 	graph/gsubgpos-context.cc \
-	graph/pairpos-graph.hh \
 	graph/coverage-graph.hh \
+	graph/classdef-graph.hh \
 	graph/pairpos-graph.hh \
+	graph/markbasepos-graph.hh \
+	graph/split-helpers.hh \
 	graph/serialize.hh \
+	OT/Color/COLR/colrv1-closure.hh \
 	$(NULL)
 
 HB_SUBSET_headers = \
 	hb-subset.h \
 	hb-subset-repacker.h \
+	$(NULL)
+
+HB_CAIRO_sources = \
+	hb-cairo.cc \
+	hb-cairo-utils.cc \
+	hb-cairo-utils.hh \
+	hb-static.cc \
+	$(NULL)
+HB_CAIRO_headers = \
+	hb-cairo.h \
 	$(NULL)
 
 HB_GOBJECT_DIST_sources = hb-gobject-structs.cc

@@ -36,27 +36,39 @@ LDADD = \
 
 if HAVE_GLIB
 
-if HAVE_FREETYPE
-if HAVE_CAIRO_FT
+if HAVE_CAIRO
 hb_view_SOURCES = $(HB_VIEW_sources)
 hb_view_LDADD = \
+	$(top_builddir)/src/libharfbuzz-cairo.la \
 	$(LDADD) \
 	$(CAIRO_LIBS) \
 	$(CAIRO_FT_LIBS) \
 	$(CHAFA_LIBS) \
 	$(NULL)
 bin_PROGRAMS += hb-view
-endif # HAVE_CAIRO_FT
-endif # HAVE_FREETYPE
+endif # HAVE_CAIRO
 
 hb_shape_SOURCES = $(HB_SHAPE_sources)
 bin_PROGRAMS += hb-shape
+
+hb_info_SOURCES = $(HB_INFO_sources)
+if HAVE_GOBJECT
+hb_info_LDADD = \
+	$(top_builddir)/src/libharfbuzz-gobject.la \
+	$(LDADD) \
+	$(GOBJECT_LIBS) \
+	$(NULL)
+else
+hb_info_LDADD = \
+	$(LDADD) \
+	$(NULL)
+endif # HAVE_GOBJECT
+bin_PROGRAMS += hb-info
 
 hb_subset_SOURCES = $(HB_SUBSET_CLI_sources)
 hb_subset_LDADD = \
 	$(top_builddir)/src/libharfbuzz-subset.la \
 	$(LDADD)
-
 bin_PROGRAMS += hb-subset
 
 hb_ot_shape_closure_SOURCES = $(HB_OT_SHAPE_CLOSURE_sources)

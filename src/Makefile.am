@@ -47,6 +47,9 @@ HBLIBS   += $(GLIB_LIBS)
 HBDEPS   += $(GLIB_DEPS)
 HBSOURCES += $(HB_GLIB_sources)
 HBHEADERS += $(HB_GLIB_headers)
+HB_HAS_GLIB_DEF = define HB_HAS_GLIB 1
+else
+HB_HAS_GLIB_DEF = undef HB_HAS_GLIB
 endif
 
 if HAVE_FREETYPE
@@ -55,6 +58,9 @@ HBLIBS   += $(FREETYPE_LIBS)
 HBDEPS   += $(FREETYPE_DEPS)
 HBSOURCES += $(HB_FT_sources)
 HBHEADERS += $(HB_FT_headers)
+HB_HAS_FREETYPE_DEF = define HB_HAS_FREETYPE 1
+else
+HB_HAS_FREETYPE_DEF = undef HB_HAS_FREETYPE
 endif
 
 if HAVE_GRAPHITE2
@@ -63,6 +69,9 @@ HBLIBS   += $(GRAPHITE2_LIBS)
 HBDEPS   += $(GRAPHITE2_DEPS)
 HBSOURCES += $(HB_GRAPHITE2_sources)
 HBHEADERS += $(HB_GRAPHITE2_headers)
+HB_HAS_GRAPHITE_DEF = define HB_HAS_GRAPHITE 1
+else
+HB_HAS_GRAPHITE_DEF = undef HB_HAS_GRAPHITE
 endif
 
 if HAVE_UNISCRIBE
@@ -70,6 +79,9 @@ HBCFLAGS += $(UNISCRIBE_CFLAGS)
 HBNONPCLIBS += $(UNISCRIBE_LIBS)
 HBSOURCES += $(HB_UNISCRIBE_sources)
 HBHEADERS += $(HB_UNISCRIBE_headers)
+HB_HAS_UNISCRIBE_DEF = define HB_HAS_UNISCRIBE 1
+else
+HB_HAS_UNISCRIBE_DEF = undef HB_HAS_UNISCRIBE
 endif
 
 if HAVE_DIRECTWRITE
@@ -77,6 +89,9 @@ HBCFLAGS += $(DIRECTWRITE_CXXFLAGS)
 HBNONPCLIBS += $(DIRECTWRITE_LIBS)
 HBSOURCES += $(HB_DIRECTWRITE_sources)
 HBHEADERS += $(HB_DIRECTWRITE_headers)
+HB_HAS_DIRECTWRITE_DEF = define HB_HAS_DIRECTWRITE 1
+else
+HB_HAS_DIRECTWRITE_DEF = undef HB_HAS_DIRECTWRITE
 endif
 
 if HAVE_GDI
@@ -84,6 +99,9 @@ HBCFLAGS += $(GDI_CXXFLAGS)
 HBNONPCLIBS += $(GDI_LIBS)
 HBSOURCES += $(HB_GDI_sources)
 HBHEADERS += $(HB_GDI_headers)
+HB_HAS_GDI_DEF = define HB_HAS_GDI 1
+else
+HB_HAS_GDI_DEF = undef HB_HAS_GDI
 endif
 
 if HAVE_CORETEXT
@@ -91,6 +109,9 @@ HBCFLAGS += $(CORETEXT_CFLAGS)
 HBNONPCLIBS += $(CORETEXT_LIBS)
 HBSOURCES += $(HB_CORETEXT_sources)
 HBHEADERS += $(HB_CORETEXT_headers)
+HB_HAS_CORETEXT_DEF = define HB_HAS_CORETEXT 1
+else
+HB_HAS_CORETEXT_DEF = undef HB_HAS_CORETEXT
 endif
 
 
@@ -114,6 +135,8 @@ export_symbols = -export-symbols harfbuzz.def
 harfbuzz_def_dependency = harfbuzz.def
 export_symbols_subset = -export-symbols harfbuzz-subset.def
 harfbuzz_subset_def_dependency = harfbuzz-subset.def
+export_symbols_cairo = -export-symbols harfbuzz-cairo.def
+harfbuzz_cairo_def_dependency = harfbuzz-cairo.def
 export_symbols_icu = -export-symbols harfbuzz-icu.def
 harfbuzz_icu_def_dependency = harfbuzz-icu.def
 export_symbols_gobject = -export-symbols harfbuzz-gobject.def
@@ -147,7 +170,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harfbuzz.pc
 cmakedir = $(libdir)/cmake/harfbuzz
 cmake_DATA = harfbuzz-config.cmake
-EXTRA_DIST += hb-version.h.in harfbuzz.pc.in harfbuzz-config.cmake.in
+EXTRA_DIST += hb-version.h.in hb-features.h.in harfbuzz.pc.in harfbuzz-config.cmake.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
 libharfbuzz_subset_la_LINK = $(chosen_linker) $(libharfbuzz_subset_la_LDFLAGS)
@@ -172,12 +195,24 @@ harfbuzz-subset.cc: Makefile.sources
 	|| ($(RM) $(srcdir)/harfbuzz-subset.cc; false)
 BUILT_SOURCES += harfbuzz-subset.cc
 
+lib_LTLIBRARIES += libharfbuzz-cairo.la
+libharfbuzz_cairo_la_LINK = $(chosen_linker) $(libharfbuzz_cairo_la_LDFLAGS)
+libharfbuzz_cairo_la_SOURCES = $(HB_CAIRO_sources)
+libharfbuzz_cairo_la_CPPFLAGS = $(HBCFLAGS) $(CAIRO_CFLAGS) $(CODE_COVERAGE_CFLAGS)
+libharfbuzz_cairo_la_LDFLAGS = $(base_link_flags) $(export_symbols_cairo) $(CODE_COVERAGE_LDFLAGS)
+libharfbuzz_cairo_la_LIBADD = $(CAIRO_LIBS) libharfbuzz.la
+EXTRA_libharfbuzz_cairo_la_DEPENDENCIES = $(harfbuzz_cairo_def_dependency)
+pkginclude_HEADERS += $(HB_CAIRO_headers)
+pkgconfig_DATA += harfbuzz-cairo.pc
+EXTRA_DIST += harfbuzz-cairo.pc.in
+
 if HAVE_ICU
 if HAVE_ICU_BUILTIN
 HBCFLAGS += $(ICU_CFLAGS)
 HBLIBS += $(ICU_LIBS)
 HBSOURCES += $(HB_ICU_sources)
 HBHEADERS += $(HB_ICU_headers)
+HB_HAS_ICU_DEF = define HB_HAS_ICU 1
 else
 lib_LTLIBRARIES += libharfbuzz-icu.la
 libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
@@ -187,6 +222,7 @@ libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 EXTRA_libharfbuzz_icu_la_DEPENDENCIES = $(harfbuzz_icu_def_dependency)
 pkginclude_HEADERS += $(HB_ICU_headers)
 pkgconfig_DATA += harfbuzz-icu.pc
+HB_HAS_ICU_DEF = undef HB_HAS_ICU
 endif
 endif
 EXTRA_DIST += harfbuzz-icu.pc.in
@@ -218,12 +254,36 @@ hb-gobject-enums.%: hb-gobject-enums.%.tmpl $(HBHEADERS)
 		--template $^ | \
 	sed 's/_t_get_type/_get_type/g; s/_T (/ (/g' > "$@" \
 	|| ($(RM) "$@"; false)
+HB_HAS_GOBJECT_DEF = define HB_HAS_GOBJECT 1
+else
+HB_HAS_GOBJECT_DEF = undef HB_HAS_GOBJECT
 endif
 EXTRA_DIST += \
 	harfbuzz-gobject.pc.in \
 	hb-gobject-enums.cc.tmpl \
 	hb-gobject-enums.h.tmpl \
 	$(NULL)
+
+
+BUILT_SOURCES += \
+	hb-features.h
+DISTCLEANFILES += \
+	hb-features.h
+
+hb-features.h: hb-features.h.in $(top_builddir)/config.status
+	$(AM_V_GEN) $(SED) \
+		-e 's/mesondefine HB_HAS_CAIRO/$(HB_HAS_CAIRO_DEF)/' \
+		-e 's/mesondefine HB_HAS_FREETYPE/$(HB_HAS_FREETYPE_DEF)/' \
+		-e 's/mesondefine HB_HAS_GDI/$(HB_HAS_GDI_DEF)/' \
+		-e 's/mesondefine HB_HAS_GDI/$(HB_HAS_GDI_DEF)/' \
+		-e 's/mesondefine HB_HAS_GRAPHITE/$(HB_HAS_GRAPHITE_DEF)/' \
+		-e 's/mesondefine HB_HAS_GLIB/$(HB_HAS_GLIB_DEF)/' \
+		-e 's/mesondefine HB_HAS_GOBJECT/$(HB_HAS_GOBJECT_DEF)/' \
+		-e 's/mesondefine HB_HAS_UNISCRIBE/$(HB_HAS_UNISCRIBE_DEF)/' \
+		-e 's/mesondefine HB_HAS_DIRECTWRITE/$(HB_HAS_DIRECTWRITE_DEF)/' \
+		-e 's/mesondefine HB_HAS_CORETEXT/$(HB_HAS_CORETEXT_DEF)/' \
+		-e 's/mesondefine HB_HAS_ICU/$(HB_HAS_ICU_DEF)/' \
+		"$<" > "$@" || ($(RM) "$@"; false)
 
 
 %.pc: %.pc.in $(top_builddir)/config.status
@@ -251,6 +311,8 @@ harfbuzz.def: $(top_builddir)/config.status
 harfbuzz.def: $(HBHEADERS)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-subset.def: $(HB_SUBSET_headers)
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
+harfbuzz-cairo.def: $(HB_CAIRO_headers)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-icu.def: $(HB_ICU_headers)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
@@ -321,6 +383,7 @@ noinst_PROGRAMS = \
 	test-ot-glyphname \
 	test-gpos-size-params \
 	test-gsub-would-substitute \
+	test-use-table \
 	$(NULL)
 bin_PROGRAMS =
 
@@ -348,6 +411,10 @@ test_ot_glyphname_SOURCES = test-ot-glyphname.cc
 test_ot_glyphname_CPPFLAGS = $(HBCFLAGS)
 test_ot_glyphname_LDADD = libharfbuzz.la $(HBLIBS)
 
+test_use_table_SOURCES = test-use-table.cc
+test_use_table_CPPFLAGS = $(HBCFLAGS)
+test_use_table_LDADD = libharfbuzz.la $(HBLIBS)
+
 test_gpos_size_params_SOURCES = test-gpos-size-params.cc
 test_gpos_size_params_CPPFLAGS = $(HBCFLAGS)
 test_gpos_size_params_LDADD = libharfbuzz.la $(HBLIBS)
@@ -363,6 +430,7 @@ COMPILED_TESTS = \
 	test-iter \
 	test-machinery \
 	test-map \
+	test-multimap \
 	test-number \
 	test-ot-tag \
 	test-priority-queue \
@@ -371,6 +439,7 @@ COMPILED_TESTS = \
 	test-unicode-ranges \
 	test-vector \
 	test-repacker \
+	test-classdef-graph \
 	$(NULL)
 COMPILED_TESTS_CPPFLAGS = $(HBCFLAGS) -DMAIN -UNDEBUG
 COMPILED_TESTS_LDADD = libharfbuzz.la $(HBLIBS)
@@ -401,6 +470,10 @@ test_map_SOURCES = test-map.cc hb-static.cc
 test_map_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_map_LDADD = $(COMPILED_TESTS_LDADD)
 
+test_multimap_SOURCES = test-multimap.cc hb-static.cc
+test_multimap_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
+test_multimap_LDADD = $(COMPILED_TESTS_LDADD)
+
 test_number_SOURCES = test-number.cc hb-number.cc
 test_number_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_number_LDADD = $(COMPILED_TESTS_LDADD)
@@ -416,6 +489,10 @@ test_priority_queue_LDADD = libharfbuzz.la $(HBLIBS)
 test_repacker_SOURCES = test-repacker.cc hb-static.cc graph/gsubgpos-context.cc
 test_repacker_CPPFLAGS = $(HBCFLAGS)
 test_repacker_LDADD = libharfbuzz.la libharfbuzz-subset.la $(HBLIBS)
+
+test_classdef_graph_SOURCES = graph/test-classdef-graph.cc hb-static.cc graph/gsubgpos-context.cc
+test_classdef_graph_CPPFLAGS = $(HBCFLAGS)
+test_classdef_graph_LDADD = libharfbuzz.la libharfbuzz-subset.la $(HBLIBS)
 
 test_set_SOURCES = test-set.cc hb-static.cc
 test_set_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)

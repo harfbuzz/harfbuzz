@@ -10,6 +10,7 @@ TESTS = \
 	tests/colr.tests \
 	tests/colr_glyphs.tests \
 	tests/colrv1.tests \
+	tests/colrv1_copy_varstore.tests \
 	tests/colr_with_components.tests \
 	tests/full-font.tests \
 	tests/glyf_bug_3131.tests \
@@ -38,7 +39,6 @@ TESTS = \
 	tests/layout.notonastaliqurdu.tests \
 	tests/layout.tests \
 	tests/layout.tinos.tests \
-	tests/layout.default_features.tests \
 	tests/layout.duplicate_features.tests \
 	tests/layout.unsorted_featurelist.tests \
 	tests/layout.drop_feature.tests \
@@ -48,6 +48,13 @@ TESTS = \
 	tests/math.tests \
 	tests/math_coverage_offset.tests \
 	tests/post.tests \
+	tests/full_instance.tests \
+	tests/instance_feature_variations.tests \
+	tests/instantiate_glyf.tests \
+	tests/pin_all_at_default.tests \
+	tests/instance_no_double_free.tests \
+	tests/mvar_full_instance.tests \
+	tests/instance_comp_glyph_empty_child.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.
@@ -58,5 +65,6 @@ TESTS = \
 XFAIL_TESTS = \
 	$(NULL)
 
+# Disabled because instancing is only available w/ experimental API on.
 DISABLED_TESTS = \
 	$(NULL)

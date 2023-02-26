@@ -29,14 +29,14 @@ hb-ot-shaper-vowel-constraints.cc: gen-vowel-constraints.py ms-use/IndicShapingI
 packtab:
 	/usr/bin/env python3 -c "import packTab" 2>/dev/null || /usr/bin/env python3 -m pip install git+https://github.com/harfbuzz/packtab
 
-ArabicShaping.txt DerivedCoreProperties.txt IndicPositionalCategory.txt IndicSyllabicCategory.txt Scripts.txt UnicodeData.txt:
+ArabicShaping.txt Blocks.txt DerivedCoreProperties.txt IndicPositionalCategory.txt IndicSyllabicCategory.txt Scripts.txt UnicodeData.txt:
 	curl -O https://unicode.org/Public/UCD/latest/ucd/$@
 emoji-data.txt:
 	curl -O https://www.unicode.org/Public/UCD/latest/ucd/emoji/emoji-data.txt
 emoji-test.txt:
 	curl -O https://www.unicode.org/Public/emoji/latest/emoji-test.txt
 languagetags:
-	curl -O https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags
+	curl -O https://learn.microsoft.com/en-us/typography/opentype/spec/languagetags
 language-subtag-registry:
 	curl -O https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
 ucd.nounihan.grouped.zip:
