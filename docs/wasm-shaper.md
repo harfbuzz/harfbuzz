@@ -35,7 +35,7 @@ harfbuzz-wasm = { path = "your-harfbuzz-source/src/wasm/rust/harfbuzz-wasm"}
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn shape(_shape_plan: u32, _font_ref: u32, _buf_ref: u32, _features: u32) -> i32 {
+pub fn shape(_shape_plan:u32, font_ref: u32, buf_ref: u32, _features: u32, _num_features: u32) -> i32 {
     1 // success!
 }
 ```
@@ -85,7 +85,7 @@ In debugging builds of Harfbuzz, we can print some output from the web assembly 
 use harfbuzz_wasm::debug;
 
 #[wasm_bindgen]
-pub fn shape(shape_plan, font_ref: u32, buf_ref: u32, _features: u32) -> i32 {
+pub fn shape(_shape_plan:u32, _font_ref: u32, _buf_ref: u32, _features: u32, _num_features: u32) -> i32 {
     debug("Hello from Rust!\n");
     1
 }
@@ -106,7 +106,7 @@ use wasm_bindgen::prelude::*;
 use harfbuzz_wasm::{Font, GlyphBuffer};
 
 #[wasm_bindgen]
-pub fn shape(_shape_plan:u32, font_ref: u32, buf_ref: u32, _features: u32) -> i32 {
+pub fn shape(_shape_plan:u32, font_ref: u32, buf_ref: u32, _features: u32, _num_features: u32) -> i32 {
     let font = Font::from_ref(font_ref);
     let mut buffer = GlyphBuffer::from_ref(buf_ref);
     for mut item in buffer.glyphs.iter_mut() {
@@ -129,7 +129,7 @@ use tiny_rng::{Rand, Rng};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn shape(font_ref: u32, buf_ref: u32) -> i32 {
+pub fn shape(_shape_plan:u32, font_ref: u32, buf_ref: u32, _features: u32, _num_features: u32) -> i32 {
     let mut rng = Rng::from_seed(123456);
 
     // Use the default OpenType shaper
