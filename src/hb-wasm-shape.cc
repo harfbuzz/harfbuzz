@@ -123,11 +123,6 @@ _hb_wasm_init ()
   RuntimeInitArgs init_args;
   memset (&init_args, 0, sizeof (RuntimeInitArgs));
 
-  if (wasm_runtime_is_running_mode_supported (Mode_LLVM_JIT))
-    init_args.running_mode = Mode_LLVM_JIT;
-  else if (wasm_runtime_is_running_mode_supported (Mode_Fast_JIT))
-    init_args.running_mode = Mode_Fast_JIT;
-
   init_args.mem_alloc_type = Alloc_With_Allocator;
   init_args.mem_alloc_option.allocator.malloc_func = (void *) hb_malloc;
   init_args.mem_alloc_option.allocator.realloc_func = (void *) hb_realloc;
