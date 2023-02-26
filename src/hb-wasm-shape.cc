@@ -120,8 +120,12 @@ _hb_wasm_init ()
    * It's clunky that we can't allocate a static mutex.
    * So we have to first allocate one on the heap atomically...
    *
+   * Do we also need to lock around module creation?
+   *
    * Also, wasm-micro-runtime uses a singleton instance. So if
-   * another library or client uses it, all bets are off. :-( */
+   * another library or client uses it, all bets are off. :-(
+   * If nothing else, around HB_REF2OBJ().
+   */
 
   static bool initialized;
   if (initialized)
