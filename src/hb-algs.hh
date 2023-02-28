@@ -1357,7 +1357,7 @@ double solve_itp (func_t f,
 		  double epsilon,
 		  unsigned n0,
 		  double k1,
-		  double &ya, double yb)
+		  double &ya, double &yb)
 {
   unsigned n1_2 = (unsigned) (hb_max (ceil (log2 ((b - a) / epsilon)) - 1.0, 0.0));
   unsigned nmax = n0 + n1_2;

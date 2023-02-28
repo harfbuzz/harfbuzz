@@ -196,4 +196,177 @@ hb_shape (hb_font_t           *font,
 }
 
 
+static float
+buffer_width (hb_buffer_t *buffer)
+{
+  float w = 0;
+  auto *pos = buffer->pos;
+  unsigned count = buffer->len;
+  if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+    for (unsigned i = 0; i < count; i++)
+      w += pos[i].x_advance;
+  else
+    for (unsigned i = 0; i < count; i++)
+      w += pos[i].y_advance;
+  return w;
+}
+
+static void
+reset_buffer (hb_buffer_t *buffer,
+	      hb_array_t<const hb_glyph_info_t> text)
+{
+  assert (buffer->ensure (text.length));
+  buffer->have_positions = false;
+  buffer->len = text.length;
+  memcpy (buffer->info, text.arrayZ, text.length * sizeof (buffer->info[0]));
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+}
+
+hb_bool_t
+hb_shape_justify (hb_font_t          *font,
+		  hb_buffer_t        *buffer,
+		  const hb_feature_t *features,
+		  unsigned int        num_features,
+		  const char * const *shaper_list,
+		  float               target_width,
+		  float              *width, /* IN/OUT */
+		  hb_tag_t           *var_tag, /* OUT */
+		  float              *var_value /* OUT */)
+{
+  // TODO Negative font scales?
+
+  if (target_width == *width)
+    return hb_shape_full (font, buffer,
+			  features, num_features,
+			  shaper_list);
+
+  hb_face_t *face = font->face;
+
+  hb_tag_t tag = HB_TAG_NONE;
+  hb_ot_var_axis_info_t axis_info;
+
+  hb_tag_t tags[] =
+  {
+    HB_TAG ('j','s','t','f'),
+    HB_TAG ('w','d','t','h'),
+  };
+  for (unsigned i = 0; i < ARRAY_LENGTH (tags); i++)
+    if (hb_ot_var_find_axis_info (face, tags[i], &axis_info))
+    {
+      tag = *var_tag = tags[i];
+      break;
+    }
+
+  if (!tag)
+  {
+    if (hb_shape_full (font, buffer,
+		       features, num_features,
+		       shaper_list))
+    {
+      *width = buffer_width (buffer);
+      return true;
+    }
+    else
+      return false;
+  }
+
+  unsigned text_len = buffer->len;
+  auto *text_info = (hb_glyph_info_t *) hb_malloc (text_len * sizeof (buffer->info[0]));
+  if (unlikely (text_len && !text_info))
+    return false;
+  hb_memcpy (text_info, buffer->info, text_len * sizeof (buffer->info[0]));
+  auto text = hb_array<const hb_glyph_info_t> (text_info, text_len);
+
+  if (!*width)
+  {
+    hb_font_set_variation (font, tag, axis_info.default_value);
+    if (!hb_shape_full (font, buffer,
+			features, num_features,
+			shaper_list))
+      return false;
+    *width = buffer_width (buffer);
+  }
+
+  if (target_width == *width)
+    return true;
+
+  double a, b, ya, yb;
+  if (*width < target_width)
+  {
+    ya = *width - target_width;
+    a = axis_info.default_value;
+    b = axis_info.max_value;
+
+    hb_font_set_variation (font, tag, (float) b);
+    reset_buffer (buffer, text);
+    if (!hb_shape_full (font, buffer,
+			features, num_features,
+			shaper_list))
+      return false;
+    yb = buffer_width (buffer) - target_width;
+    if (yb <= 0)
+    {
+      *width = (float) yb + target_width;
+      return true;
+    }
+  }
+  else
+  {
+    yb = *width - target_width;
+    a = axis_info.min_value;
+    b = axis_info.default_value;
+
+    hb_font_set_variation (font, tag, (float) a);
+    reset_buffer (buffer, text);
+    if (!hb_shape_full (font, buffer,
+			features, num_features,
+			shaper_list))
+      return false;
+    ya = buffer_width (buffer) - target_width;
+    if (ya >= 0)
+    {
+      *width = (float) ya + target_width;
+      return true;
+    }
+  }
+
+  double epsilon = (b - a) / (1<<14);
+  const unsigned n0 = 1;
+  const double k1 = 0.2 / (b - a);
+  bool failed = false;
+
+  auto f = [&] (double x)
+  {
+    hb_font_set_variation (font, tag, (float) x);
+    reset_buffer (buffer, text);
+    if (unlikely (!hb_shape_full (font, buffer,
+				  features, num_features,
+				  shaper_list)))
+    {
+      failed = true;
+      return target_width;
+    }
+
+    return buffer_width (buffer) - target_width;
+  };
+
+  double itp = solve_itp (f,
+			  a, b,
+			  epsilon,
+			  n0,
+			  k1,
+			  ya, yb);
+
+  hb_free (text_info);
+
+  if (failed)
+    return false;
+
+  *width = (float) (ya + yb) * 0.5f + target_width;
+  *var_value = (float) itp;
+
+  return true;
+}
+
+
 #endif
