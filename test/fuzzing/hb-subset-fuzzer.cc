@@ -85,7 +85,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 	    data + size,
 	    sizeof (num_axes));
 
-    if (num_axes > 0 && size > num_axes * (sizeof(hb_tag_t) + sizeof(float)))
+    if (num_axes > 0 && num_axes < 8 && size > num_axes * (sizeof(hb_tag_t) + sizeof(int)))
     {
       for (unsigned i = 0; i < num_axes; i++) {
         hb_tag_t tag;
