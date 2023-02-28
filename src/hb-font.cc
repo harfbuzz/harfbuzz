@@ -2690,16 +2690,25 @@ hb_font_set_variation (hb_font_t *font,
   }
 
   /* Initialize design coords. */
-  for (unsigned int i = 0; i < coords_length; i++)
-    design_coords[i] = axes[i].get_default ();
-  if (font->instance_index != HB_FONT_NO_VAR_NAMED_INSTANCE)
+  if (font->design_coords)
   {
-    unsigned count = coords_length;
-    /* This may fail if index is out-of-range;
-     * That's why we initialize design_coords from fvar above
-     * unconditionally. */
-    hb_ot_var_named_instance_get_design_coords (font->face, font->instance_index,
-						&count, design_coords);
+    assert (coords_length == font->num_coords);
+    for (unsigned int i = 0; i < coords_length; i++)
+      design_coords[i] = font->design_coords[i];
+  }
+  else
+  {
+    for (unsigned int i = 0; i < coords_length; i++)
+      design_coords[i] = axes[i].get_default ();
+    if (font->instance_index != HB_FONT_NO_VAR_NAMED_INSTANCE)
+    {
+      unsigned count = coords_length;
+      /* This may fail if index is out-of-range;
+       * That's why we initialize design_coords from fvar above
+       * unconditionally. */
+      hb_ot_var_named_instance_get_design_coords (font->face, font->instance_index,
+						  &count, design_coords);
+    }
   }
 
   for (unsigned axis_index = 0; axis_index < coords_length; axis_index++)
