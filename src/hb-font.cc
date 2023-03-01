@@ -2658,7 +2658,7 @@ hb_font_set_variations (hb_font_t            *font,
  * Change the value of one variation axis on the font.
  *
  * Note: This function is expensive to be called repeatedly.
- *   If you want to set multipl variation axes at the same time,
+ *   If you want to set multiple variation axes at the same time,
  *   use hb_font_set_variations() instead.
  *
  * XSince: REPLACEME
