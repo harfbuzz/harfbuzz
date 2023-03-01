@@ -199,18 +199,18 @@ hb_shape (hb_font_t           *font,
 
 
 static float
-buffer_width (hb_buffer_t *buffer)
+buffer_advance (hb_buffer_t *buffer)
 {
-  float w = 0;
+  float a = 0;
   auto *pos = buffer->pos;
   unsigned count = buffer->len;
   if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
     for (unsigned i = 0; i < count; i++)
-      w += pos[i].x_advance;
+      a += pos[i].x_advance;
   else
     for (unsigned i = 0; i < count; i++)
-      w += pos[i].y_advance;
-  return w;
+      a += pos[i].y_advance;
+  return a;
 }
 
 static void
@@ -224,21 +224,47 @@ reset_buffer (hb_buffer_t *buffer,
   hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
 }
 
+/**
+ * hb_shape_justify:
+ * @font: a mutable #hb_font_t to use for shaping
+ * @buffer: an #hb_buffer_t to shape
+ * @features: (array length=num_features) (nullable): an array of user
+ *    specified #hb_feature_t or `NULL`
+ * @num_features: the length of @features array
+ * @shaper_list: (array zero-terminated=1) (nullable): a `NULL`-terminated
+ *    array of shapers to use or `NULL`
+ * @min_target_advance: Minimum advance width/height to aim for.
+ * @max_target_advance: Maximum advance width/height to aim for.
+ * @advance: (inout): Input/output advance width/height of the buffer.
+ * @var_tag: (out): Variation-axis tag used for justification.
+ * @var_value: (out): Variation-axis value used to reach target justification.
+ *
+ * See hb_shape_full() for basic details. If @shaper_list is not `NULL`, the specified
+ * shapers will be used in the given order, otherwise the default shapers list
+ * will be used.
+ *
+ * In addition, justify the shaping results such that the shaping results reach
+ * the target advance width/height, depending on the buffer direction.
+ *
+ * Return value: false if all shapers failed, true otherwise
+ *
+ * XSince: REPLACEME
+ **/
 hb_bool_t
 hb_shape_justify (hb_font_t          *font,
 		  hb_buffer_t        *buffer,
 		  const hb_feature_t *features,
 		  unsigned int        num_features,
 		  const char * const *shaper_list,
-		  float               min_target_width,
-		  float               max_target_width,
-		  float              *width, /* IN/OUT */
+		  float               min_target_advance,
+		  float               max_target_advance,
+		  float              *advance, /* IN/OUT */
 		  hb_tag_t           *var_tag, /* OUT */
 		  float              *var_value /* OUT */)
 {
   // TODO Negative font scales?
 
-  if (min_target_width <= *width && *width <= max_target_width)
+  if (min_target_advance <= *advance && *advance <= max_target_advance)
     return hb_shape_full (font, buffer,
 			  features, num_features,
 			  shaper_list);
@@ -266,7 +292,7 @@ hb_shape_justify (hb_font_t          *font,
 		       features, num_features,
 		       shaper_list))
     {
-      *width = buffer_width (buffer);
+      *advance = buffer_advance (buffer);
       return true;
     }
     else
@@ -280,23 +306,23 @@ hb_shape_justify (hb_font_t          *font,
   hb_memcpy (text_info, buffer->info, text_len * sizeof (buffer->info[0]));
   auto text = hb_array<const hb_glyph_info_t> (text_info, text_len);
 
-  if (!*width)
+  if (!*advance)
   {
     hb_font_set_variation (font, tag, axis_info.default_value);
     if (!hb_shape_full (font, buffer,
 			features, num_features,
 			shaper_list))
       return false;
-    *width = buffer_width (buffer);
+    *advance = buffer_advance (buffer);
   }
 
-  if (min_target_width <= *width && *width <= max_target_width)
+  if (min_target_advance <= *advance && *advance <= max_target_advance)
     return true;
 
   double a, b, ya, yb;
-  if (*width < min_target_width)
+  if (*advance < min_target_advance)
   {
-    ya = *width;
+    ya = *advance;
     a = axis_info.default_value;
     b = axis_info.max_value;
 
@@ -306,16 +332,16 @@ hb_shape_justify (hb_font_t          *font,
 			features, num_features,
 			shaper_list))
       return false;
-    yb = buffer_width (buffer);
+    yb = buffer_advance (buffer);
     if (yb <= 0)
     {
-      *width = (float) yb;
+      *advance = (float) yb;
       return true;
     }
   }
   else
   {
-    yb = *width;
+    yb = *advance;
     a = axis_info.min_value;
     b = axis_info.default_value;
 
@@ -325,10 +351,10 @@ hb_shape_justify (hb_font_t          *font,
 			features, num_features,
 			shaper_list))
       return false;
-    ya = buffer_width (buffer);
+    ya = buffer_advance (buffer);
     if (ya >= 0)
     {
-      *width = (float) ya;
+      *advance = (float) ya;
       return true;
     }
   }
@@ -345,13 +371,13 @@ hb_shape_justify (hb_font_t          *font,
 				  shaper_list)))
     {
       failed = true;
-      return (double) min_target_width;
+      return (double) min_target_advance;
     }
 
-    double w = buffer_width (buffer);
-    DEBUG_MSG (JUSTIFY, nullptr, "Trying '%c%c%c%c' axis parameter %f. Width %g. Target: min %g max %g",
+    double w = buffer_advance (buffer);
+    DEBUG_MSG (JUSTIFY, nullptr, "Trying '%c%c%c%c' axis parameter %f. Advance %g. Target: min %g max %g",
 	       HB_UNTAG (tag), x, w,
-	       (double) min_target_width, (double) max_target_width);
+	       (double) min_target_advance, (double) max_target_advance);
     return w;
   };
 
@@ -359,7 +385,7 @@ hb_shape_justify (hb_font_t          *font,
   double itp = solve_itp (f,
 			  a, b,
 			  epsilon,
-			  min_target_width, max_target_width,
+			  min_target_advance, max_target_advance,
 			  ya, yb, y);
 
   hb_free (text_info);
@@ -368,7 +394,7 @@ hb_shape_justify (hb_font_t          *font,
     return false;
 
   *var_value = (float) itp;
-  *width = (float) y;
+  *advance = (float) y;
 
   return true;
 }

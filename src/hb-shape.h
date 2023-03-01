@@ -59,9 +59,9 @@ hb_shape_justify (hb_font_t          *font,
 		  const hb_feature_t *features,
 		  unsigned int        num_features,
 		  const char * const *shaper_list,
-		  float               min_target_width,
-		  float               max_target_width,
-		  float              *width, /* IN/OUT */
+		  float               min_target_advance,
+		  float               max_target_advance,
+		  float              *advance, /* IN/OUT */
 		  hb_tag_t           *var_tag, /* OUT */
 		  float              *var_value /* OUT */);
 
