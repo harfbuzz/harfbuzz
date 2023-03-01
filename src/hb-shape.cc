@@ -228,14 +228,15 @@ hb_shape_justify (hb_font_t          *font,
 		  const hb_feature_t *features,
 		  unsigned int        num_features,
 		  const char * const *shaper_list,
-		  float               target_width,
+		  float               min_target_width,
+		  float               max_target_width,
 		  float              *width, /* IN/OUT */
 		  hb_tag_t           *var_tag, /* OUT */
 		  float              *var_value /* OUT */)
 {
   // TODO Negative font scales?
 
-  if (target_width == *width)
+  if (min_target_width <= *width && *width <= max_target_width)
     return hb_shape_full (font, buffer,
 			  features, num_features,
 			  shaper_list);
@@ -287,13 +288,13 @@ hb_shape_justify (hb_font_t          *font,
     *width = buffer_width (buffer);
   }
 
-  if (target_width == *width)
+  if (min_target_width <= *width && *width <= max_target_width)
     return true;
 
   double a, b, ya, yb;
-  if (*width < target_width)
+  if (*width < min_target_width)
   {
-    ya = *width - target_width;
+    ya = *width;
     a = axis_info.default_value;
     b = axis_info.max_value;
 
@@ -303,16 +304,16 @@ hb_shape_justify (hb_font_t          *font,
 			features, num_features,
 			shaper_list))
       return false;
-    yb = buffer_width (buffer) - target_width;
+    yb = buffer_width (buffer);
     if (yb <= 0)
     {
-      *width = (float) yb + target_width;
+      *width = (float) yb;
       return true;
     }
   }
   else
   {
-    yb = *width - target_width;
+    yb = *width;
     a = axis_info.min_value;
     b = axis_info.default_value;
 
@@ -322,10 +323,10 @@ hb_shape_justify (hb_font_t          *font,
 			features, num_features,
 			shaper_list))
       return false;
-    ya = buffer_width (buffer) - target_width;
+    ya = buffer_width (buffer);
     if (ya >= 0)
     {
-      *width = (float) ya + target_width;
+      *width = (float) ya;
       return true;
     }
   }
@@ -344,26 +345,29 @@ hb_shape_justify (hb_font_t          *font,
 				  shaper_list)))
     {
       failed = true;
-      return target_width;
+      return min_target_width;
     }
 
-    return buffer_width (buffer) - target_width;
+    printf ("%g\n", x);
+    return buffer_width (buffer);
   };
 
+  double y = 0;
   double itp = solve_itp (f,
 			  a, b,
 			  epsilon,
 			  n0,
 			  k1,
-			  ya, yb);
+			  min_target_width, max_target_width,
+			  ya, yb, y);
 
   hb_free (text_info);
 
   if (failed)
     return false;
 
-  *width = (float) (ya + yb) * 0.5f + target_width;
   *var_value = (float) itp;
+  *width = (float) y;
 
   return true;
 }

@@ -1357,7 +1357,8 @@ double solve_itp (func_t f,
 		  double epsilon,
 		  unsigned n0,
 		  double k1,
-		  double &ya, double &yb)
+		  double min_y, double max_y,
+		  double &ya, double &yb, double &y)
 {
   unsigned n1_2 = (unsigned) (hb_max (ceil (log2 ((b - a) / epsilon)) - 1.0, 0.0));
   unsigned nmax = n0 + n1_2;
@@ -1377,18 +1378,19 @@ double solve_itp (func_t f,
     double xt = delta <= fabs (x1_2 - xf) ? xf + delta * sigma_sign : x1_2;
     double xitp = fabs (xt - x1_2) <= r ? xt : x1_2 - r * sigma_sign;
     double yitp = f (xitp);
-    if (yitp > 0.0)
+    if (yitp > max_y)
     {
       b = xitp;
       yb = yitp;
     }
-    else if (yitp < 0.0)
+    else if (yitp < min_y)
     {
       a = xitp;
       ya = yitp;
     }
     else
     {
+      y = yitp;
       return xitp;
     }
     scaled_epsilon *= 0.5;

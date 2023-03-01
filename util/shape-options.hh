@@ -172,12 +172,14 @@ struct shape_options_t
       }
       else
       {
-        float target_width = width * (1 << SUBPIXEL_BITS);
+        float unit = (1 << SUBPIXEL_BITS);
+        float target_width = width * unit;
 	float w = 0;
 	hb_tag_t var_tag;
 	float var_value;
 	if (!hb_shape_justify (font, buffer, features, num_features, shapers,
-			       target_width, &w, &var_tag, &var_value))
+			       target_width - unit * 0.5f, target_width + unit * 0.5f,
+			       &w, &var_tag, &var_value))
 	{
 	  if (error)
 	    *error = "Shaping failed.";
