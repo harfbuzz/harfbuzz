@@ -26,6 +26,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#define HB_DEBUG_JUSTIFY 1
+
 #include "hb.hh"
 
 #include "hb-shaper.hh"
@@ -345,11 +347,14 @@ hb_shape_justify (hb_font_t          *font,
 				  shaper_list)))
     {
       failed = true;
-      return min_target_width;
+      return (double) min_target_width;
     }
 
-    printf ("%g\n", x);
-    return buffer_width (buffer);
+    double w = buffer_width (buffer);
+    DEBUG_MSG (JUSTIFY, nullptr, "Trying '%c%c%c%c' axis parameter %f. Width %g. Target: min %g max %g",
+	       HB_UNTAG (tag), x, w,
+	       (double) min_target_width, (double) max_target_width);
+    return w;
   };
 
   double y = 0;
