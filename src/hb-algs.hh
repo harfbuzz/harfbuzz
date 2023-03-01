@@ -1344,7 +1344,10 @@ struct
 HB_FUNCOBJ (hb_dec);
 
 
-/* For documentation and implementation see:
+/* Adapted from kurbo implementation with extra parameters added,
+ * and finding for a particular range instead of 0.
+ *
+ * For documentation and implementation see:
  *
  * [ITP method]: https://en.wikipedia.org/wiki/ITP_Method
  * [An Enhancement of the Bisection Method Average Performance Preserving Minmax Optimality]: https://dl.acm.org/doi/10.1145/3423597
@@ -1355,12 +1358,12 @@ template <typename func_t>
 double solve_itp (func_t f,
 		  double a, double b,
 		  double epsilon,
-		  unsigned n0,
-		  double k1,
 		  double min_y, double max_y,
 		  double &ya, double &yb, double &y)
 {
   unsigned n1_2 = (unsigned) (hb_max (ceil (log2 ((b - a) / epsilon)) - 1.0, 0.0));
+  const unsigned n0 = 1; // Hardwired
+  const double k1 = 0.2 / (b - a); // Hardwired.
   unsigned nmax = n0 + n1_2;
   double scaled_epsilon = epsilon * double (1llu << nmax);
   double _2_epsilon = 2.0 * epsilon;
@@ -1370,8 +1373,8 @@ double solve_itp (func_t f,
     double r = scaled_epsilon - 0.5 * (b - a);
     double xf = (yb * a - ya * b) / (yb - ya);
     double sigma = x1_2 - xf;
-    // This has k2 = 2 hardwired for efficiency.
     double b_a = b - a;
+    // This has k2 = 2 hardwired for efficiency.
     double b_a_k2 = b_a * b_a;
     double delta = k1 * b_a_k2;
     int sigma_sign = sigma >= 0 ? +1 : -1;

@@ -334,8 +334,6 @@ hb_shape_justify (hb_font_t          *font,
   }
 
   double epsilon = (b - a) / (1<<14);
-  const unsigned n0 = 1;
-  const double k1 = 0.2 / (b - a);
   bool failed = false;
 
   auto f = [&] (double x)
@@ -361,8 +359,6 @@ hb_shape_justify (hb_font_t          *font,
   double itp = solve_itp (f,
 			  a, b,
 			  epsilon,
-			  n0,
-			  k1,
 			  min_target_width, max_target_width,
 			  ya, yb, y);
 
