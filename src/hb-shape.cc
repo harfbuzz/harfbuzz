@@ -198,6 +198,8 @@ hb_shape (hb_font_t           *font,
 }
 
 
+#ifdef HB_EXPERIMENTAL_API
+
 static float
 buffer_advance (hb_buffer_t *buffer)
 {
@@ -246,9 +248,11 @@ reset_buffer (hb_buffer_t *buffer,
  * In addition, justify the shaping results such that the shaping results reach
  * the target advance width/height, depending on the buffer direction.
  *
+ * This API is currently experimental and will probably change in the future.
+ *
  * Return value: false if all shapers failed, true otherwise
  *
- * XSince: REPLACEME
+ * XSince: EXPERIMENTAL
  **/
 hb_bool_t
 hb_shape_justify (hb_font_t          *font,
@@ -398,6 +402,8 @@ hb_shape_justify (hb_font_t          *font,
 
   return true;
 }
+
+#endif
 
 
 #endif

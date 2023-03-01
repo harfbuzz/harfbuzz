@@ -189,6 +189,7 @@ struct shape_options_t
 	  exit (0);
 	}
       }
+#ifdef HB_EXPERIMENTAL_API
       else
       {
         float unit = (1 << SUBPIXEL_BITS);
@@ -205,6 +206,7 @@ struct shape_options_t
 	  goto fail;
 	}
       }
+#endif
     }
 
     if (normalize_glyphs)
@@ -367,8 +369,10 @@ shape_options_t::add_options (option_parser_t *parser)
     {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
     {"bot",		0, 0, G_OPTION_ARG_NONE,	&this->bot,			"Treat text as beginning-of-paragraph",	nullptr},
     {"eot",		0, 0, G_OPTION_ARG_NONE,	&this->eot,			"Treat text as end-of-paragraph",	nullptr},
+#ifdef HB_EXPERIMENTAL_API
     {"width",		'w',0,
 			      G_OPTION_ARG_INT,		&this->width,			"Target width to justify to",		"WIDTH, or -1"},
+#endif
     {"preserve-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->preserve_default_ignorables,	"Preserve Default-Ignorable characters",	nullptr},
     {"remove-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->remove_default_ignorables,	"Remove Default-Ignorable characters",	nullptr},
     {"invisible-glyph",	0, 0, G_OPTION_ARG_INT,		&this->invisible_glyph,		"Glyph value to replace Default-Ignorables with",	nullptr},
