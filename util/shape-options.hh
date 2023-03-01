@@ -161,13 +161,32 @@ struct shape_options_t
     }
     else
     {
-      if (!width)
+      if (width <= 0)
       {
 	if (!hb_shape_full (font, buffer, features, num_features, shapers))
 	{
 	  if (error)
 	    *error = "Shaping failed.";
 	  goto fail;
+	}
+
+	if (width < 0)
+	{
+	  float unit = (1 << SUBPIXEL_BITS);
+
+	  /* Calculate buffer width */
+	  float w = 0;
+	  unsigned count = 0;
+	  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &count);
+	  if (HB_DIRECTION_IS_HORIZONTAL (hb_buffer_get_direction (buffer)))
+	    for (unsigned i = 0; i < count; i++)
+	      w += pos[i].x_advance;
+	  else
+	    for (unsigned i = 0; i < count; i++)
+	      w += pos[i].y_advance;
+
+	  printf ("Default width: %u\n", (unsigned) roundf (w / unit));
+	  exit (0);
 	}
       }
       else
@@ -221,7 +240,7 @@ struct shape_options_t
   hb_feature_t *features = nullptr;
   unsigned int num_features = 0;
   char **shapers = nullptr;
-  unsigned width = 0;
+  signed width = 0;
   hb_bool_t utf8_clusters = false;
   hb_codepoint_t invisible_glyph = 0;
   hb_codepoint_t not_found_glyph = 0;
@@ -349,7 +368,7 @@ shape_options_t::add_options (option_parser_t *parser)
     {"bot",		0, 0, G_OPTION_ARG_NONE,	&this->bot,			"Treat text as beginning-of-paragraph",	nullptr},
     {"eot",		0, 0, G_OPTION_ARG_NONE,	&this->eot,			"Treat text as end-of-paragraph",	nullptr},
     {"width",		'w',0,
-			      G_OPTION_ARG_INT,		&this->width,			"Target width to justify to",		"WIDTH"},
+			      G_OPTION_ARG_INT,		&this->width,			"Target width to justify to",		"WIDTH, or -1"},
     {"preserve-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->preserve_default_ignorables,	"Preserve Default-Ignorable characters",	nullptr},
     {"remove-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->remove_default_ignorables,	"Remove Default-Ignorable characters",	nullptr},
     {"invisible-glyph",	0, 0, G_OPTION_ARG_INT,		&this->invisible_glyph,		"Glyph value to replace Default-Ignorables with",	nullptr},
