@@ -161,12 +161,52 @@ struct shape_options_t
     }
     else
     {
-      if (!hb_shape_full (font, buffer, features, num_features, shapers))
+      if (advance <= 0)
       {
-	if (error)
-	  *error = "Shaping failed.";
-	goto fail;
+	if (!hb_shape_full (font, buffer, features, num_features, shapers))
+	{
+	  if (error)
+	    *error = "Shaping failed.";
+	  goto fail;
+	}
+
+	if (advance < 0)
+	{
+	  float unit = (1 << SUBPIXEL_BITS);
+
+	  /* Calculate buffer advance */
+	  float w = 0;
+	  unsigned count = 0;
+	  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &count);
+	  if (HB_DIRECTION_IS_HORIZONTAL (hb_buffer_get_direction (buffer)))
+	    for (unsigned i = 0; i < count; i++)
+	      w += pos[i].x_advance;
+	  else
+	    for (unsigned i = 0; i < count; i++)
+	      w += pos[i].y_advance;
+
+	  printf ("Default size: %u\n", (unsigned) roundf (w / unit));
+	  exit (0);
+	}
       }
+#ifdef HB_EXPERIMENTAL_API
+      else
+      {
+        float unit = (1 << SUBPIXEL_BITS);
+        float target_advance = advance * unit;
+	float w = 0;
+	hb_tag_t var_tag;
+	float var_value;
+	if (!hb_shape_justify (font, buffer, features, num_features, shapers,
+			       target_advance - unit * 0.5f, target_advance + unit * 0.5f,
+			       &w, &var_tag, &var_value))
+	{
+	  if (error)
+	    *error = "Shaping failed.";
+	  goto fail;
+	}
+      }
+#endif
     }
 
     if (normalize_glyphs)
@@ -202,6 +242,7 @@ struct shape_options_t
   hb_feature_t *features = nullptr;
   unsigned int num_features = 0;
   char **shapers = nullptr;
+  signed advance = 0;
   hb_bool_t utf8_clusters = false;
   hb_codepoint_t invisible_glyph = 0;
   hb_codepoint_t not_found_glyph = 0;
@@ -328,6 +369,10 @@ shape_options_t::add_options (option_parser_t *parser)
     {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
     {"bot",		0, 0, G_OPTION_ARG_NONE,	&this->bot,			"Treat text as beginning-of-paragraph",	nullptr},
     {"eot",		0, 0, G_OPTION_ARG_NONE,	&this->eot,			"Treat text as end-of-paragraph",	nullptr},
+#ifdef HB_EXPERIMENTAL_API
+    {"justify-to",	0, 0,
+			      G_OPTION_ARG_INT,		&this->advance,			"Target size to justify to",		"SIZE, or -1"},
+#endif
     {"preserve-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->preserve_default_ignorables,	"Preserve Default-Ignorable characters",	nullptr},
     {"remove-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->remove_default_ignorables,	"Remove Default-Ignorable characters",	nullptr},
     {"invisible-glyph",	0, 0, G_OPTION_ARG_INT,		&this->invisible_glyph,		"Glyph value to replace Default-Ignorables with",	nullptr},
@@ -339,7 +384,7 @@ shape_options_t::add_options (option_parser_t *parser)
     {"safe-to-insert-tatweel",0, 0, G_OPTION_ARG_NONE,	&this->safe_to_insert_tatweel,	"Produce safe-to-insert-tatweel glyph flag",	nullptr},
     {"glyphs",		0, 0, G_OPTION_ARG_NONE,	&this->glyphs,			"Interpret input as glyph string",	nullptr},
     {"verify",		0, 0, G_OPTION_ARG_NONE,	&this->verify,			"Perform sanity checks on shaping results",	nullptr},
-    {"num-iterations", 'n', G_OPTION_FLAG_IN_MAIN,
+    {"num-iterations",	'n',G_OPTION_FLAG_IN_MAIN,
 			      G_OPTION_ARG_INT,		&this->num_iterations,		"Run shaper N times (default: 1)",	"N"},
     {nullptr}
   };

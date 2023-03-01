@@ -1344,4 +1344,62 @@ struct
 HB_FUNCOBJ (hb_dec);
 
 
+/* Adapted from kurbo implementation with extra parameters added,
+ * and finding for a particular range instead of 0.
+ *
+ * For documentation and implementation see:
+ *
+ * [ITP method]: https://en.wikipedia.org/wiki/ITP_Method
+ * [An Enhancement of the Bisection Method Average Performance Preserving Minmax Optimality]: https://dl.acm.org/doi/10.1145/3423597
+ * https://docs.rs/kurbo/0.8.1/kurbo/common/fn.solve_itp.html
+ * https://github.com/linebender/kurbo/blob/fd839c25ea0c98576c7ce5789305822675a89938/src/common.rs#L162-L248
+ */
+template <typename func_t>
+double solve_itp (func_t f,
+		  double a, double b,
+		  double epsilon,
+		  double min_y, double max_y,
+		  double &ya, double &yb, double &y)
+{
+  unsigned n1_2 = (unsigned) (hb_max (ceil (log2 ((b - a) / epsilon)) - 1.0, 0.0));
+  const unsigned n0 = 1; // Hardwired
+  const double k1 = 0.2 / (b - a); // Hardwired.
+  unsigned nmax = n0 + n1_2;
+  double scaled_epsilon = epsilon * double (1llu << nmax);
+  double _2_epsilon = 2.0 * epsilon;
+  while (b - a > _2_epsilon)
+  {
+    double x1_2 = 0.5 * (a + b);
+    double r = scaled_epsilon - 0.5 * (b - a);
+    double xf = (yb * a - ya * b) / (yb - ya);
+    double sigma = x1_2 - xf;
+    double b_a = b - a;
+    // This has k2 = 2 hardwired for efficiency.
+    double b_a_k2 = b_a * b_a;
+    double delta = k1 * b_a_k2;
+    int sigma_sign = sigma >= 0 ? +1 : -1;
+    double xt = delta <= fabs (x1_2 - xf) ? xf + delta * sigma_sign : x1_2;
+    double xitp = fabs (xt - x1_2) <= r ? xt : x1_2 - r * sigma_sign;
+    double yitp = f (xitp);
+    if (yitp > max_y)
+    {
+      b = xitp;
+      yb = yitp;
+    }
+    else if (yitp < min_y)
+    {
+      a = xitp;
+      ya = yitp;
+    }
+    else
+    {
+      y = yitp;
+      return xitp;
+    }
+    scaled_epsilon *= 0.5;
+  }
+  return 0.5 * (a + b);
+}
+
+
 #endif /* HB_ALGS_HH */
