@@ -425,6 +425,11 @@ retry:
   {
     DEBUG_MSG (WASM, module_inst, "Calling shape() failed: %s",
 	       wasm_runtime_get_exception (module_inst));
+    if (!buffer->ensure_unicode ())
+    {
+      DEBUG_MSG (WASM, font, "Shape failed but buffer is not in Unicode; failing...");
+      goto fail;
+    }
     if (retried)
     {
       DEBUG_MSG (WASM, font, "Giving up...");
