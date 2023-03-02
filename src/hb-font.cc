@@ -2661,7 +2661,7 @@ hb_font_set_variations (hb_font_t            *font,
  *   If you want to set multiple variation axes at the same time,
  *   use hb_font_set_variations() instead.
  *
- * XSince: REPLACEME
+ * Since: 7.1.0
  */
 void
 hb_font_set_variation (hb_font_t *font,
