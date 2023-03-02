@@ -26,8 +26,6 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#define HB_DEBUG_JUSTIFY 1
-
 #include "hb.hh"
 
 #include "hb-shaper.hh"
