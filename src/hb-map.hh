@@ -317,18 +317,6 @@ struct hb_hashmap_t
     hb_copy (other, *this);
   }
 
-  template <typename Iterable>
-  void keys (Iterable &keys_) const
-  {
-    hb_copy (keys() , keys_);
-  }
-
-  template <typename Iterable>
-  void values (Iterable &values_) const
-  {
-    hb_copy (values() , values_);
-  }
-
   /*
    * Iterator
    */
