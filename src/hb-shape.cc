@@ -335,7 +335,7 @@ hb_shape_justify (hb_font_t          *font,
 			shaper_list))
       return false;
     yb = (double) buffer_advance (buffer);
-    if (yb <= 0)
+    if (yb <= (double) max_target_advance)
     {
       *advance = (float) yb;
       return true;
@@ -354,7 +354,7 @@ hb_shape_justify (hb_font_t          *font,
 			shaper_list))
       return false;
     ya = (double) buffer_advance (buffer);
-    if (ya >= 0)
+    if (ya >= (double) min_target_advance)
     {
       *advance = (float) ya;
       return true;
