@@ -324,9 +324,9 @@ hb_shape_justify (hb_font_t          *font,
   double a, b, ya, yb;
   if (*advance < min_target_advance)
   {
-    ya = *advance;
-    a = axis_info.default_value;
-    b = axis_info.max_value;
+    ya = (double) *advance;
+    a = (double) axis_info.default_value;
+    b = (double) axis_info.max_value;
 
     hb_font_set_variation (font, tag, (float) b);
     reset_buffer (buffer, text);
@@ -334,7 +334,7 @@ hb_shape_justify (hb_font_t          *font,
 			features, num_features,
 			shaper_list))
       return false;
-    yb = buffer_advance (buffer);
+    yb = (double) buffer_advance (buffer);
     if (yb <= 0)
     {
       *advance = (float) yb;
@@ -343,9 +343,9 @@ hb_shape_justify (hb_font_t          *font,
   }
   else
   {
-    yb = *advance;
-    a = axis_info.min_value;
-    b = axis_info.default_value;
+    yb = (double) *advance;
+    a = (double) axis_info.min_value;
+    b = (double) axis_info.default_value;
 
     hb_font_set_variation (font, tag, (float) a);
     reset_buffer (buffer, text);
@@ -353,7 +353,7 @@ hb_shape_justify (hb_font_t          *font,
 			features, num_features,
 			shaper_list))
       return false;
-    ya = buffer_advance (buffer);
+    ya = (double) buffer_advance (buffer);
     if (ya >= 0)
     {
       *advance = (float) ya;
@@ -376,7 +376,7 @@ hb_shape_justify (hb_font_t          *font,
       return (double) min_target_advance;
     }
 
-    double w = buffer_advance (buffer);
+    double w = (double) buffer_advance (buffer);
     DEBUG_MSG (JUSTIFY, nullptr, "Trying '%c%c%c%c' axis parameter %f. Advance %g. Target: min %g max %g",
 	       HB_UNTAG (tag), x, w,
 	       (double) min_target_advance, (double) max_target_advance);
@@ -387,7 +387,7 @@ hb_shape_justify (hb_font_t          *font,
   double itp = solve_itp (f,
 			  a, b,
 			  epsilon,
-			  min_target_advance, max_target_advance,
+			  (double) min_target_advance, (double) max_target_advance,
 			  ya, yb, y);
 
   hb_free (text_info);
