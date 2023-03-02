@@ -137,7 +137,7 @@ struct cvar
 
     FWORD *cvt_prime = (FWORD *) hb_blob_get_data_writable (cvt_prime_blob, nullptr);
     for (unsigned i = 0; i < num_cvt_item; i++)
-      cvt_prime[i] += roundf (cvt_deltas[i]);
+      cvt_prime[i] += (int) roundf (cvt_deltas[i]);
     
     bool success = plan->add_table (cvt, cvt_prime_blob);
     hb_blob_destroy (cvt_prime_blob);
