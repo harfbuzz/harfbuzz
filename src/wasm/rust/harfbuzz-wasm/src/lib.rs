@@ -304,7 +304,9 @@ impl<T: BufferItem> Drop for Buffer<T> {
             position: positions[..].as_mut_ptr(),
         };
         unsafe {
-            buffer_set_contents(self._ptr, &c_contents);
+            if !buffer_set_contents(self._ptr, &c_contents) {
+                panic!("Couldn't set buffer contents");
+            }
         }
     }
 }
