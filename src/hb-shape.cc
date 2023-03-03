@@ -355,6 +355,7 @@ hb_shape_justify (hb_font_t          *font,
      * there's nothing to solve for. Just return it. */
     if (yb <= (double) max_target_advance)
     {
+      *var_value = (float) b;
       *advance = (float) yb;
       return true;
     }
@@ -379,6 +380,7 @@ hb_shape_justify (hb_font_t          *font,
      * there's nothing to solve for. Just return it. */
     if (ya >= (double) min_target_advance)
     {
+      *var_value = (float) a;
       *advance = (float) ya;
       return true;
     }
