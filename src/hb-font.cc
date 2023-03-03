@@ -1387,7 +1387,7 @@ hb_font_get_glyph_from_name (hb_font_t      *font,
 /**
  * hb_font_get_glyph_shape:
  * @font: #hb_font_t to work upon
- * @glyph: : The glyph ID
+ * @glyph: The glyph ID
  * @dfuncs: #hb_draw_funcs_t to draw to
  * @draw_data: User data to pass to draw callbacks
  *
@@ -1409,7 +1409,7 @@ hb_font_get_glyph_shape (hb_font_t *font,
 /**
  * hb_font_draw_glyph:
  * @font: #hb_font_t to work upon
- * @glyph: : The glyph ID
+ * @glyph: The glyph ID
  * @dfuncs: #hb_draw_funcs_t to draw to
  * @draw_data: User data to pass to draw callbacks
  *
