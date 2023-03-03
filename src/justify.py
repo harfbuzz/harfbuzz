@@ -168,9 +168,10 @@ class Line:
     def justify(self):
         buf, text = makebuffer(str(self))
 
+        wiggle = 5
         advance = self.advance
-        shrink = self._target_advance > advance
-        expand = not shrink
+        shrink = self._target_advance - wiggle < advance
+        expand = self._target_advance + wiggle > advance
 
         ret, advance, tag, value = hb.shape_justify(
             self._font,
@@ -184,15 +185,17 @@ class Line:
 
         if not ret:
             return False
-        if shrink and advance > self._target_advance:
-            return False
-        if expand and advance < self._target_advance:
-            return False
 
         self._variation = hb.variation_t()
         self._variation.tag = tag
         self._variation.value = value
         self._words = makewords(buf, self._font, text)
+
+        if shrink and advance > self._target_advance + wiggle:
+            return False
+        if expand and advance < self._target_advance - wiggle:
+            return False
+
         return True
 
     def draw(self, context):
