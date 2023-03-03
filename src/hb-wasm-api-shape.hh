@@ -46,6 +46,14 @@ HB_WASM_INTERFACE (bool_t, shape_with) (HB_WASM_EXEC_ENV
   HB_REF2OBJ (font);
   HB_REF2OBJ (buffer);
 
+  /* Pre-conditions that make hb_shape_full() crash should be checked here. */
+
+  if (unlikely (!buffer->ensure_unicode ()))
+    return false;
+
+  if (unlikely (!HB_DIRECTION_IS_VALID (buffer->props.direction)))
+    return false;
+
   HB_ARRAY_PARAM (const feature_t, features, num_features);
   if (unlikely (!features && num_features))
     return false;
