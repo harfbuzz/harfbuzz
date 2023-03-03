@@ -1,5 +1,6 @@
 /*
  * Copyright © 2022  Red Hat, Inc
+ * Copyright © 2021, 2022  Black Foundry
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -31,6 +32,12 @@
 #include "hb-cairo-utils.hh"
 
 #include <cairo.h>
+
+/* Some routines in this file were ported from BlackRenderer by Black Foundry.
+ * Used by permission to relicense to HarfBuzz license.
+ *
+ * https://github.com/BlackFoundryCom/black-renderer
+ */
 
 #define PREALLOCATED_COLOR_STOPS 16
 
