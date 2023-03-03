@@ -271,9 +271,13 @@ hb_shape_justify (hb_font_t          *font,
 
   /* If default advance already matches target, nothing to do. Shape and return. */
   if (min_target_advance <= *advance && *advance <= max_target_advance)
+  {
+    *var_tag = HB_TAG_NONE;
+    *var_value = 0.0f;
     return hb_shape_full (font, buffer,
 			  features, num_features,
 			  shaper_list);
+  }
 
   hb_face_t *face = font->face;
 
@@ -297,6 +301,8 @@ hb_shape_justify (hb_font_t          *font,
   /* If no suitable variation axis found, can't justify.  Just shape and return. */
   if (!tag)
   {
+    *var_tag = HB_TAG_NONE;
+    *var_value = 0.0f;
     if (hb_shape_full (font, buffer,
 		       features, num_features,
 		       shaper_list))
@@ -331,7 +337,11 @@ hb_shape_justify (hb_font_t          *font,
    * Do this again, in case advance was just calculated.
    */
   if (min_target_advance <= *advance && *advance <= max_target_advance)
+  {
+    *var_tag = HB_TAG_NONE;
+    *var_value = 0.0f;
     return true;
+  }
 
   /* Prepare for running the solver. */
   double a, b, ya, yb;
