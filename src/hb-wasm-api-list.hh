@@ -46,7 +46,8 @@ static void debugprint4 (HB_WASM_EXEC_ENV char *str, int32_t i1, int32_t i2, int
 #endif
 
 #define NATIVE_SYMBOL(signature, name) {#name, (void *) hb::wasm::name, signature, NULL}
-/* Note: the array must be static defined since runtime will keep it after registration
+/* Note: the array must be static defined since runtime will keep it after registration.
+ * Also not const, because it modifies it (sorts it).
  * https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/doc/export_native_api.md
  *
  * TODO Allocate this lazily in _hb_wasm_init(). */
