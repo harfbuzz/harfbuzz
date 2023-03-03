@@ -186,9 +186,10 @@ class Line:
         if not ret:
             return False
 
-        self._variation = hb.variation_t()
-        self._variation.tag = tag
-        self._variation.value = value
+        if tag:
+            self._variation = hb.variation_t()
+            self._variation.tag = tag
+            self._variation.value = value
         self._words = makewords(buf, self._font, text)
 
         if shrink and advance > self._target_advance + wiggle:
