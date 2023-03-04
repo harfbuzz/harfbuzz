@@ -246,14 +246,13 @@ Configuration = namedtuple(
 
 def makebuffer(text):
     buf = hb.buffer_create()
-    hb.buffer_set_direction(buf, hb.direction_t.RTL)
-    hb.buffer_set_script(buf, hb.script_t.ARABIC)
-    hb.buffer_set_language(buf, hb.language_from_string(b"ar"))
 
     # Strip and remove double spaces.
     text = " ".join(text.split())
 
     hb.buffer_add_codepoints(buf, [ord(c) for c in text], 0, len(text))
+
+    hb.buffer_guess_segment_properties(buf)
 
     return buf, text
 
