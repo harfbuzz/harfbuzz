@@ -116,13 +116,16 @@ class Word:
         self._glyphs.append(info)
         self._positions.append(pos)
 
-    def draw(self, context, font):
+    def draw(self, context, font, direction):
         for info, pos in zip(self._glyphs, self._positions):
-            context.translate(-pos.x_advance, pos.y_advance)
+            if direction == hb.direction_t.RTL:
+                context.translate(-pos.x_advance, pos.y_advance)
             context.save()
             context.translate(pos.x_offset, pos.y_offset)
             hb.font_paint_glyph(font, info.codepoint, PFUNCS, id(context), 0, 0x0000FF)
             context.restore()
+            if direction != hb.direction_t.RTL:
+                context.translate(+pos.x_advance, pos.y_advance)
 
     @property
     def advance(self):
@@ -199,7 +202,7 @@ class Line:
 
         return True
 
-    def draw(self, context):
+    def draw(self, context, direction):
         context.save()
         context.move_to(-1600, -200)
         context.set_font_size(130)
@@ -215,9 +218,10 @@ class Line:
             hb.font_set_variations(self._font, [self._variation])
 
         context.scale(1, -1)
-        context.translate(self._target_advance, 0)
+        if direction == hb.direction_t.RTL:
+            context.translate(self._target_advance, 0)
         for word in self._words:
-            word.draw(context, self._font)
+            word.draw(context, self._font, direction)
 
     @property
     def advance(self):
@@ -258,7 +262,8 @@ def makebuffer(text):
 
 
 def makewords(buf, font, text):
-    hb.buffer_reverse(buf)
+    if hb.buffer_get_direction(buf) == hb.direction_t.RTL:
+        hb.buffer_reverse(buf)
     words = [Word(font, text)]
     infos = hb.buffer_get_glyph_infos(buf)
     positions = hb.buffer_get_glyph_positions(buf)
@@ -282,6 +287,7 @@ def typeset(conf):
     target_advance = (conf.width - (margin * 2)) / scale
 
     buf, text = makebuffer(text)
+    direction = hb.buffer_get_direction(buf)
 
     hb.shape(font, buf)
 
@@ -305,11 +311,11 @@ def typeset(conf):
     if lines[-1].advance != target_advance:
         lines[-1].justify()
 
-    return lines, font
+    return lines, font, direction
 
 
 def render(context, conf):
-    lines, font = typeset(conf)
+    lines, font, direction = typeset(conf)
 
     margin = conf.fontsize * 2
     scale = conf.fontsize / hb.face_get_upem(hb.font_get_face(font))
@@ -326,7 +332,7 @@ def render(context, conf):
         context.save()
         context.translate(margin, 0)
         context.scale(scale, scale)
-        line.draw(context)
+        line.draw(context, direction)
         context.restore()
     context.restore()
 
