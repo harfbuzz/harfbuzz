@@ -1,7 +1,5 @@
 import gi
 
-from collections import namedtuple
-
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, HarfBuzz as hb
 
@@ -105,220 +103,100 @@ hb.paint_funcs_set_push_group_func(PFUNCS, push_group_f, None)
 hb.paint_funcs_set_pop_group_func(PFUNCS, pop_group_f, None)
 
 
-class Word:
-    def __init__(self, font, text):
-        self._text = text
-        self._font = font
-        self._glyphs = []
-        self._positions = []
-
-    def append(self, info, pos):
-        self._glyphs.append(info)
-        self._positions.append(pos)
-
-    def draw(self, context, font, direction):
-        for info, pos in zip(self._glyphs, self._positions):
-            if direction == hb.direction_t.RTL:
-                context.translate(-pos.x_advance, pos.y_advance)
-            context.save()
-            context.translate(pos.x_offset, pos.y_offset)
-            hb.font_paint_glyph(font, info.codepoint, PFUNCS, id(context), 0, 0x0000FF)
-            context.restore()
-            if direction != hb.direction_t.RTL:
-                context.translate(+pos.x_advance, pos.y_advance)
-
-    @property
-    def advance(self):
-        return sum(pos.x_advance for pos in self._positions)
-
-    @property
-    def strippedadvance(self):
-        w = self.advance
-        if len(self) and self._text[self._glyphs[-1].cluster] == " ":
-            w -= self._positions[-1].x_advance
-        return w
-
-    def __str__(self):
-        if not self._glyphs:
-            return ""
-        first = min(g.cluster for g in self._glyphs)
-        last = max(g.cluster for g in self._glyphs)
-        return self._text[first : last + 1]
-
-    def __len__(self):
-        return len(self._glyphs)
-
-    def __bool__(self):
-        return len(self) != 0
-
-    def __repr__(self):
-        return f"<Word advance={self.advance} text='{str(self)}'>"
-
-
-class Line:
-    def __init__(self, font, target_advance):
-        self._font = font
-        self._target_advance = target_advance
-        self._words = []
-        self._variation = None
-
-    def append(self, word):
-        self._words.append(word)
-
-    def pop(self):
-        return self._words.pop()
-
-    def justify(self):
-        buf, text = makebuffer(str(self))
-
-        wiggle = 5
-        advance = self.advance
-        shrink = self._target_advance - wiggle < advance
-        expand = self._target_advance + wiggle > advance
-
-        ret, advance, tag, value = hb.shape_justify(
-            self._font,
-            buf,
-            None,
-            None,
-            self._target_advance,
-            self._target_advance,
-            advance,
-        )
-
-        if not ret:
-            return False
-
-        if tag:
-            self._variation = hb.variation_t()
-            self._variation.tag = tag
-            self._variation.value = value
-        self._words = makewords(buf, self._font, text)
-
-        if shrink and advance > self._target_advance + wiggle:
-            return False
-        if expand and advance < self._target_advance - wiggle:
-            return False
-
-        return True
-
-    def draw(self, context, direction):
-        context.save()
-        context.move_to(-1600, -200)
-        context.set_font_size(130)
-        context.set_source_rgb(1, 0, 0)
-        if self._variation:
-            tag = hb.tag_to_string(self._variation.tag).decode("ascii")
-            context.show_text(f" {tag}={self._variation.value:g}")
-        context.move_to(-1600, 0)
-        context.show_text(f" {self.advance:g}/{self._target_advance:g}")
-        context.restore()
-
-        if self._variation:
-            hb.font_set_variations(self._font, [self._variation])
-
-        context.scale(1, -1)
-        if direction == hb.direction_t.RTL:
-            context.translate(self._target_advance, 0)
-        for word in self._words:
-            word.draw(context, self._font, direction)
-
-    @property
-    def advance(self):
-        w = sum(word.advance for word in self._words[:-1])
-        if len(self):
-            w += self._words[-1].strippedadvance
-        return w
-
-    def __str__(self):
-        return "".join(str(w) for w in self._words)
-
-    def __len__(self):
-        return len(self._words)
-
-    def __bool__(self):
-        return len(self) != 0
-
-    def __repr__(self):
-        return f"<Line advance={self.advance} text='{str(self)}'>"
-
-
-Configuration = namedtuple(
-    "Configuration", ["width", "height", "fontsize", "fontpath", "textpath"]
-)
-
-
-def makebuffer(text):
+def makebuffer(words):
     buf = hb.buffer_create()
 
-    # Strip and remove double spaces.
-    text = " ".join(text.split())
-
+    text = " ".join(words)
     hb.buffer_add_codepoints(buf, [ord(c) for c in text], 0, len(text))
 
     hb.buffer_guess_segment_properties(buf)
 
-    return buf, text
+    return buf
 
 
-def makewords(buf, font, text):
-    if hb.buffer_get_direction(buf) == hb.direction_t.RTL:
-        hb.buffer_reverse(buf)
-    words = [Word(font, text)]
-    infos = hb.buffer_get_glyph_infos(buf)
+def justify(font, words, advance, target_advance):
+    buf = makebuffer(words)
+
+    wiggle = 5
+    shrink = target_advance - wiggle < advance
+    expand = target_advance + wiggle > advance
+
+    ret, advance, tag, value = hb.shape_justify(
+        font,
+        buf,
+        None,
+        None,
+        target_advance,
+        target_advance,
+        advance,
+    )
+
+    if not ret:
+        return False, buf, None
+
+    if tag:
+        variation = hb.variation_t()
+        variation.tag = tag
+        variation.value = value
+    else:
+        variation = None
+
+    if shrink and advance > target_advance + wiggle:
+        return False, buf, variation
+    if expand and advance < target_advance - wiggle:
+        return False, buf, variation
+
+    return True, buf, variation
+
+
+def shape(font, words):
+    buf = makebuffer(words)
+    hb.shape(font, buf)
     positions = hb.buffer_get_glyph_positions(buf)
-    for info, pos in zip(infos, positions):
-        words[-1].append(info, pos)
-        if text[info.cluster] == " ":
-            words.append(Word(font, text))
-    return words
+    advance = sum(p.x_advance for p in positions)
+    return buf, advance
 
 
-def typeset(conf):
-    blob = hb.blob_create_from_file(conf.fontpath)
-    face = hb.face_create(blob, 0)
+def typeset(font, text, target_advance):
+    lines = []
+    words = []
+    for word in text.split():
+        words.append(word)
+        buf, advance = shape(font, words)
+        if advance > target_advance:
+            # Shrink
+            ret, buf, variation = justify(font, words, advance, target_advance)
+            if ret:
+                lines.append((buf, variation))
+                words = []
+            # If if fails, pop the last word and shrink, and hope for the best.
+            # A too short line is better than too long.
+            elif len(words) > 1:
+                words.pop()
+                _, buf, variation = justify(font, words, advance, target_advance)
+                lines.append((buf, variation))
+                words = [word]
+            # But if it is one word, meh.
+            else:
+                lines.append((buf, variation))
+                words = []
+
+    # Justify last line
+    if words:
+        _, buf, variation = justify(font, words, advance, target_advance)
+        lines.append((buf, variation))
+
+    return lines
+
+
+def render(face, text, context, width, height, fontsize):
     font = hb.font_create(face)
 
-    with open(conf.textpath) as f:
-        text = f.read()
+    margin = fontsize * 2
+    scale = fontsize / hb.face_get_upem(face)
+    target_advance = (width - (margin * 2)) / scale
 
-    margin = conf.fontsize * 2
-    scale = conf.fontsize / hb.face_get_upem(face)
-    target_advance = (conf.width - (margin * 2)) / scale
-
-    buf, text = makebuffer(text)
-    direction = hb.buffer_get_direction(buf)
-
-    hb.shape(font, buf)
-
-    words = makewords(buf, font, text)
-
-    lines = [Line(font, target_advance)]
-
-    for word in words:
-        lines[-1].append(word)
-        if lines[-1].advance > target_advance:
-            if lines[-1].justify():
-                # Shrink
-                lines.append(Line(font, target_advance))
-            else:
-                # Remove last word and expand
-                lines[-1].pop()
-                lines[-1].justify()
-                lines.append(Line(font, target_advance))
-                lines[-1].append(word)
-
-    if lines[-1].advance != target_advance:
-        lines[-1].justify()
-
-    return lines, font, direction
-
-
-def render(context, conf):
-    lines, font, direction = typeset(conf)
-
-    margin = conf.fontsize * 2
-    scale = conf.fontsize / hb.face_get_upem(hb.font_get_face(font))
+    lines = typeset(font, text, target_advance)
 
     _, extents = hb.font_get_h_extents(font)
     lineheight = extents.ascender - extents.descender + extents.line_gap
@@ -326,29 +204,64 @@ def render(context, conf):
 
     context.save()
     context.translate(0, margin)
-    for line in lines:
+    context.set_font_size(12)
+    context.set_source_rgb(1, 0, 0)
+    for buf, variation in lines:
+        rtl = hb.buffer_get_direction(buf) == hb.direction_t.RTL
+        if rtl:
+            hb.buffer_reverse(buf)
+        infos = hb.buffer_get_glyph_infos(buf)
+        positions = hb.buffer_get_glyph_positions(buf)
+        advance = sum(p.x_advance for p in positions)
+
         context.translate(0, lineheight)
+        context.save()
 
         context.save()
+        context.move_to(0, -20)
+        if variation:
+            tag = hb.tag_to_string(variation.tag).decode("ascii")
+            context.show_text(f" {tag}={variation.value:g}")
+        context.move_to(0, 0)
+        context.show_text(f" {advance:g}/{target_advance:g}")
+        context.restore()
+
+        if variation:
+            hb.font_set_variations(font, [variation])
+
         context.translate(margin, 0)
-        context.scale(scale, scale)
-        line.draw(context, direction)
+        context.scale(scale, -scale)
+
+        if rtl:
+            context.translate(target_advance, 0)
+
+        for info, pos in zip(infos, positions):
+            if rtl:
+                context.translate(-pos.x_advance, pos.y_advance)
+            context.save()
+            context.translate(pos.x_offset, pos.y_offset)
+            hb.font_paint_glyph(font, info.codepoint, PFUNCS, id(context), 0, 0x0000FF)
+            context.restore()
+            if not rtl:
+                context.translate(+pos.x_advance, pos.y_advance)
+
         context.restore()
     context.restore()
 
 
 def main(fontpath, textpath):
+    fontsize = 70
+
+    blob = hb.blob_create_from_file(fontpath)
+    face = hb.face_create(blob, 0)
+
+    with open(textpath) as f:
+        text = f.read()
+
     def on_draw(da, context):
         alloc = da.get_allocation()
-        conf = Configuration(
-            width=alloc.width,
-            height=alloc.height,
-            fontsize=70,
-            fontpath=fontpath,
-            textpath=textpath,
-        )
         POOL[id(context)] = context
-        render(context, conf)
+        render(face, text, context, alloc.width, alloc.height, fontsize)
         del POOL[id(context)]
 
     drawingarea = Gtk.DrawingArea()
