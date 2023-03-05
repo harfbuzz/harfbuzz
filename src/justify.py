@@ -114,7 +114,8 @@ def makebuffer(words):
     return buf
 
 
-def justify(font, words, advance, target_advance):
+def justify(face, words, advance, target_advance):
+    font = hb.font_create(face)
     buf = makebuffer(words)
 
     wiggle = 5
@@ -149,7 +150,8 @@ def justify(font, words, advance, target_advance):
     return True, buf, variation
 
 
-def shape(font, words):
+def shape(face, words):
+    font = hb.font_create(face)
     buf = makebuffer(words)
     hb.shape(font, buf)
     positions = hb.buffer_get_glyph_positions(buf)
@@ -157,15 +159,15 @@ def shape(font, words):
     return buf, advance
 
 
-def typeset(font, text, target_advance):
+def typeset(face, text, target_advance):
     lines = []
     words = []
     for word in text.split():
         words.append(word)
-        buf, advance = shape(font, words)
+        buf, advance = shape(face, words)
         if advance > target_advance:
             # Shrink
-            ret, buf, variation = justify(font, words, advance, target_advance)
+            ret, buf, variation = justify(face, words, advance, target_advance)
             if ret:
                 lines.append((buf, variation))
                 words = []
@@ -173,7 +175,7 @@ def typeset(font, text, target_advance):
             # A too short line is better than too long.
             elif len(words) > 1:
                 words.pop()
-                _, buf, variation = justify(font, words, advance, target_advance)
+                _, buf, variation = justify(face, words, advance, target_advance)
                 lines.append((buf, variation))
                 words = [word]
             # But if it is one word, meh.
@@ -183,7 +185,7 @@ def typeset(font, text, target_advance):
 
     # Justify last line
     if words:
-        _, buf, variation = justify(font, words, advance, target_advance)
+        _, buf, variation = justify(face, words, advance, target_advance)
         lines.append((buf, variation))
 
     return lines
@@ -196,7 +198,7 @@ def render(face, text, context, width, height, fontsize):
     scale = fontsize / hb.face_get_upem(face)
     target_advance = (width - (margin * 2)) / scale
 
-    lines = typeset(font, text, target_advance)
+    lines = typeset(face, text, target_advance)
 
     _, extents = hb.font_get_h_extents(font)
     lineheight = extents.ascender - extents.descender + extents.line_gap
