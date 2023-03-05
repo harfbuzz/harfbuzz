@@ -725,7 +725,7 @@ hb_cairo_font_face_get_face (cairo_font_face_t *font_face)
 /**
  * hb_cairo_font_face_set_font_init_func:
  * @font_face: a #cairo_font_face_t
- * @func: The virtual method to use
+ * @func: (closure user_data) (destroy destroy) (scope notified): The virtual method to use
  * @user_data: user data accompanying the method
  * @destroy: function to call when @user_data is not needed anymore
  *
