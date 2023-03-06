@@ -29,6 +29,8 @@ option('introspection', type: 'feature', value: 'auto', yield: true,
   description: 'Generate gobject-introspection bindings (.gir/.typelib files)')
 option('docs', type: 'feature', value: 'auto', yield: true,
   description: 'Generate documentation with gtk-doc')
+option('doc_tests', type: 'boolean', value: false,
+  description: 'Run gtkdoc-check tests')
 
 option('benchmark', type: 'feature', value: 'disabled',
   description: 'Enable benchmark tests')

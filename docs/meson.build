@@ -60,5 +60,5 @@ gnome.gtkdoc('harfbuzz',
   ignore_headers: ignore_headers,
   dependencies: [libharfbuzz_dep],
   install: true,
-  check: true,
+  check: get_option('doc_tests'),
 )
