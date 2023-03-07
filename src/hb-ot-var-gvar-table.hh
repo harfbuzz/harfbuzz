@@ -104,8 +104,8 @@ struct gvar
     return_trace (c->check_struct (this) && (version.major == 1) &&
 		  sharedTuples.sanitize (c, this, axisCount * sharedTupleCount) &&
 		  (is_long_offset () ?
-		     c->check_array (get_long_offset_array (), glyphCount+1) :
-		     c->check_array (get_short_offset_array (), glyphCount+1)));
+		     c->check_array (get_long_offset_array (), c->get_num_glyphs () + 1) :
+		     c->check_array (get_short_offset_array (), c->get_num_glyphs () + 1)));
   }
 
   /* GlyphVariationData not sanitized here; must be checked while accessing each glyph variation data */
@@ -116,6 +116,8 @@ struct gvar
   {
     TRACE_SUBSET (this);
 
+    unsigned glyph_count = c->plan->source->get_num_glyphs ();
+
     gvar *out = c->serializer->allocate_min<gvar> ();
     if (unlikely (!out)) return_trace (false);
 
@@ -125,7 +127,7 @@ struct gvar
     out->sharedTupleCount = sharedTupleCount;
 
     unsigned int num_glyphs = c->plan->num_output_glyphs ();
-    out->glyphCount = num_glyphs;
+    out->glyphCountX = hb_min (0xFFFFu, num_glyphs);
 
     unsigned int subset_data_size = 0;
     for (hb_codepoint_t gid = (c->plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE) ? 0 : 1;
@@ -134,7 +136,7 @@ struct gvar
     {
       hb_codepoint_t old_gid;
       if (!c->plan->old_gid_for_new_gid (gid, &old_gid)) continue;
-      subset_data_size += get_glyph_var_data_bytes (c->source_blob, old_gid).length;
+      subset_data_size += get_glyph_var_data_bytes (c->source_blob, glyph_count, old_gid).length;
     }
 
     bool long_offset = subset_data_size & ~0xFFFFu;
@@ -166,7 +168,9 @@ struct gvar
     {
       hb_codepoint_t old_gid;
       hb_bytes_t var_data_bytes = c->plan->old_gid_for_new_gid (gid, &old_gid)
-				? get_glyph_var_data_bytes (c->source_blob, old_gid)
+				? get_glyph_var_data_bytes (c->source_blob,
+							    glyph_count,
+							    old_gid)
 				: hb_bytes_t ();
 
       if (long_offset)
@@ -188,10 +192,12 @@ struct gvar
   }
 
   protected:
-  const hb_bytes_t get_glyph_var_data_bytes (hb_blob_t *blob, hb_codepoint_t glyph) const
+  const hb_bytes_t get_glyph_var_data_bytes (hb_blob_t *blob,
+					     unsigned glyph_count,
+					     hb_codepoint_t glyph) const
   {
-    unsigned start_offset = get_offset (glyph);
-    unsigned end_offset = get_offset (glyph+1);
+    unsigned start_offset = get_offset (glyph_count, glyph);
+    unsigned end_offset = get_offset (glyph_count, glyph+1);
     if (unlikely (end_offset < start_offset)) return hb_bytes_t ();
     unsigned length = end_offset - start_offset;
     hb_bytes_t var_data = blob->as_bytes ().sub_array (((unsigned) dataZ) + start_offset, length);
@@ -200,9 +206,9 @@ struct gvar
 
   bool is_long_offset () const { return flags & 1; }
 
-  unsigned get_offset (unsigned i) const
+  unsigned get_offset (unsigned glyph_count, unsigned i) const
   {
-    if (unlikely (i > glyphCount)) return 0;
+    if (unlikely (i > glyph_count)) return 0;
     _hb_compiler_memory_r_barrier ();
     return is_long_offset () ? get_long_offset_array ()[i] : get_short_offset_array ()[i] * 2;
   }
@@ -214,7 +220,10 @@ struct gvar
   struct accelerator_t
   {
     accelerator_t (hb_face_t *face)
-    { table = hb_sanitize_context_t ().reference_table<gvar> (face); }
+    {
+      table = hb_sanitize_context_t ().reference_table<gvar> (face);
+      glyphCount = face->get_num_glyphs ();
+    }
     ~accelerator_t () { table.destroy (); }
 
     private:
@@ -252,9 +261,9 @@ struct gvar
     {
       if (!coords) return true;
 
-      if (unlikely (glyph >= table->glyphCount)) return true;
+      if (unlikely (glyph >= glyphCount)) return true;
 
-      hb_bytes_t var_data_bytes = table->get_glyph_var_data_bytes (table.get_blob (), glyph);
+      hb_bytes_t var_data_bytes = table->get_glyph_var_data_bytes (table.get_blob (), glyphCount, glyph);
       if (!var_data_bytes.as<GlyphVariationData> ()->has_data ()) return true;
       hb_vector_t<unsigned int> shared_indices;
       GlyphVariationData::tuple_iterator_t iterator;
@@ -403,6 +412,7 @@ struct gvar
 
     private:
     hb_blob_ptr_t<gvar> table;
+    unsigned glyphCount;
   };
 
   protected:
@@ -418,7 +428,7 @@ struct gvar
   NNOffset32To<UnsizedArrayOf<F2DOT14>>
 		sharedTuples;	/* Offset from the start of this table to the shared tuple records.
 				 * Array of tuple records shared across all glyph variation data tables. */
-  HBUINT16	glyphCount;	/* The number of glyphs in this font. This must match the number of
+  HBUINT16	glyphCountX;	/* The number of glyphs in this font. This must match the number of
 				 * glyphs stored elsewhere in the font. */
   HBUINT16	flags;		/* Bit-field that gives the format of the offset array that follows.
 				 * If bit 0 is clear, the offsets are uint16; if bit 0 is set, the
