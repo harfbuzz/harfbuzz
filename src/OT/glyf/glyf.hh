@@ -98,11 +98,17 @@ struct glyf
     hb_vector_t<unsigned> padded_offsets;
     unsigned num_glyphs = c->plan->num_output_glyphs ();
     if (unlikely (!padded_offsets.resize (num_glyphs)))
+    {
+      hb_font_destroy (font);
       return false;
+    }
 
     hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
     if (!_populate_subset_glyphs (c->plan, font, glyphs))
+    {
+      hb_font_destroy (font);
       return false;
+    }
 
     if (font)
       hb_font_destroy (font);
@@ -464,7 +470,10 @@ glyf::_create_font_for_instancing (const hb_subset_plan_t *plan) const
 
   hb_vector_t<hb_variation_t> vars;
   if (unlikely (!vars.alloc (plan->user_axes_location.get_population (), true)))
+  {
+    hb_font_destroy (font);
     return nullptr;
+  }
 
   for (auto _ : plan->user_axes_location)
   {
