@@ -668,6 +668,7 @@ if get_option('tests').enabled()
       'test-ot-name': 'test-ot-name.cc',
       'test-ot-glyphname': 'test-ot-glyphname.cc',
       'test-ot-gpos-size-params': 'test-gpos-size-params.cc',
+      'test-ot-gsub-get-alternates': 'test-gsub-get-alternates.cc',
       'test-ot-gsub-would-substitute': 'test-gsub-would-substitute.cc',
       'test-use-table': 'test-use-table.cc',
     }
