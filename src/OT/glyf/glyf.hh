@@ -162,7 +162,7 @@ struct glyf_accelerator_t
     vmtx = nullptr;
 #endif
     const OT::head &head = *face->table.head;
-    if (head.indexToLocFormat > 1 || head.glyphDataFormat > 0)
+    if (head.indexToLocFormat > 1 || head.glyphDataFormat > 1)
       /* Unknown format.  Leave num_glyphs=0, that takes care of disabling us. */
       return;
     short_offset = 0 == head.indexToLocFormat;
