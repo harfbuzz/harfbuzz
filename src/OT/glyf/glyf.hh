@@ -31,6 +31,12 @@ struct glyf
 
   static constexpr hb_tag_t tableTag = HB_OT_TAG_glyf;
 
+  static bool has_valid_glyf_format(const hb_face_t* face)
+  {
+    const OT::head &head = *face->table.head;
+    return head.indexToLocFormat <= 1 && head.glyphDataFormat <= 1;
+  }
+
   bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
@@ -71,6 +77,13 @@ struct glyf
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
+
+    if (!has_valid_glyf_format (c->plan->source)) {
+      // glyf format is unknown don't attempt to subset it.
+      DEBUG_MSG (SUBSET, nullptr,
+                 "unkown glyf format, dropping from subset.");
+      return_trace (false);
+    }
 
     glyf *glyf_prime = c->serializer->start_embed <glyf> ();
     if (unlikely (!c->serializer->check_success (glyf_prime))) return_trace (false);
@@ -162,7 +175,7 @@ struct glyf_accelerator_t
     vmtx = nullptr;
 #endif
     const OT::head &head = *face->table.head;
-    if (head.indexToLocFormat > 1 || head.glyphDataFormat > 1)
+    if (!glyf::has_valid_glyf_format (face))
       /* Unknown format.  Leave num_glyphs=0, that takes care of disabling us. */
       return;
     short_offset = 0 == head.indexToLocFormat;
