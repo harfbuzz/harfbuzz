@@ -116,7 +116,7 @@ struct gvar
   {
     TRACE_SUBSET (this);
 
-    unsigned glyph_count = c->plan->source->get_num_glyphs ();
+    unsigned glyph_count = version.to_int () ? c->plan->source->get_num_glyphs () : 0;
 
     gvar *out = c->serializer->allocate_min<gvar> ();
     if (unlikely (!out)) return_trace (false);
@@ -222,7 +222,8 @@ struct gvar
     accelerator_t (hb_face_t *face)
     {
       table = hb_sanitize_context_t ().reference_table<gvar> (face);
-      glyphCount = face->get_num_glyphs ();
+      /* If sanitize failed, set glyphCount to 0. */
+      glyphCount = table->version.to_int () ? face->get_num_glyphs () : 0;
     }
     ~accelerator_t () { table.destroy (); }
 
