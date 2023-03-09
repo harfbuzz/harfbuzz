@@ -854,11 +854,12 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * @y_scale_factor: scale factor to divide #hb_position_t X values by
  * @x: X position to place first glyph
  * @y: Y position to place first glyph
- * @utf8: (nullable): the text that was shaped in @buffer
+ * @utf8:  (array length=utf8_len) (element-type uint8_t) (nullable):
+ *	   the text that was shaped in @buffer
  * @utf8_len: the length of @utf8 in bytes
- * @glyphs: (out): return location for an array of #cairo_glyph_t
+ * @glyphs: (inout) (array length=num_glyphs): return location for an array of #cairo_glyph_t
  * @num_glyphs: (inout): return location for the length of @glyphs
- * @clusters: (out) (nullable): return location for an array of cluster positions
+ * @clusters: (inout) (array length=num_clusters) (nullable): return location for an array of cluster positions
  * @num_clusters: (inout) (nullable): return location for the length of @clusters
  * @cluster_flags: (out) (nullable): return location for cluster flags
  *
