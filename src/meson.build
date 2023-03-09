@@ -444,8 +444,10 @@ endif
 
 # We set those here to not include the sources below that are of no use to
 # GObject Introspection
-gir_sources = hb_sources + hb_gobject_sources
-gir_headers = hb_headers + hb_gobject_headers
+gir_sources = hb_sources
+gir_headers = hb_headers
+gir_deps = []
+gir_libs = []
 
 if conf.get('HAVE_GDI', 0) == 1
   hb_sources += hb_gdi_sources
@@ -654,6 +656,11 @@ if conf.get('HAVE_CAIRO', 0) == 1
     subdirs: [meson.project_name()],
     version: meson.project_version(),
   )
+
+  gir_sources += hb_cairo_sources
+  gir_headers += hb_cairo_headers
+  gir_deps += libharfbuzz_cairo_dep
+  gir_libs += libharfbuzz_cairo
 endif
 
 if get_option('tests').enabled()
@@ -835,6 +842,11 @@ if have_gobject
     link_language: 'c',
   )
 
+  gir_sources += hb_gobject_sources
+  gir_headers += hb_gobject_headers
+  gir_deps += libharfbuzz_gobject_dep
+  gir_libs += libharfbuzz_gobject
+
   gir = find_program('g-ir-scanner', required: get_option('introspection'))
   build_gir = gir.found() and (not meson.is_cross_build() or get_option('introspection').enabled())
 
@@ -845,14 +857,14 @@ if have_gobject
 
   if build_gir
     conf.set('HAVE_INTROSPECTION', 1)
-    hb_gen_files_gir = gnome.generate_gir(libharfbuzz_gobject,
+    hb_gen_files_gir = gnome.generate_gir(gir_libs,
       sources: [gir_headers, gir_sources, gobject_enums_h],
-      dependencies: libharfbuzz_dep,
+      dependencies: gir_deps,
       namespace: 'HarfBuzz',
       nsversion: '0.0',
       identifier_prefix: 'hb_',
       symbol_prefix: ['hb', 'hb_gobject'],
-      includes: ['GObject-2.0', 'freetype2-2.0'],
+      includes: ['GObject-2.0', 'freetype2-2.0', 'cairo-1.0'],
       export_packages: ['harfbuzz-gobject'],
       header: 'hb-gobject.h',
       install: true,

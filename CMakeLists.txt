@@ -628,6 +628,8 @@ if (HB_HAVE_INTROSPECTION)
       --symbol-prefix=hb_gobject
       --identifier-prefix=hb_
       --include GObject-2.0
+      --include freetype2-2.0
+      --include cairo-1.0
       --pkg-export=harfbuzz-gobject
       --c-include=hb-gobject.h
       --cflags-begin
@@ -646,6 +648,7 @@ if (HB_HAVE_INTROSPECTION)
       -DHB_EXTERN=
       --cflags-end
       --library=harfbuzz-gobject
+      --library=harfbuzz-cairo
       --library=harfbuzz
       -L${hb_libpath}
       ${extra_libs}
