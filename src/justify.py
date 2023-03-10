@@ -282,7 +282,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="HarfBuzz justification demo.")
-    parser.add_argument("fontfile", help="input Glyphs source file")
-    parser.add_argument("textfile", help="font version")
+    parser.add_argument("fontfile", help="font file")
+    parser.add_argument("textfile", help="text")
     args = parser.parse_args()
     main(args.fontfile, args.textfile)
