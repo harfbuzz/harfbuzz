@@ -378,6 +378,7 @@ struct CBufferContents {
 /// representing glyph positioning. In Rust, this would
 /// require lots of zipping and unzipping, so we zip them
 /// together into a single structure for you.
+#[derive(Debug, Clone, Copy)]
 pub struct Glyph {
     /// The Unicode codepoint or glyph ID of the item
     pub codepoint: u32,
