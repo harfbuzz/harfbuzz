@@ -4461,6 +4461,18 @@ struct GSUBGPOS
     }
   }
 
+  void collect_name_ids (const hb_map_t *feature_index_map,
+                         hb_set_t *nameids_to_retain /* OUT */) const
+  {
+    unsigned count = get_feature_count ();
+    for (unsigned i = 0 ; i < count; i++)
+    {
+      if (!feature_index_map->has (i)) continue;
+      hb_tag_t tag = get_feature_tag (i);
+      get_feature (i).collect_name_ids (tag, nameids_to_retain);
+    }
+  }
+
   template <typename T>
   struct accelerator_t
   {
