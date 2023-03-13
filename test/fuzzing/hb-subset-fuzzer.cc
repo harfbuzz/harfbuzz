@@ -64,12 +64,24 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
       };
 
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  if (!input)
+  {
+    hb_face_destroy (face);
+    hb_blob_destroy (blob);
+    return 0;
+  }
   trySubset (face, text, sizeof (text) / sizeof (hb_codepoint_t), flags, input);
 
   unsigned num_axes;
   hb_codepoint_t text_from_data[16];
   if (size > sizeof (text_from_data) + sizeof (flags) + sizeof(num_axes)) {
     hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    if (!input)
+    {
+      hb_face_destroy (face);
+      hb_blob_destroy (blob);
+      return 0;
+    }
     size -= sizeof (text_from_data);
     memcpy (text_from_data,
 	    data + size,
