@@ -73,6 +73,30 @@ struct CPALV1Tail
   }
 
   public:
+  void collect_name_ids (const void *base,
+                         unsigned palette_count,
+                         unsigned color_count,
+                         const hb_map_t *color_index_map,
+                         hb_set_t *nameids_to_retain /* OUT */) const
+  {
+    if (paletteLabelsZ)
+    {
+      + (base+paletteLabelsZ).as_array (palette_count)
+      | hb_sink (nameids_to_retain)
+      ;
+    }
+
+    if (colorLabelsZ)
+    {
+      const hb_array_t<const NameID> colorLabels = (base+colorLabelsZ).as_array (color_count);
+      for (unsigned i = 0; i < color_count; i++)
+      {
+        if (!color_index_map->has (i)) continue;
+        nameids_to_retain->add (colorLabels[i]);
+      }
+    }
+  }
+
   bool serialize (hb_serialize_context_t *c,
                   unsigned palette_count,
                   unsigned color_count,
@@ -184,6 +208,13 @@ struct CPAL
       ;
     }
     return numColors;
+  }
+
+  void collect_name_ids (const hb_map_t *color_index_map,
+                         hb_set_t *nameids_to_retain /* OUT */) const
+  {
+    if (version == 1)
+      v1 ().collect_name_ids (this, numPalettes, numColors, color_index_map, nameids_to_retain);
   }
 
   private:
