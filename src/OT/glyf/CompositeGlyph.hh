@@ -330,7 +330,10 @@ struct CompositeGlyph
     for (const auto &component : it)
     {
       /* last 4 points in deltas are phantom points and should not be included */
-      if (i >= deltas.length - 4) return false;
+      if (i >= deltas.length - 4) {
+        free (o);
+        return false;
+      }
 
       unsigned comp_len = component.get_size ();
       if (component.is_anchored ())

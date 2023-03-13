@@ -424,7 +424,6 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
   unsigned num_glyphs = plan->num_output_glyphs ();
   if (!glyphs.resize (num_glyphs)) return false;
 
-  unsigned idx = 0;
   for (auto p : plan->glyph_map->iter ())
   {
     unsigned new_gid = p.second;
@@ -452,11 +451,10 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
       if (unlikely (!subset_glyph.compile_bytes_with_deltas (plan, font, glyf)))
       {
         // when pinned at default, only bounds are updated, thus no need to free
-        if (!plan->pinned_at_default && idx > 0)
-          _free_compiled_subset_glyphs (glyphs, idx - 1);
+        if (!plan->pinned_at_default)
+          _free_compiled_subset_glyphs (glyphs, new_gid);
         return false;
       }
-      idx++;
     }
   }
   return true;
