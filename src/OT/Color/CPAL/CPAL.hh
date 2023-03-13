@@ -95,13 +95,10 @@ struct CPALV1Tail
     if (colorLabelsZ)
     {
       c->push ();
-      for (const auto _ : colorLabels)
+      for (unsigned i = 0; i < color_count; i++)
       {
-	const hb_codepoint_t *v;
-        if (!color_index_map->has (_, &v)) continue;
-        NameID new_color_idx;
-	new_color_idx = *v;
-        if (!c->copy<NameID> (new_color_idx))
+        if (!color_index_map->has (i)) continue;
+        if (!c->copy<NameID> (colorLabels[i]))
         {
           c->pop_discard ();
           return_trace (false);
