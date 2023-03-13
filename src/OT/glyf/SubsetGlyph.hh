@@ -18,6 +18,7 @@ struct SubsetGlyph
   Glyph source_glyph;
   hb_bytes_t dest_start;  /* region of source_glyph to copy first */
   hb_bytes_t dest_end;    /* region of source_glyph to copy second */
+  bool allocated;
 
   bool serialize (hb_serialize_context_t *c,
 		  bool use_short_loca,
@@ -60,12 +61,18 @@ struct SubsetGlyph
   bool compile_bytes_with_deltas (const hb_subset_plan_t *plan,
                                   hb_font_t *font,
                                   const glyf_accelerator_t &glyf)
-  { return source_glyph.compile_bytes_with_deltas (plan, font, glyf, dest_start, dest_end); }
+  {
+    allocated = source_glyph.compile_bytes_with_deltas (plan, font, glyf, dest_start, dest_end);
+    return allocated;
+  }
 
   void free_compiled_bytes ()
   {
-    dest_start.fini ();
-    dest_end.fini ();
+    if (likely (allocated)) {
+      allocated = false;
+      dest_start.fini ();
+      dest_end.fini ();
+    }
   }
 
   void drop_hints_bytes ()
