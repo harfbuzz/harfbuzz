@@ -38,6 +38,7 @@
 #include "hb-ot-cff1-table.hh"
 #include "OT/Color/COLR/COLR.hh"
 #include "OT/Color/COLR/colrv1-closure.hh"
+#include "OT/Color/CPAL/CPAL.hh"
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-var-avar-table.hh"
 #include "hb-ot-stat-table.hh"
@@ -621,6 +622,37 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 }
 
 static void
+_nameid_closure (hb_subset_plan_t* plan,
+		 hb_set_t* drop_tables)
+{
+#ifndef HB_NO_STYLE
+  plan->source->table.STAT->collect_name_ids (&plan->user_axes_location, &plan->name_ids);
+#endif
+#ifndef HB_NO_VAR
+  if (!plan->all_axes_pinned)
+    plan->source->table.fvar->collect_name_ids (&plan->user_axes_location, &plan->name_ids);
+#endif
+
+  if (!drop_tables->has (HB_OT_TAG_CPAL))
+    plan->source->table.CPAL->collect_name_ids (&plan->colr_palettes, &plan->name_ids);
+
+#ifndef HB_NO_SUBSET_LAYOUT
+  if (!drop_tables->has (HB_OT_TAG_GPOS))
+  {
+    hb_blob_ptr_t<GPOS> gpos = plan->source_table<GPOS> ();
+    gpos->collect_name_ids (&plan->gpos_features, &plan->name_ids);
+    gpos.destroy ();
+  }
+  if (!drop_tables->has (HB_OT_TAG_GSUB))
+  {
+    hb_blob_ptr_t<GSUB> gsub = plan->source_table<GSUB> ();
+    gsub->collect_name_ids (&plan->gsub_features, &plan->name_ids);
+    gsub.destroy ();
+  }
+#endif
+}
+
+static void
 _populate_gids_to_retain (hb_subset_plan_t* plan,
 		          hb_set_t* drop_tables)
 {
@@ -673,6 +705,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   plan->_glyphset_colred = cur_glyphset;
 
+  _nameid_closure (plan, drop_tables);
   /* Populate a full set of glyphs to retain by adding all referenced
    * composite glyphs. */
   if (glyf.has_data ())
@@ -754,21 +787,6 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
   | hb_sink (glyph_map)
   ;
-}
-
-static void
-_nameid_closure (hb_face_t *face,
-		 hb_set_t  *nameids,
-		 bool all_axes_pinned,
-		 hb_hashmap_t<hb_tag_t, float> *user_axes_location)
-{
-#ifndef HB_NO_STYLE
-  face->table.STAT->collect_name_ids (user_axes_location, nameids);
-#endif
-#ifndef HB_NO_VAR
-  if (!all_axes_pinned)
-    face->table.fvar->collect_name_ids (user_axes_location, nameids);
-#endif
 }
 
 #ifndef HB_NO_VAR
@@ -905,7 +923,6 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
         glyph_map->get(unicode_to_new_gid_list.arrayZ[i].second);
   }
 
-  _nameid_closure (face, &name_ids, all_axes_pinned, &user_axes_location);
   if (unlikely (in_error ()))
     return;
 

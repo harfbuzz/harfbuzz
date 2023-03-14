@@ -67,6 +67,7 @@ EXTRA_DIST += \
 	expected/instance_comp_glyph_empty_child \
 	expected/post_apply_mvar_delta \
 	expected/apply_cvar_delta \
+	expected/collect_name_ids \
 	fonts \
 	profiles \
 	$(NULL)

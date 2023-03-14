@@ -58,6 +58,7 @@ TESTS = \
 	tests/instance_comp_glyph_empty_child.tests \
 	tests/post_apply_mvar_delta.tests \
 	tests/apply_cvar_delta.tests \
+	tests/collect_name_ids.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.

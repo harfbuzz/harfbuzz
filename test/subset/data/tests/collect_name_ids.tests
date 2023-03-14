@@ -1,0 +1,11 @@
+FONTS:
+SourceSerif4Variable-Roman_subset.otf
+
+PROFILES:
+keep-all-layout-features.txt
+
+SUBSETS:
+*
+
+OPTIONS:
+no_fonttools
