@@ -60,6 +60,7 @@ tests = [
   'instance_comp_glyph_empty_child',
   'post_apply_mvar_delta',
   'apply_cvar_delta',
+  'collect_name_ids',
 ]
 
 repack_tests = [
