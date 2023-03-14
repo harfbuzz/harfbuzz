@@ -746,8 +746,8 @@ struct PaintSweepGradient
     c->funcs->sweep_gradient (c->data, &cl,
 			      centerX + c->instancer (varIdxBase, 0),
 			      centerY + c->instancer (varIdxBase, 1),
-                              (startAngle.to_float (c->instancer (varIdxBase, 2)) + 1) * (float) M_PI,
-                              (endAngle.to_float   (c->instancer (varIdxBase, 3)) + 1) * (float) M_PI);
+                              (startAngle.to_float (c->instancer (varIdxBase, 2)) + 1) * HB_PI,
+                              (endAngle.to_float   (c->instancer (varIdxBase, 3)) + 1) * HB_PI);
   }
 
   HBUINT8			format; /* format = 8(noVar) or 9 (Var) */
