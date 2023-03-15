@@ -290,7 +290,8 @@ struct hb_hashmap_t
   uint32_t hash () const
   {
     return
-    + iter_items ()
+    + hb_iter (items, size ())
+    | hb_filter (&item_t::is_real)
     | hb_reduce ([] (uint32_t h, const item_t &_) { return h ^ _.total_hash (); }, (uint32_t) 0u)
     ;
   }
@@ -321,40 +322,41 @@ struct hb_hashmap_t
    * Iterator
    */
 
-  auto iter_items () const HB_AUTO_RETURN
+  auto iter_ref () const HB_AUTO_RETURN
   (
     + hb_iter (items, size ())
     | hb_filter (&item_t::is_real)
-  )
-  auto iter_ref () const HB_AUTO_RETURN
-  (
-    + iter_items ()
     | hb_map (&item_t::get_pair_ref)
   )
   auto iter () const HB_AUTO_RETURN
   (
-    + iter_items ()
+    + hb_iter (items, size ())
+    | hb_filter (&item_t::is_real)
     | hb_map (&item_t::get_pair)
   )
   auto keys_ref () const HB_AUTO_RETURN
   (
-    + iter_items ()
+    + hb_iter (items, size ())
+    | hb_filter (&item_t::is_real)
     | hb_map (&item_t::key)
   )
   auto keys () const HB_AUTO_RETURN
   (
-    + iter_items ()
+    + hb_iter (items, size ())
+    | hb_filter (&item_t::is_real)
     | hb_map (&item_t::key)
     | hb_map (hb_ridentity)
   )
   auto values_ref () const HB_AUTO_RETURN
   (
-    + iter_items ()
+    + hb_iter (items, size ())
+    | hb_filter (&item_t::is_real)
     | hb_map (&item_t::value)
   )
   auto values () const HB_AUTO_RETURN
   (
-    + iter_items ()
+    + hb_iter (items, size ())
+    | hb_filter (&item_t::is_real)
     | hb_map (&item_t::value)
     | hb_map (hb_ridentity)
   )
