@@ -10,6 +10,7 @@ EXTRA_DIST += \
 	$(DISABLED_TESTS) \
 	expected/32bit_var_store \
 	expected/basics \
+	expected/preprocess \
 	expected/full-font \
 	expected/glyf_bug_3131 \
 	expected/cff-full-font \
