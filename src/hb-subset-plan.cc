@@ -556,9 +556,12 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 	if (plan->codepoint_to_glyph->has (cp))
 	  continue;
 
-	hb_codepoint_t gid = (*unicode_glyphid_map)[cp];
-	plan->codepoint_to_glyph->set (cp, gid);
-	plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
+        hb_codepoint_t *gid;
+        if (!unicode_glyphid_map->has(cp, &gid))
+          continue;
+
+	plan->codepoint_to_glyph->set (cp, *gid);
+	plan->unicode_to_new_gid_list.push (hb_pair (cp, *gid));
       }
       plan->unicode_to_new_gid_list.qsort ();
     }

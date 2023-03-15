@@ -1,6 +1,7 @@
 TESTS = \
 	tests/32bit_var_store.tests \
 	tests/basics.tests \
+	tests/preprocess.tests \
 	tests/cbdt.tests \
 	tests/cff-full-font.tests \
 	tests/cff-japanese.tests \

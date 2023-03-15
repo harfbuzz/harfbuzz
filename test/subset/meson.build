@@ -1,5 +1,6 @@
 tests = [
   'basics',
+  'preprocess',
   'full-font',
   'cff-full-font',
   'japanese',
