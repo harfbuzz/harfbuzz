@@ -222,18 +222,20 @@ struct DeltaSetIndexMap
 
 struct VarStoreInstancer
 {
-  VarStoreInstancer (const VariationStore &varStore,
-		     const DeltaSetIndexMap &varIdxMap,
+  VarStoreInstancer (const VariationStore *varStore,
+		     const DeltaSetIndexMap *varIdxMap,
 		     hb_array_t<int> coords) :
     varStore (varStore), varIdxMap (varIdxMap), coords (coords) {}
 
-  operator bool () const { return bool (coords); }
+  operator bool () const { return varStore && bool (coords); }
 
+  /* according to the spec, if colr table has varStore but does not have
+   * varIdxMap, then an implicit identity mapping is used */
   float operator() (uint32_t varIdx, unsigned short offset = 0) const
-  { return varStore.get_delta (varIdxMap.map (VarIdx::add (varIdx, offset)), coords); }
+  { return varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords); }
 
-  const VariationStore &varStore;
-  const DeltaSetIndexMap &varIdxMap;
+  const VariationStore *varStore;
+  const DeltaSetIndexMap *varIdxMap;
   hb_array_t<int> coords;
 };
 
