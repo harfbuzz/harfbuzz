@@ -60,6 +60,7 @@ TESTS = \
 	tests/post_apply_mvar_delta.tests \
 	tests/apply_cvar_delta.tests \
 	tests/collect_name_ids.tests \
+	tests/instantiate_colrv1.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.

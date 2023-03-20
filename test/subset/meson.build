@@ -62,6 +62,7 @@ tests = [
   'post_apply_mvar_delta',
   'apply_cvar_delta',
   'collect_name_ids',
+  'instantiate_colrv1',
 ]
 
 repack_tests = [
