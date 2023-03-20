@@ -346,7 +346,8 @@ _get_hb_font_with_variations (const hb_subset_plan_t *plan)
   hb_font_t *font = hb_font_create (plan->source);
 
   hb_vector_t<hb_variation_t> vars;
-  vars.alloc (plan->user_axes_location.get_population ());
+  if (!vars.alloc (plan->user_axes_location.get_population ()))
+    return nullptr;
 
   for (auto _ : plan->user_axes_location)
   {
@@ -382,7 +383,9 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
   bool collect_delta = plan->pinned_at_default ? false : true;
   if (collect_delta)
   {
-    font = _get_hb_font_with_variations (plan);
+    if (unlikely (!plan->check_success (font = _get_hb_font_with_variations (plan))))
+      return;
+    
     if (gdef->has_var_store ())
     {
       var_store = &(gdef->get_var_store ());
@@ -905,6 +908,8 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, this);
 
   _populate_gids_to_retain (this, input->sets.drop_tables);
+  if (unlikely (in_error ()))
+    return;
 
   _create_old_gid_to_new_gid_map (face,
                                   input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
