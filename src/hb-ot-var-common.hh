@@ -360,9 +360,12 @@ struct TupleVariationData
   {
     unsigned total_size = min_size;
     unsigned count = tupleVarCount;
-    const TupleVariationHeader& tuple_var_header = get_tuple_var_header();
+    const TupleVariationHeader *tuple_var_header = &(get_tuple_var_header());
     for (unsigned i = 0; i < count; i++)
-      total_size += tuple_var_header.get_size (axis_count) + tuple_var_header.get_data_size ();
+    {
+      total_size += tuple_var_header->get_size (axis_count) + tuple_var_header->get_data_size ();
+      tuple_var_header = &tuple_var_header->get_next (axis_count);
+    }
 
     return total_size;
   }
