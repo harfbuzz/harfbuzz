@@ -346,8 +346,10 @@ _get_hb_font_with_variations (const hb_subset_plan_t *plan)
   hb_font_t *font = hb_font_create (plan->source);
 
   hb_vector_t<hb_variation_t> vars;
-  if (!vars.alloc (plan->user_axes_location.get_population ()))
+  if (!vars.alloc (plan->user_axes_location.get_population ())) {
+    hb_font_destroy (font);
     return nullptr;
+  }
 
   for (auto _ : plan->user_axes_location)
   {
@@ -383,8 +385,11 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
   bool collect_delta = plan->pinned_at_default ? false : true;
   if (collect_delta)
   {
-    if (unlikely (!plan->check_success (font = _get_hb_font_with_variations (plan))))
+    if (unlikely (!plan->check_success (font = _get_hb_font_with_variations (plan)))) {
+      gdef.destroy ();
+      gpos.destroy ();
       return;
+    }
     
     if (gdef->has_var_store ())
     {
