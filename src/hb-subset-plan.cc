@@ -812,12 +812,15 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
 
   bool has_avar = face->table.avar->has_data ();
   const OT::SegmentMaps *seg_maps = nullptr;
+  unsigned avar_axis_count = 0;
   if (has_avar)
+  {
     seg_maps = face->table.avar->get_segment_maps ();
+    avar_axis_count = face->table.avar->get_axis_count();
+  }
 
   bool axis_not_pinned = false;
   unsigned old_axis_idx = 0, new_axis_idx = 0;
-  unsigned int i = 0;
   for (const auto& axis : axes)
   {
     hb_tag_t axis_tag = axis.get_axis_tag ();
@@ -832,7 +835,7 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     else
     {
       int normalized_v = axis.normalize_axis_value (plan->user_axes_location.get (axis_tag));
-      if (has_avar && old_axis_idx < face->table.avar->get_axis_count ())
+      if (has_avar && old_axis_idx < avar_axis_count)
       {
         normalized_v = seg_maps->map (normalized_v);
       }
@@ -840,14 +843,13 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
       if (normalized_v != 0)
         plan->pinned_at_default = false;
 
-      plan->normalized_coords[i] = normalized_v;
+      plan->normalized_coords[old_axis_idx] = normalized_v;
     }
-    if (has_avar)
-      seg_maps = &StructAfter<OT::SegmentMaps> (*seg_maps);
 
     old_axis_idx++;
 
-    i++;
+    if (has_avar && old_axis_idx < avar_axis_count)
+      seg_maps = &StructAfter<OT::SegmentMaps> (*seg_maps);
   }
   plan->all_axes_pinned = !axis_not_pinned;
 }
