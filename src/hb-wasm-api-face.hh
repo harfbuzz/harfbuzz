@@ -85,7 +85,16 @@ HB_WASM_API (unsigned, face_get_upem) (HB_WASM_EXEC_ENV
   return hb_face_get_upem (face);
 }
 
+HB_WASM_API (ptr_t(font_t), face_create_font) (HB_WASM_EXEC_ENV
+					    ptr_d(face_t, face))
+{
+  HB_REF2OBJ (face);
 
+  hb_font_t *font = hb_font_create (face);
+
+  HB_OBJ2REF (font);
+  return fontref;
+}
 }}
 
 #endif /* HB_WASM_API_FACE_HH */
