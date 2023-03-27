@@ -233,6 +233,20 @@ HB_WASM_API (void, font_glyph_to_string) (HB_WASM_EXEC_ENV
 					  char *s, uint32_t size);
 
 
+typedef struct
+{
+  unsigned int length;
+  ptr_t(int) coords;
+} coords_t;
+
+HB_WASM_API (bool_t, font_copy_coords) (HB_WASM_EXEC_ENV
+					  ptr_d(font_t, font),
+					  ptr_d(coords_t, coords));
+
+HB_WASM_API (bool_t, font_set_coords) (HB_WASM_EXEC_ENV
+					  ptr_d(font_t, font),
+					  ptr_d(coords_t, coords));
+
 /* outline */
 
 enum glyph_outline_point_type_t

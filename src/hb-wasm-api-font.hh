@@ -190,6 +190,62 @@ HB_WASM_API (void, glyph_outline_free) (HB_WASM_EXEC_ENV
   outline->contours = nullref;
 }
 
+HB_WASM_API (bool_t, font_copy_coords) (HB_WASM_EXEC_ENV
+					  ptr_d(font_t, font),
+					  ptr_d(coords_t, coords))
+{
+  HB_REF2OBJ (font);
+  HB_PTR_PARAM (coords_t, coords);
+  if (unlikely (!coords))
+    return false;
+
+  unsigned our_length;
+  const int* our_coords = hb_font_get_var_coords_normalized(font, &our_length);
+
+  if (our_length <= coords->length) {
+    int *their_coords = HB_ARRAY_APP2NATIVE (int, coords->coords, our_length);
+    if (unlikely(!their_coords)) {
+    	coords->length = 0;
+    	return false;
+    }
+		unsigned bytes = our_length * sizeof (int);
+    memcpy (their_coords, our_coords, bytes);
+
+    return true;
+  }
+
+  module_free (coords->coords);
+  coords->length = our_length;
+	unsigned bytes = our_length * sizeof (int);
+  coords->coords = wasm_runtime_module_dup_data (module_inst, (const char *) our_coords, bytes);
+	if (our_length && !coords->coords)
+	  {
+    coords->length = 0;
+    return false;
+  }
+
+  return true;
+}
+
+HB_WASM_API (bool_t, font_set_coords) (HB_WASM_EXEC_ENV
+					  ptr_d(font_t, font),
+					  ptr_d(coords_t, coords))
+{
+  HB_REF2OBJ (font);
+  HB_PTR_PARAM (coords_t, coords);
+  if (unlikely (!coords))
+    return false;
+
+  unsigned length = coords->length;
+  unsigned bytes;
+  if (unlikely (hb_unsigned_mul_overflows (length, sizeof (int), &bytes)))
+    return false;
+
+  const int *our_coords = (const int *) (validate_app_addr (coords->coords, bytes) ? addr_app_to_native (coords->coords) : nullptr);
+  hb_font_set_var_coords_normalized(font, our_coords, length);
+  return true;
+}
+
 
 }}
 
