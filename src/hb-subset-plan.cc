@@ -386,11 +386,12 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
   if (collect_delta)
   {
     if (unlikely (!plan->check_success (font = _get_hb_font_with_variations (plan)))) {
+      hb_font_destroy (font);
       gdef.destroy ();
       gpos.destroy ();
       return;
     }
-    
+
     if (gdef->has_var_store ())
     {
       var_store = &(gdef->get_var_store ());
