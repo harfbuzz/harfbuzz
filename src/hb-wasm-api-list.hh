@@ -57,7 +57,6 @@ static NativeSymbol _hb_wasm_native_symbols[] =
   NATIVE_SYMBOL ("(i)i",	script_get_horizontal_direction),
 
   /* blob */
-  NATIVE_SYMBOL ("(ii)i",	blob_face_create),
   NATIVE_SYMBOL ("(i)",		blob_free),
 
   /* buffer */
@@ -71,11 +70,12 @@ static NativeSymbol _hb_wasm_native_symbols[] =
   NATIVE_SYMBOL ("(i)",		buffer_reverse_clusters),
 
   /* face */
+  NATIVE_SYMBOL ("(ii)i",	face_create),
   NATIVE_SYMBOL ("(iii)i",	face_copy_table),
   NATIVE_SYMBOL ("(i)i",	face_get_upem),
-  NATIVE_SYMBOL ("(i)i",	face_create_font),
 
   /* font */
+  NATIVE_SYMBOL ("(i)i",	font_create),
   NATIVE_SYMBOL ("(i)i",	font_get_face),
   NATIVE_SYMBOL ("(iii)",	font_get_scale),
   NATIVE_SYMBOL ("(iii)i",	font_get_glyph),

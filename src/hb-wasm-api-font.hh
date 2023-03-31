@@ -33,6 +33,17 @@ namespace hb {
 namespace wasm {
 
 
+HB_WASM_API (ptr_t(font_t), font_create) (HB_WASM_EXEC_ENV
+					  ptr_d(face_t, face))
+{
+  HB_REF2OBJ (face);
+
+  hb_font_t *font = hb_font_create (face);
+
+  HB_OBJ2REF (font);
+  return fontref;
+}
+
 HB_WASM_API (ptr_t(face_t), font_get_face) (HB_WASM_EXEC_ENV
 					    ptr_d(font_t, font))
 {
