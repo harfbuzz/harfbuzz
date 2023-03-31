@@ -189,7 +189,7 @@ shape (void *shape_plan,
       glyph_info_t *info = &contents.info[clusters[i].base_glyph + j];
       info->codepoint = gids[clusters[i].base_glyph + j];
       info->cluster = clusters[i].cluster;
-      info->var1 = clusters[i].advance;     // all glyphs in the cluster get the same advance
+      info->var1 = (unsigned) clusters[i].advance;     // all glyphs in the cluster get the same advance
     }
   }
   contents.length = glyph_count;
@@ -206,7 +206,7 @@ shape (void *shape_plan,
       pPos->x_offset = gr_slot_origin_X (is) * xscale - curradvx;
       pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
       if (info->cluster != currclus) {
-	pPos->x_advance = info->var1;
+	pPos->x_advance = (int) info->var1;
 	curradvx += pPos->x_advance;
 	currclus = info->cluster;
       } else
@@ -224,7 +224,7 @@ shape (void *shape_plan,
     {
       if (info->cluster != currclus)
       {
-	pPos->x_advance = info->var1;
+	pPos->x_advance = (int) info->var1;
 	curradvx -= pPos->x_advance;
 	currclus = info->cluster;
       } else
@@ -232,7 +232,7 @@ shape (void *shape_plan,
 
       pPos->y_advance = gr_slot_advance_Y (is, grface, nullptr) * yscale;
       curradvy -= pPos->y_advance;
-      pPos->x_offset = gr_slot_origin_X (is) * xscale - info->var1 - curradvx + pPos->x_advance;
+      pPos->x_offset = gr_slot_origin_X (is) * xscale - (int) info->var1 - curradvx + pPos->x_advance;
       pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
     }
     buffer_set_contents (buffer, &contents);
