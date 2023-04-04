@@ -1,0 +1,15 @@
+FONTS:
+Cantarell-VF-ABC.otf
+
+PROFILES:
+default.txt
+retain-gids.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=800
+
+OPTIONS:
+no_fonttools
