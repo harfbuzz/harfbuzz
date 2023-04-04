@@ -265,6 +265,9 @@ struct HVARVVAR
 		  rsbMap.sanitize (c, this));
   }
 
+  const VariationStore& get_var_store () const
+  { return this+varStore; }
+
   void listup_index_maps (hb_vector_t<const DeltaSetIndexMap *> &index_maps) const
   {
     index_maps.push (&(this+advMap));

@@ -63,6 +63,7 @@ tests = [
   'apply_cvar_delta',
   'collect_name_ids',
   'instantiate_colrv1',
+  'instantiate_cff2_update_metrics',
 ]
 
 repack_tests = [

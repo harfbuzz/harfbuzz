@@ -36,6 +36,7 @@
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-cff1-table.hh"
+#include "hb-ot-cff2-table.hh"
 #include "OT/Color/COLR/COLR.hh"
 #include "OT/Color/COLR/colrv1-closure.hh"
 #include "OT/Color/CPAL/CPAL.hh"
@@ -854,6 +855,89 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
   }
   plan->all_axes_pinned = !axis_not_pinned;
 }
+
+static void
+_update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
+{
+  if (!plan->normalized_coords) return;
+  OT::cff2::accelerator_t cff2 (plan->source);
+  if (!cff2.is_valid ()) return;
+
+  hb_font_t *font = nullptr;
+  if (unlikely (!plan->check_success (font = _get_hb_font_with_variations (plan))))
+  {
+    hb_font_destroy (font);
+    return;
+  }
+
+  hb_glyph_extents_t extents = {0x7FFF, -0x7FFF};
+  OT::hmtx_accelerator_t _hmtx (plan->source);
+  float *hvar_store_cache = nullptr;
+  if (_hmtx.has_data () && _hmtx.var_table.get_length ())
+    hvar_store_cache = _hmtx.var_table->get_var_store ().create_cache ();
+  
+  OT::vmtx_accelerator_t _vmtx (plan->source);
+  float *vvar_store_cache = nullptr;
+  if (_vmtx.has_data () && _vmtx.var_table.get_length ())
+    vvar_store_cache = _vmtx.var_table->get_var_store ().create_cache ();
+
+  for (auto p : *plan->glyph_map)
+  {
+    hb_codepoint_t old_gid = p.first;
+    hb_codepoint_t new_gid = p.second;
+    if (!cff2.get_extents (font, old_gid, &extents)) continue;
+    bool has_bounds_info = true;
+    if (extents.x_bearing == 0 && extents.width == 0 &&
+        extents.height == 0 && extents.y_bearing == 0)
+      has_bounds_info = false;
+
+    if (has_bounds_info)
+    {
+      plan->head_maxp_info.xMin = hb_min (plan->head_maxp_info.xMin, extents.x_bearing);
+      plan->head_maxp_info.xMax = hb_max (plan->head_maxp_info.xMax, extents.x_bearing + extents.width);
+      plan->head_maxp_info.yMax = hb_max (plan->head_maxp_info.yMax, extents.y_bearing);
+      plan->head_maxp_info.yMin = hb_min (plan->head_maxp_info.yMin, extents.y_bearing + extents.height);
+    }
+
+    if (_hmtx.has_data ())
+    {
+      int hori_aw = _hmtx.get_advance_without_var_unscaled (old_gid);
+      if (_hmtx.var_table.get_length ())
+        hori_aw += (int) roundf (_hmtx.var_table->get_advance_delta_unscaled (old_gid, font->coords, font->num_coords,
+                                                                              hvar_store_cache));
+      int lsb = extents.x_bearing;
+      if (!has_bounds_info)
+      {
+        if (!_hmtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb))
+          continue;
+      }
+      plan->hmtx_map.set (new_gid, hb_pair ((unsigned) hori_aw, lsb));
+      plan->bounds_width_map.set (new_gid, extents.width);
+    }
+
+    if (_vmtx.has_data ())
+    {
+      int vert_aw = _vmtx.get_advance_without_var_unscaled (old_gid);
+      if (_vmtx.var_table.get_length ())
+        vert_aw += (int) roundf (_vmtx.var_table->get_advance_delta_unscaled (old_gid, font->coords, font->num_coords,
+                                                                              vvar_store_cache));
+
+      int tsb = extents.y_bearing;
+      if (!has_bounds_info)
+      {
+        if (!_vmtx.get_leading_bearing_without_var_unscaled (old_gid, &tsb))
+          continue;
+      }
+      plan->vmtx_map.set (new_gid, hb_pair ((unsigned) vert_aw, tsb));
+      plan->bounds_height_map.set (new_gid, extents.height);
+    }
+  }
+  hb_font_destroy (font);
+  if (hvar_store_cache)
+    _hmtx.var_table->get_var_store ().destroy_cache (hvar_store_cache);
+  if (vvar_store_cache)
+    _vmtx.var_table->get_var_store ().destroy_cache (vvar_store_cache);
+}
 #endif
 
 hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
@@ -941,6 +1025,10 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 
   if (unlikely (in_error ()))
     return;
+
+#ifndef HB_NO_VAR
+  _update_instance_metrics_map_from_cff2 (this);
+#endif
 
   if (attach_accelerator_data)
   {
