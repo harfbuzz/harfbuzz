@@ -295,7 +295,7 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
                               feature_record_cond_idx_map,
                               feature_substitutes_map);
 
-  if (table_tag == HB_OT_TAG_GSUB)
+  if (table_tag == HB_OT_TAG_GSUB && !(plan->flags & HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE))
     hb_ot_layout_lookups_substitute_closure (plan->source,
                                              &lookup_indices,
 					     gids_to_retain);

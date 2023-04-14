@@ -1,0 +1,8 @@
+FONTS:
+Roboto-Regular.ttf
+
+PROFILES:
+no-layout-closure-gids.txt
+
+SUBSETS:
+no-unicodes
