@@ -7,7 +7,7 @@ used before a patch is released.
 
 You may submit the report in the following ways:
 
-- send an email to behdad@behdad.org; and/or
+- send an email to behdad@behdad.org and harfbuzz-admin@googlegroups.com; and/or
 - send me a [private vulnerability report](https://github.com/harfbuzz/harfbuzz/security/advisories/new)
 
 Please provide the following information in your report:
@@ -15,6 +15,6 @@ Please provide the following information in your report:
 - A description of the vulnerability and its impact
 - How to reproduce the issue
 
-This project is mostly maintained by a single developer, working on a reasonable effort
-basis. As such, I ask that you give me 90 days to work on a fix before public
+This project is mostly maintained by two developers, working on a reasonable effort
+basis. As such, we ask that you give us 90 days to work on a fix before public
 disclosure.
