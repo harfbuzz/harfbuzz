@@ -197,7 +197,7 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
  * a face index into that blob.
  *
  * The face index is used for blobs of file formats such as TTC and
- * and DFont that can contain more than one face.  Face indices within
+ * DFont that can contain more than one face.  Face indices within
  * such collections are zero-based.
  *
  * <note>Note: If the blob font format is not a collection, @index
