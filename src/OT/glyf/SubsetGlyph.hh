@@ -27,7 +27,12 @@ struct SubsetGlyph
     TRACE_SERIALIZE (this);
 
     hb_bytes_t dest_glyph = dest_start.copy (c);
-    dest_glyph = hb_bytes_t (&dest_glyph, dest_glyph.length + dest_end.copy (c).length);
+    hb_bytes_t end_copy = dest_end.copy (c);
+    if (!end_copy.arrayZ || !dest_glyph.arrayZ) {
+      return false;
+    }
+
+    dest_glyph = hb_bytes_t (&dest_glyph, dest_glyph.length + end_copy.length);
     unsigned int pad_length = use_short_loca ? padding () : 0;
     DEBUG_MSG (SUBSET, nullptr, "serialize %u byte glyph, width %u pad %u", dest_glyph.length, dest_glyph.length + pad_length, pad_length);
 
