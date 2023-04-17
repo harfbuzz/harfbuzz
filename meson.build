@@ -373,7 +373,10 @@ foreach check : check_funcs
 endforeach
 
 subdir('src')
-subdir('util')
+
+if not get_option('utilities').disabled()
+  subdir('util')
+endif
 
 if not get_option('tests').disabled()
   subdir('test')
