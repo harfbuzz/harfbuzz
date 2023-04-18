@@ -327,7 +327,7 @@ struct Glyph
 #endif
 		       ;
       phantoms[PHANTOM_LEFT].x = h_delta;
-      phantoms[PHANTOM_RIGHT].x = h_adv + h_delta;
+      phantoms[PHANTOM_RIGHT].x = (int) h_adv + h_delta;
       phantoms[PHANTOM_TOP].y = v_orig;
       phantoms[PHANTOM_BOTTOM].y = v_orig - (int) v_adv;
     }
