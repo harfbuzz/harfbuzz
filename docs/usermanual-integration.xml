@@ -174,7 +174,9 @@
     <para>
       HarfBuzz provides integration points with FreeType at the
       face-object and font-object level and for the font-functions
-      virtual-method structure of a font object. To use the
+      virtual-method structure of a font object. These functions
+      make it easy for clients that use FreeType for rasterization
+      or font-loading, to use HarfBuzz for shaping. To use the
       FreeType-integration API, include the
       <filename>hb-ft.h</filename> header.
     </para>
