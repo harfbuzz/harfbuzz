@@ -50,6 +50,9 @@ _glyf_get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t gly
 HB_INTERNAL unsigned
 _glyf_get_advance_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
 
+HB_INTERNAL bool
+_glyf_get_leading_bearing_without_var_unscaled (hb_face_t *face, hb_codepoint_t gid, bool is_vertical, int *lsb);
+
 
 namespace OT {
 
@@ -208,7 +211,8 @@ struct hmtxvmtx
 		  if (!c->plan->old_gid_for_new_gid (_, &old_gid))
 		    return hb_pair (0u, 0);
 		  int lsb = 0;
-		  (void) _mtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb);
+		  if (!_mtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb))
+		    (void) _glyf_get_leading_bearing_without_var_unscaled (c->plan->source, old_gid, !T::is_horizontal, &lsb);
 		  return hb_pair (_mtx.get_advance_without_var_unscaled (old_gid), +lsb);
 		}
 		return mtx_map->get (_);

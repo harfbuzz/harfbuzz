@@ -515,6 +515,7 @@ struct Glyph
 
   hb_bytes_t get_bytes () const { return bytes; }
   glyph_type_t get_type () const { return type; }
+  const GlyphHeader *get_header () const { return header; }
 
   Glyph () : bytes (),
              header (bytes.as<GlyphHeader> ()),
