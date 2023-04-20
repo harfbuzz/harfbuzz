@@ -46,8 +46,10 @@ struct Glyph
   const hb_bytes_t trim_padding () const
   {
     switch (type) {
+    case VAR_COMPOSITE: return bytes; // TODO
     case COMPOSITE: return CompositeGlyph (*header, bytes).trim_padding ();
     case SIMPLE:    return SimpleGlyph (*header, bytes).trim_padding ();
+    case EMPTY:     return bytes;
     default:        return bytes;
     }
   }
@@ -55,27 +57,30 @@ struct Glyph
   void drop_hints ()
   {
     switch (type) {
+    case VAR_COMPOSITE: return;
     case COMPOSITE: CompositeGlyph (*header, bytes).drop_hints (); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).drop_hints (); return;
-    default:        return;
+    case EMPTY:     return;
     }
   }
 
   void set_overlaps_flag ()
   {
     switch (type) {
+    case VAR_COMPOSITE: return;
     case COMPOSITE: CompositeGlyph (*header, bytes).set_overlaps_flag (); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).set_overlaps_flag (); return;
-    default:        return;
+    case EMPTY:     return;
     }
   }
 
   void drop_hints_bytes (hb_bytes_t &dest_start, hb_bytes_t &dest_end) const
   {
     switch (type) {
+    case VAR_COMPOSITE: return;
     case COMPOSITE: CompositeGlyph (*header, bytes).drop_hints_bytes (dest_start); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).drop_hints_bytes (dest_start, dest_end); return;
-    default:        return;
+    case EMPTY:     return;
     }
   }
 
@@ -209,8 +214,14 @@ struct Glyph
     }
 
     //dont compile bytes when pinned at default, just recalculate bounds
-    if (!plan->pinned_at_default) {
-      switch (type) {
+    if (!plan->pinned_at_default)
+    {
+      switch (type)
+      {
+      case VAR_COMPOSITE:
+	// TODO
+	return false;
+
       case COMPOSITE:
         if (!CompositeGlyph (*header, bytes).compile_bytes_with_deltas (dest_start,
                                                                         deltas,
@@ -223,7 +234,7 @@ struct Glyph
                                                                      dest_end))
           return false;
         break;
-      default:
+      case EMPTY:
         /* set empty bytes for empty glyph
          * do not use source glyph's pointers */
         dest_start = hb_bytes_t ();
@@ -299,7 +310,7 @@ struct Glyph
         if (unlikely (!item.get_points (points))) return false;
     }
 #endif
-    default:
+    case EMPTY:
       break;
     }
 
@@ -477,7 +488,7 @@ struct Glyph
       all_points.extend (phantoms);
     } break;
 #endif
-    default:
+    case EMPTY:
       all_points.extend (phantoms);
       break;
     }
@@ -503,6 +514,7 @@ struct Glyph
   }
 
   hb_bytes_t get_bytes () const { return bytes; }
+  glyph_type_t get_type () const { return type; }
 
   Glyph () : bytes (),
              header (bytes.as<GlyphHeader> ()),
@@ -526,7 +538,7 @@ struct Glyph
   hb_bytes_t bytes;
   const GlyphHeader *header;
   hb_codepoint_t gid;
-  unsigned type;
+  glyph_type_t type;
 };
 
 
