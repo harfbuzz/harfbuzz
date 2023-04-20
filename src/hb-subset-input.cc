@@ -438,7 +438,8 @@ hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
   if (!hb_ot_var_find_axis_info (face, axis_tag, &axis_info))
     return false;
 
-  return input->axes_location.set (axis_tag, axis_info.default_value);
+  float default_val = axis_info.default_value;
+  return input->axes_location.set (axis_tag, Triple (default_val, default_val, default_val));
 }
 
 /**
@@ -468,7 +469,7 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
     return false;
 
   float val = hb_clamp(axis_value, axis_info.min_value, axis_info.max_value);
-  return input->axes_location.set (axis_tag, val);
+  return input->axes_location.set (axis_tag, Triple (val, val, val));
 }
 
 /**
@@ -508,7 +509,7 @@ hb_subset_input_set_axis_range (hb_subset_input_t  *input,
   float new_min_val = hb_clamp(axis_min_value, axis_info.min_value, axis_info.max_value);
   float new_max_val = hb_clamp(axis_max_value, axis_info.min_value, axis_info.max_value);
   float new_default_val = hb_clamp(axis_info.default_value, new_min_val, new_max_val);
-  return input->axes_location.set (axis_tag, new_default_val);
+  return input->axes_location.set (axis_tag, Triple (new_min_val, new_default_val, new_max_val));
 }
 #endif
 
