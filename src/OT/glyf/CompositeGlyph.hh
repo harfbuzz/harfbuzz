@@ -262,7 +262,6 @@ struct CompositeGlyphRecord
     set_gid (gid);
 
     memmove (p - HBGlyphID24::static_size + HBGlyphID16::static_size, p, end - p);
-    return;
   }
 #endif
 
