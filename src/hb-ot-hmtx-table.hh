@@ -168,11 +168,17 @@ struct hmtxvmtx
 	lm.sb = _.second;
 	if (unlikely (!c->embed<LongMetric> (&lm))) return;
       }
-      else
+      else if (idx < 0x10000u)
       {
 	FWORD *sb = c->allocate_size<FWORD> (FWORD::static_size);
 	if (unlikely (!sb)) return;
 	*sb = _.second;
+      }
+      else
+      {
+	UFWORD *adv = c->allocate_size<UFWORD> (UFWORD::static_size);
+	if (unlikely (!adv)) return;
+	*adv = _.first;
       }
       idx++;
     }
@@ -192,7 +198,7 @@ struct hmtxvmtx
       /* Determine num_long_metrics to encode. */
       auto& plan = c->plan;
 
-      num_long_metrics = plan->num_output_glyphs ();
+      num_long_metrics = hb_min (plan->num_output_glyphs (), 0xFFFFu);
       unsigned int last_advance = get_new_gid_advance_unscaled (plan, mtx_map, num_long_metrics - 1, _mtx);
       while (num_long_metrics > 1 &&
 	     last_advance == get_new_gid_advance_unscaled (plan, mtx_map, num_long_metrics - 2, _mtx))
