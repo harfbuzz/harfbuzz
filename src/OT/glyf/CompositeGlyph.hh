@@ -253,6 +253,8 @@ struct CompositeGlyphRecord
     if (!(flags & GID_IS_24BIT) || gid > 0xFFFFu)
       return;
 
+    /* Lower the flag and move the rest of the struct down. */
+
     unsigned size = get_size ();
     char *end = (char *) this + size;
     char *p = &StructAfter<char> (flags);
