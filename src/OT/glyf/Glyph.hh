@@ -303,13 +303,13 @@ struct Glyph
       if (unlikely (!points.resize (num_points))) return false;
       break;
     }
-#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE:
     {
+#ifndef HB_NO_VAR_COMPOSITES
       for (auto &item : get_var_composite_iterator ())
         if (unlikely (!item.get_points (points))) return false;
-    }
 #endif
+    }
     case EMPTY:
       break;
     }
@@ -437,9 +437,9 @@ struct Glyph
       }
       all_points.extend (phantoms);
     } break;
-#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE:
     {
+#ifndef HB_NO_VAR_COMPOSITES
       contour_point_vector_t comp_points;
       hb_array_t<contour_point_t> points_left = points.as_array ();
       for (auto &item : get_var_composite_iterator ())
@@ -486,8 +486,8 @@ struct Glyph
 	points_left += item.get_num_points ();
       }
       all_points.extend (phantoms);
-    } break;
 #endif
+    } break;
     case EMPTY:
       all_points.extend (phantoms);
       break;
