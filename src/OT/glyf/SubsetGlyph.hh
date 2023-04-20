@@ -55,17 +55,17 @@ struct SubsetGlyph
     }
 
 #ifndef HB_NO_BEYOND_64K
-    auto _ = Glyph (dest_glyph).get_composite_iterator ();
-    if (_)
+    auto it = Glyph (dest_glyph).get_composite_iterator ();
+    if (it)
     {
       /* lower GID24 to GID16 in components if possible. */
-      char *p = _ ? (char *) &*_ : nullptr;
+      char *p = it ? (char *) &*it : nullptr;
       char *q = p;
       const char *end = dest_glyph.arrayZ + dest_glyph.length;
-      while (_)
+      while (it)
       {
-	auto &rec = const_cast<CompositeGlyphRecord &> (*_);
-	++_;
+	auto &rec = const_cast<CompositeGlyphRecord &> (*it);
+	++it;
 
 	q += rec.get_size ();
 
