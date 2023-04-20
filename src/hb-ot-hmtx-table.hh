@@ -176,6 +176,7 @@ struct hmtxvmtx
       }
       else
       {
+        // TODO: This does not do tail optimization.
 	UFWORD *adv = c->allocate_size<UFWORD> (UFWORD::static_size);
 	if (unlikely (!adv)) return;
 	*adv = _.first;
