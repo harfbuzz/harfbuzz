@@ -86,7 +86,7 @@ struct SubsetGlyph
        * harmless instructions, since that's what they will be
        * interpreted as. */
 
-      memset (p, 0x7A /* TrueType instruction ROFF; harmless */, end - p);
+      hb_memset (p, 0x7A /* TrueType instruction ROFF; harmless */, end - p);
       p += end - p;
       dest_glyph = hb_bytes_t (dest_glyph.arrayZ, p - (char *) dest_glyph.arrayZ);
 
