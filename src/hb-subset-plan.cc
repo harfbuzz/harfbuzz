@@ -623,13 +623,25 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 
   gids_to_retain->add (gid);
 
-  for (auto item : glyf.glyph_for_gid (gid).get_composite_iterator ())
+  for (auto &item : glyf.glyph_for_gid (gid).get_composite_iterator ())
     operation_count =
       _glyf_add_gid_and_children (glyf,
 				  item.get_gid (),
 				  gids_to_retain,
 				  operation_count,
 				  depth);
+
+#ifndef HB_NO_VAR_COMPOSITES
+  for (auto &item : glyf.glyph_for_gid (gid).get_var_composite_iterator ())
+   {
+    operation_count =
+      _glyf_add_gid_and_children (glyf,
+				  item.get_gid (),
+				  gids_to_retain,
+				  operation_count,
+				  depth);
+   }
+#endif
 
   return operation_count;
 }
