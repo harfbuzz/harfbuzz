@@ -46,7 +46,7 @@ struct SubsetGlyph
 
     if (unlikely (!dest_glyph.length)) return_trace (true);
 
-    /* update components gids */
+    /* update components gids. TODO: VarComposite. */
     for (auto &_ : Glyph (dest_glyph).get_composite_iterator ())
     {
       hb_codepoint_t new_gid;
@@ -58,7 +58,7 @@ struct SubsetGlyph
     auto it = Glyph (dest_glyph).get_composite_iterator ();
     if (it)
     {
-      /* lower GID24 to GID16 in components if possible. */
+      /* lower GID24 to GID16 in components if possible. TODO: VarComposite. */
       char *p = it ? (char *) &*it : nullptr;
       char *q = p;
       const char *end = dest_glyph.arrayZ + dest_glyph.length;
