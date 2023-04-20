@@ -84,7 +84,10 @@ struct SubsetGlyph
        * updating the length in the loca table, which is already
        * written out :-(.  So we just fill the rest of the glyph with
        * harmless instructions, since that's what they will be
-       * interpreted as. */
+       * interpreted as.
+       *
+       * Should move the lowering to _populate_subset_glyphs() to
+       * fix this issue. */
 
       hb_memset (p, 0x7A /* TrueType instruction ROFF; harmless */, end - p);
       p += end - p;
