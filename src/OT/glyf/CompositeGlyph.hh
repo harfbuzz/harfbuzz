@@ -246,6 +246,26 @@ struct CompositeGlyphRecord
       StructAfter<HBGlyphID16> (flags) = gid;
   }
 
+#ifndef HB_NO_BEYOND_64K
+  void lower_gid_24_to_16 ()
+  {
+    hb_codepoint_t gid = get_gid ();
+    if (!(flags & GID_IS_24BIT) || gid > 0xFFFFu)
+      return;
+
+    unsigned size = get_size ();
+    char *end = (char *) this + size;
+    char *p = &StructAfter<char> (flags);
+    p += HBGlyphID24::static_size;
+
+    flags = flags & ~GID_IS_24BIT;
+    set_gid (gid);
+
+    memmove (p - HBGlyphID24::static_size + HBGlyphID16::static_size, p, end - p);
+    return;
+  }
+#endif
+
   protected:
   HBUINT16	flags;
   HBUINT24	pad;

@@ -54,6 +54,47 @@ struct SubsetGlyph
 	const_cast<CompositeGlyphRecord &> (_).set_gid (new_gid);
     }
 
+#ifndef HB_NO_BEYOND_64K
+    auto _ = Glyph (dest_glyph).get_composite_iterator ();
+    if (_)
+    {
+      /* lower GID24 to GID16 in components if possible. */
+      char *p = _ ? (char *) &*_ : nullptr;
+      char *q = p;
+      const char *end = dest_glyph.arrayZ + dest_glyph.length;
+      while (_)
+      {
+	auto &rec = const_cast<CompositeGlyphRecord &> (*_);
+	++_;
+
+	q += rec.get_size ();
+
+	rec.lower_gid_24_to_16 ();
+
+	unsigned size = rec.get_size ();
+
+	memmove (p, &rec, size);
+
+	p += size;
+      }
+      memmove (p, q, end - q);
+      p += end - q;
+
+      /* We want to shorten the glyph, but we can't do that without
+       * updating the length in the loca table, which is already
+       * written out :-(.  So we just fill the rest of the glyph with
+       * harmless instructions, since that's what they will be
+       * interpreted as. */
+
+      memset (p, 0x7A /* TrueType instruction ROFF; harmless */, end - p);
+      p += end - p;
+      dest_glyph = hb_bytes_t (dest_glyph.arrayZ, p - (char *) dest_glyph.arrayZ);
+
+      // TODO: Padding; & trim serialized bytes.
+      // TODO: Update length in loca. Ugh.
+    }
+#endif
+
     if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
       Glyph (dest_glyph).drop_hints ();
 
