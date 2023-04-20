@@ -97,12 +97,12 @@ HB_SUBSET_PLAN_MEMBER (hb_vector_t<hb_inc_bimap_t>, gdef_varstore_inner_maps)
 
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, hb::unique_ptr<hb_blob_t>>), sanitized_table_cache)
 
-//normalized axes location map
-HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, int>), axes_location)
+//normalized axes range map
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), axes_location)
 HB_SUBSET_PLAN_MEMBER (hb_vector_t<int>, normalized_coords)
 
-//user specified axes location map
-HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, float>), user_axes_location)
+//user specified axes range map
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), user_axes_location)
 
 //retained old axis index -> new axis index mapping in fvar axis array
 HB_SUBSET_PLAN_MEMBER (hb_map_t, axes_index_map)

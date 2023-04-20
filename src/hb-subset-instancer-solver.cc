@@ -22,7 +22,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#include "hb.hh"
+#include "hb-subset-instancer-solver.hh"
 
 /* This file is a straight port of the following:
  *
@@ -34,26 +34,6 @@
 
 constexpr static float EPSILON = 1.f / (1 << 14);
 constexpr static float MAX_F2DOT14 = float (0x7FFF) / (1 << 14);
-
-struct Triple {
-
-  Triple () :
-    minimum (0.f), middle (0.f), maximum (0.f) {}
-
-  Triple (float minimum_, float middle_, float maximum_) :
-    minimum (minimum_), middle (middle_), maximum (maximum_) {}
-
-  bool operator == (const Triple &o) const
-  {
-    return minimum == o.minimum &&
-	   middle  == o.middle  &&
-	   maximum == o.maximum;
-  }
-
-  float minimum;
-  float middle;
-  float maximum;
-};
 
 static inline Triple _reverse_negate(const Triple &v)
 { return {-v.maximum, -v.middle, -v.minimum}; }
@@ -81,10 +61,6 @@ static inline float supportScalar (float coord, const Triple &tent)
   else
     return  (end - coord) / (end - peak);
 }
-
-
-using result_item_t = hb_pair_t<float, Triple>;
-using result_t = hb_vector_t<result_item_t>;
 
 static inline result_t
 _solve (Triple tent, Triple axisLimit, bool negative = false)
@@ -421,19 +397,6 @@ static inline float normalizeValue (float v, const Triple &triple, bool extrapol
     return (v - def) / (upper - def);
   }
 }
-
-/* Given a tuple (lower,peak,upper) "tent" and new axis limits
- * (axisMin,axisDefault,axisMax), solves how to represent the tent
- * under the new axis configuration.  All values are in normalized
- * -1,0,+1 coordinate system. Tent values can be outside this range.
- *
- * Return value: a list of tuples. Each tuple is of the form
- * (scalar,tent), where scalar is a multipler to multiply any
- * delta-sets by, and tent is a new tent for that output delta-set.
- * If tent value is Triple{}, that is a special deltaset that should
- * be always-enabled (called "gain").
- */
-HB_INTERNAL result_t rebase_tent (Triple tent, Triple axisLimit);
 
 result_t
 rebase_tent (Triple tent, Triple axisLimit)
