@@ -657,9 +657,10 @@ _nameid_closure (hb_subset_plan_t* plan,
   if (!plan->all_axes_pinned)
     plan->source->table.fvar->collect_name_ids (&plan->user_axes_location, &plan->name_ids);
 #endif
-
+#ifndef HB_NO_COLOR
   if (!drop_tables->has (HB_OT_TAG_CPAL))
     plan->source->table.CPAL->collect_name_ids (&plan->colr_palettes, &plan->name_ids);
+#endif
 
 #ifndef HB_NO_SUBSET_LAYOUT
   if (!drop_tables->has (HB_OT_TAG_GPOS))
