@@ -241,6 +241,8 @@ struct glyf_accelerator_t
     return true;
   }
 
+  public:
+
 #ifndef HB_NO_VAR
   struct points_aggregator_t
   {
@@ -304,7 +306,6 @@ struct glyf_accelerator_t
     contour_point_t *get_phantoms_sink () { return phantoms; }
   };
 
-  public:
   unsigned
   get_advance_with_var_unscaled (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
   {
