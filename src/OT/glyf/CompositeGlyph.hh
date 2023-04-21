@@ -340,7 +340,7 @@ struct CompositeGlyph
     /* try to allocate more memories than source glyph bytes
      * in case that there might be an overflow for int8 value
      * and we would need to use int16 instead */
-    char *o = (char *) hb_calloc (source_len + source_len/2, sizeof (char));
+    char *o = (char *) hb_calloc (source_len * 2, sizeof (char));
     if (unlikely (!o)) return false;
 
     const CompositeGlyphRecord *c = reinterpret_cast<const CompositeGlyphRecord *> (source_bytes.arrayZ + GlyphHeader::static_size);
