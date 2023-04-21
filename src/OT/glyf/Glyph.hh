@@ -320,9 +320,8 @@ struct Glyph
       break;
     case COMPOSITE:
     {
-      /* pseudo component points for each component in composite glyph */
-      unsigned num_points = hb_len (CompositeGlyph (*header, bytes).iter ());
-      if (unlikely (!points.resize (num_points))) return false;
+      for (auto &item : get_composite_iterator ())
+        if (unlikely (!item.get_points (points))) return false;
       break;
     }
 #ifndef HB_NO_VAR_COMPOSITES
@@ -422,11 +421,12 @@ struct Glyph
 	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
 
-	/* Apply component transformation & translation */
-	item.transform_points (comp_points);
+	float matrix[4];
+	contour_point_t default_trans;
+	item.get_transformation (matrix, default_trans);
 
-	/* Apply translation from gvar */
-	comp_points.translate (points[comp_index]);
+	/* Apply component transformation & translation (with deltas applied) */
+	item.transform_points (comp_points, matrix, points[comp_index]);
 
 	if (item.is_anchored ())
 	{

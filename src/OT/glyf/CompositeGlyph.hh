@@ -87,23 +87,30 @@ struct CompositeGlyphRecord
     }
   }
 
-  void transform_points (contour_point_vector_t &points) const
+  void transform_points (contour_point_vector_t &points,
+			 const float (&matrix)[4],
+			 const contour_point_t &trans) const
+  {
+    if (scaled_offsets ())
+    {
+      points.translate (trans);
+      points.transform (matrix);
+    }
+    else
+    {
+      points.transform (matrix);
+      points.translate (trans);
+    }
+  }
+
+  bool get_points (contour_point_vector_t &points) const
   {
     float matrix[4];
     contour_point_t trans;
-    if (get_transformation (matrix, trans))
-    {
-      if (scaled_offsets ())
-      {
-	points.translate (trans);
-	points.transform (matrix);
-      }
-      else
-      {
-	points.transform (matrix);
-	points.translate (trans);
-      }
-    }
+    get_transformation (matrix, trans);
+    if (unlikely (!points.resize (points.length + 1))) return false;
+    points[points.length - 1] = trans;
+    return true;
   }
 
   unsigned compile_with_deltas (const contour_point_t &p_delta,
@@ -171,6 +178,7 @@ struct CompositeGlyphRecord
   bool scaled_offsets () const
   { return (flags & (SCALED_COMPONENT_OFFSET | UNSCALED_COMPONENT_OFFSET)) == SCALED_COMPONENT_OFFSET; }
 
+  public:
   bool get_transformation (float (&matrix)[4], contour_point_t &trans) const
   {
     matrix[0] = matrix[3] = 1.f;
@@ -225,7 +233,6 @@ struct CompositeGlyphRecord
     return tx || ty;
   }
 
-  public:
   hb_codepoint_t get_gid () const
   {
 #ifndef HB_NO_BEYOND_64K
