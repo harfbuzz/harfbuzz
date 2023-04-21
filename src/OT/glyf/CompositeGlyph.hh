@@ -113,8 +113,8 @@ struct CompositeGlyphRecord
     return true;
   }
 
-  unsigned compile_with_deltas (const contour_point_t &p_delta,
-                                char *out) const
+  unsigned compile_with_point (const contour_point_t &point,
+                               char *out) const
   {
     const HBINT8 *p = &StructAfter<const HBINT8> (flags);
 #ifndef HB_NO_BEYOND_64K
@@ -128,18 +128,17 @@ struct CompositeGlyphRecord
     unsigned len_before_val = (const char *)p - (const char *)this;
     if (flags & ARG_1_AND_2_ARE_WORDS)
     {
-      // no overflow, copy and update value with deltas
+      // no overflow, copy value
       hb_memcpy (out, this, len);
 
-      const HBINT16 *px = reinterpret_cast<const HBINT16 *> (p);
       HBINT16 *o = reinterpret_cast<HBINT16 *> (out + len_before_val);
-      o[0] = px[0] + roundf (p_delta.x);
-      o[1] = px[1] + roundf (p_delta.y);
+      o[0] = roundf (point.x);
+      o[1] = roundf (point.y);
     }
     else
     {
-      int new_x = p[0] + roundf (p_delta.x);
-      int new_y = p[1] + roundf (p_delta.y);
+      int new_x = roundf (point.x);
+      int new_y = roundf (point.y);
       if (new_x <= 127 && new_x >= -128 &&
           new_y <= 127 && new_y >= -128)
       {
@@ -150,7 +149,7 @@ struct CompositeGlyphRecord
       }
       else
       {
-        // int8 overflows after deltas applied
+        // new point value has an int8 overflow
         hb_memcpy (out, this, len_before_val);
         
         //update flags
@@ -332,7 +331,7 @@ struct CompositeGlyph
   }
 
   bool compile_bytes_with_deltas (const hb_bytes_t &source_bytes,
-                                  const contour_point_vector_t &deltas,
+                                  const contour_point_vector_t &points_with_deltas,
                                   hb_bytes_t &dest_bytes /* OUT */)
   {
     if (source_bytes.length <= GlyphHeader::static_size ||
@@ -357,8 +356,8 @@ struct CompositeGlyph
     unsigned i = 0, source_comp_len = 0;
     for (const auto &component : it)
     {
-      /* last 4 points in deltas are phantom points and should not be included */
-      if (i >= deltas.length - 4) {
+      /* last 4 points in points_with_deltas are phantom points and should not be included */
+      if (i >= points_with_deltas.length - 4) {
         free (o);
         return false;
       }
@@ -371,7 +370,7 @@ struct CompositeGlyph
       }
       else
       {
-        unsigned new_len = component.compile_with_deltas (deltas[i], p);
+        unsigned new_len = component.compile_with_point (points_with_deltas[i], p);
         p += new_len;
       }
       i++;

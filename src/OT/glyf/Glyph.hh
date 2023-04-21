@@ -205,7 +205,7 @@ struct Glyph
                                   hb_bytes_t &dest_start,  /* IN/OUT */
                                   hb_bytes_t &dest_end /* OUT */)
   {
-    contour_point_vector_t all_points, deltas;
+    contour_point_vector_t all_points, points_with_deltas;
     unsigned composite_contours = 0;
     head_maxp_info_t *head_maxp_info_p = &plan->head_maxp_info;
     unsigned *composite_contours_p = &composite_contours;
@@ -219,7 +219,7 @@ struct Glyph
       composite_contours_p = nullptr;
     }
 
-    if (!get_points (font, glyf, all_points, &deltas, head_maxp_info_p, composite_contours_p, false, false))
+    if (!get_points (font, glyf, all_points, &points_with_deltas, head_maxp_info_p, composite_contours_p, false, false))
       return false;
 
     // .notdef, set type to empty so we only update metrics and don't compile bytes for
@@ -246,7 +246,7 @@ struct Glyph
 
       case COMPOSITE:
         if (!CompositeGlyph (*header, bytes).compile_bytes_with_deltas (dest_start,
-                                                                        deltas,
+                                                                        points_with_deltas,
                                                                         dest_end))
           return false;
         break;
@@ -280,7 +280,7 @@ struct Glyph
   template <typename accelerator_t>
   bool get_points (hb_font_t *font, const accelerator_t &glyf_accelerator,
 		   contour_point_vector_t &all_points /* OUT */,
-		   contour_point_vector_t *deltas = nullptr, /* OUT */
+		   contour_point_vector_t *points_with_deltas = nullptr, /* OUT */
 		   head_maxp_info_t * head_maxp_info = nullptr, /* OUT */
 		   unsigned *composite_contours = nullptr, /* OUT */
 		   bool shift_points_hori = true,
@@ -364,12 +364,6 @@ struct Glyph
       phantoms[PHANTOM_BOTTOM].y = v_orig - (int) v_adv;
     }
 
-    if (deltas != nullptr && depth == 0 && type == COMPOSITE)
-    {
-      if (unlikely (!deltas->resize (points.length))) return false;
-      deltas->copy_vector (points);
-    }
-
 #ifndef HB_NO_VAR
     glyf_accelerator.gvar->apply_deltas_to_points (gid,
 						   coords,
@@ -378,13 +372,10 @@ struct Glyph
 
     // mainly used by CompositeGlyph calculating new X/Y offset value so no need to extend it
     // with child glyphs' points
-    if (deltas != nullptr && depth == 0 && type == COMPOSITE)
+    if (points_with_deltas != nullptr && depth == 0 && type == COMPOSITE)
     {
-      for (unsigned i = 0 ; i < points.length; i++)
-      {
-        deltas->arrayZ[i].x = points.arrayZ[i].x - deltas->arrayZ[i].x;
-        deltas->arrayZ[i].y = points.arrayZ[i].y - deltas->arrayZ[i].y;
-      }
+      if (unlikely (!points_with_deltas->resize (points.length))) return false;
+      points_with_deltas->copy_vector (points);
     }
 
     switch (type) {
@@ -405,7 +396,7 @@ struct Glyph
 				       .get_points (font,
 						    glyf_accelerator,
 						    comp_points,
-						    deltas,
+						    points_with_deltas,
 						    head_maxp_info,
 						    composite_contours,
 						    shift_points_hori,
@@ -481,7 +472,7 @@ struct Glyph
 				       .get_points (font,
 						    glyf_accelerator,
 						    comp_points,
-						    deltas,
+						    points_with_deltas,
 						    head_maxp_info,
 						    nullptr,
 						    shift_points_hori,
