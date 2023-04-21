@@ -58,7 +58,7 @@ struct Glyph
   {
     switch (type) {
 #ifndef HB_NO_VAR_COMPOSITES
-    case VAR_COMPOSITE: return bytes; // TODO
+    case VAR_COMPOSITE: return VarCompositeGlyph (*header, bytes).trim_padding ();
 #endif
     case COMPOSITE: return CompositeGlyph (*header, bytes).trim_padding ();
     case SIMPLE:    return SimpleGlyph (*header, bytes).trim_padding ();

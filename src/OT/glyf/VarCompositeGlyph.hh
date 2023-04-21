@@ -352,6 +352,13 @@ struct VarCompositeGlyph
   var_composite_iter_t iter () const
   { return var_composite_iter_t (bytes, &StructAfter<VarCompositeGlyphRecord, GlyphHeader> (header)); }
 
+  const hb_bytes_t trim_padding () const
+  {
+    unsigned length = GlyphHeader::static_size;
+    for (auto &comp : iter ())
+      length += comp.get_size ();
+    return bytes.sub_array (0, length);
+  }
 };
 
 
