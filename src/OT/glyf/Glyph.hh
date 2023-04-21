@@ -240,7 +240,8 @@ struct Glyph
 #ifndef HB_NO_VAR_COMPOSITES
       case VAR_COMPOSITE:
 	// TODO
-	return false;
+	dest_end = hb_bytes_t ();
+	break;
 #endif
 
       case COMPOSITE:
