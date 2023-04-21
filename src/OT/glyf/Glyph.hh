@@ -29,7 +29,14 @@ enum phantom_point_index_t
 
 struct Glyph
 {
-  enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE, VAR_COMPOSITE };
+  enum glyph_type_t {
+    EMPTY,
+    SIMPLE,
+    COMPOSITE,
+#ifndef HB_NO_VAR_COMPOSITES
+    VAR_COMPOSITE,
+#endif
+  };
 
   public:
   composite_iter_t get_composite_iterator () const
@@ -39,14 +46,20 @@ struct Glyph
   }
   var_composite_iter_t get_var_composite_iterator () const
   {
+#ifndef HB_NO_VAR_COMPOSITES
     if (type != VAR_COMPOSITE) return var_composite_iter_t ();
     return VarCompositeGlyph (*header, bytes).iter ();
+#else
+    return var_composite_iter_t ();
+#endif
   }
 
   const hb_bytes_t trim_padding () const
   {
     switch (type) {
+#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE: return bytes; // TODO
+#endif
     case COMPOSITE: return CompositeGlyph (*header, bytes).trim_padding ();
     case SIMPLE:    return SimpleGlyph (*header, bytes).trim_padding ();
     case EMPTY:     return bytes;
@@ -57,7 +70,9 @@ struct Glyph
   void drop_hints ()
   {
     switch (type) {
+#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE: return;
+#endif
     case COMPOSITE: CompositeGlyph (*header, bytes).drop_hints (); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).drop_hints (); return;
     case EMPTY:     return;
@@ -67,7 +82,9 @@ struct Glyph
   void set_overlaps_flag ()
   {
     switch (type) {
+#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE: return;
+#endif
     case COMPOSITE: CompositeGlyph (*header, bytes).set_overlaps_flag (); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).set_overlaps_flag (); return;
     case EMPTY:     return;
@@ -77,7 +94,9 @@ struct Glyph
   void drop_hints_bytes (hb_bytes_t &dest_start, hb_bytes_t &dest_end) const
   {
     switch (type) {
+#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE: return;
+#endif
     case COMPOSITE: CompositeGlyph (*header, bytes).drop_hints_bytes (dest_start); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).drop_hints_bytes (dest_start, dest_end); return;
     case EMPTY:     return;
@@ -218,9 +237,11 @@ struct Glyph
     {
       switch (type)
       {
+#ifndef HB_NO_VAR_COMPOSITES
       case VAR_COMPOSITE:
 	// TODO
 	return false;
+#endif
 
       case COMPOSITE:
         if (!CompositeGlyph (*header, bytes).compile_bytes_with_deltas (dest_start,
@@ -303,13 +324,13 @@ struct Glyph
       if (unlikely (!points.resize (num_points))) return false;
       break;
     }
+#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE:
     {
-#ifndef HB_NO_VAR_COMPOSITES
       for (auto &item : get_var_composite_iterator ())
         if (unlikely (!item.get_points (points))) return false;
-#endif
     }
+#endif
     case EMPTY:
       break;
     }
@@ -437,9 +458,9 @@ struct Glyph
       }
       all_points.extend (phantoms);
     } break;
+#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE:
     {
-#ifndef HB_NO_VAR_COMPOSITES
       contour_point_vector_t comp_points;
       hb_array_t<contour_point_t> points_left = points.as_array ();
       for (auto &item : get_var_composite_iterator ())
@@ -486,8 +507,8 @@ struct Glyph
 	points_left += item.get_num_points ();
       }
       all_points.extend (phantoms);
-#endif
     } break;
+#endif
     case EMPTY:
       all_points.extend (phantoms);
       break;
@@ -531,7 +552,9 @@ struct Glyph
     int num_contours = header->numberOfContours;
     if (unlikely (num_contours == 0)) type = EMPTY;
     else if (num_contours > 0) type = SIMPLE;
+#ifndef HB_NO_VAR_COMPOSITES
     else if (num_contours == -2) type = VAR_COMPOSITE;
+#endif
     else type = COMPOSITE; /* negative numbers */
   }
 
