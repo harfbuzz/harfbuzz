@@ -71,7 +71,7 @@ struct Glyph
   {
     switch (type) {
 #ifndef HB_NO_VAR_COMPOSITES
-    case VAR_COMPOSITE: return;
+    case VAR_COMPOSITE: return; // No hinting
 #endif
     case COMPOSITE: CompositeGlyph (*header, bytes).drop_hints (); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).drop_hints (); return;
@@ -83,7 +83,7 @@ struct Glyph
   {
     switch (type) {
 #ifndef HB_NO_VAR_COMPOSITES
-    case VAR_COMPOSITE: return;
+    case VAR_COMPOSITE: return; // No overlaps flag
 #endif
     case COMPOSITE: CompositeGlyph (*header, bytes).set_overlaps_flag (); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).set_overlaps_flag (); return;
@@ -95,7 +95,7 @@ struct Glyph
   {
     switch (type) {
 #ifndef HB_NO_VAR_COMPOSITES
-    case VAR_COMPOSITE: return;
+    case VAR_COMPOSITE: return; // No hinting
 #endif
     case COMPOSITE: CompositeGlyph (*header, bytes).drop_hints_bytes (dest_start); return;
     case SIMPLE:    SimpleGlyph (*header, bytes).drop_hints_bytes (dest_start, dest_end); return;
