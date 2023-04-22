@@ -38,6 +38,10 @@
 
 /*
  * Atomic integers and pointers.
+ *
+ * hb_atomic_int_t and hb_atomic_ptr_t are typedefs to the actual
+ * atomic type.  They are guaranteed to be at least 32 bits wide.
+ * hb_atomic_int_t is signed.
  */
 
 
