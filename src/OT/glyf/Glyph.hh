@@ -457,7 +457,8 @@ struct Glyph
       hb_array_t<contour_point_t> points_left = points.as_array ();
       for (auto &item : get_var_composite_iterator ())
       {
-	hb_array_t<contour_point_t> record_points = points_left.sub_array (0, item.get_num_points ());
+	unsigned item_num_points = item.get_num_points ();
+	hb_array_t<contour_point_t> record_points = points_left.sub_array (0, item_num_points);
 
         comp_points.reset ();
 
@@ -496,7 +497,7 @@ struct Glyph
 	if (all_points.length > HB_GLYF_MAX_POINTS)
 	  return false;
 
-	points_left += item.get_num_points ();
+	points_left += item_num_points;
       }
       all_points.extend (phantoms);
     } break;
