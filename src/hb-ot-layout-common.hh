@@ -2501,10 +2501,9 @@ struct VarData
     {
       for (r = 0; r < src_word_count; r++)
       {
-	for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
+        for (unsigned old_gid : inner_map.keys())
 	{
-	  unsigned int old = inner_map.backward (i);
-	  int32_t delta = src->get_item_delta_fast (old, r, src_delta_bytes, src_row_size);
+	  int32_t delta = src->get_item_delta_fast (old_gid, r, src_delta_bytes, src_row_size);
 	  if (delta < -65536 || 65535 < delta)
 	  {
 	    has_long = true;
@@ -2521,10 +2520,9 @@ struct VarData
       bool short_circuit = src_long_words == has_long && src_word_count <= r;
 
       delta_sz[r] = kZero;
-      for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
+      for (unsigned old_gid : inner_map.keys())
       {
-	unsigned int old = inner_map.backward (i);
-	int32_t delta = src->get_item_delta_fast (old, r, src_delta_bytes, src_row_size);
+	int32_t delta = src->get_item_delta_fast (old_gid, r, src_delta_bytes, src_row_size);
 	if (delta < min_threshold || max_threshold < delta)
 	{
 	  delta_sz[r] = kWord;
@@ -2585,8 +2583,8 @@ struct VarData
     {
       unsigned int region = regionIndices.arrayZ[r];
       if (region_indices.has (region)) continue;
-      for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
-	if (get_item_delta_fast (inner_map.backward (i), r, delta_bytes, row_size) != 0)
+      for (hb_codepoint_t old_gid : inner_map.keys())
+	if (get_item_delta_fast (old_gid, r, delta_bytes, row_size) != 0)
 	{
 	  region_indices.add (region);
 	  break;
