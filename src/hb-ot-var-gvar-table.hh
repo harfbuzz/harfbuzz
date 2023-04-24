@@ -400,10 +400,8 @@ struct gvar
 
 	/* apply specified / inferred deltas to points */
 	for (unsigned int i = 0; i < points.length; i++)
-	{
-	  points.arrayZ[i].x += deltas.arrayZ[i].x;
-	  points.arrayZ[i].y += deltas.arrayZ[i].y;
-	}
+	  points.arrayZ[i].translate (deltas.arrayZ[i]);
+
       } while (iterator.move_to_next ());
 
       return true;
