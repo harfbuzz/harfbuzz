@@ -274,9 +274,7 @@ struct gvar
 	return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */
-      contour_point_vector_t orig_points_vec;
-      orig_points_vec.extend (points);
-      if (unlikely (orig_points_vec.in_error ())) return false;
+      contour_point_vector_t orig_points_vec; // Populated lazily
       auto orig_points = orig_points_vec.as_array ();
 
       contour_point_vector_t deltas_vec; /* flag is used to indicate referenced point */
@@ -321,11 +319,19 @@ struct gvar
 
 	if (!apply_to_all)
 	{
+	  if (!orig_points)
+	  {
+	    orig_points_vec.extend (points);
+	    if (unlikely (orig_points_vec.in_error ())) return false;
+	    orig_points = orig_points_vec.as_array ();
+	  }
+
 	  if (flush)
 	  {
 	    for (unsigned int i = 0; i < points.length; i++)
 	      points.arrayZ[i].translate (deltas.arrayZ[i]);
 	    flush = false;
+
 	  }
 	  hb_memset (deltas.arrayZ, 0, deltas.get_size ());
 	}
@@ -355,7 +361,7 @@ struct gvar
 	  }
 
 	/* infer deltas for unreferenced points */
-	if (ref_points && ref_points < orig_points.length)
+	if (ref_points && ref_points < points.length)
 	{
 	  unsigned start_point = 0;
 	  for (unsigned c = 0; c < end_points.length; c++)
