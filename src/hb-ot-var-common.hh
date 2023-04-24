@@ -276,9 +276,11 @@ struct TupleVariationHeader
     float scalar = 1.f;
     for (unsigned int i = 0; i < coord_count; i++)
     {
-      int v = coords[i];
       int peak = peak_tuple.arrayZ[i].to_int ();
-      if (!peak || v == peak) continue;
+      if (!peak) continue;
+
+      int v = coords[i];
+      if (v == peak) continue;
 
       if (has_intermediate ())
       {
