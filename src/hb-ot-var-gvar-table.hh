@@ -280,7 +280,7 @@ struct gvar
       auto orig_points = orig_points_vec.as_array ();
 
       contour_point_vector_t deltas_vec; /* flag is used to indicate referenced point */
-      if (unlikely (!deltas_vec.resize (points.length, false))) return false;
+      if (unlikely (!deltas_vec.resize (points.length))) return false;
       auto deltas = deltas_vec.as_array ();
 
       hb_vector_t<unsigned> end_points;
@@ -294,6 +294,7 @@ struct gvar
       hb_vector_t<unsigned int> private_indices;
       hb_vector_t<int> x_deltas;
       hb_vector_t<int> y_deltas;
+      bool flush = false;
       do
       {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples);
@@ -318,7 +319,16 @@ struct gvar
 	if (unlikely (!y_deltas.resize (num_deltas, false))) return false;
 	if (unlikely (!GlyphVariationData::unpack_deltas (p, y_deltas, end))) return false;
 
-	hb_memset (deltas.arrayZ, 0, deltas.get_size ());
+	if (!apply_to_all)
+	{
+	  if (flush)
+	  {
+	    for (unsigned int i = 0; i < points.length; i++)
+	      points.arrayZ[i].translate (deltas.arrayZ[i]);
+	    flush = false;
+	  }
+	  hb_memset (deltas.arrayZ, 0, deltas.get_size ());
+	}
 
 	unsigned ref_points = 0;
 	if (scalar != 1.0f)
@@ -398,11 +408,13 @@ struct gvar
 	  }
 	}
 
-	/* apply specified / inferred deltas to points */
-	for (unsigned int i = 0; i < points.length; i++)
-	  points.arrayZ[i].translate (deltas.arrayZ[i]);
+	flush = true;
 
       } while (iterator.move_to_next ());
+
+      if (flush)
+	for (unsigned int i = 0; i < points.length; i++)
+	  points.arrayZ[i].translate (deltas.arrayZ[i]);
 
       return true;
     }
