@@ -3,6 +3,7 @@ Fraunces.ttf
 
 PROFILES:
 default.txt
+retain-gids.txt
 
 SUBSETS:
 a
