@@ -413,7 +413,7 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   if (ot_face->sbix->get_extents (font, glyph, extents)) return true;
   if (ot_face->CBDT->get_extents (font, glyph, extents)) return true;
 #endif
-#if !defined(HB_NO_COLOR)
+#if !defined(HB_NO_COLOR) && !defined(HB_NO_PAINT)
   if (ot_face->COLR->get_extents (font, glyph, extents)) return true;
 #endif
   if (ot_face->glyf->get_extents (font, glyph, extents)) return true;

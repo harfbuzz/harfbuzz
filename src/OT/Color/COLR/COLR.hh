@@ -2213,6 +2213,7 @@ struct COLR
       return nullptr;
   }
 
+#ifndef HB_NO_PAINT
   bool
   get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
   {
@@ -2251,6 +2252,7 @@ struct COLR
 
     return ret;
   }
+#endif
 
   bool
   has_paint_for_glyph (hb_codepoint_t glyph) const
@@ -2274,6 +2276,7 @@ struct COLR
 					instancer);
   }
 
+#ifndef HB_NO_PAINT
   bool
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette_index, hb_color_t foreground, bool clip = true) const
   {
@@ -2360,6 +2363,7 @@ struct COLR
 
     return false;
   }
+#endif
 
   protected:
   HBUINT16	version;	/* Table version number (starts at 0). */
