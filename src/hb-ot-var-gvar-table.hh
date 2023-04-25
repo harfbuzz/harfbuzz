@@ -367,10 +367,8 @@ struct gvar
 	  if (unlikely (end_points.in_error ())) return false;
 
 	  unsigned start_point = 0;
-	  for (unsigned c = 0; c < end_points.length; c++)
+	  for (unsigned end_point : end_points)
 	  {
-	    unsigned end_point = end_points.arrayZ[c];
-
 	    /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
 	    unsigned unref_count = 0;
 	    for (unsigned i = start_point; i < end_point + 1; i++)
