@@ -281,10 +281,7 @@ struct gvar
       if (unlikely (!deltas_vec.resize (points.length))) return false;
       auto deltas = deltas_vec.as_array ();
 
-      hb_vector_t<unsigned> end_points;
-      for (unsigned i = 0; i < points.length; ++i)
-	if (points.arrayZ[i].is_end_point)
-	  end_points.push (i);
+      hb_vector_t<unsigned> end_points; // Populated lazily
 
       unsigned num_coords = table->axisCount;
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
@@ -363,6 +360,11 @@ struct gvar
 	/* infer deltas for unreferenced points */
 	if (ref_points && ref_points < points.length)
 	{
+	  if (!end_points)
+	    for (unsigned i = 0; i < points.length; ++i)
+	      if (points.arrayZ[i].is_end_point)
+		end_points.push (i);
+
 	  unsigned start_point = 0;
 	  for (unsigned c = 0; c < end_points.length; c++)
 	  {
