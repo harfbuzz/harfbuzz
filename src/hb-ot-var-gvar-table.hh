@@ -274,19 +274,14 @@ struct gvar
 	return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */
-      contour_point_vector_t orig_points_vec;
-      orig_points_vec.extend (points);
-      if (unlikely (orig_points_vec.in_error ())) return false;
+      contour_point_vector_t orig_points_vec; // Populated lazily
       auto orig_points = orig_points_vec.as_array ();
 
       contour_point_vector_t deltas_vec; /* flag is used to indicate referenced point */
-      if (unlikely (!deltas_vec.resize (points.length, false))) return false;
+      if (unlikely (!deltas_vec.resize (points.length))) return false;
       auto deltas = deltas_vec.as_array ();
 
-      hb_vector_t<unsigned> end_points;
-      for (unsigned i = 0; i < points.length; ++i)
-	if (points.arrayZ[i].is_end_point)
-	  end_points.push (i);
+      hb_vector_t<unsigned> end_points; // Populated lazily
 
       unsigned num_coords = table->axisCount;
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
@@ -294,6 +289,7 @@ struct gvar
       hb_vector_t<unsigned int> private_indices;
       hb_vector_t<int> x_deltas;
       hb_vector_t<int> y_deltas;
+      bool flush = false;
       do
       {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples);
@@ -318,16 +314,31 @@ struct gvar
 	if (unlikely (!y_deltas.resize (num_deltas, false))) return false;
 	if (unlikely (!GlyphVariationData::unpack_deltas (p, y_deltas, end))) return false;
 
-	hb_memset (deltas.arrayZ, 0, deltas.get_size ());
+	if (!apply_to_all)
+	{
+	  if (!orig_points)
+	  {
+	    orig_points_vec.extend (points);
+	    if (unlikely (orig_points_vec.in_error ())) return false;
+	    orig_points = orig_points_vec.as_array ();
+	  }
 
-	unsigned ref_points = 0;
+	  if (flush)
+	  {
+	    for (unsigned int i = 0; i < points.length; i++)
+	      points.arrayZ[i].translate (deltas.arrayZ[i]);
+	    flush = false;
+
+	  }
+	  hb_memset (deltas.arrayZ, 0, deltas.get_size ());
+	}
+
 	if (scalar != 1.0f)
 	  for (unsigned int i = 0; i < num_deltas; i++)
 	  {
 	    unsigned int pt_index = apply_to_all ? i : indices[i];
 	    if (unlikely (pt_index >= deltas.length)) continue;
 	    auto &delta = deltas.arrayZ[pt_index];
-	    ref_points += !delta.flag;
 	    delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 	    delta.x += x_deltas.arrayZ[i] * scalar;
 	    delta.y += y_deltas.arrayZ[i] * scalar;
@@ -338,20 +349,23 @@ struct gvar
 	    unsigned int pt_index = apply_to_all ? i : indices[i];
 	    if (unlikely (pt_index >= deltas.length)) continue;
 	    auto &delta = deltas.arrayZ[pt_index];
-	    ref_points += !delta.flag;
 	    delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 	    delta.x += x_deltas.arrayZ[i];
 	    delta.y += y_deltas.arrayZ[i];
 	  }
 
 	/* infer deltas for unreferenced points */
-	if (ref_points && ref_points < orig_points.length)
+	if (!apply_to_all)
 	{
-	  unsigned start_point = 0;
-	  for (unsigned c = 0; c < end_points.length; c++)
-	  {
-	    unsigned end_point = end_points.arrayZ[c];
+	  if (!end_points)
+	    for (unsigned i = 0; i < points.length; ++i)
+	      if (points.arrayZ[i].is_end_point)
+		end_points.push (i);
+	  if (unlikely (end_points.in_error ())) return false;
 
+	  unsigned start_point = 0;
+	  for (unsigned end_point : end_points)
+	  {
 	    /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
 	    unsigned unref_count = 0;
 	    for (unsigned i = start_point; i < end_point + 1; i++)
@@ -398,11 +412,13 @@ struct gvar
 	  }
 	}
 
-	/* apply specified / inferred deltas to points */
-	for (unsigned int i = 0; i < points.length; i++)
-	  points.arrayZ[i].translate (deltas.arrayZ[i]);
+	flush = true;
 
       } while (iterator.move_to_next ());
+
+      if (flush)
+	for (unsigned int i = 0; i < points.length; i++)
+	  points.arrayZ[i].translate (deltas.arrayZ[i]);
 
       return true;
     }

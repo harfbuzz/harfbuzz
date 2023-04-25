@@ -260,14 +260,15 @@ struct TupleVariationHeader
     else
     {
       unsigned int index = get_index ();
-      if (unlikely (index * coord_count >= shared_tuples.length))
+      if (unlikely ((index + 1) * coord_count > shared_tuples.length))
         return 0.f;
       peak_tuple = shared_tuples.sub_array (coord_count * index, coord_count);
     }
 
     hb_array_t<const F2DOT14> start_tuple;
     hb_array_t<const F2DOT14> end_tuple;
-    if (has_intermediate ())
+    bool has_interm = has_intermediate ();
+    if (has_interm)
     {
       start_tuple = get_start_tuple (coord_count);
       end_tuple = get_end_tuple (coord_count);
@@ -276,14 +277,16 @@ struct TupleVariationHeader
     float scalar = 1.f;
     for (unsigned int i = 0; i < coord_count; i++)
     {
-      int v = coords[i];
-      int peak = peak_tuple[i].to_int ();
-      if (!peak || v == peak) continue;
+      int peak = peak_tuple.arrayZ[i].to_int ();
+      if (!peak) continue;
 
-      if (has_intermediate ())
+      int v = coords[i];
+      if (v == peak) continue;
+
+      if (has_interm)
       {
-        int start = start_tuple[i].to_int ();
-        int end = end_tuple[i].to_int ();
+        int start = start_tuple.arrayZ[i].to_int ();
+        int end = end_tuple.arrayZ[i].to_int ();
         if (unlikely (start > peak || peak > end ||
                       (start < 0 && end > 0 && peak))) continue;
         if (v < start || v > end) return 0.f;
