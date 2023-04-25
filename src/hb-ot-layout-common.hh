@@ -2272,15 +2272,16 @@ struct VarRegionAxis
 {
   float evaluate (int coord) const
   {
-    int start = startCoord.to_int (), peak = peakCoord.to_int (), end = endCoord.to_int ();
+    int peak = peakCoord.to_int ();
+    if (peak == 0 || coord == peak)
+      return 1.f;
+
+    int start = startCoord.to_int (), end = endCoord.to_int ();
 
     /* TODO Move these to sanitize(). */
     if (unlikely (start > peak || peak > end))
       return 1.f;
     if (unlikely (start < 0 && end > 0 && peak != 0))
-      return 1.f;
-
-    if (peak == 0 || coord == peak)
       return 1.f;
 
     if (coord <= start || end <= coord)
