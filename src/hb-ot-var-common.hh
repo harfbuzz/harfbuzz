@@ -267,7 +267,8 @@ struct TupleVariationHeader
 
     hb_array_t<const F2DOT14> start_tuple;
     hb_array_t<const F2DOT14> end_tuple;
-    if (has_intermediate ())
+    bool has_interm = has_intermediate ();
+    if (has_interm)
     {
       start_tuple = get_start_tuple (coord_count);
       end_tuple = get_end_tuple (coord_count);
@@ -282,7 +283,7 @@ struct TupleVariationHeader
       int v = coords[i];
       if (v == peak) continue;
 
-      if (has_intermediate ())
+      if (has_interm)
       {
         int start = start_tuple.arrayZ[i].to_int ();
         int end = end_tuple.arrayZ[i].to_int ();
