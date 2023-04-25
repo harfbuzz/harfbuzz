@@ -404,7 +404,7 @@ struct CmapSubtableFormat4
 		 unsigned distance) const
 	{
 	  if (k > last) return +1;
-	  if (k < (&last)[distance]) return -1;
+	  if (k < (&last)[distance]/*first*/) return -1;
 	  return 0;
 	}
 	HBUINT16 last;
