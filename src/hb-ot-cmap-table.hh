@@ -413,7 +413,7 @@ struct CmapSubtableFormat4
       const HBUINT16 *found = hb_bsearch (codepoint,
 					  this->endCount,
 					  this->segCount,
-					  2,
+					  sizeof (CustomRange),
 					  _hb_cmp_method<hb_codepoint_t, CustomRange, unsigned>,
 					  this->segCount + 1);
       if (unlikely (!found))
