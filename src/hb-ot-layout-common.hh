@@ -2276,15 +2276,15 @@ struct VarRegionAxis
 
     /* TODO Move these to sanitize(). */
     if (unlikely (start > peak || peak > end))
-      return 1.;
+      return 1.f;
     if (unlikely (start < 0 && end > 0 && peak != 0))
-      return 1.;
+      return 1.f;
 
     if (peak == 0 || coord == peak)
-      return 1.;
+      return 1.f;
 
     if (coord <= start || end <= coord)
-      return 0.;
+      return 0.f;
 
     /* Interpolate */
     if (coord < peak)
