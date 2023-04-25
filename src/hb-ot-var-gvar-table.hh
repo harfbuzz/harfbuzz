@@ -364,6 +364,7 @@ struct gvar
 	    for (unsigned i = 0; i < points.length; ++i)
 	      if (points.arrayZ[i].is_end_point)
 		end_points.push (i);
+	  if (unlikely (end_points.in_error ())) return false;
 
 	  unsigned start_point = 0;
 	  for (unsigned c = 0; c < end_points.length; c++)
