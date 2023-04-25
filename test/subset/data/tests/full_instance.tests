@@ -11,3 +11,6 @@ SUBSETS:
 INSTANCES:
 wght=150,wdth=80
 wght=300,wdth=90
+
+OPTIONS:
+no_fonttools
