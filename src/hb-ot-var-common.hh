@@ -280,8 +280,8 @@ struct TupleVariationHeader
       }
     }
 
-    const F2DOT14 *start_tuple;
-    const F2DOT14 *end_tuple;
+    const F2DOT14 *start_tuple = nullptr;
+    const F2DOT14 *end_tuple = nullptr;
     bool has_interm = has_intermediate ();
     if (has_interm)
     {
