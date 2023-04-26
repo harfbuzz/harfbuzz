@@ -329,8 +329,9 @@ struct gvar
 
 	if (!deltas)
 	{
-	  if (unlikely (!deltas_vec.resize (points.length))) return false;
+	  if (unlikely (!deltas_vec.resize (points.length, false))) return false;
 	  deltas = deltas_vec.as_array ();
+	  hb_memset (deltas.arrayZ, 0, deltas.get_size ()); // Faster than vector resize
 	}
 
 	const HBUINT8 *end = p + length;
