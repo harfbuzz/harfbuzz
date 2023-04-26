@@ -364,8 +364,14 @@ struct gvar
 	if (scalar != 1.0f)
 	  for (unsigned int i = 0; i < num_deltas; i++)
 	  {
-	    unsigned int pt_index = apply_to_all ? i : indices[i];
-	    if (unlikely (pt_index >= deltas.length)) continue;
+	    unsigned int pt_index;
+	    if (apply_to_all)
+	      pt_index = i;
+	    else
+	    {
+	      pt_index = indices[i];
+	      if (unlikely (pt_index >= deltas.length)) continue;
+	    }
 	    auto &delta = deltas.arrayZ[pt_index];
 	    delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 	    delta.x += x_deltas.arrayZ[i] * scalar;
@@ -374,8 +380,14 @@ struct gvar
 	else
 	  for (unsigned int i = 0; i < num_deltas; i++)
 	  {
-	    unsigned int pt_index = apply_to_all ? i : indices[i];
-	    if (unlikely (pt_index >= deltas.length)) continue;
+	    unsigned int pt_index;
+	    if (apply_to_all)
+	      pt_index = i;
+	    else
+	    {
+	      pt_index = indices[i];
+	      if (unlikely (pt_index >= deltas.length)) continue;
+	    }
 	    auto &delta = deltas.arrayZ[pt_index];
 	    delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 	    delta.x += x_deltas.arrayZ[i];
