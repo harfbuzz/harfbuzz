@@ -367,38 +367,51 @@ struct gvar
 	  hb_memset (deltas.arrayZ, 0, deltas.get_size ());
 	}
 
+	/* Ouch. Four cases... for optimization. */
 	if (scalar != 1.0f)
-	  for (unsigned int i = 0; i < num_deltas; i++)
-	  {
-	    unsigned int pt_index;
-	    if (apply_to_all)
-	      pt_index = i;
-	    else
+	{
+	  if (apply_to_all)
+	    for (unsigned int i = 0; i < num_deltas; i++)
 	    {
-	      pt_index = indices[i];
-	      if (unlikely (pt_index >= deltas.length)) continue;
+	      unsigned int pt_index = i;
+	      auto &delta = deltas.arrayZ[pt_index];
+	      delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	      delta.x += x_deltas.arrayZ[i] * scalar;
+	      delta.y += y_deltas.arrayZ[i] * scalar;
 	    }
-	    auto &delta = deltas.arrayZ[pt_index];
-	    delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
-	    delta.x += x_deltas.arrayZ[i] * scalar;
-	    delta.y += y_deltas.arrayZ[i] * scalar;
-	  }
+	  else
+	    for (unsigned int i = 0; i < num_deltas; i++)
+	    {
+	      unsigned int pt_index = indices[i];
+	      if (unlikely (pt_index >= deltas.length)) continue;
+	      auto &delta = deltas.arrayZ[pt_index];
+	      delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	      delta.x += x_deltas.arrayZ[i] * scalar;
+	      delta.y += y_deltas.arrayZ[i] * scalar;
+	    }
+	}
 	else
-	  for (unsigned int i = 0; i < num_deltas; i++)
-	  {
-	    unsigned int pt_index;
-	    if (apply_to_all)
-	      pt_index = i;
-	    else
+	{
+	  if (apply_to_all)
+	    for (unsigned int i = 0; i < num_deltas; i++)
 	    {
-	      pt_index = indices[i];
-	      if (unlikely (pt_index >= deltas.length)) continue;
+	      unsigned int pt_index = i;
+	      auto &delta = deltas.arrayZ[pt_index];
+	      delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	      delta.x += x_deltas.arrayZ[i];
+	      delta.y += y_deltas.arrayZ[i];
 	    }
-	    auto &delta = deltas.arrayZ[pt_index];
-	    delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
-	    delta.x += x_deltas.arrayZ[i];
-	    delta.y += y_deltas.arrayZ[i];
-	  }
+	  else
+	    for (unsigned int i = 0; i < num_deltas; i++)
+	    {
+	      unsigned int pt_index = indices[i];
+	      if (unlikely (pt_index >= deltas.length)) continue;
+	      auto &delta = deltas.arrayZ[pt_index];
+	      delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	      delta.x += x_deltas.arrayZ[i];
+	      delta.y += y_deltas.arrayZ[i];
+	    }
+	}
 
 	/* infer deltas for unreferenced points */
 	if (!apply_to_all)
