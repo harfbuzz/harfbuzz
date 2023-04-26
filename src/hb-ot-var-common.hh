@@ -488,11 +488,10 @@ struct TupleVariationData
       unsigned control = *p++;
       unsigned run_count = (control & POINT_RUN_COUNT_MASK) + 1;
       if (unlikely (i + run_count > count)) return false;
-      unsigned j;
       if (control & POINTS_ARE_WORDS)
       {
         if (unlikely (p + run_count * HBUINT16::static_size > end)) return false;
-        for (j = 0; j < run_count; j++, i++)
+        for (unsigned stop = i + run_count; i < stop; i++)
         {
           n += *(const HBUINT16 *)p;
           points.arrayZ[i] = n;
@@ -502,7 +501,7 @@ struct TupleVariationData
       else
       {
         if (unlikely (p + run_count > end)) return false;
-        for (j = 0; j < run_count; j++, i++)
+        for (unsigned stop = i + run_count; i < stop; i++)
         {
           n += *p++;
           points.arrayZ[i] = n;
@@ -531,16 +530,15 @@ struct TupleVariationData
       unsigned control = *p++;
       unsigned run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
       if (unlikely (i + run_count > count)) return false;
-      unsigned j;
       if (control & DELTAS_ARE_ZERO)
       {
-        for (j = 0; j < run_count; j++, i++)
+        for (unsigned stop = i + run_count; i < stop; i++)
           deltas.arrayZ[i] = 0;
       }
       else if (control & DELTAS_ARE_WORDS)
       {
         if (unlikely (p + run_count * HBUINT16::static_size > end)) return false;
-        for (j = 0; j < run_count; j++, i++)
+        for (unsigned stop = i + run_count; i < stop; i++)
         {
           deltas.arrayZ[i] = * (const HBINT16 *) p;
           p += HBUINT16::static_size;
@@ -549,7 +547,7 @@ struct TupleVariationData
       else
       {
         if (unlikely (p + run_count > end)) return false;
-        for (j = 0; j < run_count; j++, i++)
+        for (unsigned stop = i + run_count; i < stop; i++)
         {
           deltas.arrayZ[i] = * (const HBINT8 *) p++;
         }
