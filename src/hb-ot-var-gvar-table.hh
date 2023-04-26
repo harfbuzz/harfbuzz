@@ -311,7 +311,7 @@ struct gvar
       hb_vector_t<unsigned> end_points; // Populated lazily
 
       unsigned num_coords = table->axisCount;
-      hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
+      hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * num_coords);
 
       hb_vector_t<unsigned int> private_indices;
       hb_vector_t<int> x_deltas;
