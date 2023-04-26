@@ -227,7 +227,7 @@ struct gvar
 
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
       unsigned count = table->sharedTupleCount;
-      shared_tuple_active_idx.resize (count);
+      if (unlikely (!shared_tuple_active_idx.resize (count, false))) return;
       unsigned axis_count = table->axisCount;
       for (unsigned i = 0; i < count; i++)
       {
@@ -316,7 +316,8 @@ struct gvar
       bool flush = false;
       do
       {
-	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples, &shared_tuple_active_idx);
+	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples,
+								 shared_tuple_active_idx.in_error () ? nullptr : &shared_tuple_active_idx);
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
 	unsigned int length = iterator.current_tuple->get_data_size ();

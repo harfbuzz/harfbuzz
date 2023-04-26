@@ -270,7 +270,7 @@ struct TupleVariationHeader
 
       if (shared_tuple_active_idx)
       {
-	int v = (*shared_tuple_active_idx)[index];
+	int v = (*shared_tuple_active_idx).arrayZ[index];
 	if (v != -1)
 	{
 	  start_idx = v;
