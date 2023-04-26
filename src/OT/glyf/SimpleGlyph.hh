@@ -157,7 +157,7 @@ struct SimpleGlyph
     unsigned count = points_.length;
     for (unsigned i = 0; i < count; i++)
     {
-      unsigned flag = points_[i].flag;
+      unsigned flag = points_.arrayZ[i].flag;
       if (flag & short_flag)
       {
 	if (unlikely (p + 1 > end)) return false;
