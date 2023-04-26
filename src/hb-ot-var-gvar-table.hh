@@ -304,7 +304,8 @@ struct gvar
       contour_point_vector_t orig_points_vec; // Populated lazily
       auto orig_points = orig_points_vec.as_array ();
 
-      contour_point_vector_t deltas_vec; /* flag is used to indicate referenced point */
+      /* flag is used to indicate referenced point */
+      contour_point_vector_t deltas_vec; // Populated lazily
       auto deltas = deltas_vec.as_array ();
 
       hb_vector_t<unsigned> end_points; // Populated lazily
