@@ -92,10 +92,6 @@ hb_syllabic_clear_var (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer)
 {
-  unsigned count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  for (unsigned i = 0; i < count; i++)
-    info[i].syllable() = 0;
   HB_BUFFER_DEALLOCATE_VAR (buffer, syllable);
   return false;
 }

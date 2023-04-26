@@ -487,7 +487,8 @@ struct hb_ot_apply_context_t :
       /* Ignore ZWJ if we are matching context, or asked to. */
       matcher.set_ignore_zwj  (context_match || c->auto_zwj);
       matcher.set_mask (context_match ? -1 : c->lookup_mask);
-      matcher.set_per_syllable (c->per_syllable);
+      /* Per syllable matching is only for GSUB. */
+      matcher.set_per_syllable (c->table_index == 0 && c->per_syllable);
     }
     void set_lookup_props (unsigned int lookup_props)
     {
