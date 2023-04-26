@@ -114,7 +114,7 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
  *
  * [Tibetan]
  *
- * Deprecated: REPLACEME
+ * Deprecated: 7.2.0
  **/
 #define HB_UNICODE_COMBINING_CLASS_CCC133 133
 
