@@ -305,7 +305,6 @@ struct gvar
       auto orig_points = orig_points_vec.as_array ();
 
       contour_point_vector_t deltas_vec; /* flag is used to indicate referenced point */
-      if (unlikely (!deltas_vec.resize (points.length))) return false;
       auto deltas = deltas_vec.as_array ();
 
       hb_vector_t<unsigned> end_points; // Populated lazily
@@ -326,6 +325,12 @@ struct gvar
 	unsigned int length = iterator.current_tuple->get_data_size ();
 	if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
 	  return false;
+
+	if (!deltas)
+	{
+	  if (unlikely (!deltas_vec.resize (points.length))) return false;
+	  deltas = deltas_vec.as_array ();
+	}
 
 	const HBUINT8 *end = p + length;
 
