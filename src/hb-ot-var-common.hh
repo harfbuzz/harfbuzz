@@ -251,9 +251,13 @@ struct TupleVariationHeader
   { return StructAtOffset<TupleVariationHeader> (this, get_size (axis_count)); }
 
   float calculate_scalar (hb_array_t<int> coords, unsigned int coord_count,
-                          const hb_array_t<const F2DOT14> shared_tuples) const
+                          const hb_array_t<const F2DOT14> shared_tuples,
+			  const hb_vector_t<int> *shared_tuple_active_idx = nullptr) const
   {
     hb_array_t<const F2DOT14> peak_tuple;
+
+    unsigned start_idx = 0;
+    unsigned end_idx = coord_count;
 
     if (has_peak ())
       peak_tuple = get_peak_tuple (coord_count);
@@ -263,6 +267,16 @@ struct TupleVariationHeader
       if (unlikely ((index + 1) * coord_count > shared_tuples.length))
         return 0.f;
       peak_tuple = shared_tuples.sub_array (coord_count * index, coord_count);
+
+      if (shared_tuple_active_idx)
+      {
+	int v = (*shared_tuple_active_idx)[index];
+	if (v != -1)
+	{
+	  start_idx = v;
+	  end_idx = start_idx + 1;
+	}
+      }
     }
 
     hb_array_t<const F2DOT14> start_tuple;
@@ -275,7 +289,7 @@ struct TupleVariationHeader
     }
 
     float scalar = 1.f;
-    for (unsigned int i = 0; i < coord_count; i++)
+    for (unsigned int i = start_idx; i < end_idx; i++)
     {
       int peak = peak_tuple.arrayZ[i].to_int ();
       if (!peak) continue;

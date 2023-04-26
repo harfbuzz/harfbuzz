@@ -224,6 +224,30 @@ struct gvar
       table = hb_sanitize_context_t ().reference_table<gvar> (face);
       /* If sanitize failed, set glyphCount to 0. */
       glyphCount = table->version.to_int () ? face->get_num_glyphs () : 0;
+
+      hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
+      unsigned count = table->sharedTupleCount;
+      shared_tuple_active_idx.resize (count);
+      unsigned axis_count = table->axisCount;
+      for (unsigned i = 0; i < count; i++)
+      {
+	hb_array_t<const F2DOT14> tuple = shared_tuples.sub_array (axis_count * i, axis_count);
+	int idx = -1;
+	for (unsigned j = 0; j < axis_count; j++)
+	{
+	  F2DOT14 peak = tuple.arrayZ[j];
+	  if (peak.to_int () != 0)
+	  {
+	    if (idx != -1)
+	    {
+	      idx = -1;
+	      break;
+	    }
+	    idx = j;
+	  }
+	}
+	shared_tuple_active_idx[i] = idx;
+      }
     }
     ~accelerator_t () { table.destroy (); }
 
@@ -292,7 +316,7 @@ struct gvar
       bool flush = false;
       do
       {
-	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples);
+	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples, &shared_tuple_active_idx);
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
 	unsigned int length = iterator.current_tuple->get_data_size ();
@@ -428,6 +452,7 @@ struct gvar
     private:
     hb_blob_ptr_t<gvar> table;
     unsigned glyphCount;
+    hb_vector_t<signed> shared_tuple_active_idx;
   };
 
   protected:
