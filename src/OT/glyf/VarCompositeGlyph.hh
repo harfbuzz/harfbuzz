@@ -137,6 +137,9 @@ struct VarCompositeGlyphRecord
   static void translate (float (&matrix)[4], contour_point_t &trans,
 			 float translateX, float translateY)
   {
+    if (!translateX && !translateY)
+      return;
+
     trans.x += translateX;
     trans.y += translateY;
   }
@@ -144,6 +147,9 @@ struct VarCompositeGlyphRecord
   static void scale (float (&matrix)[4], contour_point_t &trans,
 		     float scaleX, float scaleY)
   {
+    if (scaleX == 1.f && scaleY == 1.f)
+      return;
+
     matrix[0] *= scaleX;
     matrix[1] *= scaleX;
     matrix[2] *= scaleY;
@@ -153,6 +159,9 @@ struct VarCompositeGlyphRecord
   static void rotate (float (&matrix)[4], contour_point_t &trans,
 		      float rotation)
   {
+    if (!rotation)
+      return;
+
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L240
     rotation = rotation * HB_PI;
     float c;
@@ -170,6 +179,9 @@ struct VarCompositeGlyphRecord
   static void skew (float (&matrix)[4], contour_point_t &trans,
 		    float skewX, float skewY)
   {
+    if (!skewX && !skewY)
+      return;
+
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L255
     skewX = skewX * HB_PI;
     skewY = skewY * HB_PI;
