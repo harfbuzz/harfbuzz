@@ -392,7 +392,8 @@ struct Glyph
       for (auto &item : get_composite_iterator ())
       {
         comp_points.reset ();
-	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
+	if (unlikely ((!phantom_only || (use_my_metrics && item.is_use_my_metrics ())) &&
+		      !glyf_accelerator.glyph_for_gid (item.get_gid ())
 				       .get_points (font,
 						    glyf_accelerator,
 						    comp_points,
@@ -469,7 +470,8 @@ struct Glyph
 	coord_setter_t coord_setter (component_coords);
 	item.set_variations (coord_setter, record_points);
 
-	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
+	if (unlikely ((!phantom_only || (use_my_metrics && item.is_use_my_metrics ())) &&
+		      !glyf_accelerator.glyph_for_gid (item.get_gid ())
 				       .get_points (font,
 						    glyf_accelerator,
 						    comp_points,
