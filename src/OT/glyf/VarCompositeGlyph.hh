@@ -173,7 +173,11 @@ struct VarCompositeGlyphRecord
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L255
     skewX = skewX * HB_PI;
     skewY = skewY * HB_PI;
-    float other[6] = {1.f, tanf (skewY), tanf (skewX), 1.f, 0.f, 0.f};
+    float other[6] = {1.f,
+		      skewY ? tanf (skewY) : 0.f,
+		      skewX ? tanf (skewX) : 0.f,
+		      1.f,
+		      0.f, 0.f};
     transform (matrix, trans, other);
   }
 
