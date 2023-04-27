@@ -368,14 +368,7 @@ struct gvar
 	  hb_memset (deltas.arrayZ, 0, deltas.get_size ());
 	}
 
-	bool optimize_size =
-#ifdef HB_OPTIMIZE_SIZE
-	  true
-#else
-	  false
-#endif
-	;
-	if (optimize_size)
+	if (HB_OPTIMIZE_SIZE_VAL)
 	{
 	  for (unsigned int i = 0; i < num_deltas; i++)
 	  {

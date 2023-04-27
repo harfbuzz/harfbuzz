@@ -186,6 +186,11 @@
 #define HB_OPTIMIZE_SIZE
 #endif
 #endif
+#ifdef HB_OPTIMIZE_SIZE
+#define HB_OPTIMIZE_SIZE_VAL 1
+#else
+#define HB_OPTIMIZE_SIZE_VAL 0
+#endif
 
 #ifdef HB_OPTIMIZE_SIZE
 #define HB_NO_OT_LAYOUT_LOOKUP_CACHE
