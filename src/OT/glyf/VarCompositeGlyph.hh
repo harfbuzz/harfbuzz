@@ -224,27 +224,22 @@ struct VarCompositeGlyphRecord
 
     if (fl & (HAVE_TRANSLATE_X | HAVE_TRANSLATE_Y))
     {
-      int translateX = 0;
-      int translateY = 0;
-      if (fl & HAVE_TRANSLATE_X)	translateX = * (const FWORD *) p++;
-      if (fl & HAVE_TRANSLATE_Y)	translateY = * (const FWORD *) p++;
+      int translateX = (fl & HAVE_TRANSLATE_X) ? * (const FWORD *) p++ : 0;
+      int translateY = (fl & HAVE_TRANSLATE_Y) ? * (const FWORD *) p++ : 0;
       rec_points->x = translateX;
       rec_points->y = translateY;
       rec_points++;
     }
     if (fl & HAVE_ROTATION)
     {
-      int rotation = 0;
-      if (fl & HAVE_ROTATION)		rotation = ((const F4DOT12 *) p++)->to_int ();
+      int rotation = (fl & HAVE_ROTATION) ? ((const F4DOT12 *) p++)->to_int () : 0;
       rec_points->x = rotation;
       rec_points++;
     }
     if (fl & (HAVE_SCALE_X | HAVE_SCALE_Y))
     {
-      int scaleX = 1 << 10;
-      int scaleY = 1 << 10;
-      if (fl & HAVE_SCALE_X)		scaleX = ((const F6DOT10 *) p++)->to_int ();
-      if (fl & HAVE_SCALE_Y)		scaleY = ((const F6DOT10 *) p++)->to_int ();
+      int scaleX = (fl & HAVE_SCALE_X) ? ((const F6DOT10 *) p++)->to_int () : 1 << 10;
+      int scaleY = (fl & HAVE_SCALE_Y) ? ((const F6DOT10 *) p++)->to_int () : 1 << 10;
       if ((fl & UNIFORM_SCALE) && !(fl & HAVE_SCALE_Y))
 	scaleY = scaleX;
       rec_points->x = scaleX;
@@ -253,20 +248,16 @@ struct VarCompositeGlyphRecord
     }
     if (fl & (HAVE_SKEW_X | HAVE_SKEW_Y))
     {
-      int skewX = 0;
-      int skewY = 0;
-      if (fl & HAVE_SKEW_X)		skewX = ((const F4DOT12 *) p++)->to_int ();
-      if (fl & HAVE_SKEW_Y)		skewY = ((const F4DOT12 *) p++)->to_int ();
+      int skewX = (fl & HAVE_SKEW_X) ? ((const F4DOT12 *) p++)->to_int () : 0;
+      int skewY = (fl & HAVE_SKEW_Y) ? ((const F4DOT12 *) p++)->to_int () : 0;
       rec_points->x = skewX;
       rec_points->y = skewY;
       rec_points++;
     }
     if (fl & (HAVE_TCENTER_X | HAVE_TCENTER_Y))
     {
-      int tCenterX = 0;
-      int tCenterY = 0;
-      if (fl & HAVE_TCENTER_X)		tCenterX = * (const FWORD *) p++;
-      if (fl & HAVE_TCENTER_Y)		tCenterY = * (const FWORD *) p++;
+      int tCenterX = (fl & HAVE_TCENTER_X) ? * (const FWORD *) p++ : 0;
+      int tCenterY = (fl & HAVE_TCENTER_Y) ? * (const FWORD *) p++ : 0;
       rec_points->x = tCenterX;
       rec_points->y = tCenterY;
       rec_points++;
