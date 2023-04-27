@@ -64,8 +64,8 @@ using OT::Layout::GPOS;
  * @include: hb-ot.h
  *
  * Functions for querying OpenType Layout features in the font face.
- * See the <ulink url="http://www.microsoft.com/typography/otspec/">OpenType
- * specification</ulink> for details.
+ * See the [OpenType specification](http://www.microsoft.com/typography/otspec/)
+ * for details.
  **/
 
 
