@@ -195,14 +195,15 @@ struct VarCompositeGlyphRecord
 
   bool get_points (contour_point_vector_t &points) const
   {
-    unsigned fl = flags;
     unsigned num_points = get_num_points ();
-    unsigned num_axes = numAxes;
 
     if (unlikely (!points.resize (points.length + num_points, false))) return false;
     contour_point_t *rec_points = points.as_array ().sub_array (points.length - num_points).arrayZ;
     memset (rec_points, 0, num_points * sizeof (rec_points[0]));
 
+    unsigned fl = flags;
+
+    unsigned num_axes = numAxes;
     unsigned axis_width = (fl & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
     unsigned axes_size = num_axes * axis_width;
 
