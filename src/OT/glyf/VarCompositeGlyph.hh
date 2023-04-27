@@ -202,8 +202,7 @@ struct VarCompositeGlyphRecord
     if (fl & AXES_HAVE_VARIATION)
     {
       for (unsigned i = 0; i < count; i++)
-	rec_points[i].x = q++->to_int ();
-      rec_points += count;
+	rec_points++->x = q++->to_int ();
     }
     else
       q += count;
@@ -212,13 +211,13 @@ struct VarCompositeGlyphRecord
 
     if (fl & HAVE_TRANSLATE_X)	translateX = * (const FWORD *) p++;
     if (fl & HAVE_TRANSLATE_Y)	translateY = * (const FWORD *) p++;
-    if (fl & HAVE_ROTATION)		rotation = ((const F4DOT12 *) p++)->to_int ();
-    if (fl & HAVE_SCALE_X)		scaleX = ((const F6DOT10 *) p++)->to_int ();
-    if (fl & HAVE_SCALE_Y)		scaleY = ((const F6DOT10 *) p++)->to_int ();
-    if (fl & HAVE_SKEW_X)		skewX = ((const F4DOT12 *) p++)->to_int ();
-    if (fl & HAVE_SKEW_Y)		skewY = ((const F4DOT12 *) p++)->to_int ();
-    if (fl & HAVE_TCENTER_X)		tCenterX = * (const FWORD *) p++;
-    if (fl & HAVE_TCENTER_Y)		tCenterY = * (const FWORD *) p++;
+    if (fl & HAVE_ROTATION)	rotation = ((const F4DOT12 *) p++)->to_int ();
+    if (fl & HAVE_SCALE_X)	scaleX = ((const F6DOT10 *) p++)->to_int ();
+    if (fl & HAVE_SCALE_Y)	scaleY = ((const F6DOT10 *) p++)->to_int ();
+    if (fl & HAVE_SKEW_X)	skewX = ((const F4DOT12 *) p++)->to_int ();
+    if (fl & HAVE_SKEW_Y)	skewY = ((const F4DOT12 *) p++)->to_int ();
+    if (fl & HAVE_TCENTER_X)	tCenterX = * (const FWORD *) p++;
+    if (fl & HAVE_TCENTER_Y)	tCenterY = * (const FWORD *) p++;
 
     if ((fl & UNIFORM_SCALE) && !(fl & HAVE_SCALE_Y))
       scaleY = scaleX;
