@@ -65,17 +65,17 @@ struct VarCompositeGlyphRecord
   hb_codepoint_t get_gid () const
   {
     if (flags & GID_IS_24BIT)
-      return StructAfter<const HBGlyphID24> (numAxes);
+      return * (const HBGlyphID24 *) &pad;
     else
-      return StructAfter<const HBGlyphID16> (numAxes);
+      return * (const HBGlyphID16 *) &pad;
   }
 
   void set_gid (hb_codepoint_t gid)
   {
     if (flags & GID_IS_24BIT)
-      StructAfter<HBGlyphID24> (numAxes) = gid;
+      * (HBGlyphID24 *) &pad = gid;
     else
-      StructAfter<HBGlyphID16> (numAxes) = gid;
+      * (HBGlyphID16 *) &pad = gid;
   }
 
   unsigned get_numAxes () const
