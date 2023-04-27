@@ -487,7 +487,8 @@ struct Glyph
 	  return false;
 
 	/* Apply component transformation */
-	item.transform_points (record_points, comp_points);
+	if (comp_points) // Empty in case of phantom_only
+	  item.transform_points (record_points, comp_points);
 
 	/* Copy phantom points from component if USE_MY_METRICS flag set */
 	if (use_my_metrics && item.is_use_my_metrics ())
