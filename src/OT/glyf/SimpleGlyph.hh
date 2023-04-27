@@ -124,7 +124,7 @@ struct SimpleGlyph
   }
 
   static bool read_flags (const HBUINT8 *&p /* IN/OUT */,
-			  contour_point_vector_t &points_ /* IN/OUT */,
+			  hb_array_t<contour_point_t> points_ /* IN/OUT */,
 			  const HBUINT8 *end)
   {
     unsigned count = points_.length;
@@ -146,7 +146,7 @@ struct SimpleGlyph
   }
 
   static bool read_points (const HBUINT8 *&p /* IN/OUT */,
-			   contour_point_vector_t &points_ /* IN/OUT */,
+			   hb_array_t<contour_point_t> points_ /* IN/OUT */,
 			   const HBUINT8 *end,
 			   float contour_point_t::*m,
 			   const simple_glyph_flag_t short_flag,
@@ -180,7 +180,7 @@ struct SimpleGlyph
     return true;
   }
 
-  bool get_contour_points (contour_point_vector_t &points_ /* OUT */,
+  bool get_contour_points (contour_point_vector_t &points /* OUT */,
 			   bool phantom_only = false) const
   {
     const HBUINT16 *endPtsOfContours = &StructAfter<HBUINT16> (header);
@@ -190,8 +190,10 @@ struct SimpleGlyph
     if (unlikely (!bytes.check_range (&endPtsOfContours[num_contours]))) return false;
     unsigned int num_points = endPtsOfContours[num_contours - 1] + 1;
 
-    points_.alloc (num_points + 4, true); // Allocate for phantom points, to avoid a possible copy
-    if (!points_.resize (num_points, false)) return false;
+    unsigned old_length = points.length;
+    points.alloc (points.length + num_points + 4, true); // Allocate for phantom points, to avoid a possible copy
+    if (!points.resize (points.length + num_points, false)) return false;
+    auto points_ = points.as_array ().sub_array (old_length);
     memset (points_.arrayZ, 0, sizeof (contour_point_t) * num_points);
     if (phantom_only) return true;
 

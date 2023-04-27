@@ -97,15 +97,24 @@ struct VarCompositeGlyphRecord
   }
 
   void transform_points (hb_array_t<contour_point_t> record_points,
-			 contour_point_vector_t &points) const
+			 hb_array_t<contour_point_t> points) const
   {
     float matrix[4];
     contour_point_t trans;
 
     get_transformation_from_points (record_points, matrix, trans);
 
-    points.transform (matrix);
-    points.translate (trans);
+    auto arrayZ = points.arrayZ;
+    unsigned count = points.length;
+
+    if (matrix[0] != 1.f || matrix[1] != 0.f ||
+	matrix[2] != 0.f || matrix[3] != 1.f)
+      for (unsigned i = 0; i < count; i++)
+        arrayZ[i].transform (matrix);
+
+    if (trans.x != 0.f || trans.y != 0.f)
+      for (unsigned i = 0; i < count; i++)
+        arrayZ[i].translate (trans);
   }
 
   static inline void transform (float (&matrix)[4], contour_point_t &trans,

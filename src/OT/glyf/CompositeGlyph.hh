@@ -87,19 +87,42 @@ struct CompositeGlyphRecord
     }
   }
 
-  void transform_points (contour_point_vector_t &points,
+  static void transform (const float (&matrix)[4],
+			 hb_array_t<contour_point_t> points)
+  {
+    auto arrayZ = points.arrayZ;
+    unsigned count = points.length;
+
+    if (matrix[0] != 1.f || matrix[1] != 0.f ||
+	matrix[2] != 0.f || matrix[3] != 1.f)
+      for (unsigned i = 0; i < count; i++)
+        arrayZ[i].transform (matrix);
+  }
+
+  static void translate (const contour_point_t &trans,
+			 hb_array_t<contour_point_t> points)
+  {
+    auto arrayZ = points.arrayZ;
+    unsigned count = points.length;
+
+    if (trans.x != 0.f || trans.y != 0.f)
+      for (unsigned i = 0; i < count; i++)
+        arrayZ[i].translate (trans);
+  }
+
+  void transform_points (hb_array_t<contour_point_t> points,
 			 const float (&matrix)[4],
 			 const contour_point_t &trans) const
   {
     if (scaled_offsets ())
     {
-      points.translate (trans);
-      points.transform (matrix);
+      translate (trans, points);
+      transform (matrix, points);
     }
     else
     {
-      points.transform (matrix);
-      points.translate (trans);
+      transform (matrix, points);
+      translate (trans, points);
     }
   }
 
