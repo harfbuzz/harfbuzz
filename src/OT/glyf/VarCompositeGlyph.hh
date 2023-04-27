@@ -185,11 +185,12 @@ struct VarCompositeGlyphRecord
 
     unsigned fl = flags;
     unsigned num_points = get_num_points ();
+    unsigned num_axes = numAxes;
 
     if (unlikely (!points.resize (points.length + num_points))) return false;
 
     unsigned axis_width = (fl & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
-    unsigned axes_size = numAxes * axis_width;
+    unsigned axes_size = num_axes * axis_width;
 
     const F2DOT14 *q = (const F2DOT14 *) (axes_size +
 					  (fl & GID_IS_24BIT ? 3 : 2) +
@@ -197,7 +198,7 @@ struct VarCompositeGlyphRecord
 
     contour_point_t *rec_points = points.as_array ().sub_array (points.length - num_points).arrayZ;
 
-    unsigned count = numAxes;
+    unsigned count = num_axes;
     if (fl & AXES_HAVE_VARIATION)
     {
       for (unsigned i = 0; i < count; i++)
@@ -320,13 +321,14 @@ struct VarCompositeGlyphRecord
   {
     bool have_variations = flags & AXES_HAVE_VARIATION;
     unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
+    unsigned num_axes = numAxes;
 
     const HBUINT8  *p = (const HBUINT8 *)  (((HBUINT8 *) &numAxes) + numAxes.static_size + (flags & GID_IS_24BIT ? 3 : 2));
     const HBUINT16 *q = (const HBUINT16 *) (((HBUINT8 *) &numAxes) + numAxes.static_size + (flags & GID_IS_24BIT ? 3 : 2));
 
-    const F2DOT14 *a = (const F2DOT14 *) ((HBUINT8 *) (axis_width == 1 ? (p + numAxes) : (HBUINT8 *) (q + numAxes)));
+    const F2DOT14 *a = (const F2DOT14 *) ((HBUINT8 *) (axis_width == 1 ? (p + num_axes) : (HBUINT8 *) (q + num_axes)));
 
-    unsigned count = numAxes;
+    unsigned count = num_axes;
     for (unsigned i = 0; i < count; i++)
     {
       unsigned axis_index = axis_width == 1 ? (unsigned) *p++ : (unsigned) *q++;
