@@ -189,7 +189,7 @@ struct hb_collect_variation_indices_context_t :
 
   hb_set_t *layout_variation_indices;
   hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map;
-  hb_font_t *font;
+  hb_vector_t<int> *normalized_coords;
   const VariationStore *var_store;
   const hb_set_t *glyph_set;
   const hb_map_t *gpos_lookups;
@@ -197,14 +197,14 @@ struct hb_collect_variation_indices_context_t :
 
   hb_collect_variation_indices_context_t (hb_set_t *layout_variation_indices_,
 					  hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map_,
-					  hb_font_t *font_,
+					  hb_vector_t<int> *normalized_coords_,
 					  const VariationStore *var_store_,
 					  const hb_set_t *glyph_set_,
 					  const hb_map_t *gpos_lookups_,
 					  float *store_cache_) :
 					layout_variation_indices (layout_variation_indices_),
 					varidx_delta_map (varidx_delta_map_),
-					font (font_),
+					normalized_coords (normalized_coords_),
 					var_store (var_store_),
 					glyph_set (glyph_set_),
 					gpos_lookups (gpos_lookups_),
@@ -3547,8 +3547,9 @@ struct VariationDevice
   {
     c->layout_variation_indices->add (varIdx);
     int delta = 0;
-    if (c->font && c->var_store)
-      delta = roundf (get_delta (c->font, *c->var_store, c->store_cache));
+    if (c->normalized_coords && c->var_store)
+      delta = roundf (c->var_store->get_delta (varIdx, c->normalized_coords->arrayZ,
+                                               c->normalized_coords->length, c->store_cache));
 
     /* set new varidx to HB_OT_LAYOUT_NO_VARIATIONS_INDEX here, will remap
      * varidx later*/

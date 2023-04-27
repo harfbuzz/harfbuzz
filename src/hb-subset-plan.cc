@@ -381,18 +381,10 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
 
   const OT::VariationStore *var_store = nullptr;
   hb_set_t varidx_set;
-  hb_font_t *font = nullptr;
   float *store_cache = nullptr;
   bool collect_delta = plan->pinned_at_default ? false : true;
   if (collect_delta)
   {
-    if (unlikely (!plan->check_success (font = _get_hb_font_with_variations (plan)))) {
-      hb_font_destroy (font);
-      gdef.destroy ();
-      gpos.destroy ();
-      return;
-    }
-
     if (gdef->has_var_store ())
     {
       var_store = &(gdef->get_var_store ());
@@ -402,7 +394,8 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
 
   OT::hb_collect_variation_indices_context_t c (&varidx_set,
                                                 &plan->layout_variation_idx_delta_map,
-                                                font, var_store,
+                                                plan->normalized_coords ? &(plan->normalized_coords) : nullptr,
+                                                var_store,
                                                 &plan->_glyphset_gsub,
                                                 &plan->gpos_lookups,
                                                 store_cache);
@@ -411,7 +404,6 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
   if (hb_ot_layout_has_positioning (plan->source))
     gpos->collect_variation_indices (&c);
 
-  hb_font_destroy (font);
   var_store->destroy_cache (store_cache);
 
   gdef->remap_layout_variation_indices (&varidx_set, &plan->layout_variation_idx_delta_map);
