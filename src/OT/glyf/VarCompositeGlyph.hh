@@ -137,9 +137,8 @@ struct VarCompositeGlyphRecord
   static void translate (float (&matrix)[4], contour_point_t &trans,
 			 float translateX, float translateY)
   {
-    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L213
-    float other[6] = {1.f, 0.f, 0.f, 1.f, translateX, translateY};
-    transform (matrix, trans, other);
+    trans.x += translateX;
+    trans.y += translateY;
   }
 
   static void scale (float (&matrix)[4], contour_point_t &trans,
