@@ -356,7 +356,7 @@ _get_hb_font_with_variations (const hb_subset_plan_t *plan)
   {
     hb_variation_t var;
     var.tag = _.first;
-    var.value = _.second;
+    var.value = _.second.middle;
     vars.push (var);
   }
 
@@ -884,24 +884,35 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     hb_tag_t axis_tag = axis.get_axis_tag ();
     plan->axes_old_index_tag_map.set (old_axis_idx, axis_tag);
 
-    if (!plan->user_axes_location.has (axis_tag))
+    if (!plan->user_axes_location.has (axis_tag) ||
+        !plan->user_axes_location.get (axis_tag).is_point ())
     {
       axis_not_pinned = true;
       plan->axes_index_map.set (old_axis_idx, new_axis_idx);
       new_axis_idx++;
     }
-    else
+
+    if (plan->user_axes_location.has (axis_tag))
     {
-      int normalized_v = axis.normalize_axis_value (plan->user_axes_location.get (axis_tag));
+      Triple axis_range = plan->user_axes_location.get (axis_tag);
+      int normalized_min = axis.normalize_axis_value (axis_range.minimum);
+      int normalized_default = axis.normalize_axis_value (axis_range.middle);
+      int normalized_max = axis.normalize_axis_value (axis_range.maximum);
+
       if (has_avar && old_axis_idx < avar_axis_count)
       {
-        normalized_v = seg_maps->map (normalized_v);
+        normalized_min = seg_maps->map (normalized_min);
+        normalized_default = seg_maps->map (normalized_default);
+        normalized_max = seg_maps->map (normalized_max);
       }
-      plan->axes_location.set (axis_tag, normalized_v);
-      if (normalized_v != 0)
+      plan->axes_location.set (axis_tag, Triple (static_cast<float> (normalized_min),
+                                                 static_cast<float> (normalized_default),
+                                                 static_cast<float> (normalized_max)));
+
+      if (normalized_default != 0)
         plan->pinned_at_default = false;
 
-      plan->normalized_coords[old_axis_idx] = normalized_v;
+      plan->normalized_coords[old_axis_idx] = normalized_default;
     }
 
     old_axis_idx++;
