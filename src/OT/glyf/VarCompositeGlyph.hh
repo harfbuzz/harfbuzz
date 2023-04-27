@@ -193,7 +193,7 @@ struct VarCompositeGlyphRecord
 					  (flags & GID_IS_24BIT ? 3 : 2) +
 					  &StructAfter<const HBUINT8> (numAxes));
 
-    hb_array_t<contour_point_t> rec_points = points.as_array ().sub_array (points.length - num_points);
+    contour_point_t *rec_points = points.as_array ().sub_array (points.length - num_points).arrayZ;
 
     unsigned count = numAxes;
     if (flags & AXES_HAVE_VARIATION)
@@ -249,7 +249,6 @@ struct VarCompositeGlyphRecord
       rec_points[0].y = tCenterY;
       rec_points++;
     }
-    assert (!rec_points);
 
     return true;
   }
