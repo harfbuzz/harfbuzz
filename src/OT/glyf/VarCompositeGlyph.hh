@@ -36,24 +36,25 @@ struct VarCompositeGlyphRecord
 
   unsigned int get_size () const
   {
+    unsigned fl = flags;
     unsigned int size = min_size;
 
-    unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 4 : 3;
+    unsigned axis_width = (fl & AXIS_INDICES_ARE_SHORT) ? 4 : 3;
     size += numAxes * axis_width;
 
     // gid
     size += 2;
-    if (flags & GID_IS_24BIT)		size += 1;
+    if (fl & GID_IS_24BIT)	size += 1;
 
-    if (flags & HAVE_TRANSLATE_X)	size += 2;
-    if (flags & HAVE_TRANSLATE_Y)	size += 2;
-    if (flags & HAVE_ROTATION)		size += 2;
-    if (flags & HAVE_SCALE_X)		size += 2;
-    if (flags & HAVE_SCALE_Y)		size += 2;
-    if (flags & HAVE_SKEW_X)		size += 2;
-    if (flags & HAVE_SKEW_Y)		size += 2;
-    if (flags & HAVE_TCENTER_X)		size += 2;
-    if (flags & HAVE_TCENTER_Y)		size += 2;
+    if (fl & HAVE_TRANSLATE_X)	size += 2;
+    if (fl & HAVE_TRANSLATE_Y)	size += 2;
+    if (fl & HAVE_ROTATION)	size += 2;
+    if (fl & HAVE_SCALE_X)	size += 2;
+    if (fl & HAVE_SCALE_Y)	size += 2;
+    if (fl & HAVE_SKEW_X)	size += 2;
+    if (fl & HAVE_SKEW_Y)	size += 2;
+    if (fl & HAVE_TCENTER_X)	size += 2;
+    if (fl & HAVE_TCENTER_Y)	size += 2;
 
     return size;
   }
