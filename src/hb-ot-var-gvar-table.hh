@@ -44,7 +44,14 @@ struct contour_point_t
   void init (float x_ = 0.f, float y_ = 0.f, bool is_end_point_ = false)
   { flag = 0; x = x_; y = y_; is_end_point = is_end_point_; }
 
+  void transform (const float (&matrix)[4])
+  {
+    float x_ = x * matrix[0] + y * matrix[2];
+	  y  = x * matrix[1] + y * matrix[3];
+    x  = x_;
+  }
   void translate (const contour_point_t &p) { x += p.x; y += p.y; }
+
 
   float x = 0.f;
   float y = 0.f;
@@ -62,32 +69,6 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
     auto arrayZ = this->arrayZ + old_len;
     unsigned count = a.length;
     hb_memcpy (arrayZ, a.arrayZ, count * sizeof (arrayZ[0]));
-  }
-
-  void transform (const float (&matrix)[4])
-  {
-    if (matrix[0] == 1.f && matrix[1] == 0.f &&
-	matrix[2] == 0.f && matrix[3] == 1.f)
-      return;
-    auto arrayZ = this->arrayZ;
-    unsigned count = length;
-    for (unsigned i = 0; i < count; i++)
-    {
-      contour_point_t &p = arrayZ[i];
-      float x_ = p.x * matrix[0] + p.y * matrix[2];
-	   p.y = p.x * matrix[1] + p.y * matrix[3];
-      p.x = x_;
-    }
-  }
-
-  void translate (const contour_point_t& delta)
-  {
-    if (delta.x == 0.f && delta.y == 0.f)
-      return;
-    auto arrayZ = this->arrayZ;
-    unsigned count = length;
-    for (unsigned i = 0; i < count; i++)
-      arrayZ[i].translate (delta);
   }
 };
 
