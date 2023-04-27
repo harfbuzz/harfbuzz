@@ -196,6 +196,7 @@ struct VarCompositeGlyphRecord
   {
     unsigned num_points = get_num_points ();
 
+    points.alloc (points.length + num_points + 4); // For phantom points
     if (unlikely (!points.resize (points.length + num_points, false))) return false;
     contour_point_t *rec_points = points.as_array ().sub_array (points.length - num_points).arrayZ;
     memset (rec_points, 0, num_points * sizeof (rec_points[0]));
