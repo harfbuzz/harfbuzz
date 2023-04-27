@@ -172,15 +172,15 @@ struct VarCompositeGlyphRecord
 
   bool get_points (contour_point_vector_t &points) const
   {
-    float translateX = 0.f;
-    float translateY = 0.f;
-    float rotation = 0.f;
-    float scaleX = 1.f * (1 << 10);
-    float scaleY = 1.f * (1 << 10);
-    float skewX = 0.f;
-    float skewY = 0.f;
-    float tCenterX = 0.f;
-    float tCenterY = 0.f;
+    int translateX = 0.f;
+    int translateY = 0.f;
+    int rotation = 0.f;
+    int scaleX = 1.f * (1 << 10);
+    int scaleY = 1.f * (1 << 10);
+    int skewX = 0.f;
+    int skewY = 0.f;
+    int tCenterX = 0.f;
+    int tCenterY = 0.f;
 
     unsigned num_points = get_num_points ();
 
