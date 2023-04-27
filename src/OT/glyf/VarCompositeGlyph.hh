@@ -144,9 +144,10 @@ struct VarCompositeGlyphRecord
   static void scale (float (&matrix)[4], contour_point_t &trans,
 		     float scaleX, float scaleY)
   {
-    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L224
-    float other[6] = {scaleX, 0.f, 0.f, scaleY, 0.f, 0.f};
-    transform (matrix, trans, other);
+    matrix[0] *= scaleX;
+    matrix[1] *= scaleX;
+    matrix[2] *= scaleY;
+    matrix[3] *= scaleY;
   }
 
   static void rotate (float (&matrix)[4], contour_point_t &trans,
