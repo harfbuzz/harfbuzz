@@ -191,7 +191,8 @@ struct SimpleGlyph
     unsigned int num_points = endPtsOfContours[num_contours - 1] + 1;
 
     points_.alloc (num_points + 4, true); // Allocate for phantom points, to avoid a possible copy
-    if (!points_.resize (num_points)) return false;
+    if (!points_.resize (num_points, false)) return false;
+    memset (points_.arrayZ, 0, sizeof (contour_point_t) * num_points);
     if (phantom_only) return true;
 
     for (int i = 0; i < num_contours; i++)
