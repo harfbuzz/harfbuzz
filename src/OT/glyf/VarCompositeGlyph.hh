@@ -155,8 +155,14 @@ struct VarCompositeGlyphRecord
   {
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L240
     rotation = rotation * HB_PI;
-    float c = cosf (rotation);
-    float s = sinf (rotation);
+    float c;
+    float s;
+#if HAVE_SINCOSF
+    sincosf (rotation, &s, &c);
+#else
+    c = cosf (rotation);
+    s = sinf (rotation);
+#endif
     float other[6] = {c, s, -s, c, 0.f, 0.f};
     transform (matrix, trans, other);
   }

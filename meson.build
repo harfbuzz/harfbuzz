@@ -75,6 +75,7 @@ check_funcs = [
   ['isatty'],
   ['uselocale'],
   ['newlocale'],
+  ['sincosf'],
 ]
 
 m_dep = cpp.find_library('m', required: false)
