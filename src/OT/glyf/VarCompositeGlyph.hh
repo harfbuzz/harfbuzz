@@ -201,6 +201,8 @@ struct VarCompositeGlyphRecord
     unsigned num_axes = numAxes;
 
     if (unlikely (!points.resize (points.length + num_points, false))) return false;
+    contour_point_t *rec_points = points.as_array ().sub_array (points.length - num_points).arrayZ;
+    memset (rec_points, 0, num_points * sizeof (rec_points[0]));
 
     unsigned axis_width = (fl & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
     unsigned axes_size = num_axes * axis_width;
@@ -208,9 +210,6 @@ struct VarCompositeGlyphRecord
     const F2DOT14 *q = (const F2DOT14 *) (axes_size +
 					  (fl & GID_IS_24BIT ? 3 : 2) +
 					  &StructAfter<const HBUINT8> (numAxes));
-
-    contour_point_t *rec_points = points.as_array ().sub_array (points.length - num_points).arrayZ;
-    memset (rec_points, 0, num_points * sizeof (rec_points[0]));
 
     unsigned count = num_axes;
     if (fl & AXES_HAVE_VARIATION)
