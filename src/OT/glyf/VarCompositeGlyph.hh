@@ -42,8 +42,6 @@ struct VarCompositeGlyphRecord
     unsigned axis_width = (fl & AXIS_INDICES_ARE_SHORT) ? 4 : 3;
     size += numAxes * axis_width;
 
-    // gid
-    size += 2;
     if (fl & GID_IS_24BIT)	size += 1;
 
     if (fl & HAVE_TRANSLATE_X)	size += 2;
@@ -354,8 +352,9 @@ struct VarCompositeGlyphRecord
   protected:
   HBUINT16	flags;
   HBUINT8	numAxes;
+  HBUINT16	pad;
   public:
-  DEFINE_SIZE_MIN (3);
+  DEFINE_SIZE_MIN (5);
 };
 
 using var_composite_iter_t = composite_iter_tmpl<VarCompositeGlyphRecord>;
