@@ -328,6 +328,7 @@ struct Glyph
     {
       for (auto &item : get_var_composite_iterator ())
         if (unlikely (!item.get_points (points))) return false;
+      break;
     }
 #endif
     case EMPTY:
