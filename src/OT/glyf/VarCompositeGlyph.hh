@@ -94,13 +94,13 @@ struct VarCompositeGlyphRecord
     return num;
   }
 
-  void transform_points (hb_array_t<contour_point_t> record_points,
+  void transform_points (hb_array_t<const contour_point_t> record_points,
 			 hb_array_t<contour_point_t> points) const
   {
     float matrix[4];
     contour_point_t trans;
 
-    get_transformation_from_points (record_points, matrix, trans);
+    get_transformation_from_points (record_points.arrayZ, matrix, trans);
 
     auto arrayZ = points.arrayZ;
     unsigned count = points.length;
@@ -273,7 +273,7 @@ struct VarCompositeGlyphRecord
     return true;
   }
 
-  void get_transformation_from_points (hb_array_t<contour_point_t> rec_points,
+  void get_transformation_from_points (const contour_point_t *rec_points,
 				       float (&matrix)[4], contour_point_t &trans) const
   {
     unsigned fl = flags;
@@ -324,7 +324,6 @@ struct VarCompositeGlyphRecord
       tCenterY = rec_points->y;
       rec_points++;
     }
-    assert (!rec_points);
 
     translate (matrix, trans, translateX + tCenterX, translateY + tCenterY);
     rotate (matrix, trans, rotation);
@@ -350,7 +349,7 @@ struct VarCompositeGlyphRecord
     {
       unsigned axis_index = axis_width == 1 ? (unsigned) *p++ : (unsigned) *q++;
 
-      signed v = have_variations ? rec_points[i].x : a++->to_int ();
+      signed v = have_variations ? rec_points.arrayZ[i].x : a++->to_int ();
 
       v = hb_clamp (v, -(1<<14), (1<<14));
       setter[axis_index] = v;

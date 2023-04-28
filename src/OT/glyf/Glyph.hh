@@ -458,6 +458,7 @@ struct Glyph
       {
 	unsigned item_num_points = item.get_num_points ();
 	hb_array_t<contour_point_t> record_points = points_left.sub_array (0, item_num_points);
+	assert (record_points.length == item_num_points);
 
 	auto component_coords = coords;
 	if (item.is_reset_unspecified_axes ())
