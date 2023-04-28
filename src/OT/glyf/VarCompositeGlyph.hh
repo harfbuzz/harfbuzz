@@ -44,15 +44,13 @@ struct VarCompositeGlyphRecord
 
     if (fl & GID_IS_24BIT)	size += 1;
 
-    if (fl & HAVE_TRANSLATE_X)	size += 2;
-    if (fl & HAVE_TRANSLATE_Y)	size += 2;
-    if (fl & HAVE_ROTATION)	size += 2;
-    if (fl & HAVE_SCALE_X)	size += 2;
-    if (fl & HAVE_SCALE_Y)	size += 2;
-    if (fl & HAVE_SKEW_X)	size += 2;
-    if (fl & HAVE_SKEW_Y)	size += 2;
-    if (fl & HAVE_TCENTER_X)	size += 2;
-    if (fl & HAVE_TCENTER_Y)	size += 2;
+    // 2 bytes each for the following flags
+    fl = fl & (HAVE_TRANSLATE_X | HAVE_TRANSLATE_Y |
+	       HAVE_ROTATION |
+	       HAVE_SCALE_X | HAVE_SCALE_Y |
+	       HAVE_SKEW_X | HAVE_SKEW_Y |
+	       HAVE_TCENTER_X | HAVE_TCENTER_Y);
+    size += hb_popcount (fl) * 2;
 
     return size;
   }
