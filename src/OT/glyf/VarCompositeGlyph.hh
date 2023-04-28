@@ -297,31 +297,31 @@ struct VarCompositeGlyphRecord
 
     if (fl & (HAVE_TRANSLATE_X | HAVE_TRANSLATE_Y))
     {
-      translateX = rec_points[0].x;
-      translateY = rec_points[0].y;
+      translateX = rec_points->x;
+      translateY = rec_points->y;
       rec_points++;
     }
     if (fl & HAVE_ROTATION)
     {
-      rotation = rec_points[0].x / (1 << 12);
+      rotation = rec_points->x / (1 << 12);
       rec_points++;
     }
     if (fl & (HAVE_SCALE_X | HAVE_SCALE_Y))
     {
-      scaleX = rec_points[0].x / (1 << 10);
-      scaleY = rec_points[0].y / (1 << 10);
+      scaleX = rec_points->x / (1 << 10);
+      scaleY = rec_points->y / (1 << 10);
       rec_points++;
     }
     if (fl & (HAVE_SKEW_X | HAVE_SKEW_Y))
     {
-      skewX = rec_points[0].x / (1 << 12);
-      skewY = rec_points[0].y / (1 << 12);
+      skewX = rec_points->x / (1 << 12);
+      skewY = rec_points->y / (1 << 12);
       rec_points++;
     }
     if (fl & (HAVE_TCENTER_X | HAVE_TCENTER_Y))
     {
-      tCenterX = rec_points[0].x;
-      tCenterY = rec_points[0].y;
+      tCenterX = rec_points->x;
+      tCenterY = rec_points->y;
       rec_points++;
     }
     assert (!rec_points);
