@@ -86,6 +86,14 @@ struct VarCompositeGlyphRecord
     unsigned fl = flags;
     unsigned num = 0;
     if (fl & AXES_HAVE_VARIATION)			num += numAxes;
+
+    /* Hopefully faster code. */
+    fl = (((fl & (HAVE_TRANSLATE_Y | HAVE_SCALE_Y | HAVE_SKEW_Y | HAVE_TCENTER_Y)) >> 1) | fl) &
+         (HAVE_TRANSLATE_X | HAVE_ROTATION | HAVE_SCALE_X | HAVE_SKEW_X | HAVE_TCENTER_X);
+    num += hb_popcount (fl);
+    return num;
+
+    /* Slower but more readable code. */
     if (fl & (HAVE_TRANSLATE_X | HAVE_TRANSLATE_Y))	num++;
     if (fl & HAVE_ROTATION)				num++;
     if (fl & (HAVE_SCALE_X | HAVE_SCALE_Y))		num++;
