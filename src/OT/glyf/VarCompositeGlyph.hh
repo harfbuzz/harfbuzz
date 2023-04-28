@@ -180,7 +180,7 @@ struct VarCompositeGlyphRecord
     rotation = rotation * HB_PI;
     float c;
     float s;
-#if HAVE_SINCOSF
+#ifdef HAVE_SINCOSF
     sincosf (rotation, &s, &c);
 #else
     c = cosf (rotation);
