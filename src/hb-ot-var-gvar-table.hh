@@ -301,7 +301,7 @@ struct gvar
       do
       {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples,
-								 shared_tuple_active_idx.in_error () ? nullptr : &shared_tuple_active_idx);
+								 &shared_tuple_active_idx);
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
 	unsigned int length = iterator.current_tuple->get_data_size ();
