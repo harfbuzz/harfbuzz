@@ -163,7 +163,7 @@ struct PairPosFormat2_4
      * https://github.com/harfbuzz/harfbuzz/pull/3235#issuecomment-1029814978
      */
 #ifndef HB_SPLIT_KERN
-    if (0)
+    if (false)
 #endif
     {
       if (!len2)
