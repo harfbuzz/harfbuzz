@@ -96,7 +96,7 @@ struct CompositeGlyphRecord
     if (matrix[0] != 1.f || matrix[1] != 0.f ||
 	matrix[2] != 0.f || matrix[3] != 1.f)
       for (unsigned i = 0; i < count; i++)
-        arrayZ[i].transform (matrix);
+        arrayZ[i].transform (matrix, points);
   }
 
   static void translate (const contour_point_t &trans,
