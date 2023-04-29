@@ -2212,7 +2212,11 @@ hb_buffer_t::message_impl (hb_font_t *font, const char *fmt, va_list ap)
   message_depth++;
 
   char buf[100];
+#if defined(_MSC_VER) || defined(__GNUC__)
   vsnprintf_s (buf, sizeof (buf), fmt, ap);
+#else
+  vsnprintf (buf, sizeof (buf), fmt, ap);
+#endif
   bool ret = (bool) this->message_func (this, font, buf, this->message_data);
 
   message_depth--;
