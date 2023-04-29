@@ -341,7 +341,8 @@ struct gvar
 
 	  if (flush)
 	  {
-	    for (unsigned int i = 0; i < points.length; i++)
+	    unsigned count = points.length;
+	    for (unsigned int i = 0; i < count; i++)
 	      points.arrayZ[i].translate (deltas.arrayZ[i]);
 	    flush = false;
 
@@ -421,7 +422,8 @@ struct gvar
 	{
 	  if (!end_points)
 	  {
-	    for (unsigned i = 0; i < points.length; ++i)
+	    unsigned count = points.length;
+	    for (unsigned i = 0; i < count; ++i)
 	      if (points.arrayZ[i].is_end_point)
 		end_points.push (i);
 	    if (unlikely (end_points.in_error ())) return false;
@@ -481,8 +483,11 @@ struct gvar
       } while (iterator.move_to_next ());
 
       if (flush)
-	for (unsigned int i = 0; i < points.length; i++)
+      {
+        unsigned count = points.length;
+	for (unsigned int i = 0; i < count; i++)
 	  points.arrayZ[i].translate (deltas.arrayZ[i]);
+      }
 
       return true;
     }

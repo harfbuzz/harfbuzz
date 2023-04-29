@@ -157,7 +157,8 @@ struct Glyph
       yMin = yMax = all_points[0].y;
     }
 
-    for (unsigned i = 1; i < all_points.length - 4; i++)
+    unsigned count = all_points.length - 4;
+    for (unsigned i = 1; i < count; i++)
     {
       float x = all_points[i].x;
       float y = all_points[i].y;
