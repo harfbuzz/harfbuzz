@@ -265,7 +265,7 @@ struct SimpleGlyph
     else
     {
       repeat = 0;
-      flags.push (flag);
+      flags.arrayZ[flags.length++] = flag;
     }
   }
 
