@@ -155,17 +155,17 @@ struct Glyph
     {
       xMin = xMax = all_points[0].x;
       yMin = yMax = all_points[0].y;
-    }
 
-    unsigned count = all_points.length - 4;
-    for (unsigned i = 1; i < count; i++)
-    {
-      float x = all_points[i].x;
-      float y = all_points[i].y;
-      xMin = hb_min (xMin, x);
-      xMax = hb_max (xMax, x);
-      yMin = hb_min (yMin, y);
-      yMax = hb_max (yMax, y);
+      unsigned count = all_points.length - 4;
+      for (unsigned i = 1; i < count; i++)
+      {
+	float x = all_points[i].x;
+	float y = all_points[i].y;
+	xMin = hb_min (xMin, x);
+	xMax = hb_max (xMax, x);
+	yMin = hb_min (yMin, y);
+	yMax = hb_max (yMax, y);
+      }
     }
 
     int rounded_xMin = roundf (xMin);
