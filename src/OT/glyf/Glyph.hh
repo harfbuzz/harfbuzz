@@ -168,12 +168,12 @@ struct Glyph
       yMax = hb_max (yMax, y);
     }
 
-    update_mtx (plan, roundf (xMin), roundf (xMax), roundf (yMin), roundf (yMax), all_points);
- 
     int rounded_xMin = roundf (xMin);
     int rounded_xMax = roundf (xMax);
     int rounded_yMin = roundf (yMin);
     int rounded_yMax = roundf (yMax);
+
+    update_mtx (plan, rounded_xMin, rounded_xMax, rounded_yMin, rounded_yMax, all_points);
 
     if (type != EMPTY)
     {
