@@ -291,7 +291,7 @@ struct SimpleGlyph
     for (unsigned i = 0; i < num_points; i++)
     {
       unsigned flag = all_points.arrayZ[i].flag;
-      flag &= FLAG_ON_CURVE + FLAG_OVERLAP_SIMPLE;
+      flag &= FLAG_ON_CURVE | FLAG_OVERLAP_SIMPLE | FLAG_CUBIC;
 
       int cur_x = roundf (all_points.arrayZ[i].x);
       int cur_y = roundf (all_points.arrayZ[i].y);
