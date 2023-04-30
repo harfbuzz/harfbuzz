@@ -217,7 +217,7 @@ struct SimpleGlyph
   }
 
   static void encode_coord (int value,
-                            uint8_t &flag,
+                            unsigned &flag,
                             const simple_glyph_flag_t short_flag,
                             const simple_glyph_flag_t same_flag,
                             hb_vector_t<uint8_t> &coords /* OUT */)
@@ -242,9 +242,9 @@ struct SimpleGlyph
     }
   }
 
-  static void encode_flag (uint8_t &flag,
-                           uint8_t &repeat,
-                           uint8_t lastflag,
+  static void encode_flag (unsigned flag,
+                           unsigned &repeat,
+                           unsigned lastflag,
                            hb_vector_t<uint8_t> &flags /* OUT */)
   {
     if (flag == lastflag && repeat != 255)
@@ -285,12 +285,12 @@ struct SimpleGlyph
     if (unlikely (!x_coords.alloc (2*num_points, true))) return false;
     if (unlikely (!y_coords.alloc (2*num_points, true))) return false;
 
-    uint8_t lastflag = 255, repeat = 0;
+    unsigned lastflag = 255, repeat = 0;
     int prev_x = 0, prev_y = 0;
 
     for (unsigned i = 0; i < num_points; i++)
     {
-      uint8_t flag = all_points.arrayZ[i].flag;
+      unsigned flag = all_points.arrayZ[i].flag;
       flag &= FLAG_ON_CURVE + FLAG_OVERLAP_SIMPLE;
 
       int cur_x = roundf (all_points.arrayZ[i].x);
