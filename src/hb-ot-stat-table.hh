@@ -59,7 +59,7 @@ enum
 
 #ifndef HB_NO_VAR
 static bool axis_value_is_outside_axis_range (hb_tag_t axis_tag, float axis_value,
-                                              const hb_hashmap_t<hb_tag_t, Triple> *user_axes_location) const
+                                              const hb_hashmap_t<hb_tag_t, Triple> *user_axes_location)
 {
   if (!user_axes_location->has (axis_tag))
     return false;
