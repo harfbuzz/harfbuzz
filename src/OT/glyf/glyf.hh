@@ -487,7 +487,7 @@ glyf::_create_font_for_instancing (const hb_subset_plan_t *plan) const
   {
     hb_variation_t var;
     var.tag = _.first;
-    var.value = _.second;
+    var.value = _.second.middle;
     vars.push (var);
   }
 
