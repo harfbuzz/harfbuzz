@@ -219,7 +219,7 @@ struct gvar
 	int idx = -1;
 	for (unsigned j = 0; j < axis_count; j++)
 	{
-	  F2DOT14 peak = tuple.arrayZ[j];
+	  const F2DOT14 &peak = tuple.arrayZ[j];
 	  if (peak.to_int () != 0)
 	  {
 	    if (idx != -1)
@@ -230,7 +230,7 @@ struct gvar
 	    idx = j;
 	  }
 	}
-	shared_tuple_active_idx[i] = idx;
+	shared_tuple_active_idx.arrayZ[i] = idx;
       }
     }
     ~accelerator_t () { table.destroy (); }
