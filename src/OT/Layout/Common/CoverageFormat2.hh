@@ -100,10 +100,10 @@ struct CoverageFormat2_4
       if (last + 1 != g)
       {
         range++;
-        rangeRecord[range].first = g;
-        rangeRecord[range].value = count;
+        rangeRecord.arrayZ[range].first = g;
+        rangeRecord.arrayZ[range].value = count;
       }
-      rangeRecord[range].last = g;
+      rangeRecord.arrayZ[range].last = g;
       last = g;
       count++;
     }

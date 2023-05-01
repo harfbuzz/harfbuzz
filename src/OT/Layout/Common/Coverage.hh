@@ -113,15 +113,14 @@ struct Coverage
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
 
-    unsigned count = 0;
+    unsigned count = hb_len (glyphs);
     unsigned num_ranges = 0;
     hb_codepoint_t last = (hb_codepoint_t) -2;
     for (auto g: glyphs)
     {
       if (last + 1 != g)
-        num_ranges++;
+	num_ranges++;
       last = g;
-      count++;
     }
     u.format = count <= num_ranges * 3 ? 1 : 2;
 
