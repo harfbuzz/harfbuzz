@@ -259,10 +259,11 @@ _hb_ot_layout_set_glyph_props (hb_font_t *font,
 
   const OT::GDEF &gdef = *font->face->table.GDEF->table;
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
   {
-    _hb_glyph_info_set_glyph_props (&buffer->info[i], gdef.get_glyph_props (buffer->info[i].codepoint));
-    _hb_glyph_info_clear_lig_props (&buffer->info[i]);
+    _hb_glyph_info_set_glyph_props (&info[i], gdef.get_glyph_props (info[i].codepoint));
+    _hb_glyph_info_clear_lig_props (&info[i]);
   }
 }
 
