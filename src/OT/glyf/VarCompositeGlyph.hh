@@ -224,7 +224,7 @@ struct VarCompositeGlyphRecord
 
     const F2DOT14 *q = (const F2DOT14 *) (axes_size +
 					  (fl & GID_IS_24BIT ? 3 : 2) +
-					  &StructAfter<const HBUINT8> (numAxes));
+					  (const HBUINT8 *) &pad);
 
     unsigned count = num_axes;
     if (fl & AXES_HAVE_VARIATION)
