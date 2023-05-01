@@ -378,7 +378,6 @@ struct gvar
 	      {
 		unsigned int pt_index = i;
 		auto &delta = deltas.arrayZ[pt_index];
-		delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 		delta.x += x_deltas.arrayZ[i] * scalar;
 		delta.y += y_deltas.arrayZ[i] * scalar;
 	      }
@@ -400,7 +399,6 @@ struct gvar
 	      {
 		unsigned int pt_index = i;
 		auto &delta = deltas.arrayZ[pt_index];
-		delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 		delta.x += x_deltas.arrayZ[i];
 		delta.y += y_deltas.arrayZ[i];
 	      }
