@@ -648,7 +648,7 @@ _nameid_closure (hb_subset_plan_t* plan,
 #endif
 #ifndef HB_NO_VAR
   if (!plan->all_axes_pinned)
-    plan->source->table.fvar->collect_name_ids (&plan->user_axes_location, &plan->name_ids);
+    plan->source->table.fvar->collect_name_ids (&plan->axes_old_index_tag_map, &plan->user_axes_location, &plan->name_ids);
 #endif
 #ifndef HB_NO_COLOR
   if (!drop_tables->has (HB_OT_TAG_CPAL))
