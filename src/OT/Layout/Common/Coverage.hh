@@ -147,8 +147,8 @@ struct Coverage
     auto it =
     + iter ()
     | hb_take (c->plan->source->get_num_glyphs ())
-    | hb_filter (c->plan->glyph_map_gsub)
     | hb_map_retains_sorting (c->plan->glyph_map_gsub)
+    | hb_filter ([] (hb_codepoint_t glyph) { return glyph != HB_MAP_VALUE_INVALID; })
     ;
 
     // Cache the iterator result as it will be iterated multiple times
