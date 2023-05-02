@@ -10,7 +10,7 @@ namespace GSUB_impl {
 template <typename Types>
 struct Ligature
 {
-  protected:
+  public:
   typename Types::HBGlyphID
 		ligGlyph;               /* GlyphID of ligature to substitute */
   HeadlessArrayOf<typename Types::HBGlyphID>
