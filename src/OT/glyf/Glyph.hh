@@ -555,10 +555,11 @@ struct Glyph
     int num_contours = header->numberOfContours;
     if (unlikely (num_contours == 0)) type = EMPTY;
     else if (num_contours > 0) type = SIMPLE;
+    else if (num_contours == -1) type = COMPOSITE;
 #ifndef HB_NO_VAR_COMPOSITES
     else if (num_contours == -2) type = VAR_COMPOSITE;
 #endif
-    else type = COMPOSITE; /* negative numbers */
+    else type = EMPTY; // Spec deviation; Spec says COMPOSITE, but not seen in the wild.
   }
 
   protected:
