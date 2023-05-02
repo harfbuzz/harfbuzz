@@ -1241,7 +1241,6 @@ static inline bool match_input (hb_ot_apply_context_t *c,
    */
 
   unsigned int total_component_count = 0;
-  total_component_count += _hb_glyph_info_get_lig_num_comps (&buffer->cur());
 
   unsigned int first_lig_id = _hb_glyph_info_get_lig_id (&buffer->cur());
   unsigned int first_lig_comp = _hb_glyph_info_get_lig_comp (&buffer->cur());
@@ -1252,7 +1251,6 @@ static inline bool match_input (hb_ot_apply_context_t *c,
     LIGBASE_MAY_SKIP
   } ligbase = LIGBASE_NOT_CHECKED;
 
-  match_positions[0] = buffer->idx;
   for (unsigned int i = 1; i < count; i++)
   {
     unsigned unsafe_to;
@@ -1317,7 +1315,12 @@ static inline bool match_input (hb_ot_apply_context_t *c,
   *end_position = skippy_iter.idx + 1;
 
   if (p_total_component_count)
+  {
+    total_component_count += _hb_glyph_info_get_lig_num_comps (&buffer->cur());
     *p_total_component_count = total_component_count;
+  }
+
+  match_positions[0] = buffer->idx;
 
   return_trace (true);
 }
