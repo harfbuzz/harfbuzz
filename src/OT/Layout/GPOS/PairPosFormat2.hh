@@ -138,17 +138,23 @@ struct PairPosFormat2_4
       return_trace (false);
     }
 
-    unsigned int len1 = valueFormat1.get_len ();
-    unsigned int len2 = valueFormat2.get_len ();
-    unsigned int record_len = len1 + len2;
+    unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint);
+    if (likely (!klass2))
+    {
+      buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
+      return_trace (false);
+    }
 
     unsigned int klass1 = (this+classDef1).get_class (buffer->cur().codepoint);
-    unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint);
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count))
     {
       buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
       return_trace (false);
     }
+
+    unsigned int len1 = valueFormat1.get_len ();
+    unsigned int len2 = valueFormat2.get_len ();
+    unsigned int record_len = len1 + len2;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
 
