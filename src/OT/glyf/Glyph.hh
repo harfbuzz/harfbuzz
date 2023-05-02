@@ -168,10 +168,13 @@ struct Glyph
       }
     }
 
-    int rounded_xMin = roundf (xMin);
-    int rounded_xMax = roundf (xMax);
-    int rounded_yMin = roundf (yMin);
-    int rounded_yMax = roundf (yMax);
+
+    // These are destined for storage in a 16 bit field to clamp the values to
+    // fit into a 16 bit signed integer.
+    int rounded_xMin = hb_clamp (roundf (xMin), -32768.0f, 32767.0f);
+    int rounded_xMax = hb_clamp (roundf (xMax), -32768.0f, 32767.0f);
+    int rounded_yMin = hb_clamp (roundf (yMin), -32768.0f, 32767.0f);
+    int rounded_yMax = hb_clamp (roundf (yMax), -32768.0f, 32767.0f);
 
     update_mtx (plan, rounded_xMin, rounded_xMax, rounded_yMin, rounded_yMax, all_points);
 
