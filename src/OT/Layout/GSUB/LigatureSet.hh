@@ -72,14 +72,53 @@ struct LigatureSet
     ;
   }
 
+  static bool match_always (hb_glyph_info_t &info, unsigned value HB_UNUSED, const void *data HB_UNUSED)
+  {
+    return true;
+  }
+
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+
+    if (HB_OPTIMIZE_SIZE_VAL)
+    {
+      unsigned int num_ligs = ligature.len;
+      for (unsigned int i = 0; i < num_ligs; i++)
+      {
+	const auto &lig = this+ligature.arrayZ[i];
+	if (lig.apply (c)) return_trace (true);
+      }
+      return_trace (false);
+    }
+
+    /* This version is optimized for speed by matching the first component
+     * of the ligature here, instead of calling into the ligation code. */
+
+    hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
+    skippy_iter.reset (c->buffer->idx, 1);
+    skippy_iter.set_match_func (match_always, nullptr);
+    skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
+    unsigned unsafe_to;
+    hb_codepoint_t first = skippy_iter.next (&unsafe_to) ? c->buffer->info[skippy_iter.idx].codepoint : (unsigned) -1;
+    if (first != (unsigned) -1)
+      unsafe_to = skippy_iter.idx + 1;
+
+    bool not_short_circuit = first != (unsigned) -1 &&
+      skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]);
+
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
     {
-      const auto &lig = this+ligature[i];
-      if (lig.apply (c)) return_trace (true);
+      const auto &lig = this+ligature.arrayZ[i];
+      if (lig.component.lenP1 <= 1 ||
+	  lig.component[1] == first ||
+	  not_short_circuit)
+      {
+	if (lig.apply (c)) return_trace (true);
+      }
+      else if (lig.component.lenP1 > 1)
+        c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
     }
 
     return_trace (false);
