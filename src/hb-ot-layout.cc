@@ -1978,11 +1978,12 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       if (accel->digest.may_have (c.digest))
       {
 	c.set_lookup_index (lookup_index);
-	c.set_lookup_mask (lookup.mask);
-	c.set_auto_zwj (lookup.auto_zwj);
-	c.set_auto_zwnj (lookup.auto_zwnj);
+	c.set_lookup_mask (lookup.mask, false);
+	c.set_auto_zwj (lookup.auto_zwj, false);
+	c.set_auto_zwnj (lookup.auto_zwnj, false);
 	c.set_random (lookup.random);
-	c.set_per_syllable (lookup.per_syllable);
+	c.set_per_syllable (lookup.per_syllable, false);
+	/* apply_string's set_lookup_props initializes the iterators. */
 
 	apply_string<Proxy> (&c,
 			     proxy.accel.table->get_lookup (lookup_index),
