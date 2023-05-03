@@ -83,6 +83,7 @@ struct LigatureSet
 
     if (HB_OPTIMIZE_SIZE_VAL)
     {
+    slow:
       unsigned int num_ligs = ligature.len;
       for (unsigned int i = 0; i < num_ligs; i++)
       {
@@ -106,9 +107,15 @@ struct LigatureSet
     {
       first = c->buffer->info[skippy_iter.idx].codepoint;
       unsafe_to = skippy_iter.idx + 1;
+
+      if (skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]))
+      {
+	/* Can't use the fast path if eg. the next char is a default-ignorable
+	 * or other skippable. */
+        goto slow;
+      }
     }
 
-    bool not_short_circuit = matched && skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]);
     bool unsafe_to_concat = false;
 
     unsigned int num_ligs = ligature.len;
@@ -116,8 +123,7 @@ struct LigatureSet
     {
       const auto &lig = this+ligature.arrayZ[i];
       if (unlikely (lig.component.lenP1 <= 1) ||
-	  lig.component[1] == first ||
-	  not_short_circuit)
+	  lig.component[1] == first)
       {
 	if (lig.apply (c))
 	{
