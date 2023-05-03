@@ -476,6 +476,7 @@ struct hb_ot_apply_context_t :
     void init (hb_ot_apply_context_t *c_, bool context_match = false)
     {
       c = c_;
+      end = c->buffer->len;
       match_glyph_data16 = nullptr;
 #ifndef HB_NO_BEYOND_64K
       match_glyph_data24 = nullptr;
@@ -489,6 +490,7 @@ struct hb_ot_apply_context_t :
       matcher.set_mask (context_match ? -1 : c->lookup_mask);
       /* Per syllable matching is only for GSUB. */
       matcher.set_per_syllable (c->table_index == 0 && c->per_syllable);
+      matcher.set_syllable (0);
     }
     void set_lookup_props (unsigned int lookup_props)
     {
@@ -521,6 +523,14 @@ struct hb_ot_apply_context_t :
       num_items = num_items_;
       end = c->buffer->len;
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
+    }
+
+    void reset_fast (unsigned int start_index_,
+		     unsigned int num_items_)
+    {
+      // Doesn't set end or syllable. Used by GPOS which doesn't care / change.
+      idx = start_index_;
+      num_items = num_items_;
     }
 
     void reject ()
