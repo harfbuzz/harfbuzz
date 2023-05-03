@@ -811,7 +811,6 @@ struct hb_ot_apply_context_t :
   bool check_glyph_property (const hb_glyph_info_t *info,
 			     unsigned int  match_props) const
   {
-    hb_codepoint_t glyph = info->codepoint;
     unsigned int glyph_props = _hb_glyph_info_get_glyph_props (info);
 
     /* Not covered, if, for example, glyph class is ligature and
@@ -821,7 +820,7 @@ struct hb_ot_apply_context_t :
       return false;
 
     if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
-      return match_properties_mark (glyph, glyph_props, match_props);
+      return match_properties_mark (info->codepoint, glyph_props, match_props);
 
     return true;
   }
