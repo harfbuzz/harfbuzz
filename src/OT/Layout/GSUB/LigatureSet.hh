@@ -72,7 +72,7 @@ struct LigatureSet
     ;
   }
 
-  static bool match_always (hb_glyph_info_t &info, unsigned value HB_UNUSED, const void *data HB_UNUSED)
+  static bool match_always (hb_glyph_info_t &info HB_UNUSED, unsigned value HB_UNUSED, const void *data HB_UNUSED)
   {
     return true;
   }
@@ -81,10 +81,11 @@ struct LigatureSet
   {
     TRACE_APPLY (this);
 
-    if (HB_OPTIMIZE_SIZE_VAL)
+    unsigned int num_ligs = ligature.len;
+
+    if (HB_OPTIMIZE_SIZE_VAL || num_ligs <= 2)
     {
     slow:
-      unsigned int num_ligs = ligature.len;
       for (unsigned int i = 0; i < num_ligs; i++)
       {
 	const auto &lig = this+ligature.arrayZ[i];
@@ -118,7 +119,6 @@ struct LigatureSet
 
     bool unsafe_to_concat = false;
 
-    unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
     {
       const auto &lig = this+ligature.arrayZ[i];
