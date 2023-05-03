@@ -100,12 +100,15 @@ struct LigatureSet
     skippy_iter.set_match_func (match_always, nullptr);
     skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to;
-    hb_codepoint_t first = skippy_iter.next (&unsafe_to) ? c->buffer->info[skippy_iter.idx].codepoint : (unsigned) -1;
-    if (first != (unsigned) -1)
+    hb_codepoint_t first = (unsigned) -1;
+    bool matched = skippy_iter.next (&unsafe_to);
+    if (likely (matched))
+    {
+      first = c->buffer->info[skippy_iter.idx].codepoint;
       unsafe_to = skippy_iter.idx + 1;
+    }
 
-    bool not_short_circuit = first != (unsigned) -1 &&
-      skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]);
+    bool not_short_circuit = matched && skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]);
 
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
