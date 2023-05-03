@@ -32,6 +32,7 @@
 #include "../../../hb-ot-layout-common.hh"
 
 #include "../../../hb-font.hh"
+#include "../../../hb-cache.hh"
 
 
 namespace OT {
@@ -861,7 +862,21 @@ struct GDEF
     }
     ~accelerator_t () { table.destroy (); }
 
+    unsigned int get_glyph_props (hb_codepoint_t glyph) const
+    {
+      unsigned v;
+      if (glyph_props_cache.get (glyph, &v))
+        return v;
+
+      v = table->get_glyph_props (glyph);
+      if (likely (table)) // Don't try setting if we are the null instance!
+	glyph_props_cache.set (glyph, v);
+
+      return v;
+    }
+
     hb_blob_ptr_t<GDEF> table;
+    mutable hb_cache_t<21, 3, 8> glyph_props_cache;
   };
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const

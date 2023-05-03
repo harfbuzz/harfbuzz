@@ -257,7 +257,7 @@ _hb_ot_layout_set_glyph_props (hb_font_t *font,
 {
   _hb_buffer_assert_gsubgpos_vars (buffer);
 
-  const OT::GDEF &gdef = *font->face->table.GDEF->table;
+  const auto &gdef = *font->face->table.GDEF;
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)

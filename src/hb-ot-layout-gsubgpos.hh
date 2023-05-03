@@ -695,6 +695,7 @@ struct hb_ot_apply_context_t :
   hb_buffer_t *buffer;
   recurse_func_t recurse_func = nullptr;
   const GDEF &gdef;
+  const GDEF::accelerator_t &gdef_accel;
   const VariationStore &var_store;
   VariationStore::cache_t *var_store_cache;
   hb_set_digest_t digest;
@@ -726,6 +727,13 @@ struct hb_ot_apply_context_t :
 			      *face->table.GDEF->table
 #else
 			      Null (GDEF)
+#endif
+			     ),
+			gdef_accel (
+#ifndef HB_NO_OT_LAYOUT
+			      *face->table.GDEF
+#else
+			      Null (GDEF::accelerator_t)
 #endif
 			     ),
 			var_store (gdef.get_var_store ()),
@@ -836,7 +844,7 @@ struct hb_ot_apply_context_t :
     if (likely (has_glyph_classes))
     {
       props &= HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
-      _hb_glyph_info_set_glyph_props (&buffer->cur(), props | gdef.get_glyph_props (glyph_index));
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), props | gdef_accel.get_glyph_props (glyph_index));
     }
     else if (class_guess)
     {
