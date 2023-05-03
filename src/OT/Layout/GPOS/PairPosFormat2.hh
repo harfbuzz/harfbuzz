@@ -139,7 +139,7 @@ struct PairPosFormat2_4
     }
 
     unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint);
-    if (likely (!klass2))
+    if (!klass2)
     {
       buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
       return_trace (false);
