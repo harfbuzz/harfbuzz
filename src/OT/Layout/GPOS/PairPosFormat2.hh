@@ -132,7 +132,7 @@ struct PairPosFormat2_4
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset (buffer->idx, 1);
     unsigned unsafe_to;
-    if (!skippy_iter.next (&unsafe_to))
+    if (unlikely (!skippy_iter.next (&unsafe_to)))
     {
       buffer->unsafe_to_concat (buffer->idx, unsafe_to);
       return_trace (false);
