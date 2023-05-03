@@ -109,20 +109,28 @@ struct LigatureSet
     }
 
     bool not_short_circuit = matched && skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]);
+    bool unsafe_to_concat = false;
 
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
     {
       const auto &lig = this+ligature.arrayZ[i];
-      if (lig.component.lenP1 <= 1 ||
+      if (unlikely (lig.component.lenP1 <= 1) ||
 	  lig.component[1] == first ||
 	  not_short_circuit)
       {
-	if (lig.apply (c)) return_trace (true);
+	if (lig.apply (c))
+	{
+	  if (unsafe_to_concat)
+	    c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
+	  return_trace (true);
+	}
       }
-      else if (lig.component.lenP1 > 1)
-        c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
+      else if (likely (lig.component.lenP1 > 1))
+        unsafe_to_concat = true;
     }
+    if (likely (unsafe_to_concat))
+      c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
 
     return_trace (false);
   }
