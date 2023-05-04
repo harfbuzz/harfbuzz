@@ -35,10 +35,10 @@ struct SubstLookup : Lookup
     return dispatch (&c);
   }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
-    return_trace (dispatch (c));
+    return_trace (dispatch (c, coverage_index));
   }
 
   bool intersects (const hb_set_t *glyphs) const

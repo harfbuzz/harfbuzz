@@ -91,12 +91,11 @@ struct MarkMarkPosFormat1_2
 
   const Coverage &get_coverage () const { return this+mark1Coverage; }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int mark1_index = (this+mark1Coverage).get_coverage  (buffer->cur().codepoint);
-    if (likely (mark1_index == NOT_COVERED)) return_trace (false);
+    unsigned int mark1_index = coverage_index;
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;

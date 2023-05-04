@@ -61,14 +61,12 @@ struct SinglePosFormat2
 
   ValueFormat get_value_format () const { return valueFormat; }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
 
-    if (unlikely (index >= valueCount)) return_trace (false);
+    if (unlikely (coverage_index >= valueCount)) return_trace (false);
 
     if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
     {
@@ -78,7 +76,7 @@ struct SinglePosFormat2
     }
 
     valueFormat.apply_value (c, this,
-                             &values[index * valueFormat.get_len ()],
+                             &values[coverage_index * valueFormat.get_len ()],
                              buffer->cur_pos());
 
     if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())

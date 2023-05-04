@@ -61,14 +61,10 @@ struct MultipleSubstFormat1_2
   bool would_apply (hb_would_apply_context_t *c) const
   { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
-
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
-
-    return_trace ((this+sequence[index]).apply (c));
+    return_trace ((this+sequence[coverage_index]).apply (c));
   }
 
   template<typename Iterator,

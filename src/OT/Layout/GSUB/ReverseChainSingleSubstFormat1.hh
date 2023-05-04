@@ -106,19 +106,16 @@ struct ReverseChainSingleSubstFormat1
   bool would_apply (hb_would_apply_context_t *c) const
   { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
     if (unlikely (c->nesting_level_left != HB_MAX_NESTING_LEVEL))
       return_trace (false); /* No chaining to this type */
 
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur ().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
-
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (backtrack);
     const auto &substitute = StructAfter<decltype (substituteX)> (lookahead);
 
-    if (unlikely (index >= substitute.len)) return_trace (false);
+    if (unlikely (coverage_index >= substitute.len)) return_trace (false);
 
     unsigned int start_index = 0, end_index = 0;
     if (match_backtrack (c,
@@ -139,7 +136,7 @@ struct ReverseChainSingleSubstFormat1
 			    c->buffer->idx);
       }
 
-      c->replace_glyph_inplace (substitute[index]);
+      c->replace_glyph_inplace (substitute[coverage_index]);
 
       if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
       {

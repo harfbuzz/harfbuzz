@@ -78,14 +78,10 @@ struct LigatureSubstFormat1_2
     return lig_set.would_apply (c);
   }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
-
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur ().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
-
-    const auto &lig_set = this+ligatureSet[index];
+    const auto &lig_set = this+ligatureSet[coverage_index];
     return_trace (lig_set.apply (c));
   }
 

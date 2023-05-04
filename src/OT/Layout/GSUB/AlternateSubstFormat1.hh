@@ -69,14 +69,10 @@ struct AlternateSubstFormat1_2
   { return (this+alternateSet[(this+coverage).get_coverage (gid)])
            .get_alternates (start_offset, alternate_count, alternate_glyphs); }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
-
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
-
-    return_trace ((this+alternateSet[index]).apply (c));
+    return_trace ((this+alternateSet[coverage_index]).apply (c));
   }
 
   bool serialize (hb_serialize_context_t *c,

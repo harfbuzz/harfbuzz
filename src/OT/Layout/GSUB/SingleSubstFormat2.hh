@@ -100,13 +100,11 @@ struct SingleSubstFormat2_4
     return 1;
   }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
 
-    if (unlikely (index >= substitute.len)) return_trace (false);
+    if (unlikely (coverage_index >= substitute.len)) return_trace (false);
 
     if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
     {
@@ -116,7 +114,7 @@ struct SingleSubstFormat2_4
 			  c->buffer->idx);
     }
 
-    c->replace_glyph (substitute[index]);
+    c->replace_glyph (substitute[coverage_index]);
 
     if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
     {

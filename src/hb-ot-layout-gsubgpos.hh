@@ -680,7 +680,7 @@ struct hb_ot_apply_context_t :
   const char *get_name () { return "APPLY"; }
   typedef return_t (*recurse_func_t) (hb_ot_apply_context_t *c, unsigned int lookup_index);
   template <typename T>
-  return_t dispatch (const T &obj) { return obj.apply (this); }
+  return_t dispatch (const T &obj, unsigned coverage_index) { return obj.apply (this, coverage_index); }
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int sub_lookup_index)
@@ -893,22 +893,24 @@ struct hb_accelerate_subtables_context_t :
        hb_dispatch_context_t<hb_accelerate_subtables_context_t>
 {
   template <typename Type>
-  static inline bool apply_to (const void *obj, hb_ot_apply_context_t *c)
+  static inline bool apply_to (const void *obj, hb_ot_apply_context_t *c, unsigned coverage_index)
   {
     const Type *typed_obj = (const Type *) obj;
-    return typed_obj->apply (c);
+    return typed_obj->apply (c, coverage_index);
   }
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   template <typename T>
-  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->apply_cached (c) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, unsigned coverage_index, hb_priority<1>)
+    HB_RETURN (bool, obj->apply_cached (c, coverage_index) )
   template <typename T>
-  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, unsigned coverage_index, hb_priority<0>)
+    HB_RETURN (bool, obj->apply (c, coverage_index) )
   template <typename Type>
-  static inline bool apply_cached_to (const void *obj, hb_ot_apply_context_t *c)
+  static inline bool apply_cached_to (const void *obj, hb_ot_apply_context_t *c, unsigned coverage_index)
   {
     const Type *typed_obj = (const Type *) obj;
-    return apply_cached_ (typed_obj, c, hb_prioritize);
+    return apply_cached_ (typed_obj, c, coverage_index, hb_prioritize);
   }
 
   template <typename T>
@@ -923,7 +925,7 @@ struct hb_accelerate_subtables_context_t :
   }
 #endif
 
-  typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c);
+  typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c, unsigned coverage_index);
   typedef bool (*hb_cache_func_t) (const void *obj, hb_ot_apply_context_t *c, bool enter);
 
   struct hb_applicable_t
@@ -948,16 +950,22 @@ struct hb_accelerate_subtables_context_t :
 #endif
       digest.init ();
       obj_.get_coverage ().collect_coverage (&digest);
+      coverage_map.init ();
+      auto &coverage = obj_.get_coverage ();
+      for (hb_codepoint_t g : hb_iter (coverage))
+	coverage_map.set (g, coverage.get_coverage (g));
     }
 
     bool apply (hb_ot_apply_context_t *c) const
     {
-      return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c);
+      unsigned *v;
+      return coverage_map.has (c->buffer->cur().codepoint, &v) && apply_func (obj, c, *v);
     }
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     bool apply_cached (hb_ot_apply_context_t *c) const
     {
-      return digest.may_have (c->buffer->cur().codepoint) &&  apply_cached_func (obj, c);
+      unsigned *v;
+      return coverage_map.has (c->buffer->cur().codepoint, &v) && apply_cached_func (obj, c, *v);
     }
     bool cache_enter (hb_ot_apply_context_t *c) const
     {
@@ -977,6 +985,7 @@ struct hb_accelerate_subtables_context_t :
     hb_cache_func_t cache_func;
 #endif
     hb_set_digest_t digest;
+    hb_map_t coverage_map;
   };
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
@@ -2233,14 +2242,11 @@ struct ContextFormat1_4
 
   const Coverage &get_coverage () const { return this+coverage; }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED))
-      return_trace (false);
 
-    const RuleSet &rule_set = this+ruleSet[index];
+    const RuleSet &rule_set = this+ruleSet[coverage_index];
     struct ContextApplyLookupContext lookup_context = {
       {match_glyph},
       nullptr
@@ -2451,13 +2457,11 @@ struct ContextFormat2_5
     }
   }
 
-  bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }
-  bool apply (hb_ot_apply_context_t *c) const { return _apply (c, false); }
-  bool _apply (hb_ot_apply_context_t *c, bool cached) const
+  bool apply_cached (hb_ot_apply_context_t *c, unsigned coverage_index) const { return _apply (c, coverage_index, true); }
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const { return _apply (c, coverage_index, false); }
+  bool _apply (hb_ot_apply_context_t *c, unsigned coverage_index, bool cached) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
 
     const ClassDef &class_def = this+classDef;
 
@@ -2466,6 +2470,7 @@ struct ContextFormat2_5
       &class_def
     };
 
+    unsigned index;
     if (cached && c->buffer->cur().syllable() < 255)
       index = c->buffer->cur().syllable ();
     else
@@ -2643,11 +2648,9 @@ struct ContextFormat3
 
   const Coverage &get_coverage () const { return this+coverageZ[0]; }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverageZ[0]).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
 
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
     struct ContextApplyLookupContext lookup_context = {
@@ -3317,13 +3320,11 @@ struct ChainContextFormat1_4
 
   const Coverage &get_coverage () const { return this+coverage; }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
 
-    const ChainRuleSet &rule_set = this+ruleSet[index];
+    const ChainRuleSet &rule_set = this+ruleSet[coverage_index];
     struct ChainContextApplyLookupContext lookup_context = {
       {{match_glyph, match_glyph, match_glyph}},
       {nullptr, nullptr, nullptr}
@@ -3556,13 +3557,11 @@ struct ChainContextFormat2_5
     }
   }
 
-  bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }
-  bool apply (hb_ot_apply_context_t *c) const { return _apply (c, false); }
-  bool _apply (hb_ot_apply_context_t *c, bool cached) const
+  bool apply_cached (hb_ot_apply_context_t *c, unsigned coverage_index) const { return _apply (c, coverage_index, true); }
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const { return _apply (c, coverage_index, false); }
+  bool _apply (hb_ot_apply_context_t *c, unsigned coverage_index, bool cached) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
 
     const ClassDef &backtrack_class_def = this+backtrackClassDef;
     const ClassDef &input_class_def = this+inputClassDef;
@@ -3587,7 +3586,7 @@ struct ChainContextFormat2_5
        &lookahead_class_def}
     };
 
-    index = input_class_def.get_class (c->buffer->cur().codepoint);
+    unsigned index = input_class_def.get_class (c->buffer->cur().codepoint);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     return_trace (rule_set.apply (c, lookup_context));
   }
@@ -3805,13 +3804,10 @@ struct ChainContextFormat3
     return this+input[0];
   }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
   {
     TRACE_APPLY (this);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
-
-    unsigned int index = (this+input[0]).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return_trace (false);
 
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
