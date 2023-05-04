@@ -4085,7 +4085,8 @@ struct hb_ot_layout_lookup_accelerator_t
     return thiz;
   }
 
-  bool may_have (hb_codepoint_t g) const
+  template <typename T>
+  bool may_have (const T &g) const
   { return digest.may_have (g); }
 
   bool apply (hb_ot_apply_context_t *c, unsigned subtables_count, bool use_cache) const
