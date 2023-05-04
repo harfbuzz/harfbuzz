@@ -547,13 +547,10 @@ HB_EXTERN void
 hb_subset_input_set_old_to_new_glyph_mapping (hb_subset_input_t *input,
                                               const hb_map_t* mapping)
 {
-  hb_set_t new_gids;
-  for (auto gid : mapping->values())
-  {
+  hb_set_t new_gids(mapping->values());
+  if (new_gids.get_population() != mapping->get_population())
     // Mapping cannot map multiple old gids to the same new gid.
-    if (new_gids.has(gid)) return;
-    new_gids.add(gid);
-  }
+    return;
 
   input->glyph_map = *mapping;
 }

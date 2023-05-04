@@ -782,10 +782,16 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
 
   if (*requested_glyph_map)
   {
-    hb_codepoint_t max_glyph = HB_SET_VALUE_INVALID;
+  
+    hb_codepoint_t max_glyph = 0;
     hb_set_t remaining;
     for (auto old_gid : all_gids_to_retain->iter ())
     {
+      if (old_gid == 0) {
+        reverse_glyph_map->set(0, 0);
+        continue;
+      }
+
       hb_codepoint_t* new_gid;
       if (!requested_glyph_map->has (old_gid, &new_gid))
       {
@@ -793,7 +799,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
         continue;
       }
 
-      if (*new_gid > max_glyph || max_glyph == HB_SET_VALUE_INVALID)
+      if (*new_gid > max_glyph)
         max_glyph = *new_gid;
       reverse_glyph_map->set (*new_gid, old_gid);
     }
