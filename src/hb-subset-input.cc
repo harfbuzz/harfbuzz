@@ -472,6 +472,7 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
   return input->axes_location.set (axis_tag, Triple (val, val, val));
 }
 
+#ifdef HB_EXPERIMENTAL_API
 /**
  * hb_subset_input_set_axis_range: (skip)
  * @input: a #hb_subset_input_t object.
@@ -487,10 +488,12 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
  * axis default.
  *
  * Note: input min value can not be bigger than input max value
+ * Note: currently this API does not support changing axis limits yet.It'd be only
+ * used internally for setting axis limits in the internal data structures
  *
  * Return value: `true` if success, `false` otherwise
  *
- * Since: REPLACEME
+ * XSince: EXPERIMENTAL
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_set_axis_range (hb_subset_input_t  *input,
@@ -511,6 +514,7 @@ hb_subset_input_set_axis_range (hb_subset_input_t  *input,
   float new_default_val = hb_clamp(axis_info.default_value, new_min_val, new_max_val);
   return input->axes_location.set (axis_tag, Triple (new_min_val, new_default_val, new_max_val));
 }
+#endif
 #endif
 
 /**
