@@ -116,16 +116,21 @@ struct Coverage
     unsigned count = hb_len (glyphs);
     unsigned num_ranges = 0;
     hb_codepoint_t last = (hb_codepoint_t) -2;
+    hb_codepoint_t max = 0;
+    bool unsorted = false;
     for (auto g: glyphs)
     {
+      if (last != (hb_codepoint_t) -2 && g < last)
+	unsorted = true;
       if (last + 1 != g)
 	num_ranges++;
       last = g;
+      if (g > max) max = g;
     }
-    u.format = count <= num_ranges * 3 ? 1 : 2;
+    u.format = !unsorted && count <= num_ranges * 3 ? 1 : 2;
 
 #ifndef HB_NO_BEYOND_64K
-    if (count && last > 0xFFFFu)
+    if (count && max > 0xFFFFu)
       u.format += 2;
 #endif
 

@@ -107,6 +107,7 @@ struct CoverageFormat2_4
       last = g;
       count++;
     }
+    rangeRecord.as_array ().qsort (RangeRecord<Types>::cmp_range); // To handle unsorted glyph order.
 
     return_trace (true);
   }
