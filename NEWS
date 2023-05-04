@@ -1,3 +1,928 @@
+Overview of changes leading to 7.2.0
+Thursday, April 27, 2023
+====================================
+- Add Tifinagh to the list of scripts that can natively be either right-to-left
+  or left-to-right, to improve handling of its glyph positioning.
+  (Simon Cozens)
+- Return also single substitution from hb_ot_layout_lookup_get_glyph_alternates()
+  (Behdad Esfahbod)
+- Fix 4.2.0 regression in applying across syllables in syllabic scripts.
+  (Behdad Esfahbod)
+- Add flag to avoid glyph substitution closure during subsetting, and the
+  corresponding “--no-layout-closure” option to “hb-subset” command line tool.
+  (Garret Rieger)
+- Support instancing COLRv1 table. (Qunxin Liu)
+- Don’t drop used user-defined name table entries during subsetting.
+  (Qunxin Liu)
+- Optimize handling of “gvar” table. (Behdad Esfahbod)
+- Various subsetter bug fixes and improvements. (Garret Rieger, Qunxin Liu)
+- Various documentation improvements. (Behdad Esfahbod, Josef Friedrich)
+
+- New API:
++HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE
++HB_UNICODE_COMBINING_CLASS_CCC132
+
+- Deprecated API:
++HB_UNICODE_COMBINING_CLASS_CCC133
+
+
+Overview of changes leading to 7.1.0
+Friday, March 3, 2023
+====================================
+- New experimental hb_shape_justify() API that uses font variations to expand
+  or shrink the text to a given advance. (Behdad Esfahbod)
+- Various build and bug fixes. (Behdad Esfahbod, Garret Rieger, Qunxin Liu)
+
+- New API:
++hb_font_set_variation()
+
+
+Overview of changes leading to 7.0.1
+Monday, February 20, 2023
+====================================
+- Various build and bug fixes.
+
+
+Overview of changes leading to 7.0.0
+Saturday, February 11, 2023
+====================================
+- New hb-paint API that is designed mainly to paint “COLRv1” glyphs, but can be
+  also used as a unified API to paint any of the glyph representations
+  supported by HarfBuzz (B/W outlines, color layers, or color bitmaps). 
+  (Behdad Esfahbod, Matthias Clasen)
+- New hb-cairo API for integrating with cairo graphics library. This is provided
+  as a separate harfbuzz-cairo library. (Behdad Esfahbod, Matthias Clasen)
+- Support for instancing “CFF2” table. (Behdad Esfahbod)
+- Support font emboldening. (Behdad Esfahbod)
+- Support feature ranges with AAT shaping. (Behdad Esfahbod)
+- Experimental support to cubic curves in “glyf” table, see
+  https://github.com/harfbuzz/boring-expansion-spec/blob/main/glyf1-cubicOutlines.md
+  for spec. (Behdad Esfahbod)
+- Various subsetter improvements. (Garret Rieger, Qunxin Liu, Behdad Esfahbod)
+- Various documentation improvements. 
+  (Behdad Esfahbod, Matthias Clasen, Khaled Hosny)
+- Significantly reduced memory use during shaping. (Behdad Esfahbod)
+- Greatly reduced memory use during subsetting “CFF” table. (Behdad Esfahbod)
+- New command line utility, hb-info, for querying various font information.
+  (Behdad Esfahbod, Matthias Clasen)
+- New hb-shape/hb-view options: --glyphs, --color-palette, --font-bold,
+  --font-grade, and --named-instance. (Behdad Esfahbod)
+- Miscellaneous fixes and improvements.
+  (Amir Masoud Abdol, Andres Salomon, Behdad Esfahbod, Chun-wei Fan,
+  Garret Rieger, Jens Kutilek, Khaled Hosny, Konstantin Käfer, Matthias Clasen,
+  Nirbheek Chauhan, Pedro J. Estébanez, Qunxin Liu, Sergei Trofimovich)
+
+- New API:
++HB_FONT_NO_VAR_NAMED_INSTANCE
++HB_PAINT_IMAGE_FORMAT_BGRA
++HB_PAINT_IMAGE_FORMAT_PNG
++HB_PAINT_IMAGE_FORMAT_SVG
++hb_cairo_font_face_create_for_face
++hb_cairo_font_face_create_for_font
++hb_cairo_font_face_get_face
++hb_cairo_font_face_get_font
++hb_cairo_font_face_get_scale_factor
++hb_cairo_font_face_set_font_init_func
++hb_cairo_font_face_set_scale_factor
++hb_cairo_font_init_func_t
++hb_cairo_glyphs_from_buffer
++hb_cairo_scaled_font_get_font
++hb_color_line_get_color_stops
++hb_color_line_get_color_stops_func_t
++hb_color_line_get_extend
++hb_color_line_get_extend_func_t
++hb_color_line_t
++hb_color_stop_t
++hb_draw_funcs_get_empty
++hb_draw_funcs_get_user_data
++hb_draw_funcs_set_user_data
++hb_face_collect_nominal_glyph_mapping
++hb_font_draw_glyph
++hb_font_draw_glyph_func_t
++hb_font_funcs_set_draw_glyph_func
++hb_font_funcs_set_paint_glyph_func
++hb_font_get_synthetic_bold
++hb_font_get_var_named_instance
++hb_font_paint_glyph
++hb_font_paint_glyph_func_t
++hb_font_set_synthetic_bold
++hb_map_keys
++hb_map_next
++hb_map_update
++hb_map_values
++hb_ot_color_glyph_has_paint
++hb_ot_color_has_paint
++hb_ot_layout_script_select_language2
++hb_ot_name_id_predefined_t
++hb_paint_color
++hb_paint_color_func_t
++hb_paint_composite_mode_t
++hb_paint_custom_palette_color
++hb_paint_custom_palette_color_func_t
++hb_paint_extend_t
++hb_paint_funcs_create
++hb_paint_funcs_destroy
++hb_paint_funcs_get_empty
++hb_paint_funcs_get_user_data
++hb_paint_funcs_is_immutable
++hb_paint_funcs_make_immutable
++hb_paint_funcs_reference
++hb_paint_funcs_set_color_func
++hb_paint_funcs_set_custom_palette_color_func
++hb_paint_funcs_set_image_func
++hb_paint_funcs_set_linear_gradient_func
++hb_paint_funcs_set_pop_clip_func
++hb_paint_funcs_set_pop_group_func
++hb_paint_funcs_set_pop_transform_func
++hb_paint_funcs_set_push_clip_glyph_func
++hb_paint_funcs_set_push_clip_rectangle_func
++hb_paint_funcs_set_push_group_func
++hb_paint_funcs_set_push_transform_func
++hb_paint_funcs_set_radial_gradient_func
++hb_paint_funcs_set_sweep_gradient_func
++hb_paint_funcs_set_user_data
++hb_paint_funcs_t
++hb_paint_image
++hb_paint_image_func_t
++hb_paint_linear_gradient
++hb_paint_linear_gradient_func_t
++hb_paint_pop_clip
++hb_paint_pop_clip_func_t
++hb_paint_pop_group
++hb_paint_pop_group_func_t
++hb_paint_pop_transform
++hb_paint_pop_transform_func_t
++hb_paint_push_clip_glyph
++hb_paint_push_clip_glyph_func_t
++hb_paint_push_clip_rectangle
++hb_paint_push_clip_rectangle_func_t
++hb_paint_push_group
++hb_paint_push_group_func_t
++hb_paint_push_transform
++hb_paint_push_transform_func_t
++hb_paint_radial_gradient
++hb_paint_radial_gradient_func_t
++hb_paint_sweep_gradient
++hb_paint_sweep_gradient_func_t
++hb_set_is_inverted
++hb_subset_input_keep_everything
+
+- Deprecated API:
++hb_font_funcs_set_glyph_shape_func
++hb_font_get_glyph_shape_func_t
++hb_font_get_glyph_shape
+
+
+Overview of changes leading to 6.0.0
+Friday, December 16, 2022
+====================================
+- A new API have been added to pre-process the face and speed up future
+  subsetting operations on that face. Provides up to a 95% reduction in
+  subsetting times when the same face is subset more than once.
+
+  For more details and benchmarks, see:
+  https://github.com/harfbuzz/harfbuzz/blob/main/docs/subset-preprocessing.md
+
+  (Garret Rieger, Behdad Esfahbod)
+
+- Shaping have been speedup by skipping entire lookups when the buffer contents
+  don't intersect with the lookup. Shows up to a 10% speedup in shaping some
+  fonts. (Behdad Esfahbod)
+
+- A new experimental feature, “Variable Composites” (enabled by passing
+  -Dexperimental_api=true to meson), is also featured in this release.
+  This technology enables drastic compression of fonts in the Chinese,
+  Japanese, Korean, and other writing systems, by reusing the OpenType Font
+  Variations technology for encoding “smart components” into the font.
+
+  The specification for these  extensions to the font format can be found in:
+  https://github.com/harfbuzz/boring-expansion-spec/blob/glyf1/glyf1.md
+
+  A test variable-font with ~7160 Hangul syllables derived from the
+  NotoSerifKR-VF font has been built, with existing OpenType technology, as
+  well as with the new Variable Composites (VarComposites) technology. The
+  VarComposites font is over 90% smaller than the OpenType version of the font!
+  Both fonts can be obtained from the “smarties” repository:
+  https://github.com/behdad/smarties/tree/3.0/fonts/hangul/serif
+
+  When building HarfBuzz with experimental features enabled, you can test
+  the “smarties” font with a sample character like this:
+
+  $ hb-view butchered-hangul-serif-smarties-variable.ttf -u AE01 --variations=wght=700
+
+  (Behdad Esfahbod)
+
+- The HarfBuzz subsetter can now drop axes by pinning them to specific values
+  (also referred to as instancing). There are a couple of restrictions
+  currently:
+
+  - Only works with TrueType (“glyf”) based fonts. “CFF2” fonts are not yet
+    supported.
+  - Only supports the case where all axes in a font are pinned.
+
+  (Garret Rieger, Qunxin Liu)
+
+- Miscellaneous fixes and improvements.
+
+  (Behdad Esfahbod, Christoph Reiter, David Corbett, Eli Schwartz, Garret
+   Rieger, Joel Auterson, Jordan Petridis, Khaled Hosny, Lorenz Wildberg,
+   Marco Rebhan, Martin Storsjö, Matthias Clasen, Qunxin Liu, Satadru Pramanik)
+
+
+- New API
++hb_subset_input_pin_axis_location()
++hb_subset_input_pin_axis_to_default()
++hb_subset_preprocess()
+
+
+Overview of changes leading to 5.3.1
+Wednesday, October 19, 2022
+====================================
+- Subsetter repacker fixes. (Garret Rieger)
+- Adjust Grapheme clusters for Katakana voiced sound marks. (Behdad Esfahbod)
+- New “hb-subset” option “--preprocess-face”. (Garret Rieger)
+
+
+Overview of changes leading to 5.3.0
+Saturday, October 8, 2022
+"Women, Life, Freedom" #MahsaAmini
+====================================
+- Don’t add glyphs from dropped MATH or COLR tables to the subset glyphs.
+  (Khaled Hosny)
+- Map “rlig” to appropriate AAT feature selectors. (Jonathan Kew)
+- Update USE data files to latest version. (David Corbett)
+- Check “CBDT” extents first before outline tables, to help with fonts that
+  also include an empty “glyf” table. (Khaled Hosny)
+- More work towards variable font instancing in the subsetter. (Qunxin Liu)
+- Subsetter repacker improvements. (Garret Rieger)
+- New API:
++hb_ot_layout_lookup_get_optical_bound()
++hb_face_builder_sort_tables()
+
+
+Overview of changes leading to 5.2.0
+Saturday, September 17, 2022
+====================================
+- Fix regressions in hb-ft font functions for FT_Face’s with transformation
+  matrix. (Behdad Esfahbod)
+- The experimental hb-repacker API now supports splitting several GPOS subtable
+  types when needed. (Garret Rieger)
+- The HarfBuzz extensions to OpenType font format are now opt-in behind
+  build-time flags. (Behdad Esfahbod)
+- The experimental hb-subset variable fonts instantiation API can now
+  instantiate more font tables and arbitrary axis locations. (Qunxin Liu)
+- Unicode 15 support. (David Corbett)
+- Various documentation improvements. (Behdad Esfahbod, Matthias Clasen)
+- The hb-view command line tool now detects WezTerm inline images support.
+  (Wez Furlong)
+- Fix FreeType and ICU dependency lookup with meson. (Xavier Claessens)
+
+- New API:
++HB_SCRIPT_KAWI
++HB_SCRIPT_NAG_MUNDARI
+
+
+Overview of changes leading to 5.1.0
+Sunday, July 31, 2022
+====================================
+- More extensive buffer tracing messages. (Behdad Esfahbod)
+- Fix hb-ft regression in bitmap fonts rendering. (Behdad Esfahbod)
+- Support extension promotion of lookups in hb-subset-repacker. (Garret Rieger)
+- A new HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL for scripts that use elongation
+  (e.g. Arabic) to signify where it is safe to insert tatweel glyph without
+  interrupting shaping. (Behdad Esfahbod)
+- Add “--safe-to-insert-tatweel” to “hb-shape” tool. (Behdad Esfahbod)
+
+- New API
++HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL
++HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL
+
+
+Overview of changes leading to 5.0.1
+Saturday, July 23, 2022
+====================================
+- Fix version 2 “avar” table with hb-ft. (Behdad Esfahbod)
+
+
+Overview of changes leading to 5.0.0
+Saturday, July 23, 2022
+====================================
+- Support fonts with more than 65535 glyphs in “GDEF”, “GSUB”, and “GPOS”
+  tables. This is part of https://github.com/be-fonts/boring-expansion-spec to
+  extend OpenType in a backward-compatible way.
+  (Behdad Esfahbod, Garret Rieger)
+- Complete support for more than 65535 glyphs in “glyf” table that started in
+  4.0.0 release. Part of boring-expansion-spec. (Behdad Esfahbod)
+- Support version 2 of “avar” table. Part of boring-expansion-spec.
+  (Behdad Esfahbod)
+- Fix mark attachment on multiple substitutions in some cases.
+  (Behdad Esfahbod)
+- Fix application of “calt”, “rclt”, and “ccmp” features to better match
+  Uniscribe behaviour with some Arabic fonts. (Behdad Esfahbod)
+- Improvement to interaction between multiple cursive attachments.
+  (Behdad Esfahbod)
+- Improve multiple mark interactions in Hebrew. (Behdad Esfahbod)
+- Implement language-specific forms in AAT shaping. (Behdad Esfahbod)
+- Fix variation of “VORG” table. (Behdad Esfahbod)
+- Support for specific script tags to be retained in the subsetter, and add
+  “--layout-scripts” option to “hb-subset” tool. (Garret Rieger)
+- Accept space as delimiter for --features/--variations in command line tools.
+- Improve subsetting of “COLR” table. (Qunxin Liu)
+- Improved fuzzing coverage for ot-math API. (Frédéric Wang)
+- Fix “kern” table version 2 (AAT) sanitization on 32-bit systems.
+  (Behdad Esfahbod)
+- Allow negative glyph advances from “graphite2” shaper. (Stephan Bergmann)
+- Implement loading (color) bitmap fonts with hb-ft. (Behdad Esfahbod)
+- Fix regression in hb-ft when changing font size. (Behdad Esfahbod)
+- Fix build on GCC < 7. (Kleis Auke Wolthuizen)
+- Dynamically load dwrite.dll on windows if “directwrite” shaper is enabled.
+  (Luca Bacci)
+- Provide a single-file harfbuzz-subset.cc file for easier alternate building
+  of hb-subset library, similar to harfbuzz.cc. (Khaled Hosny)
+
+- New API
++HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG
++hb_language_matches()
+
+
+Overview of changes leading to 4.4.1
+Wednesday, June 29, 2022
+====================================
+- Fix test failure with some compilers.
+- Fix Telugu and Kannada kerning regression.
+
+
+Overview of changes leading to 4.4.0
+Monday, June 27, 2022
+====================================
+- Caching of variable fonts shaping, in particular when using HarfBuzz’s own
+  font loading functions (ot). Bringing performance of variable shaping in par
+  with non-variable fonts shaping. (Behdad Esfahbod)
+- Caching of format 2 “Contextual Substitution” and “Chained Contexts
+  Substitution” lookups. Resulting in up to 20% speedup of lookup-heavy fonts
+  like Gulzar or Noto Nastaliq Urdu. (Behdad Esfahbod)
+- Improved ANSI output from hb-view. (Behdad Esfahbod)
+- Support for shaping legacy, pre-OpenType Windows 3.1-era, Arabic fonts that
+  relied on a fixed PUA encoding. (Khaled Hosny, Behdad Esfahbod)
+- Sinhala script is now shaped by the USE shaper instead of “indic” one.
+  (Behdad Esfahbod, David Corbett)
+- Thai shaper improvements. (David Corbett)
+- hb-ot-name API supports approximate BCP-47 language matching, for example
+  asking for “en_US” in a font that has only “en” names will return them.
+  (Behdad Esfahbod)
+- Optimized TrueType glyph shape loading. (Behdad Esfahbod)
+- Fix subsetting of HarfBuzz faces created via hb_face_create_for_tables().
+  (Garret Rieger)
+- Add 32 bit var store support to the subsetter. (Garret Rieger)
+
+- New API
++HB_BUFFER_FLAG_DEFINED
++HB_BUFFER_SERIALIZE_FLAG_DEFINED
++hb_font_changed()
++hb_font_get_serial()
++hb_ft_hb_font_changed()
++hb_set_hash()
++hb_map_copy()
++hb_map_hash()
+
+
+Overview of changes leading to 4.3.0
+Friday, May 20, 2022
+====================================
+- Major speed up in loading and subsetting fonts, especially in
+  handling CFF table. Subsetting some fonts is now 3 times faster.
+  (Behdad Esfahbod, Garret Rieger)
+- Speed up blending CFF2 table. (Behdad Esfahbod)
+- Speed up hb_ot_tags_from_language(). (Behdad Esfahbod, David Corbett)
+- Fix USE classification of U+10A38 to fix multiple marks on single Kharoshthi
+  base. (David Corbett)
+- Fix parsing of empty CFF Index. (Behdad Esfahbod)
+- Fix subsetting CPAL table with partial palette overlaps. (Garret Rieger)
+
+- New API
++hb_map_is_equal() (Behdad Esfahbod)
+
+
+Overview of changes leading to 4.2.1
+Sunday, April 24, 2022
+====================================
+- Make sure hb_blob_create_from_file_or_fail() always returns nullptr in case
+  of failure and not empty blob sometimes. (Khaled Hosny)
+- Add --passthrough-tables option to hb-subset. (Cosimo Lupo)
+- Reinstate a pause after basic features in Khmer shaper, fixing a regression
+  introduced in previous release. (Behdad Esfahbod)
+- Better handling of Regional_Indicator when shaped with RTL-native scripts,
+  reverting earlier fix that caused regressions in AAT shaping. (Behdad Esfahbod)
+
+
+Overview of changes leading to 4.2.0
+Wednesday, March 30, 2022
+====================================
+- Source code reorganization, splitting large hb-ot-layout files into smaller,
+  per-subtable ones under OT/Layout/*. Code for more tables will follow suit in
+  later releases. (Garret Rieger, Behdad Esfahbod)
+- Revert Indic shaper change in previous release that broke some fonts and
+  instead make per-syllable restriction of “GSUB” application limited to
+  script-specific Indic features, while applying them and discretionary
+  features in one go. (Behdad Esfahbod)
+- Fix decoding of private in gvar table. (Behdad Esfahbod)
+- Fix handling of contextual lookups that delete too many glyphs. (Behdad Esfahbod)
+- Make “morx” deleted glyphs don’t block “GPOS” application. (Behdad Esfahbod)
+- Various build fixes. (Chun-wei Fan, Khaled Hosny)
+
+- New API
++hb_set_next_many() (Andrew John)
+
+
+Overview of changes leading to 4.1.0
+Wednesday, March 23, 2022
+====================================
+- Various OSS-Fuzz fixes. (Behdad Esfahbod)
+- Make fallback vertical-origin match FreeType’s. (Behdad Esfahbod)
+- Treat visible viramas like dependent vowels in USE shaper. (David Corbett)
+- Apply presentation forms features and discretionary features in one go in
+  Indic shaper, which seems to match Uniscribe and CoreText behaviour.
+  (Behdad Esfahbod, David Corbett)
+- Various bug fixes.
+
+- New API
++hb_set_add_sorted_array() (Andrew John)
+
+
+Overview of changes leading to 4.0.1
+Friday, March 11, 2022
+====================================
+- Update OpenType to AAT mappings for “hist” and “vrtr” features.
+  (Florian Pircher)
+- Update IANA Language Subtag Registry to 2022-03-02. (David Corbett)
+- Update USE shaper to allow any non-numeric tail in a symbol cluster, and
+  remove obsolete data overrides. (David Corbett)
+- Fix handling of baseline variations to return correctly scaled values.
+  (Matthias Clasen)
+- A new experimental hb_subset_repack_or_fail() to repack an array of objects,
+  eliminating offset overflows. The API is not available unless HarfBuzz is
+  built with experimental APIs enabled. (Qunxin Liu)
+
+- New experimental API
++hb_link_t
++hb_object_t
++hb_subset_repack_or_fail()
+
+
+Overview of changes leading to 4.0.0
+Tuesday, March 1, 2022
+====================================
+- New public API to create subset plan and gather information on things like
+  glyph mappings in the final subset. The plan can then be passed on to perform
+  the subsetting operation. (Garret Rieger)
+- Draw API for extracting glyph shapes have been extended and finalized and is
+  no longer an experimental API. The draw API supports glyf, CFF and CFF2
+  glyph outlines tables, and applies variation settings set on the font as well
+  as synthetic slant. The new public API is not backward compatible with the
+  previous, non-public, experimental API. (Behdad Esfahbod)
+- The hb-view tool will use HarfBuzz draw API to render the glyphs instead of
+  cairo-ft when compiled with Cairo 1.17.5 or newer, setting HB_DRAW
+  environment variable to 1 or 0 will force using or not use the draw API,
+  respectively. (Behdad Esfahbod)
+- The hb-shape and hb-view tools now default to using HarfBuzz’s own font
+  loading functions (ot) instead of FreeType ones (ft). They also have a new
+  option, --font-slant, to apply synthetic slant to the font. (Behdad Esfahbod)
+- HarfBuzz now supports more than 65535 (the OpenType limit) glyph shapes and
+  metrics. See https://github.com/be-fonts/boring-expansion-spec/issues/6 and
+  https://github.com/be-fonts/boring-expansion-spec/issues/7 for details.
+  (Behdad Esfahbod)
+- New API to get the dominant horizontal baseline tag for a given script.
+  (Behdad Esfahbod)
+- New API to get the baseline positions from the font, and synthesize missing
+  ones. As well as new API to get font metrics and synthesize missing ones.
+  (Matthias Clasen)
+- Improvements to finding dependencies on Windows when building with Visual
+  Studio. (Chun-wei Fan)
+- New buffer flag, HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT, that must be set
+  during shaping for HB_GLYPH_FLAG_UNSAFE_TO_CONCAT flag to be reliably
+  produced. This is to limit the performance hit of producing this flag to when
+  it is actually needed. (Behdad Esfahbod)
+- Documentation improvements. (Matthias Clasen)
+
+- New API
+ - General:
+   +HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT
+   +hb_var_num_t
+
+ - Draw:
+   +hb_draw_funcs_t
+   +hb_draw_funcs_create()
+   +hb_draw_funcs_reference()
+   +hb_draw_funcs_destroy()
+   +hb_draw_funcs_is_immutable()
+   +hb_draw_funcs_make_immutable()
+   +hb_draw_move_to_func_t
+   +hb_draw_funcs_set_move_to_func()
+   +hb_draw_line_to_func_t
+   +hb_draw_funcs_set_line_to_func()
+   +hb_draw_quadratic_to_func_t
+   +hb_draw_funcs_set_quadratic_to_func()
+   +hb_draw_cubic_to_func_t
+   +hb_draw_funcs_set_cubic_to_func()
+   +hb_draw_close_path_func_t
+   +hb_draw_funcs_set_close_path_func()
+   +hb_draw_state_t
+   +HB_DRAW_STATE_DEFAULT
+   +hb_draw_move_to()
+   +hb_draw_line_to()
+   +hb_draw_quadratic_to()
+   +hb_draw_cubic_to()
+   +hb_draw_close_path()
+   +hb_font_get_glyph_shape_func_t
+   +hb_font_funcs_set_glyph_shape_func()
+   +hb_font_get_glyph_shape()
+
+ - OpenType layout
+   +HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_CENTRAL
+   +HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_CENTRAL
+   +hb_ot_layout_get_horizontal_baseline_tag_for_script()
+   +hb_ot_layout_get_baseline_with_fallback()
+
+ - Metrics:
+   +hb_ot_metrics_get_position_with_fallback()
+
+ - Subset:
+   +hb_subset_plan_t
+   +hb_subset_plan_create_or_fail()
+   +hb_subset_plan_reference()
+   +hb_subset_plan_destroy()
+   +hb_subset_plan_set_user_data()
+   +hb_subset_plan_get_user_data()
+   +hb_subset_plan_execute_or_fail()
+   +hb_subset_plan_unicode_to_old_glyph_mapping()
+   +hb_subset_plan_new_to_old_glyph_mapping()
+   +hb_subset_plan_old_to_new_glyph_mapping()
+
+
+Overview of changes leading to 3.4.0
+Sunday, February 13, 2022
+====================================
+- Perform sanity checks on shaping results is now part of “harfbuzz” library
+  and can be enabled by setting the buffer flag HB_BUFFER_FLAG_VERIFY.
+  (Behdad Esfahbod)
+- Arabic Mark Transient Reordering Algorithm have been updated to revision 6.
+  (Khaled Hosny)
+- ISO 15924 code for mathematical notation, ‘Zmth’, now maps to the OpenType
+  ‘math’ tag. (Alexis King)
+- It is now possible to get at once all math kerning values for a given glyph
+  at a given corner. (Alexis King)
+- Fix locale_t portability issues on systems the typedef’s it to a void
+  pointer. (Behdad Esfahbod)
+
+- New API:
++HB_BUFFER_FLAG_VERIFY
++HB_OT_TAG_MATH_SCRIPT
++HB_SCRIPT_MATH
++hb_ot_math_kern_entry_t
++hb_ot_math_get_glyph_kernings()
+
+- Deprecated API
++HB_OT_MATH_SCRIPT
+
+
+Overview of changes leading to 3.3.2
+Sunday, February 6, 2022
+====================================
+- Revert splitting of pair positioning values introduced in 3.3.0 as it proved
+  problematic. (Behdad Esfahbod)
+
+
+Overview of changes leading to 3.3.1
+Monday, January 31, 2022
+====================================
+- Fix heap-use-after-free in harfbuzz-subset introduced in previous release.
+  (Garret Rieger)
+
+
+Overview of changes leading to 3.3.0
+Monday, January 31, 2022
+====================================
+- Improved documentation. (Matthias Clasen)
+- Internal code cleanup, using C++ standard library more. (Behdad Esfahbod)
+- The low 16-bits of face index will be used by hb_face_create() to select a
+  face inside a font collection file format, while the high 16-bits will be
+  used by hb_font_create() to load the named instance. (Behdad Esfahbod)
+- Glyph positions and other font metrics now apply synthetic slant set by
+  hb_font_set_synthetic_slant(), for improved positioning for synthetically
+  slanted fonts. (Behdad Esfahbod)
+- Fixed unintentional locale dependency in hb_variation_to_string() for decimal
+  point representation. (Matthias Clasen)
+- When applying pair positioning (kerning) the positioning value is split
+  between the two sides of the pair for improved cursor positioning between
+  such pairs. (Behdad Esfahbod)
+- Introduced new HB_GLYPH_FLAG_UNSAFE_TO_CONCAT, to be used in conjunction
+  with HB_GLYPH_FLAG_UNSAFE_TO_BREAK for optimizing re-shaping during line
+  breaking. Check the documentation for further details. (Behdad Esfahbod)
+- Improved handling of macrolanguages when mapping BCP 47 codes to OpenType
+  tags. (David Corbett)
+
+- New API:
++HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
++hb_segment_properties_overlay()
++hb_buffer_create_similar()
++hb_font_set_synthetic_slant()
++hb_font_get_synthetic_slant()
++hb_font_get_var_coords_design()
+
+
+Overview of changes leading to 3.2.0
+Friday, November 26, 2021
+====================================
+“harfbuzz” library improvements:
+- Fixed shaping of Apple Color Emoji flags in right-to-left context. (Behdad Esfahbod)
+- Fixed positioning of CFF fonts in HB_TINY profile. (Behdad Esfahbod)
+- OpenType 1.9 language tags update. (David Corbett)
+- Add HB_NO_VERTICAL config option.
+- Add HB_CONFIG_OVERRIDE_H for easier configuration. (Behdad Esfahbod)
+
+“harfbuzz-subset” library improvements:
+- Improved packing of cmap, loca, and Ligature tables. (Garret Rieger)
+- Significantly improved overflow-resolution strategy in the repacker. (Garret Rieger)
+
+
+Overview of changes leading to 3.1.2
+Friday, November 26, 2021
+====================================
+- hb-shape / hb-view: revert treating text on the commandline as single
+  paragraph (was introduced in 3.0.0); add new --single-par to do that.
+  (Behdad Esfahbod)
+- Subsetter bug fixes. (Garret Rieger, Qunxin Liu, Behdad Esfahbod)
+
+
+Overview of changes leading to 3.1.1
+Wednesday, November 8, 2021
+====================================
+- Work around GCC cast-align error/warning on some platforms. (Behdad Esfahbod)
+- Documentation improvements. (Matthias Clasen)
+
+
+Overview of changes leading to 3.1.0
+Wednesday, November 3, 2021
+====================================
+- Better offset-overflow handling in the subsetter library. (Garret Rieger)
+- Improved Unicode 14 properties in the USE shaper, and various other USE
+  shaper fixes. (David Corbett)
+- MATH and COLR v1 tables subsetting support, and various other subsetter fixes.
+  (Qunxin Liu)
+- Support for Pwo Karen / Ason Chin medial la. (Simon Cozens)
+- Apply GPOS positioning when substituting with morx table, if kerx is missing.
+  (Behdad Esfahbod)
+- Apply calt and clig features across syllable boundaries in Indic shaper.
+  (Behdad Esfahbod)
+- meson option for enabling Graphite 2 has been renamed to graphite2.
+- Build and documentation fixes.
+
+- New API:
++hb_buffer_set_not_found_glyph()
++hb_buffer_get_not_found_glyph()
+
+
+Overview of changes leading to 3.0.0
+Friday, September 17, 2021
+====================================
+- Unicode 14.0 support (David Corbett).
+- The hb-subset API and the harfbuzz-subset library's ABI are now declared
+  stable. The harfbuzz-subset library would not have been possible without the
+  work of Garret Rieger and Qunxin Liu from Google Fonts, and the earlier work
+  of Michiharu Ariza from Adobe.
+- The hb-style API is now stable and no longer experimental.
+
+- New API:
++hb_style_tag_t
++hb_style_get_value()
++hb_subset_input_t
++hb_subset_flags_t
++hb_subset_sets_t
++hb_subset_input_create_or_fail()
++hb_subset_input_reference()
++hb_subset_input_destroy()
++hb_subset_input_set_user_data()
++hb_subset_input_get_user_data()
++hb_subset_input_unicode_set()
++hb_subset_input_glyph_set()
++hb_subset_input_set()
++hb_subset_input_get_flags()
++hb_subset_input_set_flags()
++hb_subset_or_fail()
+
+- Removed old unstable harfbuzz-subset API:
+-hb_subset_input_nameid_set()
+-hb_subset_input_namelangid_set()
+-hb_subset_input_layout_features_set()
+-hb_subset_input_no_subset_tables_set()
+-hb_subset_input_drop_tables_set()
+-hb_subset_input_set_drop_hints()
+-hb_subset_input_get_drop_hints()
+-hb_subset_input_set_desubroutinize()
+-hb_subset_input_get_desubroutinize()
+-hb_subset_input_set_retain_gids()
+-hb_subset_input_get_retain_gids()
+-hb_subset_input_set_name_legacy()
+-hb_subset_input_get_name_legacy()
+-hb_subset_input_set_overlaps_flag()
+-hb_subset_input_get_overlaps_flag()
+-hb_subset_input_set_notdef_outline()
+-hb_subset_input_get_notdef_outline()
+-hb_subset_input_set_no_prune_unicode_ranges()
+-hb_subset_input_get_no_prune_unicode_ranges()
+-hb_subset()
+
+
+Overview of changes leading to 2.9.1
+Tuesday, September 7, 2021
+====================================
+- Final subset API is in place and if no issues are discovered, it will be the
+  stable subset API of HarfBuzz 3.0.0. Old API is kept to ease transition, but
+  will be removed in 3.0.0.
+- Various fuzzer-found bug fixes.
+- hb_buffer_append() now handles the pre- and post-context which previously
+  were left unchanged in the destination buffer.
+- hb-view / hb-shape now accept following new arguments:
+  o --unicodes-before/after: takes a list of hex numbers that represent Unicode
+    codepoints.
+- Undeprecated API:
+  hb_set_invert()
+
+
+Overview of changes leading to 2.9.0
+Wednesday, August 18, 2021
+History Repeats Itself (Afghanistan)
+====================================
+- Subsetter API is being stabilized, with the first stable API to happen in
+  3.0.0 release (https://github.com/harfbuzz/harfbuzz/issues/3078).
+- Support multiple variation axes with same tag, aka HOI.
+- The “coretext” testing shaper now passes font variations to CoreText.
+- hb-shape/hb-view does not break line at new lines unless text is read from
+  file.
+- hb-view and hb-subset has a --batch now, similar to hb-shape.
+- The --batch mode now uses ; as argument separator instead of : used previously.
+- The --batch in hb-shape does not expect 0th argument anymore. That is, the
+  lines read are interpreted as argv[1:], instead of argv[0:].
+- The --batch option has been undocumented. We are ready to document it; send
+  feedback if you find it useful.
+- hb-subset got arguments revamps. Added much-requested --gids-file, --glyphs,
+  --glyphs-file, --unicodes-file, supporting ranges in --unicodes.
+- Various bug fixes.
+
+
+Overview of changes leading to 2.8.2
+Tuesday, July 8, 2021
+====================================
+- Shaping LTR digits for RTL scripts now makes the native direction of the
+  digits LTR, applying shaping and positioning rules on the same glyph order as
+  Uniscribe. (Jonathan Kew, Khaled Hosny).
+- Subsetting COLR v1 and CPAL tables is now supported. (Garret Rieger, Qunxin Liu)
+- Various fixes and improvements to the subsetter. (Garret Rieger, Qunxin Liu, Behdad)
+- When applying morx table, mark glyph widths should not be zeroed. (Jonathan Kew)
+- GPOS is preferred over kerx, if GSUB was applied. (Behdad)
+- Regional_Indicator pairs are grouped together when clustering. (Behdad)
+- New API:
++hb_blob_create_or_fail()
++hb_blob_create_from_file_or_fail()
++hb_set_copy()
+
+
+Overview of changes leading to 2.8.1
+Tuesday, May 4, 2021
+====================================
+- Subsetter now fully supports GSUB/GPOS/GDEF tables (including variations); as
+  such, layout tables are retained by subsetter by default. (Garret Rieger, Qunxin Liu)
+- Build scripts no longer check for FontConfig as HarfBuzz does not use it.
+- hb-view supports iTerm2 and kitty inline image protocols (Khaled Hosny),
+  it can also use Chafa for terminal graphics if available (Hans Petter Jansson).
+
+Overview of changes leading to 2.8.0
+Tuesday, March 16, 2021
+====================================
+- Shape joining scripts other than Arabic/Syriac using the Universal Shaping Engine.
+  Previously these were shaped using the generalized Arabic shaper. (David Corbett)
+- Fix regression in shaping of U+0B55 ORIYA SIGN OVERLINE. (David Corbett)
+- Update language tags. (David Corbett)
+- Variations: reduce error: do not round each interpolated delta. (Just van Rossum) 
+- Documentation improvements. (Khaled Hosny, Nathan Willis)
+- Subsetter improvements: subsets most, if not all, lookup types now. (Garret Rieger, Qunxin Liu)
+- Fuzzer-found fixes and other improvements when memory failures happen. (Behdad)
+- Removed most atomic implementations now that we have C++11 atomic impl. (Behdad)
+- General codebase upkeep; using more C++11 features: constexpr constructors, etc. (Behdad)
+
+
+Overview of changes leading to 2.7.4
+Sunday, December 27, 2020
+====================================
+- Fix missing --enable-introspection configure option from previous release
+  tarball.
+- Documentation updates.
+
+
+Overview of changes leading to 2.7.3
+Wednesday, December 23, 2020
+====================================
+- Update USE shaper to 2020-08-13 specification, and other improvements.
+- Don’t disable liga feature in myanmar shaper, to match Uniscribe.
+- Improvements to language and script tags handling.
+- Update language system tag registry to OpenType 1.8.4
+- Support for serializing and deserializing Unicode buffers. Serialized buffers
+  are now delimited with `<>` or `[]` based on whether it is a Unicode or
+  glyphs buffer.
+- Increase buffer work limits to handle fonts with many complex lookups.
+- Handle more shaping operations in trace output.
+- Memory access fixes.
+- More OOM fixes.
+- Improved documentation.
+- Build system improvements.
+- New API:
++hb_buffer_has_positions()
++hb_buffer_serialize()
++hb_buffer_serialize_unicode()
++hb_buffer_deserialize_unicode()
+
+
+Overview of changes leading to 2.7.2
+Saturday, August 29, 2020
+====================================
+- Fix a regression in the previous release that caused a crash with Kaithi.
+- More OOM fixes.
+
+
+Overview of changes leading to 2.7.1
+Thursday, August 13, 2020
+====================================
+- ot-funcs now handles variable empty glyphs better when hvar/vvar isn't present.
+- Reverted a GDEF processing regression.
+- A couple of fixes to handle OOM better.
+
+
+Overview of changes leading to 2.7.0
+Saturday, July 25, 2020
+====================================
+- Use an implementation for round that always rounds up, some minor fluctuations
+  are expected on var font specially when hb-ot callback is used.
+- Fix an AAT's `kerx` issue on broken rendering of Devanagari Sangam MN.
+- Remove AAT's `lcar` table support from _get_ligature_carets API, not even much
+  use on macOS installed fonts (only two files).  GDEF support is the recommended
+  one and expected to work properly after issues fixed two releases ago.
+- Minor memory fixes to handle OOM better specially in hb-ft.
+- Minor .so files versioning scheme change and remove stable/unstable scheme
+  differences, was never used in practice (always default to stable scheme).
+- We are now suggesting careful packaging of the library using meson,
+  https://github.com/harfbuzz/harfbuzz/wiki/Notes-on-migration-to-meson
+  for more information.
+- Distribution package URL is changed, either use GitHub generated tarballs,
+  `https://github.com/harfbuzz/harfbuzz/archive/$pkgver.tar.gz`
+  or, even more preferably use commit hash of the release and git checkouts like,
+  `git+https://github.com/harfbuzz/harfbuzz#commit=$commit`
+
+
+Overview of changes leading to 2.6.8
+Monday, June 22, 2020
+====================================
+- New API to fetch glyph alternates from GSUB table.
+- hb-coretext build fix for macOS < 10.10.
+- Meson build fixes, cmake port removal is postponed but please prepare for
+  it and give us feedback.
+  Autotools is still our main build system however please consider
+  experimenting with meson also for packaging the library.
+- New API:
++hb_ot_layout_lookup_get_glyph_alternates()
+
+
+Overview of changes leading to 2.6.7
+Wednesday, June 3, 2020
+====================================
+- Update to Unicode 13.0.0.
+- Fix hb_ot_layout_get_ligature_carets for fonts without lcar table, it was
+  completely broken for all the other fonts since 2.1.2.
+- As a part of our migration to meson, this release will be the last one
+  to provide cmake port files but autotools still is our main build system.
+  There is a possibility that the next version or the after be released
+  using meson.
+
+
+Overview of changes leading to 2.6.6
+Tuesday, May 12, 2020
+====================================
+- A fix in AAT kerning for Geeza Pro.
+- Better support for resource fork fonts on macOS.
+
+
+Overview of changes leading to 2.6.5
+Friday, April 17, 2020
+====================================
+- Add experimental meson build system.  Autotools is still the primary
+  and supported build system.
+- AAT is now always preferred for horizontal scripts when both AAT and OT
+  layout tables exist at the same time.
+- Subsetter improvements.
+- New API:
++hb_ft_font_lock_face()
++hb_ft_font_unlock_face()
+
+
 Overview of changes leading to 2.6.4
 Monday, October 29, 2019
 ====================================
@@ -90,7 +1015,7 @@ Friday, May 24, 2019
   code-base changes.  We now require C++11.  Support for gcc 4.8 and earlier has been
   dropped.
 - New hb-config.hh facility for compiling smaller library for embedded and web usecases.
-- New Unicode Character Databse implementation that is half the size of previously-used
+- New Unicode Character Database implementation that is half the size of previously-used
   UCDN.
 - Subsetter improvements.
 - Improved documentation, thanks to Nathan Willis.
@@ -938,7 +1863,7 @@ Thursday, February 25, 2016
   due to bug in glyph class of ASCII double-quote character.  This should
   address "regression" introduced in 1.2.0 when we switched mark zeroing
   in most shapers from BY_UNICODE_LATE to BY_GDEF_LATE.
-  This fourth release in a week should finally stablize things...
+  This fourth release in a week should finally stabilize things...
 
 - hb-ot-font's get_glyph() implementation saw some optimizations.  Though,
   might be really hard to measure in real-world situations.
@@ -1986,7 +2911,7 @@ o Changed API:
   - hb_buffer_create() takes zero arguments now.
     Use hb_buffer_pre_allocate() to pre-allocate.
 
-  - hb_buffer_add_utf*() now accept -1 for length parameteres,
+  - hb_buffer_add_utf*() now accept -1 for length parameters,
     meaning "nul-terminated".
 
   - hb_direction_t enum values changed.

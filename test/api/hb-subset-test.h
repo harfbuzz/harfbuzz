@@ -69,8 +69,14 @@ static inline hb_subset_input_t *
 hb_subset_test_create_input_from_nameids (const hb_set_t *name_ids)
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
-  hb_set_t * input_name_ids  = hb_subset_input_nameid_set (input);
+  hb_set_t * input_name_ids  = hb_subset_input_set (input, HB_SUBSET_SETS_NAME_ID);
   hb_set_set (input_name_ids, name_ids);
+
+  hb_set_t *name_langids = hb_subset_input_set (input, HB_SUBSET_SETS_NAME_LANG_ID);
+  hb_set_add_range (name_langids, 0, 0x5FFF);
+
+  hb_subset_input_set_flags (input,
+                             HB_SUBSET_FLAGS_NAME_LEGACY);
   return input;
 }
 
@@ -78,7 +84,7 @@ static inline hb_face_t *
 hb_subset_test_create_subset (hb_face_t *source,
 			      hb_subset_input_t *input)
 {
-  hb_face_t *subset = hb_subset (source, input);
+  hb_face_t *subset = hb_subset_or_fail (source, input);
   g_assert (subset);
 
   hb_subset_input_destroy (input);
@@ -94,7 +100,10 @@ hb_subset_test_check (hb_face_t *expected,
   expected_blob = hb_face_reference_table (expected, table);
   actual_blob = hb_face_reference_table (actual, table);
   fprintf(stderr, "comparing %c%c%c%c, expected %d bytes, actual %d bytes\n", HB_UNTAG(table), hb_blob_get_length(expected_blob), hb_blob_get_length (actual_blob));
-  hb_test_assert_blobs_equal (expected_blob, actual_blob);
+
+  if (hb_blob_get_length (expected_blob) != 0 ||
+      hb_blob_get_length (actual_blob) != 0)
+    hb_test_assert_blobs_equal (expected_blob, actual_blob);
   hb_blob_destroy (expected_blob);
   hb_blob_destroy (actual_blob);
 }

@@ -45,7 +45,11 @@
  * @short_description: Graphite2 integration
  * @include: hb-graphite2.h
  *
- * Functions for using HarfBuzz with the Graphite2 fonts.
+ * Functions for using HarfBuzz with fonts that include Graphite features.
+ * 
+ * For Graphite features to work, you must be sure that HarfBuzz was compiled
+ * with the `graphite2` shaping engine enabled. Currently, the default is to
+ * not enable `graphite2` shaping.
  **/
 
 
@@ -84,7 +88,7 @@ static const void *hb_graphite2_get_table (const void *data, unsigned int tag, s
   {
     blob = face_data->face->reference_table (tag);
 
-    hb_graphite2_tablelist_t *p = (hb_graphite2_tablelist_t *) calloc (1, sizeof (hb_graphite2_tablelist_t));
+    hb_graphite2_tablelist_t *p = (hb_graphite2_tablelist_t *) hb_calloc (1, sizeof (hb_graphite2_tablelist_t));
     if (unlikely (!p)) {
       hb_blob_destroy (blob);
       return nullptr;
@@ -119,15 +123,16 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
   }
   hb_blob_destroy (silf_blob);
 
-  hb_graphite2_face_data_t *data = (hb_graphite2_face_data_t *) calloc (1, sizeof (hb_graphite2_face_data_t));
+  hb_graphite2_face_data_t *data = (hb_graphite2_face_data_t *) hb_calloc (1, sizeof (hb_graphite2_face_data_t));
   if (unlikely (!data))
     return nullptr;
 
   data->face = face;
-  data->grface = gr_make_face (data, &hb_graphite2_get_table, gr_face_preloadAll);
+  const gr_face_ops ops = {sizeof(gr_face_ops), &hb_graphite2_get_table, NULL};
+  data->grface = gr_make_face_with_ops (data, &ops, gr_face_preloadAll);
 
   if (unlikely (!data->grface)) {
-    free (data);
+    hb_free (data);
     return nullptr;
   }
 
@@ -144,15 +149,23 @@ _hb_graphite2_shaper_face_data_destroy (hb_graphite2_face_data_t *data)
     hb_graphite2_tablelist_t *old = tlist;
     hb_blob_destroy (tlist->blob);
     tlist = tlist->next;
-    free (old);
+    hb_free (old);
   }
 
   gr_face_destroy (data->grface);
 
-  free (data);
+  hb_free (data);
 }
 
-/*
+/**
+ * hb_graphite2_face_get_gr_face: (skip)
+ * @face: @hb_face_t to query
+ *
+ * Fetches the Graphite2 gr_face corresponding to the specified
+ * #hb_face_t face object.
+ *
+ * Return value: the gr_face found
+ *
  * Since: 0.9.10
  */
 gr_face *
@@ -182,7 +195,12 @@ _hb_graphite2_shaper_font_data_destroy (hb_graphite2_font_data_t *data HB_UNUSED
 
 #ifndef HB_DISABLE_DEPRECATED
 /**
- * hb_graphite2_font_get_gr_font:
+ * hb_graphite2_font_get_gr_font: (skip)
+ * @font: An #hb_font_t
+ *
+ * Always returns `NULL`. Use hb_graphite2_face_get_gr_face() instead.
+ *
+ * Return value: (nullable): Graphite2 font associated with @font.
  *
  * Since: 0.9.10
  * Deprecated: 1.4.2
@@ -205,7 +223,7 @@ struct hb_graphite2_cluster_t {
   unsigned int base_glyph;
   unsigned int num_glyphs;
   unsigned int cluster;
-  unsigned int advance;
+  int advance;
 };
 
 hb_bool_t
@@ -272,7 +290,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
     return true;
   }
 
-  buffer->ensure (glyph_count);
+  (void) buffer->ensure (glyph_count);
   scratch = buffer->get_scratch_buffer (&scratch_size);
   while ((DIV_CEIL (sizeof (hb_graphite2_cluster_t) * buffer->len, sizeof (*scratch)) +
 	  DIV_CEIL (sizeof (hb_codepoint_t) * glyph_count, sizeof (*scratch))) > scratch_size)
@@ -300,7 +318,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
 
 #undef ALLOCATE_ARRAY
 
-  memset (clusters, 0, sizeof (clusters[0]) * buffer->len);
+  hb_memset (clusters, 0, sizeof (clusters[0]) * buffer->len);
 
   hb_codepoint_t *pg = gids;
   clusters[0].cluster = buffer->info[0].cluster;
@@ -376,7 +394,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
   buffer->len = glyph_count;
 
   /* Positioning. */
-  unsigned int currclus = (unsigned int) -1;
+  unsigned int currclus = UINT_MAX;
   const hb_glyph_info_t *info = buffer->info;
   hb_glyph_position_t *pPos = hb_buffer_get_glyph_positions (buffer, nullptr);
   if (!HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
@@ -421,7 +439,8 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
   if (feats) gr_featureval_destroy (feats);
   gr_seg_destroy (seg);
 
-  buffer->unsafe_to_break_all ();
+  buffer->clear_glyph_flags ();
+  buffer->unsafe_to_break ();
 
   return true;
 }

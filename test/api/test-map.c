@@ -104,6 +104,33 @@ test_map_refcount (void)
   /* Now you can't access them anymore */
 }
 
+static void
+test_map_get_population (void)
+{
+  hb_map_t *m = hb_map_create ();
+
+  hb_map_set (m, 12, 21);
+  g_assert_cmpint (hb_map_get_population (m), ==, 1);
+  hb_map_set (m, 78, 87);
+  g_assert_cmpint (hb_map_get_population (m), ==, 2);
+
+  hb_map_set (m, 78, 87);
+  g_assert_cmpint (hb_map_get_population (m), ==, 2);
+  hb_map_set (m, 78, 13);
+  g_assert_cmpint (hb_map_get_population (m), ==, 2);
+
+  hb_map_set (m, 95, 56);
+  g_assert_cmpint (hb_map_get_population (m), ==, 3);
+
+  hb_map_del (m, 78);
+  g_assert_cmpint (hb_map_get_population (m), ==, 2);
+
+  hb_map_del (m, 103);
+  g_assert_cmpint (hb_map_get_population (m), ==, 2);
+
+  hb_map_destroy (m);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -112,6 +139,7 @@ main (int argc, char **argv)
   hb_test_add (test_map_basic);
   hb_test_add (test_map_userdata);
   hb_test_add (test_map_refcount);
+  hb_test_add (test_map_get_population);
 
   return hb_test_run();
 }

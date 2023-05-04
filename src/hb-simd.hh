@@ -192,6 +192,7 @@
  * Choose intrinsics set to use.
  */
 
+#define HB_SIMD_AVX2 1
 
 #if !defined(HB_NO_SIMD) && (defined(HB_SIMD_AVX2) || defined(__AVX2__))
 
@@ -294,8 +295,6 @@ hb_simd_ksearch_glyphid_range (unsigned *pos, /* Out */
 }
 
 
-#elif !defined(HB_NO_SIMD)
-#define HB_NO_SIMD
 #endif
 
 #endif /* HB_SIMD_HH */

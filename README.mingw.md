@@ -4,28 +4,41 @@ implementation and that specially is important where OpenType specification
 is or wasn't that clear. For having access to Uniscribe on Linux/macOS these
 steps are recommended:
 
-1. Install Wine from your favorite package manager.  On Fedora that's `dnf install wine`.
+You want to follow the 32bit instructions. The 64bit equivalents are included
+for reference.
 
-2. And `mingw-w64` compiler.
-   With `brew` on macOS, you can have it like `brew install mingw-w64`.
-   On Fedora, with `dnf install mingw32-gcc-c++`, or `dnf install mingw64-gcc-c++` for the
-   64-bit Windows.
+1. Install Wine.
+   - Fedora: `dnf install wine`.
 
-3. Install cross-compiled dependency packages.  Alternatively see [^1] below.
-   On Fedora that would be `dnf install mingw32-glib2 mingw32-cairo mingw32-freetype`
-   for 32-bit, or `dnf install mingw64-glib2 mingw64-cairo mingw64-freetype` for 64-bit.
+2. Install `mingw-w64` compiler.
+   - Fedora, 32bit: `dnf install mingw32-gcc-c++`
+   - Fedora, 64bit: `dnf install mingw64-gcc-c++`
+   - Debian: `apt install g++-mingw-w64`
+   - Mac: `brew install mingw-w64`
 
-5. `NOCONFIGURE=1 ./autogen.sh && mkdir winbuild && cd winbuild`
+3. If you have drank the `meson` koolaid, look at `.ci/build-win32.sh` to see how to
+   invoke `meson` now, or just run that script.  Otherwise, here's how to use the
+   old trusty autotools instead:
 
-6. Run `../mingw32.sh` for 32-bit build, or `../mingw64.sh` for 64-bit.  This configures
-   HarfBuzz for cross-compiling.  It enables Uniscribe backend as well.
+   a) Install dependencies.
+      - Fedora, 32bit: `dnf install mingw32-glib2 mingw32-cairo mingw32-freetype`
+      - Fedora, 64bit: `dnf install mingw64-glib2 mingw64-cairo mingw64-freetype`
 
-7. `make`
+   b) Configure:
+     - `NOCONFIGURE=1 ./autogen.sh && mkdir winbuild && cd winbuild`
+     - 32bit: `../mingw-configure.sh i686`
+     - 64bit: `../mingw-configure.sh x86_64`
 
-Now you can use hb-shape using `wine util/hb-shape.exe` but if you like to shape with
-the Microsoft Uniscribe,
+   c) Build as usual:
+     - make
 
-8. Bring a 32bit version of `usp10.dll` for yourself from `C:\Windows\SysWOW64\usp10.dll` of your
+   d) Configure your wine to find system mingw libraries. See:
+      https://fedoraproject.org/wiki/MinGW/Configure_wine
+
+Now you can use `hb-shape` by `(cd win32build/util && wine hb-shape.exe)`
+but if you like to shape with the Microsoft Uniscribe:
+
+4. Bring a 32bit version of `usp10.dll` for yourself from `C:\Windows\SysWOW64\usp10.dll` of your
    Windows installation (assuming you have a 64-bit installation, otherwise
    `C:\Windows\System32\usp10.dll`) that it is not a DirectWrite proxy
    ([for more info](https://en.wikipedia.org/wiki/Uniscribe)).
@@ -35,14 +48,11 @@ the Microsoft Uniscribe,
 
    Put the DLL in the folder you are going to run the next command,
 
-9. `WINEDLLOVERRIDES="usp10=n" wine util/hb-shape.exe fontname.ttf -u 0061,0062,0063 --shaper=uniscribe`
+5. `WINEDLLOVERRIDES="usp10=n" wine hb-shape.exe fontname.ttf -u 0061,0062,0063 --shaper=uniscribe`
 
 (`0061,0062,0063` means `abc`, use test/shaping/hb-unicode-decode to generate ones you need)
 
+When you have built that, you can test HarfBuzz's native shaper against Uniscribe
+following these instructions:
 
-[^1] Download and put [this](https://drive.google.com/open?id=0B3_fQkxDZZXXbWltRGd5bjVrUDQ)
-     in your `~/.local/i686-w64-mingw32`.  Then replace all the instances of
-     `/home/behdad/.local/i586-mingw32msvc` and `/home/behdad/.local/i686-w64-mingw32`
-     with `<$HOME>/.local/i686-w64-mingw32` on that folder.
-     (`<$HOME>` replace it with `/home/XXX` or `/Users/XXX` on macOS)
-     You shouldn't replace the instances of those inside binary files.
+  https://github.com/harfbuzz/harfbuzz/issues/3671

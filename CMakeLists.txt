@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.12)
 project(harfbuzz)
 
-enable_testing()
+message(WARN "HarfBuzz has a Meson port and tries to migrate all the other build systems to it, please consider using it as we might remove our cmake port soon.")
 
 ## Limit framework build to Xcode generator
 if (BUILD_FRAMEWORK)
@@ -37,6 +37,10 @@ option(HB_HAVE_FREETYPE "Enable freetype interop helpers" OFF)
 option(HB_HAVE_GRAPHITE2 "Enable Graphite2 complementary shaper" OFF)
 option(HB_HAVE_GLIB "Enable glib unicode functions" OFF)
 option(HB_HAVE_ICU "Enable icu unicode functions" OFF)
+if (TARGET freetype)
+  set (HB_HAVE_FREETYPE ON)
+  add_definitions(-DHAVE_FREETYPE=1)
+endif ()
 if (APPLE)
   option(HB_HAVE_CORETEXT "Enable CoreText shaper backend on macOS" ON)
   set (CMAKE_MACOSX_RPATH ON)
@@ -53,7 +57,6 @@ if (HB_BUILD_UTILS)
 endif ()
 
 option(HB_BUILD_SUBSET "Build harfbuzz-subset" ON)
-option(HB_BUILD_TESTS "Build harfbuzz tests" ON)
 
 option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
 if (HB_HAVE_GOBJECT)
@@ -64,25 +67,6 @@ option(HB_HAVE_INTROSPECTION "Enable building introspection (.gir/.typelib) file
 if (HB_HAVE_INTROSPECTION)
   set (HB_HAVE_GOBJECT ON)
   set (HB_HAVE_GLIB ON)
-endif ()
-
-option(HB_CHECK OFF "Do a configuration suitable for testing (shared library and enable all options)")
-if (HB_CHECK)
-  set (BUILD_SHARED_LIBS ON)
-  set (HB_BUILD_UTILS ON)
-  set (HB_HAVE_ICU)
-  set (HB_HAVE_GLIB ON)
-  #set (HB_HAVE_GOBJECT ON)
-  #set (HB_HAVE_INTROSPECTION ON)
-  set (HB_HAVE_FREETYPE ON)
-  set (HB_HAVE_GRAPHITE2 ON)
-  if (WIN32)
-    set (HB_HAVE_UNISCRIBE ON)
-    set (HB_HAVE_GDI ON)
-    set (HB_HAVE_DIRECTWRITE ON)
-  elseif (APPLE)
-    set (HB_HAVE_CORETEXT ON)
-  endif ()
 endif ()
 
 include_directories(AFTER
@@ -96,6 +80,7 @@ include (FindPythonInterp)
 ## Functions and headers
 include (CheckFunctionExists)
 include (CheckIncludeFile)
+include (CheckIncludeFiles)
 macro (check_funcs) # Similar to AC_CHECK_FUNCS of autotools
   foreach (func_name ${ARGN})
     string(TOUPPER ${func_name} definition_to_add)
@@ -108,7 +93,7 @@ endmacro ()
 if (UNIX)
   list(APPEND CMAKE_REQUIRED_LIBRARIES m)
 endif ()
-check_funcs(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l roundf)
+check_funcs(atexit mprotect sysconf getpagesize mmap isatty)
 check_include_file(unistd.h HAVE_UNISTD_H)
 if (${HAVE_UNISTD_H})
   add_definitions(-DHAVE_UNISTD_H)
@@ -117,15 +102,24 @@ check_include_file(sys/mman.h HAVE_SYS_MMAN_H)
 if (${HAVE_SYS_MMAN_H})
   add_definitions(-DHAVE_SYS_MMAN_H)
 endif ()
-check_include_file(xlocale.h HAVE_XLOCALE_H)
-if (${HAVE_XLOCALE_H})
-  add_definitions(-DHAVE_XLOCALE_H)
-endif ()
 check_include_file(stdbool.h HAVE_STDBOOL_H)
 if (${HAVE_STDBOOL_H})
   add_definitions(-DHAVE_STDBOOL_H)
 endif ()
 
+# These will be used while making pkg-config .pc files
+set(PC_REQUIRES_PRIV "")
+set(PC_LIBS_PRIV "")
+
+if (NOT MSVC)
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads)
+  if (CMAKE_USE_PTHREADS_INIT)
+    add_definitions("-DHAVE_PTHREAD")
+    list(APPEND THIRD_PARTY_LIBS Threads::Threads)
+    list(APPEND PC_LIBS_PRIV -pthread)
+  endif ()
+endif ()
 
 if (MSVC)
   add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
@@ -147,7 +141,7 @@ function (extract_make_variable variable makefile_source)
   set (${variable} ${listVar} PARENT_SCOPE)
 endfunction ()
 
-# http://stackoverflow.com/a/27630120
+# https://stackoverflow.com/a/27630120
 function (add_prefix_to_list var prefix)
   set (listVar "")
   foreach (f ${${var}})
@@ -200,7 +194,7 @@ set (project_headers ${HB_BASE_headers})
 set (subset_project_headers ${HB_SUBSET_headers})
 
 ## Find and include needed header folders and libraries
-if (HB_HAVE_FREETYPE)
+if (HB_HAVE_FREETYPE AND NOT TARGET freetype)
   include (FindFreetype)
   if (NOT FREETYPE_FOUND)
     message(FATAL_ERROR "HB_HAVE_FREETYPE was set, but we failed to find it. Maybe add a CMAKE_PREFIX_PATH= to your Freetype2 install prefix")
@@ -219,6 +213,10 @@ if (HB_HAVE_FREETYPE)
   check_funcs(FT_Get_Var_Blend_Coordinates FT_Set_Var_Blend_Coordinates FT_Done_MM_Var)
 endif ()
 
+if (HB_HAVE_FREETYPE)
+  list(APPEND PC_REQUIRES_PRIV "freetype2 >= 12.0.6")
+endif ()
+
 if (HB_HAVE_GRAPHITE2)
   add_definitions(-DHAVE_GRAPHITE2)
 
@@ -230,6 +228,8 @@ if (HB_HAVE_GRAPHITE2)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-graphite2.h)
 
   list(APPEND THIRD_PARTY_LIBS ${GRAPHITE2_LIBRARY})
+
+  list(APPEND PC_REQUIRES_PRIV "graphite2 >= 1.2.0")
 
   mark_as_advanced(GRAPHITE2_INCLUDE_DIR GRAPHITE2_LIBRARY)
 endif ()
@@ -251,13 +251,15 @@ if (HB_HAVE_GLIB)
 
   list(APPEND THIRD_PARTY_LIBS ${GLIB_LIBRARIES})
 
+  list(APPEND PC_REQUIRES_PRIV "glib-2.0 >= 2.19.1")
+
   mark_as_advanced(GLIB_LIBRARIES GLIBCONFIG_INCLUDE_DIR GLIB_INCLUDE_DIR)
 endif ()
 
 if (HB_HAVE_ICU)
   add_definitions(-DHAVE_ICU)
 
-  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindICU.cmake
+  # https://github.com/WebKit/webkit/blob/fdd7733f2f30eab7fe096a9791f98c60f62f49c0/Source/cmake/FindICU.cmake
   find_package(PkgConfig)
   pkg_check_modules(PC_ICU QUIET icu-uc)
 
@@ -283,24 +285,28 @@ if (APPLE AND HB_HAVE_CORETEXT)
     find_library(COREFOUNDATION CoreFoundation)
     if (COREFOUNDATION)
       list(APPEND THIRD_PARTY_LIBS ${COREFOUNDATION})
+      list(APPEND PC_LIBS_PRIV "-framework CoreFoundation")
     endif ()
     mark_as_advanced(COREFOUNDATION)
 
     find_library(CORETEXT CoreText)
     if (CORETEXT)
       list(APPEND THIRD_PARTY_LIBS ${CORETEXT})
+      list(APPEND PC_LIBS_PRIV "-framework CoreText")
     endif ()
     mark_as_advanced(CORETEXT)
 
     find_library(COREGRAPHICS CoreGraphics)
     if (COREGRAPHICS)
       list(APPEND THIRD_PARTY_LIBS ${COREGRAPHICS})
+      list(APPEND PC_LIBS_PRIV "-framework CoreGraphics")
     endif ()
     mark_as_advanced(COREGRAPHICS)
   else ()
     find_library(APPLICATION_SERVICES_FRAMEWORK ApplicationServices)
     if (APPLICATION_SERVICES_FRAMEWORK)
       list(APPEND THIRD_PARTY_LIBS ${APPLICATION_SERVICES_FRAMEWORK})
+      list(APPEND PC_LIBS_PRIV "-framework ApplicationServices")
     endif ()
 
     mark_as_advanced(APPLICATION_SERVICES_FRAMEWORK)
@@ -311,21 +317,31 @@ if (WIN32 AND HB_HAVE_GDI)
   add_definitions(-DHAVE_GDI)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-gdi.h)
   list(APPEND THIRD_PARTY_LIBS gdi32)
+  list(APPEND PC_LIBS_PRIV -lgdi32)
 endif ()
 
 if (WIN32 AND HB_HAVE_UNISCRIBE)
   add_definitions(-DHAVE_UNISCRIBE)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-uniscribe.h)
   list(APPEND THIRD_PARTY_LIBS usp10 gdi32 rpcrt4)
+  list(APPEND PC_LIBS_PRIV -lusp10 -lgdi32 -lrpcrt4)
 endif ()
 
 if (WIN32 AND HB_HAVE_DIRECTWRITE)
+  if (CMAKE_VERSION VERSION_GREATER 3.12)
+    check_include_files("windows.h;dwrite_1.h" HAVE_DWRITE_1_H LANGUAGE CXX)
+  else ()
+    check_include_files("windows.h;dwrite_1.h" HAVE_DWRITE_1_H)
+  endif ()
+  if (NOT HAVE_DWRITE_1_H)
+    message(FATAL_ERROR "DirectWrite was enabled explicitly, but required header is missing")
+  endif ()
   add_definitions(-DHAVE_DIRECTWRITE)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-directwrite.h)
-  list(APPEND THIRD_PARTY_LIBS dwrite rpcrt4)
 endif ()
 
 if (HB_HAVE_GOBJECT)
+  add_definitions(-DHAVE_GOBJECT)
   include (FindPerl)
 
   # Use the hints from glib-2.0.pc to find glib-mkenums
@@ -429,41 +445,16 @@ if (HB_HAVE_GOBJECT)
   )
 endif ()
 
-## Atomic ops availability detection
-file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
-"		void memory_barrier (void) { __sync_synchronize (); }
-		int atomic_add (int *i) { return __sync_fetch_and_add (i, 1); }
-		int mutex_trylock (int *m) { return __sync_lock_test_and_set (m, 1); }
-		void mutex_unlock (int *m) { __sync_lock_release (m); }
-		int main () { return 0; }
-")
-try_compile(HB_HAVE_INTEL_ATOMIC_PRIMITIVES
-  ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives
-  ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c)
-if (HB_HAVE_INTEL_ATOMIC_PRIMITIVES)
-  add_definitions(-DHAVE_INTEL_ATOMIC_PRIMITIVES)
-endif ()
-
-file(WRITE "${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c"
-"		#include <atomic.h>
-		/* This requires Solaris Studio 12.2 or newer: */
-		#include <mbarrier.h>
-		void memory_barrier (void) { __machine_rw_barrier (); }
-		int atomic_add (volatile unsigned *i) { return atomic_add_int_nv (i, 1); }
-		void *atomic_ptr_cmpxchg (volatile void **target, void *cmp, void *newval) { return atomic_cas_ptr (target, cmp, newval); }
-		int main () { return 0; }
-")
-try_compile(HB_HAVE_SOLARIS_ATOMIC_OPS
-  ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops
-  ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c)
-if (HB_HAVE_SOLARIS_ATOMIC_OPS)
-  add_definitions(-DHAVE_SOLARIS_ATOMIC_OPS)
-endif ()
-
 
 ## Define harfbuzz library
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
+target_include_directories(harfbuzz PUBLIC
+                           "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
+                           "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz>")
+if (HB_HAVE_FREETYPE AND TARGET freetype)
+  target_link_libraries(harfbuzz freetype)
+endif ()
 
 
 ## Define harfbuzz-icu library
@@ -481,6 +472,7 @@ endif ()
 ## Define harfbuzz-subset library
 if (HB_BUILD_SUBSET)
   add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-subset.h)
   add_dependencies(harfbuzz-subset harfbuzz)
   target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
 
@@ -497,7 +489,9 @@ if (UNIX OR MINGW)
     link_libraries(-Bsymbolic-functions)
   endif ()
 
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # As of CMake 3.0.0, the compiler id for Apple-provided Clang is now "AppleClang";
+  # thus we use MATCHES instead of STREQUAL to include either regular Clang or AppleClang
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Make sure we don't link to libstdc++
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
     set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
@@ -572,7 +566,7 @@ if (HB_HAVE_INTROSPECTION)
   # We need to account for the varying output directories
   # when we build using Visual Studio projects
   if ("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
-    set (hb_libpath "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>")
+    set (hb_libpath "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
   else ()
     set (hb_libpath "$<TARGET_FILE_DIR:harfbuzz-gobject>")
   endif ()
@@ -628,12 +622,14 @@ if (HB_HAVE_INTROSPECTION)
     POST_BUILD
     COMMAND ${G_IR_SCANNER_CMD}
       --warn-all --no-libtool --verbose
-      -n hb
       --namespace=HarfBuzz
       --nsversion=0.0
+      --symbol-prefix=hb
+      --symbol-prefix=hb_gobject
       --identifier-prefix=hb_
       --include GObject-2.0
-      --pkg-export=harfbuzz
+      --pkg-export=harfbuzz-gobject
+      --c-include=hb-gobject.h
       --cflags-begin
       -I${PROJECT_SOURCE_DIR}/src
       -I${PROJECT_BINARY_DIR}/src
@@ -724,6 +720,44 @@ if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
   endif ()
 endif ()
 
+# get these variables in the required format
+list(REMOVE_DUPLICATES PC_REQUIRES_PRIV)
+string(REPLACE ";" ", " PC_REQUIRES_PRIV "${PC_REQUIRES_PRIV}")
+list(REMOVE_DUPLICATES PC_LIBS_PRIV)
+string(REPLACE ";" " " PC_LIBS_PRIV "${PC_LIBS_PRIV}")
+
+# Macro to write pkg-config .pc configuration files
+macro ( make_pkgconfig_pc_file name )
+  file(READ "${PROJECT_SOURCE_DIR}/src/${name}.pc.in" FSTR)
+
+  string(REPLACE "%prefix%" "${CMAKE_INSTALL_PREFIX}" FSTR ${FSTR})
+  string(REPLACE "%exec_prefix%" "\${prefix}" FSTR ${FSTR})
+
+  if (IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+    string(REPLACE "%includedir%" "${CMAKE_INSTALL_INCLUDEDIR}" FSTR ${FSTR})
+  else ()
+    string(REPLACE "%includedir%" "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}" FSTR ${FSTR})
+  endif ()
+
+  if (IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+    string(REPLACE "%libdir%" "${CMAKE_INSTALL_LIBDIR}" FSTR ${FSTR})
+  else ()
+    string(REPLACE "%libdir%" "\${prefix}/${CMAKE_INSTALL_LIBDIR}" FSTR ${FSTR})
+  endif ()  
+
+  string(REPLACE "%VERSION%" "${HB_VERSION}" FSTR ${FSTR})
+  string(REPLACE "%requires_private%" "${PC_REQUIRES_PRIV}" FSTR ${FSTR})
+  string(REPLACE "%libs_private%" "${PC_LIBS_PRIV}" FSTR ${FSTR})
+
+  file(WRITE "${PROJECT_BINARY_DIR}/${name}.pc" ${FSTR})
+
+  install(
+    FILES "${PROJECT_BINARY_DIR}/${name}.pc"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+    COMPONENT pkgconfig
+  )
+endmacro ( make_pkgconfig_pc_file )
+
 if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   install(TARGETS harfbuzz
     EXPORT harfbuzzConfig
@@ -732,6 +766,7 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     FRAMEWORK DESTINATION Library/Frameworks
   )
+  make_pkgconfig_pc_file("harfbuzz")
   install(EXPORT harfbuzzConfig
       NAMESPACE harfbuzz::
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/harfbuzz
@@ -743,6 +778,13 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
       FRAMEWORK DESTINATION Library/Frameworks
     )
+    make_pkgconfig_pc_file("harfbuzz-icu")
+  endif ()
+  if (HB_BUILD_SUBSET)
+    install(TARGETS harfbuzz-subset
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+    make_pkgconfig_pc_file("harfbuzz-subset")
   endif ()
   if (HB_BUILD_UTILS)
     if (WIN32 AND BUILD_SHARED_LIBS)
@@ -771,9 +813,10 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
+    make_pkgconfig_pc_file("harfbuzz-gobject")
     if (HB_HAVE_INTROSPECTION)
       if ("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
-        set (hb_libpath "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>")
+        set (hb_libpath "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
       else ()
         set (hb_libpath "$<TARGET_FILE_DIR:harfbuzz-gobject>")
       endif ()
@@ -787,55 +830,4 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       )
     endif ()
   endif ()
-endif ()
-
-if (HB_BUILD_TESTS)
-  ## src/ executables
-  foreach (prog main test test-gsub-would-substitute test-gpos-size-params test-buffer-serialize test-unicode-ranges) # hb-ot-tag
-    set (prog_name ${prog})
-    if (${prog_name} STREQUAL "test")
-      # test can not be used as a valid executable name on cmake, lets special case it
-      set (prog_name test-test)
-    endif ()
-    add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
-    target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
-  endforeach ()
-  # set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
-
-  ## Tests
-  if (UNIX OR MINGW)
-    if (BUILD_SHARED_LIBS)
-      # generate harfbuzz.def after build completion
-      add_custom_command(TARGET harfbuzz POST_BUILD
-        COMMAND "${PYTHON_EXECUTABLE}" ${PROJECT_SOURCE_DIR}/src/gen-def.py ${PROJECT_BINARY_DIR}/harfbuzz.def ${project_headers}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
-
-      add_test(NAME check-static-inits.sh
-        COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
-        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/harfbuzz.dir/src # ugly hack
-      )
-      add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
-      add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
-
-      set_tests_properties(
-        check-static-inits.sh check-libstdc++.sh check-symbols.sh
-        PROPERTIES
-          ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src"
-          SKIP_RETURN_CODE 77)
-    endif ()
-
-    add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh)
-    add_test(NAME check-header-guards.sh COMMAND ./check-header-guards.sh)
-    add_test(NAME check-externs.sh COMMAND ./check-externs.sh)
-    add_test(NAME check-includes.sh COMMAND ./check-includes.sh)
-    set_tests_properties(
-      check-c-linkage-decls.sh check-header-guards.sh check-externs.sh check-includes.sh
-      PROPERTIES
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src
-        SKIP_RETURN_CODE 77)
-  endif ()
-
-  # Needs to come last so that variables defined above are passed to
-  # subdirectories.
-  add_subdirectory(test)
 endif ()

@@ -11,28 +11,20 @@ static void
 trySubset (hb_face_t *face,
 	   const hb_codepoint_t text[],
 	   int text_length,
-	   bool drop_hints,
-	   bool drop_layout,
-	   bool retain_gids)
+           unsigned flag_bits,
+           hb_subset_input_t *input)
 {
-  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
-  hb_subset_input_set_drop_hints (input, drop_hints);
-  hb_subset_input_set_retain_gids (input, retain_gids);
+  if (!input) return;
+
+  hb_subset_input_set_flags (input, (hb_subset_flags_t) flag_bits);
+
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
 
-  if (!drop_layout)
-  {
-    hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'S', 'U', 'B'));
-    hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'P', 'O', 'S'));
-    hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'D', 'E', 'F'));
-  }
-
   for (int i = 0; i < text_length; i++)
-  {
     hb_set_add (codepoints, text[i]);
-  }
 
-  hb_face_t *result = hb_subset (face, input);
+  hb_face_t *result = hb_subset_or_fail (face, input);
+  if (result)
   {
     hb_blob_t *blob = hb_face_reference_blob (result);
     unsigned int length;
@@ -51,51 +43,85 @@ trySubset (hb_face_t *face,
   hb_subset_input_destroy (input);
 }
 
-static void
-trySubset (hb_face_t *face,
-	   const hb_codepoint_t text[],
-	   int text_length,
-	   const uint8_t flags[1])
+extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
-  bool drop_hints =  flags[0] & (1 << 0);
-  bool drop_layout = flags[0] & (1 << 1);
-  bool retain_gids = flags[0] & (1 << 2);
-  trySubset (face, text, text_length,
-	     drop_hints, drop_layout, retain_gids);
-}
+  alloc_state = _fuzzing_alloc_state (data, size);
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-  hb_blob_t *blob = hb_blob_create ((const char *)data, size,
+  hb_blob_t *blob = hb_blob_create ((const char *) data, size,
 				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
   hb_face_t *face = hb_face_create (blob, 0);
 
   /* Just test this API here quickly. */
-  hb_set_t *output = hb_set_create();
+  hb_set_t *output = hb_set_create ();
   hb_face_collect_unicodes (face, output);
   hb_set_destroy (output);
 
-  uint8_t flags[1] = {0};
+  unsigned flags = HB_SUBSET_FLAGS_DEFAULT;
   const hb_codepoint_t text[] =
       {
 	'A', 'B', 'C', 'D', 'E', 'X', 'Y', 'Z', '1', '2',
 	'3', '@', '_', '%', '&', ')', '*', '$', '!'
       };
 
-  trySubset (face, text, sizeof (text) / sizeof (hb_codepoint_t), flags);
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  if (!input)
+  {
+    hb_face_destroy (face);
+    hb_blob_destroy (blob);
+    return 0;
+  }
+  trySubset (face, text, sizeof (text) / sizeof (hb_codepoint_t), flags, input);
 
+  unsigned num_axes;
   hb_codepoint_t text_from_data[16];
-  if (size > sizeof(text_from_data) + sizeof(flags)) {
+  if (size > sizeof (text_from_data) + sizeof (flags) + sizeof(num_axes)) {
+    hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+    if (!input)
+    {
+      hb_face_destroy (face);
+      hb_blob_destroy (blob);
+      return 0;
+    }
+    size -= sizeof (text_from_data);
     memcpy (text_from_data,
-	    data + size - sizeof(text_from_data),
-	    sizeof(text_from_data));
+	    data + size,
+	    sizeof (text_from_data));
 
-    memcpy (flags,
-	    data + size - sizeof(text_from_data) - sizeof(flags),
-	    sizeof(flags));
+    size -= sizeof (flags);
+    memcpy (&flags,
+	    data + size,
+	    sizeof (flags));
+
+    size -= sizeof (num_axes);
+    memcpy (&num_axes,
+	    data + size,
+	    sizeof (num_axes));
+
+    if (num_axes > 0 && num_axes < 8 && size > num_axes * (sizeof(hb_tag_t) + sizeof(int)))
+    {
+      for (unsigned i = 0; i < num_axes; i++) {
+        hb_tag_t tag;
+        int value;
+        size -= sizeof (tag);
+        memcpy (&tag,
+                data + size,
+                sizeof (tag));
+        size -= sizeof (value);
+        memcpy (&value,
+                data + size,
+                sizeof (value));
+
+        hb_subset_input_pin_axis_location(input,
+                                          face,
+                                          tag,
+                                          (float) value);
+      }
+    }
+
+
+
     unsigned int text_size = sizeof (text_from_data) / sizeof (hb_codepoint_t);
-
-    trySubset (face, text_from_data, text_size, flags);
+    trySubset (face, text_from_data, text_size, flags, input);
   }
 
   hb_face_destroy (face);

@@ -68,6 +68,15 @@ test_ot_layout_feature_get_name_ids_and_characters (void)
   g_assert_cmpint (char_count, ==, 2);
   g_assert_cmpint (characters[0], ==, 10);
   g_assert_cmpint (characters[1], ==, 24030);
+
+  char_count = 100;
+  characters[1] = 1234;
+  all_chars = hb_ot_layout_feature_get_characters (face, HB_OT_TAG_GSUB, feature_index,
+						   1, &char_count, characters);
+  g_assert_cmpint (all_chars, ==, 2);
+  g_assert_cmpint (char_count, ==, 1);
+  g_assert_cmpint (characters[0], ==, 24030);
+  g_assert_cmpint (characters[1], ==, 1234);
 }
 
 static void
@@ -84,10 +93,17 @@ test_ot_name (void)
   name_id = entries[3].name_id;
   g_assert_cmpuint (3, ==, name_id);
   lang = entries[3].language;
+
   g_assert_cmpstr (hb_language_to_string (lang), ==, "en");
   g_assert_cmpuint (27, ==, hb_ot_name_get_utf8 (face, name_id, lang, &text_size, text));
   g_assert_cmpuint (9, ==, text_size);
   g_assert_cmpstr (text, ==, "FontForge");
+
+  g_assert_cmpuint (27, ==, hb_ot_name_get_utf8 (face, name_id, hb_language_from_string ("en_US", -1), &text_size, text));
+  g_assert_cmpuint (8, ==, text_size);
+  g_assert_cmpstr (text, ==, "FontForg");
+
+  g_assert_cmpuint (0, ==, hb_ot_name_get_utf8 (face, name_id, hb_language_from_string ("fa_IR", -1), &text_size, text));
 }
 
 int

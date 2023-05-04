@@ -80,6 +80,31 @@ test_subset_glyf (void)
 }
 
 static void
+test_subset_glyf_set_overlaps_flag (void)
+{
+  hb_face_t *face_abcAE = hb_test_open_font_file ("fonts/Roboto-Regular.abcAE.ttf");
+  hb_face_t *face_bAE = hb_test_open_font_file ("fonts/Roboto-Regular.bAE.ttf");
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_face_t *face_abcAE_subset;
+  hb_set_add (codepoints, 32);
+  hb_set_add (codepoints, 98);
+  hb_set_add (codepoints, 508);
+
+  hb_subset_input_t* input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG);
+  face_abcAE_subset = hb_subset_test_create_subset (face_abcAE, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_bAE, face_abcAE_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_bAE, face_abcAE_subset, HB_TAG ('g','l','y','f'));
+
+  hb_face_destroy (face_abcAE_subset);
+  hb_face_destroy (face_abcAE);
+  hb_face_destroy (face_bAE);
+}
+
+static void
 test_subset_glyf_with_input_glyphs (void)
 {
   hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
@@ -137,9 +162,9 @@ test_subset_glyf_with_gsub (void)
 
   input = hb_subset_test_create_input (codepoints);
   hb_set_destroy (codepoints);
-  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'S', 'U', 'B'));
-  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'P', 'O', 'S'));
-  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'D', 'E', 'F'));
+  hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'S', 'U', 'B'));
+  hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'P', 'O', 'S'));
+  hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'D', 'E', 'F'));
 
   face_subset = hb_subset_test_create_subset (face_fil, input);
 
@@ -166,9 +191,9 @@ test_subset_glyf_without_gsub (void)
 
   input = hb_subset_test_create_input (codepoints);
   hb_set_destroy (codepoints);
-  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'S', 'U', 'B'));
-  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'P', 'O', 'S'));
-  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'D', 'E', 'F'));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'S', 'U', 'B'));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'P', 'O', 'S'));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'D', 'E', 'F'));
 
   face_subset = hb_subset_test_create_subset (face_fil, input);
 
@@ -214,7 +239,7 @@ test_subset_glyf_strip_hints_simple (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
@@ -238,7 +263,7 @@ test_subset_glyf_strip_hints_composite (void)
   hb_face_t *face_generated_subset;
   hb_set_add (codepoints, 0x1fc);
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
 
   face_generated_subset = hb_subset_test_create_subset (face_components, input);
   hb_set_destroy (codepoints);
@@ -273,14 +298,13 @@ test_subset_glyf_strip_hints_invalid (void)
   }
 
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
   hb_set_destroy (codepoints);
 
-  face_subset = hb_subset_test_create_subset (face, input);
-  g_assert (face_subset);
-  g_assert (face_subset == hb_face_get_empty ());
+  face_subset = hb_subset_or_fail (face, input);
+  g_assert (!face_subset);
 
-  hb_face_destroy (face_subset);
+  hb_subset_input_destroy (input);
   hb_face_destroy (face);
 }
 
@@ -296,7 +320,7 @@ test_subset_glyf_retain_gids (void)
   hb_set_add (codepoints, 99);
 
   hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_retain_gids (input, true);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
@@ -320,7 +344,7 @@ test_subset_glyf_retain_gids_truncates (void)
   hb_set_add (codepoints, 97);
 
   hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_retain_gids (input, true);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
@@ -342,6 +366,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_subset_glyf_noop);
   hb_test_add (test_subset_glyf);
+  hb_test_add (test_subset_glyf_set_overlaps_flag);
   hb_test_add (test_subset_glyf_with_input_glyphs);
   hb_test_add (test_subset_glyf_strip_hints_simple);
   hb_test_add (test_subset_glyf_strip_hints_composite);

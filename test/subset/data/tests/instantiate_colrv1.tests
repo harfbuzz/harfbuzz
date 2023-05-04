@@ -1,0 +1,14 @@
+FONTS:
+Foldit.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=900
+
+OPTIONS:
+no_fonttools

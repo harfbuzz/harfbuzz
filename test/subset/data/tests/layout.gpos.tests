@@ -2,10 +2,13 @@ FONTS:
 gpos1_2_font.otf
 
 PROFILES:
-keep-layout-retain-gids.txt
+layout-test.txt
+layout-test-retain-gids.txt
 
 SUBSETS:
+A
 AC
 CF
 AF
+BD
 *

@@ -31,7 +31,6 @@
 #include "hb-set.hh"
 #include "hb-ot-layout-common.hh"
 
-
 template <typename T>
 struct array_iter_t : hb_iter_with_fallback_t<array_iter_t<T>, T&>
 {
@@ -105,13 +104,85 @@ test_iterator (Iter it)
 template <typename Iterable,
 	  hb_requires (hb_is_iterable (Iterable))>
 static void
-test_iterable (const Iterable &lst = Null(Iterable))
+test_iterable (const Iterable &lst = Null (Iterable))
 {
   for (auto _ : lst)
     (void) _;
 
   // Test that can take iterator from.
   test_iterator (lst.iter ());
+}
+
+template <typename It>
+static void check_sequential (It it)
+{
+  int i = 1;
+  for (int v : +it) {
+    assert (v == i++);
+  }
+}
+
+static void test_concat ()
+{
+  hb_vector_t<int> a = {1, 2, 3};
+  hb_vector_t<int> b = {4, 5};
+
+  hb_vector_t<int> c = {};
+  hb_vector_t<int> d = {1, 2, 3, 4, 5};
+
+  auto it1 = hb_concat (a, b);
+  assert (it1.len () == 5);
+  assert (it1.is_random_access_iterator);
+  auto it2 = hb_concat (c, d);
+  assert (it2.len () == 5);
+  auto it3 = hb_concat (d, c);
+  assert (it3.len () == 5);
+  for (int i = 0; i < 5; i++) {
+    assert(it1[i] == i + 1);
+    assert(it2[i] == i + 1);
+    assert(it3[i] == i + 1);
+  }
+
+  check_sequential (it1);
+  check_sequential (it2);
+  check_sequential (it3);
+
+  auto it4 = +it1;
+  it4 += 0;
+  assert (*it4 == 1);
+
+  it4 += 2;
+  assert (*it4 == 3);
+  assert (it4);
+  assert (it4.len () == 3);
+
+  it4 += 2;
+  assert (*it4 == 5);
+  assert (it4);
+  assert (it4.len () == 1);
+
+  it4++;
+  assert (!it4);
+  assert (it4.len () == 0);
+
+  auto it5 = +it1;
+  it5 += 3;
+  assert (*it5 == 4);
+
+  hb_set_t s_a = {1, 2, 3};
+  hb_set_t s_b = {4, 5};
+  auto it6 = hb_concat (s_a, s_b);
+  assert (!it6.is_random_access_iterator);
+  check_sequential (it6);
+  assert (it6.len () == 5);
+
+  it6 += 0;
+  assert (*it6 == 1);
+
+  it6 += 3;
+  assert (*it6 == 4);
+  assert (it6);
+  assert (it6.len () == 2);
 }
 
 int
@@ -154,7 +225,7 @@ main (int argc, char **argv)
   test_iterable<hb_sorted_array_t<const int>> ();
   test_iterable<hb_vector_t<float>> ();
   test_iterable<hb_set_t> ();
-  test_iterable<OT::Coverage> ();
+  test_iterable<OT::Array16Of<OT::HBUINT16>> ();
 
   test_iterator (hb_zip (st, v));
   test_iterator_non_default_constructable (hb_enumerate (st));
@@ -248,13 +319,36 @@ main (int argc, char **argv)
   ;
   /* The result should be something like 0->10, 1->11, ..., 9->19 */
   assert (hb_map_get (result, 9) == 19);
+  hb_map_destroy (result);
+
+  /* Like above, but passing hb_set_t instead of hb_set_t * */
+  temp1 = 10;
+  temp2 = 0;
+  result =
+  + hb_iter (src)
+  | hb_map ([&] (int i) -> hb_set_t
+	    {
+	      hb_set_t set;
+	      for (unsigned int i = 0; i < temp1; ++i)
+		hb_set_add (&set, i);
+	      temp1++;
+	      return set;
+	    })
+  | hb_reduce ([&] (hb_map_t *acc, hb_set_t value) -> hb_map_t *
+	       {
+		 hb_map_set (acc, temp2++, hb_set_get_population (&value));
+		 return acc;
+	       }, hb_map_create ())
+  ;
+  /* The result should be something like 0->10, 1->11, ..., 9->19 */
+  assert (hb_map_get (result, 9) == 19);
+  hb_map_destroy (result);
 
   unsigned int temp3 = 0;
   + hb_iter(src)
   | hb_map([&] (int i) { return ++temp3; })
   | hb_reduce([&] (float acc, int value) { return acc + value; }, 0)
   ;
-  hb_map_destroy (result);
 
   + hb_iter (src)
   | hb_drain
@@ -281,6 +375,8 @@ main (int argc, char **argv)
   assert (hb_range (-2, -9, -3).len () == 3);
   assert (hb_range (-2, -8, -3).len () == 2);
   assert (hb_range (-2, -7, -3).len () == 2);
+
+  test_concat ();
 
   return 0;
 }

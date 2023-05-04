@@ -4,13 +4,12 @@ NULL =
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src util test docs
+SUBDIRS = src util test perf docs
 
 EXTRA_DIST = \
 	autogen.sh \
 	harfbuzz.doap \
 	README.md \
-	README.mingw.md \
 	README.python.md \
 	BUILD.md \
 	CONFIG.md \
@@ -18,10 +17,15 @@ EXTRA_DIST = \
 	TESTING.md \
 	CMakeLists.txt \
 	replace-enum-strings.cmake \
+	meson.build \
+	meson_options.txt \
+	subprojects/cairo.wrap \
+	subprojects/freetype2.wrap \
+	subprojects/glib.wrap \
+	subprojects/google-benchmark.wrap \
+	subprojects/ragel.wrap \
+	subprojects/packagefiles/ragel/meson.build \
 	mingw-configure.sh \
-	mingw-ldd.py \
-	mingw32.sh \
-	mingw64.sh \
 	$(NULL)
 
 MAINTAINERCLEANFILES = \
@@ -74,30 +78,5 @@ dist-hook: dist-clear-sticky-bits
 # Clean up any sticky bits we may inherit from parent dir
 dist-clear-sticky-bits:
 	chmod -R a-s $(distdir)
-
-tar_file = $(PACKAGE_TARNAME)-$(VERSION).tar.xz
-sha256_file = $(tar_file).sha256
-gpg_file = $(sha256_file).asc
-$(sha256_file): $(tar_file)
-	sha256sum $^ > $@
-$(gpg_file): $(sha256_file)
-	@echo "Please enter your GPG password to sign the checksum."
-	gpg --armor --sign $^
-
-release-files: $(tar_file) $(sha256_file) $(gpg_file)
-
-dist-win:
-	@case $(host_triplet) in *-w64-mingw32) ;; *) echo "Error: Requires mingw build. See README.mingw.md.">&2; exit 1 ;; esac
-	@DIR=$(PACKAGE_TARNAME)-$(VERSION)-win`case $(host_triplet) in i686-*) echo 32 ;; x86_64-*) echo 64 ;; esac`; \
-	$(RM) -r $$DIR; $(MKDIR_P) $$DIR || exit 1; \
-	cp util/.libs/hb-{shape,view,subset}.exe $$DIR && \
-	$(top_srcdir)/mingw-ldd.py $$DIR/hb-view.exe | grep -v 'not found' | cut -d '>' -f 2 | xargs cp -t $$DIR && \
-	cp src/.libs/libharfbuzz{,-subset}-0.dll $$DIR && \
-	chmod a+x $$DIR/*.{exe,dll} && \
-	$(STRIP) $$DIR/*.{exe,dll} && \
-	zip -r $$DIR.zip $$DIR && \
-	$(RM) -r $$DIR && \
-	echo "$$DIR.zip is ready."
-
 
 -include $(top_srcdir)/git.mk

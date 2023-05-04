@@ -1,0 +1,61 @@
+name: msvc
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  msvc:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2019, windows-latest]
+        include:
+          - name: msvc-2019-x86
+            os: windows-2019
+            ARCH: x86
+          - name: msvc-2019-amd64
+            os: windows-latest
+            ARCH: amd64
+    name: ${{ matrix.name }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup Ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        variant: sccache
+        key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.ARCH }}
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch : ${{ matrix.ARCH }}
+    - name: Install Python Dependencies
+      run: |
+        pip install --upgrade meson ninja fonttools
+    - name: Setup Meson
+      run: |
+        sccache --version
+        meson setup build `
+          --wrap-mode=forcefallback `
+          --buildtype=release `
+          -Dglib=enabled `
+          -Dfreetype=enabled `
+          -Dgdi=enabled `
+          -Ddirectwrite=enabled
+    - name: Build
+      run: meson compile -Cbuild
+    - name: Test
+      run: meson test --print-errorlogs --suite=harfbuzz -Cbuild

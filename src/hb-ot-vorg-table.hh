@@ -48,7 +48,7 @@ struct VertOriginMetric
   }
 
   public:
-  HBGlyphID	glyph;
+  HBGlyphID16	glyph;
   FWORD		vertOriginY;
 
   public:
@@ -122,10 +122,11 @@ struct VORG
   }
 
   protected:
-  FixedVersion<>	version;		/* Version of VORG table. Set to 0x00010000u. */
-  FWORD			defaultVertOriginY;	/* The default vertical origin. */
-  SortedArrayOf<VertOriginMetric>
-			vertYOrigins;		/* The array of vertical origins. */
+  FixedVersion<>version;	/* Version of VORG table. Set to 0x00010000u. */
+  FWORD		defaultVertOriginY;
+				/* The default vertical origin. */
+  SortedArray16Of<VertOriginMetric>
+		vertYOrigins;	/* The array of vertical origins. */
 
   public:
   DEFINE_SIZE_ARRAY(8, vertYOrigins);

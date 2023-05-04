@@ -27,8 +27,6 @@
 #define HB_CFF_INTERP_DICT_COMMON_HH
 
 #include "hb-cff-interp-common.hh"
-#include <math.h>
-#include <float.h>
 
 namespace CFF {
 
@@ -37,10 +35,8 @@ using namespace OT;
 /* an opstr and the parsed out dict value(s) */
 struct dict_val_t : op_str_t
 {
-  void init () { single_val.set_int (0); }
+  void init () {}
   void fini () {}
-
-  number_t	      single_val;
 };
 
 typedef dict_val_t num_dict_val_t;
@@ -57,19 +53,6 @@ struct top_dict_values_t : dict_values_t<OPSTR>
     FDArrayOffset = 0;
   }
   void fini () { dict_values_t<OPSTR>::fini (); }
-
-  unsigned int calculate_serialized_op_size (const OPSTR& opstr) const
-  {
-    switch (opstr.op)
-    {
-      case OpCode_CharStrings:
-      case OpCode_FDArray:
-	return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
-
-      default:
-	return opstr.str.length;
-    }
-  }
 
   unsigned int  charStringsOffset;
   unsigned int  FDArrayOffset;
@@ -194,6 +177,8 @@ struct top_dict_opset_t : dict_opset_t
 template <typename OPSET, typename PARAM, typename ENV=num_interp_env_t>
 struct dict_interpreter_t : interpreter_t<ENV>
 {
+  dict_interpreter_t (ENV& env_) : interpreter_t<ENV> (env_) {}
+
   bool interpret (PARAM& param)
   {
     param.init ();

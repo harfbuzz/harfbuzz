@@ -170,7 +170,7 @@ test_extents_cff2_vsindex (void)
 
   g_assert_cmpint (extents.x_bearing, ==, 12);
   g_assert_cmpint (extents.y_bearing, ==, 655);
-  g_assert_cmpint (extents.width, ==, 652);
+  g_assert_cmpint (extents.width, ==, 651);
   g_assert_cmpint (extents.height, ==, -655);
 
   result = hb_font_get_glyph_extents (font, 2, &extents);
@@ -178,7 +178,7 @@ test_extents_cff2_vsindex (void)
 
   g_assert_cmpint (extents.x_bearing, ==, 8);
   g_assert_cmpint (extents.y_bearing, ==, 669);
-  g_assert_cmpint (extents.width, ==, 649);
+  g_assert_cmpint (extents.width, ==, 648);
   g_assert_cmpint (extents.height, ==, -669);
 
   hb_font_destroy (font);
@@ -201,7 +201,7 @@ test_extents_cff2_vsindex_named_instance (void)
 
   g_assert_cmpint (extents.x_bearing, ==, 13);
   g_assert_cmpint (extents.y_bearing, ==, 652);
-  g_assert_cmpint (extents.width, ==, 653);
+  g_assert_cmpint (extents.width, ==, 652);
   g_assert_cmpint (extents.height, ==, -652);
 
   result = hb_font_get_glyph_extents (font, 2, &extents);

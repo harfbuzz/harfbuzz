@@ -27,26 +27,28 @@
 #ifndef VIEW_CAIRO_HH
 #define VIEW_CAIRO_HH
 
-#include "hb.hh"
-#include "options.hh"
+#include "view-options.hh"
+#include "output-options.hh"
 #include "helper-cairo.hh"
 
-
-struct view_cairo_t
+struct view_cairo_t : view_options_t, output_options_t<>
 {
-  view_cairo_t (option_parser_t *parser)
-	       : output_options (parser, helper_cairo_supported_formats),
-		 view_options (parser),
-		 direction (HB_DIRECTION_INVALID),
-		 lines (0), scale_bits (0) {}
-  ~view_cairo_t () {
+  ~view_cairo_t ()
+  {
     cairo_debug_reset_static_data ();
+  }
+
+  void add_options (option_parser_t *parser)
+  {
+    parser->set_summary ("View text with given font.");
+    view_options_t::add_options (parser);
+    output_options_t::add_options (parser, helper_cairo_supported_formats);
   }
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
     lines = g_array_new (false, false, sizeof (helper_cairo_line_t));
-    scale_bits = - (int) font_opts->subpixel_bits;
+    subpixel_bits = font_opts->subpixel_bits;
   }
   void new_line () {}
   void consume_text (hb_buffer_t  *buffer,
@@ -61,8 +63,7 @@ struct view_cairo_t
 		       hb_bool_t     utf8_clusters)
   {
     direction = hb_buffer_get_direction (buffer);
-    helper_cairo_line_t l;
-    helper_cairo_line_from_buffer (&l, buffer, text, text_len, scale_bits, utf8_clusters);
+    helper_cairo_line_t l (text, text_len, buffer, utf8_clusters, subpixel_bits);
     g_array_append_val (lines, l);
   }
   void finish (hb_buffer_t *buffer, const font_options_t *font_opts)
@@ -82,14 +83,138 @@ struct view_cairo_t
 
   protected:
 
-  output_options_t output_options;
-  view_options_t view_options;
-
   void render (const font_options_t *font_opts);
 
-  hb_direction_t direction; // Remove this, make segment_properties accessible
-  GArray *lines;
-  int scale_bits;
+  hb_direction_t direction = HB_DIRECTION_INVALID; // Remove this, make segment_properties accessible
+  GArray *lines = nullptr;
+  unsigned subpixel_bits = 0;
 };
+
+inline void
+view_cairo_t::render (const font_options_t *font_opts)
+{
+  bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
+  int vert  = vertical ? 1 : 0;
+  int horiz = vertical ? 0 : 1;
+
+  int x_sign = font_opts->font_size_x < 0 ? -1 : +1;
+  int y_sign = font_opts->font_size_y < 0 ? -1 : +1;
+
+  hb_font_t *font = font_opts->font;
+
+  if (!have_font_extents)
+  {
+    hb_font_extents_t hb_extents;
+    hb_font_get_extents_for_direction (font, direction, &hb_extents);
+    font_extents.ascent = scalbn ((double) hb_extents.ascender, - (int) subpixel_bits);
+    font_extents.descent = -scalbn ((double) hb_extents.descender, - (int) subpixel_bits);
+    font_extents.line_gap = scalbn ((double) hb_extents.line_gap, - (int) subpixel_bits);
+    have_font_extents = true;
+  }
+
+  double ascent = y_sign * font_extents.ascent;
+  double descent = y_sign * font_extents.descent;
+  double line_gap = y_sign * font_extents.line_gap + line_space;
+  double leading = ascent + descent + line_gap;
+
+  /* Calculate surface size. */
+  double w = 0, h = 0;
+  (vertical ? w : h) = (int) lines->len * leading - (font_extents.line_gap + line_space);
+  (vertical ? h : w) = 0;
+  for (unsigned int i = 0; i < lines->len; i++) {
+    helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
+    double x_advance, y_advance;
+    line.get_advance (&x_advance, &y_advance);
+    if (vertical)
+      h =  MAX (h, y_sign * y_advance);
+    else
+      w =  MAX (w, x_sign * x_advance);
+  }
+
+  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts,
+								      this);
+
+  /* See if font needs color. */
+  cairo_content_t content = CAIRO_CONTENT_ALPHA;
+  if (helper_cairo_scaled_font_has_color (scaled_font))
+    content = CAIRO_CONTENT_COLOR;
+
+  /* Create surface. */
+  cairo_t *cr = helper_cairo_create_context (w + margin.l + margin.r,
+					     h + margin.t + margin.b,
+					     this,
+					     this,
+					     content);
+  cairo_set_scaled_font (cr, scaled_font);
+
+  /* Setup coordinate system. */
+  cairo_translate (cr, margin.l, margin.t);
+  if (vertical)
+    cairo_translate (cr,
+		     w - ascent, /* We currently always stack lines right to left */
+		     y_sign < 0 ? h : 0);
+  else
+   {
+    cairo_translate (cr,
+		     x_sign < 0 ? w : 0,
+		     y_sign < 0 ? descent : ascent);
+   }
+
+  /* Draw. */
+  cairo_translate (cr, +vert * leading, -horiz * leading);
+  for (unsigned int i = 0; i < lines->len; i++)
+  {
+    helper_cairo_line_t &l = g_array_index (lines, helper_cairo_line_t, i);
+
+    cairo_translate (cr, -vert * leading, +horiz * leading);
+
+    if (show_extents)
+    {
+      cairo_save (cr);
+
+      cairo_set_source_rgba (cr, 1., 0., 0., .5);
+      cairo_set_line_width (cr, 10);
+      cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
+      for (unsigned i = 0; i < l.num_glyphs; i++) {
+	cairo_move_to (cr, l.glyphs[i].x, l.glyphs[i].y);
+	cairo_rel_line_to (cr, 0, 0);
+      }
+      cairo_stroke (cr);
+
+      cairo_restore (cr);
+      cairo_save (cr);
+
+      cairo_set_source_rgba (cr, 1., 0., 1., .5);
+      cairo_set_line_width (cr, 3);
+      for (unsigned i = 0; i < l.num_glyphs; i++)
+      {
+	hb_glyph_extents_t hb_extents;
+	hb_font_get_glyph_extents (font, l.glyphs[i].index, &hb_extents);
+	double x1 = scalbn ((double) hb_extents.x_bearing, - (int) subpixel_bits);
+	double y1 = -scalbn ((double) hb_extents.y_bearing, - (int) subpixel_bits);
+	double width = scalbn ((double) hb_extents.width, - (int) subpixel_bits);
+	double height = -scalbn ((double) hb_extents.height, - (int) subpixel_bits);
+
+	cairo_rectangle (cr, l.glyphs[i].x + x1, l.glyphs[i].y + y1, width, height);
+      }
+      cairo_stroke (cr);
+
+      cairo_restore (cr);
+    }
+
+    if (l.num_clusters)
+      cairo_show_text_glyphs (cr,
+			      l.utf8, l.utf8_len,
+			      l.glyphs, l.num_glyphs,
+			      l.clusters, l.num_clusters,
+			      l.cluster_flags);
+    else
+      cairo_show_glyphs (cr, l.glyphs, l.num_glyphs);
+  }
+
+  /* Clean up. */
+  helper_cairo_destroy_context (cr);
+  cairo_scaled_font_destroy (scaled_font);
+}
 
 #endif

@@ -1,11 +1,11 @@
 # Process this file with automake to produce Makefile.in
 
 NULL =
-EXTRA_DIST =
-SUBDIRS = api shaping fuzzing subset
+EXTRA_DIST = COPYING
+SUBDIRS = api shape subset fuzzing threads
 
 EXTRA_DIST += \
-	CMakeLists.txt \
+	meson.build \
 	$(NULL)
 
 # Convenience targets:

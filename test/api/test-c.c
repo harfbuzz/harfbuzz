@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-/* This file tests that all headers can be included from .c files */
+/* This file tests that all headers can be included from C files */
 
 
 #ifdef HAVE_CONFIG_H

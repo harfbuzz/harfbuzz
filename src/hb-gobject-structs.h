@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011  Google, Inc.
+ * Copyright (C) 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_GOBJECT_H_IN
+#if !defined(HB_GOBJECT_H_IN) && !defined(HB_NO_SINGLE_HEADER_ERROR)
 #error "Include <hb-gobject.h> instead."
 #endif
 
@@ -40,47 +40,30 @@ HB_BEGIN_DECLS
 
 /* Object types */
 
-/**
- * hb_gobject_blob_get_type:
- *
- * Since: 0.9.2
- **/
 HB_EXTERN GType
 hb_gobject_blob_get_type (void);
 #define HB_GOBJECT_TYPE_BLOB (hb_gobject_blob_get_type ())
 
-/**
- * hb_gobject_buffer_get_type:
- *
- * Since: 0.9.2
- **/
 HB_EXTERN GType
 hb_gobject_buffer_get_type (void);
 #define HB_GOBJECT_TYPE_BUFFER (hb_gobject_buffer_get_type ())
 
-/**
- * hb_gobject_face_get_type:
- *
- * Since: 0.9.2
- **/
+HB_EXTERN GType
+hb_gobject_draw_funcs_get_type (void);
+#define HB_GOBJECT_TYPE_DRAW_FUNCS (hb_gobject_draw_funcs_get_type ())
+
+HB_EXTERN GType
+hb_gobject_paint_funcs_get_type (void);
+#define HB_GOBJECT_TYPE_PAINT_FUNCS (hb_gobject_paint_funcs_get_type ())
+
 HB_EXTERN GType
 hb_gobject_face_get_type (void);
 #define HB_GOBJECT_TYPE_FACE (hb_gobject_face_get_type ())
 
-/**
- * hb_gobject_font_get_type:
- *
- * Since: 0.9.2
- **/
 HB_EXTERN GType
 hb_gobject_font_get_type (void);
 #define HB_GOBJECT_TYPE_FONT (hb_gobject_font_get_type ())
 
-/**
- * hb_gobject_font_funcs_get_type:
- *
- * Since: 0.9.2
- **/
 HB_EXTERN GType
 hb_gobject_font_funcs_get_type (void);
 #define HB_GOBJECT_TYPE_FONT_FUNCS (hb_gobject_font_funcs_get_type ())
@@ -97,11 +80,6 @@ HB_EXTERN GType
 hb_gobject_shape_plan_get_type (void);
 #define HB_GOBJECT_TYPE_SHAPE_PLAN (hb_gobject_shape_plan_get_type ())
 
-/**
- * hb_gobject_unicode_funcs_get_type:
- *
- * Since: 0.9.2
- **/
 HB_EXTERN GType
 hb_gobject_unicode_funcs_get_type (void);
 #define HB_GOBJECT_TYPE_UNICODE_FUNCS (hb_gobject_unicode_funcs_get_type ())
@@ -125,8 +103,24 @@ hb_gobject_segment_properties_get_type (void);
 #define HB_GOBJECT_TYPE_SEGMENT_PROPERTIES (hb_gobject_segment_properties_get_type ())
 
 HB_EXTERN GType
+hb_gobject_draw_state_get_type (void);
+#define HB_GOBJECT_TYPE_DRAW_STATE (hb_gobject_draw_state_get_type ())
+
+HB_EXTERN GType
+hb_gobject_color_stop_get_type (void);
+#define HB_GOBJECT_TYPE_COLOR_STOP (hb_gobject_color_stop_get_type ())
+
+HB_EXTERN GType
+hb_gobject_color_line_get_type (void);
+#define HB_GOBJECT_TYPE_COLOR_LINE (hb_gobject_color_line_get_type ())
+
+HB_EXTERN GType
 hb_gobject_user_data_key_get_type (void);
 #define HB_GOBJECT_TYPE_USER_DATA_KEY (hb_gobject_user_data_key_get_type ())
+
+HB_EXTERN GType
+hb_gobject_ot_var_axis_info_get_type (void);
+#define HB_GOBJECT_TYPE_OT_VAR_AXIS_INFO (hb_gobject_ot_var_axis_info_get_type ())
 
 HB_EXTERN GType
 hb_gobject_ot_math_glyph_variant_get_type (void);
