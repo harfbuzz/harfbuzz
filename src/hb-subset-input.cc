@@ -538,7 +538,7 @@ hb_subset_preprocess (hb_face_t *source)
  *
  * Since: REPLACEME
  **/
-HB_EXTERN hb_bool_t
+HB_EXTERN void
 hb_subset_input_set_old_to_new_glyph_mapping (hb_subset_input_t *input,
                                               const hb_map_t* mapping)
 {
@@ -546,12 +546,11 @@ hb_subset_input_set_old_to_new_glyph_mapping (hb_subset_input_t *input,
   for (auto gid : mapping->values())
   {
     // Mapping cannot map multiple old gids to the same new gid.
-    if (new_gids.has(gid)) return false;
+    if (new_gids.has(gid)) return;
     new_gids.add(gid);
   }
 
   input->glyph_map = *mapping;
-  return true;
 }
 
 #ifdef HB_EXPERIMENTAL_API

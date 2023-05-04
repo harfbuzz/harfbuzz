@@ -172,7 +172,7 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
 				   hb_tag_t            axis_tag,
 				   float               axis_value);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN void
 hb_subset_input_set_old_to_new_glyph_mapping (hb_subset_input_t *input,
                                               const hb_map_t* mapping);
 
