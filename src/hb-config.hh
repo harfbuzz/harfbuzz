@@ -189,6 +189,7 @@
 
 #ifdef HB_OPTIMIZE_SIZE
 #define HB_NO_OT_LAYOUT_LOOKUP_CACHE
+#define HB_NO_GDEF_CACHE
 #endif
 
 
