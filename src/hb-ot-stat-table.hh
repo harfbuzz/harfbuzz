@@ -57,7 +57,6 @@ enum
   // Reserved = 0xFFFC				/* Reserved for future use — set to zero. */
 };
 
-#ifndef HB_NO_VAR
 static bool axis_value_is_outside_axis_range (hb_tag_t axis_tag, float axis_value,
                                               const hb_hashmap_t<hb_tag_t, Triple> *user_axes_location)
 {
@@ -70,7 +69,6 @@ static bool axis_value_is_outside_axis_range (hb_tag_t axis_tag, float axis_valu
 
   return false;
 }
-#endif
 
 struct StatAxisRecord
 {
