@@ -780,7 +780,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   reverse_glyph_map->resize (pop);
   glyph_map->resize (pop);
 
-  if (requested_glyph_map)
+  if (*requested_glyph_map)
   {
     hb_codepoint_t max_glyph = HB_SET_VALUE_INVALID;
     hb_set_t remaining;
