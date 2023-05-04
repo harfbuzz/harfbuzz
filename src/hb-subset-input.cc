@@ -536,6 +536,11 @@ hb_subset_preprocess (hb_face_t *source)
  * Note: if a glyph mapping is set with this function, then the retain gids
  * setting will be ignored.
  *
+ * Note: this will accept and apply non-monotonic mappings, however this
+ * may result in unsorted Coverage tables. Such fonts may not work for all
+ * use cases (for example ots will reject such coverage tables). So it's
+ * recommended, if possible, to supply a monotonic mapping.
+ *
  * Since: REPLACEME
  **/
 HB_EXTERN void
