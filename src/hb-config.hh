@@ -97,6 +97,12 @@
 #define HB_NO_BORING_EXPANSION
 #endif
 
+#ifdef __OPTIMIZE_SIZE__
+#ifndef HB_OPTIMIZE_SIZE
+#define HB_OPTIMIZE_SIZE
+#endif
+#endif
+
 #if defined(HAVE_CONFIG_OVERRIDE_H) || defined(HB_CONFIG_OVERRIDE_H)
 #ifndef HB_CONFIG_OVERRIDE_H
 #define HB_CONFIG_OVERRIDE_H "config-override.h"
@@ -175,17 +181,6 @@
 #define HB_NO_OT_SHAPER_MYANMAR_ZAWGYI
 #endif
 
-#ifdef NDEBUG
-#ifndef HB_NDEBUG
-#define HB_NDEBUG
-#endif
-#endif
-
-#ifdef __OPTIMIZE_SIZE__
-#ifndef HB_OPTIMIZE_SIZE
-#define HB_OPTIMIZE_SIZE
-#endif
-#endif
 #ifdef HB_OPTIMIZE_SIZE
 #define HB_OPTIMIZE_SIZE_VAL 1
 #else
