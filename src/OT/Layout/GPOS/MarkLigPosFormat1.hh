@@ -92,11 +92,12 @@ struct MarkLigPosFormat1_2
 
   const Coverage &get_coverage () const { return this+markCoverage; }
 
-  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
+  bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int mark_index = coverage_index;
+    unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint);
+    if (likely (mark_index == NOT_COVERED)) return_trace (false);
 
     /* Now we search backwards for a non-mark glyph */
 

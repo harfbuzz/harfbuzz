@@ -102,10 +102,12 @@ struct PairPosFormat1_3
 
   const Coverage &get_coverage () const { return this+coverage; }
 
-  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
+  bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
+    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
+    if (likely (index == NOT_COVERED)) return_trace (false);
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset_fast (buffer->idx, 1);
@@ -116,7 +118,7 @@ struct PairPosFormat1_3
       return_trace (false);
     }
 
-    return_trace ((this+pairSet[coverage_index]).apply (c, valueFormat, skippy_iter.idx));
+    return_trace ((this+pairSet[index]).apply (c, valueFormat, skippy_iter.idx));
   }
 
   bool subset (hb_subset_context_t *c) const

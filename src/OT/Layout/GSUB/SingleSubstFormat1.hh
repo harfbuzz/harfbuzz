@@ -123,10 +123,12 @@ struct SingleSubstFormat1_3
     return 1;
   }
 
-  bool apply (hb_ot_apply_context_t *c, unsigned coverage_index) const
+  bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
+    unsigned int index = (this+coverage).get_coverage (glyph_id);
+    if (likely (index == NOT_COVERED)) return_trace (false);
 
     hb_codepoint_t d = deltaGlyphID;
     hb_codepoint_t mask = get_mask ();
