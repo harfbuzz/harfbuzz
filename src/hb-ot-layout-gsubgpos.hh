@@ -901,7 +901,7 @@ struct hb_accelerate_subtables_context_t :
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   template <typename T>
-  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->apply (c, true) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->apply_cached (c) )
   template <typename T>
   static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
   template <typename Type>
@@ -2451,7 +2451,9 @@ struct ContextFormat2_5
     }
   }
 
-  bool apply (hb_ot_apply_context_t *c, bool cached = false) const
+  bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }
+  bool apply (hb_ot_apply_context_t *c) const { return _apply (c, false); }
+  bool _apply (hb_ot_apply_context_t *c, bool cached) const
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
@@ -3554,7 +3556,9 @@ struct ChainContextFormat2_5
     }
   }
 
-  bool apply (hb_ot_apply_context_t *c, bool cached = false) const
+  bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }
+  bool apply (hb_ot_apply_context_t *c) const { return _apply (c, false); }
+  bool _apply (hb_ot_apply_context_t *c, bool cached) const
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
