@@ -771,6 +771,7 @@ static void
 _create_old_gid_to_new_gid_map (const hb_face_t *face,
 				bool		 retain_gids,
 				const hb_set_t	*all_gids_to_retain,
+                                const hb_map_t  *requested_glyph_map,
 				hb_map_t	*glyph_map, /* OUT */
 				hb_map_t	*reverse_glyph_map, /* OUT */
 				unsigned int	*num_glyphs /* OUT */)
@@ -779,7 +780,34 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   reverse_glyph_map->resize (pop);
   glyph_map->resize (pop);
 
-  if (!retain_gids)
+  if (requested_glyph_map)
+  {
+    hb_codepoint_t max_glyph = HB_SET_VALUE_INVALID;
+    hb_set_t remaining;
+    for (auto old_gid : all_gids_to_retain->iter ())
+    {
+      hb_codepoint_t* new_gid;
+      if (!requested_glyph_map->has (old_gid, &new_gid))
+      {
+        remaining.add(old_gid);  
+        continue;
+      }
+
+      if (*new_gid > max_glyph || max_glyph == HB_SET_VALUE_INVALID)
+        max_glyph = *new_gid;
+      reverse_glyph_map->set (*new_gid, old_gid);
+    }
+
+    // Anything that wasn't mapped by the requested mapping should
+    // be placed after the requested mapping.
+    for (auto old_gid : remaining)
+    {
+      reverse_glyph_map->set(++max_glyph, old_gid);
+    }
+
+    *num_glyphs = max_glyph + 1;
+  }
+  else if (!retain_gids)
   {
     + hb_enumerate (hb_iter (all_gids_to_retain), (hb_codepoint_t) 0)
     | hb_sink (reverse_glyph_map)
@@ -1011,6 +1039,7 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   _create_old_gid_to_new_gid_map (face,
                                   input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
 				  &_glyphset,
+                                  &input->glyph_map,
 				  glyph_map,
 				  reverse_glyph_map,
 				  &_num_output_glyphs);

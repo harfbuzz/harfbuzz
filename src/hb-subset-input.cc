@@ -520,6 +520,24 @@ hb_subset_preprocess (hb_face_t *source)
   return new_source;
 }
 
+/**
+ * hb_subset_input_set_old_to_new_glyph_mapping:
+ * @input: a #hb_subset_input_t object.
+ * @mapping: a mapping from original glyphs to new ids.
+ *
+ * Provide a mapping from glyph ids in the original font to the desired
+ * new glyph ids. The mappings must be unique, that is no two original
+ * glyph ids can be mapped to the same new id.
+ *
+ * Any glyphs that are retained in the subset which are not specified
+ * in this mapping will be assigned glyph ids after the highest glyph
+ * id in the mapping.
+ *
+ * Note: if a glyph mapping is set with this function, then the retain gids
+ * setting will be ignored.
+ *
+ * Since: REPLACEME
+ **/
 HB_EXTERN hb_bool_t
 hb_subset_input_set_old_to_new_glyph_mapping (hb_subset_input_t *input,
                                               const hb_map_t* mapping)
