@@ -30,6 +30,8 @@
 #include "hb.hh"
 #include "hb-machinery.hh"
 
+#include <arm_neon.h>
+
 /*
  * The set-digests here implement various "filters" that support
  * "approximate member query".  Conceptually these are like Bloom
@@ -124,10 +126,34 @@ struct hb_set_digest_bits_pattern_t
   bool may_have (hb_codepoint_t g) const
   { return mask & mask_for (g); }
 
+  static inline bool uint32x4_is_not_zero(uint32x4_t v)
+  {
+    // https://stackoverflow.com/questions/15389539/fastest-way-to-test-a-128-bit-neon-register-for-a-value-of-0-using-intrinsics
+    uint32x2_t tmp = vorr_u32(vget_low_u32(v), vget_high_u32(v));
+    return vget_lane_u32(vpmax_u32(tmp, tmp), 0);
+  }
+
+  bool may_have (const uint32x4_t &g) const
+  { return uint32x4_is_not_zero (vandq_u32 (vdupq_n_u32 (mask), mask_for (g))); }
+
   private:
 
   static mask_t mask_for (hb_codepoint_t g)
   { return ((mask_t) 1) << ((g >> shift) & (mask_bits - 1)); }
+
+  template <int u = shift,
+	    hb_enable_if (u == 0)>
+  static uint32x4_t shifted (uint32x4_t v) { return v; }
+  template <int u = shift,
+	    hb_enable_if (u != 0)>
+  static uint32x4_t shifted (uint32x4_t v) { return vshrq_n_u32 (v, shift); }
+
+  static uint32x4_t mask_for (const uint32x4_t &g)
+  {
+    uint32x4_t a = vandq_u32 (shifted (g), vdupq_n_u32 (mask_bits - 1));
+    return vshlq_u32 (vdupq_n_u32 (1), a);
+  }
+
   mask_t mask;
 };
 
@@ -179,7 +205,8 @@ struct hb_set_digest_combiner_t
     return head.may_have (o.head) && tail.may_have (o.tail);
   }
 
-  bool may_have (hb_codepoint_t g) const
+  template <typename T>
+  bool may_have (const T &g) const
   {
     return head.may_have (g) && tail.may_have (g);
   }
@@ -200,11 +227,11 @@ struct hb_set_digest_combiner_t
 using hb_set_digest_t =
   hb_set_digest_combiner_t
   <
-    hb_set_digest_bits_pattern_t<unsigned long, 4>,
+    hb_set_digest_bits_pattern_t<uint32_t, 4>,
     hb_set_digest_combiner_t
     <
-      hb_set_digest_bits_pattern_t<unsigned long, 0>,
-      hb_set_digest_bits_pattern_t<unsigned long, 9>
+      hb_set_digest_bits_pattern_t<uint32_t, 0>,
+      hb_set_digest_bits_pattern_t<uint32_t, 9>
     >
   >
 ;
