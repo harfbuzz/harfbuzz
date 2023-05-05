@@ -608,12 +608,13 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 			    int operation_count,
 			    unsigned depth = 0)
 {
-  if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return operation_count;
-  if (unlikely (--operation_count < 0)) return operation_count;
   /* Check if is already visited */
   if (gids_to_retain->has (gid)) return operation_count;
 
   gids_to_retain->add (gid);
+
+  if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return operation_count;
+  if (unlikely (--operation_count < 0)) return operation_count;
 
   for (auto &item : glyf.glyph_for_gid (gid).get_composite_iterator ())
     operation_count =
@@ -993,7 +994,6 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   force_long_loca = input->force_long_loca;
   if (accel)
     accelerator = (hb_subset_accelerator_t*) accel;
-
 
   if (unlikely (in_error ()))
     return;
