@@ -130,7 +130,7 @@ struct Coverage
     u.format = !unsorted && count <= num_ranges * 3 ? 1 : 2;
 
 #ifndef HB_NO_BEYOND_64K
-    if (count && max > 0xFFFFu)
+    if (max > 0xFFFFu)
       u.format += 2;
 #endif
 
