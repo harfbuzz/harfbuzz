@@ -70,7 +70,9 @@ struct hb_ot_font_t
 {
   const hb_ot_face_t *ot_face;
 
+#ifndef HB_NO_OT_FONT_CMAP_CACHE
   hb_ot_font_cmap_cache_t *cmap_cache;
+#endif
 
   /* h_advance caching */
   mutable hb_atomic_int_t cached_coords_serial;
@@ -86,6 +88,7 @@ _hb_ot_font_create (hb_font_t *font)
 
   ot_font->ot_face = &font->face->table;
 
+#ifndef HB_NO_OT_FONT_CMAP_CACHE
   // retry:
   auto *cmap_cache  = (hb_ot_font_cmap_cache_t *) hb_face_get_user_data (font->face,
 									 &hb_ot_font_cmap_cache_user_data_key);
@@ -112,6 +115,7 @@ _hb_ot_font_create (hb_font_t *font)
   }
   out:
   ot_font->cmap_cache = cmap_cache;
+#endif
 
   return ot_font;
 }
@@ -136,7 +140,11 @@ hb_ot_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
-  return ot_face->cmap->get_nominal_glyph (unicode, glyph, ot_font->cmap_cache);
+  hb_ot_font_cmap_cache_t *cmap_cache = nullptr;
+#ifndef HB_NO_OT_FONT_CMAP_CACHE
+  cmap_cache = ot_font->cmap_cache;
+#endif
+  return ot_face->cmap->get_nominal_glyph (unicode, glyph, cmap_cache);
 }
 
 static unsigned int
@@ -151,10 +159,14 @@ hb_ot_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
+  hb_ot_font_cmap_cache_t *cmap_cache = nullptr;
+#ifndef HB_NO_OT_FONT_CMAP_CACHE
+  cmap_cache = ot_font->cmap_cache;
+#endif
   return ot_face->cmap->get_nominal_glyphs (count,
 					    first_unicode, unicode_stride,
 					    first_glyph, glyph_stride,
-					    ot_font->cmap_cache);
+					    cmap_cache);
 }
 
 static hb_bool_t
@@ -167,9 +179,13 @@ hb_ot_get_variation_glyph (hb_font_t *font HB_UNUSED,
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
+  hb_ot_font_cmap_cache_t *cmap_cache = nullptr;
+#ifndef HB_NO_OT_FONT_CMAP_CACHE
+  cmap_cache = ot_font->cmap_cache;
+#endif
   return ot_face->cmap->get_variation_glyph (unicode,
                                              variation_selector, glyph,
-                                             ot_font->cmap_cache);
+                                             cmap_cache);
 }
 
 static void
