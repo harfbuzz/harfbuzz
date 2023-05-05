@@ -154,6 +154,9 @@ hb_subset_input_glyph_set (hb_subset_input_t *input);
 HB_EXTERN hb_set_t *
 hb_subset_input_set (hb_subset_input_t *input, hb_subset_sets_t set_type);
 
+HB_EXTERN hb_map_t*
+hb_subset_input_old_to_new_glyph_mapping (hb_subset_input_t *input);
+
 HB_EXTERN hb_subset_flags_t
 hb_subset_input_get_flags (hb_subset_input_t *input);
 
@@ -171,9 +174,6 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
 				   hb_face_t          *face,
 				   hb_tag_t            axis_tag,
 				   float               axis_value);
-
-HB_EXTERN hb_map_t*
-hb_subset_input_old_to_new_glyph_mapping (hb_subset_input_t *input);
 
 #ifdef HB_EXPERIMENTAL_API
 HB_EXTERN hb_bool_t

@@ -543,7 +543,7 @@ hb_subset_preprocess (hb_face_t *source)
  *
  * Return value: (transfer none): pointer to the #hb_map_t of the custom glyphs ID map.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 HB_EXTERN hb_map_t*
 hb_subset_input_old_to_new_glyph_mapping (hb_subset_input_t *input)
