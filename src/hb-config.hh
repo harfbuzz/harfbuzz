@@ -44,14 +44,13 @@
 #ifdef HB_TINY
 #define HB_LEAN
 #define HB_MINI
+#define HB_OPTIMIZE_SIZE
+#define HB_OPTIMIZE_SIZE_MORE
 #define HB_MINIMIZE_MEMORY_USAGE
 #define HB_NO_MT
 #define HB_NO_UCD_UNASSIGNED
 #ifndef NDEBUG
 #define NDEBUG
-#endif
-#ifndef __OPTIMIZE_SIZE__
-#define __OPTIMIZE_SIZE__
 #endif
 #endif
 
@@ -182,6 +181,10 @@
 #define HB_NO_OT_SHAPER_THAI_FALLBACK
 #define HB_NO_OT_SHAPER_VOWEL_CONSTRAINTS
 #define HB_NO_OT_SHAPER_MYANMAR_ZAWGYI
+#endif
+
+#ifdef HB_OPTIMIZE_SIZE_MORE
+#define HB_NO_OT_LIGATURES_FAST_PATH
 #endif
 
 #ifdef HB_MINIMIZE_MEMORY_USAGE
