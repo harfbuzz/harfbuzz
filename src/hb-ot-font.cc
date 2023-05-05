@@ -204,7 +204,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 
   hb_position_t *orig_first_advance = first_advance;
 
-#ifndef HB_NO_VAR
+#if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
   const OT::HVAR &HVAR = *hmtx.var_table;
   const OT::VariationStore &varStore = &HVAR + HVAR.varStore;
   OT::VariationStore::cache_t *varStore_cache = font->num_coords * count >= 128 ? varStore.create_cache () : nullptr;
@@ -274,7 +274,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
     }
   }
 
-#ifndef HB_NO_VAR
+#if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
   OT::VariationStore::destroy_cache (varStore_cache);
 #endif
 
@@ -309,7 +309,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 
   if (vmtx.has_data ())
   {
-#ifndef HB_NO_VAR
+#if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
     const OT::VVAR &VVAR = *vmtx.var_table;
     const OT::VariationStore &varStore = &VVAR + VVAR.varStore;
     OT::VariationStore::cache_t *varStore_cache = font->num_coords ? varStore.create_cache () : nullptr;
@@ -324,7 +324,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
 
-#ifndef HB_NO_VAR
+#if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
     OT::VariationStore::destroy_cache (varStore_cache);
 #endif
   }
