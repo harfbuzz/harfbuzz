@@ -44,6 +44,7 @@
 #ifdef HB_TINY
 #define HB_LEAN
 #define HB_MINI
+#define HB_MINIMIZE_MEMORY_USAGE
 #define HB_NO_MT
 #define HB_NO_UCD_UNASSIGNED
 #ifndef NDEBUG
@@ -183,16 +184,21 @@
 #define HB_NO_OT_SHAPER_MYANMAR_ZAWGYI
 #endif
 
+#ifdef HB_MINIMIZE_MEMORY_USAGE
+#define HB_NO_GDEF_CACHE
+#define HB_NO_OT_LAYOUT_LOOKUP_CACHE
+#endif
+
 #ifdef HB_OPTIMIZE_SIZE
 #define HB_OPTIMIZE_SIZE_VAL 1
 #else
 #define HB_OPTIMIZE_SIZE_VAL 0
 #endif
 
-#ifdef HB_OPTIMIZE_SIZE
-#define HB_NO_OT_LAYOUT_LOOKUP_CACHE
-#define HB_NO_GDEF_CACHE
+#ifdef HB_MINIMIZE_MEMORY_USAGE
+#define HB_MINIMIZE_MEMORY_USAGE_VAL 1
+#else
+#define HB_MINIMIZE_MEMORY_USAGE_VAL 0
 #endif
-
 
 #endif /* HB_CONFIG_HH */
