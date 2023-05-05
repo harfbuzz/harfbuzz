@@ -1053,6 +1053,10 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
                                        unicodes,
 				       has_seac);
   }
+
+#define HB_SUBSET_PLAN_MEMBER(Type, Name) check_success (!Name.in_error ());
+#include "hb-subset-plan-member-list.hh"
+#undef HB_SUBSET_PLAN_MEMBER
 }
 
 /**

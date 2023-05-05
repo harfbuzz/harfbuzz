@@ -111,13 +111,13 @@ HB_SUBSET_PLAN_MEMBER (hb_map_t, axes_index_map)
 HB_SUBSET_PLAN_MEMBER (hb_map_t, axes_old_index_tag_map)
 
 //hmtx metrics map: new gid->(advance, lsb)
-mutable HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_codepoint_t, hb_pair_t E(<unsigned, int>)>), hmtx_map)
+HB_SUBSET_PLAN_MEMBER (mutable hb_hashmap_t E(<hb_codepoint_t, hb_pair_t E(<unsigned, int>)>), hmtx_map)
 //vmtx metrics map: new gid->(advance, lsb)
-mutable HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_codepoint_t, hb_pair_t E(<unsigned, int>)>), vmtx_map)
+HB_SUBSET_PLAN_MEMBER (mutable hb_hashmap_t E(<hb_codepoint_t, hb_pair_t E(<unsigned, int>)>), vmtx_map)
 //boundsWidth map: new gid->boundsWidth, boundWidth=xMax - xMin
-mutable HB_SUBSET_PLAN_MEMBER (hb_map_t, bounds_width_map)
+HB_SUBSET_PLAN_MEMBER (mutable hb_map_t, bounds_width_map)
 //boundsHeight map: new gid->boundsHeight, boundsHeight=yMax - yMin
-mutable HB_SUBSET_PLAN_MEMBER (hb_map_t, bounds_height_map)
+HB_SUBSET_PLAN_MEMBER (mutable hb_map_t, bounds_height_map)
 
 #ifdef HB_EXPERIMENTAL_API
 // name table overrides map: hb_ot_name_record_ids_t-> name string new value or
