@@ -753,7 +753,6 @@ parse_glyph_map (const char *name,
   // <entry> = <old gid>:<new gid>
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_subset_input_t* input = subset_main->input;
-  hb_map_t *mapping = hb_map_create ();
   hb_set_t *glyphs = hb_subset_input_glyph_set(input);
 
   char *s = (char *) arg;
@@ -792,12 +791,11 @@ parse_glyph_map (const char *name,
     }
 
     hb_set_add(glyphs, start_code);
-    hb_map_set (mapping, start_code, end_code);
+    hb_map_set (hb_subset_input_old_to_new_glyph_mapping (input), start_code, end_code);
 
     s = p;
   }
 
-  hb_subset_input_set_old_to_new_glyph_mapping(input, mapping);
   return true;
 }
 

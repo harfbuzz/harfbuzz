@@ -767,7 +767,7 @@ _create_glyph_map_gsub (const hb_set_t* glyph_set_gsub,
   ;
 }
 
-static void
+static bool
 _create_old_gid_to_new_gid_map (const hb_face_t *face,
 				bool		 retain_gids,
 				const hb_set_t	*all_gids_to_retain,
@@ -782,6 +782,20 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
 
   if (*requested_glyph_map)
   {
+    hb_set_t new_gids(requested_glyph_map->values());
+    if (new_gids.get_population() != requested_glyph_map->get_population())
+    {
+      DEBUG_MSG (SUBSET, nullptr, "The provided custom glyph mapping is not unique.");
+      return false;
+    }
+
+    if (retain_gids)
+    {
+      DEBUG_MSG (SUBSET, nullptr, 
+        "HB_SUBSET_FLAGS_RETAIN_GIDS cannot be set if "
+        "a custom glyph mapping has been provided.");
+      return false;
+    }
   
     hb_codepoint_t max_glyph = 0;
     hb_set_t remaining;
@@ -839,6 +853,8 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
   | hb_sink (glyph_map)
   ;
+
+  return true;
 }
 
 #ifndef HB_NO_VAR
@@ -1042,13 +1058,16 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   if (unlikely (in_error ()))
     return;
 
-  _create_old_gid_to_new_gid_map (face,
-                                  input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
-				  &_glyphset,
-                                  &input->glyph_map,
-				  glyph_map,
-				  reverse_glyph_map,
-				  &_num_output_glyphs);
+  if (!check_success(_create_old_gid_to_new_gid_map(
+          face,
+          input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
+          &_glyphset,
+          &input->glyph_map,
+          glyph_map,
+          reverse_glyph_map,
+          &_num_output_glyphs))) {
+    return;
+  }
 
   _create_glyph_map_gsub (
       &_glyphset_gsub,

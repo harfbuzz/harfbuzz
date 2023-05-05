@@ -525,34 +525,29 @@ hb_subset_preprocess (hb_face_t *source)
  * @input: a #hb_subset_input_t object.
  * @mapping: a mapping from original glyphs to new ids.
  *
- * Provide a mapping from glyph ids in the original font to the desired
- * new glyph ids. The mappings must be unique, that is no two original
- * glyph ids can be mapped to the same new id.
+ * Returns a map which specifies an explicit mapping from old to new glyph
+ * id's in the produced subset. The caller should populate the map as desired.
+ * If this map is left empty then glyph ids will be automatically mapped to new
+ * values by the subsetter. If populated, the mapping must be unique, that
+ * is no two original glyph ids can be mapped to the same new id.
+ * Additionally, if a mapping is provided then the retain gids option cannot
+ * be enabled.
  *
  * Any glyphs that are retained in the subset which are not specified
  * in this mapping will be assigned glyph ids after the highest glyph
  * id in the mapping.
  *
- * Note: if a glyph mapping is set with this function, then the retain gids
- * setting will be ignored.
- *
  * Note: this will accept and apply non-monotonic mappings, however this
  * may result in unsorted Coverage tables. Such fonts may not work for all
- * use cases (for example ots will reject such coverage tables). So it's
+ * use cases (for example ots will reject unsorted coverage tables). So it's
  * recommended, if possible, to supply a monotonic mapping.
  *
  * Since: REPLACEME
  **/
-HB_EXTERN void
-hb_subset_input_set_old_to_new_glyph_mapping (hb_subset_input_t *input,
-                                              const hb_map_t* mapping)
+HB_EXTERN hb_map_t*
+hb_subset_input_old_to_new_glyph_mapping (hb_subset_input_t *input)
 {
-  hb_set_t new_gids(mapping->values());
-  if (new_gids.get_population() != mapping->get_population())
-    // Mapping cannot map multiple old gids to the same new gid.
-    return;
-
-  input->glyph_map = *mapping;
+  return &input->glyph_map;
 }
 
 #ifdef HB_EXPERIMENTAL_API
