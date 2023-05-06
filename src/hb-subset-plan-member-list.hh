@@ -124,3 +124,5 @@ HB_SUBSET_PLAN_MEMBER (mutable hb_map_t, bounds_height_map)
 // None to indicate should remove
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_ot_name_record_ids_t, hb_bytes_t>), name_table_overrides)
 #endif
+
+#undef E
