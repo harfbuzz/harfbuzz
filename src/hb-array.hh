@@ -122,7 +122,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 
   uint32_t hash () const
   {
-    uint32_t current = 0;
+    uint32_t current = 7;
     for (auto &v : *this)
       current = current * 31 + hb_hash (v);
     return current;
@@ -452,7 +452,7 @@ inline bool hb_array_t<const unsigned char>::operator == (const hb_array_t<const
 template <>
 inline uint32_t hb_array_t<const char>::hash () const
 {
-  uint32_t current = 0;
+  uint32_t current = 7;
   unsigned i = 0;
 
 #if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
@@ -470,7 +470,7 @@ inline uint32_t hb_array_t<const char>::hash () const
 template <>
 inline uint32_t hb_array_t<const unsigned char>::hash () const
 {
-  uint32_t current = 0;
+  uint32_t current = 7;
   unsigned i = 0;
 
 #if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
