@@ -2101,8 +2101,15 @@ struct ClassDef
 
 #ifndef HB_NO_BEYOND_64K
     if (glyph_max > 0xFFFFu)
-      format += 2;
+      u.format += 2;
+    if (unlikely (glyph_max > 0xFFFFFFu))
+#else
+    if (unlikely (glyph_max > 0xFFFFu))
 #endif
+    {
+      c->check_success (false, HB_SERIALIZE_ERROR_INT_OVERFLOW);
+      return_trace (false);
+    }
 
     u.format = format;
 

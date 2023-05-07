@@ -132,7 +132,14 @@ struct Coverage
 #ifndef HB_NO_BEYOND_64K
     if (max > 0xFFFFu)
       u.format += 2;
+    if (unlikely (max > 0xFFFFFFu))
+#else
+    if (unlikely (max > 0xFFFFu))
 #endif
+    {
+      c->check_success (false, HB_SERIALIZE_ERROR_INT_OVERFLOW);
+      return_trace (false);
+    }
 
     switch (u.format)
     {
