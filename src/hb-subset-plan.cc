@@ -1052,6 +1052,8 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 				       gid_to_unicodes,
                                        unicodes,
 				       has_seac);
+
+    check_success (inprogress_accelerator);
   }
 
 #define HB_SUBSET_PLAN_MEMBER(Type, Name) check_success (!Name.in_error ());
