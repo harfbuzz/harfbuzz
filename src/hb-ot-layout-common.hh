@@ -1769,6 +1769,7 @@ struct ClassDefFormat2_4
       return_trace (true);
     }
 
+    unsigned unsorted = false;
     unsigned num_ranges = 1;
     hb_codepoint_t prev_gid = (*it).first;
     unsigned prev_klass = (*it).second;
@@ -1789,6 +1790,10 @@ struct ClassDefFormat2_4
       if (cur_gid != prev_gid + 1 ||
 	  cur_klass != prev_klass)
       {
+
+	if (unlikely (cur_gid < prev_gid))
+	  unsorted = true;
+
 	if (unlikely (!record)) break;
 	record->last = prev_gid;
 	num_ranges++;
@@ -1808,7 +1813,9 @@ struct ClassDefFormat2_4
 
     if (likely (record)) record->last = prev_gid;
     rangeRecord.len = num_ranges;
-    rangeRecord.as_array ().qsort (RangeRecord<Types>::cmp_range); // To handle unsorted glyph order.
+
+    if (unlikely (unsorted))
+      rangeRecord.as_array ().qsort (RangeRecord<Types>::cmp_range);
 
     return_trace (true);
   }

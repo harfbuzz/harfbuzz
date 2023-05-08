@@ -95,10 +95,14 @@ struct CoverageFormat2_4
     unsigned count = 0;
     unsigned range = (unsigned) -1;
     last = (hb_codepoint_t) -2;
+    unsigned unsorted = false;
     for (auto g: glyphs)
     {
       if (last + 1 != g)
       {
+	if (unlikely (last != (hb_codepoint_t) -2 && last + 1 > g))
+	  unsorted = true;
+
         range++;
         rangeRecord.arrayZ[range].first = g;
         rangeRecord.arrayZ[range].value = count;
@@ -107,7 +111,9 @@ struct CoverageFormat2_4
       last = g;
       count++;
     }
-    rangeRecord.as_array ().qsort (RangeRecord<Types>::cmp_range); // To handle unsorted glyph order.
+
+    if (unlikely (unsorted))
+      rangeRecord.as_array ().qsort (RangeRecord<Types>::cmp_range);
 
     return_trace (true);
   }
