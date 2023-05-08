@@ -742,6 +742,63 @@ parse_instance (const char *name,
 }
 #endif
 
+static gboolean
+parse_glyph_map (const char *name,
+		 const char *arg,
+		 gpointer    data,
+		 GError    **error)
+{
+  // Glyph map has the following format:
+  // <entry 1>,<entry 2>,...,<entry n>
+  // <entry> = <old gid>:<new gid>
+  subset_main_t *subset_main = (subset_main_t *) data;
+  hb_subset_input_t* input = subset_main->input;
+  hb_set_t *glyphs = hb_subset_input_glyph_set(input);
+
+  char *s = (char *) arg;
+  char *p;
+
+  while (s && *s)
+  {
+    while (*s && strchr (", ", *s))
+      s++;
+    if (!*s)
+      break;
+
+    errno = 0;
+    hb_codepoint_t start_code = strtoul (s, &p, 10);
+    if (s[0] == '-' || errno || s == p)
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing glyph map at: '%s'", s);
+      return false;
+    }
+
+    if (!p || p[0] != ':') // ranges
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing glyph map at: '%s'", s);
+      return false;
+    }
+
+    s = ++p;
+    hb_codepoint_t end_code = strtoul (s, &p, 10);
+    if (s[0] == '-' || errno || s == p)
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		"Failed parsing glyph map at: '%s'", s);
+      return false;
+    }
+
+    hb_set_add(glyphs, start_code);
+    hb_map_set (hb_subset_input_old_to_new_glyph_mapping (input), start_code, end_code);
+
+    s = p;
+  }
+
+  return true;
+}
+
 template <GOptionArgFunc line_parser, bool allow_comments=true>
 static gboolean
 parse_file_for (const char *name,
@@ -894,6 +951,7 @@ subset_main_t::add_options ()
 
   GOptionEntry other_entries[] =
   {
+    {"gid-map", 0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyph_map, "Specify a glyph mapping to use, any unmapped gids will be automatically assigned.", "List of pairs old_gid1:new_gid1,old_gid2:new_gid2,..."},
     {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids. Use --name-IDs-=... to subtract from the current set.", "list of int numbers or *"},
     {"name-IDs-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers or *"},
     {"name-IDs+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers or *"},
