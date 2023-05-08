@@ -192,8 +192,8 @@ struct CoverageFormat2_4
         if (__more__ ())
         {
           unsigned int old = coverage;
-          j = c->rangeRecord[i].first;
-          coverage = c->rangeRecord[i].value;
+          j = c->rangeRecord.arrayZ[i].first;
+          coverage = c->rangeRecord.arrayZ[i].value;
           if (unlikely (coverage != old + 1))
           {
             /* Broken table. Skip. Important to avoid DoS.
