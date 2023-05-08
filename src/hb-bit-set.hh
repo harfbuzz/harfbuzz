@@ -920,7 +920,7 @@ struct hb_bit_set_t
       memmove (page_map.arrayZ + i + 1,
 	       page_map.arrayZ + i,
 	       (page_map.length - 1 - i) * page_map.item_size);
-      page_map[i] = map;
+      page_map.arrayZ[i] = map;
     }
 
     last_page_lookup = i;
