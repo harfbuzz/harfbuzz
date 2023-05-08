@@ -401,7 +401,8 @@ struct hb_hashmap_t
     unsigned int tombstone = (unsigned) -1;
     while (items[i].is_used ())
     {
-      if (items[i].hash == hash && items[i] == key)
+      if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
+	  items[i] == key)
 	return items[i];
       if (tombstone == (unsigned) -1 && items[i].is_tombstone ())
 	tombstone = i;
