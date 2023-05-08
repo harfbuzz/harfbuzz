@@ -623,6 +623,7 @@ struct hb_bit_set_t
         *codepoint = INVALID;
         return false;
       }
+      last_page_lookup = i;
     }
 
     const auto* pages_array = pages.arrayZ;
@@ -632,7 +633,6 @@ struct hb_bit_set_t
       if (pages_array[current.index].next (codepoint))
       {
         *codepoint += current.major * page_t::PAGE_BITS;
-        last_page_lookup = i;
         return true;
       }
       i++;
@@ -649,7 +649,6 @@ struct hb_bit_set_t
 	return true;
       }
     }
-    last_page_lookup = 0;
     *codepoint = INVALID;
     return false;
   }
