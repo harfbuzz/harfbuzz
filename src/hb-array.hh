@@ -465,7 +465,7 @@ inline uint32_t hb_array_t<const char>::hash () const
   struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
   for (; i + 4 <= this->length; i += 4)
   {
-    current = current ^ hb_hash ((uint32_t) ((packed_uint32_t *) &this->arrayZ[i])->v);
+    current = current ^ hb_hash ((uint32_t) ((const packed_uint32_t *) &this->arrayZ[i])->v);
     current = current * 16777619;
   }
 #endif
@@ -490,7 +490,7 @@ inline uint32_t hb_array_t<const unsigned char>::hash () const
   struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
   for (; i + 4 <= this->length; i += 4)
   {
-    current = current ^ hb_hash ((uint32_t) ((packed_uint32_t *) &this->arrayZ[i])->v);
+    current = current ^ hb_hash ((uint32_t) ((const packed_uint32_t *) &this->arrayZ[i])->v);
     current = current * 16777619;
   }
 #endif
