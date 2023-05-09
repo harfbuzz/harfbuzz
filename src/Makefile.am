@@ -445,6 +445,7 @@ COMPILED_TESTS = \
 	test-vector \
 	test-repacker \
 	test-classdef-graph \
+	test-instancer-solver \
 	$(NULL)
 COMPILED_TESTS_CPPFLAGS = $(HBCFLAGS) -DMAIN -UNDEBUG
 COMPILED_TESTS_LDADD = libharfbuzz.la $(HBLIBS)
@@ -514,6 +515,10 @@ test_unicode_ranges_LDADD = $(COMPILED_TESTS_LDADD)
 test_vector_SOURCES = test-vector.cc hb-static.cc
 test_vector_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_vector_LDADD = $(COMPILED_TESTS_LDADD)
+
+test_instancer_solver_SOURCES = test-subset-instancer-solver.cc hb-subset-instancer-solver.cc hb-static.cc
+test_instancer_solver_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
+test_instancer_solver_LDADD = $(COMPILED_TESTS_LDADD)
 
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.py \
