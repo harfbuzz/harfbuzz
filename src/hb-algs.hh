@@ -307,6 +307,12 @@ static inline uint32_t fasthash32(const void *buf, size_t len, uint32_t seed)
 	return h - (h >> 32);
 }
 
+template <typename T> // This line speeds things up. Go figure...
+static inline uint32_t _hb_hash32 (uint32_t v)
+{
+  return fasthash32 (&v, sizeof (v), 0);
+}
+
 struct
 {
   private:
@@ -318,11 +324,11 @@ struct
   //
   template <typename T,
 	    hb_enable_if (std::is_integral<T>::value && sizeof (T) <= sizeof (uint32_t))> constexpr auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, v * 8388607u /* Mersenne prime */)
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, _hb_hash32 (v))
 
   template <typename T,
 	    hb_enable_if (std::is_integral<T>::value && sizeof (T) > sizeof (uint32_t))> constexpr auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, (v * 8388607u) ^ ((v >> 32) * 8388607u) /* Mersenne prime */)
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, _hb_hash32 (v) ^ _hb_hash32 (v >> 32))
 
   template <typename T> constexpr auto
   impl (const T& v, hb_priority<0>) const HB_RETURN (uint32_t, std::hash<hb_decay<decltype (hb_deref (v))>>{} (hb_deref (v)))
