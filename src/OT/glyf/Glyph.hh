@@ -112,12 +112,10 @@ struct Glyph
     if (!plan->new_gid_for_old_gid (gid, &new_gid))
       return;
 
-    uint32_t hash = hb_hash (new_gid);
-
     if (type != EMPTY)
     {
-      plan->bounds_width_map.set_with_hash (new_gid, hash, xMax - xMin);
-      plan->bounds_height_map.set_with_hash (new_gid, hash, yMax - yMin);
+      plan->bounds_width_vec[new_gid] = xMax - xMin;
+      plan->bounds_height_vec[new_gid] = yMax - yMin;
     }
 
     unsigned len = all_points.length;
@@ -125,6 +123,8 @@ struct Glyph
     float rightSideX = all_points[len - 3].x;
     float topSideY = all_points[len - 2].y;
     float bottomSideY = all_points[len - 1].y;
+
+    uint32_t hash = hb_hash (new_gid);
 
     signed hori_aw = roundf (rightSideX - leftSideX);
     if (hori_aw < 0) hori_aw = 0;

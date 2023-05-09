@@ -115,9 +115,9 @@ HB_SUBSET_PLAN_MEMBER (mutable hb_hashmap_t E(<hb_codepoint_t, hb_pair_t E(<unsi
 //vmtx metrics map: new gid->(advance, lsb)
 HB_SUBSET_PLAN_MEMBER (mutable hb_hashmap_t E(<hb_codepoint_t, hb_pair_t E(<unsigned, int>)>), vmtx_map)
 //boundsWidth map: new gid->boundsWidth, boundWidth=xMax - xMin
-HB_SUBSET_PLAN_MEMBER (mutable hb_map_t, bounds_width_map)
+HB_SUBSET_PLAN_MEMBER (mutable hb_vector_t<unsigned>, bounds_width_vec)
 //boundsHeight map: new gid->boundsHeight, boundsHeight=yMax - yMin
-HB_SUBSET_PLAN_MEMBER (mutable hb_map_t, bounds_height_map)
+HB_SUBSET_PLAN_MEMBER (mutable hb_vector_t<unsigned>, bounds_height_vec)
 
 #ifdef HB_EXPERIMENTAL_API
 // name table overrides map: hb_ot_name_record_ids_t-> name string new value or
