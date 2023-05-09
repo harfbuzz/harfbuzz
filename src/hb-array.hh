@@ -456,27 +456,13 @@ inline bool hb_array_t<const unsigned char>::operator == (const hb_array_t<const
 template <>
 inline uint32_t hb_array_t<const char>::hash () const
 {
-  // FNV-1a hash function
-  uint32_t current = /*cbf29ce4*/0x84222325;
-  for (auto &v : *this)
-  {
-    current = current ^ v;
-    current = current * 16777619;
-  }
-  return current;
+  return fasthash32(arrayZ, length, 0xf437ffe6 /* magic? */);
 }
 
 template <>
 inline uint32_t hb_array_t<const unsigned char>::hash () const
 {
-  // FNV-1a hash function
-  uint32_t current = /*cbf29ce4*/0x84222325;
-  for (auto &v : *this)
-  {
-    current = current ^ v;
-    current = current * 16777619;
-  }
-  return current;
+  return fasthash32(arrayZ, length, 0xf437ffe6 /* magic? */);
 }
 
 
