@@ -107,9 +107,8 @@ struct BEInt<Type, 2>
 			        uint8_t ((V      ) & 0xFF)} {}
 
   struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
-  constexpr operator Type () const
-  {
-#if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
+  constexpr operator Type () const {
+#if defined(__OPTIMIZE__) && \
     defined(__BYTE_ORDER) && \
     (__BYTE_ORDER == __BIG_ENDIAN || \
      (__BYTE_ORDER == __LITTLE_ENDIAN && \
@@ -155,7 +154,7 @@ struct BEInt<Type, 4>
 
   struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
   constexpr operator Type () const {
-#if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
+#if defined(__OPTIMIZE__) && \
     defined(__BYTE_ORDER) && \
     (__BYTE_ORDER == __BIG_ENDIAN || \
      (__BYTE_ORDER == __LITTLE_ENDIAN && \
