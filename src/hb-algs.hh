@@ -317,7 +317,7 @@ struct
   // Horrible: std:hash() of integers seems to be identity in gcc / clang?!
   template <typename T,
 	    hb_enable_if (std::is_integral<T>::value)> constexpr auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, v * 8388607 /* Mersenne prime */)
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, v * 8388607u /* Mersenne prime */)
 
   template <typename T> constexpr auto
   impl (const T& v, hb_priority<0>) const HB_RETURN (uint32_t, std::hash<hb_decay<decltype (hb_deref (v))>>{} (hb_deref (v)))
