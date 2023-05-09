@@ -267,15 +267,16 @@ HB_FUNCOBJ (hb_bool);
 
 static inline uint64_t fasthash64(const void *buf, size_t len, uint64_t seed)
 {
+	struct __attribute__((packed)) packed_uint64_t { uint64_t v; };
 	const uint64_t    m = 0x880355f21e6d1965ULL;
-	const uint64_t *pos = (const uint64_t *)buf;
-	const uint64_t *end = pos + (len / 8);
+	const packed_uint64_t *pos = (const packed_uint64_t *)buf;
+	const packed_uint64_t *end = pos + (len / 8);
 	const unsigned char *pos2;
 	uint64_t h = seed ^ (len * m);
 	uint64_t v;
 
 	while (pos != end) {
-		v  = *pos++;
+		v  = pos++->v;
 		h ^= mix(v);
 		h *= m;
 	}
