@@ -123,6 +123,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   uint32_t hash () const
   {
     // FNV-1a hash function
+    // https://github.com/harfbuzz/harfbuzz/pull/4228
     uint32_t current = /*cbf29ce4*/0x84222325;
     for (auto &v : *this)
     {
@@ -456,12 +457,14 @@ inline bool hb_array_t<const unsigned char>::operator == (const hb_array_t<const
 template <>
 inline uint32_t hb_array_t<const char>::hash () const
 {
+  // https://github.com/harfbuzz/harfbuzz/pull/4228
   return fasthash32(arrayZ, length, 0xf437ffe6 /* magic? */);
 }
 
 template <>
 inline uint32_t hb_array_t<const unsigned char>::hash () const
 {
+  // https://github.com/harfbuzz/harfbuzz/pull/4228
   return fasthash32(arrayZ, length, 0xf437ffe6 /* magic? */);
 }
 
