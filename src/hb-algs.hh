@@ -315,7 +315,8 @@ struct
   impl (const T& v, hb_priority<2>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
   // Horrible: std:hash() of integers seems to be identity in gcc / clang?!
-  template <typename T> constexpr auto
+  template <typename T,
+	    hb_enable_if (std::is_integral<T>::value)> constexpr auto
   impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, v * 8388607)
 
   template <typename T> constexpr auto
