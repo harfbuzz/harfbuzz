@@ -1,3 +1,24 @@
+Overview of changes leading to 7.3.0
+Tuesday, May 9, 2023
+====================================
+- Speedup applying glyph variation in VarComposites fonts (over 40% speedup).
+  (Behdad Esfahbod)
+- Speedup instancing some fonts (over 20% speedup in instancing RobotoFlex).
+  (Behdad Esfahbod)
+- Speedup shaping some fonts (over 30% speedup in shaping Roboto).
+  (Behdad Esfahbod)
+- Support subsetting VarComposites and beyond-64k fonts. (Behdad Esfahbod)
+- New configuration macro HB_MINIMIZE_MEMORY_USAGE to favor optimizing memory
+  usage over speed. (Behdad Esfahbod)
+- Supporting setting the mapping between old and new glyph indices during
+  subsetting. (Garret Rieger)
+- Various fixes and improvements.
+  (Behdad Esfahbod, Denis Rochette, Garret Rieger, Han Seung Min, Qunxin Liu)
+
+- New API:
++hb_subset_input_old_to_new_glyph_mapping()
+
+
 Overview of changes leading to 7.2.0
 Thursday, April 27, 2023
 ====================================
