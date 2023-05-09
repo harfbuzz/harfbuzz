@@ -454,6 +454,7 @@ inline bool hb_array_t<const unsigned char>::operator == (const hb_array_t<const
 
 /* Specialize hash() for byte arrays. */
 
+#ifndef HB_OPTIMIZE_SIZE_MORE
 template <>
 inline uint32_t hb_array_t<const char>::hash () const
 {
@@ -467,6 +468,7 @@ inline uint32_t hb_array_t<const unsigned char>::hash () const
   // https://github.com/harfbuzz/harfbuzz/pull/4228
   return fasthash32(arrayZ, length, 0xf437ffe6 /* magic? */);
 }
+#endif
 
 
 typedef hb_array_t<const char> hb_bytes_t;
