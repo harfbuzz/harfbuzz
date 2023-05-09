@@ -32,7 +32,6 @@
 #include "hb-iter.hh"
 #include "hb-null.hh"
 
-
 template <typename Type>
 struct hb_sorted_array_t;
 
@@ -43,6 +42,21 @@ enum hb_not_found_t
   HB_NOT_FOUND_STORE_CLOSEST,
 };
 
+/**
+ * fasthash32 - 32-bit implementation of fasthash
+ * @buf:  data buffer
+ * @len:  data size
+ * @seed: the seed
+ */
+HB_INTERNAL uint32_t _fasthash32(const void *buf, size_t len, uint32_t seed);
+
+/**
+ * fasthash64 - 64-bit implementation of fasthash
+ * @buf:  data buffer
+ * @len:  data size
+ * @seed: the seed
+ */
+HB_INTERNAL uint64_t _fasthash64(const void *buf, size_t len, uint64_t seed);
 
 template <typename Type>
 struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
@@ -456,53 +470,14 @@ inline bool hb_array_t<const unsigned char>::operator == (const hb_array_t<const
 template <>
 inline uint32_t hb_array_t<const char>::hash () const
 {
-  // FNV-1a hash function
-  uint32_t current = /*cbf29ce4*/0x84222325;
-  unsigned i = 0;
-
-#if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
-    ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__))
-  struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
-  for (; i + 4 <= this->length; i += 4)
-  {
-    current = current ^ hb_hash ((uint32_t) ((const packed_uint32_t *) &this->arrayZ[i])->v);
-    current = current * 16777619;
-  }
-#endif
-
-  for (; i < this->length; i++)
-  {
-    current = current ^ hb_hash (this->arrayZ[i]);
-    current = current * 16777619;
-  }
-  return current;
+  return _fasthash32(arrayZ, length, 0xf437ffe6);
 }
 
 template <>
 inline uint32_t hb_array_t<const unsigned char>::hash () const
 {
-  // FNV-1a hash function
-  uint32_t current = /*cbf29ce4*/0x84222325;
-  unsigned i = 0;
-
-#if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
-    ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__))
-  struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
-  for (; i + 4 <= this->length; i += 4)
-  {
-    current = current ^ hb_hash ((uint32_t) ((const packed_uint32_t *) &this->arrayZ[i])->v);
-    current = current * 16777619;
-  }
-#endif
-
-  for (; i < this->length; i++)
-  {
-    current = current ^ hb_hash (this->arrayZ[i]);
-    current = current * 16777619;
-  }
-  return current;
+  return _fasthash32(arrayZ, length, 0xf437ffe6);
 }
-
 
 typedef hb_array_t<const char> hb_bytes_t;
 typedef hb_array_t<const unsigned char> hb_ubytes_t;

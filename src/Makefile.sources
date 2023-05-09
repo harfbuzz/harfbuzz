@@ -1,6 +1,7 @@
 # Base and default-included sources and headers
 
 HB_BASE_sources = \
+        fasthash/fasthash.cc \
 	hb-aat-layout-ankr-table.hh \
 	hb-aat-layout-bsln-table.hh \
 	hb-aat-layout-common.hh \
@@ -344,6 +345,7 @@ HB_ICU_headers = hb-icu.h
 
 # Sources for libharfbuzz-subset
 HB_SUBSET_sources = \
+        fasthash/fasthash.cc \
 	hb-number.cc \
 	hb-number.hh \
 	hb-ot-cff1-table.cc \

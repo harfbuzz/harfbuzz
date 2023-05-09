@@ -7,6 +7,7 @@ hb_version_h = configure_file(
 
 # Base and default-included sources and headers
 hb_base_sources = files(
+  'fasthash/fasthash.cc',
   'hb-aat-layout-ankr-table.hh',
   'hb-aat-layout-bsln-table.hh',
   'hb-aat-layout-common.hh',
@@ -344,6 +345,7 @@ hb_icu_headers = files('hb-icu.h')
 
 # Sources for libharfbuzz-subset
 hb_subset_sources = files(
+  'fasthash/fasthash.cc',
   'hb-number.cc',
   'hb-number.hh',
   'hb-ot-cff1-table.cc',
@@ -693,10 +695,10 @@ if get_option('tests').enabled()
     'test-number': ['test-number.cc', 'hb-number.cc'],
     'test-ot-tag': ['hb-ot-tag.cc'],
     'test-priority-queue': ['test-priority-queue.cc', 'hb-static.cc'],
-    'test-repacker': ['test-repacker.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc'],
-    'test-classdef-graph': ['graph/test-classdef-graph.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc'],
+    'test-repacker': ['test-repacker.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc', 'fasthash/fasthash.cc'],
+    'test-classdef-graph': ['graph/test-classdef-graph.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc', 'fasthash/fasthash.cc'],
     'test-set': ['test-set.cc', 'hb-static.cc'],
-    'test-serialize': ['test-serialize.cc', 'hb-static.cc'],
+    'test-serialize': ['test-serialize.cc', 'hb-static.cc', 'fasthash/fasthash.cc'],
     'test-unicode-ranges': ['test-unicode-ranges.cc'],
     'test-vector': ['test-vector.cc', 'hb-static.cc'],
     'test-bimap': ['test-bimap.cc', 'hb-static.cc'],

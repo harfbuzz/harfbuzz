@@ -491,11 +491,11 @@ test_priority_queue_SOURCES = test-priority-queue.cc hb-static.cc
 test_priority_queue_CPPFLAGS = $(HBCFLAGS)
 test_priority_queue_LDADD = libharfbuzz.la $(HBLIBS)
 
-test_repacker_SOURCES = test-repacker.cc hb-static.cc graph/gsubgpos-context.cc
+test_repacker_SOURCES = test-repacker.cc hb-static.cc graph/gsubgpos-context.cc fasthash/fasthash.cc
 test_repacker_CPPFLAGS = $(HBCFLAGS)
 test_repacker_LDADD = libharfbuzz.la libharfbuzz-subset.la $(HBLIBS)
 
-test_classdef_graph_SOURCES = graph/test-classdef-graph.cc hb-static.cc graph/gsubgpos-context.cc
+test_classdef_graph_SOURCES = graph/test-classdef-graph.cc hb-static.cc graph/gsubgpos-context.cc fasthash/fasthash.cc
 test_classdef_graph_CPPFLAGS = $(HBCFLAGS)
 test_classdef_graph_LDADD = libharfbuzz.la libharfbuzz-subset.la $(HBLIBS)
 
@@ -503,7 +503,7 @@ test_set_SOURCES = test-set.cc hb-static.cc
 test_set_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_set_LDADD = $(COMPILED_TESTS_LDADD)
 
-test_serialize_SOURCES = test-serialize.cc hb-static.cc
+test_serialize_SOURCES = test-serialize.cc hb-static.cc fasthash/fasthash.cc
 test_serialize_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_serialize_LDADD = $(COMPILED_TESTS_LDADD)
 
