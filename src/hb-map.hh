@@ -204,7 +204,7 @@ struct hb_hashmap_t
   bool set_with_hash (KK&& key, uint32_t hash, VV&& value, bool is_delete=false)
   {
     if (unlikely (!successful)) return false;
-    if (unlikely ((occupancy + occupancy) >= mask && !resize ())) return false;
+    if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
     item_t &item = item_for_hash (key, hash);
 
     if (is_delete && !(item == key))
