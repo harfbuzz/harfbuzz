@@ -1103,8 +1103,12 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
         glyph_map->get(unicode_to_new_gid_list.arrayZ[i].second);
   }
 
-  bounds_width_vec.resize (_num_output_glyphs);
-  bounds_height_vec.resize (_num_output_glyphs);
+  bounds_width_vec.resize (_num_output_glyphs, false);
+  for (auto &v : bounds_width_vec)
+    v = 0xFFFFFFFF;
+  bounds_height_vec.resize (_num_output_glyphs, false);
+  for (auto &v : bounds_height_vec)
+    v = 0xFFFFFFFF;
 
   if (unlikely (in_error ()))
     return;

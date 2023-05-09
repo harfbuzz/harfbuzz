@@ -126,7 +126,7 @@ struct hmtxvmtx
         int lsb = _.second.second;
         max_adv = hb_max (max_adv, adv);
 
-        if (bounds_vec[gid])
+        if (bounds_vec[gid] != 0xFFFFFFFF)
         {
 	  empty = false;
           unsigned bound_width = bounds_vec[gid];
