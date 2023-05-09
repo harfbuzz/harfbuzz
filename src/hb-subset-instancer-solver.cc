@@ -223,7 +223,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
 
       // Eternity justify.
       Triple loc2 {upper, axisMax, axisMax};
-      float scalar2 = 1.f; // supportScalar({"tag": axisMax}, {"tag": tent})
+      float scalar2 = supportScalar (axisMax, tent);
 
       out.push (hb_pair (scalar1 - gain, loc1));
       out.push (hb_pair (scalar2 - gain, loc2));
@@ -423,5 +423,5 @@ rebase_tent (Triple tent, Triple axisLimit)
 		       Triple{n (t.minimum), n (t.middle), n (t.maximum)}));
   }
 
-  return sols;
+  return out;
 }
