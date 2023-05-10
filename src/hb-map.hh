@@ -400,7 +400,6 @@ struct hb_hashmap_t
   {
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
-    unsigned int step = 0;
     unsigned int tombstone = (unsigned) -1;
     while (items[i].is_used ())
     {
@@ -409,7 +408,7 @@ struct hb_hashmap_t
 	return items[i];
       if (tombstone == (unsigned) -1 && items[i].is_tombstone ())
 	tombstone = i;
-      i = (i + ++step) & mask;
+      i = (i + 1) & mask;
     }
     return items[tombstone == (unsigned) -1 ? i : tombstone];
   }
