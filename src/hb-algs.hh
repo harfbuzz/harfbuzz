@@ -314,7 +314,7 @@ struct
   template <typename T> constexpr auto
   impl (const T& v, hb_priority<2>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
-#if 1
+#if 0
   // The following, unfortunately, while keeps the probing chains short, slows
   // down the overall hash table performance. Not because of the extra operation
   // itself in my opinion, but something else going on that we have not been able
