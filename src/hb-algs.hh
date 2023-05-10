@@ -107,9 +107,8 @@ struct BEInt<Type, 2>
 			        uint8_t ((V      ) & 0xFF)} {}
 
   struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
-  constexpr operator Type () const
-  {
-#if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
+  constexpr operator Type () const {
+#if defined(__OPTIMIZE__) && \
     defined(__BYTE_ORDER) && \
     (__BYTE_ORDER == __BIG_ENDIAN || \
      (__BYTE_ORDER == __LITTLE_ENDIAN && \
@@ -155,7 +154,7 @@ struct BEInt<Type, 4>
 
   struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
   constexpr operator Type () const {
-#if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
+#if defined(__OPTIMIZE__) && \
     defined(__BYTE_ORDER) && \
     (__BYTE_ORDER == __BIG_ENDIAN || \
      (__BYTE_ORDER == __LITTLE_ENDIAN && \
@@ -231,12 +230,108 @@ struct
 }
 HB_FUNCOBJ (hb_bool);
 
+
+/* The MIT License
+
+   Copyright (C) 2012 Zilong Tan (eric.zltan@gmail.com)
+
+   Permission is hereby granted, free of charge, to any person
+   obtaining a copy of this software and associated documentation
+   files (the "Software"), to deal in the Software without
+   restriction, including without limitation the rights to use, copy,
+   modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be
+   included in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+*/
+
+
+// Compression function for Merkle-Damgard construction.
+// This function is generated using the framework provided.
+#define mix(h) (					\
+			(h) ^= (h) >> 23,		\
+			(h) *= 0x2127599bf4325c37ULL,	\
+			(h) ^= (h) >> 47)
+
+static inline uint64_t fasthash64(const void *buf, size_t len, uint64_t seed)
+{
+	struct __attribute__((packed)) packed_uint64_t { uint64_t v; };
+	const uint64_t    m = 0x880355f21e6d1965ULL;
+	const packed_uint64_t *pos = (const packed_uint64_t *)buf;
+	const packed_uint64_t *end = pos + (len / 8);
+	const unsigned char *pos2;
+	uint64_t h = seed ^ (len * m);
+	uint64_t v;
+
+	while (pos != end) {
+		v  = pos++->v;
+		h ^= mix(v);
+		h *= m;
+	}
+
+	pos2 = (const unsigned char*)pos;
+	v = 0;
+
+	switch (len & 7) {
+	case 7: v ^= (uint64_t)pos2[6] << 48; HB_FALLTHROUGH;
+	case 6: v ^= (uint64_t)pos2[5] << 40; HB_FALLTHROUGH;
+	case 5: v ^= (uint64_t)pos2[4] << 32; HB_FALLTHROUGH;
+	case 4: v ^= (uint64_t)pos2[3] << 24; HB_FALLTHROUGH;
+	case 3: v ^= (uint64_t)pos2[2] << 16; HB_FALLTHROUGH;
+	case 2: v ^= (uint64_t)pos2[1] <<  8; HB_FALLTHROUGH;
+	case 1: v ^= (uint64_t)pos2[0];
+		h ^= mix(v);
+		h *= m;
+	}
+
+	return mix(h);
+}
+
+static inline uint32_t fasthash32(const void *buf, size_t len, uint32_t seed)
+{
+	// the following trick converts the 64-bit hashcode to Fermat
+	// residue, which shall retain information from both the higher
+	// and lower parts of hashcode.
+        uint64_t h = fasthash64(buf, len, seed);
+	return h - (h >> 32);
+}
+
 struct
 {
   private:
 
   template <typename T> constexpr auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
+  impl (const T& v, hb_priority<2>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
+
+#if 0
+  // The following, unfortunately, while keeps the probing chains short, slows
+  // down the overall hash table performance. Not because of the extra operation
+  // itself in my opinion, but something else going on that we have not been able
+  // to track down. So for now, this is disabled. Discuss:
+  // https://github.com/harfbuzz/harfbuzz/pull/4228
+
+  // Horrible: std:hash() of integers seems to be identity in gcc / clang?!
+  // https://github.com/harfbuzz/harfbuzz/pull/4228
+
+  template <typename T,
+	    hb_enable_if (std::is_integral<T>::value && sizeof (T) <= sizeof (uint32_t))> constexpr auto
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, v * 131071u /* Mersenne prime */)
+
+  template <typename T,
+	    hb_enable_if (std::is_integral<T>::value && sizeof (T) > sizeof (uint32_t))> constexpr auto
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, (v ^ (v >> 32)) * 131071u /* Mersenne prime */)
+#endif
 
   template <typename T> constexpr auto
   impl (const T& v, hb_priority<0>) const HB_RETURN (uint32_t, std::hash<hb_decay<decltype (hb_deref (v))>>{} (hb_deref (v)))

@@ -134,7 +134,11 @@ struct hb_bit_set_t
   {
     uint32_t h = 0;
     for (auto &map : page_map)
-      h = h * 31 + hb_hash (map.major) + hb_hash (pages[map.index]);
+    {
+      auto &page = pages.arrayZ[map.index];
+      if (unlikely (page.is_empty ())) continue;
+      h = h * 31 + hb_hash (map.major) + hb_hash (page);
+    }
     return h;
   }
 

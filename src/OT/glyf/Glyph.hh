@@ -112,10 +112,12 @@ struct Glyph
     if (!plan->new_gid_for_old_gid (gid, &new_gid))
       return;
 
+    uint32_t hash = hb_hash (new_gid);
+
     if (type != EMPTY)
     {
-      plan->bounds_width_map.set (new_gid, xMax - xMin);
-      plan->bounds_height_map.set (new_gid, yMax - yMin);
+      plan->bounds_width_map.set_with_hash (new_gid, hash, xMax - xMin);
+      plan->bounds_height_map.set_with_hash (new_gid, hash, yMax - yMin);
     }
 
     unsigned len = all_points.length;
@@ -127,7 +129,7 @@ struct Glyph
     signed hori_aw = roundf (rightSideX - leftSideX);
     if (hori_aw < 0) hori_aw = 0;
     int lsb = roundf (xMin - leftSideX);
-    plan->hmtx_map.set (new_gid, hb_pair ((unsigned) hori_aw, lsb));
+    plan->hmtx_map.set_with_hash (new_gid, hash, hb_pair ((unsigned) hori_aw, lsb));
     //flag value should be computed using non-empty glyphs
     if (type != EMPTY && lsb != xMin)
       plan->head_maxp_info.allXMinIsLsb = false;
@@ -135,7 +137,7 @@ struct Glyph
     signed vert_aw = roundf (topSideY - bottomSideY);
     if (vert_aw < 0) vert_aw = 0;
     int tsb = roundf (topSideY - yMax);
-    plan->vmtx_map.set (new_gid, hb_pair ((unsigned) vert_aw, tsb));
+    plan->vmtx_map.set_with_hash (new_gid, hash, hb_pair ((unsigned) vert_aw, tsb));
   }
 
   bool compile_header_bytes (const hb_subset_plan_t *plan,
