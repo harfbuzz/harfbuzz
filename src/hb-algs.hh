@@ -326,11 +326,11 @@ struct
 
   template <typename T,
 	    hb_enable_if (std::is_integral<T>::value && sizeof (T) <= sizeof (uint32_t))> constexpr auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, v * 2654435761)
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, v * 2654435761 /* Knuh's multiplicative hash */)
 
   template <typename T,
 	    hb_enable_if (std::is_integral<T>::value && sizeof (T) > sizeof (uint32_t))> constexpr auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, (v ^ (v >> 32)) * 2654435761)
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, (v ^ (v >> 32)) * 2654435761 /* Knuth's multiplicative hash */)
 #endif
 
   template <typename T> constexpr auto
