@@ -200,22 +200,46 @@ struct hb_hashmap_t
     return true;
   }
 
+  unsigned
+  probe_distance (unsigned i, unsigned hash) const
+  {
+    return (i + mask + 1 - (hash % prime)) & mask;
+  }
+
   template <typename KK, typename VV>
   bool set_with_hash (KK&& key, uint32_t hash, VV&& value)
   {
     if (unlikely (!successful)) return false;
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
 
+    K k = std::forward<KK> (key);
+    V v = std::forward<VV> (value);
+
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
+    unsigned dist = 0;
     while (items[i].is_used ())
     {
-      if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
-	  items[i] == key)
-        break;
       if (items[i].is_tombstone ())
         break;
+      if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
+	  items[i] == k)
+        break;
+
+      // Robinhood hashing
+      // https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/
+      unsigned existing_dist = probe_distance (i, items[i].hash);
+      if (existing_dist < dist)
+      {
+        hb_swap (items[i].key, k);
+        //hb_swap (items[i].hash, hash);
+	uint32_t tmp = items[i].hash; items[i].hash = hash; hash = tmp;
+        hb_swap (items[i].value, v);
+	dist = existing_dist;
+      }
+
       i = (i + 1) & mask;
+      dist++;
     }
 
     item_t &item = items[i];
@@ -227,8 +251,8 @@ struct hb_hashmap_t
 	population--;
     }
 
-    item.key = std::forward<KK> (key);
-    item.value = std::forward<VV> (value);
+    item.key = std::move (k);
+    item.value = std::move (v);
     item.hash = hash;
     item.set_used (true);
     item.set_tombstone (false);
@@ -284,9 +308,12 @@ struct hb_hashmap_t
     if (unlikely (!items)) return nullptr;
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
-    unsigned int i = hash % prime;
+    unsigned i = hash % prime;
+    unsigned dist = 0;
     while (items[i].is_used ())
     {
+      if (dist > probe_distance (i, items[i].hash))
+        return nullptr;
       if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
 	  items[i] == key)
       {
@@ -296,6 +323,7 @@ struct hb_hashmap_t
 	  return nullptr;
       }
       i = (i + 1) & mask;
+      dist++;
     }
     return nullptr;
   }
