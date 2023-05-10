@@ -208,6 +208,7 @@ struct hb_hashmap_t
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
+    unsigned step = 0;
     while (items[i].is_used ())
     {
       if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
@@ -215,7 +216,7 @@ struct hb_hashmap_t
         break;
       if (items[i].is_tombstone ())
         break;
-      i = (i + 1) & mask;
+      i = (i + ++step) & mask;
     }
 
     item_t &item = items[i];
@@ -285,6 +286,7 @@ struct hb_hashmap_t
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
+    unsigned step = 0;
     while (items[i].is_used ())
     {
       if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
@@ -295,7 +297,7 @@ struct hb_hashmap_t
 	else
 	  return nullptr;
       }
-      i = (i + 1) & mask;
+      i = (i + ++step) & mask;
     }
     return nullptr;
   }
