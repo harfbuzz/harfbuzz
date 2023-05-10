@@ -237,13 +237,11 @@ struct hb_hashmap_t
 
   const V& get_with_hash (const K &key, uint32_t hash) const
   {
-    if (unlikely (!items)) return item_t::default_value ();
-    auto &item = item_for_hash (key, hash);
-    return item.is_real () && item == key ? item.value : item_t::default_value ();
+    const V* v;
+    return has_with_hash (key, hash, &v) ? *v : item_t::default_value ();
   }
   const V& get (const K &key) const
   {
-    if (unlikely (!items)) return item_t::default_value ();
     return get_with_hash (key, hb_hash (key));
   }
 
@@ -252,11 +250,16 @@ struct hb_hashmap_t
   /* Has interface. */
   const V& operator [] (K k) const { return get (k); }
   template <typename VV=V>
-  bool has (K key, VV **vp = nullptr) const
+  bool has (const K &key, VV **vp = nullptr) const
+  {
+    return has_with_hash (key, hb_hash (key), vp);
+  }
+  template <typename VV=V>
+  bool has_with_hash (const K &key, uint32_t hash, VV **vp = nullptr) const
   {
     if (unlikely (!items))
       return false;
-    auto &item = item_for_hash (key, hb_hash (key));
+    auto &item = item_for_hash (key, hash);
     if (item.is_real () && item == key)
     {
       if (vp) *vp = std::addressof (item.value);
