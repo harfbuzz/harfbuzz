@@ -201,14 +201,11 @@ struct hb_hashmap_t
   }
 
   template <typename KK, typename VV>
-  bool set_with_hash (KK&& key, uint32_t hash, VV&& value, bool is_delete=false)
+  bool set_with_hash (KK&& key, uint32_t hash, VV&& value)
   {
     if (unlikely (!successful)) return false;
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
     item_t &item = item_for_hash (key, hash);
-
-    if (is_delete && !(item == key))
-      return true; /* Trying to delete non-existent key. */
 
     if (item.is_used ())
     {
@@ -221,11 +218,10 @@ struct hb_hashmap_t
     item.value = std::forward<VV> (value);
     item.hash = hash;
     item.set_used (true);
-    item.set_tombstone (is_delete);
+    item.set_tombstone (false);
 
     occupancy++;
-    if (!is_delete)
-      population++;
+    population++;
 
     return true;
   }
@@ -247,7 +243,15 @@ struct hb_hashmap_t
     return get_with_hash (key, hb_hash (key));
   }
 
-  void del (const K &key) { set_with_hash (key, hb_hash (key), item_t::default_value (), true); }
+  void del (const K &key)
+  {
+    auto *item = fetch_item (key, hb_hash (key));
+    if (item)
+    {
+      item->set_tombstone (true);
+      population--;
+    }
+  }
 
   /* Has interface. */
   const V& operator [] (K k) const { return get (k); }
