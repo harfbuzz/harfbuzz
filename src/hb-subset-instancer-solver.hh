@@ -45,6 +45,9 @@ struct Triple {
   bool is_point () const
   { return minimum == middle && middle == maximum; }
 
+  bool contains (float point) const
+  { return minimum <= point && point <= maximum; }
+
   float minimum;
   float middle;
   float maximum;
