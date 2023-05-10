@@ -39,6 +39,24 @@
 
 namespace OT {
 
+static bool axis_coord_pinned_or_within_axis_range (const hb_array_t<const F16DOT16> coords,
+                                                    unsigned axis_index,
+                                                    Triple axis_limit)
+{
+  float axis_coord = coords[axis_index].to_float ();
+  if (axis_limit.is_point ())
+  {
+    if (axis_limit.minimum != axis_coord)
+      return false;
+  }
+  else
+  {
+    if (axis_coord < axis_limit.minimum ||
+        axis_coord > axis_limit.maximum)
+      return false;
+  }
+  return true;
+}
 
 struct InstanceRecord
 {
@@ -62,18 +80,8 @@ struct InstanceRecord
         continue;
       
       Triple axis_limit = axes_location->get (*axis_tag);
-      float axis_coord = coords[i].to_float ();
-      if (axis_limit.is_point ())
-      {
-        if (axis_limit.minimum != axis_coord)
-          return false;
-      }
-      else
-      {
-        if (axis_coord < axis_limit.minimum ||
-            axis_coord > axis_limit.maximum)
-          return false;
-      }
+      if (!axis_coord_pinned_or_within_axis_range (coords, i, axis_limit))
+        return false;
     }
     return true;
   }
@@ -96,19 +104,12 @@ struct InstanceRecord
       if (axes_location->has (*axis_tag))
       {
         Triple axis_limit = axes_location->get (*axis_tag);
-        float axis_coord = coords[i].to_float ();
+        if (!axis_coord_pinned_or_within_axis_range (coords, i, axis_limit))
+          return_trace (false);
+        
+        //skip pinned axis
         if (axis_limit.is_point ())
-        {
-          if (axis_limit.minimum != axis_coord)
-            return_trace (false);
           continue;
-        }
-        else
-        {
-          if (axis_coord < axis_limit.minimum ||
-              axis_coord > axis_limit.maximum)
-            return_trace (false);
-        }
       }
 
       if (!c->serializer->embed (coords[i]))

@@ -181,9 +181,6 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
       &conditionset_map
     };
     table.collect_feature_substitutes_with_variations (&c);
-    if (c.insert_catch_all_feature_variation_record)
-    {
-    }
   }
 #endif
 

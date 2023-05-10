@@ -64,10 +64,7 @@ static bool axis_value_is_outside_axis_range (hb_tag_t axis_tag, float axis_valu
     return false;
 
   Triple axis_range = user_axes_location->get (axis_tag);
-  if (axis_value < axis_range.minimum || axis_value > axis_range.maximum)
-    return true;
-
-  return false;
+  return (axis_value < axis_range.minimum || axis_value > axis_range.maximum);
 }
 
 struct StatAxisRecord
@@ -114,10 +111,7 @@ struct AxisValueFormat1
     hb_tag_t axis_tag = get_axis_tag (axis_records);
     float axis_value = get_value ();
 
-    if (axis_value_is_outside_axis_range (axis_tag, axis_value, user_axes_location))
-      return false;
-
-    return true;
+    return !axis_value_is_outside_axis_range (axis_tag, axis_value, user_axes_location);
   }
 
   bool subset (hb_subset_context_t *c,
@@ -172,10 +166,7 @@ struct AxisValueFormat2
     hb_tag_t axis_tag = get_axis_tag (axis_records);
     float axis_value = get_value ();
 
-    if (axis_value_is_outside_axis_range (axis_tag, axis_value, user_axes_location))
-      return false;
-
-    return true;
+    return !axis_value_is_outside_axis_range (axis_tag, axis_value, user_axes_location);
   }
 
   bool subset (hb_subset_context_t *c,
@@ -234,10 +225,7 @@ struct AxisValueFormat3
     hb_tag_t axis_tag = get_axis_tag (axis_records);
     float axis_value = get_value ();
 
-    if (axis_value_is_outside_axis_range (axis_tag, axis_value, user_axes_location))
-      return false;
-
-    return true;
+    return !axis_value_is_outside_axis_range (axis_tag, axis_value, user_axes_location);
   }
 
   bool subset (hb_subset_context_t *c,
