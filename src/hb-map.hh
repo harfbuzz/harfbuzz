@@ -257,16 +257,26 @@ struct hb_hashmap_t
   template <typename VV=V>
   bool has_with_hash (const K &key, uint32_t hash, VV **vp = nullptr) const
   {
-    if (unlikely (!items))
-      return false;
-    auto &item = item_for_hash (key, hash);
-    if (item.is_real () && item == key)
+    if (unlikely (!items)) return false;
+
+    hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
+    unsigned int i = hash % prime;
+    while (items[i].is_used ())
     {
-      if (vp) *vp = std::addressof (item.value);
-      return true;
+      if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
+	  items[i] == key)
+      {
+	if (items[i].is_real ())
+	{
+	  if (vp) *vp = std::addressof (items[i].value);
+	  return true;
+	}
+	else
+	  return false;
+      }
+      i = (i + 1) & mask;
     }
-    else
-      return false;
+    return false;
   }
   /* Projection. */
   V operator () (K k) const { return get (k); }
