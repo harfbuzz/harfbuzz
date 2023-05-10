@@ -314,6 +314,13 @@ struct
   template <typename T> constexpr auto
   impl (const T& v, hb_priority<2>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
+#if 0
+  // The following, unfortunately, while keeps the probing chains short, slows
+  // down the overall hash table performance. Not because of the extra operation
+  // itself in my opinion, but something else going on that we have not been able
+  // to track down. So for now, this is disabled. Discuss:
+  // https://github.com/harfbuzz/harfbuzz/pull/4228
+
   // Horrible: std:hash() of integers seems to be identity in gcc / clang?!
   // https://github.com/harfbuzz/harfbuzz/pull/4228
 
@@ -324,6 +331,7 @@ struct
   template <typename T,
 	    hb_enable_if (std::is_integral<T>::value && sizeof (T) > sizeof (uint32_t))> constexpr auto
   impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, (v ^ (v >> 32)) * 131071u /* Mersenne prime */)
+#endif
 
   template <typename T> constexpr auto
   impl (const T& v, hb_priority<0>) const HB_RETURN (uint32_t, std::hash<hb_decay<decltype (hb_deref (v))>>{} (hb_deref (v)))
