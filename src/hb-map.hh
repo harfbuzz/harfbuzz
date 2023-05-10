@@ -205,7 +205,20 @@ struct hb_hashmap_t
   {
     if (unlikely (!successful)) return false;
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
-    item_t &item = item_for_hash (key, hash);
+
+    hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
+    unsigned int i = hash % prime;
+    while (items[i].is_used ())
+    {
+      if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
+	  items[i] == key)
+        break;
+      if (items[i].is_tombstone ())
+        break;
+      i = (i + 1) & mask;
+    }
+
+    item_t &item = items[i];
 
     if (item.is_used ())
     {
@@ -413,23 +426,6 @@ struct hb_hashmap_t
   { set (std::move (v.first), v.second); return *this; }
   hb_hashmap_t& operator << (const hb_pair_t<K&&, V&&>& v)
   { set (std::move (v.first), std::move (v.second)); return *this; }
-
-  item_t& item_for_hash (const K &key, uint32_t hash) const
-  {
-    hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
-    unsigned int i = hash % prime;
-    unsigned int tombstone = (unsigned) -1;
-    while (items[i].is_used ())
-    {
-      if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
-	  items[i] == key)
-	return items[i];
-      if (tombstone == (unsigned) -1 && items[i].is_tombstone ())
-	tombstone = i;
-      i = (i + 1) & mask;
-    }
-    return items[tombstone == (unsigned) -1 ? i : tombstone];
-  }
 
   static unsigned int prime_for (unsigned int shift)
   {
