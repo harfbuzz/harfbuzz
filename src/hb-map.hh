@@ -237,8 +237,10 @@ struct hb_hashmap_t
 
   const V& get_with_hash (const K &key, uint32_t hash) const
   {
-    const V* v;
-    return has_with_hash (key, hash, &v) ? *v : item_t::default_value ();
+    auto *item = fetch_item (key, hb_hash (key));
+    if (item)
+      return item->value;
+    return item_t::default_value ();
   }
   const V& get (const K &key) const
   {
@@ -252,12 +254,17 @@ struct hb_hashmap_t
   template <typename VV=V>
   bool has (const K &key, VV **vp = nullptr) const
   {
-    return has_with_hash (key, hb_hash (key), vp);
+    auto *item = fetch_item (key, hb_hash (key));
+    if (item)
+    {
+      if (vp) *vp = std::addressof (item->value);
+      return true;
+    }
+    return false;
   }
-  template <typename VV=V>
-  bool has_with_hash (const K &key, uint32_t hash, VV **vp = nullptr) const
+  item_t *fetch_item (const K &key, uint32_t hash) const
   {
-    if (unlikely (!items)) return false;
+    if (unlikely (!items)) return nullptr;
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
@@ -267,16 +274,13 @@ struct hb_hashmap_t
 	  items[i] == key)
       {
 	if (items[i].is_real ())
-	{
-	  if (vp) *vp = std::addressof (items[i].value);
-	  return true;
-	}
+	  return &items[i];
 	else
-	  return false;
+	  return nullptr;
       }
       i = (i + 1) & mask;
     }
-    return false;
+    return nullptr;
   }
   /* Projection. */
   V operator () (K k) const { return get (k); }
