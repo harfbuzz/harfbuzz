@@ -423,10 +423,11 @@ build_summary = {
     },
   'Additional shapers':
     {'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
+     'WebAssembly (experimental)': conf.get('HAVE_WASM', 0) == 1,
     },
   'Platform shapers (not normally needed)':
     {'CoreText': conf.get('HAVE_CORETEXT', 0) == 1,
-     'DirectWrite': conf.get('HAVE_DIRECTWRITE', 0) == 1,
+     'DirectWrite (experimental)': conf.get('HAVE_DIRECTWRITE', 0) == 1,
      'GDI/Uniscribe': (conf.get('HAVE_GDI', 0) == 1) and (conf.get('HAVE_UNISCRIBE', 0) == 1),
     },
   'Other features':
