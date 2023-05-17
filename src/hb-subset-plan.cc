@@ -987,7 +987,7 @@ _update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
           continue;
       }
       plan->hmtx_map.set (new_gid, hb_pair ((unsigned) hori_aw, lsb));
-      plan->bounds_width_map.set (new_gid, extents.width);
+      plan->bounds_width_vec[new_gid] = extents.width;
     }
 
     if (_vmtx.has_data ())
@@ -1004,7 +1004,7 @@ _update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
           continue;
       }
       plan->vmtx_map.set (new_gid, hb_pair ((unsigned) vert_aw, tsb));
-      plan->bounds_height_map.set (new_gid, extents.height);
+      plan->bounds_height_vec[new_gid] = extents.height;
     }
   }
   hb_font_destroy (font);
@@ -1102,6 +1102,13 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
     unicode_to_new_gid_list.arrayZ[i].second =
         glyph_map->get(unicode_to_new_gid_list.arrayZ[i].second);
   }
+
+  bounds_width_vec.resize (_num_output_glyphs, false);
+  for (auto &v : bounds_width_vec)
+    v = 0xFFFFFFFF;
+  bounds_height_vec.resize (_num_output_glyphs, false);
+  for (auto &v : bounds_height_vec)
+    v = 0xFFFFFFFF;
 
   if (unlikely (in_error ()))
     return;
