@@ -41,6 +41,7 @@ ignore_headers = [
   'hb-gobject-enums.h',
   'hb-gobject-enums-tmp.h',
   'hb-gobject-structs.h',
+  'hb-wasm-api.h',
 ]
 
 gnome.gtkdoc('harfbuzz',

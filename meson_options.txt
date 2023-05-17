@@ -21,6 +21,8 @@ option('directwrite', type: 'feature', value: 'disabled',
   description: 'Enable DirectWrite shaper backend on Windows (experimental)')
 option('coretext', type: 'feature', value: 'disabled',
   description: 'Enable CoreText shaper backend on macOS')
+option('wasm', type: 'feature', value: 'disabled',
+  description: 'Enable WebAssembly shaper backend (experimental)')
 
 # Common feature options
 option('tests', type: 'feature', value: 'enabled', yield: true,

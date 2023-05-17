@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012  Google, Inc.
+ * Copyright © 2023  Behdad Esfahbod
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,46 +20,27 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_SHAPER_LIST_HH
-#define HB_SHAPER_LIST_HH
-#endif /* HB_SHAPER_LIST_HH */ /* Dummy header guards */
-
-#ifndef HB_NO_SHAPER
-
-
-/* v--- Add new shapers in the right place here. */
+#include "hb.hh"
 
 #ifdef HAVE_WASM
-/* Only picks up fonts that have a "Wasm" table. */
-HB_SHAPER_IMPLEMENT (wasm)
-#endif
 
-#ifdef HAVE_GRAPHITE2
-/* Only picks up fonts that have a "Silf" table. */
-HB_SHAPER_IMPLEMENT (graphite2)
-#endif
+#include "hb-wasm-api.hh"
 
-#ifndef HB_NO_OT_SHAPE
-HB_SHAPER_IMPLEMENT (ot) /* <--- This is our main shaper. */
-#endif
+#define module_inst wasm_runtime_get_module_inst (exec_env)
 
-#ifdef HAVE_UNISCRIBE
-HB_SHAPER_IMPLEMENT (uniscribe)
-#endif
-#ifdef HAVE_DIRECTWRITE
-HB_SHAPER_IMPLEMENT (directwrite)
-#endif
-#ifdef HAVE_CORETEXT
-HB_SHAPER_IMPLEMENT (coretext)
-#endif
 
-#ifndef HB_NO_FALLBACK_SHAPE
-HB_SHAPER_IMPLEMENT (fallback) /* <--- This should be last. */
-#endif
+#include "hb-wasm-api-blob.hh"
+#include "hb-wasm-api-buffer.hh"
+#include "hb-wasm-api-common.hh"
+#include "hb-wasm-api-face.hh"
+#include "hb-wasm-api-font.hh"
+#include "hb-wasm-api-shape.hh"
 
+
+#undef module_inst
+
+hb_user_data_key_t _hb_wasm_ref_type_key = {};
 
 #endif
