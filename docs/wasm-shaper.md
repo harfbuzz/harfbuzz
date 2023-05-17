@@ -2,9 +2,375 @@
 
 If the standard OpenType shaping engine doesn't give you enough flexibility, Harfbuzz allows you to write your own shaping engine in WebAssembly and embed it into your font! Any font which contains a `Wasm` table will be passed to the WebAssembly shaper.
 
+## What you can and can't do: the WASM shaper's role in shaping
+
+The Harfbuzz shaping engine, unlike its counterparts CoreText and DirectWrite, is only responsible for a small part of the text rendering process. Specifically, Harfbuzz is purely responsible for *shaping*; although Harfbuzz does have APIs for accessing glyph outlines, typically other libraries in the free software text rendering stack are responsible for text segmentation into runs, outline scaling and rasterizing, setting text on lines, and so on.
+
+Harfbuzz is therefore restricted to turning a buffer of codepoints for a segmented run of the same script, language, font, and variation settings, into glyphs and positioning them. This is also all that you can do with the WASM shaper; you can influence the process of mapping a string of characters into an array of glyphs, you can determine how those glyphs are positioned and their advance widths, but you cannot manipulate outlines, variations, line breaks, or affect text layout between texts of different font, variation, language, script or OpenType feature selection.
+
+## The WASM shaper interface
+
+The WASM code inside a font is expected to export a function called `shape` which takes five int32 arguments and returns an int32 status value. (Zero for failure, any other value for success.) Three of the five arguments are tokens which can be passed to the API functions exported to your WASM code by the host shaping engine:
+
+* A *shape plan* token, which can largely be ignored.
+* A *font* token.
+* A *buffer* token.
+* A *feature* array.
+* The number of features.
+
+The general goal of WASM shaping involves receiving and manipulating a *buffer contents* structure, which is an array of *infos* and *positions* (as defined below). Initially this buffer will represent an input string in Unicode codepoints. By the end of your `shape` function, it should represent a set of glyph IDs and their positions. (User-supplied WASM code will manipulate the buffer through *buffer tokens*; the `buffer_copy_contents` and `buffer_set_contents` API functions, defined below, use these tokens to exchange buffer information with the host shaping engine.)
+
+* The `buffer_contents_t` structure
+
+| type | field | description|
+| - | - | - |
+| uint32 | length | Number of items (characters or glyphs) in the buffer
+| glyph_info_t | infos | An array of `length` glyph infos |
+| glyph_position_t | positions | An array of `length` glyph positions |
+
+* The `glyph_info_t` structure
+
+| type | field | description|
+| - | - | - |
+| uint32 | codepoint | (On input) A Unicode codepoint. (On output) A glyph ID. |
+| uint32 | mask | Unused in WASM; can be user-defined |
+| uint32 | cluster | Index of start of this graphical cluster in input string |
+| uint32 | var1 | Reserved |
+| uint32 | var2 | Reserved |
+
+The `cluster` field is used to glyphs in the output glyph stream back to characters in the input Unicode sequence for hit testing, cursor positioning, etc. It must be set to a monotonically increasing value across the buffer.
+
+* The `glyph_position_t` structure
+
+| type | field | description|
+| - | - | - |
+| int32 | x_advance | X advance of the glyph |
+| int32 | y_advance | Y advance of the glyph |
+| int32 | x_offset | X offset of the glyph |
+| int32 | y_offset | Y offset of the glyph |
+| uint32 | var | Reserved |
+
+* The `feature_t` array
+
+To communicated user-selected OpenType features to the user-defined WASM shaper, the host shaping engine passes an array of feature structures:
+
+| type | field | description|
+| - | - | - |
+| uint32 | tag | Byte-encoded feature tag |
+| uint32 | value | Value: 0=off, 1=on, other values used for alternate selection |
+| uint32 | start | Index into the input string representing start of the active region for this feature selection (0=start of string) |
+| uint32 | end | Index into the input string representing end of the active region for this feature selection (-1=end of string) |
+
+## API functions available
+
+To assist the shaping code in mapping codepoints to glyphs, the WASM shaper exports the following functions. Note that these are the low level API functions; WASM authors may prefer to use higher-level abstractions around these functions, such as the `harfbuzz-wasm` Rust crate provided by Harfbuzz.
+
+### Sub-shaping
+
+* `shape_with`
+
+```C
+bool shape_with(
+    uint32 font_token,
+    uint32 buffer_token,
+    feature_t* features,
+    uint32 num_features,
+    char* shaper
+)
+```
+
+Run another shaping engine's shaping process on the given font and buffer. The only shaping engine guaranteed to be available is `ot`, the OpenType shaper, but others may also be available. This allows the WASM author to process a buffer "normally", before further manipulating it.
+
+### Buffer access
+
+* `buffer_copy_contents`
+
+```C
+bool buffer_copy_contents(
+    uint32 buffer_token,
+    buffer_contents_t* buffer_contents
+)
+```
+
+Retrieves the contents of the host shaping engine's buffer into the `buffer_contents` structure. This should typically be called at the beginning of shaping.
+
+* `buffer_set_contents`
+
+```C
+bool buffer_set_contents(
+    uint32 buffer_token,
+    buffer_contents_t* buffer_contents
+)
+```
+
+Copy the `buffer_contents` structure back into the host shaping engine's buffer. This should typically be called at the end of shaping.
+
+* `buffer_contents_free`
+
+```C
+bool buffer_contents_free(buffer_contents_t* buffer_contents)
+```
+
+Releases the memory taken up by the buffer contents structure.
+
+* `buffer_contents_realloc`
+
+```C
+bool buffer_contents_realloc(
+    buffer_contents_t* buffer_contents,
+    uint32 size
+)
+```
+
+Requests that the buffer contents structure be resized to the given size.
+
+* `buffer_get_direction`
+
+```C
+uint32 buffer_get_direction(uint32 buffer_token)
+```
+
+Returns the buffer's direction:
+
+* 0 = invalid
+* 4 = left to right
+* 5 = right to left
+* 6 = top to bottom
+* 7 = bottom to top
+
+* `buffer_get_script`
+
+```C
+uint32 buffer_get_script(uint32 buffer_token)
+```
+
+Returns the byte-encoded OpenType script tag of the buffer.
+
+* `buffer_reverse`
+
+```C
+void buffer_reverse(uint32 buffer_token)
+```
+
+Reverses the order of items in the buffer.
+
+* `buffer_reverse_clusters`
+
+```C
+void buffer_reverse_clusters(uint32 buffer_token)
+```
+
+Reverses the order of items in the buffer while keeping items of the same cluster together.
+
+## Font handling functions
+
+(In the following functions, a *font* is a specific instantiation of a *face* at a particular scale factor and variation position.)
+
+* `font_create`
+
+```C
+uint32 font_create(uint32 face_token)
+```
+
+Returns a new *font token* from the given *face token*.
+
+* `font_get_face`
+
+```C
+uint32 font_get_face(uint32 font_token)
+```
+
+Creates a new *face token* from the given *font token*.
+
+* `font_get_scale`
+
+```C
+void font_get_scale(
+    uint32 font_token,
+    int32* x_scale,
+    int32* y_scale
+)
+```
+
+Returns the scale of the current font.
+
+* `font_get_glyph`
+
+```C
+uint32 font_get_glyph(
+    uint32 font_token,
+    uint32 codepoint,
+    uint32 variation_selector
+)
+```
+
+Returns the nominal glyph ID for the given codepoint, using the `cmap` table of the font to map Unicode codepoint (and variation selector) to glyph ID.
+
+* `font_get_glyph_h_advance`/`font_get_glyph_v_advance`
+
+```C
+uint32 font_get_glyph_h_advance(uint32 font_token, uint32 glyph_id)
+uint32 font_get_glyph_v_advance(uint32 font_token, uint32 glyph_id)
+```
+
+Returns the default horizontal and vertical advance respectively for the given glyph ID the current scale and variations settings.
+
+* `font_get_glyph_extents`
+
+```C
+typedef struct
+{
+  uint32 x_bearing;
+  uint32 y_bearing;
+  uint32 width;
+  uint32 height;
+} glyph_extents_t;
+
+bool font_get_glyph_extents(
+    uint32 font_token,
+    uint32 glyph_id,
+    glyph_extents_t* extents
+)
+```
+
+Returns the glyph's extents for the given glyph ID at current scale and variation settings.
+
+* `font_glyph_to_string`
+
+```C
+void font_glyph_to_string(
+    uint32 font_token,
+    uint32 glyph_id,
+    char* string,
+    uint32 size
+)
+```
+
+Copies the name of the given glyph, or, if no name is available, a string of the form `gXXXX` into the given string.
+
+* `font_copy_glyph_outline`
+
+```C
+typedef struct
+{
+  float x;
+  float y;
+  uint32_t type;
+} glyph_outline_point_t;
+
+typedef struct
+{
+  uint32_t n_points;
+  glyph_outline_point_t* points;
+  uint32_t n_contours;
+  uint32_t* contours;
+} glyph_outline_t;
+
+bool font_copy_glyph_outline(
+    uint32 font_token,
+    uint32 glyph_id,
+    glyph_outline_t* outline
+);
+```
+
+Copies the outline of the given glyph ID, at current scale and variation settings, into the outline structure provided. The outline structure returns an array of points (specifying coordinates and whether the point is oncurve or offcurve) and an array of indexes into the points array representing the end of each contour, similar to the `glyf` table structure.
+
+* `font_copy_coords`/`font_set_coords`
+
+```C
+typedef struct
+{
+  uint32 length;
+  int32* coords;
+} coords_t;
+
+bool font_copy_coords(uint32 font_token, &coords_t coords);
+bool font_set_coords(uint32 font_token, &coords_t coords);
+```
+
+`font_copy_coords` copies the font's variation coordinates into the given structure; the resulting structure has `length` equal to the number of variation axes, with each member of the `coords` array being a F2DOT14 encoding of the normalized variation value.
+
+`font_set_coords` sets the font's variation coordinates. Because the WASM shaper is only responsible for shaping and positioning, not outline drawing, the user should *not* expect this to affect the rendered outlines; the function is only useful in very limited circumstances, such as when instantiating a second variable font and sub-shaping a buffer using this new font.
+
+## Face handling functions
+
+* `face_create`
+
+```C
+typedef struct
+{
+  uint32_t length;
+  char* data;
+} blob_t;
+
+uint32 font_get_face(blob_t* blob)
+```
+
+Creates a new *face token* from the given binary data.
+
+* `face_copy_table`
+
+```C
+void face_copy_table(uint32 face_token, uint32 tag, blob_t* blob)
+```
+
+Copies the binary data in the OpenType table referenced by `tag` into the supplied `blob` structure.
+
+* `face_get_upem`
+
+```C
+uint32 font_get_upem(uint32 face_token)
+```
+
+Returns the units-per-em of the font face.
+
+### Other functions
+
+* `blob_free`
+
+```C
+void blob_free(blob_t* blob)
+```
+
+Frees the memory allocated to a blob structure.
+
+* `glyph_outline_free`
+
+```C
+void glyph_outline_free(glyph_outline_t* glyph_outline)
+```
+
+Frees the memory allocated to a glyph outline structure.
+
+* `script_get_horizontal_direction`
+
+```C
+uint32 script_get_horizontal_direction(uint32 tag)
+```
+
+Returns the horizontal direction for the given ISO 15924 script tag. For return values, see `buffer_get_direction` above.
+
+* `debugprint` / `debugprint1` ... `debugprint4`
+
+```C
+void debugprint(char* str)
+void debugprint1(char* str, int32 arg1)
+void debugprint2(char* str, int32 arg1, int32 arg2)
+void debugprint3(char* str, int32 arg1, int32 arg2, int32 arg3)
+void debugprint3(
+    char* str,
+    int32 arg1,
+    int32 arg2,
+    int32 arg3,
+    int32 arg4
+)
+```
+
+Produces a debugging message in the host shaper's log output; the variants `debugprint1` ... `debugprint4` suffix the message with a comma-separated list of the integer arguments.
+
 ## How to write a shaping engine in Rust
 
-Here are the steps to create an example shaping engine in Rust: (These examples can also be found in `src/wasm/sample/rust`)
+You may write shaping engines in any language supported by WASM, by conforming to the API described above, but Rust is particularly easy, and we have one of those high-level interface wrappers which makes the process easier. Here are the steps to create an example shaping engine in Rust: (These examples can also be found in `src/wasm/sample/rust`)
 
 * First, install wasm-pack, which helps us to generate optimized WASM files. It writes some Javascript bridge code that we don't need, but it makes the build and deployment process much easier:
 
