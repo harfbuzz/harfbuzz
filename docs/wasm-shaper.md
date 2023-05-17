@@ -368,6 +368,22 @@ void debugprint3(
 
 Produces a debugging message in the host shaper's log output; the variants `debugprint1` ... `debugprint4` suffix the message with a comma-separated list of the integer arguments.
 
+## Enabling the WASM shaper when building Harfbuzz
+
+First, you will need the `wasm-micro-runtime` library installed on your computer. Download `wasm-micro-runtime` from [its GitHub repository](https://github.com/bytecodealliance/wasm-micro-runtime/tree/main); then follow [the instructions for building](https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/product-mini/README.md) (you may want to enable "fast JIT"), followed by a `make install`.
+
+To enable the WASM shaper, add the string `-Dwasm=enabled` to your meson build line. For example:
+
+```
+$ meson setup build -Dwasm=enabled
+...
+  Additional shapers
+    Graphite2                 : NO
+    WebAssembly (experimental): YES
+...
+$ meson compile -C build
+```
+
 ## How to write a shaping engine in Rust
 
 You may write shaping engines in any language supported by WASM, by conforming to the API described above, but Rust is particularly easy, and we have one of those high-level interface wrappers which makes the process easier. Here are the steps to create an example shaping engine in Rust: (These examples can also be found in `src/wasm/sample/rust`)
