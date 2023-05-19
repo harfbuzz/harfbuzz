@@ -2100,7 +2100,7 @@ hb_ot_layout_get_font_extents (hb_font_t         *font,
  * @font: a font
  * @direction: text direction.
  * @script:  script.
- * @language: language.
+ * @language: (nullable): language.
  * @extents: (out) (nullable): font extents if found.
  *
  * Fetches script/language-specific font extents.  These values are
@@ -2229,7 +2229,7 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
  * @baseline_tag: a baseline tag
  * @direction: text direction.
  * @script:  script.
- * @language: language, currently unused.
+ * @language: (nullable): language, currently unused.
  * @coord: (out) (nullable): baseline value if found.
  *
  * Fetches a baseline value from the face.
@@ -2484,7 +2484,7 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
  * @baseline_tag: a baseline tag
  * @direction: text direction.
  * @script:  script.
- * @language: language, currently unused.
+ * @language: (nullable): language, currently unused.
  * @coord: (out): baseline value if found.
  *
  * Fetches a baseline value from the face, and synthesizes
