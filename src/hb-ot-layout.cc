@@ -2068,6 +2068,12 @@ choose_base_tags (hb_script_t    script,
  * Fetches script/language-specific font extents.  These values are
  * looked up in the `BASE` table's `MinMax` records.
  *
+ * If no such extents are found, the default extents for the font are
+ * fetched. As such, the return value of this function can for the
+ * most part be ignored.  Note that the per-script/language extents
+ * do not have a line-gap value, and the line-gap is set to zero in
+ * that case.
+ *
  * Return value: `true` if found script/language-specific font extents.
  *
  * XSince: REPLACEME
@@ -2092,6 +2098,7 @@ hb_ot_layout_get_font_extents (hb_font_t         *font,
     return true;
   }
 
+  hb_font_get_extents_for_direction (font, direction, extents);
   return false;
 }
 
@@ -2105,6 +2112,12 @@ hb_ot_layout_get_font_extents (hb_font_t         *font,
  *
  * Fetches script/language-specific font extents.  These values are
  * looked up in the `BASE` table's `MinMax` records.
+ *
+ * If no such extents are found, the default extents for the font are
+ * fetched. As such, the return value of this function can for the
+ * most part be ignored.  Note that the per-script/language extents
+ * do not have a line-gap value, and the line-gap is set to zero in
+ * that case.
  *
  * Return value: `true` if found script/language-specific font extents.
  *
