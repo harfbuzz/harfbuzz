@@ -2057,6 +2057,21 @@ choose_base_tags (hb_script_t    script,
   *language_tag = language_count ? language_tags[language_count - 1] : HB_OT_TAG_DEFAULT_LANGUAGE;
 }
 
+/**
+ * hb_ot_layout_get_font_extents:
+ * @font: a font
+ * @direction: text direction.
+ * @script_tag:  script tag.
+ * @language_tag: language tag.
+ * @extents: (out) (nullable): font extents if found.
+ *
+ * Fetches script/language-specific font extents.  These values are
+ * looked up in the `BASE` table's `MinMax` records.
+ *
+ * Return value: `true` if found script/language-specific font extents.
+ *
+ * XSince: REPLACEME
+ **/
 hb_bool_t
 hb_ot_layout_get_font_extents (hb_font_t         *font,
 			       hb_direction_t     direction,
@@ -2068,15 +2083,33 @@ hb_ot_layout_get_font_extents (hb_font_t         *font,
   if (font->face->table.BASE->get_min_max (font, direction, script_tag, language_tag, HB_TAG_NONE,
 					   &min, &max))
   {
-    extents->ascender  = max;
-    extents->descender = min;
-    extents->line_gap  = 0;
+    if (extents)
+    {
+      extents->ascender  = max;
+      extents->descender = min;
+      extents->line_gap  = 0;
+    }
     return true;
   }
 
   return false;
 }
 
+/**
+ * hb_ot_layout_get_font_extents2:
+ * @font: a font
+ * @direction: text direction.
+ * @script:  script.
+ * @language: language.
+ * @extents: (out) (nullable): font extents if found.
+ *
+ * Fetches script/language-specific font extents.  These values are
+ * looked up in the `BASE` table's `MinMax` records.
+ *
+ * Return value: `true` if found script/language-specific font extents.
+ *
+ * XSince: REPLACEME
+ **/
 hb_bool_t
 hb_ot_layout_get_font_extents2 (hb_font_t         *font,
 				hb_direction_t     direction,
