@@ -6,6 +6,7 @@ endif
 tests = [
   'test-aat-layout.c',
   'test-baseline.c',
+  'test-base-minmax.c',
   'test-be-glyph-advance.c',
   'test-be-num-glyphs.c',
   'test-blob.c',
