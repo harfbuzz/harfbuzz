@@ -447,6 +447,12 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
  * BASE
  */
 
+HB_EXTERN hb_bool_t
+hb_ot_layout_get_font_extents (hb_font_t         *font,
+                               hb_direction_t     direction,
+                               hb_tag_t           script_tag,
+                               hb_tag_t           language_tag,
+                               hb_font_extents_t *extents);
 /**
  * hb_ot_layout_baseline_tag_t:
  * @HB_OT_LAYOUT_BASELINE_TAG_ROMAN: The baseline used by alphabetic scripts such as Latin, Cyrillic and Greek.

@@ -2036,6 +2036,27 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 }
 
 #ifndef HB_NO_BASE
+
+hb_bool_t
+hb_ot_layout_get_font_extents (hb_font_t         *font,
+                               hb_direction_t     direction,
+                               hb_tag_t           script_tag,
+                               hb_tag_t           language_tag,
+                               hb_font_extents_t *extents)
+{
+  hb_position_t min, max;
+  if (font->face->table.BASE->get_min_max (font, direction, script_tag, language_tag, HB_TAG_NONE,
+					   &min, &max))
+  {
+    extents->ascender  = max;
+    extents->descender = min;
+    extents->line_gap  = 0;
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * hb_ot_layout_get_horizontal_baseline_tag_for_script:
  * @script: a script tag.

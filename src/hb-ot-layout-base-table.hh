@@ -473,14 +473,13 @@ struct BASE
     return true;
   }
 
-  /* TODO: Expose this separately sometime? */
   bool get_min_max (hb_font_t      *font,
 		    hb_direction_t  direction,
 		    hb_tag_t        script_tag,
 		    hb_tag_t        language_tag,
 		    hb_tag_t        feature_tag,
 		    hb_position_t  *min,
-		    hb_position_t  *max)
+		    hb_position_t  *max) const
   {
     const BaseCoord *min_coord, *max_coord;
     if (!get_axis (direction).get_min_max (script_tag, language_tag, feature_tag,
