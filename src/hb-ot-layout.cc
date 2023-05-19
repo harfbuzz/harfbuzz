@@ -2037,12 +2037,32 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 
 #ifndef HB_NO_BASE
 
+static void
+choose_base_tags (hb_script_t    script,
+		  hb_language_t  language,
+		  hb_tag_t      *script_tag,
+		  hb_tag_t      *language_tag)
+{
+  hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
+  unsigned script_count = ARRAY_LENGTH (script_tags);
+
+  hb_tag_t language_tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
+  unsigned language_count = ARRAY_LENGTH (language_tags);
+
+  hb_ot_tags_from_script_and_language (script, language,
+				       &script_count, script_tags,
+				       &language_count, language_tags);
+
+  *script_tag = script_count ? script_tags[script_count - 1] : HB_OT_TAG_DEFAULT_SCRIPT;
+  *language_tag = language_count ? language_tags[language_count - 1] : HB_OT_TAG_DEFAULT_LANGUAGE;
+}
+
 hb_bool_t
 hb_ot_layout_get_font_extents (hb_font_t         *font,
-                               hb_direction_t     direction,
-                               hb_tag_t           script_tag,
-                               hb_tag_t           language_tag,
-                               hb_font_extents_t *extents)
+			       hb_direction_t     direction,
+			       hb_tag_t           script_tag,
+			       hb_tag_t           language_tag,
+			       hb_font_extents_t *extents)
 {
   hb_position_t min, max;
   if (font->face->table.BASE->get_min_max (font, direction, script_tag, language_tag, HB_TAG_NONE,
@@ -2055,6 +2075,22 @@ hb_ot_layout_get_font_extents (hb_font_t         *font,
   }
 
   return false;
+}
+
+hb_bool_t
+hb_ot_layout_get_font_extents2 (hb_font_t         *font,
+				hb_direction_t     direction,
+				hb_script_t        script,
+				hb_language_t      language,
+				hb_font_extents_t *extents)
+{
+  hb_tag_t script_tag, language_tag;
+  choose_base_tags (script, language, &script_tag, &language_tag);
+  return hb_ot_layout_get_font_extents (font,
+					direction,
+					script_tag,
+					language_tag,
+					extents);
 }
 
 /**
@@ -2152,6 +2188,39 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
 			   hb_position_t               *coord        /* OUT.  May be NULL. */)
 {
   return font->face->table.BASE->get_baseline (font, baseline_tag, direction, script_tag, language_tag, coord);
+}
+
+/**
+ * hb_ot_layout_get_baseline2:
+ * @font: a font
+ * @baseline_tag: a baseline tag
+ * @direction: text direction.
+ * @script:  script.
+ * @language: language, currently unused.
+ * @coord: (out) (nullable): baseline value if found.
+ *
+ * Fetches a baseline value from the face.
+ *
+ * Return value: `true` if found baseline value in the font.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_ot_layout_get_baseline2 (hb_font_t                   *font,
+			    hb_ot_layout_baseline_tag_t  baseline_tag,
+			    hb_direction_t               direction,
+			    hb_script_t                  script,
+			    hb_language_t                language,
+			    hb_position_t               *coord        /* OUT.  May be NULL. */)
+{
+  hb_tag_t script_tag, language_tag;
+  choose_base_tags (script, language, &script_tag, &language_tag);
+  return hb_ot_layout_get_baseline (font,
+				    baseline_tag,
+				    direction,
+				    script_tag,
+				    language_tag,
+				    coord);
 }
 
 /**
@@ -2374,6 +2443,38 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
     *coord = 0;
     break;
   }
+}
+
+/**
+ * hb_ot_layout_get_baseline_with_fallback2:
+ * @font: a font
+ * @baseline_tag: a baseline tag
+ * @direction: text direction.
+ * @script:  script.
+ * @language: language, currently unused.
+ * @coord: (out): baseline value if found.
+ *
+ * Fetches a baseline value from the face, and synthesizes
+ * it if the font does not have it.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_ot_layout_get_baseline_with_fallback2 (hb_font_t                   *font,
+					  hb_ot_layout_baseline_tag_t  baseline_tag,
+					  hb_direction_t               direction,
+					  hb_script_t                  script,
+					  hb_language_t                language,
+					  hb_position_t               *coord        /* OUT */)
+{
+  hb_tag_t script_tag, language_tag;
+  choose_base_tags (script, language, &script_tag, &language_tag);
+  hb_ot_layout_get_baseline_with_fallback (font,
+					   baseline_tag,
+					   direction,
+					   script_tag,
+					   language_tag,
+					   coord);
 }
 
 #endif
