@@ -2119,6 +2119,9 @@ hb_ot_layout_get_font_extents (hb_font_t         *font,
  * do not have a line-gap value, and the line-gap is set to zero in
  * that case.
  *
+ * This function is like hb_ot_layout_get_font_extents() but takes
+ * #hb_script_t and #hb_language_t instead of OpenType #hb_tag_t.
+ *
  * Return value: `true` if found script/language-specific font extents.
  *
  * XSince: REPLACEME
@@ -2246,6 +2249,9 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
  * @coord: (out) (nullable): baseline value if found.
  *
  * Fetches a baseline value from the face.
+ *
+ * This function is like hb_ot_layout_get_baseline() but takes
+ * #hb_script_t and #hb_language_t instead of OpenType #hb_tag_t.
  *
  * Return value: `true` if found baseline value in the font.
  *
@@ -2502,6 +2508,9 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
  *
  * Fetches a baseline value from the face, and synthesizes
  * it if the font does not have it.
+ *
+ * This function is like hb_ot_layout_get_baseline_with_fallback() but takes
+ * #hb_script_t and #hb_language_t instead of OpenType #hb_tag_t.
  *
  * XSince: REPLACEME
  **/
