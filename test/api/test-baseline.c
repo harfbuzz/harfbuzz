@@ -41,6 +41,12 @@ test_ot_layout_base (void)
 				       &position));
   g_assert_cmpint (46, ==, position);
 
+  g_assert (hb_ot_layout_get_baseline2 (font, HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_BOTTOM_OR_LEFT, HB_DIRECTION_TTB,
+					HB_SCRIPT_HAN,
+					hb_language_from_string ("en", -1),
+					&position));
+  g_assert_cmpint (46, ==, position);
+
   g_assert (!hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_TOP_OR_RIGHT, HB_DIRECTION_TTB,
 				        HB_TAG ('h','a','n','i'),
 				        HB_TAG ('E','N','G',' '),
@@ -61,6 +67,12 @@ test_ot_layout_base_with_fallback (void)
 					   HB_TAG ('h','a','n','i'),
 					   HB_TAG ('E','N','G',' '),
 					   &position);
+  g_assert_cmpint (46, ==, position);
+
+  hb_ot_layout_get_baseline_with_fallback2 (font, HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_BOTTOM_OR_LEFT, HB_DIRECTION_TTB,
+					    HB_SCRIPT_HAN,
+					    hb_language_from_string ("en", -1),
+					    &position);
   g_assert_cmpint (46, ==, position);
 
   hb_ot_layout_get_baseline_with_fallback (font, HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_TOP_OR_RIGHT, HB_DIRECTION_TTB,
