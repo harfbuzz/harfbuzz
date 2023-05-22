@@ -2648,7 +2648,6 @@ hb_font_set_variations (hb_font_t            *font,
       if (axes[axis_index].axisTag == tag)
 	design_coords[axis_index] = v;
   }
-  font->face->table.avar->map_coords (normalized, coords_length);
 
   hb_ot_var_normalize_coords (font->face, coords_length, design_coords, normalized);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
@@ -2719,8 +2718,6 @@ hb_font_set_variation (hb_font_t *font,
   for (unsigned axis_index = 0; axis_index < coords_length; axis_index++)
     if (axes[axis_index].axisTag == tag)
       design_coords[axis_index] = value;
-
-  font->face->table.avar->map_coords (normalized, coords_length);
 
   hb_ot_var_normalize_coords (font->face, coords_length, design_coords, normalized);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
