@@ -215,7 +215,7 @@ struct hb_hashmap_t
       if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
 	  items[i] == key)
         break;
-      if (tombstone == (unsigned) -1 && items[i].is_tombstone ())
+      if (items[i].is_tombstone () && tombstone == (unsigned) -1)
         tombstone = i;
       i = (i + ++step) & mask;
     }
