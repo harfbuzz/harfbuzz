@@ -207,6 +207,7 @@ struct hb_hashmap_t
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
+    unsigned int tombstone = (unsigned int) -1;
     unsigned int i = hash % prime;
     unsigned step = 0;
     while (items[i].is_used ())
@@ -214,12 +215,12 @@ struct hb_hashmap_t
       if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
 	  items[i] == key)
         break;
-      if (items[i].is_tombstone ())
-        break;
+      if (tombstone == (unsigned) -1 && items[i].is_tombstone ())
+        tombstone = i;
       i = (i + ++step) & mask;
     }
 
-    item_t &item = items[i];
+    item_t &item = items[tombstone == (unsigned) -1 ? i : tombstone];
 
     if (item.is_used ())
     {
