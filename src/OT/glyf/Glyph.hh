@@ -468,7 +468,10 @@ struct Glyph
 	assert (record_points.length == item_num_points);
 
 	auto component_coords = coords;
-	if (item.is_reset_unspecified_axes ())
+	/* Copying coords is expensive; so we have put an arbitrary
+	 * limit on the max number of coords for now. */
+	if (item.is_reset_unspecified_axes () ||
+	    coords.length > HB_GLYF_VAR_COMPOSITE_MAX_AXES)
 	  component_coords = hb_array<int> ();
 
 	coord_setter_t coord_setter (component_coords);
