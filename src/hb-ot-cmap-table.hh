@@ -757,8 +757,7 @@ struct CmapSubtableLongSegmented
       hb_codepoint_t gid = this->groups[i].glyphID;
       if (!gid)
       {
-	/* Intention is: if (hb_is_same (T, CmapSubtableFormat13)) continue; */
-	if (! T::group_get_glyph (this->groups[i], end)) continue;
+        if (T::formatNumber == 13) continue;
 	start++;
 	gid++;
       }
@@ -766,11 +765,13 @@ struct CmapSubtableLongSegmented
       if (unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
 	end = start + (hb_codepoint_t) num_glyphs - gid;
 
+      mapping->resize (mapping->get_population () + end - start + 1);
+
       for (unsigned cp = start; cp <= end; cp++)
       {
 	unicodes->add (cp);
 	mapping->set (cp, gid);
-	gid++;
+        gid += T::increment;
       }
     }
   }
@@ -794,6 +795,9 @@ struct CmapSubtableLongSegmented
 
 struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 {
+  static constexpr int increment = 1;
+  static constexpr int formatNumber = 12;
+
   static hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
 					 hb_codepoint_t u)
   { return likely (group.startCharCode <= group.endCharCode) ?
@@ -866,6 +870,9 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 
 struct CmapSubtableFormat13 : CmapSubtableLongSegmented<CmapSubtableFormat13>
 {
+  static constexpr int increment = 0;
+  static constexpr int formatNumber = 13;
+
   static hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
 					 hb_codepoint_t u HB_UNUSED)
   { return group.glyphID; }
