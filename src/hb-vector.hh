@@ -62,7 +62,19 @@ struct hb_vector_t
   {
     alloc (o.length, true);
     if (unlikely (in_error ())) return;
-    copy_vector (o);
+    copy_array (o.as_array ());
+  }
+  hb_vector_t (array_t o) : hb_vector_t ()
+  {
+    alloc (o.length, true);
+    if (unlikely (in_error ())) return;
+    copy_array (o);
+  }
+  hb_vector_t (c_array_t o) : hb_vector_t ()
+  {
+    alloc (o.length, true);
+    if (unlikely (in_error ())) return;
+    copy_array (o);
   }
   hb_vector_t (hb_vector_t &&o)
   {
@@ -119,7 +131,7 @@ struct hb_vector_t
     alloc (o.length, true);
     if (unlikely (in_error ())) return *this;
 
-    copy_vector (o);
+    copy_array (o.as_array ());
 
     return *this;
   }
@@ -287,7 +299,7 @@ struct hb_vector_t
   template <typename T = Type,
 	    hb_enable_if (hb_is_trivially_copyable (T))>
   void
-  copy_vector (const hb_vector_t &other)
+  copy_array (hb_array_t<const Type> other)
   {
     length = other.length;
     if (!HB_OPTIMIZE_SIZE_VAL && sizeof (T) >= sizeof (long long))
@@ -301,7 +313,7 @@ struct hb_vector_t
 	    hb_enable_if (!hb_is_trivially_copyable (T) &&
 			   std::is_copy_constructible<T>::value)>
   void
-  copy_vector (const hb_vector_t &other)
+  copy_array (hb_array_t<const Type> other)
   {
     length = 0;
     while (length < other.length)
@@ -316,7 +328,7 @@ struct hb_vector_t
 			  std::is_default_constructible<T>::value &&
 			  std::is_copy_assignable<T>::value)>
   void
-  copy_vector (const hb_vector_t &other)
+  copy_array (hb_array_t<const Type> other)
   {
     length = 0;
     while (length < other.length)

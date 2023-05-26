@@ -381,7 +381,7 @@ struct Glyph
     if (points_with_deltas != nullptr && depth == 0 && type == COMPOSITE)
     {
       if (unlikely (!points_with_deltas->resize (points.length))) return false;
-      points_with_deltas->copy_vector (points);
+      *points_with_deltas = points;
     }
 
     switch (type) {
