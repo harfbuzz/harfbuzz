@@ -110,6 +110,7 @@ struct hb_hashmap_t
   unsigned int occupancy; /* Including tombstones. */
   unsigned int mask;
   unsigned int prime;
+  unsigned int max_chain_length;
   item_t *items;
 
   friend void swap (hb_hashmap_t& a, hb_hashmap_t& b)
@@ -123,6 +124,7 @@ struct hb_hashmap_t
     hb_swap (a.occupancy, b.occupancy);
     hb_swap (a.mask, b.mask);
     hb_swap (a.prime, b.prime);
+    hb_swap (a.max_chain_length, b.max_chain_length);
     hb_swap (a.items, b.items);
   }
   void init ()
@@ -133,6 +135,7 @@ struct hb_hashmap_t
     population = occupancy = 0;
     mask = 0;
     prime = 0;
+    max_chain_length = 0;
     items = nullptr;
   }
   void fini ()
@@ -181,6 +184,7 @@ struct hb_hashmap_t
     population = occupancy = 0;
     mask = new_size - 1;
     prime = prime_for (power);
+    max_chain_length = power * 2;
     items = new_items;
 
     /* Insert back old items. */
@@ -209,6 +213,7 @@ struct hb_hashmap_t
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int tombstone = (unsigned int) -1;
     unsigned int i = hash % prime;
+    unsigned length = 0;
     unsigned step = 0;
     while (items[i].is_used ())
     {
@@ -218,6 +223,7 @@ struct hb_hashmap_t
       if (items[i].is_tombstone () && tombstone == (unsigned) -1)
         tombstone = i;
       i = (i + ++step) & mask;
+      length++;
     }
 
     item_t &item = items[tombstone == (unsigned) -1 ? i : tombstone];
@@ -237,6 +243,9 @@ struct hb_hashmap_t
 
     occupancy++;
     population++;
+
+    if (unlikely (length > max_chain_length) && occupancy * 8 > mask)
+      resize (mask - 8); // This ensures we jump to next larger size
 
     return true;
   }
