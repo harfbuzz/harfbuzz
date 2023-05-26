@@ -401,9 +401,10 @@ struct graph_t
     return vertices_[i].obj;
   }
 
-  void add_buffer (char* buffer)
+  bool add_buffer (char* buffer)
   {
     buffers.push (buffer);
+    return !buffers.in_error ();
   }
 
   /*
