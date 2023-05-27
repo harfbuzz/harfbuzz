@@ -30,13 +30,12 @@ static void BM_MapInsert(benchmark::State& state) {
   RandomMap(map_size, original);
   assert(hb_map_get_population(original) == map_size);
 
-  auto needle = map_size / 2;
-  auto v = 0;
+  auto needle = 0u;
   for (auto _ : state) {
     // TODO(garretrieger): create a copy of the original map.
     //                     Needs a hb_map_copy(..) in public api.
 
-    hb_map_set (original, needle++, v++);
+    hb_map_set (original, needle++ % map_size, 1);
   }
 
   hb_map_destroy(original);
