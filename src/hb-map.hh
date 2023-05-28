@@ -212,7 +212,7 @@ struct hb_hashmap_t
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int tombstone = (unsigned int) -1;
-    unsigned int i = std::is_integral<K>::value ? hash & mask : hash % prime;
+    unsigned int i = hash % prime;
     unsigned length = 0;
     unsigned step = 0;
     while (items[i].is_used ())
@@ -295,7 +295,7 @@ struct hb_hashmap_t
     if (unlikely (!items)) return nullptr;
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
-    unsigned int i = std::is_integral<K>::value ? hash & mask : hash % prime;
+    unsigned int i = hash % prime;
     unsigned step = 0;
     while (items[i].is_used ())
     {
