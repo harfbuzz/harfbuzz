@@ -212,12 +212,12 @@ struct hb_hashmap_t
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int tombstone = (unsigned int) -1;
-    unsigned int i = hash % prime;
+    unsigned int i = std::is_integral<K>::value ? hash & mask : hash % prime;
     unsigned length = 0;
     unsigned step = 0;
     while (items[i].is_used ())
     {
-      if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
+      if ((std::is_integral<K>::value || items[i].hash == hash) &&
 	  items[i] == key)
         break;
       if (items[i].is_tombstone () && tombstone == (unsigned) -1)
@@ -295,11 +295,11 @@ struct hb_hashmap_t
     if (unlikely (!items)) return nullptr;
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
-    unsigned int i = hash % prime;
+    unsigned int i = std::is_integral<K>::value ? hash & mask : hash % prime;
     unsigned step = 0;
     while (items[i].is_used ())
     {
-      if ((hb_is_same (K, hb_codepoint_t) || items[i].hash == hash) &&
+      if ((std::is_integral<K>::value || items[i].hash == hash) &&
 	  items[i] == key)
       {
 	if (items[i].is_real ())
