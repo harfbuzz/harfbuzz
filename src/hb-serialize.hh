@@ -323,6 +323,8 @@ struct hb_serialize_context_t
   {
     object_t *obj = current;
     if (unlikely (!obj)) return;
+    // Allow cleanup when we've error'd out on int overflows which don't compromise
+    // the serializer state.
     if (unlikely (in_error() && !only_overflow ())) return;
 
     current = current->next;
@@ -340,7 +342,9 @@ struct hb_serialize_context_t
   {
     object_t *obj = current;
     if (unlikely (!obj)) return 0;
-    if (unlikely (in_error())) return 0;
+    // Allow cleanup when we've error'd out on int overflows which don't compromise
+    // the serializer state.
+    if (unlikely (in_error()  && !only_overflow ())) return 0;
 
     current = current->next;
     obj->tail = head;
