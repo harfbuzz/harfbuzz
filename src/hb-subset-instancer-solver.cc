@@ -173,7 +173,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     // Crossing point on the axis.
     float crossing = peak + ((1 - gain) * (upper - peak) / (1 - outGain));
 
-    Triple loc{peak, peak, crossing};
+    Triple loc{axisDef, peak, crossing};
     float scalar = 1.f;
 
     // The part before the crossing point.
