@@ -784,7 +784,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
                                 const hb_map_t  *requested_glyph_map,
 				hb_map_t	*glyph_map, /* OUT */
 				hb_map_t	*reverse_glyph_map, /* OUT */
-                                hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> *glyph_map_list, /* OUT */
+                                hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> *reverse_glyph_map_list, /* OUT */
 				unsigned int	*num_glyphs /* OUT */)
 {
   unsigned pop = all_gids_to_retain->get_population ();
@@ -813,7 +813,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
     for (auto old_gid : all_gids_to_retain->iter ())
     {
       if (old_gid == 0) {
-        glyph_map_list->push (hb_pair (0, 0));
+        reverse_glyph_map_list->push (hb_pair (0, 0));
         continue;
       }
 
@@ -826,27 +826,22 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
 
       if (*new_gid > max_glyph)
         max_glyph = *new_gid;
-      glyph_map_list->push (hb_pair (old_gid, *new_gid));
+      reverse_glyph_map_list->push (hb_pair (*new_gid, old_gid));
     }
 
     // Anything that wasn't mapped by the requested mapping should
     // be placed after the requested mapping.
     for (auto old_gid : remaining)
-      glyph_map_list->push (hb_pair (old_gid, ++max_glyph));
+      reverse_glyph_map_list->push (hb_pair (++max_glyph, old_gid));
 
-    // glyph_map_list may be out of order if remaining glyphs where added.
-    if (remaining)
-      glyph_map_list->qsort();
-    
     *num_glyphs = max_glyph + 1;
   }
   else if (!retain_gids)
   {
     + hb_enumerate (hb_iter (all_gids_to_retain), (hb_codepoint_t) 0)
-    | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
-    | hb_sink (glyph_map_list)
+    | hb_sink (reverse_glyph_map_list)
     ;
-    *num_glyphs = glyph_map_list->length;
+    *num_glyphs = reverse_glyph_map_list->length;
   }
   else
   {
@@ -854,7 +849,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
     | hb_map_retains_sorting ([] (hb_codepoint_t _) {
 		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, _);
 	      })
-    | hb_sink (glyph_map_list)    
+    | hb_sink (reverse_glyph_map_list)
     ;
 
     hb_codepoint_t max_glyph = HB_SET_VALUE_INVALID;
@@ -863,12 +858,12 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
     *num_glyphs = max_glyph + 1;
   }
 
-  + glyph_map_list->iter ()
+  + reverse_glyph_map_list->iter ()
+  | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
   | hb_sink (glyph_map)
   ;
 
-  + glyph_map_list->iter ()
-  | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
+  + reverse_glyph_map_list->iter ()
   | hb_sink (reverse_glyph_map)
   ;
   
@@ -1095,7 +1090,7 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
           &input->glyph_map,
           glyph_map,
           reverse_glyph_map,
-          &_old_to_new_gid_list,
+          &_new_to_old_gid_list,
           &_num_output_glyphs))) {
     return;
   }

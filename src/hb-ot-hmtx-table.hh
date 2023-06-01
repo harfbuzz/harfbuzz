@@ -214,8 +214,8 @@ struct hmtxvmtx
     + c->plan->all_gid_iter ()
     | hb_map ([c, &_mtx, mtx_map] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& p)
 	      {
-                hb_codepoint_t old_gid = p.first;
-                hb_codepoint_t new_gid = p.second;
+                hb_codepoint_t new_gid = p.first;
+                hb_codepoint_t old_gid = p.second;
                 if (new_gid == HB_MAP_VALUE_INVALID)
 		  return hb_pair (0u, 0);
 

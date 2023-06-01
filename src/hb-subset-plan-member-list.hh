@@ -63,7 +63,7 @@ HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_gsub)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_mathed)
 HB_SUBSET_PLAN_MEMBER (hb_set_t, _glyphset_colred)
-HB_SUBSET_PLAN_MEMBER (hb_sorted_vector_t E(<hb_pair_t<hb_codepoint_t, hb_codepoint_t>>), _old_to_new_gid_list)
+HB_SUBSET_PLAN_MEMBER (hb_sorted_vector_t E(<hb_pair_t<hb_codepoint_t, hb_codepoint_t>>), _new_to_old_gid_list)
 
 //active lookups we'd like to retain
 HB_SUBSET_PLAN_MEMBER (hb_map_t, gsub_lookups)

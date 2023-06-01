@@ -327,9 +327,9 @@ struct hb_subset_plan_t
 
   inline all_gid_iter_t all_gid_iter () const
   {
-    return all_gid_iter_t (&_old_to_new_gid_list,
+    return all_gid_iter_t (&_new_to_old_gid_list,
       flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
-      _glyphset.get_max());
+      num_output_glyphs() - 1);
   }
 };
 
