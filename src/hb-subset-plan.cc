@@ -755,7 +755,6 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   _remove_invalid_gids (&plan->_glyphset, plan->source->get_num_glyphs ());
 
-
 #ifndef HB_NO_VAR
   if (!drop_tables->has (HB_OT_TAG_GDEF))
     _collect_layout_variation_indices (plan);
@@ -783,6 +782,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
                                 const hb_map_t  *requested_glyph_map,
 				hb_map_t	*glyph_map, /* OUT */
 				hb_map_t	*reverse_glyph_map, /* OUT */
+				hb_vector_t<hb_codepoint_t> *new_to_old_gid_list /* OUT */,
 				unsigned int	*num_glyphs /* OUT */)
 {
   unsigned pop = all_gids_to_retain->get_population ();
@@ -862,6 +862,12 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
   | hb_sink (glyph_map)
   ;
+
+  auto &l = *new_to_old_gid_list;
+  l.resize (*num_glyphs);
+  hb_memset (l.arrayZ, 0xff, l.length * sizeof (l[0]));
+  for (auto _ : *reverse_glyph_map)
+    l[_.first] = _.second;
 
   return true;
 }
@@ -1086,6 +1092,7 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
           &input->glyph_map,
           glyph_map,
           reverse_glyph_map,
+	  &new_to_old_gid_list,
           &_num_output_glyphs))) {
     return;
   }

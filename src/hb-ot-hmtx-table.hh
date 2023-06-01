@@ -211,15 +211,17 @@ struct hmtxvmtx
     }
 
     auto it =
-    + hb_range (c->plan->num_output_glyphs ())
-    | hb_map ([c, &_mtx, mtx_map] (unsigned _)
+    + hb_enumerate (c->plan->new_to_old_gid_list)
+    | hb_map ([c, &_mtx, mtx_map] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> &_)
 	      {
-	        hb_pair_t<unsigned, int> *v = nullptr;
-		if (!mtx_map->has (_, &v))
+		hb_codepoint_t new_gid = _.first;
+		hb_codepoint_t old_gid = _.second;
+		if (old_gid == HB_MAP_VALUE_INVALID)
+		  return hb_pair (0u, 0);
+
+		hb_pair_t<unsigned, int> *v = nullptr;
+		if (!mtx_map->has (new_gid, &v))
 		{
-		  hb_codepoint_t old_gid;
-		  if (!c->plan->old_gid_for_new_gid (_, &old_gid))
-		    return hb_pair (0u, 0);
 		  int lsb = 0;
 		  if (!_mtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb))
 		    (void) _glyf_get_leading_bearing_without_var_unscaled (c->plan->source, old_gid, !T::is_horizontal, &lsb);
