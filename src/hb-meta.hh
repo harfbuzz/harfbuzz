@@ -153,9 +153,9 @@ struct hb_reference_wrapper
   hb_reference_wrapper (T v) : v (v) {}
   bool operator == (const hb_reference_wrapper& o) const { return v == o.v; }
   bool operator != (const hb_reference_wrapper& o) const { return v != o.v; }
-  operator T () const { return v; }
-  T get () const { return v; }
-  T v;
+  operator T& () const { return v; }
+  T& get () const { return v; }
+  mutable T v;
 };
 template <typename T>
 struct hb_reference_wrapper<T&>

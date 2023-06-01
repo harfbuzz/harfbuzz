@@ -86,14 +86,14 @@ struct hb_hashmap_t
 
     template <bool v = minus_one,
 	      hb_enable_if (v == false)>
-    static inline const V& default_value () { return Null(V); };
+    static inline const V& default_value () { return Null(V); }
     template <bool v = minus_one,
 	      hb_enable_if (v == true)>
     static inline const V& default_value ()
     {
       static_assert (hb_is_same (V, hb_codepoint_t), "");
       return minus_1;
-    };
+    }
 
     bool operator == (const K &o) const { return hb_deref (key) == hb_deref (o); }
     bool operator == (const item_t &o) const { return *this == o.key; }
@@ -519,7 +519,9 @@ struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
 template <typename V>
 struct hb_sorted_map_t
 {
-  hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, V>> items;
+  using item_t = hb_pair_t<hb_codepoint_t, V>;
+
+  hb_sorted_vector_t<item_t> items;
 
   hb_sorted_map_t () = default;
   hb_sorted_map_t (const hb_sorted_map_t& o) : items (o.items) {}
@@ -527,7 +529,7 @@ struct hb_sorted_map_t
   hb_sorted_map_t& operator= (const hb_sorted_map_t& o)  { items = o.items; return *this; }
   hb_sorted_map_t& operator= (hb_sorted_map_t&& o)  { hb_swap (items, o.items); return *this; }
 
-  hb_sorted_map_t (std::initializer_list<hb_pair_t<hb_codepoint_t, V>> lst) :
+  hb_sorted_map_t (std::initializer_list<item_t> lst) :
     items (lst) { items.qsort (); }
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
@@ -566,6 +568,38 @@ struct hb_sorted_map_t
     + iter_ref ()
     | hb_map (hb_second)
     | hb_map (hb_ridentity)
+  )
+
+  struct range_iter_t
+  {
+    const hb_sorted_map_t *m;
+    unsigned int i;
+    range_iter_t (const hb_sorted_map_t *map) : m (map), i (0) {}
+
+    template <typename VV = V,
+	      hb_enable_if (!hb_is_same (VV, hb_codepoint_t))>
+    static inline const V& default_value () { return Null(V); }
+    template <typename VV = V,
+	      hb_enable_if (hb_is_same (VV, hb_codepoint_t))>
+    static inline const V& default_value ()
+    {
+      static_assert (hb_is_same (V, hb_codepoint_t), "");
+      return minus_1;
+    }
+
+    item_t operator () (hb_codepoint_t k)
+    {
+      if (i < m->items.length && k == m->items.arrayZ[i].first)
+	return {k, m->items.arrayZ[i++].second};
+
+      return {k, default_value ()};
+    }
+  };
+
+  auto iter_range (hb_codepoint_t start, hb_codepoint_t end) HB_AUTO_RETURN
+  (
+    + hb_range (start, end)
+    | hb_map_retains_sorting (range_iter_t (this))
   )
 };
 

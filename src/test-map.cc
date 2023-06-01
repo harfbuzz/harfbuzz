@@ -361,14 +361,17 @@ main (int argc, char **argv)
     hb_map_t m;
     m.set (1, 1);
     m.set (4, 3);
-    m.set (5, 5);
+    m.set (15, 5);
     m.set (2, 1);
-    m.set (3, 2);
-    m.set (6, 8);
+    m.set (13, 2);
+    m.set (9, 8);
     hb_sorted_map_t<hb_codepoint_t> sm2 (m);
+
     assert (hb_iter (sm2)[1].first == 2);
     assert (sm2.keys ()[1] == 2);
     assert (sm2.values ()[1] == 1);
+
+    assert (hb_len (sm2.iter_range (1, 10)) == 9);
   }
 
   return 0;
