@@ -378,7 +378,7 @@ struct TupleVariationData
   unsigned get_size (unsigned axis_count) const
   {
     unsigned total_size = min_size;
-    unsigned count = tupleVarCount;
+    unsigned count = tupleVarCount.get_count ();
     const TupleVariationHeader *tuple_var_header = &(get_tuple_var_header());
     for (unsigned i = 0; i < count; i++)
     {
