@@ -31,6 +31,9 @@
 
 #include "hb-set.hh"
 
+#include "libdivide.h"
+
+using namespace libdivide;
 
 /*
  * hb_hashmap_t
@@ -110,6 +113,7 @@ struct hb_hashmap_t
   unsigned int occupancy; /* Including tombstones. */
   unsigned int mask;
   unsigned int prime;
+  divider<uint32_t> prime_div;
   unsigned int max_chain_length;
   item_t *items;
 
@@ -124,6 +128,7 @@ struct hb_hashmap_t
     hb_swap (a.occupancy, b.occupancy);
     hb_swap (a.mask, b.mask);
     hb_swap (a.prime, b.prime);
+    hb_swap (a.prime_div, b.prime_div);
     hb_swap (a.max_chain_length, b.max_chain_length);
     hb_swap (a.items, b.items);
   }
@@ -184,6 +189,7 @@ struct hb_hashmap_t
     population = occupancy = 0;
     mask = new_size - 1;
     prime = prime_for (power);
+    prime_div = divider<uint32_t> (prime);
     max_chain_length = power * 2;
     items = new_items;
 
@@ -212,7 +218,7 @@ struct hb_hashmap_t
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int tombstone = (unsigned int) -1;
-    unsigned int i = hash % prime;
+    unsigned int i = hash - (hash / prime_div) * prime;
     unsigned length = 0;
     unsigned step = 0;
     while (items[i].is_used ())
@@ -295,7 +301,7 @@ struct hb_hashmap_t
     if (unlikely (!items)) return nullptr;
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
-    unsigned int i = hash % prime;
+    unsigned int i = hash - (hash / prime_div) * prime;
     unsigned step = 0;
     while (items[i].is_used ())
     {
