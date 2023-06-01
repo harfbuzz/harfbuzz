@@ -269,7 +269,7 @@ struct hb_subset_plan_t
     {
       if (dense_ && (*m_)[map_index_].first != current_gid_)
         // current item is unmapped.
-        return hb_pair (current_gid_, -1);
+        return hb_pair (current_gid_, HB_MAP_VALUE_INVALID);
       return (*m_)[map_index_];
     }
 

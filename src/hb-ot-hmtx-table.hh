@@ -216,7 +216,7 @@ struct hmtxvmtx
 	      {
                 hb_codepoint_t old_gid = p.first;
                 hb_codepoint_t new_gid = p.second;
-                if (new_gid == -1u)
+                if (new_gid == HB_MAP_VALUE_INVALID)
 		  return hb_pair (0u, 0);
 
 		if (mtx_map->has (new_gid))
