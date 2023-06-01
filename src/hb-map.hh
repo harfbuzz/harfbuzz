@@ -112,6 +112,7 @@ struct hb_hashmap_t
   unsigned int prime;
   unsigned int max_chain_length;
   item_t *items;
+  uint32_t *is_used;
 
   friend void swap (hb_hashmap_t& a, hb_hashmap_t& b)
   {
@@ -126,6 +127,7 @@ struct hb_hashmap_t
     hb_swap (a.prime, b.prime);
     hb_swap (a.max_chain_length, b.max_chain_length);
     hb_swap (a.items, b.items);
+    hb_swap (a.is_used, b.is_used);
   }
   void init ()
   {
@@ -137,18 +139,22 @@ struct hb_hashmap_t
     prime = 0;
     max_chain_length = 0;
     items = nullptr;
+    is_used = nullptr;
   }
   void fini ()
   {
     hb_object_fini (this);
 
-    if (likely (items)) {
+    if (items)
+    {
       unsigned size = mask + 1;
       for (unsigned i = 0; i < size; i++)
         items[i].~item_t ();
       hb_free (items);
       items = nullptr;
     }
+    hb_free (is_used);
+    is_used = nullptr;
     population = occupancy = 0;
   }
 
@@ -169,8 +175,11 @@ struct hb_hashmap_t
     unsigned int power = hb_bit_storage (hb_max ((unsigned) population, new_population) * 2 + 8);
     unsigned int new_size = 1u << power;
     item_t *new_items = (item_t *) hb_malloc ((size_t) new_size * sizeof (item_t));
-    if (unlikely (!new_items))
+    uint32_t *new_is_used = (uint32_t *) hb_calloc ((size_t) (new_size + 31) / 32, sizeof (uint32_t));
+    if (unlikely (!new_items || !new_is_used))
     {
+      hb_free (new_items);
+      hb_free (new_is_used);
       successful = false;
       return false;
     }
@@ -186,6 +195,8 @@ struct hb_hashmap_t
     prime = prime_for (power);
     max_chain_length = power * 2;
     items = new_items;
+    hb_free (is_used);
+    is_used = new_is_used;
 
     /* Insert back old items. */
     for (unsigned int i = 0; i < old_size; i++)
@@ -204,6 +215,15 @@ struct hb_hashmap_t
     return true;
   }
 
+  bool item_is_used (unsigned int i) const
+  {
+    return is_used[i >> 5] & (1u << (i & 31u));
+  }
+  void item_set_used (unsigned int i) const
+  {
+    is_used[i >> 5] |= (1u << (i & 31u));
+  }
+
   template <typename KK, typename VV>
   bool set_with_hash (KK&& key, uint32_t hash, VV&& value)
   {
@@ -215,7 +235,7 @@ struct hb_hashmap_t
     unsigned int i = hash % prime;
     unsigned length = 0;
     unsigned step = 0;
-    while (items[i].is_used ())
+    while (item_is_used (i))
     {
       if ((std::is_integral<K>::value || items[i].hash == hash) &&
 	  items[i] == key)
@@ -226,7 +246,8 @@ struct hb_hashmap_t
       length++;
     }
 
-    item_t &item = items[tombstone == (unsigned) -1 ? i : tombstone];
+    i = tombstone == (unsigned) -1 ? i : tombstone;
+    item_t &item = items[i];
 
     if (item.is_used ())
     {
@@ -240,6 +261,7 @@ struct hb_hashmap_t
     item.hash = hash;
     item.set_used (true);
     item.set_tombstone (false);
+    item_set_used (i);
 
     occupancy++;
     population++;
@@ -297,7 +319,7 @@ struct hb_hashmap_t
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
     unsigned step = 0;
-    while (items[i].is_used ())
+    while (item_is_used (i))
     {
       if ((std::is_integral<K>::value || items[i].hash == hash) &&
 	  items[i] == key)
