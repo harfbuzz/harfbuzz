@@ -354,5 +354,22 @@ main (int argc, char **argv)
     assert (values.is_equal (hb_set_t (m.values ())));
   }
 
+  /* Sorted-map */
+  {
+    hb_sorted_map_t<hb_codepoint_t> sm;
+
+    hb_map_t m;
+    m.set (1, 1);
+    m.set (4, 3);
+    m.set (5, 5);
+    m.set (2, 1);
+    m.set (3, 2);
+    m.set (6, 8);
+    hb_sorted_map_t<hb_codepoint_t> sm2 (m);
+    assert (hb_iter (sm2)[1].first == 2);
+    assert (sm2.keys ()[1] == 2);
+    assert (sm2.values ()[1] == 1);
+  }
+
   return 0;
 }

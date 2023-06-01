@@ -516,4 +516,58 @@ struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
 };
 
 
+template <typename V>
+struct hb_sorted_map_t
+{
+  hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, V>> items;
+
+  hb_sorted_map_t () = default;
+  hb_sorted_map_t (const hb_sorted_map_t& o) : items (o.items) {}
+  hb_sorted_map_t (hb_sorted_map_t&& o) : hb_sorted_map_t () { hb_swap (items, o.items); }
+  hb_sorted_map_t& operator= (const hb_sorted_map_t& o)  { items = o.items; return *this; }
+  hb_sorted_map_t& operator= (hb_sorted_map_t&& o)  { hb_swap (items, o.items); return *this; }
+
+  hb_sorted_map_t (std::initializer_list<hb_pair_t<hb_codepoint_t, V>> lst) :
+    items (lst) { items.qsort (); }
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  hb_sorted_map_t (const Iterable &o) :
+    items (o) { items.qsort (); }
+  hb_sorted_map_t (const hb_hashmap_t<hb_codepoint_t, V> &o) :
+    items (o.items ()) { items.qsort (); }
+
+  auto iter_ref () const HB_AUTO_RETURN
+  (
+    + hb_iter (items)
+  )
+  auto iter () const HB_AUTO_RETURN
+  (
+    + iter_ref ()
+    | hb_map (hb_ridentity)
+  )
+  auto keys_ref () const HB_AUTO_RETURN
+  (
+    + iter_ref ()
+    | hb_map (hb_first)
+  )
+  auto keys () const HB_AUTO_RETURN
+  (
+    + iter_ref ()
+    | hb_map (hb_first)
+    | hb_map (hb_ridentity)
+  )
+  auto values_ref () const HB_AUTO_RETURN
+  (
+    + iter_ref ()
+    | hb_map (hb_second)
+  )
+  auto values () const HB_AUTO_RETURN
+  (
+    + iter_ref ()
+    | hb_map (hb_second)
+    | hb_map (hb_ridentity)
+  )
+};
+
+
 #endif /* HB_MAP_HH */
