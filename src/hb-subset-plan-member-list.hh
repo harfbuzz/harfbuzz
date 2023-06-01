@@ -35,6 +35,8 @@
 HB_SUBSET_PLAN_MEMBER (hb_set_t, unicodes)
 HB_SUBSET_PLAN_MEMBER (hb_sorted_vector_t E(<hb_pair_t<hb_codepoint_t, hb_codepoint_t>>), unicode_to_new_gid_list)
 
+HB_SUBSET_PLAN_MEMBER (hb_vector_t<hb_codepoint_t>, new_to_old_gid_list)
+
 // name_ids we would like to retain
 HB_SUBSET_PLAN_MEMBER (hb_set_t, name_ids)
 
