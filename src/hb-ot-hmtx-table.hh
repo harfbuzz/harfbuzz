@@ -211,20 +211,22 @@ struct hmtxvmtx
     }
 
     auto it =
-    + hb_range (c->plan->num_output_glyphs ())
-    | hb_map ([c, &_mtx, mtx_map] (unsigned _)
+    + c->plan->all_gid_iter ()
+    | hb_map ([c, &_mtx, mtx_map] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& p)
 	      {
-		if (!mtx_map->has (_))
-		{
-		  hb_codepoint_t old_gid;
-		  if (!c->plan->old_gid_for_new_gid (_, &old_gid))
-		    return hb_pair (0u, 0);
-		  int lsb = 0;
-		  if (!_mtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb))
-		    (void) _glyf_get_leading_bearing_without_var_unscaled (c->plan->source, old_gid, !T::is_horizontal, &lsb);
-		  return hb_pair (_mtx.get_advance_without_var_unscaled (old_gid), +lsb);
-		}
-		return mtx_map->get (_);
+                hb_codepoint_t old_gid = p.first;
+                hb_codepoint_t new_gid = p.second;
+                if (new_gid == -1u)
+		  return hb_pair (0u, 0);
+
+		if (mtx_map->has (new_gid))
+                  return mtx_map->get (new_gid);
+                
+                int lsb = 0;
+		if (!_mtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb))
+		  (void) _glyf_get_leading_bearing_without_var_unscaled (c->plan->source, old_gid, !T::is_horizontal, &lsb);
+
+		return hb_pair (_mtx.get_advance_without_var_unscaled (old_gid), +lsb);
 	      })
     ;
 

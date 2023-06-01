@@ -248,19 +248,22 @@ struct hb_subset_plan_t
   /*
    * Iterator implementation.
    */
-  struct gid_iter_t :
-    hb_iter_with_fallback_t<gid_iter_t, hb_pair_t<hb_codepoint_t, hb_codepoint_t>>
+  struct all_gid_iter_t :
+    hb_iter_with_fallback_t<all_gid_iter_t, hb_pair_t<hb_codepoint_t, hb_codepoint_t>>
   {
     typedef hb_pair_t<hb_codepoint_t, hb_codepoint_t> __item_t__;
     static constexpr bool is_sorted_iterator = true;
 
-    gid_iter_t (const hb_sorted_vector_t<__item_t__>* mapping,
+    all_gid_iter_t (const hb_sorted_vector_t<__item_t__>* mapping,
                 bool dense,
-                unsigned last_gid)
+                unsigned last_gid,
+                unsigned current_gid = 0,
+                unsigned map_index = 0)
                 
-     : m_ (mapping), dense_(dense), current_gid_ (0),
-        map_index_ (0), first_gid_ (0), last_gid_ (last_gid)
-    {}
+     : m_ (mapping), dense_(dense), current_gid_ (current_gid),
+        map_index_ (map_index), last_gid_ (last_gid)
+    {
+    }
 
     __item_t__ __item__ () const
     {
@@ -272,7 +275,7 @@ struct hb_subset_plan_t
 
     bool __more__ () const
     { 
-      return current_gid_ < last_gid_;
+      return current_gid_ <= last_gid_;
     }
 
     void __next__ ()
@@ -289,18 +292,27 @@ struct hb_subset_plan_t
       
       map_index_++;
       current_gid_ = (*m_)[map_index_].first;
+      if (map_index_ >= m_->length) {
+        current_gid_ = last_gid_ + 1;
+      }
+    }
+
+    all_gid_iter_t end () const
+    { 
+      return all_gid_iter_t(m_, dense_, last_gid_, current_gid_, map_index_);
     }
     
     unsigned __len__ () const
     {
       if (dense_)
-        return last_gid_ - first_gid_ + 1;
+        return last_gid_ + 1;
       return m_->length;
     }
 
-    bool operator != (const gid_iter_t& o) const
-    { return m_ != o.m_ || dense_ != o.dense_ ||
-        current_gid_ != o.current_gid_ || first_gid_ != o.first_gid_ ||
+    bool operator != (const all_gid_iter_t& o) const
+    {
+      return current_gid_ != o.current_gid_ ||
+        m_ != o.m_ || dense_ != o.dense_ ||
         last_gid_ != o.last_gid_;
     }
 
@@ -310,13 +322,12 @@ struct hb_subset_plan_t
     unsigned current_gid_;
     unsigned map_index_;
 
-    unsigned first_gid_;
     unsigned last_gid_;
   };
 
-  inline gid_iter_t gid_map_iter () const
+  inline all_gid_iter_t all_gid_iter () const
   {
-    return gid_iter_t (&_old_to_new_gid_list,
+    return all_gid_iter_t (&_old_to_new_gid_list,
       flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
       _glyphset.get_max());
   }
