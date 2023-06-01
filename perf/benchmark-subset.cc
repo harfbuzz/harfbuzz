@@ -8,6 +8,7 @@
 
 #include "hb-subset.h"
 
+#define RETAIN_GIDS 1
 
 enum operation_t
 {
@@ -100,6 +101,9 @@ void AddGlyphs(unsigned num_glyphs_in_font,
     // TODO(garretrieger): pick randomly.
     hb_set_add (glyphs, i);
   }
+  if (RETAIN_GIDS) {
+    hb_set_add (glyphs, num_glyphs_in_font - 1);
+  }
 }
 
 // Preprocess face and populate the subset accelerator on it to speed up
@@ -147,6 +151,10 @@ static void BM_subset (benchmark::State &state,
 
   if (!hinting)
     hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
+
+  if (RETAIN_GIDS)
+    hb_subset_input_set_flags (input,
+      hb_subset_input_get_flags (input) | HB_SUBSET_FLAGS_RETAIN_GIDS);
 
   switch (operation)
   {
