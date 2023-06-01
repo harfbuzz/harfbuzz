@@ -244,6 +244,83 @@ struct hb_subset_plan_t
     }
     return hb_face_builder_add_table (dest, tag, contents);
   }
+
+  /*
+   * Iterator implementation.
+   */
+  struct gid_iter_t :
+    hb_iter_with_fallback_t<gid_iter_t, hb_pair_t<hb_codepoint_t, hb_codepoint_t>>
+  {
+    typedef hb_pair_t<hb_codepoint_t, hb_codepoint_t> __item_t__;
+    static constexpr bool is_sorted_iterator = true;
+
+    gid_iter_t (const hb_sorted_vector_t<__item_t__>* mapping,
+                bool dense,
+                unsigned last_gid)
+                
+     : m_ (mapping), dense_(dense), current_gid_ (0),
+        map_index_ (0), first_gid_ (0), last_gid_ (last_gid)
+    {}
+
+    __item_t__ __item__ () const
+    {
+      if (dense_ && (*m_)[map_index_].first != current_gid_)
+        // current item is unmapped.
+        return hb_pair (current_gid_, -1);
+      return (*m_)[map_index_];
+    }
+
+    bool __more__ () const
+    { 
+      return current_gid_ < last_gid_;
+    }
+
+    void __next__ ()
+    {
+      if (dense_)
+      {
+        current_gid_++;
+        if (map_index_ + 1 < m_->length &&
+            current_gid_ == (*m_)[map_index_ + 1].first) {
+          map_index_++;
+        }
+        return;
+      }
+      
+      map_index_++;
+      current_gid_ = (*m_)[map_index_].first;
+    }
+    
+    unsigned __len__ () const
+    {
+      if (dense_)
+        return last_gid_ - first_gid_ + 1;
+      return m_->length;
+    }
+
+    bool operator != (const gid_iter_t& o) const
+    { return m_ != o.m_ || dense_ != o.dense_ ||
+        current_gid_ != o.current_gid_ || first_gid_ != o.first_gid_ ||
+        last_gid_ != o.last_gid_;
+    }
+
+    private:
+    const hb_sorted_vector_t<__item_t__>* m_;
+    bool dense_;
+    unsigned current_gid_;
+    unsigned map_index_;
+
+    unsigned first_gid_;
+    unsigned last_gid_;
+  };
+
+  inline gid_iter_t gid_map_iter () const
+  {
+    return gid_iter_t (&_old_to_new_gid_list,
+      flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
+      _glyphset.get_max());
+  }
 };
+
 
 #endif /* HB_SUBSET_PLAN_HH */
