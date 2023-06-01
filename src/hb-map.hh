@@ -112,7 +112,7 @@ struct hb_hashmap_t
   unsigned int prime;
   unsigned int max_chain_length;
   item_t *items;
-  uint32_t *is_used;
+  uint8_t *is_used;
 
   friend void swap (hb_hashmap_t& a, hb_hashmap_t& b)
   {
@@ -175,7 +175,7 @@ struct hb_hashmap_t
     unsigned int power = hb_bit_storage (hb_max ((unsigned) population, new_population) * 2 + 8);
     unsigned int new_size = 1u << power;
     item_t *new_items = (item_t *) hb_malloc ((size_t) new_size * sizeof (item_t));
-    uint32_t *new_is_used = (uint32_t *) hb_calloc ((size_t) (new_size + 31) / 32, sizeof (uint32_t));
+    uint8_t *new_is_used = (uint8_t *) hb_calloc (new_size, 1);
     if (unlikely (!new_items || !new_is_used))
     {
       hb_free (new_items);
@@ -217,11 +217,11 @@ struct hb_hashmap_t
 
   bool item_is_used (unsigned int i) const
   {
-    return is_used[i >> 5] & (1u << (i & 31u));
+    return is_used[i] & 0x80;
   }
-  void item_set_used (unsigned int i) const
+  void item_set_used (unsigned int i, uint32_t hash) const
   {
-    is_used[i >> 5] |= (1u << (i & 31u));
+    is_used[i] = 0x80 | (hash & 0x7F);
   }
 
   template <typename KK, typename VV>
@@ -237,7 +237,8 @@ struct hb_hashmap_t
     unsigned step = 0;
     while (item_is_used (i))
     {
-      if ((std::is_integral<K>::value || items[i].hash == hash) &&
+      if ((is_used[i] & 0x7F) == (hash & 0x7F) &&
+	  (std::is_integral<K>::value || items[i].hash == hash) &&
 	  items[i] == key)
         break;
       if (items[i].is_tombstone () && tombstone == (unsigned) -1)
@@ -261,7 +262,7 @@ struct hb_hashmap_t
     item.hash = hash;
     item.set_used (true);
     item.set_tombstone (false);
-    item_set_used (i);
+    item_set_used (i, hash);
 
     occupancy++;
     population++;
@@ -321,7 +322,8 @@ struct hb_hashmap_t
     unsigned step = 0;
     while (item_is_used (i))
     {
-      if ((std::is_integral<K>::value || items[i].hash == hash) &&
+      if ((is_used[i] & 0x7F) == (hash & 0x7F) &&
+	  (std::is_integral<K>::value || items[i].hash == hash) &&
 	  items[i] == key)
       {
 	if (items[i].is_real ())
