@@ -97,7 +97,12 @@ void AddGlyphs(unsigned num_glyphs_in_font,
 {
   auto *glyphs = hb_subset_input_glyph_set (input);
   for (unsigned i = 0; i < subset_size && i < num_glyphs_in_font; i++) {
-    // TODO(garretrieger): pick randomly.
+    if (i + 1 == subset_size &&
+        hb_subset_input_get_flags (input) & HB_SUBSET_FLAGS_RETAIN_GIDS)
+    {
+      hb_set_add (glyphs, num_glyphs_in_font - 1);
+      continue;
+    }
     hb_set_add (glyphs, i);
   }
 }
@@ -115,7 +120,7 @@ static hb_face_t* preprocess_face(hb_face_t* face)
 static void BM_subset (benchmark::State &state,
                        operation_t operation,
                        const test_input_t &test_input,
-                       bool hinting)
+                       bool retain_gids)
 {
   unsigned subset_size = state.range(0);
 
@@ -145,8 +150,8 @@ static void BM_subset (benchmark::State &state,
   hb_subset_input_t* input = hb_subset_input_create_or_fail ();
   assert (input);
 
-  if (!hinting)
-    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
+  if (retain_gids)
+    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
 
   switch (operation)
   {
@@ -194,7 +199,7 @@ static void BM_subset (benchmark::State &state,
 
 static void test_subset (operation_t op,
                          const char *op_name,
-                         bool hinting,
+                         bool retain_gids,
                          benchmark::TimeUnit time_unit,
                          const test_input_t &test_input)
 {
@@ -206,10 +211,10 @@ static void test_subset (operation_t op,
   strcat (name, "/");
   const char *p = strrchr (test_input.font_path, '/');
   strcat (name, p ? p + 1 : test_input.font_path);
-  if (!hinting)
-    strcat (name, "/nohinting");
+  if (retain_gids)
+    strcat (name, "/retaingids");
 
-  benchmark::RegisterBenchmark (name, BM_subset, op, test_input, hinting)
+  benchmark::RegisterBenchmark (name, BM_subset, op, test_input, retain_gids)
       ->Range(10, test_input.max_subset_size)
       ->Unit(time_unit);
 }
