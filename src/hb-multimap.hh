@@ -81,6 +81,11 @@ struct hb_multimap_t
     return singulars.in_error () || multiples_indices.in_error () || multiples_values.in_error ();
   }
 
+  void resize (unsigned size)
+  {
+    singulars.resize (size);
+  }
+
   protected:
   hb_map_t singulars;
   hb_map_t multiples_indices;

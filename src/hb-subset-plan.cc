@@ -769,6 +769,7 @@ _create_glyph_map_gsub (const hb_set_t* glyph_set_gsub,
                         const hb_map_t* glyph_map,
                         hb_map_t* out)
 {
+  out->resize (glyph_set_gsub->get_population ());
   + hb_iter (glyph_set_gsub)
   | hb_map ([&] (hb_codepoint_t gid) {
     return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (gid,
@@ -1130,6 +1131,7 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 
     hb_map_t &unicode_to_gid = *codepoint_to_glyph;
 
+    gid_to_unicodes.resize (unicodes.get_population ());
     for (auto unicode : unicodes)
     {
       auto gid = unicode_to_gid[unicode];
