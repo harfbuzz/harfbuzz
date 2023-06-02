@@ -547,6 +547,8 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 	unicodes->get_population () < cmap_unicodes->get_population () &&
 	glyphs->get_population () < cmap_unicodes->get_population ())
     {
+      plan->codepoint_to_glyph->resize (unicodes->get_population () + glyphs->get_population ());
+
       auto &gid_to_unicodes = plan->accelerator->gid_to_unicodes;
       for (hb_codepoint_t gid : *glyphs)
       {
@@ -575,6 +577,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     }
     else
     {
+      plan->codepoint_to_glyph->resize (cmap_unicodes->get_population ());
       for (hb_codepoint_t cp : *cmap_unicodes)
       {
 	hb_codepoint_t gid = (*unicode_glyphid_map)[cp];
