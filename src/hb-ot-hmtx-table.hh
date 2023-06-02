@@ -162,8 +162,8 @@ struct hmtxvmtx
                   unsigned total_num_metrics)
   {
     unsigned idx = 0;
-    LongMetric* long_metrics = c->allocate_size<LongMetric> (num_long_metrics * LongMetric::static_size);
-    FWORD* short_metrics = c->allocate_size<FWORD> ((total_num_metrics - num_long_metrics) * FWORD::static_size);
+    LongMetric* long_metrics = c->allocate_size<LongMetric> (num_long_metrics * LongMetric::static_size, false);
+    FWORD* short_metrics = c->allocate_size<FWORD> ((total_num_metrics - num_long_metrics) * FWORD::static_size, false);
     if (!long_metrics || !short_metrics) return;
     for (auto _ : it)
     {
