@@ -103,7 +103,7 @@ struct glyf
       return false;
     }
 
-    hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
+    hb_hashmap_t<hb_codepoint_t, glyf_impl::SubsetGlyph> glyphs;
     if (!_populate_subset_glyphs (c->plan, font, glyphs))
     {
       hb_font_destroy (font);
@@ -129,7 +129,11 @@ struct glyf
         padded_offsets.arrayZ[i] = glyphs[i].length ();
     }
 
-    bool result = glyf_prime->serialize (c->serializer, glyphs.iter (), use_short_loca, c->plan);
+    auto it =
+    + hb_range (num_glyphs)
+    | hb_map (glyphs)
+    ;
+    bool result = glyf_prime->serialize (c->serializer, it, use_short_loca, c->plan);
     if (c->plan->normalized_coords && !c->plan->pinned_at_default)
       _free_compiled_subset_glyphs (glyphs);
 
@@ -145,15 +149,15 @@ struct glyf
   bool
   _populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			   hb_font_t                *font,
-			   hb_vector_t<glyf_impl::SubsetGlyph> &glyphs /* OUT */) const;
+			   hb_hashmap_t<hb_codepoint_t, glyf_impl::SubsetGlyph> &glyphs /* OUT */) const;
 
   hb_font_t *
   _create_font_for_instancing (const hb_subset_plan_t *plan) const;
 
-  void _free_compiled_subset_glyphs (hb_vector_t<glyf_impl::SubsetGlyph> &glyphs) const
+  void _free_compiled_subset_glyphs (hb_hashmap_t<hb_codepoint_t, glyf_impl::SubsetGlyph> &glyphs) const
   {
-    for (unsigned i = 0; i < glyphs.length; i++)
-      glyphs[i].free_compiled_bytes ();
+    for (auto &glyph : glyphs.values_ref ())
+      glyph.free_compiled_bytes ();
   }
 
   protected:
@@ -428,17 +432,19 @@ struct glyf_accelerator_t
 inline bool
 glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			       hb_font_t *font,
-			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const
+			       hb_hashmap_t<hb_codepoint_t, glyf_impl::SubsetGlyph>& glyphs /* OUT */) const
 {
   OT::glyf_accelerator_t glyf (plan->source);
-  unsigned num_glyphs = plan->num_output_glyphs ();
-  if (!glyphs.resize (num_glyphs)) return false;
+  if (!glyphs.resize (plan->glyph_map->get_population ())) return false;
 
   for (auto p : plan->glyph_map->iter ())
   {
     hb_codepoint_t old_gid = p.first;
     hb_codepoint_t new_gid = p.second;
-    glyf_impl::SubsetGlyph& subset_glyph = glyphs.arrayZ[new_gid];
+    glyphs.set (new_gid, glyf_impl::SubsetGlyph ());
+    glyf_impl::SubsetGlyph* p_subset_glyph = nullptr;
+    if (unlikely (!glyphs.has (new_gid, &p_subset_glyph))) return false;
+    glyf_impl::SubsetGlyph& subset_glyph = *p_subset_glyph;
     subset_glyph.old_gid = old_gid;
 
     if (unlikely (old_gid == 0 && new_gid == 0 &&
