@@ -312,7 +312,7 @@ struct hb_hashmap_t
     return nullptr;
   }
   /* Projection. */
-  V operator () (K k) const { return get (k); }
+  const V& operator () (K k) const { return get (k); }
 
   unsigned size () const { return mask ? mask + 1 : 0; }
 
