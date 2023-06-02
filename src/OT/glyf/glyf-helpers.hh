@@ -12,16 +12,16 @@ namespace OT {
 namespace glyf_impl {
 
 
-template<typename IteratorIn, typename IteratorOut,
-	 hb_requires (hb_is_source_of (IteratorIn, unsigned int)),
-	 hb_requires (hb_is_sink_of (IteratorOut, unsigned))>
+template<typename IteratorIn, typename TypeOut,
+	 hb_requires (hb_is_source_of (IteratorIn, unsigned int))>
 static void
 _write_loca (IteratorIn&& it,
 	     const hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> new_to_old_gid_list,
 	     bool short_offsets,
-	     IteratorOut&& dest)
+	     TypeOut *dest,
+	     unsigned num_offsets)
 {
-  unsigned num_glyphs = hb_len (dest) - 1;
+  unsigned num_glyphs = num_offsets - 1;
   unsigned right_shift = short_offsets ? 1 : 0;
   unsigned offset = 0;
   *dest++ = 0;
@@ -93,9 +93,9 @@ _add_loca_and_head (hb_subset_plan_t * plan,
 	     entry_size, num_offsets, entry_size * num_offsets);
 
   if (use_short_loca)
-    _write_loca (padded_offsets, new_to_old_gid_list, true, hb_array ((HBUINT16 *) loca_prime_data, num_offsets));
+    _write_loca (padded_offsets, new_to_old_gid_list, true, (HBUINT16 *) loca_prime_data, num_offsets);
   else
-    _write_loca (padded_offsets, new_to_old_gid_list, false, hb_array ((HBUINT32 *) loca_prime_data, num_offsets));
+    _write_loca (padded_offsets, new_to_old_gid_list, false, (HBUINT32 *) loca_prime_data, num_offsets);
 
   hb_blob_t *loca_blob = hb_blob_create (loca_prime_data,
 					 entry_size * num_offsets,
