@@ -436,11 +436,12 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 
   for (auto p : plan->glyph_map->iter ())
   {
-    unsigned new_gid = p.second;
+    hb_codepoint_t old_gid = p.first;
+    hb_codepoint_t new_gid = p.second;
     glyf_impl::SubsetGlyph& subset_glyph = glyphs.arrayZ[new_gid];
-    subset_glyph.old_gid = p.first;
+    subset_glyph.old_gid = old_gid;
 
-    if (unlikely (new_gid == 0 &&
+    if (unlikely (old_gid == 0 && new_gid == 0 &&
                   !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE)) &&
                   !plan->normalized_coords)
       subset_glyph.source_glyph = glyf_impl::Glyph ();
