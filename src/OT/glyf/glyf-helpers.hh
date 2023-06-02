@@ -71,7 +71,7 @@ _add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets, bool use_s
 {
   unsigned num_offsets = padded_offsets.len () + 1;
   unsigned entry_size = use_short_loca ? 2 : 4;
-  char *loca_prime_data = (char *) hb_calloc (entry_size, num_offsets);
+  char *loca_prime_data = (char *) hb_malloc (entry_size * num_offsets);
 
   if (unlikely (!loca_prime_data)) return false;
 
