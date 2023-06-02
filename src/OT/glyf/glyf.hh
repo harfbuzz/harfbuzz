@@ -54,8 +54,8 @@ struct glyf
     TRACE_SERIALIZE (this);
 
     unsigned init_len = c->length ();
-    for (const auto &_ : it)
-      if (unlikely (!_.serialize (c, use_short_loca, plan)))
+    for (auto &_ : it)
+      if (unlikely (!_.second.serialize (c, use_short_loca, plan)))
         return false;
 
     /* As a special case when all glyph in the font are empty, add a zero byte
@@ -136,11 +136,7 @@ struct glyf
 	  padded_offsets.arrayZ[i] = 0;
     }
 
-    auto it =
-    + hb_iter (glyphs)
-    | hb_map (hb_second)
-    ;
-    bool result = glyf_prime->serialize (c->serializer, it, use_short_loca, c->plan);
+    bool result = glyf_prime->serialize (c->serializer, glyphs, use_short_loca, c->plan);
     if (c->plan->normalized_coords && !c->plan->pinned_at_default)
       _free_compiled_subset_glyphs (glyphs);
 
