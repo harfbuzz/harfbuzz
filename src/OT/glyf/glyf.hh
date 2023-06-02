@@ -129,7 +129,7 @@ struct glyf
         padded_offsets[i] = glyphs[i].length ();
     }
 
-    bool result = glyf_prime->serialize (c->serializer, glyphs.writer (), use_short_loca, c->plan);
+    bool result = glyf_prime->serialize (c->serializer, glyphs.iter (), use_short_loca, c->plan);
     if (c->plan->normalized_coords && !c->plan->pinned_at_default)
       _free_compiled_subset_glyphs (glyphs);
 
