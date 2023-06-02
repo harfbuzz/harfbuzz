@@ -116,14 +116,10 @@ struct glyf
     auto new_to_old_gid_list = c->plan->new_to_old_gid_list;
 
     unsigned max_offset = 0;
-    auto it = c->plan->glyphset ()->iter ();
     for (unsigned i = 0, j = 0; i < num_glyphs; i++)
     {
-      if (new_to_old_gid_list[i] == *it)
-      {
+      if (i == new_to_old_gid_list[j].first)
 	padded_offsets.arrayZ[i] = glyphs[j++].padded_size ();
-	it++;
-      }
       else
 	padded_offsets.arrayZ[i] = 0;
       max_offset += padded_offsets[i];
@@ -135,13 +131,9 @@ struct glyf
 
     if (!use_short_loca)
     {
-      auto it = c->plan->glyphset ()->iter ();
       for (unsigned i = 0, j = 0; i < num_glyphs; i++)
-	if (new_to_old_gid_list[i] == *it)
-	{
+	if (i == new_to_old_gid_list[j].first)
 	  padded_offsets.arrayZ[i] = glyphs[j++].length ();
-	  it++;
-	}
 	else
 	  padded_offsets.arrayZ[i] = 0;
     }
@@ -450,15 +442,15 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
   OT::glyf_accelerator_t glyf (plan->source);
   if (!glyphs.alloc (plan->glyph_map->get_population (), true)) return false;
 
-  for (hb_codepoint_t old_gid : plan->new_to_old_gid_list)
+  for (const auto &pair : plan->new_to_old_gid_list)
   {
-    if (old_gid == HB_MAP_VALUE_INVALID)
-      continue;
+    hb_codepoint_t new_gid = pair.first;
+    hb_codepoint_t old_gid = pair.second;
     glyf_impl::SubsetGlyph *p = glyphs.push ();
     glyf_impl::SubsetGlyph& subset_glyph = *p;
     subset_glyph.old_gid = old_gid;
 
-    if (unlikely (old_gid == 0 &&
+    if (unlikely (old_gid == 0 && new_gid == 0 &&
                   !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE)) &&
                   !plan->normalized_coords)
       subset_glyph.source_glyph = glyf_impl::Glyph ();

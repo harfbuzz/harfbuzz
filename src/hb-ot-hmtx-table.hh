@@ -204,14 +204,16 @@ struct hmtxvmtx
       }
     }
 
+    unsigned j = 0;
+    const auto &new_to_old_gid_list = c->plan->new_to_old_gid_list;
     auto it =
-    + hb_enumerate (c->plan->new_to_old_gid_list)
-    | hb_map ([c, &_mtx, mtx_map] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> &_)
+    + hb_range (c->plan->num_output_glyphs ())
+    | hb_map ([c, &j, &new_to_old_gid_list, &_mtx, mtx_map] (hb_codepoint_t new_gid)
 	      {
-		hb_codepoint_t new_gid = _.first;
-		hb_codepoint_t old_gid = _.second;
-		if (old_gid == HB_MAP_VALUE_INVALID)
+	        if (new_gid != new_to_old_gid_list[j].first)
 		  return hb_pair (0u, 0);
+		unsigned old_gid = new_to_old_gid_list[j].second;
+		j++;
 
 		hb_pair_t<unsigned, int> *v = nullptr;
 		if (!mtx_map->has (new_gid, &v))
@@ -225,7 +227,7 @@ struct hmtxvmtx
 	      })
     ;
 
-    table_prime->serialize (c->serializer, it, num_long_metrics, c->plan->new_to_old_gid_list.length);
+    table_prime->serialize (c->serializer, it, num_long_metrics, c->plan->num_output_glyphs ());
 
     if (unlikely (c->serializer->in_error ()))
       return_trace (false);

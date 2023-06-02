@@ -782,7 +782,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
                                 const hb_map_t  *requested_glyph_map,
 				hb_map_t	*glyph_map, /* OUT */
 				hb_map_t	*reverse_glyph_map, /* OUT */
-				hb_vector_t<hb_codepoint_t> *new_to_old_gid_list /* OUT */,
+				hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> *new_to_old_gid_list /* OUT */,
 				unsigned int	*num_glyphs /* OUT */)
 {
   unsigned pop = all_gids_to_retain->get_population ();
@@ -863,11 +863,9 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   | hb_sink (glyph_map)
   ;
 
-  auto &l = *new_to_old_gid_list;
-  l.resize (*num_glyphs);
-  hb_memset (l.arrayZ, 0xff, l.length * sizeof (l[0]));
-  for (auto _ : *reverse_glyph_map)
-    l[_.first] = _.second;
+  new_to_old_gid_list->alloc (reverse_glyph_map->get_population ());
+  hb_copy (*reverse_glyph_map, *new_to_old_gid_list);
+  new_to_old_gid_list->qsort ();
 
   return true;
 }
