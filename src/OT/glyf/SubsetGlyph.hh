@@ -29,17 +29,7 @@ struct SubsetGlyph
     if (length () == 0)
     {
       /* Fast path for retain-gid holes. */
-
-      unsigned int pad_length = use_short_loca ? padding () : 0;
-      DEBUG_MSG (SUBSET, nullptr, "serialize empty glyph, pad %u", pad_length);
-
-      HBUINT8 pad;
-      pad = 0;
-      while (pad_length > 0)
-      {
-	c->embed (pad);
-	pad_length--;
-      }
+      DEBUG_MSG (SUBSET, nullptr, "serialize empty glyph");
       return true;
     }
 
