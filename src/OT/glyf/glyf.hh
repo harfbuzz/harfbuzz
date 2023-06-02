@@ -97,7 +97,7 @@ struct glyf
 
     hb_vector_t<unsigned> padded_offsets;
     unsigned num_glyphs = c->plan->num_output_glyphs ();
-    if (unlikely (!padded_offsets.resize (num_glyphs)))
+    if (unlikely (!padded_offsets.resize (num_glyphs, false, true)))
     {
       hb_font_destroy (font);
       return false;
@@ -116,7 +116,7 @@ struct glyf
     unsigned max_offset = 0;
     for (unsigned i = 0; i < num_glyphs; i++)
     {
-      padded_offsets[i] = glyphs[i].padded_size ();
+      padded_offsets.arrayZ[i] = glyphs[i].padded_size ();
       max_offset += padded_offsets[i];
     }
 
@@ -126,7 +126,7 @@ struct glyf
 
     if (!use_short_loca) {
       for (unsigned i = 0; i < num_glyphs; i++)
-        padded_offsets[i] = glyphs[i].length ();
+        padded_offsets.arrayZ[i] = glyphs[i].length ();
     }
 
     bool result = glyf_prime->serialize (c->serializer, glyphs.iter (), use_short_loca, c->plan);
