@@ -788,6 +788,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   unsigned pop = all_gids_to_retain->get_population ();
   reverse_glyph_map->resize (pop);
   glyph_map->resize (pop);
+  new_to_old_gid_list->alloc (pop);
 
   if (*requested_glyph_map)
   {
@@ -818,7 +819,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
       hb_codepoint_t* new_gid;
       if (!requested_glyph_map->has (old_gid, &new_gid))
       {
-        remaining.add(old_gid);  
+        remaining.add(old_gid);
         continue;
       }
 
@@ -827,11 +828,15 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
       reverse_glyph_map->set (*new_gid, old_gid);
     }
 
+    hb_copy (*reverse_glyph_map, *new_to_old_gid_list);
+    new_to_old_gid_list->qsort ();
+
     // Anything that wasn't mapped by the requested mapping should
     // be placed after the requested mapping.
     for (auto old_gid : remaining)
     {
       reverse_glyph_map->set(++max_glyph, old_gid);
+      new_to_old_gid_list->push (hb_pair (max_glyph, old_gid));
     }
 
     *num_glyphs = max_glyph + 1;
@@ -840,6 +845,9 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   {
     + hb_enumerate (hb_iter (all_gids_to_retain), (hb_codepoint_t) 0)
     | hb_sink (reverse_glyph_map)
+    ;
+    + hb_enumerate (hb_iter (all_gids_to_retain), (hb_codepoint_t) 0)
+    | hb_sink (new_to_old_gid_list)
     ;
     *num_glyphs = reverse_glyph_map->get_population ();
   }
@@ -850,6 +858,12 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
 		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, _);
 	      })
     | hb_sink (reverse_glyph_map)
+    ;
+    + hb_iter (all_gids_to_retain)
+    | hb_map ([] (hb_codepoint_t _) {
+		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, _);
+	      })
+    | hb_sink (new_to_old_gid_list)
     ;
 
     hb_codepoint_t max_glyph = HB_SET_VALUE_INVALID;
@@ -862,10 +876,6 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
   | hb_sink (glyph_map)
   ;
-
-  new_to_old_gid_list->alloc (reverse_glyph_map->get_population ());
-  hb_copy (*reverse_glyph_map, *new_to_old_gid_list);
-  new_to_old_gid_list->qsort ();
 
   return true;
 }
