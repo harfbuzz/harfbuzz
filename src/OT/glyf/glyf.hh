@@ -432,7 +432,7 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 {
   OT::glyf_accelerator_t glyf (plan->source);
   unsigned num_glyphs = plan->num_output_glyphs ();
-  if (!glyphs.resize (num_glyphs)) return false;
+  if (!glyphs.resize (num_glyphs, true, true)) return false;
 
   for (auto p : plan->glyph_map->iter ())
   {
