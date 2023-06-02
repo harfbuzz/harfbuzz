@@ -55,7 +55,7 @@ struct glyf
 
     unsigned init_len = c->length ();
     for (auto &_ : it)
-      if (unlikely (!_.second.serialize (c, use_short_loca, plan)))
+      if (unlikely (!_.serialize (c, use_short_loca, plan)))
         return false;
 
     /* As a special case when all glyph in the font are empty, add a zero byte
@@ -103,7 +103,7 @@ struct glyf
       return false;
     }
 
-    hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, glyf_impl::SubsetGlyph>> glyphs;
+    hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
     if (!_populate_subset_glyphs (c->plan, font, glyphs))
     {
       hb_font_destroy (font);
@@ -113,11 +113,17 @@ struct glyf
     if (font)
       hb_font_destroy (font);
 
+    auto new_to_old_gid_list = c->plan->new_to_old_gid_list;
+
     unsigned max_offset = 0;
+    auto it = c->plan->glyphset ()->iter ();
     for (unsigned i = 0, j = 0; i < num_glyphs; i++)
     {
-      if (i == glyphs[j].first)
-	padded_offsets.arrayZ[i] = glyphs[j++].second.padded_size ();
+      if (new_to_old_gid_list[i] == *it)
+      {
+	padded_offsets.arrayZ[i] = glyphs[j++].padded_size ();
+	it++;
+      }
       else
 	padded_offsets.arrayZ[i] = 0;
       max_offset += padded_offsets[i];
@@ -129,9 +135,13 @@ struct glyf
 
     if (!use_short_loca)
     {
+      auto it = c->plan->glyphset ()->iter ();
       for (unsigned i = 0, j = 0; i < num_glyphs; i++)
-	if (i == glyphs[j].first)
-	  padded_offsets.arrayZ[i] = glyphs[j++].second.length ();
+	if (new_to_old_gid_list[i] == *it)
+	{
+	  padded_offsets.arrayZ[i] = glyphs[j++].length ();
+	  it++;
+	}
 	else
 	  padded_offsets.arrayZ[i] = 0;
     }
@@ -152,15 +162,15 @@ struct glyf
   bool
   _populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			   hb_font_t                *font,
-			   hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, glyf_impl::SubsetGlyph>>& glyphs /* OUT */) const;
+			   hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const;
 
   hb_font_t *
   _create_font_for_instancing (const hb_subset_plan_t *plan) const;
 
-  void _free_compiled_subset_glyphs (hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, glyf_impl::SubsetGlyph>> &glyphs) const
+  void _free_compiled_subset_glyphs (hb_vector_t<glyf_impl::SubsetGlyph> &glyphs) const
   {
     for (unsigned i = 0; i < glyphs.length; i++)
-      glyphs[i].second.free_compiled_bytes ();
+      glyphs[i].free_compiled_bytes ();
   }
 
   protected:
@@ -435,7 +445,7 @@ struct glyf_accelerator_t
 inline bool
 glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			       hb_font_t *font,
-			       hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, glyf_impl::SubsetGlyph>>& glyphs /* OUT */) const
+			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const
 {
   OT::glyf_accelerator_t glyf (plan->source);
   if (!glyphs.alloc (plan->glyph_map->get_population (), true)) return false;
@@ -443,9 +453,8 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
   for (hb_codepoint_t old_gid : *plan->glyphset ())
   {
     hb_codepoint_t new_gid = (*plan->glyph_map)[old_gid];
-    hb_pair_t<hb_codepoint_t, glyf_impl::SubsetGlyph> *pair = glyphs.push ();
-    pair->first = new_gid;
-    glyf_impl::SubsetGlyph& subset_glyph = pair->second;
+    glyf_impl::SubsetGlyph *p = glyphs.push ();
+    glyf_impl::SubsetGlyph& subset_glyph = *p;
     subset_glyph.old_gid = old_gid;
 
     if (unlikely (old_gid == 0 && new_gid == 0 &&
