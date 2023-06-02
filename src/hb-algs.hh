@@ -87,6 +87,19 @@ static inline constexpr uint16_t hb_uint16_swap (uint16_t v)
 static inline constexpr uint32_t hb_uint32_swap (uint32_t v)
 { return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
+#ifndef HB_FAST_INT_ACCESS
+#if defined(__OPTIMIZE__) && \
+    defined(__BYTE_ORDER) && \
+    (__BYTE_ORDER == __BIG_ENDIAN || \
+     (__BYTE_ORDER == __LITTLE_ENDIAN && \
+      hb_has_builtin(__builtin_bswap16) && \
+      hb_has_builtin(__builtin_bswap32)))
+#define HB_FAST_INT_ACCESS 1
+#else
+#define HB_FAST_INT_ACCESS 0
+#endif
+#endif
+
 template <typename Type, int Bytes = sizeof (Type)>
 struct BEInt;
 template <typename Type>
@@ -101,20 +114,25 @@ struct BEInt<Type, 1>
 template <typename Type>
 struct BEInt<Type, 2>
 {
+  struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
+
   public:
   BEInt () = default;
-  constexpr BEInt (Type V) : v {uint8_t ((V >>  8) & 0xFF),
-			        uint8_t ((V      ) & 0xFF)} {}
 
-  struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
+  BEInt (Type V)
+#if HB_FAST_INT_ACCESS
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  { ((packed_uint16_t *) v)->v = __builtin_bswap16 (V); }
+#else /* __BYTE_ORDER == __BIG_ENDIAN */
+  { ((packed_uint16_t *) v)->v = V; }
+#endif
+#else
+    : v {uint8_t ((V >>  8) & 0xFF),
+	 uint8_t ((V      ) & 0xFF)} {}
+#endif
+
   constexpr operator Type () const {
-#if defined(__OPTIMIZE__) && \
-    defined(__BYTE_ORDER) && \
-    (__BYTE_ORDER == __BIG_ENDIAN || \
-     (__BYTE_ORDER == __LITTLE_ENDIAN && \
-      hb_has_builtin(__builtin_bswap16)))
-    /* Spoon-feed the compiler a big-endian integer with alignment 1.
-     * https://github.com/harfbuzz/harfbuzz/pull/1398 */
+#if HB_FAST_INT_ACCESS
 #if __BYTE_ORDER == __LITTLE_ENDIAN
     return __builtin_bswap16 (((packed_uint16_t *) v)->v);
 #else /* __BYTE_ORDER == __BIG_ENDIAN */
@@ -145,22 +163,27 @@ struct BEInt<Type, 3>
 template <typename Type>
 struct BEInt<Type, 4>
 {
+  struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
+
   public:
   BEInt () = default;
-  constexpr BEInt (Type V) : v {uint8_t ((V >> 24) & 0xFF),
-			        uint8_t ((V >> 16) & 0xFF),
-			        uint8_t ((V >>  8) & 0xFF),
-			        uint8_t ((V      ) & 0xFF)} {}
 
-  struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
+  BEInt (Type V)
+#if HB_FAST_INT_ACCESS
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  { ((packed_uint32_t *) v)->v = __builtin_bswap32 (V); }
+#else /* __BYTE_ORDER == __BIG_ENDIAN */
+  { ((packed_uint32_t *) v)->v = V; }
+#endif
+#else
+    : v {uint8_t ((V >> 24) & 0xFF),
+	 uint8_t ((V >> 16) & 0xFF),
+	 uint8_t ((V >>  8) & 0xFF),
+	 uint8_t ((V      ) & 0xFF)} {}
+#endif
+
   constexpr operator Type () const {
-#if defined(__OPTIMIZE__) && \
-    defined(__BYTE_ORDER) && \
-    (__BYTE_ORDER == __BIG_ENDIAN || \
-     (__BYTE_ORDER == __LITTLE_ENDIAN && \
-      hb_has_builtin(__builtin_bswap32)))
-    /* Spoon-feed the compiler a big-endian integer with alignment 1.
-     * https://github.com/harfbuzz/harfbuzz/pull/1398 */
+#if HB_FAST_INT_ACCESS
 #if __BYTE_ORDER == __LITTLE_ENDIAN
     return __builtin_bswap32 (((packed_uint32_t *) v)->v);
 #else /* __BYTE_ORDER == __BIG_ENDIAN */
