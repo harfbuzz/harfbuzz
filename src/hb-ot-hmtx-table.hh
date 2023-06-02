@@ -158,31 +158,25 @@ struct hmtxvmtx
 	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
 		  Iterator it,
-		  unsigned num_long_metrics)
+		  unsigned num_long_metrics,
+                  unsigned total_num_metrics)
   {
     unsigned idx = 0;
+    LongMetric* long_metrics = c->allocate_size<LongMetric> (num_long_metrics * LongMetric::static_size);
+    FWORD* short_metrics = c->allocate_size<FWORD> ((total_num_metrics - num_long_metrics) * FWORD::static_size);
+    if (!long_metrics || !short_metrics) return;
     for (auto _ : it)
     {
       if (idx < num_long_metrics)
       {
-	LongMetric lm;
+	LongMetric& lm = long_metrics[idx];
 	lm.advance = _.first;
 	lm.sb = _.second;
-	if (unlikely (!c->embed<LongMetric> (&lm))) return;
       }
       else if (idx < 0x10000u)
-      {
-	FWORD *sb = c->allocate_size<FWORD> (FWORD::static_size);
-	if (unlikely (!sb)) return;
-	*sb = _.second;
-      }
+        *(short_metrics++) = _.second;
       else
-      {
-        // TODO: This does not do tail optimization.
-	UFWORD *adv = c->allocate_size<UFWORD> (UFWORD::static_size);
-	if (unlikely (!adv)) return;
-	*adv = _.first;
-      }
+        *((UFWORD*) short_metrics++) = _.first;
       idx++;
     }
   }
@@ -231,7 +225,7 @@ struct hmtxvmtx
 	      })
     ;
 
-    table_prime->serialize (c->serializer, it, num_long_metrics);
+    table_prime->serialize (c->serializer, it, num_long_metrics, c->plan->new_to_old_gid_list.length);
 
     if (unlikely (c->serializer->in_error ()))
       return_trace (false);
