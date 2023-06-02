@@ -95,14 +95,6 @@ struct glyf
       if (unlikely (!font)) return false;
     }
 
-    hb_vector_t<unsigned> padded_offsets;
-    unsigned num_glyphs = c->plan->num_output_glyphs ();
-    if (unlikely (!padded_offsets.resize (num_glyphs, false, true)))
-    {
-      hb_font_destroy (font);
-      return false;
-    }
-
     hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
     if (!_populate_subset_glyphs (c->plan, font, glyphs))
     {
@@ -113,16 +105,18 @@ struct glyf
     if (font)
       hb_font_destroy (font);
 
-    auto new_to_old_gid_list = c->plan->new_to_old_gid_list;
+    // Calculate glyph sizes for `loca` table
+
+    hb_vector_t<unsigned> padded_offsets;
+    if (unlikely (!padded_offsets.alloc (glyphs.length, true)))
+      return false;
 
     unsigned max_offset = 0;
-    for (unsigned i = 0, j = 0; i < num_glyphs; i++)
+    for (auto &g : glyphs)
     {
-      if (i == new_to_old_gid_list[j].first)
-	padded_offsets.arrayZ[i] = glyphs[j++].padded_size ();
-      else
-	padded_offsets.arrayZ[i] = 0;
-      max_offset += padded_offsets[i];
+      unsigned size = g.padded_size ();
+      padded_offsets.push (size);
+      max_offset += size;
     }
 
     bool use_short_loca = false;
@@ -131,11 +125,9 @@ struct glyf
 
     if (!use_short_loca)
     {
-      for (unsigned i = 0, j = 0; i < num_glyphs; i++)
-	if (i == new_to_old_gid_list[j].first)
-	  padded_offsets.arrayZ[i] = glyphs[j++].length ();
-	else
-	  padded_offsets.arrayZ[i] = 0;
+      padded_offsets.resize (0);
+      for (auto &g : glyphs)
+	padded_offsets.push (g.length ());
     }
 
     bool result = glyf_prime->serialize (c->serializer, glyphs, use_short_loca, c->plan);
@@ -148,6 +140,8 @@ struct glyf
 
     return_trace (c->serializer->check_success (glyf_impl::_add_loca_and_head (c->plan,
 									       padded_offsets.iter (),
+									       c->plan->new_to_old_gid_list,
+									       c->plan->num_output_glyphs (),
 									       use_short_loca)));
   }
 
