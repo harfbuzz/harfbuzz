@@ -450,14 +450,15 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
   OT::glyf_accelerator_t glyf (plan->source);
   if (!glyphs.alloc (plan->glyph_map->get_population (), true)) return false;
 
-  for (hb_codepoint_t old_gid : *plan->glyphset ())
+  for (hb_codepoint_t old_gid : plan->new_to_old_gid_list)
   {
-    hb_codepoint_t new_gid = (*plan->glyph_map)[old_gid];
+    if (old_gid == HB_MAP_VALUE_INVALID)
+      continue;
     glyf_impl::SubsetGlyph *p = glyphs.push ();
     glyf_impl::SubsetGlyph& subset_glyph = *p;
     subset_glyph.old_gid = old_gid;
 
-    if (unlikely (old_gid == 0 && new_gid == 0 &&
+    if (unlikely (old_gid == 0 &&
                   !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE)) &&
                   !plan->normalized_coords)
       subset_glyph.source_glyph = glyf_impl::Glyph ();
