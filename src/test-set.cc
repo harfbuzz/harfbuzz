@@ -91,7 +91,7 @@ main (int argc, char **argv)
     s << 12;
 
     /* Sink a range. */
-    s << hb_pair_t<hb_codepoint_t, hb_codepoint_t> {1, 3};
+    s << hb_codepoint_pair_t {1, 3};
 
     hb_set_t v (hb_iter (s));
 

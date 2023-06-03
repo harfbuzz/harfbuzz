@@ -158,7 +158,7 @@ struct hmtxvmtx
 	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
 		  Iterator it,
-		  const hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> new_to_old_gid_list,
+		  const hb_vector_t<hb_codepoint_pair_t> new_to_old_gid_list,
 		  unsigned num_long_metrics,
                   unsigned total_num_metrics)
   {
@@ -216,7 +216,7 @@ struct hmtxvmtx
 
     auto it =
     + hb_iter (c->plan->new_to_old_gid_list)
-    | hb_map ([c, &_mtx, mtx_map] (hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
+    | hb_map ([c, &_mtx, mtx_map] (hb_codepoint_pair_t _)
 	      {
 		hb_codepoint_t new_gid = _.first;
 		hb_codepoint_t old_gid = _.second;

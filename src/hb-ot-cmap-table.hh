@@ -325,7 +325,7 @@ struct CmapSubtableFormat4
   {
     auto format4_iter =
     + it
-    | hb_filter ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
+    | hb_filter ([&] (const hb_codepoint_pair_t _)
 		 { return _.first <= 0xFFFF; })
     ;
 
@@ -335,7 +335,7 @@ struct CmapSubtableFormat4
     if (unlikely (!c->extend_min (this))) return;
     this->format = 4;
 
-    hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> cp_to_gid {
+    hb_vector_t<hb_codepoint_pair_t> cp_to_gid {
       format4_iter
     };
 
@@ -1805,7 +1805,7 @@ struct cmap
 
     auto it =
     + c->plan->unicode_to_new_gid_list.iter ()
-    | hb_filter ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
+    | hb_filter ([&] (const hb_codepoint_pair_t _)
 		 { return (_.second != HB_MAP_VALUE_INVALID); })
     ;
 

@@ -772,8 +772,7 @@ _create_glyph_map_gsub (const hb_set_t* glyph_set_gsub,
   out->resize (glyph_set_gsub->get_population ());
   + hb_iter (glyph_set_gsub)
   | hb_map ([&] (hb_codepoint_t gid) {
-    return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (gid,
-                                                      glyph_map->get (gid));
+    return hb_codepoint_pair_t (gid, glyph_map->get (gid));
   })
   | hb_sink (out)
   ;
@@ -786,7 +785,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
                                 const hb_map_t  *requested_glyph_map,
 				hb_map_t	*glyph_map, /* OUT */
 				hb_map_t	*reverse_glyph_map, /* OUT */
-				hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> *new_to_old_gid_list /* OUT */,
+				hb_sorted_vector_t<hb_codepoint_pair_t> *new_to_old_gid_list /* OUT */,
 				unsigned int	*num_glyphs /* OUT */)
 {
   unsigned pop = all_gids_to_retain->get_population ();
@@ -851,7 +850,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   {
     + hb_iter (all_gids_to_retain)
     | hb_map ([] (hb_codepoint_t _) {
-		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, _);
+		return hb_codepoint_pair_t (_, _);
 	      })
     | hb_sink (new_to_old_gid_list)
     ;
@@ -866,7 +865,7 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
   | hb_sink (reverse_glyph_map)
   ;
   + hb_iter (new_to_old_gid_list)
-  | hb_map (&hb_pair_t<hb_codepoint_t, hb_codepoint_t>::reverse)
+  | hb_map (&hb_codepoint_pair_t::reverse)
   | hb_sink (glyph_map)
   ;
 

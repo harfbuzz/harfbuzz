@@ -509,7 +509,7 @@ struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
   hb_map_t (hb_map_t &&o) : hashmap (std::move ((hashmap &) o)) {}
   hb_map_t& operator= (const hb_map_t&) = default;
   hb_map_t& operator= (hb_map_t&&) = default;
-  hb_map_t (std::initializer_list<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> lst) : hashmap (lst) {}
+  hb_map_t (std::initializer_list<hb_codepoint_pair_t> lst) : hashmap (lst) {}
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
   hb_map_t (const Iterable &o) : hashmap (o) {}

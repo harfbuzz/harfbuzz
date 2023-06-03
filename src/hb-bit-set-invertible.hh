@@ -136,7 +136,7 @@ struct hb_bit_set_invertible_t
   /* Sink interface. */
   hb_bit_set_invertible_t& operator << (hb_codepoint_t v)
   { add (v); return *this; }
-  hb_bit_set_invertible_t& operator << (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& range)
+  hb_bit_set_invertible_t& operator << (const hb_codepoint_pair_t& range)
   { add_range (range.first, range.second); return *this; }
 
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
@@ -162,7 +162,7 @@ struct hb_bit_set_invertible_t
       auto it1 = iter ();
       auto it2 = other.iter ();
       return hb_all (+ hb_zip (it1, it2)
-		     | hb_map ([](hb_pair_t<hb_codepoint_t, hb_codepoint_t> _) { return _.first == _.second; }));
+		     | hb_map ([](hb_codepoint_pair_t _) { return _.first == _.second; }));
     }
   }
 

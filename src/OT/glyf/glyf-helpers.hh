@@ -16,7 +16,7 @@ template<typename IteratorIn, typename TypeOut,
 	 hb_requires (hb_is_source_of (IteratorIn, unsigned int))>
 static void
 _write_loca (IteratorIn&& it,
-	     const hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> new_to_old_gid_list,
+	     const hb_sorted_vector_t<hb_codepoint_pair_t> new_to_old_gid_list,
 	     bool short_offsets,
 	     TypeOut *dest,
 	     unsigned num_offsets)
@@ -82,7 +82,7 @@ template<typename Iterator,
 static bool
 _add_loca_and_head (hb_subset_plan_t * plan,
 		    Iterator padded_offsets,
-		    const hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> new_to_old_gid_list,
+		    const hb_sorted_vector_t<hb_codepoint_pair_t> new_to_old_gid_list,
 		    unsigned num_glyphs,
 		    bool use_short_loca)
 {

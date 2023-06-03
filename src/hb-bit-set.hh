@@ -346,7 +346,7 @@ struct hb_bit_set_t
   /* Sink interface. */
   hb_bit_set_t& operator << (hb_codepoint_t v)
   { add (v); return *this; }
-  hb_bit_set_t& operator << (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& range)
+  hb_bit_set_t& operator << (const hb_codepoint_pair_t& range)
   { add_range (range.first, range.second); return *this; }
 
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const

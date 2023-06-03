@@ -79,7 +79,7 @@ main (int argc, char **argv)
     s.set (1, 2);
     s.set (3, 4);
 
-    hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> v (s);
+    hb_vector_t<hb_codepoint_pair_t> v (s);
     hb_map_t v0 (v);
     hb_map_t v1 (s);
     hb_map_t v2 (std::move (s));
@@ -112,7 +112,7 @@ main (int argc, char **argv)
 
   /* Test initializing from initializer list and swapping. */
   {
-    using pair_t = hb_pair_t<hb_codepoint_t, hb_codepoint_t>;
+    using pair_t = hb_codepoint_pair_t;
     hb_map_t v1 {pair_t{1,2}, pair_t{4,5}};
     hb_map_t v2 {pair_t{3,4}};
     hb_swap (v1, v2);
@@ -149,7 +149,7 @@ main (int argc, char **argv)
 
   /* Test hashing maps. */
   {
-    using pair = hb_pair_t<hb_codepoint_t, hb_codepoint_t>;
+    using pair = hb_codepoint_pair_t;
 
     hb_hashmap_t<hb_map_t, hb_map_t> m1;
 
