@@ -26,13 +26,6 @@ struct SubsetGlyph
   {
     TRACE_SERIALIZE (this);
 
-    if (length () == 0)
-    {
-      /* Fast path for retain-gid holes. */
-      DEBUG_MSG (SUBSET, nullptr, "serialize empty glyph");
-      return true;
-    }
-
     hb_bytes_t dest_glyph = dest_start.copy (c);
     hb_bytes_t end_copy = dest_end.copy (c);
     if (!end_copy.arrayZ || !dest_glyph.arrayZ) {
