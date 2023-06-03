@@ -213,7 +213,7 @@ struct hmtxvmtx
 	        if (new_gid != new_to_old_gid_list[j].first)
 		  return hb_pair (0u, 0);
 		unsigned old_gid = new_to_old_gid_list.arrayZ[j].second;
-		j++;
+		j++; // Let there be dragons!
 
 		hb_pair_t<unsigned, int> *v = nullptr;
 		if (!mtx_map->has (new_gid, &v))
