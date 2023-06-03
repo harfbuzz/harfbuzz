@@ -257,6 +257,7 @@ struct hb_hashmap_t
 
   const V& get_with_hash (const K &key, uint32_t hash) const
   {
+    if (!items) return item_t::default_value ();
     auto *item = fetch_item (key, hb_hash (key));
     if (item)
       return item->value;
@@ -264,11 +265,13 @@ struct hb_hashmap_t
   }
   const V& get (const K &key) const
   {
+    if (!items) return item_t::default_value ();
     return get_with_hash (key, hb_hash (key));
   }
 
   void del (const K &key)
   {
+    if (!items) return;
     auto *item = fetch_item (key, hb_hash (key));
     if (item)
     {
@@ -282,6 +285,7 @@ struct hb_hashmap_t
   template <typename VV=V>
   bool has (const K &key, VV **vp = nullptr) const
   {
+    if (!items) return false;
     auto *item = fetch_item (key, hb_hash (key));
     if (item)
     {
@@ -292,8 +296,6 @@ struct hb_hashmap_t
   }
   item_t *fetch_item (const K &key, uint32_t hash) const
   {
-    if (!items) return nullptr;
-
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
     unsigned step = 0;
