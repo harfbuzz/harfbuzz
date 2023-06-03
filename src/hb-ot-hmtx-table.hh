@@ -168,24 +168,21 @@ struct hmtxvmtx
 
     short_metrics -= num_long_metrics;
 
-    for (unsigned i = 0, j = 0; i < total_num_metrics; i++)
+    for (auto _ : hb_zip (new_to_old_gid_list, it))
     {
-      if (i != new_to_old_gid_list[j].first)
-	continue;
-      j++;
+      hb_codepoint_t gid = _.first.first;
+      auto mtx = _.second;
 
-      auto _ = *it++;
-
-      if (i < num_long_metrics)
+      if (gid < num_long_metrics)
       {
-	LongMetric& lm = long_metrics[i];
-	lm.advance = _.first;
-	lm.sb = _.second;
+	LongMetric& lm = long_metrics[gid];
+	lm.advance = mtx.first;
+	lm.sb = mtx.second;
       }
-      else if (i < 0x10000u)
-        short_metrics[i] = _.second;
+      else if (gid < 0x10000u)
+        short_metrics[gid] = mtx.second;
       else
-        ((UFWORD*) short_metrics)[i] = _.first;
+        ((UFWORD*) short_metrics)[gid] = mtx.first;
     }
   }
 
