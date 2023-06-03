@@ -21,27 +21,28 @@ _write_loca (IteratorIn&& it,
 	     TypeOut *dest,
 	     unsigned num_offsets)
 {
-  unsigned num_glyphs = num_offsets - 1;
   unsigned right_shift = short_offsets ? 1 : 0;
   unsigned offset = 0;
   TypeOut value;
   value = 0;
   *dest++ = value;
-  for (hb_codepoint_t i = 0, j = 0; i < num_glyphs; i++)
+  hb_codepoint_t last = 0;
+  for (auto _ : new_to_old_gid_list)
   {
-    if (i != new_to_old_gid_list[j].first)
+    hb_codepoint_t gid = _.first;
+    for (; last < gid; last++)
     {
       DEBUG_MSG (SUBSET, nullptr, "loca entry empty offset %u", offset);
       *dest++ = value;
-      continue;
     }
 
-    j++;
     unsigned padded_size = *it++;
     offset += padded_size;
-    DEBUG_MSG (SUBSET, nullptr, "loca entry offset %u padded-size %u", offset, padded_size);
+    DEBUG_MSG (SUBSET, nullptr, "loca entry gid %u offset %u padded-size %u", gid, offset, padded_size);
     value = offset >> right_shift;
     *dest++ = value;
+
+    last++; // Skip over gid
   }
 }
 
