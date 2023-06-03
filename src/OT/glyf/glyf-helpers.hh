@@ -24,13 +24,15 @@ _write_loca (IteratorIn&& it,
   unsigned num_glyphs = num_offsets - 1;
   unsigned right_shift = short_offsets ? 1 : 0;
   unsigned offset = 0;
-  *dest++ = 0;
+  TypeOut value;
+  value = 0;
+  *dest++ = value;
   for (hb_codepoint_t i = 0, j = 0; i < num_glyphs; i++)
   {
     if (i != new_to_old_gid_list[j].first)
     {
       DEBUG_MSG (SUBSET, nullptr, "loca entry empty offset %u", offset);
-      *dest++ = offset >> right_shift;
+      *dest++ = value;
       continue;
     }
 
@@ -38,7 +40,8 @@ _write_loca (IteratorIn&& it,
     unsigned padded_size = *it++;
     offset += padded_size;
     DEBUG_MSG (SUBSET, nullptr, "loca entry offset %u padded-size %u", offset, padded_size);
-    *dest++ = offset >> right_shift;
+    value = offset >> right_shift;
+    *dest++ = value;
   }
 }
 
