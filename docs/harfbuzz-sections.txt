@@ -151,6 +151,7 @@ hb_variation_from_string
 hb_variation_to_string
 hb_bool_t
 hb_codepoint_t
+HB_CODEPOINT_INVALID
 hb_destroy_func_t
 hb_direction_t
 hb_language_t
