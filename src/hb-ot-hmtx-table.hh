@@ -166,14 +166,12 @@ struct hmtxvmtx
     FWORD* short_metrics = c->allocate_size<FWORD> ((total_num_metrics - num_long_metrics) * FWORD::static_size);
     if (!long_metrics || !short_metrics) return;
 
+    short_metrics -= num_long_metrics;
+
     for (unsigned i = 0, j = 0; i < total_num_metrics; i++)
     {
       if (i != new_to_old_gid_list[j].first)
-      {
-        if (i >= num_long_metrics)
-	  short_metrics++;
 	continue;
-      }
       j++;
 
       auto _ = *it++;
@@ -185,9 +183,9 @@ struct hmtxvmtx
 	lm.sb = _.second;
       }
       else if (i < 0x10000u)
-        *(short_metrics++) = _.second;
+        short_metrics[i] = _.second;
       else
-        *((UFWORD*) short_metrics++) = _.first;
+        ((UFWORD*) short_metrics)[i] = _.first;
     }
   }
 
