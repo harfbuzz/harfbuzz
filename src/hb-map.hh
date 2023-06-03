@@ -292,7 +292,7 @@ struct hb_hashmap_t
   }
   item_t *fetch_item (const K &key, uint32_t hash) const
   {
-    if (unlikely (!items)) return nullptr;
+    if (!items) return nullptr;
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
