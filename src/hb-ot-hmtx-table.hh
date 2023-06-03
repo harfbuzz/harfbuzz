@@ -168,10 +168,10 @@ struct hmtxvmtx
 
     short_metrics -= num_long_metrics;
 
-    for (auto _ : hb_zip (new_to_old_gid_list, it))
+    for (auto _ : new_to_old_gid_list)
     {
-      hb_codepoint_t gid = _.first.first;
-      auto mtx = _.second;
+      hb_codepoint_t gid = _.first;
+      auto mtx = *it++;
 
       if (gid < num_long_metrics)
       {
