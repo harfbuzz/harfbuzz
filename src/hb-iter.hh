@@ -393,7 +393,7 @@ struct hb_map_iter_t :
 
   private:
   Iter it;
-  hb_reference_wrapper<Proj> f;
+  mutable hb_reference_wrapper<Proj> f;
 };
 
 template <typename Proj, hb_function_sortedness_t Sorted>
@@ -456,8 +456,8 @@ struct hb_filter_iter_t :
 
   private:
   Iter it;
-  hb_reference_wrapper<Pred> p;
-  hb_reference_wrapper<Proj> f;
+  mutable hb_reference_wrapper<Pred> p;
+  mutable hb_reference_wrapper<Proj> f;
 };
 template <typename Pred, typename Proj>
 struct hb_filter_iter_factory_t
