@@ -90,7 +90,7 @@ struct CFFIndex
 	*ret = *it;
 	continue;
       }
-      hb_iter (_).copy (c);
+      it.copy (c);
     }
     return_trace (true);
   }
