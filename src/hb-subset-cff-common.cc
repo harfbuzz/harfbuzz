@@ -73,9 +73,10 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
     for (hb_codepoint_t gid = 0; gid < subset_num_glyphs; gid++)
     {
       hb_codepoint_t old_glyph;
-      if (gid == it->first)
+      auto &_ = *it;
+      if (gid == _.first)
       {
-	old_glyph = it->second;
+	old_glyph = _.second;
 	it++;
       }
       else
