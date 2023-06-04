@@ -395,7 +395,6 @@ struct Charset1_2 {
 			  code_pair_t *cache = nullptr) const
   {
     if (unlikely (glyph >= num_glyphs)) return 0;
-    if (unlikely (glyph == 0)) return 0;
     unsigned i;
     hb_codepoint_t start_glyph;
     if (cache && likely (cache->glyph <= glyph))
@@ -405,6 +404,7 @@ struct Charset1_2 {
     }
     else
     {
+      if (unlikely (glyph == 0)) return 0;
       i = 0;
       start_glyph = 1;
     }
