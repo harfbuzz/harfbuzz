@@ -605,6 +605,7 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
+  HB_NODISCARD __attribute__((malloc))
   Type *allocate_size (size_t size, bool clear = true)
   {
     if (unlikely (in_error ())) return nullptr;
