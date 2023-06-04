@@ -89,14 +89,15 @@ struct glyf
     if (c->plan->normalized_coords)
     {
       font = _create_font_for_instancing (c->plan);
-      if (unlikely (!font)) return false;
+      if (unlikely (!font))
+	return_trace (false);
     }
 
     hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
     if (!_populate_subset_glyphs (c->plan, font, glyphs))
     {
       hb_font_destroy (font);
-      return false;
+      return_trace (false);
     }
 
     if (font)
@@ -106,7 +107,7 @@ struct glyf
     if (unlikely (!padded_offsets.alloc (glyphs.length, true)))
     {
       _free_compiled_subset_glyphs (glyphs);
-      return false;
+      return_trace (false);
     }
 
     unsigned max_offset = 0;
@@ -133,7 +134,7 @@ struct glyf
 						 use_short_loca))))
     {
       _free_compiled_subset_glyphs (glyphs);
-      return false;
+      return_trace (false);
     }
 
     glyf *glyf_prime = c->serializer->start_embed <glyf> ();
