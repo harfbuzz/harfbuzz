@@ -417,14 +417,14 @@ struct cff_subset_plan {
     unsigned int glyph;
     auto it = hb_iter (plan->new_to_old_gid_list);
     if (it->first == 0) it++;
+    auto _ = *it;
     for (glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t old_glyph;
-      auto &_ = *it;
       if (glyph == _.first)
       {
 	old_glyph = _.second;
-	it++;
+	_ = *++it;
       }
       else
       {
@@ -497,15 +497,15 @@ struct cff_subset_plan {
     unsigned num_glyphs = plan->num_output_glyphs ();
     auto it = hb_iter (plan->new_to_old_gid_list);
     if (it->first == 0) it++;
+    auto _ = *it;
     bool not_is_cid = !acc.is_CID ();
     for (glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t old_glyph;
-      auto &_ = *it;
       if (glyph == _.first)
       {
 	old_glyph = _.second;
-	it++;
+	_ = *++it;
       }
       else
       {
