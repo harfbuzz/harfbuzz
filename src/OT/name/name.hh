@@ -384,8 +384,6 @@ struct name
 
   bool subset (hb_subset_context_t *c) const
   {
-    TRACE_SUBSET (this);
-
     auto *name_prime = c->serializer->start_embed<name> ();
 
 #ifdef HB_EXPERIMENTAL_API
@@ -435,7 +433,7 @@ struct name
     if (!name_table_overrides->is_empty ())
     {
       if (unlikely (!insert_name_records.alloc (name_table_overrides->get_population (), true)))
-        return_trace (false);
+        return false;
       for (const auto& record_ids : name_table_overrides->keys ())
       {
         if (name_table_overrides->get (record_ids).length == 0)
@@ -447,13 +445,13 @@ struct name
     }
 #endif
 
-    return_trace (name_prime->serialize (c->serializer, it,
-					 std::addressof (this + stringOffset)
+    return name_prime->serialize (c->serializer, it,
+				  std::addressof (this + stringOffset)
 #ifdef HB_EXPERIMENTAL_API
-					 , insert_name_records
-					 , name_table_overrides
+				  , insert_name_records
+				  , name_table_overrides
 #endif
-					 ));
+				  );
   }
 
   bool sanitize_records (hb_sanitize_context_t *c) const
