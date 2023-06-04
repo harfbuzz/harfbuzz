@@ -88,10 +88,7 @@ _add_loca_and_head (hb_subset_context_t *c,
   unsigned num_offsets = c->plan->num_output_glyphs () + 1;
   unsigned entry_size = use_short_loca ? 2 : 4;
 
-  /* Use the serializer memory since it's hot in cache. */
-  auto snapshot = c->serializer->snapshot ();
-  assert (c->serializer->length () == 0);
-  char *loca_prime_data = (char *) c->serializer->allocate_size<void> (entry_size * num_offsets, false);
+  char *loca_prime_data = (char *) hb_malloc (entry_size * num_offsets);
 
   if (unlikely (!loca_prime_data)) return false;
 
@@ -103,12 +100,14 @@ _add_loca_and_head (hb_subset_context_t *c,
   else
     _write_loca (padded_offsets, c->plan->new_to_old_gid_list, false, (HBUINT32 *) loca_prime_data, num_offsets);
 
-  hb_blob_t *loca_blob = c->serializer->copy_blob ();
+  hb_blob_t *loca_blob = hb_blob_create (loca_prime_data,
+					 entry_size * num_offsets,
+					 HB_MEMORY_MODE_WRITABLE,
+					 loca_prime_data,
+					 hb_free);
 
   bool result = c->plan->add_table (HB_OT_TAG_loca, loca_blob)
 	     && _add_head_and_set_loca_version (c->plan, use_short_loca);
-
-  c->serializer->revert (snapshot);
 
   hb_blob_destroy (loca_blob);
   return result;
