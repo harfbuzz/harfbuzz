@@ -89,19 +89,19 @@ struct index_map_subset_plan_t
 
     if (unlikely (last_gid == (hb_codepoint_t)-1)) return;
     map_count = last_gid;
-    for (gid = 0; gid < map_count; gid++)
+    for (auto _ : plan->new_to_old_gid_list)
     {
-      hb_codepoint_t	old_gid;
-      if (plan->old_gid_for_new_gid (gid, &old_gid))
-      {
-	unsigned int v = index_map.map (old_gid);
-	unsigned int outer = v >> 16;
-	unsigned int inner = v & 0xFFFF;
-	outer_map.add (outer);
-	if (inner > max_inners[outer]) max_inners[outer] = inner;
-	if (outer >= inner_sets.length) return;
-	inner_sets[outer]->add (inner);
-      }
+      hb_codepoint_t gid = _.first;
+      if (gid >= map_count) break;
+
+      hb_codepoint_t old_gid = _.second;
+      unsigned int v = index_map.map (old_gid);
+      unsigned int outer = v >> 16;
+      unsigned int inner = v & 0xFFFF;
+      outer_map.add (outer);
+      if (inner > max_inners[outer]) max_inners[outer] = inner;
+      if (outer >= inner_sets.length) return;
+      inner_sets[outer]->add (inner);
     }
   }
 
