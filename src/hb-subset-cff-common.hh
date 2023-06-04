@@ -998,25 +998,23 @@ struct subr_subsetter_t
                             const hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
   {
     closures.reset ();
-    unsigned num_glyphs = plan->num_output_glyphs ();
-    for (unsigned int i = 0; i < num_glyphs; i++)
+    for (auto _ : plan->new_to_old_gid_list)
     {
-      hb_codepoint_t  glyph;
-      if (!plan->old_gid_for_new_gid (i, &glyph))
-        continue;
-      unsigned int fd = acc.fdSelect->get_fd (glyph);
+      hb_codepoint_t new_glyph = _.first;
+      hb_codepoint_t old_glyph = _.second;
+      unsigned int fd = acc.fdSelect->get_fd (old_glyph);
       if (unlikely (fd >= acc.fdCount))
         return false;
 
       // Note: const cast is safe here because the collect_subr_refs_in_str only performs a
       //       closure and does not modify any of the charstrings.
-      subr_subset_param_t  param (const_cast<parsed_cs_str_t*> (&get_parsed_charstring (i)),
+      subr_subset_param_t  param (const_cast<parsed_cs_str_t*> (&get_parsed_charstring (new_glyph)),
                                   const_cast<parsed_cs_str_vec_t*> (&global_subrs),
                                   const_cast<parsed_cs_str_vec_t*> (&local_subrs[fd]),
                                   &closures.global_closure,
                                   &closures.local_closures[fd],
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
-      collect_subr_refs_in_str (get_parsed_charstring (i), param);
+      collect_subr_refs_in_str (get_parsed_charstring (new_glyph), param);
     }
 
     return true;
