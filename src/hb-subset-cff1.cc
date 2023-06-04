@@ -527,9 +527,9 @@ struct cff_subset_plan {
 
     size0 = Charset0::get_size (plan->num_output_glyphs ());
     if (!two_byte)
-      size_ranges = Charset1::min_size + Charset1_Range::static_size * subset_charset_ranges.length;
+      size_ranges = Charset1::get_size_for_ranges (subset_charset_ranges.length);
     else
-      size_ranges = Charset2::min_size + Charset2_Range::static_size * subset_charset_ranges.length;
+      size_ranges = Charset2::get_size_for_ranges (subset_charset_ranges.length);
 
     if (size0 < size_ranges)
       subset_charset_format = 0;

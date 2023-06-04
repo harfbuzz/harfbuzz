@@ -440,21 +440,26 @@ struct Charset1_2 {
 
   unsigned int get_size (unsigned int num_glyphs) const
   {
-    unsigned int size = HBUINT8::static_size;
-    int glyph = (int)num_glyphs;
+    int glyph = (int) num_glyphs;
+    unsigned num_ranges = 0;
 
     assert (glyph > 0);
     glyph--;
     for (unsigned int i = 0; glyph > 0; i++)
     {
       glyph -= (ranges[i].nLeft + 1);
-      size += Charset_Range<TYPE>::static_size;
+      num_ranges++;
     }
 
-    return size;
+    return get_size_for_ranges (num_ranges);
   }
 
-  Charset_Range<TYPE>   ranges[HB_VAR_ARRAY];
+  static unsigned int get_size_for_ranges (unsigned int num_ranges)
+  {
+    return UnsizedArrayOf<Charset_Range<TYPE> >::get_size (num_ranges);
+  }
+
+  UnsizedArrayOf<Charset_Range<TYPE>> ranges;
 
   DEFINE_SIZE_ARRAY (0, ranges);
 };
