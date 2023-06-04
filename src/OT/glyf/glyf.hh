@@ -85,9 +85,6 @@ struct glyf
       return_trace (false);
     }
 
-    glyf *glyf_prime = c->serializer->start_embed <glyf> ();
-    if (unlikely (!c->serializer->check_success (glyf_prime))) return_trace (false);
-
     hb_font_t *font = nullptr;
     if (c->plan->normalized_coords)
     {
@@ -130,19 +127,19 @@ struct glyf
 	padded_offsets.push (g.length ());
     }
 
+    if (unlikely (!c->serializer->check_success (glyf_impl::_add_loca_and_head (c,
+						 padded_offsets.iter (),
+						 use_short_loca))))
+      return false;
+
+    glyf *glyf_prime = c->serializer->start_embed <glyf> ();
+    if (unlikely (!glyf_prime)) return_trace (false);
+
     bool result = glyf_prime->serialize (c->serializer, glyphs, use_short_loca, c->plan);
     if (c->plan->normalized_coords && !c->plan->pinned_at_default)
       _free_compiled_subset_glyphs (glyphs);
 
-    if (!result) return false;
-
-    if (unlikely (c->serializer->in_error ())) return_trace (false);
-
-    return_trace (c->serializer->check_success (glyf_impl::_add_loca_and_head (c->plan,
-									       padded_offsets.iter (),
-									       c->plan->new_to_old_gid_list,
-									       c->plan->num_output_glyphs (),
-									       use_short_loca)));
+    return result;
   }
 
   bool
