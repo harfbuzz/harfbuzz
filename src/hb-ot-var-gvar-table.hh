@@ -110,13 +110,13 @@ struct gvar
     unsigned int num_glyphs = c->plan->num_output_glyphs ();
     out->glyphCountX = hb_min (0xFFFFu, num_glyphs);
 
+    auto it = hb_iter (c->plan->new_to_old_gid_list);
+    if (it->first == 0 && !(c->plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
+      it++;
     unsigned int subset_data_size = 0;
-    for (hb_codepoint_t gid = (c->plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE) ? 0 : 1;
-         gid < num_glyphs;
-         gid++)
+    for (auto &_ : it)
     {
-      hb_codepoint_t old_gid;
-      if (!c->plan->old_gid_for_new_gid (gid, &old_gid)) continue;
+      hb_codepoint_t old_gid = _.second;
       subset_data_size += get_glyph_var_data_bytes (c->source_blob, glyph_count, old_gid).length;
     }
 
