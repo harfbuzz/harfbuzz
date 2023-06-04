@@ -797,9 +797,10 @@ struct subr_subsetter_t
 
   bool encode_charstrings (str_buff_vec_t &buffArray, bool encode_prefix = true) const
   {
-    if (unlikely (!buffArray.resize_exact (plan->num_output_glyphs ())))
+    unsigned num_glyphs = plan->num_output_glyphs ();
+    if (unlikely (!buffArray.resize_exact (num_glyphs)))
       return false;
-    for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
+    for (unsigned i = 0; i < num_glyphs; i++)
     {
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
