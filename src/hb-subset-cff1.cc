@@ -472,7 +472,7 @@ struct cff_subset_plan {
   void plan_subset_charset (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
   {
     unsigned int  size0, size_ranges;
-    hb_codepoint_t  sid, last_sid = CFF_UNDEF_CODE;
+    unsigned sid, last_sid = CFF_UNDEF_CODE - 1;
 
     if (unlikely (!subset_charset_ranges.resize (0)))
     {
@@ -514,7 +514,7 @@ struct cff_subset_plan {
       if (!acc.is_CID ())
 	sid = sidmap.add (sid);
 
-      if ((last_sid == CFF_UNDEF_CODE) || (sid != last_sid + 1))
+      if (sid != last_sid + 1)
       {
 	code_pair_t pair = { sid, glyph };
 	subset_charset_ranges.push (pair);
