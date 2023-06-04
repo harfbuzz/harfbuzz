@@ -144,9 +144,15 @@ struct gvar
 
 
     if (long_offset)
+    {
       ((HBUINT32 *) subset_offsets)[0] = 0;
+      subset_offsets += 4;
+    }
     else
+    {
       ((HBUINT16 *) subset_offsets)[0] = 0;
+      subset_offsets += 2;
+    }
     unsigned int glyph_offset = 0;
 
     hb_codepoint_t last = 0;
@@ -160,10 +166,10 @@ struct gvar
 
       if (long_offset)
 	for (; last < gid; last++)
-	  ((HBUINT32 *) subset_offsets)[last + 1] = glyph_offset;
+	  ((HBUINT32 *) subset_offsets)[last] = glyph_offset;
       else
 	for (; last < gid; last++)
-	  ((HBUINT16 *) subset_offsets)[last + 1] = glyph_offset / 2;
+	  ((HBUINT16 *) subset_offsets)[last] = glyph_offset / 2;
 
       hb_bytes_t var_data_bytes = get_glyph_var_data_bytes (c->source_blob,
 							    glyph_count,
@@ -174,19 +180,19 @@ struct gvar
       glyph_offset += var_data_bytes.length;
 
       if (long_offset)
-	((HBUINT32 *) subset_offsets)[gid + 1] = glyph_offset;
+	((HBUINT32 *) subset_offsets)[gid] = glyph_offset;
       else
-	((HBUINT16 *) subset_offsets)[gid + 1] = glyph_offset / 2;
+	((HBUINT16 *) subset_offsets)[gid] = glyph_offset / 2;
 
       last++; // Skip over gid
     }
 
     if (long_offset)
       for (; last < num_glyphs; last++)
-	((HBUINT32 *) subset_offsets)[last + 1] = glyph_offset;
+	((HBUINT32 *) subset_offsets)[last] = glyph_offset;
     else
       for (; last < num_glyphs; last++)
-	((HBUINT16 *) subset_offsets)[last + 1] = glyph_offset / 2;
+	((HBUINT16 *) subset_offsets)[last] = glyph_offset / 2;
 
     return_trace (true);
   }
