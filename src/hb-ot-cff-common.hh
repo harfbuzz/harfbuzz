@@ -81,7 +81,17 @@ struct CFFIndex
     auto it = hb_iter (iterable);
     serialize_header(c, + it | hb_map (hb_iter) | hb_map (hb_len));
     for (const auto &_ : +it)
+    {
+      auto it = hb_iter (_);
+      if (it.length == 1)
+      {
+	char *ret = c->allocate_size<char> (1, false);
+	if (unlikely (!ret)) return_trace (false);
+	*ret = *it;
+	continue;
+      }
       hb_iter (_).copy (c);
+    }
     return_trace (true);
   }
 
