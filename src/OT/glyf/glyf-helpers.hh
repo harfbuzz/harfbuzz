@@ -44,6 +44,12 @@ _write_loca (IteratorIn&& it,
 
     last++; // Skip over gid
   }
+  unsigned num_glyphs = num_offsets - 1;
+  for (; last < num_glyphs; last++)
+  {
+    DEBUG_MSG (SUBSET, nullptr, "loca entry empty offset %u", offset);
+    *dest++ = value;
+  }
 }
 
 static bool
