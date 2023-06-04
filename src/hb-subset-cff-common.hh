@@ -709,15 +709,13 @@ struct subr_subsetter_t
     }
 
     /* phase 1 & 2 */
-    unsigned num_glyphs = plan->num_output_glyphs ();
-    for (unsigned int i = 0; i < num_glyphs; i++)
+    for (auto _ : plan->new_to_old_gid_list)
     {
-      hb_codepoint_t  glyph;
-      if (!plan->old_gid_for_new_gid (i, &glyph))
-        continue;
+      hb_codepoint_t new_glyph = _.first;
+      hb_codepoint_t old_glyph = _.second;
 
-      const hb_ubytes_t str = (*acc.charStrings)[glyph];
-      unsigned int fd = acc.fdSelect->get_fd (glyph);
+      const hb_ubytes_t str = (*acc.charStrings)[old_glyph];
+      unsigned int fd = acc.fdSelect->get_fd (old_glyph);
       if (unlikely (fd >= acc.fdCount))
         return false;
 
@@ -726,9 +724,9 @@ struct subr_subsetter_t
         // parsed string already exists in accelerator, copy it and move
         // on.
         if (cached_charstrings)
-          cached_charstrings[i] = &cff_accelerator->parsed_charstrings[glyph];
+          cached_charstrings[new_glyph] = &cff_accelerator->parsed_charstrings[old_glyph];
         else
-          parsed_charstrings[i] = cff_accelerator->parsed_charstrings[glyph];
+          parsed_charstrings[new_glyph] = cff_accelerator->parsed_charstrings[old_glyph];
 
         continue;
       }
@@ -736,8 +734,8 @@ struct subr_subsetter_t
       ENV env (str, acc, fd);
       cs_interpreter_t<ENV, OPSET, subr_subset_param_t> interp (env);
 
-      parsed_charstrings[i].alloc (str.length);
-      subr_subset_param_t  param (&parsed_charstrings[i],
+      parsed_charstrings[new_glyph].alloc (str.length);
+      subr_subset_param_t  param (&parsed_charstrings[new_glyph],
                                   &parsed_global_subrs_storage,
                                   &parsed_local_subrs_storage[fd],
                                   &closures.global_closure,
@@ -748,12 +746,12 @@ struct subr_subsetter_t
         return false;
 
       /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
-      SUBSETTER::complete_parsed_str (interp.env, param, parsed_charstrings[i]);
+      SUBSETTER::complete_parsed_str (interp.env, param, parsed_charstrings[new_glyph]);
 
       /* mark hint ops and arguments for drop */
       if ((plan->flags & HB_SUBSET_FLAGS_NO_HINTING) || plan->inprogress_accelerator)
       {
-	subr_subset_param_t  param (&parsed_charstrings[i],
+	subr_subset_param_t  param (&parsed_charstrings[new_glyph],
 				    &parsed_global_subrs_storage,
 				    &parsed_local_subrs_storage[fd],
 				    &closures.global_closure,
@@ -761,11 +759,11 @@ struct subr_subsetter_t
 				    plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
 
 	drop_hints_param_t  drop;
-	if (drop_hints_in_str (parsed_charstrings[i], param, drop))
+	if (drop_hints_in_str (parsed_charstrings[new_glyph], param, drop))
 	{
-	  parsed_charstrings[i].set_hint_dropped ();
+	  parsed_charstrings[new_glyph].set_hint_dropped ();
 	  if (drop.vsindex_dropped)
-	    parsed_charstrings[i].set_vsindex_dropped ();
+	    parsed_charstrings[new_glyph].set_vsindex_dropped ();
 	}
       }
 
@@ -775,7 +773,7 @@ struct subr_subsetter_t
        * The compacting both saves memory and makes further operations
        * faster.
        */
-      parsed_charstrings[i].compact ();
+      parsed_charstrings[new_glyph].compact ();
     }
 
     /* Since parsed strings were loaded from accelerator, we still need
