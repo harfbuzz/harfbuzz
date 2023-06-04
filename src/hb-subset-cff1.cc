@@ -496,6 +496,7 @@ struct cff_subset_plan {
     unsigned num_glyphs = plan->num_output_glyphs ();
     auto it = hb_iter (plan->new_to_old_gid_list);
     if (it->first == 0) it++;
+    bool not_is_cid = !acc.is_CID ();
     for (glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t old_glyph;
@@ -511,7 +512,7 @@ struct cff_subset_plan {
       }
       sid = glyph_to_sid_map ? glyph_to_sid_map->get (old_glyph) : acc.glyph_to_sid (old_glyph);
 
-      if (!acc.is_CID ())
+      if (not_is_cid)
 	sid = sidmap.add (sid);
 
       if (sid != last_sid + 1)
