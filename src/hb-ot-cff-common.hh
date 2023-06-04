@@ -48,7 +48,7 @@ static inline const Type& StructAtOffsetOrNull (const void *P, unsigned int offs
 
 struct code_pair_t
 {
-  hb_codepoint_t code;
+  unsigned code;
   hb_codepoint_t glyph;
 };
 
