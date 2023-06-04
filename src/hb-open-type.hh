@@ -462,14 +462,12 @@ struct UnsizedArrayOf
 
   HB_DELETE_CREATE_COPY_ASSIGN (UnsizedArrayOf);
 
-  const Type& operator [] (int i_) const
+  const Type& operator [] (unsigned int i) const
   {
-    unsigned int i = (unsigned int) i_;
     return arrayZ[i];
   }
-  Type& operator [] (int i_)
+  Type& operator [] (unsigned int i)
   {
-    unsigned int i = (unsigned int) i_;
     return arrayZ[i];
   }
 
