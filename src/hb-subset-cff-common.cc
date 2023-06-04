@@ -68,6 +68,7 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
     /* use hb_set to determine the subset of font dicts */
     hb_set_t set;
     hb_codepoint_t prev_fd = CFF_UNDEF_CODE;
+    hb_pair_t<unsigned, hb_codepoint_t> last_range {0, 0};
     auto it = hb_iter (plan->new_to_old_gid_list);
     for (hb_codepoint_t gid = 0; gid < subset_num_glyphs; gid++)
     {
@@ -82,7 +83,9 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 	/* fonttools retains FDSelect & font dicts for missing glyphs. do the same */
 	old_glyph = gid;
       }
-      unsigned fd = src.get_fd (old_glyph);
+      if (old_glyph >= last_range.second)
+	last_range = src.get_fd_range (old_glyph);
+      unsigned fd = last_range.first;
       set.add (fd);
 
       if (fd != prev_fd)

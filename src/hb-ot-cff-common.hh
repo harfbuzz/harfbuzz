@@ -368,8 +368,11 @@ struct FDSelect0 {
     return_trace (true);
   }
 
-  hb_codepoint_t get_fd (hb_codepoint_t glyph) const
-  { return (hb_codepoint_t) fds[glyph]; }
+  unsigned get_fd (hb_codepoint_t glyph) const
+  { return fds[glyph]; }
+
+  hb_pair_t<unsigned, hb_codepoint_t> get_fd_range (hb_codepoint_t glyph) const
+  { return {fds[glyph], glyph + 1}; }
 
   unsigned int get_size (unsigned int num_glyphs) const
   { return HBUINT8::static_size * num_glyphs; }
@@ -427,10 +430,18 @@ struct FDSelect3_4
     return +1;
   }
 
-  hb_codepoint_t get_fd (hb_codepoint_t glyph) const
+  unsigned get_fd (hb_codepoint_t glyph) const
   {
     auto *range = hb_bsearch (glyph, &ranges[0], nRanges () - 1, sizeof (ranges[0]), _cmp_range);
     return range ? range->fd : ranges[nRanges () - 1].fd;
+  }
+
+  hb_pair_t<unsigned, hb_codepoint_t> get_fd_range (hb_codepoint_t glyph) const
+  {
+    auto *range = hb_bsearch (glyph, &ranges[0], nRanges () - 1, sizeof (ranges[0]), _cmp_range);
+    unsigned fd = range ? range->fd : ranges[nRanges () - 1].fd;
+    hb_codepoint_t end = range ? range[1].first : 0;
+    return {fd, end};
   }
 
   GID_TYPE        &nRanges ()       { return ranges.len; }
@@ -469,7 +480,7 @@ struct FDSelect
     }
   }
 
-  hb_codepoint_t get_fd (hb_codepoint_t glyph) const
+  unsigned get_fd (hb_codepoint_t glyph) const
   {
     if (this == &Null (FDSelect)) return 0;
 
@@ -478,6 +489,18 @@ struct FDSelect
     case 0: return u.format0.get_fd (glyph);
     case 3: return u.format3.get_fd (glyph);
     default:return 0;
+    }
+  }
+  /* Returns pair of fd and one after last glyph in range. */
+  hb_pair_t<unsigned, hb_codepoint_t> get_fd_range (hb_codepoint_t glyph) const
+  {
+    if (this == &Null (FDSelect)) return {0, 0};
+
+    switch (format)
+    {
+    case 0: return u.format0.get_fd_range (glyph);
+    case 3: return u.format3.get_fd_range (glyph);
+    default:return {0, 0};
     }
   }
 
