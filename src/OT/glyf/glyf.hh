@@ -106,7 +106,10 @@ struct glyf
 
     hb_vector_t<unsigned> padded_offsets;
     if (unlikely (!padded_offsets.alloc (glyphs.length, true)))
+    {
+      _free_compiled_subset_glyphs (glyphs);
       return false;
+    }
 
     unsigned max_offset = 0;
     for (auto &g : glyphs)
@@ -130,7 +133,10 @@ struct glyf
     if (unlikely (!c->serializer->check_success (glyf_impl::_add_loca_and_head (c,
 						 padded_offsets.iter (),
 						 use_short_loca))))
+    {
+      _free_compiled_subset_glyphs (glyphs);
       return false;
+    }
 
     glyf *glyf_prime = c->serializer->start_embed <glyf> ();
     if (unlikely (!glyf_prime)) return_trace (false);
