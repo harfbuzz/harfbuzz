@@ -625,7 +625,9 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
   if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return operation_count;
   if (unlikely (--operation_count < 0)) return operation_count;
 
-  for (auto &item : glyf.glyph_for_gid (gid).get_composite_iterator ())
+  auto glyph = glyf.glyph_for_gid (gid);
+
+  for (auto &item : glyph.get_composite_iterator ())
     operation_count =
       _glyf_add_gid_and_children (glyf,
 				  item.get_gid (),
@@ -634,7 +636,7 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 				  depth);
 
 #ifndef HB_NO_VAR_COMPOSITES
-  for (auto &item : glyf.glyph_for_gid (gid).get_var_composite_iterator ())
+  for (auto &item : glyph.get_var_composite_iterator ())
    {
     operation_count =
       _glyf_add_gid_and_children (glyf,
