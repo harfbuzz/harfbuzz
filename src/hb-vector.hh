@@ -102,8 +102,14 @@ struct hb_vector_t
 
   void fini ()
   {
-    shrink_vector (0);
-    hb_free (arrayZ);
+    /* We allow a hack to make the vector point to a foriegn array
+     * by the user. In that case length/arrayZ are non-zero but
+     * allocated is zero. Don't free anything. */
+    if (!allocated)
+    {
+      shrink_vector (0);
+      hb_free (arrayZ);
+    }
     init ();
   }
 

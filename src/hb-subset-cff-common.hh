@@ -809,7 +809,12 @@ struct subr_subsetter_t
 
       if (endchar_op != OpCode_Invalid)
         for (; last < gid; last++)
-	  buffArray.arrayZ[last].push (endchar_op);
+	{
+	  // Hack to point vector to static string.
+	  auto &b = buffArray.arrayZ[last];
+	  b.length = 1;
+	  b.arrayZ = const_cast<unsigned char *>(endchar_str);
+	}
 
       last++; // Skip over gid
       unsigned int  fd = acc.fdSelect->get_fd (old_glyph);
@@ -820,7 +825,12 @@ struct subr_subsetter_t
     }
     if (endchar_op != OpCode_Invalid)
       for (; last < num_glyphs; last++)
-	buffArray.arrayZ[last].push (endchar_op);
+      {
+	// Hack to point vector to static string.
+	auto &b = buffArray.arrayZ[last];
+	b.length = 1;
+	b.arrayZ = const_cast<unsigned char *>(endchar_str);
+      }
 
     return true;
   }

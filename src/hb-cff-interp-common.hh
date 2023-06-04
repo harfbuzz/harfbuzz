@@ -26,6 +26,8 @@
 #ifndef HB_CFF_INTERP_COMMON_HH
 #define HB_CFF_INTERP_COMMON_HH
 
+extern HB_INTERNAL const unsigned char *endchar_str;
+
 namespace CFF {
 
 using namespace OT;
