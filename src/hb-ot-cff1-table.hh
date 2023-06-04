@@ -322,7 +322,7 @@ struct Charset0 {
   hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned num_glyphs) const
   {
     if (unlikely (glyph >= num_glyphs)) return 0;
-    if (glyph == 0)
+    if (unlikely (glyph == 0))
       return 0;
     else
       return sids[glyph - 1];
@@ -392,7 +392,7 @@ struct Charset1_2 {
   hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned num_glyphs) const
   {
     if (unlikely (glyph >= num_glyphs)) return 0;
-    if (glyph == 0) return 0;
+    if (unlikely (glyph == 0)) return 0;
     glyph--;
     for (unsigned int i = 0;; i++)
     {
