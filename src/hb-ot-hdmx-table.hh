@@ -119,18 +119,19 @@ struct hdmx
     hdmx *hdmx_prime = c->serializer->start_embed <hdmx> ();
     if (unlikely (!hdmx_prime)) return_trace (false);
 
+    unsigned num_input_glyphs = get_num_glyphs ();
     auto it =
     + hb_range ((unsigned) numRecords)
-    | hb_map ([c, this] (unsigned _)
+    | hb_map ([c, num_input_glyphs, this] (unsigned _)
 	{
 	  const DeviceRecord *device_record =
 	    &StructAtOffset<DeviceRecord> (&firstDeviceRecord,
 					   _ * sizeDeviceRecord);
 	  auto row =
 	    + hb_iter (c->plan->new_to_old_gid_list)
-	    | hb_map ([this, device_record] (hb_codepoint_pair_t _)
+	    | hb_map ([num_input_glyphs, device_record] (hb_codepoint_pair_t _)
 		      {
-			return device_record->widthsZ.as_array (get_num_glyphs ()) [_.second];
+			return device_record->widthsZ.as_array (num_input_glyphs) [_.second];
 		      })
 	    ;
 	  return hb_pair ((unsigned) device_record->pixelSize, +row);
