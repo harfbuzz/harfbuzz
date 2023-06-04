@@ -800,21 +800,27 @@ struct subr_subsetter_t
     unsigned num_glyphs = plan->num_output_glyphs ();
     if (unlikely (!buffArray.resize_exact (num_glyphs)))
       return false;
-    for (unsigned i = 0; i < num_glyphs; i++)
+    hb_codepoint_t last = 0;
+    for (auto _ : plan->new_to_old_gid_list)
     {
-      hb_codepoint_t  glyph;
-      if (!plan->old_gid_for_new_gid (i, &glyph))
-      {
-	/* add an endchar only charstring for a missing glyph if CFF1 */
-	if (endchar_op != OpCode_Invalid) buffArray.arrayZ[i].push (endchar_op);
-	continue;
-      }
-      unsigned int  fd = acc.fdSelect->get_fd (glyph);
+      hb_codepoint_t gid = _.first;
+      hb_codepoint_t old_glyph = _.second;
+
+      if (endchar_op != OpCode_Invalid)
+        for (; last < gid; last++)
+	  buffArray.arrayZ[last].push (endchar_op);
+
+      last++; // Skip over gid
+      unsigned int  fd = acc.fdSelect->get_fd (old_glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
-      if (unlikely (!encode_str (get_parsed_charstring (i), fd, buffArray.arrayZ[i], encode_prefix)))
+      if (unlikely (!encode_str (get_parsed_charstring (gid), fd, buffArray.arrayZ[gid], encode_prefix)))
 	return false;
     }
+    if (endchar_op != OpCode_Invalid)
+      for (; last < num_glyphs; last++)
+	buffArray.arrayZ[last].push (endchar_op);
+
     return true;
   }
 
