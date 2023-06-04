@@ -152,8 +152,8 @@ struct glyf
 
   void _free_compiled_subset_glyphs (hb_vector_t<glyf_impl::SubsetGlyph> &glyphs) const
   {
-    for (unsigned i = 0; i < glyphs.length; i++)
-      glyphs[i].free_compiled_bytes ();
+    for (auto &g : glyphs)
+      g.free_compiled_bytes ();
   }
 
   protected:
