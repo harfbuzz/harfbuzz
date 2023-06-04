@@ -188,15 +188,6 @@ struct hb_subset_plan_t
     return _num_output_glyphs;
   }
 
-  /*
-   * Given an output gid , returns true if that glyph id is an empty
-   * glyph (ie. it's a gid that we are dropping all data for).
-   */
-  inline bool is_empty_glyph (hb_codepoint_t gid) const
-  {
-    return !_glyphset.has (gid);
-  }
-
   inline bool new_gid_for_codepoint (hb_codepoint_t codepoint,
 				     hb_codepoint_t *new_gid) const
   {
