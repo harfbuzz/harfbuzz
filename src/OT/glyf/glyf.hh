@@ -135,7 +135,7 @@ struct glyf
     glyf *glyf_prime = c->serializer->start_embed <glyf> ();
     if (unlikely (!glyf_prime)) return_trace (false);
 
-    bool result = glyf_prime->serialize (c->serializer, glyphs, use_short_loca, c->plan);
+    bool result = glyf_prime->serialize (c->serializer, hb_iter (glyphs), use_short_loca, c->plan);
     if (c->plan->normalized_coords && !c->plan->pinned_at_default)
       _free_compiled_subset_glyphs (glyphs);
 
