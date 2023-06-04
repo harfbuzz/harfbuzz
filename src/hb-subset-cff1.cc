@@ -486,7 +486,8 @@ struct cff_subset_plan {
     }
 
     unsigned int glyph;
-    for (glyph = 1; glyph < plan->num_output_glyphs (); glyph++)
+    unsigned num_glyphs = plan->num_output_glyphs ();
+    for (glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t  old_glyph;
       if (!plan->old_gid_for_new_gid (glyph, &old_glyph))
