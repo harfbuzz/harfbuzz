@@ -396,12 +396,17 @@ struct Charset1_2 {
   {
     if (unlikely (glyph >= num_glyphs)) return 0;
     if (unlikely (glyph == 0)) return 0;
-    hb_codepoint_t start_glyph = 1;
-    unsigned i = 0;
+    unsigned i;
+    hb_codepoint_t start_glyph;
     if (cache && likely (cache->glyph <= glyph))
     {
       i = cache->code;
       start_glyph = cache->glyph;
+    }
+    else
+    {
+      i = 0;
+      start_glyph = 1;
     }
     glyph -= start_glyph;
     for (;; i++)
