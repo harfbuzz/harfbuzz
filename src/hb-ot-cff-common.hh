@@ -83,7 +83,7 @@ struct CFFIndex
     for (const auto &_ : +it)
     {
       auto it = hb_iter (_);
-      if (it.length == 1)
+      if (hb_len (it) == 1)
       {
 	char *ret = c->allocate_size<char> (1, false);
 	if (unlikely (!ret)) return_trace (false);
