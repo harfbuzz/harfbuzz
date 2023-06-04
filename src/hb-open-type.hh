@@ -479,7 +479,7 @@ struct UnsizedArrayOf
     return *p;
   }
 
-  unsigned int get_size (unsigned int len) const
+  static unsigned int get_size (unsigned int len)
   { return len * Type::static_size; }
 
   template <typename T> operator T * () { return arrayZ; }

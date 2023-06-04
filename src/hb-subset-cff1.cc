@@ -525,7 +525,7 @@ struct cff_subset_plan {
 
     bool two_byte = subset_charset_ranges.complete (glyph);
 
-    size0 = Charset0::min_size + HBUINT16::static_size * (plan->num_output_glyphs () - 1);
+    size0 = Charset0::get_size (plan->num_output_glyphs ());
     if (!two_byte)
       size_ranges = Charset1::min_size + Charset1_Range::static_size * subset_charset_ranges.length;
     else

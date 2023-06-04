@@ -312,11 +312,12 @@ struct Encoding
 };
 
 /* Charset */
-struct Charset0 {
+struct Charset0
+{
   bool sanitize (hb_sanitize_context_t *c, unsigned int num_glyphs) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && sids[num_glyphs - 1].sanitize (c));
+    return_trace (sids.sanitize (c, num_glyphs - 1));
   }
 
   hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned num_glyphs) const
@@ -347,13 +348,13 @@ struct Charset0 {
     return 0;
   }
 
-  unsigned int get_size (unsigned int num_glyphs) const
+  static unsigned int get_size (unsigned int num_glyphs)
   {
     assert (num_glyphs > 0);
-    return HBUINT16::static_size * (num_glyphs - 1);
+    return UnsizedArrayOf<HBUINT16>::get_size (num_glyphs - 1);
   }
 
-  HBUINT16  sids[HB_VAR_ARRAY];
+  UnsizedArrayOf<HBUINT16> sids;
 
   DEFINE_SIZE_ARRAY(0, sids);
 };
@@ -490,7 +491,7 @@ struct Charset
     {
     case 0:
     {
-      Charset0 *fmt0 = c->allocate_size<Charset0> (Charset0::min_size + HBUINT16::static_size * (num_glyphs - 1));
+      Charset0 *fmt0 = c->allocate_size<Charset0> (Charset0::get_size (num_glyphs));
       if (unlikely (!fmt0)) return_trace (false);
       unsigned int glyph = 0;
       for (unsigned int i = 0; i < sid_ranges.length; i++)
