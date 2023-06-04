@@ -415,13 +415,19 @@ struct cff_subset_plan {
 
     subset_enc_num_codes = plan->num_output_glyphs () - 1;
     unsigned int glyph;
-    unsigned num_glyphs = plan->num_output_glyphs ();
+    auto it = hb_iter (plan->new_to_old_gid_list);
+    if (it->first == 0) it++;
     for (glyph = 1; glyph < num_glyphs; glyph++)
     {
-      hb_codepoint_t  old_glyph;
-      if (!plan->old_gid_for_new_gid (glyph, &old_glyph))
+      hb_codepoint_t old_glyph;
+      if (glyph == it->first)
       {
-	/* Retain the code for the old missing glyph ID */
+	old_glyph = it->second;
+	it++;
+      }
+      else
+      {
+	/* Retain the SID for the old missing glyph ID */
 	old_glyph = glyph;
       }
       code = acc.glyph_to_code (old_glyph);
