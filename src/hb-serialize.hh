@@ -569,7 +569,7 @@ struct hb_serialize_context_t
   {
     unsigned int l = length () % alignment;
     if (l)
-      allocate_size<void> (alignment - l);
+      (void) allocate_size<void> (alignment - l);
   }
 
   template <typename Type = void>

@@ -278,7 +278,7 @@ struct CmapSubtableFormat4
     } writer(c);
 
     writer.end_code_ = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount);
-    c->allocate_size<HBUINT16> (2); // padding
+    (void) c->allocate_size<HBUINT16> (2); // padding
     writer.start_code_ = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount);
     writer.id_delta_ = c->allocate_size<HBINT16> (HBINT16::static_size * segcount);
 
