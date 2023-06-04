@@ -107,12 +107,64 @@ struct CFFIndex
     /* serialize indices */
     unsigned int offset = 1;
     unsigned int i = 0;
+#ifdef HB_OPTIMIZE_SIZE
     for (unsigned _ : +it)
     {
       set_offset_at (i++, offset);
       offset += _;
     }
     set_offset_at (i, offset);
+#else
+    switch (off_size)
+    {
+      case 1:
+      {
+	HBUINT8 *p = (HBUINT8 *) offsets;
+	for (unsigned _ : +it)
+	{
+	  p[i++] = offset;
+	  offset += _;
+	}
+	p[i] = offset;
+	break;
+      }
+      case 2:
+      {
+	HBUINT16 *p = (HBUINT16 *) offsets;
+	for (unsigned _ : +it)
+	{
+	  p[i++] = offset;
+	  offset += _;
+	}
+	p[i] = offset;
+	break;
+      }
+      case 3:
+      {
+	HBUINT24 *p = (HBUINT24 *) offsets;
+	for (unsigned _ : +it)
+	{
+	  p[i++] = offset;
+	  offset += _;
+	}
+	p[i] = offset;
+	break;
+      }
+      case 4:
+      {
+	HBUINT32 *p = (HBUINT32 *) offsets;
+	for (unsigned _ : +it)
+	{
+	  p[i++] = offset;
+	  offset += _;
+	}
+	p[i] = offset;
+	break;
+      }
+      default:
+        break;
+    }
+#endif
 
     return_trace (true);
   }
