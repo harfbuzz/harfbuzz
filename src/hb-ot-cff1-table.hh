@@ -396,30 +396,28 @@ struct Charset1_2 {
   {
     if (unlikely (glyph >= num_glyphs)) return 0;
     unsigned i;
-    hb_codepoint_t start_glyph;
+    hb_codepoint_t orig_glyph = glyph;
     if (cache && likely (cache->glyph <= glyph))
     {
       i = cache->code;
-      start_glyph = cache->glyph;
+      glyph -= cache->glyph;
     }
     else
     {
       if (unlikely (glyph == 0)) return 0;
       i = 0;
-      start_glyph = 1;
+      glyph -= 1;
     }
-    glyph -= start_glyph;
     for (;; i++)
     {
       unsigned count = ranges[i].nLeft;
       if (glyph <= count)
       {
         if (cache)
-	  *cache = {i, start_glyph};
+	  *cache = {i, orig_glyph - glyph};
 	return ranges[i].first + glyph;
       }
       count++;
-      start_glyph += count;
       glyph -= count;
     }
 
