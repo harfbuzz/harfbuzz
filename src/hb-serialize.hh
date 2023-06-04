@@ -261,6 +261,7 @@ struct hb_serialize_context_t
 
   /* To be called around main operation. */
   template <typename Type>
+  __attribute__((malloc, returns_nonnull))
   Type *start_serialize ()
   {
     DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, +1,
@@ -303,6 +304,7 @@ struct hb_serialize_context_t
   }
 
   template <typename Type = void>
+  __attribute__((malloc, returns_nonnull))
   Type *push ()
   {
     if (unlikely (in_error ())) return start_embed<Type> ();
@@ -571,9 +573,11 @@ struct hb_serialize_context_t
   }
 
   template <typename Type = void>
+  __attribute__((malloc, returns_nonnull))
   Type *start_embed (const Type *obj HB_UNUSED = nullptr) const
   { return reinterpret_cast<Type *> (this->head); }
   template <typename Type>
+  __attribute__((malloc, returns_nonnull))
   Type *start_embed (const Type &obj) const
   { return start_embed (std::addressof (obj)); }
 
