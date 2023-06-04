@@ -415,7 +415,8 @@ struct cff_subset_plan {
 
     subset_enc_num_codes = plan->num_output_glyphs () - 1;
     unsigned int glyph;
-    for (glyph = 1; glyph < plan->num_output_glyphs (); glyph++)
+    unsigned num_glyphs = plan->num_output_glyphs ();
+    for (glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t  old_glyph;
       if (!plan->old_gid_for_new_gid (glyph, &old_glyph))
@@ -574,7 +575,7 @@ struct cff_subset_plan {
 
     /* check whether the subset renumbers any glyph IDs */
     gid_renum = false;
-    for (hb_codepoint_t new_glyph = 0; new_glyph < plan->num_output_glyphs (); new_glyph++)
+    for (hb_codepoint_t new_glyph = 0; new_glyph < num_glyphs; new_glyph++)
     {
       if (!plan->old_gid_for_new_gid(new_glyph, &old_glyph))
 	continue;

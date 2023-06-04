@@ -709,7 +709,8 @@ struct subr_subsetter_t
     }
 
     /* phase 1 & 2 */
-    for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
+    unsigned num_glyphs = plan->num_output_glyphs ();
+    for (unsigned int i = 0; i < num_glyphs; i++)
     {
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
@@ -987,7 +988,8 @@ struct subr_subsetter_t
                             const hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
   {
     closures.reset ();
-    for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
+    unsigned num_glyphs = plan->num_output_glyphs ();
+    for (unsigned int i = 0; i < num_glyphs; i++)
     {
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))

@@ -201,7 +201,8 @@ struct hvarvvar_subset_plan_t
 
     if (retain_adv_map)
     {
-      for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
+      unsigned num_glyphs = plan->num_output_glyphs ();
+      for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
       {
 	if (inner_sets[0]->has (gid))
 	  inner_maps[0].add (gid);

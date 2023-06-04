@@ -545,7 +545,8 @@ struct IndexSubtableArray
 		const IndexSubtableRecord*>> *lookup /* OUT */) const
   {
     bool start_glyph_is_set = false;
-    for (hb_codepoint_t new_gid = 0; new_gid < c->plan->num_output_glyphs (); new_gid++)
+    unsigned num_glyphs = c->plan->num_output_glyphs ();
+    for (hb_codepoint_t new_gid = 0; new_gid < num_glyphs; new_gid++)
     {
       hb_codepoint_t old_gid;
       if (unlikely (!c->plan->old_gid_for_new_gid (new_gid, &old_gid))) continue;
