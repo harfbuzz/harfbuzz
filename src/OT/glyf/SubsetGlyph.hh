@@ -40,7 +40,7 @@ struct SubsetGlyph
     pad = 0;
     while (pad_length > 0)
     {
-      c->embed (pad);
+      (void) c->embed (pad);
       pad_length--;
     }
 
