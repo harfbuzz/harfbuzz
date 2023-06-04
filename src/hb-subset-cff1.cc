@@ -402,7 +402,7 @@ struct cff_subset_plan {
   {
     const Encoding *encoding = acc.encoding;
     unsigned int  size0, size1;
-    hb_codepoint_t  code, last_code = CFF_UNDEF_CODE;
+    unsigned code, last_code = CFF_UNDEF_CODE - 1;
     hb_vector_t<hb_codepoint_t> supp_codes;
 
     if (unlikely (!subset_enc_code_ranges.resize (0)))
@@ -437,7 +437,7 @@ struct cff_subset_plan {
 	break;
       }
 
-      if ((last_code == CFF_UNDEF_CODE) || (code != last_code + 1))
+      if (code != last_code + 1)
       {
 	code_pair_t pair = { code, glyph };
 	subset_enc_code_ranges.push (pair);
