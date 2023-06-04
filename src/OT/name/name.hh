@@ -447,13 +447,13 @@ struct name
     }
 #endif
 
-    return (name_prime->serialize (c->serializer, it,
-                                   std::addressof (this + stringOffset)
+    return_trace (name_prime->serialize (c->serializer, it,
+					 std::addressof (this + stringOffset)
 #ifdef HB_EXPERIMENTAL_API
-                                   , insert_name_records
-                                   , name_table_overrides
+					 , insert_name_records
+					 , name_table_overrides
 #endif
-                                   ));
+					 ));
   }
 
   bool sanitize_records (hb_sanitize_context_t *c) const
