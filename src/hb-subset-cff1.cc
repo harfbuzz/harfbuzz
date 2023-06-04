@@ -420,9 +420,10 @@ struct cff_subset_plan {
     for (glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t old_glyph;
-      if (glyph == it->first)
+      auto &_ = it[0];
+      if (glyph == _.first)
       {
-	old_glyph = it->second;
+	old_glyph = _.second;
 	it++;
       }
       else
@@ -500,9 +501,10 @@ struct cff_subset_plan {
     for (glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t old_glyph;
-      if (glyph == it->first)
+      auto &_ = it[0];
+      if (glyph == _.first)
       {
-	old_glyph = it->second;
+	old_glyph = _.second;
 	it++;
       }
       else
