@@ -128,7 +128,7 @@ struct hdmx
 					   _ * sizeDeviceRecord);
 	  auto row =
 	    + hb_iter (c->plan->new_to_old_gid_list)
-	    | hb_map ([this, c, device_record] (hb_codepoint_pair_t _)
+	    | hb_map ([this, device_record] (hb_codepoint_pair_t _)
 		      {
 			return device_record->widthsZ.as_array (get_num_glyphs ()) [_.second];
 		      })
