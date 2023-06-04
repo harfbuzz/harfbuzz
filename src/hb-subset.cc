@@ -198,9 +198,9 @@ _plan_estimate_subset_table_size (hb_subset_plan_t *plan,
   unsigned dst_glyphs = plan->glyphset ()->get_population ();
 
   if (unlikely (!src_glyphs) || same_size)
-    return 512 + table_len;
+    return 8192 + table_len;
 
-  return 512 + (unsigned) (table_len * sqrt ((double) dst_glyphs / src_glyphs));
+  return 8192 + (unsigned) (table_len * sqrt ((double) dst_glyphs / src_glyphs));
 }
 
 /*
@@ -588,7 +588,7 @@ hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
   }
 
   hb_vector_t<char> buf;
-  buf.alloc (4096 - 16);
+  buf.alloc (8192 - 16);
 
 
   bool success = true;
