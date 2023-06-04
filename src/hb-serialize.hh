@@ -261,7 +261,7 @@ struct hb_serialize_context_t
 
   /* To be called around main operation. */
   template <typename Type>
-  __attribute__((malloc, returns_nonnull))
+  __attribute__((returns_nonnull))
   Type *start_serialize ()
   {
     DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, +1,
@@ -304,7 +304,7 @@ struct hb_serialize_context_t
   }
 
   template <typename Type = void>
-  __attribute__((malloc, returns_nonnull))
+  __attribute__((returns_nonnull))
   Type *push ()
   {
     if (unlikely (in_error ())) return start_embed<Type> ();
@@ -605,7 +605,7 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  HB_NODISCARD __attribute__((malloc))
+  HB_NODISCARD
   Type *allocate_size (size_t size, bool clear = true)
   {
     if (unlikely (in_error ())) return nullptr;
@@ -627,7 +627,7 @@ struct hb_serialize_context_t
   { return this->allocate_size<Type> (Type::min_size); }
 
   template <typename Type>
-  HB_NODISCARD __attribute__((malloc))
+  HB_NODISCARD
   Type *embed (const Type *obj)
   {
     unsigned int size = obj->get_size ();
@@ -637,7 +637,7 @@ struct hb_serialize_context_t
     return ret;
   }
   template <typename Type>
-  HB_NODISCARD __attribute__((malloc))
+  HB_NODISCARD
   Type *embed (const Type &obj)
   { return embed (std::addressof (obj)); }
   char *embed (const char *obj, unsigned size)
