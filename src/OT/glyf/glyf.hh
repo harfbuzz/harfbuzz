@@ -431,7 +431,7 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const
 {
   OT::glyf_accelerator_t glyf (plan->source);
-  if (!glyphs.alloc (plan->glyph_map->get_population (), true)) return false;
+  if (!glyphs.alloc (plan->new_to_old_gid_list.length, true)) return false;
 
   for (const auto &pair : plan->new_to_old_gid_list)
   {
