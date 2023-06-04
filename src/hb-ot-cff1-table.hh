@@ -110,6 +110,7 @@ struct Encoding1 {
 
   hb_codepoint_t get_code (hb_codepoint_t glyph) const
   {
+    /* TODO: Add cache like get_sid. */
     assert (glyph > 0);
     glyph--;
     for (unsigned int i = 0; i < nRanges (); i++)
