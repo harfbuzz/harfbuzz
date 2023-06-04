@@ -308,34 +308,20 @@ _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
     return false;
   }
 
-  hb_blob_t *already_added_blob = nullptr;
-  if (!needed)
-  {
-    already_added_blob = plan->dest->reference_table (tag);
-    if (already_added_blob)
-      needed = true;
-  }
-
   if (!needed)
   {
     DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c::subset table subsetted to empty.", HB_UNTAG (tag));
     return true;
   }
 
-  hb_blob_t *dest_blob = already_added_blob ? already_added_blob : _repack (tag, serializer);
-
   bool result = false;
+  hb_blob_t *dest_blob = _repack (tag, serializer);
   if (dest_blob)
   {
     DEBUG_MSG (SUBSET, nullptr,
                "OT::%c%c%c%c final subset table size: %u bytes.",
                HB_UNTAG (tag), dest_blob->length);
-
-    if (already_added_blob)
-      result = true;
-    else
-      result = plan->add_table (tag, dest_blob);
-
+    result = plan->add_table (tag, dest_blob);
     hb_blob_destroy (dest_blob);
   }
 

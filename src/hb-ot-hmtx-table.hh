@@ -156,23 +156,19 @@ struct hmtxvmtx
 
   template<typename Iterator,
 	   hb_requires (hb_is_iterator (Iterator))>
-  static bool _add_table (hb_subset_plan_t *plan,
-			  Iterator it,
-			  unsigned num_long_metrics)
+  void serialize (hb_serialize_context_t *c,
+		  Iterator it,
+		  const hb_vector_t<hb_codepoint_pair_t> new_to_old_gid_list,
+		  unsigned num_long_metrics,
+                  unsigned total_num_metrics)
   {
-    unsigned total_num_metrics = plan->num_output_glyphs ();
-    unsigned total_size = LongMetric::static_size * num_long_metrics
-		        + FWORD::static_size * (total_num_metrics - num_long_metrics);
-
-    char *prime_data = (char *) hb_calloc (total_size, 1);
-    if (unlikely (!prime_data)) return false;
-
-    LongMetric* long_metrics = (LongMetric*) prime_data;
-    FWORD* short_metrics = (FWORD*) (prime_data + num_long_metrics * LongMetric::static_size);
+    LongMetric* long_metrics = c->allocate_size<LongMetric> (num_long_metrics * LongMetric::static_size);
+    FWORD* short_metrics = c->allocate_size<FWORD> ((total_num_metrics - num_long_metrics) * FWORD::static_size);
+    if (!long_metrics || !short_metrics) return;
 
     short_metrics -= num_long_metrics;
 
-    for (auto _ : plan->new_to_old_gid_list)
+    for (auto _ : new_to_old_gid_list)
     {
       hb_codepoint_t gid = _.first;
       auto mtx = *it++;
@@ -188,13 +184,6 @@ struct hmtxvmtx
       else
         ((UFWORD*) short_metrics)[gid] = mtx.first;
     }
-
-    hb_blob_t *blob = hb_blob_create (prime_data,
-				      total_size,
-				      HB_MEMORY_MODE_WRITABLE,
-				      prime_data,
-				      hb_free);
-    return plan->add_table (T::tableTag, blob);
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -239,7 +228,13 @@ struct hmtxvmtx
 	      })
     ;
 
-    if (unlikely (!_add_table (c->plan, it, num_long_metrics)))
+    table_prime->serialize (c->serializer,
+			    it,
+			    c->plan->new_to_old_gid_list,
+			    num_long_metrics,
+			    c->plan->num_output_glyphs ());
+
+    if (unlikely (c->serializer->in_error ()))
       return_trace (false);
 
     // Amend header num hmetrics
@@ -247,7 +242,7 @@ struct hmtxvmtx
                                          T::is_horizontal ? c->plan->bounds_width_vec : c->plan->bounds_height_vec)))
       return_trace (false);
 
-    return_trace (false); // Table added already
+    return_trace (true);
   }
 
   struct accelerator_t
