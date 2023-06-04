@@ -85,7 +85,7 @@ struct CFFIndex
       auto it = hb_iter (_);
       if (hb_len (it) == 1)
       {
-	char *ret = c->allocate_size<char> (1, false);
+	unsigned char *ret = c->allocate_size<unsigned char> (1, false);
 	if (unlikely (!ret)) return_trace (false);
 	*ret = *it;
 	continue;
