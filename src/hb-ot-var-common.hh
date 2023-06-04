@@ -41,7 +41,6 @@ struct DeltaSetIndexMapFormat01
   {
     TRACE_SERIALIZE (this);
     auto *out = c->start_embed (this);
-    if (unlikely (!out)) return_trace (nullptr);
 
     unsigned total_size = min_size + mapCount * get_width ();
     HBUINT8 *p = c->allocate_size<HBUINT8> (total_size);

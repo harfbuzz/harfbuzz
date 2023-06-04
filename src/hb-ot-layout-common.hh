@@ -810,7 +810,7 @@ struct Feature
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     out->featureParams.serialize_subset (c, featureParams, this, tag);
 
@@ -984,7 +984,7 @@ struct RecordListOfFeature : RecordListOf<Feature>
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     + hb_enumerate (*this)
     | hb_filter (l->feature_index_map, hb_first)
@@ -1081,7 +1081,7 @@ struct LangSys
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     const uint32_t *v;
     out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex, &v) ? *v : 0xFFFFu;
@@ -1191,7 +1191,7 @@ struct Script
       return false;
 
     auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     bool defaultLang = false;
     if (has_default_lang_sys ())
@@ -1250,7 +1250,7 @@ struct RecordListOfScript : RecordListOf<Script>
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     for (auto _ : + hb_enumerate (*this))
     {
@@ -1370,7 +1370,7 @@ struct Lookup
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
     out->lookupType = lookupType;
     out->lookupFlag = lookupFlag;
 
@@ -1459,7 +1459,7 @@ struct LookupOffsetList : List16OfOffsetTo<TLookup, OffsetType>
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     + hb_enumerate (*this)
     | hb_filter (l->lookup_index_map, hb_first)

@@ -45,7 +45,6 @@ struct AnchorFormat3
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out)) return_trace (false);
     if (unlikely (!c->serializer->embed (format))) return_trace (false);
     if (unlikely (!c->serializer->embed (xCoordinate))) return_trace (false);
     if (unlikely (!c->serializer->embed (yCoordinate))) return_trace (false);

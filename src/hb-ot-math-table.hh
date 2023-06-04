@@ -73,7 +73,6 @@ struct MathConstants
   {
     TRACE_SERIALIZE (this);
     auto *out = c->start_embed (this);
-    if (unlikely (!out)) return_trace (nullptr);
 
     HBINT16 *p = c->allocate_size<HBINT16> (HBINT16::static_size * 2);
     if (unlikely (!p)) return_trace (nullptr);
@@ -310,7 +309,6 @@ struct MathKern
   {
     TRACE_SERIALIZE (this);
     auto *out = c->start_embed (this);
-    if (unlikely (!out)) return_trace (nullptr);
 
     if (unlikely (!c->embed (heightCount))) return_trace (nullptr);
 
@@ -757,8 +755,6 @@ struct MathGlyphAssembly
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out)) return_trace (false);
 
     if (!c->serializer->copy (italicsCorrection, this)) return_trace (false);
     if (!c->serializer->copy<HBUINT16> (partRecords.len)) return_trace (false);

@@ -96,8 +96,7 @@ struct post
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    post *post_prime = c->serializer->start_embed<post> ();
-    if (unlikely (!post_prime)) return_trace (false);
+    auto *post_prime = c->serializer->start_embed<post> ();
 
     bool glyph_names = c->plan->flags & HB_SUBSET_FLAGS_GLYPH_NAMES;
     if (!serialize (c->serializer, glyph_names))

@@ -397,7 +397,6 @@ struct IndexSubtableRecord
     TRACE_SERIALIZE (this);
 
     auto *subtable = c->serializer->start_embed<IndexSubtable> ();
-    if (unlikely (!subtable)) return_trace (false);
     if (unlikely (!c->serializer->extend_min (subtable))) return_trace (false);
 
     auto *old_subtable = get_subtable (base);
@@ -576,9 +575,6 @@ struct IndexSubtableArray
 	  cblc_bitmap_size_subset_context_t *bitmap_size_context) const
   {
     TRACE_SUBSET (this);
-
-    auto *dst = c->serializer->start_embed<IndexSubtableArray> ();
-    if (unlikely (!dst)) return_trace (false);
 
     hb_vector_t<hb_pair_t<hb_codepoint_t, const IndexSubtableRecord*>> lookup;
     build_lookup (c, bitmap_size_context, &lookup);
@@ -994,12 +990,10 @@ CBLC::subset (hb_subset_context_t *c) const
 {
   TRACE_SUBSET (this);
 
-  auto *cblc_prime = c->serializer->start_embed<CBLC> ();
-
   // Use a vector as a secondary buffer as the tables need to be built in parallel.
   hb_vector_t<char> cbdt_prime;
 
-  if (unlikely (!cblc_prime)) return_trace (false);
+  auto *cblc_prime = c->serializer->start_embed<CBLC> ();
   if (unlikely (!c->serializer->extend_min (cblc_prime))) return_trace (false);
   cblc_prime->version = version;
 

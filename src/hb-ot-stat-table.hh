@@ -448,8 +448,6 @@ struct AxisValueOffsetArray: UnsizedArrayOf<Offset16To<AxisValue>>
                const hb_array_t<const StatAxisRecord> axis_records) const
   {
     TRACE_SUBSET (this);
-    auto *out = c->serializer->start_embed (this);
-    if (unlikely (!out)) return_trace (false);
 
     auto axisValueOffsets = as_array (axisValueCount);
     count = 0;

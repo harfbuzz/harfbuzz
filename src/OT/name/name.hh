@@ -386,8 +386,7 @@ struct name
   {
     TRACE_SUBSET (this);
 
-    name *name_prime = c->serializer->start_embed<name> ();
-    if (unlikely (!name_prime)) return_trace (false);
+    auto *name_prime = c->serializer->start_embed<name> ();
 
 #ifdef HB_EXPERIMENTAL_API
     const hb_hashmap_t<hb_ot_name_record_ids_t, hb_bytes_t> *name_table_overrides =

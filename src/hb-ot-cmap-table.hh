@@ -924,8 +924,7 @@ struct DefaultUVS : SortedArray32Of<UnicodeValueRange>
   DefaultUVS* copy (hb_serialize_context_t *c,
 		    const hb_set_t *unicodes) const
   {
-    DefaultUVS *out = c->start_embed<DefaultUVS> ();
-    if (unlikely (!out)) return nullptr;
+    auto *out = c->start_embed<DefaultUVS> ();
     auto snap = c->snapshot ();
 
     HBUINT32 len;
@@ -1074,9 +1073,7 @@ struct NonDefaultUVS : SortedArray32Of<UVSMapping>
 		       const hb_set_t *glyphs_requested,
 		       const hb_map_t *glyph_map) const
   {
-    NonDefaultUVS *out = c->start_embed<NonDefaultUVS> ();
-    if (unlikely (!out)) return nullptr;
-
+    auto *out = c->start_embed<NonDefaultUVS> ();
     auto it =
     + as_array ()
     | hb_filter ([&] (const UVSMapping& _)
@@ -1774,7 +1771,6 @@ struct cmap
     TRACE_SUBSET (this);
 
     cmap *cmap_prime = c->serializer->start_embed<cmap> ();
-    if (unlikely (!c->serializer->check_success (cmap_prime))) return_trace (false);
 
     auto encodingrec_iter =
     + hb_iter (encodingRecord)

@@ -190,8 +190,7 @@ struct hmtxvmtx
   {
     TRACE_SUBSET (this);
 
-    T *table_prime = c->serializer->start_embed <T> ();
-    if (unlikely (!table_prime)) return_trace (false);
+    auto *table_prime = c->serializer->start_embed <T> ();
 
     accelerator_t _mtx (c->plan->source);
     unsigned num_long_metrics;

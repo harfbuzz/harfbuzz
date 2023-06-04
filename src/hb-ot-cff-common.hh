@@ -245,7 +245,7 @@ struct CFFIndexOf : CFFIndex<COUNT>
     for (unsigned int i = 0; i < dataArrayLen; i++)
     {
       TYPE *dest = c->start_embed<TYPE> ();
-      if (unlikely (!dest || !dest->serialize (c, dataArray[i], param1, param2)))
+      if (unlikely (!dest->serialize (c, dataArray[i], param1, param2)))
 	return_trace (false);
     }
     return_trace (true);

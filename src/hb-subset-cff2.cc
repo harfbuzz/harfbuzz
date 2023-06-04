@@ -524,8 +524,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
 
       if (plan.subset_localsubrs[i].length > 0)
       {
-	CFF2Subrs *dest = c->start_embed <CFF2Subrs> ();
-	if (unlikely (!dest)) return false;
+	auto *dest = c->start_embed <CFF2Subrs> ();
 	c->push ();
 	if (likely (dest->serialize (c, plan.subset_localsubrs[i])))
 	  subrs_link = c->pop_pack (false);
@@ -535,8 +534,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
 	  return false;
 	}
       }
-      PrivateDict *pd = c->start_embed<PrivateDict> ();
-      if (unlikely (!pd)) return false;
+      auto *pd = c->start_embed<PrivateDict> ();
       c->push ();
       cff2_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints, plan.pinned,
 						 acc.varStore, normalized_coords);
@@ -562,9 +560,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
     if (unlikely (!c->start_zerocopy (total_size)))
        return false;
 
-    CFF2CharStrings  *cs = c->start_embed<CFF2CharStrings> ();
-    if (unlikely (!cs)) return false;
-
+    auto *cs = c->start_embed<CFF2CharStrings> ();
     if (likely (cs->serialize (c, plan.subset_charstrings)))
       plan.info.char_strings_link = c->pop_pack (false);
     else
@@ -593,8 +589,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
   /* FDArray (FD Index) */
   {
     c->push ();
-    CFF2FDArray *fda = c->start_embed<CFF2FDArray> ();
-    if (unlikely (!fda)) return false;
+    auto *fda = c->start_embed<CFF2FDArray> ();
     cff_font_dict_op_serializer_t fontSzr;
     auto it =
     + hb_zip (+ hb_iter (acc.fontDicts)
@@ -611,8 +606,8 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
       !plan.pinned)
   {
     c->push ();
-    CFF2VariationStore *dest = c->start_embed<CFF2VariationStore> ();
-    if (unlikely (!dest || !dest->serialize (c, acc.varStore))) return false;
+    auto *dest = c->start_embed<CFF2VariationStore> ();
+    if (unlikely (!dest->serialize (c, acc.varStore))) return false;
     plan.info.var_store_link = c->pop_pack (false);
   }
 
@@ -634,8 +629,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
 
   /* global subrs */
   {
-    CFF2Subrs *dest = c->start_embed <CFF2Subrs> ();
-    if (unlikely (!dest)) return false;
+    auto *dest = c->start_embed <CFF2Subrs> ();
     return dest->serialize (c, plan.subset_globalsubrs);
   }
 }

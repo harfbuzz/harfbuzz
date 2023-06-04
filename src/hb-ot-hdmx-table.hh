@@ -116,8 +116,7 @@ struct hdmx
   {
     TRACE_SUBSET (this);
 
-    hdmx *hdmx_prime = c->serializer->start_embed <hdmx> ();
-    if (unlikely (!hdmx_prime)) return_trace (false);
+    auto *hdmx_prime = c->serializer->start_embed <hdmx> ();
 
     unsigned num_input_glyphs = get_num_glyphs ();
     auto it =
