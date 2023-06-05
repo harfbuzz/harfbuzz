@@ -564,8 +564,106 @@ struct TupleVariationData
   const TupleVariationHeader &get_tuple_var_header (void) const
   { return StructAfter<TupleVariationHeader> (data); }
 
+  struct tuple_iterator_t;
+  struct tuple_variations_t
+  {
+    hb_vector_t<tuple_delta_t> tuple_vars;
+
+    void fini () { tuple_vars.fini (); }
+    bool create_from_tuple_var_data (tuple_iterator_t iterator,
+                                     unsigned tuple_var_count,
+                                     unsigned point_count,
+                                     bool is_gvar,
+                                     const hb_vector_t<unsigned> &shared_indices,
+                                     const hb_array_t<const F2DOT14> shared_tuples)
+    {
+      do
+      {
+        const HBUINT8 *p = iterator.get_serialized_data ();
+        unsigned int length = iterator.current_tuple->get_data_size ();
+        if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
+        { fini (); return false; }
+
+        hb_hashmap_t<unsigned, Triple> axis_tuples;
+        if (!iterator.current_tuple->unpack_axis_tuples (iterator.get_axis_count (), shared_tuples, axis_tuples)
+            || axis_tuples.is_empty ())
+        { fini (); return false; }
+
+        hb_vector_t<unsigned> private_indices;
+        bool has_private_points = iterator.current_tuple->has_private_points ();
+        const HBUINT8 *end = p + length;
+        if (has_private_points &&
+            !TupleVariationData::unpack_points (p, private_indices, end))
+        { fini (); return false; }
+
+        const hb_vector_t<unsigned> &indices = has_private_points ? private_indices : shared_indices;
+        unsigned num_deltas = indices.length;
+
+        hb_vector_t<int> deltas_x;
+
+        if (unlikely (!deltas_x.resize (num_deltas, false) ||
+                      !TupleVariationData::unpack_deltas (p, deltas_x, end)))
+        { fini (); return false; }
+
+        hb_vector_t<int> deltas_y;
+        if (is_gvar)
+        {
+          if (unlikely (!deltas_y.resize (num_deltas, false) ||
+                        !TupleVariationData::unpack_deltas (p, deltas_y, end)))
+          { fini (); return false; }
+        }
+
+        tuple_delta_t var;
+        var.axis_tuples = std::move (axis_tuples);
+        if (unlikely (!var.indices.resize (point_count) ||
+                      !var.deltas_x.resize (point_count, false)))
+        { fini (); return false; }
+
+        if (is_gvar && unlikely (!var.deltas_y.resize (point_count, false)))
+        { fini (); return false; }
+
+        for (unsigned i = 0; i < num_deltas; i++)
+        {
+          unsigned idx = indices[i];
+          var.indices[idx] = 1;
+          var.deltas_x[idx] = static_cast<float> (deltas_x[i]);
+          if (is_gvar)
+            var.deltas_y[idx] = static_cast<float> (deltas_y[i]);
+        }
+        tuple_vars.push (std::move (var));
+      } while (iterator.move_to_next ());
+      return true;
+    }
+
+    void change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple> *normalized_axes_location)
+    {
+      for (auto _ : *normalized_axes_location)
+      {
+        hb_tag_t axis_tag = _.first;
+        Triple axis_limit = _.second;
+        hb_vector_t<tuple_delta_t> new_vars;
+        for (const tuple_delta_t& var : tuple_vars)
+        {
+          hb_vector_t<tuple_delta_t> out = var.change_tuple_var_axis_limit (axis_tag, axis_limit);
+          if (!out) continue;
+          unsigned new_len = new_vars.length + out.length;
+
+          if (unlikely (!new_vars.resize (new_len, false)))
+          { fini (); return;}
+
+          for (unsigned i = 0; i < out.length; i++)
+            new_vars.push (std::move (out[i]));
+        }
+        tuple_vars.fini ();
+        tuple_vars = std::move (new_vars);
+      }
+    }
+  };
+
   struct tuple_iterator_t
   {
+    unsigned get_axis_count () const { return axis_count; }
+
     void init (hb_bytes_t var_data_bytes_, unsigned int axis_count_, const void *table_base_)
     {
       var_data_bytes = var_data_bytes_;
@@ -732,6 +830,19 @@ struct TupleVariationData
   }
 
   bool has_data () const { return tupleVarCount; }
+
+  bool decompile_tuple_variations (unsigned point_count,
+                                   bool is_gvar,
+                                   tuple_iterator_t iterator,
+                                   const hb_vector_t<unsigned> &shared_indices,
+                                   const hb_array_t<const F2DOT14> shared_tuples,
+                                   tuple_variations_t& tuple_variations /* OUT */) const
+  {
+    return tuple_variations.create_from_tuple_var_data (iterator, tupleVarCount,
+                                                        point_count, is_gvar,
+                                                        shared_indices,
+                                                        shared_tuples);
+  }
 
   protected:
   struct TupleVarCount : HBUINT16
