@@ -87,7 +87,7 @@ struct CFFIndex
       {
 	unsigned char *ret = c->allocate_size<unsigned char> (1, false);
 	if (unlikely (!ret)) return_trace (false);
-	*ret = *it;
+	*ret = *it.arrayZ;
 	continue;
       }
       it.copy (c);
