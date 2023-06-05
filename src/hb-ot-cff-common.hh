@@ -143,6 +143,7 @@ struct CFFIndex
   void set_offset_at (unsigned int index, unsigned int offset)
   {
     assert (index <= count);
+
     unsigned int size = offSize;
     const HBUINT8 *p = offsets + size * index;
     switch (size)
@@ -172,15 +173,6 @@ struct CFFIndex
     }
   }
 
-  unsigned int length_at (unsigned int index) const
-  {
-    unsigned offset0 = offset_at (index);
-    unsigned offset1 = offset_at (index + 1);
-    if (unlikely (offset1 < offset0 || offset1 > offset_at (count)))
-      return 0;
-    return offset1 - offset0;
-  }
-
   const unsigned char *data_base () const
   { return (const unsigned char *) this + min_size + offSize.static_size + offset_array_size (); }
   public:
@@ -189,9 +181,11 @@ struct CFFIndex
   {
     if (unlikely (index >= count)) return hb_ubytes_t ();
     _hb_compiler_memory_r_barrier ();
-    unsigned length = length_at (index);
-    if (unlikely (!length)) return hb_ubytes_t ();
-    return hb_ubytes_t (data_base () + offset_at (index) - 1, length);
+    unsigned offset0 = offset_at (index);
+    unsigned offset1 = offset_at (index + 1);
+    if (unlikely (offset1 < offset0 || offset1 > offset_at (count)))
+      return hb_ubytes_t ();
+    return hb_ubytes_t (data_base () + offset0 - 1, offset1 - offset0);
   }
 
   unsigned int get_size () const
