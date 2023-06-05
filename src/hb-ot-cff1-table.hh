@@ -329,10 +329,11 @@ struct Charset0
       return sids[glyph - 1];
   }
 
-  void collect_glyph_to_sid_map (hb_map_t *mapping, unsigned int num_glyphs) const
+  void collect_glyph_to_sid_map (hb_vector_t<uint16_t> *mapping, unsigned int num_glyphs) const
   {
+    mapping->resize (num_glyphs, false);
     for (hb_codepoint_t gid = 1; gid < num_glyphs; gid++)
-      mapping->set (gid, sids[gid - 1]);
+      mapping->arrayZ[gid] = sids[gid - 1];
   }
 
   hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
@@ -405,8 +406,9 @@ struct Charset1_2 {
     return 0;
   }
 
-  void collect_glyph_to_sid_map (hb_map_t *mapping, unsigned int num_glyphs) const
+  void collect_glyph_to_sid_map (hb_vector_t<uint16_t> *mapping, unsigned int num_glyphs) const
   {
+    mapping->resize (num_glyphs, false);
     hb_codepoint_t gid = 1;
     if (gid >= num_glyphs)
       return;
@@ -415,7 +417,7 @@ struct Charset1_2 {
       hb_codepoint_t sid = ranges[i].first;
       unsigned count = ranges[i].nLeft + 1;
       for (unsigned j = 0; j < count; j++)
-	mapping->set (gid++, sid++);
+	mapping->arrayZ[gid++] = sid++;
 
       if (gid >= num_glyphs)
         break;
@@ -562,7 +564,7 @@ struct Charset
     }
   }
 
-  void collect_glyph_to_sid_map (hb_map_t *mapping, unsigned int num_glyphs) const
+  void collect_glyph_to_sid_map (hb_vector_t<uint16_t> *mapping, unsigned int num_glyphs) const
   {
     switch (format)
     {
@@ -1233,12 +1235,14 @@ struct cff1
       }
     }
 
-    hb_map_t *create_glyph_to_sid_map () const
+    hb_vector_t<uint16_t> *create_glyph_to_sid_map () const
     {
       if (charset != &Null (Charset))
       {
-	hb_map_t *mapping = hb_map_create ();
-	mapping->set (0, 0);
+	auto *mapping = (hb_vector_t<uint16_t> *) hb_malloc (sizeof (hb_vector_t<uint16_t>));
+	if (unlikely (!mapping)) return nullptr;
+	mapping = new (mapping) hb_vector_t<uint16_t> ();
+	mapping->push (0);
 	charset->collect_glyph_to_sid_map (mapping, num_glyphs);
 	return mapping;
       }

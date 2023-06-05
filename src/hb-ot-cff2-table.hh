@@ -481,7 +481,7 @@ struct cff2
       blob = nullptr;
     }
 
-    hb_map_t *create_glyph_to_sid_map () const
+    hb_vector_t<uint16_t> *create_glyph_to_sid_map () const
     {
       return nullptr;
     }
