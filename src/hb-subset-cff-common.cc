@@ -87,10 +87,10 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
       if (old_glyph >= last_range.second)
 	last_range = src.get_fd_range (old_glyph);
       unsigned fd = last_range.first;
-      set.add (fd);
 
       if (fd != prev_fd)
       {
+	set.add (fd);
 	num_ranges++;
 	prev_fd = fd;
 	fdselect_ranges.push (code_pair_t { fd, gid });
