@@ -174,6 +174,9 @@ struct ValueFormat : HBUINT16
     if (format & xAdvance)   x_adv = copy_value (c, new_format, xAdvance, *values++);
     if (format & yAdvance)   y_adv = copy_value (c, new_format, yAdvance, *values++);
 
+    if (!has_device ())
+      return;
+
     if (format & xPlaDevice)
     {
       add_delta_to_value (x_placement, base, values, layout_variation_idx_delta_map);
