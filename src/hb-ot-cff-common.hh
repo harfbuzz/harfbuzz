@@ -143,13 +143,15 @@ struct CFFIndex
   void set_offset_at (unsigned int index, unsigned int offset)
   {
     assert (index <= count);
-    HBUINT8 *p = offsets + offSize * index + offSize;
     unsigned int size = offSize;
-    for (; size; size--)
+    const HBUINT8 *p = offsets + size * index;
+    switch (size)
     {
-      --p;
-      *p = offset & 0xFF;
-      offset >>= 8;
+      case 1: * (HBUINT8  *) p = offset; break;
+      case 2: * (HBUINT16 *) p = offset; break;
+      case 3: * (HBUINT24 *) p = offset; break;
+      case 4: * (HBUINT32 *) p = offset; break;
+      default: return;
     }
   }
 
