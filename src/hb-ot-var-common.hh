@@ -249,6 +249,53 @@ struct TupleVariationHeader
   const TupleVariationHeader &get_next (unsigned axis_count) const
   { return StructAtOffset<TupleVariationHeader> (this, get_size (axis_count)); }
 
+  bool unpack_axis_tuples (unsigned axis_count,
+                           const hb_array_t<const F2DOT14> shared_tuples,
+                           hb_hashmap_t<hb_tag_t, Triple>& axis_tuples /* OUT */) const
+  {
+    const F2DOT14 *peak_tuple = nullptr;
+    if (has_peak ())
+      peak_tuple = get_peak_tuple (axis_count).arrayZ;
+    else
+    {
+      unsigned int index = get_index ();
+      if (unlikely ((index + 1) * axis_count > shared_tuples.length))
+        return false;
+      peak_tuple = shared_tuples.sub_array (axis_count * index, axis_count).arrayZ;
+    }
+
+    const F2DOT14 *start_tuple = nullptr;
+    const F2DOT14 *end_tuple = nullptr;
+    bool has_interm = has_intermediate ();
+
+    if (has_interm)
+    {
+      start_tuple = get_start_tuple (axis_count).arrayZ;
+      end_tuple = get_end_tuple (axis_count).arrayZ;
+    }
+
+    for (unsigned i = 0; i < axis_count; i++)
+    {
+      float peak = peak_tuple[i].to_float ();
+      if (peak == 0.f) continue;
+
+      float start, end;
+      if (has_interm)
+      {
+        start = start_tuple[i].to_float ();
+        end = end_tuple[i].to_float ();
+      }
+      else
+      {
+        start = hb_min (peak, 0.f);
+        end = hb_max (peak, 0.f);
+      }
+      axis_tuples.set (i, Triple (start, peak, end));
+    }
+
+    return true;
+  }
+
   float calculate_scalar (hb_array_t<int> coords, unsigned int coord_count,
                           const hb_array_t<const F2DOT14> shared_tuples,
 			  const hb_vector_t<int> *shared_tuple_active_idx = nullptr) const
