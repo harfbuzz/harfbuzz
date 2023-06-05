@@ -584,11 +584,10 @@ struct cff_subset_plan {
 
     /* check whether the subset renumbers any glyph IDs */
     gid_renum = false;
-    for (hb_codepoint_t new_glyph = 0; new_glyph < num_glyphs; new_glyph++)
+    for (const auto &_ : plan->new_to_old_gid_list)
     {
-      if (!plan->old_gid_for_new_gid(new_glyph, &old_glyph))
-	continue;
-      if (new_glyph != old_glyph) {
+      if (_.first != _.second)
+      {
 	gid_renum = true;
 	break;
       }
