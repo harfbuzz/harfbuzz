@@ -582,18 +582,18 @@ struct cff_subset_plan {
     drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
     desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE;
 
-    /* check whether the subset renumbers any glyph IDs */
-    gid_renum = false;
-    for (const auto &_ : plan->new_to_old_gid_list)
-    {
-      if (_.first != _.second)
+    subset_charset = !acc.is_predef_charset ();
+    if (!subset_charset)
+      /* check whether the subset renumbers any glyph IDs */
+      for (const auto &_ : plan->new_to_old_gid_list)
       {
-	gid_renum = true;
-	break;
+	if (_.first != _.second)
+	{
+	  subset_charset = true;
+	  break;
+	}
       }
-    }
 
-    subset_charset = gid_renum || !acc.is_predef_charset ();
     subset_encoding = !acc.is_CID() && !acc.is_predef_encoding ();
 
     /* top dict INDEX */
