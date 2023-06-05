@@ -391,16 +391,31 @@ struct Charset1_2 {
     return_trace (true);
   }
 
-  hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned num_glyphs) const
+  hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned num_glyphs,
+			  code_pair_t *cache = nullptr) const
   {
     if (unlikely (glyph >= num_glyphs)) return 0;
     if (unlikely (glyph == 0)) return 0;
-    glyph--;
-    for (unsigned int i = 0;; i++)
+    hb_codepoint_t start_glyph = 1;
+    unsigned i = 0;
+    if (cache && likely (cache->glyph <= glyph))
     {
-      if (glyph <= ranges[i].nLeft)
-	return (hb_codepoint_t) ranges[i].first + glyph;
-      glyph -= (ranges[i].nLeft + 1);
+      i = cache->code;
+      start_glyph = cache->glyph;
+    }
+    glyph -= start_glyph;
+    for (;; i++)
+    {
+      unsigned count = ranges[i].nLeft;
+      if (glyph <= count)
+      {
+        if (cache)
+	  *cache = {i, start_glyph};
+	return ranges[i].first + glyph;
+      }
+      count++;
+      start_glyph += count;
+      glyph -= count;
     }
 
     return 0;
@@ -553,13 +568,14 @@ struct Charset
     }
   }
 
-  hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned int num_glyphs) const
+  hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned int num_glyphs,
+			  code_pair_t *cache = nullptr) const
   {
     switch (format)
     {
     case 0: return u.format0.get_sid (glyph, num_glyphs);
-    case 1: return u.format1.get_sid (glyph, num_glyphs);
-    case 2: return u.format2.get_sid (glyph, num_glyphs);
+    case 1: return u.format1.get_sid (glyph, num_glyphs, cache);
+    case 2: return u.format2.get_sid (glyph, num_glyphs, cache);
     default:return 0;
     }
   }
@@ -1211,13 +1227,14 @@ struct cff1
 
     bool is_predef_encoding () const { return topDict.EncodingOffset <= ExpertEncoding; }
 
-    hb_codepoint_t glyph_to_code (hb_codepoint_t glyph) const
+    hb_codepoint_t glyph_to_code (hb_codepoint_t glyph,
+				  code_pair_t *glyph_to_sid_cache = nullptr) const
     {
       if (encoding != &Null (Encoding))
 	return encoding->get_code (glyph);
       else
       {
-	hb_codepoint_t sid = glyph_to_sid (glyph);
+	hb_codepoint_t sid = glyph_to_sid (glyph, glyph_to_sid_cache);
 	if (sid == 0) return 0;
 	hb_codepoint_t code = 0;
 	switch (topDict.EncodingOffset)
@@ -1250,10 +1267,11 @@ struct cff1
 	return nullptr;
     }
 
-    hb_codepoint_t glyph_to_sid (hb_codepoint_t glyph) const
+    hb_codepoint_t glyph_to_sid (hb_codepoint_t glyph,
+				 code_pair_t *cache = nullptr) const
     {
       if (charset != &Null (Charset))
-	return charset->get_sid (glyph, num_glyphs);
+	return charset->get_sid (glyph, num_glyphs, cache);
       else
       {
 	hb_codepoint_t sid = 0;
@@ -1396,9 +1414,10 @@ struct cff1
 	  /* TODO */
 
 	  /* fill glyph names */
+	  code_pair_t glyph_to_sid_cache {0, HB_CODEPOINT_INVALID};
 	  for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
 	  {
-	    hb_codepoint_t	sid = glyph_to_sid (gid);
+	    hb_codepoint_t	sid = glyph_to_sid (gid, &glyph_to_sid_cache);
 	    gname_t	gname;
 	    gname.sid = sid;
 	    if (sid < cff1_std_strings_length)
