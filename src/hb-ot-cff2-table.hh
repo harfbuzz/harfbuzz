@@ -481,11 +481,6 @@ struct cff2
       blob = nullptr;
     }
 
-    hb_map_t *create_glyph_to_sid_map () const
-    {
-      return nullptr;
-    }
-
     bool is_valid () const { return blob; }
 
     protected:
