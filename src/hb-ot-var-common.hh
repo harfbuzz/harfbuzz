@@ -251,7 +251,7 @@ struct TupleVariationHeader
 
   bool unpack_axis_tuples (unsigned axis_count,
                            const hb_array_t<const F2DOT14> shared_tuples,
-                           hb_hashmap_t<hb_tag_t, Triple>& axis_tuples /* OUT */) const
+                           hb_hashmap_t<unsigned, Triple>& axis_tuples /* OUT */) const
   {
     const F2DOT14 *peak_tuple = nullptr;
     if (has_peak ())
@@ -414,7 +414,7 @@ struct TupleVariationHeader
 struct tuple_delta_t
 {
   public:
-  hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
+  hb_hashmap_t<unsigned, Triple> axis_tuples;
 
   /* indices_length = point_count, indice[i] = 1 means point i is referenced */
   hb_vector_t<uint8_t> indices;
