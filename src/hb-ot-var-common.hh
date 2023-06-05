@@ -364,6 +364,132 @@ struct TupleVariationHeader
   DEFINE_SIZE_MIN (4);
 };
 
+struct tuple_delta_t
+{
+  public:
+  hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
+
+  /* indices_length = point_count, indice[i] = 1 means point i is referenced */
+  hb_vector_t<uint8_t> indices;
+  
+  hb_vector_t<float> deltas_x;
+  /* empty for cvar tuples */
+  hb_vector_t<float> deltas_y;
+
+  tuple_delta_t () = default;
+  tuple_delta_t (const tuple_delta_t& o) : tuple_delta_t ()
+  { copy (o); }
+
+  tuple_delta_t (tuple_delta_t&& o) : tuple_delta_t ()
+  {
+    axis_tuples = std::move (o.axis_tuples);
+    indices = std::move (o.indices);
+    deltas_x = std::move (o.deltas_x);
+    deltas_y = std::move (o.deltas_y);
+  }
+
+  tuple_delta_t& operator = (const tuple_delta_t& o)
+  { copy (o); return *this; }
+
+  tuple_delta_t& operator = (tuple_delta_t&& o)
+  {
+    hb_swap (*this, o);
+    return *this;
+  }
+
+  void copy (const tuple_delta_t& o)
+  {
+    axis_tuples = o.axis_tuples;
+    indices = o.indices;
+    deltas_x = o.deltas_x;
+    deltas_y = o.deltas_y;
+  }
+
+  void remove_axis (hb_tag_t axis_tag)
+  { axis_tuples.del (axis_tag); }
+
+  bool set_tent (hb_tag_t axis_tag, Triple tent)
+  { return axis_tuples.set (axis_tag, tent); }
+
+  tuple_delta_t& operator += (const tuple_delta_t& o)
+  {
+    unsigned num = indices.length;
+    for (unsigned i = 0; i < num; i++)
+    {
+      if (indices[i])
+      {
+        if (o.indices[i])
+        {
+          deltas_x[i] += o.deltas_x[i];
+          if (deltas_y && o.deltas_y)
+            deltas_y[i] += o.deltas_y[i];
+        }
+      }
+      else
+      {
+        if (!o.indices[i]) continue;
+        deltas_x[i] = o.deltas_x[i];
+        if (deltas_y && o.deltas_y)
+          deltas_y[i] = o.deltas_y[i];
+      }
+    }
+    return *this;
+  }
+
+  tuple_delta_t& operator *= (float scalar)
+  {
+    if (scalar == 1.0f)
+      return *this;
+
+    unsigned num = indices.length;
+    for (unsigned i = 0; i < num; i++)
+    {
+      if (!indices[i]) continue;
+
+      deltas_x[i] *= scalar;
+      if (deltas_y)
+        deltas_y[i] *= scalar;
+    }
+    return *this;
+  }
+
+  hb_vector_t<tuple_delta_t> change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit) const
+  {
+    hb_vector_t<tuple_delta_t> out;
+    Triple *tent;
+    if (!axis_tuples.has (axis_tag, &tent))
+    {
+      out.push (*this);
+      return out;
+    }
+
+    if ((tent->minimum < 0.f && tent->maximum > 0.f) ||
+        !(tent->minimum <= tent->middle && tent->middle <= tent->maximum))
+      return out;
+
+    if (tent->middle == 0.f)
+    {
+      out.push (*this);
+      return out;
+    }
+
+    result_t solutions = rebase_tent (*tent, axis_limit);
+    for (auto t : solutions)
+    {
+      tuple_delta_t new_var = *this;
+      if (t.second == Triple ())
+        new_var.remove_axis (axis_tag);
+      else
+        new_var.set_tent (axis_tag, t.second);
+
+      new_var *= t.first;
+      out.push (std::move (new_var));
+    }
+
+    return out;
+  }
+};
+
 struct TupleVariationData
 {
   bool sanitize (hb_sanitize_context_t *c) const
