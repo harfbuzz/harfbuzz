@@ -911,7 +911,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   cff->offSize = 4; /* unused? */
 
   /* name INDEX */
-  if (unlikely (!(*acc.nameIndex).copy (c))) return false;
+  if (unlikely (!c->embed (*acc.nameIndex))) return false;
 
   /* top dict INDEX */
   {
