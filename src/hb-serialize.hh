@@ -172,8 +172,14 @@ struct hb_serialize_context_t
   };
 
   snapshot_t snapshot ()
-  { return snapshot_t {
-      head, tail, current, current->real_links.length, current->virtual_links.length, errors }; }
+  {
+    return snapshot_t {
+      head, tail, current,
+      current ? current->real_links.length : 0,
+      current ? current->virtual_links.length : 0,
+      errors
+     };
+  }
 
   hb_serialize_context_t (void *start_, unsigned int size) :
     start ((char *) start_),
@@ -411,8 +417,11 @@ struct hb_serialize_context_t
     // Overflows that happened after the snapshot will be erased by the revert.
     if (unlikely (in_error () && !only_overflow ())) return;
     assert (snap.current == current);
-    current->real_links.shrink (snap.num_real_links);
-    current->virtual_links.shrink (snap.num_virtual_links);
+    if (current)
+    {
+      current->real_links.shrink (snap.num_real_links);
+      current->virtual_links.shrink (snap.num_virtual_links);
+    }
     errors = snap.errors;
     revert (snap.head, snap.tail);
   }
