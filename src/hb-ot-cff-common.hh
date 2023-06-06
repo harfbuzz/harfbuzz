@@ -167,7 +167,7 @@ struct CFFIndex
   }
 
   const unsigned char *data_base () const
-  { return (const unsigned char *) this + min_size + offSize.static_size + offset_array_size (); }
+  { return (const unsigned char *) this + min_size + offSize.static_size - 1 + offset_array_size (); }
   public:
 
   hb_ubytes_t operator [] (unsigned int index) const
@@ -178,7 +178,7 @@ struct CFFIndex
     unsigned offset1 = offset_at (index + 1);
     if (unlikely (offset1 < offset0 || offset1 > offset_at (count)))
       return hb_ubytes_t ();
-    return hb_ubytes_t (data_base () + offset0 - 1, offset1 - offset0);
+    return hb_ubytes_t (data_base () + offset0, offset1 - offset0);
   }
 
   unsigned int get_size () const
@@ -196,7 +196,7 @@ struct CFFIndex
 			   (count < count + 1u &&
 			    c->check_struct (&offSize) && offSize >= 1 && offSize <= 4 &&
 			    c->check_array (offsets, offSize, count + 1u) &&
-			    c->check_array ((const HBUINT8*) data_base (), 1, offset_at (count) - 1)))));
+			    c->check_array ((const HBUINT8*) data_base (), 1, offset_at (count))))));
   }
 
   public:
