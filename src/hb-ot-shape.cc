@@ -410,6 +410,36 @@ _hb_hb_shaper_face_data_destroy (hb_hb_face_data_t *data)
 }
 
 
+struct hb_ot_face_data_t {};
+
+hb_ot_face_data_t *
+_hb_ot_shaper_face_data_create (hb_face_t *face)
+{
+  return (hb_ot_face_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_ot_shaper_face_data_destroy (hb_ot_face_data_t *data)
+{
+}
+
+
+#ifndef HB_NO_AAT_SHAPE
+struct hb_aat_face_data_t {};
+
+hb_aat_face_data_t *
+_hb_aat_shaper_face_data_create (hb_face_t *face)
+{
+  return (hb_aat_face_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_aat_shaper_face_data_destroy (hb_aat_face_data_t *data)
+{
+}
+#endif
+
+
 /*
  * shaper font data
  */
@@ -426,6 +456,36 @@ void
 _hb_hb_shaper_font_data_destroy (hb_hb_font_data_t *data HB_UNUSED)
 {
 }
+
+
+struct hb_ot_font_data_t {};
+
+hb_ot_font_data_t *
+_hb_ot_shaper_font_data_create (hb_font_t *font HB_UNUSED)
+{
+  return (hb_ot_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_ot_shaper_font_data_destroy (hb_ot_font_data_t *data HB_UNUSED)
+{
+}
+
+
+#ifndef HB_NO_AAT_SHAPE
+struct hb_aat_font_data_t {};
+
+hb_aat_font_data_t *
+_hb_aat_shaper_font_data_create (hb_font_t *font HB_UNUSED)
+{
+  return (hb_aat_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_aat_shaper_font_data_destroy (hb_aat_font_data_t *data HB_UNUSED)
+{
+}
+#endif
 
 
 /*
@@ -1207,6 +1267,44 @@ _hb_hb_shape (hb_shape_plan_t    *shape_plan,
 
   return true;
 }
+
+
+hb_bool_t
+_hb_ot_shape (hb_shape_plan_t    *shape_plan,
+	      hb_font_t          *font,
+	      hb_buffer_t        *buffer,
+	      const hb_feature_t *features,
+	      unsigned int        num_features)
+{
+  if (!hb_ot_layout_has_substitution (font->face) &&
+      !hb_ot_layout_has_positioning (font->face))
+    return false;
+
+  hb_ot_shape_context_t c = {&shape_plan->ot, font, font->face, buffer, features, num_features};
+  hb_ot_shape_internal (&c);
+
+  return true;
+}
+
+
+#ifndef HB_NO_AAT_SHAPE
+hb_bool_t
+_hb_aat_shape (hb_shape_plan_t    *shape_plan,
+	      hb_font_t          *font,
+	      hb_buffer_t        *buffer,
+	      const hb_feature_t *features,
+	      unsigned int        num_features)
+{
+  if (!hb_aat_layout_has_substitution (font->face) &&
+      !hb_aat_layout_has_positioning (font->face))
+    return false;
+
+  hb_ot_shape_context_t c = {&shape_plan->ot, font, font->face, buffer, features, num_features};
+  hb_ot_shape_internal (&c);
+
+  return true;
+}
+#endif
 
 
 /**

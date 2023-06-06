@@ -45,6 +45,10 @@ HB_SHAPER_IMPLEMENT (graphite2)
 
 #ifndef HB_NO_OT_SHAPE
 HB_SHAPER_IMPLEMENT (hb) /* <--- This is our main shaper. */
+HB_SHAPER_IMPLEMENT (ot)
+#endif
+#ifndef HB_NO_AAT_SHAPE
+HB_SHAPER_IMPLEMENT (aat)
 #endif
 
 #ifdef HAVE_UNISCRIBE
