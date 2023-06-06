@@ -647,11 +647,13 @@ struct CFF1StringIndex : CFF1Index
       return_trace (true);
     }
 
+    if (unlikely (sidmap.in_error ())) return_trace (false);
+
     byte_str_array_t bytesArray;
     if (!bytesArray.resize (sidmap.get_population ()))
       return_trace (false);
     for (auto _ : sidmap)
-      bytesArray[_.second] = strings[_.first];
+      bytesArray.arrayZ[_.second] = strings[_.first];
 
     bool result = CFF1Index::serialize (c, bytesArray);
     return_trace (result);
