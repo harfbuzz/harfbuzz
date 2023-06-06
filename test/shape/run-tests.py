@@ -82,7 +82,7 @@ for filename in args:
 			cwd = os.path.dirname(filename)
 			fontfile = os.path.normpath (os.path.join (cwd, fontfile))
 
-		extra_options = ["--shaper=ot"]
+		extra_options = ["--shaper=hb"]
 		if glyphs_expected != '*':
 			extra_options.append("--verify")
 			extra_options.append("--unsafe-to-concat")

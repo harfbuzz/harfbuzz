@@ -31,7 +31,7 @@
 #ifndef HB_NO_OT_SHAPE
 
 #ifdef HB_NO_OT_LAYOUT
-#error "Cannot compile 'ot' shaper with HB_NO_OT_LAYOUT."
+#error "Cannot compile 'hb' shaper with HB_NO_OT_LAYOUT."
 #endif
 
 #include "hb-shaper-impl.hh"
@@ -396,16 +396,16 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t *planner,
  * shaper face data
  */
 
-struct hb_ot_face_data_t {};
+struct hb_hb_face_data_t {};
 
-hb_ot_face_data_t *
-_hb_ot_shaper_face_data_create (hb_face_t *face)
+hb_hb_face_data_t *
+_hb_hb_shaper_face_data_create (hb_face_t *face)
 {
-  return (hb_ot_face_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  return (hb_hb_face_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_ot_shaper_face_data_destroy (hb_ot_face_data_t *data)
+_hb_hb_shaper_face_data_destroy (hb_hb_face_data_t *data)
 {
 }
 
@@ -414,16 +414,16 @@ _hb_ot_shaper_face_data_destroy (hb_ot_face_data_t *data)
  * shaper font data
  */
 
-struct hb_ot_font_data_t {};
+struct hb_hb_font_data_t {};
 
-hb_ot_font_data_t *
-_hb_ot_shaper_font_data_create (hb_font_t *font HB_UNUSED)
+hb_hb_font_data_t *
+_hb_hb_shaper_font_data_create (hb_font_t *font HB_UNUSED)
 {
-  return (hb_ot_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  return (hb_hb_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_ot_shaper_font_data_destroy (hb_ot_font_data_t *data HB_UNUSED)
+_hb_hb_shaper_font_data_destroy (hb_hb_font_data_t *data HB_UNUSED)
 {
 }
 
@@ -1196,7 +1196,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
 
 hb_bool_t
-_hb_ot_shape (hb_shape_plan_t    *shape_plan,
+_hb_hb_shape (hb_shape_plan_t    *shape_plan,
 	      hb_font_t          *font,
 	      hb_buffer_t        *buffer,
 	      const hb_feature_t *features,
