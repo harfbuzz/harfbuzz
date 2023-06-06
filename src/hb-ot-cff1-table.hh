@@ -650,12 +650,8 @@ struct CFF1StringIndex : CFF1Index
     byte_str_array_t bytesArray;
     if (!bytesArray.resize (sidmap.get_population ()))
       return_trace (false);
-    for (unsigned int i = 0; i < strings.count; i++)
-    {
-      hb_codepoint_t  j = sidmap[i];
-      if (j != HB_MAP_VALUE_INVALID)
-	bytesArray[j] = strings[i];
-    }
+    for (auto _ : sidmap)
+      bytesArray[_.second] = strings[_.first];
 
     bool result = CFF1Index::serialize (c, bytesArray);
     return_trace (result);
