@@ -295,11 +295,8 @@ struct hb_vector_t
   void
   grow_vector (unsigned size)
   {
-    while (length < size)
-    {
-      length++;
-      new (std::addressof (arrayZ[length - 1])) Type ();
-    }
+    for (; length < size; length++)
+      new (std::addressof (arrayZ[length])) Type ();
   }
 
   template <typename T = Type,
