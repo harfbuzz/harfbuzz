@@ -338,8 +338,6 @@ struct byte_str_ref_t
   hb_ubytes_t       str;
 };
 
-using byte_str_array_t = hb_vector_t<hb_ubytes_t>;
-
 /* stack */
 template <typename ELEM, int LIMIT>
 struct cff_stack_t
