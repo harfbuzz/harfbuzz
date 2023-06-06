@@ -73,8 +73,11 @@ struct CFFIndex
     for (const auto &_ : +it)
     {
       auto it = hb_iter (_);
-      if (hb_len (it) == 1)
+      unsigned len = hb_len (it);
+      if (len <= 1)
       {
+        if (!len)
+	  continue;
 	unsigned char *ret = c->allocate_size<unsigned char> (1, false);
 	if (unlikely (!ret)) return_trace (false);
 	*ret = *it.arrayZ;
