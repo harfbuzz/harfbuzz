@@ -39,12 +39,20 @@
 
 using namespace CFF;
 
-struct remap_sid_t : hb_inc_bimap_t
+struct remap_sid_t : hb_map_t
 {
   unsigned int add (unsigned int sid)
   {
     if ((sid != CFF_UNDEF_SID) && !is_std_std (sid))
-      return offset_sid (hb_inc_bimap_t::add (unoffset_sid (sid)));
+    {
+      sid = unoffset_sid (sid);
+      unsigned v = get (sid);
+      if (v != HB_MAP_VALUE_INVALID)
+        return offset_sid (v);
+      v = next++;
+      set (sid, v);
+      return offset_sid (v);
+    }
     else
       return sid;
   }
@@ -62,6 +70,7 @@ struct remap_sid_t : hb_inc_bimap_t
   static bool is_std_std (unsigned int sid) { return sid < num_std_strings; }
   static unsigned int offset_sid (unsigned int sid) { return sid + num_std_strings; }
   static unsigned int unoffset_sid (unsigned int sid) { return sid - num_std_strings; }
+  unsigned next = 0;
 };
 
 struct cff1_sub_table_info_t : cff_sub_table_info_t
