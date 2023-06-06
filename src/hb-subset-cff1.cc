@@ -501,6 +501,8 @@ struct cff_subset_plan {
     if (it->first == 0) it++;
     auto _ = *it;
     bool not_is_cid = !acc.is_CID ();
+    if (not_is_cid)
+      sidmap.resize (num_glyphs);
     for (glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t old_glyph;
