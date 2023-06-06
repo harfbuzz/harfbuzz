@@ -417,15 +417,14 @@ struct tuple_delta_t
   hb_hashmap_t<unsigned, Triple> axis_tuples;
 
   /* indices_length = point_count, indice[i] = 1 means point i is referenced */
-  hb_vector_t<uint8_t> indices;
+  hb_vector_t<bool> indices;
   
   hb_vector_t<float> deltas_x;
   /* empty for cvar tuples */
   hb_vector_t<float> deltas_y;
 
   tuple_delta_t () = default;
-  tuple_delta_t (const tuple_delta_t& o) : tuple_delta_t ()
-  { copy (o); }
+  tuple_delta_t (const tuple_delta_t& o) = default;
 
   tuple_delta_t (tuple_delta_t&& o) : tuple_delta_t ()
   {
@@ -435,21 +434,10 @@ struct tuple_delta_t
     deltas_y = std::move (o.deltas_y);
   }
 
-  tuple_delta_t& operator = (const tuple_delta_t& o)
-  { copy (o); return *this; }
-
   tuple_delta_t& operator = (tuple_delta_t&& o)
   {
     hb_swap (*this, o);
     return *this;
-  }
-
-  void copy (const tuple_delta_t& o)
-  {
-    axis_tuples = o.axis_tuples;
-    indices = o.indices;
-    deltas_x = o.deltas_x;
-    deltas_y = o.deltas_y;
   }
 
   void remove_axis (hb_tag_t axis_tag)
@@ -463,9 +451,9 @@ struct tuple_delta_t
     unsigned num = indices.length;
     for (unsigned i = 0; i < num; i++)
     {
-      if (indices[i])
+      if (indices.arrayZ[i])
       {
-        if (o.indices[i])
+        if (o.indices.arrayZ[i])
         {
           deltas_x[i] += o.deltas_x[i];
           if (deltas_y && o.deltas_y)
@@ -474,7 +462,7 @@ struct tuple_delta_t
       }
       else
       {
-        if (!o.indices[i]) continue;
+        if (!o.indices.arrayZ[i]) continue;
         deltas_x[i] = o.deltas_x[i];
         if (deltas_y && o.deltas_y)
           deltas_y[i] = o.deltas_y[i];
@@ -491,7 +479,7 @@ struct tuple_delta_t
     unsigned num = indices.length;
     for (unsigned i = 0; i < num; i++)
     {
-      if (!indices[i]) continue;
+      if (!indices.arrayZ[i]) continue;
 
       deltas_x[i] *= scalar;
       if (deltas_y)
@@ -625,7 +613,7 @@ struct TupleVariationData
         for (unsigned i = 0; i < num_deltas; i++)
         {
           unsigned idx = indices[i];
-          var.indices[idx] = 1;
+          var.indices[idx] = true;
           var.deltas_x[idx] = static_cast<float> (deltas_x[i]);
           if (is_gvar)
             var.deltas_y[idx] = static_cast<float> (deltas_y[i]);

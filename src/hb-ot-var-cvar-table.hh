@@ -62,7 +62,7 @@ struct cvar
     hb_bytes_t var_data_bytes = hb_bytes_t (reinterpret_cast<const char*> (get_tuple_var_data ()), var_data_length);
     if (!TupleVariationData::get_tuple_iterator (var_data_bytes, axis_count, this,
                                                  shared_indices, &iterator))
-      return true;
+      return false;
 
     return tupleVariationData.decompile_tuple_variations (point_count, is_gvar, iterator,
                                                           shared_indices,
