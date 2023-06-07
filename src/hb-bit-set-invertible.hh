@@ -363,7 +363,7 @@ struct hb_bit_set_invertible_t
     unsigned __len__ () const { return l; }
     iter_t end () const { return iter_t (*s, false); }
     bool operator != (const iter_t& o) const
-    { return s != o.s || v != o.v; }
+    { return v != o.v || s != o.s; }
 
     protected:
     const hb_bit_set_invertible_t *s;
