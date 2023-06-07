@@ -63,7 +63,7 @@ struct hb_iter_t
   static constexpr bool is_iterator = true;
   static constexpr bool is_random_access_iterator = false;
   static constexpr bool is_sorted_iterator = false;
-  static constexpr bool has_fast_len = false;
+  static constexpr bool has_fast_len = false; // Should be checked in combination with is_random_access_iterator.
 
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
