@@ -75,6 +75,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
    */
   typedef Type& __item_t__;
   static constexpr bool is_random_access_iterator = true;
+  static constexpr bool has_fast_len = true;
   Type& __item_at__ (unsigned i) const
   {
     if (unlikely (i >= length)) return CrapOrNull (Type);
@@ -327,6 +328,7 @@ struct hb_sorted_array_t :
   HB_ITER_USING (iter_base_t);
   static constexpr bool is_random_access_iterator = true;
   static constexpr bool is_sorted_iterator = true;
+  static constexpr bool has_fast_len = true;
 
   hb_sorted_array_t () = default;
   hb_sorted_array_t (const hb_sorted_array_t&) = default;

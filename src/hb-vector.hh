@@ -54,7 +54,7 @@ struct hb_vector_t
   hb_vector_t (const Iterable &o) : hb_vector_t ()
   {
     auto iter = hb_iter (o);
-    if (iter.is_random_access_iterator)
+    if (iter.is_random_access_iterator || iter.has_fast_len)
       alloc (hb_len (iter), true);
     hb_copy (iter, *this);
   }

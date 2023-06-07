@@ -866,6 +866,7 @@ struct hb_bit_set_t
   struct iter_t : hb_iter_with_fallback_t<iter_t, hb_codepoint_t>
   {
     static constexpr bool is_sorted_iterator = true;
+    static constexpr bool has_fast_len = true;
     iter_t (const hb_bit_set_t &s_ = Null (hb_bit_set_t),
 	    bool init = true) : s (&s_), v (INVALID), l(0)
     {
