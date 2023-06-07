@@ -1,0 +1,4 @@
+fonttools
+meson==0.56.0
+gcovr==5.0
+ninja
