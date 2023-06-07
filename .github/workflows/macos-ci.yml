@@ -35,7 +35,7 @@ jobs:
           ninja \
           pkg-config
     - name: Install Python Dependencies
-      run: pip3 install fonttools gcovr==5.0
+      run: pip3 install -r .ci/requirements.txt --require-hashes
     - name: Setup Meson
       run: |
         export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig"

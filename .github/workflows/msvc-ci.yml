@@ -44,7 +44,7 @@ jobs:
         arch : ${{ matrix.ARCH }}
     - name: Install Python Dependencies
       run: |
-        pip install --upgrade meson ninja fonttools
+        pip3 install -r .ci/requirements.txt --require-hashes
     - name: Setup Meson
       run: |
         sccache --version
