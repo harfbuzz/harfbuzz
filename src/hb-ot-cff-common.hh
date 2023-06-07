@@ -210,9 +210,6 @@ struct CFFIndex
   DEFINE_SIZE_MIN (COUNT::static_size);
 };
 
-template <typename COUNT, typename TYPE>
-struct CFFIndexOf : CFFIndex<COUNT> {};
-
 /* Top Dict, Font Dict, Private Dict */
 struct Dict : UnsizedByteStr
 {
@@ -288,7 +285,7 @@ struct table_info_t
 };
 
 template <typename COUNT>
-struct FDArray : CFFIndexOf<COUNT, FontDict>
+struct FDArray : CFFIndex<COUNT>
 {
   template <typename DICTVAL, typename INFO, typename Iterator, typename OP_SERIALIZER>
   bool serialize (hb_serialize_context_t *c,
