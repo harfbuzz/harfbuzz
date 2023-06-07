@@ -649,7 +649,7 @@ struct CFF1StringIndex : CFF1Index
     if (unlikely (sidmap.in_error ())) return_trace (false);
 
     hb_vector_t<hb_ubytes_t> bytesArray;
-    if (!bytesArray.resize (sidmap.get_population ()))
+    if (!bytesArray.resize (sidmap.get_population ()), false)
       return_trace (false);
     for (auto _ : sidmap)
       bytesArray.arrayZ[_.second] = strings[_.first];
