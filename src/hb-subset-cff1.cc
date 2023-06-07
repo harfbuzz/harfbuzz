@@ -46,11 +46,11 @@ struct remap_sid_t : hb_map_t
     if ((sid != CFF_UNDEF_SID) && !is_std_std (sid))
     {
       sid = unoffset_sid (sid);
-      unsigned v = get (sid);
-      if (v != HB_MAP_VALUE_INVALID)
-        return offset_sid (v);
-      v = next++;
-      set (sid, v);
+      unsigned v = next;
+      if (set (sid, v, false))
+        next++;
+      else
+        v = get (sid); // already exists
       return offset_sid (v);
     }
     else

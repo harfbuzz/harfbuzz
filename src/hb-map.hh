@@ -205,7 +205,7 @@ struct hb_hashmap_t
   }
 
   template <typename KK, typename VV>
-  bool set_with_hash (KK&& key, uint32_t hash, VV&& value)
+  bool set_with_hash (KK&& key, uint32_t hash, VV&& value, bool overwrite = true)
   {
     if (unlikely (!successful)) return false;
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
@@ -219,7 +219,12 @@ struct hb_hashmap_t
     {
       if ((std::is_integral<K>::value || items[i].hash == hash) &&
 	  items[i] == key)
-        break;
+      {
+        if (!overwrite)
+	  return false;
+        else
+	  break;
+      }
       if (items[i].is_tombstone () && tombstone == (unsigned) -1)
         tombstone = i;
       i = (i + ++step) & mask;
@@ -251,9 +256,9 @@ struct hb_hashmap_t
   }
 
   template <typename VV>
-  bool set (const K &key, VV&& value) { return set_with_hash (key, hb_hash (key), std::forward<VV> (value)); }
+  bool set (const K &key, VV&& value, bool overwrite = true) { return set_with_hash (key, hb_hash (key), std::forward<VV> (value), overwrite); }
   template <typename VV>
-  bool set (K &&key, VV&& value) { return set_with_hash (std::move (key), hb_hash (key), std::forward<VV> (value)); }
+  bool set (K &&key, VV&& value, bool overwrite = true) { return set_with_hash (std::move (key), hb_hash (key), std::forward<VV> (value), overwrite); }
 
   const V& get_with_hash (const K &key, uint32_t hash) const
   {
