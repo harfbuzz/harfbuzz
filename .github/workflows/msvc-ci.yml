@@ -28,18 +28,18 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
     - name: Setup Ccache
-      uses: hendrikmuhs/ccache-action@v1.2
+      uses: hendrikmuhs/ccache-action@ca3acd2731eef11f1572ccb126356c2f9298d35e # v1.2.9
       with:
         variant: sccache
         key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.ARCH }}
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@bd6b4b6205c4dbad673328db7b31b7fab9e241c0 # v4.6.1
       with:
         python-version: '3.x'
     - name: Setup MSVC
-      uses: ilammy/msvc-dev-cmd@v1
+      uses: ilammy/msvc-dev-cmd@7315a94840631165970262a99c72cfb48a65d25d # v1.12.0
       with:
         arch : ${{ matrix.ARCH }}
     - name: Install Python Dependencies

@@ -11,7 +11,7 @@ jobs:
   latest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - run: sudo apt-get install gcc clang wget git curl pkg-config libfreetype6-dev libglib2.0-dev libicu-dev libgraphite2-dev
 
