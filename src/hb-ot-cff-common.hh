@@ -69,7 +69,9 @@ struct CFFIndex
   {
     TRACE_SERIALIZE (this);
     auto it = hb_iter (iterable);
-    serialize_header(c, + it | hb_map (hb_iter) | hb_map (hb_len));
+    unsigned size = serialize_header(c, + it | hb_map (hb_iter) | hb_map (hb_len));
+    unsigned char *ret = c->allocate_size<unsigned char> (size, false);
+    if (unlikely (!ret)) return_trace (false);
     for (const auto &_ : +it)
     {
       auto it = hb_iter (_);
@@ -78,20 +80,19 @@ struct CFFIndex
       {
         if (!len)
 	  continue;
-	unsigned char *ret = c->allocate_size<unsigned char> (1, false);
-	if (unlikely (!ret)) return_trace (false);
-	*ret = *it.arrayZ;
+	*ret++ = *it.arrayZ;
 	continue;
       }
-      it.copy (c);
+      hb_memcpy (ret, it.arrayZ, len);
+      ret += len;
     }
     return_trace (true);
   }
 
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
-  bool serialize_header (hb_serialize_context_t *c,
-			Iterator it)
+  unsigned serialize_header (hb_serialize_context_t *c,
+			     Iterator it)
   {
     TRACE_SERIALIZE (this);
 
@@ -99,13 +100,13 @@ struct CFFIndex
     unsigned off_size = (hb_bit_storage (total + 1) + 7) / 8;
 
     /* serialize CFFIndex header */
-    if (unlikely (!c->extend_min (this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (0);
     this->count = hb_len (it);
-    if (!this->count) return_trace (true);
-    if (unlikely (!c->extend (this->offSize))) return_trace (false);
+    if (!this->count) return_trace (0);
+    if (unlikely (!c->extend (this->offSize))) return_trace (0);
     this->offSize = off_size;
     if (unlikely (!c->allocate_size<HBUINT8> (off_size * (this->count + 1), false)))
-      return_trace (false);
+      return_trace (0);
 
     /* serialize indices */
     unsigned int offset = 1;
@@ -117,7 +118,7 @@ struct CFFIndex
     }
     set_offset_at (i, offset);
 
-    return_trace (true);
+    return_trace (total);
   }
 
   template <typename Iterable,
