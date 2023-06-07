@@ -654,7 +654,7 @@ struct CFF1StringIndex : CFF1Index
     for (auto _ : sidmap)
       bytesArray.arrayZ[_.second] = strings[_.first];
 
-    bool result = CFF1Index::serialize_consecutive (c, bytesArray);
+    bool result = CFF1Index::serialize (c, bytesArray);
     return_trace (result);
   }
 };
