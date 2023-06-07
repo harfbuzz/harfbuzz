@@ -496,8 +496,8 @@ struct hb_reduce_t
   operator () (Iter it)
   {
     AccuT value = init_value;
-    for (const auto &_ : it)
-      value = r (value, _);
+    for (; it; ++it)
+      value = r (value, *it);
     return value;
   }
 
@@ -679,8 +679,8 @@ struct hb_apply_t
 	    hb_requires (hb_is_iterator (Iter))>
   void operator () (Iter it)
   {
-    for (const auto &_ : it)
-      (void) hb_invoke (a, _);
+    for (; it; ++it)
+      (void) hb_invoke (a, *it);
   }
 
   private:
@@ -879,8 +879,8 @@ struct hb_sink_t
 	    hb_requires (hb_is_iterator (Iter))>
   void operator () (Iter it)
   {
-    for (const auto &_ : it)
-      s << _;
+    for (; it; ++it)
+      s << *it;
   }
 
   private:
@@ -906,8 +906,8 @@ struct
 	    hb_requires (hb_is_iterator (Iter))>
   void operator () (Iter it) const
   {
-    for (const auto &_ : it)
-      (void) _;
+    for (; it; ++it)
+      (void) *it;
   }
 }
 HB_FUNCOBJ (hb_drain);
@@ -923,10 +923,11 @@ struct hb_unzip_t
 	    hb_requires (hb_is_iterator (Iter))>
   void operator () (Iter it)
   {
-    for (const auto &_ : it)
+    for (; it; ++it)
     {
-      s1 << _.first;
-      s2 << _.second;
+      const auto &v = *it;
+      s1 << v.first;
+      s2 << v.second;
     }
   }
 
@@ -959,8 +960,8 @@ struct
 		    Pred&& p = hb_identity,
 		    Proj&& f = hb_identity) const
   {
-    for (auto _ : c)
-      if (!hb_match (std::forward<Pred> (p), hb_get (std::forward<Proj> (f), _)))
+    for (auto it = hb_iter (c); it; ++it)
+      if (!hb_match (std::forward<Pred> (p), hb_get (std::forward<Proj> (f), *it)))
 	return false;
     return true;
   }
@@ -976,8 +977,8 @@ struct
 		    Pred&& p = hb_identity,
 		    Proj&& f = hb_identity) const
   {
-    for (auto _ : c)
-      if (hb_match (std::forward<Pred> (p), hb_get (std::forward<Proj> (f), _)))
+    for (auto it = hb_iter (c); it; ++it)
+      if (hb_match (std::forward<Pred> (p), hb_get (std::forward<Proj> (f), *it)))
 	return true;
     return false;
   }
@@ -993,8 +994,8 @@ struct
 		    Pred&& p = hb_identity,
 		    Proj&& f = hb_identity) const
   {
-    for (auto _ : c)
-      if (hb_match (std::forward<Pred> (p), hb_get (std::forward<Proj> (f), _)))
+    for (auto it = hb_iter (c); it; ++it)
+      if (hb_match (std::forward<Pred> (p), hb_get (std::forward<Proj> (f), *it)))
 	return false;
     return true;
   }
