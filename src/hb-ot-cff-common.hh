@@ -74,16 +74,15 @@ struct CFFIndex
     if (unlikely (!ret)) return_trace (false);
     for (const auto &_ : +it)
     {
-      auto it = hb_iter (_);
-      unsigned len = hb_len (it);
+      unsigned len = _.length;
       if (len <= 1)
       {
         if (!len)
 	  continue;
-	*ret++ = *it.arrayZ;
+	*ret++ = *_.arrayZ;
 	continue;
       }
-      hb_memcpy (ret, it.arrayZ, len);
+      hb_memcpy (ret, _.arrayZ, len);
       ret += len;
     }
     return_trace (true);
