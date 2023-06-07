@@ -68,14 +68,14 @@ struct hb_hashmap_t
   struct item_t
   {
     K key;
-    uint32_t hash : 30;
     uint32_t is_used_ : 1;
     uint32_t is_tombstone_ : 1;
+    uint32_t hash : 30;
     V value;
 
     item_t () : key (),
-		hash (0),
 		is_used_ (false), is_tombstone_ (false),
+		hash (0),
 		value () {}
 
     bool is_used () const { return is_used_; }
