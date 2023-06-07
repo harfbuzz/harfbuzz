@@ -937,8 +937,7 @@ struct DefaultUVS : SortedArray32Of<UnicodeValueRange>
       hb_codepoint_t start = HB_SET_VALUE_INVALID;
       hb_codepoint_t end = HB_SET_VALUE_INVALID;
 
-      for (hb_codepoint_t u = HB_SET_VALUE_INVALID;
-	   unicodes->next (&u);)
+      for (auto u : *unicodes)
       {
         if (!as_array ().bsearch (u))
 	  continue;

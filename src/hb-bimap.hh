@@ -122,8 +122,7 @@ struct hb_inc_bimap_t : hb_bimap_t
 
   void add_set (const hb_set_t *set)
   {
-    hb_codepoint_t i = HB_SET_VALUE_INVALID;
-    while (hb_set_next (set, &i)) add (i);
+    for (auto i : *set) add (i);
   }
 
   /* Create an identity map. */

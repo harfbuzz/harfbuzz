@@ -1316,8 +1316,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
   hb_set_t feature_indexes;
   hb_ot_layout_collect_features (face, table_tag, scripts, languages, features, &feature_indexes);
 
-  for (hb_codepoint_t feature_index = HB_SET_VALUE_INVALID;
-       hb_set_next (&feature_indexes, &feature_index);)
+  for (auto feature_index : feature_indexes)
     g.get_feature (feature_index).add_lookup_indexes_to (lookup_indexes);
 
   g.feature_variation_collect_lookups (&feature_indexes, nullptr, lookup_indexes);
@@ -1570,7 +1569,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
     glyphs_length = glyphs->get_population ();
     if (lookups)
     {
-      for (hb_codepoint_t lookup_index = HB_SET_VALUE_INVALID; hb_set_next (lookups, &lookup_index);)
+      for (auto lookup_index : *lookups)
 	gsub.get_lookup (lookup_index).closure (&c, lookup_index);
     }
     else

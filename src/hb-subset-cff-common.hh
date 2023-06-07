@@ -607,8 +607,7 @@ struct subr_remap_t : hb_inc_bimap_t
      */
 
     resize (closure->get_population ());
-    hb_codepoint_t old_num = HB_SET_VALUE_INVALID;
-    while (hb_set_next (closure, &old_num))
+    for (auto old_num : *closure)
       add (old_num);
 
     if (get_population () < 1240)

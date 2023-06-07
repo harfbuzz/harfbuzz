@@ -65,7 +65,7 @@ main (int argc, char **argv)
   for (unsigned i = 0; i < count; i++)
   {
     unsigned alt_count = 0;
-    for (unsigned lookup_index = HB_SET_VALUE_INVALID;
+    for (hb_codepoint_t lookup_index = HB_SET_VALUE_INVALID;
 	 hb_set_next (lookup_indexes, &lookup_index);)
       if ((alt_count = hb_ot_layout_lookup_get_glyph_alternates (face,
 								 lookup_index,

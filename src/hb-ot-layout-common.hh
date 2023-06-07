@@ -1919,7 +1919,7 @@ struct ClassDefFormat2_4
   {
     if (rangeRecord.len > glyphs->get_population () * hb_bit_storage ((unsigned) rangeRecord.len) / 2)
     {
-      for (hb_codepoint_t g = HB_SET_VALUE_INVALID; glyphs->next (&g);)
+      for (auto g : *glyphs)
         if (get_class (g))
 	  return true;
       return false;
@@ -1979,8 +1979,7 @@ struct ClassDefFormat2_4
     unsigned count = rangeRecord.len;
     if (count > glyphs->get_population () * hb_bit_storage (count) * 8)
     {
-      for (hb_codepoint_t g = HB_SET_VALUE_INVALID;
-	   glyphs->next (&g);)
+      for (auto g : *glyphs)
       {
         unsigned i;
         if (rangeRecord.as_array ().bfind (g, &i) &&
