@@ -211,45 +211,7 @@ struct CFFIndex
 };
 
 template <typename COUNT, typename TYPE>
-struct CFFIndexOf : CFFIndex<COUNT>
-{
-  template <typename DATA, typename PARAM1, typename PARAM2>
-  bool serialize (hb_serialize_context_t *c,
-		  unsigned int offSize_,
-		  const DATA *dataArray,
-		  unsigned int dataArrayLen,
-		  const hb_vector_t<unsigned int> &dataSizeArray,
-		  const PARAM1 &param1,
-		  const PARAM2 &param2)
-  {
-    TRACE_SERIALIZE (this);
-    /* serialize CFFIndex header */
-    if (unlikely (!c->extend_min (this))) return_trace (false);
-    this->count = dataArrayLen;
-    this->offSize = offSize_;
-    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (dataArrayLen + 1), false)))
-      return_trace (false);
-
-    /* serialize indices */
-    unsigned int  offset = 1;
-    unsigned int  i = 0;
-    for (; i < dataArrayLen; i++)
-    {
-      this->set_offset_at (i, offset);
-      offset += dataSizeArray[i];
-    }
-    this->set_offset_at (i, offset);
-
-    /* serialize data */
-    for (unsigned int i = 0; i < dataArrayLen; i++)
-    {
-      TYPE *dest = c->start_embed<TYPE> ();
-      if (unlikely (!dest->serialize (c, dataArray[i], param1, param2)))
-	return_trace (false);
-    }
-    return_trace (true);
-  }
-};
+struct CFFIndexOf : CFFIndex<COUNT> {};
 
 /* Top Dict, Font Dict, Private Dict */
 struct Dict : UnsizedByteStr
