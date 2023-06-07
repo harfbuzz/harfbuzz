@@ -496,8 +496,8 @@ struct hb_reduce_t
   operator () (Iter it)
   {
     AccuT value = init_value;
-    for (auto&& _ : it)
-      value = r (value, _);
+    for (; it; ++it)
+      value = r (value, *it);
     return value;
   }
 
@@ -679,8 +679,8 @@ struct hb_apply_t
 	    hb_requires (hb_is_iterator (Iter))>
   void operator () (Iter it)
   {
-    for (auto&& _ : it)
-      (void) hb_invoke (a, _);
+    for (; it; ++it)
+      (void) hb_invoke (a, *it);
   }
 
   private:
@@ -879,8 +879,8 @@ struct hb_sink_t
 	    hb_requires (hb_is_iterator (Iter))>
   void operator () (Iter it)
   {
-    for (auto&& _ : it)
-      s << _;
+    for (; it; ++it)
+      s << *it;
   }
 
   private:
@@ -906,8 +906,8 @@ struct
 	    hb_requires (hb_is_iterator (Iter))>
   void operator () (Iter it) const
   {
-    for (auto&& _ : it)
-      (void) _;
+    for (; it; ++it)
+      (void) *it;
   }
 }
 HB_FUNCOBJ (hb_drain);
@@ -923,10 +923,11 @@ struct hb_unzip_t
 	    hb_requires (hb_is_iterator (Iter))>
   void operator () (Iter it)
   {
-    for (auto&& _ : it)
+    for (; it; ++it)
     {
-      s1 << _.first;
-      s2 << _.second;
+      const auto &v = *it;
+      s1 << v.first;
+      s2 << v.second;
     }
   }
 
