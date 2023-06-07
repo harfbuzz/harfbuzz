@@ -2621,7 +2621,7 @@ struct hb_position_single_dispatch_t :
  *
  * Since: 5.3.0
  **/
-hb_position_t
+HB_EXTERN hb_position_t
 hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
 				       unsigned        lookup_index,
 				       hb_direction_t  direction,
