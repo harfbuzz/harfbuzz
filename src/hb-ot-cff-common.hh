@@ -89,6 +89,29 @@ struct CFFIndex
     return_trace (true);
   }
 
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  bool serialize_consecutive (hb_serialize_context_t *c,
+			      const Iterable &iterable)
+  {
+    TRACE_SERIALIZE (this);
+    auto it = hb_iter (iterable);
+    unsigned size = serialize_header(c, + it | hb_map (hb_iter) | hb_map (hb_len));
+    unsigned char *ret = c->allocate_size<unsigned char> (size, false);
+    if (unlikely (!ret)) return_trace (false);
+    for (; it;)
+    {
+      const auto &_ = *it;
+      const unsigned char *p = _.arrayZ;
+      unsigned len = _.length;
+      while (it && (++it)->arrayZ == p + len)
+        len += it->length;
+      hb_memcpy (ret, p, len);
+      ret += len;
+    }
+    return_trace (true);
+  }
+
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
   unsigned serialize_header (hb_serialize_context_t *c,
