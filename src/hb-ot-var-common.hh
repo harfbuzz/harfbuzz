@@ -419,7 +419,7 @@ struct TupleVariationHeader
 struct tuple_delta_t
 {
   public:
-  hb_hashmap_t<unsigned, Triple> axis_tuples;
+  hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
 
   /* indices_length = point_count, indice[i] = 1 means point i is referenced */
   hb_vector_t<bool> indices;
