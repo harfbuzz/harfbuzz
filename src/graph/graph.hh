@@ -359,7 +359,6 @@ struct graph_t
 
   ~graph_t ()
   {
-    vertices_.fini ();
     for (char* b : buffers)
       hb_free (b);
   }
