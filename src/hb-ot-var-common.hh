@@ -646,6 +646,33 @@ struct TupleVariationData
         tuple_vars = std::move (new_vars);
       }
     }
+
+    /* merge tuple variations with overlapping tents */
+    void merge_tuple_variations ()
+    {
+      hb_vector_t<tuple_delta_t> new_vars;
+      hb_hashmap_t<hb_hashmap_t<hb_tag_t, Triple>, unsigned> m;
+      unsigned i = 0;
+      for (const tuple_delta_t& var : tuple_vars)
+      {
+        /* if all axes are pinned, drop the tuple variation */
+        if (var.axis_tuples.is_empty ()) continue;
+
+        unsigned *idx;
+        if (m.has (var.axis_tuples, &idx))
+        {
+          new_vars[*idx] += var;
+        }
+        else
+        {
+          new_vars.push (var);
+          m.set (var.axis_tuples, i);
+          i++;
+        }
+      }
+      tuple_vars.fini ();
+      tuple_vars = std::move (new_vars);
+    }
   };
 
   struct tuple_iterator_t

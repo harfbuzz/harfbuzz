@@ -42,11 +42,29 @@ struct Triple {
 	   maximum == o.maximum;
   }
 
+  bool operator != (const Triple o) const
+  { return !(*this == o); }
+
   bool is_point () const
   { return minimum == middle && middle == maximum; }
 
   bool contains (float point) const
   { return minimum <= point && point <= maximum; }
+
+  /* from hb_array_t hash ()*/
+  uint32_t hash () const
+  {
+    uint32_t current = /*cbf29ce4*/0x84222325;
+    current = current ^ hb_hash (minimum);
+    current = current * 16777619;
+
+    current = current ^ hb_hash (middle);
+    current = current * 16777619;
+
+    current = current ^ hb_hash (maximum);
+    current = current * 16777619;
+    return current;
+  }
 
   float minimum;
   float middle;
