@@ -251,7 +251,8 @@ struct TupleVariationHeader
 
   bool unpack_axis_tuples (unsigned axis_count,
                            const hb_array_t<const F2DOT14> shared_tuples,
-                           hb_hashmap_t<unsigned, Triple>& axis_tuples /* OUT */) const
+                           const hb_map_t *axes_old_index_tag_map,
+                           hb_hashmap_t<hb_tag_t, Triple>& axis_tuples /* OUT */) const
   {
     const F2DOT14 *peak_tuple = nullptr;
     if (has_peak ())
@@ -279,6 +280,10 @@ struct TupleVariationHeader
       float peak = peak_tuple[i].to_float ();
       if (peak == 0.f) continue;
 
+      hb_tag_t *axis_tag;
+      if (!axes_old_index_tag_map->has (i, &axis_tag))
+        return false;
+
       float start, end;
       if (has_interm)
       {
@@ -290,7 +295,7 @@ struct TupleVariationHeader
         start = hb_min (peak, 0.f);
         end = hb_max (peak, 0.f);
       }
-      axis_tuples.set (i, Triple (start, peak, end));
+      axis_tuples.set (*axis_tag, Triple (start, peak, end));
     }
 
     return true;
@@ -414,7 +419,7 @@ struct TupleVariationHeader
 struct tuple_delta_t
 {
   public:
-  hb_hashmap_t<unsigned, Triple> axis_tuples;
+  hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
 
   /* indices_length = point_count, indice[i] = 1 means point i is referenced */
   hb_vector_t<bool> indices;
@@ -562,6 +567,7 @@ struct TupleVariationData
                                      unsigned tuple_var_count,
                                      unsigned point_count,
                                      bool is_gvar,
+                                     const hb_map_t *axes_old_index_tag_map,
                                      const hb_vector_t<unsigned> &shared_indices,
                                      const hb_array_t<const F2DOT14> shared_tuples)
     {
@@ -572,8 +578,8 @@ struct TupleVariationData
         if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
         { fini (); return false; }
 
-        hb_hashmap_t<unsigned, Triple> axis_tuples;
-        if (!iterator.current_tuple->unpack_axis_tuples (iterator.get_axis_count (), shared_tuples, axis_tuples)
+        hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
+        if (!iterator.current_tuple->unpack_axis_tuples (iterator.get_axis_count (), shared_tuples, axes_old_index_tag_map, axis_tuples)
             || axis_tuples.is_empty ())
         { fini (); return false; }
 
@@ -636,7 +642,7 @@ struct TupleVariationData
           if (!out) continue;
           unsigned new_len = new_vars.length + out.length;
 
-          if (unlikely (!new_vars.resize (new_len, false)))
+          if (unlikely (!new_vars.alloc (new_len, false)))
           { fini (); return;}
 
           for (unsigned i = 0; i < out.length; i++)
@@ -645,6 +651,33 @@ struct TupleVariationData
         tuple_vars.fini ();
         tuple_vars = std::move (new_vars);
       }
+    }
+
+    /* merge tuple variations with overlapping tents */
+    void merge_tuple_variations ()
+    {
+      hb_vector_t<tuple_delta_t> new_vars;
+      hb_hashmap_t<hb_hashmap_t<hb_tag_t, Triple>, unsigned> m;
+      unsigned i = 0;
+      for (const tuple_delta_t& var : tuple_vars)
+      {
+        /* if all axes are pinned, drop the tuple variation */
+        if (var.axis_tuples.is_empty ()) continue;
+
+        unsigned *idx;
+        if (m.has (var.axis_tuples, &idx))
+        {
+          new_vars[*idx] += var;
+        }
+        else
+        {
+          new_vars.push (var);
+          m.set (var.axis_tuples, i);
+          i++;
+        }
+      }
+      tuple_vars.fini ();
+      tuple_vars = std::move (new_vars);
     }
   };
 
@@ -822,12 +855,14 @@ struct TupleVariationData
   bool decompile_tuple_variations (unsigned point_count,
                                    bool is_gvar,
                                    tuple_iterator_t iterator,
+                                   const hb_map_t *axes_old_index_tag_map,
                                    const hb_vector_t<unsigned> &shared_indices,
                                    const hb_array_t<const F2DOT14> shared_tuples,
                                    tuple_variations_t& tuple_variations /* OUT */) const
   {
     return tuple_variations.create_from_tuple_var_data (iterator, tupleVarCount,
                                                         point_count, is_gvar,
+                                                        axes_old_index_tag_map,
                                                         shared_indices,
                                                         shared_tuples);
   }

@@ -33,8 +33,13 @@ test_decompile_cvar ()
   const OT::cvar* cvar_table = reinterpret_cast<const OT::cvar*> (cvar_data);
   unsigned point_count = 65;
   unsigned axis_count = 1;
+
+  hb_tag_t axis_tag = HB_TAG ('w', 'g', 'h', 't');
+  hb_map_t axis_idx_tag_map;
+  axis_idx_tag_map.set (0, axis_tag);
+
   OT::TupleVariationData::tuple_variations_t tuple_variations;
-  bool result = cvar_table->decompile_tuple_variations (axis_count, point_count, false, tuple_variations);
+  bool result = cvar_table->decompile_tuple_variations (axis_count, point_count, false, &axis_idx_tag_map, tuple_variations);
   assert (result);
   assert (tuple_variations.tuple_vars.length == 2);
   for (unsigned i = 0; i < 2; i++)
@@ -44,8 +49,8 @@ test_decompile_cvar ()
     assert (tuple_variations.tuple_vars[i].indices.length == 65);
     assert (tuple_variations.tuple_vars[i].indices.length == tuple_variations.tuple_vars[i].deltas_x.length);
   }
-  assert (tuple_variations.tuple_vars[0].axis_tuples.get (0) == Triple (-1.f, -1.f, 0.f));
-  assert (tuple_variations.tuple_vars[1].axis_tuples.get (0) == Triple (0.f, 1.f, 1.f));
+  assert (tuple_variations.tuple_vars[0].axis_tuples.get (axis_tag) == Triple (-1.f, -1.f, 0.f));
+  assert (tuple_variations.tuple_vars[1].axis_tuples.get (axis_tag) == Triple (0.f, 1.f, 1.f));
   
   hb_vector_t<float> deltas_1 {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, -1.f, 0.f, -3.f, 1.f, 0.f, -1.f, 0.f, -3.f, 1.f, 0.f, -37.f, -37.f, -26.f, -26.f, 0.f, 0.f, 0.f, -3.f, 0.f, 0.f, 0.f, 0.f, 0.f, -3.f, 0.f, 2.f, -29.f, -29.f, -20.f, -20.f, 0.f, 0.f, 0.f, 1.f, -29.f, -29.f, -20.f, -20.f, 0.f, 0.f, 0.f, 1.f};
   for (unsigned i = 0; i < 65; i++)
@@ -70,6 +75,41 @@ test_decompile_cvar ()
       assert (tuple_variations.tuple_vars[1].deltas_x[i] == deltas_2[i]);
     }
   }
+
+  /* partial instancing wght=300:800 */
+  hb_hashmap_t<hb_tag_t, Triple> normalized_axes_location;
+  normalized_axes_location.set (axis_tag, Triple (-0.512817f, 0.f, 0.700012f));
+
+  tuple_variations.change_tuple_variations_axis_limits (&normalized_axes_location);
+  tuple_variations.merge_tuple_variations ();
+
+  assert (tuple_variations.tuple_vars[0].indices.length == 65);
+  assert (tuple_variations.tuple_vars[1].indices.length == 65);
+  assert (!tuple_variations.tuple_vars[0].deltas_y);
+  assert (!tuple_variations.tuple_vars[1].deltas_y);
+  assert (tuple_variations.tuple_vars[0].axis_tuples.get (axis_tag) == Triple (-1.f, -1.f, 0.f));
+  assert (tuple_variations.tuple_vars[1].axis_tuples.get (axis_tag) == Triple (0.f, 1.f, 1.f));
+
+  hb_vector_t<float> rounded_deltas_1 {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, -1, 0.f, -2, 1, 0.f, -1, 0.f, -2, 1, 0.f, -19, -19, -13, -13, 0.f, 0.f, 0.f, -2, 0.f, 0.f, 0.f, 0.f, 0.f, -2, 0.f, 1, -15, -15, -10.f, -10.f, 0.f, 0.f, 0.f, 1, -15, -15, -10.f, -10.f, 0.f, 0.f, 0.f, 1};
+
+  hb_vector_t<float> rounded_deltas_2 {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1, 0.f, 4, -2, 0.f, 1, 0.f, 4, -2, 0.f, 68, 68, 48, 48, 0.f, 0.f, 0.f, 4, 0.f, 0.f, 1, -1, 1, 5, -1, -4, 51, 51, 37, 37, 0.f, 0.f, 0.f, -1, 51, 51, 37, 37, 0.f, 0.f, 0.f, -1};
+
+  for (unsigned i = 0; i < 65; i++)
+  {
+    if (i < 23)
+    {
+      assert (tuple_variations.tuple_vars[0].indices[i] == 0);
+      assert (tuple_variations.tuple_vars[1].indices[i] == 0);
+    }
+    else
+    {
+      assert (tuple_variations.tuple_vars[0].indices[i] == 1);
+      assert (tuple_variations.tuple_vars[1].indices[i] == 1);
+      assert (roundf (tuple_variations.tuple_vars[0].deltas_x[i]) == rounded_deltas_1[i]);
+      assert (roundf (tuple_variations.tuple_vars[1].deltas_x[i]) == rounded_deltas_2[i]);
+    }
+  }
+
 }
 
 int
