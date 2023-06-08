@@ -185,15 +185,18 @@ buffer_verify_unsafe_to_break (hb_buffer_t  *buffer,
   }
 
   bool ret = true;
-  hb_buffer_diff_flags_t diff = hb_buffer_diff (reconstruction, buffer, (hb_codepoint_t) -1, 0);
-  if (diff & ~HB_BUFFER_DIFF_FLAG_GLYPH_FLAGS_MISMATCH)
+  if (likely (reconstruction->successful))
   {
-    buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "unsafe-to-break test failed.");
-    ret = false;
+    hb_buffer_diff_flags_t diff = hb_buffer_diff (reconstruction, buffer, (hb_codepoint_t) -1, 0);
+    if (diff & ~HB_BUFFER_DIFF_FLAG_GLYPH_FLAGS_MISMATCH)
+    {
+      buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "unsafe-to-break test failed.");
+      ret = false;
 
-    /* Return the reconstructed result instead so it can be inspected. */
-    hb_buffer_set_length (buffer, 0);
-    hb_buffer_append (buffer, reconstruction, 0, -1);
+      /* Return the reconstructed result instead so it can be inspected. */
+      hb_buffer_set_length (buffer, 0);
+      hb_buffer_append (buffer, reconstruction, 0, -1);
+    }
   }
 
   hb_buffer_destroy (reconstruction);
@@ -377,20 +380,22 @@ buffer_verify_unsafe_to_concat (hb_buffer_t        *buffer,
     hb_buffer_reverse (reconstruction);
   }
 
-  /*
-   * Diff results.
-   */
-  diff = hb_buffer_diff (reconstruction, buffer, (hb_codepoint_t) -1, 0);
-  if (diff & ~HB_BUFFER_DIFF_FLAG_GLYPH_FLAGS_MISMATCH)
+  if (likely (reconstruction->successful))
   {
-    buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "unsafe-to-concat test failed.");
-    ret = false;
+    /*
+     * Diff results.
+     */
+    diff = hb_buffer_diff (reconstruction, buffer, (hb_codepoint_t) -1, 0);
+    if (diff & ~HB_BUFFER_DIFF_FLAG_GLYPH_FLAGS_MISMATCH)
+    {
+      buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "unsafe-to-concat test failed.");
+      ret = false;
 
-    /* Return the reconstructed result instead so it can be inspected. */
-    hb_buffer_set_length (buffer, 0);
-    hb_buffer_append (buffer, reconstruction, 0, -1);
+      /* Return the reconstructed result instead so it can be inspected. */
+      hb_buffer_set_length (buffer, 0);
+      hb_buffer_append (buffer, reconstruction, 0, -1);
+    }
   }
-
 
 out:
   hb_buffer_destroy (reconstruction);
