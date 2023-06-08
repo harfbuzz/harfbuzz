@@ -258,7 +258,11 @@ struct hb_hashmap_t
   template <typename VV>
   bool set (const K &key, VV&& value, bool overwrite = true) { return set_with_hash (key, hb_hash (key), std::forward<VV> (value), overwrite); }
   template <typename VV>
-  bool set (K &&key, VV&& value, bool overwrite = true) { return set_with_hash (std::move (key), hb_hash (key), std::forward<VV> (value), overwrite); }
+  bool set (K &&key, VV&& value, bool overwrite = true)
+  {
+    uint32_t hash = hb_hash (key);
+    return set_with_hash (std::move (key), hash, std::forward<VV> (value), overwrite);
+  }
 
   const V& get_with_hash (const K &key, uint32_t hash) const
   {
