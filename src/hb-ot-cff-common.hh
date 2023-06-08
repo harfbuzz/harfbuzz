@@ -140,13 +140,13 @@ struct CFFIndex
     assert (index <= count);
 
     unsigned int size = offSize;
-    const HBUINT8 *p = offsets + size * index;
+    const HBUINT8 *p = offsets;
     switch (size)
     {
-      case 1: * (HBUINT8  *) p = offset; break;
-      case 2: * (HBUINT16 *) p = offset; break;
-      case 3: * (HBUINT24 *) p = offset; break;
-      case 4: * (HBUINT32 *) p = offset; break;
+      case 1: ((HBUINT8  *) p)[index] = offset; break;
+      case 2: ((HBUINT16 *) p)[index] = offset; break;
+      case 3: ((HBUINT24 *) p)[index] = offset; break;
+      case 4: ((HBUINT32 *) p)[index] = offset; break;
       default: return;
     }
   }
@@ -157,13 +157,13 @@ struct CFFIndex
     assert (index <= count);
 
     unsigned int size = offSize;
-    const HBUINT8 *p = offsets + size * index;
+    const HBUINT8 *p = offsets;
     switch (size)
     {
-      case 1: return * (HBUINT8  *) p;
-      case 2: return * (HBUINT16 *) p;
-      case 3: return * (HBUINT24 *) p;
-      case 4: return * (HBUINT32 *) p;
+      case 1: return ((HBUINT8  *) p)[index];
+      case 2: return ((HBUINT16 *) p)[index];
+      case 3: return ((HBUINT24 *) p)[index];
+      case 4: return ((HBUINT32 *) p)[index];
       default: return 0;
     }
   }
