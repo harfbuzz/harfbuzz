@@ -75,6 +75,41 @@ test_decompile_cvar ()
       assert (tuple_variations.tuple_vars[1].deltas_x[i] == deltas_2[i]);
     }
   }
+
+  /* partial instancing wght=300:800 */
+  hb_hashmap_t<hb_tag_t, Triple> normalized_axes_location;
+  normalized_axes_location.set (axis_tag, Triple (-0.512817f, 0.f, 0.700012f));
+
+  tuple_variations.change_tuple_variations_axis_limits (&normalized_axes_location);
+  tuple_variations.merge_tuple_variations ();
+
+  assert (tuple_variations.tuple_vars[0].indices.length == 65);
+  assert (tuple_variations.tuple_vars[1].indices.length == 65);
+  assert (!tuple_variations.tuple_vars[0].deltas_y);
+  assert (!tuple_variations.tuple_vars[1].deltas_y);
+  assert (tuple_variations.tuple_vars[0].axis_tuples.get (axis_tag) == Triple (-1.f, -1.f, 0.f));
+  assert (tuple_variations.tuple_vars[1].axis_tuples.get (axis_tag) == Triple (0.f, 1.f, 1.f));
+
+  hb_vector_t<float> rounded_deltas_1 {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, -1, 0.f, -2, 1, 0.f, -1, 0.f, -2, 1, 0.f, -19, -19, -13, -13, 0.f, 0.f, 0.f, -2, 0.f, 0.f, 0.f, 0.f, 0.f, -2, 0.f, 1, -15, -15, -10.f, -10.f, 0.f, 0.f, 0.f, 1, -15, -15, -10.f, -10.f, 0.f, 0.f, 0.f, 1};
+
+  hb_vector_t<float> rounded_deltas_2 {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1, 0.f, 4, -2, 0.f, 1, 0.f, 4, -2, 0.f, 68, 68, 48, 48, 0.f, 0.f, 0.f, 4, 0.f, 0.f, 1, -1, 1, 5, -1, -4, 51, 51, 37, 37, 0.f, 0.f, 0.f, -1, 51, 51, 37, 37, 0.f, 0.f, 0.f, -1};
+
+  for (unsigned i = 0; i < 65; i++)
+  {
+    if (i < 23)
+    {
+      assert (tuple_variations.tuple_vars[0].indices[i] == 0);
+      assert (tuple_variations.tuple_vars[1].indices[i] == 0);
+    }
+    else
+    {
+      assert (tuple_variations.tuple_vars[0].indices[i] == 1);
+      assert (tuple_variations.tuple_vars[1].indices[i] == 1);
+      assert (roundf (tuple_variations.tuple_vars[0].deltas_x[i]) == rounded_deltas_1[i]);
+      assert (roundf (tuple_variations.tuple_vars[1].deltas_x[i]) == rounded_deltas_2[i]);
+    }
+  }
+
 }
 
 int

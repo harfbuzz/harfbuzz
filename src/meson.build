@@ -723,7 +723,7 @@ if get_option('tests').enabled()
     'test-vector': ['test-vector.cc', 'hb-static.cc'],
     'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
     'test-instancer-solver': ['test-subset-instancer-solver.cc', 'hb-subset-instancer-solver.cc', 'hb-static.cc'],
-    'test-tuple-varstore': ['test-tuple-varstore.cc', 'hb-static.cc'],
+    'test-tuple-varstore': ['test-tuple-varstore.cc', 'hb-subset-instancer-solver.cc', 'hb-static.cc'],
   }
   foreach name, source : compiled_tests
     if cpp.get_argument_syntax() == 'msvc' and source.contains('hb-static.cc')

@@ -642,7 +642,7 @@ struct TupleVariationData
           if (!out) continue;
           unsigned new_len = new_vars.length + out.length;
 
-          if (unlikely (!new_vars.resize (new_len, false)))
+          if (unlikely (!new_vars.alloc (new_len, false)))
           { fini (); return;}
 
           for (unsigned i = 0; i < out.length; i++)
