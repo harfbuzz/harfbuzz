@@ -310,7 +310,7 @@ struct FDArray : CFFIndex<COUNT>
     ;
     c->pop_pack (false);
 
-    /* It just happens that the above is packed before the header below.
+    /* It just happens that the above is packed right after the header below.
      * Such a hack. */
 
     /* serialize INDEX header */
