@@ -125,7 +125,9 @@ struct CFFIndex
   static unsigned total_size (const Iterable &iterable)
   {
     auto it = + hb_iter (iterable) | hb_map (hb_iter) | hb_map (hb_len);
-    if (!it) return 0;
+    // The following should return min_size IMO. But that crashes a few
+    // tests. I have not investigated why.
+    if (!it) return 0; //min_size;
 
     unsigned total = + it | hb_reduce (hb_add, 0);
     unsigned off_size = (hb_bit_storage (total + 1) + 7) / 8;
