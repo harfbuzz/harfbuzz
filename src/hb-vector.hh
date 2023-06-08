@@ -116,7 +116,7 @@ struct hb_vector_t
   void reset ()
   {
     if (unlikely (in_error ()))
-      allocated = -allocated;
+      reset_error ();
     resize (0);
   }
 
@@ -241,6 +241,16 @@ struct hb_vector_t
   }
 
   bool in_error () const { return allocated < 0; }
+  void set_error ()
+  {
+    assert (allocated >= 0);
+    allocated = -allocated - 1;
+  }
+  void reset_error ()
+  {
+    assert (allocated < 0);
+    allocated = -(allocated + 1);
+  }
 
   template <typename T = Type,
 	    hb_enable_if (hb_is_trivially_copy_assignable(T))>
@@ -392,7 +402,7 @@ struct hb_vector_t
 
     if (unlikely (overflows))
     {
-      allocated = -allocated;
+      set_error ();
       return false;
     }
 
@@ -403,7 +413,7 @@ struct hb_vector_t
       if (new_allocated <= (unsigned) allocated)
         return true; // shrinking failed; it's okay; happens in our fuzzer
 
-      allocated = -allocated;
+      set_error ();
       return false;
     }
 
