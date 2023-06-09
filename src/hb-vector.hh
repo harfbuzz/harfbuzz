@@ -351,11 +351,14 @@ struct hb_vector_t
   void
   shrink_vector (unsigned size)
   {
-    while ((unsigned) length > size)
-    {
-      arrayZ[(unsigned) length - 1].~Type ();
-      length--;
-    }
+    if (std::is_trivially_destructible<Type>::value)
+      length = size;
+    else
+      while ((unsigned) length > size)
+      {
+	arrayZ[(unsigned) length - 1].~Type ();
+	length--;
+      }
   }
 
   void
