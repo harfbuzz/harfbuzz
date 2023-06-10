@@ -769,8 +769,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
       objidx_t	subrs_link = 0;
       if (plan.subset_localsubrs[i].length > 0)
       {
-	auto *dest = c->start_embed <CFF1Subrs> ();
-	c->push ();
+	auto *dest = c->push <CFF1Subrs> ();
 	if (likely (dest && dest->serialize (c, plan.subset_localsubrs[i])))
 	  subrs_link = c->pop_pack ();
 	else
@@ -780,8 +779,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
 	}
       }
 
-      auto *pd = c->start_embed<PrivateDict> ();
-      c->push ();
+      auto *pd = c->push<PrivateDict> ();
       cff1_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
       /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
       if (likely (pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link)))
@@ -822,8 +820,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   /* FDArray (FD Index) */
   if (acc.fdArray != &Null (CFF1FDArray))
   {
-    auto *fda = c->start_embed<CFF1FDArray> ();
-    c->push ();
+    auto *fda = c->push<CFF1FDArray> ();
     cff1_font_dict_op_serializer_t  fontSzr;
     auto it = + hb_zip (+ hb_iter (plan.fontdicts_mod), + hb_iter (plan.fontdicts_mod));
     if (likely (fda->serialize (c, it, fontSzr)))
@@ -853,8 +850,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   /* Charset */
   if (plan.subset_charset)
   {
-    auto *dest = c->start_embed<Charset> ();
-    c->push ();
+    auto *dest = c->push<Charset> ();
     if (likely (dest->serialize (c,
 				 plan.subset_charset_format,
 				 plan.num_glyphs,
@@ -870,8 +866,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   /* Encoding */
   if (plan.subset_encoding)
   {
-    auto *dest = c->start_embed<Encoding> ();
-    c->push ();
+    auto *dest = c->push<Encoding> ();
     if (likely (dest->serialize (c,
 				 plan.subset_enc_format,
 				 plan.subset_enc_num_codes,
@@ -887,8 +882,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
 
   /* global subrs */
   {
-    c->push ();
-    auto *dest = c->start_embed <CFF1Subrs> ();
+    auto *dest = c->push <CFF1Subrs> ();
     if (likely (dest->serialize (c, plan.subset_globalsubrs)))
       c->pop_pack (false);
     else
@@ -900,8 +894,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
 
   /* String INDEX */
   {
-    auto *dest = c->start_embed<CFF1StringIndex> ();
-    c->push ();
+    auto *dest = c->push<CFF1StringIndex> ();
     if (likely (dest->serialize (c, *acc.stringIndex, plan.sidmap)))
       c->pop_pack ();
     else
@@ -927,8 +920,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   /* top dict INDEX */
   {
     /* serialize singleton TopDict */
-    auto *top = c->start_embed<TopDict> ();
-    c->push ();
+    auto *top = c->push<TopDict> ();
     cff1_top_dict_op_serializer_t topSzr;
     unsigned top_size = 0;
     top_dict_modifiers_t  modifier (plan.info, plan.topDictModSIDs);
