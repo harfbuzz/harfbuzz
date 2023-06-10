@@ -597,7 +597,11 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
 		{ return plan.fdmap.has (&_ - &acc.fontDicts[0]); }),
 	      hb_iter (private_dict_infos))
     ;
-    if (unlikely (!fda->serialize (c, it, fontSzr))) return false;
+    if (unlikely (!fda->serialize (c, it, fontSzr)))
+    {
+      c->pop_discard ();
+      return false;
+    }
     plan.info.fd_array_link = c->pop_pack (false);
   }
 
@@ -607,7 +611,11 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
   {
     c->push ();
     auto *dest = c->start_embed<CFF2VariationStore> ();
-    if (unlikely (!dest->serialize (c, acc.varStore))) return false;
+    if (unlikely (!dest->serialize (c, acc.varStore)))
+    {
+      c->pop_discard ();
+      return false;
+    }
     plan.info.var_store_link = c->pop_pack (false);
   }
 
