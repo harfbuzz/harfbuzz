@@ -770,7 +770,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
       if (plan.subset_localsubrs[i].length > 0)
       {
 	auto *dest = c->push <CFF1Subrs> ();
-	if (likely (dest && dest->serialize (c, plan.subset_localsubrs[i])))
+	if (likely (dest->serialize (c, plan.subset_localsubrs[i])))
 	  subrs_link = c->pop_pack ();
 	else
 	{
