@@ -147,8 +147,9 @@ markupsafe==2.1.3 \
     --hash=sha256:e4dd52d80b8c83fdce44e12478ad2e85c64ea965e75d66dbeafb0a3e77308fcc \
     --hash=sha256:fec21693218efe39aa7f8599346e90c705afa52c5b31ae019b2e57e8f6542bb2
     # via jinja2
-meson==0.56.0 \
-    --hash=sha256:291dd38ff1cd55fcfca8fc985181dd39be0d3e5826e5f0013bf867be40117213
+meson==0.60.0 \
+    --hash=sha256:080d68b685e9a0d9c9bb475457e097b49e1d1a6f750abc971428a8d2e1b12d47 \
+    --hash=sha256:40cc2426b482c8b0d7931a2ed69aaf85caf1ae7653d0435e82e39c5867cfa28c
     # via -r .ci/requirements.in
 ninja==1.11.1 \
     --hash=sha256:1c474326e11fba3f8c2582715d79216292e327d3335367c0e87e9647a002cc4a \

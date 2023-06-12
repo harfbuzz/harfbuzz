@@ -1,4 +1,4 @@
 fonttools
-meson==0.56.0
+meson==0.60.0
 gcovr==5.0
 ninja
