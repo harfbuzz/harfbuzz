@@ -842,7 +842,7 @@ struct
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
   auto operator () (Iterable&& it, unsigned count) const HB_AUTO_RETURN
-  ( hb_zip (hb_range (count), it) | hb_map (hb_second) )
+  ( hb_zip (hb_range (count), it) | hb_map_retains_sorting (hb_second) )
 
   /* Specialization arrays. */
 
