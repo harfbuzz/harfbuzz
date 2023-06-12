@@ -591,7 +591,8 @@ struct TupleVariationData
         { fini (); return false; }
 
         const hb_vector_t<unsigned> &indices = has_private_points ? private_indices : shared_indices;
-        unsigned num_deltas = indices.length;
+        bool apply_to_all = (indices.length == 0);
+        unsigned num_deltas = apply_to_all ? point_count : indices.length;
 
         hb_vector_t<int> deltas_x;
 
@@ -618,7 +619,8 @@ struct TupleVariationData
 
         for (unsigned i = 0; i < num_deltas; i++)
         {
-          unsigned idx = indices[i];
+          unsigned idx = apply_to_all ? i : indices[i];
+          if (idx >= point_count) continue;
           var.indices[idx] = true;
           var.deltas_x[idx] = static_cast<float> (deltas_x[i]);
           if (is_gvar)
