@@ -47,14 +47,33 @@ jobs:
         pip3 install -r .ci/requirements.txt --require-hashes
     - name: Setup Meson
       run: |
-        sccache --version
-        meson setup build `
-          --wrap-mode=forcefallback `
-          --buildtype=release `
-          -Dglib=enabled `
-          -Dfreetype=enabled `
-          -Dgdi=enabled `
-          -Ddirectwrite=enabled
+          sccache --version
+
+          # For Windows, meson downloads source tarballs.
+          # The endpoint is flaky, so we need to wrap this in a retry loop.
+          # (meson handles this internally as of 0.62.0)
+          $attempts=1
+          $timeout=1
+          while ($attempts -le 5 )
+          {
+            meson setup build `
+              --wrap-mode=forcefallback `
+              --buildtype=release `
+              -Dglib=enabled `
+              -Dfreetype=enabled `
+              -Dgdi=enabled `
+              -Ddirectwrite=enabled
+
+            if ($LASTEXITCODE -eq 0)
+            {
+              break
+            }
+
+            echo "Setup failed, trying again with delay"
+            Start-Sleep -Seconds $timeout
+            $timeout=$timeout * 2
+            $attempts++
+          }
     - name: Build
       run: meson compile -Cbuild
     - name: Test
