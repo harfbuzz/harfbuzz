@@ -44,17 +44,17 @@ jobs:
         arch : ${{ matrix.ARCH }}
     - name: Install Python Dependencies
       run: |
-        pip install --upgrade meson ninja fonttools
+        pip3 install -r .ci/requirements.txt --require-hashes
     - name: Setup Meson
       run: |
-        sccache --version
-        meson setup build `
-          --wrap-mode=forcefallback `
-          --buildtype=release `
-          -Dglib=enabled `
-          -Dfreetype=enabled `
-          -Dgdi=enabled `
-          -Ddirectwrite=enabled
+          sccache --version
+          meson setup build `
+            --wrap-mode=forcefallback `
+            --buildtype=release `
+            -Dglib=enabled `
+            -Dfreetype=enabled `
+            -Dgdi=enabled `
+            -Ddirectwrite=enabled
     - name: Build
       run: meson compile -Cbuild
     - name: Test

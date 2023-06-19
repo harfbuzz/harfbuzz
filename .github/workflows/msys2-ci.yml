@@ -56,7 +56,7 @@ jobs:
           mingw-w64-${{ matrix.MSYS2_ARCH }}-python-pip
     - name: Install Python Dependencies
       run: |
-        pip install --upgrade fonttools
+        pip3 install -r .ci/requirements-fonttools.txt --require-hashes
     - name: Setup Meson
       run: |
         meson setup build \

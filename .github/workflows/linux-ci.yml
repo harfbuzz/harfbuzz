@@ -39,7 +39,7 @@ jobs:
           python3 \
           python3-setuptools
     - name: Install Python Dependencies
-      run: sudo pip3 install fonttools meson==0.56.0 gcovr==5.0
+      run: sudo pip3 install -r .ci/requirements.txt --require-hashes
     - name: Setup Meson
       run: |
         ccache --version
