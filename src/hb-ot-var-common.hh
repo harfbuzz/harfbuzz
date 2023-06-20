@@ -437,6 +437,13 @@ struct byte_data_t
   explicit operator bool () const { return length; }
 };
 
+enum packed_delta_flag_t
+{
+  DELTAS_ARE_ZERO      = 0x80,
+  DELTAS_ARE_WORDS     = 0x40,
+  DELTA_RUN_COUNT_MASK = 0x3F
+};
+
 struct tuple_delta_t
 {
   public:
@@ -548,6 +555,157 @@ struct tuple_delta_t
     }
 
     return out;
+  }
+
+  char* encode_delta_run (char* p, char *end, unsigned& i,
+                          const hb_vector_t<int>& deltas) const
+  {
+    if (p >= end) return nullptr;
+    unsigned num_deltas = deltas.length;
+    while (i < num_deltas)
+    {
+      int val = deltas[i];
+      if (val == 0)
+        p = encode_delta_run_as_zeroes (p, end, i, deltas);
+      else if (val >= -128 && val <= 127)
+        p = encode_delta_run_as_bytes (p, end, i, deltas);
+      else
+        p = encode_delta_run_as_words (p, end, i, deltas);
+
+      if (!p || p > end)
+        return nullptr;
+    }
+    return p;
+  }
+
+  char* encode_delta_run_as_zeroes (char* p, char *end, unsigned& i,
+                                    const hb_vector_t<int>& deltas) const
+  {
+    if (p >= end) return nullptr;
+    unsigned num_deltas = deltas.length;
+    unsigned run_length = 0;
+    while (i < num_deltas && deltas[i] == 0)
+    {
+      i++;
+      run_length++;
+    }
+
+    while (run_length >= 64)
+    {
+      if (p >= end) return nullptr;
+      *p++ = (DELTAS_ARE_ZERO | 63);
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      if (p >= end) return nullptr;
+      *p++ = (DELTAS_ARE_ZERO | (run_length - 1));
+    }
+    return p;
+  }
+
+  char* encode_delta_run_as_bytes (char *p, char *end, unsigned &i,
+                                   const hb_vector_t<int>& deltas) const
+  {
+    if (p >= end) return nullptr;
+    unsigned start = i;
+    unsigned num_deltas = deltas.length;
+    while (i < num_deltas)
+    {
+      int val = deltas[i];
+      if (val > 127 || val < -128)
+        break;
+
+      /* from fonttools: if there're 2 or more zeros in a sequence,
+       * it is better to start a new run to save bytes. */
+      if (val == 0 && i + 1 < num_deltas && deltas[i+1] == 0)
+        break;
+
+      i++;
+    }
+    unsigned run_length = i - start;
+
+    HBINT8 *out = reinterpret_cast<HBINT8 *> (p);
+    while (run_length >= 64)
+    {
+      if ((char *)out >= end) return nullptr;
+      *out++ = 63;
+
+      for (unsigned j = 0; j < 64; j++)
+      {
+        if ((char *)out >= end) return nullptr;
+        *out++ = deltas[start + j];
+      }
+
+      start += 64;
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      if ((char *)out >= end) return nullptr;
+      *out++ = run_length - 1;
+      while (start < i)
+      {
+        if ((char *)out >= end) return nullptr;
+        *out++ = deltas[start++];
+      }
+    }
+
+    return reinterpret_cast<char *> (out);
+  }
+
+  char* encode_delta_run_as_words (char *p, char *end, unsigned &i,
+                                   const hb_vector_t<int>& deltas) const
+  {
+    unsigned start = i;
+    unsigned num_deltas = deltas.length;
+    while (i < num_deltas)
+    {
+      int val = deltas[i];
+      
+      /* start a new run for a single zero value*/
+      if (val == 0) break;
+
+      /* from fonttools: continue word-encoded run if there's only one
+       * single value in the range [-128, 127] because it is more compact.
+       * Only start a new run when there're 2 continuous such values. */
+      if (val >= -128 && val <= 127 &&
+          i + 1 < num_deltas &&
+          deltas[i+1] >= -128 && deltas[i+1] <= 127)
+        break;
+
+      i++;
+    }
+
+    unsigned run_length = i - start;
+    HBINT16 *out = reinterpret_cast<HBINT16 *> (p);
+    while (run_length >= 64)
+    {
+      if ((char *)out >= end) return nullptr;
+      *out++ = (DELTAS_ARE_WORDS | 63);
+      for (unsigned j = 0; j < 64; j++)
+      {
+        if ((char *)out >= end) return nullptr;
+        *out++ = deltas[start + j];
+      }
+
+      start += 64;
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      if ((char *)out >= end) return nullptr;
+      *out++ = (DELTAS_ARE_WORDS | (run_length - 1));
+      while (start < i)
+      {
+        if ((char *)out >= end) return nullptr;
+        *out++ = deltas[start++];
+      }
+    }
+    return reinterpret_cast<char *> (out);
   }
 };
 
@@ -974,13 +1132,6 @@ struct TupleVariationData
                              hb_vector_t<int> &deltas /* IN/OUT */,
                              const HBUINT8 *end)
   {
-    enum packed_delta_flag_t
-    {
-      DELTAS_ARE_ZERO      = 0x80,
-      DELTAS_ARE_WORDS     = 0x40,
-      DELTA_RUN_COUNT_MASK = 0x3F
-    };
-
     unsigned i = 0;
     unsigned count = deltas.length;
     while (i < count)
