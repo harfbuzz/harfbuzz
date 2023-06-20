@@ -416,6 +416,27 @@ struct TupleVariationHeader
   DEFINE_SIZE_MIN (4);
 };
 
+/* not using hb_bytes_t: avoid potential build issues with some compilers */
+struct byte_data_t
+{
+  const char *p = nullptr; //allocated by hb_calloc () or similar
+  unsigned length = 0;
+
+  byte_data_t () = default;
+  byte_data_t (const byte_data_t&) = default;
+  byte_data_t (const char *p_, unsigned len_) : p (p_), length (len_) {}
+  ~byte_data_t () = default;
+  byte_data_t& operator= (const byte_data_t&) = default;
+  byte_data_t& operator= (byte_data_t&&) = default;
+
+  void fini () { hb_free ((char *) p); p = nullptr; length = 0; }
+
+  bool operator == (const byte_data_t& o) const
+  { return p == o.p && length == o.length; }
+
+  explicit operator bool () const { return length; }
+};
+
 struct tuple_delta_t
 {
   public:
@@ -680,6 +701,88 @@ struct TupleVariationData
       }
       tuple_vars.fini ();
       tuple_vars = std::move (new_vars);
+    }
+
+    byte_data_t compile_point_set (const hb_vector_t<bool> &point_indices)
+    {
+      unsigned num_points = 0;
+      for (bool i : point_indices)
+        if (i) num_points++;
+
+      unsigned indices_length = point_indices.length;
+      /* If the points set consists of all points in the glyph, it's encoded with a
+       * single zero byte */
+      if (num_points == indices_length)
+      {
+        char *p = (char *) hb_calloc (1, sizeof (char));
+        if (unlikely (!p)) return byte_data_t ();
+
+        return byte_data_t (p, 1);
+      }
+
+      /* allocate enough memories: 2 bytes for count + 3 bytes for each point */
+      unsigned num_bytes = 2 + 3 *num_points;
+      char *p = (char *) hb_calloc (num_bytes, sizeof (char));
+      if (unlikely (!p)) return byte_data_t ();
+
+      unsigned pos = 0;
+      /* binary data starts with the total number of reference points */
+      if (num_points < 0x80)
+        p[pos++] = num_points;
+      else
+      {
+        p[pos++] = ((num_points >> 8) | 0x80);
+        p[pos++] = num_points & 0xFF;
+      }
+
+      unsigned max_run_length = 0x7F;
+      unsigned i = 0;
+      unsigned last_value = 0;
+      unsigned num_encoded = 0;
+      while (i < indices_length && num_encoded < num_points)
+      {
+        unsigned run_length = 0;
+        unsigned header_pos = pos;
+        p[pos++] = 0;
+
+        bool use_byte_encoding = false;
+        while (i < indices_length && num_encoded < num_points &&
+               run_length <= max_run_length)
+        {
+          // find out next referenced point index
+          while (i < indices_length && !point_indices[i])
+            i++;
+
+          if (i >= indices_length) break;
+
+          unsigned cur_value = i;
+          unsigned delta = cur_value - last_value;
+
+          if (!use_byte_encoding)
+            use_byte_encoding = (delta >= 0 && delta <= 0xFF);
+
+          if (use_byte_encoding && (delta <0 || delta > 0xFF))
+            break;
+
+          if (use_byte_encoding)
+            p[pos++] = delta;
+          else
+          {
+            p[pos++] = delta >> 8;
+            p[pos++] = delta & 0xFF;
+          }
+          i++;
+          last_value = cur_value;
+          run_length++;
+          num_encoded++;
+        }
+
+        if (use_byte_encoding)
+          p[header_pos] = run_length - 1;
+        else
+          p[header_pos] = (run_length - 1) | 0x80;
+      }
+      return byte_data_t (p, pos);
     }
   };
 
