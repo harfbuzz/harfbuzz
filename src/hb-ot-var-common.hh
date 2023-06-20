@@ -241,6 +241,7 @@ struct VarStoreInstancer
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/otvarcommonformats#tuplevariationheader */
 struct TupleVariationHeader
 {
+  friend struct tuple_delta_t;
   unsigned get_size (unsigned axis_count) const
   { return min_size + get_all_tuples (axis_count).get_size (); }
 
@@ -384,6 +385,7 @@ struct TupleVariationHeader
       TupleIndexMask      = 0x0FFFu
     };
 
+    TuppleIndex& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
     DEFINE_SIZE_STATIC (2);
   };
 
@@ -570,6 +572,120 @@ struct tuple_delta_t
     }
 
     return out;
+  }
+
+  /* deltas should be compiled already before we compile tuple
+   * variation header cause we need to fill in the size of the
+   * serialized data for this tuple variation */
+  //TODO(qxliu):add option to use sharedTuples in gvar
+  bool compile_tuple_var_header (const hb_map_t& axes_index_map,
+                                 unsigned points_data_length,
+                                 const hb_map_t& axes_old_index_tag_map)
+  {
+    if (!compiled_deltas) return false;
+
+    unsigned cur_axis_count = axes_index_map.get_population ();
+    /* allocate enough memory: 1 peak + 2 intermediate coords + fixed header size */
+    unsigned alloc_len = 3 * cur_axis_count * (F2DOT14::static_size) + 4;
+    char *p = (char *) hb_calloc (alloc_len, sizeof (char));
+    if (unlikely (!p)) return false;
+
+    /* the first 4 bytes are fixed header bytes*/
+    unsigned pos = 4;
+    unsigned flag = 0;
+    F2DOT14* end = reinterpret_cast<F2DOT14 *> (p + alloc_len);
+    /* encode peak coords */
+    F2DOT14* peak_coords_end = encode_peak_coords(p+pos, end, flag, axes_index_map, axes_old_index_tag_map);
+    if (!peak_coords_end)
+    { hb_free (p); return false; }
+
+    F2DOT14* interm_coords_end = encode_interm_coords (peak_coords_end, end, flag, axes_index_map, axes_old_index_tag_map);
+    if (!interm_coords_end)
+    { hb_free (p); return false; }
+
+    //TODO(qxliu): add option to use shared_points in gvar
+    flag |= TupleVariationHeader::TuppleIndex::PrivatePointNumbers;
+
+    unsigned serialized_data_size = points_data_length + compiled_deltas.length;
+    TupleVariationHeader *o = reinterpret_cast<TupleVariationHeader *> (p);
+    o->varDataSize = serialized_data_size;
+    o->tupleIndex = flag;
+
+    unsigned total_header_len = reinterpret_cast<char *> (interm_coords_end) - p;
+    compiled_tuple_header = byte_data_t (p, total_header_len);
+    return true;
+  }
+
+  F2DOT14* encode_peak_coords (char* p, F2DOT14* end,
+                               unsigned& flag,
+                               const hb_map_t& axes_index_map,
+                               const hb_map_t& axes_old_index_tag_map) const
+  {
+    unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
+    F2DOT14* out = reinterpret_cast<F2DOT14 *> (p);
+    for (unsigned i = 0; i < orig_axis_count; i++)
+    {
+      if (!axes_index_map.has (i)) /* axis pinned */
+        continue;
+      if (out >= end) return nullptr;
+      hb_tag_t axis_tag = axes_old_index_tag_map.get (i);
+      Triple *coords;
+      if (!axis_tuples.has (axis_tag, &coords))
+        (*out).set_int (0);
+      else
+        (*out).set_float (coords->middle);
+      out++;
+    }
+    flag |= TupleVariationHeader::TuppleIndex::EmbeddedPeakTuple;
+    return out;
+  }
+
+  /* if no need to encode intermediate coords, then just return p */
+  F2DOT14* encode_interm_coords (F2DOT14 *p, F2DOT14* end,
+                                 unsigned& flag,
+                                 const hb_map_t& axes_index_map,
+                                 const hb_map_t& axes_old_index_tag_map) const
+  {
+    unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
+    unsigned cur_axis_count = axes_index_map.get_population ();
+
+    F2DOT14* out = reinterpret_cast<F2DOT14 *> (p);
+
+    F2DOT14* start_coords = out;
+    F2DOT14* end_coords = start_coords + cur_axis_count;
+    bool encode_needed = false;
+    for (unsigned i = 0; i < orig_axis_count; i++)
+    {
+      if (!axes_index_map.has (i)) /* axis pinned */
+        continue;
+      hb_tag_t axis_tag = axes_old_index_tag_map.get (i);
+      Triple *coords;
+      float min_val = 0.f, val = 0.f, max_val = 0.f;
+      if (axis_tuples.has (axis_tag, &coords))
+      {
+        min_val = coords->minimum;
+        val = coords->middle;
+        max_val = coords->maximum;
+      }
+
+      if (start_coords >= end || end_coords >= end)
+        return nullptr;
+
+      (*start_coords).set_float (min_val);
+      (*end_coords).set_float (max_val);
+
+      start_coords++;
+      end_coords++;
+      if (min_val != hb_min (val, 0.f) || max_val != hb_max (val, 0.f))
+        encode_needed = true;
+    }
+
+    if (encode_needed)
+    {
+      flag |= TupleVariationHeader::TuppleIndex::IntermediateRegion;
+      return end_coords;
+    }
+    return p;
   }
 
   bool compile_deltas ()
