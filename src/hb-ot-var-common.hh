@@ -1189,6 +1189,34 @@ struct TupleVariationData
       return res;
     }
 
+    void instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location)
+    {
+      change_tuple_variations_axis_limits (&normalized_axes_location);
+      merge_tuple_variations ();
+    }
+
+    bool compile_bytes (const hb_map_t& axes_index_map,
+                        const hb_map_t& axes_old_index_tag_map)
+    {
+      // compile points set and store data in hashmap
+      if (!compile_all_point_sets ())
+        return false;
+      // compile delta and tuple var header for each tuple variation
+      for (auto& tuple: tuple_vars)
+      {
+        const hb_vector_t<bool>* points_set = &(tuple.indices);
+        byte_data_t *points_data;
+        if (unlikely (!point_data_map.has (points_set, &points_data)))
+          return false;
+
+        if (!tuple.compile_deltas ())
+          return false;
+
+        if (!tuple.compile_tuple_var_header (axes_index_map, points_data->length, axes_old_index_tag_map))
+          return false;
+      }
+      return true;
+    }
   };
 
   struct tuple_iterator_t
