@@ -437,6 +437,17 @@ struct byte_data_t
   { return p == o.p && length == o.length; }
 
   explicit operator bool () const { return length; }
+
+  byte_data_t* copy (hb_serialize_context_t *c) const
+  {
+    if (unlikely (!length || !p)) return nullptr;
+
+    char* ret = c->allocate_size<char> (length);
+    if (unlikely (!ret)) return nullptr;
+    hb_memcpy (ret, p, length);
+    // cast returning pointer, required by serializer copy()
+    return reinterpret_cast<byte_data_t *> (ret);
+  }
 };
 
 enum packed_delta_flag_t
@@ -935,6 +946,10 @@ struct TupleVariationData
 
     public:
     void fini () { tuple_vars.fini (); }
+
+    unsigned get_var_count () const
+    { return tuple_vars.length; }
+
     bool create_from_tuple_var_data (tuple_iterator_t iterator,
                                      unsigned tuple_var_count,
                                      unsigned point_count,
@@ -1217,6 +1232,34 @@ struct TupleVariationData
       }
       return true;
     }
+
+    bool serialize_var_headers (hb_serialize_context_t *c, unsigned& total_header_len) const
+    {
+      TRACE_SERIALIZE (this);
+      for (const auto& tuple: tuple_vars)
+      {
+        if (!c->copy (tuple.compiled_tuple_header))
+          return_trace (false);
+        total_header_len += tuple.compiled_tuple_header.length;
+      }
+      return_trace (true);
+    }
+
+    bool serialize_var_data (hb_serialize_context_t *c) const
+    {
+      TRACE_SERIALIZE (this);
+      for (const auto& tuple: tuple_vars)
+      {
+        const hb_vector_t<bool>* points_set = &(tuple.indices);
+        byte_data_t *point_data;
+        if (!point_data_map.has (points_set))
+          return_trace (false);
+
+        if (!c->copy (*point_data)) return_trace (false);
+        if (!c->copy (tuple.compiled_deltas)) return_trace (false);
+      }
+      return_trace (true);
+    }
   };
 
   struct tuple_iterator_t
@@ -1398,11 +1441,35 @@ struct TupleVariationData
                                                         shared_tuples);
   }
 
+  bool serialize (hb_serialize_context_t *c,
+                  bool is_gvar,
+                  tuple_variations_t& tuple_variations) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->start_embed (this);
+    if (unlikely (!c->extend_min (out))) return_trace (false);
+
+    if (!c->check_assign (out->tupleVarCount, tuple_variations.get_var_count (),
+                          HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
+
+    unsigned total_header_len = 0;
+
+    if (!tuple_variations.serialize_var_headers (c, total_header_len))
+      return_trace (false);
+    
+    unsigned data_offset = min_size + total_header_len;
+    if (!is_gvar) data_offset += 4;
+    if (!c->check_assign (out->data, data_offset, HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
+
+    return tuple_variations.serialize_var_data (c);
+  }
+
   protected:
   struct TupleVarCount : HBUINT16
   {
     bool has_shared_point_numbers () const { return ((*this) & SharedPointNumbers); }
     unsigned int get_count () const { return (*this) & CountMask; }
+    TupleVarCount& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
 
     protected:
     enum Flags
