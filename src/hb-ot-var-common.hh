@@ -583,6 +583,13 @@ struct TupleVariationData
   {
     hb_vector_t<tuple_delta_t> tuple_vars;
 
+    private:
+    /* referenced point set->compiled point data map */
+    hb_hashmap_t<const hb_vector_t<bool>*, byte_data_t> point_data_map;
+    /* referenced point set-> count map, used in finding shared points */
+    hb_hashmap_t<const hb_vector_t<bool>*, unsigned> point_set_count_map;
+
+    public:
     void fini () { tuple_vars.fini (); }
     bool create_from_tuple_var_data (tuple_iterator_t iterator,
                                      unsigned tuple_var_count,
@@ -784,6 +791,60 @@ struct TupleVariationData
       }
       return byte_data_t (p, pos);
     }
+
+    /* compile all point set and store byte data in a point_set->byte_data_t hashmap,
+     * also update point_set->count map, which will be used in finding shared
+     * point set*/
+    bool compile_all_point_sets ()
+    {
+      for (const auto& tuple: tuple_vars)
+      {
+        const hb_vector_t<bool>* points_set = &(tuple.indices);
+        if (point_data_map.has (points_set))
+        {
+          unsigned *count;
+          if (unlikely (!point_set_count_map.has (points_set, &count) ||
+                        !point_set_count_map.set (points_set, (*count) + 1)))
+            return false;
+          continue;
+        }
+        
+        byte_data_t compiled_data = compile_point_set (*points_set);
+        if (unlikely (compiled_data == byte_data_t ()))
+          return false;
+        
+        if (!point_data_map.set (points_set, compiled_data) ||
+            !point_set_count_map.set (points_set, 1))
+          return false;
+      }
+      return true;
+    }
+
+    /* find shared points set which saves most bytes */
+    byte_data_t find_shared_points ()
+    {
+      unsigned max_saved_bytes = 0;
+      byte_data_t res{};
+
+      for (const auto& _ : point_data_map.iter ())
+      {
+        const hb_vector_t<bool>* points_set = _.first;
+        unsigned data_length = _.second.length;
+        unsigned *count;
+        if (unlikely (!point_set_count_map.has (points_set, &count) ||
+                      *count <= 1))
+          return byte_data_t ();
+
+        unsigned saved_bytes = data_length * ((*count) -1);
+        if (saved_bytes > max_saved_bytes)
+        {
+          max_saved_bytes = saved_bytes;
+          res = _.second;
+        }
+      }
+      return res;
+    }
+
   };
 
   struct tuple_iterator_t
