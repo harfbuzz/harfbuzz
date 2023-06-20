@@ -117,22 +117,22 @@ test_decompile_cvar ()
   assert (tuple_variations.tuple_vars[0].compiled_tuple_header.length == 6);
   const char tuple_var_header_1[] = "\x0\x51\xa0\x0\xc0\x0";
   for (unsigned i = 0; i < 6; i++)
-    assert(tuple_variations.tuple_vars[0].compiled_tuple_header.p[i] == tuple_var_header_1[i]);
+    assert(tuple_variations.tuple_vars[0].compiled_tuple_header.arrayZ[i] == tuple_var_header_1[i]);
 
   assert (tuple_variations.tuple_vars[1].compiled_tuple_header.length == 6);
   const char tuple_var_header_2[] = "\x0\x54\xa0\x0\x40\x0";
   for (unsigned i = 0; i < 6; i++)
-    assert(tuple_variations.tuple_vars[1].compiled_tuple_header.p[i] == tuple_var_header_2[i]);
+    assert(tuple_variations.tuple_vars[1].compiled_tuple_header.arrayZ[i] == tuple_var_header_2[i]);
 
   assert (tuple_variations.tuple_vars[0].compiled_deltas.length == 37);
   assert (tuple_variations.tuple_vars[1].compiled_deltas.length == 40);
   const char compiled_deltas_1[] = "\x0d\xff\x00\xfe\x01\x00\xff\x00\xfe\x01\x00\xed\xed\xf3\xf3\x82\x00\xfe\x84\x06\xfe\x00\x01\xf1\xf1\xf6\xf6\x82\x04\x01\xf1\xf1\xf6\xf6\x82\x00\x01";
   for (unsigned i = 0; i < 37; i++)
-    assert (tuple_variations.tuple_vars[0].compiled_deltas.p[i] == compiled_deltas_1[i]);
+    assert (tuple_variations.tuple_vars[0].compiled_deltas.arrayZ[i] == compiled_deltas_1[i]);
 
   const char compiled_deltas_2[] = "\x0d\x01\x00\x04\xfe\x00\x01\x00\x04\xfe\x00\x44\x44\x30\x30\x82\x00\x04\x81\x09\x01\xff\x01\x05\xff\xfc\x33\x33\x25\x25\x82\x04\xff\x33\x33\x25\x25\x82\x00\xff";
   for (unsigned i = 0; i < 40; i++)
-    assert (tuple_variations.tuple_vars[1].compiled_deltas.p[i] == compiled_deltas_2[i]);
+    assert (tuple_variations.tuple_vars[1].compiled_deltas.arrayZ[i] == compiled_deltas_2[i]);
 }
 
 int

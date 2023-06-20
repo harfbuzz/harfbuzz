@@ -421,32 +421,25 @@ struct TupleVariationHeader
 /* not using hb_bytes_t: avoid potential build issues with some compilers */
 struct byte_data_t
 {
-  const char *p = nullptr; //allocated by hb_calloc () or similar
-  unsigned length = 0;
+  hb_bytes_t bytes;
 
   byte_data_t () = default;
-  byte_data_t (const byte_data_t&) = default;
-  byte_data_t (const char *p_, unsigned len_) : p (p_), length (len_) {}
-  ~byte_data_t () = default;
-  byte_data_t& operator= (const byte_data_t&) = default;
-  byte_data_t& operator= (byte_data_t&&) = default;
+  byte_data_t (const char *p_, unsigned len_) : bytes (hb_bytes_t (p_, len_)) {}
 
-  void fini () { hb_free ((char *) p); p = nullptr; length = 0; }
+  void fini () { bytes.fini (); }
 
   bool operator == (const byte_data_t& o) const
-  { return p == o.p && length == o.length; }
+  { return bytes.arrayZ == o.bytes.arrayZ && bytes.length == o.bytes.length; }
 
-  explicit operator bool () const { return length; }
+  explicit operator bool () const { return bytes.length; }
 
-  byte_data_t* copy (hb_serialize_context_t *c) const
+  void copy (hb_serialize_context_t *c) const
   {
-    if (unlikely (!length || !p)) return nullptr;
+    if (unlikely (!bytes.length || !bytes.arrayZ)) return;
 
-    char* ret = c->allocate_size<char> (length);
-    if (unlikely (!ret)) return nullptr;
-    hb_memcpy (ret, p, length);
-    // cast returning pointer, required by serializer copy()
-    return reinterpret_cast<byte_data_t *> (ret);
+    char* ret = c->allocate_size<char> (bytes.length);
+    if (unlikely (!ret)) return;
+    hb_memcpy (ret, bytes.arrayZ, bytes.length);
   }
 };
 
@@ -472,20 +465,11 @@ struct tuple_delta_t
   /* compiled data: header and deltas
    * compiled point data is saved in a hashmap within tuple_variations_t cause
    * some point sets might be reused by different tuple variations */
-  byte_data_t compiled_tuple_header;
-  byte_data_t compiled_deltas;
+  hb_vector_t<char> compiled_tuple_header;
+  hb_vector_t<char> compiled_deltas;
 
   tuple_delta_t () = default;
   tuple_delta_t (const tuple_delta_t& o) = default;
-  ~tuple_delta_t ()
-  {
-    compiled_deltas.fini ();
-    compiled_tuple_header.fini ();
-    deltas_y.fini ();
-    deltas_x.fini ();
-    indices.fini ();
-    axis_tuples.fini ();
-  }
 
   tuple_delta_t (tuple_delta_t&& o) : tuple_delta_t ()
   {
@@ -598,61 +582,60 @@ struct tuple_delta_t
     unsigned cur_axis_count = axes_index_map.get_population ();
     /* allocate enough memory: 1 peak + 2 intermediate coords + fixed header size */
     unsigned alloc_len = 3 * cur_axis_count * (F2DOT14::static_size) + 4;
-    char *p = (char *) hb_calloc (alloc_len, sizeof (char));
-    if (unlikely (!p)) return false;
+    if (unlikely (!compiled_tuple_header.resize (alloc_len))) return false;
 
-    /* the first 4 bytes are fixed header bytes*/
-    unsigned pos = 4;
     unsigned flag = 0;
-    F2DOT14* end = reinterpret_cast<F2DOT14 *> (p + alloc_len);
-    /* encode peak coords */
-    F2DOT14* peak_coords_end = encode_peak_coords(p+pos, end, flag, axes_index_map, axes_old_index_tag_map);
-    if (!peak_coords_end)
-    { hb_free (p); return false; }
+    /* skip the first 4 header bytes: variationDataSize+tupleIndex */
+    F2DOT14* p = reinterpret_cast<F2DOT14 *> (compiled_tuple_header.begin () + 4);
+    F2DOT14* end = reinterpret_cast<F2DOT14 *> (compiled_tuple_header.end ());
+    hb_array_t<F2DOT14> coords (p, end - p);
 
-    F2DOT14* interm_coords_end = encode_interm_coords (peak_coords_end, end, flag, axes_index_map, axes_old_index_tag_map);
-    if (!interm_coords_end)
-    { hb_free (p); return false; }
+    /* encode peak coords */
+    unsigned peak_count = encode_peak_coords(coords, flag, axes_index_map, axes_old_index_tag_map);
+    if (!peak_count) return false;
+
+    /* encode interim coords, it's optional so returned num could be 0 */
+    unsigned interim_count = encode_interm_coords (coords.sub_array (peak_count), flag, axes_index_map, axes_old_index_tag_map);
 
     //TODO(qxliu): add option to use shared_points in gvar
     flag |= TupleVariationHeader::TuppleIndex::PrivatePointNumbers;
 
     unsigned serialized_data_size = points_data_length + compiled_deltas.length;
-    TupleVariationHeader *o = reinterpret_cast<TupleVariationHeader *> (p);
+    TupleVariationHeader *o = reinterpret_cast<TupleVariationHeader *> (compiled_tuple_header.begin ());
     o->varDataSize = serialized_data_size;
     o->tupleIndex = flag;
 
-    unsigned total_header_len = reinterpret_cast<char *> (interm_coords_end) - p;
-    compiled_tuple_header = byte_data_t (p, total_header_len);
-    return true;
+    unsigned total_header_len = 4 + (peak_count + interim_count) * (F2DOT14::static_size);
+    return compiled_tuple_header.resize (total_header_len);
   }
 
-  F2DOT14* encode_peak_coords (char* p, F2DOT14* end,
+  unsigned encode_peak_coords (hb_array_t<F2DOT14> peak_coords,
                                unsigned& flag,
                                const hb_map_t& axes_index_map,
                                const hb_map_t& axes_old_index_tag_map) const
   {
     unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
-    F2DOT14* out = reinterpret_cast<F2DOT14 *> (p);
+    auto it = peak_coords.iter ();
+    unsigned count = 0;
     for (unsigned i = 0; i < orig_axis_count; i++)
     {
       if (!axes_index_map.has (i)) /* axis pinned */
         continue;
-      if (out >= end) return nullptr;
       hb_tag_t axis_tag = axes_old_index_tag_map.get (i);
       Triple *coords;
       if (!axis_tuples.has (axis_tag, &coords))
-        (*out).set_int (0);
+        (*it).set_int (0);
       else
-        (*out).set_float (coords->middle);
-      out++;
+        (*it).set_float (coords->middle);
+      it++;
+      count++;
     }
     flag |= TupleVariationHeader::TuppleIndex::EmbeddedPeakTuple;
-    return out;
+    return count;
   }
 
   /* if no need to encode intermediate coords, then just return p */
-  F2DOT14* encode_interm_coords (F2DOT14 *p, F2DOT14* end,
+  unsigned encode_interm_coords (hb_array_t<F2DOT14> coords,
                                  unsigned& flag,
                                  const hb_map_t& axes_index_map,
                                  const hb_map_t& axes_old_index_tag_map) const
@@ -660,11 +643,10 @@ struct tuple_delta_t
     unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
     unsigned cur_axis_count = axes_index_map.get_population ();
 
-    F2DOT14* out = reinterpret_cast<F2DOT14 *> (p);
-
-    F2DOT14* start_coords = out;
-    F2DOT14* end_coords = start_coords + cur_axis_count;
+    auto start_coords_iter = coords.sub_array (0, cur_axis_count).iter ();
+    auto end_coords_iter = coords.sub_array (cur_axis_count).iter ();
     bool encode_needed = false;
+    unsigned count = 0;
     for (unsigned i = 0; i < orig_axis_count; i++)
     {
       if (!axes_index_map.has (i)) /* axis pinned */
@@ -679,14 +661,12 @@ struct tuple_delta_t
         max_val = coords->maximum;
       }
 
-      if (start_coords >= end || end_coords >= end)
-        return nullptr;
+      (*start_coords_iter).set_float (min_val);
+      (*end_coords_iter).set_float (max_val);
 
-      (*start_coords).set_float (min_val);
-      (*end_coords).set_float (max_val);
-
-      start_coords++;
-      end_coords++;
+      start_coords_iter++;
+      end_coords_iter++;
+      count += 2;
       if (min_val != hb_min (val, 0.f) || max_val != hb_max (val, 0.f))
         encode_needed = true;
     }
@@ -694,9 +674,9 @@ struct tuple_delta_t
     if (encode_needed)
     {
       flag |= TupleVariationHeader::TuppleIndex::IntermediateRegion;
-      return end_coords;
+      return count;
     }
-    return p;
+    return 0;
   }
 
   bool compile_deltas ()
@@ -718,16 +698,10 @@ struct tuple_delta_t
     if (deltas_y)
       alloc_len *= 2;
 
-    char *p = (char *) hb_malloc (alloc_len);
-    if (unlikely (!p)) return false;
+    if (unlikely (!compiled_deltas.resize (alloc_len))) return false;
 
     unsigned i = 0;
-    char *end = p + alloc_len;
-    char *o = encode_delta_run (p, end, i, rounded_deltas);
-    if (!o || o == p)
-    { hb_free (p); return false; }
-
-    unsigned encoded_len = o - p;
+    unsigned encoded_len = encode_delta_run (i, compiled_deltas.as_array (), rounded_deltas);
 
     if (deltas_y)
     {
@@ -738,49 +712,44 @@ struct tuple_delta_t
         if (!indices[idx]) continue;
         int rounded_delta = (int) roundf (deltas_y[idx]);
 
-        if (j >= rounded_deltas.length)
-        { hb_free (p); return false; }
+        if (j >= rounded_deltas.length) return false;
 
         rounded_deltas[j++] = rounded_delta;
       }
 
-      if (j != rounded_deltas.length) { hb_free (p); return false; }
-
-      char *out = encode_delta_run (o, end, i, rounded_deltas);
-      if (!out || out == o) { hb_free (p); return false; }
-      encoded_len = out - p;
+      if (j != rounded_deltas.length) return false;
+      encoded_len += encode_delta_run (i, compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
     }
-    compiled_deltas = byte_data_t (p, encoded_len);
-    return true;
+    return compiled_deltas.resize (encoded_len);
   }
 
-  char* encode_delta_run (char* p, char *end, unsigned& i,
-                          const hb_vector_t<int>& deltas) const
+  unsigned encode_delta_run (unsigned& i,
+                             hb_array_t<char> encoded_bytes,
+                             const hb_vector_t<int>& deltas) const
   {
-    if (p >= end) return nullptr;
     unsigned num_deltas = deltas.length;
+    unsigned encoded_len = 0;
     while (i < num_deltas)
     {
       int val = deltas[i];
       if (val == 0)
-        p = encode_delta_run_as_zeroes (p, end, i, deltas);
+        encoded_len += encode_delta_run_as_zeroes (i, encoded_bytes.sub_array (encoded_len), deltas);
       else if (val >= -128 && val <= 127)
-        p = encode_delta_run_as_bytes (p, end, i, deltas);
+        encoded_len += encode_delta_run_as_bytes (i, encoded_bytes.sub_array (encoded_len), deltas);
       else
-        p = encode_delta_run_as_words (p, end, i, deltas);
-
-      if (!p || p > end)
-        return nullptr;
+        encoded_len += encode_delta_run_as_words (i, encoded_bytes.sub_array (encoded_len), deltas);
     }
-    return p;
+    return encoded_len;
   }
 
-  char* encode_delta_run_as_zeroes (char* p, char *end, unsigned& i,
-                                    const hb_vector_t<int>& deltas) const
+  unsigned encode_delta_run_as_zeroes (unsigned& i,
+                                       hb_array_t<char> encoded_bytes,
+                                       const hb_vector_t<int>& deltas) const
   {
-    if (p >= end) return nullptr;
     unsigned num_deltas = deltas.length;
     unsigned run_length = 0;
+    auto it = encoded_bytes.iter ();
+    unsigned encoded_len = 0;
     while (i < num_deltas && deltas[i] == 0)
     {
       i++;
@@ -789,23 +758,23 @@ struct tuple_delta_t
 
     while (run_length >= 64)
     {
-      if (p >= end) return nullptr;
-      *p++ = (DELTAS_ARE_ZERO | 63);
+      *it++ = (DELTAS_ARE_ZERO | 63);
       run_length -= 64;
+      encoded_len++;
     }
 
     if (run_length)
     {
-      if (p >= end) return nullptr;
-      *p++ = (DELTAS_ARE_ZERO | (run_length - 1));
+      *it++ = (DELTAS_ARE_ZERO | (run_length - 1));
+      encoded_len++;
     }
-    return p;
+    return encoded_len;
   }
 
-  char* encode_delta_run_as_bytes (char *p, char *end, unsigned &i,
-                                   const hb_vector_t<int>& deltas) const
+  unsigned encode_delta_run_as_bytes (unsigned &i,
+                                      hb_array_t<char> encoded_bytes,
+                                      const hb_vector_t<int>& deltas) const
   {
-    if (p >= end) return nullptr;
     unsigned start = i;
     unsigned num_deltas = deltas.length;
     while (i < num_deltas)
@@ -823,16 +792,18 @@ struct tuple_delta_t
     }
     unsigned run_length = i - start;
 
-    HBINT8 *out = reinterpret_cast<HBINT8 *> (p);
+    unsigned encoded_len = 0;
+    auto it = encoded_bytes.iter ();
+
     while (run_length >= 64)
     {
-      if ((char *)out >= end) return nullptr;
-      *out++ = 63;
+      *it++ = 63;
+      encoded_len++;
 
       for (unsigned j = 0; j < 64; j++)
       {
-        if ((char *)out >= end) return nullptr;
-        *out++ = deltas[start + j];
+        *it++ = static_cast<char> (deltas[start + j]);
+        encoded_len++;
       }
 
       start += 64;
@@ -841,20 +812,22 @@ struct tuple_delta_t
 
     if (run_length)
     {
-      if ((char *)out >= end) return nullptr;
-      *out++ = run_length - 1;
+      *it++ = run_length - 1;
+      encoded_len++;
+
       while (start < i)
       {
-        if ((char *)out >= end) return nullptr;
-        *out++ = deltas[start++];
+        *it++ = static_cast<char> (deltas[start++]);
+        encoded_len++;
       }
     }
 
-    return reinterpret_cast<char *> (out);
+    return encoded_len;
   }
 
-  char* encode_delta_run_as_words (char *p, char *end, unsigned &i,
-                                   const hb_vector_t<int>& deltas) const
+  unsigned encode_delta_run_as_words (unsigned &i,
+                                      hb_array_t<char> encoded_bytes,
+                                      const hb_vector_t<int>& deltas) const
   {
     unsigned start = i;
     unsigned num_deltas = deltas.length;
@@ -877,15 +850,20 @@ struct tuple_delta_t
     }
 
     unsigned run_length = i - start;
-    HBINT16 *out = reinterpret_cast<HBINT16 *> (p);
+    auto it = encoded_bytes.iter ();
+    unsigned encoded_len = 0;
     while (run_length >= 64)
     {
-      if ((char *)out >= end) return nullptr;
-      *out++ = (DELTAS_ARE_WORDS | 63);
+      *it++ = (DELTAS_ARE_WORDS | 63);
+      encoded_len++;
+
       for (unsigned j = 0; j < 64; j++)
       {
-        if ((char *)out >= end) return nullptr;
-        *out++ = deltas[start + j];
+        int16_t delta_val = deltas[start + j];
+        *it++ = static_cast<char> (delta_val >> 8);
+        *it++ = static_cast<char> (delta_val & 0xFF);
+
+        encoded_len += 2;
       }
 
       start += 64;
@@ -894,15 +872,17 @@ struct tuple_delta_t
 
     if (run_length)
     {
-      if ((char *)out >= end) return nullptr;
-      *out++ = (DELTAS_ARE_WORDS | (run_length - 1));
+      *it++ = (DELTAS_ARE_WORDS | (run_length - 1));
       while (start < i)
       {
-        if ((char *)out >= end) return nullptr;
-        *out++ = deltas[start++];
+        int16_t delta_val = deltas[start++];
+        *it++ = static_cast<char> (delta_val >> 8);
+        *it++ = static_cast<char> (delta_val & 0xFF);
+
+        encoded_len += 2;
       }
     }
-    return reinterpret_cast<char *> (out);
+    return encoded_len;
   }
 };
 
@@ -945,7 +925,15 @@ struct TupleVariationData
     hb_hashmap_t<const hb_vector_t<bool>*, unsigned> point_set_count_map;
 
     public:
-    void fini () { tuple_vars.fini (); }
+    ~tuple_variations_t () { fini (); }
+    void fini ()
+    {
+      for (auto _ : point_data_map.values ())
+        _.fini ();
+
+      point_set_count_map.fini ();
+      tuple_vars.fini ();
+    }
 
     unsigned get_var_count () const
     { return tuple_vars.length; }
@@ -1101,7 +1089,7 @@ struct TupleVariationData
         p[pos++] = num_points & 0xFF;
       }
 
-      unsigned max_run_length = 0x7F;
+      const unsigned max_run_length = 0x7F;
       unsigned i = 0;
       unsigned last_value = 0;
       unsigned num_encoded = 0;
@@ -1112,6 +1100,7 @@ struct TupleVariationData
         p[pos++] = 0;
 
         bool use_byte_encoding = false;
+        bool new_run = true;
         while (i < indices_length && num_encoded < num_points &&
                run_length <= max_run_length)
         {
@@ -1124,10 +1113,13 @@ struct TupleVariationData
           unsigned cur_value = i;
           unsigned delta = cur_value - last_value;
 
-          if (!use_byte_encoding)
-            use_byte_encoding = (delta >= 0 && delta <= 0xFF);
+          if (new_run)
+          {
+            use_byte_encoding = (delta <= 0xFF);
+            new_run = false;
+          }
 
-          if (use_byte_encoding && (delta <0 || delta > 0xFF))
+          if (use_byte_encoding && delta > 0xFF)
             break;
 
           if (use_byte_encoding)
@@ -1188,7 +1180,7 @@ struct TupleVariationData
       for (const auto& _ : point_data_map.iter ())
       {
         const hb_vector_t<bool>* points_set = _.first;
-        unsigned data_length = _.second.length;
+        unsigned data_length = _.second.bytes.length;
         unsigned *count;
         if (unlikely (!point_set_count_map.has (points_set, &count) ||
                       *count <= 1))
@@ -1227,7 +1219,7 @@ struct TupleVariationData
         if (!tuple.compile_deltas ())
           return false;
 
-        if (!tuple.compile_tuple_var_header (axes_index_map, points_data->length, axes_old_index_tag_map))
+        if (!tuple.compile_tuple_var_header (axes_index_map, points_data->bytes.length, axes_old_index_tag_map))
           return false;
       }
       return true;
@@ -1238,8 +1230,9 @@ struct TupleVariationData
       TRACE_SERIALIZE (this);
       for (const auto& tuple: tuple_vars)
       {
-        if (!c->copy (tuple.compiled_tuple_header))
-          return_trace (false);
+        byte_data_t compiled_bytes {tuple.compiled_tuple_header.arrayZ, tuple.compiled_tuple_header.length};
+        compiled_bytes.copy (c);
+        if (c->in_error ()) return_trace (false);
         total_header_len += tuple.compiled_tuple_header.length;
       }
       return_trace (true);
@@ -1252,11 +1245,13 @@ struct TupleVariationData
       {
         const hb_vector_t<bool>* points_set = &(tuple.indices);
         byte_data_t *point_data;
-        if (!point_data_map.has (points_set))
+        if (!point_data_map.has (points_set, &point_data))
           return_trace (false);
 
-        if (!c->copy (*point_data)) return_trace (false);
-        if (!c->copy (tuple.compiled_deltas)) return_trace (false);
+        point_data->copy (c);
+        byte_data_t compiled_bytes {tuple.compiled_deltas.arrayZ, tuple.compiled_deltas.length};
+        compiled_bytes.copy (c);
+        if (c->in_error ()) return_trace (false);
       }
       return_trace (true);
     }
