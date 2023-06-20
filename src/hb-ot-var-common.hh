@@ -456,8 +456,23 @@ struct tuple_delta_t
   /* empty for cvar tuples */
   hb_vector_t<float> deltas_y;
 
+  /* compiled data: header and deltas
+   * compiled point data is saved in a hashmap within tuple_variations_t cause
+   * some point sets might be reused by different tuple variations */
+  byte_data_t compiled_tuple_header;
+  byte_data_t compiled_deltas;
+
   tuple_delta_t () = default;
   tuple_delta_t (const tuple_delta_t& o) = default;
+  ~tuple_delta_t ()
+  {
+    compiled_deltas.fini ();
+    compiled_tuple_header.fini ();
+    deltas_y.fini ();
+    deltas_x.fini ();
+    indices.fini ();
+    axis_tuples.fini ();
+  }
 
   tuple_delta_t (tuple_delta_t&& o) : tuple_delta_t ()
   {
@@ -555,6 +570,61 @@ struct tuple_delta_t
     }
 
     return out;
+  }
+
+  bool compile_deltas ()
+  {
+    hb_vector_t<int> rounded_deltas;
+    if (unlikely (!rounded_deltas.alloc (indices.length)))
+      return false;
+
+    for (unsigned i = 0; i < indices.length; i++)
+    {
+      if (!indices[i]) continue;
+      int rounded_delta = (int) roundf (deltas_x[i]);
+      rounded_deltas.push (rounded_delta);
+    }
+
+    if (!rounded_deltas) return false;
+    /* allocate enough memories 3 * num_deltas */
+    unsigned alloc_len = 3 * rounded_deltas.length;
+    if (deltas_y)
+      alloc_len *= 2;
+
+    char *p = (char *) hb_malloc (alloc_len);
+    if (unlikely (!p)) return false;
+
+    unsigned i = 0;
+    char *end = p + alloc_len;
+    char *o = encode_delta_run (p, end, i, rounded_deltas);
+    if (!o || o == p)
+    { hb_free (p); return false; }
+
+    unsigned encoded_len = o - p;
+
+    if (deltas_y)
+    {
+      /* reuse the rounded_deltas vector, check that deltas_y have the same num of deltas as deltas_x */
+      unsigned j = 0;
+      for (unsigned idx = 0; idx < indices.length; idx++)
+      {
+        if (!indices[idx]) continue;
+        int rounded_delta = (int) roundf (deltas_y[idx]);
+
+        if (j >= rounded_deltas.length)
+        { hb_free (p); return false; }
+
+        rounded_deltas[j++] = rounded_delta;
+      }
+
+      if (j != rounded_deltas.length) { hb_free (p); return false; }
+
+      char *out = encode_delta_run (o, end, i, rounded_deltas);
+      if (!out || out == o) { hb_free (p); return false; }
+      encoded_len = out - p;
+    }
+    compiled_deltas = byte_data_t (p, encoded_len);
+    return true;
   }
 
   char* encode_delta_run (char* p, char *end, unsigned& i,
