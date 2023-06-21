@@ -230,82 +230,115 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     }
   }
 
-  /* Case 3: Outermost limit still fits within F2Dot14 bounds;
-   * we keep deltas as is and only scale the axes bounds. Deltas beyond -1.0
-   * or +1.0 will never be applied as implementations must clamp to that range.
-   *
-   * A second tent is needed for cases when gain is positive, though we add it
-   * unconditionally and it will be dropped because scalar ends up 0.
-   *
-   * TODO: See if we can just move upper closer to adjust the slope, instead of
-   * second tent.
-   *
-   *            |           peak |
-   *  1.........|............o...|..................
-   *            |           /x\  |
-   *            |          /xxx\ |
-   *            |         /xxxxx\|
-   *            |        /xxxxxxx+
-   *            |       /xxxxxxxx|\
-   *  0---|-----|------oxxxxxxxxx|xo---------------1
-   *    axisMin |  lower         | upper
-   *            |                |
-   *          axisDef          axisMax
-   */
-  else if (axisDef + (axisMax - axisDef) * 2 >= upper)
+  else
   {
-    if (!negative && axisDef + (axisMax - axisDef) * MAX_F2DOT14 < upper)
-    {
-      // we clamp +2.0 to the max F2Dot14 (~1.99994) for convenience
-      upper = axisDef + (axisMax - axisDef) * MAX_F2DOT14;
-      assert (peak < upper);
-    }
-
     // Special-case if peak is at axisMax.
     if (axisMax == peak)
 	upper = peak;
 
-    Triple loc1 {hb_max (axisDef, lower), peak, upper};
-    float scalar1 = 1.f;
+    /* Case pre3:
+     * we keep deltas as is and only scale the axis upper to achieve
+     * the desired new tent if feasible.
+     *
+     *            |           peak |
+     *  1.........|............o...|..................
+     *            |           /x\  |
+     *            |          /xxx\ |
+     *            |         /xxxxx\|
+     *            |        /xxxxxxx+
+     *            |       /xxxxxxxx|\
+     *  0---|-----|------oxxxxxxxxx|xo---------------1
+     *    axisMin |  lower         | upper
+     *            |                |
+     *          axisDef          axisMax
+     */
+    float newUpper = peak + (1 - gain) * (upper - peak);
+    if (axisMax <= newUpper && newUpper <= axisDef + (axisMax - axisDef) * 2)
+    {
+      upper = newUpper;
+      if (!negative && axisDef + (axisMax - axisDef) * MAX_F2DOT14 < upper)
+      {
+	// we clamp +2.0 to the max F2Dot14 (~1.99994) for convenience
+	upper = axisDef + (axisMax - axisDef) * MAX_F2DOT14;
+	assert (peak < upper);
+      }
 
-    Triple loc2 {peak, upper, upper};
-    float scalar2 = 0.f;
+      Triple loc {hb_max (axisDef, lower), peak, upper};
+      float scalar = 1.f;
 
-    // Don't add a dirac delta!
-    if (axisDef < upper)
-	out.push (hb_pair (scalar1 - gain, loc1));
-    if (peak < upper)
+      out.push (hb_pair (scalar - gain, loc));
+    }
+
+    /* Case 3: Outermost limit still fits within F2Dot14 bounds;
+     * We keep axis bound as is. Deltas beyond -1.0 or +1.0 will never be
+     * applied as implementations must clamp to that range.
+     *
+     * A second tent is needed for cases when gain is positive, though we add it
+     * unconditionally and it will be dropped because scalar ends up 0.
+     *
+     *            |           peak |
+     *  1.........|............o...|..................
+     *            |           /x\  |
+     *            |          /xxx\ |
+     *            |         /xxxxx\|
+     *            |        /xxxxxxx+
+     *            |       /xxxxxxxx|\
+     *  0---|-----|------oxxxxxxxxx|xo---------------1
+     *    axisMin |  lower         | upper
+     *            |                |
+     *          axisDef          axisMax
+     */
+    else if (axisDef + (axisMax - axisDef) * 2 >= upper)
+    {
+      if (!negative && axisDef + (axisMax - axisDef) * MAX_F2DOT14 < upper)
+      {
+	// we clamp +2.0 to the max F2Dot14 (~1.99994) for convenience
+	upper = axisDef + (axisMax - axisDef) * MAX_F2DOT14;
+	assert (peak < upper);
+      }
+
+      Triple loc1 {hb_max (axisDef, lower), peak, upper};
+      float scalar1 = 1.f;
+
+      Triple loc2 {peak, upper, upper};
+      float scalar2 = 0.f;
+
+      // Don't add a dirac delta!
+      if (axisDef < upper)
+	  out.push (hb_pair (scalar1 - gain, loc1));
+      if (peak < upper)
+	  out.push (hb_pair (scalar2 - gain, loc2));
+    }
+
+    /* Case 4: New limit doesn't fit; we need to chop into two tents,
+     * because the shape of a triangle with part of one side cut off
+     * cannot be represented as a triangle itself.
+     *
+     *            |   peak |
+     *  1.........|......o.|....................
+     *  ..........|...../x\|.............outGain
+     *            |    |xxy|\_
+     *            |   /xxxy|  \_
+     *            |  |xxxxy|    \_
+     *            |  /xxxxy|      \_
+     *  0---|-----|-oxxxxxx|        o----------1
+     *    axisMin | lower  |        upper
+     *            |        |
+     *          axisDef  axisMax
+     */
+    else
+    {
+      Triple loc1 {hb_max (axisDef, lower), peak, axisMax};
+      float scalar1 = 1.f;
+
+      Triple loc2 {peak, axisMax, axisMax};
+      float scalar2 = outGain;
+
+      out.push (hb_pair (scalar1 - gain, loc1));
+      // Don't add a dirac delta!
+      if (peak < axisMax)
 	out.push (hb_pair (scalar2 - gain, loc2));
-  }
-
-  /* Case 4: New limit doesn't fit; we need to chop into two tents,
-   * because the shape of a triangle with part of one side cut off
-   * cannot be represented as a triangle itself.
-   *
-   *            |   peak |
-   *  1.........|......o.|....................
-   *  ..........|...../x\|.............outGain
-   *            |    |xxy|\_
-   *            |   /xxxy|  \_
-   *            |  |xxxxy|    \_
-   *            |  /xxxxy|      \_
-   *  0---|-----|-oxxxxxx|        o----------1
-   *    axisMin | lower  |        upper
-   *            |        |
-   *          axisDef  axisMax
-   */
-  else
-  {
-    Triple loc1 {hb_max (axisDef, lower), peak, axisMax};
-    float scalar1 = 1.f;
-
-    Triple loc2 {peak, axisMax, axisMax};
-    float scalar2 = outGain;
-
-    out.push (hb_pair (scalar1 - gain, loc1));
-    // Don't add a dirac delta!
-    if (peak < axisMax)
-      out.push (hb_pair (scalar2 - gain, loc2));
+    }
   }
 
   /* Now, the negative side

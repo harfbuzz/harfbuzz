@@ -191,13 +191,11 @@ main (int argc, char **argv)
     Triple tent (0.f, 0.5f, 1.f);
     Triple axis_range (0.25f, 0.25f, 0.75f);
     result_t out = rebase_tent (tent, axis_range);
-    assert (out.length == 3);
+    assert (out.length == 2);
     assert (out[0].first == 0.5f);
     assert (out[0].second == Triple ());
     assert (out[1].first == 0.5f);
-    assert (out[1].second == Triple (0.f, 0.5f, 1.5f));
-    assert (out[2].first == -0.5f);
-    assert (out[2].second == Triple (0.5f, 1.5f, 1.5f));
+    assert (out[1].second == Triple (0.f, 0.5f, 1.0f));
   }
 
   /* Case 1neg */
