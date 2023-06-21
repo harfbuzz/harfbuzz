@@ -223,7 +223,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
 
       // Eternity justify.
       Triple loc2 {upper, axisMax, axisMax};
-      float scalar2 = outGain;
+      float scalar2 = 0.f;
 
       out.push (hb_pair (scalar1 - gain, loc1));
       out.push (hb_pair (scalar2 - gain, loc2));
