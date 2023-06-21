@@ -189,7 +189,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     if (upper >= axisMax)
     {
       Triple loc {crossing, axisMax, axisMax};
-      float scalar = supportScalar (axisMax, tent);
+      float scalar = outGain;
 
       out.push (hb_pair (scalar - gain, loc));
     }
@@ -223,7 +223,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
 
       // Eternity justify.
       Triple loc2 {upper, axisMax, axisMax};
-      float scalar2 = supportScalar (axisMax, tent);
+      float scalar2 = outGain;
 
       out.push (hb_pair (scalar1 - gain, loc1));
       out.push (hb_pair (scalar2 - gain, loc2));
@@ -283,8 +283,8 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
    * cannot be represented as a triangle itself.
    *
    *            |   peak |
-   *  1.........|......o.|...................
-   *            |     /x\|
+   *  1.........|......o.|....................
+   *  ..........|...../x\|.............outGain
    *            |    |xxy|\_
    *            |   /xxxy|  \_
    *            |  |xxxxy|    \_
@@ -300,7 +300,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     float scalar1 = 1.f;
 
     Triple loc2 {peak, axisMax, axisMax};
-    float scalar2 = supportScalar (axisMax, tent);
+    float scalar2 = outGain;
 
     out.push (hb_pair (scalar1 - gain, loc1));
     // Don't add a dirac delta!
