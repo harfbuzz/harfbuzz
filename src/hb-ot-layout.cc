@@ -2010,7 +2010,7 @@ void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, h
 {
   GSUBProxy proxy (font->face);
   if (buffer->messaging () &&
-      !buffer->message (font, "start table GSUB")) return;
+      !buffer->message (font, "start table GSUB script tag '%c%c%c%c'", HB_UNTAG (chosen_script[0]))) return;
   apply (proxy, plan, font, buffer);
   if (buffer->messaging ())
     (void) buffer->message (font, "end table GSUB");
@@ -2020,7 +2020,7 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
 {
   GPOSProxy proxy (font->face);
   if (buffer->messaging () &&
-      !buffer->message (font, "start table GPOS")) return;
+      !buffer->message (font, "start table GPOS script tag '%c%c%c%c'", HB_UNTAG (chosen_script[1]))) return;
   apply (proxy, plan, font, buffer);
   if (buffer->messaging ())
     (void) buffer->message (font, "end table GPOS");
