@@ -52,7 +52,6 @@ struct hb_subset_accelerator_t
   }
 
   static hb_subset_accelerator_t* create(const hb_map_t& unicode_to_gid_,
-					 const hb_multimap_t &gid_to_unicodes_,
 					 const hb_set_t& unicodes_,
 					 bool has_seac_) {
     hb_subset_accelerator_t* accel =
@@ -61,7 +60,6 @@ struct hb_subset_accelerator_t
     if (unlikely (!accel)) return accel;
 
     new (accel) hb_subset_accelerator_t (unicode_to_gid_,
-					 gid_to_unicodes_,
 					 unicodes_,
 					 has_seac_);
 
@@ -80,17 +78,24 @@ struct hb_subset_accelerator_t
   }
 
   hb_subset_accelerator_t (const hb_map_t& unicode_to_gid_,
-			   const hb_multimap_t& gid_to_unicodes_,
 			   const hb_set_t& unicodes_,
 			   bool has_seac_) :
     unicode_to_gid(unicode_to_gid_),
-    gid_to_unicodes (gid_to_unicodes_),
     unicodes(unicodes_),
     cmap_cache(nullptr),
     destroy_cmap_cache(nullptr),
     has_seac(has_seac_),
     cff_accelerator(nullptr),
-    destroy_cff_accelerator(nullptr) {}
+    destroy_cff_accelerator(nullptr)
+  {
+    gid_to_unicodes.resize (unicode_to_gid.get_population ());
+    for (const auto &_ : unicode_to_gid)
+    {
+      auto unicode = _.first;
+      auto gid = _.second;
+      gid_to_unicodes.add (gid, unicode);
+    }
+  }
 
   ~hb_subset_accelerator_t ()
   {
@@ -106,9 +111,9 @@ struct hb_subset_accelerator_t
   mutable hb_mutex_t sanitized_table_cache_lock;
   mutable hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_blob_t>> sanitized_table_cache;
 
-  const hb_map_t unicode_to_gid;
-  const hb_multimap_t gid_to_unicodes;
-  const hb_set_t unicodes;
+  hb_map_t unicode_to_gid;
+  hb_multimap_t gid_to_unicodes;
+  hb_set_t unicodes;
 
   // cmap
   const OT::SubtableUnicodesCache* cmap_cache;

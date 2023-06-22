@@ -1128,21 +1128,8 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 
   if (attach_accelerator_data)
   {
-    hb_multimap_t gid_to_unicodes;
-
-    hb_map_t &unicode_to_gid = *codepoint_to_glyph;
-
-    gid_to_unicodes.resize (unicode_to_gid.get_population ());
-    for (const auto &_ : unicode_to_gid)
-    {
-      auto unicode = _.first;
-      auto gid = _.second;
-      gid_to_unicodes.add (gid, unicode);
-    }
-
     inprogress_accelerator =
       hb_subset_accelerator_t::create (*codepoint_to_glyph,
-				       gid_to_unicodes,
                                        unicodes,
 				       has_seac);
 
