@@ -1132,10 +1132,11 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 
     hb_map_t &unicode_to_gid = *codepoint_to_glyph;
 
-    gid_to_unicodes.resize (unicodes.get_population ());
-    for (auto unicode : unicodes)
+    gid_to_unicodes.resize (unicode_to_gid.get_population ());
+    for (const auto &_ : unicode_to_gid)
     {
-      auto gid = unicode_to_gid[unicode];
+      auto unicode = _.first;
+      auto gid = _.second;
       gid_to_unicodes.add (gid, unicode);
     }
 
