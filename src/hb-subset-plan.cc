@@ -590,9 +590,10 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     }
 
     /* Add gids which where requested, but not mapped in cmap */
+    unsigned num_glyphs = plan->source->get_num_glyphs ();
     for (hb_codepoint_t gid : *glyphs)
     {
-      if (gid >= plan->source->get_num_glyphs ())
+      if (gid >= num_glyphs)
 	break;
       plan->_glyphset_gsub.add (gid);
     }
