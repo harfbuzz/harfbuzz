@@ -236,21 +236,21 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     if (axisMax == peak)
 	upper = peak;
 
-    /* Case pre3:
+    /* Case 3:
      * we keep deltas as is and only scale the axis upper to achieve
      * the desired new tent if feasible.
      *
-     *            |           peak |
-     *  1.........|............o...|..................
-     *            |           /x\  |
-     *            |          /xxx\ |
-     *            |         /xxxxx\|
-     *            |        /xxxxxxx+
-     *            |       /xxxxxxxx|\
-     *  0---|-----|------oxxxxxxxxx|xo---------------1
-     *    axisMin |  lower         | upper
-     *            |                |
-     *          axisDef          axisMax
+     *                        peak
+     *  1.....................o....................
+     *                       / \_|
+     *  ..................../....+_.........outGain
+     *                     /     | \
+     *  gain..............+......|..\_.............
+     *                   /|      |  | \
+     *  0---|-----------o |      |  |  o----------1
+     *    axisMin    lower|      |  |   upper
+     *                    |      |  newUpper
+     *              axisDef      axisMax
      */
     float newUpper = peak + (1 - gain) * (upper - peak);
     // I feel like the first condition is always true because
@@ -269,47 +269,6 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
       float scalar = 1.f;
 
       out.push (hb_pair (scalar - gain, loc));
-    }
-
-    /* Case 3: Outermost limit still fits within F2Dot14 bounds;
-     * We keep axis bound as is. Deltas beyond -1.0 or +1.0 will never be
-     * applied as implementations must clamp to that range.
-     *
-     * A second tent is needed for cases when gain is positive, though we add it
-     * unconditionally and it will be dropped because scalar ends up 0.
-     *
-     *            |           peak |
-     *  1.........|............o...|..................
-     *            |           /x\  |
-     *            |          /xxx\ |
-     *            |         /xxxxx\|
-     *            |        /xxxxxxx+
-     *            |       /xxxxxxxx|\
-     *  0---|-----|------oxxxxxxxxx|xo---------------1
-     *    axisMin |  lower         | upper
-     *            |                |
-     *          axisDef          axisMax
-     */
-    else if (axisDef + (axisMax - axisDef) * 2 >= upper)
-    {
-      if (!negative && axisDef + (axisMax - axisDef) * MAX_F2DOT14 < upper)
-      {
-	// we clamp +2.0 to the max F2Dot14 (~1.99994) for convenience
-	upper = axisDef + (axisMax - axisDef) * MAX_F2DOT14;
-	assert (peak < upper);
-      }
-
-      Triple loc1 {hb_max (axisDef, lower), peak, upper};
-      float scalar1 = 1.f;
-
-      Triple loc2 {peak, upper, upper};
-      float scalar2 = 0.f;
-
-      // Don't add a dirac delta!
-      if (axisDef < upper)
-	  out.push (hb_pair (scalar1 - gain, loc1));
-      if (peak < upper)
-	  out.push (hb_pair (scalar2 - gain, loc2));
     }
 
     /* Case 4: New limit doesn't fit; we need to chop into two tents,
