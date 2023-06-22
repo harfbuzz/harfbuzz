@@ -103,7 +103,7 @@ struct hb_hashmap_t
     uint32_t total_hash () const
     { return (hash * 31) + hb_hash (value); }
 
-    static bool is_trivial ()
+    static constexpr bool is_trivial ()
     {
       return std::is_trivially_constructible<K>::value &&
 	     std::is_trivially_destructible<K>::value &&
