@@ -52,7 +52,7 @@ struct hb_subset_accelerator_t
   }
 
   static hb_subset_accelerator_t* create(const hb_map_t& unicode_to_gid_,
-					 const hb_multimap_t gid_to_unicodes_,
+					 const hb_multimap_t &gid_to_unicodes_,
 					 const hb_set_t& unicodes_,
 					 bool has_seac_) {
     hb_subset_accelerator_t* accel =
