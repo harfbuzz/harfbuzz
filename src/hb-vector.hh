@@ -255,7 +255,7 @@ struct hb_vector_t
   template <typename T = Type,
 	    hb_enable_if (hb_is_trivially_copy_assignable(T))>
   Type *
-  realloc_vector (unsigned new_allocated)
+  realloc_vector (unsigned new_allocated, hb_priority<0>)
   {
     if (!new_allocated)
     {
@@ -267,7 +267,7 @@ struct hb_vector_t
   template <typename T = Type,
 	    hb_enable_if (!hb_is_trivially_copy_assignable(T))>
   Type *
-  realloc_vector (unsigned new_allocated)
+  realloc_vector (unsigned new_allocated, hb_priority<0>)
   {
     if (!new_allocated)
     {
@@ -286,6 +286,19 @@ struct hb_vector_t
       hb_free (arrayZ);
     }
     return new_array;
+  }
+  /* Specialization for hb_vector_t<hb_vector_t<U>> to speed up. */
+  template <typename T = Type,
+	    hb_enable_if (hb_is_same(T, hb_vector_t<typename T::item_t>))>
+  Type *
+  realloc_vector (unsigned new_allocated, hb_priority<1>)
+  {
+    if (!new_allocated)
+    {
+      hb_free (arrayZ);
+      return nullptr;
+    }
+    return (Type *) hb_realloc (arrayZ, new_allocated * sizeof (Type));
   }
 
   template <typename T = Type,
@@ -418,7 +431,7 @@ struct hb_vector_t
       return false;
     }
 
-    Type *new_array = realloc_vector (new_allocated);
+    Type *new_array = realloc_vector (new_allocated, hb_prioritize);
 
     if (unlikely (new_allocated && !new_array))
     {
