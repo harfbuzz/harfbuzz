@@ -98,7 +98,7 @@ struct hb_hashmap_t
     bool operator == (const K &o) const { return hb_deref (key) == hb_deref (o); }
     bool operator == (const item_t &o) const { return *this == o.key; }
     hb_pair_t<K, V> get_pair() const { return hb_pair_t<K, V> (key, value); }
-    hb_pair_t<const K &, const V &> get_pair_ref() const { return hb_pair_t<const K &, const V &> (key, value); }
+    hb_pair_t<const K &, V &> get_pair_ref() { return hb_pair_t<const K &, V &> (key, value); }
 
     uint32_t total_hash () const
     { return (hash * 31) + hb_hash (value); }

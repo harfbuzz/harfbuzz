@@ -82,7 +82,7 @@ struct hb_subset_plan_t
     hb_map_destroy (reverse_glyph_map);
 
 #ifdef HB_EXPERIMENTAL_API
-    for (auto _ : name_table_overrides)
+    for (auto _ : name_table_overrides.iter_ref ())
       _.second.fini ();
 #endif
 
