@@ -365,9 +365,7 @@ HB_SUBSET_sources = \
 	hb-subset-cff-common.cc \
 	hb-subset-cff-common.hh \
 	hb-subset-cff1.cc \
-	hb-subset-cff1.hh \
 	hb-subset-cff2.cc \
-	hb-subset-cff2.hh \
 	hb-subset-input.cc \
 	hb-subset-input.hh \
 	hb-subset-instancer-solver.hh \

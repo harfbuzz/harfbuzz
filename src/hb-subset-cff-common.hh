@@ -527,6 +527,9 @@ struct cff_subset_accelerator_t
   hb_vector_t<parsed_cs_str_vec_t> parsed_local_subrs;
   mutable hb_atomic_ptr_t<hb_vector_t<uint16_t>> glyph_to_sid_map = nullptr;
 
+  void *cff1_acc = nullptr;
+  void *cff2_acc = nullptr;
+
  private:
   hb_blob_t* original_blob;
 };

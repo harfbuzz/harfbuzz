@@ -32,7 +32,6 @@
 #include "hb-ot-cff1-table.hh"
 #include "hb-set.h"
 #include "hb-bimap.hh"
-#include "hb-subset-cff1.hh"
 #include "hb-subset-plan.hh"
 #include "hb-subset-cff-common.hh"
 #include "hb-cff1-interp-cs.hh"
@@ -956,7 +955,7 @@ _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
 }
 
 bool
-hb_subset_cff1 (hb_subset_context_t *c)
+OT::cff1::subset (hb_subset_context_t *c) const
 {
   OT::cff1::accelerator_subset_t acc;
   acc.init (c->plan->source);

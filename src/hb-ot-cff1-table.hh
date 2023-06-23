@@ -28,7 +28,6 @@
 #define HB_OT_CFF1_TABLE_HH
 
 #include "hb-ot-cff-common.hh"
-#include "hb-subset-cff1.hh"
 #include "hb-draw.hh"
 #include "hb-paint.hh"
 
@@ -1487,7 +1486,7 @@ struct cff1
 
   struct accelerator_subset_t : accelerator_templ_t<cff1_private_dict_opset_subset, cff1_private_dict_values_subset_t> {};
 
-  bool subset (hb_subset_context_t *c) const { return hb_subset_cff1 (c); }
+  HB_INTERNAL bool subset (hb_subset_context_t *c) const;
 
   protected:
   HB_INTERNAL static hb_codepoint_t lookup_standard_encoding_for_code (hb_codepoint_t sid);

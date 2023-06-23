@@ -28,7 +28,6 @@
 #define HB_OT_CFF2_TABLE_HH
 
 #include "hb-ot-cff-common.hh"
-#include "hb-subset-cff2.hh"
 #include "hb-draw.hh"
 #include "hb-paint.hh"
 
@@ -519,7 +518,7 @@ struct cff2
 
   typedef accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t> accelerator_subset_t;
 
-  bool subset (hb_subset_context_t *c) const { return hb_subset_cff2 (c); }
+  HB_INTERNAL bool subset (hb_subset_context_t *c) const;
 
   public:
   FixedVersion<HBUINT8>		version;	/* Version of CFF2 table. set to 0x0200u */

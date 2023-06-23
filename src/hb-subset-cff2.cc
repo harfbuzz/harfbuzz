@@ -31,7 +31,6 @@
 #include "hb-open-type.hh"
 #include "hb-ot-cff2-table.hh"
 #include "hb-set.h"
-#include "hb-subset-cff2.hh"
 #include "hb-subset-plan.hh"
 #include "hb-subset-cff-common.hh"
 #include "hb-cff2-interp-cs.hh"
@@ -650,7 +649,7 @@ _hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
 }
 
 bool
-hb_subset_cff2 (hb_subset_context_t *c)
+OT::cff2::subset (hb_subset_context_t *c) const
 {
   OT::cff2::accelerator_subset_t acc (c->plan->source);
   return acc.is_valid () && _hb_subset_cff2 (acc, c);
