@@ -76,10 +76,23 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   typedef Type& __item_t__;
   static constexpr bool is_random_access_iterator = true;
   static constexpr bool has_fast_len = true;
+  Type& __item__ () const
+  {
+    if (unlikely (!length)) return CrapOrNull (Type);
+    return *arrayZ;
+  }
   Type& __item_at__ (unsigned i) const
   {
     if (unlikely (i >= length)) return CrapOrNull (Type);
     return arrayZ[i];
+  }
+  void __next__ ()
+  {
+    if (unlikely (!length))
+      return;
+    length--;
+    backwards_length++;
+    arrayZ++;
   }
   void __forward__ (unsigned n)
   {
@@ -88,6 +101,14 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     length -= n;
     backwards_length += n;
     arrayZ += n;
+  }
+  void __prev__ ()
+  {
+    if (unlikely (!backwards_length))
+      return;
+    length++;
+    backwards_length--;
+    arrayZ--;
   }
   void __rewind__ (unsigned n)
   {
