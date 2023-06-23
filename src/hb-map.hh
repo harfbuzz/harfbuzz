@@ -69,20 +69,20 @@ struct hb_hashmap_t
   {
     K key;
     uint32_t is_used_ : 1;
-    uint32_t is_tombstone_ : 1;
+    uint32_t is_real_ : 1;
     uint32_t hash : 30;
     V value;
 
     item_t () : key (),
-		is_used_ (false), is_tombstone_ (false),
+		is_used_ (false), is_real_ (false),
 		hash (0),
 		value () {}
 
     bool is_used () const { return is_used_; }
     void set_used (bool is_used) { is_used_ = is_used; }
-    bool is_tombstone () const { return is_tombstone_; }
-    void set_tombstone (bool is_tombstone) { is_tombstone_ = is_tombstone; }
-    bool is_real () const { return is_used_ && !is_tombstone_; }
+    bool is_tombstone () const { return !is_real_; }
+    void set_real (bool is_real) { is_real_ = is_real; }
+    bool is_real () const { return is_real_; }
 
     template <bool v = minus_one,
 	      hb_enable_if (v == false)>
@@ -247,7 +247,7 @@ struct hb_hashmap_t
     if (item.is_used ())
     {
       occupancy--;
-      if (!item.is_tombstone ())
+      if (item.is_real ())
 	population--;
     }
 
@@ -255,7 +255,7 @@ struct hb_hashmap_t
     item.value = std::forward<VV> (value);
     item.hash = hash;
     item.set_used (true);
-    item.set_tombstone (false);
+    item.set_real (true);
 
     occupancy++;
     population++;
@@ -295,7 +295,7 @@ struct hb_hashmap_t
     auto *item = fetch_item (key, hb_hash (key));
     if (item)
     {
-      item->set_tombstone (true);
+      item->set_real (false);
       population--;
     }
   }
