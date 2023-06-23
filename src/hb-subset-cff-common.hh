@@ -480,6 +480,7 @@ struct cff_subset_accelerator_t
       const hb_vector_t<parsed_cs_str_vec_t>& parsed_local_subrs) {
     cff_subset_accelerator_t* accel =
         (cff_subset_accelerator_t*) hb_malloc (sizeof(cff_subset_accelerator_t));
+    if (unlikely (!accel)) return nullptr;
     new (accel) cff_subset_accelerator_t (original_blob,
                                           parsed_charstrings,
                                           parsed_global_subrs,
