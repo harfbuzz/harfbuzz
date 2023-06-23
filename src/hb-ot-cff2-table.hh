@@ -462,7 +462,6 @@ struct cff2
 	  goto fail;
       }
 
-
       return;
 
       fail:

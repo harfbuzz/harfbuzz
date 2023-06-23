@@ -957,12 +957,8 @@ _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
 bool
 OT::cff1::subset (hb_subset_context_t *c) const
 {
-  OT::cff1::accelerator_subset_t acc;
-  acc.init (c->plan->source);
-  bool result = likely (acc.is_valid ()) && _hb_subset_cff1 (acc, c);
-  acc.fini ();
-
-  return result;
+  OT::cff1::accelerator_subset_t acc (c->plan->source);
+  return acc.is_valid () && _hb_subset_cff1 (acc, c);
 }
 
 
