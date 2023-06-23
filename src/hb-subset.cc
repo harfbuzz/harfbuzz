@@ -266,7 +266,7 @@ template<typename TableType>
 static bool
 _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
 {
-  hb_blob_ptr_t<TableType> source_blob = plan->source_table<TableType> ();
+  auto source_blob = plan->source_table<TableType> ();
   const TableType *table = source_blob.get ();
 
   hb_tag_t tag = TableType::tableTag;
