@@ -757,8 +757,7 @@ struct cff_subset_plan {
 
 static bool _serialize_cff1 (hb_serialize_context_t *c,
 			     cff_subset_plan &plan,
-			     const OT::cff1::accelerator_subset_t  &acc,
-			     unsigned int num_glyphs)
+			     const OT::cff1::accelerator_subset_t  &acc)
 {
   /* private dicts & local subrs */
   for (int i = (int)acc.privateDicts.length; --i >= 0 ;)
@@ -835,7 +834,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   if (acc.fdSelect != &Null (CFF1FDSelect))
   {
     c->push ();
-    if (likely (hb_serialize_cff_fdselect (c, num_glyphs, *acc.fdSelect, acc.fdCount,
+    if (likely (hb_serialize_cff_fdselect (c, plan.num_glyphs, *acc.fdSelect, acc.fdCount,
 					   plan.subset_fdselect_format, plan.info.fd_select.size,
 					   plan.subset_fdselect_ranges)))
       plan.info.fd_select.link = c->pop_pack ();
@@ -951,7 +950,7 @@ _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
     return false;
   }
 
-  return _serialize_cff1 (c->serializer, cff_plan, acc, c->plan->num_output_glyphs ());
+  return _serialize_cff1 (c->serializer, cff_plan, acc);
 }
 
 bool
