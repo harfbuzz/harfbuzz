@@ -1491,6 +1491,8 @@ struct cff1
     accelerator_subset_t (hb_face_t *face) : SUPER (face) {}
 
     HB_INTERNAL bool subset (hb_subset_context_t *c) const;
+    HB_INTERNAL bool serialize (hb_serialize_context_t *c,
+				struct cff1_subset_plan &plan) const;
 
     typedef accelerator_templ_t<cff1_private_dict_opset_subset_t, cff1_private_dict_values_subset_t> SUPER;
   };

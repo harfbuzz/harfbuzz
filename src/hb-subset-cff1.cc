@@ -399,8 +399,10 @@ struct cff1_subr_subsetter_t : subr_subsetter_t<cff1_subr_subsetter_t, CFF1Subrs
   }
 };
 
-struct cff_subset_plan {
-  cff_subset_plan ()
+namespace OT {
+struct cff1_subset_plan
+{
+  cff1_subset_plan ()
   {
     for (unsigned int i = 0; i < name_dict_values_t::ValCount; i++)
       topDictModSIDs[i] = CFF_UNDEF_SID;
@@ -754,13 +756,14 @@ struct cff_subset_plan {
 
   bool		desubroutinize = false;
 };
+} // namespace OT
 
-static bool _serialize_cff1 (hb_serialize_context_t *c,
-			     cff_subset_plan &plan,
-			     const OT::cff1::accelerator_subset_t  &acc)
+bool
+OT::cff1::accelerator_subset_t::serialize (hb_serialize_context_t *c,
+					   struct OT::cff1_subset_plan &plan) const
 {
   /* private dicts & local subrs */
-  for (int i = (int)acc.privateDicts.length; --i >= 0 ;)
+  for (int i = (int) privateDicts.length; --i >= 0 ;)
   {
     if (plan.fdmap.has (i))
     {
@@ -780,7 +783,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
       auto *pd = c->push<PrivateDict> ();
       cff1_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
       /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
-      if (likely (pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link)))
+      if (likely (pd->serialize (c, privateDicts[i], privSzr, subrs_link)))
       {
 	unsigned fd = plan.fdmap[i];
 	plan.fontdicts_mod[fd].privateDictInfo.size = c->length ();
@@ -794,7 +797,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
     }
   }
 
-  if (!acc.is_CID ())
+  if (!is_CID ())
     plan.info.privateDictInfo = plan.fontdicts_mod[0].privateDictInfo;
 
   /* CharStrings */
@@ -816,7 +819,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   }
 
   /* FDArray (FD Index) */
-  if (acc.fdArray != &Null (CFF1FDArray))
+  if (fdArray != &Null (CFF1FDArray))
   {
     auto *fda = c->push<CFF1FDArray> ();
     cff1_font_dict_op_serializer_t  fontSzr;
@@ -831,10 +834,10 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   }
 
   /* FDSelect */
-  if (acc.fdSelect != &Null (CFF1FDSelect))
+  if (fdSelect != &Null (CFF1FDSelect))
   {
     c->push ();
-    if (likely (hb_serialize_cff_fdselect (c, plan.num_glyphs, *acc.fdSelect, acc.fdCount,
+    if (likely (hb_serialize_cff_fdselect (c, plan.num_glyphs, *fdSelect, fdCount,
 					   plan.subset_fdselect_format, plan.info.fd_select.size,
 					   plan.subset_fdselect_ranges)))
       plan.info.fd_select.link = c->pop_pack ();
@@ -893,7 +896,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   /* String INDEX */
   {
     auto *dest = c->push<CFF1StringIndex> ();
-    if (likely (dest->serialize (c, *acc.stringIndex, plan.sidmap)))
+    if (likely (dest->serialize (c, *stringIndex, plan.sidmap)))
       c->pop_pack ();
     else
     {
@@ -913,7 +916,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   cff->offSize = 4; /* unused? */
 
   /* name INDEX */
-  if (unlikely (!c->embed (*acc.nameIndex))) return false;
+  if (unlikely (!c->embed (*nameIndex))) return false;
 
   /* top dict INDEX */
   {
@@ -941,7 +944,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
 bool
 OT::cff1::accelerator_subset_t::subset (hb_subset_context_t *c) const
 {
-  cff_subset_plan cff_plan;
+  cff1_subset_plan cff_plan;
 
   if (unlikely (!cff_plan.create (*this, c->plan)))
   {
@@ -949,7 +952,7 @@ OT::cff1::accelerator_subset_t::subset (hb_subset_context_t *c) const
     return false;
   }
 
-  return _serialize_cff1 (c->serializer, cff_plan, *this);
+  return serialize (c->serializer, cff_plan);
 }
 
 
