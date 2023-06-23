@@ -80,7 +80,6 @@ struct hb_hashmap_t
 
     bool is_used () const { return is_used_; }
     void set_used (bool is_used) { is_used_ = is_used; }
-    bool is_tombstone () const { return !is_real_; }
     void set_real (bool is_real) { is_real_ = is_real; }
     bool is_real () const { return is_real_; }
 
@@ -236,7 +235,7 @@ struct hb_hashmap_t
         else
 	  break;
       }
-      if (items[i].is_tombstone () && tombstone == (unsigned) -1)
+      if (!items[i].is_real () && tombstone == (unsigned) -1)
         tombstone = i;
       i = (i + ++step) & mask;
       length++;
