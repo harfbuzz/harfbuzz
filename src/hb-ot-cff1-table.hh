@@ -314,9 +314,10 @@ struct Encoding
 /* Charset */
 struct Charset0
 {
-  bool sanitize (hb_sanitize_context_t *c, unsigned int num_glyphs) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int num_glyphs, unsigned *num_charset_entries) const
   {
     TRACE_SANITIZE (this);
+    if (num_charset_entries) *num_charset_entries = num_glyphs;
     return_trace (sids.sanitize (c, num_glyphs - 1));
   }
 
@@ -376,18 +377,21 @@ struct Charset_Range {
 
 template <typename TYPE>
 struct Charset1_2 {
-  bool sanitize (hb_sanitize_context_t *c, unsigned int num_glyphs) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int num_glyphs, unsigned *num_charset_entries) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
       return_trace (false);
     num_glyphs--;
-    for (unsigned int i = 0; num_glyphs > 0; i++)
+    unsigned i;
+    for (i = 0; num_glyphs > 0; i++)
     {
       if (unlikely (!ranges[i].sanitize (c) || (num_glyphs < ranges[i].nLeft + 1)))
 	return_trace (false);
       num_glyphs -= (ranges[i].nLeft + 1);
     }
+    if (num_charset_entries)
+      *num_charset_entries = i;
     return_trace (true);
   }
 
@@ -607,7 +611,7 @@ struct Charset
     }
   }
 
-  bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned *num_charset_entries) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
@@ -615,9 +619,9 @@ struct Charset
 
     switch (format)
     {
-    case 0: return_trace (u.format0.sanitize (c, c->get_num_glyphs ()));
-    case 1: return_trace (u.format1.sanitize (c, c->get_num_glyphs ()));
-    case 2: return_trace (u.format2.sanitize (c, c->get_num_glyphs ()));
+    case 0: return_trace (u.format0.sanitize (c, c->get_num_glyphs (), num_charset_entries));
+    case 1: return_trace (u.format1.sanitize (c, c->get_num_glyphs (), num_charset_entries));
+    case 2: return_trace (u.format2.sanitize (c, c->get_num_glyphs (), num_charset_entries));
     default:return_trace (false);
     }
   }
@@ -1098,7 +1102,7 @@ struct cff1
       else
       {
 	charset = &StructAtOffsetOrNull<Charset> (cff, topDict.CharsetOffset);
-	if (unlikely ((charset == &Null (Charset)) || !charset->sanitize (&sc)))   goto fail;
+	if (unlikely ((charset == &Null (Charset)) || !charset->sanitize (&sc, &num_charset_entries)))   goto fail;
       }
 
       fdCount = 1;
@@ -1352,6 +1356,7 @@ struct cff1
     hb_vector_t<PRIVDICTVAL> privateDicts;
 
     unsigned int	     num_glyphs = 0;
+    unsigned int	     num_charset_entries = 0;
   };
 
   struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>

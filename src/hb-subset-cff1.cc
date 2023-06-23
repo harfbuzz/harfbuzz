@@ -506,6 +506,14 @@ struct cff1_subset_plan
 
     unsigned int glyph;
     unsigned num_glyphs = plan->num_output_glyphs ();
+
+    if (unlikely (!subset_charset_ranges.alloc (hb_min (num_glyphs,
+							acc.num_charset_entries))))
+    {
+      plan->check_success (false);
+      return;
+    }
+
     auto it = hb_iter (plan->new_to_old_gid_list);
     if (it->first == 0) it++;
     auto _ = *it;
