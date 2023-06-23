@@ -284,10 +284,10 @@ _try_subset (const TableType *table,
 }
 
 template <typename T>
-auto _do_destroy (T &t, hb_priority<1>) HB_RETURN (void, t.destroy ())
+static auto _do_destroy (T &t, hb_priority<1>) HB_RETURN (void, t.destroy ())
 
 template <typename T>
-void _do_destroy (T &t, hb_priority<0>) {}
+static void _do_destroy (T &t, hb_priority<0>) {}
 
 template<typename TableType>
 static bool
