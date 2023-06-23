@@ -116,6 +116,16 @@ static hb_face_t* preprocess_face(hb_face_t* face)
   return new_face;
 }
 
+static hb_face_t *cached_face;
+
+static void
+free_cached_face (void)
+{
+  hb_face_destroy (cached_face);
+  cached_face = nullptr;
+}
+
+
 /* benchmark for subsetting a font */
 static void BM_subset (benchmark::State &state,
                        operation_t operation,
@@ -126,7 +136,6 @@ static void BM_subset (benchmark::State &state,
 
   hb_face_t *face = nullptr;
 
-  static hb_face_t *cached_face;
   static const char *cached_font_path;
 
   if (!cached_font_path || strcmp (cached_font_path, test_input.font_path))
@@ -236,6 +245,10 @@ static void test_operation (operation_t op,
 int main(int argc, char** argv)
 {
   benchmark::Initialize(&argc, argv);
+
+#ifndef HB_NO_ATEXIT
+  atexit (free_cached_face);
+#endif
 
   if (argc > 1)
   {
