@@ -113,7 +113,7 @@ struct hb_serialize_context_t
     {
       // Virtual links aren't considered for equality since they don't affect the functionality
       // of the object.
-      return hb_bytes_t (head, tail - head).hash () ^
+      return hb_bytes_t (head, hb_min (128, tail - head)).hash () ^
           real_links.as_bytes ().hash ();
     }
 
