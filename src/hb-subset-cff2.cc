@@ -652,11 +652,4 @@ OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
 			  c->plan->normalized_coords.as_array ());
 }
 
-bool
-OT::cff2::subset (hb_subset_context_t *c) const
-{
-  OT::cff2::accelerator_subset_t acc (c->plan->source);
-  return acc.is_valid () && acc.subset (c);
-}
-
 #endif

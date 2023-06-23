@@ -952,12 +952,5 @@ OT::cff1::accelerator_subset_t::subset (hb_subset_context_t *c) const
   return _serialize_cff1 (c->serializer, cff_plan, *this);
 }
 
-bool
-OT::cff1::subset (hb_subset_context_t *c) const
-{
-  OT::cff1::accelerator_subset_t acc (c->plan->source);
-  return acc.is_valid () && acc.subset (c);
-}
-
 
 #endif

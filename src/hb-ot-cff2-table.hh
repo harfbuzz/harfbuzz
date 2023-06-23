@@ -526,8 +526,6 @@ struct cff2
     typedef accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t> SUPER;
   };
 
-  HB_INTERNAL bool subset (hb_subset_context_t *c) const;
-
   public:
   FixedVersion<HBUINT8>		version;	/* Version of CFF2 table. set to 0x0200u */
   NNOffsetTo<TopDict, HBUINT8>	topDict;	/* headerSize = Offset to Top DICT. */

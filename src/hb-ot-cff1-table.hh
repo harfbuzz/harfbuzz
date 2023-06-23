@@ -1495,8 +1495,6 @@ struct cff1
     typedef accelerator_templ_t<cff1_private_dict_opset_subset_t, cff1_private_dict_values_subset_t> SUPER;
   };
 
-  HB_INTERNAL bool subset (hb_subset_context_t *c) const;
-
   protected:
   HB_INTERNAL static hb_codepoint_t lookup_standard_encoding_for_code (hb_codepoint_t sid);
   HB_INTERNAL static hb_codepoint_t lookup_expert_encoding_for_code (hb_codepoint_t sid);
