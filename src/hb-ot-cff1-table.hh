@@ -527,8 +527,8 @@ struct Charset
       unsigned int glyph = 0;
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
-	hb_codepoint_t sid = sid_ranges[i].code;
-	for (int left = (int)sid_ranges[i].glyph; left >= 0; left--)
+	hb_codepoint_t sid = sid_ranges.arrayZ[i].code;
+	for (int left = (int)sid_ranges.arrayZ[i].glyph; left >= 0; left--)
 	  fmt0->sids[glyph++] = sid++;
       }
     }
@@ -540,10 +540,10 @@ struct Charset
       if (unlikely (!fmt1)) return_trace (false);
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
-	if (unlikely (!(sid_ranges[i].glyph <= 0xFF)))
+	if (unlikely (!(sid_ranges.arrayZ[i].glyph <= 0xFF)))
 	  return_trace (false);
-	fmt1->ranges[i].first = sid_ranges[i].code;
-	fmt1->ranges[i].nLeft = sid_ranges[i].glyph;
+	fmt1->ranges[i].first = sid_ranges.arrayZ[i].code;
+	fmt1->ranges[i].nLeft = sid_ranges.arrayZ[i].glyph;
       }
     }
     break;
@@ -554,10 +554,10 @@ struct Charset
       if (unlikely (!fmt2)) return_trace (false);
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
-	if (unlikely (!(sid_ranges[i].glyph <= 0xFFFF)))
+	if (unlikely (!(sid_ranges.arrayZ[i].glyph <= 0xFFFF)))
 	  return_trace (false);
-	fmt2->ranges[i].first = sid_ranges[i].code;
-	fmt2->ranges[i].nLeft = sid_ranges[i].glyph;
+	fmt2->ranges[i].first = sid_ranges.arrayZ[i].code;
+	fmt2->ranges[i].nLeft = sid_ranges.arrayZ[i].glyph;
       }
     }
     break;
