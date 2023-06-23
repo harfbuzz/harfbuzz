@@ -51,9 +51,6 @@ using OT::Layout::GPOS;
 
 hb_subset_accelerator_t::~hb_subset_accelerator_t ()
 {
-  if (cff_accelerator && destroy_cff_accelerator)
-    destroy_cff_accelerator ((void*) cff_accelerator);
-
   if (cmap_cache && destroy_cmap_cache)
     destroy_cmap_cache ((void*) cmap_cache);
 

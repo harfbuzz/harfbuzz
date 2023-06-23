@@ -68,13 +68,17 @@ template<>
 struct hb_subset_plan_t::source_table_loader<const OT::cff1>
 {
   auto operator () (hb_subset_plan_t *plan)
-  HB_AUTO_RETURN (plan->accelerator ? plan->accelerator->cff1_accel : plan->cff1_accel)
+  HB_AUTO_RETURN (plan->accelerator ? plan->accelerator->cff1_accel :
+		  plan->inprogress_accelerator ? plan->inprogress_accelerator->cff1_accel :
+		  plan->cff1_accel)
 };
 template<>
 struct hb_subset_plan_t::source_table_loader<const OT::cff2>
 {
   auto operator () (hb_subset_plan_t *plan)
-  HB_AUTO_RETURN (plan->accelerator ? plan->accelerator->cff2_accel : plan->cff2_accel)
+  HB_AUTO_RETURN (plan->accelerator ? plan->accelerator->cff2_accel :
+		  plan->inprogress_accelerator ? plan->inprogress_accelerator->cff2_accel :
+		  plan->cff2_accel)
 };
 #endif
 

@@ -90,8 +90,6 @@ struct hb_subset_accelerator_t
     cmap_cache(nullptr),
     destroy_cmap_cache(nullptr),
     has_seac(has_seac_),
-    cff_accelerator(nullptr),
-    destroy_cff_accelerator(nullptr),
     source(hb_face_reference (source))
   {
     gid_to_unicodes.resize (unicode_to_gid.get_population ());
@@ -120,8 +118,6 @@ struct hb_subset_accelerator_t
 
   // CFF
   bool has_seac;
-  const CFF::cff_subset_accelerator_t* cff_accelerator;
-  hb_destroy_func_t destroy_cff_accelerator;
 
   // TODO(garretrieger): cumulative glyf checksum map
 

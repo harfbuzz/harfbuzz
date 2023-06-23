@@ -28,6 +28,7 @@
 #define HB_OT_CFF1_TABLE_HH
 
 #include "hb-ot-cff-common.hh"
+#include "hb-subset-cff-common.hh"
 #include "hb-draw.hh"
 #include "hb-paint.hh"
 
@@ -1489,10 +1490,17 @@ struct cff1
   struct accelerator_subset_t : accelerator_templ_t<cff1_private_dict_opset_subset_t, cff1_private_dict_values_subset_t>
   {
     accelerator_subset_t (hb_face_t *face) : SUPER (face) {}
+    ~accelerator_subset_t ()
+    {
+      if (cff_accelerator)
+	cff_subset_accelerator_t::destroy (cff_accelerator);
+    }
 
     HB_INTERNAL bool subset (hb_subset_context_t *c) const;
     HB_INTERNAL bool serialize (hb_serialize_context_t *c,
 				struct cff1_subset_plan &plan) const;
+
+    mutable CFF::cff_subset_accelerator_t* cff_accelerator = nullptr;
 
     typedef accelerator_templ_t<cff1_private_dict_opset_subset_t, cff1_private_dict_values_subset_t> SUPER;
   };

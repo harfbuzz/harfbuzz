@@ -678,8 +678,8 @@ struct subr_subsetter_t
   {
     unsigned fd_count = acc.fdCount;
     const cff_subset_accelerator_t* cff_accelerator = nullptr;
-    if (plan->accelerator && plan->accelerator->cff_accelerator) {
-      cff_accelerator = plan->accelerator->cff_accelerator;
+    if (acc.cff_accelerator) {
+      cff_accelerator = acc.cff_accelerator;
       fd_count = cff_accelerator->parsed_local_subrs.length;
     }
 
@@ -1126,14 +1126,11 @@ struct subr_subsetter_t
 
     compact_parsed_subrs ();
 
-    plan->inprogress_accelerator->cff_accelerator =
+    acc.cff_accelerator =
         cff_subset_accelerator_t::create(acc.blob,
                                          parsed_charstrings,
                                          parsed_global_subrs_storage,
                                          parsed_local_subrs_storage);
-    plan->inprogress_accelerator->destroy_cff_accelerator =
-        cff_subset_accelerator_t::destroy;
-
   }
 
   const parsed_cs_str_t& get_parsed_charstring (unsigned i) const

@@ -492,12 +492,11 @@ struct cff1_subset_plan
       return;
     }
 
-    hb_vector_t<uint16_t> *glyph_to_sid_map = (plan->accelerator && plan->accelerator->cff_accelerator) ?
-					       plan->accelerator->cff_accelerator->glyph_to_sid_map.get_acquire () :
-					       nullptr;
+    hb_vector_t<uint16_t> *glyph_to_sid_map = acc.cff_accelerator ?
+					      acc.cff_accelerator->glyph_to_sid_map.get_acquire () :
+					      nullptr;
     bool created_map = false;
-    if (!glyph_to_sid_map &&
-	((plan->accelerator && plan->accelerator->cff_accelerator)))
+    if (!glyph_to_sid_map && acc.cff_accelerator)
     {
       created_map = true;
       glyph_to_sid_map = acc.create_glyph_to_sid_map ();
@@ -541,8 +540,8 @@ struct cff1_subset_plan
 
     if (created_map)
     {
-      if (!(plan->accelerator && plan->accelerator->cff_accelerator) ||
-	  !plan->accelerator->cff_accelerator->glyph_to_sid_map.cmpexch (nullptr, glyph_to_sid_map))
+      if ((!plan->accelerator && acc.cff_accelerator) ||
+	  !acc.cff_accelerator->glyph_to_sid_map.cmpexch (nullptr, glyph_to_sid_map))
       {
 	glyph_to_sid_map->~hb_vector_t ();
 	hb_free (glyph_to_sid_map);
