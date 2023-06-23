@@ -1595,10 +1595,13 @@ struct ClassDefFormat1_3
       orig_klasses.add (klass);
     }
 
-    unsigned glyph_count = glyph_filter
-                           ? hb_len (hb_iter (glyph_map.keys()) | hb_filter (glyph_filter))
-                           : glyph_map.get_population ();
-    use_class_zero = use_class_zero && glyph_count <= glyph_and_klass.length;
+    if (use_class_zero)
+    {
+      unsigned glyph_count = glyph_filter
+			     ? hb_len (hb_iter (glyph_map.keys()) | hb_filter (glyph_filter))
+			     : glyph_map.get_population ();
+      use_class_zero = glyph_count <= glyph_and_klass.length;
+    }
     if (!ClassDef_remap_and_serialize (c->serializer,
                                        orig_klasses,
                                        use_class_zero,
