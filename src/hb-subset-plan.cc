@@ -703,6 +703,9 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 {
   OT::glyf_accelerator_t glyf (plan->source);
 #ifndef HB_NO_SUBSET_CFF
+  // Note: we cannot use inprogress_accelerator here, since it has not been
+  // created yet. So in case of preprocessed-face (and otherwise), we do an
+  // extra sanitize pass here, which is not ideal.
   OT::cff1::accelerator_subset_t stack_cff (plan->accelerator ? nullptr : plan->source);
   const OT::cff1::accelerator_subset_t *cff (plan->accelerator ? plan->accelerator->cff1_accel.get () : &stack_cff);
 #endif
