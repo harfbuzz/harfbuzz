@@ -1214,6 +1214,8 @@ struct cff1
       blob = nullptr;
     }
 
+    hb_blob_t *get_blob () const { return blob; }
+
     bool is_valid () const { return blob; }
     bool   is_CID () const { return topDict.is_CID (); }
 
@@ -1484,7 +1486,14 @@ struct cff1
     typedef accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t> SUPER;
   };
 
-  typedef accelerator_templ_t<cff1_private_dict_opset_subset_t, cff1_private_dict_values_subset_t> accelerator_subset_t;
+  struct accelerator_subset_t : accelerator_templ_t<cff1_private_dict_opset_subset_t, cff1_private_dict_values_subset_t>
+  {
+    accelerator_subset_t (hb_face_t *face) : SUPER (face) {}
+
+    HB_INTERNAL bool subset (hb_subset_context_t *c) const;
+
+    typedef accelerator_templ_t<cff1_private_dict_opset_subset_t, cff1_private_dict_values_subset_t> SUPER;
+  };
 
   HB_INTERNAL bool subset (hb_subset_context_t *c) const;
 
@@ -1508,6 +1517,10 @@ struct cff1
 
 struct cff1_accelerator_t : cff1::accelerator_t {
   cff1_accelerator_t (hb_face_t *face) : cff1::accelerator_t (face) {}
+};
+
+struct cff1_subset_accelerator_t : cff1::accelerator_subset_t {
+  cff1_subset_accelerator_t (hb_face_t *face) : cff1::accelerator_subset_t (face) {}
 };
 
 } /* namespace OT */

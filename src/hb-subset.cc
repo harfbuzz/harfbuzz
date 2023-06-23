@@ -62,6 +62,21 @@
 using OT::Layout::GSUB;
 using OT::Layout::GPOS;
 
+
+template<>
+struct hb_subset_plan_t::source_table_loader<const OT::cff1>
+{
+  auto operator () (hb_subset_plan_t *plan)
+  HB_AUTO_RETURN (plan->accelerator ? plan->accelerator->cff1_accel : plan->cff1_accel)
+};
+template<>
+struct hb_subset_plan_t::source_table_loader<const OT::cff2>
+{
+  auto operator () (hb_subset_plan_t *plan)
+  HB_AUTO_RETURN (plan->accelerator ? plan->accelerator->cff2_accel : plan->cff2_accel)
+};
+
+
 /**
  * SECTION:hb-subset
  * @title: hb-subset
@@ -262,19 +277,26 @@ _try_subset (const TableType *table,
   return _try_subset (table, buf, c);
 }
 
+template <typename T>
+auto _do_destroy (T &t, hb_priority<1>) HB_RETURN (void, t.destroy ())
+
+template <typename T>
+void _do_destroy (T &t, hb_priority<0>) {}
+
 template<typename TableType>
 static bool
 _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
 {
-  auto source_blob = plan->source_table<TableType> ();
-  const TableType *table = source_blob.get ();
+  auto &&source_blob = plan->source_table<TableType> ();
+  auto *table = source_blob.get ();
 
   hb_tag_t tag = TableType::tableTag;
-  if (!source_blob.get_blob()->data)
+  hb_blob_t *blob = source_blob.get_blob();
+  if (unlikely (!blob || !blob->data))
   {
     DEBUG_MSG (SUBSET, nullptr,
                "OT::%c%c%c%c::subset sanitize failed on source table.", HB_UNTAG (tag));
-    source_blob.destroy ();
+    _do_destroy (source_blob, hb_prioritize);
     return false;
   }
 
@@ -284,23 +306,23 @@ _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
 			 TableType::tableTag == HB_OT_TAG_GPOS ||
 			 TableType::tableTag == HB_OT_TAG_name;
 
-  unsigned buf_size = _plan_estimate_subset_table_size (plan, source_blob.get_length (), same_size_table);
+  unsigned buf_size = _plan_estimate_subset_table_size (plan, blob->length, same_size_table);
   DEBUG_MSG (SUBSET, nullptr,
              "OT::%c%c%c%c initial estimated table size: %u bytes.", HB_UNTAG (tag), buf_size);
   if (unlikely (!buf.alloc (buf_size)))
   {
     DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c failed to allocate %u bytes.", HB_UNTAG (tag), buf_size);
-    source_blob.destroy ();
+    _do_destroy (source_blob, hb_prioritize);
     return false;
   }
 
   bool needed = false;
   hb_serialize_context_t serializer (buf.arrayZ, buf.allocated);
   {
-    hb_subset_context_t c (source_blob.get_blob (), plan, &serializer, tag);
+    hb_subset_context_t c (blob, plan, &serializer, tag);
     needed = _try_subset (table, &buf, &c);
   }
-  source_blob.destroy ();
+  _do_destroy (source_blob, hb_prioritize);
 
   if (serializer.in_error () && !serializer.only_offset_overflow ())
   {

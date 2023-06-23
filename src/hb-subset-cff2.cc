@@ -642,14 +642,13 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
   }
 }
 
-static bool
-_hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
-		 hb_subset_context_t	*c)
+bool
+OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
 {
   cff2_subset_plan cff2_plan;
 
-  if (unlikely (!cff2_plan.create (acc, c->plan))) return false;
-  return _serialize_cff2 (c->serializer, cff2_plan, acc,
+  if (unlikely (!cff2_plan.create (*this, c->plan))) return false;
+  return _serialize_cff2 (c->serializer, cff2_plan, *this,
 			  c->plan->normalized_coords.as_array ());
 }
 
@@ -657,7 +656,7 @@ bool
 OT::cff2::subset (hb_subset_context_t *c) const
 {
   OT::cff2::accelerator_subset_t acc (c->plan->source);
-  return acc.is_valid () && _hb_subset_cff2 (acc, c);
+  return acc.is_valid () && acc.subset (c);
 }
 
 #endif

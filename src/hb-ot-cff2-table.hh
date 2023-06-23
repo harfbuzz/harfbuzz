@@ -483,6 +483,8 @@ struct cff2
       return nullptr;
     }
 
+    hb_blob_t *get_blob () const { return blob; }
+
     bool is_valid () const { return blob; }
 
     protected:
@@ -515,7 +517,14 @@ struct cff2
     HB_INTERNAL bool get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session) const;
   };
 
-  typedef accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t> accelerator_subset_t;
+  struct accelerator_subset_t : accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t>
+  {
+    accelerator_subset_t (hb_face_t *face) : SUPER (face) {}
+
+    HB_INTERNAL bool subset (hb_subset_context_t *c) const;
+
+    typedef accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t> SUPER;
+  };
 
   HB_INTERNAL bool subset (hb_subset_context_t *c) const;
 
@@ -530,6 +539,10 @@ struct cff2
 
 struct cff2_accelerator_t : cff2::accelerator_t {
   cff2_accelerator_t (hb_face_t *face) : cff2::accelerator_t (face) {}
+};
+
+struct cff2_subset_accelerator_t : cff2::accelerator_subset_t {
+  cff2_subset_accelerator_t (hb_face_t *face) : cff2::accelerator_subset_t (face) {}
 };
 
 } /* namespace OT */

@@ -491,7 +491,7 @@ struct cff_subset_plan {
     }
 
     hb_vector_t<uint16_t> *glyph_to_sid_map = (plan->accelerator && plan->accelerator->cff_accelerator) ?
-					       plan->accelerator->cff_accelerator->glyph_to_sid_map :
+					       plan->accelerator->cff_accelerator->glyph_to_sid_map.get_acquire () :
 					       nullptr;
     bool created_map = false;
     if (!glyph_to_sid_map &&
@@ -938,26 +938,25 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   }
 }
 
-static bool
-_hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
-		hb_subset_context_t	*c)
+bool
+OT::cff1::accelerator_subset_t::subset (hb_subset_context_t *c) const
 {
   cff_subset_plan cff_plan;
 
-  if (unlikely (!cff_plan.create (acc, c->plan)))
+  if (unlikely (!cff_plan.create (*this, c->plan)))
   {
     DEBUG_MSG(SUBSET, nullptr, "Failed to generate a cff subsetting plan.");
     return false;
   }
 
-  return _serialize_cff1 (c->serializer, cff_plan, acc);
+  return _serialize_cff1 (c->serializer, cff_plan, *this);
 }
 
 bool
 OT::cff1::subset (hb_subset_context_t *c) const
 {
   OT::cff1::accelerator_subset_t acc (c->plan->source);
-  return acc.is_valid () && _hb_subset_cff1 (acc, c);
+  return acc.is_valid () && acc.subset (c);
 }
 
 
