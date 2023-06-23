@@ -247,8 +247,7 @@ struct hb_hashmap_t
     if (item.is_used ())
     {
       occupancy--;
-      if (item.is_real ())
-	population--;
+      population -= item.is_real ();
     }
 
     item.key = std::forward<KK> (key);
