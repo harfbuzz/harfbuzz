@@ -27,6 +27,7 @@
 #define HB_OT_VAR_CVAR_TABLE_HH
 
 #include "hb-ot-var-common.hh"
+#include "hb-ot-var-fvar-table.hh"
 
 
 namespace OT {
@@ -64,7 +65,7 @@ struct cvar
     if (!TupleVariationData::get_tuple_iterator (var_data_bytes, axis_count, this,
                                                  shared_indices, &iterator))
       return false;
-
+    
     return tupleVariationData.decompile_tuple_variations (point_count, is_gvar, iterator,
                                                           axes_old_index_tag_map,
                                                           shared_indices,
@@ -124,6 +125,53 @@ struct cvar
     } while (iterator.move_to_next ());
 
     return true;
+  }
+  
+  bool serialize (hb_serialize_context_t *c,
+                  TupleVariationData::tuple_variations_t& tuple_variations) const
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->embed (version))) return_trace (false);
+
+    return_trace (tupleVariationData.serialize (c, false, tuple_variations));
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    if (c->plan->all_axes_pinned)
+      return_trace (false);
+
+    /* subset() for cvar is called by partial instancing only, we always pass
+     * through cvar table in other cases */
+    if (!c->plan->normalized_coords)
+    {
+      unsigned axis_count = c->plan->source->table.fvar->get_axis_count ();
+      unsigned total_size = min_size + tupleVariationData.get_size (axis_count);
+      char *out = c->serializer->allocate_size<char> (total_size);
+      if (unlikely (!out)) return_trace (false);
+
+      hb_memcpy (out, this, total_size);
+      return_trace (true);
+    }
+
+    OT::TupleVariationData::tuple_variations_t tuple_variations;
+    unsigned axis_count = c->plan->axes_old_index_tag_map.get_population ();
+
+    const hb_tag_t cvt = HB_TAG('c','v','t',' ');
+    hb_blob_t *cvt_blob = hb_face_reference_table (c->plan->source, cvt);
+    unsigned point_count = hb_blob_get_length (cvt_blob) / FWORD::static_size;
+
+    if (!decompile_tuple_variations (axis_count, point_count, false,
+                                     &(c->plan->axes_old_index_tag_map),
+                                     tuple_variations))
+      return_trace (false);
+
+    tuple_variations.instantiate (c->plan->axes_location);
+    if (!tuple_variations.compile_bytes (c->plan->axes_index_map, c->plan->axes_old_index_tag_map))
+      return_trace (false);
+
+    return_trace (serialize (c->serializer, tuple_variations));
   }
 
   static bool add_cvt_and_apply_deltas (hb_subset_plan_t *plan,
