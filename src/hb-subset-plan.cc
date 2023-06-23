@@ -65,7 +65,7 @@ hb_subset_accelerator_t::~hb_subset_accelerator_t ()
 typedef hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> script_langsys_map;
 #ifndef HB_NO_SUBSET_CFF
 static inline bool
-_add_cff_seac_components (const OT::cff1::accelerator_t &cff,
+_add_cff_seac_components (const OT::cff1::accelerator_subset_t &cff,
 			  hb_codepoint_t gid,
 			  hb_set_t *gids_to_retain)
 {
@@ -703,7 +703,8 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 {
   OT::glyf_accelerator_t glyf (plan->source);
 #ifndef HB_NO_SUBSET_CFF
-  OT::cff1::accelerator_t cff (plan->source);
+  OT::cff1::accelerator_subset_t stack_cff (plan->accelerator ? nullptr : plan->source);
+  const OT::cff1::accelerator_subset_t *cff (plan->accelerator ? plan->accelerator->cff1_accel.get () : &stack_cff);
 #endif
 
   plan->_glyphset_gsub.add (0); // Not-def
@@ -765,9 +766,9 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   if (!plan->accelerator || plan->accelerator->has_seac)
   {
     bool has_seac = false;
-    if (cff.is_valid ())
+    if (cff->is_valid ())
       for (hb_codepoint_t gid : cur_glyphset)
-	if (_add_cff_seac_components (cff, gid, &plan->_glyphset))
+	if (_add_cff_seac_components (*cff, gid, &plan->_glyphset))
 	  has_seac = true;
     plan->has_seac = has_seac;
   }

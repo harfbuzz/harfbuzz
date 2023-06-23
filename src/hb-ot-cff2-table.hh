@@ -392,6 +392,8 @@ struct cff2
   {
     accelerator_templ_t (hb_face_t *face)
     {
+      if (!face) return;
+
       topDict.init ();
       fontDicts.init ();
       privateDicts.init ();

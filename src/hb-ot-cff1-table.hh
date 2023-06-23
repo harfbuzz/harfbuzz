@@ -1060,6 +1060,8 @@ struct cff1
   {
     accelerator_templ_t (hb_face_t *face)
     {
+      if (!face) return;
+
       topDict.init ();
       fontDicts.init ();
       privateDicts.init ();
@@ -1460,7 +1462,6 @@ struct cff1
 
     HB_INTERNAL bool get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const;
     HB_INTERNAL bool paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, hb_color_t foreground) const;
-    HB_INTERNAL bool get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const;
     HB_INTERNAL bool get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session) const;
 
     private:
@@ -1499,6 +1500,7 @@ struct cff1
     HB_INTERNAL bool subset (hb_subset_context_t *c) const;
     HB_INTERNAL bool serialize (hb_serialize_context_t *c,
 				struct cff1_subset_plan &plan) const;
+    HB_INTERNAL bool get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const;
 
     mutable CFF::cff_subset_accelerator_t* cff_accelerator = nullptr;
 
