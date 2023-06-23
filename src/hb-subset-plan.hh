@@ -95,9 +95,11 @@ struct hb_subset_plan_t
 
   // Plan is only good for a specific source/dest so keep them with it
   hb_face_t *source;
+#ifndef HB_NO_SUBSET_CFF
   // These have to be immediately after source:
   hb_face_lazy_loader_t<OT::cff1_subset_accelerator_t, 1> cff1_accel;
   hb_face_lazy_loader_t<OT::cff2_subset_accelerator_t, 2> cff2_accel;
+#endif
 
   hb_face_t *dest;
 

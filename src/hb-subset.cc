@@ -63,6 +63,7 @@ using OT::Layout::GSUB;
 using OT::Layout::GPOS;
 
 
+#ifndef HB_NO_SUBSET_CFF
 template<>
 struct hb_subset_plan_t::source_table_loader<const OT::cff1>
 {
@@ -75,6 +76,7 @@ struct hb_subset_plan_t::source_table_loader<const OT::cff2>
   auto operator () (hb_subset_plan_t *plan)
   HB_AUTO_RETURN (plan->accelerator ? plan->accelerator->cff2_accel : plan->cff2_accel)
 };
+#endif
 
 
 /**

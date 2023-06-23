@@ -57,9 +57,10 @@ hb_subset_accelerator_t::~hb_subset_accelerator_t ()
   if (cmap_cache && destroy_cmap_cache)
     destroy_cmap_cache ((void*) cmap_cache);
 
+#ifndef HB_NO_SUBSET_CFF
   cff1_accel.fini ();
   cff2_accel.fini ();
-
+#endif
   hb_face_destroy (source);
 }
 
@@ -1161,14 +1162,16 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 
 hb_subset_plan_t::~hb_subset_plan_t()
 {
-  hb_face_destroy (source);
   hb_face_destroy (dest);
 
   hb_map_destroy (codepoint_to_glyph);
   hb_map_destroy (glyph_map);
   hb_map_destroy (reverse_glyph_map);
+#ifndef HB_NO_SUBSET_CFF
   cff1_accel.fini ();
   cff2_accel.fini ();
+#endif
+  hb_face_destroy (source);
 
 #ifdef HB_EXPERIMENTAL_API
   for (auto _ : name_table_overrides.iter_ref ())
