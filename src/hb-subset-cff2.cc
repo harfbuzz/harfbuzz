@@ -426,6 +426,11 @@ struct cff2_subset_plan
   bool create (const OT::cff2::accelerator_subset_t &acc,
 	      hb_subset_plan_t *plan)
   {
+    /* make sure notdef is first */
+    hb_codepoint_t old_glyph;
+    if (!plan->old_gid_for_new_gid (0, &old_glyph) || (old_glyph != 0)) return false;
+
+    num_glyphs = plan->num_output_glyphs ();
     orig_fdcount = acc.fdArray->count;
 
     drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
@@ -488,6 +493,7 @@ struct cff2_subset_plan
 
   cff2_sub_table_info_t info;
 
+  unsigned int    num_glyphs;
   unsigned int    orig_fdcount = 0;
   unsigned int    subset_fdcount = 1;
   unsigned int    subset_fdselect_size = 0;
@@ -508,7 +514,6 @@ struct cff2_subset_plan
 static bool _serialize_cff2 (hb_serialize_context_t *c,
 			     cff2_subset_plan &plan,
 			     const OT::cff2::accelerator_subset_t  &acc,
-			     unsigned int num_glyphs,
 			     hb_array_t<int> normalized_coords)
 {
   /* private dicts & local subrs */
@@ -571,7 +576,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
   if (acc.fdSelect != &Null (CFF2FDSelect))
   {
     c->push ();
-    if (likely (hb_serialize_cff_fdselect (c, num_glyphs, *(const FDSelect *)acc.fdSelect,
+    if (likely (hb_serialize_cff_fdselect (c, plan.num_glyphs, *(const FDSelect *)acc.fdSelect,
 					   plan.orig_fdcount,
 					   plan.subset_fdselect_format, plan.subset_fdselect_size,
 					   plan.subset_fdselect_ranges)))
@@ -644,7 +649,7 @@ _hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
   cff2_subset_plan cff2_plan;
 
   if (unlikely (!cff2_plan.create (acc, c->plan))) return false;
-  return _serialize_cff2 (c->serializer, cff2_plan, acc, c->plan->num_output_glyphs (),
+  return _serialize_cff2 (c->serializer, cff2_plan, acc,
 			  c->plan->normalized_coords.as_array ());
 }
 
