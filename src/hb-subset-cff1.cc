@@ -811,12 +811,13 @@ OT::cff1::accelerator_subset_t::serialize (hb_serialize_context_t *c,
   {
     c->push<CFF1CharStrings> ();
 
-    unsigned total_size = CFF1CharStrings::total_size (plan.subset_charstrings);
+    unsigned data_size = 0;
+    unsigned total_size = CFF1CharStrings::total_size (plan.subset_charstrings, &data_size);
     if (unlikely (!c->start_zerocopy (total_size)))
        return false;
 
     auto *cs = c->start_embed<CFF1CharStrings> ();
-    if (likely (cs->serialize (c, plan.subset_charstrings)))
+    if (likely (cs->serialize (c, plan.subset_charstrings, data_size)))
       plan.info.char_strings_link = c->pop_pack (false);
     else
     {
