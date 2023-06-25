@@ -287,9 +287,10 @@ struct hb_vector_t
     }
     return new_array;
   }
-  /* Specialization for hb_vector_t<hb_vector_t<U>> to speed up. */
+  /* Specialization for hb_vector_t<hb_{vector,array}_t<U>> to speed up. */
   template <typename T = Type,
-	    hb_enable_if (hb_is_same(T, hb_vector_t<typename T::item_t>))>
+	    hb_enable_if (hb_is_same (T, hb_vector_t<typename T::item_t>) ||
+			  hb_is_same (T, hb_array_t <typename T::item_t>))>
   Type *
   realloc_vector (unsigned new_allocated, hb_priority<1>)
   {
@@ -317,9 +318,10 @@ struct hb_vector_t
     for (; length < size; length++)
       new (std::addressof (arrayZ[length])) Type ();
   }
-  /* Specialization for hb_vector_t<hb_vector_t<U>> to speed up. */
+  /* Specialization for hb_vector_t<hb_{vector,array}_t<U>> to speed up. */
   template <typename T = Type,
-	    hb_enable_if (hb_is_same(T, hb_vector_t<typename T::item_t>))>
+	    hb_enable_if (hb_is_same (T, hb_vector_t<typename T::item_t>) ||
+			  hb_is_same (T, hb_array_t <typename T::item_t>))>
   void
   grow_vector (unsigned size, hb_priority<1>)
   {
