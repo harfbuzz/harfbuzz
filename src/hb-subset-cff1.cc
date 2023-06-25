@@ -492,16 +492,6 @@ struct cff1_subset_plan
       return;
     }
 
-    hb_vector_t<uint16_t> *glyph_to_sid_map = acc.cff_accelerator ?
-					      acc.cff_accelerator->glyph_to_sid_map.get_acquire () :
-					      nullptr;
-    bool created_map = false;
-    if (!glyph_to_sid_map && acc.cff_accelerator)
-    {
-      created_map = true;
-      glyph_to_sid_map = acc.create_glyph_to_sid_map ();
-    }
-
     code_pair_t glyph_to_sid_cache {0, HB_CODEPOINT_INVALID};
 
     unsigned int glyph;
@@ -512,6 +502,16 @@ struct cff1_subset_plan
     {
       plan->check_success (false);
       return;
+    }
+
+    hb_vector_t<uint16_t> *glyph_to_sid_map = acc.cff_accelerator ?
+					      acc.cff_accelerator->glyph_to_sid_map.get_acquire () :
+					      nullptr;
+    bool created_map = false;
+    if (!glyph_to_sid_map && acc.cff_accelerator)
+    {
+      created_map = true;
+      glyph_to_sid_map = acc.create_glyph_to_sid_map ();
     }
 
     auto it = hb_iter (plan->new_to_old_gid_list);
