@@ -42,13 +42,6 @@ struct remap_sid_t
 {
   unsigned get_population () const { return map.get_population (); }
 
-  void reset ()
-  {
-    map.reset ();
-    vector.resize (0);
-    next = 0;
-  }
-
   void resize (unsigned size)
   {
     map.resize (size);
@@ -598,8 +591,6 @@ struct cff1_subset_plan
 
   bool collect_sids_in_dicts (const OT::cff1::accelerator_subset_t &acc)
   {
-    sidmap.reset ();
-
     for (unsigned int i = 0; i < name_dict_values_t::ValCount; i++)
     {
       unsigned int sid = acc.topDict.nameSIDs[i];
