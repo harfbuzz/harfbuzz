@@ -581,8 +581,7 @@ struct cff1_subset_plan
       unsigned int sid = acc.topDict.nameSIDs[i];
       if (sid != CFF_UNDEF_SID)
       {
-	(void)sidmap.add (sid);
-	topDictModSIDs[i] = sidmap[sid];
+	topDictModSIDs[i] = sidmap.add (sid);
       }
     }
 
