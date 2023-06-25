@@ -205,7 +205,7 @@ struct hb_vector_t
   Type *push ()
   {
     if (unlikely (!resize (length + 1)))
-      return &Crap (Type);
+      return std::addressof (Crap (Type));
     return std::addressof (arrayZ[length - 1]);
   }
   template <typename T,
@@ -215,7 +215,7 @@ struct hb_vector_t
   Type *push (T&& v)
   {
     Type *p = push ();
-    if (p == &Crap (Type))
+    if (p == std::addressof (Crap (Type)))
       // If push failed to allocate then don't copy v, since this may cause
       // the created copy to leak memory since we won't have stored a
       // reference to it.
@@ -232,7 +232,7 @@ struct hb_vector_t
       // If push failed to allocate then don't copy v, since this may cause
       // the created copy to leak memory since we won't have stored a
       // reference to it.
-      return &Crap (Type);
+      return std::addressof (Crap (Type));
 
     /* Emplace. */
     length++;
