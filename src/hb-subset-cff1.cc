@@ -38,16 +38,25 @@
 
 using namespace CFF;
 
-struct remap_sid_t : hb_map_t
+struct remap_sid_t
 {
+  unsigned get_population () const { return map.get_population (); }
+
+  void reset ()
+  {
+    map.reset ();
+    vector.resize (0);
+    next = 0;
+  }
+
   void resize (unsigned size)
   {
-    hb_map_t::resize (size);
+    map.resize (size);
     vector.alloc (size);
   }
 
   bool in_error () const
-  { return hb_map_t::in_error () || vector.in_error (); }
+  { return map.in_error () || vector.in_error (); }
 
   unsigned int add (unsigned int sid)
   {
@@ -55,13 +64,13 @@ struct remap_sid_t : hb_map_t
     {
       sid = unoffset_sid (sid);
       unsigned v = next;
-      if (set (sid, v, false))
+      if (map.set (sid, v, false))
       {
         vector.push (sid);
         next++;
       }
       else
-        v = get (sid); // already exists
+        v = map.get (sid); // already exists
       return offset_sid (v);
     }
     else
@@ -73,7 +82,7 @@ struct remap_sid_t : hb_map_t
     if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
       return sid;
     else
-      return offset_sid (get (unoffset_sid (sid)));
+      return offset_sid (map.get (unoffset_sid (sid)));
   }
 
   static const unsigned int num_std_strings = 391;
@@ -83,6 +92,7 @@ struct remap_sid_t : hb_map_t
   static unsigned int unoffset_sid (unsigned int sid) { return sid - num_std_strings; }
   unsigned next = 0;
 
+  hb_map_t map;
   hb_vector_t<unsigned> vector;
 };
 
