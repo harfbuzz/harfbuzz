@@ -68,13 +68,13 @@ struct hb_hashmap_t
   struct item_t
   {
     K key;
-    uint32_t is_used_ : 1;
     uint32_t is_real_ : 1;
+    uint32_t is_used_ : 1;
     uint32_t hash : 30;
     V value;
 
     item_t () : key (),
-		is_used_ (false), is_real_ (false),
+		is_real_ (false), is_used_ (false),
 		hash (0),
 		value () {}
 
