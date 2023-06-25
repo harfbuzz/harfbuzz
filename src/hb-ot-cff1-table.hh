@@ -639,10 +639,10 @@ struct Charset
 struct CFF1StringIndex : CFF1Index
 {
   bool serialize (hb_serialize_context_t *c, const CFF1StringIndex &strings,
-		  const hb_map_t &sidmap)
+		  const hb_vector_t<unsigned> &sidmap)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely ((strings.count == 0) || (sidmap.get_population () == 0)))
+    if (unlikely ((strings.count == 0) || (sidmap.length == 0)))
     {
       if (unlikely (!c->extend_min (this->count)))
 	return_trace (false);
@@ -653,10 +653,10 @@ struct CFF1StringIndex : CFF1Index
     if (unlikely (sidmap.in_error ())) return_trace (false);
 
     hb_vector_t<hb_ubytes_t> bytesArray;
-    if (!bytesArray.resize (sidmap.get_population (), false))
+    if (!bytesArray.resize (sidmap.length, false))
       return_trace (false);
-    for (auto _ : sidmap)
-      bytesArray.arrayZ[_.second] = strings[_.first];
+    for (auto _ : hb_enumerate (sidmap))
+      bytesArray.arrayZ[_.first] = strings[_.second];
 
     bool result = CFF1Index::serialize (c, bytesArray);
     return_trace (result);

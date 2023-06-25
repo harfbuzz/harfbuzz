@@ -40,6 +40,15 @@ using namespace CFF;
 
 struct remap_sid_t : hb_map_t
 {
+  void resize (unsigned size)
+  {
+    hb_map_t::resize (size);
+    vector.alloc (size);
+  }
+
+  bool in_error () const
+  { return hb_map_t::in_error () || vector.in_error (); }
+
   unsigned int add (unsigned int sid)
   {
     if ((sid != CFF_UNDEF_SID) && !is_std_std (sid))
@@ -47,7 +56,10 @@ struct remap_sid_t : hb_map_t
       sid = unoffset_sid (sid);
       unsigned v = next;
       if (set (sid, v, false))
+      {
+        vector.push (sid);
         next++;
+      }
       else
         v = get (sid); // already exists
       return offset_sid (v);
@@ -70,6 +82,8 @@ struct remap_sid_t : hb_map_t
   static unsigned int offset_sid (unsigned int sid) { return sid + num_std_strings; }
   static unsigned int unoffset_sid (unsigned int sid) { return sid - num_std_strings; }
   unsigned next = 0;
+
+  hb_vector_t<unsigned> vector;
 };
 
 struct cff1_sub_table_info_t : cff_sub_table_info_t
@@ -903,7 +917,8 @@ OT::cff1::accelerator_subset_t::serialize (hb_serialize_context_t *c,
   /* String INDEX */
   {
     auto *dest = c->push<CFF1StringIndex> ();
-    if (likely (dest->serialize (c, *stringIndex, plan.sidmap)))
+    if (likely (!plan.sidmap.in_error () &&
+		dest->serialize (c, *stringIndex, plan.sidmap.vector)))
       c->pop_pack ();
     else
     {
