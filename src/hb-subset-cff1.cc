@@ -451,7 +451,7 @@ struct cff1_subset_plan
 
       if (code != last_code + 1)
       {
-	code_pair_t pair = { code, glyph };
+	code_pair_t pair { code, glyph };
 	subset_enc_code_ranges.push (pair);
       }
       last_code = code;
@@ -462,7 +462,7 @@ struct cff1_subset_plan
 	encoding->get_supplement_codes (sid, supp_codes);
 	for (unsigned int i = 0; i < supp_codes.length; i++)
 	{
-	  code_pair_t pair = { supp_codes[i], sid };
+	  code_pair_t pair { supp_codes[i], sid };
 	  subset_enc_supp_codes.push (pair);
 	}
       }
@@ -540,7 +540,7 @@ struct cff1_subset_plan
 
       if (sid != last_sid + 1)
       {
-	code_pair_t pair = { sid, glyph };
+	code_pair_t pair { sid, glyph };
 	subset_charset_ranges.push (pair);
       }
       last_sid = sid;
