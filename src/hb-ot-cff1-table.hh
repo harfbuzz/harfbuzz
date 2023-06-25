@@ -652,6 +652,7 @@ struct CFF1StringIndex : CFF1Index
 
     if (unlikely (sidmap.in_error ())) return_trace (false);
 
+    // Save this in a vector since serialize() iterates it twice.
     hb_vector_t<hb_ubytes_t> bytesArray;
     if (!bytesArray.resize (sidmap.length, false))
       return_trace (false);
