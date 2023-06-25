@@ -653,11 +653,10 @@ struct CFF1StringIndex : CFF1Index
     if (unlikely (sidmap.in_error ())) return_trace (false);
 
     // Save this in a vector since serialize() iterates it twice.
-    hb_vector_t<hb_ubytes_t> bytesArray;
-    if (!bytesArray.resize (sidmap.length, false))
-      return_trace (false);
-    for (auto _ : hb_enumerate (sidmap))
-      bytesArray.arrayZ[_.first] = strings[_.second];
+    hb_vector_t<hb_ubytes_t> bytesArray (+ hb_iter (sidmap)
+					 | hb_map (strings));
+
+    if (unlikely (bytesArray.in_error ())) return_trace (false);
 
     bool result = CFF1Index::serialize (c, bytesArray);
     return_trace (result);
