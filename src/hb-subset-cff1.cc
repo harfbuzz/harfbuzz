@@ -53,7 +53,7 @@ struct remap_sid_t
 
   unsigned int add (unsigned int sid)
   {
-    if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
+    if (is_std_str (sid) || (sid == CFF_UNDEF_SID))
       return sid;
 
     sid = unoffset_sid (sid);
@@ -70,7 +70,7 @@ struct remap_sid_t
 
   unsigned int operator[] (unsigned int sid) const
   {
-    if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
+    if (is_std_str (sid) || (sid == CFF_UNDEF_SID))
       return sid;
 
     return offset_sid (map.get (unoffset_sid (sid)));
@@ -78,7 +78,7 @@ struct remap_sid_t
 
   static const unsigned int num_std_strings = 391;
 
-  static bool is_std_std (unsigned int sid) { return sid < num_std_strings; }
+  static bool is_std_str (unsigned int sid) { return sid < num_std_strings; }
   static unsigned int offset_sid (unsigned int sid) { return sid + num_std_strings; }
   static unsigned int unoffset_sid (unsigned int sid) { return sid - num_std_strings; }
   unsigned next = 0;
