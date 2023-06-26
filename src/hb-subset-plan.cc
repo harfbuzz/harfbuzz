@@ -349,7 +349,7 @@ _generate_varstore_inner_maps (const hb_set_t& varidx_set,
 {
   if (varidx_set.is_empty () || subtable_count == 0) return;
 
-  inner_maps.resize (subtable_count);
+  if (unlikely (!inner_maps.resize (subtable_count))) return;
   for (unsigned idx : varidx_set)
   {
     uint16_t major = idx >> 16;
