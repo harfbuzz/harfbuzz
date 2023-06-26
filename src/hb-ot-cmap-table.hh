@@ -277,10 +277,10 @@ struct CmapSubtableFormat4
       }
     } writer(c);
 
-    writer.end_code_ = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount);
+    writer.end_code_ = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount, false);
     (void) c->allocate_size<HBUINT16> (2); // padding
-    writer.start_code_ = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount);
-    writer.id_delta_ = c->allocate_size<HBINT16> (HBINT16::static_size * segcount);
+    writer.start_code_ = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount, false);
+    writer.id_delta_ = c->allocate_size<HBINT16> (HBINT16::static_size * segcount, false);
 
     if (unlikely (!writer.end_code_ || !writer.start_code_ || !writer.id_delta_)) return false;
 
