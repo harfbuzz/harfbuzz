@@ -984,7 +984,7 @@ static inline void *
 hb_memset (void *s, int c, unsigned int n)
 {
   /* It's illegal to pass NULL to memset(), even if n is zero. */
-  if (unlikely (!n)) return 0;
+  if (unlikely (!n)) return s;
   return memset (s, c, n);
 }
 
