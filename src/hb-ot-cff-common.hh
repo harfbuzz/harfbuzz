@@ -360,6 +360,9 @@ struct FDArray : CFFIndex<COUNT>
 
     /* serialize INDEX data */
     hb_vector_t<unsigned> sizes;
+    if (it.is_random_access_iterator)
+      sizes.alloc (hb_len (it));
+
     c->push ();
     + it
     | hb_map ([&] (const hb_pair_t<const DICTVAL&, const INFO&> &_)
