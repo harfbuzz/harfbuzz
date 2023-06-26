@@ -517,7 +517,7 @@ struct cff_subset_accelerator_t
     auto *mapping = glyph_to_sid_map.get_relaxed ();
     if (mapping)
     {
-      mapping->~hb_vector_t ();
+      mapping->~glyph_to_sid_map_t ();
       hb_free (mapping);
     }
   }
@@ -525,7 +525,7 @@ struct cff_subset_accelerator_t
   parsed_cs_str_vec_t parsed_charstrings;
   parsed_cs_str_vec_t parsed_global_subrs;
   hb_vector_t<parsed_cs_str_vec_t> parsed_local_subrs;
-  mutable hb_atomic_ptr_t<hb_vector_t<uint16_t>> glyph_to_sid_map;
+  mutable hb_atomic_ptr_t<glyph_to_sid_map_t> glyph_to_sid_map;
 
  private:
   hb_blob_t* original_blob;
