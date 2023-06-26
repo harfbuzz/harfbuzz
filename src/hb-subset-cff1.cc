@@ -40,7 +40,7 @@ using namespace CFF;
 
 struct remap_sid_t
 {
-  unsigned get_population () const { return map.get_population (); }
+  unsigned get_population () const { return vector.length; }
 
   void alloc (unsigned size)
   {
