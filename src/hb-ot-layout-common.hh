@@ -2382,7 +2382,7 @@ struct VarRegionList
     return_trace (c->check_struct (this) && axesZ.sanitize (c, axisCount * regionCount));
   }
 
-  bool serialize (hb_serialize_context_t *c, const VarRegionList *src, const hb_bimap_t &region_map)
+  bool serialize (hb_serialize_context_t *c, const VarRegionList *src, const hb_inc_bimap_t &region_map)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
@@ -2499,7 +2499,7 @@ struct VarData
   bool serialize (hb_serialize_context_t *c,
 		  const VarData *src,
 		  const hb_inc_bimap_t &inner_map,
-		  const hb_bimap_t &region_map)
+		  const hb_inc_bimap_t &region_map)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
