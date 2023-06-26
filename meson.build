@@ -124,7 +124,6 @@ if meson.version().version_compare('>=0.60.0')
   icu_dep = dependency('icu-uc', 'ICU',
                             components: 'uc',
                             required: get_option('icu'),
-                            default_options: ['harfbuzz=disabled'],
                             allow_fallback: true)
 else
   # painful hack to handle multiple dependencies but also respect options
