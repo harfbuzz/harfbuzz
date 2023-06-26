@@ -81,9 +81,9 @@ struct hb_multimap_t
     return false;
   }
 
-  void resize (unsigned size)
+  void alloc (unsigned size)
   {
-    singulars.resize (size);
+    singulars.alloc (size);
   }
 
   protected:

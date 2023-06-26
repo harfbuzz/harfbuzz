@@ -45,9 +45,9 @@ struct hb_hashmap_t
   hb_hashmap_t ()  { init (); }
   ~hb_hashmap_t () { fini (); }
 
-  hb_hashmap_t (const hb_hashmap_t& o) : hb_hashmap_t () { resize (o.population); hb_copy (o, *this); }
+  hb_hashmap_t (const hb_hashmap_t& o) : hb_hashmap_t () { alloc (o.population); hb_copy (o, *this); }
   hb_hashmap_t (hb_hashmap_t&& o) : hb_hashmap_t () { hb_swap (*this, o); }
-  hb_hashmap_t& operator= (const hb_hashmap_t& o)  { reset (); resize (o.population); hb_copy (o, *this); return *this; }
+  hb_hashmap_t& operator= (const hb_hashmap_t& o)  { reset (); alloc (o.population); hb_copy (o, *this); return *this; }
   hb_hashmap_t& operator= (hb_hashmap_t&& o)  { hb_swap (*this, o); return *this; }
 
   hb_hashmap_t (std::initializer_list<hb_pair_t<K, V>> lst) : hb_hashmap_t ()
@@ -61,7 +61,7 @@ struct hb_hashmap_t
   {
     auto iter = hb_iter (o);
     if (iter.is_random_access_iterator || iter.has_fast_len)
-      resize (hb_len (iter));
+      alloc (hb_len (iter));
     hb_copy (iter, *this);
   }
 
@@ -166,7 +166,7 @@ struct hb_hashmap_t
 
   bool in_error () const { return !successful; }
 
-  bool resize (unsigned new_population = 0)
+  bool alloc (unsigned new_population = 0)
   {
     if (unlikely (!successful)) return false;
 
@@ -218,7 +218,7 @@ struct hb_hashmap_t
   bool set_with_hash (KK&& key, uint32_t hash, VV&& value, bool overwrite = true)
   {
     if (unlikely (!successful)) return false;
-    if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
+    if (unlikely ((occupancy + occupancy / 2) >= mask && !alloc ())) return false;
 
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int tombstone = (unsigned int) -1;
@@ -259,7 +259,7 @@ struct hb_hashmap_t
     population++;
 
     if (unlikely (length > max_chain_length) && occupancy * 8 > mask)
-      resize (mask - 8); // This ensures we jump to next larger size
+      alloc (mask - 8); // This ensures we jump to next larger size
 
     return true;
   }

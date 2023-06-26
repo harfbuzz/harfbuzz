@@ -80,9 +80,9 @@ HB_INTERNAL bool postV2Tail::subset (hb_subset_context_t *c) const
 
   hb_hashmap_t<hb_bytes_t, uint32_t, true> glyph_name_to_new_index;
 
-  old_new_index_map.resize (num_glyphs);
-  old_gid_new_index_map.resize (num_glyphs);
-  glyph_name_to_new_index.resize (num_glyphs);
+  old_new_index_map.alloc (num_glyphs);
+  old_gid_new_index_map.alloc (num_glyphs);
+  glyph_name_to_new_index.alloc (num_glyphs);
 
   for (hb_codepoint_t new_gid = 0; new_gid < num_glyphs; new_gid++)
   {

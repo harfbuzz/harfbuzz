@@ -92,7 +92,7 @@ struct hb_subset_accelerator_t
     has_seac(has_seac_),
     source(hb_face_reference (source))
   {
-    gid_to_unicodes.resize (unicode_to_gid.get_population ());
+    gid_to_unicodes.alloc (unicode_to_gid.get_population ());
     for (const auto &_ : unicode_to_gid)
     {
       auto unicode = _.first;

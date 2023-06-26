@@ -607,7 +607,7 @@ struct subr_remap_t : hb_inc_bimap_t
      * no optimization based on usage counts. fonttools doesn't appear doing that either.
      */
 
-    resize (closure->get_population ());
+    alloc (closure->get_population ());
     for (auto old_num : *closure)
       add (old_num);
 

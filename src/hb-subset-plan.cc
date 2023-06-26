@@ -561,7 +561,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 	unicodes->get_population () < cmap_unicodes->get_population () &&
 	glyphs->get_population () < cmap_unicodes->get_population ())
     {
-      plan->codepoint_to_glyph->resize (unicodes->get_population () + glyphs->get_population ());
+      plan->codepoint_to_glyph->alloc (unicodes->get_population () + glyphs->get_population ());
 
       auto &gid_to_unicodes = plan->accelerator->gid_to_unicodes;
       for (hb_codepoint_t gid : *glyphs)
@@ -591,7 +591,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     }
     else
     {
-      plan->codepoint_to_glyph->resize (cmap_unicodes->get_population ());
+      plan->codepoint_to_glyph->alloc (cmap_unicodes->get_population ());
       for (hb_codepoint_t cp : *cmap_unicodes)
       {
 	hb_codepoint_t gid = (*unicode_glyphid_map)[cp];
@@ -790,7 +790,7 @@ _create_glyph_map_gsub (const hb_set_t* glyph_set_gsub,
                         const hb_map_t* glyph_map,
                         hb_map_t* out)
 {
-  out->resize (glyph_set_gsub->get_population ());
+  out->alloc (glyph_set_gsub->get_population ());
   + hb_iter (glyph_set_gsub)
   | hb_map ([&] (hb_codepoint_t gid) {
     return hb_codepoint_pair_t (gid, glyph_map->get (gid));
@@ -810,8 +810,8 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
 				unsigned int	*num_glyphs /* OUT */)
 {
   unsigned pop = all_gids_to_retain->get_population ();
-  reverse_glyph_map->resize (pop);
-  glyph_map->resize (pop);
+  reverse_glyph_map->alloc (pop);
+  glyph_map->alloc (pop);
   new_to_old_gid_list->alloc (pop);
 
   if (*requested_glyph_map)

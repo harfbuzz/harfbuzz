@@ -42,9 +42,9 @@ struct remap_sid_t
 {
   unsigned get_population () const { return map.get_population (); }
 
-  void resize (unsigned size)
+  void alloc (unsigned size)
   {
-    map.resize (size);
+    map.alloc (size);
     vector.alloc (size);
   }
 
@@ -536,7 +536,7 @@ struct cff1_subset_plan
     auto _ = *it;
     bool not_is_cid = !acc.is_CID ();
     if (not_is_cid)
-      sidmap.resize (num_glyphs);
+      sidmap.alloc (num_glyphs);
     for (glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t old_glyph;

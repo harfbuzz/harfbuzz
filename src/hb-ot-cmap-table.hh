@@ -765,7 +765,7 @@ struct CmapSubtableLongSegmented
       if (unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
 	end = start + (hb_codepoint_t) num_glyphs - gid;
 
-      mapping->resize (mapping->get_population () + end - start + 1);
+      mapping->alloc (mapping->get_population () + end - start + 1);
 
       for (unsigned cp = start; cp <= end; cp++)
       {

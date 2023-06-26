@@ -39,10 +39,10 @@ struct hb_bimap_t
     back_map.reset ();
   }
 
-  void resize (unsigned pop)
+  void alloc (unsigned pop)
   {
-    forw_map.resize (pop);
-    back_map.resize (pop);
+    forw_map.alloc (pop);
+    back_map.alloc (pop);
   }
 
   bool in_error () const { return forw_map.in_error () || back_map.in_error (); }
@@ -144,10 +144,10 @@ struct hb_inc_bimap_t : hb_bimap_t
   {
     hb_codepoint_t  count = get_population ();
     hb_vector_t <hb_codepoint_t> work;
-    work.resize (count);
+    if (unlikely (!work.resize (count, false))) return;
 
     for (hb_codepoint_t rhs = 0; rhs < count; rhs++)
-      work[rhs] = back_map[rhs];
+      work.arrayZ[rhs] = back_map[rhs];
 
     work.qsort (cmp_id);
 
