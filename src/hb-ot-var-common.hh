@@ -43,7 +43,7 @@ struct DeltaSetIndexMapFormat01
     auto *out = c->start_embed (this);
 
     unsigned total_size = min_size + mapCount * get_width ();
-    HBUINT8 *p = c->allocate_size<HBUINT8> (total_size);
+    HBUINT8 *p = c->allocate_size<HBUINT8> (total_size, false);
     if (unlikely (!p)) return_trace (nullptr);
 
     hb_memcpy (p, this, HBUINT8::static_size * total_size);
@@ -64,7 +64,7 @@ struct DeltaSetIndexMapFormat01
 
     entryFormat = ((width-1)<<4)|(inner_bit_count-1);
     mapCount = output_map.length;
-    HBUINT8 *p = c->allocate_size<HBUINT8> (width * output_map.length);
+    HBUINT8 *p = c->allocate_size<HBUINT8> (width * output_map.length, false);
     if (unlikely (!p)) return_trace (false);
     for (unsigned int i = 0; i < output_map.length; i++)
     {
@@ -437,7 +437,7 @@ struct byte_data_t
   {
     if (unlikely (!bytes.length || !bytes.arrayZ)) return;
 
-    char* ret = c->allocate_size<char> (bytes.length);
+    char* ret = c->allocate_size<char> (bytes.length, false);
     if (unlikely (!ret)) return;
     hb_memcpy (ret, bytes.arrayZ, bytes.length);
   }
