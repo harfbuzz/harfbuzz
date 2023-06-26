@@ -53,29 +53,27 @@ struct remap_sid_t
 
   unsigned int add (unsigned int sid)
   {
-    if ((sid != CFF_UNDEF_SID) && !is_std_std (sid))
+    if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
+      return sid;
+
+    sid = unoffset_sid (sid);
+    unsigned v = next;
+    if (map.set (sid, v, false))
     {
-      sid = unoffset_sid (sid);
-      unsigned v = next;
-      if (map.set (sid, v, false))
-      {
-        vector.push (sid);
-        next++;
-      }
-      else
-        v = map.get (sid); // already exists
-      return offset_sid (v);
+      vector.push (sid);
+      next++;
     }
     else
-      return sid;
+      v = map.get (sid); // already exists
+    return offset_sid (v);
   }
 
   unsigned int operator[] (unsigned int sid) const
   {
     if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
       return sid;
-    else
-      return offset_sid (map.get (unoffset_sid (sid)));
+
+    return offset_sid (map.get (unoffset_sid (sid)));
   }
 
   static const unsigned int num_std_strings = 391;
