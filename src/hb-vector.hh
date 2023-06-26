@@ -228,15 +228,14 @@ struct hb_vector_t
 	    hb_enable_if (std::is_copy_constructible<T2>::value)>
   Type *push (T&& v)
   {
-    if (unlikely (!alloc (length + 1)))
+    if (unlikely ((int) length >= allocated && !alloc (length + 1)))
       // If push failed to allocate then don't copy v, since this may cause
       // the created copy to leak memory since we won't have stored a
       // reference to it.
       return std::addressof (Crap (Type));
 
     /* Emplace. */
-    length++;
-    Type *p = std::addressof (arrayZ[length - 1]);
+    Type *p = std::addressof (arrayZ[length++]);
     return new (p) Type (std::forward<T> (v));
   }
 

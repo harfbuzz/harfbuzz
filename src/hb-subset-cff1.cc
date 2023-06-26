@@ -556,13 +556,7 @@ struct cff1_subset_plan
       if (sid != last_sid + 1)
       {
 	code_pair_t pair { sid, glyph };
-	// This is stupid to do manually but it does show speedup.
-	// We should find up where the slowdown comes from in push()
-	// and fix it.
-	if ((int) subset_charset_ranges.length < subset_charset_ranges.allocated)
-	  subset_charset_ranges.arrayZ[subset_charset_ranges.length++] = pair;
-	else
-	  subset_charset_ranges.push (pair);
+	subset_charset_ranges.push (pair);
       }
       last_sid = sid;
     }
