@@ -549,11 +549,9 @@ struct cff1_subset_plan
 	/* Retain the SID for the old missing glyph ID */
 	old_glyph = glyph;
       }
-      unsigned sid;
-      if (glyph_to_sid_map)
-	sid = glyph_to_sid_map->arrayZ[old_glyph].code;
-      else
-        sid = acc.glyph_to_sid (old_glyph, &glyph_to_sid_cache);
+      unsigned sid = glyph_to_sid_map ?
+		     glyph_to_sid_map->arrayZ[old_glyph].code :
+		     acc.glyph_to_sid (old_glyph, &glyph_to_sid_cache);
 
       if (not_is_cid)
 	sid = sidmap.add (sid);
