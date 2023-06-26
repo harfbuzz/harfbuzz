@@ -94,6 +94,8 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 	num_ranges++;
 	prev_fd = fd;
 	fdselect_ranges.push (code_pair_t { fd, gid });
+
+	gid = hb_min (_.first - 1, last_range.second - 1);
       }
     }
 
