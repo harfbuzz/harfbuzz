@@ -45,7 +45,7 @@ struct remap_sid_t
   void alloc (unsigned size)
   {
     map.alloc (size);
-    vector.alloc (size);
+    vector.alloc (size, true);
   }
 
   bool in_error () const
