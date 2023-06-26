@@ -55,7 +55,7 @@ struct code_pair_t
 
 using str_buff_t = hb_vector_t<unsigned char>;
 using str_buff_vec_t = hb_vector_t<str_buff_t>;
-using glyph_to_sid_map_t = hb_vector_t<uint16_t>;
+using glyph_to_sid_map_t = hb_vector_t<code_pair_t>;
 
 /* CFF INDEX */
 template <typename COUNT>

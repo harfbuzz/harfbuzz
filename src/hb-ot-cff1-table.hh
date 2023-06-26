@@ -334,7 +334,7 @@ struct Charset0
   {
     mapping->resize (num_glyphs, false);
     for (hb_codepoint_t gid = 1; gid < num_glyphs; gid++)
-      mapping->arrayZ[gid] = sids[gid - 1];
+      mapping->arrayZ[gid] = {sids[gid - 1], gid + 1};
   }
 
   hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
@@ -440,8 +440,9 @@ struct Charset1_2 {
     {
       hb_codepoint_t sid = ranges[i].first;
       unsigned count = ranges[i].nLeft + 1;
+      unsigned last = gid + count;
       for (unsigned j = 0; j < count; j++)
-	mapping->arrayZ[gid++] = sid++;
+	mapping->arrayZ[gid++] = {sid++, last};
 
       if (gid >= num_glyphs)
         break;
@@ -1275,7 +1276,7 @@ struct cff1
 	auto *mapping = (glyph_to_sid_map_t *) hb_malloc (sizeof (glyph_to_sid_map_t));
 	if (unlikely (!mapping)) return nullptr;
 	mapping = new (mapping) glyph_to_sid_map_t ();
-	mapping->push (0);
+	mapping->push (code_pair_t {0, 1});
 	charset->collect_glyph_to_sid_map (mapping, num_glyphs);
 	return mapping;
       }
