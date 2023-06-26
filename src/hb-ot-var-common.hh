@@ -36,18 +36,14 @@ struct DeltaSetIndexMapFormat01
 {
   friend struct DeltaSetIndexMap;
 
+  unsigned get_size () const
+  { return min_size + mapCount * get_width (); }
+
   private:
   DeltaSetIndexMapFormat01* copy (hb_serialize_context_t *c) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->start_embed (this);
-
-    unsigned total_size = min_size + mapCount * get_width ();
-    HBUINT8 *p = c->allocate_size<HBUINT8> (total_size, false);
-    if (unlikely (!p)) return_trace (nullptr);
-
-    hb_memcpy (p, this, HBUINT8::static_size * total_size);
-    return_trace (out);
+    return_trace (c->embed (this));
   }
 
   template <typename T>
@@ -434,13 +430,7 @@ struct byte_data_t
   explicit operator bool () const { return bytes.length; }
 
   void copy (hb_serialize_context_t *c) const
-  {
-    if (unlikely (!bytes.length || !bytes.arrayZ)) return;
-
-    char* ret = c->allocate_size<char> (bytes.length, false);
-    if (unlikely (!ret)) return;
-    hb_memcpy (ret, bytes.arrayZ, bytes.length);
-  }
+  { c->embed (bytes.arrayZ, bytes.length); }
 };
 
 enum packed_delta_flag_t
