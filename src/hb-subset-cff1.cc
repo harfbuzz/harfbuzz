@@ -554,7 +554,7 @@ struct cff1_subset_plan
       {
 	subset_charset_ranges.push (code_pair_t {sid, glyph});
 
-	if (skip && glyph == old_glyph)
+	if (glyph == old_glyph && skip)
 	{
 	  glyph = hb_min (_.first - 1, glyph_to_sid_map->arrayZ[old_glyph].glyph - 1);
 	  sid += glyph - old_glyph;
