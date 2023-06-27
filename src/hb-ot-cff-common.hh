@@ -199,9 +199,7 @@ struct CFFIndex
     if (!it)
     {
       if (data_size) *data_size = 0;
-      // The following should return min_size IMO. But that crashes a few
-      // tests. I have not investigated why.
-      return 0; //min_size;
+      return min_size;
     }
 
     unsigned total = 0;
