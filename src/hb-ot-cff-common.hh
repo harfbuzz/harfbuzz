@@ -57,6 +57,16 @@ using str_buff_t = hb_vector_t<unsigned char>;
 using str_buff_vec_t = hb_vector_t<str_buff_t>;
 using glyph_to_sid_map_t = hb_vector_t<code_pair_t>;
 
+struct length_f_t
+{
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  unsigned operator () (const Iterable &_) const { return hb_len (hb_iter (_)); }
+
+  unsigned operator () (unsigned _) const { return _; }
+}
+HB_FUNCOBJ (length_f);
+
 /* CFF INDEX */
 template <typename COUNT>
 struct CFFIndex
@@ -96,15 +106,6 @@ struct CFFIndex
     }
     return_trace (true);
   }
-
-  HB_INTERNAL static struct {
-    template <typename Iterable,
-	      hb_requires (hb_is_iterable (Iterable))>
-    unsigned operator () (const Iterable &_) { return hb_len (hb_iter (_)); }
-
-    unsigned operator () (unsigned _) { return _; }
-  }
-  length_f;
 
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
