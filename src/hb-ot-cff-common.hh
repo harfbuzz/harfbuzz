@@ -68,12 +68,14 @@ struct CFFIndex
 	    hb_requires (hb_is_iterable (Iterable))>
   bool serialize (hb_serialize_context_t *c,
 		  const Iterable &iterable,
-		  unsigned data_size = 0)
+		  unsigned data_size = (unsigned) -1)
   {
     TRACE_SERIALIZE (this);
+    if (data_size == (unsigned) -1)
+      total_size (iterable, &data_size);
     auto it = hb_iter (iterable);
-    unsigned size = serialize_header(c, + it | hb_map (hb_iter) | hb_map (hb_len), data_size);
-    unsigned char *ret = c->allocate_size<unsigned char> (size, false);
+    if (unlikely (!serialize_header (c, +it, data_size))) return_trace (false);
+    unsigned char *ret = c->allocate_size<unsigned char> (data_size, false);
     if (unlikely (!ret)) return_trace (false);
     for (const auto &_ : +it)
     {
@@ -91,34 +93,42 @@ struct CFFIndex
     return_trace (true);
   }
 
+  HB_INTERNAL static struct {
+    template <typename Iterable,
+	      hb_requires (hb_is_iterable (Iterable))>
+    unsigned operator () (const Iterable &_) { return hb_len (hb_iter (_)); }
+
+    unsigned operator () (unsigned _) { return _; }
+  }
+  length_f;
+
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
-  unsigned serialize_header (hb_serialize_context_t *c,
-			     Iterator it,
-			     unsigned data_size = 0)
+  bool serialize_header (hb_serialize_context_t *c,
+			 Iterator it,
+			 unsigned data_size)
   {
     TRACE_SERIALIZE (this);
 
-    unsigned total = data_size ? data_size : + it | hb_reduce (hb_add, 0);
-    unsigned off_size = (hb_bit_storage (total + 1) + 7) / 8;
+    unsigned off_size = (hb_bit_storage (data_size + 1) + 7) / 8;
 
     /* serialize CFFIndex header */
-    if (unlikely (!c->extend_min (this))) return_trace (0);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     this->count = hb_len (it);
-    if (!this->count) return_trace (0);
-    if (unlikely (!c->extend (this->offSize))) return_trace (0);
+    if (!this->count) return_trace (true);
+    if (unlikely (!c->extend (this->offSize))) return_trace (false);
     this->offSize = off_size;
     if (unlikely (!c->allocate_size<HBUINT8> (off_size * (this->count + 1), false)))
-      return_trace (0);
+      return_trace (false);
 
     /* serialize indices */
     unsigned int offset = 1;
 #ifdef HB_OPTIMIZE_SIZE
     unsigned int i = 0;
-    for (unsigned _ : +it)
+    for (const auto &_ : +it)
     {
       set_offset_at (i++, offset);
-      offset += _;
+      offset += length_f (_);
     }
     set_offset_at (i, offset);
 #else
@@ -127,10 +137,10 @@ struct CFFIndex
       case 1:
       {
 	HBUINT8 *p = (HBUINT8 *) offsets;
-	for (unsigned _ : +it)
+	for (const auto &_ : +it)
 	{
 	  *p++ = offset;
-	  offset += _;
+	  offset += length_f (_);
 	}
 	*p = offset;
       }
@@ -138,10 +148,10 @@ struct CFFIndex
       case 2:
       {
 	HBUINT16 *p = (HBUINT16 *) offsets;
-	for (unsigned _ : +it)
+	for (const auto &_ : +it)
 	{
 	  *p++ = offset;
-	  offset += _;
+	  offset += length_f (_);
 	}
 	*p = offset;
       }
@@ -149,10 +159,10 @@ struct CFFIndex
       case 3:
       {
 	HBUINT24 *p = (HBUINT24 *) offsets;
-	for (unsigned _ : +it)
+	for (const auto &_ : +it)
 	{
 	  *p++ = offset;
-	  offset += _;
+	  offset += length_f (_);
 	}
 	*p = offset;
       }
@@ -160,10 +170,10 @@ struct CFFIndex
       case 4:
       {
 	HBUINT32 *p = (HBUINT32 *) offsets;
-	for (unsigned _ : +it)
+	for (const auto &_ : +it)
 	{
 	  *p++ = offset;
-	  offset += _;
+	  offset += length_f (_);
 	}
 	*p = offset;
       }
@@ -172,15 +182,15 @@ struct CFFIndex
       break;
     }
 #endif
-
-    return_trace (total);
+    assert (offset == data_size + 1);
+    return_trace (true);
   }
 
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
   static unsigned total_size (const Iterable &iterable, unsigned *data_size = nullptr)
   {
-    auto it = + hb_iter (iterable) | hb_map (hb_iter) | hb_map (hb_len);
+    auto it = + hb_iter (iterable);
     if (!it)
     {
       if (data_size) *data_size = 0;
@@ -189,10 +199,13 @@ struct CFFIndex
       return 0; //min_size;
     }
 
-    unsigned total = + it | hb_reduce (hb_add, 0);
-    unsigned off_size = (hb_bit_storage (total + 1) + 7) / 8;
+    unsigned total = 0;
+    for (const auto &_ : +it)
+      total += length_f (_);
 
     if (data_size) *data_size = total;
+
+    unsigned off_size = (hb_bit_storage (total + 1) + 7) / 8;
 
     return min_size + HBUINT8::static_size + (hb_len (it) + 1) * off_size + total;
   }
@@ -376,6 +389,8 @@ struct FDArray : CFFIndex<COUNT>
     ;
     unsigned data_size = c->head - data_base;
     c->pop_pack (false);
+
+    if (unlikely (sizes.in_error ())) return_trace (false);
 
     /* It just happens that the above is packed right after the header below.
      * Such a hack. */
