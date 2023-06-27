@@ -74,7 +74,7 @@ HB_WASM_API (bool_t, face_copy_table) (HB_WASM_EXEC_ENV
       return false;
     }
 
-    memcpy (data, hb_data, length);
+    hb_memcpy (data, hb_data, length);
 
     return true;
   }

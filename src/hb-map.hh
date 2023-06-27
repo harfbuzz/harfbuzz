@@ -184,7 +184,7 @@ struct hb_hashmap_t
       for (auto &_ : hb_iter (new_items, new_size))
 	new (&_) item_t ();
     else
-      memset (new_items, 0, (size_t) new_size * sizeof (item_t));
+      hb_memset (new_items, 0, (size_t) new_size * sizeof (item_t));
 
     unsigned int old_size = size ();
     item_t *old_items = items;

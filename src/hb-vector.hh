@@ -306,7 +306,7 @@ struct hb_vector_t
   void
   grow_vector (unsigned size, hb_priority<0>)
   {
-    memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
+    hb_memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
     length = size;
   }
   template <typename T = Type,
@@ -324,7 +324,7 @@ struct hb_vector_t
   void
   grow_vector (unsigned size, hb_priority<1>)
   {
-    memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
+    hb_memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
     length = size;
   }
 

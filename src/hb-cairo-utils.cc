@@ -80,7 +80,7 @@ hb_cairo_read_blob (void *closure,
   if (r->offset + length > size)
     return CAIRO_STATUS_READ_ERROR;
 
-  memcpy (data, d + r->offset, length);
+  hb_memcpy (data, d + r->offset, length);
   r->offset += length;
 
   return CAIRO_STATUS_SUCCESS;

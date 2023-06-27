@@ -64,13 +64,13 @@ HB_WASM_API (bool_t, buffer_contents_realloc) (HB_WASM_EXEC_ENV
   unsigned old_bytes = contents->length * sizeof (glyph_info_t);
   if (likely (new_inforef))
   {
-    memcpy (new_info, info, old_bytes);
+    hb_memcpy (new_info, info, old_bytes);
     module_free (contents->info);
     contents->info = new_inforef;
   }
   if (likely (new_posref))
   {
-    memcpy (new_pos, pos, old_bytes);
+    hb_memcpy (new_pos, pos, old_bytes);
     module_free (contents->pos);
     contents->pos = new_posref;
   }
@@ -127,8 +127,8 @@ HB_WASM_API (bool_t, buffer_copy_contents) (HB_WASM_EXEC_ENV
     }
 
     unsigned bytes = length * sizeof (hb_glyph_info_t);
-    memcpy (info, buffer->info, bytes);
-    memcpy (pos, buffer->pos, bytes);
+    hb_memcpy (info, buffer->info, bytes);
+    hb_memcpy (pos, buffer->pos, bytes);
 
     return true;
   }
@@ -173,8 +173,8 @@ HB_WASM_API (bool_t, buffer_set_contents) (HB_WASM_EXEC_ENV
   if (!buffer->have_positions)
     buffer->clear_positions (); /* This is wasteful. */
 
-  memcpy (buffer->info, info, bytes);
-  memcpy (buffer->pos, pos, bytes);
+  hb_memcpy (buffer->info, info, bytes);
+  hb_memcpy (buffer->pos, pos, bytes);
   buffer->len = length;
 
   return true;

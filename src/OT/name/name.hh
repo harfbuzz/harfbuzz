@@ -359,7 +359,7 @@ struct name
       record.nameID = ids.name_id;
       record.length = 0; // handled in NameRecord copy()
       record.offset = 0;
-      memcpy (name_records, &record, NameRecord::static_size);
+      hb_memcpy (name_records, &record, NameRecord::static_size);
       name_records++;
     }
 #endif
