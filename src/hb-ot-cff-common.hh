@@ -68,11 +68,15 @@ struct CFFIndex
 	    hb_requires (hb_is_iterable (Iterable))>
   bool serialize (hb_serialize_context_t *c,
 		  const Iterable &iterable,
-		  unsigned data_size = (unsigned) -1)
+		  const unsigned *p_data_size = nullptr)
   {
     TRACE_SERIALIZE (this);
-    if (data_size == (unsigned) -1)
+    unsigned data_size;
+    if (p_data_size)
+      data_size = *p_data_size;
+    else
       total_size (iterable, &data_size);
+
     auto it = hb_iter (iterable);
     if (unlikely (!serialize_header (c, +it, data_size))) return_trace (false);
     unsigned char *ret = c->allocate_size<unsigned char> (data_size, false);

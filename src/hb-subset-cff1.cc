@@ -831,7 +831,7 @@ OT::cff1::accelerator_subset_t::serialize (hb_serialize_context_t *c,
        return false;
 
     auto *cs = c->start_embed<CFF1CharStrings> ();
-    if (likely (cs->serialize (c, plan.subset_charstrings, data_size)))
+    if (likely (cs->serialize (c, plan.subset_charstrings, &data_size)))
       plan.info.char_strings_link = c->pop_pack (false);
     else
     {
