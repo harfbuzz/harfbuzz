@@ -294,16 +294,17 @@ struct range_list_t : hb_vector_t<code_pair_t>
   /* replace the first glyph ID in the "glyph" field each range with a nLeft value */
   bool complete (unsigned int last_glyph)
   {
-    bool two_byte = false;
+    hb_codepoint_t all_glyphs = 0;
     unsigned count = this->length;
     for (unsigned int i = count; i; i--)
     {
       code_pair_t &pair = arrayZ[i - 1];
       unsigned int nLeft = last_glyph - pair.glyph - 1;
-      two_byte |= nLeft >= 0x100;
+      all_glyphs |= nLeft;
       last_glyph = pair.glyph;
       pair.glyph = nLeft;
     }
+    bool two_byte = all_glyphs >= 0x100;
     return two_byte;
   }
 };
