@@ -960,7 +960,7 @@ OT::cff1::accelerator_subset_t::serialize (hb_serialize_context_t *c,
     }
     /* serialize INDEX header for above */
     auto *dest = c->start_embed<CFF1Index> ();
-    return dest->serialize_header (c, hb_iter (hb_array_t<unsigned> (&top_size, 1)));
+    return dest->serialize_header (c, hb_iter (hb_array_t<unsigned> (&top_size, 1)), top_size);
   }
 }
 
