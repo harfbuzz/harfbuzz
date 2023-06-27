@@ -21,7 +21,8 @@ struct test_input_t
   const char *font_path;
 } default_tests[] =
 {
-  {true , SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
+  {false, SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
+  {true , SUBSET_FONT_BASE_PATH "RobotoFlex-Variable.ttf"},
   {false, SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
   {true , SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
   {true , SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
