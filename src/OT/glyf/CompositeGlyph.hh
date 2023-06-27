@@ -382,7 +382,7 @@ struct CompositeGlyph
     {
       /* last 4 points in points_with_deltas are phantom points and should not be included */
       if (i >= points_with_deltas.length - 4) {
-        free (o);
+        hb_free (o);
         return false;
       }
 
