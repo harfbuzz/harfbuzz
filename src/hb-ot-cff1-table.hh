@@ -531,13 +531,16 @@ struct Charset
     {
       Charset1 *fmt1 = c->allocate_size<Charset1> (Charset1::min_size + Charset1_Range::static_size * sid_ranges.length, false);
       if (unlikely (!fmt1)) return_trace (false);
+      hb_codepoint_t all_glyphs = 0;
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
-	if (unlikely (!(sid_ranges.arrayZ[i].glyph <= 0xFF)))
-	  return_trace (false);
-	fmt1->ranges[i].first = sid_ranges.arrayZ[i].code;
-	fmt1->ranges[i].nLeft = sid_ranges.arrayZ[i].glyph;
+        auto &_ = sid_ranges.arrayZ[i];
+        all_glyphs |= _.glyph;
+	fmt1->ranges[i].first = _.code;
+	fmt1->ranges[i].nLeft = _.glyph;
       }
+      if (unlikely (!(all_glyphs <= 0xFF)))
+	return_trace (false);
     }
     break;
 
@@ -545,13 +548,16 @@ struct Charset
     {
       Charset2 *fmt2 = c->allocate_size<Charset2> (Charset2::min_size + Charset2_Range::static_size * sid_ranges.length, false);
       if (unlikely (!fmt2)) return_trace (false);
+      hb_codepoint_t all_glyphs = 0;
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
-	if (unlikely (!(sid_ranges.arrayZ[i].glyph <= 0xFFFF)))
-	  return_trace (false);
-	fmt2->ranges[i].first = sid_ranges.arrayZ[i].code;
-	fmt2->ranges[i].nLeft = sid_ranges.arrayZ[i].glyph;
+        auto &_ = sid_ranges.arrayZ[i];
+        all_glyphs |= _.glyph;
+	fmt2->ranges[i].first = _.code;
+	fmt2->ranges[i].nLeft = _.glyph;
       }
+      if (unlikely (!(all_glyphs <= 0xFFFF)))
+	return_trace (false);
     }
     break;
 
