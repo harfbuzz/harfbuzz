@@ -504,7 +504,6 @@ struct cff1_subset_plan
 
     code_pair_t glyph_to_sid_cache {0, HB_CODEPOINT_INVALID};
 
-    unsigned int glyph;
     unsigned num_glyphs = plan->num_output_glyphs ();
 
     if (unlikely (!subset_charset_ranges.alloc (hb_min (num_glyphs,
@@ -531,7 +530,7 @@ struct cff1_subset_plan
     bool skip = !not_is_cid && glyph_to_sid_map;
     if (not_is_cid)
       sidmap.alloc (num_glyphs);
-    for (glyph = 1; glyph < num_glyphs; glyph++)
+    for (hb_codepoint_t glyph = 1; glyph < num_glyphs; glyph++)
     {
       hb_codepoint_t old_glyph;
       if (glyph == _.first)
@@ -574,7 +573,7 @@ struct cff1_subset_plan
       }
     }
 
-    bool two_byte = subset_charset_ranges.complete (glyph);
+    bool two_byte = subset_charset_ranges.complete (num_glyphs);
 
     size0 = Charset0::get_size (plan->num_output_glyphs ());
     if (!two_byte)
