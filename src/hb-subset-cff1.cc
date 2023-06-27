@@ -557,7 +557,7 @@ struct cff1_subset_plan
 
 	if (glyph == old_glyph && skip)
 	{
-	  glyph = hb_min (_.first - 1, glyph_to_sid_map->arrayZ[old_glyph].glyph - 1);
+	  glyph = hb_min (_.first - 1, glyph_to_sid_map->arrayZ[old_glyph].glyph);
 	  sid += glyph - old_glyph;
 	}
       }

@@ -330,7 +330,7 @@ struct Charset0
   {
     mapping->resize (num_glyphs, false);
     for (hb_codepoint_t gid = 1; gid < num_glyphs; gid++)
-      mapping->arrayZ[gid] = {sids[gid - 1], gid + 1};
+      mapping->arrayZ[gid] = {sids[gid - 1], gid};
   }
 
   hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
@@ -438,7 +438,7 @@ struct Charset1_2 {
       unsigned count = ranges[i].nLeft + 1;
       unsigned last = gid + count;
       for (unsigned j = 0; j < count; j++)
-	mapping->arrayZ[gid++] = {sid++, last};
+	mapping->arrayZ[gid++] = {sid++, last - 1};
 
       if (gid >= num_glyphs)
         break;
