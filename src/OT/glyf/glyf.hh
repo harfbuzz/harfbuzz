@@ -225,7 +225,7 @@ struct glyf_accelerator_t
       assert (count >= glyf_impl::PHANTOM_COUNT);
       count -= glyf_impl::PHANTOM_COUNT;
       for (unsigned point_index = 0; point_index < count; point_index++)
-	consumer.consume_point (all_points[point_index]);
+	consumer.consume_point (all_points.arrayZ[point_index]);
       consumer.points_end ();
     }
 
@@ -296,6 +296,7 @@ struct glyf_accelerator_t
       if (extents) bounds = contour_bounds_t ();
     }
 
+    __attribute__((always_inline))
     void consume_point (const contour_point_t &point) { bounds.add (point); }
     void points_end () { bounds.get_extents (font, extents, scaled); }
 
