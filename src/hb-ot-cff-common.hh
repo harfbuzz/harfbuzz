@@ -488,7 +488,7 @@ struct FDSelect3_4
   {
     auto *range = hb_bsearch (glyph, &ranges[0], nRanges () - 1, sizeof (ranges[0]), _cmp_range);
     unsigned fd = range ? range->fd : ranges[nRanges () - 1].fd;
-    hb_codepoint_t end = range ? range[1].first : 0;
+    hb_codepoint_t end = range ? range[1].first : ranges[nRanges () - 1].first;
     return {fd, end};
   }
 
@@ -542,13 +542,13 @@ struct FDSelect
   /* Returns pair of fd and one after last glyph in range. */
   hb_pair_t<unsigned, hb_codepoint_t> get_fd_range (hb_codepoint_t glyph) const
   {
-    if (this == &Null (FDSelect)) return {0, 0};
+    if (this == &Null (FDSelect)) return {0, 1};
 
     switch (format)
     {
     case 0: return u.format0.get_fd_range (glyph);
     case 3: return u.format3.get_fd_range (glyph);
-    default:return {0, 0};
+    default:return {0, 1};
     }
   }
 
