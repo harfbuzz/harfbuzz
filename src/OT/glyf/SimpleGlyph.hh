@@ -123,32 +123,20 @@ struct SimpleGlyph
     first_flag = (uint8_t) first_flag | FLAG_OVERLAP_SIMPLE;
   }
 
-  __attribute__((noinline))
   static bool read_flags (const HBUINT8 *&p /* IN/OUT */,
 			  hb_array_t<contour_point_t> points_ /* IN/OUT */,
-			  const HBUINT8 *end,
-			  unsigned &x_points_len,
-			  unsigned &y_points_len)
+			  const HBUINT8 *end)
   {
     unsigned count = points_.length;
-    x_points_len = y_points_len = 0;
     for (unsigned int i = 0; i < count;)
     {
       if (unlikely (p + 1 > end)) return false;
       uint8_t flag = *p++;
-      x_points_len += bool (flag & FLAG_X_SHORT);
-      x_points_len += 2 * bool ((flag & (FLAG_X_SHORT | FLAG_X_SAME)) == 0);
-      y_points_len += bool (flag & FLAG_Y_SHORT);
-      y_points_len += 2 * bool ((flag & (FLAG_Y_SHORT | FLAG_Y_SAME)) == 0);
       points_.arrayZ[i++].flag = flag;
       if (flag & FLAG_REPEAT)
       {
 	if (unlikely (p + 1 > end)) return false;
 	unsigned int repeat_count = *p++;
-	x_points_len += repeat_count * bool (flag & FLAG_X_SHORT);
-	x_points_len += repeat_count * 2 * bool ((flag & (FLAG_X_SHORT | FLAG_X_SAME)) == 0);
-	y_points_len += repeat_count * bool (flag & FLAG_Y_SHORT);
-	y_points_len += repeat_count * 2 * bool ((flag & (FLAG_Y_SHORT | FLAG_Y_SAME)) == 0);
 	unsigned stop = hb_min (i + repeat_count, count);
 	for (; i < stop; i++)
 	  points_.arrayZ[i].flag = flag;
@@ -157,7 +145,6 @@ struct SimpleGlyph
     return true;
   }
 
-  __attribute__((noinline))
   static bool read_points (const HBUINT8 *&p /* IN/OUT */,
 			   hb_array_t<contour_point_t> points_ /* IN/OUT */,
 			   const HBUINT8 *end,
@@ -173,6 +160,7 @@ struct SimpleGlyph
       unsigned flag = points_.arrayZ[i].flag;
       if (flag & short_flag)
       {
+	if (unlikely (p + 1 > end)) return false;
 	if (flag & same_flag)
 	  v += *p++;
 	else
@@ -182,6 +170,7 @@ struct SimpleGlyph
       {
 	if (!(flag & same_flag))
 	{
+	  if (unlikely (p + HBINT16::static_size > end)) return false;
 	  v += *(const HBINT16 *) p;
 	  p += HBINT16::static_size;
 	}
@@ -220,9 +209,7 @@ struct SimpleGlyph
     if (unlikely (p >= end)) return false;
 
     /* Read x & y coordinates */
-    unsigned x_points_len, y_points_len;
-    return read_flags (p, points_, end, x_points_len, y_points_len)
-        && end - p >= (int) (x_points_len + y_points_len)
+    return read_flags (p, points_, end)
         && read_points (p, points_, end, &contour_point_t::x,
 			FLAG_X_SHORT, FLAG_X_SAME)
 	&& read_points (p, points_, end, &contour_point_t::y,
