@@ -37,6 +37,7 @@ struct path_builder_t
      * https://stackoverflow.com/a/20772557
      *
      * Cubic support added. */
+  __attribute__((always_inline))
   void consume_point (const contour_point_t &point)
   {
     bool is_on_curve = point.flag & glyf_impl::SimpleGlyph::FLAG_ON_CURVE;
