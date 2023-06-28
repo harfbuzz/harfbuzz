@@ -219,11 +219,12 @@ struct glyf_accelerator_t
     if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, nullptr, nullptr, nullptr, true, true, phantom_only)))
       return false;
 
+    unsigned count = all_points.length;
+    assert (count >= glyf_impl::PHANTOM_COUNT);
+    count -= glyf_impl::PHANTOM_COUNT;
+
     if (consumer.is_consuming_contour_points ())
     {
-      unsigned count = all_points.length;
-      assert (count >= glyf_impl::PHANTOM_COUNT);
-      count -= glyf_impl::PHANTOM_COUNT;
       for (unsigned point_index = 0; point_index < count; point_index++)
 	consumer.consume_point (all_points.arrayZ[point_index]);
       consumer.points_end ();
@@ -233,7 +234,7 @@ struct glyf_accelerator_t
     contour_point_t *phantoms = consumer.get_phantoms_sink ();
     if (phantoms)
       for (unsigned i = 0; i < glyf_impl::PHANTOM_COUNT; ++i)
-	phantoms[i] = all_points[all_points.length - glyf_impl::PHANTOM_COUNT + i];
+	phantoms[i] = all_points.arrayZ[count + i];
 
     return true;
   }
