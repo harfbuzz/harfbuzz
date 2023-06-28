@@ -291,7 +291,8 @@ struct gvar
     public:
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 hb_array_t<int> coords,
-				 const hb_array_t<contour_point_t> points) const
+				 const hb_array_t<contour_point_t> points,
+				 bool phantom_only = false) const
     {
       if (!coords) return true;
 
@@ -322,6 +323,7 @@ struct gvar
       hb_vector_t<unsigned int> private_indices;
       hb_vector_t<int> x_deltas;
       hb_vector_t<int> y_deltas;
+      unsigned count = points.length;
       bool flush = false;
       do
       {
@@ -335,9 +337,10 @@ struct gvar
 
 	if (!deltas)
 	{
-	  if (unlikely (!deltas_vec.resize (points.length, false))) return false;
+	  if (unlikely (!deltas_vec.resize (count, false))) return false;
 	  deltas = deltas_vec.as_array ();
-	  hb_memset (deltas.arrayZ, 0, deltas.get_size ()); // Faster than vector resize
+	  hb_memset (deltas.arrayZ + (phantom_only ? count - 4 : 0), 0,
+		     (phantom_only ? 4 : count) * sizeof (deltas[0]));
 	}
 
 	const HBUINT8 *end = p + length;
@@ -357,7 +360,7 @@ struct gvar
 
 	if (!apply_to_all)
 	{
-	  if (!orig_points)
+	  if (!orig_points && !phantom_only)
 	  {
 	    orig_points_vec.extend (points);
 	    if (unlikely (orig_points_vec.in_error ())) return false;
@@ -366,13 +369,13 @@ struct gvar
 
 	  if (flush)
 	  {
-	    unsigned count = points.length;
-	    for (unsigned int i = 0; i < count; i++)
+	    for (unsigned int i = phantom_only ? count - 4 : 0; i < count; i++)
 	      points.arrayZ[i].translate (deltas.arrayZ[i]);
 	    flush = false;
 
 	  }
-	  hb_memset (deltas.arrayZ, 0, deltas.get_size ());
+	  hb_memset (deltas.arrayZ + (phantom_only ? count - 4 : 0), 0,
+		     (phantom_only ? 4 : count) * sizeof (deltas[0]));
 	}
 
 	if (HB_OPTIMIZE_SIZE_VAL)
@@ -387,6 +390,7 @@ struct gvar
 	      pt_index = indices[i];
 	      if (unlikely (pt_index >= deltas.length)) continue;
 	    }
+	    if (phantom_only && pt_index < count - 4) continue;
 	    auto &delta = deltas.arrayZ[pt_index];
 	    delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 	    delta.x += x_deltas.arrayZ[i] * scalar;
@@ -399,7 +403,7 @@ struct gvar
 	  if (scalar != 1.0f)
 	  {
 	    if (apply_to_all)
-	      for (unsigned int i = 0; i < num_deltas; i++)
+	      for (unsigned int i = phantom_only ? count - 4 : 0; i < count; i++)
 	      {
 		unsigned int pt_index = i;
 		auto &delta = deltas.arrayZ[pt_index];
@@ -411,6 +415,7 @@ struct gvar
 	      {
 		unsigned int pt_index = indices[i];
 		if (unlikely (pt_index >= deltas.length)) continue;
+		if (phantom_only && pt_index < count - 4) continue;
 		auto &delta = deltas.arrayZ[pt_index];
 		delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 		delta.x += x_deltas.arrayZ[i] * scalar;
@@ -420,7 +425,7 @@ struct gvar
 	  else
 	  {
 	    if (apply_to_all)
-	      for (unsigned int i = 0; i < num_deltas; i++)
+	      for (unsigned int i = phantom_only ? count - 4 : 0; i < count; i++)
 	      {
 		unsigned int pt_index = i;
 		auto &delta = deltas.arrayZ[pt_index];
@@ -432,6 +437,7 @@ struct gvar
 	      {
 		unsigned int pt_index = indices[i];
 		if (unlikely (pt_index >= deltas.length)) continue;
+		if (phantom_only && pt_index < count - 4) continue;
 		auto &delta = deltas.arrayZ[pt_index];
 		delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 		delta.x += x_deltas.arrayZ[i];
@@ -441,11 +447,10 @@ struct gvar
 	}
 
 	/* infer deltas for unreferenced points */
-	if (!apply_to_all)
+	if (!apply_to_all && !phantom_only)
 	{
 	  if (!end_points)
 	  {
-	    unsigned count = points.length;
 	    for (unsigned i = 0; i < count; ++i)
 	      if (points.arrayZ[i].is_end_point)
 		end_points.push (i);
@@ -507,8 +512,7 @@ struct gvar
 
       if (flush)
       {
-        unsigned count = points.length;
-	for (unsigned int i = 0; i < count; i++)
+	for (unsigned int i = phantom_only ? count - 4 : 0; i < count; i++)
 	  points.arrayZ[i].translate (deltas.arrayZ[i]);
       }
 
