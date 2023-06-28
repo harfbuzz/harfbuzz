@@ -9,9 +9,13 @@ sudo apt-get install libgirepository1.0-dev
 And then run `meson setup` and make sure that `Introspection` is reported
 enabled in output.
 
+If you are building with Visual Studio, it is recommended that Visual Studio
+2019 or later is used for this build, for the best build experience.
+
 Compile and install.
 
-Make sure you have the installation lib dir in `LD_LIBRARY_PATH`, as needed
+Make sure you have the installation lib dir in `LD_LIBRARY_PATH` (or the
+installation DLL dir in `PATH` for Windows systems), as needed
 for the linker to find the library.
 
 Then make sure you also have `GI_TYPELIB_PATH` pointing to the resulting
