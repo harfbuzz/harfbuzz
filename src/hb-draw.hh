@@ -98,7 +98,7 @@ struct hb_draw_funcs_t
   move_to (void *draw_data, hb_draw_state_t &st,
 	   float to_x, float to_y)
   {
-    if (st.path_open) close_path (draw_data, st);
+    if (unlikely (st.path_open)) close_path (draw_data, st);
     st.current_x = to_x;
     st.current_y = to_y;
   }
@@ -108,7 +108,7 @@ struct hb_draw_funcs_t
   line_to (void *draw_data, hb_draw_state_t &st,
 	   float to_x, float to_y)
   {
-    if (!st.path_open) start_path (draw_data, st);
+    if (unlikely (!st.path_open)) start_path (draw_data, st);
     emit_line_to (draw_data, st, to_x, to_y);
     st.current_x = to_x;
     st.current_y = to_y;
@@ -120,7 +120,7 @@ struct hb_draw_funcs_t
 		float control_x, float control_y,
 		float to_x, float to_y)
   {
-    if (!st.path_open) start_path (draw_data, st);
+    if (unlikely (!st.path_open)) start_path (draw_data, st);
     emit_quadratic_to (draw_data, st, control_x, control_y, to_x, to_y);
     st.current_x = to_x;
     st.current_y = to_y;
@@ -133,7 +133,7 @@ struct hb_draw_funcs_t
 	    float control2_x, float control2_y,
 	    float to_x, float to_y)
   {
-    if (!st.path_open) start_path (draw_data, st);
+    if (unlikely (!st.path_open)) start_path (draw_data, st);
     emit_cubic_to (draw_data, st, control1_x, control1_y, control2_x, control2_y, to_x, to_y);
     st.current_x = to_x;
     st.current_y = to_y;
@@ -143,7 +143,7 @@ struct hb_draw_funcs_t
   __attribute__((__always_inline__))
   close_path (void *draw_data, hb_draw_state_t &st)
   {
-    if (st.path_open)
+    if (likely (st.path_open))
     {
       if ((st.path_start_x != st.current_x) || (st.path_start_y != st.current_y))
 	emit_line_to (draw_data, st, st.path_start_x, st.path_start_y);
