@@ -93,16 +93,20 @@ struct hb_draw_funcs_t
 		     !user_data ? nullptr : user_data->close_path); }
 
 
-  void move_to (void *draw_data, hb_draw_state_t &st,
-		float to_x, float to_y)
+  void
+  __attribute__((__always_inline__))
+  move_to (void *draw_data, hb_draw_state_t &st,
+	   float to_x, float to_y)
   {
     if (st.path_open) close_path (draw_data, st);
     st.current_x = to_x;
     st.current_y = to_y;
   }
 
-  void line_to (void *draw_data, hb_draw_state_t &st,
-		float to_x, float to_y)
+  void
+  __attribute__((__always_inline__))
+  line_to (void *draw_data, hb_draw_state_t &st,
+	   float to_x, float to_y)
   {
     if (!st.path_open) start_path (draw_data, st);
     emit_line_to (draw_data, st, to_x, to_y);
@@ -111,6 +115,7 @@ struct hb_draw_funcs_t
   }
 
   void
+  __attribute__((__always_inline__))
   quadratic_to (void *draw_data, hb_draw_state_t &st,
 		float control_x, float control_y,
 		float to_x, float to_y)
@@ -122,6 +127,7 @@ struct hb_draw_funcs_t
   }
 
   void
+  __attribute__((__always_inline__))
   cubic_to (void *draw_data, hb_draw_state_t &st,
 	    float control1_x, float control1_y,
 	    float control2_x, float control2_y,
@@ -134,6 +140,7 @@ struct hb_draw_funcs_t
   }
 
   void
+  __attribute__((__always_inline__))
   close_path (void *draw_data, hb_draw_state_t &st)
   {
     if (st.path_open)
