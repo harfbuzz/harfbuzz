@@ -21,8 +21,8 @@ struct path_builder_t
     operator bool () const { return has_data; }
 
     bool has_data = false;
-    float x = 0.;
-    float y = 0.;
+    float x;
+    float y;
 
     optional_point_t lerp (optional_point_t p, float t)
     { return optional_point_t (x + t * (p.x - x), y + t * (p.y - y)); }
