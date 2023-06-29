@@ -491,7 +491,7 @@ struct cff1_subset_plan
       subset_enc_format = 1;
   }
 
-  void plan_subset_charset (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
+  bool plan_subset_charset (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)
   {
     unsigned int  size0, size_ranges;
     unsigned last_sid = CFF_UNDEF_CODE - 1;
@@ -499,7 +499,7 @@ struct cff1_subset_plan
     if (unlikely (!subset_charset_ranges.resize (0)))
     {
       plan->check_success (false);
-      return;
+      return false;
     }
 
     code_pair_t glyph_to_sid_cache {0, HB_CODEPOINT_INVALID};
@@ -510,7 +510,7 @@ struct cff1_subset_plan
 							acc.num_charset_entries))))
     {
       plan->check_success (false);
-      return;
+      return false;
     }
 
     glyph_to_sid_map_t *glyph_to_sid_map = acc.cff_accelerator ?
@@ -587,6 +587,8 @@ struct cff1_subset_plan
       subset_charset_format = 1;
     else
       subset_charset_format = 2;
+
+    return true;
   }
 
   bool collect_sids_in_dicts (const OT::cff1::accelerator_subset_t &acc)
@@ -673,7 +675,8 @@ struct cff1_subset_plan
       if (unlikely (sidmap.get_population () > 0x8000))	/* assumption: a dict won't reference that many strings */
 	return false;
 
-      if (subset_charset) plan_subset_charset (acc, plan);
+      if (subset_charset && !plan_subset_charset (acc, plan))
+        return false;
 
       topdict_mod.reassignSIDs (sidmap);
     }
