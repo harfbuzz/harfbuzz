@@ -105,9 +105,27 @@ struct CompositeGlyphRecord
     auto arrayZ = points.arrayZ;
     unsigned count = points.length;
 
-    if (trans.x != 0.f || trans.y != 0.f)
-      for (unsigned i = 0; i < count; i++)
-        arrayZ[i].translate (trans);
+    if (HB_OPTIMIZE_SIZE_VAL)
+    {
+      if (trans.x != 0.f || trans.y != 0.f)
+	for (unsigned i = 0; i < count; i++)
+	  arrayZ[i].translate (trans);
+    }
+    else
+    {
+      if (trans.x != 0.f && trans.y != 0.f)
+	for (unsigned i = 0; i < count; i++)
+	  arrayZ[i].translate (trans);
+      else
+      {
+	if (trans.x != 0.f)
+	  for (unsigned i = 0; i < count; i++)
+	    arrayZ[i].x += trans.x;
+	else if (trans.y != 0.f)
+	  for (unsigned i = 0; i < count; i++)
+	    arrayZ[i].y += trans.y;
+      }
+    }
   }
 
   void transform_points (hb_array_t<contour_point_t> points,
