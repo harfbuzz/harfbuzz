@@ -128,65 +128,67 @@ struct CFFIndex
 
     /* serialize indices */
     unsigned int offset = 1;
-#ifdef HB_OPTIMIZE_SIZE
-    unsigned int i = 0;
-    for (const auto &_ : +it)
+    if (HB_OPTIMIZE_SIZE_VAL)
     {
-      set_offset_at (i++, offset);
-      offset += length_f (_);
+      unsigned int i = 0;
+      for (const auto &_ : +it)
+      {
+	set_offset_at (i++, offset);
+	offset += length_f (_);
+      }
+      set_offset_at (i, offset);
     }
-    set_offset_at (i, offset);
-#else
-    switch (off_size)
-    {
-      case 1:
+    else
+      switch (off_size)
       {
-	HBUINT8 *p = (HBUINT8 *) offsets;
-	for (const auto &_ : +it)
+	case 1:
 	{
-	  *p++ = offset;
-	  offset += length_f (_);
+	  HBUINT8 *p = (HBUINT8 *) offsets;
+	  for (const auto &_ : +it)
+	  {
+	    *p++ = offset;
+	    offset += length_f (_);
+	  }
+	  *p = offset;
 	}
-	*p = offset;
-      }
-      break;
-      case 2:
-      {
-	HBUINT16 *p = (HBUINT16 *) offsets;
-	for (const auto &_ : +it)
+	break;
+	case 2:
 	{
-	  *p++ = offset;
-	  offset += length_f (_);
+	  HBUINT16 *p = (HBUINT16 *) offsets;
+	  for (const auto &_ : +it)
+	  {
+	    *p++ = offset;
+	    offset += length_f (_);
+	  }
+	  *p = offset;
 	}
-	*p = offset;
-      }
-      break;
-      case 3:
-      {
-	HBUINT24 *p = (HBUINT24 *) offsets;
-	for (const auto &_ : +it)
+	break;
+	case 3:
 	{
-	  *p++ = offset;
-	  offset += length_f (_);
+	  HBUINT24 *p = (HBUINT24 *) offsets;
+	  for (const auto &_ : +it)
+	  {
+	    *p++ = offset;
+	    offset += length_f (_);
+	  }
+	  *p = offset;
 	}
-	*p = offset;
-      }
-      break;
-      case 4:
-      {
-	HBUINT32 *p = (HBUINT32 *) offsets;
-	for (const auto &_ : +it)
+	break;
+	case 4:
 	{
-	  *p++ = offset;
-	  offset += length_f (_);
+	  HBUINT32 *p = (HBUINT32 *) offsets;
+	  for (const auto &_ : +it)
+	  {
+	    *p++ = offset;
+	    offset += length_f (_);
+	  }
+	  *p = offset;
 	}
-	*p = offset;
+	break;
+	default:
+	break;
       }
-      break;
-      default:
-      break;
-    }
-#endif
+
     assert (offset == data_size + 1);
     return_trace (true);
   }
