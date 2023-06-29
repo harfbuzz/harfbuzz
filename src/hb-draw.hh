@@ -168,6 +168,7 @@ struct hb_draw_session_t
 
   ~hb_draw_session_t () { close_path (); }
 
+  __attribute__((__always_inline__))
   void move_to (float to_x, float to_y)
   {
     if (likely (not_slanted))
@@ -177,6 +178,7 @@ struct hb_draw_session_t
       funcs->move_to (draw_data, st,
 		      to_x + to_y * slant, to_y);
   }
+  __attribute__((__always_inline__))
   void line_to (float to_x, float to_y)
   {
     if (likely (not_slanted))
@@ -187,6 +189,7 @@ struct hb_draw_session_t
 		      to_x + to_y * slant, to_y);
   }
   void
+  __attribute__((__always_inline__))
   quadratic_to (float control_x, float control_y,
 		float to_x, float to_y)
   {
@@ -200,6 +203,7 @@ struct hb_draw_session_t
 			   to_x + to_y * slant, to_y);
   }
   void
+  __attribute__((__always_inline__))
   cubic_to (float control1_x, float control1_y,
 	    float control2_x, float control2_y,
 	    float to_x, float to_y)
@@ -215,6 +219,7 @@ struct hb_draw_session_t
 		       control2_x + control2_y * slant, control2_y,
 		       to_x + to_y * slant, to_y);
   }
+  __attribute__((__always_inline__))
   void close_path ()
   {
     funcs->close_path (draw_data, st);
