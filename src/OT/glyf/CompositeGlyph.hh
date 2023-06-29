@@ -102,28 +102,25 @@ struct CompositeGlyphRecord
   static void translate (const contour_point_t &trans,
 			 hb_array_t<contour_point_t> points)
   {
-    auto arrayZ = points.arrayZ;
-    unsigned count = points.length;
-
     if (HB_OPTIMIZE_SIZE_VAL)
     {
       if (trans.x != 0.f || trans.y != 0.f)
-	for (unsigned i = 0; i < count; i++)
-	  arrayZ[i].translate (trans);
+        for (auto &point : points)
+	  point.translate (trans);
     }
     else
     {
       if (trans.x != 0.f && trans.y != 0.f)
-	for (unsigned i = 0; i < count; i++)
-	  arrayZ[i].translate (trans);
+        for (auto &point : points)
+	  point.translate (trans);
       else
       {
 	if (trans.x != 0.f)
-	  for (unsigned i = 0; i < count; i++)
-	    arrayZ[i].x += trans.x;
+	  for (auto &point : points)
+	    point.x += trans.x;
 	else if (trans.y != 0.f)
-	  for (unsigned i = 0; i < count; i++)
-	    arrayZ[i].y += trans.y;
+	  for (auto &point : points)
+	    point.y += trans.y;
       }
     }
   }
