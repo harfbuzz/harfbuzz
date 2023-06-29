@@ -131,9 +131,8 @@ struct CompositeGlyphRecord
     float matrix[4];
     contour_point_t trans;
     get_transformation (matrix, trans);
-    points.alloc (points.length + 4); // For phantom points
-    if (unlikely (!points.resize (points.length + 1, false))) return false;
-    points.arrayZ[points.length - 1] = trans;
+    if (unlikely (!points.alloc (points.length + 4))) return false; // For phantom points
+    points.push (trans);
     return true;
   }
 
