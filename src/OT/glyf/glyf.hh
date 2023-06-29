@@ -297,7 +297,7 @@ struct glyf_accelerator_t
       if (extents) bounds = contour_bounds_t ();
     }
 
-    __attribute__((always_inline))
+    HB_ALWAYS_INLINE
     void consume_point (const contour_point_t &point) { bounds.add (point); }
     void points_end () { bounds.get_extents (font, extents, scaled); }
 
