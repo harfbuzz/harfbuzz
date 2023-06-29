@@ -154,10 +154,9 @@ struct SimpleGlyph
   {
     int v = 0;
 
-    unsigned count = points_.length;
-    for (unsigned i = 0; i < count; i++)
+    for (auto &point : points_)
     {
-      unsigned flag = points_.arrayZ[i].flag;
+      unsigned flag = point.flag;
       if (flag & short_flag)
       {
 	if (unlikely (p + 1 > end)) return false;
@@ -175,7 +174,7 @@ struct SimpleGlyph
 	  p += HBINT16::static_size;
 	}
       }
-      points_.arrayZ[i].*m = v;
+      point.*m = v;
     }
     return true;
   }
