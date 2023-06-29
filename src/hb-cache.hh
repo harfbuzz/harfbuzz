@@ -66,8 +66,8 @@ struct hb_cache_t
 
   void clear ()
   {
-    for (unsigned i = 0; i < ARRAY_LENGTH (values); i++)
-      values[i] = -1;
+    for (auto &v : values)
+      v = -1;
   }
 
   bool get (unsigned int key, unsigned int *value) const
