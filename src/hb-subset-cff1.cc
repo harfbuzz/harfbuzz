@@ -740,8 +740,9 @@ struct cff1_subset_plan
       ;
     }
 
-    return ((subset_charstrings.length == plan->num_output_glyphs ())
-	   && (fontdicts_mod.length == subset_fdcount));
+    return !plan->in_error () &&
+	   (subset_charstrings.length == plan->num_output_glyphs ()) &&
+	   (fontdicts_mod.length == subset_fdcount);
   }
 
   cff1_top_dict_values_mod_t	topdict_mod;
