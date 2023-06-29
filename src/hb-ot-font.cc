@@ -98,7 +98,7 @@ _hb_ot_font_create (hb_font_t *font)
   {
     cmap_cache = (hb_ot_font_cmap_cache_t *) hb_malloc (sizeof (hb_ot_font_cmap_cache_t));
     if (unlikely (!cmap_cache)) goto out;
-    cmap_cache->init ();
+    new (cmap_cache) hb_ot_font_cmap_cache_t ();
     if (unlikely (!hb_face_set_user_data (font->face,
 					  &hb_ot_font_cmap_cache_user_data_key,
 					  cmap_cache,
@@ -230,8 +230,8 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 	use_cache = false;
 	goto out;
       }
+      new (cache) hb_ot_font_advance_cache_t;
 
-      cache->init ();
       if (unlikely (!ot_font->advance_cache.cmpexch (nullptr, cache)))
       {
 	hb_free (cache);
@@ -255,7 +255,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   { /* Use cache. */
     if (ot_font->cached_coords_serial.get_acquire () != (int) font->serial_coords)
     {
-      ot_font->advance_cache->init ();
+      ot_font->advance_cache->clear ();
       ot_font->cached_coords_serial.set_release (font->serial_coords);
     }
 
