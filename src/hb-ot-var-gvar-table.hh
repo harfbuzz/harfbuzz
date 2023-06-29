@@ -294,8 +294,6 @@ struct gvar
 				 const hb_array_t<contour_point_t> points,
 				 bool phantom_only = false) const
     {
-      if (!coords) return true;
-
       if (unlikely (glyph >= glyphCount)) return true;
 
       hb_bytes_t var_data_bytes = table->get_glyph_var_data_bytes (table.get_blob (), glyphCount, glyph);
