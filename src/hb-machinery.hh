@@ -295,7 +295,7 @@ struct hb_table_lazy_loader_t : hb_lazy_loader_t<T,
 {
   static hb_blob_t *create (hb_face_t *face)
   {
-    auto c = hb_sanitize_context_t ();
+    hb_sanitize_context_t c;
     if (core)
       c.set_num_glyphs (0); // So we don't recurse ad infinitum, or doesn't need num_glyphs
     return c.reference_table<T> (face);
