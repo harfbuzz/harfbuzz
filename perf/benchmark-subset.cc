@@ -263,9 +263,9 @@ int main(int argc, char** argv)
 
 #define TEST_OPERATION(op, time_unit) test_operation (op, #op, tests, num_tests, time_unit)
 
-  TEST_OPERATION (subset_glyphs, benchmark::kMillisecond);
-  TEST_OPERATION (subset_codepoints, benchmark::kMillisecond);
-  TEST_OPERATION (instance, benchmark::kMillisecond);
+  TEST_OPERATION (subset_glyphs, benchmark::kMicrosecond);
+  TEST_OPERATION (subset_codepoints, benchmark::kMicrosecond);
+  TEST_OPERATION (instance, benchmark::kMicrosecond);
 
 #undef TEST_OPERATION
 
