@@ -360,7 +360,7 @@ struct ValueFormat : HBUINT16
 
     if (unlikely (!c->check_range (values, get_size ()))) return_trace (false);
 
-    if (c->lazy_gpos_devices)
+    if (c->lazy_some_gpos)
       return_trace (true);
 
     return_trace (!has_device () || sanitize_value_devices (c, base, values));
@@ -373,7 +373,7 @@ struct ValueFormat : HBUINT16
 
     if (!c->check_range (values, count, size)) return_trace (false);
 
-    if (c->lazy_gpos_devices)
+    if (c->lazy_some_gpos)
       return_trace (true);
 
     return_trace (sanitize_values_stride_unsafe (c, base, values, count, size));
@@ -384,7 +384,7 @@ struct ValueFormat : HBUINT16
   {
     TRACE_SANITIZE (this);
 
-    if (c->lazy_gpos_devices)
+    if (c->lazy_some_gpos)
       return_trace (true);
 
     if (!has_device ()) return_trace (true);

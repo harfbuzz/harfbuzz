@@ -128,7 +128,7 @@ struct hb_sanitize_context_t :
 	blob (nullptr),
 	num_glyphs (65536),
 	num_glyphs_set (false),
-	lazy_gpos_devices (false) {}
+	lazy_some_gpos (false) {}
 
   const char *get_name () { return "SANITIZE"; }
   template <typename T, typename F>
@@ -442,7 +442,7 @@ struct hb_sanitize_context_t :
   unsigned int num_glyphs;
   bool  num_glyphs_set;
   public:
-  bool lazy_gpos_devices;
+  bool lazy_some_gpos;
 };
 
 struct hb_sanitize_with_object_t

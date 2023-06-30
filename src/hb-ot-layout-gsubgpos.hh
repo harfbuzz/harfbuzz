@@ -4513,7 +4513,7 @@ struct GSUBGPOS
     accelerator_t (hb_face_t *face)
     {
       hb_sanitize_context_t sc;
-      sc.lazy_gpos_devices = true;
+      sc.lazy_some_gpos = true;
       this->table = sc.reference_table<T> (face);
 
       if (unlikely (this->table->is_blocklisted (this->table.get_blob (), face)))

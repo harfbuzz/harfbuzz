@@ -27,9 +27,6 @@ struct AnchorFormat3
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
 
-    if (c->lazy_gpos_devices)
-      return_trace (true);
-
     return_trace (xDeviceTable.sanitize (c, this) && yDeviceTable.sanitize (c, this));
   }
 
