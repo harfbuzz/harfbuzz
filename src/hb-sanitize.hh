@@ -254,6 +254,9 @@ struct hb_sanitize_context_t :
     return (this->max_ops -= (int) count) > 0;
   }
 
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
   bool check_range (const void *base,
 		    unsigned int len) const
   {
