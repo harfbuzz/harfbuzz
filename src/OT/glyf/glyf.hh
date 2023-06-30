@@ -225,8 +225,8 @@ struct glyf_accelerator_t
 
     if (consumer.is_consuming_contour_points ())
     {
-      for (unsigned point_index = 0; point_index < count; point_index++)
-	consumer.consume_point (all_points.arrayZ[point_index]);
+      for (auto &point : all_points.as_array ().sub_array (0, count))
+	consumer.consume_point (point);
       consumer.points_end ();
     }
 
