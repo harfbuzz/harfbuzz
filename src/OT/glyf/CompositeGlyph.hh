@@ -90,13 +90,10 @@ struct CompositeGlyphRecord
   static void transform (const float (&matrix)[4],
 			 hb_array_t<contour_point_t> points)
   {
-    auto arrayZ = points.arrayZ;
-    unsigned count = points.length;
-
     if (matrix[0] != 1.f || matrix[1] != 0.f ||
 	matrix[2] != 0.f || matrix[3] != 1.f)
-      for (unsigned i = 0; i < count; i++)
-        arrayZ[i].transform (matrix);
+      for (auto &point : points)
+        point.transform (matrix);
   }
 
   static void translate (const contour_point_t &trans,
