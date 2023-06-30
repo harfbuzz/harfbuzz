@@ -21,6 +21,10 @@ struct AnchorMatrix
     if (unlikely (hb_unsigned_mul_overflows (rows, cols))) return_trace (false);
     unsigned int count = rows * cols;
     if (!c->check_array (matrixZ.arrayZ, count)) return_trace (false);
+
+    if (c->lazy_gpos_devices)
+      return_trace (true);
+
     for (unsigned int i = 0; i < count; i++)
       if (!matrixZ[i].sanitize (c, this)) return_trace (false);
     return_trace (true);

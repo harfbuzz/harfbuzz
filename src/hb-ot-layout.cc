@@ -1952,7 +1952,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 {
   const unsigned int table_index = proxy.table_index;
   unsigned int i = 0;
-  OT::hb_ot_apply_context_t c (table_index, font, buffer);
+  OT::hb_ot_apply_context_t c (table_index, font, buffer, proxy.accel.get_blob ());
   c.set_recurse_func (Proxy::Lookup::template dispatch_recurse_func<OT::hb_ot_apply_context_t>);
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
@@ -2627,9 +2627,10 @@ hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
 				       hb_codepoint_t  glyph)
 {
   const OT::PosLookup &lookup = font->face->table.GPOS->table->get_lookup (lookup_index);
+  hb_blob_t *blob = font->face->table.GPOS->get_blob ();
   hb_glyph_position_t pos = {0};
   hb_position_single_dispatch_t c;
-  lookup.dispatch (&c, font, direction, glyph, pos);
+  lookup.dispatch (&c, font, blob, direction, glyph, pos);
   hb_position_t ret = 0;
   switch (direction)
   {
