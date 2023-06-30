@@ -349,19 +349,11 @@ struct ValueFormat : HBUINT16
   bool sanitize_values (hb_sanitize_context_t *c, const void *base, const Value *values, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    unsigned int len = get_len ();
+    unsigned size = get_size ();
 
-    if (!c->check_range (values, count, get_size ())) return_trace (false);
+    if (!c->check_range (values, count, size)) return_trace (false);
 
-    if (!has_device ()) return_trace (true);
-
-    for (unsigned int i = 0; i < count; i++) {
-      if (!sanitize_value_devices (c, base, values))
-        return_trace (false);
-      values += len;
-    }
-
-    return_trace (true);
+    return_trace (sanitize_values_stride_unsafe (c, base, values, count, size));
   }
 
   /* Just sanitize referenced Device tables.  Doesn't check the values themselves. */
