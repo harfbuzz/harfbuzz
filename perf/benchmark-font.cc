@@ -42,6 +42,7 @@ enum operation_t
   glyph_h_advances,
   glyph_extents,
   draw_glyph,
+  load_face_and_shape,
 };
 
 static void
@@ -168,6 +169,28 @@ static void BM_Font (benchmark::State &state,
       hb_draw_funcs_destroy (draw_funcs);
       break;
     }
+    case load_face_and_shape:
+    {
+      for (auto _ : state)
+      {
+	hb_blob_t *blob = hb_blob_create_from_file_or_fail (test_input.font_path);
+	assert (blob);
+	hb_face_t *face = hb_face_create (blob, 0);
+	hb_blob_destroy (blob);
+	hb_font_t *font = hb_font_create (face);
+	hb_face_destroy (face);
+
+	hb_buffer_t *buffer = hb_buffer_create ();
+	hb_buffer_add_utf8 (buffer, " ", -1, 0, -1);
+	hb_buffer_guess_segment_properties (buffer);
+
+	hb_shape (font, buffer, nullptr, 0);
+
+	hb_buffer_destroy (buffer);
+	hb_font_destroy (font);
+      }
+      break;
+    }
   }
 
 
@@ -235,6 +258,7 @@ int main(int argc, char** argv)
   TEST_OPERATION (glyph_h_advances, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_extents, benchmark::kMicrosecond);
   TEST_OPERATION (draw_glyph, benchmark::kMicrosecond);
+  TEST_OPERATION (load_face_and_shape, benchmark::kMicrosecond);
 
 #undef TEST_OPERATION
 
