@@ -127,7 +127,8 @@ struct hb_sanitize_context_t :
 	writable (false), edit_count (0),
 	blob (nullptr),
 	num_glyphs (65536),
-	num_glyphs_set (false) {}
+	num_glyphs_set (false),
+	lazy_some_gpos (false) {}
 
   const char *get_name () { return "SANITIZE"; }
   template <typename T, typename F>
@@ -155,6 +156,19 @@ struct hb_sanitize_context_t :
   dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
   ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
 
+  hb_sanitize_context_t (hb_blob_t *b) : hb_sanitize_context_t ()
+  {
+    init (b);
+
+    if (blob)
+      start_processing ();
+  }
+
+  ~hb_sanitize_context_t ()
+  {
+    if (blob)
+      end_processing ();
+  }
 
   void init (hb_blob_t *b)
   {
@@ -240,6 +254,9 @@ struct hb_sanitize_context_t :
     return (this->max_ops -= (int) count) > 0;
   }
 
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
   bool check_range (const void *base,
 		    unsigned int len) const
   {
@@ -424,6 +441,8 @@ struct hb_sanitize_context_t :
   hb_blob_t *blob;
   unsigned int num_glyphs;
   bool  num_glyphs_set;
+  public:
+  bool lazy_some_gpos;
 };
 
 struct hb_sanitize_with_object_t

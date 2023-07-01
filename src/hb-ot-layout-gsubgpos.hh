@@ -706,6 +706,7 @@ struct hb_ot_apply_context_t :
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t *buffer;
+  hb_sanitize_context_t sanitizer;
   recurse_func_t recurse_func = nullptr;
   const GDEF &gdef;
   const GDEF::accelerator_t &gdef_accel;
@@ -732,9 +733,11 @@ struct hb_ot_apply_context_t :
 
   hb_ot_apply_context_t (unsigned int table_index_,
 			 hb_font_t *font_,
-			 hb_buffer_t *buffer_) :
+			 hb_buffer_t *buffer_,
+			 hb_blob_t *table_blob_) :
 			table_index (table_index_),
 			font (font_), face (font->face), buffer (buffer_),
+			sanitizer (table_blob_),
 			gdef (
 #ifndef HB_NO_OT_LAYOUT
 			      *face->table.GDEF->table
@@ -4509,7 +4512,10 @@ struct GSUBGPOS
   {
     accelerator_t (hb_face_t *face)
     {
-      this->table = hb_sanitize_context_t ().reference_table<T> (face);
+      hb_sanitize_context_t sc;
+      sc.lazy_some_gpos = true;
+      this->table = sc.reference_table<T> (face);
+
       if (unlikely (this->table->is_blocklisted (this->table.get_blob (), face)))
       {
 	hb_blob_destroy (this->table.get_blob ());
@@ -4533,6 +4539,8 @@ struct GSUBGPOS
       hb_free (this->accels);
       this->table.destroy ();
     }
+
+    hb_blob_t *get_blob () const { return table.get_blob (); }
 
     hb_ot_layout_lookup_accelerator_t *get_accel (unsigned lookup_index) const
     {
