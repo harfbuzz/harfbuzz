@@ -373,6 +373,9 @@ struct ValueFormat : HBUINT16
 
     if (!c->check_range (values, count, size)) return_trace (false);
 
+    if (c->lazy_some_gpos)
+      return_trace (true);
+
     return_trace (sanitize_values_stride_unsafe (c, base, values, count, size));
   }
 
@@ -380,9 +383,6 @@ struct ValueFormat : HBUINT16
   bool sanitize_values_stride_unsafe (hb_sanitize_context_t *c, const void *base, const Value *values, unsigned int count, unsigned int stride) const
   {
     TRACE_SANITIZE (this);
-
-    if (c->lazy_some_gpos)
-      return_trace (true);
 
     if (!has_device ()) return_trace (true);
 

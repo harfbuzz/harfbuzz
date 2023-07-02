@@ -54,8 +54,9 @@ struct PairPosFormat2_4
     return_trace (c->check_range ((const void *) values,
                                   count,
                                   stride) &&
-                  valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
-                  valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride));
+		  (c->lazy_some_gpos ||
+		   (valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
+		    valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride))));
   }
 
   bool intersects (const hb_set_t *glyphs) const
