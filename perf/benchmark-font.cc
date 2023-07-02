@@ -46,19 +46,39 @@ enum operation_t
 };
 
 static void
-_hb_move_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, void *) {}
+_hb_move_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *, float x, float y, void *)
+{
+  float &i = * (float *) draw_data;
+  i += x + y;
+}
 
 static void
-_hb_line_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, void *) {}
+_hb_line_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *, float x, float y, void *)
+{
+  float &i = * (float *) draw_data;
+  i += x + y;
+}
 
 static void
-_hb_quadratic_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, float, float, void *) {}
+_hb_quadratic_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *, float cx, float cy, float x, float y, void *)
+{
+  float &i = * (float *) draw_data;
+  i += cx + cy + x + y;
+}
 
 static void
-_hb_cubic_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, float, float, float, float, void *) {}
+_hb_cubic_to (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *, float cx1, float cy1, float cx2, float cy2, float x, float y, void *)
+{
+  float &i = * (float *) draw_data;
+  i += cx1 + cy1 + cx2 + cy2 + x + y;
+}
 
 static void
-_hb_close_path (hb_draw_funcs_t *, void *, hb_draw_state_t *, void *) {}
+_hb_close_path (hb_draw_funcs_t *, void *draw_data, hb_draw_state_t *, void *)
+{
+  float &i = * (float *) draw_data;
+  i += 1.0;
+}
 
 static hb_draw_funcs_t *
 _draw_funcs_create (void)
@@ -163,9 +183,10 @@ static void BM_Font (benchmark::State &state,
     case draw_glyph:
     {
       hb_draw_funcs_t *draw_funcs = _draw_funcs_create ();
+      float i = 0;
       for (auto _ : state)
 	for (unsigned gid = 0; gid < num_glyphs; ++gid)
-	  hb_font_draw_glyph (font, gid, draw_funcs, nullptr);
+	  hb_font_draw_glyph (font, gid, draw_funcs, &i);
       hb_draw_funcs_destroy (draw_funcs);
       break;
     }
