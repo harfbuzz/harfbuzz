@@ -265,10 +265,27 @@ struct hb_sanitize_context_t :
 	      (this->start <= p &&
 	       p <= this->end &&
 	       (unsigned int) (this->end - p) >= len &&
-	       (this->max_ops -= len) > 0);
+	       ((this->max_ops -= len) > 0));
 
     DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
 		     "check_range [%p..%p]"
+		     " (%u bytes) in [%p..%p] -> %s",
+		     p, p + len, len,
+		     this->start, this->end,
+		     ok ? "OK" : "OUT-OF-RANGE");
+
+    return likely (ok);
+  }
+  bool check_range_fast (const void *base,
+			 unsigned int len) const
+  {
+    const char *p = (const char *) base;
+    bool ok = (this->start <= p &&
+	       p <= this->end &&
+	       (unsigned int) (this->end - p) >= len);
+
+    DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
+		     "check_range_fast [%p..%p]"
 		     " (%u bytes) in [%p..%p] -> %s",
 		     p, p + len, len,
 		     this->start, this->end,
@@ -326,7 +343,7 @@ struct hb_sanitize_context_t :
 
   template <typename Type>
   bool check_struct (const Type *obj) const
-  { return likely (this->check_range (obj, obj->min_size)); }
+  { return likely (this->check_range_fast (obj, obj->min_size)); }
 
   bool may_edit (const void *base, unsigned int len)
   {
