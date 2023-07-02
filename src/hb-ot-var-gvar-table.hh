@@ -242,21 +242,24 @@ struct gvar
       for (unsigned i = 0; i < count; i++)
       {
 	hb_array_t<const F2DOT14> tuple = shared_tuples.sub_array (axis_count * i, axis_count);
-	int idx = -1;
+	int idx1 = -1, idx2 = -1;
 	for (unsigned j = 0; j < axis_count; j++)
 	{
 	  const F2DOT14 &peak = tuple.arrayZ[j];
 	  if (peak.to_int () != 0)
 	  {
-	    if (idx != -1)
+	    if (idx1 == -1)
+	      idx1 = j;
+	    else if (idx2 == -1)
+	      idx2 = j;
+	    else
 	    {
-	      idx = -1;
+	      idx1 = idx2 = -1;
 	      break;
 	    }
-	    idx = j;
 	  }
 	}
-	shared_tuple_active_idx.arrayZ[i] = idx;
+	shared_tuple_active_idx.arrayZ[i] = {idx1, idx2};
       }
     }
     ~accelerator_t () { table.destroy (); }
@@ -523,7 +526,7 @@ struct gvar
     private:
     hb_blob_ptr_t<gvar> table;
     unsigned glyphCount;
-    hb_vector_t<signed> shared_tuple_active_idx;
+    hb_vector_t<hb_pair_t<int, int>> shared_tuple_active_idx;
   };
 
   protected:

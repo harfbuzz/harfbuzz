@@ -300,12 +300,13 @@ struct TupleVariationHeader
 
   float calculate_scalar (hb_array_t<int> coords, unsigned int coord_count,
                           const hb_array_t<const F2DOT14> shared_tuples,
-			  const hb_vector_t<int> *shared_tuple_active_idx = nullptr) const
+			  const hb_vector_t<hb_pair_t<int,int>> *shared_tuple_active_idx = nullptr) const
   {
     const F2DOT14 *peak_tuple;
 
     unsigned start_idx = 0;
     unsigned end_idx = coord_count;
+    unsigned step = 1;
 
     if (has_peak ())
       peak_tuple = get_peak_tuple (coord_count).arrayZ;
@@ -320,10 +321,16 @@ struct TupleVariationHeader
       {
 	if (unlikely (index >= shared_tuple_active_idx->length))
 	  return 0.f;
-	int v = (*shared_tuple_active_idx).arrayZ[index];
-	if (v != -1)
+	auto _ = (*shared_tuple_active_idx).arrayZ[index];
+	if (_.second != -1)
 	{
-	  start_idx = v;
+	  start_idx = _.first;
+	  end_idx = _.second + 1;
+	  step = _.second - _.first;
+	}
+	else if (_.first != -1)
+	{
+	  start_idx = _.first;
 	  end_idx = start_idx + 1;
 	}
       }
@@ -339,7 +346,7 @@ struct TupleVariationHeader
     }
 
     float scalar = 1.f;
-    for (unsigned int i = start_idx; i < end_idx; i++)
+    for (unsigned int i = start_idx; i < end_idx; i += step)
     {
       int peak = peak_tuple[i].to_int ();
       if (!peak) continue;
