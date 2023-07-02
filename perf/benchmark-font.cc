@@ -183,10 +183,12 @@ static void BM_Font (benchmark::State &state,
     case draw_glyph:
     {
       hb_draw_funcs_t *draw_funcs = _draw_funcs_create ();
-      float i = 0;
       for (auto _ : state)
+      {
+	float i = 0;
 	for (unsigned gid = 0; gid < num_glyphs; ++gid)
 	  hb_font_draw_glyph (font, gid, draw_funcs, &i);
+      }
       hb_draw_funcs_destroy (draw_funcs);
       break;
     }
