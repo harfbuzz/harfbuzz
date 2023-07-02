@@ -421,12 +421,15 @@ struct Glyph
 	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
 
-	float matrix[4];
-	contour_point_t default_trans;
-	item.get_transformation (matrix, default_trans);
+	if (comp_points) // Empty in case of phantom_only
+	{
+	  float matrix[4];
+	  contour_point_t default_trans;
+	  item.get_transformation (matrix, default_trans);
 
-	/* Apply component transformation & translation (with deltas applied) */
-	item.transform_points (comp_points, matrix, points[comp_index]);
+	  /* Apply component transformation & translation (with deltas applied) */
+	  item.transform_points (comp_points, matrix, points[comp_index]);
+	}
 
 	if (item.is_anchored () && !phantom_only)
 	{
