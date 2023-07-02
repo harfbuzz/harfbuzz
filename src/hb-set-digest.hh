@@ -88,14 +88,19 @@ struct hb_set_digest_bits_pattern_t
 
   bool add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
+    if (mask == (mask_t) -1) return false;
     if ((b >> shift) - (a >> shift) >= mask_bits - 1)
+    {
       mask = (mask_t) -1;
-    else {
+      return false;
+    }
+    else
+    {
       mask_t ma = mask_for (a);
       mask_t mb = mask_for (b);
       mask |= mb + (mb - ma) - (mb < ma);
+      return true;
     }
-    return mask != (mask_t) -1; // Early terminte if we're full.
   }
 
   template <typename T>
