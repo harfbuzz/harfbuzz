@@ -95,7 +95,7 @@ struct hb_set_digest_bits_pattern_t
       mask_t mb = mask_for (b);
       mask |= mb + (mb - ma) - (mb < ma);
     }
-    return true;
+    return mask != (mask_t) -1; // Early terminte if we're full.
   }
 
   template <typename T>
