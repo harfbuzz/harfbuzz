@@ -122,6 +122,7 @@ struct hb_sanitize_context_t :
 {
   hb_sanitize_context_t () :
 	start (nullptr), end (nullptr),
+	length (0),
 	max_ops (0), max_subtables (0),
         recursion_depth (0),
 	writable (false), edit_count (0),
@@ -194,11 +195,15 @@ struct hb_sanitize_context_t :
 
     const char *obj_start = (const char *) obj;
     if (unlikely (obj_start < this->start || this->end <= obj_start))
+    {
       this->start = this->end = nullptr;
+      this->length = 0;
+    }
     else
     {
       this->start = obj_start;
       this->end   = obj_start + hb_min (size_t (this->end - obj_start), obj->get_size ());
+      this->length = this->end - this->start;
     }
   }
 
@@ -206,6 +211,7 @@ struct hb_sanitize_context_t :
   {
     this->start = this->blob->data;
     this->end = this->start + this->blob->length;
+    this->length = this->end - this->start;
     assert (this->start <= this->end); /* Must not overflow. */
   }
 
@@ -238,6 +244,7 @@ struct hb_sanitize_context_t :
     hb_blob_destroy (this->blob);
     this->blob = nullptr;
     this->start = this->end = nullptr;
+    this->length = 0;
   }
 
   unsigned get_edit_count () { return edit_count; }
@@ -262,8 +269,7 @@ struct hb_sanitize_context_t :
   {
     const char *p = (const char *) base;
     bool ok = !len ||
-	      (this->start <= p &&
-	       p <= this->end &&
+	      ((uintptr_t) (p - this->start) < this->length &&
 	       (unsigned int) (this->end - p) >= len &&
 	       ((this->max_ops -= len) > 0));
 
@@ -280,8 +286,7 @@ struct hb_sanitize_context_t :
 			 unsigned int len) const
   {
     const char *p = (const char *) base;
-    bool ok = (this->start <= p &&
-	       p <= this->end &&
+    bool ok = ((uintptr_t) (p - this->start) < this->length &&
 	       (unsigned int) (this->end - p) >= len);
 
     DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
@@ -450,6 +455,7 @@ struct hb_sanitize_context_t :
   }
 
   const char *start, *end;
+  unsigned length;
   mutable int max_ops, max_subtables;
   private:
   int recursion_depth;
