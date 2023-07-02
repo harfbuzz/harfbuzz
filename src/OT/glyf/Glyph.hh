@@ -428,7 +428,7 @@ struct Glyph
 	/* Apply component transformation & translation (with deltas applied) */
 	item.transform_points (comp_points, matrix, points[comp_index]);
 
-	if (item.is_anchored ())
+	if (item.is_anchored () && !phantom_only)
 	{
 	  unsigned int p1, p2;
 	  item.get_anchor_points (p1, p2);
