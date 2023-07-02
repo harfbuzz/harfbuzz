@@ -373,9 +373,6 @@ struct ValueFormat : HBUINT16
 
     if (!c->check_range (values, count, size)) return_trace (false);
 
-    if (c->lazy_some_gpos)
-      return_trace (true);
-
     return_trace (sanitize_values_stride_unsafe (c, base, values, count, size));
   }
 
