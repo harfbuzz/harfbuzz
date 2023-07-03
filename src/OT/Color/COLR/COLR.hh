@@ -1433,6 +1433,7 @@ struct PaintComposite
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
+		  c->check_ops (this->min_size) && // PainComposite can get exponential
                   src.sanitize (c, this) &&
                   backdrop.sanitize (c, this));
   }
