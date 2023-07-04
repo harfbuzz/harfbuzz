@@ -868,7 +868,7 @@ if have_gobject
 
   if build_gir
     conf.set('HAVE_INTROSPECTION', 1)
-    hb_gen_files_gir = gnome.generate_gir(libharfbuzz_gobject,
+    hb_gen_files_gir = gnome.generate_gir([libharfbuzz_gobject, libharfbuzz],
       sources: [gir_headers, gir_sources, gobject_enums_h],
       dependencies: libharfbuzz_dep,
       namespace: 'HarfBuzz',
@@ -876,7 +876,7 @@ if have_gobject
       identifier_prefix: 'hb_',
       symbol_prefix: ['hb', 'hb_gobject'],
       includes: ['GObject-2.0', 'freetype2-2.0'],
-      export_packages: ['harfbuzz-gobject'],
+      export_packages: ['harfbuzz-gobject', 'harfbuzz'],
       header: 'hb-gobject.h',
       install: true,
       extra_args:  ['--cflags-begin',
