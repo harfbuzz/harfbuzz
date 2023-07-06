@@ -371,6 +371,9 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
   buffer->len = glyph_count;
 
   /* Positioning. */
+
+  // origin_X/origin_Y are absolute values from the start of the segment, so we
+  // maintain current advance to get relative values that HarfBuzz wants.
   int curradvx = 0, curradvy = 0;
   hb_glyph_position_t *pPos = hb_buffer_get_glyph_positions (buffer, nullptr);
   if (!HB_DIRECTION_IS_BACKWARD (direction))
