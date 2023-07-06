@@ -263,9 +263,6 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
   }
 
   gr_segment *seg = nullptr;
-  const gr_slot *is;
-  unsigned int ci = 0, ic = 0;
-  int curradvx = 0, curradvy = 0;
 
   unsigned int scratch_size;
   hb_buffer_t::scratch_buffer_t *scratch = buffer->get_scratch_buffer (&scratch_size);
@@ -330,7 +327,9 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
   float xscale = (float) font->x_scale / upem;
   float yscale = (float) font->y_scale / upem;
   yscale *= yscale / xscale;
-  for (is = gr_seg_first_slot (seg), ic = 0; is; is = gr_slot_next_in_segment (is), ic++)
+  unsigned int ci = 0, ic = 0;
+  const gr_slot *is;
+  for (is = gr_seg_first_slot (seg); is; is = gr_slot_next_in_segment (is), ic++)
   {
     unsigned int before = gr_slot_before (is);
     unsigned int after = gr_slot_after (is);
@@ -372,10 +371,10 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
   buffer->len = glyph_count;
 
   /* Positioning. */
+  int curradvx = 0, curradvy = 0;
   hb_glyph_position_t *pPos = hb_buffer_get_glyph_positions (buffer, nullptr);
   if (!HB_DIRECTION_IS_BACKWARD (direction))
   {
-    curradvx = 0;
     for (is = gr_seg_first_slot (seg); is; pPos++, is = gr_slot_next_in_segment (is))
     {
       pPos->x_offset = gr_slot_origin_X (is) * xscale - curradvx;
