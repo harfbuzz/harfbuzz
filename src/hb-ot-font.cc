@@ -38,8 +38,8 @@
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
-#include "hb-ot-cff1-table.hh"
 #include "hb-ot-cff2-table.hh"
+#include "hb-ot-cff1-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-post-table.hh"
 #include "hb-ot-stat-table.hh" // Just so we compile it; unused otherwise.
@@ -436,8 +436,8 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 #endif
   if (ot_face->glyf->get_extents (font, glyph, extents)) return true;
 #ifndef HB_NO_OT_FONT_CFF
-  if (ot_face->cff1->get_extents (font, glyph, extents)) return true;
   if (ot_face->cff2->get_extents (font, glyph, extents)) return true;
+  if (ot_face->cff1->get_extents (font, glyph, extents)) return true;
 #endif
 
   return false;
@@ -525,8 +525,8 @@ hb_ot_draw_glyph (hb_font_t *font,
 				    embolden ? &outline : draw_data, font->slant_xy);
     if (!font->face->table.glyf->get_path (font, glyph, draw_session))
 #ifndef HB_NO_CFF
-    if (!font->face->table.cff1->get_path (font, glyph, draw_session))
     if (!font->face->table.cff2->get_path (font, glyph, draw_session))
+    if (!font->face->table.cff1->get_path (font, glyph, draw_session))
 #endif
     {}
   }
@@ -565,8 +565,8 @@ hb_ot_paint_glyph (hb_font_t *font,
 #endif
   if (font->face->table.glyf->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
 #ifndef HB_NO_CFF
-  if (font->face->table.cff1->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
   if (font->face->table.cff2->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
+  if (font->face->table.cff1->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
 #endif
 }
 #endif
