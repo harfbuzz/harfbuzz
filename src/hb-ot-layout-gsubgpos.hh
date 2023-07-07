@@ -2030,6 +2030,7 @@ struct Rule
 					 * design order */
   public:
   DEFINE_SIZE_ARRAY (4, inputZ);
+  DEFINE_SIZE_MAX (65536 * (Types::HBUINT::static_size + LookupRecord::static_size));
 };
 
 template <typename Types>
@@ -3111,6 +3112,7 @@ struct ChainRule
 					 * design order) */
   public:
   DEFINE_SIZE_MIN (8);
+  DEFINE_SIZE_MAX (65536 * (3 * Types::HBUINT::static_size + LookupRecord::static_size));
 };
 
 template <typename Types>
