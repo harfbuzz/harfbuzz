@@ -282,6 +282,9 @@ struct hb_sanitize_context_t :
 
     return likely (ok);
   }
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
   bool check_range_fast (const void *base,
 			 unsigned int len) const
   {
