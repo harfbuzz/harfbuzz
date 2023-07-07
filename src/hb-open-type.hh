@@ -789,7 +789,7 @@ template <typename Type>
 using List16OfOffset16To = List16OfOffsetTo<Type, HBUINT16>;
 
 /* An array starting at second element. */
-template <typename Type, typename LenType=HBUINT16>
+template <typename Type, typename LenType>
 struct HeadlessArrayOf
 {
   static constexpr unsigned item_size = Type::static_size;
@@ -879,6 +879,7 @@ struct HeadlessArrayOf
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
+template <typename Type> using HeadlessArray16Of = HeadlessArrayOf<Type, HBUINT16>;
 
 /* An array storing length-1. */
 template <typename Type, typename LenType=HBUINT16>

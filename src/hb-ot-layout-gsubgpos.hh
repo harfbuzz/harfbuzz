@@ -3100,7 +3100,7 @@ struct ChainRule
 		backtrack;		/* Array of backtracking values
 					 * (to be matched before the input
 					 * sequence) */
-  HeadlessArrayOf<typename Types::HBUINT>
+  HeadlessArray16Of<typename Types::HBUINT>
 		inputX;			/* Array of input values (start with
 					 * second glyph) */
   Array16Of<typename Types::HBUINT>
