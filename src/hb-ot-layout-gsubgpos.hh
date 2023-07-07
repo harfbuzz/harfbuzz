@@ -2014,7 +2014,9 @@ struct Rule
 		  lookupCount.sanitize (c) &&
 		  c->check_range (inputZ.arrayZ,
 				  inputZ.item_size * (inputCount ? inputCount - 1 : 0) +
-				  LookupRecord::static_size * lookupCount));
+				  LookupRecord::static_size * lookupCount) &&
+		  inputCount <= HB_MAX_CONTEXT_LENGTH &&
+		  lookupCount <= HB_MAX_CONTEXT_LENGTH);
   }
 
   protected:
@@ -2030,6 +2032,7 @@ struct Rule
 					 * design order */
   public:
   DEFINE_SIZE_ARRAY (4, inputZ);
+  DEFINE_SIZE_MAX (4 + HB_MAX_CONTEXT_LENGTH * (Types::HBUINT::static_size + LookupRecord::static_size));
 };
 
 template <typename Types>
@@ -3092,7 +3095,11 @@ struct ChainRule
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     if (!lookahead.sanitize (c)) return_trace (false);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
-    return_trace (lookup.sanitize (c));
+    if (!lookup.sanitize (c)) return_trace (false);
+    return_trace (backtrack.len <= HB_MAX_CONTEXT_LENGTH &&
+		  input.lenP1 <= HB_MAX_CONTEXT_LENGTH &&
+		  lookahead.len <= HB_MAX_CONTEXT_LENGTH &&
+		  lookup.len <= HB_MAX_CONTEXT_LENGTH);
   }
 
   protected:
@@ -3111,6 +3118,7 @@ struct ChainRule
 					 * design order) */
   public:
   DEFINE_SIZE_MIN (8);
+  DEFINE_SIZE_MAX (8 + HB_MAX_CONTEXT_LENGTH * (3 * Types::HBUINT::static_size + LookupRecord::static_size));
 };
 
 template <typename Types>
