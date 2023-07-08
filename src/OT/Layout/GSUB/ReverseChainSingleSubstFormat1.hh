@@ -121,10 +121,10 @@ struct ReverseChainSingleSubstFormat1
     if (unlikely (index >= substitute.len)) return_trace (false);
 
     unsigned int start_index = 0, end_index = 0;
-    if (match_backtrack (c,
-                         backtrack.len, (HBUINT16 *) backtrack.arrayZ,
-                         match_coverage, this,
-                         &start_index) &&
+    if (match_backtrack<match_coverage> (c,
+					 backtrack.len, (HBUINT16 *) backtrack.arrayZ,
+					 this,
+					 &start_index) &&
         match_lookahead (c,
                          lookahead.len, (HBUINT16 *) lookahead.arrayZ,
                          match_coverage, this,
