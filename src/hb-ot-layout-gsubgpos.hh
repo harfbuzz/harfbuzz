@@ -452,6 +452,9 @@ struct hb_ot_apply_context_t :
       SKIP_MAYBE
     };
 
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
     may_skip_t may_skip (const hb_ot_apply_context_t *c,
 			 const hb_glyph_info_t       &info) const
     {
