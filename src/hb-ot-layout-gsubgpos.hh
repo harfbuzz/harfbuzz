@@ -3087,11 +3087,11 @@ struct ChainRule
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!backtrack.sanitize (c)) return_trace (false);
+    if (!backtrack.len.sanitize (c)) return_trace (false);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
-    if (!input.sanitize (c)) return_trace (false);
+    if (!input.lenP1.sanitize (c)) return_trace (false);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
-    if (!lookahead.sanitize (c)) return_trace (false);
+    if (!lookahead.len.sanitize (c)) return_trace (false);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
     return_trace (lookup.sanitize (c));
   }
