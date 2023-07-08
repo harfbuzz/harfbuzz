@@ -382,7 +382,12 @@ struct hb_sanitize_context_t :
 
   template <typename Type>
   bool check_struct (const Type *obj) const
-  { return likely (this->check_range_fast (obj, obj->min_size)); }
+  {
+    if (sizeof (uintptr_t) == sizeof (uint32_t))
+      return likely (this->check_range_fast (obj, obj->min_size));
+    else
+      return likely (this->check_point ((const char *) obj + obj->min_size));
+  }
 
   bool may_edit (const void *base, unsigned int len)
   {
