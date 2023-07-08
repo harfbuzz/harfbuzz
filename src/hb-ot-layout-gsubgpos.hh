@@ -519,6 +519,9 @@ struct hb_ot_apply_context_t :
     }
 #endif
 
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
     void reset (unsigned int start_index_,
 		unsigned int num_items_)
     {
@@ -528,6 +531,9 @@ struct hb_ot_apply_context_t :
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
 
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
     void reset_fast (unsigned int start_index_,
 		     unsigned int num_items_)
     {
@@ -543,6 +549,9 @@ struct hb_ot_apply_context_t :
     }
 
     matcher_t::may_skip_t
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
     may_skip (const hb_glyph_info_t &info) const
     { return matcher.may_skip (c, info); }
 
@@ -552,6 +561,9 @@ struct hb_ot_apply_context_t :
       SKIP
     };
 
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
     match_t match (hb_glyph_info_t &info)
     {
       matcher_t::may_skip_t skip = matcher.may_skip (c, info);
@@ -570,6 +582,9 @@ struct hb_ot_apply_context_t :
       return SKIP;
   }
 
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
     bool next (unsigned *unsafe_to = nullptr)
     {
       assert (num_items > 0);
@@ -1465,12 +1480,15 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 }
 
 template <typename HBUINT>
-static inline bool match_backtrack (hb_ot_apply_context_t *c,
-				    unsigned int count,
-				    const HBUINT backtrack[],
-				    match_func_t match_func,
-				    const void *match_data,
-				    unsigned int *match_start)
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
+static bool match_backtrack (hb_ot_apply_context_t *c,
+			     unsigned int count,
+			     const HBUINT backtrack[],
+			     match_func_t match_func,
+			     const void *match_data,
+			     unsigned int *match_start)
 {
   TRACE_APPLY (nullptr);
 
@@ -1494,13 +1512,16 @@ static inline bool match_backtrack (hb_ot_apply_context_t *c,
 }
 
 template <typename HBUINT>
-static inline bool match_lookahead (hb_ot_apply_context_t *c,
-				    unsigned int count,
-				    const HBUINT lookahead[],
-				    match_func_t match_func,
-				    const void *match_data,
-				    unsigned int start_index,
-				    unsigned int *end_index)
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
+static bool match_lookahead (hb_ot_apply_context_t *c,
+			     unsigned int count,
+			     const HBUINT lookahead[],
+			     match_func_t match_func,
+			     const void *match_data,
+			     unsigned int start_index,
+			     unsigned int *end_index)
 {
   TRACE_APPLY (nullptr);
 
