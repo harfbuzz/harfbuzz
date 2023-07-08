@@ -527,6 +527,7 @@ struct UnsizedArrayOf
   }
 
   template <typename ...Ts>
+  HB_ALWAYS_INLINE
   bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
@@ -719,6 +720,7 @@ struct ArrayOf
 	    typename Base = void,
 	    hb_enable_if (hb_has_max_size (typename T::target_t) &&
 			  sizeof (T) == 2)>
+  HB_ALWAYS_INLINE
   bool sanitize (hb_sanitize_context_t *c, const Base *base) const
   {
     TRACE_SANITIZE (this);
@@ -738,6 +740,7 @@ struct ArrayOf
   }
 
   template <typename ...Ts>
+  HB_ALWAYS_INLINE
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
@@ -878,6 +881,7 @@ struct HeadlessArrayOf
   }
 
   template <typename ...Ts>
+  HB_ALWAYS_INLINE
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
@@ -930,6 +934,7 @@ struct ArrayOfM1
   { return lenM1.static_size + (lenM1 + 1) * Type::static_size; }
 
   template <typename ...Ts>
+  HB_ALWAYS_INLINE
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
@@ -1114,6 +1119,7 @@ struct VarSizedBinSearchArrayOf
   { return header.static_size + header.nUnits * header.unitSize; }
 
   template <typename ...Ts>
+  HB_ALWAYS_INLINE
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
