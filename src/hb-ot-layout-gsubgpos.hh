@@ -1219,14 +1219,17 @@ static inline bool would_match_input (hb_would_apply_context_t *c,
   return true;
 }
 template <typename HBUINT>
-static inline bool match_input (hb_ot_apply_context_t *c,
-				unsigned int count, /* Including the first glyph (not matched) */
-				const HBUINT input[], /* Array of input values--start with second glyph */
-				match_func_t match_func,
-				const void *match_data,
-				unsigned int *end_position,
-				unsigned int match_positions[HB_MAX_CONTEXT_LENGTH],
-				unsigned int *p_total_component_count = nullptr)
+#ifndef HB_OPTIMIZE_SIZE
+HB_ALWAYS_INLINE
+#endif
+static bool match_input (hb_ot_apply_context_t *c,
+			 unsigned int count, /* Including the first glyph (not matched) */
+			 const HBUINT input[], /* Array of input values--start with second glyph */
+			 match_func_t match_func,
+			 const void *match_data,
+			 unsigned int *end_position,
+			 unsigned int match_positions[HB_MAX_CONTEXT_LENGTH],
+			 unsigned int *p_total_component_count = nullptr)
 {
   TRACE_APPLY (nullptr);
 
