@@ -368,9 +368,10 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
       }
       else
       {
+	auto origin_X = gr_slot_origin_X (is) * xscale;
 	c->advance = 0;
-	clusters[ci].advance += gr_slot_origin_X(is) * xscale - curradv;
-	curradv += clusters[ci].advance;
+	clusters[ci].advance += origin_X - curradv;
+	curradv = origin_X;
       }
       ci++;
     }
