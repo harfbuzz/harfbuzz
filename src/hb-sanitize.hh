@@ -321,6 +321,20 @@ struct hb_sanitize_context_t :
   }
 
   template <typename T>
+  HB_ALWAYS_INLINE
+  bool check_array_sized (const T *base, unsigned int len, unsigned len_size) const
+  {
+    if (len_size >= 4)
+    {
+      if (unlikely (hb_unsigned_mul_overflows (len, hb_static_size (T), &len)))
+	return false;
+    }
+    else
+      len = len * hb_static_size (T);
+    return this->check_range (base, len);
+  }
+
+  template <typename T>
   bool check_array (const T *base, unsigned int len) const
   {
     return this->check_range (base, len, hb_static_size (T));

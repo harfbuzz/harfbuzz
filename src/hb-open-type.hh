@@ -541,7 +541,7 @@ struct UnsizedArrayOf
   bool sanitize_shallow (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_array (arrayZ, count));
+    return_trace (c->check_array_sized (arrayZ, count, sizeof (Type)));
   }
 
   public:
@@ -753,7 +753,7 @@ struct ArrayOf
   bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (len.sanitize (c) && c->check_array (arrayZ, len));
+    return_trace (len.sanitize (c) && c->check_array_sized (arrayZ, len, sizeof (Type)));
   }
 
   public:
@@ -895,7 +895,7 @@ struct HeadlessArrayOf
   {
     TRACE_SANITIZE (this);
     return_trace (lenP1.sanitize (c) &&
-		  (!lenP1 || c->check_array (arrayZ, lenP1 - 1)));
+		  (!lenP1 || c->check_array_sized (arrayZ, lenP1 - 1, sizeof (Type))));
   }
 
   public:
@@ -947,7 +947,7 @@ struct ArrayOfM1
   {
     TRACE_SANITIZE (this);
     return_trace (lenM1.sanitize (c) &&
-		  (c->check_array (arrayZ, lenM1 + 1)));
+		  (c->check_array_sized (arrayZ, lenM1 + 1, sizeof (Type))));
   }
 
   public:
