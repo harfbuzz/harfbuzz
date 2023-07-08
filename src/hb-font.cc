@@ -1389,6 +1389,7 @@ hb_font_get_glyph_from_name (hb_font_t      *font,
   return font->get_glyph_from_name (name, len, glyph);
 }
 
+#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_font_get_glyph_shape:
  * @font: #hb_font_t to work upon
@@ -1410,6 +1411,7 @@ hb_font_get_glyph_shape (hb_font_t *font,
 {
   hb_font_draw_glyph (font, glyph, dfuncs, draw_data);
 }
+#endif
 
 /**
  * hb_font_draw_glyph:
@@ -3055,6 +3057,7 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t          *ffuncs,
 #endif
 
 
+#ifndef HB_DISABLE_DEPRECATED
 void
 hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t               *ffuncs,
                                    hb_font_get_glyph_shape_func_t  func,
@@ -3063,3 +3066,4 @@ hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t               *ffuncs,
 {
   hb_font_funcs_set_draw_glyph_func (ffuncs, func, user_data, destroy);
 }
+#endif
