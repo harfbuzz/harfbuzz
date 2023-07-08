@@ -3123,6 +3123,7 @@ struct ChainRule
   DEFINE_SIZE_MAX (8 + HB_MAX_CONTEXT_LENGTH * (3 * Types::HBUINT::static_size + LookupRecord::static_size));
 };
 
+
 template <typename Types>
 struct ChainRuleSet
 {
