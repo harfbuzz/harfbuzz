@@ -2701,12 +2701,14 @@ struct ContextFormat3
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!c->check_struct (this)) return_trace (false);
+    if (unlikely (!c->check_struct (this))) return_trace (false);
     unsigned int count = glyphCount;
-    if (!count) return_trace (false); /* We want to access coverageZ[0] freely. */
-    if (!c->check_array (coverageZ.arrayZ, count)) return_trace (false);
+    if (unlikely (!count)) return_trace (false); /* We want to access coverageZ[0] freely. */
+    if (unlikely (count >= HB_MAX_CONTEXT_LENGTH ||
+		  lookupCount >= HB_MAX_CONTEXT_LENGTH)) return_trace (false);
+    if (unlikely (!c->check_array (coverageZ.arrayZ, count))) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
-      if (!coverageZ[i].sanitize (c, this)) return_trace (false);
+      if (unlikely (!coverageZ[i].sanitize (c, this))) return_trace (false);
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
     return_trace (c->check_array (lookupRecord, lookupCount));
   }
@@ -3089,13 +3091,13 @@ struct ChainRule
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!backtrack.sanitize (c)) return_trace (false);
+    if (unlikely (!backtrack.sanitize (c))) return_trace (false);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
-    if (!input.sanitize (c)) return_trace (false);
+    if (unlikely (!input.sanitize (c))) return_trace (false);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
-    if (!lookahead.sanitize (c)) return_trace (false);
+    if (unlikely (!lookahead.sanitize (c))) return_trace (false);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
-    if (!lookup.sanitize (c)) return_trace (false);
+    if (unlikely (!lookup.sanitize (c))) return_trace (false);
     return_trace (backtrack.len <= HB_MAX_CONTEXT_LENGTH &&
 		  input.lenP1 <= HB_MAX_CONTEXT_LENGTH &&
 		  lookahead.len <= HB_MAX_CONTEXT_LENGTH &&
@@ -3894,14 +3896,18 @@ struct ChainContextFormat3
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!backtrack.sanitize (c, this)) return_trace (false);
+    if (unlikely (!backtrack.sanitize (c, this))) return_trace (false);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
-    if (!input.sanitize (c, this)) return_trace (false);
-    if (!input.len) return_trace (false); /* To be consistent with Context. */
+    if (unlikely (!input.sanitize (c, this))) return_trace (false);
+    if (unlikely (!input.len)) return_trace (false); /* To be consistent with Context. */
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
-    if (!lookahead.sanitize (c, this)) return_trace (false);
+    if (unlikely (!lookahead.sanitize (c, this))) return_trace (false);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
-    return_trace (lookup.sanitize (c));
+    if (unlikely (!lookup.sanitize (c))) return_trace (false);
+    return_trace (backtrack.len <= HB_MAX_CONTEXT_LENGTH &&
+		  input.len <= HB_MAX_CONTEXT_LENGTH &&
+		  lookahead.len <= HB_MAX_CONTEXT_LENGTH &&
+		  lookup.len <= HB_MAX_CONTEXT_LENGTH);
   }
 
   protected:
