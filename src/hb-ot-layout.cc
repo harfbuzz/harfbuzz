@@ -2075,7 +2075,7 @@ choose_base_tags (hb_script_t    script,
  *
  * Return value: `true` if found script/language-specific font extents.
  *
- * XSince: REPLACEME
+ * Since: 8.0.0
  **/
 hb_bool_t
 hb_ot_layout_get_font_extents (hb_font_t         *font,
@@ -2123,7 +2123,7 @@ hb_ot_layout_get_font_extents (hb_font_t         *font,
  *
  * Return value: `true` if found script/language-specific font extents.
  *
- * XSince: REPLACEME
+ * Since: 8.0.0
  **/
 hb_bool_t
 hb_ot_layout_get_font_extents2 (hb_font_t         *font,
@@ -2254,7 +2254,7 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
  *
  * Return value: `true` if found baseline value in the font.
  *
- * XSince: REPLACEME
+ * Since: 8.0.0
  **/
 hb_bool_t
 hb_ot_layout_get_baseline2 (hb_font_t                   *font,
@@ -2511,7 +2511,7 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
  * This function is like hb_ot_layout_get_baseline_with_fallback() but takes
  * #hb_script_t and #hb_language_t instead of OpenType #hb_tag_t.
  *
- * XSince: REPLACEME
+ * Since: 8.0.0
  **/
 void
 hb_ot_layout_get_baseline_with_fallback2 (hb_font_t                   *font,

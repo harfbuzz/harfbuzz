@@ -110,7 +110,7 @@ typedef uint32_t hb_codepoint_t;
  *
  * Unused #hb_codepoint_t value.
  *
- * XSince: REPLACEME
+ * Since: 8.0.0
  */
 #define HB_CODEPOINT_INVALID ((hb_codepoint_t) -1)
 

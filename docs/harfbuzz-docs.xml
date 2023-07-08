@@ -120,6 +120,7 @@
       <index id="api-index-full"><title>API Index</title><xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include></index>
       <index id="deprecated-api-index"><title>Index of deprecated API</title><xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include></index>
 
+      <index id="api-index-8-0-0"><title>Index of new symbols in 8.0.0</title><xi:include href="xml/api-index-8.0.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-7-3-0"><title>Index of new symbols in 7.3.0</title><xi:include href="xml/api-index-7.3.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-7-1-0"><title>Index of new symbols in 7.1.0</title><xi:include href="xml/api-index-7.1.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-7-0-0"><title>Index of new symbols in 7.0.0</title><xi:include href="xml/api-index-7.0.0.xml"><xi:fallback /></xi:include></index>
