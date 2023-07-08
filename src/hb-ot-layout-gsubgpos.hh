@@ -430,6 +430,9 @@ struct hb_ot_apply_context_t :
       MATCH_MAYBE
     };
 
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
     may_match_t may_match (hb_glyph_info_t &info,
 			   hb_codepoint_t glyph_data) const
     {
@@ -1481,7 +1484,7 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 
 template <typename HBUINT>
 #ifndef HB_OPTIMIZE_SIZE
-    HB_ALWAYS_INLINE
+HB_ALWAYS_INLINE
 #endif
 static bool match_backtrack (hb_ot_apply_context_t *c,
 			     unsigned int count,
@@ -1513,7 +1516,7 @@ static bool match_backtrack (hb_ot_apply_context_t *c,
 
 template <typename HBUINT>
 #ifndef HB_OPTIMIZE_SIZE
-    HB_ALWAYS_INLINE
+HB_ALWAYS_INLINE
 #endif
 static bool match_lookahead (hb_ot_apply_context_t *c,
 			     unsigned int count,
