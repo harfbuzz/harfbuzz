@@ -301,6 +301,24 @@ struct hb_sanitize_context_t :
     return likely (ok);
   }
 
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
+  bool check_point (const void *base) const
+  {
+    const char *p = (const char *) base;
+    bool ok = (uintptr_t) (p - this->start) <= this->length;
+
+    DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
+		     "check_point [%p]"
+		     " in [%p..%p] -> %s",
+		     p,
+		     this->start, this->end,
+		     ok ? "OK" : "OUT-OF-RANGE");
+
+    return likely (ok);
+  }
+
   template <typename T>
   bool check_range (const T *base,
 		    unsigned int a,
