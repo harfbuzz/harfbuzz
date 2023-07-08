@@ -2698,14 +2698,14 @@ struct ContextFormat3
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!c->check_struct (this)) return_trace (false);
+    if (unlikely (!c->check_struct (this))) return_trace (false);
     unsigned int count = glyphCount;
-    if (!count) return_trace (false); /* We want to access coverageZ[0] freely. */
-    if (!c->check_array (coverageZ.arrayZ, count)) return_trace (false);
+    if (unlikely (!count)) return_trace (false); /* We want to access coverageZ[0] freely. */
+    if (unlikely (!c->check_array (coverageZ.arrayZ, count))) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
-      if (!coverageZ[i].sanitize (c, this)) return_trace (false);
+      if (unlikely (!coverageZ[i].sanitize (c, this))) return_trace (false);
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
-    return_trace (c->check_array (lookupRecord, lookupCount));
+    return_trace (likely (c->check_array (lookupRecord, lookupCount)));
   }
 
   protected:
@@ -3087,13 +3087,13 @@ struct ChainRule
   {
     TRACE_SANITIZE (this);
     /* Hyper-optimized sanitized because this is really hot. */
-    if (!backtrack.len.sanitize (c)) return_trace (false);
+    if (unlikely (!backtrack.len.sanitize (c))) return_trace (false);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
-    if (!input.lenP1.sanitize (c)) return_trace (false);
+    if (unlikely (!input.lenP1.sanitize (c))) return_trace (false);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
-    if (!lookahead.len.sanitize (c)) return_trace (false);
+    if (unlikely (!lookahead.len.sanitize (c))) return_trace (false);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
-    return_trace (lookup.sanitize (c));
+    return_trace (likely (lookup.sanitize (c)));
   }
 
   protected:
@@ -3888,14 +3888,14 @@ struct ChainContextFormat3
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!backtrack.sanitize (c, this)) return_trace (false);
+    if (unlikely (!backtrack.sanitize (c, this))) return_trace (false);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
-    if (!input.sanitize (c, this)) return_trace (false);
-    if (!input.len) return_trace (false); /* To be consistent with Context. */
+    if (unlikely (!input.sanitize (c, this))) return_trace (false);
+    if (unlikely (!input.len)) return_trace (false); /* To be consistent with Context. */
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
-    if (!lookahead.sanitize (c, this)) return_trace (false);
+    if (unlikely (!lookahead.sanitize (c, this))) return_trace (false);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
-    return_trace (lookup.sanitize (c));
+    return_trace (likely (lookup.sanitize (c)));
   }
 
   protected:
