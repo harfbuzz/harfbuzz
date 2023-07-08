@@ -624,6 +624,9 @@ struct hb_ot_apply_context_t :
         *unsafe_to = end;
       return false;
     }
+#ifndef HB_OPTIMIZE_SIZE
+    HB_ALWAYS_INLINE
+#endif
     bool prev (unsigned *unsafe_from = nullptr)
     {
       assert (num_items > 0);
