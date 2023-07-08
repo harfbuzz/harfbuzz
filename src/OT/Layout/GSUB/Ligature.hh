@@ -19,14 +19,11 @@ struct Ligature
                                          * in writing direction */
   public:
   DEFINE_SIZE_ARRAY (Types::size + 2, component);
-  DEFINE_SIZE_MAX (Types::size + 2 + HB_MAX_CONTEXT_LENGTH * Types::HBGlyphID::static_size);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (ligGlyph.sanitize (c) &&
-		  component.sanitize (c) &&
-		  component.lenP1 <= HB_MAX_CONTEXT_LENGTH);
+    return_trace (ligGlyph.sanitize (c) && component.sanitize (c));
   }
 
   bool intersects (const hb_set_t *glyphs) const
