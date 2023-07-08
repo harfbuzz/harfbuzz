@@ -258,7 +258,8 @@ struct fvar
 		  axisSize == 20 && /* Assumed in our code. */
 		  instanceSize >= axisCount * 4 + 4 &&
 		  get_axes ().sanitize (c) &&
-		  c->check_range (get_instance (0), instanceCount, instanceSize));
+		  c->check_range (&StructAfter<InstanceRecord> (get_axes ()),
+				  instanceCount, instanceSize));
   }
 
   unsigned int get_axis_count () const { return axisCount; }
