@@ -424,6 +424,9 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename ...Ts>
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
   bool sanitize (hb_sanitize_context_t *c, const void *base, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
