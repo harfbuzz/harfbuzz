@@ -94,12 +94,13 @@ struct Ligature
     unsigned int match_end = 0;
     unsigned int match_positions[HB_MAX_CONTEXT_LENGTH];
 
-    if (likely (!match_input<match_glyph> (c, count,
-					   &component[1],
-					   nullptr,
-					   &match_end,
-					   match_positions,
-					   &total_component_count)))
+    if (likely (!match_input (c, count,
+                              &component[1],
+                              match_glyph,
+                              nullptr,
+                              &match_end,
+                              match_positions,
+                              &total_component_count)))
     {
       c->buffer->unsafe_to_concat (c->buffer->idx, match_end);
       return_trace (false);
