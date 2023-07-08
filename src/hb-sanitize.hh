@@ -269,7 +269,7 @@ struct hb_sanitize_context_t :
   {
     const char *p = (const char *) base;
     bool ok = !len ||
-	      ((uintptr_t) (p - this->start) < this->length &&
+	      ((uintptr_t) (p - this->start) <= this->length &&
 	       (unsigned int) (this->end - p) >= len &&
 	       ((this->max_ops -= len) > 0));
 
@@ -289,7 +289,7 @@ struct hb_sanitize_context_t :
 			 unsigned int len) const
   {
     const char *p = (const char *) base;
-    bool ok = ((uintptr_t) (p - this->start) < this->length &&
+    bool ok = ((uintptr_t) (p - this->start) <= this->length &&
 	       (unsigned int) (this->end - p) >= len);
 
     DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
