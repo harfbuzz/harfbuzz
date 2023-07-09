@@ -199,6 +199,8 @@ struct hmtxvmtx
       /* Determine num_long_metrics to encode. */
       auto& plan = c->plan;
 
+      // TODO Don't consider retaingid holes here.
+
       num_long_metrics = hb_min (plan->num_output_glyphs (), 0xFFFFu);
       unsigned int last_advance = get_new_gid_advance_unscaled (plan, mtx_map, num_long_metrics - 1, _mtx);
       while (num_long_metrics > 1 &&
