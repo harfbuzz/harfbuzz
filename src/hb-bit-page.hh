@@ -123,12 +123,12 @@ struct hb_bit_page_t
       *la |= (mask (b) << 1) - mask(a);
     else
     {
-      *la |= ~(mask (a) - 1);
+      *la |= ~(mask (a) - 1llu);
       la++;
 
       hb_memset (la, 0xff, (char *) lb - (char *) la);
 
-      *lb |= ((mask (b) << 1) - 1);
+      *lb |= ((mask (b) << 1) - 1llu);
     }
     dirty ();
   }
@@ -137,7 +137,7 @@ struct hb_bit_page_t
     elt_t *la = &elt (a);
     elt_t *lb = &elt (b);
     if (la == lb)
-      *la &= ~((mask (b) << 1) - mask(a));
+      *la &= ~((mask (b) << 1llu) - mask(a));
     else
     {
       *la &= mask (a) - 1;
@@ -145,7 +145,7 @@ struct hb_bit_page_t
 
       hb_memset (la, 0, (char *) lb - (char *) la);
 
-      *lb &= ~((mask (b) << 1) - 1);
+      *lb &= ~((mask (b) << 1) - 1llu);
     }
     dirty ();
   }
