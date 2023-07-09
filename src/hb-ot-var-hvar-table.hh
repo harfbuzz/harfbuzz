@@ -130,17 +130,16 @@ struct index_map_subset_plan_t
     }
 
     output_map.resize (map_count);
-    for (hb_codepoint_t gid = 0; gid < output_map.length; gid++)
+    for (const auto &_ : plan->new_to_old_gid_list)
     {
-      hb_codepoint_t	old_gid;
-      if (plan->old_gid_for_new_gid (gid, &old_gid))
-      {
-	uint32_t v = input_map->map (old_gid);
-	unsigned int outer = v >> 16;
-	output_map[gid] = (outer_map[outer] << 16) | (inner_maps[outer][v & 0xFFFF]);
-      }
-      else
-	output_map[gid] = 0;	/* Map unused glyph to outer/inner=0/0 */
+      hb_codepoint_t new_gid = _.first;
+      hb_codepoint_t old_gid = _.second;
+
+      if (unlikely (new_gid >= map_count)) break;
+
+      uint32_t v = input_map->map (old_gid);
+      unsigned int outer = v >> 16;
+      output_map.arrayZ[new_gid] = (outer_map[outer] << 16) | (inner_maps[outer][v & 0xFFFF]);
     }
   }
 
