@@ -179,6 +179,7 @@ struct hmtxvmtx
 	lm.advance = mtx.first;
 	lm.sb = mtx.second;
       }
+      // TODO(beyond-64k): This assumes that maxp.numGlyphs is 0xFFFF.
       else if (gid < 0x10000u)
         short_metrics[gid] = mtx.second;
       else
