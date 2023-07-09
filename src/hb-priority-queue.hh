@@ -108,6 +108,7 @@ struct hb_priority_queue_t
 
   void bubble_down (unsigned index)
   {
+    repeat:
     assert (index < heap.length);
 
     unsigned left = left_child (index);
@@ -123,19 +124,20 @@ struct hb_priority_queue_t
         && (!has_right || heap.arrayZ[index].first <= heap.arrayZ[right].first))
       return;
 
+    unsigned child;
     if (!has_right || heap.arrayZ[left].first < heap.arrayZ[right].first)
-    {
-      swap (index, left);
-      bubble_down (left);
-      return;
-    }
+      child = left;
+    else
+      child = right;
 
-    swap (index, right);
-    bubble_down (right);
+    swap (index, child);
+    index = child;
+    goto repeat;
   }
 
   void bubble_up (unsigned index)
   {
+    repeat:
     assert (index < heap.length);
 
     if (index == 0) return;
@@ -145,7 +147,8 @@ struct hb_priority_queue_t
       return;
 
     swap (index, parent_index);
-    bubble_up (parent_index);
+    index = parent_index;
+    goto repeat;
   }
 
   void swap (unsigned a, unsigned b)
