@@ -344,7 +344,6 @@ struct hb_bit_page_t
   mutable unsigned population;
   vector_t v;
 };
-//static_assert (hb_bit_page_t::PAGE_BITS == sizeof (hb_bit_page_t) * 8, "");
 
 
 #endif /* HB_BIT_PAGE_HH */
