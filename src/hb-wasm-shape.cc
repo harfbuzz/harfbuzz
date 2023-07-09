@@ -24,6 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#undef HB_DEBUG_WASM
 #define HB_DEBUG_WASM 1
 
 #include "hb-shaper-impl.hh"
