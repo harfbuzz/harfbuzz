@@ -64,7 +64,7 @@ struct DeltaSetIndexMapFormat01
     if (unlikely (!p)) return_trace (false);
     for (unsigned int i = 0; i < output_map.length; i++)
     {
-      unsigned int v = output_map[i];
+      unsigned int v = output_map.arrayZ[i];
       unsigned int outer = v >> 16;
       unsigned int inner = v & 0xFFFF;
       unsigned int u = (outer << inner_bit_count) | inner;
