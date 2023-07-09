@@ -201,13 +201,15 @@ struct hvarvvar_subset_plan_t
 
     if (retain_adv_map)
     {
-      unsigned num_glyphs = plan->num_output_glyphs ();
-      for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
+      hb_codepoint_t next_gid = 0;
+      for (const auto &_ : plan->new_to_old_gid_list)
       {
-	if (inner_sets[0]->has (gid))
-	  inner_maps[0].add (gid);
-	else
-	  inner_maps[0].skip ();
+        hb_codepoint_t gid = _.first;
+
+	inner_maps[0].skip (gid - next_gid);
+
+	inner_maps[0].add (gid);
+	next_gid = gid + 1;
       }
     }
     else
