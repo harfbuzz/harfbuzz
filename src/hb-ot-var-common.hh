@@ -60,18 +60,21 @@ struct DeltaSetIndexMapFormat01
 
     entryFormat = ((width-1)<<4)|(inner_bit_count-1);
     mapCount = output_map.length;
-    HBUINT8 *p = c->allocate_size<HBUINT8> (width * output_map.length, false);
+    HBUINT8 *p = c->allocate_size<HBUINT8> (width * output_map.length);
     if (unlikely (!p)) return_trace (false);
     for (unsigned int i = 0; i < output_map.length; i++)
     {
       unsigned int v = output_map.arrayZ[i];
-      unsigned int outer = v >> 16;
-      unsigned int inner = v & 0xFFFF;
-      unsigned int u = (outer << inner_bit_count) | inner;
-      for (unsigned int w = width; w > 0;)
+      if (v)
       {
-        p[--w] = u;
-        u >>= 8;
+	unsigned int outer = v >> 16;
+	unsigned int inner = v & 0xFFFF;
+	unsigned int u = (outer << inner_bit_count) | inner;
+	for (unsigned int w = width; w > 0;)
+	{
+	  p[--w] = u;
+	  u >>= 8;
+	}
       }
       p += width;
     }
