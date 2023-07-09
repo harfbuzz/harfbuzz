@@ -120,7 +120,7 @@ struct index_map_subset_plan_t
       if (bit_count > inner_bit_count) inner_bit_count = bit_count;
     }
 
-    output_map.resize (map_count);
+    if (unlikely (!output_map.resize (map_count))) return;
     for (const auto &_ : plan->new_to_old_gid_list)
     {
       hb_codepoint_t new_gid = _.first;
