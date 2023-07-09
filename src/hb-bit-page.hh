@@ -99,6 +99,7 @@ struct hb_bit_page_t
 
   bool is_empty () const
   {
+    if (has_population ()) return !population;
     return
     + hb_iter (v)
     | hb_none
