@@ -226,6 +226,10 @@ struct hb_bit_page_t
   }
   bool is_subset (const hb_bit_page_t &larger_page) const
   {
+    if (has_population () && larger_page.has_population () &&
+	population > larger_page.population)
+      return false;
+
     for (unsigned i = 0; i < len (); i++)
       if (~larger_page.v[i] & v[i])
 	return false;
