@@ -52,7 +52,7 @@ The `cluster` field is used to glyphs in the output glyph stream back to charact
 
 * The `feature_t` array
 
-To communicated user-selected OpenType features to the user-defined WASM shaper, the host shaping engine passes an array of feature structures:
+To communicate user-selected OpenType features to the user-defined WASM shaper, the host shaping engine passes an array of feature structures:
 
 | type | field | description|
 | - | - | - |
