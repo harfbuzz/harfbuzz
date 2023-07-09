@@ -89,8 +89,10 @@ struct hb_vector_size_t
 
 struct hb_bit_page_t
 {
-  void init0 () { v.init0 (); }
-  void init1 () { v.init1 (); }
+  void init0 () { v.init0 (); population = 0; }
+  void init1 () { v.init1 (); population = PAGE_BITS; }
+
+  void dirty () { population = UINT_MAX; }
 
   static inline constexpr unsigned len ()
   { return ARRAY_LENGTH_CONST (v); }
@@ -107,8 +109,8 @@ struct hb_bit_page_t
     return hb_bytes_t ((const char *) &v, sizeof (v)).hash ();
   }
 
-  void add (hb_codepoint_t g) { elt (g) |= mask (g); }
-  void del (hb_codepoint_t g) { elt (g) &= ~mask (g); }
+  void add (hb_codepoint_t g) { elt (g) |= mask (g); dirty (); }
+  void del (hb_codepoint_t g) { elt (g) &= ~mask (g); dirty (); }
   void set (hb_codepoint_t g, bool value) { if (value) add (g); else del (g); }
   bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
 
@@ -127,6 +129,7 @@ struct hb_bit_page_t
 
       *lb |= ((mask (b) << 1) - 1);
     }
+    dirty ();
   }
   void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
@@ -143,6 +146,7 @@ struct hb_bit_page_t
 
       *lb &= ~((mask (b) << 1) - 1);
     }
+    dirty ();
   }
   void set_range (hb_codepoint_t a, hb_codepoint_t b, bool v)
   { if (v) add_range (a, b); else del_range (a, b); }
@@ -228,12 +232,15 @@ struct hb_bit_page_t
     return true;
   }
 
+  bool has_population () const { return population != UINT_MAX; }
   unsigned int get_population () const
   {
-    return
+    if (has_population ()) return population;
+    population =
     + hb_iter (v)
     | hb_reduce ([] (unsigned pop, const elt_t &_) { return pop + hb_popcount (_); }, 0u)
     ;
+    return population;
   }
 
   bool next (hb_codepoint_t *codepoint) const
@@ -329,9 +336,10 @@ struct hb_bit_page_t
   const elt_t& elt (hb_codepoint_t g) const { return v[(g & MASK) / ELT_BITS]; }
   static constexpr elt_t mask (hb_codepoint_t g) { return elt_t (1) << (g & ELT_MASK); }
 
+  mutable unsigned population;
   vector_t v;
 };
-static_assert (hb_bit_page_t::PAGE_BITS == sizeof (hb_bit_page_t) * 8, "");
+//static_assert (hb_bit_page_t::PAGE_BITS == sizeof (hb_bit_page_t) * 8, "");
 
 
 #endif /* HB_BIT_PAGE_HH */
