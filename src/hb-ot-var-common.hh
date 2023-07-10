@@ -758,14 +758,14 @@ struct tuple_delta_t
 
     while (run_length >= 64)
     {
-      *it++ = (DELTAS_ARE_ZERO | 63);
+      *it++ = char (DELTAS_ARE_ZERO | 63);
       run_length -= 64;
       encoded_len++;
     }
 
     if (run_length)
     {
-      *it++ = (DELTAS_ARE_ZERO | (run_length - 1));
+      *it++ = char (DELTAS_ARE_ZERO | (run_length - 1));
       encoded_len++;
     }
     return encoded_len;
