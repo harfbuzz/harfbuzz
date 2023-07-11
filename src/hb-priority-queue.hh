@@ -61,6 +61,7 @@ struct hb_priority_queue_t
     bubble_up (heap.length - 1);
   }
 
+  HB_ALWAYS_INLINE
   item_t pop_minimum ()
   {
     assert (!is_empty ());
