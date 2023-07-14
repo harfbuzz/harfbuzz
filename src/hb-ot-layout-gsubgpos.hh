@@ -183,22 +183,8 @@ struct hb_closure_context_t :
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 
-  void schedule (unsigned lookup_index)
-  {
-    scheduled.add (lookup_index);
-  }
-
   void flush ()
   {
-    hb_set_t scheduled_copy;
-    while (scheduled)
-    {
-      scheduled_copy = scheduled;
-      scheduled.clear ();
-      for (unsigned lookup_index : scheduled_copy)
-	recurse (lookup_index, nullptr, 0, 0);
-    }
-
     output->del_range (face->get_num_glyphs (), HB_SET_VALUE_INVALID);	/* Remove invalid glyphs. */
     glyphs->union_ (*output);
     output->clear ();
@@ -210,7 +196,6 @@ struct hb_closure_context_t :
   hb_map_t *done_lookups_glyph_count;
   hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *done_lookups_glyph_set;
   unsigned int lookup_count = 0;
-  hb_set_t scheduled;
 };
 
 
