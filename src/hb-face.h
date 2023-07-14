@@ -177,6 +177,12 @@ hb_face_builder_add_table (hb_face_t *face,
 			   hb_tag_t   tag,
 			   hb_blob_t *blob);
 
+HB_EXTERN hb_bool_t
+hb_face_builder_add_phantom_table (hb_face_t *face,
+			           hb_tag_t   tag,
+                                   unsigned   length,
+                                   uint32_t   checksum);
+
 HB_EXTERN void
 hb_face_builder_sort_tables (hb_face_t *face,
                              const hb_tag_t  *tags);

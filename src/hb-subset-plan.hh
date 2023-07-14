@@ -271,6 +271,30 @@ struct hb_subset_plan_t
 		hb_blob_get_length (source_blob));
       hb_blob_destroy (source_blob);
     }
+
+    if (tag == HB_TAG('g', 'l', 'y', 'f') && should_omit_glyf_bytes())
+    {
+      unsigned blob_length = 0;
+      const uint8_t* data = (const uint8_t*) hb_blob_get_data (contents, &blob_length);
+      if (blob_length == 8)
+      {
+        uint32_t length =
+          ((uint32_t) data[0]) << 24 |
+          ((uint32_t) data[1]) << 16 |
+          ((uint32_t) data[2]) << 8  |
+          (uint32_t) data[3];
+
+        uint32_t checksum =
+          ((uint32_t) data[4]) << 24 |
+          ((uint32_t) data[5]) << 16 |
+          ((uint32_t) data[6]) << 8  |
+          (uint32_t) data[7];
+
+        printf("##### fake glyf length = %u, checksum=%#010x\n", length, checksum);
+        return hb_face_builder_add_phantom_table (dest, tag, length, checksum);
+      }
+    }
+
     return hb_face_builder_add_table (dest, tag, contents);
   }
 

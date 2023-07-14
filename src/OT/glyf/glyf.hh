@@ -65,11 +65,20 @@ struct glyf
       uint8_t remainder[4];
       unsigned remainder_length = 0;
 
+      uint32_t total_length = 0;
       uint32_t checksum = 0;
       for (auto &_ : it)
+      {
+        total_length += _.length();
+        total_length += use_short_loca ? _.padding() : 0;
         checksum += _.checksum (use_short_loca, remainder, &remainder_length);
+      }
 
       checksum += *((HBUINT32*) remainder);
+
+      HBUINT32 length (total_length);
+      if (unlikely (!c->embed (length)))
+        return_trace (false);
 
       HBUINT32 checksum_storage (checksum);
       if (unlikely (!c->embed (checksum_storage)))

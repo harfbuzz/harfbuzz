@@ -210,6 +210,19 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 }
 
 /**
+ * TODO(grieger): write me.
+ **/
+hb_bool_t
+hb_face_builder_add_phantom_table (hb_face_t *face,
+			           hb_tag_t   tag,
+                                   unsigned   length,
+                                   uint32_t   checksum)
+{
+  // TODO(grieger): implement me.
+  return true;
+}
+
+/**
  * hb_face_builder_sort_tables:
  * @face: A face object created with hb_face_builder_create()
  * @tags: (array zero-terminated=1): ordered list of table tags terminated by

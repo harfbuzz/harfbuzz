@@ -949,6 +949,7 @@ subset_main_t::add_options ()
      "Keep everything by default. Options after this can override the operation.", nullptr},
     {"no-hinting",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_HINTING>,		"Whether to drop hints", nullptr},
     {"retain-gids",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,		"If set don't renumber glyph ids in the subset.", nullptr},
+    {"omit-glyf",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_OMIT_GLYF>,		"If set don't renumber glyph ids in the subset.", nullptr},
     {"desubroutinize",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,		"Remove CFF/CFF2 use of subroutines", nullptr},
     {"name-legacy",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NAME_LEGACY>,		"Keep legacy (non-Unicode) 'name' table entries", nullptr},
     {"set-overlaps-flag",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG>,	"Set the overlaps flag on each glyph.", nullptr},
