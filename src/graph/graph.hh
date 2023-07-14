@@ -465,7 +465,7 @@ struct graph_t
     {
       unsigned next_id = queue.pop_minimum().second;
 
-      hb_swap (sorted_graph[new_id], vertices_[next_id]);
+      sorted_graph[new_id] = std::move (vertices_[next_id]);
       const vertex_t& next = sorted_graph[new_id];
 
       if (unlikely (!check_success(new_id >= 0))) {
