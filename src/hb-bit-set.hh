@@ -154,6 +154,22 @@ struct hb_bit_set_t
     page_t *page = page_for (g, true); if (unlikely (!page)) return;
     page->add (g);
   }
+  bool test_and_add (hb_codepoint_t g)
+  {
+    if (unlikely (!successful)) return false;
+    if (unlikely (g == INVALID)) return false;
+    dirty ();
+    page_t *page = page_for (g, true); if (unlikely (!page)) return false;
+    return page->test_and_add (g);
+  }
+  bool test_and_del (hb_codepoint_t g)
+  {
+    if (unlikely (!successful)) return false;
+    if (unlikely (g == INVALID)) return false;
+    dirty ();
+    page_t *page = page_for (g); if (!page) return false;
+    return page->test_and_del (g);
+  }
   bool add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
     if (unlikely (!successful)) return true; /* https://github.com/harfbuzz/harfbuzz/issues/657 */

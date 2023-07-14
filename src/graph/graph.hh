@@ -762,16 +762,14 @@ struct graph_t
 
   void find_subgraph (unsigned node_idx, hb_set_t& subgraph)
   {
-    if (subgraph.has (node_idx)) return;
-    subgraph.add (node_idx);
+    if (!subgraph.test_and_add (node_idx)) return;
     for (const auto& link : vertices_[node_idx].obj.all_links ())
       find_subgraph (link.objidx, subgraph);
   }
 
   size_t find_subgraph_size (unsigned node_idx, hb_set_t& subgraph, unsigned max_depth = -1)
   {
-    if (subgraph.has (node_idx)) return 0;
-    subgraph.add (node_idx);
+    if (!subgraph.test_and_add (node_idx)) return 0;
 
     const auto& o = vertices_[node_idx].obj;
     size_t size = o.tail - o.head;
@@ -1159,8 +1157,7 @@ struct graph_t
     hb_set_t visited;
     for (unsigned p : vertices_[node_idx].parents)
     {
-      if (visited.has (p)) continue;
-      visited.add (p);
+      if (!visited.test_and_add (p)) continue;
 
       // Only real links can be wide
       for (const auto& l : vertices_[p].obj.real_links)
@@ -1364,14 +1361,10 @@ struct graph_t
                              hb_set_t& connected)
   {
     if (unlikely (!check_success (!visited.in_error ()))) return;
-    if (visited.has (start_idx)) return;
-    visited.add (start_idx);
+    if (!visited.test_and_add (start_idx)) return;
 
-    if (targets.has (start_idx))
-    {
-      targets.del (start_idx);
+    if (targets.test_and_del (start_idx))
       connected.add (start_idx);
-    }
 
     const auto& v = vertices_[start_idx];
 

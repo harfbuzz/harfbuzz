@@ -115,6 +115,31 @@ struct hb_bit_page_t
   void set (hb_codepoint_t g, bool value) { if (value) add (g); else del (g); }
   bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
 
+  bool test_and_add (hb_codepoint_t g)
+  {
+    elt_t *e = &elt (g);
+    elt_t m = mask (g);
+
+    bool ret = !(*e & m);
+    if (ret)
+    {
+      *e |= m; dirty ();
+    }
+    return ret;
+  }
+  bool test_and_del (hb_codepoint_t g)
+  {
+    elt_t *e = &elt (g);
+    elt_t m = mask (g);
+
+    bool ret = *e & m;
+    if (ret)
+    {
+      *e &= ~m; dirty ();
+    }
+    return ret;
+  }
+
   void add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
     elt_t *la = &elt (a);
