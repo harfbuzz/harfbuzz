@@ -56,7 +56,25 @@ struct glyf
     unsigned init_len = c->length ();
     for (auto &_ : it)
       if (unlikely (!_.serialize (c, use_short_loca, plan)))
-        return false;
+        return_trace (false);
+
+    if (plan->should_omit_glyf_bytes())
+    {
+      // No bytes were copied, instead compute and save the checksum
+      // for the new glyf table.
+      uint8_t remainder[4];
+      unsigned remainder_length = 0;
+
+      uint32_t checksum = 0;
+      for (auto &_ : it)
+        checksum += _.checksum (use_short_loca, remainder, &remainder_length);
+
+      checksum += *((HBUINT32*) remainder);
+
+      HBUINT32 checksum_storage (checksum);
+      if (unlikely (!c->embed (checksum_storage)))
+        return_trace (false);
+    }
 
     /* As a special case when all glyph in the font are empty, add a zero byte
      * to the table, so that OTS doesn’t reject it, and to make the table work
@@ -64,6 +82,7 @@ struct glyf
      * See https://github.com/khaledhosny/ots/issues/52 */
     if (init_len == c->length ())
     {
+      // TODO(grieger): handle this in omit glyf mode.
       HBUINT8 empty_byte;
       empty_byte = 0;
       c->copy (empty_byte);

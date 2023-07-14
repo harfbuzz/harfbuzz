@@ -31,7 +31,7 @@ struct SubsetGlyph
 
     if (do_copy)
     {
-      hb_bytes_t dest_glyph = dest_start.copy (c);
+      dest_glyph = dest_start.copy (c);
       hb_bytes_t end_copy = dest_end.copy (c);
       if (!end_copy.arrayZ || !dest_glyph.arrayZ) {
         return false;
@@ -164,7 +164,7 @@ struct SubsetGlyph
 
   uint32_t checksum (bool use_short_loca,
                      uint8_t   remainder[4],
-                     unsigned *remainder_length)
+                     unsigned *remainder_length) const
   {
     // TODO(garretrieger): remove assertion.
     assert (!dest_end); // we don't handle hint removal.
