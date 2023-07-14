@@ -1273,15 +1273,15 @@ struct graph_t
       {
         if (visited[link.objidx]) continue;
 
-        const auto& child = vertices_[link.objidx].obj;
+        const auto& child = vertices_.arrayZ[link.objidx].obj;
         unsigned link_width = link.width ? link.width : 4; // treat virtual offsets as 32 bits wide
         int64_t child_weight = (child.tail - child.head) +
-                               ((int64_t) 1 << (link_width * 8)) * (vertices_[link.objidx].space + 1);
+                               ((int64_t) 1 << (link_width * 8)) * (vertices_.arrayZ[link.objidx].space + 1);
         int64_t child_distance = next_distance + child_weight;
 
-        if (child_distance < vertices_[link.objidx].distance)
+        if (child_distance < vertices_.arrayZ[link.objidx].distance)
         {
-          vertices_[link.objidx].distance = child_distance;
+          vertices_.arrayZ[link.objidx].distance = child_distance;
           queue.insert (child_distance, link.objidx);
         }
       }
