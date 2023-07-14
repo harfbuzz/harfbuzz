@@ -53,9 +53,14 @@ template <typename context_t>
 /*static*/ typename hb_closure_context_t::return_t SubstLookup::closure_glyphs_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
 {
   const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
-  if (l.may_have_non_1to1 ())
+  if (covered_seq_indices && l.may_have_non_1to1 ())
       hb_set_add_range (covered_seq_indices, seq_index, end_index);
-  return l.dispatch (c);
+
+  if (covered_seq_indices)
+    c->schedule (lookup_index);
+  else
+    l.dispatch (c);
+  return hb_empty_t ();
 }
 
 template <>
