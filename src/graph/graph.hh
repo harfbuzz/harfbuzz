@@ -749,10 +749,10 @@ struct graph_t
   {
     for (const auto& link : vertices_[node_idx].obj.all_links ())
     {
-      const uint32_t *v;
+      uint32_t *v;
       if (subgraph.has (link.objidx, &v))
       {
-        subgraph.set (link.objidx, *v + 1);
+        (*v)++;
         continue;
       }
       subgraph.set (link.objidx, 1);
