@@ -749,7 +749,7 @@ struct graph_t
   {
     for (const auto& link : vertices_[node_idx].obj.all_links ())
     {
-      uint32_t *v;
+      hb_codepoint_t *v;
       if (subgraph.has (link.objidx, &v))
       {
         (*v)++;
