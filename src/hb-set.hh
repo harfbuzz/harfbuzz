@@ -84,8 +84,6 @@ struct hb_sparseset_t
   uint32_t hash () const { return s.hash (); }
 
   void add (hb_codepoint_t g) { s.add (g); }
-  bool test_and_add (hb_codepoint_t g) { return s.test_and_add (g); }
-  bool test_and_del (hb_codepoint_t g) { return s.test_and_del (g); }
   bool add_range (hb_codepoint_t a, hb_codepoint_t b) { return s.add_range (a, b); }
 
   template <typename T>
