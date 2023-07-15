@@ -11,8 +11,8 @@
 
 enum operation_t
 {
-  subset_codepoints,
   subset_glyphs,
+  subset_unicodes,
   instance,
 };
 
@@ -164,7 +164,7 @@ static void BM_subset (benchmark::State &state,
 
   switch (operation)
   {
-    case subset_codepoints:
+    case subset_unicodes:
     {
       hb_set_t* all_codepoints = hb_set_create ();
       hb_face_collect_unicodes (face, all_codepoints);
@@ -264,7 +264,7 @@ int main(int argc, char** argv)
 #define TEST_OPERATION(op, time_unit) test_operation (op, #op, tests, num_tests, time_unit)
 
   TEST_OPERATION (subset_glyphs, benchmark::kMicrosecond);
-  TEST_OPERATION (subset_codepoints, benchmark::kMicrosecond);
+  TEST_OPERATION (subset_unicodes, benchmark::kMicrosecond);
   TEST_OPERATION (instance, benchmark::kMicrosecond);
 
 #undef TEST_OPERATION
