@@ -154,6 +154,7 @@ struct graph_t
     {
       hb_hashmap_t<unsigned, unsigned> result;
 
+      result.alloc (obj.real_links.length);
       for (const auto& l : obj.real_links) {
         result.set (l.position, l.objidx);
       }
