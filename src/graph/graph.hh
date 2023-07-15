@@ -1252,12 +1252,8 @@ struct graph_t
     // (such as a fibonacci queue) with a fast decrease priority.
     unsigned count = vertices_.length;
     for (unsigned i = 0; i < count; i++)
-    {
-      if (i == vertices_.length - 1)
-        vertices_.arrayZ[i].distance = 0;
-      else
-        vertices_.arrayZ[i].distance = hb_int_max (int64_t);
-    }
+      vertices_.arrayZ[i].distance = hb_int_max (int64_t);
+    vertices_.tail ().distance = 0;
 
     hb_priority_queue_t queue;
     queue.insert (0, vertices_.length - 1);
