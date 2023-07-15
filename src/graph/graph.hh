@@ -213,7 +213,10 @@ struct graph_t
       for (unsigned i = 0; i < count; i++)
       {
         if (parents.arrayZ[i] == old_index)
-          parents.arrayZ[i] = new_index;
+	{
+	  parents.arrayZ[i] = new_index;
+	  break;
+	}
       }
     }
 
