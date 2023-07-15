@@ -605,11 +605,14 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 
     /* Add gids which where requested, but not mapped in cmap */
     unsigned num_glyphs = plan->source->get_num_glyphs ();
-    for (hb_codepoint_t gid : *glyphs)
+    hb_codepoint_t first = HB_SET_VALUE_INVALID, last = HB_SET_VALUE_INVALID;
+    for (; glyphs->next_range (&first, &last); )
     {
-      if (gid >= num_glyphs)
+      if (first >= num_glyphs)
 	break;
-      plan->_glyphset_gsub.add (gid);
+      if (last >= num_glyphs)
+        last = num_glyphs - 1;
+      plan->_glyphset_gsub.add_range (first, last);
     }
   }
 

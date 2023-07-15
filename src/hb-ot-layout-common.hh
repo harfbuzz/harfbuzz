@@ -1937,13 +1937,22 @@ struct ClassDefFormat2_4
     {
       /* Match if there's any glyph that is not listed! */
       hb_codepoint_t g = HB_SET_VALUE_INVALID;
-      for (auto &range : rangeRecord)
+      hb_codepoint_t last = HB_SET_VALUE_INVALID;
+      auto it = hb_iter (rangeRecord);
+      for (auto &range : it)
       {
+        if (it->first == last + 1)
+	{
+	  it++;
+	  continue;
+	}
+
 	if (!glyphs->next (&g))
 	  break;
 	if (g < range.first)
 	  return true;
 	g = range.last;
+	last = g;
       }
       if (g != HB_SET_VALUE_INVALID && glyphs->next (&g))
 	return true;
