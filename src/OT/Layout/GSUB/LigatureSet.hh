@@ -125,7 +125,7 @@ struct LigatureSet
     {
       const auto &lig = this+ligature.arrayZ[i];
       if (unlikely (lig.component.lenP1 <= 1) ||
-	  lig.component[1] == first)
+	  lig.component.arrayZ[0] == first)
       {
 	if (lig.apply (c))
 	{
