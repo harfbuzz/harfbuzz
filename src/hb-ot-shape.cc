@@ -477,9 +477,11 @@ hb_set_unicode_props (hb_buffer_t *buffer)
     _hb_glyph_info_set_unicode_props (&info[i], buffer);
 
     unsigned gen_cat = _hb_glyph_info_get_general_category (&info[i]);
-    if (likely (FLAG_UNSAFE (gen_cat) &
-		(FLAG (HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER) |
-		 FLAG (HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER))))
+    if (FLAG_UNSAFE (gen_cat) &
+	(FLAG (HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER) |
+	 FLAG (HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER) |
+	 FLAG (HB_UNICODE_GENERAL_CATEGORY_TITLECASE_LETTER) |
+	 FLAG (HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER)))
       continue;
 
     /* Marks are already set as continuation by the above line.
