@@ -476,9 +476,15 @@ hb_set_unicode_props (hb_buffer_t *buffer)
   {
     _hb_glyph_info_set_unicode_props (&info[i], buffer);
 
+    unsigned gen_cat = _hb_glyph_info_get_general_category (&info[i]);
+    if (likely (FLAG_UNSAFE (gen_cat) &
+		(FLAG (HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER) |
+		 FLAG (HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER))))
+      continue;
+
     /* Marks are already set as continuation by the above line.
      * Handle Emoji_Modifier and ZWJ-continuation. */
-    if (unlikely (_hb_glyph_info_get_general_category (&info[i]) == HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL &&
+    if (unlikely (gen_cat == HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL &&
 		  hb_in_range<hb_codepoint_t> (info[i].codepoint, 0x1F3FBu, 0x1F3FFu)))
     {
       _hb_glyph_info_set_continuation (&info[i]);
