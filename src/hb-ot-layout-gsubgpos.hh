@@ -1220,6 +1220,28 @@ static inline bool match_class_cached (hb_glyph_info_t &info, unsigned value, co
     info.syllable() = klass;
   return klass == value;
 }
+static inline bool match_class_cached1 (hb_glyph_info_t &info, unsigned value, const void *data)
+{
+  unsigned klass = info.syllable() & 0x0F;
+  if (klass < 15)
+    return klass == value;
+  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+  klass = class_def.get_class (info.codepoint);
+  if (likely (klass < 15))
+    info.syllable() = (info.syllable() & 0xF0) | klass;
+  return klass == value;
+}
+static inline bool match_class_cached2 (hb_glyph_info_t &info, unsigned value, const void *data)
+{
+  unsigned klass = (info.syllable() & 0xF0) >> 4;
+  if (klass < 15)
+    return klass == value;
+  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+  klass = class_def.get_class (info.codepoint);
+  if (likely (klass < 15))
+    info.syllable() = (info.syllable() & 0x0F) | (klass << 4);
+  return klass == value;
+}
 static inline bool match_coverage (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   Offset16To<Coverage> coverage;
@@ -3618,20 +3640,12 @@ struct ChainContextFormat2_5
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
-    /* For ChainContextFormat2_5 we cache the LookaheadClassDef instead of InputClassDef.
-     * The reason is that most heavy fonts want to identify a glyph in context and apply
-     * a lookup to it. In this scenario, the length of the input sequence is one, whereas
-     * the lookahead / backtrack are typically longer.  The one glyph in input sequence is
-     * looked-up below and no input glyph is looked up in individual rules, whereas the
-     * lookahead and backtrack glyphs are tried.  Since we match lookahead before backtrack,
-     * we should cache lookahead.  This decisions showed a 20% improvement in shaping of
-     * the Gulzar font.
-     */
-
+    /* match_class_caches1 is slightly faster. Use it for lookahead,
+     * which is typically longer. */
     struct ChainContextApplyLookupContext lookup_context = {
       {{cached && &backtrack_class_def == &lookahead_class_def ? match_class_cached : match_class,
-        cached && &input_class_def == &lookahead_class_def ? match_class_cached : match_class,
-        cached ? match_class_cached : match_class}},
+        cached ? match_class_cached2 : match_class,
+        cached ? match_class_cached1 : match_class}},
       {&backtrack_class_def,
        &input_class_def,
        &lookahead_class_def}
