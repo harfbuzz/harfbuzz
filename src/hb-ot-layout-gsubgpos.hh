@@ -1972,6 +1972,9 @@ static inline bool context_apply_lookup (hb_ot_apply_context_t *c,
 template <typename Types>
 struct Rule
 {
+  template <typename T>
+  friend struct RuleSet;
+
   bool intersects (const hb_set_t *glyphs, ContextClosureLookupContext &lookup_context) const
   {
     return context_intersects (glyphs,
@@ -2159,13 +2162,74 @@ struct RuleSet
 	      const ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
-    return_trace (
-    + hb_iter (rule)
-    | hb_map (hb_add (this))
-    | hb_map ([&] (const Rule &_) { return _.apply (c, lookup_context); })
-    | hb_any
-    )
-    ;
+
+    unsigned num_rules = rule.len;
+
+    if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 2)
+    {
+    slow:
+      return_trace (
+      + hb_iter (rule)
+      | hb_map (hb_add (this))
+      | hb_map ([&] (const Rule &_) { return _.apply (c, lookup_context); })
+      | hb_any
+      )
+      ;
+    }
+
+    /* This version is optimized for speed by matching the first component
+     * of the rule here, instead of calling into the matching code.
+     *
+     * Replicated from LigatureSet::apply(). */
+
+    hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
+    skippy_iter.reset (c->buffer->idx, 1);
+    skippy_iter.set_match_func (match_always, nullptr);
+    skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
+    unsigned unsafe_to;
+    hb_glyph_info_t *first = nullptr;
+    bool matched = skippy_iter.next (&unsafe_to);
+    if (likely (matched))
+    {
+      first = &c->buffer->info[skippy_iter.idx];
+      unsafe_to = skippy_iter.idx + 1;
+
+      if (skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]))
+      {
+	/* Can't use the fast path if eg. the next char is a default-ignorable
+	 * or other skippable. */
+        goto slow;
+      }
+    }
+    else
+      goto slow;
+
+    bool unsafe_to_concat = false;
+
+    for (unsigned int i = 0; i < num_rules; i++)
+    {
+      const auto &r = this+rule.arrayZ[i];
+
+      const auto &input = r.inputZ;
+
+      if (r.inputCount <= 1 ||
+	  (!lookup_context.funcs.match ||
+	   lookup_context.funcs.match (*first, input.arrayZ[0], lookup_context.match_data)))
+      {
+	if (r.apply (c, lookup_context))
+	{
+	  if (unsafe_to_concat)
+	    c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
+	  return_trace (true);
+	}
+      }
+      else
+        unsafe_to_concat = true;
+    }
+    if (likely (unsafe_to_concat))
+      c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
+
+    return_trace (false);
   }
 
   bool subset (hb_subset_context_t *c,
@@ -3254,7 +3318,9 @@ struct ChainRuleSet
     }
 
     /* This version is optimized for speed by matching the first component
-     * of the rule here, instead of calling into the matching code. */
+     * of the rule here, instead of calling into the matching code.
+     *
+     * Replicated from LigatureSet::apply(). */
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset (c->buffer->idx, 1);

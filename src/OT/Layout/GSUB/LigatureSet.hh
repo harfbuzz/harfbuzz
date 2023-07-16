@@ -92,7 +92,9 @@ struct LigatureSet
     }
 
     /* This version is optimized for speed by matching the first component
-     * of the ligature here, instead of calling into the ligation code. */
+     * of the ligature here, instead of calling into the ligation code.
+     *
+     * This is replicated in ChainRuleSet and RuleSet. */
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset (c->buffer->idx, 1);
