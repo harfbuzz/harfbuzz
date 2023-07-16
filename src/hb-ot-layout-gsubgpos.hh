@@ -922,6 +922,7 @@ struct hb_ot_apply_context_t :
     (void) buffer->output_glyph (glyph_index);
   }
 };
+using skipping_iterator_t = hb_ot_apply_context_t::skipping_iterator_t;
 
 
 struct hb_accelerate_subtables_context_t :
@@ -1083,11 +1084,11 @@ struct ContextCollectGlyphsFuncs
 {
   collect_glyphs_func_t collect;
 };
-struct ContextApplyFuncs
+struct ContextWouldApplyFuncs
 {
   match_func_t match;
 };
-struct ChainContextApplyFuncs
+struct ChainContextWouldApplyFuncs
 {
   match_func_t match[3];
 };
@@ -1276,8 +1277,7 @@ HB_ALWAYS_INLINE
 static bool match_input (hb_ot_apply_context_t *c,
 			 unsigned int count, /* Including the first glyph (not matched) */
 			 const HBUINT input[], /* Array of input values--start with second glyph */
-			 match_func_t match_func,
-			 const void *match_data,
+			 skipping_iterator_t &skippy_iter,
 			 unsigned int *end_position,
 			 unsigned int match_positions[HB_MAX_CONTEXT_LENGTH],
 			 unsigned int *p_total_component_count = nullptr)
@@ -1288,9 +1288,7 @@ static bool match_input (hb_ot_apply_context_t *c,
 
   hb_buffer_t *buffer = c->buffer;
 
-  hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
   skippy_iter.reset (buffer->idx, count - 1);
-  skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (input);
 
   /*
@@ -1522,15 +1520,12 @@ HB_ALWAYS_INLINE
 static bool match_backtrack (hb_ot_apply_context_t *c,
 			     unsigned int count,
 			     const HBUINT backtrack[],
-			     match_func_t match_func,
-			     const void *match_data,
+			     skipping_iterator_t &skippy_iter,
 			     unsigned int *match_start)
 {
   TRACE_APPLY (nullptr);
 
-  hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
   skippy_iter.reset (c->buffer->backtrack_len (), count);
-  skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (backtrack);
 
   for (unsigned int i = 0; i < count; i++)
@@ -1554,16 +1549,13 @@ HB_ALWAYS_INLINE
 static bool match_lookahead (hb_ot_apply_context_t *c,
 			     unsigned int count,
 			     const HBUINT lookahead[],
-			     match_func_t match_func,
-			     const void *match_data,
+			     skipping_iterator_t &skippy_iter,
 			     unsigned int start_index,
 			     unsigned int *end_index)
 {
   TRACE_APPLY (nullptr);
 
-  hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
   skippy_iter.reset (start_index - 1, count);
-  skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (lookahead);
 
   for (unsigned int i = 0; i < count; i++)
@@ -1867,10 +1859,15 @@ struct ContextCollectGlyphsLookupContext
   const void *collect_data;
 };
 
+struct ContextWouldApplyLookupContext
+{
+  ContextWouldApplyFuncs funcs;
+  const void *match_data;
+};
+
 struct ContextApplyLookupContext
 {
-  ContextApplyFuncs funcs;
-  const void *match_data;
+  skipping_iterator_t &iter;
 };
 
 template <typename HBUINT>
@@ -1929,7 +1926,7 @@ static inline bool context_would_apply_lookup (hb_would_apply_context_t *c,
 					       const HBUINT input[], /* Array of input values--start with second glyph */
 					       unsigned int lookupCount HB_UNUSED,
 					       const LookupRecord lookupRecord[] HB_UNUSED,
-					       const ContextApplyLookupContext &lookup_context)
+					       const ContextWouldApplyLookupContext &lookup_context)
 {
   return would_match_input (c,
 			    inputCount, input,
@@ -1948,7 +1945,7 @@ static inline bool context_apply_lookup (hb_ot_apply_context_t *c,
   unsigned match_positions[HB_MAX_CONTEXT_LENGTH];
   if (match_input (c,
 		   inputCount, input,
-		   lookup_context.funcs.match, lookup_context.match_data,
+		   lookup_context.iter,
 		   &match_end, match_positions))
   {
     c->buffer->unsafe_to_break (c->buffer->idx, match_end);
@@ -2010,7 +2007,7 @@ struct Rule
   }
 
   bool would_apply (hb_would_apply_context_t *c,
-		    const ContextApplyLookupContext &lookup_context) const
+		    const ContextWouldApplyLookupContext &lookup_context) const
   {
     const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 					   (inputZ.as_array (inputCount ? inputCount - 1 : 0));
@@ -2141,7 +2138,7 @@ struct RuleSet
   }
 
   bool would_apply (hb_would_apply_context_t *c,
-		    const ContextApplyLookupContext &lookup_context) const
+		    const ContextWouldApplyLookupContext &lookup_context) const
   {
     return
     + hb_iter (rule)
@@ -2294,9 +2291,9 @@ struct ContextFormat1_4
   bool would_apply (hb_would_apply_context_t *c) const
   {
     const RuleSet &rule_set = this+ruleSet[(this+coverage).get_coverage (c->glyphs[0])];
-    struct ContextApplyLookupContext lookup_context = {
+    struct ContextWouldApplyLookupContext lookup_context = {
       {match_glyph},
-      nullptr
+      nullptr,
     };
     return rule_set.would_apply (c, lookup_context);
   }
@@ -2311,9 +2308,10 @@ struct ContextFormat1_4
       return_trace (false);
 
     const RuleSet &rule_set = this+ruleSet[index];
+    skipping_iterator_t iter {c->iter_input};
+    iter.set_match_func (match_glyph, nullptr);
     struct ContextApplyLookupContext lookup_context = {
-      {match_glyph},
-      nullptr
+      iter
     };
     return_trace (rule_set.apply (c, lookup_context));
   }
@@ -2487,7 +2485,7 @@ struct ContextFormat2_5
     const ClassDef &class_def = this+classDef;
     unsigned int index = class_def.get_class (c->glyphs[0]);
     const RuleSet &rule_set = this+ruleSet[index];
-    struct ContextApplyLookupContext lookup_context = {
+    struct ContextWouldApplyLookupContext lookup_context = {
       {match_class},
       &class_def
     };
@@ -2532,9 +2530,10 @@ struct ContextFormat2_5
 
     const ClassDef &class_def = this+classDef;
 
+    skipping_iterator_t iter {c->iter_input};
+    iter.set_match_func (cached ? match_class_cached : match_class, &class_def);
     struct ContextApplyLookupContext lookup_context = {
-      {cached ? match_class_cached : match_class},
-      &class_def
+      iter
     };
 
     if (cached && c->buffer->cur().syllable() < 255)
@@ -2702,7 +2701,7 @@ struct ContextFormat3
   bool would_apply (hb_would_apply_context_t *c) const
   {
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
-    struct ContextApplyLookupContext lookup_context = {
+    struct ContextWouldApplyLookupContext lookup_context = {
       {match_coverage},
       this
     };
@@ -2721,9 +2720,10 @@ struct ContextFormat3
     if (likely (index == NOT_COVERED)) return_trace (false);
 
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
+    skipping_iterator_t iter {c->iter_input};
+    iter.set_match_func (match_coverage, this);
     struct ContextApplyLookupContext lookup_context = {
-      {match_coverage},
-      this
+      iter
     };
     return_trace (context_apply_lookup (c, glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1), lookupCount, lookupRecord, lookup_context));
   }
@@ -2833,10 +2833,17 @@ struct ChainContextCollectGlyphsLookupContext
   const void *collect_data[3];
 };
 
+struct ChainContextWouldApplyLookupContext
+{
+  ChainContextWouldApplyFuncs funcs;
+  const void *match_data[3];
+};
+
 struct ChainContextApplyLookupContext
 {
-  ChainContextApplyFuncs funcs;
-  const void *match_data[3];
+  skipping_iterator_t &iter_backtrack;
+  skipping_iterator_t &iter_input;
+  skipping_iterator_t &iter_lookahead;
 };
 
 template <typename HBUINT>
@@ -2929,7 +2936,7 @@ static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c
 						     const HBUINT lookahead[] HB_UNUSED,
 						     unsigned int lookupCount HB_UNUSED,
 						     const LookupRecord lookupRecord[] HB_UNUSED,
-						     const ChainContextApplyLookupContext &lookup_context)
+						     const ChainContextWouldApplyLookupContext &lookup_context)
 {
   return (c->zero_context ? !backtrackCount && !lookaheadCount : true)
       && would_match_input (c,
@@ -2954,11 +2961,11 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
   unsigned match_positions[HB_MAX_CONTEXT_LENGTH];
   if (!(match_input (c,
 		     inputCount, input,
-		     lookup_context.funcs.match[1], lookup_context.match_data[1],
+		     lookup_context.iter_input,
 		     &match_end, match_positions) && (end_index = match_end)
        && match_lookahead (c,
 			   lookaheadCount, lookahead,
-			   lookup_context.funcs.match[2], lookup_context.match_data[2],
+			   lookup_context.iter_lookahead,
 			   match_end, &end_index)))
   {
     c->buffer->unsafe_to_concat (c->buffer->idx, end_index);
@@ -2968,7 +2975,7 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
   unsigned start_index = c->buffer->out_len;
   if (!match_backtrack (c,
 			backtrackCount, backtrack,
-			lookup_context.funcs.match[0], lookup_context.match_data[0],
+			lookup_context.iter_backtrack,
 			&start_index))
   {
     c->buffer->unsafe_to_concat_from_outbuffer (start_index, end_index);
@@ -3041,7 +3048,7 @@ struct ChainRule
   }
 
   bool would_apply (hb_would_apply_context_t *c,
-		    const ChainContextApplyLookupContext &lookup_context) const
+		    const ChainContextWouldApplyLookupContext &lookup_context) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
@@ -3221,7 +3228,7 @@ struct ChainRuleSet
   }
 
   bool would_apply (hb_would_apply_context_t *c,
-		    const ChainContextApplyLookupContext &lookup_context) const
+		    const ChainContextWouldApplyLookupContext &lookup_context) const
   {
     return
     + hb_iter (rule)
@@ -3380,7 +3387,7 @@ struct ChainContextFormat1_4
   bool would_apply (hb_would_apply_context_t *c) const
   {
     const ChainRuleSet &rule_set = this+ruleSet[(this+coverage).get_coverage (c->glyphs[0])];
-    struct ChainContextApplyLookupContext lookup_context = {
+    struct ChainContextWouldApplyLookupContext lookup_context = {
       {{match_glyph, match_glyph, match_glyph}},
       {nullptr, nullptr, nullptr}
     };
@@ -3396,9 +3403,12 @@ struct ChainContextFormat1_4
     if (likely (index == NOT_COVERED)) return_trace (false);
 
     const ChainRuleSet &rule_set = this+ruleSet[index];
+    skipping_iterator_t iter_backtrack {c->iter_context}, iter_input {c->iter_input}, iter_lookahead {c->iter_context};
+    iter_backtrack.set_match_func (match_glyph, nullptr);
+    iter_input.set_match_func (match_glyph, nullptr);
+    iter_lookahead.set_match_func (match_glyph, nullptr);
     struct ChainContextApplyLookupContext lookup_context = {
-      {{match_glyph, match_glyph, match_glyph}},
-      {nullptr, nullptr, nullptr}
+      iter_backtrack, iter_input, iter_lookahead,
     };
     return_trace (rule_set.apply (c, lookup_context));
   }
@@ -3591,7 +3601,7 @@ struct ChainContextFormat2_5
 
     unsigned int index = input_class_def.get_class (c->glyphs[0]);
     const ChainRuleSet &rule_set = this+ruleSet[index];
-    struct ChainContextApplyLookupContext lookup_context = {
+    struct ChainContextWouldApplyLookupContext lookup_context = {
       {{match_class, match_class, match_class}},
       {&backtrack_class_def,
        &input_class_def,
@@ -3642,13 +3652,15 @@ struct ChainContextFormat2_5
 
     /* match_class_caches1 is slightly faster. Use it for lookahead,
      * which is typically longer. */
+    skipping_iterator_t iter_backtrack {c->iter_context}, iter_input {c->iter_input}, iter_lookahead {c->iter_context};
+    iter_backtrack.set_match_func (match_class,
+				   &backtrack_class_def);
+    iter_input.set_match_func (cached ? match_class_cached2 : match_class,
+			       &input_class_def);
+    iter_lookahead.set_match_func (cached ? match_class_cached1 : match_class,
+				   &lookahead_class_def);
     struct ChainContextApplyLookupContext lookup_context = {
-      {{match_class,
-        cached ? match_class_cached2 : match_class,
-        cached ? match_class_cached1 : match_class}},
-      {&backtrack_class_def,
-       &input_class_def,
-       &lookahead_class_def}
+      iter_backtrack, iter_input, iter_lookahead,
     };
 
     index = input_class_def.get_class (c->buffer->cur().codepoint);
@@ -3853,7 +3865,7 @@ struct ChainContextFormat3
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
-    struct ChainContextApplyLookupContext lookup_context = {
+    struct ChainContextWouldApplyLookupContext lookup_context = {
       {{match_coverage, match_coverage, match_coverage}},
       {this, this, this}
     };
@@ -3880,9 +3892,12 @@ struct ChainContextFormat3
 
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+    skipping_iterator_t iter_backtrack {c->iter_context}, iter_input {c->iter_input}, iter_lookahead {c->iter_context};
+    iter_backtrack.set_match_func (match_coverage, this);
+    iter_input.set_match_func (match_coverage, this);
+    iter_lookahead.set_match_func (match_coverage, this);
     struct ChainContextApplyLookupContext lookup_context = {
-      {{match_coverage, match_coverage, match_coverage}},
-      {this, this, this}
+      iter_backtrack, iter_input, iter_lookahead,
     };
     return_trace (chain_context_apply_lookup (c,
 					      backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
