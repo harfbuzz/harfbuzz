@@ -2540,11 +2540,7 @@ struct ContextFormat2_5
     if (cached && c->buffer->cur().syllable() < 255)
       index = c->buffer->cur().syllable ();
     else
-    {
       index = class_def.get_class (c->buffer->cur().codepoint);
-      if (cached && index < 255)
-	c->buffer->cur().syllable() = index;
-    }
     const RuleSet &rule_set = this+ruleSet[index];
     return_trace (rule_set.apply (c, lookup_context));
   }
@@ -3651,7 +3647,11 @@ struct ChainContextFormat2_5
        &lookahead_class_def}
     };
 
-    index = input_class_def.get_class (c->buffer->cur().codepoint);
+    // Note: Corresponds to match_class_cached2
+    if (cached && ((c->buffer->cur().syllable() & 0xF0) >> 4) < 15)
+      index = (c->buffer->cur().syllable () & 0xF0) >> 4;
+    else
+      index = input_class_def.get_class (c->buffer->cur().codepoint);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     return_trace (rule_set.apply (c, lookup_context));
   }
