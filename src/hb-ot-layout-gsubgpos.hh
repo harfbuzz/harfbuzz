@@ -2165,7 +2165,9 @@ struct RuleSet
 
     unsigned num_rules = rule.len;
 
-    if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 2)
+#ifndef HB_NO_OT_RULESETS_FAST_PATH
+    if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 4)
+#endif
     {
     slow:
       return_trace (
@@ -3305,7 +3307,9 @@ struct ChainRuleSet
 
     unsigned num_rules = rule.len;
 
-    if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 2)
+#ifndef HB_NO_OT_RULESETS_FAST_PATH
+    if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 4)
+#endif
     {
     slow:
       return_trace (
