@@ -72,11 +72,6 @@ struct LigatureSet
     ;
   }
 
-  static bool match_always (hb_glyph_info_t &info HB_UNUSED, unsigned value HB_UNUSED, const void *data HB_UNUSED)
-  {
-    return true;
-  }
-
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -118,6 +113,8 @@ struct LigatureSet
         goto slow;
       }
     }
+    else
+      goto slow;
 
     bool unsafe_to_concat = false;
 

@@ -1200,6 +1200,10 @@ static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
 }
 
 
+static inline bool match_always (hb_glyph_info_t &info HB_UNUSED, unsigned value HB_UNUSED, const void *data HB_UNUSED)
+{
+  return true;
+}
 static inline bool match_glyph (hb_glyph_info_t &info, unsigned value, const void *data HB_UNUSED)
 {
   return info.codepoint == value;
@@ -2982,6 +2986,9 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 template <typename Types>
 struct ChainRule
 {
+  template <typename T>
+  friend struct ChainRuleSet;
+
   bool intersects (const hb_set_t *glyphs, ChainContextClosureLookupContext &lookup_context) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
@@ -3231,13 +3238,76 @@ struct ChainRuleSet
 	      const ChainContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
-    return_trace (
-    + hb_iter (rule)
-    | hb_map (hb_add (this))
-    | hb_map ([&] (const ChainRule &_) { return _.apply (c, lookup_context); })
-    | hb_any
-    )
-    ;
+
+    unsigned num_rules = rule.len;
+
+    if (HB_OPTIMIZE_SIZE_VAL || num_rules <= 2)
+    {
+    slow:
+      return_trace (
+      + hb_iter (rule)
+      | hb_map (hb_add (this))
+      | hb_map ([&] (const ChainRule &_) { return _.apply (c, lookup_context); })
+      | hb_any
+      )
+      ;
+    }
+
+    /* This version is optimized for speed by matching the first component
+     * of the rule here, instead of calling into the matching code. */
+
+    hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
+    skippy_iter.reset (c->buffer->idx, 1);
+    skippy_iter.set_match_func (match_always, nullptr);
+    skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
+    unsigned unsafe_to;
+    hb_glyph_info_t *first = nullptr;
+    bool matched = skippy_iter.next (&unsafe_to);
+    if (likely (matched))
+    {
+      first = &c->buffer->info[skippy_iter.idx];
+      unsafe_to = skippy_iter.idx + 1;
+
+      if (skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]))
+      {
+	/* Can't use the fast path if eg. the next char is a default-ignorable
+	 * or other skippable. */
+        goto slow;
+      }
+    }
+    else
+      goto slow;
+
+    bool unsafe_to_concat = false;
+
+    for (unsigned int i = 0; i < num_rules; i++)
+    {
+      const auto &r = this+rule.arrayZ[i];
+
+      const auto &input = StructAfter<decltype (r.inputX)> (r.backtrack);
+      const auto &lookahead = StructAfter<decltype (r.lookaheadX)> (input);
+
+      if (input.lenP1 > 1 ?
+	   (!lookup_context.funcs.match[1] ||
+	    lookup_context.funcs.match[1] (*first, input.arrayZ[0], lookup_context.match_data[1]))
+	  :
+	   (!lookahead.len || !lookup_context.funcs.match[2] ||
+	    lookup_context.funcs.match[2] (*first, lookahead.arrayZ[0], lookup_context.match_data[2])))
+      {
+	if (r.apply (c, lookup_context))
+	{
+	  if (unsafe_to_concat)
+	    c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
+	  return_trace (true);
+	}
+      }
+      else
+        unsafe_to_concat = true;
+    }
+    if (likely (unsafe_to_concat))
+      c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
+
+    return_trace (false);
   }
 
   bool subset (hb_subset_context_t *c,
