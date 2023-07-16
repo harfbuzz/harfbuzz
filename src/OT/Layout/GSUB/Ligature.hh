@@ -94,11 +94,10 @@ struct Ligature
     unsigned int match_end = 0;
     unsigned int match_positions[HB_MAX_CONTEXT_LENGTH];
 
-    c->iter_input.set_match_func (match_glyph, nullptr);
-
     if (likely (!match_input (c, count,
                               &component[1],
-                              c->iter_input,
+                              match_glyph,
+                              nullptr,
                               &match_end,
                               match_positions,
                               &total_component_count)))
