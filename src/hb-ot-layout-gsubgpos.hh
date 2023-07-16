@@ -661,6 +661,7 @@ struct hb_ot_apply_context_t :
       return false;
     }
 
+    HB_ALWAYS_INLINE
     hb_codepoint_t
     get_glyph_data ()
     {
@@ -671,6 +672,7 @@ struct hb_ot_apply_context_t :
 #endif
       return 0;
     }
+    HB_ALWAYS_INLINE
     void
     advance_glyph_data ()
     {
