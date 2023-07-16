@@ -3643,7 +3643,7 @@ struct ChainContextFormat2_5
     /* match_class_caches1 is slightly faster. Use it for lookahead,
      * which is typically longer. */
     struct ChainContextApplyLookupContext lookup_context = {
-      {{cached && &backtrack_class_def == &lookahead_class_def ? match_class_cached : match_class,
+      {{match_class,
         cached ? match_class_cached2 : match_class,
         cached ? match_class_cached1 : match_class}},
       {&backtrack_class_def,
