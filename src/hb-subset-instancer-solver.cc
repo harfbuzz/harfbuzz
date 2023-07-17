@@ -392,8 +392,47 @@ static inline float normalizeValue (float v, const Triple &triple, bool extrapol
   }
 }
 
+static inline TripleDistances _reverse_triple_distances (const TripleDistances &v)
+{ return TripleDistances (v.positive, v.negative); }
+
+float renormalizeValue (float v, const Triple &triple,
+                        const TripleDistances &triple_distances, bool extrapolate)
+{
+  float lower = triple.minimum, def = triple.middle, upper = triple.maximum;
+  assert (lower <= def && def <= upper);
+
+  if (!extrapolate)
+      v = hb_max (hb_min (v, upper), lower);
+
+  if (v == def)
+    return 0.f;
+
+  if (def < 0.f)
+    return -renormalizeValue (-v, _reverse_negate (triple),
+                              _reverse_triple_distances (triple_distances), extrapolate);
+
+  /* default >= 0 and v != default */
+  if (v > def)
+    return (v - def) / (upper - def);
+
+  /* v < def */
+  if (lower >= 0.f)
+    return (v - def) / (def - lower);
+
+  /* lower < 0 and v < default */
+  float total_distance = triple_distances.negative * (-lower) + triple_distances.positive * def;
+
+  float v_distance;
+  if (v >= 0.f)
+    v_distance = (def - v) * triple_distances.positive;
+  else
+    v_distance = (-v) * triple_distances.negative + triple_distances.positive * def;
+
+  return (-v_distance) /total_distance;
+}
+
 result_t
-rebase_tent (Triple tent, Triple axisLimit)
+rebase_tent (Triple tent, Triple axisLimit, TripleDistances axis_triple_distances)
 {
   assert (-1.f <= axisLimit.minimum && axisLimit.minimum <= axisLimit.middle && axisLimit.middle <= axisLimit.maximum && axisLimit.maximum <= +1.f);
   assert (-2.f <= tent.minimum && tent.minimum <= tent.middle && tent.middle <= tent.maximum && tent.maximum <= +2.f);
@@ -401,7 +440,7 @@ rebase_tent (Triple tent, Triple axisLimit)
 
   result_t sols = _solve (tent, axisLimit);
 
-  auto n = [&axisLimit] (float v) { return normalizeValue (v, axisLimit, true); };
+  auto n = [&axisLimit, &axis_triple_distances] (float v) { return renormalizeValue (v, axisLimit, axis_triple_distances); };
 
   result_t out;
   for (auto &p : sols)

@@ -930,12 +930,14 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
       new_axis_idx++;
     }
 
-    if (plan->user_axes_location.has (axis_tag))
+    Triple *axis_range;
+    if (plan->user_axes_location.has (axis_tag, &axis_range))
     {
-      Triple axis_range = plan->user_axes_location.get (axis_tag);
-      int normalized_min = axis.normalize_axis_value (axis_range.minimum);
-      int normalized_default = axis.normalize_axis_value (axis_range.middle);
-      int normalized_max = axis.normalize_axis_value (axis_range.maximum);
+      plan->axes_triple_distances.set (axis_tag, axis.get_triple_distances ());
+
+      int normalized_min = axis.normalize_axis_value (axis_range->minimum);
+      int normalized_default = axis.normalize_axis_value (axis_range->middle);
+      int normalized_max = axis.normalize_axis_value (axis_range->maximum);
 
       if (has_avar && old_axis_idx < avar_axis_count)
       {
