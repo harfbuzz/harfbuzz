@@ -253,9 +253,8 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
      *              axisDef      axisMax
      */
     float newUpper = peak + (1 - gain) * (upper - peak);
-    // I feel like the first condition is always true because
-    // outGain >= gain.
-    if (axisMax <= newUpper && newUpper <= axisDef + (axisMax - axisDef) * 2)
+    assert (axisMax <= newUpper);  // Because outGain >= gain
+    if (newUpper <= axisDef + (axisMax - axisDef) * 2)
     {
       upper = newUpper;
       if (!negative && axisDef + (axisMax - axisDef) * MAX_F2DOT14 < upper)

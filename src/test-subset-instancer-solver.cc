@@ -392,5 +392,24 @@ main (int argc, char **argv)
     assert (out[4].first == -1.f);
     assert (out[4].second == Triple (-1.f, -1.f, -2/(float) (1 << 14)));
   }
+
+  {
+    Triple tent (0.f, 1.f, 1.f);
+    Triple axis_range (-1.f, -0.5f, 1.f);
+    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    assert (out.length == 1);
+    assert (out[0].first == 1.f);
+    assert (out[0].second == Triple (1.f/3, 1.f, 1.f));
+  }
+
+  {
+    Triple tent (0.f, 1.f, 1.f);
+    Triple axis_range (-1.f, -0.5f, 1.f);
+    TripleDistances axis_distances{2.f, 1.f};
+    result_t out = rebase_tent (tent, axis_range, axis_distances);
+    assert (out.length == 1);
+    assert (out[0].first == 1.f);
+    assert (out[0].second == Triple (0.5f, 1.f, 1.f));
+  }
 }
 
