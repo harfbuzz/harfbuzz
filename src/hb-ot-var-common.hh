@@ -533,7 +533,8 @@ struct tuple_delta_t
     return *this;
   }
 
-  hb_vector_t<tuple_delta_t> change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit) const
+  hb_vector_t<tuple_delta_t> change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit,
+                                                          TripleDistances axis_triple_distances) const
   {
     hb_vector_t<tuple_delta_t> out;
     Triple *tent;
@@ -553,7 +554,7 @@ struct tuple_delta_t
       return out;
     }
 
-    result_t solutions = rebase_tent (*tent, axis_limit);
+    result_t solutions = rebase_tent (*tent, axis_limit, axis_triple_distances);
     for (auto t : solutions)
     {
       tuple_delta_t new_var = *this;
@@ -1006,16 +1007,21 @@ struct TupleVariationData
       return true;
     }
 
-    void change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple> *normalized_axes_location)
+    void change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
+                                              const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
     {
-      for (auto _ : *normalized_axes_location)
+      for (auto _ : normalized_axes_location)
       {
         hb_tag_t axis_tag = _.first;
         Triple axis_limit = _.second;
+        TripleDistances axis_triple_distances{1.f, 1.f};
+        if (axes_triple_distances.has (axis_tag))
+          axis_triple_distances = axes_triple_distances.get (axis_tag);
+
         hb_vector_t<tuple_delta_t> new_vars;
         for (const tuple_delta_t& var : tuple_vars)
         {
-          hb_vector_t<tuple_delta_t> out = var.change_tuple_var_axis_limit (axis_tag, axis_limit);
+          hb_vector_t<tuple_delta_t> out = var.change_tuple_var_axis_limit (axis_tag, axis_limit, axis_triple_distances);
           if (!out) continue;
           unsigned new_len = new_vars.length + out.length;
 
@@ -1196,9 +1202,10 @@ struct TupleVariationData
       return res;
     }
 
-    void instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location)
+    void instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
+                      const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
     {
-      change_tuple_variations_axis_limits (&normalized_axes_location);
+      change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances);
       merge_tuple_variations ();
     }
 
