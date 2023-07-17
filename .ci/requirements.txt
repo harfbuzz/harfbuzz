@@ -179,9 +179,9 @@ markupsafe==2.1.3 \
     --hash=sha256:e4dd52d80b8c83fdce44e12478ad2e85c64ea965e75d66dbeafb0a3e77308fcc \
     --hash=sha256:fec21693218efe39aa7f8599346e90c705afa52c5b31ae019b2e57e8f6542bb2
     # via jinja2
-meson==1.1.1 \
-    --hash=sha256:1c5a46660dfbe5f45ef7588d78429d04ebdb6f84b96b4b015033572d2facbbe5 \
-    --hash=sha256:d04b541f97ca439fb82fab7d0d480988be4bd4e62563a5ca35fadb5400727b1c
+meson==1.2.0 \
+    --hash=sha256:10c0364edc67a1b3146f405800b300f0535f42b8736e79c744a8029a855b7c6b \
+    --hash=sha256:1c0b634fe6b6a7072e398647f1bf392048577068a5c92ae44d04085dab0ded6f
     # via -r requirements.in
 ninja==1.11.1 \
     --hash=sha256:1c474326e11fba3f8c2582715d79216292e327d3335367c0e87e9647a002cc4a \
