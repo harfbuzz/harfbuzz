@@ -2204,7 +2204,18 @@ struct RuleSet
       }
     }
     else
-      goto slow;
+    {
+      /* Failed to match a next glyph. Only try applying rules that have
+       * no further input. */
+      return_trace (
+      + hb_iter (rule)
+      | hb_map (hb_add (this))
+      | hb_filter ([&] (const Rule &_) { return _.inputCount <= 1; })
+      | hb_map ([&] (const Rule &_) { return _.apply (c, lookup_context); })
+      | hb_any
+      )
+      ;
+    }
 
     bool unsafe_to_concat = false;
 
@@ -3346,7 +3357,18 @@ struct ChainRuleSet
       }
     }
     else
-      goto slow;
+    {
+      /* Failed to match a next glyph. Only try applying rules that have
+       * no further input and lookahead. */
+      return_trace (
+      + hb_iter (rule)
+      | hb_map (hb_add (this))
+      | hb_filter ([&] (const ChainRule &_) { return _.inputX.lenP1 <= 1 && _.lookaheadX.len == 0; })
+      | hb_map ([&] (const ChainRule &_) { return _.apply (c, lookup_context); })
+      | hb_any
+      )
+      ;
+    }
 
     bool unsafe_to_concat = false;
 
