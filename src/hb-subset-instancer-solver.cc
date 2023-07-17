@@ -361,36 +361,6 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
   return out;
 }
 
-/* Normalizes value based on a min/default/max triple. */
-static inline float normalizeValue (float v, const Triple &triple, bool extrapolate = false)
-{
-  /*
-  >>> normalizeValue(400, (100, 400, 900))
-  0.0
-  >>> normalizeValue(100, (100, 400, 900))
-  -1.0
-  >>> normalizeValue(650, (100, 400, 900))
-  0.5
-  */
-  float lower = triple.minimum, def = triple.middle, upper = triple.maximum;
-  assert (lower <= def && def <= upper);
-
-  if (!extrapolate)
-      v = hb_max (hb_min (v, upper), lower);
-
-  if ((v == def) || (lower == upper))
-    return 0.f;
-
-  if ((v < def && lower != def) || (v > def && upper == def))
-    return (v - def) / (def - lower);
-  else
-  {
-    assert ((v > def && upper != def) ||
-	    (v < def && lower == def));
-    return (v - def) / (upper - def);
-  }
-}
-
 static inline TripleDistances _reverse_triple_distances (const TripleDistances &v)
 { return TripleDistances (v.positive, v.negative); }
 
