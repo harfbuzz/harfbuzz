@@ -80,7 +80,10 @@ test_decompile_cvar ()
   hb_hashmap_t<hb_tag_t, Triple> normalized_axes_location;
   normalized_axes_location.set (axis_tag, Triple (-0.512817f, 0.f, 0.700012f));
 
-  tuple_variations.change_tuple_variations_axis_limits (&normalized_axes_location);
+  hb_hashmap_t<hb_tag_t, TripleDistances> axes_triple_distances;
+  axes_triple_distances.set (axis_tag, TripleDistances (1.f, 1.f));
+
+  tuple_variations.change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances);
   tuple_variations.merge_tuple_variations ();
 
   assert (tuple_variations.tuple_vars[0].indices.length == 65);
