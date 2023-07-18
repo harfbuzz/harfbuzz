@@ -2937,8 +2937,28 @@ struct ConditionFormat1
     const hb_map_t *index_map = &c->plan->axes_index_map;
     if (index_map->is_empty ()) return_trace (true);
 
-    if (!index_map->has (axisIndex))
+    const hb_map_t& axes_old_index_tag_map = c->plan->axes_old_index_tag_map;
+    hb_codepoint_t *axis_tag;
+    if (!axes_old_index_tag_map.has (axisIndex, &axis_tag) ||
+        !index_map->has (axisIndex))
       return_trace (false);
+
+    const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location = c->plan->axes_location;
+    Triple axis_limit{-1.f, 0.f, 1.f};
+    Triple *normalized_limit;
+    if (normalized_axes_location.has (*axis_tag, &normalized_limit))
+      axis_limit = *normalized_limit;
+
+    const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances = c->plan->axes_triple_distances;
+    TripleDistances axis_triple_distances{1.f, 1.f};
+    TripleDistances *triple_dists;
+    if (axes_triple_distances.has (*axis_tag, &triple_dists))
+      axis_triple_distances = *triple_dists;
+
+    float normalized_min = renormalizeValue (filterRangeMinValue.to_float (), axis_limit, axis_triple_distances, false);
+    float normalized_max = renormalizeValue (filterRangeMaxValue.to_float (), axis_limit, axis_triple_distances, false);
+    out->filterRangeMinValue.set_float (normalized_min);
+    out->filterRangeMaxValue.set_float (normalized_max);
 
     return_trace (c->serializer->check_assign (out->axisIndex, index_map->get (axisIndex),
                                                HB_SERIALIZE_ERROR_INT_OVERFLOW));

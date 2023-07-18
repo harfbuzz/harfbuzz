@@ -167,7 +167,7 @@ struct cvar
                                      tuple_variations))
       return_trace (false);
 
-    tuple_variations.instantiate (c->plan->axes_location);
+    tuple_variations.instantiate (c->plan->axes_location, c->plan->axes_triple_distances);
     if (!tuple_variations.compile_bytes (c->plan->axes_index_map, c->plan->axes_old_index_tag_map))
       return_trace (false);
 

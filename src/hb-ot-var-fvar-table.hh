@@ -228,6 +228,13 @@ struct AxisRecord
     return defaultValue.to_float ();
   }
 
+  TripleDistances get_triple_distances () const
+  {
+    float min, default_, max;
+    get_coordinates (min, default_, max);
+    return TripleDistances (min, default_, max);
+  }
+
   public:
   Tag		axisTag;	/* Tag identifying the design variation for the axis. */
   protected:
