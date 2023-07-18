@@ -402,16 +402,6 @@ struct hb_ot_apply_context_t :
 {
   struct matcher_t
   {
-    matcher_t () :
-	     lookup_props (0),
-	     mask (-1),
-	     ignore_zwnj (false),
-	     ignore_zwj (false),
-	     per_syllable (false),
-	     syllable {0},
-	     match_func (nullptr),
-	     match_data (nullptr) {}
-
     typedef bool (*match_func_t) (hb_glyph_info_t &info, unsigned value, const void *data);
 
     void set_ignore_zwnj (bool ignore_zwnj_) { ignore_zwnj = ignore_zwnj_; }
@@ -470,14 +460,14 @@ struct hb_ot_apply_context_t :
     }
 
     protected:
-    unsigned int lookup_props;
-    hb_mask_t mask;
-    bool ignore_zwnj;
-    bool ignore_zwj;
-    bool per_syllable;
-    uint8_t syllable;
-    match_func_t match_func;
-    const void *match_data;
+    unsigned int lookup_props = 0;
+    hb_mask_t mask = -1;
+    bool ignore_zwnj = false;
+    bool ignore_zwj = false;
+    bool per_syllable = false;
+    uint8_t syllable = 0;
+    match_func_t match_func = nullptr;
+    const void *match_data = nullptr;
   };
 
   struct skipping_iterator_t
