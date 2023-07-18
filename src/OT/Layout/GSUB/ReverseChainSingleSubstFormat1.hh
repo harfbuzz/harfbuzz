@@ -27,7 +27,6 @@ struct ReverseChainSingleSubstFormat1
                                          * GlyphIDs--ordered by Coverage Index */
   public:
   DEFINE_SIZE_MIN (10);
-  DEFINE_SIZE_MAX (4 + 65536 * (2 * Offset16::static_size + HBGlyphID16::static_size));
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
