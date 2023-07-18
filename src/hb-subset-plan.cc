@@ -945,9 +945,9 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
         normalized_default = seg_maps->map (normalized_default);
         normalized_max = seg_maps->map (normalized_max);
       }
-      plan->axes_location.set (axis_tag, Triple (static_cast<float> (normalized_min),
-                                                 static_cast<float> (normalized_default),
-                                                 static_cast<float> (normalized_max)));
+      plan->axes_location.set (axis_tag, Triple (static_cast<float> (normalized_min / 16384.f),
+                                                 static_cast<float> (normalized_default / 16384.f),
+                                                 static_cast<float> (normalized_max / 16384.f)));
 
       if (normalized_default != 0)
         plan->pinned_at_default = false;

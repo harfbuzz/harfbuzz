@@ -2975,15 +2975,16 @@ struct ConditionFormat1
     hb_tag_t axis_tag = c->axes_index_tag_map->get (axisIndex);
 
     Triple axis_range (-1.f, 0.f, 1.f);
-    if (c->axes_location->has (axis_tag))
-      axis_range = c->axes_location->get (axis_tag);
+    Triple *axis_limit;
+    if (c->axes_location->has (axis_tag, &axis_limit))
+      axis_range = *axis_limit;
 
-    int axis_min_val = axis_range.minimum;
-    int axis_default_val = axis_range.middle;
-    int axis_max_val = axis_range.maximum;
+    float axis_min_val = axis_range.minimum;
+    float axis_default_val = axis_range.middle;
+    float axis_max_val = axis_range.maximum;
 
-    int16_t filter_min_val = filterRangeMinValue.to_int ();
-    int16_t filter_max_val = filterRangeMaxValue.to_int ();
+    float filter_min_val = filterRangeMinValue.to_float ();
+    float filter_max_val = filterRangeMaxValue.to_float ();
 
     if (axis_default_val < filter_min_val ||
         axis_default_val > filter_max_val)
@@ -3003,7 +3004,9 @@ struct ConditionFormat1
     {
       // add axisIndex->value into the hashmap so we can check if the record is
       // unique with variations
-      hb_codepoint_t val = (filter_max_val << 16) + filter_min_val;
+      int16_t int_filter_max_val = filterRangeMaxValue.to_int ();
+      int16_t int_filter_min_val = filterRangeMinValue.to_int ();
+      hb_codepoint_t val = (int_filter_max_val << 16) + int_filter_min_val;
 
       condition_map->set (axisIndex, val);
       return KEEP_COND_WITH_VAR;
