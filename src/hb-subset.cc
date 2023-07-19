@@ -517,9 +517,7 @@ _subset_table (hb_subset_plan_t *plan,
     if (plan->user_axes_location.is_empty ()) return _passthrough (plan, tag);
     return _subset<const OT::fvar> (plan, buf);
   case HB_OT_TAG_STAT:
-    /*TODO(qxliu): change the condition as we support more complex
-     * instancing operation*/
-    if (plan->all_axes_pinned) return _subset<const OT::STAT> (plan, buf);
+    if (!plan->user_axes_location.is_empty ()) return _subset<const OT::STAT> (plan, buf);
     else return _passthrough (plan, tag);
 
   case HB_TAG ('c', 'v', 't', ' '):
