@@ -2241,11 +2241,8 @@ struct RuleSet
 	}
 	else
 	{
-	  if (second)
-	  {
-	    unsafe_to_concat = true;
-	    unsafe_to = unsafe_to2;
-	  }
+	  unsafe_to_concat = true;
+	  unsafe_to = unsafe_to2;
 	}
       }
       else
@@ -3426,11 +3423,8 @@ struct ChainRuleSet
 	}
 	else
 	{
-	  if (second)
-	  {
-	    unsafe_to_concat = true;
-	    unsafe_to = unsafe_to2;
-	  }
+	  unsafe_to_concat = true;
+	  unsafe_to = unsafe_to2;
 	}
       }
       else
