@@ -3403,8 +3403,8 @@ struct ChainRuleSet
 	     (!lookup_context.funcs.match[1] ||
 	      lookup_context.funcs.match[1] (*second, input.arrayZ[1], lookup_context.match_data[1]))
 	     :
-	     (lookahead.len <= 2 - input.lenP1 || !lookup_context.funcs.match[2] ||
-	      lookup_context.funcs.match[2] (*second, lookahead.arrayZ[2 - input.lenP1], lookup_context.match_data[2]))))
+	     (lookahead.len <= 2 - hb_max ((unsigned) input.lenP1, 1u) || !lookup_context.funcs.match[2] ||
+	      lookup_context.funcs.match[2] (*second, lookahead.arrayZ[2 - hb_max ((unsigned) input.lenP1, 1u)], lookup_context.match_data[2]))))
 	{
 	  if (r.apply (c, lookup_context))
 	  {
