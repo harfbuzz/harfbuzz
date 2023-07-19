@@ -2214,8 +2214,6 @@ struct RuleSet
       unsafe_to2 = skippy_iter.idx + 1;
     }
 
-    bool unsafe_to_concat = false;
-
     for (unsigned int i = 0; i < num_rules; i++)
     {
       const auto &r = this+rule.arrayZ[i];
@@ -2234,25 +2232,21 @@ struct RuleSet
 	{
 	  if (r.apply (c, lookup_context))
 	  {
-	    if (unsafe_to_concat)
+	    if (unsafe_to != (unsigned) -1)
 	      c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
 	    return_trace (true);
 	  }
 	}
 	else
-	{
-	  unsafe_to_concat = true;
 	  unsafe_to = unsafe_to2;
-	}
       }
       else
       {
-	unsafe_to_concat = true;
 	if (unsafe_to == (unsigned) -1)
 	  unsafe_to = unsafe_to1;
       }
     }
-    if (likely (unsafe_to_concat))
+    if (likely (unsafe_to != (unsigned) -1))
       c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
 
     return_trace (false);
@@ -3390,8 +3384,6 @@ struct ChainRuleSet
       unsafe_to2 = skippy_iter.idx + 1;
      }
 
-    bool unsafe_to_concat = false;
-
     for (unsigned int i = 0; i < num_rules; i++)
     {
       const auto &r = this+rule.arrayZ[i];
@@ -3416,25 +3408,21 @@ struct ChainRuleSet
 	{
 	  if (r.apply (c, lookup_context))
 	  {
-	    if (unsafe_to_concat)
+	    if (unsafe_to != (unsigned) -1)
 	      c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
 	    return_trace (true);
 	  }
 	}
 	else
-	{
-	  unsafe_to_concat = true;
 	  unsafe_to = unsafe_to2;
-	}
       }
       else
       {
-	unsafe_to_concat = true;
 	if (unsafe_to == (unsigned) -1)
 	  unsafe_to = unsafe_to1;
       }
     }
-    if (likely (unsafe_to_concat))
+    if (likely (unsafe_to != (unsigned) -1))
       c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
 
     return_trace (false);
