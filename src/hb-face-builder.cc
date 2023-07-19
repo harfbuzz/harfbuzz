@@ -211,6 +211,10 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 
 /**
  * TODO(grieger): write me.
+ * - adds a table directory entry, but doesn't include the table bytes in the
+*    final file.
+ * - phantom tables are always the last entries in the directory. Regardless
+ *   of any user provided sort order.
  **/
 hb_bool_t
 hb_face_builder_add_phantom_table (hb_face_t *face,
