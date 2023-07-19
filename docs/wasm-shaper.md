@@ -357,7 +357,7 @@ void debugprint(char* str)
 void debugprint1(char* str, int32 arg1)
 void debugprint2(char* str, int32 arg1, int32 arg2)
 void debugprint3(char* str, int32 arg1, int32 arg2, int32 arg3)
-void debugprint3(
+void debugprint4(
     char* str,
     int32 arg1,
     int32 arg2,
