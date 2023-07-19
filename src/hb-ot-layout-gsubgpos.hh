@@ -3391,7 +3391,8 @@ struct ChainRuleSet
       const auto &input = StructAfter<decltype (r.inputX)> (r.backtrack);
       const auto &lookahead = StructAfter<decltype (r.lookaheadX)> (input);
 
-      if (input.lenP1 > 1 ?
+      unsigned lenP1 = hb_max ((unsigned) input.lenP1, 1u);
+      if (lenP1 > 1 ?
 	   (!lookup_context.funcs.match[1] ||
 	    lookup_context.funcs.match[1] (*first, input.arrayZ[0], lookup_context.match_data[1]))
 	  :
@@ -3399,12 +3400,12 @@ struct ChainRuleSet
 	    lookup_context.funcs.match[2] (*first, lookahead.arrayZ[0], lookup_context.match_data[2])))
       {
         if (!second ||
-	    (input.lenP1 > 2 ?
+	    (lenP1 > 2 ?
 	     (!lookup_context.funcs.match[1] ||
 	      lookup_context.funcs.match[1] (*second, input.arrayZ[1], lookup_context.match_data[1]))
 	     :
-	     (lookahead.len <= 2 - hb_max ((unsigned) input.lenP1, 1u) || !lookup_context.funcs.match[2] ||
-	      lookup_context.funcs.match[2] (*second, lookahead.arrayZ[2 - hb_max ((unsigned) input.lenP1, 1u)], lookup_context.match_data[2]))))
+	     (lookahead.len <= 2 - lenP1 || !lookup_context.funcs.match[2] ||
+	      lookup_context.funcs.match[2] (*second, lookahead.arrayZ[2 - lenP1], lookup_context.match_data[2]))))
 	{
 	  if (r.apply (c, lookup_context))
 	  {
