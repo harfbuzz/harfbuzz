@@ -32,7 +32,6 @@
 #include "hb.hh"
 #include "hb-blob.hh"
 #include "hb-dispatch.hh"
-#include "hb-map.hh"
 
 
 /*
@@ -229,7 +228,6 @@ struct hb_sanitize_context_t :
     this->edit_count = 0;
     this->debug_depth = 0;
     this->recursion_depth = 0;
-    this->sane_coverages.clear ();
 
     DEBUG_MSG_LEVEL (SANITIZE, start, 0, +1,
 		     "start [%p..%p] (%lu bytes)",
@@ -507,7 +505,6 @@ struct hb_sanitize_context_t :
   bool  num_glyphs_set;
   public:
   bool lazy_some_gpos;
-  hb_map_t sane_coverages;
 };
 
 struct hb_sanitize_with_object_t
