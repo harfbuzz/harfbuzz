@@ -62,18 +62,30 @@ struct Coverage
 #endif
   bool sanitize (hb_sanitize_context_t *c) const
   {
+    uintptr_t offset = (uintptr_t) this - (uintptr_t) c->start;
+    if (offset < HB_SET_VALUE_INVALID &&
+	c->sane_coverages.has ((hb_codepoint_t) offset))
+      return true;
+
+    bool ret;
+
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
     switch (u.format)
     {
-    case 1: return_trace (u.format1.sanitize (c));
-    case 2: return_trace (u.format2.sanitize (c));
+    case 1: ret = u.format1.sanitize (c); break;
+    case 2: ret = u.format2.sanitize (c); break;
 #ifndef HB_NO_BEYOND_64K
-    case 3: return_trace (u.format3.sanitize (c));
-    case 4: return_trace (u.format4.sanitize (c));
+    case 3: ret = u.format3.sanitize (c); break;
+    case 4: ret = u.format4.sanitize (c); break;
 #endif
-    default:return_trace (true);
+    default:ret = true; break;
     }
+
+    if (likely (offset < HB_SET_VALUE_INVALID && ret))
+      c->sane_coverages.set ((hb_codepoint_t) offset, 1);
+
+    return_trace (ret);
   }
 
   /* Has interface. */
