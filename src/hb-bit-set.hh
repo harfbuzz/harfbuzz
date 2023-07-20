@@ -30,7 +30,6 @@
 
 #include "hb.hh"
 #include "hb-bit-page.hh"
-#include "hb-machinery.hh"
 
 
 struct hb_bit_set_t
@@ -181,6 +180,16 @@ struct hb_bit_set_t
       page->add_range (major_start (mb), b);
     }
     return true;
+  }
+
+  /* Duplicated here from hb-machinery.hh to avoid including it. */
+  template<typename Type>
+  static inline const Type& StructAtOffsetUnaligned(const void *P, unsigned int offset)
+  {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+    return * reinterpret_cast<const Type*> ((const char *) P + offset);
+#pragma GCC diagnostic pop
   }
 
   template <typename T>
