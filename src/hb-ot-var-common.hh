@@ -719,6 +719,8 @@ struct tuple_delta_t
       }
 
       if (j != rounded_deltas.length) return false;
+      /* reset i because we reuse rounded_deltas for deltas_y */
+      i = 0;
       encoded_len += encode_delta_run (i, compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
     }
     return compiled_deltas.resize (encoded_len);
