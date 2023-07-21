@@ -37,6 +37,7 @@
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-layout-gdef-table.hh"
 
+#define props_cache() var2.u8[2]
 
 namespace OT {
 
@@ -413,6 +414,7 @@ struct hb_ot_apply_context_t :
     void set_match_func (match_func_t match_func_,
 			 const void *match_data_)
     { match_func = match_func_; match_data = match_data_; }
+    void set_cached (bool cached_) { cached = cached_; }
 
     enum may_match_t {
       MATCH_NO,
@@ -446,9 +448,9 @@ struct hb_ot_apply_context_t :
     HB_ALWAYS_INLINE
 #endif
     may_skip_t may_skip (const hb_ot_apply_context_t *c,
-			 const hb_glyph_info_t       &info) const
+			 hb_glyph_info_t       &info) const
     {
-      if (!c->check_glyph_property (&info, lookup_props))
+      if (!c->check_glyph_property (&info, lookup_props, cached))
 	return SKIP_YES;
 
       if (unlikely (_hb_glyph_info_is_default_ignorable_and_not_hidden (&info) &&
@@ -468,6 +470,7 @@ struct hb_ot_apply_context_t :
     uint8_t syllable = 0;
     match_func_t match_func = nullptr;
     const void *match_data = nullptr;
+    bool cached = false;
   };
 
   struct skipping_iterator_t
@@ -490,6 +493,7 @@ struct hb_ot_apply_context_t :
       /* Per syllable matching is only for GSUB. */
       matcher.set_per_syllable (c->table_index == 0 && c->per_syllable);
       matcher.set_syllable (0);
+      matcher.set_cached (c->props_cached);
     }
     void set_lookup_props (unsigned int lookup_props)
     {
@@ -548,7 +552,7 @@ struct hb_ot_apply_context_t :
 #ifndef HB_OPTIMIZE_SIZE
     HB_ALWAYS_INLINE
 #endif
-    may_skip (const hb_glyph_info_t &info) const
+    may_skip (hb_glyph_info_t &info) const
     { return matcher.may_skip (c, info); }
 
     enum match_t {
@@ -713,6 +717,7 @@ struct hb_ot_apply_context_t :
     nesting_level_left--;
     bool ret = recurse_func (this, sub_lookup_index);
     nesting_level_left++;
+
     return ret;
   }
 
@@ -740,6 +745,7 @@ struct hb_ot_apply_context_t :
   bool auto_zwnj = true;
   bool auto_zwj = true;
   bool per_syllable = false;
+  bool props_cached = false;
   bool random = false;
   uint32_t random_state = 1;
   unsigned new_syllables = (unsigned) -1;
@@ -833,21 +839,31 @@ struct hb_ot_apply_context_t :
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  bool check_glyph_property (const hb_glyph_info_t *info,
-			     unsigned int  match_props) const
+  bool check_glyph_property (hb_glyph_info_t *info,
+			     unsigned int  match_props,
+			     bool cached = false) const
   {
+    if (cached && info->props_cache() != 255)
+      return info->props_cache();
+
     unsigned int glyph_props = _hb_glyph_info_get_glyph_props (info);
 
     /* Not covered, if, for example, glyph class is ligature and
      * match_props includes LookupFlags::IgnoreLigatures
      */
+    bool ret;
+
     if (glyph_props & match_props & LookupFlag::IgnoreFlags)
-      return false;
+      ret = false;
+    else if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
+      ret = match_properties_mark (info->codepoint, glyph_props, match_props);
+    else
+      ret = true;
 
-    if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
-      return match_properties_mark (info->codepoint, glyph_props, match_props);
+    if (cached)
+      info->props_cache() = ret;
 
-    return true;
+    return ret;
   }
 
   void _set_glyph_class (hb_codepoint_t glyph_index,
@@ -887,6 +903,8 @@ struct hb_ot_apply_context_t :
     }
     else
       _hb_glyph_info_set_glyph_props (&buffer->cur(), props);
+
+    buffer->cur().props_cache() = 255;
   }
 
   void replace_glyph (hb_codepoint_t glyph_index)
@@ -1348,7 +1366,7 @@ static bool match_input (hb_ot_apply_context_t *c,
 	if (ligbase == LIGBASE_NOT_CHECKED)
 	{
 	  bool found = false;
-	  const auto *out = buffer->out_info;
+	  auto *out = buffer->out_info;
 	  unsigned int j = buffer->out_len;
 	  while (j && _hb_glyph_info_get_lig_id (&out[j - 1]) == first_lig_id)
 	  {
@@ -4394,6 +4412,20 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
   }
 
+  bool props_cache_enter (hb_ot_apply_context_t *c) const
+  {
+    if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, props_cache))
+      return false;
+    auto &info = c->buffer->info;
+    unsigned count = c->buffer->len;
+    for (unsigned i = 0; i < count; i++)
+      info[i].props_cache() = 255;
+    return true;
+  }
+  void props_cache_leave (hb_ot_apply_context_t *c) const
+  {
+    HB_BUFFER_DEALLOCATE_VAR (c->buffer, props_cache);
+  }
 
   hb_set_digest_t digest;
   private:

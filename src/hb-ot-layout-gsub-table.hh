@@ -73,13 +73,21 @@ inline bool SubstLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_app
   const SubstLookup &l = gsub->table->get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   unsigned int saved_lookup_index = c->lookup_index;
+  unsigned int lookup_props = l.get_props ();
+
+  bool saved_props_cached = c->props_cached;
+  if (saved_lookup_props != lookup_props)
+    c->props_cached = false;
+
   c->set_lookup_index (lookup_index);
-  c->set_lookup_props (l.get_props ());
+  c->set_lookup_props (lookup_props);
+
 
   bool ret = false;
   auto *accel = gsub->get_accel (lookup_index);
   ret = accel && accel->apply (c, l.get_subtable_count (), false);
 
+  c->props_cached = saved_props_cached;
   c->set_lookup_index (saved_lookup_index);
   c->set_lookup_props (saved_lookup_props);
   return ret;

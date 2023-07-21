@@ -1857,16 +1857,18 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
 	       unsigned subtable_count)
 {
+  bool use_props_cache = accel.props_cache_enter (c);
   bool use_cache = accel.cache_enter (c);
 
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
+  c->props_cached = use_props_cache;
   while (buffer->idx < buffer->len && buffer->successful)
   {
     bool applied = false;
     if (accel.digest.may_have (buffer->cur().codepoint) &&
 	(buffer->cur().mask & c->lookup_mask) &&
-	c->check_glyph_property (&buffer->cur(), c->lookup_props))
+	c->check_glyph_property (&buffer->cur(), c->lookup_props, use_props_cache))
      {
        applied = accel.apply (c, subtable_count, use_cache);
      }
@@ -1879,6 +1881,8 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 
   if (use_cache)
     accel.cache_leave (c);
+  if (use_props_cache)
+    accel.props_cache_leave (c);
 
   return ret;
 }
