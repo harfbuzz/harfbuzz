@@ -258,7 +258,8 @@ struct hb_sanitize_context_t :
       this->max_ops = -1;
       return false;
     }
-    return (this->max_ops -= (int) count) > 0;
+    this->max_ops -= (int) count;
+    return true;
   }
 
 #ifndef HB_OPTIMIZE_SIZE
