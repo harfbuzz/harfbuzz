@@ -3373,7 +3373,12 @@ struct ChainRuleSet
       return_trace (
       + hb_iter (rule)
       | hb_map (hb_add (this))
-      | hb_filter ([&] (const ChainRule &_) { return _.inputX.lenP1 <= 1 && _.lookaheadX.len == 0; })
+      | hb_filter ([&] (const ChainRule &_)
+		   {
+		     const auto &input = StructAfter<decltype (_.inputX)> (_.backtrack);
+		     const auto &lookahead = StructAfter<decltype (_.lookaheadX)> (input);
+		     return input.lenP1 <= 1 && lookahead.len == 0;
+		   })
       | hb_map ([&] (const ChainRule &_) { return _.apply (c, lookup_context); })
       | hb_any
       )
