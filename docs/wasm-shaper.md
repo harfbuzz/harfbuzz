@@ -506,9 +506,9 @@ pub fn shape(_shape_plan:u32, font_ref: u32, buf_ref: u32, _features: u32, _num_
     let mut buffer = GlyphBuffer::from_ref(buf_ref);
     for mut item in buffer.glyphs.iter_mut() {
         // Map character to glyph
-        item.codepoint = font.get_glyph(codepoint, 0);
+        item.codepoint = font.get_glyph(item.codepoint, 0);
         // Set advance width
-        item.h_advance = font.get_glyph_h_advance(item.codepoint);
+        item.x_advance = font.get_glyph_h_advance(item.codepoint);
     }
     1
 }
