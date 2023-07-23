@@ -370,17 +370,14 @@ Produces a debugging message in the host shaper's log output; the variants `debu
 
 ## Enabling the WASM shaper when building Harfbuzz
 
-First, you will need the `wasm-micro-runtime` library installed on your computer. Download `wasm-micro-runtime` from [its GitHub repository](https://github.com/bytecodealliance/wasm-micro-runtime/tree/main); then follow [the instructions for building](https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/product-mini/README.md), except add the `-DWAMR_BUILD_REF_TYPES=1` flag to the `cmake` line. (You may want to enable "fast JIT".) Follow this with a `make install`.
+First, you will need the `wasm-micro-runtime` library installed on your computer. Download `wasm-micro-runtime` from [its GitHub repository](https://github.com/bytecodealliance/wasm-micro-runtime/tree/main); then follow [the instructions for building](https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/product-mini/README.md), except run the cmake command from the repository root directory and add the `-DWAMR_BUILD_REF_TYPES=1` flag to the `cmake` line. (You may want to enable "fast JIT".) Then, install it.
 
 So, for example:
 
 ```
-$ cd product-mini/platforms/darwin
-$ mkdir build
-$ cd build
-$ cmake .. -DWAMR_BUILD_REF_TYPES=1 -DWAMR_BUILD_FAST_JIT=1
-$ make
-$ make install
+$ cmake -B build -DWAMR_BUILD_REF_TYPES=1 -DWAMR_BUILD_FAST_JIT=1
+$ cmake --build build --parallel
+$ sudo cmake --build build --target install
 ```
 
 (If you don't want to install `wasm-micro-runtime` globally, you can copy `libiwasm.*` and `libvmlib.a` into a directory that your compiler can see when building Harfbuzz.)
