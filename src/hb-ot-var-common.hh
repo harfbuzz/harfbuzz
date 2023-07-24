@@ -876,6 +876,7 @@ struct tuple_delta_t
     if (run_length)
     {
       *it++ = (DELTAS_ARE_WORDS | (run_length - 1));
+      encoded_len++;
       while (start < i)
       {
         int16_t delta_val = deltas[start++];
