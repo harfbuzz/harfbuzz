@@ -718,10 +718,16 @@ struct ArrayOf
     return_trace (out);
   }
 
-  /* Special-case ArrayOf Offset16To structs with a maximum size. */
+  /* Special-case ArrayOf Offset16To structs with a maximum size.
+   *
+   * Currently disabled, because this throws off max_op accounting
+   * and can cause timeouts in further operations.
+   * https://oss-fuzz.com/testcase-detail/6153196517851136
+   */
   template <typename T = Type,
 	    typename Base = void,
-	    hb_enable_if (hb_has_max_size (typename T::target_t) &&
+	    hb_enable_if (false &&
+			  hb_has_max_size (typename T::target_t) &&
 			  sizeof (T) == 2)>
   HB_ALWAYS_INLINE
   bool sanitize (hb_sanitize_context_t *c, const Base *base) const
