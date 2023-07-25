@@ -200,8 +200,8 @@ struct CursivePosFormat1
      * Arabic. */
     unsigned int child  = i;
     unsigned int parent = j;
-    hb_position_t x_offset = entry_x - exit_x;
-    hb_position_t y_offset = entry_y - exit_y;
+    hb_position_t x_offset = roundf (entry_x - exit_x);
+    hb_position_t y_offset = roundf (entry_y - exit_y);
     if  (!(c->lookup_props & LookupFlag::RightToLeft))
     {
       unsigned int k = child;
