@@ -508,6 +508,7 @@ struct tuple_delta_t
       else
       {
         if (!o.indices.arrayZ[i]) continue;
+        indices.arrayZ[i] = true;
         deltas_x[i] = o.deltas_x[i];
         if (deltas_y && o.deltas_y)
           deltas_y[i] = o.deltas_y[i];
@@ -719,6 +720,8 @@ struct tuple_delta_t
       }
 
       if (j != rounded_deltas.length) return false;
+      /* reset i because we reuse rounded_deltas for deltas_y */
+      i = 0;
       encoded_len += encode_delta_run (i, compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
     }
     return compiled_deltas.resize (encoded_len);
@@ -874,6 +877,7 @@ struct tuple_delta_t
     if (run_length)
     {
       *it++ = (DELTAS_ARE_WORDS | (run_length - 1));
+      encoded_len++;
       while (start < i)
       {
         int16_t delta_val = deltas[start++];
