@@ -44,10 +44,11 @@ struct graph_t
     hb_serialize_context_t::object_t obj;
     int64_t distance = 0 ;
     int64_t space = 0 ;
-    hb_vector_t<unsigned> parents;
     unsigned start = 0;
     unsigned end = 0;
     unsigned priority = 0;
+    unsigned incoming_edges_ = 0;
+    hb_hashmap_t<unsigned, unsigned> parents;
 
 
     bool link_positions_valid (unsigned num_objects, bool removed_nil)
@@ -144,6 +145,7 @@ struct graph_t
       hb_swap (a.distance, b.distance);
       hb_swap (a.space, b.space);
       hb_swap (a.parents, b.parents);
+      hb_swap (a.incoming_edges_, b.incoming_edges_);
       hb_swap (a.start, b.start);
       hb_swap (a.end, b.end);
       hb_swap (a.priority, b.priority);
@@ -164,22 +166,36 @@ struct graph_t
 
     bool is_shared () const
     {
-      return parents.length > 1;
+      return parents.get_population () > 1;
     }
 
     unsigned incoming_edges () const
     {
-      return parents.length;
+      return incoming_edges_;
+    }
+
+    void reset_parents ()
+    {
+      incoming_edges_ = 0;
+      parents.reset ();
+    }
+
+    void add_parent (unsigned parent_index)
+    {
+      incoming_edges_++;
+      parents.set (parent_index, parents[parent_index] + 1);
     }
 
     void remove_parent (unsigned parent_index)
     {
-      unsigned count = parents.length;
-      for (unsigned i = 0; i < count; i++)
+      unsigned *v;
+      if (parents.has (parent_index, &v))
       {
-        if (parents.arrayZ[i] != parent_index) continue;
-        parents.remove_unordered (i);
-        break;
+	incoming_edges_--;
+	if (*v > 1)
+	  *v -= 1;
+	else
+	  parents.del (parent_index);
       }
     }
 
@@ -202,21 +218,35 @@ struct graph_t
 
     void remap_parents (const hb_vector_t<unsigned>& id_map)
     {
-      unsigned count = parents.length;
-      for (unsigned i = 0; i < count; i++)
-        parents.arrayZ[i] = id_map[parents.arrayZ[i]];
+      if (parents.get_population () == 1)
+      {
+        // Fast path for the common case.
+        const auto &_ = *parents.iter_ref ();
+        unsigned old_index = _.first;
+	unsigned new_index = id_map[old_index];
+	if (old_index != new_index)
+	{
+	  unsigned v = _.second;
+	  parents.del (old_index);
+	  parents.set (new_index, v);
+	}
+	return;
+      }
+
+      hb_map_t new_parents;
+      new_parents.alloc (parents.get_population ());
+      for (auto _ : parents)
+        new_parents.set (id_map[_.first], _.second);
+
+      parents = std::move (new_parents);
     }
 
     void remap_parent (unsigned old_index, unsigned new_index)
     {
-      unsigned count = parents.length;
-      for (unsigned i = 0; i < count; i++)
+      if (parents.has (old_index))
       {
-        if (parents.arrayZ[i] == old_index)
-	{
-	  parents.arrayZ[i] = new_index;
-	  break;
-	}
+	remove_parent (old_index);
+	add_parent (new_index);
       }
     }
 
@@ -423,7 +453,7 @@ struct graph_t
     link->width = 2;
     link->objidx = child_id;
     link->position = (char*) offset - (char*) v.obj.head;
-    vertices_[child_id].parents.push (parent_id);
+    vertices_[child_id].add_parent (parent_id);
   }
 
   /*
@@ -609,7 +639,7 @@ struct graph_t
   {
     unsigned child_idx = index_for_offset (node_idx, offset);
     auto& child = vertices_[child_idx];
-    for (unsigned p : child.parents)
+    for (unsigned p : child.parents.keys ())
     {
       if (p != node_idx) {
         return duplicate (node_idx, child_idx);
@@ -828,7 +858,7 @@ struct graph_t
     new_link->position = (const char*) new_offset - (const char*) new_v.obj.head;
 
     auto& child = vertices_[child_id];
-    child.parents.push (new_parent_idx);
+    child.add_parent (new_parent_idx);
 
     old_v.remove_real_link (child_id, old_offset);
     child.remove_parent (old_parent_idx);
@@ -872,18 +902,18 @@ struct graph_t
     clone->obj.tail = child.obj.tail;
     clone->distance = child.distance;
     clone->space = child.space;
-    clone->parents.reset ();
+    clone->reset_parents ();
 
     unsigned clone_idx = vertices_.length - 2;
     for (const auto& l : child.obj.real_links)
     {
       clone->obj.real_links.push (l);
-      vertices_[l.objidx].parents.push (clone_idx);
+      vertices_[l.objidx].add_parent (clone_idx);
     }
     for (const auto& l : child.obj.virtual_links)
     {
       clone->obj.virtual_links.push (l);
-      vertices_[l.objidx].parents.push (clone_idx);
+      vertices_[l.objidx].add_parent (clone_idx);
     }
 
     check_success (!clone->obj.real_links.in_error ());
@@ -1136,7 +1166,7 @@ struct graph_t
       return 0;
     }
 
-    return space_for (node.parents[0], root);
+    return space_for (*node.parents.keys (), root);
   }
 
   void err_other_error () { this->successful = false; }
@@ -1160,12 +1190,8 @@ struct graph_t
   unsigned wide_parents (unsigned node_idx, hb_set_t& parents) const
   {
     unsigned count = 0;
-    hb_set_t visited;
-    for (unsigned p : vertices_[node_idx].parents)
+    for (unsigned p : vertices_[node_idx].parents.keys ())
     {
-      if (visited.has (p)) continue;
-      visited.add (p);
-
       // Only real links can be wide
       for (const auto& l : vertices_[p].obj.real_links)
       {
@@ -1195,13 +1221,13 @@ struct graph_t
     unsigned count = vertices_.length;
 
     for (unsigned i = 0; i < count; i++)
-      vertices_.arrayZ[i].parents.reset ();
+      vertices_.arrayZ[i].reset_parents ();
 
     for (unsigned p = 0; p < count; p++)
     {
       for (auto& l : vertices_.arrayZ[p].obj.all_links ())
       {
-        vertices_[l.objidx].parents.push (p);
+        vertices_[l.objidx].add_parent (p);
       }
     }
 
@@ -1309,7 +1335,7 @@ struct graph_t
     unsigned old_idx = link.objidx;
     link.objidx = new_idx;
     vertices_[old_idx].remove_parent (parent_idx);
-    vertices_[new_idx].parents.push (parent_idx);
+    vertices_[new_idx].add_parent (parent_idx);
   }
 
   /*
@@ -1379,7 +1405,7 @@ struct graph_t
     for (const auto& l : v.obj.all_links ())
       find_connected_nodes (l.objidx, targets, visited, connected);
 
-    for (unsigned p : v.parents)
+    for (unsigned p : v.parents.keys ())
       find_connected_nodes (p, targets, visited, connected);
   }
 
