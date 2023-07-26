@@ -508,6 +508,7 @@ struct tuple_delta_t
       else
       {
         if (!o.indices.arrayZ[i]) continue;
+        indices.arrayZ[i] = true;
         deltas_x[i] = o.deltas_x[i];
         if (deltas_y && o.deltas_y)
           deltas_y[i] = o.deltas_y[i];
