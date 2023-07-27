@@ -61,7 +61,7 @@ struct graph_t
       )
     )
 
-    bool parents_in_error () const
+    bool in_error () const
     {
       return parents.in_error ();
     }
@@ -1274,7 +1274,7 @@ struct graph_t
     for (unsigned i = 0; i < count; i++)
       // parents arrays must be accurate or downstream operations like cycle detection
       // and sorting won't work correctly.
-      check_success (!vertices_.arrayZ[i].parents_in_error ());
+      check_success (!vertices_.arrayZ[i].in_error ());
 
     parents_invalid = false;
   }
