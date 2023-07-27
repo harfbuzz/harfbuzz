@@ -49,7 +49,7 @@ _mplus_instance_opts[] =
 template <typename Type, unsigned int n>
 static inline unsigned int ARRAY_LEN (const Type (&)[n]) { return n; }
 
-#define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
+#define MONSTER_FONTS "harfbuzz-monster-fonts/"
 
 struct test_input_t
 {
@@ -59,19 +59,19 @@ struct test_input_t
   unsigned num_instance_opts;
 } default_tests[] =
 {
-  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf", 1000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "Amiri-Regular.ttf", 4096, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf", 1400, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf", 1000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "Mplus1p-Regular.ttf", 10000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "SourceHanSans-Regular_subset.otf", 10000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf", 2000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf", 300, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "MPLUS1-Variable.ttf", 6000, _mplus_instance_opts, ARRAY_LEN (_mplus_instance_opts)},
-  {SUBSET_FONT_BASE_PATH "RobotoFlex-Variable.ttf", 900, _roboto_flex_instance_opts, ARRAY_LEN (_roboto_flex_instance_opts)},
-#if 0
-  {"perf/fonts/NotoSansCJKsc-VF.ttf", 100000},
-#endif
+  {MONSTER_FONTS "Roboto-Regular.ttf", 1000, nullptr, 0},
+  {MONSTER_FONTS "Amiri-Regular.ttf", 4096, nullptr, 0},
+  {MONSTER_FONTS "Gulzar-Regular.ttf", 1024, nullptr, 0},
+  {MONSTER_FONTS "NotoNastaliqUrdu-Regular.ttf", 1400, nullptr, 0},
+  {MONSTER_FONTS "NotoSansDevanagari-Regular.ttf", 1000, nullptr, 0},
+  {MONSTER_FONTS "Mplus1p-Regular.ttf", 10000, nullptr, 0},
+  {MONSTER_FONTS "NotoSansCJKkr-Regular.otf", 10000, nullptr, 0},
+  {MONSTER_FONTS "SourceHanSans-VF.otf", 65535, nullptr, 0},
+  {MONSTER_FONTS "SourceSerif4Variable-Roman.otf", 1400, nullptr, 0},
+  {MONSTER_FONTS "AdobeVFPrototype.otf", 300, nullptr, 0},
+  {MONSTER_FONTS "Duployan-Regular.otf", 13000, nullptr, 0},
+  {MONSTER_FONTS "MPLUS1-Variable.ttf", 6000, _mplus_instance_opts, ARRAY_LEN (_mplus_instance_opts)},
+  {MONSTER_FONTS "RobotoFlex.ttf", 900, _roboto_flex_instance_opts, ARRAY_LEN (_roboto_flex_instance_opts)},
 };
 
 static test_input_t *tests = default_tests;
