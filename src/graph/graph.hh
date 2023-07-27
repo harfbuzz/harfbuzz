@@ -213,6 +213,7 @@ struct graph_t
 
       if (parents.set (parent_index, parents[parent_index] + 1))
 	incoming_edges_++;
+      //
     }
 
     void remove_parent (unsigned parent_index)
