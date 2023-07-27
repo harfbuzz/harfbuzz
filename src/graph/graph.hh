@@ -211,8 +211,8 @@ struct graph_t
 	single_parent = (unsigned) -1;
       }
 
-      incoming_edges_++;
-      parents.set (parent_index, parents[parent_index] + 1);
+      if (parents.set (parent_index, parents[parent_index] + 1))
+	incoming_edges_++;
     }
 
     void remove_parent (unsigned parent_index)
