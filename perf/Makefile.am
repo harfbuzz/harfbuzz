@@ -12,7 +12,6 @@ EXTRA_DIST += \
 	benchmark-set.cc \
 	benchmark-shape.cc \
 	benchmark-subset.cc \
-	fonts \
 	texts \
 	$(NULL)
 

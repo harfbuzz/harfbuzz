@@ -13,7 +13,7 @@
 #include "hb-ft.h"
 #endif
 
-#define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
+#define MONSTER_FONTS "harfbuzz-monster-fonts/"
 
 struct test_input_t
 {
@@ -23,33 +23,37 @@ struct test_input_t
 } default_tests[] =
 {
 
-  {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+  {MONSTER_FONTS "NotoNastaliqUrdu-Regular.ttf",
    "perf/texts/fa-thelittleprince.txt",
    false},
 
-  {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+  {MONSTER_FONTS "NotoNastaliqUrdu-Regular.ttf",
    "perf/texts/fa-words.txt",
    false},
 
-  {"perf/fonts/Amiri-Regular.ttf",
+  {MONSTER_FONTS "Amiri-Regular.ttf",
    "perf/texts/fa-thelittleprince.txt",
    false},
 
-  {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf",
+  {MONSTER_FONTS "NotoSansDevanagari-Regular.ttf",
    "perf/texts/hi-words.txt",
    false},
 
-  {"perf/fonts/Roboto-Regular.ttf",
+  {MONSTER_FONTS "Roboto-Regular.ttf",
    "perf/texts/en-thelittleprince.txt",
    false},
 
-  {"perf/fonts/Roboto-Regular.ttf",
+  {MONSTER_FONTS "Roboto-Regular.ttf",
    "perf/texts/en-words.txt",
    false},
 
-  {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
+  {MONSTER_FONTS "SourceSerifVariable-Roman.ttf",
    "perf/texts/en-thelittleprince.txt",
    true},
+
+  {MONSTER_FONTS "Duployan-Regular.ttf",
+   "perf/texts/duployan.txt",
+   false},
 };
 
 static test_input_t *tests = default_tests;

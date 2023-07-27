@@ -13,7 +13,7 @@
 #endif
 
 
-#define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
+#define MONSTER_FONTS "harfbuzz-monster-fonts/"
 
 struct test_input_t
 {
@@ -21,14 +21,13 @@ struct test_input_t
   const char *font_path;
 } default_tests[] =
 {
-  {false, SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
-  {true , SUBSET_FONT_BASE_PATH "RobotoFlex-Variable.ttf"},
-  {false, SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
-  {true , SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
-  {true , SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
-  {false, SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
-  {false, SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf"},
-  {false, SUBSET_FONT_BASE_PATH "NotoSerifMyanmar-Regular.otf"},
+  {false, MONSTER_FONTS "Roboto-Regular.ttf"},
+  {true , MONSTER_FONTS "RobotoFlex.ttf"},
+  {false, MONSTER_FONTS "Amiri-Regular.ttf"},
+  {false, MONSTER_FONTS "NotoNastaliqUrdu-Regular.ttf"},
+  {true , MONSTER_FONTS "AdobeVFPrototype.otf"},
+  {false, MONSTER_FONTS "SourceSerif4Variable-Roman.otf"},
+  {true , MONSTER_FONTS "SourceHanSans-VF.otf"},
 };
 
 static test_input_t *tests = default_tests;
