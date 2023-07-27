@@ -222,14 +222,14 @@ struct number_t
   void set_int (int v)       { value = v; }
   int to_int () const        { return value; }
 
-  void set_fixed (int32_t v) { value = v / 65536.0; }
-  int32_t to_fixed () const  { return value * 65536.0; }
+  void set_fixed (int32_t v) { value = v / 65536.0f; }
+  int32_t to_fixed () const  { return value * 65536.0f; }
 
-  void set_real (double v)   { value = v; }
-  double to_real () const    { return value; }
+  void set_real (float v)   { value = v; }
+  float to_real () const    { return value; }
 
   bool in_int_range () const
-  { return ((double) (int16_t) to_int () == value); }
+  { return ((float) (int16_t) to_int () == value); }
 
   bool operator >  (const number_t &n) const { return value > n.to_real (); }
   bool operator <  (const number_t &n) const { return n > *this; }
@@ -244,7 +244,7 @@ struct number_t
   }
 
   protected:
-  double value = 0.;
+  float value = 0.;
 };
 
 /* byte string */
@@ -439,7 +439,7 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
     n.set_fixed (v);
   }
 
-  void push_real (double v)
+  void push_real (float v)
   {
     ARG &n = S::push ();
     n.set_real (v);

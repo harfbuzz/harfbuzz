@@ -37,7 +37,7 @@ struct blend_arg_t : number_t
 {
   void set_int (int v) { reset_blends (); number_t::set_int (v); }
   void set_fixed (int32_t v) { reset_blends (); number_t::set_fixed (v); }
-  void set_real (double v) { reset_blends (); number_t::set_real (v); }
+  void set_real (float v) { reset_blends (); number_t::set_real (v); }
 
   void set_blends (unsigned int numValues_, unsigned int valueIndex_,
 		   hb_array_t<const blend_arg_t> blends_)
@@ -148,16 +148,16 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
   void	 set_ivs (unsigned int ivs_) { ivs = ivs_; }
   bool	 seen_vsindex () const { return seen_vsindex_; }
 
-  double blend_deltas (hb_array_t<const ELEM> deltas) const
+  float blend_deltas (hb_array_t<const ELEM> deltas) const
   {
-    double v = 0;
+    float v = 0;
     if (do_blend)
     {
       if (likely (scalars.length == deltas.length))
       {
         unsigned count = scalars.length;
 	for (unsigned i = 0; i < count; i++)
-	  v += (double) scalars.arrayZ[i] * deltas.arrayZ[i].to_real ();
+	  v += (float) scalars.arrayZ[i] * deltas.arrayZ[i].to_real ();
       }
     }
     return v;
