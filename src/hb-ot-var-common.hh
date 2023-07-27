@@ -1222,8 +1222,7 @@ struct TupleVariationData
       TRACE_SERIALIZE (this);
       for (const auto& tuple: tuple_vars)
       {
-        hb_bytes_t compiled_bytes {tuple.compiled_tuple_header.arrayZ, tuple.compiled_tuple_header.length};
-        compiled_bytes.copy (c);
+        tuple.compiled_tuple_header.as_array ().copy (c);
         if (c->in_error ()) return_trace (false);
         total_header_len += tuple.compiled_tuple_header.length;
       }
@@ -1241,8 +1240,7 @@ struct TupleVariationData
           return_trace (false);
 
         point_data->copy (c);
-        hb_bytes_t compiled_bytes {tuple.compiled_deltas.arrayZ, tuple.compiled_deltas.length};
-        compiled_bytes.copy (c);
+        tuple.compiled_deltas.as_array ().copy (c);
         if (c->in_error ()) return_trace (false);
       }
       return_trace (true);
