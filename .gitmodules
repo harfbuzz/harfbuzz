@@ -1,0 +1,3 @@
+[submodule "harfbuzz-monster-fonts"]
+	path = harfbuzz-monster-fonts
+	url = git@github.com:harfbuzz/harfbuzz-monster-fonts
