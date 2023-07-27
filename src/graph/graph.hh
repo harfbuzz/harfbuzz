@@ -49,12 +49,16 @@ struct graph_t
     unsigned priority = 0;
     private:
     unsigned incoming_edges_ = 0;
+    unsigned single_parent = (unsigned) -1;
     hb_hashmap_t<unsigned, unsigned> parents;
     public:
 
-    auto parents_iter () const HB_AUTO_RETURN
+    const auto parents_iter () const HB_AUTO_RETURN
     (
-      parents.keys ()
+      hb_concat (
+	hb_iter (&single_parent, single_parent != (unsigned) -1),
+	parents.keys_ref ()
+      )
     )
 
     bool parents_in_error () const
@@ -155,6 +159,7 @@ struct graph_t
       hb_swap (a.obj, b.obj);
       hb_swap (a.distance, b.distance);
       hb_swap (a.space, b.space);
+      hb_swap (a.single_parent, b.single_parent);
       hb_swap (a.parents, b.parents);
       hb_swap (a.incoming_edges_, b.incoming_edges_);
       hb_swap (a.start, b.start);
@@ -188,17 +193,37 @@ struct graph_t
     void reset_parents ()
     {
       incoming_edges_ = 0;
+      single_parent = (unsigned) -1;
       parents.reset ();
     }
 
     void add_parent (unsigned parent_index)
     {
+      if (incoming_edges_ == 0)
+      {
+	single_parent = parent_index;
+	incoming_edges_ = 1;
+	return;
+      }
+      else if (single_parent != (unsigned) -1)
+      {
+	parents.set (single_parent, 1);
+	single_parent = (unsigned) -1;
+      }
+
       incoming_edges_++;
       parents.set (parent_index, parents[parent_index] + 1);
     }
 
     void remove_parent (unsigned parent_index)
     {
+      if (parent_index == single_parent)
+      {
+	single_parent = (unsigned) -1;
+	incoming_edges_--;
+	return;
+      }
+
       unsigned *v;
       if (parents.has (parent_index, &v))
       {
@@ -207,6 +232,12 @@ struct graph_t
 	  *v -= 1;
 	else
 	  parents.del (parent_index);
+
+	if (incoming_edges_ == 1)
+	{
+	  single_parent = *parents.keys ();
+	  parents.reset ();
+	}
       }
     }
 
@@ -229,18 +260,9 @@ struct graph_t
 
     void remap_parents (const hb_vector_t<unsigned>& id_map)
     {
-      if (parents.get_population () == 1)
+      if (single_parent != (unsigned) -1)
       {
-        // Fast path for the common case.
-        const auto &_ = *parents.iter_ref ();
-        unsigned old_index = _.first;
-	unsigned new_index = id_map[old_index];
-	if (old_index != new_index)
-	{
-	  unsigned v = _.second;
-	  parents.del (old_index);
-	  parents.set (new_index, v);
-	}
+	single_parent = id_map[single_parent];
 	return;
       }
 
@@ -254,6 +276,13 @@ struct graph_t
 
     void remap_parent (unsigned old_index, unsigned new_index)
     {
+      if (single_parent != (unsigned) -1)
+      {
+        if (single_parent == old_index)
+	  single_parent = new_index;
+        return;
+      }
+
       if (parents.has (old_index))
       {
 	remove_parent (old_index);
