@@ -53,7 +53,7 @@ struct graph_t
     hb_hashmap_t<unsigned, unsigned> parents;
     public:
 
-    const auto parents_iter () const HB_AUTO_RETURN
+    auto parents_iter () const HB_AUTO_RETURN
     (
       hb_concat (
 	hb_iter (&single_parent, single_parent != (unsigned) -1),
@@ -266,7 +266,7 @@ struct graph_t
 	return;
       }
 
-      hb_map_t new_parents;
+      hb_hashmap_t<unsigned, unsigned> new_parents;
       new_parents.alloc (parents.get_population ());
       for (auto _ : parents)
         new_parents.set (id_map[_.first], _.second);
