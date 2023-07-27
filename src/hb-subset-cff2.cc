@@ -266,14 +266,14 @@ struct cff2_private_blend_encoder_param_t
     }
   }
 
-  float blend_deltas (hb_array_t<const number_t> deltas) const
+  double blend_deltas (hb_array_t<const number_t> deltas) const
   {
-    float v = 0;
+    double v = 0;
     if (likely (scalars.length == deltas.length))
     {
       unsigned count = scalars.length;
       for (unsigned i = 0; i < count; i++)
-	v += (float) scalars.arrayZ[i] * deltas.arrayZ[i].to_real ();
+	v += (double) scalars.arrayZ[i] * deltas.arrayZ[i].to_real ();
     }
     return v;
   }

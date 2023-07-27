@@ -78,7 +78,7 @@ struct dict_opset_t : opset_t<number_t>
   }
 
   /* Turns CFF's BCD format into strtod understandable string */
-  static float parse_bcd (byte_str_ref_t& str_ref)
+  static double parse_bcd (byte_str_ref_t& str_ref)
   {
     if (unlikely (str_ref.in_error ())) return .0;
 
@@ -107,7 +107,7 @@ struct dict_opset_t : opset_t<number_t>
 	double pv;
 	if (unlikely (!hb_parse_double (&p, p + count, &pv, true/* whole buffer */)))
 	  break;
-	return (float) pv;
+	return pv;
       }
       else
       {
