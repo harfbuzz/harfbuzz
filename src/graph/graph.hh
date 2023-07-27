@@ -47,9 +47,20 @@ struct graph_t
     unsigned start = 0;
     unsigned end = 0;
     unsigned priority = 0;
+    private:
     unsigned incoming_edges_ = 0;
     hb_hashmap_t<unsigned, unsigned> parents;
+    public:
 
+    auto parents_iter () const HB_AUTO_RETURN
+    (
+      parents.keys ()
+    )
+
+    bool parents_in_error () const
+    {
+      return parents.in_error ();
+    }
 
     bool link_positions_valid (unsigned num_objects, bool removed_nil)
     {
@@ -639,7 +650,7 @@ struct graph_t
   {
     unsigned child_idx = index_for_offset (node_idx, offset);
     auto& child = vertices_[child_idx];
-    for (unsigned p : child.parents.keys ())
+    for (unsigned p : child.parents_iter ())
     {
       if (p != node_idx) {
         return duplicate (node_idx, child_idx);
@@ -1042,13 +1053,13 @@ struct graph_t
   {
     update_parents();
 
-    if (root().parents)
+    if (root().incoming_edges ())
       // Root cannot have parents.
       return false;
 
     for (unsigned i = 0; i < root_idx (); i++)
     {
-      if (!vertices_[i].parents)
+      if (!vertices_[i].incoming_edges ())
         return false;
     }
     return true;
@@ -1112,14 +1123,14 @@ struct graph_t
     parents_invalid = true;
     update_parents();
 
-    if (root().parents) {
+    if (root().incoming_edges ()) {
       DEBUG_MSG (SUBSET_REPACK, nullptr, "Root node has incoming edges.");
     }
 
     for (unsigned i = 0; i < root_idx (); i++)
     {
       const auto& v = vertices_[i];
-      if (!v.parents)
+      if (!v.incoming_edges ())
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Node %u is orphaned.", i);
     }
   }
@@ -1159,14 +1170,14 @@ struct graph_t
       return node.space;
     }
 
-    if (!node.parents)
+    if (!node.incoming_edges ())
     {
       if (root)
         *root = index;
       return 0;
     }
 
-    return space_for (*node.parents.keys (), root);
+    return space_for (*node.parents_iter (), root);
   }
 
   void err_other_error () { this->successful = false; }
@@ -1190,7 +1201,7 @@ struct graph_t
   unsigned wide_parents (unsigned node_idx, hb_set_t& parents) const
   {
     unsigned count = 0;
-    for (unsigned p : vertices_[node_idx].parents.keys ())
+    for (unsigned p : vertices_[node_idx].parents_iter ())
     {
       // Only real links can be wide
       for (const auto& l : vertices_[p].obj.real_links)
@@ -1234,7 +1245,7 @@ struct graph_t
     for (unsigned i = 0; i < count; i++)
       // parents arrays must be accurate or downstream operations like cycle detection
       // and sorting won't work correctly.
-      check_success (!vertices_.arrayZ[i].parents.in_error ());
+      check_success (!vertices_.arrayZ[i].parents_in_error ());
 
     parents_invalid = false;
   }
@@ -1405,7 +1416,7 @@ struct graph_t
     for (const auto& l : v.obj.all_links ())
       find_connected_nodes (l.objidx, targets, visited, connected);
 
-    for (unsigned p : v.parents.keys ())
+    for (unsigned p : v.parents_iter ())
       find_connected_nodes (p, targets, visited, connected);
   }
 
