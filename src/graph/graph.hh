@@ -43,7 +43,7 @@ struct graph_t
   {
     hb_serialize_context_t::object_t obj;
     int64_t distance = 0 ;
-    int64_t space = 0 ;
+    unsigned space = 0 ;
     unsigned start = 0;
     unsigned end = 0;
     unsigned priority = 0;
