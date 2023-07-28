@@ -1045,6 +1045,36 @@ _update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
   if (vvar_store_cache)
     _vmtx.var_table->get_var_store ().destroy_cache (vvar_store_cache);
 }
+
+static bool
+_get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
+{
+  /* contour_points vector only needed for updating gvar table (infer delta)
+   * during partial instancing */
+  if (plan->user_axes_location.is_empty () || plan->all_axes_pinned)
+    return true;
+
+  OT::glyf_accelerator_t glyf (plan->source);
+
+  for (auto &_ : plan->new_to_old_gid_list)
+  {
+    hb_codepoint_t new_gid = _.first;
+    contour_point_vector_t all_points;
+    if (new_gid == 0 && !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
+    {
+      if (unlikely (!plan->new_gid_contour_points_map.set (new_gid, all_points)))
+        return false;
+      continue;
+    }
+
+    hb_codepoint_t old_gid = _.second;
+    if (unlikely (!glyf.glyph_for_gid (old_gid).get_all_points_without_var (plan->source, all_points)))
+      return false;
+    if (unlikely (!plan->new_gid_contour_points_map.set (new_gid, all_points)))
+      return false;
+  }
+  return true;
+}
 #endif
 
 hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
@@ -1148,6 +1178,8 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 
 #ifndef HB_NO_VAR
   _update_instance_metrics_map_from_cff2 (this);
+  if (!check_success (_get_instance_glyphs_contour_points (this)))
+      return;
 #endif
 
   if (attach_accelerator_data)

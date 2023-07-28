@@ -103,6 +103,63 @@ struct Glyph
     }
   }
 
+  bool get_all_points_without_var (const hb_face_t *face,
+                                   contour_point_vector_t &points /* OUT */) const
+  {
+    switch (type) {
+    case SIMPLE:
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points)))
+        return false;
+      break;
+    case COMPOSITE:
+    {
+      for (auto &item : get_composite_iterator ())
+        if (unlikely (!item.get_points (points))) return false;
+      break;
+    }
+#ifndef HB_NO_VAR_COMPOSITES
+    case VAR_COMPOSITE:
+    {
+      for (auto &item : get_var_composite_iterator ())
+        if (unlikely (!item.get_points (points))) return false;
+      break;
+    }
+#endif
+    case EMPTY:
+      break;
+    }
+
+    /* Init phantom points */
+    if (unlikely (!points.resize (points.length + PHANTOM_COUNT))) return false;
+    hb_array_t<contour_point_t> phantoms = points.as_array ().sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
+    {
+      int lsb = 0;
+      int h_delta = face->table.hmtx->get_leading_bearing_without_var_unscaled (gid, &lsb) ?
+                    (int) header->xMin - lsb : 0;
+      HB_UNUSED int tsb = 0;
+      int v_orig  = (int) header->yMax +
+#ifndef HB_NO_VERTICAL
+                    ((void) face->table.vmtx->get_leading_bearing_without_var_unscaled (gid, &tsb), tsb)
+#else
+                    0
+#endif
+                    ;
+      unsigned h_adv = face->table.hmtx->get_advance_without_var_unscaled (gid);
+      unsigned v_adv =
+#ifndef HB_NO_VERTICAL
+                       face->table.vmtx->get_advance_without_var_unscaled (gid)
+#else
+                       - face->get_upem ()
+#endif
+                       ;
+      phantoms[PHANTOM_LEFT].x = h_delta;
+      phantoms[PHANTOM_RIGHT].x = (int) h_adv + h_delta;
+      phantoms[PHANTOM_TOP].y = v_orig;
+      phantoms[PHANTOM_BOTTOM].y = v_orig - (int) v_adv;
+    }
+    return true;
+  }
+
   void update_mtx (const hb_subset_plan_t *plan,
                    int xMin, int xMax,
                    int yMin, int yMax,
