@@ -568,7 +568,7 @@ struct graph_t
     check_success (!sorted_graph.in_error ());
 
     remap_all_obj_indices (id_map, &sorted_graph);
-    hb_swap (vertices_, sorted_graph);
+    vertices_ = std::move (sorted_graph);
 
     if (!check_success (new_id == -1))
       print_orphaned_nodes ();
