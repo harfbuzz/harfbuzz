@@ -449,6 +449,9 @@ struct tuple_delta_t
   hb_vector_t<char> compiled_tuple_header;
   hb_vector_t<char> compiled_deltas;
 
+  /* compiled peak coords, empty for non-gvar tuples */
+  hb_vector_t<char> compiled_peak_coords;
+
   tuple_delta_t () = default;
   tuple_delta_t (const tuple_delta_t& o) = default;
 
@@ -550,6 +553,36 @@ struct tuple_delta_t
     }
 
     return out;
+  }
+
+  bool compile_peak_coords (const hb_map_t& axes_index_map,
+                            const hb_map_t& axes_old_index_tag_map)
+  {
+    unsigned axis_count = axes_index_map.get_population ();
+    if (unlikely (!compiled_peak_coords.alloc (axis_count * F2DOT14::static_size)))
+      return false;
+
+    unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
+    for (unsigned i = 0; i < orig_axis_count; i++)
+    {
+      if (!axes_index_map.has (i))
+        continue;
+
+      hb_tag_t axis_tag = axes_old_index_tag_map.get (i);
+      Triple *coords;
+      F2DOT14 peak_coord;
+      if (axis_tuples.has (axis_tag, &coords))
+        peak_coord.set_float (coords->middle);
+      else
+        peak_coord.set_int (0);
+
+      /* push F2DOT14 value into char vector */
+      int16_t val = peak_coord.to_int ();
+      compiled_peak_coords.push (static_cast<char> (val >> 8));
+      compiled_peak_coords.push (static_cast<char> (val & 0xFF));
+    }
+
+    return !compiled_peak_coords.in_error ();
   }
 
   /* deltas should be compiled already before we compile tuple
