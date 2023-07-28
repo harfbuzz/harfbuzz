@@ -1488,6 +1488,7 @@ struct TupleVariationData
     bool has_shared_point_numbers () const { return ((*this) & SharedPointNumbers); }
     unsigned int get_count () const { return (*this) & CountMask; }
     TupleVarCount& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
+    explicit operator bool () const { return get_count (); }
 
     protected:
     enum Flags
