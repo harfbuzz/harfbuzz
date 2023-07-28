@@ -588,10 +588,10 @@ struct tuple_delta_t
   /* deltas should be compiled already before we compile tuple
    * variation header cause we need to fill in the size of the
    * serialized data for this tuple variation */
-  //TODO(qxliu):add option to use sharedTuples in gvar
   bool compile_tuple_var_header (const hb_map_t& axes_index_map,
                                  unsigned points_data_length,
-                                 const hb_map_t& axes_old_index_tag_map)
+                                 const hb_map_t& axes_old_index_tag_map,
+                                 const hb_hashmap_t<const hb_vector_t<char>*, unsigned>* shared_tuples_idx_map)
   {
     if (!compiled_deltas) return false;
 
@@ -607,14 +607,25 @@ struct tuple_delta_t
     hb_array_t<F2DOT14> coords (p, end - p);
 
     /* encode peak coords */
-    unsigned peak_count = encode_peak_coords(coords, flag, axes_index_map, axes_old_index_tag_map);
-    if (!peak_count) return false;
+    unsigned peak_count = 0;
+    unsigned *shared_tuple_idx;
+    if (shared_tuples_idx_map &&
+        shared_tuples_idx_map->has (&compiled_peak_coords, &shared_tuple_idx))
+    {
+      flag = *shared_tuple_idx;
+    }
+    else
+    {
+      peak_count = encode_peak_coords(coords, flag, axes_index_map, axes_old_index_tag_map);
+      if (!peak_count) return false;
+    }
 
     /* encode interim coords, it's optional so returned num could be 0 */
     unsigned interim_count = encode_interm_coords (coords.sub_array (peak_count), flag, axes_index_map, axes_old_index_tag_map);
 
-    //TODO(qxliu): add option to use shared_points in gvar
-    flag |= TupleVariationHeader::TuppleIndex::PrivatePointNumbers;
+    /* pointdata length = 0 implies "use shared points" */
+    if (points_data_length)
+      flag |= TupleVariationHeader::TuppleIndex::PrivatePointNumbers;
 
     unsigned serialized_data_size = points_data_length + compiled_deltas.length;
     TupleVariationHeader *o = reinterpret_cast<TupleVariationHeader *> (compiled_tuple_header.begin ());
@@ -943,6 +954,16 @@ struct TupleVariationData
     /* referenced point set-> count map, used in finding shared points */
     hb_hashmap_t<const hb_vector_t<bool>*, unsigned> point_set_count_map;
 
+    /* empty for non-gvar tuples.
+     * shared_points_bytes is just a copy of some value in the point_data_map,
+     * which will be freed during map destruction. Save it for serialization, so
+     * no need to do find_shared_points () again */
+    hb_bytes_t shared_points_bytes;
+
+    /* total compiled byte size as TupleVariationData format, initialized to its
+     * min_size: 4 */
+    unsigned compiled_byte_size = 4;
+
     public:
     ~tuple_variations_t () { fini (); }
     void fini ()
@@ -955,7 +976,15 @@ struct TupleVariationData
     }
 
     unsigned get_var_count () const
-    { return tuple_vars.length; }
+    {
+      unsigned count = tuple_vars.length;
+      if (shared_points_bytes.length)
+        count |= TupleVarCount::SharedPointNumbers;
+      return count;
+    }
+
+    unsigned get_compiled_byte_size () const
+    { return compiled_byte_size; }
 
     bool create_from_tuple_var_data (tuple_iterator_t iterator,
                                      unsigned tuple_var_count,
@@ -1220,19 +1249,30 @@ struct TupleVariationData
       return res;
     }
 
-    void instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
-                      const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
+    bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
+                      const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
+                      contour_point_vector_t* contour_points = nullptr)
     {
+      if (!tuple_vars) return true;
       change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances);
       merge_tuple_variations ();
+      return !tuple_vars.in_error ();
     }
 
     bool compile_bytes (const hb_map_t& axes_index_map,
-                        const hb_map_t& axes_old_index_tag_map)
+                        const hb_map_t& axes_old_index_tag_map,
+                        bool use_shared_points,
+                        const hb_hashmap_t<const hb_vector_t<char>*, unsigned>* shared_tuples_idx_map = nullptr)
     {
       // compile points set and store data in hashmap
       if (!compile_all_point_sets ())
         return false;
+
+      if (use_shared_points)
+      {
+        shared_points_bytes = find_shared_points ();
+        compiled_byte_size += shared_points_bytes.length;
+      }
       // compile delta and tuple var header for each tuple variation
       for (auto& tuple: tuple_vars)
       {
@@ -1244,8 +1284,11 @@ struct TupleVariationData
         if (!tuple.compile_deltas ())
           return false;
 
-        if (!tuple.compile_tuple_var_header (axes_index_map, points_data->length, axes_old_index_tag_map))
+        unsigned points_data_length = (*points_data != shared_points_bytes) ? points_data->length : 0;
+        if (!tuple.compile_tuple_var_header (axes_index_map, points_data_length, axes_old_index_tag_map,
+                                             shared_tuples_idx_map))
           return false;
+        compiled_byte_size += tuple.compiled_tuple_header.length + points_data_length + tuple.compiled_deltas.length;
       }
       return true;
     }
@@ -1262,9 +1305,12 @@ struct TupleVariationData
       return_trace (true);
     }
 
-    bool serialize_var_data (hb_serialize_context_t *c) const
+    bool serialize_var_data (hb_serialize_context_t *c, bool is_gvar) const
     {
       TRACE_SERIALIZE (this);
+      if (is_gvar)
+        shared_points_bytes.copy (c);
+
       for (const auto& tuple: tuple_vars)
       {
         const hb_vector_t<bool>* points_set = &(tuple.indices);
@@ -1272,9 +1318,19 @@ struct TupleVariationData
         if (!point_data_map.has (points_set, &point_data))
           return_trace (false);
 
-        point_data->copy (c);
+        if (!is_gvar || *point_data != shared_points_bytes)
+          point_data->copy (c);
+
         tuple.compiled_deltas.as_array ().copy (c);
         if (c->in_error ()) return_trace (false);
+      }
+
+      /* padding for gvar */
+      if (is_gvar && (compiled_byte_size % 2))
+      {
+        HBUINT8 pad;
+        pad = 0;
+        if (!c->embed (pad)) return_trace (false);
       }
       return_trace (true);
     }
@@ -1479,12 +1535,13 @@ struct TupleVariationData
     if (!is_gvar) data_offset += 4;
     if (!c->check_assign (out->data, data_offset, HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
 
-    return tuple_variations.serialize_var_data (c);
+    return tuple_variations.serialize_var_data (c, is_gvar);
   }
 
   protected:
   struct TupleVarCount : HBUINT16
   {
+    friend struct tuple_variations_t;
     bool has_shared_point_numbers () const { return ((*this) & SharedPointNumbers); }
     unsigned int get_count () const { return (*this) & CountMask; }
     TupleVarCount& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }

@@ -115,7 +115,7 @@ test_decompile_cvar ()
 
   hb_map_t axes_index_map;
   axes_index_map.set (0, 0);
-  bool res = tuple_variations.compile_bytes (axes_index_map, axis_idx_tag_map);
+  bool res = tuple_variations.compile_bytes (axes_index_map, axis_idx_tag_map, false);
   assert (res);
   assert (tuple_variations.tuple_vars[0].compiled_tuple_header.length == 6);
   const char tuple_var_header_1[] = "\x0\x51\xa0\x0\xc0\x0";

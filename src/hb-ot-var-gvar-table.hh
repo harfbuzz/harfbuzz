@@ -102,6 +102,35 @@ struct glyph_variations_t
     return !glyph_variations.in_error () && glyph_variations.length == plan->new_to_old_gid_list.length;
   }
 
+  bool instantiate (const hb_subset_plan_t *plan)
+  {
+    unsigned count = plan->new_to_old_gid_list.length;
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_codepoint_t new_gid = plan->new_to_old_gid_list[i].first;
+      contour_point_vector_t *all_points;
+      if (!plan->new_gid_contour_points_map.has (new_gid, &all_points))
+        return false;
+      if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, all_points))
+        return false;
+    }
+    return true;
+  }
+
+  bool compile_bytes (const hb_map_t& axes_index_map,
+                      const hb_map_t& axes_old_index_tag_map)
+  {
+    if (!compile_shared_tuples (axes_index_map, axes_old_index_tag_map))
+      return false;
+    for (tuple_variations_t& vars: glyph_variations)
+      if (!vars.compile_bytes (axes_index_map, axes_old_index_tag_map,
+                               true, /* use shared points*/
+                               &shared_tuples_idx_map))
+        return false;
+
+    return true;
+  }
+
   bool compile_shared_tuples (const hb_map_t& axes_index_map,
                               const hb_map_t& axes_old_index_tag_map)
   {
