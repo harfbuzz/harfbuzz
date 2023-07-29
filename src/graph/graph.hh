@@ -207,7 +207,8 @@ struct graph_t
       }
       else if (single_parent != (unsigned) -1)
       {
-	parents.set (single_parent, 1);
+	if (!parents.set (single_parent, 1))
+	  return;
 	single_parent = (unsigned) -1;
       }
 
