@@ -1306,6 +1306,7 @@ hb_ot_layout_collect_features_map (hb_face_t      *face,
   const OT::LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
 
   unsigned int count = l.get_feature_indexes (0, nullptr, nullptr);
+  feature_map->alloc (count);
 
   for (unsigned int i = 0; i < count; i++)
   {
