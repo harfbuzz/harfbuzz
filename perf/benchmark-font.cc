@@ -203,6 +203,19 @@ static void BM_Font (benchmark::State &state,
 	hb_font_t *font = hb_font_create (face);
 	hb_face_destroy (face);
 
+	switch (backend)
+	{
+	  case HARFBUZZ:
+	    hb_ot_font_set_funcs (font);
+	    break;
+
+	  case FREETYPE:
+#ifdef HAVE_FREETYPE
+	    hb_ft_font_set_funcs (font);
+#endif
+	    break;
+	}
+
 	hb_buffer_t *buffer = hb_buffer_create ();
 	hb_buffer_add_utf8 (buffer, " ", -1, 0, -1);
 	hb_buffer_guess_segment_properties (buffer);
