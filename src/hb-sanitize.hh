@@ -382,6 +382,9 @@ struct hb_sanitize_context_t :
   }
 
   template <typename Type>
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
   bool check_struct (const Type *obj) const
   {
     if (sizeof (uintptr_t) == sizeof (uint32_t))
