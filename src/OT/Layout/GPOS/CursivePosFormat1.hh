@@ -125,8 +125,8 @@ struct CursivePosFormat1
     hb_buffer_t *buffer = c->buffer;
 
     const EntryExitRecord &this_record = entryExitRecord[(this+coverage).get_coverage  (buffer->cur().codepoint)];
-    if (!this_record.entryAnchor) return_trace (false);
-    if (unlikely (!this_record.sanitize (&c->sanitizer, this))) return_trace (false);
+    if (!this_record.entryAnchor ||
+	unlikely (!this_record.sanitize (&c->sanitizer, this))) return_trace (false);
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset_fast (buffer->idx, 1);
@@ -138,12 +138,12 @@ struct CursivePosFormat1
     }
 
     const EntryExitRecord &prev_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
-    if (!prev_record.exitAnchor)
+    if (!prev_record.exitAnchor ||
+	unlikely (!prev_record.sanitize (&c->sanitizer, this)))
     {
       buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx + 1);
       return_trace (false);
     }
-    if (unlikely (!prev_record.sanitize (&c->sanitizer, this))) return_trace (false);
 
     unsigned int i = skippy_iter.idx;
     unsigned int j = buffer->idx;
