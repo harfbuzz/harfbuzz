@@ -12,8 +12,9 @@
 
 HarfBuzz is a text shaping engine. It primarily supports [OpenType][1], but also
 [Apple Advanced Typography][2]. HarfBuzz is used in Android, Chrome,
-ChromeOS, Firefox, GNOME, GTK+, KDE, LibreOffice, OpenJDK, PlayStation, Qt,
-XeTeX, and other places.
+ChromeOS, Firefox, GNOME, GTK+, KDE, Qt, LibreOffice, OpenJDK, XeTeX,
+PlayStation, Microsoft Edge, Photoshop, Illustrator, InDesign,
+and other places.
 
 For bug reports, mailing list, and other information please visit:
 
