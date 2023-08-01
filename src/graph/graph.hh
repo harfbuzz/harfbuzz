@@ -188,8 +188,10 @@ struct graph_t
     unsigned incoming_edges () const
     {
       if (HB_DEBUG_SUBSET_REPACK)
+       {
 	assert (incoming_edges_ == (single_parent != (unsigned) -1) +
 		(parents.values_ref () | hb_reduce (hb_add, 0)));
+       }
       return incoming_edges_;
     }
 
@@ -304,10 +306,13 @@ struct graph_t
         return;
       }
 
-      const unsigned *v;
-      if (parents.has (old_index, &v) &&
-          parents.set (new_index, *v))
+      const unsigned *pv;
+      if (parents.has (old_index, &pv))
+      {
+        unsigned v = *pv;
+	parents.set (new_index, v);
 	parents.del (old_index);
+      }
     }
 
     bool is_leaf () const
