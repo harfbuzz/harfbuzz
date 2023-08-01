@@ -1002,6 +1002,7 @@ struct hb_accelerate_subtables_context_t :
     hb_cache_func_t cache_func;
 #endif
     hb_set_digest_t digest;
+    hb_set_digest_t digest_rest;
   };
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
@@ -4339,6 +4340,12 @@ struct hb_ot_layout_lookup_accelerator_t
     thiz->digest.init ();
     for (auto& subtable : hb_iter (thiz->subtables, count))
       thiz->digest.add (subtable.digest);
+    if (count)
+      for (unsigned int i = count - 1; i; i--)
+      {
+	thiz->subtables[i - 1].digest_rest.add (thiz->subtables[i].digest);
+	thiz->subtables[i - 1].digest_rest.add (thiz->subtables[i].digest_rest);
+      }
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     thiz->cache_user_idx = c_accelerate_subtables.cache_user_idx;
@@ -4358,23 +4365,28 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
   bool apply (hb_ot_apply_context_t *c, unsigned subtables_count, bool use_cache) const
   {
+    hb_codepoint_t g = c->buffer->cur().codepoint;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
-      return
-      + hb_iter (hb_iter (subtables, subtables_count))
-      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply_cached (c); })
-      | hb_any
-      ;
+      for (const auto &subtable : hb_iter (subtables, subtables_count))
+      {
+        if (subtable.apply_cached (c))
+	  return true;
+	if (!subtable.digest_rest.may_have (g))
+	  return false;
+      }
     }
     else
 #endif
     {
-      return
-      + hb_iter (hb_iter (subtables, subtables_count))
-      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply (c); })
-      | hb_any
-      ;
+      for (const auto &subtable : hb_iter (subtables, subtables_count))
+      {
+        if (subtable.apply (c))
+	  return true;
+	if (!subtable.digest_rest.may_have (g))
+	  return false;
+      }
     }
     return false;
   }
