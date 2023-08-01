@@ -280,7 +280,8 @@ struct graph_t
       for (auto _ : parents)
         new_parents.set (id_map[_.first], _.second);
 
-      parents = std::move (new_parents);
+      if (!new_parents.in_error ())
+	parents = std::move (new_parents);
     }
 
     void remap_parent (unsigned old_index, unsigned new_index)
