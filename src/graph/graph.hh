@@ -187,6 +187,9 @@ struct graph_t
 
     unsigned incoming_edges () const
     {
+      if (HB_DEBUG_SUBSET_REPACK)
+	assert (incoming_edges_ == (single_parent != (unsigned) -1) +
+		(parents.values_ref () | hb_reduce (hb_add, 0)));
       return incoming_edges_;
     }
 
@@ -776,12 +779,15 @@ struct graph_t
       subgraph.set (root_idx, wide_parents (root_idx, parents));
       find_subgraph (root_idx, subgraph);
     }
+    if (subgraph.in_error ())
+      return false;
 
     unsigned original_root_idx = root_idx ();
     hb_map_t index_map;
     bool made_changes = false;
     for (auto entry : subgraph.iter ())
     {
+      assert (entry.first < vertices_.length);
       const auto& node = vertices_[entry.first];
       unsigned subgraph_incoming_edges = entry.second;
 
@@ -1281,9 +1287,7 @@ struct graph_t
     for (unsigned p = 0; p < count; p++)
     {
       for (auto& l : vertices_.arrayZ[p].obj.all_links ())
-      {
         vertices_[l.objidx].add_parent (p);
-      }
     }
 
     for (unsigned i = 0; i < count; i++)
