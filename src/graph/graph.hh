@@ -298,12 +298,10 @@ struct graph_t
         return;
       }
 
-      unsigned *v;
-      if (parents.has (old_index, &v))
-      {
-        if (parents.set (new_index, *v))
-	  parents.del (old_index);
-      }
+      const unsigned *v;
+      if (parents.has (old_index, &v) &&
+          parents.set (new_index, *v))
+	parents.del (old_index);
     }
 
     bool is_leaf () const
@@ -1207,6 +1205,7 @@ struct graph_t
 
   unsigned space_for (unsigned index, unsigned* root = nullptr) const
   {
+    assert (index < vertices_.length);
     const auto& node = vertices_[index];
     if (node.space)
     {
