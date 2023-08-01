@@ -199,6 +199,7 @@ struct graph_t
 
     void add_parent (unsigned parent_index)
     {
+      assert (parent_index != (unsigned) -1);
       if (incoming_edges_ == 0)
       {
 	single_parent = parent_index;
@@ -207,12 +208,19 @@ struct graph_t
       }
       else if (single_parent != (unsigned) -1)
       {
+        assert (incoming_edges_ == 1);
 	if (!parents.set (single_parent, 1))
 	  return;
 	single_parent = (unsigned) -1;
       }
 
-      if (parents.set (parent_index, parents[parent_index] + 1))
+      unsigned *v;
+      if (parents.has (parent_index, &v))
+      {
+        (*v)++;
+	incoming_edges_++;
+      }
+      else if (parents.set (parent_index, 1))
 	incoming_edges_++;
     }
 
@@ -230,7 +238,7 @@ struct graph_t
       {
 	incoming_edges_--;
 	if (*v > 1)
-	  *v -= 1;
+	  (*v)--;
 	else
 	  parents.del (parent_index);
 
@@ -284,10 +292,11 @@ struct graph_t
         return;
       }
 
-      if (parents.has (old_index))
+      unsigned *v;
+      if (parents.has (old_index, &v))
       {
-	remove_parent (old_index);
-	add_parent (new_index);
+        if (parents.set (new_index, *v))
+	  parents.del (old_index);
       }
     }
 
