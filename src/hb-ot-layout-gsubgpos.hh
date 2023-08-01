@@ -4353,6 +4353,9 @@ struct hb_ot_layout_lookup_accelerator_t
   bool may_have (hb_codepoint_t g) const
   { return digest.may_have (g); }
 
+#ifndef HB_OPTIMIZE_SIZE
+  HB_ALWAYS_INLINE
+#endif
   bool apply (hb_ot_apply_context_t *c, unsigned subtables_count, bool use_cache) const
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
