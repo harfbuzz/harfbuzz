@@ -271,6 +271,7 @@ struct graph_t
     {
       if (single_parent != (unsigned) -1)
       {
+        assert (single_parent < id_map.length);
 	single_parent = id_map[single_parent];
 	return;
       }
@@ -278,7 +279,10 @@ struct graph_t
       hb_hashmap_t<unsigned, unsigned> new_parents;
       new_parents.alloc (parents.get_population ());
       for (auto _ : parents)
+      {
+        assert (_.first < id_map.length);
         new_parents.set (id_map[_.first], _.second);
+      }
 
       if (!new_parents.in_error ())
 	parents = std::move (new_parents);
