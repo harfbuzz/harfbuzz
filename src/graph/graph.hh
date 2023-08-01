@@ -280,8 +280,9 @@ struct graph_t
       new_parents.alloc (parents.get_population ());
       for (auto _ : parents)
       {
-        assert (_.first < id_map.length);
-        new_parents.set (id_map[_.first], _.second);
+	assert (_.first < id_map.length);
+	assert (!new_parents.has (id_map[_.first]));
+	new_parents.set (id_map[_.first], _.second);
       }
 
       if (!new_parents.in_error ())
