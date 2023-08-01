@@ -270,13 +270,13 @@ struct graph_t
       }
     }
 
-    void remap_parents (const hb_vector_t<unsigned>& id_map)
+    bool remap_parents (const hb_vector_t<unsigned>& id_map)
     {
       if (single_parent != (unsigned) -1)
       {
         assert (single_parent < id_map.length);
 	single_parent = id_map[single_parent];
-	return;
+	return true;
       }
 
       hb_hashmap_t<unsigned, unsigned> new_parents;
@@ -288,8 +288,11 @@ struct graph_t
 	new_parents.set (id_map[_.first], _.second);
       }
 
-      if (!new_parents.in_error ())
-	parents = std::move (new_parents);
+      if (new_parents.in_error ())
+        return false;
+
+      parents = std::move (new_parents);
+      return true;
     }
 
     void remap_parent (unsigned old_index, unsigned new_index)
@@ -584,7 +587,7 @@ struct graph_t
     check_success (!queue.in_error ());
     check_success (!sorted_graph.in_error ());
 
-    remap_all_obj_indices (id_map, &sorted_graph);
+    check_success (remap_all_obj_indices (id_map, &sorted_graph));
     vertices_ = std::move (sorted_graph);
 
     if (!check_success (new_id == -1))
@@ -1422,18 +1425,20 @@ struct graph_t
   /*
    * Updates all objidx's in all links using the provided mapping.
    */
-  void remap_all_obj_indices (const hb_vector_t<unsigned>& id_map,
+  bool remap_all_obj_indices (const hb_vector_t<unsigned>& id_map,
                               hb_vector_t<vertex_t>* sorted_graph) const
   {
     unsigned count = sorted_graph->length;
     for (unsigned i = 0; i < count; i++)
     {
-      (*sorted_graph)[i].remap_parents (id_map);
+      if (!(*sorted_graph)[i].remap_parents (id_map))
+        return false;
       for (auto& link : sorted_graph->arrayZ[i].obj.all_links_writer ())
       {
         link.objidx = id_map[link.objidx];
       }
     }
+    return true;
   }
 
   /*
