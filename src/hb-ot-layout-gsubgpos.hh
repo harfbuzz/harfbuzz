@@ -518,11 +518,9 @@ struct hb_ot_apply_context_t :
 #ifndef HB_OPTIMIZE_SIZE
     HB_ALWAYS_INLINE
 #endif
-    void reset (unsigned int start_index_,
-		unsigned int num_items_)
+    void reset (unsigned int start_index_)
     {
       idx = start_index_;
-      num_items = num_items_;
       end = c->buffer->len;
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
@@ -530,17 +528,14 @@ struct hb_ot_apply_context_t :
 #ifndef HB_OPTIMIZE_SIZE
     HB_ALWAYS_INLINE
 #endif
-    void reset_fast (unsigned int start_index_,
-		     unsigned int num_items_)
+    void reset_fast (unsigned int start_index_)
     {
       // Doesn't set end or syllable. Used by GPOS which doesn't care / change.
       idx = start_index_;
-      num_items = num_items_;
     }
 
     void reject ()
     {
-      num_items++;
       backup_glyph_data ();
     }
 
@@ -583,7 +578,6 @@ struct hb_ot_apply_context_t :
 #endif
     bool next (unsigned *unsafe_to = nullptr)
     {
-      assert (num_items > 0);
       const signed stop = (signed) end - 1;
       while ((signed) idx < stop)
       {
@@ -592,7 +586,6 @@ struct hb_ot_apply_context_t :
 	{
 	  case MATCH:
 	  {
-	    num_items--;
 	    advance_glyph_data ();
 	    return true;
 	  }
@@ -615,7 +608,6 @@ struct hb_ot_apply_context_t :
 #endif
     bool prev (unsigned *unsafe_from = nullptr)
     {
-      assert (num_items > 0);
       const unsigned stop = 0;
       while (idx > stop)
       {
@@ -624,7 +616,6 @@ struct hb_ot_apply_context_t :
 	{
 	  case MATCH:
 	  {
-	    num_items--;
 	    advance_glyph_data ();
 	    return true;
 	  }
@@ -683,7 +674,6 @@ struct hb_ot_apply_context_t :
     const HBUINT24 *match_glyph_data24;
 #endif
 
-    unsigned int num_items;
     unsigned int end;
   };
 
@@ -1275,7 +1265,7 @@ static bool match_input (hb_ot_apply_context_t *c,
   hb_buffer_t *buffer = c->buffer;
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
-  skippy_iter.reset (buffer->idx, count - 1);
+  skippy_iter.reset (buffer->idx);
   skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (input);
 
@@ -1515,7 +1505,7 @@ static bool match_backtrack (hb_ot_apply_context_t *c,
   TRACE_APPLY (nullptr);
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
-  skippy_iter.reset (c->buffer->backtrack_len (), count);
+  skippy_iter.reset (c->buffer->backtrack_len ());
   skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (backtrack);
 
@@ -1548,7 +1538,7 @@ static bool match_lookahead (hb_ot_apply_context_t *c,
   TRACE_APPLY (nullptr);
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
-  skippy_iter.reset (start_index - 1, count);
+  skippy_iter.reset (start_index - 1);
   skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (lookahead);
 
@@ -2167,7 +2157,7 @@ struct RuleSet
      * Replicated from LigatureSet::apply(). */
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
-    skippy_iter.reset (c->buffer->idx, 2);
+    skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
     skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to = (unsigned) -1, unsafe_to1 = 0, unsafe_to2 = 0;
@@ -3338,7 +3328,7 @@ struct ChainRuleSet
      * Replicated from LigatureSet::apply(). */
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
-    skippy_iter.reset (c->buffer->idx, 2);
+    skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
     skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
     unsigned unsafe_to = (unsigned) -1, unsafe_to1 = 0, unsafe_to2 = 0;
