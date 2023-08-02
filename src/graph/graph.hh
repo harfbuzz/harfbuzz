@@ -1219,6 +1219,7 @@ struct graph_t
 
   unsigned space_for (unsigned index, unsigned* root = nullptr) const
   {
+  loop:
     assert (index < vertices_.length);
     const auto& node = vertices_[index];
     if (node.space)
@@ -1235,7 +1236,8 @@ struct graph_t
       return 0;
     }
 
-    return space_for (*node.parents_iter (), root);
+    index = *node.parents_iter ();
+    goto loop;
   }
 
   void err_other_error () { this->successful = false; }
