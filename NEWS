@@ -1,3 +1,11 @@
+Overview of changes leading to 8.1.1
+Wednesday, August 2, 2023
+====================================
+- Fix shaping of contextual rules at the end of string, introduced in 8.1.0
+- Fix stack-overflow in repacker with malicious fonts.
+- 30% speed up loading Noto Duployan font.
+
+
 Overview of changes leading to 8.1.0
 Tuesday, August 1, 2023
 ====================================
