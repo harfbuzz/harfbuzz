@@ -584,11 +584,7 @@ struct hb_ot_apply_context_t :
     bool next (unsigned *unsafe_to = nullptr)
     {
       assert (num_items > 0);
-      /* The alternate condition below is faster at string boundaries,
-       * but produces subpar "unsafe-to-concat" values. */
-      signed stop = (signed) end - (signed) num_items;
-      if (c->buffer->flags & HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT)
-        stop = (signed) end - 1;
+      const signed stop = (signed) end - 1;
       while ((signed) idx < stop)
       {
 	idx++;
@@ -620,11 +616,7 @@ struct hb_ot_apply_context_t :
     bool prev (unsigned *unsafe_from = nullptr)
     {
       assert (num_items > 0);
-      /* The alternate condition below is faster at string boundaries,
-       * but produces subpar "unsafe-to-concat" values. */
-      unsigned stop = num_items - 1;
-      if (c->buffer->flags & HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT)
-        stop = 1 - 1;
+      const unsigned stop = 0;
       while (idx > stop)
       {
 	idx--;
