@@ -103,10 +103,8 @@ HB_INTERNAL void PaintComposite::closurev1 (hb_colrv1_closure_context_t* c) cons
 HB_INTERNAL void PaintTemplateInstance::closurev1 (hb_colrv1_closure_context_t* c) const
 {
   (this+templatePaint).dispatch (c);
-  auto &args = this+arguments;
-  unsigned count = args.len;
-  for (unsigned i = 0; i < count; i++)
-    args[i].dispatch (c);
+  for (auto &argument : arguments)
+    (this+argument).dispatch (c);
 }
 
 } /* namespace OT */
