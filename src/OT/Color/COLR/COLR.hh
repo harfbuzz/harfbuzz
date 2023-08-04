@@ -49,7 +49,7 @@ namespace OT {
 struct COLR;
 
 struct Paint;
-struct PaintTemplateInstance;
+struct TemplateArgumentList;
 
 struct hb_paint_context_t :
        hb_dispatch_context_t<hb_paint_context_t>
@@ -69,7 +69,7 @@ public:
   unsigned int palette_index;
   hb_color_t foreground;
   VarStoreInstancer &instancer;
-  hb_vector_t<const PaintTemplateInstance *> template_stack;
+  hb_vector_t<const TemplateArgumentList *> template_arguments_stack;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
 
@@ -1456,6 +1456,8 @@ struct PaintComposite
   DEFINE_SIZE_STATIC (8);
 };
 
+struct TemplateArgumentList : List8OfOffsetTo<Paint, HBUINT24> {};
+
 struct PaintTemplateInstance
 {
   void closurev1 (hb_colrv1_closure_context_t* c) const;
@@ -1470,6 +1472,8 @@ struct PaintTemplateInstance
     if (unlikely (!out->templatePaint.serialize_subset (c, templatePaint, this, instancer)))
       return_trace (false);
 
+    // XXX
+    /*
     for (auto _ : hb_zip (arguments, out->arguments.writer ()))
     {
       const auto &inPaint = _.first;
@@ -1478,6 +1482,7 @@ struct PaintTemplateInstance
       if (unlikely (!outPaint.serialize_subset (c, inPaint, this, instancer)))
 	return_trace (false);
     }
+    */
 
     return_trace (true);
   }
@@ -1492,17 +1497,17 @@ struct PaintTemplateInstance
 
   void paint_glyph (hb_paint_context_t *c) const
   {
-    c->template_stack.push (this);
+    c->template_arguments_stack.push (&(this+arguments));
     c->recurse (this+templatePaint);
-    c->template_stack.pop ();
+    c->template_arguments_stack.pop ();
   }
 
   HBUINT8		format; /* format = 33 */
   Offset24To<Paint>	templatePaint; /* Offset (from beginning of PaintTemplateInstance table) to Paint subtable. */
-  ArrayOf<Offset24To<Paint>, HBUINT8>
-			arguments; /* Array of offsets (from beginning of PaintTemplateInstance table) to Paint subtables. */
+  Offset24To<TemplateArgumentList>
+			arguments; /* Offset to TemplateArgumentList (from beginning of PaintTemplateInstance table). */
   public:
-  DEFINE_SIZE_ARRAY_SIZED (5, arguments);
+  DEFINE_SIZE_STATIC (7);
 };
 
 struct PaintTemplateArgument
@@ -1524,9 +1529,9 @@ struct PaintTemplateArgument
 
   void paint_glyph (hb_paint_context_t *c) const
   {
-    auto *templatePaint = c->template_stack.tail ();
-    if (!templatePaint) return;
-    c->recurse (templatePaint+templatePaint->arguments[index]);
+    auto *arguments = c->template_arguments_stack.tail ();
+    if (!arguments) return;
+    c->recurse ((*arguments)[index]);
   }
 
   HBUINT8		format; /* format = 34 */
