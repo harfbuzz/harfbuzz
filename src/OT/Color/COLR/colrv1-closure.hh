@@ -111,6 +111,11 @@ HB_INTERNAL void PaintGlyphSelf::closurev1 (hb_colrv1_closure_context_t* c) cons
   c->add_glyph (c->gid);
   (this+paint).dispatch (c);
 }
+HB_INTERNAL void PaintGlyphDelta::closurev1 (hb_colrv1_closure_context_t* c) const
+{
+  c->add_glyph ((c->gid = delta) % 65536);
+  (this+paint).dispatch (c);
+}
 
 
 } /* namespace OT */

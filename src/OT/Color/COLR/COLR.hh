@@ -1579,6 +1579,53 @@ struct PaintGlyphSelf
   DEFINE_SIZE_STATIC (4);
 };
 
+// Paint a non-COLR glyph with glyph ID relative to the root glyph ID, filled as indicated by paint.
+struct PaintGlyphDelta
+{
+  void closurev1 (hb_colrv1_closure_context_t* c) const;
+
+  bool subset (hb_subset_context_t *c,
+               const VarStoreInstancer &instancer) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+#if 0
+    XXX
+    unsigned delta = ...
+    if (! c->serializer->check_assign (out->delta, c->plan->glyph_map->get (gid),
+                                       HB_SERIALIZE_ERROR_INT_OVERFLOW))
+      return_trace (false);
+#endif
+
+    return_trace (out->paint.serialize_subset (c, paint, this, instancer));
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && paint.sanitize (c, this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->push_inverse_root_transform (c->data, c->font);
+    c->funcs->push_clip_glyph (c->data, (c->gid + delta) % 65536, c->font);
+    c->funcs->push_root_transform (c->data, c->font);
+    c->recurse (this+paint);
+    c->funcs->pop_transform (c->data);
+    c->funcs->pop_clip (c->data);
+    c->funcs->pop_transform (c->data);
+  }
+
+  HBUINT8		format; /* format = 10 */
+  Offset24To<Paint>	paint;  /* Offset (from beginning of PaintGlyph table) to Paint subtable. */
+  HBUINT16		delta;
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
 struct ClipBoxData
 {
   int xMin, yMin, xMax, yMax;
@@ -1908,6 +1955,7 @@ struct Paint
     case 33: return_trace (c->dispatch (u.paintformat33, std::forward<Ts> (ds)...));
     case 34: return_trace (c->dispatch (u.paintformat34, std::forward<Ts> (ds)...));
     case 35: return_trace (c->dispatch (u.paintformat35, std::forward<Ts> (ds)...));
+    case 36: return_trace (c->dispatch (u.paintformat36, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1950,6 +1998,7 @@ struct Paint
   PaintTemplateInstance				paintformat33;
   PaintTemplateArgument				paintformat34;
   PaintGlyphSelf				paintformat35;
+  PaintGlyphDelta				paintformat36;
   } u;
   public:
   DEFINE_SIZE_MIN (2);
