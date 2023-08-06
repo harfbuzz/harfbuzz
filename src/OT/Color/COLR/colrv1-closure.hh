@@ -106,6 +106,12 @@ HB_INTERNAL void PaintTemplateInstance::closurev1 (hb_colrv1_closure_context_t* 
   for (auto &argument : arguments)
     (this+argument).dispatch (c);
 }
+HB_INTERNAL void PaintGlyphSelf::closurev1 (hb_colrv1_closure_context_t* c) const
+{
+  c->add_glyph (c->gid);
+  (this+paint).dispatch (c);
+}
+
 
 } /* namespace OT */
 
