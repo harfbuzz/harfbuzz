@@ -3215,8 +3215,7 @@ struct FeatureTableSubstitutionRecord
     if (unlikely (!out)) return_trace (false);
 
     out->featureIndex = c->feature_index_map->get (featureIndex);
-    bool ret = out->feature.serialize_subset (c->subset_context, feature, base, c);
-    return_trace (ret);
+    return_trace (out->feature.serialize_subset (c->subset_context, feature, base, c));
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const

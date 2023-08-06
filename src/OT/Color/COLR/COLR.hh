@@ -1425,8 +1425,8 @@ struct PaintComposite
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (!out->src.serialize_subset (c, src, this, instancer)) return_trace (false);
-    return_trace (out->backdrop.serialize_subset (c, backdrop, this, instancer));
+    return_trace (out->src.serialize_subset (c, src, this, instancer) |
+		  out->backdrop.serialize_subset (c, backdrop, this, instancer));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -1898,15 +1898,16 @@ struct LayerList : Array32OfOffset32To<Paint>
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!c->serializer->extend_min (out)))  return_trace (false);
 
+    bool ret = false;
     for (const auto& _ : + hb_enumerate (*this)
                          | hb_filter (c->plan->colrv1_layers, hb_first))
 
     {
       auto *o = out->serialize_append (c->serializer);
-      if (unlikely (!o) || !o->serialize_subset (c, _.second, this, instancer))
-        return_trace (false);
+      if (unlikely (!o)) return_trace (false);
+      ret |= o->serialize_subset (c, _.second, this, instancer);
     }
-    return_trace (true);
+    return_trace (ret);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
