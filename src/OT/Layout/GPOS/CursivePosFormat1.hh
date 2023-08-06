@@ -31,8 +31,10 @@ struct EntryExitRecord
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    return_trace (out->entryAnchor.serialize_subset (c, entryAnchor, src_base) |
-		  out->exitAnchor.serialize_subset (c, exitAnchor, src_base));
+    bool ret = false;
+    ret |= out->entryAnchor.serialize_subset (c, entryAnchor, src_base);
+    ret |= out->exitAnchor.serialize_subset (c, exitAnchor, src_base);
+    return_trace (ret);
   }
 
   protected:
