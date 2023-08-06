@@ -1425,8 +1425,10 @@ struct PaintComposite
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    return_trace (out->src.serialize_subset (c, src, this, instancer) |
-		  out->backdrop.serialize_subset (c, backdrop, this, instancer));
+    bool ret = false;
+    ret |= out->src.serialize_subset (c, src, this, instancer);
+    ret |= out->backdrop.serialize_subset (c, backdrop, this, instancer);
+    return_trace (ret);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
