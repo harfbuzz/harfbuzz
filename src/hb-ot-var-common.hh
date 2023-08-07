@@ -1088,7 +1088,7 @@ struct TupleVariationData
     void merge_tuple_variations ()
     {
       hb_vector_t<tuple_delta_t> new_vars;
-      hb_hashmap_t<hb_hashmap_t<hb_tag_t, Triple>, unsigned> m;
+      hb_hashmap_t<const hb_hashmap_t<hb_tag_t, Triple>*, unsigned> m;
       unsigned i = 0;
       for (const tuple_delta_t& var : tuple_vars)
       {
@@ -1096,14 +1096,14 @@ struct TupleVariationData
         if (var.axis_tuples.is_empty ()) continue;
 
         unsigned *idx;
-        if (m.has (var.axis_tuples, &idx))
+        if (m.has (&(var.axis_tuples), &idx))
         {
           new_vars[*idx] += var;
         }
         else
         {
           new_vars.push (var);
-          m.set (var.axis_tuples, i);
+          m.set (&(var.axis_tuples), i);
           i++;
         }
       }
@@ -1256,6 +1256,11 @@ struct TupleVariationData
     {
       if (!tuple_vars) return true;
       change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances);
+      /* compute inferred deltas only for gvar */
+      if (contour_points)
+        if (!calc_inferred_deltas (*contour_points))
+          return false;
+
       merge_tuple_variations ();
       return !tuple_vars.in_error ();
     }
