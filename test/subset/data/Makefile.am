@@ -72,6 +72,7 @@ EXTRA_DIST += \
 	expected/collect_name_ids \
 	expected/instantiate_colrv1 \
 	expected/instantiate_cff2_update_metrics \
+	expected/glyf_partial_instancing \
 	fonts \
 	profiles \
 	$(NULL)

@@ -34,6 +34,7 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 		args = ["fonttools", "varLib.instancer",
 			"--no-overlap-flag",
 			"--no-recalc-timestamp",
+			"--no-optimize",
 			"--output=%s" % instance_path,
 			input_file]
 		args.extend(instance_flags)
