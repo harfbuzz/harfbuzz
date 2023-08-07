@@ -914,6 +914,99 @@ struct tuple_delta_t
     }
     return encoded_len;
   }
+
+  bool calc_inferred_deltas (const contour_point_vector_t& orig_points)
+  {
+    unsigned point_count = orig_points.length;
+    if (point_count != indices.length)
+      return false;
+
+    unsigned ref_count = 0;
+    hb_vector_t<unsigned> end_points;
+
+    for (unsigned i = 0; i < point_count; i++)
+    {
+      if (indices.arrayZ[i])
+        ref_count++;
+      if (orig_points.arrayZ[i].is_end_point)
+        end_points.push (i);
+    }
+    /* all points are referened, nothing to do */
+    if (ref_count == point_count)
+      return true;
+    if (unlikely (end_points.in_error ())) return false;
+
+    hb_set_t inferred_idxes;
+    unsigned start_point = 0;
+    for (unsigned end_point : end_points)
+    {
+      /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
+      unsigned unref_count = 0;
+      for (unsigned i = start_point; i < end_point + 1; i++)
+        unref_count += indices.arrayZ[i];
+      unref_count = (end_point - start_point + 1) - unref_count;
+
+      unsigned j = start_point;
+      if (unref_count == 0 || unref_count > end_point - start_point)
+        goto no_more_gaps;
+      for (;;)
+      {
+        /* Locate the next gap of unreferenced points between two referenced points prev and next.
+         * Note that a gap may wrap around at left (start_point) and/or at right (end_point).
+         */
+        unsigned int prev, next, i;
+        for (;;)
+        {
+          i = j;
+          j = next_index (i, start_point, end_point);
+          if (indices.arrayZ[i] && !indices.arrayZ[j]) break;
+        }
+        prev = j = i;
+        for (;;)
+        {
+          i = j;
+          j = next_index (i, start_point, end_point);
+          if (!indices.arrayZ[i] && indices.arrayZ[j]) break;
+        }
+        next = j;
+       /* Infer deltas for all unref points in the gap between prev and next */
+        i = prev;
+        for (;;)
+        {
+          i = next_index (i, start_point, end_point);
+          if (i == next) break;
+          deltas_x.arrayZ[i] = infer_delta (orig_points.arrayZ[i].x, orig_points.arrayZ[prev].x, orig_points.arrayZ[next].x,
+                                            deltas_x.arrayZ[prev], deltas_x.arrayZ[next]);
+          deltas_y.arrayZ[i] = infer_delta (orig_points.arrayZ[i].y, orig_points.arrayZ[prev].y, orig_points.arrayZ[next].y,
+                                            deltas_y.arrayZ[prev], deltas_y.arrayZ[next]);
+          inferred_idxes.add (i);
+          if (--unref_count == 0) goto no_more_gaps;
+        }
+      }
+    no_more_gaps:
+      start_point = end_point + 1;
+    }
+
+    for (unsigned i : inferred_idxes)
+      indices[i] = true;
+    return true;
+  }
+
+  static float infer_delta (float target_val, float prev_val, float next_val, float prev_delta, float next_delta)
+  {
+    if (prev_val == next_val)
+      return (prev_delta == next_delta) ? prev_delta : 0.f;
+    else if (target_val <= hb_min (prev_val, next_val))
+      return (prev_val < next_val) ? prev_delta : next_delta;
+    else if (target_val >= hb_max (prev_val, next_val))
+      return (prev_val > next_val) ? prev_delta : next_delta;
+
+    float r = (target_val - prev_val) / (next_val - prev_val);
+    return prev_delta + r * (next_delta - prev_delta);
+  }
+
+  static unsigned int next_index (unsigned int i, unsigned int start, unsigned int end)
+  { return (i >= end) ? start : (i + 1); }
 };
 
 struct TupleVariationData
@@ -1055,6 +1148,7 @@ struct TupleVariationData
       return true;
     }
 
+    private:
     void change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
     {
@@ -1250,6 +1344,16 @@ struct TupleVariationData
       return res;
     }
 
+    bool calc_inferred_deltas (contour_point_vector_t& contour_points)
+    {
+      for (tuple_delta_t& var : tuple_vars)
+        if (!var.calc_inferred_deltas (contour_points))
+          return false;
+      
+      return true;
+    }
+
+    public:
     bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                       const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
                       contour_point_vector_t* contour_points = nullptr)
