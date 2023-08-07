@@ -131,6 +131,7 @@ struct cvar
                   TupleVariationData::tuple_variations_t& tuple_variations) const
   {
     TRACE_SERIALIZE (this);
+    if (!tuple_variations) return_trace (false);
     if (unlikely (!c->embed (version))) return_trace (false);
 
     return_trace (tupleVariationData.serialize (c, false, tuple_variations));

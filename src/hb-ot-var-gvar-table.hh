@@ -58,6 +58,15 @@ struct glyph_variations_t
   unsigned compiled_shared_tuples_count () const
   { return shared_tuples_count; }
 
+  unsigned compiled_byte_size () const
+  {
+    unsigned byte_size = 0;
+    for (const auto& _ : glyph_variations)
+      byte_size += _.get_compiled_byte_size ();
+
+    return byte_size;
+  }
+
   bool create_from_glyphs_var_data (unsigned axis_count,
                                     const hb_array_t<const F2DOT14> shared_tuples,
                                     const hb_subset_plan_t *plan,
@@ -218,6 +227,66 @@ struct glyph_variations_t
     else if (has_b) return 1;
     else return 0;
   }
+
+  template<typename Iterator,
+           hb_requires (hb_is_iterator (Iterator))>
+  bool serialize_glyph_var_data (hb_serialize_context_t *c,
+                                 Iterator it,
+                                 bool long_offset,
+                                 unsigned num_glyphs,
+                                 char* glyph_var_data_offsets /* OUT: glyph var data offsets array */) const
+  {
+    TRACE_SERIALIZE (this);
+
+    if (long_offset)
+    {
+      ((HBUINT32 *) glyph_var_data_offsets)[0] = 0;
+      glyph_var_data_offsets += 4;
+    }
+    else
+    {
+      ((HBUINT16 *) glyph_var_data_offsets)[0] = 0;
+      glyph_var_data_offsets += 2;
+    }
+    unsigned glyph_offset = 0;
+    hb_codepoint_t last_gid = 0;
+    unsigned idx = 0;
+
+    TupleVariationData* cur_glyph = c->start_embed<TupleVariationData> ();
+    if (!cur_glyph) return_trace (false);
+    for (auto &_ : it)
+    {
+      hb_codepoint_t gid = _.first;
+      if (long_offset)
+        for (; last_gid < gid; last_gid++)
+          ((HBUINT32 *) glyph_var_data_offsets)[last_gid] = glyph_offset;
+      else
+        for (; last_gid < gid; last_gid++)
+          ((HBUINT16 *) glyph_var_data_offsets)[last_gid] = glyph_offset / 2;
+
+      if (idx >= glyph_variations.length) return_trace (false);
+      if (!cur_glyph->serialize (c, true, glyph_variations[idx])) return_trace (false);
+      TupleVariationData* next_glyph = c->start_embed<TupleVariationData> ();
+      glyph_offset += (char *) next_glyph - (char *) cur_glyph;
+
+      if (long_offset)
+        ((HBUINT32 *) glyph_var_data_offsets)[gid] = glyph_offset;
+      else
+        ((HBUINT16 *) glyph_var_data_offsets)[gid] = glyph_offset / 2;
+
+      last_gid++;
+      idx++;
+      cur_glyph = next_glyph;
+    }
+
+    if (long_offset)
+      for (; last_gid < num_glyphs; last_gid++)
+        ((HBUINT32 *) glyph_var_data_offsets)[last_gid] = glyph_offset;
+    else
+      for (; last_gid < num_glyphs; last_gid++)
+        ((HBUINT16 *) glyph_var_data_offsets)[last_gid] = glyph_offset / 2;
+    return_trace (true);
+  }
 };
 
 struct gvar
@@ -262,6 +331,51 @@ struct gvar
 
     hb_array_t<const F2DOT14> shared_tuples = (this+sharedTuples).as_array ((unsigned) sharedTupleCount * (unsigned) axisCount);
     return glyph_vars.create_from_glyphs_var_data (axisCount, shared_tuples, plan, new_gid_var_data_map);
+  }
+
+  template<typename Iterator,
+           hb_requires (hb_is_iterator (Iterator))>
+  bool serialize (hb_serialize_context_t *c,
+                  const glyph_variations_t& glyph_vars,
+                  Iterator it,
+                  unsigned axis_count,
+                  unsigned num_glyphs) const
+  {
+    TRACE_SERIALIZE (this);
+    gvar *out = c->allocate_min<gvar> ();
+    if (unlikely (!out)) return_trace (false);
+
+    out->version.major = 1;
+    out->version.minor = 0;
+    out->axisCount = axis_count;
+    out->glyphCountX = hb_min (0xFFFFu, num_glyphs);
+
+    unsigned glyph_var_data_size = glyph_vars.compiled_byte_size ();
+    bool long_offset = glyph_var_data_size & ~0xFFFFu;
+    out->flags = long_offset ? 1 : 0;
+
+    HBUINT8 *glyph_var_data_offsets = c->allocate_size<HBUINT8> ((long_offset ? 4 : 2) * (num_glyphs + 1), false);
+    if (!glyph_var_data_offsets) return_trace (false);
+
+    /* shared tuples */
+    unsigned shared_tuple_count = glyph_vars.compiled_shared_tuples_count ();
+    out->sharedTupleCount = shared_tuple_count;
+
+    if (!shared_tuple_count)
+      out->sharedTuples = 0;
+    else
+    {
+      hb_array_t<const char> shared_tuples = glyph_vars.compiled_shared_tuples.as_array ().copy (c);
+      if (!shared_tuples.arrayZ) return_trace (false);
+      out->sharedTuples = shared_tuples.arrayZ - (char *) out;
+    }
+
+    char *glyph_var_data = c->start_embed<char> ();
+    if (!glyph_var_data) return_trace (false);
+    out->dataZ = glyph_var_data - (char *) out;
+
+    return_trace (glyph_vars.serialize_glyph_var_data (c, it, long_offset, num_glyphs,
+                                                       (char *) glyph_var_data_offsets));
   }
 
   bool subset (hb_subset_context_t *c) const

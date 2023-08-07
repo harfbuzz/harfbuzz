@@ -975,6 +975,7 @@ struct TupleVariationData
       tuple_vars.fini ();
     }
 
+    explicit operator bool () const { return bool (tuple_vars); }
     unsigned get_var_count () const
     {
       unsigned count = tuple_vars.length;
@@ -1517,9 +1518,12 @@ struct TupleVariationData
 
   bool serialize (hb_serialize_context_t *c,
                   bool is_gvar,
-                  tuple_variations_t& tuple_variations) const
+                  const tuple_variations_t& tuple_variations) const
   {
     TRACE_SERIALIZE (this);
+    /* empty tuple variations, just return and skip serialization. */
+    if (!tuple_variations) return_trace (true);
+
     auto *out = c->start_embed (this);
     if (unlikely (!c->extend_min (out))) return_trace (false);
 
