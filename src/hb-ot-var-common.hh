@@ -455,13 +455,19 @@ struct tuple_delta_t
   tuple_delta_t () = default;
   tuple_delta_t (const tuple_delta_t& o) = default;
 
-  tuple_delta_t (tuple_delta_t&& o) : tuple_delta_t ()
+  friend void swap (tuple_delta_t& a, tuple_delta_t& b)
   {
-    axis_tuples = std::move (o.axis_tuples);
-    indices = std::move (o.indices);
-    deltas_x = std::move (o.deltas_x);
-    deltas_y = std::move (o.deltas_y);
+    hb_swap (a.axis_tuples, b.axis_tuples);
+    hb_swap (a.indices, b.indices);
+    hb_swap (a.deltas_x, b.deltas_x);
+    hb_swap (a.deltas_y, b.deltas_y);
+    hb_swap (a.compiled_tuple_header, b.compiled_tuple_header);
+    hb_swap (a.compiled_deltas, b.compiled_deltas);
+    hb_swap (a.compiled_peak_coords, b.compiled_peak_coords);
   }
+
+  tuple_delta_t (tuple_delta_t&& o) : tuple_delta_t ()
+  { hb_swap (*this, o); }
 
   tuple_delta_t& operator = (tuple_delta_t&& o)
   {
