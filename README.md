@@ -29,8 +29,8 @@ For user manual as well as API documentation, check: https://harfbuzz.github.io
 ## Download
 
 For tarball releases of HarfBuzz, look [here][3]. At the same place you
-will also find Win32/Win64 binary bundles that include libharfbuzz DLL,
-hb-view.exe, hb-shape.exe, and all dependencies.
+will also find Win32/Win64 binary bundles that include `libharfbuzz` DLL,
+`hb-view.exe`, `hb-shape.exe`, and all dependencies.
 
 The canonical source tree is available on [github][4].
 
