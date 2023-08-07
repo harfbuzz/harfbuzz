@@ -520,6 +520,9 @@ _subset_table (hb_subset_plan_t *plan,
   case HB_OT_TAG_avar:
     if (plan->user_axes_location.is_empty ()) return _passthrough (plan, tag);
     return _subset<const OT::avar> (plan, buf);
+  case HB_OT_TAG_cvar:
+    if (plan->user_axes_location.is_empty ()) return _passthrough (plan, tag);
+    return _subset<const OT::cvar> (plan, buf);
   case HB_OT_TAG_STAT:
     if (!plan->user_axes_location.is_empty ()) return _subset<const OT::STAT> (plan, buf);
     else return _passthrough (plan, tag);
