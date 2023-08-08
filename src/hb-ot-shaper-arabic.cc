@@ -579,7 +579,10 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	++n_copies;
 	hb_position_t excess = (n_copies + 1) * sign * w_repeating - sign * w_remaining;
 	if (excess > 0)
+	{
 	  extra_repeat_overlap = excess / (n_copies * n_repeating);
+	  w_remaining = 0;
+	}
       }
 
       if (step == MEASURE)
@@ -590,7 +593,7 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
       else
       {
 	buffer->unsafe_to_break (context, end);
-	hb_position_t x_offset = 0;
+	hb_position_t x_offset = w_remaining / 2;
 	for (unsigned int k = end; k > start; k--)
 	{
 	  hb_position_t width = font->get_glyph_h_advance (info[k - 1].codepoint);
