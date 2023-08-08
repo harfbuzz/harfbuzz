@@ -486,8 +486,10 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
   if (likely (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_ARABIC_HAS_STCH)))
     return;
 
-  /* The Arabic shaper currently always processes in RTL mode, so we should
-   * stretch / position the stretched pieces to the left / preceding glyphs. */
+  bool rtl = buffer->props.direction == HB_DIRECTION_RTL;
+
+  if (!rtl)
+    buffer->reverse ();
 
   /* We do a two pass implementation:
    * First pass calculates the exact number of extra glyphs we need,
@@ -602,14 +604,24 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	  pos[k - 1].x_advance = 0;
 	  for (unsigned int n = 0; n < repeat; n++)
 	  {
-	    x_offset -= width;
-	    if (n > 0)
-	      x_offset += extra_repeat_overlap;
+	    if (rtl)
+	    {
+	      x_offset -= width;
+	      if (n > 0)
+		x_offset += extra_repeat_overlap;
+	    }
 	    pos[k - 1].x_offset = x_offset;
 	    /* Append copy. */
 	    --j;
 	    info[j] = info[k - 1];
 	    pos[j] = pos[k - 1];
+
+	    if (!rtl)
+	    {
+	      x_offset += width;
+	      if (n > 0)
+		x_offset -= extra_repeat_overlap;
+	    }
 	  }
 	}
       }
@@ -626,6 +638,9 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
       buffer->len = new_len;
     }
   }
+
+  if (!rtl)
+    buffer->reverse ();
 }
 
 
