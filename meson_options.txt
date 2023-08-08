@@ -46,3 +46,7 @@ option('ragel_subproject', type: 'boolean', value: false,
   description: 'Build Ragel subproject if no suitable version is found')
 option('fuzzer_ldflags', type: 'string',
   description: 'Extra LDFLAGS used during linking of fuzzing binaries')
+
+# Install directory options
+option('cmakepackagedir', type: 'string',
+  description: 'CMake package configuration install directory')

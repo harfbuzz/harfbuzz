@@ -385,6 +385,26 @@ foreach check : check_funcs
   endif
 endforeach
 
+# CMake support (package install dir)
+
+# Equivalent to configure_package_config_file(INSTALL_DESTINATION ...), see
+# https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html#command:configure_package_config_file.
+# In certain unusual packaging layouts such as Nixpkgs, the Harfbuzz package
+# is installed into two Nix store paths, "out" and "dev", where "out" contains
+# libraries only (i.e. lib/libharfbuzz.so) and "dev" contains development
+# files, i.e. include and lib/cmake. If CMake package files are installed to
+# "out", Nixpkgs will move them to "dev", which breaks assumptions about
+# our file paths. Since we need to figure out relative install paths here
+# to make a relocatable package, we do need to know the final path of our
+# CMake files to calculate the correct relative paths.
+# Of course, this still defaults to $libdir/cmake if unset, which works for
+# most packaging layouts.
+cmake_package_install_dir = get_option('cmakepackagedir')
+
+if cmake_package_install_dir == ''
+  cmake_package_install_dir = get_option('libdir') / 'cmake'
+endif
+
 subdir('src')
 
 if not get_option('utilities').disabled()
@@ -415,6 +435,7 @@ build_summary = {
      'libdir': get_option('libdir'),
      'includedir': get_option('includedir'),
      'datadir': get_option('datadir'),
+     'cmakepackagedir': cmake_package_install_dir
     },
   'Unicode callbacks (you want at least one)':
     {'Builtin': true,

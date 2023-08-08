@@ -14,7 +14,7 @@ check_PROGRAMS =
 
 EXTRA_DIST += harfbuzz.cc harfbuzz-subset.cc
 EXTRA_DIST += meson.build
-EXTRA_DIST += fix_get_types.py
+EXTRA_DIST += fix_get_types.py relative_to.py
 
 # Convenience targets:
 lib: $(BUILT_SOURCES) libharfbuzz.la
