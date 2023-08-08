@@ -707,6 +707,7 @@ parse_instance (const char *name,
       return false;
     }
 
+#ifdef HB_EXPERIMENTAL_API
     char *pp = s;
     pp = strpbrk (pp, ":");
     if (pp) // partial instancing
@@ -756,6 +757,7 @@ parse_instance (const char *name,
     }
     else
     {
+#endif
       if (strcmp (s, "drop") == 0)
       {
         if (!hb_subset_input_pin_axis_to_default (subset_main->input, subset_main->face, axis_tag))
@@ -784,7 +786,9 @@ parse_instance (const char *name,
           return false;
         }
       }
+#ifdef HB_EXPERIMENTAL_API
     }
+#endif
     s = strtok(nullptr, "=");
   }
 
