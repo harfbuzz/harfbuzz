@@ -599,6 +599,7 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
 	  DEBUG_MSG (ARABIC, nullptr, "appending %u copies of glyph %u; j=%u",
 		     repeat, info[k - 1].codepoint, j);
+	  pos[k - 1].x_advance = 0;
 	  for (unsigned int n = 0; n < repeat; n++)
 	  {
 	    x_offset -= width;
