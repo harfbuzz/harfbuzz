@@ -230,7 +230,7 @@ struct VarStoreInstancer
   /* according to the spec, if colr table has varStore but does not have
    * varIdxMap, then an implicit identity mapping is used */
   float operator() (uint32_t varIdx, unsigned short offset = 0) const
-  { return varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords); }
+  { return coords ? varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords) : 0; }
 
   const VariationStore *varStore;
   const DeltaSetIndexMap *varIdxMap;
