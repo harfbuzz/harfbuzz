@@ -146,15 +146,6 @@ typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
  *
  * A virtual method for the #hb_paint_funcs_t to render a color glyph by glyph index.
  *
- * XXX
- *
- * The coordinates of the glyph outline are interpreted according
- * to the current transform.
- *
- * This clip is applied in addition to the current clip,
- * and remains in effect until a matching call to
- * the #hb_paint_funcs_pop_clip_func_t vfunc.
- *
  * Return value: %true if the glyph was painted, %false otherwise.
  *
  * XSince: REPLACEME
