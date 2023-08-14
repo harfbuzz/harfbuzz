@@ -1,40 +1,104 @@
-# random seed: R02S345aec86e0be01a834deb6fc61057f9c
+# random seed: R02S0cee2d366e5dbd296a38859c4a84c045
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
 start clip rectangle 0 500 500 1e+03
   start transform 1 0 0 1 0 0
+    start transform 1 0 -0 1 0 0
+    end transform
     start clip rectangle 0 500 500 1e+03
+      start transform 1 0 -0 1 0 0
+      end transform
       start clip rectangle 0 500 500 1e+03
+        start transform 1 0 -0 1 0 0
+        end transform
         start clip rectangle 0 500 500 1e+03
+          start transform 1 0 -0 1 0 0
+          end transform
           start clip rectangle 0 500 500 1e+03
+            start transform 1 0 -0 1 0 0
+            end transform
             start clip rectangle 0 500 500 1e+03
+              start transform 1 0 -0 1 0 0
+              end transform
               start clip rectangle 0 500 500 1e+03
+                start transform 1 0 -0 1 0 0
+                end transform
                 start clip rectangle 0 500 500 1e+03
+                  start transform 1 0 -0 1 0 0
+                  end transform
                   start clip rectangle 0 500 500 1e+03
+                    start transform 1 0 -0 1 0 0
+                    end transform
                     start clip rectangle 0 500 500 1e+03
+                      start transform 1 0 -0 1 0 0
+                      end transform
                       start clip rectangle 0 500 500 1e+03
+                        start transform 1 0 -0 1 0 0
+                        end transform
                         start clip rectangle 0 500 500 1e+03
+                          start transform 1 0 -0 1 0 0
+                          end transform
                           start clip rectangle 0 500 500 1e+03
+                            start transform 1 0 -0 1 0 0
+                            end transform
                             start clip rectangle 0 500 500 1e+03
+                              start transform 1 0 -0 1 0 0
+                              end transform
                               start clip rectangle 0 500 500 1e+03
+                                start transform 1 0 -0 1 0 0
+                                end transform
                                 start clip rectangle 0 500 500 1e+03
+                                  start transform 1 0 -0 1 0 0
+                                  end transform
                                   start clip rectangle 0 500 500 1e+03
+                                    start transform 1 0 -0 1 0 0
+                                    end transform
                                     start clip rectangle 0 500 500 1e+03
+                                      start transform 1 0 -0 1 0 0
+                                      end transform
                                       start clip rectangle 0 500 500 1e+03
+                                        start transform 1 0 -0 1 0 0
+                                        end transform
                                         start clip rectangle 0 500 500 1e+03
+                                          start transform 1 0 -0 1 0 0
+                                          end transform
                                           start clip rectangle 0 500 500 1e+03
+                                            start transform 1 0 -0 1 0 0
+                                            end transform
                                             start clip rectangle 0 500 500 1e+03
+                                              start transform 1 0 -0 1 0 0
+                                              end transform
                                               start clip rectangle 0 500 500 1e+03
+                                                start transform 1 0 -0 1 0 0
+                                                end transform
                                                 start clip rectangle 0 500 500 1e+03
+                                                  start transform 1 0 -0 1 0 0
+                                                  end transform
                                                   start clip rectangle 0 500 500 1e+03
+                                                    start transform 1 0 -0 1 0 0
+                                                    end transform
                                                     start clip rectangle 0 500 500 1e+03
+                                                      start transform 1 0 -0 1 0 0
+                                                      end transform
                                                       start clip rectangle 0 500 500 1e+03
+                                                        start transform 1 0 -0 1 0 0
+                                                        end transform
                                                         start clip rectangle 0 500 500 1e+03
+                                                          start transform 1 0 -0 1 0 0
+                                                          end transform
                                                           start clip rectangle 0 500 500 1e+03
+                                                            start transform 1 0 -0 1 0 0
+                                                            end transform
                                                             start clip rectangle 0 500 500 1e+03
+                                                              start transform 1 0 -0 1 0 0
+                                                              end transform
                                                               start clip rectangle 0 500 500 1e+03
+                                                                start transform 1 0 -0 1 0 0
+                                                                end transform
                                                                 start clip rectangle 0 500 500 1e+03
+                                                                  start transform 1 0 -0 1 0 0
+                                                                  end transform
                                                                   start clip rectangle 0 500 500 1e+03
                                                                   end clip
                                                                   push group

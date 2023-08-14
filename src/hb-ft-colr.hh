@@ -320,6 +320,17 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_COLR_GLYPH:
     {
+      c->funcs->push_inverse_root_transform (c->data, c->font);
+      c->ft_font->lock.unlock ();
+      if (c->funcs->color_glyph (c->data, paint.u.colr_glyph.glyphID, c->font))
+      {
+	c->ft_font->lock.lock ();
+	c->funcs->pop_transform (c->data);
+	return;
+      }
+      c->ft_font->lock.lock ();
+      c->funcs->pop_transform (c->data);
+
       FT_OpaquePaint other_paint = {0};
       if (FT_Get_Color_Glyph_Paint (ft_face, paint.u.colr_glyph.glyphID,
 				    FT_COLOR_NO_ROOT_TRANSFORM,

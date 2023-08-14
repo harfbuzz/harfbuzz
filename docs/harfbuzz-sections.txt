@@ -244,6 +244,8 @@ hb_paint_push_transform_func_t
 hb_paint_funcs_set_push_transform_func
 hb_paint_pop_transform_func_t
 hb_paint_funcs_set_pop_transform_func
+hb_paint_color_glyph_func_t
+hb_paint_funcs_set_color_glyph_func
 hb_paint_push_clip_glyph_func_t
 hb_paint_funcs_set_push_clip_glyph_func
 hb_paint_push_clip_rectangle_func_t
@@ -280,6 +282,7 @@ hb_paint_funcs_set_custom_palette_color_func
 
 hb_paint_push_transform
 hb_paint_pop_transform
+hb_paint_color_glyph
 hb_paint_push_clip_glyph
 hb_paint_push_clip_rectangle
 hb_paint_pop_clip
