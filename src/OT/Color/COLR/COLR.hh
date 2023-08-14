@@ -2436,6 +2436,10 @@ void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
 void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 {
   TRACE_PAINT (this);
+
+  if (c->funcs->color_glyph (c->data, gid, c->font))
+    return;
+
   const COLR *colr_table = c->get_colr_table ();
   const Paint *paint = colr_table->get_base_glyph_paint (gid);
 
