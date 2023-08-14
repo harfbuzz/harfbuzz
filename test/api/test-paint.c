@@ -97,6 +97,20 @@ pop_transform (hb_paint_funcs_t *funcs,
   print (data, "end transform");
 }
 
+static hb_bool_t
+paint_color_glyph (hb_paint_funcs_t *funcs,
+                   void *paint_data,
+                   hb_codepoint_t glyph,
+                   hb_font_t *font,
+                   void *user_data)
+{
+  paint_data_t *data = paint_data;
+
+  print (data, "paint color glyph %u; acting as failed", glyph);
+
+  return FALSE;
+}
+
 static void
 push_clip_glyph (hb_paint_funcs_t *funcs,
                  void *paint_data,
@@ -286,6 +300,7 @@ get_test_paint_funcs (void)
 
     hb_paint_funcs_set_push_transform_func (funcs, push_transform, NULL, NULL);
     hb_paint_funcs_set_pop_transform_func (funcs, pop_transform, NULL, NULL);
+    hb_paint_funcs_set_color_glyph_func (funcs, paint_color_glyph, NULL, NULL);
     hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph, NULL, NULL);
     hb_paint_funcs_set_push_clip_rectangle_func (funcs, push_clip_rectangle, NULL, NULL);
     hb_paint_funcs_set_pop_clip_func (funcs, pop_clip, NULL, NULL);

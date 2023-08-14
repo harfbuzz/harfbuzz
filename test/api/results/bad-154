@@ -1,103 +1,135 @@
-# random seed: R02S0cee2d366e5dbd296a38859c4a84c045
+# random seed: R02S8a247191e9c73c84f166b360a40567c1
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
 start clip rectangle 0 500 500 1e+03
   start transform 1 0 0 1 0 0
     start transform 1 0 -0 1 0 0
+      paint color glyph 154; acting as failed
     end transform
     start clip rectangle 0 500 500 1e+03
       start transform 1 0 -0 1 0 0
+        paint color glyph 154; acting as failed
       end transform
       start clip rectangle 0 500 500 1e+03
         start transform 1 0 -0 1 0 0
+          paint color glyph 154; acting as failed
         end transform
         start clip rectangle 0 500 500 1e+03
           start transform 1 0 -0 1 0 0
+            paint color glyph 154; acting as failed
           end transform
           start clip rectangle 0 500 500 1e+03
             start transform 1 0 -0 1 0 0
+              paint color glyph 154; acting as failed
             end transform
             start clip rectangle 0 500 500 1e+03
               start transform 1 0 -0 1 0 0
+                paint color glyph 154; acting as failed
               end transform
               start clip rectangle 0 500 500 1e+03
                 start transform 1 0 -0 1 0 0
+                  paint color glyph 154; acting as failed
                 end transform
                 start clip rectangle 0 500 500 1e+03
                   start transform 1 0 -0 1 0 0
+                    paint color glyph 154; acting as failed
                   end transform
                   start clip rectangle 0 500 500 1e+03
                     start transform 1 0 -0 1 0 0
+                      paint color glyph 154; acting as failed
                     end transform
                     start clip rectangle 0 500 500 1e+03
                       start transform 1 0 -0 1 0 0
+                        paint color glyph 154; acting as failed
                       end transform
                       start clip rectangle 0 500 500 1e+03
                         start transform 1 0 -0 1 0 0
+                          paint color glyph 154; acting as failed
                         end transform
                         start clip rectangle 0 500 500 1e+03
                           start transform 1 0 -0 1 0 0
+                            paint color glyph 154; acting as failed
                           end transform
                           start clip rectangle 0 500 500 1e+03
                             start transform 1 0 -0 1 0 0
+                              paint color glyph 154; acting as failed
                             end transform
                             start clip rectangle 0 500 500 1e+03
                               start transform 1 0 -0 1 0 0
+                                paint color glyph 154; acting as failed
                               end transform
                               start clip rectangle 0 500 500 1e+03
                                 start transform 1 0 -0 1 0 0
+                                  paint color glyph 154; acting as failed
                                 end transform
                                 start clip rectangle 0 500 500 1e+03
                                   start transform 1 0 -0 1 0 0
+                                    paint color glyph 154; acting as failed
                                   end transform
                                   start clip rectangle 0 500 500 1e+03
                                     start transform 1 0 -0 1 0 0
+                                      paint color glyph 154; acting as failed
                                     end transform
                                     start clip rectangle 0 500 500 1e+03
                                       start transform 1 0 -0 1 0 0
+                                        paint color glyph 154; acting as failed
                                       end transform
                                       start clip rectangle 0 500 500 1e+03
                                         start transform 1 0 -0 1 0 0
+                                          paint color glyph 154; acting as failed
                                         end transform
                                         start clip rectangle 0 500 500 1e+03
                                           start transform 1 0 -0 1 0 0
+                                            paint color glyph 154; acting as failed
                                           end transform
                                           start clip rectangle 0 500 500 1e+03
                                             start transform 1 0 -0 1 0 0
+                                              paint color glyph 154; acting as failed
                                             end transform
                                             start clip rectangle 0 500 500 1e+03
                                               start transform 1 0 -0 1 0 0
+                                                paint color glyph 154; acting as failed
                                               end transform
                                               start clip rectangle 0 500 500 1e+03
                                                 start transform 1 0 -0 1 0 0
+                                                  paint color glyph 154; acting as failed
                                                 end transform
                                                 start clip rectangle 0 500 500 1e+03
                                                   start transform 1 0 -0 1 0 0
+                                                    paint color glyph 154; acting as failed
                                                   end transform
                                                   start clip rectangle 0 500 500 1e+03
                                                     start transform 1 0 -0 1 0 0
+                                                      paint color glyph 154; acting as failed
                                                     end transform
                                                     start clip rectangle 0 500 500 1e+03
                                                       start transform 1 0 -0 1 0 0
+                                                        paint color glyph 154; acting as failed
                                                       end transform
                                                       start clip rectangle 0 500 500 1e+03
                                                         start transform 1 0 -0 1 0 0
+                                                          paint color glyph 154; acting as failed
                                                         end transform
                                                         start clip rectangle 0 500 500 1e+03
                                                           start transform 1 0 -0 1 0 0
+                                                            paint color glyph 154; acting as failed
                                                           end transform
                                                           start clip rectangle 0 500 500 1e+03
                                                             start transform 1 0 -0 1 0 0
+                                                              paint color glyph 154; acting as failed
                                                             end transform
                                                             start clip rectangle 0 500 500 1e+03
                                                               start transform 1 0 -0 1 0 0
+                                                                paint color glyph 154; acting as failed
                                                               end transform
                                                               start clip rectangle 0 500 500 1e+03
                                                                 start transform 1 0 -0 1 0 0
+                                                                  paint color glyph 154; acting as failed
                                                                 end transform
                                                                 start clip rectangle 0 500 500 1e+03
                                                                   start transform 1 0 -0 1 0 0
+                                                                    paint color glyph 154; acting as failed
                                                                   end transform
                                                                   start clip rectangle 0 500 500 1e+03
                                                                   end clip
