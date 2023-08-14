@@ -2437,8 +2437,13 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 {
   TRACE_PAINT (this);
 
+  c->funcs->push_inverse_root_transform (c->data, c->font);
   if (c->funcs->color_glyph (c->data, gid, c->font))
+  {
+    c->funcs->pop_transform (c->data);
     return;
+  }
+  c->funcs->pop_transform (c->data);
 
   const COLR *colr_table = c->get_colr_table ();
   const Paint *paint = colr_table->get_base_glyph_paint (gid);

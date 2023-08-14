@@ -1,10 +1,14 @@
-# random seed: R02S9ffd1e4fb7cd9c50371f61b259bb32b5
+# random seed: R02S33c307340a09918aefe09266feb15798
 # Start of hb tests
 # Start of paint tests
 # Start of ot tests
 start clip rectangle 0 500 500 1e+03
   start transform 1 0 0 1 0 0
+    start transform 1 0 -0 1 0 0
+    end transform
     start clip rectangle 100 100 900 900
+      start transform 1 0 -0 1 0 0
+      end transform
       start clip rectangle 0 0 1e+03 1e+03
         start transform 1 0 -0 1 0 0
           start clip glyph 2

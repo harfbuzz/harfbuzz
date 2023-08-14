@@ -389,7 +389,7 @@ test_hb_paint (gconstpointer d,
 
   /* Run
    *
-   * GENERATE_DATA=1 G_TEST_SRCDIR=./test/api ./build/test/api/test-ot-color -p TESTCASE > test/api/results/OUTPUT
+   * GENERATE_DATA=1 G_TEST_SRCDIR=./test/api ./build/test/api/test-paint -p TESTCASE > test/api/results/OUTPUT
    *
    * to produce the expected results file.
    */

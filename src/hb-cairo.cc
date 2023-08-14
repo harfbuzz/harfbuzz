@@ -176,10 +176,18 @@ hb_cairo_paint_color_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
   cairo_t *cr = c->cr;
 
+  cairo_save (cr);
+
+  hb_position_t x_scale, y_scale;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  cairo_scale (cr, x_scale, y_scale);
+
   cairo_glyph_t cairo_glyph = { glyph, 0, 0 };
   cairo_set_scaled_font (cr, c->scaled_font);
-  cairo_set_font_size (cr, hb_face_get_upem (hb_font_get_face (font)));
+  cairo_set_font_size (cr, 1);
   cairo_show_glyphs (cr, &cairo_glyph, 1);
+
+  cairo_restore (cr);
 
   return true;
 }
