@@ -30,11 +30,14 @@
 #include "hb.hh"
 #include "hb-cairo.h"
 
+#include "hb-set.hh"
+
 
 typedef struct
 {
   cairo_scaled_font_t *scaled_font;
   cairo_t *cr;
+  hb_set_t current_glyphs;
   hb_map_t *color_cache;
 } hb_cairo_context_t;
 
