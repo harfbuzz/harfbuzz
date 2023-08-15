@@ -993,8 +993,20 @@ struct tuple_delta_t
       start_point = end_point + 1;
     }
 
-    for (unsigned i : inferred_idxes)
-      indices[i] = true;
+    for (unsigned i = 0; i < point_count; i++)
+    {
+      /* if points are not referenced and deltas are not inferred, set to 0.
+       * reference all points for gvar */
+      if ( !indices[i])
+      {
+        if (!inferred_idxes.has (i))
+        {
+          deltas_x.arrayZ[i] = 0.f;
+          deltas_y.arrayZ[i] = 0.f;
+        }
+        indices[i] = true;
+      }
+    }
     return true;
   }
 
