@@ -69,6 +69,7 @@ public:
   unsigned int palette_index;
   hb_color_t foreground;
   VarStoreInstancer &instancer;
+  hb_set_t current_glyphs;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
 
@@ -2307,6 +2308,7 @@ struct COLR
 	                         &(this+varIdxMap),
 	                         hb_array (font->coords, font->num_coords));
     hb_paint_context_t c (this, funcs, data, font, palette_index, foreground, instancer);
+    c.current_glyphs.add (glyph);
 
     if (version == 1)
     {
@@ -2437,10 +2439,16 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 {
   TRACE_PAINT (this);
 
+  if (unlikely (c->current_glyphs.has (gid)))
+    return;
+
+  c->current_glyphs.add (gid);
+
   c->funcs->push_inverse_root_transform (c->data, c->font);
   if (c->funcs->color_glyph (c->data, gid, c->font))
   {
     c->funcs->pop_transform (c->data);
+    c->current_glyphs.del (gid);
     return;
   }
   c->funcs->pop_transform (c->data);
@@ -2463,6 +2471,8 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 
   if (has_clip_box)
     c->funcs->pop_clip (c->data);
+
+  c->current_glyphs.del (gid);
 }
 
 } /* namespace OT */

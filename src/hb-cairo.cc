@@ -176,11 +176,6 @@ hb_cairo_paint_color_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
   cairo_t *cr = c->cr;
 
-  if (unlikely (c->current_glyphs.has (glyph)))
-    return true;
-
-  c->current_glyphs.add (glyph);
-
   cairo_save (cr);
 
   hb_position_t x_scale, y_scale;
@@ -193,8 +188,6 @@ hb_cairo_paint_color_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   cairo_show_glyphs (cr, &cairo_glyph, 1);
 
   cairo_restore (cr);
-
-  c->current_glyphs.del (glyph);
 
   return true;
 }
@@ -641,7 +634,6 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
   c.scaled_font = scaled_font;
   c.cr = cr;
   c.color_cache = (hb_map_t *) cairo_scaled_font_get_user_data (scaled_font, &color_cache_key);
-  c.current_glyphs.add (glyph);
 
   hb_font_paint_glyph (font, glyph, hb_cairo_paint_get_funcs (), &c, palette, color);
 
