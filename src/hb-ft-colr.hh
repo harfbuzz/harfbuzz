@@ -106,6 +106,7 @@ struct hb_ft_paint_context_t
   unsigned palette_index;
   hb_color_t foreground;
   hb_set_t current_glyphs;
+  hb_set_t current_layers;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
 };
@@ -221,9 +222,18 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 				  &paint.u.colr_layers.layer_iterator,
 				  &other_paint))
       {
+        unsigned i = paint.u.colr_layers.layer_iterator.layer;
+
+	if (unlikely (c->current_layers.has (i)))
+	  continue;
+
+	c->current_layers.add (i);
+
 	c->funcs->push_group (c->data);
 	c->recurse (other_paint);
 	c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+
+	c->current_layers.del (i);
       }
     }
     break;

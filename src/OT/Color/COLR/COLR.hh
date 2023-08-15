@@ -70,6 +70,7 @@ public:
   hb_color_t foreground;
   VarStoreInstancer &instancer;
   hb_set_t current_glyphs;
+  hb_set_t current_layers;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
 
@@ -2428,10 +2429,17 @@ void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
   const LayerList &paint_offset_lists = c->get_colr_table ()->get_layerList ();
   for (unsigned i = firstLayerIndex; i < firstLayerIndex + numLayers; i++)
   {
+    if (unlikely (c->current_layers.has (i)))
+      continue;
+
+    c->current_layers.add (i);
+
     const Paint &paint = paint_offset_lists.get_paint (i);
     c->funcs->push_group (c->data);
     c->recurse (paint);
     c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+
+    c->current_layers.del (i);
   }
 }
 
