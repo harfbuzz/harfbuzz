@@ -69,8 +69,8 @@ public:
   unsigned int palette_index;
   hb_color_t foreground;
   VarStoreInstancer &instancer;
-  hb_set_t current_glyphs;
-  hb_set_t current_layers;
+  hb_map_t current_glyphs;
+  hb_map_t current_layers;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
 

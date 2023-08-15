@@ -276,6 +276,11 @@ struct hb_hashmap_t
     uint32_t hash = hb_hash (key);
     return set_with_hash (std::move (key), hash, std::forward<VV> (value), overwrite);
   }
+  bool add (const K &key)
+  {
+    uint32_t hash = hb_hash (key);
+    return set_with_hash (key, hash, item_t::default_value ());
+  }
 
   const V& get_with_hash (const K &key, uint32_t hash) const
   {

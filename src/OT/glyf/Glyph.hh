@@ -293,7 +293,7 @@ struct Glyph
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
 		   hb_array_t<int> coords = hb_array_t<int> (),
-		   hb_set_t *current_glyphs = nullptr,
+		   hb_map_t *current_glyphs = nullptr,
 		   unsigned int depth = 0,
 		   unsigned *edge_count = nullptr) const
   {
@@ -303,7 +303,7 @@ struct Glyph
     if (unlikely (*edge_count > HB_GLYF_MAX_EDGE_COUNT)) return false;
     (*edge_count)++;
 
-    hb_set_t current_glyphs_stack;
+    hb_map_t current_glyphs_stack;
     if (current_glyphs == nullptr)
       current_glyphs = &current_glyphs_stack;
 
