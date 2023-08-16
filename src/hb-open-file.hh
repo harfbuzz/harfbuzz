@@ -51,6 +51,41 @@ struct OpenTypeOffsetTable;
 struct TTCHeader;
 
 
+// TODO(garretrieger): add new custom struct as input to serialize
+//                     which holds the tag, blob, and checksum/length
+//                     override.
+struct TableInfo
+{
+  TableInfo(hb_tag_t tag_, hb_blob_t* blob_)
+    : tag(tag_), blob(blob_), length_override(0), checksum_override(0)
+    {}
+
+  TableInfo(hb_tag_t tag_, unsigned length, uint32_t checksum)
+    : tag(tag_), blob(nullptr),
+      length_override(length), checksum_override(checksum)
+    {}
+
+  hb_tag_t tag;
+  hb_blob_t* blob;
+
+  unsigned length() const
+  {
+    if (blob)
+      return hb_blob_get_length(blob);
+
+    return length_override;
+  }
+
+  uint32_t checksum() const
+  {
+    // TODO
+    return checksum_override;
+  }
+
+  unsigned length_override;
+  uint32_t checksum_override;
+};
+
 typedef struct TableRecord
 {
   int cmp (Tag t) const { return -t.cmp (tag); }
@@ -139,17 +174,17 @@ typedef struct OpenTypeOffsetTable
 
     /* Write OffsetTables, alloc for and write actual table blobs. */
     unsigned i = 0;
-    for (hb_pair_t<hb_tag_t, hb_blob_t*> entry : it)
+    for (TableInfo entry : it)
     {
-      hb_blob_t *blob = entry.second;
-      unsigned len = blob->length;
+      hb_blob_t *blob = entry.blob;
+      unsigned len = entry.length();
 
       /* Allocate room for the table and copy it. */
       char *start = (char *) c->allocate_size<void> (len, false);
       if (unlikely (!start)) return false;
 
       TableRecord &rec = tables.arrayZ[i];
-      rec.tag = entry.first;
+      rec.tag = entry.tag;
       rec.length = len;
       rec.offset = 0;
       if (unlikely (!c->check_assign (rec.offset,
@@ -164,7 +199,7 @@ typedef struct OpenTypeOffsetTable
       c->align (4);
       const char *end = (const char *) c->head;
 
-      if (entry.first == HB_OT_TAG_head &&
+      if (entry.tag == HB_OT_TAG_head &&
 	  (unsigned) (end - start) >= head::static_size)
       {
 	head *h = (head *) start;

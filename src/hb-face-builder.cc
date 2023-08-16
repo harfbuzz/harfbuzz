@@ -128,7 +128,7 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
                                   sfnt_tag,
                                   + sorted_entries.iter()
                                   | hb_map ([&] (hb_pair_t<hb_tag_t, face_table_info_t> _) {
-                                    return hb_pair_t<hb_tag_t, hb_blob_t*> (_.first, _.second.data);
+                                    return OT::TableInfo(_.first, _.second.data);
                                   }));
 
   c.end_serialize ();
