@@ -203,7 +203,7 @@ view_cairo_t::render (const font_options_t *font_opts)
     }
 
   // https://github.com/harfbuzz/harfbuzz/issues/4378
-#if CAIRO_VERSION >= 11700
+#if CAIRO_VERSION >= 11705
     if (l.num_clusters)
       cairo_show_text_glyphs (cr,
 			      l.utf8, l.utf8_len,
