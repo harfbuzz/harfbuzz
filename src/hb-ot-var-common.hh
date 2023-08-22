@@ -937,7 +937,7 @@ struct tuple_delta_t
       if (orig_points.arrayZ[i].is_end_point)
         end_points.push (i);
     }
-    /* all points are referened, nothing to do */
+    /* all points are referenced, nothing to do */
     if (ref_count == point_count)
       return true;
     if (unlikely (end_points.in_error ())) return false;

@@ -65,8 +65,11 @@ tests = [
   'collect_name_ids',
   'instantiate_colrv1',
   'instantiate_cff2_update_metrics',
-  #'glyf_partial_instancing',
 ]
+
+if get_option('experimental_api')
+  tests += 'glyf_partial_instancing'
+endif
 
 repack_tests = [
   'basic',
