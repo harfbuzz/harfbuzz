@@ -83,8 +83,7 @@ test_decompile_cvar ()
   hb_hashmap_t<hb_tag_t, TripleDistances> axes_triple_distances;
   axes_triple_distances.set (axis_tag, TripleDistances (1.f, 1.f));
 
-  tuple_variations.change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances);
-  tuple_variations.merge_tuple_variations ();
+  tuple_variations.instantiate (normalized_axes_location, axes_triple_distances);
 
   assert (tuple_variations.tuple_vars[0].indices.length == 65);
   assert (tuple_variations.tuple_vars[1].indices.length == 65);
@@ -115,7 +114,7 @@ test_decompile_cvar ()
 
   hb_map_t axes_index_map;
   axes_index_map.set (0, 0);
-  bool res = tuple_variations.compile_bytes (axes_index_map, axis_idx_tag_map);
+  bool res = tuple_variations.compile_bytes (axes_index_map, axis_idx_tag_map, false);
   assert (res);
   assert (tuple_variations.tuple_vars[0].compiled_tuple_header.length == 6);
   const char tuple_var_header_1[] = "\x0\x51\xa0\x0\xc0\x0";

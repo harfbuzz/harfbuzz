@@ -1,0 +1,13 @@
+FONTS:
+Roboto-Variable.ABC.ttf
+Roboto-Variable.composite.ttf
+
+PROFILES:
+no-tables-with-item-variations.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=300:600,wdth=85
+wght=200:300:500,wdth=80:90

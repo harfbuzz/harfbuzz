@@ -131,6 +131,7 @@ struct cvar
                   TupleVariationData::tuple_variations_t& tuple_variations) const
   {
     TRACE_SERIALIZE (this);
+    if (!tuple_variations) return_trace (false);
     if (unlikely (!c->embed (version))) return_trace (false);
 
     return_trace (tupleVariationData.serialize (c, false, tuple_variations));
@@ -168,8 +169,11 @@ struct cvar
                                      tuple_variations))
       return_trace (false);
 
-    tuple_variations.instantiate (c->plan->axes_location, c->plan->axes_triple_distances);
-    if (!tuple_variations.compile_bytes (c->plan->axes_index_map, c->plan->axes_old_index_tag_map))
+    if (!tuple_variations.instantiate (c->plan->axes_location, c->plan->axes_triple_distances))
+      return_trace (false);
+
+    if (!tuple_variations.compile_bytes (c->plan->axes_index_map, c->plan->axes_old_index_tag_map,
+                                         false /* do not use shared points */))
       return_trace (false);
 
     return_trace (serialize (c->serializer, tuple_variations));

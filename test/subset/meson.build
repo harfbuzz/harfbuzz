@@ -67,6 +67,10 @@ tests = [
   'instantiate_cff2_update_metrics',
 ]
 
+if get_option('experimental_api')
+  tests += 'glyf_partial_instancing'
+endif
+
 repack_tests = [
   'basic',
   'prioritization',

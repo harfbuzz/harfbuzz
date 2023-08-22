@@ -707,34 +707,88 @@ parse_instance (const char *name,
       return false;
     }
 
-    if (strcmp (s, "drop") == 0)
-    {
-      if (!hb_subset_input_pin_axis_to_default (subset_main->input, subset_main->face, axis_tag))
-      {
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
-        return false;
-      }
-    }
-    else
+#ifdef HB_EXPERIMENTAL_API
+    char *pp = s;
+    pp = strpbrk (pp, ":");
+    if (pp) // partial instancing
     {
       errno = 0;
-      char *p;
-      float axis_value = strtof (s, &p);
-      if (errno || s == p)
+      char *pend;
+      float min_val = strtof (s, &pend);
+      if (errno || s == pend || pend != pp)
       {
         g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
                      "Failed parsing axis value at: '%s'", s);
         return false;
       }
-
-      if (!hb_subset_input_pin_axis_location (subset_main->input, subset_main->face, axis_tag, axis_value))
+      pp++;
+      float max_val = strtof (pp, &pend);
+      /* we need to specify 2 values or 3 values for partial instancing:
+       * at least new min and max values, new default is optional */
+      if (errno || pp == pend || (*pend != ':' && *pend != '\0'))
       {
         g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
+                     "Failed parsing axis value at: '%s'", s);
         return false;
       }
+      /* 3 values are specified */
+      float *def_val_p = nullptr;
+      float def_val;
+      if (*pend == ':')
+      {
+        def_val = max_val;
+        def_val_p = &def_val;
+        pp = pend + 1;
+        max_val = strtof (pp, &pend);
+        if (errno || pp == pend || *pend != '\0')
+        {
+          g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Failed parsing axis value at: '%s'", s);
+          return false;
+        }
+      }
+      if (!hb_subset_input_set_axis_range (subset_main->input, subset_main->face, axis_tag, min_val, max_val, def_val_p))
+        {
+          g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                       "Error: axis: '%c%c%c%c', not present in fvar or invalid range with min:%.6f max:%.6f",
+                       HB_UNTAG (axis_tag), min_val, max_val);
+          return false;
+        }
     }
+    else
+    {
+#endif
+      if (strcmp (s, "drop") == 0)
+      {
+        if (!hb_subset_input_pin_axis_to_default (subset_main->input, subset_main->face, axis_tag))
+        {
+          g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                       "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
+          return false;
+        }
+      }
+      else
+      {
+        errno = 0;
+        char *p;
+        float axis_value = strtof (s, &p);
+        if (errno || s == p)
+        {
+          g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                       "Failed parsing axis value at: '%s'", s);
+          return false;
+        }
+  
+        if (!hb_subset_input_pin_axis_location (subset_main->input, subset_main->face, axis_tag, axis_value))
+        {
+          g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                       "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
+          return false;
+        }
+      }
+#ifdef HB_EXPERIMENTAL_API
+    }
+#endif
     s = strtok(nullptr, "=");
   }
 
