@@ -101,6 +101,9 @@ HB_INTERNAL void PaintComposite::closurev1 (hb_colrv1_closure_context_t* c) cons
   (this+backdrop).dispatch (c);
 }
 
+HB_INTERNAL void PaintLocation::closurev1 (hb_colrv1_closure_context_t* c) const
+{ (this+src).dispatch (c); }
+
 } /* namespace OT */
 
 

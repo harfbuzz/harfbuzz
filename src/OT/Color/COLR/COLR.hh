@@ -34,6 +34,8 @@
 #include "../../../hb-paint.hh"
 #include "../../../hb-paint-extents.hh"
 
+#include "../../../OT/glyf/coord-setter.hh"
+
 /*
  * COLR -- Color
  * https://docs.microsoft.com/en-us/typography/opentype/spec/colr
@@ -1478,6 +1480,78 @@ struct PaintComposite
   DEFINE_SIZE_STATIC (8);
 };
 
+struct PaintLocation
+{
+  void closurev1 (hb_colrv1_closure_context_t* c) const;
+
+  bool subset (hb_subset_context_t *c,
+               const VarStoreInstancer &instancer,
+               uint32_t varIdxBase) const
+  {
+    TRACE_SUBSET (this);
+    // XXX
+#if 0
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    bool ret = false;
+    ret |= out->src.serialize_subset (c, src, this, instancer);
+    ret |= out->backdrop.serialize_subset (c, backdrop, this, instancer);
+    return_trace (ret);
+#endif
+    return_trace (false);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (src.sanitize (c, this) &&
+                  axes.sanitize (c, this) &&
+		  values.sanitize (c));
+  }
+
+  void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
+  {
+    TRACE_PAINT (this);
+
+    auto coords = c->font->coords;
+    unsigned num_coords = c->font->num_coords;
+    /* Copying coords is expensive; so we have put an arbitrary
+     * limit on the max number of coords for now. */
+    //if (item.is_reset_unspecified_axes () ||
+	//coords.length > HB_GLYF_VAR_COMPOSITE_MAX_AXES)
+      //component_coords = hb_array<int> ();
+
+    OT::glyf_impl::coord_setter_t coord_setter (hb_array (coords, num_coords));
+
+    for (unsigned i = 0; i < (this+axes).len; i++)
+      coord_setter[(this+axes)[i]] = values[i].to_int ();
+
+    hb_font_t *old_font = c->font;
+    hb_font_t *sub_font = hb_font_create (c->font->face);
+
+    sub_font->coords = coord_setter.coords.arrayZ;
+    sub_font->num_coords = coord_setter.coords.length;
+
+    c->font = sub_font;
+    c->recurse (this+src);
+    c->font = old_font;
+
+    sub_font->coords = nullptr;
+    sub_font->num_coords = 0;
+    hb_font_destroy (sub_font);
+  }
+
+  HBUINT8		format; /* format = 32 */
+  Offset24To<Paint>	src; /* Offset (from beginning of PaintComposite table) to source Paint subtable. */
+  Offset24To<ArrayOf<HBUINT16, HBUINT8>>
+			axes; /* Offset (from beginning of PaintComposite table) to backdrop Paint subtable. */
+  ArrayOf<F2DOT14, HBUINT8>
+			values; /* Offset (from beginning of PaintComposite table) to backdrop Paint subtable. */
+  public:
+  DEFINE_SIZE_ARRAY_SIZED (8, values);
+};
+
 struct ClipBoxData
 {
   int xMin, yMin, xMax, yMax;
@@ -1804,6 +1878,7 @@ struct Paint
     case 30: return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
     case 31: return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
     case 32: return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
+    case 33: return_trace (c->dispatch (u.paintformat33, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1843,6 +1918,7 @@ struct Paint
   NoVariable<PaintSkewAroundCenter>		paintformat30;
   Variable<PaintSkewAroundCenter>		paintformat31;
   PaintComposite				paintformat32;
+  NoVariable<PaintLocation>			paintformat33;
   } u;
   public:
   DEFINE_SIZE_MIN (2);
