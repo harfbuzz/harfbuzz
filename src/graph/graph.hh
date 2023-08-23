@@ -474,6 +474,18 @@ struct graph_t
     return root ().equals (other.root (), *this, other, 0);
   }
 
+  void print () const {
+    for (int i = vertices_.length - 1; i >= 0; i--)
+    {
+      const auto& v = vertices_[i];
+      printf("%d: %lu [", i, v.table_size());
+      for (const auto &l : v.obj.real_links) {
+        printf("%u, ", l.objidx);
+      }
+      printf("]\n");
+    }
+  }
+
   // Sorts links of all objects in a consistent manner and zeroes all offsets.
   void normalize ()
   {

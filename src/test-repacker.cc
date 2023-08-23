@@ -448,6 +448,7 @@ static void run_resolve_overflow_test (const char* name,
           name);
 
   graph_t graph (overflowing.object_graph ());
+
   graph_t expected_graph (expected.object_graph ());
   if (graph::will_overflow (expected_graph))
   {
@@ -473,6 +474,12 @@ static void run_resolve_overflow_test (const char* name,
   // Check the graphs are equivalent
   graph.normalize ();
   expected_graph.normalize ();
+  if (!(graph == expected_graph)) {
+    printf("## Expected:\n");
+    expected_graph.print();
+    printf("## Result:\n");
+    graph.print();
+  }
   assert (graph == expected_graph);
 }
 
@@ -1239,7 +1246,8 @@ populate_serializer_with_24_and_32_bit_offsets (hb_serialize_context_t* c)
 
 static void
 populate_serializer_with_extension_promotion (hb_serialize_context_t* c,
-                                              int num_extensions = 0)
+                                              int num_extensions = 0,
+                                              bool shared_subtables = false)
 {
   constexpr int num_lookups = 5;
   constexpr int num_subtables = num_lookups * 2;
@@ -1252,15 +1260,13 @@ populate_serializer_with_extension_promotion (hb_serialize_context_t* c,
 
 
   for (int i = num_subtables - 1; i >= 0; i--)
-    subtables[i] = add_object(large_string.c_str (), 15000, c);
+    subtables[i] = add_object(large_string.c_str (), 15000 + i, c);
 
   for (int i = num_subtables - 1;
        i >= (num_lookups - num_extensions) * 2;
        i--)
   {
-    unsigned ext_index = i - (num_lookups - num_extensions) * 2;
-    unsigned subtable_index = num_subtables - ext_index - 1;
-    extensions[i] = add_extension (subtables[subtable_index], 5, c);
+    extensions[i] = add_extension (subtables[i], 5, c);
   }
 
   for (int i = num_lookups - 1; i >= 0; i--)
@@ -1268,13 +1274,19 @@ populate_serializer_with_extension_promotion (hb_serialize_context_t* c,
     bool is_ext = (i >= (num_lookups - num_extensions));
 
     start_lookup (is_ext ? (char) 7 : (char) 5,
-                  2,
+                  shared_subtables && i > 2 ? 3 : 2,
                   c);
 
     if (is_ext) {
+      if (shared_subtables && i > 2) {
+        add_offset (extensions[i * 2 - 1], c);
+      }
       add_offset (extensions[i * 2], c);
       add_offset (extensions[i * 2 + 1], c);
     } else {
+      if (shared_subtables && i > 2) {
+        add_offset (subtables[i * 2 - 1], c);
+      }
       add_offset (subtables[i * 2], c);
       add_offset (subtables[i * 2 + 1], c);
     }
@@ -1837,6 +1849,28 @@ static void test_resolve_with_extension_promotion ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_shared_extension_promotion ()
+{
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_extension_promotion (&c, 0, true);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_extension_promotion (&e, 3, true);
+
+  run_resolve_overflow_test ("test_resolve_with_extension_promotion",
+                             c,
+                             e,
+                             20,
+                             true);
+  free (buffer);
+  free (expected_buffer);
+}
+
 static void test_resolve_with_basic_pair_pos_1_split ()
 {
   size_t buffer_size = 200000;
@@ -2122,6 +2156,7 @@ main (int argc, char **argv)
   test_virtual_link ();
   test_shared_node_with_virtual_links ();
   test_resolve_with_extension_promotion ();
+  test_resolve_with_shared_extension_promotion ();
   test_resolve_with_basic_pair_pos_1_split ();
   test_resolve_with_extension_pair_pos_1_split ();
   test_resolve_with_basic_pair_pos_2_split ();

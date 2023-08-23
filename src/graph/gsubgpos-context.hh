@@ -40,6 +40,7 @@ struct gsubgpos_graph_context_t
   graph_t& graph;
   unsigned lookup_list_index;
   hb_hashmap_t<unsigned, graph::Lookup*> lookups;
+  hb_map_t subtable_to_extension;
 
 
   HB_INTERNAL gsubgpos_graph_context_t (hb_tag_t table_tag_,
