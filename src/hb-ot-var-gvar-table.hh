@@ -307,13 +307,12 @@ struct gvar
   bool sanitize (hb_sanitize_context_t *c) const
   { return sanitize_shallow (c); }
 
-  bool decompile_glyph_variations (const hb_subset_plan_t *plan,
+  bool decompile_glyph_variations (hb_subset_context_t *c,
                                    glyph_variations_t& glyph_vars /* OUT */) const
   {
-
     hb_hashmap_t<hb_codepoint_t, hb_bytes_t> new_gid_var_data_map;
-    auto it = hb_iter (plan->new_to_old_gid_list);
-    if (it->first == 0 && !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
+    auto it = hb_iter (c->plan->new_to_old_gid_list);
+    if (it->first == 0 && !(c->plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
     {
       new_gid_var_data_map.set (0, hb_bytes_t ());
       it++;
@@ -323,14 +322,14 @@ struct gvar
     {
       hb_codepoint_t new_gid = _.first;
       hb_codepoint_t old_gid = _.second;
-      hb_bytes_t var_data_bytes = get_glyph_var_data_bytes (old_gid);
+      hb_bytes_t var_data_bytes = get_glyph_var_data_bytes (c->source_blob, glyphCountX, old_gid);
       new_gid_var_data_map.set (new_gid, var_data_bytes);
     }
 
     if (new_gid_var_data_map.in_error ()) return false;
 
     hb_array_t<const F2DOT14> shared_tuples = (this+sharedTuples).as_array ((unsigned) sharedTupleCount * (unsigned) axisCount);
-    return glyph_vars.create_from_glyphs_var_data (axisCount, shared_tuples, plan, new_gid_var_data_map);
+    return glyph_vars.create_from_glyphs_var_data (axisCount, shared_tuples, c->plan, new_gid_var_data_map);
   }
 
   template<typename Iterator,
@@ -382,7 +381,7 @@ struct gvar
   {
     TRACE_SUBSET (this);
     glyph_variations_t glyph_vars;
-    if (!decompile_glyph_variations (c->plan, glyph_vars))
+    if (!decompile_glyph_variations (c, glyph_vars))
       return_trace (false);
 
     if (!glyph_vars.instantiate (c->plan)) return_trace (false);
@@ -515,17 +514,6 @@ struct gvar
     unsigned length = end_offset - start_offset;
     hb_bytes_t var_data = blob->as_bytes ().sub_array (((unsigned) dataZ) + start_offset, length);
     return likely (var_data.length >= GlyphVariationData::min_size) ? var_data : hb_bytes_t ();
-  }
-
-  const hb_bytes_t get_glyph_var_data_bytes (hb_codepoint_t gid) const
-  {
-    unsigned start_offset = get_offset (glyphCountX, gid);
-    unsigned end_offset = get_offset (glyphCountX, gid+1);
-    if (unlikely (end_offset < start_offset)) return hb_bytes_t ();
-    unsigned length = end_offset - start_offset;
-    const char *p = (const char*) this + (unsigned) dataZ + start_offset;
-    hb_bytes_t var_data{p, length};
-    return likely (length >= GlyphVariationData::min_size) ? var_data : hb_bytes_t ();
   }
 
   bool is_long_offset () const { return flags & 1; }
