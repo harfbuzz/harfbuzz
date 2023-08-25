@@ -144,7 +144,7 @@ the macro `HB_CONFIG_OVERRIDE_H` to the string containing to that header file's
 name.  HarfBuzz will then include that file at the appropriate place during
 configuration.
 
-Up until HarfBuzz 3.1.2 the the configuration override header file's name was
+Up until HarfBuzz 3.1.2, the configuration override header file's name was
 fixed and called `config-override.h`, and was activated by defining the macro
 `HAVE_CONFIG_OVERRIDE_H`.  That still works.
 
