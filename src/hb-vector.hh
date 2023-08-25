@@ -102,7 +102,7 @@ struct hb_vector_t
 
   void fini ()
   {
-    /* We allow a hack to make the vector point to a foriegn array
+    /* We allow a hack to make the vector point to a foreign array
      * by the user. In that case length/arrayZ are non-zero but
      * allocated is zero. Don't free anything. */
     if (allocated)
