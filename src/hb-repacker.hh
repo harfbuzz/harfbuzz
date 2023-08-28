@@ -79,7 +79,12 @@ bool _presplit_subtables_if_needed (graph::gsubgpos_graph_context_t& ext_context
   //                pass after this processing is done. Not super necessary as splits are
   //                only done where overflow is likely, so de-dup probably will get undone
   //                later anyways.
-  for (unsigned lookup_index : ext_context.lookups.keys ())
+
+  // The loop below can modify the contents of ext_context.lookups if new subtables are added
+  // to a lookup during a split. So save the initial set of lookup indices so the iteration doesn't
+  // risk access free'd memory if ext_context.lookups gets resized.
+  hb_set_t lookup_indices(ext_context.lookups.keys ());
+  for (unsigned lookup_index : lookup_indices)
   {
     graph::Lookup* lookup = ext_context.lookups.get(lookup_index);
     if (!lookup->split_subtables_if_needed (ext_context, lookup_index))
