@@ -55,6 +55,7 @@
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-var-gvar-table.hh"
 #include "hb-ot-var-hvar-table.hh"
+#include "hb-ot-var-mvar-table.hh"
 #include "hb-ot-math-table.hh"
 #include "hb-ot-stat-table.hh"
 #include "hb-repacker.hh"
@@ -523,6 +524,9 @@ _subset_table (hb_subset_plan_t *plan,
   case HB_OT_TAG_cvar:
     if (plan->user_axes_location.is_empty ()) return _passthrough (plan, tag);
     return _subset<const OT::cvar> (plan, buf);
+  case HB_OT_TAG_MVAR:
+    if (plan->user_axes_location.is_empty ()) return _passthrough (plan, tag);
+    return _subset<const OT::MVAR> (plan, buf);
   case HB_OT_TAG_STAT:
     if (!plan->user_axes_location.is_empty ()) return _subset<const OT::STAT> (plan, buf);
     else return _passthrough (plan, tag);
