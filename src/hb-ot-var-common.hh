@@ -1838,7 +1838,80 @@ struct item_variations_t
     for (tuple_variations_t& tuple_vars : vars)
       if (!tuple_vars.instantiate (normalized_axes_location, axes_triple_distances))
         return false;
+
+    if (!build_region_list ()) return false;
     return true;
+  }
+
+  bool build_region_list ()
+  {
+    /* scan all tuples and collect all unique regions, prune unused regions */
+    hb_hashmap_t<region_t, unsigned> all_regions;
+    hb_hashmap_t<region_t, unsigned> used_regions;
+
+    /* use a vector when inserting new regions, make result deterministic */
+    hb_vector_t<region_t> all_unique_regions;
+    for (const tuple_variations_t& sub_table : vars)
+    {
+      for (const tuple_delta_t& tuple : sub_table.tuple_vars)
+      {
+        region_t r = &(tuple.axis_tuples);
+        if (!used_regions.has (r))
+        {
+          bool all_zeros = true;
+          for (float d : tuple.deltas_x)
+          {
+            int delta = (int) roundf (d);
+            if (delta != 0)
+            {
+              all_zeros = false;
+              break;
+            }
+          }
+          if (!all_zeros)
+          {
+            if (!used_regions.set (r, 1))
+              return false;
+          }
+        }
+        if (all_regions.has (r))
+          continue;
+        if (!all_regions.set (r, 1))
+          return false;
+        all_unique_regions.push (r);
+      }
+    }
+
+    if (!all_regions || !all_unique_regions) return false;
+    if (!region_list.alloc (all_regions.get_population ()))
+      return false;
+
+    unsigned idx = 0;
+    /* append the original regions that pre-existed */
+    for (const auto& r : orig_region_list)
+    {
+      if (!all_regions.has (&r) || !used_regions.has (&r))
+        continue;
+
+      region_list.push (&r);
+      if (!region_map.set (&r, idx))
+        return false;
+      all_regions.del (&r);
+      idx++;
+    }
+
+    /* append the new regions at the end */
+    for (const auto& r: all_unique_regions)
+    {
+      if (!all_regions.has (r) || !used_regions.has (r))
+        continue;
+      region_list.push (r);
+      if (!region_map.set (r, idx))
+        return false;
+      all_regions.del (r);
+      idx++;
+    }
+    return (!region_list.in_error ()) && (!region_map.in_error ());
   }
 
 
