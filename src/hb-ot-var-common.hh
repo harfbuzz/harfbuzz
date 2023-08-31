@@ -1076,6 +1076,11 @@ struct TupleVariationData
     unsigned compiled_byte_size = 4;
 
     public:
+    tuple_variations_t () = default;
+    tuple_variations_t (const tuple_variations_t&) = delete;
+    tuple_variations_t& operator=(const tuple_variations_t&) = delete;
+    tuple_variations_t (tuple_variations_t&&) = default;
+    tuple_variations_t& operator=(tuple_variations_t&&) = default;
     ~tuple_variations_t () { fini (); }
     void fini ()
     {
