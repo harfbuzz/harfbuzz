@@ -1705,6 +1705,53 @@ struct TupleVariationData
   DEFINE_SIZE_MIN (4);
 };
 
+using tuple_variations_t = TupleVariationData::tuple_variations_t;
+struct item_variations_t
+{
+  using region_t = const hb_hashmap_t<hb_tag_t, Triple>*;
+  private:
+  /* each subtable is decompiled into a tuple_variations_t, in which all tuples
+   * have the same num of deltas (rows) */
+  hb_vector_t<tuple_variations_t> vars;
+
+  /* original region list, decompiled from item varstore, used when rebuilding
+   * region list after instantiation */
+  hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>> orig_region_list;
+
+  /* region list: vector of Regions, maintain the original order for the regions
+   * that existed before instantiate (), append the new regions at the end.
+   * Regions are stored in each tuple already, save pointers only.
+   * When converting back to item varstore, unused regions will be pruned */
+  hb_vector_t<region_t> region_list;
+
+  /* region -> idx map after instantiation and pruning unused regions */
+  hb_hashmap_t<region_t, unsigned> region_map;
+
+  /* all delta rows after instantiation */
+  hb_vector_t<hb_vector_t<int>> delta_rows;
+  /* final optimized vector of encoding objects used to assemble the varstore */
+  hb_vector_t<delta_row_encoding_t> encodings;
+
+  /* old varidxes -> new var_idxes map */
+  hb_map_t varidx_map;
+
+  /* has long words */
+  bool has_long = false;
+
+  public:
+  bool has_long_word () const
+  { return has_long; }
+
+  const hb_vector_t<region_t>& get_region_list () const
+  { return region_list; }
+
+  const hb_vector_t<delta_row_encoding_t>& get_vardata_encodings () const
+  { return encodings; }
+
+  const hb_map_t& get_varidx_map () const
+  { return varidx_map; }
+};
+
 } /* namespace OT */
 
 

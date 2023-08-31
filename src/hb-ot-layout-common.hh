@@ -2300,6 +2300,147 @@ static inline bool ClassDef_serialize (hb_serialize_context_t *c,
  * Item Variation Store
  */
 
+/* ported from fonttools (class _Encoding) */
+struct delta_row_encoding_t
+{
+  /* each byte represents a region, value is one of 0/1/2/4, which means bytes
+   * needed for this region */
+  hb_vector_t<uint8_t> chars;
+  unsigned width;
+  unsigned columns;
+  unsigned overhead;
+  hb_vector_t<const hb_vector_t<int>*> items;
+
+  delta_row_encoding_t () = default;
+  delta_row_encoding_t (hb_vector_t<uint8_t>&& chars_,
+                        const hb_vector_t<int>* row = nullptr) :
+                        delta_row_encoding_t ()
+
+  {
+    chars = chars_;
+    width = get_width ();
+    columns = get_columns ();
+    overhead = get_chars_overhead (columns);
+    if (row) items.push (row);
+  }
+
+  bool is_empty () const
+  { return !items; }
+
+  static hb_vector_t<uint8_t> get_row_chars (const hb_vector_t<int>& row)
+  {
+    hb_vector_t<uint8_t> ret;
+    if (!ret.alloc (row.length)) return ret;
+
+    bool long_words = false;
+
+    /* 0/1/2 byte encoding */
+    for (int v: row)
+    {
+      if (v == 0)
+        ret.push (0);
+      else if (v > 32767 || v < -32768)
+      {
+        long_words = true;
+        break;
+      }
+      else if (v > 127 || v < -128)
+        ret.push (2);
+      else
+        ret.push (1);
+    }
+
+    if (!long_words)
+      return ret;
+
+    /* redo, 0/2/4 bytes encoding */
+    ret.reset ();
+    for (int v: row)
+    {
+      if (v == 0)
+        ret.push (0);
+      else if (v > 32767 || v < -32768)
+        ret.push (4);
+      else
+        ret.push (2);
+    }
+    return ret;
+  }
+
+  inline unsigned get_width ()
+  {
+    unsigned ret = + hb_iter (chars)
+                   | hb_reduce (hb_add, 0u)
+                   ;
+    return ret;
+  }
+
+  unsigned get_columns ()
+  {
+    unsigned cols = 0;
+    unsigned i = 1;
+    for (auto v : chars)
+    {
+      if (v)
+        cols |= i;
+      i <<= 1;
+    }
+    return cols;
+  }
+
+  static inline unsigned get_chars_overhead (unsigned cols)
+  { return 10 + hb_popcount (cols) * 2; }
+
+  unsigned get_gain () const
+  {
+    int count = items.length;
+    return hb_max (0, (int) overhead - count);
+  }
+
+  int gain_from_merging (const delta_row_encoding_t& other_encoding) const
+  {
+    int combined_width = 0;
+    for (unsigned i = 0; i < chars.length; i++)
+      combined_width += hb_max (chars.arrayZ[i], other_encoding.chars.arrayZ[i]);
+    
+    int combined_columns = columns | other_encoding.columns;
+    int combined_overhead = get_chars_overhead (combined_columns);
+    int combined_gain = (int) overhead + (int) other_encoding.overhead - combined_overhead
+                        - (combined_width - (int) width) * items.length
+                        - (combined_width - (int) other_encoding.width) * other_encoding.items.length;
+
+    return combined_gain;
+  }
+
+  static int cmp (const void *pa, const void *pb)
+  {
+    const delta_row_encoding_t *a = (const delta_row_encoding_t *)pa;
+    const delta_row_encoding_t *b = (const delta_row_encoding_t *)pb;
+
+    int gain_a = a->get_gain ();
+    int gain_b = b->get_gain ();
+
+    if (gain_a != gain_b)
+      return gain_a - gain_b;
+
+    return (b->chars).as_array ().cmp ((a->chars).as_array ());
+  }
+
+  static int cmp_width (const void *pa, const void *pb)
+  {
+    const delta_row_encoding_t *a = (const delta_row_encoding_t *)pa;
+    const delta_row_encoding_t *b = (const delta_row_encoding_t *)pb;
+
+    if (a->width != b->width)
+      return (int) a->width - (int) b->width;
+
+    return (b->chars).as_array ().cmp ((a->chars).as_array ());
+  }
+
+  bool add_row (const hb_vector_t<int>* row)
+  { return items.push (row); }
+};
+
 struct VarRegionAxis
 {
   float evaluate (int coord) const
