@@ -27,6 +27,7 @@
 #define HB_OT_VAR_COMMON_HH
 
 #include "hb-ot-layout-common.hh"
+#include "hb-priority-queue.hh"
 
 
 namespace OT {
@@ -1914,7 +1915,231 @@ struct item_variations_t
     return (!region_list.in_error ()) && (!region_map.in_error ());
   }
 
+  /* main algorithm ported from fonttools VarStore_optimize() method */
+  bool optimize (bool use_no_variation_idx=true)
+  {
+    unsigned num_cols = region_list.length;
+    /* pre-alloc a 2D vector for all sub_table's VarData rows */
+    unsigned total_rows = 0;
+    for (unsigned major = 0; major < vars.length; major++)
+    {
+      const tuple_variations_t& tuples = vars[major];
+      /* all tuples in each sub_table should have same num of deltas(num rows) */
+      total_rows += tuples.tuple_vars[0].deltas_x.length;
+    }
 
+    if (!delta_rows.resize (total_rows)) return false;
+    /* init all rows to [0]*num_cols */
+    for (unsigned i = 0; i < total_rows; i++)
+      if (!(delta_rows[i].resize (num_cols))) return false;
+
+    /* old VarIdxes -> full encoding_row mapping */
+    hb_hashmap_t<unsigned, const hb_vector_t<int>*> front_mapping;
+    unsigned start_row = 0;
+    hb_vector_t<delta_row_encoding_t> encoding_objs;
+    hb_hashmap_t<hb_vector_t<uint8_t>, unsigned> chars_idx_map;
+    for (unsigned major = 0; major < vars.length; major++)
+    {
+      /* deltas are stored in tuples(column based), convert them back into items
+       * (row based) delta */
+      const tuple_variations_t& tuples = vars[major];
+      unsigned num_rows = tuples.tuple_vars[0].deltas_x.length;
+      for (const tuple_delta_t& tuple: tuples.tuple_vars)
+      {
+        if (tuple.deltas_x.length != num_rows)
+          return false;
+
+        /* skip unused regions */
+        unsigned *col_idx;
+        if (!region_map.has (&(tuple.axis_tuples), &col_idx))
+          continue;
+
+        for (unsigned i = start_row; i < start_row + num_rows; i++)
+        {
+          int rounded_delta = roundf (tuple.deltas_x[i]);
+          delta_rows[i][*col_idx] += rounded_delta;
+          if ((!has_long) && (rounded_delta < -65536 || rounded_delta > 65535))
+            has_long = true;
+        }
+      }
+
+      for (unsigned minor = 0; minor < num_rows; minor++)
+      {
+        const hb_vector_t<int>& row = delta_rows[start_row + minor];
+        if (use_no_variation_idx)
+        {
+          bool all_zeros = true;
+          for (int delta : row)
+          {
+            if (delta != 0)
+            {
+              all_zeros = false;
+              break;
+            }
+          }
+          if (all_zeros)
+            continue;
+        }
+        hb_vector_t<uint8_t> chars = delta_row_encoding_t::get_row_chars (row);
+        unsigned *obj_idx;
+        if (chars_idx_map.has (chars, &obj_idx))
+        {
+          delta_row_encoding_t& obj = encoding_objs[*obj_idx];
+          if (!obj.add_row (&row))
+            return false;
+        }
+        else
+        {
+          delta_row_encoding_t obj (std::move (chars), &row);
+          encoding_objs.push (std::move (obj));
+          if (!chars_idx_map.set (chars, encoding_objs.length - 1))
+            return false;
+        }
+        if (!front_mapping.set ((major<<16) + minor, &row))
+          return false;
+      }
+
+      start_row += num_rows;
+    }
+    /* sort encoding_objs */
+    encoding_objs.qsort ();
+
+    /* main algorithm: repeatedly pick 2 best encodings to combine, and combine
+     * them */
+    hb_priority_queue_t queue;
+    unsigned num_todos = encoding_objs.length;
+    for (unsigned i = 0; i < num_todos; i++)
+    {
+      for (unsigned j = i + 1; j < num_todos; j++)
+      {
+        int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j]);
+        if (combining_gain > 0)
+        {
+          unsigned val = (i << 16) + j;
+          queue.insert (-combining_gain, val);
+        }
+      }
+    }
+
+    hb_set_t removed_todo_idxes;
+    while (queue)
+    {
+      unsigned val = queue.pop_minimum ().second;
+      unsigned j = val & 0xFFFF;
+      unsigned i = (val >> 16) & 0xFFFF;
+
+      if (removed_todo_idxes.has (i) || removed_todo_idxes.has (j))
+        continue;
+
+      delta_row_encoding_t& encoding = encoding_objs.arrayZ[i];
+      delta_row_encoding_t& other_encoding = encoding_objs.arrayZ[j];
+
+      removed_todo_idxes.add (i);
+      removed_todo_idxes.add (j);
+
+      hb_vector_t<uint8_t> combined_chars;
+      if (!combined_chars.alloc (encoding.chars.length))
+        return false;
+
+      for (unsigned idx = 0; idx < encoding.chars.length; idx++)
+      {
+        uint8_t v = hb_max (encoding.chars.arrayZ[idx], other_encoding.chars.arrayZ[idx]);
+        combined_chars.push (v);
+      }
+
+      delta_row_encoding_t combined_encoding_obj (std::move (combined_chars));
+      for (const auto& row : hb_concat (encoding.items, other_encoding.items))
+        combined_encoding_obj.add_row (row);
+
+      for (unsigned idx = 0; i < encoding_objs.length; i++)
+      {
+        if (removed_todo_idxes.has (idx)) continue;
+
+        const delta_row_encoding_t& obj = encoding_objs.arrayZ[idx];
+        if (obj.chars == combined_chars)
+        {
+          for (const auto& row : obj.items)
+            combined_encoding_obj.add_row (row);
+
+          removed_todo_idxes.add (idx);
+          continue;
+        }
+
+        int combined_gain = combined_encoding_obj.gain_from_merging (obj);
+        if (combined_gain > 0)
+        {
+          unsigned val = (idx << 16) + encoding_objs.length;
+          queue.insert (-combined_gain, val);
+        }
+      }
+
+      encoding_objs.push (std::move (combined_encoding_obj));
+    }
+
+    int num_final_encodings = (int) encoding_objs.length - (int) removed_todo_idxes.get_population ();
+    if (num_final_encodings <= 0) return false;
+
+    if (!encodings.alloc (num_final_encodings)) return false;
+    for (unsigned i = 0; i < encoding_objs.length; i++)
+    {
+      if (removed_todo_idxes.has (i)) continue;
+      encodings.push (std::move (encoding_objs.arrayZ[i]));
+    }
+
+    /* sort again based on width, make result deterministic */
+    encodings.qsort (delta_row_encoding_t::cmp_width);
+
+    /* full encoding_row -> new VarIdxes mapping */
+    hb_hashmap_t<const hb_vector_t<int>*, unsigned> back_mapping;
+
+    for (unsigned major = 0; major < encodings.length; major++)
+      if (!compile_varidx_map (major, front_mapping, back_mapping))
+        return false;
+    return true;
+  }
+
+  private:
+  /* compile varidx_map for one VarData subtable (index specified by major) */
+  bool compile_varidx_map (unsigned major,
+                           const hb_hashmap_t<unsigned, const hb_vector_t<int>*>& front_mapping,
+                           hb_hashmap_t<const hb_vector_t<int>*, unsigned> back_mapping)
+  {
+    delta_row_encoding_t& encoding = encodings[major];
+    /* just sanity check, this shouldn't happen */
+    if (encoding.is_empty ())
+      return false;
+
+    unsigned num_rows = encoding.items.length;
+    /* sort rows, make result deterministic */
+    encoding.items.qsort (_cmp_row);
+
+    /* compile old to new var_idxes mapping */
+    for (unsigned minor = 0; minor < num_rows; minor++)
+    {
+      unsigned new_varidx = (major << 16) + minor;
+      back_mapping.set (encoding.items.arrayZ[minor], new_varidx);
+    }
+
+    for (auto _ : front_mapping.iter ())
+    {
+      unsigned old_varidx = _.first;
+      unsigned *new_varidx;
+      if (back_mapping.has (_.second, &new_varidx))
+        varidx_map.set (old_varidx, *new_varidx);
+      else
+        varidx_map.set (old_varidx, HB_OT_LAYOUT_NO_VARIATIONS_INDEX);
+    }
+    return !varidx_map.in_error ();
+  }
+
+  static int _cmp_row (const void *pa, const void *pb)
+  {
+    /* compare pointers of vectors(const hb_vector_t<int>*) that represent a row */
+    const hb_vector_t<int>** a = (const hb_vector_t<int>**) pa;
+    const hb_vector_t<int>** b = (const hb_vector_t<int>**) pb;
+
+    return ((*b)->as_array ()).cmp ((*a)->as_array ());
+  }
 };
 
 } /* namespace OT */
