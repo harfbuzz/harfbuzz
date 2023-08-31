@@ -1171,6 +1171,45 @@ struct TupleVariationData
       return true;
     }
 
+    bool create_from_item_var_data (const VarData &var_data,
+                                    const hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>>& regions,
+                                    const hb_map_t& axes_old_index_tag_map)
+    {
+      /* NULL offset, to keep original varidx valid, just return */
+      if (&var_data == &Null (VarData))
+        return true;
+  
+      unsigned num_regions = var_data.get_region_index_count ();
+      if (!tuple_vars.alloc (num_regions)) return false;
+  
+      unsigned item_count = var_data.get_item_count ();
+      unsigned row_size = var_data.get_row_size ();
+      const HBUINT8 *delta_bytes = var_data.get_delta_bytes ();
+  
+      for (unsigned r = 0; r < num_regions; r++)
+      {
+        /* In VarData, deltas are organized in rows, convert them into
+         * column(region) based tuples, resize deltas_x first */
+        tuple_delta_t tuple;
+        if (!tuple.deltas_x.resize (item_count, false) ||
+            !tuple.indices.resize (item_count, false))
+          return false;
+  
+        for (unsigned i = 0; i < item_count; i++)
+        {
+          tuple.indices.arrayZ[i] = true;
+          tuple.deltas_x.arrayZ[i] = var_data.get_item_delta_fast (i, r, delta_bytes, row_size);
+        }
+  
+        unsigned region_index = var_data.get_region_index (r);
+        if (region_index >= regions.length) return false;
+        tuple.axis_tuples = regions.arrayZ[region_index];
+
+        tuple_vars.push (std::move (tuple));
+      }
+      return !tuple_vars.in_error ();
+    }
+
     private:
     void change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
@@ -1750,6 +1789,29 @@ struct item_variations_t
 
   const hb_map_t& get_varidx_map () const
   { return varidx_map; }
+
+  bool create_from_item_varstore (const VariationStore& varStore,
+                                  const hb_map_t& axes_old_index_tag_map)
+  {
+    const VarRegionList& regionList = varStore.get_region_list ();
+    if (!regionList.get_var_regions (axes_old_index_tag_map, orig_region_list))
+      return false;
+
+    unsigned num_var_data = varStore.get_sub_table_count ();
+    if (!vars.alloc (num_var_data)) return false;
+
+    for (unsigned i = 0; i < num_var_data; i++)
+    {
+      tuple_variations_t var_data_tuples;
+      if (!var_data_tuples.create_from_item_var_data (varStore.get_sub_table (i),
+                                                      orig_region_list,
+                                                      axes_old_index_tag_map))
+        return false;
+
+      vars.push (std::move (var_data_tuples));
+    }
+    return !vars.in_error ();
+  }
 };
 
 } /* namespace OT */
