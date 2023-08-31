@@ -1211,13 +1211,29 @@ struct TupleVariationData
     }
 
     private:
-    void change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
+    static int _cmp_axis_tag (const void *pa, const void *pb)
+    {
+      const hb_tag_t *a = (const hb_tag_t*) pa;
+      const hb_tag_t *b = (const hb_tag_t*) pb;
+      return (int)(*a) - (int)(*b);
+    }
+
+    bool change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
     {
-      for (auto _ : normalized_axes_location)
+      /* sort axis_tag/axis_limits, make result deterministic */
+      hb_vector_t<hb_tag_t> axis_tags;
+      if (!axis_tags.alloc (normalized_axes_location.get_population ()))
+        return false;
+      for (auto t : normalized_axes_location.keys ())
+        axis_tags.push (t);
+
+      axis_tags.qsort (_cmp_axis_tag);
+      for (auto axis_tag : axis_tags)
       {
-        hb_tag_t axis_tag = _.first;
-        Triple axis_limit = _.second;
+        Triple *axis_limit;
+        if (!normalized_axes_location.has (axis_tag, &axis_limit))
+          return false;
         TripleDistances axis_triple_distances{1.f, 1.f};
         if (axes_triple_distances.has (axis_tag))
           axis_triple_distances = axes_triple_distances.get (axis_tag);
@@ -1225,12 +1241,13 @@ struct TupleVariationData
         hb_vector_t<tuple_delta_t> new_vars;
         for (const tuple_delta_t& var : tuple_vars)
         {
-          hb_vector_t<tuple_delta_t> out = var.change_tuple_var_axis_limit (axis_tag, axis_limit, axis_triple_distances);
+          hb_vector_t<tuple_delta_t> out = var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances);
           if (!out) continue;
+
           unsigned new_len = new_vars.length + out.length;
 
           if (unlikely (!new_vars.alloc (new_len, false)))
-          { fini (); return;}
+          { fini (); return false;}
 
           for (unsigned i = 0; i < out.length; i++)
             new_vars.push (std::move (out[i]));
@@ -1238,6 +1255,7 @@ struct TupleVariationData
         tuple_vars.fini ();
         tuple_vars = std::move (new_vars);
       }
+      return true;
     }
 
     /* merge tuple variations with overlapping tents */
@@ -1421,7 +1439,8 @@ struct TupleVariationData
                       contour_point_vector_t* contour_points = nullptr)
     {
       if (!tuple_vars) return true;
-      change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances);
+      if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances))
+        return false;
       /* compute inferred deltas only for gvar */
       if (contour_points)
         if (!calc_inferred_deltas (*contour_points))
@@ -1812,6 +1831,17 @@ struct item_variations_t
     }
     return !vars.in_error ();
   }
+
+  bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
+                    const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
+  {
+    for (tuple_variations_t& tuple_vars : vars)
+      if (!tuple_vars.instantiate (normalized_axes_location, axes_triple_distances))
+        return false;
+    return true;
+  }
+
+
 };
 
 } /* namespace OT */
