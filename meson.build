@@ -3,7 +3,7 @@ project('harfbuzz', 'c', 'cpp',
   version: '8.1.1',
   default_options: [
     'cpp_eh=none',          # Just to support msvc, we are passing -fno-exceptions also anyway
-    'cpp_rtti=false',       # Just to support msvc, we are passing -fno-rtti also anyway
+    # 'cpp_rtti=false',     # Do NOT enable, wraps inherit it and ICU needs RTTI
     'cpp_std=c++11',
     'wrap_mode=nofallback', # Use --wrap-mode=default to revert, https://github.com/harfbuzz/harfbuzz/pull/2548
   ],
@@ -21,6 +21,11 @@ hb_libtool_version_info = '@0@:0:@0@'.format(hb_version_int)
 pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
 null_dep = dependency('', required: false)
+
+# Enforce C++14 requirement for MSVC STL
+if ['clang', 'clang-cl'].contains(cpp.get_id()) and cpp.get_define('_MSC_FULL_VER') != ''
+  add_project_arguments('-std=c++14', language: 'cpp')
+endif
 
 if cpp.get_argument_syntax() == 'msvc'
   # Ignore several spurious warnings for things HarfBuzz does very commonly.
