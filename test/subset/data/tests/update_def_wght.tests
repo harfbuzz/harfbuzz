@@ -1,0 +1,12 @@
+FONTS:
+SourceSerifVariable-Roman.ttf
+
+PROFILES:
+no-tables-with-item-variations.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=300:600
+wght=500:800
