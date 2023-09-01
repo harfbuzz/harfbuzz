@@ -1,4 +1,7 @@
-/freetype2
+/freetype-*
+/icu
+/libpng-*
+/zlib-*
 /glib
 /packagecache
 /benchmark-*
