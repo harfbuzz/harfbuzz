@@ -1,3 +1,15 @@
+Overview of changes leading to 8.2.0
+Friday, September 8, 2023
+====================================
+- Various build and fuzzing fixes
+- Improvements to COLRv1 painting.
+
+- New API:
++hb_paint_color_glyph_func_t
++hb_paint_funcs_set_color_glyph_func
++hb_paint_color_glyph
+
+
 Overview of changes leading to 8.1.1
 Wednesday, August 2, 2023
 ====================================

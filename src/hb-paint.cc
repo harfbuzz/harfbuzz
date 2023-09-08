@@ -488,7 +488,7 @@ hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data)
  *
  * Perform a "color-glyph" paint operation.
  *
- * XSince: REPLACEME
+ * Since: 8.2.0
  */
 hb_bool_t
 hb_paint_color_glyph (hb_paint_funcs_t *funcs, void *paint_data,

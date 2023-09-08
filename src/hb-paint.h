@@ -148,7 +148,7 @@ typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
  *
  * Return value: %true if the glyph was painted, %false otherwise.
  *
- * XSince: REPLACEME
+ * Since: 8.2.0
  */
 typedef hb_bool_t (*hb_paint_color_glyph_func_t) (hb_paint_funcs_t *funcs,
                                                   void *paint_data,
@@ -752,7 +752,7 @@ hb_paint_funcs_set_pop_transform_func (hb_paint_funcs_t              *funcs,
  *
  * Sets the color-glyph callback on the paint functions struct.
  *
- * Since: 7.0.0
+ * Since: 8.2.0
  */
 HB_EXTERN void
 hb_paint_funcs_set_color_glyph_func (hb_paint_funcs_t                *funcs,
