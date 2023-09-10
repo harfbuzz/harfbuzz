@@ -478,7 +478,7 @@ struct graph_t
     for (int i = vertices_.length - 1; i >= 0; i--)
     {
       const auto& v = vertices_[i];
-      printf("%d: %lu [", i, v.table_size());
+      printf("%d: %u [", i, (unsigned int)v.table_size());
       for (const auto &l : v.obj.real_links) {
         printf("%u, ", l.objidx);
       }
