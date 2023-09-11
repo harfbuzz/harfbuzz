@@ -2307,7 +2307,7 @@ struct delta_row_encoding_t
    * needed for this region */
   hb_vector_t<uint8_t> chars;
   unsigned width;
-  unsigned columns;
+  hb_vector_t<uint8_t> columns;
   unsigned overhead;
   hb_vector_t<const hb_vector_t<int>*> items;
 
@@ -2375,21 +2375,26 @@ struct delta_row_encoding_t
     return ret;
   }
 
-  unsigned get_columns ()
+  hb_vector_t<uint8_t> get_columns ()
   {
-    unsigned cols = 0;
-    unsigned i = 1;
+    hb_vector_t<uint8_t> cols;
+    cols.alloc (chars.length);
     for (auto v : chars)
     {
-      if (v)
-        cols |= i;
-      i <<= 1;
+      uint8_t flag = v ? 1 : 0;
+      cols.push (flag);
     }
     return cols;
   }
 
-  static inline unsigned get_chars_overhead (unsigned cols)
-  { return 10 + hb_popcount (cols) * 2; }
+  static inline unsigned get_chars_overhead (const hb_vector_t<uint8_t>& cols)
+  {
+    unsigned c = 4 + 6; // 4 bytes for LOffset, 6 bytes for VarData header
+    unsigned cols_bit_count = 0;
+    for (auto v : cols)
+      if (v) cols_bit_count++;
+    return c + cols_bit_count * 2;
+  }
 
   unsigned get_gain () const
   {
@@ -2402,8 +2407,12 @@ struct delta_row_encoding_t
     int combined_width = 0;
     for (unsigned i = 0; i < chars.length; i++)
       combined_width += hb_max (chars.arrayZ[i], other_encoding.chars.arrayZ[i]);
+   
+    hb_vector_t<uint8_t> combined_columns;
+    combined_columns.alloc (columns.length);
+    for (unsigned i = 0; i < columns.length; i++)
+      combined_columns.push (columns.arrayZ[i] | other_encoding.columns.arrayZ[i]);
     
-    int combined_columns = columns | other_encoding.columns;
     int combined_overhead = get_chars_overhead (combined_columns);
     int combined_gain = (int) overhead + (int) other_encoding.overhead - combined_overhead
                         - (combined_width - (int) width) * items.length

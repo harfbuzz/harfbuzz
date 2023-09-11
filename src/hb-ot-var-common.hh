@@ -1981,6 +1981,7 @@ struct item_variations_t
             continue;
         }
         hb_vector_t<uint8_t> chars = delta_row_encoding_t::get_row_chars (row);
+        if (!chars) return false;
         unsigned *obj_idx;
         if (chars_idx_map.has (chars, &obj_idx))
         {
