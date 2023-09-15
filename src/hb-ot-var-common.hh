@@ -1954,10 +1954,10 @@ struct item_variations_t
         if (!region_map.has (&(tuple.axis_tuples), &col_idx))
           continue;
 
-        for (unsigned i = start_row; i < start_row + num_rows; i++)
+        for (unsigned i = 0; i < num_rows; i++)
         {
           int rounded_delta = roundf (tuple.deltas_x[i]);
-          delta_rows[i][*col_idx] += rounded_delta;
+          delta_rows[start_row + i][*col_idx] += rounded_delta;
           if ((!has_long) && (rounded_delta < -65536 || rounded_delta > 65535))
             has_long = true;
         }
@@ -2052,7 +2052,7 @@ struct item_variations_t
       for (const auto& row : hb_concat (encoding.items, other_encoding.items))
         combined_encoding_obj.add_row (row);
 
-      for (unsigned idx = 0; i < encoding_objs.length; i++)
+      for (unsigned idx = 0; idx < encoding_objs.length; idx++)
       {
         if (removed_todo_idxes.has (idx)) continue;
 
