@@ -273,6 +273,9 @@ static const test_pair_t general_category_tests_more[] =
   /* Unicode-15.0 character additions */
   {   0x0CF3, HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK },
 
+  /* Unicode-15.1 character additions */
+  {   0x31EF, HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL },
+
   { 0x111111, HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED }
 };
 
