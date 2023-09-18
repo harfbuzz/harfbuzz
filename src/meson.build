@@ -703,6 +703,7 @@ if get_option('tests').enabled()
       'test-serialize': ['test-serialize.cc', 'hb-static.cc'],
       'test-set': ['test-set.cc', 'hb-static.cc'],
       'test-tuple-varstore': ['test-tuple-varstore.cc', 'hb-subset-instancer-solver.cc', 'hb-static.cc'],
+      'test-item-varstore': ['test-item-varstore.cc', 'hb-subset-instancer-solver.cc', 'hb-static.cc'],
       'test-use-table': 'test-use-table.cc',
       'test-vector': ['test-vector.cc', 'hb-static.cc'],
     }
