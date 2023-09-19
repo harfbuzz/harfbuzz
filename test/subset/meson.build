@@ -68,7 +68,11 @@ tests = [
 ]
 
 if get_option('experimental_api')
-  tests += 'glyf_partial_instancing'
+  tests += [
+    'glyf_partial_instancing',
+    'mvar_partial_instance',
+    'update_def_wght',
+    ]
 endif
 
 repack_tests = [

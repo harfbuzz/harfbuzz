@@ -927,6 +927,7 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     {
       axis_not_pinned = true;
       plan->axes_index_map.set (old_axis_idx, new_axis_idx);
+      plan->axis_tags.push (axis_tag);
       new_axis_idx++;
     }
 
