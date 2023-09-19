@@ -1922,8 +1922,9 @@ struct item_variations_t
     return (!region_list.in_error ()) && (!region_map.in_error ());
   }
 
-  /* main algorithm ported from fonttools VarStore_optimize() method */
-  bool optimize (bool use_no_variation_idx=true)
+  /* main algorithm ported from fonttools VarStore_optimize() method, optimize
+   * varstore by default */
+  bool as_item_varstore (bool optimize=true, bool use_no_variation_idx=true)
   {
     unsigned num_cols = region_list.length;
     /* pre-alloc a 2D vector for all sub_table's VarData rows */
@@ -1973,6 +1974,19 @@ struct item_variations_t
         }
       }
 
+      if (!optimize)
+      {
+        /* assemble a delta_row_encoding_t for this subtable, skip optimization so
+         * chars is not initialized, we only need delta rows for serialization */
+        delta_row_encoding_t obj;
+        for (unsigned r = start_row; r < start_row + num_rows; r++)
+          obj.add_row (&(delta_rows.arrayZ[r]));
+
+        encodings.push (std::move (obj));
+        start_row += num_rows;
+        continue;
+      }
+
       for (unsigned minor = 0; minor < num_rows; minor++)
       {
         const hb_vector_t<int>& row = delta_rows[start_row + minor];
@@ -2019,6 +2033,11 @@ struct item_variations_t
 
       start_row += num_rows;
     }
+
+    /* return directly if no optimization, maintain original VariationIndex so
+     * varidx_map would be empty */
+    if (!optimize) return encodings.in_error ();
+
     /* sort encoding_objs */
     encoding_objs.qsort ();
 

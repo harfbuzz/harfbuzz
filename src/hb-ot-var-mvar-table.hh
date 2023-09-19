@@ -111,7 +111,7 @@ struct MVAR
     if (!item_vars.instantiate (c->plan->axes_location, c->plan->axes_triple_distances))
       return_trace (false);
 
-    if (!item_vars.optimize ())
+    if (!item_vars.as_item_varstore ())
       return_trace (false);
 
     /* serialize varstore */
