@@ -1174,7 +1174,8 @@ struct TupleVariationData
 
     bool create_from_item_var_data (const VarData &var_data,
                                     const hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>>& regions,
-                                    const hb_map_t& axes_old_index_tag_map)
+                                    const hb_map_t& axes_old_index_tag_map,
+                                    const hb_inc_bimap_t* inner_map = nullptr)
     {
       /* NULL offset, to keep original varidx valid, just return */
       if (&var_data == &Null (VarData))
@@ -1183,7 +1184,7 @@ struct TupleVariationData
       unsigned num_regions = var_data.get_region_index_count ();
       if (!tuple_vars.alloc (num_regions)) return false;
   
-      unsigned item_count = var_data.get_item_count ();
+      unsigned item_count = inner_map ? inner_map->get_population () : var_data.get_item_count ();
       unsigned row_size = var_data.get_row_size ();
       const HBUINT8 *delta_bytes = var_data.get_delta_bytes ();
   
@@ -1199,7 +1200,8 @@ struct TupleVariationData
         for (unsigned i = 0; i < item_count; i++)
         {
           tuple.indices.arrayZ[i] = true;
-          tuple.deltas_x.arrayZ[i] = var_data.get_item_delta_fast (i, r, delta_bytes, row_size);
+          tuple.deltas_x.arrayZ[i] = var_data.get_item_delta_fast (inner_map ? inner_map->backward (i) : i,
+                                                                   r, delta_bytes, row_size);
         }
   
         unsigned region_index = var_data.get_region_index (r);
@@ -1811,21 +1813,26 @@ struct item_variations_t
   { return varidx_map; }
 
   bool create_from_item_varstore (const VariationStore& varStore,
-                                  const hb_map_t& axes_old_index_tag_map)
+                                  const hb_map_t& axes_old_index_tag_map,
+                                  const hb_array_t <const hb_inc_bimap_t> inner_maps = hb_array_t<const hb_inc_bimap_t> ())
   {
     const VarRegionList& regionList = varStore.get_region_list ();
     if (!regionList.get_var_regions (axes_old_index_tag_map, orig_region_list))
       return false;
 
     unsigned num_var_data = varStore.get_sub_table_count ();
+    if (inner_maps && inner_maps.length != num_var_data) return false;
     if (!vars.alloc (num_var_data)) return false;
 
     for (unsigned i = 0; i < num_var_data; i++)
     {
+      if (inner_maps && !inner_maps.arrayZ[i].get_population ())
+          continue;
       tuple_variations_t var_data_tuples;
       if (!var_data_tuples.create_from_item_var_data (varStore.get_sub_table (i),
                                                       orig_region_list,
-                                                      axes_old_index_tag_map))
+                                                      axes_old_index_tag_map,
+                                                      inner_maps ? &(inner_maps.arrayZ[i]) : nullptr))
         return false;
 
       vars.push (std::move (var_data_tuples));
