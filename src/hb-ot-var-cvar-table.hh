@@ -143,19 +143,6 @@ struct cvar
     if (c->plan->all_axes_pinned)
       return_trace (false);
 
-    /* subset() for cvar is called by partial instancing only, we always pass
-     * through cvar table in other cases */
-    if (!c->plan->normalized_coords)
-    {
-      unsigned axis_count = c->plan->source->table.fvar->get_axis_count ();
-      unsigned total_size = min_size + tupleVariationData.get_size (axis_count);
-      char *out = c->serializer->allocate_size<char> (total_size);
-      if (unlikely (!out)) return_trace (false);
-
-      hb_memcpy (out, this, total_size);
-      return_trace (true);
-    }
-
     OT::TupleVariationData::tuple_variations_t tuple_variations;
     unsigned axis_count = c->plan->axes_old_index_tag_map.get_population ();
 
