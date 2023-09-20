@@ -2174,7 +2174,14 @@ struct item_variations_t
     const hb_vector_t<int>** a = (const hb_vector_t<int>**) pa;
     const hb_vector_t<int>** b = (const hb_vector_t<int>**) pb;
 
-    return ((*b)->as_array ()).cmp ((*a)->as_array ());
+    for (unsigned i = 0; i < (*b)->length; i++)
+    {
+      int va = (*a)->arrayZ[i];
+      int vb = (*b)->arrayZ[i];
+      if (va != vb)
+        return va < vb ? -1 : 1;
+    }
+    return 0;
   }
 };
 
