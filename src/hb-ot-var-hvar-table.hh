@@ -146,8 +146,8 @@ struct index_map_subset_plan_t
       hb_codepoint_t new_gid = _.first;
       if (unlikely (new_gid >= map_count)) break;
 
-      unsigned v = output_map.arrayZ[new_gid];
-      unsigned *new_varidx;
+      uint32_t v = output_map.arrayZ[new_gid];
+      uint32_t *new_varidx;
       if (!varidx_map.has (v, &new_varidx))
         return false;
 

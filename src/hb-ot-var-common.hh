@@ -2036,7 +2036,7 @@ struct item_variations_t
 
     /* return directly if no optimization, maintain original VariationIndex so
      * varidx_map would be empty */
-    if (!optimize) return encodings.in_error ();
+    if (!optimize) return !encodings.in_error ();
 
     /* sort encoding_objs */
     encoding_objs.qsort ();
