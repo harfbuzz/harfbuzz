@@ -54,7 +54,7 @@ test_item_variations ()
 
   result = item_vars.instantiate (normalized_axes_location, axes_triple_distances);
   assert (result);
-  result = item_vars.optimize ();
+  result = item_vars.as_item_varstore (false);
   assert (result);
   assert (item_vars.get_region_list().length == 8);
 }
