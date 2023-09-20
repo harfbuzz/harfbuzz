@@ -2317,7 +2317,7 @@ struct delta_row_encoding_t
                         delta_row_encoding_t ()
 
   {
-    chars = chars_;
+    chars = std::move (chars_);
     width = get_width ();
     columns = get_columns ();
     overhead = get_chars_overhead (columns);
