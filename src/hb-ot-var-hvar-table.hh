@@ -347,21 +347,11 @@ struct HVARVVAR
 
     if (c->plan->normalized_coords)
     {
-      /* TODO: merge these 3 calls into 1 call that executes all 3
-       * functions */
       item_variations_t item_vars;
-      if (!item_vars.create_from_item_varstore (this+varStore,
-                                                c->plan->axes_old_index_tag_map,
-                                                hvar_plan.inner_maps.as_array ()))
-        return_trace (false);
-
-      if (!item_vars.instantiate (c->plan->axes_location, c->plan->axes_triple_distances))
-        return_trace (false);
-
-      /* if glyph indices are used as implicit delta-set indices, no need to
-       * optimiza varstore, maintain original variation indices */
-      if (!item_vars.as_item_varstore (advMap == 0 ? false : true,
-                                       false /* use_no_variation_idx = false */))
+      if (!item_vars.instantiate (this+varStore, c->plan,
+                                  advMap == 0 ? false : true,
+                                  false, /* use_no_variation_idx = false */
+                                  hvar_plan.inner_maps.as_array ()))
         return_trace (false);
 
       if (!out->varStore.serialize_serialize (c->serializer,

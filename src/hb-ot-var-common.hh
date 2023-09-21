@@ -1812,6 +1812,20 @@ struct item_variations_t
   const hb_map_t& get_varidx_map () const
   { return varidx_map; }
 
+  bool instantiate (const VariationStore& varStore,
+                    const hb_subset_plan_t *plan,
+                    bool optimize=true,
+                    bool use_no_variation_idx=true,
+                    const hb_array_t <const hb_inc_bimap_t> inner_maps = hb_array_t<const hb_inc_bimap_t> ())
+  {
+    if (!create_from_item_varstore (varStore, plan->axes_old_index_tag_map, inner_maps))
+      return false;
+    if (!instantiate_tuple_vars (plan->axes_location, plan->axes_triple_distances))
+      return false;
+    return as_item_varstore (optimize, use_no_variation_idx);
+  }
+
+  /* keep below APIs public only for unit test: test-item-varstore */
   bool create_from_item_varstore (const VariationStore& varStore,
                                   const hb_map_t& axes_old_index_tag_map,
                                   const hb_array_t <const hb_inc_bimap_t> inner_maps = hb_array_t<const hb_inc_bimap_t> ())
@@ -1840,8 +1854,8 @@ struct item_variations_t
     return !vars.in_error ();
   }
 
-  bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
-                    const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
+  bool instantiate_tuple_vars (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
+                               const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
   {
     for (tuple_variations_t& tuple_vars : vars)
       if (!tuple_vars.instantiate (normalized_axes_location, axes_triple_distances))
@@ -1926,6 +1940,7 @@ struct item_variations_t
    * varstore by default */
   bool as_item_varstore (bool optimize=true, bool use_no_variation_idx=true)
   {
+    if (!region_list) return false;
     unsigned num_cols = region_list.length;
     /* pre-alloc a 2D vector for all sub_table's VarData rows */
     unsigned total_rows = 0;

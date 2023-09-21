@@ -105,13 +105,8 @@ struct MVAR
 
     item_variations_t item_vars;
     const VariationStore& src_var_store = this+varStore;
-    if (!item_vars.create_from_item_varstore (src_var_store, c->plan->axes_old_index_tag_map))
-      return_trace (false);
 
-    if (!item_vars.instantiate (c->plan->axes_location, c->plan->axes_triple_distances))
-      return_trace (false);
-
-    if (!item_vars.as_item_varstore ())
+    if (!item_vars.instantiate (src_var_store, c->plan))
       return_trace (false);
 
     /* serialize varstore */
