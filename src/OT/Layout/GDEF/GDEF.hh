@@ -29,7 +29,7 @@
 #ifndef OT_LAYOUT_GDEF_GDEF_HH
 #define OT_LAYOUT_GDEF_GDEF_HH
 
-#include "../../../hb-ot-layout-common.hh"
+#include "../../../hb-ot-var-common.hh"
 
 #include "../../../hb-font.hh"
 #include "../../../hb-cache.hh"
@@ -602,6 +602,26 @@ struct GDEFVersion1_2
 		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
   }
 
+  static void remap_varidx_after_instantiation (const hb_map_t& varidx_map,
+                                                hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>>& layout_variation_idx_delta_map /* IN/OUT */)
+  {
+    /* varidx_map is empty which means varstore is empty after instantiation,
+     * no variations, map all varidx to HB_OT_LAYOUT_NO_VARIATIONS_INDEX.
+     * varidx_map doesn't have original varidx, indicating delta row is all
+     * zeros, map varidx to HB_OT_LAYOUT_NO_VARIATIONS_INDEX */
+    for (auto _ : layout_variation_idx_delta_map.iter_ref ())
+    {
+      /* old_varidx->(varidx, delta) mapping generated for subsetting, then this
+       * varidx is used as key of varidx_map during instantiation */
+      uint32_t varidx = _.second.first;
+      uint32_t *new_varidx;
+      if (varidx_map.has (varidx, &new_varidx))
+        _.second.first = *new_varidx;
+      else
+        _.second.first = HB_OT_LAYOUT_NO_VARIATIONS_INDEX;
+    }
+  }
+
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
@@ -624,6 +644,22 @@ struct GDEFVersion1_2
     {
       if (c->plan->all_axes_pinned)
         out->varStore = 0;
+      else if (c->plan->normalized_coords)
+      {
+        if (varStore)
+        {
+          item_variations_t item_vars;
+          if (item_vars.instantiate (this+varStore, c->plan, true, true,
+                                     c->plan->gdef_varstore_inner_maps.as_array ()))
+            subset_varstore = out->varStore.serialize_serialize (c->serializer,
+                                                                 item_vars.has_long_word (),
+                                                                 c->plan->axis_tags,
+                                                                 item_vars.get_region_list (),
+                                                                 item_vars.get_vardata_encodings ());
+          remap_varidx_after_instantiation (item_vars.get_varidx_map (),
+                                            c->plan->layout_variation_idx_delta_map);
+        }
+      }
       else
         subset_varstore = out->varStore.serialize_subset (c, varStore, this, c->plan->gdef_varstore_inner_maps.as_array ());
     }
