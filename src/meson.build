@@ -712,7 +712,7 @@ if get_option('tests').enabled()
     foreach name, source : noinst_programs
       executable(name, source,
         include_directories: incconfig,
-        cpp_args: cpp_args,
+        cpp_args: cpp_args + ['-UNDEBUG'],
         dependencies: libharfbuzz_dep,
         install: false,
       )
