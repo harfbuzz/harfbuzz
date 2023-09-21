@@ -52,7 +52,7 @@ test_item_variations ()
   hb_hashmap_t<hb_tag_t, TripleDistances> axes_triple_distances;
   axes_triple_distances.set (axis_tag, TripleDistances (200.f, 500.f));
 
-  result = item_vars.instantiate (normalized_axes_location, axes_triple_distances);
+  result = item_vars.instantiate_tuple_vars (normalized_axes_location, axes_triple_distances);
   assert (result);
   result = item_vars.as_item_varstore (false);
   assert (result);
