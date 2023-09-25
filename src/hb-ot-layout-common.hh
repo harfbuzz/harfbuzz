@@ -3966,8 +3966,8 @@ struct VariationDevice
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
 
-    unsigned new_idx = hb_first (*v);
-    out->varIdx = new_idx;
+    if (!c->check_assign (out->varIdx, hb_first (*v), HB_SERIALIZE_ERROR_INT_OVERFLOW))
+      return_trace (nullptr);
     return_trace (out);
   }
 

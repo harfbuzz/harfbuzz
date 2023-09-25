@@ -204,17 +204,19 @@ struct CaretValueFormat3
     if (!c->serializer->embed (coordinate)) return_trace (false);
 
     unsigned varidx = (this+deviceTable).get_variation_index ();
-    if (c->plan->layout_variation_idx_delta_map.has (varidx))
+    hb_pair_t<unsigned, int> *new_varidx_delta;
+    if (!c->plan->layout_variation_idx_delta_map.has (varidx, &new_varidx_delta))
+      return_trace (false);
+
+    uint32_t new_varidx = hb_first (*new_varidx_delta);
+    int delta = hb_second (*new_varidx_delta);
+    if (delta != 0)
     {
-      int delta = hb_second (c->plan->layout_variation_idx_delta_map.get (varidx));
-      if (delta != 0)
-      {
-        if (!c->serializer->check_assign (out->coordinate, coordinate + delta, HB_SERIALIZE_ERROR_INT_OVERFLOW))
-          return_trace (false);
-      }
+      if (!c->serializer->check_assign (out->coordinate, coordinate + delta, HB_SERIALIZE_ERROR_INT_OVERFLOW))
+        return_trace (false);
     }
 
-    if (c->plan->all_axes_pinned)
+    if (new_varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
       return_trace (c->serializer->check_assign (out->caretValueFormat, 1, HB_SERIALIZE_ERROR_INT_OVERFLOW));
 
     if (!c->serializer->embed (deviceTable))
