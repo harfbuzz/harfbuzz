@@ -2323,8 +2323,9 @@ struct delta_row_encoding_t
     bool long_words = false;
 
     /* 0/1/2 byte encoding */
-    for (int v: row)
+    for (int i = row.length - 1; i >= 0; i--)
     {
+      int v =  row.arrayZ[i];
       if (v == 0)
         ret.push (0);
       else if (v > 32767 || v < -32768)
@@ -2343,8 +2344,9 @@ struct delta_row_encoding_t
 
     /* redo, 0/2/4 bytes encoding */
     ret.reset ();
-    for (int v: row)
+    for (int i = row.length - 1; i >= 0; i--)
     {
+      int v =  row.arrayZ[i];
       if (v == 0)
         ret.push (0);
       else if (v > 32767 || v < -32768)

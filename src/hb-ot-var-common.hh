@@ -2039,10 +2039,10 @@ struct item_variations_t
         }
         else
         {
+          if (!chars_idx_map.set (chars, encoding_objs.length))
+            return false;
           delta_row_encoding_t obj (std::move (chars), &row);
           encoding_objs.push (std::move (obj));
-          if (!chars_idx_map.set (chars, encoding_objs.length - 1))
-            return false;
         }
       }
 
