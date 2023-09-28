@@ -39,7 +39,21 @@ test_decompile_cvar ()
   axis_idx_tag_map.set (0, axis_tag);
 
   OT::TupleVariationData::tuple_variations_t tuple_variations;
-  bool result = cvar_table->decompile_tuple_variations (axis_count, point_count, false, &axis_idx_tag_map, tuple_variations);
+  hb_vector_t<unsigned> shared_indices;
+  OT::TupleVariationData::tuple_iterator_t iterator;
+
+  const OT::TupleVariationData* tuple_var_data = reinterpret_cast<const OT::TupleVariationData*> (cvar_data + 4);
+
+  unsigned len = strlen (cvar_data);
+  hb_bytes_t var_data_bytes{cvar_data+4, len - 4};
+  bool result = OT::TupleVariationData::get_tuple_iterator (var_data_bytes, axis_count, cvar_table,
+                                                            shared_indices, &iterator);
+  assert (result);
+
+  result = tuple_var_data->decompile_tuple_variations (point_count, false, iterator, &axis_idx_tag_map,
+                                                       shared_indices, hb_array<const OT::F2DOT14> (),
+                                                       tuple_variations);
+
   assert (result);
   assert (tuple_variations.tuple_vars.length == 2);
   for (unsigned i = 0; i < 2; i++)
