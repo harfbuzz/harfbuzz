@@ -104,7 +104,7 @@ struct hb_hashmap_t
     hb_pair_t<const K &, V &> get_pair_ref() { return hb_pair_t<const K &, V &> (key, value); }
 
     uint32_t total_hash () const
-    { return (hash * 31) + hb_hash (value); }
+    { return (hash * 31u) + hb_hash (value); }
 
     static constexpr bool is_trivial = hb_is_trivially_constructible(K) &&
 				       hb_is_trivially_destructible(K) &&
