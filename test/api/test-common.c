@@ -210,6 +210,113 @@ test_types_language (void)
   g_assert (HB_LANGUAGE_INVALID != hb_language_get_default ());
 }
 
+static void
+test_types_feature (void)
+{
+  hb_feature_t feature;
+  char buf[100];
+
+  g_assert (hb_feature_from_string ("abcd", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd", buf));
+
+  g_assert (hb_feature_from_string ("abcd=1", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd", buf));
+
+  g_assert (hb_feature_from_string ("+abcd", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd", buf));
+
+  g_assert (hb_feature_from_string ("abcd=0", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("-abcd", buf));
+
+  g_assert (hb_feature_from_string ("-abcd", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("-abcd", buf));
+
+  g_assert (hb_feature_from_string ("abcd=2", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd=2", buf));
+
+  g_assert (hb_feature_from_string ("+abcd=2", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd=2", buf));
+
+  g_assert (hb_feature_from_string ("-abcd=2", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd=2", buf));
+
+  g_assert (hb_feature_from_string ("\"abcd\" on", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd", buf));
+
+  g_assert (hb_feature_from_string ("\"abcd\" off", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("-abcd", buf));
+
+  g_assert (hb_feature_from_string ("\"abcd\" 1", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd", buf));
+
+  g_assert (hb_feature_from_string ("\"abcd\" 0", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("-abcd", buf));
+
+  g_assert (hb_feature_from_string ("\"abcd\" 2", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd=2", buf));
+
+  g_assert (hb_feature_from_string ("abcd[0]", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd[]", buf));
+
+  g_assert (hb_feature_from_string ("abcd[1]", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd[1]", buf));
+
+  g_assert (hb_feature_from_string ("abcd[1]=1", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd[1]", buf));
+
+  g_assert (hb_feature_from_string ("abcd[1]=2", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd[1]=2", buf));
+
+  g_assert (hb_feature_from_string ("abcd[1]=0", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("-abcd[1]", buf));
+
+  g_assert (hb_feature_from_string ("abcd[]", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd", buf));
+
+  g_assert (hb_feature_from_string ("abcd[:]", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd", buf));
+
+  g_assert (hb_feature_from_string ("abcd[1:]", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd[1:]", buf));
+
+  g_assert (hb_feature_from_string ("abcd[:1]", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd[]", buf));
+
+  g_assert (hb_feature_from_string ("abcd[1:3]", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd[1:3]", buf));
+
+  g_assert (hb_feature_from_string ("abcd[1:2]=1", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd[1]", buf));
+
+  g_assert (hb_feature_from_string ("abcd[1:4]=2", -1, &feature));
+  hb_feature_to_string (&feature, buf, 100);
+  g_assert (0 == strcmp ("abcd[1:4]=2", buf));
+}
+
 int
 main (int argc, char **argv)
 {
@@ -220,6 +327,7 @@ main (int argc, char **argv)
   hb_test_add (test_types_tag);
   hb_test_add (test_types_script);
   hb_test_add (test_types_language);
+  hb_test_add (test_types_feature);
 
   return hb_test_run();
 }
