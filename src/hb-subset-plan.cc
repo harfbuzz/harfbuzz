@@ -506,7 +506,8 @@ static void _colr_closure (hb_face_t *face,
   glyphs_colred->union_ (glyphset_colrv0);
 
   //closure for COLRv1
-  colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices);
+  hb_set_t variation_indices;
+  colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices, &variation_indices);
 
   colr.closure_V0palette_indices (glyphs_colred, &palette_indices);
   _remap_indexes (&layer_indices, layers_map);
