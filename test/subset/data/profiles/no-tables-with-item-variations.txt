@@ -1,1 +1,1 @@
---drop-tables+=GDEF,COLR,GPOS
+--drop-tables+=COLR
