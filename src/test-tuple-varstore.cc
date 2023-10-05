@@ -44,7 +44,7 @@ test_decompile_cvar ()
 
   const OT::TupleVariationData* tuple_var_data = reinterpret_cast<const OT::TupleVariationData*> (cvar_data + 4);
 
-  unsigned len = strlen (cvar_data);
+  unsigned len = sizeof (cvar_data);
   hb_bytes_t var_data_bytes{cvar_data+4, len - 4};
   bool result = OT::TupleVariationData::get_tuple_iterator (var_data_bytes, axis_count, cvar_table,
                                                             shared_indices, &iterator);
