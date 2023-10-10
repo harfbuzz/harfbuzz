@@ -56,6 +56,7 @@ EXTRA_DIST += \
 	expected/cbdt \
 	expected/variable \
 	expected/glyph_names \
+	expected/glyph_map \
 	expected/math \
 	expected/math_coverage_offset \
 	expected/post \
