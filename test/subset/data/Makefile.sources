@@ -47,6 +47,7 @@ TESTS = \
         tests/sbix.tests \
 	tests/variable.tests \
 	tests/glyph_names.tests \
+	tests/glyph_map.tests \
 	tests/math.tests \
 	tests/math_coverage_offset.tests \
 	tests/post.tests \

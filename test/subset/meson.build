@@ -50,6 +50,7 @@ tests = [
   'cbdt',
   'variable',
   'glyph_names',
+  'glyph_map',
   'post',
   '32bit_var_store',
   'pin_all_at_default',
