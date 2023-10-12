@@ -1938,6 +1938,35 @@ struct item_variations_t
 
   /* main algorithm ported from fonttools VarStore_optimize() method, optimize
    * varstore by default */
+
+  struct combined_gain_idx_tuple_t
+  {
+    int gain;
+    unsigned idx_1;
+    unsigned idx_2;
+
+    combined_gain_idx_tuple_t () = default;
+    combined_gain_idx_tuple_t (int gain_, unsigned i, unsigned j)
+        :gain (gain_), idx_1 (i), idx_2 (j) {}
+
+    bool operator < (const combined_gain_idx_tuple_t& o)
+    {
+      if (gain != o.gain)
+        return gain < o.gain;
+
+      if (idx_1 != o.idx_1)
+        return idx_1 < o.idx_1;
+
+      return idx_2 < o.idx_2;
+    }
+
+    bool operator <= (const combined_gain_idx_tuple_t& o)
+    {
+      if (*this < o) return true;
+      return gain == o.gain && idx_1 == o.idx_1 && idx_2 == o.idx_2;
+    }
+  };
+
   bool as_item_varstore (bool optimize=true, bool use_no_variation_idx=true)
   {
     if (!region_list) return false;
@@ -2058,7 +2087,7 @@ struct item_variations_t
 
     /* main algorithm: repeatedly pick 2 best encodings to combine, and combine
      * them */
-    hb_priority_queue_t queue;
+    hb_priority_queue_t<combined_gain_idx_tuple_t> queue;
     unsigned num_todos = encoding_objs.length;
     for (unsigned i = 0; i < num_todos; i++)
     {
@@ -2066,19 +2095,16 @@ struct item_variations_t
       {
         int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j]);
         if (combining_gain > 0)
-        {
-          unsigned val = (i << 16) + j;
-          queue.insert (-combining_gain, val);
-        }
+          queue.insert (combined_gain_idx_tuple_t (-combining_gain, i, j), 0);
       }
     }
 
     hb_set_t removed_todo_idxes;
     while (queue)
     {
-      unsigned val = queue.pop_minimum ().second;
-      unsigned j = val & 0xFFFF;
-      unsigned i = (val >> 16) & 0xFFFF;
+      auto t = queue.pop_minimum ().first;
+      unsigned i = t.idx_1;
+      unsigned j = t.idx_2;
 
       if (removed_todo_idxes.has (i) || removed_todo_idxes.has (j))
         continue;
@@ -2119,10 +2145,7 @@ struct item_variations_t
 
         int combined_gain = combined_encoding_obj.gain_from_merging (obj);
         if (combined_gain > 0)
-        {
-          unsigned val = (idx << 16) + encoding_objs.length;
-          queue.insert (-combined_gain, val);
-        }
+          queue.insert (combined_gain_idx_tuple_t (-combined_gain, idx, encoding_objs.length), 0);
       }
 
       encoding_objs.push (std::move (combined_encoding_obj));
