@@ -1175,6 +1175,7 @@ struct TupleVariationData
     bool create_from_item_var_data (const VarData &var_data,
                                     const hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>>& regions,
                                     const hb_map_t& axes_old_index_tag_map,
+                                    unsigned& item_count,
                                     const hb_inc_bimap_t* inner_map = nullptr)
     {
       /* NULL offset, to keep original varidx valid, just return */
@@ -1184,7 +1185,8 @@ struct TupleVariationData
       unsigned num_regions = var_data.get_region_index_count ();
       if (!tuple_vars.alloc (num_regions)) return false;
   
-      unsigned item_count = inner_map ? inner_map->get_population () : var_data.get_item_count ();
+      item_count = inner_map ? inner_map->get_population () : var_data.get_item_count ();
+      if (!item_count) return true;
       unsigned row_size = var_data.get_row_size ();
       const HBUINT8 *delta_bytes = var_data.get_delta_bytes ();
   
@@ -1775,6 +1777,14 @@ struct item_variations_t
    * have the same num of deltas (rows) */
   hb_vector_t<tuple_variations_t> vars;
 
+  /* num of retained rows for each subtable, there're 2 cases when var_data is empty:
+   * 1. retained item_count is zero
+   * 2. regions is empty and item_count is non-zero.
+   * when converting to tuples, both will be dropped because the tuple is empty,
+   * however, we need to retain 2. as all-zero rows to keep original varidx
+   * valid, so we need a way to remember the num of rows for each subtable */
+  hb_vector_t<unsigned> var_data_num_rows;
+
   /* original region list, decompiled from item varstore, used when rebuilding
    * region list after instantiation */
   hb_vector_t<hb_hashmap_t<hb_tag_t, Triple>> orig_region_list;
@@ -1836,22 +1846,26 @@ struct item_variations_t
 
     unsigned num_var_data = varStore.get_sub_table_count ();
     if (inner_maps && inner_maps.length != num_var_data) return false;
-    if (!vars.alloc (num_var_data)) return false;
+    if (!vars.alloc (num_var_data) ||
+        !var_data_num_rows.alloc (num_var_data)) return false;
 
     for (unsigned i = 0; i < num_var_data; i++)
     {
       if (inner_maps && !inner_maps.arrayZ[i].get_population ())
           continue;
       tuple_variations_t var_data_tuples;
+      unsigned item_count = 0;
       if (!var_data_tuples.create_from_item_var_data (varStore.get_sub_table (i),
                                                       orig_region_list,
                                                       axes_old_index_tag_map,
+                                                      item_count,
                                                       inner_maps ? &(inner_maps.arrayZ[i]) : nullptr))
         return false;
 
+      var_data_num_rows.push (item_count);
       vars.push (std::move (var_data_tuples));
     }
-    return !vars.in_error ();
+    return !vars.in_error () && !var_data_num_rows.in_error () && vars.length == var_data_num_rows.length;
   }
 
   bool instantiate_tuple_vars (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
@@ -1973,12 +1987,8 @@ struct item_variations_t
     unsigned num_cols = region_list.length;
     /* pre-alloc a 2D vector for all sub_table's VarData rows */
     unsigned total_rows = 0;
-    for (unsigned major = 0; major < vars.length; major++)
-    {
-      const tuple_variations_t& tuples = vars[major];
-      /* all tuples in each sub_table should have same num of deltas(num rows) */
-      total_rows += tuples.tuple_vars[0].deltas_x.length;
-    }
+    for (unsigned major = 0; major < var_data_num_rows.length; major++)
+      total_rows += var_data_num_rows[major];
 
     if (!delta_rows.resize (total_rows)) return false;
     /* init all rows to [0]*num_cols */
@@ -1998,7 +2008,7 @@ struct item_variations_t
       /* deltas are stored in tuples(column based), convert them back into items
        * (row based) delta */
       const tuple_variations_t& tuples = vars[major];
-      unsigned num_rows = tuples.tuple_vars[0].deltas_x.length;
+      unsigned num_rows = var_data_num_rows[major];
       for (const tuple_delta_t& tuple: tuples.tuple_vars)
       {
         if (tuple.deltas_x.length != num_rows)
