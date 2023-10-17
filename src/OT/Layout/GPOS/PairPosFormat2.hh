@@ -287,17 +287,14 @@ struct PairPosFormat2_4
     unsigned len2 = valueFormat2.get_len ();
 
     hb_pair_t<unsigned, unsigned> newFormats = hb_pair (valueFormat1, valueFormat2);
+    if (c->plan->normalized_coords)
+      newFormats = compute_effective_value_formats (klass1_map, klass2_map, &c->plan->layout_variation_idx_delta_map);
+
     if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
       newFormats = compute_effective_value_formats (klass1_map, klass2_map);
 
     out->valueFormat1 = newFormats.first;
     out->valueFormat2 = newFormats.second;
-
-    if (c->plan->all_axes_pinned)
-    {
-      out->valueFormat1 = out->valueFormat1.drop_device_table_flags ();
-      out->valueFormat2 = out->valueFormat2.drop_device_table_flags ();
-    }
 
     unsigned total_len = len1 + len2;
     hb_vector_t<unsigned> class2_idxs (+ hb_range ((unsigned) class2Count) | hb_filter (klass2_map));
@@ -326,7 +323,8 @@ struct PairPosFormat2_4
 
 
   hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_map_t& klass1_map,
-                                                                 const hb_map_t& klass2_map) const
+                                                                 const hb_map_t& klass2_map,
+                                                                 const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map = nullptr) const
   {
     unsigned len1 = valueFormat1.get_len ();
     unsigned len2 = valueFormat2.get_len ();
@@ -340,8 +338,16 @@ struct PairPosFormat2_4
       for (unsigned class2_idx : + hb_range ((unsigned) class2Count) | hb_filter (klass2_map))
       {
         unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * record_size;
-        format1 = format1 | valueFormat1.get_effective_format (&values[idx]);
-        format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1]);
+        if (!varidx_delta_map)
+        {
+          format1 = format1 | valueFormat1.get_effective_format (&values[idx]);
+          format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1]);
+        }
+        else
+        {
+          format1 = format1 | valueFormat1.update_var_device_table_flags (&values[idx], this, varidx_delta_map);
+          format2 = format2 | valueFormat2.update_var_device_table_flags (&values[idx + len1], this, varidx_delta_map);
+        }
       }
 
       if (format1 == valueFormat1 && format2 == valueFormat2)

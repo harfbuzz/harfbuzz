@@ -251,13 +251,34 @@ struct ValueFormat : HBUINT16
     }
   }
 
-  unsigned drop_device_table_flags () const
+  unsigned update_var_device_table_flags (const Value *values,
+                                          const void *base,
+                                          const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
   {
     unsigned format = *this;
-    for (unsigned flag = xPlaDevice; flag <= yAdvDevice; flag = flag << 1)
-      format = format & ~flag;
+    for (unsigned flag = xPlacement; flag <= yAdvDevice; flag = flag << 1)
+    {
+      if (format & flag)
+      {
+        if (flag >= xPlaDevice) update_var_flag (values, (Flags) flag, &format, base, varidx_delta_map);
+        values++;
+      }
+    }
 
     return format;
+  }
+
+  template<typename Iterator,
+      hb_requires (hb_is_iterator (Iterator))>
+  unsigned update_var_device_table_flags (Iterator it,
+                                          const void* base,
+                                          const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
+  {
+    unsigned new_format = 0;
+    for (const hb_array_t<const Value>& values : it)
+      new_format = new_format | update_var_device_table_flags (&values, base, varidx_delta_map);
+
+    return new_format;
   }
 
   private:
@@ -403,6 +424,20 @@ struct ValueFormat : HBUINT16
     *format = *format & ~flag;
   }
 
+  void update_var_flag (const Value* value, Flags flag,
+                        unsigned int* format, const void *base,
+                        const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
+  {
+    if (*value)
+    {
+      unsigned varidx = (base + get_device (value)).get_variation_index ();
+      hb_pair_t<unsigned, int> *varidx_delta;
+      if (varidx_delta_map->has (varidx, &varidx_delta) &&
+          varidx_delta->first != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+        return;
+    }
+    *format = *format & ~flag;
+  }
 };
 
 }
