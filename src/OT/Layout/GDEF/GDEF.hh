@@ -441,6 +441,20 @@ struct MarkGlyphSetsFormat1
   bool covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return (this+coverage[set_index]).get_coverage (glyph_id) != NOT_COVERED; }
 
+  void collect_used_mark_sets (const hb_set_t& glyph_set,
+                               hb_set_t& used_mark_sets /* OUT */) const
+  {
+    unsigned i = 0;
+    for (const auto &offset : coverage)
+     {
+       const auto &cov = this+offset;
+       if (cov.intersects (&glyph_set))
+         used_mark_sets.add (i);
+
+       i++;
+     }
+  }
+
   template <typename set_t>
   void collect_coverage (hb_vector_t<set_t> &sets) const
   {
@@ -516,6 +530,15 @@ struct MarkGlyphSets
   {
     switch (u.format) {
     case 1: u.format1.collect_coverage (sets); return;
+    default:return;
+    }
+  }
+
+  void collect_used_mark_sets (const hb_set_t& glyph_set,
+                               hb_set_t& used_mark_sets /* OUT */) const
+  {
+    switch (u.format) {
+    case 1: u.format1.collect_used_mark_sets (glyph_set, used_mark_sets); return;
     default:return;
     }
   }

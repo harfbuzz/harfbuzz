@@ -465,6 +465,24 @@ _math_closure (hb_subset_plan_t *plan,
   math.destroy ();
 }
 
+static inline void
+_remap_used_mark_sets (hb_subset_plan_t *plan,
+                       hb_map_t& used_mark_sets_map)
+{
+  hb_blob_ptr_t<OT::GDEF> gdef = plan->source_table<OT::GDEF> ();
+
+  if (!gdef->has_data () || !gdef->has_mark_glyph_sets ())
+  {
+    gdef.destroy ();
+    return;
+  }
+
+  hb_set_t used_mark_sets;
+  gdef->get_mark_glyph_sets ().collect_used_mark_sets (plan->_glyphset_gsub, used_mark_sets);
+  gdef.destroy ();
+
+  _remap_indexes (&used_mark_sets, &used_mark_sets_map);
+}
 
 static inline void
 _remove_invalid_gids (hb_set_t *glyphs,
@@ -1159,6 +1177,9 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   bounds_height_vec.resize (_num_output_glyphs, false);
   for (auto &v : bounds_height_vec)
     v = 0xFFFFFFFF;
+
+  if (!drop_tables.has (HB_OT_TAG_GDEF))
+    _remap_used_mark_sets (this, used_mark_sets_map);
 
   if (unlikely (in_error ()))
     return;
