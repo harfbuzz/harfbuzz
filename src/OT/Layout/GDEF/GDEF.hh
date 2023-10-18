@@ -627,23 +627,29 @@ struct GDEFVersion1_2
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    auto *out = c->serializer->embed (*this);
-    if (unlikely (!out)) return_trace (false);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
+    out->version.major = version.major;
+    out->version.minor = version.minor;
     bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this, nullptr, false, true);
     bool subset_attachlist = out->attachList.serialize_subset (c, attachList, this);
     bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
     bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, nullptr, false, true);
 
     bool subset_markglyphsetsdef = false;
+    auto snapshot_version0 = c->serializer->snapshot ();
     if (version.to_int () >= 0x00010002u)
     {
+      if (unlikely (!c->serializer->embed (markGlyphSetsDef))) return_trace (false);
       subset_markglyphsetsdef = out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this);
     }
 
     bool subset_varstore = false;
+    auto snapshot_version2 = c->serializer->snapshot ();
     if (version.to_int () >= 0x00010003u)
     {
+      if (unlikely (!c->serializer->embed (varStore))) return_trace (false);
       if (c->plan->all_axes_pinned)
         out->varStore = 0;
       else if (c->plan->normalized_coords)
@@ -671,8 +677,10 @@ struct GDEFVersion1_2
       out->version.minor = 3;
     } else if (subset_markglyphsetsdef) {
       out->version.minor = 2;
+      c->serializer->revert (snapshot_version2);
     } else  {
       out->version.minor = 0;
+      c->serializer->revert (snapshot_version0);
     }
 
     return_trace (subset_glyphclassdef || subset_attachlist ||
