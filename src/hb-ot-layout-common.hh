@@ -1372,7 +1372,7 @@ struct Lookup
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
       const HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
-      unsigned *idx;
+      hb_codepoint_t *idx;
       if (!c->plan->used_mark_sets_map.has (markFilteringSet, &idx))
       {
         unsigned new_flag = lookupFlag;
