@@ -1,0 +1,13 @@
+FONTS:
+RobotoFlex-Variable.ABC.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=400,wdth=100,opsz=14
+wght=200:300,opsz=14
+
