@@ -461,6 +461,7 @@ struct MarkGlyphSetsFormat1
     bool ret = true;
     for (const Offset32To<Coverage>& offset : coverage.iter ())
     {
+      auto snap = c->serializer->snapshot ();
       auto *o = out->coverage.serialize_append (c->serializer);
       if (unlikely (!o))
       {
@@ -468,11 +469,17 @@ struct MarkGlyphSetsFormat1
 	break;
       }
 
-      //not using o->serialize_subset (c, offset, this, out) here because
-      //OTS doesn't allow null offset.
-      //See issue: https://github.com/khaledhosny/ots/issues/172
+      //skip empty coverage
       c->serializer->push ();
-      c->dispatch (this+offset);
+      bool res = false;
+      if (offset) res = c->dispatch (this+offset);
+      if (!res)
+      {
+        c->serializer->pop_discard ();
+        c->serializer->revert (snap);
+        (out->coverage.len)--;
+        continue;
+      }
       c->serializer->add_link (*o, c->serializer->pop_pack ());
     }
 
