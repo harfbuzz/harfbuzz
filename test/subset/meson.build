@@ -73,6 +73,7 @@ if get_option('experimental_api')
     'glyf_partial_instancing',
     'mvar_partial_instance',
     'update_def_wght',
+    'empty_region_vardata',
     ]
 endif
 
