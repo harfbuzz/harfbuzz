@@ -1371,10 +1371,20 @@ struct Lookup
 
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
-      if (unlikely (!c->serializer->extend (out))) return_trace (false);
       const HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
-      HBUINT16 &outMarkFilteringSet = StructAfter<HBUINT16> (out->subTable);
-      outMarkFilteringSet = markFilteringSet;
+      hb_codepoint_t *idx;
+      if (!c->plan->used_mark_sets_map.has (markFilteringSet, &idx))
+      {
+        unsigned new_flag = lookupFlag;
+        new_flag &= ~LookupFlag::UseMarkFilteringSet;
+        out->lookupFlag = new_flag;
+      }
+      else
+      {
+        if (unlikely (!c->serializer->extend (out))) return_trace (false);
+        HBUINT16 &outMarkFilteringSet = StructAfter<HBUINT16> (out->subTable);
+        outMarkFilteringSet = *idx;
+      }
     }
 
     // Always keep the lookup even if it's empty. The rest of layout subsetting depends on lookup
