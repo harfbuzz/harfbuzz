@@ -1,4 +1,4 @@
 -r requirements-fonttools.in
-meson==1.2.2
+meson==1.2.3
 gcovr==5.0
 ninja
