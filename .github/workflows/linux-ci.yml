@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     - name: Setup Ccache
       uses: hendrikmuhs/ccache-action@6d1841ec156c39a52b1b23a810da917ab98da1f4 # v1.2.10
       with:
