@@ -4472,13 +4472,6 @@ struct GSUBGPOSVersion1_2
       if (!c->subset_context->serializer->extend_min (&out->featureVars))
         return_trace (false);
 
-      // TODO(qxliu76): the current implementation doesn't correctly handle feature variations
-      //                that are dropped by instancing when the associated conditions don't trigger.
-      //                Since partial instancing isn't yet supported this isn't an issue yet but will
-      //                need to be fixed for partial instancing.
-
-
-
       // if all axes are pinned all feature vars are dropped.
       bool ret = !c->subset_context->plan->all_axes_pinned
                  && out->featureVars.serialize_subset (c->subset_context, featureVars, this, c);
@@ -4639,10 +4632,11 @@ struct GSUBGPOS
 
   void feature_variation_collect_lookups (const hb_set_t *feature_indexes,
 					  const hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map,
+					  const hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map,
 					  hb_set_t       *lookup_indexes /* OUT */) const
   {
 #ifndef HB_NO_VAR
-    get_feature_variations ().collect_lookups (feature_indexes, feature_substitutes_map, lookup_indexes);
+    get_feature_variations ().collect_lookups (feature_indexes, feature_substitutes_map, feature_record_cond_idx_map, lookup_indexes);
 #endif
   }
 

@@ -90,6 +90,15 @@ HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, hb::shared_ptr<hb_set_t>>), gpo
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, const OT::Feature*>), gsub_feature_substitutes_map)
 HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, const OT::Feature*>), gpos_feature_substitutes_map)
 
+// old feature_indexes set, used to reinstate the old features
+HB_SUBSET_PLAN_MEMBER (hb_set_t, gsub_old_features)
+HB_SUBSET_PLAN_MEMBER (hb_set_t, gpos_old_features)
+
+//feature_index->pair of (address of old feature, feature tag), used for inserting a catch all record
+//if necessary
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, hb_pair_t E(<const void*, const void*>)>), gsub_old_feature_idx_tag_map)
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<unsigned, hb_pair_t E(<const void*, const void*>)>), gpos_old_feature_idx_tag_map)
+
 //active layers/palettes we'd like to retain
 HB_SUBSET_PLAN_MEMBER (hb_map_t, colrv1_layers)
 HB_SUBSET_PLAN_MEMBER (hb_map_t, colr_palettes)

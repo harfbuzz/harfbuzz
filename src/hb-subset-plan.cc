@@ -150,7 +150,8 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
                                      hb_set_t		  *feature_indices, /* OUT */
                                      hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map, /* OUT */
                                      hb_hashmap_t<unsigned, const OT::Feature*> *feature_substitutes_map, /* OUT */
-                                     bool& insert_catch_all_feature_variation_record)
+                                     hb_set_t& catch_all_record_feature_idxes, /* OUT */
+                                     hb_hashmap_t<unsigned, hb_pair_t<const void*, const void*>>& catch_all_record_idx_feature_map /* OUT */)
 {
   unsigned num_features = table.get_feature_count ();
   hb_vector_t<hb_tag_t> features;
@@ -186,7 +187,7 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
       &plan->axes_location,
       feature_record_cond_idx_map,
       feature_substitutes_map,
-      insert_catch_all_feature_variation_record,
+      catch_all_record_feature_idxes,
       feature_indices,
       false,
       false,
@@ -208,17 +209,25 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
     f->add_lookup_indexes_to (lookup_indices);
   }
 
+#ifndef HB_NO_VAR
+  if (catch_all_record_feature_idxes)
+  {
+    for (unsigned feature_index : catch_all_record_feature_idxes)
+    {
+      const OT::Feature& f = table.get_feature (feature_index);
+      f.add_lookup_indexes_to (lookup_indices);
+      const void *tag = reinterpret_cast<const void*> (&(table.get_feature_list ().get_tag (feature_index)));
+      catch_all_record_idx_feature_map.set (feature_index, hb_pair (&f, tag));
+    }
+  }
+
   // If all axes are pinned then all feature variations will be dropped so there's no need
   // to collect lookups from them.
   if (!plan->all_axes_pinned)
-  {
-    // TODO(qxliu76): this collection doesn't work correctly for feature variations that are dropped
-    //                but not applied. The collection will collect and retain the lookup indices
-    //                associated with those dropped but not activated rules. Since partial instancing
-    //                isn't yet supported this isn't an issue yet but will need to be fixed for
-    //                partial instancing.
-    table.feature_variation_collect_lookups (feature_indices, feature_substitutes_map, lookup_indices);
-  }
+    table.feature_variation_collect_lookups (feature_indices, feature_substitutes_map,
+                                             plan->user_axes_location.is_empty () ? nullptr: feature_record_cond_idx_map,
+                                             lookup_indices);
+#endif
 }
 
 
@@ -302,7 +311,8 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 				  script_langsys_map *langsys_map,
 				  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map,
 				  hb_hashmap_t<unsigned, const OT::Feature*> *feature_substitutes_map,
-				  bool& insert_catch_all_feature_variation_record)
+                                  hb_set_t &catch_all_record_feature_idxes,
+                                  hb_hashmap_t<unsigned, hb_pair_t<const void*, const void*>>& catch_all_record_idx_feature_map)
 {
   hb_blob_ptr_t<T> table = plan->source_table<T> ();
   hb_tag_t table_tag = table->tableTag;
@@ -313,7 +323,8 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
                               &feature_indices,
                               feature_record_cond_idx_map,
                               feature_substitutes_map,
-                              insert_catch_all_feature_variation_record);
+                              catch_all_record_feature_idxes,
+                              catch_all_record_idx_feature_map);
 
   if (table_tag == HB_OT_TAG_GSUB && !(plan->flags & HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE))
     hb_ot_layout_lookups_substitute_closure (plan->source,
@@ -732,7 +743,8 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         &plan->gsub_langsys,
         &plan->gsub_feature_record_cond_idx_map,
         &plan->gsub_feature_substitutes_map,
-        plan->gsub_insert_catch_all_feature_variation_rec);
+        plan->gsub_old_features,
+        plan->gsub_old_feature_idx_tag_map);
 
   if (!drop_tables->has (HB_OT_TAG_GPOS))
     _closure_glyphs_lookups_features<GPOS> (
@@ -743,7 +755,8 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         &plan->gpos_langsys,
         &plan->gpos_feature_record_cond_idx_map,
         &plan->gpos_feature_substitutes_map,
-        plan->gpos_insert_catch_all_feature_variation_rec);
+        plan->gpos_old_features,
+        plan->gpos_old_feature_idx_tag_map);
 #endif
   _remove_invalid_gids (&plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
