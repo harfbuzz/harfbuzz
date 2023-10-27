@@ -74,6 +74,7 @@ if get_option('experimental_api')
     'mvar_partial_instance',
     'update_def_wght',
     'empty_region_vardata',
+    'feature_variations_partial_instance',
     ]
 endif
 
