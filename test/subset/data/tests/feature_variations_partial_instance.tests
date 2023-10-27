@@ -1,0 +1,12 @@
+FONTS:
+NotoSansOriya-subset.ttf
+
+PROFILES:
+default.txt
+keep-all-layout-features.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wdth=75
