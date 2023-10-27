@@ -327,6 +327,7 @@ hb_font_get_glyph_shape_func_t
 hb_font_funcs_set_glyph_shape_func
 hb_font_get_glyph_v_kerning
 hb_font_get_glyph_v_kerning_func_t
+HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
 </SECTION>
 
 <SECTION>
