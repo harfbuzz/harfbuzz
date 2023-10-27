@@ -751,7 +751,7 @@ parse_instance (const char *name,
         {
           g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
                        "Error: axis: '%c%c%c%c', not present in fvar or invalid range with min:%.6f max:%.6f",
-                       HB_UNTAG (axis_tag), min_val, max_val);
+                       HB_UNTAG (axis_tag), (double) min_val, (double) max_val);
           return false;
         }
     }
