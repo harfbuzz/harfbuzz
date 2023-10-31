@@ -9,6 +9,8 @@ namespace GPOS_impl {
 
 typedef HBUINT16 Value;
 
+struct ValueBase {}; // Dummy base class tag for OffsetTo<Value> bases.
+
 typedef UnsizedArrayOf<Value> ValueRecord;
 
 struct ValueFormat : HBUINT16
@@ -78,7 +80,7 @@ struct ValueFormat : HBUINT16
   }
 
   bool apply_value (hb_ot_apply_context_t *c,
-                    const void            *base,
+                    const ValueBase       *base,
                     const Value           *values,
                     hb_glyph_position_t   &glyph_pos) const
   {
@@ -165,7 +167,7 @@ struct ValueFormat : HBUINT16
 
   void copy_values (hb_serialize_context_t *c,
                     unsigned int new_format,
-                    const void *base,
+                    const ValueBase *base,
                     const Value *values,
                     const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map) const
   {
@@ -217,7 +219,7 @@ struct ValueFormat : HBUINT16
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
-                                  const void *base,
+                                  const ValueBase *base,
                                   const hb_array_t<const Value>& values) const
   {
     unsigned format = *this;
@@ -252,7 +254,7 @@ struct ValueFormat : HBUINT16
   }
 
   unsigned update_var_device_table_flags (const Value *values,
-                                          const void *base,
+                                          const ValueBase *base,
                                           const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
   {
     unsigned format = *this;
@@ -271,7 +273,7 @@ struct ValueFormat : HBUINT16
   template<typename Iterator,
       hb_requires (hb_is_iterator (Iterator))>
   unsigned update_var_device_table_flags (Iterator it,
-                                          const void* base,
+                                          const ValueBase* base,
                                           const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
   {
     unsigned new_format = 0;
@@ -282,7 +284,7 @@ struct ValueFormat : HBUINT16
   }
 
   private:
-  bool sanitize_value_devices (hb_sanitize_context_t *c, const void *base, const Value *values) const
+  bool sanitize_value_devices (hb_sanitize_context_t *c, const ValueBase *base, const Value *values) const
   {
     unsigned int format = *this;
 
@@ -299,17 +301,17 @@ struct ValueFormat : HBUINT16
     return true;
   }
 
-  static inline Offset16To<Device>& get_device (Value* value)
+  static inline Offset16To<Device, ValueBase>& get_device (Value* value)
   {
-    return *static_cast<Offset16To<Device> *> (value);
+    return *static_cast<Offset16To<Device, ValueBase> *> (value);
   }
-  static inline const Offset16To<Device>& get_device (const Value* value)
+  static inline const Offset16To<Device, ValueBase>& get_device (const Value* value)
   {
-    return *static_cast<const Offset16To<Device> *> (value);
+    return *static_cast<const Offset16To<Device, ValueBase> *> (value);
   }
   static inline const Device& get_device (const Value* value,
 					  bool *worked,
-					  const void *base,
+					  const ValueBase *base,
 					  hb_sanitize_context_t &c)
   {
     if (worked) *worked |= bool (*value);
@@ -322,7 +324,7 @@ struct ValueFormat : HBUINT16
   }
 
   void add_delta_to_value (HBINT16 *value,
-                           const void *base,
+                           const ValueBase *base,
                            const Value *src_value,
                            const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map) const
   {
@@ -334,7 +336,8 @@ struct ValueFormat : HBUINT16
     *value += hb_second (*varidx_delta);
   }
 
-  bool copy_device (hb_serialize_context_t *c, const void *base,
+  bool copy_device (hb_serialize_context_t *c,
+                    const ValueBase *base,
                     const Value *src_value,
                     const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map,
                     unsigned int new_format, Flags flag) const
@@ -375,7 +378,7 @@ struct ValueFormat : HBUINT16
     return (format & devices) != 0;
   }
 
-  bool sanitize_value (hb_sanitize_context_t *c, const void *base, const Value *values) const
+  bool sanitize_value (hb_sanitize_context_t *c, const ValueBase *base, const Value *values) const
   {
     TRACE_SANITIZE (this);
 
@@ -387,7 +390,7 @@ struct ValueFormat : HBUINT16
     return_trace (!has_device () || sanitize_value_devices (c, base, values));
   }
 
-  bool sanitize_values (hb_sanitize_context_t *c, const void *base, const Value *values, unsigned int count) const
+  bool sanitize_values (hb_sanitize_context_t *c, const ValueBase *base, const Value *values, unsigned int count) const
   {
     TRACE_SANITIZE (this);
     unsigned size = get_size ();
@@ -401,7 +404,7 @@ struct ValueFormat : HBUINT16
   }
 
   /* Just sanitize referenced Device tables.  Doesn't check the values themselves. */
-  bool sanitize_values_stride_unsafe (hb_sanitize_context_t *c, const void *base, const Value *values, unsigned int count, unsigned int stride) const
+  bool sanitize_values_stride_unsafe (hb_sanitize_context_t *c, const ValueBase *base, const Value *values, unsigned int count, unsigned int stride) const
   {
     TRACE_SANITIZE (this);
 
@@ -425,7 +428,7 @@ struct ValueFormat : HBUINT16
   }
 
   void update_var_flag (const Value* value, Flags flag,
-                        unsigned int* format, const void *base,
+                        unsigned int* format, const ValueBase *base,
                         const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
   {
     if (*value)

@@ -9,7 +9,7 @@ namespace GPOS_impl {
 
 
 template <typename Types>
-struct PairSet
+struct PairSet : ValueBase
 {
   template <typename Types2>
   friend struct PairPosFormat1_3;

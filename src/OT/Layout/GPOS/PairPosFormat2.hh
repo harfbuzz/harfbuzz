@@ -8,7 +8,7 @@ namespace Layout {
 namespace GPOS_impl {
 
 template <typename Types>
-struct PairPosFormat2_4
+struct PairPosFormat2_4 : ValueBase
 {
   protected:
   HBUINT16      format;                 /* Format identifier--format = 2 */
