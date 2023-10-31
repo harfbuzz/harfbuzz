@@ -309,7 +309,7 @@ struct _hb_has_null<Type, true>
   static       Type *get_crap () { return &Crap (Type); }
 };
 
-template <typename Type, typename OffsetType, bool has_null=true>
+template <typename Type, typename OffsetType, typename BaseType=void, bool has_null=true>
 struct OffsetTo : Offset<OffsetType, has_null>
 {
   using target_t = Type;
@@ -335,22 +335,22 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename Base,
-	    hb_enable_if (hb_is_convertible (const Base, const void *))>
+	    hb_enable_if (hb_is_convertible (const Base, const BaseType *))>
   friend const Type& operator + (const Base &base, const OffsetTo &offset) { return offset ((const void *) base); }
   template <typename Base,
-	    hb_enable_if (hb_is_convertible (const Base, const void *))>
+	    hb_enable_if (hb_is_convertible (const Base, const BaseType *))>
   friend const Type& operator + (const OffsetTo &offset, const Base &base) { return offset ((const void *) base); }
   template <typename Base,
-	    hb_enable_if (hb_is_convertible (Base, void *))>
+	    hb_enable_if (hb_is_convertible (Base, BaseType *))>
   friend Type& operator + (Base &&base, OffsetTo &offset) { return offset ((void *) base); }
   template <typename Base,
-	    hb_enable_if (hb_is_convertible (Base, void *))>
+	    hb_enable_if (hb_is_convertible (Base, BaseType *))>
   friend Type& operator + (OffsetTo &offset, Base &&base) { return offset ((void *) base); }
 
 
-  template <typename ...Ts>
+  template <typename Base, typename ...Ts>
   bool serialize_subset (hb_subset_context_t *c, const OffsetTo& src,
-			 const void *src_base, Ts&&... ds)
+			 const Base *src_base, Ts&&... ds)
   {
     *this = 0;
     if (src.is_null ())
@@ -445,14 +445,14 @@ struct OffsetTo : Offset<OffsetType, has_null>
   DEFINE_SIZE_STATIC (sizeof (OffsetType));
 };
 /* Partial specializations. */
-template <typename Type, bool has_null=true> using Offset16To = OffsetTo<Type, HBUINT16, has_null>;
-template <typename Type, bool has_null=true> using Offset24To = OffsetTo<Type, HBUINT24, has_null>;
-template <typename Type, bool has_null=true> using Offset32To = OffsetTo<Type, HBUINT32, has_null>;
+template <typename Type, typename BaseType=void, bool has_null=true> using Offset16To = OffsetTo<Type, HBUINT16, BaseType, has_null>;
+template <typename Type, typename BaseType=void, bool has_null=true> using Offset24To = OffsetTo<Type, HBUINT24, BaseType, has_null>;
+template <typename Type, typename BaseType=void, bool has_null=true> using Offset32To = OffsetTo<Type, HBUINT32, BaseType, has_null>;
 
-template <typename Type, typename OffsetType> using NNOffsetTo = OffsetTo<Type, OffsetType, false>;
-template <typename Type> using NNOffset16To = Offset16To<Type, false>;
-template <typename Type> using NNOffset24To = Offset24To<Type, false>;
-template <typename Type> using NNOffset32To = Offset32To<Type, false>;
+template <typename Type, typename OffsetType, typename BaseType=void> using NNOffsetTo = OffsetTo<Type, OffsetType, BaseType, false>;
+template <typename Type, typename BaseType=void> using NNOffset16To = Offset16To<Type, BaseType, false>;
+template <typename Type, typename BaseType=void> using NNOffset24To = Offset24To<Type, BaseType, false>;
+template <typename Type, typename BaseType=void> using NNOffset32To = Offset32To<Type, BaseType, false>;
 
 
 /*
@@ -555,17 +555,17 @@ struct UnsizedArrayOf
 };
 
 /* Unsized array of offset's */
-template <typename Type, typename OffsetType, bool has_null=true>
-using UnsizedArray16OfOffsetTo = UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null>>;
+template <typename Type, typename OffsetType, typename BaseType=void, bool has_null=true>
+using UnsizedArray16OfOffsetTo = UnsizedArrayOf<OffsetTo<Type, OffsetType, BaseType, has_null>>;
 
 /* Unsized array of offsets relative to the beginning of the array itself. */
-template <typename Type, typename OffsetType, bool has_null=true>
-struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, has_null>
+template <typename Type, typename OffsetType, typename BaseType=void, bool has_null=true>
+struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, BaseType, has_null>
 {
   const Type& operator [] (int i_) const
   {
     unsigned int i = (unsigned int) i_;
-    const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
+    const OffsetTo<Type, OffsetType, BaseType, has_null> *p = &this->arrayZ[i];
     if (unlikely ((const void *) p < (const void *) this->arrayZ)) return Null (Type); /* Overflowed. */
     _hb_compiler_memory_r_barrier ();
     return this+*p;
@@ -573,7 +573,7 @@ struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, has_
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
-    const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
+    const OffsetTo<Type, OffsetType, BaseType, has_null> *p = &this->arrayZ[i];
     if (unlikely ((const void *) p < (const void *) this->arrayZ)) return Crap (Type); /* Overflowed. */
     _hb_compiler_memory_r_barrier ();
     return this+*p;
@@ -583,7 +583,7 @@ struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, has_
   bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
-    return_trace ((UnsizedArray16OfOffsetTo<Type, OffsetType, has_null>
+    return_trace ((UnsizedArray16OfOffsetTo<Type, OffsetType, BaseType, has_null>
 		   ::sanitize (c, count, this, std::forward<Ts> (ds)...)));
   }
 };

@@ -315,7 +315,7 @@ struct ContextualSubtable
     bool has_glyph_classes;
     unsigned int mark;
     const ContextualSubtable *table;
-    const UnsizedListOfOffset16To<Lookup<HBGlyphID16>, HBUINT, false> &subs;
+    const UnsizedListOfOffset16To<Lookup<HBGlyphID16>, HBUINT, void, false> &subs;
   };
 
   bool apply (hb_aat_apply_context_t *c) const
@@ -359,7 +359,7 @@ struct ContextualSubtable
   protected:
   StateTable<Types, EntryData>
 		machine;
-  NNOffsetTo<UnsizedListOfOffset16To<Lookup<HBGlyphID16>, HBUINT, false>, HBUINT>
+  NNOffsetTo<UnsizedListOfOffset16To<Lookup<HBGlyphID16>, HBUINT, void, false>, HBUINT>
 		substitutionTables;
   public:
   DEFINE_SIZE_STATIC (20);
