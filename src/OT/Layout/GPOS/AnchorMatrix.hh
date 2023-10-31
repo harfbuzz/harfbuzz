@@ -8,7 +8,7 @@ namespace GPOS_impl {
 struct AnchorMatrix
 {
   HBUINT16      rows;                   /* Number of rows */
-  UnsizedArrayOf<Offset16To<Anchor>>
+  UnsizedArrayOf<Offset16To<Anchor, AnchorMatrix>>
                 matrixZ;                /* Matrix of offsets to Anchor tables--
                                          * from beginning of AnchorMatrix table */
   public:
