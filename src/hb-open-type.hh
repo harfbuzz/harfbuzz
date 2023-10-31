@@ -414,7 +414,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
 		       const void *src_base, unsigned dst_bias = 0)
   { return serialize_copy (c, src, src_base, dst_bias, hb_serialize_context_t::Head); }
 
-  bool sanitize_shallow (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize_shallow (hb_sanitize_context_t *c, const BaseType *base) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
@@ -427,7 +427,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  bool sanitize (hb_sanitize_context_t *c, const void *base, Ts&&... ds) const
+  bool sanitize (hb_sanitize_context_t *c, const BaseType *base, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&

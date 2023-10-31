@@ -11,7 +11,7 @@ struct EntryExitRecord
 {
   friend struct CursivePosFormat1;
 
-  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const struct CursivePosFormat1 *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (entryAnchor.sanitize (c, base) && exitAnchor.sanitize (c, base));
