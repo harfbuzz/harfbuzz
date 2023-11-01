@@ -434,6 +434,8 @@ enum packed_delta_flag_t
 
 struct tuple_delta_t
 {
+  static constexpr bool realloc_move = true;  // Watch out when adding new members!
+
   public:
   hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
 

@@ -42,6 +42,8 @@ template <typename K, typename V,
 	  bool minus_one = false>
 struct hb_hashmap_t
 {
+  static constexpr bool realloc_move = true;
+
   hb_hashmap_t ()  { init (); }
   ~hb_hashmap_t () { fini (); }
 
