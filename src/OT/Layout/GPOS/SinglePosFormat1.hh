@@ -8,7 +8,7 @@ namespace OT {
 namespace Layout {
 namespace GPOS_impl {
 
-struct SinglePosFormat1
+struct SinglePosFormat1 : ValueBase
 {
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
