@@ -142,11 +142,29 @@ struct ValueFormat : HBUINT16
     return ret;
   }
 
-  unsigned int get_effective_format (const Value *values) const
+  unsigned int get_effective_format (const Value *values, bool strip_hints, bool strip_empty, const void *base,
+                                     const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
   {
     unsigned int format = *this;
     for (unsigned flag = xPlacement; flag <= yAdvDevice; flag = flag << 1) {
-      if (format & flag) should_drop (*values++, (Flags) flag, &format);
+      if (format & flag)
+      {
+        if (strip_hints && flag >= xPlaDevice)
+        {
+          format = format & ~flag;
+          values++;
+          continue;
+        }
+        if (varidx_delta_map && flag >= xPlaDevice)
+        {
+          update_var_flag (values++, (Flags) flag, &format, base, varidx_delta_map);
+          continue;
+        }
+        /* do not strip empty when instancing, cause we don't know whether the new
+         * default value is 0 or not */
+        if (strip_empty) should_drop (*values, (Flags) flag, &format);
+        values++;
+      }
     }
 
     return format;
@@ -154,11 +172,12 @@ struct ValueFormat : HBUINT16
 
   template<typename Iterator,
       hb_requires (hb_is_iterator (Iterator))>
-  unsigned int get_effective_format (Iterator it) const {
+  unsigned int get_effective_format (Iterator it, bool strip_hints, bool strip_empty, const void *base,
+                                     const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const {
     unsigned int new_format = 0;
 
     for (const hb_array_t<const Value>& values : it)
-      new_format = new_format | get_effective_format (&values);
+      new_format = new_format | get_effective_format (&values, strip_hints, strip_empty, base, varidx_delta_map);
 
     return new_format;
   }
@@ -251,34 +270,13 @@ struct ValueFormat : HBUINT16
     }
   }
 
-  unsigned update_var_device_table_flags (const Value *values,
-                                          const void *base,
-                                          const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
+  unsigned drop_device_table_flags () const
   {
     unsigned format = *this;
-    for (unsigned flag = xPlacement; flag <= yAdvDevice; flag = flag << 1)
-    {
-      if (format & flag)
-      {
-        if (flag >= xPlaDevice) update_var_flag (values, (Flags) flag, &format, base, varidx_delta_map);
-        values++;
-      }
-    }
+    for (unsigned flag = xPlaDevice; flag <= yAdvDevice; flag = flag << 1)
+      format = format & ~flag;
 
     return format;
-  }
-
-  template<typename Iterator,
-      hb_requires (hb_is_iterator (Iterator))>
-  unsigned update_var_device_table_flags (Iterator it,
-                                          const void* base,
-                                          const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
-  {
-    unsigned new_format = 0;
-    for (const hb_array_t<const Value>& values : it)
-      new_format = new_format | update_var_device_table_flags (&values, base, varidx_delta_map);
-
-    return new_format;
   }
 
   private:
