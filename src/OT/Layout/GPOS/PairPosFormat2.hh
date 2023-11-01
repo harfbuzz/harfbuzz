@@ -287,11 +287,27 @@ struct PairPosFormat2_4 : ValueBase
     unsigned len2 = valueFormat2.get_len ();
 
     hb_pair_t<unsigned, unsigned> newFormats = hb_pair (valueFormat1, valueFormat2);
-    if (c->plan->normalized_coords)
-      newFormats = compute_effective_value_formats (klass1_map, klass2_map, &c->plan->layout_variation_idx_delta_map);
 
-    if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
-      newFormats = compute_effective_value_formats (klass1_map, klass2_map);
+    if (c->plan->normalized_coords)
+    {
+      /* in case of full instancing, all var device flags will be dropped so no
+       * need to strip hints here */
+      newFormats = compute_effective_value_formats (klass1_map, klass2_map, false, false, &c->plan->layout_variation_idx_delta_map);
+    }
+    /* do not strip hints for VF */
+    else if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
+    {
+      hb_blob_t* blob = hb_face_reference_table (c->plan->source, HB_TAG ('f','v','a','r'));
+      bool has_fvar = (blob != hb_blob_get_empty ());
+      hb_blob_destroy (blob);
+
+      bool strip = !has_fvar;
+      /* special case: strip hints when a VF has no GDEF varstore after
+       * subsetting*/
+      if (has_fvar && !c->plan->has_gdef_varstore)
+        strip = true;
+      newFormats = compute_effective_value_formats (klass1_map, klass2_map, strip, true);
+    }
 
     out->valueFormat1 = newFormats.first;
     out->valueFormat2 = newFormats.second;
@@ -324,6 +340,7 @@ struct PairPosFormat2_4 : ValueBase
 
   hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_map_t& klass1_map,
                                                                  const hb_map_t& klass2_map,
+                                                                 bool strip_hints, bool strip_empty,
                                                                  const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map = nullptr) const
   {
     unsigned len1 = valueFormat1.get_len ();
@@ -338,16 +355,8 @@ struct PairPosFormat2_4 : ValueBase
       for (unsigned class2_idx : + hb_range ((unsigned) class2Count) | hb_filter (klass2_map))
       {
         unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * record_size;
-        if (!varidx_delta_map)
-        {
-          format1 = format1 | valueFormat1.get_effective_format (&values[idx]);
-          format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1]);
-        }
-        else
-        {
-          format1 = format1 | valueFormat1.update_var_device_table_flags (&values[idx], this, varidx_delta_map);
-          format2 = format2 | valueFormat2.update_var_device_table_flags (&values[idx + len1], this, varidx_delta_map);
-        }
+        format1 = format1 | valueFormat1.get_effective_format (&values[idx], strip_hints, strip_empty, this, varidx_delta_map);
+        format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1], strip_hints, strip_empty, this, varidx_delta_map);
       }
 
       if (format1 == valueFormat1 && format2 == valueFormat2)

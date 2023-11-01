@@ -146,6 +146,30 @@ struct SinglePosFormat1 : ValueBase
     hb_set_t intersection;
     (this+coverage).intersect_set (glyphset, intersection);
 
+    unsigned new_format = valueFormat;
+
+    if (c->plan->normalized_coords)
+    {
+      new_format = valueFormat.get_effective_format (values.arrayZ, false, false, this, &c->plan->layout_variation_idx_delta_map);
+    }
+    /* do not strip hints for VF */
+    else if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
+    {
+      hb_blob_t* blob = hb_face_reference_table (c->plan->source, HB_TAG ('f','v','a','r'));
+      bool has_fvar = (blob != hb_blob_get_empty ());
+      hb_blob_destroy (blob);
+
+      bool strip = !has_fvar;
+      /* special case: strip hints when a VF has no GDEF varstore after
+       * subsetting*/
+      if (has_fvar && !c->plan->has_gdef_varstore)
+        strip = true;
+      new_format = valueFormat.get_effective_format (values.arrayZ,
+                                                     strip, /* strip hints */
+                                                     true, /* strip empty */
+                                                     this, nullptr);
+    }
+
     auto it =
     + hb_iter (intersection)
     | hb_map_retains_sorting (glyph_map)
@@ -153,7 +177,7 @@ struct SinglePosFormat1 : ValueBase
     ;
 
     bool ret = bool (it);
-    SinglePos_serialize (c->serializer, this, it, &c->plan->layout_variation_idx_delta_map, bool (c->plan->normalized_coords));
+    SinglePos_serialize (c->serializer, this, it, &c->plan->layout_variation_idx_delta_map, new_format);
     return_trace (ret);
   }
 };

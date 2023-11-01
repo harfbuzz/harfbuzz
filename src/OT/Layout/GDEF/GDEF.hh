@@ -705,6 +705,7 @@ struct GDEFVersion1_2
     if (subset_varstore)
     {
       out->version.minor = 3;
+      c->plan->has_gdef_varstore = true;
     } else if (subset_markglyphsetsdef) {
       out->version.minor = 2;
       c->serializer->revert (snapshot_version2);
