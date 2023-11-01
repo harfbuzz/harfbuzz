@@ -774,7 +774,7 @@ struct tuple_delta_t
     unsigned encoded_len = 0;
     while (i < num_deltas)
     {
-      int val = deltas[i];
+      int val = deltas.arrayZ[i];
       if (val == 0)
         encoded_len += encode_delta_run_as_zeroes (i, encoded_bytes.sub_array (encoded_len), deltas);
       else if (val >= -128 && val <= 127)
@@ -793,7 +793,7 @@ struct tuple_delta_t
     unsigned run_length = 0;
     auto it = encoded_bytes.iter ();
     unsigned encoded_len = 0;
-    while (i < num_deltas && deltas[i] == 0)
+    while (i < num_deltas && deltas.arrayZ[i] == 0)
     {
       i++;
       run_length++;
@@ -822,13 +822,13 @@ struct tuple_delta_t
     unsigned num_deltas = deltas.length;
     while (i < num_deltas)
     {
-      int val = deltas[i];
+      int val = deltas.arrayZ[i];
       if (val > 127 || val < -128)
         break;
 
       /* from fonttools: if there're 2 or more zeros in a sequence,
        * it is better to start a new run to save bytes. */
-      if (val == 0 && i + 1 < num_deltas && deltas[i+1] == 0)
+      if (val == 0 && i + 1 < num_deltas && deltas.arrayZ[i+1] == 0)
         break;
 
       i++;
@@ -845,7 +845,7 @@ struct tuple_delta_t
 
       for (unsigned j = 0; j < 64; j++)
       {
-        *it++ = static_cast<char> (deltas[start + j]);
+        *it++ = static_cast<char> (deltas.arrayZ[start + j]);
         encoded_len++;
       }
 
@@ -860,7 +860,7 @@ struct tuple_delta_t
 
       while (start < i)
       {
-        *it++ = static_cast<char> (deltas[start++]);
+        *it++ = static_cast<char> (deltas.arrayZ[start++]);
         encoded_len++;
       }
     }
@@ -876,8 +876,8 @@ struct tuple_delta_t
     unsigned num_deltas = deltas.length;
     while (i < num_deltas)
     {
-      int val = deltas[i];
-      
+      int val = deltas.arrayZ[i];
+
       /* start a new run for a single zero value*/
       if (val == 0) break;
 
@@ -886,7 +886,7 @@ struct tuple_delta_t
        * Only start a new run when there're 2 continuous such values. */
       if (val >= -128 && val <= 127 &&
           i + 1 < num_deltas &&
-          deltas[i+1] >= -128 && deltas[i+1] <= 127)
+          deltas.arrayZ[i+1] >= -128 && deltas.arrayZ[i+1] <= 127)
         break;
 
       i++;
@@ -902,7 +902,7 @@ struct tuple_delta_t
 
       for (unsigned j = 0; j < 64; j++)
       {
-        int16_t delta_val = deltas[start + j];
+        int16_t delta_val = deltas.arrayZ[start + j];
         *it++ = static_cast<char> (delta_val >> 8);
         *it++ = static_cast<char> (delta_val & 0xFF);
 
@@ -919,7 +919,7 @@ struct tuple_delta_t
       encoded_len++;
       while (start < i)
       {
-        int16_t delta_val = deltas[start++];
+        int16_t delta_val = deltas.arrayZ[start++];
         *it++ = static_cast<char> (delta_val >> 8);
         *it++ = static_cast<char> (delta_val & 0xFF);
 
