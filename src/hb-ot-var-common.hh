@@ -516,14 +516,19 @@ struct tuple_delta_t
       return *this;
 
     unsigned num = indices.length;
-    for (unsigned i = 0; i < num; i++)
-    {
-      if (!indices.arrayZ[i]) continue;
-
-      deltas_x[i] *= scalar;
-      if (deltas_y)
-        deltas_y[i] *= scalar;
-    }
+    if (deltas_y)
+      for (unsigned i = 0; i < num; i++)
+      {
+	if (!indices.arrayZ[i]) continue;
+	deltas_x[i] *= scalar;
+	deltas_y[i] *= scalar;
+      }
+    else
+      for (unsigned i = 0; i < num; i++)
+      {
+	if (!indices.arrayZ[i]) continue;
+	deltas_x[i] *= scalar;
+      }
     return *this;
   }
 
