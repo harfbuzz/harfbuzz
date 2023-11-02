@@ -144,7 +144,7 @@ struct ValueFormat : HBUINT16
     return ret;
   }
 
-  unsigned int get_effective_format (const Value *values, bool strip_hints, bool strip_empty, const void *base,
+  unsigned int get_effective_format (const Value *values, bool strip_hints, bool strip_empty, const ValueBase *base,
                                      const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const
   {
     unsigned int format = *this;
@@ -174,7 +174,7 @@ struct ValueFormat : HBUINT16
 
   template<typename Iterator,
       hb_requires (hb_is_iterator (Iterator))>
-  unsigned int get_effective_format (Iterator it, bool strip_hints, bool strip_empty, const void *base,
+  unsigned int get_effective_format (Iterator it, bool strip_hints, bool strip_empty, const ValueBase *base,
                                      const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map) const {
     unsigned int new_format = 0;
 
