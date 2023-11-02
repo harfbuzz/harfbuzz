@@ -76,6 +76,7 @@ if get_option('experimental_api')
     'empty_region_vardata',
     'feature_variations_partial_instance',
     'gdef_partial_instance',
+    'value_format_partial_instance',
     ]
 endif
 
