@@ -664,7 +664,6 @@ struct GDEFVersion1_2
     out->version.minor = version.minor;
     bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this, nullptr, false, true);
     bool subset_attachlist = out->attachList.serialize_subset (c, attachList, this);
-    bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
     bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, nullptr, false, true);
 
     bool subset_markglyphsetsdef = false;
@@ -702,6 +701,7 @@ struct GDEFVersion1_2
         subset_varstore = out->varStore.serialize_subset (c, varStore, this, c->plan->gdef_varstore_inner_maps.as_array ());
     }
 
+
     if (subset_varstore)
     {
       out->version.minor = 3;
@@ -712,6 +712,8 @@ struct GDEFVersion1_2
       out->version.minor = 0;
       c->serializer->revert (snapshot_version0);
     }
+
+    bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
 
     return_trace (subset_glyphclassdef || subset_attachlist ||
 		  subset_ligcaretlist || subset_markattachclassdef ||
