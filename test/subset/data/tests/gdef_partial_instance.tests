@@ -1,0 +1,11 @@
+FONTS:
+AnekBangla-subset.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=300

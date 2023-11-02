@@ -75,6 +75,7 @@ if get_option('experimental_api')
     'update_def_wght',
     'empty_region_vardata',
     'feature_variations_partial_instance',
+    'gdef_partial_instance',
     ]
 endif
 
