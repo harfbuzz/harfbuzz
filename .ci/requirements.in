@@ -2,3 +2,4 @@
 meson==1.2.3
 gcovr==5.0
 ninja
+setuptools # https://github.com/harfbuzz/harfbuzz/issues/4475
