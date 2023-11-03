@@ -118,12 +118,12 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
  */
 #ifndef _hb_compiler_memory_r_barrier
 #if defined(__ATOMIC_ACQUIRE) // gcc-like
-#define _hb_compiler_memory_r_barrier() asm volatile("": : :"memory")
+static inline void _hb_compiler_memory_r_barrier () { asm volatile("": : :"memory"); }
 #elif !defined(_MSC_VER)
 #include <atomic>
 #define _hb_compiler_memory_r_barrier() std::atomic_signal_fence (std::memory_order_acquire)
 #else
-#define _hb_compiler_memory_r_barrier() do {} while (0)
+static inline void _hb_compiler_memory_r_barrier () {}
 #endif
 #endif
 
