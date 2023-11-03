@@ -224,7 +224,7 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
   // If all axes are pinned then all feature variations will be dropped so there's no need
   // to collect lookups from them.
   if (!plan->all_axes_pinned)
-    table.feature_variation_collect_lookups (feature_indices, feature_substitutes_map,
+    table.feature_variation_collect_lookups (feature_indices,
                                              plan->user_axes_location.is_empty () ? nullptr: feature_record_cond_idx_map,
                                              lookup_indices);
 #endif
