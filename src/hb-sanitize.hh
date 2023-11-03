@@ -381,11 +381,14 @@ struct hb_sanitize_context_t :
     return result;
   }
 
+#define check_struct(This) \
+	check_struct_ (This) * 1 & (_hb_compiler_memory_r_barrier (), 1)
+
   template <typename Type>
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  bool check_struct (const Type *obj) const
+  bool check_struct_ (const Type *obj) const
   {
     if (sizeof (uintptr_t) == sizeof (uint32_t))
       return likely (this->check_range_fast (obj, obj->min_size));
