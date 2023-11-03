@@ -135,10 +135,26 @@ struct PairPosFormat1_3
     hb_pair_t<unsigned, unsigned> newFormats = hb_pair (valueFormat[0], valueFormat[1]);
 
     if (c->plan->normalized_coords)
-      newFormats = compute_effective_value_formats (glyphset, &c->plan->layout_variation_idx_delta_map);
+    {
+      /* all device flags will be dropped when full instancing, no need to strip
+       * hints, also do not strip emtpy cause we don't compute the new default
+       * value during stripping */
+      newFormats = compute_effective_value_formats (glyphset, false, false, &c->plan->layout_variation_idx_delta_map);
+    }
+    /* do not strip hints for VF */
+    else if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
+    {
+      hb_blob_t* blob = hb_face_reference_table (c->plan->source, HB_TAG ('f','v','a','r'));
+      bool has_fvar = (blob != hb_blob_get_empty ());
+      hb_blob_destroy (blob);
 
-    if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
-      newFormats = compute_effective_value_formats (glyphset);
+      bool strip = !has_fvar;
+      /* special case: strip hints when a VF has no GDEF varstore after
+       * subsetting*/
+      if (has_fvar && !c->plan->has_gdef_varstore)
+        strip = true;
+      newFormats = compute_effective_value_formats (glyphset, strip, true);
+    }
     
     out->valueFormat[0] = newFormats.first;
     out->valueFormat[1] = newFormats.second;
@@ -173,6 +189,7 @@ struct PairPosFormat1_3
 
 
   hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_set_t& glyphset,
+                                                                 bool strip_hints, bool strip_empty,
                                                                  const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map = nullptr) const
   {
     unsigned record_size = PairSet::get_size (valueFormat);
@@ -193,16 +210,8 @@ struct PairPosFormat1_3
       {
         if (record->intersects (glyphset))
         {
-          if (!varidx_delta_map)
-          {
-            format1 = format1 | valueFormat[0].get_effective_format (record->get_values_1 ());
-            format2 = format2 | valueFormat[1].get_effective_format (record->get_values_2 (valueFormat[0]));
-          }
-          else
-          {
-            format1 = format1 | valueFormat[0].update_var_device_table_flags (record->get_values_1 (), &set, varidx_delta_map);
-            format2 = format2 | valueFormat[1].update_var_device_table_flags (record->get_values_2 (valueFormat[0]), &set, varidx_delta_map);
-          }
+          format1 = format1 | valueFormat[0].get_effective_format (record->get_values_1 (), strip_hints, strip_empty, &set, varidx_delta_map);
+          format2 = format2 | valueFormat[1].get_effective_format (record->get_values_2 (valueFormat[0]), strip_hints, strip_empty, &set, varidx_delta_map);
         }
         record = &StructAtOffset<const PairValueRecord> (record, record_size);
       }

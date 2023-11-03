@@ -1,0 +1,12 @@
+FONTS:
+NotoSansOriya-valueformat-subset.ttf
+
+PROFILES:
+default.txt
+drop-hints.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=400
