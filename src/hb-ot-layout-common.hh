@@ -3645,16 +3645,10 @@ struct FeatureTableSubstitution
   }
 
   void collect_lookups (const hb_set_t *feature_indexes,
-			const hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map,
 			hb_set_t       *lookup_indexes /* OUT */) const
   {
     + hb_iter (substitutions)
     | hb_filter (feature_indexes, &FeatureTableSubstitutionRecord::featureIndex)
-    | hb_filter ([feature_substitutes_map] (const FeatureTableSubstitutionRecord& record)
-                 {
-                   if (feature_substitutes_map == nullptr) return true;
-                   return !feature_substitutes_map->has (record.featureIndex);
-                 })
     | hb_apply ([this, lookup_indexes] (const FeatureTableSubstitutionRecord& r)
 		{ r.collect_lookups (this, lookup_indexes); })
     ;
@@ -3740,10 +3734,9 @@ struct FeatureVariationRecord
 
   void collect_lookups (const void     *base,
 			const hb_set_t *feature_indexes,
-			const hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map,
 			hb_set_t       *lookup_indexes /* OUT */) const
   {
-    return (base+substitutions).collect_lookups (feature_indexes, feature_substitutes_map, lookup_indexes);
+    return (base+substitutions).collect_lookups (feature_indexes, lookup_indexes);
   }
 
   void closure_features (const void     *base,
@@ -3847,7 +3840,6 @@ struct FeatureVariations
   }
 
   void collect_lookups (const hb_set_t *feature_indexes,
-			const hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map,
 			const hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map,
 			hb_set_t       *lookup_indexes /* OUT */) const
   {
@@ -3857,7 +3849,7 @@ struct FeatureVariations
       if (feature_record_cond_idx_map &&
           !feature_record_cond_idx_map->has (i))
         continue;
-      varRecords[i].collect_lookups (this, feature_indexes, feature_substitutes_map, lookup_indexes);
+      varRecords[i].collect_lookups (this, feature_indexes, lookup_indexes);
     }
   }
 
