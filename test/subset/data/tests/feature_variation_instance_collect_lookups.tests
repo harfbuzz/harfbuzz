@@ -1,0 +1,11 @@
+FONTS:
+AnekBangla-question-subset.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wdth=112.5
