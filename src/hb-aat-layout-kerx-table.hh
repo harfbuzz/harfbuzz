@@ -54,6 +54,7 @@ kerxTupleKern (int value,
   unsigned int offset = value;
   const FWORD *pv = &StructAtOffset<FWORD> (base, offset);
   if (unlikely (!c->sanitizer.check_array (pv, tupleCount))) return 0;
+  c->sanitizer.barrier ();
   return *pv;
 }
 
@@ -259,6 +260,7 @@ struct KerxSubTableFormat1
 	  depth = 0;
 	  return;
 	}
+	c->sanitizer.barrier ();
 
 	hb_mask_t kern_mask = c->plan->kern_mask;
 
@@ -389,6 +391,7 @@ struct KerxSubTableFormat2
     kern_idx = Types::offsetToIndex (kern_idx, this, arrayZ.arrayZ);
     const FWORD *v = &arrayZ[kern_idx];
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
+    c->sanitizer.barrier ();
 
     return kerxTupleKern (*v, header.tuple_count (), this, c);
   }
@@ -509,6 +512,7 @@ struct KerxSubTableFormat4
 	       double the ankrActionIndex to get the correct offset here. */
 	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
 	    if (!c->sanitizer.check_array (data, 2)) return;
+	    c->sanitizer.barrier ();
 	    unsigned int markControlPoint = *data++;
 	    unsigned int currControlPoint = *data++;
 	    hb_position_t markX = 0;
@@ -537,6 +541,7 @@ struct KerxSubTableFormat4
 	       double the ankrActionIndex to get the correct offset here. */
 	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
 	    if (!c->sanitizer.check_array (data, 2)) return;
+	    c->sanitizer.barrier ();
 	    unsigned int markAnchorPoint = *data++;
 	    unsigned int currAnchorPoint = *data++;
 	    const Anchor &markAnchor = c->ankr_table->get_anchor (c->buffer->info[mark].codepoint,
@@ -557,6 +562,7 @@ struct KerxSubTableFormat4
 	       by 4 to get the correct offset for the given action. */
 	    const FWORD *data = (const FWORD *) &ankrData[entry.data.ankrActionIndex * 4];
 	    if (!c->sanitizer.check_array (data, 4)) return;
+	    c->sanitizer.barrier ();
 	    int markX = *data++;
 	    int markY = *data++;
 	    int currX = *data++;
@@ -639,6 +645,7 @@ struct KerxSubTableFormat6
       if (unlikely (hb_unsigned_mul_overflows (offset, sizeof (FWORD32)))) return 0;
       const FWORD32 *v = &StructAtOffset<FWORD32> (&(this+t.array), offset * sizeof (FWORD32));
       if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
+      c->sanitizer.barrier ();
       return kerxTupleKern (*v, header.tuple_count (), &(this+vector), c);
     }
     else
@@ -649,6 +656,7 @@ struct KerxSubTableFormat6
       unsigned int offset = l + r;
       const FWORD *v = &StructAtOffset<FWORD> (&(this+t.array), offset * sizeof (FWORD));
       if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
+      c->sanitizer.barrier ();
       return kerxTupleKern (*v, header.tuple_count (), &(this+vector), c);
     }
   }

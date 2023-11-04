@@ -259,7 +259,7 @@ struct ContextualSubtable
 	unsigned int offset = entry.data.markIndex + buffer->info[mark].codepoint;
 	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
 	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
+	if (!(replacement->sanitize (&c->sanitizer) && c->sanitizer.barrier ()) || !*replacement)
 	  replacement = nullptr;
       }
       if (replacement)
@@ -287,7 +287,7 @@ struct ContextualSubtable
 	unsigned int offset = entry.data.currentIndex + buffer->info[idx].codepoint;
 	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
 	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
+	if (!(replacement->sanitize (&c->sanitizer) && c->sanitizer.barrier ()) || !*replacement)
 	  replacement = nullptr;
       }
       if (replacement)
@@ -513,6 +513,7 @@ struct LigatureSubtable
 	  if (unlikely (!buffer->move_to (match_positions[--cursor % ARRAY_LENGTH (match_positions)]))) return;
 
 	  if (unlikely (!actionData->sanitize (&c->sanitizer))) break;
+	  c->sanitizer.barrier ();
 	  action = *actionData;
 
 	  uint32_t uoffset = action & LigActionOffset;
@@ -523,6 +524,7 @@ struct LigatureSubtable
 	  component_idx = Types::wordOffsetToIndex (component_idx, table, component.arrayZ);
 	  const HBUINT16 &componentData = component[component_idx];
 	  if (unlikely (!componentData.sanitize (&c->sanitizer))) break;
+	  c->sanitizer.barrier ();
 	  ligature_idx += componentData;
 
 	  DEBUG_MSG (APPLY, nullptr, "Action store %d last %d",
@@ -533,6 +535,7 @@ struct LigatureSubtable
 	    ligature_idx = Types::offsetToIndex (ligature_idx, table, ligature.arrayZ);
 	    const HBGlyphID16 &ligatureData = ligature[ligature_idx];
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) break;
+	    c->sanitizer.barrier ();
 	    hb_codepoint_t lig = ligatureData;
 
 	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
@@ -765,6 +768,7 @@ struct InsertionSubtable
 	unsigned int start = entry.data.markedInsertIndex;
 	const HBGlyphID16 *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) count = 0;
+	c->sanitizer.barrier ();
 
 	bool before = flags & MarkedInsertBefore;
 
@@ -793,6 +797,7 @@ struct InsertionSubtable
 	unsigned int start = entry.data.currentInsertIndex;
 	const HBGlyphID16 *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) count = 0;
+	c->sanitizer.barrier ();
 
 	bool before = flags & CurrentInsertBefore;
 
