@@ -308,7 +308,7 @@ struct ValueFormat : HBUINT16
 
     if (unlikely (!offset.sanitize (&c, base)))
       return Null(Device);
-    c.barrier ();
+    hb_barrier ();
 
     return base + offset;
   }

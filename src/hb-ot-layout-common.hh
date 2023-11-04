@@ -3716,7 +3716,7 @@ struct FeatureTableSubstitution
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
-		  c->barrier () &&
+		  hb_barrier () &&
 		  likely (version.major == 1) &&
 		  substitutions.sanitize (c, this));
   }
@@ -3910,7 +3910,7 @@ struct FeatureVariations
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
-		  c->barrier () &&
+		  hb_barrier () &&
 		  likely (version.major == 1) &&
 		  varRecords.sanitize (c, this));
   }

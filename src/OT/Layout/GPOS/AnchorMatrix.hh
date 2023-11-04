@@ -38,7 +38,7 @@ struct AnchorMatrix
     if (unlikely (row >= rows || col >= cols)) return Null (Anchor);
     auto &offset = matrixZ[row * cols + col];
     if (unlikely (!offset.sanitize (&c->sanitizer, this))) return Null (Anchor);
-    c->sanitizer.barrier ();
+    hb_barrier ();
     *found = !offset.is_null ();
     return this+offset;
   }

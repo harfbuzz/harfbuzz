@@ -218,5 +218,11 @@ struct hb_atomic_ptr_t
   T *v = nullptr;
 };
 
+static inline bool hb_barrier ()
+{
+  _hb_compiler_memory_r_barrier ();
+  return true;
+}
+
 
 #endif /* HB_ATOMIC_HH */
