@@ -390,6 +390,7 @@ struct ValueFormat : HBUINT16
     if (c->lazy_some_gpos)
       return_trace (true);
 
+    hb_barrier ();
     return_trace (sanitize_values_stride_unsafe (c, base, values, count, size));
   }
 

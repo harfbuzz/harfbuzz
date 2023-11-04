@@ -18,6 +18,7 @@ struct AnchorMatrix
   {
     TRACE_SANITIZE (this);
     if (!c->check_struct (this)) return_trace (false);
+    hb_barrier ();
     if (unlikely (hb_unsigned_mul_overflows (rows, cols))) return_trace (false);
     unsigned int count = rows * cols;
     if (!c->check_array (matrixZ.arrayZ, count)) return_trace (false);
@@ -25,6 +26,7 @@ struct AnchorMatrix
     if (c->lazy_some_gpos)
       return_trace (true);
 
+    hb_barrier ();
     for (unsigned int i = 0; i < count; i++)
       if (!matrixZ[i].sanitize (c, this)) return_trace (false);
     return_trace (true);

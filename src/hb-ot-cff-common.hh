@@ -274,8 +274,10 @@ struct CFFIndex
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
+			  hb_barrier () &&
 			  (count == 0 || /* empty INDEX */
 			   (count < count + 1u &&
+			    hb_barrier () &&
 			    c->check_struct (&offSize) && offSize >= 1 && offSize <= 4 &&
 			    c->check_array (offsets, offSize, count + 1u) &&
 			    c->check_array ((const HBUINT8*) data_base (), 1, offset_at (count))))));
@@ -412,6 +414,7 @@ struct FDSelect0 {
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this))))
       return_trace (false);
+    hb_barrier ();
     if (unlikely (!c->check_array (fds, c->get_num_glyphs ())))
       return_trace (false);
 
@@ -438,7 +441,9 @@ struct FDSelect3_4_Range
   bool sanitize (hb_sanitize_context_t *c, const void * /*nullptr*/, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
-    return_trace (first < c->get_num_glyphs () && (fd < fdcount));
+    return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
+		  first < c->get_num_glyphs () && (fd < fdcount));
   }
 
   GID_TYPE    first;
@@ -456,15 +461,20 @@ struct FDSelect3_4
   bool sanitize (hb_sanitize_context_t *c, unsigned int fdcount) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (this) || !ranges.sanitize (c, nullptr, fdcount) ||
-		  (nRanges () == 0) || ranges[0].first != 0))
+    if (unlikely (!(c->check_struct (this) &&
+		    ranges.sanitize (c, nullptr, fdcount) &&
+		    hb_barrier () &&
+		    (nRanges () != 0) &&
+		    ranges[0].first == 0)))
       return_trace (false);
 
     for (unsigned int i = 1; i < nRanges (); i++)
       if (unlikely (ranges[i - 1].first >= ranges[i].first))
 	return_trace (false);
 
-    if (unlikely (!sentinel().sanitize (c) || (sentinel() != c->get_num_glyphs ())))
+    if (unlikely (!(sentinel().sanitize (c) &&
+		   hb_barrier () &&
+		   (sentinel() == c->get_num_glyphs ()))))
       return_trace (false);
 
     return_trace (true);
@@ -559,6 +569,7 @@ struct FDSelect
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
       return_trace (false);
+    hb_barrier ();
 
     switch (format)
     {

@@ -432,6 +432,7 @@ struct KerxSubTableFormat2
     return_trace (likely (c->check_struct (this) &&
 			  leftClassTable.sanitize (c, this) &&
 			  rightClassTable.sanitize (c, this) &&
+			  hb_barrier () &&
 			  c->check_range (this, array)));
   }
 
@@ -682,6 +683,7 @@ struct KerxSubTableFormat6
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
+			  hb_barrier () &&
 			  (is_long () ?
 			   (
 			     u.l.rowIndexTable.sanitize (c, this) &&
@@ -795,9 +797,10 @@ struct KerxSubTable
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!u.header.sanitize (c) ||
-	u.header.length <= u.header.static_size ||
-	!c->check_range (this, u.header.length))
+    if (!(u.header.sanitize (c) &&
+	  hb_barrier () &&
+	  u.header.length >= u.header.static_size &&
+	  c->check_range (this, u.header.length)))
       return_trace (false);
 
     return_trace (dispatch (c));
@@ -944,9 +947,10 @@ struct KerxTable
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!thiz()->version.sanitize (c) ||
-		  (unsigned) thiz()->version < (unsigned) T::minVersion ||
-		  !thiz()->tableCount.sanitize (c)))
+    if (unlikely (!(thiz()->version.sanitize (c) &&
+		    hb_barrier () &&
+		    (unsigned) thiz()->version >= (unsigned) T::minVersion &&
+		    thiz()->tableCount.sanitize (c))))
       return_trace (false);
 
     typedef typename T::SubTable SubTable;
@@ -957,6 +961,7 @@ struct KerxTable
     {
       if (unlikely (!st->u.header.sanitize (c)))
 	return_trace (false);
+      hb_barrier ();
       /* OpenType kern table has 2-byte subtable lengths.  That's limiting.
        * MS implementation also only supports one subtable, of format 0,
        * anyway.  Certain versions of some fonts, like Calibry, contain

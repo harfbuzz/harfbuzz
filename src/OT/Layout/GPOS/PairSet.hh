@@ -45,10 +45,12 @@ struct PairSet : ValueBase
   bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) const
   {
     TRACE_SANITIZE (this);
-    if (!(c->check_struct (this)
-       && c->check_range (&firstPairValueRecord,
+    if (!(c->check_struct (this) &&
+	  hb_barrier () &&
+          c->check_range (&firstPairValueRecord,
                           len,
                           closure->stride))) return_trace (false);
+    hb_barrier ();
 
     unsigned int count = len;
     const PairValueRecord *record = &firstPairValueRecord;
