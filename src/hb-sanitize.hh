@@ -134,7 +134,7 @@ struct hb_sanitize_context_t :
   const char *get_name () { return "SANITIZE"; }
   template <typename T, typename F>
   bool may_dispatch (const T *obj HB_UNUSED, const F *format)
-  { return format->sanitize (this); }
+  { return format->sanitize (this) && barrier (); }
   static return_t default_return_value () { return true; }
   static return_t no_dispatch_return_value () { return false; }
   bool stop_sublookup_iteration (const return_t r) const { return !r; }
@@ -381,14 +381,18 @@ struct hb_sanitize_context_t :
     return result;
   }
 
-#define check_struct(This) \
-	check_struct_ (This) * 1 & (_hb_compiler_memory_r_barrier (), 1)
+  HB_ALWAYS_INLINE
+  bool barrier ()
+  {
+    _hb_compiler_memory_r_barrier ();
+    return true;
+  }
 
   template <typename Type>
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  bool check_struct_ (const Type *obj) const
+  bool check_struct (const Type *obj) const
   {
     if (sizeof (uintptr_t) == sizeof (uint32_t))
       return likely (this->check_range_fast (obj, obj->min_size));
