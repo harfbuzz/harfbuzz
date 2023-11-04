@@ -87,7 +87,7 @@ jobs:
 
   tsan:
     docker:
-      - image: ubuntu
+      - image: ubuntu:20.04
     steps:
       - checkout
       - run: apt update || true
@@ -99,7 +99,7 @@ jobs:
 
   msan:
     docker:
-      - image: ubuntu
+      - image: ubuntu:20.04
     steps:
       - checkout
       - run: apt update || true
