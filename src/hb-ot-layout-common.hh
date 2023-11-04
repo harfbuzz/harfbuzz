@@ -460,6 +460,7 @@ struct FeatureParamsSize
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
+    hb_barrier ();
 
     /* This subtable has some "history", if you will.  Some earlier versions of
      * Adobe tools calculated the offset of the FeatureParams subtable from the
@@ -826,6 +827,7 @@ struct Feature
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this) && lookupIndex.sanitize (c))))
       return_trace (false);
+    hb_barrier ();
 
     /* Some earlier versions of Adobe tools calculated the offset of the
      * FeatureParams subtable from the beginning of the FeatureList table!
@@ -844,6 +846,7 @@ struct Feature
     unsigned int orig_offset = featureParams;
     if (unlikely (!featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE)))
       return_trace (false);
+    hb_barrier ();
 
     if (featureParams == 0 && closure &&
 	closure->tag == HB_TAG ('s','i','z','e') &&
@@ -906,7 +909,8 @@ struct Record
   {
     TRACE_SANITIZE (this);
     const Record_sanitize_closure_t closure = {tag, base};
-    return_trace (c->check_struct (this) && offset.sanitize (c, base, &closure));
+    return_trace (c->check_struct (this) &&
+		  offset.sanitize (c, base, &closure));
   }
 
   Tag           tag;            /* 4-byte Tag identifier */
@@ -1407,6 +1411,7 @@ struct Lookup
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this) && subTable.sanitize (c))) return_trace (false);
+    hb_barrier ();
 
     unsigned subtables = get_subtable_count ();
     if (unlikely (!c->visit_subtables (subtables))) return_trace (false);
@@ -1422,6 +1427,8 @@ struct Lookup
 
     if (unlikely (get_type () == TSubTable::Extension && !c->get_edit_count ()))
     {
+      hb_barrier ();
+
       /* The spec says all subtables of an Extension lookup should
        * have the same type, which shall not be the Extension type
        * itself (but we already checked for that).
@@ -2172,6 +2179,7 @@ struct ClassDef
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
+    hb_barrier ();
     switch (u.format) {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
@@ -2550,7 +2558,9 @@ struct VarRegionList
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && axesZ.sanitize (c, axisCount * regionCount));
+    return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
+		  axesZ.sanitize (c, axisCount * regionCount));
   }
 
   bool serialize (hb_serialize_context_t *c,
@@ -2744,6 +2754,7 @@ struct VarData
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  regionIndices.sanitize (c) &&
+		  hb_barrier () &&
 		  wordCount () <= regionIndices.len &&
 		  c->check_range (get_delta_bytes (),
 				  itemCount,
@@ -3093,6 +3104,7 @@ struct VariationStore
 
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
 		  format == 1 &&
 		  regions.sanitize (c, this) &&
 		  dataSets.sanitize (c, this));
@@ -3442,6 +3454,7 @@ struct Condition
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
+    hb_barrier ();
     switch (u.format) {
     case 1: return_trace (u.format1.sanitize (c));
     default:return_trace (true);

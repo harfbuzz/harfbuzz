@@ -296,7 +296,9 @@ struct gvar
   bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && (version.major == 1) &&
+    return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
+		  (version.major == 1) &&
 		  sharedTuples.sanitize (c, this, axisCount * sharedTupleCount) &&
 		  (is_long_offset () ?
 		     c->check_array (get_long_offset_array (), c->get_num_glyphs () + 1) :

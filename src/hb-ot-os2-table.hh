@@ -239,6 +239,7 @@ struct OS2
 
       if (os2_prime->version >= 2)
       {
+        hb_barrier ();
         auto *table = & const_cast<OS2V2Tail &> (os2_prime->v2 ());
         HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_X_HEIGHT,                   sxHeight);
         HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_CAP_HEIGHT,                 sCapHeight);
@@ -334,9 +335,10 @@ struct OS2
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
-    if (unlikely (version >= 1 && !v1X.sanitize (c))) return_trace (false);
-    if (unlikely (version >= 2 && !v2X.sanitize (c))) return_trace (false);
-    if (unlikely (version >= 5 && !v5X.sanitize (c))) return_trace (false);
+    hb_barrier ();
+    if (unlikely (version >= 1 && hb_barrier () && !v1X.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 2 && hb_barrier () && !v2X.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 5 && hb_barrier () && !v5X.sanitize (c))) return_trace (false);
     return_trace (true);
   }
 

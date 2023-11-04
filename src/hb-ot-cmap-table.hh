@@ -556,6 +556,7 @@ struct CmapSubtableFormat4
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
       return_trace (false);
+    hb_barrier ();
 
     if (unlikely (!c->check_range (this, length)))
     {
@@ -1427,6 +1428,7 @@ struct CmapSubtable
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
+    hb_barrier ();
     switch (u.format) {
     case  0: return_trace (u.format0 .sanitize (c));
     case  4: return_trace (u.format4 .sanitize (c));
@@ -2060,6 +2062,7 @@ struct cmap
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
 		  likely (version == 0) &&
 		  encodingRecord.sanitize (c, this));
   }
