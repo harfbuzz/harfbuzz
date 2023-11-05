@@ -418,6 +418,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
+    hb_barrier ();
     //if (unlikely (this->is_null ())) return_trace (true);
     if (unlikely ((const char *) base + (unsigned) *this < (const char *) base)) return_trace (false);
     return_trace (true);
@@ -431,6 +432,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   {
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
+		  hb_barrier () &&
 		  (this->is_null () ||
 		   c->dispatch (StructAtOffset<Type> (base, *this), std::forward<Ts> (ds)...) ||
 		   neuter (c)));
@@ -536,6 +538,7 @@ struct UnsizedArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
     if (!sizeof... (Ts) && hb_is_trivially_copyable(Type)) return_trace (true);
+    hb_barrier ();
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!c->dispatch (arrayZ[i], std::forward<Ts> (ds)...)))
 	return_trace (false);
@@ -725,6 +728,7 @@ struct ArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     if (!sizeof... (Ts) && hb_is_trivially_copyable(Type)) return_trace (true);
+    hb_barrier ();
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!c->dispatch (arrayZ[i], std::forward<Ts> (ds)...)))
@@ -735,7 +739,9 @@ struct ArrayOf
   bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (len.sanitize (c) && c->check_array_sized (arrayZ, len, sizeof (LenType)));
+    return_trace (len.sanitize (c) &&
+		  hb_barrier () &&
+		  c->check_array_sized (arrayZ, len, sizeof (LenType)));
   }
 
   public:
@@ -866,6 +872,7 @@ struct HeadlessArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     if (!sizeof... (Ts) && hb_is_trivially_copyable(Type)) return_trace (true);
+    hb_barrier ();
     unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!c->dispatch (arrayZ[i], std::forward<Ts> (ds)...)))
@@ -878,6 +885,7 @@ struct HeadlessArrayOf
   {
     TRACE_SANITIZE (this);
     return_trace (lenP1.sanitize (c) &&
+		  hb_barrier () &&
 		  (!lenP1 || c->check_array_sized (arrayZ, lenP1 - 1, sizeof (LenType))));
   }
 
@@ -919,6 +927,7 @@ struct ArrayOfM1
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     if (!sizeof... (Ts) && hb_is_trivially_copyable(Type)) return_trace (true);
+    hb_barrier ();
     unsigned int count = lenM1 + 1;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!c->dispatch (arrayZ[i], std::forward<Ts> (ds)...)))
@@ -931,6 +940,7 @@ struct ArrayOfM1
   {
     TRACE_SANITIZE (this);
     return_trace (lenM1.sanitize (c) &&
+		  hb_barrier () &&
 		  (c->check_array_sized (arrayZ, lenM1 + 1, sizeof (LenType))));
   }
 
@@ -1104,6 +1114,7 @@ struct VarSizedBinSearchArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     if (!sizeof... (Ts) && hb_is_trivially_copyable(Type)) return_trace (true);
+    hb_barrier ();
     unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(*this)[i].sanitize (c, std::forward<Ts> (ds)...)))
@@ -1130,6 +1141,7 @@ struct VarSizedBinSearchArrayOf
   {
     TRACE_SANITIZE (this);
     return_trace (header.sanitize (c) &&
+		  hb_barrier () &&
 		  Type::static_size <= header.unitSize &&
 		  c->check_range (bytesZ.arrayZ,
 				  header.nUnits,

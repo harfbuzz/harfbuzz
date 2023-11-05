@@ -3,13 +3,13 @@ version: 2.1
 executors:
   win32-executor:
     docker:
-      - image: cimg/base:edge-20.04
+      - image: cimg/base:2023.10
   win64-executor:
     docker:
-      - image: cimg/base:edge-20.04
+      - image: cimg/base:2023.10
   autotools-executor:
     docker:
-      - image: cimg/base:edge-20.04
+      - image: cimg/base:2023.10
 
 jobs:
 
@@ -75,7 +75,7 @@ jobs:
 
   asan-ubsan:
     docker:
-      - image: ubuntu:20.04
+      - image: ubuntu
     steps:
       - checkout
       - run: apt update || true
@@ -112,7 +112,7 @@ jobs:
 
   clang-cxx2a:
     docker:
-      - image: ubuntu:20.04
+      - image: ubuntu
     steps:
       - checkout
       - run: apt update || true

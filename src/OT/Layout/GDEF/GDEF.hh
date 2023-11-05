@@ -291,6 +291,7 @@ struct CaretValue
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
+    hb_barrier ();
     switch (u.format) {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
@@ -556,6 +557,7 @@ struct MarkGlyphSets
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
+    hb_barrier ();
     switch (u.format) {
     case 1: return_trace (u.format1.sanitize (c));
     default:return_trace (true);
@@ -630,6 +632,7 @@ struct GDEFVersion1_2
 		  attachList.sanitize (c, this) &&
 		  ligCaretList.sanitize (c, this) &&
 		  markAttachClassDef.sanitize (c, this) &&
+		  hb_barrier () &&
 		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)) &&
 		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
   }
@@ -750,6 +753,7 @@ struct GDEF
   {
     TRACE_SANITIZE (this);
     if (unlikely (!u.version.sanitize (c))) return_trace (false);
+    hb_barrier ();
     switch (u.version.major) {
     case 1: return_trace (u.version1.sanitize (c));
 #ifndef HB_NO_BEYOND_64K

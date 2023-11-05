@@ -36,6 +36,7 @@ struct PairPosFormat1_3
     TRACE_SANITIZE (this);
 
     if (!c->check_struct (this)) return_trace (false);
+    hb_barrier ();
 
     unsigned int len1 = valueFormat[0].get_len ();
     unsigned int len2 = valueFormat[1].get_len ();

@@ -259,8 +259,9 @@ struct ContextualSubtable
 	unsigned int offset = entry.data.markIndex + buffer->info[mark].codepoint;
 	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
 	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
+	if (!(replacement->sanitize (&c->sanitizer) && hb_barrier ()) || !*replacement)
 	  replacement = nullptr;
+	hb_barrier ();
       }
       if (replacement)
       {
@@ -287,8 +288,9 @@ struct ContextualSubtable
 	unsigned int offset = entry.data.currentIndex + buffer->info[idx].codepoint;
 	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
 	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!replacement->sanitize (&c->sanitizer) || !*replacement)
+	if (!(replacement->sanitize (&c->sanitizer) && hb_barrier ()) || !*replacement)
 	  replacement = nullptr;
+	hb_barrier ();
       }
       if (replacement)
       {
@@ -336,6 +338,7 @@ struct ContextualSubtable
 
     unsigned int num_entries = 0;
     if (unlikely (!machine.sanitize (c, &num_entries))) return_trace (false);
+    hb_barrier ();
 
     if (!Types::extended)
       return_trace (substitutionTables.sanitize (c, this, 0));
@@ -513,6 +516,7 @@ struct LigatureSubtable
 	  if (unlikely (!buffer->move_to (match_positions[--cursor % ARRAY_LENGTH (match_positions)]))) return;
 
 	  if (unlikely (!actionData->sanitize (&c->sanitizer))) break;
+	  hb_barrier ();
 	  action = *actionData;
 
 	  uint32_t uoffset = action & LigActionOffset;
@@ -523,6 +527,7 @@ struct LigatureSubtable
 	  component_idx = Types::wordOffsetToIndex (component_idx, table, component.arrayZ);
 	  const HBUINT16 &componentData = component[component_idx];
 	  if (unlikely (!componentData.sanitize (&c->sanitizer))) break;
+	  hb_barrier ();
 	  ligature_idx += componentData;
 
 	  DEBUG_MSG (APPLY, nullptr, "Action store %d last %d",
@@ -533,6 +538,7 @@ struct LigatureSubtable
 	    ligature_idx = Types::offsetToIndex (ligature_idx, table, ligature.arrayZ);
 	    const HBGlyphID16 &ligatureData = ligature[ligature_idx];
 	    if (unlikely (!ligatureData.sanitize (&c->sanitizer))) break;
+	    hb_barrier ();
 	    hb_codepoint_t lig = ligatureData;
 
 	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
@@ -587,6 +593,7 @@ struct LigatureSubtable
     TRACE_SANITIZE (this);
     /* The rest of array sanitizations are done at run-time. */
     return_trace (c->check_struct (this) && machine.sanitize (c) &&
+		  hb_barrier () &&
 		  ligAction && component && ligature);
   }
 
@@ -765,6 +772,7 @@ struct InsertionSubtable
 	unsigned int start = entry.data.markedInsertIndex;
 	const HBGlyphID16 *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) count = 0;
+	hb_barrier ();
 
 	bool before = flags & MarkedInsertBefore;
 
@@ -793,6 +801,7 @@ struct InsertionSubtable
 	unsigned int start = entry.data.currentInsertIndex;
 	const HBGlyphID16 *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) count = 0;
+	hb_barrier ();
 
 	bool before = flags & CurrentInsertBefore;
 
@@ -849,6 +858,7 @@ struct InsertionSubtable
     TRACE_SANITIZE (this);
     /* The rest of array sanitizations are done at run-time. */
     return_trace (c->check_struct (this) && machine.sanitize (c) &&
+		  hb_barrier () &&
 		  insertionAction);
   }
 
@@ -944,9 +954,10 @@ struct ChainSubtable
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!length.sanitize (c) ||
-	length <= min_size ||
-	!c->check_range (this, length))
+    if (!(length.sanitize (c) &&
+	  hb_barrier () &&
+	  length >= min_size &&
+	  c->check_range (this, length)))
       return_trace (false);
 
     hb_sanitize_with_object_t with (c, this);
@@ -1089,9 +1100,10 @@ struct Chain
   bool sanitize (hb_sanitize_context_t *c, unsigned int version HB_UNUSED) const
   {
     TRACE_SANITIZE (this);
-    if (!length.sanitize (c) ||
-	length < min_size ||
-	!c->check_range (this, length))
+    if (!(length.sanitize (c) &&
+	  hb_barrier () &&
+	  length >= min_size &&
+	  c->check_range (this, length)))
       return_trace (false);
 
     if (!c->check_array (featureZ.arrayZ, featureCount))
@@ -1103,6 +1115,7 @@ struct Chain
     {
       if (!subtable->sanitize (c))
 	return_trace (false);
+      hb_barrier ();
       subtable = &StructAfter<ChainSubtable<Types>> (*subtable);
     }
 
@@ -1173,7 +1186,10 @@ struct mortmorx
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!version.sanitize (c) || !version || !chainCount.sanitize (c))
+    if (!(version.sanitize (c) &&
+	  hb_barrier () &&
+	  version &&
+	  chainCount.sanitize (c)))
       return_trace (false);
 
     const Chain<Types> *chain = &firstChain;
@@ -1182,6 +1198,7 @@ struct mortmorx
     {
       if (!chain->sanitize (c, version))
 	return_trace (false);
+      hb_barrier ();
       chain = &StructAfter<Chain<Types>> (*chain);
     }
 

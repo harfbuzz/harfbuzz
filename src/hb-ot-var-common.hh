@@ -119,6 +119,7 @@ struct DeltaSetIndexMapFormat01
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
                   c->check_range (mapDataZ.arrayZ,
                                   mapCount,
                                   get_width ()));
@@ -191,6 +192,7 @@ struct DeltaSetIndexMap
   {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
+    hb_barrier ();
     switch (u.format) {
     case 0: return_trace (u.format0.sanitize (c));
     case 1: return_trace (u.format1.sanitize (c));
