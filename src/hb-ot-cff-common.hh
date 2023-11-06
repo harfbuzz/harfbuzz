@@ -78,7 +78,8 @@ struct CFFIndex
 	    hb_requires (hb_is_iterable (Iterable))>
   bool serialize (hb_serialize_context_t *c,
 		  const Iterable &iterable,
-		  const unsigned *p_data_size = nullptr)
+		  const unsigned *p_data_size = nullptr,
+                  unsigned min_off_size = 0)
   {
     TRACE_SERIALIZE (this);
     unsigned data_size;
@@ -88,7 +89,7 @@ struct CFFIndex
       total_size (iterable, &data_size);
 
     auto it = hb_iter (iterable);
-    if (unlikely (!serialize_header (c, +it, data_size))) return_trace (false);
+    if (unlikely (!serialize_header (c, +it, data_size, min_off_size))) return_trace (false);
     unsigned char *ret = c->allocate_size<unsigned char> (data_size, false);
     if (unlikely (!ret)) return_trace (false);
     for (const auto &_ : +it)
@@ -111,11 +112,13 @@ struct CFFIndex
 	    hb_requires (hb_is_iterator (Iterator))>
   bool serialize_header (hb_serialize_context_t *c,
 			 Iterator it,
-			 unsigned data_size)
+			 unsigned data_size,
+                         unsigned min_off_size = 0)
   {
     TRACE_SERIALIZE (this);
 
     unsigned off_size = (hb_bit_storage (data_size + 1) + 7) / 8;
+    off_size = hb_max(min_off_size, off_size);
 
     /* serialize CFFIndex header */
     if (unlikely (!c->extend_min (this))) return_trace (false);
@@ -195,7 +198,7 @@ struct CFFIndex
 
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
-  static unsigned total_size (const Iterable &iterable, unsigned *data_size = nullptr)
+  static unsigned total_size (const Iterable &iterable, unsigned *data_size = nullptr, unsigned min_off_size = 0)
   {
     auto it = + hb_iter (iterable);
     if (!it)
@@ -211,6 +214,7 @@ struct CFFIndex
     if (data_size) *data_size = total;
 
     unsigned off_size = (hb_bit_storage (total + 1) + 7) / 8;
+    off_size = hb_max(min_off_size, off_size);
 
     return min_size + HBUINT8::static_size + (hb_len (it) + 1) * off_size + total;
   }

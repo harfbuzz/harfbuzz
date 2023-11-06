@@ -845,12 +845,12 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
 
     if (retain_gids)
     {
-      DEBUG_MSG (SUBSET, nullptr, 
+      DEBUG_MSG (SUBSET, nullptr,
         "HB_SUBSET_FLAGS_RETAIN_GIDS cannot be set if "
         "a custom glyph mapping has been provided.");
       return false;
     }
-  
+
     hb_codepoint_t max_glyph = 0;
     hb_set_t remaining;
     for (auto old_gid : all_gids_to_retain->iter ())
@@ -1000,7 +1000,7 @@ _update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
   float *hvar_store_cache = nullptr;
   if (_hmtx.has_data () && _hmtx.var_table.get_length ())
     hvar_store_cache = _hmtx.var_table->get_var_store ().create_cache ();
-  
+
   OT::vmtx_accelerator_t _vmtx (plan->source);
   float *vvar_store_cache = nullptr;
   if (_vmtx.has_data () && _vmtx.var_table.get_length ())
@@ -1144,6 +1144,10 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
 
   attach_accelerator_data = input->attach_accelerator_data;
   force_long_loca = input->force_long_loca;
+#ifdef HB_EXPERIMENTAL_API
+  force_long_loca = force_long_loca || (flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS);
+#endif
+
   if (accel)
     accelerator = (hb_subset_accelerator_t*) accel;
 
