@@ -411,5 +411,15 @@ main (int argc, char **argv)
     assert (out[0].first == 1.f);
     assert (out[0].second == Triple (0.5f, 1.f, 1.f));
   }
+
+  {
+    Triple tent (0.6f, 0.7f, 0.8f);
+    Triple axis_range (-1.f, 0.2f, 1.f);
+    TripleDistances axis_distances{1.f, 1.f};
+    result_t out = rebase_tent (tent, axis_range, axis_distances);
+    assert (out.length == 1);
+    assert (out[0].first == 1.f);
+    assert (out[0].second == Triple (0.5f, 0.625f, 0.75f));
+  }
 }
 
