@@ -16,6 +16,8 @@ ChromeOS, Firefox, GNOME, GTK+, KDE, Qt, LibreOffice, OpenJDK, XeTeX,
 PlayStation, Microsoft Edge, Photoshop, Illustrator, InDesign,
 and other places.
 
+[![xkcd-derived image](xkcd.png)](https://xkcd.com/2347/)
+
 For bug reports, mailing list, and other information please visit:
 
   http://harfbuzz.org/
