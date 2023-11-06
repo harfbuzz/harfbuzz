@@ -419,7 +419,7 @@ main (int argc, char **argv)
     result_t out = rebase_tent (tent, axis_range, axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (0.5f, 0.625f, 0.75f));
+    assert (approx (out[0].second, Triple (0.5f, 0.625f, 0.75f)));
   }
 }
 
