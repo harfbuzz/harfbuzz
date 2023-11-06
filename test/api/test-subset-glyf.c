@@ -357,6 +357,35 @@ test_subset_glyf_retain_gids_truncates (void)
   hb_face_destroy (face_a);
 }
 
+#ifdef HB_EXPERIMENTAL_API
+static void
+test_subset_glyf_iftb_requirements (void)
+{
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Variable.abc.ttf");
+  hb_face_t *face_long_loca = hb_test_open_font_file ("fonts/Roboto-Variable.abc.long_loca.ttf");
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_face_t *face_abc_subset;
+  hb_set_add (codepoints, 97);
+  hb_set_add (codepoints, 98);
+  hb_set_add (codepoints, 99);
+
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_IFTB_REQUIREMENTS);
+  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_long_loca, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_long_loca, face_abc_subset, HB_TAG ('g','l','y','f'));
+  hb_subset_test_check (face_long_loca, face_abc_subset, HB_TAG ('g','v','a','r'));
+
+  hb_face_destroy (face_abc_subset);
+  hb_face_destroy (face_abc);
+  hb_face_destroy (face_long_loca);
+
+}
+#endif
+
 // TODO(grieger): test for long loca generation.
 
 int
@@ -376,6 +405,10 @@ main (int argc, char **argv)
   hb_test_add (test_subset_glyf_without_gsub);
   hb_test_add (test_subset_glyf_retain_gids);
   hb_test_add (test_subset_glyf_retain_gids_truncates);
+
+#ifdef HB_EXPERIMENTAL_API
+  hb_test_add (test_subset_glyf_iftb_requirements);
+#endif
 
   return hb_test_run();
 }

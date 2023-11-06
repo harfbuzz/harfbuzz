@@ -78,6 +78,7 @@ if get_option('experimental_api')
     'gdef_partial_instance',
     'value_format_partial_instance',
     'feature_variation_instance_collect_lookups',
+    'iftb_requirements'
     ]
 endif
 

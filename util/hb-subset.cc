@@ -778,7 +778,7 @@ parse_instance (const char *name,
                        "Failed parsing axis value at: '%s'", s);
           return false;
         }
-  
+
         if (!hb_subset_input_pin_axis_location (subset_main->input, subset_main->face, axis_tag, axis_value))
         {
           g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -1024,7 +1024,7 @@ subset_main_t::add_options ()
     {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables. Use --drop-tables-=... to subtract from the current set.", "list of string table tags or *"},
     {"drop-tables+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
     {"drop-tables-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
-#ifndef HB_NO_VAR    
+#ifndef HB_NO_VAR
      {"variations",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_instance,
      "(Partially|Fully) Instantiate a variable font. A location consists of the tag "
      "of a variation axis, followed by '=', followed by a number or the literal "
@@ -1064,6 +1064,9 @@ subset_main_t::add_options ()
      "Alternative name for --preprocess.", nullptr},
     {"preprocess",		0, 0, G_OPTION_ARG_NONE, &this->preprocess,
      "If set preprocesses the face with the add accelerator option before actually subsetting.", nullptr},
+#ifdef HB_EXPERIMENTAL_API
+    {"iftb-requirements",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_IFTB_REQUIREMENTS>,	"Enforce requirements needed to use the subset with incremental font transfer IFTB patches.", nullptr},
+#endif
     {nullptr}
   };
   add_group (flag_entries,

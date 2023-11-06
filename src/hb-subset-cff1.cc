@@ -620,6 +620,14 @@ struct cff1_subset_plan
     drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
     desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE;
 
+ #ifdef HB_EXPERIMENTAL_API
+    charstrings_last = plan->flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS;
+    min_charstrings_off_size = (plan->flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS) ? 4 : 0;
+ #else
+    charstrings_last = false;
+    min_charstrings_off_size = 0;
+ #endif
+
     subset_charset = !acc.is_predef_charset ();
     if (!subset_charset)
       /* check whether the subset renumbers any glyph IDs */
@@ -778,13 +786,42 @@ struct cff1_subset_plan
   unsigned int	topDictModSIDs[name_dict_values_t::ValCount];
 
   bool		desubroutinize = false;
+  bool		charstrings_last = false;
+
+  unsigned	min_charstrings_off_size = 0;
 };
 } // namespace OT
+
+static bool _serialize_cff1_charstrings (hb_serialize_context_t *c,
+                                         struct OT::cff1_subset_plan &plan,
+                                         const OT::cff1::accelerator_subset_t  &acc)
+{
+  c->push<CFF1CharStrings> ();
+
+  unsigned data_size = 0;
+  unsigned total_size = CFF1CharStrings::total_size (plan.subset_charstrings, &data_size, plan.min_charstrings_off_size);
+  if (unlikely (!c->start_zerocopy (total_size)))
+    return false;
+
+  auto *cs = c->start_embed<CFF1CharStrings> ();
+  if (unlikely (!cs->serialize (c, plan.subset_charstrings, &data_size, plan.min_charstrings_off_size))) {
+    c->pop_discard ();
+    return false;
+  }
+
+  plan.info.char_strings_link = c->pop_pack (false);
+  return true;
+}
 
 bool
 OT::cff1::accelerator_subset_t::serialize (hb_serialize_context_t *c,
 					   struct OT::cff1_subset_plan &plan) const
 {
+  if (plan.charstrings_last) {
+    if (!_serialize_cff1_charstrings(c, plan, *this))
+      return false;
+  }
+
   /* private dicts & local subrs */
   for (int i = (int) privateDicts.length; --i >= 0 ;)
   {
@@ -823,23 +860,9 @@ OT::cff1::accelerator_subset_t::serialize (hb_serialize_context_t *c,
   if (!is_CID ())
     plan.info.privateDictInfo = plan.fontdicts_mod[0].privateDictInfo;
 
-  /* CharStrings */
-  {
-    c->push<CFF1CharStrings> ();
-
-    unsigned data_size = 0;
-    unsigned total_size = CFF1CharStrings::total_size (plan.subset_charstrings, &data_size);
-    if (unlikely (!c->start_zerocopy (total_size)))
-       return false;
-
-    auto *cs = c->start_embed<CFF1CharStrings> ();
-    if (likely (cs->serialize (c, plan.subset_charstrings, &data_size)))
-      plan.info.char_strings_link = c->pop_pack (false);
-    else
-    {
-      c->pop_discard ();
+  if (!plan.charstrings_last) {
+    if (!_serialize_cff1_charstrings(c, plan, *this))
       return false;
-    }
   }
 
   /* FDArray (FD Index) */

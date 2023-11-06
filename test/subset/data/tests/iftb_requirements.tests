@@ -1,0 +1,14 @@
+FONTS:
+Roboto-Variable.ttf
+SourceSansPro-Regular.otf
+AdobeVFPrototype.otf
+
+PROFILES:
+default.txt
+iftb_requirements.txt
+
+SUBSETS:
+abc
+
+OPTIONS:
+no_fonttools
