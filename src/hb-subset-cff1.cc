@@ -621,10 +621,8 @@ struct cff1_subset_plan
     desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE;
 
  #ifdef HB_EXPERIMENTAL_API
-    charstrings_last = plan->flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS;
     min_charstrings_off_size = (plan->flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS) ? 4 : 0;
  #else
-    charstrings_last = false;
     min_charstrings_off_size = 0;
  #endif
 
@@ -786,7 +784,6 @@ struct cff1_subset_plan
   unsigned int	topDictModSIDs[name_dict_values_t::ValCount];
 
   bool		desubroutinize = false;
-  bool		charstrings_last = false;
 
   unsigned	min_charstrings_off_size = 0;
 };
@@ -817,10 +814,12 @@ bool
 OT::cff1::accelerator_subset_t::serialize (hb_serialize_context_t *c,
 					   struct OT::cff1_subset_plan &plan) const
 {
-  if (plan.charstrings_last) {
-    if (!_serialize_cff1_charstrings(c, plan, *this))
-      return false;
-  }
+  /* push charstrings onto the object stack first which will ensure it packs as the last
+     object in the table. Keeping the chastrings last satisfies the requirements for patching
+     via IFTB. If this ordering needs to be changed in the future, charstrings should be left
+     at the end whenever HB_SUBSET_FLAGS_ITFB_REQUIREMENTS is enabled. */
+  if (!_serialize_cff1_charstrings(c, plan, *this))
+    return false;
 
   /* private dicts & local subrs */
   for (int i = (int) privateDicts.length; --i >= 0 ;)
@@ -859,11 +858,6 @@ OT::cff1::accelerator_subset_t::serialize (hb_serialize_context_t *c,
 
   if (!is_CID ())
     plan.info.privateDictInfo = plan.fontdicts_mod[0].privateDictInfo;
-
-  if (!plan.charstrings_last) {
-    if (!_serialize_cff1_charstrings(c, plan, *this))
-      return false;
-  }
 
   /* FDArray (FD Index) */
   if (fdArray != &Null (CFF1FDArray))
