@@ -209,6 +209,23 @@ struct OS2
     return ret;
   }
 
+  static unsigned calc_avg_char_width (const hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>>& hmtx_map)
+  {
+    unsigned num = 0;
+    unsigned total_width = 0;
+    for (const auto& _ : hmtx_map.values_ref ())
+    {
+      unsigned width = _.first;
+      if (width)
+      {
+        total_width += width;
+        num++;
+      }
+    }
+
+    return num ? (unsigned) roundf (total_width / num) : 0;
+  }
+
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
@@ -244,6 +261,11 @@ struct OS2
         HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_X_HEIGHT,                   sxHeight);
         HB_ADD_MVAR_VAR (HB_OT_METRICS_TAG_CAP_HEIGHT,                 sCapHeight);
       }
+
+      unsigned avg_char_width = calc_avg_char_width (c->plan->hmtx_map);
+      if (!c->serializer->check_assign (os2_prime->xAvgCharWidth, avg_char_width,
+                                        HB_SERIALIZE_ERROR_INT_OVERFLOW))
+        return_trace (false);
     }
 #endif
 

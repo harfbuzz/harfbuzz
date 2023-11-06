@@ -44,7 +44,7 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 	fonttools_path = os.path.join(tempfile.mkdtemp (), font_name)
 	args = ["fonttools", "subset", input_path]
 	if instance_flags:
-		args.extend(["--recalc-bounds"])
+		args.extend(["--recalc-bounds", "--recalc-average-width"])
 	args.extend(["--drop-tables+=DSIG",
 		     "--drop-tables-=sbix",
 		     "--no-harfbuzz-repacker", # disable harfbuzz repacker so we aren't comparing to ourself.
