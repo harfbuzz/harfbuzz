@@ -440,10 +440,8 @@ struct cff2_subset_plan
 		     pinned; // For instancing we need this path
 
  #ifdef HB_EXPERIMENTAL_API
-    charstrings_last = plan->flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS;
     min_charstrings_off_size = (plan->flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS) ? 4 : 0;
  #else
-    charstrings_last = false;
     min_charstrings_off_size = 0;
  #endif
 
@@ -518,7 +516,6 @@ struct cff2_subset_plan
 
   bool	    drop_hints = false;
   bool	    desubroutinize = false;
-  bool	    charstrings_last = false;
 
   unsigned  min_charstrings_off_size = 0;
 };
@@ -551,10 +548,12 @@ OT::cff2::accelerator_subset_t::serialize (hb_serialize_context_t *c,
 					   struct cff2_subset_plan &plan,
 					   hb_array_t<int> normalized_coords) const
 {
-  if (plan.charstrings_last) {
-    if (!_serialize_cff2_charstrings(c, plan, *this))
-      return false;
-  }
+  /* push charstrings onto the object stack first which will ensure it packs as the last
+     object in the table. Keeping the chastrings last satisfies the requirements for patching
+     via IFTB. If this ordering needs to be changed in the future, charstrings should be left
+     at the end whenever HB_SUBSET_FLAGS_ITFB_REQUIREMENTS is enabled. */
+  if (!_serialize_cff2_charstrings(c, plan, *this))
+    return false;
 
   /* private dicts & local subrs */
   hb_vector_t<table_info_t>  private_dict_infos;
@@ -592,11 +591,6 @@ OT::cff2::accelerator_subset_t::serialize (hb_serialize_context_t *c,
 	return false;
       }
     }
-  }
-
-  if (!plan.charstrings_last) {
-    if (!_serialize_cff2_charstrings(c, plan, *this))
-      return false;
   }
 
   /* FDSelect */
