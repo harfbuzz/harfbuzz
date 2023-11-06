@@ -336,9 +336,9 @@ struct OS2
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return_trace (false);
     hb_barrier ();
-    if (unlikely (version >= 1 && hb_barrier () && !v1X.sanitize (c))) return_trace (false);
-    if (unlikely (version >= 2 && hb_barrier () && !v2X.sanitize (c))) return_trace (false);
-    if (unlikely (version >= 5 && hb_barrier () && !v5X.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 1 && !v1X.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 2 && !v2X.sanitize (c))) return_trace (false);
+    if (unlikely (version >= 5 && !v5X.sanitize (c))) return_trace (false);
     return_trace (true);
   }
 
