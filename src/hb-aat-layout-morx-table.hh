@@ -259,9 +259,10 @@ struct ContextualSubtable
 	unsigned int offset = entry.data.markIndex + buffer->info[mark].codepoint;
 	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
 	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!(replacement->sanitize (&c->sanitizer) && hb_barrier ()) || !*replacement)
+	if (!(replacement->sanitize (&c->sanitizer) &&
+	      hb_barrier () &&
+	      *replacement))
 	  replacement = nullptr;
-	hb_barrier ();
       }
       if (replacement)
       {
@@ -288,9 +289,10 @@ struct ContextualSubtable
 	unsigned int offset = entry.data.currentIndex + buffer->info[idx].codepoint;
 	const UnsizedArrayOf<HBGlyphID16> &subs_old = (const UnsizedArrayOf<HBGlyphID16> &) subs;
 	replacement = &subs_old[Types::wordOffsetToIndex (offset, table, subs_old.arrayZ)];
-	if (!(replacement->sanitize (&c->sanitizer) && hb_barrier ()) || !*replacement)
+	if (!(replacement->sanitize (&c->sanitizer) &&
+	      hb_barrier () &&
+	      *replacement))
 	  replacement = nullptr;
-	hb_barrier ();
       }
       if (replacement)
       {

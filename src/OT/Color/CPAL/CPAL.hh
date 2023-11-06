@@ -328,10 +328,10 @@ struct CPAL
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
 		  (this+colorRecordsZ).sanitize (c, numColorRecords) &&
 		  colorRecordIndicesZ.sanitize (c, numPalettes) &&
-		  (version == 0 ||
-		   (hb_barrier () && v1 ().sanitize (c, this, numPalettes, numColors))));
+		  (version == 0 || v1 ().sanitize (c, this, numPalettes, numColors)));
   }
 
   protected:
