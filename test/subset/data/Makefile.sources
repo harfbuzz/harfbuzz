@@ -64,6 +64,7 @@ TESTS = \
 	tests/collect_name_ids.tests \
 	tests/instantiate_colrv1.tests \
 	tests/instantiate_cff2_update_metrics.tests \
+	tests/layout.empty_ligature_offset.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.

@@ -66,6 +66,7 @@ tests = [
   'collect_name_ids',
   'instantiate_colrv1',
   'instantiate_cff2_update_metrics',
+  'layout.empty_ligature_offset',
 ]
 
 if get_option('experimental_api')
