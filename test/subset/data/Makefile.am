@@ -73,6 +73,7 @@ EXTRA_DIST += \
 	expected/collect_name_ids \
 	expected/instantiate_colrv1 \
 	expected/instantiate_cff2_update_metrics \
+	expected/layout.empty_ligature_offset \
 	fonts \
 	profiles \
 	$(NULL)
