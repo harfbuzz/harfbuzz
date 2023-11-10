@@ -868,7 +868,7 @@ if get_option('default_library') == 'static'
   cmake_config.set('HB_LIB_SUFFIX', '${CMAKE_STATIC_LIBRARY_SUFFIX}')
 elif host_machine.system() == 'darwin'
   cmake_config.set('HB_LIB_PREFIX', '${CMAKE_SHARED_LIBRARY_PREFIX}')
-  cmake_config.set('HB_LIB_SUFFIX', '.@0@.${CMAKE_SHARED_LIBRARY_SUFFIX}'.format(hb_so_version))
+  cmake_config.set('HB_LIB_SUFFIX', '.@0@${CMAKE_SHARED_LIBRARY_SUFFIX}'.format(hb_so_version))
 elif host_machine.system() == 'windows'
   cmake_config.set('HB_LIB_PREFIX', '${CMAKE_IMPORT_LIBRARY_PREFIX}')
   cmake_config.set('HB_LIB_SUFFIX', '${CMAKE_IMPORT_LIBRARY_SUFFIX}')
