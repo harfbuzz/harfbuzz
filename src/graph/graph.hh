@@ -1371,6 +1371,7 @@ struct graph_t
     vertices_.tail ().distance = 0;
 
     hb_priority_queue_t<int64_t> queue;
+    queue.alloc (count);
     queue.insert (0, vertices_.length - 1);
 
     hb_vector_t<bool> visited;
