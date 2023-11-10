@@ -902,9 +902,11 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
     *num_glyphs = max_glyph + 1;
   }
 
+  reverse_glyph_map->alloc (reverse_glyph_map->get_population () + new_to_old_gid_list->length);
   + hb_iter (new_to_old_gid_list)
   | hb_sink (reverse_glyph_map)
   ;
+  glyph_map->alloc (glyph_map->get_population () + new_to_old_gid_list->length);
   + hb_iter (new_to_old_gid_list)
   | hb_map (&hb_codepoint_pair_t::reverse)
   | hb_sink (glyph_map)
