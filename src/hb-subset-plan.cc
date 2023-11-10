@@ -607,14 +607,18 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     else
     {
       plan->codepoint_to_glyph->alloc (cmap_unicodes->get_population ());
-      for (hb_codepoint_t cp : *cmap_unicodes)
+      hb_codepoint_t first = HB_SET_VALUE_INVALID, last = HB_SET_VALUE_INVALID;
+      for (; cmap_unicodes->next_range (&first, &last); )
       {
-	hb_codepoint_t gid = (*unicode_glyphid_map)[cp];
-	if (!unicodes->has (cp) && !glyphs->has (gid))
-	  continue;
+        for (unsigned cp = first; cp <= last; cp++)
+	{
+	  hb_codepoint_t gid = (*unicode_glyphid_map)[cp];
+	  if (!unicodes->has (cp) && !glyphs->has (gid))
+	    continue;
 
-	plan->codepoint_to_glyph->set (cp, gid);
-	plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
+	  plan->codepoint_to_glyph->set (cp, gid);
+	  plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
+	}
       }
     }
 
