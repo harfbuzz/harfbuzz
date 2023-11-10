@@ -567,6 +567,7 @@ struct graph_t
     update_distances ();
 
     hb_priority_queue_t<int64_t> queue;
+    queue.alloc (vertices_.length);
     hb_vector_t<vertex_t> &sorted_graph = vertices_scratch_;
     if (unlikely (!check_success (sorted_graph.resize (vertices_.length)))) return;
     hb_vector_t<unsigned> id_map;
