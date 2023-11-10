@@ -211,9 +211,10 @@ struct hb_hashmap_t
 		       old_items[i].hash,
 		       std::move (old_items[i].value));
       }
-      if (!item_t::is_trivial)
-	old_items[i].~item_t ();
     }
+    if (!item_t::is_trivial)
+      for (unsigned int i = 0; i < old_size; i++)
+	old_items[i].~item_t ();
 
     hb_free (old_items);
 
