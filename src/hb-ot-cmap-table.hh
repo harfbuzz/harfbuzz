@@ -769,9 +769,9 @@ struct CmapSubtableLongSegmented
 
       mapping->alloc (mapping->get_population () + end - start + 1);
 
+      unicodes->add_range (start, end);
       for (unsigned cp = start; cp <= end; cp++)
       {
-	unicodes->add (cp);
 	mapping->set (cp, gid);
         gid += T::increment;
       }
