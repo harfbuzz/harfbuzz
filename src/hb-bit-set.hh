@@ -699,19 +699,53 @@ struct hb_bit_set_t
   }
   bool next_range (hb_codepoint_t *first, hb_codepoint_t *last) const
   {
-    hb_codepoint_t i;
-
-    i = *last;
-    if (!next (&i))
+    *first = *last;
+    if (!next (first))
     {
       *last = *first = INVALID;
       return false;
     }
 
-    /* TODO Speed up. */
-    *last = *first = i;
-    while (next (&i) && i == *last + 1)
-      (*last)++;
+    const auto* page_map_array = page_map.arrayZ;
+    unsigned int major = get_major (*first);
+    unsigned int i = last_page_lookup;
+    if (unlikely (i >= page_map.length || page_map_array[i].major != major))
+    {
+      page_map.bfind (major, &i, HB_NOT_FOUND_STORE_CLOSEST);
+      assert (i < page_map.length);
+    }
+
+    *last = *first;
+    if (pages.arrayZ[page_map_array[i].index].next (last, 0))
+    {
+      *last += major * page_t::PAGE_BITS - 1;
+      return true;
+    }
+    else
+      *last = (major + 1) * page_t::PAGE_BITS - 1;
+
+    for (i++, major++; i < page_map.length; i++, major++)
+    {
+      const page_map_t &current = page_map_array[i];
+      if (current.major != major)
+        break;
+
+      auto &page = pages.arrayZ[current.index];
+
+      if (page.get (0))
+      {
+	hb_codepoint_t x = 0;
+	if (page.next (&x, 0))
+	{
+	  *last += x;
+	  break;
+	}
+	else
+	  *last += page_t::PAGE_BITS;
+      }
+      else
+	break;
+    }
 
     return true;
   }

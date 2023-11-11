@@ -1417,7 +1417,7 @@ struct
   template <typename T> constexpr auto
   operator () (const T &a) const HB_AUTO_RETURN (~a)
 }
-HB_FUNCOBJ (hb_bitwise_neg);
+HB_FUNCOBJ (hb_bitwise_not);
 
 struct
 { HB_PARTIALIZE(2);
