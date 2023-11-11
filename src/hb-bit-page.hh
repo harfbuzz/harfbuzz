@@ -76,7 +76,7 @@ struct hb_vector_size_t
   hb_vector_size_t operator ^ (const hb_vector_size_t &o) const
   { return process (hb_bitwise_xor, o); }
   hb_vector_size_t operator ~ () const
-  { return process (hb_bitwise_neg); }
+  { return process (hb_bitwise_not); }
 
   hb_array_t<const elt_t> iter () const
   { return hb_array (v); }
@@ -103,6 +103,15 @@ struct hb_bit_page_t
     if (has_population ()) return !population;
     return
     + hb_iter (v)
+    | hb_none
+    ;
+  }
+  bool is_full () const
+  {
+    if (has_population ()) return population == PAGE_BITS;
+    return
+    + hb_iter (v)
+    | hb_filter (hb_bitwise_not)
     | hb_none
     ;
   }
@@ -251,7 +260,7 @@ struct hb_bit_page_t
     return population;
   }
 
-  bool next (hb_codepoint_t *codepoint) const
+  bool next (hb_codepoint_t *codepoint, unsigned bit = 1) const
   {
     unsigned int m = (*codepoint + 1) & MASK;
     if (!m)
@@ -262,12 +271,27 @@ struct hb_bit_page_t
     unsigned int i = m / ELT_BITS;
     unsigned int j = m & ELT_MASK;
 
-    const elt_t vv = v[i] & ~((elt_t (1) << j) - 1);
+    elt_t vv;
+    if (bit)
+      vv = v[i] & ~((elt_t (1) << j) - 1);
+    else
+      vv = v[i] | ((elt_t (1) << j) - 1);
     for (const elt_t *p = &vv; i < len (); p = &v[++i])
-      if (*p)
+      if (bit)
       {
-	*codepoint = i * ELT_BITS + elt_get_min (*p);
-	return true;
+	if (*p)
+	{
+	  *codepoint = i * ELT_BITS + elt_get_min (*p);
+	  return true;
+	}
+      }
+      else
+      {
+        if (~*p)
+	{
+	  *codepoint = i * ELT_BITS + elt_get_min (~*p);
+	  return true;
+	}
       }
 
     *codepoint = INVALID;
