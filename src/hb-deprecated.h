@@ -306,7 +306,7 @@ hb_font_get_glyph_shape (hb_font_t *font,
  *
  * Use #HB_AAT_LAYOUT_FEATURE_TYPE_CURSIVE_CONNECTION instead.
  *
- * XDeprecated: REPLACEME
+ * Deprecated: 8.3.0
  */
 #define HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION HB_AAT_LAYOUT_FEATURE_TYPE_CURSIVE_CONNECTION
 
