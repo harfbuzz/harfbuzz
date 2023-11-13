@@ -137,26 +137,23 @@ struct hb_hashmap_t
   };
 
   hb_object_header_t header;
-  unsigned int successful : 1; /* Allocations successful */
-  unsigned int population : 31; /* Not including tombstones. */
+  bool successful; /* Allocations successful */
+  unsigned short max_chain_length;
+  unsigned int population; /* Not including tombstones. */
   unsigned int occupancy; /* Including tombstones. */
   unsigned int mask;
   unsigned int prime;
-  unsigned int max_chain_length;
   item_t *items;
 
   friend void swap (hb_hashmap_t& a, hb_hashmap_t& b)
   {
     if (unlikely (!a.successful || !b.successful))
       return;
-    unsigned tmp = a.population;
-    a.population = b.population;
-    b.population = tmp;
-    //hb_swap (a.population, b.population);
+    hb_swap (a.max_chain_length, b.max_chain_length);
+    hb_swap (a.population, b.population);
     hb_swap (a.occupancy, b.occupancy);
     hb_swap (a.mask, b.mask);
     hb_swap (a.prime, b.prime);
-    hb_swap (a.max_chain_length, b.max_chain_length);
     hb_swap (a.items, b.items);
   }
   void init ()
@@ -164,10 +161,10 @@ struct hb_hashmap_t
     hb_object_init (this);
 
     successful = true;
+    max_chain_length = 0;
     population = occupancy = 0;
     mask = 0;
     prime = 0;
-    max_chain_length = 0;
     items = nullptr;
   }
   void fini ()
