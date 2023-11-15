@@ -529,10 +529,12 @@ hb_subset_input_set_axis_range (hb_subset_input_t  *input,
 /**
  * hb_subset_input_get_axis_range: (skip)
  * @input: a #hb_subset_input_t object.
-  * @axis_tag: Tag of the axis
+ * @axis_tag: Tag of the axis
  * @axis_min_value: Set to the previously configured minimum value of the axis variation range.
  * @axis_max_value: Set to the previously configured maximum value of the axis variation range.
  * @axis_def_value: Set to the previously configured default value of the axis variation range.
+ *
+ * Gets the axis range assigned by previous calls to hb_subset_input_set_axis_range.
  *
  * Return value: `true` if a range has been set for this axis tag, `false` otherwise.
  *
