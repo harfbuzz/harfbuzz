@@ -27,6 +27,7 @@
 #define HELPER_SUBSET_HH
 
 #include "glib.h"
+#include <errno.h>
 #include <math.h>
 #include <stdbool.h>
 #include "hb-subset.h"
