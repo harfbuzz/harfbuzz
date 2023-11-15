@@ -30,8 +30,8 @@
 #include "glib.h"
 #include "main-font-text.hh"
 #include "output-options.hh"
+#include "helper-subset.hh"
 
-#include <cmath>
 #include <hb-subset.h>
 
 static hb_face_t* preprocess_face(hb_face_t* face)
@@ -677,92 +677,6 @@ parse_drop_tables (const char *name,
 
 #ifndef HB_NO_VAR
 
-// Parses an axis position string and sets min, default, and max to
-// the requested values. If a value should be set to it's default value
-// then it will be set to NaN.
-static gboolean
-parse_axis_position(const char* s,
-                    float* min,
-                    float* def,
-                    float* max,
-                    gboolean* drop,
-                    GError **error)
-{
-  const char* part = strpbrk(s, ":");
-  *drop = false;
-  if (!part) {
-    // Single value.
-    if (strcmp (s, "drop") == 0)
-    {
-      *min = NAN;
-      *def = NAN;
-      *max = NAN;
-      *drop = true;
-      return true;
-    }
-
-    errno = 0;
-    char *p;
-    float axis_value = strtof (s, &p);
-    if (errno || s == p)
-    {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing axis value at: '%s'", s);
-      return false;
-    }
-
-    *min = axis_value;
-    *def = axis_value;
-    *max = axis_value;
-    return true;
-  }
-
-
-  float values[3];
-  int count = 0;
-  for (int i = 0; i < 3; i++) {
-    errno = 0;
-    count++;
-    if (!*s || part == s) {
-      values[i] = NAN;
-
-      if (part == nullptr) break;
-      s = part + 1;
-      part = strpbrk(s, ":");
-      continue;
-    }
-
-    char *pend;
-    values[i] = strtof (s, &pend);
-    if (errno || s == pend || (part && pend != part))
-    {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing axis value at: '%s'", s);
-      return false;
-    }
-
-    if (part == nullptr) break;
-    s = pend + 1;
-    part = strpbrk(s, ":");
-  }
-
-  if (count == 2) {
-    *min = values[0];
-    *def = NAN;
-    *max = values[1];
-    return true;
-  } else if (count == 3) {
-    *min = values[0];
-    *def = values[1];
-    *max = values[2];
-    return true;
-  }
-
-  g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing axis value at: '%s'", s);
-  return false;
-}
-
 static gboolean
 parse_instance (const char *name,
 		const char *arg,
@@ -775,76 +689,7 @@ parse_instance (const char *name,
     return true;
   }
 
-  char* s;
-  while ((s = strtok((char *) arg, "=")))
-  {
-    arg = nullptr;
-    unsigned len = strlen (s);
-    if (len > 4)  //Axis tags are 4 bytes.
-    {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Failed parsing axis tag at: '%s'", s);
-      return false;
-    }
-
-    hb_tag_t axis_tag = hb_tag_from_string (s, len);
-
-    s = strtok(nullptr, ", ");
-    if (!s)
-    {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Value not specified for axis: %c%c%c%c", HB_UNTAG (axis_tag));
-      return false;
-    }
-
-    gboolean drop;
-    float min, def, max;
-    if (!parse_axis_position(s, &min, &def, &max, &drop, error))
-      return false;
-
-    if (drop)
-    {
-      if (!hb_subset_input_pin_axis_to_default (subset_main->input,
-                                                subset_main->face,
-                                                axis_tag))
-      {
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
-        return false;
-      }
-      continue;
-    }
-
-    if (min == def && def == max) {
-      if (!hb_subset_input_pin_axis_location (subset_main->input,
-                                              subset_main->face, axis_tag,
-                                              def))
-      {
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
-        return false;
-      }
-      continue;
-    }
-
-#ifdef HB_EXPERIMENTAL_API
-    if (!hb_subset_input_set_axis_range (subset_main->input,
-                                         subset_main->face, axis_tag,
-                                         min, max, def))
-    {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
-      return false;
-    }
-    continue;
-#endif
-
-    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                 "Partial instancing is not supported.");
-    return false;
-  }
-
-  return true;
+  return parse_instancing_spec(arg, subset_main->face, subset_main->input, error);
 }
 #endif
 

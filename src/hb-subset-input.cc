@@ -24,6 +24,7 @@
  * Google Author(s): Garret Rieger, Rod Sheeter, Behdad Esfahbod
  */
 
+#include "hb-subset-instancer-solver.hh"
 #include "hb-subset.hh"
 #include "hb-set.hh"
 #include "hb-utf.hh"
@@ -523,6 +524,37 @@ hb_subset_input_set_axis_range (hb_subset_input_t  *input,
   float new_max_val = hb_clamp(max, axis_info.min_value, axis_info.max_value);
   float new_default_val = hb_clamp(def, new_min_val, new_max_val);
   return input->axes_location.set (axis_tag, Triple (new_min_val, new_default_val, new_max_val));
+}
+
+/**
+ * hb_subset_input_get_axis_range: (skip)
+ * @input: a #hb_subset_input_t object.
+  * @axis_tag: Tag of the axis
+ * @axis_min_value: Set to the previously configured minimum value of the axis variation range.
+ * @axis_max_value: Set to the previously configured maximum value of the axis variation range.
+ * @axis_def_value: Set to the previously configured default value of the axis variation range.
+ *
+ * Return value: `true` if a range has been set for this axis tag, `false` otherwise.
+ *
+ * XSince: EXPERIMENTAL
+ **/
+HB_EXTERN hb_bool_t
+hb_subset_input_get_axis_range (hb_subset_input_t  *input,
+				hb_tag_t            axis_tag,
+				float              *axis_min_value,
+				float              *axis_max_value,
+				float              *axis_def_value)
+
+{
+  Triple* triple;
+  if (!input->axes_location.has(axis_tag, &triple)) {
+    return false;
+  }
+
+  *axis_min_value = triple->minimum;
+  *axis_def_value = triple->middle;
+  *axis_max_value = triple->maximum;
+  return true;
 }
 #endif
 #endif
