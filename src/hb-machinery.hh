@@ -104,6 +104,7 @@ static inline Type& StructAfter(TObject &X)
   unsigned int get_size () const { return (size); } \
   static constexpr unsigned null_size = (size); \
   static constexpr unsigned min_size = (size); \
+  static constexpr unsigned max_size = (size); \
   static constexpr unsigned static_size = (size)
 
 #define DEFINE_SIZE_UNION(size, _member) \
@@ -116,6 +117,10 @@ static inline Type& StructAfter(TObject &X)
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)) \
   static constexpr unsigned null_size = (size); \
   static constexpr unsigned min_size = (size)
+
+#define DEFINE_SIZE_MAX(size) \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) <= (size)) \
+  static constexpr unsigned max_size = (size)
 
 #define DEFINE_SIZE_UNBOUNDED(size) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)) \

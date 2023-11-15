@@ -3219,16 +3219,24 @@ struct ChainRule
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    if (likely (c->check_range_fast (this, max_size))) return_trace (true);
+
     /* Hyper-optimized sanitized because this is really hot. */
     if (unlikely (!backtrack.len.sanitize (c))) return_trace (false);
     hb_barrier ();
+    if (unlikely (backtrack.len > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
     if (unlikely (!input.lenP1.sanitize (c))) return_trace (false);
     hb_barrier ();
+    if (unlikely (input.lenP1 > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     if (unlikely (!lookahead.len.sanitize (c))) return_trace (false);
     hb_barrier ();
+    if (unlikely (lookahead.len > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+    if (unlikely (!lookup.len.sanitize (c))) return_trace (false);
+    hb_barrier ();
+    if (unlikely (lookup.len > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
     return_trace (likely (lookup.sanitize (c)));
   }
 
@@ -3248,6 +3256,7 @@ struct ChainRule
 					 * design order) */
   public:
   DEFINE_SIZE_MIN (8);
+  DEFINE_SIZE_MAX (sizeof (typename Types::HBUINT) * (HB_MAX_CONTEXT_LENGTH * 3 + 4) + sizeof (LookupRecord) * HB_MAX_CONTEXT_LENGTH);
 };
 
 template <typename Types>

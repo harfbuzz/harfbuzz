@@ -34,10 +34,12 @@ struct ReverseChainSingleSubstFormat1
     if (!(coverage.sanitize (c, this) && backtrack.sanitize (c, this)))
       return_trace (false);
     hb_barrier ();
+    if (unlikely (backtrack.len > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (backtrack);
     if (!lookahead.sanitize (c, this))
       return_trace (false);
     hb_barrier ();
+    if (unlikely (lookahead.len > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
     const auto &substitute = StructAfter<decltype (substituteX)> (lookahead);
     return_trace (substitute.sanitize (c));
   }

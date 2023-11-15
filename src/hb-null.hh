@@ -49,6 +49,15 @@ using hb_has_min_size = _hb_has_min_size<T, void>;
 #define hb_has_min_size(T) hb_has_min_size<T>::value
 
 template <typename T, typename>
+struct _hb_has_max_size : hb_false_type {};
+template <typename T>
+struct _hb_has_max_size<T, hb_void_t<decltype (T::max_size)>>
+	: hb_true_type {};
+template <typename T>
+using hb_has_max_size = _hb_has_max_size<T, void>;
+#define hb_has_max_size(T) hb_has_max_size<T>::value
+
+template <typename T, typename>
 struct _hb_has_null_size : hb_false_type {};
 template <typename T>
 struct _hb_has_null_size<T, hb_void_t<decltype (T::null_size)>>
