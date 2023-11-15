@@ -47,6 +47,7 @@ HB_SUBSET_CLI_sources = \
 	options.hh \
 	output-options.hh \
 	text-options.hh \
+	helper-subset.hh \
 	$(NULL)
 
 HB_OT_SHAPE_CLOSURE_sources = \

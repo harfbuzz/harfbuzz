@@ -24,6 +24,7 @@
  * Google Author(s): Garret Rieger, Rod Sheeter, Behdad Esfahbod
  */
 
+#include "hb-subset-instancer-solver.hh"
 #include "hb-subset.hh"
 #include "hb-set.hh"
 #include "hb-utf.hh"
@@ -481,16 +482,13 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
  * @input: a #hb_subset_input_t object.
  * @face: a #hb_face_t object.
  * @axis_tag: Tag of the axis
- * @axis_min_value: Minimum value of the axis variation range to set
- * @axis_max_value: Maximum value of the axis variation range to set
- * @axis_def_value: Default value of the axis variation range to set, in case of
- * null, it'll be determined automatically
+ * @axis_min_value: Minimum value of the axis variation range to set, if NaN the existing min will be used.
+ * @axis_max_value: Maximum value of the axis variation range to set  if NaN the existing max will be used.
+ * @axis_def_value: Default value of the axis variation range to set, if NaN the existing default will be used.
  *
  * Restricting the range of variation on an axis in the given subset input object.
  * New min/default/max values will be clamped if they're not within the fvar axis range.
- * If the new default value is null:
- * If the fvar axis default value is within the new range, then new default
- * value is the same as original default value.
+ *
  * If the fvar axis default value is not within the new range, the new default
  * value will be changed to the new min or max value, whichever is closer to the fvar
  * axis default.
@@ -509,20 +507,56 @@ hb_subset_input_set_axis_range (hb_subset_input_t  *input,
                                 hb_tag_t            axis_tag,
                                 float               axis_min_value,
                                 float               axis_max_value,
-                                float              *axis_def_value /* IN, maybe NULL */)
+                                float               axis_def_value)
 {
-  if (axis_min_value > axis_max_value)
-    return false;
-
   hb_ot_var_axis_info_t axis_info;
   if (!hb_ot_var_find_axis_info (face, axis_tag, &axis_info))
     return false;
 
-  float new_min_val = hb_clamp(axis_min_value, axis_info.min_value, axis_info.max_value);
-  float new_max_val = hb_clamp(axis_max_value, axis_info.min_value, axis_info.max_value);
-  float new_default_val = axis_def_value ? *axis_def_value : axis_info.default_value;
-  new_default_val = hb_clamp(new_default_val, new_min_val, new_max_val);
+  float min = !std::isnan(axis_min_value) ? axis_min_value : axis_info.min_value;
+  float max = !std::isnan(axis_max_value) ? axis_max_value : axis_info.max_value;
+  float def = !std::isnan(axis_def_value) ? axis_def_value : axis_info.default_value;
+
+  if (min > max)
+    return false;
+
+  float new_min_val = hb_clamp(min, axis_info.min_value, axis_info.max_value);
+  float new_max_val = hb_clamp(max, axis_info.min_value, axis_info.max_value);
+  float new_default_val = hb_clamp(def, new_min_val, new_max_val);
   return input->axes_location.set (axis_tag, Triple (new_min_val, new_default_val, new_max_val));
+}
+
+/**
+ * hb_subset_input_get_axis_range: (skip)
+ * @input: a #hb_subset_input_t object.
+ * @axis_tag: Tag of the axis
+ * @axis_min_value: Set to the previously configured minimum value of the axis variation range.
+ * @axis_max_value: Set to the previously configured maximum value of the axis variation range.
+ * @axis_def_value: Set to the previously configured default value of the axis variation range.
+ *
+ * Gets the axis range assigned by previous calls to hb_subset_input_set_axis_range.
+ *
+ * Return value: `true` if a range has been set for this axis tag, `false` otherwise.
+ *
+ * XSince: EXPERIMENTAL
+ **/
+HB_EXTERN hb_bool_t
+hb_subset_input_get_axis_range (hb_subset_input_t  *input,
+				hb_tag_t            axis_tag,
+				float              *axis_min_value,
+				float              *axis_max_value,
+				float              *axis_def_value)
+
+{
+  Triple* triple;
+  if (!input->axes_location.has(axis_tag, &triple)) {
+    return false;
+  }
+
+  *axis_min_value = triple->minimum;
+  *axis_def_value = triple->middle;
+  *axis_max_value = triple->maximum;
+  return true;
 }
 #endif
 #endif

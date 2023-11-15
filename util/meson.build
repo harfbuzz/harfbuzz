@@ -16,6 +16,7 @@ hb_ot_shape_closure_sources = [
 
 hb_subset_cli_sources = [
   'hb-subset.cc',
+  'helper-subset.hh',
 ]
 
 util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]
@@ -67,6 +68,21 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: true,
   )
   meson.override_find_program('hb-ot-shape-closure', hb_ot_shape_closure)
+
+  if get_option('experimental_api')
+    test('test-hb-subset-parsing',
+      executable('test-hb-subset-parsing',
+        ['test-hb-subset-parsing.c', 'helper-subset.hh'],
+        cpp_args: cpp_args,
+        c_args: ['-DHB_EXPERIMENTAL_API'],
+        include_directories: [incconfig, incsrc],
+        dependencies: util_deps,
+        link_with: [libharfbuzz, libharfbuzz_subset],
+        install: false,
+    ),
+    workdir : meson.current_source_dir(),
+    suite: ['util'])
+  endif
 else
   # Disable tests that use this
   hb_shape = disabler()
