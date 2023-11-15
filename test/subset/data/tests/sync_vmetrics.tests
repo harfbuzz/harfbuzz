@@ -1,0 +1,11 @@
+FONTS:
+playwrite_mm.subset.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+SPED=25,YEXT=520,wght=100:400,slnt=18
