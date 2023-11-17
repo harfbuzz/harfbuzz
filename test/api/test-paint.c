@@ -334,7 +334,7 @@ typedef struct {
 
 /* To verify the rendering visually, use
  *
- * hb-view --font-slant SLANT --font-palette PALETTE FONT --glyphs [gidGID=0+1000]
+ * hb-view --font-slant SLANT --font-palette PALETTE FONT --glyphs gidGID
  *
  * where GID is the glyph value of the test.
  */
