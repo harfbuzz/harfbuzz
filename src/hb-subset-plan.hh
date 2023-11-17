@@ -274,6 +274,8 @@ struct hb_subset_plan_t
 
     if (tag == HB_TAG('g', 'l', 'y', 'f') && should_omit_glyf_bytes())
     {
+      // TODO(garretrieger): add a struct to handle this instead of manually
+      //                     encoding/decoding.
       unsigned blob_length = 0;
       const uint8_t* data = (const uint8_t*) hb_blob_get_data (contents, &blob_length);
       if (blob_length == 8)
@@ -302,6 +304,7 @@ struct hb_subset_plan_t
   {
     return
         flags & HB_SUBSET_FLAGS_OMIT_GLYF &&
+        // TODO(garretrieger): can we support without retain gids?
         flags & HB_SUBSET_FLAGS_RETAIN_GIDS &&
         !(flags & HB_SUBSET_FLAGS_NO_HINTING) &&
         !(flags & HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG) &&

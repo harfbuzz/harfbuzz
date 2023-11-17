@@ -50,10 +50,9 @@ struct OpenTypeFontFile;
 struct OpenTypeOffsetTable;
 struct TTCHeader;
 
-
-// TODO(garretrieger): add new custom struct as input to serialize
-//                     which holds the tag, blob, and checksum/length
-//                     override.
+/*
+ * Information on a table used to construct table records.
+ */
 struct TableInfo
 {
   TableInfo(hb_tag_t tag_, hb_blob_t* blob_)
@@ -65,9 +64,6 @@ struct TableInfo
       length_override(length), checksum_override(checksum)
     {}
 
-  hb_tag_t tag;
-  hb_blob_t* blob;
-
   unsigned length() const
   {
     if (blob)
@@ -76,12 +72,8 @@ struct TableInfo
     return length_override;
   }
 
-  uint32_t checksum() const
-  {
-    // TODO
-    return checksum_override;
-  }
-
+  hb_tag_t tag;
+  hb_blob_t* blob;
   unsigned length_override;
   uint32_t checksum_override;
 };
@@ -178,28 +170,36 @@ typedef struct OpenTypeOffsetTable
     {
       hb_blob_t *blob = entry.blob;
       unsigned len = entry.length();
+      bool phantom = (blob == nullptr);
 
       /* Allocate room for the table and copy it. */
-      char *start = (char *) c->allocate_size<void> (len, false);
-      if (unlikely (!start)) return false;
+      char *start  = nullptr;
+      if (!phantom)
+      {
+        start = (char *) c->allocate_size<void> (len, false);
+        if (unlikely (!start)) return false;
+      } else {
+        start = c->start_embed<char>(nullptr);
+      }
 
       TableRecord &rec = tables.arrayZ[i];
       rec.tag = entry.tag;
       rec.length = len;
       rec.offset = 0;
+
       if (unlikely (!c->check_assign (rec.offset,
-				      (unsigned) ((char *) start - (char *) this),
-				      HB_SERIALIZE_ERROR_OFFSET_OVERFLOW)))
+                                      (unsigned) ((char *) start - (char *) this),
+	                              HB_SERIALIZE_ERROR_OFFSET_OVERFLOW)))
         return_trace (false);
 
-      if (likely (len))
+      if (!phantom && likely (len))
 	hb_memcpy (start, blob->data, len);
 
       /* 4-byte alignment. */
       c->align (4);
       const char *end = (const char *) c->head;
 
-      if (entry.tag == HB_OT_TAG_head &&
+      if (!phantom && entry.tag == HB_OT_TAG_head &&
 	  (unsigned) (end - start) >= head::static_size)
       {
 	head *h = (head *) start;
@@ -207,7 +207,11 @@ typedef struct OpenTypeOffsetTable
 	*checksum_adjustment = 0;
       }
 
-      rec.checkSum.set_for_data (start, end - start);
+      if (!phantom) {
+        rec.checkSum.set_for_data (start, end - start);
+      } else {
+        rec.checkSum = entry.checksum_override;
+      }
       i++;
     }
 

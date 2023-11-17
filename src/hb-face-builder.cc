@@ -43,6 +43,8 @@ struct face_table_info_t
 {
   hb_blob_t* data;
   signed order;
+  unsigned length_override;
+  unsigned checksum_override;
 };
 
 struct hb_face_builder_data_t
@@ -55,7 +57,12 @@ static int compare_entries (const void* pa, const void* pb)
   const auto& a = * (const hb_pair_t<hb_tag_t, face_table_info_t> *) pa;
   const auto& b = * (const hb_pair_t<hb_tag_t, face_table_info_t> *) pb;
 
-  /* Order by blob size first (smallest to largest) and then table tag */
+  // Order by blob size first (smallest to largest) and then table tag
+  // All phantom entries sort last regardless of other factors.
+  bool a_is_phantom = !a.second.data;
+  bool b_is_phantom = !b.second.data;
+  if (a_is_phantom != b_is_phantom)
+    return b_is_phantom ? -1 : 1;
 
   if (a.second.order != b.second.order)
     return a.second.order < b.second.order ? -1 : +1;
@@ -99,7 +106,10 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
   unsigned int face_length = table_count * 16 + 12;
 
   for (auto info : data->tables.values())
-    face_length += hb_ceil_to_4 (hb_blob_get_length (info.data));
+  {
+    if (info.data)
+      face_length += hb_ceil_to_4 (hb_blob_get_length (info.data));
+  }
 
   char *buf = (char *) hb_malloc (face_length);
   if (unlikely (!buf))
@@ -128,7 +138,10 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
                                   sfnt_tag,
                                   + sorted_entries.iter()
                                   | hb_map ([&] (hb_pair_t<hb_tag_t, face_table_info_t> _) {
-                                    return OT::TableInfo(_.first, _.second.data);
+                                    if (_.second.data)
+                                      return OT::TableInfo(_.first, _.second.data);
+                                    else
+                                      return OT::TableInfo(_.first, _.second.length_override, _.second.checksum_override);
                                   }));
 
   c.end_serialize ();
@@ -199,7 +212,7 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
   hb_face_builder_data_t *data = (hb_face_builder_data_t *) face->user_data;
 
   hb_blob_t* previous = data->tables.get (tag).data;
-  if (!data->tables.set (tag, face_table_info_t {hb_blob_reference (blob), -1}))
+  if (!data->tables.set (tag, face_table_info_t {hb_blob_reference (blob), -1, 0, 0}))
   {
     hb_blob_destroy (blob);
     return false;
@@ -210,11 +223,17 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 }
 
 /**
- * TODO(grieger): write me.
- * - adds a table directory entry, but doesn't include the table bytes in the
-*    final file.
- * - phantom tables are always the last entries in the directory. Regardless
- *   of any user provided sort order.
+ * hb_face_builder_add_phantom_table:
+ * @face: A face object created with hb_face_builder_create()
+ * @tag: The #hb_tag_t of the table to add
+ * @length: length of the table.
+ * @checksum: checksum of the table.
+ *
+ * Adds an entry to the table directory with the specified length and
+ * checksum. However, no table data is actually written out to the
+ * final font file.
+ *
+ * Since: REPLACEME
  **/
 hb_bool_t
 hb_face_builder_add_phantom_table (hb_face_t *face,
@@ -222,8 +241,16 @@ hb_face_builder_add_phantom_table (hb_face_t *face,
                                    unsigned   length,
                                    uint32_t   checksum)
 {
-  // TODO(grieger): implement me.
-  return true;
+  if (unlikely (face->destroy != (hb_destroy_func_t) _hb_face_builder_data_destroy))
+    return false;
+
+  if (tag == HB_MAP_VALUE_INVALID)
+    return false;
+
+  hb_face_builder_data_t *data = (hb_face_builder_data_t *) face->user_data;
+
+  return data->tables.set (tag,
+    face_table_info_t {nullptr, -1, length, checksum});
 }
 
 /**
