@@ -212,9 +212,9 @@ markupsafe==2.1.3 \
     --hash=sha256:fec21693218efe39aa7f8599346e90c705afa52c5b31ae019b2e57e8f6542bb2 \
     --hash=sha256:ffcc3f7c66b5f5b7931a5aa68fc9cecc51e685ef90282f4a82f0f5e9b704ad11
     # via jinja2
-meson==1.2.3 \
-    --hash=sha256:17d9124ffad38f5bbb6b198a8de5ecc55ebcd164d35a1d9dae06b8de0605a252 \
-    --hash=sha256:4533a43c34548edd1f63a276a42690fce15bde9409bcf20c4b8fa3d7e4d7cac1
+meson==1.3.0 \
+    --hash=sha256:4ba253ef60e454e23234696119cbafa082a0aead0bd3bbf6991295054795f5dc \
+    --hash=sha256:e9f54046ce5b9a1f3024f7a7d52f19f085fd57c9d26a5db0cfcf0750572a8fd8
     # via -r requirements.in
 ninja==1.11.1.1 \
     --hash=sha256:18302d96a5467ea98b68e1cae1ae4b4fb2b2a56a82b955193c637557c7273dbd \
