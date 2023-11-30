@@ -33,6 +33,7 @@ endif ()
 
 
 ## HarfBuzz build configurations
+option(HB_HAVE_CAIRO "Enable cairo interop helpers" OFF)
 option(HB_HAVE_FREETYPE "Enable freetype interop helpers" OFF)
 option(HB_HAVE_GRAPHITE2 "Enable Graphite2 complementary shaper" OFF)
 option(HB_HAVE_GLIB "Enable glib unicode functions" OFF)
@@ -340,6 +341,23 @@ if (WIN32 AND HB_HAVE_DIRECTWRITE)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-directwrite.h)
 endif ()
 
+if (HB_HAVE_CAIRO)
+  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindCairo.cmake
+  find_package(PkgConfig)
+  pkg_check_modules(PC_CAIRO QUIET cairo)
+
+  find_path(CAIRO_INCLUDE_DIRS NAMES cairo.h HINTS ${PC_CAIRO_INCLUDEDIR} ${PC_CAIRO_INCLUDE_DIRS} PATH_SUFFIXES cairo)
+  find_library(CAIRO_LIBRARIESNAMES cairo HINTS ${PC_CAIRO_LIBDIR} ${PC_CAIRO_LIBRARY_DIRS})
+  if (NOT CAIRO_LIBRARIESNAMES)
+    message(FATAL_ERROR "HB_HAVE_CAIRO is ON but Cairo libraries are not found")
+  endif()
+  include_directories(${CAIRO_INCLUDE_DIRS})
+  mark_as_advanced(CAIRO_INCLUDE_DIRS CAIRO_LIBRARIESNAMES)
+  add_definitions(-DHAVE_CAIRO=1)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-cairo.h)
+  list(APPEND THIRD_PARTY_LIBS ${CAIRO_LIBRARIESNAMES})
+endif()
+
 if (HB_HAVE_GOBJECT)
   add_definitions(-DHAVE_GOBJECT)
   include (FindPerl)
@@ -531,6 +549,18 @@ if (HB_HAVE_GOBJECT)
   endif ()
 endif ()
 
+## Define harfbuzz-cairo library
+if (HB_HAVE_CAIRO)
+  include_directories(${CAIRO_INCLUDE_DIRS})
+  add_library(harfbuzz-cairo ${PROJECT_SOURCE_DIR}/src/hb-cairo.cc ${PROJECT_SOURCE_DIR}/src/hb-static.cc ${PROJECT_SOURCE_DIR}/src/hb-cairo.h)
+  add_dependencies(harfbuzz-cairo harfbuzz)
+  target_link_libraries(harfbuzz-cairo harfbuzz ${THIRD_PARTY_LIBS})
+
+  if (BUILD_SHARED_LIBS)
+    set_target_properties(harfbuzz-cairo PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+  endif ()
+endif()
+
 if (BUILD_SHARED_LIBS AND WIN32 AND NOT MINGW)
   add_definitions("-DHB_DLL_EXPORT")
 endif ()
@@ -683,19 +713,13 @@ endif ()
 
 ## Additional harfbuzz build artifacts
 if (HB_BUILD_UTILS)
-  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindCairo.cmake
-  find_package(PkgConfig)
-  pkg_check_modules(PC_CAIRO QUIET cairo)
-
-  find_path(CAIRO_INCLUDE_DIRS NAMES cairo.h HINTS ${PC_CAIRO_INCLUDEDIR} ${PC_CAIRO_INCLUDE_DIRS} PATH_SUFFIXES cairo)
-  find_library(CAIRO_LIBRARIESNAMES cairo HINTS ${PC_CAIRO_LIBDIR} ${PC_CAIRO_LIBRARY_DIRS})
-
   add_definitions("-DPACKAGE_NAME=\"HarfBuzz\"")
   add_definitions("-DPACKAGE_VERSION=\"${HB_VERSION}\"")
-  include_directories(${CAIRO_INCLUDE_DIRS})
 
-  add_executable(hb-view ${HB_VIEW_sources})
-  target_link_libraries(hb-view harfbuzz ${CAIRO_LIBRARIESNAMES})
+  if (HB_HAVE_CAIRO)
+    add_executable(hb-view ${HB_VIEW_sources})
+    target_link_libraries(hb-view harfbuzz-cairo harfbuzz ${CAIRO_LIBRARIESNAMES})
+  endif()
 
   add_executable(hb-shape ${HB_SHAPE_sources})
   target_link_libraries(hb-shape harfbuzz)
@@ -705,8 +729,6 @@ if (HB_BUILD_UTILS)
 
   add_executable(hb-ot-shape-closure ${HB_OT_SHAPE_CLOSURE_sources})
   target_link_libraries(hb-ot-shape-closure harfbuzz)
-
-  mark_as_advanced(CAIRO_INCLUDE_DIRS CAIRO_LIBRARIESNAMES)
 endif ()
 
 
@@ -780,6 +802,15 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     )
     make_pkgconfig_pc_file("harfbuzz-icu")
   endif ()
+  if (HB_HAVE_CAIRO)
+    install(TARGETS harfbuzz-cairo
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      FRAMEWORK DESTINATION Library/Frameworks
+    )
+    make_pkgconfig_pc_file("harfbuzz-cairo")
+  endif ()
   if (HB_BUILD_SUBSET)
     install(TARGETS harfbuzz-subset
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -792,9 +823,11 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
       )
     endif ()
-    install(TARGETS hb-view
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
+    if (HB_HAVE_CAIRO)
+      install(TARGETS hb-view
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      )
+    endif()
     install(TARGETS hb-subset
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
