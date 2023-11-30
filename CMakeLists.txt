@@ -787,6 +787,28 @@ macro ( make_pkgconfig_pc_file name )
   )
 endmacro ( make_pkgconfig_pc_file )
 
+# Generate hb-features.h with the features we enabled
+macro (make_hb_features_h)
+  file(READ "${PROJECT_SOURCE_DIR}/src/hb-features.h.in" feature_h_in)
+  foreach(arg cairo coretext directwrite freetype gdi glib gobject graphite icu uniscribe wasm)
+    string(TOUPPER ${arg} feature_caps)
+    set(feature_instring "#mesondefine HB_HAS_${feature_caps}")
+    if (HB_HAVE_${feature_caps})
+      set(feature_outstring "#define HB_HAS_${feature_caps} 1")
+    else ()
+      set(feature_outstring "/* #undef HB_HAS_${feature_caps} */")
+    endif()
+    string(REPLACE ${feature_instring} ${feature_outstring} feature_h_in ${feature_h_in})
+  endforeach()
+  file(WRITE "${PROJECT_BINARY_DIR}/src/hb-features.h" ${feature_h_in})
+  if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
+    install(
+      FILES "${PROJECT_BINARY_DIR}/src/hb-features.h"
+      DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz"
+    )
+  endif()
+endmacro (make_hb_features_h)
+
 if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   install(TARGETS harfbuzz
     EXPORT harfbuzzConfig
@@ -876,4 +898,5 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       )
     endif ()
   endif ()
+  make_hb_features_h()
 endif ()
