@@ -490,7 +490,7 @@ endif ()
 ## Define harfbuzz-subset library
 if (HB_BUILD_SUBSET)
   add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
-  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-subset.h)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-subset.h ${PROJECT_SOURCE_DIR}/src/hb-subset-repacker.h)
   add_dependencies(harfbuzz-subset harfbuzz)
   target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
 
