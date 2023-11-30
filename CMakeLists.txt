@@ -178,6 +178,8 @@ extract_make_variable(HB_SUBSET_CLI_sources ${UTILSOURCES})
 add_prefix_to_list(HB_SUBSET_CLI_sources "${PROJECT_SOURCE_DIR}/util/")
 extract_make_variable(HB_OT_SHAPE_CLOSURE_sources ${UTILSOURCES})
 add_prefix_to_list(HB_OT_SHAPE_CLOSURE_sources "${PROJECT_SOURCE_DIR}/util/")
+extract_make_variable(HB_INFO_sources ${UTILSOURCES})
+add_prefix_to_list(HB_INFO_sources "${PROJECT_SOURCE_DIR}/util/")
 
 
 file(READ configure.ac CONFIGUREAC)
@@ -729,6 +731,11 @@ if (HB_BUILD_UTILS)
 
   add_executable(hb-ot-shape-closure ${HB_OT_SHAPE_CLOSURE_sources})
   target_link_libraries(hb-ot-shape-closure harfbuzz)
+
+  if (HB_HAVE_GOBJECT)
+    add_executable(hb-info ${HB_INFO_sources})
+    target_link_libraries(hb-info harfbuzz-gobject harfbuzz)
+  endif()
 endif ()
 
 
@@ -835,6 +842,12 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     install(TARGETS hb-shape
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
+
+    if (HB_HAVE_GOBJECT)
+      install(TARGETS hb-info
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      )
+    endif()
 
     install(TARGETS hb-ot-shape-closure
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
