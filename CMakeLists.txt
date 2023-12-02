@@ -33,6 +33,7 @@ endif ()
 
 
 ## HarfBuzz build configurations
+option(HB_HAVE_CAIRO "Enable cairo interop helpers" OFF)
 option(HB_HAVE_FREETYPE "Enable freetype interop helpers" OFF)
 option(HB_HAVE_GRAPHITE2 "Enable Graphite2 complementary shaper" OFF)
 option(HB_HAVE_GLIB "Enable glib unicode functions" OFF)
@@ -177,6 +178,8 @@ extract_make_variable(HB_SUBSET_CLI_sources ${UTILSOURCES})
 add_prefix_to_list(HB_SUBSET_CLI_sources "${PROJECT_SOURCE_DIR}/util/")
 extract_make_variable(HB_OT_SHAPE_CLOSURE_sources ${UTILSOURCES})
 add_prefix_to_list(HB_OT_SHAPE_CLOSURE_sources "${PROJECT_SOURCE_DIR}/util/")
+extract_make_variable(HB_INFO_sources ${UTILSOURCES})
+add_prefix_to_list(HB_INFO_sources "${PROJECT_SOURCE_DIR}/util/")
 
 
 file(READ configure.ac CONFIGUREAC)
@@ -340,6 +343,23 @@ if (WIN32 AND HB_HAVE_DIRECTWRITE)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-directwrite.h)
 endif ()
 
+if (HB_HAVE_CAIRO)
+  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindCairo.cmake
+  find_package(PkgConfig)
+  pkg_check_modules(PC_CAIRO QUIET cairo)
+
+  find_path(CAIRO_INCLUDE_DIRS NAMES cairo.h HINTS ${PC_CAIRO_INCLUDEDIR} ${PC_CAIRO_INCLUDE_DIRS} PATH_SUFFIXES cairo)
+  find_library(CAIRO_LIBRARIESNAMES cairo HINTS ${PC_CAIRO_LIBDIR} ${PC_CAIRO_LIBRARY_DIRS})
+  if (NOT CAIRO_LIBRARIESNAMES)
+    message(FATAL_ERROR "HB_HAVE_CAIRO is ON but Cairo libraries are not found")
+  endif()
+  include_directories(${CAIRO_INCLUDE_DIRS})
+  mark_as_advanced(CAIRO_INCLUDE_DIRS CAIRO_LIBRARIESNAMES)
+  add_definitions(-DHAVE_CAIRO=1)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-cairo.h)
+  list(APPEND THIRD_PARTY_LIBS ${CAIRO_LIBRARIESNAMES})
+endif()
+
 if (HB_HAVE_GOBJECT)
   add_definitions(-DHAVE_GOBJECT)
   include (FindPerl)
@@ -472,7 +492,7 @@ endif ()
 ## Define harfbuzz-subset library
 if (HB_BUILD_SUBSET)
   add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
-  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-subset.h)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-subset.h ${PROJECT_SOURCE_DIR}/src/hb-subset-repacker.h)
   add_dependencies(harfbuzz-subset harfbuzz)
   target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
 
@@ -530,6 +550,18 @@ if (HB_HAVE_GOBJECT)
     set_target_properties(harfbuzz-gobject PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
   endif ()
 endif ()
+
+## Define harfbuzz-cairo library
+if (HB_HAVE_CAIRO)
+  include_directories(${CAIRO_INCLUDE_DIRS})
+  add_library(harfbuzz-cairo ${PROJECT_SOURCE_DIR}/src/hb-cairo.cc ${PROJECT_SOURCE_DIR}/src/hb-static.cc ${PROJECT_SOURCE_DIR}/src/hb-cairo.h)
+  add_dependencies(harfbuzz-cairo harfbuzz)
+  target_link_libraries(harfbuzz-cairo harfbuzz ${THIRD_PARTY_LIBS})
+
+  if (BUILD_SHARED_LIBS)
+    set_target_properties(harfbuzz-cairo PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+  endif ()
+endif()
 
 if (BUILD_SHARED_LIBS AND WIN32 AND NOT MINGW)
   add_definitions("-DHB_DLL_EXPORT")
@@ -635,14 +667,8 @@ if (HB_HAVE_INTROSPECTION)
       -I${PROJECT_BINARY_DIR}/src
       ${hb_includedir_cflags}
       ${hb_defines_cflags}
-      -DHB_H
-      -DHB_H_IN
-      -DHB_OT_H
-      -DHB_OT_H_IN
-      -DHB_AAT_H
-      -DHB_AAT_H_IN
-      -DHB_GOBJECT_H
-      -DHB_GOBJECT_H_IN
+      -DHB_NO_SINGLE_HEADER_ERROR
+      -DHB_HAVE_GOBJECT
       -DHB_EXTERN=
       --cflags-end
       --library=harfbuzz-gobject
@@ -683,19 +709,13 @@ endif ()
 
 ## Additional harfbuzz build artifacts
 if (HB_BUILD_UTILS)
-  # https://github.com/WebKit/webkit/blob/master/Source/cmake/FindCairo.cmake
-  find_package(PkgConfig)
-  pkg_check_modules(PC_CAIRO QUIET cairo)
-
-  find_path(CAIRO_INCLUDE_DIRS NAMES cairo.h HINTS ${PC_CAIRO_INCLUDEDIR} ${PC_CAIRO_INCLUDE_DIRS} PATH_SUFFIXES cairo)
-  find_library(CAIRO_LIBRARIESNAMES cairo HINTS ${PC_CAIRO_LIBDIR} ${PC_CAIRO_LIBRARY_DIRS})
-
   add_definitions("-DPACKAGE_NAME=\"HarfBuzz\"")
   add_definitions("-DPACKAGE_VERSION=\"${HB_VERSION}\"")
-  include_directories(${CAIRO_INCLUDE_DIRS})
 
-  add_executable(hb-view ${HB_VIEW_sources})
-  target_link_libraries(hb-view harfbuzz ${CAIRO_LIBRARIESNAMES})
+  if (HB_HAVE_CAIRO)
+    add_executable(hb-view ${HB_VIEW_sources})
+    target_link_libraries(hb-view harfbuzz-cairo harfbuzz ${CAIRO_LIBRARIESNAMES})
+  endif()
 
   add_executable(hb-shape ${HB_SHAPE_sources})
   target_link_libraries(hb-shape harfbuzz)
@@ -706,7 +726,10 @@ if (HB_BUILD_UTILS)
   add_executable(hb-ot-shape-closure ${HB_OT_SHAPE_CLOSURE_sources})
   target_link_libraries(hb-ot-shape-closure harfbuzz)
 
-  mark_as_advanced(CAIRO_INCLUDE_DIRS CAIRO_LIBRARIESNAMES)
+  if (HB_HAVE_GOBJECT)
+    add_executable(hb-info ${HB_INFO_sources})
+    target_link_libraries(hb-info harfbuzz-gobject harfbuzz)
+  endif()
 endif ()
 
 
@@ -758,6 +781,28 @@ macro ( make_pkgconfig_pc_file name )
   )
 endmacro ( make_pkgconfig_pc_file )
 
+# Generate hb-features.h with the features we enabled
+macro (make_hb_features_h)
+  file(READ "${PROJECT_SOURCE_DIR}/src/hb-features.h.in" feature_h_in)
+  foreach(arg cairo coretext directwrite freetype gdi glib gobject graphite icu uniscribe wasm)
+    string(TOUPPER ${arg} feature_caps)
+    set(feature_instring "#mesondefine HB_HAS_${feature_caps}")
+    if (HB_HAVE_${feature_caps})
+      set(feature_outstring "#define HB_HAS_${feature_caps} 1")
+    else ()
+      set(feature_outstring "/* #undef HB_HAS_${feature_caps} */")
+    endif()
+    string(REPLACE ${feature_instring} ${feature_outstring} feature_h_in ${feature_h_in})
+  endforeach()
+  file(WRITE "${PROJECT_BINARY_DIR}/src/hb-features.h" ${feature_h_in})
+  if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
+    install(
+      FILES "${PROJECT_BINARY_DIR}/src/hb-features.h"
+      DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz"
+    )
+  endif()
+endmacro (make_hb_features_h)
+
 if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   install(TARGETS harfbuzz
     EXPORT harfbuzzConfig
@@ -780,6 +825,15 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     )
     make_pkgconfig_pc_file("harfbuzz-icu")
   endif ()
+  if (HB_HAVE_CAIRO)
+    install(TARGETS harfbuzz-cairo
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      FRAMEWORK DESTINATION Library/Frameworks
+    )
+    make_pkgconfig_pc_file("harfbuzz-cairo")
+  endif ()
   if (HB_BUILD_SUBSET)
     install(TARGETS harfbuzz-subset
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -792,9 +846,11 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
       )
     endif ()
-    install(TARGETS hb-view
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
+    if (HB_HAVE_CAIRO)
+      install(TARGETS hb-view
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      )
+    endif()
     install(TARGETS hb-subset
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
@@ -802,6 +858,12 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     install(TARGETS hb-shape
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
+
+    if (HB_HAVE_GOBJECT)
+      install(TARGETS hb-info
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      )
+    endif()
 
     install(TARGETS hb-ot-shape-closure
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -830,4 +892,5 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       )
     endif ()
   endif ()
+  make_hb_features_h()
 endif ()
