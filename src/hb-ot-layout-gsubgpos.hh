@@ -518,11 +518,14 @@ struct hb_ot_apply_context_t :
 #ifndef HB_OPTIMIZE_SIZE
     HB_ALWAYS_INLINE
 #endif
-    void reset (unsigned int start_index_)
+    void reset (unsigned int start_index_, bool per_syllable = true)
     {
       idx = start_index_;
       end = c->buffer->len;
-      matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
+      if (per_syllable)
+	matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
+      else
+	matcher.set_syllable (0);
     }
 
 #ifndef HB_OPTIMIZE_SIZE
@@ -1505,7 +1508,7 @@ static bool match_backtrack (hb_ot_apply_context_t *c,
   TRACE_APPLY (nullptr);
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
-  skippy_iter.reset (c->buffer->backtrack_len ());
+  skippy_iter.reset (c->buffer->backtrack_len (), false);
   skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (backtrack);
 
@@ -1538,7 +1541,7 @@ static bool match_lookahead (hb_ot_apply_context_t *c,
   TRACE_APPLY (nullptr);
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
-  skippy_iter.reset (start_index - 1);
+  skippy_iter.reset (start_index - 1, false);
   skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (lookahead);
 
