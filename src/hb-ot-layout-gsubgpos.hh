@@ -522,7 +522,7 @@ struct hb_ot_apply_context_t :
     {
       idx = start_index_;
       end = c->buffer->len;
-      matcher.set_syllable (per_syllable ? c->buffer->cur().syllable () : 0);
+      matcher.set_syllable (per_syllable && c->buffer->idx < c->buffer->len ? c->buffer->cur().syllable () : 0);
     }
 
 #ifndef HB_OPTIMIZE_SIZE
