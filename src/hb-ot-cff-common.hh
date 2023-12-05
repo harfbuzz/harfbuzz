@@ -41,10 +41,11 @@ using namespace OT;
 using objidx_t = hb_serialize_context_t::objidx_t;
 using whence_t = hb_serialize_context_t::whence_t;
 
-/* utility macro */
+/* CFF offsets can technically be negative */
 template<typename Type>
-static inline const Type& StructAtOffsetOrNull (const void *P, unsigned int offset)
-{ return offset ? StructAtOffset<Type> (P, offset) : Null (Type); }
+static inline const Type& StructAtOffsetOrNull (const void *P, int offset)
+{ return offset ? * reinterpret_cast<const Type*> ((const char *) P + offset) : Null (Type); }
+
 
 struct code_pair_t
 {
