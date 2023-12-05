@@ -9,7 +9,7 @@ insert_final_newline = true
 [*.{c,cc,h,hh,rl}]
 tab_width = 8
 indent_size = 2
-indent_style = tab # should be space
+indent_style = tab
 
 [*.{py,sh}]
 indent_style = tab
