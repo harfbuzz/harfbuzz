@@ -763,9 +763,9 @@ struct cff1_top_dict_values_t : top_dict_values_t<cff1_top_dict_val_t>
   unsigned int    ros_supplement;
   unsigned int    cidCount;
 
-  unsigned int    EncodingOffset;
-  unsigned int    CharsetOffset;
-  unsigned int    FDSelectOffset;
+  int             EncodingOffset;
+  int             CharsetOffset;
+  int             FDSelectOffset;
   table_info_t    privateDictInfo;
 };
 
@@ -821,24 +821,24 @@ struct cff1_top_dict_opset_t : top_dict_opset_t<cff1_top_dict_val_t>
 	break;
 
       case OpCode_Encoding:
-	dictval.EncodingOffset = env.argStack.pop_uint ();
+	dictval.EncodingOffset = env.argStack.pop_int ();
 	env.clear_args ();
 	if (unlikely (dictval.EncodingOffset == 0)) return;
 	break;
 
       case OpCode_charset:
-	dictval.CharsetOffset = env.argStack.pop_uint ();
+	dictval.CharsetOffset = env.argStack.pop_int ();
 	env.clear_args ();
 	if (unlikely (dictval.CharsetOffset == 0)) return;
 	break;
 
       case OpCode_FDSelect:
-	dictval.FDSelectOffset = env.argStack.pop_uint ();
+	dictval.FDSelectOffset = env.argStack.pop_int ();
 	env.clear_args ();
 	break;
 
       case OpCode_Private:
-	dictval.privateDictInfo.offset = env.argStack.pop_uint ();
+	dictval.privateDictInfo.offset = env.argStack.pop_int ();
 	dictval.privateDictInfo.size = env.argStack.pop_uint ();
 	env.clear_args ();
 	break;
@@ -913,7 +913,7 @@ struct cff1_private_dict_values_base_t : dict_values_t<VAL>
   }
   void fini () { dict_values_t<VAL>::fini (); }
 
-  unsigned int      subrsOffset;
+  int                 subrsOffset;
   const CFF1Subrs    *localSubrs;
 };
 
@@ -948,7 +948,7 @@ struct cff1_private_dict_opset_t : dict_opset_t
 	env.clear_args ();
 	break;
       case OpCode_Subrs:
-	dictval.subrsOffset = env.argStack.pop_uint ();
+	dictval.subrsOffset = env.argStack.pop_int ();
 	env.clear_args ();
 	break;
 
@@ -990,7 +990,7 @@ struct cff1_private_dict_opset_subset_t : dict_opset_t
 	break;
 
       case OpCode_Subrs:
-	dictval.subrsOffset = env.argStack.pop_uint ();
+	dictval.subrsOffset = env.argStack.pop_int ();
 	env.clear_args ();
 	break;
 
@@ -1090,7 +1090,7 @@ struct cff1
         goto fail;
       hb_barrier ();
 
-      topDictIndex = &StructAtOffset<CFF1TopDictIndex> (nameIndex, nameIndex->get_size ());
+      topDictIndex = &StructAtOffsetOrNull<CFF1TopDictIndex> (nameIndex, nameIndex->get_size ());
       if ((topDictIndex == &Null (CFF1TopDictIndex)) || !topDictIndex->sanitize (&sc) || (topDictIndex->count == 0))
         goto fail;
       hb_barrier ();
@@ -1146,12 +1146,12 @@ struct cff1
 	}
       }
 
-      stringIndex = &StructAtOffset<CFF1StringIndex> (topDictIndex, topDictIndex->get_size ());
+      stringIndex = &StructAtOffsetOrNull<CFF1StringIndex> (topDictIndex, topDictIndex->get_size ());
       if ((stringIndex == &Null (CFF1StringIndex)) || !stringIndex->sanitize (&sc))
         goto fail;
       hb_barrier ();
 
-      globalSubrs = &StructAtOffset<CFF1Subrs> (stringIndex, stringIndex->get_size ());
+      globalSubrs = &StructAtOffsetOrNull<CFF1Subrs> (stringIndex, stringIndex->get_size ());
       if ((globalSubrs != &Null (CFF1Subrs)) && !globalSubrs->sanitize (&sc))
         goto fail;
       hb_barrier ();
@@ -1188,7 +1188,7 @@ struct cff1
 	  font->init ();
 	  if (unlikely (!font_interp.interpret (*font)))   goto fail;
 	  PRIVDICTVAL *priv = &privateDicts[i];
-	  const hb_ubytes_t privDictStr = StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset).as_ubytes (font->privateDictInfo.size);
+	  const hb_ubytes_t privDictStr = StructAtOffsetOrNull<UnsizedByteStr> (cff, font->privateDictInfo.offset).as_ubytes (font->privateDictInfo.size);
 	  if (unlikely (!privDictStr.sanitize (&sc)))   goto fail;
 	  hb_barrier ();
 	  num_interp_env_t env2 (privDictStr);
@@ -1208,7 +1208,7 @@ struct cff1
 	cff1_top_dict_values_t *font = &topDict;
 	PRIVDICTVAL *priv = &privateDicts[0];
 
-	const hb_ubytes_t privDictStr = StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset).as_ubytes (font->privateDictInfo.size);
+	const hb_ubytes_t privDictStr = StructAtOffsetOrNull<UnsizedByteStr> (cff, font->privateDictInfo.offset).as_ubytes (font->privateDictInfo.size);
 	if (unlikely (!privDictStr.sanitize (&sc)))   goto fail;
 	hb_barrier ();
 	num_interp_env_t env (privDictStr);

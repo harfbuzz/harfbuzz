@@ -150,8 +150,8 @@ struct cff2_top_dict_values_t : top_dict_values_t<>
   }
   void fini () { top_dict_values_t<>::fini (); }
 
-  unsigned int  vstoreOffset;
-  unsigned int  FDSelectOffset;
+  int  vstoreOffset;
+  int  FDSelectOffset;
 };
 
 struct cff2_top_dict_opset_t : top_dict_opset_t<>
@@ -169,11 +169,11 @@ struct cff2_top_dict_opset_t : top_dict_opset_t<>
 	break;
 
       case OpCode_vstore:
-	dictval.vstoreOffset = env.argStack.pop_uint ();
+	dictval.vstoreOffset = env.argStack.pop_int ();
 	env.clear_args ();
 	break;
       case OpCode_FDSelect:
-	dictval.FDSelectOffset = env.argStack.pop_uint ();
+	dictval.FDSelectOffset = env.argStack.pop_int ();
 	env.clear_args ();
 	break;
 
@@ -241,7 +241,7 @@ struct cff2_private_dict_values_base_t : dict_values_t<VAL>
   }
   void fini () { dict_values_t<VAL>::fini (); }
 
-  unsigned int      subrsOffset;
+  int                subrsOffset;
   const CFF2Subrs   *localSubrs;
   unsigned int      ivs;
 };
@@ -295,7 +295,7 @@ struct cff2_private_dict_opset_t : dict_opset_t
 	env.clear_args ();
 	break;
       case OpCode_Subrs:
-	dictval.subrsOffset = env.argStack.pop_uint ();
+	dictval.subrsOffset = env.argStack.pop_int ();
 	env.clear_args ();
 	break;
       case OpCode_vsindexdict:
@@ -344,7 +344,7 @@ struct cff2_private_dict_opset_subset_t : dict_opset_t
 	return;
 
       case OpCode_Subrs:
-	dictval.subrsOffset = env.argStack.pop_uint ();
+	dictval.subrsOffset = env.argStack.pop_int ();
 	env.clear_args ();
 	break;
 
@@ -426,7 +426,7 @@ struct cff2
 	if (unlikely (!top_interp.interpret (topDict))) goto fail;
       }
 
-      globalSubrs = &StructAtOffset<CFF2Subrs> (cff2, cff2->topDict + cff2->topDictSize);
+      globalSubrs = &StructAtOffsetOrNull<CFF2Subrs> (cff2, cff2->topDict + cff2->topDictSize);
       varStore = &StructAtOffsetOrNull<CFF2VariationStore> (cff2, topDict.vstoreOffset);
       charStrings = &StructAtOffsetOrNull<CFF2CharStrings> (cff2, topDict.charStringsOffset);
       fdArray = &StructAtOffsetOrNull<CFF2FDArray> (cff2, topDict.FDArrayOffset);
