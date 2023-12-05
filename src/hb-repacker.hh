@@ -239,6 +239,37 @@ bool _try_isolating_subgraphs (const hb_vector_t<graph::overflow_record_t>& over
 }
 
 static inline
+bool _resolve_shared_overflow(const hb_vector_t<graph::overflow_record_t>& overflows,
+                              int overflow_index,
+                              graph_t& sorted_graph)
+{
+  const graph::overflow_record_t& r = overflows[overflow_index];
+
+  // Find all of the parents in overflowing links that link to this
+  // same child node. We will then try duplicating the child node and
+  // re-assigning all of these parents to the duplicate.
+  hb_set_t parents;
+  parents.add(r.parent);
+  for (int i = overflow_index - 1; i >= 0; i--) {
+    const graph::overflow_record_t& r2 = overflows[i];
+    if (r2.child == r.child) {
+      parents.add(r2.parent);
+    }
+  }
+
+  unsigned result = sorted_graph.duplicate(&parents, r.child);
+  if (result == (unsigned) -1 && parents.get_population() > 2) {
+    // All links to the child are overflowing, so we can't include all
+    // in the duplication. Remove one parent from the duplication.
+    // Remove the lowest index parent, which will be the closest to the child.
+    parents.del(parents.get_min());
+    result = sorted_graph.duplicate(&parents, r.child);
+  }
+
+  return result != (unsigned) -1;
+}
+
+static inline
 bool _process_overflows (const hb_vector_t<graph::overflow_record_t>& overflows,
                          hb_set_t& priority_bumped_parents,
                          graph_t& sorted_graph)
@@ -254,7 +285,7 @@ bool _process_overflows (const hb_vector_t<graph::overflow_record_t>& overflows,
     {
       // The child object is shared, we may be able to eliminate the overflow
       // by duplicating it.
-      if (sorted_graph.duplicate (r.parent, r.child) == (unsigned) -1) continue;
+      if (!_resolve_shared_overflow(overflows, i, sorted_graph)) continue;
       return true;
     }
 
