@@ -597,6 +597,31 @@ populate_serializer_with_dedup_overflow (hb_serialize_context_t* c)
 }
 
 static void
+populate_serializer_with_multiple_dedup_overflow (hb_serialize_context_t* c)
+{
+  std::string large_string(70000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned leaf = add_object("def", 3, c);
+
+  constexpr unsigned num_mid_nodes = 20;
+  unsigned mid_nodes[num_mid_nodes];
+  for (unsigned i = 0; i < num_mid_nodes; i++) {
+    start_object(large_string.c_str(), 10000 + i, c);
+    add_offset(leaf, c);
+    mid_nodes[i] = c->pop_pack(false);
+  }
+
+  start_object("abc", 3, c);
+  for (unsigned i = 0; i < num_mid_nodes; i++) {
+    add_wide_offset(mid_nodes[i], c);
+  }
+  c->pop_pack(false);
+
+  c->end_serialize();
+}
+
+static void
 populate_serializer_with_isolation_overflow (hb_serialize_context_t* c)
 {
   std::string large_string(70000, 'a');
@@ -1682,6 +1707,21 @@ static void test_resolve_overflows_via_duplication ()
   hb_blob_destroy (out);
 }
 
+static void test_resolve_overflows_via_multiple_duplications ()
+{
+  size_t buffer_size = 300000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_multiple_dedup_overflow (&c);
+  graph_t graph (c.object_graph ());
+
+  hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG_NONE, 5);
+  assert (out);
+
+  free (buffer);
+  hb_blob_destroy (out);
+}
+
 static void test_resolve_overflows_via_space_assignment ()
 {
   size_t buffer_size = 160000;
@@ -2141,6 +2181,7 @@ main (int argc, char **argv)
   test_will_overflow_3 ();
   test_resolve_overflows_via_sort ();
   test_resolve_overflows_via_duplication ();
+  test_resolve_overflows_via_multiple_duplications ();
   test_resolve_overflows_via_priority ();
   test_resolve_overflows_via_space_assignment ();
   test_resolve_overflows_via_isolation ();

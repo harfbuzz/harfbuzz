@@ -27,7 +27,6 @@
 #include "../hb-set.hh"
 #include "../hb-priority-queue.hh"
 #include "../hb-serialize.hh"
-#include "hb.h"
 
 #ifndef GRAPH_GRAPH_HH
 #define GRAPH_GRAPH_HH
@@ -342,6 +341,16 @@ struct graph_t
       if (has_max_priority ()) return false;
       priority++;
       return true;
+    }
+
+    bool give_max_priority ()
+    {
+      bool result = false;
+      while (!has_max_priority()) {
+        result = true;
+        priority++;
+      }
+      return result;
     }
 
     bool has_max_priority () const {
