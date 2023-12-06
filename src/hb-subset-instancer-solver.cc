@@ -259,7 +259,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     /* Disabled because ots doesn't like us:
      * https://github.com/fonttools/fonttools/issues/3350 */
     
-    if (0 && (newUpper <= axisDef + (axisMax - axisDef) * 2))
+    if (false && (newUpper <= axisDef + (axisMax - axisDef) * 2))
     {
       upper = newUpper;
       if (!negative && axisDef + (axisMax - axisDef) * MAX_F2DOT14 < upper)
