@@ -4,6 +4,7 @@
 #include "hb-subset.h"
 #include "helper-subset.hh"
 
+static
 hb_face_t* open_font(const char* path)
 {
   hb_blob_t *blob = hb_blob_create_from_file_or_fail (path);
@@ -14,8 +15,9 @@ hb_face_t* open_font(const char* path)
   return face;
 }
 
+static
 gboolean check_parsing(hb_face_t* face, const char* spec, hb_tag_t axis, float exp_min, float exp_def, float exp_max)
-{  
+{
   printf(">> testing spec: %s\n", spec);
   hb_subset_input_t* input = hb_subset_input_create_or_fail();
   g_assert(input);
