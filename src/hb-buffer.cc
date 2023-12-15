@@ -1372,8 +1372,10 @@ hb_buffer_get_not_found_glyph (const hb_buffer_t *buffer)
  * in the font during shaping.
  *
  * The not-found-variation-selector glyph defaults to #HB_CODEPOINT_INVALID,
- * in which case it will be removed from the glyph string during shaping.
- * This API allows for changing that and retaining the glyph.
+ * in which case an unresolved variation-selector will be removed from the glyph
+ * string during shaping. This API allows for changing that and retaining a glyph,
+ * such that the situation can be detected by the client and handled accordingly
+ * (e.g. by using a different font).
  *
  * XSince: REPLACEME
  **/

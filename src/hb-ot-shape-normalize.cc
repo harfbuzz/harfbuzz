@@ -220,8 +220,16 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
 	/* Just pass on the two characters separately, let GSUB do its magic. */
 	set_glyph (buffer->cur(), font);
 	(void) buffer->next_glyph ();
-	set_glyph (buffer->cur(), font);
-	(void) buffer->next_glyph ();
+	if (buffer->not_found_variation_selector != HB_CODEPOINT_INVALID)
+	{
+	  _hb_glyph_info_clear_default_ignorable (&buffer->cur());
+	  next_char (buffer, buffer->not_found_variation_selector);
+	}
+	else
+	{
+	  set_glyph (buffer->cur(), font);
+	  (void) buffer->next_glyph ();
+	}
       }
       /* Skip any further variation selectors. */
       while (buffer->idx < end &&
