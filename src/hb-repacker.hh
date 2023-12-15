@@ -436,7 +436,7 @@ template<typename T>
 inline hb_blob_t*
 hb_resolve_overflows (const T& packed,
                       hb_tag_t table_tag,
-                      unsigned max_rounds = 20,
+                      unsigned max_rounds = 32,
                       bool recalculate_extensions = false) {
   graph_t sorted_graph (packed);
   if (sorted_graph.in_error ())
