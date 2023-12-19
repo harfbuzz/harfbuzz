@@ -340,7 +340,8 @@ struct gvar
                   const glyph_variations_t& glyph_vars,
                   Iterator it,
                   unsigned axis_count,
-                  unsigned num_glyphs) const
+                  unsigned num_glyphs,
+                  bool force_long_offsets) const
   {
     TRACE_SERIALIZE (this);
     gvar *out = c->allocate_min<gvar> ();
@@ -352,7 +353,7 @@ struct gvar
     out->glyphCountX = hb_min (0xFFFFu, num_glyphs);
 
     unsigned glyph_var_data_size = glyph_vars.compiled_byte_size ();
-    bool long_offset = glyph_var_data_size & ~0xFFFFu;
+    bool long_offset = glyph_var_data_size & ~0xFFFFu || force_long_offsets;
     out->flags = long_offset ? 1 : 0;
 
     HBUINT8 *glyph_var_data_offsets = c->allocate_size<HBUINT8> ((long_offset ? 4 : 2) * (num_glyphs + 1), false);
@@ -393,7 +394,12 @@ struct gvar
     unsigned axis_count = c->plan->axes_index_map.get_population ();
     unsigned num_glyphs = c->plan->num_output_glyphs ();
     auto it = hb_iter (c->plan->new_to_old_gid_list);
-    return_trace (serialize (c->serializer, glyph_vars, it, axis_count, num_glyphs));
+
+    bool force_long_offsets = false;
+#ifdef HB_EXPERIMENTAL_API
+    force_long_offsets = c->plan->flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS;
+#endif
+    return_trace (serialize (c->serializer, glyph_vars, it, axis_count, num_glyphs, force_long_offsets));
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -429,7 +435,7 @@ struct gvar
     }
 
     bool long_offset = (subset_data_size & ~0xFFFFu);
- #ifdef HB_EXPERIMENTAL_API
+#ifdef HB_EXPERIMENTAL_API
     long_offset = long_offset || (c->plan->flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS);
 #endif
     out->flags = long_offset ? 1 : 0;
