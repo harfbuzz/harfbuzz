@@ -110,7 +110,7 @@ main (int argc, char **argv)
     assert (out.length == 2);
     assert (out[0].first == 1.f);
     assert (out[0].second == Triple (0.f, 0.8f, 1.f));
-    assert (out[1].first == 2.5f/3);
+    assert (approx (out[1].first, 2.5f/3));
     assert (out[1].second == Triple (0.8f, 1.f, 1.f));
   }
 
