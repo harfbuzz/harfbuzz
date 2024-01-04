@@ -2045,18 +2045,6 @@ struct cmap
     return encodingRecord.as_array ().bsearch (key);
   }
 
-  bool find_subtable (unsigned format) const
-  {
-    auto it =
-    + hb_iter (encodingRecord)
-    | hb_map (&EncodingRecord::subtable)
-    | hb_map (hb_add (this))
-    | hb_filter ([&] (const CmapSubtable& _) { return _.u.format == format; })
-    ;
-
-    return it.len ();
-  }
-
   public:
 
   bool sanitize (hb_sanitize_context_t *c) const
