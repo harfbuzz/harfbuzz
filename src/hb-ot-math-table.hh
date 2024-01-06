@@ -351,6 +351,15 @@ struct MathKern
      */
     unsigned int i = 0;
     unsigned int count = heightCount;
+
+    // Assume:
+    //      correctionHeight[-1] = -infty
+    //      correctionHeight[heightCount] = +infty
+    // Loop invariant:
+    //      0 <= i+count <= heightCount
+    //      correctionHeight[i-1] <= correction_height < correctionHeight[i+count]
+    // Termination:
+    //      count is decreasing in each iteration, and reaches 0 on loop end
     while (count > 0)
     {
       unsigned int half = count / 2;
