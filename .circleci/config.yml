@@ -68,10 +68,13 @@ jobs:
     steps:
       - checkout
       - run: apk update && apk add ragel gcc g++ glib-dev freetype-dev cairo-dev git py3-pip ninja
-      - run: pip3 install meson==0.56.0
-      - run: meson setup build --buildtype=minsize
-      - run: meson compile -Cbuild -j9
-      - run: meson test -Cbuild --print-errorlogs
+      - run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip3 install meson==0.56.0
+          meson setup build --buildtype=minsize
+          meson compile -Cbuild -j9
+          meson test -Cbuild --print-errorlogs
 
   asan-ubsan:
     docker:
@@ -79,11 +82,14 @@ jobs:
     steps:
       - checkout
       - run: apt update || true
-      - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
-      - run: pip3 install meson==0.56.0
-      - run: CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=address,undefined --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
-      - run: meson compile -Cbuild -j9
-      - run: meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+      - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip python3-venv ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
+      - run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip3 install meson==0.56.0
+          CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=address,undefined --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
+          meson compile -Cbuild -j9
+          meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
 
   tsan:
     docker:
@@ -91,11 +97,14 @@ jobs:
     steps:
       - checkout
       - run: apt update || true
-      - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
-      - run: pip3 install meson==0.56.0
-      - run: CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=thread --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
-      - run: meson compile -Cbuild -j9
-      - run: meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+      - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip python3-venv ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
+      - run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip3 install meson==0.56.0
+          CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=thread --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
+          meson compile -Cbuild -j9
+          meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
 
   msan:
     docker:
@@ -103,12 +112,15 @@ jobs:
     steps:
       - checkout
       - run: apt update || true
-      - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
-      - run: pip3 install meson==0.56.0
-      # msan, needs --force-fallback-for=glib,freetype2 also which doesn't work yet but runs fuzzer cases at least
-      - run: CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=memory --buildtype=debugoptimized --wrap-mode=nodownload -Dauto_features=disabled -Dtests=enabled -Dexperimental_api=true
-      - run: meson compile -Cbuild -j9
-      - run: meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+      - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip python3-venv ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
+      - run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip3 install meson==0.56.0
+          # msan, needs --force-fallback-for=glib,freetype2 also which doesn't work yet but runs fuzzer cases at least
+          CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=memory --buildtype=debugoptimized --wrap-mode=nodownload -Dauto_features=disabled -Dtests=enabled -Dexperimental_api=true
+          meson compile -Cbuild -j9
+          meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
 
   clang-cxx2a:
     docker:
@@ -123,9 +135,12 @@ jobs:
     executor: win32-executor
     steps:
       - checkout
-      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build python3 python3-pip git g++-mingw-w64-i686 zip
-      - run: pip3 install meson==0.60.0
-      - run: .ci/build-win32.sh
+      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-i686 zip
+      - run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip3 install meson==0.60.0
+          bash .ci/build-win32.sh
       - store_artifacts:
           path: harfbuzz-win32.zip
       - persist_to_workspace:
@@ -146,9 +161,12 @@ jobs:
     executor: win64-executor
     steps:
       - checkout
-      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build python3 python3-pip git g++-mingw-w64-x86-64 zip
-      - run: pip3 install meson==0.60.0
-      - run: bash .ci/build-win64.sh
+      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-x86-64 zip
+      - run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip3 install meson==0.60.0
+          bash .ci/build-win64.sh
       - store_artifacts:
           path: harfbuzz-win64.zip
       - persist_to_workspace:
