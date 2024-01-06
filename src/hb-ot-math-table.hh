@@ -354,7 +354,7 @@ struct MathKern
     while (count > 0)
     {
       unsigned int half = count / 2;
-      hb_position_t height = correctionHeight[i + half].get_y_value(font, this);
+      hb_position_t height = correctionHeight[i + half].get_y_value (font, this);
       if (sign * height <= sign * correction_height)
       {
         i += half + 1;
@@ -362,7 +362,7 @@ struct MathKern
       } else
         count = half;
     }
-    return kernValue[i].get_x_value(font, this);
+    return kernValue[i].get_x_value (font, this);
   }
 
   unsigned int get_entries (unsigned int start_offset,
