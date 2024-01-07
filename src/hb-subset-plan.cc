@@ -994,8 +994,8 @@ _update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
   OT::cff2::accelerator_t cff2 (plan->source);
   if (!cff2.is_valid ()) return;
 
-  hb_font_t *font = nullptr;
-  if (unlikely (!plan->check_success (font = _get_hb_font_with_variations (plan))))
+  hb_font_t *font = _get_hb_font_with_variations (plan);
+  if (unlikely (!plan->check_success (font != nullptr)))
   {
     hb_font_destroy (font);
     return;
