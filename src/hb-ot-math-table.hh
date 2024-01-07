@@ -358,10 +358,10 @@ struct MathKern
       hb_position_t height = correctionHeight[i + half].get_y_value (font, this);
       if (sign * height <= sign * correction_height)
       {
-        i += half + 1;
-        count -= half + 1;
+	i += half + 1;
+	count -= half + 1;
       } else
-        count = half;
+	count = half;
     }
     return kernValue[i].get_x_value (font, this);
   }
