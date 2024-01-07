@@ -344,22 +344,14 @@ struct MathKern
     const MathValueRecord* kernValue = mathValueRecordsZ.arrayZ + heightCount;
     int sign = font->y_scale < 0 ? -1 : +1;
 
-    /*
-     * According to OpenType spec (v1.9), except for the boundary cases, the index
+    /* According to OpenType spec (v1.9), except for the boundary cases, the index
      * chosen for kern value should be i such that
-     *  correctionHeight[i-1] <= correction_height < correctionHeight[i]
+     *    correctionHeight[i-1] <= correction_height < correctionHeight[i]
+     * We can just use the binary search algorithm of std::upper_bound(), which
+     * matches the spec, including for the boundary cases.
      */
     unsigned int i = 0;
     unsigned int count = heightCount;
-
-    // Assume:
-    //      correctionHeight[-1] = -infty
-    //      correctionHeight[heightCount] = +infty
-    // Loop invariant:
-    //      0 <= i+count <= heightCount
-    //      correctionHeight[i-1] <= correction_height < correctionHeight[i+count]
-    // Termination:
-    //      count is decreasing in each iteration, and reaches 0 on loop end
     while (count > 0)
     {
       unsigned int half = count / 2;
