@@ -18,7 +18,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     - name: Setup Ccache
-      uses: hendrikmuhs/ccache-action@6d1841ec156c39a52b1b23a810da917ab98da1f4 # v1.2.10
+      uses: hendrikmuhs/ccache-action@2a51777f6f64b7b7bea213601acba8f5f4fdbe03 # v1.2.11
       with:
         key: ${{ github.job }}-${{ runner.os }}-${{ runner.arch }}
     - name: Install Dependencies
