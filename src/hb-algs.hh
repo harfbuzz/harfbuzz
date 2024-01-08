@@ -1053,6 +1053,18 @@ _hb_cmp_method (const void *pkey, const void *pval, Ts... ds)
   return val.cmp (key, ds...);
 }
 
+template <typename K, typename V>
+static int
+_hb_cmp_operator (const void *pkey, const void *pval)
+{
+  const K& key = * (const K*) pkey;
+  const V& val = * (const V*) pval;
+
+  if (key < val) return -1;
+  if (key > val) return  1;
+  return 0;
+}
+
 template <typename V, typename K, typename ...Ts>
 static inline bool
 hb_bsearch_impl (unsigned *pos, /* Out */
