@@ -501,7 +501,7 @@ if (HB_BUILD_SUBSET)
   endif ()
 endif ()
 
-if (UNIX OR MINGW)
+if (UNIX OR MINGW OR VITA)
   # Make symbols link locally
   include (CheckCXXCompilerFlag)
   CHECK_CXX_COMPILER_FLAG(-Bsymbolic-functions CXX_SUPPORTS_FLAG_BSYMB_FUNCS)
@@ -766,7 +766,7 @@ macro ( make_pkgconfig_pc_file name )
     string(REPLACE "%libdir%" "${CMAKE_INSTALL_LIBDIR}" FSTR ${FSTR})
   else ()
     string(REPLACE "%libdir%" "\${prefix}/${CMAKE_INSTALL_LIBDIR}" FSTR ${FSTR})
-  endif ()  
+  endif ()
 
   string(REPLACE "%VERSION%" "${HB_VERSION}" FSTR ${FSTR})
   string(REPLACE "%requires_private%" "${PC_REQUIRES_PRIV}" FSTR ${FSTR})
