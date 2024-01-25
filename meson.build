@@ -22,9 +22,16 @@ pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
 null_dep = dependency('', required: false)
 
-# Enforce C++14 requirement for MSVC STL
-if ['clang', 'clang-cl'].contains(cpp.get_id()) and cpp.get_define('_MSC_FULL_VER') != ''
-  add_project_arguments('-std=c++14', language: 'cpp')
+# Only perform these checks if cpp_std is c++11 as setting -std directly
+# produces a warning from meson.
+if get_option('cpp_std') == 'c++11'
+  # Enforce C++14 requirement for MSVC STL
+  if cpp.get_id() == 'clang' and cpp.get_define('_MSC_FULL_VER') != ''
+    add_project_arguments('-std=c++14', language: 'cpp')
+  elif cpp.get_id() == 'clang-cl'
+    # Clang-cl produces a warning when using -std=c++14, but not when using /std:c++14
+    add_project_arguments('/std:c++14', language : 'cpp')
+  endif
 endif
 
 if cpp.get_argument_syntax() == 'msvc'
