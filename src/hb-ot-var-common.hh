@@ -1939,8 +1939,9 @@ struct TupleVariationData
       return true;
     }
 
-    /* merge tuple variations with overlapping tents */
-    void merge_tuple_variations ()
+    /* merge tuple variations with overlapping tents, if iup delta optimization
+     * is enabled, add default deltas to contour_points */
+    bool merge_tuple_variations (contour_point_vector_t* contour_points = nullptr)
     {
       hb_vector_t<tuple_delta_t> new_vars;
       hb_hashmap_t<const hb_hashmap_t<hb_tag_t, Triple>*, unsigned> m;
@@ -1948,7 +1949,15 @@ struct TupleVariationData
       for (const tuple_delta_t& var : tuple_vars)
       {
         /* if all axes are pinned, drop the tuple variation */
-        if (var.axis_tuples.is_empty ()) continue;
+        if (var.axis_tuples.is_empty ())
+        {
+          /* if iup_delta_optimize is enabled, add deltas to contour coords */
+          if (contour_points && !contour_points->add_deltas (var.deltas_x,
+                                                             var.deltas_y,
+                                                             var.indices))
+            return false;
+          continue;
+        }
 
         unsigned *idx;
         if (m.has (&(var.axis_tuples), &idx))
@@ -1958,12 +1967,14 @@ struct TupleVariationData
         else
         {
           new_vars.push (var);
-          m.set (&(var.axis_tuples), i);
+          if (!m.set (&(var.axis_tuples), i))
+            return false;
           i++;
         }
       }
       tuple_vars.fini ();
       tuple_vars = std::move (new_vars);
+      return true;
     }
 
     /* compile all point set and store byte data in a point_set->hb_bytes_t hashmap,
@@ -2021,7 +2032,7 @@ struct TupleVariationData
       }
     }
 
-    bool calc_inferred_deltas (contour_point_vector_t& contour_points)
+    bool calc_inferred_deltas (const contour_point_vector_t& contour_points)
     {
       for (tuple_delta_t& var : tuple_vars)
         if (!var.calc_inferred_deltas (contour_points))
@@ -2033,7 +2044,8 @@ struct TupleVariationData
     public:
     bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                       const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
-                      contour_point_vector_t* contour_points = nullptr)
+                      contour_point_vector_t* contour_points = nullptr,
+                      bool optimize = false)
     {
       if (!tuple_vars) return true;
       if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances))
@@ -2043,7 +2055,13 @@ struct TupleVariationData
         if (!calc_inferred_deltas (*contour_points))
           return false;
 
-      merge_tuple_variations ();
+      /* if iup delta opt is on, contour_points can't be null */
+      if (optimize && !contour_points)
+        return false;
+
+      if (!merge_tuple_variations (optimize ? contour_points : nullptr))
+        return false;
+
       return !tuple_vars.in_error ();
     }
 
