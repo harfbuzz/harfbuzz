@@ -11,3 +11,7 @@ SUBSETS:
 INSTANCES:
 wght=300:600,wdth=85
 wght=200:300:500,wdth=80:90
+
+IUP_OPTIONS:
+Yes
+No

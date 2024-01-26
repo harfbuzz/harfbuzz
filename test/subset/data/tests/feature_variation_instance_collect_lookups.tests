@@ -9,3 +9,7 @@ SUBSETS:
 
 INSTANCES:
 wdth=112.5
+
+IUP_OPTIONS:
+Yes
+No
