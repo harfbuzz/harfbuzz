@@ -609,7 +609,9 @@ struct tuple_delta_t
                                  const hb_map_t& axes_old_index_tag_map,
                                  const hb_hashmap_t<const hb_vector_t<char>*, unsigned>* shared_tuples_idx_map)
   {
-    if (!compiled_deltas) return false;
+    /* compiled_deltas could be empty after iup delta optimization, we can skip
+     * compiling this tuple and return true */
+    if (!compiled_deltas) return true;
 
     unsigned cur_axis_count = axes_index_map.get_population ();
     /* allocate enough memory: 1 peak + 2 intermediate coords + fixed header size */
@@ -1755,6 +1757,9 @@ struct TupleVariationData
      * min_size: 4 */
     unsigned compiled_byte_size = 4;
 
+    /* for gvar iup delta optimization: whether this is a composite glyph */
+    bool is_composite = false;
+
     public:
     tuple_variations_t () = default;
     tuple_variations_t (const tuple_variations_t&) = delete;
@@ -1766,7 +1771,7 @@ struct TupleVariationData
     explicit operator bool () const { return bool (tuple_vars); }
     unsigned get_var_count () const
     {
-      unsigned count = tuple_vars.length;
+      unsigned count = 0;
       /* when iup delta opt is enabled, compiled_deltas could be empty and we
        * should skip this tuple */
       for (auto& tuple: tuple_vars)
@@ -1786,7 +1791,8 @@ struct TupleVariationData
                                      bool is_gvar,
                                      const hb_map_t *axes_old_index_tag_map,
                                      const hb_vector_t<unsigned> &shared_indices,
-                                     const hb_array_t<const F2DOT14> shared_tuples)
+                                     const hb_array_t<const F2DOT14> shared_tuples,
+                                     bool is_composite_glyph)
     {
       do
       {
@@ -1845,6 +1851,8 @@ struct TupleVariationData
         }
         tuple_vars.push (std::move (var));
       } while (iterator.move_to_next ());
+
+      is_composite = is_composite_glyph;
       return true;
     }
 
@@ -2041,6 +2049,16 @@ struct TupleVariationData
       return true;
     }
 
+    bool iup_optimize (const contour_point_vector_t& contour_points)
+    {
+      for (tuple_delta_t& var : tuple_vars)
+      {
+        if (!var.optimize (contour_points, is_composite))
+          return false;
+      }
+      return true;
+    }
+
     public:
     bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                       const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
@@ -2062,6 +2080,7 @@ struct TupleVariationData
       if (!merge_tuple_variations (optimize ? contour_points : nullptr))
         return false;
 
+      if (optimize && !iup_optimize (*contour_points)) return false;
       return !tuple_vars.in_error ();
     }
 
@@ -2324,13 +2343,15 @@ struct TupleVariationData
                                    const hb_map_t *axes_old_index_tag_map,
                                    const hb_vector_t<unsigned> &shared_indices,
                                    const hb_array_t<const F2DOT14> shared_tuples,
-                                   tuple_variations_t& tuple_variations /* OUT */) const
+                                   tuple_variations_t& tuple_variations, /* OUT */
+                                   bool is_composite_glyph = false) const
   {
     return tuple_variations.create_from_tuple_var_data (iterator, tupleVarCount,
                                                         point_count, is_gvar,
                                                         axes_old_index_tag_map,
                                                         shared_indices,
-                                                        shared_tuples);
+                                                        shared_tuples,
+                                                        is_composite_glyph);
   }
 
   bool serialize (hb_serialize_context_t *c,

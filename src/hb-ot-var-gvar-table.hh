@@ -114,13 +114,17 @@ struct glyph_variations_t
   bool instantiate (const hb_subset_plan_t *plan)
   {
     unsigned count = plan->new_to_old_gid_list.length;
+    bool iup_optimize = false;
+#ifdef HB_EXPERIMENTAL_API
+    iup_optimize = plan->flags & HB_SUBSET_FLAGS_IUP_DELTA_OPT;
+#endif
     for (unsigned i = 0; i < count; i++)
     {
       hb_codepoint_t new_gid = plan->new_to_old_gid_list[i].first;
       contour_point_vector_t *all_points;
       if (!plan->new_gid_contour_points_map.has (new_gid, &all_points))
         return false;
-      if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, all_points))
+      if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, all_points, iup_optimize))
         return false;
     }
     return true;
