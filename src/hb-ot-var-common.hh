@@ -1020,6 +1020,91 @@ struct tuple_delta_t
     return true;
   }
 
+  static bool compile_point_set (const hb_vector_t<bool> &point_indices,
+                                 hb_vector_t<char>& compiled_points /* OUT */)
+  {
+    unsigned num_points = 0;
+    for (bool i : point_indices)
+      if (i) num_points++;
+
+    /* when iup optimization is enabled, num of referenced points could be 0 */
+    if (!num_points) return true;
+
+    unsigned indices_length = point_indices.length;
+    /* If the points set consists of all points in the glyph, it's encoded with a
+     * single zero byte */
+    if (num_points == indices_length)
+      return compiled_points.resize (1);
+
+    /* allocate enough memories: 2 bytes for count + 3 bytes for each point */
+    unsigned num_bytes = 2 + 3 *num_points;
+    if (unlikely (!compiled_points.resize (num_bytes, false)))
+      return false;
+
+    unsigned pos = 0;
+    /* binary data starts with the total number of reference points */
+    if (num_points < 0x80)
+      compiled_points.arrayZ[pos++] = num_points;
+    else
+    {
+      compiled_points.arrayZ[pos++] = ((num_points >> 8) | 0x80);
+      compiled_points.arrayZ[pos++] = num_points & 0xFF;
+    }
+
+    const unsigned max_run_length = 0x7F;
+    unsigned i = 0;
+    unsigned last_value = 0;
+    unsigned num_encoded = 0;
+    while (i < indices_length && num_encoded < num_points)
+    {
+      unsigned run_length = 0;
+      unsigned header_pos = pos;
+      compiled_points.arrayZ[pos++] = 0;
+
+      bool use_byte_encoding = false;
+      bool new_run = true;
+      while (i < indices_length && num_encoded < num_points &&
+             run_length <= max_run_length)
+      {
+        // find out next referenced point index
+        while (i < indices_length && !point_indices[i])
+          i++;
+
+        if (i >= indices_length) break;
+
+        unsigned cur_value = i;
+        unsigned delta = cur_value - last_value;
+
+        if (new_run)
+        {
+          use_byte_encoding = (delta <= 0xFF);
+          new_run = false;
+        }
+
+        if (use_byte_encoding && delta > 0xFF)
+          break;
+
+        if (use_byte_encoding)
+          compiled_points.arrayZ[pos++] = delta;
+        else
+        {
+          compiled_points.arrayZ[pos++] = delta >> 8;
+          compiled_points.arrayZ[pos++] = delta & 0xFF;
+        }
+        i++;
+        last_value = cur_value;
+        run_length++;
+        num_encoded++;
+      }
+
+      if (use_byte_encoding)
+        compiled_points.arrayZ[header_pos] = run_length - 1;
+      else
+        compiled_points.arrayZ[header_pos] = (run_length - 1) | 0x80;
+    }
+    return compiled_points.resize (pos, false);
+  }
+
   static float infer_delta (float target_val, float prev_val, float next_val, float prev_delta, float next_delta)
   {
     if (prev_val == next_val)
@@ -1071,15 +1156,15 @@ struct TupleVariationData
 
     private:
     /* referenced point set->compiled point data map */
-    hb_hashmap_t<const hb_vector_t<bool>*, hb_bytes_t> point_data_map;
+    hb_hashmap_t<const hb_vector_t<bool>*, hb_vector_t<char>> point_data_map;
     /* referenced point set-> count map, used in finding shared points */
     hb_hashmap_t<const hb_vector_t<bool>*, unsigned> point_set_count_map;
 
     /* empty for non-gvar tuples.
-     * shared_points_bytes is just a copy of some value in the point_data_map,
+     * shared_points_bytes is a pointer to some value in the point_data_map,
      * which will be freed during map destruction. Save it for serialization, so
      * no need to do find_shared_points () again */
-    hb_bytes_t shared_points_bytes;
+    hb_vector_t<char> *shared_points_bytes = nullptr;
 
     /* total compiled byte size as TupleVariationData format, initialized to its
      * min_size: 4 */
@@ -1091,21 +1176,18 @@ struct TupleVariationData
     tuple_variations_t& operator=(const tuple_variations_t&) = delete;
     tuple_variations_t (tuple_variations_t&&) = default;
     tuple_variations_t& operator=(tuple_variations_t&&) = default;
-    ~tuple_variations_t () { fini (); }
-    void fini ()
-    {
-      for (auto _ : point_data_map.values ())
-        _.fini ();
-
-      point_set_count_map.fini ();
-      tuple_vars.fini ();
-    }
+    ~tuple_variations_t () = default;
 
     explicit operator bool () const { return bool (tuple_vars); }
     unsigned get_var_count () const
     {
       unsigned count = tuple_vars.length;
-      if (shared_points_bytes.length)
+      /* when iup delta opt is enabled, compiled_deltas could be empty and we
+       * should skip this tuple */
+      for (auto& tuple: tuple_vars)
+        if (tuple.compiled_deltas) count++;
+
+      if (shared_points_bytes && shared_points_bytes->length)
         count |= TupleVarCount::SharedPointNumbers;
       return count;
     }
@@ -1126,19 +1208,19 @@ struct TupleVariationData
         const HBUINT8 *p = iterator.get_serialized_data ();
         unsigned int length = iterator.current_tuple->get_data_size ();
         if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
-        { fini (); return false; }
+          return false;
 
         hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
         if (!iterator.current_tuple->unpack_axis_tuples (iterator.get_axis_count (), shared_tuples, axes_old_index_tag_map, axis_tuples)
             || axis_tuples.is_empty ())
-        { fini (); return false; }
+          return false;
 
         hb_vector_t<unsigned> private_indices;
         bool has_private_points = iterator.current_tuple->has_private_points ();
         const HBUINT8 *end = p + length;
         if (has_private_points &&
             !TupleVariationData::unpack_points (p, private_indices, end))
-        { fini (); return false; }
+          return false;
 
         const hb_vector_t<unsigned> &indices = has_private_points ? private_indices : shared_indices;
         bool apply_to_all = (indices.length == 0);
@@ -1148,24 +1230,24 @@ struct TupleVariationData
 
         if (unlikely (!deltas_x.resize (num_deltas, false) ||
                       !TupleVariationData::unpack_deltas (p, deltas_x, end)))
-        { fini (); return false; }
+          return false;
 
         hb_vector_t<int> deltas_y;
         if (is_gvar)
         {
           if (unlikely (!deltas_y.resize (num_deltas, false) ||
                         !TupleVariationData::unpack_deltas (p, deltas_y, end)))
-          { fini (); return false; }
+            return false;
         }
 
         tuple_delta_t var;
         var.axis_tuples = std::move (axis_tuples);
         if (unlikely (!var.indices.resize (point_count) ||
                       !var.deltas_x.resize (point_count, false)))
-        { fini (); return false; }
+          return false;
 
         if (is_gvar && unlikely (!var.deltas_y.resize (point_count, false)))
-        { fini (); return false; }
+          return false;
 
         for (unsigned i = 0; i < num_deltas; i++)
         {
@@ -1261,7 +1343,7 @@ struct TupleVariationData
           unsigned new_len = new_vars.length + out.length;
 
           if (unlikely (!new_vars.alloc (new_len, false)))
-          { fini (); return false;}
+            return false;
 
           for (unsigned i = 0; i < out.length; i++)
             new_vars.push (std::move (out[i]));
@@ -1299,92 +1381,6 @@ struct TupleVariationData
       tuple_vars = std::move (new_vars);
     }
 
-    hb_bytes_t compile_point_set (const hb_vector_t<bool> &point_indices)
-    {
-      unsigned num_points = 0;
-      for (bool i : point_indices)
-        if (i) num_points++;
-
-      unsigned indices_length = point_indices.length;
-      /* If the points set consists of all points in the glyph, it's encoded with a
-       * single zero byte */
-      if (num_points == indices_length)
-      {
-        char *p = (char *) hb_calloc (1, sizeof (char));
-        if (unlikely (!p)) return hb_bytes_t ();
-
-        return hb_bytes_t (p, 1);
-      }
-
-      /* allocate enough memories: 2 bytes for count + 3 bytes for each point */
-      unsigned num_bytes = 2 + 3 *num_points;
-      char *p = (char *) hb_calloc (num_bytes, sizeof (char));
-      if (unlikely (!p)) return hb_bytes_t ();
-
-      unsigned pos = 0;
-      /* binary data starts with the total number of reference points */
-      if (num_points < 0x80)
-        p[pos++] = num_points;
-      else
-      {
-        p[pos++] = ((num_points >> 8) | 0x80);
-        p[pos++] = num_points & 0xFF;
-      }
-
-      const unsigned max_run_length = 0x7F;
-      unsigned i = 0;
-      unsigned last_value = 0;
-      unsigned num_encoded = 0;
-      while (i < indices_length && num_encoded < num_points)
-      {
-        unsigned run_length = 0;
-        unsigned header_pos = pos;
-        p[pos++] = 0;
-
-        bool use_byte_encoding = false;
-        bool new_run = true;
-        while (i < indices_length && num_encoded < num_points &&
-               run_length <= max_run_length)
-        {
-          // find out next referenced point index
-          while (i < indices_length && !point_indices[i])
-            i++;
-
-          if (i >= indices_length) break;
-
-          unsigned cur_value = i;
-          unsigned delta = cur_value - last_value;
-
-          if (new_run)
-          {
-            use_byte_encoding = (delta <= 0xFF);
-            new_run = false;
-          }
-
-          if (use_byte_encoding && delta > 0xFF)
-            break;
-
-          if (use_byte_encoding)
-            p[pos++] = delta;
-          else
-          {
-            p[pos++] = delta >> 8;
-            p[pos++] = delta & 0xFF;
-          }
-          i++;
-          last_value = cur_value;
-          run_length++;
-          num_encoded++;
-        }
-
-        if (use_byte_encoding)
-          p[header_pos] = run_length - 1;
-        else
-          p[header_pos] = (run_length - 1) | 0x80;
-      }
-      return hb_bytes_t (p, pos);
-    }
-
     /* compile all point set and store byte data in a point_set->hb_bytes_t hashmap,
      * also update point_set->count map, which will be used in finding shared
      * point set*/
@@ -1402,11 +1398,11 @@ struct TupleVariationData
           continue;
         }
         
-        hb_bytes_t compiled_data = compile_point_set (*points_set);
-        if (unlikely (compiled_data == hb_bytes_t ()))
+        hb_vector_t<char> compiled_point_data;
+        if (!tuple_delta_t::compile_point_set (*points_set, compiled_point_data))
           return false;
         
-        if (!point_data_map.set (points_set, compiled_data) ||
+        if (!point_data_map.set (points_set, std::move (compiled_point_data)) ||
             !point_set_count_map.set (points_set, 1))
           return false;
       }
@@ -1414,28 +1410,30 @@ struct TupleVariationData
     }
 
     /* find shared points set which saves most bytes */
-    hb_bytes_t find_shared_points ()
+    void find_shared_points ()
     {
       unsigned max_saved_bytes = 0;
-      hb_bytes_t res{};
 
-      for (const auto& _ : point_data_map.iter ())
+      for (const auto& _ : point_data_map.iter_ref ())
       {
         const hb_vector_t<bool>* points_set = _.first;
         unsigned data_length = _.second.length;
+        if (!data_length) continue;
         unsigned *count;
         if (unlikely (!point_set_count_map.has (points_set, &count) ||
                       *count <= 1))
-          return hb_bytes_t ();
+        {
+          shared_points_bytes = nullptr;
+          return;
+        }
 
         unsigned saved_bytes = data_length * ((*count) -1);
         if (saved_bytes > max_saved_bytes)
         {
           max_saved_bytes = saved_bytes;
-          res = _.second;
+          shared_points_bytes = &(_.second);
         }
       }
-      return res;
     }
 
     bool calc_inferred_deltas (contour_point_vector_t& contour_points)
@@ -1475,21 +1473,27 @@ struct TupleVariationData
 
       if (use_shared_points)
       {
-        shared_points_bytes = find_shared_points ();
-        compiled_byte_size += shared_points_bytes.length;
+        find_shared_points ();
+        if (shared_points_bytes)
+          compiled_byte_size += shared_points_bytes->length;
       }
       // compile delta and tuple var header for each tuple variation
       for (auto& tuple: tuple_vars)
       {
         const hb_vector_t<bool>* points_set = &(tuple.indices);
-        hb_bytes_t *points_data;
+        hb_vector_t<char> *points_data;
         if (unlikely (!point_data_map.has (points_set, &points_data)))
           return false;
 
+        /* when iup optimization is enabled, num of referenced points could be 0
+         * and thus the compiled points bytes is empty, we should skip compiling
+         * this tuple */
+        if (!points_data->length)
+          continue;
         if (!tuple.compile_deltas ())
           return false;
 
-        unsigned points_data_length = (*points_data != shared_points_bytes) ? points_data->length : 0;
+        unsigned points_data_length = (points_data != shared_points_bytes) ? points_data->length : 0;
         if (!tuple.compile_tuple_var_header (axes_index_map, points_data_length, axes_old_index_tag_map,
                                              shared_tuples_idx_map))
           return false;
@@ -1513,18 +1517,24 @@ struct TupleVariationData
     bool serialize_var_data (hb_serialize_context_t *c, bool is_gvar) const
     {
       TRACE_SERIALIZE (this);
-      if (is_gvar)
-        shared_points_bytes.copy (c);
+      if (is_gvar && shared_points_bytes)
+      {
+        hb_bytes_t s (shared_points_bytes->arrayZ, shared_points_bytes->length);
+        s.copy (c);
+      }
 
       for (const auto& tuple: tuple_vars)
       {
         const hb_vector_t<bool>* points_set = &(tuple.indices);
-        hb_bytes_t *point_data;
+        hb_vector_t<char> *point_data;
         if (!point_data_map.has (points_set, &point_data))
           return_trace (false);
 
-        if (!is_gvar || *point_data != shared_points_bytes)
-          point_data->copy (c);
+        if (!is_gvar || point_data != shared_points_bytes)
+        {
+          hb_bytes_t s (point_data->arrayZ, point_data->length);
+          s.copy (c);
+        }
 
         tuple.compiled_deltas.as_array ().copy (c);
         if (c->in_error ()) return_trace (false);
