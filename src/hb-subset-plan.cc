@@ -1098,9 +1098,11 @@ _get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
     if (unlikely (!plan->new_gid_contour_points_map.set (new_gid, all_points)))
       return false;
 
+#ifdef HB_EXPERIMENTAL_API
     /* composite new gids are only needed by iup delta optimization */
     if ((plan->flags & HB_SUBSET_FLAGS_IUP_DELTA_OPT) && glyph.is_composite ())
       plan->composite_new_gids.add (new_gid);
+#endif
   }
   return true;
 }

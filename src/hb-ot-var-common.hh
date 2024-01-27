@@ -1567,7 +1567,7 @@ struct tuple_delta_t
         bool force = false;
         if (c1 == c2)
         {
-          if (fabsf (d1 - d2) > tolerance && fabsf (dj) > tolerance)
+          if (abs (d1 - d2) > tolerance && abs (dj) > tolerance)
             force = true;
         }
         else if (c1 <= cj && cj <= c2)
@@ -1582,15 +1582,15 @@ struct tuple_delta_t
           {
             if (cj < c1)
             {
-              if (fabsf (dj) > tolerance &&
-                  fabsf (dj - d1) > tolerance &&
+              if (abs (dj) > tolerance &&
+                  abs (dj - d1) > tolerance &&
                   ((dj - tolerance < d1) != (d1 < d2)))
                   force = true;
             }
             else
             {
-              if (fabsf (dj) > tolerance &&
-                  fabsf (dj - d2) > tolerance &&
+              if (abs (dj) > tolerance &&
+                  abs (dj - d2) > tolerance &&
                   ((d2 < dj + tolerance) != (d1 < d2)))
                 force = true;
             }
