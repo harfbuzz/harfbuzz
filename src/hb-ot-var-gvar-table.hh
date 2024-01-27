@@ -101,10 +101,15 @@ struct glyph_variations_t
         continue;
       }
 
+      bool is_composite_glyph = false;
+#ifdef HB_EXPERIMENTAL_API
+      is_composite_glyph = plan->composite_new_gids.has (new_gid);
+#endif
       if (!p->decompile_tuple_variations (all_contour_points->length, true /* is_gvar */,
                                           iterator, &(plan->axes_old_index_tag_map),
                                           shared_indices, shared_tuples,
-                                          tuple_vars /* OUT */))
+                                          tuple_vars, /* OUT */
+                                          is_composite_glyph))
         return false;
       glyph_variations.push (std::move (tuple_vars));
     }
