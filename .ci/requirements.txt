@@ -48,9 +48,9 @@ fonttools==4.47.2 \
     --hash=sha256:f791446ff297fd5f1e2247c188de53c1bfb9dd7f0549eba55b73a3c2087a2703 \
     --hash=sha256:f83a4daef6d2a202acb9bf572958f91cfde5b10c8ee7fb1d09a4c81e5d851fd8
     # via -r requirements-fonttools.in
-gcovr==5.0 \
-    --hash=sha256:1d80264cbaadff356b3dda71b8c62b3aa803e5b3eb6d526a24932cd6660a2576 \
-    --hash=sha256:8c49ebcfc5a98b56dd900c687aad0258ac86093d2f81a1417905193ab45fe69f
+gcovr==7.0 \
+    --hash=sha256:9bb365aadaf0c8d95fb457bba9f6fb6e306804faedc883786d90a72f93ed2d57 \
+    --hash=sha256:d4124f89e9299cce4a0b2fda9b9cd6c07c4b7d0e94705eb071fd332671ee1125
     # via -r requirements.in
 jinja2==3.1.3 \
     --hash=sha256:7d6d50dd97d52cbc355597bd845fabfbac3f551e1f99619e39a35ce8c370b5fa \
