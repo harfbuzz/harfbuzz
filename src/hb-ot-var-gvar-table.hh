@@ -121,7 +121,7 @@ struct glyph_variations_t
     unsigned count = plan->new_to_old_gid_list.length;
     bool iup_optimize = false;
 #ifdef HB_EXPERIMENTAL_API
-    iup_optimize = plan->flags & HB_SUBSET_FLAGS_IUP_DELTA_OPT;
+    iup_optimize = plan->flags & HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS;
 #endif
     for (unsigned i = 0; i < count; i++)
     {

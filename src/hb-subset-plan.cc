@@ -1100,7 +1100,7 @@ _get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
 
 #ifdef HB_EXPERIMENTAL_API
     /* composite new gids are only needed by iup delta optimization */
-    if ((plan->flags & HB_SUBSET_FLAGS_IUP_DELTA_OPT) && glyph.is_composite ())
+    if ((plan->flags & HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS) && glyph.is_composite ())
       plan->composite_new_gids.add (new_gid);
 #endif
   }
