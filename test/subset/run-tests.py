@@ -60,6 +60,8 @@ def run_test (test, should_check_ots, preprocess):
 	cli_args.extend (test.get_profile_flags ())
 	if test.get_instance_flags ():
 		cli_args.extend (["--instance=%s" % ','.join(test.get_instance_flags ())])
+	if test.iup_optimize:
+		cli_args.extend (["--optimize",])
 	ret = subset_cmd (cli_args)
 
 	if ret != "success":

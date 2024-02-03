@@ -101,10 +101,15 @@ struct glyph_variations_t
         continue;
       }
 
+      bool is_composite_glyph = false;
+#ifdef HB_EXPERIMENTAL_API
+      is_composite_glyph = plan->composite_new_gids.has (new_gid);
+#endif
       if (!p->decompile_tuple_variations (all_contour_points->length, true /* is_gvar */,
                                           iterator, &(plan->axes_old_index_tag_map),
                                           shared_indices, shared_tuples,
-                                          tuple_vars /* OUT */))
+                                          tuple_vars, /* OUT */
+                                          is_composite_glyph))
         return false;
       glyph_variations.push (std::move (tuple_vars));
     }
@@ -114,13 +119,17 @@ struct glyph_variations_t
   bool instantiate (const hb_subset_plan_t *plan)
   {
     unsigned count = plan->new_to_old_gid_list.length;
+    bool iup_optimize = false;
+#ifdef HB_EXPERIMENTAL_API
+    iup_optimize = plan->flags & HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS;
+#endif
     for (unsigned i = 0; i < count; i++)
     {
       hb_codepoint_t new_gid = plan->new_to_old_gid_list[i].first;
       contour_point_vector_t *all_points;
       if (!plan->new_gid_contour_points_map.has (new_gid, &all_points))
         return false;
-      if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, all_points))
+      if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, all_points, iup_optimize))
         return false;
     }
     return true;

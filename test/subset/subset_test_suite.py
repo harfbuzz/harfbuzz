@@ -5,11 +5,12 @@ import os
 # A single test in a subset test suite. Identifies a font
 # a subsetting profile, and a subset to be cut.
 class Test:
-	def __init__(self, font_path, profile_path, subset, instance, options):
+	def __init__(self, font_path, profile_path, subset, instance, iup_optimize, options):
 		self.font_path = font_path
 		self.profile_path = profile_path
 		self.subset = subset
 		self.instance = instance
+		self.iup_optimize = iup_optimize
 		self.options = options
 
 	def unicodes(self):
@@ -29,6 +30,8 @@ class Test:
 			return self.instance
 		else:
 			s = "." + self.instance.replace(':', '-')
+			if self.iup_optimize:
+				s += ".iup_optimize"
 			return s
 
 	def get_profile_flags(self):
@@ -79,6 +82,7 @@ class SubsetTestSuite:
 		self.subsets = []
 		self.instances = []
 		self.options = []
+		self.iup_options = []
 		self._parse(definition)
 
 	def get_output_directory(self):
@@ -101,9 +105,13 @@ class SubsetTestSuite:
 				for subset in self.subsets:
 					if self.instances:
 						for instance in self.instances:
-							yield Test(font, profile, subset, instance, options=self.options)
+							if self.iup_options:
+								for iup_option in self.iup_options:
+									yield Test(font, profile, subset, instance, iup_option == 'Yes', options=self.options)
+							else:
+								yield Test(font, profile, subset, instance, False, options=self.options)
 					else:
-						yield Test(font, profile, subset, "", options=self.options)
+						yield Test(font, profile, subset, "", False, options=self.options)
 
 	def _base_path(self):
 		return os.path.dirname(os.path.dirname(self.test_path))
@@ -115,6 +123,7 @@ class SubsetTestSuite:
 				"SUBSETS:": self.subsets,
 				"INSTANCES:": self.instances,
 				"OPTIONS:": self.options,
+				"IUP_OPTIONS:": self.iup_options,
 		}
 
 		current_destination = None

@@ -1073,8 +1073,8 @@ _update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
 static bool
 _get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
 {
-  /* contour_points vector only needed for updating gvar table (infer delta)
-   * during partial instancing */
+  /* contour_points vector only needed for updating gvar table (infer delta and
+   * iup delta optimization) during partial instancing */
   if (plan->user_axes_location.is_empty () || plan->all_axes_pinned)
     return true;
 
@@ -1092,10 +1092,17 @@ _get_instance_glyphs_contour_points (hb_subset_plan_t *plan)
     }
 
     hb_codepoint_t old_gid = _.second;
-    if (unlikely (!glyf.glyph_for_gid (old_gid).get_all_points_without_var (plan->source, all_points)))
+    auto glyph = glyf.glyph_for_gid (old_gid);
+    if (unlikely (!glyph.get_all_points_without_var (plan->source, all_points)))
       return false;
     if (unlikely (!plan->new_gid_contour_points_map.set (new_gid, all_points)))
       return false;
+
+#ifdef HB_EXPERIMENTAL_API
+    /* composite new gids are only needed by iup delta optimization */
+    if ((plan->flags & HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS) && glyph.is_composite ())
+      plan->composite_new_gids.add (new_gid);
+#endif
   }
   return true;
 }

@@ -27,16 +27,17 @@ def strip_check_sum (ttx_string):
 		       ttx_string, count=1)
 
 
-def generate_expected_output(input_file, unicodes, profile_flags, instance_flags, output_directory, font_name, no_fonttools):
+def generate_expected_output(input_file, unicodes, profile_flags, instance_flags, iup_optimize, output_directory, font_name, no_fonttools):
 	input_path = input_file
 	if not no_fonttools and instance_flags:
 		instance_path = os.path.join(tempfile.mkdtemp (), font_name)
 		args = ["fonttools", "varLib.instancer",
 			"--no-overlap-flag",
-			"--no-recalc-timestamp",
-			"--no-optimize",
-			"--output=%s" % instance_path,
-			input_file]
+			"--no-recalc-timestamp"]
+		if not iup_optimize:
+			args.extend(["--no-optimize",])
+		args.extend(["--output=%s" % instance_path,
+			    input_file])
 		args.extend(instance_flags)
 		check_call(args)
 		input_path = instance_path
@@ -75,6 +76,8 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 	args.extend(profile_flags)
 	if instance_flags:
 		args.extend(["--instance=%s" % ','.join(instance_flags)])
+	if iup_optimize:
+		args.extend(["--optimize",])
 	check_call(args)
 
 	with io.StringIO () as fp:
@@ -111,4 +114,4 @@ for path in args:
 			no_fonttools = ("no_fonttools" in test.options)
 			print("Creating subset %s/%s" % (output_directory, font_name))
 			generate_expected_output(test.font_path, unicodes, test.get_profile_flags(),
-						 test.get_instance_flags(), output_directory, font_name, no_fonttools=no_fonttools)
+						 test.get_instance_flags(), test.iup_optimize, output_directory, font_name, no_fonttools=no_fonttools)

@@ -533,11 +533,11 @@ test_instancer_solver_SOURCES = test-subset-instancer-solver.cc hb-subset-instan
 test_instancer_solver_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_instancer_solver_LDADD = $(COMPILED_TESTS_LDADD)
 
-test_tuple_varstore_SOURCES = test-tuple-varstore.cc hb-subset-instancer-solver.cc hb-static.cc
+test_tuple_varstore_SOURCES = test-tuple-varstore.cc hb-subset-instancer-solver.cc hb-subset-instancer-iup.cc hb-static.cc
 test_tuple_varstore_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_tuple_varstore_LDADD = $(COMPILED_TESTS_LDADD)
 
-test_item_varstore_SOURCES = test-item-varstore.cc hb-subset-instancer-solver.cc hb-static.cc
+test_item_varstore_SOURCES = test-item-varstore.cc hb-subset-instancer-solver.cc hb-subset-instancer-iup.cc hb-static.cc
 test_item_varstore_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_item_varstore_LDADD = $(COMPILED_TESTS_LDADD)
 

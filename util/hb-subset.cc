@@ -963,6 +963,7 @@ subset_main_t::add_options ()
      "If set preprocesses the face with the add accelerator option before actually subsetting.", nullptr},
 #ifdef HB_EXPERIMENTAL_API
     {"iftb-requirements",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_IFTB_REQUIREMENTS>,	"Enforce requirements needed to use the subset with incremental font transfer IFTB patches.", nullptr},
+    {"optimize",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS>,		"Perform IUP delta optimization on the resulting gvar table's deltas", nullptr},
 #endif
     {nullptr}
   };

@@ -11,3 +11,7 @@ INSTANCES:
 wght=300:600
 wght=500:800
 wght=200:600,wdth=80:90,CTGR=20:60
+
+IUP_OPTIONS:
+Yes
+No
