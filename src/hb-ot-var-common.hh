@@ -1472,6 +1472,7 @@ struct TupleVariationData
         unsigned *idx;
         if (m.has (&(var.axis_tuples), &idx))
         {
+          if (!idx) return false;
           new_vars[*idx] += var;
         }
         else
