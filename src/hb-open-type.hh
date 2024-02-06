@@ -132,6 +132,87 @@ struct HBUINT15 : HBUINT16
   DEFINE_SIZE_STATIC (2);
 };
 
+/* 32-bit unsigned integer with variable encoding. */
+struct HBUINT32VAR
+{
+  unsigned get_size () const
+  {
+    unsigned b0 = v[0];
+    if (b0 < 0x80)
+      return 1;
+    else if (b0 < 0xC0)
+      return 2;
+    else if (b0 < 0xE0)
+      return 3;
+    else if (b0 < 0xF0)
+      return 4;
+    else
+      return 5;
+  }
+
+  static unsigned get_size (uint32_t v)
+  {
+    if (v < 0x80)
+      return 1;
+    else if (v < 0x4000)
+      return 2;
+    else if (v < 0x200000)
+      return 3;
+    else if (v < 0x10000000)
+      return 4;
+    else
+      return 5;
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_range (v, 1) && c->check_struct (this));
+  }
+
+  operator unsigned () const
+  {
+    unsigned b0 = v[0];
+    if (b0 < 0x80)
+      return b0;
+    else if (b0 < 0xC0)
+      return ((b0 & 0x3F) << 8) | v[1];
+    else if (b0 < 0xE0)
+      return ((b0 & 0x1F) << 16) | (v[1] << 8) | v[2];
+    else if (b0 < 0xF0)
+      return ((b0 & 0x0F) << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
+    else
+      return (v[1] << 24) | (v[2] << 16) | (v[3] << 8) | v[4];
+  }
+
+  static bool serialize (hb_serialize_context_t *c, uint32_t v)
+  {
+    unsigned len = get_size (v);
+
+    unsigned char *buf = c->allocate_size<unsigned char> (len, false);
+    if (unlikely (!buf))
+      return false;
+
+    unsigned char *p = buf + len;
+    for (unsigned i = 0; i < len; i++)
+    {
+      *--p = v & 0xFF;
+      v >>= 8;
+    }
+
+    if (len > 1)
+      buf[0] |= ((1 << (len - 1)) - 1) << (9 - len);
+
+    return true;
+  }
+
+  protected:
+  unsigned char v[1];
+
+  public:
+  DEFINE_SIZE_MIN (1);
+};
+
 /* 16-bit signed integer (HBINT16) that describes a quantity in FUnits. */
 typedef HBINT16 FWORD;
 
