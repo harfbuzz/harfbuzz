@@ -222,9 +222,9 @@ struct DeltaSetIndexMap
 };
 
 
-struct VarStoreInstancer
+struct ItemVarStoreInstancer
 {
-  VarStoreInstancer (const ItemVariationStore *varStore,
+  ItemVarStoreInstancer (const ItemVariationStore *varStore,
 		     const DeltaSetIndexMap *varIdxMap,
 		     hb_array_t<int> coords) :
     varStore (varStore), varIdxMap (varIdxMap), coords (coords) {}
