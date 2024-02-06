@@ -155,10 +155,10 @@ struct hb_serialize_context_t
     hb_vector_t<link_t> virtual_links;
     object_t *next;
 
-    hb_vector_t<link_t> all_links ()
-        { return hb_concat (this->real_links, this->virtual_links); }
-    hb_vector_t<link_t> all_links_writer ()
-        { return hb_concat (this->real_links.writer (), this->virtual_links.writer ()); }             
+    auto all_links () const HB_AUTO_RETURN
+        (( hb_concat (real_links, virtual_links) ));
+    auto all_links_writer () HB_AUTO_RETURN
+        (( hb_concat (real_links.writer (), virtual_links.writer ()) ));           
   };
 
   struct snapshot_t
