@@ -432,6 +432,8 @@ enum packed_delta_flag_t
 {
   DELTAS_ARE_ZERO      = 0x80,
   DELTAS_ARE_WORDS     = 0x40,
+  DELTAS_ARE_LONGS     = 0xC0,
+  DELTAS_SIZE_MASK     = 0xC0,
   DELTA_RUN_COUNT_MASK = 0x3F
 };
 
@@ -1811,18 +1813,27 @@ struct TupleVariationData
       unsigned run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
       unsigned stop = i + run_count;
       if (unlikely (stop > count)) return false;
-      if (control & DELTAS_ARE_ZERO)
+      if ((control & DELTAS_SIZE_MASK) == DELTAS_ARE_ZERO)
       {
         for (; i < stop; i++)
           deltas.arrayZ[i] = 0;
       }
-      else if (control & DELTAS_ARE_WORDS)
+      else if ((control & DELTAS_SIZE_MASK) ==  DELTAS_ARE_WORDS)
       {
-        if (unlikely (p + run_count * HBUINT16::static_size > end)) return false;
+        if (unlikely (p + run_count * HBINT16::static_size > end)) return false;
         for (; i < stop; i++)
         {
           deltas.arrayZ[i] = * (const HBINT16 *) p;
-          p += HBUINT16::static_size;
+          p += HBINT16::static_size;
+        }
+      }
+      else if ((control & DELTAS_SIZE_MASK) ==  DELTAS_ARE_LONGS)
+      {
+        if (unlikely (p + run_count * HBINT32::static_size > end)) return false;
+        for (; i < stop; i++)
+        {
+          deltas.arrayZ[i] = * (const HBINT32 *) p;
+          p += HBINT32::static_size;
         }
       }
       else
