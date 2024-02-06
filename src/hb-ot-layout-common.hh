@@ -2494,8 +2494,6 @@ struct VarRegionAxis
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
-    /* TODO Handle invalid start/peak/end configs, so we don't
-     * have to do that at runtime. */
   }
 
   bool serialize (hb_serialize_context_t *c) const
@@ -2510,6 +2508,28 @@ struct VarRegionAxis
   F2DOT14	endCoord;
   public:
   DEFINE_SIZE_STATIC (6);
+};
+struct SparseVarRegionAxis
+{
+  float evaluate (int coord) const { return axis.evaluate (coord); }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  bool serialize (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (this));
+  }
+
+  public:
+  HBUINT16 axisIndex;
+  VarRegionAxis axis;
+  public:
+  DEFINE_SIZE_STATIC (8);
 };
 
 #define REGION_CACHE_ITEM_CACHE_INVALID 2.f
