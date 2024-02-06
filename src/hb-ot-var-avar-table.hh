@@ -57,7 +57,7 @@ struct avarV2Tail
 
   protected:
   Offset32To<DeltaSetIndexMap>	varIdxMap;	/* Offset from the beginning of 'avar' table. */
-  Offset32To<VariationStore>	varStore;	/* Offset from the beginning of 'avar' table. */
+  Offset32To<ItemVariationStore>	varStore;	/* Offset from the beginning of 'avar' table. */
 
   public:
   DEFINE_SIZE_STATIC (8);
@@ -343,7 +343,7 @@ struct avar
     for (unsigned i = 0; i < coords_length; i++)
       coords[i] = out[i];
 
-    OT::VariationStore::destroy_cache (var_store_cache);
+    OT::ItemVariationStore::destroy_cache (var_store_cache);
 #endif
   }
 

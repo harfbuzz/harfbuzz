@@ -2413,7 +2413,7 @@ struct COLR
   Offset32To<LayerList>			layerList;
   Offset32To<ClipList>			clipList;   // Offset to ClipList table (may be NULL)
   Offset32To<DeltaSetIndexMap>		varIdxMap;  // Offset to DeltaSetIndexMap table (may be NULL)
-  Offset32To<VariationStore>		varStore;
+  Offset32To<ItemVariationStore>	varStore;
   public:
   DEFINE_SIZE_MIN (14);
 };

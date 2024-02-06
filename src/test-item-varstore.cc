@@ -40,7 +40,7 @@ test_item_variations ()
   axis_idx_tag_map.set (1, axis_tag);
 
   OT::item_variations_t item_vars;
-  const OT::VariationStore& src_var_store = hvar_table+(hvar_table->varStore);
+  const OT::ItemVariationStore& src_var_store = hvar_table+(hvar_table->varStore);
   bool result = item_vars.create_from_item_varstore (src_var_store, axis_idx_tag_map);
       
   assert (result);

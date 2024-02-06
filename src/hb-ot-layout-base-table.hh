@@ -86,7 +86,7 @@ struct BaseCoordFormat2
 struct BaseCoordFormat3
 {
   hb_position_t get_coord (hb_font_t *font,
-			   const VariationStore &var_store,
+			   const ItemVariationStore &var_store,
 			   hb_direction_t direction) const
   {
     const Device &device = this+deviceTable;
@@ -120,7 +120,7 @@ struct BaseCoord
   bool has_data () const { return u.format; }
 
   hb_position_t get_coord (hb_font_t            *font,
-			   const VariationStore &var_store,
+			   const ItemVariationStore &var_store,
 			   hb_direction_t        direction) const
   {
     switch (u.format) {
@@ -453,8 +453,8 @@ struct BASE
   const Axis &get_axis (hb_direction_t direction) const
   { return HB_DIRECTION_IS_VERTICAL (direction) ? this+vAxis : this+hAxis; }
 
-  const VariationStore &get_var_store () const
-  { return version.to_int () < 0x00010001u ? Null (VariationStore) : this+varStore; }
+  const ItemVariationStore &get_var_store () const
+  { return version.to_int () < 0x00010001u ? Null (ItemVariationStore) : this+varStore; }
 
   bool get_baseline (hb_font_t      *font,
 		     hb_tag_t        baseline_tag,
@@ -487,7 +487,7 @@ struct BASE
 					   &min_coord, &max_coord))
       return false;
 
-    const VariationStore &var_store = get_var_store ();
+    const ItemVariationStore &var_store = get_var_store ();
     if (likely (min && min_coord)) *min = min_coord->get_coord (font, var_store, direction);
     if (likely (max && max_coord)) *max = max_coord->get_coord (font, var_store, direction);
     return true;
@@ -510,7 +510,7 @@ struct BASE
 				 * of BASE table (may be NULL) */
   Offset16To<Axis>vAxis;		/* Offset to vertical Axis table, from beginning
 				 * of BASE table (may be NULL) */
-  Offset32To<VariationStore>
+  Offset32To<ItemVariationStore>
 		varStore;	/* Offset to the table of Item Variation
 				 * Store--from beginning of BASE
 				 * header (may be NULL).  Introduced

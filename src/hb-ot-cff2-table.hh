@@ -111,7 +111,7 @@ struct CFF2FDSelect
   DEFINE_SIZE_MIN (2);
 };
 
-struct CFF2VariationStore
+struct CFF2ItemVariationStore
 {
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -122,11 +122,11 @@ struct CFF2VariationStore
 		  varStore.sanitize (c));
   }
 
-  bool serialize (hb_serialize_context_t *c, const CFF2VariationStore *varStore)
+  bool serialize (hb_serialize_context_t *c, const CFF2ItemVariationStore *varStore)
   {
     TRACE_SERIALIZE (this);
     unsigned int size_ = varStore->get_size ();
-    CFF2VariationStore *dest = c->allocate_size<CFF2VariationStore> (size_);
+    CFF2ItemVariationStore *dest = c->allocate_size<CFF2ItemVariationStore> (size_);
     if (unlikely (!dest)) return_trace (false);
     hb_memcpy (dest, varStore, size_);
     return_trace (true);
@@ -135,9 +135,9 @@ struct CFF2VariationStore
   unsigned int get_size () const { return HBUINT16::static_size + size; }
 
   HBUINT16	size;
-  VariationStore  varStore;
+  ItemVariationStore  varStore;
 
-  DEFINE_SIZE_MIN (2 + VariationStore::min_size);
+  DEFINE_SIZE_MIN (2 + ItemVariationStore::min_size);
 };
 
 struct cff2_top_dict_values_t : top_dict_values_t<>
@@ -427,7 +427,7 @@ struct cff2
       }
 
       globalSubrs = &StructAtOffsetOrNull<CFF2Subrs> (cff2, cff2->topDict + cff2->topDictSize, sc);
-      varStore = &StructAtOffsetOrNull<CFF2VariationStore> (cff2, topDict.vstoreOffset, sc);
+      varStore = &StructAtOffsetOrNull<CFF2ItemVariationStore> (cff2, topDict.vstoreOffset, sc);
       charStrings = &StructAtOffsetOrNull<CFF2CharStrings> (cff2, topDict.charStringsOffset, sc);
       fdArray = &StructAtOffsetOrNull<CFF2FDArray> (cff2, topDict.FDArrayOffset, sc);
       fdSelect = &StructAtOffsetOrNull<CFF2FDSelect> (cff2, topDict.FDSelectOffset, sc, fdArray->count);
@@ -500,7 +500,7 @@ struct cff2
     hb_blob_t			*blob = nullptr;
     cff2_top_dict_values_t	topDict;
     const CFF2Subrs		*globalSubrs = nullptr;
-    const CFF2VariationStore	*varStore = nullptr;
+    const CFF2ItemVariationStore	*varStore = nullptr;
     const CFF2CharStrings	*charStrings = nullptr;
     const CFF2FDArray		*fdArray = nullptr;
     const CFF2FDSelect		*fdSelect = nullptr;

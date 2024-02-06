@@ -224,7 +224,7 @@ struct DeltaSetIndexMap
 
 struct VarStoreInstancer
 {
-  VarStoreInstancer (const VariationStore *varStore,
+  VarStoreInstancer (const ItemVariationStore *varStore,
 		     const DeltaSetIndexMap *varIdxMap,
 		     hb_array_t<int> coords) :
     varStore (varStore), varIdxMap (varIdxMap), coords (coords) {}
@@ -236,7 +236,7 @@ struct VarStoreInstancer
   float operator() (uint32_t varIdx, unsigned short offset = 0) const
   { return coords ? varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords) : 0; }
 
-  const VariationStore *varStore;
+  const ItemVariationStore *varStore;
   const DeltaSetIndexMap *varIdxMap;
   hb_array_t<int> coords;
 };
@@ -1967,7 +1967,7 @@ struct item_variations_t
   const hb_map_t& get_varidx_map () const
   { return varidx_map; }
 
-  bool instantiate (const VariationStore& varStore,
+  bool instantiate (const ItemVariationStore& varStore,
                     const hb_subset_plan_t *plan,
                     bool optimize=true,
                     bool use_no_variation_idx=true,
@@ -1981,7 +1981,7 @@ struct item_variations_t
   }
 
   /* keep below APIs public only for unit test: test-item-varstore */
-  bool create_from_item_varstore (const VariationStore& varStore,
+  bool create_from_item_varstore (const ItemVariationStore& varStore,
                                   const hb_map_t& axes_old_index_tag_map,
                                   const hb_array_t <const hb_inc_bimap_t> inner_maps = hb_array_t<const hb_inc_bimap_t> ())
   {
