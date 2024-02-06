@@ -747,8 +747,8 @@ struct tuple_delta_t
     }
 
     if (!rounded_deltas) return true;
-    /* allocate enough memories 3 * num_deltas */
-    unsigned alloc_len = 3 * rounded_deltas.length;
+    /* allocate enough memories 5 * num_deltas */
+    unsigned alloc_len = 5 * rounded_deltas.length;
     if (y_deltas)
       alloc_len *= 2;
 
@@ -792,8 +792,10 @@ struct tuple_delta_t
         encoded_len += encode_delta_run_as_zeroes (i, encoded_bytes.sub_array (encoded_len), deltas);
       else if (val >= -128 && val <= 127)
         encoded_len += encode_delta_run_as_bytes (i, encoded_bytes.sub_array (encoded_len), deltas);
-      else
+      else if (val >= -32768 && val <= 32767)
         encoded_len += encode_delta_run_as_words (i, encoded_bytes.sub_array (encoded_len), deltas);
+      else
+        encoded_len += encode_delta_run_as_longs (i, encoded_bytes.sub_array (encoded_len), deltas);
     }
     return encoded_len;
   }
@@ -937,6 +939,63 @@ struct tuple_delta_t
         *it++ = static_cast<char> (delta_val & 0xFF);
 
         encoded_len += 2;
+      }
+    }
+    return encoded_len;
+  }
+
+  static unsigned encode_delta_run_as_longs (unsigned &i,
+					     hb_array_t<char> encoded_bytes,
+					     const hb_vector_t<int>& deltas)
+  {
+    unsigned start = i;
+    unsigned num_deltas = deltas.length;
+    while (i < num_deltas)
+    {
+      int val = deltas.arrayZ[i];
+
+      if (val >= -32768 && val <= 32767)
+        break;
+
+      i++;
+    }
+
+    unsigned run_length = i - start;
+    auto it = encoded_bytes.iter ();
+    unsigned encoded_len = 0;
+    while (run_length >= 64)
+    {
+      *it++ = (DELTAS_ARE_LONGS | 63);
+      encoded_len++;
+
+      for (unsigned j = 0; j < 64; j++)
+      {
+        int32_t delta_val = deltas.arrayZ[start + j];
+        *it++ = static_cast<char> (delta_val >> 24);
+        *it++ = static_cast<char> (delta_val >> 16);
+        *it++ = static_cast<char> (delta_val >> 8);
+        *it++ = static_cast<char> (delta_val & 0xFF);
+
+        encoded_len += 4;
+      }
+
+      start += 64;
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      *it++ = (DELTAS_ARE_LONGS | (run_length - 1));
+      encoded_len++;
+      while (start < i)
+      {
+        int32_t delta_val = deltas.arrayZ[start++];
+        *it++ = static_cast<char> (delta_val >> 24);
+        *it++ = static_cast<char> (delta_val >> 16);
+        *it++ = static_cast<char> (delta_val >> 8);
+        *it++ = static_cast<char> (delta_val & 0xFF);
+
+        encoded_len += 4;
       }
     }
     return encoded_len;
