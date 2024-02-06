@@ -156,9 +156,9 @@ struct hb_serialize_context_t
     object_t *next;
 
     auto all_links () const HB_AUTO_RETURN
-        (( hb_concat (this->real_links, this->virtual_links) ));
+        (( hb_concat (real_links, virtual_links) ));
     auto all_links_writer () HB_AUTO_RETURN
-        (( hb_concat (this->real_links.writer (), this->virtual_links.writer ()) ));
+        (( hb_concat (real_links.writer (), virtual_links.writer ()) ));           
   };
 
   struct snapshot_t
