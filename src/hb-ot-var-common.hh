@@ -1861,15 +1861,18 @@ struct TupleVariationData
 
   static bool unpack_deltas (const HBUINT8 *&p /* IN/OUT */,
                              hb_vector_t<int> &deltas /* IN/OUT */,
-                             const HBUINT8 *end)
+                             const HBUINT8 *end,
+			     bool consume_all = false)
   {
     unsigned i = 0;
-    unsigned count = deltas.length;
+    unsigned count = consume_all ? UINT_MAX : deltas.length;
     while (i < count)
     {
-      if (unlikely (p + 1 > end)) return false;
+      if (unlikely (p + 1 > end)) return consume_all;
       unsigned control = *p++;
       unsigned run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
+      if (consume_all)
+        deltas.resize (deltas.length + run_count, false);
       unsigned stop = i + run_count;
       if (unlikely (stop > count)) return false;
       if ((control & DELTAS_SIZE_MASK) == DELTAS_ARE_ZERO)
