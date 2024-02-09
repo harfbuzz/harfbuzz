@@ -59,6 +59,23 @@ test_regular_face (void)
 }
 
 static void
+test_bold_face (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
+  hb_font_t *font = hb_font_create (face);
+
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 700);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+
+static void
 test_face_user_setting (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype_vsindex.otf");
@@ -182,6 +199,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_empty_face);
   hb_test_add (test_regular_face);
+  hb_test_add (test_bold_face);
   hb_test_add (test_face_user_setting);
   hb_test_add (test_synthetic_slant);
 
