@@ -46,6 +46,13 @@ _mplus_instance_opts[] =
   {HB_TAG ('w', 'g', 'h', 't'), 800.f},
 };
 
+static const axis_location_t
+_fraunces_partial_instance_opts[] =
+{
+  {HB_TAG ('S', 'O', 'F', 'T'), 75.0f},
+  {HB_TAG ('W', 'O', 'N', 'K'), 0.75f},
+};
+
 template <typename Type, unsigned int n>
 static inline unsigned int ARRAY_LEN (const Type (&)[n]) { return n; }
 
@@ -69,6 +76,7 @@ struct test_input_t
   {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf", 300, nullptr, 0},
   {SUBSET_FONT_BASE_PATH "MPLUS1-Variable.ttf", 6000, _mplus_instance_opts, ARRAY_LEN (_mplus_instance_opts)},
   {SUBSET_FONT_BASE_PATH "RobotoFlex-Variable.ttf", 900, _roboto_flex_instance_opts, ARRAY_LEN (_roboto_flex_instance_opts)},
+  {SUBSET_FONT_BASE_PATH "Fraunces.ttf", 900, _fraunces_partial_instance_opts, ARRAY_LEN (_fraunces_partial_instance_opts)},
 #if 0
   {"perf/fonts/NotoSansCJKsc-VF.ttf", 100000},
 #endif
@@ -186,6 +194,8 @@ static void BM_subset (benchmark::State &state,
       hb_face_collect_unicodes (face, all_codepoints);
       AddCodepoints(all_codepoints, subset_size, input);
       hb_set_destroy (all_codepoints);
+
+      hb_subset_input_set_flags(input, hb_subset_input_get_flags(input) | HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS);
 
       for (unsigned i = 0; i < test_input.num_instance_opts; i++)
         hb_subset_input_pin_axis_location (input, face,
