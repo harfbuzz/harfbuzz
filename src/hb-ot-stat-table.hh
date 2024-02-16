@@ -357,7 +357,7 @@ struct AxisValue
     case 2: return u.format2.get_value ();
     case 3: return u.format3.get_value ();
     case 4: return u.format4.get_axis_record (axis_index).get_value ();
-    default:return false;
+    default:return 0.f;
     }
   }
 
