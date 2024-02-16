@@ -70,9 +70,9 @@ struct hb_hashmap_t
 
     alloc (o.population); hb_copy (o, *this);
   }
-  hb_hashmap_t (hb_hashmap_t&& o) : hb_hashmap_t () { hb_swap (*this, o); }
+  hb_hashmap_t (hb_hashmap_t&& o)  noexcept : hb_hashmap_t () { hb_swap (*this, o); }
   hb_hashmap_t& operator= (const hb_hashmap_t& o)  { reset (); alloc (o.population); hb_copy (o, *this); return *this; }
-  hb_hashmap_t& operator= (hb_hashmap_t&& o)  { hb_swap (*this, o); return *this; }
+  hb_hashmap_t& operator= (hb_hashmap_t&& o)   noexcept { hb_swap (*this, o); return *this; }
 
   hb_hashmap_t (std::initializer_list<hb_pair_t<K, V>> lst) : hb_hashmap_t ()
   {
@@ -145,7 +145,7 @@ struct hb_hashmap_t
   unsigned int prime;
   item_t *items;
 
-  friend void swap (hb_hashmap_t& a, hb_hashmap_t& b)
+  friend void swap (hb_hashmap_t& a, hb_hashmap_t& b) noexcept
   {
     if (unlikely (!a.successful || !b.successful))
       return;
@@ -555,7 +555,7 @@ struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
   ~hb_map_t () = default;
   hb_map_t () : hashmap () {}
   hb_map_t (const hb_map_t &o) : hashmap ((hashmap &) o) {}
-  hb_map_t (hb_map_t &&o) : hashmap (std::move ((hashmap &) o)) {}
+  hb_map_t (hb_map_t &&o)  noexcept : hashmap (std::move ((hashmap &) o)) {}
   hb_map_t& operator= (const hb_map_t&) = default;
   hb_map_t& operator= (hb_map_t&&) = default;
   hb_map_t (std::initializer_list<hb_codepoint_pair_t> lst) : hashmap (lst) {}

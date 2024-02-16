@@ -91,7 +91,7 @@ struct hb_serialize_context_t
     }
 #endif
 
-    friend void swap (object_t& a, object_t& b)
+    friend void swap (object_t& a, object_t& b) noexcept
     {
       hb_swap (a.head, b.head);
       hb_swap (a.tail, b.tail);

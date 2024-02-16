@@ -671,7 +671,7 @@ struct hb_pair_t
     return 0;
   }
 
-  friend void swap (hb_pair_t& a, hb_pair_t& b)
+  friend void swap (hb_pair_t& a, hb_pair_t& b) noexcept
   {
     hb_swap (a.first, b.first);
     hb_swap (a.second, b.second);
