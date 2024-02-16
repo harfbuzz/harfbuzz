@@ -1979,7 +1979,7 @@ struct cmap
 			    hb_codepoint_t *glyph,
 			    cache_t *cache = nullptr) const
     {
-      if (unlikely (!this->get_glyph_funcZ)) return 0;
+      if (unlikely (!this->get_glyph_funcZ)) return false;
       return _cached_get (unicode, glyph, cache);
     }
 
