@@ -461,7 +461,7 @@ struct tuple_delta_t
   tuple_delta_t () = default;
   tuple_delta_t (const tuple_delta_t& o) = default;
 
-  friend void swap (tuple_delta_t& a, tuple_delta_t& b)
+  friend void swap (tuple_delta_t& a, tuple_delta_t& b) noexcept
   {
     hb_swap (a.axis_tuples, b.axis_tuples);
     hb_swap (a.indices, b.indices);
@@ -472,10 +472,10 @@ struct tuple_delta_t
     hb_swap (a.compiled_peak_coords, b.compiled_peak_coords);
   }
 
-  tuple_delta_t (tuple_delta_t&& o) : tuple_delta_t ()
+  tuple_delta_t (tuple_delta_t&& o)  noexcept : tuple_delta_t ()
   { hb_swap (*this, o); }
 
-  tuple_delta_t& operator = (tuple_delta_t&& o)
+  tuple_delta_t& operator = (tuple_delta_t&& o) noexcept
   {
     hb_swap (*this, o);
     return *this;
