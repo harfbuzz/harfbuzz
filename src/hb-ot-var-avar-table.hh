@@ -230,7 +230,7 @@ struct SegmentMaps : Array16Of<AxisValueMap>
        * duplicates here */
       if (mapping.must_include ())
         continue;
-      value_mappings.push (std::move (mapping));
+      value_mappings.push (mapping);
     }
 
     AxisValueMap m;
