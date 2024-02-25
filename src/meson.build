@@ -682,7 +682,8 @@ if conf.get('HAVE_CAIRO', 0) == 1
 endif
 
 if get_option('tests').enabled()
-  # TODO: MSVC gives the following,
+  # TODO: Microsoft LINK gives the following because extern, non dllexport
+  # symbols can only be used when linking against a static library
   # error LNK2019: unresolved external symbol "unsigned __int64 const * const _hb_NullPool"
   if cpp.get_define('_MSC_FULL_VER') == ''
     noinst_programs = {
@@ -729,8 +730,8 @@ if get_option('tests').enabled()
     'test-unicode-ranges': ['test-unicode-ranges.cc'],
   }
   foreach name, source : compiled_tests
-    if cpp.get_argument_syntax() == 'msvc' and source.contains('hb-static.cc')
-      # TODO: MSVC doesn't like tests having hb-static.cc, fix them
+    if cpp.get_define('_MSC_FULL_VER') != '' and source.contains('hb-static.cc')
+      # TODO: Microsoft compilers cannot link tests using hb-static.cc, fix them
       continue
     endif
     test(name, executable(name, source,
