@@ -2695,6 +2695,67 @@ struct VarRegionList
   DEFINE_SIZE_ARRAY (4, axesZ);
 };
 
+struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
+{
+  float evaluate (const int *coords, unsigned int coord_len) const
+  {
+    float v = 1.f;
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      unsigned j = arrayZ[i].axisIndex;
+      int coord = j < coord_len ? coords[j] : 0;
+      float factor = arrayZ[i].evaluate (coord);
+      if (factor == 0.f)
+	return 0.;
+      v *= factor;
+    }
+    return v;
+  }
+};
+
+struct SparseVarRegionList
+{
+  using cache_t = float;
+
+  float evaluate (unsigned int region_index,
+		  const int *coords, unsigned int coord_len,
+		  cache_t *cache = nullptr) const
+  {
+    if (unlikely (region_index >= regions.len))
+      return 0.;
+
+    float *cached_value = nullptr;
+    if (cache)
+    {
+      cached_value = &(cache[region_index]);
+      if (likely (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID))
+	return *cached_value;
+    }
+
+    const SparseVariationRegion &region = this+regions[region_index];
+
+    float v = region.evaluate (coords, coord_len);
+
+    if (cache)
+      *cached_value = v;
+    return v;
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (regions.sanitize (c, this));
+  }
+
+  protected:
+  Array16Of<Offset32To<SparseVariationRegion>>
+		regions;
+  public:
+  DEFINE_SIZE_ARRAY (2, regions);
+};
+
+
 struct VarData
 {
   unsigned int get_item_count () const
