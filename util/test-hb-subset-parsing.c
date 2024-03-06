@@ -75,6 +75,17 @@ test_parse_instancing_spec (void)
   g_assert(check_parsing(face, "wght=200:,xxxx=50", wght,  200, 1000, 1000));
   g_assert(check_parsing(face, "wght=200:,xxxx=50", xxxx,   50,   50,   50));
 
+  g_assert(check_parsing(face, "wght=200,*=drop", wght,  1000, 1000, 1000));
+  g_assert(check_parsing(face, "wght=200,*=drop", xxxx,  0, 0, 0));
+  g_assert(check_parsing(face, "*=drop,wght=200", wght,  200, 200, 200));
+  g_assert(check_parsing(face, "*=drop,wght=200", xxxx,  0, 0, 0));
+  g_assert(check_parsing(face, "*=drop,wght=200,xxxx=50", wght,  200, 200, 200));
+  g_assert(check_parsing(face, "*=drop,wght=200,xxxx=50", xxxx,  50, 50, 50));
+  g_assert(check_parsing(face, "xxxx=50,*=drop,wght=200", wght,  200, 200, 200));
+  g_assert(check_parsing(face, "xxxx=50,*=drop,wght=200", xxxx,  0, 0, 0));
+  g_assert(check_parsing(face, "*=drop", wght,  1000, 1000, 1000));
+  g_assert(check_parsing(face, "*=drop", xxxx,  0, 0, 0));
+
   g_assert(check_parsing(roboto, "wght=300",         wght, 300,  300,  300));
   g_assert(check_parsing(roboto, "wght=100:200:300", wght, 100,  200,  300));
   g_assert(check_parsing(roboto, "wght=:500:",       wght, 100,  500,  900));

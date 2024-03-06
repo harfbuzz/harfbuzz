@@ -419,6 +419,46 @@ hb_subset_input_keep_everything (hb_subset_input_t *input)
 
 #ifndef HB_NO_VAR
 /**
+ * hb_subset_input_pin_all_axes_to_default: (skip)
+ * @input: a #hb_subset_input_t object.
+ * @face: a #hb_face_t object.
+ *
+ * Pin all axes to default locations in the given subset input object.
+ *
+ * All axes in a font must be pinned. Additionally, `CFF2` table, if present,
+ * will be de-subroutinized.
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * XSince: REPLACEME
+ **/
+HB_EXTERN hb_bool_t
+hb_subset_input_pin_all_axes_to_default (hb_subset_input_t  *input,
+                                         hb_face_t          *face)
+{
+  unsigned axis_count = hb_ot_var_get_axis_count (face);
+  if (!axis_count) return false;
+
+  hb_ot_var_axis_info_t *axis_infos = (hb_ot_var_axis_info_t *) hb_calloc (axis_count, sizeof (hb_ot_var_axis_info_t));
+  if (unlikely (!axis_infos)) return false;
+
+  (void) hb_ot_var_get_axis_infos (face, 0, &axis_count, axis_infos);
+
+  for (unsigned i = 0; i < axis_count; i++)
+  {
+    hb_tag_t axis_tag = axis_infos[i].tag;
+    float default_val = axis_infos[i].default_value;
+    if (!input->axes_location.set (axis_tag, Triple (default_val, default_val, default_val)))
+    {
+      hb_free (axis_infos);
+      return false;
+    }
+  }
+  hb_free (axis_infos);
+  return true;
+}
+
+/**
  * hb_subset_input_pin_axis_to_default: (skip)
  * @input: a #hb_subset_input_t object.
  * @face: a #hb_face_t object.
