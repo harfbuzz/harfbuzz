@@ -138,6 +138,26 @@ parse_instancing_spec (const char *arg,
       return false;
     }
 
+    /* support *=drop */
+    if (0 == strcmp (s, "*"))
+    {
+      s = strtok(NULL, ", ");
+      if (0 != strcmp (s, "drop"))
+      {
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Failed parsing axis position at: '%s'", s);
+        return false;
+      }
+
+      if (!hb_subset_input_pin_all_axes_to_default (input, face))
+      {
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Failed pinning all axes to default.");
+        return false;
+      }
+      continue;
+    }
+
     hb_tag_t axis_tag = hb_tag_from_string (s, len);
 
     s = strtok(NULL, ", ");

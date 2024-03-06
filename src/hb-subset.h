@@ -174,6 +174,10 @@ hb_subset_input_set_flags (hb_subset_input_t *input,
 			   unsigned value);
 
 HB_EXTERN hb_bool_t
+hb_subset_input_pin_all_axes_to_default (hb_subset_input_t  *input,
+					 hb_face_t          *face);
+
+HB_EXTERN hb_bool_t
 hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
 				     hb_face_t          *face,
 				     hb_tag_t            axis_tag);
