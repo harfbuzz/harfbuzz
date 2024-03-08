@@ -225,6 +225,7 @@ static void test_running_class_and_coverage_size_estimates () {
   graph::class_def_size_estimator_t estimator1(consecutive_map.iter());
   assert(check_add_class_def_size(estimator1, consecutive_map, 1, {1}));
   assert(check_add_class_def_size(estimator1, consecutive_map, 2, {1, 2}));
+  assert(check_add_class_def_size(estimator1, consecutive_map, 2, {1, 2})); // check that adding the same class again works
   assert(check_add_class_def_size(estimator1, consecutive_map, 3, {1, 2, 3}));
 
   estimator1.reset();
