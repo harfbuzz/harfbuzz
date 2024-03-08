@@ -232,7 +232,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 
     unsigned accumulated = base_size;
     unsigned coverage_size = 4;
-    unsigned class_def_1_size = 4;
+    unsigned class_def_1_size = 0;
     unsigned max_coverage_size = coverage_size;
     unsigned max_class_def_1_size = class_def_1_size;
 
@@ -248,7 +248,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     {
       unsigned accumulated_delta = class1_record_size;
       coverage_size += estimator.incremental_coverage_size (i);
-      class_def_1_size += estimator.incremental_class_def_size (i);
+      class_def_1_size = estimator.class_def_size (i);
       max_coverage_size = hb_max (max_coverage_size, coverage_size);
       max_class_def_1_size = hb_max (max_class_def_1_size, class_def_1_size);
 
@@ -280,8 +280,10 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
         split_points.push (i);
         // split does not include i, so add the size for i when we reset the size counters.
         accumulated = base_size + accumulated_delta;
+
+        estimator.reset();
         coverage_size = 4 + estimator.incremental_coverage_size (i);
-        class_def_1_size = 4 + estimator.incremental_class_def_size (i);
+        class_def_1_size = estimator.class_def_size(i);
         visited.clear (); // node sharing isn't allowed between splits.
       }
     }

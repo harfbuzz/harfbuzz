@@ -43,7 +43,7 @@ static bool incremental_size_is (const gid_and_class_list_t& list, unsigned klas
     return false;
   }
 
-  result = estimator.incremental_class_def_size (klass);
+  result = estimator.class_def_size (klass);
   if (result != class_def_expected)
   {
     printf ("FAIL: class def expected size %u but was %u\n", class_def_expected, result);
@@ -55,15 +55,16 @@ static bool incremental_size_is (const gid_and_class_list_t& list, unsigned klas
 
 static void test_class_and_coverage_size_estimates ()
 {
+  // TODO(garretrieger): test against the actual serialized sizes of class def tables
   gid_and_class_list_t empty = {
   };
-  assert (incremental_size_is (empty, 0, 0, 0));
-  assert (incremental_size_is (empty, 1, 0, 0));
+  assert (incremental_size_is (empty, 0, 0, 4));
+  assert (incremental_size_is (empty, 1, 0, 4));
 
   gid_and_class_list_t class_zero = {
     {5, 0},
   };
-  assert (incremental_size_is (class_zero, 0, 2, 0));
+  assert (incremental_size_is (class_zero, 0, 2, 4));
 
   gid_and_class_list_t consecutive = {
     {4, 0},
@@ -75,25 +76,25 @@ static void test_class_and_coverage_size_estimates ()
     {10, 2},
     {11, 2},
   };
-  assert (incremental_size_is (consecutive, 0, 4, 0));
-  assert (incremental_size_is (consecutive, 1, 4, 4));
-  assert (incremental_size_is (consecutive, 2, 8, 6));
+  assert (incremental_size_is (consecutive, 0, 4, 4));
+  assert (incremental_size_is (consecutive, 1, 4, 8));
+  assert (incremental_size_is (consecutive, 2, 8, 10));
 
   gid_and_class_list_t non_consecutive = {
     {4, 0},
-    {5, 0},
+    {6, 0},
 
-    {6, 1},
-    {7, 1},
+    {8, 1},
+    {10, 1},
 
     {9, 2},
     {10, 2},
     {11, 2},
-    {12, 2},
+    {13, 2},
   };
-  assert (incremental_size_is (non_consecutive, 0, 4, 0));
-  assert (incremental_size_is (non_consecutive, 1, 4, 6));
-  assert (incremental_size_is (non_consecutive, 2, 8, 6));
+  assert (incremental_size_is (non_consecutive, 0, 4, 4));
+  assert (incremental_size_is (non_consecutive, 1, 4, 4 + 2*6));
+  assert (incremental_size_is (non_consecutive, 2, 8, 4 + 2*6));
 
   gid_and_class_list_t multiple_ranges = {
     {4, 0},
@@ -108,12 +109,94 @@ static void test_class_and_coverage_size_estimates ()
     {12, 1},
     {13, 1},
   };
-  assert (incremental_size_is (multiple_ranges, 0, 4, 0));
-  assert (incremental_size_is (multiple_ranges, 1, 2 * 6, 3 * 6));
+  assert (incremental_size_is (multiple_ranges, 0, 4, 4));
+  assert (incremental_size_is (multiple_ranges, 1, 2 * 6, 4 + 3 * 6));
+}
+
+static void test_running_class_and_coverage_size_estimates () {
+  // #### With consecutive gids: switches formats ###
+  gid_and_class_list_t consecutive_map = {
+    // range 1-4 (f1: 8 bytes), (f2: 6 bytes)
+    {1, 1},
+    {2, 1},
+    {3, 1},
+    {4, 1},
+
+    // (f1: 2 bytes), (f2: 6 bytes)
+    {5, 2},
+
+    // (f1: 14 bytes), (f2: 6 bytes)
+    {6, 3},
+    {7, 3},
+    {8, 3},
+    {9, 3},
+    {10, 3},
+    {11, 3},
+    {12, 3},
+  };
+
+  graph::class_def_size_estimator_t estimator1(consecutive_map.iter());
+  assert(estimator1.class_def_size(1) == 4 + 6);  // format 2, 1 range
+  assert(estimator1.class_def_size(2) == 4 + 10); // format 1, 5 glyphs
+  assert(estimator1.class_def_size(3) == 4 + 18); // format 2, 3 ranges
+
+  estimator1.reset();
+  assert(estimator1.class_def_size(2) == 4 + 2); // format 1, 1 glyphs
+  assert(estimator1.class_def_size(3) == 4 + 12); // format 2, 2 ranges
+
+  // #### With non-consecutive gids: always uses format 2 ###
+  gid_and_class_list_t non_consecutive_map = {
+    // range 1-4 (f1: 8 bytes), (f2: 6 bytes)
+    {1, 1},
+    {2, 1},
+    {3, 1},
+    {4, 1},
+
+    // (f1: 2 bytes), (f2: 12 bytes)
+    {6, 2},
+    {8, 2},
+
+    // (f1: 14 bytes), (f2: 6 bytes)
+    {9, 3},
+    {10, 3},
+    {11, 3},
+    {12, 3},
+    {13, 3},
+    {14, 3},
+    {15, 3},
+  };
+
+  graph::class_def_size_estimator_t estimator2(non_consecutive_map.iter());
+  assert(estimator2.class_def_size(1) == 4 + 6);  // format 2, 1 range
+  assert(estimator2.class_def_size(2) == 4 + 18); // format 2, 3 ranges
+  assert(estimator2.class_def_size(3) == 4 + 24); // format 2, 4 ranges
+
+  estimator2.reset();
+  assert(estimator2.class_def_size(2) == 4 + 12); // format 1, 1 range
+  assert(estimator2.class_def_size(3) == 4 + 18); // format 2, 2 ranges
+}
+
+static void test_running_class_size_estimates_with_locally_consecutive_glyphs () {
+  gid_and_class_list_t consecutive_map = {
+    {1, 1},
+    {6, 2},
+    {7, 3},
+  };
+
+  graph::class_def_size_estimator_t estimator(consecutive_map.iter());
+  assert(estimator.class_def_size(1) == 4 + 2);  // format 1, 1 glyph
+  assert(estimator.class_def_size(2) == 4 + 12); // format 2, 2 ranges
+  assert(estimator.class_def_size(3) == 4 + 18); // format 2, 3 ranges
+
+  estimator.reset();
+  assert(estimator.class_def_size(2) == 4 + 2); // format 1, 1 glyphs
+  assert(estimator.class_def_size(3) == 4 + 4); // format 1, 2 glyphs
 }
 
 int
 main (int argc, char **argv)
 {
   test_class_and_coverage_size_estimates ();
+  test_running_class_and_coverage_size_estimates ();
+  test_running_class_size_estimates_with_locally_consecutive_glyphs ();
 }

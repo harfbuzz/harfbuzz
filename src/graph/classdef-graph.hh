@@ -134,19 +134,16 @@ struct ClassDef : public OT::ClassDef
 
 struct class_def_size_estimator_t
 {
+  // TODO(garretrieger): for coverage take the same approach as class def (compute the running total for each format).
   template<typename It>
   class_def_size_estimator_t (It glyph_and_class)
-      : gids_consecutive (true), num_ranges_per_class (), glyphs_per_class ()
+      : num_ranges_per_class (), glyphs_per_class ()
   {
-    unsigned last_gid = (unsigned) -1;
+    reset();
     for (auto p : + glyph_and_class)
     {
       unsigned gid = p.first;
       unsigned klass = p.second;
-
-      if (last_gid != (unsigned) -1 && gid != last_gid + 1)
-        gids_consecutive = false;
-      last_gid = gid;
 
       hb_set_t* glyphs;
       if (glyphs_per_class.has (klass, &glyphs) && glyphs) {
@@ -177,6 +174,13 @@ struct class_def_size_estimator_t
     }
   }
 
+  void reset() {
+    class_def_1_size = 4;
+    class_def_2_size = 4;
+    included_glyphs.clear();
+    included_classes.clear();
+  }
+
   // Incremental increase in the Coverage and ClassDef table size
   // (worst case) if all glyphs associated with 'klass' were added.
   unsigned incremental_coverage_size (unsigned klass) const
@@ -185,20 +189,40 @@ struct class_def_size_estimator_t
     return 2 * glyphs_per_class.get (klass).get_population ();
   }
 
-  // Incremental increase in the Coverage and ClassDef table size
-  // (worst case) if all glyphs associated with 'klass' were added.
-  unsigned incremental_class_def_size (unsigned klass) const
+  // Compute the new size of the ClassDef table if all glyphs associated with 'klass' were added.
+  unsigned class_def_size (unsigned klass)
   {
-    // ClassDef takes 6 bytes per range
-    unsigned class_def_2_size = 6 * num_ranges_per_class.get (klass);
-    if (gids_consecutive)
-    {
-      // ClassDef1 takes 2 bytes per glyph, but only can be used
-      // when gids are consecutive.
-      return hb_min (2 * glyphs_per_class.get (klass).get_population (), class_def_2_size);
+    if (!included_classes.has(klass)) {
+      // ClassDef 1 takes 2 bytes per glyph.
+      class_def_1_size += 2 * glyphs_per_class.get (klass).get_population ();
+      // ClassDef 2 takes 6 bytes per range.
+      class_def_2_size += 6 * num_ranges_per_class.get (klass);
+
+      hb_set_t* glyphs = nullptr;
+      if (glyphs_per_class.has(klass, &glyphs)) {
+        included_glyphs.union_(*glyphs);
+      }
+
+      included_classes.add(klass);
     }
 
-    return class_def_2_size;
+    if (!gids_consecutive())
+      return class_def_2_size;
+
+    // ClassDef1 can only be used when gids are consecutive.
+    return hb_min (class_def_1_size, class_def_2_size);
+  }
+
+  bool gids_consecutive() const {
+    hb_codepoint_t start = HB_SET_VALUE_INVALID;
+    hb_codepoint_t end = HB_SET_VALUE_INVALID;
+
+    unsigned count = 0;
+    while (included_glyphs.next_range (&start, &end)) {
+        count++;
+        if (count > 1) return false;
+    }
+    return true;
   }
 
   bool in_error ()
@@ -214,9 +238,12 @@ struct class_def_size_estimator_t
   }
 
  private:
-  bool gids_consecutive;
   hb_hashmap_t<unsigned, unsigned> num_ranges_per_class;
   hb_hashmap_t<unsigned, hb_set_t> glyphs_per_class;
+  hb_set_t included_classes;
+  hb_set_t included_glyphs;
+  unsigned class_def_1_size = 4;
+  unsigned class_def_2_size = 4;
 };
 
 
