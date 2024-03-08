@@ -232,7 +232,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 
     unsigned accumulated = base_size;
     unsigned coverage_size = 4;
-    unsigned class_def_1_size = 0;
+    unsigned class_def_1_size = 4;
     unsigned max_coverage_size = coverage_size;
     unsigned max_class_def_1_size = class_def_1_size;
 
@@ -248,7 +248,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     {
       unsigned accumulated_delta = class1_record_size;
       class_def_1_size = estimator.add_class_def_size (i);
-      coverage_size += estimator.coverage_size ();
+      coverage_size = estimator.coverage_size ();
       max_coverage_size = hb_max (max_coverage_size, coverage_size);
       max_class_def_1_size = hb_max (max_class_def_1_size, class_def_1_size);
 

@@ -248,8 +248,8 @@ struct class_def_size_estimator_t
   hb_hashmap_t<unsigned, hb_set_t> glyphs_per_class;
   hb_set_t included_classes;
   hb_set_t included_glyphs;
-  unsigned class_def_1_size = 4;
-  unsigned class_def_2_size = 4;
+  unsigned class_def_1_size;
+  unsigned class_def_2_size;
 };
 
 
