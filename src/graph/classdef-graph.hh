@@ -26,6 +26,7 @@
 
 #include "graph.hh"
 #include "../hb-ot-layout-common.hh"
+#include <cstdint>
 
 #ifndef GRAPH_CLASSDEF_GRAPH_HH
 #define GRAPH_CLASSDEF_GRAPH_HH
@@ -181,16 +182,18 @@ struct class_def_size_estimator_t
     included_classes.clear();
   }
 
-  // Incremental increase in the Coverage and ClassDef table size
-  // (worst case) if all glyphs associated with 'klass' were added.
-  unsigned incremental_coverage_size (unsigned klass) const
+  // Compute the size of coverage for all glyphs added via 'add_class_def_size'.
+  unsigned coverage_size () const
   {
-    // Coverage takes 2 bytes per glyph worst case,
-    return 2 * glyphs_per_class.get (klass).get_population ();
+    // format 1 is 2 bytes per glyph.
+    unsigned format1_size = 4 + 2 * included_glyphs.get_population();
+    // format 2 is 6 bytes per range.
+    unsigned format2_size = 4 + 6 * num_glyph_ranges();
+    return hb_min(format1_size, format2_size);
   }
 
   // Compute the new size of the ClassDef table if all glyphs associated with 'klass' were added.
-  unsigned class_def_size (unsigned klass)
+  unsigned add_class_def_size (unsigned klass)
   {
     if (!included_classes.has(klass)) {
       // ClassDef 1 takes 2 bytes per glyph.
@@ -211,6 +214,17 @@ struct class_def_size_estimator_t
 
     // ClassDef1 can only be used when gids are consecutive.
     return hb_min (class_def_1_size, class_def_2_size);
+  }
+
+  unsigned num_glyph_ranges() const {
+    hb_codepoint_t start = HB_SET_VALUE_INVALID;
+    hb_codepoint_t end = HB_SET_VALUE_INVALID;
+
+    unsigned count = 0;
+    while (included_glyphs.next_range (&start, &end)) {
+        count++;
+    }
+    return count;
   }
 
   bool gids_consecutive() const {
