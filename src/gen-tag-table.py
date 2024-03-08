@@ -719,10 +719,6 @@ ot.add_language ('hy-arevmda', 'HYE')
 ot.remove_language_ot ('KGE')
 ot.add_language ('und-Geok', 'KGE')
 
-bcp_47.macrolanguages['id'] = {'in'}
-
-bcp_47.macrolanguages['ijo'] = {'ijc'}
-
 ot.add_language ('kht', 'KHN')
 ot.names['KHN'] = ot.names['KHT'] + ' (Microsoft fonts)'
 ot.ranks['KHN'] = ot.ranks['KHT'] + 1
@@ -808,8 +804,6 @@ ot.add_language ('lzh', 'ZHT')
 ot.add_language ('lzh-Hans', 'ZHS')
 ot.add_language ('yue', 'ZHH')
 ot.add_language ('yue-Hans', 'ZHS')
-
-bcp_47.macrolanguages['zom'] = {'yos'}
 
 def rank_delta (bcp_47, ot):
 	"""Return a delta to apply to a BCP 47 tag's rank.
