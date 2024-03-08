@@ -699,8 +699,6 @@ ot.add_language ('ber', 'BBR')
 ot.remove_language_ot ('PGR')
 ot.add_language ('el-polyton', 'PGR')
 
-bcp_47.macrolanguages['et'] = {'ekk'}
-
 bcp_47.names['flm'] = 'Falam Chin'
 bcp_47.scopes['flm'] = ' (retired code)'
 bcp_47.macrolanguages['flm'] = {'cfm'}

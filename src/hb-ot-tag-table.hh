@@ -1533,7 +1533,8 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('v','k','t',' '),	HB_TAG('M','L','Y',' ')},	/* Tenggarong Kutai Malay -> Malay */
   {HB_TAG('v','l','s',' '),	HB_TAG('F','L','E',' ')},	/* Vlaams -> Dutch (Flemish) */
   {HB_TAG('v','m','w',' '),	HB_TAG('M','A','K',' ')},	/* Makhuwa */
-/*{HB_TAG('v','r','o',' '),	HB_TAG('V','R','O',' ')},*/	/* Võro */
+  {HB_TAG('v','r','o',' '),	HB_TAG('V','R','O',' ')},	/* Võro */
+  {HB_TAG('v','r','o',' '),	HB_TAG('E','T','I',' ')},	/* Võro -> Estonian */
   {HB_TAG('v','s','n',' '),	HB_TAG('S','A','N',' ')},	/* Vedic Sanskrit -> Sanskrit */
   {HB_TAG('w','a','g',' '),	HB_TAG_NONE	       },	/* Wa'ema != Wagdi */
 /*{HB_TAG('w','a','r',' '),	HB_TAG('W','A','R',' ')},*/	/* Waray (Philippines) -> Waray-Waray */
