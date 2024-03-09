@@ -39,8 +39,11 @@ static unsigned actual_class_def_size(It glyph_and_class) {
   OT::ClassDef_serialize (&serializer, glyph_and_class);
   serializer.end_serialize ();
   assert(!serializer.in_error());
-  hb_bytes_t class_def_copy = serializer.copy_bytes ();
-  return class_def_copy.get_size();
+
+  hb_blob_t* blob = serializer.copy_blob();
+  unsigned size = hb_blob_get_length(blob);
+  hb_blob_destroy(blob);
+  return size;
 }
 
 static unsigned actual_class_def_size(gid_and_class_list_t consecutive_map, hb_vector_t<unsigned> classes) {
@@ -64,8 +67,11 @@ static unsigned actual_coverage_size(It glyphs) {
   OT::Layout::Common::Coverage_serialize (&serializer, glyphs);
   serializer.end_serialize ();
   assert(!serializer.in_error());
-  hb_bytes_t coverage_copy = serializer.copy_bytes ();
-  return coverage_copy.get_size();
+
+  hb_blob_t* blob = serializer.copy_blob();
+  unsigned size = hb_blob_get_length(blob);
+  hb_blob_destroy(blob);
+  return size;
 }
 
 static unsigned actual_coverage_size(gid_and_class_list_t consecutive_map, hb_vector_t<unsigned> classes) {
