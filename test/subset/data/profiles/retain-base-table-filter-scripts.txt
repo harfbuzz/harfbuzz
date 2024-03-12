@@ -1,0 +1,2 @@
+--drop-tables-=BASE
+--layout-scripts=grek,cyrl

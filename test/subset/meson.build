@@ -42,6 +42,7 @@ tests = [
   'colr_glyphs',
   'math',
   'math_coverage_offset',
+  'subset_base',
   # TODO: re-enable once colrv1 subsetting is stabilized.
   # 'colrv1.notoemoji',
   'colrv1',

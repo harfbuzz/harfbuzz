@@ -59,6 +59,7 @@ EXTRA_DIST += \
 	expected/glyph_map \
 	expected/math \
 	expected/math_coverage_offset \
+	expected/subset_base \
 	expected/post \
 	expected/full_instance \
 	expected/instance_feature_variations \

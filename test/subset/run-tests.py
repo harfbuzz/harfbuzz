@@ -52,7 +52,7 @@ def run_test (test, should_check_ots, preprocess):
 	cli_args = ["--font-file=" + test.font_path,
 		    "--output-file=" + out_file,
 		    "--unicodes=%s" % test.unicodes (),
-		    "--drop-tables+=DSIG",
+		    "--drop-tables+=DSIG,BASE",
 		    "--drop-tables-=sbix"]
 	if preprocess:
 		cli_args.extend(["--preprocess-face",])
