@@ -30,7 +30,7 @@
 
 #include "hb-ot-shaper-arabic.hh"
 #include "hb-ot-shape.hh"
-
+#include "inttypes.h"
 
 /* buffer var allocations */
 #define arabic_shaping_action() ot_shaper_var_u8_auxiliary() /* arabic shaping action */
@@ -560,9 +560,9 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
       DEBUG_MSG (ARABIC, nullptr, "%s stretch at (%u,%u,%u)",
 		 step == MEASURE ? "measuring" : "cutting", context, start, end);
-      DEBUG_MSG (ARABIC, nullptr, "rest of word:    count=%u width %d", start - context, w_total);
-      DEBUG_MSG (ARABIC, nullptr, "fixed tiles:     count=%d width=%d", n_fixed, w_fixed);
-      DEBUG_MSG (ARABIC, nullptr, "repeating tiles: count=%d width=%d", n_repeating, w_repeating);
+      DEBUG_MSG (ARABIC, nullptr, "rest of word:    count=%u width %" PRId32 "", start - context, w_total);
+      DEBUG_MSG (ARABIC, nullptr, "fixed tiles:     count=%d width=%" PRId32 "", n_fixed, w_fixed);
+      DEBUG_MSG (ARABIC, nullptr, "repeating tiles: count=%d width=%" PRId32 "", n_repeating, w_repeating);
 
       /* Number of additional times to repeat each repeating tile. */
       int n_copies = 0;
@@ -602,7 +602,7 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	  if (info[k - 1].arabic_shaping_action() == STCH_REPEATING)
 	    repeat += n_copies;
 
-	  DEBUG_MSG (ARABIC, nullptr, "appending %u copies of glyph %u; j=%u",
+	  DEBUG_MSG (ARABIC, nullptr, "appending %u copies of glyph %" PRIu32 "; j=%u",
 		     repeat, info[k - 1].codepoint, j);
 	  pos[k - 1].x_advance = 0;
 	  for (unsigned int n = 0; n < repeat; n++)

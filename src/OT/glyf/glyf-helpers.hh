@@ -5,6 +5,7 @@
 #include "../../hb-open-type.hh"
 #include "../../hb-subset-plan.hh"
 
+#include "inttypes.h"
 #include "loca.hh"
 
 
@@ -38,7 +39,7 @@ _write_loca (IteratorIn&& it,
 
     unsigned padded_size = *it++;
     offset += padded_size;
-    DEBUG_MSG (SUBSET, nullptr, "loca entry gid %u offset %u padded-size %u", gid, offset, padded_size);
+    DEBUG_MSG (SUBSET, nullptr, "loca entry gid %" PRIu32 " offset %u padded-size %u", gid, offset, padded_size);
     value = offset >> right_shift;
     *dest++ = value;
 
