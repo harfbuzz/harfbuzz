@@ -26,7 +26,6 @@
 
 #include "graph.hh"
 #include "../hb-ot-layout-common.hh"
-#include <cstdint>
 
 #ifndef GRAPH_CLASSDEF_GRAPH_HH
 #define GRAPH_CLASSDEF_GRAPH_HH
