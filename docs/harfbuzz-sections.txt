@@ -83,6 +83,8 @@ hb_buffer_set_not_found_glyph
 hb_buffer_get_not_found_glyph
 hb_buffer_set_replacement_codepoint
 hb_buffer_get_replacement_codepoint
+hb_buffer_set_random_state
+hb_buffer_get_random_state
 hb_buffer_normalize_glyphs
 hb_buffer_reverse
 hb_buffer_reverse_range
