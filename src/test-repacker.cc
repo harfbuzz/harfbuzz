@@ -1986,12 +1986,12 @@ static void test_resolve_with_close_to_limit_pair_pos_2_split ()
   void* buffer = malloc (buffer_size);
   assert (buffer);
   hb_serialize_context_t c (buffer, buffer_size);
-  populate_serializer_with_large_pair_pos_2 <1, 1596, 10>(&c, true, false, false);
+  populate_serializer_with_large_pair_pos_2 <1, 1636, 10>(&c, true, false, false);
 
   void* expected_buffer = malloc (buffer_size);
   assert (expected_buffer);
   hb_serialize_context_t e (expected_buffer, buffer_size);
-  populate_serializer_with_large_pair_pos_2 <2, 798, 10>(&e, true, false, false);
+  populate_serializer_with_large_pair_pos_2 <2, 818, 10>(&e, true, false, false);
 
   run_resolve_overflow_test ("test_resolve_with_close_to_limit_pair_pos_2_split",
                              c,
