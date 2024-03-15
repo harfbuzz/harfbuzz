@@ -1479,6 +1479,294 @@ typedef CFFIndex<HBUINT16> CFF1Index;
 typedef CFFIndex<HBUINT32> CFF2Index;
 
 
+/* TupleValues */
+struct TupleValues
+{
+  enum packed_delta_flag_t
+  {
+    DELTAS_ARE_ZERO      = 0x80,
+    DELTAS_ARE_WORDS     = 0x40,
+    DELTAS_ARE_LONGS     = 0xC0,
+    DELTAS_SIZE_MASK     = 0xC0,
+    DELTA_RUN_COUNT_MASK = 0x3F
+  };
+
+  static unsigned compile (hb_array_t<const int> deltas, /* IN */
+			   hb_array_t<char> encoded_bytes /* OUT */)
+  {
+    unsigned num_deltas = deltas.length;
+    unsigned encoded_len = 0;
+    unsigned i = 0;
+    while (i < num_deltas)
+    {
+      int val = deltas.arrayZ[i];
+      if (val == 0)
+        encoded_len += encode_delta_run_as_zeroes (i, encoded_bytes.sub_array (encoded_len), deltas);
+      else if (val >= -128 && val <= 127)
+        encoded_len += encode_delta_run_as_bytes (i, encoded_bytes.sub_array (encoded_len), deltas);
+      else if (val >= -32768 && val <= 32767)
+        encoded_len += encode_delta_run_as_words (i, encoded_bytes.sub_array (encoded_len), deltas);
+      else
+        encoded_len += encode_delta_run_as_longs (i, encoded_bytes.sub_array (encoded_len), deltas);
+    }
+    return encoded_len;
+  }
+
+  static unsigned encode_delta_run_as_zeroes (unsigned& i,
+					      hb_array_t<char> encoded_bytes,
+					      hb_array_t<const int> deltas)
+  {
+    unsigned num_deltas = deltas.length;
+    unsigned run_length = 0;
+    auto it = encoded_bytes.iter ();
+    unsigned encoded_len = 0;
+    while (i < num_deltas && deltas.arrayZ[i] == 0)
+    {
+      i++;
+      run_length++;
+    }
+
+    while (run_length >= 64)
+    {
+      *it++ = char (DELTAS_ARE_ZERO | 63);
+      run_length -= 64;
+      encoded_len++;
+    }
+
+    if (run_length)
+    {
+      *it++ = char (DELTAS_ARE_ZERO | (run_length - 1));
+      encoded_len++;
+    }
+    return encoded_len;
+  }
+
+  static unsigned encode_delta_run_as_bytes (unsigned &i,
+					     hb_array_t<char> encoded_bytes,
+					     hb_array_t<const int> deltas)
+  {
+    unsigned start = i;
+    unsigned num_deltas = deltas.length;
+    while (i < num_deltas)
+    {
+      int val = deltas.arrayZ[i];
+      if (val > 127 || val < -128)
+        break;
+
+      /* from fonttools: if there're 2 or more zeros in a sequence,
+       * it is better to start a new run to save bytes. */
+      if (val == 0 && i + 1 < num_deltas && deltas.arrayZ[i+1] == 0)
+        break;
+
+      i++;
+    }
+    unsigned run_length = i - start;
+
+    unsigned encoded_len = 0;
+    auto it = encoded_bytes.iter ();
+
+    while (run_length >= 64)
+    {
+      *it++ = 63;
+      encoded_len++;
+
+      for (unsigned j = 0; j < 64; j++)
+      {
+        *it++ = static_cast<char> (deltas.arrayZ[start + j]);
+        encoded_len++;
+      }
+
+      start += 64;
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      *it++ = run_length - 1;
+      encoded_len++;
+
+      while (start < i)
+      {
+        *it++ = static_cast<char> (deltas.arrayZ[start++]);
+        encoded_len++;
+      }
+    }
+
+    return encoded_len;
+  }
+
+  static unsigned encode_delta_run_as_words (unsigned &i,
+					     hb_array_t<char> encoded_bytes,
+					     hb_array_t<const int> deltas)
+  {
+    unsigned start = i;
+    unsigned num_deltas = deltas.length;
+    while (i < num_deltas)
+    {
+      int val = deltas.arrayZ[i];
+
+      /* start a new run for a single zero value*/
+      if (val == 0) break;
+
+      /* from fonttools: continue word-encoded run if there's only one
+       * single value in the range [-128, 127] because it is more compact.
+       * Only start a new run when there're 2 continuous such values. */
+      if (val >= -128 && val <= 127 &&
+          i + 1 < num_deltas &&
+          deltas.arrayZ[i+1] >= -128 && deltas.arrayZ[i+1] <= 127)
+        break;
+
+      i++;
+    }
+
+    unsigned run_length = i - start;
+    auto it = encoded_bytes.iter ();
+    unsigned encoded_len = 0;
+    while (run_length >= 64)
+    {
+      *it++ = (DELTAS_ARE_WORDS | 63);
+      encoded_len++;
+
+      for (unsigned j = 0; j < 64; j++)
+      {
+        int16_t delta_val = deltas.arrayZ[start + j];
+        *it++ = static_cast<char> (delta_val >> 8);
+        *it++ = static_cast<char> (delta_val & 0xFF);
+
+        encoded_len += 2;
+      }
+
+      start += 64;
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      *it++ = (DELTAS_ARE_WORDS | (run_length - 1));
+      encoded_len++;
+      while (start < i)
+      {
+        int16_t delta_val = deltas.arrayZ[start++];
+        *it++ = static_cast<char> (delta_val >> 8);
+        *it++ = static_cast<char> (delta_val & 0xFF);
+
+        encoded_len += 2;
+      }
+    }
+    return encoded_len;
+  }
+
+  static unsigned encode_delta_run_as_longs (unsigned &i,
+					     hb_array_t<char> encoded_bytes,
+					     hb_array_t<const int> deltas)
+  {
+    unsigned start = i;
+    unsigned num_deltas = deltas.length;
+    while (i < num_deltas)
+    {
+      int val = deltas.arrayZ[i];
+
+      if (val >= -32768 && val <= 32767)
+        break;
+
+      i++;
+    }
+
+    unsigned run_length = i - start;
+    auto it = encoded_bytes.iter ();
+    unsigned encoded_len = 0;
+    while (run_length >= 64)
+    {
+      *it++ = (DELTAS_ARE_LONGS | 63);
+      encoded_len++;
+
+      for (unsigned j = 0; j < 64; j++)
+      {
+        int32_t delta_val = deltas.arrayZ[start + j];
+        *it++ = static_cast<char> (delta_val >> 24);
+        *it++ = static_cast<char> (delta_val >> 16);
+        *it++ = static_cast<char> (delta_val >> 8);
+        *it++ = static_cast<char> (delta_val & 0xFF);
+
+        encoded_len += 4;
+      }
+
+      start += 64;
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      *it++ = (DELTAS_ARE_LONGS | (run_length - 1));
+      encoded_len++;
+      while (start < i)
+      {
+        int32_t delta_val = deltas.arrayZ[start++];
+        *it++ = static_cast<char> (delta_val >> 24);
+        *it++ = static_cast<char> (delta_val >> 16);
+        *it++ = static_cast<char> (delta_val >> 8);
+        *it++ = static_cast<char> (delta_val & 0xFF);
+
+        encoded_len += 4;
+      }
+    }
+    return encoded_len;
+  }
+
+  static bool decompile (const HBUINT8 *&p /* IN/OUT */,
+			 hb_vector_t<int> &deltas /* IN/OUT */,
+			 const HBUINT8 *end,
+			 bool consume_all = false)
+  {
+    unsigned i = 0;
+    unsigned count = consume_all ? UINT_MAX : deltas.length;
+    while (i < count)
+    {
+      if (unlikely (p + 1 > end)) return consume_all;
+      unsigned control = *p++;
+      unsigned run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
+      if (consume_all)
+        deltas.resize (deltas.length + run_count, false);
+      unsigned stop = i + run_count;
+      if (unlikely (stop > count)) return false;
+      if ((control & DELTAS_SIZE_MASK) == DELTAS_ARE_ZERO)
+      {
+        for (; i < stop; i++)
+          deltas.arrayZ[i] = 0;
+      }
+      else if ((control & DELTAS_SIZE_MASK) ==  DELTAS_ARE_WORDS)
+      {
+        if (unlikely (p + run_count * HBINT16::static_size > end)) return false;
+        for (; i < stop; i++)
+        {
+          deltas.arrayZ[i] = * (const HBINT16 *) p;
+          p += HBINT16::static_size;
+        }
+      }
+      else if ((control & DELTAS_SIZE_MASK) ==  DELTAS_ARE_LONGS)
+      {
+        if (unlikely (p + run_count * HBINT32::static_size > end)) return false;
+        for (; i < stop; i++)
+        {
+          deltas.arrayZ[i] = * (const HBINT32 *) p;
+          p += HBINT32::static_size;
+        }
+      }
+      else
+      {
+        if (unlikely (p + run_count > end)) return false;
+        for (; i < stop; i++)
+        {
+          deltas.arrayZ[i] = * (const HBINT8 *) p++;
+        }
+      }
+    }
+    return true;
+  }
+
+};
+
+
 } /* namespace OT */
 
 
