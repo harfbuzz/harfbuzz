@@ -2751,7 +2751,7 @@ struct SparseVarRegionList
     return_trace (regions.sanitize (c, this));
   }
 
-  protected:
+  public:
   Array16Of<Offset32To<SparseVariationRegion>>
 		regions;
   public:
@@ -3438,6 +3438,92 @@ struct ItemVariationStore
   HBUINT16				format;
   Offset32To<VarRegionList>		regions;
   Array16OfOffset32To<VarData>		dataSets;
+  public:
+  DEFINE_SIZE_ARRAY_SIZED (8, dataSets);
+};
+
+struct MultiItemVariationStore
+{
+  using cache_t = SparseVarRegionList::cache_t;
+
+  cache_t *create_cache () const
+  {
+#ifdef HB_NO_VAR
+    return nullptr;
+#endif
+    auto &r = this+regions;
+    unsigned count = r.regions.len;
+
+    float *cache = (float *) hb_malloc (sizeof (float) * count);
+    if (unlikely (!cache)) return nullptr;
+
+    for (unsigned i = 0; i < count; i++)
+      cache[i] = REGION_CACHE_ITEM_CACHE_INVALID;
+
+    return cache;
+  }
+
+  static void destroy_cache (cache_t *cache) { hb_free (cache); }
+
+  private:
+  void get_delta (unsigned int outer, unsigned int inner,
+		  const int *coords, unsigned int coord_count,
+		  hb_array_t<float> out,
+		  VarRegionList::cache_t *cache = nullptr) const
+  {
+#ifdef HB_NO_VAR
+    return;
+#endif
+
+    if (unlikely (outer >= dataSets.len))
+      return;
+
+    return (this+dataSets[outer]).get_delta (inner,
+					     coords, coord_count,
+					     this+regions,
+					     out,
+					     cache);
+  }
+
+  public:
+  void get_delta (unsigned int index,
+		  const int *coords, unsigned int coord_count,
+		  hb_array_t<float> out,
+		  VarRegionList::cache_t *cache = nullptr) const
+  {
+    unsigned int outer = index >> 16;
+    unsigned int inner = index & 0xFFFF;
+    get_delta (outer, inner, coords, coord_count, out, cache);
+  }
+  void get_delta (unsigned int index,
+		  hb_array_t<int> coords,
+		  hb_array_t<float> out,
+		  VarRegionList::cache_t *cache = nullptr) const
+  {
+    return get_delta (index,
+		      coords.arrayZ, coords.length,
+		      out,
+		      cache);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+#ifdef HB_NO_VAR
+    return true;
+#endif
+
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
+		  format == 1 &&
+		  regions.sanitize (c, this) &&
+		  dataSets.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16				format; // 1
+  Offset32To<SparseVarRegionList>	regions;
+  Array16OfOffset32To<MultiVarData>	dataSets;
   public:
   DEFINE_SIZE_ARRAY_SIZED (8, dataSets);
 };
