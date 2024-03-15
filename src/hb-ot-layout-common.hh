@@ -2511,7 +2511,12 @@ struct VarRegionAxis
 };
 struct SparseVarRegionAxis
 {
-  float evaluate (int coord) const { return axis.evaluate (coord); }
+  float evaluate (const int *coords, unsigned int coord_len) const
+  {
+    unsigned i = axisIndex;
+    int coord = i < coord_len ? coords[i] : 0;
+    return axis.evaluate (coord);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -2703,9 +2708,7 @@ struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
     {
-      unsigned j = arrayZ[i].axisIndex;
-      int coord = j < coord_len ? coords[j] : 0;
-      float factor = arrayZ[i].evaluate (coord);
+      float factor = arrayZ[i].evaluate (coords, coord_len);
       if (factor == 0.f)
 	return 0.;
       v *= factor;
