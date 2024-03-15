@@ -2421,12 +2421,12 @@ struct delta_row_encoding_t
     int combined_width = 0;
     for (unsigned i = 0; i < chars.length; i++)
       combined_width += hb_max (chars.arrayZ[i], other_encoding.chars.arrayZ[i]);
-   
+
     hb_vector_t<uint8_t> combined_columns;
     combined_columns.alloc (columns.length);
     for (unsigned i = 0; i < columns.length; i++)
       combined_columns.push (columns.arrayZ[i] | other_encoding.columns.arrayZ[i]);
-    
+
     int combined_overhead = get_chars_overhead (combined_columns);
     int combined_gain = (int) overhead + (int) other_encoding.overhead - combined_overhead
                         - (combined_width - (int) width) * items.length
@@ -2766,7 +2766,7 @@ struct VarData
 
   unsigned int get_region_index_count () const
   { return regionIndices.len; }
-  
+
   unsigned get_region_index (unsigned i) const
   { return i >= regionIndices.len ? -1 : regionIndices[i]; }
 
@@ -3120,6 +3120,69 @@ struct VarData
   DEFINE_SIZE_ARRAY (6, regionIndices);
 };
 
+struct MultiVarData
+{
+  unsigned int get_size () const
+  { return min_size
+	 - regionIndices.min_size + regionIndices.get_size ()
+	 + StructAfter<CFF2Index> (regionIndices).get_size ();
+  }
+
+  void get_delta (unsigned int inner,
+		  const int *coords, unsigned int coord_count,
+		  const SparseVarRegionList &regions,
+		  hb_array_t<float> out,
+		  SparseVarRegionList::cache_t *cache = nullptr) const
+  {
+    auto &deltaSets = StructAfter<CFF2Index> (regionIndices);
+    if (unlikely (inner >= deltaSets.count))
+      return;
+
+    auto bytes = deltaSets[inner];
+
+    const HBUINT8 *p = (const HBUINT8 *) bytes.arrayZ;
+    const HBUINT8 *end = (const HBUINT8 *) (bytes.arrayZ + bytes.length);
+    hb_vector_t<int> values_vector;
+    TupleValues::decompile (p, values_vector, end, true);
+
+    hb_array_t<int> values = values_vector;
+
+    unsigned regionCount = regionIndices.len;
+    unsigned tupleLength = values.length / regionCount;
+    unsigned count = hb_min (tupleLength, out.length);
+    for (unsigned regionIndex = 0; regionIndex < regionCount; regionIndex++)
+    {
+      float scalar = regions.evaluate (regionIndices[regionIndex],
+				       coords, coord_count,
+				       cache);
+      if (scalar)
+      {
+	for (unsigned i = 0; i < count; i++)
+	{
+	  out[i] += values.arrayZ[i] * scalar;
+	}
+      }
+      values += tupleLength;
+    }
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  regionIndices.sanitize (c) &&
+		  hb_barrier () &&
+		  StructAfter<CFF2Index> (regionIndices).sanitize (c));
+  }
+
+  protected:
+  HBUINT16	      format; // 1
+  Array16Of<HBUINT16> regionIndices;
+  CFF2Index           deltaSetsX; // Of<TupleValues>
+  public:
+  DEFINE_SIZE_MIN (4 + CFF2Index::min_size);
+};
+
 struct ItemVariationStore
 {
   friend struct item_variations_t;
@@ -3205,7 +3268,7 @@ struct ItemVariationStore
     return_trace (false);
 #endif
     if (unlikely (!c->extend_min (this))) return_trace (false);
-    
+
     format = 1;
     if (!regions.serialize_serialize (c, axis_tags, region_list))
       return_trace (false);
@@ -3220,7 +3283,7 @@ struct ItemVariationStore
     for (unsigned i = 0; i < num_var_data; i++)
       if (!dataSets[i].serialize_serialize (c, has_long, vardata_encodings[i].items))
         return_trace (false);
-    
+
     return_trace (true);
   }
 
