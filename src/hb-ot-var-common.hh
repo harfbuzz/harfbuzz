@@ -754,8 +754,7 @@ struct tuple_delta_t
 
     if (unlikely (!compiled_deltas.resize (alloc_len))) return false;
 
-    unsigned i = 0;
-    unsigned encoded_len = encode_delta_run (i, compiled_deltas, rounded_deltas);
+    unsigned encoded_len = encode_delta_run (compiled_deltas, rounded_deltas);
 
     if (y_deltas)
     {
@@ -772,19 +771,17 @@ struct tuple_delta_t
       }
 
       if (j != rounded_deltas.length) return false;
-      /* reset i because we reuse rounded_deltas for y_deltas */
-      i = 0;
-      encoded_len += encode_delta_run (i, compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
+      encoded_len += encode_delta_run (compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
     }
     return compiled_deltas.resize (encoded_len);
   }
 
-  static unsigned encode_delta_run (unsigned& i,
-				    hb_array_t<char> encoded_bytes,
+  static unsigned encode_delta_run (hb_array_t<char> encoded_bytes,
 				    hb_array_t<const int> deltas)
   {
     unsigned num_deltas = deltas.length;
     unsigned encoded_len = 0;
+    unsigned i = 0;
     while (i < num_deltas)
     {
       int val = deltas.arrayZ[i];
