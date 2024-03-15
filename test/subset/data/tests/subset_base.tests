@@ -1,0 +1,10 @@
+FONTS:
+SourceSansPro-Regular.otf
+
+PROFILES:
+retain-base-table.txt
+retain-base-table-filter-scripts.txt
+
+SUBSETS:
+abc
+

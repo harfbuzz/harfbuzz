@@ -50,6 +50,7 @@ TESTS = \
 	tests/glyph_map.tests \
 	tests/math.tests \
 	tests/math_coverage_offset.tests \
+	tests/subset_base.tests \
 	tests/post.tests \
 	tests/full_instance.tests \
 	tests/instance_feature_variations.tests \
