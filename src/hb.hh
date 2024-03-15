@@ -178,6 +178,11 @@
 #define HB_EXTERN __declspec (dllexport) extern
 #endif
 
+// https://github.com/harfbuzz/harfbuzz/pull/4619
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS 1
+#endif
+
 #include "hb.h"
 #define HB_H_IN
 #include "hb-ot.h"
@@ -211,6 +216,12 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <winapifamily.h>
+#endif
+
+#ifndef PRId32
+# define PRId32 "d"
+# define PRIu32 "u"
+# define PRIx32 "x"
 #endif
 
 #define HB_PASTE1(a,b) a##b
