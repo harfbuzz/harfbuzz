@@ -144,6 +144,11 @@
 #endif
 
 
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS 1
+#endif
+
+
 #include "hb-config.hh"
 #include "hb-limits.hh"
 
