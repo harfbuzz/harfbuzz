@@ -754,7 +754,7 @@ struct tuple_delta_t
 
     if (unlikely (!compiled_deltas.resize (alloc_len))) return false;
 
-    unsigned encoded_len = encode_delta_run (compiled_deltas, rounded_deltas);
+    unsigned encoded_len = compile_deltas (compiled_deltas, rounded_deltas);
 
     if (y_deltas)
     {
@@ -771,13 +771,13 @@ struct tuple_delta_t
       }
 
       if (j != rounded_deltas.length) return false;
-      encoded_len += encode_delta_run (compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
+      encoded_len += compile_deltas (compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
     }
     return compiled_deltas.resize (encoded_len);
   }
 
-  static unsigned encode_delta_run (hb_array_t<char> encoded_bytes,
-				    hb_array_t<const int> deltas)
+  static unsigned compile_deltas (hb_array_t<char> encoded_bytes,
+				  hb_array_t<const int> deltas)
   {
     unsigned num_deltas = deltas.length;
     unsigned encoded_len = 0;
@@ -1370,7 +1370,7 @@ struct TupleVariationData
         bool has_private_points = iterator.current_tuple->has_private_points ();
         const HBUINT8 *end = p + length;
         if (has_private_points &&
-            !TupleVariationData::unpack_points (p, private_indices, end))
+            !TupleVariationData::decompile_points (p, private_indices, end))
           return false;
 
         const hb_vector_t<unsigned> &indices = has_private_points ? private_indices : shared_indices;
@@ -1380,14 +1380,14 @@ struct TupleVariationData
         hb_vector_t<int> deltas_x;
 
         if (unlikely (!deltas_x.resize (num_deltas, false) ||
-                      !TupleVariationData::unpack_deltas (p, deltas_x, end)))
+                      !TupleVariationData::decompile_deltas (p, deltas_x, end)))
           return false;
 
         hb_vector_t<int> deltas_y;
         if (is_gvar)
         {
           if (unlikely (!deltas_y.resize (num_deltas, false) ||
-                        !TupleVariationData::unpack_deltas (p, deltas_y, end)))
+                        !TupleVariationData::decompile_deltas (p, deltas_y, end)))
             return false;
         }
 
@@ -1754,7 +1754,7 @@ struct TupleVariationData
       {
         const HBUINT8 *base = &(table_base+var_data->data);
         const HBUINT8 *p = base;
-        if (!unpack_points (p, shared_indices, (const HBUINT8 *) (var_data_bytes.arrayZ + var_data_bytes.length))) return false;
+        if (!decompile_points (p, shared_indices, (const HBUINT8 *) (var_data_bytes.arrayZ + var_data_bytes.length))) return false;
         data_offset = p - base;
       }
       return true;
@@ -1804,9 +1804,9 @@ struct TupleVariationData
 
   bool has_shared_point_numbers () const { return tupleVarCount.has_shared_point_numbers (); }
 
-  static bool unpack_points (const HBUINT8 *&p /* IN/OUT */,
-                             hb_vector_t<unsigned int> &points /* OUT */,
-                             const HBUINT8 *end)
+  static bool decompile_points (const HBUINT8 *&p /* IN/OUT */,
+				hb_vector_t<unsigned int> &points /* OUT */,
+				const HBUINT8 *end)
   {
     enum packed_point_flag_t
     {
@@ -1856,10 +1856,10 @@ struct TupleVariationData
     return true;
   }
 
-  static bool unpack_deltas (const HBUINT8 *&p /* IN/OUT */,
-                             hb_vector_t<int> &deltas /* IN/OUT */,
-                             const HBUINT8 *end,
-			     bool consume_all = false)
+  static bool decompile_deltas (const HBUINT8 *&p /* IN/OUT */,
+				hb_vector_t<int> &deltas /* IN/OUT */,
+				const HBUINT8 *end,
+				bool consume_all = false)
   {
     unsigned i = 0;
     unsigned count = consume_all ? UINT_MAX : deltas.length;
