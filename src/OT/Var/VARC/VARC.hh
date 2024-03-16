@@ -16,7 +16,7 @@ namespace OT {
 
 struct VarComponent
 {
-  enum flags_t
+  enum class flags_t : uint32_t
   {
     RESET_UNSPECIFIED_AXES	= 1u << 0,
     HAVE_AXES			= 1u << 1,
