@@ -3134,17 +3134,11 @@ struct MultiVarData
 		  hb_array_t<float> out,
 		  SparseVarRegionList::cache_t *cache = nullptr) const
   {
-    auto &deltaSets = StructAfter<CFF2Index> (regionIndices);
+    auto &deltaSets = StructAfter<TupleList> (regionIndices);
     if (unlikely (inner >= deltaSets.count))
       return;
 
-    auto bytes = deltaSets[inner];
-
-    const HBUINT8 *p = (const HBUINT8 *) bytes.arrayZ;
-    const HBUINT8 *end = (const HBUINT8 *) (bytes.arrayZ + bytes.length);
-    hb_vector_t<int> values_vector;
-    TupleValues::decompile (p, values_vector, end, true);
-
+    hb_vector_t<int> values_vector = deltaSets[inner];
     hb_array_t<int> values = values_vector;
 
     unsigned regionCount = regionIndices.len;
@@ -3178,7 +3172,7 @@ struct MultiVarData
   protected:
   HBUINT16	      format; // 1
   Array16Of<HBUINT16> regionIndices;
-  CFF2Index           deltaSetsX; // Of<TupleValues>
+  TupleList	      deltaSetsX;
   public:
   DEFINE_SIZE_MIN (4 + CFF2Index::min_size);
 };
