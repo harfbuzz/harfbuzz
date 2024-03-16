@@ -195,8 +195,16 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
     (&VARC+VARC.varStore).get_delta (axisValuesVarIdx, coords, axisValues.as_array ());
   }
 
-  for (unsigned i = 0; i < axisValues.length; i++)
-    axisValues[i] /= 16384.0f;
+  auto component_coords = coords;
+  /* Copying coords is expensive; so we have put an arbitrary
+   * limit on the max number of coords for now. */
+  if ((flags & (unsigned) flags_t::RESET_UNSPECIFIED_AXES) ||
+      coords.length > HB_GLYF_VAR_COMPOSITE_MAX_AXES)
+    component_coords = hb_array<int> ();
+
+  coord_setter_t coord_setter (component_coords);
+  for (unsigned i = 0; i < axisIndices.length; i++)
+    coord_setter[axisIndices[i]] = axisValues[i];
 
   // Transform
 
@@ -232,7 +240,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
 
-  VARC.get_path_at (font, gid, draw_session, coords, parent_gid);
+  VARC.get_path_at (font, gid, draw_session, coord_setter.get_coords (), parent_gid);
 
   return record;
 }
