@@ -40,6 +40,7 @@ HB_BASE_sources = \
 	hb-dispatch.hh \
 	hb-draw.cc \
 	hb-draw.hh \
+	hb-geometry.hh \
 	hb-face.cc \
 	hb-face.hh \
 	hb-face-builder.cc \
