@@ -27,7 +27,7 @@
 #include "hb.hh"
 
 
-typedef struct hb_extents_t
+struct hb_extents_t
 {
   hb_extents_t () {}
   hb_extents_t (float xmin, float ymin, float xmax, float ymax) :
@@ -73,9 +73,9 @@ typedef struct hb_extents_t
   float ymin = 0.f;
   float xmax = -1.f;
   float ymax = -1.f;
-} hb_extents_t;
+};
 
-typedef struct hb_transform_t
+struct hb_transform_t
 {
   hb_transform_t () {}
   hb_transform_t (float xx, float yx,
@@ -142,9 +142,9 @@ typedef struct hb_transform_t
   float yy = 1.f;
   float x0 = 0.f;
   float y0 = 0.f;
-} hb_transform_t;
+};
 
-typedef struct hb_bounds_t
+struct hb_bounds_t
 {
   enum status_t {
     UNBOUNDED,
@@ -188,7 +188,29 @@ typedef struct hb_bounds_t
 
   status_t status;
   hb_extents_t extents;
-} hb_bounds_t;
+};
+
+struct hb_transform_decomposed_t
+{
+  float translateX = 0;
+  float translateY = 0;
+  float rotation = 0;  // in degrees, counter-clockwise
+  float scaleX = 1;
+  float scaleY = 1;
+  float skewX = 0;  // in degrees, counter-clockwise
+  float skewY = 0;  // in degrees, counter-clockwise
+  float tCenterX = 0;
+  float tCenterY = 0;
+
+  operator bool () const
+  {
+    return translateX || translateY ||
+	   rotation ||
+	   scaleX != 1 || scaleY != 1 ||
+	   skewX || skewY ||
+	   tCenterX || tCenterY;
+  }
+};
 
 
 #endif /* HB_GEOMETRY_HH */
