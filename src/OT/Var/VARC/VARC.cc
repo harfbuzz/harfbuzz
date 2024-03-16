@@ -1,6 +1,6 @@
 #include "VARC.hh"
 
-#ifndef HB_NO_VAR
+#ifndef HB_NO_VAR_COMPOSITES
 
 namespace OT {
 
