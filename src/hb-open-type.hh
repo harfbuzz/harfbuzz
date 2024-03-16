@@ -1765,7 +1765,20 @@ struct TupleValues
     }
     return true;
   }
+};
 
+struct TupleList : CFF2Index
+{
+  hb_vector_t<unsigned> operator [] (unsigned i) const
+  {
+    auto bytes = CFF2Index::operator [] (i);
+
+    const HBUINT8 *p = (const HBUINT8 *) bytes.arrayZ;
+    const HBUINT8 *end = p + bytes.length;
+    hb_vector_t<signed> values;
+    TupleValues::decompile (p, values, end, true);
+    return values;
+  }
 };
 
 
