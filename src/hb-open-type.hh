@@ -1462,10 +1462,9 @@ struct CFFIndex
 			  hb_barrier () &&
 			  (count == 0 || /* empty INDEX */
 			   (count < count + 1u &&
-			    hb_barrier () &&
 			    c->check_struct (&offSize) && offSize >= 1 && offSize <= 4 &&
 			    c->check_array (offsets, offSize, count + 1u) &&
-			    c->check_array ((const HBUINT8*) data_base (), 1, offset_at (count))))));
+			    c->check_range (data_base (), offset_at (count))))));
   }
 
   public:
