@@ -4,6 +4,8 @@
 #include "../../../hb-ot-layout-common.hh"
 #include "../../../hb-geometry.hh"
 
+#include "coord-setter.hh"
+
 namespace OT {
 
 //namespace Var {
