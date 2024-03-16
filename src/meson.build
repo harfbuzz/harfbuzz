@@ -175,6 +175,7 @@ hb_base_sources = files(
   'OT/Layout/GSUB/SubstLookupSubTable.hh',
   'OT/name/name.hh',
   'OT/Var/VARC/coord-setter.hh',
+  'OT/Var/VARC/VARC.cc',
   'OT/Var/VARC/VARC.hh',
   'hb-ot-layout-gsubgpos.hh',
   'hb-ot-layout-jstf-table.hh',
