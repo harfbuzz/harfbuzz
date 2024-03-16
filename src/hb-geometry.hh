@@ -136,6 +136,63 @@ struct hb_transform_t
     }
   }
 
+  void transform (const hb_transform_t &o) { multiply (o); }
+
+  void translate (float x, float y)
+  {
+    if (x == 0.f and y == 0.f)
+      return;
+
+    x0 += xx * x + xy * y;
+    y0 += yx * x + yy * y;
+  }
+
+  void scale (float scaleX, float scaleY)
+  {
+    if (scaleX == 1.f && scaleY == 1.f)
+      return;
+
+    xx *= scaleX;
+    yx *= scaleX;
+    xy *= scaleY;
+    yy *= scaleY;
+  }
+
+  void rotate (float rotation)
+  {
+    if (rotation == 0.f)
+      return;
+
+    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L240
+    rotation = rotation * HB_PI;
+    float c;
+    float s;
+#ifdef HAVE_SINCOSF
+    sincosf (rotation, &s, &c);
+#else
+    c = cosf (rotation);
+    s = sinf (rotation);
+#endif
+    auto other = hb_transform_t{c, s, -s, c, 0.f, 0.f};
+    transform (other);
+  }
+
+  void skew (float skewX, float skewY)
+  {
+    if (skewX == 0.f && skewY == 0.f)
+      return;
+
+    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L255
+    skewX = skewX * HB_PI;
+    skewY = skewY * HB_PI;
+    auto other = hb_transform_t{1.f,
+				skewY ? tanf (skewY) : 0.f,
+				skewX ? tanf (skewX) : 0.f,
+				1.f,
+				0.f, 0.f};
+    transform (other);
+  }
+
   float xx = 1.f;
   float yx = 0.f;
   float xy = 0.f;
@@ -209,6 +266,17 @@ struct hb_transform_decomposed_t
 	   scaleX != 1 || scaleY != 1 ||
 	   skewX || skewY ||
 	   tCenterX || tCenterY;
+  }
+
+  hb_transform_t to_transform () const
+  {
+    hb_transform_t t;
+    t.translate (translateX + tCenterX, translateY + tCenterY);
+    t.rotate (rotation);
+    t.scale (scaleX, scaleY);
+    t.skew (-skewX, skewY);
+    t.translate (-tCenterX, -tCenterY);
+    return t;
   }
 };
 
