@@ -20,6 +20,21 @@ struct VarComponent
 	       hb_ubytes_t record) const;
 };
 
+struct VarCompositeGlyph
+{
+  void
+  get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session,
+	       hb_array_t<const int> coords,
+	       hb_ubytes_t record) const
+  {
+    while (record)
+    {
+      const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
+      record = comp.get_path_at (font, glyph, draw_session, coords, record);
+    }
+  }
+};
+
 struct VARC
 {
   static constexpr hb_tag_t tableTag = HB_TAG ('V', 'A', 'R', 'C');
@@ -45,11 +60,9 @@ struct VARC
     }
 
     hb_ubytes_t record = (this+glyphRecords)[idx];
-    while (record)
-    {
-      const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
-      record = comp.get_path_at (font, glyph, draw_session, coords, record);
-    }
+
+    const VarCompositeGlyph &composite = * (const VarCompositeGlyph *) (record.arrayZ);
+    composite.get_path_at (font, glyph, draw_session, coords, record);
 
     return true;
   }
