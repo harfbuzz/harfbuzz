@@ -3134,7 +3134,7 @@ struct MultiVarData
 		  hb_array_t<float> out,
 		  SparseVarRegionList::cache_t *cache = nullptr) const
   {
-    auto &deltaSets = StructAfter<TupleList> (regionIndices);
+    auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
     if (unlikely (inner >= deltaSets.count))
       return;
 
@@ -3163,18 +3163,20 @@ struct MultiVarData
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
+    return_trace (format.sanitize (c) &&
+		  hb_barrier () &&
+		  format == 1 &&
 		  regionIndices.sanitize (c) &&
 		  hb_barrier () &&
-		  StructAfter<CFF2Index> (regionIndices).sanitize (c));
+		  StructAfter<decltype (deltaSetsX)> (regionIndices).sanitize (c));
   }
 
   protected:
-  HBUINT16	      format; // 1
+  HBUINT8	      format; // 1
   Array16Of<HBUINT16> regionIndices;
   TupleList	      deltaSetsX;
   public:
-  DEFINE_SIZE_MIN (4 + CFF2Index::min_size);
+  DEFINE_SIZE_MIN (8);
 };
 
 struct ItemVariationStore
