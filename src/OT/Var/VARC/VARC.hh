@@ -2,6 +2,7 @@
 #define OT_VAR_VARC_VARC_HH
 
 #include "../../../hb-ot-layout-common.hh"
+#include "../../../hb-geometry.hh"
 
 namespace OT {
 
@@ -173,6 +174,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   if (flags & (unsigned) flags_t::TRANSFORM_HAS_VARIATION)
     READ_UINT32VAR (transformVarIdx);
 
+  hb_transform_decomposed_t transform;
   // TODO
 
   font->face->table.VARC->get_path_at (font, gid, draw_session, coords, parent_gid);
