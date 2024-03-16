@@ -243,7 +243,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
     (&VARC+VARC.varStore).get_delta (transformVarIdx, coords, transformValues);
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
 	if (flags & (unsigned) flags_t::flag) \
-	  transform.name = *transformValues++; \
+	  transform.name = *transformValues++;
     PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
   }
