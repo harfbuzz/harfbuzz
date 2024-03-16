@@ -132,12 +132,50 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 			   hb_array_t<const int> coords,
 			   hb_ubytes_t record) const
 {
+#define READ_UINT32VAR(name) \
+  HB_STMT_START { \
+    if (unlikely (record.length < HBUINT32VAR::min_size || \
+		  (!hb_barrier ()) || \
+		  record.length < (* (const HBUINT32VAR *) record.arrayZ).get_size ())) \
+      return hb_ubytes_t (); \
+    name = (uint32_t) (* (const HBUINT32VAR *) record.arrayZ); \
+    record += (* (const HBUINT32VAR *) record.arrayZ).get_size (); \
+  } HB_STMT_END
+
+  uint32_t flags;
+  READ_UINT32VAR (flags);
+
   hb_codepoint_t gid = 0;
+  if (flags & (unsigned) flags_t::GID_IS_24BIT)
+  {
+    if (unlikely (record.length < HBGlyphID24::static_size))
+      return hb_ubytes_t ();
+    hb_barrier ();
+    gid = (* (const HBGlyphID24 *) record.arrayZ);
+    record += HBGlyphID24::static_size;
+  }
+  else
+  {
+    if (unlikely (record.length < HBGlyphID16::static_size))
+      return hb_ubytes_t ();
+    hb_barrier ();
+    gid = (* (const HBGlyphID16 *) record.arrayZ);
+    record += HBGlyphID16::static_size;
+  }
 
+  /* TODO Read axis Indices index and values */
 
+  uint32_t axisValuesVarIdx = VarIdx::NO_VARIATION;
+  if (flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION)
+    READ_UINT32VAR (axisValuesVarIdx);
+
+  uint32_t transformVarIdx = VarIdx::NO_VARIATION;
+  if (flags & (unsigned) flags_t::TRANSFORM_HAS_VARIATION)
+    READ_UINT32VAR (transformVarIdx);
+
+  // TODO
 
   font->face->table.VARC->get_path_at (font, gid, draw_session, coords, parent_gid);
-  record += 1;//get_size ();
   return record;
 }
 
