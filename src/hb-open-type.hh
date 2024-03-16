@@ -172,7 +172,7 @@ struct HBUINT32VAR
 		  c->check_range (v, get_size ()));
   }
 
-  operator unsigned () const
+  operator uint32_t () const
   {
     unsigned b0 = v[0];
     if (b0 < 0x80)
