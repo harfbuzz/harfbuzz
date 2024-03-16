@@ -226,19 +226,35 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 	} HB_STMT_END
 
   hb_transform_decomposed_t transform;
+  hb_vector_t<float> transformValuesVector;
 
   // Read transform components
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
-  if (flags & (unsigned) flags_t::flag) \
-  { \
-    if (unlikely (record.length < type::static_size)) \
-      return hb_ubytes_t (); \
-    const type &var = * (const type *) record.arrayZ; \
-    transform.name = float (var); \
-    record += type::static_size; \
-  }
+	if (flags & (unsigned) flags_t::flag) \
+	{ \
+	  if (unlikely (record.length < type::static_size)) \
+	    return hb_ubytes_t (); \
+	  const type &var = * (const type *) record.arrayZ; \
+	  transform.name = float (var); \
+	  transformValuesVector.push (transform.name); \
+	  record += type::static_size; \
+	}
   PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
+
+  if (transformVarIdx != VarIdx::NO_VARIATION)
+  {
+    auto transformValues = transformValuesVector.as_array ();
+    (&VARC+VARC.varStore).get_delta (transformVarIdx, coords, transformValues);
+#define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
+	if (flags & (unsigned) flags_t::flag) \
+	  transform.name = *transformValues++; \
+    PROCESS_TRANSFORM_COMPONENTS;
+#undef PROCESS_TRANSFORM_COMPONENT
+  }
+
+  if (!(flags & (unsigned) flags_t::HAVE_SCALE_Y))
+    transform.scaleY = transform.scaleX;
 
   VARC.get_path_at (font, gid, draw_session, coord_setter.get_coords (), parent_gid);
 
