@@ -12,6 +12,8 @@ namespace OT {
  * https://github.com/harfbuzz/boring-expansion-spec/blob/main/VARC.md
  */
 
+#ifndef HB_NO_VAR
+
 struct VarComponent
 {
   HB_INTERNAL hb_ubytes_t
@@ -117,6 +119,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   return record;
 }
 
+#endif
 
 //}
 
