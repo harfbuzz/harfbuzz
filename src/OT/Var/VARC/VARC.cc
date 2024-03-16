@@ -133,12 +133,13 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
-    if (unlikely (record.length < HBUINT32VAR::min_size || \
-		  (!hb_barrier ()) || \
-		  record.length < ((const HBUINT32VAR *) record.arrayZ)->get_size ())) \
-      return hb_ubytes_t (); \
-    name = (uint32_t) (* (const HBUINT32VAR *) record.arrayZ); \
-    record += ((const HBUINT32VAR *) record.arrayZ)->get_size (); \
+    if (unlikely (record.length < HBUINT32VAR::min_size)) return hb_ubytes_t (); \
+    hb_barrier (); \
+    auto &varint = * (const HBUINT32VAR *) record.arrayZ; \
+    unsigned size = varint.get_size (); \
+    if (unlikely (record.length < size)) return hb_ubytes_t (); \
+    name = (uint32_t) varint; \
+    record += size; \
   } HB_STMT_END
 
   uint32_t flags;
