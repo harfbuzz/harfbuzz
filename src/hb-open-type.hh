@@ -167,7 +167,9 @@ struct HBUINT32VAR
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_range (v, 1) && c->check_struct (this));
+    return_trace (c->check_range (v, 1) &&
+		  hb_barrier () &&
+		  c->check_range (v, get_size ()));
   }
 
   operator unsigned () const
