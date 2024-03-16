@@ -12,34 +12,51 @@ namespace OT {
  * https://github.com/harfbuzz/boring-expansion-spec/blob/main/VARC.md
  */
 
+struct VarComponent
+{
+  HB_INTERNAL hb_ubytes_t
+  get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_session_t &draw_session,
+	       hb_array_t<const int> coords,
+	       hb_ubytes_t record) const;
+};
+
 struct VARC
 {
   static constexpr hb_tag_t tableTag = HB_TAG ('V', 'A', 'R', 'C');
 
   bool
   get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session,
-	       hb_array_t<const int> coords) const
+	       hb_array_t<const int> coords,
+	       hb_codepoint_t parent_glyph = HB_CODEPOINT_INVALID) const
   {
-    if (!font->face->table.glyf->get_path_at (font, glyph, draw_session, coords))
+    // Don't recurse on the same glyph.
+    unsigned idx = glyph == parent_glyph ?
+		   NOT_COVERED :
+		   (this+coverage).get_coverage (glyph);
+    if (idx == NOT_COVERED)
+    {
+      if (!font->face->table.glyf->get_path_at (font, glyph, draw_session, coords))
 #ifndef HB_NO_CFF
-    if (!font->face->table.cff2->get_path_at (font, glyph, draw_session, coords))
-    if (!font->face->table.cff1->get_path (font, glyph, draw_session)) // Doesn't have variations
+      if (!font->face->table.cff2->get_path_at (font, glyph, draw_session, coords))
+      if (!font->face->table.cff1->get_path (font, glyph, draw_session)) // Doesn't have variations
 #endif
-      return false;
+	return false;
+      return true;
+    }
+
+    hb_ubytes_t record = (this+glyphRecords)[idx];
+    while (record)
+    {
+      const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
+      record = comp.get_path_at (font, glyph, draw_session, coords, record);
+    }
+
     return true;
   }
 
   bool
   get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
-  {
-    unsigned idx = (this+coverage).get_coverage (gid);
-    if (idx == NOT_COVERED)
-      return false;
-
-    // TODO
-
-    return true;
-  }
+  { return get_path_at (font, gid, draw_session, hb_array (font->coords, font->num_coords)); }
 
   bool paint_glyph (hb_font_t *font, hb_codepoint_t gid, hb_paint_funcs_t *funcs, void *data, hb_color_t foreground) const
   {
@@ -71,6 +88,22 @@ struct VARC
   public:
   DEFINE_SIZE_STATIC (20);
 };
+
+
+hb_ubytes_t
+VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_session_t &draw_session,
+			   hb_array_t<const int> coords,
+			   hb_ubytes_t record) const
+{
+  hb_codepoint_t gid = 0;
+
+
+
+  font->face->table.VARC->get_path_at (font, gid, draw_session, coords, parent_gid);
+  record += 1;//get_size ();
+  return record;
+}
+
 
 //}
 
