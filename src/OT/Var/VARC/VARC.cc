@@ -278,10 +278,8 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   transform.tCenterY *= y_scale;
 
   // Build a transforming pen to apply the transform.
-  hb_transform_t affine_transform = transform.to_transform ();
-
   hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
-  hb_transforming_pen_context_t context {affine_transform,
+  hb_transforming_pen_context_t context {transform.to_transform (),
 					 draw_session.funcs,
 					 draw_session.draw_data,
 					 &draw_session.st};
