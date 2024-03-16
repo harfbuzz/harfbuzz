@@ -287,6 +287,9 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 
   VARC.get_path_at (font, gid, transformer_session, component_coords, parent_gid);
 
+#undef PROCESS_TRANSFORM_COMPONENTS
+#undef READ_UINT32VAR
+
   return record;
 }
 
