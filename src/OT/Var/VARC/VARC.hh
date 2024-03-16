@@ -62,6 +62,8 @@ HB_MARK_AS_FLAG_T (VarComponent::flags_t);
 
 struct VARC
 {
+  friend struct VarComponent;
+
   static constexpr hb_tag_t tableTag = HB_TAG ('V', 'A', 'R', 'C');
 
   bool
@@ -121,18 +123,20 @@ struct VARC
   FixedVersion<> version; /* Version identifier */
   Offset32To<Coverage> coverage;
   Offset32To<MultiItemVariationStore> varStore;
-  Offset32To<CFF2Index/*Of<TupleValues>*/> axisIndicesList;
+  Offset32To<TupleList> axisIndicesList;
   Offset32To<CFF2Index/*Of<VarCompositeGlyph>*/> glyphRecords;
   public:
   DEFINE_SIZE_STATIC (20);
 };
-
 
 hb_ubytes_t
 VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_session_t &draw_session,
 			   hb_array_t<const int> coords,
 			   hb_ubytes_t record) const
 {
+  auto &VARC = *font->face->table.VARC;
+  const unsigned char *end = record.arrayZ + record.length;
+
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
     if (unlikely (record.length < HBUINT32VAR::min_size || \
@@ -146,6 +150,8 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   uint32_t flags;
   READ_UINT32VAR (flags);
 
+  // gid
+  //
   hb_codepoint_t gid = 0;
   if (flags & (unsigned) flags_t::GID_IS_24BIT)
   {
@@ -164,20 +170,44 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
     record += HBGlyphID16::static_size;
   }
 
-  /* TODO Read axis Indices index and values */
+  // Axis values
 
-  uint32_t axisValuesVarIdx = VarIdx::NO_VARIATION;
+  unsigned axisIndicesIndex = (uint32_t) -1;
+  hb_vector_t<unsigned> axisIndices;
+  hb_vector_t<signed> axisValuesInt;
+  if (flags & (unsigned) flags_t::HAVE_AXES)
+  {
+    READ_UINT32VAR (axisIndicesIndex);
+    axisIndices = (&VARC+VARC.axisIndicesList)[axisIndicesIndex];
+    axisValuesInt.resize (axisIndices.length);
+    const HBUINT8 *p = (const HBUINT8 *) record.arrayZ;
+    TupleValues::decompile (p, axisValuesInt, (const HBUINT8 *) end);
+    record += (const uint8_t *) p - record.arrayZ;
+  }
+  hb_vector_t<float> axisValues (axisValuesInt);
+
   if (flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION)
+  {
+    uint32_t axisValuesVarIdx;
     READ_UINT32VAR (axisValuesVarIdx);
+    (&VARC+VARC.varStore).get_delta (axisValuesVarIdx, coords, axisValues.as_array ());
+  }
 
+  for (unsigned i = 0; i < axisValues.length; i++)
+    axisValues[i] /= 16384.0f;
+
+  // Transform
+
+#if 0
   uint32_t transformVarIdx = VarIdx::NO_VARIATION;
   if (flags & (unsigned) flags_t::TRANSFORM_HAS_VARIATION)
     READ_UINT32VAR (transformVarIdx);
 
   hb_transform_decomposed_t transform;
   // TODO
+#endif
 
-  font->face->table.VARC->get_path_at (font, gid, draw_session, coords, parent_gid);
+  VARC.get_path_at (font, gid, draw_session, coords, parent_gid);
   return record;
 }
 
