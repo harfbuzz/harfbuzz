@@ -232,6 +232,7 @@ struct HBFixed : Type
 
   operator signed () const = delete;
   operator unsigned () const = delete;
+  explicit operator float () const { return to_float (); }
   typename Type::type to_int () const { return Type::v; }
   void set_int (typename Type::type i ) { Type::v = i; }
   float to_float (float offset = 0) const  { return ((int32_t) Type::v + offset) / shift; }
