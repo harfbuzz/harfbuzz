@@ -45,10 +45,10 @@ struct VarComponent
 
 struct VarCompositeGlyph
 {
-  void
+  static void
   get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
-	       hb_ubytes_t record) const
+	       hb_ubytes_t record)
   {
     while (record)
     {
@@ -88,8 +88,7 @@ struct VARC
 
     hb_ubytes_t record = (this+glyphRecords)[idx];
 
-    const VarCompositeGlyph &composite = * (const VarCompositeGlyph *) (record.arrayZ);
-    composite.get_path_at (font, glyph, draw_session, coords, record);
+    VarCompositeGlyph::get_path_at (font, glyph, draw_session, coords, record);
 
     return true;
   }
@@ -141,17 +140,16 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   HB_STMT_START { \
     if (unlikely (record.length < HBUINT32VAR::min_size || \
 		  (!hb_barrier ()) || \
-		  record.length < (* (const HBUINT32VAR *) record.arrayZ).get_size ())) \
+		  record.length < ((const HBUINT32VAR *) record.arrayZ)->get_size ())) \
       return hb_ubytes_t (); \
     name = (uint32_t) (* (const HBUINT32VAR *) record.arrayZ); \
-    record += (* (const HBUINT32VAR *) record.arrayZ).get_size (); \
+    record += ((const HBUINT32VAR *) record.arrayZ)->get_size (); \
   } HB_STMT_END
 
   uint32_t flags;
   READ_UINT32VAR (flags);
 
   // gid
-  //
   hb_codepoint_t gid = 0;
   if (flags & (unsigned) flags_t::GID_IS_24BIT)
   {
@@ -164,7 +162,9 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   else
   {
     if (unlikely (record.length < HBGlyphID16::static_size))
+     {
       return hb_ubytes_t ();
+     }
     hb_barrier ();
     gid = (* (const HBGlyphID16 *) record.arrayZ);
     record += HBGlyphID16::static_size;
@@ -172,11 +172,11 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 
   // Axis values
 
-  unsigned axisIndicesIndex = (uint32_t) -1;
   hb_vector_t<unsigned> axisIndices;
   hb_vector_t<signed> axisValuesInt;
   if (flags & (unsigned) flags_t::HAVE_AXES)
   {
+    unsigned axisIndicesIndex;
     READ_UINT32VAR (axisIndicesIndex);
     axisIndices = (&VARC+VARC.axisIndicesList)[axisIndicesIndex];
     axisValuesInt.resize (axisIndices.length);
@@ -198,16 +198,40 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 
   // Transform
 
-#if 0
   uint32_t transformVarIdx = VarIdx::NO_VARIATION;
   if (flags & (unsigned) flags_t::TRANSFORM_HAS_VARIATION)
     READ_UINT32VAR (transformVarIdx);
 
+#define PROCESS_TRANSFORM_COMPONENTS \
+	HB_STMT_START { \
+	PROCESS_TRANSFORM_COMPONENT (FWORD, HAVE_TRANSLATE_X, translateX); \
+	PROCESS_TRANSFORM_COMPONENT (FWORD, HAVE_TRANSLATE_Y, translateY); \
+	PROCESS_TRANSFORM_COMPONENT (F4DOT12, HAVE_ROTATION, rotation); \
+	PROCESS_TRANSFORM_COMPONENT (F6DOT10, HAVE_SCALE_X, scaleX); \
+	PROCESS_TRANSFORM_COMPONENT (F6DOT10, HAVE_SCALE_Y, scaleY); \
+	PROCESS_TRANSFORM_COMPONENT (F4DOT12, HAVE_SKEW_X, skewX); \
+	PROCESS_TRANSFORM_COMPONENT (F4DOT12, HAVE_SKEW_Y, skewY); \
+	PROCESS_TRANSFORM_COMPONENT (FWORD, HAVE_TCENTER_X, tCenterX); \
+	PROCESS_TRANSFORM_COMPONENT (FWORD, HAVE_TCENTER_Y, tCenterY); \
+	} HB_STMT_END
+
   hb_transform_decomposed_t transform;
-  // TODO
-#endif
+
+  // Read transform components
+#define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
+  if (flags & (unsigned) flags_t::flag) \
+  { \
+    if (unlikely (record.length < type::static_size)) \
+      return hb_ubytes_t (); \
+    const type &var = * (const type *) record.arrayZ; \
+    transform.name = float (var); \
+    record += type::static_size; \
+  }
+  PROCESS_TRANSFORM_COMPONENTS;
+#undef PROCESS_TRANSFORM_COMPONENT
 
   VARC.get_path_at (font, gid, draw_session, coords, parent_gid);
+
   return record;
 }
 
