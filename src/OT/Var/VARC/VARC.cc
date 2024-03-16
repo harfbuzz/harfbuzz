@@ -146,6 +146,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   READ_UINT32VAR (flags);
 
   // gid
+
   hb_codepoint_t gid = 0;
   if (flags & (unsigned) flags_t::GID_IS_24BIT)
   {
@@ -182,6 +183,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   }
   hb_vector_t<float> axisValues (axisValuesInt);
 
+  // Apply variations if any
   if (flags & (unsigned) flags_t::AXIS_VALUES_HAVE_VARIATION)
   {
     uint32_t axisValuesVarIdx;
@@ -238,6 +240,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
 
+  // Apply variations if any
   if (transformVarIdx != VarIdx::NO_VARIATION)
   {
     auto transformValues = transformValuesVector.as_array ();
@@ -265,15 +268,16 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   if (!(flags & (unsigned) flags_t::HAVE_SCALE_Y))
     transform.scaleY = transform.scaleX;
 
+  // Scale the transform by the font's scale
   float upem = font->face->upem;
   float x_scale = font->x_scale / upem;
   float y_scale = font->y_scale / upem;
-
   transform.translateX *= x_scale;
   transform.translateY *= y_scale;
   transform.tCenterX *= x_scale;
   transform.tCenterY *= y_scale;
 
+  // Build a transforming pen to apply the transform.
   hb_transform_t affine_transform = transform.to_transform ();
 
   hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
@@ -281,7 +285,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 					 draw_session.funcs,
 					 draw_session.draw_data,
 					 &draw_session.st};
-  hb_draw_session_t transformer_session = {transformer_funcs, &context};
+  hb_draw_session_t transformer_session {transformer_funcs, &context};
 
   VARC.get_path_at (font, gid, transformer_session, component_coords, parent_gid);
 
