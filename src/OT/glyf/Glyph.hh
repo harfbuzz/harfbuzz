@@ -352,7 +352,7 @@ struct Glyph
 		   bool shift_points_hori = true,
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
-		   hb_array_t<int> coords = hb_array_t<int> (),
+		   hb_array_t<const int> coords = hb_array_t<const int> (),
 		   hb_map_t *current_glyphs = nullptr,
 		   unsigned int depth = 0,
 		   unsigned *edge_count = nullptr) const

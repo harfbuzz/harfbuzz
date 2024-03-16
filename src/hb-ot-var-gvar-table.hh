@@ -621,7 +621,7 @@ struct gvar
 
     public:
     bool apply_deltas_to_points (hb_codepoint_t glyph,
-				 hb_array_t<int> coords,
+				 hb_array_t<const int> coords,
 				 const hb_array_t<contour_point_t> points,
 				 bool phantom_only = false) const
     {
