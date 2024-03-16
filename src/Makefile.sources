@@ -170,6 +170,7 @@ HB_BASE_sources = \
 	OT/Layout/GSUB/SubstLookup.hh \
 	OT/Layout/GSUB/SubstLookupSubTable.hh \
 	OT/name/name.hh \
+	OT/Var/VARC/VARC.hh \
 	hb-ot-layout-gsubgpos.hh \
 	hb-ot-layout-jstf-table.hh \
 	hb-ot-layout.cc \
@@ -230,6 +231,7 @@ HB_BASE_sources = \
 	hb-ot-var-gvar-table.hh \
 	hb-ot-var-hvar-table.hh \
 	hb-ot-var-mvar-table.hh \
+	hb-ot-var-varc-table.hh \
 	hb-ot-var.cc \
 	hb-ot-vorg-table.hh \
 	hb-pool.hh \
