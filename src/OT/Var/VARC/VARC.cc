@@ -165,9 +165,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   else
   {
     if (unlikely (record.length < HBGlyphID16::static_size))
-     {
       return hb_ubytes_t ();
-     }
     hb_barrier ();
     gid = (* (const HBGlyphID16 *) record.arrayZ);
     record += HBGlyphID16::static_size;
@@ -239,6 +237,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 	  static_assert (type::static_size == HBINT16::static_size, ""); \
 	  if (unlikely (record.length < HBINT16::static_size)) \
 	    return hb_ubytes_t (); \
+	  hb_barrier (); \
 	  transform.name = * (const HBINT16 *) record.arrayZ; \
 	  record += HBINT16::static_size; \
 	}
