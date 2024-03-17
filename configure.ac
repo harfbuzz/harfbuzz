@@ -132,7 +132,7 @@ AC_ARG_WITH(glib,
 			[Use glib @<:@default=auto@:>@])],,
 	[with_glib=auto])
 have_glib=false
-GLIB_DEPS="glib-2.0 >= 2.19.1"
+GLIB_DEPS="glib-2.0 >= 2.30"
 AC_SUBST(GLIB_DEPS)
 if test "x$with_glib" = "xyes" -o "x$with_glib" = "xauto"; then
 	PKG_CHECK_MODULES(GLIB, $GLIB_DEPS, have_glib=true, :)
@@ -193,7 +193,7 @@ AC_ARG_WITH(cairo,
 	[with_cairo=auto])
 have_cairo=false
 if test "x$with_cairo" = "xyes" -o "x$with_cairo" = "xauto"; then
-	PKG_CHECK_MODULES(CAIRO, cairo >= 1.8.0, have_cairo=true, :)
+	PKG_CHECK_MODULES(CAIRO, cairo >= 1.10, have_cairo=true, :)
 	save_libs=$LIBS
 	LIBS="$LIBS $CAIRO_LIBS"
 	AC_CHECK_FUNCS(cairo_user_font_face_set_render_color_glyph_func)
