@@ -242,7 +242,7 @@ AC_ARG_WITH(icu,
 	[with_icu=auto])
 have_icu=false
 if test "x$with_icu" = "xyes" -o "x$with_icu" = "xbuiltin" -o "x$with_icu" = "xauto"; then
-	PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, :)
+	PKG_CHECK_MODULES(ICU, icu-uc >= 49.0, have_icu=true, :)
 fi
 if test \( "x$with_icu" = "xyes" -o "x$with_icu" = "xbuiltin" \) -a "x$have_icu" != "xtrue"; then
 	AC_MSG_ERROR([icu support requested but icu-uc not found])
