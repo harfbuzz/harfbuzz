@@ -2,6 +2,9 @@
 
 #ifndef HB_NO_VAR_COMPOSITES
 
+#include "../../../hb-draw.hh"
+#include "../../../hb-geometry.hh"
+
 namespace OT {
 
 //namespace Var {
