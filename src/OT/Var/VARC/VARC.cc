@@ -195,7 +195,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   /* Copying coords is expensive; so we have put an arbitrary
    * limit on the max number of coords for now. */
   if ((flags & (unsigned) flags_t::RESET_UNSPECIFIED_AXES) ||
-      coords.length > HB_GLYF_VAR_COMPOSITE_MAX_AXES)
+      coords.length > HB_VAR_COMPOSITE_MAX_AXES)
     component_coords = hb_array<int> ();
 
   coord_setter_t coord_setter (component_coords);
