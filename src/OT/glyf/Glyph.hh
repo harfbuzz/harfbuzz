@@ -319,7 +319,7 @@ struct Glyph
     if (unlikely (depth > HB_MAX_NESTING_LEVEL)) return false;
     unsigned stack_edge_count = 0;
     if (!edge_count) edge_count = &stack_edge_count;
-    if (unlikely (*edge_count > HB_GLYF_MAX_EDGE_COUNT)) return false;
+    if (unlikely (*edge_count > HB_MAX_GRAPH_EDGE_COUNT)) return false;
     (*edge_count)++;
 
     hb_map_t current_glyphs_stack;
