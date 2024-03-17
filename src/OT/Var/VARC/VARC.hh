@@ -2,8 +2,6 @@
 #define OT_VAR_VARC_VARC_HH
 
 #include "../../../hb-ot-layout-common.hh"
-#include "../../../hb-draw.hh"
-#include "../../../hb-geometry.hh"
 #include "../../../hb-ot-glyf-table.hh"
 #include "../../../hb-ot-cff2-table.hh"
 #include "../../../hb-ot-cff1-table.hh"
