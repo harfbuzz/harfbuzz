@@ -127,7 +127,9 @@ hb_transforming_pen_get_funcs ()
 
 
 hb_ubytes_t
-VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_session_t &draw_session,
+VarComponent::get_path_at (hb_font_t *font,
+			   hb_codepoint_t parent_gid,
+			   hb_draw_session_t &draw_session,
 			   hb_array_t<const int> coords,
 			   hb_ubytes_t record,
 			   hb_set_t *visited,
@@ -294,7 +296,10 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 					 &draw_session.st};
   hb_draw_session_t transformer_session {transformer_funcs, &context};
 
-  VARC.get_path_at (font, gid, transformer_session, component_coords, parent_gid, visited, edges_left, depth_left - 1);
+  VARC.get_path_at (font, gid,
+		    transformer_session, component_coords,
+		    parent_gid,
+		    visited, edges_left, depth_left - 1);
 
 #undef PROCESS_TRANSFORM_COMPONENTS
 #undef READ_UINT32VAR
