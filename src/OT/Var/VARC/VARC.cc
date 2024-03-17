@@ -272,7 +272,7 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
     transform.scaleY = transform.scaleX;
 
   // Scale the transform by the font's scale
-  float upem = font->face->upem;
+  float upem = font->face->get_upem ();
   float x_scale = font->x_scale / upem;
   float y_scale = font->y_scale / upem;
   transform.translateX *= x_scale;
