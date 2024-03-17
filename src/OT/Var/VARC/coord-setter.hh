@@ -16,7 +16,7 @@ struct coord_setter_t
 
   int& operator [] (unsigned idx)
   {
-    if (unlikely (idx >= HB_GLYF_VAR_COMPOSITE_MAX_AXES))
+    if (unlikely (idx >= HB_VAR_COMPOSITE_MAX_AXES))
       return Crap(int);
     if (coords.length < idx + 1)
       coords.resize (idx + 1);
