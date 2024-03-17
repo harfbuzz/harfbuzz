@@ -191,7 +191,8 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
   {
     uint32_t axisValuesVarIdx;
     READ_UINT32VAR (axisValuesVarIdx);
-    (&VARC+VARC.varStore).get_delta (axisValuesVarIdx, coords, axisValues.as_array ());
+    if (coords)
+      (&VARC+VARC.varStore).get_delta (axisValuesVarIdx, coords, axisValues.as_array ());
   }
 
   auto component_coords = coords;
@@ -227,7 +228,6 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 	} HB_STMT_END
 
   hb_transform_decomposed_t transform;
-  hb_vector_t<float> transformValuesVector;
 
   // Read transform components
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
@@ -237,15 +237,20 @@ VarComponent::get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_s
 	  if (unlikely (record.length < HBINT16::static_size)) \
 	    return hb_ubytes_t (); \
 	  transform.name = * (const HBINT16 *) record.arrayZ; \
-	  transformValuesVector.push (transform.name); \
 	  record += HBINT16::static_size; \
 	}
   PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
 
   // Apply variations if any
-  if (transformVarIdx != VarIdx::NO_VARIATION)
+  if (transformVarIdx != VarIdx::NO_VARIATION && coords)
   {
+    hb_vector_t<float> transformValuesVector;
+#define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
+	if (flags & (unsigned) flags_t::flag) \
+	  transformValuesVector.push (transform.name);
+    PROCESS_TRANSFORM_COMPONENTS;
+#undef PROCESS_TRANSFORM_COMPONENT
     auto transformValues = transformValuesVector.as_array ();
     (&VARC+VARC.varStore).get_delta (transformVarIdx, coords, transformValues);
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
