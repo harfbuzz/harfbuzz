@@ -1722,6 +1722,8 @@ struct TupleValues
   {
     unsigned i = 0;
     unsigned count = consume_all ? UINT_MAX : values.length;
+    if (consume_all)
+      values.alloc ((end - p) / 2);
     while (i < count)
     {
       if (unlikely (p + 1 > end)) return consume_all;
