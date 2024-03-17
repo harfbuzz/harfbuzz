@@ -9,6 +9,13 @@ project('harfbuzz', 'c', 'cpp',
   ],
 )
 
+glib_min_version = '>= 2.30.0'
+cairo_min_version = '>= 1.10.0'
+chafa_min_version = '>= 1.6.0'
+icu_min_version = '>= 49.0'
+graphite2_min_version = '>= 1.2.0'
+freetype_min_version = '>= 12.0.6'
+
 hb_version_arr = meson.project_version().split('.')
 hb_version_major = hb_version_arr[0].to_int()
 hb_version_minor = hb_version_arr[1].to_int()
@@ -96,6 +103,7 @@ m_dep = cpp.find_library('m', required: false)
 if meson.version().version_compare('>=0.60.0')
   # pkg-config: freetype2, cmake: Freetype
   freetype_dep = dependency('freetype2', 'Freetype',
+                            version: freetype_min_version,
                             required: get_option('freetype'),
                             default_options: ['harfbuzz=disabled'],
                             allow_fallback: true)
@@ -107,15 +115,16 @@ else
     freetype_opt = false
   endif
   # try pkg-config name
-  freetype_dep = dependency('freetype2', method: 'pkg-config', required: freetype_opt)
+  freetype_dep = dependency('freetype2', version: freetype_min_version, method: 'pkg-config', required: freetype_opt)
   # when disabled, leave it not-found
   if not freetype_dep.found() and not get_option('freetype').disabled()
     # Try cmake name
-    freetype_dep = dependency('Freetype', method: 'cmake', required: false)
+    freetype_dep = dependency('Freetype', version: freetype_min_version, method: 'cmake', required: false)
     # Subproject fallback, `allow_fallback: true` means the fallback will be
     # tried even if the freetype option is set to `auto`.
     if not freetype_dep.found()
       freetype_dep = dependency('freetype2',
+                                version: freetype_min_version,
                                 method: 'pkg-config',
                                 required: get_option('freetype'),
                                 default_options: ['harfbuzz=disabled'],
@@ -124,10 +133,10 @@ else
   endif
 endif
 
-glib_dep = dependency('glib-2.0', required: get_option('glib'))
-gobject_dep = dependency('gobject-2.0', required: get_option('gobject'))
-graphite2_dep = dependency('graphite2', required: get_option('graphite2'))
-graphite_dep = dependency('graphite2', required: get_option('graphite'))
+glib_dep = dependency('glib-2.0', version: glib_min_version, required: get_option('glib'))
+gobject_dep = dependency('gobject-2.0', version: glib_min_version, required: get_option('gobject'))
+graphite2_dep = dependency('graphite2', version: graphite2_min_version, required: get_option('graphite2'))
+graphite_dep = dependency('graphite2', version: graphite2_min_version, required: get_option('graphite'))
 wasm_dep = cpp.find_library('iwasm', required: get_option('wasm'))
 # How to check whether iwasm was built, and hence requires, LLVM?
 #llvm_dep = cpp.find_library('LLVM-15', required: get_option('wasm'))
@@ -135,6 +144,7 @@ wasm_dep = cpp.find_library('iwasm', required: get_option('wasm'))
 if meson.version().version_compare('>=0.60.0')
   # pkg-config: icu-uc, cmake: ICU but with components
   icu_dep = dependency('icu-uc', 'ICU',
+                            version: icu_min_version,
                             components: 'uc',
                             required: get_option('icu'),
                             allow_fallback: true)
@@ -146,17 +156,18 @@ else
     icu_opt = false
   endif
   # try pkg-config name
-  icu_dep = dependency('icu-uc', method: 'pkg-config', required: icu_opt)
+  icu_dep = dependency('icu-uc', version: icu_min_version, method: 'pkg-config', required: icu_opt)
   # when disabled, leave it not-found
   if not icu_dep.found() and not get_option('icu').disabled()
     # Try cmake name
-    icu_dep = dependency('ICU', method: 'cmake', components: 'uc', required: false)
+    icu_dep = dependency('ICU', version: icu_min_version, method: 'cmake', components: 'uc', required: false)
     # Try again with subproject fallback. `allow_fallback: true` means the
     # fallback will be tried even if the icu option is set to `auto`, but
     # we cannot pass this option until Meson 0.59.0, because no wrap file
     # is checked into git.
     if not icu_dep.found()
       icu_dep = dependency('icu-uc',
+                           version: icu_min_version,
                            method: 'pkg-config',
                            required: get_option('icu'))
     endif
@@ -173,8 +184,8 @@ endif
 cairo_dep = null_dep
 cairo_ft_dep = null_dep
 if not get_option('cairo').disabled()
-  cairo_dep = dependency('cairo', required: false)
-  cairo_ft_dep = dependency('cairo-ft', required: false)
+  cairo_dep = dependency('cairo', version: cairo_min_version, required: false)
+  cairo_ft_dep = dependency('cairo-ft', version: cairo_min_version, required: false)
 
   if (not cairo_dep.found() and
       cpp.get_argument_syntax() == 'msvc' and
@@ -192,13 +203,13 @@ if not get_option('cairo').disabled()
     # dependency cycle here because we have configured freetype2 above with
     # harfbuzz support disabled, so when cairo will lookup freetype2 dependency
     # it will be forced to use that one.
-    cairo_dep = dependency('cairo', required: get_option('cairo'))
+    cairo_dep = dependency('cairo', version: cairo_min_version, required: get_option('cairo'))
     cairo_ft_required = get_option('cairo').enabled() and get_option('freetype').enabled()
-    cairo_ft_dep = dependency('cairo-ft', required: cairo_ft_required)
+    cairo_ft_dep = dependency('cairo-ft', version: cairo_min_version, required: cairo_ft_required)
   endif
 endif
 
-chafa_dep = dependency('chafa', version: '>= 1.6.0', required: get_option('chafa'))
+chafa_dep = dependency('chafa', version: chafa_min_version, required: get_option('chafa'))
 
 conf = configuration_data()
 incconfig = include_directories('.')
