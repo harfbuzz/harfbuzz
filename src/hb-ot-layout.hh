@@ -311,6 +311,11 @@ _hb_glyph_info_is_default_ignorable (const hb_glyph_info_t *info)
   return (info->unicode_props() & UPROPS_MASK_IGNORABLE) &&
 	 !_hb_glyph_info_substituted (info);
 }
+static inline void
+_hb_glyph_info_clear_default_ignorable (hb_glyph_info_t *info)
+{
+  info->unicode_props() &= ~ UPROPS_MASK_IGNORABLE;
+}
 static inline bool
 _hb_glyph_info_is_default_ignorable_and_not_hidden (const hb_glyph_info_t *info)
 {
