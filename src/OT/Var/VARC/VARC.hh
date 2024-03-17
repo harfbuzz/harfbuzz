@@ -42,7 +42,9 @@ struct VarComponent
   };
 
   HB_INTERNAL hb_ubytes_t
-  get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_session_t &draw_session,
+  get_path_at (hb_font_t *font,
+	       hb_codepoint_t parent_gid,
+	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       hb_ubytes_t record,
 	       hb_set_t *visited,
@@ -53,7 +55,9 @@ struct VarComponent
 struct VarCompositeGlyph
 {
   static void
-  get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session,
+  get_path_at (hb_font_t *font,
+	       hb_codepoint_t glyph,
+	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       hb_ubytes_t record,
 	       hb_set_t *visited,
@@ -63,7 +67,10 @@ struct VarCompositeGlyph
     while (record)
     {
       const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
-      record = comp.get_path_at (font, glyph, draw_session, coords, record, visited, edges_left, depth_left);
+      record = comp.get_path_at (font, glyph,
+				 draw_session, coords,
+				 record,
+				 visited, edges_left, depth_left);
     }
   }
 };
@@ -77,7 +84,9 @@ struct VARC
   static constexpr hb_tag_t tableTag = HB_TAG ('V', 'A', 'R', 'C');
 
   bool
-  get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session,
+  get_path_at (hb_font_t *font,
+	       hb_codepoint_t glyph,
+	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       hb_codepoint_t parent_glyph = HB_CODEPOINT_INVALID,
 	       hb_set_t *visited = nullptr,
@@ -118,7 +127,10 @@ struct VARC
     visited->add (glyph);
 
     hb_ubytes_t record = (this+glyphRecords)[idx];
-    VarCompositeGlyph::get_path_at (font, glyph, draw_session, coords, record, visited, edges_left, depth_left);
+    VarCompositeGlyph::get_path_at (font, glyph,
+				    draw_session, coords,
+				    record,
+				    visited, edges_left, depth_left);
 
     visited->del (glyph);
 
