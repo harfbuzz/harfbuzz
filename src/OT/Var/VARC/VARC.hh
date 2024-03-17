@@ -48,7 +48,7 @@ struct VarComponent
 	       hb_array_t<const int> coords,
 	       hb_ubytes_t record,
 	       hb_set_t *visited,
-	       unsigned depth) const;
+	       signed depth_left) const;
 };
 
 struct VarCompositeGlyph
@@ -58,12 +58,12 @@ struct VarCompositeGlyph
 	       hb_array_t<const int> coords,
 	       hb_ubytes_t record,
 	       hb_set_t *visited,
-	       unsigned depth)
+	       signed depth_left)
   {
     while (record)
     {
       const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
-      record = comp.get_path_at (font, glyph, draw_session, coords, record, visited, depth);
+      record = comp.get_path_at (font, glyph, draw_session, coords, record, visited, depth_left);
     }
   }
 };
@@ -81,7 +81,7 @@ struct VARC
 	       hb_array_t<const int> coords,
 	       hb_codepoint_t parent_glyph = HB_CODEPOINT_INVALID,
 	       hb_set_t *visited = nullptr,
-	       unsigned depth = 0) const
+	       signed depth_left = HB_MAX_NESTING_LEVEL) const
   {
     hb_set_t stack_set;
     if (visited == nullptr)
@@ -102,7 +102,7 @@ struct VARC
       return true;
     }
 
-    if (depth >= HB_MAX_NESTING_LEVEL)
+    if (!depth_left)
       return true;
 
     if (visited->has (glyph))
@@ -110,7 +110,7 @@ struct VARC
     visited->add (glyph);
 
     hb_ubytes_t record = (this+glyphRecords)[idx];
-    VarCompositeGlyph::get_path_at (font, glyph, draw_session, coords, record, visited, depth);
+    VarCompositeGlyph::get_path_at (font, glyph, draw_session, coords, record, visited, depth_left);
 
     visited->del (glyph);
 
