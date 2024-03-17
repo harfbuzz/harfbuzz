@@ -46,7 +46,8 @@ struct VarComponent
   HB_INTERNAL hb_ubytes_t
   get_path_at (hb_font_t *font, hb_codepoint_t parent_gid, hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
-	       hb_ubytes_t record) const;
+	       hb_ubytes_t record,
+	       hb_set_t *visited) const;
 };
 
 struct VarCompositeGlyph
@@ -54,12 +55,13 @@ struct VarCompositeGlyph
   static void
   get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
-	       hb_ubytes_t record)
+	       hb_ubytes_t record,
+	       hb_set_t *visited)
   {
     while (record)
     {
       const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
-      record = comp.get_path_at (font, glyph, draw_session, coords, record);
+      record = comp.get_path_at (font, glyph, draw_session, coords, record, visited);
     }
   }
 };
@@ -75,8 +77,13 @@ struct VARC
   bool
   get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
-	       hb_codepoint_t parent_glyph = HB_CODEPOINT_INVALID) const
+	       hb_codepoint_t parent_glyph = HB_CODEPOINT_INVALID,
+	       hb_set_t *visited = nullptr) const
   {
+    hb_set_t stack_set;
+    if (visited == nullptr)
+      visited = &stack_set;
+
     // Don't recurse on the same glyph.
     unsigned idx = glyph == parent_glyph ?
 		   NOT_COVERED :
@@ -92,9 +99,14 @@ struct VARC
       return true;
     }
 
-    hb_ubytes_t record = (this+glyphRecords)[idx];
+    if (visited->has (glyph))
+      return true;
+    visited->add (glyph);
 
-    VarCompositeGlyph::get_path_at (font, glyph, draw_session, coords, record);
+    hb_ubytes_t record = (this+glyphRecords)[idx];
+    VarCompositeGlyph::get_path_at (font, glyph, draw_session, coords, record, visited);
+
+    visited->del (glyph);
 
     return true;
   }
