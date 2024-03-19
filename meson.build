@@ -41,6 +41,7 @@ if cpp.get_argument_syntax() == 'msvc'
   # NOTE: Only add warnings here if you are sure they're spurious
   msvc_args = [
     '/wd4244', # lossy type conversion (e.g. double -> int)
+    '/bigobj', # hb-subset.cc -- compile error C1128: number of sections exceeded object file format limit
     cpp.get_supported_arguments(['/utf-8']), # set the input encoding to utf-8
   ]
   add_project_arguments(msvc_args, language: ['c', 'cpp'])
