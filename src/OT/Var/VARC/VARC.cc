@@ -302,6 +302,16 @@ VarComponent::get_path_at (hb_font_t *font,
 		    visited, edges_left, depth_left - 1);
 
 #undef PROCESS_TRANSFORM_COMPONENTS
+
+  // Read reserved records
+  unsigned i = flags & (unsigned) flags_t::RESERVED_MASK;
+  while (i)
+  {
+    HB_UNUSED uint32_t discard;
+    READ_UINT32VAR (discard);
+    i &= i - 1;
+  }
+
 #undef READ_UINT32VAR
 
   return record;
