@@ -30,7 +30,7 @@ struct VarComponent
     HAVE_TRANSLATE_X		= 1u << 4,
     HAVE_TRANSLATE_Y		= 1u << 5,
     HAVE_ROTATION		= 1u << 6,
-    USE_MY_METRICS		= 1u << 7,
+    HAVE_CONDITION		= 1u << 7,
     HAVE_SCALE_X		= 1u << 8,
     HAVE_SCALE_Y		= 1u << 9,
     HAVE_TCENTER_X		= 1u << 10,
@@ -166,10 +166,11 @@ struct VARC
   FixedVersion<> version; /* Version identifier */
   Offset32To<Coverage> coverage;
   Offset32To<MultiItemVariationStore> varStore;
+  Offset32To<ConditionSetList> conditionSetList;
   Offset32To<TupleList> axisIndicesList;
   Offset32To<CFF2Index/*Of<VarCompositeGlyph>*/> glyphRecords;
   public:
-  DEFINE_SIZE_STATIC (20);
+  DEFINE_SIZE_STATIC (24);
 };
 
 #endif
