@@ -38,7 +38,7 @@ struct VarComponent
     GID_IS_24BIT		= 1u << 12,
     HAVE_SKEW_X			= 1u << 13,
     HAVE_SKEW_Y			= 1u << 14,
-    RESERVED			= ~((1u << 15) - 1),
+    RESERVED_MASK		= ~((1u << 15) - 1),
   };
 
   HB_INTERNAL hb_ubytes_t
