@@ -3795,6 +3795,14 @@ struct ConditionSet
   DEFINE_SIZE_ARRAY (2, conditions);
 };
 
+struct ConditionSetList
+{
+  const ConditionSet& operator[] (unsigned i) const
+  { return this+conditionSets[i]; }
+
+  Array32OfOffset32To<ConditionSet> conditionSets;
+};
+
 struct FeatureTableSubstitutionRecord
 {
   friend struct FeatureTableSubstitution;
