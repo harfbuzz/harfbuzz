@@ -3139,21 +3139,21 @@ struct MultiVarData
       return;
 
     hb_vector_t<int> values_vector = deltaSets[inner];
-    hb_array_t<int> values = values_vector;
+    int *values = values_vector.arrayZ;
 
     unsigned regionCount = regionIndices.len;
-    unsigned tupleLength = values.length / regionCount;
+    unsigned tupleLength = values_vector.length / regionCount;
     unsigned count = hb_min (tupleLength, out.length);
     for (unsigned regionIndex = 0; regionIndex < regionCount; regionIndex++)
     {
-      float scalar = regions.evaluate (regionIndices[regionIndex],
+      float scalar = regions.evaluate (regionIndices.arrayZ[regionIndex],
 				       coords, coord_count,
 				       cache);
       if (scalar)
       {
 	for (unsigned i = 0; i < count; i++)
 	{
-	  out[i] += values.arrayZ[i] * scalar;
+	  out[i] += values[i] * scalar;
 	}
       }
       values += tupleLength;
