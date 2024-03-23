@@ -1486,7 +1486,8 @@ struct TupleValues
 {
   enum packed_value_flag_t
   {
-    VALUES_ARE_ZERO      = 0x80,
+    VALUES_ARE_ZEROS     = 0x80,
+    VALUES_ARE_BYTES     = 0x00,
     VALUES_ARE_WORDS     = 0x40,
     VALUES_ARE_LONGS     = 0xC0,
     VALUES_SIZE_MASK     = 0xC0,
@@ -1530,14 +1531,14 @@ struct TupleValues
 
     while (run_length >= 64)
     {
-      *it++ = char (VALUES_ARE_ZERO | 63);
+      *it++ = char (VALUES_ARE_ZEROS | 63);
       run_length -= 64;
       encoded_len++;
     }
 
     if (run_length)
     {
-      *it++ = char (VALUES_ARE_ZERO | (run_length - 1));
+      *it++ = char (VALUES_ARE_ZEROS | (run_length - 1));
       encoded_len++;
     }
     return encoded_len;
@@ -1569,7 +1570,7 @@ struct TupleValues
 
     while (run_length >= 64)
     {
-      *it++ = 63;
+      *it++ = (VALUES_ARE_BYTES | 63);
       encoded_len++;
 
       for (unsigned j = 0; j < 64; j++)
@@ -1584,7 +1585,7 @@ struct TupleValues
 
     if (run_length)
     {
-      *it++ = run_length - 1;
+      *it++ = (VALUES_ARE_BYTES | (run_length - 1));
       encoded_len++;
 
       while (start < i)
@@ -1737,7 +1738,7 @@ struct TupleValues
       }
       unsigned stop = i + run_count;
       if (unlikely (stop > count)) return false;
-      if ((control & VALUES_SIZE_MASK) == VALUES_ARE_ZERO)
+      if ((control & VALUES_SIZE_MASK) == VALUES_ARE_ZEROS)
       {
         for (; i < stop; i++)
           values.arrayZ[i] = 0;
@@ -1760,7 +1761,7 @@ struct TupleValues
           p += HBINT32::static_size;
         }
       }
-      else
+      else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_BYTES)
       {
         if (unlikely (p + run_count > end)) return false;
         for (; i < stop; i++)
@@ -1783,7 +1784,7 @@ struct TupleValues
     const unsigned char * const end;
     int current_value = 0;
     unsigned run_count = 0;
-    unsigned width = VALUES_ARE_ZERO;
+    unsigned width = VALUES_ARE_ZEROS;
 
     void next_run ()
     {
@@ -1807,7 +1808,7 @@ struct TupleValues
 	  goto fail;
       }
 
-      if (width == VALUES_ARE_ZERO)
+      if (width == VALUES_ARE_ZEROS)
 	current_value = 0;
       else if (width == VALUES_ARE_WORDS)
       {
