@@ -196,7 +196,7 @@ VarComponent::get_path_at (hb_font_t *font,
     axisValuesInt.resize (axisIndices.length);
     const HBUINT8 *p = (const HBUINT8 *) record;
     TupleValues::decompile (p, axisValuesInt, (const HBUINT8 *) end);
-    record += (const uint8_t *) p - record;
+    record += (const unsigned char *) p - record;
   }
   hb_vector_t<float> axisValues (axisValuesInt);
 
