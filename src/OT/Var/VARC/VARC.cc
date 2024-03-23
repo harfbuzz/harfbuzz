@@ -205,7 +205,7 @@ VarComponent::get_path_at (hb_font_t *font,
   {
     uint32_t axisValuesVarIdx;
     READ_UINT32VAR (axisValuesVarIdx);
-    if (show && coords)
+    if (show && coords && !axisValues.in_error ())
       varStore.get_delta (axisValuesVarIdx, coords, axisValues.as_array ());
   }
 
@@ -269,7 +269,8 @@ VarComponent::get_path_at (hb_font_t *font,
     PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
     auto transformValues = transformValuesVector.as_array ();
-    varStore.get_delta (transformVarIdx, coords, transformValues);
+    if (!transformValuesVector.in_error ())
+      varStore.get_delta (transformVarIdx, coords, transformValues);
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
 	if (flags & (unsigned) flags_t::flag) \
 	  transform.name = *transformValues++;
