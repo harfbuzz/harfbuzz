@@ -216,12 +216,13 @@ VarComponent::get_path_at (hb_font_t *font,
       coords.length > HB_VAR_COMPOSITE_MAX_AXES)
     component_coords = hb_array<int> ();
 
-  coord_setter_t coord_setter (component_coords);
-  // Go backwards, to reduce coord_setter vector reallocations
+  // Only use coord_setter if there's actually any axis overrides.
+  coord_setter_t coord_setter (axisIndices ? component_coords : hb_array<int> ());
+  // Go backwards, to reduce coord_setter vector reallocations.
   for (unsigned i = axisIndices.length; i; i--)
     coord_setter[axisIndices[i - 1]] = axisValues[i - 1];
-
-  component_coords = coord_setter.get_coords ();
+  if (axisIndices)
+    component_coords = coord_setter.get_coords ();
 
   // Transform
 
