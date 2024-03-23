@@ -3136,7 +3136,7 @@ struct MultiVarData
   {
     auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
 
-    hb_vector_t<int> values_vector {deltaSets[inner]};
+    auto values_vector = deltaSets[inner];
     int *values = values_vector.arrayZ;
 
     unsigned regionCount = regionIndices.len;
