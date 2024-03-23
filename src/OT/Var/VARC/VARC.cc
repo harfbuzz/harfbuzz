@@ -134,7 +134,8 @@ VarComponent::get_path_at (hb_font_t *font,
 			   hb_ubytes_t total_record,
 			   hb_set_t *visited,
 			   signed *edges_left,
-			   signed depth_left) const
+			   signed depth_left,
+			   VarRegionList::cache_t *cache) const
 {
   auto &VARC = *font->face->table.VARC;
   const unsigned char *end = total_record.arrayZ + total_record.length;
@@ -206,7 +207,7 @@ VarComponent::get_path_at (hb_font_t *font,
     uint32_t axisValuesVarIdx;
     READ_UINT32VAR (axisValuesVarIdx);
     if (show && coords && !axisValues.in_error ())
-      varStore.get_delta (axisValuesVarIdx, coords, axisValues.as_array ());
+      varStore.get_delta (axisValuesVarIdx, coords, axisValues.as_array (), cache);
   }
 
   auto component_coords = coords;
@@ -269,7 +270,7 @@ VarComponent::get_path_at (hb_font_t *font,
 	  transformValues[numTransformValues++] = transform.name;
     PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
-    varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues));
+    varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
     numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
 	if (flags & (unsigned) flags_t::flag) \

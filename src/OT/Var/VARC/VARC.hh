@@ -49,7 +49,8 @@ struct VarComponent
 	       hb_ubytes_t record,
 	       hb_set_t *visited,
 	       signed *edges_left,
-	       signed depth_left) const;
+	       signed depth_left,
+	       VarRegionList::cache_t *cache = nullptr) const;
 };
 
 struct VarCompositeGlyph
@@ -62,7 +63,8 @@ struct VarCompositeGlyph
 	       hb_ubytes_t record,
 	       hb_set_t *visited,
 	       signed *edges_left,
-	       signed depth_left)
+	       signed depth_left,
+	       VarRegionList::cache_t *cache = nullptr)
   {
     while (record)
     {
@@ -70,7 +72,7 @@ struct VarCompositeGlyph
       record = comp.get_path_at (font, glyph,
 				 draw_session, coords,
 				 record,
-				 visited, edges_left, depth_left);
+				 visited, edges_left, depth_left, cache);
     }
   }
 };
@@ -126,11 +128,16 @@ struct VARC
       return true;
     visited->add (glyph);
 
+    VarRegionList::cache_t *cache = (this+varStore).create_cache ();
+
     hb_ubytes_t record = (this+glyphRecords)[idx];
     VarCompositeGlyph::get_path_at (font, glyph,
 				    draw_session, coords,
 				    record,
-				    visited, edges_left, depth_left);
+				    visited, edges_left, depth_left,
+				    cache);
+
+    (this+varStore).destroy_cache (cache);
 
     visited->del (glyph);
 
