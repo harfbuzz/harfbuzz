@@ -262,18 +262,18 @@ VarComponent::get_path_at (hb_font_t *font,
   // Apply variations if any
   if (show && transformVarIdx != VarIdx::NO_VARIATION && coords)
   {
-    hb_vector_t<float> transformValuesVector;
+    float transformValues[9];
+    unsigned numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
 	if (flags & (unsigned) flags_t::flag) \
-	  transformValuesVector.push (transform.name);
+	  transformValues[numTransformValues++] = transform.name;
     PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
-    auto transformValues = transformValuesVector.as_array ();
-    if (!transformValuesVector.in_error ())
-      varStore.get_delta (transformVarIdx, coords, transformValues);
+    varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues));
+    numTransformValues = 0;
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
 	if (flags & (unsigned) flags_t::flag) \
-	  transform.name = *transformValues++;
+	  transform.name = transformValues[numTransformValues++];
     PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
   }
