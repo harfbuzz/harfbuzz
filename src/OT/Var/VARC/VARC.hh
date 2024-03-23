@@ -17,7 +17,7 @@ namespace OT {
  * https://github.com/harfbuzz/boring-expansion-spec/blob/main/VARC.md
  */
 
-#ifndef HB_NO_VAR
+#ifndef HB_NO_VAR_COMPOSITES
 
 struct VarComponent
 {
