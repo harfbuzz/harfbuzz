@@ -1774,7 +1774,7 @@ struct TupleValues
 
 struct TupleList : CFF2Index
 {
-  hb_vector_t<unsigned> operator [] (unsigned i) const
+  hb_vector_t<signed> operator [] (unsigned i) const
   {
     auto bytes = CFF2Index::operator [] (i);
 
