@@ -192,7 +192,7 @@ VarComponent::get_path_at (hb_font_t *font,
   {
     unsigned axisIndicesIndex;
     READ_UINT32VAR (axisIndicesIndex);
-    axisIndices = std::move((&VARC+VARC.axisIndicesList)[axisIndicesIndex]);
+    axisIndices = (&VARC+VARC.axisIndicesList)[axisIndicesIndex];
     axisValuesInt.resize (axisIndices.length);
     const HBUINT8 *p = (const HBUINT8 *) record;
     TupleValues::decompile (p, axisValuesInt, (const HBUINT8 *) end);
