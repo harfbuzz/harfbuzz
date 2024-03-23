@@ -1771,6 +1771,91 @@ struct TupleValues
     }
     return true;
   }
+
+  struct iter_t : hb_iter_with_fallback_t<iter_t, int>
+  {
+    iter_t (const unsigned char *p_, unsigned len_)
+	    : p (p_), end (p_ + len_)
+    {next_value ();}
+
+    private:
+    const unsigned char *p;
+    const unsigned char * const end;
+    int current_value = 0;
+    unsigned run_count = 0;
+    unsigned width = VALUES_ARE_ZERO;
+
+    void next_run ()
+    {
+      if (unlikely (p >= end))
+      {
+        run_count = 0;
+        current_value = 0;
+	return;
+      }
+
+      unsigned control = *p++;
+      run_count = (control & VALUE_RUN_COUNT_MASK) + 1;
+      width = control & VALUES_SIZE_MASK;
+    }
+    void next_value ()
+    {
+      if (!run_count)
+      {
+        next_run ();
+	if (!run_count)
+	  goto fail;
+      }
+
+      if (width == VALUES_ARE_ZERO)
+	current_value = 0;
+      else if (width == VALUES_ARE_WORDS)
+      {
+        if (unlikely (p + HBINT16::static_size > end)) goto fail;
+	current_value = * (const HBINT16 *) p;
+	p += HBINT16::static_size;
+      }
+      else if (width == VALUES_ARE_LONGS)
+      {
+        if (unlikely (p + HBINT32::static_size > end)) goto fail;
+	current_value = * (const HBINT32 *) p;
+	p += HBINT32::static_size;
+      }
+      else
+      {
+        if (unlikely (p >= end)) goto fail;
+	current_value = * (const HBINT8 *) p++;
+      }
+
+      return;
+
+    fail:
+      run_count = 0;
+      current_value = 0;
+    }
+
+    public:
+
+    typedef int __item_t__;
+    __item_t__ __item__ () const
+    { return current_value; }
+
+    bool __more__ () const { return run_count || p < end; }
+    void __next__ ()
+    {
+      if (unlikely (!run_count))
+        return;
+      run_count--;
+      next_value ();
+    }
+    bool operator != (const iter_t& o) const
+    { return p != o.p || run_count != o.run_count; }
+    iter_t __end__ () const
+    {
+      iter_t it (end, 0);
+      return it;
+    }
+  };
 };
 
 struct TupleList : CFF2Index
@@ -1784,6 +1869,12 @@ struct TupleList : CFF2Index
     hb_vector_t<signed> values;
     TupleValues::decompile (p, values, end, true);
     return values;
+  }
+
+  TupleValues::iter_t (iter_at) (unsigned i) const
+  {
+    auto bytes = CFF2Index::operator [] (i);
+    return TupleValues::iter_t (bytes.arrayZ, bytes.length);
   }
 };
 

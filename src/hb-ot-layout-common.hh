@@ -3136,12 +3136,10 @@ struct MultiVarData
   {
     auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
 
-    auto values_vector = deltaSets[inner];
-    int *values = values_vector.arrayZ;
+    auto values_iter = deltaSets.iter_at (inner);
 
     unsigned regionCount = regionIndices.len;
-    unsigned tupleLength = values_vector.length / regionCount;
-    unsigned count = hb_min (tupleLength, out.length);
+    unsigned count = out.length;
     for (unsigned regionIndex = 0; regionIndex < regionCount; regionIndex++)
     {
       float scalar = regions.evaluate (regionIndices.arrayZ[regionIndex],
@@ -3149,12 +3147,12 @@ struct MultiVarData
 				       cache);
       if (scalar == 1.f)
 	for (unsigned i = 0; i < count; i++)
-	  out.arrayZ[i] += values[i];
+	  out.arrayZ[i] += *values_iter++;
       else if (scalar)
 	for (unsigned i = 0; i < count; i++)
-	  out.arrayZ[i] += values[i] * scalar;
-
-      values += tupleLength;
+	  out.arrayZ[i] += *values_iter++ * scalar;
+      else
+        values_iter += count;
     }
   }
 
