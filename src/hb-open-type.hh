@@ -1777,7 +1777,7 @@ struct TupleValues
   {
     iter_t (const unsigned char *p_, unsigned len_)
 	    : p (p_), end (p_ + len_)
-    {next_value ();}
+    { if (ensure_run ()) read_value (); }
 
     private:
     const unsigned char *p;
@@ -1786,53 +1786,62 @@ struct TupleValues
     unsigned run_count = 0;
     unsigned width = VALUES_ARE_ZEROS;
 
-    void next_run ()
+    bool ensure_run ()
     {
+      if (run_count > 0) return true;
+
       if (unlikely (p >= end))
       {
         run_count = 0;
         current_value = 0;
-	return;
+	return false;
       }
 
       unsigned control = *p++;
       run_count = (control & VALUE_RUN_COUNT_MASK) + 1;
       width = control & VALUES_SIZE_MASK;
-    }
-    void next_value ()
-    {
-      if (!run_count)
+
+      unsigned width_bytes = 0;
+      switch (width)
       {
-        next_run ();
-	if (!run_count)
-	  goto fail;
+        case VALUES_ARE_ZEROS: width_bytes = 0; break;
+	case VALUES_ARE_BYTES: width_bytes = HBINT8::static_size;  break;
+	case VALUES_ARE_WORDS: width_bytes = HBINT16::static_size; break;
+	case VALUES_ARE_LONGS: width_bytes = HBINT32::static_size; break;
       }
 
+      if (unlikely (p + run_count * width_bytes > end))
+      {
+        printf("end - p: %li, run_count: %u, width_bytes: %u\n", end - p, run_count, width_bytes);
+        abort();
+	run_count = 0;
+	current_value = 0;
+	return false;
+      }
+
+      return true;
+    }
+    void read_value ()
+    {
       if (width == VALUES_ARE_ZEROS)
 	current_value = 0;
       else if (width == VALUES_ARE_WORDS)
       {
-        if (unlikely (p + HBINT16::static_size > end)) goto fail;
 	current_value = * (const HBINT16 *) p;
 	p += HBINT16::static_size;
       }
       else if (width == VALUES_ARE_LONGS)
       {
-        if (unlikely (p + HBINT32::static_size > end)) goto fail;
 	current_value = * (const HBINT32 *) p;
 	p += HBINT32::static_size;
       }
-      else
+      else if (width == VALUES_ARE_BYTES)
       {
-        if (unlikely (p >= end)) goto fail;
-	current_value = * (const HBINT8 *) p++;
+	current_value = * (const HBINT8 *) p;
+	p += HBINT8::static_size;
       }
-
-      return;
-
-    fail:
-      run_count = 0;
-      current_value = 0;
+      else
+        assert (false);
     }
 
     public:
@@ -1844,10 +1853,29 @@ struct TupleValues
     bool __more__ () const { return run_count || p < end; }
     void __next__ ()
     {
-      if (unlikely (!run_count))
-        return;
       run_count--;
-      next_value ();
+      if (unlikely (!ensure_run ()))
+	return;
+      read_value ();
+    }
+    void __forwardX__ (unsigned n)
+    {
+      while (n)
+      {
+	if (unlikely (!ensure_run ()))
+	  return;
+	unsigned i = hb_min (n, run_count);
+	switch (width)
+	{
+	  case VALUES_ARE_ZEROS: break;
+	  case VALUES_ARE_BYTES: p += i; break;
+	  case VALUES_ARE_WORDS: p += HBINT16::static_size * i; break;
+	  case VALUES_ARE_LONGS: p += HBINT32::static_size * i; break;
+	}
+	run_count -= i;
+	n -= i;
+      }
+      read_value ();
     }
     bool operator != (const iter_t& o) const
     { return p != o.p || run_count != o.run_count; }
