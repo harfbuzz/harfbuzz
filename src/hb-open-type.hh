@@ -1784,7 +1784,7 @@ struct TupleValues
     const unsigned char * const end;
     int current_value = 0;
     signed run_count = 0;
-    unsigned width = VALUES_ARE_ZEROS;
+    unsigned width = 0;
 
     bool ensure_run ()
     {
@@ -1800,17 +1800,16 @@ struct TupleValues
       unsigned control = *p++;
       run_count = (control & VALUE_RUN_COUNT_MASK) + 1;
       width = control & VALUES_SIZE_MASK;
-
-      unsigned width_bytes = 0;
       switch (width)
       {
-        case VALUES_ARE_ZEROS: width_bytes = 0; break;
-	case VALUES_ARE_BYTES: width_bytes = HBINT8::static_size;  break;
-	case VALUES_ARE_WORDS: width_bytes = HBINT16::static_size; break;
-	case VALUES_ARE_LONGS: width_bytes = HBINT32::static_size; break;
+        case VALUES_ARE_ZEROS: width = 0; break;
+	case VALUES_ARE_BYTES: width = HBINT8::static_size;  break;
+	case VALUES_ARE_WORDS: width = HBINT16::static_size; break;
+	case VALUES_ARE_LONGS: width = HBINT32::static_size; break;
+	default: abort();
       }
 
-      if (unlikely (p + run_count * width_bytes > end))
+      if (unlikely (p + run_count * width > end))
       {
 	run_count = 0;
 	current_value = 0;
@@ -1821,25 +1820,14 @@ struct TupleValues
     }
     void read_value ()
     {
-      if (width == VALUES_ARE_ZEROS)
-	current_value = 0;
-      else if (width == VALUES_ARE_WORDS)
+      switch (width)
       {
-	current_value = * (const HBINT16 *) p;
-	p += HBINT16::static_size;
+        case 0: current_value = 0; break;
+	case 1: current_value = * (const HBINT8  *) p; break;
+	case 2: current_value = * (const HBINT16 *) p; break;
+	case 4: current_value = * (const HBINT32 *) p; break;
       }
-      else if (width == VALUES_ARE_LONGS)
-      {
-	current_value = * (const HBINT32 *) p;
-	p += HBINT32::static_size;
-      }
-      else if (width == VALUES_ARE_BYTES)
-      {
-	current_value = * (const HBINT8 *) p;
-	p += HBINT8::static_size;
-      }
-      else
-        assert (false);
+      p += width;
     }
 
     public:
@@ -1865,13 +1853,7 @@ struct TupleValues
 	unsigned i = hb_min (n, (unsigned) run_count);
 	run_count -= i;
 	n -= i;
-	switch (width)
-	{
-	  case VALUES_ARE_ZEROS: break;
-	  case VALUES_ARE_BYTES: p += (i - 1); break;
-	  case VALUES_ARE_WORDS: p += HBINT16::static_size * (i - 1); break;
-	  case VALUES_ARE_LONGS: p += HBINT32::static_size * (i - 1); break;
-	}
+	p += (i - 1) * width;
 	if (unlikely (!ensure_run ()))
 	  return;
 	read_value ();
