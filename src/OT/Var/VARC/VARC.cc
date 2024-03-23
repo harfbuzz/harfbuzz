@@ -139,6 +139,7 @@ VarComponent::get_path_at (hb_font_t *font,
   auto &VARC = *font->face->table.VARC;
   const unsigned char *end = total_record.arrayZ + total_record.length;
   const unsigned char *record = total_record.arrayZ;
+  auto &varStore = &VARC+VARC.varStore;
 
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
@@ -206,7 +207,7 @@ VarComponent::get_path_at (hb_font_t *font,
     uint32_t axisValuesVarIdx;
     READ_UINT32VAR (axisValuesVarIdx);
     if (show && coords)
-      (&VARC+VARC.varStore).get_delta (axisValuesVarIdx, coords, axisValues.as_array ());
+      varStore.get_delta (axisValuesVarIdx, coords, axisValues.as_array ());
   }
 
   auto component_coords = coords;
@@ -267,7 +268,7 @@ VarComponent::get_path_at (hb_font_t *font,
     PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
     auto transformValues = transformValuesVector.as_array ();
-    (&VARC+VARC.varStore).get_delta (transformVarIdx, coords, transformValues);
+    varStore.get_delta (transformVarIdx, coords, transformValues);
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
 	if (flags & (unsigned) flags_t::flag) \
 	  transform.name = *transformValues++;
