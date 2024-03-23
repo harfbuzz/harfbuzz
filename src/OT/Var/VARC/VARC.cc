@@ -217,8 +217,9 @@ VarComponent::get_path_at (hb_font_t *font,
     component_coords = hb_array<int> ();
 
   coord_setter_t coord_setter (component_coords);
-  for (unsigned i = 0; i < axisIndices.length; i++)
-    coord_setter[axisIndices[i]] = axisValues[i];
+  // Go backwards, to reduce coord_setter vector reallocations
+  for (unsigned i = axisIndices.length; i; i--)
+    coord_setter[axisIndices[i - 1]] = axisValues[i - 1];
 
   component_coords = coord_setter.get_coords ();
 
