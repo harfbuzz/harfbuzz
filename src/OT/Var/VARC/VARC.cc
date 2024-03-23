@@ -131,21 +131,22 @@ VarComponent::get_path_at (hb_font_t *font,
 			   hb_codepoint_t parent_gid,
 			   hb_draw_session_t &draw_session,
 			   hb_array_t<const int> coords,
-			   hb_ubytes_t record,
+			   hb_ubytes_t total_record,
 			   hb_set_t *visited,
 			   signed *edges_left,
 			   signed depth_left) const
 {
   auto &VARC = *font->face->table.VARC;
-  const unsigned char *end = record.arrayZ + record.length;
+  const unsigned char *end = total_record.arrayZ + total_record.length;
+  const unsigned char *record = total_record.arrayZ;
 
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
-    if (unlikely (record.length < HBUINT32VAR::min_size)) return hb_ubytes_t (); \
+    if (unlikely (end - record < HBUINT32VAR::min_size)) return hb_ubytes_t (); \
     hb_barrier (); \
-    auto &varint = * (const HBUINT32VAR *) record.arrayZ; \
+    auto &varint = * (const HBUINT32VAR *) record; \
     unsigned size = varint.get_size (); \
-    if (unlikely (record.length < size)) return hb_ubytes_t (); \
+    if (unlikely (end - record < size)) return hb_ubytes_t (); \
     name = (uint32_t) varint; \
     record += size; \
   } HB_STMT_END
@@ -158,18 +159,18 @@ VarComponent::get_path_at (hb_font_t *font,
   hb_codepoint_t gid = 0;
   if (flags & (unsigned) flags_t::GID_IS_24BIT)
   {
-    if (unlikely (record.length < HBGlyphID24::static_size))
+    if (unlikely (end - record < HBGlyphID24::static_size))
       return hb_ubytes_t ();
     hb_barrier ();
-    gid = (* (const HBGlyphID24 *) record.arrayZ);
+    gid = * (const HBGlyphID24 *) record;
     record += HBGlyphID24::static_size;
   }
   else
   {
-    if (unlikely (record.length < HBGlyphID16::static_size))
+    if (unlikely (end - record < HBGlyphID16::static_size))
       return hb_ubytes_t ();
     hb_barrier ();
-    gid = (* (const HBGlyphID16 *) record.arrayZ);
+    gid = * (const HBGlyphID16 *) record;
     record += HBGlyphID16::static_size;
   }
 
@@ -193,9 +194,9 @@ VarComponent::get_path_at (hb_font_t *font,
     READ_UINT32VAR (axisIndicesIndex);
     axisIndices = std::move((&VARC+VARC.axisIndicesList)[axisIndicesIndex]);
     axisValuesInt.resize (axisIndices.length);
-    const HBUINT8 *p = (const HBUINT8 *) record.arrayZ;
+    const HBUINT8 *p = (const HBUINT8 *) record;
     TupleValues::decompile (p, axisValuesInt, (const HBUINT8 *) end);
-    record += (const uint8_t *) p - record.arrayZ;
+    record += (const uint8_t *) p - record;
   }
   hb_vector_t<float> axisValues (axisValuesInt);
 
@@ -247,10 +248,10 @@ VarComponent::get_path_at (hb_font_t *font,
 	if (flags & (unsigned) flags_t::flag) \
 	{ \
 	  static_assert (type::static_size == HBINT16::static_size, ""); \
-	  if (unlikely (record.length < HBINT16::static_size)) \
+	  if (unlikely (end - record < HBINT16::static_size)) \
 	    return hb_ubytes_t (); \
 	  hb_barrier (); \
-	  transform.name = * (const HBINT16 *) record.arrayZ; \
+	  transform.name = * (const HBINT16 *) record; \
 	  record += HBINT16::static_size; \
 	}
   PROCESS_TRANSFORM_COMPONENTS;
@@ -327,7 +328,7 @@ VarComponent::get_path_at (hb_font_t *font,
 
 #undef READ_UINT32VAR
 
-  return record;
+  return hb_ubytes_t (record, end - record);
 }
 
 //} // namespace Var
