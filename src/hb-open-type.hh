@@ -1871,18 +1871,7 @@ struct TupleValues
 
 struct TupleList : CFF2Index
 {
-  hb_vector_t<signed> operator [] (unsigned i) const
-  {
-    auto bytes = CFF2Index::operator [] (i);
-
-    const HBUINT8 *p = (const HBUINT8 *) bytes.arrayZ;
-    const HBUINT8 *end = p + bytes.length;
-    hb_vector_t<signed> values;
-    TupleValues::decompile (p, values, end, true);
-    return values;
-  }
-
-  TupleValues::iter_t (iter_at) (unsigned i) const
+  TupleValues::iter_t operator [] (unsigned i) const
   {
     auto bytes = CFF2Index::operator [] (i);
     return TupleValues::iter_t (bytes.arrayZ, bytes.length);
