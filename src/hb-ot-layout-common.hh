@@ -3135,8 +3135,6 @@ struct MultiVarData
 		  SparseVarRegionList::cache_t *cache = nullptr) const
   {
     auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
-    if (unlikely (inner >= deltaSets.count))
-      return;
 
     hb_vector_t<int> values_vector = deltaSets[inner];
     int *values = values_vector.arrayZ;
