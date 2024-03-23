@@ -217,14 +217,6 @@ VarComponent::get_path_at (hb_font_t *font,
       coords.length > HB_VAR_COMPOSITE_MAX_AXES)
     component_coords = hb_array<int> ();
 
-  // Only use coord_setter if there's actually any axis overrides.
-  coord_setter_t coord_setter (axisIndices ? component_coords : hb_array<int> ());
-  // Go backwards, to reduce coord_setter vector reallocations.
-  for (unsigned i = axisIndices.length; i; i--)
-    coord_setter[axisIndices[i - 1]] = axisValues[i - 1];
-  if (axisIndices)
-    component_coords = coord_setter.get_coords ();
-
   // Transform
 
   uint32_t transformVarIdx = VarIdx::NO_VARIATION;
@@ -260,40 +252,59 @@ VarComponent::get_path_at (hb_font_t *font,
   PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
 
-  // Apply variations if any
-  if (show && transformVarIdx != VarIdx::NO_VARIATION && coords)
+  // Read reserved records
+  unsigned i = flags & (unsigned) flags_t::RESERVED_MASK;
+  while (i)
   {
-    float transformValues[9];
-    unsigned numTransformValues = 0;
-#define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
-	if (flags & (unsigned) flags_t::flag) \
-	  transformValues[numTransformValues++] = transform.name;
-    PROCESS_TRANSFORM_COMPONENTS;
-#undef PROCESS_TRANSFORM_COMPONENT
-    varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
-    numTransformValues = 0;
-#define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
-	if (flags & (unsigned) flags_t::flag) \
-	  transform.name = transformValues[numTransformValues++];
-    PROCESS_TRANSFORM_COMPONENTS;
-#undef PROCESS_TRANSFORM_COMPONENT
+    HB_UNUSED uint32_t discard;
+    READ_UINT32VAR (discard);
+    i &= i - 1;
   }
 
-  // Divide them by their divisors
-#define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
-	if (flags & (unsigned) flags_t::flag) \
-	{ \
-	  HBINT16 int_v; \
-	  int_v = roundf (transform.name); \
-	  type typed_v = * (const type *) &int_v; \
-	  float float_v = (float) typed_v; \
-	  transform.name = float_v; \
-	}
-  PROCESS_TRANSFORM_COMPONENTS;
-#undef PROCESS_TRANSFORM_COMPONENT
+  /* Parsing is over now. */
 
   if (show)
   {
+    // Only use coord_setter if there's actually any axis overrides.
+    coord_setter_t coord_setter (axisIndices ? component_coords : hb_array<int> ());
+    // Go backwards, to reduce coord_setter vector reallocations.
+    for (unsigned i = axisIndices.length; i; i--)
+      coord_setter[axisIndices[i - 1]] = axisValues[i - 1];
+    if (axisIndices)
+      component_coords = coord_setter.get_coords ();
+
+    // Apply transform variations if any
+    if (transformVarIdx != VarIdx::NO_VARIATION && coords)
+    {
+      float transformValues[9];
+      unsigned numTransformValues = 0;
+#define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
+	  if (flags & (unsigned) flags_t::flag) \
+	    transformValues[numTransformValues++] = transform.name;
+      PROCESS_TRANSFORM_COMPONENTS;
+#undef PROCESS_TRANSFORM_COMPONENT
+      varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
+      numTransformValues = 0;
+#define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
+	  if (flags & (unsigned) flags_t::flag) \
+	    transform.name = transformValues[numTransformValues++];
+      PROCESS_TRANSFORM_COMPONENTS;
+#undef PROCESS_TRANSFORM_COMPONENT
+    }
+
+    // Divide them by their divisors
+#define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
+	  if (flags & (unsigned) flags_t::flag) \
+	  { \
+	    HBINT16 int_v; \
+	    int_v = roundf (transform.name); \
+	    type typed_v = * (const type *) &int_v; \
+	    float float_v = (float) typed_v; \
+	    transform.name = float_v; \
+	  }
+    PROCESS_TRANSFORM_COMPONENTS;
+#undef PROCESS_TRANSFORM_COMPONENT
+
     if (!(flags & (unsigned) flags_t::HAVE_SCALE_Y))
       transform.scaleY = transform.scaleX;
 
@@ -320,16 +331,6 @@ VarComponent::get_path_at (hb_font_t *font,
   }
 
 #undef PROCESS_TRANSFORM_COMPONENTS
-
-  // Read reserved records
-  unsigned i = flags & (unsigned) flags_t::RESERVED_MASK;
-  while (i)
-  {
-    HB_UNUSED uint32_t discard;
-    READ_UINT32VAR (discard);
-    i &= i - 1;
-  }
-
 #undef READ_UINT32VAR
 
   return hb_ubytes_t (record, end - record);
