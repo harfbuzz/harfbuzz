@@ -1783,7 +1783,7 @@ struct TupleValues
     const unsigned char *p;
     const unsigned char * const end;
     int current_value = 0;
-    unsigned run_count = 0;
+    signed run_count = 0;
     unsigned width = VALUES_ARE_ZEROS;
 
     bool ensure_run ()
@@ -1812,8 +1812,6 @@ struct TupleValues
 
       if (unlikely (p + run_count * width_bytes > end))
       {
-        printf("end - p: %li, run_count: %u, width_bytes: %u\n", end - p, run_count, width_bytes);
-        abort();
 	run_count = 0;
 	current_value = 0;
 	return false;
@@ -1858,24 +1856,26 @@ struct TupleValues
 	return;
       read_value ();
     }
-    void __forwardX__ (unsigned n)
+    void __forward__ (unsigned n)
     {
+      if (unlikely (!ensure_run ()))
+	return;
       while (n)
       {
-	if (unlikely (!ensure_run ()))
-	  return;
-	unsigned i = hb_min (n, run_count);
+	unsigned i = hb_min (n, (unsigned) run_count);
+	run_count -= i;
+	n -= i;
 	switch (width)
 	{
 	  case VALUES_ARE_ZEROS: break;
-	  case VALUES_ARE_BYTES: p += i; break;
-	  case VALUES_ARE_WORDS: p += HBINT16::static_size * i; break;
-	  case VALUES_ARE_LONGS: p += HBINT32::static_size * i; break;
+	  case VALUES_ARE_BYTES: p += (i - 1); break;
+	  case VALUES_ARE_WORDS: p += HBINT16::static_size * (i - 1); break;
+	  case VALUES_ARE_LONGS: p += HBINT32::static_size * (i - 1); break;
 	}
-	run_count -= i;
-	n -= i;
+	if (unlikely (!ensure_run ()))
+	  return;
+	read_value ();
       }
-      read_value ();
     }
     bool operator != (const iter_t& o) const
     { return p != o.p || run_count != o.run_count; }
