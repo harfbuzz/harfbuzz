@@ -204,7 +204,7 @@ VarComponent::get_path_at (hb_font_t *font,
   {
     uint32_t axisValuesVarIdx;
     READ_UINT32VAR (axisValuesVarIdx);
-    if (coords)
+    if (show && coords)
       (&VARC+VARC.varStore).get_delta (axisValuesVarIdx, coords, axisValues.as_array ());
   }
 
@@ -257,7 +257,7 @@ VarComponent::get_path_at (hb_font_t *font,
 #undef PROCESS_TRANSFORM_COMPONENT
 
   // Apply variations if any
-  if (transformVarIdx != VarIdx::NO_VARIATION && coords)
+  if (show && transformVarIdx != VarIdx::NO_VARIATION && coords)
   {
     hb_vector_t<float> transformValuesVector;
 #define PROCESS_TRANSFORM_COMPONENT(type, flag, name) \
@@ -287,30 +287,32 @@ VarComponent::get_path_at (hb_font_t *font,
   PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
 
-  if (!(flags & (unsigned) flags_t::HAVE_SCALE_Y))
-    transform.scaleY = transform.scaleX;
-
-  // Scale the transform by the font's scale
-  float x_scale = font->x_multf;
-  float y_scale = font->y_multf;
-  transform.translateX *= x_scale;
-  transform.translateY *= y_scale;
-  transform.tCenterX *= x_scale;
-  transform.tCenterY *= y_scale;
-
-  // Build a transforming pen to apply the transform.
-  hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
-  hb_transforming_pen_context_t context {transform.to_transform (),
-					 draw_session.funcs,
-					 draw_session.draw_data,
-					 &draw_session.st};
-  hb_draw_session_t transformer_session {transformer_funcs, &context};
-
   if (show)
+  {
+    if (!(flags & (unsigned) flags_t::HAVE_SCALE_Y))
+      transform.scaleY = transform.scaleX;
+
+    // Scale the transform by the font's scale
+    float x_scale = font->x_multf;
+    float y_scale = font->y_multf;
+    transform.translateX *= x_scale;
+    transform.translateY *= y_scale;
+    transform.tCenterX *= x_scale;
+    transform.tCenterY *= y_scale;
+
+    // Build a transforming pen to apply the transform.
+    hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
+    hb_transforming_pen_context_t context {transform.to_transform (),
+					   draw_session.funcs,
+					   draw_session.draw_data,
+					   &draw_session.st};
+    hb_draw_session_t transformer_session {transformer_funcs, &context};
+
     VARC.get_path_at (font, gid,
 		      transformer_session, component_coords,
 		      parent_gid,
 		      visited, edges_left, depth_left - 1);
+  }
 
 #undef PROCESS_TRANSFORM_COMPONENTS
 
