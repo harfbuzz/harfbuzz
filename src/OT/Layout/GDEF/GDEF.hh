@@ -663,19 +663,12 @@ struct GDEFVersion1_2
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
-    out->version.major = version.major;
-    out->version.minor = version.minor;
-    bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this, nullptr, false, true);
-    bool subset_attachlist = out->attachList.serialize_subset (c, attachList, this);
-    bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, nullptr, false, true);
-
-    bool subset_markglyphsetsdef = false;
+    // Serialize var store first (if it's needed) so that it's serialized last. Some font parsers assume
+    // that varstore runs to the end of the GDEF table.
+    // TODO(garretrieger): add a virtual link from all non-var store sub tables to the var store.
     auto snapshot_version0 = c->serializer->snapshot ();
-    if (version.to_int () >= 0x00010002u)
-    {
-      if (unlikely (!c->serializer->embed (markGlyphSetsDef))) return_trace (false);
-      subset_markglyphsetsdef = out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this);
-    }
+    if (unlikely (version.to_int () >= 0x00010002u && !c->serializer->embed (markGlyphSetsDef)))
+      return_trace (false);
 
     bool subset_varstore = false;
     auto snapshot_version2 = c->serializer->snapshot ();
@@ -705,18 +698,33 @@ struct GDEFVersion1_2
     }
 
 
+    out->version.major = version.major;
+    out->version.minor = version.minor;
+
+    if (!subset_varstore && version.to_int () >= 0x00010002u) {
+      c->serializer->revert (snapshot_version2);
+    }
+
+    bool subset_markglyphsetsdef = false;
+    if (version.to_int () >= 0x00010002u)
+    {
+      subset_markglyphsetsdef = out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this);
+    }
+
     if (subset_varstore)
     {
       out->version.minor = 3;
       c->plan->has_gdef_varstore = true;
     } else if (subset_markglyphsetsdef) {
-      out->version.minor = 2;
-      c->serializer->revert (snapshot_version2);
+      out->version.minor = 2;      
     } else  {
       out->version.minor = 0;
       c->serializer->revert (snapshot_version0);
     }
 
+    bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this, nullptr, false, true);
+    bool subset_attachlist = out->attachList.serialize_subset (c, attachList, this);
+    bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, nullptr, false, true);
     bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
 
     return_trace (subset_glyphclassdef || subset_attachlist ||
@@ -1013,7 +1021,7 @@ struct GDEF
     if (!has_var_store ()) return;
     const ItemVariationStore &var_store = get_var_store ();
     float *store_cache = var_store.create_cache ();
-    
+
     unsigned new_major = 0, new_minor = 0;
     unsigned last_major = (layout_variation_indices->get_min ()) >> 16;
     for (unsigned idx : layout_variation_indices->iter ())
