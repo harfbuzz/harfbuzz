@@ -16,7 +16,8 @@ EXTRA_DIST += meson.build
 
 EXTRA_DIST += \
 	fonts \
-	results \
+	data-paint \
+	results-paint \
 	$(NULL)
 
 LINK = $(CXXLINK)
