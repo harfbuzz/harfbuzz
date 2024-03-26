@@ -1,0 +1,269 @@
+ENGINE CODE FOR RULES
+
+
+TABLE: substitution
+
+PASS: 1
+
+PASS CONSTRAINTS: none
+
+RULE 1.0, PigLatinMain.gdl(46):  clsConsUC  clsCons  clsCons  clsWfLC  >  clsWfUC$4:4  clsConsLC$1:1 { user1=1;  }  @2 { user1=1;  }  @3 { user1=1;  }   /  _ {...}  ^  _ {...}  _ {...}  _  ;
+
+ACTIONS:
+PutSubs 3 5 1
+Assoc 1 3
+Next
+PutSubs 255 4 0
+Assoc 1 -1
+PushByte 1
+IAttrSet user 0
+Next
+PutCopy -1
+PushByte 1
+IAttrSet user 0
+Next
+PutCopy -1
+PushByte 1
+IAttrSet user 0
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+CntxtItem 1 9
+PushISlotAttr user 0 0
+PushISlotAttr user -1 0
+Equal
+And
+CntxtItem 2 9
+PushISlotAttr user 0 0
+PushISlotAttr user -2 0
+Equal
+And
+PopRet
+
+RULE 1.1, PigLatinMain.gdl(49):  clsConsUC  clsCons  clsWfLC  >  clsWfUC$3:3  clsConsLC$1:1 { user1=1;  }  @2 { user1=1;  }   /  _ {...}  ^  _ {...}  _  ;
+
+ACTIONS:
+PutSubs 2 5 1
+Assoc 1 2
+Next
+PutSubs 255 4 0
+Assoc 1 -1
+PushByte 1
+IAttrSet user 0
+Next
+PutCopy -1
+PushByte 1
+IAttrSet user 0
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+CntxtItem 1 9
+PushISlotAttr user 0 0
+PushISlotAttr user -1 0
+Equal
+And
+PopRet
+
+RULE 1.2, PigLatinMain.gdl(52):  clsConsUC  clsWfLC  >  clsWfUC$2:2  clsConsLC$1:1 { user1=1;  }   /  _ {...}  ^  _  ;
+
+ACTIONS:
+PutSubs 1 5 1
+Assoc 1 1
+Next
+PutSubs 255 4 0
+Assoc 1 -1
+PushByte 1
+IAttrSet user 0
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+PopRet
+
+RULE 1.3, PigLatinMain.gdl(58):  clsCons  clsCons  clsCons  clsWf  >  @4  @1 { user1=1;  }  @2 { user1=1;  }  @3 { user1=1;  }   /  _  ^  _ {...}  _ {...}  _ {...}  ;
+
+ACTIONS:
+PutCopy 3
+Next
+PutCopy -1
+PushByte 1
+IAttrSet user 0
+Next
+PutCopy -1
+PushByte 1
+IAttrSet user 0
+Next
+PutCopy -1
+PushByte 1
+IAttrSet user 0
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS:
+CntxtItem 1 9
+PushISlotAttr user 0 0
+PushISlotAttr user -1 0
+Equal
+CntxtItem 2 9
+PushISlotAttr user 0 0
+PushISlotAttr user -2 0
+Equal
+And
+CntxtItem 3 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+And
+PopRet
+
+RULE 1.4, PigLatinMain.gdl(61):  clsCons  clsCons  clsWf  >  @3  @1 { user1=1;  }  @2 { user1=1;  }   /  _  ^  _ {...}  _ {...}  ;
+
+ACTIONS:
+PutCopy 2
+Next
+PutCopy -1
+PushByte 1
+IAttrSet user 0
+Next
+PutCopy -1
+PushByte 1
+IAttrSet user 0
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS:
+CntxtItem 1 9
+PushISlotAttr user 0 0
+PushISlotAttr user -1 0
+Equal
+CntxtItem 2 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+And
+PopRet
+
+RULE 1.5, PigLatinMain.gdl(64):  clsCons  clsWf  >  @2  @1 { user1=1;  }   /  _  ^  _ {...}  ;
+
+ACTIONS:
+PutCopy 1
+Next
+PutCopy -1
+PushByte 1
+IAttrSet user 0
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS:
+CntxtItem 1 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+PopRet
+
+RULE 1.6, PigLatinMain.gdl(68):  clsCons  clsCons  clsCons  _  _  >  @1  @2  @3  g_aIns:3  g_yIns:3   /  _ {...}  _ {...}  _ {...}  _  _  ;
+
+ACTIONS:
+PutCopy 0
+Next
+PutCopy 0
+Next
+PutCopy 0
+Next
+Insert
+PutGlyph 2
+Assoc 1 0
+Next
+Insert
+PutGlyph 3
+Assoc 1 0
+Next
+RetZero
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 1
+Equal
+CntxtItem 1 7
+PushISlotAttr user 0 0
+PushByte 1
+Equal
+And
+CntxtItem 2 7
+PushISlotAttr user 0 0
+PushByte 1
+Equal
+And
+PopRet
+
+RULE 1.7, PigLatinMain.gdl(70):  clsCons  clsCons  _  _  >  @1  @2  g_aIns:2  g_yIns:2   /  _ {...}  _ {...}  _  _  ;
+
+ACTIONS:
+PutCopy 0
+Next
+PutCopy 0
+Next
+Insert
+PutGlyph 2
+Assoc 1 0
+Next
+Insert
+PutGlyph 3
+Assoc 1 0
+Next
+RetZero
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 1
+Equal
+CntxtItem 1 7
+PushISlotAttr user 0 0
+PushByte 1
+Equal
+And
+PopRet
+
+RULE 1.8, PigLatinMain.gdl(72):  clsCons  _  _  >  @1  g_aIns:1  g_yIns:1   /  _ {...}  _  _  ;
+
+ACTIONS:
+PutCopy 0
+Next
+Insert
+PutGlyph 2
+Assoc 1 0
+Next
+Insert
+PutGlyph 3
+Assoc 1 0
+Next
+RetZero
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 1
+Equal
+PopRet
