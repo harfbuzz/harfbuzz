@@ -24,408 +24,408 @@
  * Google Author(s): Qunxin Liu
  */
 
+#include <math.h>
 #include "hb-subset-instancer-solver.hh"
 
 static inline bool approx (Triple a, Triple b)
 {
-  return fabsf (a.minimum - b.minimum) < 0.000001f &&
-         fabsf (a.middle - b.middle) < 0.000001f &&
-         fabsf (a.maximum - b.maximum) < 0.000001f;
+  return abs (a.minimum - b.minimum) < 0.000001 &&
+         abs (a.middle - b.middle) < 0.000001 &&
+         abs (a.maximum - b.maximum) < 0.000001;
 }
 
-static inline bool approx (float a, float b)
-{ return fabsf (a - b) < 0.000001f; }
+static inline bool approx (double a, double b)
+{ return abs (a - b) < 0.000001; }
 
 /* tests ported from
  * https://github.com/fonttools/fonttools/blob/main/Tests/varLib/instancer/solver_test.py */
 int
 main (int argc, char **argv)
 {
-  TripleDistances default_axis_distances{1.f, 1.f};
+  TripleDistances default_axis_distances{1.0, 1.0};
   /* Case 1 */
   {
     /* pin axis*/
-    Triple tent (0.f, 1.f, 1.f);
-    Triple axis_range (0.f, 0.f, 0.f);
+    Triple tent (0.0, 1.0, 1.0);
+    Triple axis_range (0.0, 0.0, 0.0);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 0);
   }
 
   {
     /* pin axis*/
-    Triple tent (0.f, 1.f, 1.f);
-    Triple axis_range (0.5f, 0.5f, 0.5f);
+    Triple tent (0.0, 1.0, 1.0);
+    Triple axis_range (0.5, 0.5, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 0.5f);
+    assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
   }
 
   {
     /* tent falls outside the new axis range */
-    Triple tent (0.3f, 0.5f, 0.8f);
-    Triple axis_range (0.1f, 0.2f, 0.3f);
+    Triple tent (0.3, 0.5, 0.8);
+    Triple axis_range (0.1, 0.2, 0.3);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 0);
   }
 
   /* Case 2 */
   {
-    Triple tent (0.f, 1.f, 1.f);
-    Triple axis_range (-1.f, 0.f, 0.5f);
+    Triple tent (0.0, 1.0, 1.0);
+    Triple axis_range (-1.0, 0.0, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 0.5f);
-    assert (out[0].second == Triple (0.f, 1.f, 1.f));
+    assert (out[0].first == 0.5);
+    assert (out[0].second == Triple (0.0, 1.0, 1.0));
   }
 
   /* Case 2 */
   {
-    Triple tent (0.f, 1.f, 1.f);
-    Triple axis_range (-1.f, 0.f, 0.75f);
+    Triple tent (0.0, 1.0, 1.0);
+    Triple axis_range (-1.0, 0.0, 0.75);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 0.75f);
-    assert (out[0].second == Triple (0.f, 1.f, 1.f));
+    assert (out[0].first == 0.75);
+    assert (out[0].second == Triple (0.0, 1.0, 1.0));
   }
 
   /* Without gain: */
   /* Case 3 */
   {
-    Triple tent (0.f, 0.2f, 1.f);
-    Triple axis_range (-1.f, 0.f, 0.8f);
+    Triple tent (0.0, 0.2, 1.0);
+    Triple axis_range (-1.0, 0.0, 0.8);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (0.f, 0.25f, 1.f));
-    assert (approx (out[1].first, 0.25f));
-    assert (out[1].second == Triple (0.25f, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (0.0, 0.25, 1.0));
+    assert (approx (out[1].first, 0.250));
+    assert (out[1].second == Triple (0.25, 1.0, 1.0));
   }
 
   /* Case 3 boundary */
   {
-    Triple tent (0.f, 0.4f, 1.f);
-    Triple axis_range (-1.f, 0.f, 0.5f);
+    Triple tent (0.0, 0.4, 1.0);
+    Triple axis_range (-1.0, 0.0, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (0.f, 0.8f, 1.f));
-    assert (approx (out[1].first, 2.5f/3));
-    assert (out[1].second == Triple (0.8f, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (0.0, 0.8, 1.0));
+    assert (approx (out[1].first, 2.5/3));
+    assert (out[1].second == Triple (0.8, 1.0, 1.0));
   }
 
   /* Case 4 */
   {
-    Triple tent (0.f, 0.25f, 1.f);
-    Triple axis_range (-1.f, 0.f, 0.4f);
+    Triple tent (0.0, 0.25, 1.0);
+    Triple axis_range (-1.0, 0.0, 0.4);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (0.f, 0.625f, 1.f));
-    assert (approx (out[1].first, 0.8f));
-    assert (out[1].second == Triple (0.625f, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (0.0, 0.625, 1.0));
+    assert (approx (out[1].first, 0.80));
+    assert (out[1].second == Triple (0.625, 1.0, 1.0));
   }
 
   /* Case 4 */
   {
-    Triple tent (0.25f, 0.3f, 1.05f);
-    Triple axis_range (0.f, 0.2f, 0.4f);
+    Triple tent (0.25, 0.3, 1.05);
+    Triple axis_range (0.0, 0.2, 0.4);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
-    assert (out[0].first == 1.f);
-    assert (approx (out[0].second, Triple (0.25f, 0.5f, 1.f)));
-    assert (approx (out[1].first, 2.6f/3));
-    assert (approx (out[1].second, Triple (0.5f, 1.f, 1.f)));
+    assert (out[0].first == 1.0);
+    assert (approx (out[0].second, Triple (0.25, 0.5, 1.0)));
+    assert (approx (out[1].first, 2.6 / 3));
+    assert (approx (out[1].second, Triple (0.5, 1.0, 1.0)));
   }
 
   /* Case 4 boundary */
   {
-    Triple tent (0.25f, 0.5f, 1.f);
-    Triple axis_range (0.f, 0.25f, 0.5f);
+    Triple tent (0.25, 0.5, 1.0);
+    Triple axis_range (0.0, 0.25, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (0.f, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (0.0, 1.0, 1.0));
   }
 
   /* With gain */
   /* Case 3a/1neg */
   {
-    Triple tent (0.f, 0.5f, 1.f);
-    Triple axis_range (0.f, 0.5f, 1.f);
+    Triple tent (0.0, 0.5, 1.0);
+    Triple axis_range (0.0, 0.5, 1.0);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
-    assert (out[0].first == 1.f);
+    assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
-    assert (out[1].first == -1.f);
-    assert (out[1].second == Triple (0.f, 1.f, 1.f));
-    assert (out[2].first == -1.f);
-    assert (out[2].second == Triple (-1.f, -1.f, 0.f));
+    assert (out[1].first == -1.0);
+    assert (out[1].second == Triple (0.0, 1.0, 1.0));
+    assert (out[2].first == -1.0);
+    assert (out[2].second == Triple (-1.0, -1.0, 0.0));
   }
 
   {
-    Triple tent (0.f, 0.5f, 1.f);
-    Triple axis_range (0.f, 0.5f, 0.75f);
+    Triple tent (0.0, 0.5, 1.0);
+    Triple axis_range (0.0, 0.5, 0.75);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
-    assert (out[0].first == 1.f);
+    assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
-    assert (out[1].first == -0.5f);
-    assert (out[1].second == Triple (0.f, 1.f, 1.f));
-    assert (out[2].first == -1.f);
-    assert (out[2].second == Triple (-1.f, -1.f, 0.f));
+    assert (out[1].first == -0.5);
+    assert (out[1].second == Triple (0.0, 1.0, 1.0));
+    assert (out[2].first == -1.0);
+    assert (out[2].second == Triple (-1.0, -1.0, 0.0));
   }
 
   {
-    Triple tent (0.f, 0.5f, 1.f);
-    Triple axis_range (0.f, 0.25f, 0.8f);
+    Triple tent (0.0, 0.50, 1.0);
+    Triple axis_range (0.0, 0.25, 0.8);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 4);
-    assert (out[0].first == 0.5f);
+    assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
-    assert (out[1].first == 0.5f);
-    assert (approx (out[1].second, Triple (0.f, 0.454545f, 0.909091f)));
-    assert (approx (out[2].first, -0.1f));
-    assert (approx (out[2].second, Triple (0.909091f, 1.f, 1.f)));
-    assert (out[3].first == -0.5f);
-    assert (out[3].second == Triple (-1.f, -1.f, 0.f));
+    assert (out[1].first == 0.5);
+    assert (approx (out[1].second, Triple (0.0, 0.454545, 0.909091)));
+    assert (approx (out[2].first, -0.1));
+    assert (approx (out[2].second, Triple (0.909091, 1.0, 1.0)));
+    assert (out[3].first == -0.5);
+    assert (out[3].second == Triple (-1.0, -1.0, 0.0));
   }
 
   /* Case 3a/1neg */
   {
-    Triple tent (0.f, 0.5f, 2.f);
-    Triple axis_range (0.2f, 0.5f, 0.8f);
+    Triple tent (0.0, 0.5, 2.0);
+    Triple axis_range (0.2, 0.5, 0.8);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
-    assert (out[0].first == 1.f);
+    assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
-    assert (approx (out[1].first, -0.2f));
-    assert (out[1].second == Triple (0.f, 1.f, 1.f));
-    assert (approx (out[2].first, -0.6f));
-    assert (out[2].second == Triple (-1.f, -1.f, 0.f));
+    assert (approx (out[1].first, -0.2));
+    assert (out[1].second == Triple (0.0, 1.0, 1.0));
+    assert (approx (out[2].first, -0.6));
+    assert (out[2].second == Triple (-1.0, -1.0, 0.0));
   }
 
   /* Case 3a/1neg */
   {
-    Triple tent (0.f, 0.5f, 2.f);
-    Triple axis_range (0.2f, 0.5f, 1.f);
+    Triple tent (0.0, 0.5, 2.0);
+    Triple axis_range (0.2, 0.5, 1.0);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
-    assert (out[0].first == 1.f);
+    assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
-    assert (approx (out[1].first, -1.f/3));
-    assert (out[1].second == Triple (0.f, 1.f, 1.f));
-    assert (approx (out[2].first, -0.6f));
-    assert (out[2].second == Triple (-1.f, -1.f, 0.f));
+    assert (approx (out[1].first, -1.0/3));
+    assert (out[1].second == Triple (0.0, 1.0, 1.0));
+    assert (approx (out[2].first, -0.6));
+    assert (out[2].second == Triple (-1.0, -1.0, 0.0));
   }
 
   /* Case 3 */
   {
-    Triple tent (0.f, 0.5f, 1.f);
-    Triple axis_range (0.25f, 0.25f, 0.75f);
+    Triple tent (0.0, 0.5, 1.0);
+    Triple axis_range (0.25, 0.25, 0.75);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
-    assert (out[0].first == 0.5f);
+    assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
-    assert (out[1].first == 0.5f);
-    assert (out[1].second == Triple (0.f, 0.5f, 1.0f));
+    assert (out[1].first == 0.5);
+    assert (out[1].second == Triple (0.0, 0.5, 1.0));
   }
 
   /* Case 1neg */
   {
-    Triple tent (0.f, 0.5f, 1.f);
-    Triple axis_range (0.f, 0.25f, 0.5f);
+    Triple tent (0.0, 0.5, 1.0);
+    Triple axis_range (0.0, 0.25, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
-    assert (out[0].first == 0.5f);
+    assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
-    assert (out[1].first == 0.5f);
-    assert (out[1].second == Triple (0.f, 1.f, 1.f));
-    assert (out[2].first == -0.5f);
-    assert (out[2].second == Triple (-1.f, -1.f, 0.f));
+    assert (out[1].first == 0.5);
+    assert (out[1].second == Triple (0.0, 1.0, 1.0));
+    assert (out[2].first == -0.5);
+    assert (out[2].second == Triple (-1.0, -1.0, 0.0));
   }
 
   /* Case 2neg */
   {
-    Triple tent (0.05f, 0.55f, 1.f);
-    Triple axis_range (0.f, 0.25f, 0.5f);
+    Triple tent (0.05, 0.55, 1.0);
+    Triple axis_range (0.0, 0.25, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 4);
-    assert (approx (out[0].first, 0.4f));
+    assert (approx (out[0].first, 0.4));
     assert (out[0].second == Triple ());
-    assert (approx (out[1].first, 0.5f));
-    assert (out[1].second == Triple (0.f, 1.f, 1.f));
-    assert (approx (out[2].first, -0.4f));
-    assert (out[2].second == Triple (-1.f, -0.8f, 0.f));
-    assert (approx (out[3].first, -0.4f));
-    assert (out[3].second == Triple (-1.f, -1.f, -0.8f));
+    assert (approx (out[1].first, 0.5));
+    assert (out[1].second == Triple (0.0, 1.0, 1.0));
+    assert (approx (out[2].first, -0.4));
+    assert (out[2].second == Triple (-1.0, -0.8, 0.0));
+    assert (approx (out[3].first, -0.4));
+    assert (out[3].second == Triple (-1.0, -1.0, -0.8));
   }
 
   /* Case 2neg, other side */
   {
-    Triple tent (-1.f, -0.55f, -0.05f);
-    Triple axis_range (-0.5f, -0.25f, 0.f);
+    Triple tent (-1.0, -0.55, -0.05);
+    Triple axis_range (-0.5, -0.25, 0.0);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 4);
-    assert (approx (out[0].first, 0.4f));
+    assert (approx (out[0].first, 0.4));
     assert (out[0].second == Triple ());
-    assert (approx (out[1].first, 0.5f));
-    assert (out[1].second == Triple (-1.f, -1.f, 0.f));
-    assert (approx (out[2].first, -0.4f));
-    assert (out[2].second == Triple (0.f, 0.8f, 1.f));
-    assert (approx (out[3].first, -0.4f));
-    assert (out[3].second == Triple (0.8f, 1.f, 1.f));
+    assert (approx (out[1].first, 0.5));
+    assert (out[1].second == Triple (-1.0, -1.0, 0.0));
+    assert (approx (out[2].first, -0.4));
+    assert (out[2].second == Triple (0.0, 0.8, 1.0));
+    assert (approx (out[3].first, -0.4));
+    assert (out[3].second == Triple (0.8, 1.0, 1.0));
   }
 
   /* Misc corner cases */
   {
-    Triple tent (0.5f, 0.5f, 0.5f);
-    Triple axis_range (0.5f, 0.5f, 0.5f);
+    Triple tent (0.5, 0.5, 0.5);
+    Triple axis_range (0.5, 0.5, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 1.f);
+    assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
   }
 
   {
-    Triple tent (0.3f, 0.5f, 0.7f);
-    Triple axis_range (0.1f, 0.5f, 0.9f);
+    Triple tent (0.3, 0.5, 0.7);
+    Triple axis_range (0.1, 0.5, 0.9);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 5);
-    assert (out[0].first == 1.f);
+    assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
-    assert (out[1].first == -1.f);
-    assert (out[1].second == Triple (0.f, 0.5f, 1.f));
-    assert (out[2].first == -1.f);
-    assert (out[2].second == Triple (0.5f, 1.f, 1.f));
-    assert (out[3].first == -1.f);
-    assert (approx (out[3].second, Triple (-1.f, -0.5f, 0.f)));
-    assert (out[4].first == -1.f);
-    assert (approx (out[4].second, Triple (-1.f, -1.f, -0.5f)));
+    assert (out[1].first == -1.0);
+    assert (approx(out[1].second, Triple (0.0, 0.5, 1.0)));
+    assert (out[2].first == -1.0);
+    assert (approx(out[2].second, Triple (0.5, 1.0, 1.0)));
+    assert (out[3].first == -1.0);
+    assert (approx (out[3].second, Triple (-1.0, -0.5, 0.0)));
+    assert (out[4].first == -1.0);
+    assert (approx (out[4].second, Triple (-1.0, -1.0, -0.5)));
   }
 
   {
-    Triple tent (0.5f, 0.5f, 0.5f);
-    Triple axis_range (0.25f, 0.25f, 0.5f);
+    Triple tent (0.5, 0.5, 0.5);
+    Triple axis_range (0.25, 0.25, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (1.f, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (1.0, 1.0, 1.0));
   }
 
   {
-    Triple tent (0.5f, 0.5f, 0.5f);
-    Triple axis_range (0.25f, 0.35f, 0.5f);
+    Triple tent (0.5, 0.5, 0.5);
+    Triple axis_range (0.25, 0.35, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (1.f, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (1.0, 1.0, 1.0));
   }
 
   {
-    Triple tent (0.5f, 0.5f, 0.55f);
-    Triple axis_range (0.25f, 0.35f, 0.5f);
+    Triple tent (0.5, 0.5, 0.55);
+    Triple axis_range (0.25, 0.35, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (1.f, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (1.0, 1.0, 1.0));
   }
 
   {
-    Triple tent (0.5f, 0.5f, 1.f);
-    Triple axis_range (0.5f, 0.5f, 1.f);
+    Triple tent (0.5, 0.5, 1.0);
+    Triple axis_range (0.5, 0.5, 1.0);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
-    assert (out[0].first == 1.f);
+    assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
-    assert (out[1].first == -1.f);
-    assert (out[1].second == Triple (0.f, 1.f, 1.f));
+    assert (out[1].first == -1.0);
+    assert (out[1].second == Triple (0.0, 1.0, 1.0));
   }
 
   {
-    Triple tent (0.25f, 0.5f, 1.f);
-    Triple axis_range (0.5f, 0.5f, 1.f);
+    Triple tent (0.25, 0.5, 1.0);
+    Triple axis_range (0.5, 0.5, 1.0);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
-    assert (out[0].first == 1.f);
+    assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
-    assert (out[1].first == -1.f);
-    assert (out[1].second == Triple (0.f, 1.f, 1.f));
+    assert (out[1].first == -1.0);
+    assert (out[1].second == Triple (0.0, 1.0, 1.0));
   }
 
   {
-    Triple tent (0.f, 0.2f, 1.f);
-    Triple axis_range (0.f, 0.f, 0.5f);
+    Triple tent (0.0, 0.2, 1.0);
+    Triple axis_range (0.0, 0.0, 0.5);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (0.f, 0.4f, 1.f));
-    assert (out[1].first == 0.625f);
-    assert (out[1].second == Triple (0.4f, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (0.0, 0.4, 1.0));
+    assert (out[1].first == 0.625);
+    assert (out[1].second == Triple (0.4, 1.0, 1.0));
   }
 
 
   {
-    Triple tent (0.f, 0.5f, 1.f);
-    Triple axis_range (-1.f, 0.25f, 1.f);
+    Triple tent (0.0, 0.5, 1.0);
+    Triple axis_range (-1.0, 0.25, 1.0);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 5);
-    assert (out[0].first == 0.5f);
+    assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
-    assert (out[1].first == 0.5f);
-    assert (out[1].second == Triple (0.f, 1.f/3, 2.f/3));
-    assert (out[2].first == -0.5f);
-    assert (out[2].second == Triple (2.f/3, 1.f, 1.f));
-    assert (out[3].first == -0.5f);
-    assert (out[3].second == Triple (-1.f, -0.2f, 0.f));
-    assert (out[4].first == -0.5f);
-    assert (out[4].second == Triple (-1.f, -1.f, -0.2f));
+    assert (out[1].first == 0.5);
+    assert (out[1].second == Triple (0.0, 1.0/3, 2.0/3));
+    assert (out[2].first == -0.5);
+    assert (out[2].second == Triple (2.0/3, 1.0, 1.0));
+    assert (out[3].first == -0.5);
+    assert (out[3].second == Triple (-1.0, -0.2, 0.0));
+    assert (out[4].first == -0.5);
+    assert (out[4].second == Triple (-1.0, -1.0, -0.2));
   }
 
   {
-    Triple tent (0.5f, 0.5f, 0.5f);
-    Triple axis_range (0.f, 0.5f, 1.f);
+    Triple tent (0.5, 0.5, 0.5);
+    Triple axis_range (0.0, 0.5, 1.0);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 5);
-    assert (out[0].first == 1.f);
+    assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
-    assert (out[1].first == -1.f);
-    assert (out[1].second == Triple (0.f, 2/(float) (1 << 14), 1.f));
-    assert (out[2].first == -1.f);
-    assert (out[2].second == Triple (2/(float) (1 << 14), 1.f, 1.f));
-    assert (out[3].first == -1.f);
-    assert (out[3].second == Triple (-1.f, -2/(float) (1 << 14), 0.f));
-    assert (out[4].first == -1.f);
-    assert (out[4].second == Triple (-1.f, -1.f, -2/(float) (1 << 14)));
+    assert (out[1].first == -1.0);
+    assert (out[1].second == Triple (0.0, 2/(double) (1 << 14), 1.0));
+    assert (out[2].first == -1.0);
+    assert (out[2].second == Triple (2/(double) (1 << 14), 1.0, 1.0));
+    assert (out[3].first == -1.0);
+    assert (out[3].second == Triple (-1.0, -2/(double) (1 << 14), 0.0));
+    assert (out[4].first == -1.0);
+    assert (out[4].second == Triple (-1.0, -1.0, -2/(double) (1 << 14)));
   }
 
   {
-    Triple tent (0.f, 1.f, 1.f);
-    Triple axis_range (-1.f, -0.5f, 1.f);
+    Triple tent (0.0, 1.0, 1.0);
+    Triple axis_range (-1.0, -0.5, 1.0);
     result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (1.f/3, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (1.0/3, 1.0, 1.0));
   }
 
   {
-    Triple tent (0.f, 1.f, 1.f);
-    Triple axis_range (-1.f, -0.5f, 1.f);
-    TripleDistances axis_distances{2.f, 1.f};
+    Triple tent (0.0, 1.0, 1.0);
+    Triple axis_range (-1.0, -0.5, 1.0);
+    TripleDistances axis_distances{2.0, 1.0};
     result_t out = rebase_tent (tent, axis_range, axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 1.f);
-    assert (out[0].second == Triple (0.5f, 1.f, 1.f));
+    assert (out[0].first == 1.0);
+    assert (out[0].second == Triple (0.5, 1.0, 1.0));
   }
 
   {
-    Triple tent (0.6f, 0.7f, 0.8f);
-    Triple axis_range (-1.f, 0.2f, 1.f);
-    TripleDistances axis_distances{1.f, 1.f};
+    Triple tent (0.6, 0.7, 0.8);
+    Triple axis_range (-1.0, 0.2, 1.0);
+    TripleDistances axis_distances{1.0, 1.0};
     result_t out = rebase_tent (tent, axis_range, axis_distances);
     assert (out.length == 1);
-    assert (out[0].first == 1.f);
-    assert (approx (out[0].second, Triple (0.5f, 0.625f, 0.75f)));
+    assert (out[0].first == 1.0);
+    assert (approx (out[0].second, Triple (0.5, 0.625, 0.75)));
   }
 }
-
