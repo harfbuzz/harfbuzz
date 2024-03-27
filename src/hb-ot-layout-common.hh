@@ -2471,6 +2471,8 @@ struct VarRegionAxis
     int peak = peakCoord.to_int ();
     if (peak == 0 || coord == peak)
       return 1.f;
+    else if (coord == 0) // Faster
+      return 0.f;
 
     int start = startCoord.to_int (), end = endCoord.to_int ();
 
