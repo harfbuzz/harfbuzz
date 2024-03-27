@@ -663,14 +663,15 @@ struct GDEFVersion1_2
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
-    // Serialize var store first (if it's needed) so that it's serialized last. Some font parsers assume
-    // that varstore runs to the end of the GDEF table.
-    // TODO(garretrieger): add a virtual link from all non-var store sub tables to the var store.
+    // Push var store first (if it's needed) so that it's last in the
+    // serialization order. Some font consumers assume that varstore runs to
+    // the end of the GDEF table.
     auto snapshot_version0 = c->serializer->snapshot ();
     if (unlikely (version.to_int () >= 0x00010002u && !c->serializer->embed (markGlyphSetsDef)))
       return_trace (false);
 
     bool subset_varstore = false;
+    unsigned varstore_index = -1;
     auto snapshot_version2 = c->serializer->snapshot ();
     if (version.to_int () >= 0x00010003u)
     {
@@ -683,20 +684,24 @@ struct GDEFVersion1_2
         {
           item_variations_t item_vars;
           if (item_vars.instantiate (this+varStore, c->plan, true, true,
-                                     c->plan->gdef_varstore_inner_maps.as_array ()))
+                                     c->plan->gdef_varstore_inner_maps.as_array ())) {
             subset_varstore = out->varStore.serialize_serialize (c->serializer,
                                                                  item_vars.has_long_word (),
                                                                  c->plan->axis_tags,
                                                                  item_vars.get_region_list (),
                                                                  item_vars.get_vardata_encodings ());
+            varstore_index = c->serializer->last_added_child_index();
+          }
           remap_varidx_after_instantiation (item_vars.get_varidx_map (),
                                             c->plan->layout_variation_idx_delta_map);
         }
       }
       else
+      {
         subset_varstore = out->varStore.serialize_subset (c, varStore, this, c->plan->gdef_varstore_inner_maps.as_array ());
+        varstore_index = c->serializer->last_added_child_index();
+      }
     }
-
 
     out->version.major = version.major;
     out->version.minor = version.minor;
@@ -726,6 +731,10 @@ struct GDEFVersion1_2
     bool subset_attachlist = out->attachList.serialize_subset (c, attachList, this);
     bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, nullptr, false, true);
     bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
+
+    if (subset_varstore && varstore_index != (unsigned) -1) {
+      c->serializer->repack_last(varstore_index);
+    }
 
     return_trace (subset_glyphclassdef || subset_attachlist ||
 		  subset_ligcaretlist || subset_markattachclassdef ||
