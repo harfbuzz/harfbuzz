@@ -312,6 +312,8 @@ struct Glyph
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
 		   hb_array_t<const int> coords = hb_array_t<const int> (),
+		   hb_vector_t<int> *x_deltas_cache = nullptr,
+		   hb_vector_t<int> *y_deltas_cache = nullptr,
 		   hb_map_t *current_glyphs = nullptr,
 		   unsigned int depth = 0,
 		   unsigned *edge_count = nullptr) const
@@ -391,6 +393,7 @@ struct Glyph
       glyf_accelerator.gvar->apply_deltas_to_points (gid,
 						     coords,
 						     points.as_array ().sub_array (old_length),
+						     x_deltas_cache, y_deltas_cache,
 						     phantom_only && type == SIMPLE);
 #endif
 
@@ -433,6 +436,8 @@ struct Glyph
 						    use_my_metrics,
 						    phantom_only,
 						    coords,
+						    x_deltas_cache,
+						    y_deltas_cache,
 						    current_glyphs,
 						    depth + 1,
 						    edge_count)))

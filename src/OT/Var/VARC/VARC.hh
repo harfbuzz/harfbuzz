@@ -50,7 +50,9 @@ struct VarComponent
 	       hb_set_t *visited,
 	       signed *edges_left,
 	       signed depth_left,
-	       VarRegionList::cache_t *cache = nullptr) const;
+	       VarRegionList::cache_t *cache = nullptr,
+	       hb_vector_t<int> *x_deltas_cache = nullptr,
+	       hb_vector_t<int> *y_deltas_cache = nullptr) const;
 };
 
 struct VarCompositeGlyph
@@ -64,15 +66,25 @@ struct VarCompositeGlyph
 	       hb_set_t *visited,
 	       signed *edges_left,
 	       signed depth_left,
-	       VarRegionList::cache_t *cache = nullptr)
+	       VarRegionList::cache_t *cache = nullptr,
+	       hb_vector_t<int> *x_deltas_cache = nullptr,
+	       hb_vector_t<int> *y_deltas_cache = nullptr)
   {
+    hb_vector_t<int> x_deltas_stack;
+    hb_vector_t<int> y_deltas_stack;
+    if (x_deltas_cache == nullptr)
+      x_deltas_cache = &x_deltas_stack;
+    if (y_deltas_cache == nullptr)
+      y_deltas_cache = &y_deltas_stack;
+
     while (record)
     {
       const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
       record = comp.get_path_at (font, glyph,
 				 draw_session, coords,
 				 record,
-				 visited, edges_left, depth_left, cache);
+				 visited, edges_left, depth_left,
+				 cache, x_deltas_cache, y_deltas_cache);
     }
   }
 };
@@ -93,7 +105,9 @@ struct VARC
 	       hb_codepoint_t parent_glyph = HB_CODEPOINT_INVALID,
 	       hb_set_t *visited = nullptr,
 	       signed *edges_left = nullptr,
-	       signed depth_left = HB_MAX_NESTING_LEVEL) const
+	       signed depth_left = HB_MAX_NESTING_LEVEL,
+	       hb_vector_t<int> *x_deltas_cache = nullptr,
+	       hb_vector_t<int> *y_deltas_cache = nullptr) const
   {
     hb_set_t stack_set;
     if (visited == nullptr)
@@ -108,7 +122,7 @@ struct VARC
 		   (this+coverage).get_coverage (glyph);
     if (idx == NOT_COVERED)
     {
-      if (!font->face->table.glyf->get_path_at (font, glyph, draw_session, coords))
+      if (!font->face->table.glyf->get_path_at (font, glyph, draw_session, coords, x_deltas_cache, y_deltas_cache))
 #ifndef HB_NO_CFF
       if (!font->face->table.cff2->get_path_at (font, glyph, draw_session, coords))
       if (!font->face->table.cff1->get_path (font, glyph, draw_session)) // Doesn't have variations
@@ -138,7 +152,8 @@ struct VARC
 				    draw_session, coords,
 				    record,
 				    visited, edges_left, depth_left,
-				    cache);
+				    cache,
+				    x_deltas_cache, y_deltas_cache);
 
     (this+varStore).destroy_cache (cache);
 

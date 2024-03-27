@@ -623,9 +623,16 @@ struct gvar
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 hb_array_t<const int> coords,
 				 const hb_array_t<contour_point_t> points,
+				 hb_vector_t<int> *x_deltas_cache = nullptr,
+				 hb_vector_t<int> *y_deltas_cache = nullptr,
 				 bool phantom_only = false) const
     {
       if (unlikely (glyph >= glyphCount)) return true;
+
+      hb_vector_t<int> x_deltas_stack;
+      hb_vector_t<int> y_deltas_stack;
+      hb_vector_t<int> &x_deltas = x_deltas_cache ? *x_deltas_cache : x_deltas_stack;
+      hb_vector_t<int> &y_deltas = y_deltas_cache ? *y_deltas_cache : y_deltas_stack;
 
       hb_bytes_t var_data_bytes = table->get_glyph_var_data_bytes (table.get_blob (), glyphCount, glyph);
       if (!var_data_bytes.as<GlyphVariationData> ()->has_data ()) return true;
@@ -650,8 +657,6 @@ struct gvar
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * num_coords);
 
       hb_vector_t<unsigned int> private_indices;
-      hb_vector_t<int> x_deltas;
-      hb_vector_t<int> y_deltas;
       unsigned count = points.length;
       bool flush = false;
       do
