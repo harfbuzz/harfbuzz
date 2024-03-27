@@ -135,9 +135,7 @@ VarComponent::get_path_at (hb_font_t *font,
 			   hb_set_t *visited,
 			   signed *edges_left,
 			   signed depth_left,
-			   VarRegionList::cache_t *cache,
-			   hb_vector_t<int> *x_deltas_cache,
-			   hb_vector_t<int> *y_deltas_cache) const
+			   VarRegionList::cache_t *cache) const
 {
   auto &VARC = *font->face->table.VARC;
   const unsigned char *end = total_record.arrayZ + total_record.length;
@@ -329,8 +327,7 @@ VarComponent::get_path_at (hb_font_t *font,
     VARC.get_path_at (font, gid,
 		      transformer_session, component_coords,
 		      parent_gid,
-		      visited, edges_left, depth_left - 1,
-		      x_deltas_cache, y_deltas_cache);
+		      visited, edges_left, depth_left - 1);
   }
 
 #undef PROCESS_TRANSFORM_COMPONENTS
