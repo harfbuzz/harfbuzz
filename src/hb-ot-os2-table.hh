@@ -223,7 +223,7 @@ struct OS2
       }
     }
 
-    return num ? (unsigned) roundf (total_width / num) : 0;
+    return num ? (unsigned) roundf ((double) total_width / (double) num) : 0;
   }
 
   bool subset (hb_subset_context_t *c) const
