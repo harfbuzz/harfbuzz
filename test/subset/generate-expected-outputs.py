@@ -46,7 +46,7 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 	args = ["fonttools", "subset", input_path]
 	if instance_flags:
 		args.extend(["--recalc-bounds", "--recalc-average-width"])
-	args.extend(["--drop-tables+=DSIG",
+	args.extend(["--drop-tables+=DSIG,BASE",
 		     "--drop-tables-=sbix",
 		     "--no-harfbuzz-repacker", # disable harfbuzz repacker so we aren't comparing to ourself.
 		     "--output-file=%s" % fonttools_path])
@@ -56,6 +56,8 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 	# --gid-map is unsupported in fonttools so don't send it. Tests using
 	# it are crafted to work without fonttools knowing about the flag.
 	args.extend([f for f in profile_flags if not f.startswith("--gid-map")])
+	# Harfbuzz doesn't support pruning codepage ranges, so disable it in fonttools.
+	args.extend(["--no-prune-codepage-ranges"])
 	if not no_fonttools:
 		check_call(args)
 
@@ -69,7 +71,7 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 		hb_subset,
 		"--font-file=" + input_file,
 		"--output-file=" + harfbuzz_path,
-		"--drop-tables+=DSIG",
+		"--drop-tables+=DSIG,BASE",
 		"--drop-tables-=sbix"]
 	if unicodes != "":
 		args.extend(["--unicodes=%s" % unicodes,])
