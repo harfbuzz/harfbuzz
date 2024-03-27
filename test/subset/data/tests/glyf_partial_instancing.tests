@@ -15,7 +15,3 @@ wght=200:300:500,wdth=80:90
 IUP_OPTIONS:
 Yes
 No
-
-OPTIONS:
-no_fonttools
-# TODO: re-enable fonttools once rounding issues are fixed (https://github.com/harfbuzz/harfbuzz/issues/4642)
