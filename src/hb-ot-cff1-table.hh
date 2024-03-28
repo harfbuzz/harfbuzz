@@ -51,9 +51,6 @@ namespace CFF {
 enum EncodingID { StandardEncoding = 0, ExpertEncoding = 1 };
 enum CharsetID { ISOAdobeCharset = 0, ExpertCharset = 1, ExpertSubsetCharset = 2 };
 
-typedef CFFIndex<HBUINT16>  CFF1Index;
-
-typedef CFFIndex<HBUINT16> CFF1Index;
 typedef CFF1Index          CFF1CharStrings;
 typedef Subrs<HBUINT16>    CFF1Subrs;
 

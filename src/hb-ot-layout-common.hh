@@ -2421,12 +2421,12 @@ struct delta_row_encoding_t
     int combined_width = 0;
     for (unsigned i = 0; i < chars.length; i++)
       combined_width += hb_max (chars.arrayZ[i], other_encoding.chars.arrayZ[i]);
-   
+
     hb_vector_t<uint8_t> combined_columns;
     combined_columns.alloc (columns.length);
     for (unsigned i = 0; i < columns.length; i++)
       combined_columns.push (columns.arrayZ[i] | other_encoding.columns.arrayZ[i]);
-    
+
     int combined_overhead = get_chars_overhead (combined_columns);
     int combined_gain = (int) overhead + (int) other_encoding.overhead - combined_overhead
                         - (combined_width - (int) width) * items.length
@@ -2471,6 +2471,8 @@ struct VarRegionAxis
     int peak = peakCoord.to_int ();
     if (peak == 0 || coord == peak)
       return 1.f;
+    else if (coord == 0) // Faster
+      return 0.f;
 
     int start = startCoord.to_int (), end = endCoord.to_int ();
 
@@ -2494,8 +2496,6 @@ struct VarRegionAxis
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
-    /* TODO Handle invalid start/peak/end configs, so we don't
-     * have to do that at runtime. */
   }
 
   bool serialize (hb_serialize_context_t *c) const
@@ -2510,6 +2510,33 @@ struct VarRegionAxis
   F2DOT14	endCoord;
   public:
   DEFINE_SIZE_STATIC (6);
+};
+struct SparseVarRegionAxis
+{
+  float evaluate (const int *coords, unsigned int coord_len) const
+  {
+    unsigned i = axisIndex;
+    int coord = i < coord_len ? coords[i] : 0;
+    return axis.evaluate (coord);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  bool serialize (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (this));
+  }
+
+  public:
+  HBUINT16 axisIndex;
+  VarRegionAxis axis;
+  public:
+  DEFINE_SIZE_STATIC (8);
 };
 
 #define REGION_CACHE_ITEM_CACHE_INVALID 2.f
@@ -2675,6 +2702,65 @@ struct VarRegionList
   DEFINE_SIZE_ARRAY (4, axesZ);
 };
 
+struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
+{
+  float evaluate (const int *coords, unsigned int coord_len) const
+  {
+    float v = 1.f;
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      float factor = arrayZ[i].evaluate (coords, coord_len);
+      if (factor == 0.f)
+	return 0.;
+      v *= factor;
+    }
+    return v;
+  }
+};
+
+struct SparseVarRegionList
+{
+  using cache_t = float;
+
+  float evaluate (unsigned int region_index,
+		  const int *coords, unsigned int coord_len,
+		  cache_t *cache = nullptr) const
+  {
+    if (unlikely (region_index >= regions.len))
+      return 0.;
+
+    float *cached_value = nullptr;
+    if (cache)
+    {
+      cached_value = &(cache[region_index]);
+      if (likely (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID))
+	return *cached_value;
+    }
+
+    const SparseVariationRegion &region = this+regions[region_index];
+
+    float v = region.evaluate (coords, coord_len);
+
+    if (cache)
+      *cached_value = v;
+    return v;
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (regions.sanitize (c, this));
+  }
+
+  public:
+  Array16Of<Offset32To<SparseVariationRegion>>
+		regions;
+  public:
+  DEFINE_SIZE_ARRAY (2, regions);
+};
+
+
 struct VarData
 {
   unsigned int get_item_count () const
@@ -2682,7 +2768,7 @@ struct VarData
 
   unsigned int get_region_index_count () const
   { return regionIndices.len; }
-  
+
   unsigned get_region_index (unsigned i) const
   { return i >= regionIndices.len ? -1 : regionIndices[i]; }
 
@@ -3036,6 +3122,61 @@ struct VarData
   DEFINE_SIZE_ARRAY (6, regionIndices);
 };
 
+struct MultiVarData
+{
+  unsigned int get_size () const
+  { return min_size
+	 - regionIndices.min_size + regionIndices.get_size ()
+	 + StructAfter<CFF2Index> (regionIndices).get_size ();
+  }
+
+  void get_delta (unsigned int inner,
+		  const int *coords, unsigned int coord_count,
+		  const SparseVarRegionList &regions,
+		  hb_array_t<float> out,
+		  SparseVarRegionList::cache_t *cache = nullptr) const
+  {
+    auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
+
+    auto values_iter = deltaSets[inner];
+
+    unsigned regionCount = regionIndices.len;
+    unsigned count = out.length;
+    for (unsigned regionIndex = 0; regionIndex < regionCount; regionIndex++)
+    {
+      float scalar = regions.evaluate (regionIndices.arrayZ[regionIndex],
+				       coords, coord_count,
+				       cache);
+      if (scalar == 1.f)
+	for (unsigned i = 0; i < count; i++)
+	  out.arrayZ[i] += *values_iter++;
+      else if (scalar)
+	for (unsigned i = 0; i < count; i++)
+	  out.arrayZ[i] += *values_iter++ * scalar;
+      else
+        values_iter += count;
+    }
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (format.sanitize (c) &&
+		  hb_barrier () &&
+		  format == 1 &&
+		  regionIndices.sanitize (c) &&
+		  hb_barrier () &&
+		  StructAfter<decltype (deltaSetsX)> (regionIndices).sanitize (c));
+  }
+
+  protected:
+  HBUINT8	      format; // 1
+  Array16Of<HBUINT16> regionIndices;
+  TupleList	      deltaSetsX;
+  public:
+  DEFINE_SIZE_MIN (8);
+};
+
 struct ItemVariationStore
 {
   friend struct item_variations_t;
@@ -3088,7 +3229,7 @@ struct ItemVariationStore
     return get_delta (outer, inner, coords, coord_count, cache);
   }
   float get_delta (unsigned int index,
-		   hb_array_t<int> coords,
+		   hb_array_t<const int> coords,
 		   VarRegionList::cache_t *cache = nullptr) const
   {
     return get_delta (index,
@@ -3121,7 +3262,7 @@ struct ItemVariationStore
     return_trace (false);
 #endif
     if (unlikely (!c->extend_min (this))) return_trace (false);
-    
+
     format = 1;
     if (!regions.serialize_serialize (c, axis_tags, region_list))
       return_trace (false);
@@ -3136,7 +3277,7 @@ struct ItemVariationStore
     for (unsigned i = 0; i < num_var_data; i++)
       if (!dataSets[i].serialize_serialize (c, has_long, vardata_encodings[i].items))
         return_trace (false);
-    
+
     return_trace (true);
   }
 
@@ -3289,6 +3430,92 @@ struct ItemVariationStore
   HBUINT16				format;
   Offset32To<VarRegionList>		regions;
   Array16OfOffset32To<VarData>		dataSets;
+  public:
+  DEFINE_SIZE_ARRAY_SIZED (8, dataSets);
+};
+
+struct MultiItemVariationStore
+{
+  using cache_t = SparseVarRegionList::cache_t;
+
+  cache_t *create_cache () const
+  {
+#ifdef HB_NO_VAR
+    return nullptr;
+#endif
+    auto &r = this+regions;
+    unsigned count = r.regions.len;
+
+    float *cache = (float *) hb_malloc (sizeof (float) * count);
+    if (unlikely (!cache)) return nullptr;
+
+    for (unsigned i = 0; i < count; i++)
+      cache[i] = REGION_CACHE_ITEM_CACHE_INVALID;
+
+    return cache;
+  }
+
+  static void destroy_cache (cache_t *cache) { hb_free (cache); }
+
+  private:
+  void get_delta (unsigned int outer, unsigned int inner,
+		  const int *coords, unsigned int coord_count,
+		  hb_array_t<float> out,
+		  VarRegionList::cache_t *cache = nullptr) const
+  {
+#ifdef HB_NO_VAR
+    return;
+#endif
+
+    if (unlikely (outer >= dataSets.len))
+      return;
+
+    return (this+dataSets[outer]).get_delta (inner,
+					     coords, coord_count,
+					     this+regions,
+					     out,
+					     cache);
+  }
+
+  public:
+  void get_delta (unsigned int index,
+		  const int *coords, unsigned int coord_count,
+		  hb_array_t<float> out,
+		  VarRegionList::cache_t *cache = nullptr) const
+  {
+    unsigned int outer = index >> 16;
+    unsigned int inner = index & 0xFFFF;
+    get_delta (outer, inner, coords, coord_count, out, cache);
+  }
+  void get_delta (unsigned int index,
+		  hb_array_t<const int> coords,
+		  hb_array_t<float> out,
+		  VarRegionList::cache_t *cache = nullptr) const
+  {
+    return get_delta (index,
+		      coords.arrayZ, coords.length,
+		      out,
+		      cache);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+#ifdef HB_NO_VAR
+    return true;
+#endif
+
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
+		  format == 1 &&
+		  regions.sanitize (c, this) &&
+		  dataSets.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16				format; // 1
+  Offset32To<SparseVarRegionList>	regions;
+  Array16OfOffset32To<MultiVarData>	dataSets;
   public:
   DEFINE_SIZE_ARRAY_SIZED (8, dataSets);
 };
@@ -3562,6 +3789,14 @@ struct ConditionSet
   Array16OfOffset32To<Condition>	conditions;
   public:
   DEFINE_SIZE_ARRAY (2, conditions);
+};
+
+struct ConditionSetList
+{
+  const ConditionSet& operator[] (unsigned i) const
+  { return this+conditionSets[i]; }
+
+  Array32OfOffset32To<ConditionSet> conditionSets;
 };
 
 struct FeatureTableSubstitutionRecord

@@ -40,6 +40,7 @@ HB_BASE_sources = \
 	hb-dispatch.hh \
 	hb-draw.cc \
 	hb-draw.hh \
+	hb-geometry.hh \
 	hb-face.cc \
 	hb-face.hh \
 	hb-face-builder.cc \
@@ -104,10 +105,8 @@ HB_BASE_sources = \
 	OT/glyf/Glyph.hh \
 	OT/glyf/GlyphHeader.hh \
 	OT/glyf/SimpleGlyph.hh \
-	OT/glyf/coord-setter.hh \
 	OT/glyf/composite-iter.hh \
 	OT/glyf/CompositeGlyph.hh \
-	OT/glyf/VarCompositeGlyph.hh \
 	OT/glyf/SubsetGlyph.hh \
 	OT/Layout/types.hh \
 	OT/Layout/Common/Coverage.hh \
@@ -170,6 +169,9 @@ HB_BASE_sources = \
 	OT/Layout/GSUB/SubstLookup.hh \
 	OT/Layout/GSUB/SubstLookupSubTable.hh \
 	OT/name/name.hh \
+	OT/Var/VARC/coord-setter.hh \
+	OT/Var/VARC/VARC.cc \
+	OT/Var/VARC/VARC.hh \
 	hb-ot-layout-gsubgpos.hh \
 	hb-ot-layout-jstf-table.hh \
 	hb-ot-layout.cc \
@@ -230,6 +232,7 @@ HB_BASE_sources = \
 	hb-ot-var-gvar-table.hh \
 	hb-ot-var-hvar-table.hh \
 	hb-ot-var-mvar-table.hh \
+	hb-ot-var-varc-table.hh \
 	hb-ot-var.cc \
 	hb-ot-vorg-table.hh \
 	hb-pool.hh \
