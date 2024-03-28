@@ -666,6 +666,7 @@ struct GDEFVersion1_2
     // Push var store first (if it's needed) so that it's last in the
     // serialization order. Some font consumers assume that varstore runs to
     // the end of the GDEF table.
+    // See: https://github.com/harfbuzz/harfbuzz/issues/4636
     auto snapshot_version0 = c->serializer->snapshot ();
     if (unlikely (version.to_int () >= 0x00010002u && !c->serializer->embed (markGlyphSetsDef)))
       return_trace (false);
