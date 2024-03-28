@@ -56,6 +56,8 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 	# --gid-map is unsupported in fonttools so don't send it. Tests using
 	# it are crafted to work without fonttools knowing about the flag.
 	args.extend([f for f in profile_flags if not f.startswith("--gid-map")])
+	# Harfbuzz doesn't support pruning codepage ranges, so disable it in fonttools.
+	args.extend(["--no-prune-codepage-ranges"])
 	if not no_fonttools:
 		check_call(args)
 
