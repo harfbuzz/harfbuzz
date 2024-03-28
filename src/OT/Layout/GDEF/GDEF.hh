@@ -671,7 +671,7 @@ struct GDEFVersion1_2
       return_trace (false);
 
     bool subset_varstore = false;
-    unsigned varstore_index = -1;
+    unsigned varstore_index = (unsigned) -1;
     auto snapshot_version2 = c->serializer->snapshot ();
     if (version.to_int () >= 0x00010003u)
     {
