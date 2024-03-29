@@ -1375,7 +1375,7 @@ hb_buffer_get_not_found_glyph (const hb_buffer_t *buffer)
  * Defaults to 1 and when buffer contents are cleared.
  * A value of 0 disables randomness during shaping.
  *
- * XSince: REPLACEME
+ * Since: 8.4.0
  **/
 void
 hb_buffer_set_random_state (hb_buffer_t    *buffer,
@@ -1396,7 +1396,7 @@ hb_buffer_set_random_state (hb_buffer_t    *buffer,
  * Return value:
  * The @buffer random state
  *
- * XSince: REPLACEME
+ * Since: 8.4.0
  **/
 unsigned
 hb_buffer_get_random_state (const hb_buffer_t *buffer)
