@@ -433,16 +433,13 @@ struct MarkBasePosBuffers
   }
 };
 
-
-
-
-
 static void run_resolve_overflow_test (const char* name,
                                        hb_serialize_context_t& overflowing,
                                        hb_serialize_context_t& expected,
                                        unsigned num_iterations = 0,
                                        bool recalculate_extensions = false,
-                                       hb_tag_t tag = HB_TAG ('G', 'S', 'U', 'B'))
+                                       hb_tag_t tag = HB_TAG ('G', 'S', 'U', 'B'),
+                                       bool check_binary_equivalence = false)
 {
   printf (">>> Testing overflowing resolution for %s\n",
           name);
@@ -452,6 +449,10 @@ static void run_resolve_overflow_test (const char* name,
   graph_t expected_graph (expected.object_graph ());
   if (graph::will_overflow (expected_graph))
   {
+    if (check_binary_equivalence) {
+      printf("when binary equivalence checking is enabled, the expected graph cannot overflow.");
+      assert(!check_binary_equivalence);
+    }
     expected_graph.assign_spaces ();
     expected_graph.sort_shortest_distance ();
   }
@@ -464,12 +465,27 @@ static void run_resolve_overflow_test (const char* name,
                                       graph));
 
   // Check the graphs can be serialized.
-  hb_blob_t* out = graph::serialize (graph);
-  assert (out);
-  hb_blob_destroy (out);
-  out = graph::serialize (expected_graph);
-  assert (out);
-  hb_blob_destroy (out);
+  hb_blob_t* out1 = graph::serialize (graph);
+  assert (out1);
+  hb_blob_t* out2 = graph::serialize (expected_graph);
+  assert (out2);
+  if (check_binary_equivalence) {
+    unsigned l1, l2;
+    const char* d1 = hb_blob_get_data(out1, &l1);
+    const char* d2 = hb_blob_get_data(out2, &l2);
+
+    bool match = (l1 == l2) && (memcmp(d1, d2, l1) == 0);
+    if (!match) {
+      printf("## Result:\n");
+      graph.print();
+      printf("## Expected:\n");
+      expected_graph.print();
+      assert(match);
+    }
+  }
+
+  hb_blob_destroy (out1);
+  hb_blob_destroy (out2);
 
   // Check the graphs are equivalent
   graph.normalize ();
@@ -775,6 +791,54 @@ populate_serializer_with_isolation_overflow_spaces (hb_serialize_context_t* c)
   add_wide_offset (obj_b, c);
   add_wide_offset (obj_c, c);
   c->pop_pack ();
+
+  c->end_serialize();
+}
+
+static void
+populate_serializer_with_repack_last (hb_serialize_context_t* c, bool with_overflow)
+{
+  std::string large_string(70000, 'c');
+  c->start_serialize<char> ();
+  c->push();
+
+  // Obj E
+  unsigned obj_e_1, obj_e_2;
+  if (with_overflow) {
+    obj_e_1 = add_object("a", 1, c);
+    obj_e_2 = obj_e_1;
+  } else {
+    obj_e_2 = add_object("a", 1, c);
+  }
+
+  // Obj D
+  c->push();
+  add_offset(obj_e_2, c);
+  extend(large_string.c_str(), 30000, c);
+  unsigned obj_d = c->pop_pack(false);
+
+  add_offset(obj_d, c);
+  assert(c->last_added_child_index() == obj_d);
+
+  if (!with_overflow) {
+    obj_e_1 = add_object("a", 1, c);
+  }
+
+  // Obj C
+  c->push();
+  add_offset(obj_e_1, c);
+  extend(large_string.c_str(), 40000, c);
+  unsigned obj_c = c->pop_pack(false);
+
+  add_offset(obj_c, c);
+
+  // Obj B
+  unsigned obj_b = add_object("b", 1, c);
+  add_offset(obj_b, c);
+
+  // Obj A
+  c->repack_last(obj_d);
+  c->pop_pack(false);
 
   c->end_serialize();
 }
@@ -2167,6 +2231,31 @@ test_shared_node_with_virtual_links ()
   free(buffer);
 }
 
+static void
+test_repack_last ()
+{
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_repack_last (&c, true);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_repack_last (&e, false);
+
+  run_resolve_overflow_test ("test_repack_last",
+                             c,
+                             e,
+                             20,
+                             false,
+                             HB_TAG('a', 'b', 'c', 'd'),
+                             true);
+
+  free (buffer);
+  free (expected_buffer);
+}
 
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
@@ -2195,6 +2284,7 @@ main (int argc, char **argv)
   test_duplicate_leaf ();
   test_duplicate_interior ();
   test_virtual_link ();
+  test_repack_last();
   test_shared_node_with_virtual_links ();
   test_resolve_with_extension_promotion ();
   test_resolve_with_shared_extension_promotion ();
