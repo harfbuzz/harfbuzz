@@ -6,7 +6,7 @@ CLEANFILES =
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 
-EXTRA_DIST += meson.build
+EXTRA_DIST += meson.build test-hb-subset-parsing.c
 
 include Makefile.sources
 
