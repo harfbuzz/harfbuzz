@@ -36,7 +36,7 @@ jobs:
       - run: ./autogen.sh
       - run: make -j2 distcheck
       - run: rm harfbuzz-* && make distdir
-      - run: cd harfbuzz-* && meson -Dexperimental_api=true build && ninja -j2 -Cbuild test
+      - run: cd harfbuzz-* && meson build && ninja -j2 -Cbuild test
       - run: make dist
       - persist_to_workspace:
           root: .
