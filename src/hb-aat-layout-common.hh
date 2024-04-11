@@ -709,24 +709,24 @@ struct SubtableGlyphCoverage
   {
     TRACE_SANITIZE (this);
 
-    if (unlikely (!subtableOffsets.sanitize (c, subtable_count)))
+    if (unlikely (!c->check_array (&subtableOffsets, subtable_count)))
       return_trace (false);
 
     unsigned bytes = (c->get_num_glyphs () + CHAR_BIT - 1) / CHAR_BIT;
     for (unsigned i = 0; i < subtable_count; i++)
     {
-      uint32_t offset = subtableOffsets[i];
+      uint32_t offset = (uint32_t) subtableOffsets[i];
       if (offset == 0 || offset == 0xFFFFFFFF)
         continue;
-      if (unlikely (!c->check_range (this, offset) ||
-		    !c->check_range (this, offset + bytes)))
+      if (unlikely (!subtableOffsets[i].sanitize (c, this, bytes)))
         return_trace (false);
     }
 
     return_trace (true);
   }
   protected:
-  UnsizedArrayOf<HBUINT32> subtableOffsets; /* Array of offsets from the beginning of the
+  UnsizedArrayOf<NNOffset32To<UnsizedArrayOf<HBUINT8>>> subtableOffsets;
+					    /* Array of offsets from the beginning of the
 					     * subtable glyph coverage table to the glyph
 					     * coverage bitfield for a given subtable; there
 					     * is one offset for each subtable in the chain */
