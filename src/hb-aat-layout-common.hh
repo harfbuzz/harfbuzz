@@ -862,22 +862,22 @@ struct StateTableDriver
       {
           /* 2c. */
           const auto wouldbe_entry = machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass);
-      
+
           /* 2c'. */
           if (c->is_actionable (this, wouldbe_entry))
               return false;
-      
+
           /* 2c". */
           return next_state == machine.new_state(wouldbe_entry.newState)
               && (entry.flags & context_t::DontAdvance) == (wouldbe_entry.flags & context_t::DontAdvance);
       };
-      
+
       const auto is_safe_to_break = [&]()
       {
           /* 1. */
           if (c->is_actionable (this, entry))
               return false;
-      
+
           /* 2. */
           // This one is meh, I know...
           const auto ok =
@@ -886,7 +886,7 @@ struct StateTableDriver
               || is_safe_to_break_extra();
           if (!ok)
               return false;
-      
+
           /* 3. */
           return !c->is_actionable (this, machine.get_entry (state, StateTableT::CLASS_END_OF_TEXT));
       };
