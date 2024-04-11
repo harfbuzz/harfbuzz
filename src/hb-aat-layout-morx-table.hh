@@ -1100,7 +1100,7 @@ struct Chain
 
   unsigned int get_size () const { return length; }
 
-  bool sanitize (hb_sanitize_context_t *c, unsigned int version HB_UNUSED) const
+  bool sanitize (hb_sanitize_context_t *c, unsigned int version) const
   {
     TRACE_SANITIZE (this);
     if (!(length.sanitize (c) &&
@@ -1122,6 +1122,13 @@ struct Chain
       subtable = &StructAfter<ChainSubtable<Types>> (*subtable);
     }
 
+    if (version >= 3)
+    {
+      const SubtableGlyphCoverage *coverage = (const SubtableGlyphCoverage *) subtable;
+      if (!coverage->sanitize (c, count))
+        return_trace (false);
+    }
+
     return_trace (true);
   }
 
@@ -1133,7 +1140,7 @@ struct Chain
 
   UnsizedArrayOf<Feature>	featureZ;	/* Features. */
 /*ChainSubtable	firstSubtable;*//* Subtables. */
-/*subtableGlyphCoverageArray*/	/* Only if version >= 3. We don't use. */
+/*SubtableGlyphCoverage coverages*//* Only if version >= 3. */
 
   public:
   DEFINE_SIZE_MIN (8 + 2 * sizeof (HBUINT));

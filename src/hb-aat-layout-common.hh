@@ -703,6 +703,38 @@ struct ClassTable
   DEFINE_SIZE_ARRAY (4, classArray);
 };
 
+struct SubtableGlyphCoverage
+{
+  bool sanitize (hb_sanitize_context_t *c, unsigned subtable_count) const
+  {
+    TRACE_SANITIZE (this);
+
+    if (unlikely (!subtableOffsets.sanitize (c, subtable_count)))
+      return_trace (false);
+
+    unsigned bytes = (c->get_num_glyphs () + CHAR_BIT - 1) / CHAR_BIT;
+    for (unsigned i = 0; i < subtable_count; i++)
+    {
+      uint32_t offset = subtableOffsets[i];
+      if (offset == 0 || offset == 0xFFFFFFFF)
+        continue;
+      if (unlikely (!c->check_range (this, offset) ||
+		    !c->check_range (this, offset + bytes)))
+        return_trace (false);
+    }
+
+    return_trace (true);
+  }
+  protected:
+  UnsizedArrayOf<HBUINT32> subtableOffsets; /* Array of offsets from the beginning of the
+					     * subtable glyph coverage table to the glyph
+					     * coverage bitfield for a given subtable; there
+					     * is one offset for each subtable in the chain */
+  /* UnsizedArrayOf<HBUINT8> coverageBitfields; *//* The individual coverage bitfields. */
+  public:
+  DEFINE_SIZE_ARRAY (0, subtableOffsets);
+};
+
 struct ObsoleteTypes
 {
   static constexpr bool extended = false;

@@ -977,6 +977,16 @@ struct KerxTable
       st = &StructAfter<SubTable> (*st);
     }
 
+    unsigned majorVersion = thiz()->version;
+    if (sizeof (thiz()->version) == 4)
+      majorVersion = majorVersion >> 16;
+    if (majorVersion >= 3)
+    {
+      const SubtableGlyphCoverage *coverage = (const SubtableGlyphCoverage *) st;
+      if (!coverage->sanitize (c, count))
+        return_trace (false);
+    }
+
     return_trace (true);
   }
 };
