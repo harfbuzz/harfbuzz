@@ -1788,7 +1788,7 @@ struct TupleValues
 
     bool ensure_run ()
     {
-      if (run_count > 0) return true;
+      if (likely (run_count > 0)) return true;
 
       if (unlikely (p >= end))
       {
