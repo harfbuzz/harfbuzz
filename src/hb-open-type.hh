@@ -1806,7 +1806,7 @@ struct TupleValues
 	case VALUES_ARE_BYTES: width = HBINT8::static_size;  break;
 	case VALUES_ARE_WORDS: width = HBINT16::static_size; break;
 	case VALUES_ARE_LONGS: width = HBINT32::static_size; break;
-	default: abort();
+	default: assert (false);
       }
 
       if (unlikely (p + run_count * width > end))
