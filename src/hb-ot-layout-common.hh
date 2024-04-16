@@ -3235,7 +3235,7 @@ struct ItemVariationStore
     return get_delta (outer, inner, coords, coord_count, cache);
   }
   float get_delta (unsigned int index,
-		   hb_array_t<int> coords,
+		   hb_array_t<const int> coords,
 		   VarRegionList::cache_t *cache = nullptr) const
   {
     return get_delta (index,
@@ -3496,7 +3496,7 @@ struct MultiItemVariationStore
     get_delta (outer, inner, coords, coord_count, out, cache);
   }
   void get_delta (unsigned int index,
-		  hb_array_t<int> coords,
+		  hb_array_t<const int> coords,
 		  hb_array_t<float> out,
 		  VarRegionList::cache_t *cache = nullptr) const
   {

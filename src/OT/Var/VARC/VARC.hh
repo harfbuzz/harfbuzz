@@ -17,6 +17,19 @@ struct VARC
   static constexpr hb_tag_t tableTag = HB_TAG ('V', 'A', 'R', 'C');
 
   bool
+  get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session,
+	       hb_array_t<const int> coords) const
+  {
+    if (!font->face->table.glyf->get_path_at (font, glyph, draw_session, coords))
+#ifndef HB_NO_CFF
+    if (!font->face->table.cff2->get_path_at (font, glyph, draw_session, coords))
+    if (!font->face->table.cff1->get_path (font, glyph, draw_session)) // Doesn't have variations
+#endif
+      return false;
+    return true;
+  }
+
+  bool
   get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
   {
     unsigned idx = (this+coverage).get_coverage (gid);

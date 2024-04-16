@@ -225,8 +225,8 @@ struct DeltaSetIndexMap
 struct ItemVarStoreInstancer
 {
   ItemVarStoreInstancer (const ItemVariationStore *varStore,
-		     const DeltaSetIndexMap *varIdxMap,
-		     hb_array_t<int> coords) :
+			 const DeltaSetIndexMap *varIdxMap,
+			 hb_array_t<const int> coords) :
     varStore (varStore), varIdxMap (varIdxMap), coords (coords) {}
 
   operator bool () const { return varStore && bool (coords); }
@@ -238,7 +238,7 @@ struct ItemVarStoreInstancer
 
   const ItemVariationStore *varStore;
   const DeltaSetIndexMap *varIdxMap;
-  hb_array_t<int> coords;
+  hb_array_t<const int> coords;
 };
 
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/otvarcommonformats#tuplevariationheader */
@@ -305,9 +305,9 @@ struct TupleVariationHeader
     return true;
   }
 
-  double calculate_scalar (hb_array_t<int> coords, unsigned int coord_count,
-                          const hb_array_t<const F2DOT14> shared_tuples,
-			  const hb_vector_t<hb_pair_t<int,int>> *shared_tuple_active_idx = nullptr) const
+  double calculate_scalar (hb_array_t<const int> coords, unsigned int coord_count,
+			   const hb_array_t<const F2DOT14> shared_tuples,
+			   const hb_vector_t<hb_pair_t<int,int>> *shared_tuple_active_idx = nullptr) const
   {
     const F2DOT14 *peak_tuple;
 

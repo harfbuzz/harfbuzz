@@ -11,7 +11,7 @@ namespace glyf_impl {
 
 struct coord_setter_t
 {
-  coord_setter_t (hb_array_t<int> coords) :
+  coord_setter_t (hb_array_t<const int> coords) :
     coords (coords) {}
 
   int& operator [] (unsigned idx)
