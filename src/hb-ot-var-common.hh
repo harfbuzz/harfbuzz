@@ -557,7 +557,7 @@ struct tuple_delta_t
     }
 
     result_t solutions = rebase_tent (*tent, axis_limit, axis_triple_distances);
-    for (auto t : solutions)
+    for (auto &t : solutions)
     {
       tuple_delta_t new_var = *this;
       if (t.second == Triple ())
