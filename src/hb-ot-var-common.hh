@@ -728,10 +728,10 @@ struct tuple_delta_t
   bool compile_deltas ()
   { return compile_deltas (indices, deltas_x, deltas_y, compiled_deltas); }
 
-  bool compile_deltas (const hb_vector_t<bool> &point_indices,
-                       const hb_vector_t<double> &x_deltas,
-                       const hb_vector_t<double> &y_deltas,
-                       hb_vector_t<char> &compiled_deltas /* OUT */)
+  static bool compile_deltas (const hb_vector_t<bool> &point_indices,
+			      const hb_vector_t<double> &x_deltas,
+			      const hb_vector_t<double> &y_deltas,
+			      hb_vector_t<char> &compiled_deltas /* OUT */)
   {
     hb_vector_t<int> rounded_deltas;
     if (unlikely (!rounded_deltas.alloc (point_indices.length)))
@@ -777,9 +777,9 @@ struct tuple_delta_t
     return compiled_deltas.resize (encoded_len);
   }
 
-  unsigned encode_delta_run (unsigned& i,
-                             hb_array_t<char> encoded_bytes,
-                             const hb_vector_t<int>& deltas) const
+  static unsigned encode_delta_run (unsigned& i,
+				    hb_array_t<char> encoded_bytes,
+				    const hb_vector_t<int>& deltas)
   {
     unsigned num_deltas = deltas.length;
     unsigned encoded_len = 0;
@@ -796,9 +796,9 @@ struct tuple_delta_t
     return encoded_len;
   }
 
-  unsigned encode_delta_run_as_zeroes (unsigned& i,
-                                       hb_array_t<char> encoded_bytes,
-                                       const hb_vector_t<int>& deltas) const
+  static unsigned encode_delta_run_as_zeroes (unsigned& i,
+					      hb_array_t<char> encoded_bytes,
+					      const hb_vector_t<int>& deltas)
   {
     unsigned num_deltas = deltas.length;
     unsigned run_length = 0;
@@ -825,9 +825,9 @@ struct tuple_delta_t
     return encoded_len;
   }
 
-  unsigned encode_delta_run_as_bytes (unsigned &i,
-                                      hb_array_t<char> encoded_bytes,
-                                      const hb_vector_t<int>& deltas) const
+  static unsigned encode_delta_run_as_bytes (unsigned &i,
+					     hb_array_t<char> encoded_bytes,
+					     const hb_vector_t<int>& deltas)
   {
     unsigned start = i;
     unsigned num_deltas = deltas.length;
@@ -879,9 +879,9 @@ struct tuple_delta_t
     return encoded_len;
   }
 
-  unsigned encode_delta_run_as_words (unsigned &i,
-                                      hb_array_t<char> encoded_bytes,
-                                      const hb_vector_t<int>& deltas) const
+  static unsigned encode_delta_run_as_words (unsigned &i,
+					     hb_array_t<char> encoded_bytes,
+					     const hb_vector_t<int>& deltas)
   {
     unsigned start = i;
     unsigned num_deltas = deltas.length;
