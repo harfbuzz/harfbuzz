@@ -176,14 +176,14 @@ VarComponent::get_path_at (hb_font_t *font,
     record += HBGlyphID16::static_size;
   }
 
-  // ConditionSet
+  // Condition
   bool show = true;
   if (flags & (unsigned) flags_t::HAVE_CONDITION)
   {
-    unsigned conditionSetIndex;
-    READ_UINT32VAR (conditionSetIndex);
-    const auto &conditionSet = (&VARC+VARC.conditionSetList)[conditionSetIndex];
-    show = conditionSet.evaluate (coords.arrayZ, coords.length);
+    unsigned conditionIndex;
+    READ_UINT32VAR (conditionIndex);
+    const auto &condition = (&VARC+VARC.conditionList)[conditionIndex];
+    show = condition.evaluate (coords.arrayZ, coords.length);
   }
 
   // Axis values

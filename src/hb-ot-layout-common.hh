@@ -3535,7 +3535,13 @@ enum Cond_with_Var_flag_t
   DROP_RECORD_WITH_VAR = 3,
 };
 
-struct ConditionFormat1
+
+static bool
+_hb_recurse_condition_evaluate (const struct Condition &condition,
+				const int *coords,
+				unsigned int coord_len);
+
+struct ConditionRange
 {
   friend struct Condition;
 
@@ -3649,12 +3655,143 @@ struct ConditionFormat1
   DEFINE_SIZE_STATIC (8);
 };
 
+struct ConditionAnd
+{
+  friend struct Condition;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  private:
+  bool evaluate (const int *coords, unsigned int coord_len) const
+  {
+    unsigned int count = conditions.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!_hb_recurse_condition_evaluate (this+conditions.arrayZ[i],
+					   coords, coord_len))
+	return false;
+    return true;
+  }
+
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l,
+               bool insert_catch_all) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 2 */
+  Array8OfOffset24To<struct Condition>	conditions;
+  public:
+  DEFINE_SIZE_ARRAY (3, conditions);
+};
+
+struct ConditionOr
+{
+  friend struct Condition;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  private:
+  bool evaluate (const int *coords, unsigned int coord_len) const
+  {
+    unsigned int count = conditions.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (_hb_recurse_condition_evaluate (this+conditions.arrayZ[i],
+					  coords, coord_len))
+	return true;
+    return false;
+  }
+
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l,
+               bool insert_catch_all) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 3 */
+  Array8OfOffset24To<struct Condition>	conditions;
+  public:
+  DEFINE_SIZE_ARRAY (3, conditions);
+};
+
+struct ConditionNegate
+{
+  friend struct Condition;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  private:
+  bool evaluate (const int *coords, unsigned int coord_len) const
+  {
+    return !_hb_recurse_condition_evaluate (this+condition,
+					    coords, coord_len);
+  }
+
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l,
+               bool insert_catch_all) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (condition.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 4 */
+  Offset24To<struct Condition>	condition;
+  public:
+  DEFINE_SIZE_STATIC (5);
+};
+
 struct Condition
 {
   bool evaluate (const int *coords, unsigned int coord_len) const
   {
     switch (u.format) {
     case 1: return u.format1.evaluate (coords, coord_len);
+    case 2: return u.format2.evaluate (coords, coord_len);
+    case 3: return u.format3.evaluate (coords, coord_len);
+    case 4: return u.format4.evaluate (coords, coord_len);
     default:return false;
     }
   }
@@ -3664,6 +3801,7 @@ struct Condition
   {
     switch (u.format) {
     case 1: return u.format1.keep_with_variations (c, condition_map);
+    // TODO(subset)
     default: c->apply = false; return KEEP_COND_WITH_VAR;
     }
   }
@@ -3675,6 +3813,9 @@ struct Condition
     TRACE_DISPATCH (this, u.format);
     switch (u.format) {
     case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
+    case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -3686,6 +3827,9 @@ struct Condition
     hb_barrier ();
     switch (u.format) {
     case 1: return_trace (u.format1.sanitize (c));
+    case 2: return_trace (u.format2.sanitize (c));
+    case 3: return_trace (u.format3.sanitize (c));
+    case 4: return_trace (u.format4.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -3693,10 +3837,29 @@ struct Condition
   protected:
   union {
   HBUINT16		format;		/* Format identifier */
-  ConditionFormat1	format1;
+  ConditionRange	format1;
+  ConditionAnd		format2;
+  ConditionOr		format3;
+  ConditionNegate	format4;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
+};
+
+bool
+_hb_recurse_condition_evaluate (const struct Condition &condition,
+				const int *coords,
+				unsigned int coord_len)
+{
+  return condition.evaluate (coords, coord_len);
+}
+
+struct ConditionList
+{
+  const Condition& operator[] (unsigned i) const
+  { return this+conditions[i]; }
+
+  Array32OfOffset32To<Condition> conditions;
 };
 
 struct ConditionSet
@@ -3791,14 +3954,6 @@ struct ConditionSet
   Array16OfOffset32To<Condition>	conditions;
   public:
   DEFINE_SIZE_ARRAY (2, conditions);
-};
-
-struct ConditionSetList
-{
-  const ConditionSet& operator[] (unsigned i) const
-  { return this+conditionSets[i]; }
-
-  Array32OfOffset32To<ConditionSet> conditionSets;
 };
 
 struct FeatureTableSubstitutionRecord

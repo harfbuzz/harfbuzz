@@ -176,7 +176,7 @@ struct VARC
   FixedVersion<> version; /* Version identifier */
   Offset32To<Coverage> coverage;
   Offset32To<MultiItemVariationStore> varStore;
-  Offset32To<ConditionSetList> conditionSetList;
+  Offset32To<ConditionList> conditionList;
   Offset32To<TupleList> axisIndicesList;
   Offset32To<CFF2Index/*Of<VarCompositeGlyph>*/> glyphRecords;
   public:
