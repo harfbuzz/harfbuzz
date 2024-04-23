@@ -3729,9 +3729,6 @@ struct ItemVarStoreInstancer
   float operator[] (uint32_t varIdx) const
   { return (*this) (varIdx); }
 
-  /* according to the spec, if colr table has varStore but does not have
-   * varIdxMap, then an implicit identity mapping is used */
-  /* Humm? https://github.com/harfbuzz/harfbuzz/issues/4677 */
   float operator() (uint32_t varIdx, unsigned short offset = 0) const
   { return coords ? varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords) : 0.f; }
 
@@ -3760,9 +3757,6 @@ struct MultiItemVarStoreInstancer
     return v;
   }
 
-  /* according to the spec, if colr table has varStore but does not have
-   * varIdxMap, then an implicit identity mapping is used */
-  /* Humm? https://github.com/harfbuzz/harfbuzz/issues/4677 */
   void operator() (hb_array_t<float> out, uint32_t varIdx, unsigned short offset = 0) const
   {
     if (coords)
