@@ -3715,6 +3715,7 @@ struct DeltaSetIndexMap
 
 struct ItemVarStoreInstancer
 {
+  // TODO Add varStore cache?
   ItemVarStoreInstancer (const ItemVariationStore *varStore,
 			 const DeltaSetIndexMap *varIdxMap,
 			 hb_array_t<const int> coords) :
@@ -3739,6 +3740,7 @@ struct ItemVarStoreInstancer
 
 struct MultiItemVarStoreInstancer
 {
+  // TODO Add varStore cache?
   MultiItemVarStoreInstancer (const MultiItemVariationStore *varStore,
 			      const DeltaSetIndexMap *varIdxMap,
 			      hb_array_t<const int> coords) :
