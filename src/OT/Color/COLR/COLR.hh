@@ -2327,10 +2327,6 @@ struct COLR
       {
         // COLRv1 glyph
 
-	ItemVarStoreInstancer instancer (&(this+varStore),
-				     &(this+varIdxMap),
-				     hb_array (font->coords, font->num_coords));
-
 	bool is_bounded = true;
 	if (clip)
 	{
