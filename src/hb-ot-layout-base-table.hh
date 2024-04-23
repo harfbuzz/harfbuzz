@@ -401,11 +401,12 @@ struct BaseLangSysRecord
 
   bool has_data () const { return baseLangSysTag; }
 
-  const MinMax &get_min_max () const { return this+minMax; }
+  const MinMax &get_min_max (const void* base) const { return base+minMax; }
 
-  void collect_variation_indices (const hb_subset_plan_t* plan,
+  void collect_variation_indices (const void* base,
+                                  const hb_subset_plan_t* plan,
                                   hb_set_t& varidx_set /* OUT */) const
-  { (this+minMax).collect_variation_indices (plan, varidx_set); }
+  { (base+minMax).collect_variation_indices (plan, varidx_set); }
 
   bool subset (hb_subset_context_t *c,
                const void *base) const
@@ -438,7 +439,7 @@ struct BaseScript
   const MinMax &get_min_max (hb_tag_t language_tag) const
   {
     const BaseLangSysRecord& record = baseLangSysRecords.bsearch (language_tag);
-    return record.has_data () ? record.get_min_max () : this+defaultMinMax;
+    return record.has_data () ? record.get_min_max (this) : this+defaultMinMax;
   }
 
   const BaseCoord &get_base_coord (int baseline_tag_index) const
@@ -454,7 +455,7 @@ struct BaseScript
     (this+defaultMinMax).collect_variation_indices (plan, varidx_set);
     
     for (const BaseLangSysRecord& _ : baseLangSysRecords)
-      _.collect_variation_indices (plan, varidx_set);
+      _.collect_variation_indices (this, plan, varidx_set);
   }
 
   bool subset (hb_subset_context_t *c) const
