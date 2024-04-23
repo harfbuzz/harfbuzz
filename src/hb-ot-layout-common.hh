@@ -3748,7 +3748,8 @@ enum Cond_with_Var_flag_t
 static bool
 _hb_recurse_condition_evaluate (const struct Condition &condition,
 				const int *coords,
-				unsigned int coord_len);
+				unsigned int coord_len,
+				ItemVarStoreInstancer *instancer);
 
 struct ConditionAxisRange
 {
@@ -3843,7 +3844,8 @@ struct ConditionAxisRange
     return KEEP_RECORD_WITH_VAR;
   }
 
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 ItemVarStoreInstancer *instancer HB_UNUSED) const
   {
     int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
     return filterRangeMinValue.to_int () <= coord && coord <= filterRangeMaxValue.to_int ();
@@ -3876,10 +3878,11 @@ struct ConditionValue
   }
 
   private:
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 ItemVarStoreInstancer *instancer) const
   {
     signed value = defaultValue;
-    //TODO(ConditionFormat2) value += instancer[varIdx];
+    value += instancer[varIdx];
     return value > 0;
   }
 
@@ -3918,12 +3921,14 @@ struct ConditionAnd
   }
 
   private:
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 ItemVarStoreInstancer *instancer) const
   {
     unsigned int count = conditions.len;
     for (unsigned int i = 0; i < count; i++)
       if (!_hb_recurse_condition_evaluate (this+conditions.arrayZ[i],
-					   coords, coord_len))
+					   coords, coord_len,
+					   instancer))
 	return false;
     return true;
   }
@@ -3962,12 +3967,14 @@ struct ConditionOr
   }
 
   private:
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 ItemVarStoreInstancer *instancer) const
   {
     unsigned int count = conditions.len;
     for (unsigned int i = 0; i < count; i++)
       if (_hb_recurse_condition_evaluate (this+conditions.arrayZ[i],
-					  coords, coord_len))
+					  coords, coord_len,
+					  instancer))
 	return true;
     return false;
   }
@@ -4006,10 +4013,12 @@ struct ConditionNegate
   }
 
   private:
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 ItemVarStoreInstancer *instancer) const
   {
     return !_hb_recurse_condition_evaluate (this+condition,
-					    coords, coord_len);
+					    coords, coord_len,
+					    instancer);
   }
 
   bool subset (hb_subset_context_t *c,
@@ -4036,14 +4045,15 @@ struct ConditionNegate
 
 struct Condition
 {
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 ItemVarStoreInstancer *instancer) const
   {
     switch (u.format) {
-    case 1: return u.format1.evaluate (coords, coord_len);
-    case 2: return u.format2.evaluate (coords, coord_len);
-    case 3: return u.format3.evaluate (coords, coord_len);
-    case 4: return u.format4.evaluate (coords, coord_len);
-    case 5: return u.format5.evaluate (coords, coord_len);
+    case 1: return u.format1.evaluate (coords, coord_len, instancer);
+    case 2: return u.format2.evaluate (coords, coord_len, instancer);
+    case 3: return u.format3.evaluate (coords, coord_len, instancer);
+    case 4: return u.format4.evaluate (coords, coord_len, instancer);
+    case 5: return u.format5.evaluate (coords, coord_len, instancer);
     default:return false;
     }
   }
@@ -4104,9 +4114,10 @@ struct Condition
 bool
 _hb_recurse_condition_evaluate (const struct Condition &condition,
 				const int *coords,
-				unsigned int coord_len)
+				unsigned int coord_len,
+				ItemVarStoreInstancer *instancer)
 {
-  return condition.evaluate (coords, coord_len);
+  return condition.evaluate (coords, coord_len, instancer);
 }
 
 struct ConditionList
@@ -4119,11 +4130,12 @@ struct ConditionList
 
 struct ConditionSet
 {
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 ItemVarStoreInstancer *instancer) const
   {
     unsigned int count = conditions.len;
     for (unsigned int i = 0; i < count; i++)
-      if (!(this+conditions.arrayZ[i]).evaluate (coords, coord_len))
+      if (!(this+conditions.arrayZ[i]).evaluate (coords, coord_len, instancer))
 	return false;
     return true;
   }
@@ -4457,13 +4469,14 @@ struct FeatureVariations
   static constexpr unsigned NOT_FOUND_INDEX = 0xFFFFFFFFu;
 
   bool find_index (const int *coords, unsigned int coord_len,
-		   unsigned int *index) const
+		   unsigned int *index,
+		   ItemVarStoreInstancer *instancer) const
   {
     unsigned int count = varRecords.len;
     for (unsigned int i = 0; i < count; i++)
     {
       const FeatureVariationRecord &record = varRecords.arrayZ[i];
-      if ((this+record.conditions).evaluate (coords, coord_len))
+      if ((this+record.conditions).evaluate (coords, coord_len, instancer))
       {
 	*index = i;
 	return true;

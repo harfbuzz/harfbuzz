@@ -4,6 +4,8 @@
 
 #include "../../../hb-draw.hh"
 #include "../../../hb-geometry.hh"
+#include "../../../hb-ot-layout-common.hh"
+#include "../../../hb-ot-layout-gdef-table.hh"
 
 namespace OT {
 
@@ -137,10 +139,14 @@ VarComponent::get_path_at (hb_font_t *font,
 			   signed depth_left,
 			   VarRegionList::cache_t *cache) const
 {
-  auto &VARC = *font->face->table.VARC;
   const unsigned char *end = total_record.arrayZ + total_record.length;
   const unsigned char *record = total_record.arrayZ;
+
+  auto &VARC = *font->face->table.VARC;
   auto &varStore = &VARC+VARC.varStore;
+
+  const GDEF &gdef = *font->face->table.GDEF->table;
+  auto gdefInstancer = ItemVarStoreInstancer(&gdef.get_var_store(), nullptr, coords);
 
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
@@ -183,7 +189,7 @@ VarComponent::get_path_at (hb_font_t *font,
     unsigned conditionIndex;
     READ_UINT32VAR (conditionIndex);
     const auto &condition = (&VARC+VARC.conditionList)[conditionIndex];
-    show = condition.evaluate (coords.arrayZ, coords.length);
+    show = condition.evaluate (coords.arrayZ, coords.length, &gdefInstancer);
   }
 
   // Axis values
