@@ -3541,7 +3541,7 @@ _hb_recurse_condition_evaluate (const struct Condition &condition,
 				const int *coords,
 				unsigned int coord_len);
 
-struct ConditionRange
+struct ConditionAxisRange
 {
   friend struct Condition;
 
@@ -3655,6 +3655,48 @@ struct ConditionRange
   DEFINE_SIZE_STATIC (8);
 };
 
+struct ConditionValue
+{
+  friend struct Condition;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  private:
+  bool evaluate (const int *coords, unsigned int coord_len) const
+  {
+    signed value = defaultValue;
+    //TODO(ConditionFormat2) value += instancer[varIdx];
+    return value > 0;
+  }
+
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l,
+               bool insert_catch_all) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 2 */
+  HBINT16	defaultValue;   /* Value at default instance. */
+  VarIdx	varIdx;		/* Variation index */
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
 struct ConditionAnd
 {
   friend struct Condition;
@@ -3693,7 +3735,7 @@ struct ConditionAnd
   }
 
   protected:
-  HBUINT16	format;		/* Format identifier--format = 2 */
+  HBUINT16	format;		/* Format identifier--format = 3 */
   Array8OfOffset24To<struct Condition>	conditions;
   public:
   DEFINE_SIZE_ARRAY (3, conditions);
@@ -3737,7 +3779,7 @@ struct ConditionOr
   }
 
   protected:
-  HBUINT16	format;		/* Format identifier--format = 3 */
+  HBUINT16	format;		/* Format identifier--format = 4 */
   Array8OfOffset24To<struct Condition>	conditions;
   public:
   DEFINE_SIZE_ARRAY (3, conditions);
@@ -3777,7 +3819,7 @@ struct ConditionNegate
   }
 
   protected:
-  HBUINT16	format;		/* Format identifier--format = 4 */
+  HBUINT16	format;		/* Format identifier--format = 5 */
   Offset24To<struct Condition>	condition;
   public:
   DEFINE_SIZE_STATIC (5);
@@ -3792,6 +3834,7 @@ struct Condition
     case 2: return u.format2.evaluate (coords, coord_len);
     case 3: return u.format3.evaluate (coords, coord_len);
     case 4: return u.format4.evaluate (coords, coord_len);
+    case 5: return u.format5.evaluate (coords, coord_len);
     default:return false;
     }
   }
@@ -3816,6 +3859,7 @@ struct Condition
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
     case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
+    case 5: return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -3830,6 +3874,7 @@ struct Condition
     case 2: return_trace (u.format2.sanitize (c));
     case 3: return_trace (u.format3.sanitize (c));
     case 4: return_trace (u.format4.sanitize (c));
+    case 5: return_trace (u.format5.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -3837,10 +3882,11 @@ struct Condition
   protected:
   union {
   HBUINT16		format;		/* Format identifier */
-  ConditionRange	format1;
-  ConditionAnd		format2;
-  ConditionOr		format3;
-  ConditionNegate	format4;
+  ConditionAxisRange	format1;
+  ConditionValue	format2;
+  ConditionAnd		format3;
+  ConditionOr		format4;
+  ConditionNegate	format5;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
@@ -4469,7 +4515,7 @@ struct VariationDevice
   }
 
   protected:
-  VarIdx	varIdx;
+  VarIdx	varIdx;		/* Variation index */
   HBUINT16	deltaFormat;	/* Format identifier for this table: 0x0x8000 */
   public:
   DEFINE_SIZE_STATIC (6);
