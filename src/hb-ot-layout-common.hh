@@ -3715,11 +3715,11 @@ struct DeltaSetIndexMap
 
 struct ItemVarStoreInstancer
 {
-  // TODO Add varStore cache?
   ItemVarStoreInstancer (const ItemVariationStore *varStore,
 			 const DeltaSetIndexMap *varIdxMap,
-			 hb_array_t<const int> coords) :
-    varStore (varStore), varIdxMap (varIdxMap), coords (coords)
+			 hb_array_t<const int> coords,
+			 VarRegionList::cache_t *cache = nullptr) :
+    varStore (varStore), varIdxMap (varIdxMap), coords (coords), cache (cache)
   {
     if (!varStore)
       varStore = &Null(ItemVariationStore);
@@ -3731,20 +3731,27 @@ struct ItemVarStoreInstancer
   { return (*this) (varIdx); }
 
   float operator() (uint32_t varIdx, unsigned short offset = 0) const
-  { return coords ? varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords) : 0.f; }
+  {
+    if (varIdxMap)
+      varIdx = varIdxMap->map (VarIdx::add (varIdx, offset));
+    else
+      varIdx += offset;
+    return coords ? varStore->get_delta (varIdx, coords, cache) : 0.f;
+  }
 
   const ItemVariationStore *varStore;
   const DeltaSetIndexMap *varIdxMap;
   hb_array_t<const int> coords;
+  VarRegionList::cache_t *cache;
 };
 
 struct MultiItemVarStoreInstancer
 {
-  // TODO Add varStore cache?
   MultiItemVarStoreInstancer (const MultiItemVariationStore *varStore,
 			      const DeltaSetIndexMap *varIdxMap,
-			      hb_array_t<const int> coords) :
-    varStore (varStore), varIdxMap (varIdxMap), coords (coords)
+			      hb_array_t<const int> coords,
+			      SparseVarRegionList::cache_t *cache = nullptr) :
+    varStore (varStore), varIdxMap (varIdxMap), coords (coords), cache (cache)
   {
     if (!varStore)
       varStore = &Null(MultiItemVariationStore);
@@ -3762,7 +3769,13 @@ struct MultiItemVarStoreInstancer
   void operator() (hb_array_t<float> out, uint32_t varIdx, unsigned short offset = 0) const
   {
     if (coords)
-      varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords, out);
+    {
+      if (varIdxMap)
+	varIdx = varIdxMap->map (VarIdx::add (varIdx, offset));
+      else
+	varIdx += offset;
+      varStore->get_delta (varIdx, coords, out, cache);
+    }
     else
       for (unsigned i = 0; i < out.length; i++)
         out.arrayZ[i] = 0.f;
@@ -3771,6 +3784,7 @@ struct MultiItemVarStoreInstancer
   const MultiItemVariationStore *varStore;
   const DeltaSetIndexMap *varIdxMap;
   hb_array_t<const int> coords;
+  SparseVarRegionList::cache_t *cache;
 };
 
 

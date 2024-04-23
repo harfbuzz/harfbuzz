@@ -144,7 +144,7 @@ VarComponent::get_path_at (hb_font_t *font,
 
   auto &VARC = *font->face->table.VARC;
   auto &varStore = &VARC+VARC.varStore;
-  auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords);
+  auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords, cache);
 
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
