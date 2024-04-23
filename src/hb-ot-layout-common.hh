@@ -3718,16 +3718,61 @@ struct ItemVarStoreInstancer
   ItemVarStoreInstancer (const ItemVariationStore *varStore,
 			 const DeltaSetIndexMap *varIdxMap,
 			 hb_array_t<const int> coords) :
-    varStore (varStore), varIdxMap (varIdxMap), coords (coords) {}
+    varStore (varStore), varIdxMap (varIdxMap), coords (coords)
+  {
+    if (!varStore)
+      varStore = &Null(ItemVariationStore);
+  }
 
   operator bool () const { return varStore && bool (coords); }
 
+  float operator[] (uint32_t varIdx) const
+  { return (*this) (varIdx); }
+
   /* according to the spec, if colr table has varStore but does not have
    * varIdxMap, then an implicit identity mapping is used */
+  /* Humm? https://github.com/harfbuzz/harfbuzz/issues/4677 */
   float operator() (uint32_t varIdx, unsigned short offset = 0) const
-  { return coords ? varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords) : 0; }
+  { return coords ? varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords) : 0.f; }
 
   const ItemVariationStore *varStore;
+  const DeltaSetIndexMap *varIdxMap;
+  hb_array_t<const int> coords;
+};
+
+struct MultiItemVarStoreInstancer
+{
+  MultiItemVarStoreInstancer (const MultiItemVariationStore *varStore,
+			      const DeltaSetIndexMap *varIdxMap,
+			      hb_array_t<const int> coords) :
+    varStore (varStore), varIdxMap (varIdxMap), coords (coords)
+  {
+    if (!varStore)
+      varStore = &Null(MultiItemVariationStore);
+  }
+
+  operator bool () const { return varStore && bool (coords); }
+
+  float operator[] (uint32_t varIdx) const
+  {
+    float v = 0;
+    (*this) (hb_array (&v, 1), varIdx);
+    return v;
+  }
+
+  /* according to the spec, if colr table has varStore but does not have
+   * varIdxMap, then an implicit identity mapping is used */
+  /* Humm? https://github.com/harfbuzz/harfbuzz/issues/4677 */
+  void operator() (hb_array_t<float> out, uint32_t varIdx, unsigned short offset = 0) const
+  {
+    if (coords)
+      varStore->get_delta (varIdxMap ? varIdxMap->map (VarIdx::add (varIdx, offset)) : varIdx + offset, coords, out);
+    else
+      for (unsigned i = 0; i < out.length; i++)
+        out.arrayZ[i] = 0.f;
+  }
+
+  const MultiItemVariationStore *varStore;
   const DeltaSetIndexMap *varIdxMap;
   hb_array_t<const int> coords;
 };
@@ -3745,11 +3790,12 @@ enum Cond_with_Var_flag_t
 };
 
 
+template <typename Instancer>
 static bool
 _hb_recurse_condition_evaluate (const struct Condition &condition,
 				const int *coords,
 				unsigned int coord_len,
-				ItemVarStoreInstancer *instancer);
+				Instancer *instancer);
 
 struct ConditionAxisRange
 {
@@ -3844,8 +3890,9 @@ struct ConditionAxisRange
     return KEEP_RECORD_WITH_VAR;
   }
 
+  template <typename Instancer>
   bool evaluate (const int *coords, unsigned int coord_len,
-		 ItemVarStoreInstancer *instancer HB_UNUSED) const
+		 Instancer *instancer HB_UNUSED) const
   {
     int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
     return filterRangeMinValue.to_int () <= coord && coord <= filterRangeMaxValue.to_int ();
@@ -3878,11 +3925,12 @@ struct ConditionValue
   }
 
   private:
+  template <typename Instancer>
   bool evaluate (const int *coords, unsigned int coord_len,
-		 ItemVarStoreInstancer *instancer) const
+		 Instancer *instancer) const
   {
     signed value = defaultValue;
-    value += instancer[varIdx];
+    value += (*instancer)[varIdx];
     return value > 0;
   }
 
@@ -3921,8 +3969,9 @@ struct ConditionAnd
   }
 
   private:
+  template <typename Instancer>
   bool evaluate (const int *coords, unsigned int coord_len,
-		 ItemVarStoreInstancer *instancer) const
+		 Instancer *instancer) const
   {
     unsigned int count = conditions.len;
     for (unsigned int i = 0; i < count; i++)
@@ -3967,8 +4016,9 @@ struct ConditionOr
   }
 
   private:
+  template <typename Instancer>
   bool evaluate (const int *coords, unsigned int coord_len,
-		 ItemVarStoreInstancer *instancer) const
+		 Instancer *instancer) const
   {
     unsigned int count = conditions.len;
     for (unsigned int i = 0; i < count; i++)
@@ -4013,8 +4063,9 @@ struct ConditionNegate
   }
 
   private:
+  template <typename Instancer>
   bool evaluate (const int *coords, unsigned int coord_len,
-		 ItemVarStoreInstancer *instancer) const
+		 Instancer *instancer) const
   {
     return !_hb_recurse_condition_evaluate (this+condition,
 					    coords, coord_len,
@@ -4045,8 +4096,9 @@ struct ConditionNegate
 
 struct Condition
 {
+  template <typename Instancer>
   bool evaluate (const int *coords, unsigned int coord_len,
-		 ItemVarStoreInstancer *instancer) const
+		 Instancer *instancer) const
   {
     switch (u.format) {
     case 1: return u.format1.evaluate (coords, coord_len, instancer);
@@ -4111,11 +4163,12 @@ struct Condition
   DEFINE_SIZE_UNION (2, format);
 };
 
+template <typename Instancer>
 bool
 _hb_recurse_condition_evaluate (const struct Condition &condition,
 				const int *coords,
 				unsigned int coord_len,
-				ItemVarStoreInstancer *instancer)
+				Instancer *instancer)
 {
   return condition.evaluate (coords, coord_len, instancer);
 }

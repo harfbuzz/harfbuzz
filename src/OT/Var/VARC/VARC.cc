@@ -144,9 +144,7 @@ VarComponent::get_path_at (hb_font_t *font,
 
   auto &VARC = *font->face->table.VARC;
   auto &varStore = &VARC+VARC.varStore;
-
-  const GDEF &gdef = *font->face->table.GDEF->table;
-  auto gdefInstancer = ItemVarStoreInstancer(&gdef.get_var_store(), nullptr, coords);
+  auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords);
 
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
@@ -189,7 +187,7 @@ VarComponent::get_path_at (hb_font_t *font,
     unsigned conditionIndex;
     READ_UINT32VAR (conditionIndex);
     const auto &condition = (&VARC+VARC.conditionList)[conditionIndex];
-    show = condition.evaluate (coords.arrayZ, coords.length, &gdefInstancer);
+    show = condition.evaluate (coords.arrayZ, coords.length, &instancer);
   }
 
   // Axis values
