@@ -399,12 +399,55 @@ _get_hb_font_with_variations (const hb_subset_plan_t *plan)
 }
 
 static inline void
+_remap_variation_indices (const OT::ItemVariationStore &var_store,
+                          const hb_set_t &variation_indices,
+                          const hb_vector_t<int>& normalized_coords,
+                          bool calculate_delta, /* not pinned at default */
+                          bool no_variations, /* all axes pinned */
+                          hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> &variation_idx_delta_map /* OUT */)
+{
+  if (&var_store == &Null (OT::ItemVariationStore)) return;
+  unsigned subtable_count = var_store.get_sub_table_count ();
+  float *store_cache = var_store.create_cache ();
+
+  unsigned new_major = 0, new_minor = 0;
+  unsigned last_major = (variation_indices.get_min ()) >> 16;
+  for (unsigned idx : variation_indices)
+  {
+    int delta = 0;
+    if (calculate_delta)
+      delta = roundf (var_store.get_delta (idx, normalized_coords.arrayZ,
+                                           normalized_coords.length, store_cache));
+
+    if (no_variations)
+    {
+      variation_idx_delta_map.set (idx, hb_pair_t<unsigned, int> (HB_OT_LAYOUT_NO_VARIATIONS_INDEX, delta));
+      continue;
+    }
+
+    uint16_t major = idx >> 16;
+    if (major >= subtable_count) break;
+    if (major != last_major)
+    {
+      new_minor = 0;
+      ++new_major;
+    }
+
+    unsigned new_idx = (new_major << 16) + new_minor;
+    variation_idx_delta_map.set (idx, hb_pair_t<unsigned, int> (new_idx, delta));
+    ++new_minor;
+    last_major = major;
+  }
+  var_store.destroy_cache (store_cache);
+}
+
+static inline void
 _collect_layout_variation_indices (hb_subset_plan_t* plan)
 {
   hb_blob_ptr_t<OT::GDEF> gdef = plan->source_table<OT::GDEF> ();
   hb_blob_ptr_t<GPOS> gpos = plan->source_table<GPOS> ();
 
-  if (!gdef->has_data ())
+  if (!gdef->has_data () || !gdef->has_var_store ())
   {
     gdef.destroy ();
     gpos.destroy ();
@@ -420,13 +463,13 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
   if (hb_ot_layout_has_positioning (plan->source))
     gpos->collect_variation_indices (&c);
 
-  gdef->remap_layout_variation_indices (&varidx_set,
-                                        plan->normalized_coords,
-                                        !plan->pinned_at_default,
-                                        plan->all_axes_pinned,
-                                        &plan->layout_variation_idx_delta_map);
+  _remap_variation_indices (gdef->get_var_store (),
+                            varidx_set, plan->normalized_coords,
+                            !plan->pinned_at_default,
+                            plan->all_axes_pinned,
+                            plan->layout_variation_idx_delta_map);
 
-  unsigned subtable_count = gdef->has_var_store () ? gdef->get_var_store ().get_sub_table_count () : 0;
+  unsigned subtable_count = gdef->get_var_store ().get_sub_table_count ();
   _generate_varstore_inner_maps (varidx_set, subtable_count, plan->gdef_varstore_inner_maps);
 
   gdef.destroy ();
@@ -434,31 +477,6 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
 }
 
 #ifndef HB_NO_BASE
-/* used by BASE table only, delta is always set to 0 in the output map */
-static inline void
-_remap_variation_indices (const hb_set_t& indices,
-                          unsigned subtable_count,
-                          hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>>& variation_idx_delta_map /* OUT */)
-{
-  unsigned new_major = 0, new_minor = 0;
-  unsigned last_major = (indices.get_min ()) >> 16;
-  for (unsigned idx : indices)
-  {
-    uint16_t major = idx >> 16;
-    if (major >= subtable_count) break;
-    if (major != last_major)
-    {
-      new_minor = 0;
-      ++new_major;
-    }
-
-    unsigned new_idx = (new_major << 16) + new_minor;
-    variation_idx_delta_map.set (idx, hb_pair_t<unsigned, int> (new_idx, 0));
-    ++new_minor;
-    last_major = major;
-  }
-}
-
 static inline void
 _collect_base_variation_indices (hb_subset_plan_t* plan)
 {
@@ -474,9 +492,13 @@ _collect_base_variation_indices (hb_subset_plan_t* plan)
   unsigned subtable_count = base->get_var_store ().get_sub_table_count ();
   base.destroy ();
 
-  _remap_variation_indices (varidx_set, subtable_count, plan->base_variation_idx_map);
+  /* TODO: support instancing for BASE table */
+  _remap_variation_indices (base->get_var_store (), varidx_set,
+                            plan->normalized_coords,
+                            false, false, plan->base_variation_idx_map);
   _generate_varstore_inner_maps (varidx_set, subtable_count, plan->base_varstore_inner_maps);
 }
+
 #endif
 #endif
 
@@ -489,12 +511,10 @@ _cmap_closure (hb_face_t	   *face,
   cmap.table->closure_glyphs (unicodes, glyphset);
 }
 
-static void _colr_closure (hb_face_t *face,
-                           hb_map_t *layers_map,
-                           hb_map_t *palettes_map,
+static void _colr_closure (hb_subset_plan_t* plan,
                            hb_set_t *glyphs_colred)
 {
-  OT::COLR::accelerator_t colr (face);
+  OT::COLR::accelerator_t colr (plan->source);
   if (!colr.is_valid ()) return;
 
   hb_set_t palette_indices, layer_indices;
@@ -506,12 +526,17 @@ static void _colr_closure (hb_face_t *face,
   glyphs_colred->union_ (glyphset_colrv0);
 
   //closure for COLRv1
-  hb_set_t variation_indices;
-  colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices, &variation_indices);
+  hb_set_t variation_indices, delta_set_indices;
+  colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices, &variation_indices, &delta_set_indices);
 
   colr.closure_V0palette_indices (glyphs_colred, &palette_indices);
-  _remap_indexes (&layer_indices, layers_map);
-  _remap_palette_indexes (&palette_indices, palettes_map);
+  _remap_indexes (&layer_indices, &plan->colrv1_layers);
+  _remap_palette_indexes (&palette_indices, &plan->colr_palettes);
+
+  if (!colr.has_var_store ()) return;
+  
+  unsigned subtable_count = colr.get_var_store ().get_sub_table_count ();
+  _generate_varstore_inner_maps (variation_indices, subtable_count, plan->colrv1_varstore_inner_maps);
 }
 
 static inline void
@@ -822,7 +847,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   hb_set_t cur_glyphset = plan->_glyphset_mathed;
   if (!drop_tables->has (HB_OT_TAG_COLR))
   {
-    _colr_closure (plan->source, &plan->colrv1_layers, &plan->colr_palettes, &cur_glyphset);
+    _colr_closure (plan, &cur_glyphset);
     _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
   }
 
