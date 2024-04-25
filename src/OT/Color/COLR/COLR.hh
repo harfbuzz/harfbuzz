@@ -160,7 +160,10 @@ struct hb_colrv1_closure_context_t :
   { palette_indices->add (palette_index); }
 
   void add_var_idxes (unsigned first_var_idx, unsigned num_idxes)
-  { variation_indices->add_range (first_var_idx, first_var_idx + num_idxes - 1); }
+  {
+    if (!num_idxes || first_var_idx == VarIdx::NO_VARIATION) return;
+    variation_indices->add_range (first_var_idx, first_var_idx + num_idxes - 1);
+  }
 
   public:
   const void *base;
@@ -252,6 +255,7 @@ struct Variable
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
+    c->num_var_idxes = 0;
     // update c->num_var_idxes during value closure
     value.closurev1 (c);
     c->add_var_idxes (varIdxBase, c->num_var_idxes);
@@ -2041,8 +2045,15 @@ struct COLR
     void closure_forV1 (hb_set_t *glyphset,
                         hb_set_t *layer_indices,
                         hb_set_t *palette_indices,
-                        hb_set_t *variation_indices) const
-    { colr->closure_forV1 (glyphset, layer_indices, palette_indices, variation_indices); }
+                        hb_set_t *variation_indices,
+                        hb_set_t *delta_set_indices) const
+    { colr->closure_forV1 (glyphset, layer_indices, palette_indices, variation_indices, delta_set_indices); }
+
+    bool has_var_store () const
+    { return colr->has_var_store (); }
+
+    const ItemVariationStore &get_var_store () const
+    { return colr->get_var_store (); }
 
     private:
     hb_blob_ptr_t<COLR> colr;
@@ -2080,7 +2091,8 @@ struct COLR
   void closure_forV1 (hb_set_t *glyphset,
                       hb_set_t *layer_indices,
                       hb_set_t *palette_indices,
-                      hb_set_t *variation_indices) const
+                      hb_set_t *variation_indices,
+                      hb_set_t *delta_set_indices) const
   {
     if (version != 1) return;
     hb_barrier ();
@@ -2104,6 +2116,17 @@ struct COLR
     c.glyphs = glyphset;
     for (const ClipRecord &clip_record : cliplist.clips.iter())
       clip_record.closurev1 (&c, &cliplist);
+
+    // if a DeltaSetIndexMap is included, collected variation indices are
+    // actually delta set indices, we need to map them into variation indices
+    if (has_delta_set_index_map ())
+    {
+      const DeltaSetIndexMap &var_idx_map = this+varIdxMap;
+      delta_set_indices->set (*variation_indices);
+      variation_indices->clear ();
+      for (unsigned delta_set_idx : *delta_set_indices)
+        variation_indices->add (var_idx_map.map (delta_set_idx));
+    }
   }
 
   const LayerList& get_layerList () const
@@ -2111,6 +2134,15 @@ struct COLR
 
   const BaseGlyphList& get_baseglyphList () const
   { return (this+baseGlyphList); }
+
+  bool has_var_store () const
+  { return version >= 1 && varStore != 0; }
+
+  bool has_delta_set_index_map () const
+  { return version >= 1 && varIdxMap != 0; }
+
+  const ItemVariationStore &get_var_store () const
+  { return (version == 0 || varStore == 0) ? Null (ItemVariationStore) : this+varStore; }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
