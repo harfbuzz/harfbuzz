@@ -104,6 +104,10 @@ HB_SUBSET_PLAN_MEMBER (hb_map_t, colrv1_layers)
 HB_SUBSET_PLAN_MEMBER (hb_map_t, colr_palettes)
 //colrv1 varstore retained varidx mapping
 HB_SUBSET_PLAN_MEMBER (hb_vector_t<hb_inc_bimap_t>, colrv1_varstore_inner_maps)
+//colrv1 retained varidx -> (new varidx, delta) mapping
+HB_SUBSET_PLAN_MEMBER (mutable hb_hashmap_t E(<unsigned, hb_pair_t E(<unsigned, int>)>), colrv1_variation_idx_delta_map)
+//colrv1 retained new delta set index -> new varidx mapping
+HB_SUBSET_PLAN_MEMBER (hb_map_t, colrv1_new_deltaset_idx_varidx_map)
 
 //Old layout item variation index -> (New varidx, delta) mapping
 HB_SUBSET_PLAN_MEMBER (mutable hb_hashmap_t E(<unsigned, hb_pair_t E(<unsigned, int>)>), layout_variation_idx_delta_map)
