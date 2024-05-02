@@ -195,9 +195,7 @@ static void BM_subset (benchmark::State &state,
       AddCodepoints(all_codepoints, subset_size, input);
       hb_set_destroy (all_codepoints);
 
-#ifdef HB_EXPERIMENTAL_API
       hb_subset_input_set_flags(input, hb_subset_input_get_flags(input) | HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS);
-#endif
 
       for (unsigned i = 0; i < test_input.num_instance_opts; i++)
         hb_subset_input_pin_axis_location (input, face,

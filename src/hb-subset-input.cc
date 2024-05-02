@@ -515,7 +515,6 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
   return input->axes_location.set (axis_tag, Triple (val, val, val));
 }
 
-#ifdef HB_EXPERIMENTAL_API
 /**
  * hb_subset_input_set_axis_range: (skip)
  * @input: a #hb_subset_input_t object.
@@ -538,7 +537,7 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
  *
  * Return value: `true` if success, `false` otherwise
  *
- * XSince: EXPERIMENTAL
+ * XSince: REPLACEME
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_set_axis_range (hb_subset_input_t  *input,
@@ -577,7 +576,7 @@ hb_subset_input_set_axis_range (hb_subset_input_t  *input,
  *
  * Return value: `true` if a range has been set for this axis tag, `false` otherwise.
  *
- * XSince: EXPERIMENTAL
+ * XSince: REPLACEME
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_get_axis_range (hb_subset_input_t  *input,
@@ -597,7 +596,6 @@ hb_subset_input_get_axis_range (hb_subset_input_t  *input,
   *axis_max_value = triple->maximum;
   return true;
 }
-#endif
 #endif
 
 /**
@@ -746,5 +744,4 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
   input->name_table_overrides.set (hb_ot_name_record_ids_t (platform_id, encoding_id, language_id, name_id), name_bytes);
   return true;
 }
-
 #endif

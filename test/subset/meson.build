@@ -68,21 +68,21 @@ tests = [
   'instantiate_colrv1',
   'instantiate_cff2_update_metrics',
   'layout.empty_ligature_offset',
+  'glyf_partial_instancing',
+  'mvar_partial_instance',
+  'update_def_wght',
+  'empty_region_vardata',
+  'feature_variations_partial_instance',
+  'gdef_partial_instance',
+  'value_format_partial_instance',
+  'feature_variation_instance_collect_lookups',
+  'sync_vmetrics',
 ]
 
 if get_option('experimental_api')
   tests += [
-    'glyf_partial_instancing',
-    'mvar_partial_instance',
-    'update_def_wght',
-    'empty_region_vardata',
-    'feature_variations_partial_instance',
-    'gdef_partial_instance',
-    'value_format_partial_instance',
-    'feature_variation_instance_collect_lookups',
     'iftb_requirements',
-    'sync_vmetrics',
-    ]
+  ]
 endif
 
 repack_tests = [
