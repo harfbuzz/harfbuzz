@@ -51,7 +51,7 @@ EXTRA_DIST += \
 	expected/colr \
 	expected/colr_glyphs \
 	expected/colrv1 \
-	expected/colrv1_copy_varstore \
+	expected/colrv1_subset_varstore \
 	expected/colr_with_components \
 	expected/cbdt \
 	expected/variable \

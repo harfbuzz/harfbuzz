@@ -46,7 +46,7 @@ tests = [
   # TODO: re-enable once colrv1 subsetting is stabilized.
   # 'colrv1.notoemoji',
   'colrv1',
-  'colrv1_copy_varstore',
+  'colrv1_subset_varstore',
   'colr_with_components',
   'cbdt',
   'variable',
