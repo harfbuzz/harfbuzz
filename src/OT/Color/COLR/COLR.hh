@@ -2051,7 +2051,7 @@ struct delta_set_index_map_subset_plan_t
 
     for (unsigned idx = 0; idx < map_count; idx++)
     {
-      unsigned *var_idx;
+      uint32_t *var_idx;
       if (!new_deltaset_idx_varidx_map.has (idx, &var_idx)) return false;
       output_map.arrayZ[idx] = *var_idx;
 
