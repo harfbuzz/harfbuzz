@@ -34,11 +34,16 @@ jobs:
           meson \
           ninja \
           pkg-config
+    - name: Setup Python
+      uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
+      with:
+        python-version: '3.x'
     - name: Install Python Dependencies
       run: pip3 install -r .ci/requirements.txt --require-hashes
     - name: Setup Meson
+      env:
+        PKG_CONFIG_PATH: "/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig"
       run: |
-        export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig"
         ccache --version
         meson setup build \
           -Dauto_features=enabled \
