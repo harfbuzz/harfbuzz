@@ -42,8 +42,9 @@ jobs:
       run: pip3 install -r .ci/requirements.txt --require-hashes
     - name: Setup Meson
       env:
-        PKG_CONFIG_PATH: "/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig"
+        PKG_CONFIG_PATH: "/usr/local/opt/libffi/lib/pkgconfig"
       run: |
+        brew link --force icu4c
         ccache --version
         meson setup build \
           -Dauto_features=enabled \
