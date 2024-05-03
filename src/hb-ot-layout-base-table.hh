@@ -128,7 +128,7 @@ struct BaseCoordFormat3
     if (!c->plan->pinned_at_default)
     {
       unsigned var_idx = (this+deviceTable).get_variation_index ();
-      if (var_idx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+      if (var_idx != VarIdx::NO_VARIATION)
       {
         hb_pair_t<unsigned, int> *v;
         if (!c->plan->base_variation_idx_map.has (var_idx, &v))
