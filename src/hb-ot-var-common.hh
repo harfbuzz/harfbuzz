@@ -1031,7 +1031,7 @@ struct tuple_delta_t
 
   bool optimize (const contour_point_vector_t& contour_points,
                  bool is_composite,
-                 float tolerance = 0.5f)
+                 double tolerance = 0.5)
   {
     unsigned count = contour_points.length;
     if (deltas_x.length != count ||
