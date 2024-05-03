@@ -489,13 +489,15 @@ _collect_base_variation_indices (hb_subset_plan_t* plan)
 
   hb_set_t varidx_set;
   base->collect_variation_indices (plan, varidx_set);
-  unsigned subtable_count = base->get_var_store ().get_sub_table_count ();
+  const OT::ItemVariationStore &var_store = base->get_var_store ();
   base.destroy ();
+  unsigned subtable_count = var_store.get_sub_table_count ();
 
-  /* TODO: support instancing for BASE table */
-  _remap_variation_indices (base->get_var_store (), varidx_set,
+  _remap_variation_indices (var_store, varidx_set,
                             plan->normalized_coords,
-                            false, false, plan->base_variation_idx_map);
+                            !plan->pinned_at_default,
+                            plan->all_axes_pinned,
+                            plan->base_variation_idx_map);
   _generate_varstore_inner_maps (varidx_set, subtable_count, plan->base_varstore_inner_maps);
 }
 
