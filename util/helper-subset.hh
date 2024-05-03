@@ -198,7 +198,6 @@ parse_instancing_spec (const char *arg,
       continue;
     }
 
-#ifdef HB_EXPERIMENTAL_API
     if (!hb_subset_input_set_axis_range (input,
                                          face, axis_tag,
                                          min, max, def))
@@ -208,7 +207,6 @@ parse_instancing_spec (const char *arg,
       return false;
     }
     continue;
-#endif
 
     g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
                  "Partial instancing is not supported.");
