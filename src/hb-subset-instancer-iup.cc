@@ -219,7 +219,7 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
       else
       {
         for (unsigned i = 0; i < n; i++)
-          out[i] = 0.f;
+          out[i] = 0.0;
       }
       continue;
     }
@@ -233,7 +233,7 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
     double scale = (d2 - d1) / (x2 - x1);
     for (unsigned i = 0; i < n; i++)
     {
-      double x = j == 0 ? contour_points.arrayZ[i].x : contour_points.arrayZ[i].y;
+      double x = (j == 0 ? contour_points.arrayZ[i].x : contour_points.arrayZ[i].y);
       double d;
       if (x <= x1)
         d = d1;
@@ -443,11 +443,11 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
     unsigned contour_point_size = hb_static_size (contour_point_t);
     for (unsigned i = 0; i < n; i++)
     {
-      hb_memcpy ((void *) repeat_x_deltas.arrayZ, (const void *) x_deltas.arrayZ, n * sizeof (int));
-      hb_memcpy ((void *) (repeat_x_deltas.arrayZ + n), (const void *) x_deltas.arrayZ, n * sizeof (int));
+      hb_memcpy ((void *) repeat_x_deltas.arrayZ, (const void *) x_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
+      hb_memcpy ((void *) (repeat_x_deltas.arrayZ + n), (const void *) x_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
 
-      hb_memcpy ((void *) repeat_y_deltas.arrayZ, (const void *) y_deltas.arrayZ, n * sizeof (int));
-      hb_memcpy ((void *) (repeat_y_deltas.arrayZ + n), (const void *) y_deltas.arrayZ, n * sizeof (int));
+      hb_memcpy ((void *) repeat_y_deltas.arrayZ, (const void *) y_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
+      hb_memcpy ((void *) (repeat_y_deltas.arrayZ + n), (const void *) y_deltas.arrayZ, n * sizeof (repeat_x_deltas[0]));
 
       hb_memcpy ((void *) repeat_points.arrayZ, (const void *) contour_points.arrayZ, n * contour_point_size);
       hb_memcpy ((void *) (repeat_points.arrayZ + n), (const void *) contour_points.arrayZ, n * contour_point_size);
