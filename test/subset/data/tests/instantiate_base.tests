@@ -1,0 +1,15 @@
+FONTS:
+NotoSerifHK-subset.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=500
+wght=400:600
+
+OPTIONS:
+no_fonttools
