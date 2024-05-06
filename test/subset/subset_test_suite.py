@@ -50,7 +50,7 @@ class Test:
 		profile_name = os.path.splitext(os.path.basename(self.profile_path))[0]
 
 		if self.unicodes() == "*":
-			return "%s.%s.retain-all-codepoint%s%s" % (font_base_name_parts[0],
+			return "%s.%s.all%s%s" % (font_base_name_parts[0],
 				       profile_name,
 				       self.instance_name(),
 				       font_base_name_parts[1])

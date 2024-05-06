@@ -513,6 +513,30 @@ _cmap_closure (hb_face_t	   *face,
   cmap.table->closure_glyphs (unicodes, glyphset);
 }
 
+static void
+_remap_colrv1_delta_set_index_indices (const OT::DeltaSetIndexMap &index_map,
+                                       const hb_set_t &delta_set_idxes,
+                                       hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> &variation_idx_delta_map, /* IN/OUT */
+                                       hb_map_t &new_deltaset_idx_varidx_map /* OUT */)
+{
+  if (!index_map.get_map_count ())
+    return;
+
+  hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> delta_set_idx_delta_map;
+  unsigned new_delta_set_idx = 0;
+  for (unsigned delta_set_idx : delta_set_idxes)
+  {
+    unsigned var_idx = index_map.map (delta_set_idx);
+    hb_pair_t<unsigned, int> *new_varidx_delta;
+    if (!variation_idx_delta_map.has (var_idx, &new_varidx_delta)) continue;
+
+    new_deltaset_idx_varidx_map.set (new_delta_set_idx, hb_first (*new_varidx_delta));
+    delta_set_idx_delta_map.set (delta_set_idx, hb_pair_t<unsigned, int> (new_delta_set_idx, hb_second (*new_varidx_delta)));
+    new_delta_set_idx++;
+  }
+  variation_idx_delta_map = std::move (delta_set_idx_delta_map);
+}
+
 static void _colr_closure (hb_subset_plan_t* plan,
                            hb_set_t *glyphs_colred)
 {
@@ -535,10 +559,36 @@ static void _colr_closure (hb_subset_plan_t* plan,
   _remap_indexes (&layer_indices, &plan->colrv1_layers);
   _remap_palette_indexes (&palette_indices, &plan->colr_palettes);
 
-  if (!colr.has_var_store ()) return;
-  
-  unsigned subtable_count = colr.get_var_store ().get_sub_table_count ();
+  if (!colr.has_var_store () || !variation_indices) return;
+
+  const OT::ItemVariationStore &var_store = colr.get_var_store ();
+  // generated inner_maps is used by ItemVariationStore serialize(), which is subset only
+  unsigned subtable_count = var_store.get_sub_table_count ();
   _generate_varstore_inner_maps (variation_indices, subtable_count, plan->colrv1_varstore_inner_maps);
+
+  /* colr variation indices mapping during planning phase:
+   * generate colrv1_variation_idx_delta_map. When delta set index map is not
+   * included, it's a mapping from varIdx-> (new varIdx,delta). Otherwise, it's
+   * a mapping from old delta set idx-> (new delta set idx, delta). Mapping
+   * delta set indices is the same as gid mapping.
+   * Besides, we need to generate a delta set idx-> new var_idx map for updating
+   * delta set index map if exists. This map will be updated again after
+   * instancing. */
+  if (!plan->all_axes_pinned)
+  {
+    _remap_variation_indices (var_store,
+                              variation_indices,
+                              plan->normalized_coords,
+                              false, /* no need to calculate delta for COLR during planning */
+                              plan->all_axes_pinned,
+                              plan->colrv1_variation_idx_delta_map);
+
+    if (colr.has_delta_set_index_map ())
+      _remap_colrv1_delta_set_index_indices (colr.get_delta_set_index_map (),
+                                             delta_set_indices,
+                                             plan->colrv1_variation_idx_delta_map,
+                                             plan->colrv1_new_deltaset_idx_varidx_map);
+  }
 }
 
 static inline void

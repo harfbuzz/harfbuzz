@@ -11,3 +11,6 @@ SUBSETS:
 A
 AB
 *
+
+OPTIONS:
+no_fonttools

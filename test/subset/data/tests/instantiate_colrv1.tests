@@ -9,6 +9,7 @@ SUBSETS:
 
 INSTANCES:
 wght=900
+wght=300:600
 
 OPTIONS:
 no_fonttools

@@ -51,7 +51,7 @@ EXTRA_DIST += \
 	expected/colr \
 	expected/colr_glyphs \
 	expected/colrv1 \
-	expected/colrv1_copy_varstore \
+	expected/colrv1_subset_varstore \
 	expected/colr_with_components \
 	expected/cbdt \
 	expected/variable \
@@ -72,9 +72,19 @@ EXTRA_DIST += \
 	expected/post_apply_mvar_delta \
 	expected/apply_cvar_delta \
 	expected/collect_name_ids \
-	expected/instantiate_colrv1 \
 	expected/instantiate_cff2_update_metrics \
 	expected/layout.empty_ligature_offset \
+	expected/instantiate_base \
+	expected/instantiate_colrv1 \
+	expected/glyf_partial_instancing \
+	expected/feature_variations_partial_instance \
+	expected/update_def_wght \
+	expected/mvar_partial_instance \
+	expected/value_format_partial_instance \
+	expected/gdef_partial_instance \
+	expected/feature_variation_instance_collect_lookups \
+	expected/sync_vmetrics \
+	expected/empty_region_vardata \
 	fonts \
 	profiles \
 	$(NULL)
