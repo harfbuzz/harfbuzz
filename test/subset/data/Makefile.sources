@@ -65,6 +65,17 @@ TESTS = \
 	tests/collect_name_ids.tests \
 	tests/instantiate_cff2_update_metrics.tests \
 	tests/layout.empty_ligature_offset.tests \
+	tests/instantiate_base.tests \
+	tests/instantiate_colrv1.tests \
+	tests/glyf_partial_instancing.tests \
+	tests/feature_variations_partial_instance.tests \
+	tests/update_def_wght.tests \
+	tests/mvar_partial_instance.tests \
+	tests/value_format_partial_instance.tests \
+	tests/gdef_partial_instance.tests \
+	tests/feature_variation_instance_collect_lookups.tests \
+	tests/sync_vmetrics.tests \
+	tests/empty_region_vardata.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.

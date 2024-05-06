@@ -74,6 +74,17 @@ EXTRA_DIST += \
 	expected/collect_name_ids \
 	expected/instantiate_cff2_update_metrics \
 	expected/layout.empty_ligature_offset \
+	expected/instantiate_base \
+	expected/instantiate_colrv1 \
+	expected/glyf_partial_instancing \
+	expected/feature_variations_partial_instance \
+	expected/update_def_wght \
+	expected/mvar_partial_instance \
+	expected/value_format_partial_instance \
+	expected/gdef_partial_instance \
+	expected/feature_variation_instance_collect_lookups \
+	expected/sync_vmetrics \
+	expected/empty_region_vardata \
 	fonts \
 	profiles \
 	$(NULL)
