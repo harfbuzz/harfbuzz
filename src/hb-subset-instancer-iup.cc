@@ -51,20 +51,20 @@ static void _iup_contour_bound_forced_set (const hb_array_t<const contour_point_
       int dj, ldj, ndj;
       if (j == 0)
       {
-        cj = contour_points.arrayZ[i].x;
+        cj = static_cast<double> (contour_points.arrayZ[i].x);
         dj = x_deltas.arrayZ[i];
-        lcj = contour_points.arrayZ[last_i].x;
+        lcj = static_cast<double> (contour_points.arrayZ[last_i].x);
         ldj = x_deltas.arrayZ[last_i];
-        ncj = contour_points.arrayZ[next_i].x;
+        ncj = static_cast<double> (contour_points.arrayZ[next_i].x);
         ndj = x_deltas.arrayZ[next_i];
       }
       else
       {
-        cj = contour_points.arrayZ[i].y;
+        cj = static_cast<double> (contour_points.arrayZ[i].y);
         dj = y_deltas.arrayZ[i];
-        lcj = contour_points.arrayZ[last_i].y;
+        lcj = static_cast<double> (contour_points.arrayZ[last_i].y);
         ldj = y_deltas.arrayZ[last_i];
-        ncj = contour_points.arrayZ[next_i].y;
+        ncj = static_cast<double> (contour_points.arrayZ[next_i].y);
         ndj = y_deltas.arrayZ[next_i];
       }
 
@@ -194,16 +194,16 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
     double *out;
     if (j == 0)
     {
-      x1 = p1.x;
-      x2 = p2.x;
+      x1 = static_cast<double> (p1.x);
+      x2 = static_cast<double> (p2.x);
       d1 = p1_dx;
       d2 = p2_dx;
       out = interp_x_deltas.arrayZ;
     }
     else
     {
-      x1 = p1.y;
-      x2 = p2.y;
+      x1 = static_cast<double> (p1.y);
+      x2 = static_cast<double> (p2.y);
       d1 = p1_dy;
       d2 = p2_dy;
       out = interp_y_deltas.arrayZ;
@@ -233,7 +233,7 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
     double scale = (d2 - d1) / (x2 - x1);
     for (unsigned i = 0; i < n; i++)
     {
-      double x = (j == 0 ? contour_points.arrayZ[i].x : contour_points.arrayZ[i].y);
+      double x = (j == 0 ? static_cast<double> (contour_points.arrayZ[i].x) : static_cast<double> (contour_points.arrayZ[i].y));
       double d;
       if (x <= x1)
         d = d1;
@@ -266,10 +266,10 @@ static bool _can_iup_in_between (const hb_array_t<const contour_point_t> contour
 
   for (unsigned i = 0; i < num; i++)
   {
-    double dx = x_deltas.arrayZ[i] - interp_x_deltas.arrayZ[i];
-    double dy = y_deltas.arrayZ[i] - interp_y_deltas.arrayZ[i];
+    double dx = static_cast<double> (x_deltas.arrayZ[i]) - interp_x_deltas.arrayZ[i];
+    double dy = static_cast<double> (y_deltas.arrayZ[i]) - interp_y_deltas.arrayZ[i];
   
-    if (sqrt ((double)dx * dx + (double)dy * dy) > tolerance)
+    if (sqrt (dx * dx + dy * dy) > tolerance)
       return false;
   }
   return true;
