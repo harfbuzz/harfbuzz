@@ -87,8 +87,8 @@ struct Triple {
   double maximum;
 };
 
-using result_item_t = hb_pair_t<double, Triple>;
-using result_t = hb_vector_t<result_item_t>;
+using rebase_tent_result_item_t = hb_pair_t<double, Triple>;
+using rebase_tent_result_t = hb_vector_t<rebase_tent_result_item_t>;
 
 /* renormalize a normalized value v to the range of an axis,
  * considering the prenormalized distances as well as the new axis limits.
@@ -107,6 +107,8 @@ HB_INTERNAL double renormalizeValue (double v, const Triple &triple,
  * If tent value is Triple{}, that is a special deltaset that should
  * be always-enabled (called "gain").
  */
-HB_INTERNAL result_t rebase_tent (Triple tent, Triple axisLimit, TripleDistances axis_triple_distances);
+HB_INTERNAL rebase_tent_result_t rebase_tent (Triple tent,
+					      Triple axisLimit,
+					      TripleDistances axis_triple_distances);
 
 #endif /* HB_SUBSET_INSTANCER_SOLVER_HH */

@@ -62,7 +62,7 @@ static inline double supportScalar (double coord, const Triple &tent)
     return  (end - coord) / (end - peak);
 }
 
-static inline result_t
+static inline rebase_tent_result_t
 _solve (Triple tent, Triple axisLimit, bool negative = false)
 {
   double axisMin = axisLimit.minimum;
@@ -75,7 +75,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
   // Mirror the problem such that axisDef <= peak
   if (axisDef > peak)
   {
-    result_t vec = _solve (_reverse_negate (tent),
+    rebase_tent_result_t vec = _solve (_reverse_negate (tent),
 			   _reverse_negate (axisLimit),
 			   !negative);
 
@@ -98,7 +98,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
    *    axisMin     axisDef    axisMax   lower     upper
    */
   if (axisMax <= lower && axisMax < peak)
-      return result_t{};  // No overlap
+      return rebase_tent_result_t{};  // No overlap
 
   /* case 2: Only the peak and outermost bound fall outside the new limit;
    * we keep the deltaset, update peak and outermost bound and scale deltas
@@ -133,7 +133,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     double mult = supportScalar (axisMax, tent);
     tent = Triple{lower, axisMax, axisMax};
 
-    result_t vec = _solve (tent, axisLimit);
+    rebase_tent_result_t vec = _solve (tent, axisLimit);
 
     for (auto &p : vec)
       p = hb_pair (p.first * mult, p.second);
@@ -144,7 +144,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
   // lower <= axisDef <= peak <= axisMax
 
   double gain = supportScalar (axisDef, tent);
-  result_t out {hb_pair (gain, Triple{})};
+  rebase_tent_result_t out {hb_pair (gain, Triple{})};
 
   // First, the positive side
 
@@ -258,7 +258,7 @@ _solve (Triple tent, Triple axisLimit, bool negative = false)
     assert (axisMax <= newUpper);  // Because outGain > gain
     /* Disabled because ots doesn't like us:
      * https://github.com/fonttools/fonttools/issues/3350 */
-    
+
     if (false && (newUpper <= axisDef + (axisMax - axisDef) * 2))
     {
       upper = newUpper;
@@ -405,18 +405,18 @@ double renormalizeValue (double v, const Triple &triple,
   return (-v_distance) /total_distance;
 }
 
-result_t
+rebase_tent_result_t
 rebase_tent (Triple tent, Triple axisLimit, TripleDistances axis_triple_distances)
 {
   assert (-1.0 <= axisLimit.minimum && axisLimit.minimum <= axisLimit.middle && axisLimit.middle <= axisLimit.maximum && axisLimit.maximum <= +1.0);
   assert (-2.0 <= tent.minimum && tent.minimum <= tent.middle && tent.middle <= tent.maximum && tent.maximum <= +2.0);
   assert (tent.middle != 0.0);
 
-  result_t sols = _solve (tent, axisLimit);
+  rebase_tent_result_t sols = _solve (tent, axisLimit);
 
   auto n = [&axisLimit, &axis_triple_distances] (double v) { return renormalizeValue (v, axisLimit, axis_triple_distances); };
 
-  result_t out;
+  rebase_tent_result_t out;
   for (auto &p : sols)
   {
     if (!p.first) continue;
