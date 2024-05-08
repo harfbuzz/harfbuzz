@@ -527,11 +527,20 @@ _remap_colrv1_delta_set_index_indices (const OT::DeltaSetIndexMap &index_map,
   for (unsigned delta_set_idx : delta_set_idxes)
   {
     unsigned var_idx = index_map.map (delta_set_idx);
-    hb_pair_t<unsigned, int> *new_varidx_delta;
-    if (!variation_idx_delta_map.has (var_idx, &new_varidx_delta)) continue;
+    unsigned new_varidx = HB_OT_LAYOUT_NO_VARIATIONS_INDEX;
+    int delta = 0;
+    
+    if (var_idx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+    {
+      hb_pair_t<unsigned, int> *new_varidx_delta;
+      if (!variation_idx_delta_map.has (var_idx, &new_varidx_delta)) continue;
 
-    new_deltaset_idx_varidx_map.set (new_delta_set_idx, hb_first (*new_varidx_delta));
-    delta_set_idx_delta_map.set (delta_set_idx, hb_pair_t<unsigned, int> (new_delta_set_idx, hb_second (*new_varidx_delta)));
+      new_varidx = hb_first (*new_varidx_delta);
+      delta = hb_second (*new_varidx_delta);
+    }
+
+    new_deltaset_idx_varidx_map.set (new_delta_set_idx, new_varidx);
+    delta_set_idx_delta_map.set (delta_set_idx, hb_pair_t<unsigned, int> (new_delta_set_idx, delta));
     new_delta_set_idx++;
   }
   variation_idx_delta_map = std::move (delta_set_idx_delta_map);
