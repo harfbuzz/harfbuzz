@@ -1,10 +1,12 @@
 FONTS:
 Foldit.ttf
+KalniaGlaze.ttf
 
 PROFILES:
 default.txt
 
 SUBSETS:
+A
 *
 
 INSTANCES:
