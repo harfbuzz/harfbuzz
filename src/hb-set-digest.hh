@@ -129,11 +129,14 @@ struct hb_set_digest_bits_pattern_t
   bool may_have (hb_codepoint_t g) const
   { return mask & mask_for (g); }
 
+  bool operator [] (hb_codepoint_t g) const
+  { return may_have (g); }
+
   private:
 
   static mask_t mask_for (hb_codepoint_t g)
   { return ((mask_t) 1) << ((g >> shift) & (mask_bits - 1)); }
-  mask_t mask;
+  mask_t mask = 0;
 };
 
 template <typename head_t, typename tail_t>
@@ -187,6 +190,9 @@ struct hb_set_digest_combiner_t
   {
     return head.may_have (g) && tail.may_have (g);
   }
+
+  bool operator [] (hb_codepoint_t g) const
+  { return may_have (g); }
 
   private:
   head_t head;
