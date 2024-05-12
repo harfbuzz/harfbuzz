@@ -82,6 +82,8 @@ struct hb_set_digest_bits_pattern_t
 
   void init () { mask = 0; }
 
+  static hb_set_digest_bits_pattern_t full () { hb_set_digest_bits_pattern_t d; d.mask = (mask_t) -1; return d; }
+
   void add (const hb_set_digest_bits_pattern_t &o) { mask |= o.mask; }
 
   void add (hb_codepoint_t g) { mask |= mask_for (g); }
@@ -147,6 +149,8 @@ struct hb_set_digest_combiner_t
     head.init ();
     tail.init ();
   }
+
+  static hb_set_digest_combiner_t full () { hb_set_digest_combiner_t d; d.head = head_t::full(); d.tail = tail_t::full (); return d; }
 
   void add (const hb_set_digest_combiner_t &o)
   {

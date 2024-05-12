@@ -118,8 +118,8 @@ HB_OT_CORE_TABLE (OT, BASE)
 
 /* AAT shaping. */
 #ifndef HB_NO_AAT
-HB_OT_TABLE (AAT, morx)
-HB_OT_TABLE (AAT, mort)
+HB_OT_ACCELERATOR (AAT, morx)
+HB_OT_ACCELERATOR (AAT, mort)
 HB_OT_TABLE (AAT, kerx)
 HB_OT_TABLE (AAT, ankr)
 HB_OT_TABLE (AAT, trak)
