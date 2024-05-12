@@ -46,8 +46,9 @@ struct hb_aat_apply_context_t :
        hb_dispatch_context_t<hb_aat_apply_context_t, bool, HB_DEBUG_APPLY>
 {
   const char *get_name () { return "APPLY"; }
-  template <typename T>
-  return_t dispatch (const T &obj) { return obj.apply (this); }
+  template <typename T, typename ...Ts>
+  return_t dispatch (const T &obj, Ts&&... ds)
+  { return obj.apply (this, std::forward<Ts> (ds)...); }
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
@@ -60,6 +61,8 @@ struct hb_aat_apply_context_t :
   const OT::GDEF *gdef_table;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
   hb_set_digest_t machine_glyph_set = hb_set_digest_t::full ();
+  hb_set_digest_t left_set = hb_set_digest_t::full ();
+  hb_set_digest_t right_set = hb_set_digest_t::full ();
   hb_mask_t subtable_flags = 0;
 
   /* Unused. For debug tracing only. */
@@ -425,6 +428,16 @@ struct LookupFormat10
     return v;
   }
 
+  template <typename set_t>
+  void collect_glyphs (set_t &glyphs) const
+  {
+    if (unlikely (!glyphCount))
+      return;
+    if (firstGlyph == DELETED_GLYPH)
+      return;
+    glyphs.add_range (firstGlyph, firstGlyph + glyphCount - 1);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -482,6 +495,7 @@ struct Lookup
     case 4: u.format4.collect_glyphs (glyphs); return;
     case 6: u.format6.collect_glyphs (glyphs); return;
     case 8: u.format8.collect_glyphs (glyphs); return;
+    case 10: u.format10.collect_glyphs (glyphs); return;
     default:return;
     }
   }

@@ -4387,7 +4387,7 @@ struct hb_ot_layout_lookup_accelerator_t
 
     thiz->digest.init ();
     for (auto& subtable : hb_iter (thiz->subtables, count))
-      thiz->digest.add (subtable.digest);
+      thiz->digest.union_ (subtable.digest);
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     thiz->cache_user_idx = c_accelerate_subtables.cache_user_idx;

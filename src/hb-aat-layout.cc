@@ -326,7 +326,7 @@ hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
 hb_bool_t
 hb_aat_layout_has_positioning (hb_face_t *face)
 {
-  return face->table.kerx->has_data ();
+  return face->table.kerx->table->has_data ();
 }
 
 void
@@ -334,13 +334,12 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
 			hb_font_t *font,
 			hb_buffer_t *buffer)
 {
-  hb_blob_t *kerx_blob = font->face->table.kerx.get_blob ();
-  const AAT::kerx& kerx = *kerx_blob->as<AAT::kerx> ();
+  auto &accel = *font->face->table.kerx;
 
-  AAT::hb_aat_apply_context_t c (plan, font, buffer, kerx_blob);
+  AAT::hb_aat_apply_context_t c (plan, font, buffer, accel.get_blob ());
   if (!buffer->message (font, "start table kerx")) return;
   c.set_ankr_table (font->face->table.ankr.get ());
-  kerx.apply (&c);
+  accel.apply (&c);
   (void) buffer->message (font, "end table kerx");
 }
 
