@@ -899,10 +899,8 @@ struct StateTableDriver
   using EntryT = Entry<EntryData>;
 
   StateTableDriver (const StateTableT &machine_,
-		    hb_buffer_t *buffer_,
 		    hb_face_t *face_) :
 	      machine (machine_),
-	      buffer (buffer_),
 	      num_glyphs (face_->get_num_glyphs ())
   {
     machine.collect_glyphs (glyph_set, num_glyphs);
@@ -911,6 +909,8 @@ struct StateTableDriver
   template <typename context_t, typename set_t = hb_set_digest_t>
   void drive (context_t *c, hb_aat_apply_context_t *ac)
   {
+    hb_buffer_t *buffer = ac->buffer;
+
     if (!c->in_place)
       buffer->clear_output ();
 
@@ -987,7 +987,7 @@ struct StateTableDriver
           const auto wouldbe_entry = machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass);
 
           /* 2c'. */
-          if (c->is_actionable (this, wouldbe_entry))
+          if (c->is_actionable (buffer, this, wouldbe_entry))
               return false;
 
           /* 2c". */
@@ -998,7 +998,7 @@ struct StateTableDriver
       const auto is_safe_to_break = [&]()
       {
           /* 1. */
-          if (c->is_actionable (this, entry))
+          if (c->is_actionable (buffer, this, entry))
               return false;
 
           /* 2. */
@@ -1011,13 +1011,13 @@ struct StateTableDriver
               return false;
 
           /* 3. */
-          return !c->is_actionable (this, machine.get_entry (state, StateTableT::CLASS_END_OF_TEXT));
+          return !c->is_actionable (buffer, this, machine.get_entry (state, StateTableT::CLASS_END_OF_TEXT));
       };
 
       if (!is_safe_to_break () && buffer->backtrack_len () && buffer->idx < buffer->len)
 	buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
 
-      c->transition (this, entry);
+      c->transition (buffer, this, entry);
 
       state = next_state;
       DEBUG_MSG (APPLY, nullptr, "s%d", state);
@@ -1035,7 +1035,6 @@ struct StateTableDriver
 
   public:
   const StateTableT &machine;
-  hb_buffer_t *buffer;
   unsigned int num_glyphs;
   hb_set_digest_t glyph_set;
 };

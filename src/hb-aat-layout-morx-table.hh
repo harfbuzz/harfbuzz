@@ -74,15 +74,16 @@ struct RearrangementSubtable
 	ret (false),
 	start (0), end (0) {}
 
-    bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
+    bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
+			StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			const Entry<EntryData> &entry)
     {
       return (entry.flags & Verb) && start < end;
     }
-    void transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (hb_buffer_t *buffer,
+		     StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
-      hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry.flags;
 
       if (flags & MarkFirst)
@@ -168,7 +169,7 @@ struct RearrangementSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->face);
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -223,21 +224,19 @@ struct ContextualSubtable
 	table (table_),
 	subs (table+table->substitutionTables) {}
 
-    bool is_actionable (StateTableDriver<Types, EntryData> *driver,
+    bool is_actionable (hb_buffer_t *buffer,
+			StateTableDriver<Types, EntryData> *driver,
 			const Entry<EntryData> &entry)
     {
-      hb_buffer_t *buffer = driver->buffer;
-
       if (buffer->idx == buffer->len && !mark_set)
 	return false;
 
       return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
     }
-    void transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (hb_buffer_t *buffer,
+		     StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
-      hb_buffer_t *buffer = driver->buffer;
-
       /* Looks like CoreText applies neither mark nor current substitution for
        * end-of-text if mark was not explicitly set. */
       if (buffer->idx == buffer->len && !mark_set)
@@ -328,7 +327,7 @@ struct ContextualSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->face);
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -464,16 +463,16 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
-    bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
+    bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
+			StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			const Entry<EntryData> &entry)
     {
       return LigatureEntryT::performAction (entry);
     }
-    void transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (hb_buffer_t *buffer,
+		     StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
-      hb_buffer_t *buffer = driver->buffer;
-
       DEBUG_MSG (APPLY, nullptr, "Ligature transition at %u", buffer->idx);
       if (entry.flags & LigatureEntryT::SetComponent)
       {
@@ -585,7 +584,7 @@ struct LigatureSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->face);
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -754,16 +753,17 @@ struct InsertionSubtable
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
-    bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
+    bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
+			StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			const Entry<EntryData> &entry)
     {
       return (entry.flags & (CurrentInsertCount | MarkedInsertCount)) &&
 	     (entry.data.currentInsertIndex != 0xFFFF ||entry.data.markedInsertIndex != 0xFFFF);
     }
-    void transition (StateTableDriver<Types, EntryData> *driver,
+    void transition (hb_buffer_t *buffer,
+		     StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {
-      hb_buffer_t *buffer = driver->buffer;
       unsigned int flags = entry.flags;
 
       unsigned mark_loc = buffer->out_len;
@@ -850,7 +850,7 @@ struct InsertionSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->buffer, c->face);
+    StateTableDriver<Types, EntryData> driver (machine, c->face);
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
