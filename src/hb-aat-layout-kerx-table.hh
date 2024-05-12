@@ -123,29 +123,13 @@ struct KerxSubTableFormat0
   {
     const KerxSubTableFormat0 &table;
     hb_aat_apply_context_t *c;
-    hb_set_digest_t left_set, right_set;
-
-    template <typename set_t>
-    void collect_glyphs (set_t &left, set_t &right)
-    {
-      for (const KernPair& pair : table.pairs)
-      {
-        left_set.add (pair.left);
-        right_set.add (pair.right);
-      }
-    }
 
     accelerator_t (const KerxSubTableFormat0 &table_,
 		   hb_aat_apply_context_t *c_) :
-		     table (table_), c (c_)
-    {
-      collect_glyphs (left_set, right_set);
-    }
+		     table (table_), c (c_) {}
 
     int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     {
-      if (!left_set[left] || !right_set[right])
-        return 0;
       return table.get_kerning (left, right, c);
     }
   };
