@@ -60,6 +60,7 @@ struct hb_aat_apply_context_t :
   const ankr *ankr_table;
   const OT::GDEF *gdef_table;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
+  hb_set_digest_t buffer_digest = hb_set_digest_t::full ();
   hb_set_digest_t machine_glyph_set = hb_set_digest_t::full ();
   hb_set_digest_t left_set = hb_set_digest_t::full ();
   hb_set_digest_t right_set = hb_set_digest_t::full ();
@@ -926,6 +927,14 @@ struct StateTableDriver
 		    hb_face_t *face_) :
 	      machine (machine_),
 	      num_glyphs (face_->get_num_glyphs ()) {}
+
+  template <typename context_t>
+  bool is_idempotent_on_all_out_of_bounds (context_t *c, hb_aat_apply_context_t *ac)
+  {
+    const auto entry = machine.get_entry (StateTableT::STATE_START_OF_TEXT, CLASS_OUT_OF_BOUNDS);
+    return !c->is_actionable (ac->buffer, this, entry) &&
+	    machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
+  }
 
   template <typename context_t, typename set_t = hb_set_digest_t>
   void drive (context_t *c, hb_aat_apply_context_t *ac)
