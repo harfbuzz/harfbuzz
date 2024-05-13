@@ -30,7 +30,7 @@
 /* pre-normalized distances */
 struct TripleDistances
 {
-  TripleDistances (): negative (1.f), positive (1.f) {}
+  TripleDistances (): negative (1.0), positive (1.0) {}
   TripleDistances (double neg_, double pos_): negative (neg_), positive (pos_) {}
   TripleDistances (double min, double default_, double max)
   {
