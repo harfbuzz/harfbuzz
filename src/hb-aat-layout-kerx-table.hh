@@ -107,10 +107,14 @@ struct KerxSubTableFormat0
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
-      return false;
+      return_trace (false);
 
     if (header.coverage & header.Backwards)
-      return false;
+      return_trace (false);
+
+    if (!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
 
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
@@ -431,10 +435,14 @@ struct KerxSubTableFormat2
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
-      return false;
+      return_trace (false);
 
     if (header.coverage & header.Backwards)
-      return false;
+      return_trace (false);
+
+    if (!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
 
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
@@ -722,10 +730,14 @@ struct KerxSubTableFormat6
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
-      return false;
+      return_trace (false);
 
     if (header.coverage & header.Backwards)
-      return false;
+      return_trace (false);
+
+    if (!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
 
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
