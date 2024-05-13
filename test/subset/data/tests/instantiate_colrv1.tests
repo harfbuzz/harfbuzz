@@ -1,14 +1,17 @@
 FONTS:
 Foldit.ttf
+KalniaGlaze.ttf
 
 PROFILES:
 default.txt
 
 SUBSETS:
+A
 *
 
 INSTANCES:
 wght=900
+wght=300:600
 
 OPTIONS:
 no_fonttools

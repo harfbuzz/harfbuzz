@@ -48,7 +48,7 @@ main (int argc, char **argv)
     /* pin axis*/
     Triple tent (0.0, 1.0, 1.0);
     Triple axis_range (0.0, 0.0, 0.0);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 0);
   }
 
@@ -56,7 +56,7 @@ main (int argc, char **argv)
     /* pin axis*/
     Triple tent (0.0, 1.0, 1.0);
     Triple axis_range (0.5, 0.5, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
@@ -66,7 +66,7 @@ main (int argc, char **argv)
     /* tent falls outside the new axis range */
     Triple tent (0.3, 0.5, 0.8);
     Triple axis_range (0.1, 0.2, 0.3);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 0);
   }
 
@@ -74,7 +74,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 1.0, 1.0);
     Triple axis_range (-1.0, 0.0, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 0.5);
     assert (out[0].second == Triple (0.0, 1.0, 1.0));
@@ -84,7 +84,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 1.0, 1.0);
     Triple axis_range (-1.0, 0.0, 0.75);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 0.75);
     assert (out[0].second == Triple (0.0, 1.0, 1.0));
@@ -95,7 +95,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.2, 1.0);
     Triple axis_range (-1.0, 0.0, 0.8);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (0.0, 0.25, 1.0));
@@ -107,7 +107,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.4, 1.0);
     Triple axis_range (-1.0, 0.0, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (0.0, 0.8, 1.0));
@@ -119,7 +119,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.25, 1.0);
     Triple axis_range (-1.0, 0.0, 0.4);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (0.0, 0.625, 1.0));
@@ -131,7 +131,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.25, 0.3, 1.05);
     Triple axis_range (0.0, 0.2, 0.4);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
     assert (out[0].first == 1.0);
     assert (approx (out[0].second, Triple (0.25, 0.5, 1.0)));
@@ -143,7 +143,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.25, 0.5, 1.0);
     Triple axis_range (0.0, 0.25, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (0.0, 1.0, 1.0));
@@ -154,7 +154,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.5, 1.0);
     Triple axis_range (0.0, 0.5, 1.0);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
@@ -167,7 +167,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.5, 1.0);
     Triple axis_range (0.0, 0.5, 0.75);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
@@ -180,7 +180,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.50, 1.0);
     Triple axis_range (0.0, 0.25, 0.8);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 4);
     assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
@@ -196,7 +196,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.5, 2.0);
     Triple axis_range (0.2, 0.5, 0.8);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
@@ -210,7 +210,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.5, 2.0);
     Triple axis_range (0.2, 0.5, 1.0);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
@@ -224,7 +224,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.5, 1.0);
     Triple axis_range (0.25, 0.25, 0.75);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
     assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
@@ -236,7 +236,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.5, 1.0);
     Triple axis_range (0.0, 0.25, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 3);
     assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
@@ -250,7 +250,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.05, 0.55, 1.0);
     Triple axis_range (0.0, 0.25, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 4);
     assert (approx (out[0].first, 0.4));
     assert (out[0].second == Triple ());
@@ -266,7 +266,7 @@ main (int argc, char **argv)
   {
     Triple tent (-1.0, -0.55, -0.05);
     Triple axis_range (-0.5, -0.25, 0.0);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 4);
     assert (approx (out[0].first, 0.4));
     assert (out[0].second == Triple ());
@@ -282,7 +282,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.5, 0.5, 0.5);
     Triple axis_range (0.5, 0.5, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
@@ -291,7 +291,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.3, 0.5, 0.7);
     Triple axis_range (0.1, 0.5, 0.9);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 5);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
@@ -308,7 +308,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.5, 0.5, 0.5);
     Triple axis_range (0.25, 0.25, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (1.0, 1.0, 1.0));
@@ -317,7 +317,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.5, 0.5, 0.5);
     Triple axis_range (0.25, 0.35, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (1.0, 1.0, 1.0));
@@ -326,7 +326,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.5, 0.5, 0.55);
     Triple axis_range (0.25, 0.35, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (1.0, 1.0, 1.0));
@@ -335,7 +335,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.5, 0.5, 1.0);
     Triple axis_range (0.5, 0.5, 1.0);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
@@ -346,7 +346,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.25, 0.5, 1.0);
     Triple axis_range (0.5, 0.5, 1.0);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
@@ -357,7 +357,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.2, 1.0);
     Triple axis_range (0.0, 0.0, 0.5);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 2);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (0.0, 0.4, 1.0));
@@ -369,7 +369,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 0.5, 1.0);
     Triple axis_range (-1.0, 0.25, 1.0);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 5);
     assert (out[0].first == 0.5);
     assert (out[0].second == Triple ());
@@ -386,7 +386,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.5, 0.5, 0.5);
     Triple axis_range (0.0, 0.5, 1.0);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 5);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple ());
@@ -403,7 +403,7 @@ main (int argc, char **argv)
   {
     Triple tent (0.0, 1.0, 1.0);
     Triple axis_range (-1.0, -0.5, 1.0);
-    result_t out = rebase_tent (tent, axis_range, default_axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, default_axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (1.0/3, 1.0, 1.0));
@@ -413,7 +413,7 @@ main (int argc, char **argv)
     Triple tent (0.0, 1.0, 1.0);
     Triple axis_range (-1.0, -0.5, 1.0);
     TripleDistances axis_distances{2.0, 1.0};
-    result_t out = rebase_tent (tent, axis_range, axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 1.0);
     assert (out[0].second == Triple (0.5, 1.0, 1.0));
@@ -423,7 +423,7 @@ main (int argc, char **argv)
     Triple tent (0.6, 0.7, 0.8);
     Triple axis_range (-1.0, 0.2, 1.0);
     TripleDistances axis_distances{1.0, 1.0};
-    result_t out = rebase_tent (tent, axis_range, axis_distances);
+    rebase_tent_result_t out = rebase_tent (tent, axis_range, axis_distances);
     assert (out.length == 1);
     assert (out[0].first == 1.0);
     assert (approx (out[0].second, Triple (0.5, 0.625, 0.75)));

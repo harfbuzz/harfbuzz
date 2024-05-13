@@ -11,7 +11,7 @@ TESTS = \
 	tests/colr.tests \
 	tests/colr_glyphs.tests \
 	tests/colrv1.tests \
-	tests/colrv1_copy_varstore.tests \
+	tests/colrv1_subset_varstore.tests \
 	tests/colr_with_components.tests \
 	tests/full-font.tests \
 	tests/glyf_bug_3131.tests \
@@ -63,9 +63,19 @@ TESTS = \
 	tests/post_apply_mvar_delta.tests \
 	tests/apply_cvar_delta.tests \
 	tests/collect_name_ids.tests \
-	tests/instantiate_colrv1.tests \
 	tests/instantiate_cff2_update_metrics.tests \
 	tests/layout.empty_ligature_offset.tests \
+	tests/instantiate_base.tests \
+	tests/instantiate_colrv1.tests \
+	tests/glyf_partial_instancing.tests \
+	tests/feature_variations_partial_instance.tests \
+	tests/update_def_wght.tests \
+	tests/mvar_partial_instance.tests \
+	tests/value_format_partial_instance.tests \
+	tests/gdef_partial_instance.tests \
+	tests/feature_variation_instance_collect_lookups.tests \
+	tests/sync_vmetrics.tests \
+	tests/empty_region_vardata.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.
