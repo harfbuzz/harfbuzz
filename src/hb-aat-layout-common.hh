@@ -937,7 +937,7 @@ struct StateTableDriver
 	    machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
   }
 
-  template <typename context_t, typename set_t = hb_set_digest_t>
+  template <typename context_t>
   void drive (context_t *c, hb_aat_apply_context_t *ac)
   {
     hb_buffer_t *buffer = ac->buffer;
