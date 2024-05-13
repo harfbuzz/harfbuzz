@@ -62,5 +62,5 @@ ragel = executable(
   meson.project_name(),
   ragel_sources,
   include_directories : ['aapl', 'ragel'],
-  install : true,
+  native : true,
 )
