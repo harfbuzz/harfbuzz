@@ -299,7 +299,7 @@ struct TupleVariationHeader
         start = hb_min (peak, 0.f);
         end = hb_max (peak, 0.f);
       }
-      axis_tuples.set (*axis_tag, Triple (start, peak, end));
+      axis_tuples.set (*axis_tag, Triple ((double) start, (double) peak, (double) end));
     }
 
     return true;
@@ -1000,9 +1000,13 @@ struct tuple_delta_t
         {
           i = next_index (i, start_point, end_point);
           if (i == next) break;
-          deltas_x.arrayZ[i] = infer_delta (orig_points.arrayZ[i].x, orig_points.arrayZ[prev].x, orig_points.arrayZ[next].x,
+          deltas_x.arrayZ[i] = infer_delta ((double) orig_points.arrayZ[i].x,
+                                            (double) orig_points.arrayZ[prev].x,
+                                            (double) orig_points.arrayZ[next].x,
                                             deltas_x.arrayZ[prev], deltas_x.arrayZ[next]);
-          deltas_y.arrayZ[i] = infer_delta (orig_points.arrayZ[i].y, orig_points.arrayZ[prev].y, orig_points.arrayZ[next].y,
+          deltas_y.arrayZ[i] = infer_delta ((double) orig_points.arrayZ[i].y,
+                                            (double) orig_points.arrayZ[prev].y,
+                                            (double) orig_points.arrayZ[next].y,
                                             deltas_y.arrayZ[prev], deltas_y.arrayZ[next]);
           inferred_idxes.add (i);
           if (--unref_count == 0) goto no_more_gaps;
