@@ -39,6 +39,7 @@ namespace AAT {
 
 using namespace OT;
 
+#define HB_AAT_BUFFER_DIGEST_THRESHOLD 32
 
 struct ankr;
 

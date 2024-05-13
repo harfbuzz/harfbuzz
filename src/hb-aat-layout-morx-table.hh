@@ -1374,7 +1374,7 @@ struct mortmorx
 
     c->buffer->unsafe_to_concat ();
 
-    if (c->buffer->len < 16)
+    if (c->buffer->len < HB_AAT_BUFFER_DIGEST_THRESHOLD)
       c->buffer_digest = c->buffer->digest ();
     else
       c->buffer_digest = hb_set_digest_t::full ();
