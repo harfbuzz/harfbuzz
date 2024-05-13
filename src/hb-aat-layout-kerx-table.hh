@@ -394,7 +394,7 @@ struct KerxSubTableFormat1
   StateTable<Types, EntryData>			machine;
   NNOffsetTo<UnsizedArrayOf<FWORD>, HBUINT>	kernAction;
   public:
-  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 5 * sizeof (HBUINT));
+  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + (StateTable<Types, EntryData>::static_size + HBUINT::static_size));
 };
 
 template <typename KernSubTableHeader>
@@ -662,7 +662,7 @@ struct KerxSubTableFormat4
   StateTable<Types, EntryData>	machine;
   HBUINT32			flags;
   public:
-  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 20);
+  DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + (StateTable<Types, EntryData>::static_size + HBUINT32::static_size));
 };
 
 template <typename KernSubTableHeader>

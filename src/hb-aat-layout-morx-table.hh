@@ -184,7 +184,7 @@ struct RearrangementSubtable
   public:
   StateTable<Types, EntryData>	machine;
   public:
-  DEFINE_SIZE_STATIC (16);
+  DEFINE_SIZE_STATIC ((StateTable<Types, EntryData>::static_size));
 };
 
 template <typename Types>
@@ -367,7 +367,7 @@ struct ContextualSubtable
   NNOffsetTo<UnsizedListOfOffset16To<Lookup<HBGlyphID16>, HBUINT, void, false>, HBUINT>
 		substitutionTables;
   public:
-  DEFINE_SIZE_STATIC (20);
+  DEFINE_SIZE_STATIC ((StateTable<Types, EntryData>::static_size + HBUINT::static_size));
 };
 
 
@@ -611,7 +611,7 @@ struct LigatureSubtable
   NNOffsetTo<UnsizedArrayOf<HBGlyphID16>, HBUINT>
 		ligature;	/* Offset to the actual ligature lists. */
   public:
-  DEFINE_SIZE_STATIC (28);
+  DEFINE_SIZE_STATIC ((StateTable<Types, EntryData>::static_size + 3 * HBUINT::static_size));
 };
 
 template <typename Types>
@@ -875,7 +875,7 @@ struct InsertionSubtable
 		insertionAction;	/* Byte offset from stateHeader to the start of
 					 * the insertion glyph table. */
   public:
-  DEFINE_SIZE_STATIC (20);
+  DEFINE_SIZE_STATIC ((StateTable<Types, EntryData>::static_size + HBUINT::static_size));
 };
 
 
