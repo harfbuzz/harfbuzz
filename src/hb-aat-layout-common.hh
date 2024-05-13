@@ -1005,7 +1005,7 @@ struct StateTableDriver
       const auto is_safe_to_break_extra = [&]()
       {
           /* 2c. */
-          const auto wouldbe_entry = machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass);
+          const auto &wouldbe_entry = machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass);
 
           /* 2c'. */
           if (c->is_actionable (buffer, this, wouldbe_entry))
