@@ -367,6 +367,12 @@ struct KerxSubTableFormat1
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->font->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (true);
@@ -635,6 +641,12 @@ struct KerxSubTableFormat4
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->font->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (true);
@@ -919,6 +931,9 @@ struct KerxTable
     {
       if (st->get_type () == 1)
 	return true;
+
+      // TODO: What about format 4? What's this API used for anyway?
+
       st = &StructAfter<SubTable> (*st);
     }
     return false;
@@ -961,6 +976,11 @@ struct KerxTable
 	      const kern_accelerator_data_t *accel_data = nullptr) const
   {
     c->buffer->unsafe_to_concat ();
+
+    if (c->buffer->len < 16)
+      c->buffer_digest = c->buffer->digest ();
+    else
+      c->buffer_digest = hb_set_digest_t::full ();
 
     typedef typename T::SubTable SubTable;
 
