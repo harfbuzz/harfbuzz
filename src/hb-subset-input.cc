@@ -537,7 +537,7 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
  *
  * Return value: `true` if success, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 8.5.0
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_set_axis_range (hb_subset_input_t  *input,
@@ -576,7 +576,7 @@ hb_subset_input_set_axis_range (hb_subset_input_t  *input,
  *
  * Return value: `true` if a range has been set for this axis tag, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 8.5.0
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_get_axis_range (hb_subset_input_t  *input,
