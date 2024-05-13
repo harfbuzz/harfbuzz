@@ -1009,7 +1009,7 @@ struct StateTableDriver
 
           /* 2c'. */
           if (c->is_actionable (buffer, this, wouldbe_entry))
-              return false;
+	    return false;
 
           /* 2c". */
           return next_state == machine.new_state(wouldbe_entry.newState)

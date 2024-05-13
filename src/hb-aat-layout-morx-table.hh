@@ -76,7 +76,7 @@ struct RearrangementSubtable
 
     bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
 			StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			const Entry<EntryData> &entry)
+			const Entry<EntryData> &entry) const
     {
       return (entry.flags & Verb) && start < end;
     }
@@ -226,7 +226,7 @@ struct ContextualSubtable
 
     bool is_actionable (hb_buffer_t *buffer,
 			StateTableDriver<Types, EntryData> *driver,
-			const Entry<EntryData> &entry)
+			const Entry<EntryData> &entry) const
     {
       if (buffer->idx == buffer->len && !mark_set)
 	return false;
@@ -466,7 +466,7 @@ struct LigatureSubtable
 
     bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
 			StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			const Entry<EntryData> &entry)
+			const Entry<EntryData> &entry) const
     {
       return LigatureEntryT::performAction (entry);
     }
@@ -757,7 +757,7 @@ struct InsertionSubtable
 
     bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
 			StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			const Entry<EntryData> &entry)
+			const Entry<EntryData> &entry) const
     {
       return (entry.flags & (CurrentInsertCount | MarkedInsertCount)) &&
 	     (entry.data.currentInsertIndex != 0xFFFF ||entry.data.markedInsertIndex != 0xFFFF);
