@@ -72,7 +72,7 @@ public:
   hb_map_t current_glyphs;
   hb_map_t current_layers;
   int depth_left = HB_MAX_NESTING_LEVEL;
-  int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
+  int edge_count = HB_MAX_GRAPH_EDGE_COUNT;
 
   hb_paint_context_t (const void *base_,
 		      hb_paint_funcs_t *funcs_,
@@ -2578,10 +2578,6 @@ struct COLR
       if (paint)
       {
         // COLRv1 glyph
-
-	ItemVarStoreInstancer instancer (&(this+varStore),
-				     &(this+varIdxMap),
-				     hb_array (font->coords, font->num_coords));
 
 	bool is_bounded = true;
 	if (clip)

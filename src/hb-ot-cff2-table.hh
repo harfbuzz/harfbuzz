@@ -40,8 +40,6 @@ namespace CFF {
  */
 #define HB_OT_TAG_CFF2 HB_TAG('C','F','F','2')
 
-typedef CFFIndex<HBUINT32>  CFF2Index;
-
 typedef CFF2Index         CFF2CharStrings;
 typedef Subrs<HBUINT32>   CFF2Subrs;
 
@@ -521,6 +519,7 @@ struct cff2
 				  hb_glyph_extents_t *extents) const;
     HB_INTERNAL bool paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, hb_color_t foreground) const;
     HB_INTERNAL bool get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session) const;
+    HB_INTERNAL bool get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session, hb_array_t<const int> coords) const;
   };
 
   struct accelerator_subset_t : accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t>

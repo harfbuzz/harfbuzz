@@ -808,18 +808,6 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 				  operation_count,
 				  depth);
 
-#ifndef HB_NO_VAR_COMPOSITES
-  for (auto &item : glyph.get_var_composite_iterator ())
-   {
-    operation_count =
-      _glyf_add_gid_and_children (glyf,
-				  item.get_gid (),
-				  gids_to_retain,
-				  operation_count,
-				  depth);
-   }
-#endif
-
   return operation_count;
 }
 
@@ -915,6 +903,8 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   }
 
   plan->_glyphset_colred = cur_glyphset;
+
+  // XXX TODO VARC closure / subset
 
   _nameid_closure (plan, drop_tables);
   /* Populate a full set of glyphs to retain by adding all referenced

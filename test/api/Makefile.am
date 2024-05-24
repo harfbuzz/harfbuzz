@@ -43,6 +43,7 @@ TEST_PROGS = \
 	test-cplusplus \
 	test-common \
 	test-draw \
+	test-draw-varc \
 	test-extents \
 	test-font \
 	test-font-scale \
