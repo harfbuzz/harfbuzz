@@ -458,6 +458,7 @@ struct cff2
 	if (unlikely (!font_interp.interpret (*font))) goto fail;
 
 	const hb_ubytes_t privDictStr = StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset, sc, font->privateDictInfo.size).as_ubytes (font->privateDictInfo.size);
+	if (unlikely (privDictStr == (const unsigned char *) &Null (UnsizedByteStr))) goto fail;
 	cff2_priv_dict_interp_env_t env2 (privDictStr);
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL, cff2_priv_dict_interp_env_t> priv_interp (env2);
 	privateDicts[i].init ();
