@@ -140,7 +140,7 @@ struct hb_transform_t
 
   void translate (float x, float y)
   {
-    if (x == 0.f and y == 0.f)
+    if (x == 0.f && y == 0.f)
       return;
 
     x0 += xx * x + xy * y;
