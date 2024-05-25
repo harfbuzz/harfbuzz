@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(harfbuzz)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 message(WARN "HarfBuzz has a Meson port and tries to migrate all the other build systems to it, please consider using it as we might remove our cmake port soon.")
 
