@@ -4,7 +4,7 @@ project('harfbuzz', 'c', 'cpp',
   default_options: [
     'cpp_eh=none',          # Just to support msvc, we are passing -fno-exceptions also anyway
     # 'cpp_rtti=false',     # Do NOT enable, wraps inherit it and ICU needs RTTI
-    'cpp_std=c++11',
+    'cpp_std=c++17',
     'wrap_mode=nofallback', # Use --wrap-mode=default to revert, https://github.com/harfbuzz/harfbuzz/pull/2548
   ],
 )
@@ -28,18 +28,6 @@ hb_libtool_version_info = '@0@:0:@0@'.format(hb_version_int)
 pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
 null_dep = dependency('', required: false)
-
-# Only perform these checks if cpp_std is c++11 as setting -std directly
-# produces a warning from meson.
-if get_option('cpp_std') == 'c++11'
-  # Enforce C++14 requirement for MSVC STL
-  if cpp.get_id() == 'clang' and cpp.get_define('_MSC_FULL_VER') != ''
-    add_project_arguments('-std=c++14', language: 'cpp')
-  elif cpp.get_id() == 'clang-cl'
-    # Clang-cl produces a warning when using -std=c++14, but not when using /std:c++14
-    add_project_arguments('/std:c++14', language : 'cpp')
-  endif
-endif
 
 if cpp.get_argument_syntax() == 'msvc'
   # Ignore several spurious warnings for things HarfBuzz does very commonly.
