@@ -174,6 +174,10 @@ else
   endif
 endif
 
+if icu_dep.found() and icu_dep.version().version_compare('>=75.1') and (get_option('cpp_std') == 'c++11' or get_option('cpp_std') == 'c++14')
+  add_project_arguments('-std=c++17', language: 'cpp')
+endif
+
 if icu_dep.found() and icu_dep.type_name() == 'pkgconfig'
   icu_defs = icu_dep.get_variable(pkgconfig: 'DEFS', default_value: '').split()
   if icu_defs.length() > 0
