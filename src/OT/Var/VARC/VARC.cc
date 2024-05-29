@@ -219,7 +219,7 @@ VarComponent::get_path_at (hb_font_t *font,
    * limit on the max number of coords for now. */
   if ((flags & (unsigned) flags_t::RESET_UNSPECIFIED_AXES) ||
       coords.length > HB_VAR_COMPOSITE_MAX_AXES)
-    component_coords = hb_array<int> ();
+    component_coords = hb_array<int> (font->coords, font->num_coords);
 
   // Transform
 
