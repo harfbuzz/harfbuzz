@@ -124,7 +124,7 @@ struct VARC
       return true;
     (*edges_left)--;
 
-    if (visited->has (glyph))
+    if (visited->has (glyph) || visited->in_error ())
       return true;
     visited->add (glyph);
 
