@@ -146,6 +146,7 @@ close_path (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
 
 static hb_draw_funcs_t *funcs;
 
+#ifdef HB_EXPERIMENTAL_API
 static void
 test_hb_draw_varc_simple_hangul (void)
 {
@@ -242,6 +243,7 @@ test_hb_draw_varc_conditional (void)
 
   hb_font_destroy (font);
 }
+#endif
 
 int
 main (int argc, char **argv)
