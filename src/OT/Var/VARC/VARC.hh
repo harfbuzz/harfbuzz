@@ -168,6 +168,7 @@ struct VARC
 		  version.major == 1 &&
 		  coverage.sanitize (c, this) &&
 		  varStore.sanitize (c, this) &&
+		  conditionList.sanitize (c, this) &&
 		  axisIndicesList.sanitize (c, this) &&
 		  glyphRecords.sanitize (c, this));
   }

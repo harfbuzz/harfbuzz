@@ -4188,7 +4188,16 @@ struct ConditionList
   const Condition& operator[] (unsigned i) const
   { return this+conditions[i]; }
 
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, this));
+  }
+
+  protected:
   Array32OfOffset32To<Condition> conditions;
+  public:
+  DEFINE_SIZE_ARRAY (4, conditions);
 };
 
 struct ConditionSet
