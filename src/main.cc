@@ -513,7 +513,8 @@ main (int argc, char **argv)
 {
   if (argc != 2)
   {
-    fprintf (stderr, "usage: %s font-file.ttf\n", argv[0]);
+    fprintf (stderr, "usage: %s font-file.ttf\n\n"
+		     "This tools is unsupported and crashes on bad data.\nDon't use it.\n", argv[0]);
     exit (1);
   }
 
