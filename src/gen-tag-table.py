@@ -709,7 +709,6 @@ ot.add_language ('und-fonipa', 'IPPH')
 
 ot.add_language ('und-fonnapa', 'APPH')
 
-ot.remove_language_ot ('IRT')
 ot.add_language ('ga-Latg', 'IRT')
 
 ot.add_language ('hy-arevmda', 'HYE')
@@ -1180,7 +1179,11 @@ def verify_disambiguation_dict ():
 			if len (macrolanguages) != 1:
 				macrolanguages = list (t for t in primary_tags if 'retired code' not in bcp_47.scopes.get (t, ''))
 			if len (macrolanguages) != 1:
-				expect (ot_tag in disambiguation, 'ambiguous OT tag: %s %s' % (ot_tag, str (macrolanguages)))
+				macrolanguages = list (t for t in primary_tags if t.lower () == ISO_639_3_TO_1.get (ot_tag.lower (), ot_tag.lower ()))
+			if len (macrolanguages) != 1:
+				macrolanguages = list (t for t in primary_tags if '-' not in t)
+			if len (macrolanguages) != 1:
+				expect (ot_tag in disambiguation, 'ambiguous OT tag: %s %s' % (ot_tag, sorted (primary_tags)))
 				expect (disambiguation[ot_tag] in bcp_47_tags,
 						'%s is not a valid disambiguation for %s' % (disambiguation[ot_tag], ot_tag))
 			elif ot_tag not in disambiguation:

@@ -419,7 +419,8 @@ test_ot_tag_language (void)
   test_language_two_way ("KGE", "und-Geok");
 
   /* Irish Traditional */
-  test_language_two_way ("IRT", "ga-Latg");
+  test_tag_from_language ("IRT", "ga-Latg");
+  test_language_two_way ("IRT", "ghc");
 
   /* Moldavian */
   test_language_two_way ("MOL", "ro-MD");
