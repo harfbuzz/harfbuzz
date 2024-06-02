@@ -98,48 +98,48 @@ test_itoa (void)
 }
 
 static void
-move_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	 hb_draw_state_t *st,
-	 float to_x, float to_y,
-	 void *user_data)
+move_to (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	 HB_UNUSED hb_draw_state_t *st,
+	 HB_UNUSED float to_x, HB_UNUSED float to_y,
+	 HB_UNUSED void *user_data)
 {
   draw_data->move_to_count++;
 }
 
 static void
-line_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	 hb_draw_state_t *st,
-	 float to_x, float to_y,
-	 void *user_data)
+line_to (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	 HB_UNUSED hb_draw_state_t *st,
+	 HB_UNUSED float to_x, HB_UNUSED float to_y,
+	 HB_UNUSED void *user_data)
 {
   draw_data->line_to_count++;
 }
 
 static void
-quadratic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	      hb_draw_state_t *st,
-	      float control_x, float control_y,
-	      float to_x, float to_y,
-	      void *user_data)
+quadratic_to (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	      HB_UNUSED hb_draw_state_t *st,
+	      HB_UNUSED float control_x, HB_UNUSED float control_y,
+	      HB_UNUSED float to_x, HB_UNUSED float to_y,
+	      HB_UNUSED void *user_data)
 {
   draw_data->quad_to_count++;
 }
 
 static void
-cubic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	  hb_draw_state_t *st,
-	  float control1_x, float control1_y,
-	  float control2_x, float control2_y,
-	  float to_x, float to_y,
-	  void *user_data)
+cubic_to (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	  HB_UNUSED hb_draw_state_t *st,
+	  HB_UNUSED float control1_x, HB_UNUSED float control1_y,
+	  HB_UNUSED float control2_x, HB_UNUSED float control2_y,
+	  HB_UNUSED float to_x, HB_UNUSED float to_y,
+	  HB_UNUSED void *user_data)
 {
   draw_data->cubic_to_count++;
 }
 
 static void
-close_path (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	    hb_draw_state_t *st,
-	    void *user_data)
+close_path (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	    HB_UNUSED hb_draw_state_t *st,
+	    HB_UNUSED void *user_data)
 {
   draw_data->close_path_count++;
 }

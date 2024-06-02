@@ -99,10 +99,10 @@ test_itoa (void)
 }
 
 static void
-move_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	 hb_draw_state_t *st,
+move_to (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	 HB_UNUSED hb_draw_state_t *st,
 	 float to_x, float to_y,
-	 void *user_data)
+	 HB_UNUSED void *user_data)
 {
   /* 4 = command character space + comma + array starts with 0 index + nul character space */
   if (draw_data->consumed + 2 * ITOA_BUF_SIZE + 4 > draw_data->size) return;
@@ -113,10 +113,10 @@ move_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
 }
 
 static void
-line_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	 hb_draw_state_t *st,
+line_to (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	 HB_UNUSED hb_draw_state_t *st,
 	 float to_x, float to_y,
-	 void *user_data)
+	 HB_UNUSED void *user_data)
 {
   if (draw_data->consumed + 2 * ITOA_BUF_SIZE + 4 > draw_data->size) return;
   draw_data->str[draw_data->consumed++] = 'L';
@@ -126,11 +126,11 @@ line_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
 }
 
 static void
-quadratic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	      hb_draw_state_t *st,
+quadratic_to (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	      HB_UNUSED hb_draw_state_t *st,
 	      float control_x, float control_y,
 	      float to_x, float to_y,
-	      void *user_data)
+	      HB_UNUSED void *user_data)
 {
 
   if (draw_data->consumed + 4 * ITOA_BUF_SIZE + 6 > draw_data->size) return;
@@ -145,12 +145,12 @@ quadratic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
 }
 
 static void
-cubic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	  hb_draw_state_t *st,
+cubic_to (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	  HB_UNUSED hb_draw_state_t *st,
 	  float control1_x, float control1_y,
 	  float control2_x, float control2_y,
 	  float to_x, float to_y,
-	  void *user_data)
+	  HB_UNUSED void *user_data)
 {
   if (draw_data->consumed + 6 * ITOA_BUF_SIZE + 8 > draw_data->size) return;
   draw_data->str[draw_data->consumed++] = 'C';
@@ -168,9 +168,9 @@ cubic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
 }
 
 static void
-close_path (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
-	    hb_draw_state_t *st,
-	    void *user_data)
+close_path (HB_UNUSED hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	    HB_UNUSED hb_draw_state_t *st,
+	    HB_UNUSED void *user_data)
 {
   if (draw_data->consumed + 2 > draw_data->size) return;
   draw_data->str[draw_data->consumed++] = 'Z';
