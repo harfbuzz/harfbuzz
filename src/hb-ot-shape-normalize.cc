@@ -290,15 +290,14 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       mode = HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
   }
 
-  const hb_ot_shape_normalize_context_t c = {
+  hb_ot_shape_normalize_context_t c = {
     plan,
     buffer,
     font,
     buffer->unicode,
     buffer->not_found,
-    plan->shaper->decompose ? plan->shaper->decompose : hb_ot_shape_normalize_context_t::decompose_unicode,
-    plan->shaper->compose   ? plan->shaper->compose   : hb_ot_shape_normalize_context_t::compose_unicode
   };
+  c.override_decompose_and_compose (plan->shaper->decompose, plan->shaper->compose);
 
   bool always_short_circuit = mode == HB_OT_SHAPE_NORMALIZATION_MODE_NONE;
   bool might_short_circuit = always_short_circuit ||

@@ -71,6 +71,20 @@ struct hb_ot_shape_normalize_context_t
     return (bool) c->unicode->compose (a, b, ab);
   }
 
+  void
+  override_decompose_and_compose (bool (*decompose) (const hb_ot_shape_normalize_context_t *c,
+						      hb_codepoint_t  ab,
+						      hb_codepoint_t *a,
+						      hb_codepoint_t *b),
+				  bool (*compose) (const hb_ot_shape_normalize_context_t *c,
+						   hb_codepoint_t  a,
+						   hb_codepoint_t  b,
+						   hb_codepoint_t *ab))
+  {
+    this->decompose = decompose ? decompose : decompose_unicode;
+    this->compose = compose ? compose : compose_unicode;
+  }
+
   const hb_ot_shape_plan_t *plan;
   hb_buffer_t *buffer;
   hb_font_t *font;
