@@ -74,23 +74,6 @@
  *     Indic shaper may want to disallow recomposing of two matras.
  */
 
-static bool
-decompose_unicode (const hb_ot_shape_normalize_context_t *c,
-		   hb_codepoint_t  ab,
-		   hb_codepoint_t *a,
-		   hb_codepoint_t *b)
-{
-  return (bool) c->unicode->decompose (ab, a, b);
-}
-
-static bool
-compose_unicode (const hb_ot_shape_normalize_context_t *c,
-		 hb_codepoint_t  a,
-		 hb_codepoint_t  b,
-		 hb_codepoint_t *ab)
-{
-  return (bool) c->unicode->compose (a, b, ab);
-}
 
 static inline void
 set_glyph (hb_glyph_info_t &info, hb_font_t *font)
@@ -313,8 +296,8 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
     font,
     buffer->unicode,
     buffer->not_found,
-    plan->shaper->decompose ? plan->shaper->decompose : decompose_unicode,
-    plan->shaper->compose   ? plan->shaper->compose   : compose_unicode
+    plan->shaper->decompose ? plan->shaper->decompose : hb_ot_shape_normalize_context_t::decompose_unicode,
+    plan->shaper->compose   ? plan->shaper->compose   : hb_ot_shape_normalize_context_t::compose_unicode
   };
 
   bool always_short_circuit = mode == HB_OT_SHAPE_NORMALIZATION_MODE_NONE;

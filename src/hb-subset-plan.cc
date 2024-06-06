@@ -531,7 +531,7 @@ _remap_colrv1_delta_set_index_indices (const OT::DeltaSetIndexMap &index_map,
     unsigned var_idx = index_map.map (delta_set_idx);
     unsigned new_varidx = HB_OT_LAYOUT_NO_VARIATIONS_INDEX;
     int delta = 0;
-    
+
     if (var_idx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
     {
       hb_pair_t<unsigned, int> *new_varidx_delta;
