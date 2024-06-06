@@ -638,6 +638,26 @@ _remove_invalid_gids (hb_set_t *glyphs,
   glyphs->del_range (num_glyphs, HB_SET_VALUE_INVALID);
 }
 
+template<bool GID_ALWAYS_EXISTS = false, typename I, typename F, hb_requires (hb_is_iterator (I))>
+static void
+_fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
+                            I unicode_iterator,
+                            F unicode_to_gid)
+{
+  for (hb_codepoint_t cp : unicode_iterator)
+  {
+    hb_codepoint_t gid = unicode_to_gid(cp);
+    if (!GID_ALWAYS_EXISTS && gid == HB_MAP_VALUE_INVALID)
+    {
+      DEBUG_MSG(SUBSET, nullptr, "Drop U+%04X; no gid", cp);
+      continue;
+    }
+
+    plan->codepoint_to_glyph->set (cp, gid);
+    plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
+  }
+}
+
 static void
 _populate_unicodes_to_retain (const hb_set_t *unicodes,
                               const hb_set_t *glyphs,
@@ -657,35 +677,21 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     // not excessively large (eg. an inverted set).
     plan->unicode_to_new_gid_list.alloc (unicodes->get_population ());
     if (!unicode_to_gid) {
-      for (hb_codepoint_t cp : *unicodes)
-      {
+      _fill_unicode_and_glyph_map(plan, unicodes->iter(), [&] (hb_codepoint_t cp) {
         hb_codepoint_t gid;
-        if (!cmap.get_nominal_glyph (cp, &gid))
-        {
-          DEBUG_MSG(SUBSET, nullptr, "Drop U+%04X; no gid", cp);
-          continue;
+        if (!cmap.get_nominal_glyph (cp, &gid)) {
+          return HB_MAP_VALUE_INVALID;
         }
-
-        plan->codepoint_to_glyph->set (cp, gid);
-        plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
-      }
+        return gid;
+      });
     } else {
       // Use in memory unicode to gid map it's faster then looking up from
       // the map. This code is mostly duplicated from above to avoid doing
       // conditionals on the presence of the unicode_to_gid map each
       // iteration.
-      for (hb_codepoint_t cp : *unicodes)
-      {
-        hb_codepoint_t gid = unicode_to_gid->get (cp);
-        if (gid == HB_MAP_VALUE_INVALID)
-        {
-          DEBUG_MSG(SUBSET, nullptr, "Drop U+%04X; no gid", cp);
-          continue;
-        }
-
-        plan->codepoint_to_glyph->set (cp, gid);
-        plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
-      }
+      _fill_unicode_and_glyph_map(plan, unicodes->iter(), [&] (hb_codepoint_t cp) {
+        return unicode_to_gid->get (cp);
+      });
     }
   }
   else
@@ -718,26 +724,19 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
       for (hb_codepoint_t gid : *glyphs)
       {
         auto unicodes = gid_to_unicodes.get (gid);
-
-	for (hb_codepoint_t cp : unicodes)
-	{
-	  plan->codepoint_to_glyph->set (cp, gid);
-	  plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
-	}
+        _fill_unicode_and_glyph_map<true>(plan, unicodes, [&] (hb_codepoint_t cp) {
+          return gid;
+        });
       }
-      for (hb_codepoint_t cp : *unicodes)
-      {
-	/* Don't double-add entry. */
+
+      _fill_unicode_and_glyph_map(plan, unicodes->iter(), [&] (hb_codepoint_t cp) {
+          /* Don't double-add entry. */
 	if (plan->codepoint_to_glyph->has (cp))
-	  continue;
+          return HB_MAP_VALUE_INVALID;
 
-        hb_codepoint_t *gid;
-        if (!unicode_glyphid_map->has(cp, &gid))
-          continue;
+        return unicode_glyphid_map->get(cp);
+      });
 
-	plan->codepoint_to_glyph->set (cp, *gid);
-	plan->unicode_to_new_gid_list.push (hb_pair (cp, *gid));
-      }
       plan->unicode_to_new_gid_list.qsort ();
     }
     else
@@ -746,15 +745,12 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
       hb_codepoint_t first = HB_SET_VALUE_INVALID, last = HB_SET_VALUE_INVALID;
       for (; cmap_unicodes->next_range (&first, &last); )
       {
-        for (unsigned cp = first; cp <= last; cp++)
-	{
-	  hb_codepoint_t gid = (*unicode_glyphid_map)[cp];
+        _fill_unicode_and_glyph_map(plan, hb_range(first, last + 1), [&] (hb_codepoint_t cp) {
+          hb_codepoint_t gid = (*unicode_glyphid_map)[cp];
 	  if (!unicodes->has (cp) && !glyphs->has (gid))
-	    continue;
-
-	  plan->codepoint_to_glyph->set (cp, gid);
-	  plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
-	}
+	    return HB_MAP_VALUE_INVALID;
+          return gid;
+        });
       }
     }
 
