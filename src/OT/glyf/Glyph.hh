@@ -503,7 +503,7 @@ struct Glyph
       /* Undocumented rasterizer behavior:
        * Shift points horizontally by the updated left side bearing
        */
-      int v = -phantoms[PHANTOM_LEFT].x;
+      float v = -phantoms[PHANTOM_LEFT].x;
       if (v)
         for (auto &point : all_points)
 	  point.x += v;
