@@ -26,6 +26,8 @@
 
 #include "hb-subset-plan.hh"
 #include "hb-subset-accelerator.hh"
+#include "hb-ot-shape-normalize.hh"
+#include "hb-ot-shaper.hh"
 #include "hb-map.hh"
 #include "hb-multimap.hh"
 #include "hb-set.hh"
@@ -506,6 +508,66 @@ _collect_base_variation_indices (hb_subset_plan_t* plan)
 #endif
 #endif
 
+static void
+_recurse_unicode_closure (hb_ot_shape_normalize_context_t *c,
+			  hb_codepoint_t cp,
+			  hb_set_t &unicodes)
+{
+  hb_codepoint_t a, b;
+  if (c->decompose (c, cp, &a, &b))
+  {
+    if (!unicodes.has (a))
+    {
+      unicodes.add (a);
+      _recurse_unicode_closure (c, a, unicodes);
+    }
+
+    if (b && !unicodes.has (b))
+    {
+      unicodes.add (b);
+      _recurse_unicode_closure (c, b, unicodes);
+    }
+  }
+}
+
+static inline void
+_unicode_closure (hb_set_t &unicodes)
+{
+  hb_unicode_funcs_t *ufuncs = hb_unicode_funcs_get_default ();
+
+  hb_script_t last_script = HB_SCRIPT_INVALID;
+  hb_direction_t direction = HB_DIRECTION_INVALID;
+  const hb_tag_t gsub_script = HB_TAG_NONE;
+  const hb_ot_shaper_t *shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script);
+
+  hb_ot_shape_normalization_mode_t mode = shaper->normalization_preference;
+  hb_ot_shape_normalize_context_t c = {
+    nullptr, // plan
+    nullptr, // buffer
+    nullptr, // font
+    ufuncs,
+    0 // not_found
+  };
+  c.override_decompose_and_compose (shaper->decompose, shaper->compose);
+
+
+  for (hb_codepoint_t cp : unicodes)
+  {
+    hb_script_t script = hb_unicode_script (ufuncs, cp);
+    if (script != last_script)
+    {
+      last_script = script;
+      direction = hb_script_get_horizontal_direction (script);
+      shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script);
+      mode = shaper->normalization_preference;
+      c.override_decompose_and_compose (shaper->decompose, shaper->compose);
+    }
+
+    if (mode != HB_OT_SHAPE_NORMALIZATION_MODE_AUTO)
+      _recurse_unicode_closure (&c, cp, unicodes);
+  }
+}
+
 static inline void
 _cmap_closure (hb_face_t	   *face,
 	       const hb_set_t	   *unicodes,
@@ -673,10 +735,15 @@ _fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
 }
 
 static void
-_populate_unicodes_to_retain (const hb_set_t *unicodes,
+_populate_unicodes_to_retain (const hb_set_t *unicodes_input,
                               const hb_set_t *glyphs,
                               hb_subset_plan_t *plan)
 {
+  hb_set_t unicodes_stack (*unicodes_input);
+  hb_set_t *unicodes = &unicodes_stack;
+
+  _unicode_closure (*unicodes);
+
   OT::cmap::accelerator_t cmap (plan->source);
   unsigned size_threshold = plan->source->get_num_glyphs ();
   if (glyphs->is_empty () && unicodes->get_population () < size_threshold)
