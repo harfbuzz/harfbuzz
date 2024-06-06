@@ -247,7 +247,7 @@ VarComponent::get_path_at (hb_font_t *font,
 	if (flags & (unsigned) flags_t::flag) \
 	{ \
 	  static_assert (type::static_size == HBINT16::static_size, ""); \
-	  if (unlikely (end - record < HBINT16::static_size)) \
+	  if (unlikely (unsigned (end - record) < HBINT16::static_size)) \
 	    return hb_ubytes_t (); \
 	  hb_barrier (); \
 	  transform.name = * (const HBINT16 *) record; \
