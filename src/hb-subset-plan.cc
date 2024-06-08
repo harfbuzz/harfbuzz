@@ -508,30 +508,44 @@ _collect_base_variation_indices (hb_subset_plan_t* plan)
 #endif
 #endif
 
+template <typename F>
 static void
 _recurse_unicode_closure (hb_ot_shape_normalize_context_t *c,
 			  hb_codepoint_t cp,
-			  hb_set_t &unicodes)
+			  hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &arr,
+			  hb_map_t &unicode_to_glyph_map,
+			  F unicode_to_glyph_mapper)
 {
   hb_codepoint_t a, b;
   if (c->decompose (c, cp, &a, &b))
   {
-    if (!unicodes.has (a))
+    hb_codepoint_t gid_a = unicode_to_glyph_mapper (a);
+    hb_codepoint_t gid_b = unicode_to_glyph_mapper (b);
+    if (gid_a == HB_MAP_VALUE_INVALID || gid_b == HB_MAP_VALUE_INVALID)
+      return;
+
+    if (!unicode_to_glyph_map.has (a))
     {
-      unicodes.add (a);
-      _recurse_unicode_closure (c, a, unicodes);
+      unicode_to_glyph_map.set (a, gid_a);
+      arr.push (hb_pair (a, gid_a));
+      _recurse_unicode_closure (c, a, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
     }
 
-    if (b && !unicodes.has (b))
+    if (b && !unicode_to_glyph_map.has (b))
     {
-      unicodes.add (b);
-      _recurse_unicode_closure (c, b, unicodes);
+      unicode_to_glyph_map.set (b, gid_b);
+      arr.push (hb_pair (b, gid_b));
+      _recurse_unicode_closure (c, b, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
     }
   }
 }
 
+template <typename F>
 static inline void
-_unicode_closure (hb_set_t &unicodes)
+_unicode_closure (hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &arr,
+		  unsigned start,
+		  hb_map_t &unicode_to_glyph_map,
+		  F unicode_to_glyph_mapper)
 {
   hb_unicode_funcs_t *ufuncs = hb_unicode_funcs_get_default ();
 
@@ -550,9 +564,11 @@ _unicode_closure (hb_set_t &unicodes)
   };
   c.override_decompose_and_compose (shaper->decompose, shaper->compose);
 
+  unsigned end = arr.length;
 
-  for (hb_codepoint_t cp : unicodes)
+  for (unsigned i = start; i < end; i++)
   {
+    hb_codepoint_t cp = arr.arrayZ[i].first;
     hb_script_t script = hb_unicode_script (ufuncs, cp);
     if (script != last_script)
     {
@@ -564,7 +580,7 @@ _unicode_closure (hb_set_t &unicodes)
     }
 
     if (mode != HB_OT_SHAPE_NORMALIZATION_MODE_AUTO)
-      _recurse_unicode_closure (&c, cp, unicodes);
+      _recurse_unicode_closure (&c, cp, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
   }
 }
 
@@ -711,6 +727,8 @@ _fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
                             F unicode_to_gid_for_iterator,
                             G unicode_to_gid_general)
 {
+  unsigned start = plan->unicode_to_new_gid_list.length;
+
   for (hb_codepoint_t cp : unicode_iterator)
   {
     hb_codepoint_t gid = unicode_to_gid_for_iterator(cp);
@@ -723,6 +741,11 @@ _fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
     plan->codepoint_to_glyph->set (cp, gid);
     plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
   }
+
+  _unicode_closure (plan->unicode_to_new_gid_list,
+		    start,
+		    *plan->codepoint_to_glyph,
+		    unicode_to_gid_general);
 }
 
 template<bool GID_ALWAYS_EXISTS = false, typename I, typename F, hb_requires (hb_is_iterator (I))>
@@ -735,15 +758,10 @@ _fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
 }
 
 static void
-_populate_unicodes_to_retain (const hb_set_t *unicodes_input,
+_populate_unicodes_to_retain (const hb_set_t *unicodes,
                               const hb_set_t *glyphs,
                               hb_subset_plan_t *plan)
 {
-  hb_set_t unicodes_stack (*unicodes_input);
-  hb_set_t *unicodes = &unicodes_stack;
-
-  _unicode_closure (*unicodes);
-
   OT::cmap::accelerator_t cmap (plan->source);
   unsigned size_threshold = plan->source->get_num_glyphs ();
   if (glyphs->is_empty () && unicodes->get_population () < size_threshold)
@@ -859,8 +877,10 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes_input,
   }
 
   auto &arr = plan->unicode_to_new_gid_list;
+
   if (arr.length)
   {
+    arr.qsort (); // Decompositions are added in non-sorted order
     plan->unicodes.add_sorted_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
     plan->_glyphset_gsub.add_array (&arr.arrayZ->second, arr.length, sizeof (*arr.arrayZ));
   }
