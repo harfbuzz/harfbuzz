@@ -148,7 +148,7 @@ VarComponent::get_path_at (hb_font_t *font,
 
 #define READ_UINT32VAR(name) \
   HB_STMT_START { \
-    if (unlikely (end - record < HBUINT32VAR::min_size)) return hb_ubytes_t (); \
+    if (unlikely (unsigned (end - record) < HBUINT32VAR::min_size)) return hb_ubytes_t (); \
     hb_barrier (); \
     auto &varint = * (const HBUINT32VAR *) record; \
     unsigned size = varint.get_size (); \
