@@ -821,7 +821,7 @@ struct info_t :
     {
       hb_codepoint_t gid = hb_map_get (cmap, u);
 
-      char glyphname[64];
+      char glyphname[128];
       hb_font_glyph_to_string (font, gid,
 			       glyphname, sizeof glyphname);
 
@@ -849,7 +849,7 @@ struct info_t :
 	HB_UNUSED bool b = hb_font_get_variation_glyph (font, u, vs, &gid);
 	assert (b);
 
-	char glyphname[64];
+	char glyphname[128];
 	hb_font_glyph_to_string (font, gid,
 				 glyphname, sizeof glyphname);
 
@@ -875,7 +875,7 @@ struct info_t :
 
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
     {
-      char glyphname[64];
+      char glyphname[128];
       hb_font_glyph_to_string (font, gid,
 			       glyphname, sizeof glyphname);
 
@@ -1000,7 +1000,7 @@ struct info_t :
 					     nullptr,
 					     nullptr);
 
-	  char name[64];
+	  char name[128];
 	  unsigned name_len = sizeof name;
 
 	  _hb_ot_name_get_utf8 (face, label_id,
@@ -1118,7 +1118,7 @@ struct info_t :
 					     nullptr,
 					     nullptr);
 
-	  char name[64];
+	  char name[128];
 	  unsigned name_len = sizeof name;
 
 	  _hb_ot_name_get_utf8 (face, label_id,
@@ -1175,7 +1175,7 @@ struct info_t :
       if (axis.flags & HB_OT_VAR_AXIS_FLAG_HIDDEN)
 	has_hidden = true;
 
-      char name[64];
+      char name[128];
       unsigned name_len = sizeof name;
 
       _hb_ot_name_get_utf8 (face, axis.name_id,
@@ -1207,7 +1207,7 @@ struct info_t :
 
       for (unsigned i = 0; i < count; i++)
       {
-	char name[64];
+	char name[128];
 	unsigned name_len = sizeof name;
 
 	hb_ot_name_id_t name_id = hb_ot_var_named_instance_get_subfamily_name_id (face, i);
@@ -1327,7 +1327,7 @@ struct info_t :
 	hb_ot_name_id_t name_id = hb_ot_color_palette_get_name_id (face, i);
 	hb_ot_color_palette_flags_t flags = hb_ot_color_palette_get_flags (face, i);
 
-	char name[64];
+	char name[128];
 	unsigned name_len = sizeof name;
 
 	_hb_ot_name_get_utf8 (face, name_id,
@@ -1375,7 +1375,7 @@ struct info_t :
       {
 	hb_ot_name_id_t name_id = hb_ot_color_palette_color_get_name_id (face, i);
 
-	char name[64];
+	char name[128];
 	unsigned name_len = sizeof name;
 	_hb_ot_name_get_utf8 (face, name_id,
 			      language,
