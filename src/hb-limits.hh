@@ -97,7 +97,7 @@
 #endif
 
 #ifndef HB_GLYF_MAX_POINTS
-#define HB_GLYF_MAX_POINTS 20000
+#define HB_GLYF_MAX_POINTS 200000
 #endif
 
 #ifndef HB_CFF_MAX_OPS
