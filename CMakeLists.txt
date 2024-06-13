@@ -3,6 +3,9 @@ project(harfbuzz)
 
 message(WARN "HarfBuzz has a Meson port and tries to migrate all the other build systems to it, please consider using it as we might remove our cmake port soon.")
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 ## Limit framework build to Xcode generator
 if (BUILD_FRAMEWORK)
   # for a framework build on macOS, use:
@@ -263,20 +266,15 @@ endif ()
 if (HB_HAVE_ICU)
   add_definitions(-DHAVE_ICU)
 
-  # https://github.com/WebKit/webkit/blob/fdd7733f2f30eab7fe096a9791f98c60f62f49c0/Source/cmake/FindICU.cmake
-  find_package(PkgConfig)
-  pkg_check_modules(PC_ICU QUIET icu-uc)
+  find_package(ICU REQUIRED COMPONENTS uc)
 
-  find_path(ICU_INCLUDE_DIR NAMES unicode/utypes.h HINTS ${PC_ICU_INCLUDE_DIRS} ${PC_ICU_INCLUDEDIR})
-  find_library(ICU_LIBRARY NAMES libicuuc cygicuuc cygicuuc32 icuuc HINTS ${PC_ICU_LIBRARY_DIRS} ${PC_ICU_LIBDIR})
-
-  include_directories(${ICU_INCLUDE_DIR})
+  if (ICU_VERSION VERSION_GREATER_EQUAL 75.1)
+    set(CMAKE_CXX_STANDARD 17)
+  endif ()
 
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-icu.h)
 
-  list(APPEND THIRD_PARTY_LIBS ${ICU_LIBRARY})
-
-  mark_as_advanced(ICU_INCLUDE_DIR ICU_LIBRARY)
+  list(APPEND THIRD_PARTY_LIBS ICU::uc)
 endif ()
 
 if (APPLE AND HB_HAVE_CORETEXT)
