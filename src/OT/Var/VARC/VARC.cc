@@ -165,7 +165,7 @@ VarComponent::get_path_at (hb_font_t *font,
   hb_codepoint_t gid = 0;
   if (flags & (unsigned) flags_t::GID_IS_24BIT)
   {
-    if (unlikely (end - record < HBGlyphID24::static_size))
+    if (unlikely (unsigned (end - record) < HBGlyphID24::static_size))
       return hb_ubytes_t ();
     hb_barrier ();
     gid = * (const HBGlyphID24 *) record;
@@ -173,7 +173,7 @@ VarComponent::get_path_at (hb_font_t *font,
   }
   else
   {
-    if (unlikely (end - record < HBGlyphID16::static_size))
+    if (unlikely (unsigned (end - record) < HBGlyphID16::static_size))
       return hb_ubytes_t ();
     hb_barrier ();
     gid = * (const HBGlyphID16 *) record;
