@@ -15,9 +15,9 @@ On macOS:
 
     brew install pkg-config ragel gtk-doc freetype glib cairo meson
 
-Then use meson to build the project like:
+Then use meson to build the project and run the tests, like:
 
-    meson build && meson test -Cbuild
+    meson build && ninja -Cbuild && meson test -Cbuild
 
 On Windows, meson can build the project like above if a working MSVC's cl.exe
 (`vcvarsall.bat`) or gcc/clang is already on your path, and if you use
