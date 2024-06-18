@@ -795,10 +795,6 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   }
 }
 
-#ifndef HB_COMPOSITE_OPERATIONS_PER_GLYPH
-#define HB_COMPOSITE_OPERATIONS_PER_GLYPH 64
-#endif
-
 static unsigned
 _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 			    hb_codepoint_t gid,
@@ -928,7 +924,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   if (glyf.has_data ())
     for (hb_codepoint_t gid : cur_glyphset)
       _glyf_add_gid_and_children (glyf, gid, &plan->_glyphset,
-				  cur_glyphset.get_population () * HB_COMPOSITE_OPERATIONS_PER_GLYPH);
+				  cur_glyphset.get_population () * HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH);
   else
     plan->_glyphset.union_ (cur_glyphset);
 #ifndef HB_NO_SUBSET_CFF
