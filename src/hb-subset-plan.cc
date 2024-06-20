@@ -491,7 +491,7 @@ _collect_base_variation_indices (hb_subset_plan_t* plan)
   base->collect_variation_indices (plan, varidx_set);
   const OT::ItemVariationStore &var_store = base->get_var_store ();
   unsigned subtable_count = var_store.get_sub_table_count ();
-  
+
 
   _remap_variation_indices (var_store, varidx_set,
                             plan->normalized_coords,
@@ -731,7 +731,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
       plan->codepoint_to_glyph->alloc (unicodes->get_population () + glyphs->get_population ());
 
       auto &gid_to_unicodes = plan->accelerator->gid_to_unicodes;
-      
+
       for (hb_codepoint_t gid : *glyphs)
       {
         auto unicodes = gid_to_unicodes.get (gid);

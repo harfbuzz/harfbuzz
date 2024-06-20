@@ -33,6 +33,8 @@
 static hb_face_t *face;
 static hb_face_t *sbix;
 
+#ifndef HB_NO_AAT
+
 static void
 test_aat_get_feature_types (void)
 {
@@ -114,15 +116,19 @@ test_aat_has (void)
   hb_face_destroy (trak);
 }
 
+#endif
+
 int
 main (int argc, char **argv)
 {
   unsigned int status;
   hb_test_init (&argc, &argv);
 
+#ifndef HB_NO_AAT
   hb_test_add (test_aat_get_feature_types);
   hb_test_add (test_aat_get_feature_selectors);
   hb_test_add (test_aat_has);
+#endif
 
   face = hb_test_open_font_file ("fonts/aat-feat.ttf");
   sbix = hb_test_open_font_file ("fonts/chromacheck-sbix.ttf");

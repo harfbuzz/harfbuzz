@@ -76,6 +76,7 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_color_has_png (face);
   hb_blob_destroy (hb_ot_color_glyph_reference_png (font, cp));
 
+#ifndef HB_NO_AAT
   {
     hb_aat_layout_feature_type_t feature = HB_AAT_LAYOUT_FEATURE_TYPE_ALL_TYPOGRAPHIC;
     unsigned count = 1;
@@ -87,6 +88,7 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
     hb_aat_layout_feature_type_get_selector_infos (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, 0, &count, &setting, &default_index);
     result += count + feature + setting.disable + setting.disable + setting.name_id + setting.reserved + default_index;
   }
+#endif
 
   hb_set_t *lookup_indexes = hb_set_create ();
   hb_set_add (lookup_indexes, 0);
