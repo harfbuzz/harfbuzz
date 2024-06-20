@@ -419,7 +419,7 @@ static const test_pair_t script_tests_more[] =
   /* Unicode-5.2 additions */
   {  0x10B00, HB_SCRIPT_AVESTAN },
   {   0xA6A0, HB_SCRIPT_BAMUM },
-  {   0x1400, HB_SCRIPT_CANADIAN_ABORIGINAL },
+  {   0x1400, HB_SCRIPT_CANADIAN_SYLLABICS },
   {  0x13000, HB_SCRIPT_EGYPTIAN_HIEROGLYPHS },
   {  0x10840, HB_SCRIPT_IMPERIAL_ARAMAIC },
   {   0x1CED, HB_SCRIPT_INHERITED },
