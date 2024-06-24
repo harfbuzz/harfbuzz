@@ -515,6 +515,7 @@ _cmap_closure (hb_face_t	   *face,
   cmap.table->closure_glyphs (unicodes, glyphset);
 }
 
+#ifndef HB_NO_VAR
 static void
 _remap_colrv1_delta_set_index_indices (const OT::DeltaSetIndexMap &index_map,
                                        const hb_set_t &delta_set_idxes,
@@ -547,6 +548,7 @@ _remap_colrv1_delta_set_index_indices (const OT::DeltaSetIndexMap &index_map,
   }
   variation_idx_delta_map = std::move (delta_set_idx_delta_map);
 }
+#endif
 
 static void _colr_closure (hb_subset_plan_t* plan,
                            hb_set_t *glyphs_colred)
@@ -570,6 +572,7 @@ static void _colr_closure (hb_subset_plan_t* plan,
   _remap_indexes (&layer_indices, &plan->colrv1_layers);
   _remap_palette_indexes (&palette_indices, &plan->colr_palettes);
 
+#ifndef HB_NO_VAR
   if (!colr.has_var_store () || !variation_indices) return;
 
   const OT::ItemVariationStore &var_store = colr.get_var_store ();
@@ -600,6 +603,7 @@ static void _colr_closure (hb_subset_plan_t* plan,
                                              plan->colrv1_variation_idx_delta_map,
                                              plan->colrv1_new_deltaset_idx_varidx_map);
   }
+#endif
 }
 
 static inline void
