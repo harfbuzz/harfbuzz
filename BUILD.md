@@ -9,7 +9,7 @@ whereas on Fedora, RHEL, CentOS, and other Red Hat based systems you would do:
 
 and on ArchLinux and Manjaro:
 
-    $ sudo pacman -Suy meson pkg-config ragel gcc freetype2 glib2 cairo
+    $ sudo pacman -Suy meson pkg-config ragel gcc freetype2 glib2 glib2-devel cairo
 
 On macOS:
 
