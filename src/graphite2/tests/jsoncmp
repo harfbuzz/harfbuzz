@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright 2012, SIL International, All rights reserved.
+import json
+import operator
+import re
+import sys
+
+
+def walktree(tree, path="", parent=None):
+    if isinstance(tree, (list, dict)):
+        if isinstance(tree, dict):
+            ixs = sorted(tree.items(), key=operator.itemgetter(0))
+        else:
+            ixs = enumerate(tree)
+        for k, v in ixs:
+            for y in walktree(v, "{0}/{1!s}".format(path, k), tree):
+                yield y
+    else:
+        yield (tree, path, parent)
+
+
+def settreeval(parent, path, value):
+    p = path.split("/")[-1]
+    if p.isdigit():
+        p = int(p)
+    parent[p] = value
+
+
+def readjson(fname):
+    return json.load(open(fname, 'r'))
+
+
+def any_re(s, *res):
+    return any(re.search(r, s) for r in res)
+
+
+def canonids(j):
+    segmap = {}
+    segcount = 1
+    # The only pre-exisiting slotref for one past the end
+    slotmap = {'0000-00-0000': 0}
+    slotcount = 1
+    for (v, p, h) in walktree(j):
+        if any_re(p, r"slots/\d+/id$", r"output/\d+/id$"):
+            if v not in slotmap:
+                slotmap[v] = slotcount
+                slotcount += 1
+            settreeval(h, p, slotmap[v])
+        elif any_re(p, r"^/\d+/id$"):
+            if v not in segmap:
+                segmap[v] = segcount
+                segcount += 1
+            settreeval(h, p, segmap[v])
+
+    for (v, p, h) in walktree(j):
+        if any_re(p, r"parent/id$", r"input/start$",
+                     r"output/range/(start|end)$", r"cursor$",
+                     r"children/\d+$"):
+            settreeval(h, p, slotmap[v])
+        elif any_re(p, r"^/\d+/justifies$"):
+            settreeval(h, p, segmap[v])
+    return j
+
+
+def trimtelemetry(j):
+    if not isinstance(j, list):
+        return
+
+    if not isinstance(j[0], dict) or 'type' not in j[0]:
+        return
+
+    if j[0]['type'] == 'telemetry':
+        del j[0]
+
+    return
+
+
+def _compare(t1, t2):
+    v1, p1, _ = t1
+    v2, p2, _ = t2
+    if p1 != p2:
+        print("Structural difference: left = {0!s}, right = {1!s}"
+              .format(p1, p2))
+        return False
+    if v1 != v2:
+        print("Value difference: left = {0!s}, right = {1!s} at {2!s}"
+              .format(v1, v2, p1))
+        return False
+    return True
+
+
+def compare(j1, j2):
+    trimtelemetry(j1)
+    trimtelemetry(j2)
+    return all(map(_compare, walktree(j1), walktree(j2)))
+
+
+key_erro_msg = "unresolvable slot id {0} found while reading {1!r}"
+try:
+    r1 = canonids(readjson(sys.argv[1]))
+except KeyError as ke:
+    print(key_erro_msg.format(ke, sys.argv[1]), file=sys.stderr)
+    sys.exit(2)
+
+try:
+    r2 = canonids(readjson(sys.argv[2]))
+except KeyError as ke:
+    print(key_erro_msg.format(ke, sys.argv[2]), file=sys.stderr)
+    sys.exit(2)
+
+res = compare(r1, r2)
+if res:
+    sys.exit(0)
+sys.exit(1)

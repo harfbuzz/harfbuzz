@@ -1,0 +1,1709 @@
+RULE PRECEDENCE
+
+
+TABLE: substitution
+
+PASS: 1
+
+0 - RULE 1.0, annapurna_main.gdh(587):  g_ra  g_nukta  >  g_rra:(1 2)  _  ;
+
+
+PASS: 2
+
+0 - RULE 2.32, annapurna_main.gdh(627):  cls_hasExplicitHalant { user1 = 6;  }   /  _  g_nukta  g_halant  ^  g_zwj  g0952  cls_openBack  ;
+
+
+1 - RULE 2.40, annapurna_main.gdh(631):  cls_hasExplicitHalant { user1 = 2;  }   /  _  g_nukta  g_halant  ^  g_zwj  g0952  cls_consNom  ;
+
+
+2 - RULE 2.48, annapurna_main.gdh(634):  cls_nHalf { user1 = 5;  }   /  _  g_nukta  g_halant  ^  g_zwj  g0952  cls_consNom  ;
+
+
+3 - RULE 2.28, annapurna_main.gdh(619):  g0915 { user1 = 4;  }  g_halant  g0937 { user1 = 4;  }  g_halant  g_ra   /  _  _  _  _  ^  _  ;
+
+
+4 - RULE 2.29, annapurna_main.gdh(620):  g091c { user1 = 4;  }  g_halant  g091e { user1 = 4;  }  g_halant  g_ra   /  _  _  _  _  ^  _  ;
+
+
+5 - RULE 2.33, annapurna_main.gdh(627):  cls_hasExplicitHalant { user1 = 6;  }   /  _  g_nukta  g_halant  ^  g_zwj  cls_openBack  ;
+
+
+6 - RULE 2.34, annapurna_main.gdh(627):  cls_hasExplicitHalant { user1 = 6;  }   /  _  g_nukta  g_halant  ^  g0952  cls_openBack  ;
+
+
+7 - RULE 2.36, annapurna_main.gdh(627):  cls_hasExplicitHalant { user1 = 6;  }   /  _  g_halant  ^  g_zwj  g0952  cls_openBack  ;
+
+
+8 - RULE 2.41, annapurna_main.gdh(631):  cls_hasExplicitHalant { user1 = 2;  }   /  _  g_nukta  g_halant  ^  g_zwj  cls_consNom  ;
+
+
+9 - RULE 2.42, annapurna_main.gdh(631):  cls_hasExplicitHalant { user1 = 2;  }   /  _  g_nukta  g_halant  ^  g0952  cls_consNom  ;
+
+
+10 - RULE 2.44, annapurna_main.gdh(631):  cls_hasExplicitHalant { user1 = 2;  }   /  _  g_halant  ^  g_zwj  g0952  cls_consNom  ;
+
+
+11 - RULE 2.49, annapurna_main.gdh(634):  cls_nHalf { user1 = 5;  }   /  _  g_nukta  g_halant  ^  g_zwj  cls_consNom  ;
+
+
+12 - RULE 2.50, annapurna_main.gdh(634):  cls_nHalf { user1 = 5;  }   /  _  g_nukta  g_halant  ^  g0952  cls_consNom  ;
+
+
+13 - RULE 2.52, annapurna_main.gdh(634):  cls_nHalf { user1 = 5;  }   /  _  g_halant  ^  g_zwj  g0952  cls_consNom  ;
+
+
+14 - RULE 2.0, annapurna_main.gdh(599):  g0915 { user1 = 4;  }  g_nukta  g_halant  cls_0915_2ndhalf   /  _  _  _  ^  _  ;
+
+
+15 - RULE 2.2, annapurna_main.gdh(600):  g0919 { user1 = 4;  }  g_nukta  g_halant  cls_0919_2ndhalf   /  _  _  _  ^  _  ;
+
+
+16 - RULE 2.4, annapurna_main.gdh(601):  g091a { user1 = 4;  }  g_nukta  g_halant  cls_091a_2ndhalf   /  _  _  _  ^  _  ;
+
+
+17 - RULE 2.6, annapurna_main.gdh(602):  g091f { user1 = 4;  }  g_nukta  g_halant  cls_091f_2ndhalf   /  _  _  _  ^  _  ;
+
+
+18 - RULE 2.8, annapurna_main.gdh(603):  g0920 { user1 = 4;  }  g_nukta  g_halant  cls_0920_2ndhalf   /  _  _  _  ^  _  ;
+
+
+19 - RULE 2.10, annapurna_main.gdh(604):  g0921 { user1 = 4;  }  g_nukta  g_halant  cls_0921_2ndhalf   /  _  _  _  ^  _  ;
+
+
+20 - RULE 2.12, annapurna_main.gdh(605):  g0926 { user1 = 4;  }  g_nukta  g_halant  cls_0926_2ndhalf   /  _  _  _  ^  _  ;
+
+
+21 - RULE 2.14, annapurna_main.gdh(606):  g0936 { user1 = 4;  }  g_nukta  g_halant  cls_0936_2ndhalf   /  _  _  _  ^  _  ;
+
+
+22 - RULE 2.16, annapurna_main.gdh(607):  g0937 { user1 = 4;  }  g_nukta  g_halant  cls_0937_2ndhalf   /  _  _  _  ^  _  ;
+
+
+23 - RULE 2.18, annapurna_main.gdh(608):  g0939 { user1 = 4;  }  g_nukta  g_halant  cls_0939_2ndhalf   /  _  _  _  ^  _  ;
+
+
+24 - RULE 2.20, annapurna_main.gdh(610):  cls_1sthalf_0924_nom { user1 = 4;  }  g_nukta  g_halant  g0924   /  _  _  _  ^  _  ;
+
+
+25 - RULE 2.22, annapurna_main.gdh(611):  cls_1sthalf_0928_nom { user1 = 4;  }  g_nukta  g_halant  g0928   /  _  _  _  ^  _  ;
+
+
+26 - RULE 2.24, annapurna_main.gdh(612):  cls_1sthalf_0932_nom { user1 = 4;  }  g_nukta  g_halant  g0932   /  _  _  _  ^  _  ;
+
+
+27 - RULE 2.26, annapurna_main.gdh(616):  cls_woRakar { user1 = 4;  }  g_ra   /  _  g_nukta  g_halant  ^  _  ;
+
+
+28 - RULE 2.30, annapurna_main.gdh(623):  cls_consNom { user1 = 3;  }   /  _  g_nukta  g_halant  g_zwnj  ;
+
+
+29 - RULE 2.35, annapurna_main.gdh(627):  cls_hasExplicitHalant { user1 = 6;  }   /  _  g_nukta  g_halant  ^  cls_openBack  ;
+
+
+30 - RULE 2.37, annapurna_main.gdh(627):  cls_hasExplicitHalant { user1 = 6;  }   /  _  g_halant  ^  g_zwj  cls_openBack  ;
+
+
+31 - RULE 2.38, annapurna_main.gdh(627):  cls_hasExplicitHalant { user1 = 6;  }   /  _  g_halant  ^  g0952  cls_openBack  ;
+
+
+32 - RULE 2.43, annapurna_main.gdh(631):  cls_hasExplicitHalant { user1 = 2;  }   /  _  g_nukta  g_halant  ^  cls_consNom  ;
+
+
+33 - RULE 2.45, annapurna_main.gdh(631):  cls_hasExplicitHalant { user1 = 2;  }   /  _  g_halant  ^  g_zwj  cls_consNom  ;
+
+
+34 - RULE 2.46, annapurna_main.gdh(631):  cls_hasExplicitHalant { user1 = 2;  }   /  _  g_halant  ^  g0952  cls_consNom  ;
+
+
+35 - RULE 2.51, annapurna_main.gdh(634):  cls_nHalf { user1 = 5;  }   /  _  g_nukta  g_halant  ^  cls_consNom  ;
+
+
+36 - RULE 2.53, annapurna_main.gdh(634):  cls_nHalf { user1 = 5;  }   /  _  g_halant  ^  g_zwj  cls_consNom  ;
+
+
+37 - RULE 2.54, annapurna_main.gdh(634):  cls_nHalf { user1 = 5;  }   /  _  g_halant  ^  g0952  cls_consNom  ;
+
+
+38 - RULE 2.1, annapurna_main.gdh(599):  g0915 { user1 = 4;  }  g_halant  cls_0915_2ndhalf   /  _  _  ^  _  ;
+
+
+39 - RULE 2.3, annapurna_main.gdh(600):  g0919 { user1 = 4;  }  g_halant  cls_0919_2ndhalf   /  _  _  ^  _  ;
+
+
+40 - RULE 2.5, annapurna_main.gdh(601):  g091a { user1 = 4;  }  g_halant  cls_091a_2ndhalf   /  _  _  ^  _  ;
+
+
+41 - RULE 2.7, annapurna_main.gdh(602):  g091f { user1 = 4;  }  g_halant  cls_091f_2ndhalf   /  _  _  ^  _  ;
+
+
+42 - RULE 2.9, annapurna_main.gdh(603):  g0920 { user1 = 4;  }  g_halant  cls_0920_2ndhalf   /  _  _  ^  _  ;
+
+
+43 - RULE 2.11, annapurna_main.gdh(604):  g0921 { user1 = 4;  }  g_halant  cls_0921_2ndhalf   /  _  _  ^  _  ;
+
+
+44 - RULE 2.13, annapurna_main.gdh(605):  g0926 { user1 = 4;  }  g_halant  cls_0926_2ndhalf   /  _  _  ^  _  ;
+
+
+45 - RULE 2.15, annapurna_main.gdh(606):  g0936 { user1 = 4;  }  g_halant  cls_0936_2ndhalf   /  _  _  ^  _  ;
+
+
+46 - RULE 2.17, annapurna_main.gdh(607):  g0937 { user1 = 4;  }  g_halant  cls_0937_2ndhalf   /  _  _  ^  _  ;
+
+
+47 - RULE 2.19, annapurna_main.gdh(608):  g0939 { user1 = 4;  }  g_halant  cls_0939_2ndhalf   /  _  _  ^  _  ;
+
+
+48 - RULE 2.21, annapurna_main.gdh(610):  cls_1sthalf_0924_nom { user1 = 4;  }  g_halant  g0924   /  _  _  ^  _  ;
+
+
+49 - RULE 2.23, annapurna_main.gdh(611):  cls_1sthalf_0928_nom { user1 = 4;  }  g_halant  g0928   /  _  _  ^  _  ;
+
+
+50 - RULE 2.25, annapurna_main.gdh(612):  cls_1sthalf_0932_nom { user1 = 4;  }  g_halant  g0932   /  _  _  ^  _  ;
+
+
+51 - RULE 2.27, annapurna_main.gdh(616):  cls_woRakar { user1 = 4;  }  g_ra   /  _  g_halant  ^  _  ;
+
+
+52 - RULE 2.31, annapurna_main.gdh(623):  cls_consNom { user1 = 3;  }   /  _  g_halant  g_zwnj  ;
+
+
+53 - RULE 2.39, annapurna_main.gdh(627):  cls_hasExplicitHalant { user1 = 6;  }   /  _  g_halant  ^  cls_openBack  ;
+
+
+54 - RULE 2.47, annapurna_main.gdh(631):  cls_hasExplicitHalant { user1 = 2;  }   /  _  g_halant  ^  cls_consNom  ;
+
+
+55 - RULE 2.55, annapurna_main.gdh(634):  cls_nHalf { user1 = 5;  }   /  _  g_halant  ^  cls_consNom  ;
+
+
+56 - RULE 2.56, annapurna_main.gdh(637):  cls_consNom { user1 = 3;  }   /  _  g_nukta  g_halant  ;
+
+
+57 - RULE 2.57, annapurna_main.gdh(637):  cls_consNom { user1 = 3;  }   /  _  g_halant  ;
+
+
+58 - RULE 2.58, annapurna_main.gdh(640):  cls_consNom { user1 = 1;  }   /  _  g_nukta  ;
+
+
+59 - RULE 2.59, annapurna_main.gdh(640):  cls_consNom { user1 = 1;  }   /  _  ;
+
+
+PASS: 3
+
+0 - RULE 3.0, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom { user1 == 1 }  g_nukta  cls_vowelRight  g_nukta  _  _  ;
+
+
+1 - RULE 3.1, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom { user1 == 1 }  g_nukta  cls_vowelRight  _  _  ;
+
+
+2 - RULE 3.3, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom { user1 == 1 }  cls_vowelRight  g_nukta  _  _  ;
+
+
+3 - RULE 3.6, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom { user1 == 1 }  g_nukta  cls_vowelRight  g_nukta  _  _  ;
+
+
+4 - RULE 3.2, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom { user1 == 1 }  g_nukta  _  _  ;
+
+
+5 - RULE 3.4, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom { user1 == 1 }  cls_vowelRight  _  _  ;
+
+
+6 - RULE 3.7, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom { user1 == 1 }  g_nukta  cls_vowelRight  _  _  ;
+
+
+7 - RULE 3.9, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom { user1 == 1 }  cls_vowelRight  g_nukta  _  _  ;
+
+
+8 - RULE 3.12, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  g_nukta  g_halant  cls_vowelRight  g_nukta  _  _  ;
+
+
+9 - RULE 3.5, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom { user1 == 1 }  _  _  ;
+
+
+10 - RULE 3.8, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom { user1 == 1 }  g_nukta  _  _  ;
+
+
+11 - RULE 3.10, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom { user1 == 1 }  cls_vowelRight  _  _  ;
+
+
+12 - RULE 3.13, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  g_nukta  g_halant  cls_vowelRight  _  _  ;
+
+
+13 - RULE 3.15, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  g_nukta  cls_vowelRight  g_nukta  _  _  ;
+
+
+14 - RULE 3.18, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  g_halant  cls_vowelRight  g_nukta  _  _  ;
+
+
+15 - RULE 3.11, annapurna_main.gdh(653):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom { user1 == 1 }  _  _  ;
+
+
+16 - RULE 3.14, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  g_nukta  g_halant  _  _  ;
+
+
+17 - RULE 3.16, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  g_nukta  cls_vowelRight  _  _  ;
+
+
+18 - RULE 3.19, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  g_halant  cls_vowelRight  _  _  ;
+
+
+19 - RULE 3.21, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  cls_vowelRight  g_nukta  _  _  ;
+
+
+20 - RULE 3.30, annapurna_main.gdh(691):  cls_consNom  g_ra  >  @1  @4 { user2 = 2;  }   /  _  g_nukta  g_halant  ^  _ { user1 == 5 }  g_halant  ;
+
+
+21 - RULE 3.17, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  g_nukta  _  _  ;
+
+
+22 - RULE 3.20, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  g_halant  _  _  ;
+
+
+23 - RULE 3.22, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  cls_vowelRight  _  _  ;
+
+
+24 - RULE 3.28, annapurna_main.gdh(685):  cls_consNom  g_ra  >  @1 { user1 = 4;  }  @4 { user2 = 2;  }   /  _  g_nukta  g_halant  _ { user1 == 1 }  ;
+
+
+25 - RULE 3.31, annapurna_main.gdh(691):  cls_consNom  g_ra  >  @1  @3 { user2 = 2;  }   /  _  g_halant  ^  _ { user1 == 5 }  g_halant  ;
+
+
+26 - RULE 3.23, annapurna_main.gdh(662):  g_ra  g_halant  _  _  >  _  _  @1 { user2 = 1;  }  @2   /  _ { user2 != 2 }  _  cls_consNom { (1 <= user1) || (user1 <= 3) }  _  _  ;
+
+
+27 - RULE 3.24, annapurna_main.gdh(669):  g_ra  g_halant  g_ra  >  @3  @1 { user2 = 1;  }  @2  ;
+
+
+28 - RULE 3.25, annapurna_main.gdh(673):  g_rra  g_ra { user2 = 2;  }   /  _  g_halant  _ { user1 == 1 }  ;
+
+
+29 - RULE 3.27, annapurna_main.gdh(680):  g_ra  >  @1 { user2 = 3;  }   /  _  g_halant  g_zwj  ;
+
+
+30 - RULE 3.29, annapurna_main.gdh(685):  cls_consNom  g_ra  >  @1 { user1 = 4;  }  @3 { user2 = 2;  }   /  _  g_halant  _ { user1 == 1 }  ;
+
+
+31 - RULE 3.26, annapurna_main.gdh(677):  g_rra  >  @1 { user2 = 3;  }   /  _  g_halant  ;
+
+
+PASS: 4
+
+0 - RULE 4.80, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @18  @19  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+1 - RULE 4.0, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @13  @14  _  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+2 - RULE 4.81, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @17  @18  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+3 - RULE 4.82, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @17  @18  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+4 - RULE 4.84, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @17  @18  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+5 - RULE 4.88, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @17  @18  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+6 - RULE 4.96, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @17  @18  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+7 - RULE 4.112, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @17  @18  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+8 - RULE 4.164, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @17  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+9 - RULE 4.1, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+10 - RULE 4.2, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+11 - RULE 4.4, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+12 - RULE 4.8, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @13  @14  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+13 - RULE 4.16, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @13  @14  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+14 - RULE 4.40, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @12  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+15 - RULE 4.83, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+16 - RULE 4.85, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+17 - RULE 4.86, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+18 - RULE 4.89, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+19 - RULE 4.90, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+20 - RULE 4.92, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+21 - RULE 4.97, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+22 - RULE 4.98, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+23 - RULE 4.100, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+24 - RULE 4.104, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+25 - RULE 4.113, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+26 - RULE 4.114, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+27 - RULE 4.116, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+28 - RULE 4.120, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+29 - RULE 4.128, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+30 - RULE 4.165, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @16  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+31 - RULE 4.166, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @16  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+32 - RULE 4.168, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @16  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+33 - RULE 4.172, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @16  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+34 - RULE 4.180, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @16  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+35 - RULE 4.196, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @16  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+36 - RULE 4.248, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @16  @17  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+37 - RULE 4.3, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  _  _  ;
+
+
+38 - RULE 4.5, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+39 - RULE 4.6, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+40 - RULE 4.9, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+41 - RULE 4.10, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+42 - RULE 4.12, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+43 - RULE 4.17, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+44 - RULE 4.18, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+45 - RULE 4.20, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+46 - RULE 4.24, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @13  @14  _  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+47 - RULE 4.41, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+48 - RULE 4.42, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+49 - RULE 4.44, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+50 - RULE 4.48, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @12  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+51 - RULE 4.56, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @12  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+52 - RULE 4.87, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  _  ;
+
+
+53 - RULE 4.91, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+54 - RULE 4.93, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+55 - RULE 4.94, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+56 - RULE 4.99, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+57 - RULE 4.101, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+58 - RULE 4.102, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+59 - RULE 4.105, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+60 - RULE 4.106, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+61 - RULE 4.108, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+62 - RULE 4.115, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+63 - RULE 4.117, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+64 - RULE 4.118, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+65 - RULE 4.121, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+66 - RULE 4.122, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+67 - RULE 4.124, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+68 - RULE 4.129, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+69 - RULE 4.130, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+70 - RULE 4.132, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+71 - RULE 4.136, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+72 - RULE 4.167, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  ;
+
+
+73 - RULE 4.169, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  ;
+
+
+74 - RULE 4.170, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  ;
+
+
+75 - RULE 4.173, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+76 - RULE 4.174, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+77 - RULE 4.176, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+78 - RULE 4.181, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+79 - RULE 4.182, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+80 - RULE 4.184, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+81 - RULE 4.188, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+82 - RULE 4.197, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+83 - RULE 4.198, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+84 - RULE 4.200, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+85 - RULE 4.204, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+86 - RULE 4.212, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+87 - RULE 4.249, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+88 - RULE 4.250, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+89 - RULE 4.252, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+90 - RULE 4.256, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @15  @16  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+91 - RULE 4.268, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @15  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+92 - RULE 4.7, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @10  @11  _  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_halant  _  _  cls_consNom  _  _  ;
+
+
+93 - RULE 4.11, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  _  _  ;
+
+
+94 - RULE 4.13, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+95 - RULE 4.14, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+96 - RULE 4.19, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  _  _  ;
+
+
+97 - RULE 4.21, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+98 - RULE 4.22, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+99 - RULE 4.25, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+100 - RULE 4.26, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+101 - RULE 4.28, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+102 - RULE 4.43, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  _  ;
+
+
+103 - RULE 4.45, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+104 - RULE 4.46, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+105 - RULE 4.49, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+106 - RULE 4.50, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+107 - RULE 4.52, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+108 - RULE 4.57, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+109 - RULE 4.58, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+110 - RULE 4.60, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+111 - RULE 4.64, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @12  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+112 - RULE 4.95, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  _  ;
+
+
+113 - RULE 4.103, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  _  ;
+
+
+114 - RULE 4.107, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+115 - RULE 4.109, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+116 - RULE 4.110, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+117 - RULE 4.119, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  _  ;
+
+
+118 - RULE 4.123, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+119 - RULE 4.125, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+120 - RULE 4.126, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+121 - RULE 4.131, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+122 - RULE 4.133, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+123 - RULE 4.134, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+124 - RULE 4.137, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+125 - RULE 4.138, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+126 - RULE 4.140, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+127 - RULE 4.144, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+128 - RULE 4.171, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  ;
+
+
+129 - RULE 4.175, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  ;
+
+
+130 - RULE 4.177, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  ;
+
+
+131 - RULE 4.178, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  ;
+
+
+132 - RULE 4.183, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  ;
+
+
+133 - RULE 4.185, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  ;
+
+
+134 - RULE 4.186, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  ;
+
+
+135 - RULE 4.189, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+136 - RULE 4.190, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+137 - RULE 4.192, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+138 - RULE 4.199, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  ;
+
+
+139 - RULE 4.201, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  ;
+
+
+140 - RULE 4.202, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  ;
+
+
+141 - RULE 4.205, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+142 - RULE 4.206, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+143 - RULE 4.208, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+144 - RULE 4.213, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+145 - RULE 4.214, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+146 - RULE 4.216, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+147 - RULE 4.220, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+148 - RULE 4.251, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  g_zwj  cls_consNom  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+149 - RULE 4.253, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+150 - RULE 4.254, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+151 - RULE 4.257, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  g_zwj  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+152 - RULE 4.258, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  g_zwj  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+153 - RULE 4.260, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @14  @15  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+154 - RULE 4.269, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+155 - RULE 4.270, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+156 - RULE 4.272, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+157 - RULE 4.276, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @14  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+158 - RULE 4.15, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @10  @11  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_halant  _  _  cls_consNom  _  _  ;
+
+
+159 - RULE 4.23, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @10  @11  _  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_halant  _  _  cls_consNom  _  _  ;
+
+
+160 - RULE 4.27, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  _  _  ;
+
+
+161 - RULE 4.29, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+162 - RULE 4.30, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+163 - RULE 4.32, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+164 - RULE 4.47, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @9  _   /  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  _ { user1 == 2 }  g_halant  _  cls_consNom  _  ;
+
+
+165 - RULE 4.51, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  _  ;
+
+
+166 - RULE 4.53, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+167 - RULE 4.54, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+168 - RULE 4.59, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  _  ;
+
+
+169 - RULE 4.61, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+170 - RULE 4.62, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+171 - RULE 4.65, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+172 - RULE 4.66, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+173 - RULE 4.68, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+174 - RULE 4.111, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  _  ;
+
+
+175 - RULE 4.127, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  _  ;
+
+
+176 - RULE 4.135, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  _  ;
+
+
+177 - RULE 4.139, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+178 - RULE 4.141, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+179 - RULE 4.142, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+180 - RULE 4.145, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+181 - RULE 4.146, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+182 - RULE 4.148, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+183 - RULE 4.152, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+184 - RULE 4.179, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  ;
+
+
+185 - RULE 4.187, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  ;
+
+
+186 - RULE 4.191, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  ;
+
+
+187 - RULE 4.193, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  ;
+
+
+188 - RULE 4.194, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  ;
+
+
+189 - RULE 4.203, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  ;
+
+
+190 - RULE 4.207, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  ;
+
+
+191 - RULE 4.209, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  ;
+
+
+192 - RULE 4.210, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  ;
+
+
+193 - RULE 4.215, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  ;
+
+
+194 - RULE 4.217, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  ;
+
+
+195 - RULE 4.218, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  ;
+
+
+196 - RULE 4.221, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+197 - RULE 4.222, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+198 - RULE 4.224, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+199 - RULE 4.228, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+200 - RULE 4.255, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+201 - RULE 4.259, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  g_zwj  cls_consNom  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+202 - RULE 4.261, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+203 - RULE 4.262, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @13  @14  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+204 - RULE 4.271, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  g_zwj  cls_consNom  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+205 - RULE 4.273, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+206 - RULE 4.274, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+207 - RULE 4.277, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  g_zwj  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+208 - RULE 4.278, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  g_zwj  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+209 - RULE 4.280, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @13  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+210 - RULE 4.31, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @10  @11  _  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_halant  _  _  cls_consNom  _  _  ;
+
+
+211 - RULE 4.33, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+212 - RULE 4.34, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+213 - RULE 4.36, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+214 - RULE 4.55, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @9  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  _ { user1 == 2 }  g_halant  _  cls_consNom  _  ;
+
+
+215 - RULE 4.63, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @9  _   /  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  _ { user1 == 2 }  g_halant  _  cls_consNom  _  ;
+
+
+216 - RULE 4.67, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  _  ;
+
+
+217 - RULE 4.69, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+218 - RULE 4.70, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+219 - RULE 4.72, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @12  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+220 - RULE 4.143, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  _  ;
+
+
+221 - RULE 4.147, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+222 - RULE 4.149, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+223 - RULE 4.150, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+224 - RULE 4.153, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  _  ;
+
+
+225 - RULE 4.154, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  _  ;
+
+
+226 - RULE 4.156, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+227 - RULE 4.195, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  ;
+
+
+228 - RULE 4.211, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  ;
+
+
+229 - RULE 4.219, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  ;
+
+
+230 - RULE 4.223, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  ;
+
+
+231 - RULE 4.225, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  ;
+
+
+232 - RULE 4.226, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  ;
+
+
+233 - RULE 4.229, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+234 - RULE 4.230, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+235 - RULE 4.232, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+236 - RULE 4.236, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+237 - RULE 4.263, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+238 - RULE 4.264, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @12  @13  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+239 - RULE 4.275, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_nukta  g_halant  cls_consNom  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+240 - RULE 4.279, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  g_zwj  cls_consNom  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+241 - RULE 4.281, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+242 - RULE 4.282, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @12  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+243 - RULE 4.35, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_nukta  g_halant  _  _  cls_consNom  _  _  ;
+
+
+244 - RULE 4.37, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_halant  g_zwnj  _  _  cls_consNom  _  _  ;
+
+
+245 - RULE 4.38, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @11  @12  _  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_halant  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+246 - RULE 4.71, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @9  _   /  ANY  ANY  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  _ { user1 == 2 }  g_halant  _  cls_consNom  _  ;
+
+
+247 - RULE 4.73, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_nukta  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+248 - RULE 4.74, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+249 - RULE 4.76, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @11  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  g_nukta  _  ;
+
+
+250 - RULE 4.151, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @11  @12  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  _  ;
+
+
+251 - RULE 4.155, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @11  @12  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  _  ;
+
+
+252 - RULE 4.157, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @11  @12  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  _  ;
+
+
+253 - RULE 4.158, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @11  @12  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  _  ;
+
+
+254 - RULE 4.227, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @11  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  ;
+
+
+255 - RULE 4.231, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @11  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  g_zwj  cls_consNom  _  ;
+
+
+256 - RULE 4.233, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @11  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_nukta  _  ;
+
+
+257 - RULE 4.234, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @11  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  g_zwj  _  ;
+
+
+258 - RULE 4.237, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @11  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_nukta  _  ;
+
+
+259 - RULE 4.238, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @11  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  g_zwj  _  ;
+
+
+260 - RULE 4.240, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @11  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+261 - RULE 4.265, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @11  @12  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+262 - RULE 4.266, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @11  @12  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+263 - RULE 4.283, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @11  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { (4 <= user1) && (user1 <= 6) }  g_halant  cls_consNom  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+264 - RULE 4.284, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @11  _   /  ANY  ANY  ANY  ANY  _  cls_consNom  g_nukta  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+265 - RULE 4.39, annapurna_main.gdh(718):  cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @5  @10  @11  _  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_halant  _  _  cls_consNom  _  _  ;
+
+
+266 - RULE 4.75, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_nukta  g_halant  _  cls_consNom  _  ;
+
+
+267 - RULE 4.77, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_halant  g_zwnj  _  cls_consNom  _  ;
+
+
+268 - RULE 4.78, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @10  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_halant  _  cls_consNom  g_nukta  _  ;
+
+
+269 - RULE 4.159, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @10  @11  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  _  ;
+
+
+270 - RULE 4.160, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @10  @11  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom  g_nukta  g_zwj  _  _  ;
+
+
+271 - RULE 4.235, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @10  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_nukta  g_halant  cls_consNom  _  ;
+
+
+272 - RULE 4.239, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @10  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  g_zwj  cls_consNom  _  ;
+
+
+273 - RULE 4.241, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @10  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_nukta  _  ;
+
+
+274 - RULE 4.242, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @10  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  g_zwj  _  ;
+
+
+275 - RULE 4.267, annapurna_main.gdh(746):  _  _  cls_vowelLeft  g_nukta  >  @10  @11  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom  g_ra { user2 == 1 }  g_halant  _  _  ;
+
+
+276 - RULE 4.285, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @10  _   /  ANY  ANY  ANY  ANY  _  cls_consNom  g_nukta  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+277 - RULE 4.286, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @10  _   /  ANY  ANY  ANY  ANY  _  cls_consNom  g_zwj  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+278 - RULE 4.79, annapurna_main.gdh(724):  cls_consNom  _  cls_vowelLeft  >  @5  @9  _   /  ANY  ANY  ANY  ANY  _ { user1 == 2 }  g_halant  _  cls_consNom  _  ;
+
+
+279 - RULE 4.161, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @9  @10  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom  g_nukta  _  _  ;
+
+
+280 - RULE 4.162, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @9  @10  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom  g_zwj  _  _  ;
+
+
+281 - RULE 4.243, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @9  _   /  ANY  ANY  ANY  ANY  _  cls_consNom { ((4 <= user1) && (user1 <= 6)) && (user2 != 1) }  g_halant  cls_consNom  _  ;
+
+
+282 - RULE 4.244, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @9  _   /  ANY  ANY  ANY  ANY  _  cls_consNom  g_nukta  g_zwj  _  ;
+
+
+283 - RULE 4.287, annapurna_main.gdh(752):  _  cls_vowelLeft  >  @9  _   /  ANY  ANY  ANY  ANY  _  cls_consNom  g_ra { user2 == 1 }  g_halant  _  ;
+
+
+284 - RULE 4.163, annapurna_main.gdh(732):  _  _  cls_vowelLeft  g_nukta  >  @8  @9  _  _   /  ANY  ANY  ANY  ANY  _  _  cls_consNom  _  _  ;
+
+
+285 - RULE 4.245, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @8  _   /  ANY  ANY  ANY  ANY  _  cls_consNom  g_nukta  _  ;
+
+
+286 - RULE 4.246, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @8  _   /  ANY  ANY  ANY  ANY  _  cls_consNom  g_zwj  _  ;
+
+
+287 - RULE 4.247, annapurna_main.gdh(738):  _  cls_vowelLeft  >  @7  _   /  ANY  ANY  ANY  ANY  _  cls_consNom  _  ;
+
+
+PASS: 5
+
+0 - RULE 5.0, annapurna_main.gdh(765):  cls_vowelRtHigh  g_nukta  g_ra  g_halant  >  @1  @2  g0930_094d_reph:(3 4)  _   /  _  _  _ { user2 == 1 }  _  ;
+
+
+1 - RULE 5.2, annapurna_main.gdh(773):  g0915  g_akhand  g0937  >  g0915_094d_0937:(1 2 3)  _  _  ;
+
+
+2 - RULE 5.3, annapurna_main.gdh(774):  g091c  g_akhand  g091e  >  g091c_094d_091e:(1 2 3)  _  _  ;
+
+
+3 - RULE 5.1, annapurna_main.gdh(768):  cls_woNukta  g_nukta  >  cls_wNukta:(1 2)  _   /  ^  _  _  ;
+
+
+4 - RULE 5.4, annapurna_main.gdh(779):  g_ra  g_halant  >  g0930_094d_reph:(1 2)  _   /  _ { user2 == 1 }  _  ;
+
+
+5 - RULE 5.5, annapurna_main.gdh(781):  g_ra  >  g094d_0930_rakar   /  _ { user2 == 2 }  ;
+
+
+PASS: 6
+
+0 - RULE 6.1, annapurna_main.gdh(793):  cls_nHalf  g_halant  cls_ya  >  cls_nHalf:(1 2)  _  cls_ya_alt   /  _ { user1 == 6 }  _  g0930_094d_reph  ^  _  ;
+
+
+1 - RULE 6.3, annapurna_main.gdh(797):  cls_nHalf  g_halant  g_zwnj   /  _  _  g0930_094d_reph  _  ;
+
+
+2 - RULE 6.10, annapurna_main.gdh(850):  cls_matraI { user4 = 1;  }   /  _  cls_narrowIBeforeCandrab  g093c  g0901  ;
+
+
+3 - RULE 6.12, annapurna_main.gdh(851):  cls_matraI { user4 = 1;  }   /  _  cls_narrowIBeforeAnusv  g093c  g0902  ;
+
+
+4 - RULE 6.0, annapurna_main.gdh(788):  g_rra  g_halant  >  g_rra:(1 2)  _   /  _  _  g094d_0930_rakar  ;
+
+
+5 - RULE 6.2, annapurna_main.gdh(793):  cls_nHalf  g_halant  cls_ya  >  cls_nHalf:(1 2)  _  cls_ya_alt   /  _ { user1 == 6 }  _  ^  _  ;
+
+
+6 - RULE 6.4, annapurna_main.gdh(797):  cls_nHalf  g_halant  g_zwnj  ;
+
+
+7 - RULE 6.6, annapurna_main.gdh(808):  cls_woRakarCaret  g_halant  >  @1:(1 2) { user4 = 1;  }  _   /  ^  _  _  g094d_0930_rakar { user2 == 2 }  ;
+
+
+8 - RULE 6.8, annapurna_main.gdh(816):  cls_woRakar  g_halant  g094d_0930_rakar  >  cls_wRakar:(1 2 3)  _  _  ;
+
+
+9 - RULE 6.9, annapurna_main.gdh(820):  cls_consNom  g_halant  g094d_0930_rakar  >  cls_consNom:(1 2)  _  @3  ;
+
+
+10 - RULE 6.11, annapurna_main.gdh(850):  cls_matraI { user4 = 1;  }   /  _  cls_narrowIBeforeCandrab  g0901  ;
+
+
+11 - RULE 6.13, annapurna_main.gdh(851):  cls_matraI { user4 = 1;  }   /  _  cls_narrowIBeforeAnusv  g0902  ;
+
+
+12 - RULE 6.5, annapurna_main.gdh(800):  cls_nHalf  g_halant  >  cls_half:(1 2)  _   /  _ { (user1 == 5) || (user1 == 4) }  _  ;
+
+
+13 - RULE 6.7, annapurna_main.gdh(811):  cls_woRakarCaret  g094d_0930_rakar  >  cls_wRakarCaret:(1 2) { comp.cons.ref = @1; comp.rakar.ref = @2;  }  _   /  _ { user4 }  _  ;
+
+
+PASS: 7
+
+0 - RULE 7.0, annapurna_main.gdh(869):  g0915_094d_half  cls_0915_2ndhalf  >  _  cls_0915_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+1 - RULE 7.1, annapurna_main.gdh(870):  g0919_094d_half  cls_0919_2ndhalf  >  _  cls_0919_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+2 - RULE 7.2, annapurna_main.gdh(871):  g091a_094d_half  cls_091a_2ndhalf  >  _  cls_091a_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+3 - RULE 7.3, annapurna_main.gdh(872):  g091f_094d_half  cls_091f_2ndhalf  >  _  cls_091f_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+4 - RULE 7.4, annapurna_main.gdh(873):  g0920_094d_half  cls_0920_2ndhalf  >  _  cls_0920_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+5 - RULE 7.5, annapurna_main.gdh(874):  g0921_094d_half  cls_0921_2ndhalf  >  _  cls_0921_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+6 - RULE 7.6, annapurna_main.gdh(875):  g0926_094d_half  cls_0926_2ndhalf  >  _  cls_0926_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+7 - RULE 7.7, annapurna_main.gdh(876):  g0936_094d_half  cls_0936_2ndhalf  >  _  cls_0936_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+8 - RULE 7.8, annapurna_main.gdh(877):  g0937_094d_half  cls_0937_2ndhalf  >  _  cls_0937_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+9 - RULE 7.9, annapurna_main.gdh(878):  g0939_094d_half  cls_0939_2ndhalf  >  _  cls_0939_conj:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }   /  ANY  _  _  ;
+
+
+10 - RULE 7.10, annapurna_main.gdh(880):  cls_1sthalf_0924  g0924  >  cls_conj_0924:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }  _   /  ANY  _  _  ;
+
+
+11 - RULE 7.11, annapurna_main.gdh(881):  cls_1sthalf_0928  g0928  >  cls_conj_0928:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }  _   /  ANY  _  _  ;
+
+
+12 - RULE 7.12, annapurna_main.gdh(882):  cls_1sthalf_0932  g0932  >  cls_conj_0932:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }  _   /  ANY  _  _  ;
+
+
+13 - RULE 7.13, annapurna_main.gdh(891):  cls_matraI  >  @2   /  ANY  _ { user4 == 1 }  consWidth20_matraI  ;
+
+
+14 - RULE 7.14, annapurna_main.gdh(892):  cls_matraI  >  cls_matraI_width20   /  ANY  _ { user4 == 1 }  consWidth30_matraI  ;
+
+
+15 - RULE 7.15, annapurna_main.gdh(893):  cls_matraI  >  cls_matraI_width30   /  ANY  _ { user4 == 1 }  consWidth40_matraI  ;
+
+
+16 - RULE 7.16, annapurna_main.gdh(895):  cls_matraI  >  cls_matraI_width20   /  ANY  _  consWidth20_matraI  ;
+
+
+17 - RULE 7.17, annapurna_main.gdh(896):  cls_matraI  >  cls_matraI_width30   /  ANY  _  consWidth30_matraI  ;
+
+
+18 - RULE 7.18, annapurna_main.gdh(897):  cls_matraI  >  cls_matraI_width40   /  ANY  _  consWidth40_matraI  ;
+
+
+19 - RULE 7.19, annapurna_main.gdh(899):  cls_matraII  >  cls_matraII_width20   /  consWidth20_matraII  _  ;
+
+
+20 - RULE 7.20, annapurna_main.gdh(900):  cls_matraII  >  cls_matraII_width30   /  consWidth30_matraII  _  ;
+
+
+PASS: 8
+
+0 - RULE 8.6, annapurna_main.gdh(931):  cls_vowelRtHigh  g0930_094d_reph  g0901  >  cls_vowelRtHigh_0930_094d_0901:(2 4 5) { comp.c1.ref = @2; comp.c2.ref = @4; comp.c3.ref = @5;  }  _  _   /  ANY  _  g_nukta  _  _  ;
+
+
+1 - RULE 8.8, annapurna_main.gdh(935):  cls_vowelRtHigh  g0930_094d_reph  g0902  >  cls_vowelRtHigh_0930_094d_0902:(2 4 5) { comp.c1.ref = @2; comp.c2.ref = @4; comp.c3.ref = @5;  }  _  _   /  ANY  _  g_nukta  _  _  ;
+
+
+2 - RULE 8.3, annapurna_main.gdh(914):  g0930  g200d  cls_noLigRephZwjU  >  _  _  cls_ligRephZwjU:(2 3 4) { comp.c1.ref = @2; comp.c2.ref = @4;  }   /  ANY  _  _  _  ;
+
+
+3 - RULE 8.4, annapurna_main.gdh(927):  cls_vowelRtHigh  g0930_094d_reph  >  cls_vowelRtHigh_0930_094d:(2 4) { comp.c1.ref = @2; comp.c2.ref = @4;  }  _   /  ANY  _  g_nukta  _  ;
+
+
+4 - RULE 8.7, annapurna_main.gdh(931):  cls_vowelRtHigh  g0930_094d_reph  g0901  >  cls_vowelRtHigh_0930_094d_0901:(2 3 4) { comp.c1.ref = @2; comp.c2.ref = @3; comp.c3.ref = @4;  }  _  _   /  ANY  _  _  _  ;
+
+
+5 - RULE 8.9, annapurna_main.gdh(935):  cls_vowelRtHigh  g0930_094d_reph  g0902  >  cls_vowelRtHigh_0930_094d_0902:(2 3 4) { comp.c1.ref = @2; comp.c2.ref = @3; comp.c3.ref = @4;  }  _  _   /  ANY  _  _  _  ;
+
+
+6 - RULE 8.14, annapurna_main.gdh(952):  g0967  *GC2*  g096a  >  g0967_2044_096a:(2 3 4)  _  _   /  ANY  _  _  _  ;
+
+
+7 - RULE 8.15, annapurna_main.gdh(953):  g0967  *GC3*  g0968  >  g0967_2044_0968:(2 3 4)  _  _   /  ANY  _  _  _  ;
+
+
+8 - RULE 8.16, annapurna_main.gdh(954):  g0969  *GC4*  g096a  >  g0969_2044_096a:(2 3 4)  _  _   /  ANY  _  _  _  ;
+
+
+9 - RULE 8.0, annapurna_main.gdh(907):  cno_stackComprs  >  cStackComprs   /  ANY  _  cls_matraLower  ;
+
+
+10 - RULE 8.1, annapurna_main.gdh(910):  g0939  cls_noLigBelow_0939  >  _  cls_ligBelow_0939:(2 3)   /  ANY  _  _  ;
+
+
+11 - RULE 8.2, annapurna_main.gdh(911):  g0930  cls_noLigBelow_0930  >  _  cls_ligBelow_0930:(2 3)   /  ANY  _  _  ;
+
+
+12 - RULE 8.5, annapurna_main.gdh(927):  cls_vowelRtHigh  g0930_094d_reph  >  cls_vowelRtHigh_0930_094d:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }  _   /  ANY  _  _  ;
+
+
+13 - RULE 8.10, annapurna_main.gdh(941):  g0930_094d_reph  g0901  >  g0930_094d_0901:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }  _   /  ANY  _  _  ;
+
+
+14 - RULE 8.11, annapurna_main.gdh(942):  g0930_094d_reph  g0902  >  g0930_094d_0902:(2 3) { comp.c1.ref = @2; comp.c2.ref = @3;  }  _   /  ANY  _  _  ;
+
+
+15 - RULE 8.12, annapurna_main.gdh(945):  g0901  >  g0901_alt   /  *GC0*  _  ;
+
+
+16 - RULE 8.13, annapurna_main.gdh(946):  g0901  >  g0901_alt   /  *GC1*  _  ;
+
+
+17 - RULE 8.29, annapurna_main.gdh(1028):  if (ukar) c_ukar_noalt  >  c_ukar_alt2   /  cStackComprs  _  ; endif; 
+
+
+18 - RULE 8.51, annapurna_main.gdh(1097):  cls_0949  _  >  cls_0949_bottom:2  cls_0949_top$2:2   /  ANY  _  _  g0930_094d_reph  ;
+
+
+19 - RULE 8.52, annapurna_main.gdh(1099):  g0945_093c  _  >  g0945_093c_top:2  g0945_093c_bottom:2   /  g0930_094d_reph  _  _  ;
+
+
+20 - RULE 8.53, annapurna_main.gdh(1102):  cls_0949  _  >  cls_0949_bottom:2  g0949_top:2   /  ANY  _  _  g0902  ;
+
+
+21 - RULE 8.54, annapurna_main.gdh(1103):  g0945_093c  _  >  g0945_093c_top:2  g0945_093c_bottom:2   /  ANY  _  _  g0902  ;
+
+
+22 - RULE 8.55, annapurna_main.gdh(1106):  g0901  _  g0901  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+23 - RULE 8.56, annapurna_main.gdh(1107):  g0902  _  g0902  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+24 - RULE 8.57, annapurna_main.gdh(1108):  g093c  _  g093c  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+25 - RULE 8.58, annapurna_main.gdh(1109):  g0941  _  g0941  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+26 - RULE 8.59, annapurna_main.gdh(1110):  g0942  _  g0942  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+27 - RULE 8.60, annapurna_main.gdh(1111):  g0943  _  g0943  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+28 - RULE 8.61, annapurna_main.gdh(1112):  g0944  _  g0944  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+29 - RULE 8.62, annapurna_main.gdh(1113):  g0945  _  g0945  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+30 - RULE 8.63, annapurna_main.gdh(1114):  g0946  _  g0946  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+31 - RULE 8.64, annapurna_main.gdh(1115):  g0947  _  g0947  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+32 - RULE 8.65, annapurna_main.gdh(1116):  g0948  _  g0948  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+33 - RULE 8.66, annapurna_main.gdh(1117):  g094d  _  g094d  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+34 - RULE 8.67, annapurna_main.gdh(1118):  g0951  _  g0951  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+35 - RULE 8.68, annapurna_main.gdh(1119):  g0952  _  g0952  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+36 - RULE 8.69, annapurna_main.gdh(1120):  g0953  _  g0953  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+37 - RULE 8.70, annapurna_main.gdh(1121):  g0954  _  g0954  >  @2  g25cc:4  @4   /  ANY  _  _  _  ;
+
+
+38 - RULE 8.17, annapurna_main.gdh(994):  if (jha == 0) c_091d_alt1  >  c_091d_noalt   /  ANY  _  ; endif; 
+
+
+39 - RULE 8.18, annapurna_main.gdh(995):  if (jha == 0) c_091d_alt2  >  c_091d_noalt   /  ANY  _  ; endif; 
+
+
+40 - RULE 8.19, annapurna_main.gdh(999):  if (jha == 1) c_091d_noalt  >  c_091d_alt1   /  ANY  _  ; endif; 
+
+
+41 - RULE 8.20, annapurna_main.gdh(1000):  if (jha == 1) c_091d_alt2  >  c_091d_alt1   /  ANY  _  ; endif; 
+
+
+42 - RULE 8.21, annapurna_main.gdh(1004):  if (jha == 2) c_091d_noalt  >  c_091d_alt2   /  ANY  _  ; endif; 
+
+
+43 - RULE 8.22, annapurna_main.gdh(1005):  if (jha == 2) c_091d_alt1  >  c_091d_alt2   /  ANY  _  ; endif; 
+
+
+44 - RULE 8.23, annapurna_main.gdh(1010):  if (kra) c_kra_noalt  >  c_kra_alt   /  ANY  _  ; endif; 
+
+
+45 - RULE 8.24, annapurna_main.gdh(1012):  if (!(kra)) c_kra_alt  >  c_kra_noalt   /  ANY  _  ; endif; 
+
+
+46 - RULE 8.25, annapurna_main.gdh(1016):  if (tra) c_tra_noalt  >  c_tra_alt   /  ANY  _  ; endif; 
+
+
+47 - RULE 8.26, annapurna_main.gdh(1018):  if (!(tra)) c_tra_alt  >  c_tra_noalt   /  ANY  _  ; endif; 
+
+
+48 - RULE 8.27, annapurna_main.gdh(1022):  if (shra) c_shra_noalt  >  c_shra_alt   /  ANY  _  ; endif; 
+
+
+49 - RULE 8.28, annapurna_main.gdh(1024):  if (!(shra)) c_shra_alt  >  c_shra_noalt   /  ANY  _  ; endif; 
+
+
+50 - RULE 8.30, annapurna_main.gdh(1029):  if (ukar) c_ukar_noalt  >  c_ukar_alt   /  ANY  _  ; endif; 
+
+
+51 - RULE 8.31, annapurna_main.gdh(1031):  if (!(ukar)) c_ukar_alt  >  c_ukar_noalt   /  ANY  _  ; endif; 
+
+
+52 - RULE 8.32, annapurna_main.gdh(1032):  if (!(ukar)) c_ukar_alt2  >  c_ukar_noalt   /  ANY  _  ; endif; 
+
+
+53 - RULE 8.33, annapurna_main.gdh(1036):  if (ekar) c_ekar_noalt  >  c_ekar_alt   /  ANY  _  ; endif; 
+
+
+54 - RULE 8.34, annapurna_main.gdh(1038):  if (!(ekar)) c_ekar_alt  >  c_ekar_noalt   /  ANY  _  ; endif; 
+
+
+55 - RULE 8.35, annapurna_main.gdh(1043):  if (digit5) g096b  >  g096b_alt   /  ANY  _  ; endif; 
+
+
+56 - RULE 8.36, annapurna_main.gdh(1045):  if (!(digit5)) g096b_alt  >  g096b   /  ANY  _  ; endif; 
+
+
+57 - RULE 8.37, annapurna_main.gdh(1049):  if (digit8) g096e  >  g096e_alt   /  ANY  _  ; endif; 
+
+
+58 - RULE 8.38, annapurna_main.gdh(1051):  if (!(digit8)) g096e_alt  >  g096e   /  ANY  _  ; endif; 
+
+
+59 - RULE 8.39, annapurna_main.gdh(1055):  if (digit9 == 0) g096f_alt  >  g096f   /  ANY  _  ; endif; 
+
+
+60 - RULE 8.40, annapurna_main.gdh(1056):  if (digit9 == 0) g096f_alt2  >  g096f   /  ANY  _  ; endif; 
+
+
+61 - RULE 8.41, annapurna_main.gdh(1059):  if (digit9 == 1) g096f  >  g096f_alt   /  ANY  _  ; endif; 
+
+
+62 - RULE 8.42, annapurna_main.gdh(1060):  if (digit9 == 1) g096f_alt2  >  g096f_alt   /  ANY  _  ; endif; 
+
+
+63 - RULE 8.43, annapurna_main.gdh(1063):  if (digit9 == 2) g096f  >  g096f_alt2   /  ANY  _  ; endif; 
+
+
+64 - RULE 8.44, annapurna_main.gdh(1064):  if (digit9 == 2) g096f_alt  >  g096f_alt2   /  ANY  _  ; endif; 
+
+
+65 - RULE 8.45, annapurna_main.gdh(1069):  if (visargabar) g0903  >  g0903_alt   /  ANY  _  ; endif; 
+
+
+66 - RULE 8.46, annapurna_main.gdh(1071):  if (!(visargabar)) g0903_alt  >  g0903   /  ANY  _  ; endif; 
+
+
+67 - RULE 8.47, annapurna_main.gdh(1075):  if (glottalbar) g097d_alt  >  g097d   /  ANY  _  ; endif; 
+
+
+68 - RULE 8.48, annapurna_main.gdh(1077):  if (!(glottalbar)) g097d  >  g097d_alt   /  ANY  _  ; endif; 
+
+
+69 - RULE 8.49, annapurna_main.gdh(1082):  if (archaic) cno_archaic  >  carchaic   /  ANY  _  ; endif; 
+
+
+70 - RULE 8.50, annapurna_main.gdh(1084):  if (!(archaic)) carchaic  >  cno_archaic   /  ANY  _  ; endif; 
+
+
+TABLE: positioning
+
+PASS: 9
+
+0 - RULE 9.0, annapurna_main.gdh(1207):  cTakesCa  cCa {  attach {to = @1; at = CaS; with = CaM; } insert = 1; user3 = 1;  }   /  ^  _  cnCaX  cnCaX  _ { user3 == 0 }  ;
+
+
+1 - RULE 9.3, annapurna_main.gdh(1208):  cTakesUpperDia  cUpperDia {  attach {to = @1; at = UpperS; with = UpperM; } insert = 1; user3 = 1;  }   /  ^  _  cnUpperDiaX  cnUpperDiaX  _ { user3 == 0 }  ;
+
+
+2 - RULE 9.6, annapurna_main.gdh(1209):  cTakesUpperCenterDia  cUpperCenterDiaX {  attach {to = @1; at = UpperCenterS; with = UpperCenterM; } insert = 1; user3 = 1;  }   /  ^  _  cnUpperCenterDiaX  cnUpperCenterDiaX  _ { user3 == 0 }  ;
+
+
+3 - RULE 9.9, annapurna_main.gdh(1210):  cTakesLowerDia  cLowerDia {  attach {to = @1; at = LowerS; with = LowerM; } insert = 1; user3 = 1;  }   /  ^  _  cnLowerDiaX  cnLowerDiaX  _ { user3 == 0 }  ;
+
+
+4 - RULE 9.12, annapurna_main.gdh(1211):  cTakesLowerCenterDia  cLowerCenterDia {  attach {to = @1; at = LowerCenterS; with = LowerCenterM; } insert = 1; user3 = 1;  }   /  ^  _  cnLowerCenterDiaX  cnLowerCenterDiaX  _ { user3 == 0 }  ;
+
+
+5 - RULE 9.15, annapurna_main.gdh(1212):  cTakesLowerAltDia  cLowerAltDia {  attach {to = @1; at = LowerAltS; with = LowerAltM; } insert = 1; user3 = 1;  }   /  ^  _  cnLowerAltDiaX  cnLowerAltDiaX  _ { user3 == 0 }  ;
+
+
+6 - RULE 9.18, annapurna_main.gdh(1213):  cTakesHalantDia  cHalantDia {  attach {to = @1; at = HalantS; with = HalantM; } insert = 1; user3 = 1;  }   /  ^  _  cnHalantDiaX  cnHalantDiaX  _ { user3 == 0 }  ;
+
+
+7 - RULE 9.21, annapurna_main.gdh(1216):  cTakesRephDia  cRephDia {  attach {to = @1; at = UpperS; with = UpperM; } insert = 1; user3 = 1;  }   /  ^  _  cnRephDiaX  cnRephDiaX  _ { user3 == 0 }  ;
+
+
+8 - RULE 9.24, annapurna_main.gdh(1226):  cTakesNuktaDia  cNuktaDia {  attach {to = @1; at = NuktaS; with = NuktaM; } user3 = 1;  }   /  ^  _  cnNuktaDiaX  cnNuktaDiaX  _ { user3 == 0 }  ;
+
+
+9 - RULE 9.1, annapurna_main.gdh(1207):  cTakesCa  cCa {  attach {to = @1; at = CaS; with = CaM; } insert = 1; user3 = 1;  }   /  ^  _  cnCaX  _ { user3 == 0 }  ;
+
+
+10 - RULE 9.4, annapurna_main.gdh(1208):  cTakesUpperDia  cUpperDia {  attach {to = @1; at = UpperS; with = UpperM; } insert = 1; user3 = 1;  }   /  ^  _  cnUpperDiaX  _ { user3 == 0 }  ;
+
+
+11 - RULE 9.7, annapurna_main.gdh(1209):  cTakesUpperCenterDia  cUpperCenterDiaX {  attach {to = @1; at = UpperCenterS; with = UpperCenterM; } insert = 1; user3 = 1;  }   /  ^  _  cnUpperCenterDiaX  _ { user3 == 0 }  ;
+
+
+12 - RULE 9.10, annapurna_main.gdh(1210):  cTakesLowerDia  cLowerDia {  attach {to = @1; at = LowerS; with = LowerM; } insert = 1; user3 = 1;  }   /  ^  _  cnLowerDiaX  _ { user3 == 0 }  ;
+
+
+13 - RULE 9.13, annapurna_main.gdh(1211):  cTakesLowerCenterDia  cLowerCenterDia {  attach {to = @1; at = LowerCenterS; with = LowerCenterM; } insert = 1; user3 = 1;  }   /  ^  _  cnLowerCenterDiaX  _ { user3 == 0 }  ;
+
+
+14 - RULE 9.16, annapurna_main.gdh(1212):  cTakesLowerAltDia  cLowerAltDia {  attach {to = @1; at = LowerAltS; with = LowerAltM; } insert = 1; user3 = 1;  }   /  ^  _  cnLowerAltDiaX  _ { user3 == 0 }  ;
+
+
+15 - RULE 9.19, annapurna_main.gdh(1213):  cTakesHalantDia  cHalantDia {  attach {to = @1; at = HalantS; with = HalantM; } insert = 1; user3 = 1;  }   /  ^  _  cnHalantDiaX  _ { user3 == 0 }  ;
+
+
+16 - RULE 9.22, annapurna_main.gdh(1216):  cTakesRephDia  cRephDia {  attach {to = @1; at = UpperS; with = UpperM; } insert = 1; user3 = 1;  }   /  ^  _  cnRephDiaX  _ { user3 == 0 }  ;
+
+
+17 - RULE 9.25, annapurna_main.gdh(1226):  cTakesNuktaDia  cNuktaDia {  attach {to = @1; at = NuktaS; with = NuktaM; } user3 = 1;  }   /  ^  _  cnNuktaDiaX  _ { user3 == 0 }  ;
+
+
+18 - RULE 9.2, annapurna_main.gdh(1207):  cTakesCa  cCa {  attach {to = @1; at = CaS; with = CaM; } insert = 1; user3 = 1;  }   /  ^  _  _ { user3 == 0 }  ;
+
+
+19 - RULE 9.5, annapurna_main.gdh(1208):  cTakesUpperDia  cUpperDia {  attach {to = @1; at = UpperS; with = UpperM; } insert = 1; user3 = 1;  }   /  ^  _  _ { user3 == 0 }  ;
+
+
+20 - RULE 9.8, annapurna_main.gdh(1209):  cTakesUpperCenterDia  cUpperCenterDiaX {  attach {to = @1; at = UpperCenterS; with = UpperCenterM; } insert = 1; user3 = 1;  }   /  ^  _  _ { user3 == 0 }  ;
+
+
+21 - RULE 9.11, annapurna_main.gdh(1210):  cTakesLowerDia  cLowerDia {  attach {to = @1; at = LowerS; with = LowerM; } insert = 1; user3 = 1;  }   /  ^  _  _ { user3 == 0 }  ;
+
+
+22 - RULE 9.14, annapurna_main.gdh(1211):  cTakesLowerCenterDia  cLowerCenterDia {  attach {to = @1; at = LowerCenterS; with = LowerCenterM; } insert = 1; user3 = 1;  }   /  ^  _  _ { user3 == 0 }  ;
+
+
+23 - RULE 9.17, annapurna_main.gdh(1212):  cTakesLowerAltDia  cLowerAltDia {  attach {to = @1; at = LowerAltS; with = LowerAltM; } insert = 1; user3 = 1;  }   /  ^  _  _ { user3 == 0 }  ;
+
+
+24 - RULE 9.20, annapurna_main.gdh(1213):  cTakesHalantDia  cHalantDia {  attach {to = @1; at = HalantS; with = HalantM; } insert = 1; user3 = 1;  }   /  ^  _  _ { user3 == 0 }  ;
+
+
+25 - RULE 9.23, annapurna_main.gdh(1216):  cTakesRephDia  cRephDia {  attach {to = @1; at = UpperS; with = UpperM; } insert = 1; user3 = 1;  }   /  ^  _  _ { user3 == 0 }  ;
+
+
+26 - RULE 9.26, annapurna_main.gdh(1226):  cTakesNuktaDia  cNuktaDia {  attach {to = @1; at = NuktaS; with = NuktaM; } user3 = 1;  }   /  ^  _  _ { user3 == 0 }  ;
+
+
+PASS: 10
+
+0 - RULE 10.1, annapurna_main.gdh(1246):  *GC6*  g0902 { shift.x = 600; shift.y = -300;  }   /  cls_vowelWWideRt  _  cls_nukta  _  ;
+
+
+1 - RULE 10.2, annapurna_main.gdh(1246):  *GC6*  g0902 { shift.x = 600; shift.y = -300;  }   /  cls_vowelWWideRt  _  _  ;
+
+
+2 - RULE 10.3, annapurna_main.gdh(1247):  *GC7* { shift.x = -300;  }  g0902 { shift.x = 600; shift.y = -300;  }   /  ANY  _  cls_nukta  _  ;
+
+
+3 - RULE 10.35, annapurna_main.gdh(1291):  cls_0949_bottom  cls_0949_top { shift.x = -350;  }  g0930_094d_reph { shift.x = 300;  }   /  ANY  _  _  _  ;
+
+
+4 - RULE 10.40, annapurna_main.gdh(1300):  cls_matraI  cls_shiftCandrabAfterI  g0901 { shift.x = 250; shift.y = 75;  }   /  ANY  _  _  _  ;
+
+
+5 - RULE 10.0, annapurna_main.gdh(1244):  *GC5*  g0901 { shift.x = 700;  }   /  ANY  _  _  ;
+
+
+6 - RULE 10.4, annapurna_main.gdh(1247):  *GC7* { shift.x = -300;  }  g0902 { shift.x = 600; shift.y = -300;  }   /  ANY  _  _  ;
+
+
+7 - RULE 10.5, annapurna_main.gdh(1249):  *GC8*  g0901_alt { shift.x = 70;  }   /  ANY  _  _  ;
+
+
+8 - RULE 10.6, annapurna_main.gdh(1250):  *GC9*  g0901_alt { shift.x = 80;  }   /  ANY  _  _  ;
+
+
+9 - RULE 10.7, annapurna_main.gdh(1251):  *GC10*  g0901_alt { shift.x = 50;  }   /  ANY  _  _  ;
+
+
+10 - RULE 10.8, annapurna_main.gdh(1252):  *GC11*  g0901_alt { shift.x = 70;  }   /  ANY  _  _  ;
+
+
+11 - RULE 10.9, annapurna_main.gdh(1257):  g0901  g0951 { shift.x = -160; shift.y = 560;  }   /  ANY  _  _  ;
+
+
+12 - RULE 10.10, annapurna_main.gdh(1258):  g0901  g0953 { shift.x = 80; shift.y = 500;  }   /  ANY  _  _  ;
+
+
+13 - RULE 10.11, annapurna_main.gdh(1259):  g0901  g0954 { shift.y = 500;  }   /  ANY  _  _  ;
+
+
+14 - RULE 10.12, annapurna_main.gdh(1260):  g0902  g0951 { shift.x = 90; shift.y = 320;  }   /  ANY  _  _  ;
+
+
+15 - RULE 10.13, annapurna_main.gdh(1261):  g0902  g0953 { shift.x = 300; shift.y = 260;  }   /  ANY  _  _  ;
+
+
+16 - RULE 10.14, annapurna_main.gdh(1262):  g0902  g0954 { shift.x = 200; shift.y = 260;  }   /  ANY  _  _  ;
+
+
+17 - RULE 10.15, annapurna_main.gdh(1263):  *GC12*  g0951 { shift.x = -130; shift.y = 250;  }   /  ANY  _  _  ;
+
+
+18 - RULE 10.16, annapurna_main.gdh(1264):  *GC13*  g0953 { shift.y = 250;  }   /  ANY  _  _  ;
+
+
+19 - RULE 10.17, annapurna_main.gdh(1265):  *GC14*  g0954 { shift.x = 200; shift.y = 250;  }   /  ANY  _  _  ;
+
+
+20 - RULE 10.18, annapurna_main.gdh(1266):  *GC15*  g0951 { shift.y = 250;  }   /  ANY  _  _  ;
+
+
+21 - RULE 10.19, annapurna_main.gdh(1267):  *GC16*  g0953 { shift.y = 250;  }   /  ANY  _  _  ;
+
+
+22 - RULE 10.20, annapurna_main.gdh(1268):  *GC17*  g0954 { shift.y = 250;  }   /  ANY  _  _  ;
+
+
+23 - RULE 10.21, annapurna_main.gdh(1269):  *GC18*  g0951 { shift.y = 160;  }   /  ANY  _  _  ;
+
+
+24 - RULE 10.22, annapurna_main.gdh(1270):  *GC19*  g0953 { shift.y = 250;  }   /  ANY  _  _  ;
+
+
+25 - RULE 10.23, annapurna_main.gdh(1271):  *GC20*  g0954 { shift.x = 230; shift.y = 280;  }   /  ANY  _  _  ;
+
+
+26 - RULE 10.24, annapurna_main.gdh(1272):  g0930_094d_reph  g0953 { shift.x = -250; shift.y = 350;  }   /  ANY  _  _  ;
+
+
+27 - RULE 10.25, annapurna_main.gdh(1273):  g0930_094d_reph  g0954 { shift.x = 100; shift.y = 500;  }   /  ANY  _  _  ;
+
+
+28 - RULE 10.26, annapurna_main.gdh(1275):  *GC21*  g0951 { shift.y = 160;  }   /  ANY  _  _  ;
+
+
+29 - RULE 10.27, annapurna_main.gdh(1276):  *GC22*  g0953 { shift.y = 160;  }   /  ANY  _  _  ;
+
+
+30 - RULE 10.28, annapurna_main.gdh(1277):  *GC23*  g0954 { shift.y = 250;  }   /  ANY  _  _  ;
+
+
+31 - RULE 10.29, annapurna_main.gdh(1281):  g0941  g0952 { shift.y = -560;  }   /  ANY  _  _  ;
+
+
+32 - RULE 10.30, annapurna_main.gdh(1282):  g0942  g0952 { shift.x = 500; shift.y = -600;  }   /  ANY  _  _  ;
+
+
+33 - RULE 10.31, annapurna_main.gdh(1283):  g0943  g0952 { shift.x = 200; shift.y = -560;  }   /  ANY  _  _  ;
+
+
+34 - RULE 10.32, annapurna_main.gdh(1284):  g0944  g0952 { shift.y = -650;  }   /  ANY  _  _  ;
+
+
+35 - RULE 10.33, annapurna_main.gdh(1285):  g0962  g0952 { shift.x = 100; shift.y = -620;  }   /  ANY  _  _  ;
+
+
+36 - RULE 10.34, annapurna_main.gdh(1286):  g0963  g0952 { shift.x = 100; shift.y = -650;  }   /  ANY  _  _  ;
+
+
+37 - RULE 10.36, annapurna_main.gdh(1294):  g0930_094d_reph { shift.x = 300;  }  cls_0945 { shift.x = -375;  }   /  ANY  _  _  ;
+
+
+38 - RULE 10.37, annapurna_main.gdh(1295):  g0930_094d_reph { shift.x = 100;  }  cls_0946   /  ANY  _  _  ;
+
+
+39 - RULE 10.38, annapurna_main.gdh(1296):  g0930_094d_reph { shift.x = 90;  }  cls_0947   /  ANY  _  _  ;
+
+
+40 - RULE 10.39, annapurna_main.gdh(1297):  g0930_094d_reph { shift.x = 120;  }  cls_0948   /  ANY  _  _  ;
+
