@@ -31,7 +31,7 @@ what this does is:
 $ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh -o data/in-house/tests/test-name.tests ../../util/hb-subset ../../util/hb-shape font.ttf
 ```
 
-If you created a new test file, add it to `data/in-house/Makefile.sources`
+If you created a new test file, add it to `data/in-house/meson.build`
 so it is run.  Check that `make check` does indeed run it, and that the
 test passes.  When everything looks good, `git add` the new font as well
 as the new test file if you created any.  You can see what new files are
