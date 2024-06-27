@@ -33,7 +33,7 @@ jobs:
       - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y git ninja-build binutils gcc g++ pkg-config ragel gtk-doc-tools gobject-introspection libfreetype6-dev libglib2.0-dev libgirepository1.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
       - run: pip3 install fonttools meson --upgrade
       - run: meson setup build
-      - run: meson dist -Cbuild
+      - run: meson dist --no-tests -Cbuild
       - persist_to_workspace:
           root: .
           paths: build/meson-dist/harfbuzz-*.tar.xz
