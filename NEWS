@@ -1,3 +1,22 @@
+Overview of changes leading to 9.0.0
+Thursday, Jun 27, 2024
+====================================
+- HarfBuzz now the supports the proposed new OpenType “VARC” table. This
+  replaces the previously supported “Variable Composites” experimental feature.
+  “VARC” support is still experimental and it is not enabled unless HarfBuzz is
+  built with experimental APIs enabled:
+  https://github.com/harfbuzz/boring-expansion-spec/blob/main/VARC.md
+- Autotools build system have been dropped. Meson is the only supported build
+  system in HarfBuzz going forward.
+- Speed up “AAT” shaping for short words by up to 4%.
+- Ignore unknown “CFF” operators.
+- “hb_subset_input_keep_everything()” now keeps also non-unicode “name” table
+  records.
+- Update the IANA and OpenType language tag registries.
+- Support composite glyphs with very large number of points in hb-draw API.
+- Various build fixes.
+
+
 Overview of changes leading to 8.5.0
 Monday, May 13, 2024
 ====================================
