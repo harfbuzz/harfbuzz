@@ -186,8 +186,8 @@ extract_make_variable(HB_INFO_sources ${UTILSOURCES})
 add_prefix_to_list(HB_INFO_sources "${PROJECT_SOURCE_DIR}/util/")
 
 
-file(READ configure.ac CONFIGUREAC)
-string(REGEX MATCH "\\[(([0-9]+)\\.([0-9]+)\\.([0-9]+))\\]" HB_VERSION_MATCH ${CONFIGUREAC})
+file(READ meson.build MESONBUILD)
+string(REGEX MATCH "version: '(([0-9]+)\\.([0-9]+)\\.([0-9]+))'," HB_VERSION_MATCH ${MESONBUILD})
 set (HB_VERSION ${CMAKE_MATCH_1})
 set (HB_VERSION_MAJOR ${CMAKE_MATCH_2})
 set (HB_VERSION_MINOR ${CMAKE_MATCH_3})
