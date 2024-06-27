@@ -46,7 +46,7 @@ jobs:
       - attach_workspace:
           at: .
       - run: |
-          .ci/publish_release_artifact.sh harfbuzz-$CIRCLE_TAG.tar.xz
+          .ci/publish_release_artifact.sh build/meson-dist/harfbuzz-$CIRCLE_TAG.tar.xz
 
   fedora-valgrind:
     docker:
