@@ -396,7 +396,7 @@ $ meson compile -C build
 
 ## How to write a shaping engine in Rust
 
-You may write shaping engines in any language supported by WASM, by conforming to the API described above, but Rust is particularly easy, and we have one of those high-level interface wrappers which makes the process easier. Here are the steps to create an example shaping engine in Rust: (These examples can also be found in `src/wasm/sample/rust`)
+You may write shaping engines in any language supported by WASM, by conforming to the API described above, but Rust is particularly easy, and we have one of those high-level interface wrappers which makes the process easier. Here are the steps to create an example shaping engine in Rust: (These examples can also be found in [their own reposotry](https://github.com/harfbuzz/harfbuzz-wasm-examples))
 
 * First, install wasm-pack, which helps us to generate optimized WASM files. It writes some Javascript bridge code that we don't need, but it makes the build and deployment process much easier:
 
