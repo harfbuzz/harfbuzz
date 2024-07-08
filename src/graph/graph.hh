@@ -368,7 +368,7 @@ struct graph_t
       // it's parent where possible.
 
       int64_t modified_distance =
-          hb_clamp (distance + distance_modifier (), 0, 0x7FFFFFFFFFF);
+          hb_clamp (distance + distance_modifier (), (int64_t) 0, 0x7FFFFFFFFFF);
       if (has_max_priority ()) {
         modified_distance = 0;
       }
