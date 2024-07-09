@@ -52,8 +52,8 @@ For custom configurations, see [CONFIG.md](CONFIG.md).
 For testing and profiling, see [TESTING.md](TESTING.md).
 
 To get a better idea of where HarfBuzz stands in the text rendering stack you
-may want to read [State of Text Rendering][6], though, that document is many
-years old. Here are a few presentation slides about HarfBuzz at the
+may want to read [State of Text Rendering 2024][6].
+Here are a few presentation slides about HarfBuzz at the
 Internationalization and Unicode Conference over the years:
 
 *   November 2014, [Unicode, OpenType, and HarfBuzz: Closing the Circle][7],
@@ -97,7 +97,7 @@ transliterated using the Latin script. It also means "talkative" or
 [3]: https://github.com/harfbuzz/harfbuzz/releases
 [4]: https://github.com/harfbuzz/harfbuzz
 [5]: http://mces.blogspot.com/2009/11/pango-vs-harfbuzz.html
-[6]: http://behdad.org/text/
+[6]: http://behdad.org/text2024
 [7]: https://goo.gl/FSIQuC
 [8]: https://goo.gl/2wSRu
 [9]: http://behdad.org/download/Presentations/slippy/harfbuzz_slides.pdf
