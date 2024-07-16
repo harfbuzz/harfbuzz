@@ -186,7 +186,8 @@ else
 endif
 
 if icu_dep.found() and icu_dep.version().version_compare('>=75.1') and (get_option('cpp_std') == 'c++11' or get_option('cpp_std') == 'c++14')
-  add_project_arguments('-std=c++17', language: 'cpp')
+  cpp17_arg = cpp.get_argument_syntax() == 'msvc' ? '/std:c++17' : '-std=c++17'
+  add_project_arguments(cpp17_arg, language: 'cpp')
 endif
 
 if icu_dep.found() and icu_dep.type_name() == 'pkgconfig'
