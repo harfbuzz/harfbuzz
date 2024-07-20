@@ -3799,6 +3799,7 @@ enum Cond_with_Var_flag_t
   DROP_RECORD_WITH_VAR = 3,
 };
 
+struct Condition;
 
 template <typename Instancer>
 static bool
