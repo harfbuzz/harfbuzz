@@ -3390,6 +3390,15 @@ struct ChainRuleSet
      *
      * Replicated from LigatureSet::apply(). */
 
+    /* If the input skippy has non-auto joiners behavior (as in Indic shapers),
+     * skip this fast path, as we don't distinguish between input & lookahead
+     * matching in the fast path.
+     *
+     * https://github.com/harfbuzz/harfbuzz/issues/4813
+     */
+    if (!c->auto_zwnj || !c->auto_zwj)
+      goto slow;
+
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
@@ -3429,10 +3438,10 @@ struct ChainRuleSet
     }
     matched = skippy_iter.next ();
     if (likely (matched && !skippy_iter.may_skip (c->buffer->info[skippy_iter.idx])))
-     {
+    {
       second = &c->buffer->info[skippy_iter.idx];
       unsafe_to2 = skippy_iter.idx + 1;
-     }
+    }
 
     auto match_input = lookup_context.funcs.match[1];
     auto match_lookahead = lookup_context.funcs.match[2];
