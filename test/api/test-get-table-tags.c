@@ -26,8 +26,12 @@
 
 #include "hb-test.h"
 
+#include <hb.h>
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
+#endif
+#ifdef HAVE_CORETEXT
+#include "hb-coretext.h"
 #endif
 
 static void
@@ -118,6 +122,34 @@ test_get_table_tags_ft (void)
 }
 #endif
 
+#ifdef HAVE_CORETEXT
+static void
+test_get_table_tags_ct (void)
+{
+  hb_face_t *source = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_blob_t *blob = hb_face_reference_blob (source);
+  hb_face_destroy (source);
+
+  CGDataProviderRef provider = CGDataProviderCreateWithData (blob,
+							     hb_blob_get_data (blob, NULL),
+							     hb_blob_get_length (blob),
+							     NULL);
+  assert (provider);
+
+  CGFontRef cg_font = CGFontCreateWithDataProvider (provider);
+  assert (cg_font);
+  CGDataProviderRelease (provider);
+
+  hb_face_t *face = hb_coretext_face_create (cg_font);
+
+  _test_get_table_tags (face);
+
+  hb_face_destroy (face);
+  CGFontRelease (cg_font);
+  hb_blob_destroy (blob);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -127,6 +159,9 @@ main (int argc, char **argv)
   hb_test_add (test_get_table_tags_builder);
 #ifdef HAVE_FREETYPE
   hb_test_add (test_get_table_tags_ft);
+#endif
+#ifdef HAVE_CORETEXT
+  hb_test_add (test_get_table_tags_ct);
 #endif
 
   return hb_test_run();
