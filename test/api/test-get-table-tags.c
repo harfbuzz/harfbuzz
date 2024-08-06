@@ -41,9 +41,40 @@ _test_get_table_tags (hb_face_t *face)
 }
 
 static void
-test_get_table_tags (void)
+test_get_table_tags_default (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+
+  _test_get_table_tags (face);
+
+  hb_face_destroy (face);
+}
+
+static void
+test_get_table_tags_builder (void)
+{
+  hb_face_t *source = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face = hb_face_builder_create ();
+
+  hb_tag_t tags[4];
+  unsigned total_count = hb_face_get_table_tags (source, 0, NULL, NULL);
+  for (unsigned start_offset = 0;
+       start_offset < total_count;
+       start_offset += sizeof (tags) / sizeof (tags[0]))
+  {
+    unsigned count = sizeof (tags) / sizeof (tags[0]);
+    unsigned new_total_count = hb_face_get_table_tags (source, start_offset, &count, tags);
+    g_assert_cmpuint (total_count, ==, new_total_count);
+
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_blob_t *blob = hb_face_reference_table (source, tags[i]);
+      hb_face_builder_add_table (face, tags[i], blob);
+      hb_blob_destroy (blob);
+    }
+  }
+
+  hb_face_destroy (source);
 
   _test_get_table_tags (face);
 
@@ -55,7 +86,8 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  hb_test_add (test_get_table_tags);
+  hb_test_add (test_get_table_tags_default);
+  hb_test_add (test_get_table_tags_builder);
 
   return hb_test_run();
 }
