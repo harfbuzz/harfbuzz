@@ -193,7 +193,7 @@ test_subset_plan (void)
 }
 
 static hb_blob_t*
-_ref_table (hb_face_t *, hb_tag_t tag, void *user_data)
+_ref_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   return hb_face_reference_table ((hb_face_t*) user_data, tag);
 }
