@@ -1,0 +1,61 @@
+/*
+ * Copyright © 2024  Google, Inc.
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Author(s): Behdad Esfahbod
+ */
+
+#include "hb-test.h"
+
+static void
+_test_get_table_tags (hb_face_t *face)
+{
+  g_assert_cmpuint (15u, ==, hb_face_get_table_tags (face, 2, NULL, NULL));
+
+  hb_tag_t tags[3];
+  unsigned count = sizeof (tags) / sizeof (tags[0]);
+  g_assert_cmpuint (15u, ==, hb_face_get_table_tags (face, 2, &count, tags));
+
+  g_assert_cmpuint (tags[0], ==, HB_TAG ('c', 'v', 't', ' '));
+  g_assert_cmpuint (tags[1], ==, HB_TAG ('f', 'p', 'g', 'm'));
+  g_assert_cmpuint (tags[2], ==, HB_TAG ('g', 'a', 's', 'p'));
+}
+
+static void
+test_get_table_tags (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+
+  _test_get_table_tags (face);
+
+  hb_face_destroy (face);
+}
+
+int
+main (int argc, char **argv)
+{
+  hb_test_init (&argc, &argv);
+
+  hb_test_add (test_get_table_tags);
+
+  return hb_test_run();
+}
