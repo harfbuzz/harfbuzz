@@ -73,12 +73,12 @@ print (paint_data_t *data,
 }
 
 static void
-push_transform (hb_paint_funcs_t *funcs,
+push_transform (hb_paint_funcs_t *funcs HB_UNUSED,
                 void *paint_data,
                 float xx, float yx,
                 float xy, float yy,
                 float dx, float dy,
-                void *user_data)
+                void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -87,9 +87,9 @@ push_transform (hb_paint_funcs_t *funcs,
 }
 
 static void
-pop_transform (hb_paint_funcs_t *funcs,
+pop_transform (hb_paint_funcs_t *funcs HB_UNUSED,
                void *paint_data,
-               void *user_data)
+               void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -98,11 +98,11 @@ pop_transform (hb_paint_funcs_t *funcs,
 }
 
 static hb_bool_t
-paint_color_glyph (hb_paint_funcs_t *funcs,
+paint_color_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
                    void *paint_data,
                    hb_codepoint_t glyph,
-                   hb_font_t *font,
-                   void *user_data)
+                   hb_font_t *font HB_UNUSED,
+                   void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -112,11 +112,11 @@ paint_color_glyph (hb_paint_funcs_t *funcs,
 }
 
 static void
-push_clip_glyph (hb_paint_funcs_t *funcs,
+push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
                  void *paint_data,
                  hb_codepoint_t glyph,
-                 hb_font_t *font,
-                 void *user_data)
+                 hb_font_t *font HB_UNUSED,
+                 void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -125,10 +125,10 @@ push_clip_glyph (hb_paint_funcs_t *funcs,
 }
 
 static void
-push_clip_rectangle (hb_paint_funcs_t *funcs,
+push_clip_rectangle (hb_paint_funcs_t *funcs HB_UNUSED,
                      void *paint_data,
                      float xmin, float ymin, float xmax, float ymax,
-                     void *user_data)
+                     void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -137,9 +137,9 @@ push_clip_rectangle (hb_paint_funcs_t *funcs,
 }
 
 static void
-pop_clip (hb_paint_funcs_t *funcs,
+pop_clip (hb_paint_funcs_t *funcs HB_UNUSED,
           void *paint_data,
-          void *user_data)
+          void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -148,11 +148,11 @@ pop_clip (hb_paint_funcs_t *funcs,
 }
 
 static void
-paint_color (hb_paint_funcs_t *funcs,
+paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
              void *paint_data,
-             hb_bool_t use_foreground,
+             hb_bool_t use_foreground HB_UNUSED,
              hb_color_t color,
-             void *user_data)
+             void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -164,15 +164,15 @@ paint_color (hb_paint_funcs_t *funcs,
 }
 
 static hb_bool_t
-paint_image (hb_paint_funcs_t *funcs,
+paint_image (hb_paint_funcs_t *funcs HB_UNUSED,
              void *paint_data,
-             hb_blob_t *blob,
+             hb_blob_t *blob HB_UNUSED,
              unsigned int width,
              unsigned int height,
              hb_tag_t format,
              float slant,
              hb_glyph_extents_t *extents,
-             void *user_data)
+             void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
   char buf[5] = { 0, };
@@ -209,13 +209,13 @@ print_color_line (paint_data_t *data,
 }
 
 static void
-paint_linear_gradient (hb_paint_funcs_t *funcs,
+paint_linear_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
                        void *paint_data,
                        hb_color_line_t *color_line,
                        float x0, float y0,
                        float x1, float y1,
                        float x2, float y2,
-                       void *user_data)
+                       void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -230,12 +230,12 @@ paint_linear_gradient (hb_paint_funcs_t *funcs,
 }
 
 static void
-paint_radial_gradient (hb_paint_funcs_t *funcs,
+paint_radial_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
                        void *paint_data,
                        hb_color_line_t *color_line,
                        float x0, float y0, float r0,
                        float x1, float y1, float r1,
-                       void *user_data)
+                       void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -249,13 +249,13 @@ paint_radial_gradient (hb_paint_funcs_t *funcs,
 }
 
 static void
-paint_sweep_gradient (hb_paint_funcs_t *funcs,
+paint_sweep_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
                       void *paint_data,
                       hb_color_line_t *color_line,
                       float cx, float cy,
                       float start_angle,
                       float end_angle,
-                      void *user_data)
+                      void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
 
@@ -269,9 +269,9 @@ paint_sweep_gradient (hb_paint_funcs_t *funcs,
 }
 
 static void
-push_group (hb_paint_funcs_t *funcs,
+push_group (hb_paint_funcs_t *funcs HB_UNUSED,
             void *paint_data,
-            void *user_data)
+            void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
   print (data, "push group");
@@ -279,10 +279,10 @@ push_group (hb_paint_funcs_t *funcs,
 }
 
 static void
-pop_group (hb_paint_funcs_t *funcs,
+pop_group (hb_paint_funcs_t *funcs HB_UNUSED,
            void *paint_data,
            hb_paint_composite_mode_t mode,
-           void *user_data)
+           void *user_data HB_UNUSED)
 {
   paint_data_t *data = paint_data;
   data->level--;
@@ -557,13 +557,13 @@ test_compare_ot_ft_vf (gconstpointer d)
 }
 
 static void
-scrutinize_linear_gradient (hb_paint_funcs_t *funcs,
+scrutinize_linear_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
                             void *paint_data,
                             hb_color_line_t *color_line,
-                            float x0, float y0,
-                            float x1, float y1,
-                            float x2, float y2,
-                            void *user_data)
+                            float x0 HB_UNUSED, float y0 HB_UNUSED,
+                            float x1 HB_UNUSED, float y1 HB_UNUSED,
+                            float x2 HB_UNUSED, float y2 HB_UNUSED,
+                            void *user_data HB_UNUSED)
 {
   hb_bool_t *result = paint_data;
   hb_color_stop_t *stops;
