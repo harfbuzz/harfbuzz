@@ -32,18 +32,6 @@
 #include "hb-test.h"
 #include "hb-subset.h"
 
-#ifdef HAVE_STDBOOL_H
-# include <stdbool.h>
-#else
-typedef short bool;
-# ifndef true
-#  define true 1
-# endif
-# ifndef false
-#  define false 0
-# endif
-#endif
-
 
 HB_BEGIN_DECLS
 
