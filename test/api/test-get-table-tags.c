@@ -39,13 +39,21 @@ _test_get_table_tags (hb_face_t *face)
 {
   g_assert_cmpuint (15u, ==, hb_face_get_table_tags (face, 2, NULL, NULL));
 
+  unsigned count;
   hb_tag_t tags[3];
-  unsigned count = sizeof (tags) / sizeof (tags[0]);
+
+  count = sizeof (tags) / sizeof (tags[0]);
   g_assert_cmpuint (15u, ==, hb_face_get_table_tags (face, 2, &count, tags));
 
+  g_assert_cmpuint (3u, ==, count);
   g_assert_cmpuint (tags[0], ==, HB_TAG ('c', 'v', 't', ' '));
   g_assert_cmpuint (tags[1], ==, HB_TAG ('f', 'p', 'g', 'm'));
   g_assert_cmpuint (tags[2], ==, HB_TAG ('g', 'a', 's', 'p'));
+
+  count = sizeof (tags) / sizeof (tags[0]);
+  g_assert_cmpuint (15u, ==, hb_face_get_table_tags (face, 14, &count, tags));
+  g_assert_cmpuint (1u, ==, count);
+  g_assert_cmpuint (tags[0], ==, HB_TAG ('p', 'r', 'e', 'p'));
 }
 
 static void
