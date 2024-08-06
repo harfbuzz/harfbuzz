@@ -153,6 +153,47 @@ _hb_face_builder_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void 
   return hb_blob_reference (data->tables[tag].data);
 }
 
+static unsigned
+_hb_face_builder_get_table_tags (const hb_face_t *face HB_UNUSED,
+				 unsigned int start_offset,
+				 unsigned int *table_count,
+				 hb_tag_t *table_tags,
+				 void *user_data)
+{
+  hb_face_builder_data_t *data = (hb_face_builder_data_t *) user_data;
+
+  unsigned population = data->tables.get_population ();
+
+  if (!table_count)
+    return population;
+
+  if (unlikely (start_offset >= population))
+  {
+    if (table_count)
+      *table_count = 0;
+    return population;
+  }
+
+  // Sort the tags the same way we do in reference_blob().
+  hb_vector_t<hb_pair_t <hb_tag_t, face_table_info_t>> sorted_entries;
+  data->tables.iter () | hb_sink (sorted_entries);
+  if (unlikely (sorted_entries.in_error ()))
+  {
+    // Not much to do...
+  }
+  sorted_entries.qsort (compare_entries);
+
+  auto array = sorted_entries.as_array ().sub_array (start_offset, table_count);
+  auto out = hb_array (table_tags, *table_count);
+
+  + array.iter ()
+  | hb_map (hb_first)
+  | hb_sink (out)
+  ;
+
+  return population;
+}
+
 
 /**
  * hb_face_builder_create:
@@ -171,9 +212,16 @@ hb_face_builder_create ()
   hb_face_builder_data_t *data = _hb_face_builder_data_create ();
   if (unlikely (!data)) return hb_face_get_empty ();
 
-  return hb_face_create_for_tables (_hb_face_builder_reference_table,
-				    data,
-				    _hb_face_builder_data_destroy);
+  hb_face_t *face = hb_face_create_for_tables (_hb_face_builder_reference_table,
+					       data,
+					       _hb_face_builder_data_destroy);
+
+  hb_face_set_get_table_tags_func (face,
+				   _hb_face_builder_get_table_tags,
+				   data,
+				   nullptr);
+
+  return face;
 }
 
 /**
