@@ -26,6 +26,10 @@
 
 #include "hb-test.h"
 
+#ifdef HAVE_FREETYPE
+#include <hb-ft.h>
+#endif
+
 static void
 _test_get_table_tags (hb_face_t *face)
 {
@@ -81,6 +85,39 @@ test_get_table_tags_builder (void)
   hb_face_destroy (face);
 }
 
+#ifdef HAVE_FREETYPE
+static void
+test_get_table_tags_ft (void)
+{
+  hb_face_t *source = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_blob_t *blob = hb_face_reference_blob (source);
+  hb_face_destroy (source);
+
+  FT_Error error;
+
+  FT_Library ft_library;
+  error = FT_Init_FreeType (&ft_library);
+  g_assert_cmpint (0, ==, error);
+
+  FT_Face ft_face;
+  error = FT_New_Memory_Face (ft_library,
+			      (const FT_Byte *) hb_blob_get_data (blob, NULL),
+			      hb_blob_get_length (blob),
+			      0,
+			      &ft_face);
+  g_assert_cmpint (0, ==, error);
+
+  hb_face_t *face = hb_ft_face_create (ft_face, NULL);
+
+  _test_get_table_tags (face);
+
+  hb_face_destroy (face);
+  FT_Done_Face (ft_face);
+  FT_Done_FreeType (ft_library);
+  hb_blob_destroy (blob);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -88,6 +125,9 @@ main (int argc, char **argv)
 
   hb_test_add (test_get_table_tags_default);
   hb_test_add (test_get_table_tags_builder);
+#ifdef HAVE_FREETYPE
+  hb_test_add (test_get_table_tags_ft);
+#endif
 
   return hb_test_run();
 }
