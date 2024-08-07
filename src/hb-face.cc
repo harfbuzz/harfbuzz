@@ -106,8 +106,9 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
  *
  * Variant of hb_face_create(), built for those cases where it is more
  * convenient to provide data for individual tables instead of the whole font
- * data. With the caveat that hb_face_get_table_tags() does not currently work
- * with faces created this way.
+ * data. With the caveat that hb_face_get_table_tags() would not work
+ * with faces created this way. You can address that by calling the
+ * hb_face_set_get_table_tags_func() function and setting the appropriate callback.
  *
  * Creates a new face object from the specified @user_data and @reference_table_func,
  * with the @destroy callback.
