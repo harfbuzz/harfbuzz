@@ -1,0 +1,15 @@
+/*
+ Contains various test additions to the basic GDL
+ for testing the graphite engine
+*/
+
+table(glyph)
+
+cLetters = (g_a, g_b, g_c, g_d, g_e, g_f, g_g, g_h, g_i, g_j, g_k, g_l, g_m,
+            g_n, g_o, g_p, g_q, g_r, g_s, g_t, g_u, g_v, g_w, g_x, g_y, g_z,
+            g__a, g__b, g__c, g__d, g__e, g__f, g__g, g__h, g__i, g__j, g__k, g__l, g__m,
+            g__n, g__o, g__p, g__q, g__r, g__s, g__t, g__u, g__v, g__w, g__x, g__y, g__z);
+cLetters { justify.weight = 1; justify.stretch = 41m };
+g_space { justify { weight = 10; stretch = 65535m } };
+endtable;
+
