@@ -295,7 +295,7 @@ extern "C" void  hb_free_impl(void *ptr);
 
 #ifndef HB_INTERNAL
 # if !defined(HB_NO_VISIBILITY) && !defined(__MINGW32__) && !defined(__CYGWIN__) && !defined(_MSC_VER) && !defined(__SUNPRO_CC)
-#  define HB_INTERNAL __attribute__((__visibility__("hidden")))
+#  define HB_INTERNAL
 # elif defined(__MINGW32__)
    /* We use -export-symbols on mingw32, since it does not support visibility attributes. */
 #  define HB_INTERNAL

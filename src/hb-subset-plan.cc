@@ -26,6 +26,8 @@
 
 #include "hb-subset-plan.hh"
 #include "hb-subset-accelerator.hh"
+#include "hb-ot-shape-normalize.hh"
+#include "hb-ot-shaper.hh"
 #include "hb-map.hh"
 #include "hb-multimap.hh"
 #include "hb-set.hh"
@@ -506,6 +508,82 @@ _collect_base_variation_indices (hb_subset_plan_t* plan)
 #endif
 #endif
 
+template <typename F>
+static void
+_recurse_unicode_closure (hb_ot_shape_normalize_context_t *c,
+			  hb_codepoint_t cp,
+			  hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &arr,
+			  hb_map_t &unicode_to_glyph_map,
+			  F unicode_to_glyph_mapper)
+{
+  hb_codepoint_t a, b;
+  if (c->decompose (c, cp, &a, &b))
+  {
+    hb_codepoint_t gid_a = unicode_to_glyph_mapper (a);
+    hb_codepoint_t gid_b = unicode_to_glyph_mapper (b);
+    if (gid_a == HB_MAP_VALUE_INVALID || gid_b == HB_MAP_VALUE_INVALID)
+      return;
+
+    if (!unicode_to_glyph_map.has (a))
+    {
+      unicode_to_glyph_map.set (a, gid_a);
+      arr.push (hb_pair (a, gid_a));
+      _recurse_unicode_closure (c, a, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
+    }
+
+    if (b && !unicode_to_glyph_map.has (b))
+    {
+      unicode_to_glyph_map.set (b, gid_b);
+      arr.push (hb_pair (b, gid_b));
+      _recurse_unicode_closure (c, b, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
+    }
+  }
+}
+
+template <typename F>
+static inline void
+_unicode_closure (hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &arr,
+		  unsigned start,
+		  hb_map_t &unicode_to_glyph_map,
+		  F unicode_to_glyph_mapper)
+{
+  hb_unicode_funcs_t *ufuncs = hb_unicode_funcs_get_default ();
+
+  hb_script_t last_script = HB_SCRIPT_INVALID;
+  hb_direction_t direction = HB_DIRECTION_INVALID;
+  const hb_tag_t gsub_script = HB_TAG_NONE;
+  const hb_ot_shaper_t *shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script);
+
+  hb_ot_shape_normalization_mode_t mode = shaper->normalization_preference;
+  hb_ot_shape_normalize_context_t c = {
+    nullptr, // plan
+    nullptr, // buffer
+    nullptr, // font
+    ufuncs,
+    0 // not_found
+  };
+  c.override_decompose_and_compose (shaper->decompose, shaper->compose);
+
+  unsigned end = arr.length;
+
+  for (unsigned i = start; i < end; i++)
+  {
+    hb_codepoint_t cp = arr.arrayZ[i].first;
+    hb_script_t script = hb_unicode_script (ufuncs, cp);
+    if (script != last_script)
+    {
+      last_script = script;
+      direction = hb_script_get_horizontal_direction (script);
+      shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script);
+      mode = shaper->normalization_preference;
+      c.override_decompose_and_compose (shaper->decompose, shaper->compose);
+    }
+
+    if (mode != HB_OT_SHAPE_NORMALIZATION_MODE_AUTO)
+      _recurse_unicode_closure (&c, cp, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
+  }
+}
+
 static inline void
 _cmap_closure (hb_face_t	   *face,
 	       const hb_set_t	   *unicodes,
@@ -649,6 +727,8 @@ _fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
                             F unicode_to_gid_for_iterator,
                             G unicode_to_gid_general)
 {
+  unsigned start = plan->unicode_to_new_gid_list.length;
+
   for (hb_codepoint_t cp : unicode_iterator)
   {
     hb_codepoint_t gid = unicode_to_gid_for_iterator(cp);
@@ -661,6 +741,11 @@ _fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
     plan->codepoint_to_glyph->set (cp, gid);
     plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
   }
+
+  _unicode_closure (plan->unicode_to_new_gid_list,
+		    start,
+		    *plan->codepoint_to_glyph,
+		    unicode_to_gid_general);
 }
 
 template<bool GID_ALWAYS_EXISTS = false, typename I, typename F, hb_requires (hb_is_iterator (I))>
@@ -792,8 +877,10 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   }
 
   auto &arr = plan->unicode_to_new_gid_list;
+
   if (arr.length)
   {
+    arr.qsort (); // Decompositions are added in non-sorted order
     plan->unicodes.add_sorted_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
     plan->_glyphset_gsub.add_array (&arr.arrayZ->second, arr.length, sizeof (*arr.arrayZ));
   }
