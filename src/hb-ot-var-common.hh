@@ -1663,7 +1663,9 @@ struct item_variations_t
       }
     }
 
-    if (!all_regions || !all_unique_regions) return false;
+    /* regions are empty means no variation data, return true */
+    if (!all_regions || !all_unique_regions) return true;
+
     if (!region_list.alloc (all_regions.get_population ()))
       return false;
 
@@ -1728,7 +1730,8 @@ struct item_variations_t
 
   bool as_item_varstore (bool optimize=true, bool use_no_variation_idx=true)
   {
-    if (!region_list) return false;
+    /* return true if no variation data */
+    if (!region_list) return true;
     unsigned num_cols = region_list.length;
     /* pre-alloc a 2D vector for all sub_table's VarData rows */
     unsigned total_rows = 0;
