@@ -1,0 +1,14 @@
+FONTS:
+sixtyfour_subset.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+SCAN=0,XELA=0,YELA=0
+
+OPTIONS:
+no_fonttools

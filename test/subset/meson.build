@@ -78,6 +78,7 @@ tests = [
   'feature_variation_instance_collect_lookups',
   'sync_vmetrics',
   'empty_region_vardata',
+  'colrv1_partial_instance',
 ]
 
 if get_option('experimental_api')
