@@ -209,7 +209,7 @@ struct HBUINT32VAR
   }
 
   protected:
-  unsigned char v[1];
+  unsigned char v[5];
 
   public:
   DEFINE_SIZE_MIN (1);
