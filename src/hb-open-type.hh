@@ -137,7 +137,7 @@ struct HBUINT32VAR
 {
   unsigned get_size () const
   {
-    unsigned b0 = v[0];
+    unsigned b0 = v.head;
     if (b0 < 0x80)
       return 1;
     else if (b0 < 0xC0)
@@ -167,24 +167,24 @@ struct HBUINT32VAR
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_range (v, 1) &&
+    return_trace (c->check_range (&v, 1) &&
 		  hb_barrier () &&
-		  c->check_range (v, get_size ()));
+		  c->check_range (&v, get_size ()));
   }
 
   operator uint32_t () const
   {
-    unsigned b0 = v[0];
+    unsigned b0 = v.head;
     if (b0 < 0x80)
       return b0;
     else if (b0 < 0xC0)
-      return ((b0 & 0x3F) << 8) | v[1];
+      return ((b0 & 0x3F) << 8) | v.tail[0];
     else if (b0 < 0xE0)
-      return ((b0 & 0x1F) << 16) | (v[1] << 8) | v[2];
+      return ((b0 & 0x1F) << 16) | (v.tail[0] << 8) | v.tail[1];
     else if (b0 < 0xF0)
-      return ((b0 & 0x0F) << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
+      return ((b0 & 0x0F) << 24) | (v.tail[0] << 16) | (v.tail[1] << 8) | v.tail[2];
     else
-      return (v[1] << 24) | (v[2] << 16) | (v[3] << 8) | v[4];
+      return (v.tail[0] << 24) | (v.tail[1] << 16) | (v.tail[2] << 8) | v.tail[3];
   }
 
   static bool serialize (hb_serialize_context_t *c, uint32_t v)
@@ -209,10 +209,14 @@ struct HBUINT32VAR
   }
 
   protected:
-  unsigned char v[1];
+  struct {
+    unsigned char head;
+    unsigned char tail[];
+  } v;
 
   public:
-  DEFINE_SIZE_MIN (1);
+  DEFINE_SIZE_MIN(1);
+
 };
 
 /* 16-bit signed integer (HBINT16) that describes a quantity in FUnits. */
