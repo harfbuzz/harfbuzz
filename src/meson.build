@@ -450,7 +450,13 @@ hb_headers = hb_base_headers
 
 harfbuzz_deps = [thread_dep, m_dep] + harfbuzz_extra_deps
 
-libharfbuzz_link_language = 'c'
+if get_option('with_libstdcxx')
+  chosen_linker = 'cpp'
+else
+  # Use a C linker, not C++; Don't link to libstdc++
+  chosen_linker = 'c'
+endif
+libharfbuzz_link_language = chosen_linker
 
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
@@ -551,8 +557,8 @@ hb_supported_features_h = configure_file(input: 'hb-features.h.in',
                                configuration: hb_supported_features,
                                install: false)
 
-# Base and default-included sources and headers
 
+# Base and default-included sources and headers
 gen_def = find_program('gen-def.py')
 gen_def_cmd = [gen_def, '@OUTPUT@', '@INPUT@']
 if get_option('experimental_api')
@@ -621,7 +627,7 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   version: version,
   install: true,
   darwin_versions: darwin_versions,
-  link_language: 'c',
+  link_language: chosen_linker,
 )
 
 custom_target('harfbuzz-subset.cc',
@@ -661,7 +667,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
     version: version,
     install: true,
     darwin_versions: darwin_versions,
-    link_language: 'c',
+    link_language: chosen_linker,
   )
 
   install_headers(hb_cairo_headers, subdir: meson.project_name())
@@ -780,7 +786,7 @@ if have_icu and not have_icu_builtin
     install: true,
     darwin_versions: darwin_versions,
     # ICU links to stdc++ anyway so the default linker is good
-    # link_language: 'c',
+    # link_language: chosen_linker,
   )
 
   libharfbuzz_icu_dep = declare_dependency(
@@ -947,7 +953,7 @@ if have_gobject
     version: version,
     install: true,
     darwin_versions: darwin_versions,
-    link_language: 'c',
+    link_language: chosen_linker,
   )
 
   gir = find_program('g-ir-scanner', required: get_option('introspection'))
@@ -1025,7 +1031,7 @@ if get_option('tests').enabled()
 
   if cpp.get_argument_syntax() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
     dist_check_script += ['check-static-inits', 'check-symbols']
-    if get_option('wasm').disabled()
+    if get_option('wasm').disabled() and not get_option('with_libstdcxx')
       dist_check_script += ['check-libstdc++']
     endif
   endif
