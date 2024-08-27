@@ -247,7 +247,7 @@
     </para>
     <para>
       HarfBuzz also provides a utility function called
-      <function>hb_ft_font_has_changed()</function> that you should
+      <function>hb_ft_font_changed()</function> that you should
       call whenever you have altered the properties of your underlying
       <type>FT_Face</type>, as well as a
       <function>hb_ft_get_face()</function> that you can call on an
