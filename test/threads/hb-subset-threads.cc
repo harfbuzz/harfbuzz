@@ -11,6 +11,7 @@
 #endif
 
 #include "hb-subset.h"
+#include "stdlib.h"
 
 enum operation_t
 {
