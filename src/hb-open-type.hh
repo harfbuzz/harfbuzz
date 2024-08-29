@@ -1496,7 +1496,7 @@ struct TupleValues
   };
 
   static unsigned compile (hb_array_t<const int> values, /* IN */
-			   hb_array_t<char> encoded_bytes /* OUT */)
+			   hb_array_t<unsigned char> encoded_bytes /* OUT */)
   {
     unsigned num_values = values.length;
     unsigned encoded_len = 0;
@@ -1517,7 +1517,7 @@ struct TupleValues
   }
 
   static unsigned encode_value_run_as_zeroes (unsigned& i,
-					      hb_array_t<char> encoded_bytes,
+					      hb_array_t<unsigned char> encoded_bytes,
 					      hb_array_t<const int> values)
   {
     unsigned num_values = values.length;
@@ -1546,7 +1546,7 @@ struct TupleValues
   }
 
   static unsigned encode_value_run_as_bytes (unsigned &i,
-					     hb_array_t<char> encoded_bytes,
+					     hb_array_t<unsigned char> encoded_bytes,
 					     hb_array_t<const int> values)
   {
     unsigned start = i;
@@ -1600,7 +1600,7 @@ struct TupleValues
   }
 
   static unsigned encode_value_run_as_words (unsigned &i,
-					     hb_array_t<char> encoded_bytes,
+					     hb_array_t<unsigned char> encoded_bytes,
 					     hb_array_t<const int> values)
   {
     unsigned start = i;
@@ -1661,7 +1661,7 @@ struct TupleValues
   }
 
   static unsigned encode_value_run_as_longs (unsigned &i,
-					     hb_array_t<char> encoded_bytes,
+					     hb_array_t<unsigned char> encoded_bytes,
 					     hb_array_t<const int> values)
   {
     unsigned start = i;
