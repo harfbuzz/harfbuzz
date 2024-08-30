@@ -646,8 +646,7 @@ struct FeatureParamsCharacterVariants
       return;
 
     unsigned last_name_id = (unsigned) firstParamUILabelNameID + (unsigned) numNamedParameters - 1;
-    if (last_name_id >= 256 && last_name_id <= 32767)
-      nameids_to_retain->add_range (firstParamUILabelNameID, last_name_id);
+    nameids_to_retain->add_range (firstParamUILabelNameID, last_name_id);
   }
 
   bool subset (hb_subset_context_t *c) const
