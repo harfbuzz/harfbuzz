@@ -48,6 +48,10 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
 				  hb_tag_t         table_tag,
 				  hb_set_t        *lookup_indexes /* OUT */);
 
+HB_EXTERN hb_unicode_funcs_t *
+hb_ot_shape_plan_unicode_funcs_create (hb_shape_plan_t *shape_plan,
+				       hb_unicode_funcs_t *parent /* non-NULL */);
+
 HB_END_DECLS
 
 #endif /* HB_OT_SHAPE_H */

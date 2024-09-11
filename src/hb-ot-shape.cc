@@ -191,7 +191,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
 		     || !hb_ot_layout_has_machine_kerning (face)
 #endif
 		    );
-  plan.has_gpos_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
+  plan.has_mark = !!plan.map.get_1_mask (HB_TAG ('m','a','r','k'));
 
   plan.adjust_mark_positioning_when_zeroing = !plan.apply_gpos &&
 					      !plan.apply_kerx &&
@@ -1316,6 +1316,54 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
   hb_set_destroy (lookups);
 
   hb_shape_plan_destroy (shape_plan);
+}
+
+static hb_bool_t
+shaper_compose (hb_unicode_funcs_t *ufuncs,
+		hb_codepoint_t      a,
+		hb_codepoint_t      b,
+		hb_codepoint_t     *ab,
+		void               *user_data)
+{
+  hb_ot_shaper_t *shaper = (hb_ot_shaper_t *) user_data;
+  return shaper->compose (ufuncs, a, b, ab);
+}
+
+static hb_bool_t
+shaper_decompose (hb_unicode_funcs_t *ufuncs,
+		  hb_codepoint_t      ab,
+		  hb_codepoint_t     *a,
+		  hb_codepoint_t     *b,
+		  void               *user_data)
+{
+  hb_ot_shaper_t *shaper = (hb_ot_shaper_t *) user_data;
+  return shaper->decompose (ufuncs, ab, a, b);
+}
+
+hb_unicode_funcs_t *
+hb_ot_shape_plan_unicode_funcs_create (hb_shape_plan_t *shape_plan,
+				       hb_unicode_funcs_t *parent /* non-NULL */)
+{
+  /* Enforce that parent is non-NULL. It's too slippery to allow that...
+   * Instead, user should get default funcs and send in here. */
+  if (!parent)
+    return nullptr;
+
+  hb_unicode_funcs_t *ufuncs = hb_unicode_funcs_create (parent);
+
+  auto &ot = shape_plan->ot;
+
+  auto *shaper = hb_ot_shaper_categorize (ot.props.script,
+					  ot.props.direction,
+					  ot.map.chosen_script[0],
+					  ot.has_mark);
+
+  if (shaper->compose)
+    hb_unicode_funcs_set_compose_func (ufuncs, shaper_compose, (void *) shaper, nullptr);
+  if (shaper->decompose)
+    hb_unicode_funcs_set_decompose_func (ufuncs, shaper_decompose, (void *) shaper, nullptr);
+
+  return ufuncs;
 }
 
 
