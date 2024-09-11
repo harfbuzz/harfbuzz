@@ -517,7 +517,7 @@ _recurse_unicode_closure (hb_ot_shape_normalize_context_t *c,
 			  F unicode_to_glyph_mapper)
 {
   hb_codepoint_t a, b;
-  if (c->decompose (c, cp, &a, &b))
+  if (c->decompose (c->unicode, cp, &a, &b))
   {
     hb_codepoint_t gid_a = unicode_to_glyph_mapper (a);
     hb_codepoint_t gid_b = unicode_to_glyph_mapper (b);

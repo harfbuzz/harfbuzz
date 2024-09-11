@@ -122,7 +122,7 @@ struct hb_ot_shaper_t
    * Called during shape()'s normalization.
    * May be NULL.
    */
-  bool (*decompose) (const hb_ot_shape_normalize_context_t *c,
+  bool (*decompose) (hb_unicode_funcs_t *unicode,
 		     hb_codepoint_t  ab,
 		     hb_codepoint_t *a,
 		     hb_codepoint_t *b);
@@ -131,7 +131,7 @@ struct hb_ot_shaper_t
    * Called during shape()'s normalization.
    * May be NULL.
    */
-  bool (*compose) (const hb_ot_shape_normalize_context_t *c,
+  bool (*compose) (hb_unicode_funcs_t *unicode,
 		   hb_codepoint_t  a,
 		   hb_codepoint_t  b,
 		   hb_codepoint_t *ab);

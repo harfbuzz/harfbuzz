@@ -32,7 +32,7 @@
 
 
 static bool
-compose_hebrew (const hb_ot_shape_normalize_context_t *c,
+compose_hebrew (hb_unicode_funcs_t *unicode,
 		hb_codepoint_t  a,
 		hb_codepoint_t  b,
 		hb_codepoint_t *ab)

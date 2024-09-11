@@ -479,16 +479,16 @@ preprocess_text_use (const hb_ot_shape_plan_t *plan,
 }
 
 static bool
-compose_use (const hb_ot_shape_normalize_context_t *c,
+compose_use (hb_unicode_funcs_t *unicode,
 	     hb_codepoint_t  a,
 	     hb_codepoint_t  b,
 	     hb_codepoint_t *ab)
 {
   /* Avoid recomposing split matras. */
-  if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (c->unicode->general_category (a)))
+  if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (unicode->general_category (a)))
     return false;
 
-  return (bool)c->unicode->compose (a, b, ab);
+  return (bool) unicode->compose (a, b, ab);
 }
 
 

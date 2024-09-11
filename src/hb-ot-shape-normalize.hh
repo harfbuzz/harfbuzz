@@ -54,29 +54,29 @@ HB_INTERNAL void _hb_ot_shape_normalize (const hb_ot_shape_plan_t *shaper,
 struct hb_ot_shape_normalize_context_t
 {
   static bool
-  decompose_unicode (const hb_ot_shape_normalize_context_t *c,
+  decompose_unicode (hb_unicode_funcs_t *unicode,
 		     hb_codepoint_t  ab,
 		     hb_codepoint_t *a,
 		     hb_codepoint_t *b)
   {
-    return (bool) c->unicode->decompose (ab, a, b);
+    return (bool) unicode->decompose (ab, a, b);
   }
 
   static bool
-  compose_unicode (const hb_ot_shape_normalize_context_t *c,
+  compose_unicode (hb_unicode_funcs_t *unicode,
 		   hb_codepoint_t  a,
 		   hb_codepoint_t  b,
 		   hb_codepoint_t *ab)
   {
-    return (bool) c->unicode->compose (a, b, ab);
+    return (bool) unicode->compose (a, b, ab);
   }
 
   void
-  override_decompose_and_compose (bool (*decompose) (const hb_ot_shape_normalize_context_t *c,
-						      hb_codepoint_t  ab,
-						      hb_codepoint_t *a,
-						      hb_codepoint_t *b),
-				  bool (*compose) (const hb_ot_shape_normalize_context_t *c,
+  override_decompose_and_compose (bool (*decompose) (hb_unicode_funcs_t *unicode,
+						     hb_codepoint_t  ab,
+						     hb_codepoint_t *a,
+						     hb_codepoint_t *b),
+				  bool (*compose) (hb_unicode_funcs_t *unicode,
 						   hb_codepoint_t  a,
 						   hb_codepoint_t  b,
 						   hb_codepoint_t *ab))
@@ -90,11 +90,11 @@ struct hb_ot_shape_normalize_context_t
   hb_font_t *font;
   hb_unicode_funcs_t *unicode;
   const hb_codepoint_t not_found;
-  bool (*decompose) (const hb_ot_shape_normalize_context_t *c,
+  bool (*decompose) (hb_unicode_funcs_t *unicode,
 		     hb_codepoint_t  ab,
 		     hb_codepoint_t *a,
 		     hb_codepoint_t *b);
-  bool (*compose) (const hb_ot_shape_normalize_context_t *c,
+  bool (*compose) (hb_unicode_funcs_t *unicode,
 		   hb_codepoint_t  a,
 		   hb_codepoint_t  b,
 		   hb_codepoint_t *ab);
