@@ -26,8 +26,6 @@
 
 #include "hb-subset-plan.hh"
 #include "hb-subset-accelerator.hh"
-#include "hb-ot-shape-normalize.hh"
-#include "hb-ot-shaper.hh"
 #include "hb-map.hh"
 #include "hb-multimap.hh"
 #include "hb-set.hh"
@@ -510,14 +508,14 @@ _collect_base_variation_indices (hb_subset_plan_t* plan)
 
 template <typename F>
 static void
-_recurse_unicode_closure (hb_ot_shape_normalize_context_t *c,
+_recurse_unicode_closure (hb_unicode_funcs_t *unicode,
 			  hb_codepoint_t cp,
 			  hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &arr,
 			  hb_map_t &unicode_to_glyph_map,
 			  F unicode_to_glyph_mapper)
 {
   hb_codepoint_t a, b;
-  if (c->decompose (c->unicode, cp, &a, &b))
+  if (unicode->decompose (cp, &a, &b))
   {
     hb_codepoint_t gid_a = unicode_to_glyph_mapper (a);
     hb_codepoint_t gid_b = unicode_to_glyph_mapper (b);
@@ -528,60 +526,60 @@ _recurse_unicode_closure (hb_ot_shape_normalize_context_t *c,
     {
       unicode_to_glyph_map.set (a, gid_a);
       arr.push (hb_pair (a, gid_a));
-      _recurse_unicode_closure (c, a, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
+      _recurse_unicode_closure (unicode, a, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
     }
 
     if (b && !unicode_to_glyph_map.has (b))
     {
       unicode_to_glyph_map.set (b, gid_b);
       arr.push (hb_pair (b, gid_b));
-      _recurse_unicode_closure (c, b, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
+      _recurse_unicode_closure (unicode, b, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
     }
   }
 }
 
 template <typename F>
 static inline void
-_unicode_closure (hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &arr,
+_unicode_closure (hb_face_t *face,
+		  hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &arr,
 		  unsigned start,
 		  hb_map_t &unicode_to_glyph_map,
 		  F unicode_to_glyph_mapper)
 {
-  hb_unicode_funcs_t *ufuncs = hb_unicode_funcs_get_default ();
+  hb_unicode_funcs_t *default_ufuncs = hb_unicode_funcs_get_default ();
+  hb_segment_properties_t props = HB_SEGMENT_PROPERTIES_DEFAULT;
 
   hb_script_t last_script = HB_SCRIPT_INVALID;
-  hb_direction_t direction = HB_DIRECTION_INVALID;
-  const hb_tag_t gsub_script = HB_TAG_NONE;
-  const hb_ot_shaper_t *shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script, false);
+  props.script = last_script;
+  props.direction = hb_script_get_horizontal_direction (last_script);
 
-  hb_ot_shape_normalization_mode_t mode = shaper->normalization_preference;
-  hb_ot_shape_normalize_context_t c = {
-    nullptr, // plan
-    nullptr, // buffer
-    nullptr, // font
-    ufuncs,
-    0 // not_found
-  };
-  c.override_decompose_and_compose (shaper->decompose, shaper->compose);
+  hb_shape_plan_t *shape_plan = hb_shape_plan_create (face, &props, nullptr, 0, nullptr);
+  hb_unicode_funcs_t *unicode = hb_ot_shape_plan_unicode_funcs_create (shape_plan, default_ufuncs);
 
   unsigned end = arr.length;
 
   for (unsigned i = start; i < end; i++)
   {
     hb_codepoint_t cp = arr.arrayZ[i].first;
-    hb_script_t script = hb_unicode_script (ufuncs, cp);
+    hb_script_t script = hb_unicode_script (default_ufuncs, cp);
     if (script != last_script)
     {
       last_script = script;
-      direction = hb_script_get_horizontal_direction (script);
-      shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script, false);
-      mode = shaper->normalization_preference;
-      c.override_decompose_and_compose (shaper->decompose, shaper->compose);
+      props.script = last_script;
+      props.direction = hb_script_get_horizontal_direction (last_script);
+
+      hb_shape_plan_destroy (shape_plan);
+      hb_unicode_funcs_destroy (unicode);
+
+      shape_plan = hb_shape_plan_create (face, &props, nullptr, 0, nullptr);
+      unicode = hb_ot_shape_plan_unicode_funcs_create (shape_plan, default_ufuncs);
     }
 
-    if (mode != HB_OT_SHAPE_NORMALIZATION_MODE_AUTO)
-      _recurse_unicode_closure (&c, cp, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
+    _recurse_unicode_closure (unicode, cp, arr, unicode_to_glyph_map, unicode_to_glyph_mapper);
   }
+
+  hb_shape_plan_destroy (shape_plan);
+  hb_unicode_funcs_destroy (unicode);
 }
 
 static inline void
@@ -742,8 +740,8 @@ _fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
     plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
   }
 
-  return; // disabled for now
-  _unicode_closure (plan->unicode_to_new_gid_list,
+  _unicode_closure (plan->source,
+		    plan->unicode_to_new_gid_list,
 		    start,
 		    *plan->codepoint_to_glyph,
 		    unicode_to_gid_general);

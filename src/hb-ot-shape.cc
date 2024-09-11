@@ -1325,8 +1325,8 @@ shaper_compose (hb_unicode_funcs_t *ufuncs,
 		hb_codepoint_t     *ab,
 		void               *user_data)
 {
-  hb_ot_shaper_t *shaper = (hb_ot_shaper_t *) user_data;
-  return shaper->compose (ufuncs, a, b, ab);
+  const hb_ot_shaper_t *shaper = (hb_ot_shaper_t *) user_data;
+  return shaper->compose (ufuncs->parent, a, b, ab);
 }
 
 static hb_bool_t
@@ -1336,8 +1336,8 @@ shaper_decompose (hb_unicode_funcs_t *ufuncs,
 		  hb_codepoint_t     *b,
 		  void               *user_data)
 {
-  hb_ot_shaper_t *shaper = (hb_ot_shaper_t *) user_data;
-  return shaper->decompose (ufuncs, ab, a, b);
+  const hb_ot_shaper_t *shaper = (hb_ot_shaper_t *) user_data;
+  return shaper->decompose (ufuncs->parent, ab, a, b);
 }
 
 hb_unicode_funcs_t *
@@ -1346,6 +1346,7 @@ hb_ot_shape_plan_unicode_funcs_create (hb_shape_plan_t *shape_plan,
 {
   /* Enforce that parent is non-NULL. It's too slippery to allow that...
    * Instead, user should get default funcs and send in here. */
+  assert (parent);
   if (!parent)
     return nullptr;
 
@@ -1353,10 +1354,10 @@ hb_ot_shape_plan_unicode_funcs_create (hb_shape_plan_t *shape_plan,
 
   auto &ot = shape_plan->ot;
 
-  auto *shaper = hb_ot_shaper_categorize (ot.props.script,
-					  ot.props.direction,
-					  ot.map.chosen_script[0],
-					  ot.has_mark);
+  const hb_ot_shaper_t *shaper = hb_ot_shaper_categorize (ot.props.script,
+							  ot.props.direction,
+							  ot.map.chosen_script[0],
+							  ot.has_mark);
 
   if (shaper->compose)
     hb_unicode_funcs_set_compose_func (ufuncs, shaper_compose, (void *) shaper, nullptr);
