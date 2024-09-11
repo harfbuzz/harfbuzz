@@ -135,10 +135,13 @@ if not len (args):
 
 has_ots = has_ots()
 
+env = os.environ.copy()
+env['LC_ALL'] = 'C'
 process = subprocess.Popen ([hb_subset, '--batch'],
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE,
-                            stderr=sys.stdout)
+                            stderr=sys.stdout,
+                            env=env)
 
 fails = 0
 for path in args:
