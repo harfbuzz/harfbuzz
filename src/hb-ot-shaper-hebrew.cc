@@ -72,91 +72,87 @@ compose_hebrew (const hb_ot_shape_normalize_context_t *c,
     0xFB4Au /* TAV */
   };
 
-  bool found = (bool) c->unicode->compose (a, b, ab);
+  bool found = (bool) unicode->compose (a, b, ab);
 
-#ifdef HB_NO_OT_SHAPER_HEBREW_FALLBACK
-  return found;
-#endif
+  if (found)
+    return true;
 
-  if (!found && (c->plan && !c->plan->has_gpos_mark))
-  {
-      /* Special-case Hebrew presentation forms that are excluded from
-       * standard normalization, but wanted for old fonts. */
-      switch (b) {
-      case 0x05B4u: /* HIRIQ */
-	  if (a == 0x05D9u) { /* YOD */
-	      *ab = 0xFB1Du;
-	      found = true;
-	  }
+  /* Special-case Hebrew presentation forms that are excluded from
+   * standard normalization, but wanted for old fonts. */
+  switch (b) {
+  case 0x05B4u: /* HIRIQ */
+      if (a == 0x05D9u) { /* YOD */
+	  *ab = 0xFB1Du;
+	  found = true;
+      }
+      break;
+  case 0x05B7u: /* PATAH */
+      if (a == 0x05F2u) { /* YIDDISH YOD YOD */
+	  *ab = 0xFB1Fu;
+	  found = true;
+      } else if (a == 0x05D0u) { /* ALEF */
+	  *ab = 0xFB2Eu;
+	  found = true;
+      }
+      break;
+  case 0x05B8u: /* QAMATS */
+      if (a == 0x05D0u) { /* ALEF */
+	  *ab = 0xFB2Fu;
+	  found = true;
+      }
+      break;
+  case 0x05B9u: /* HOLAM */
+      if (a == 0x05D5u) { /* VAV */
+	  *ab = 0xFB4Bu;
+	  found = true;
+      }
+      break;
+  case 0x05BCu: /* DAGESH */
+      if (a >= 0x05D0u && a <= 0x05EAu) {
+	  *ab = sDageshForms[a - 0x05D0u];
+	  found = (*ab != 0);
+      } else if (a == 0xFB2Au) { /* SHIN WITH SHIN DOT */
+	  *ab = 0xFB2Cu;
+	  found = true;
+      } else if (a == 0xFB2Bu) { /* SHIN WITH SIN DOT */
+	  *ab = 0xFB2Du;
+	  found = true;
+      }
+      break;
+  case 0x05BFu: /* RAFE */
+      switch (a) {
+      case 0x05D1u: /* BET */
+	  *ab = 0xFB4Cu;
+	  found = true;
 	  break;
-      case 0x05B7u: /* PATAH */
-	  if (a == 0x05F2u) { /* YIDDISH YOD YOD */
-	      *ab = 0xFB1Fu;
-	      found = true;
-	  } else if (a == 0x05D0u) { /* ALEF */
-	      *ab = 0xFB2Eu;
-	      found = true;
-	  }
+      case 0x05DBu: /* KAF */
+	  *ab = 0xFB4Du;
+	  found = true;
 	  break;
-      case 0x05B8u: /* QAMATS */
-	  if (a == 0x05D0u) { /* ALEF */
-	      *ab = 0xFB2Fu;
-	      found = true;
-	  }
-	  break;
-      case 0x05B9u: /* HOLAM */
-	  if (a == 0x05D5u) { /* VAV */
-	      *ab = 0xFB4Bu;
-	      found = true;
-	  }
-	  break;
-      case 0x05BCu: /* DAGESH */
-	  if (a >= 0x05D0u && a <= 0x05EAu) {
-	      *ab = sDageshForms[a - 0x05D0u];
-	      found = (*ab != 0);
-	  } else if (a == 0xFB2Au) { /* SHIN WITH SHIN DOT */
-	      *ab = 0xFB2Cu;
-	      found = true;
-	  } else if (a == 0xFB2Bu) { /* SHIN WITH SIN DOT */
-	      *ab = 0xFB2Du;
-	      found = true;
-	  }
-	  break;
-      case 0x05BFu: /* RAFE */
-	  switch (a) {
-	  case 0x05D1u: /* BET */
-	      *ab = 0xFB4Cu;
-	      found = true;
-	      break;
-	  case 0x05DBu: /* KAF */
-	      *ab = 0xFB4Du;
-	      found = true;
-	      break;
-	  case 0x05E4u: /* PE */
-	      *ab = 0xFB4Eu;
-	      found = true;
-	      break;
-	  }
-	  break;
-      case 0x05C1u: /* SHIN DOT */
-	  if (a == 0x05E9u) { /* SHIN */
-	      *ab = 0xFB2Au;
-	      found = true;
-	  } else if (a == 0xFB49u) { /* SHIN WITH DAGESH */
-	      *ab = 0xFB2Cu;
-	      found = true;
-	  }
-	  break;
-      case 0x05C2u: /* SIN DOT */
-	  if (a == 0x05E9u) { /* SHIN */
-	      *ab = 0xFB2Bu;
-	      found = true;
-	  } else if (a == 0xFB49u) { /* SHIN WITH DAGESH */
-	      *ab = 0xFB2Du;
-	      found = true;
-	  }
+      case 0x05E4u: /* PE */
+	  *ab = 0xFB4Eu;
+	  found = true;
 	  break;
       }
+      break;
+  case 0x05C1u: /* SHIN DOT */
+      if (a == 0x05E9u) { /* SHIN */
+	  *ab = 0xFB2Au;
+	  found = true;
+      } else if (a == 0xFB49u) { /* SHIN WITH DAGESH */
+	  *ab = 0xFB2Cu;
+	  found = true;
+      }
+      break;
+  case 0x05C2u: /* SIN DOT */
+      if (a == 0x05E9u) { /* SHIN */
+	  *ab = 0xFB2Bu;
+	  found = true;
+      } else if (a == 0xFB49u) { /* SHIN WITH DAGESH */
+	  *ab = 0xFB2Du;
+	  found = true;
+      }
+      break;
   }
 
   return found;
@@ -190,6 +186,24 @@ reorder_marks_hebrew (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 const hb_ot_shaper_t _hb_ot_shaper_hebrew =
+{
+  nullptr, /* collect_features */
+  nullptr, /* override_features */
+  nullptr, /* data_create */
+  nullptr, /* data_destroy */
+  nullptr, /* preprocess_text */
+  nullptr, /* postprocess_glyphs */
+  nullptr, /* decompose */
+  nullptr, /* compose */
+  nullptr, /* setup_masks */
+  reorder_marks_hebrew,
+  HB_TAG ('h','e','b','r'), /* gpos_tag. https://github.com/harfbuzz/harfbuzz/issues/347#issuecomment-267838368 */
+  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT,
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE,
+  true, /* fallback_position */
+};
+
+const hb_ot_shaper_t _hb_ot_shaper_hebrew_fallback =
 {
   nullptr, /* collect_features */
   nullptr, /* override_features */

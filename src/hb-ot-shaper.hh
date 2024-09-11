@@ -55,6 +55,7 @@ enum hb_ot_shape_zero_width_marks_type_t {
   HB_OT_SHAPER_IMPLEMENT (dumber) \
   HB_OT_SHAPER_IMPLEMENT (hangul) \
   HB_OT_SHAPER_IMPLEMENT (hebrew) \
+  HB_OT_SHAPER_IMPLEMENT (hebrew_fallback) \
   HB_OT_SHAPER_IMPLEMENT (indic) \
   HB_OT_SHAPER_IMPLEMENT (khmer) \
   HB_OT_SHAPER_IMPLEMENT (myanmar) \
@@ -176,7 +177,8 @@ HB_OT_SHAPERS_IMPLEMENT_SHAPERS
 static inline const hb_ot_shaper_t *
 hb_ot_shaper_categorize (hb_script_t script,
 			 hb_direction_t direction,
-			 hb_tag_t gsub_script)
+			 hb_tag_t gsub_script,
+			 bool has_mark_feature)
 {
   switch ((hb_tag_t) script)
   {
@@ -217,6 +219,10 @@ hb_ot_shaper_categorize (hb_script_t script,
     /* Unicode-1.1 additions */
     case HB_SCRIPT_HEBREW:
 
+#ifdef HB_NO_OT_SHAPER_HEBREW_FALLBACK
+      if (!has_mark_feature)
+	return &_hb_ot_shaper_hebrew_fallback;
+#endif
       return &_hb_ot_shaper_hebrew;
 
 

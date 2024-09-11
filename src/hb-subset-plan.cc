@@ -552,7 +552,7 @@ _unicode_closure (hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> 
   hb_script_t last_script = HB_SCRIPT_INVALID;
   hb_direction_t direction = HB_DIRECTION_INVALID;
   const hb_tag_t gsub_script = HB_TAG_NONE;
-  const hb_ot_shaper_t *shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script);
+  const hb_ot_shaper_t *shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script, false);
 
   hb_ot_shape_normalization_mode_t mode = shaper->normalization_preference;
   hb_ot_shape_normalize_context_t c = {
@@ -574,7 +574,7 @@ _unicode_closure (hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> 
     {
       last_script = script;
       direction = hb_script_get_horizontal_direction (script);
-      shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script);
+      shaper = hb_ot_shaper_categorize (last_script, direction, gsub_script, false);
       mode = shaper->normalization_preference;
       c.override_decompose_and_compose (shaper->decompose, shaper->compose);
     }
