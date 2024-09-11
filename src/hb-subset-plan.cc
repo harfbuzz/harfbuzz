@@ -742,6 +742,7 @@ _fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
     plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
   }
 
+  return; // disabled for now
   _unicode_closure (plan->unicode_to_new_gid_list,
 		    start,
 		    *plan->codepoint_to_glyph,
