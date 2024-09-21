@@ -153,7 +153,7 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
   hb_codepoint_t u = buffer->cur().codepoint;
   hb_codepoint_t glyph = 0;
 
-  if (shortest && c->font->get_nominal_glyph (u, &glyph, c->not_found))
+  if (shortest && c->font->get_nominal_glyph (u, &glyph, buffer->not_found))
   {
     next_char (buffer, glyph);
     return;
@@ -165,7 +165,7 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
     return;
   }
 
-  if (!shortest && c->font->get_nominal_glyph (u, &glyph, c->not_found))
+  if (!shortest && c->font->get_nominal_glyph (u, &glyph, buffer->not_found))
   {
     next_char (buffer, glyph);
     return;
@@ -295,7 +295,8 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
     buffer,
     font,
     buffer->unicode,
-    buffer->not_found,
+    plan->shaper->decompose ? plan->shaper->decompose : hb_ot_shape_normalize_context_t::decompose_unicode,
+    plan->shaper->compose   ? plan->shaper->compose   : hb_ot_shape_normalize_context_t::compose_unicode
   };
   c.override_decompose_and_compose (plan->shaper->decompose, plan->shaper->compose);
 
