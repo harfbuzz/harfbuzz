@@ -223,6 +223,14 @@ static inline bool hb_barrier ()
   _hb_compiler_memory_r_barrier ();
   return true;
 }
+template <typename T>
+static inline T hb_barrier (const T &t)
+
+{
+  T tt = t;
+  _hb_compiler_memory_r_barrier ();
+  return tt;
+}
 
 
 #endif /* HB_ATOMIC_HH */
