@@ -846,14 +846,16 @@ hb_ot_deal_with_variation_selectors (hb_buffer_t *buffer)
 
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
+  hb_glyph_position_t *pos = buffer->pos;
 
   for (unsigned int i = 0; i < count; i++)
   {
     if (_hb_glyph_info_get_general_category (&info[i]) ==
 	_HB_UNICODE_GENERAL_CATEGORY_VARIATION_SELECTOR)
     {
-      _hb_glyph_info_clear_default_ignorable (&info[i]);
       info[i].codepoint = buffer->not_found_variation_selector;
+      pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 0;
+      _hb_glyph_info_set_general_category (&info[i], HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK);
     }
   }
 }
