@@ -4647,7 +4647,7 @@ struct GSUBGPOS
   const FeatureVariations &get_feature_variations () const
   {
     switch (u.version.major) {
-    case 1: return (u.version.to_int () >= 0x00010001u ? this+u.version1.featureVars : Null (FeatureVariations));
+    case 1: return (u.version.to_int () >= 0x00010001u && hb_barrier () ? this+u.version1.featureVars : Null (FeatureVariations));
 #ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.featureVars;
 #endif
