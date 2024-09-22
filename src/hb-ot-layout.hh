@@ -173,7 +173,7 @@ _hb_next_syllable (hb_buffer_t *buffer, unsigned int start)
 
 /* Design:
  * unicode_props() is a two-byte number.  The low byte includes:
- * - General_Category: 5 bits.
+ * - Extended General_Category: 5 bits.
  * - A bit each for:
  *   * Is it Default_Ignorable(); we have a modified Default_Ignorable().
  *   * Whether it's one of the four Mongolian Free Variation Selectors,

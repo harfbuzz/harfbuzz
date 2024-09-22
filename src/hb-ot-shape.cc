@@ -838,6 +838,27 @@ hb_ot_zero_width_default_ignorables (const hb_buffer_t *buffer)
 }
 
 static void
+hb_ot_deal_with_variation_selectors (hb_buffer_t *buffer)
+{
+  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_VARIATION_SELECTOR_FALLBACK) ||
+	buffer->not_found_variation_selector == HB_CODEPOINT_INVALID)
+    return;
+
+  unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
+
+  for (unsigned int i = 0; i < count; i++)
+  {
+    if (_hb_glyph_info_get_general_category (&info[i]) ==
+	_HB_UNICODE_GENERAL_CATEGORY_VARIATION_SELECTOR)
+    {
+      _hb_glyph_info_clear_default_ignorable (&info[i]);
+      info[i].codepoint = buffer->not_found_variation_selector;
+    }
+  }
+}
+
+static void
 hb_ot_hide_default_ignorables (hb_buffer_t *buffer,
 			       hb_font_t   *font)
 {
@@ -966,6 +987,7 @@ hb_ot_substitute_post (const hb_ot_shape_context_t *c)
     hb_aat_layout_remove_deleted_glyphs (c->buffer);
 #endif
 
+  hb_ot_deal_with_variation_selectors (c->buffer);
   hb_ot_hide_default_ignorables (c->buffer, c->font);
 
   if (c->plan->shaper->postprocess_glyphs &&
