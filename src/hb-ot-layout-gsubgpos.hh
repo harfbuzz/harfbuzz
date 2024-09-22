@@ -2901,12 +2901,12 @@ struct Context
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
-    case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 3: hb_barrier (); return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
 #ifndef HB_NO_BEYOND_64K
-    case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
-    case 5: return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
+    case 4: hb_barrier (); return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
+    case 5: hb_barrier (); return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
 #endif
     default:return_trace (c->default_return_value ());
     }
@@ -4234,12 +4234,12 @@ struct ChainContext
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
-    case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 3: hb_barrier (); return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
 #ifndef HB_NO_BEYOND_64K
-    case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
-    case 5: return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
+    case 4: hb_barrier (); return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
+    case 5: hb_barrier (); return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
 #endif
     default:return_trace (c->default_return_value ());
     }
@@ -4323,7 +4323,7 @@ struct Extension
   unsigned int get_type () const
   {
     switch (u.format) {
-    case 1: return u.format1.get_type ();
+    case 1: hb_barrier (); return u.format1.get_type ();
     default:return 0;
     }
   }
@@ -4331,7 +4331,7 @@ struct Extension
   const X& get_subtable () const
   {
     switch (u.format) {
-    case 1: return u.format1.template get_subtable<typename T::SubTable> ();
+    case 1: hb_barrier (); return u.format1.template get_subtable<typename T::SubTable> ();
     default:return Null (typename T::SubTable);
     }
   }
@@ -4343,7 +4343,7 @@ struct Extension
   typename hb_subset_context_t::return_t dispatch (hb_subset_context_t *c, Ts&&... ds) const
   {
     switch (u.format) {
-    case 1: return u.format1.subset (c);
+    case 1: hb_barrier (); return u.format1.subset (c);
     default: return c->default_return_value ();
     }
   }
@@ -4354,7 +4354,7 @@ struct Extension
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
     switch (u.format) {
-    case 1: return_trace (u.format1.dispatch (c, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (u.format1.dispatch (c, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -4569,9 +4569,9 @@ struct GSUBGPOS
   unsigned int get_size () const
   {
     switch (u.version.major) {
-    case 1: return u.version1.get_size ();
+    case 1: hb_barrier (); return u.version1.get_size ();
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.get_size ();
+    case 2: hb_barrier (); return u.version2.get_size ();
 #endif
     default: return u.version.static_size;
     }
@@ -4584,9 +4584,9 @@ struct GSUBGPOS
     if (unlikely (!u.version.sanitize (c))) return_trace (false);
     hb_barrier ();
     switch (u.version.major) {
-    case 1: return_trace (u.version1.sanitize<TLookup> (c));
+    case 1: hb_barrier (); return_trace (u.version1.sanitize<TLookup> (c));
 #ifndef HB_NO_BEYOND_64K
-    case 2: return_trace (u.version2.sanitize<TLookup> (c));
+    case 2: hb_barrier (); return_trace (u.version2.sanitize<TLookup> (c));
 #endif
     default: return_trace (true);
     }
@@ -4596,9 +4596,9 @@ struct GSUBGPOS
   bool subset (hb_subset_layout_context_t *c) const
   {
     switch (u.version.major) {
-    case 1: return u.version1.subset<TLookup> (c);
+    case 1: hb_barrier (); return u.version1.subset<TLookup> (c);
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.subset<TLookup> (c);
+    case 2: hb_barrier (); return u.version2.subset<TLookup> (c);
 #endif
     default: return false;
     }
@@ -4607,9 +4607,9 @@ struct GSUBGPOS
   const ScriptList &get_script_list () const
   {
     switch (u.version.major) {
-    case 1: return this+u.version1.scriptList;
+    case 1: hb_barrier (); return this+u.version1.scriptList;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.scriptList;
+    case 2: hb_barrier (); return this+u.version2.scriptList;
 #endif
     default: return Null (ScriptList);
     }
@@ -4617,9 +4617,9 @@ struct GSUBGPOS
   const FeatureList &get_feature_list () const
   {
     switch (u.version.major) {
-    case 1: return this+u.version1.featureList;
+    case 1: hb_barrier (); return this+u.version1.featureList;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.featureList;
+    case 2: hb_barrier (); return this+u.version2.featureList;
 #endif
     default: return Null (FeatureList);
     }
@@ -4627,9 +4627,9 @@ struct GSUBGPOS
   unsigned int get_lookup_count () const
   {
     switch (u.version.major) {
-    case 1: return (this+u.version1.lookupList).len;
+    case 1: hb_barrier (); return (this+u.version1.lookupList).len;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return (this+u.version2.lookupList).len;
+    case 2: hb_barrier (); return (this+u.version2.lookupList).len;
 #endif
     default: return 0;
     }
@@ -4637,9 +4637,9 @@ struct GSUBGPOS
   const Lookup& get_lookup (unsigned int i) const
   {
     switch (u.version.major) {
-    case 1: return (this+u.version1.lookupList)[i];
+    case 1: hb_barrier (); return (this+u.version1.lookupList)[i];
 #ifndef HB_NO_BEYOND_64K
-    case 2: return (this+u.version2.lookupList)[i];
+    case 2: hb_barrier (); return (this+u.version2.lookupList)[i];
 #endif
     default: return Null (Lookup);
     }
@@ -4647,9 +4647,9 @@ struct GSUBGPOS
   const FeatureVariations &get_feature_variations () const
   {
     switch (u.version.major) {
-    case 1: return (u.version.to_int () >= 0x00010001u && hb_barrier () ? this+u.version1.featureVars : Null (FeatureVariations));
+    case 1: hb_barrier (); return (u.version.to_int () >= 0x00010001u && hb_barrier () ? this+u.version1.featureVars : Null (FeatureVariations));
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.featureVars;
+    case 2: hb_barrier (); return this+u.version2.featureVars;
 #endif
     default: return Null (FeatureVariations);
     }

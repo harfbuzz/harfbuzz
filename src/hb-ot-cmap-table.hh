@@ -1497,12 +1497,12 @@ struct CmapSubtable
 		  hb_codepoint_t *glyph) const
   {
     switch (u.format) {
-    case  0: return u.format0 .get_glyph (codepoint, glyph);
-    case  4: return u.format4 .get_glyph (codepoint, glyph);
-    case  6: return u.format6 .get_glyph (codepoint, glyph);
-    case 10: return u.format10.get_glyph (codepoint, glyph);
-    case 12: return u.format12.get_glyph (codepoint, glyph);
-    case 13: return u.format13.get_glyph (codepoint, glyph);
+    case  0: hb_barrier (); return u.format0 .get_glyph (codepoint, glyph);
+    case  4: hb_barrier (); return u.format4 .get_glyph (codepoint, glyph);
+    case  6: hb_barrier (); return u.format6 .get_glyph (codepoint, glyph);
+    case 10: hb_barrier (); return u.format10.get_glyph (codepoint, glyph);
+    case 12: hb_barrier (); return u.format12.get_glyph (codepoint, glyph);
+    case 13: hb_barrier (); return u.format13.get_glyph (codepoint, glyph);
     case 14:
     default: return false;
     }
@@ -1510,12 +1510,12 @@ struct CmapSubtable
   void collect_unicodes (hb_set_t *out, unsigned int num_glyphs = UINT_MAX) const
   {
     switch (u.format) {
-    case  0: u.format0 .collect_unicodes (out); return;
-    case  4: u.format4 .collect_unicodes (out); return;
-    case  6: u.format6 .collect_unicodes (out); return;
-    case 10: u.format10.collect_unicodes (out); return;
-    case 12: u.format12.collect_unicodes (out, num_glyphs); return;
-    case 13: u.format13.collect_unicodes (out, num_glyphs); return;
+    case  0: hb_barrier (); u.format0 .collect_unicodes (out); return;
+    case  4: hb_barrier (); u.format4 .collect_unicodes (out); return;
+    case  6: hb_barrier (); u.format6 .collect_unicodes (out); return;
+    case 10: hb_barrier (); u.format10.collect_unicodes (out); return;
+    case 12: hb_barrier (); u.format12.collect_unicodes (out, num_glyphs); return;
+    case 13: hb_barrier (); u.format13.collect_unicodes (out, num_glyphs); return;
     case 14:
     default: return;
     }
@@ -1526,12 +1526,12 @@ struct CmapSubtable
 			unsigned num_glyphs = UINT_MAX) const
   {
     switch (u.format) {
-    case  0: u.format0 .collect_mapping (unicodes, mapping); return;
-    case  4: u.format4 .collect_mapping (unicodes, mapping); return;
-    case  6: u.format6 .collect_mapping (unicodes, mapping); return;
-    case 10: u.format10.collect_mapping (unicodes, mapping); return;
-    case 12: u.format12.collect_mapping (unicodes, mapping, num_glyphs); return;
-    case 13: u.format13.collect_mapping (unicodes, mapping, num_glyphs); return;
+    case  0: hb_barrier (); u.format0 .collect_mapping (unicodes, mapping); return;
+    case  4: hb_barrier (); u.format4 .collect_mapping (unicodes, mapping); return;
+    case  6: hb_barrier (); u.format6 .collect_mapping (unicodes, mapping); return;
+    case 10: hb_barrier (); u.format10.collect_mapping (unicodes, mapping); return;
+    case 12: hb_barrier (); u.format12.collect_mapping (unicodes, mapping, num_glyphs); return;
+    case 13: hb_barrier (); u.format13.collect_mapping (unicodes, mapping, num_glyphs); return;
     case 14:
     default: return;
     }
@@ -1540,12 +1540,12 @@ struct CmapSubtable
   unsigned get_language () const
   {
     switch (u.format) {
-    case  0: return u.format0 .get_language ();
-    case  4: return u.format4 .get_language ();
-    case  6: return u.format6 .get_language ();
-    case 10: return u.format10.get_language ();
-    case 12: return u.format12.get_language ();
-    case 13: return u.format13.get_language ();
+    case  0: hb_barrier (); return u.format0 .get_language ();
+    case  4: hb_barrier (); return u.format4 .get_language ();
+    case  6: hb_barrier (); return u.format6 .get_language ();
+    case 10: hb_barrier (); return u.format10.get_language ();
+    case 12: hb_barrier (); return u.format12.get_language ();
+    case 13: hb_barrier (); return u.format13.get_language ();
     case 14:
     default: return 0;
     }
@@ -1560,9 +1560,9 @@ struct CmapSubtable
 		  const void *base)
   {
     switch (format) {
-    case  4: return u.format4.serialize (c, it);
-    case 12: return u.format12.serialize (c, it);
-    case 14: return u.format14.serialize (c, &plan->unicodes, &plan->glyphs_requested, plan->glyph_map, base);
+    case  4: hb_barrier (); return u.format4.serialize (c, it);
+    case 12: hb_barrier (); return u.format12.serialize (c, it);
+    case 14: hb_barrier (); return u.format14.serialize (c, &plan->unicodes, &plan->glyphs_requested, plan->glyph_map, base);
     default: return;
     }
   }
@@ -1573,13 +1573,13 @@ struct CmapSubtable
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
     switch (u.format) {
-    case  0: return_trace (u.format0 .sanitize (c));
-    case  4: return_trace (u.format4 .sanitize (c));
-    case  6: return_trace (u.format6 .sanitize (c));
-    case 10: return_trace (u.format10.sanitize (c));
-    case 12: return_trace (u.format12.sanitize (c));
-    case 13: return_trace (u.format13.sanitize (c));
-    case 14: return_trace (u.format14.sanitize (c));
+    case  0: hb_barrier (); return_trace (u.format0 .sanitize (c));
+    case  4: hb_barrier (); return_trace (u.format4 .sanitize (c));
+    case  6: hb_barrier (); return_trace (u.format6 .sanitize (c));
+    case 10: hb_barrier (); return_trace (u.format10.sanitize (c));
+    case 12: hb_barrier (); return_trace (u.format12.sanitize (c));
+    case 13: hb_barrier (); return_trace (u.format13.sanitize (c));
+    case 14: hb_barrier (); return_trace (u.format14.sanitize (c));
     default:return_trace (true);
     }
   }
