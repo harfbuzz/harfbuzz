@@ -306,7 +306,7 @@ struct FDSelect
 
   unsigned int get_size (unsigned int num_glyphs) const
   {
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return format.static_size + u.format0.get_size (num_glyphs);
     case 3: return format.static_size + u.format3.get_size ();
@@ -318,7 +318,7 @@ struct FDSelect
   {
     if (this == &Null (FDSelect)) return 0;
 
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return u.format0.get_fd (glyph);
     case 3: return u.format3.get_fd (glyph);
@@ -330,7 +330,7 @@ struct FDSelect
   {
     if (this == &Null (FDSelect)) return {0, 1};
 
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return u.format0.get_fd_range (glyph);
     case 3: return u.format3.get_fd_range (glyph);
@@ -345,7 +345,7 @@ struct FDSelect
       return_trace (false);
     hb_barrier ();
 
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return_trace (u.format0.sanitize (c, fdcount));
     case 3: return_trace (u.format3.sanitize (c, fdcount));

@@ -2066,7 +2066,7 @@ struct ClassDef
   unsigned int get (hb_codepoint_t k) const { return get_class (k); }
   unsigned int get_class (hb_codepoint_t glyph_id) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.get_class (glyph_id);
     case 2: return u.format2.get_class (glyph_id);
 #ifndef HB_NO_BEYOND_64K
@@ -2079,7 +2079,7 @@ struct ClassDef
 
   unsigned get_population () const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.get_population ();
     case 2: return u.format2.get_population ();
 #ifndef HB_NO_BEYOND_64K
@@ -2144,7 +2144,7 @@ struct ClassDef
 
     u.format = format;
 
-    switch (u.format)
+    switch (hb_barrier (u.format))
     {
     case 1: return_trace (u.format1.serialize (c, it));
     case 2: return_trace (u.format2.serialize (c, it));
@@ -2163,7 +2163,7 @@ struct ClassDef
                const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return_trace (u.format1.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
     case 2: return_trace (u.format2.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
 #ifndef HB_NO_BEYOND_64K
@@ -2179,7 +2179,7 @@ struct ClassDef
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
 #ifndef HB_NO_BEYOND_64K
@@ -2192,7 +2192,7 @@ struct ClassDef
 
   unsigned cost () const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.cost ();
     case 2: return u.format2.cost ();
 #ifndef HB_NO_BEYOND_64K
@@ -2208,7 +2208,7 @@ struct ClassDef
   template <typename set_t>
   bool collect_coverage (set_t *glyphs) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.collect_coverage (glyphs);
     case 2: return u.format2.collect_coverage (glyphs);
 #ifndef HB_NO_BEYOND_64K
@@ -2224,7 +2224,7 @@ struct ClassDef
   template <typename set_t>
   bool collect_class (set_t *glyphs, unsigned int klass) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.collect_class (glyphs, klass);
     case 2: return u.format2.collect_class (glyphs, klass);
 #ifndef HB_NO_BEYOND_64K
@@ -2237,7 +2237,7 @@ struct ClassDef
 
   bool intersects (const hb_set_t *glyphs) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.intersects (glyphs);
     case 2: return u.format2.intersects (glyphs);
 #ifndef HB_NO_BEYOND_64K
@@ -2249,7 +2249,7 @@ struct ClassDef
   }
   bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.intersects_class (glyphs, klass);
     case 2: return u.format2.intersects_class (glyphs, klass);
 #ifndef HB_NO_BEYOND_64K
@@ -2262,7 +2262,7 @@ struct ClassDef
 
   void intersected_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
     case 2: return u.format2.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
 #ifndef HB_NO_BEYOND_64K
@@ -2275,7 +2275,7 @@ struct ClassDef
 
   void intersected_classes (const hb_set_t *glyphs, hb_set_t *intersect_classes) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.intersected_classes (glyphs, intersect_classes);
     case 2: return u.format2.intersected_classes (glyphs, intersect_classes);
 #ifndef HB_NO_BEYOND_64K
@@ -3636,7 +3636,7 @@ struct DeltaSetIndexMap
     TRACE_SERIALIZE (this);
     unsigned length = plan.get_output_map ().length;
     u.format = length <= 0xFFFF ? 0 : 1;
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return_trace (u.format0.serialize (c, plan));
     case 1: return_trace (u.format1.serialize (c, plan));
     default:return_trace (false);
@@ -3645,7 +3645,7 @@ struct DeltaSetIndexMap
 
   uint32_t map (unsigned v) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return (u.format0.map (v));
     case 1: return (u.format1.map (v));
     default:return v;
@@ -3654,7 +3654,7 @@ struct DeltaSetIndexMap
 
   unsigned get_map_count () const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return u.format0.get_map_count ();
     case 1: return u.format1.get_map_count ();
     default:return 0;
@@ -3663,7 +3663,7 @@ struct DeltaSetIndexMap
 
   unsigned get_width () const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return u.format0.get_width ();
     case 1: return u.format1.get_width ();
     default:return 0;
@@ -3672,7 +3672,7 @@ struct DeltaSetIndexMap
 
   unsigned get_inner_bit_count () const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return u.format0.get_inner_bit_count ();
     case 1: return u.format1.get_inner_bit_count ();
     default:return 0;
@@ -3684,7 +3684,7 @@ struct DeltaSetIndexMap
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return_trace (u.format0.sanitize (c));
     case 1: return_trace (u.format1.sanitize (c));
     default:return_trace (true);
@@ -3694,7 +3694,7 @@ struct DeltaSetIndexMap
   DeltaSetIndexMap* copy (hb_serialize_context_t *c) const
   {
     TRACE_SERIALIZE (this);
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return_trace (reinterpret_cast<DeltaSetIndexMap *> (u.format0.copy (c)));
     case 1: return_trace (reinterpret_cast<DeltaSetIndexMap *> (u.format1.copy (c)));
     default:return_trace (nullptr);
@@ -4110,7 +4110,7 @@ struct Condition
   bool evaluate (const int *coords, unsigned int coord_len,
 		 Instancer *instancer) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.evaluate (coords, coord_len, instancer);
     case 2: return u.format2.evaluate (coords, coord_len, instancer);
     case 3: return u.format3.evaluate (coords, coord_len, instancer);
@@ -4123,7 +4123,7 @@ struct Condition
   Cond_with_Var_flag_t keep_with_variations (hb_collect_feature_substitutes_with_var_context_t *c,
                                              hb_map_t *condition_map /* OUT */) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.keep_with_variations (c, condition_map);
     // TODO(subset)
     default: c->apply = false; return KEEP_COND_WITH_VAR;
@@ -4135,7 +4135,7 @@ struct Condition
   {
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
@@ -4150,7 +4150,7 @@ struct Condition
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
     case 3: return_trace (u.format3.sanitize (c));
@@ -4832,7 +4832,7 @@ struct Device
 			     const ItemVariationStore &store=Null (ItemVariationStore),
 			     ItemVariationStore::cache_t *store_cache = nullptr) const
   {
-    switch (u.b.format)
+    switch (hb_barrier (u.b.format))
     {
 #ifndef HB_NO_HINTING
     case 1: case 2: case 3:
@@ -4850,7 +4850,7 @@ struct Device
 			     const ItemVariationStore &store=Null (ItemVariationStore),
 			     ItemVariationStore::cache_t *store_cache = nullptr) const
   {
-    switch (u.b.format)
+    switch (hb_barrier (u.b.format))
     {
     case 1: case 2: case 3:
 #ifndef HB_NO_HINTING
@@ -4869,7 +4869,7 @@ struct Device
   {
     TRACE_SANITIZE (this);
     if (!u.b.format.sanitize (c)) return_trace (false);
-    switch (u.b.format) {
+    switch (hb_barrier (u.b.format)) {
 #ifndef HB_NO_HINTING
     case 1: case 2: case 3:
       return_trace (u.hinting.sanitize (c));
@@ -4887,7 +4887,7 @@ struct Device
                 const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map=nullptr) const
   {
     TRACE_SERIALIZE (this);
-    switch (u.b.format) {
+    switch (hb_barrier (u.b.format)) {
 #ifndef HB_NO_HINTING
     case 1:
     case 2:
@@ -4905,7 +4905,7 @@ struct Device
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
-    switch (u.b.format) {
+    switch (hb_barrier (u.b.format)) {
 #ifndef HB_NO_HINTING
     case 1:
     case 2:
@@ -4924,7 +4924,7 @@ struct Device
 
   unsigned get_variation_index () const
   {
-    switch (u.b.format) {
+    switch (hb_barrier (u.b.format)) {
 #ifndef HB_NO_VAR
     case 0x8000:
       return u.variation.varIdx;

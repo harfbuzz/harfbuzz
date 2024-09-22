@@ -213,7 +213,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
   if (!FT_Get_Paint (ft_face, opaque_paint, &paint))
     return;
 
-  switch (paint.format)
+  switch (hb_barrier (paint.format))
   {
     case FT_COLR_PAINTFORMAT_COLR_LAYERS:
     {

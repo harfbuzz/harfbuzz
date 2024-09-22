@@ -131,7 +131,7 @@ struct opbd
   bool get_bounds (hb_font_t *font, hb_codepoint_t glyph_id,
 		   hb_glyph_extents_t *extents) const
   {
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return u.format0.get_bounds (font, glyph_id, extents, this);
     case 1: return u.format1.get_bounds (font, glyph_id, extents, this);
@@ -146,7 +146,7 @@ struct opbd
       return_trace (false);
     hb_barrier ();
 
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return_trace (u.format0.sanitize (c, this));
     case 1: return_trace (u.format1.sanitize (c, this));

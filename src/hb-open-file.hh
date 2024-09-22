@@ -248,7 +248,7 @@ struct TTCHeader
 
   unsigned int get_face_count () const
   {
-    switch (u.header.version.major) {
+    switch (hb_barrier (u.header.version.major)) {
     case 2: /* version 2 is compatible with version 1 */
     case 1: return u.version1.get_face_count ();
     default:return 0;
@@ -256,7 +256,7 @@ struct TTCHeader
   }
   const OpenTypeFontFace& get_face (unsigned int i) const
   {
-    switch (u.header.version.major) {
+    switch (hb_barrier (u.header.version.major)) {
     case 2: /* version 2 is compatible with version 1 */
     case 1: return u.version1.get_face (i);
     default:return Null (OpenTypeFontFace);
@@ -268,7 +268,7 @@ struct TTCHeader
     TRACE_SANITIZE (this);
     if (unlikely (!u.header.version.sanitize (c))) return_trace (false);
     hb_barrier ();
-    switch (u.header.version.major) {
+    switch (hb_barrier (u.header.version.major)) {
     case 2: /* version 2 is compatible with version 1 */
     case 1: return_trace (u.version1.sanitize (c));
     default:return_trace (true);

@@ -1496,7 +1496,7 @@ struct CmapSubtable
   bool get_glyph (hb_codepoint_t codepoint,
 		  hb_codepoint_t *glyph) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case  0: return u.format0 .get_glyph (codepoint, glyph);
     case  4: return u.format4 .get_glyph (codepoint, glyph);
     case  6: return u.format6 .get_glyph (codepoint, glyph);
@@ -1509,7 +1509,7 @@ struct CmapSubtable
   }
   void collect_unicodes (hb_set_t *out, unsigned int num_glyphs = UINT_MAX) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case  0: u.format0 .collect_unicodes (out); return;
     case  4: u.format4 .collect_unicodes (out); return;
     case  6: u.format6 .collect_unicodes (out); return;
@@ -1525,7 +1525,7 @@ struct CmapSubtable
 			hb_map_t *mapping, /* OUT */
 			unsigned num_glyphs = UINT_MAX) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case  0: u.format0 .collect_mapping (unicodes, mapping); return;
     case  4: u.format4 .collect_mapping (unicodes, mapping); return;
     case  6: u.format6 .collect_mapping (unicodes, mapping); return;
@@ -1539,7 +1539,7 @@ struct CmapSubtable
 
   unsigned get_language () const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case  0: return u.format0 .get_language ();
     case  4: return u.format4 .get_language ();
     case  6: return u.format6 .get_language ();
@@ -1559,7 +1559,7 @@ struct CmapSubtable
 		  const hb_subset_plan_t *plan,
 		  const void *base)
   {
-    switch (format) {
+    switch (hb_barrier (format)) {
     case  4: return u.format4.serialize (c, it);
     case 12: return u.format12.serialize (c, it);
     case 14: return u.format14.serialize (c, &plan->unicodes, &plan->glyphs_requested, plan->glyph_map, base);
@@ -1572,7 +1572,7 @@ struct CmapSubtable
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case  0: return_trace (u.format0 .sanitize (c));
     case  4: return_trace (u.format4 .sanitize (c));
     case  6: return_trace (u.format6 .sanitize (c));
@@ -2056,7 +2056,7 @@ struct cmap
       else
 #endif
       {
-	switch (subtable->u.format) {
+	switch (hb_barrier (subtable->u.format)) {
 	/* Accelerate format 4 and format 12. */
 	default:
 	  this->get_glyph_funcZ = get_glyph_from<CmapSubtable>;

@@ -171,7 +171,7 @@ struct BaseCoord
 			   const ItemVariationStore &var_store,
 			   hb_direction_t        direction) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.get_coord (font, direction);
     case 2: return u.format2.get_coord (font, direction);
     case 3: return u.format3.get_coord (font, var_store, direction);
@@ -181,7 +181,7 @@ struct BaseCoord
 
   void collect_variation_indices (hb_set_t& varidx_set /* OUT */) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 3: u.format3.collect_variation_indices (varidx_set);
     default:return;
     }
@@ -192,7 +192,7 @@ struct BaseCoord
   {
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
@@ -205,7 +205,7 @@ struct BaseCoord
     TRACE_SANITIZE (this);
     if (unlikely (!u.format.sanitize (c))) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
     case 3: return_trace (u.format3.sanitize (c));

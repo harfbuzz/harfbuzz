@@ -1629,7 +1629,7 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
       pos_glyphs.clear ();
       if (seqIndex == 0)
       {
-        switch (context_format) {
+        switch (hb_barrier (context_format)) {
         case ContextFormat::SimpleContext:
           pos_glyphs.add (value);
           break;
@@ -2900,7 +2900,7 @@ struct Context
   {
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
@@ -4233,7 +4233,7 @@ struct ChainContext
   {
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
@@ -4322,7 +4322,7 @@ struct Extension
 {
   unsigned int get_type () const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.get_type ();
     default:return 0;
     }
@@ -4330,7 +4330,7 @@ struct Extension
   template <typename X>
   const X& get_subtable () const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.template get_subtable<typename T::SubTable> ();
     default:return Null (typename T::SubTable);
     }
@@ -4342,7 +4342,7 @@ struct Extension
   template <typename ...Ts>
   typename hb_subset_context_t::return_t dispatch (hb_subset_context_t *c, Ts&&... ds) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return u.format1.subset (c);
     default: return c->default_return_value ();
     }
@@ -4353,7 +4353,7 @@ struct Extension
   {
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 1: return_trace (u.format1.dispatch (c, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
@@ -4568,7 +4568,7 @@ struct GSUBGPOS
 {
   unsigned int get_size () const
   {
-    switch (u.version.major) {
+    switch (hb_barrier (u.version.major)) {
     case 1: return u.version1.get_size ();
 #ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.get_size ();
@@ -4583,7 +4583,7 @@ struct GSUBGPOS
     TRACE_SANITIZE (this);
     if (unlikely (!u.version.sanitize (c))) return_trace (false);
     hb_barrier ();
-    switch (u.version.major) {
+    switch (hb_barrier (u.version.major)) {
     case 1: return_trace (u.version1.sanitize<TLookup> (c));
 #ifndef HB_NO_BEYOND_64K
     case 2: return_trace (u.version2.sanitize<TLookup> (c));
@@ -4595,7 +4595,7 @@ struct GSUBGPOS
   template <typename TLookup>
   bool subset (hb_subset_layout_context_t *c) const
   {
-    switch (u.version.major) {
+    switch (hb_barrier (u.version.major)) {
     case 1: return u.version1.subset<TLookup> (c);
 #ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.subset<TLookup> (c);
@@ -4606,7 +4606,7 @@ struct GSUBGPOS
 
   const ScriptList &get_script_list () const
   {
-    switch (u.version.major) {
+    switch (hb_barrier (u.version.major)) {
     case 1: return this+u.version1.scriptList;
 #ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.scriptList;
@@ -4616,7 +4616,7 @@ struct GSUBGPOS
   }
   const FeatureList &get_feature_list () const
   {
-    switch (u.version.major) {
+    switch (hb_barrier (u.version.major)) {
     case 1: return this+u.version1.featureList;
 #ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.featureList;
@@ -4626,7 +4626,7 @@ struct GSUBGPOS
   }
   unsigned int get_lookup_count () const
   {
-    switch (u.version.major) {
+    switch (hb_barrier (u.version.major)) {
     case 1: return (this+u.version1.lookupList).len;
 #ifndef HB_NO_BEYOND_64K
     case 2: return (this+u.version2.lookupList).len;
@@ -4636,7 +4636,7 @@ struct GSUBGPOS
   }
   const Lookup& get_lookup (unsigned int i) const
   {
-    switch (u.version.major) {
+    switch (hb_barrier (u.version.major)) {
     case 1: return (this+u.version1.lookupList)[i];
 #ifndef HB_NO_BEYOND_64K
     case 2: return (this+u.version2.lookupList)[i];
@@ -4646,7 +4646,7 @@ struct GSUBGPOS
   }
   const FeatureVariations &get_feature_variations () const
   {
-    switch (u.version.major) {
+    switch (hb_barrier (u.version.major)) {
     case 1: return (u.version.to_int () >= 0x00010001u && hb_barrier () ? this+u.version1.featureVars : Null (FeatureVariations));
 #ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.featureVars;

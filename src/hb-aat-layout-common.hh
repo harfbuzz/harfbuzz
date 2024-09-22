@@ -467,7 +467,7 @@ struct Lookup
 {
   const T* get_value (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return u.format0.get_value (glyph_id, num_glyphs);
     case 2: return u.format2.get_value (glyph_id);
     case 4: return u.format4.get_value (glyph_id);
@@ -479,7 +479,7 @@ struct Lookup
 
   const typename T::type get_value_or_null (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
       /* Format 10 cannot return a pointer. */
       case 10: return u.format10.get_value_or_null (glyph_id);
       default:
@@ -491,7 +491,7 @@ struct Lookup
   template <typename set_t>
   void collect_glyphs (set_t &glyphs, unsigned int num_glyphs) const
   {
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: u.format0.collect_glyphs (glyphs, num_glyphs); return;
     case 2: u.format2.collect_glyphs (glyphs); return;
     case 4: u.format4.collect_glyphs (glyphs); return;
@@ -515,7 +515,7 @@ struct Lookup
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return_trace (u.format0.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
     case 4: return_trace (u.format4.sanitize (c));
@@ -530,7 +530,7 @@ struct Lookup
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (hb_barrier (u.format)) {
     case 0: return_trace (u.format0.sanitize (c, base));
     case 2: return_trace (u.format2.sanitize (c, base));
     case 4: return_trace (u.format4.sanitize (c, base));

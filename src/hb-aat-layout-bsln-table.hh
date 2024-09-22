@@ -125,7 +125,7 @@ struct bsln
       return_trace (false);
     hb_barrier ();
 
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return_trace (parts.format0.sanitize (c));
     case 1: return_trace (parts.format1.sanitize (c));

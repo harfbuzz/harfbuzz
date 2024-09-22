@@ -184,7 +184,7 @@ struct Encoding
     Encoding *dest = c->extend_min (this);
     if (unlikely (!dest)) return_trace (false);
     dest->format = format | ((supp_codes.length > 0) ? 0x80 : 0);
-    switch (format) {
+    switch (hb_barrier (format)) {
     case 0:
     {
       Encoding0 *fmt0 = c->allocate_size<Encoding0> (Encoding0::min_size + HBUINT8::static_size * enc_count);
@@ -237,7 +237,7 @@ struct Encoding
   unsigned int get_size () const
   {
     unsigned int size = min_size;
-    switch (table_format ())
+    switch (hb_barrier (table_format ()))
     {
     case 0: size += u.format0.get_size (); break;
     case 1: size += u.format1.get_size (); break;
@@ -249,7 +249,7 @@ struct Encoding
 
   hb_codepoint_t get_code (hb_codepoint_t glyph) const
   {
-    switch (table_format ())
+    switch (hb_barrier (table_format ()))
     {
     case 0: return u.format0.get_code (glyph);
     case 1: return u.format1.get_code (glyph);
@@ -274,7 +274,7 @@ struct Encoding
       return_trace (false);
     hb_barrier ();
 
-    switch (table_format ())
+    switch (hb_barrier (table_format ()))
     {
     case 0: if (unlikely (!u.format0.sanitize (c))) { return_trace (false); } break;
     case 1: if (unlikely (!u.format1.sanitize (c))) { return_trace (false); } break;
@@ -286,7 +286,7 @@ struct Encoding
   protected:
   const CFF1SuppEncData &suppEncData () const
   {
-    switch (table_format ())
+    switch (hb_barrier (table_format ()))
     {
     case 0: return StructAfter<CFF1SuppEncData> (u.format0.codes[u.format0.nCodes ()-1]);
     case 1: return StructAfter<CFF1SuppEncData> (u.format1.ranges[u.format1.nRanges ()-1]);
@@ -509,7 +509,7 @@ struct Charset
     Charset *dest = c->extend_min (this);
     if (unlikely (!dest)) return_trace (false);
     dest->format = format;
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0:
     {
@@ -565,7 +565,7 @@ struct Charset
 
   unsigned int get_size (unsigned int num_glyphs) const
   {
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return min_size + u.format0.get_size (num_glyphs);
     case 1: return min_size + u.format1.get_size (num_glyphs);
@@ -577,7 +577,7 @@ struct Charset
   hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned int num_glyphs,
 			  code_pair_t *cache = nullptr) const
   {
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return u.format0.get_sid (glyph, num_glyphs);
     case 1: return u.format1.get_sid (glyph, num_glyphs, cache);
@@ -588,7 +588,7 @@ struct Charset
 
   void collect_glyph_to_sid_map (glyph_to_sid_map_t *mapping, unsigned int num_glyphs) const
   {
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: u.format0.collect_glyph_to_sid_map (mapping, num_glyphs); return;
     case 1: u.format1.collect_glyph_to_sid_map (mapping, num_glyphs); return;
@@ -599,7 +599,7 @@ struct Charset
 
   hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
   {
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return u.format0.get_glyph (sid, num_glyphs);
     case 1: return u.format1.get_glyph (sid, num_glyphs);
@@ -615,7 +615,7 @@ struct Charset
       return_trace (false);
     hb_barrier ();
 
-    switch (format)
+    switch (hb_barrier (format))
     {
     case 0: return_trace (u.format0.sanitize (c, c->get_num_glyphs (), num_charset_entries));
     case 1: return_trace (u.format1.sanitize (c, c->get_num_glyphs (), num_charset_entries));
