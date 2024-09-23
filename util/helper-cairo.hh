@@ -559,10 +559,9 @@ helper_cairo_create_context (double w, double h,
     default:
     case CAIRO_CONTENT_COLOR:
     case CAIRO_CONTENT_COLOR_ALPHA:
-      cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+      cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
       cairo_set_source_rgba (cr, br / 255., bg / 255., bb / 255., ba / 255.);
       cairo_paint (cr);
-      cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
       cairo_set_source_rgba (cr, fr / 255., fg / 255., fb / 255., fa / 255.);
       break;
   }
