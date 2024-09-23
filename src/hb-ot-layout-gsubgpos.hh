@@ -406,6 +406,7 @@ struct hb_ot_apply_context_t :
 
     void set_ignore_zwnj (bool ignore_zwnj_) { ignore_zwnj = ignore_zwnj_; }
     void set_ignore_zwj (bool ignore_zwj_) { ignore_zwj = ignore_zwj_; }
+    void set_ignore_hidden (bool ignore_hidden_) { ignore_hidden = ignore_hidden_; }
     void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
     void set_mask (hb_mask_t mask_) { mask = mask_; }
     void set_per_syllable (bool per_syllable_) { per_syllable = per_syllable_; }
@@ -451,9 +452,10 @@ struct hb_ot_apply_context_t :
       if (!c->check_glyph_property (&info, lookup_props))
 	return SKIP_YES;
 
-      if (unlikely (_hb_glyph_info_is_default_ignorable_and_not_hidden (&info) &&
+      if (unlikely (_hb_glyph_info_is_default_ignorable (&info) &&
 		    (ignore_zwnj || !_hb_glyph_info_is_zwnj (&info)) &&
-		    (ignore_zwj || !_hb_glyph_info_is_zwj (&info))))
+		    (ignore_zwj || !_hb_glyph_info_is_zwj (&info)) &&
+		    (ignore_hidden || !_hb_glyph_info_is_hidden (&info))))
 	return SKIP_MAYBE;
 
       return SKIP_NO;
@@ -464,6 +466,7 @@ struct hb_ot_apply_context_t :
     hb_mask_t mask = -1;
     bool ignore_zwnj = false;
     bool ignore_zwj = false;
+    bool ignore_hidden = false;
     bool per_syllable = false;
     uint8_t syllable = 0;
     match_func_t match_func = nullptr;
@@ -486,6 +489,8 @@ struct hb_ot_apply_context_t :
       matcher.set_ignore_zwnj (c->table_index == 1 || (context_match && c->auto_zwnj));
       /* Ignore ZWJ if we are matching context, or asked to. */
       matcher.set_ignore_zwj  (context_match || c->auto_zwj);
+      /* Ignore hidden glyphs (like CGJ) during GPOS. */
+      matcher.set_ignore_hidden (c->table_index == 1);
       matcher.set_mask (context_match ? -1 : c->lookup_mask);
       /* Per syllable matching is only for GSUB. */
       matcher.set_per_syllable (c->table_index == 0 && c->per_syllable);
