@@ -1,3 +1,50 @@
+Overview of changes leading to 10.0.0
+Monday, Sep 23, 2024
+====================================
+- Unicode 16.0.0 support.
+- Various documentation fixes.
+- Various build fixes.
+- Add API to allow HarfBuzz client to set what glyph to use when a Unicode
+  Variation Selector is not supported by the font, which would allow the client
+  to customize what happens in this case, by using a different font for example.
+- Add a callback to for “hb_face_t” for getting the list of table tags. This is
+  now used to make calling “hb_face_get_table_tags()” work on a faces created by
+  “hb_face_create_for_tables()” (e.g. faces returned by “hb_subset_or_fail()”).
+- CGJ and Mongolian Variation Selectors are now ignored during glyph
+  positioning, previously they would block both glyph substitution and
+  positioning across them.
+- Support cairo script as an output format for “hb-view” command line tool.
+- Drop an optimization that would cause HarfBuzz not apply pair positioning
+  lookup subtables under certain circumstances, for compatibility with other
+  implementations that do apply these subtables.
+- Subsetting will now fail if source font has no glyphs, so feeding the subsetter
+  invalid data will not silently return an empty face.
+- If after partially instancing a font no variation data is left (the instance
+  is fully static), don’t consider this a failure.
+- Workaround a Firefox bug in displaying SVGs generated be “hb-view” command
+  line tool under certain circumstances.
+- Fix bug in macroman mapping for “cmap” table.
+- Fix difference shaping output when HarfBuzz is built with with
+  “HB_NO_OT_RULESETS_FAST_PATH” enabled.
+- Various subsetting and instancing fixes.
+- Various fuzzing fixes.
+- Add “with_libstdcxx” meson build option.
+
+
+- New API:
++HB_SCRIPT_GARAY
++HB_SCRIPT_GURUNG_KHEMA
++HB_SCRIPT_KIRAT_RAI
++HB_SCRIPT_OL_ONAL
++HB_SCRIPT_SUNUWAR
++HB_SCRIPT_TODHRI
++HB_SCRIPT_TULU_TIGALARI
++hb_buffer_set_not_found_variation_selector_glyph()
++hb_buffer_get_not_found_variation_selector_glyph()
++hb_get_table_tags_func_t
++hb_face_set_get_table_tags_func()
+
+
 Overview of changes leading to 9.0.0
 Thursday, Jun 27, 2024
 ====================================
@@ -27,7 +74,7 @@ Monday, May 13, 2024
 - Various build fixes.
 - Various subsetter and instancer fixes.
 
-- New API
+- New API:
 +HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS
 +hb_subset_input_get_axis_range()
 +hb_subset_input_pin_axis_location()

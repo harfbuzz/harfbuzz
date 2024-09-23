@@ -504,13 +504,13 @@ hb_language_matches (hb_language_t language,
  * @HB_SCRIPT_MATH: `Zmth`, Since: 3.4.0
  * @HB_SCRIPT_KAWI: `Kawi`, Since: 5.2.0
  * @HB_SCRIPT_NAG_MUNDARI: `Nagm`, Since: 5.2.0
- * @HB_SCRIPT_GARAY: `Gara`, Since: REPLACEME
- * @HB_SCRIPT_GURUNG_KHEMA: `Gukh`, Since: REPLACEME
- * @HB_SCRIPT_KIRAT_RAI: `Krai`, Since: REPLACEME
- * @HB_SCRIPT_OL_ONAL: `Onao`, Since: REPLACEME
- * @HB_SCRIPT_SUNUWAR: `Sunu`, Since: REPLACEME
- * @HB_SCRIPT_TODHRI: `Todr`, Since: REPLACEME
- * @HB_SCRIPT_TULU_TIGALARI: `Tutg`, Since: REPLACEME
+ * @HB_SCRIPT_GARAY: `Gara`, Since: 10.0.0
+ * @HB_SCRIPT_GURUNG_KHEMA: `Gukh`, Since: 10.0.0
+ * @HB_SCRIPT_KIRAT_RAI: `Krai`, Since: 10.0.0
+ * @HB_SCRIPT_OL_ONAL: `Onao`, Since: 10.0.0
+ * @HB_SCRIPT_SUNUWAR: `Sunu`, Since: 10.0.0
+ * @HB_SCRIPT_TODHRI: `Todr`, Since: 10.0.0
+ * @HB_SCRIPT_TULU_TIGALARI: `Tutg`, Since: 10.0.0
  * @HB_SCRIPT_INVALID: No script set
  *
  * Data type for scripts. Each #hb_script_t's value is an #hb_tag_t corresponding
@@ -739,7 +739,7 @@ typedef enum
   HB_SCRIPT_NAG_MUNDARI			= HB_TAG ('N','a','g','m'), /*15.0*/
 
   /*
-   * Since REPLACEME
+   * Since 10.0.0
    */
   HB_SCRIPT_GARAY			= HB_TAG ('G','a','r','a'), /*16.0*/
   HB_SCRIPT_GURUNG_KHEMA		= HB_TAG ('G','u','k','h'), /*16.0*/

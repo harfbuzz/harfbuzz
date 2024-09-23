@@ -576,7 +576,7 @@ hb_face_get_glyph_count (const hb_face_t *face)
  *
  * Sets the table-tag-fetching function for the specified face object.
  *
- * XSince: REPLACEME
+ * Since: 10.0.0
  */
 HB_EXTERN void
 hb_face_set_get_table_tags_func (hb_face_t *face,

@@ -149,7 +149,7 @@ hb_face_get_glyph_count (const hb_face_t *face);
  *
  * Return value: Total number of tables, or zero if it is not possible to list
  *
- * XSince: REPLACEME
+ * Since: 10.0.0
  */
 typedef unsigned int (*hb_get_table_tags_func_t) (const hb_face_t *face,
 						  unsigned int  start_offset,

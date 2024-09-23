@@ -1377,7 +1377,7 @@ hb_buffer_get_not_found_glyph (const hb_buffer_t *buffer)
  * such that the situation can be detected by the client and handled accordingly
  * (e.g. by using a different font).
  *
- * XSince: REPLACEME
+ * Since: 10.0.0
  **/
 void
 hb_buffer_set_not_found_variation_selector_glyph (hb_buffer_t    *buffer,
@@ -1395,7 +1395,7 @@ hb_buffer_set_not_found_variation_selector_glyph (hb_buffer_t    *buffer,
  * Return value:
  * The @buffer not-found-variation-selector #hb_codepoint_t
  *
- * XSince: REPLACEME
+ * Since: 10.0.0
  **/
 hb_codepoint_t
 hb_buffer_get_not_found_variation_selector_glyph (const hb_buffer_t *buffer)
