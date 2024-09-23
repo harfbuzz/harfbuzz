@@ -70,6 +70,7 @@ struct hb_paint_extents_context_t
     const hb_transform_t &t = transforms.tail ();
     t.transform_extents (extents);
 
+    // TODO Intersect with existing clip?!
     clips.push (hb_bounds_t {extents});
   }
 
