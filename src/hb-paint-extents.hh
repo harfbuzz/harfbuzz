@@ -73,7 +73,7 @@ struct hb_paint_extents_context_t
     auto bounds = hb_bounds_t {extents};
     bounds.intersect (clips.tail ());
 
-    clips.push (hb_bounds_t {extents});
+    clips.push (bounds);
   }
 
   void pop_clip ()
