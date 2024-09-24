@@ -7,6 +7,7 @@
 #include "GlyphHeader.hh"
 #include "SimpleGlyph.hh"
 #include "CompositeGlyph.hh"
+#include "../../hb-ot-var-hvac-table.hh"
 
 
 namespace OT {
@@ -388,10 +389,18 @@ struct Glyph
 
 #ifndef HB_NO_VAR
     if (coords)
-      glyf_accelerator.gvar->apply_deltas_to_points (gid,
-						     coords,
-						     points.as_array ().sub_array (old_length),
-						     phantom_only && type == SIMPLE);
+    {
+      auto &HVAC = *font->face->table.HVAC;
+      if (HVAC.has_data ())
+	HVAC.apply_deltas_to_points (gid,
+				     coords,
+				     points.as_array ().sub_array (old_length));
+      else
+	glyf_accelerator.gvar->apply_deltas_to_points (gid,
+						      coords,
+						      points.as_array ().sub_array (old_length),
+						      phantom_only && type == SIMPLE);
+    }
 #endif
 
     // mainly used by CompositeGlyph calculating new X/Y offset value so no need to extend it
