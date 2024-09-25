@@ -3129,13 +3129,14 @@ struct MultiVarData
 	 + StructAfter<CFF2Index> (regionIndices).get_size ();
   }
 
-  void get_delta (unsigned int inner,
-		  const int *coords, unsigned int coord_count,
-		  const SparseVarRegionList &regions,
-		  hb_array_t<float> out,
-		  SparseVarRegionList::cache_t *cache = nullptr) const
+  template <typename DeltaSets>
+  void get_delta_for_type (unsigned int inner,
+			   const int *coords, unsigned int coord_count,
+			   const SparseVarRegionList &regions,
+			   hb_array_t<float> out,
+			   SparseVarRegionList::cache_t *cache = nullptr) const
   {
-    auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
+    auto &deltaSets = StructAfter<DeltaSets> (regionIndices);
 
     auto values_iter = deltaSets[inner];
 
@@ -3157,23 +3158,42 @@ struct MultiVarData
     }
   }
 
+  void get_delta (unsigned int inner,
+		  const int *coords, unsigned int coord_count,
+		  const SparseVarRegionList &regions,
+		  hb_array_t<float> out,
+		  SparseVarRegionList::cache_t *cache = nullptr) const
+  {
+    switch (format)
+    {
+    case 1: hb_barrier (); get_delta_for_type<decltype (u.tupleDeltaSetsX)> (inner, coords, coord_count, regions, out, cache); break;
+    case 2: hb_barrier (); get_delta_for_type<decltype (u.floatDeltaSetsX)> (inner, coords, coord_count, regions, out, cache); break;
+    default: break;
+    }
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (format.sanitize (c) &&
 		  hb_barrier () &&
-		  format == 1 &&
+		  (format == 1 || format == 2) &&
 		  regionIndices.sanitize (c) &&
 		  hb_barrier () &&
-		  StructAfter<decltype (deltaSetsX)> (regionIndices).sanitize (c));
+		  ((format == 1 && StructAfter<decltype (u.tupleDeltaSetsX)> (regionIndices).sanitize (c)) ||
+		   (format == 2 && StructAfter<decltype (u.floatDeltaSetsX)> (regionIndices).sanitize (c))));
   }
 
   protected:
-  HBUINT8	      format; // 1
+  HBUINT8	      format; // 1 or 2
   Array16Of<HBUINT16> regionIndices;
-  TupleList	      deltaSetsX;
+  union
+  {
+    TupleList		tupleDeltaSetsX; // Format 1
+    FloatTupleList	floatDeltaSetsX; // Format 2
+  } u;
   public:
-  DEFINE_SIZE_MIN (8);
+  DEFINE_SIZE_MIN (4);
 };
 
 struct ItemVariationStore
