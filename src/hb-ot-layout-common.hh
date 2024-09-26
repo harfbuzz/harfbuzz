@@ -3147,14 +3147,18 @@ struct MultiVarData
       float scalar = regions.evaluate (regionIndices.arrayZ[regionIndex],
 				       coords, coord_count,
 				       cache);
+      if (scalar == 0)
+      {
+        values_iter += count;
+	continue;
+      }
+
       if (scalar == 1.f)
 	for (unsigned i = 0; i < count; i++)
 	  out.arrayZ[i] += *values_iter++;
-      else if (scalar)
+      else
 	for (unsigned i = 0; i < count; i++)
 	  out.arrayZ[i] += *values_iter++ * scalar;
-      else
-        values_iter += count;
     }
   }
 
