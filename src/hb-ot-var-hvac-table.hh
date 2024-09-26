@@ -96,7 +96,7 @@ struct GlyphVariationDeltas
     const HBUINT8 *p = deltaSets;
     for (unsigned i = 0; i < deltasCount; i++)
     {
-      const GlyphVariationDelta &delta = *(const GlyphVariationDelta *) p;
+      const GlyphVariationDelta &delta = StructAtOffsetUnaligned<const GlyphVariationDelta> (p, 0);
 
       delta.apply_deltas_to_points (deltasCount, coords, points, varRegionList);
 
@@ -113,7 +113,7 @@ struct GlyphVariationDeltas
     const HBUINT8 *p = deltaSets;
     for (unsigned i = 0; i < deltasCount; i++)
     {
-      const GlyphVariationDelta &delta = *(const GlyphVariationDelta *) p;
+      const GlyphVariationDelta &delta = StructAtOffsetUnaligned<const GlyphVariationDelta> (p, 0);
 
       if (unlikely (!delta.sanitize (c, deltasCount)))
         return_trace (false);

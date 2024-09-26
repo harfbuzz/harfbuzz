@@ -1884,7 +1884,8 @@ struct FloatTupleList : CFF2Index
   hb_array_t<const float> operator [] (unsigned i) const
   {
     auto bytes = CFF2Index::operator [] (i);
-    return hb_array ((const float *) bytes.arrayZ, bytes.length / sizeof (float));
+    return hb_array (&StructAtOffsetUnaligned<float>(bytes.arrayZ, 0),
+		     bytes.length / sizeof (float));
   }
 };
 
