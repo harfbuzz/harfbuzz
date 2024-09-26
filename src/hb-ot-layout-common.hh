@@ -38,6 +38,11 @@
 #include "OT/Layout/Common/Coverage.hh"
 #include "OT/Layout/types.hh"
 
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
+
+
 // TODO(garretrieger): cleanup these after migration.
 using OT::Layout::Common::Coverage;
 using OT::Layout::Common::RangeRecord;
@@ -3129,6 +3134,66 @@ struct MultiVarData
 	 + StructAfter<CFF2Index> (regionIndices).get_size ();
   }
 
+  template <typename Iter>
+  void _copy (Iter &values_iter, unsigned count, float scalar, float *out) const
+  {
+    if (scalar == 1.f)
+      for (unsigned i = 0; i < count; i++)
+	out[i] += *values_iter++;
+    else
+      for (unsigned i = 0; i < count; i++)
+	out[i] += *values_iter++ * scalar;
+  }
+  void _copy (hb_array_t<const float> &values_iter, unsigned count, float scalar, float *out) const
+  {
+    const float *in = values_iter.arrayZ;
+    count = hb_min (count, values_iter.length);
+    values_iter += count;
+
+#ifdef __SSE__
+    {
+      if (scalar == 1.f)
+      {
+	// SSE version
+	unsigned i = 0;
+	for (; i + 4 <= count; i += 4)
+	{
+	  __m128 a = _mm_loadu_ps (in + i);
+	  __m128 b = _mm_loadu_ps (out + i);
+	  _mm_storeu_ps (out + i, _mm_add_ps (a, b));
+	}
+	for (; i < count; i++)
+	  out[i] += in[i];
+      }
+      else
+      {
+	// SSE version
+	unsigned i = 0;
+	__m128 s = _mm_set1_ps (scalar);
+	for (; i + 4 <= count; i += 4)
+	{
+	  __m128 a = _mm_loadu_ps (in + i);
+	  __m128 b = _mm_loadu_ps (out + i);
+	  _mm_storeu_ps (out + i, _mm_add_ps (_mm_mul_ps (a, s), b));
+	}
+	for (; i < count; i++)
+	  out[i] += in[i] * scalar;
+      }
+      return;
+    }
+#endif
+
+    // Fallback
+    {
+      if (scalar == 1.f)
+	for (unsigned i = 0; i < count; i++)
+	  out[i] += in[i];
+      else
+	for (unsigned i = 0; i < count; i++)
+	  out[i] += in[i] * scalar;
+    }
+  }
+
   template <typename DeltaSets>
   void get_delta_for_type (unsigned int inner,
 			   const int *coords, unsigned int coord_count,
@@ -3153,12 +3218,7 @@ struct MultiVarData
 	continue;
       }
 
-      if (scalar == 1.f)
-	for (unsigned i = 0; i < count; i++)
-	  out.arrayZ[i] += *values_iter++;
-      else
-	for (unsigned i = 0; i < count; i++)
-	  out.arrayZ[i] += *values_iter++ * scalar;
+      _copy (values_iter, count, scalar, out.arrayZ);
     }
   }
 
