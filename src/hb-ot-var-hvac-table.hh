@@ -49,8 +49,11 @@ struct GlyphVariationDelta
 			       hb_array_t<contour_point_t> points,
 			       const SparseVarRegionList &varRegionList) const
   {
-    float scalar = varRegionList.evaluate (regionIndex, coords, coords.length);
+    float scalar = varRegionList.evaluate (regionIndex, coords.arrayZ, coords.length);
     if (scalar == 0)
+      return;
+
+    if (unlikely (points.length < deltasCount))
       return;
 
     const float *x = deltasZ;
@@ -58,14 +61,14 @@ struct GlyphVariationDelta
     if (scalar == 1)
       for (unsigned i = 0; i < deltasCount; i++)
       {
-        auto &point = points[i];
+        auto &point = points.arrayZ[i];
 	point.x += x[i];
 	point.y += y[i];
       }
     else
       for (unsigned i = 0; i < deltasCount; i++)
       {
-	auto &point = points[i];
+	auto &point = points.arrayZ[i];
 	point.x += x[i] * scalar;
 	point.y += y[i] * scalar;
       }
