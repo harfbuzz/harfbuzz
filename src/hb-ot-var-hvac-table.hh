@@ -97,7 +97,7 @@ struct GlyphVariationDeltas
 			       const SparseVarRegionList &varRegionList) const
   {
     const HBUINT8 *p = deltaSets;
-    for (unsigned i = 0; i < deltasCount; i++)
+    for (unsigned i = 0; i < deltaSetCount; i++)
     {
       const GlyphVariationDelta &delta = StructAtOffsetUnaligned<const GlyphVariationDelta> (p, 0);
 
@@ -114,7 +114,7 @@ struct GlyphVariationDeltas
       return_trace (false);
 
     const HBUINT8 *p = deltaSets;
-    for (unsigned i = 0; i < deltasCount; i++)
+    for (unsigned i = 0; i < deltaSetCount; i++)
     {
       const GlyphVariationDelta &delta = StructAtOffsetUnaligned<const GlyphVariationDelta> (p, 0);
 
