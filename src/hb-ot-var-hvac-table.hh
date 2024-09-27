@@ -41,7 +41,7 @@ struct GlyphVariationDelta
 {
   unsigned get_size (unsigned deltasCount) const
   {
-    return regionIndex.static_size + deltasCount * sizeof (deltasZ) * 2;
+    return regionIndex.static_size + 2 * deltasCount * sizeof (deltasZ[0]);
   }
 
   void apply_deltas_to_points (unsigned deltasCount,
@@ -79,7 +79,7 @@ struct GlyphVariationDelta
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  hb_barrier () &&
-		  c->check_range (this, get_size (deltasCount)));
+		  c->check_array (deltasZ, 2 * deltasCount));
   }
 
   protected:
