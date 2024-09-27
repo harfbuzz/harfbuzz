@@ -1879,15 +1879,19 @@ struct TupleList : CFF2Index
   }
 };
 
-struct FloatTupleList : CFF2Index
+template <typename Type>
+struct TypedTupleList : CFF2Index
 {
-  hb_array_t<const float> operator [] (unsigned i) const
+  hb_array_t<const Type> operator [] (unsigned i) const
   {
     auto bytes = CFF2Index::operator [] (i);
-    return hb_array (&StructAtOffsetUnaligned<float>(bytes.arrayZ, 0),
-		     bytes.length / sizeof (float));
+    return hb_array (&StructAtOffsetUnaligned<Type>(bytes.arrayZ, 0),
+		     bytes.length / hb_static_size (Type));
   }
 };
+
+using Int16TupleList = TypedTupleList<HBINT16>;
+using FloatTupleList = TypedTupleList<float>;
 
 
 } /* namespace OT */

@@ -192,17 +192,22 @@ VarComponent::get_path_at (hb_font_t *font,
 
   // Axis values
 
-  hb_vector_t<unsigned> axisIndices;
+  hb_array_t<const HBINT16> axisIndices;
   hb_vector_t<float> axisValues;
   if (flags & (unsigned) flags_t::HAVE_AXES)
   {
     unsigned axisIndicesIndex;
     READ_UINT32VAR (axisIndicesIndex);
     axisIndices = (&VARC+VARC.axisIndicesList)[axisIndicesIndex];
-    axisValues.resize (axisIndices.length);
-    const HBUINT8 *p = (const HBUINT8 *) record;
-    TupleValues::decompile (p, axisValues, (const HBUINT8 *) end);
-    record += (const unsigned char *) p - record;
+    if (axisValues.resize (axisIndices.length))
+    {
+      if (unlikely (unsigned (end - record) < axisIndices.length * sizeof (HBINT16)))
+	return hb_ubytes_t ();
+      const HBINT16 *base = (const HBINT16 *) record;
+      for (unsigned i = 0; i < axisIndices.length; i++)
+        axisValues.arrayZ[i] = base[i];
+    }
+    record += axisIndices.length * sizeof (HBINT16);
   }
 
   // Apply variations if any

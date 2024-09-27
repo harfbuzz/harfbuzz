@@ -178,7 +178,7 @@ struct VARC
   Offset32To<Coverage> coverage;
   Offset32To<MultiItemVariationStore> varStore;
   Offset32To<ConditionList> conditionList;
-  Offset32To<TupleList> axisIndicesList;
+  Offset32To<Int16TupleList> axisIndicesList;
   Offset32To<CFF2Index/*Of<VarCompositeGlyph>*/> glyphRecords;
   public:
   DEFINE_SIZE_STATIC (24);
