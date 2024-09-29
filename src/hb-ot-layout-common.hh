@@ -38,6 +38,12 @@
 #include "OT/Layout/Common/Coverage.hh"
 #include "OT/Layout/types.hh"
 
+#ifdef __SSE__
+#include <xmmintrin.h>
+#elif defined(__ARM_NEON)
+#include <arm_neon.h>
+#endif
+
 
 // TODO(garretrieger): cleanup these after migration.
 using OT::Layout::Common::Coverage;
@@ -3147,11 +3153,56 @@ struct MultiVarData
     values_iter += count;
 
     if (scalar == 1.f)
-      for (unsigned i = 0; i < count; i++)
+    {
+      unsigned i = 0;
+      for (; i + 4 <= count; i += 4)
+      {
+#ifdef __SSE__
+	__m128 a = _mm_loadu_ps (in + i);
+	__m128 b = _mm_loadu_ps (out + i);
+	_mm_storeu_ps (out + i, _mm_add_ps (a, b));
+#elif defined(__ARM_NEON)
+	float32x4_t a = vld1q_f32 (in + i);
+	float32x4_t b = vld1q_f32 (out + i);
+	vst1q_f32 (out + i, vaddq_f32 (a, b));
+#else
+	out[i + 0] += in[i + 0];
+	out[i + 1] += in[i + 1];
+	out[i + 2] += in[i + 2];
+	out[i + 3] += in[i + 3];
+#endif
+      }
+      for (; i < count; i++)
 	out[i] += in[i];
+    }
     else
-      for (unsigned i = 0; i < count; i++)
+    {
+      unsigned i = 0;
+#ifdef __SSE__
+      __m128 s = _mm_set1_ps (scalar);
+#elif defined(__ARM_NEON)
+      float32x4_t s = vdupq_n_f32 (scalar);
+#endif
+      for (; i + 4 <= count; i += 4)
+      {
+#ifdef __SSE__
+	__m128 a = _mm_loadu_ps (in + i);
+	__m128 b = _mm_loadu_ps (out + i);
+	_mm_storeu_ps (out + i, _mm_add_ps (_mm_mul_ps (a, s), b));
+#elif defined(__ARM_NEON)
+	float32x4_t a = vld1q_f32 (in + i);
+	float32x4_t b = vld1q_f32 (out + i);
+	vst1q_f32 (out + i, vmlaq_f32 (b, a, s));
+#else
+	out[i + 0] += in[i + 0] * scalar;
+	out[i + 1] += in[i + 1] * scalar;
+	out[i + 2] += in[i + 2] * scalar;
+	out[i + 3] += in[i + 3] * scalar;
+#endif
+      }
+      for (; i < count; i++)
 	out[i] += in[i] * scalar;
+    }
   }
 
   template <typename DeltaSets>
