@@ -44,7 +44,7 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_position_t x = 0, y = 0;
   char buf[5] = {0};
   unsigned int len = 0;
-  hb_glyph_extents_t extents = {0};
+  hb_glyph_extents_t extents = {0, 0, 0, 0};
   hb_ot_font_set_funcs (font);
 
   set = hb_set_create ();
@@ -82,7 +82,7 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
     unsigned count = 1;
     hb_aat_layout_get_feature_types (face, 0, &count, &feature);
     hb_aat_layout_feature_type_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE);
-    hb_aat_layout_feature_selector_info_t setting = {0};
+    hb_aat_layout_feature_selector_info_t setting = {0, HB_AAT_LAYOUT_FEATURE_SELECTOR_ALL_TYPE_FEATURES_ON, HB_AAT_LAYOUT_FEATURE_SELECTOR_ALL_TYPE_FEATURES_ON, 0};
     unsigned default_index;
     count = 1;
     hb_aat_layout_feature_type_get_selector_infos (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, 0, &count, &setting, &default_index);
