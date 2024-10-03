@@ -109,6 +109,7 @@ property_names = [
 	'Nukta',
 	'Virama',
 	'Pure_Killer',
+	'Reordering_Killer',
 	'Invisible_Stacker',
 	'Vowel_Independent',
 	'Vowel_Dependent',
@@ -263,6 +264,8 @@ def is_OTHER(U, UISC, UDI, UGC, AJT):
 		and not is_SYM_MOD(U, UISC, UDI, UGC, AJT)
 		and not is_Word_Joiner(U, UISC, UDI, UGC, AJT)
 	)
+def is_REORDERING_KILLER(U, UISC, UDI, UGC, AJT):
+	return UISC == Reordering_Killer
 def is_REPHA(U, UISC, UDI, UGC, AJT):
 	return UISC in [Consonant_Preceding_Repha, Consonant_Prefixed]
 def is_SAKOT(U, UISC, UDI, UGC, AJT):
@@ -306,6 +309,7 @@ use_mapping = {
 	'SE':	is_HIEROGLYPH_SEGMENT_END,
 	'ZWNJ':	is_ZWNJ,
 	'O':	is_OTHER,
+	'RK':	is_REORDERING_KILLER,
 	'R':	is_REPHA,
 	'Sk':	is_SAKOT,
 	'SM':	is_SYM_MOD,
@@ -358,6 +362,7 @@ use_positions = {
 		'Pst': [Not_Applicable],
 	},
 	'R': None,
+	'RK': None,
 	'SUB': None,
 }
 
