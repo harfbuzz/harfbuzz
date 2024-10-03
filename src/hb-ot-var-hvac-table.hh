@@ -56,8 +56,8 @@ struct GlyphVariationDelta
     if (unlikely (points.length < deltasCount))
       return;
 
-    const float *x = deltasZ;
-    const float *y = deltasZ + deltasCount;
+    const decltype(&deltasZ[0]) x = deltasZ;
+    const decltype(&deltasZ[0]) y = deltasZ + deltasCount;
     if (scalar == 1)
       for (unsigned i = 0; i < deltasCount; i++)
       {
