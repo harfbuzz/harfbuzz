@@ -6,6 +6,7 @@
 ../fonts/23406a60ab081c4fb15e1596ea1cd4f27ae8443e.ttf;;U+A8AC,U+A8B4,U+A8C4;[uniA8AC=0+586|uniA8B4=0+316|uniA8C4=0+0]
 ../fonts/373e67bf41ca264e260a9716162b71a23549e885.ttf;--no-glyph-names;U+A8AC,U+A8B4,U+A8B5;[2=0+377|3=0+242|4=0+210]
 ../fonts/59a585a63b3df608fbeef00956c8c108deec7de6.ttf;--no-glyph-names;U+1BC7,U+1BEA,U+1BF3;[1=0+749|2=0+402|4=0+535|3=0+401]
+../fonts/59a585a63b3df608fbeef00956c8c108deec7de6.ttf;--no-glyph-names;U+1BC7,U+1BF3,U+1BF3;[1=0+749|3=0+401|4=0+535|3=0+401]
 ../fonts/1ed7e9064f008f62de6ff0207bb4dd29409597a5.ttf;;U+11064,U+1107F,U+11052,U+11065,U+1107F,U+11053;[brm_num100.1=0+2224|brm_num1000.2=3+1834]
 ../fonts/28f497629c04ceb15546c9a70e0730125ed6698d.ttf;;U+11013,U+11042,U+11046;[brm_KA=0+754|brm_vowelEE=0@-383,0+0|brm_virama=0@-524,0+0]
 ../fonts/28f497629c04ceb15546c9a70e0730125ed6698d.ttf;;U+11013,U+11044,U+11046;[brm_KA=0+754|brm_vowelOO=0@-647,0+0|brm_virama=0@-524,0+0]

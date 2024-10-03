@@ -85,6 +85,7 @@ export SE	= 52; # HIEROGLYPH_SEGMENT_END
 export HVM	= 53; # HALANT_OR_VOWEL_MODIFIER
 export HM	= 54; # HIEROGLYPH_MOD
 export HR	= 55; # HIEROGLYPH_MIRROR
+export RK	= 56; # REORDERING_KILLER
 
 export FAbv	= 24; # CONS_FINAL_ABOVE
 export FBlw	= 25; # CONS_FINAL_BELOW
@@ -138,7 +139,7 @@ symbol_cluster_tail = SMAbv+ SMBlw* | SMBlw+;
 
 virama_terminated_cluster_tail =
 	consonant_modifiers
-	IS
+	(IS | RK)
 ;
 virama_terminated_cluster =
 	complex_syllable_start

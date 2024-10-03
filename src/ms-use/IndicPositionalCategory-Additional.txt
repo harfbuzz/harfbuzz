@@ -77,11 +77,12 @@ AA35          ; Top     # Mn       CHAM CONSONANT SIGN
 10F83         ; Bottom # Mn       OLD UYGHUR COMBINING DOT BELOW
 10F84         ; Bottom # Mn       OLD UYGHUR COMBINING TWO DOTS ABOVE # Overriden, ccc controls order
 10F85         ; Bottom # Mn       OLD UYGHUR COMBINING TWO DOTS BELOW
+113CF         ; Bottom # Mc       TULU-TIGALARI SIGN LOOPED VIRAMA    # Issue #17
 16F4F         ; Bottom # Mn       MIAO SIGN CONSONANT MODIFIER BAR
 16F51..16F87  ; Bottom # Mc  [55] MIAO SIGN ASPIRATION..MIAO VOWEL SIGN UI
 16F8F..16F92  ; Bottom # Mn   [4] MIAO TONE RIGHT..MIAO TONE BELOW
-1E5EE         ; Bottom  # Mn       OL ONAL SIGN MU # Not really below, but need to override to fit into Universal model
-1E5EF         ; Bottom  # Mn       OL ONAL SIGN IKIR
+1E5EE         ; Bottom # Mn       OL ONAL SIGN MU # Not really below, but need to override to fit into Universal model
+1E5EF         ; Bottom # Mn       OL ONAL SIGN IKIR
 
 # ================================================
 
