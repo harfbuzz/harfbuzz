@@ -28,7 +28,7 @@
 
 
 static void
-test_glyph_extents (void)
+test_glyph_extents_color_v1 (void)
 {
   hb_face_t *face;
   hb_font_t *font;
@@ -93,12 +93,41 @@ test_glyph_extents (void)
   hb_face_destroy (face);
 }
 
+
+static void
+test_glyph_extents_color_v0 (void)
+{
+  hb_face_t *face;
+  hb_font_t *font;
+  hb_glyph_extents_t extents;
+  hb_bool_t ret;
+
+  /*
+   * This font contains a COLRv0 glyph with an empty default glyph
+   * to make sure we are getting extents from the COLRv0 layers.
+   */
+
+  face = hb_test_open_font_file ("fonts/COLRv0.extents.ttf");
+  font = hb_font_create (face);
+
+  ret = hb_font_get_glyph_extents (font, 13, &extents);
+  g_assert_true (ret);
+  g_assert_true (extents.x_bearing == 192 &&
+                 extents.y_bearing == 573 &&
+                 extents.width     == 731 &&
+                 extents.height    == -758);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  hb_test_add (test_glyph_extents);
+  hb_test_add (test_glyph_extents_color_v1);
+  hb_test_add (test_glyph_extents_color_v0);
 
   return hb_test_run();
 }
