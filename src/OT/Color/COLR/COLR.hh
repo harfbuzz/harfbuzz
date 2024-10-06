@@ -2058,7 +2058,7 @@ struct delta_set_index_map_subset_plan_t
       unsigned outer = (*var_idx) >> 16;
       unsigned bit_count = (outer == 0) ? 1 : hb_bit_storage (outer);
       outer_bit_count = hb_max (bit_count, outer_bit_count);
-      
+
       unsigned inner = (*var_idx) & 0xFFFF;
       bit_count = (inner == 0) ? 1 : hb_bit_storage (inner);
       inner_bit_count = hb_max (bit_count, inner_bit_count);
@@ -2505,17 +2505,17 @@ struct COLR
   bool
   get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
   {
-    if (version != 1)
-      return false;
-
-    ItemVarStoreInstancer instancer (&(this+varStore),
-				 &(this+varIdxMap),
-				 hb_array (font->coords, font->num_coords));
-
-    if (get_clip (glyph, extents, instancer))
+    if (version == 1)
     {
-      font->scale_glyph_extents (extents);
-      return true;
+      ItemVarStoreInstancer instancer (&(this+varStore),
+                                      &(this+varIdxMap),
+                                      hb_array (font->coords, font->num_coords));
+
+      if (get_clip (glyph, extents, instancer))
+      {
+        font->scale_glyph_extents (extents);
+        return true;
+      }
     }
 
     auto *extents_funcs = hb_paint_extents_get_funcs ();
@@ -2570,8 +2570,8 @@ struct COLR
   bool
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette_index, hb_color_t foreground, bool clip = true) const
   {
-    ItemVarStoreInstancer instancer (&(this+varStore),
-	                         &(this+varIdxMap),
+    ItemVarStoreInstancer instancer (varStore ? &(this+varStore): nullptr,
+	                         varIdxMap ? &(this+varIdxMap): nullptr,
 	                         hb_array (font->coords, font->num_coords));
     hb_paint_context_t c (this, funcs, data, font, palette_index, foreground, instancer);
     c.current_glyphs.add (glyph);
