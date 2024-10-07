@@ -38,9 +38,9 @@
 #include "OT/Layout/Common/Coverage.hh"
 #include "OT/Layout/types.hh"
 
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(HB_NO_SIMD)
 #include <xmmintrin.h>
-#elif defined(__ARM_NEON)
+#elif defined(__ARM_NEON) && !defined(HB_NO_SIMD)
 #include <arm_neon.h>
 #endif
 
@@ -3157,11 +3157,11 @@ struct MultiVarData
       unsigned i = 0;
       for (; i + 4 <= count; i += 4)
       {
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(HB_NO_SIMD)
 	__m128 a = _mm_loadu_ps (in + i);
 	__m128 b = _mm_loadu_ps (out + i);
 	_mm_storeu_ps (out + i, _mm_add_ps (a, b));
-#elif defined(__ARM_NEON)
+#elif defined(__ARM_NEON) && !defined(HB_NO_SIMD)
 	float32x4_t a = vld1q_f32 (in + i);
 	float32x4_t b = vld1q_f32 (out + i);
 	vst1q_f32 (out + i, vaddq_f32 (a, b));
@@ -3178,18 +3178,18 @@ struct MultiVarData
     else
     {
       unsigned i = 0;
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(HB_NO_SIMD)
       __m128 s = _mm_set1_ps (scalar);
-#elif defined(__ARM_NEON)
+#elif defined(__ARM_NEON) && !defined(HB_NO_SIMD)
       float32x4_t s = vdupq_n_f32 (scalar);
 #endif
       for (; i + 4 <= count; i += 4)
       {
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(HB_NO_SIMD)
 	__m128 a = _mm_loadu_ps (in + i);
 	__m128 b = _mm_loadu_ps (out + i);
 	_mm_storeu_ps (out + i, _mm_add_ps (_mm_mul_ps (a, s), b));
-#elif defined(__ARM_NEON)
+#elif defined(__ARM_NEON) && !defined(HB_NO_SIMD)
 	float32x4_t a = vld1q_f32 (in + i);
 	float32x4_t b = vld1q_f32 (out + i);
 	vst1q_f32 (out + i, vmlaq_f32 (b, a, s));

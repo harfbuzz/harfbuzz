@@ -48,6 +48,7 @@
 #define HB_OPTIMIZE_SIZE_MORE
 #define HB_MINIMIZE_MEMORY_USAGE
 #define HB_NO_MT
+#define HB_NO_SIMD
 #define HB_NO_UCD_UNASSIGNED
 #ifndef NDEBUG
 #define NDEBUG
@@ -187,6 +188,7 @@
 
 #ifdef HB_OPTIMIZE_SIZE_MORE
 #define HB_NO_OT_RULESETS_FAST_PATH
+#define HB_NO_SIMD
 #endif
 
 #ifdef HB_MINIMIZE_MEMORY_USAGE
