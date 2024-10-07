@@ -2570,8 +2570,8 @@ struct COLR
   bool
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette_index, hb_color_t foreground, bool clip = true) const
   {
-    ItemVarStoreInstancer instancer (varStore ? &(this+varStore): nullptr,
-	                         varIdxMap ? &(this+varIdxMap): nullptr,
+    ItemVarStoreInstancer instancer (has_var_store() ? &(this+varStore): nullptr,
+	                         has_delta_set_index_map() ? &(this+varIdxMap): nullptr,
 	                         hb_array (font->coords, font->num_coords));
     hb_paint_context_t c (this, funcs, data, font, palette_index, foreground, instancer);
     c.current_glyphs.add (glyph);
