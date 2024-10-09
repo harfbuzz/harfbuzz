@@ -2227,11 +2227,17 @@ struct COLR
   bool has_delta_set_index_map () const
   { return version >= 1 && hb_barrier () && varIdxMap != 0; }
 
+  bool has_clip_list () const
+  { return version >= 1 && hb_barrier () && clipList != 0; }
+
   const DeltaSetIndexMap &get_delta_set_index_map () const
   { return has_delta_set_index_map () && hb_barrier () ? this+varIdxMap : Null (DeltaSetIndexMap); }
 
   const ItemVariationStore &get_var_store () const
   { return has_var_store () && hb_barrier () ? this+varStore : Null (ItemVariationStore); }
+
+  const ClipList &get_clip_list () const
+  { return has_clip_list () && hb_barrier () ? this+clipList : Null (ClipList); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -2506,18 +2512,15 @@ struct COLR
   bool
   get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
   {
-    if (version >= 1)
-    {
-      hb_barrier ();
-      ItemVarStoreInstancer instancer (&(get_var_store ()),
-                                      &(get_delta_set_index_map ()),
-                                      hb_array (font->coords, font->num_coords));
 
-      if (get_clip (glyph, extents, instancer))
-      {
-        font->scale_glyph_extents (extents);
-        return true;
-      }
+    ItemVarStoreInstancer instancer (&(get_var_store ()),
+                                     &(get_delta_set_index_map ()),
+                                     hb_array (font->coords, font->num_coords));
+
+    if (get_clip (glyph, extents, instancer))
+    {
+      font->scale_glyph_extents (extents);
+      return true;
     }
 
     auto *extents_funcs = hb_paint_extents_get_funcs ();
@@ -2563,7 +2566,7 @@ struct COLR
 		 hb_glyph_extents_t *extents,
 		 const ItemVarStoreInstancer instancer) const
   {
-    return (this+clipList).get_extents (glyph,
+    return get_clip_list ().get_extents (glyph,
 					extents,
 					instancer);
   }
