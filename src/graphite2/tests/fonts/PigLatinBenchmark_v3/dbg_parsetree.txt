@@ -1,0 +1,12 @@
+PARSE TREE
+
+Ztop(95)
+   OP_EQ(4): '='  [line #3]
+      IDENT(13): 'Bidi'  [line #3]
+      IDENT(13): 'Bidi'  [line #3]
+   OP_EQ(4): '='  [line #3]
+      IDENT(13): 'Bidi'  [line #3]
+      IDENT(13): 'Bidi'  [line #3]
+   OP_EQ(4): '='  [line #3]
+      IDENT(13): 'Bidi'  [line #3]
+      IDENT(13): 'Bidi'  [line #3]

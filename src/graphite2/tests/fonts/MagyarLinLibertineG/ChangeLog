@@ -1,0 +1,85 @@
+2010-06-11: László Németh <nemeth at OOo>
+ - 21 new languages for cardinal numbertext (feature id 210), see documentation
+   for language codes
+
+ - new feature: capitalization of sentences (209=1, the capitalization of words
+   is 209=4 now)
+
+ - new feature (id=215): optional capital eszett in small caps (215=1&200=1)
+   or capitalization (215=1&209=2)
+
+ - fix capitalization of eszett (ß): -> SS (only for 209=2 feature)
+
+ - fix for Hungarian cardinal numbers (zero in large numbers)
+ 
+ - fix for Qu ligature combined with small caps or capitalization
+
+ - kerning fix for double subscript and superscript in TeX mode
+
+2010-06-04: László Németh <nemeth at OOo>
+ - fix number conversion (removing left zeros and Hungarian ordinal number 2)
+
+2010-06-03: László Németh <nemeth at OOo>
+ - kerning fixes:
+    - !!, !?, ?!
+    - colon in words (removed extra space)
+    - three dots and ellipses (for underline)
+    - put asterisk and superscript Unicode characters above
+      Unicode subscript characters
+    - italic ffj
+
+ - ligatures and character replacements:
+    - Qu ligature (default)
+    - three dots replaced by three dots glyph
+
+ - capitalization (feature ID 209):
+	0 none (eg. fifty-fifty)
+	1 capitalization (Fifty-fifty)
+	2 all (FIFTY-FIFTY)
+	3 variant (Fifty-Fifty)
+
+ Note: capitalization doesn't work correctly with hyphenation yet (hyphenated
+ word parts will be capitalized in the beginning of the lines, too).
+
+ - number to cardinal and ordinal number name conversion (English, German
+   and Hungarian, from language patterns of NUMBERTEXT.org patterns)
+
+ - TeX-mode (feature ID 214):
+   - ^ and _ -> superscript and subscript, eg. cm^2 -> cm²
+   - Greek alphabet and other TeX symbols: \alpha -> α, \infty -> ∞, see
+     FEATURES.txt for the full list.
+
+2010-05-13:
+ - fix kerning conversion (a few missing classes, eg. T class in "Te")
+ - fix replaced superscript x and y
+
+2010-05-12:
+ - Graphite version from Magyar Linux Libertine (Magyar Linux Libertine G),
+   Note: for other formats (TTF, OpenType) and variants (Magyar Linux
+   Libertine N), see package version 0.2
+ - src/: Graphite GDL source and description
+ - add missing ZWNJ character for character separation in Graphite description
+
+2010-04-01:
+- add Magyar Linux Biolinum:
+    - replace umlaut variant of Ö, Ü and Ä with the more common alternative forms
+    - add extra space before !, ?, : and ;
+- add Magyar Linux Libertine N variants (Regular, Italic, Bold, Bold Italic and
+  small capitals):
+    - it contains medieval numbers at number character positions
+
+2010-03-19:
+- add subdir, licenses, Changelog and other original files (see origfiles)
+
+2010-03-17:
+
+- add ttf files
+
+2010-03-15:
+
+- replace umlaut variant of Ö, Ü and Ä with the more common alternative forms
+- add ~1/3 space before !, ?, : and ; (according to the English, French and
+  Hungarian typography)
+- kerning fixes (reported to Linux Libertine development, too)
+- add extra fj and ffj ligatures to the bold, italics, bold italics variant
+- add "ligatures" to the small caps font
