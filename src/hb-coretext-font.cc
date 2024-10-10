@@ -279,9 +279,23 @@ _hb_coretext_get_font_funcs ()
  * hb_coretext_font_set_funcs:
  * @font: #hb_font_t to work upon
  *
- * Sets the font functions to use when working with @font.
+ * Configures the font-functions structure of the specified
+ * #hb_font_t font object to use CoreText font functions.
  *
- * Since: 0.9.28
+ * In particular, you can use this function to configure an
+ * existing #hb_face_t face object for use with CoreText font
+ * functions even if that #hb_face_t face object was initially
+ * created with hb_face_create(), and therefore was not
+ * initially configured to use CoreText font functions.
+ *
+ * An #hb_font_t object created with hb_coretext_font_create()
+ * is preconfigured for CoreText font functions and does not
+ * require this function to be used.
+ *
+ * <note>Note: Internally, this function creates a CTFont.
+* </note>
+ *
+ * XSince: REPLACEME
  **/
 void
 hb_coretext_font_set_funcs (hb_font_t *font)

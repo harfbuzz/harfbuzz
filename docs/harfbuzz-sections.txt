@@ -343,6 +343,7 @@ hb_coretext_face_create
 hb_coretext_font_create
 hb_coretext_face_get_cg_font
 hb_coretext_font_get_ct_font
+hb_coretext_font_set_funcs
 </SECTION>
 
 <SECTION>

@@ -439,6 +439,9 @@ _hb_coretext_shaper_font_data_destroy (hb_coretext_font_data_t *data)
  * Creates an #hb_font_t font object from the specified
  * CTFontRef.
  *
+ * The created font is configured to use the CoreText font functions,
+ * as set by hb_coretext_font_set_funcs().
+ *
  * Return value: the new #hb_font_t font object
  *
  * Since: 1.7.2
@@ -459,6 +462,8 @@ hb_coretext_font_create (CTFontRef ct_font)
 
   /* Let there be dragons here... */
   font->data.coretext.cmpexch (nullptr, (hb_coretext_font_data_t *) CFRetain (ct_font));
+
+  hb_coretext_font_set_funcs (font);
 
   return font;
 }
