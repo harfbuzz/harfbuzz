@@ -149,8 +149,22 @@ hb_coretext_get_glyph_extents (hb_font_t *font,
 			       hb_glyph_extents_t *extents,
 			       void *user_data HB_UNUSED)
 {
-  // TODO
-  return false;
+  CTFontRef ct_font = (CTFontRef) font_data;
+
+  CGFloat ct_font_size = CTFontGetSize (ct_font);
+  CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
+  CGFloat y_mult = (CGFloat) font->y_scale / ct_font_size;
+
+  CGGlyph glyphs[1] = { glyph };
+  CGRect bounds = ::CTFontGetBoundingRectsForGlyphs(ct_font,
+						    kCTFontDefaultOrientation, glyphs, NULL, 1);
+
+  extents->x_bearing = round (bounds.origin.x * x_mult);
+  extents->y_bearing = round (bounds.origin.y * y_mult);
+  extents->width = round (bounds.size.width * x_mult);
+  extents->height = round (bounds.size.height * y_mult);
+
+  return true;
 }
 
 static hb_bool_t
