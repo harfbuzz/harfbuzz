@@ -11,6 +11,9 @@
 #ifdef HAVE_FREETYPE
 #include "hb-ft.h"
 #endif
+#ifdef HAVE_CORETEXT
+#include "hb-coretext.h"
+#endif
 
 
 #define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
@@ -34,7 +37,7 @@ struct test_input_t
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
-enum backend_t { HARFBUZZ, FREETYPE };
+enum backend_t { HARFBUZZ, FREETYPE, CORETEXT };
 
 enum operation_t
 {
@@ -124,6 +127,12 @@ static void BM_Font (benchmark::State &state,
     case FREETYPE:
 #ifdef HAVE_FREETYPE
       hb_ft_font_set_funcs (font);
+#endif
+      break;
+
+    case CORETEXT:
+#ifdef HAVE_CORETEXT
+      hb_coretext_font_set_funcs (font);
 #endif
       break;
   }
@@ -226,6 +235,12 @@ static void BM_Font (benchmark::State &state,
 	    hb_ft_font_set_funcs (font);
 #endif
 	    break;
+
+	  case CORETEXT:
+#ifdef HAVE_CORETEXT
+	    hb_coretext_font_set_funcs (font);
+#endif
+	    break;
 	}
 
 	hb_buffer_t *buffer = hb_buffer_create ();
@@ -280,6 +295,9 @@ static void test_operation (operation_t op,
       test_backend (HARFBUZZ, "hb", is_var, op, op_name, time_unit, test_input);
 #ifdef HAVE_FREETYPE
       test_backend (FREETYPE, "ft", is_var, op, op_name, time_unit, test_input);
+#endif
+#ifdef HAVE_CORETEXT
+      test_backend (CORETEXT, "coretext", is_var, op, op_name, time_unit, test_input);
 #endif
     }
   }

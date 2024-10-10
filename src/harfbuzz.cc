@@ -6,6 +6,7 @@
 #include "hb-buffer-verify.cc"
 #include "hb-buffer.cc"
 #include "hb-common.cc"
+#include "hb-coretext-font.cc"
 #include "hb-coretext-shape.cc"
 #include "hb-directwrite.cc"
 #include "hb-draw.cc"

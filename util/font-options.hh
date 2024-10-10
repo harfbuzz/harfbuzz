@@ -29,10 +29,13 @@
 
 #include "face-options.hh"
 
+#include <hb-ot.h>
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
-#include <hb-ot.h>
+#ifdef HAVE_CORETEXT
+#include <hb-coretext.h>
+#endif
 
 #define FONT_SIZE_UPEM 0x7FFFFFFF
 #define FONT_SIZE_NONE 0
@@ -79,13 +82,16 @@ struct font_options_t : face_options_t
 
 
 static struct supported_font_funcs_t {
-	char name[4];
+	char name[9];
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
 {
   {"ot",	hb_ot_font_set_funcs},
 #ifdef HAVE_FREETYPE
   {"ft",	hb_ft_font_set_funcs},
+#endif
+#ifdef HAVE_CORETEXT
+  {"coretext",	hb_coretext_font_set_funcs},
 #endif
 };
 
