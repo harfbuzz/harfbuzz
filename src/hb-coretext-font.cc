@@ -235,6 +235,32 @@ hb_coretext_draw_glyph (hb_font_t *font,
 }
 #endif
 
+static hb_bool_t
+hb_coretext_get_glyph_from_name (hb_font_t *font HB_UNUSED,
+				 void *font_data,
+				 const char *name, int len,
+				 hb_codepoint_t *glyph,
+				 void *user_data HB_UNUSED)
+{
+  CTFontRef ct_font = (CTFontRef) font_data;
+
+  if (len == -1)
+    len = strlen (name);
+
+  CFStringRef cf_name = CFStringCreateWithBytes (kCFAllocatorDefault,
+						 (const UInt8 *) name, len,
+						 kCFStringEncodingUTF8, false);
+  CGGlyph cg_glyph = CTFontGetGlyphWithName (ct_font, cf_name);
+  *glyph = cg_glyph;
+
+  CFRelease (cf_name);
+
+  // TODO Return true for .notdef; hb-ft does that.
+
+  return cg_glyph != 0;
+}
+
+
 static inline void free_static_coretext_funcs ();
 
 static struct hb_coretext_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_coretext_font_funcs_lazy_loader_t>
@@ -265,7 +291,7 @@ static struct hb_coretext_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t
 
 #ifndef HB_NO_OT_FONT_GLYPH_NAMES
     //hb_font_funcs_set_glyph_name_func (funcs, hb_coretext_get_glyph_name, nullptr, nullptr);
-    //hb_font_funcs_set_glyph_from_name_func (funcs, hb_coretext_get_glyph_from_name, nullptr, nullptr);
+    hb_font_funcs_set_glyph_from_name_func (funcs, hb_coretext_get_glyph_from_name, nullptr, nullptr);
 #endif
 
     hb_font_funcs_make_immutable (funcs);
