@@ -439,8 +439,10 @@ _hb_coretext_shaper_font_data_destroy (hb_coretext_font_data_t *data)
  * Creates an #hb_font_t font object from the specified
  * CTFontRef.
  *
- * The created font is configured to use the CoreText font functions,
- * as set by hb_coretext_font_set_funcs().
+ * The created font uses the default font functions implemented
+ * navitely by HarfBuzz. If you want to use the CoreText font functions
+ * instead (rarely needed), you can do so by calling
+ * by hb_coretext_font_set_funcs().
  *
  * Return value: the new #hb_font_t font object
  *
@@ -463,7 +465,8 @@ hb_coretext_font_create (CTFontRef ct_font)
   /* Let there be dragons here... */
   font->data.coretext.cmpexch (nullptr, (hb_coretext_font_data_t *) CFRetain (ct_font));
 
-  hb_coretext_font_set_funcs (font);
+  // https://github.com/harfbuzz/harfbuzz/pull/4895#issuecomment-2408471254
+  //hb_coretext_font_set_funcs (font);
 
   return font;
 }
