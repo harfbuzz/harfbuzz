@@ -34,6 +34,9 @@
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101100
+#  define kCTFontOrientationDefault kCTFontDefaultOrientation
+#endif
 
 #define MAX_GLYPHS 64u
 
@@ -157,7 +160,7 @@ hb_coretext_get_glyph_extents (hb_font_t *font,
 
   CGGlyph glyphs[1] = { glyph };
   CGRect bounds = ::CTFontGetBoundingRectsForGlyphs(ct_font,
-						    kCTFontDefaultOrientation, glyphs, NULL, 1);
+						    kCTFontOrientationDefault, glyphs, NULL, 1);
 
   extents->x_bearing = round (bounds.origin.x * x_mult);
   extents->y_bearing = round (bounds.origin.y * y_mult);
