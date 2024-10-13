@@ -361,7 +361,7 @@ hb_coretext_face_create (CGFontRef cg_font)
  * Return value: (transfer full): The new face object, or `NULL` if
  * no face is found at the specified index or the file cannot be read.
  *
- * Since: 0.9.10
+ * XSince: REPLACEME
  */
 hb_face_t *
 hb_coretext_face_create_from_file_or_fail (const char   *file_name,

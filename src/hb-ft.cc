@@ -1469,6 +1469,43 @@ get_ft_library ()
   return static_ft_library.get_unconst ();
 }
 
+/**
+ * hb_ft_face_create_from_file_or_fail:
+ * @file_name: A font filename
+ * @index: The index of the face within the file
+ *
+ * Creates an #hb_face_t face object from the specified
+ * font file and face index.
+ *
+ * This is similar in functionality to hb_face_create_for_from_file_or_fail(),
+ * but uses the FreeType library for loading the font file.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index or the file cannot be read.
+ *
+ * XSince: REPLACEME
+ */
+hb_face_t *
+hb_ft_face_create_from_file_or_fail (const char   *file_name,
+				     unsigned int  index)
+{
+  FT_Face ft_face;
+  FT_Error error = FT_New_Face (get_ft_library (),
+				file_name,
+				index,
+				&ft_face);
+  if (error)
+    return nullptr;
+
+  hb_face_t *face = hb_ft_face_create_referenced (ft_face);
+  FT_Done_Face (ft_face);
+
+  if (hb_face_is_immutable (face))
+    return nullptr;
+
+  return face;
+}
+
 static void
 _release_blob (void *arg)
 {
