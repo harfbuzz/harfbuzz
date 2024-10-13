@@ -357,6 +357,7 @@ hb_directwrite_face_get_font_face
 hb_face_count
 hb_face_t
 hb_face_create
+hb_face_create_or_fail
 hb_reference_table_func_t
 hb_face_create_for_tables
 hb_face_get_empty
