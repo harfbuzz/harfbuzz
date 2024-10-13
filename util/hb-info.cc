@@ -349,7 +349,9 @@ struct info_t :
   void
   _show_face_count ()
   {
+    hb_blob_t *blob = hb_face_reference_table (face, HB_TAG_NONE);
     printf ("Face count: %u\n", hb_face_count (blob));
+    hb_blob_destroy (blob);
   }
 
   void

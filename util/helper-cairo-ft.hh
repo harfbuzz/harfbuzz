@@ -43,13 +43,6 @@ void free_ft_library ()
 }
 #endif
 
-static void
-_release_blob (void *arg)
-{
-  FT_Face ft_face = (FT_Face) arg;
-  hb_blob_destroy ((hb_blob_t *) ft_face->generic.data);
-}
-
 static inline cairo_font_face_t *
 helper_cairo_create_ft_font_face (const font_options_t *font_opts)
 {
@@ -68,15 +61,11 @@ helper_cairo_create_ft_font_face (const font_options_t *font_opts)
 #endif
     }
 
-    unsigned int blob_length;
-    const char *blob_data = hb_blob_get_data (font_opts->blob, &blob_length);
-
-    if (FT_New_Memory_Face (ft_library,
-			    (const FT_Byte *) blob_data,
-			    blob_length,
-			    font_opts->face_index,
-			    &ft_face))
-      fail (false, "FT_New_Memory_Face fail");
+    if (FT_New_Face (ft_library,
+		     font_opts->font_file,
+		     font_opts->face_index,
+		     &ft_face))
+      fail (false, "FT_New_Face fail");
   }
   if (!ft_face)
   {
@@ -87,9 +76,6 @@ helper_cairo_create_ft_font_face (const font_options_t *font_opts)
   }
   else
   {
-    ft_face->generic.data = hb_blob_reference (font_opts->blob);
-    ft_face->generic.finalizer = _release_blob;
-
 #if !defined(HB_NO_VAR) && defined(HAVE_FT_SET_VAR_BLEND_COORDINATES)
     unsigned int num_coords;
     const float *coords = hb_font_get_var_coords_design (font_opts->font, &num_coords);

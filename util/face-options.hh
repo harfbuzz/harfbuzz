@@ -48,12 +48,10 @@ struct face_options_t
     ~cache_t ()
     {
       g_free (font_path);
-      hb_blob_destroy (blob);
       hb_face_destroy (face);
     }
 
     char *font_path = nullptr;
-    hb_blob_t *blob = nullptr;
     unsigned face_index = (unsigned) -1;
     hb_face_t *face = nullptr;
   } cache;
@@ -61,7 +59,6 @@ struct face_options_t
   char *font_file = nullptr;
   unsigned face_index = 0;
 
-  hb_blob_t *blob = nullptr;
   hb_face_t *face = nullptr;
 };
 
@@ -92,34 +89,26 @@ face_options_t::post_parse (GError **error)
 #endif
   }
 
-  if (!cache.font_path || 0 != strcmp (cache.font_path, font_path))
+  if (!cache.font_path ||
+      0 != strcmp (cache.font_path, font_path) ||
+      cache.face_index != face_index)
   {
-    hb_blob_destroy (cache.blob);
-    cache.blob = hb_blob_create_from_file_or_fail (font_path);
+    hb_face_destroy (cache.face);
+    cache.face = hb_face_create_from_file_or_fail (font_path,
+						   face_index);
+    cache.face_index = face_index;
 
     free ((char *) cache.font_path);
     cache.font_path = g_strdup (font_path);
 
-    if (!cache.blob)
+    if (!cache.face)
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
-		   "%s: Failed reading file", font_path);
+		   "%s: Failed loading font face", font_path);
       return;
     }
-
-    hb_face_destroy (cache.face);
-    cache.face = nullptr;
-    cache.face_index = (unsigned) -1;
   }
 
-  if (cache.face_index != face_index)
-  {
-    hb_face_destroy (cache.face);
-    cache.face = hb_face_create (cache.blob, face_index);
-    cache.face_index = face_index;
-  }
-
-  blob = cache.blob;
   face = cache.face;
 }
 
