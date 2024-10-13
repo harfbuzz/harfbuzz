@@ -272,7 +272,7 @@ hb_face_create (hb_blob_t    *blob,
  * contains no usable font face at the specified index.
  *
  * Return value: (transfer full): The new face object, or `NULL` if
- * no face is found at the specified index
+ * no face is found at the specified index.
  *
  * XSince: REPLACEME
  **/
@@ -287,6 +287,33 @@ hb_face_create_or_fail (hb_blob_t    *blob,
   hb_face_t *face = hb_face_create (blob, index);
   if (hb_object_is_immutable (face))
     return nullptr;
+
+  return face;
+}
+
+/**
+ * hb_face_create_from_file_or_fail:
+ * @file_name: A font filename
+ * @index: The index of the face within the file
+ *
+ * A thin wrapper around hb_blob_create_from_file_or_fail()
+ * followed by hb_face_create_or_fail().
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index or the file cannot be read.
+ *
+ * XSince: REPLACEME
+ **/
+HB_EXTERN hb_face_t *
+hb_face_create_from_file_or_fail (const char   *file_name,
+				  unsigned int  index)
+{
+  hb_blob_t *blob = hb_blob_create_from_file_or_fail (file_name);
+  if (unlikely (!blob))
+    return nullptr;
+
+  hb_face_t *face = hb_face_create_or_fail (blob, index);
+  hb_blob_destroy (blob);
 
   return face;
 }
