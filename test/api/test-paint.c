@@ -38,7 +38,7 @@
 static inline hb_bool_t
 have_ft_colrv1 (void)
 {
-#if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21300
+#if defined(HB_HAS_FREETYPE) && (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21300
   return TRUE;
 #else
   return FALSE;
@@ -373,7 +373,7 @@ static paint_test_t paint_tests[] = {
 
 static void
 test_hb_paint (gconstpointer d,
-               hb_bool_t     use_ft)
+               hb_bool_t     use_ft HB_UNUSED)
 {
   const paint_test_t *test = d;
   hb_face_t *face;
@@ -608,7 +608,7 @@ scrutinize_linear_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
 }
 
 static void
-test_color_stops (hb_bool_t use_ft)
+test_color_stops (hb_bool_t use_ft HB_UNUSED)
 {
   hb_face_t *face;
   hb_font_t *font;
