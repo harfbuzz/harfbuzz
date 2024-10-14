@@ -1,17 +1,4 @@
-#include "benchmark/benchmark.h"
-#include <cstring>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <cassert>
-
-#include "hb.h"
-#include "hb-ot.h"
-#ifdef HAVE_FREETYPE
-#include "hb-ft.h"
-#endif
+#include "hb-benchmark.hh"
 
 #define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
 
@@ -64,10 +51,8 @@ static void BM_Shape (benchmark::State &state,
 {
   hb_font_t *font;
   {
-    hb_blob_t *blob = hb_blob_create_from_file_or_fail (input.font_path);
-    assert (blob);
-    hb_face_t *face = hb_face_create (blob, 0);
-    hb_blob_destroy (blob);
+    hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (input.font_path, 0);
+    assert (face);
     font = hb_font_create (face);
     hb_face_destroy (face);
   }
