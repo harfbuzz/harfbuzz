@@ -96,6 +96,7 @@ test_parse_instancing_spec (void)
   g_assert(check_parsing(roboto, "wght=200:",       wght,  200,  400,  900));
 
   hb_face_destroy(face);
+  hb_face_destroy(roboto);
 }
 
 
