@@ -53,7 +53,22 @@ static inline hb_face_t *
 hb_benchmark_face_create_from_file_or_fail (const char *font_path,
 					    unsigned face_index)
 {
-  return hb_face_create_from_file_or_fail (font_path, face_index);
+  const char *loader = getenv ("HB_FACE_LOADER");
+  if (loader && !*loader)
+    loader = nullptr;
+
+#ifdef HAVE_FREETYPE
+  if (loader && !strcmp (loader, "ft"))
+    return hb_ft_face_create_from_file_or_fail (font_path, face_index);
+#endif
+#ifdef HAVE_CORETEXT
+  if (loader && !strcmp (loader, "coretext"))
+    return hb_coretext_face_create_from_file_or_fail (font_path, face_index);
+#endif
+  if (!loader || !strcmp (loader, "ot"))
+    return hb_face_create_from_file_or_fail (font_path, face_index);
+
+  assert (false);
 }
 
 HB_END_DECLS
