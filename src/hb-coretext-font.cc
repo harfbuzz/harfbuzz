@@ -154,6 +154,38 @@ hb_coretext_get_glyph_h_advances (hb_font_t* font, void* font_data,
   }
 }
 
+static void
+hb_coretext_get_glyph_v_advances (hb_font_t* font, void* font_data,
+				  unsigned count,
+				  const hb_codepoint_t *first_glyph,
+				  unsigned glyph_stride,
+				  hb_position_t *first_advance,
+				  unsigned advance_stride,
+				  void *user_data HB_UNUSED)
+{
+  CTFontRef ct_font = (CTFontRef) font_data;
+
+  CGFloat ct_font_size = CTFontGetSize (ct_font);
+  CGFloat y_mult = (CGFloat) -font->y_scale / ct_font_size;
+
+  CGGlyph cg_glyph[MAX_GLYPHS];
+  CGSize advances[MAX_GLYPHS];
+  for (unsigned i = 0; i < count; i += MAX_GLYPHS)
+  {
+    unsigned c = (unsigned) hb_min ((int) MAX_GLYPHS, (int) count - (int) i);
+    for (unsigned j = 0; j < c; j++)
+    {
+      cg_glyph[j] = *first_glyph;
+      first_glyph = &StructAtOffset<const hb_codepoint_t> (first_glyph, glyph_stride);
+    }
+    CTFontGetAdvancesForGlyphs (ct_font, kCTFontOrientationVertical, cg_glyph, advances, c);
+    for (unsigned j = 0; j < c; j++)
+    {
+      *first_advance = round (advances[j].width * y_mult);
+      first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
+    }
+  }
+}
 
 static hb_bool_t
 hb_coretext_get_glyph_extents (hb_font_t *font,
@@ -325,7 +357,7 @@ static struct hb_coretext_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t
 
 #ifndef HB_NO_VERTICAL
     //hb_font_funcs_set_font_v_extents_func (funcs, hb_coretext_get_font_v_extents, nullptr, nullptr);
-    //hb_font_funcs_set_glyph_v_advances_func (funcs, hb_coretext_get_glyph_v_advances, nullptr, nullptr);
+    hb_font_funcs_set_glyph_v_advances_func (funcs, hb_coretext_get_glyph_v_advances, nullptr, nullptr);
     //hb_font_funcs_set_glyph_v_origin_func (funcs, hb_coretext_get_glyph_v_origin, nullptr, nullptr);
 #endif
 
