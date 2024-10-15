@@ -154,6 +154,7 @@ hb_coretext_get_glyph_h_advances (hb_font_t* font, void* font_data,
   }
 }
 
+#ifndef HB_NO_VERTICAL
 static void
 hb_coretext_get_glyph_v_advances (hb_font_t* font, void* font_data,
 				  unsigned count,
@@ -186,6 +187,33 @@ hb_coretext_get_glyph_v_advances (hb_font_t* font, void* font_data,
     }
   }
 }
+#endif
+
+#ifndef HB_NO_VERTICAL
+static hb_bool_t
+hb_coretext_get_glyph_v_origin (hb_font_t *font,
+				void *font_data,
+				hb_codepoint_t glyph,
+				hb_position_t *x,
+				hb_position_t *y,
+				void *user_data HB_UNUSED)
+{
+  CTFontRef ct_font = (CTFontRef) font_data;
+
+  CGFloat ct_font_size = CTFontGetSize (ct_font);
+  CGFloat x_mult = (CGFloat) -font->x_scale / ct_font_size;
+  CGFloat y_mult = (CGFloat) -font->y_scale / ct_font_size;
+
+  const CGGlyph glyphs = glyph;
+  CGSize origin;
+  CTFontGetVerticalTranslationsForGlyphs (ct_font, &glyphs, &origin, 1);
+
+  *x = round (x_mult * origin.width);
+  *y = round (y_mult * origin.height);
+
+  return true;
+}
+#endif
 
 static hb_bool_t
 hb_coretext_get_glyph_extents (hb_font_t *font,
@@ -358,7 +386,7 @@ static struct hb_coretext_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t
 #ifndef HB_NO_VERTICAL
     //hb_font_funcs_set_font_v_extents_func (funcs, hb_coretext_get_font_v_extents, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_advances_func (funcs, hb_coretext_get_glyph_v_advances, nullptr, nullptr);
-    //hb_font_funcs_set_glyph_v_origin_func (funcs, hb_coretext_get_glyph_v_origin, nullptr, nullptr);
+    hb_font_funcs_set_glyph_v_origin_func (funcs, hb_coretext_get_glyph_v_origin, nullptr, nullptr);
 #endif
 
 #ifndef HB_NO_DRAW
