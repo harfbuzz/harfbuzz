@@ -13,7 +13,7 @@ benchmark('benchmark-font', executable('benchmark-font', 'benchmark-font.cc',
 
 benchmark('benchmark-map', executable('benchmark-map', 'benchmark-map.cc',
   dependencies: [
-    google_benchmark_dep,
+    google_benchmark_dep, freetype_dep,
   ],
   cpp_args: [],
   include_directories: [incconfig, incsrc],
@@ -23,7 +23,7 @@ benchmark('benchmark-map', executable('benchmark-map', 'benchmark-map.cc',
 
 benchmark('benchmark-ot', executable('benchmark-ot', 'benchmark-ot.cc',
   dependencies: [
-    google_benchmark_dep,
+    google_benchmark_dep, freetype_dep,
   ],
   cpp_args: [],
   include_directories: [incconfig, incsrc],
@@ -33,7 +33,7 @@ benchmark('benchmark-ot', executable('benchmark-ot', 'benchmark-ot.cc',
 
 benchmark('benchmark-set', executable('benchmark-set', 'benchmark-set.cc',
   dependencies: [
-    google_benchmark_dep,
+    google_benchmark_dep, freetype_dep,
   ],
   cpp_args: [],
   include_directories: [incconfig, incsrc],
@@ -53,7 +53,7 @@ benchmark('benchmark-shape', executable('benchmark-shape', 'benchmark-shape.cc',
 
 benchmark('benchmark-subset', executable('benchmark-subset', 'benchmark-subset.cc',
   dependencies: [
-    google_benchmark_dep,
+    google_benchmark_dep, freetype_dep,
   ],
   cpp_args: [],
   include_directories: [incconfig, incsrc],

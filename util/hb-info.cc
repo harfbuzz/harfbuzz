@@ -349,7 +349,9 @@ struct info_t :
   void
   _show_face_count ()
   {
+    hb_blob_t *blob = hb_blob_create_from_file (font_file);
     printf ("Face count: %u\n", hb_face_count (blob));
+    hb_blob_destroy (blob);
   }
 
   void

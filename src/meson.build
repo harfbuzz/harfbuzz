@@ -346,7 +346,7 @@ hb_wasm_headers = files()
 
 # System-dependent sources and headers
 
-hb_coretext_sources = files('hb-coretext.cc')
+hb_coretext_sources = files('hb-coretext-shape.cc', 'hb-coretext-font.cc')
 hb_coretext_headers = files('hb-coretext.h')
 
 hb_directwrite_sources = files('hb-directwrite.cc')

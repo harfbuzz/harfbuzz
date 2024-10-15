@@ -7,11 +7,8 @@
 static
 hb_face_t* open_font(const char* path)
 {
-  hb_blob_t *blob = hb_blob_create_from_file_or_fail (path);
-  g_assert(blob);
-  hb_face_t* face = hb_face_create(blob, 0);
-  hb_blob_destroy(blob);
-
+  hb_face_t *face = hb_face_create_from_file_or_fail (path, 0);
+  g_assert (face);
   return face;
 }
 
@@ -99,6 +96,7 @@ test_parse_instancing_spec (void)
   g_assert(check_parsing(roboto, "wght=200:",       wght,  200,  400,  900));
 
   hb_face_destroy(face);
+  hb_face_destroy(roboto);
 }
 
 

@@ -29,10 +29,13 @@
 
 #include "face-options.hh"
 
+#include <hb-ot.h>
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
-#include <hb-ot.h>
+#ifdef HAVE_CORETEXT
+#include <hb-coretext.h>
+#endif
 
 #define FONT_SIZE_UPEM 0x7FFFFFFF
 #define FONT_SIZE_NONE 0
@@ -79,13 +82,16 @@ struct font_options_t : face_options_t
 
 
 static struct supported_font_funcs_t {
-	char name[4];
+	char name[9];
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
 {
   {"ot",	hb_ot_font_set_funcs},
 #ifdef HAVE_FREETYPE
   {"ft",	hb_ft_font_set_funcs},
+#endif
+#ifdef HAVE_CORETEXT
+  {"coretext",	hb_coretext_font_set_funcs},
 #endif
 };
 
@@ -296,8 +302,7 @@ font_options_t::add_options (option_parser_t *parser)
 {
   face_options_t::add_options (parser);
 
-  char *text = nullptr;
-
+  char *font_funcs_text = nullptr;
   {
     static_assert ((ARRAY_LENGTH_CONST (supported_font_funcs) > 0),
 		   "No supported font-funcs found.");
@@ -310,8 +315,8 @@ font_options_t::add_options (option_parser_t *parser)
       g_string_append_c (s, '/');
       g_string_append (s, supported_font_funcs[i].name);
     }
-    text = g_string_free (s, FALSE);
-    parser->free_later (text);
+    font_funcs_text = g_string_free (s, FALSE);
+    parser->free_later (font_funcs_text);
   }
 
   char *font_size_text;
@@ -338,7 +343,7 @@ font_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_grade,	"Set synthetic grade (default: 0)",		"1/2 numbers; eg. 0.05"},
     {"font-slant",	0, font_size_flags,
 			      G_OPTION_ARG_DOUBLE,	&this->slant,			"Set synthetic slant (default: 0)",		 "slant ratio; eg. 0.2"},
-    {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,						"impl"},
+    {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		font_funcs_text,				"impl"},
     {"sub-font",	0, G_OPTION_FLAG_HIDDEN,
 			      G_OPTION_ARG_NONE,	&this->sub_font,		"Create a sub-font (default: false)",		"boolean"},
     {"ft-load-flags",	0, 0, G_OPTION_ARG_INT,		&this->ft_load_flags,		"Set FreeType load-flags (default: 2)",		"integer"},
