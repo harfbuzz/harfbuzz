@@ -172,12 +172,19 @@ hb_coretext_get_glyph_extents (hb_font_t *font,
 
 static hb_bool_t
 hb_coretext_get_font_h_extents (hb_font_t *font,
-				void *font_data HB_UNUSED,
+				void *font_data,
 				hb_font_extents_t *metrics,
 				void *user_data HB_UNUSED)
 {
-  // TODO
-  return false;
+  CTFontRef ct_font = (CTFontRef) font_data;
+  CGFloat ct_font_size = CTFontGetSize (ct_font);
+  CGFloat y_mult = (CGFloat) font->y_scale / ct_font_size;
+
+  metrics->ascender = round (CTFontGetAscent (ct_font) * y_mult);
+  metrics->descender = -round (CTFontGetDescent (ct_font) * y_mult);
+  metrics->line_gap = round (CTFontGetLeading (ct_font) * y_mult);
+
+  return true;
 }
 
 #ifndef HB_NO_DRAW
