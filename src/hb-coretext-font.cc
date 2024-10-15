@@ -107,8 +107,18 @@ hb_coretext_get_variation_glyph (hb_font_t *font HB_UNUSED,
 				 hb_codepoint_t *glyph,
 				 void *user_data HB_UNUSED)
 {
-  // TODO. How?
-  return false;
+  CTFontRef ct_font = (CTFontRef) font_data;
+
+  UniChar ch[2] = { unicode, variation_selector };
+  CGGlyph cg_glyph[2];
+
+  CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, 2);
+
+  if (cg_glyph[1])
+    return false;
+
+  *glyph = cg_glyph[0];
+  return true;
 }
 
 static void
