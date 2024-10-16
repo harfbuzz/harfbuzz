@@ -1,0 +1,59 @@
+Magyar Linux Libertine G (Graphite) and Magyar Linux Biolinum
+
+version 2010-06-11
+
+This distribution based on the LinLibertineFile-4.4.1.tgz package of
+the Linux Libertine development. For the original TrueType
+and OpenType fonts of the Linux Libertine project, see
+
+http://linuxlibertine.sourceforge.net,
+
+also origfiles/. For TrueType and OpenType fonts of Magyar Linux Libertine,
+see http://numbertext.org/linux/magyarlinuxlibertine-20100411.zip.
+
+Installation
+
+Open doc/fontfeatures.odt in OpenOffice.org 3.2 after the font installation.
+The result can be seen in doc/fontfeatures.pdf.
+
+Why "Magyar"?
+
+- replace umlaut variant of Ö, Ü and Ä with the more common variants
+- add ~1/3 space before !, ?, : and ; according to the English, French and
+  Hungarian typography.
+- kerning fixes (reported to Linux Libertine development, too)
+- add extra fj and ffj ligatures to the bold, italics, bold italics variant
+
+Why Graphite?
+
+OpenType-like features + automatic thousand separators and TeX-like
+subscript/superscript and symbol handling in OpenOffice.org 3.2.
+
+- small caps
+- small caps with auto capitalization (title character style with small caps)
+- old style numbers
+- proportional or monospaced numbers
+- ligatures (f + Qu, optionally ct and st, too)
+- fractions
+- thousand separators
+- German umlaut variants
+- capitalization with optional capital eszett
+- superscripts and subscripts (eg. for footnote numbering with real superscript
+  characters)
+- minus sign
+- number to cardinal and ordinal number name conversion (ordinal numbers:
+  English, German and Hungarian, cardinal numbers: Afrikaans, Catalan, Czech,
+  Danish, Dutch, English, Esperanto, Finnish, French, German, Greek, Hungarian,
+  Italian, Luxembourgian, Polish, Portuguese, Romanian, Russian,
+  Serbian (Latin and Cyrillic), Slovenian, Spanish, Swedish, Turkish)
+- number to ordinal abbreviation conversion (English)
+- TeX-mode for quick formula writing with typographical superscript and
+  subscript characters:
+  - superscript and subscript characters by ^ and _ notation,
+  - replacement of Greek and other definitions, eg. \alpha, \infty etc.
+    (see doc/FEATURES.txt)
+
+For feature ids, see FEATURES.txt or use the Typography toolbar extension of
+OpenOffice.org.
+
+László Németh (nemeth at OOo)
