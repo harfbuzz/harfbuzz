@@ -145,6 +145,7 @@ test_subset_cmap_noto_color_emoji_noop (void)
   hb_set_add (codepoints, 0xAE);
   hb_set_add (codepoints, 0x2049);
   hb_set_add (codepoints, 0x20E3);
+  hb_set_add (codepoints, 0xfe0f);
   face_subset = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
@@ -165,6 +166,7 @@ test_subset_cmap_noto_color_emoji_non_consecutive_glyphs (void)
   hb_set_add (codepoints, 0x38);
   hb_set_add (codepoints, 0xAE);
   hb_set_add (codepoints, 0x2049);
+  hb_set_add (codepoints, 0xfe0f);
   face_subset = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
