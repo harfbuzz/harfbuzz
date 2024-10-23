@@ -1,0 +1,298 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright 2013, SIL International, All rights reserved.
+
+import argparse
+import codecs
+import importlib
+import json
+import json.encoder
+import os
+import pathlib
+import re
+import sys
+from fontTools.ttLib import TTFont
+from functools import partial
+from xml.etree.ElementTree import parse
+from typing import Tuple
+
+
+class GrFont(object):
+    def __init__(self, fname, size, rtl, feats={}, script=0, lang=0):
+        self.fname = fname
+        self.size = size
+        self.rtl = int(rtl)
+        self.grface = gr.Face(fname)
+        self.feats = self.grface.get_featureval(lang)
+        self.script = script
+        for f, v in feats.items():
+            fref = self.grface.get_featureref(f)
+            self.feats.set(fref, v)
+        if size > 0:
+            size = size * 96 / 72.
+            self.font = gr.Font(self.grface, size)
+        else:
+            self.font = None
+
+    def glyphs(self, text, includewidth=False):
+        seg = gr.Segment(self.font, self.grface,
+                         self.script, text, self.rtl,
+                         feats=self.feats)
+        res = []
+        for s in seg.slots:
+            res.append((s.gid, s.origin, seg.cinfo(s.original).unicode))
+        if includewidth:
+            res.append((None, seg.advance, 0))
+        del seg
+        return res
+
+
+tables = {
+    'gr':   ('GDEF', 'GSUB', 'GPOS'),
+    'ot':   ('Gloc', 'Glat', 'Silf', 'Sill', 'Feat'),
+    'hb':   (),
+    'hbot': ('Gloc', 'Glat', 'Silf', 'Sill', 'Feat'),
+    'icu':  ('Gloc', 'Glat', 'Silf', 'Sill', 'Feat')
+}
+
+
+def roundfloat(f: float, res: float) -> float:
+    try:
+        return (int(f / res) * res)
+    except ValueError:
+        pass
+    return 0
+
+
+def roundhexpoint(pt, bits):
+    if bits == 0:
+        return pt
+    res = []
+    for p in pt:
+        if type(p) == int:
+            res.append(p)
+            continue
+        s = p.hex()
+        m = s[s.index('.')+1:s.index('p')]
+        c = len(m) - len(m.lstrip('0'))
+        t = int(m, 16)
+        # b = 4 * len(m) - t.bit_length()
+        if bits < 4 * len(m):
+            t = t & ~((1 << (4 * len(m) - bits)) - 1)
+        n = s[0:s.index('.')+1+c]+hex(t)[2:].rstrip('L')+s[s.index('p'):]
+        r = float.fromhex(n)
+        res.append(r)
+    return res
+
+
+def name(tt, gl, rounding):
+    if gl[0] is None:
+        x = "_adv_"
+    elif gl[0] != 0:
+        x = tt.getGlyphName(gl[0])
+    else:
+        x = "0:{:04X}".format(gl[2])
+    return (x, roundfloat(gl[1][0], rounding), roundfloat(gl[1][1], rounding))
+
+
+def cmaplookup(tt, c):
+    cmap = tt['cmap'].getcmap(3, 1) or tt['cmap'].getcmap(1, 0)
+    if cmap:
+        return cmap.cmap.get(ord(c), '.notdef')
+    return '.notdef'
+
+
+def makelabel(name, line, word):
+    if name:
+        if word > 1:
+            return "{} {}".format(name, word)
+        else:
+            return name
+    else:
+        return "{}.{}".format(line, word)
+
+
+def ftostr(x, dp=6):
+    res = ("{:." + str(dp) + "f}").format(x)
+    if res.endswith("." + ("0" * dp)):
+        res = res[:-dp-1]
+    else:
+        res = re.sub(r"0*$", "", res)
+    return res
+
+
+def scalecmp(a, b, e):
+    return abs(a - b) > e
+    # if a != 0:
+    #     return (abs(1. - b / a) > e/a)
+    # else:
+    #     return (abs(b) > e)
+
+
+def cmpgls(tests, bases, epsilon):
+    if len(tests) != len(bases):
+        return True
+    for i in range(len(tests)):
+        if tests[i][0] != bases[i][0]:
+            return True
+        for j in range(1, 3):
+            if scalecmp(tests[i][j], bases[i][j], epsilon):
+                return True
+    return False
+
+
+# Have the JSONEncoder use ftostr to render floats to 2dp rather than lots
+json.encoder.FLOAT_REPR = ftostr
+
+
+class JsonLog(object):
+    def __init__(self, f, fpaths, args, inputs):
+        self.out = f
+        self.opts = args
+        self.out.write("{\n")
+        self.encoder = json.JSONEncoder()
+
+    def logentry(self, label, linenumber, wordnumber, string, gglyphs, bases):
+        s = makelabel(label, linenumber, wordnumber)
+        self.out.write('\"'+s+'\": ')
+        # have to use iterencode here to get json.encoder.FLOAT_REP to work
+        # res = "\n".join(map(lambda x: "".join(
+        #         self.encoder.iterencode([(g[0], roundpt(g[1], 0.01))
+        #                                  for g in x])), gglyphs))
+        res = "".join(self.encoder.iterencode(gglyphs))
+        self.out.write(res)
+        self.out.write(', \n')
+
+    def logend(self):
+        self.out.write('"":[]}\n')
+
+
+def LineReader(infile, spliton=None):
+    f = codecs.open(infile, encoding="utf_8_sig")
+    for t in f.readlines():
+        s = t.strip()
+        if spliton is not None:
+            res = (None, s.split(spliton))
+        else:
+            res = (None, (s, ))
+        yield res
+
+
+def FtmlReader(infile, spliton=None):
+    etree = parse(infile)
+    for e in etree.iter('test'):
+        t = e.get('label', "")
+        s = e.find('string')
+        if spliton is not None:
+            res = (t, s.text.split(spliton))
+        else:
+            res = (t, (s.text, ))
+        yield res
+
+
+def feature(arg: str) -> Tuple[str, int]:
+    k, v = arg.split('=')
+    return (k.strip(), int(v.strip(), 0))
+
+
+texttypes = {
+    'txt':  LineReader,
+    'ftml': FtmlReader
+}
+
+parser = argparse.ArgumentParser(
+            description='''
+            Render text with a Graphite font and log the Graphite engine
+            tracing output.  Optionally compare to an existing log for
+            regression testing purposes.''',
+            epilog='''
+            If the first font is above the output file in the filesystem
+            hierarchy, it may not load. On firefox, ensure that the
+            configuration option security.fileuri.strict_origin_policy is set
+            to false to allow locally loaded html files to access fonts
+            anywhere on the local filesystem. Alternatively use --copy to copy
+            the font and reference that.''')
+parser.add_argument("font", nargs='+', type=pathlib.Path,
+                    help="Fonts to render with")
+parser.add_argument("-t", "--text", type=pathlib.Path,
+                    help="text file to test each line from")
+parser.add_argument("-o", "--output", type=pathlib.Path,
+                    help="file to log results to")
+parser.add_argument("-c", "--compare", type=pathlib.Path,
+                    help="json file to compare results against")
+parser.add_argument("-q", "--quiet", action="store_true",
+                    help="Don't output position results")
+parser.add_argument("-f", "--feat", action="append", type=feature, default={},
+                    help="id=value pairs, may be repeated")
+parser.add_argument("-l", "--lang", default=0,
+                    help="language to tag text with")
+parser.add_argument("-s", "--script", default=0, help="script of text")
+parser.add_argument("-r", "--rtl", default=False, action="store_true",
+                    help="right to left")
+parser.add_argument("-p", "--split", action="store_const", const=' ',
+                    help="Split on spaces")
+parser.add_argument("--texttype", choices=texttypes, default='txt',
+                    help="Type of text input file [default %(default)s]")
+parser.add_argument("-e", "--error", type=float, dest='epsilon', default=0.0,
+                    help="Amount of fuzz to allow in values"
+                         " [default: %(default)s]")
+parser.add_argument("-b", "--bits", type=int, default=0,
+                    help="numbers compare equal if this many bits are the same"
+                         " [default %(default)s]")
+parser.add_argument("-d", "--dp", type=int, default=1,
+                    help="Output numbers to this many decimal places"
+                         " [default %(default)s]")
+parser.add_argument("--graphite_library", type=pathlib.Path,
+                    help="Path to graphite library instead of system version.")
+opts = parser.parse_args()
+
+rounding = 0.1 ** opts.dp
+feats = dict(opts.feat)
+reader = texttypes[opts.texttype](opts.text, opts.split)
+outfile = (opts.output.open(mode="w", encoding='utf_8')
+           if opts.output else sys.stdout)
+cjson = json.load(opts.compare.open()) if opts.compare else None
+fpaths = map(partial(os.path.relpath,
+                     start=(opts.output.parent if opts.output else os.curdir)),
+             opts.font)
+if opts.bits:
+    opts.epsilon = 0.5 ** opts.bits
+
+# Import graphite here to allow the graphite module to see the modified
+# environment if --graphite_library is used.
+if opts.graphite_library:
+    os.environ['PYGRAPHITE2_LIBRARY_PATH'] = str(opts.graphite_library)
+gr = importlib.import_module('graphite2')
+
+font = GrFont(opts.font[0], 0, opts.rtl, feats, opts.script, opts.lang)
+tt = TTFont(opts.font[0])
+
+count = 0
+errors = 0
+log = None
+for label, words in reader:
+    if words[0] is None:
+        continue
+    count += 1
+    wcount = 0
+    for s in words:
+        wcount += 1
+
+        t = makelabel(label, count, wcount)
+        gls = [[name(tt, g, rounding)
+                for g in font.glyphs(s, includewidth=True)]]
+        if gls[-1][-1][0] is None:
+            gls[-1] = ('_adv_', gls[-1][-1][1], gls[-1][-1][2])
+        if cjson is not None and cmpgls(gls[0], cjson[t][0], opts.epsilon):
+            errors += 1
+            print(t + " Failed")
+        if opts.quiet:
+            continue
+        if log is None:
+            log = JsonLog(outfile, fpaths, opts, opts.font)
+        bases = [(cmaplookup(tt, x), (0, 0)) for x in s]
+        log.logentry(label, count, wcount, s, gls, bases)
+if log is not None:
+    log.logend()
+outfile.close()
+sys.exit(errors)
