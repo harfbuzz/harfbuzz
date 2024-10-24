@@ -139,7 +139,7 @@ static void BM_subset (benchmark::State &state,
 
   if (!cached_font_path || strcmp (cached_font_path, test_input.font_path))
   {
-    hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
+    face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
     assert (face);
 
     face = preprocess_face (face);
