@@ -11,10 +11,10 @@ drop-hints-retain-gids.txt
 retain-gids.txt
 
 SUBSETS:
-89®⁉8⃣
-8®⁉
-8⁉
-®
-9
-⁉
-8⃣
+U+0038,U+0039,U+00AE,U+2049,U+0038,U+20E3,U+FE0F
+U+0038,U+00AE,U+2049,U+FE0F
+U+0038,U+2049,U+FE0F
+U+00AE,U+FE0F
+U+0039,U+FE0F
+U+2049,U+FE0F
+U+0038,U+20E3,U+FE0F

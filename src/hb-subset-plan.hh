@@ -41,6 +41,13 @@ namespace OT {
 struct Feature;
 }
 
+struct os2_info_t {
+  hb_codepoint_t min_cmap_codepoint;
+  hb_codepoint_t max_cmap_codepoint;
+};
+
+typedef struct os2_info_t os2_info_t;
+
 struct head_maxp_info_t
 {
   head_maxp_info_t ()
@@ -179,6 +186,8 @@ struct hb_subset_plan_t
 
   //recalculated head/maxp table info after instancing
   mutable head_maxp_info_t head_maxp_info;
+
+  os2_info_t os2_info;
 
   const hb_subset_accelerator_t* accelerator;
   hb_subset_accelerator_t* inprogress_accelerator;

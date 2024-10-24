@@ -10,3 +10,7 @@ SUBSETS:
 叱
 厩叱
 *
+
+# TODO temporary until diff with fonttools on FDSelect format is fixed.
+OPTIONS:
+no_fonttools
