@@ -482,6 +482,7 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
 								   &hb_cairo_face_user_data_key);
     font = hb_font_create (face);
 
+#ifndef HB_NO_VAR
 #if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1,16,0)
     cairo_font_options_t *font_options = cairo_font_options_create ();
 
@@ -501,6 +502,7 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
     hb_font_set_variations (font, &vars[0], vars.length);
 
     cairo_font_options_destroy (font_options);
+#endif
 #endif
 
     // Set scale; Note: should NOT set slant, or we'll double-slant.
