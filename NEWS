@@ -1,12 +1,35 @@
+Overview of changes leading to 10.1.0
+Tuesday, November 5, 2024
+====================================
+- Fix the sign of fallback vertical glyph advance (used when font has no
+  vertical advance data).
+- Increase maximum “CFF” operands limit 20 times to support more complex fonts.
+- Add “--face-loader” option to command line utilities.
+- Support “COLR” v0 table in hb_font_get_glyph_extents().
+- Add support for font functions that use Core Text APIs, similar to FreeType
+  font functions. This allows, for example, using drawing fonts that use the new
+  (and undocumented) “hvgl” table.
+- Update IANA and OT language registries, as well ase USE data files.
+- Fix build with ICU 76.
+- Various compiler warnings and build fixes.
+- Various subsetter fixes.
+
+- New API:
++hb_face_create_or_fail()
++hb_face_create_from_file_or_fail()
++hb_coretext_face_create_from_file_or_fail()
++hb_coretext_font_set_funcs()
++hb_ft_face_create_from_file_or_fail()
+
 Overview of changes leading to 10.0.1
-Tuesday, Sep 24, 2024
+Tuesday, September 24, 2024
 ====================================
 - Relax sanitization checks for “morx” subtables to fix broken AAT shaping of
   macOS 15.0 version of GeezaPro.
 
 
 Overview of changes leading to 10.0.0
-Monday, Sep 23, 2024
+Monday, September 23, 2024
 ====================================
 - Unicode 16.0.0 support.
 - Various documentation fixes.

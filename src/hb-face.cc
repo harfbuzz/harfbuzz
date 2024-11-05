@@ -274,7 +274,7 @@ hb_face_create (hb_blob_t    *blob,
  * Return value: (transfer full): The new face object, or `NULL` if
  * no face is found at the specified index.
  *
- * XSince: REPLACEME
+ * Since: 10.1.0
  **/
 hb_face_t *
 hb_face_create_or_fail (hb_blob_t    *blob,
@@ -302,7 +302,7 @@ hb_face_create_or_fail (hb_blob_t    *blob,
  * Return value: (transfer full): The new face object, or `NULL` if
  * no face is found at the specified index or the file cannot be read.
  *
- * XSince: REPLACEME
+ * Since: 10.1.0
  **/
 HB_EXTERN hb_face_t *
 hb_face_create_from_file_or_fail (const char   *file_name,

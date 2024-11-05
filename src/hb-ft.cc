@@ -1520,13 +1520,13 @@ destroy_ft_library (void *arg)
  * Creates an #hb_face_t face object from the specified
  * font file and face index.
  *
- * This is similar in functionality to hb_face_create_for_from_file_or_fail(),
+ * This is similar in functionality to hb_face_create_from_file_or_fail(),
  * but uses the FreeType library for loading the font file.
  *
  * Return value: (transfer full): The new face object, or `NULL` if
  * no face is found at the specified index or the file cannot be read.
  *
- * XSince: REPLACEME
+ * Since: 10.1.0
  */
 hb_face_t *
 hb_ft_face_create_from_file_or_fail (const char   *file_name,
