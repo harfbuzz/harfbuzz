@@ -885,9 +885,9 @@ struct TupleVariationData
      * no need to do find_shared_points () again */
     hb_vector_t<char> *shared_points_bytes = nullptr;
 
-    /* total compiled byte size as TupleVariationData format, initialized to its
-     * min_size: 4 */
-    unsigned compiled_byte_size = 4;
+    /* total compiled byte size as TupleVariationData format, initialized to 0 */
+    unsigned compiled_byte_size = 0;
+    bool needs_padding = false;
 
     /* for gvar iup delta optimization: whether this is a composite glyph */
     bool is_composite = false;
@@ -1219,11 +1219,20 @@ struct TupleVariationData
     bool compile_bytes (const hb_map_t& axes_index_map,
                         const hb_map_t& axes_old_index_tag_map,
                         bool use_shared_points,
+                        bool is_gvar = false,
                         const hb_hashmap_t<const hb_vector_t<char>*, unsigned>* shared_tuples_idx_map = nullptr)
     {
+      // return true for empty glyph
+      if (!tuple_vars)
+        return true;
+
       // compile points set and store data in hashmap
       if (!compile_all_point_sets ())
         return false;
+
+      /* total compiled byte size as TupleVariationData format, initialized to its
+       * min_size: 4 */
+      compiled_byte_size += 4;
 
       if (use_shared_points)
       {
@@ -1253,6 +1262,13 @@ struct TupleVariationData
           return false;
         compiled_byte_size += tuple.compiled_tuple_header.length + points_data_length + tuple.compiled_deltas.length;
       }
+
+      if (is_gvar && (compiled_byte_size % 2))
+      {
+        needs_padding = true;
+        compiled_byte_size += 1;
+      }
+
       return true;
     }
 
@@ -1295,7 +1311,7 @@ struct TupleVariationData
       }
 
       /* padding for gvar */
-      if (is_gvar && (compiled_byte_size % 2))
+      if (is_gvar && needs_padding)
       {
         HBUINT8 pad;
         pad = 0;

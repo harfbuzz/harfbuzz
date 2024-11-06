@@ -79,6 +79,7 @@ tests = [
   'sync_vmetrics',
   'empty_region_vardata',
   'colrv1_partial_instance',
+  'instantiate_gvar_padding',
 ]
 
 if get_option('experimental_api')
