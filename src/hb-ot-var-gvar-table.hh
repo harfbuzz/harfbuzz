@@ -140,6 +140,7 @@ struct glyph_variations_t
     for (tuple_variations_t& vars: glyph_variations)
       if (!vars.compile_bytes (axes_index_map, axes_old_index_tag_map,
                                true, /* use shared points*/
+                               true,
                                &shared_tuples_idx_map))
         return false;
 
