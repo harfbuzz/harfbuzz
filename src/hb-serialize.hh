@@ -400,6 +400,7 @@ struct hb_serialize_context_t
       {
         merge_virtual_links (obj, objidx);
 	obj->fini ();
+        object_pool.release (obj);
 	return objidx;
       }
     }
@@ -463,9 +464,11 @@ struct hb_serialize_context_t
     while (packed.length > 1 &&
 	   packed.tail ()->head < tail)
     {
-      packed_map.del (packed.tail ());
-      assert (!packed.tail ()->next);
-      packed.tail ()->fini ();
+      object_t *obj = packed.tail ();
+      packed_map.del (obj);
+      assert (!obj->next);
+      obj->fini ();
+      object_pool.release (obj);
       packed.pop ();
     }
     if (packed.length > 1)
