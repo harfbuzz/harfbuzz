@@ -1462,6 +1462,7 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 	unsigned int this_comp = _hb_glyph_info_get_lig_comp (&buffer->cur());
 	if (this_comp == 0)
 	  this_comp = last_num_components;
+	assert (components_so_far >= last_num_components);
 	unsigned int new_lig_comp = components_so_far - last_num_components +
 				    hb_min (this_comp, last_num_components);
 	  _hb_glyph_info_set_lig_props_for_mark (&buffer->cur(), lig_id, new_lig_comp);
@@ -1487,6 +1488,7 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
       unsigned this_comp = _hb_glyph_info_get_lig_comp (&buffer->info[i]);
       if (!this_comp) break;
 
+      assert (components_so_far >= last_num_components);
       unsigned new_lig_comp = components_so_far - last_num_components +
 			      hb_min (this_comp, last_num_components);
       _hb_glyph_info_set_lig_props_for_mark (&buffer->info[i], lig_id, new_lig_comp);
@@ -1542,6 +1544,7 @@ static bool match_lookahead (hb_ot_apply_context_t *c,
   TRACE_APPLY (nullptr);
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
+  assert (start_index >= 1);
   skippy_iter.reset (start_index - 1);
   skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (lookahead);
@@ -1852,6 +1855,7 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
   if (match_positions != match_positions_input)
     hb_free (match_positions);
 
+  assert (end >= 0);
   (void) buffer->move_to (end);
 }
 
