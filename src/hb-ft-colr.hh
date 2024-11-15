@@ -547,7 +547,9 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
     c.funcs->push_root_transform (c.data, font);
 
     if (is_bounded)
+     {
       c.recurse (paint);
+     }
 
     c.funcs->pop_transform (c.data);
     c.funcs->pop_clip (c.data);

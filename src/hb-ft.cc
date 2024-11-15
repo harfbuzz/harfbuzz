@@ -935,7 +935,7 @@ hb_ft_paint_glyph (hb_font_t *font,
    * eg. draw API can call back into the face.*/
 
   if (unlikely (FT_Load_Glyph (ft_face, gid,
-			       ft_font->load_flags | FT_LOAD_COLOR)))
+			       ft_font->load_flags | FT_LOAD_COLOR | FT_LOAD_NO_SVG)))
     return;
 
   if (ft_face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)
