@@ -180,7 +180,7 @@ hb_cairo_paint_color_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   hb_position_t x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
-  cairo_scale (cr, x_scale, y_scale);
+  cairo_scale (cr, x_scale, -y_scale);
 
   cairo_glyph_t cairo_glyph = { glyph, 0, 0 };
   cairo_set_scaled_font (cr, c->scaled_font);
