@@ -931,11 +931,15 @@ hb_ft_paint_glyph (hb_font_t *font,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
+  FT_Long load_flags = ft_font->load_flags | FT_LOAD_NO_BITMAP | FT_LOAD_COLOR;
+#if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21301
+  load_flags |= FT_LOAD_NO_SVG;
+#endif
+
   /* We release the lock before calling into glyph callbacks, such that
    * eg. draw API can call back into the face.*/
 
-  if (unlikely (FT_Load_Glyph (ft_face, gid,
-			       ft_font->load_flags | FT_LOAD_COLOR | FT_LOAD_NO_SVG)))
+  if (unlikely (FT_Load_Glyph (ft_face, gid, load_flags)))
     return;
 
   if (ft_face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)
