@@ -597,7 +597,9 @@ hb_cairo_render_glyph (cairo_scaled_font_t  *scaled_font,
 
   hb_position_t x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
-  cairo_scale (cr, +1./x_scale, -1./y_scale);
+  cairo_scale (cr,
+	       +1. / (x_scale ? x_scale : 1),
+	       -1. / (y_scale ? y_scale : 1));
 
   hb_font_draw_glyph (font, glyph, hb_cairo_draw_get_funcs (), cr);
 
@@ -628,7 +630,9 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
   hb_position_t x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
-  cairo_scale (cr, +1./x_scale, -1./y_scale);
+  cairo_scale (cr,
+	       +1. / (x_scale ? x_scale : 1),
+	       -1. / (y_scale ? y_scale : 1));
 
   hb_cairo_context_t c;
   c.scaled_font = scaled_font;
