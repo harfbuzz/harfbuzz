@@ -156,6 +156,18 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
 							       &font_matrix,
 							       &ctm,
 							       font_options);
+  if (cairo_scaled_font_status (scaled_font) == CAIRO_STATUS_INVALID_MATRIX)
+  {
+    // Set font matrix to 0, which *does* work with cairo_scaled_font_create()
+    font_matrix.xx = font_matrix.yy = 0;
+    font_matrix.xy = font_matrix.yx = 0;
+    font_matrix.x0 = font_matrix.y0 = 0;
+    scaled_font = cairo_scaled_font_create (cairo_face,
+					    &font_matrix,
+					    &ctm,
+					    font_options);
+
+  }
 
   cairo_font_options_destroy (font_options);
   cairo_font_face_destroy (cairo_face);
