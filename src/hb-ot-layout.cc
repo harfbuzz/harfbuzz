@@ -246,6 +246,18 @@ OT::GDEF::is_blocklisted (hb_blob_t *blob,
     /* sha1sum: c26e41d567ed821bed997e937bc0c41435689e85  Padauk.ttf
      *  "Padauk Regular" "Version 2.5", see https://crbug.com/681813 */
     case HB_CODEPOINT_ENCODE3 (1004, 59092, 14836):
+    /* 88d2006ca084f04af2df1954ed714a8c71e8400f  Courier New.ttf from macOS 15 */
+    case HB_CODEPOINT_ENCODE3 (588, 5078, 14418):
+    /* 608e3ebb6dd1aee521cff08eb07d500a2c59df68  Courier New Bold.ttf from macOS 15 */
+    case HB_CODEPOINT_ENCODE3 (588, 5078, 14238):
+    /* d13221044ff054efd78f1cd8631b853c3ce85676  cour.ttf from Windows 10 */
+    case HB_CODEPOINT_ENCODE3 (894, 17162, 33960):
+    /* 68ed4a22d8067fcf1622ac6f6e2f4d3a2e3ec394  courbd.ttf from Windows 10 */
+    case HB_CODEPOINT_ENCODE3 (894, 17154, 34472):
+    /* 4cdb0259c96b7fd7c103821bb8f08f7cc6b211d7  cour.ttf from Windows 8.1 */
+    case HB_CODEPOINT_ENCODE3 (816, 7868, 17052):
+    /* 920483d8a8ed37f7f0afdabbe7f679aece7c75d8  courbd.ttf from Windows 8.1 */
+    case HB_CODEPOINT_ENCODE3 (816, 7868, 17138):
       return true;
   }
   return false;
