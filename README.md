@@ -6,6 +6,7 @@
 [![Codecov Code Coverage](https://codecov.io/gh/harfbuzz/harfbuzz/branch/main/graph/badge.svg)](https://codecov.io/gh/harfbuzz/harfbuzz)
 [![Packaging status](https://repology.org/badge/tiny-repos/harfbuzz.svg)](https://repology.org/project/harfbuzz/versions)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/harfbuzz/harfbuzz/badge)](https://securityscorecards.dev/viewer/?uri=github.com/harfbuzz/harfbuzz)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20HarfBuzz%20Guru-006BFF)](https://gurubase.io/g/harfbuzz)
 
 
 # HarfBuzz
