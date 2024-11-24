@@ -24,7 +24,7 @@ jobs:
       run: |
         export HOMEBREW_NO_AUTO_UPDATE=1
         export HOMEBREW_NO_INSTALL_CLEANUP=1
-        brew unlink pkg-config || true
+        brew rm -f pkg-config@0.29.2
         brew install \
           cairo \
           freetype \
@@ -34,9 +34,7 @@ jobs:
           icu4c \
           meson \
           ninja \
-          pkg-config
-        brew unlink pkgconf || true
-        brew link pkg-config || true
+          pkgconf
     - name: Setup Python
       uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
       with:
