@@ -875,6 +875,7 @@ endmacro()
 cmake_config.set('PACKAGE_CMAKE_INSTALL_INCLUDEDIR', '${PACKAGE_PREFIX_DIR}/@0@'.format(cmake_install_includedir))
 cmake_config.set('PACKAGE_CMAKE_INSTALL_LIBDIR', '${PACKAGE_PREFIX_DIR}/@0@'.format(cmake_install_libdir))
 cmake_config.set('PACKAGE_INCLUDE_INSTALL_DIR', '${PACKAGE_PREFIX_DIR}/@0@/@1@'.format(cmake_install_includedir, meson.project_name()))
+cmake_config.set('HARFBUZZ_VERSION', meson.project_version())
 cmake_config.set('HB_HAVE_GOBJECT', have_gobject ? 'YES' : 'NO')
 cmake_config.set('HB_LIBRARY_TYPE', get_option('default_library') == 'static' ? 'STATIC' : 'SHARED')
 
