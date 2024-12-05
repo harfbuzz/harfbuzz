@@ -6,8 +6,8 @@
  *
  * on files with these headers:
  *
- * <meta name="updated_at" content="2024-07-07 12:57 AM" />
- * File-Date: 2024-06-14
+ * <meta name="updated_at" content="2024-12-05 07:13 PM" />
+ * File-Date: 2024-11-19
  */
 
 #ifndef HB_OT_TAG_TABLE_HH
@@ -830,6 +830,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('k','f','x',' '),	HB_TAG('K','U','L',' ')},	/* Kullu Pahari -> Kulvi */
   {HB_TAG('k','f','y',' '),	HB_TAG('K','M','N',' ')},	/* Kumaoni */
   {HB_TAG('k','g','e',' '),	HB_TAG_NONE	       },	/* Komering != Khutsuri Georgian */
+/*{HB_TAG('k','g','f',' '),	HB_TAG('K','G','F',' ')},*/	/* Kube */
   {HB_TAG('k','h','a',' '),	HB_TAG('K','S','I',' ')},	/* Khasi */
   {HB_TAG('k','h','b',' '),	HB_TAG('X','B','D',' ')},	/* Lü */
   {HB_TAG('k','h','k',' '),	HB_TAG('M','N','G',' ')},	/* Halh Mongolian -> Mongolian */
@@ -855,6 +856,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('k','l','m',' '),	HB_TAG_NONE	       },	/* Migum != Kalmyk */
   {HB_TAG('k','l','n',' '),	HB_TAG('K','A','L',' ')},	/* Kalenjin [macrolanguage] */
   {HB_TAG('k','m','b',' '),	HB_TAG('M','B','N',' ')},	/* Kimbundu -> Mbundu */
+/*{HB_TAG('k','m','g',' '),	HB_TAG('K','M','G',' ')},*/	/* Kâte */
   {HB_TAG('k','m','n',' '),	HB_TAG_NONE	       },	/* Awtuw != Kumaoni */
   {HB_TAG('k','m','o',' '),	HB_TAG_NONE	       },	/* Kwoma != Komo */
   {HB_TAG('k','m','r',' '),	HB_TAG('K','U','R',' ')},	/* Northern Kurdish -> Kurdish */
@@ -898,6 +900,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('k','s','i',' '),	HB_TAG_NONE	       },	/* Krisa != Khasi */
   {HB_TAG('k','s','m',' '),	HB_TAG_NONE	       },	/* Kumba != Kildin Sami */
   {HB_TAG('k','s','s',' '),	HB_TAG('K','I','S',' ')},	/* Southern Kisi -> Kisii */
+/*{HB_TAG('k','s','u',' '),	HB_TAG('K','S','U',' ')},*/	/* Khamyang */
   {HB_TAG('k','s','w',' '),	HB_TAG('K','S','W',' ')},	/* S’gaw Karen */
   {HB_TAG('k','s','w',' '),	HB_TAG('K','R','N',' ')},	/* S'gaw Karen -> Karen */
   {HB_TAG('k','t','b',' '),	HB_TAG('K','E','B',' ')},	/* Kambaata -> Kebena */
@@ -911,6 +914,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('k','u','y',' '),	HB_TAG_NONE	       },	/* Kuuku-Ya'u != Kuy */
   {HB_TAG('k','v','b',' '),	HB_TAG('M','L','Y',' ')},	/* Kubu -> Malay */
   {HB_TAG('k','v','l',' '),	HB_TAG('K','R','N',' ')},	/* Kayaw -> Karen */
+  {HB_TAG('k','v','q',' '),	HB_TAG('K','V','Q',' ')},	/* Geba Karen */
   {HB_TAG('k','v','q',' '),	HB_TAG('K','R','N',' ')},	/* Geba Karen -> Karen */
   {HB_TAG('k','v','r',' '),	HB_TAG('M','L','Y',' ')},	/* Kerinci -> Malay */
   {HB_TAG('k','v','t',' '),	HB_TAG('K','R','N',' ')},	/* Lahta Karen -> Karen */
@@ -1146,6 +1150,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('n','o','d',' '),	HB_TAG('N','T','A',' ')},	/* Northern Thai -> Northern Tai */
 /*{HB_TAG('n','o','e',' '),	HB_TAG('N','O','E',' ')},*/	/* Nimadi */
 /*{HB_TAG('n','o','g',' '),	HB_TAG('N','O','G',' ')},*/	/* Nogai */
+/*{HB_TAG('n','o','p',' '),	HB_TAG('N','O','P',' ')},*/	/* Numanggang */
 /*{HB_TAG('n','o','v',' '),	HB_TAG('N','O','V',' ')},*/	/* Novial */
   {HB_TAG('n','p','i',' '),	HB_TAG('N','E','P',' ')},	/* Nepali */
   {HB_TAG('n','p','l',' '),	HB_TAG('N','A','H',' ')},	/* Southeastern Puebla Nahuatl -> Nahuatl */
@@ -1156,6 +1161,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('n','s','u',' '),	HB_TAG('N','A','H',' ')},	/* Sierra Negra Nahuatl -> Nahuatl */
   {HB_TAG('n','t','o',' '),	HB_TAG_NONE	       },	/* Ntomba != Esperanto */
   {HB_TAG('n','u','e',' '),	HB_TAG('B','A','D','0')},	/* Ngundu -> Banda */
+/*{HB_TAG('n','u','k',' '),	HB_TAG('N','U','K',' ')},*/	/* Nuu-chah-nulth */
   {HB_TAG('n','u','u',' '),	HB_TAG('B','A','D','0')},	/* Ngbundu -> Banda */
   {HB_TAG('n','u','z',' '),	HB_TAG('N','A','H',' ')},	/* Tlamacazapa Nahuatl -> Nahuatl */
   {HB_TAG('n','w','e',' '),	HB_TAG('B','M','L',' ')},	/* Ngwe -> Bamileke */
@@ -1399,8 +1405,10 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('s','i','z',' '),	HB_TAG('B','B','R',' ')},	/* Siwi -> Berber */
 /*{HB_TAG('s','j','a',' '),	HB_TAG('S','J','A',' ')},*/	/* Epena */
   {HB_TAG('s','j','d',' '),	HB_TAG('K','S','M',' ')},	/* Kildin Sami */
+/*{HB_TAG('s','j','e',' '),	HB_TAG('S','J','E',' ')},*/	/* Pite Sami */
   {HB_TAG('s','j','o',' '),	HB_TAG('S','I','B',' ')},	/* Xibe -> Sibe */
   {HB_TAG('s','j','s',' '),	HB_TAG('B','B','R',' ')},	/* Senhaja De Srair -> Berber */
+/*{HB_TAG('s','j','u',' '),	HB_TAG('S','J','U',' ')},*/	/* Ume Sami */
   {HB_TAG('s','k','g',' '),	HB_TAG('M','L','G',' ')},	/* Sakalava Malagasy -> Malagasy */
   {HB_TAG('s','k','r',' '),	HB_TAG('S','R','K',' ')},	/* Saraiki */
   {HB_TAG('s','k','s',' '),	HB_TAG_NONE	       },	/* Maia != Skolt Sami */
@@ -1461,6 +1469,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('t','a','q',' '),	HB_TAG('B','B','R',' ')},	/* Tamasheq -> Berber */
   {HB_TAG('t','a','s',' '),	HB_TAG('C','P','P',' ')},	/* Tay Boi -> Creoles */
   {HB_TAG('t','a','u',' '),	HB_TAG('A','T','H',' ')},	/* Upper Tanana -> Athapaskan */
+/*{HB_TAG('t','b','v',' '),	HB_TAG('T','B','V',' ')},*/	/* Tobo */
   {HB_TAG('t','c','b',' '),	HB_TAG('A','T','H',' ')},	/* Tanacross -> Athapaskan */
   {HB_TAG('t','c','e',' '),	HB_TAG('A','T','H',' ')},	/* Southern Tutchone -> Athapaskan */
   {HB_TAG('t','c','h',' '),	HB_TAG('C','P','P',' ')},	/* Turks And Caicos Creole English -> Creoles */
@@ -1623,7 +1632,7 @@ static const LangTag ot_languages3[] = {
   {HB_TAG('y','b','a',' '),	HB_TAG_NONE	       },	/* Yala != Yoruba */
   {HB_TAG('y','b','b',' '),	HB_TAG('B','M','L',' ')},	/* Yemba -> Bamileke */
   {HB_TAG('y','b','d',' '),	HB_TAG('A','R','K',' ')},	/* Yangbye (retired code) -> Rakhine */
-  {HB_TAG('y','c','r',' '),	HB_TAG_NONE	       },	/* Yilan Creole != Y-Cree */
+  {HB_TAG('y','c','r',' '),	HB_TAG('C','P','P',' ')},	/* Yilan Creole -> Creoles */
   {HB_TAG('y','d','d',' '),	HB_TAG('J','I','I',' ')},	/* Eastern Yiddish -> Yiddish */
 /*{HB_TAG('y','g','p',' '),	HB_TAG('Y','G','P',' ')},*/	/* Gepo */
   {HB_TAG('y','i','h',' '),	HB_TAG('J','I','I',' ')},	/* Western Yiddish -> Yiddish */
