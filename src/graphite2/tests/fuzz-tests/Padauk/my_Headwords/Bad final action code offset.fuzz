@@ -1,0 +1,47 @@
+,0X000358E5, 51,Silf+0X0001CC1D
+,0X000358E6,188,Silf+0X0001CC1E
+==12256== Invalid read of size 1
+==12256==    at 0x40307D5: graphite2::vm::Machine::Code::decoder::fetch_opcode(unsigned char const*) (Code.cpp:248)
+==12256==    by 0x4030F00: graphite2::vm::Machine::Code::decoder::load(unsigned char const*, unsigned char const*) (Code.cpp:230)
+==12256==    by 0x403119D: graphite2::vm::Machine::Code::Code(bool, unsigned char const*, unsigned char const*, unsigned char, unsigned short, graphite2::Silf const&, graphite2::Face const&) (Code.cpp:183)
+==12256==    by 0x40379DE: graphite2::Pass::readRules(unsigned char const*, unsigned int, unsigned char const*, unsigned short const*, unsigned short const*, unsigned char const*, unsigned short const*, unsigned char const*, graphite2::Face const&) (Pass.cpp:192)
+==12256==    by 0x4038031: graphite2::Pass::readPass(void*, unsigned int, unsigned int, graphite2::Face const&) (Pass.cpp:151)
+==12256==    by 0x403AC45: graphite2::Silf::readGraphite(void const*, unsigned int, graphite2::Face const&, unsigned int) (Silf.cpp:177)
+==12256==    by 0x403262E: graphite2::Face::readGraphite() (Face.cpp:107)
+==12256==    by 0x402C272: gr_make_face (gr_face.cpp:60)
+==12256==    by 0x402C319: gr_make_file_face (gr_face.cpp:216)
+==12256==    by 0x804B292: main (Gr2Renderer.h:40)
+==12256==  Address 0x4397b07 is 0 bytes after a block of size 128,503 alloc'd
+==12256==    at 0x4023F50: malloc (vg_replace_malloc.c:236)
+==12256==    by 0x4031B71: graphite2::FileFace::table_fn(void const*, unsigned int, unsigned int*) (Main.h:51)
+==12256==    by 0x402C21E: gr_make_face (Face.h:107)
+==12256==    by 0x402C319: gr_make_file_face (gr_face.cpp:216)
+==12256==    by 0x804B292: main (Gr2Renderer.h:40)
+==12256== 
+==12256== Invalid read of size 1
+==12256==    at 0x40308EA: graphite2::vm::Machine::Code::decoder::fetch_opcode(unsigned char const*) (Code.cpp:322)
+==12256==    by 0x4030F00: graphite2::vm::Machine::Code::decoder::load(unsigned char const*, unsigned char const*) (Code.cpp:230)
+==12256==    by 0x403119D: graphite2::vm::Machine::Code::Code(bool, unsigned char const*, unsigned char const*, unsigned char, unsigned short, graphite2::Silf const&, graphite2::Face const&) (Code.cpp:183)
+==12256==    by 0x40379DE: graphite2::Pass::readRules(unsigned char const*, unsigned int, unsigned char const*, unsigned short const*, unsigned short const*, unsigned char const*, unsigned short const*, unsigned char const*, graphite2::Face const&) (Pass.cpp:192)
+==12256==    by 0x4038031: graphite2::Pass::readPass(void*, unsigned int, unsigned int, graphite2::Face const&) (Pass.cpp:151)
+==12256==    by 0x403AC45: graphite2::Silf::readGraphite(void const*, unsigned int, graphite2::Face const&, unsigned int) (Silf.cpp:177)
+==12256==    by 0x403262E: graphite2::Face::readGraphite() (Face.cpp:107)
+==12256==    by 0x402C272: gr_make_face (gr_face.cpp:60)
+==12256==    by 0x402C319: gr_make_file_face (gr_face.cpp:216)
+==12256==    by 0x804B292: main (Gr2Renderer.h:40)
+==12256==  Address 0x4397b1d is not stack'd, malloc'd or (recently) free'd
+==12256== 
+==12256== Invalid read of size 1
+==12256==    at 0x4030905: graphite2::vm::Machine::Code::decoder::fetch_opcode(unsigned char const*) (Code.cpp:323)
+==12256==    by 0x4030F00: graphite2::vm::Machine::Code::decoder::load(unsigned char const*, unsigned char const*) (Code.cpp:230)
+==12256==    by 0x403119D: graphite2::vm::Machine::Code::Code(bool, unsigned char const*, unsigned char const*, unsigned char, unsigned short, graphite2::Silf const&, graphite2::Face const&) (Code.cpp:183)
+==12256==    by 0x40379DE: graphite2::Pass::readRules(unsigned char const*, unsigned int, unsigned char const*, unsigned short const*, unsigned short const*, unsigned char const*, unsigned short const*, unsigned char const*, graphite2::Face const&) (Pass.cpp:192)
+==12256==    by 0x4038031: graphite2::Pass::readPass(void*, unsigned int, unsigned int, graphite2::Face const&) (Pass.cpp:151)
+==12256==    by 0x403AC45: graphite2::Silf::readGraphite(void const*, unsigned int, graphite2::Face const&, unsigned int) (Silf.cpp:177)
+==12256==    by 0x403262E: graphite2::Face::readGraphite() (Face.cpp:107)
+==12256==    by 0x402C272: gr_make_face (gr_face.cpp:60)
+==12256==    by 0x402C319: gr_make_file_face (gr_face.cpp:216)
+==12256==    by 0x804B292: main (Gr2Renderer.h:40)
+==12256==  Address 0x4397b1e is not stack'd, malloc'd or (recently) free'd
+==12256== 
+
