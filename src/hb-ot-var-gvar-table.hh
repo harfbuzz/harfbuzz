@@ -36,6 +36,7 @@
  * https://docs.microsoft.com/en-us/typography/opentype/spec/gvar
  */
 #define HB_OT_TAG_gvar HB_TAG('g','v','a','r')
+#define HB_OT_TAG_GVAR HB_TAG('G','V','A','R')
 
 struct hb_glyf_scratch_t
 {
@@ -316,9 +317,10 @@ struct glyph_variations_t
   }
 };
 
-struct gvar
+template <typename GidOffsetType, unsigned TableTag>
+struct gvar_GVAR
 {
-  static constexpr hb_tag_t tableTag = HB_OT_TAG_gvar;
+  static constexpr hb_tag_t tableTag = TableTag;
 
   bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
@@ -371,7 +373,7 @@ struct gvar
                   bool force_long_offsets) const
   {
     TRACE_SERIALIZE (this);
-    gvar *out = c->allocate_min<gvar> ();
+    gvar_GVAR *out = c->allocate_min<gvar_GVAR> ();
     if (unlikely (!out)) return_trace (false);
 
     out->version.major = 1;
@@ -443,7 +445,7 @@ struct gvar
 
     unsigned glyph_count = version.to_int () ? c->plan->source->get_num_glyphs () : 0;
 
-    gvar *out = c->serializer->allocate_min<gvar> ();
+    gvar_GVAR *out = c->serializer->allocate_min<gvar_GVAR> ();
     if (unlikely (!out)) return_trace (false);
 
     out->version.major = 1;
@@ -579,7 +581,7 @@ struct gvar
   {
     accelerator_t (hb_face_t *face)
     {
-      table = hb_sanitize_context_t ().reference_table<gvar> (face);
+      table = hb_sanitize_context_t ().reference_table<gvar_GVAR> (face);
       /* If sanitize failed, set glyphCount to 0. */
       glyphCount = table->version.to_int () ? face->get_num_glyphs () : 0;
 
@@ -875,7 +877,7 @@ struct gvar
     unsigned int get_axis_count () const { return table->axisCount; }
 
     private:
-    hb_blob_ptr_t<gvar> table;
+    hb_blob_ptr_t<gvar_GVAR> table;
     unsigned glyphCount;
     hb_vector_t<hb_pair_t<int, int>> shared_tuple_active_idx;
   };
@@ -893,7 +895,7 @@ struct gvar
   NNOffset32To<UnsizedArrayOf<F2DOT14>>
 		sharedTuples;	/* Offset from the start of this table to the shared tuple records.
 				 * Array of tuple records shared across all glyph variation data tables. */
-  HBUINT16	glyphCountX;	/* The number of glyphs in this font. This must match the number of
+  GidOffsetType	glyphCountX;	/* The number of glyphs in this font. This must match the number of
 				 * glyphs stored elsewhere in the font. */
   HBUINT16	flags;		/* Bit-field that gives the format of the offset array that follows.
 				 * If bit 0 is clear, the offsets are uint16; if bit 0 is set, the
@@ -908,8 +910,14 @@ struct gvar
   DEFINE_SIZE_ARRAY (20, offsetZ);
 };
 
+using gvar = gvar_GVAR<HBUINT16, HB_OT_TAG_gvar>;
+using GVAR = gvar_GVAR<HBUINT24, HB_OT_TAG_GVAR>;
+
 struct gvar_accelerator_t : gvar::accelerator_t {
   gvar_accelerator_t (hb_face_t *face) : gvar::accelerator_t (face) {}
+};
+struct GVAR_accelerator_t : GVAR::accelerator_t {
+  GVAR_accelerator_t (hb_face_t *face) : GVAR::accelerator_t (face) {}
 };
 
 } /* namespace OT */
