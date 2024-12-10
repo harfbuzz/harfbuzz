@@ -36,6 +36,8 @@
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101100
 #  define kCTFontOrientationDefault kCTFontDefaultOrientation
+#  define kCTFontOrientationHorizontal kCTFontHorizontalOrientation
+#  define kCTFontOrientationVertical kCTFontVerticalOrientation
 #endif
 
 #define MAX_GLYPHS 64u
