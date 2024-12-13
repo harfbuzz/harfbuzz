@@ -36,13 +36,6 @@
 HB_BEGIN_DECLS
 
 /**
- * HB_OT_TAG_VAR_AXIS_BOLD:
- *
- * Registered tag for the non-bold/bold axis.
- */
-#define HB_OT_TAG_VAR_AXIS_BOLD	HB_TAG('b','o','l','d')
-
-/**
  * HB_OT_TAG_VAR_AXIS_ITALIC:
  *
  * Registered tag for the roman/italic axis.
