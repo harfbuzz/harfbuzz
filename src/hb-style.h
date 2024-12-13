@@ -35,6 +35,9 @@ HB_BEGIN_DECLS
 
 /**
  * hb_style_tag_t:
+ * @HB_STYLE_TAG_BOLD: Used to distinguish between regular and bold styles.
+ * A value of 0 can be interpreted as "Regular" (non-bold); a value of 1 can
+ * be interpreted as "Bold".
  * @HB_STYLE_TAG_ITALIC: Used to vary between non-italic and italic.
  * A value of 0 can be interpreted as "Roman" (non-italic); a value of 1 can
  * be interpreted as (fully) italic.
@@ -61,6 +64,7 @@ HB_BEGIN_DECLS
  **/
 typedef enum
 {
+  HB_STYLE_TAG_BOLD		= HB_TAG ('b','o','l','d'),
   HB_STYLE_TAG_ITALIC		= HB_TAG ('i','t','a','l'),
   HB_STYLE_TAG_OPTICAL_SIZE	= HB_TAG ('o','p','s','z'),
   HB_STYLE_TAG_SLANT_ANGLE	= HB_TAG ('s','l','n','t'),

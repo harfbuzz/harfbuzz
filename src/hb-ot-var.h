@@ -36,6 +36,13 @@
 HB_BEGIN_DECLS
 
 /**
+ * HB_OT_TAG_VAR_AXIS_BOLD:
+ *
+ * Registered tag for the non-bold/bold axis.
+ */
+#define HB_OT_TAG_VAR_AXIS_BOLD	HB_TAG('b','o','l','d')
+
+/**
  * HB_OT_TAG_VAR_AXIS_ITALIC:
  *
  * Registered tag for the roman/italic axis.
@@ -112,7 +119,7 @@ typedef enum { /*< flags >*/
  * @min_value: The minimum value on the variation axis that the font covers
  * @default_value: The position on the variation axis corresponding to the font's defaults
  * @max_value: The maximum value on the variation axis that the font covers
- * 
+ *
  * Data type for holding variation-axis values.
  *
  * The minimum, default, and maximum values are in un-normalized, user scales.

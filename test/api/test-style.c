@@ -35,6 +35,7 @@ test_empty_face (void)
 {
   hb_font_t *empty = hb_font_get_empty ();
 
+  assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -48,6 +49,7 @@ test_regular_face (void)
   hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
   hb_font_t *font = hb_font_create (face);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -64,6 +66,7 @@ test_bold_face (void)
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
   hb_font_t *font = hb_font_create (face);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 1);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -81,6 +84,7 @@ test_face_user_setting (void)
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype_vsindex.otf");
   hb_font_t *font = hb_font_create (face);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -90,6 +94,7 @@ test_face_user_setting (void)
 
   hb_font_set_var_named_instance (font, 0);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -99,6 +104,7 @@ test_face_user_setting (void)
 
   hb_font_set_var_named_instance (font, 1);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -108,6 +114,7 @@ test_face_user_setting (void)
 
   hb_font_set_var_named_instance (font, 2);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -117,6 +124,7 @@ test_face_user_setting (void)
 
   hb_font_set_var_named_instance (font, 3);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -126,6 +134,7 @@ test_face_user_setting (void)
 
   hb_font_set_var_named_instance (font, 4);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -135,6 +144,7 @@ test_face_user_setting (void)
 
   hb_font_set_var_named_instance (font, 5);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -144,6 +154,7 @@ test_face_user_setting (void)
 
   hb_font_set_var_named_instance (font, 6);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
@@ -153,6 +164,7 @@ test_face_user_setting (void)
 
   hb_font_set_var_named_instance (font, 7);
 
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_BOLD), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
