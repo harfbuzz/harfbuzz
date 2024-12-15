@@ -97,9 +97,9 @@ c = C|Ra;			# is_consonant
 medial_group = MY? As? MR? ((MW MH? ML? | MH ML? | ML) As?)?;
 main_vowel_group = (VPre.VS?)* VAbv* VBlw* A* (DB As?)?;
 post_vowel_group = VPst MH? ML? As* VAbv* A* (DB As?)?;
-pwo_tone_group = PT A* DB? As?;
+tone_group = SM | PT A* DB? As?;
 
-complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_tone_group* SM* j?;
+complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* tone_group* j?;
 syllable_tail = (H (c|IV).VS?)* (H | complex_syllable_tail);
 
 consonant_syllable =	(k|CS)? (c|IV|GB|DOTTEDCIRCLE).VS? syllable_tail;
