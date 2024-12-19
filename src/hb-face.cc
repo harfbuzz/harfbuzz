@@ -470,7 +470,8 @@ hb_face_is_immutable (const hb_face_t *face)
  * @tag: The #hb_tag_t of the table to query
  *
  * Fetches a reference to the specified table within
- * the specified face.
+ * the specified face. Returns an empty blob if referencing table data is not
+ * possible.
  *
  * Return value: (transfer full): A pointer to the @tag table within @face
  *
