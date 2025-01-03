@@ -177,6 +177,7 @@ main := |*
 	numeral_cluster ZWNJ?			=> { found_syllable (use_numeral_cluster); };
 	symbol_cluster ZWNJ?			=> { found_syllable (use_symbol_cluster); };
 	hieroglyph_cluster ZWNJ?		=> { found_syllable (use_hieroglyph_cluster); };
+	FMPst					=> { found_syllable (use_non_cluster); };
 	broken_cluster ZWNJ?			=> { found_syllable (use_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
 	other					=> { found_syllable (use_non_cluster); };
 *|;
