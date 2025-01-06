@@ -22,9 +22,8 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  */
+#include "hb-subset-repacker.h"
 #include "hb-repacker.hh"
-
-#ifdef HB_EXPERIMENTAL_API
 
 /**
  * hb_subset_repack_or_fail:
@@ -38,7 +37,7 @@
  * Table specific optimizations (eg. extension promotion in GSUB/GPOS) may be performed.
  * Passing HB_TAG_NONE will disable table specific optimizations.
  *
- * XSince: EXPERIMENTAL
+ * XSince: REPLACEME
  **/
 hb_blob_t* hb_subset_repack_or_fail (hb_tag_t table_tag,
                                      hb_object_t* hb_objects,
@@ -55,4 +54,3 @@ hb_blob_t* hb_subset_repack_or_fail (hb_tag_t table_tag,
                                20,
                                true);
 }
-#endif

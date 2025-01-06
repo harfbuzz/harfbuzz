@@ -3,11 +3,8 @@ tests = [
   'hb-subset-fuzzer.cc',
   'hb-set-fuzzer.cc',
   'hb-draw-fuzzer.cc',
+  'hb-repacker-fuzzer.cc',
 ]
-
-if get_option('experimental_api')
-  tests += 'hb-repacker-fuzzer.cc'
-endif
 
 foreach file_name : tests
   test_name = file_name.split('.')[0]
@@ -63,19 +60,19 @@ test('subset_fuzzer', find_program('run-subset-fuzzer-tests.py'),
   suite: ['fuzzing', 'slow'],
 )
 
-if get_option('experimental_api')
-  test('repacker_fuzzer', find_program('run-repacker-fuzzer-tests.py'),
-    args: [
-      hb_repacker_fuzzer_exe,
-    ],
-    # as the tests are ran concurrently let's raise acceptable time here
-    # ideally better to break and let meson handles them in parallel
-    timeout: 300,
-    workdir: meson.current_build_dir() / '..' / '..',
-    env: env,
-    suite: ['fuzzing', 'slow'],
-  )
-endif
+
+test('repacker_fuzzer', find_program('run-repacker-fuzzer-tests.py'),
+  args: [
+    hb_repacker_fuzzer_exe,
+  ],
+  # as the tests are ran concurrently let's raise acceptable time here
+  # ideally better to break and let meson handles them in parallel
+  timeout: 300,
+  workdir: meson.current_build_dir() / '..' / '..',
+  env: env,
+  suite: ['fuzzing', 'slow'],
+)
+
 
 test('draw_fuzzer', find_program('run-draw-fuzzer-tests.py'),
   args: [
