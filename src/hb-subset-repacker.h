@@ -30,7 +30,6 @@
 
 HB_BEGIN_DECLS
 
-#ifdef HB_EXPERIMENTAL_API
 /*
  * struct hb_link_t
  * width:    offsetSize in bytes
@@ -74,7 +73,6 @@ hb_subset_repack_or_fail (hb_tag_t table_tag,
                           hb_object_t* hb_objects,
                           unsigned num_hb_objs);
 
-#endif
 
 HB_END_DECLS
 

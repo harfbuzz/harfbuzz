@@ -917,10 +917,10 @@ hb_subset_flags_t
 hb_subset_input_t
 hb_subset_sets_t
 hb_subset_plan_t
-<SUBSECTION Private>
 hb_link_t
 hb_object_t
 hb_subset_repack_or_fail
+<SUBSECTION Private>
 hb_subset_input_override_name_table
 </SECTION>
 
