@@ -129,9 +129,9 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   add_links_to_objects (objects, num_objects,
                         links, num_real_links);
 
-  hb_blob_destroy (hb_subset_repack_or_fail (table_tag,
-                                             objects,
-                                             num_objects));
+  hb_blob_destroy (hb_subset_serialize_or_fail (table_tag,
+                                                objects,
+                                                num_objects));
 
 end:
   if (objects)
