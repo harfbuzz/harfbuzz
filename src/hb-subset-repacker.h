@@ -40,14 +40,12 @@ HB_BEGIN_DECLS
  * Represents a link between two objects in the object graph
  * to be serialized.
  */
-struct hb_link_t
+typedef struct hb_link_t
 {
   unsigned width;
   unsigned position;
   unsigned objidx;
-};
-
-typedef struct hb_link_t hb_link_t;
+} hb_link_t;
 
 /**
  * hb_object_t:
@@ -62,7 +60,7 @@ typedef struct hb_link_t hb_link_t;
  *
  * Represents an object in the object graph to be serialized.
  */
-struct hb_object_t
+typedef struct hb_object_t
 {
   char *head;
   char *tail;
@@ -70,9 +68,7 @@ struct hb_object_t
   hb_link_t *real_links;
   unsigned num_virtual_links;
   hb_link_t *virtual_links;
-};
-
-typedef struct hb_object_t hb_object_t;
+} hb_object_t;
 
 HB_EXTERN hb_blob_t*
 hb_subset_repack_or_fail (hb_tag_t table_tag,
