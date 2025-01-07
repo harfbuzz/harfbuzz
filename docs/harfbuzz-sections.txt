@@ -801,8 +801,10 @@ hb_set_t
 <FILE>hb-shape</FILE>
 hb_shape
 hb_shape_full
-hb_shape_justify
 hb_shape_list_shapers
+<SUBSECTION Private>
+hb_shape_justify
+</SUBSECTION>
 </SECTION>
 
 <SECTION>
@@ -917,10 +919,10 @@ hb_subset_flags_t
 hb_subset_input_t
 hb_subset_sets_t
 hb_subset_plan_t
-<SUBSECTION Private>
 hb_link_t
 hb_object_t
 hb_subset_repack_or_fail
+<SUBSECTION Private>
 hb_subset_input_override_name_table
 </SECTION>
 

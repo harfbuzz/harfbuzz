@@ -20,7 +20,6 @@ if '--experimental-api' not in sys.argv:
 	# Move these to harfbuzz-sections.txt when got stable
 	experimental_symbols = \
 """hb_shape_justify
-hb_subset_repack_or_fail
 hb_subset_input_override_name_table
 """.splitlines ()
 	symbols = [x for x in symbols if x not in experimental_symbols]

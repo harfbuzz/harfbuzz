@@ -36,9 +36,7 @@
 #include "hb-map.hh"
 #include "hb-pool.hh"
 
-#ifdef HB_EXPERIMENTAL_API
 #include "hb-subset-repacker.h"
-#endif
 
 /*
  * Serialize
@@ -75,7 +73,6 @@ struct hb_serialize_context_t
 
     object_t () = default;
 
-#ifdef HB_EXPERIMENTAL_API
     object_t (const hb_object_t &o)
     {
       head = o.head;
@@ -89,7 +86,6 @@ struct hb_serialize_context_t
       for (unsigned i = 0; i < o.num_virtual_links; i++)
         virtual_links.push (o.virtual_links[i]);
     }
-#endif
 
     bool add_virtual_link (objidx_t objidx)
     {
@@ -148,7 +144,6 @@ struct hb_serialize_context_t
 
       link_t () = default;
 
-#ifdef HB_EXPERIMENTAL_API
       link_t (const hb_link_t &o)
       {
         width = o.width;
@@ -158,7 +153,6 @@ struct hb_serialize_context_t
         bias = 0;
         objidx = o.objidx;
       }
-#endif
 
       HB_INTERNAL static int cmp (const void* a, const void* b)
       {
