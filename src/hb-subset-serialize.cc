@@ -26,22 +26,22 @@
 #include "hb-repacker.hh"
 
 /**
- * hb_subset_repack_or_fail:
+ * hb_subset_serialize_or_fail:
  * @table_tag: tag of the table being packed, needed to allow table specific optimizations.
  * @hb_objects: raw array of struct hb_subset_serialize_object_t, which provides
  * object graph info
  * @num_hb_objs: number of hb_subset_serialize_object_t in the hb_objects array.
  *
- * Given the input object graph info, repack a table to eliminate
- * offset overflows. A nullptr is returned if the repacking attempt fails.
+ * Given the input object graph info, repack a table to eliminate offset overflows and
+ * serialize it into a continous array of bytes. A nullptr is returned if the serializing attempt fails.
  * Table specific optimizations (eg. extension promotion in GSUB/GPOS) may be performed.
  * Passing HB_TAG_NONE will disable table specific optimizations.
  *
  * XSince: REPLACEME
  **/
-hb_blob_t* hb_subset_repack_or_fail (hb_tag_t table_tag,
-                                     hb_subset_serialize_object_t* hb_objects,
-                                     unsigned num_hb_objs)
+hb_blob_t* hb_subset_serialize_or_fail (hb_tag_t table_tag,
+                                        hb_subset_serialize_object_t* hb_objects,
+                                        unsigned num_hb_objs)
 {
   hb_vector_t<const hb_subset_serialize_object_t *> packed;
   packed.alloc (num_hb_objs + 1);

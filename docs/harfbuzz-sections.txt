@@ -921,7 +921,7 @@ hb_subset_sets_t
 hb_subset_plan_t
 hb_subset_serialize_link_t
 hb_subset_serialize_object_t
-hb_subset_repack_or_fail
+hb_subset_serialize_or_fail
 <SUBSECTION Private>
 hb_subset_input_override_name_table
 </SECTION>
