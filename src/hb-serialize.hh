@@ -36,7 +36,7 @@
 #include "hb-map.hh"
 #include "hb-pool.hh"
 
-#include "hb-subset-repacker.h"
+#include "hb-subset-serialize.h"
 
 /*
  * Serialize
@@ -73,7 +73,7 @@ struct hb_serialize_context_t
 
     object_t () = default;
 
-    object_t (const hb_object_t &o)
+    object_t (const hb_subset_serialize_object_t &o)
     {
       head = o.head;
       tail = o.tail;
@@ -144,7 +144,7 @@ struct hb_serialize_context_t
 
       link_t () = default;
 
-      link_t (const hb_link_t &o)
+      link_t (const hb_subset_serialize_link_t &o)
       {
         width = o.width;
         is_signed = 0;

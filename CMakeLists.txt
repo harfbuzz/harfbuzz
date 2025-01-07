@@ -168,7 +168,7 @@ set (subset_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-subset-plan.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset-plan.hh
      ${PROJECT_SOURCE_DIR}/src/hb-subset-plan-member-list.hh
-     ${PROJECT_SOURCE_DIR}/src/hb-subset-repacker.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset.hh
      ${PROJECT_SOURCE_DIR}/src/hb-repacker.hh
@@ -219,7 +219,7 @@ set (project_headers
 )
 set (subset_project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-subset.h
-     ${PROJECT_SOURCE_DIR}/src/hb-subset-repacker.h
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.h
 )
 
 ## Find and include needed header folders and libraries
@@ -513,7 +513,7 @@ endif ()
 ## Define harfbuzz-subset library
 if (HB_BUILD_SUBSET)
   add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
-  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-subset.h ${PROJECT_SOURCE_DIR}/src/hb-subset-repacker.h)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-subset.h ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.h)
   add_dependencies(harfbuzz-subset harfbuzz)
   target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
 
