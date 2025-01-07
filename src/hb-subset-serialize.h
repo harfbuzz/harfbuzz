@@ -32,41 +32,39 @@ HB_BEGIN_DECLS
 
 /**
  * hb_subset_serialize_link_t:
- * @width:    offsetSize in bytes
+ * @width: offsetSize in bytes
  * @position: position of the offset field in bytes from
  *            beginning of subtable
- * @objidx:   index of subtable
+ * @objidx: index of subtable
  *
  * Represents a link between two objects in the object graph
  * to be serialized.
  */
-typedef struct hb_subset_serialize_link_t
-{
-  unsigned width;
-  unsigned position;
-  unsigned objidx;
+typedef struct hb_subset_serialize_link_t {
+  unsigned int width;
+  unsigned int position;
+  unsigned int objidx;
 } hb_subset_serialize_link_t;
 
 /**
  * hb_subset_serialize_object_t:
- * @head:    start of object data
- * @tail:    end of object data
- * @num_real_links:    num of offset field in the object
- * @real_links:        pointer to array of offset info
+ * @head: start of object data
+ * @tail: end of object data
+ * @num_real_links: num of offset field in the object
+ * @real_links: pointer to array of offset info
  * @num_virtual_links: num of objects that must be packed
  *                     after current object in the final
  *                     serialized order
- * @virtual_links:     array of virtual link info
+ * @virtual_links: array of virtual link info
  *
  * Represents an object in the object graph to be serialized.
  */
-typedef struct hb_subset_serialize_object_t
-{
+typedef struct hb_subset_serialize_object_t {
   char *head;
   char *tail;
-  unsigned num_real_links;
+  unsigned int num_real_links;
   hb_subset_serialize_link_t *real_links;
-  unsigned num_virtual_links;
+  unsigned int num_virtual_links;
   hb_subset_serialize_link_t *virtual_links;
 } hb_subset_serialize_object_t;
 
