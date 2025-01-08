@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef HB_SUBSET_REPACKER_H
-#define HB_SUBSET_REPACKER_H
+#ifndef HB_SUBSET_SERIALIZE_H
+#define HB_SUBSET_SERIALIZE_H
 
 #include "hb.h"
 
@@ -50,9 +50,9 @@ typedef struct hb_subset_serialize_link_t {
  * hb_subset_serialize_object_t:
  * @head: start of object data
  * @tail: end of object data
- * @num_real_links: num of offset field in the object
- * @real_links: pointer to array of offset info
- * @num_virtual_links: num of objects that must be packed
+ * @num_real_links: number of offset field in the object
+ * @real_links: array of offset info
+ * @num_virtual_links: number of objects that must be packed
  *                     after current object in the final
  *                     serialized order
  * @virtual_links: array of virtual link info
@@ -68,12 +68,12 @@ typedef struct hb_subset_serialize_object_t {
   hb_subset_serialize_link_t *virtual_links;
 } hb_subset_serialize_object_t;
 
-HB_EXTERN hb_blob_t*
-hb_subset_serialize_or_fail (hb_tag_t table_tag,
-                             hb_subset_serialize_object_t* hb_objects,
-                             unsigned num_hb_objs);
+HB_EXTERN hb_blob_t *
+hb_subset_serialize_or_fail (hb_tag_t                      table_tag,
+                             hb_subset_serialize_object_t *hb_objects,
+                             unsigned                      num_hb_objs);
 
 
 HB_END_DECLS
 
-#endif /* HB_SUBSET_REPACKER_H */
+#endif /* HB_SUBSET_SERIALIZE_H */
