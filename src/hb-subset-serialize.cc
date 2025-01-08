@@ -22,6 +22,9 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  */
+
+#include "hb.hh"
+
 #include "hb-subset-serialize.h"
 #include "hb-repacker.hh"
 
@@ -39,9 +42,10 @@
  *
  * XSince: REPLACEME
  **/
-hb_blob_t* hb_subset_serialize_or_fail (hb_tag_t table_tag,
-                                        hb_subset_serialize_object_t* hb_objects,
-                                        unsigned num_hb_objs)
+HB_EXTERN hb_blob_t*
+hb_subset_serialize_or_fail (hb_tag_t table_tag,
+                             hb_subset_serialize_object_t* hb_objects,
+                             unsigned num_hb_objs)
 {
   hb_vector_t<const hb_subset_serialize_object_t *> packed;
   packed.alloc (num_hb_objs + 1);
