@@ -499,19 +499,22 @@ if (HB_HAVE_ICU)
   target_link_libraries(harfbuzz-icu harfbuzz ${THIRD_PARTY_LIBS})
 
   if (BUILD_SHARED_LIBS)
-    set_target_properties(harfbuzz harfbuzz-icu PROPERTIES 
-      VISIBILITY_INLINES_HIDDEN TRUE
-      FRAMEWORK TRUE
-      FRAMEWORK_VERSION "${HB_VERSION}"
-      PUBLIC_HEADER "${project_headers}"
-      PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-icu"
-      XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
-      OUTPUT_NAME "harfbuzz-icu"
-      XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
-      MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-icu"
-      MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
-      MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
-    )
+    set_target_properties(harfbuzz harfbuzz-icu PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+    if (BUILD_FRAMEWORK)
+      set_target_properties(harfbuzz harfbuzz-icu PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-icu"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-icu"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-icu"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
   endif ()
 endif ()
 
@@ -523,19 +526,24 @@ if (HB_BUILD_SUBSET)
   add_dependencies(harfbuzz-subset harfbuzz)
   target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
 
-  set_target_properties(harfbuzz harfbuzz-subset PROPERTIES 
-    VISIBILITY_INLINES_HIDDEN TRUE
-    FRAMEWORK TRUE
-    FRAMEWORK_VERSION "${HB_VERSION}"
-    PUBLIC_HEADER "${project_headers}"
-    PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-subset"
-    XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
-    OUTPUT_NAME "harfbuzz-subset"
-    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
-    MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-subset"
-    MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
-    MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
-  )
+  if (BUILD_SHARED_LIBS)
+    set_target_properties(harfbuzz harfbuzz-subset PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+    if (BUILD_FRAMEWORK)
+      set_target_properties(harfbuzz harfbuzz-subset PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-subset"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-subset"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-subset"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
+  endif ()
 endif ()
 
 if (UNIX OR MINGW OR VITA)
@@ -586,19 +594,22 @@ if (HB_HAVE_GOBJECT)
   target_link_libraries(harfbuzz-gobject harfbuzz ${GOBJECT_LIBRARIES} ${THIRD_PARTY_LIBS})
 
   if (BUILD_SHARED_LIBS)
-    set_target_properties(harfbuzz-gobject PROPERTIES 
-      VISIBILITY_INLINES_HIDDEN TRUE
-      FRAMEWORK TRUE
-      FRAMEWORK_VERSION "${HB_VERSION}"
-      PUBLIC_HEADER "${project_headers}"
-      PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-gobject"
-      XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
-      OUTPUT_NAME "harfbuzz-gobject"
-      XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
-      MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-gobject"
-      MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
-      MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
-    )
+    set_target_properties(harfbuzz harfbuzz-icu PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+    if (BUILD_FRAMEWORK)
+      set_target_properties(harfbuzz-gobject PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-gobject"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-gobject"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-gobject"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
   endif ()
 endif ()
 
@@ -610,19 +621,22 @@ if (HB_HAVE_CAIRO)
   target_link_libraries(harfbuzz-cairo harfbuzz ${THIRD_PARTY_LIBS})
 
   if (BUILD_SHARED_LIBS)
-    set_target_properties(harfbuzz-cairo PROPERTIES 
-      VISIBILITY_INLINES_HIDDEN TRUE
-      FRAMEWORK TRUE
-      FRAMEWORK_VERSION "${HB_VERSION}"
-      PUBLIC_HEADER "${project_headers}"
-      PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harbuzz-cairo"
-      XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
-      OUTPUT_NAME "harfbuzz-cairo"
-      XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
-      MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-cairo"
-      MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
-      MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
-    )
+    set_target_properties(harfbuzz-cairo PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+    if (BUILD_FRAMEWORK)
+      set_target_properties(harfbuzz-cairo PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harbuzz-cairo"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-cairo"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-cairo"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
   endif ()
 endif()
 
@@ -963,7 +977,6 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
       FRAMEWORK DESTINATION Library/Frameworks 
       COMPONENT runtime OPTIONAL
-      # INCLUDES DESTINATION ${project_headers}
     )
     make_pkgconfig_pc_file("harfbuzz-subset")
   endif ()
