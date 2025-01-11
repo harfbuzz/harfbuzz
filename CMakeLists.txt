@@ -563,9 +563,7 @@ if (UNIX OR MINGW OR VITA)
     set (CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
     set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
     if (HB_BUILD_SUBSET)
-      set_target_properties(harfbuzz-subset PROPERTIES 
-        LINKER_LANGUAGE C
-      )
+      set_target_properties(harfbuzz-subset PROPERTIES LINKER_LANGUAGE C)
     endif ()
 
     # No threadsafe statics as we do it ourselves
@@ -594,7 +592,7 @@ if (HB_HAVE_GOBJECT)
   target_link_libraries(harfbuzz-gobject harfbuzz ${GOBJECT_LIBRARIES} ${THIRD_PARTY_LIBS})
 
   if (BUILD_SHARED_LIBS)
-    set_target_properties(harfbuzz harfbuzz-icu PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+    set_target_properties(harfbuzz harfbuzz-gobject PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
 
     if (BUILD_FRAMEWORK)
       set_target_properties(harfbuzz-gobject PROPERTIES
