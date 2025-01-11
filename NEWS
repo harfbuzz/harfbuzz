@@ -1,3 +1,32 @@
+Overview of changes leading to 10.2.0
+Saturday, January 11, 2025
+====================================
+- Consider Unicode Variation Selectors when subsetting “cmap” table.
+- Guard hb_cairo_glyphs_from_buffer() against malformed UTF-8 strings.
+- Fix incorrect “COLR” v1 glyph scaling in hb-cairo.
+- Use locale-independent parsing of double numbers is “hb-subset” command line
+  tool.
+- Fix incorrect zeroing of advance width of base glyphs in various “Courier New”
+  font versions due to incorrect “GDEF” glyph classes.
+- Fix handling of long language codes with “HB_LEAN” configuration.
+- Update OpenType language system registry.
+- Allow all Myanmar tone marks (including visarga) in any order
+- Don’t insert U+25CC DOTTED CIRCLE before superscript/subscript digits
+- Handle Garay script as right to left script.
+- New API for serializing font tables and potentially repacking them in optimal
+  way. This was a previously experimental-only API.
+- New API for converting font variation setting from and to strings.
+- Various build fixes
+- Various subsetter and instancer fixes.
+
+- New API:
++hb_subset_serialize_link_t
++hb_subset_serialize_object_t
++hb_subset_serialize_or_fail()
++hb_subset_axis_range_from_string()
++hb_subset_axis_range_to_string()
+
+
 Overview of changes leading to 10.1.0
 Tuesday, November 5, 2024
 ====================================

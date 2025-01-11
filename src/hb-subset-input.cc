@@ -617,7 +617,7 @@ hb_subset_input_get_axis_range (hb_subset_input_t  *input,
  * Return value:
  * `true` if @str is successfully parsed, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 10.2.0
  */
 HB_EXTERN hb_bool_t
 hb_subset_axis_range_from_string (const char *str, int len,
@@ -701,7 +701,7 @@ hb_subset_axis_range_from_string (const char *str, int len,
  * understood by hb_subset_axis_range_from_string(). The client in responsible for
  * allocating big enough size for @buf, 128 bytes is more than enough.
  *
- * XSince: REPLACEME
+ * Since: 10.2.0
  */
 HB_EXTERN void
 hb_subset_axis_range_to_string (hb_subset_input_t *input,

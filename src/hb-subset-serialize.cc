@@ -40,7 +40,7 @@
  * Table specific optimizations (eg. extension promotion in GSUB/GPOS) may be performed.
  * Passing HB_TAG_NONE will disable table specific optimizations.
  *
- * XSince: REPLACEME
+ * Since: 10.2.0
  **/
 HB_EXTERN hb_blob_t *
 hb_subset_serialize_or_fail (hb_tag_t                      table_tag,

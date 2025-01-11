@@ -39,6 +39,8 @@ HB_BEGIN_DECLS
  *
  * Represents a link between two objects in the object graph
  * to be serialized.
+ *
+ * Since: 10.2.0
  */
 typedef struct hb_subset_serialize_link_t {
   unsigned int width;
@@ -58,6 +60,8 @@ typedef struct hb_subset_serialize_link_t {
  * @virtual_links: array of virtual link info
  *
  * Represents an object in the object graph to be serialized.
+ *
+ * Since: 10.2.0
  */
 typedef struct hb_subset_serialize_object_t {
   char *head;
