@@ -1,24 +1,10 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 project(harfbuzz)
 
 message(WARN "HarfBuzz has a Meson port and tries to migrate all the other build systems to it, please consider using it as we might remove our cmake port soon.")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-## Limit framework build to Xcode generator
-if (BUILD_FRAMEWORK)
-  # for a framework build on macOS, use:
-  # cmake -DBUILD_FRAMEWORK=ON -Bbuild -H. -GXcode && cmake --build build
-  if (NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
-    message(FATAL_ERROR
-      "You should use Xcode generator with BUILD_FRAMEWORK enabled")
-  endif ()
-  set (CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_64_BIT)")
-  set (CMAKE_MACOSX_RPATH ON)
-  set (BUILD_SHARED_LIBS ON)
-endif ()
-
 
 ## Disallow in-source builds, as CMake generated make files can collide with autotools ones
 if (NOT MSVC AND "${PROJECT_BINARY_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}")
@@ -71,6 +57,14 @@ option(HB_HAVE_INTROSPECTION "Enable building introspection (.gir/.typelib) file
 if (HB_HAVE_INTROSPECTION)
   set (HB_HAVE_GOBJECT ON)
   set (HB_HAVE_GLIB ON)
+endif ()
+
+if (APPLE)
+  option(BUILD_FRAMEWORK "Build as Apple Frameworks" OFF)
+endif ()
+if (BUILD_FRAMEWORK)
+  set (CMAKE_MACOSX_RPATH ON)
+  set (BUILD_SHARED_LIBS OFF)
 endif ()
 
 include_directories(AFTER
@@ -506,6 +500,21 @@ if (HB_HAVE_ICU)
 
   if (BUILD_SHARED_LIBS)
     set_target_properties(harfbuzz harfbuzz-icu PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+    if (BUILD_FRAMEWORK)
+      set_target_properties(harfbuzz harfbuzz-icu PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-icu"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-icu"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-icu"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
   endif ()
 endif ()
 
@@ -519,6 +528,21 @@ if (HB_BUILD_SUBSET)
 
   if (BUILD_SHARED_LIBS)
     set_target_properties(harfbuzz harfbuzz-subset PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+    if (BUILD_FRAMEWORK)
+      set_target_properties(harfbuzz harfbuzz-subset PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-subset"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-subset"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-subset"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
   endif ()
 endif ()
 
@@ -568,7 +592,22 @@ if (HB_HAVE_GOBJECT)
   target_link_libraries(harfbuzz-gobject harfbuzz ${GOBJECT_LIBRARIES} ${THIRD_PARTY_LIBS})
 
   if (BUILD_SHARED_LIBS)
-    set_target_properties(harfbuzz-gobject PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+    set_target_properties(harfbuzz harfbuzz-gobject PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+    if (BUILD_FRAMEWORK)
+      set_target_properties(harfbuzz-gobject PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-gobject"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-gobject"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-gobject"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
   endif ()
 endif ()
 
@@ -581,6 +620,21 @@ if (HB_HAVE_CAIRO)
 
   if (BUILD_SHARED_LIBS)
     set_target_properties(harfbuzz-cairo PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+    if (BUILD_FRAMEWORK)
+      set_target_properties(harfbuzz-cairo PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harbuzz-cairo"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-cairo"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-cairo"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
   endif ()
 endif()
 
@@ -719,8 +773,12 @@ if (BUILD_FRAMEWORK)
   set (CMAKE_MACOSX_RPATH ON)
   set_target_properties(harfbuzz PROPERTIES
     FRAMEWORK TRUE
+    FRAMEWORK_VERSION "${HB_VERSION}"
     PUBLIC_HEADER "${project_headers}"
+    PRODUCT_BUNDLE_IDENTIFIER "harfbuzz"
     XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+    OUTPUT_NAME "harfbuzz"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
   )
   set (MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz")
   set (MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}")
@@ -881,7 +939,8 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    FRAMEWORK DESTINATION Library/Frameworks
+    FRAMEWORK DESTINATION Library/Frameworks 
+    COMPONENT runtime OPTIONAL
   )
   make_pkgconfig_pc_file("harfbuzz")
   install(EXPORT harfbuzzConfig
@@ -893,7 +952,8 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      FRAMEWORK DESTINATION Library/Frameworks
+      FRAMEWORK DESTINATION Library/Frameworks 
+      COMPONENT runtime OPTIONAL
     )
     make_pkgconfig_pc_file("harfbuzz-icu")
   endif ()
@@ -902,13 +962,19 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      FRAMEWORK DESTINATION Library/Frameworks
+      FRAMEWORK DESTINATION Library/Frameworks 
+      COMPONENT runtime OPTIONAL
     )
     make_pkgconfig_pc_file("harfbuzz-cairo")
   endif ()
   if (HB_BUILD_SUBSET)
     install(TARGETS harfbuzz-subset
+      EXPORT harfbuzz-subset
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      FRAMEWORK DESTINATION Library/Frameworks 
+      COMPONENT runtime OPTIONAL
     )
     make_pkgconfig_pc_file("harfbuzz-subset")
   endif ()
@@ -943,9 +1009,12 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   endif ()
   if (HB_HAVE_GOBJECT)
     install(TARGETS harfbuzz-gobject
+      EXPORT harfbuzz-gobject
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR} 
+      COMPONENT runtime OPTIONAL
     )
     make_pkgconfig_pc_file("harfbuzz-gobject")
     if (HB_HAVE_INTROSPECTION)
