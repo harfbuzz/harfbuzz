@@ -1298,6 +1298,12 @@ struct mortmorx
       hb_sanitize_context_t sc;
       this->table = sc.reference_table<T> (face);
 
+      if (unlikely (this->table->is_blocklisted (this->table.get_blob (), face)))
+      {
+        hb_blob_destroy (this->table.get_blob ());
+        this->table = hb_blob_get_empty ();
+      }
+
       this->chain_count = table->get_chain_count ();
 
       this->accels = (hb_atomic_ptr_t<hb_aat_layout_chain_accelerator_t> *) hb_calloc (this->chain_count, sizeof (*accels));
@@ -1428,8 +1434,17 @@ struct mortmorx
   DEFINE_SIZE_MIN (8);
 };
 
-struct morx : mortmorx<morx, ExtendedTypes, HB_AAT_TAG_morx> {};
-struct mort : mortmorx<mort, ObsoleteTypes, HB_AAT_TAG_mort> {};
+struct morx : mortmorx<morx, ExtendedTypes, HB_AAT_TAG_morx>
+{
+  HB_INTERNAL bool is_blocklisted (hb_blob_t *blob,
+                                   hb_face_t *face) const;
+};
+
+struct mort : mortmorx<mort, ObsoleteTypes, HB_AAT_TAG_mort>
+{
+  HB_INTERNAL bool is_blocklisted (hb_blob_t *blob,
+                                   hb_face_t *face) const;
+};
 
 struct morx_accelerator_t : morx::accelerator_t {
   morx_accelerator_t (hb_face_t *face) : morx::accelerator_t (face) {}

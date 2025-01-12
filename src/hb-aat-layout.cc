@@ -37,6 +37,9 @@
 #include "hb-aat-layout-trak-table.hh"
 #include "hb-aat-ltag-table.hh"
 
+#include "hb-ot-layout-gsub-table.hh"
+#include "hb-ot-layout-gdef-table.hh"
+
 
 /*
  * hb_aat_apply_context_t
@@ -206,6 +209,36 @@ hb_aat_layout_find_feature_mapping (hb_tag_t tag)
  * mort/morx/kerx/trak
  */
 
+
+bool
+AAT::morx::is_blocklisted (hb_blob_t *blob,
+                           hb_face_t *face) const
+{
+#ifdef HB_NO_AAT_LAYOUT_BLOCKLIST
+  return false;
+#endif
+
+  switch HB_CODEPOINT_ENCODE3 (blob->length,
+                               face->table.GSUB->table.get_length (),
+                               face->table.GDEF->table.get_length ())
+  {
+    /* https://github.com/harfbuzz/harfbuzz/issues/4108
+       sha1sum:a71ca6813b7e56a772cffff7c24a5166b087197c  AALMAGHRIBI.ttf */
+    case HB_CODEPOINT_ENCODE3 (19892, 2794, 340):
+      return true;
+  }
+  return false;
+}
+
+bool
+AAT::mort::is_blocklisted (hb_blob_t *blob,
+                           hb_face_t *face) const
+{
+#ifdef HB_NO_AAT_LAYOUT_BLOCKLIST
+  return false;
+#endif
+  return false;
+}
 
 void
 hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
