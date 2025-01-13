@@ -291,6 +291,7 @@ hb_face_create_or_fail (hb_blob_t    *blob,
   return face;
 }
 
+#ifndef HB_NO_OPEN
 /**
  * hb_face_create_from_file_or_fail:
  * @file_name: A font filename
@@ -317,6 +318,7 @@ hb_face_create_from_file_or_fail (const char   *file_name,
 
   return face;
 }
+#endif
 
 /**
  * hb_face_get_empty:
