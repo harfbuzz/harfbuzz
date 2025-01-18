@@ -182,6 +182,120 @@ using MasterAxisValueDeltas = UnsizedArrayOf<HBFLOAT32LE>; // length: sparseMast
 
 using ExtremumAxisValueDeltas = UnsizedArrayOf<HBFLOAT32LE>; // length: sparseExtremumAxisValueCount. Extremum axis value deltas
 
+struct TranslationDelta
+{
+  public:
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  public:
+  HBFLOAT32LE x; // Translation delta X
+  HBFLOAT32LE y; // Translation delta Y
+
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+struct MatrixIndex
+{
+  public:
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  public:
+  HBUINT16LE row; // Row index
+  HBUINT16LE column; // Column index
+
+  public:
+  DEFINE_SIZE_STATIC (4);
+};
+
+struct AllTranslations
+{
+  public:
+
+  bool sanitize (hb_sanitize_context_t *c,
+		 unsigned sparseMasterTranslationCount,
+		 unsigned sparseExtremumTranslationCount) const
+  {
+    TRACE_SANITIZE (this);
+
+    if (unlikely (!masterTranslationDelta.sanitize (c, sparseMasterTranslationCount))) return_trace (false);
+    hb_barrier ();
+
+    const auto &extremumTranslationDelta = StructAfter<decltype (extremumTranslationDeltaX)> (masterTranslationDelta, sparseMasterTranslationCount);
+    if (unlikely (!extremumTranslationDelta.sanitize (c, sparseExtremumTranslationCount))) return_trace (false);
+    hb_barrier ();
+
+    const auto &extremumTranslationIndex = StructAfter<decltype (extremumTranslationIndexX)> (extremumTranslationDelta, sparseExtremumTranslationCount);
+    if (unlikely (!extremumTranslationIndex.sanitize (c, sparseExtremumTranslationCount))) return_trace (false);
+    hb_barrier ();
+
+    const auto &masterTranslationIndex = StructAfter<decltype (masterTranslationIndexX)> (extremumTranslationIndex, sparseExtremumTranslationCount);
+    if (unlikely (!masterTranslationIndex.sanitize (c, sparseMasterTranslationCount))) return_trace (false);
+    hb_barrier ();
+
+    return_trace (true);
+  }
+
+  protected:
+  UnsizedArrayOf<TranslationDelta> masterTranslationDelta; // length: sparseMasterTranslationCount; Master translation deltas
+  UnsizedArrayOf<TranslationDelta> extremumTranslationDeltaX; // length: sparseExtremumTranslationCount; Extremum translation deltas
+  UnsizedArrayOf<MatrixIndex> extremumTranslationIndexX; // length: sparseExtremumTranslationCount; Extremum translation indices
+  UnsizedArrayOf<HBUINT16LE> masterTranslationIndexX; // length: sparseMasterTranslationCount; Master translation indices
+  Align<4> padding; // Pad to float32le alignment
+
+  public:
+  DEFINE_SIZE_MIN (0);
+};
+
+struct AllRotations
+{
+  public:
+
+  bool sanitize (hb_sanitize_context_t *c,
+		 unsigned sparseMasterRotationCount,
+		 unsigned sparseExtremumRotationCount) const
+  {
+    TRACE_SANITIZE (this);
+
+    if (unlikely (!masterRotationDelta.sanitize (c, sparseMasterRotationCount))) return_trace (false);
+    hb_barrier ();
+
+    const auto &extremumRotationDelta = StructAfter<decltype (extremumRotationDeltaX)> (masterRotationDelta, sparseMasterRotationCount);
+    if (unlikely (!extremumRotationDelta.sanitize (c, sparseExtremumRotationCount))) return_trace (false);
+    hb_barrier ();
+
+    const auto &extremumRotationIndex = StructAfter<decltype (extremumRotationIndexX)> (extremumRotationDelta, sparseExtremumRotationCount);
+    if (unlikely (!extremumRotationIndex.sanitize (c, sparseExtremumRotationCount))) return_trace (false);
+    hb_barrier ();
+
+    const auto &masterRotationIndex = StructAfter<decltype (masterRotationIndexX)> (extremumRotationIndex, sparseExtremumRotationCount);
+    if (unlikely (!masterRotationIndex.sanitize (c, sparseMasterRotationCount))) return_trace (false);
+    hb_barrier ();
+
+    return_trace (true);
+  }
+
+  protected:
+  UnsizedArrayOf<HBFLOAT32LE> masterRotationDelta; // length: sparseMasterRotationCount; Master rotation deltas
+  UnsizedArrayOf<HBFLOAT32LE> extremumRotationDeltaX; // length: sparseExtremumRotationCount; Extremum rotation deltas
+  UnsizedArrayOf<MatrixIndex> extremumRotationIndexX; // length: sparseExtremumRotationCount; Extremum rotation indices
+  UnsizedArrayOf<HBUINT16LE> masterRotationIndexX; // length: sparseMasterRotationCount; Master rotation indices
+  Align<4> padding; // Pad to float32le alignment
+
+  public:
+  DEFINE_SIZE_MIN (0);
+};
+
 } // namespace hvgl
 } // namespace AAT
 
