@@ -6,6 +6,9 @@
 /*
  * `hvgl` table
  */
+
+#ifndef HB_NO_VAR_HVF
+
 #define HB_AAT_TAG_hvgl HB_TAG('h','v','g','l')
 
 
@@ -105,7 +108,7 @@ struct PartShape
     return_trace (true);
   }
 
-  public:
+  protected:
   HBUINT16LE flags;
   HBUINT16LE axisCount;
   HBUINT16LE pathCount;
@@ -119,7 +122,69 @@ struct PartShape
   DEFINE_SIZE_MIN (8);
 };
 
+struct SubPart
+{
+  public:
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  protected:
+  HBUINT32LE partIndex; // Index of part that this subpart renders
+  HBUINT16LE treeTransformIndex; // Row index of data in transform vector/matrix
+  HBUINT16LE treeAxisIndex; // Row index of data in axis vector/matrix
+
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+using SubParts = UnsizedArrayOf<SubPart>; // length: subPartCount. Immediate subparts
+
+struct ExtremumColumnStarts
+{
+  public:
+
+  bool sanitize (hb_sanitize_context_t *c,
+		 unsigned axisCount,
+		 unsigned sparseMasterAxisValueCount,
+		 unsigned sparseExtremumAxisValueCount) const
+  {
+    TRACE_SANITIZE (this);
+
+    if (unlikely (!extremumColumnStart.sanitize (c, axisCount))) return_trace (false);
+    hb_barrier ();
+
+    const auto &masterRowIndex = StructAfter<decltype (masterRowIndexX)> (extremumColumnStart, axisCount);
+    if (unlikely (!masterRowIndex.sanitize (c, sparseMasterAxisValueCount))) return_trace (false);
+    hb_barrier ();
+
+    const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, sparseMasterAxisValueCount);
+    if (unlikely (!extremumRowIndex.sanitize (c, sparseExtremumAxisValueCount))) return_trace (false);
+    hb_barrier ();
+
+    return_trace (true);
+  }
+
+  protected:
+  UnsizedArrayOf<HBUINT16LE> extremumColumnStart; // length: axisCount; Extremum column starts
+  UnsizedArrayOf<HBUINT16LE> masterRowIndexX; // length: sparseMasterAxisValueCount; Master row indices
+  UnsizedArrayOf<HBUINT16LE> extremumRowIndexX; // length: sparseExtremumAxisValueCount; Extremum row indices
+  Align<4> paddingX; // Pad to uint32le alignment
+
+  public:
+  DEFINE_SIZE_MIN (0);
+};
+
+using MasterAxisValueDeltas = UnsizedArrayOf<HBFLOAT32LE>; // length: sparseMasterAxisValueCount. Master axis value deltas
+
+using ExtremumAxisValueDeltas = UnsizedArrayOf<HBFLOAT32LE>; // length: sparseExtremumAxisValueCount. Extremum axis value deltas
+
 } // namespace hvgl
 } // namespace AAT
+
+#endif // HB_NO_VAR_HVF
 
 #endif  /* HB_AAT_VAR_HVGL_TABLE_HH */
