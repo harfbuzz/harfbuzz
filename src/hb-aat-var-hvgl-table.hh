@@ -16,7 +16,7 @@ namespace AAT {
 
 using namespace OT;
 
-namespace hvgl {
+namespace hvgl_impl {
 
 struct coordinates_t
 {
@@ -415,6 +415,8 @@ struct IndexOf : Index
 
 using PartsIndex = IndexOf<Part>;
 
+} // namespace hvgl_impl
+
 struct hvgl
 {
   public:
@@ -425,7 +427,7 @@ struct hvgl
     if (unlikely (!c->check_struct (this))) return_trace (false);
     hb_barrier ();
 
-    const auto &parts = StructAtOffset<PartsIndex> (this, partsOff);
+    const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     if (unlikely (!parts.sanitize (c, (unsigned) partCount))) return_trace (false);
 
     return_trace (true);
@@ -443,7 +445,6 @@ struct hvgl
   DEFINE_SIZE_STATIC (24);
 };
 
-} // namespace hvgl
 } // namespace AAT
 
 #endif // HB_NO_VAR_HVF

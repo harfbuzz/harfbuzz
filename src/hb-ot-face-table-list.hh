@@ -132,6 +132,9 @@ HB_OT_TABLE (AAT, trak)
 HB_OT_TABLE (AAT, ltag)
 HB_OT_TABLE (AAT, feat)
 // HB_OT_TABLE (AAT, opbd)
+#ifndef HB_NO_VAR_HVF
+HB_OT_CORE_TABLE (AAT, hvgl)
+#endif
 #endif
 
 /* OpenType color fonts. */
