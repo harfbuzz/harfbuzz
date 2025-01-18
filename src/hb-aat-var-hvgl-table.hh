@@ -353,6 +353,30 @@ struct PartComposite
   DEFINE_SIZE_STATIC (36);
 };
 
+struct Part
+{
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
+  {
+    if (unlikely (!c->may_dispatch (this, &u.flags))) return c->no_dispatch_return_value ();
+    TRACE_DISPATCH (this, u.flags);
+    switch (u.flags & 1) {
+    case 0: hb_barrier (); return_trace (c->dispatch (u.shape, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.composite, std::forward<Ts> (ds)...));
+    default:return_trace (c->default_return_value ());
+    }
+  }
+
+  protected:
+  union {
+  HBUINT16LE	flags;	/* Flag identifier */
+  PartShape	shape;
+  PartComposite	composite;
+  } u;
+  public:
+  DEFINE_SIZE_MIN (2);
+};
+
 } // namespace hvgl
 } // namespace AAT
 
