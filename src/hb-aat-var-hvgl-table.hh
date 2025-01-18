@@ -395,6 +395,26 @@ struct Index
   DEFINE_SIZE_MIN (4);
 };
 
+template <typename Type>
+struct IndexOf : Index
+{
+  public:
+
+  Type get (unsigned index, unsigned count) const
+  {
+    hb_ubytes_t data = Index::get (index, count);
+    hb_sanitize_context_t c (data.begin (), data.end ());
+    Type &item = *reinterpret_cast<Type *> (data.begin ());
+    if (unlikely (!item.sanitize (c))) return Null(Type);
+    return item;
+  }
+
+  bool sanitize (hb_sanitize_context_t *c, unsigned count) const
+  { return Index::sanitize (c, count); }
+};
+
+using PartsIndex = IndexOf<Part>;
+
 struct hvgl
 {
   public:
@@ -405,7 +425,7 @@ struct hvgl
     if (unlikely (!c->check_struct (this))) return_trace (false);
     hb_barrier ();
 
-    const auto &parts = StructAtOffset<Index> (this, partsOff);
+    const auto &parts = StructAtOffset<PartsIndex> (this, partsOff);
     if (unlikely (!parts.sanitize (c, (unsigned) partCount))) return_trace (false);
 
     return_trace (true);
