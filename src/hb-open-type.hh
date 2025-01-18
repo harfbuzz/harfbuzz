@@ -57,33 +57,33 @@ namespace OT {
 template <bool BE,
 	  typename Type,
 	  unsigned int Size = sizeof (Type)>
-struct IntType
+struct NumType
 {
   typedef Type type;
 
-  IntType () = default;
-  explicit constexpr IntType (Type V) : v {V} {}
-  IntType& operator = (Type i) { v = i; return *this; }
+  NumType () = default;
+  explicit constexpr NumType (Type V) : v {V} {}
+  NumType& operator = (Type i) { v = i; return *this; }
   /* For reason we define cast out operator for signed/unsigned, instead of Type, see:
    * https://github.com/harfbuzz/harfbuzz/pull/2875/commits/09836013995cab2b9f07577a179ad7b024130467 */
   operator typename std::conditional<std::is_signed<Type>::value, signed, unsigned>::type () const { return v; }
 
-  bool operator == (const IntType &o) const { return (Type) v == (Type) o.v; }
-  bool operator != (const IntType &o) const { return !(*this == o); }
+  bool operator == (const NumType &o) const { return (Type) v == (Type) o.v; }
+  bool operator != (const NumType &o) const { return !(*this == o); }
 
-  IntType& operator += (unsigned count) { *this = *this + count; return *this; }
-  IntType& operator -= (unsigned count) { *this = *this - count; return *this; }
-  IntType& operator ++ () { *this += 1; return *this; }
-  IntType& operator -- () { *this -= 1; return *this; }
-  IntType operator ++ (int) { IntType c (*this); ++*this; return c; }
-  IntType operator -- (int) { IntType c (*this); --*this; return c; }
+  NumType& operator += (unsigned count) { *this = *this + count; return *this; }
+  NumType& operator -= (unsigned count) { *this = *this - count; return *this; }
+  NumType& operator ++ () { *this += 1; return *this; }
+  NumType& operator -- () { *this -= 1; return *this; }
+  NumType operator ++ (int) { NumType c (*this); ++*this; return c; }
+  NumType operator -- (int) { NumType c (*this); --*this; return c; }
 
-  HB_INTERNAL static int cmp (const IntType *a, const IntType *b)
+  HB_INTERNAL static int cmp (const NumType *a, const NumType *b)
   { return b->cmp (*a); }
   HB_INTERNAL static int cmp (const void *a, const void *b)
   {
-    IntType *pa = (IntType *) a;
-    IntType *pb = (IntType *) b;
+    NumType *pa = (NumType *) a;
+    NumType *pb = (NumType *) b;
 
     return pb->cmp (*pa);
   }
@@ -100,25 +100,25 @@ struct IntType
     return_trace (c->check_struct (this));
   }
   protected:
-  HBInt<BE, Type, Size> v;
+  HBNum<BE, Type, Size> v;
   public:
   DEFINE_SIZE_STATIC (Size);
 };
 
-typedef IntType<true, uint8_t>  HBUINT8;	/* 8-bit big-endian unsigned integer. */
-typedef IntType<true, int8_t>   HBINT8;	/* 8-bit big-endian signed integer. */
-typedef IntType<true, uint16_t> HBUINT16;	/* 16-bit big-endian unsigned integer. */
-typedef IntType<true, int16_t>  HBINT16;	/* 16-bit big-endian signed integer. */
-typedef IntType<true, uint32_t> HBUINT32;	/* 32-bit big-endian unsigned integer. */
-typedef IntType<true, int32_t>  HBINT32;	/* 32-bit big-endian signed integer. */
+typedef NumType<true, uint8_t>  HBUINT8;	/* 8-bit big-endian unsigned integer. */
+typedef NumType<true, int8_t>   HBINT8;	/* 8-bit big-endian signed integer. */
+typedef NumType<true, uint16_t> HBUINT16;	/* 16-bit big-endian unsigned integer. */
+typedef NumType<true, int16_t>  HBINT16;	/* 16-bit big-endian signed integer. */
+typedef NumType<true, uint32_t> HBUINT32;	/* 32-bit big-endian unsigned integer. */
+typedef NumType<true, int32_t>  HBINT32;	/* 32-bit big-endian signed integer. */
 /* Note: we cannot defined a signed HBINT24 because there's no corresponding C type.
  * Works for unsigned, but not signed, since we rely on compiler for sign-extension. */
-typedef IntType<true, uint32_t, 3> HBUINT24;	/* 24-bit big-endian unsigned integer. */
+typedef NumType<true, uint32_t, 3> HBUINT24;	/* 24-bit big-endian unsigned integer. */
 
-typedef IntType<false, uint16_t> HBUINT16LE;	/* 16-bit little-endian unsigned integer. */
-typedef IntType<false, int16_t>  HBINT16LE;	/* 16-bit little-endian signed integer. */
-typedef IntType<false, uint32_t> HBUINT32LE;	/* 32-bit little-endian unsigned integer. */
-typedef IntType<false, int32_t>  HBINT32LE;	/* 32-bit little-endian signed integer. */
+typedef NumType<false, uint16_t> HBUINT16LE;	/* 16-bit little-endian unsigned integer. */
+typedef NumType<false, int16_t>  HBINT16LE;	/* 16-bit little-endian signed integer. */
+typedef NumType<false, uint32_t> HBUINT32LE;	/* 32-bit little-endian unsigned integer. */
+typedef NumType<false, int32_t>  HBINT32LE;	/* 32-bit little-endian signed integer. */
 
 /* 15-bit unsigned number; top bit used for extension. */
 struct HBUINT15 : HBUINT16

@@ -795,7 +795,7 @@ struct hb_serialize_context_t
   void assign_offset (const object_t* parent, const object_t::link_t &link, unsigned offset)
   {
     // XXX We should stop assuming big-endian!
-    auto &off = * ((HBInt<true, T, Size> *) (parent->head + link.position));
+    auto &off = * ((HBNum<true, T, Size> *) (parent->head + link.position));
     assert (0 == off);
     check_assign (off, offset, HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
   }

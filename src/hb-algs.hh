@@ -102,25 +102,25 @@ static inline constexpr uint32_t hb_uint32_swap (uint32_t v)
 #endif
 
 template <bool BE, typename Type, int Bytes = sizeof (Type)>
-struct HBInt;
+struct HBNum;
 template <bool BE, typename Type>
-struct HBInt<BE, Type, 1>
+struct HBNum<BE, Type, 1>
 {
   public:
-  HBInt () = default;
-  constexpr HBInt (Type V) : v {uint8_t (V)} {}
+  HBNum () = default;
+  constexpr HBNum (Type V) : v {uint8_t (V)} {}
   constexpr operator Type () const { return v; }
   private: uint8_t v;
 };
 template <bool BE, typename Type>
-struct HBInt<BE, Type, 2>
+struct HBNum<BE, Type, 2>
 {
   struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
 
   public:
-  HBInt () = default;
+  HBNum () = default;
 
-  HBInt (Type V)
+  HBNum (Type V)
 #if HB_FAST_INT_ACCESS
   {
     bool be = __BYTE_ORDER == __BIG_ENDIAN;
@@ -151,12 +151,12 @@ struct HBInt<BE, Type, 2>
   private: uint8_t v[2];
 };
 template <bool BE, typename Type>
-struct HBInt<BE, Type, 3>
+struct HBNum<BE, Type, 3>
 {
   static_assert (!std::is_signed<Type>::value, "");
   public:
-  HBInt () = default;
-  constexpr HBInt (Type V) : v {BE ? uint8_t ((V >> 16) & 0xFF) : uint8_t ((V >> 16) & 0xFF),
+  HBNum () = default;
+  constexpr HBNum (Type V) : v {BE ? uint8_t ((V >> 16) & 0xFF) : uint8_t ((V >> 16) & 0xFF),
 				BE ? uint8_t ((V >>  8) & 0xFF) : uint8_t ((V >>  8) & 0xFF),
 				BE ? uint8_t ((V      ) & 0xFF) : uint8_t ((V      ) & 0xFF)} {}
 
@@ -166,14 +166,14 @@ struct HBInt<BE, Type, 3>
   private: uint8_t v[3];
 };
 template <bool BE, typename Type>
-struct HBInt<BE, Type, 4>
+struct HBNum<BE, Type, 4>
 {
   struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
 
   public:
-  HBInt () = default;
+  HBNum () = default;
 
-  HBInt (Type V)
+  HBNum (Type V)
 #if HB_FAST_INT_ACCESS
   {
     bool be = __BYTE_ORDER == __BIG_ENDIAN;

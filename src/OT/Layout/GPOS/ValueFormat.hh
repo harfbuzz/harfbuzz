@@ -56,7 +56,7 @@ struct ValueFormat : HBUINT16
                                          * PosTable (may be NULL) */
 #endif
 
-  IntType& operator = (uint16_t i) { v = i; return *this; }
+  NumType& operator = (uint16_t i) { v = i; return *this; }
 
   unsigned int get_len () const  { return hb_popcount ((unsigned int) *this); }
   unsigned int get_size () const { return get_len () * Value::static_size; }
