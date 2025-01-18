@@ -88,22 +88,18 @@ struct PartShape
     hb_barrier ();
 
     if (unlikely (!segmentCountPerPath.sanitize (c, pathCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &blendTypes = StructAfter<decltype (blendTypesX)> (segmentCountPerPath, pathCount);
     if (unlikely (!blendTypes.sanitize (c, segmentCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &padding = StructAfter<decltype (paddingX)> (blendTypes, segmentCount);
     unsigned offset = (const char *) &padding - (const char *) this;
 
     const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, offset);
     if (unlikely (!coordinates.sanitize (c, segmentCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
     if (unlikely (!deltas.sanitize (c, axisCount, segmentCount))) return_trace (false);
-    hb_barrier ();
 
     return_trace (true);
   }
@@ -155,15 +151,12 @@ struct ExtremumColumnStarts
     TRACE_SANITIZE (this);
 
     if (unlikely (!extremumColumnStart.sanitize (c, axisCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &masterRowIndex = StructAfter<decltype (masterRowIndexX)> (extremumColumnStart, axisCount);
     if (unlikely (!masterRowIndex.sanitize (c, sparseMasterAxisValueCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, sparseMasterAxisValueCount);
     if (unlikely (!extremumRowIndex.sanitize (c, sparseExtremumAxisValueCount))) return_trace (false);
-    hb_barrier ();
 
     return_trace (true);
   }
@@ -229,19 +222,15 @@ struct AllTranslations
     TRACE_SANITIZE (this);
 
     if (unlikely (!masterTranslationDelta.sanitize (c, sparseMasterTranslationCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &extremumTranslationDelta = StructAfter<decltype (extremumTranslationDeltaX)> (masterTranslationDelta, sparseMasterTranslationCount);
     if (unlikely (!extremumTranslationDelta.sanitize (c, sparseExtremumTranslationCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &extremumTranslationIndex = StructAfter<decltype (extremumTranslationIndexX)> (extremumTranslationDelta, sparseExtremumTranslationCount);
     if (unlikely (!extremumTranslationIndex.sanitize (c, sparseExtremumTranslationCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &masterTranslationIndex = StructAfter<decltype (masterTranslationIndexX)> (extremumTranslationIndex, sparseExtremumTranslationCount);
     if (unlikely (!masterTranslationIndex.sanitize (c, sparseMasterTranslationCount))) return_trace (false);
-    hb_barrier ();
 
     return_trace (true);
   }
@@ -268,19 +257,15 @@ struct AllRotations
     TRACE_SANITIZE (this);
 
     if (unlikely (!masterRotationDelta.sanitize (c, sparseMasterRotationCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &extremumRotationDelta = StructAfter<decltype (extremumRotationDeltaX)> (masterRotationDelta, sparseMasterRotationCount);
     if (unlikely (!extremumRotationDelta.sanitize (c, sparseExtremumRotationCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &extremumRotationIndex = StructAfter<decltype (extremumRotationIndexX)> (extremumRotationDelta, sparseExtremumRotationCount);
     if (unlikely (!extremumRotationIndex.sanitize (c, sparseExtremumRotationCount))) return_trace (false);
-    hb_barrier ();
 
     const auto &masterRotationIndex = StructAfter<decltype (masterRotationIndexX)> (extremumRotationIndex, sparseExtremumRotationCount);
     if (unlikely (!masterRotationIndex.sanitize (c, sparseMasterRotationCount))) return_trace (false);
-    hb_barrier ();
 
     return_trace (true);
   }
