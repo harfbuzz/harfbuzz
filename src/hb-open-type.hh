@@ -54,7 +54,8 @@ namespace OT {
  */
 
 /* Integer types in big-endian order and no alignment requirement */
-template <typename Type,
+template <bool BE,
+	  typename Type,
 	  unsigned int Size = sizeof (Type)>
 struct IntType
 {
@@ -99,20 +100,25 @@ struct IntType
     return_trace (c->check_struct (this));
   }
   protected:
-  BEInt<Type, Size> v;
+  HBInt<BE, Type, Size> v;
   public:
   DEFINE_SIZE_STATIC (Size);
 };
 
-typedef IntType<uint8_t>  HBUINT8;	/* 8-bit unsigned integer. */
-typedef IntType<int8_t>   HBINT8;	/* 8-bit signed integer. */
-typedef IntType<uint16_t> HBUINT16;	/* 16-bit unsigned integer. */
-typedef IntType<int16_t>  HBINT16;	/* 16-bit signed integer. */
-typedef IntType<uint32_t> HBUINT32;	/* 32-bit unsigned integer. */
-typedef IntType<int32_t>  HBINT32;	/* 32-bit signed integer. */
+typedef IntType<true, uint8_t>  HBUINT8;	/* 8-bit big-endian unsigned integer. */
+typedef IntType<true, int8_t>   HBINT8;	/* 8-bit big-endian signed integer. */
+typedef IntType<true, uint16_t> HBUINT16;	/* 16-bit big-endian unsigned integer. */
+typedef IntType<true, int16_t>  HBINT16;	/* 16-bit big-endian signed integer. */
+typedef IntType<true, uint32_t> HBUINT32;	/* 32-bit big-endian unsigned integer. */
+typedef IntType<true, int32_t>  HBINT32;	/* 32-bit big-endian signed integer. */
 /* Note: we cannot defined a signed HBINT24 because there's no corresponding C type.
  * Works for unsigned, but not signed, since we rely on compiler for sign-extension. */
-typedef IntType<uint32_t, 3> HBUINT24;	/* 24-bit unsigned integer. */
+typedef IntType<true, uint32_t, 3> HBUINT24;	/* 24-bit big-endian unsigned integer. */
+
+typedef IntType<false, uint16_t> HBUINT16LE;	/* 16-bit little-endian unsigned integer. */
+typedef IntType<false, int16_t>  HBINT16LE;	/* 16-bit little-endian signed integer. */
+typedef IntType<false, uint32_t> HBUINT32LE;	/* 32-bit little-endian unsigned integer. */
+typedef IntType<false, int32_t>  HBINT32LE;	/* 32-bit little-endian signed integer. */
 
 /* 15-bit unsigned number; top bit used for extension. */
 struct HBUINT15 : HBUINT16
