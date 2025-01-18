@@ -109,7 +109,7 @@ struct PartShape
   }
 
   protected:
-  HBUINT16LE flags;
+  HBUINT16LE flags; // 0x0001 for shape part
   HBUINT16LE axisCount;
   HBUINT16LE pathCount;
   HBUINT16LE segmentCount;
@@ -294,6 +294,63 @@ struct AllRotations
 
   public:
   DEFINE_SIZE_MIN (0);
+};
+
+using Offset16LEMul4NN = Offset<HBUINT16LE, false>;
+
+struct PartComposite
+{
+  public:
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+
+    if (unlikely (!c->check_struct (this))) return_trace (false);
+
+    const auto &subParts = StructAtOffset<SubParts> (this, subPartsOff4 * 4);
+    if (unlikely (!subParts.sanitize (c, subPartCount))) return_trace (false);
+
+    const auto &extremumColumnStarts = StructAtOffset<ExtremumColumnStarts> (this, extremumColumnStartsOff4 * 4);
+    if (unlikely (!extremumColumnStarts.sanitize (c, axisCount, sparseMasterAxisValueCount, sparseExtremumAxisValueCount))) return_trace (false);
+
+    const auto &masterAxisValueDeltas = StructAtOffset<MasterAxisValueDeltas> (this, masterAxisValueDeltasOff4 * 4);
+    if (unlikely (!masterAxisValueDeltas.sanitize (c, sparseMasterAxisValueCount))) return_trace (false);
+
+    const auto &extremumAxisValueDeltas = StructAtOffset<ExtremumAxisValueDeltas> (this, extremumAxisValueDeltasOff4 * 4);
+    if (unlikely (!extremumAxisValueDeltas.sanitize (c, sparseExtremumAxisValueCount))) return_trace (false);
+
+    const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
+    if (unlikely (!allTranslations.sanitize (c, sparseMasterTranslationCount, sparseExtremumTranslationCount))) return_trace (false);
+
+    const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
+    if (unlikely (!allRotations.sanitize (c, sparseMasterRotationCount, sparseExtremumRotationCount))) return_trace (false);
+
+    return_trace (true);
+  }
+
+  protected:
+  HBUINT16LE flags; // 0x0001 for composite part
+  HBUINT16LE axisCount; // Number of axes
+  HBUINT16LE subPartCount; // Number of direct subparts
+  HBUINT16LE totalNumParts; // Number of nodes including root
+  HBUINT16LE totalNumAxes; // Sum of axis count for all nodes including root
+  HBUINT16LE maxNumExtremes; // Maximum number of extremes (2*AxisCount) in all nodes
+  HBUINT16LE sparseMasterAxisValueCount; // Count of non-zero axis value deltas for master
+  HBUINT16LE sparseExtremumAxisValueCount; // Count of non-zero axis value deltas for extrema
+  HBUINT16LE sparseMasterTranslationCount; // Count of non-zero translations for master
+  HBUINT16LE sparseMasterRotationCount; // Count of non-zero rotations for master
+  HBUINT16LE sparseExtremumTranslationCount; // Count of non-zero translations for extrema
+  HBUINT16LE sparseExtremumRotationCount; // Count of non-zero rotations for extrema
+  Offset16LEMul4NN/*To<SubParts>*/ subPartsOff4; // Offset to subpart array/4
+  Offset16LEMul4NN/*To<ExtremumColumnStarts>*/ extremumColumnStartsOff4; // Offset to extremum column starts/4
+  Offset16LEMul4NN/*To<MasterAxisValueDeltas>*/ masterAxisValueDeltasOff4; // Offset to master axis value deltas/4
+  Offset16LEMul4NN/*To<ExtremumAxisValueDeltas>*/ extremumAxisValueDeltasOff4; // Offset to extremum axis value deltas/4
+  Offset16LEMul4NN/*To<AllTranslations>*/ allTranslationsOff4; // Offset to all translations/4
+  Offset16LEMul4NN/*To<AllRotations>*/ allRotationsOff4; // Offset to all rotations/4
+
+  public:
+  DEFINE_SIZE_STATIC (36);
 };
 
 } // namespace hvgl
