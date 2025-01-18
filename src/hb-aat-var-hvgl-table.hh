@@ -362,6 +362,40 @@ struct Part
   DEFINE_SIZE_MIN (2);
 };
 
+
+struct Index
+{
+  public:
+
+  hb_ubytes_t get (unsigned index, unsigned count) const
+  {
+    if (unlikely (index >= count)) return hb_ubytes_t ();
+    hb_barrier ();
+    unsigned offset0 = offsets[index];
+    unsigned offset1 = offsets[index + 1];
+    if (unlikely (offset1 < offset0 || offset1 > offsets[count]))
+      return hb_ubytes_t ();
+    return hb_ubytes_t ((unsigned char *) this + offset0, offset1 - offset0);
+  }
+
+  unsigned int get_size (unsigned count) const { return offsets[count]; }
+
+  bool sanitize (hb_sanitize_context_t *c, unsigned count) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (count < count + 1u &&
+			  offsets.sanitize (c, count + 1) &&
+			  hb_barrier () &&
+			  offsets[count] >= offsets.get_size (count + 1) &&
+			  c->check_range (this, offsets[count])));
+  }
+
+  protected:
+  UnsizedArrayOf<HBUINT32LE>	offsets;	/* The array of (count + 1) offsets. */
+  public:
+  DEFINE_SIZE_MIN (4);
+};
+
 } // namespace hvgl
 } // namespace AAT
 
