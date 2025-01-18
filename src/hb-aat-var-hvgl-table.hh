@@ -362,7 +362,6 @@ struct Part
   DEFINE_SIZE_MIN (2);
 };
 
-
 struct Index
 {
   public:
@@ -394,6 +393,34 @@ struct Index
   UnsizedArrayOf<HBUINT32LE>	offsets;	/* The array of (count + 1) offsets. */
   public:
   DEFINE_SIZE_MIN (4);
+};
+
+struct hvgl
+{
+  public:
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!c->check_struct (this))) return_trace (false);
+    hb_barrier ();
+
+    const auto &parts = StructAtOffset<Index> (this, partsOff);
+    if (unlikely (!parts.sanitize (c, (unsigned) partCount))) return_trace (false);
+
+    return_trace (true);
+  }
+
+  protected:
+  HBUINT16LE	versionMajor;	/* Major version of the hvgl table, currently 3 */
+  HBUINT16LE	versionMinor;	/* Minor version of the hvgl table, currently 1 */
+  HBUINT32LE	flags;		/* Flags; currently all zero */
+  HBUINT32LE	partCount;	/* Number of all shapes and composites */
+  Offset<HBUINT32LE>  partsOff;	/* To: Index. length: partCount. Parts */
+  HBUINT32LE	numGlyphs;	/* Number of externally visible parts */
+  HBUINT32LE	reserved;	/* Reserved; currently zero */
+  public:
+  DEFINE_SIZE_STATIC (24);
 };
 
 } // namespace hvgl
