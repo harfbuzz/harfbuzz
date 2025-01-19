@@ -392,7 +392,8 @@ struct Part
   PartComposite	composite;
   } u;
   public:
-  DEFINE_SIZE_MIN (2);
+  // A null flags will imply PartShape. So, our null size is the size of PartShape::min_size.
+  DEFINE_SIZE_MIN (PartShape::min_size);
 };
 
 struct Index
