@@ -104,9 +104,8 @@ struct PartShape
     if (unlikely (!blendTypes.sanitize (c, segmentCount))) return_trace (false);
 
     const auto &padding = StructAfter<decltype (paddingX)> (blendTypes, segmentCount);
-    unsigned offset = (const char *) &padding - (const char *) this;
 
-    const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, offset);
+    const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, this);
     if (unlikely (!coordinates.sanitize (c, segmentCount))) return_trace (false);
 
     const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
