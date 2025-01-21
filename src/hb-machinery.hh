@@ -134,17 +134,6 @@ static inline Type& StructAfter(TObject &X, Ts... args)
   DEFINE_SIZE_ARRAY(size, array)
 
 
-template <unsigned int alignment>
-struct Align
-{
-  unsigned get_size (unsigned offset) const
-  { return (offset + alignment - 1) & ~(alignment - 1); }
-
-  public:
-  DEFINE_SIZE_MIN (0);
-};
-
-
 /*
  * Lazy loaders.
  *

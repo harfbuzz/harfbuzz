@@ -2052,6 +2052,20 @@ struct TupleList : CFF2Index
 };
 
 
+// Alignment
+
+template <unsigned int alignment>
+struct Align
+{
+  unsigned get_size (unsigned offset) const
+  { return (offset + alignment - 1) & ~(alignment - 1); }
+
+  public:
+  DEFINE_SIZE_MIN (0);
+};
+
+
+
 } /* namespace OT */
 
 
