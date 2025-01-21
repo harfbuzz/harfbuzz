@@ -1290,7 +1290,7 @@ hb_ft_face_create_cached (FT_Face ft_face)
  *
  * If you know you have valid reasons not to use hb_ft_font_create_referenced(),
  * then it is the client program's responsibility to destroy @ft_face
- * after the #hb_font_t font object has been destroyed.
+ * only after the #hb_font_t font object has been destroyed.
  *
  * HarfBuzz will use the @destroy callback on the #hb_font_t font object
  * if it is supplied when you use this function. However, even if @destroy
