@@ -408,7 +408,7 @@ struct Index
     unsigned offset1 = offsets[index + 1];
     if (unlikely (offset1 < offset0 || offset1 > offsets[count]))
       return hb_bytes_t ();
-    return hb_bytes_t ((char *) this + offset0, offset1 - offset0);
+    return hb_bytes_t ((const char *) this + offset0, offset1 - offset0);
   }
 
   unsigned int get_size (unsigned count) const { return offsets[count]; }
@@ -439,7 +439,10 @@ struct IndexOf : Index
     hb_bytes_t data = Index::get (index, count);
     hb_sanitize_context_t c (data.begin (), data.end ());
     const Type &item = *reinterpret_cast<const Type *> (data.begin ());
-    if (unlikely (!c.dispatch (item))) return Null(Type);
+    c.start_processing ();
+    bool sane = c.dispatch (item);
+    c.end_processing ();
+    if (unlikely (!sane)) return Null(Type);
     return item;
   }
 
