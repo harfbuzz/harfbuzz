@@ -17,6 +17,8 @@ namespace AAT {
 
 using namespace OT;
 
+struct hvgl;
+
 namespace hvgl_impl {
 
 struct coordinates_t
@@ -83,7 +85,7 @@ struct PartShape
   public:
 
   HB_INTERNAL void
-  get_path_at (hb_font_t *font,
+  get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       hb_set_t *visited,
@@ -137,7 +139,7 @@ struct SubPart
     return_trace (c->check_struct (this));
   }
 
-  protected:
+  public:
   HBUINT32LE partIndex; // Index of part that this subpart renders
   HBUINT16LE treeTransformIndex; // Row index of data in transform vector/matrix
   HBUINT16LE treeAxisIndex; // Row index of data in axis vector/matrix
@@ -297,7 +299,7 @@ struct PartComposite
   public:
 
   HB_INTERNAL void
-  get_path_at (hb_font_t *font,
+  get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       hb_set_t *visited,
@@ -360,7 +362,7 @@ struct Part
   public:
 
   void
-  get_path_at (hb_font_t *font,
+  get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       hb_set_t *visited,
@@ -368,8 +370,8 @@ struct Part
 	       signed depth_left) const
   {
     switch (u.flags & 1) {
-    case 0: hb_barrier(); u.shape.get_path_at (font, draw_session, coords, visited, edges_left, depth_left); break;
-    case 1: hb_barrier(); u.composite.get_path_at (font, draw_session, coords, visited, edges_left, depth_left); break;
+    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, coords, visited, edges_left, depth_left); break;
+    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, coords, visited, edges_left, depth_left); break;
     }
   }
 
@@ -456,28 +458,20 @@ using PartsIndex = IndexOf<Part>;
 
 struct hvgl
 {
-  friend struct hvgl_impl::Part;
+  friend struct hvgl_impl::PartComposite;
 
   static constexpr hb_tag_t tableTag = HB_TAG ('h', 'v', 'g', 'l');
 
-  public:
+  protected:
 
   bool
-  get_path_at (hb_font_t *font,
-	       hb_codepoint_t part_id,
-	       hb_draw_session_t &draw_session,
-	       hb_array_t<const int> coords,
-	       hb_set_t *visited = nullptr,
-	       signed *edges_left = nullptr,
-	       signed depth_left = HB_MAX_NESTING_LEVEL) const
+  get_part_path_at (hb_codepoint_t part_id,
+		    hb_draw_session_t &draw_session,
+		    hb_array_t<const int> coords,
+		    hb_set_t *visited,
+		    signed *edges_left,
+		    signed depth_left) const
   {
-    hb_set_t stack_set;
-    if (visited == nullptr)
-      visited = &stack_set;
-    signed stack_edges = HB_MAX_GRAPH_EDGE_COUNT;
-    if (edges_left == nullptr)
-      edges_left = &stack_edges;
-
     if (depth_left <= 0)
       return true;
 
@@ -492,17 +486,39 @@ struct hvgl
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (part_id, partCount);
 
-    part.get_path_at (font, draw_session, coords, visited, edges_left, depth_left);
+    part.get_path_at (*this, draw_session, coords, visited, edges_left, depth_left);
 
     visited->del (part_id);
 
     return true;
   }
 
+  public:
+
+  bool
+  get_path_at (HB_UNUSED hb_font_t *font,
+	       hb_codepoint_t gid,
+	       hb_draw_session_t &draw_session,
+	       hb_array_t<const int> coords,
+	       hb_set_t *visited = nullptr,
+	       signed *edges_left = nullptr,
+	       signed depth_left = HB_MAX_NESTING_LEVEL) const
+  {
+    if (unlikely (gid >= numGlyphs)) return false;
+
+    hb_set_t stack_set;
+    if (visited == nullptr)
+      visited = &stack_set;
+    signed stack_edges = HB_MAX_GRAPH_EDGE_COUNT;
+    if (edges_left == nullptr)
+      edges_left = &stack_edges;
+
+    return get_part_path_at (gid, draw_session, coords, visited, edges_left, depth_left);
+  }
+
   bool
   get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
   {
-    if (unlikely (gid >= numGlyphs)) return false;
     return get_path_at (font, gid, draw_session, hb_array (font->coords, font->num_coords));
   }
 
