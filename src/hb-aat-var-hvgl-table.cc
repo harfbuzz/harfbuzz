@@ -79,11 +79,12 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     {
       unsigned axis_index = _.first;
       float coord = _.second;
+      bool pos = coord > 0;
       if (!coord) continue;
-      bool pos = coord >= 0;
-      double scalar = fabsf (coord);
+      double scalar = fabs(coord);
+      unsigned column_idx = axis_index * 2 + pos;
 
-      const auto delta = deltas.get_column (axis_index * 2 + pos, axisCount, segmentCount);
+      const auto delta = deltas.get_column (column_idx, axisCount, segmentCount);
       unsigned count = hb_min (v.length, delta.length);
       for (unsigned i = 0; i < count; i++)
         v.arrayZ[i] += scalar * delta.arrayZ[i];

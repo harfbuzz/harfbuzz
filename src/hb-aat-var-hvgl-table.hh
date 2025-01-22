@@ -179,18 +179,18 @@ struct ExtremumColumnStarts
     const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, master_axis_value_deltas.length);
     hb_array_t<const HBUINT16LE> extremum_row_index = extremumRowIndex.as_array (extremum_axis_value_deltas.length);
 
-    for (unsigned col_idx = 0; col_idx < 2 * axis_count; col_idx++)
+    for (unsigned column_idx = 0; column_idx < 2 * axis_count; column_idx++)
     {
-      const auto &sparse_row_start = extremumColumnStart[col_idx];
-      const auto &sparse_row_end = extremumColumnStart[col_idx + 1];
+      const auto &sparse_row_start = extremumColumnStart[column_idx];
+      const auto &sparse_row_end = extremumColumnStart[column_idx + 1];
 
       if (sparse_row_start == sparse_row_end)
         continue;
 
-      bool pos = col_idx & 1;
-      unsigned axis_idx = col_idx / 2;
+      bool pos = column_idx & 1;
+      unsigned axis_idx = column_idx / 2;
       float coord = coords[axis_idx];
-      if (!coord || (pos ^ (coord < 0)))
+      if (!coord || (pos != (coord > 0)))
         continue;
       float scalar = fabsf (coord);
 
