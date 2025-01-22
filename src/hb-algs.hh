@@ -203,6 +203,37 @@ struct HBInt<BE, Type, 4>
   }
   private: uint8_t v[4];
 };
+template <bool BE, typename Type>
+struct HBInt<BE, Type, 8>
+{
+  template <bool, typename, int>
+  friend struct HBFloat;
+
+  public:
+  HBInt () = default;
+
+  HBInt (Type V)
+    : v {BE ? uint8_t ((V >> 56) & 0xFF) : uint8_t ((V      ) & 0xFF),
+	 BE ? uint8_t ((V >> 48) & 0xFF) : uint8_t ((V >>  8) & 0xFF),
+	 BE ? uint8_t ((V >> 40) & 0xFF) : uint8_t ((V >> 16) & 0xFF),
+	 BE ? uint8_t ((V >> 32) & 0xFF) : uint8_t ((V >> 24) & 0xFF),
+	 BE ? uint8_t ((V >> 24) & 0xFF) : uint8_t ((V >> 32) & 0xFF),
+	 BE ? uint8_t ((V >> 16) & 0xFF) : uint8_t ((V >> 40) & 0xFF),
+	 BE ? uint8_t ((V >>  8) & 0xFF) : uint8_t ((V >> 48) & 0xFF),
+	 BE ? uint8_t ((V      ) & 0xFF) : uint8_t ((V >> 56) & 0xFF)} {}
+
+  constexpr operator Type () const {
+    return (BE ? (uint64_t (v[0]) << 56) : (uint64_t (v[0])      ))
+	 + (BE ? (uint64_t (v[1]) << 48) : (uint64_t (v[1]) <<  8))
+	 + (BE ? (uint64_t (v[2]) << 40) : (uint64_t (v[2]) << 16))
+	 + (BE ? (uint64_t (v[3]) << 32) : (uint64_t (v[3]) << 24))
+	 + (BE ? (uint64_t (v[4]) << 24) : (uint64_t (v[4]) << 32))
+	 + (BE ? (uint64_t (v[5]) << 16) : (uint64_t (v[5]) << 40))
+	 + (BE ? (uint64_t (v[6]) <<  8) : (uint64_t (v[6]) << 48))
+	 + (BE ? (uint64_t (v[7])      ) : (uint64_t (v[7]) << 56));
+  }
+  private: uint8_t v[8];
+};
 
 /* Floats. */
 
@@ -219,7 +250,7 @@ struct HBFloat
     union {
       hb_packed_t<Type> f;
       hb_packed_t<IntType> i;
-    } u = {V};
+    } u = {{V}};
 
 #if HB_FAST_NUM_ACCESS
     {
@@ -235,7 +266,8 @@ struct HBFloat
 #endif
 
     const HBInt<BE, IntType> I = u.i.v;
-    v = I.v;
+    for (unsigned i = 0; i < Bytes; i++)
+      v[i] = I.v[i];
   }
 
   /* c++14 constexpr */ operator Type () const
@@ -244,17 +276,18 @@ struct HBFloat
     {
       bool be = __BYTE_ORDER == __BIG_ENDIAN;
       if (be == BE)
-	return *((hb_packed_t<Type> *) v).v;
+	return ((hb_packed_t<Type> *) v)->v;
     }
 #endif
 
-    const HBInt<BE, IntType> I;
-    I.v = v;
+    HBInt<BE, IntType> I;
+    for (unsigned i = 0; i < Bytes; i++)
+      I.v[i] = v[i];
 
     union {
       hb_packed_t<IntType> i;
       hb_packed_t<Type> f;
-    } u = {I};
+    } u = {{I}};
 
     return u.f.v;
   }
