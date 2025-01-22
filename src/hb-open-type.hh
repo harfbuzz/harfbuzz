@@ -64,10 +64,14 @@ struct NumType
   NumType () = default;
   explicit constexpr NumType (Type V) : v {V} {}
   NumType& operator = (Type i) { v = i; return *this; }
+
   /* For reason we define cast out operator for signed/unsigned, instead of Type, see:
    * https://github.com/harfbuzz/harfbuzz/pull/2875/commits/09836013995cab2b9f07577a179ad7b024130467 */
-  operator typename std::conditional<std::is_integral<Type>::value && std::is_signed<Type>::value, signed, unsigned>::type () const { return v; }
-  explicit operator typename std::conditional<std::is_floating_point<Type>::value && Size == 4, float, double>::type () const { return v; }
+  operator typename std::conditional<std::is_integral<Type>::value && std::is_signed<Type>::value,
+				     signed,
+				     typename std::conditional<std::is_floating_point<Type>::value,
+							       typename std::conditional<Size == 4, float, double>::type,
+							       unsigned>::type>::type () const { return v; }
 
   bool operator == (const NumType &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const NumType &o) const { return !(*this == o); }
