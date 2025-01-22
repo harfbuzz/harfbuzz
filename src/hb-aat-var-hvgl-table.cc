@@ -30,7 +30,7 @@ blend_type_t
   BLEND_TYPE_TANGET_PAIR_SECOND = 4,
 };
 
-using segment_t = hb_array_t<HBFLOAT64LE>;
+using segment_t = hb_array_t<double>;
 
 static void
 project_on_curve_to_tangent (const segment_t offcurve1,
@@ -71,7 +71,7 @@ PartShape::get_path_at (hb_font_t *font,
   const auto &padding = StructAfter<decltype (paddingX)> (blendTypes, segmentCount);
   const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, this);
 
-  auto v = hb_vector_t<HBFLOAT64LE> {coordinates.get_coords (segmentCount)};
+  auto v = hb_vector_t<double> {coordinates.get_coords (segmentCount)};
 
   // Apply deltas
   if (coords)
