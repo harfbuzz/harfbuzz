@@ -2,10 +2,6 @@
 
 #ifndef HB_NO_VAR_HVF
 
-#include "hb-draw.hh"
-#include "hb-geometry.hh"
-#include "hb-ot-layout-common.hh"
-
 namespace AAT {
 
 namespace hvgl_impl {
@@ -62,6 +58,7 @@ PartShape::get_path_at (hb_font_t *font,
 			const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
 		        hb_array_t<const int> coords,
+			const hb_transform_t &transform,
 		        hb_set_t *visited,
 		        signed *edges_left,
 		        signed depth_left) const
@@ -153,18 +150,23 @@ PartShape::get_path_at (hb_font_t *font,
     if (likely (start != end))
     {
       const auto first_segment = v.as_array ().sub_array (start * 4, 4);
-      draw_session.move_to (font->em_fscalef_x (first_segment[SEGMENT_POINT_ON_CURVE_X]),
-			    font->em_fscalef_y (double (first_segment[SEGMENT_POINT_ON_CURVE_Y])));
+      float x0 = (float) first_segment[SEGMENT_POINT_ON_CURVE_X];
+      float y0 = (float) first_segment[SEGMENT_POINT_ON_CURVE_Y];
+      transform.transform_point (x0, y0);
+      draw_session.move_to (x0, y0);
       for (unsigned i = start; i < end; i++)
       {
 	const auto segment = v.as_array ().sub_array (i * 4, 4);
 	unsigned next_i = i == end - 1 ? start : i + 1;
 	auto next_segment = v.as_array ().sub_array (next_i * 4, 4);
 
-	draw_session.quadratic_to (font->em_fscalef_x (segment[SEGMENT_POINT_OFF_CURVE_X]),
-				   font->em_fscalef_y ((double) segment[SEGMENT_POINT_OFF_CURVE_Y]),
-				   font->em_fscalef_x (next_segment[SEGMENT_POINT_ON_CURVE_X]),
-				   font->em_fscalef_y ((double) next_segment[SEGMENT_POINT_ON_CURVE_Y]));
+	float x1 = (float) segment[SEGMENT_POINT_ON_CURVE_X];
+	float y1 = (float) segment[SEGMENT_POINT_ON_CURVE_Y];
+	transform.transform_point (x1, y1);
+	float x2 = (float) next_segment[SEGMENT_POINT_ON_CURVE_X];
+	float y2 = (float) next_segment[SEGMENT_POINT_ON_CURVE_Y];
+	transform.transform_point (x2, y2);
+	draw_session.quadratic_to (x1, y1, x2, y2);
       }
       draw_session.close_path ();
     }
@@ -179,6 +181,7 @@ PartComposite::get_path_at (hb_font_t *font,
 			    const struct hvgl &hvgl,
 			    hb_draw_session_t &draw_session,
 			    hb_array_t<const int> coords,
+			    const hb_transform_t &transform,
 			    hb_set_t *visited,
 			    signed *edges_left,
 			    signed depth_left) const
@@ -189,7 +192,9 @@ PartComposite::get_path_at (hb_font_t *font,
   {
     hvgl.get_part_path_at (font,
 			   subPart.partIndex,
-			   draw_session, coords, visited, edges_left, depth_left);
+			   draw_session, coords,
+			   transform,
+			   visited, edges_left, depth_left);
   }
 }
 
