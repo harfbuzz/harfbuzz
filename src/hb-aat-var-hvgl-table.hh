@@ -93,8 +93,7 @@ struct PartShape
   public:
 
   HB_INTERNAL void
-  get_path_at (hb_font_t *font,
-	       const struct hvgl &hvgl,
+  get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       const hb_transform_t &transform,
@@ -308,8 +307,7 @@ struct PartComposite
   public:
 
   HB_INTERNAL void
-  get_path_at (hb_font_t *font,
-	       const struct hvgl &hvgl,
+  get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       const hb_transform_t &transform,
@@ -373,8 +371,7 @@ struct Part
   public:
 
   void
-  get_path_at (hb_font_t *font,
-	       const struct hvgl &hvgl,
+  get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       const hb_transform_t &transform,
@@ -383,8 +380,8 @@ struct Part
 	       signed depth_left) const
   {
     switch (u.flags & 1) {
-    case 0: hb_barrier(); u.shape.get_path_at (font, hvgl, draw_session, coords, transform, visited, edges_left, depth_left); break;
-    case 1: hb_barrier(); u.composite.get_path_at (font, hvgl, draw_session, coords, transform, visited, edges_left, depth_left); break;
+    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, coords, transform, visited, edges_left, depth_left); break;
+    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, coords, transform, visited, edges_left, depth_left); break;
     }
   }
 
@@ -478,8 +475,7 @@ struct hvgl
   protected:
 
   bool
-  get_part_path_at (hb_font_t *font,
-		    hb_codepoint_t part_id,
+  get_part_path_at (hb_codepoint_t part_id,
 		    hb_draw_session_t &draw_session,
 		    hb_array_t<const int> coords,
 		    const hb_transform_t &transform,
@@ -501,7 +497,7 @@ struct hvgl
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (part_id, partCount);
 
-    part.get_path_at (font, *this, draw_session, coords, transform, visited, edges_left, depth_left);
+    part.get_path_at (*this, draw_session, coords, transform, visited, edges_left, depth_left);
 
     visited->del (part_id);
 
@@ -511,7 +507,7 @@ struct hvgl
   public:
 
   bool
-  get_path_at (HB_UNUSED hb_font_t *font,
+  get_path_at (hb_font_t *font,
 	       hb_codepoint_t gid,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
@@ -530,7 +526,7 @@ struct hvgl
 
     hb_transform_t transform {font->x_multf, 0, 0, font->y_multf, 0, 0};
 
-    return get_part_path_at (font, gid, draw_session, coords, transform, visited, edges_left, depth_left);
+    return get_part_path_at (gid, draw_session, coords, transform, visited, edges_left, depth_left);
   }
 
   bool

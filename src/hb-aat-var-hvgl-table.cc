@@ -54,8 +54,7 @@ project_on_curve_to_tangent (const segment_t offcurve1,
 }
 
 void
-PartShape::get_path_at (hb_font_t *font,
-			const struct hvgl &hvgl,
+PartShape::get_path_at (const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
 		        hb_array_t<const int> coords,
 			const hb_transform_t &transform,
@@ -177,8 +176,7 @@ PartShape::get_path_at (hb_font_t *font,
 
 
 void
-PartComposite::get_path_at (hb_font_t *font,
-			    const struct hvgl &hvgl,
+PartComposite::get_path_at (const struct hvgl &hvgl,
 			    hb_draw_session_t &draw_session,
 			    hb_array_t<const int> coords,
 			    const hb_transform_t &transform,
@@ -190,8 +188,7 @@ PartComposite::get_path_at (hb_font_t *font,
 
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
-    hvgl.get_part_path_at (font,
-			   subPart.partIndex,
+    hvgl.get_part_path_at (subPart.partIndex,
 			   draw_session, coords,
 			   transform,
 			   visited, edges_left, depth_left);
