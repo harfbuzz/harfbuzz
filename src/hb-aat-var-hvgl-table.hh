@@ -62,12 +62,12 @@ struct deltas_t
   {
     const unsigned rows = 4 * segment_count;
     const unsigned start = column_index * rows;
-    return hb_array (matrix.arrayZ + start, rows);
+    return get_matrix (axis_count, segment_count).sub_array (start, rows);
   }
 
   hb_array_t<const HBFLOAT64LE>
   get_matrix(unsigned axis_count, unsigned segment_count) const
-  { return hb_array (matrix.arrayZ, (2 * 4) * axis_count * segment_count); }
+  { return matrix.as_array (2 * 4 * axis_count * segment_count); }
 
   bool sanitize (hb_sanitize_context_t *c,
 		 unsigned axis_count,
