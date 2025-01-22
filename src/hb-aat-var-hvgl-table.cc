@@ -73,8 +73,23 @@ PartShape::get_path_at (hb_font_t *font,
 
   auto v = hb_vector_t<HBFLOAT64LE> {coordinates.get_coords (segmentCount)};
 
-  //const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
-  //TODO: Apply deltas
+  // Apply deltas
+  if (coords)
+  {
+    const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
+    for (unsigned axisIndex = 0; axisIndex < hb_min (coords.length, axisCount); axisIndex++)
+    {
+      signed coord = coords[axisIndex];
+      if (!coord) continue;
+      bool pos = coord >= 0;
+      double scalar = fabs (coord / (double) (1 << 14));
+
+      const auto delta = deltas.get_column (axisIndex * 2 + pos, axisCount, segmentCount);
+      unsigned count = hb_min (v.length, delta.length);
+      for (unsigned i = 0; i < count; i++)
+        v.arrayZ[i] += scalar * delta.arrayZ[i];
+    }
+  }
 
   // Resolve blend types, one path at a time.
   unsigned start = 0;
