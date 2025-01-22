@@ -2060,7 +2060,7 @@ struct Align
   unsigned get_size (const void *base) const
   {
     unsigned offset = (const char *) this - (const char *) base;
-    return (offset + alignment - 1) & ~(alignment - 1);
+    return (alignment - offset) & (alignment - 1);
   }
 
   public:
