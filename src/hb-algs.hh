@@ -168,6 +168,9 @@ struct HBInt<BE, Type, 3>
 template <bool BE, typename Type>
 struct HBInt<BE, Type, 4>
 {
+  template <bool, typename, int>
+  friend struct HBFloat;
+
   public:
   HBInt () = default;
 

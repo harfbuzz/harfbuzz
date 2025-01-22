@@ -92,10 +92,13 @@ struct PartShape
 {
   public:
 
+  unsigned get_total_num_axes () const
+  { return axisCount; }
+
   HB_INTERNAL void
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
-	       hb_array_t<const int> coords,
+	       hb_array_t<const float> coords,
 	       const hb_transform_t &transform,
 	       hb_set_t *visited,
 	       signed *edges_left,
@@ -162,20 +165,62 @@ struct ExtremumColumnStarts
 {
   public:
 
+  void apply_to_coords (hb_array_t<float> out_coords,
+			hb_array_t<const float> coords,
+			unsigned axis_count,
+			hb_array_t<const HBFLOAT32LE> master_axis_value_deltas,
+			hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas) const
+  {
+    const auto &masterRowIndex = StructAfter<decltype (masterRowIndexX)> (extremumColumnStart, 2 * axis_count + 1);
+    hb_array_t<const HBUINT16LE> master_row_index = masterRowIndex.as_array (master_axis_value_deltas.length);
+    for (auto pair : hb_zip (master_row_index, master_axis_value_deltas))
+      out_coords[pair.first] += pair.second;
+
+    const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, master_axis_value_deltas.length);
+    hb_array_t<const HBUINT16LE> extremum_row_index = extremumRowIndex.as_array (extremum_axis_value_deltas.length);
+
+    for (unsigned col_idx = 0; col_idx < 2 * axis_count; col_idx++)
+    {
+      const auto &sparse_row_start = extremumColumnStart[col_idx];
+      const auto &sparse_row_end = extremumColumnStart[col_idx + 1];
+
+      if (sparse_row_start == sparse_row_end)
+        continue;
+
+      bool pos = col_idx & 1;
+      unsigned axis_idx = col_idx / 2;
+      float coord = coords[axis_idx];
+      if (!coord || (pos ^ (coord < 0)))
+        continue;
+      float scalar = fabsf (coord);
+
+      for (unsigned row_idx = sparse_row_start; row_idx < sparse_row_end; row_idx++)
+      {
+	unsigned row = extremum_row_index[row_idx];
+	float delta = extremum_axis_value_deltas[row_idx];
+	out_coords[row] += delta * scalar;
+      }
+    }
+  }
+
   bool sanitize (hb_sanitize_context_t *c,
-		 unsigned axisCount,
-		 unsigned sparseMasterAxisValueCount,
-		 unsigned sparseExtremumAxisValueCount) const
+		 unsigned axis_count,
+		 unsigned sparse_master_axis_value_count,
+		 unsigned sparse_extremum_axis_value_count) const
   {
     TRACE_SANITIZE (this);
 
-    if (unlikely (!extremumColumnStart.sanitize (c, axisCount))) return_trace (false);
+    if (unlikely (!extremumColumnStart.sanitize (c, axis_count))) return_trace (false);
 
-    const auto &masterRowIndex = StructAfter<decltype (masterRowIndexX)> (extremumColumnStart, axisCount);
-    if (unlikely (!masterRowIndex.sanitize (c, sparseMasterAxisValueCount))) return_trace (false);
+    unsigned count;
+    if (unlikely (hb_unsigned_mul_overflows (axis_count, 2, &count))) return_trace (false);
+    if (unlikely (count + 1 < count)) return_trace (false);
+    count++;
+    const auto &masterRowIndex = StructAfter<decltype (masterRowIndexX)> (extremumColumnStart, count);
+    if (unlikely (!masterRowIndex.sanitize (c, sparse_master_axis_value_count))) return_trace (false);
 
-    const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, sparseMasterAxisValueCount);
-    if (unlikely (!extremumRowIndex.sanitize (c, sparseExtremumAxisValueCount))) return_trace (false);
+    const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, sparse_master_axis_value_count);
+    if (unlikely (!extremumRowIndex.sanitize (c, sparse_extremum_axis_value_count))) return_trace (false);
 
     return_trace (true);
   }
@@ -306,10 +351,13 @@ struct PartComposite
 {
   public:
 
+  unsigned get_total_num_axes () const
+  { return totalNumAxes; }
+
   HB_INTERNAL void
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
-	       hb_array_t<const int> coords,
+	       hb_array_t<float> coords,
 	       const hb_transform_t &transform,
 	       hb_set_t *visited,
 	       signed *edges_left,
@@ -370,10 +418,19 @@ struct Part
 {
   public:
 
+  unsigned get_total_num_axes () const
+  {
+    switch (u.flags & 1) {
+    case 0: hb_barrier(); return u.shape.get_total_num_axes ();
+    case 1: hb_barrier(); return u.composite.get_total_num_axes ();
+    default: return 0;
+    }
+  }
+
   void
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
-	       hb_array_t<const int> coords,
+	       hb_array_t<float> coords,
 	       const hb_transform_t &transform,
 	       hb_set_t *visited,
 	       signed *edges_left,
@@ -477,7 +534,7 @@ struct hvgl
   bool
   get_part_path_at (hb_codepoint_t part_id,
 		    hb_draw_session_t &draw_session,
-		    hb_array_t<const int> coords,
+		    hb_array_t<float> coords,
 		    const hb_transform_t &transform,
 		    hb_set_t *visited,
 		    signed *edges_left,
@@ -526,7 +583,15 @@ struct hvgl
 
     hb_transform_t transform {font->x_multf, 0, 0, font->y_multf, 0, 0};
 
-    return get_part_path_at (gid, draw_session, coords, transform, visited, edges_left, depth_left);
+    const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
+    const auto &part = parts.get (gid, partCount);
+
+    hb_vector_t<float> coords_f {+ hb_iter (coords)
+				 | hb_map ([] (int x) { return float (x) * (1.f / (1 << 14)); })};
+
+    coords_f.resize (part.get_total_num_axes (), true, true);
+
+    return get_part_path_at (gid, draw_session, coords_f, transform, visited, edges_left, depth_left);
   }
 
   bool

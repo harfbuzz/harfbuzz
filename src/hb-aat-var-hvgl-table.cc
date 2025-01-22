@@ -56,12 +56,13 @@ project_on_curve_to_tangent (const segment_t offcurve1,
 void
 PartShape::get_path_at (const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
-		        hb_array_t<const int> coords,
+		        hb_array_t<const float> coords,
 			const hb_transform_t &transform,
 		        hb_set_t *visited,
 		        signed *edges_left,
 		        signed depth_left) const
 {
+
   const auto &blendTypes = StructAfter<decltype (blendTypesX)> (segmentCountPerPath, pathCount);
 
   const auto &padding = StructAfter<decltype (paddingX)> (blendTypes, segmentCount);
@@ -69,18 +70,20 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 
   auto v = hb_vector_t<double> {coordinates.get_coords (segmentCount)};
 
+  coords = coords.sub_array (0, axisCount);
   // Apply deltas
   if (coords)
   {
     const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
-    for (unsigned axisIndex = 0; axisIndex < hb_min (coords.length, axisCount); axisIndex++)
+    for (auto _ : hb_enumerate (coords))
     {
-      signed coord = coords[axisIndex];
+      unsigned axis_index = _.first;
+      float coord = _.second;
       if (!coord) continue;
       bool pos = coord >= 0;
-      double scalar = fabs (coord / (double) (1 << 14));
+      double scalar = fabsf (coord);
 
-      const auto delta = deltas.get_column (axisIndex * 2 + pos, axisCount, segmentCount);
+      const auto delta = deltas.get_column (axis_index * 2 + pos, axisCount, segmentCount);
       unsigned count = hb_min (v.length, delta.length);
       for (unsigned i = 0; i < count; i++)
         v.arrayZ[i] += scalar * delta.arrayZ[i];
@@ -178,18 +181,38 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 void
 PartComposite::get_path_at (const struct hvgl &hvgl,
 			    hb_draw_session_t &draw_session,
-			    hb_array_t<const int> coords,
+			    hb_array_t<float> coords,
 			    const hb_transform_t &transform,
 			    hb_set_t *visited,
 			    signed *edges_left,
 			    signed depth_left) const
 {
   const auto &subParts = StructAtOffset<SubParts> (this, subPartsOff4 * 4);
+  const auto &extremumColumnStarts = StructAtOffset<ExtremumColumnStarts> (this, extremumColumnStartsOff4 * 4);
+  const auto &masterAxisValueDeltas = StructAtOffset<MasterAxisValueDeltas> (this, masterAxisValueDeltasOff4 * 4);
+  hb_array_t<const HBFLOAT32LE> master_axis_value_deltas = masterAxisValueDeltas.as_array (sparseMasterAxisValueCount);
+  const auto &extremumAxisValueDeltas = StructAtOffset<ExtremumAxisValueDeltas> (this, extremumAxisValueDeltasOff4 * 4);
+  hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas = extremumAxisValueDeltas.as_array (sparseExtremumAxisValueCount);
+
+  coords = coords.sub_array (0, totalNumAxes);
+  auto coords_head = coords.sub_array (0, axisCount);
+  auto coords_tail = coords.sub_array (axisCount);
+
+  extremumColumnStarts.apply_to_coords (coords_tail,
+					coords_head,
+					axisCount,
+					master_axis_value_deltas,
+					extremum_axis_value_deltas);
+
+#if 0
+  const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
+  const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
+#endif
 
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
     hvgl.get_part_path_at (subPart.partIndex,
-			   draw_session, coords,
+			   draw_session, coords_tail.sub_array (subPart.treeAxisIndex),
 			   transform,
 			   visited, edges_left, depth_left);
   }
