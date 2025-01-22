@@ -23,24 +23,28 @@ namespace hvgl_impl {
 
 struct coordinates_t
 {
+  friend struct PartShape;
+
   public:
 
   unsigned get_size (unsigned axis_count, unsigned segment_count) const
-  { return (coords[0].static_size * 4) * segment_count; }
+  { return coords.get_size (4 * segment_count); }
 
   hb_array_t<const HBFLOAT64LE>
   get_coords(unsigned segment_count) const
-  { return hb_array (coords, segment_count * 4); }
+  { return coords.as_array (segment_count * 4); }
 
   bool sanitize (hb_sanitize_context_t *c,
 		 unsigned segment_count) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_range (coords, coords[0].static_size * 4, segment_count));
+    unsigned bytes;
+    return_trace (!hb_unsigned_mul_overflows (segment_count, 4, &bytes) &&
+		  coords.sanitize (c, bytes));
   }
 
   protected:
-  HBFLOAT64LE coords[HB_VAR_ARRAY]; // length: SegmentCount * 4
+  UnsizedArrayOf<HBFLOAT64LE> coords; // length: SegmentCount * 4
 
   public:
   DEFINE_SIZE_MIN (0);
@@ -51,30 +55,33 @@ struct deltas_t
   public:
 
   unsigned get_size (unsigned axis_count, unsigned segment_count) const
-  { return (matrix[0].static_size * 2 * 4) * axis_count * segment_count; }
+  { return matrix.get_size (2 * 4 * axis_count * segment_count); }
 
   hb_array_t<const HBFLOAT64LE>
   get_column(unsigned column_index, unsigned axis_count, unsigned segment_count) const
   {
     const unsigned rows = 4 * segment_count;
     const unsigned start = column_index * rows;
-    return hb_array (matrix + start, rows);
+    return hb_array (matrix.arrayZ + start, rows);
   }
 
   hb_array_t<const HBFLOAT64LE>
   get_matrix(unsigned axis_count, unsigned segment_count) const
-  { return hb_array (matrix, (2 * 4) * axis_count * segment_count); }
+  { return hb_array (matrix.arrayZ, (2 * 4) * axis_count * segment_count); }
 
   bool sanitize (hb_sanitize_context_t *c,
 		 unsigned axis_count,
 		 unsigned segment_count) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_range (matrix, matrix[0].static_size * 2 * 4, axis_count, segment_count));
+    unsigned bytes;
+    return_trace (!hb_unsigned_mul_overflows (2 * 4, axis_count, &bytes) &&
+		  !hb_unsigned_mul_overflows (bytes, segment_count, &bytes) &&
+		  matrix.sanitize (c, bytes));
   }
 
   protected:
-  HBFLOAT64LE matrix[HB_VAR_ARRAY]; // column-major: AxisCount * 2 columns, DeltaSegmentCount * 4 rows
+  UnsizedArrayOf<HBFLOAT64LE> matrix; // column-major: AxisCount * 2 columns, DeltaSegmentCount * 4 rows
 
   public:
   DEFINE_SIZE_MIN (0);
