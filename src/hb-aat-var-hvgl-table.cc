@@ -58,7 +58,8 @@ project_on_curve_to_tangent (const segment_t offcurve1,
 }
 
 void
-PartShape::get_path_at (const struct hvgl &hvgl,
+PartShape::get_path_at (hb_font_t *font,
+			const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
 		        hb_array_t<const int> coords,
 		        hb_set_t *visited,
@@ -136,22 +137,19 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     // Draw
     if (likely (start != end))
     {
-      auto first_segment = v.as_array ().sub_array (start * 4, 4);
-      printf("move_to %f %f\n", (double) first_segment[SEGMENT_POINT_ON_CURVE_X], (double) first_segment[SEGMENT_POINT_ON_CURVE_Y]);
-      //optional_point_t p (font->em_fscalef_x (point.x), font->em_fscalef_y (point.y));
-      draw_session.move_to (first_segment[SEGMENT_POINT_ON_CURVE_X],
-			    first_segment[SEGMENT_POINT_ON_CURVE_Y]);
+      const auto first_segment = v.as_array ().sub_array (start * 4, 4);
+      draw_session.move_to (font->em_fscalef_x (first_segment[SEGMENT_POINT_ON_CURVE_X]),
+			    font->em_fscalef_y (double (first_segment[SEGMENT_POINT_ON_CURVE_Y])));
       for (unsigned i = start; i < end; i++)
       {
-	auto segment = v.as_array ().sub_array (i * 4, 4);
+	const auto segment = v.as_array ().sub_array (i * 4, 4);
 	unsigned next_i = i == end - 1 ? start : i + 1;
 	auto next_segment = v.as_array ().sub_array (next_i * 4, 4);
 
-	printf("quad_to %f %f %f %f\n", (double) segment[SEGMENT_POINT_OFF_CURVE_X], (double) segment[SEGMENT_POINT_OFF_CURVE_Y], (double) next_segment[SEGMENT_POINT_ON_CURVE_X], (double) next_segment[SEGMENT_POINT_ON_CURVE_Y]);
-	draw_session.quadratic_to (segment[SEGMENT_POINT_OFF_CURVE_X],
-				   segment[SEGMENT_POINT_OFF_CURVE_Y],
-				   next_segment[SEGMENT_POINT_ON_CURVE_X],
-				   next_segment[SEGMENT_POINT_ON_CURVE_Y]);
+	draw_session.quadratic_to (font->em_fscalef_x (segment[SEGMENT_POINT_OFF_CURVE_X]),
+				   font->em_fscalef_y ((double) segment[SEGMENT_POINT_OFF_CURVE_Y]),
+				   font->em_fscalef_x (next_segment[SEGMENT_POINT_ON_CURVE_X]),
+				   font->em_fscalef_y ((double) next_segment[SEGMENT_POINT_ON_CURVE_Y]));
       }
       draw_session.close_path ();
     }
@@ -162,7 +160,8 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 
 
 void
-PartComposite::get_path_at (const struct hvgl &hvgl,
+PartComposite::get_path_at (hb_font_t *font,
+			    const struct hvgl &hvgl,
 			    hb_draw_session_t &draw_session,
 			    hb_array_t<const int> coords,
 			    hb_set_t *visited,
@@ -173,7 +172,8 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
 
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
-    hvgl.get_part_path_at (subPart.partIndex,
+    hvgl.get_part_path_at (font,
+			   subPart.partIndex,
 			   draw_session, coords, visited, edges_left, depth_left);
   }
 }
