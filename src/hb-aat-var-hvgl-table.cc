@@ -162,8 +162,8 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	unsigned next_i = i == end - 1 ? start : i + 1;
 	auto next_segment = v.as_array ().sub_array (next_i * 4, 4);
 
-	float x1 = (float) segment[SEGMENT_POINT_ON_CURVE_X];
-	float y1 = (float) segment[SEGMENT_POINT_ON_CURVE_Y];
+	float x1 = (float) segment[SEGMENT_POINT_OFF_CURVE_X];
+	float y1 = (float) segment[SEGMENT_POINT_OFF_CURVE_Y];
 	transform.transform_point (x1, y1);
 	float x2 = (float) next_segment[SEGMENT_POINT_ON_CURVE_X];
 	float y2 = (float) next_segment[SEGMENT_POINT_ON_CURVE_Y];
