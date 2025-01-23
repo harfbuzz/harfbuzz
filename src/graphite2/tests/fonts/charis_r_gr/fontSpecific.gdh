@@ -1,0 +1,10 @@
+/*
+	Font-specific stuff for Charis
+	
+	This file gets copied to fontSpecific.gdh as part of the build process,
+	and thus is #included in main.gdh.
+*/
+
+#define FONT CHARISfont
+
+#include "test.gdh"
