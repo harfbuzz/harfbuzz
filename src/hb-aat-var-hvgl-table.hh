@@ -95,6 +95,9 @@ struct PartShape
   unsigned get_total_num_axes () const
   { return axisCount; }
 
+  unsigned get_total_num_parts () const
+  { return 1; }
+
   HB_INTERNAL void
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
@@ -354,6 +357,9 @@ struct PartComposite
   unsigned get_total_num_axes () const
   { return totalNumAxes; }
 
+  unsigned get_total_num_parts () const
+  { return totalNumParts; }
+
   HB_INTERNAL void
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
@@ -423,6 +429,15 @@ struct Part
     switch (u.flags & 1) {
     case 0: hb_barrier(); return u.shape.get_total_num_axes ();
     case 1: hb_barrier(); return u.composite.get_total_num_axes ();
+    default: return 0;
+    }
+  }
+
+  unsigned get_total_num_parts () const
+  {
+    switch (u.flags & 1) {
+    case 0: hb_barrier(); return u.shape.get_total_num_parts ();
+    case 1: hb_barrier(); return u.composite.get_total_num_parts ();
     default: return 0;
     }
   }
@@ -588,7 +603,6 @@ struct hvgl
 
     hb_vector_t<float> coords_f {+ hb_iter (coords)
 				 | hb_map ([] (int x) { return float (x) * (1.f / (1 << 14)); })};
-
     coords_f.resize (part.get_total_num_axes (), true, true);
 
     return get_part_path_at (gid, draw_session, coords_f, transform, visited, edges_left, depth_left);
