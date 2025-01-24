@@ -1,5 +1,7 @@
 #include "hb-aat-var-hvgl-table.hh"
 
+#include <complex>
+
 #ifndef HB_NO_VAR_HVF
 
 namespace AAT {
@@ -275,20 +277,19 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
       if (!scalar)
 	continue;
 
-      hb_transform_t extremum_transform;
-      extremum_transform.translate (extremum_translation_delta.x,
-				    extremum_translation_delta.y);
-      extremum_transform.rotate (extremum_rotation_delta);
-
       hb_transform_t scaled_extremum_transform;
 
-      float eigen_x, eigen_y;
-      if (extremum_transform.get_eigen_vector (eigen_x, eigen_y))
+      std::complex<float> t {extremum_translation_delta.x, extremum_translation_delta.y};
+      std::complex<float> _1_minus_e_iangle = 1.f - std::exp (std::complex<float> (0, 1) * (float) extremum_rotation_delta);
+      if (_1_minus_e_iangle != 0.f)
       {
+	std::complex<float> eigen = t / _1_minus_e_iangle;
+	float eigen_x = eigen.real ();
+	float eigen_y = eigen.imag ();
         // Scale rotation around eigen vector
-	scaled_extremum_transform.translate (-eigen_x, -eigen_y);
-	scaled_extremum_transform.rotate (extremum_rotation_delta * scalar);
 	scaled_extremum_transform.translate (eigen_x, eigen_y);
+	scaled_extremum_transform.rotate (extremum_rotation_delta * scalar);
+	scaled_extremum_transform.translate (-eigen_x, -eigen_y);
       }
       else
       {

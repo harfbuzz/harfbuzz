@@ -26,7 +26,6 @@
 
 #include "hb.hh"
 
-
 struct hb_extents_t
 {
   hb_extents_t () {}
@@ -220,19 +219,6 @@ struct hb_transform_t
 				1.f,
 				0.f, 0.f};
     transform (other);
-  }
-
-  bool get_eigen_vector (float &eigen_x, float &eigen_y) const
-  {
-    // Find the eigenvector of the transform, or determine that there is none.
-    float a = xx - yy;
-    float b = 2 * xy;
-    float d = sqrtf (a * a + b * b);
-    if (d == 0.f)
-      return false;
-    eigen_x = b / d;
-    eigen_y = -a / d;
-    return true;
   }
 
   float xx = 1.f;
