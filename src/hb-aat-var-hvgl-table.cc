@@ -179,6 +179,127 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   }
 }
 
+void
+PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
+				 hb_array_t<const float> coords) const
+{
+  const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
+  const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
+
+  const auto &masterTranslationDelta = allTranslations.masterTranslationDelta;
+  const auto &extremumTranslationDelta = StructAfter<decltype (allTranslations.extremumTranslationDeltaX)> (masterTranslationDelta, sparseMasterTranslationCount);
+  const auto &extremumTranslationIndex = StructAfter<decltype (allTranslations.extremumTranslationIndexX)> (extremumTranslationDelta, sparseExtremumTranslationCount);
+  const auto &masterTranslationIndex = StructAfter<decltype (allTranslations.masterTranslationIndexX)> (extremumTranslationIndex, sparseExtremumTranslationCount);
+
+  const auto &masterRotationDelta = allRotations.masterRotationDelta;
+  const auto &extremumRotationDelta = StructAfter<decltype (allRotations.extremumRotationDeltaX)> (masterRotationDelta, sparseMasterRotationCount);
+  const auto &extremumRotationIndex = StructAfter<decltype (allRotations.extremumRotationIndexX)> (extremumRotationDelta, sparseExtremumRotationCount);
+  const auto &masterRotationIndex = StructAfter<decltype (allRotations.masterRotationIndexX)> (extremumRotationIndex, sparseExtremumRotationCount);
+
+  auto master_translation_deltas = masterTranslationDelta.as_array (sparseMasterTranslationCount);
+  auto master_translation_indices = masterTranslationIndex.as_array (sparseMasterTranslationCount);
+  auto extremum_translation_deltas = extremumTranslationDelta.as_array (sparseExtremumTranslationCount);
+  auto extremum_translation_indices = extremumTranslationIndex.as_array (sparseExtremumTranslationCount);
+
+  auto master_rotation_deltas = masterRotationDelta.as_array (sparseMasterRotationCount);
+  auto master_rotation_indices = masterRotationIndex.as_array (sparseMasterRotationCount);
+  auto extremum_rotation_deltas = extremumRotationDelta.as_array (sparseExtremumRotationCount);
+  auto extremum_rotation_indices = extremumRotationIndex.as_array (sparseExtremumRotationCount);
+
+  for (unsigned row = 0; row < transforms.length; row++)
+  {
+    hb_transform_t transform;
+
+    auto master_rotation_delta = Null(HBFLOAT32LE);
+    if (row == master_rotation_indices[0])
+    {
+      master_rotation_delta = master_rotation_deltas[0];
+      master_rotation_deltas++;
+      master_rotation_indices++;
+    }
+    auto master_translation_delta = Null(TranslationDelta);
+    if (row == master_translation_indices[0])
+    {
+      master_translation_delta = master_translation_deltas[0];
+      master_translation_deltas++;
+      master_translation_indices++;
+    }
+    transform.rotate (master_rotation_delta);
+    transform.translate (master_translation_delta.x, master_translation_delta.y);
+
+    unsigned translation_index_end = 0;
+    while (translation_index_end < extremum_translation_indices.length &&
+	   row == extremum_translation_indices[translation_index_end].row)
+      translation_index_end++;
+
+    unsigned rotation_index_end = 0;
+    while (rotation_index_end < extremum_rotation_indices.length &&
+	   row == extremum_rotation_indices[rotation_index_end].row)
+      rotation_index_end++;
+
+    unsigned translation_index = 0;
+    unsigned rotation_index = 0;
+    while (translation_index < translation_index_end ||
+	   rotation_index < rotation_index_end)
+    {
+      auto extremum_translation_delta = Null(TranslationDelta);
+      auto extremum_rotation_delta = Null(HBFLOAT32LE);
+
+      unsigned column;
+      if (translation_index < translation_index_end &&
+	  (rotation_index == rotation_index_end ||
+	   extremum_translation_indices[translation_index].column < extremum_rotation_indices[rotation_index].column))
+        column = extremum_translation_indices[translation_index].column;
+      else
+	column = extremum_rotation_indices[rotation_index].column;
+
+      if (translation_index < translation_index_end &&
+	  extremum_translation_indices[translation_index].column == column)
+      {
+        extremum_translation_delta = extremum_translation_deltas[translation_index];
+	translation_index++;
+      }
+      if (rotation_index < rotation_index_end &&
+	  extremum_rotation_indices[rotation_index].column == column)
+      {
+	extremum_rotation_delta = extremum_rotation_deltas[rotation_index];
+	rotation_index++;
+      }
+
+      bool pos = column & 1;
+      unsigned axis_idx = column / 2;
+      float coord = coords[axis_idx];
+      if (!coord || (pos != (coord > 0)))
+        continue;
+      float scalar = fabsf (coord);
+
+      hb_transform_t extremum_transform;
+
+      float eigen_x, eigen_y;
+      if (transform.get_eigen_vector (eigen_x, eigen_y))
+      {
+        // Scale rotation around eigen vector
+	extremum_transform.translate (-eigen_x, -eigen_y);
+	extremum_transform.rotate (extremum_rotation_delta * scalar);
+	extremum_transform.translate (eigen_x, eigen_y);
+      }
+      else
+      {
+	// No rotation, just scale the translate
+	extremum_transform.translate (extremum_translation_delta.x * scalar,
+				      extremum_translation_delta.y * scalar);
+      }
+
+      transform.transform (extremum_transform);
+    }
+    extremum_translation_deltas += translation_index_end;;
+    extremum_translation_indices += translation_index_end;
+    extremum_rotation_deltas += rotation_index_end;
+    extremum_rotation_indices += rotation_index_end;
+
+    transforms[row].transform (transform);
+  }
+}
 
 void
 PartComposite::get_path_at (const struct hvgl &hvgl,
@@ -210,14 +331,13 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
   auto transforms_head = transforms[0];
   auto transforms_tail = transforms.sub_array (1);
 
-#if 0
-  const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
-  const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
-#endif
+  apply_transforms (transforms_tail, coords);
 
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
-    transforms_tail[subPart.treeTransformIndex].transform (transforms_head);
+    hb_transform_t total_transform (transforms_head);
+    total_transform.transform (transforms_tail[subPart.treeTransformIndex]);
+    transforms_tail[subPart.treeTransformIndex] = total_transform;
     hvgl.get_part_path_at (subPart.partIndex,
 			   draw_session, coords_tail.sub_array (subPart.treeAxisIndex),
 			   transforms_tail.sub_array (subPart.treeTransformIndex),

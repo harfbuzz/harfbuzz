@@ -225,6 +225,19 @@ struct hb_transform_t
     transform (other);
   }
 
+  bool get_eigen_vector (float &eigen_x, float &eigen_y) const
+  {
+    // Find the eigenvector of the transform, or determine that there is none.
+    float a = xx - yy;
+    float b = 2 * xy;
+    float d = sqrtf (a * a + b * b);
+    if (d == 0.f)
+      return false;
+    eigen_x = b / d;
+    eigen_y = -a / d;
+    return true;
+  }
+
   float xx = 1.f;
   float yx = 0.f;
   float xy = 0.f;
