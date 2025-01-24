@@ -359,12 +359,12 @@ VARC::get_path_at (hb_font_t *font,
 					   draw_session.draw_data,
 					   &draw_session.st};
     hb_draw_session_t transformer_session {transformer_funcs, &context};
-    hb_draw_session_t &draw_session = transform.is_identity () ? draw_session : transformer_session;
+    hb_draw_session_t &shape_draw_session = transform.is_identity () ? draw_session : transformer_session;
 
-    if (!font->face->table.glyf->get_path_at (font, glyph, draw_session, coords))
+    if (!font->face->table.glyf->get_path_at (font, glyph, shape_draw_session, coords))
 #ifndef HB_NO_CFF
-    if (!font->face->table.cff2->get_path_at (font, glyph, draw_session, coords))
-    if (!font->face->table.cff1->get_path (font, glyph, draw_session)) // Doesn't have variations
+    if (!font->face->table.cff2->get_path_at (font, glyph, shape_draw_session, coords))
+    if (!font->face->table.cff1->get_path (font, glyph, shape_draw_session)) // Doesn't have variations
 #endif
       return false;
     return true;
