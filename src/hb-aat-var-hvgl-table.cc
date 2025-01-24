@@ -57,11 +57,12 @@ void
 PartShape::get_path_at (const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
 		        hb_array_t<const float> coords,
-			const hb_transform_t &transform,
+			hb_array_t<hb_transform_t> transforms,
 		        hb_set_t *visited,
 		        signed *edges_left,
 		        signed depth_left) const
 {
+  hb_transform_t transform = transforms[0];
 
   const auto &blendTypes = StructAfter<decltype (blendTypesX)> (segmentCountPerPath, pathCount);
 
@@ -183,7 +184,7 @@ void
 PartComposite::get_path_at (const struct hvgl &hvgl,
 			    hb_draw_session_t &draw_session,
 			    hb_array_t<float> coords,
-			    const hb_transform_t &transform,
+			    hb_array_t<hb_transform_t> transforms,
 			    hb_set_t *visited,
 			    signed *edges_left,
 			    signed depth_left) const
@@ -205,6 +206,10 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
 					master_axis_value_deltas,
 					extremum_axis_value_deltas);
 
+  transforms = transforms.sub_array (0, totalNumParts);
+  auto transforms_head = transforms[0];
+  auto transforms_tail = transforms.sub_array (1);
+
 #if 0
   const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
   const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
@@ -212,9 +217,10 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
 
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
+    transforms_tail[subPart.treeTransformIndex].transform (transforms_head);
     hvgl.get_part_path_at (subPart.partIndex,
 			   draw_session, coords_tail.sub_array (subPart.treeAxisIndex),
-			   transform,
+			   transforms_tail.sub_array (subPart.treeTransformIndex),
 			   visited, edges_left, depth_left);
   }
 }

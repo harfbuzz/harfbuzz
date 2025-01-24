@@ -102,7 +102,7 @@ struct PartShape
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const float> coords,
-	       const hb_transform_t &transform,
+	       hb_array_t<hb_transform_t> transforms,
 	       hb_set_t *visited,
 	       signed *edges_left,
 	       signed depth_left) const;
@@ -364,7 +364,7 @@ struct PartComposite
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<float> coords,
-	       const hb_transform_t &transform,
+	       hb_array_t<hb_transform_t> transforms,
 	       hb_set_t *visited,
 	       signed *edges_left,
 	       signed depth_left) const;
@@ -446,14 +446,14 @@ struct Part
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<float> coords,
-	       const hb_transform_t &transform,
+	       hb_array_t<hb_transform_t> transforms,
 	       hb_set_t *visited,
 	       signed *edges_left,
 	       signed depth_left) const
   {
     switch (u.flags & 1) {
-    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, coords, transform, visited, edges_left, depth_left); break;
-    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, coords, transform, visited, edges_left, depth_left); break;
+    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, coords, transforms, visited, edges_left, depth_left); break;
+    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, coords, transforms, visited, edges_left, depth_left); break;
     }
   }
 
@@ -550,7 +550,7 @@ struct hvgl
   get_part_path_at (hb_codepoint_t part_id,
 		    hb_draw_session_t &draw_session,
 		    hb_array_t<float> coords,
-		    const hb_transform_t &transform,
+		    hb_array_t<hb_transform_t> transforms,
 		    hb_set_t *visited,
 		    signed *edges_left,
 		    signed depth_left) const
@@ -569,7 +569,7 @@ struct hvgl
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (part_id, partCount);
 
-    part.get_path_at (*this, draw_session, coords, transform, visited, edges_left, depth_left);
+    part.get_path_at (*this, draw_session, coords, transforms, visited, edges_left, depth_left);
 
     visited->del (part_id);
 
@@ -605,7 +605,11 @@ struct hvgl
 				 | hb_map ([] (int x) { return float (x) * (1.f / (1 << 14)); })};
     coords_f.resize (part.get_total_num_axes (), true, true);
 
-    return get_part_path_at (gid, draw_session, coords_f, transform, visited, edges_left, depth_left);
+    hb_vector_t<hb_transform_t> transforms;
+    transforms.push (transform);
+    transforms.resize (part.get_total_num_parts (), true, true);
+
+    return get_part_path_at (gid, draw_session, coords_f, transforms, visited, edges_left, depth_left);
   }
 
   bool

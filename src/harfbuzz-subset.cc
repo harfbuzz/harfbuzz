@@ -2,6 +2,7 @@
 #include "graph/gsubgpos-context.cc"
 #include "hb-aat-layout.cc"
 #include "hb-aat-map.cc"
+#include "hb-aat-var-hvgl-table.cc"
 #include "hb-blob.cc"
 #include "hb-buffer-serialize.cc"
 #include "hb-buffer-verify.cc"
