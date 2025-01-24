@@ -312,10 +312,10 @@ VarComponent::get_path_at (hb_font_t *font,
     if (!(flags & (unsigned) flags_t::HAVE_SCALE_Y))
       transform.scaleY = transform.scaleX;
 
-    hb_transform_t total_transform;
-    total_transform.transform (parent_transform);
+    hb_transform_t total_transform (parent_transform);
     total_transform.transform (transform.to_transform ());
-    total_transform.scale (1.f / font->x_multf, 1.f / font->y_multf);
+    total_transform.scale (font->x_mult ? 1.f / font->x_multf : 0.f,
+			   font->y_mult ? 1.f / font->y_multf : 0.f);
 
     VARC.get_path_at (font, gid,
 		      draw_session, component_coords, total_transform,
