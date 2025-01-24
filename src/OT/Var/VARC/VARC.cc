@@ -3,7 +3,6 @@
 #ifndef HB_NO_VAR_COMPOSITES
 
 #include "../../../hb-draw.hh"
-#include "../../../hb-geometry.hh"
 #include "../../../hb-ot-layout-common.hh"
 #include "../../../hb-ot-layout-gdef-table.hh"
 
@@ -133,6 +132,7 @@ VarComponent::get_path_at (hb_font_t *font,
 			   hb_codepoint_t parent_gid,
 			   hb_draw_session_t &draw_session,
 			   hb_array_t<const int> coords,
+			   hb_transform_t parent_transform,
 			   hb_ubytes_t total_record,
 			   hb_set_t *visited,
 			   signed *edges_left,
@@ -312,24 +312,13 @@ VarComponent::get_path_at (hb_font_t *font,
     if (!(flags & (unsigned) flags_t::HAVE_SCALE_Y))
       transform.scaleY = transform.scaleX;
 
-    // Scale the transform by the font's scale
-    float x_scale = font->x_multf;
-    float y_scale = font->y_multf;
-    transform.translateX *= x_scale;
-    transform.translateY *= y_scale;
-    transform.tCenterX *= x_scale;
-    transform.tCenterY *= y_scale;
-
-    // Build a transforming pen to apply the transform.
-    hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
-    hb_transforming_pen_context_t context {transform.to_transform (),
-					   draw_session.funcs,
-					   draw_session.draw_data,
-					   &draw_session.st};
-    hb_draw_session_t transformer_session {transformer_funcs, &context};
+    hb_transform_t total_transform;
+    total_transform.transform (parent_transform);
+    total_transform.transform (transform.to_transform ());
+    total_transform.scale (1.f / font->x_multf, 1.f / font->y_multf);
 
     VARC.get_path_at (font, gid,
-		      transformer_session, component_coords,
+		      draw_session, component_coords, total_transform,
 		      parent_gid,
 		      visited, edges_left, depth_left - 1);
   }
@@ -338,6 +327,80 @@ VarComponent::get_path_at (hb_font_t *font,
 #undef READ_UINT32VAR
 
   return hb_ubytes_t (record, end - record);
+}
+
+bool
+VARC::get_path_at (hb_font_t *font,
+		   hb_codepoint_t glyph,
+		   hb_draw_session_t &draw_session,
+		   hb_array_t<const int> coords,
+		   hb_transform_t transform,
+		   hb_codepoint_t parent_glyph,
+		   hb_set_t *visited,
+		   signed *edges_left,
+		   signed depth_left) const
+{
+  hb_set_t stack_set;
+  if (visited == nullptr)
+    visited = &stack_set;
+  signed stack_edges = HB_MAX_GRAPH_EDGE_COUNT;
+  if (edges_left == nullptr)
+    edges_left = &stack_edges;
+
+  // Don't recurse on the same glyph.
+  unsigned idx = glyph == parent_glyph ?
+		 NOT_COVERED :
+		 (this+coverage).get_coverage (glyph);
+  if (idx == NOT_COVERED)
+  {
+    // Build a transforming pen to apply the transform.
+    hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
+    hb_transforming_pen_context_t context {transform,
+					   draw_session.funcs,
+					   draw_session.draw_data,
+					   &draw_session.st};
+    hb_draw_session_t transformer_session {transformer_funcs, &context};
+    hb_draw_session_t &draw_session = transform.is_identity () ? draw_session : transformer_session;
+
+    if (!font->face->table.glyf->get_path_at (font, glyph, draw_session, coords))
+#ifndef HB_NO_CFF
+    if (!font->face->table.cff2->get_path_at (font, glyph, draw_session, coords))
+    if (!font->face->table.cff1->get_path (font, glyph, draw_session)) // Doesn't have variations
+#endif
+      return false;
+    return true;
+  }
+
+  if (depth_left <= 0)
+    return true;
+
+  if (*edges_left <= 0)
+    return true;
+  (*edges_left)--;
+
+  if (visited->has (glyph) || visited->in_error ())
+    return true;
+  visited->add (glyph);
+
+  hb_ubytes_t record = (this+glyphRecords)[idx];
+
+  VarRegionList::cache_t *cache = record.length >= 64 ? // Heuristic
+				 (this+varStore).create_cache ()
+				 : nullptr;
+
+  transform.scale (font->x_multf, font->y_multf);
+
+  VarCompositeGlyph::get_path_at (font, glyph,
+				  draw_session, coords, transform,
+				  record,
+				  visited, edges_left, depth_left,
+				  cache);
+
+  (this+varStore).destroy_cache (cache);
+
+  visited->del (glyph);
+
+  return true;
 }
 
 //} // namespace Var

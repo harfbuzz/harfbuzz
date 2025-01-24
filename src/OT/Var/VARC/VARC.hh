@@ -1,6 +1,7 @@
 #ifndef OT_VAR_VARC_VARC_HH
 #define OT_VAR_VARC_VARC_HH
 
+#include "../../../hb-geometry.hh"
 #include "../../../hb-ot-layout-common.hh"
 #include "../../../hb-ot-glyf-table.hh"
 #include "../../../hb-ot-cff2-table.hh"
@@ -46,6 +47,7 @@ struct VarComponent
 	       hb_codepoint_t parent_gid,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
+	       hb_transform_t transform,
 	       hb_ubytes_t record,
 	       hb_set_t *visited,
 	       signed *edges_left,
@@ -60,6 +62,7 @@ struct VarCompositeGlyph
 	       hb_codepoint_t glyph,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
+	       hb_transform_t transform,
 	       hb_ubytes_t record,
 	       hb_set_t *visited,
 	       signed *edges_left,
@@ -70,7 +73,7 @@ struct VarCompositeGlyph
     {
       const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
       record = comp.get_path_at (font, glyph,
-				 draw_session, coords,
+				 draw_session, coords, transform,
 				 record,
 				 visited, edges_left, depth_left, cache);
     }
@@ -85,67 +88,16 @@ struct VARC
 
   static constexpr hb_tag_t tableTag = HB_TAG ('V', 'A', 'R', 'C');
 
-  bool
+  HB_INTERNAL bool
   get_path_at (hb_font_t *font,
 	       hb_codepoint_t glyph,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
+	       hb_transform_t transform = HB_TRANSFORM_IDENTITY,
 	       hb_codepoint_t parent_glyph = HB_CODEPOINT_INVALID,
 	       hb_set_t *visited = nullptr,
 	       signed *edges_left = nullptr,
-	       signed depth_left = HB_MAX_NESTING_LEVEL) const
-  {
-    hb_set_t stack_set;
-    if (visited == nullptr)
-      visited = &stack_set;
-    signed stack_edges = HB_MAX_GRAPH_EDGE_COUNT;
-    if (edges_left == nullptr)
-      edges_left = &stack_edges;
-
-    // Don't recurse on the same glyph.
-    unsigned idx = glyph == parent_glyph ?
-		   NOT_COVERED :
-		   (this+coverage).get_coverage (glyph);
-    if (idx == NOT_COVERED)
-    {
-      if (!font->face->table.glyf->get_path_at (font, glyph, draw_session, coords))
-#ifndef HB_NO_CFF
-      if (!font->face->table.cff2->get_path_at (font, glyph, draw_session, coords))
-      if (!font->face->table.cff1->get_path (font, glyph, draw_session)) // Doesn't have variations
-#endif
-	return false;
-      return true;
-    }
-
-    if (depth_left <= 0)
-      return true;
-
-    if (*edges_left <= 0)
-      return true;
-    (*edges_left)--;
-
-    if (visited->has (glyph) || visited->in_error ())
-      return true;
-    visited->add (glyph);
-
-    hb_ubytes_t record = (this+glyphRecords)[idx];
-
-    VarRegionList::cache_t *cache = record.length >= 64 ? // Heuristic
-				   (this+varStore).create_cache ()
-				   : nullptr;
-
-    VarCompositeGlyph::get_path_at (font, glyph,
-				    draw_session, coords,
-				    record,
-				    visited, edges_left, depth_left,
-				    cache);
-
-    (this+varStore).destroy_cache (cache);
-
-    visited->del (glyph);
-
-    return true;
-  }
+	       signed depth_left = HB_MAX_NESTING_LEVEL) const;
 
   bool
   get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
