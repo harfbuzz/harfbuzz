@@ -132,7 +132,7 @@ VarComponent::get_path_at (hb_font_t *font,
 			   hb_codepoint_t parent_gid,
 			   hb_draw_session_t &draw_session,
 			   hb_array_t<const int> coords,
-			   hb_transform_t parent_transform,
+			   hb_transform_t total_transform,
 			   hb_ubytes_t total_record,
 			   hb_set_t *visited,
 			   signed *edges_left,
@@ -312,7 +312,6 @@ VarComponent::get_path_at (hb_font_t *font,
     if (!(flags & (unsigned) flags_t::HAVE_SCALE_Y))
       transform.scaleY = transform.scaleX;
 
-    hb_transform_t total_transform (parent_transform);
     total_transform.transform (transform.to_transform ());
     total_transform.scale (font->x_mult ? 1.f / font->x_multf : 0.f,
 			   font->y_mult ? 1.f / font->y_multf : 0.f);
