@@ -300,7 +300,7 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
 
       transform.transform (scaled_extremum_transform);
     }
-    extremum_translation_deltas += translation_index_end;;
+    extremum_translation_deltas += translation_index_end;
     extremum_translation_indices += translation_index_end;
     extremum_rotation_deltas += rotation_index_end;
     extremum_rotation_indices += rotation_index_end;
