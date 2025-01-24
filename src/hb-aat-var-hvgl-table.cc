@@ -224,7 +224,7 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
       master_translation_deltas++;
       master_translation_indices++;
     }
-    transform.rotate (master_rotation_delta / HB_PI);
+    transform.rotate (master_rotation_delta);
     transform.translate (master_translation_delta.x, master_translation_delta.y);
 
     unsigned translation_index_end = 0;
@@ -282,7 +282,7 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
       {
         // Scale rotation around eigen vector
 	extremum_transform.translate (-eigen_x, -eigen_y);
-	extremum_transform.rotate (extremum_rotation_delta * scalar / HB_PI);
+	extremum_transform.rotate (extremum_rotation_delta * scalar);
 	extremum_transform.translate (eigen_x, eigen_y);
       }
       else

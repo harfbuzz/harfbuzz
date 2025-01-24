@@ -196,7 +196,6 @@ struct hb_transform_t
       return;
 
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L240
-    rotation = rotation * HB_PI;
     float c;
     float s;
 #ifdef HAVE_SINCOSF
@@ -215,8 +214,6 @@ struct hb_transform_t
       return;
 
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L255
-    skewX = skewX * HB_PI;
-    skewY = skewY * HB_PI;
     auto other = hb_transform_t{1.f,
 				skewY ? tanf (skewY) : 0.f,
 				skewX ? tanf (skewX) : 0.f,
@@ -298,11 +295,11 @@ struct hb_transform_decomposed_t
 {
   float translateX = 0;
   float translateY = 0;
-  float rotation = 0;  // in degrees, counter-clockwise
+  float rotation = 0;  // in radians, counter-clockwise
   float scaleX = 1;
   float scaleY = 1;
-  float skewX = 0;  // in degrees, counter-clockwise
-  float skewY = 0;  // in degrees, counter-clockwise
+  float skewX = 0;  // in radians, counter-clockwise
+  float skewY = 0;  // in radians, counter-clockwise
   float tCenterX = 0;
   float tCenterY = 0;
 
