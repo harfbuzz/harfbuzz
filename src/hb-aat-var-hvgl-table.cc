@@ -210,13 +210,6 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
   {
     hb_transform_t transform;
 
-    auto master_rotation_delta = Null(HBFLOAT32LE);
-    if (row == master_rotation_indices[0])
-    {
-      master_rotation_delta = master_rotation_deltas[0];
-      master_rotation_deltas++;
-      master_rotation_indices++;
-    }
     auto master_translation_delta = Null(TranslationDelta);
     if (row == master_translation_indices[0])
     {
@@ -224,8 +217,15 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
       master_translation_deltas++;
       master_translation_indices++;
     }
-    transform.rotate (master_rotation_delta);
+    auto master_rotation_delta = Null(HBFLOAT32LE);
+    if (row == master_rotation_indices[0])
+    {
+      master_rotation_delta = master_rotation_deltas[0];
+      master_rotation_deltas++;
+      master_rotation_indices++;
+    }
     transform.translate (master_translation_delta.x, master_translation_delta.y);
+    transform.rotate (master_rotation_delta);
 
     unsigned translation_index_end = 0;
     while (translation_index_end < extremum_translation_indices.length &&
@@ -276,23 +276,28 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
 	continue;
 
       hb_transform_t extremum_transform;
+      extremum_transform.translate (extremum_translation_delta.x,
+				    extremum_translation_delta.y);
+      extremum_transform.rotate (extremum_rotation_delta);
+
+      hb_transform_t scaled_extremum_transform;
 
       float eigen_x, eigen_y;
-      if (transform.get_eigen_vector (eigen_x, eigen_y))
+      if (extremum_transform.get_eigen_vector (eigen_x, eigen_y))
       {
         // Scale rotation around eigen vector
-	extremum_transform.translate (-eigen_x, -eigen_y);
-	extremum_transform.rotate (extremum_rotation_delta * scalar);
-	extremum_transform.translate (eigen_x, eigen_y);
+	scaled_extremum_transform.translate (-eigen_x, -eigen_y);
+	scaled_extremum_transform.rotate (extremum_rotation_delta * scalar);
+	scaled_extremum_transform.translate (eigen_x, eigen_y);
       }
       else
       {
 	// No rotation, just scale the translate
-	extremum_transform.translate (extremum_translation_delta.x * scalar,
-				      extremum_translation_delta.y * scalar);
+	scaled_extremum_transform.translate (extremum_translation_delta.x * scalar,
+					     extremum_translation_delta.y * scalar);
       }
 
-      transform.transform (extremum_transform);
+      transform.transform (scaled_extremum_transform);
     }
     extremum_translation_deltas += translation_index_end;;
     extremum_translation_indices += translation_index_end;
