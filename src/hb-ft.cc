@@ -1598,6 +1598,11 @@ _release_blob (void *arg)
 void
 hb_ft_font_set_funcs (hb_font_t *font)
 {
+  // In case of failure...
+  hb_font_set_funcs (font,
+		     hb_font_funcs_get_empty (),
+		     nullptr, nullptr);
+
   hb_blob_t *blob = hb_face_reference_blob (font->face);
   unsigned int blob_length;
   const char *blob_data = hb_blob_get_data (blob, &blob_length);

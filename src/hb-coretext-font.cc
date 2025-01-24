@@ -452,7 +452,12 @@ hb_coretext_font_set_funcs (hb_font_t *font)
 {
   CTFontRef ct_font = hb_coretext_font_get_ct_font (font);
   if (unlikely (!ct_font))
+  {
+    hb_font_set_funcs (font,
+		       hb_font_funcs_get_empty (),
+		       nullptr, nullptr);
     return;
+  }
 
   hb_font_set_funcs (font,
 		     _hb_coretext_get_font_funcs (),
