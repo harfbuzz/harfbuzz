@@ -242,12 +242,12 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
 
     unsigned translation_index_end = 0;
     while (translation_index_end < extremum_translation_indices.length &&
-	   row == extremum_translation_indices[translation_index_end].row)
+	   row == extremum_translation_indices.arrayZ[translation_index_end].row)
       translation_index_end++;
 
     unsigned rotation_index_end = 0;
     while (rotation_index_end < extremum_rotation_indices.length &&
-	   row == extremum_rotation_indices[rotation_index_end].row)
+	   row == extremum_rotation_indices.arrayZ[rotation_index_end].row)
       rotation_index_end++;
 
     unsigned translation_index = 0;
@@ -261,21 +261,21 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
       unsigned column;
       if (translation_index < translation_index_end &&
 	  (rotation_index == rotation_index_end ||
-	   extremum_translation_indices[translation_index].column < extremum_rotation_indices[rotation_index].column))
-        column = extremum_translation_indices[translation_index].column;
+	   extremum_translation_indices.arrayZ[translation_index].column < extremum_rotation_indices.arrayZ[rotation_index].column))
+        column = extremum_translation_indices.arrayZ[translation_index].column;
       else
-	column = extremum_rotation_indices[rotation_index].column;
+	column = extremum_rotation_indices.arrayZ[rotation_index].column;
 
       if (translation_index < translation_index_end &&
-	  extremum_translation_indices[translation_index].column == column)
+	  extremum_translation_indices.arrayZ[translation_index].column == column)
       {
-        extremum_translation_delta = extremum_translation_deltas[translation_index];
+        extremum_translation_delta = extremum_translation_deltas.arrayZ[translation_index];
 	translation_index++;
       }
       if (rotation_index < rotation_index_end &&
-	  extremum_rotation_indices[rotation_index].column == column)
+	  extremum_rotation_indices.arrayZ[rotation_index].column == column)
       {
-	extremum_rotation_delta = extremum_rotation_deltas[rotation_index];
+	extremum_rotation_delta = extremum_rotation_deltas.arrayZ[rotation_index];
 	rotation_index++;
       }
 
