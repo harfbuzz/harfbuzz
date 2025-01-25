@@ -28,7 +28,7 @@ blend_type_t
   BLEND_TYPE_TANGET_PAIR_SECOND = 4,
 };
 
-using segment_t = hb_array_t<double>;
+using segment_t = double*;
 
 static void
 project_on_curve_to_tangent (const segment_t offcurve1,
@@ -111,7 +111,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   {
     unsigned end = start + pathSegmentCount;
 
-    if (unlikely (end > segmentCount))
+    if (unlikely (end > segmentCount || end * 4 > v.length))
       break;
 
     // Resolve blend type
@@ -119,11 +119,11 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     {
       unsigned blendType = blendTypes[i];
 
-      auto segment = v.as_array ().sub_array (i * 4, 4);
+      segment_t segment = &v.arrayZ[i * 4];
       unsigned prev_i = i == start ? end - 1 : i - 1;
-      auto prev_segment = v.as_array ().sub_array (prev_i * 4, 4);
+      segment_t prev_segment = &v.arrayZ[prev_i * 4];
       unsigned next_i = i == end - 1 ? start : i + 1;
-      auto next_segment = v.as_array ().sub_array (next_i * 4, 4);
+      segment_t next_segment = &v.arrayZ[next_i * 4];
 
       switch (blendType)
       {
@@ -166,16 +166,16 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     // Draw
     if (likely (start != end))
     {
-      const auto first_segment = v.as_array ().sub_array (start * 4, 4);
+      const segment_t first_segment = &v.arrayZ[start * 4];
       float x0 = (float) first_segment[SEGMENT_POINT_ON_CURVE_X];
       float y0 = (float) first_segment[SEGMENT_POINT_ON_CURVE_Y];
       transform.transform_point (x0, y0);
       draw_session.move_to (x0, y0);
       for (unsigned i = start; i < end; i++)
       {
-	const auto segment = v.as_array ().sub_array (i * 4, 4);
+	const segment_t segment = &v.arrayZ[i * 4];
 	unsigned next_i = i == end - 1 ? start : i + 1;
-	auto next_segment = v.as_array ().sub_array (next_i * 4, 4);
+	const segment_t next_segment = &v[next_i * 4];
 
 	float x1 = (float) segment[SEGMENT_POINT_OFF_CURVE_X];
 	float y1 = (float) segment[SEGMENT_POINT_OFF_CURVE_Y];
