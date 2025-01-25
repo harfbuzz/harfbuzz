@@ -91,7 +91,16 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       unsigned count = hb_min (v.length, delta.length);
       auto *dest = v.arrayZ;
       const auto *src = delta.arrayZ;
-      for (unsigned i = 0; i < count; i++)
+      unsigned i = 0;
+      // This loop is really hot
+      for (; i + 4 <= count; i += 4)
+      {
+	dest[i] += src[i] * scalar;
+	dest[i + 1] += src[i + 1] * scalar;
+	dest[i + 2] += src[i + 2] * scalar;
+	dest[i + 3] += src[i + 3] * scalar;
+      }
+      for (; i < count; i++)
         dest[i] += src[i] * scalar;
     }
   }
