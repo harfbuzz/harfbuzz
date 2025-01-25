@@ -89,8 +89,10 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 
       const auto delta = deltas.get_column (column_idx, axisCount, segmentCount);
       unsigned count = hb_min (v.length, delta.length);
+      auto *dest = v.arrayZ;
+      const auto *src = delta.arrayZ;
       for (unsigned i = 0; i < count; i++)
-        v.arrayZ[i] += scalar * delta.arrayZ[i];
+        dest[i] += src[i] * scalar;
     }
   }
 
