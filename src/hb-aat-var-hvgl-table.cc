@@ -78,13 +78,13 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   if (coords)
   {
     const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
-    for (auto _ : hb_enumerate (coords))
+    unsigned count = coords.length;
+    for (unsigned axis_index = 0; axis_index < count; axis_index++)
     {
-      unsigned axis_index = _.first;
-      float coord = _.second;
-      bool pos = coord > 0;
+      float coord = coords.arrayZ[axis_index];
       if (!coord) continue;
       double scalar = (double) fabsf(coord);
+      bool pos = coord > 0;
       unsigned column_idx = axis_index * 2 + pos;
 
       const auto delta = deltas.get_column (column_idx, axisCount, segmentCount);
@@ -279,14 +279,14 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
 	rotation_index++;
       }
 
-      bool pos = column & 1;
       unsigned axis_idx = column / 2;
       float coord = coords[axis_idx];
-      if (!coord || (pos != (coord > 0)))
+      if (!coord)
+        continue;
+      bool pos = column & 1;
+      if (pos != (coord > 0))
         continue;
       float scalar = fabsf (coord);
-      if (!scalar)
-	continue;
 
       hb_transform_t scaled_extremum_transform;
 
