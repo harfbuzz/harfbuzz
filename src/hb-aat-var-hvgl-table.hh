@@ -184,8 +184,8 @@ struct ExtremumColumnStarts
 
     for (unsigned column_idx = 0; column_idx < 2 * axis_count; column_idx++)
     {
-      const auto &sparse_row_start = extremumColumnStart[column_idx];
-      const auto &sparse_row_end = extremumColumnStart[column_idx + 1];
+      const auto &sparse_row_start = extremumColumnStart.arrayZ[column_idx];
+      const auto &sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
 
       if (sparse_row_start == sparse_row_end)
         continue;
