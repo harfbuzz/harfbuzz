@@ -290,10 +290,10 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
 
       hb_transform_t scaled_extremum_transform;
 
-      std::complex<float> t {extremum_translation_delta.x, extremum_translation_delta.y};
-      std::complex<float> _1_minus_e_iangle = 1.f - std::exp (std::complex<float> (0, 1) * (float) extremum_rotation_delta);
-      if (_1_minus_e_iangle != 0.f)
+      if (extremum_rotation_delta)
       {
+	std::complex<float> t {extremum_translation_delta.x, extremum_translation_delta.y};
+	std::complex<float> _1_minus_e_iangle = 1.f - std::exp (std::complex<float> (0, 1) * (float) extremum_rotation_delta);
 	std::complex<float> eigen = t / _1_minus_e_iangle;
 	float eigen_x = eigen.real ();
 	float eigen_y = eigen.imag ();
