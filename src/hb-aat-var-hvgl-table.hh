@@ -168,45 +168,12 @@ struct ExtremumColumnStarts
 {
   public:
 
+  HB_INTERNAL
   void apply_to_coords (hb_array_t<float> out_coords,
 			hb_array_t<const float> coords,
 			unsigned axis_count,
 			hb_array_t<const HBFLOAT32LE> master_axis_value_deltas,
-			hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas) const
-  {
-    const auto &masterRowIndex = StructAfter<decltype (masterRowIndexX)> (extremumColumnStart, 2 * axis_count + 1);
-    hb_array_t<const HBUINT16LE> master_row_index = masterRowIndex.as_array (master_axis_value_deltas.length);
-    for (auto pair : hb_zip (master_row_index, master_axis_value_deltas))
-      out_coords[pair.first] += pair.second;
-
-    const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, master_axis_value_deltas.length);
-    hb_array_t<const HBUINT16LE> extremum_row_index = extremumRowIndex.as_array (extremum_axis_value_deltas.length);
-
-    for (unsigned column_idx = 0; column_idx < 2 * axis_count; column_idx++)
-    {
-      const auto &sparse_row_start = extremumColumnStart.arrayZ[column_idx];
-      const auto &sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
-
-      if (sparse_row_start == sparse_row_end)
-        continue;
-
-      unsigned axis_idx = column_idx / 2;
-      float coord = coords[axis_idx];
-      if (!coord)
-        continue;
-      bool pos = column_idx & 1;
-      if (pos != (coord > 0))
-        continue;
-      float scalar = fabsf (coord);
-
-      for (unsigned row_idx = sparse_row_start; row_idx < sparse_row_end; row_idx++)
-      {
-	unsigned row = extremum_row_index[row_idx];
-	float delta = extremum_axis_value_deltas[row_idx];
-	out_coords[row] += delta * scalar;
-      }
-    }
-  }
+			hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas) const;
 
   bool sanitize (hb_sanitize_context_t *c,
 		 unsigned axis_count,
