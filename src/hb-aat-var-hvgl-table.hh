@@ -190,10 +190,12 @@ struct ExtremumColumnStarts
       if (sparse_row_start == sparse_row_end)
         continue;
 
-      bool pos = column_idx & 1;
       unsigned axis_idx = column_idx / 2;
       float coord = coords[axis_idx];
-      if (!coord || (pos != (coord > 0)))
+      if (!coord)
+        continue;
+      bool pos = column_idx & 1;
+      if (pos != (coord > 0))
         continue;
       float scalar = fabsf (coord);
 
