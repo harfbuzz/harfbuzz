@@ -12,9 +12,6 @@
 #include <simd/simd.h> // Apple SIMD https://developer.apple.com/documentation/accelerate/simd
 #endif
 
-// AVX
-#include <immintrin.h>
-
 #ifndef HB_NO_VAR_HVF
 
 namespace AAT {
@@ -68,7 +65,6 @@ project_on_curve_to_tangent (const segment_t offcurve1,
   oncurve[SEGMENT_POINT_ON_CURVE_Y] = y;
 }
 
-__attribute__ ((target ("avx")))
 void
 PartShape::get_path_at (const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
@@ -95,11 +91,11 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     unsigned axis_count = coords.length;
     unsigned axis_index = 0;
 
-    HB_UNUSED bool src_aligned = (uintptr_t) (deltas.get_matrix (axisCount, segmentCount).arrayZ) % 32 == 0;
-    HB_UNUSED bool dest_aligned = (uintptr_t) (v.arrayZ) % 32 == 0;
-
 #ifndef HB_NO_APPLE_SIMD
     // APPLE SIMD
+
+    bool src_aligned = (uintptr_t) (deltas.get_matrix (axisCount, segmentCount).arrayZ) % 8 == 0;
+    bool dest_aligned = (uintptr_t) (v.arrayZ) % 8 == 0;
     if (src_aligned && dest_aligned)
     {
       unsigned rows_count = v.length;
@@ -134,35 +130,6 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       }
     }
 #endif
-
-    // AVX
-    if (src_aligned && dest_aligned)
-    {
-      for (; axis_index <= axis_count; axis_index++)
-      {
-	float coord = coords.arrayZ[axis_index];
-	if (!coord) continue;
-	double scalar = (double) fabsf (coord);
-	__m256d scalar256 = _mm256_set1_pd (scalar);
-	bool pos = coord > 0;
-	unsigned column_idx = axis_index * 2 + pos;
-
-	const auto delta = deltas.get_column (column_idx, axisCount, segmentCount);
-	unsigned coord_count = hb_min (v.length, delta.length);
-	auto *dest = v.arrayZ;
-	const auto *src = delta.arrayZ;
-	unsigned i = 0;
-	// This loop is really hot
-	for (; i + 4 <= coord_count; i += 4)
-	{
-	  __m256d &src256 = * (__m256d *) (void *) (src + i);
-	  __m256d &dest256 = * (__m256d *) (void *) (dest + i);
-	  dest256 = _mm256_add_pd (dest256, _mm256_mul_pd (src256, scalar256));
-	}
-	for (; i < coord_count; i++)
-	  dest[i] += src[i] * scalar;
-      }
-    }
 
     for (;axis_index < axis_count; axis_index++)
     {
