@@ -341,22 +341,18 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
 
     hb_transform_t &transform = transforms[row];
 
-    auto master_translation_delta = Null(TranslationDelta);
-    if (row == master_translation_indices[0])
+    if (master_translation_indices && row == *master_translation_indices)
     {
-      master_translation_delta = master_translation_deltas[0];
+      transform.translate (master_translation_deltas->x, master_translation_deltas->y);
       master_translation_deltas++;
       master_translation_indices++;
     }
-    auto master_rotation_delta = Null(HBFLOAT32LE);
-    if (row == master_rotation_indices[0])
+    if (master_rotation_indices && row == *master_rotation_indices)
     {
-      master_rotation_delta = master_rotation_deltas[0];
+      transform.rotate (*master_rotation_deltas);
       master_rotation_deltas++;
       master_rotation_indices++;
     }
-    transform.translate (master_translation_delta.x, master_translation_delta.y);
-    transform.rotate (master_rotation_delta);
 
     unsigned translation_index_end = 0;
     while (translation_index_end < extremum_translation_indices.length &&
