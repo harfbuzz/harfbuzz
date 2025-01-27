@@ -331,10 +331,10 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
       transforms[master_rotation_indices[i]].rotate (master_rotation_deltas[i]);
   }
 
-  auto extremum_translation_deltas = extremumTranslationDelta.as_array (sparseExtremumTranslationCount);
   auto extremum_translation_indices = extremumTranslationIndex.as_array (sparseExtremumTranslationCount);
-  auto extremum_rotation_deltas = extremumRotationDelta.as_array (sparseExtremumRotationCount);
+  auto extremum_translation_deltas = extremumTranslationDelta.arrayZ;
   auto extremum_rotation_indices = extremumRotationIndex.as_array (sparseExtremumRotationCount);
+  auto extremum_rotation_deltas = extremumRotationDelta.arrayZ;
   while (true)
   {
     unsigned row = transforms.length;
