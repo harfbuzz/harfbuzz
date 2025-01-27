@@ -331,16 +331,18 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
       transforms[master_rotation_indices[i]].rotate (master_rotation_deltas[i]);
   }
 
-  auto extremum_translation_indices = extremumTranslationIndex.as_array (sparseExtremumTranslationCount);
+  auto extremum_translation_indices = extremumTranslationIndex.arrayZ;
   auto extremum_translation_deltas = extremumTranslationDelta.arrayZ;
-  auto extremum_rotation_indices = extremumRotationIndex.as_array (sparseExtremumRotationCount);
+  unsigned extremum_translation_count = sparseExtremumTranslationCount;
+  auto extremum_rotation_indices = extremumRotationIndex.arrayZ;
   auto extremum_rotation_deltas = extremumRotationDelta.arrayZ;
+  unsigned extremum_rotation_count = sparseExtremumRotationCount;
   while (true)
   {
     unsigned row = transforms.length;
-    if (extremum_translation_indices)
+    if (extremum_translation_count)
       row = hb_min (row, extremum_translation_indices->row);
-    if (extremum_rotation_indices)
+    if (extremum_rotation_count)
       row = hb_min (row, extremum_rotation_indices->row);
     if (row == transforms.length)
       break;
@@ -351,28 +353,30 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
     auto extremum_rotation_delta = Null(HBFLOAT32LE);
 
     unsigned column = 2 * axisCount;
-    if (extremum_translation_indices &&
+    if (extremum_translation_count &&
 	extremum_translation_indices->row == row)
       column = hb_min (column, extremum_translation_indices->column);
-    if (extremum_rotation_indices &&
+    if (extremum_rotation_count &&
 	extremum_rotation_indices->row == row)
       column = hb_min (column, extremum_rotation_indices->column);
     if (column == 2 * axisCount)
       break;
 
-    if (extremum_translation_indices &&
+    if (extremum_translation_count &&
 	extremum_translation_indices->row == row &&
 	extremum_translation_indices->column == column)
     {
       extremum_translation_delta = *extremum_translation_deltas;
+      extremum_translation_count--;
       extremum_translation_indices++;
       extremum_translation_deltas++;
     }
-    if (extremum_rotation_indices &&
+    if (extremum_rotation_count &&
 	extremum_rotation_indices->row == row &&
 	extremum_rotation_indices->column == column)
     {
       extremum_rotation_delta = *extremum_rotation_deltas;
+      extremum_rotation_count--;
       extremum_rotation_indices++;
       extremum_rotation_deltas++;
     }
