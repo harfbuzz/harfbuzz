@@ -226,7 +226,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       {
 	const segment_t segment = &v.arrayZ[i * 4];
 	unsigned next_i = i == end - 1 ? start : i + 1;
-	const segment_t next_segment = &v[next_i * 4];
+	const segment_t next_segment = &v.arrayZ[next_i * 4];
 
 	float x1 = (float) segment[SEGMENT_POINT_OFF_CURVE_X];
 	float y1 = (float) segment[SEGMENT_POINT_OFF_CURVE_Y];
