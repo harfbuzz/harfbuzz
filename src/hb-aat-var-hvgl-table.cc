@@ -96,9 +96,9 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     // APPLE SIMD
 
     bool src_aligned = (uintptr_t) (deltas.get_matrix (axisCount, segmentCount).arrayZ) % 8 == 0;
-    bool dest_aligned = (uintptr_t) (v.arrayZ) % 8 == 0;
+    // dest is always aligned.
     bool be = CFByteOrderGetCurrent () == CFByteOrderBigEndian;
-    if (!be && src_aligned && dest_aligned)
+    if (!be && src_aligned)
     {
       unsigned rows_count = v.length;
       double c[4];
