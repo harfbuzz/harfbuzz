@@ -259,12 +259,6 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
 
   for (unsigned column_idx = 0; column_idx < 2 * axis_count; column_idx++)
   {
-    const auto &sparse_row_start = extremumColumnStart.arrayZ[column_idx];
-    const auto &sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
-
-    if (sparse_row_start == sparse_row_end)
-      continue;
-
     unsigned axis_idx = column_idx / 2;
     float coord = coords[axis_idx];
     if (!coord)
@@ -274,6 +268,8 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
       continue;
     float scalar = fabsf (coord);
 
+    const auto &sparse_row_start = extremumColumnStart.arrayZ[column_idx];
+    const auto &sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
     for (unsigned row_idx = sparse_row_start; row_idx < sparse_row_end; row_idx++)
     {
       unsigned row = extremum_row_index[row_idx];
