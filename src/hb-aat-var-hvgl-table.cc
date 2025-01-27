@@ -5,7 +5,7 @@
 #if !defined(HB_NO_APPLE_SIMD) && !(defined(__APPLE__) && \
   (!defined(MAC_OS_X_VERSION_MIN_REQUIRED) || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300) \
 )
-#define HB_NO_APPLE_SIMD 1
+#define HB_NO_APPLE_SIMD
 #endif
 
 #ifndef HB_NO_APPLE_SIMD
