@@ -332,10 +332,6 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
       row = hb_min (row, *master_translation_indices);
     if (master_rotation_indices)
       row = hb_min (row, *master_rotation_indices);
-    if (extremum_translation_indices)
-      row = hb_min (row, extremum_translation_indices->row);
-    if (extremum_rotation_indices)
-      row = hb_min (row, extremum_rotation_indices->row);
     if (row == transforms.length)
       break;
 
@@ -353,6 +349,19 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
       master_rotation_deltas++;
       master_rotation_indices++;
     }
+  }
+
+  while (true)
+  {
+    unsigned row = transforms.length;
+    if (extremum_translation_indices)
+      row = hb_min (row, extremum_translation_indices->row);
+    if (extremum_rotation_indices)
+      row = hb_min (row, extremum_rotation_indices->row);
+    if (row == transforms.length)
+      break;
+
+    hb_transform_t &transform = transforms[row];
 
     unsigned translation_index_end = 0;
     while (translation_index_end < extremum_translation_indices.length &&
