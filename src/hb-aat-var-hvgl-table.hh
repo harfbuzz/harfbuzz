@@ -345,21 +345,16 @@ struct PartComposite
     if (unlikely (!subParts.sanitize (c, subPartCount))) return_trace (false);
 
     const auto &extremumColumnStarts = StructAtOffset<ExtremumColumnStarts> (this, extremumColumnStartsOff4 * 4);
-    if (unlikely (!extremumColumnStarts.sanitize (c, axisCount, sparseMasterAxisValueCount, sparseExtremumAxisValueCount))) return_trace (false);
-
     const auto &masterAxisValueDeltas = StructAtOffset<MasterAxisValueDeltas> (this, masterAxisValueDeltasOff4 * 4);
-    if (unlikely (!masterAxisValueDeltas.sanitize (c, sparseMasterAxisValueCount))) return_trace (false);
-
     const auto &extremumAxisValueDeltas = StructAtOffset<ExtremumAxisValueDeltas> (this, extremumAxisValueDeltasOff4 * 4);
-    if (unlikely (!extremumAxisValueDeltas.sanitize (c, sparseExtremumAxisValueCount))) return_trace (false);
-
     const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
-    if (unlikely (!allTranslations.sanitize (c, sparseMasterTranslationCount, sparseExtremumTranslationCount))) return_trace (false);
-
     const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
-    if (unlikely (!allRotations.sanitize (c, sparseMasterRotationCount, sparseExtremumRotationCount))) return_trace (false);
 
-    return_trace (true);
+    return_trace (likely (extremumColumnStarts.sanitize (c, axisCount, sparseMasterAxisValueCount, sparseExtremumAxisValueCount) &&
+			  masterAxisValueDeltas.sanitize (c, sparseMasterAxisValueCount) &&
+			  extremumAxisValueDeltas.sanitize (c, sparseExtremumAxisValueCount) &&
+			  allTranslations.sanitize (c, sparseMasterTranslationCount, sparseExtremumTranslationCount) &&
+			  allRotations.sanitize (c, sparseMasterRotationCount, sparseExtremumRotationCount)));
   }
 
   protected:
