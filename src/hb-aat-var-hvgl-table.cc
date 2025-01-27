@@ -339,7 +339,7 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
     if (row == transforms.length)
       break;
 
-    hb_transform_t transform;
+    hb_transform_t &transform = transforms[row];
 
     auto master_translation_delta = Null(TranslationDelta);
     if (row == master_translation_indices[0])
@@ -406,8 +406,6 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
         continue;
       float scalar = fabsf (coord);
 
-      hb_transform_t scaled_extremum_transform;
-
       if (extremum_rotation_delta)
       {
 	std::complex<float> t {extremum_translation_delta.x, extremum_translation_delta.y};
@@ -416,25 +414,21 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
 	float eigen_x = eigen.real ();
 	float eigen_y = eigen.imag ();
         // Scale rotation around eigen vector
-	scaled_extremum_transform.translate (eigen_x, eigen_y);
-	scaled_extremum_transform.rotate (extremum_rotation_delta * scalar);
-	scaled_extremum_transform.translate (-eigen_x, -eigen_y);
+	transform.translate (eigen_x, eigen_y);
+	transform.rotate (extremum_rotation_delta * scalar);
+	transform.translate (-eigen_x, -eigen_y);
       }
       else
       {
 	// No rotation, just scale the translate
-	scaled_extremum_transform.translate (extremum_translation_delta.x * scalar,
-					     extremum_translation_delta.y * scalar);
+	transform.translate (extremum_translation_delta.x * scalar,
+			     extremum_translation_delta.y * scalar);
       }
-
-      transform.transform (scaled_extremum_transform);
     }
     extremum_translation_deltas += translation_index_end;
     extremum_translation_indices += translation_index_end;
     extremum_rotation_deltas += rotation_index_end;
     extremum_rotation_indices += rotation_index_end;
-
-    transforms[row].transform (transform);
   }
 }
 
