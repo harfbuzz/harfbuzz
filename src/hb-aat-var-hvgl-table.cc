@@ -325,8 +325,20 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
   auto extremum_rotation_deltas = extremumRotationDelta.as_array (sparseExtremumRotationCount);
   auto extremum_rotation_indices = extremumRotationIndex.as_array (sparseExtremumRotationCount);
 
-  for (unsigned row = 0; row < transforms.length; row++)
+  while (true)
   {
+    unsigned row = transforms.length;
+    if (master_translation_indices)
+      row = hb_min (row, *master_translation_indices);
+    if (master_rotation_indices)
+      row = hb_min (row, *master_rotation_indices);
+    if (extremum_translation_indices)
+      row = hb_min (row, extremum_translation_indices->row);
+    if (extremum_rotation_indices)
+      row = hb_min (row, extremum_rotation_indices->row);
+    if (row == transforms.length)
+      break;
+
     hb_transform_t transform;
 
     auto master_translation_delta = Null(TranslationDelta);
