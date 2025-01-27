@@ -267,12 +267,13 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
     float scalar = fabsf (coord);
     unsigned column_idx = axis_idx * 2 + pos;
 
-    const auto &sparse_row_start = extremumColumnStart.arrayZ[column_idx];
-    const auto &sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
+    unsigned sparse_row_start = extremumColumnStart.arrayZ[column_idx];
+    unsigned sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
+    sparse_row_end = hb_min (sparse_row_end, extremum_row_index.length);
     for (unsigned row_idx = sparse_row_start; row_idx < sparse_row_end; row_idx++)
     {
-      unsigned row = extremum_row_index[row_idx];
-      float delta = extremum_axis_value_deltas[row_idx];
+      unsigned row = extremum_row_index.arrayZ[row_idx];
+      float delta = extremum_axis_value_deltas.arrayZ[row_idx];
       out_coords[row] += delta * scalar;
     }
   }
