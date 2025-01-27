@@ -113,12 +113,12 @@ struct PartShape
     if (unlikely (!c->check_struct (this))) return_trace (false);
     hb_barrier ();
 
-    if (unlikely (!segmentCountPerPath.sanitize (c, pathCount))) return_trace (false);
-
     const auto &blendTypes = StructAfter<decltype (blendTypesX)> (segmentCountPerPath, pathCount);
-    if (unlikely (!blendTypes.sanitize (c, segmentCount))) return_trace (false);
-
     const auto &padding = StructAfter<decltype (paddingX)> (blendTypes, segmentCount);
+
+    if (unlikely (!(((const char *) this <= (const char *) &padding) &&
+		    c->check_range (this, (unsigned ((const char *) &padding - (const char *) this))))))
+      return_trace (false);
 
     const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, this);
     if (unlikely (!coordinates.sanitize (c, segmentCount))) return_trace (false);
