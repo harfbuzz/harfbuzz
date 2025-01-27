@@ -347,77 +347,63 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
 
     hb_transform_t &transform = transforms[row];
 
-    unsigned translation_index_end = 0;
-    while (translation_index_end < extremum_translation_indices.length &&
-	   row == extremum_translation_indices.arrayZ[translation_index_end].row)
-      translation_index_end++;
+    auto extremum_translation_delta = Null(TranslationDelta);
+    auto extremum_rotation_delta = Null(HBFLOAT32LE);
 
-    unsigned rotation_index_end = 0;
-    while (rotation_index_end < extremum_rotation_indices.length &&
-	   row == extremum_rotation_indices.arrayZ[rotation_index_end].row)
-      rotation_index_end++;
+    unsigned column = 2 * axisCount;
+    if (extremum_translation_indices &&
+	extremum_translation_indices->row == row)
+      column = hb_min (column, extremum_translation_indices->column);
+    if (extremum_rotation_indices &&
+	extremum_rotation_indices->row == row)
+      column = hb_min (column, extremum_rotation_indices->column);
+    if (column == 2 * axisCount)
+      break;
 
-    unsigned translation_index = 0;
-    unsigned rotation_index = 0;
-    while (translation_index < translation_index_end ||
-	   rotation_index < rotation_index_end)
+    if (extremum_translation_indices &&
+	extremum_translation_indices->row == row &&
+	extremum_translation_indices->column == column)
     {
-      auto extremum_translation_delta = Null(TranslationDelta);
-      auto extremum_rotation_delta = Null(HBFLOAT32LE);
-
-      unsigned column;
-      if (translation_index < translation_index_end &&
-	  (rotation_index == rotation_index_end ||
-	   extremum_translation_indices.arrayZ[translation_index].column < extremum_rotation_indices.arrayZ[rotation_index].column))
-        column = extremum_translation_indices.arrayZ[translation_index].column;
-      else
-	column = extremum_rotation_indices.arrayZ[rotation_index].column;
-
-      if (translation_index < translation_index_end &&
-	  extremum_translation_indices.arrayZ[translation_index].column == column)
-      {
-        extremum_translation_delta = extremum_translation_deltas.arrayZ[translation_index];
-	translation_index++;
-      }
-      if (rotation_index < rotation_index_end &&
-	  extremum_rotation_indices.arrayZ[rotation_index].column == column)
-      {
-	extremum_rotation_delta = extremum_rotation_deltas.arrayZ[rotation_index];
-	rotation_index++;
-      }
-
-      unsigned axis_idx = column / 2;
-      float coord = coords[axis_idx];
-      if (!coord)
-        continue;
-      bool pos = column & 1;
-      if (pos != (coord > 0))
-        continue;
-      float scalar = fabsf (coord);
-
-      if (extremum_rotation_delta)
-      {
-	std::complex<float> t {extremum_translation_delta.x, extremum_translation_delta.y};
-	std::complex<float> _1_minus_e_iangle = 1.f - std::exp (std::complex<float> (0, 1) * (float) extremum_rotation_delta);
-	std::complex<float> eigen = t / _1_minus_e_iangle;
-	float eigen_x = eigen.real ();
-	float eigen_y = eigen.imag ();
-        // Scale rotation around eigen vector
-	transform.translate (eigen_x, eigen_y);
-	transform.rotate (extremum_rotation_delta * scalar);
-	transform.translate (-eigen_x, -eigen_y);
-      }
-      else
-      {
-	// No rotation, just scale the translate
-	transform.translate (extremum_translation_delta.x * scalar,
-			     extremum_translation_delta.y * scalar);
-      }
+      extremum_translation_delta = *extremum_translation_deltas;
+      extremum_translation_indices++;
+      extremum_translation_deltas++;
     }
-    extremum_translation_deltas += translation_index_end;
-    extremum_translation_indices += translation_index_end;
-    extremum_rotation_deltas += rotation_index_end;
-    extremum_rotation_indices += rotation_index_end;
+    if (extremum_rotation_indices &&
+	extremum_rotation_indices->row == row &&
+	extremum_rotation_indices->column == column)
+    {
+      extremum_rotation_delta = *extremum_rotation_deltas;
+      extremum_rotation_indices++;
+      extremum_rotation_deltas++;
+    }
+
+    unsigned axis_idx = column / 2;
+    float coord = coords[axis_idx];
+    if (!coord)
+      continue;
+    bool pos = column & 1;
+    if (pos != (coord > 0))
+      continue;
+    float scalar = fabsf (coord);
+
+    if (extremum_rotation_delta)
+    {
+      std::complex<float> t {extremum_translation_delta.x, extremum_translation_delta.y};
+      std::complex<float> _1_minus_e_iangle = 1.f - std::exp (std::complex<float> (0, 1) * (float) extremum_rotation_delta);
+      std::complex<float> eigen = t / _1_minus_e_iangle;
+      float eigen_x = eigen.real ();
+      float eigen_y = eigen.imag ();
+      // Scale rotation around eigen vector
+      transform.translate (eigen_x, eigen_y);
+      transform.rotate (extremum_rotation_delta * scalar);
+      transform.translate (-eigen_x, -eigen_y);
+    }
+    else
+    {
+      // No rotation, just scale the translate
+      transform.translate (extremum_translation_delta.x * scalar,
+			   extremum_translation_delta.y * scalar);
+    }
   }
 }
 
