@@ -95,8 +95,8 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     // APPLE SIMD
 
     unsigned rows_count = v.length;
-    bool src_aligned = (uintptr_t) (deltas.get_matrix (axisCount, segmentCount).arrayZ) % 16 == 0;
-    bool dest_aligned = (uintptr_t) (v.arrayZ) % 16 == 0;
+    bool src_aligned = (uintptr_t) (deltas.get_matrix (axisCount, segmentCount).arrayZ) % 8 == 0;
+    bool dest_aligned = (uintptr_t) (v.arrayZ) % 8 == 0;
 
     for (; axis_index + 4 <= axis_count; axis_index += 4)
     {
@@ -120,10 +120,10 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	simd_double4x4 matrix;
 	if (src_aligned)
 	{
-	  const auto &src0 = * (const simd_double4 *) (void *) (delta0 + i);
-	  const auto &src1 = * (const simd_double4 *) (void *) (delta1 + i);
-	  const auto &src2 = * (const simd_double4 *) (void *) (delta2 + i);
-	  const auto &src3 = * (const simd_double4 *) (void *) (delta3 + i);
+	  const auto &src0 = * (const simd_packed_double4 *) (void *) (delta0 + i);
+	  const auto &src1 = * (const simd_packed_double4 *) (void *) (delta1 + i);
+	  const auto &src2 = * (const simd_packed_double4 *) (void *) (delta2 + i);
+	  const auto &src3 = * (const simd_packed_double4 *) (void *) (delta3 + i);
 	  matrix = simd_matrix (src0, src1, src2, src3);
 	}
 	else
@@ -136,7 +136,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	}
 
 	if (dest_aligned)
-	  * (simd_double4 *) (void *) (v.arrayZ + i) += simd_mul (matrix, scalar4);
+	  * (simd_packed_double4 *) (void *) (v.arrayZ + i) += simd_mul (matrix, scalar4);
 	else
 	{
 	  auto *dest = v.arrayZ + i;
