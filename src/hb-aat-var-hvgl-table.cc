@@ -315,34 +315,20 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
   const auto &extremumRotationIndex = StructAfter<decltype (allRotations.extremumRotationIndexX)> (extremumRotationDelta, sparseExtremumRotationCount);
   const auto &masterRotationIndex = StructAfter<decltype (allRotations.masterRotationIndexX)> (extremumRotationIndex, sparseExtremumRotationCount);
 
-  auto master_translation_deltas = masterTranslationDelta.as_array (sparseMasterTranslationCount);
-  auto master_translation_indices = masterTranslationIndex.as_array (sparseMasterTranslationCount);
-  auto master_rotation_deltas = masterRotationDelta.as_array (sparseMasterRotationCount);
-  auto master_rotation_indices = masterRotationIndex.as_array (sparseMasterRotationCount);
-  while (true)
   {
-    unsigned row = transforms.length;
-    if (master_translation_indices)
-      row = hb_min (row, *master_translation_indices);
-    if (master_rotation_indices)
-      row = hb_min (row, *master_rotation_indices);
-    if (row == transforms.length)
-      break;
-
-    hb_transform_t &transform = transforms[row];
-
-    if (master_translation_indices && row == *master_translation_indices)
-    {
-      transform.translate (master_translation_deltas->x, master_translation_deltas->y);
-      master_translation_deltas++;
-      master_translation_indices++;
-    }
-    if (master_rotation_indices && row == *master_rotation_indices)
-    {
-      transform.rotate (*master_rotation_deltas);
-      master_rotation_deltas++;
-      master_rotation_indices++;
-    }
+    const auto master_translation_indices = masterTranslationIndex.arrayZ;
+    const auto master_translation_deltas = masterTranslationDelta.arrayZ;
+    unsigned count = sparseMasterTranslationCount;
+    for (unsigned i = 0; i < count; i++)
+      transforms[master_translation_indices[i]].translate (master_translation_deltas[i].x,
+							   master_translation_deltas[i].y);
+  }
+  {
+    const auto master_rotation_indices = masterRotationIndex.arrayZ;
+    const auto master_rotation_deltas = masterRotationDelta.arrayZ;
+    unsigned count = sparseMasterRotationCount;
+    for (unsigned i = 0; i < count; i++)
+      transforms[master_rotation_indices[i]].rotate (master_rotation_deltas[i]);
   }
 
   auto extremum_translation_deltas = extremumTranslationDelta.as_array (sparseExtremumTranslationCount);
