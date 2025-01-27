@@ -101,18 +101,34 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     if (!be && src_aligned && dest_aligned)
     {
       unsigned rows_count = v.length;
-      for (; axis_index + 4 <= axis_count; axis_index += 4)
+      double c[4];
+      unsigned column_idx[4];
+      while (axis_index < axis_count)
       {
-	const float *c = coords.arrayZ + axis_index;
-	if (!c[0] && !c[1] && !c[2] && !c[3]) continue;
-	simd_double4 scalar4 = simd_abs (simd_make_double4 ((double) c[0], (double) c[1], (double) c[2], (double) c[3]));
-	unsigned column_base = axis_index * 2;
-	unsigned column_idx[4] = {
-	  (column_base + 0) + (c[0] > 0),
-	  (column_base + 2) + (c[1] > 0),
-	  (column_base + 4) + (c[2] > 0),
-	  (column_base + 6) + (c[3] > 0),
-	};
+	unsigned j;
+	for (j = 0; j < 4; j++)
+	{
+	  while (axis_index < axis_count && !coords.arrayZ[axis_index])
+	    axis_index++;
+	  if (axis_index >= axis_count)
+	  {
+	    if (!j)
+	      break;
+	    for (; j < 4; j++)
+	    {
+	      c[j] = 0.;
+	      column_idx[j] = 0;
+	    }
+	    break;
+	  }
+	  c[j] = (double) coords.arrayZ[axis_index];
+	  column_idx[j] = axis_index * 2 + (c[j] > 0.);
+	  axis_index++;
+	}
+	if (!j)
+	  break;
+
+	simd_double4 scalar4 = simd_abs (* (const simd_packed_double4 *) c);
 	const auto delta0 = deltas.get_column (column_idx[0], axisCount, segmentCount).arrayZ;
 	const auto delta1 = deltas.get_column (column_idx[1], axisCount, segmentCount).arrayZ;
 	const auto delta2 = deltas.get_column (column_idx[2], axisCount, segmentCount).arrayZ;
