@@ -257,16 +257,15 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
   const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, master_axis_value_deltas.length);
   hb_array_t<const HBUINT16LE> extremum_row_index = extremumRowIndex.as_array (extremum_axis_value_deltas.length);
 
-  for (unsigned column_idx = 0; column_idx < 2 * axis_count; column_idx++)
+  axis_count = hb_min (axis_count, coords.length);
+  for (unsigned axis_idx = 0; axis_idx < axis_count; axis_idx++)
   {
-    unsigned axis_idx = column_idx / 2;
-    float coord = coords[axis_idx];
+    float coord = coords.arrayZ[axis_idx];
     if (!coord)
       continue;
-    bool pos = column_idx & 1;
-    if (pos != (coord > 0))
-      continue;
+    bool pos = coord > 0;
     float scalar = fabsf (coord);
+    unsigned column_idx = axis_idx * 2 + pos;
 
     const auto &sparse_row_start = extremumColumnStart.arrayZ[column_idx];
     const auto &sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
