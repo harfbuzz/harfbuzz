@@ -2,6 +2,16 @@
 
 #include <complex>
 
+#if !defined(HB_NO_APPLE_SIMD) && !(defined(__APPLE__) && \
+  (!defined(MAC_OS_X_VERSION_MIN_REQUIRED) || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300) \
+)
+#define HB_NO_APPLE_SIMD 1
+#endif
+
+#ifndef HB_NO_APPLE_SIMD
+#include <simd/simd.h> // Apple SIMD https://developer.apple.com/documentation/accelerate/simd
+#endif
+
 #ifndef HB_NO_VAR_HVF
 
 namespace AAT {
@@ -78,8 +88,70 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   if (coords)
   {
     const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
-    unsigned count = coords.length;
-    for (unsigned axis_index = 0; axis_index < count; axis_index++)
+    unsigned axis_count = coords.length;
+    unsigned axis_index = 0;
+
+#ifndef HB_NO_APPLE_SIMD
+    // APPLE SIMD
+
+    unsigned rows_count = v.length;
+    bool src_aligned = (uintptr_t) (deltas.get_matrix (axisCount, segmentCount).arrayZ) % 16 == 0;
+    bool dest_aligned = (uintptr_t) (v.arrayZ) % 16 == 0;
+
+    for (; axis_index + 4 <= axis_count; axis_index += 4)
+    {
+      const float *c = coords.arrayZ + axis_index;
+      if (!c[0] && !c[1] && !c[2] && !c[3]) continue;
+      simd_double4 scalar4 = simd_abs (simd_make_double4 ((double) c[0], (double) c[1], (double) c[2], (double) c[3]));
+      unsigned column_idx[4] = {
+	(axis_index + 0) * 2 + (c[0] > 0),
+	(axis_index + 1) * 2 + (c[1] > 0),
+	(axis_index + 2) * 2 + (c[2] > 0),
+	(axis_index + 3) * 2 + (c[3] > 0),
+      };
+      const auto delta0 = deltas.get_column (column_idx[0], axisCount, segmentCount).arrayZ;
+      const auto delta1 = deltas.get_column (column_idx[1], axisCount, segmentCount).arrayZ;
+      const auto delta2 = deltas.get_column (column_idx[2], axisCount, segmentCount).arrayZ;
+      const auto delta3 = deltas.get_column (column_idx[3], axisCount, segmentCount).arrayZ;
+
+      // Note: Count is always a multiple of 4, unless allocation failure
+      for (unsigned i = 0; i + 4 <= rows_count; i += 4)
+      {
+	simd_double4x4 matrix;
+	if (src_aligned)
+	{
+	  const auto &src0 = * (const simd_double4 *) (void *) (delta0 + i);
+	  const auto &src1 = * (const simd_double4 *) (void *) (delta1 + i);
+	  const auto &src2 = * (const simd_double4 *) (void *) (delta2 + i);
+	  const auto &src3 = * (const simd_double4 *) (void *) (delta3 + i);
+	  matrix = simd_matrix (src0, src1, src2, src3);
+	}
+	else
+	{
+	  const auto src0 = simd_make_double4 (delta0[i], delta0[i + 1], delta0[i + 2], delta0[i + 3]);
+	  const auto src1 = simd_make_double4 (delta1[i], delta1[i + 1], delta1[i + 2], delta1[i + 3]);
+	  const auto src2 = simd_make_double4 (delta2[i], delta2[i + 1], delta2[i + 2], delta2[i + 3]);
+	  const auto src3 = simd_make_double4 (delta3[i], delta3[i + 1], delta3[i + 2], delta3[i + 3]);
+	  matrix = simd_matrix (src0, src1, src2, src3);
+	}
+
+	if (dest_aligned)
+	  * (simd_double4 *) (void *) (v.arrayZ + i) += simd_mul (matrix, scalar4);
+	else
+	{
+	  auto *dest = v.arrayZ + i;
+	  auto v_dest = simd_make_double4 (dest[0], dest[1], dest[2], dest[3]);
+	  v_dest += simd_mul (matrix, scalar4);
+	  dest[0] = v_dest[0];
+	  dest[1] = v_dest[1];
+	  dest[2] = v_dest[2];
+	  dest[3] = v_dest[3];
+	}
+      }
+    }
+#endif
+
+    for (;axis_index < axis_count; axis_index++)
     {
       float coord = coords.arrayZ[axis_index];
       if (!coord) continue;
