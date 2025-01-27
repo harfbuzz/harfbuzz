@@ -104,11 +104,12 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	const float *c = coords.arrayZ + axis_index;
 	if (!c[0] && !c[1] && !c[2] && !c[3]) continue;
 	simd_double4 scalar4 = simd_abs (simd_make_double4 ((double) c[0], (double) c[1], (double) c[2], (double) c[3]));
+	unsigned column_base = axis_index * 2;
 	unsigned column_idx[4] = {
-	  (axis_index + 0) * 2 + (c[0] > 0),
-	  (axis_index + 1) * 2 + (c[1] > 0),
-	  (axis_index + 2) * 2 + (c[2] > 0),
-	  (axis_index + 3) * 2 + (c[3] > 0),
+	  (column_base + 0) + (c[0] > 0),
+	  (column_base + 2) + (c[1] > 0),
+	  (column_base + 4) + (c[2] > 0),
+	  (column_base + 6) + (c[3] > 0),
 	};
 	const auto delta0 = deltas.get_column (column_idx[0], axisCount, segmentCount).arrayZ;
 	const auto delta1 = deltas.get_column (column_idx[1], axisCount, segmentCount).arrayZ;
