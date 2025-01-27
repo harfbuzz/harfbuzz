@@ -9,6 +9,7 @@
 #endif
 
 #ifndef HB_NO_APPLE_SIMD
+#include <CoreFoundation/CoreFoundation.h>
 #include <simd/simd.h> // Apple SIMD https://developer.apple.com/documentation/accelerate/simd
 #endif
 
@@ -96,7 +97,8 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 
     bool src_aligned = (uintptr_t) (deltas.get_matrix (axisCount, segmentCount).arrayZ) % 8 == 0;
     bool dest_aligned = (uintptr_t) (v.arrayZ) % 8 == 0;
-    if (src_aligned && dest_aligned)
+    bool be = CFByteOrderGetCurrent () == CFByteOrderBigEndian;
+    if (!be && src_aligned && dest_aligned)
     {
       unsigned rows_count = v.length;
       for (; axis_index + 4 <= axis_count; axis_index += 4)
