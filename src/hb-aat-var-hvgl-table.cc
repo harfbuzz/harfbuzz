@@ -301,7 +301,6 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
     out_coords[masterRowIndex.arrayZ[i]] += master_axis_value_deltas.arrayZ[i];
 
   const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, master_axis_value_deltas.length);
-  hb_array_t<const HBUINT16LE> extremum_row_index = extremumRowIndex.as_array (extremum_axis_value_deltas.length);
 
   axis_count = hb_min (axis_count, coords.length);
   for (unsigned axis_idx = 0; axis_idx < axis_count; axis_idx++)
@@ -314,10 +313,10 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
 
     unsigned sparse_row_start = extremumColumnStart.arrayZ[column_idx];
     unsigned sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
-    sparse_row_end = hb_min (sparse_row_end, extremum_row_index.length);
+    sparse_row_end = hb_min (sparse_row_end, extremum_axis_value_deltas.length);
     for (unsigned row_idx = sparse_row_start; row_idx < sparse_row_end; row_idx++)
     {
-      unsigned row = extremum_row_index.arrayZ[row_idx];
+      unsigned row = extremumRowIndex.arrayZ[row_idx];
       float delta = extremum_axis_value_deltas.arrayZ[row_idx];
       out_coords[row] += delta * scalar;
     }
