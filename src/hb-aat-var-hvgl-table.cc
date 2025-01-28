@@ -2,6 +2,11 @@
 
 #include <complex>
 
+#ifdef __APPLE__
+// For endianness
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #if !defined(HB_NO_APPLE_SIMD) && !(defined(__APPLE__) && \
   (!defined(MAC_OS_X_VERSION_MIN_REQUIRED) || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300) \
 )
@@ -9,7 +14,6 @@
 #endif
 
 #ifndef HB_NO_APPLE_SIMD
-#include <CoreFoundation/CoreFoundation.h>
 #include <simd/simd.h> // Apple SIMD https://developer.apple.com/documentation/accelerate/simd
 #endif
 
@@ -82,7 +86,25 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   const auto &padding = StructAfter<decltype (paddingX)> (blendTypes, segmentCount);
   const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, this);
 
-  auto v = hb_vector_t<double> {coordinates.get_coords (segmentCount)};
+ // auto v = hb_vector_t<double> {coordinates.get_coords (segmentCount)};
+  auto a = coordinates.get_coords (segmentCount);
+  auto v = hb_vector_t<double> ();
+
+#ifdef __BYTE_ORDER
+  constexpr bool be = __BYTE_ORDER == __BIG_ENDIAN;
+#elif defined(__APPLE__)
+  bool be = CFByteOrderGetCurrent () == CFByteOrderBigEndian;
+#else
+  constexpr bool be = true; // Set to true to avoid fast-path if we can't determine endianness
+#endif
+
+  if (!be)
+  {
+    v.resize (a.length, false, false);
+    memcpy (v.arrayZ, a.arrayZ, v.length * sizeof (a[0]));
+  }
+  else
+    v = a;
 
   coords = coords.sub_array (0, axisCount);
   // Apply deltas
