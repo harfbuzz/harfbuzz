@@ -172,7 +172,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     }
 #endif
 
-    for (;axis_index < axis_count; axis_index++)
+    for (; axis_index < axis_count; axis_index++)
     {
       float coord = coords.arrayZ[axis_index];
       if (!coord) continue;
@@ -193,8 +193,11 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	dest[i + 2] += src[i + 2] * scalar;
 	dest[i + 3] += src[i + 3] * scalar;
       }
-      for (; i < count; i++)
-        dest[i] += src[i] * scalar;
+      // Note: Count is always a multiple of 4, unless allocation failure.
+      // So, the following not needed.
+      if (false)
+	for (; i < count; i++)
+	  dest[i] += src[i] * scalar;
     }
   }
 
