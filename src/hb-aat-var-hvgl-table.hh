@@ -317,8 +317,8 @@ struct PartComposite
 {
   public:
 
-  HB_INTERNAL void apply_transforms (hb_array_t<hb_transform_t> transforms,
-				     hb_array_t<const float> coords) const;
+  HB_INTERNAL void apply_to_transforms (hb_array_t<hb_transform_t> transforms,
+					hb_array_t<const float> coords) const;
 
   unsigned get_total_num_axes () const
   { return totalNumAxes; }

@@ -324,8 +324,8 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
 }
 
 void
-PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
-				 hb_array_t<const float> coords) const
+PartComposite::apply_to_transforms (hb_array_t<hb_transform_t> transforms,
+				    hb_array_t<const float> coords) const
 {
   const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
   const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
@@ -464,7 +464,7 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
   auto transforms_head = transforms[0];
   auto transforms_tail = transforms.sub_array (1);
 
-  apply_transforms (transforms_tail, coords_head);
+  apply_to_transforms (transforms_tail, coords_head);
 
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
