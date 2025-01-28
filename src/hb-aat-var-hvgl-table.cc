@@ -100,6 +100,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 
   if (!be)
   {
+    // Endianness matches; Faster to memcpy().
     v.resize (a.length, false, false);
     memcpy (v.arrayZ, a.arrayZ, v.length * sizeof (a[0]));
   }
