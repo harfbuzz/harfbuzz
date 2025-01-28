@@ -296,9 +296,9 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
 					    hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas) const
 {
   const auto &masterRowIndex = StructAfter<decltype (masterRowIndexX)> (extremumColumnStart, 2 * axis_count + 1);
-  hb_array_t<const HBUINT16LE> master_row_index = masterRowIndex.as_array (master_axis_value_deltas.length);
-  for (auto pair : hb_zip (master_row_index, master_axis_value_deltas))
-    out_coords[pair.first] += pair.second;
+  unsigned count = master_axis_value_deltas.length;
+  for (unsigned i = 0; i < count; i++)
+    out_coords[masterRowIndex.arrayZ[i]] += master_axis_value_deltas.arrayZ[i];
 
   const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, master_axis_value_deltas.length);
   hb_array_t<const HBUINT16LE> extremum_row_index = extremumRowIndex.as_array (extremum_axis_value_deltas.length);
