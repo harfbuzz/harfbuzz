@@ -262,12 +262,11 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     // Draw
     if (likely (start != end))
     {
-      const segment_t first_segment = &v.arrayZ[start * 4];
-      float x0 = (float) first_segment[SEGMENT_POINT_ON_CURVE_X];
-      float y0 = (float) first_segment[SEGMENT_POINT_ON_CURVE_Y];
+      segment_t next_segment = &v.arrayZ[start * 4];
+      float x0 = (float) next_segment[SEGMENT_POINT_ON_CURVE_X];
+      float y0 = (float) next_segment[SEGMENT_POINT_ON_CURVE_Y];
       transform.transform_point (x0, y0);
       draw_session.move_to (x0, y0);
-      segment_t next_segment = &v.arrayZ[start * 4];
       for (unsigned i = start; i < end; i++)
       {
 	segment_t segment = next_segment;
