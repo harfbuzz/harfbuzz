@@ -175,9 +175,9 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     {
       float coord = coords.arrayZ[axis_index];
       if (!coord) continue;
-      double scalar = (double) fabsf(coord);
       bool pos = coord > 0;
       unsigned column_idx = axis_index * 2 + pos;
+      double scalar = (double) fabsf(coord);
 
       const auto delta = deltas.get_column (column_idx, axisCount, segmentCount);
       unsigned count = hb_min (v.length, delta.length);
@@ -305,11 +305,10 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
   for (unsigned axis_idx = 0; axis_idx < axis_count; axis_idx++)
   {
     float coord = coords.arrayZ[axis_idx];
-    if (!coord)
-      continue;
+    if (!coord) continue;
     bool pos = coord > 0;
-    float scalar = fabsf (coord);
     unsigned column_idx = axis_idx * 2 + pos;
+    float scalar = fabsf (coord);
 
     unsigned sparse_row_start = extremumColumnStart.arrayZ[column_idx];
     unsigned sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
@@ -408,11 +407,9 @@ PartComposite::apply_transforms (hb_array_t<hb_transform_t> transforms,
 
     unsigned axis_idx = column / 2;
     float coord = coords[axis_idx];
-    if (!coord)
-      continue;
+    if (!coord) continue;
     bool pos = column & 1;
-    if (pos != (coord > 0))
-      continue;
+    if (pos != (coord > 0)) continue;
     float scalar = fabsf (coord);
 
     if (extremum_rotation_delta)
