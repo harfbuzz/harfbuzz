@@ -61,7 +61,8 @@ project_on_curve_to_tangent (const segment_t offcurve1,
   double dx = x2 - x1;
   double dy = y2 - y1;
 
-  double t = (dx * (x - x1) + dy * (y - y1)) / (dx * dx + dy * dy);
+  double l2 = dx * dx + dy * dy;
+  double t = l2 ? (dx * (x - x1) + dy * (y - y1)) / l2 : 0;
 
   x = x1 + dx * t;
   y = y1 + dy * t;
