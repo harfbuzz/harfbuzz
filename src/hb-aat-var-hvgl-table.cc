@@ -210,13 +210,12 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       break;
 
     // Resolve blend type
+    segment_t segment = &v.arrayZ[(end - 1) * 4];
     for (unsigned i = start; i < end; i++)
     {
       unsigned blendType = blendTypes[i];
-
-      segment_t segment = &v.arrayZ[i * 4];
-      unsigned prev_i = i == start ? end - 1 : i - 1;
-      segment_t prev_segment = &v.arrayZ[prev_i * 4];
+      segment_t prev_segment = segment;
+      segment = &v.arrayZ[i * 4];
 
       switch (blendType)
       {
@@ -267,11 +266,12 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       float y0 = (float) first_segment[SEGMENT_POINT_ON_CURVE_Y];
       transform.transform_point (x0, y0);
       draw_session.move_to (x0, y0);
+      segment_t next_segment = &v.arrayZ[start * 4];
       for (unsigned i = start; i < end; i++)
       {
-	const segment_t segment = &v.arrayZ[i * 4];
+	segment_t segment = next_segment;
 	unsigned next_i = i == end - 1 ? start : i + 1;
-	const segment_t next_segment = &v.arrayZ[next_i * 4];
+	next_segment = &v.arrayZ[next_i * 4];
 
 	float x1 = (float) segment[SEGMENT_POINT_OFF_CURVE_X];
 	float y1 = (float) segment[SEGMENT_POINT_OFF_CURVE_Y];
