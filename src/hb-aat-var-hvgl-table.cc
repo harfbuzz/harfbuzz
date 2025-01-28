@@ -87,7 +87,6 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   const auto &padding = StructAfter<decltype (paddingX)> (blendTypes, segmentCount);
   const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, this);
 
- // auto v = hb_vector_t<double> {coordinates.get_coords (segmentCount)};
   auto a = coordinates.get_coords (segmentCount);
   auto v = hb_vector_t<double> ();
 
