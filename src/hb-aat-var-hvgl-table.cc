@@ -123,7 +123,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     if (le && src_aligned)
     {
       unsigned rows_count = v.length;
-      double c[4];
+      simd_double4 coords4;
       unsigned column_idx[4];
       while (axis_index < axis_count)
       {
@@ -138,19 +138,20 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	      break;
 	    for (; j < 4; j++)
 	    {
-	      c[j] = 0.;
+	      coords4[j] = 0.;
 	      column_idx[j] = 0;
 	    }
 	    break;
 	  }
-	  c[j] = (double) coords.arrayZ[axis_index];
-	  column_idx[j] = axis_index * 2 + (c[j] > 0.);
+	  double coord = (double) coords.arrayZ[axis_index];
+	  coords4[j] = coord;
+	  column_idx[j] = axis_index * 2 + (coord > 0.);
 	  axis_index++;
 	}
 	if (!j)
 	  break;
 
-	simd_double4 scalar4 = simd_abs (* (const simd_packed_double4 *) c);
+	simd_double4 scalar4 = simd_abs (coords4);
 	const auto delta0 = deltas.get_column (column_idx[0], axisCount, segmentCount).arrayZ;
 	const auto delta1 = deltas.get_column (column_idx[1], axisCount, segmentCount).arrayZ;
 	const auto delta2 = deltas.get_column (column_idx[2], axisCount, segmentCount).arrayZ;
