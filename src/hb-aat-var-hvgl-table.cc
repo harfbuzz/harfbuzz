@@ -200,7 +200,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     }
   }
 
-  // Resolve blend types, one path at a time.
+  // Resolve blend types, one path at a time, and draw.
   unsigned start = 0;
   for (unsigned pathSegmentCount : segmentCountPerPath.as_array (pathCount))
   {
