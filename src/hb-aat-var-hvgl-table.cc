@@ -91,14 +91,14 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   auto v = hb_vector_t<double> ();
 
 #ifdef __BYTE_ORDER
-  constexpr bool be = __BYTE_ORDER == __BIG_ENDIAN;
+  constexpr bool le = __BYTE_ORDER == __LITTLE_ENDIAN;
 #elif defined(__APPLE__)
-  bool be = CFByteOrderGetCurrent () == CFByteOrderBigEndian;
+  bool le = CFByteOrderGetCurrent () == CFByteOrderLittleEndian;
 #else
-  constexpr bool be = true; // Set to true to avoid fast-path if we can't determine endianness
+  constexpr bool le = false;
 #endif
 
-  if (!be)
+  if (le)
   {
     // Endianness matches; Faster to memcpy().
     v.resize (a.length, false, false);
@@ -120,8 +120,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 
     bool src_aligned = (uintptr_t) (deltas.get_matrix (axisCount, segmentCount).arrayZ) % 8 == 0;
     // dest is always aligned.
-    bool be = CFByteOrderGetCurrent () == CFByteOrderBigEndian;
-    if (!be && src_aligned)
+    if (le && src_aligned)
     {
       unsigned rows_count = v.length;
       double c[4];
