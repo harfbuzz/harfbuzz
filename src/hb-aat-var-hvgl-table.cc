@@ -217,8 +217,6 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       segment_t segment = &v.arrayZ[i * 4];
       unsigned prev_i = i == start ? end - 1 : i - 1;
       segment_t prev_segment = &v.arrayZ[prev_i * 4];
-      unsigned next_i = i == end - 1 ? start : i + 1;
-      segment_t next_segment = &v.arrayZ[next_i * 4];
 
       switch (blendType)
       {
@@ -252,6 +250,9 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	break;
 
       case BLEND_TYPE_TANGET_PAIR_FIRST:
+	  unsigned next_i = i == end - 1 ? start : i + 1;
+	  segment_t next_segment = &v.arrayZ[next_i * 4];
+
 	  project_on_curve_to_tangent (prev_segment, segment, next_segment);
 	  project_on_curve_to_tangent (prev_segment, next_segment, next_segment);
 	break;
