@@ -138,7 +138,7 @@ _hb_buffer_deserialize_json (hb_buffer_t *buffer,
 
   *end_ptr = p;
 
-  return p == pe && *(p-1) != ']';
+  return p == pe && *(p-1) == ']';
 }
 
 #endif /* HB_BUFFER_DESERIALIZE_JSON_HH */
