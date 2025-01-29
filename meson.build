@@ -10,6 +10,7 @@ project('harfbuzz', 'c', 'cpp',
 )
 
 glib_min_version = '>= 2.30.0'
+json_c_min_version = '>= 0.17'
 cairo_min_version = '>= 1.10.0'
 chafa_min_version = '>= 1.6.0'
 icu_min_version = '>= 49.0'
@@ -145,6 +146,7 @@ else
 endif
 
 glib_dep = dependency('glib-2.0', version: glib_min_version, required: get_option('glib'))
+json_c_dep = dependency('json-c', version: json_c_min_version, required: true)
 gobject_dep = dependency('gobject-2.0', version: glib_min_version, required: get_option('gobject'))
 graphite2_dep = dependency('graphite2', version: graphite2_min_version, required: get_option('graphite2'))
 graphite_dep = dependency('graphite2', version: graphite2_min_version, required: get_option('graphite'))
@@ -270,6 +272,10 @@ endif
 
 if chafa_dep.found()
   conf.set('HAVE_CHAFA', 1)
+endif
+
+if json_c_dep.found()
+  conf.set('HAVE_JSON_C', 1)
 endif
 
 if wasm_dep.found()
@@ -485,6 +491,7 @@ build_summary = {
   'Dependencies used for command-line utilities':
     {'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
      'Chafa': conf.get('HAVE_CHAFA', 0) == 1,
+     'Json-c': conf.get('HAVE_JSON_C', 0) == 1,
     },
   'Additional shapers':
     {'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
