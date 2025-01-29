@@ -789,7 +789,7 @@ _again:
 
   *end_ptr = p;
 
-  return p == pe && *(p-1) != ']';
+  return p == pe && *(p-1) == ']';
 }
 
 #endif /* HB_BUFFER_DESERIALIZE_JSON_HH */
