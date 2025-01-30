@@ -103,6 +103,7 @@ struct PartShape
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const float> coords,
 	       hb_array_t<hb_transform_t> transforms,
+	       hb_vector_t<double> &scratch,
 	       signed *nodes_left,
 	       signed *edges_left,
 	       signed depth_left) const;
@@ -331,6 +332,7 @@ struct PartComposite
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<float> coords,
 	       hb_array_t<hb_transform_t> transforms,
+	       hb_vector_t<double> &scratch,
 	       signed *nodes_left,
 	       signed *edges_left,
 	       signed depth_left) const;
@@ -407,13 +409,14 @@ struct Part
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<float> coords,
 	       hb_array_t<hb_transform_t> transforms,
+	       hb_vector_t<double> &scratch,
 	       signed *nodes_left,
 	       signed *edges_left,
 	       signed depth_left) const
   {
     switch (u.flags & 1) {
-    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, coords, transforms, nodes_left, edges_left, depth_left); break;
-    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, coords, transforms, nodes_left, edges_left, depth_left); break;
+    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, coords, transforms, scratch, nodes_left, edges_left, depth_left); break;
+    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, coords, transforms, scratch, nodes_left, edges_left, depth_left); break;
     }
   }
 
@@ -511,6 +514,7 @@ struct hvgl
 		    hb_draw_session_t &draw_session,
 		    hb_array_t<float> coords,
 		    hb_array_t<hb_transform_t> transforms,
+		    hb_vector_t<double> &scratch,
 		    signed *nodes_left,
 		    signed *edges_left,
 		    signed depth_left) const
@@ -529,7 +533,7 @@ struct hvgl
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (part_id, partCount);
 
-    part.get_path_at (*this, draw_session, coords, transforms, nodes_left, edges_left, depth_left);
+    part.get_path_at (*this, draw_session, coords, transforms, scratch, nodes_left, edges_left, depth_left);
 
     return true;
   }
@@ -575,7 +579,10 @@ struct hvgl
       return true;
     }
 
-    return get_part_path_at (gid, draw_session, coords_f, transforms, &stack_nodes_left, edges_left, depth_left);
+    hb_vector_t<double> scratch;
+    scratch.alloc (128);
+
+    return get_part_path_at (gid, draw_session, coords_f, transforms, scratch, &stack_nodes_left, edges_left, depth_left);
   }
 
   bool

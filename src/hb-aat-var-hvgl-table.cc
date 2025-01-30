@@ -76,6 +76,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
 		        hb_array_t<const float> coords,
 			hb_array_t<hb_transform_t> transforms,
+			hb_vector_t<double> &scratch,
 			signed *nodes_left,
 		        signed *edges_left,
 		        signed depth_left) const
@@ -88,7 +89,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, this);
 
   auto a = coordinates.get_coords (segmentCount);
-  auto v = hb_vector_t<double> ();
+  auto &v = scratch;
 
 #ifdef __BYTE_ORDER
   constexpr bool le = __BYTE_ORDER == __LITTLE_ENDIAN;
@@ -101,7 +102,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   if (le)
   {
     // Endianness matches; Faster to memcpy().
-    v.resize_exact (a.length, false);
+    v.resize (a.length);
     memcpy (v.arrayZ, a.arrayZ, v.length * sizeof (a[0]));
   }
   else
@@ -443,6 +444,7 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
 			    hb_draw_session_t &draw_session,
 			    hb_array_t<float> coords,
 			    hb_array_t<hb_transform_t> transforms,
+			    hb_vector_t<double> &scratch,
 			    signed *nodes_left,
 			    signed *edges_left,
 			    signed depth_left) const
@@ -479,7 +481,7 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
     hvgl.get_part_path_at (subPart.partIndex,
 			   draw_session, coords_tail.sub_array (subPart.treeAxisIndex),
 			   transforms_tail.sub_array (subPart.treeTransformIndex),
-			   nodes_left, edges_left, depth_left);
+			   scratch, nodes_left, edges_left, depth_left);
   }
 }
 
