@@ -171,7 +171,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	  const auto &src3 = * (const simd_packed_double4 *) (void *) (delta3 + i);
 	  const auto matrix = simd_matrix (src0, src1, src2, src3);
 
-	  * (simd_packed_double4 *) (void *) (v.arrayZ + i) += simd_mul (matrix, scalar4);
+	  * (simd_packed_double4 *) (v.arrayZ + i) += simd_mul (matrix, scalar4);
 	}
       }
     }
