@@ -342,15 +342,14 @@ struct PartComposite
     if (unlikely (!c->check_struct (this))) return_trace (false);
 
     const auto &subParts = StructAtOffset<SubParts> (this, subPartsOff4 * 4);
-    if (unlikely (!subParts.sanitize (c, subPartCount))) return_trace (false);
-
     const auto &extremumColumnStarts = StructAtOffset<ExtremumColumnStarts> (this, extremumColumnStartsOff4 * 4);
     const auto &masterAxisValueDeltas = StructAtOffset<MasterAxisValueDeltas> (this, masterAxisValueDeltasOff4 * 4);
     const auto &extremumAxisValueDeltas = StructAtOffset<ExtremumAxisValueDeltas> (this, extremumAxisValueDeltasOff4 * 4);
     const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
     const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
 
-    return_trace (likely (extremumColumnStarts.sanitize (c, axisCount, sparseMasterAxisValueCount, sparseExtremumAxisValueCount) &&
+    return_trace (likely (subParts.sanitize (c, subPartCount) &&
+			  extremumColumnStarts.sanitize (c, axisCount, sparseMasterAxisValueCount, sparseExtremumAxisValueCount) &&
 			  masterAxisValueDeltas.sanitize (c, sparseMasterAxisValueCount) &&
 			  extremumAxisValueDeltas.sanitize (c, sparseExtremumAxisValueCount) &&
 			  allTranslations.sanitize (c, sparseMasterTranslationCount, sparseExtremumTranslationCount) &&
