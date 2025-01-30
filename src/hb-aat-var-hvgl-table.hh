@@ -559,13 +559,17 @@ struct hvgl
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (gid, partCount);
 
-    hb_vector_t<float> coords_f {+ hb_iter (coords)
-				 | hb_map ([] (int x) { return float (x) * (1.f / (1 << 14)); })};
+    hb_vector_t<float> coords_f;
     coords_f.resize_exact (part.get_total_num_axes ());
+    if (unlikely (coords_f.in_error ())) return true;
+    unsigned count = hb_min (coords.length, coords_f.length);
+    for (unsigned i = 0; i < count; i++)
+      coords_f.arrayZ[i] = float (coords.arrayZ[i]) * (1.f / (1 << 14));
 
     hb_vector_t<hb_transform_t> transforms;
     unsigned total_num_parts = part.get_total_num_parts ();
     transforms.resize_exact (total_num_parts);
+    if (unlikely (transforms.in_error ())) return true;
     transforms[0] = hb_transform_t{font->x_multf, 0, 0, font->y_multf, 0, 0};
 
 
