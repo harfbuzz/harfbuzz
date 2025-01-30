@@ -117,18 +117,14 @@ struct hb_transform_t
   void multiply (const hb_transform_t &o)
   {
     /* Copied from cairo, with "o" being "a" there and "this" being "b" there. */
-    hb_transform_t r;
-
-    r.xx = o.xx * xx + o.yx * xy;
-    r.yx = o.xx * yx + o.yx * yy;
-
-    r.xy = o.xy * xx + o.yy * xy;
-    r.yy = o.xy * yx + o.yy * yy;
-
-    r.x0 = o.x0 * xx + o.y0 * xy + x0;
-    r.y0 = o.x0 * yx + o.y0 * yy + y0;
-
-    *this = r;
+    *this = {
+      o.xx * xx + o.yx * xy, // xx
+      o.xx * yx + o.yx * yy, // yx
+      o.xy * xx + o.yy * xy, // xy
+      o.xy * yx + o.yy * yy, // yy
+      o.x0 * xx + o.y0 * xy + x0, // x0
+      o.x0 * yx + o.y0 * yy + y0  // y0
+    };
   }
 
   void transform_distance (float &dx, float &dy) const
