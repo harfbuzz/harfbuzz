@@ -208,7 +208,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   {
     unsigned end = start + pathSegmentCount;
 
-    if (unlikely (end > segmentCount || end * 4 > v.length))
+    if (unlikely (end * 4 > v.length))
       break;
 
     // Resolve blend type
