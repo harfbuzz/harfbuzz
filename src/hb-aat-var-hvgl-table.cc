@@ -111,19 +111,20 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   // Apply deltas
   if (coords)
   {
+    unsigned rows_count = v.length;
     const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
+    const auto matrix = deltas.get_matrix (axisCount, segmentCount).arrayZ;
     unsigned axis_count = coords.length;
     unsigned axis_index = 0;
 
 #ifndef HB_NO_APPLE_SIMD
     // APPLE SIMD
 
-    bool src_aligned = (uintptr_t) (deltas.get_matrix (axisCount, segmentCount).arrayZ) % 8 == 0;
+    bool src_aligned = (uintptr_t) matrix % 8 == 0;
     // dest is always aligned.
     if (le && src_aligned)
     {
       hb_barrier ();
-      unsigned rows_count = v.length;
       simd_double4 coords4;
       unsigned column_idx[4];
       while (axis_index < axis_count)
@@ -153,10 +154,10 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	  break;
 
 	simd_double4 scalar4 = simd_abs (coords4);
-	const auto delta0 = deltas.get_column (column_idx[0], axisCount, segmentCount).arrayZ;
-	const auto delta1 = deltas.get_column (column_idx[1], axisCount, segmentCount).arrayZ;
-	const auto delta2 = deltas.get_column (column_idx[2], axisCount, segmentCount).arrayZ;
-	const auto delta3 = deltas.get_column (column_idx[3], axisCount, segmentCount).arrayZ;
+	const auto delta0 = matrix + column_idx[0] * rows_count;
+	const auto delta1 = matrix + column_idx[1] * rows_count;
+	const auto delta2 = matrix + column_idx[2] * rows_count;
+	const auto delta3 = matrix + column_idx[3] * rows_count;
 
 	// Note: Count is always a multiple of 4, unless allocation failure
 	for (unsigned i = 0; i + 4 <= rows_count; i += 4)
@@ -181,13 +182,11 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       unsigned column_idx = axis_index * 2 + pos;
       double scalar = (double) fabsf(coord);
 
-      const auto delta = deltas.get_column (column_idx, axisCount, segmentCount);
-      unsigned count = hb_min (v.length, delta.length);
+      const auto *src = matrix + column_idx * rows_count;
       auto *dest = v.arrayZ;
-      const auto *src = delta.arrayZ;
       unsigned i = 0;
       // This loop is really hot
-      for (; i + 4 <= count; i += 4)
+      for (; i + 4 <= rows_count; i += 4)
       {
 	dest[i] += src[i] * scalar;
 	dest[i + 1] += src[i + 1] * scalar;
@@ -197,7 +196,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       // Note: Count is always a multiple of 4, unless allocation failure.
       // So, the following not needed.
       if (false)
-	for (; i < count; i++)
+	for (; i < rows_count; i++)
 	  dest[i] += src[i] * scalar;
     }
   }
