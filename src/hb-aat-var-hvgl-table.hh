@@ -567,8 +567,8 @@ struct hvgl
     coords_f.resize_exact (part.get_total_num_axes ());
 
     hb_vector_t<hb_transform_t> transforms;
-    transforms.push (transform);
     transforms.resize_exact (part.get_total_num_parts ());
+    transforms[0] = transform;
 
     return get_part_path_at (gid, draw_session, coords_f, transforms, visited, edges_left, depth_left);
   }
