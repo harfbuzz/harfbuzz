@@ -117,7 +117,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   if (coords)
   {
     unsigned rows_count = v.length;
-    const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
+    const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, segmentCount);
     const auto matrix = deltas.get_matrix (axisCount, segmentCount).arrayZ;
     unsigned axis_count = coords.length;
     unsigned axis_index = 0;

@@ -28,7 +28,7 @@ struct coordinates_t
 
   public:
 
-  unsigned get_size (unsigned axis_count, unsigned segment_count) const
+  unsigned get_size (unsigned segment_count) const
   { return coords.get_size (4 * segment_count); }
 
   hb_array_t<const HBFLOAT64LE>
@@ -124,7 +124,7 @@ struct PartShape
     const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, this);
     if (unlikely (!coordinates.sanitize (c, segmentCount))) return_trace (false);
 
-    const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, axisCount, segmentCount);
+    const auto &deltas = StructAfter<decltype (deltasX)> (coordinates, segmentCount);
     if (unlikely (!deltas.sanitize (c, axisCount, segmentCount))) return_trace (false);
 
     return_trace (true);
