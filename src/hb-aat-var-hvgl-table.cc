@@ -107,6 +107,9 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   else
     v = a;
 
+  if (unlikely (v.in_error ()))
+    return;
+
   coords = coords.sub_array (0, axisCount);
   // Apply deltas
   if (coords)
@@ -159,7 +162,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	const auto delta2 = matrix + column_idx[2] * rows_count;
 	const auto delta3 = matrix + column_idx[3] * rows_count;
 
-	// Note: Count is always a multiple of 4, unless allocation failure
+	// Note: Count is always a multiple of 4
 	for (unsigned i = 0; i + 4 <= rows_count; i += 4)
 	{
 	  const auto &src0 = * (const simd_packed_double4 *) (void *) (delta0 + i);
@@ -193,7 +196,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	dest[i + 2] += src[i + 2] * scalar;
 	dest[i + 3] += src[i + 3] * scalar;
       }
-      // Note: Count is always a multiple of 4, unless allocation failure.
+      // Note: Count is always a multiple of 4
       // So, the following not needed.
       if (false)
 	for (; i < rows_count; i++)
