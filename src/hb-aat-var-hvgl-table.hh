@@ -103,7 +103,7 @@ struct PartShape
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const float> coords,
 	       hb_array_t<hb_transform_t> transforms,
-	       hb_set_t *visited,
+	       signed *nodes_left,
 	       signed *edges_left,
 	       signed depth_left) const;
 
@@ -331,7 +331,7 @@ struct PartComposite
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<float> coords,
 	       hb_array_t<hb_transform_t> transforms,
-	       hb_set_t *visited,
+	       signed *nodes_left,
 	       signed *edges_left,
 	       signed depth_left) const;
 
@@ -408,13 +408,13 @@ struct Part
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<float> coords,
 	       hb_array_t<hb_transform_t> transforms,
-	       hb_set_t *visited,
+	       signed *nodes_left,
 	       signed *edges_left,
 	       signed depth_left) const
   {
     switch (u.flags & 1) {
-    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, coords, transforms, visited, edges_left, depth_left); break;
-    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, coords, transforms, visited, edges_left, depth_left); break;
+    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, coords, transforms, nodes_left, edges_left, depth_left); break;
+    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, coords, transforms, nodes_left, edges_left, depth_left); break;
     }
   }
 
@@ -512,27 +512,25 @@ struct hvgl
 		    hb_draw_session_t &draw_session,
 		    hb_array_t<float> coords,
 		    hb_array_t<hb_transform_t> transforms,
-		    hb_set_t *visited,
+		    signed *nodes_left,
 		    signed *edges_left,
 		    signed depth_left) const
   {
-    if (depth_left <= 0)
+    if (unlikely (depth_left <= 0))
       return true;
 
-    if (*edges_left <= 0)
+    if (unlikely (*edges_left <= 0))
       return true;
     (*edges_left)--;
 
-    if (visited->has (part_id) || visited->in_error ())
+    if (unlikely (*nodes_left <= 0))
       return true;
-    visited->add (part_id);
+    (*nodes_left)--;
 
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (part_id, partCount);
 
-    part.get_path_at (*this, draw_session, coords, transforms, visited, edges_left, depth_left);
-
-    visited->del (part_id);
+    part.get_path_at (*this, draw_session, coords, transforms, nodes_left, edges_left, depth_left);
 
     return true;
   }
@@ -544,15 +542,13 @@ struct hvgl
 	       hb_codepoint_t gid,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
-	       hb_set_t *visited = nullptr,
+	       signed *nodes_left = nullptr,
 	       signed *edges_left = nullptr,
 	       signed depth_left = HB_MAX_NESTING_LEVEL) const
   {
     if (unlikely (gid >= numGlyphs)) return false;
 
     hb_set_t stack_set;
-    if (visited == nullptr)
-      visited = &stack_set;
     signed stack_edges = HB_MAX_GRAPH_EDGE_COUNT;
     if (edges_left == nullptr)
       edges_left = &stack_edges;
@@ -567,10 +563,20 @@ struct hvgl
     coords_f.resize_exact (part.get_total_num_axes ());
 
     hb_vector_t<hb_transform_t> transforms;
-    transforms.resize_exact (part.get_total_num_parts ());
+    unsigned total_num_parts = part.get_total_num_parts ();
+    transforms.resize_exact (total_num_parts);
     transforms[0] = transform;
 
-    return get_part_path_at (gid, draw_session, coords_f, transforms, visited, edges_left, depth_left);
+    signed stack_nodes_left = total_num_parts;
+    if (nodes_left == nullptr)
+      nodes_left = &stack_nodes_left;
+    else if (*nodes_left < (signed) total_num_parts)
+    {
+      // This takes care of cycles in the graph.
+      return true;
+    }
+
+    return get_part_path_at (gid, draw_session, coords_f, transforms, &stack_nodes_left, edges_left, depth_left);
   }
 
   bool

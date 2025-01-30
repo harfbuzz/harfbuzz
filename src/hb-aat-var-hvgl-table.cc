@@ -76,7 +76,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
 		        hb_array_t<const float> coords,
 			hb_array_t<hb_transform_t> transforms,
-		        hb_set_t *visited,
+			signed *nodes_left,
 		        signed *edges_left,
 		        signed depth_left) const
 {
@@ -443,7 +443,7 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
 			    hb_draw_session_t &draw_session,
 			    hb_array_t<float> coords,
 			    hb_array_t<hb_transform_t> transforms,
-			    hb_set_t *visited,
+			    signed *nodes_left,
 			    signed *edges_left,
 			    signed depth_left) const
 {
@@ -479,7 +479,7 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
     hvgl.get_part_path_at (subPart.partIndex,
 			   draw_session, coords_tail.sub_array (subPart.treeAxisIndex),
 			   transforms_tail.sub_array (subPart.treeTransformIndex),
-			   visited, edges_left, depth_left);
+			   nodes_left, edges_left, depth_left);
   }
 }
 
