@@ -596,6 +596,10 @@ struct hvgl
     if (unlikely (!c->check_struct (this))) return_trace (false);
     hb_barrier ();
 
+    if (unlikely (versionMajor != 3 ||
+		  (versionMajor == 3 && versionMinor < 1))) return_trace (false);
+
+
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     if (unlikely (!parts.sanitize (c, (unsigned) partCount))) return_trace (false);
 
