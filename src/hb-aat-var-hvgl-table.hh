@@ -564,11 +564,11 @@ struct hvgl
 
     hb_vector_t<float> coords_f {+ hb_iter (coords)
 				 | hb_map ([] (int x) { return float (x) * (1.f / (1 << 14)); })};
-    coords_f.resize (part.get_total_num_axes (), true, true);
+    coords_f.resize_exact (part.get_total_num_axes ());
 
     hb_vector_t<hb_transform_t> transforms;
     transforms.push (transform);
-    transforms.resize (part.get_total_num_parts (), true, true);
+    transforms.resize_exact (part.get_total_num_parts ());
 
     return get_part_path_at (gid, draw_session, coords_f, transforms, visited, edges_left, depth_left);
   }
