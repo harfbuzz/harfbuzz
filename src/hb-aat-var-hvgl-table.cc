@@ -211,7 +211,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     if (unlikely (end * 4 > v.length))
       break;
 
-    // Resolve blend type
+    // Resolve blend types
     segment_t segment = &v.arrayZ[(end - 1) * 4];
     for (unsigned i = start; i < end; i++)
     {
