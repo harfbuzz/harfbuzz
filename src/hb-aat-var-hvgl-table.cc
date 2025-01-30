@@ -102,6 +102,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   if (le)
   {
     // Endianness matches; Faster to memcpy().
+    v.resize (0); // Such that old stuff is not copied in case of a realloc.
     v.resize (a.length);
     memcpy (v.arrayZ, a.arrayZ, v.length * sizeof (a[0]));
   }
