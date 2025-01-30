@@ -157,10 +157,10 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	  break;
 
 	simd_double4 scalar4 = simd_abs (coords4);
-	const auto delta0 = matrix + column_idx[0] * rows_count;
-	const auto delta1 = matrix + column_idx[1] * rows_count;
-	const auto delta2 = matrix + column_idx[2] * rows_count;
-	const auto delta3 = matrix + column_idx[3] * rows_count;
+	auto *delta0 = matrix + column_idx[0] * rows_count;
+	auto *delta1 = matrix + column_idx[1] * rows_count;
+	auto *delta2 = matrix + column_idx[2] * rows_count;
+	auto *delta3 = matrix + column_idx[3] * rows_count;
 
 	// Note: Count is always a multiple of 4
 	for (unsigned i = 0; i + 4 <= rows_count; i += 4)
