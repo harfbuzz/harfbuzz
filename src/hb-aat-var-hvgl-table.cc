@@ -38,9 +38,9 @@ blend_type_t
 {
   BLEND_TYPE_CURVE = 0,
   BLEND_TYPE_CORNER = 1,
-  BLEND_TYPE_TANGET = 2,
-  BLEND_TYPE_TANGET_PAIR_FIRST = 3,
-  BLEND_TYPE_TANGET_PAIR_SECOND = 4,
+  BLEND_TYPE_TANGENT = 2,
+  BLEND_TYPE_TANGENT_PAIR_FIRST = 3,
+  BLEND_TYPE_TANGENT_PAIR_SECOND = 4,
 };
 
 using segment_t = double*;
@@ -241,7 +241,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       case BLEND_TYPE_CORNER:
 	break;
 
-      case BLEND_TYPE_TANGET:
+      case BLEND_TYPE_TANGENT:
 	{
 	  /* Project onto the line between the off-curve point
 	   * of the previous segment and the off-curve point of
@@ -250,7 +250,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	}
 	break;
 
-      case BLEND_TYPE_TANGET_PAIR_FIRST:
+      case BLEND_TYPE_TANGENT_PAIR_FIRST:
 	  unsigned next_i = i == end - 1 ? start : i + 1;
 	  segment_t next_segment = &v.arrayZ[next_i * 4];
 
