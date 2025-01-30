@@ -251,11 +251,13 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	break;
 
       case BLEND_TYPE_TANGENT_PAIR_FIRST:
+	{
 	  unsigned next_i = i == end - 1 ? start : i + 1;
 	  segment_t next_segment = &v.arrayZ[next_i * 4];
 
 	  project_on_curve_to_tangent (prev_segment, segment, next_segment);
 	  project_on_curve_to_tangent (prev_segment, next_segment, next_segment);
+	}
 	break;
       }
     }
