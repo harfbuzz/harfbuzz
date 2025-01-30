@@ -122,6 +122,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     // dest is always aligned.
     if (le && src_aligned)
     {
+      hb_barrier ();
       unsigned rows_count = v.length;
       simd_double4 coords4;
       unsigned column_idx[4];
