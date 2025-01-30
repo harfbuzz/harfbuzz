@@ -152,7 +152,8 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	  }
 	  double coord = (double) coords.arrayZ[axis_index];
 	  coords4[j] = coord;
-	  column_idx[j] = axis_index * 2 + (coord > 0.);
+	  bool pos = coord > 0.;
+	  column_idx[j] = axis_index * 2 + pos;
 	  axis_index++;
 	}
 	if (!j)
@@ -183,7 +184,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     {
       float coord = coords.arrayZ[axis_index];
       if (!coord) continue;
-      bool pos = coord > 0;
+      bool pos = coord > 0.f;
       unsigned column_idx = axis_index * 2 + pos;
       double scalar = (double) fabsf(coord);
 
@@ -313,7 +314,7 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
   {
     float coord = coords.arrayZ[axis_idx];
     if (!coord) continue;
-    bool pos = coord > 0;
+    bool pos = coord > 0.f;
     unsigned column_idx = axis_idx * 2 + pos;
     float scalar = fabsf (coord);
 
