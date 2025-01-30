@@ -215,7 +215,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     segment_t segment = &v.arrayZ[(end - 1) * 4];
     for (unsigned i = start; i < end; i++)
     {
-      unsigned blendType = blendTypes[i];
+      unsigned blendType = blendTypes.arrayZ[i];
       segment_t prev_segment = segment;
       segment = &v.arrayZ[i * 4];
 
