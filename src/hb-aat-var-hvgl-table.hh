@@ -556,8 +556,6 @@ struct hvgl
     if (edges_left == nullptr)
       edges_left = &stack_edges;
 
-    hb_transform_t transform {font->x_multf, 0, 0, font->y_multf, 0, 0};
-
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (gid, partCount);
 
@@ -568,7 +566,8 @@ struct hvgl
     hb_vector_t<hb_transform_t> transforms;
     unsigned total_num_parts = part.get_total_num_parts ();
     transforms.resize_exact (total_num_parts);
-    transforms[0] = transform;
+    transforms[0] = hb_transform_t{font->x_multf, 0, 0, font->y_multf, 0, 0};
+
 
     signed stack_nodes_left = total_num_parts;
     if (nodes_left == nullptr)
