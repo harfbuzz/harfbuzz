@@ -209,7 +209,7 @@ hb_shape_plan_create (hb_face_t                     *face,
  * @num_coords: The number of variation-space coordinates
  * @shaper_list: (array zero-terminated=1): List of shapers to try
  *
- * The variable-font version of #hb_shape_plan_create. 
+ * The variable-font version of #hb_shape_plan_create.
  * Constructs a shaping plan for a combination of @face, @user_features, @props,
  * and @shaper_list, plus the variation-space coordinates @coords.
  *
@@ -331,7 +331,7 @@ hb_shape_plan_destroy (hb_shape_plan_t *shape_plan)
  * @destroy: (nullable): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
- * Attaches a user-data key/data pair to the given shaping plan. 
+ * Attaches a user-data key/data pair to the given shaping plan.
  *
  * Return value: `true` if success, `false` otherwise.
  *
@@ -352,7 +352,7 @@ hb_shape_plan_set_user_data (hb_shape_plan_t    *shape_plan,
  * @shape_plan: A shaping plan
  * @key: The user-data key to query
  *
- * Fetches the user data associated with the specified key, 
+ * Fetches the user data associated with the specified key,
  * attached to the specified shaping plan.
  *
  * Return value: (transfer none): A pointer to the user data
@@ -501,7 +501,7 @@ hb_shape_plan_create_cached (hb_face_t                     *face,
  * @num_coords: The number of variation-space coordinates
  * @shaper_list: (array zero-terminated=1): List of shapers to try
  *
- * The variable-font version of #hb_shape_plan_create_cached. 
+ * The variable-font version of #hb_shape_plan_create_cached.
  * Creates a cached shaping plan suitable for reuse, for a combination
  * of @face, @user_features, @props, and @shaper_list, plus the
  * variation-space coordinates @coords.
@@ -543,12 +543,18 @@ retry:
 		   shaper_list))
       return hb_shape_plan_get_empty ();
 
-    for (hb_face_t::plan_node_t *node = cached_plan_nodes; node; node = node->next)
-      if (node->shape_plan->key.equal (&key))
+    int counter = 0;
+    for (hb_face_t::plan_node_t *node = cached_plan_nodes; node; node = node->next) {
+      counter++;
+      bool node_found = node->shape_plan->key.equal (&key);
+      if (node_found)
       {
 	DEBUG_MSG_FUNC (SHAPE_PLAN, node->shape_plan, "fulfilled from cache");
+  printf("Found from cache after %d iterations.\n",counter);
 	return hb_shape_plan_reference (node->shape_plan);
       }
+    }
+    printf("NOT Found from cache after %d iterations.\n", counter);
   }
 
   hb_shape_plan_t *shape_plan = hb_shape_plan_create2 (face, props,

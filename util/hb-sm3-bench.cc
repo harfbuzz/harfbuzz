@@ -42,16 +42,16 @@
 #include <memory>
 #include <vector>
 
-using FontsMap = std::unordered_map<std::string, hb_font_t*>;
+using FaceMap =  std::unordered_map<std::string, hb_face_t*>;
 
 
 
-std::unordered_map<std::string, hb_font_t*> load_fonts_from_directory(const char* dir_path) {
-    std::unordered_map<std::string, hb_font_t*> font_map;
+FaceMap load_fonts_from_directory(const char* dir_path) {
+    std::unordered_map<std::string, hb_face_t*> face_map;
 
     if (!dir_path) {
         std::cerr << "Error: Directory path is null." << std::endl;
-        return font_map; // Return empty map
+        return face_map; // Return empty map
     }
 
         for (const auto& entry : std::filesystem::directory_iterator(dir_path)) {
@@ -61,13 +61,12 @@ std::unordered_map<std::string, hb_font_t*> load_fonts_from_directory(const char
 
                 std::string sha1_hash = filename.substr(0, filename.find_last_of('.'));
                 hb_face_t* face = hb_face_create_from_file_or_fail(filepath.c_str(), 0);
-                hb_font_t* hb_font = hb_font_create(face);
-                font_map[sha1_hash] = hb_font;
+                face_map[sha1_hash] = face;
 
             }
         }
 
-    return font_map;
+    return face_map;
 }
 
 
@@ -97,7 +96,7 @@ bool deserialize_features(json_object* feature_dict, std::vector<hb_feature_t>& 
   return true;
 }
 
-std::vector<BenchData> read_bench_data(std::string filename, const FontsMap& fonts) {
+std::vector<BenchData> read_bench_data(std::string filename, const FaceMap& faces) {
     std::vector<BenchData> font_data_list;
 
     std::ifstream fp(filename);
@@ -143,14 +142,20 @@ std::vector<BenchData> read_bench_data(std::string filename, const FontsMap& fon
         const char* serialized_buffer = json_object_get_string(serialized_buffer_obj);
         const int buffer_len = json_object_get_string_len(serialized_buffer_obj);
 
+        const float font_size = json_object_get_double(json_object_object_get(item, "size"));
 
         hb_font_t* font = nullptr;
-        auto find_result = fonts.find(fonthash);
-        if (find_result == fonts.end()) {
-          std::cerr << "Unmachted font for hash: " << fonthash << "\n";
+        auto find_result = faces.find(fonthash);
+        if (find_result == faces.end()) {
+          std::cerr << "Unmachted face for hash: " << fonthash << "\n";
           return {};
         }
-        font = find_result->second;
+        // Create from face
+        font = hb_font_create(find_result->second);
+        hb_font_set_scale(font, font_size * (1 << 16),font_size * (1 << 16));
+        hb_font_set_ptem(font, font_size);
+
+
 
         std::vector<hb_feature_t> features;
         if (!deserialize_features(json_object_object_get(item,"features"), features)) {
@@ -164,6 +169,20 @@ std::vector<BenchData> read_bench_data(std::string filename, const FontsMap& fon
           std::cerr << "Failed to deserialize buffer (len " << buffer_len <<") : " << serialized_buffer << "\n";
           return {};
         }
+
+        json_object* script_o = json_object_object_get(item, "script");
+        json_object* lang_o = json_object_object_get(item, "language");
+        json_object* direction_o = json_object_object_get(item, "direction");
+
+        hb_buffer_set_script(buffer, hb_script_from_string(json_object_get_string(script_o), json_object_get_string_len(script_o)));
+        hb_buffer_set_language(buffer, hb_language_from_string(json_object_get_string(lang_o), json_object_get_string_len(lang_o)));
+        hb_buffer_set_direction(buffer, hb_direction_from_string(json_object_get_string(direction_o), json_object_get_string_len(direction_o)));
+
+
+        assert(hb_buffer_get_length(buffer) > 0);
+
+        hb_buffer_set_direction(buffer, HB_DIRECTION_LTR);
+
 
         font_data_list.push_back({font, buffer, std::move(features)});
     }
@@ -179,7 +198,7 @@ void bench_shape(const std::vector<BenchData>& bench_data) {
   g_print("Starting shape bench for %lu shape tasks.", bench_data.size());
 
   for (auto shape_task : bench_data) {
-    hb_shape(shape_task.font, shape_task.buffer, 0, 0);
+    hb_shape(shape_task.font, shape_task.buffer, shape_task.features.data(), shape_task.features.size());
   }
 }
 
@@ -210,8 +229,8 @@ int main(int argc, char *argv[]) {
 
   std::string jsonFilePath = sm3dump_dir + std::string("shapes.json");
 
-  FontsMap fonts = load_fonts_from_directory(sm3dump_dir);
-  std::vector<BenchData> bench_data = read_bench_data(jsonFilePath, fonts);
+  FaceMap faces = load_fonts_from_directory(sm3dump_dir);
+  std::vector<BenchData> bench_data = read_bench_data(jsonFilePath, faces);
   if (!bench_data.size()) {
     return 1;
   }
