@@ -859,17 +859,18 @@ test_buffer_empty (void)
 typedef struct {
   const char *contents;
   hb_buffer_serialize_format_t format;
+  int parsed_length;
   unsigned int num_items;
   hb_bool_t success;
 } serialization_test_t;
 
 static const serialization_test_t serialization_tests[] = {
-  { "<U+0640=0|U+0635=1>", HB_BUFFER_SERIALIZE_FORMAT_TEXT, 2, 1 },
-  { "[{\"u\":1600,\"cl\":0},{\"u\":1589,\"cl\":1}]", HB_BUFFER_SERIALIZE_FORMAT_JSON, 2, 1 },
+  { "<U+0640=0|U+0635=1>", HB_BUFFER_SERIALIZE_FORMAT_TEXT, -1, 2, TRUE },
+  { "[{\"u\":1600,\"cl\":0},{\"u\":1589,\"cl\":1}]", HB_BUFFER_SERIALIZE_FORMAT_JSON, -1, 2, TRUE },
 
   /* Mixed glyphs/Unicodes -> parse fail */
-  { "[{\"u\":1600,\"cl\":0},{\"g\":1589,\"cl\":1}]", HB_BUFFER_SERIALIZE_FORMAT_JSON, 0, 0 },
-  { "<U+0640=0|uni0635=1>", HB_BUFFER_SERIALIZE_FORMAT_TEXT, 0, 0 },
+  { "[{\"u\":1600,\"cl\":0},{\"g\":1589,\"cl\":1}]", HB_BUFFER_SERIALIZE_FORMAT_JSON, -1, 0, FALSE },
+  { "<U+0640=0|uni0635=1>", HB_BUFFER_SERIALIZE_FORMAT_TEXT, -1, 0, FALSE },
 };
 
 static void
@@ -882,6 +883,7 @@ test_buffer_serialize_deserialize (void)
   {
     unsigned int consumed;
     char round_trip[1024];
+    const char *end_ptr;
 
     b = hb_buffer_create ();
     hb_buffer_set_replacement_codepoint (b, (hb_codepoint_t) -1);
@@ -889,14 +891,22 @@ test_buffer_serialize_deserialize (void)
     const serialization_test_t *test = &serialization_tests[i];
     g_test_message ("serialize test #%d", i);
 
-    (void) hb_buffer_deserialize_unicode (b, test->contents, -1, NULL, test->format);
+
+    (void) hb_buffer_deserialize_unicode (b, test->contents, -1, &end_ptr, test->format);
 
     // Expected parse failure, got one, don't round-trip
-    if (test->success != 0)
+    if (test->success)
     {
       unsigned int num_glyphs = hb_buffer_get_length (b);
       g_assert_cmpint (num_glyphs, ==, test->num_items);
 
+      if (test->parsed_length != -1)
+      {
+	consumed = end_ptr - test->contents;
+	g_assert_cmpint (consumed, ==, test->parsed_length);
+      }
+
+      consumed = 0;
       hb_buffer_serialize_unicode (b, 0, num_glyphs, round_trip,
 				   sizeof(round_trip), &consumed, test->format,
 				   HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
