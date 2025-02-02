@@ -67,11 +67,11 @@
 struct hb_set_digest_t
 {
   using mask_t = uint64_t;
-  static constexpr unsigned shifts[] = {4, 0, 9};
+  static constexpr unsigned n = 3;
+#define HB_SET_DIGEST_SHIFTS {4, 0, 9}
 
   static constexpr unsigned mask_bytes = sizeof (mask_t);
   static constexpr unsigned mask_bits = sizeof (mask_t) * 8;
-  static constexpr unsigned n = sizeof (shifts) / sizeof (shifts[0]);
   static constexpr hb_codepoint_t mb1 = mask_bits - 1;
   static constexpr mask_t one = 1;
   static constexpr mask_t all = (mask_t) -1;
@@ -100,6 +100,7 @@ struct hb_set_digest_t
     if (!ret) return false;
 
     ret = false;
+    constexpr unsigned shifts[] = HB_SET_DIGEST_SHIFTS;
     for (unsigned i = 0; i < n; i++)
     {
       mask_t shift = shifts[i];
@@ -142,12 +143,14 @@ struct hb_set_digest_t
 
   void add (hb_codepoint_t g)
   {
+    constexpr unsigned shifts[] = HB_SET_DIGEST_SHIFTS;
     for (unsigned i = 0; i < n; i++)
       masks[i] |= one << ((g >> shifts[i]) & mb1);
   }
 
   bool may_have (hb_codepoint_t g) const
   {
+    constexpr unsigned shifts[] = HB_SET_DIGEST_SHIFTS;
     for (unsigned i = 0; i < n; i++)
       if (!(masks[i] & (one << ((g >> shifts[i]) & mb1))))
 	return false;
