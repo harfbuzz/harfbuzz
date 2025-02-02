@@ -563,7 +563,7 @@ DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (AAT, Lookup, 2);
 template <typename T>
 struct Entry
 {
-  // This does seem like it's ever called.
+  // This doesn't seem like it's ever called.
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
