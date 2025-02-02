@@ -639,21 +639,15 @@ struct StateTable
   int new_state (unsigned int newState) const
   { return Types::extended ? newState : ((int) newState - (int) stateArrayTable) / (int) nClasses; }
 
-  template <typename cache_t>
   unsigned int get_class (hb_codepoint_t glyph_id,
 			  unsigned int num_glyphs,
-			  cache_t *cache) const
+			  hb_aat_class_cache_t *cache = nullptr) const
   {
     if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
-    if (cache)
-    {
-      unsigned int klass;
-      if (cache->get (glyph_id, &klass))
-	return klass;
-    }
-    unsigned klass = (this+classTable).get_class (glyph_id, num_glyphs, CLASS_OUT_OF_BOUNDS);
-    if (cache)
-      cache->set (glyph_id, klass);
+    unsigned klass;
+    if (cache && cache->get (glyph_id, &klass)) return klass;
+    klass = (this+classTable).get_class (glyph_id, num_glyphs, CLASS_OUT_OF_BOUNDS);
+    if (cache) cache->set (glyph_id, klass);
     return klass;
   }
 
