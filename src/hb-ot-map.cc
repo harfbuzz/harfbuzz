@@ -390,5 +390,27 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
   }
 }
 
+unsigned int hb_ot_map_t::get_features (unsigned int start_offset, unsigned int *feature_count, hb_feature_t *out_features) const
+{
+  if (feature_count)
+  {
+    auto sub_features = features.as_array ().sub_array (start_offset, feature_count);
+
+    if (out_features)
+    {
+      for (unsigned int i = 0; i < sub_features.length; i++)
+      {
+        out_features[i].tag = sub_features[i].tag;
+        // FIXME: I should be using the mask to get the proper value, start, and
+        // end, but I'm not sure how to do that.
+        out_features[i].value = 1;
+        out_features[i].start = HB_FEATURE_GLOBAL_START;
+        out_features[i].end = HB_FEATURE_GLOBAL_END;
+      }
+    }
+  }
+
+  return features.length;
+}
 
 #endif

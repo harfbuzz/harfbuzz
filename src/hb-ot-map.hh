@@ -166,6 +166,9 @@ struct hb_ot_map_t
 			  const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
   HB_INTERNAL void substitute (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
   HB_INTERNAL void position (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
+  HB_INTERNAL unsigned int get_features (unsigned int  start_offset,
+					 unsigned int *feature_count, /* IN/OUT */
+					 hb_feature_t *features /* OUT */) const;
 
   public:
   hb_tag_t chosen_script[2];
