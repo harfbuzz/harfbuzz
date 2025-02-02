@@ -1032,26 +1032,24 @@ struct StateTableDriver
               && (entry.flags & context_t::DontAdvance) == (wouldbe_entry.flags & context_t::DontAdvance);
       };
 
-      const auto is_safe_to_break = [&]()
-      {
+      bool is_safe_to_break =
+      (
           /* 1. */
-          if (c->is_actionable (buffer, this, entry))
-              return false;
+          !c->is_actionable (buffer, this, entry) &&
 
           /* 2. */
           // This one is meh, I know...
-          const auto ok =
+	  (
                  state == StateTableT::STATE_START_OF_TEXT
               || ((entry.flags & context_t::DontAdvance) && next_state == StateTableT::STATE_START_OF_TEXT)
-              || is_safe_to_break_extra();
-          if (!ok)
-              return false;
+              || is_safe_to_break_extra()
+	  ) &&
 
           /* 3. */
-          return !c->is_actionable (buffer, this, machine.get_entry (state, CLASS_END_OF_TEXT));
-      };
+          !c->is_actionable (buffer, this, machine.get_entry (state, CLASS_END_OF_TEXT))
+      );
 
-      if (!is_safe_to_break () && buffer->backtrack_len () && buffer->idx < buffer->len)
+      if (!is_safe_to_break && buffer->backtrack_len () && buffer->idx < buffer->len)
 	buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
 
       c->transition (buffer, this, entry);
