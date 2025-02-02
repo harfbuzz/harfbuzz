@@ -87,15 +87,6 @@ struct IntType
     return pb->cmp (*pa);
   }
   template <typename Type2,
-	    hb_enable_if (std::is_integral<Type2>::value &&
-			  sizeof (Type2) < sizeof (int) &&
-			  sizeof (Type) < sizeof (int))>
-  int cmp (Type2 a) const
-  {
-    Type b = v;
-    return (int) a - (int) b;
-  }
-  template <typename Type2,
 	    hb_enable_if (hb_is_convertible (Type2, Type))>
   int cmp (Type2 a) const
   {
