@@ -91,7 +91,7 @@ struct IntType
   int cmp (Type2 a) const
   {
     Type b = v;
-    return a < b ? -1 : a == b ? 0 : +1;
+    return (a > b) - (a < b);
   }
   bool sanitize (hb_sanitize_context_t *c) const
   {
