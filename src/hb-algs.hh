@@ -78,7 +78,7 @@
 
 
 /*
- * Fixed-endian integers.
+ * Fixed-endian integers / floats.
  */
 
 
@@ -88,46 +88,47 @@ static inline constexpr uint16_t hb_uint16_swap (uint16_t v)
 static inline constexpr uint32_t hb_uint32_swap (uint32_t v)
 { return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
-#ifndef HB_FAST_INT_ACCESS
+template <typename Type>
+struct __attribute__((packed)) hb_packed_t { Type v; };
+
+#ifndef HB_FAST_NUM_ACCESS
 #if defined(__OPTIMIZE__) && \
     defined(__BYTE_ORDER) && \
     (__BYTE_ORDER == __BIG_ENDIAN || \
      (__BYTE_ORDER == __LITTLE_ENDIAN && \
       hb_has_builtin(__builtin_bswap16) && \
       hb_has_builtin(__builtin_bswap32)))
-#define HB_FAST_INT_ACCESS 1
+#define HB_FAST_NUM_ACCESS 1
 #else
-#define HB_FAST_INT_ACCESS 0
+#define HB_FAST_NUM_ACCESS 0
 #endif
 #endif
 
 template <bool BE, typename Type, int Bytes = sizeof (Type)>
-struct HBNum;
+struct HBInt;
 template <bool BE, typename Type>
-struct HBNum<BE, Type, 1>
+struct HBInt<BE, Type, 1>
 {
   public:
-  HBNum () = default;
-  constexpr HBNum (Type V) : v {uint8_t (V)} {}
+  HBInt () = default;
+  constexpr HBInt (Type V) : v {uint8_t (V)} {}
   constexpr operator Type () const { return v; }
   private: uint8_t v;
 };
 template <bool BE, typename Type>
-struct HBNum<BE, Type, 2>
+struct HBInt<BE, Type, 2>
 {
-  struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
-
   public:
-  HBNum () = default;
+  HBInt () = default;
 
-  HBNum (Type V)
-#if HB_FAST_INT_ACCESS
+  HBInt (Type V)
+#if HB_FAST_NUM_ACCESS
   {
     bool be = __BYTE_ORDER == __BIG_ENDIAN;
     if (be == BE)
-      ((packed_uint16_t *) v)->v = V;
+      ((hb_packed_t<uint16_t> *) v)->v = V;
     else
-      ((packed_uint16_t *) v)->v = __builtin_bswap16 (V);
+      ((hb_packed_t<uint16_t> *) v)->v = __builtin_bswap16 (V);
   }
 #else
     : v {BE ? uint8_t ((V >>  8) & 0xFF) : uint8_t ((V      ) & 0xFF),
@@ -136,13 +137,12 @@ struct HBNum<BE, Type, 2>
 
   constexpr operator Type () const
   {
-#if HB_FAST_INT_ACCESS
+#if HB_FAST_NUM_ACCESS
     bool be = __BYTE_ORDER == __BIG_ENDIAN;
     if (be == BE)
-      return ((packed_uint16_t *) v)->v;
+      return ((hb_packed_t<uint16_t> *) v)->v;
     else
-      ((packed_uint16_t *) v)->v = __builtin_bswap16 (V);
-      return __builtin_bswap16 (((packed_uint16_t *) v)->v);
+      return __builtin_bswap16 (((hb_packed_t<uint16_t> *) v)->v);
 #else
     return (BE ? (v[0] <<  8) : (v[0]      ))
 	 + (BE ? (v[1]      ) : (v[1] <<  8));
@@ -151,12 +151,12 @@ struct HBNum<BE, Type, 2>
   private: uint8_t v[2];
 };
 template <bool BE, typename Type>
-struct HBNum<BE, Type, 3>
+struct HBInt<BE, Type, 3>
 {
   static_assert (!std::is_signed<Type>::value, "");
   public:
-  HBNum () = default;
-  constexpr HBNum (Type V) : v {BE ? uint8_t ((V >> 16) & 0xFF) : uint8_t ((V >> 16) & 0xFF),
+  HBInt () = default;
+  constexpr HBInt (Type V) : v {BE ? uint8_t ((V >> 16) & 0xFF) : uint8_t ((V >> 16) & 0xFF),
 				BE ? uint8_t ((V >>  8) & 0xFF) : uint8_t ((V >>  8) & 0xFF),
 				BE ? uint8_t ((V      ) & 0xFF) : uint8_t ((V      ) & 0xFF)} {}
 
@@ -166,21 +166,19 @@ struct HBNum<BE, Type, 3>
   private: uint8_t v[3];
 };
 template <bool BE, typename Type>
-struct HBNum<BE, Type, 4>
+struct HBInt<BE, Type, 4>
 {
-  struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
-
   public:
-  HBNum () = default;
+  HBInt () = default;
 
-  HBNum (Type V)
-#if HB_FAST_INT_ACCESS
+  HBInt (Type V)
+#if HB_FAST_NUM_ACCESS
   {
     bool be = __BYTE_ORDER == __BIG_ENDIAN;
     if (be == BE)
-      ((packed_uint32_t *) v)->v = V;
+      ((hb_packed_t<uint32_t> *) v)->v = V;
     else
-      ((packed_uint32_t *) v)->v = __builtin_bswap32 (V);
+      ((hb_packed_t<uint32_t> *) v)->v = __builtin_bswap32 (V);
   }
 #else
     : v {BE ? uint8_t ((V >> 24) & 0xFF) : uint8_t ((V      ) & 0xFF),
@@ -190,13 +188,12 @@ struct HBNum<BE, Type, 4>
 #endif
 
   constexpr operator Type () const {
-#if HB_FAST_INT_ACCESS
+#if HB_FAST_NUM_ACCESS
     bool be = __BYTE_ORDER == __BIG_ENDIAN;
     if (be == BE)
-      return ((packed_uint32_t *) v)->v;
+      return ((hb_packed_t<uint32_t> *) v)->v;
     else
-      ((packed_uint32_t *) v)->v = __builtin_bswap32 (V);
-      return __builtin_bswap32 (((packed_uint32_t *) v)->v);
+      return __builtin_bswap32 (((hb_packed_t<uint32_t> *) v)->v);
 #else
     return (BE ? (v[0] << 24) : (v[0]      ))
 	 + (BE ? (v[1] << 16) : (v[1] <<  8))
@@ -208,6 +205,62 @@ struct HBNum<BE, Type, 4>
 };
 
 /* Floats. */
+
+template <bool BE, typename Type, int Bytes>
+struct HBFloat
+{
+  using IntType = typename std::conditional<Bytes == 4, uint32_t, uint64_t>::type;
+
+  public:
+  HBFloat () = default;
+
+  HBFloat (Type V)
+  {
+    union {
+      hb_packed_t<Type> f;
+      hb_packed_t<IntType> i;
+    } u = {V};
+
+#if HB_FAST_NUM_ACCESS
+    {
+      bool be = __BYTE_ORDER == __BIG_ENDIAN;
+      if (be != BE)
+      {
+	hb_barrier ();
+	u.i.v = __builtin_bswap32 (u.i.v);
+	hb_barrier ();
+      }
+      ((hb_packed_t<Type> *) v)->v = u.f.v;
+    }
+#endif
+
+    const HBInt<BE, IntType> I = u.i.v;
+    v = I.v;
+  }
+
+  /* c++14 constexpr */ operator Type () const
+  {
+#if HB_FAST_NUM_ACCESS
+    {
+      bool be = __BYTE_ORDER == __BIG_ENDIAN;
+      if (be == BE)
+	return *((hb_packed_t<Type> *) v).v;
+    }
+#endif
+
+    const HBInt<BE, IntType> I;
+    I.v = v;
+
+    union {
+      hb_packed_t<IntType> i;
+      hb_packed_t<Type> f;
+    } u = {I};
+
+    return u.f.v;
+  }
+  private: uint8_t v[Bytes];
+};
+
 
 /* We want our rounding towards +infinity. */
 static inline double

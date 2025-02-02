@@ -66,7 +66,8 @@ struct NumType
   NumType& operator = (Type i) { v = i; return *this; }
   /* For reason we define cast out operator for signed/unsigned, instead of Type, see:
    * https://github.com/harfbuzz/harfbuzz/pull/2875/commits/09836013995cab2b9f07577a179ad7b024130467 */
-  operator typename std::conditional<std::is_signed<Type>::value, signed, unsigned>::type () const { return v; }
+  operator typename std::conditional<std::is_integral<Type>::value && std::is_signed<Type>::value, signed, unsigned>::type () const { return v; }
+  explicit operator typename std::conditional<std::is_floating_point<Type>::value && Size == 4, float, double>::type () const { return v; }
 
   bool operator == (const NumType &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const NumType &o) const { return !(*this == o); }
@@ -100,7 +101,9 @@ struct NumType
     return_trace (c->check_struct (this));
   }
   protected:
-  HBNum<BE, Type, Size> v;
+  typename std::conditional<std::is_integral<Type>::value,
+			    HBInt<BE, Type, Size>,
+			    HBFloat<BE, Type, Size>>::type v;
   public:
   DEFINE_SIZE_STATIC (Size);
 };
@@ -119,6 +122,11 @@ typedef NumType<false, uint16_t> HBUINT16LE;	/* 16-bit little-endian unsigned in
 typedef NumType<false, int16_t>  HBINT16LE;	/* 16-bit little-endian signed integer. */
 typedef NumType<false, uint32_t> HBUINT32LE;	/* 32-bit little-endian unsigned integer. */
 typedef NumType<false, int32_t>  HBINT32LE;	/* 32-bit little-endian signed integer. */
+
+typedef NumType<true,  float>  HBFLOAT32BE;	/* 32-bit little-endian floating point number. */
+typedef NumType<true,  double> HBFLOAT64BE;	/* 64-bit little-endian floating point number. */
+typedef NumType<false, float>  HBFLOAT32LE;	/* 32-bit little-endian floating point number. */
+typedef NumType<false, double> HBFLOAT64LE;	/* 64-bit little-endian floating point number. */
 
 /* 15-bit unsigned number; top bit used for extension. */
 struct HBUINT15 : HBUINT16
