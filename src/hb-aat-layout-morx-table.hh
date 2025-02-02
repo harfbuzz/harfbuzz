@@ -919,20 +919,17 @@ struct hb_accelerate_subtables_context_t :
     friend struct hb_aat_layout_lookup_accelerator_t;
 
     public:
-    hb_aat_class_cache_t *class_cache;
+    mutable hb_aat_class_cache_t class_cache;
 
     template <typename T>
     void init (const T &obj_, unsigned num_glyphs)
     {
-      class_cache = (hb_aat_class_cache_t *) malloc (sizeof (hb_aat_class_cache_t));
-      if (class_cache)
-	class_cache->clear ();
+      class_cache.clear ();
     }
 
     void
     fini ()
     {
-      free (class_cache);
     }
   };
 
@@ -1145,7 +1142,7 @@ struct Chain
 		   hb_map ([&subtable] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable->subFeatureFlags & (_.flags); })))
 	goto skip;
       c->subtable_flags = subtable->subFeatureFlags;
-      c->machine_class_cache = accel ? accel->subtables[i].class_cache : nullptr;
+      c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
 	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
