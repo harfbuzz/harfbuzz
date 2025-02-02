@@ -65,7 +65,6 @@ struct hb_aat_apply_context_t :
   const OT::GDEF *gdef_table;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
   hb_set_digest_t buffer_digest = hb_set_digest_t::full ();
-  hb_set_digest_t machine_glyph_set = hb_set_digest_t::full ();
   hb_set_digest_t left_set = hb_set_digest_t::full ();
   hb_set_digest_t right_set = hb_set_digest_t::full ();
   hb_aat_class_cache_t *machine_class_cache = nullptr;
@@ -640,14 +639,12 @@ struct StateTable
   int new_state (unsigned int newState) const
   { return Types::extended ? newState : ((int) newState - (int) stateArrayTable) / (int) nClasses; }
 
-  template <typename set_t, typename cache_t>
+  template <typename cache_t>
   unsigned int get_class (hb_codepoint_t glyph_id,
 			  unsigned int num_glyphs,
-			  const set_t &glyphs,
 			  cache_t *cache) const
   {
     if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
-    if (!glyphs[glyph_id]) return CLASS_OUT_OF_BOUNDS;
     if (cache)
     {
       unsigned int klass;
@@ -948,7 +945,7 @@ struct StateTableDriver
   {
     const auto entry = machine.get_entry (StateTableT::STATE_START_OF_TEXT, CLASS_OUT_OF_BOUNDS);
     return !c->is_actionable (ac->buffer, this, entry) &&
-	    machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
+           machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
   }
 
   template <typename context_t>
@@ -991,7 +988,7 @@ struct StateTableDriver
       }
 
       unsigned int klass = likely (buffer->idx < buffer->len) ?
-			   machine.get_class (buffer->cur().codepoint, num_glyphs, ac->machine_glyph_set, ac->machine_class_cache) :
+			   machine.get_class (buffer->cur().codepoint, num_glyphs, ac->machine_class_cache) :
 			   (unsigned) CLASS_END_OF_TEXT;
       DEBUG_MSG (APPLY, nullptr, "c%u at %u", klass, buffer->idx);
       const EntryT &entry = machine.get_entry (state, klass);
