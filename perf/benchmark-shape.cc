@@ -6,44 +6,35 @@ struct test_input_t
 {
   const char *font_path;
   const char *text_path;
-  bool is_variable;
 } default_tests[] =
 {
 
   {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
-   "perf/texts/fa-thelittleprince.txt",
-   false},
+   "perf/texts/fa-thelittleprince.txt"},
 
   {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
-   "perf/texts/fa-words.txt",
-   false},
+   "perf/texts/fa-words.txt"},
 
   {"perf/fonts/Amiri-Regular.ttf",
-   "perf/texts/fa-thelittleprince.txt",
-   false},
+   "perf/texts/fa-thelittleprince.txt"},
 
   {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf",
-   "perf/texts/hi-words.txt",
-   false},
+   "perf/texts/hi-words.txt"},
 
   {"perf/fonts/Roboto-Regular.ttf",
-   "perf/texts/en-thelittleprince.txt",
-   false},
+   "perf/texts/en-thelittleprince.txt"},
 
   {"perf/fonts/Roboto-Regular.ttf",
-   "perf/texts/en-words.txt",
-   false},
+   "perf/texts/en-words.txt"},
 
   {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
-   "perf/texts/en-thelittleprince.txt",
-   true},
+   "perf/texts/en-thelittleprince.txt"},
 };
 
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
 static void BM_Shape (benchmark::State &state,
-		      bool is_var,
 		      const char *shaper,
 		      const test_input_t &input)
 {
@@ -53,12 +44,6 @@ static void BM_Shape (benchmark::State &state,
     assert (face);
     font = hb_font_create (face);
     hb_face_destroy (face);
-  }
-
-  if (is_var)
-  {
-    hb_variation_t wght = {HB_TAG ('w','g','h','t'), 500};
-    hb_font_set_variations (font, &wght, 1);
   }
 
   hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
@@ -93,7 +78,6 @@ static void BM_Shape (benchmark::State &state,
 }
 
 static void test_shaper (const char *shaper,
-			 bool variable,
 			 const test_input_t &test_input)
 {
   char name[1024] = "BM_Shape";
@@ -104,11 +88,10 @@ static void test_shaper (const char *shaper,
   strcat (name, "/");
   p = strrchr (test_input.text_path, '/');
   strcat (name, p ? p + 1 : test_input.text_path);
-  strcat (name, variable ? "/var" : "");
   strcat (name, "/");
   strcat (name, shaper);
 
-  benchmark::RegisterBenchmark (name, BM_Shape, variable, shaper, test_input)
+  benchmark::RegisterBenchmark (name, BM_Shape, shaper, test_input)
    ->Unit(benchmark::kMillisecond);
 }
 
@@ -122,7 +105,6 @@ int main(int argc, char** argv)
     tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
     for (unsigned i = 0; i < num_tests; i++)
     {
-      tests[i].is_variable = true;
       tests[i].font_path = argv[1 + i * 2];
       tests[i].text_path = argv[2 + i * 2];
     }
@@ -131,15 +113,9 @@ int main(int argc, char** argv)
   for (unsigned i = 0; i < num_tests; i++)
   {
     auto& test_input = tests[i];
-    for (int variable = 0; variable < int (test_input.is_variable) + 1; variable++)
-    {
-      bool is_var = (bool) variable;
-
-      const char **shapers = hb_shape_list_shapers ();
-
-      for (const char **shaper = shapers; *shaper; shaper++)
-	test_shaper (*shaper, is_var, test_input);
-    }
+    const char **shapers = hb_shape_list_shapers ();
+    for (const char **shaper = shapers; *shaper; shaper++)
+      test_shaper (*shaper, test_input);
   }
 
   benchmark::RunSpecifiedBenchmarks();
