@@ -1017,21 +1017,7 @@ struct StateTableDriver
        *
        *   https://github.com/harfbuzz/harfbuzz/issues/2860
        */
-
-      const auto is_safe_to_break_extra = [&]()
-      {
-          /* 2c. */
-          const auto &wouldbe_entry = machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass);
-
-          /* 2c'. */
-          if (c->is_actionable (buffer, this, wouldbe_entry))
-	    return false;
-
-          /* 2c". */
-          return next_state == machine.new_state(wouldbe_entry.newState)
-              && (entry.flags & context_t::DontAdvance) == (wouldbe_entry.flags & context_t::DontAdvance);
-      };
-
+      const EntryT *wouldbe_entry;
       bool is_safe_to_break =
       (
           /* 1. */
@@ -1042,7 +1028,18 @@ struct StateTableDriver
 	  (
                  state == StateTableT::STATE_START_OF_TEXT
               || ((entry.flags & context_t::DontAdvance) && next_state == StateTableT::STATE_START_OF_TEXT)
-              || is_safe_to_break_extra()
+              || (
+		    /* 2c. */
+		    wouldbe_entry = &machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass)
+		    ,
+		    /* 2c'. */
+		    !c->is_actionable (buffer, this, *wouldbe_entry) &&
+		    /* 2c". */
+		    (
+		      next_state == machine.new_state(wouldbe_entry->newState) &&
+		      (entry.flags & context_t::DontAdvance) == (wouldbe_entry->flags & context_t::DontAdvance)
+		    )
+		 )
 	  ) &&
 
           /* 3. */
