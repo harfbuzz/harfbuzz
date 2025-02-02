@@ -69,7 +69,7 @@ struct hb_set_digest_t
   // No science in these. Intuition and testing only.
   using mask_t = uint64_t;
   static constexpr unsigned n = 4;
-#define HB_SET_DIGEST_SHIFTS {3, 0, 6, 9}
+#define HB_SET_DIGEST_SHIFTS {4, 0, 6, 9}
 
   static constexpr unsigned mask_bytes = sizeof (mask_t);
   static constexpr unsigned mask_bits = sizeof (mask_t) * 8;
