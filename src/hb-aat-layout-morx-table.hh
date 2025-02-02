@@ -936,6 +936,7 @@ struct hb_accelerate_subtables_context_t :
 
     public:
     hb_set_digest_t digest;
+    hb_aat_class_cache_t *class_cache;
 
     template <typename T>
     auto init_ (const T &obj_, unsigned num_glyphs, hb_priority<1>) HB_AUTO_RETURN
@@ -953,6 +954,15 @@ struct hb_accelerate_subtables_context_t :
     void init (const T &obj_, unsigned num_glyphs)
     {
       init_ (obj_, num_glyphs, hb_prioritize);
+      class_cache = (hb_aat_class_cache_t *) malloc (sizeof (hb_aat_class_cache_t));
+      if (class_cache)
+	class_cache->clear ();
+    }
+
+    void
+    fini ()
+    {
+      free (class_cache);
     }
   };
 
@@ -999,12 +1009,21 @@ struct hb_aat_layout_chain_accelerator_t
     if (unlikely (!thiz))
       return nullptr;
 
+    thiz->count = count;
+
     hb_accelerate_subtables_context_t c_accelerate_subtables (thiz->subtables, num_glyphs);
     chain.dispatch (&c_accelerate_subtables);
 
     return thiz;
   }
 
+  void destroy ()
+  {
+    for (unsigned i = 0; i < count; i++)
+      subtables[i].fini ();
+  }
+
+  unsigned count;
   hb_accelerate_subtables_context_t::hb_applicable_t subtables[HB_VAR_ARRAY];
 };
 
@@ -1157,6 +1176,7 @@ struct Chain
 	goto skip;
       c->subtable_flags = subtable->subFeatureFlags;
       c->machine_glyph_set = accel ? accel->subtables[i].digest : hb_set_digest_t::full ();
+      c->machine_class_cache = accel ? accel->subtables[i].class_cache : nullptr;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
 	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
@@ -1317,7 +1337,11 @@ struct mortmorx
     ~accelerator_t ()
     {
       for (unsigned int i = 0; i < this->chain_count; i++)
+      {
+	if (this->accels[i])
+	  this->accels[i]->destroy ();
 	hb_free (this->accels[i]);
+      }
       hb_free (this->accels);
       this->table.destroy ();
     }
