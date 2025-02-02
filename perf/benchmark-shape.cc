@@ -42,11 +42,9 @@ struct test_input_t
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
-enum backend_t { HARFBUZZ, FREETYPE };
-
 static void BM_Shape (benchmark::State &state,
 		      bool is_var,
-		      backend_t backend,
+		      const char *shaper,
 		      const test_input_t &input)
 {
   hb_font_t *font;
@@ -61,19 +59,6 @@ static void BM_Shape (benchmark::State &state,
   {
     hb_variation_t wght = {HB_TAG ('w','g','h','t'), 500};
     hb_font_set_variations (font, &wght, 1);
-  }
-
-  switch (backend)
-  {
-    case HARFBUZZ:
-      hb_ot_font_set_funcs (font);
-      break;
-
-    case FREETYPE:
-#ifdef HAVE_FREETYPE
-      hb_ft_font_set_funcs (font);
-#endif
-      break;
   }
 
   hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
@@ -93,7 +78,8 @@ static void BM_Shape (benchmark::State &state,
       hb_buffer_clear_contents (buf);
       hb_buffer_add_utf8 (buf, text, text_length, 0, end - text);
       hb_buffer_guess_segment_properties (buf);
-      hb_shape (font, buf, nullptr, 0);
+      const char *shaper_list[] = {shaper, nullptr};
+      hb_shape_full (font, buf, nullptr, 0, shaper_list);
 
       unsigned skip = end - text + 1;
       text_length -= skip;
@@ -106,10 +92,9 @@ static void BM_Shape (benchmark::State &state,
   hb_font_destroy (font);
 }
 
-static void test_backend (backend_t backend,
-			  const char *backend_name,
-			  bool variable,
-			  const test_input_t &test_input)
+static void test_shaper (const char *shaper,
+			 bool variable,
+			 const test_input_t &test_input)
 {
   char name[1024] = "BM_Shape";
   const char *p;
@@ -121,9 +106,9 @@ static void test_backend (backend_t backend,
   strcat (name, p ? p + 1 : test_input.text_path);
   strcat (name, variable ? "/var" : "");
   strcat (name, "/");
-  strcat (name, backend_name);
+  strcat (name, shaper);
 
-  benchmark::RegisterBenchmark (name, BM_Shape, variable, backend, test_input)
+  benchmark::RegisterBenchmark (name, BM_Shape, variable, shaper, test_input)
    ->Unit(benchmark::kMillisecond);
 }
 
@@ -150,10 +135,10 @@ int main(int argc, char** argv)
     {
       bool is_var = (bool) variable;
 
-      test_backend (HARFBUZZ, "hb", is_var, test_input);
-#ifdef HAVE_FREETYPE
-      test_backend (FREETYPE, "ft", is_var, test_input);
-#endif
+      const char **shapers = hb_shape_list_shapers ();
+
+      for (const char **shaper = shapers; *shaper; shaper++)
+	test_shaper (*shaper, is_var, test_input);
     }
   }
 
