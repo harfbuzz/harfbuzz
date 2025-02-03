@@ -519,18 +519,6 @@
       implement optical scaling. 
     </para>
     <para>
-      When integrating your client code with Core Text, it is
-      important to recognize that Core Text <literal>points</literal>
-      are not typographic points (standardized at 72 per inch) as the
-      term is used elsewhere in OpenType. Instead, Core Text points
-      are CSS points, which are standardized at 96 per inch.
-    </para>
-    <para>
-      HarfBuzz's font functions take this distinction into account,
-      but it can be an easy detail to miss in cross-platform
-      code. 
-    </para>
-    <para>
       As a final note, you may notice a reference to an optional
       <literal>coretext</literal> shaper back-end in the <xref
       linkend="configuration" /> section of the HarfBuzz manual. This
