@@ -82,11 +82,19 @@ free_up (void *user_data)
   (*freed)++;
 }
 
+static hb_tag_t test_tags[] = {
+  HB_TAG ('a','b','c','d'),
+  HB_TAG ('e','f','g','h'),
+};
+
 static hb_blob_t *
 get_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data HB_UNUSED)
 {
-  if (tag == HB_TAG ('a','b','c','d'))
-    return hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  for (unsigned i = 0; i < sizeof (test_tags) / sizeof (test_tags[0]); i++)
+  {
+    if (test_tags[i] == tag)
+      return hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  }
 
   return hb_blob_get_empty ();
 }
@@ -117,6 +125,72 @@ test_face_createfortables (void)
 
   hb_face_destroy (face);
   g_assert (freed);
+}
+
+static unsigned int
+get_table_tags (const hb_face_t *face HB_UNUSED,
+                unsigned int  start_offset,
+                unsigned int *table_count,
+                hb_tag_t     *table_tags,
+                void         *user_data)
+{
+  unsigned count = sizeof (test_tags) / sizeof (test_tags[0]);
+  unsigned end_offset;
+
+  if (!table_count)
+    return count;
+
+  if (start_offset >= count)
+  {
+    *table_count = 0;
+    return count;
+  }
+
+  end_offset = start_offset + *table_count;
+  if (end_offset < start_offset)
+  {
+    *table_count = 0;
+    return count;
+  }
+
+  end_offset = end_offset < count ? end_offset : count;
+
+  *table_count = end_offset - start_offset;
+
+  for (unsigned i = start_offset; i < end_offset; i++)
+    table_tags[i - start_offset] = test_tags[i];
+
+  return count;
+}
+
+static void
+test_face_referenceblob (void)
+{
+  hb_blob_t *blob;
+  hb_face_t *face;
+  int freed = 0;
+
+  face = hb_face_create_for_tables (get_table, &freed, free_up);
+  hb_face_set_get_table_tags_func (face, get_table_tags, NULL, NULL);
+
+  blob = hb_face_reference_blob (face);
+  hb_face_destroy (face);
+
+  g_assert (blob != hb_blob_get_empty ());
+
+  face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+
+  g_assert (face != hb_face_get_empty ());
+  g_assert_cmpuint (hb_face_get_table_tags (face, 0, NULL, NULL), ==, sizeof (test_tags) / sizeof (test_tags[0]));
+  for (unsigned i = 0; i < sizeof (test_tags) / sizeof (test_tags[0]); i++)
+  {
+    hb_blob_t* table = hb_face_reference_table (face, test_tags[i]);
+    g_assert (table != hb_blob_get_empty ());
+    hb_blob_destroy (table);
+  }
+
+  hb_face_destroy (face);
 }
 
 static void
@@ -606,6 +680,7 @@ main (int argc, char **argv)
   hb_test_add (test_face_empty);
   hb_test_add (test_face_create);
   hb_test_add (test_face_createfortables);
+  hb_test_add (test_face_referenceblob);
 
   hb_test_add (test_fontfuncs_empty);
   hb_test_add (test_fontfuncs_nil);
