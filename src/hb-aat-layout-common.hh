@@ -657,13 +657,14 @@ struct StateTable
 
   const Entry<Extra> &get_entry (int state, unsigned int klass) const
   {
-    if (unlikely (klass >= nClasses))
+    unsigned n_classes = nClasses;
+    if (unlikely (klass >= n_classes))
       klass = CLASS_OUT_OF_BOUNDS;
 
     const HBUSHORT *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
-    unsigned int entry = states[state * nClasses + klass];
+    unsigned int entry = states[state * n_classes + klass];
     DEBUG_MSG (APPLY, nullptr, "e%u", entry);
 
     return entries[entry];
