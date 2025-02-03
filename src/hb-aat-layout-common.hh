@@ -644,9 +644,9 @@ struct StateTable
 			  unsigned int num_glyphs,
 			  hb_aat_class_cache_t *cache = nullptr) const
   {
-    if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
     unsigned klass;
     if (cache && cache->get (glyph_id, &klass)) return klass;
+    if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
     klass = (this+classTable).get_class (glyph_id, num_glyphs, CLASS_OUT_OF_BOUNDS);
     if (cache) cache->set (glyph_id, klass);
     return klass;
