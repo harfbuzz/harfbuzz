@@ -868,6 +868,9 @@ static const serialization_test_t serialization_tests[] = {
   { "<U+0640=0|U+0635=1>", HB_BUFFER_SERIALIZE_FORMAT_TEXT, -1, 2, TRUE },
   { "[{\"u\":1600,\"cl\":0},{\"u\":1589,\"cl\":1}]", HB_BUFFER_SERIALIZE_FORMAT_JSON, -1, 2, TRUE },
 
+  /* Unfinished */
+  { "[{\"u\":1600,\"cl\":0},{\"u\":1589,\"cl\":1}", HB_BUFFER_SERIALIZE_FORMAT_JSON, -1, 2, TRUE },
+
   /* Mixed glyphs/Unicodes -> parse fail */
   { "[{\"u\":1600,\"cl\":0},{\"g\":1589,\"cl\":1}]", HB_BUFFER_SERIALIZE_FORMAT_JSON, -1, 0, FALSE },
   { "<U+0640=0|uni0635=1>", HB_BUFFER_SERIALIZE_FORMAT_TEXT, -1, 0, FALSE },

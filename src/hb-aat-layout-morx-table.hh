@@ -274,8 +274,9 @@ struct ContextualSubtable
       if (replacement)
       {
 	buffer->unsafe_to_break (mark, hb_min (buffer->idx + 1, buffer->len));
-	buffer->info[mark].codepoint = *replacement;
-	c->buffer_glyph_set.add (*replacement);
+	hb_codepoint_t glyph = *replacement;
+	buffer->info[mark].codepoint = glyph;
+	c->buffer_glyph_set.add (glyph);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[mark],
 					  gdef.get_glyph_props (*replacement));
@@ -304,8 +305,9 @@ struct ContextualSubtable
       }
       if (replacement)
       {
-	buffer->info[idx].codepoint = *replacement;
-	c->buffer_glyph_set.add (*replacement);
+	hb_codepoint_t glyph = *replacement;
+	buffer->info[idx].codepoint = glyph;
+	c->buffer_glyph_set.add (glyph);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[idx],
 					  gdef.get_glyph_props (*replacement));
@@ -647,6 +649,9 @@ struct NoncontextualSubtable
   {
     TRACE_APPLY (this);
 
+    if (!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
+      return_trace (false);
+
     const OT::GDEF &gdef (*c->gdef_table);
     bool has_glyph_classes = gdef.has_glyph_classes ();
 
@@ -679,8 +684,9 @@ struct NoncontextualSubtable
       const HBGlyphID16 *replacement = substitute.get_value (info[i].codepoint, num_glyphs);
       if (replacement)
       {
-	info[i].codepoint = *replacement;
-	c->buffer_glyph_set.add (*replacement);
+	hb_codepoint_t glyph = *replacement;
+	info[i].codepoint = glyph;
+	c->buffer_glyph_set.add (glyph);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&info[i],
 					  gdef.get_glyph_props (*replacement));
@@ -689,6 +695,12 @@ struct NoncontextualSubtable
     }
 
     return_trace (ret);
+  }
+
+  template <typename set_t>
+  void collect_glyphs (set_t &glyphs, unsigned num_glyphs) const
+  {
+    substitute.collect_glyphs (glyphs, num_glyphs);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -952,21 +964,20 @@ struct hb_accelerate_subtables_context_t :
 
     template <typename T>
     auto init_ (const T &obj_, unsigned num_glyphs, hb_priority<1>) HB_AUTO_RETURN
-    ((
-      glyph_set.init (),
+    (
       obj_.machine.collect_glyphs (glyph_set, num_glyphs)
-    ))
+    )
 
     template <typename T>
     void init_ (const T &obj_, unsigned num_glyphs, hb_priority<0>)
     {
-      glyph_set.init ();
-      glyph_set.invert ();
+      obj_.collect_glyphs (glyph_set, num_glyphs);
     }
 
     template <typename T>
     void init (const T &obj_, unsigned num_glyphs)
     {
+      glyph_set.init ();
       init_ (obj_, num_glyphs, hb_prioritize);
       class_cache.clear ();
     }
