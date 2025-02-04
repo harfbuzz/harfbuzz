@@ -30,6 +30,7 @@
 #include "hb-aat-layout.hh"
 #include "hb-aat-map.hh"
 #include "hb-open-type.hh"
+#include "hb-cache.hh"
 
 namespace OT {
 struct GDEF;
@@ -42,6 +43,9 @@ using namespace OT;
 #define HB_AAT_BUFFER_DIGEST_THRESHOLD 32
 
 struct ankr;
+
+using hb_aat_class_cache_t = hb_cache_t<15, 8, 7>;
+static_assert (sizeof (hb_aat_class_cache_t) == 256, "");
 
 struct hb_aat_apply_context_t :
        hb_dispatch_context_t<hb_aat_apply_context_t, bool, HB_DEBUG_APPLY>
@@ -62,9 +66,9 @@ struct hb_aat_apply_context_t :
   const OT::GDEF *gdef_table;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
   hb_set_digest_t buffer_digest = hb_set_digest_t::full ();
-  hb_set_digest_t machine_glyph_set = hb_set_digest_t::full ();
   hb_set_digest_t left_set = hb_set_digest_t::full ();
   hb_set_digest_t right_set = hb_set_digest_t::full ();
+  hb_aat_class_cache_t *machine_class_cache = nullptr;
   hb_mask_t subtable_flags = 0;
 
   /* Unused. For debug tracing only. */
@@ -636,14 +640,16 @@ struct StateTable
   int new_state (unsigned int newState) const
   { return Types::extended ? newState : ((int) newState - (int) stateArrayTable) / (int) nClasses; }
 
-  template <typename set_t>
   unsigned int get_class (hb_codepoint_t glyph_id,
 			  unsigned int num_glyphs,
-			  const set_t &glyphs) const
+			  hb_aat_class_cache_t *cache = nullptr) const
   {
+    unsigned klass;
+    if (cache && cache->get (glyph_id, &klass)) return klass;
     if (unlikely (glyph_id == DELETED_GLYPH)) return CLASS_DELETED_GLYPH;
-    if (!glyphs[glyph_id]) return CLASS_OUT_OF_BOUNDS;
-    return (this+classTable).get_class (glyph_id, num_glyphs, CLASS_OUT_OF_BOUNDS);
+    klass = (this+classTable).get_class (glyph_id, num_glyphs, CLASS_OUT_OF_BOUNDS);
+    if (cache) cache->set (glyph_id, klass);
+    return klass;
   }
 
   const Entry<Extra> *get_entries () const
@@ -651,13 +657,14 @@ struct StateTable
 
   const Entry<Extra> &get_entry (int state, unsigned int klass) const
   {
-    if (unlikely (klass >= nClasses))
+    unsigned n_classes = nClasses;
+    if (unlikely (klass >= n_classes))
       klass = CLASS_OUT_OF_BOUNDS;
 
     const HBUSHORT *states = (this+stateArrayTable).arrayZ;
     const Entry<Extra> *entries = (this+entryTable).arrayZ;
 
-    unsigned int entry = states[state * nClasses + klass];
+    unsigned int entry = states[state * n_classes + klass];
     DEBUG_MSG (APPLY, nullptr, "e%u", entry);
 
     return entries[entry];
@@ -934,7 +941,7 @@ struct StateTableDriver
   {
     const auto entry = machine.get_entry (StateTableT::STATE_START_OF_TEXT, CLASS_OUT_OF_BOUNDS);
     return !c->is_actionable (ac->buffer, this, entry) &&
-	    machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
+           machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
   }
 
   template <typename context_t>
@@ -977,7 +984,7 @@ struct StateTableDriver
       }
 
       unsigned int klass = likely (buffer->idx < buffer->len) ?
-			   machine.get_class (buffer->cur().codepoint, num_glyphs, ac->machine_glyph_set) :
+			   machine.get_class (buffer->cur().codepoint, num_glyphs, ac->machine_class_cache) :
 			   (unsigned) CLASS_END_OF_TEXT;
       DEBUG_MSG (APPLY, nullptr, "c%u at %u", klass, buffer->idx);
       const EntryT &entry = machine.get_entry (state, klass);
@@ -1011,41 +1018,36 @@ struct StateTableDriver
        *
        *   https://github.com/harfbuzz/harfbuzz/issues/2860
        */
-
-      const auto is_safe_to_break_extra = [&]()
-      {
-          /* 2c. */
-          const auto &wouldbe_entry = machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass);
-
-          /* 2c'. */
-          if (c->is_actionable (buffer, this, wouldbe_entry))
-	    return false;
-
-          /* 2c". */
-          return next_state == machine.new_state(wouldbe_entry.newState)
-              && (entry.flags & context_t::DontAdvance) == (wouldbe_entry.flags & context_t::DontAdvance);
-      };
-
-      const auto is_safe_to_break = [&]()
-      {
+      const EntryT *wouldbe_entry;
+      bool is_safe_to_break =
+      (
           /* 1. */
-          if (c->is_actionable (buffer, this, entry))
-              return false;
+          !c->is_actionable (buffer, this, entry) &&
 
           /* 2. */
           // This one is meh, I know...
-          const auto ok =
+	  (
                  state == StateTableT::STATE_START_OF_TEXT
               || ((entry.flags & context_t::DontAdvance) && next_state == StateTableT::STATE_START_OF_TEXT)
-              || is_safe_to_break_extra();
-          if (!ok)
-              return false;
+              || (
+		    /* 2c. */
+		    wouldbe_entry = &machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass)
+		    ,
+		    /* 2c'. */
+		    !c->is_actionable (buffer, this, *wouldbe_entry) &&
+		    /* 2c". */
+		    (
+		      next_state == machine.new_state(wouldbe_entry->newState) &&
+		      (entry.flags & context_t::DontAdvance) == (wouldbe_entry->flags & context_t::DontAdvance)
+		    )
+		 )
+	  ) &&
 
           /* 3. */
-          return !c->is_actionable (buffer, this, machine.get_entry (state, CLASS_END_OF_TEXT));
-      };
+          !c->is_actionable (buffer, this, machine.get_entry (state, CLASS_END_OF_TEXT))
+      );
 
-      if (!is_safe_to_break () && buffer->backtrack_len () && buffer->idx < buffer->len)
+      if (!is_safe_to_break && buffer->backtrack_len () && buffer->idx < buffer->len)
 	buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
 
       c->transition (buffer, this, entry);
