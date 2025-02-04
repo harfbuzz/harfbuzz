@@ -32,6 +32,7 @@
 
 #include "hb.hh"
 #include "hb-unicode.hh"
+#include "hb-set.hh"
 #include "hb-set-digest.hh"
 
 
@@ -194,7 +195,12 @@ struct hb_buffer_t
   hb_set_digest_t digest () const
   {
     hb_set_digest_t d;
-    d.init ();
+    d.add_array (&info[0].codepoint, len, sizeof (info[0]));
+    return d;
+  }
+  hb_set_t set () const
+  {
+    hb_set_t d;
     d.add_array (&info[0].codepoint, len, sizeof (info[0]));
     return d;
   }

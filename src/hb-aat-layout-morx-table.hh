@@ -172,7 +172,7 @@ struct RearrangementSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.intersects (c->machine_glyph_set))
+	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -340,7 +340,7 @@ struct ContextualSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.intersects (c->machine_glyph_set))
+	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -606,7 +606,7 @@ struct LigatureSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.intersects (c->machine_glyph_set))
+	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -885,7 +885,7 @@ struct InsertionSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.intersects (c->machine_glyph_set))
+	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -947,19 +947,21 @@ struct hb_accelerate_subtables_context_t :
     friend struct hb_aat_layout_lookup_accelerator_t;
 
     public:
-    hb_set_digest_t digest;
+    hb_set_t glyph_set;
     mutable hb_aat_class_cache_t class_cache;
 
     template <typename T>
     auto init_ (const T &obj_, unsigned num_glyphs, hb_priority<1>) HB_AUTO_RETURN
-    (
-      obj_.machine.collect_glyphs (this->digest, num_glyphs)
-    )
+    ((
+      glyph_set.init (),
+      obj_.machine.collect_glyphs (glyph_set, num_glyphs)
+    ))
 
     template <typename T>
     void init_ (const T &obj_, unsigned num_glyphs, hb_priority<0>)
     {
-      digest = digest.full ();
+      glyph_set.init ();
+      glyph_set.invert ();
     }
 
     template <typename T>
@@ -972,6 +974,7 @@ struct hb_accelerate_subtables_context_t :
     void
     fini ()
     {
+      glyph_set.fini ();
     }
   };
 
@@ -1185,7 +1188,7 @@ struct Chain
 		   hb_map ([subtable_flags] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable_flags & (_.flags); })))
 	goto skip;
       c->subtable_flags = subtable_flags;
-      c->machine_glyph_set = accel ? accel->subtables[i].digest : hb_set_digest_t::full ();
+      c->machine_glyph_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_set_t);
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
@@ -1416,7 +1419,7 @@ struct mortmorx
 
     c->buffer->unsafe_to_concat ();
 
-    c->buffer_digest = c->buffer->digest ();
+    c->buffer_digest = c->buffer->set ();
 
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;

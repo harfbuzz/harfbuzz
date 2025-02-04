@@ -63,10 +63,10 @@ struct hb_aat_apply_context_t :
   const ankr *ankr_table;
   const OT::GDEF *gdef_table;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
-  hb_set_digest_t buffer_digest = hb_set_digest_t::full ();
+  hb_set_t buffer_digest;
   const hb_set_t *left_set = nullptr;
   const hb_set_t *right_set = nullptr;
-  hb_set_digest_t machine_glyph_set = hb_set_digest_t::full ();
+  const hb_set_t *machine_glyph_set = nullptr;
   hb_aat_class_cache_t *machine_class_cache = nullptr;
   hb_mask_t subtable_flags = 0;
 
