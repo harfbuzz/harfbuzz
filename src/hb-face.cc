@@ -493,9 +493,10 @@ hb_face_reference_table (const hb_face_t *face,
  * hb_face_reference_blob:
  * @face: A face object
  *
- * Fetches a pointer to the binary blob that contains the
- * specified face. Returns an empty blob if referencing face data is not
- * possible.
+ * Fetches a pointer to the binary blob that contains the specified face.
+ * If referencing the face data is not possible, this function creates a blob
+ * out of individual table blobs if hb_face_get_table_tags() works with this
+ * face, otherwise it returns an empty blob.
  *
  * Return value: (transfer full): A pointer to the blob for @face
  *
