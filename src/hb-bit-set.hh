@@ -368,7 +368,7 @@ struct hb_bit_set_t
     {
       if (page_map.arrayZ[a].major == other.page_map.arrayZ[b].major)
       {
-	if (likely (page_at (a).may_intersect (other.page_at (b))))
+	if (page_at (a).may_intersect (other.page_at (b)))
 	  return true;
 	a++;
 	b++;
