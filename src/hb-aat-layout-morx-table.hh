@@ -1133,10 +1133,11 @@ struct Chain
     {
       bool reverse;
 
+      hb_mask_t subtable_flags = subtable->subFeatureFlags;
       if (hb_none (hb_iter (c->range_flags) |
-		   hb_map ([&subtable] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable->subFeatureFlags & (_.flags); })))
+		   hb_map ([subtable_flags] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable_flags & (_.flags); })))
 	goto skip;
-      c->subtable_flags = subtable->subFeatureFlags;
+      c->subtable_flags = subtable_flags;
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
