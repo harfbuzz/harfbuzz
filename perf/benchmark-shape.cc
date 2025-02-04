@@ -28,7 +28,7 @@ struct test_input_t
    "perf/texts/en-words.txt"},
 
   {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
-   "perf/texts/en-thelittleprince.txt"},
+   "perf/texts/react-dom.txt"},
 };
 
 static test_input_t *tests = default_tests;
