@@ -936,6 +936,14 @@ struct StateTableDriver
 	      num_glyphs (face_->get_num_glyphs ()) {}
 
   template <typename context_t>
+  bool is_idempotent_on_all_out_of_bounds (context_t *c, hb_aat_apply_context_t *ac)
+  {
+    const auto entry = machine.get_entry (StateTableT::STATE_START_OF_TEXT, CLASS_OUT_OF_BOUNDS);
+    return !c->is_actionable (ac->buffer, this, entry) &&
+           machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
+  }
+
+  template <typename context_t>
   void drive (context_t *c, hb_aat_apply_context_t *ac)
   {
     hb_buffer_t *buffer = ac->buffer;
