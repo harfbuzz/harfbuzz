@@ -171,6 +171,13 @@ struct RearrangementSubtable
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
+      return_trace (false);
+    }
+
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -268,6 +275,7 @@ struct ContextualSubtable
       {
 	buffer->unsafe_to_break (mark, hb_min (buffer->idx + 1, buffer->len));
 	buffer->info[mark].codepoint = *replacement;
+	c->buffer_digest.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[mark],
 					  gdef.get_glyph_props (*replacement));
@@ -297,6 +305,7 @@ struct ContextualSubtable
       if (replacement)
       {
 	buffer->info[idx].codepoint = *replacement;
+	c->buffer_digest.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[idx],
 					  gdef.get_glyph_props (*replacement));
@@ -329,6 +338,13 @@ struct ContextualSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
+      return_trace (false);
+    }
 
     driver.drive (&dc, c);
 
@@ -589,6 +605,13 @@ struct LigatureSubtable
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
+      return_trace (false);
+    }
+
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -657,6 +680,7 @@ struct NoncontextualSubtable
       if (replacement)
       {
 	info[i].codepoint = *replacement;
+	c->buffer_digest.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&info[i],
 					  gdef.get_glyph_props (*replacement));
@@ -791,6 +815,8 @@ struct InsertionSubtable
 	  if (unlikely (!buffer->copy_glyph ())) return;
 	/* TODO We ignore KashidaLike setting. */
 	if (unlikely (!buffer->replace_glyphs (0, count, glyphs))) return;
+	for (unsigned int i = 0; i < count; i++)
+	  c->buffer_digest.add (glyphs[i]);
 	ret = true;
 	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
@@ -858,6 +884,13 @@ struct InsertionSubtable
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
+      return_trace (false);
+    }
+
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -914,11 +947,25 @@ struct hb_accelerate_subtables_context_t :
     friend struct hb_aat_layout_lookup_accelerator_t;
 
     public:
+    hb_set_digest_t digest;
     mutable hb_aat_class_cache_t class_cache;
+
+    template <typename T>
+    auto init_ (const T &obj_, unsigned num_glyphs, hb_priority<1>) HB_AUTO_RETURN
+    (
+      obj_.machine.collect_glyphs (this->digest, num_glyphs)
+    )
+
+    template <typename T>
+    void init_ (const T &obj_, unsigned num_glyphs, hb_priority<0>)
+    {
+      digest = digest.full ();
+    }
 
     template <typename T>
     void init (const T &obj_, unsigned num_glyphs)
     {
+      init_ (obj_, num_glyphs, hb_prioritize);
       class_cache.clear ();
     }
 
@@ -1138,6 +1185,7 @@ struct Chain
 		   hb_map ([subtable_flags] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable_flags & (_.flags); })))
 	goto skip;
       c->subtable_flags = subtable_flags;
+      c->machine_glyph_set = accel ? accel->subtables[i].digest : hb_set_digest_t::full ();
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
@@ -1367,6 +1415,8 @@ struct mortmorx
     if (unlikely (!c->buffer->successful)) return;
 
     c->buffer->unsafe_to_concat ();
+
+    c->buffer_digest = c->buffer->digest ();
 
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;
