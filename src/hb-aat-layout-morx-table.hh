@@ -173,7 +173,10 @@ struct RearrangementSubtable
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
 	!c->buffer_digest.may_have (c->machine_glyph_set))
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
+    }
 
     driver.drive (&dc, c);
 
@@ -338,7 +341,10 @@ struct ContextualSubtable
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
 	!c->buffer_digest.may_have (c->machine_glyph_set))
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
+    }
 
     driver.drive (&dc, c);
 
@@ -601,7 +607,10 @@ struct LigatureSubtable
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
 	!c->buffer_digest.may_have (c->machine_glyph_set))
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
+    }
 
     driver.drive (&dc, c);
 
@@ -877,7 +886,10 @@ struct InsertionSubtable
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
 	!c->buffer_digest.may_have (c->machine_glyph_set))
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
+    }
 
     driver.drive (&dc, c);
 
