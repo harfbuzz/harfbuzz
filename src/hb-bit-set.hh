@@ -366,11 +366,14 @@ struct hb_bit_set_t
     unsigned int a = 0, b = 0;
     for (; a < na && b < nb; )
     {
-      if (page_map.arrayZ[a].major == other.page_map.arrayZ[b].major &&
-	  page_at (a).may_intersect (other.page_at (b)))
-	return true;
-
-      if (page_map.arrayZ[a].major < other.page_map.arrayZ[b].major)
+      if (page_map.arrayZ[a].major == other.page_map.arrayZ[b].major)
+      {
+	if (likely (page_at (a).may_intersect (other.page_at (b))))
+	  return true;
+	a++;
+	b++;
+      }
+      else if (page_map.arrayZ[a].major < other.page_map.arrayZ[b].major)
 	a++;
       else
 	b++;
