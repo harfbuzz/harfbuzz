@@ -63,7 +63,7 @@ struct hb_aat_apply_context_t :
   const ankr *ankr_table;
   const OT::GDEF *gdef_table;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
-  hb_set_t buffer_digest;
+  hb_set_t buffer_glyph_set;
   const hb_set_t *left_set = nullptr;
   const hb_set_t *right_set = nullptr;
   const hb_set_t *machine_glyph_set = nullptr;

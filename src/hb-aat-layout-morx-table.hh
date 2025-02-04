@@ -172,7 +172,7 @@ struct RearrangementSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
+	!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -275,7 +275,7 @@ struct ContextualSubtable
       {
 	buffer->unsafe_to_break (mark, hb_min (buffer->idx + 1, buffer->len));
 	buffer->info[mark].codepoint = *replacement;
-	c->buffer_digest.add (*replacement);
+	c->buffer_glyph_set.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[mark],
 					  gdef.get_glyph_props (*replacement));
@@ -305,7 +305,7 @@ struct ContextualSubtable
       if (replacement)
       {
 	buffer->info[idx].codepoint = *replacement;
-	c->buffer_digest.add (*replacement);
+	c->buffer_glyph_set.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[idx],
 					  gdef.get_glyph_props (*replacement));
@@ -340,7 +340,7 @@ struct ContextualSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
+	!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -606,7 +606,7 @@ struct LigatureSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
+	!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -680,7 +680,7 @@ struct NoncontextualSubtable
       if (replacement)
       {
 	info[i].codepoint = *replacement;
-	c->buffer_digest.add (*replacement);
+	c->buffer_glyph_set.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&info[i],
 					  gdef.get_glyph_props (*replacement));
@@ -816,7 +816,7 @@ struct InsertionSubtable
 	/* TODO We ignore KashidaLike setting. */
 	if (unlikely (!buffer->replace_glyphs (0, count, glyphs))) return;
 	for (unsigned int i = 0; i < count; i++)
-	  c->buffer_digest.add (glyphs[i]);
+	  c->buffer_glyph_set.add (glyphs[i]);
 	ret = true;
 	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
@@ -885,7 +885,7 @@ struct InsertionSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
+	!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -1419,7 +1419,7 @@ struct mortmorx
 
     c->buffer->unsafe_to_concat ();
 
-    c->buffer_digest = c->buffer->set ();
+    c->buffer_glyph_set = c->buffer->set ();
 
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;
