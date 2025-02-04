@@ -172,7 +172,7 @@ struct RearrangementSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.intersects (*c->machine_glyph_set))
+	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -340,7 +340,7 @@ struct ContextualSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.intersects (*c->machine_glyph_set))
+	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -606,7 +606,7 @@ struct LigatureSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.intersects (*c->machine_glyph_set))
+	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -885,7 +885,7 @@ struct InsertionSubtable
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!c->buffer_digest.intersects (*c->machine_glyph_set))
+	!c->buffer_digest.may_intersect (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);

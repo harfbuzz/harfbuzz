@@ -120,7 +120,7 @@ struct hb_sparseset_t
   hb_sparseset_t& operator << (const hb_codepoint_pair_t& range)
   { add_range (range.first, range.second); return *this; }
 
-  bool intersects (const hb_set_t &other) const
+  bool may_intersect (const hb_set_t &other) const
   {
     hb_sparseset_t tmp = *this;
     tmp.intersect (other);
