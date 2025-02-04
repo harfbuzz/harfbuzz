@@ -171,6 +171,10 @@ struct RearrangementSubtable
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -331,6 +335,10 @@ struct ContextualSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+      return_trace (false);
 
     driver.drive (&dc, c);
 
@@ -590,6 +598,10 @@ struct LigatureSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+      return_trace (false);
 
     driver.drive (&dc, c);
 
@@ -863,6 +875,10 @@ struct InsertionSubtable
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
 
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -919,11 +935,25 @@ struct hb_accelerate_subtables_context_t :
     friend struct hb_aat_layout_lookup_accelerator_t;
 
     public:
+    hb_set_digest_t digest;
     mutable hb_aat_class_cache_t class_cache;
+
+    template <typename T>
+    auto init_ (const T &obj_, unsigned num_glyphs, hb_priority<1>) HB_AUTO_RETURN
+    (
+      obj_.machine.collect_glyphs (this->digest, num_glyphs)
+    )
+
+    template <typename T>
+    void init_ (const T &obj_, unsigned num_glyphs, hb_priority<0>)
+    {
+      digest = digest.full ();
+    }
 
     template <typename T>
     void init (const T &obj_, unsigned num_glyphs)
     {
+      init_ (obj_, num_glyphs, hb_prioritize);
       class_cache.clear ();
     }
 
@@ -1143,6 +1173,7 @@ struct Chain
 		   hb_map ([subtable_flags] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable_flags & (_.flags); })))
 	goto skip;
       c->subtable_flags = subtable_flags;
+      c->machine_glyph_set = accel ? accel->subtables[i].digest : hb_set_digest_t::full ();
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&

@@ -68,6 +68,7 @@ struct hb_aat_apply_context_t :
   hb_set_digest_t buffer_digest = hb_set_digest_t::full ();
   const hb_set_t *left_set = nullptr;
   const hb_set_t *right_set = nullptr;
+  hb_set_digest_t machine_glyph_set = hb_set_digest_t::full ();
   hb_aat_class_cache_t *machine_class_cache = nullptr;
   hb_mask_t subtable_flags = 0;
 
@@ -941,7 +942,7 @@ struct StateTableDriver
   {
     const auto entry = machine.get_entry (StateTableT::STATE_START_OF_TEXT, CLASS_OUT_OF_BOUNDS);
     return !c->is_actionable (ac->buffer, this, entry) &&
-           machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
+	    machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
   }
 
   template <typename context_t>
