@@ -158,7 +158,7 @@ struct hb_set_digest_t
     return true;
   }
 
-  bool may_have (const hb_set_digest_t &o) const
+  bool intersects (const hb_set_digest_t &o) const
   {
     for (unsigned i = 0; i < n; i++)
       if (!(masks[i] & o.masks[i]))

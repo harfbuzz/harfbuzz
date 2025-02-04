@@ -2033,7 +2033,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
        * (plus some past glyphs).
        *
        * Only try applying the lookup if there is any overlap. */
-      if (accel->digest.may_have (c.digest))
+      if (accel->digest.intersects (c.digest))
       {
 	c.set_lookup_index (lookup_index);
 	c.set_lookup_mask (lookup.mask, false);
