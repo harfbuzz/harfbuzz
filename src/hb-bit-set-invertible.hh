@@ -139,6 +139,9 @@ struct hb_bit_set_invertible_t
   hb_bit_set_invertible_t& operator << (const hb_codepoint_pair_t& range)
   { add_range (range.first, range.second); return *this; }
 
+  bool may_intersect (const hb_bit_set_invertible_t &other) const
+  { return inverted || other.inverted || s.may_intersect (other.s); }
+
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
   {
     hb_codepoint_t c = first - 1;

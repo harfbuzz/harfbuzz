@@ -227,6 +227,13 @@ struct hb_bit_page_t
 	return false;
     return true;
   }
+  bool may_intersect (const hb_bit_page_t &other) const
+  {
+    for (unsigned i = 0; i < len (); i++)
+      if (v[i] & other.v[i])
+	return true;
+    return false;
+  }
   bool operator <= (const hb_bit_page_t &larger_page) const { return is_subset (larger_page); }
   bool is_subset (const hb_bit_page_t &larger_page) const
   {
