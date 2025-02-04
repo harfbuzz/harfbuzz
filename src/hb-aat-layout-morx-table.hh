@@ -1188,7 +1188,7 @@ struct Chain
 		   hb_map ([subtable_flags] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable_flags & (_.flags); })))
 	goto skip;
       c->subtable_flags = subtable_flags;
-      c->machine_glyph_set = accel ? &accel->subtables[i].glyph_set : nullptr;
+      c->machine_glyph_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_set_t);
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
