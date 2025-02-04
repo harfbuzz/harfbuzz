@@ -974,6 +974,7 @@ struct hb_accelerate_subtables_context_t :
     void
     fini ()
     {
+      glyph_set.fini ();
     }
   };
 
