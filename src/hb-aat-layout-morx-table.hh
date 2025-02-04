@@ -268,6 +268,7 @@ struct ContextualSubtable
       {
 	buffer->unsafe_to_break (mark, hb_min (buffer->idx + 1, buffer->len));
 	buffer->info[mark].codepoint = *replacement;
+	c->buffer_digest.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[mark],
 					  gdef.get_glyph_props (*replacement));
@@ -297,6 +298,7 @@ struct ContextualSubtable
       if (replacement)
       {
 	buffer->info[idx].codepoint = *replacement;
+	c->buffer_digest.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[idx],
 					  gdef.get_glyph_props (*replacement));
@@ -657,6 +659,7 @@ struct NoncontextualSubtable
       if (replacement)
       {
 	info[i].codepoint = *replacement;
+	c->buffer_digest.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&info[i],
 					  gdef.get_glyph_props (*replacement));
@@ -791,6 +794,8 @@ struct InsertionSubtable
 	  if (unlikely (!buffer->copy_glyph ())) return;
 	/* TODO We ignore KashidaLike setting. */
 	if (unlikely (!buffer->replace_glyphs (0, count, glyphs))) return;
+	for (unsigned int i = 0; i < count; i++)
+	  c->buffer_digest.add (glyphs[i]);
 	ret = true;
 	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
@@ -1367,6 +1372,11 @@ struct mortmorx
     if (unlikely (!c->buffer->successful)) return;
 
     c->buffer->unsafe_to_concat ();
+
+    if (c->buffer->len < HB_AAT_BUFFER_DIGEST_THRESHOLD)
+      c->buffer_digest = c->buffer->digest ();
+    else
+      c->buffer_digest = hb_set_digest_t::full ();
 
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;
