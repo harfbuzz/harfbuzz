@@ -43,6 +43,7 @@
 #include <vector>
 
 using FaceMap =  std::unordered_map<std::string, hb_face_t*>;
+const size_t EXTRA_REPEATS = 9;
 
 
 
@@ -174,12 +175,26 @@ std::vector<BenchData> read_bench_data(std::string filename, const FaceMap& face
         json_object* lang_o = json_object_object_get(item, "language");
         json_object* direction_o = json_object_object_get(item, "direction");
 
+        hb_buffer_t* buffers[EXTRA_REPEATS];
+        for (int i = 0; i < EXTRA_REPEATS; i++) {
+            buffers[i] = hb_buffer_create();
+            hb_buffer_append(buffers[i], buffer, 0, hb_buffer_get_length(buffer));
+            hb_buffer_set_script(buffers[i], hb_script_from_string(json_object_get_string(script_o), json_object_get_string_len(script_o)));
+            hb_buffer_set_language(buffers[i], hb_language_from_string(json_object_get_string(lang_o), json_object_get_string_len(lang_o)));
+            hb_buffer_set_direction(buffers[i], hb_direction_from_string(json_object_get_string(direction_o), json_object_get_string_len(direction_o)));
+        }
+
         hb_buffer_set_script(buffer, hb_script_from_string(json_object_get_string(script_o), json_object_get_string_len(script_o)));
         hb_buffer_set_language(buffer, hb_language_from_string(json_object_get_string(lang_o), json_object_get_string_len(lang_o)));
         hb_buffer_set_direction(buffer, hb_direction_from_string(json_object_get_string(direction_o), json_object_get_string_len(direction_o)));
 
 
         assert(hb_buffer_get_length(buffer) > 0);
+
+        for (size_t i = 0; i < EXTRA_REPEATS; i++) {
+          std::vector<hb_feature_t> copy_features = features;
+          font_data_list.push_back({font, buffers[i], std::move(copy_features)});
+        }
 
         hb_buffer_set_direction(buffer, HB_DIRECTION_LTR);
 
@@ -195,7 +210,7 @@ std::vector<BenchData> read_bench_data(std::string filename, const FaceMap& face
 }
 
 void bench_shape(const std::vector<BenchData>& bench_data) {
-  g_print("Starting shape bench for %lu shape tasks.", bench_data.size());
+  g_print("Starting shape bench for %lu shape tasks, repeated %zu times.\n", bench_data.size(), EXTRA_REPEATS + 1);
 
   for (auto shape_task : bench_data) {
     hb_shape(shape_task.font, shape_task.buffer, shape_task.features.data(), shape_task.features.size());
@@ -235,8 +250,13 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  auto start = std::chrono::high_resolution_clock::now();
+
+
   bench_shape(bench_data);
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+  std::cout << "bench_shape function took " << duration.count() << " milliseconds" << std::endl;
 
   return 0;
-
 }
