@@ -967,8 +967,6 @@ struct KerxTable
   {
     c->buffer->unsafe_to_concat ();
 
-    c->buffer_digest = c->buffer->digest ();
-
     typedef typename T::SubTable SubTable;
 
     bool ret = false;
