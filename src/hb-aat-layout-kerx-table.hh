@@ -112,10 +112,6 @@ struct KerxSubTableFormat0
     if (header.coverage & header.Backwards)
       return_trace (false);
 
-    if (!(c->buffer_digest.may_have (c->left_set) &&
-	  c->buffer_digest.may_have (c->right_set)))
-      return_trace (false);
-
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
@@ -144,7 +140,7 @@ struct KerxSubTableFormat0
 
     int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     {
-      if (!c->left_set[left] || !c->right_set[right]) return 0;
+      if (!(*c->left_set)[left] || !(*c->right_set)[right]) return 0;
       return table.get_kerning (left, right, c);
     }
   };
@@ -372,11 +368,6 @@ struct KerxSubTableFormat1
 
     StateTableDriver<Types, EntryData> driver (machine, c->font->face);
 
-    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!(c->buffer_digest.may_have (c->left_set) &&
-	  c->buffer_digest.may_have (c->right_set)))
-      return_trace (false);
-
     driver.drive (&dc, c);
 
     return_trace (true);
@@ -440,10 +431,6 @@ struct KerxSubTableFormat2
     if (header.coverage & header.Backwards)
       return_trace (false);
 
-    if (!(c->buffer_digest.may_have (c->left_set) &&
-	  c->buffer_digest.may_have (c->right_set)))
-      return_trace (false);
-
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
@@ -469,7 +456,7 @@ struct KerxSubTableFormat2
 
     int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     {
-      if (!c->left_set[left] || !c->right_set[right]) return 0;
+      if (!(*c->left_set)[left] || !(*c->right_set)[right]) return 0;
       return table.get_kerning (left, right, c);
     }
   };
@@ -650,11 +637,6 @@ struct KerxSubTableFormat4
 
     StateTableDriver<Types, EntryData> driver (machine, c->font->face);
 
-    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
-	!(c->buffer_digest.may_have (c->left_set) &&
-	  c->buffer_digest.may_have (c->right_set)))
-      return_trace (false);
-
     driver.drive (&dc, c);
 
     return_trace (true);
@@ -735,10 +717,6 @@ struct KerxSubTableFormat6
     if (header.coverage & header.Backwards)
       return_trace (false);
 
-    if (!(c->buffer_digest.may_have (c->left_set) &&
-	  c->buffer_digest.may_have (c->right_set)))
-      return_trace (false);
-
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
@@ -793,7 +771,7 @@ struct KerxSubTableFormat6
 
     int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     {
-      if (!c->left_set[left] || !c->right_set[right]) return 0;
+      if (!(*c->left_set)[left] || !(*c->right_set)[right]) return 0;
       return table.get_kerning (left, right, c);
     }
   };
@@ -925,7 +903,7 @@ struct KerxSubTable
  * The 'kerx' Table
  */
 
-using kern_accelerator_data_t = hb_vector_t<hb_pair_t<hb_set_digest_t, hb_set_digest_t>>;
+using kern_accelerator_data_t = hb_vector_t<hb_pair_t<hb_set_t, hb_set_t>>;
 
 template <typename T>
 struct KerxTable
@@ -985,14 +963,9 @@ struct KerxTable
   }
 
   bool apply (AAT::hb_aat_apply_context_t *c,
-	      const kern_accelerator_data_t *accel_data = nullptr) const
+	      const kern_accelerator_data_t &accel_data) const
   {
     c->buffer->unsafe_to_concat ();
-
-    if (c->buffer->len < HB_AAT_BUFFER_DIGEST_THRESHOLD)
-      c->buffer_digest = c->buffer->digest ();
-    else
-      c->buffer_digest = hb_set_digest_t::full ();
 
     typedef typename T::SubTable SubTable;
 
@@ -1037,15 +1010,8 @@ struct KerxTable
       if (reverse)
 	c->buffer->reverse ();
 
-      if (accel_data)
-      {
-	c->left_set = (*accel_data)[i].first;
-	c->right_set = (*accel_data)[i].second;
-      }
-      else
-      {
-        c->left_set = c->right_set = hb_set_digest_t::full ();
-      }
+      c->left_set = &accel_data[i].first;
+      c->right_set = &accel_data[i].second;
 
       {
 	/* See comment in sanitize() for conditional here. */
@@ -1122,7 +1088,7 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      hb_set_digest_t left_set, right_set;
+      hb_set_t left_set, right_set;
       st->collect_glyphs (left_set, right_set, num_glyphs);
       accel_data.push (hb_pair (left_set, right_set));
       st = &StructAfter<SubTable> (*st);
@@ -1148,7 +1114,7 @@ struct KerxTable
 
     bool apply (AAT::hb_aat_apply_context_t *c) const
     {
-      return table->apply (c, &accel_data);
+      return table->apply (c, accel_data);
     }
 
     hb_blob_ptr_t<T> table;
