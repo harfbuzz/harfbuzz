@@ -40,6 +40,8 @@ namespace AAT {
 
 using namespace OT;
 
+#define HB_AAT_BUFFER_DIGEST_THRESHOLD 32
+
 struct ankr;
 
 using hb_aat_class_cache_t = hb_cache_t<15, 8, 7>;
