@@ -31,7 +31,6 @@
 #include "hb-aat-map.hh"
 #include "hb-open-type.hh"
 #include "hb-cache.hh"
-#include "hb-bit-page.hh"
 
 namespace OT {
 struct GDEF;
@@ -157,7 +156,6 @@ struct LookupSegmentSingle
   template <typename set_t, typename filter_t>
   void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
   {
-    if (first == DELETED_GLYPH) return;
     if (!filter (value)) return;
     glyphs.add_range (first, last);
   }
@@ -247,7 +245,6 @@ struct LookupSegmentArray
   template <typename set_t, typename filter_t>
   void collect_glyphs_filtered (set_t &glyphs, const void *base, const filter_t &filter) const
   {
-    if (first == DELETED_GLYPH) return;
     const auto &values = base+valuesZ;
     for (hb_codepoint_t i = first; i <= last; i++)
       if (filter (values[i - first]))
@@ -348,7 +345,6 @@ struct LookupSingle
   template <typename set_t, typename filter_t>
   void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
   {
-    if (glyph == DELETED_GLYPH) return;
     if (!filter (value)) return;
     glyphs.add (glyph);
   }
@@ -708,6 +704,7 @@ struct StateTable
     // Collect all classes going out from the start state.
     unsigned num_classes = nClasses;
     hb_set_t filter;
+
     for (unsigned i = 0; i < num_classes; i++)
     {
       const auto &entry = get_entry (STATE_START_OF_TEXT, i);
