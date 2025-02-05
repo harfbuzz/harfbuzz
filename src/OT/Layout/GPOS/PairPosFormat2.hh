@@ -168,12 +168,10 @@ struct PairPosFormat2_4 : ValueBase
   {
     TRACE_APPLY (this);
 
+    hb_buffer_t *buffer = c->buffer;
+
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     pair_pos_cache_t *cache = cached ? (pair_pos_cache_t *) c->lookup_accel->cache : nullptr;
-#endif
-
-    hb_buffer_t *buffer = c->buffer;
-#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
 #else
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
