@@ -4437,7 +4437,7 @@ struct hb_ot_layout_lookup_accelerator_t
       thiz->digest.union_ (subtable.digest);
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    if (c_accelerate_subtables.cache_user_cost <= 1)
+    if (c_accelerate_subtables.cache_user_cost < 4)
       c_accelerate_subtables.cache_user_idx = (unsigned) -1;
 
     thiz->cache_user_idx = c_accelerate_subtables.cache_user_idx;
