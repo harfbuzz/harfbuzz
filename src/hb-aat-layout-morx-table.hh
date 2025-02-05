@@ -177,7 +177,7 @@ struct RearrangementSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -347,7 +347,7 @@ struct ContextualSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -623,7 +623,7 @@ struct LigatureSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -664,8 +664,11 @@ struct NoncontextualSubtable
   {
     TRACE_APPLY (this);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
+    }
 
     const OT::GDEF &gdef (*c->gdef_table);
     bool has_glyph_classes = gdef.has_glyph_classes ();
@@ -917,7 +920,7 @@ struct InsertionSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -1371,11 +1374,13 @@ struct mortmorx
       }
 
       this->chain_count = table->get_chain_count ();
+      this->subchain_count = table->get_subchain_count ();
 
       this->accels = (hb_atomic_ptr_t<hb_aat_layout_chain_accelerator_t> *) hb_calloc (this->chain_count, sizeof (*accels));
       if (unlikely (!this->accels))
       {
 	this->chain_count = 0;
+	this->subchain_count = 0;
 	this->table.destroy ();
 	this->table = hb_blob_get_empty ();
       }
@@ -1419,6 +1424,7 @@ struct mortmorx
 
     hb_blob_ptr_t<T> table;
     unsigned int chain_count;
+    unsigned int subchain_count;
     hb_atomic_ptr_t<hb_aat_layout_chain_accelerator_t> *accels;
   };
 
@@ -1441,7 +1447,19 @@ struct mortmorx
 
   unsigned get_chain_count () const
   {
-	  return chainCount;
+    return chainCount;
+  }
+  unsigned get_subchain_count () const
+  {
+    const Chain<Types> *chain = &firstChain;
+    unsigned int count = chainCount;
+    unsigned int subchain_count = 0;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      subchain_count += chain->get_subtable_count ();
+      chain = &StructAfter<Chain<Types>> (*chain);
+    }
+    return subchain_count;
   }
 
   void apply (hb_aat_apply_context_t *c,
@@ -1452,7 +1470,7 @@ struct mortmorx
 
     c->buffer->unsafe_to_concat ();
 
-    c->buffer_glyph_set = c->buffer->bit_set ();
+    c->setup_buffer_glyph_set (accel.subchain_count);
 
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;

@@ -66,6 +66,7 @@ struct hb_aat_apply_context_t :
   const ankr *ankr_table;
   const OT::GDEF *gdef_table;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
+  bool using_buffer_glyph_set = false;
   hb_bit_set_t buffer_glyph_set;
   const hb_bit_set_t *left_set = nullptr;
   const hb_bit_set_t *right_set = nullptr;
@@ -86,6 +87,30 @@ struct hb_aat_apply_context_t :
   HB_INTERNAL void set_ankr_table (const AAT::ankr *ankr_table_);
 
   void set_lookup_index (unsigned int i) { lookup_index = i; }
+
+#define HB_MALLOC_COST 48
+#define HB_BIT_SET_HAS_COST 8
+  void setup_buffer_glyph_set (unsigned subchain_count)
+  {
+    // Using buffer_glyph_set has at least two mallocs. Avoid it for small workloads.
+    unsigned malloced_cost = HB_MALLOC_COST * 2 + subchain_count * HB_BIT_SET_HAS_COST;
+    unsigned unmalloced_cost = subchain_count * buffer->len;
+    using_buffer_glyph_set = malloced_cost < unmalloced_cost;
+
+    if (using_buffer_glyph_set)
+      buffer_glyph_set = buffer->bit_set ();
+  }
+  bool buffer_intersects_machine () const
+  {
+    if (using_buffer_glyph_set)
+      return buffer_glyph_set.intersects (*machine_glyph_set);
+
+    // Faster for shorter buffers.
+    for (unsigned i = 0; i < buffer->len; i++)
+      if (machine_glyph_set->has (buffer->info[i].codepoint))
+	return true;
+    return false;
+  }
 };
 
 
