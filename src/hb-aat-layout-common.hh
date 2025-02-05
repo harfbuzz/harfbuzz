@@ -87,7 +87,7 @@ struct hb_aat_apply_context_t :
 
   void set_lookup_index (unsigned int i) { lookup_index = i; }
 
-#define BUFFER_GLYPH_SET_THRESHOLD 4
+#define BUFFER_GLYPH_SET_THRESHOLD 16
   void setup_buffer_glyph_set ()
   {
     if (buffer->len < BUFFER_GLYPH_SET_THRESHOLD) return;
