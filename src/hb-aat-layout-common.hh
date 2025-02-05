@@ -939,7 +939,7 @@ struct StateTableDriver
   bool is_idempotent_on_all_out_of_bounds (context_t *c, hb_aat_apply_context_t *ac)
   {
     const auto entry = machine.get_entry (StateTableT::STATE_START_OF_TEXT, CLASS_OUT_OF_BOUNDS);
-    return !c->is_actionable (ac->buffer, this, entry) &&
+    return !c->is_actionable (ac->buffer, entry) &&
 	    machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
   }
 
@@ -1021,7 +1021,7 @@ struct StateTableDriver
       bool is_safe_to_break =
       (
           /* 1. */
-          !c->is_actionable (buffer, this, entry) &&
+          !c->is_actionable (buffer, entry) &&
 
           /* 2. */
           // This one is meh, I know...
@@ -1033,7 +1033,7 @@ struct StateTableDriver
 		    wouldbe_entry = &machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass)
 		    ,
 		    /* 2c'. */
-		    !c->is_actionable (buffer, this, *wouldbe_entry) &&
+		    !c->is_actionable (buffer, *wouldbe_entry) &&
 		    /* 2c". */
 		    (
 		      next_state == machine.new_state(wouldbe_entry->newState) &&
@@ -1043,7 +1043,7 @@ struct StateTableDriver
 	  ) &&
 
           /* 3. */
-          !c->is_actionable (buffer, this, machine.get_entry (state, CLASS_END_OF_TEXT))
+          !c->is_actionable (buffer, machine.get_entry (state, CLASS_END_OF_TEXT))
       );
 
       if (!is_safe_to_break && buffer->backtrack_len () && buffer->idx < buffer->len)

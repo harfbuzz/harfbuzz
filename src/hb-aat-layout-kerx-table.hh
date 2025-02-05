@@ -243,7 +243,6 @@ struct KerxSubTableFormat1
 	crossStream (table->header.coverage & table->header.CrossStream) {}
 
     bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
-			StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			const Entry<EntryData> &entry)
     { return Format1EntryT::performAction (entry); }
     void transition (hb_buffer_t *buffer,
@@ -529,7 +528,6 @@ struct KerxSubTableFormat4
 	mark (0) {}
 
     bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
-			StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			const Entry<EntryData> &entry)
     { return entry.data.ankrActionIndex != 0xFFFF; }
     void transition (hb_buffer_t *buffer,
