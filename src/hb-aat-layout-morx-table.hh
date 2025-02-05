@@ -177,7 +177,7 @@ struct RearrangementSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
+    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -347,7 +347,7 @@ struct ContextualSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
+    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -623,7 +623,7 @@ struct LigatureSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
+    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -664,7 +664,7 @@ struct NoncontextualSubtable
   {
     TRACE_APPLY (this);
 
-    if (!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
+    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
       return_trace (false);
 
     const OT::GDEF &gdef (*c->gdef_table);
@@ -917,7 +917,7 @@ struct InsertionSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
+    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -979,7 +979,7 @@ struct hb_accelerate_subtables_context_t :
     friend struct hb_aat_layout_lookup_accelerator_t;
 
     public:
-    hb_set_t glyph_set;
+    hb_bit_set_t glyph_set;
     mutable hb_aat_class_cache_t class_cache;
 
     template <typename T>
@@ -1221,7 +1221,7 @@ struct Chain
 		   hb_map ([subtable_flags] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable_flags & (_.flags); })))
 	goto skip;
       c->subtable_flags = subtable_flags;
-      c->machine_glyph_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_set_t);
+      c->machine_glyph_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_bit_set_t);
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!(coverage & ChainSubtable<Types>::AllDirections) &&
@@ -1452,7 +1452,7 @@ struct mortmorx
 
     c->buffer->unsafe_to_concat ();
 
-    c->buffer_glyph_set = c->buffer->set ();
+    c->buffer_glyph_set = c->buffer->bit_set ();
 
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;

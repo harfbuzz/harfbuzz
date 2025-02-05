@@ -32,7 +32,7 @@
 
 #include "hb.hh"
 #include "hb-unicode.hh"
-#include "hb-set.hh"
+#include "hb-bit-set.hh"
 #include "hb-set-digest.hh"
 
 
@@ -198,9 +198,9 @@ struct hb_buffer_t
     d.add_array (&info[0].codepoint, len, sizeof (info[0]));
     return d;
   }
-  hb_set_t set () const
+  hb_bit_set_t bit_set () const
   {
-    hb_set_t d;
+    hb_bit_set_t d;
     d.add_array (&info[0].codepoint, len, sizeof (info[0]));
     return d;
   }
