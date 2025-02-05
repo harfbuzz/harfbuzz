@@ -677,6 +677,7 @@ hb_face_set_get_table_tags_func (hb_face_t *face,
   {
     if (destroy)
       destroy (user_data);
+    return;
   }
 
   if (face->get_table_tags_destroy)
