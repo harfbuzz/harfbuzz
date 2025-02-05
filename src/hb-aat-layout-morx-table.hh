@@ -1374,13 +1374,11 @@ struct mortmorx
       }
 
       this->chain_count = table->get_chain_count ();
-      this->subchain_count = table->get_subchain_count ();
 
       this->accels = (hb_atomic_ptr_t<hb_aat_layout_chain_accelerator_t> *) hb_calloc (this->chain_count, sizeof (*accels));
       if (unlikely (!this->accels))
       {
 	this->chain_count = 0;
-	this->subchain_count = 0;
 	this->table.destroy ();
 	this->table = hb_blob_get_empty ();
       }
@@ -1424,7 +1422,6 @@ struct mortmorx
 
     hb_blob_ptr_t<T> table;
     unsigned int chain_count;
-    unsigned int subchain_count;
     hb_atomic_ptr_t<hb_aat_layout_chain_accelerator_t> *accels;
   };
 
@@ -1449,19 +1446,6 @@ struct mortmorx
   {
     return chainCount;
   }
-  unsigned get_subchain_count () const
-  {
-    const Chain<Types> *chain = &firstChain;
-    unsigned int count = chainCount;
-    unsigned int subchain_count = 0;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      subchain_count += chain->get_subtable_count ();
-      chain = &StructAfter<Chain<Types>> (*chain);
-    }
-    return subchain_count;
-  }
-
   void apply (hb_aat_apply_context_t *c,
 	      const hb_aat_map_t &map,
 	      const accelerator_t &accel) const
@@ -1470,7 +1454,7 @@ struct mortmorx
 
     c->buffer->unsafe_to_concat ();
 
-    c->setup_buffer_glyph_set (accel.subchain_count);
+    c->setup_buffer_glyph_set ();
 
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;

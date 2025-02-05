@@ -88,7 +88,7 @@ struct hb_aat_apply_context_t :
 
   void set_lookup_index (unsigned int i) { lookup_index = i; }
 
-  void setup_buffer_glyph_set (unsigned subchain_count)
+  void setup_buffer_glyph_set ()
   {
     using_buffer_glyph_set = buffer->len >= 4;
 
