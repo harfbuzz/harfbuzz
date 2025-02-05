@@ -87,12 +87,22 @@ struct hb_aat_apply_context_t :
 
   void set_lookup_index (unsigned int i) { lookup_index = i; }
 
+#define BUFFER_GLYPH_SET_THRESHOLD 4
   void setup_buffer_glyph_set ()
   {
+    if (buffer->len < BUFFER_GLYPH_SET_THRESHOLD) return;
+
     buffer_glyph_set = buffer->bit_set ();
   }
   bool buffer_intersects_machine () const
   {
+    if (buffer->len < BUFFER_GLYPH_SET_THRESHOLD)
+    {
+      for (unsigned i = 0; i < buffer->len; i++)
+	if (machine_glyph_set->has (buffer->info[i].codepoint))
+	  return true;
+      return false;
+    }
     return buffer_glyph_set.intersects (*machine_glyph_set);
   }
 };
