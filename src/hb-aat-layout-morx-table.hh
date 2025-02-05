@@ -698,7 +698,7 @@ struct NoncontextualSubtable
   }
 
   template <typename set_t>
-  void collect_glyphs (set_t &glyphs, unsigned num_glyphs) const
+  void collect_initial_glyphs (set_t &glyphs, unsigned num_glyphs) const
   {
     substitute.collect_glyphs (glyphs, num_glyphs);
   }
@@ -973,7 +973,7 @@ struct hb_accelerate_subtables_context_t :
     template <typename T>
     void init_ (const T &obj_, unsigned num_glyphs, hb_priority<0>)
     {
-      obj_.collect_glyphs (glyph_set, num_glyphs);
+      obj_.collect_initial_glyphs (glyph_set, num_glyphs);
     }
 
     template <typename T>
