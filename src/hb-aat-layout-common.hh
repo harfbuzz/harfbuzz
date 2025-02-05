@@ -86,6 +86,15 @@ struct hb_aat_apply_context_t :
   HB_INTERNAL void set_ankr_table (const AAT::ankr *ankr_table_);
 
   void set_lookup_index (unsigned int i) { lookup_index = i; }
+
+  void setup_buffer_glyph_set ()
+  {
+    buffer_glyph_set = buffer->bit_set ();
+  }
+  bool buffer_intersects_machine () const
+  {
+    return buffer_glyph_set.intersects (*machine_glyph_set);
+  }
 };
 
 

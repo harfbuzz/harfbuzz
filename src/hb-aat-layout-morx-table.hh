@@ -177,7 +177,7 @@ struct RearrangementSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -347,7 +347,7 @@ struct ContextualSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -623,7 +623,7 @@ struct LigatureSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -664,8 +664,11 @@ struct NoncontextualSubtable
   {
     TRACE_APPLY (this);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
+    {
+      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
+    }
 
     const OT::GDEF &gdef (*c->gdef_table);
     bool has_glyph_classes = gdef.has_glyph_classes ();
@@ -917,7 +920,7 @@ struct InsertionSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_glyph_set.intersects (*c->machine_glyph_set))
+    if (!c->buffer_intersects_machine ())
     {
       (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
       return_trace (false);
@@ -1452,7 +1455,7 @@ struct mortmorx
 
     c->buffer->unsafe_to_concat ();
 
-    c->buffer_glyph_set = c->buffer->bit_set ();
+    c->setup_buffer_glyph_set ();
 
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;
