@@ -123,12 +123,16 @@ struct PairPosFormat2_4 : ValueBase
 
   const Coverage &get_coverage () const { return this+coverage; }
 
-  using pair_pos_cache_t = hb_pair_t<hb_ot_class_cache_t, hb_ot_class_cache_t>;
+  struct pair_pos_cache_t
+  {
+    hb_ot_lookup_cache_t coverage;
+    hb_ot_lookup_cache_t first;
+    hb_ot_lookup_cache_t second;
+  };
 
   unsigned cache_cost () const
   {
-    unsigned c = (this+classDef1).cost () + (this+classDef2).cost ();
-    return c >= 4 ? c : 0;
+    return (this+coverage).cost () + (this+classDef1).cost () + (this+classDef2).cost ();
   }
   static void * cache_func (void *p, hb_ot_lookup_cache_op_t op)
   {
@@ -139,6 +143,7 @@ struct PairPosFormat2_4 : ValueBase
 	pair_pos_cache_t *cache = (pair_pos_cache_t *) hb_malloc (sizeof (pair_pos_cache_t));
 	if (likely (cache))
 	{
+	  cache->coverage.clear ();
 	  cache->first.clear ();
 	  cache->second.clear ();
 	}
@@ -162,8 +167,17 @@ struct PairPosFormat2_4 : ValueBase
   bool _apply (hb_ot_apply_context_t *c, bool cached) const
   {
     TRACE_APPLY (this);
+
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    pair_pos_cache_t *cache = cached ? (pair_pos_cache_t *) c->lookup_accel->cache : nullptr;
+#endif
+
     hb_buffer_t *buffer = c->buffer;
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
+#else
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
+#endif
     if (likely (index == NOT_COVERED)) return_trace (false);
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
@@ -176,7 +190,6 @@ struct PairPosFormat2_4 : ValueBase
     }
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    pair_pos_cache_t *cache = cached ? (pair_pos_cache_t *) c->lookup_accel->cache : nullptr;
     unsigned int klass1 = (this+classDef1).get_class (buffer->cur().codepoint, cache ? &cache->first : nullptr);
     unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint, cache ? &cache->second : nullptr);
 #else

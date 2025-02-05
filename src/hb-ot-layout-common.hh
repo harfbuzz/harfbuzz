@@ -48,9 +48,6 @@ using OT::Layout::MediumTypes;
 
 namespace OT {
 
-using hb_ot_class_cache_t = hb_cache_t<15, 8, 7>;
-static_assert (sizeof (hb_ot_class_cache_t) == 256, "");
-
 template<typename Iterator>
 static inline bool ClassDef_serialize (hb_serialize_context_t *c,
 				       Iterator it);
@@ -2081,7 +2078,7 @@ struct ClassDef
     }
   }
   unsigned int get_class (hb_codepoint_t glyph_id,
-			  hb_ot_class_cache_t *cache) const
+			  hb_ot_lookup_cache_t *cache) const
   {
     unsigned klass;
     if (cache && cache->get (glyph_id, &klass)) return klass;
