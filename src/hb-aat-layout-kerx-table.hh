@@ -228,6 +228,9 @@ struct KerxSubTableFormat1
     DontAdvance	= Format1EntryT::DontAdvance,
   };
 
+  bool is_actionable (const Entry<EntryData> &entry) const
+  { return Format1EntryT::performAction (entry); }
+
   struct driver_context_t
   {
     static constexpr bool in_place = true;
@@ -243,8 +246,6 @@ struct KerxSubTableFormat1
 	depth (0),
 	crossStream (table->header.coverage & table->header.CrossStream) {}
 
-    bool is_actionable (const Entry<EntryData> &entry)
-    { return Format1EntryT::performAction (entry); }
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -346,9 +347,10 @@ struct KerxSubTableFormat1
       }
     }
 
-    private:
+    public:
     hb_aat_apply_context_t *c;
     const KerxSubTableFormat1 *table;
+    private:
     const UnsizedArrayOf<FWORD> &kernAction;
     unsigned int stack[8];
     unsigned int depth;
@@ -502,10 +504,13 @@ struct KerxSubTableFormat4
   enum Flags
   {
     Mark		= 0x8000,	/* If set, remember this glyph as the marked glyph. */
-    DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
-				       * going to the new state. */
+    DontAdvance		= 0x4000,	/* If set, don't advance to the next glyph before
+					 * going to the new state. */
     Reserved		= 0x3FFF,	/* Not used; set to 0. */
   };
+
+  bool is_actionable (const Entry<EntryData> &entry) const
+  { return entry.data.ankrActionIndex != 0xFFFF; }
 
   struct driver_context_t
   {
@@ -519,16 +524,15 @@ struct KerxSubTableFormat4
 					 * point table. */
     };
 
-    driver_context_t (const KerxSubTableFormat4 *table,
+    driver_context_t (const KerxSubTableFormat4 *table_,
 		      hb_aat_apply_context_t *c_) :
 	c (c_),
+	table (table_),
 	action_type ((table->flags & ActionType) >> 30),
 	ankrData ((HBUINT16 *) ((const char *) &table->machine + (table->flags & Offset))),
 	mark_set (false),
 	mark (0) {}
 
-    bool is_actionable (const Entry<EntryData> &entry)
-    { return entry.data.ankrActionIndex != 0xFFFF; }
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -618,8 +622,10 @@ struct KerxSubTableFormat4
       }
     }
 
-    private:
+    public:
     hb_aat_apply_context_t *c;
+    const KerxSubTableFormat4 *table;
+    private:
     unsigned int action_type;
     const HBUINT16 *ankrData;
     bool mark_set;

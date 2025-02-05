@@ -67,18 +67,20 @@ struct RearrangementSubtable
     Verb		= 0x000F,	/* The type of rearrangement specified. */
   };
 
+  bool is_actionable (const Entry<EntryData> &entry) const
+  {
+    return (entry.flags & Verb); // && start < end;
+  }
+
   struct driver_context_t
   {
     static constexpr bool in_place = true;
 
-    driver_context_t (const RearrangementSubtable *table HB_UNUSED) :
+    driver_context_t (const RearrangementSubtable *table_) :
 	ret (false),
+	table (table_),
 	start (0), end (0) {}
 
-    bool is_actionable (const Entry<EntryData> &entry) const
-    {
-      return (entry.flags & Verb) && start < end;
-    }
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -157,6 +159,7 @@ struct RearrangementSubtable
 
     public:
     bool ret;
+    const RearrangementSubtable *table;
     private:
     unsigned int start;
     unsigned int end;
@@ -212,10 +215,15 @@ struct ContextualSubtable
   enum Flags
   {
     SetMark		= 0x8000,	/* If set, make the current glyph the marked glyph. */
-    DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
-				       * going to the new state. */
+    DontAdvance		= 0x4000,	/* If set, don't advance to the next glyph before
+					 * going to the new state. */
     Reserved		= 0x3FFF,	/* These bits are reserved and should be set to 0. */
   };
+
+  bool is_actionable (const Entry<EntryData> &entry) const
+  {
+    return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
+  }
 
   struct driver_context_t
   {
@@ -225,17 +233,13 @@ struct ContextualSubtable
 			     hb_aat_apply_context_t *c_) :
 	ret (false),
 	c (c_),
+	table (table_),
 	gdef (*c->gdef_table),
 	mark_set (false),
 	has_glyph_classes (gdef.has_glyph_classes ()),
 	mark (0),
-	table (table_),
 	subs (table+table->substitutionTables) {}
 
-    bool is_actionable (const Entry<EntryData> &entry) const
-    {
-      return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
-    }
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -318,13 +322,13 @@ struct ContextualSubtable
 
     public:
     bool ret;
-    private:
     hb_aat_apply_context_t *c;
+    const ContextualSubtable *table;
+    private:
     const OT::GDEF &gdef;
     bool mark_set;
     bool has_glyph_classes;
     unsigned int mark;
-    const ContextualSubtable *table;
     const UnsizedListOfOffset16To<Lookup<HBGlyphID16>, HBUINT, void, false> &subs;
   };
 
@@ -456,6 +460,11 @@ struct LigatureSubtable
     DontAdvance	= LigatureEntryT::DontAdvance,
   };
 
+  bool is_actionable (const Entry<EntryData> &entry) const
+  {
+    return LigatureEntryT::performAction (entry);
+  }
+
   struct driver_context_t
   {
     static constexpr bool in_place = false;
@@ -481,10 +490,6 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
-    bool is_actionable (const Entry<EntryData> &entry) const
-    {
-      return LigatureEntryT::performAction (entry);
-    }
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -584,9 +589,9 @@ struct LigatureSubtable
 
     public:
     bool ret;
-    private:
     hb_aat_apply_context_t *c;
     const LigatureSubtable *table;
+    private:
     const UnsizedArrayOf<HBUINT32> &ligAction;
     const UnsizedArrayOf<HBUINT16> &component;
     const UnsizedArrayOf<HBGlyphID16> &ligature;
@@ -779,22 +784,24 @@ struct InsertionSubtable
 				       * marked location is 31 glyphs. */
   };
 
+  bool is_actionable (const Entry<EntryData> &entry) const
+  {
+    return (entry.flags & (CurrentInsertCount | MarkedInsertCount)) &&
+	   (entry.data.currentInsertIndex != 0xFFFF ||entry.data.markedInsertIndex != 0xFFFF);
+  }
+
   struct driver_context_t
   {
     static constexpr bool in_place = false;
 
-    driver_context_t (const InsertionSubtable *table,
+    driver_context_t (const InsertionSubtable *table_,
 		      hb_aat_apply_context_t *c_) :
 	ret (false),
 	c (c_),
+	table (table_),
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
-    bool is_actionable (const Entry<EntryData> &entry) const
-    {
-      return (entry.flags & (CurrentInsertCount | MarkedInsertCount)) &&
-	     (entry.data.currentInsertIndex != 0xFFFF ||entry.data.markedInsertIndex != 0xFFFF);
-    }
     void transition (hb_buffer_t *buffer,
 		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
@@ -876,8 +883,9 @@ struct InsertionSubtable
 
     public:
     bool ret;
-    private:
     hb_aat_apply_context_t *c;
+    const InsertionSubtable *table;
+    private:
     unsigned int mark;
     const UnsizedArrayOf<HBGlyphID16> &insertionAction;
   };
