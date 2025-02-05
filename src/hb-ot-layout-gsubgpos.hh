@@ -899,6 +899,13 @@ struct hb_ot_apply_context_t :
   }
 };
 
+enum class hb_ot_lookup_cache_op_t
+{
+  CREATE,
+  ENTER,
+  LEAVE,
+  DESTROY,
+};
 
 struct hb_accelerate_subtables_context_t :
        hb_dispatch_context_t<hb_accelerate_subtables_context_t>
@@ -923,19 +930,27 @@ struct hb_accelerate_subtables_context_t :
   }
 
   template <typename T>
-  static inline auto cache_func_ (const T *obj, hb_ot_apply_context_t *c, bool enter, hb_priority<1>) HB_RETURN (bool, obj->cache_func (c, enter) )
+  static inline auto cache_func_ (const T *obj,
+				  hb_ot_apply_context_t *c,
+				  hb_ot_lookup_cache_op_t op,
+				  hb_priority<1>) HB_RETURN (void *, obj->cache_func (c, op) )
   template <typename T>
-  static inline bool cache_func_ (const T *obj, hb_ot_apply_context_t *c, bool enter, hb_priority<0>) { return false; }
+  static inline void * cache_func_ (const T *obj,
+				    hb_ot_apply_context_t *c,
+				    hb_ot_lookup_cache_op_t op HB_UNUSED,
+				    hb_priority<0>) { return (void *) false; }
   template <typename Type>
-  static inline bool cache_func_to (const void *obj, hb_ot_apply_context_t *c, bool enter)
+  static inline void * cache_func_to (const void *obj,
+				      hb_ot_apply_context_t *c,
+				      hb_ot_lookup_cache_op_t op)
   {
     const Type *typed_obj = (const Type *) obj;
-    return cache_func_ (typed_obj, c, enter, hb_prioritize);
+    return cache_func_ (typed_obj, c, op, hb_prioritize);
   }
 #endif
 
   typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c);
-  typedef bool (*hb_cache_func_t) (const void *obj, hb_ot_apply_context_t *c, bool enter);
+  typedef void * (*hb_cache_func_t) (const void *obj, hb_ot_apply_context_t *c, hb_ot_lookup_cache_op_t op);
 
   struct hb_applicable_t
   {
@@ -972,11 +987,11 @@ struct hb_accelerate_subtables_context_t :
     }
     bool cache_enter (hb_ot_apply_context_t *c) const
     {
-      return cache_func (obj, c, true);
+      return (bool) cache_func (obj, c, hb_ot_lookup_cache_op_t::ENTER);
     }
     void cache_leave (hb_ot_apply_context_t *c) const
     {
-      cache_func (obj, c, false);
+      cache_func (obj, c, hb_ot_lookup_cache_op_t::LEAVE);
     }
 #endif
 
@@ -2623,24 +2638,31 @@ struct ContextFormat2_5
     unsigned c = (this+classDef).cost () * ruleSet.len;
     return c >= 4 ? c : 0;
   }
-  bool cache_func (hb_ot_apply_context_t *c, bool enter) const
+  void * cache_func (hb_ot_apply_context_t *c, hb_ot_lookup_cache_op_t op) const
   {
-    if (enter)
+    switch (op)
     {
-      if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
-	return false;
-      auto &info = c->buffer->info;
-      unsigned count = c->buffer->len;
-      for (unsigned i = 0; i < count; i++)
-	info[i].syllable() = 255;
-      c->new_syllables = 255;
-      return true;
-    }
-    else
-    {
-      c->new_syllables = (unsigned) -1;
-      HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
-      return true;
+      case hb_ot_lookup_cache_op_t::CREATE:
+	return (void *) true;
+      case hb_ot_lookup_cache_op_t::ENTER:
+      {
+	if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
+	  return (void *) false;
+	auto &info = c->buffer->info;
+	unsigned count = c->buffer->len;
+	for (unsigned i = 0; i < count; i++)
+	  info[i].syllable() = 255;
+	c->new_syllables = 255;
+	return (void *) true;
+      }
+      case hb_ot_lookup_cache_op_t::LEAVE:
+      {
+	c->new_syllables = (unsigned) -1;
+	HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
+	return (void *) true;
+      }
+      case hb_ot_lookup_cache_op_t::DESTROY:
+        return nullptr;
     }
   }
 
@@ -3864,24 +3886,31 @@ struct ChainContextFormat2_5
     unsigned c = (this+lookaheadClassDef).cost () * ruleSet.len;
     return c >= 4 ? c : 0;
   }
-  bool cache_func (hb_ot_apply_context_t *c, bool enter) const
+  void * cache_func (hb_ot_apply_context_t *c, hb_ot_lookup_cache_op_t op) const
   {
-    if (enter)
+    switch (op)
     {
-      if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
-	return false;
-      auto &info = c->buffer->info;
-      unsigned count = c->buffer->len;
-      for (unsigned i = 0; i < count; i++)
-	info[i].syllable() = 255;
-      c->new_syllables = 255;
-      return true;
-    }
-    else
-    {
-      c->new_syllables = (unsigned) -1;
-      HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
-      return true;
+      case hb_ot_lookup_cache_op_t::CREATE:
+	return (void *) true;
+      case hb_ot_lookup_cache_op_t::ENTER:
+      {
+	if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
+	  return (void *) false;
+	auto &info = c->buffer->info;
+	unsigned count = c->buffer->len;
+	for (unsigned i = 0; i < count; i++)
+	  info[i].syllable() = 255;
+	c->new_syllables = 255;
+	return (void *) true;
+      }
+      case hb_ot_lookup_cache_op_t::LEAVE:
+      {
+	c->new_syllables = (unsigned) -1;
+	HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
+	return (void *) true;
+      }
+      case hb_ot_lookup_cache_op_t::DESTROY:
+        return nullptr;
     }
   }
 
