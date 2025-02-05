@@ -1194,6 +1194,8 @@ struct Chain
     {
       bool reverse;
 
+      auto coverage = subtable->get_coverage ();
+
       hb_mask_t subtable_flags = subtable->subFeatureFlags;
       if (hb_none (hb_iter (c->range_flags) |
 		   hb_map ([subtable_flags] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable_flags & (_.flags); })))
@@ -1202,9 +1204,9 @@ struct Chain
       c->machine_glyph_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_set_t);
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
-      if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
+      if (!(coverage & ChainSubtable<Types>::AllDirections) &&
 	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
-	  bool (subtable->get_coverage() & ChainSubtable<Types>::Vertical))
+	  bool (coverage & ChainSubtable<Types>::Vertical))
 	goto skip;
 
       /* Buffer contents is always in logical direction.  Determine if
@@ -1234,9 +1236,9 @@ struct Chain
 				(the order opposite that of the characters, which
 				may be right-to-left or left-to-right).
        */
-      reverse = subtable->get_coverage () & ChainSubtable<Types>::Logical ?
-		bool (subtable->get_coverage () & ChainSubtable<Types>::Backwards) :
-		bool (subtable->get_coverage () & ChainSubtable<Types>::Backwards) !=
+      reverse = coverage & ChainSubtable<Types>::Logical ?
+		bool (coverage & ChainSubtable<Types>::Backwards) :
+		bool (coverage & ChainSubtable<Types>::Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start chainsubtable %u", c->lookup_index))
