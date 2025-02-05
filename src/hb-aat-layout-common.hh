@@ -31,6 +31,8 @@
 #include "hb-aat-map.hh"
 #include "hb-open-type.hh"
 #include "hb-cache.hh"
+#include "hb-bit-page.hh"
+
 
 namespace OT {
 struct GDEF;
@@ -701,9 +703,16 @@ struct StateTable
   template <typename set_t, typename table_t>
   void collect_initial_glyphs (set_t &glyphs, unsigned num_glyphs, const table_t &table) const
   {
-    // Collect all classes going out from the start state.
     unsigned num_classes = nClasses;
-    hb_set_t filter;
+
+    if (unlikely (num_classes > hb_bit_page_t::BITS))
+    {
+      (this+classTable).collect_glyphs (glyphs, num_glyphs);
+      return;
+    }
+
+    // Collect all classes going out from the start state.
+    hb_bit_page_t filter;
 
     for (unsigned i = 0; i < num_classes; i++)
     {
