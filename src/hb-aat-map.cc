@@ -88,6 +88,7 @@ hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
 
   /* Sort features by start/end events. */
   hb_vector_t<feature_event_t> feature_events;
+  feature_events.alloc (features.length * 2 + 1, true);
   for (unsigned int i = 0; i < features.length; i++)
   {
     auto &feature = features.arrayZ[i];
