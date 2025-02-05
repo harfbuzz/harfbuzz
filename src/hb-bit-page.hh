@@ -239,6 +239,9 @@ struct hb_bit_page_t
 	return true;
     return false;
   }
+  bool may_intersect (const hb_bit_page_t &other) const
+  { return intersects (other); }
+
   bool operator <= (const hb_bit_page_t &larger_page) const { return is_subset (larger_page); }
   bool is_subset (const hb_bit_page_t &larger_page) const
   {

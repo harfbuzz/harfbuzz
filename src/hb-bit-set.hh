@@ -380,6 +380,8 @@ struct hb_bit_set_t
     }
     return false;
   }
+  bool may_intersect (const hb_bit_set_t &other) const
+  { return intersects (other); }
 
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
   {
