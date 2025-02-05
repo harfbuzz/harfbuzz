@@ -74,8 +74,7 @@ struct RearrangementSubtable
 	ret (false),
 	start (0), end (0) {}
 
-    bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
-			const Entry<EntryData> &entry) const
+    bool is_actionable (const Entry<EntryData> &entry) const
     {
       return (entry.flags & Verb) && start < end;
     }
@@ -231,12 +230,8 @@ struct ContextualSubtable
 	table (table_),
 	subs (table+table->substitutionTables) {}
 
-    bool is_actionable (hb_buffer_t *buffer,
-			const Entry<EntryData> &entry) const
+    bool is_actionable (const Entry<EntryData> &entry) const
     {
-      if (buffer->idx == buffer->len && !mark_set)
-	return false;
-
       return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
     }
     void transition (hb_buffer_t *buffer,
@@ -482,8 +477,7 @@ struct LigatureSubtable
 	ligature (table+table->ligature),
 	match_length (0) {}
 
-    bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
-			const Entry<EntryData> &entry) const
+    bool is_actionable (const Entry<EntryData> &entry) const
     {
       return LigatureEntryT::performAction (entry);
     }
@@ -791,8 +785,7 @@ struct InsertionSubtable
 	mark (0),
 	insertionAction (table+table->insertionAction) {}
 
-    bool is_actionable (hb_buffer_t *buffer HB_UNUSED,
-			const Entry<EntryData> &entry) const
+    bool is_actionable (const Entry<EntryData> &entry) const
     {
       return (entry.flags & (CurrentInsertCount | MarkedInsertCount)) &&
 	     (entry.data.currentInsertIndex != 0xFFFF ||entry.data.markedInsertIndex != 0xFFFF);
