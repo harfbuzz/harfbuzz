@@ -207,6 +207,9 @@ struct Format1Entry<false>
 
   typedef void EntryData;
 
+  static bool initiateAction (const Entry<EntryData> &entry)
+  { return entry.flags & Push; }
+
   static bool performAction (const Entry<EntryData> &entry)
   { return entry.flags & Offset; }
 
@@ -228,6 +231,10 @@ struct KerxSubTableFormat1
     DontAdvance	= Format1EntryT::DontAdvance,
   };
 
+  bool is_action_initiable (const Entry<EntryData> &entry) const
+  {
+    return Format1EntryT::initiateAction (entry);
+  }
   bool is_actionable (const Entry<EntryData> &entry) const
   { return Format1EntryT::performAction (entry); }
 
@@ -509,8 +516,14 @@ struct KerxSubTableFormat4
     Reserved		= 0x3FFF,	/* Not used; set to 0. */
   };
 
+  bool is_action_initiable (const Entry<EntryData> &entry) const
+  {
+    return (entry.flags & Mark);
+  }
   bool is_actionable (const Entry<EntryData> &entry) const
-  { return entry.data.ankrActionIndex != 0xFFFF; }
+  {
+    return entry.data.ankrActionIndex != 0xFFFF;
+  }
 
   struct driver_context_t
   {

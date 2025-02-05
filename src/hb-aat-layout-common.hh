@@ -718,7 +718,7 @@ struct StateTable
     {
       const auto &entry = get_entry (STATE_START_OF_TEXT, i);
       if (new_state (entry.newState) == STATE_START_OF_TEXT &&
-	  !table.is_actionable (entry))
+	  !table.is_action_initiable (entry) && !table.is_actionable (entry))
 	continue;
 
       filter.add (i);
@@ -1038,7 +1038,7 @@ struct StateTableDriver
   bool is_idempotent_on_all_out_of_bounds (context_t *c, hb_aat_apply_context_t *ac)
   {
     const auto entry = machine.get_entry (StateTableT::STATE_START_OF_TEXT, CLASS_OUT_OF_BOUNDS);
-    return !c->table->is_actionable (entry) &&
+    return !c->table->is_action_initiable (entry) &&
 	    machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
   }
 

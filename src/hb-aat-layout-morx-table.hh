@@ -67,9 +67,13 @@ struct RearrangementSubtable
     Verb		= 0x000F,	/* The type of rearrangement specified. */
   };
 
+  bool is_action_initiable (const Entry<EntryData> &entry) const
+  {
+    return (entry.flags & MarkFirst);
+  }
   bool is_actionable (const Entry<EntryData> &entry) const
   {
-    return (entry.flags & (MarkFirst | MarkLast | Verb));
+    return (entry.flags & Verb);
   }
 
   struct driver_context_t
@@ -220,9 +224,13 @@ struct ContextualSubtable
     Reserved		= 0x3FFF,	/* These bits are reserved and should be set to 0. */
   };
 
+  bool is_action_initiable (const Entry<EntryData> &entry) const
+  {
+    return (entry.flags & SetMark);
+  }
   bool is_actionable (const Entry<EntryData> &entry) const
   {
-    return (entry.flags & SetMark) || entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
+    return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
   }
 
   struct driver_context_t
@@ -417,6 +425,9 @@ struct LigatureEntry<true>
     Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
   };
 
+  static bool initiateAction (const Entry<EntryData> &entry)
+  { return entry.flags & SetComponent; }
+
   static bool performAction (const Entry<EntryData> &entry)
   { return entry.flags & PerformAction; }
 
@@ -439,6 +450,9 @@ struct LigatureEntry<false>
 					 * multiple of 4. */
   };
 
+  static bool initiateAction (const Entry<EntryData> &entry)
+  { return entry.flags & SetComponent; }
+
   static bool performAction (const Entry<EntryData> &entry)
   { return entry.flags & Offset; }
 
@@ -460,6 +474,10 @@ struct LigatureSubtable
     DontAdvance	= LigatureEntryT::DontAdvance,
   };
 
+  bool is_action_initiable (const Entry<EntryData> &entry) const
+  {
+    return LigatureEntryT::initiateAction (entry);
+  }
   bool is_actionable (const Entry<EntryData> &entry) const
   {
     return LigatureEntryT::performAction (entry);
@@ -739,7 +757,7 @@ struct InsertionSubtable
   enum Flags
   {
     SetMark		= 0x8000,     /* If set, mark the current glyph. */
-    DontAdvance	= 0x4000,	      /* If set, don't advance to the next glyph before
+    DontAdvance		= 0x4000,     /* If set, don't advance to the next glyph before
 				       * going to the new state.  This does not mean
 				       * that the glyph pointed to is the same one as
 				       * before. If you've made insertions immediately
@@ -784,6 +802,10 @@ struct InsertionSubtable
 				       * marked location is 31 glyphs. */
   };
 
+  bool is_action_initiable (const Entry<EntryData> &entry) const
+  {
+    return (entry.flags & SetMark);
+  }
   bool is_actionable (const Entry<EntryData> &entry) const
   {
     return (entry.flags & (CurrentInsertCount | MarkedInsertCount)) &&
