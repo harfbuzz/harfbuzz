@@ -223,13 +223,14 @@ struct KerxSubTableFormat1
   typedef Format1Entry<Types::extended> Format1EntryT;
   typedef typename Format1EntryT::EntryData EntryData;
 
+  enum Flags
+  {
+    DontAdvance	= Format1EntryT::DontAdvance,
+  };
+
   struct driver_context_t
   {
     static constexpr bool in_place = true;
-    enum
-    {
-      DontAdvance	= Format1EntryT::DontAdvance,
-    };
 
     driver_context_t (const KerxSubTableFormat1 *table_,
 		      hb_aat_apply_context_t *c_) :
@@ -245,7 +246,7 @@ struct KerxSubTableFormat1
     bool is_actionable (const Entry<EntryData> &entry)
     { return Format1EntryT::performAction (entry); }
     void transition (hb_buffer_t *buffer,
-		     StateTableDriver<Types, EntryData> *driver,
+		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
     {
       unsigned int flags = entry.flags;
@@ -364,7 +365,7 @@ struct KerxSubTableFormat1
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->font->face);
+    StateTableDriver<Types, EntryData, Flags> driver (machine, c->font->face);
 
     driver.drive (&dc, c);
 
@@ -498,17 +499,17 @@ struct KerxSubTableFormat4
     DEFINE_SIZE_STATIC (2);
   };
 
+  enum Flags
+  {
+    Mark		= 0x8000,	/* If set, remember this glyph as the marked glyph. */
+    DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
+				       * going to the new state. */
+    Reserved		= 0x3FFF,	/* Not used; set to 0. */
+  };
+
   struct driver_context_t
   {
     static constexpr bool in_place = true;
-    enum Flags
-    {
-      Mark		= 0x8000,	/* If set, remember this glyph as the marked glyph. */
-      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
-					 * going to the new state. */
-      Reserved		= 0x3FFF,	/* Not used; set to 0. */
-    };
-
     enum SubTableFlags
     {
       ActionType	= 0xC0000000,	/* A two-bit field containing the action type. */
@@ -529,7 +530,7 @@ struct KerxSubTableFormat4
     bool is_actionable (const Entry<EntryData> &entry)
     { return entry.data.ankrActionIndex != 0xFFFF; }
     void transition (hb_buffer_t *buffer,
-		     StateTableDriver<Types, EntryData> *driver,
+		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
     {
       if (mark_set && entry.data.ankrActionIndex != 0xFFFF && buffer->idx < buffer->len)
@@ -631,7 +632,7 @@ struct KerxSubTableFormat4
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->font->face);
+    StateTableDriver<Types, EntryData, Flags> driver (machine, c->font->face);
 
     driver.drive (&dc, c);
 

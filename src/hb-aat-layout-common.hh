@@ -924,7 +924,7 @@ struct ExtendedTypes
   }
 };
 
-template <typename Types, typename EntryData>
+template <typename Types, typename EntryData, typename Flags>
 struct StateTableDriver
 {
   using StateTableT = StateTable<Types, EntryData>;
@@ -1027,7 +1027,7 @@ struct StateTableDriver
           // This one is meh, I know...
 	  (
                  state == StateTableT::STATE_START_OF_TEXT
-              || ((entry.flags & context_t::DontAdvance) && next_state == StateTableT::STATE_START_OF_TEXT)
+              || ((entry.flags & Flags::DontAdvance) && next_state == StateTableT::STATE_START_OF_TEXT)
               || (
 		    /* 2c. */
 		    wouldbe_entry = &machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass)
@@ -1037,7 +1037,7 @@ struct StateTableDriver
 		    /* 2c". */
 		    (
 		      next_state == machine.new_state(wouldbe_entry->newState) &&
-		      (entry.flags & context_t::DontAdvance) == (wouldbe_entry->flags & context_t::DontAdvance)
+		      (entry.flags & Flags::DontAdvance) == (wouldbe_entry->flags & Flags::DontAdvance)
 		    )
 		 )
 	  ) &&
@@ -1057,7 +1057,7 @@ struct StateTableDriver
       if (buffer->idx == buffer->len || unlikely (!buffer->successful))
 	break;
 
-      if (!(entry.flags & context_t::DontAdvance) || buffer->max_ops-- <= 0)
+      if (!(entry.flags & Flags::DontAdvance) || buffer->max_ops-- <= 0)
 	(void) buffer->next_glyph ();
     }
 

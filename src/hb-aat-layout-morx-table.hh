@@ -53,22 +53,23 @@ struct RearrangementSubtable
 
   typedef void EntryData;
 
-  struct driver_context_t
+  enum Flags
   {
-    static constexpr bool in_place = true;
-    enum Flags
-    {
-      MarkFirst		= 0x8000,	/* If set, make the current glyph the first
+    MarkFirst		= 0x8000,	/* If set, make the current glyph the first
 					 * glyph to be rearranged. */
-      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph
+    DontAdvance		= 0x4000,	/* If set, don't advance to the next glyph
 					 * before going to the new state. This means
 					 * that the glyph index doesn't change, even
 					 * if the glyph at that index has changed. */
-      MarkLast		= 0x2000,	/* If set, make the current glyph the last
+    MarkLast		= 0x2000,	/* If set, make the current glyph the last
 					 * glyph to be rearranged. */
-      Reserved		= 0x1FF0,	/* These bits are reserved and should be set to 0. */
-      Verb		= 0x000F,	/* The type of rearrangement specified. */
-    };
+    Reserved		= 0x1FF0,	/* These bits are reserved and should be set to 0. */
+    Verb		= 0x000F,	/* The type of rearrangement specified. */
+  };
+
+  struct driver_context_t
+  {
+    static constexpr bool in_place = true;
 
     driver_context_t (const RearrangementSubtable *table HB_UNUSED) :
 	ret (false),
@@ -79,7 +80,7 @@ struct RearrangementSubtable
       return (entry.flags & Verb) && start < end;
     }
     void transition (hb_buffer_t *buffer,
-		     StateTableDriver<Types, EntryData> *driver,
+		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
     {
       unsigned int flags = entry.flags;
@@ -167,7 +168,7 @@ struct RearrangementSubtable
 
     driver_context_t dc (this);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->face);
+    StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
 	!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
@@ -208,16 +209,17 @@ struct ContextualSubtable
     DEFINE_SIZE_STATIC (4);
   };
 
+  enum Flags
+  {
+    SetMark		= 0x8000,	/* If set, make the current glyph the marked glyph. */
+    DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
+				       * going to the new state. */
+    Reserved		= 0x3FFF,	/* These bits are reserved and should be set to 0. */
+  };
+
   struct driver_context_t
   {
     static constexpr bool in_place = true;
-    enum Flags
-    {
-      SetMark		= 0x8000,	/* If set, make the current glyph the marked glyph. */
-      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
-					 * going to the new state. */
-      Reserved		= 0x3FFF,	/* These bits are reserved and should be set to 0. */
-    };
 
     driver_context_t (const ContextualSubtable *table_,
 			     hb_aat_apply_context_t *c_) :
@@ -235,7 +237,7 @@ struct ContextualSubtable
       return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
     }
     void transition (hb_buffer_t *buffer,
-		     StateTableDriver<Types, EntryData> *driver,
+		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
     {
       /* Looks like CoreText applies neither mark nor current substitution for
@@ -332,7 +334,7 @@ struct ContextualSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->face);
+    StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
 	!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
@@ -390,6 +392,16 @@ struct LigatureEntry;
 template <>
 struct LigatureEntry<true>
 {
+
+  struct EntryData
+  {
+    HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
+				 * for processing this group, if indicated
+				 * by the flags. */
+    public:
+    DEFINE_SIZE_STATIC (2);
+  };
+
   enum Flags
   {
     SetComponent	= 0x8000,	/* Push this glyph onto the component stack for
@@ -401,15 +413,6 @@ struct LigatureEntry<true>
     Reserved		= 0x1FFF,	/* These bits are reserved and should be set to 0. */
   };
 
-  struct EntryData
-  {
-    HBUINT16	ligActionIndex;	/* Index to the first ligActionTable entry
-				 * for processing this group, if indicated
-				 * by the flags. */
-    public:
-    DEFINE_SIZE_STATIC (2);
-  };
-
   static bool performAction (const Entry<EntryData> &entry)
   { return entry.flags & PerformAction; }
 
@@ -419,6 +422,8 @@ struct LigatureEntry<true>
 template <>
 struct LigatureEntry<false>
 {
+  typedef void EntryData;
+
   enum Flags
   {
     SetComponent	= 0x8000,	/* Push this glyph onto the component stack for
@@ -429,8 +434,6 @@ struct LigatureEntry<false>
 					 * ligature action list. This value must be a
 					 * multiple of 4. */
   };
-
-  typedef void EntryData;
 
   static bool performAction (const Entry<EntryData> &entry)
   { return entry.flags & Offset; }
@@ -448,13 +451,14 @@ struct LigatureSubtable
   typedef LigatureEntry<Types::extended> LigatureEntryT;
   typedef typename LigatureEntryT::EntryData EntryData;
 
+  enum Flags
+  {
+    DontAdvance	= LigatureEntryT::DontAdvance,
+  };
+
   struct driver_context_t
   {
     static constexpr bool in_place = false;
-    enum
-    {
-      DontAdvance	= LigatureEntryT::DontAdvance,
-    };
     enum LigActionFlags
     {
       LigActionLast	= 0x80000000,	/* This is the last action in the list. This also
@@ -482,7 +486,7 @@ struct LigatureSubtable
       return LigatureEntryT::performAction (entry);
     }
     void transition (hb_buffer_t *buffer,
-		     StateTableDriver<Types, EntryData> *driver,
+		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
     {
       DEBUG_MSG (APPLY, nullptr, "Ligature transition at %u", buffer->idx);
@@ -596,7 +600,7 @@ struct LigatureSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->face);
+    StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
 	!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
@@ -727,56 +731,57 @@ struct InsertionSubtable
     DEFINE_SIZE_STATIC (4);
   };
 
+  enum Flags
+  {
+    SetMark		= 0x8000,     /* If set, mark the current glyph. */
+    DontAdvance	= 0x4000,	      /* If set, don't advance to the next glyph before
+				       * going to the new state.  This does not mean
+				       * that the glyph pointed to is the same one as
+				       * before. If you've made insertions immediately
+				       * downstream of the current glyph, the next glyph
+				       * processed would in fact be the first one
+				       * inserted. */
+    CurrentIsKashidaLike= 0x2000,     /* If set, and the currentInsertList is nonzero,
+				       * then the specified glyph list will be inserted
+				       * as a kashida-like insertion, either before or
+				       * after the current glyph (depending on the state
+				       * of the currentInsertBefore flag). If clear, and
+				       * the currentInsertList is nonzero, then the
+				       * specified glyph list will be inserted as a
+				       * split-vowel-like insertion, either before or
+				       * after the current glyph (depending on the state
+				       * of the currentInsertBefore flag). */
+    MarkedIsKashidaLike= 0x1000,      /* If set, and the markedInsertList is nonzero,
+				       * then the specified glyph list will be inserted
+				       * as a kashida-like insertion, either before or
+				       * after the marked glyph (depending on the state
+				       * of the markedInsertBefore flag). If clear, and
+				       * the markedInsertList is nonzero, then the
+				       * specified glyph list will be inserted as a
+				       * split-vowel-like insertion, either before or
+				       * after the marked glyph (depending on the state
+				       * of the markedInsertBefore flag). */
+    CurrentInsertBefore= 0x0800,      /* If set, specifies that insertions are to be made
+				       * to the left of the current glyph. If clear,
+				       * they're made to the right of the current glyph. */
+    MarkedInsertBefore= 0x0400,	      /* If set, specifies that insertions are to be
+				       * made to the left of the marked glyph. If clear,
+				       * they're made to the right of the marked glyph. */
+    CurrentInsertCount= 0x3E0,	      /* This 5-bit field is treated as a count of the
+				       * number of glyphs to insert at the current
+				       * position. Since zero means no insertions, the
+				       * largest number of insertions at any given
+				       * current location is 31 glyphs. */
+    MarkedInsertCount= 0x001F,	      /* This 5-bit field is treated as a count of the
+				       * number of glyphs to insert at the marked
+				       * position. Since zero means no insertions, the
+				       * largest number of insertions at any given
+				       * marked location is 31 glyphs. */
+  };
+
   struct driver_context_t
   {
     static constexpr bool in_place = false;
-    enum Flags
-    {
-      SetMark		= 0x8000,	/* If set, mark the current glyph. */
-      DontAdvance	= 0x4000,	/* If set, don't advance to the next glyph before
-					 * going to the new state.  This does not mean
-					 * that the glyph pointed to is the same one as
-					 * before. If you've made insertions immediately
-					 * downstream of the current glyph, the next glyph
-					 * processed would in fact be the first one
-					 * inserted. */
-      CurrentIsKashidaLike= 0x2000,	/* If set, and the currentInsertList is nonzero,
-					 * then the specified glyph list will be inserted
-					 * as a kashida-like insertion, either before or
-					 * after the current glyph (depending on the state
-					 * of the currentInsertBefore flag). If clear, and
-					 * the currentInsertList is nonzero, then the
-					 * specified glyph list will be inserted as a
-					 * split-vowel-like insertion, either before or
-					 * after the current glyph (depending on the state
-					 * of the currentInsertBefore flag). */
-      MarkedIsKashidaLike= 0x1000,	/* If set, and the markedInsertList is nonzero,
-					 * then the specified glyph list will be inserted
-					 * as a kashida-like insertion, either before or
-					 * after the marked glyph (depending on the state
-					 * of the markedInsertBefore flag). If clear, and
-					 * the markedInsertList is nonzero, then the
-					 * specified glyph list will be inserted as a
-					 * split-vowel-like insertion, either before or
-					 * after the marked glyph (depending on the state
-					 * of the markedInsertBefore flag). */
-      CurrentInsertBefore= 0x0800,	/* If set, specifies that insertions are to be made
-					 * to the left of the current glyph. If clear,
-					 * they're made to the right of the current glyph. */
-      MarkedInsertBefore= 0x0400,	/* If set, specifies that insertions are to be
-					 * made to the left of the marked glyph. If clear,
-					 * they're made to the right of the marked glyph. */
-      CurrentInsertCount= 0x3E0,	/* This 5-bit field is treated as a count of the
-					 * number of glyphs to insert at the current
-					 * position. Since zero means no insertions, the
-					 * largest number of insertions at any given
-					 * current location is 31 glyphs. */
-      MarkedInsertCount= 0x001F,	/* This 5-bit field is treated as a count of the
-					 * number of glyphs to insert at the marked
-					 * position. Since zero means no insertions, the
-					 * largest number of insertions at any given
-					 * marked location is 31 glyphs. */
-    };
 
     driver_context_t (const InsertionSubtable *table,
 		      hb_aat_apply_context_t *c_) :
@@ -791,7 +796,7 @@ struct InsertionSubtable
 	     (entry.data.currentInsertIndex != 0xFFFF ||entry.data.markedInsertIndex != 0xFFFF);
     }
     void transition (hb_buffer_t *buffer,
-		     StateTableDriver<Types, EntryData> *driver,
+		     StateTableDriver<Types, EntryData, Flags> *driver,
 		     const Entry<EntryData> &entry)
     {
       unsigned int flags = entry.flags;
@@ -883,7 +888,7 @@ struct InsertionSubtable
 
     driver_context_t dc (this, c);
 
-    StateTableDriver<Types, EntryData> driver (machine, c->face);
+    StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
     if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
 	!c->buffer_glyph_set.may_intersect (*c->machine_glyph_set))
