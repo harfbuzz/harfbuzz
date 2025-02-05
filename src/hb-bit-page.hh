@@ -89,6 +89,8 @@ struct hb_vector_size_t
 
 struct hb_bit_page_t
 {
+  hb_bit_page_t () { init0 (); }
+
   void init0 () { v.init0 (); population = 0; }
   void init1 () { v.init1 (); population = PAGE_BITS; }
 
@@ -115,6 +117,9 @@ struct hb_bit_page_t
   void del (hb_codepoint_t g) { elt (g) &= ~mask (g); dirty (); }
   void set (hb_codepoint_t g, bool value) { if (value) add (g); else del (g); }
   bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
+
+  bool operator [] (hb_codepoint_t g) const { return get (g); }
+  bool operator () (hb_codepoint_t g) const { return get (g); }
 
   void add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
