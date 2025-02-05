@@ -88,14 +88,9 @@ struct hb_aat_apply_context_t :
 
   void set_lookup_index (unsigned int i) { lookup_index = i; }
 
-#define HB_MALLOC_COST 48
-#define HB_BIT_SET_HAS_COST 8
   void setup_buffer_glyph_set (unsigned subchain_count)
   {
-    // Using buffer_glyph_set has at least two mallocs. Avoid it for small workloads.
-    unsigned malloced_cost = HB_MALLOC_COST * 2 + subchain_count * HB_BIT_SET_HAS_COST;
-    unsigned unmalloced_cost = subchain_count * buffer->len;
-    using_buffer_glyph_set = malloced_cost < unmalloced_cost;
+    using_buffer_glyph_set = buffer->len >= 4;
 
     if (using_buffer_glyph_set)
       buffer_glyph_set = buffer->bit_set ();
