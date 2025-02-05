@@ -919,7 +919,7 @@ struct KerxSubTable
  * The 'kerx' Table
  */
 
-using kern_accelerator_data_t = hb_vector_t<hb_pair_t<hb_set_t, hb_set_t>>;
+using kern_accelerator_data_t = hb_vector_t<hb_pair_t<hb_bit_set_t, hb_bit_set_t>>;
 
 template <typename T>
 struct KerxTable
@@ -1104,7 +1104,7 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      hb_set_t left_set, right_set;
+      hb_bit_set_t left_set, right_set;
       st->collect_glyphs (left_set, right_set, num_glyphs);
       accel_data.push (hb_pair (left_set, right_set));
       st = &StructAfter<SubTable> (*st);
