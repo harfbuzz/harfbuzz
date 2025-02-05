@@ -106,6 +106,7 @@ struct hb_sparseset_t
   void del_range (hb_codepoint_t a, hb_codepoint_t b) { s.del_range (a, b); }
 
   bool get (hb_codepoint_t g) const { return s.get (g); }
+  bool may_have (hb_codepoint_t g) const { return get (g); }
 
   /* Has interface. */
   bool operator [] (hb_codepoint_t k) const { return get (k); }

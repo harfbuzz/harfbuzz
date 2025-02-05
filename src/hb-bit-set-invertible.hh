@@ -126,6 +126,7 @@ struct hb_bit_set_invertible_t
   { unlikely (inverted) ? (void) s.add_range (a, b) : s.del_range (a, b); }
 
   bool get (hb_codepoint_t g) const { return s.get (g) ^ inverted; }
+  bool may_have (hb_codepoint_t g) const { return get (g); }
 
   /* Has interface. */
   bool operator [] (hb_codepoint_t k) const { return get (k); }

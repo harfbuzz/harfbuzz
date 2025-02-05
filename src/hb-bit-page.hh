@@ -117,6 +117,7 @@ struct hb_bit_page_t
   void del (hb_codepoint_t g) { elt (g) &= ~mask (g); dirty (); }
   void set (hb_codepoint_t g, bool value) { if (value) add (g); else del (g); }
   bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
+  bool may_have (hb_codepoint_t g) const { return get (g); }
 
   bool operator [] (hb_codepoint_t g) const { return get (g); }
   bool operator () (hb_codepoint_t g) const { return get (g); }

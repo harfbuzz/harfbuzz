@@ -345,6 +345,7 @@ struct hb_bit_set_t
       return false;
     return page->get (g);
   }
+  bool may_have (hb_codepoint_t g) const { return get (g); }
 
   /* Has interface. */
   bool operator [] (hb_codepoint_t k) const { return get (k); }
