@@ -34,6 +34,7 @@
 #include "hb-open-type.hh"
 #include "hb-set.hh"
 #include "hb-bimap.hh"
+#include "hb-cache.hh"
 
 #include "OT/Layout/Common/Coverage.hh"
 #include "OT/Layout/types.hh"
@@ -2075,6 +2076,15 @@ struct ClassDef
 #endif
     default:return 0;
     }
+  }
+  unsigned int get_class (hb_codepoint_t glyph_id,
+			  hb_ot_lookup_cache_t *cache) const
+  {
+    unsigned klass;
+    if (cache && cache->get (glyph_id, &klass)) return klass;
+    klass = get_class (glyph_id);
+    if (cache) cache->set (glyph_id, klass);
+    return klass;
   }
 
   unsigned get_population () const
