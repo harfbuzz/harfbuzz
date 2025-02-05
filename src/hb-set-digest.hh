@@ -56,7 +56,7 @@
  *   - For each glyph, if it doesn't match the subtable digest,
  *     skip it.
  *
- * The main filter we use is a combination of three bits-pattern
+ * The main filter we use is a combination of four bits-pattern
  * filters. A bits-pattern filter checks a number of bits (5 or 6)
  * of the input number (glyph-id in this case) and checks whether
  * its pattern is amongst the patterns of any of the accepted values.
