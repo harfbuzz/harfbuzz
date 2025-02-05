@@ -140,7 +140,7 @@ struct hb_bit_set_invertible_t
   { add_range (range.first, range.second); return *this; }
 
   bool may_intersect (const hb_bit_set_invertible_t &other) const
-  { return inverted || other.inverted || s.may_intersect (other.s); }
+  { return inverted || other.inverted || s.intersects (other.s); }
 
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
   {

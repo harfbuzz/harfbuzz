@@ -232,7 +232,7 @@ struct hb_bit_page_t
 	return false;
     return true;
   }
-  bool may_intersect (const hb_bit_page_t &other) const
+  bool intersects (const hb_bit_page_t &other) const
   {
     for (unsigned i = 0; i < len (); i++)
       if (v[i] & other.v[i])

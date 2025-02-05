@@ -358,7 +358,7 @@ struct hb_bit_set_t
   hb_bit_set_t& operator << (const hb_codepoint_pair_t& range)
   { add_range (range.first, range.second); return *this; }
 
-  bool may_intersect (const hb_bit_set_t &other) const
+  bool intersects (const hb_bit_set_t &other) const
   {
     unsigned int na = pages.length;
     unsigned int nb = other.pages.length;
@@ -368,7 +368,7 @@ struct hb_bit_set_t
     {
       if (page_map.arrayZ[a].major == other.page_map.arrayZ[b].major)
       {
-	if (page_at (a).may_intersect (other.page_at (b)))
+	if (page_at (a).intersects (other.page_at (b)))
 	  return true;
 	a++;
 	b++;
