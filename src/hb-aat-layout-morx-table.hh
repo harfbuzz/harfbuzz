@@ -69,7 +69,7 @@ struct RearrangementSubtable
 
   bool is_actionable (const Entry<EntryData> &entry) const
   {
-    return (entry.flags & Verb); // && start < end;
+    return (entry.flags & (MarkFirst | MarkLast | Verb));
   }
 
   struct driver_context_t
@@ -222,7 +222,7 @@ struct ContextualSubtable
 
   bool is_actionable (const Entry<EntryData> &entry) const
   {
-    return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
+    return (entry.flags & SetMark) || entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
   }
 
   struct driver_context_t
@@ -967,7 +967,7 @@ struct hb_accelerate_subtables_context_t :
     template <typename T>
     auto init_ (const T &obj_, unsigned num_glyphs, hb_priority<1>) HB_AUTO_RETURN
     (
-      obj_.machine.collect_glyphs (glyph_set, num_glyphs)
+      obj_.machine.collect_initial_glyphs (glyph_set, num_glyphs, obj_)
     )
 
     template <typename T>

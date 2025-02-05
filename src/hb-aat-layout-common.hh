@@ -31,6 +31,7 @@
 #include "hb-aat-map.hh"
 #include "hb-open-type.hh"
 #include "hb-cache.hh"
+#include "hb-bit-page.hh"
 
 namespace OT {
 struct GDEF;
@@ -111,6 +112,13 @@ struct LookupFormat0
   {
     glyphs.add_range (0, num_glyphs - 1);
   }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, unsigned num_glyphs, const filter_t &filter) const
+  {
+    for (unsigned i = 0; i < num_glyphs; i++)
+      if (filter (arrayZ[i]))
+	glyphs.add (i);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -143,8 +151,14 @@ struct LookupSegmentSingle
   template <typename set_t>
   void collect_glyphs (set_t &glyphs) const
   {
-    if (first == DELETED_GLYPH)
-      return;
+    if (first == DELETED_GLYPH) return;
+    glyphs.add_range (first, last);
+  }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
+  {
+    if (first == DELETED_GLYPH) return;
+    if (!filter (value)) return;
     glyphs.add_range (first, last);
   }
 
@@ -185,6 +199,13 @@ struct LookupFormat2
     for (unsigned int i = 0; i < count; i++)
       segments[i].collect_glyphs (glyphs);
   }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
+  {
+    unsigned count = segments.get_length ();
+    for (unsigned int i = 0; i < count; i++)
+      segments[i].collect_glyphs_filtered (glyphs, filter);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -220,9 +241,17 @@ struct LookupSegmentArray
   template <typename set_t>
   void collect_glyphs (set_t &glyphs) const
   {
-    if (first == DELETED_GLYPH)
-      return;
+    if (first == DELETED_GLYPH) return;
     glyphs.add_range (first, last);
+  }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, const void *base, const filter_t &filter) const
+  {
+    if (first == DELETED_GLYPH) return;
+    const auto &values = base+valuesZ;
+    for (hb_codepoint_t i = first; i <= last; i++)
+      if (filter (values[i - first]))
+	glyphs.add (i);
   }
 
   int cmp (hb_codepoint_t g) const
@@ -274,6 +303,13 @@ struct LookupFormat4
     for (unsigned i = 0; i < count; i++)
       segments[i].collect_glyphs (glyphs);
   }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
+  {
+    unsigned count = segments.get_length ();
+    for (unsigned i = 0; i < count; i++)
+      segments[i].collect_glyphs_filtered (glyphs, this, filter);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -306,8 +342,14 @@ struct LookupSingle
   template <typename set_t>
   void collect_glyphs (set_t &glyphs) const
   {
-    if (glyph == DELETED_GLYPH)
-      return;
+    if (glyph == DELETED_GLYPH) return;
+    glyphs.add (glyph);
+  }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
+  {
+    if (glyph == DELETED_GLYPH) return;
+    if (!filter (value)) return;
     glyphs.add (glyph);
   }
 
@@ -347,6 +389,13 @@ struct LookupFormat6
     for (unsigned i = 0; i < count; i++)
       entries[i].collect_glyphs (glyphs);
   }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
+  {
+    unsigned count = entries.get_length ();
+    for (unsigned i = 0; i < count; i++)
+      entries[i].collect_glyphs_filtered (glyphs, filter);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -382,11 +431,19 @@ struct LookupFormat8
   template <typename set_t>
   void collect_glyphs (set_t &glyphs) const
   {
-    if (unlikely (!glyphCount))
-      return;
-    if (firstGlyph == DELETED_GLYPH)
-      return;
+    if (unlikely (!glyphCount)) return;
+    if (firstGlyph == DELETED_GLYPH) return;
     glyphs.add_range (firstGlyph, firstGlyph + glyphCount - 1);
+  }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
+  {
+    if (unlikely (!glyphCount)) return;
+    if (firstGlyph == DELETED_GLYPH) return;
+    const T *p = valueArrayZ.arrayZ;
+    for (unsigned i = 0; i < glyphCount; i++)
+      if (filter (p[i]))
+	glyphs.add (firstGlyph + i);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -436,10 +493,8 @@ struct LookupFormat10
   template <typename set_t>
   void collect_glyphs (set_t &glyphs) const
   {
-    if (unlikely (!glyphCount))
-      return;
-    if (firstGlyph == DELETED_GLYPH)
-      return;
+    if (unlikely (!glyphCount)) return;
+    if (firstGlyph == DELETED_GLYPH) return;
     glyphs.add_range (firstGlyph, firstGlyph + glyphCount - 1);
   }
 
@@ -501,6 +556,18 @@ struct Lookup
     case 6: hb_barrier (); u.format6.collect_glyphs (glyphs); return;
     case 8: hb_barrier (); u.format8.collect_glyphs (glyphs); return;
     case 10: hb_barrier (); u.format10.collect_glyphs (glyphs); return;
+    default:return;
+    }
+  }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, unsigned num_glyphs, const filter_t &filter) const
+  {
+    switch (u.format) {
+    case 0: hb_barrier (); u.format0.collect_glyphs_filtered (glyphs, num_glyphs, filter); return;
+    case 2: hb_barrier (); u.format2.collect_glyphs_filtered (glyphs, filter); return;
+    case 4: hb_barrier (); u.format4.collect_glyphs_filtered (glyphs, filter); return;
+    case 6: hb_barrier (); u.format6.collect_glyphs_filtered (glyphs, filter); return;
+    case 8: hb_barrier (); u.format8.collect_glyphs_filtered (glyphs, filter); return;
     default:return;
     }
   }
@@ -634,6 +701,25 @@ struct StateTable
   void collect_glyphs (set_t &glyphs, unsigned num_glyphs) const
   {
     (this+classTable).collect_glyphs (glyphs, num_glyphs);
+  }
+  template <typename set_t, typename table_t>
+  void collect_initial_glyphs (set_t &glyphs, unsigned num_glyphs, const table_t &table) const
+  {
+    // Collect all classes going out from the start state.
+    unsigned num_classes = nClasses;
+    hb_set_t filter;
+    for (unsigned i = 0; i < num_classes; i++)
+    {
+      const auto &entry = get_entry (STATE_START_OF_TEXT, i);
+      if (new_state (entry.newState) == STATE_START_OF_TEXT &&
+	  !table.is_actionable (entry))
+	continue;
+
+      filter.add (i);
+    }
+
+    // And glyphs in those classes.
+    (this+classTable).collect_glyphs_filtered (glyphs, num_glyphs, filter);
   }
 
   int new_state (unsigned int newState) const
@@ -807,6 +893,13 @@ struct ClassTable
   {
     for (unsigned i = 0; i < classArray.len; i++)
       if (classArray.arrayZ[i] != CLASS_OUT_OF_BOUNDS)
+	glyphs.add (firstGlyph + i);
+  }
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, unsigned num_glyphs, const filter_t &filter) const
+  {
+    for (unsigned i = 0; i < classArray.len; i++)
+      if (filter (classArray.arrayZ[i]))
 	glyphs.add (firstGlyph + i);
   }
 
