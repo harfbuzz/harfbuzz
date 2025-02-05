@@ -4516,11 +4516,13 @@ struct hb_ot_layout_lookup_accelerator_t
 
 
   hb_set_digest_t digest;
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+  public:
   void *cache = nullptr;
   private:
-#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   unsigned cache_user_idx = (unsigned) -1;
 #endif
+  private:
   hb_accelerate_subtables_context_t::hb_applicable_t subtables[HB_VAR_ARRAY];
 };
 
