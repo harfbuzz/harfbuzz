@@ -34,6 +34,7 @@
 #include "hb-open-type.hh"
 #include "hb-set.hh"
 #include "hb-bimap.hh"
+#include "hb-cache.hh"
 
 #include "OT/Layout/Common/Coverage.hh"
 #include "OT/Layout/types.hh"
@@ -46,6 +47,9 @@ using OT::Layout::MediumTypes;
 
 
 namespace OT {
+
+using hb_ot_class_cache_t = hb_cache_t<15, 8, 7>;
+static_assert (sizeof (hb_ot_class_cache_t) == 256, "");
 
 template<typename Iterator>
 static inline bool ClassDef_serialize (hb_serialize_context_t *c,
@@ -2075,6 +2079,15 @@ struct ClassDef
 #endif
     default:return 0;
     }
+  }
+  unsigned int get_class (hb_codepoint_t glyph_id,
+			  hb_ot_class_cache_t *cache) const
+  {
+    unsigned klass;
+    if (cache && cache->get (glyph_id, &klass)) return klass;
+    klass = get_class (glyph_id);
+    if (cache) cache->set (glyph_id, klass);
+    return klass;
   }
 
   unsigned get_population () const
