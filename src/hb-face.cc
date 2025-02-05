@@ -515,7 +515,7 @@ hb_face_reference_blob (hb_face_t *face)
     unsigned total_count = hb_face_get_table_tags (face, 0, nullptr, nullptr);
     if (total_count)
     {
-      hb_tag_t tags[10];
+      hb_tag_t tags[16];
       unsigned count = sizeof (tags) / sizeof (tags[0]);
       hb_face_t* builder = hb_face_builder_create ();
 
