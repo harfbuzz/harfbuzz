@@ -149,6 +149,7 @@ struct hb_set_digest_t
       masks[i] |= one << ((g >> shifts[i]) & mb1);
   }
 
+  __attribute__((always_inline))
   bool may_have (hb_codepoint_t g) const
   {
     constexpr unsigned shifts[n] = HB_SET_DIGEST_SHIFTS;
