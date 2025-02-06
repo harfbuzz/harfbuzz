@@ -1,0 +1,80 @@
+#!/bin/bash
+
+if which svgo 2>/dev/null >/dev/null; then
+	SVGO=svgo
+else
+	echo "'svgo' not found"
+	exit 2
+fi
+
+if test "x$1" == 'x-o'; then
+	shift
+	dir=$1
+	shift
+	mkdir -p "$dir"
+else
+	dir=`mktemp -d`
+	echo "Output in $dir"
+fi
+
+hb_view=$1
+shift
+if ! echo "$hb_view" | grep -q 'hb-view'; then
+	echo "Specify hb-view: got '$hb_view'." >&2
+	exit 1
+fi
+
+fontfile=$1
+shift
+
+BACKEND0=ot
+BACKEND1=coretext
+
+echo "Comparing $fontfile with $BACKEND0 and $BACKEND1 backends..."
+
+glyphs="$@"
+if test "x$glyphs" == x; then
+	num_glyphs=`hb-info -q --show-glyph-count "$fontfile"`
+	glyphs=`seq $num_glyphs`
+fi
+status=0
+numfails=0
+for gid in $glyphs; do
+
+	echo "Comparing glyph $gid..."
+
+	DIFF="$dir/g$gid.diff"
+
+	for backend in $BACKEND0 $BACKEND1; do
+		$hb_view \
+			--font-file "$fontfile" \
+			--glyphs $gid \
+			--face-loader=coretext \
+			--shaper=coretext \
+			--font-funcs=$backend \
+			--variations=wght=400 \
+			--output-format=svg \
+			--font-size 100 |
+		$SVGO - -q -p 0 | \
+		sed 's/ /\n/g' > "$dir/g$gid.$backend.svg"
+	done
+
+	if diff -u "$dir/g$gid.$BACKEND0.svg" "$dir/g$gid.$BACKEND1.svg" > "$DIFF"; then
+		rm -f "$DIFF"
+		continue
+	fi
+
+	status=1
+	numfails=$((numfails+1))
+	echo "Glyph $gid differs:" `wc -l < "$DIFF"` lines
+done
+
+if test $status -eq 0; then
+	echo "All glyphs are the same."
+	rmdir "$dir"
+else
+	echo "$numfails glyphs differ."
+	echo "Differences are in $dir"
+fi
+
+exit $status
