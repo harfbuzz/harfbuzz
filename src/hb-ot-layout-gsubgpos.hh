@@ -4932,6 +4932,7 @@ struct GSUBGPOS
 
 	if (unlikely (!accels[lookup_index].cmpexch (nullptr, accel)))
 	{
+	  accel->fini ();
 	  hb_free (accel);
 	  goto retry;
 	}
