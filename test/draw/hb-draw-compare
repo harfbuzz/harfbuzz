@@ -68,7 +68,7 @@ done
 
 echo "Optimizing SVGs..." >&2
 # svgo doesn't seem to handle too many files at once, even with --folder. Spoonfeed it.
-ls "$dir"/*.svg |
+ls "$dir" |
 xargs -n 1000 \
 $SVGO --quiet --precision 0
 
