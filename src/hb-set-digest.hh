@@ -64,13 +64,14 @@
  * check is done using four bitwise operations only.
  */
 
+static constexpr unsigned hb_set_digest_shifts[] = {4, 0, 6};
+
 struct hb_set_digest_t
 {
   // No science in these. Intuition and testing only.
   using mask_t = uint64_t;
-  static constexpr unsigned n = 3;
-#define HB_SET_DIGEST_SHIFTS {4, 0, 6}
 
+  static constexpr unsigned n = ARRAY_LENGTH_CONST (hb_set_digest_shifts);
   static constexpr unsigned mask_bytes = sizeof (mask_t);
   static constexpr unsigned mask_bits = sizeof (mask_t) * 8;
   static constexpr hb_codepoint_t mb1 = mask_bits - 1;
@@ -103,10 +104,9 @@ struct hb_set_digest_t
     if (!ret) return false;
 
     ret = false;
-    constexpr unsigned shifts[n] = HB_SET_DIGEST_SHIFTS;
     for (unsigned i = 0; i < n; i++)
     {
-      mask_t shift = shifts[i];
+      mask_t shift = hb_set_digest_shifts[i];
       if ((b >> shift) - (a >> shift) >= mb1)
 	masks[i] = all;
       else
@@ -146,17 +146,15 @@ struct hb_set_digest_t
 
   void add (hb_codepoint_t g)
   {
-    constexpr unsigned shifts[n] = HB_SET_DIGEST_SHIFTS;
     for (unsigned i = 0; i < n; i++)
-      masks[i] |= one << ((g >> shifts[i]) & mb1);
+      masks[i] |= one << ((g >> hb_set_digest_shifts[i]) & mb1);
   }
 
   __attribute__((always_inline))
   bool may_have (hb_codepoint_t g) const
   {
-    constexpr unsigned shifts[n] = HB_SET_DIGEST_SHIFTS;
     for (unsigned i = 0; i < n; i++)
-      if (!(masks[i] & (one << ((g >> shifts[i]) & mb1))))
+      if (!(masks[i] & (one << ((g >> hb_set_digest_shifts[i]) & mb1))))
 	return false;
     return true;
   }
