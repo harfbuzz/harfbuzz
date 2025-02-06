@@ -763,7 +763,7 @@ struct hb_ot_apply_context_t :
 					 nullptr
 #endif
 					),
-			digest (buffer_->digest ()),
+			digest (buffer_->collect_codepoints<hb_set_digest_t> ()),
 			direction (buffer_->props.direction),
 			has_glyph_classes (gdef.has_glyph_classes ())
   { init_iters (); }

@@ -2059,7 +2059,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       if (stage->pause_func (plan, font, buffer))
       {
 	/* Refresh working buffer digest since buffer changed. */
-	c.digest = buffer->digest ();
+	c.digest = buffer->collect_codepoints<hb_set_digest_t> ();
       }
     }
   }

@@ -198,15 +198,10 @@ struct hb_buffer_t
   __attribute__((always_inline))
   hb_glyph_info_t prev () const { return out_info[out_len ? out_len - 1 : 0]; }
 
-  hb_set_digest_t digest () const
+  template <typename set_t>
+  set_t collect_codepoints () const
   {
-    hb_set_digest_t d;
-    d.add_array (&info[0].codepoint, len, sizeof (info[0]));
-    return d;
-  }
-  hb_bit_set_t bit_set () const
-  {
-    hb_bit_set_t d;
+    set_t d;
     d.add_array (&info[0].codepoint, len, sizeof (info[0]));
     return d;
   }
