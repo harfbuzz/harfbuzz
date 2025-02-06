@@ -49,6 +49,11 @@ numfails=0
 for backend in $BACKEND0 $BACKEND1; do
 	echo "Rendering with backend $backend..." >&2
 	for unicode in $unicodes; do
+		out="$dir/$unicode.$backend.svg"
+		if test -f "$out"; then
+			echo -n + >&2
+			continue
+		fi
 		echo -n . >&2
 		echo \
 			--font-file="$fontfile" \
@@ -59,7 +64,7 @@ for backend in $BACKEND0 $BACKEND1; do
 			--variations="$variations" \
 			--output-format=svg \
 			--font-size=$fontsize \
-			--output-file="$dir/$unicode.$backend.svg"
+			--output-file="$out"
 	done |
 	sed 's/ /;/g' |
 	"$hb_view" --batch
@@ -68,8 +73,8 @@ done
 
 echo "Optimizing SVGs..." >&2
 # svgo doesn't seem to handle too many files at once, even with --folder. Spoonfeed it.
-find "$dir" -depth 1 -print0 -name "*.$BACKEND0.svg" -o -name "*.BACKEND1.svg"
-xargs -0 -n 1000 \
+find "$dir" -type f -depth 1 -name "*.$BACKEND0.svg" -o -name "*.BACKEND1.svg" |
+xargs -n 100 \
 $SVGO --quiet --precision 0
 
 exit
