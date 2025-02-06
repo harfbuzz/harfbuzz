@@ -236,7 +236,9 @@ struct KerxSubTableFormat1
     return Format1EntryT::initiateAction (entry);
   }
   bool is_actionable (const Entry<EntryData> &entry) const
-  { return Format1EntryT::performAction (entry); }
+  {
+    return Format1EntryT::performAction (entry);
+  }
 
   struct driver_context_t
   {
