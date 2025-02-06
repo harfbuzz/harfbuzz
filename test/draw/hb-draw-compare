@@ -5,7 +5,7 @@ trap "exit" INT
 if which svgo 2>/dev/null >/dev/null; then
 	SVGO=svgo
 else
-	echo "'svgo' not found"
+	echo "'svgo' not found" >&2
 	exit 2
 fi
 
@@ -16,7 +16,7 @@ if test "x$1" == 'x-o'; then
 	mkdir -p "$dir"
 else
 	dir=`mktemp -d`
-	echo "Output in $dir"
+	echo "Output in $dir" >&2
 fi
 
 hb_view=$1
@@ -39,30 +39,38 @@ echo "Comparing $fontfile with $BACKEND0 and $BACKEND1 backends..."
 
 unicodes="$@"
 if test "x$unicodes" == x; then
+	echo "No unicodes specified. Using all unicodes in the font." >&2
 	unicodes=`hb-info --quiet --list-unicodes "$fontfile" | cut -f1`
 fi
 status=0
 numfails=0
-for unicode in $unicodes; do
 
-	echo "Comparing glyph $unicode..."
-
-	DIFF="$dir/$unicode.diff"
-
-	for backend in $BACKEND0 $BACKEND1; do
-		$hb_view \
-			--font-file "$fontfile" \
-			--unicodes $unicode \
+for backend in $BACKEND0 $BACKEND1; do
+	echo "Rendering with backend $backend..." >&2
+	for unicode in $unicodes; do
+		echo -n . >&2
+		echo \
+			--font-file="$fontfile" \
+			--unicodes=$unicode \
 			--face-loader=coretext \
 			--shaper=coretext \
 			--font-funcs=$backend \
 			--variations="$variations" \
 			--output-format=svg \
-			--font-size $fontsize |
-		$SVGO - -q -p 0 | \
-		sed 's/ /\n/g' > "$dir/$unicode.$backend.svg"
-	done
+			--font-size=$fontsize \
+			--output-file="$dir/$unicode.$backend.svg"
+	done |
+	sed 's/ /;/g' |
+	"$hb_view" --batch
+	echo >&2
+done
 
+echo "Optimizing SVGs..." >&2
+$SVGO --quiet --precision 0 --folder "$dir"
+
+echo "Diffing SVGs..." >&2
+for unicode in $unicodes; do
+	DIFF="$dir/$unicode.diff"
 	if diff -u "$dir/$unicode.$BACKEND0.svg" "$dir/$unicode.$BACKEND1.svg" > "$DIFF"; then
 		rm -f "$DIFF"
 		continue
@@ -74,10 +82,10 @@ for unicode in $unicodes; do
 done
 
 if test $status -eq 0; then
-	echo "All characters are the same."
+	echo "All characters are the same." >&2
 else
-	echo "$numfails characters differ."
-	echo "Differences are in $dir"
+	echo "$numfails characters differ." >&2
+	echo "Differences are in $dir" >&2
 fi
 
 exit $status
