@@ -123,11 +123,11 @@ struct PairPosFormat1_3
       case hb_ot_lookup_cache_op_t::LEAVE:
 	return nullptr;
       case hb_ot_lookup_cache_op_t::DESTROY:
-	{
-	  hb_ot_lookup_cache_t *cache = (hb_ot_lookup_cache_t *) p;
-	  hb_free (cache);
-	  return nullptr;
-	}
+      {
+	hb_ot_lookup_cache_t *cache = (hb_ot_lookup_cache_t *) p;
+	hb_free (cache);
+	return nullptr;
+      }
     }
   }
 
