@@ -98,14 +98,17 @@ struct TrackData
      */
     const TrackTableEntry *trackTableEntry = nullptr;
     unsigned int count = nTracks;
+    float last_trak = 1e5;
     for (unsigned int i = 0; i < count; i++)
     {
       /* Note: Seems like the track entries are sorted by values.  But the
        * spec doesn't explicitly say that.  It just mentions it in the example. */
 
-      /* For now we only seek for track entries with zero tracking value */
+      /* Not sure what CoreText does, but it looks to apply a trak=1.0 by default
+       * if there is no 0.0 trak. So, just pick the one closest to 0.0. */
 
-      if (trackTable[i].get_track_value () == 0.f)
+      float trak = trackTable[i].get_track_value ();
+      if (fabsf (trak) < fabsf (last_trak))
       {
 	trackTableEntry = &trackTable[i];
 	break;
