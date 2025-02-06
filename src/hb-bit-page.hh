@@ -103,10 +103,10 @@ struct hb_bit_page_t
   bool is_empty () const
   {
     if (has_population ()) return !population;
-    return
-    + hb_iter (v)
-    | hb_none
-    ;
+    for (unsigned i = 0; i < len (); i++)
+      if (v[i])
+	return false;
+    return true;
   }
   uint32_t hash () const
   {
@@ -260,10 +260,9 @@ struct hb_bit_page_t
   unsigned int get_population () const
   {
     if (has_population ()) return population;
-    population =
-    + hb_iter (v)
-    | hb_reduce ([] (unsigned pop, const elt_t &_) { return pop + hb_popcount (_); }, 0u)
-    ;
+    population = 0;
+    for (unsigned i = 0; i < len (); i++)
+      population += hb_popcount (v[i]);
     return population;
   }
 
