@@ -384,9 +384,9 @@ hb_coretext_face_create_from_file_or_fail (const char   *file_name,
 		      (CTFontDescriptorRef) CFArrayGetValueAtIndex (ct_font_desc_array, index) : nullptr;
   if (unlikely (!ct_font_desc))
   {
-	  CFRelease (ct_font_desc_array);
-	  CFRelease (url);
-	  return nullptr;
+    CFRelease (ct_font_desc_array);
+    CFRelease (url);
+    return nullptr;
   }
   CFRelease (url);
   auto ct_font = ct_font_desc ? CTFontCreateWithFontDescriptor (ct_font_desc, 0, nullptr) : nullptr;
@@ -400,6 +400,7 @@ hb_coretext_face_create_from_file_or_fail (const char   *file_name,
     return nullptr;
 
   hb_face_t *face = hb_coretext_face_create (cg_font);
+  CFRelease (cg_font);
   if (unlikely (hb_face_is_immutable (face)))
     return nullptr;
 
