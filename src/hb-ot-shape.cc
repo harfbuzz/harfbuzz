@@ -46,6 +46,8 @@
 #include "hb-set.hh"
 
 #include "hb-aat-layout.hh"
+#include "hb-ot-stat-table.hh"
+
 
 static inline bool
 _hb_codepoint_is_regional_indicator (hb_codepoint_t u)
@@ -208,8 +210,8 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   if (plan.apply_morx)
     plan.adjust_mark_positioning_when_zeroing = false;
 
-  /* Currently we always apply trak. */
-  plan.apply_trak = plan.requested_tracking && hb_aat_layout_has_tracking (face);
+  /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
+  plan.apply_trak = plan.requested_tracking && hb_aat_layout_has_tracking (face) && face->table.STAT->has_data ();
 #endif
 }
 
