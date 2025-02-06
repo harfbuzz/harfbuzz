@@ -1,5 +1,7 @@
 #!/bin/bash
 
+trap "exit" INT
+
 if which svgo 2>/dev/null >/dev/null; then
 	SVGO=svgo
 else
@@ -27,53 +29,54 @@ fi
 fontfile=$1
 shift
 
+fontsize=32
+variations="wght=400"
+
 BACKEND0=ot
 BACKEND1=coretext
 
 echo "Comparing $fontfile with $BACKEND0 and $BACKEND1 backends..."
 
-glyphs="$@"
-if test "x$glyphs" == x; then
-	num_glyphs=`hb-info -q --show-glyph-count "$fontfile"`
-	glyphs=`seq $num_glyphs`
+unicodes="$@"
+if test "x$unicodes" == x; then
+	unicodes=`hb-info --quiet --list-unicodes "$fontfile" | cut -f1`
 fi
 status=0
 numfails=0
-for gid in $glyphs; do
+for unicode in $unicodes; do
 
-	echo "Comparing glyph $gid..."
+	echo "Comparing glyph $unicode..."
 
-	DIFF="$dir/g$gid.diff"
+	DIFF="$dir/$unicode.diff"
 
 	for backend in $BACKEND0 $BACKEND1; do
 		$hb_view \
 			--font-file "$fontfile" \
-			--glyphs $gid \
+			--unicodes $unicode \
 			--face-loader=coretext \
 			--shaper=coretext \
 			--font-funcs=$backend \
-			--variations=wght=400 \
+			--variations="$variations" \
 			--output-format=svg \
-			--font-size 100 |
+			--font-size $fontsize |
 		$SVGO - -q -p 0 | \
-		sed 's/ /\n/g' > "$dir/g$gid.$backend.svg"
+		sed 's/ /\n/g' > "$dir/$unicode.$backend.svg"
 	done
 
-	if diff -u "$dir/g$gid.$BACKEND0.svg" "$dir/g$gid.$BACKEND1.svg" > "$DIFF"; then
+	if diff -u "$dir/$unicode.$BACKEND0.svg" "$dir/$unicode.$BACKEND1.svg" > "$DIFF"; then
 		rm -f "$DIFF"
 		continue
 	fi
 
 	status=1
 	numfails=$((numfails+1))
-	echo "Glyph $gid differs:" `wc -l < "$DIFF"` lines
+	echo "Charater $unicode differs:" `wc -l < "$DIFF"` lines
 done
 
 if test $status -eq 0; then
-	echo "All glyphs are the same."
-	rmdir "$dir"
+	echo "All characters are the same."
 else
-	echo "$numfails glyphs differ."
+	echo "$numfails characters differ."
 	echo "Differences are in $dir"
 fi
 
