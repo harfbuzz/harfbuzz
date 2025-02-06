@@ -167,9 +167,12 @@ struct trak
 
     hb_mask_t trak_mask = c->plan->trak_mask;
 
-    const float ptem = c->font->ptem;
+    float ptem = c->font->ptem;
     if (unlikely (ptem <= 0.f))
-      return_trace (false);
+    {
+      /* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
+      ptem = HB_CORETEXT_DEFAULT_FONT_SIZE;
+    }
 
     hb_buffer_t *buffer = c->buffer;
     if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))

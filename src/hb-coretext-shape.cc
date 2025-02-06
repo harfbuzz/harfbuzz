@@ -45,9 +45,6 @@
  * Functions for using HarfBuzz with the CoreText fonts.
  **/
 
-/* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
-#define HB_CORETEXT_DEFAULT_FONT_SIZE 12.f
-
 static CTFontRef create_ct_font (CGFontRef cg_font, CGFloat font_size);
 
 static void
