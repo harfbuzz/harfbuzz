@@ -67,12 +67,16 @@ for backend in $BACKEND0 $BACKEND1; do
 done
 
 echo "Optimizing SVGs..." >&2
-$SVGO --quiet --precision 0 --folder "$dir"
+# svgo doesn't seem to handle too many files at once, even with --folder. Spoonfeed it.
+ls "$dir"/*.svg |
+xargs -n 1000 \
+$SVGO --quiet --precision 0
 
 echo "Diffing SVGs..." >&2
 for unicode in $unicodes; do
 	numchars=$((numchars+1))
 	if cmp --quiet "$dir/$unicode.$BACKEND0.svg" "$dir/$unicode.$BACKEND1.svg"; then
+		echo "Charater $unicode is the same." >&2
 		continue
 	fi
 
