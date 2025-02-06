@@ -78,6 +78,28 @@ struct hb_vector_size_t
   hb_vector_size_t operator ~ () const
   { return process (hb_bitwise_neg); }
 
+  operator bool () const
+  {
+    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+      if (v[i])
+	return true;
+    return false;
+  }
+  operator unsigned int () const
+  {
+    unsigned int r = 0;
+    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+      r += hb_popcount (v[i]);
+    return r;
+  }
+  bool operator == (const hb_vector_size_t &o) const
+  {
+    for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++)
+      if (v[i] != o.v[i])
+	return false;
+    return true;
+  }
+
   hb_array_t<const elt_t> iter () const
   { return hb_array (v); }
 
@@ -103,10 +125,9 @@ struct hb_bit_page_t
   bool is_empty () const
   {
     if (has_population ()) return !population;
-    for (unsigned i = 0; i < len (); i++)
-      if (v[i])
-	return false;
-    return true;
+    bool empty = !v;
+    if (empty) population = 0;
+    return empty;
   }
   uint32_t hash () const
   {
@@ -226,13 +247,7 @@ struct hb_bit_page_t
   }
 
   bool operator == (const hb_bit_page_t &other) const { return is_equal (other); }
-  bool is_equal (const hb_bit_page_t &other) const
-  {
-    for (unsigned i = 0; i < len (); i++)
-      if (v[i] != other.v[i])
-	return false;
-    return true;
-  }
+  bool is_equal (const hb_bit_page_t &other) const { return v == other.v; }
   bool intersects (const hb_bit_page_t &other) const
   {
     for (unsigned i = 0; i < len (); i++)
@@ -257,13 +272,10 @@ struct hb_bit_page_t
   }
 
   bool has_population () const { return population != UINT_MAX; }
-  unsigned int get_population () const
+  unsigned get_population () const
   {
     if (has_population ()) return population;
-    population = 0;
-    for (unsigned i = 0; i < len (); i++)
-      population += hb_popcount (v[i]);
-    return population;
+    return population = v;
   }
 
   bool next (hb_codepoint_t *codepoint) const
