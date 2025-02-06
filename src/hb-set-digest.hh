@@ -101,7 +101,7 @@ struct hb_set_digest_t
     if (!ret) return false;
 
     ret = false;
-    constexpr unsigned shifts[] = HB_SET_DIGEST_SHIFTS;
+    constexpr unsigned shifts[n] = HB_SET_DIGEST_SHIFTS;
     for (unsigned i = 0; i < n; i++)
     {
       mask_t shift = shifts[i];
@@ -144,14 +144,14 @@ struct hb_set_digest_t
 
   void add (hb_codepoint_t g)
   {
-    constexpr unsigned shifts[] = HB_SET_DIGEST_SHIFTS;
+    constexpr unsigned shifts[n] = HB_SET_DIGEST_SHIFTS;
     for (unsigned i = 0; i < n; i++)
       masks[i] |= one << ((g >> shifts[i]) & mb1);
   }
 
   bool may_have (hb_codepoint_t g) const
   {
-    constexpr unsigned shifts[] = HB_SET_DIGEST_SHIFTS;
+    constexpr unsigned shifts[n] = HB_SET_DIGEST_SHIFTS;
     for (unsigned i = 0; i < n; i++)
       if (!(masks[i] & (one << ((g >> shifts[i]) & mb1))))
 	return false;
