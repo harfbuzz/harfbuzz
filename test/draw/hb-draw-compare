@@ -2,106 +2,317 @@
 
 trap "exit" INT
 
-if which svgo 2>/dev/null >/dev/null; then
-	SVGO=svgo
-else
-	echo "'svgo' not found" >&2
+# Parse options
+output=
+font_file=
+hb_view=hb-view
+hb_info=hb-info
+svgo=svgo
+svgo_config=
+font_size=upem
+features=
+variations=
+face_loader=ot
+shaper=ot
+font_funcs1=ot
+font_funcs2=coretext
+unicodes=
+quiet=false
+help=false
+usage=false
+while test $# -gt 0; do
+	case "$1" in
+		-o|--output)
+			shift
+			output=$1
+			shift
+			;;
+		--font-file)
+			shift
+			font_file=$1
+			shift
+			;;
+		--hb-view)
+			shift
+			hb_view=$1
+			shift
+			;;
+		--hb-info)
+			shift
+			hb_info=$1
+			shift
+			;;
+		--svgo)
+			shift
+			svgo=$1
+			shift
+			;;
+		--svgo-config)
+			shift
+			svgo_config=$1
+			shift
+			;;
+		--font-size)
+			shift
+			font_size=$1
+			shift
+			;;
+		--features)
+			shift
+			features=$1
+			shift
+			;;
+		--variations)
+			shift
+			variations=$1
+			shift
+			;;
+		--unicodes)
+			shift
+			unicodes=$1
+			shift
+			;;
+		--face-loader)
+			shift
+			face_loader=$1
+			shift
+			;;
+		--shaper)
+			shift
+			shaper=$1
+			shift
+			;;
+		--font-funcs0)
+			shift
+			font_funcs1=$1
+			shift
+			;;
+		--font-funcs1)
+			shift
+			font_funcs2=$1
+			shift
+			;;
+		--quiet)
+			quiet=true
+			shift
+			;;
+		--help)
+			help=true
+			shift
+			;;
+		*)
+			if test "x$font_file" == x; then
+				font_file=$1
+				shift
+			else
+				unicodes="$unicodes $1"
+				shift
+			fi
+			;;
+	esac
+done
+
+if test "x$font_file" == x; then
+	echo "No font file specified." >&2
+	usage=true
+fi
+
+if $help || $usage; then
+	cmd=`basename "$0"`
+	echo "Usage: $cmd [OPTIONS] FONTFILE [UNICODES...]"
+	echo "Render a font with two font backends and compare the results."
+	echo
+	echo "Options:"
+	echo "  -o, --output DIR: Output in DIR"
+	echo "  --font-file FONTFILE: Font file to render"
+	echo "  --hb-view HB_VIEW: Path to hb-view; default hb-view"
+	echo "  --hb-info HB_INFO: Path to hb-info; default hb-info"
+	echo "  --svgo SVGO: Path to svgo; default svgo"
+	echo "  --svgo-config CONFIG: Path to svgo config; default custom"
+	echo "  --font-size SIZE: Font size; default upem"
+	echo "  --features FEATURES: Font features; default none"
+	echo "  --variations VARIATIONS: Font variations; default none"
+	echo "  --face-loader: Face loader; default ot"
+	echo "  --shaper: Shaper; default ot"
+	echo "  --font-funcs0 font_funcs: First font-funcs; default ot"
+	echo "  --font-funcs1 font_funcs: Second font-funcs; default coretext"
+	echo "  --unicodes CODES: Unicodes to render; default all in font"
+	echo "  --quiet: Quiet mode"
+	echo "  --help: Print help"
+	$usage && exit 1
+	exit 0
+fi
+
+if ! which "$hb_view" 2>/dev/null >/dev/null; then
+	echo "'$hb_view' not found" >&2
 	exit 2
 fi
-
-if test "x$1" == 'x-o'; then
-	shift
-	dir=$1
-	shift
-	mkdir -p "$dir"
-else
-	dir=`mktemp -d`
-	echo "Output in '$dir'" >&2
+if ! which "$hb_info" 2>/dev/null >/dev/null; then
+	echo "'$hb_info' not found" >&2
+	exit 2
+fi
+if ! which "$svgo" 2>/dev/null >/dev/null; then
+	echo "'$svgo' not found" >&2
+	exit 2
+fi
+if ! test -f "$font_file"; then
+	echo "Font file '$font_file' not found" >&2
+	exit 2
+fi
+if test "x$output" == x; then
+	output=`mktemp -d`
+	echo "Output in '$output'" >&2
 fi
 
-hb_view=$1
-shift
-if ! echo "$hb_view" | grep -q 'hb-view'; then
-	echo "Specify hb-view: got '$hb_view'." >&2
-	exit 1
-fi
+$quiet || echo "Comparing '$font_file' with '$font_funcs1' and '$font_funcs2' font backends..."
 
-fontfile=$1
-shift
-
-fontsize=100
-variations="wght=400"
-
-BACKEND0=ot
-BACKEND1=coretext
-
-echo "Comparing $fontfile with $BACKEND0 and $BACKEND1 backends..."
-
-unicodes="$@"
 if test "x$unicodes" == x; then
-	echo "No unicodes specified. Using all unicodes in the font." >&2
-	unicodes=`hb-info --quiet --list-unicodes "$fontfile" | cut -f1`
+	$quiet || echo "No unicodes specified. Using all unicodes in the font." >&2
+	unicodes=`hb-info --quiet --list-unicodes "$font_file" | cut -f1`
 fi
-status=0
-numchars=0
-numfails=0
 
-for backend in $BACKEND0 $BACKEND1; do
-	echo "Rendering with backend $backend..." >&2
+# Sanity check Unicode values
+echo $unicodes |
+tr ' ' '\n' |
+grep -v '^U[+][0-9a-fA-F]\+$' &&
+{
+	echo "Invalid Unicode values" >&2
+	exit 1
+}
+
+# Function to give U+12xx for U+1234
+function unicode_prefix {
+	local unicode=$1
+	local prefix=${unicode%??}
+	echo "${prefix}xx"
+}
+
+mkdir -p "$output"
+
+# Create svgo config if it doesn't exist
+# We use a custom config to remove floating point precision from path data.
+if test "x$svgo_config" != x; then
+	cp "$svgo_config" "$output/svgo.config.js"
+	svgo_config="$output/svgo.config.js"
+else
+	svgo_config="$output/svgo.config.js"
+	cat > "$svgo_config" <<EOF
+module.exports = {
+  plugins: [
+    {
+      name: 'convertPathData',
+      params: {
+        floatPrecision: 0
+      }
+    }
+  ]
+};
+EOF
+fi
+
+# Render with both font backends
+for font_funcs in $font_funcs1 $font_funcs2; do
+	$quiet || echo "Rendering with font backend '$font_funcs'..." >&2
+	funcs_prefix="$output/$font_funcs"
+	mkdir -p "$funcs_prefix"
 	for unicode in $unicodes; do
-		out="$dir/$unicode.$backend.svg"
-		if test -f "$out"; then
-			echo -n + >&2
+		unicode_prefix=`unicode_prefix $unicode`
+		dir="$funcs_prefix/$unicode_prefix"
+		if ! test -d "$dir"; then
+			$quiet || echo -n x >&2
+		fi
+		mkdir -p "$dir"
+		svg="$dir/$unicode.svg"
+		if test -f "$svg"; then
 			continue
 		fi
-		echo -n . >&2
 		echo \
-			--font-file="$fontfile" \
+			--font-file="$font_file" \
 			--unicodes=$unicode \
-			--face-loader=coretext \
-			--shaper=coretext \
-			--font-funcs=$backend \
+			--face-loader=$face_loader \
+			--shaper=$shaper \
+			--font-funcs=$font_funcs \
+			--features="$features" \
 			--variations="$variations" \
 			--output-format=svg \
-			--font-size=$fontsize \
-			--output-file="$out"
+			--font-size=$font_size \
+			--output-file="$svg"
 	done |
 	sed 's/ /;/g' |
 	"$hb_view" --batch
-	echo >&2
+	$quiet || echo >&2
 done
 
-echo "Optimizing SVGs..." >&2
-# svgo doesn't seem to handle too many files at once, even with --folder. Spoonfeed it.
-find "$dir" -type f -depth 1 -name "*.$BACKEND0.svg" -o -name "*.BACKEND1.svg" |
-xargs -n 100 \
-$SVGO --quiet --precision 0
+# Optimize SVGs
+for font_funcs in $font_funcs1 $font_funcs2; do
+	$quiet || echo "Optimizing SVGs for font backend '$font_funcs'..." >&2
+	funcs_prefix="$output/$font_funcs"
+	optimized_prefix="$output/$font_funcs.optimized"
+	mkdir -p "$optimized_prefix"
 
-exit
+	# For each subdirectory of SVGs, optimize them in one go.
+	find "$funcs_prefix" -mindepth 1 -maxdepth 1 -type d |
+	while read dir; do
+		unicode_prefix=`basename "$dir"`
+		original_dir="$funcs_prefix/$unicode_prefix"
+		optimized_dir="$optimized_prefix/$unicode_prefix"
+		mkdir -p "$optimized_dir"
+		$quiet || echo -n x >&2
+		"$svgo" \
+			--quiet \
+			--final-newline \
+			--config "$svgo_config" \
+			--folder "$original_dir" \
+			--output "$optimized_dir"
+	done
+	$quiet || echo
+done
 
-echo "Diffing SVGs..." >&2
+diff="$output/diff"
+mkdir -p "$diff"
+$quiet || echo "Diffing SVGs into '$diff'" >&2
+status=0
+numchars=0
+numfails=0
 for unicode in $unicodes; do
 	numchars=$((numchars+1))
-	if cmp --quiet "$dir/$unicode.$BACKEND0.svg" "$dir/$unicode.$BACKEND1.svg"; then
-		echo "Charater $unicode is the same." >&2
+	unicode_prefix=`unicode_prefix $unicode`
+	svg1="$output/$font_funcs1.optimized/$unicode_prefix/$unicode.svg"
+	svg2="$output/$font_funcs2.optimized/$unicode_prefix/$unicode.svg"
+
+	if ! test -f "$svg1" || ! test -f "$svg2"; then
+		echo "Character $unicode not rendered." >&2
+		exit 1
+	fi
+
+	if cmp --quiet "$svg1" "$svg2"; then
+		$quiet || echo -n . >&2
 		continue
 	fi
 
-	for backend in $BACKEND0 $BACKEND1; do
-		sed 's/ /\n/g' < "$dir/$unicode.$backend.svg" > "$dir/$unicode.$backend.split.svg"
-	done
-	DIFF="$dir/$unicode.diff"
-	diff "$dir/$unicode.$BACKEND0.split.svg" "$dir/$unicode.$BACKEND1.split.svg" > "$DIFF"
+	# Split on whitespace to make diff more readable
+	diff_prefix="$diff/$unicode_prefix"
+	mkdir -p "$diff_prefix"
+	split1="$diff_prefix/$unicode.$font_funcs1.svg"
+	split2="$diff_prefix/$unicode.$font_funcs2.svg"
+	sed 's/ /\n/g' < "$svg1" > "$split1"
+	sed 's/ /\n/g' < "$svg2" > "$split2"
+
+	svg_diff="$diff_prefix/$unicode.diff"
+	diff "$split1" "$split2" > "$svg_diff"
 	status=1
 	numfails=$((numfails+1))
-	echo "Charater $unicode differs:" `wc -l < "$DIFF"` lines
+	$quiet || echo -e "\nCharater $unicode differs:" `wc -l < "$svg_diff"` lines
 done
 
 if test $status -eq 0; then
-	echo "All characters are the same." >&2
+	$quiet || echo
+	$quiet || echo "All characters are the same." >&2
+	rmdir "$diff"
 else
-	echo "$numfails out of $numchars characters differ." >&2
-	echo "Differences are in '$dir'" >&2
+	$quiet || echo
+	$quiet || echo "$numfails out of $numchars characters differ." >&2
+	$quiet || echo "Differences are in '$diff'" >&2
 fi
 
 exit $status
