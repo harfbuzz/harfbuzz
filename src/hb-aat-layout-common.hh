@@ -93,7 +93,7 @@ struct hb_aat_apply_context_t :
     using_buffer_glyph_set = buffer->len >= 4;
 
     if (using_buffer_glyph_set)
-      buffer_glyph_set = buffer->collect_codepoints<hb_bit_set_t> ();
+      buffer->collect_codepoints (buffer_glyph_set);
   }
   bool buffer_intersects_machine () const
   {

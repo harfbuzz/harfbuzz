@@ -80,6 +80,8 @@ struct hb_set_digest_t
   void init ()
   { for (unsigned i = 0; i < n; i++) masks[i] = 0; }
 
+  void clear () { init (); }
+
   static hb_set_digest_t full ()
   {
     hb_set_digest_t d;
