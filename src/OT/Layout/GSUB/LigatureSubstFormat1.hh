@@ -119,7 +119,7 @@ struct LigatureSubstFormat1_2
 #else
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
 #endif
-    if (likely (index == NOT_COVERED)) return_trace (false);
+    if (index == NOT_COVERED) return_trace (false);
 
     const auto &lig_set = this+ligatureSet[index];
     return_trace (lig_set.apply (c));
