@@ -160,6 +160,7 @@ struct PairPosFormat2_4 : ValueBase
 	  return nullptr;
 	}
     }
+    return nullptr;
   }
 
   bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }

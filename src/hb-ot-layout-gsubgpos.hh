@@ -2665,6 +2665,7 @@ struct ContextFormat2_5
       case hb_ot_lookup_cache_op_t::DESTROY:
         return nullptr;
     }
+    return nullptr;
   }
 
   bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }
@@ -3914,6 +3915,7 @@ struct ChainContextFormat2_5
       case hb_ot_lookup_cache_op_t::DESTROY:
         return nullptr;
     }
+    return nullptr;
   }
 
   bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }

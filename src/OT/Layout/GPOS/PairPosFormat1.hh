@@ -129,6 +129,7 @@ struct PairPosFormat1_3
 	return nullptr;
       }
     }
+    return nullptr;
   }
 
   bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }
