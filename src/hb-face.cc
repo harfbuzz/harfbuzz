@@ -516,7 +516,7 @@ hb_face_reference_blob (hb_face_t *face)
     if (total_count)
     {
       hb_tag_t tags[64];
-      unsigned count = sizeof (tags) / sizeof (tags[0]);
+      unsigned count = ARRAY_LENGTH (tags);
       hb_face_t* builder = hb_face_builder_create ();
 
       for (unsigned offset = 0; offset < total_count; offset += count)
