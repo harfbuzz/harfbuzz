@@ -88,10 +88,11 @@ struct hb_bit_set_t
   {
     if (unlikely (!successful)) return false;
 
-    if (pages.length == 0 && count == 1)
+    if (pages.length < count && count <= 2)
       exact_size = true; // Most sets are small and local
 
-    if (unlikely (!pages.resize (count, clear, exact_size) || !page_map.resize (count, clear, exact_size)))
+    if (unlikely (!pages.resize (count, clear, exact_size) ||
+	!page_map.resize (count, clear)))
     {
       pages.resize (page_map.length, clear, exact_size);
       successful = false;
