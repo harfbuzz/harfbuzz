@@ -78,6 +78,11 @@ struct hb_vector_size_t
   hb_vector_size_t operator ~ () const
   { return process (hb_bitwise_neg); }
 
+  void operator |= (const hb_vector_size_t &o)
+  { for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++) v[i] |= o.v[i]; }
+  void operator &= (const hb_vector_size_t &o)
+  { for (unsigned int i = 0; i < ARRAY_LENGTH (v); i++) v[i] &= o.v[i]; }
+
   hb_array_t<const elt_t> iter () const
   { return hb_array (v); }
 
@@ -159,6 +164,8 @@ struct hb_bit_page_t
   void set_range (hb_codepoint_t a, hb_codepoint_t b, bool v)
   { if (v) add_range (a, b); else del_range (a, b); }
 
+  void operator |= (const hb_bit_page_t &o) { v |= o.v; dirty (); }
+  void operator &= (const hb_bit_page_t &o) { v &= o.v; dirty (); }
 
   // Writes out page values to the array p. Returns the number of values
   // written. At most size codepoints will be written.

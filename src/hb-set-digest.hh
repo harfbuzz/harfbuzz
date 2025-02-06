@@ -29,93 +29,31 @@
 
 #include "hb.hh"
 #include "hb-machinery.hh"
-
-/*
- * The set-digests here implement various "filters" that support
- * "approximate member query".  Conceptually these are like Bloom
- * Filter and Quotient Filter, however, much smaller, faster, and
- * designed to fit the requirements of our uses for glyph coverage
- * queries.
- *
- * Our filters are highly accurate if the lookup covers fairly local
- * set of glyphs, but fully flooded and ineffective if coverage is
- * all over the place.
- *
- * The way these are used is that the filter is first populated by
- * a lookup's or subtable's Coverage table(s), and then when we
- * want to apply the lookup or subtable to a glyph, before trying
- * to apply, we ask the filter if the glyph may be covered. If it's
- * not, we return early.  We can also match a digest against another
- * digest.
- *
- * We use these filters at three levels:
- *   - If the digest for all the glyphs in the buffer as a whole
- *     does not match the digest for the lookup, skip the lookup.
- *   - For each glyph, if it doesn't match the lookup digest,
- *     skip it.
- *   - For each glyph, if it doesn't match the subtable digest,
- *     skip it.
- *
- * The main filter we use is a combination of four bits-pattern
- * filters. A bits-pattern filter checks a number of bits (5 or 6)
- * of the input number (glyph-id in this case) and checks whether
- * its pattern is amongst the patterns of any of the accepted values.
- * The accepted patterns are represented as a "long" integer. The
- * check is done using four bitwise operations only.
- */
+#include "hb-bit-page.hh"
 
 struct hb_set_digest_t
 {
-  // No science in these. Intuition and testing only.
-  using mask_t = uint64_t;
-  static constexpr unsigned n = 4;
-#define HB_SET_DIGEST_SHIFTS {4, 0, 6, 9}
+  // Primes that work well modulo 512
+  #define HB_SET_DIGEST_PRIMES {2654435761, 2246822519, 3266489917}
 
-  static constexpr unsigned mask_bytes = sizeof (mask_t);
-  static constexpr unsigned mask_bits = sizeof (mask_t) * 8;
-  static constexpr hb_codepoint_t mb1 = mask_bits - 1;
-  static constexpr mask_t one = 1;
-  static constexpr mask_t all = (mask_t) -1;
 
-  void init ()
-  { for (unsigned i = 0; i < n; i++) masks[i] = 0; }
+  void init () { bits.init0 (); }
 
   static hb_set_digest_t full ()
   {
     hb_set_digest_t d;
-    for (unsigned i = 0; i < n; i++) d.masks[i] = all;
+    d.bits.init1 ();
     return d;
   }
 
   void union_ (const hb_set_digest_t &o)
-  { for (unsigned i = 0; i < n; i++) masks[i] |= o.masks[i]; }
+  { bits |= o.bits; }
 
   bool add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
-    bool ret;
-
-    ret = false;
-    for (unsigned i = 0; i < n; i++)
-      if (masks[i] != all)
-	ret = true;
-    if (!ret) return false;
-
-    ret = false;
-    constexpr unsigned shifts[] = HB_SET_DIGEST_SHIFTS;
-    for (unsigned i = 0; i < n; i++)
-    {
-      mask_t shift = shifts[i];
-      if ((b >> shift) - (a >> shift) >= mb1)
-	masks[i] = all;
-      else
-      {
-	mask_t ma = one << ((a >> shift) & mb1);
-	mask_t mb = one << ((b >> shift) & mb1);
-	masks[i] |= mb + (mb - ma) - (mb < ma);
-	ret = true;
-      }
-    }
-    return ret;
+    for (hb_codepoint_t g = a; g <= b; g++)
+      add (g);
+    return true;
   }
 
   template <typename T>
@@ -144,31 +82,28 @@ struct hb_set_digest_t
 
   void add (hb_codepoint_t g)
   {
-    constexpr unsigned shifts[] = HB_SET_DIGEST_SHIFTS;
-    for (unsigned i = 0; i < n; i++)
-      masks[i] |= one << ((g >> shifts[i]) & mb1);
+    constexpr unsigned primes[] = HB_SET_DIGEST_PRIMES;
+    for (unsigned i = 0; i < ARRAY_LENGTH (primes); i++)
+      bits.add ((g * primes[i]) % bits.BITS);
   }
 
   bool may_have (hb_codepoint_t g) const
   {
-    constexpr unsigned shifts[] = HB_SET_DIGEST_SHIFTS;
-    for (unsigned i = 0; i < n; i++)
-      if (!(masks[i] & (one << ((g >> shifts[i]) & mb1))))
+    constexpr unsigned primes[] = HB_SET_DIGEST_PRIMES;
+    for (unsigned i = 0; i < ARRAY_LENGTH (primes); i++)
+      if (!bits.get ((g * primes[i]) % bits.BITS))
 	return false;
     return true;
   }
 
   bool may_intersect (const hb_set_digest_t &o) const
   {
-    for (unsigned i = 0; i < n; i++)
-      if (!(masks[i] & o.masks[i]))
-	return false;
-    return true;
+    return bits.may_intersect (o.bits);
   }
 
   private:
 
-  mask_t masks[n] = {};
+  hb_bit_page_t bits;
 };
 
 
