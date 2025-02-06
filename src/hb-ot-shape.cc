@@ -211,7 +211,12 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
     plan.adjust_mark_positioning_when_zeroing = false;
 
   /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
+#ifndef HB_NO_STYLE
   plan.apply_trak = plan.requested_tracking && hb_aat_layout_has_tracking (face) && face->table.STAT->has_data ();
+#else
+  plan.apply_trak = false;
+#endif
+
 #endif
 }
 
