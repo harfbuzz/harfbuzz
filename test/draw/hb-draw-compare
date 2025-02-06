@@ -68,9 +68,11 @@ done
 
 echo "Optimizing SVGs..." >&2
 # svgo doesn't seem to handle too many files at once, even with --folder. Spoonfeed it.
-ls "$dir" |
-xargs -n 1000 \
+find "$dir" -depth 1 -print0 -name "*.$BACKEND0.svg" -o -name "*.BACKEND1.svg"
+xargs -0 -n 1000 \
 $SVGO --quiet --precision 0
+
+exit
 
 echo "Diffing SVGs..." >&2
 for unicode in $unicodes; do
