@@ -4908,9 +4908,10 @@ struct GSUBGPOS
     {
       for (unsigned int i = 0; i < this->lookup_count; i++)
       {
-	if (this->accels[i])
-	  this->accels[i]->fini ();
-	hb_free (this->accels[i]);
+	auto *accel = this->accels[i].get_relaxed ();
+	if (accel)
+	  accel->fini ();
+	hb_free (accel);
       }
       hb_free (this->accels);
       this->table.destroy ();
