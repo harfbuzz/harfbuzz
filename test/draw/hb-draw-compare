@@ -16,7 +16,7 @@ if test "x$1" == 'x-o'; then
 	mkdir -p "$dir"
 else
 	dir=`mktemp -d`
-	echo "Output in $dir" >&2
+	echo "Output in '$dir'" >&2
 fi
 
 hb_view=$1
@@ -29,7 +29,7 @@ fi
 fontfile=$1
 shift
 
-fontsize=32
+fontsize=100
 variations="wght=400"
 
 BACKEND0=ot
@@ -43,6 +43,7 @@ if test "x$unicodes" == x; then
 	unicodes=`hb-info --quiet --list-unicodes "$fontfile" | cut -f1`
 fi
 status=0
+numchars=0
 numfails=0
 
 for backend in $BACKEND0 $BACKEND1; do
@@ -70,12 +71,16 @@ $SVGO --quiet --precision 0 --folder "$dir"
 
 echo "Diffing SVGs..." >&2
 for unicode in $unicodes; do
-	DIFF="$dir/$unicode.diff"
-	if diff -u "$dir/$unicode.$BACKEND0.svg" "$dir/$unicode.$BACKEND1.svg" > "$DIFF"; then
-		rm -f "$DIFF"
+	numchars=$((numchars+1))
+	if cmp --quiet "$dir/$unicode.$BACKEND0.svg" "$dir/$unicode.$BACKEND1.svg"; then
 		continue
 	fi
 
+	for backend in $BACKEND0 $BACKEND1; do
+		sed 's/ /\n/g' < "$dir/$unicode.$backend.svg" > "$dir/$unicode.$backend.split.svg"
+	done
+	DIFF="$dir/$unicode.diff"
+	diff "$dir/$unicode.$BACKEND0.split.svg" "$dir/$unicode.$BACKEND1.split.svg" > "$DIFF"
 	status=1
 	numfails=$((numfails+1))
 	echo "Charater $unicode differs:" `wc -l < "$DIFF"` lines
@@ -84,8 +89,8 @@ done
 if test $status -eq 0; then
 	echo "All characters are the same." >&2
 else
-	echo "$numfails characters differ." >&2
-	echo "Differences are in $dir" >&2
+	echo "$numfails out of $numchars characters differ." >&2
+	echo "Differences are in '$dir'" >&2
 fi
 
 exit $status
