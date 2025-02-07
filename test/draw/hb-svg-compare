@@ -74,7 +74,7 @@ def compare_token_lists(tokens_a, tokens_b):
     numeric values within given tolerance), otherwise False.
     """
     if len(tokens_a) != len(tokens_b):
-        return False  # Different lengths => not a match
+        return None  # Different lengths => not a match
 
     max_diff = 0
     for a, b in zip(tokens_a, tokens_b):
@@ -133,11 +133,12 @@ if __name__ == "__main__":
         diff = compare_svg_files(svg1, svg2)
 
         if diff is None:
-            diff = "MISMATCH"
-
-        if diff <= tolerance:
+            diff = "DIFF"
+        elif diff <= tolerance:
             continue
+        else:
+            diff = f"{diff:.2f}"
 
-        print(f"%s\t%s\t%.2f" % (svg1, svg2, diff))
+        print(f"{diff}\t{svg1}\t{svg2}")
         # Flush stdout to make sure output is immediate
         sys.stdout.flush()

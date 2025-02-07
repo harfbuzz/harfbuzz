@@ -228,14 +228,20 @@ done
 diff="$output/diff"
 rm -f "$diff"
 $quiet || echo "Comparing SVGs into '$diff'" >&2
+last_unicode_prefix=
 cat "$unicodes" |
 while read unicode; do
 	unicode_prefix=${unicode%??}xx
 	svg1="$output/$font_funcs1/$unicode_prefix/$unicode.svg"
 	svg2="$output/$font_funcs2/$unicode_prefix/$unicode.svg"
 
+	if test "$unicode_prefix" != "$last_unicode_prefix"; then
+		$quiet || echo -n x >&2
+		last_unicode_prefix="$unicode_prefix"
+	fi
+
 	if ! test -f "$svg1" || ! test -f "$svg2"; then
-		echo "Character $unicode not rendered." >&2
+		echo -e "\nCharacter $unicode not rendered." >&2
 		exit 1
 	fi
 
@@ -246,10 +252,12 @@ while read unicode; do
 	echo -e "$svg1\t$svg2"
 done |
 "$hb_svg_compare" "$tolerance" |
-while read svg1 svg2; do
-	$quiet || echo -e "$svg1\t$svg2"
-	echo -e "$svg1\t$svg2" >> "$diff"
+while read line; do
+	$quiet || echo -e "\n$line"
+	echo "$line" >> "$diff"
 done
+# Sort diff by error
+sort -n -o "$diff.tmp" "$diff" && mv "$diff.tmp" "$diff" || exit 1
 # Count number of differences
 num_diffs=`cat "$diff" | wc -l`
-$quiet || echo "Found $num_diffs differences in $num_unicodes characters." >&2
+$quiet || echo -e "\nFound $num_diffs differences in $num_unicodes characters." >&2
