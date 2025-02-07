@@ -184,7 +184,7 @@ struct hb_transform_t
     if (before)
     {
       x0 += x;
-	    y0 += y;
+      y0 += y;
     }
     else
     {
