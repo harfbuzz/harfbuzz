@@ -379,7 +379,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
     if (master_rotation_count &&
 	*master_rotation_indices == row)
     {
-      transforms[*master_rotation_indices].rotate ((double) *master_rotation_deltas, true);
+      transform.rotate ((double) *master_rotation_deltas, true);
       master_rotation_count--;
       master_rotation_indices++;
       master_rotation_deltas++;
@@ -387,9 +387,9 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
     if (master_translation_count &&
 	*master_translation_indices == row)
     {
-      transforms[*master_translation_indices].translate ((double) master_translation_deltas->x,
-							 (double) master_translation_deltas->y,
-							 true);
+      transform.translate ((double) master_translation_deltas->x,
+			   (double) master_translation_deltas->y,
+			   true);
       master_translation_count--;
       master_translation_indices++;
       master_translation_deltas++;
