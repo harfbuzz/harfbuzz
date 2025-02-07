@@ -8,7 +8,7 @@ font_file=
 hb_view=hb-view
 hb_info=hb-info
 svgo=svgo
-precision=0
+precision=1
 font_size=upem
 features=
 variations=
@@ -125,17 +125,17 @@ if $help || $usage; then
 	echo "Options:"
 	echo "  -o, --output DIR: Output in DIR"
 	echo "  --font-file FONTFILE: Font file to render"
-	echo "  --hb-view HB_VIEW: Path to hb-view; default hb-view"
-	echo "  --hb-info HB_INFO: Path to hb-info; default hb-info"
-	echo "  --svgo SVGO: Path to svgo; default svgo"
-	echo "  --precision PRECISION: Floating-point digits for svgo; default 0"
-	echo "  --font-size SIZE: Font size; default upem"
+	echo "  --hb-view HB_VIEW: Path to hb-view; default $hb_view"
+	echo "  --hb-info HB_INFO: Path to hb-info; default $hb_info"
+	echo "  --svgo SVGO: Path to svgo; default $svgo"
+	echo "  --precision PRECISION: Floating-point digits for svgo; default $precision"
+	echo "  --font-size SIZE: Font size; default $font_size"
 	echo "  --features FEATURES: Font features; default none"
 	echo "  --variations VARIATIONS: Font variations; default none"
-	echo "  --face-loader: Face loader; default ot"
-	echo "  --shaper: Shaper; default ot"
-	echo "  --font-funcs0 font_funcs: First font-funcs; default ot"
-	echo "  --font-funcs1 font_funcs: Second font-funcs; default coretext"
+	echo "  --face-loader: Face loader; default $face_loader"
+	echo "  --shaper: Shaper; default $shaper"
+	echo "  --font-funcs0 font_funcs: First font-funcs; default $font_funcs1"
+	echo "  --font-funcs1 font_funcs: Second font-funcs; default $font_funcs2"
 	echo "  --unicodes CODES: Unicodes to render; default all in font"
 	echo "  --quiet: Quiet mode"
 	echo "  --help: Print help"
