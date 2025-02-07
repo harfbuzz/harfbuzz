@@ -343,23 +343,6 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   const auto &extremumRotationIndex = StructAfter<decltype (allRotations.extremumRotationIndexX)> (extremumRotationDelta, sparseExtremumRotationCount);
   const auto &masterRotationIndex = StructAfter<decltype (allRotations.masterRotationIndexX)> (extremumRotationIndex, sparseExtremumRotationCount);
 
-  {
-    const auto master_rotation_indices = masterRotationIndex.arrayZ;
-    const auto master_rotation_deltas = masterRotationDelta.arrayZ;
-    unsigned count = sparseMasterRotationCount;
-    for (unsigned i = 0; i < count; i++)
-      transforms[master_rotation_indices[i]].rotate ((double) master_rotation_deltas[i], true);
-  }
-  {
-    const auto master_translation_indices = masterTranslationIndex.arrayZ;
-    const auto master_translation_deltas = masterTranslationDelta.arrayZ;
-    unsigned count = sparseMasterTranslationCount;
-    for (unsigned i = 0; i < count; i++)
-      transforms[master_translation_indices[i]].translate ((double) master_translation_deltas[i].x,
-							   (double) master_translation_deltas[i].y,
-							   true);
-  }
-
   auto extremum_translation_indices = extremumTranslationIndex.arrayZ;
   auto extremum_translation_deltas = extremumTranslationDelta.arrayZ;
   unsigned extremum_translation_count = sparseExtremumTranslationCount;
@@ -435,6 +418,23 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       transform.translate ((double) extremum_translation_delta.x * scalar,
 			   (double) extremum_translation_delta.y * scalar, true);
     }
+  }
+
+  {
+    const auto master_rotation_indices = masterRotationIndex.arrayZ;
+    const auto master_rotation_deltas = masterRotationDelta.arrayZ;
+    unsigned count = sparseMasterRotationCount;
+    for (unsigned i = 0; i < count; i++)
+      transforms[master_rotation_indices[i]].rotate ((double) master_rotation_deltas[i], true);
+  }
+  {
+    const auto master_translation_indices = masterTranslationIndex.arrayZ;
+    const auto master_translation_deltas = masterTranslationDelta.arrayZ;
+    unsigned count = sparseMasterTranslationCount;
+    for (unsigned i = 0; i < count; i++)
+      transforms[master_translation_indices[i]].translate ((double) master_translation_deltas[i].x,
+							   (double) master_translation_deltas[i].y,
+							   true);
   }
 }
 
