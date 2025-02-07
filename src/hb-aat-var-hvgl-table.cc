@@ -473,10 +473,7 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
 
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
-    hb_transform_t<double> total_transform (transforms_head);
-    hb_transform_t<double> &transform = transforms_tail[subPart.treeTransformIndex];
-    total_transform.transform (transform);
-    transform = total_transform;
+    transforms_tail[subPart.treeTransformIndex].transform (transforms_head, true);
     hvgl.get_part_path_at (subPart.partIndex,
 			   draw_session, coords_tail.sub_array (subPart.treeAxisIndex),
 			   transforms_tail.sub_array (subPart.treeTransformIndex),
