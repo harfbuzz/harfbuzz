@@ -123,16 +123,18 @@ struct hb_transform_t
 	   x0 == 0 && y0 == 0;
   }
 
-  void multiply (const hb_transform_t &o)
+  void multiply (const hb_transform_t &o, bool before=false)
   {
-    /* Copied from cairo, with "o" being "a" there and "this" being "b" there. */
+    // Copied from cairo-matrix.c
+    const hb_transform_t &a = before ? o : *this;
+    const hb_transform_t &b = before ? *this : o;
     *this = {
-      o.xx * xx + o.yx * xy, // xx
-      o.xx * yx + o.yx * yy, // yx
-      o.xy * xx + o.yy * xy, // xy
-      o.xy * yx + o.yy * yy, // yy
-      o.x0 * xx + o.y0 * xy + x0, // x0
-      o.x0 * yx + o.y0 * yy + y0  // y0
+      a.xx * b.xx + a.xy * b.yx,
+      a.yx * b.xx + a.yy * b.yx,
+      a.xx * b.xy + a.xy * b.yy,
+      a.yx * b.xy + a.yy * b.yy,
+      a.xx * b.x0 + a.xy * b.y0 + a.x0,
+      a.yx * b.x0 + a.yy * b.y0 + a.y0
     };
   }
 
@@ -172,15 +174,23 @@ struct hb_transform_t
     }
   }
 
-  void transform (const hb_transform_t &o) { multiply (o); }
+  void transform (const hb_transform_t &o, bool before=false) { multiply (o, before); }
 
-  void translate (Float x, Float y)
+  void translate (Float x, Float y, bool before=false)
   {
     if (x == 0 && y == 0)
       return;
 
-    x0 += xx * x + xy * y;
-    y0 += yx * x + yy * y;
+    if (before)
+    {
+      x0 += x;
+	    y0 += y;
+    }
+    else
+    {
+      x0 += xx * x + xy * y;
+      y0 += yx * x + yy * y;
+    }
   }
 
   void scale (Float scaleX, Float scaleY)
@@ -194,7 +204,7 @@ struct hb_transform_t
     yy *= scaleY;
   }
 
-  void rotate (Float rotation)
+  void rotate (Float rotation, bool before=false)
   {
     if (rotation == 0)
       return;
@@ -204,7 +214,7 @@ struct hb_transform_t
     Float s;
     hb_sincos (rotation, s, c);
     auto other = hb_transform_t{c, s, -s, c, 0, 0};
-    transform (other);
+    transform (other, before);
   }
 
   void skew (Float skewX, Float skewY)
