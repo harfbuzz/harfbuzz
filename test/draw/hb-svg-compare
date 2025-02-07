@@ -67,7 +67,7 @@ def extract_paths_from_svg(svg_file):
 
     return all_token_lists
 
-def compare_token_lists(tokens_a, tokens_b, tolerance=1e-3):
+def compare_token_lists(tokens_a, tokens_b):
     """
     Compares two lists of path tokens (commands and floats).
     Returns True if they match (same commands in same positions,
@@ -76,56 +76,68 @@ def compare_token_lists(tokens_a, tokens_b, tolerance=1e-3):
     if len(tokens_a) != len(tokens_b):
         return False  # Different lengths => not a match
 
+    max_diff = 0
     for a, b in zip(tokens_a, tokens_b):
         if isinstance(a, str) and isinstance(b, str):
             # Must match exactly the same command letter
             if a != b:
-                return False
+                return None
         elif isinstance(a, float) and isinstance(b, float):
-            if not math.isclose(a, b, abs_tol=tolerance):
-                return False
+            # Compare numeric values
+            diff = abs(a - b)
+            max_diff = max(max_diff, diff)
         else:
             # One is command, the other is float => mismatch
-            return False
+            return None
 
-    return True
+    return max_diff
 
-def compare_svg_files(svg_file_1, svg_file_2, tolerance=.1):
+def compare_svg_files(svg_file_1, svg_file_2):
     """
     Compares two SVG files to check if they have the same number of <path> elements,
-    and each corresponding path has the same structure of commands and numerics
-    within the given tolerance.
-
-    Returns True if they match, False otherwise.
+    and each corresponding path has the same structure of commands.
+    Return max difference between respective numeric values in the paths.
     """
     paths1 = extract_paths_from_svg(svg_file_1)
     paths2 = extract_paths_from_svg(svg_file_2)
 
     # Check that we have the same number of <path> elements
     if len(paths1) != len(paths2):
-        return False
+        return None
 
     # Compare each path token list
+    max_diff = 0
     for tokens1, tokens2 in zip(paths1, paths2):
-        if not compare_token_lists(tokens1, tokens2, tolerance=tolerance):
-            return False
+        ret = compare_token_lists(tokens1, tokens2)
+        if ret is None:
+            return ret
+        max_diff = max(max_diff, ret)
 
-    return True
+    return max_diff
 
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 2:
-        print("Usage: hb-svg-compare tolerance")
+    if '--help' in sys.argv[1:]:
+        print("Usage: hb-svg-compare TOLERANCE < file_with_svg_pairs.txt")
         sys.exit(1)
 
-    tol = float(sys.argv[1])
+    tolerance = 0
+    if len(sys.argv) > 1:
+        tolerance = float(sys.argv[1])
 
     # Read all lines of two SVG file paths from stdin and compare
     for line in sys.stdin:
         svg1, svg2 = line.strip().split()
-        if not compare_svg_files(svg1, svg2, tolerance=tol):
-            print(f"{svg1}\t{svg2}")
-            # Flush stdout to make sure output is immediate
-            sys.stdout.flush()
+        diff = compare_svg_files(svg1, svg2)
+
+        if diff is None:
+            diff = "MISMATCH"
+
+        if diff <= tolerance:
+            continue
+
+        print(f"%s\t%s\t%.2f" % (svg1, svg2, diff))
+        # Flush stdout to make sure output is immediate
+        sys.stdout.flush()
