@@ -348,80 +348,82 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   const auto &extremumRotationIndex = StructAfter<decltype (allRotations.extremumRotationIndexX)> (extremumRotationDelta, sparseExtremumRotationCount);
   const auto &masterRotationIndex = StructAfter<decltype (allRotations.masterRotationIndexX)> (extremumRotationIndex, sparseExtremumRotationCount);
 
-  auto extremum_translation_indices = extremumTranslationIndex.arrayZ;
-  auto extremum_translation_deltas = extremumTranslationDelta.arrayZ;
-  unsigned extremum_translation_count = sparseExtremumTranslationCount;
-  auto extremum_rotation_indices = extremumRotationIndex.arrayZ;
-  auto extremum_rotation_deltas = extremumRotationDelta.arrayZ;
-  unsigned extremum_rotation_count = sparseExtremumRotationCount;
-  while (true)
   {
-    unsigned row = transforms.length;
-    if (extremum_translation_count)
-      row = hb_min (row, extremum_translation_indices->row);
-    if (extremum_rotation_count)
-      row = hb_min (row, extremum_rotation_indices->row);
-    if (row == transforms.length)
-      break;
-
-    hb_transform_t<double> &transform = transforms[row];
-
-    auto extremum_translation_delta = Null(TranslationDelta);
-    auto extremum_rotation_delta = Null(HBFLOAT32LE);
-
-    unsigned column = 2 * axisCount;
-    if (extremum_translation_count &&
-	extremum_translation_indices->row == row)
-      column = hb_min (column, extremum_translation_indices->column);
-    if (extremum_rotation_count &&
-	extremum_rotation_indices->row == row)
-      column = hb_min (column, extremum_rotation_indices->column);
-    if (column == 2 * axisCount)
-      break;
-
-    if (extremum_translation_count &&
-	extremum_translation_indices->row == row &&
-	extremum_translation_indices->column == column)
+    auto extremum_translation_indices = extremumTranslationIndex.arrayZ;
+    auto extremum_translation_deltas = extremumTranslationDelta.arrayZ;
+    unsigned extremum_translation_count = sparseExtremumTranslationCount;
+    auto extremum_rotation_indices = extremumRotationIndex.arrayZ;
+    auto extremum_rotation_deltas = extremumRotationDelta.arrayZ;
+    unsigned extremum_rotation_count = sparseExtremumRotationCount;
+    while (true)
     {
-      extremum_translation_delta = *extremum_translation_deltas;
-      extremum_translation_count--;
-      extremum_translation_indices++;
-      extremum_translation_deltas++;
-    }
-    if (extremum_rotation_count &&
-	extremum_rotation_indices->row == row &&
-	extremum_rotation_indices->column == column)
-    {
-      extremum_rotation_delta = *extremum_rotation_deltas;
-      extremum_rotation_count--;
-      extremum_rotation_indices++;
-      extremum_rotation_deltas++;
-    }
+      unsigned row = transforms.length;
+      if (extremum_translation_count)
+	row = hb_min (row, extremum_translation_indices->row);
+      if (extremum_rotation_count)
+	row = hb_min (row, extremum_rotation_indices->row);
+      if (row == transforms.length)
+	break;
 
-    unsigned axis_idx = column / 2;
-    double coord = coords[axis_idx];
-    if (!coord) continue;
-    bool pos = column & 1;
-    if (pos != (coord > 0)) continue;
-    double scalar = fabs (coord);
+      hb_transform_t<double> &transform = transforms[row];
 
-    if (extremum_rotation_delta)
-    {
-      std::complex<double> t {(double) extremum_translation_delta.x, (double) extremum_translation_delta.y};
-      std::complex<double> _1_minus_e_iangle = 1. - std::exp (std::complex<double> (0, 1) * (double) extremum_rotation_delta);
-      std::complex<double> eigen = t / _1_minus_e_iangle;
-      double eigen_x = eigen.real ();
-      double eigen_y = eigen.imag ();
-      // Scale rotation around eigen vector
-      transform.translate (-eigen_x, -eigen_y, true);
-      transform.rotate ((double) extremum_rotation_delta * scalar, true);
-      transform.translate (eigen_x, eigen_y, true);
-    }
-    else
-    {
-      // No rotation, just scale the translate
-      transform.translate ((double) extremum_translation_delta.x * scalar,
-			   (double) extremum_translation_delta.y * scalar, true);
+      auto extremum_translation_delta = Null(TranslationDelta);
+      auto extremum_rotation_delta = Null(HBFLOAT32LE);
+
+      unsigned column = 2 * axisCount;
+      if (extremum_translation_count &&
+	  extremum_translation_indices->row == row)
+	column = hb_min (column, extremum_translation_indices->column);
+      if (extremum_rotation_count &&
+	  extremum_rotation_indices->row == row)
+	column = hb_min (column, extremum_rotation_indices->column);
+      if (column == 2 * axisCount)
+	break;
+
+      if (extremum_translation_count &&
+	  extremum_translation_indices->row == row &&
+	  extremum_translation_indices->column == column)
+      {
+	extremum_translation_delta = *extremum_translation_deltas;
+	extremum_translation_count--;
+	extremum_translation_indices++;
+	extremum_translation_deltas++;
+      }
+      if (extremum_rotation_count &&
+	  extremum_rotation_indices->row == row &&
+	  extremum_rotation_indices->column == column)
+      {
+	extremum_rotation_delta = *extremum_rotation_deltas;
+	extremum_rotation_count--;
+	extremum_rotation_indices++;
+	extremum_rotation_deltas++;
+      }
+
+      unsigned axis_idx = column / 2;
+      double coord = coords[axis_idx];
+      if (!coord) continue;
+      bool pos = column & 1;
+      if (pos != (coord > 0)) continue;
+      double scalar = fabs (coord);
+
+      if (extremum_rotation_delta)
+      {
+	std::complex<double> t {(double) extremum_translation_delta.x, (double) extremum_translation_delta.y};
+	std::complex<double> _1_minus_e_iangle = 1. - std::exp (std::complex<double> (0, 1) * (double) extremum_rotation_delta);
+	std::complex<double> eigen = t / _1_minus_e_iangle;
+	double eigen_x = eigen.real ();
+	double eigen_y = eigen.imag ();
+	// Scale rotation around eigen vector
+	transform.translate (-eigen_x, -eigen_y, true);
+	transform.rotate ((double) extremum_rotation_delta * scalar, true);
+	transform.translate (eigen_x, eigen_y, true);
+      }
+      else
+      {
+	// No rotation, just scale the translate
+	transform.translate ((double) extremum_translation_delta.x * scalar,
+			     (double) extremum_translation_delta.y * scalar, true);
+      }
     }
   }
 
