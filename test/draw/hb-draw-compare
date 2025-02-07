@@ -239,6 +239,7 @@ done
 
 diff="$output/diff"
 rm -f "$diff"
+> "$diff"
 $quiet || echo "Comparing SVGs into '$diff'" >&2
 last_unicode_prefix=
 cat "$unicodes" |
