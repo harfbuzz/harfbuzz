@@ -50,8 +50,8 @@ project_on_curve_to_tangent (const segment_t offcurve1,
 			     segment_t oncurve,
 			     const segment_t offcurve2)
 {
-  double x = oncurve[SEGMENT_POINT_ON_CURVE_X];
-  double y = oncurve[SEGMENT_POINT_ON_CURVE_Y];
+  double &x = oncurve[SEGMENT_POINT_ON_CURVE_X];
+  double &y = oncurve[SEGMENT_POINT_ON_CURVE_Y];
 
   double x1 = offcurve1[SEGMENT_POINT_OFF_CURVE_X];
   double y1 = offcurve1[SEGMENT_POINT_OFF_CURVE_Y];
@@ -66,9 +66,6 @@ project_on_curve_to_tangent (const segment_t offcurve1,
 
   x = x1 + dx * t;
   y = y1 + dy * t;
-
-  oncurve[SEGMENT_POINT_ON_CURVE_X] = x;
-  oncurve[SEGMENT_POINT_ON_CURVE_Y] = y;
 }
 
 void
@@ -231,7 +228,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       case BLEND_TYPE_CURVE:
 	{
 	  double t = segment[SEGMENT_POINT_ON_CURVE_X];
-	  t = hb_clamp (t, 0.0, 1.0);
+	  t = hb_clamp (t, 0, 1);
 
 	  /* Interpolate between the off-curve points */
 	  double x = prev_segment[SEGMENT_POINT_OFF_CURVE_X] + (segment[SEGMENT_POINT_OFF_CURVE_X] - prev_segment[SEGMENT_POINT_OFF_CURVE_X]) * t;
