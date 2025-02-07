@@ -212,59 +212,63 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     if (unlikely (end * 4 > v.length))
       break;
 
+    if (unlikely (start == end))
+      continue;
+
     // Resolve blend types
-    segment_t segment = &v.arrayZ[(end - 1) * 4];
-    for (unsigned i = start; i < end; i++)
     {
-      unsigned blendType = blendTypes.arrayZ[i];
-      const segment_t prev_segment = segment;
-      segment = &v.arrayZ[i * 4];
-
-      switch (blendType)
+      segment_t segment = &v.arrayZ[(end - 1) * 4];
+      for (unsigned i = start; i < end; i++)
       {
-      default:
-	break;
+	unsigned blendType = blendTypes.arrayZ[i];
+	const segment_t prev_segment = segment;
+	segment = &v.arrayZ[i * 4];
 
-      case BLEND_TYPE_CURVE:
+	switch (blendType)
 	{
-	  double t = segment[SEGMENT_POINT_ON_CURVE_X];
-	  t = hb_clamp (t, 0, 1);
+	default:
+	  break;
 
-	  /* Interpolate between the off-curve points */
-	  double x = prev_segment[SEGMENT_POINT_OFF_CURVE_X] + (segment[SEGMENT_POINT_OFF_CURVE_X] - prev_segment[SEGMENT_POINT_OFF_CURVE_X]) * t;
-	  double y = prev_segment[SEGMENT_POINT_OFF_CURVE_Y] + (segment[SEGMENT_POINT_OFF_CURVE_Y] - prev_segment[SEGMENT_POINT_OFF_CURVE_Y]) * t;
+	case BLEND_TYPE_CURVE:
+	  {
+	    double t = segment[SEGMENT_POINT_ON_CURVE_X];
+	    t = hb_clamp (t, 0, 1);
 
-	  segment[SEGMENT_POINT_ON_CURVE_X] = x;
-	  segment[SEGMENT_POINT_ON_CURVE_Y] = y;
+	    /* Interpolate between the off-curve points */
+	    double x = prev_segment[SEGMENT_POINT_OFF_CURVE_X] + (segment[SEGMENT_POINT_OFF_CURVE_X] - prev_segment[SEGMENT_POINT_OFF_CURVE_X]) * t;
+	    double y = prev_segment[SEGMENT_POINT_OFF_CURVE_Y] + (segment[SEGMENT_POINT_OFF_CURVE_Y] - prev_segment[SEGMENT_POINT_OFF_CURVE_Y]) * t;
+
+	    segment[SEGMENT_POINT_ON_CURVE_X] = x;
+	    segment[SEGMENT_POINT_ON_CURVE_Y] = y;
+	  }
+	  break;
+
+	case BLEND_TYPE_CORNER:
+	  break;
+
+	case BLEND_TYPE_TANGENT:
+	  {
+	    /* Project onto the line between the off-curve point
+	     * of the previous segment and the off-curve point of
+	     * this segment */
+	    project_on_curve_to_tangent (prev_segment, segment, segment);
+	  }
+	  break;
+
+	case BLEND_TYPE_TANGENT_PAIR_FIRST:
+	  {
+	    unsigned next_i = i == end - 1 ? start : i + 1;
+	    segment_t next_segment = &v.arrayZ[next_i * 4];
+
+	    project_on_curve_to_tangent (prev_segment, segment, next_segment);
+	    project_on_curve_to_tangent (prev_segment, next_segment, next_segment);
+	  }
+	  break;
 	}
-	break;
-
-      case BLEND_TYPE_CORNER:
-	break;
-
-      case BLEND_TYPE_TANGENT:
-	{
-	  /* Project onto the line between the off-curve point
-	   * of the previous segment and the off-curve point of
-	   * this segment */
-	  project_on_curve_to_tangent (prev_segment, segment, segment);
-	}
-	break;
-
-      case BLEND_TYPE_TANGENT_PAIR_FIRST:
-	{
-	  unsigned next_i = i == end - 1 ? start : i + 1;
-	  segment_t next_segment = &v.arrayZ[next_i * 4];
-
-	  project_on_curve_to_tangent (prev_segment, segment, next_segment);
-	  project_on_curve_to_tangent (prev_segment, next_segment, next_segment);
-	}
-	break;
       }
     }
 
     // Draw
-    if (likely (start != end))
     {
       segment_t next_segment = &v.arrayZ[start * 4];
       double x0 = next_segment[SEGMENT_POINT_ON_CURVE_X];
