@@ -235,7 +235,7 @@ typedef HBUINT16 UFWORD;
 template <typename Type, unsigned fraction_bits>
 struct HBFixed : Type
 {
-  static constexpr float shift = (float) (1 << fraction_bits);
+  static constexpr float mult = 1.f / (1 << fraction_bits);
   static_assert (Type::static_size * 8 > fraction_bits, "");
 
   operator signed () const = delete;
@@ -243,8 +243,8 @@ struct HBFixed : Type
   explicit operator float () const { return to_float (); }
   typename Type::type to_int () const { return Type::v; }
   void set_int (typename Type::type i ) { Type::v = i; }
-  float to_float (float offset = 0) const  { return ((int32_t) Type::v + offset) / shift; }
-  void set_float (float f) { Type::v = roundf (f * shift); }
+  float to_float (float offset = 0) const  { return ((int32_t) Type::v + offset) * mult; }
+  void set_float (float f) { Type::v = roundf (f / mult); }
   public:
   DEFINE_SIZE_STATIC (Type::static_size);
 };
