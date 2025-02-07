@@ -348,25 +348,55 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   const auto &extremumRotationIndex = StructAfter<decltype (allRotations.extremumRotationIndexX)> (extremumRotationDelta, sparseExtremumRotationCount);
   const auto &masterRotationIndex = StructAfter<decltype (allRotations.masterRotationIndexX)> (extremumRotationIndex, sparseExtremumRotationCount);
 
+  auto master_rotation_indices = masterRotationIndex.arrayZ;
+  auto master_rotation_deltas = masterRotationDelta.arrayZ;
+  unsigned master_rotation_count = sparseMasterRotationCount;
+  auto master_translation_indices = masterTranslationIndex.arrayZ;
+  auto master_translation_deltas = masterTranslationDelta.arrayZ;
+  unsigned master_translation_count = sparseMasterTranslationCount;
+  auto extremum_translation_indices = extremumTranslationIndex.arrayZ;
+  auto extremum_translation_deltas = extremumTranslationDelta.arrayZ;
+  unsigned extremum_translation_count = sparseExtremumTranslationCount;
+  auto extremum_rotation_indices = extremumRotationIndex.arrayZ;
+  auto extremum_rotation_deltas = extremumRotationDelta.arrayZ;
+  unsigned extremum_rotation_count = sparseExtremumRotationCount;
+  while (true)
   {
-    auto extremum_translation_indices = extremumTranslationIndex.arrayZ;
-    auto extremum_translation_deltas = extremumTranslationDelta.arrayZ;
-    unsigned extremum_translation_count = sparseExtremumTranslationCount;
-    auto extremum_rotation_indices = extremumRotationIndex.arrayZ;
-    auto extremum_rotation_deltas = extremumRotationDelta.arrayZ;
-    unsigned extremum_rotation_count = sparseExtremumRotationCount;
+    unsigned row = transforms.length;
+    if (master_translation_count)
+      row = hb_min (row, *master_translation_indices);
+    if (master_rotation_count)
+      row = hb_min (row, *master_rotation_indices);
+    if (extremum_translation_count)
+      row = hb_min (row, extremum_translation_indices->row);
+    if (extremum_rotation_count)
+      row = hb_min (row, extremum_rotation_indices->row);
+    if (row == transforms.length)
+      break;
+
+    hb_transform_t<double> transform;
+
+    if (master_rotation_count &&
+	*master_rotation_indices == row)
+    {
+      transforms[*master_rotation_indices].rotate ((double) *master_rotation_deltas, true);
+      master_rotation_count--;
+      master_rotation_indices++;
+      master_rotation_deltas++;
+    }
+    if (master_translation_count &&
+	*master_translation_indices == row)
+    {
+      transforms[*master_translation_indices].translate ((double) master_translation_deltas->x,
+							 (double) master_translation_deltas->y,
+							 true);
+      master_translation_count--;
+      master_translation_indices++;
+      master_translation_deltas++;
+    }
+
     while (true)
     {
-      unsigned row = transforms.length;
-      if (extremum_translation_count)
-	row = hb_min (row, extremum_translation_indices->row);
-      if (extremum_rotation_count)
-	row = hb_min (row, extremum_rotation_indices->row);
-      if (row == transforms.length)
-	break;
-
-      hb_transform_t<double> &transform = transforms[row];
-
       auto extremum_translation_delta = Null(TranslationDelta);
       auto extremum_rotation_delta = Null(HBFLOAT32LE);
 
@@ -414,34 +444,19 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 	double eigen_x = eigen.real ();
 	double eigen_y = eigen.imag ();
 	// Scale rotation around eigen vector
-	transform.translate (-eigen_x, -eigen_y, true);
-	transform.rotate ((double) extremum_rotation_delta * scalar, true);
-	transform.translate (eigen_x, eigen_y, true);
+	transform.translate (-eigen_x, -eigen_y);
+	transform.rotate ((double) extremum_rotation_delta * scalar);
+	transform.translate (eigen_x, eigen_y);
       }
       else
       {
 	// No rotation, just scale the translate
 	transform.translate ((double) extremum_translation_delta.x * scalar,
-			     (double) extremum_translation_delta.y * scalar, true);
+			     (double) extremum_translation_delta.y * scalar);
       }
     }
-  }
 
-  {
-    const auto master_rotation_indices = masterRotationIndex.arrayZ;
-    const auto master_rotation_deltas = masterRotationDelta.arrayZ;
-    unsigned count = sparseMasterRotationCount;
-    for (unsigned i = 0; i < count; i++)
-      transforms[master_rotation_indices[i]].rotate ((double) master_rotation_deltas[i], true);
-  }
-  {
-    const auto master_translation_indices = masterTranslationIndex.arrayZ;
-    const auto master_translation_deltas = masterTranslationDelta.arrayZ;
-    unsigned count = sparseMasterTranslationCount;
-    for (unsigned i = 0; i < count; i++)
-      transforms[master_translation_indices[i]].translate ((double) master_translation_deltas[i].x,
-							   (double) master_translation_deltas[i].y,
-							   true);
+    transforms[row].transform (transform, true);
   }
 }
 
