@@ -164,37 +164,46 @@ fi
 
 $quiet || echo "Comparing '$font_file' with '$font_funcs1' and '$font_funcs2' font backends. " >&2
 
+mkdir -p "$output"
+
 if test "x$unicodes" == x; then
 	$quiet || echo "No unicodes specified. Using all unicodes in the font." >&2
-	unicodes=`hb-info --quiet --list-unicodes "$font_file" | cut -f1`
+	$hb_info --quiet --list-unicodes "$font_file" | cut -f1 > "$output/unicodes"
+else
+	$quiet || echo "Using specified unicodes." >&2
+	echo $unicodes | tr ' ' '\n' > "$output/unicodes"
 fi
+unicodes=$output/unicodes
+
 # Count number of Unicodes
-num_unicodes=`echo $unicodes | wc -w`
+num_unicodes=`cat "$unicodes" | wc -w`
 $quiet || echo "Rendering $num_unicodes characters." >&2
 
 # Sanity check Unicode values
-echo $unicodes |
-tr ' ' '\n' |
+cat "$unicodes" |
 grep -v '^U[+][0-9a-fA-F]\+$' &&
 {
 	echo "Invalid Unicode values" >&2
 	exit 1
 }
 
-mkdir -p "$output"
-
 # Render with both font backends
 for font_funcs in $font_funcs1 $font_funcs2; do
 	$quiet || echo -n "Rendering with font backend '$font_funcs'... " >&2
 	funcs_prefix="$output/$font_funcs"
 	mkdir -p "$funcs_prefix"
-	for unicode in $unicodes; do
+	last_dir=
+	cat "$unicodes" |
+	while read unicode; do
 		unicode_prefix=${unicode%??}xx
 		dir="$funcs_prefix/$unicode_prefix"
-		if ! test -d "$dir"; then
-			$quiet || echo -n x >&2
+		if test "$dir" != "$last_dir"; then
+			if ! test -d "$dir"; then
+				$quiet || echo -n x >&2
+			fi
+			mkdir -p "$dir"
+			last_dir="$dir"
 		fi
-		mkdir -p "$dir"
 		svg="$dir/$unicode.svg"
 		if test -f "$svg"; then
 			continue
@@ -219,7 +228,8 @@ done
 diff="$output/diff"
 rm -f "$diff"
 $quiet || echo "Comparing SVGs into '$diff'" >&2
-for unicode in $unicodes; do
+cat "$unicodes" |
+while read unicode; do
 	unicode_prefix=${unicode%??}xx
 	svg1="$output/$font_funcs1/$unicode_prefix/$unicode.svg"
 	svg2="$output/$font_funcs2/$unicode_prefix/$unicode.svg"

@@ -127,3 +127,5 @@ if __name__ == "__main__":
         svg1, svg2 = line.strip().split()
         if not compare_svg_files(svg1, svg2, tolerance=tol):
             print(f"{svg1}\t{svg2}")
+            # Flush stdout to make sure output is immediate
+            sys.stdout.flush()
