@@ -58,14 +58,14 @@ hb_draw_quadratic_to_nil (hb_draw_funcs_t *dfuncs, void *draw_data,
 			  float to_x, float to_y,
 			  void *user_data HB_UNUSED)
 {
-#define HB_ONE_THIRD 0.33333333f
+#define HB_TWO_THIRD 0.66666666666666666666666667f
   dfuncs->emit_cubic_to (draw_data, *st,
-			 (st->current_x + 2.f * control_x) * HB_ONE_THIRD,
-			 (st->current_y + 2.f * control_y) * HB_ONE_THIRD,
-			 (to_x + 2.f * control_x) * HB_ONE_THIRD,
-			 (to_y + 2.f * control_y) * HB_ONE_THIRD,
+			 st->current_x + (control_x - st->current_x) * HB_TWO_THIRD,
+			 st->current_y + (control_y - st->current_y) * HB_TWO_THIRD,
+			 to_x + (control_x - to_x) * HB_TWO_THIRD,
+			 to_y + (control_y - to_y) * HB_TWO_THIRD,
 			 to_x, to_y);
-#undef HB_ONE_THIRD
+#undef HB_TWO_THIRD
 }
 
 static void
@@ -272,7 +272,7 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
  * @destroy: (nullable): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
- * Attaches a user-data key/data pair to the specified draw-functions structure. 
+ * Attaches a user-data key/data pair to the specified draw-functions structure.
  *
  * Return value: `true` if success, `false` otherwise
  *
