@@ -39,9 +39,9 @@ struct coordinates_t
 		 unsigned segment_count) const
   {
     TRACE_SANITIZE (this);
-    unsigned bytes;
-    return_trace (!hb_unsigned_mul_overflows (segment_count, 4, &bytes) &&
-		  coords.sanitize (c, bytes));
+    unsigned count;
+    return_trace (!hb_unsigned_mul_overflows (segment_count, 4, &count) &&
+		  coords.sanitize (c, count));
   }
 
   protected:
@@ -75,10 +75,10 @@ struct deltas_t
 		 unsigned segment_count) const
   {
     TRACE_SANITIZE (this);
-    unsigned bytes;
-    return_trace (!hb_unsigned_mul_overflows (2 * 4, axis_count, &bytes) &&
-		  !hb_unsigned_mul_overflows (bytes, segment_count, &bytes) &&
-		  matrix.sanitize (c, bytes));
+    unsigned count;
+    return_trace (!hb_unsigned_mul_overflows (2 * 4, axis_count, &count) &&
+		  !hb_unsigned_mul_overflows (count, segment_count, &count) &&
+		  matrix.sanitize (c, count));
   }
 
   protected:
