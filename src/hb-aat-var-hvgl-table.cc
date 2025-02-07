@@ -433,7 +433,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
     {
       // No rotation, just scale the translate
       transform.translate ((double) extremum_translation_delta.x * scalar,
-			   (double) extremum_translation_delta.y * scalar);
+			   (double) extremum_translation_delta.y * scalar, true);
     }
   }
 }
