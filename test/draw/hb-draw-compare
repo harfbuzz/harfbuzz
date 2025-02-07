@@ -8,7 +8,7 @@ font_file=
 hb_view=hb-view
 hb_info=hb-info
 svgo=svgo
-svgo_config=
+precision=0
 font_size=upem
 features=
 variations=
@@ -47,9 +47,9 @@ while test $# -gt 0; do
 			svgo=$1
 			shift
 			;;
-		--svgo-config)
+		--precision)
 			shift
-			svgo_config=$1
+			precision=$1
 			shift
 			;;
 		--font-size)
@@ -128,7 +128,7 @@ if $help || $usage; then
 	echo "  --hb-view HB_VIEW: Path to hb-view; default hb-view"
 	echo "  --hb-info HB_INFO: Path to hb-info; default hb-info"
 	echo "  --svgo SVGO: Path to svgo; default svgo"
-	echo "  --svgo-config CONFIG: Path to svgo config; default custom"
+	echo "  --precision PRECISION: Floating-point digits for svgo; default 0"
 	echo "  --font-size SIZE: Font size; default upem"
 	echo "  --features FEATURES: Font features; default none"
 	echo "  --variations VARIATIONS: Font variations; default none"
@@ -189,27 +189,6 @@ function unicode_prefix {
 
 mkdir -p "$output"
 
-# Create svgo config if it doesn't exist
-# We use a custom config to remove floating point precision from path data.
-if test "x$svgo_config" != x; then
-	cp "$svgo_config" "$output/svgo.config.js"
-	svgo_config="$output/svgo.config.js"
-else
-	svgo_config="$output/svgo.config.js"
-	cat > "$svgo_config" <<EOF
-module.exports = {
-  plugins: [
-    {
-      name: 'convertPathData',
-      params: {
-        floatPrecision: 0
-      }
-    }
-  ]
-};
-EOF
-fi
-
 # Render with both font backends
 for font_funcs in $font_funcs1 $font_funcs2; do
 	$quiet || echo "Rendering with font backend '$font_funcs'..." >&2
@@ -261,7 +240,7 @@ for font_funcs in $font_funcs1 $font_funcs2; do
 		"$svgo" \
 			--quiet \
 			--final-newline \
-			--config "$svgo_config" \
+			--precision "$precision" \
 			--folder "$original_dir" \
 			--output "$optimized_dir"
 	done
