@@ -257,10 +257,6 @@ while read unicode; do
 		exit 1
 	fi
 
-	if cmp --quiet "$svg1" "$svg2"; then
-		continue
-	fi
-
 	echo -e "$svg1\t$svg2"
 done |
 "$hb_svg_compare" "$tolerance" |
