@@ -413,9 +413,9 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       double eigen_x = eigen.real ();
       double eigen_y = eigen.imag ();
       // Scale rotation around eigen vector
-      transform.translate (eigen_x, eigen_y);
-      transform.rotate ((double) extremum_rotation_delta * scalar);
-      transform.translate (-eigen_x, -eigen_y);
+      transform.translate (-eigen_x, -eigen_y, true);
+      transform.rotate ((double) extremum_rotation_delta * scalar, true);
+      transform.translate (eigen_x, eigen_y, true);
     }
     else
     {
