@@ -7,6 +7,7 @@ dirname=`dirname "$0"`
 # Parse options
 output=
 font_file=
+face_index=0
 hb_view=hb-view
 hb_info=hb-info
 hb_svg_compare=$dirname/hb-svg-compare
@@ -32,6 +33,11 @@ while test $# -gt 0; do
 		--font-file)
 			shift
 			font_file=$1
+			shift
+			;;
+		--face-index)
+			shift
+			face_index=$1
 			shift
 			;;
 		--hb-view)
@@ -168,7 +174,12 @@ mkdir -p "$output"
 
 if test "x$unicodes" == x; then
 	$quiet || echo "No unicodes specified. Using all unicodes in the font." >&2
-	$hb_info --quiet --list-unicodes "$font_file" | cut -f1 > "$output/unicodes"
+	$hb_info \
+		--quiet \
+		--list-unicodes \
+		--face-index=$face_index \
+		"$font_file" |
+	cut -f1 > "$output/unicodes"
 else
 	$quiet || echo "Using specified unicodes." >&2
 	echo $unicodes | tr ' ' '\n' > "$output/unicodes"
@@ -210,6 +221,7 @@ for font_funcs in $font_funcs1 $font_funcs2; do
 		fi
 		echo \
 			--font-file="$font_file" \
+			--face-index=$face_index \
 			--unicodes=$unicode \
 			--face-loader=$face_loader \
 			--shaper=$shaper \
