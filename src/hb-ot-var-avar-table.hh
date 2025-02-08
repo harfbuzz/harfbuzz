@@ -143,10 +143,10 @@ struct AxisValueMap
 
 struct SegmentMaps : Array16Of<AxisValueMap>
 {
-  int map (int value, unsigned int from_offset = 0, unsigned int to_offset = 1) const
+  float map_float (float value, unsigned int from_offset = 0, unsigned int to_offset = 1) const
   {
-#define fromCoord coords[from_offset].to_int ()
-#define toCoord coords[to_offset].to_int ()
+#define fromCoord coords[from_offset].to_float ()
+#define toCoord coords[to_offset].to_float ()
 
     /* The following special-cases are not part of OpenType, which requires
      * that at least -1, 0, and +1 must be mapped. But we include these as
@@ -199,31 +199,24 @@ struct SegmentMaps : Array16Of<AxisValueMap>
     if (i == count)
       return value - arrayZ[count - 1].fromCoord + arrayZ[count - 1].toCoord;
 
-    int denom = arrayZ[i].fromCoord - arrayZ[i-1].fromCoord;
-    return roundf (arrayZ[i-1].toCoord + ((float) (arrayZ[i].toCoord - arrayZ[i-1].toCoord) *
-					  (value - arrayZ[i-1].fromCoord)) / denom);
+    auto &before = arrayZ[i-1];
+    auto &after = arrayZ[i];
+    float denom = after.fromCoord - before.fromCoord; // Can't be zero by now.
+    // Lerp
+    return before.toCoord + ((after.toCoord - before.toCoord) * (value - before.fromCoord)) / denom;
 #undef toCoord
 #undef fromCoord
   }
 
-  int unmap (int value) const { return map (value, 1, 0); }
+  float unmap_float (float value) const { return map_float (value, 1, 0); }
+
 
   // TODO Kill this.
   Triple unmap_axis_range (const Triple& axis_range) const
   {
-    F2DOT14 val, unmapped_val;
-
-    val.set_float (axis_range.minimum);
-    unmapped_val.set_int (unmap (val.to_int ()));
-    float unmapped_min = unmapped_val.to_float ();
-
-    val.set_float (axis_range.middle);
-    unmapped_val.set_int (unmap (val.to_int ()));
-    float unmapped_middle = unmapped_val.to_float ();
-
-    val.set_float (axis_range.maximum);
-    unmapped_val.set_int (unmap (val.to_int ()));
-    float unmapped_max = unmapped_val.to_float ();
+    float unmapped_min = unmap_float (axis_range.minimum);
+    float unmapped_middle = unmap_float (axis_range.middle);
+    float unmapped_max = unmap_float (axis_range.maximum);
 
     return Triple{(double) unmapped_min, (double) unmapped_middle, (double) unmapped_max};
   }
@@ -337,14 +330,14 @@ struct avar
     return_trace (true);
   }
 
-  void map_coords (int *coords, unsigned int coords_length) const
+  void map_coords_16_16 (int *coords, unsigned int coords_length) const
   {
     unsigned int count = hb_min (coords_length, axisCount);
 
     const SegmentMaps *map = &firstAxisSegmentMaps;
     for (unsigned int i = 0; i < count; i++)
     {
-      coords[i] = map->map (coords[i]);
+      coords[i] = roundf (map->map_float (coords[i] / 65536.f) * 65536.f);
       map = &StructAfter<SegmentMaps> (*map);
     }
 
@@ -369,8 +362,8 @@ struct avar
       int v = coords[i];
       uint32_t varidx = varidx_map.map (i);
       float delta = var_store.get_delta (varidx, coords, coords_length, var_store_cache);
-      v += roundf (delta);
-      v = hb_clamp (v, -(1<<14), +(1<<14));
+      v += roundf (delta * 4); // 2.14 -> 16.16
+      v = hb_clamp (v, -(1<<16), +(1<<16));
       out.push (v);
     }
     for (unsigned i = 0; i < coords_length; i++)
@@ -386,7 +379,7 @@ struct avar
     const SegmentMaps *map = &firstAxisSegmentMaps;
     for (unsigned int i = 0; i < axisCount; i++)
     {
-      if (map->map (0) != 0)
+      if (map->map_float (0.) != 0)
 	return true;
       map = &StructAfter<SegmentMaps> (*map);
     }

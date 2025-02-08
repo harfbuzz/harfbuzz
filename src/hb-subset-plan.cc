@@ -678,7 +678,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
                               hb_subset_plan_t *plan)
 {
   OT::cmap::accelerator_t cmap (plan->source);
-  unsigned size_threshold = plan->source->get_num_glyphs ();  
+  unsigned size_threshold = plan->source->get_num_glyphs ();
 
   if (glyphs->is_empty () && unicodes->get_population () < size_threshold)
   {
@@ -806,7 +806,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   // so record those first.
   plan->os2_info.min_cmap_codepoint = plan->unicodes.get_min();
   plan->os2_info.max_cmap_codepoint = plan->unicodes.get_max();
-  
+
   hb_set_t variation_selectors_to_retain;
   cmap.collect_variation_selectors(&variation_selectors_to_retain);
   + variation_selectors_to_retain.iter()
@@ -1117,24 +1117,24 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     {
       plan->axes_triple_distances.set (axis_tag, axis.get_triple_distances ());
 
-      int normalized_min = axis.normalize_axis_value (axis_range->minimum);
-      int normalized_default = axis.normalize_axis_value (axis_range->middle);
-      int normalized_max = axis.normalize_axis_value (axis_range->maximum);
+      float normalized_min = axis.normalize_axis_value (axis_range->minimum);
+      float normalized_default = axis.normalize_axis_value (axis_range->middle);
+      float normalized_max = axis.normalize_axis_value (axis_range->maximum);
 
       if (has_avar && old_axis_idx < avar_axis_count)
       {
-        normalized_min = seg_maps->map (normalized_min);
-        normalized_default = seg_maps->map (normalized_default);
-        normalized_max = seg_maps->map (normalized_max);
+        normalized_min = seg_maps->map_float (normalized_min);
+        normalized_default = seg_maps->map_float (normalized_default);
+        normalized_max = seg_maps->map_float (normalized_max);
       }
-      plan->axes_location.set (axis_tag, Triple (static_cast<double> (normalized_min / 16384.0),
-                                                 static_cast<double> (normalized_default / 16384.0),
-                                                 static_cast<double> (normalized_max / 16384.0)));
+      plan->axes_location.set (axis_tag, Triple ((double) normalized_min,
+                                                 (double) normalized_default,
+                                                 (double) normalized_max));
 
       if (normalized_default != 0)
         plan->pinned_at_default = false;
 
-      plan->normalized_coords[old_axis_idx] = normalized_default;
+      plan->normalized_coords[old_axis_idx] = roundf (normalized_default * 16384.f);
     }
 
     old_axis_idx++;
