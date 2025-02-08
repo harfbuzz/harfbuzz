@@ -5,7 +5,7 @@ trap "exit" INT
 dirname=`dirname "$0"`
 
 # Parse options
-output=
+output_dir=
 font_file=
 face_index=0
 hb_view=hb-view
@@ -19,17 +19,17 @@ face_loader=ot
 shaper=ot
 font_funcs1=ot
 font_funcs2=coretext
-clean1=false
-clean2=false
+clear1=false
+clear2=false
 unicodes=
 quiet=false
 help=false
 usage=false
 while test $# -gt 0; do
 	case "$1" in
-		-o|--output)
+		-o|--output-dir)
 			shift
-			output=$1
+			output_dir=$1
 			shift
 			;;
 		--font-file)
@@ -102,13 +102,13 @@ while test $# -gt 0; do
 			font_funcs2=$1
 			shift
 			;;
-		--clean1)
+		--clear1)
 			shift
-			clean1=true
+			clear1=true
 			;;
-		--clean2)
+		--clear2)
 			shift
-			clean2=true
+			clear2=true
 			;;
 		--quiet)
 			quiet=true
@@ -141,7 +141,7 @@ if $help || $usage; then
 	echo "Render a font with two font backends and compare the results."
 	echo
 	echo "Options:"
-	echo "  -o, --output DIR: Output in DIR"
+	echo "  -o, --output-dir DIR: Output in DIR"
 	echo "  --font-file FONTFILE: Font file to render"
 	echo "  --hb-view HB_VIEW: Path to hb-view; default $hb_view"
 	echo "  --hb-info HB_INFO: Path to hb-info; default $hb_info"
@@ -154,8 +154,8 @@ if $help || $usage; then
 	echo "  --shaper: Shaper; default $shaper"
 	echo "  --font-funcs0 font_funcs: First font-funcs; default $font_funcs1"
 	echo "  --font-funcs1 font_funcs: Second font-funcs; default $font_funcs2"
-	echo "  --clean1: Clean first font backend output if existing"
-	echo "  --clean2: Clean second font backend output if existing"
+	echo "  --clear1: Clear first font backend output if exists"
+	echo "  --clear2: Clear second font backend output if exists"
 	echo "  --unicodes CODES: Unicodes to render; default all in font"
 	echo "  --quiet: Quiet mode"
 	echo "  --help: Print help"
@@ -175,14 +175,14 @@ if ! test -f "$font_file"; then
 	echo "Font file '$font_file' not found" >&2
 	exit 2
 fi
-if test "x$output" == x; then
-	output=`mktemp -d`
-	echo "Output in '$output'" >&2
+if test "x$output_dir" == x; then
+	output_dir=`mktemp -d`
+	echo "Output in '$output_dir'" >&2
 fi
 
 $quiet || echo "Comparing '$font_file' with '$font_funcs1' and '$font_funcs2' font backends. " >&2
 
-mkdir -p "$output"
+mkdir -p "$output_dir"
 
 if test "x$unicodes" == x; then
 	$quiet || echo "No unicodes specified. Using all unicodes in the font." >&2
@@ -191,12 +191,12 @@ if test "x$unicodes" == x; then
 		--list-unicodes \
 		--face-index=$face_index \
 		"$font_file" |
-	cut -f1 > "$output/unicodes"
+	cut -f1 > "$output_dir/unicodes"
 else
 	$quiet || echo "Using specified unicodes." >&2
-	echo $unicodes | tr ' ' '\n' > "$output/unicodes"
+	echo $unicodes | tr ' ' '\n' > "$output_dir/unicodes"
 fi
-unicodes=$output/unicodes
+unicodes=$output_dir/unicodes
 
 # Count number of Unicodes
 num_unicodes=`cat "$unicodes" | wc -w`
@@ -219,23 +219,23 @@ if test "$variations" != ""; then
 fi
 
 # Render with both font backends
-if $clean1; then
-	funcs_prefix="$output/$font_funcs1$flavor"
+if $clear1; then
+	funcs_prefix="$output_dir/$font_funcs1$flavor"
 	$quiet || echo "Cleaning '$funcs_prefix'... " >&2
 	rm -rf "$funcs_prefix"
 fi
-if $clean2; then
-	funcs_prefix="$output/$font_funcs2$flavor"
+if $clear2; then
+	funcs_prefix="$output_dir/$font_funcs2$flavor"
 	$quiet || echo "Cleaning '$funcs_prefix'... " >&2
 	rm -rf "$funcs_prefix"
 fi
 
-if $clean2 && test "x$font_funcs" == x$font_funcs2; then
+if $clear2 && test "x$font_funcs" == x$font_funcs2; then
 	rm -rf "$funcs_prefix"
 fi
 for font_funcs in $font_funcs1 $font_funcs2; do
 	$quiet || echo -n "Rendering with font backend '$font_funcs'... " >&2
-	funcs_prefix="$output/$font_funcs$flavor"
+	funcs_prefix="$output_dir/$font_funcs$flavor"
 	mkdir -p "$funcs_prefix"
 	last_dir=
 	cat "$unicodes" |
@@ -269,12 +269,13 @@ for font_funcs in $font_funcs1 $font_funcs2; do
 	$quiet || echo "" >&2
 done
 
-diff="$output/diff$flavor"
+diff="$output_dir/diff$flavor"
 rm -f "$diff"
 > "$diff"
+ln -f -s "diff$flavor" "$output_dir/diff"
 $quiet || echo "Comparing SVGs into '$diff'" >&2
-funcs1_prefix="$output/$font_funcs1$flavor"
-funcs2_prefix="$output/$font_funcs2$flavor"
+funcs1_prefix="$output_dir/$font_funcs1$flavor"
+funcs2_prefix="$output_dir/$font_funcs2$flavor"
 last_unicode_prefix=
 cat "$unicodes" |
 while read unicode; do
