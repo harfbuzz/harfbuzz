@@ -179,15 +179,15 @@ struct SegmentMaps : Array16Of<AxisValueMap>
       // This is the only spec-compliant case.
       if (i == j)
 	return arrayZ[i].toCoord;
-      // Ignore the middle ones. Return the one mapping closer to 0. Ignore 0:0 itself.
+      // Ignore the middle ones. Return the one mapping closer to 0.
       int a = arrayZ[i].toCoord;
       int b = arrayZ[j].toCoord;
       if (value < 0)
 	return b;
       if (value > 0)
 	return a;
-      // Mapping 0 to whatever's not 0. Whatever..
-      return a ? a : b;
+      // Mapping 0. CoreText seems confused. It seems to prefer 0 here...
+      return 0;
     }
 
     /* There's at least two and we're in between two. */
