@@ -2894,8 +2894,8 @@ hb_font_set_var_coords_normalized (hb_font_t    *font,
  * Fetches the list of normalized variation coordinates currently
  * set on a font.
  *
- * Note that this returned array may only contain values for some
- * (or none) of the axes; omitted axes effectively have zero values.
+ * <note>Note that if no variation coordinates are set, this function may
+ * return %NULL.</note>
  *
  * Return value is valid as long as variation coordinates of the font
  * are not modified.
@@ -2922,9 +2922,8 @@ hb_font_get_var_coords_normalized (hb_font_t    *font,
  * Fetches the list of variation coordinates (in design-space units) currently
  * set on a font.
  *
- * Note that this returned array may only contain values for some
- * (or none) of the axes; omitted axes effectively have their default
- * values.
+ * <note>Note that if no variation coordinates are set, this function may
+ * return %NULL.</note>
  *
  * Return value is valid as long as variation coordinates of the font
  * are not modified.
