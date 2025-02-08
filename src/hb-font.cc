@@ -1860,8 +1860,11 @@ hb_font_create (hb_face_t *face)
 #endif
 
 #ifndef HB_NO_VAR
+  // Initialize variations.
   if (face && face->index >> 16)
     hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
+  else
+    hb_font_set_variations (font, nullptr, 0);
 #endif
 
   return font;
@@ -2608,12 +2611,6 @@ hb_font_set_variations (hb_font_t            *font,
     return;
 
   font->serial_coords = ++font->serial;
-
-  if (!variations_length && font->instance_index == HB_FONT_NO_VAR_NAMED_INSTANCE)
-  {
-    hb_font_set_var_coords_normalized (font, nullptr, 0);
-    return;
-  }
 
   const OT::fvar &fvar = *font->face->table.fvar;
   auto axes = fvar.get_axes ();

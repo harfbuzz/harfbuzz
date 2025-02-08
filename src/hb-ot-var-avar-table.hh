@@ -186,7 +186,7 @@ struct SegmentMaps : Array16Of<AxisValueMap>
 	return b;
       if (value > 0)
 	return a;
-      // Whatever's not 0. Whatever..
+      // Mapping 0 to whatever's not 0. Whatever..
       return a ? a : b;
     }
 
