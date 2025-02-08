@@ -92,12 +92,12 @@ while test $# -gt 0; do
 			shaper=$1
 			shift
 			;;
-		--font-funcs0)
+		--font-funcs1)
 			shift
 			font_funcs1=$1
 			shift
 			;;
-		--font-funcs1)
+		--font-funcs2)
 			shift
 			font_funcs2=$1
 			shift
@@ -229,11 +229,8 @@ if $clear2; then
 	$quiet || echo "Cleaning '$funcs_prefix'... " >&2
 	rm -rf "$funcs_prefix"
 fi
-
-if $clear2 && test "x$font_funcs" == x$font_funcs2; then
-	rm -rf "$funcs_prefix"
-fi
-for font_funcs in $font_funcs1 $font_funcs2; do
+for font_funcs in "$font_funcs1" "$font_funcs2"; do
+	test "x$font_funcs" == x && continue
 	$quiet || echo -n "Rendering with font backend '$font_funcs'... " >&2
 	funcs_prefix="$output_dir/$font_funcs$flavor"
 	mkdir -p "$funcs_prefix"
@@ -268,6 +265,8 @@ for font_funcs in $font_funcs1 $font_funcs2; do
 	"$hb_view" --batch
 	$quiet || echo "" >&2
 done
+
+test "x$font_funcs1" == x || test "x$font_funcs2" == x && exit 0
 
 diff="$output_dir/diff$flavor"
 rm -f "$diff"
