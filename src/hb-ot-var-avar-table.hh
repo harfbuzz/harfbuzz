@@ -148,6 +148,8 @@ struct SegmentMaps : Array16Of<AxisValueMap>
 #define fromCoord coords[from_offset].to_float ()
 #define toCoord coords[to_offset].to_float ()
 
+    const auto *map = arrayZ;
+
     /* The following special-cases are not part of OpenType, which requires
      * that at least -1, 0, and +1 must be mapped. But we include these as
      * part of a better error recovery scheme. */
@@ -156,7 +158,7 @@ struct SegmentMaps : Array16Of<AxisValueMap>
       if (!len)
 	return value;
       else /* len == 1*/
-	return value - arrayZ[0].fromCoord + arrayZ[0].toCoord;
+	return value - map[0].fromCoord + map[0].toCoord;
     }
 
     /* CoreText is wild...
@@ -167,21 +169,21 @@ struct SegmentMaps : Array16Of<AxisValueMap>
      * the wild. */
     unsigned count = len;
     unsigned i;
-    for (i = 0; i < count && value != arrayZ[i].fromCoord; i++)
+    for (i = 0; i < count && value != map[i].fromCoord; i++)
       ;
     if (i < count)
     {
       // There's at least one exact match. See if there are more.
       unsigned j = i;
-      for (; j + 1 < count && value == arrayZ[j + 1].fromCoord; j++)
+      for (; j + 1 < count && value == map[j + 1].fromCoord; j++)
 	;
       // [i,j] inclusive are all exact matches. If there's only one, return it.
       // This is the only spec-compliant case.
       if (i == j)
-	return arrayZ[i].toCoord;
+	return map[i].toCoord;
       // Ignore the middle ones. Return the one mapping closer to 0.
-      float a = arrayZ[i].toCoord;
-      float b = arrayZ[j].toCoord;
+      float a = map[i].toCoord;
+      float b = map[j].toCoord;
       if (value < 0)
 	return b;
       if (value > 0)
@@ -191,16 +193,16 @@ struct SegmentMaps : Array16Of<AxisValueMap>
     }
 
     /* There's at least two and we're in between two. */
-    for (i = 0; i < count && value >= arrayZ[i].fromCoord; i++)
+    for (i = 0; i < count && value >= map[i].fromCoord; i++)
       ;
 
     if (i == 0)
-      return value - arrayZ[0].fromCoord + arrayZ[0].toCoord;
+      return value - map[0].fromCoord + map[0].toCoord;
     if (i == count)
-      return value - arrayZ[count - 1].fromCoord + arrayZ[count - 1].toCoord;
+      return value - map[count - 1].fromCoord + map[count - 1].toCoord;
 
-    auto &before = arrayZ[i-1];
-    auto &after = arrayZ[i];
+    auto &before = map[i-1];
+    auto &after = map[i];
     float denom = after.fromCoord - before.fromCoord; // Can't be zero by now.
     // Lerp
     return before.toCoord + ((after.toCoord - before.toCoord) * (value - before.fromCoord)) / denom;
