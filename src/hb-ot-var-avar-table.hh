@@ -208,6 +208,7 @@ struct SegmentMaps : Array16Of<AxisValueMap>
 
   int unmap (int value) const { return map (value, 1, 0); }
 
+  // TODO Kill this.
   Triple unmap_axis_range (const Triple& axis_range) const
   {
     F2DOT14 val, unmapped_val;
@@ -230,6 +231,11 @@ struct SegmentMaps : Array16Of<AxisValueMap>
   bool subset (hb_subset_context_t *c, hb_tag_t axis_tag) const
   {
     TRACE_SUBSET (this);
+
+    /* This function cannot work on avar2 table (and currently doesn't).
+     * We should instead keep the design coords in the shape plan and use
+     * those. unmap_axis_range needs to be killed. */
+
     /* avar mapped normalized axis range*/
     Triple *axis_range;
     if (!c->plan->axes_location.has (axis_tag, &axis_range))
@@ -372,18 +378,6 @@ struct avar
 
     OT::ItemVariationStore::destroy_cache (var_store_cache);
 #endif
-  }
-
-  void unmap_coords (int *coords, unsigned int coords_length) const
-  {
-    unsigned int count = hb_min (coords_length, axisCount);
-
-    const SegmentMaps *map = &firstAxisSegmentMaps;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      coords[i] = map->unmap (coords[i]);
-      map = &StructAfter<SegmentMaps> (*map);
-    }
   }
 
   bool is_biased () const
