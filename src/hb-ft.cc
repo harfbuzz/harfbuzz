@@ -1422,7 +1422,7 @@ hb_ft_font_changed (hb_font_t *font)
 
 	for (unsigned int i = 0; i < mm_var->num_axis; ++i)
 	 {
-	  coords[i] = ft_coords[i] >>= 2;
+	  coords[i] = (ft_coords[i] + 2) >> 2;
 	  nonzero = nonzero || coords[i];
 	 }
 
