@@ -147,6 +147,7 @@ struct SegmentMaps : Array16Of<AxisValueMap>
   {
 #define fromCoord coords[from_offset].to_int ()
 #define toCoord coords[to_offset].to_int ()
+
     /* The following special-cases are not part of OpenType, which requires
      * that at least -1, 0, and +1 must be mapped. But we include these as
      * part of a better error recovery scheme. */
@@ -158,19 +159,45 @@ struct SegmentMaps : Array16Of<AxisValueMap>
 	return value - arrayZ[0].fromCoord + arrayZ[0].toCoord;
     }
 
-    if (value <= arrayZ[0].fromCoord)
-      return value - arrayZ[0].fromCoord + arrayZ[0].toCoord;
+    /* CoreText is wild...
+     * PingFangUI avar needs all this special-casing... */
 
-    unsigned int i;
-    unsigned int count = len - 1;
-    for (i = 1; i < count && value > arrayZ[i].fromCoord; i++)
+    /* First round look for exact match. Ignore -1:-1, 0:0, 1:1 if
+     * the same value maps to another value as well. Yes, seen in
+     * the wild. */
+    unsigned count = len;
+    unsigned i;
+    for (i = 0; i < count && value != arrayZ[i].fromCoord; i++)
+      ;
+    if (i < count)
+    {
+      // There's at least one exact match. See if there are more.
+      unsigned j = i;
+      for (; j + 1 < count && value == arrayZ[j + 1].fromCoord; j++)
+	;
+      // [i,j] inclusive are all exact matches. If there's only one, return it.
+      // This is the only spec-compliant case.
+      if (i == j)
+	return arrayZ[i].toCoord;
+      // Ignore the middle ones. Return the one mapping closer to 0. Ignore 0:0 itself.
+      int a = arrayZ[i].toCoord;
+      int b = arrayZ[j].toCoord;
+      if (value < 0)
+	return b;
+      if (value > 0)
+	return a;
+      // Whatever's not 0. Whatever..
+      return a ? a : b;
+    }
+
+    /* There's at least two and we're in between two. */
+    for (i = 0; i < count && value >= arrayZ[i].fromCoord; i++)
       ;
 
-    if (value >= arrayZ[i].fromCoord)
-      return value - arrayZ[i].fromCoord + arrayZ[i].toCoord;
-
-    if (unlikely (arrayZ[i-1].fromCoord == arrayZ[i].fromCoord))
-      return arrayZ[i-1].toCoord;
+    if (i == 0)
+      return value - arrayZ[0].fromCoord + arrayZ[0].toCoord;
+    if (i == count)
+      return value - arrayZ[count - 1].fromCoord + arrayZ[count - 1].toCoord;
 
     int denom = arrayZ[i].fromCoord - arrayZ[i-1].fromCoord;
     return roundf (arrayZ[i-1].toCoord + ((float) (arrayZ[i].toCoord - arrayZ[i-1].toCoord) *
