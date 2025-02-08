@@ -35,13 +35,12 @@ def tokenize_path_data(d_attribute):
 
     return tokens
 
-def extract_paths_from_svg(svg_file):
+def extract_paths_from_svg(svg_data):
     """
     Parses an SVG file and extracts the 'd' attribute from
     all <path> elements in order. Returns a list of token lists.
     """
-    tree = ET.parse(svg_file)
-    root = tree.getroot()
+    root = ET.fromstring(svg_data)
 
     # Inkscape / Illustrator SVGs often have a default namespace.
     # You may need to adjust the namespace if the <path> tags are qualified.
@@ -98,8 +97,16 @@ def compare_svg_files(svg_file_1, svg_file_2):
     and each corresponding path has the same structure of commands.
     Return max difference between respective numeric values in the paths.
     """
-    paths1 = extract_paths_from_svg(svg_file_1)
-    paths2 = extract_paths_from_svg(svg_file_2)
+
+    svg_data_1 = open(svg_file_1).read()
+    svg_data_2 = open(svg_file_2).read()
+
+    # If contents match exactly, return 0
+    if svg_data_1 == svg_data_2:
+        return 0
+
+    paths1 = extract_paths_from_svg(svg_data_1)
+    paths2 = extract_paths_from_svg(svg_data_2)
 
     # Check that we have the same number of <path> elements
     if len(paths1) != len(paths2):
