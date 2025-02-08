@@ -2723,7 +2723,6 @@ hb_font_set_variation (hb_font_t *font,
 
   hb_ot_var_normalize_coords (font->face, coords_length, design_coords, normalized);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
-
 }
 
 /**
@@ -2744,12 +2743,18 @@ hb_font_set_variation (hb_font_t *font,
 void
 hb_font_set_var_coords_design (hb_font_t    *font,
 			       const float  *coords,
-			       unsigned int  coords_length)
+			       unsigned int  input_coords_length)
 {
   if (hb_object_is_immutable (font))
     return;
 
   font->serial_coords = ++font->serial;
+
+  const OT::fvar &fvar = *font->face->table.fvar;
+  auto axes = fvar.get_axes ();
+  const unsigned coords_length = axes.length;
+
+  input_coords_length = hb_min (input_coords_length, coords_length);
 
   int *normalized = coords_length ? (int *) hb_calloc (coords_length, sizeof (int)) : nullptr;
   float *design_coords = coords_length ? (float *) hb_calloc (coords_length, sizeof (float)) : nullptr;
@@ -2761,8 +2766,11 @@ hb_font_set_var_coords_design (hb_font_t    *font,
     return;
   }
 
-  if (coords_length)
-    hb_memcpy (design_coords, coords, coords_length * sizeof (font->design_coords[0]));
+  if (input_coords_length)
+    hb_memcpy (design_coords, coords, input_coords_length * sizeof (font->design_coords[0]));
+  // Fill in the rest with default values
+  for (unsigned int i = input_coords_length; i < coords_length; i++)
+    design_coords[i] = axes[i].get_default ();
 
   hb_ot_var_normalize_coords (font->face, coords_length, coords, normalized);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
@@ -2829,10 +2837,16 @@ hb_font_get_var_named_instance (hb_font_t *font)
 void
 hb_font_set_var_coords_normalized (hb_font_t    *font,
 				   const int    *coords, /* 2.14 normalized */
-				   unsigned int  coords_length)
+				   unsigned int  input_coords_length)
 {
   if (hb_object_is_immutable (font))
     return;
+
+  const OT::fvar &fvar = *font->face->table.fvar;
+  auto axes = fvar.get_axes ();
+  unsigned coords_length = axes.length;
+
+  input_coords_length = hb_min (input_coords_length, coords_length);
 
   font->serial_coords = ++font->serial;
 
@@ -2848,10 +2862,10 @@ hb_font_set_var_coords_normalized (hb_font_t    *font,
     return;
   }
 
-  if (coords_length)
+  if (input_coords_length)
   {
-    hb_memcpy (copy, coords, coords_length * sizeof (coords[0]));
-    hb_memcpy (unmapped, coords, coords_length * sizeof (coords[0]));
+    hb_memcpy (copy, coords, input_coords_length * sizeof (coords[0]));
+    hb_memcpy (unmapped, coords, input_coords_length * sizeof (coords[0]));
   }
 
   /* Best effort design coords simulation */
