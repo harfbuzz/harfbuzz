@@ -208,16 +208,14 @@ for font_funcs in $font_funcs1 $font_funcs2; do
 	while read unicode; do
 		unicode_prefix=${unicode%??}xx
 		dir="$funcs_prefix/$unicode_prefix"
-		if test "$dir" != "$last_dir"; then
-			if ! test -d "$dir"; then
-				$quiet || echo -n x >&2
-			fi
-			mkdir -p "$dir"
-			last_dir="$dir"
-		fi
 		svg="$dir/$unicode.svg"
 		if test -f "$svg"; then
 			continue
+		fi
+		if test "$dir" != "$last_dir"; then
+			$quiet || echo -n x >&2
+			mkdir -p "$dir"
+			last_dir="$dir"
 		fi
 		echo \
 			--font-file="$font_file" \
