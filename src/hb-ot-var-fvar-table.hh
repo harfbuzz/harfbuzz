@@ -78,7 +78,7 @@ struct InstanceRecord
         return false;
       if (!axes_location->has (*axis_tag))
         continue;
-      
+
       Triple axis_limit = axes_location->get (*axis_tag);
       if (!axis_coord_pinned_or_within_axis_range (coords, i, axis_limit))
         return false;
@@ -106,7 +106,7 @@ struct InstanceRecord
       {
         if (!axis_coord_pinned_or_within_axis_range (coords, i, *axis_limit))
           return_trace (false);
-        
+
         //skip pinned axis
         if (axis_limit->is_point ())
           continue;
@@ -193,19 +193,6 @@ struct AxisRecord
     else
       v = (v - default_value) / (max_value - default_value);
     return roundf (v * 16384.f);
-  }
-
-  float unnormalize_axis_value (int v) const
-  {
-    float min_value, default_value, max_value;
-    get_coordinates (min_value, default_value, max_value);
-
-    if (v == 0)
-      return default_value;
-    else if (v < 0)
-      return v * (default_value - min_value) / 16384.f + default_value;
-    else
-      return v * (max_value - default_value) / 16384.f + default_value;
   }
 
   hb_ot_name_id_t get_name_id () const { return axisNameID; }
@@ -343,9 +330,6 @@ struct fvar
 
   int normalize_axis_value (unsigned int axis_index, float v) const
   { return get_axes ()[axis_index].normalize_axis_value (v); }
-
-  float unnormalize_axis_value (unsigned int axis_index, int v) const
-  { return get_axes ()[axis_index].unnormalize_axis_value (v); }
 
   unsigned int get_instance_count () const { return instanceCount; }
 
