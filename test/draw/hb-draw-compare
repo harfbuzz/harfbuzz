@@ -19,6 +19,8 @@ face_loader=ot
 shaper=ot
 font_funcs1=ot
 font_funcs2=coretext
+clean1=false
+clean2=false
 unicodes=
 quiet=false
 help=false
@@ -100,6 +102,14 @@ while test $# -gt 0; do
 			font_funcs2=$1
 			shift
 			;;
+		--clean1)
+			shift
+			clean1=true
+			;;
+		--clean2)
+			shift
+			clean2=true
+			;;
 		--quiet)
 			quiet=true
 			shift
@@ -144,6 +154,8 @@ if $help || $usage; then
 	echo "  --shaper: Shaper; default $shaper"
 	echo "  --font-funcs0 font_funcs: First font-funcs; default $font_funcs1"
 	echo "  --font-funcs1 font_funcs: Second font-funcs; default $font_funcs2"
+	echo "  --clean1: Clean first font backend output if existing"
+	echo "  --clean2: Clean second font backend output if existing"
 	echo "  --unicodes CODES: Unicodes to render; default all in font"
 	echo "  --quiet: Quiet mode"
 	echo "  --help: Print help"
@@ -207,6 +219,20 @@ if test "$variations" != ""; then
 fi
 
 # Render with both font backends
+if $clean1; then
+	funcs_prefix="$output/$font_funcs1$flavor"
+	$quiet || echo "Cleaning '$funcs_prefix'... " >&2
+	rm -rf "$funcs_prefix"
+fi
+if $clean2; then
+	funcs_prefix="$output/$font_funcs2$flavor"
+	$quiet || echo "Cleaning '$funcs_prefix'... " >&2
+	rm -rf "$funcs_prefix"
+fi
+
+if $clean2 && test "x$font_funcs" == x$font_funcs2; then
+	rm -rf "$funcs_prefix"
+fi
 for font_funcs in $font_funcs1 $font_funcs2; do
 	$quiet || echo -n "Rendering with font backend '$font_funcs'... " >&2
 	funcs_prefix="$output/$font_funcs$flavor"
