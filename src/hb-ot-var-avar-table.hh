@@ -180,8 +180,8 @@ struct SegmentMaps : Array16Of<AxisValueMap>
       if (i == j)
 	return arrayZ[i].toCoord;
       // Ignore the middle ones. Return the one mapping closer to 0.
-      int a = arrayZ[i].toCoord;
-      int b = arrayZ[j].toCoord;
+      float a = arrayZ[i].toCoord;
+      float b = arrayZ[j].toCoord;
       if (value < 0)
 	return b;
       if (value > 0)
