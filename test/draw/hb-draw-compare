@@ -239,12 +239,15 @@ diff="$output/diff"
 rm -f "$diff"
 > "$diff"
 $quiet || echo "Comparing SVGs into '$diff'" >&2
+funcs1_prefix="$output/$font_funcs1"
+funcs2_prefix="$output/$font_funcs2"
 last_unicode_prefix=
 cat "$unicodes" |
 while read unicode; do
+
 	unicode_prefix=${unicode%??}xx
-	svg1="$output/$font_funcs1/$unicode_prefix/$unicode.svg"
-	svg2="$output/$font_funcs2/$unicode_prefix/$unicode.svg"
+	svg1="$funcs1_prefix/$unicode_prefix/$unicode.svg"
+	svg2="$funcs2_prefix/$unicode_prefix/$unicode.svg"
 
 	if test "$unicode_prefix" != "$last_unicode_prefix"; then
 		$quiet || echo -n x >&2
