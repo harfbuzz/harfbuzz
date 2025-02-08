@@ -2860,28 +2860,20 @@ hb_font_set_var_coords_normalized (hb_font_t    *font,
   font->serial_coords = ++font->serial;
 
   int *copy = coords_length ? (int *) hb_calloc (coords_length, sizeof (coords[0])) : nullptr;
-  int *unmapped = coords_length ? (int *) hb_calloc (coords_length, sizeof (coords[0])) : nullptr;
   float *design_coords = coords_length ? (float *) hb_calloc (coords_length, sizeof (design_coords[0])) : nullptr;
 
-  if (unlikely (coords_length && !(copy && unmapped && design_coords)))
+  if (unlikely (coords_length && !(copy && design_coords)))
   {
     hb_free (copy);
-    hb_free (unmapped);
     hb_free (design_coords);
     return;
   }
 
   if (input_coords_length)
-  {
     hb_memcpy (copy, coords, input_coords_length * sizeof (coords[0]));
-    hb_memcpy (unmapped, coords, input_coords_length * sizeof (coords[0]));
-  }
 
-  /* Best effort design coords simulation */
-  font->face->table.avar->unmap_coords (unmapped, coords_length);
   for (unsigned int i = 0; i < coords_length; ++i)
-    design_coords[i] = font->face->table.fvar->unnormalize_axis_value (i, unmapped[i]);
-  hb_free (unmapped);
+    design_coords[i] = NAN;
 
   _hb_font_adopt_var_coords (font, copy, design_coords, coords_length);
 }
@@ -2924,6 +2916,10 @@ hb_font_get_var_coords_normalized (hb_font_t    *font,
  *
  * <note>Note that if no variation coordinates are set, this function may
  * return %NULL.</note>
+ *
+ * <note>If variations have been set on the font using normalized coordinates
+ * (i.e. via hb_font_set_var_coords_normalized()), the design coordinates will
+ * have NaN (Not a Number) values.</note>
  *
  * Return value is valid as long as variation coordinates of the font
  * are not modified.
