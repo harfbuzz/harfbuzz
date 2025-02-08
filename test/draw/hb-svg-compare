@@ -137,7 +137,7 @@ if __name__ == "__main__":
         elif diff <= tolerance:
             continue
         else:
-            diff = f"{diff:.2f}"
+            diff = f"{diff:.5f}"
 
         print(f"{diff}\t{svg1}\t{svg2}")
         # Flush stdout to make sure output is immediate
