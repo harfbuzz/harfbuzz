@@ -198,10 +198,18 @@ grep -v '^U[+][0-9a-fA-F]\+$' &&
 	exit 1
 }
 
+flavor=
+if test "$features" != ""; then
+	flavor="$flavor.features=$features"
+fi
+if test "$variations" != ""; then
+	flavor="$flavor.variations=$variations"
+fi
+
 # Render with both font backends
 for font_funcs in $font_funcs1 $font_funcs2; do
 	$quiet || echo -n "Rendering with font backend '$font_funcs'... " >&2
-	funcs_prefix="$output/$font_funcs"
+	funcs_prefix="$output/$font_funcs$flavor"
 	mkdir -p "$funcs_prefix"
 	last_dir=
 	cat "$unicodes" |
@@ -235,12 +243,12 @@ for font_funcs in $font_funcs1 $font_funcs2; do
 	$quiet || echo "" >&2
 done
 
-diff="$output/diff"
+diff="$output/diff$flavor"
 rm -f "$diff"
 > "$diff"
 $quiet || echo "Comparing SVGs into '$diff'" >&2
-funcs1_prefix="$output/$font_funcs1"
-funcs2_prefix="$output/$font_funcs2"
+funcs1_prefix="$output/$font_funcs1$flavor"
+funcs2_prefix="$output/$font_funcs2$flavor"
 last_unicode_prefix=
 cat "$unicodes" |
 while read unicode; do
