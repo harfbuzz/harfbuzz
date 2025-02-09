@@ -191,7 +191,7 @@ if test "x$output_dir" == x; then
 	output_dir=`mktemp -d`
 	echo "Output in '$output_dir'" >&2
 fi
-mkdir -p "$output_dir"
+mkdir -p "$output_dir" || exit 1
 
 # Populate glyphs file
 glyphs_file="$output_dir/glyphs"
@@ -204,8 +204,7 @@ while read unicode; do
 done >> "$glyphs_file"
 echo "$glyphs" |
 tr ' ' '\n' |
-grep . |
->> "$glyphs_file"
+grep . >> "$glyphs_file"
 if test "x$unicodes" == x -a "x$glyphs" == x; then
 	$quiet || echo "No unicodes or glyphs specified. Comparing all glyphs in the font." >&2
 	num_glyphs=`$hb_info --quiet --show-glyph-count "$font_file"`
