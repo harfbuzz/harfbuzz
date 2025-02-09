@@ -464,6 +464,12 @@ configure_file(output: 'config.h', configuration: conf)
 alias_target('lib', libharfbuzz)
 alias_target('libs', libharfbuzz, libharfbuzz_subset)
 
+if meson.version().version_compare('>=0.57.0')
+  add_test_setup('default',
+                 exclude_suites: ['google-benchmark'],
+                 is_default: true)
+endif
+
 build_summary = {
   'Directories':
     {'prefix': get_option('prefix'),
