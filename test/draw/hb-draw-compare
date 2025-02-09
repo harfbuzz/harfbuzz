@@ -221,12 +221,12 @@ fi
 # Render with both font backends
 if $clear1; then
 	funcs_prefix="$output_dir/$font_funcs1$flavor"
-	$quiet || echo "Cleaning '$funcs_prefix'... " >&2
+	$quiet || echo "Clearing '$funcs_prefix'... " >&2
 	rm -rf "$funcs_prefix"
 fi
 if $clear2; then
 	funcs_prefix="$output_dir/$font_funcs2$flavor"
-	$quiet || echo "Cleaning '$funcs_prefix'... " >&2
+	$quiet || echo "Clearing '$funcs_prefix'... " >&2
 	rm -rf "$funcs_prefix"
 fi
 for font_funcs in "$font_funcs1" "$font_funcs2"; do
