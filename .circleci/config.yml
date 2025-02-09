@@ -85,7 +85,7 @@ jobs:
           pip3 install meson==0.56.0
           CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=address,undefined --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
           meson compile -Cbuild -j9
-          meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+          meson test -Cbuild -t 10 --print-errorlogs | asan_symbolize | c++filt
 
   tsan:
     docker:
@@ -100,7 +100,7 @@ jobs:
           pip3 install meson==0.56.0
           CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=thread --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
           meson compile -Cbuild -j9
-          meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+          meson test -Cbuild -t 10 --print-errorlogs | asan_symbolize | c++filt
 
   msan:
     docker:
@@ -116,7 +116,7 @@ jobs:
           # msan, needs --force-fallback-for=glib,freetype2 also which doesn't work yet but runs fuzzer cases at least
           CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=memory --buildtype=debugoptimized --wrap-mode=nodownload -Dauto_features=disabled -Dtests=enabled -Dexperimental_api=true
           meson compile -Cbuild -j9
-          meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+          meson test -Cbuild -t 10 --print-errorlogs | asan_symbolize | c++filt
 
   clang-cxx2a:
     docker:
