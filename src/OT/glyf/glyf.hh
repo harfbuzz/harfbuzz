@@ -230,8 +230,60 @@ struct glyf_accelerator_t
     if (consumer.is_consuming_contour_points ())
     {
       auto *points = all_points.arrayZ;
-      for (unsigned i = 0; i < count; i++)
-	consumer.consume_point (points[i]);
+
+      if (false)
+      {
+	/* Our path-builder was designed to work with this simple loop.
+	 * But FreeType and CoreText do it differently, so we match those
+	 * with the other, more complicated, code branch below. */
+	for (unsigned i = 0; i < count; i++)
+	{
+	  consumer.consume_point (points[i]);
+	  if (points[i].is_end_point)
+	    consumer.contour_end ();
+	}
+      }
+      else
+      {
+	for (unsigned i = 0; i < count; i++)
+	{
+	  // Start of a contour.
+	  if (points[i].flag & glyf_impl::SimpleGlyph::FLAG_ON_CURVE)
+	  {
+	    // First point is on-curve. Draw the contour.
+	    for (; i < count; i++)
+	    {
+	      consumer.consume_point (points[i]);
+	      if (points[i].is_end_point)
+	      {
+		consumer.contour_end ();
+		break;
+	      }
+	    }
+	  }
+	  else
+	  {
+	    unsigned start = i;
+
+	    // Find end of the contour.
+	    for (; i < count; i++)
+	      if (points[i].is_end_point)
+		break;
+
+	    unsigned end = i;
+
+	    // Enough to start from the end. Our path-builder takes care of the rest.
+	    if (likely (end < count)) // Can only fail in case of alloc failure *maybe*.
+	      consumer.consume_point (points[end]);
+
+	    for (i = start; i < end; i++)
+	      consumer.consume_point (points[i]);
+
+	    consumer.contour_end ();
+	  }
+	}
+      }
+
       consumer.points_end ();
     }
 
@@ -304,6 +356,7 @@ struct glyf_accelerator_t
 
     HB_ALWAYS_INLINE
     void consume_point (const contour_point_t &point) { bounds.add (point); }
+    void contour_end () {}
     void points_end () { bounds.get_extents (font, extents, scaled); }
 
     bool is_consuming_contour_points () { return extents; }
