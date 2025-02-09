@@ -136,7 +136,16 @@ hb_coretext_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
       ch[j] = *first_unicode;
       first_unicode = &StructAtOffset<const hb_codepoint_t> (first_unicode, unicode_stride);
     }
-    CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, c);
+    if (unlikely (!CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, c)))
+    {
+      // Use slow path partially and return at first failure.
+      for (unsigned j = 0; j < c; j++)
+      {
+	if (!hb_coretext_get_nominal_glyph (font, font_data, ch[j], first_glyph, nullptr))
+	  return i + j;
+	first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+      }
+    }
     for (unsigned j = 0; j < c; j++)
     {
       *first_glyph = cg_glyph[j];
