@@ -119,17 +119,26 @@ struct TrackData
     /*
      * Choose size.
      */
-    unsigned int sizes = nSizes;
-    if (!sizes) return 0;
-    if (sizes == 1) return trackTableEntry->get_value (base, 0, sizes);
+    count = nSizes;
+    if (!count) return 0;
+    if (count == 1) return trackTableEntry->get_value (base, 0, count);
 
-    hb_array_t<const F16DOT16> size_table ((base+sizeTable).arrayZ, sizes);
+    // At least two entries.
+
+    hb_array_t<const F16DOT16> size_table ((base+sizeTable).arrayZ, count);
     unsigned int size_index;
-    for (size_index = 0; size_index < sizes - 1; size_index++)
+    for (size_index = 0; size_index < count; size_index++)
       if (size_table[size_index].to_float () >= ptem)
 	break;
 
-    return roundf (interpolate_at (size_index ? size_index - 1 : 0, ptem,
+    if (size_index == 0)
+      return trackTableEntry->get_value (base, 0, count);
+    if (size_index == count)
+      return trackTableEntry->get_value (base, count - 1, count);
+
+    // Interpolate.
+
+    return roundf (interpolate_at (size_index - 1, ptem,
 				   *trackTableEntry, base));
   }
 
