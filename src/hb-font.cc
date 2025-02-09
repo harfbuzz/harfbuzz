@@ -1866,7 +1866,7 @@ hb_font_create (hb_face_t *face)
   {
     if (face->index >> 16)
       hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
-    else if (face->table.avar->is_biased ())
+    else
       hb_font_set_variations (font, nullptr, 0);
   }
 #endif
