@@ -468,7 +468,7 @@ if meson.version().version_compare('>=0.57.0')
   # Re glib, see https://github.com/harfbuzz/harfbuzz/issues/4153#issuecomment-2646347531
   add_test_setup('default',
                  exclude_suites: ['google-benchmark'],
-                 is_default: glib_dep.type_name() != 'internal')
+                 is_default: glib_dep.type_name() != 'internal' and not meson.is_subproject())
 endif
 
 build_summary = {
