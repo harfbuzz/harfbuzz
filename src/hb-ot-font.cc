@@ -39,6 +39,7 @@
 #ifndef HB_NO_AAT
 #include "hb-aat-layout-trak-table.hh"
 #endif
+#include "hb-aat-var-hvgl-table.hh"
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-cff2-table.hh"
