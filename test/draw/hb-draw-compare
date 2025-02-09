@@ -231,7 +231,7 @@ if $clear2; then
 fi
 for font_funcs in "$font_funcs1" "$font_funcs2"; do
 	test "x$font_funcs" == x && continue
-	$quiet || echo -n "Rendering with font backend '$font_funcs'... " >&2
+	$quiet || echo "Rendering with font backend '$font_funcs'..." >&2
 
 	if test "$face_loader" == auto; then
 		this_face_loader=$font_funcs
@@ -284,7 +284,7 @@ diff="$output_dir/diff$flavor"
 rm -f "$diff"
 > "$diff"
 ln -f -s "diff$flavor" "$output_dir/diff"
-$quiet || echo "Comparing SVGs into '$diff'" >&2
+$quiet || echo "Comparing SVGs into '$diff'..." >&2
 funcs1_prefix="$output_dir/$font_funcs1$flavor"
 funcs2_prefix="$output_dir/$font_funcs2$flavor"
 last_unicode_prefix=
