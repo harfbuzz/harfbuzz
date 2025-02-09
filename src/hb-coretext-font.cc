@@ -60,11 +60,25 @@ hb_coretext_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 			       void *user_data HB_UNUSED)
 {
   CTFontRef ct_font = (CTFontRef) font_data;
-  UniChar ch = unicode;
-  CGGlyph cg_glyph;
-  if (CTFontGetGlyphsForCharacters (ct_font, &ch, &cg_glyph, 1))
+  UniChar ch[2];
+  CGGlyph cg_glyph[2];
+  unsigned count = 0;
+
+  if (unicode <= 0xFFFF)
   {
-    *glyph = cg_glyph;
+    ch[count++] = unicode;
+  }
+  else if (unicode <= 0x10FFFF)
+  {
+    ch[count++] = (unicode >> 10) + 0xD7C0;
+    ch[count++] = (unicode & 0x3FF) + 0xDC00;
+  }
+  else
+    ch[count++] = 0xFFFD;
+
+  if (CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, count))
+  {
+    *glyph = cg_glyph[0];
     return true;
   }
   return false;
@@ -80,6 +94,31 @@ hb_coretext_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 				unsigned int glyph_stride,
 				void *user_data HB_UNUSED)
 {
+  // If any non-BMP codepoint is requested, use the slow path.
+  bool slow_path = false;
+  auto *unicode = first_unicode;
+  for (unsigned i = 0; i < count; i++)
+  {
+    if (*unicode > 0xFFFF)
+    {
+      slow_path = true;
+      break;
+    }
+    unicode = &StructAtOffset<const hb_codepoint_t> (unicode, unicode_stride);
+  }
+
+  if (unlikely (slow_path))
+  {
+    for (unsigned i = 0; i < count; i++)
+    {
+      if (!hb_coretext_get_nominal_glyph (font, font_data, *first_unicode, first_glyph, nullptr))
+	return i;
+      first_unicode = &StructAtOffset<const hb_codepoint_t> (first_unicode, unicode_stride);
+      first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    }
+    return count;
+  }
+
   CTFontRef ct_font = (CTFontRef) font_data;
 
   UniChar ch[MAX_GLYPHS];
@@ -92,7 +131,16 @@ hb_coretext_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
       ch[j] = *first_unicode;
       first_unicode = &StructAtOffset<const hb_codepoint_t> (first_unicode, unicode_stride);
     }
-    CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, c);
+    if (unlikely (!CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, c)))
+    {
+      // Use slow path partially and return at first failure.
+      for (unsigned j = 0; j < c; j++)
+      {
+	if (!hb_coretext_get_nominal_glyph (font, font_data, ch[j], first_glyph, nullptr))
+	  return i + j;
+	first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+      }
+    }
     for (unsigned j = 0; j < c; j++)
     {
       *first_glyph = cg_glyph[j];
@@ -113,13 +161,38 @@ hb_coretext_get_variation_glyph (hb_font_t *font HB_UNUSED,
 {
   CTFontRef ct_font = (CTFontRef) font_data;
 
-  UniChar ch[2] = { unicode, variation_selector };
-  CGGlyph cg_glyph[2];
+  UniChar ch[4];
+  CGGlyph cg_glyph[4];
+  unsigned count = 0;
 
-  CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, 2);
+  // Add Unicode, then variation selector. Ugly, but works.
+  //
+  if (unicode <= 0xFFFF)
+    ch[count++] = unicode;
+  else if (unicode <= 0x10FFFF)
+  {
+    ch[count++] = (unicode >> 10) + 0xD7C0;
+    ch[count++] = (unicode & 0x3FF) + 0xDC00;
+  }
+  else
+    ch[count++] = 0xFFFD;
 
-  if (cg_glyph[1])
-    return false;
+  if (variation_selector <= 0xFFFF)
+    ch[count++] = variation_selector;
+  else if (variation_selector <= 0x10FFFF)
+  {
+    ch[count++] = (variation_selector >> 10) + 0xD7C0;
+    ch[count++] = (variation_selector & 0x3FF) + 0xDC00;
+  }
+  else
+    ch[count++] = 0xFFFD;
+
+  CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, count);
+
+  // All except for first should be zero if we succeeded
+  for (unsigned i = 1; i < count; i++)
+    if (cg_glyph[i])
+      return false;
 
   *glyph = cg_glyph[0];
   return true;
