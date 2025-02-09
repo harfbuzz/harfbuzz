@@ -150,7 +150,7 @@ struct hb_set_digest_t
       masks[i] |= one << ((g >> hb_set_digest_shifts[i]) & mb1);
   }
 
-  __attribute__((always_inline))
+  HB_ALWAYS_INLINE
   bool may_have (hb_codepoint_t g) const
   {
     for (unsigned i = 0; i < n; i++)
