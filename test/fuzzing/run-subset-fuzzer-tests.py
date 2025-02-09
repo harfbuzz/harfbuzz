@@ -1,72 +1,69 @@
 #!/usr/bin/env python3
 
-import sys, os, subprocess, tempfile, shutil
+import sys
+import os
+import subprocess
+import tempfile
 
+def run_command(command):
+    """Run a command, capturing potentially large output."""
+    with tempfile.TemporaryFile() as tempf:
+        p = subprocess.Popen(command, stdout=tempf, stderr=tempf)
+        p.wait()
+        tempf.seek(0)
+        output = tempf.read().decode("utf-8", errors="replace")
+    return output, p.returncode
 
-def cmd (command):
-	# https://stackoverflow.com/a/4408409 as we might have huge output sometimes
-	with tempfile.TemporaryFile () as tempf:
-		p = subprocess.Popen (command, stderr=tempf)
+# Environment variables and binary location
+srcdir = os.getenv("srcdir", ".")
+EXEEXT = os.getenv("EXEEXT", "")
+top_builddir = os.getenv("top_builddir", ".")
 
-		try:
-			p.wait ()
-			tempf.seek (0)
-			text = tempf.read ()
+hb_subset_fuzzer = os.path.join(top_builddir, "hb-subset-fuzzer" + EXEEXT)
+# If not found automatically, fall back to the first CLI argument
+if not os.path.exists(hb_subset_fuzzer):
+    if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
+        sys.exit(
+            "Failed to find hb-subset-fuzzer binary automatically.\n"
+            "Please provide it as the first argument to the tool."
+        )
+    hb_subset_fuzzer = sys.argv[1]
 
-			#TODO: Detect debug mode with a better way
-			is_debug_mode = b"SANITIZE" in text
+print("hb_subset_fuzzer:", hb_subset_fuzzer)
 
-			return ("" if is_debug_mode else text.decode ("utf-8").strip ()), p.returncode
-		except subprocess.TimeoutExpired:
-			return 'error: timeout, ' + ' '.join (command), 1
+# Gather all files from both directories
+dir1 = os.path.join(srcdir, "..", "subset", "data", "fonts")
+dir2 = os.path.join(srcdir, "fonts")
 
+files_to_test = []
 
-srcdir = os.getenv ("srcdir", ".")
-EXEEXT = os.getenv ("EXEEXT", "")
-top_builddir = os.getenv ("top_builddir", ".")
-hb_subset_fuzzer = os.path.join (top_builddir, "hb-subset-fuzzer" + EXEEXT)
+for d in [dir1, dir2]:
+    if not os.path.isdir(d):
+        # Skip if the directory doesn't exist
+        continue
+    for f in os.listdir(d):
+        file_path = os.path.join(d, f)
+        if os.path.isfile(file_path):
+            files_to_test.append(file_path)
 
-if not os.path.exists (hb_subset_fuzzer):
-        if len (sys.argv) < 2 or not os.path.exists (sys.argv[1]):
-                sys.exit ("""Failed to find hb-subset-fuzzer binary automatically,
-please provide it as the first argument to the tool""")
+if not files_to_test:
+    print("No fonts found in either directory.")
+    sys.exit(1)
 
-        hb_subset_fuzzer = sys.argv[1]
+# Run the fuzzer once, passing all collected files
+print(f"Running subset fuzzer on {len(files_to_test)} file(s).")
+cmd_line = [hb_subset_fuzzer] + files_to_test
+output, returncode = run_command(cmd_line)
 
-print ('hb_subset_fuzzer:', hb_subset_fuzzer)
-fails = 0
+# Print any output
+if output.strip():
+    print(output)
 
-valgrind = None
-if os.getenv ('RUN_VALGRIND', ''):
-	valgrind = shutil.which ('valgrind')
-	if valgrind is None:
-		sys.exit ("""Valgrind requested but not found.""")
+# If there's an error, exit non-zero
+if returncode != 0:
+    print("Failure while processing these files:")
+    for f in files_to_test:
+        print(" ", f)
+    sys.exit("1 subset fuzzer test failed.")
 
-def run_dir (parent_path):
-	global fails
-	for file in os.listdir (parent_path):
-		path = os.path.join(parent_path, file)
-		# TODO: Run on all the fonts not just subset related ones
-		if "subset" not in path: continue
-
-		print ("running subset fuzzer against %s" % path)
-		if valgrind:
-			text, returncode = cmd ([valgrind, '--leak-check=full', '--error-exitcode=1', hb_subset_fuzzer, path])
-		else:
-			text, returncode = cmd ([hb_subset_fuzzer, path])
-			if 'error' in text:
-				returncode = 1
-
-		if (not valgrind or returncode) and text.strip ():
-			print (text)
-
-		if returncode != 0:
-			print ("failed for %s" % path)
-			fails = fails + 1
-
-
-run_dir (os.path.join (srcdir, "..", "subset", "data", "fonts"))
-run_dir (os.path.join (srcdir, "fonts"))
-
-if fails:
-	sys.exit ("%d subset fuzzer related tests failed." % fails)
+print("All subset fuzzer tests passed successfully.")

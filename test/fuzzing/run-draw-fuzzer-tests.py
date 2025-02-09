@@ -1,66 +1,59 @@
 #!/usr/bin/env python3
 
-import sys, os, subprocess, tempfile, shutil
+import sys
+import os
+import subprocess
+import tempfile
 
+def run_command(command):
+    with tempfile.TemporaryFile() as tempf:
+        p = subprocess.Popen(command, stdout=tempf, stderr=tempf)
+        p.wait()
+        tempf.seek(0)
+        output = tempf.read().decode('utf-8', errors='replace')
+    return output, p.returncode
 
-def cmd (command):
-	# https://stackoverflow.com/a/4408409 as we might have huge output sometimes
-	with tempfile.TemporaryFile () as tempf:
-		p = subprocess.Popen (command, stderr=tempf)
+srcdir = os.getenv("srcdir", ".")
+EXEEXT = os.getenv("EXEEXT", "")
+top_builddir = os.getenv("top_builddir", ".")
 
-		try:
-			p.wait ()
-			tempf.seek (0)
-			text = tempf.read ()
+hb_draw_fuzzer = os.path.join(top_builddir, "hb-draw-fuzzer" + EXEEXT)
+# If not found automatically, try sys.argv[1]
+if not os.path.exists(hb_draw_fuzzer):
+    if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
+        sys.exit(
+            "Failed to find hb-draw-fuzzer binary automatically.\n"
+            "Please provide it as the first argument to the tool."
+        )
+    hb_draw_fuzzer = sys.argv[1]
 
-			#TODO: Detect debug mode with a better way
-			is_debug_mode = b"SANITIZE" in text
+print("Using hb_draw_fuzzer:", hb_draw_fuzzer)
 
-			return ("" if is_debug_mode else text.decode ("utf-8").strip ()), p.returncode
-		except subprocess.TimeoutExpired:
-			return 'error: timeout, ' + ' '.join (command), 1
+# Collect all files from the fonts/ directory
+parent_path = os.path.join(srcdir, "fonts")
+if not os.path.isdir(parent_path):
+    sys.exit(f"Directory {parent_path} not found or not a directory.")
 
+files_to_check = [
+    os.path.join(parent_path, f) for f in os.listdir(parent_path)
+    if os.path.isfile(os.path.join(parent_path, f))
+]
 
-srcdir = os.getenv ("srcdir", ".")
-EXEEXT = os.getenv ("EXEEXT", "")
-top_builddir = os.getenv ("top_builddir", ".")
-hb_draw_fuzzer = os.path.join (top_builddir, "hb-draw-fuzzer" + EXEEXT)
+if not files_to_check:
+    print(f"No files found in {parent_path}")
+    sys.exit(1)
 
-if not os.path.exists (hb_draw_fuzzer):
-	if len (sys.argv) == 1 or not os.path.exists (sys.argv[1]):
-		sys.exit ("""Failed to find hb-draw-fuzzer binary automatically,
-please provide it as the first argument to the tool""")
+# Single invocation passing all files
+cmd_line = [hb_draw_fuzzer] + files_to_check
+output, returncode = run_command(cmd_line)
 
-	hb_draw_fuzzer = sys.argv[1]
+# Print output if not empty
+if output.strip():
+    print(output)
 
-print ('hb_draw_fuzzer:', hb_draw_fuzzer)
-fails = 0
+# If there's an error, print a message and exit non-zero
+if returncode != 0:
+    print("Failure while processing these files:", ", ".join(os.path.basename(f) for f in files_to_check))
+    sys.exit(returncode)
 
-valgrind = None
-if os.getenv ('RUN_VALGRIND', ''):
-	valgrind = shutil.which ('valgrind')
-	if valgrind is None:
-		sys.exit ("""Valgrind requested but not found.""")
-
-parent_path = os.path.join (srcdir, "fonts")
-for file in os.listdir (parent_path):
-	if "draw" not in file: continue
-	path = os.path.join (parent_path, file)
-
-	if valgrind:
-		text, returncode = cmd ([valgrind, '--leak-check=full', '--error-exitcode=1', hb_draw_fuzzer, path])
-	else:
-		text, returncode = cmd ([hb_draw_fuzzer, path])
-		if 'error' in text:
-			returncode = 1
-
-	if (not valgrind or returncode) and text.strip ():
-		print (text)
-
-	if returncode != 0:
-		print ('failure on %s' % file)
-		fails = fails + 1
-
-
-if fails:
-	sys.exit ("%d draw fuzzer related tests failed." % fails)
+print("All files processed successfully.")

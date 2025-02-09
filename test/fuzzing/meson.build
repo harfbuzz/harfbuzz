@@ -41,23 +41,21 @@ test('shape-fuzzer', find_program('run-shape-fuzzer-tests.py'),
   args: [
     hb_shape_fuzzer_exe,
   ],
-  timeout: 90,
   depends: [hb_shape_fuzzer_exe, libharfbuzz, libharfbuzz_subset],
   workdir: meson.current_build_dir() / '..' / '..',
   env: env,
   priority: 1,
-  suite: ['fuzzing', 'slow'],
+  suite: ['fuzzing'],
 )
 
 test('subset-fuzzer', find_program('run-subset-fuzzer-tests.py'),
   args: [
     hb_subset_fuzzer_exe,
   ],
-  timeout: 90,
   workdir: meson.current_build_dir() / '..' / '..',
   env: env,
   priority: 1,
-  suite: ['fuzzing', 'slow'],
+  suite: ['fuzzing'],
 )
 
 test('repacker-fuzzer', find_program('run-repacker-fuzzer-tests.py'),

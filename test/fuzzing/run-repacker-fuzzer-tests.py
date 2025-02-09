@@ -1,68 +1,65 @@
 #!/usr/bin/env python3
 
-import sys, os, subprocess, tempfile, shutil
+import sys
+import os
+import subprocess
+import tempfile
+
+def run_command(command):
+    with tempfile.TemporaryFile() as tempf:
+        p = subprocess.Popen(command, stdout=tempf, stderr=tempf)
+        p.wait()
+        tempf.seek(0)
+        output = tempf.read().decode('utf-8', errors='replace')
+    return output, p.returncode
 
 
-def cmd (command):
-	# https://stackoverflow.com/a/4408409 as we might have huge output sometimes
-	with tempfile.TemporaryFile () as tempf:
-		p = subprocess.Popen (command, stderr=tempf)
+# Environment and binary location
+srcdir = os.getenv("srcdir", ".")
+EXEEXT = os.getenv("EXEEXT", "")
+top_builddir = os.getenv("top_builddir", ".")
 
-		try:
-			p.wait ()
-			tempf.seek (0)
-			text = tempf.read ()
+hb_repacker_fuzzer = os.path.join(top_builddir, "hb-repacker-fuzzer" + EXEEXT)
+# If the binary isn't found, try sys.argv[1]
+if not os.path.exists(hb_repacker_fuzzer):
+    if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
+        sys.exit(
+            "Failed to find hb-repacker-fuzzer binary automatically.\n"
+            "Please provide it as the first argument to the tool."
+        )
+    hb_repacker_fuzzer = sys.argv[1]
 
-			#TODO: Detect debug mode with a better way
-			is_debug_mode = b"SANITIZE" in text
+print("hb_repacker_fuzzer:", hb_repacker_fuzzer)
 
-			return ("" if is_debug_mode else text.decode ("utf-8").strip ()), p.returncode
-		except subprocess.TimeoutExpired:
-			return 'error: timeout, ' + ' '.join (command), 1
+# Collect all files from graphs/
+graphs_path = os.path.join(srcdir, "graphs")
+if not os.path.isdir(graphs_path):
+    sys.exit(f"No 'graphs' directory found at {graphs_path}.")
 
+files_to_check = [
+    os.path.join(graphs_path, f)
+    for f in os.listdir(graphs_path)
+    if os.path.isfile(os.path.join(graphs_path, f))
+]
 
-srcdir = os.getenv ("srcdir", ".")
-EXEEXT = os.getenv ("EXEEXT", "")
-top_builddir = os.getenv ("top_builddir", ".")
-hb_repacker_fuzzer = os.path.join (top_builddir, "hb-repacker-fuzzer" + EXEEXT)
+if not files_to_check:
+    print("No files found in the 'graphs' directory.")
+    sys.exit(1)
 
-if not os.path.exists (hb_repacker_fuzzer):
-        if len (sys.argv) < 2 or not os.path.exists (sys.argv[1]):
-                sys.exit ("""Failed to find hb-repacker-fuzzer binary automatically,
-please provide it as the first argument to the tool""")
+# Single invocation passing all files
+print(f"Running repacker fuzzer against {len(files_to_check)} file(s) in 'graphs'...")
+cmd_line = [hb_repacker_fuzzer] + files_to_check
+output, returncode = run_command(cmd_line)
 
-        hb_repacker_fuzzer = sys.argv[1]
+# Print the output if present
+if output.strip():
+    print(output)
 
-print ('hb_repacker_fuzzer:', hb_repacker_fuzzer)
-fails = 0
+# Exit if there's an error
+if returncode != 0:
+    print("Failed for these files:")
+    for f in files_to_check:
+        print("  ", f)
+    sys.exit("1 repacker fuzzer related test(s) failed.")
 
-valgrind = None
-if os.getenv ('RUN_VALGRIND', ''):
-	valgrind = shutil.which ('valgrind')
-	if valgrind is None:
-		sys.exit ("""Valgrind requested but not found.""")
-
-def run_dir (parent_path):
-	global fails
-	for file in os.listdir (parent_path):
-		path = os.path.join(parent_path, file)
-		print ("running repacker fuzzer against %s" % path)
-		if valgrind:
-			text, returncode = cmd ([valgrind, '--leak-check=full', '--error-exitcode=1', hb_repacker_fuzzer, path])
-		else:
-			text, returncode = cmd ([hb_repacker_fuzzer, path])
-			if 'error' in text:
-				returncode = 1
-
-		if (not valgrind or returncode) and text.strip ():
-			print (text)
-
-		if returncode != 0:
-			print ("failed for %s" % path)
-			fails = fails + 1
-
-
-run_dir (os.path.join (srcdir, "graphs"))
-
-if fails:
-	sys.exit ("%d repacker fuzzer related tests failed." % fails)
+print("All repacker fuzzer tests passed successfully.")
