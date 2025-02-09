@@ -22,9 +22,9 @@ font_funcs2=coretext
 clear1=false
 clear2=false
 unicodes=
+glyphs=
 quiet=false
 help=false
-usage=false
 while test $# -gt 0; do
 	case "$1" in
 		-o|--output-dir)
@@ -123,21 +123,16 @@ while test $# -gt 0; do
 				font_file=$1
 				shift
 			else
-				unicodes="$unicodes $1"
+				glyphs="$glyphs $1"
 				shift
 			fi
 			;;
 	esac
 done
 
-if test "x$font_file" == x; then
-	echo "No font file specified." >&2
-	usage=true
-fi
-
-if $help || $usage; then
+if $help; then
 	cmd=`basename "$0"`
-	echo "Usage: $cmd [OPTIONS] FONTFILE [UNICODES...]"
+	echo "Usage: $cmd [OPTIONS] FONTFILE [GLYPH...]"
 	echo "Render a font with two font backends and compare the results."
 	echo
 	echo "Options:"
@@ -156,13 +151,16 @@ if $help || $usage; then
 	echo "  --font-funcs1 font_funcs: Second font-funcs; default $font_funcs2"
 	echo "  --clear1: Clear first font backend output if exists"
 	echo "  --clear2: Clear second font backend output if exists"
-	echo "  --unicodes CODES: Unicodes to render; default all in font"
+	echo "  --unicodes CODES: Unicodes to render"
 	echo "  --quiet: Quiet mode"
 	echo "  --help: Print help"
-	$usage && exit 1
 	exit 0
 fi
 
+if test "x$font_file" == x; then
+	echo "No font file specified." >&2
+	exit 2
+fi
 if ! which "$hb_view" 2>/dev/null >/dev/null; then
 	echo "'$hb_view' not found" >&2
 	exit 2
@@ -175,40 +173,47 @@ if ! test -f "$font_file"; then
 	echo "Font file '$font_file' not found" >&2
 	exit 2
 fi
-if test "x$output_dir" == x; then
-	output_dir=`mktemp -d`
-	echo "Output in '$output_dir'" >&2
+
+# Sanity check Unicode values
+if test "x$unicodes" != x; then
+	echo "$unicodes" |
+	tr ' ' '\n' |
+	grep -v '^U[+][0-9a-fA-F]\+$' &&
+	{
+		echo "Invalid Unicode values" >&2
+		exit 2
+	}
 fi
 
 $quiet || echo "Comparing '$font_file' with '$font_funcs1' and '$font_funcs2' font backends. " >&2
 
+if test "x$output_dir" == x; then
+	output_dir=`mktemp -d`
+	echo "Output in '$output_dir'" >&2
+fi
 mkdir -p "$output_dir"
 
-if test "x$unicodes" == x; then
-	$quiet || echo "No unicodes specified. Using all unicodes in the font." >&2
-	$hb_info \
-		--quiet \
-		--list-unicodes \
-		--face-index=$face_index \
-		"$font_file" |
-	cut -f1 > "$output_dir/unicodes"
-else
-	$quiet || echo "Using specified unicodes." >&2
-	echo $unicodes | tr ' ' '\n' > "$output_dir/unicodes"
+# Populate glyphs file
+glyphs_file="$output_dir/glyphs"
+> "$glyphs_file"
+echo "$unicodes" |
+sed 's/^U+//' |
+grep . |
+while read unicode; do
+	echo "uni$unicode"
+done >> "$glyphs_file"
+echo "$glyphs" |
+tr ' ' '\n' |
+grep . |
+>> "$glyphs_file"
+if test "x$unicodes" == x -a "x$glyphs" == x; then
+	$quiet || echo "No unicodes or glyphs specified. Comparing all glyphs in the font." >&2
+	num_glyphs=`$hb_info --quiet --show-glyph-count "$font_file"`
+	$quiet || echo "Font has $num_glyphs glyphs." >&2
+	seq 0 $((num_glyphs - 1)) |
+	sed 's/^/gid/' >> "$glyphs_file"
 fi
-unicodes=$output_dir/unicodes
-
-# Count number of Unicodes
-num_unicodes=`cat "$unicodes" | wc -w`
-$quiet || echo "Rendering $num_unicodes characters." >&2
-
-# Sanity check Unicode values
-cat "$unicodes" |
-grep -v '^U[+][0-9a-fA-F]\+$' &&
-{
-	echo "Invalid Unicode values" >&2
-	exit 1
-}
+num_glyphs=`cat "$glyphs_file" | wc -l`
 
 flavor=
 if test "$features" != ""; then
@@ -246,24 +251,22 @@ for font_funcs in "$font_funcs1" "$font_funcs2"; do
 
 	funcs_prefix="$output_dir/$font_funcs$flavor"
 	mkdir -p "$funcs_prefix"
-	last_dir=
-	cat "$unicodes" |
-	while read unicode; do
-		unicode_prefix=${unicode%??}xx
-		dir="$funcs_prefix/$unicode_prefix"
-		svg="$dir/$unicode.svg"
+	count=0
+	cat "$glyphs_file" |
+	while read glyph; do
+		dir="$funcs_prefix"
+		svg="$dir/$glyph.svg"
 		if test -f "$svg"; then
 			continue
 		fi
-		if test "$dir" != "$last_dir"; then
-			$quiet || echo -n x >&2
-			mkdir -p "$dir"
-			last_dir="$dir"
+		count=$((count + 1))
+		if test $((count % 100)) == 0; then
+			$quiet || echo -n . >&2
 		fi
 		echo \
 			--font-file="$font_file" \
 			--face-index=$face_index \
-			--unicodes=$unicode \
+			--glyphs \
 			--face-loader=$this_face_loader \
 			--shaper=$this_shaper \
 			--font-funcs=$font_funcs \
@@ -271,7 +274,8 @@ for font_funcs in "$font_funcs1" "$font_funcs2"; do
 			--variations="$variations" \
 			--output-format=svg \
 			--font-size=$font_size \
-			--output-file="$svg"
+			--output-file="$svg" \
+			"$glyph"
 	done |
 	sed 's/ /;/g' |
 	"$hb_view" --batch
@@ -287,21 +291,19 @@ ln -f -s "diff$flavor" "$output_dir/diff"
 $quiet || echo "Comparing SVGs into '$diff'..." >&2
 funcs1_prefix="$output_dir/$font_funcs1$flavor"
 funcs2_prefix="$output_dir/$font_funcs2$flavor"
-last_unicode_prefix=
-cat "$unicodes" |
-while read unicode; do
-
-	unicode_prefix=${unicode%??}xx
-	svg1="$funcs1_prefix/$unicode_prefix/$unicode.svg"
-	svg2="$funcs2_prefix/$unicode_prefix/$unicode.svg"
-
-	if test "$unicode_prefix" != "$last_unicode_prefix"; then
-		$quiet || echo -n x >&2
-		last_unicode_prefix="$unicode_prefix"
+count=0
+cat "$glyphs_file" |
+while read glyph; do
+	count=$((count + 1))
+	if test $((count % 100)) == 0; then
+		$quiet || echo -n . >&2
 	fi
 
+	svg1="$funcs1_prefix/$glyph.svg"
+	svg2="$funcs2_prefix/$glyph.svg"
+
 	if ! test -f "$svg1" || ! test -f "$svg2"; then
-		echo -e "\nCharacter $unicode not rendered." >&2
+		echo -e "\n$glyph not rendered." >&2
 		exit 1
 	fi
 
@@ -316,4 +318,4 @@ done
 sort -n -o "$diff.tmp" "$diff" && mv "$diff.tmp" "$diff" || exit 1
 # Count number of differences
 num_diffs=`cat "$diff" | wc -l`
-$quiet || echo -e "\nFound $num_diffs differences in $num_unicodes characters." >&2
+$quiet || echo -e "\nFound $num_diffs differences in $num_glyphs glyphs." >&2
