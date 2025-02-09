@@ -2,25 +2,21 @@
 
 import sys
 import os
-from hb_fuzzer_tools import (
-    run_command,
-    chunkify,
-    find_fuzzer_binary,
-    gather_files
-)
+from hb_fuzzer_tools import run_command, chunkify, gather_files
+
 
 def main():
-    srcdir = os.getenv("srcdir", ".")
-    top_builddir = os.getenv("top_builddir", ".")
-
     # Find the fuzzer binary
-    default_bin = os.path.join(top_builddir, "hb-draw-fuzzer")
-    hb_draw_fuzzer = find_fuzzer_binary(default_bin, sys.argv)
+    assert len(sys.argv) > 2, "Please provide fuzzer binary and fonts directory paths."
+    assert os.path.exists(sys.argv[1]), "The fuzzer binary does not exist."
+    assert os.path.exists(sys.argv[2]), "The fonts directory does not exist."
 
-    print("Using hb_draw_fuzzer:", hb_draw_fuzzer)
+    fuzzer = sys.argv[1]
+    fonts_dir = sys.argv[2]
+
+    print("Using fuzzer:", fuzzer)
 
     # Gather all files from fonts/
-    fonts_dir = os.path.join(srcdir, "fonts")
     files_to_test = gather_files(fonts_dir)
 
     if not files_to_test:
@@ -33,7 +29,7 @@ def main():
     # Run in batches of up to 64 files
     for chunk in chunkify(files_to_test, 64):
         batch_index += 1
-        cmd_line = [hb_draw_fuzzer] + chunk
+        cmd_line = [fuzzer] + chunk
         output, returncode = run_command(cmd_line)
 
         if output.strip():
@@ -44,9 +40,10 @@ def main():
             fails += 1
 
     if fails > 0:
-        sys.exit(f"{fails} draw fuzzer batch(es) failed.")
+        sys.exit(f"{fails} fuzzer batch(es) failed.")
 
-    print("All draw fuzzer tests passed successfully.")
+    print("All fuzzer tests passed successfully.")
+
 
 if __name__ == "__main__":
     main()

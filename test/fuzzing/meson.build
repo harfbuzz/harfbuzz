@@ -34,45 +34,42 @@ foreach file_name : tests
   set_variable('@0@_exe'.format(test_name.underscorify()), exe)
 endforeach
 
-env = environment()
-env.set('srcdir', meson.current_source_dir())
-
-test('shape-fuzzer', find_program('run-shape-fuzzer-tests.py'),
+test('shape-fuzzer', find_program('run-fuzzer-tests.py'),
   args: [
     hb_shape_fuzzer_exe,
+    meson.current_source_dir() / 'fonts',
   ],
   depends: [hb_shape_fuzzer_exe, libharfbuzz, libharfbuzz_subset],
   workdir: meson.current_build_dir() / '..' / '..',
-  env: env,
   priority: 1,
   suite: ['fuzzing'],
 )
 
-test('subset-fuzzer', find_program('run-subset-fuzzer-tests.py'),
+test('subset-fuzzer', find_program('run-fuzzer-tests.py'),
   args: [
     hb_subset_fuzzer_exe,
+    meson.current_source_dir() / 'fonts',
   ],
   workdir: meson.current_build_dir() / '..' / '..',
-  env: env,
   priority: 1,
   suite: ['fuzzing'],
 )
 
-test('repacker-fuzzer', find_program('run-repacker-fuzzer-tests.py'),
+test('repacker-fuzzer', find_program('run-fuzzer-tests.py'),
   args: [
     hb_repacker_fuzzer_exe,
+    meson.current_source_dir() / 'fonts',
   ],
   workdir: meson.current_build_dir() / '..' / '..',
-  env: env,
   priority: 1,
   suite: ['fuzzing'],
 )
 
-test('draw-fuzzer', find_program('run-draw-fuzzer-tests.py'),
+test('draw-fuzzer', find_program('run-fuzzer-tests.py'),
   args: [
     hb_draw_fuzzer_exe,
+    meson.current_source_dir() / 'fonts',
   ],
   workdir: meson.current_build_dir() / '..' / '..',
-  env: env,
   suite: ['fuzzing'],
 )
