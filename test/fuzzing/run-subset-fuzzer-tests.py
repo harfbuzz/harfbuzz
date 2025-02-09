@@ -2,68 +2,54 @@
 
 import sys
 import os
-import subprocess
-import tempfile
+from hb_fuzzer_tools import (
+    run_command,
+    chunkify,
+    find_fuzzer_binary,
+    gather_files
+)
 
-def run_command(command):
-    """Run a command, capturing potentially large output."""
-    with tempfile.TemporaryFile() as tempf:
-        p = subprocess.Popen(command, stdout=tempf, stderr=tempf)
-        p.wait()
-        tempf.seek(0)
-        output = tempf.read().decode("utf-8", errors="replace")
-    return output, p.returncode
+def main():
+    srcdir = os.getenv("srcdir", ".")
+    EXEEXT = os.getenv("EXEEXT", "")
+    top_builddir = os.getenv("top_builddir", ".")
 
-# Environment variables and binary location
-srcdir = os.getenv("srcdir", ".")
-EXEEXT = os.getenv("EXEEXT", "")
-top_builddir = os.getenv("top_builddir", ".")
+    # Locate the binary
+    default_bin = os.path.join(top_builddir, "hb-subset-fuzzer" + EXEEXT)
+    hb_subset_fuzzer = find_fuzzer_binary(default_bin, sys.argv)
 
-hb_subset_fuzzer = os.path.join(top_builddir, "hb-subset-fuzzer" + EXEEXT)
-# If not found automatically, fall back to the first CLI argument
-if not os.path.exists(hb_subset_fuzzer):
-    if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
-        sys.exit(
-            "Failed to find hb-subset-fuzzer binary automatically.\n"
-            "Please provide it as the first argument to the tool."
-        )
-    hb_subset_fuzzer = sys.argv[1]
+    print("Using hb_subset_fuzzer:", hb_subset_fuzzer)
 
-print("hb_subset_fuzzer:", hb_subset_fuzzer)
+    # Gather from two directories, then combine
+    dir1 = os.path.join(srcdir, "..", "subset", "data", "fonts")
+    dir2 = os.path.join(srcdir, "fonts")
 
-# Gather all files from both directories
-dir1 = os.path.join(srcdir, "..", "subset", "data", "fonts")
-dir2 = os.path.join(srcdir, "fonts")
+    files_to_test = gather_files(dir1) + gather_files(dir2)
 
-files_to_test = []
+    if not files_to_test:
+        print("No files found in either directory.")
+        sys.exit(0)
 
-for d in [dir1, dir2]:
-    if not os.path.isdir(d):
-        # Skip if the directory doesn't exist
-        continue
-    for f in os.listdir(d):
-        file_path = os.path.join(d, f)
-        if os.path.isfile(file_path):
-            files_to_test.append(file_path)
+    fails = 0
+    batch_index = 0
 
-if not files_to_test:
-    print("No fonts found in either directory.")
-    sys.exit(1)
+    # Batch the tests in up to 64 files per run
+    for chunk in chunkify(files_to_test, 64):
+        batch_index += 1
+        cmd_line = [hb_subset_fuzzer] + chunk
+        output, returncode = run_command(cmd_line)
 
-# Run the fuzzer once, passing all collected files
-print(f"Running subset fuzzer on {len(files_to_test)} file(s).")
-cmd_line = [hb_subset_fuzzer] + files_to_test
-output, returncode = run_command(cmd_line)
+        if output.strip():
+            print(output)
 
-# Print any output
-if output.strip():
-    print(output)
+        if returncode != 0:
+            print(f"Failure in batch #{batch_index}")
+            fails += 1
 
-# If there's an error, exit non-zero
-if returncode != 0:
-    print("Failure while processing these files:")
-    for f in files_to_test:
-        print(" ", f)
-    sys.exit("1 subset fuzzer test failed.")
+    if fails > 0:
+        sys.exit(f"{fails} subset fuzzer batch(es) failed.")
 
-print("All subset fuzzer tests passed successfully.")
+    print("All subset fuzzer tests passed successfully.")
+
+if __name__ == "__main__":
+    main()

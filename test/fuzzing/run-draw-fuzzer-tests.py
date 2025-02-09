@@ -2,58 +2,52 @@
 
 import sys
 import os
-import subprocess
-import tempfile
+from hb_fuzzer_tools import (
+    run_command,
+    chunkify,
+    find_fuzzer_binary,
+    gather_files
+)
 
-def run_command(command):
-    with tempfile.TemporaryFile() as tempf:
-        p = subprocess.Popen(command, stdout=tempf, stderr=tempf)
-        p.wait()
-        tempf.seek(0)
-        output = tempf.read().decode('utf-8', errors='replace')
-    return output, p.returncode
+def main():
+    srcdir = os.getenv("srcdir", ".")
+    EXEEXT = os.getenv("EXEEXT", "")
+    top_builddir = os.getenv("top_builddir", ".")
 
-srcdir = os.getenv("srcdir", ".")
-EXEEXT = os.getenv("EXEEXT", "")
-top_builddir = os.getenv("top_builddir", ".")
+    # Find the fuzzer binary
+    default_bin = os.path.join(top_builddir, "hb-draw-fuzzer" + EXEEXT)
+    hb_draw_fuzzer = find_fuzzer_binary(default_bin, sys.argv)
 
-hb_draw_fuzzer = os.path.join(top_builddir, "hb-draw-fuzzer" + EXEEXT)
-# If not found automatically, try sys.argv[1]
-if not os.path.exists(hb_draw_fuzzer):
-    if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
-        sys.exit(
-            "Failed to find hb-draw-fuzzer binary automatically.\n"
-            "Please provide it as the first argument to the tool."
-        )
-    hb_draw_fuzzer = sys.argv[1]
+    print("Using hb_draw_fuzzer:", hb_draw_fuzzer)
 
-print("Using hb_draw_fuzzer:", hb_draw_fuzzer)
+    # Gather all files from fonts/
+    fonts_dir = os.path.join(srcdir, "fonts")
+    files_to_test = gather_files(fonts_dir)
 
-# Collect all files from the fonts/ directory
-parent_path = os.path.join(srcdir, "fonts")
-if not os.path.isdir(parent_path):
-    sys.exit(f"Directory {parent_path} not found or not a directory.")
+    if not files_to_test:
+        print("No files found in", fonts_dir)
+        sys.exit(0)
 
-files_to_check = [
-    os.path.join(parent_path, f) for f in os.listdir(parent_path)
-    if os.path.isfile(os.path.join(parent_path, f))
-]
+    fails = 0
+    batch_index = 0
 
-if not files_to_check:
-    print(f"No files found in {parent_path}")
-    sys.exit(1)
+    # Run in batches of up to 64 files
+    for chunk in chunkify(files_to_test, 64):
+        batch_index += 1
+        cmd_line = [hb_draw_fuzzer] + chunk
+        output, returncode = run_command(cmd_line)
 
-# Single invocation passing all files
-cmd_line = [hb_draw_fuzzer] + files_to_check
-output, returncode = run_command(cmd_line)
+        if output.strip():
+            print(output)
 
-# Print output if not empty
-if output.strip():
-    print(output)
+        if returncode != 0:
+            print(f"Failure in batch #{batch_index}")
+            fails += 1
 
-# If there's an error, print a message and exit non-zero
-if returncode != 0:
-    print("Failure while processing these files:", ", ".join(os.path.basename(f) for f in files_to_check))
-    sys.exit(returncode)
+    if fails > 0:
+        sys.exit(f"{fails} draw fuzzer batch(es) failed.")
 
-print("All files processed successfully.")
+    print("All draw fuzzer tests passed successfully.")
+
+if __name__ == "__main__":
+    main()
