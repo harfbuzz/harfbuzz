@@ -60,11 +60,30 @@ hb_coretext_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 			       void *user_data HB_UNUSED)
 {
   CTFontRef ct_font = (CTFontRef) font_data;
-  UniChar ch = unicode;
-  CGGlyph cg_glyph;
-  if (CTFontGetGlyphsForCharacters (ct_font, &ch, &cg_glyph, 1))
+  UniChar ch[2];
+  CGGlyph cg_glyph[2];
+  unsigned count;
+
+  if (unicode <= 0xFFFF)
   {
-    *glyph = cg_glyph;
+    ch[0] = unicode;
+    count = 1;
+  }
+  else if (unicode <= 0x10FFFF)
+  {
+    ch[0] = (unicode >> 10) + 0xD7C0;
+    ch[1] = (unicode & 0x3FF) + 0xDC00;
+    count = 2;
+  }
+  else
+  {
+    ch[0] = 0xFFFD;
+    count = 1;
+  }
+
+  if (CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, count))
+  {
+    *glyph = cg_glyph[0];
     return true;
   }
   return false;
@@ -80,6 +99,31 @@ hb_coretext_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 				unsigned int glyph_stride,
 				void *user_data HB_UNUSED)
 {
+  // If any non-BMP codepoint is requested, use the slow path.
+  bool slow_path = false;
+  auto *unicode = first_unicode;
+  for (unsigned i = 0; i < count; i++)
+  {
+    if (*unicode > 0xFFFF)
+    {
+      slow_path = true;
+      break;
+    }
+    unicode = &StructAtOffset<const hb_codepoint_t> (unicode, unicode_stride);
+  }
+
+  if (unlikely (slow_path))
+  {
+    for (unsigned i = 0; i < count; i++)
+    {
+      if (!hb_coretext_get_nominal_glyph (font, font_data, *first_unicode, first_glyph, nullptr))
+	return i;
+      first_unicode = &StructAtOffset<const hb_codepoint_t> (first_unicode, unicode_stride);
+      first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    }
+    return count;
+  }
+
   CTFontRef ct_font = (CTFontRef) font_data;
 
   UniChar ch[MAX_GLYPHS];
