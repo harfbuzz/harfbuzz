@@ -15,7 +15,7 @@ tolerance=0
 font_size=upem
 features=
 variations=
-face_loader=auto
+face_loader=ot
 shaper=ot
 font_funcs1=ot
 font_funcs2=coretext
@@ -238,12 +238,6 @@ for font_funcs in "$font_funcs1" "$font_funcs2"; do
 	test "x$font_funcs" == x && continue
 	$quiet || echo "Rendering with font backend '$font_funcs'..." >&2
 
-	if test "$face_loader" == auto; then
-		this_face_loader=$font_funcs
-	else
-		this_face_loader=$face_loader
-	fi
-
 	funcs_prefix="$output_dir/$font_funcs$flavor"
 	mkdir -p "$funcs_prefix"
 	count=0
@@ -262,7 +256,7 @@ for font_funcs in "$font_funcs1" "$font_funcs2"; do
 			--font-file="$font_file" \
 			--face-index=$face_index \
 			--glyphs \
-			--face-loader=$this_face_loader \
+			--face-loader=$face_loader \
 			--shaper=$this_shaper \
 			--font-funcs=$font_funcs \
 			--features="$features" \
