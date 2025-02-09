@@ -161,51 +161,75 @@ struct SegmentMaps : Array16Of<AxisValueMap>
 	return value - map[0].fromCoord + map[0].toCoord;
     }
 
-    /* CoreText is wild...
-     * PingFangUI avar needs all this special-casing... */
+    // At least two mappings now.
 
-    /* First round look for exact match. Ignore -1:-1, 0:0, 1:1 if
-     * the same value maps to another value as well. Yes, seen in
+    /* CoreText is wild...
+     * PingFangUI avar needs all this special-casing...
+     * So we implement an extended version of the spec here,
+     * which is more robust and more likely to be compatible with
      * the wild. */
-    unsigned count = len;
+
+    unsigned start = 0;
+    unsigned end = len;
+    if (map[start].fromCoord == -1 && map[start].toCoord == -1 and map[start+1].fromCoord == -1)
+      start++;
+    if (map[end-1].fromCoord == +1 && map[end-1].toCoord == +1 and map[end-2].fromCoord == +1)
+      end--;
+
+    /* Look for exact match first, and do lots of special-casing. */
     unsigned i;
-    for (i = 0; i < count && value != map[i].fromCoord; i++)
-      ;
-    if (i < count)
+    for (i = start; i < end; i++)
+      if (value == map[i].fromCoord)
+	break;
+    if (i < end)
     {
       // There's at least one exact match. See if there are more.
       unsigned j = i;
-      for (; j + 1 < count && value == map[j + 1].fromCoord; j++)
-	;
-      // [i,j] inclusive are all exact matches. If there's only one, return it.
-      // This is the only spec-compliant case.
+      for (; j + 1 < end; j++)
+	if (value != map[j + 1].fromCoord)
+	  break;
+
+      // [i,j] inclusive are all exact matches:
+
+      // If there's only one, return it. This is the only spec-compliant case.
       if (i == j)
 	return map[i].toCoord;
+      // If there's exactly three, return the middle one.
+      if (i + 2 == j)
+	return map[i + 1].toCoord;
+
       // Ignore the middle ones. Return the one mapping closer to 0.
-      float a = map[i].toCoord;
-      float b = map[j].toCoord;
-      if (value < 0)
-	return b;
-      if (value > 0)
-	return a;
-      // Mapping 0. CoreText seems confused. It seems to prefer 0 here...
-      return 0;
+      if (value < 0) return map[j].toCoord;
+      if (value > 0) return map[i].toCoord;
+      // Mapping 0? CoreText seems confused. It seems to prefer 0 here...
+      // So we'll just return the smallest one. lol
+      return fabsf (map[i].toCoord) < fabsf (map[j].toCoord) ? map[i].toCoord : map[j].toCoord;
     }
 
-    /* There's at least two and we're in between two. */
-    for (i = 0; i < count && value >= map[i].fromCoord; i++)
-      ;
+    /* There's at least two and we're not an exact match. Prepare to lerp. */
+
+    // Find the segment we're in.
+    for (i = start; i < end; i++)
+      if (value < map[i].fromCoord)
+	break;
 
     if (i == 0)
+    {
+      // Value before all segments; Shift.
       return value - map[0].fromCoord + map[0].toCoord;
-    if (i == count)
-      return value - map[count - 1].fromCoord + map[count - 1].toCoord;
+    }
+    if (i == end)
+    {
+      // Value after all segments; Shift.
+      return value - map[end - 1].fromCoord + map[end - 1].toCoord;
+    }
 
+    // Actually interpolate.
     auto &before = map[i-1];
     auto &after = map[i];
     float denom = after.fromCoord - before.fromCoord; // Can't be zero by now.
-    // Lerp
     return before.toCoord + ((after.toCoord - before.toCoord) * (value - before.fromCoord)) / denom;
+
 #undef toCoord
 #undef fromCoord
   }
