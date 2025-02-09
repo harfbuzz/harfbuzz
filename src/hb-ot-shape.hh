@@ -80,21 +80,11 @@ struct hb_ot_shape_plan_t
 #else
   static constexpr hb_mask_t kern_mask = 0;
 #endif
-#ifndef HB_NO_AAT_SHAPE
-  hb_mask_t trak_mask;
-#else
-  static constexpr hb_mask_t trak_mask = 0;
-#endif
 
 #ifndef HB_NO_OT_KERN
   bool requested_kerning : 1;
 #else
   static constexpr bool requested_kerning = false;
-#endif
-#ifndef HB_NO_AAT_SHAPE
-  bool requested_tracking : 1;
-#else
-  static constexpr bool requested_tracking = false;
 #endif
 #ifndef HB_NO_OT_SHAPE_FRACTIONS
   bool has_frac : 1;

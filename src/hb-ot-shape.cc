@@ -123,10 +123,6 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   plan.kern_mask = plan.map.get_mask (kern_tag);
   plan.requested_kerning = !!plan.kern_mask;
 #endif
-#ifndef HB_NO_AAT_SHAPE
-  plan.trak_mask = plan.map.get_mask (HB_TAG ('t','r','a','k'));
-  plan.requested_tracking = !!plan.trak_mask;
-#endif
 
   bool has_gpos_kern = plan.map.get_feature_index (1, kern_tag) != HB_OT_LAYOUT_NO_FEATURE_INDEX;
   bool disable_gpos = plan.shaper->gpos_tag &&
@@ -212,7 +208,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
 
   /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
 #ifndef HB_NO_STYLE
-  plan.apply_trak = plan.requested_tracking && hb_aat_layout_has_tracking (face) && face->table.STAT->has_data ();
+  plan.apply_trak = hb_aat_layout_has_tracking (face) && face->table.STAT->has_data ();
 #else
   plan.apply_trak = false;
 #endif
