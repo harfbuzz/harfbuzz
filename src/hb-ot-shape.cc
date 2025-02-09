@@ -205,14 +205,6 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
      https://github.com/harfbuzz/harfbuzz/issues/2967. */
   if (plan.apply_morx)
     plan.adjust_mark_positioning_when_zeroing = false;
-
-  /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
-#ifndef HB_NO_STYLE
-  plan.apply_trak = hb_aat_layout_has_tracking (face) && face->table.STAT->has_data ();
-#else
-  plan.apply_trak = false;
-#endif
-
 #endif
 }
 
@@ -277,11 +269,6 @@ hb_ot_shape_plan_t::position (hb_font_t   *font,
 #endif
   else if (this->apply_fallback_kern)
     _hb_ot_shape_fallback_kern (this, font, buffer);
-
-#ifndef HB_NO_AAT_SHAPE
-  if (this->apply_trak)
-    hb_aat_layout_track (this, font, buffer);
-#endif
 }
 
 
@@ -348,13 +335,6 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t *planner,
 
   /* Random! */
   map->enable_feature (HB_TAG ('r','a','n','d'), F_RANDOM, HB_OT_MAP_MAX_VALUE);
-
-#ifndef HB_NO_AAT_SHAPE
-  /* Tracking.  We enable dummy feature here just to allow disabling
-   * AAT 'trak' table using features.
-   * https://github.com/harfbuzz/harfbuzz/issues/1303 */
-  map->enable_feature (HB_TAG ('t','r','a','k'), F_HAS_FALLBACK);
-#endif
 
   map->enable_feature (HB_TAG ('H','a','r','f')); /* Considered required. */
   map->enable_feature (HB_TAG ('H','A','R','F')); /* Considered discretionary. */
