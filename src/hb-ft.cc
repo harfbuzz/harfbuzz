@@ -37,7 +37,11 @@
 #include "hb-draw.hh"
 #include "hb-font.hh"
 #include "hb-machinery.hh"
+#ifndef HB_NO_AAT
+#include "hb-aat-layout-trak-table.hh"
+#endif
 #include "hb-ot-os2-table.hh"
+#include "hb-ot-stat-table.hh"
 #include "hb-ot-shaper-arabic-pua.hh"
 #include "hb-paint.hh"
 
@@ -502,6 +506,22 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
   }
+
+#ifndef HB_NO_AAT
+  /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
+  bool apply_trak = font->face->table.STAT->has_data () && font->face->table.trak->has_data ();
+  if (apply_trak)
+  {
+    hb_position_t tracking = font->face->table.trak->get_h_tracking (font);
+    first_advance = orig_first_advance;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance += tracking;
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+  }
+#endif
 }
 
 #ifndef HB_NO_VERTICAL
@@ -538,7 +558,16 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
    * have a Y growing upward.  Hence the extra negation. */
 
   hb_position_t y_strength = font->y_scale >= 0 ? font->y_strength : -font->y_strength;
-  return ((-v + (1<<9)) >> 10) + (font->embolden_in_place ? 0 : y_strength);
+  v = ((-v + (1<<9)) >> 10) + (font->embolden_in_place ? 0 : y_strength);
+
+#ifndef HB_NO_AAT
+  /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
+  bool apply_trak = font->face->table.STAT->has_data () && font->face->table.trak->has_data ();
+  if (apply_trak)
+    v += font->face->table.trak->get_v_tracking (font);
+#endif
+
+  return v;
 }
 #endif
 

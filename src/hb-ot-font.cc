@@ -45,7 +45,7 @@
 #include "hb-ot-cff1-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-post-table.hh"
-#include "hb-ot-stat-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-ot-stat-table.hh"
 #include "hb-ot-var-varc-table.hh"
 #include "hb-ot-vorg-table.hh"
 #include "OT/Color/CBDT/CBDT.hh"
