@@ -1,5 +1,7 @@
 tests = [
   'basics',
+  'cmap',
+  'cmap14',
   'preprocess',
   'full-font',
   'cff-full-font',
@@ -35,8 +37,6 @@ tests = [
   'layout.unsorted_featurelist',
   'layout.drop_feature',
   'no_layout_closure',
-  'cmap',
-  'cmap14',
   'sbix',
   'colr',
   'colr_glyphs',
