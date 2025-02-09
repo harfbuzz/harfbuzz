@@ -62,24 +62,19 @@ hb_coretext_get_nominal_glyph (hb_font_t *font HB_UNUSED,
   CTFontRef ct_font = (CTFontRef) font_data;
   UniChar ch[2];
   CGGlyph cg_glyph[2];
-  unsigned count;
+  unsigned count = 0;
 
   if (unicode <= 0xFFFF)
   {
-    ch[0] = unicode;
-    count = 1;
+    ch[count++] = unicode;
   }
   else if (unicode <= 0x10FFFF)
   {
-    ch[0] = (unicode >> 10) + 0xD7C0;
-    ch[1] = (unicode & 0x3FF) + 0xDC00;
-    count = 2;
+    ch[count++] = (unicode >> 10) + 0xD7C0;
+    ch[count++] = (unicode & 0x3FF) + 0xDC00;
   }
   else
-  {
-    ch[0] = 0xFFFD;
-    count = 1;
-  }
+    ch[count++] = 0xFFFD;
 
   if (CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, count))
   {
@@ -166,13 +161,38 @@ hb_coretext_get_variation_glyph (hb_font_t *font HB_UNUSED,
 {
   CTFontRef ct_font = (CTFontRef) font_data;
 
-  UniChar ch[2] = { unicode, variation_selector };
-  CGGlyph cg_glyph[2];
+  UniChar ch[4];
+  CGGlyph cg_glyph[4];
+  unsigned count = 0;
 
-  CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, 2);
+  // Add Unicode, then variation selector. Ugly, but works.
+  //
+  if (unicode <= 0xFFFF)
+    ch[count++] = unicode;
+  else if (unicode <= 0x10FFFF)
+  {
+    ch[count++] = (unicode >> 10) + 0xD7C0;
+    ch[count++] = (unicode & 0x3FF) + 0xDC00;
+  }
+  else
+    ch[count++] = 0xFFFD;
 
-  if (cg_glyph[1])
-    return false;
+  if (variation_selector <= 0xFFFF)
+    ch[count++] = variation_selector;
+  else if (variation_selector <= 0x10FFFF)
+  {
+    ch[count++] = (variation_selector >> 10) + 0xD7C0;
+    ch[count++] = (variation_selector & 0x3FF) + 0xDC00;
+  }
+  else
+    ch[count++] = 0xFFFD;
+
+  CTFontGetGlyphsForCharacters (ct_font, ch, cg_glyph, count);
+
+  // All except for first should be zero if we succeeded
+  for (unsigned i = 1; i < count; i++)
+    if (cg_glyph[i])
+      return false;
 
   *glyph = cg_glyph[0];
   return true;
