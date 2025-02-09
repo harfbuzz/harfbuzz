@@ -100,7 +100,11 @@ _hb_ot_font_create (hb_font_t *font)
 
 #ifndef HB_NO_AAT
   /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
+#ifndef HB_NO_STYLE
   ot_font->apply_trak = font->face->table.STAT->has_data () && font->face->table.trak->has_data ();
+#else
+  ot_font->apply_trak = false;
+#endif
 #endif
 
 #ifndef HB_NO_OT_FONT_CMAP_CACHE

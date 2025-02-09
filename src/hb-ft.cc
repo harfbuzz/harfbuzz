@@ -509,7 +509,11 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
 
 #ifndef HB_NO_AAT
   /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
+#ifndef HB_NO_STYLE
   bool apply_trak = font->face->table.STAT->has_data () && font->face->table.trak->has_data ();
+#else
+  bool apply_trak = false;
+#endif
   if (apply_trak)
   {
     hb_position_t tracking = font->face->table.trak->get_h_tracking (font);
@@ -562,7 +566,11 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
 
 #ifndef HB_NO_AAT
   /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
+#ifndef HB_NO_STYLE
   bool apply_trak = font->face->table.STAT->has_data () && font->face->table.trak->has_data ();
+#else
+  bool apply_trak = false;
+#endif
   if (apply_trak)
     v += font->face->table.trak->get_v_tracking (font);
 #endif
