@@ -190,40 +190,15 @@ struct trak
 
   bool has_data () const { return version.to_int (); }
 
-  bool apply (hb_aat_apply_context_t *c) const
+  hb_position_t get_h_tracking (hb_font_t *font, float track = 0.f) const
   {
-    TRACE_APPLY (this);
-
-    float ptem = c->font->ptem;
-    if (unlikely (ptem <= 0.f))
-    {
-      /* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
-      ptem = HB_CORETEXT_DEFAULT_FONT_SIZE;
-    }
-
-    hb_buffer_t *buffer = c->buffer;
-    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
-    {
-      const TrackData &trackData = this+horizData;
-      float tracking = trackData.get_tracking (this, ptem);
-      hb_position_t advance_to_add = c->font->em_scalef_x (tracking);
-      foreach_grapheme (buffer, start, end)
-      {
-	buffer->pos[start].x_advance += advance_to_add;
-      }
-    }
-    else
-    {
-      const TrackData &trackData = this+vertData;
-      float tracking = trackData.get_tracking (this, ptem);
-      hb_position_t advance_to_add = c->font->em_scalef_y (tracking);
-      foreach_grapheme (buffer, start, end)
-      {
-	buffer->pos[start].y_advance += advance_to_add;
-      }
-    }
-
-    return_trace (true);
+    float ptem = font->ptem > 0.f ? font->ptem : HB_CORETEXT_DEFAULT_FONT_SIZE;
+    return font->em_scalef_x ((this+horizData).get_tracking (this, ptem, track));
+  }
+  hb_position_t get_v_tracking (hb_font_t *font, float track = 0.f) const
+  {
+    float ptem = font->ptem > 0.f ? font->ptem : HB_CORETEXT_DEFAULT_FONT_SIZE;
+    return font->em_scalef_y ((this+vertData).get_tracking (this, ptem, track));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
