@@ -31,18 +31,20 @@ def main():
     assert len(sys.argv) > 2, "Please provide fuzzer binary and fonts directory paths."
 
     fuzzer = pathlib.Path(sys.argv[1])
-    fonts_dir = pathlib.Path(sys.argv[2])
-
     assert fuzzer.is_file(), f"Fuzzer binary not found: {fuzzer}"
-    assert fonts_dir.is_dir(), f"Fonts directory not found: {fonts_dir}"
-
     print("Using fuzzer:", fuzzer)
 
-    # Gather all files from fonts/
-    files_to_test = [str(f) for f in fonts_dir.iterdir() if f.is_file()]
+    # Gather all test files
+    files_to_test = []
+    for fonts_dir in sys.argv[2:]:
+        fonts_dir = pathlib.Path(fonts_dir)
+        assert fonts_dir.is_dir(), f"Fonts directory not found: {fonts_dir}"
+        test_files = [str(f) for f in fonts_dir.iterdir() if f.is_file()]
+        assert test_files, f"No files found in {fonts_dir}"
+        files_to_test += test_files
 
     if not files_to_test:
-        print("No files found in", fonts_dir)
+        print("No test files found")
         sys.exit(0)
 
     fails = 0
