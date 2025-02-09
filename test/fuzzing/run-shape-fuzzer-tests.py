@@ -11,10 +11,9 @@ from hb_fuzzer_tools import (
 
 def main():
     srcdir = os.getenv("srcdir", ".")
-    EXEEXT = os.getenv("EXEEXT", "")
     top_builddir = os.getenv("top_builddir", ".")
 
-    default_bin = os.path.join(top_builddir, "hb-shape-fuzzer" + EXEEXT)
+    default_bin = os.path.join(top_builddir, "hb-shape-fuzzer")
     hb_shape_fuzzer = find_fuzzer_binary(default_bin, sys.argv)
 
     print("Using hb_shape_fuzzer:", hb_shape_fuzzer)

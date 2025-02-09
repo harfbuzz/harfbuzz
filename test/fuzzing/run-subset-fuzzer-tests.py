@@ -11,11 +11,10 @@ from hb_fuzzer_tools import (
 
 def main():
     srcdir = os.getenv("srcdir", ".")
-    EXEEXT = os.getenv("EXEEXT", "")
     top_builddir = os.getenv("top_builddir", ".")
 
     # Locate the binary
-    default_bin = os.path.join(top_builddir, "hb-subset-fuzzer" + EXEEXT)
+    default_bin = os.path.join(top_builddir, "hb-subset-fuzzer")
     hb_subset_fuzzer = find_fuzzer_binary(default_bin, sys.argv)
 
     print("Using hb_subset_fuzzer:", hb_subset_fuzzer)

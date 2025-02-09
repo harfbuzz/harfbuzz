@@ -11,11 +11,10 @@ from hb_fuzzer_tools import (
 
 def main():
     srcdir = os.getenv("srcdir", ".")
-    EXEEXT = os.getenv("EXEEXT", "")
     top_builddir = os.getenv("top_builddir", ".")
 
     # Find the fuzzer binary
-    default_bin = os.path.join(top_builddir, "hb-repacker-fuzzer" + EXEEXT)
+    default_bin = os.path.join(top_builddir, "hb-repacker-fuzzer")
     hb_repacker_fuzzer = find_fuzzer_binary(default_bin, sys.argv)
 
     print("Using hb_repacker_fuzzer:", hb_repacker_fuzzer)
