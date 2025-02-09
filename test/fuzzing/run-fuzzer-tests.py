@@ -1,23 +1,45 @@
 #!/usr/bin/env python3
 
+import pathlib
+import subprocess
 import sys
-import os
-from hb_fuzzer_tools import run_command, chunkify, gather_files
+import tempfile
+
+
+def run_command(command):
+    """
+    Run a command, capturing potentially large output in a temp file.
+    Returns (output_string, exit_code).
+    """
+    with tempfile.TemporaryFile() as tempf:
+        p = subprocess.Popen(command, stdout=tempf, stderr=tempf)
+        p.wait()
+        tempf.seek(0)
+        output = tempf.read().decode("utf-8", errors="replace").strip()
+    return output, p.returncode
+
+
+def chunkify(lst, chunk_size=64):
+    """
+    Yield successive chunk_size-sized slices from lst.
+    """
+    for i in range(0, len(lst), chunk_size):
+        yield lst[i : i + chunk_size]
 
 
 def main():
-    # Find the fuzzer binary
     assert len(sys.argv) > 2, "Please provide fuzzer binary and fonts directory paths."
-    assert os.path.exists(sys.argv[1]), "The fuzzer binary does not exist."
-    assert os.path.exists(sys.argv[2]), "The fonts directory does not exist."
 
-    fuzzer = sys.argv[1]
-    fonts_dir = sys.argv[2]
+    fuzzer = pathlib.Path(sys.argv[1])
+    fonts_dir = pathlib.Path(sys.argv[2])
+
+    assert fuzzer.is_file(), f"Fuzzer binary not found: {fuzzer}"
+    assert fonts_dir.is_dir(), f"Fonts directory not found: {fonts_dir}"
 
     print("Using fuzzer:", fuzzer)
 
     # Gather all files from fonts/
-    files_to_test = gather_files(fonts_dir)
+    files_to_test = [str(f) for f in fonts_dir.iterdir() if f.is_file()]
 
     if not files_to_test:
         print("No files found in", fonts_dir)
@@ -32,7 +54,7 @@ def main():
         cmd_line = [fuzzer] + chunk
         output, returncode = run_command(cmd_line)
 
-        if output.strip():
+        if output:
             print(output)
 
         if returncode != 0:
