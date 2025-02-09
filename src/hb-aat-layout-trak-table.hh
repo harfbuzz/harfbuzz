@@ -128,34 +128,38 @@ struct TrackTableEntry
 
 struct TrackData
 {
-  float get_tracking (const void *base, float ptem) const
+  float get_tracking (const void *base, float ptem, float track = 0.f) const
   {
-    /*
-     * Choose track.
-     */
-    const TrackTableEntry *trackTableEntry = nullptr;
-    unsigned int count = nTracks;
-    float last_trak = 1e5;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      /* Note: Seems like the track entries are sorted by values.  But the
-       * spec doesn't explicitly say that.  It just mentions it in the example. */
+    unsigned count = nTracks;
+    hb_array_t<const F16DOT16> size_table = (base+sizeTable).as_array (nSizes);
 
-      /* Not sure what CoreText does, but it looks to apply a trak=1.0 by default
-       * if there is no 0.0 trak. So, just pick the one closest to 0.0. */
+    if (!count) return 0.f;
+    if (count == 1) return trackTable[0].get_value (ptem, base, size_table);
 
-      float trak = trackTable[i].get_track_value ();
-      if (fabsf (trak) < fabsf (last_trak))
-      {
-	trackTableEntry = &trackTable[i];
-	break;
-      }
-    }
-    if (!trackTableEntry) return 0;
+    // At least two entries.
 
-    return trackTableEntry->get_value (ptem,
-				       base,
-				       (base+sizeTable).as_array (nSizes));
+    unsigned i = 0;
+    unsigned j = count - 1;
+
+    // Find the two entries that track is between.
+    while (i + 1 < count && trackTable[i + 1].get_track_value () < track)
+      i++;
+    while (j > 0 && trackTable[j - 1].get_track_value () > track)
+      j--;
+
+    // Exact match.
+    if (i == j) return trackTable[i].get_value (ptem, base, size_table);
+
+    // Interpolate.
+
+    float t0 = trackTable[i].get_track_value ();
+    float t1 = trackTable[j].get_track_value ();
+
+    float t = (track - t0) / (t1 - t0);
+
+    float a = trackTable[i].get_value (ptem, base, size_table);
+    float b = trackTable[j].get_value (ptem, base, size_table);
+    return a + t * (b - a);
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
