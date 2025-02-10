@@ -1260,6 +1260,36 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
 }
 
 
+/**
+ * hb_ot_shape_plan_get_feature_tags:
+ * @shape_plan: A shaping plan
+ * @start_offset: The index of first feature to retrieve
+ * @tag_count: (inout): Input = the maximum number of features to return;
+ *                      Output = the actual number of features returned (may be zero)
+ * @tags: (out) (array length=tag_count): The array of enabled feature
+ *
+ * Fetches the list of OpenType feature tags enabled for a shaping plan, if possible.
+ *
+ * Return value: Total number of feature tagss.
+ *
+ * XSince: REPLACEME
+ */
+unsigned int
+hb_ot_shape_plan_get_feature_tags (hb_shape_plan_t *shape_plan,
+				   unsigned int     start_offset,
+				   unsigned int    *tag_count, /* IN/OUT */
+				   hb_tag_t        *tags /* OUT */)
+{
+#ifndef HB_NO_OT_SHAPE
+  return shape_plan->ot.map.get_feature_tags (start_offset, tag_count, tags);
+#else
+  if (tag_count)
+	*tag_count = 0;
+  return 0;
+#endif
+}
+
+
 /* TODO Move this to hb-ot-shape-normalize, make it do decompose, and make it public. */
 static void
 add_char (hb_font_t          *font,
