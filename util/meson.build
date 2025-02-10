@@ -19,7 +19,11 @@ hb_subset_cli_sources = [
   'helper-subset.hh',
 ]
 
-util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]
+hb_sm3_bench_sources = [
+  'hb-sm3-bench.cc'
+]
+
+util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep, json_c_dep]
 
 if conf.get('HAVE_GLIB', 0) == 1
   if conf.get('HAVE_CAIRO', 0) == 1
@@ -68,6 +72,13 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: true,
   )
   meson.override_find_program('hb-ot-shape-closure', hb_ot_shape_closure)
+
+  hb_sm3_bench = executable('hb-sm3-bench', hb_sm3_bench_sources, cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: util_deps,
+      link_with: [libharfbuzz],
+      install: true )
+  meson.override_find_program('hb-sm3-bench', hb_sm3_bench)
 
   if get_option('experimental_api')
     test('test-hb-subset-parsing',
