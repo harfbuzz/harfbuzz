@@ -29,7 +29,7 @@
 /* Unit tests for hb-shape-plan.h */
 
 static void
-test_ot_shape_plan_get_features_rtl (void)
+test_ot_shape_plan_get_feature_tags_rtl (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -46,28 +46,28 @@ test_ot_shape_plan_get_features_rtl (void)
   hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, NULL, 0);
   g_assert_true (ret);
 
-  hb_feature_t features[16];
+  hb_tag_t features[16];
   unsigned int feature_count = sizeof (features) / sizeof (features[0]);
-  unsigned int count = hb_ot_shape_plan_get_features (shape_plan, 0, &feature_count, features);
+  unsigned int count = hb_ot_shape_plan_get_feature_tags (shape_plan, 0, &feature_count, features);
   g_assert_cmpuint (count, ==, 16);
   g_assert_cmpuint (feature_count, ==, count);
 
-  g_assert_cmpint (features[0].tag, ==, HB_TAG ('a', 'b', 'v', 'm'));
-  g_assert_cmpint (features[1].tag, ==, HB_TAG ('c', 'c', 'm', 'p'));
-  g_assert_cmpint (features[2].tag, ==, HB_TAG ('d', 'i', 's', 't'));
-  g_assert_cmpint (features[3].tag, ==, HB_TAG ('d', 'n', 'o', 'm'));
-  g_assert_cmpint (features[4].tag, ==, HB_TAG ('f', 'i', 'n', 'a'));
-  g_assert_cmpint (features[5].tag, ==, HB_TAG ('f', 'r', 'a', 'c'));
-  g_assert_cmpint (features[6].tag, ==, HB_TAG ('i', 'n', 'i', 't'));
-  g_assert_cmpint (features[7].tag, ==, HB_TAG ('i', 's', 'o', 'l'));
-  g_assert_cmpint (features[8].tag, ==, HB_TAG ('k', 'e', 'r', 'n'));
-  g_assert_cmpint (features[9].tag, ==, HB_TAG ('l', 'i', 'g', 'a'));
-  g_assert_cmpint (features[10].tag, ==, HB_TAG ('m', 'a', 'r', 'k'));
-  g_assert_cmpint (features[11].tag, ==, HB_TAG ('m', 'e', 'd', 'i'));
-  g_assert_cmpint (features[12].tag, ==, HB_TAG ('m', 'k', 'm', 'k'));
-  g_assert_cmpint (features[13].tag, ==, HB_TAG ('n', 'u', 'm', 'r'));
-  g_assert_cmpint (features[14].tag, ==, HB_TAG ('r', 'l', 'i', 'g'));
-  g_assert_cmpint (features[15].tag, ==, HB_TAG ('r', 't', 'l', 'm'));
+  g_assert_cmpint (features[0], ==, HB_TAG ('a', 'b', 'v', 'm'));
+  g_assert_cmpint (features[1], ==, HB_TAG ('c', 'c', 'm', 'p'));
+  g_assert_cmpint (features[2], ==, HB_TAG ('d', 'i', 's', 't'));
+  g_assert_cmpint (features[3], ==, HB_TAG ('d', 'n', 'o', 'm'));
+  g_assert_cmpint (features[4], ==, HB_TAG ('f', 'i', 'n', 'a'));
+  g_assert_cmpint (features[5], ==, HB_TAG ('f', 'r', 'a', 'c'));
+  g_assert_cmpint (features[6], ==, HB_TAG ('i', 'n', 'i', 't'));
+  g_assert_cmpint (features[7], ==, HB_TAG ('i', 's', 'o', 'l'));
+  g_assert_cmpint (features[8], ==, HB_TAG ('k', 'e', 'r', 'n'));
+  g_assert_cmpint (features[9], ==, HB_TAG ('l', 'i', 'g', 'a'));
+  g_assert_cmpint (features[10], ==, HB_TAG ('m', 'a', 'r', 'k'));
+  g_assert_cmpint (features[11], ==, HB_TAG ('m', 'e', 'd', 'i'));
+  g_assert_cmpint (features[12], ==, HB_TAG ('m', 'k', 'm', 'k'));
+  g_assert_cmpint (features[13], ==, HB_TAG ('n', 'u', 'm', 'r'));
+  g_assert_cmpint (features[14], ==, HB_TAG ('r', 'l', 'i', 'g'));
+  g_assert_cmpint (features[15], ==, HB_TAG ('r', 't', 'l', 'm'));
 
   hb_shape_plan_destroy (shape_plan);
   hb_buffer_destroy (buffer);
@@ -77,7 +77,7 @@ test_ot_shape_plan_get_features_rtl (void)
 
 
 static void
-test_ot_shape_plan_get_features_ltr (void)
+test_ot_shape_plan_get_feature_tags_ltr (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -94,22 +94,22 @@ test_ot_shape_plan_get_features_ltr (void)
   hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, NULL, 0);
   g_assert_true (ret);
 
-  hb_feature_t features[10];
+  hb_tag_t features[10];
   unsigned int feature_count = sizeof (features) / sizeof (features[0]);
-  unsigned int count = hb_ot_shape_plan_get_features (shape_plan, 0, &feature_count, features);
+  unsigned int count = hb_ot_shape_plan_get_feature_tags (shape_plan, 0, &feature_count, features);
   g_assert_cmpuint (count, ==, 10);
   g_assert_cmpuint (feature_count, ==, count);
 
-  g_assert_cmpint (features[0].tag, ==, HB_TAG ('a', 'b', 'v', 'm'));
-  g_assert_cmpint (features[1].tag, ==, HB_TAG ('c', 'c', 'm', 'p'));
-  g_assert_cmpint (features[2].tag, ==, HB_TAG ('d', 'i', 's', 't'));
-  g_assert_cmpint (features[3].tag, ==, HB_TAG ('d', 'n', 'o', 'm'));
-  g_assert_cmpint (features[4].tag, ==, HB_TAG ('f', 'r', 'a', 'c'));
-  g_assert_cmpint (features[5].tag, ==, HB_TAG ('k', 'e', 'r', 'n'));
-  g_assert_cmpint (features[6].tag, ==, HB_TAG ('l', 'i', 'g', 'a'));
-  g_assert_cmpint (features[7].tag, ==, HB_TAG ('m', 'a', 'r', 'k'));
-  g_assert_cmpint (features[8].tag, ==, HB_TAG ('m', 'k', 'm', 'k'));
-  g_assert_cmpint (features[9].tag, ==, HB_TAG ('n', 'u', 'm', 'r'));
+  g_assert_cmpint (features[0], ==, HB_TAG ('a', 'b', 'v', 'm'));
+  g_assert_cmpint (features[1], ==, HB_TAG ('c', 'c', 'm', 'p'));
+  g_assert_cmpint (features[2], ==, HB_TAG ('d', 'i', 's', 't'));
+  g_assert_cmpint (features[3], ==, HB_TAG ('d', 'n', 'o', 'm'));
+  g_assert_cmpint (features[4], ==, HB_TAG ('f', 'r', 'a', 'c'));
+  g_assert_cmpint (features[5], ==, HB_TAG ('k', 'e', 'r', 'n'));
+  g_assert_cmpint (features[6], ==, HB_TAG ('l', 'i', 'g', 'a'));
+  g_assert_cmpint (features[7], ==, HB_TAG ('m', 'a', 'r', 'k'));
+  g_assert_cmpint (features[8], ==, HB_TAG ('m', 'k', 'm', 'k'));
+  g_assert_cmpint (features[9], ==, HB_TAG ('n', 'u', 'm', 'r'));
 
   hb_buffer_destroy (buffer);
   hb_shape_plan_destroy (shape_plan);
@@ -118,7 +118,7 @@ test_ot_shape_plan_get_features_ltr (void)
 }
 
 static void
-test_ot_shape_plan_get_features_ttb (void)
+test_ot_shape_plan_get_feature_tags_ttb (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Mplus1p-Regular.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -135,16 +135,16 @@ test_ot_shape_plan_get_features_ttb (void)
   hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, NULL, 0);
   g_assert_true (ret);
 
-  hb_feature_t features[4];
+  hb_tag_t features[4];
   unsigned int feature_count = sizeof (features) / sizeof (features[0]);
-  unsigned int count = hb_ot_shape_plan_get_features (shape_plan, 0, &feature_count, features);
+  unsigned int count = hb_ot_shape_plan_get_feature_tags (shape_plan, 0, &feature_count, features);
   g_assert_cmpuint (count, ==, 4);
   g_assert_cmpuint (feature_count, ==, count);
 
-  g_assert_cmpint (features[0].tag, ==, HB_TAG ('c', 'c', 'm', 'p'));
-  g_assert_cmpint (features[1].tag, ==, HB_TAG ('m', 'a', 'r', 'k'));
-  g_assert_cmpint (features[2].tag, ==, HB_TAG ('m', 'k', 'm', 'k'));
-  g_assert_cmpint (features[3].tag, ==, HB_TAG ('v', 'e', 'r', 't'));
+  g_assert_cmpint (features[0], ==, HB_TAG ('c', 'c', 'm', 'p'));
+  g_assert_cmpint (features[1], ==, HB_TAG ('m', 'a', 'r', 'k'));
+  g_assert_cmpint (features[2], ==, HB_TAG ('m', 'k', 'm', 'k'));
+  g_assert_cmpint (features[3], ==, HB_TAG ('v', 'e', 'r', 't'));
 
   hb_buffer_destroy (buffer);
   hb_shape_plan_destroy (shape_plan);
@@ -153,7 +153,7 @@ test_ot_shape_plan_get_features_ttb (void)
 }
 
 static void
-test_ot_shape_plan_get_features_userfeatures_enable (void)
+test_ot_shape_plan_get_feature_tags_userfeatures_enable (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Mada-VF.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -172,19 +172,19 @@ test_ot_shape_plan_get_features_userfeatures_enable (void)
   hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, user_features, 1);
   g_assert_true (ret);
 
-  hb_feature_t features[7];
+  hb_tag_t features[7];
   unsigned int feature_count = sizeof (features) / sizeof (features[0]);
-  unsigned int count = hb_ot_shape_plan_get_features (shape_plan, 0, &feature_count, features);
+  unsigned int count = hb_ot_shape_plan_get_feature_tags (shape_plan, 0, &feature_count, features);
   g_assert_cmpuint (count, ==, 7);
   g_assert_cmpuint (feature_count, ==, count);
 
-  g_assert_cmpint (features[0].tag, ==, HB_TAG ('c', 'c', 'm', 'p'));
-  g_assert_cmpint (features[1].tag, ==, HB_TAG ('k', 'e', 'r', 'n'));
-  g_assert_cmpint (features[2].tag, ==, HB_TAG ('m', 'a', 'r', 'k'));
-  g_assert_cmpint (features[3].tag, ==, HB_TAG ('m', 'k', 'm', 'k'));
-  g_assert_cmpint (features[4].tag, ==, HB_TAG ('r', 'c', 'l', 't'));
-  g_assert_cmpint (features[5].tag, ==, HB_TAG ('r', 'l', 'i', 'g'));
-  g_assert_cmpint (features[6].tag, ==, HB_TAG ('s', 's', '0', '1'));
+  g_assert_cmpint (features[0], ==, HB_TAG ('c', 'c', 'm', 'p'));
+  g_assert_cmpint (features[1], ==, HB_TAG ('k', 'e', 'r', 'n'));
+  g_assert_cmpint (features[2], ==, HB_TAG ('m', 'a', 'r', 'k'));
+  g_assert_cmpint (features[3], ==, HB_TAG ('m', 'k', 'm', 'k'));
+  g_assert_cmpint (features[4], ==, HB_TAG ('r', 'c', 'l', 't'));
+  g_assert_cmpint (features[5], ==, HB_TAG ('r', 'l', 'i', 'g'));
+  g_assert_cmpint (features[6], ==, HB_TAG ('s', 's', '0', '1'));
 
   hb_buffer_destroy (buffer);
   hb_shape_plan_destroy (shape_plan);
@@ -193,7 +193,7 @@ test_ot_shape_plan_get_features_userfeatures_enable (void)
 }
 
 static void
-test_ot_shape_plan_get_features_userfeatures_disable (void)
+test_ot_shape_plan_get_feature_tags_userfeatures_disable (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Mada-VF.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -212,17 +212,17 @@ test_ot_shape_plan_get_features_userfeatures_disable (void)
   hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, user_features, 1);
   g_assert_true (ret);
 
-  hb_feature_t features[5];
+  hb_tag_t features[5];
   unsigned int feature_count = sizeof (features) / sizeof (features[0]);
-  unsigned int count = hb_ot_shape_plan_get_features (shape_plan, 0, &feature_count, features);
+  unsigned int count = hb_ot_shape_plan_get_feature_tags (shape_plan, 0, &feature_count, features);
   g_assert_cmpuint (count, ==, 5);
   g_assert_cmpuint (feature_count, ==, count);
 
-  g_assert_cmpint (features[0].tag, ==, HB_TAG ('c', 'c', 'm', 'p'));
-  g_assert_cmpint (features[1].tag, ==, HB_TAG ('m', 'a', 'r', 'k'));
-  g_assert_cmpint (features[2].tag, ==, HB_TAG ('m', 'k', 'm', 'k'));
-  g_assert_cmpint (features[3].tag, ==, HB_TAG ('r', 'c', 'l', 't'));
-  g_assert_cmpint (features[4].tag, ==, HB_TAG ('r', 'l', 'i', 'g'));
+  g_assert_cmpint (features[0], ==, HB_TAG ('c', 'c', 'm', 'p'));
+  g_assert_cmpint (features[1], ==, HB_TAG ('m', 'a', 'r', 'k'));
+  g_assert_cmpint (features[2], ==, HB_TAG ('m', 'k', 'm', 'k'));
+  g_assert_cmpint (features[3], ==, HB_TAG ('r', 'c', 'l', 't'));
+  g_assert_cmpint (features[4], ==, HB_TAG ('r', 'l', 'i', 'g'));
 
   hb_buffer_destroy (buffer);
   hb_shape_plan_destroy (shape_plan);
@@ -231,7 +231,7 @@ test_ot_shape_plan_get_features_userfeatures_disable (void)
 }
 
 static void
-test_ot_shape_plan_get_features_userfeatures_disable_range (void)
+test_ot_shape_plan_get_feature_tags_userfeatures_disable_range (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Mada-VF.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -250,18 +250,18 @@ test_ot_shape_plan_get_features_userfeatures_disable_range (void)
   hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, user_features, 1);
   g_assert_true (ret);
 
-  hb_feature_t features[6];
+  hb_tag_t features[6];
   unsigned int feature_count = sizeof (features) / sizeof (features[0]);
-  unsigned int count = hb_ot_shape_plan_get_features (shape_plan, 0, &feature_count, features);
+  unsigned int count = hb_ot_shape_plan_get_feature_tags (shape_plan, 0, &feature_count, features);
   g_assert_cmpuint (count, ==, 6);
   g_assert_cmpuint (feature_count, ==, count);
 
-  g_assert_cmpint (features[0].tag, ==, HB_TAG ('c', 'c', 'm', 'p'));
-  g_assert_cmpint (features[1].tag, ==, HB_TAG ('k', 'e', 'r', 'n'));
-  g_assert_cmpint (features[2].tag, ==, HB_TAG ('m', 'a', 'r', 'k'));
-  g_assert_cmpint (features[3].tag, ==, HB_TAG ('m', 'k', 'm', 'k'));
-  g_assert_cmpint (features[4].tag, ==, HB_TAG ('r', 'c', 'l', 't'));
-  g_assert_cmpint (features[5].tag, ==, HB_TAG ('r', 'l', 'i', 'g'));
+  g_assert_cmpint (features[0], ==, HB_TAG ('c', 'c', 'm', 'p'));
+  g_assert_cmpint (features[1], ==, HB_TAG ('k', 'e', 'r', 'n'));
+  g_assert_cmpint (features[2], ==, HB_TAG ('m', 'a', 'r', 'k'));
+  g_assert_cmpint (features[3], ==, HB_TAG ('m', 'k', 'm', 'k'));
+  g_assert_cmpint (features[4], ==, HB_TAG ('r', 'c', 'l', 't'));
+  g_assert_cmpint (features[5], ==, HB_TAG ('r', 'l', 'i', 'g'));
 
   hb_buffer_destroy (buffer);
   hb_shape_plan_destroy (shape_plan);
@@ -274,12 +274,12 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  hb_test_add (test_ot_shape_plan_get_features_rtl);
-  hb_test_add (test_ot_shape_plan_get_features_ltr);
-  hb_test_add (test_ot_shape_plan_get_features_ttb);
-  hb_test_add (test_ot_shape_plan_get_features_userfeatures_enable);
-  hb_test_add (test_ot_shape_plan_get_features_userfeatures_disable);
-  hb_test_add (test_ot_shape_plan_get_features_userfeatures_disable_range);
+  hb_test_add (test_ot_shape_plan_get_feature_tags_rtl);
+  hb_test_add (test_ot_shape_plan_get_feature_tags_ltr);
+  hb_test_add (test_ot_shape_plan_get_feature_tags_ttb);
+  hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_enable);
+  hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disable);
+  hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disable_range);
 
   return hb_test_run();
 }
