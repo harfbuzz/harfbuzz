@@ -31,6 +31,7 @@
 static void
 test_ot_shape_plan_get_feature_tags_rtl (void)
 {
+  /* Test getting features enabled for horizontal RTL text */
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
   hb_font_t *font = hb_font_create (face);
 
@@ -79,6 +80,7 @@ test_ot_shape_plan_get_feature_tags_rtl (void)
 static void
 test_ot_shape_plan_get_feature_tags_ltr (void)
 {
+  /* Test getting features enabled for horizontal LTR text */
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
   hb_font_t *font = hb_font_create (face);
 
@@ -120,6 +122,7 @@ test_ot_shape_plan_get_feature_tags_ltr (void)
 static void
 test_ot_shape_plan_get_feature_tags_ttb (void)
 {
+  /* Test getting features enabled for vertical text */
   hb_face_t *face = hb_test_open_font_file ("fonts/Mplus1p-Regular.ttf");
   hb_font_t *font = hb_font_create (face);
 
@@ -155,6 +158,7 @@ test_ot_shape_plan_get_feature_tags_ttb (void)
 static void
 test_ot_shape_plan_get_feature_tags_userfeatures_enable (void)
 {
+  /* test getting features enabled with user features enabling a non-default feature */
   hb_face_t *face = hb_test_open_font_file ("fonts/Mada-VF.ttf");
   hb_font_t *font = hb_font_create (face);
 
@@ -195,6 +199,7 @@ test_ot_shape_plan_get_feature_tags_userfeatures_enable (void)
 static void
 test_ot_shape_plan_get_feature_tags_userfeatures_disable (void)
 {
+  /* test getting features enabled with user features disabling a default feature */
   hb_face_t *face = hb_test_open_font_file ("fonts/Mada-VF.ttf");
   hb_font_t *font = hb_font_create (face);
 
@@ -231,8 +236,11 @@ test_ot_shape_plan_get_feature_tags_userfeatures_disable (void)
 }
 
 static void
-test_ot_shape_plan_get_feature_tags_userfeatures_disable_range (void)
+test_ot_shape_plan_get_feature_tags_userfeatures_disablepartial (void)
 {
+  /* test getting features enabled with user features disabling a non-default
+     feature partially; the tag of the disabled feature will be returned since
+     it is still enabled partially.*/
   hb_face_t *face = hb_test_open_font_file ("fonts/Mada-VF.ttf");
   hb_font_t *font = hb_font_create (face);
 
@@ -269,6 +277,47 @@ test_ot_shape_plan_get_feature_tags_userfeatures_disable_range (void)
   hb_face_destroy (face);
 }
 
+static void
+test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult (void)
+{
+  /* test getting features enabled with user features disabling a non-default
+     feature; the tag of the disabled feature will be returned returned.*/
+  hb_face_t *face = hb_test_open_font_file ("fonts/Mada-VF.ttf");
+  hb_font_t *font = hb_font_create (face);
+
+  hb_segment_properties_t props = HB_SEGMENT_PROPERTIES_DEFAULT;
+  props.script = HB_SCRIPT_LATIN;
+  props.direction = HB_DIRECTION_LTR;
+
+  hb_buffer_t *buffer = hb_buffer_create ();
+  hb_buffer_set_segment_properties (buffer, &props);
+  hb_buffer_add_utf8 (buffer, u8"   ", -1, 0, -1);
+
+  hb_feature_t user_features[1] = {{HB_TAG ('s', 's', '0', '1'), 0, 0, HB_FEATURE_GLOBAL_END}};
+
+  hb_shape_plan_t *shape_plan = hb_shape_plan_create (face, &props, user_features, 1, NULL);
+  hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, user_features, 1);
+  g_assert_true (ret);
+
+  hb_tag_t features[6];
+  unsigned int feature_count = sizeof (features) / sizeof (features[0]);
+  unsigned int count = hb_ot_shape_plan_get_feature_tags (shape_plan, 0, &feature_count, features);
+  g_assert_cmpuint (count, ==, 6);
+  g_assert_cmpuint (feature_count, ==, count);
+
+  g_assert_cmpint (features[0], ==, HB_TAG ('c', 'c', 'm', 'p'));
+  g_assert_cmpint (features[1], ==, HB_TAG ('k', 'e', 'r', 'n'));
+  g_assert_cmpint (features[2], ==, HB_TAG ('m', 'a', 'r', 'k'));
+  g_assert_cmpint (features[3], ==, HB_TAG ('m', 'k', 'm', 'k'));
+  g_assert_cmpint (features[4], ==, HB_TAG ('r', 'c', 'l', 't'));
+  g_assert_cmpint (features[5], ==, HB_TAG ('r', 'l', 'i', 'g'));
+
+  hb_buffer_destroy (buffer);
+  hb_shape_plan_destroy (shape_plan);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -279,7 +328,8 @@ main (int argc, char **argv)
   hb_test_add (test_ot_shape_plan_get_feature_tags_ttb);
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_enable);
   hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disable);
-  hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disable_range);
+  hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disablepartial);
+  hb_test_add (test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult);
 
   return hb_test_run();
 }
