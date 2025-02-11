@@ -49,7 +49,6 @@ jobs:
           -Dchafa=disabled \
           -Dgraphite=enabled \
           -Doptimization=2 \
-          -Db_coverage=true \
           -Ddoc_tests=true \
           -Dragel_subproject=true
     - name: Build
@@ -64,10 +63,3 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         REVISION: ${{ github.sha }}
-    - name: Generate Coverage
-      run: ninja -Cbuild coverage-xml
-    - name: Upload Coverage
-      uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3 # v5.3.1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: build/meson-logs/coverage.xml
