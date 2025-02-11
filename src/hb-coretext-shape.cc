@@ -519,6 +519,35 @@ hb_coretext_font_create (CTFontRef ct_font)
 
   hb_font_set_ptem (font, CTFontGetSize (ct_font));
 
+  /* Copy font variations */
+  CFDictionaryRef variations = CTFontCopyVariation (ct_font);
+  if (variations)
+  {
+    CFIndex count = CFDictionaryGetCount (variations);
+    // Fetch them one by one and collect in a vector of our own.
+    const void *keys;
+    const void *values;
+    CFDictionaryGetKeysAndValues (variations, &keys, &values);
+
+    hb_vector_t<hb_variation_t> vars;
+    for (CFIndex i = 0; i < count; i++)
+    {
+      CFNumberRef tag_number = (CFNumberRef) CFArrayGetValueAtIndex ((CFArrayRef) keys, i);
+      CFNumberRef value_number = (CFNumberRef) CFArrayGetValueAtIndex ((CFArrayRef) values, i);
+
+      int tag;
+      float value;
+      CFNumberGetValue (tag_number, kCFNumberIntType, &tag);
+      CFNumberGetValue (value_number, kCFNumberFloatType, &value);
+
+      hb_variation_t var = {tag, value};
+      vars.push (var);
+    }
+    hb_font_set_variations (font, vars.arrayZ, vars.length);
+
+    CFRelease (variations);
+  }
+
   /* Let there be dragons here... */
   font->data.coretext.cmpexch (nullptr, (hb_coretext_font_data_t *) CFRetain (ct_font));
 
