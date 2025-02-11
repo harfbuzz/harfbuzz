@@ -449,11 +449,11 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
 
     for (unsigned i = 0; i < font->num_coords; i++)
     {
-      if (font->coords[i] == 0.) continue;
-
       hb_ot_var_axis_info_t info;
       unsigned int c = 1;
       hb_ot_var_get_axis_infos (font->face, i, &c, &info);
+      if (font->design_coords[i] == info.default_value)
+	continue;
       float v = hb_clamp (font->design_coords[i], info.min_value, info.max_value);
 
       CFNumberRef tag_number = CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &info.tag);
