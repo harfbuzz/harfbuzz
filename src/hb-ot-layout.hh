@@ -387,7 +387,7 @@ static inline void
 _hb_ot_layout_reverse_graphemes (hb_buffer_t *buffer)
 {
   buffer->reverse_groups (_hb_grapheme_group_func,
-			  buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS);
+			  HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE (buffer->cluster_level));
 }
 
 static inline bool

@@ -551,7 +551,7 @@ hb_form_clusters (hb_buffer_t *buffer)
   if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII))
     return;
 
-  if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
+  if (HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES (buffer->cluster_level))
     foreach_grapheme (buffer, start, end)
       buffer->merge_clusters (start, end);
   else
@@ -609,7 +609,7 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
    * Ogham fonts are supposed to be implemented BTT or not.  Need to research that
    * first. */
   if ((HB_DIRECTION_IS_HORIZONTAL (direction) &&
-       direction != horiz_dir && horiz_dir != HB_DIRECTION_INVALID) ||
+       direction != horiz_dir && HB_DIRECTION_IS_VALID (horiz_dir)) ||
       (HB_DIRECTION_IS_VERTICAL   (direction) &&
        direction != HB_DIRECTION_TTB))
   {

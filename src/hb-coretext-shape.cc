@@ -646,7 +646,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
    * B1 M1 B2 M2, and B1-B2 form a ligature, M2's cluster will
    * continue pointing to B2 even though B2 was merged into B1's
    * cluster... */
-  if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
+  if (HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES (buffer->cluster_level))
   {
     hb_unicode_funcs_t *unicode = buffer->unicode;
     unsigned int count = buffer->len;
@@ -1292,7 +1292,7 @@ resize_and_retry:
      * or the native OT backend, only that the cluster indices will be
      * monotonic in the output buffer. */
     if (count > 1 && (status_or & kCTRunStatusNonMonotonic) &&
-	buffer->cluster_level != HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
+	HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE (buffer->cluster_level))
     {
       hb_glyph_info_t *info = buffer->info;
       if (HB_DIRECTION_IS_FORWARD (buffer->props.direction))
