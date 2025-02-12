@@ -68,12 +68,42 @@ test_native_coretext_basic (void)
   CFRelease (ctfont);
 }
 
+static void
+test_native_coretext_variations (void)
+{
+  // Test that we copy variations from CTFont when creating hb_font_t
+  CTFontRef ctfont;
+  CFDictionaryRef variations;
+  CFIndex count;
+  hb_font_t *font;
+  unsigned int length;
+
+  // System UI font is a variable font
+  ctfont = CTFontCreateUIFontForLanguage (kCTFontUIFontSystem, 12.0, CFSTR ("en-US"));
+  g_assert_nonnull (ctfont);
+
+  variations = CTFontCopyVariation (ctfont);
+  g_assert_nonnull (variations);
+
+  count = CFDictionaryGetCount (variations);
+  g_assert_cmpint (count, >, 0);
+
+  font = hb_coretext_font_create (ctfont);
+  hb_font_get_var_coords_normalized(font, &length);
+  g_assert_cmpuint (length, !=, 0);
+
+  hb_font_destroy (font);
+
+  CFRelease (ctfont);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_native_coretext_basic);
+  hb_test_add (test_native_coretext_variations);
 
   return hb_test_run ();
 }
