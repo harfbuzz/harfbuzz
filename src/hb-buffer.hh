@@ -32,8 +32,6 @@
 
 #include "hb.hh"
 #include "hb-unicode.hh"
-#include "hb-bit-set.hh"
-#include "hb-set-digest.hh"
 
 
 static_assert ((sizeof (hb_glyph_info_t) == 20), "");
