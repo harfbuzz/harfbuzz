@@ -29,6 +29,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-aat-layout-common.hh"
+#include "hb-ot-layout.hh"
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-aat-map.hh"
@@ -588,7 +589,7 @@ struct LigatureSubtable
 	    {
 	      DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
 	      if (unlikely (!buffer->move_to (match_positions[--match_length % ARRAY_LENGTH (match_positions)]))) return;
-	      buffer->cur().unicode_props() |= UPROPS_MASK_IGNORABLE;
+	      _hb_glyph_info_set_default_ignorable (&buffer->cur());
 	      if (unlikely (!buffer->replace_glyph (DELETED_GLYPH))) return;
 	    }
 
