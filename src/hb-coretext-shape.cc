@@ -523,13 +523,19 @@ hb_coretext_font_create (CTFontRef ct_font)
   CFDictionaryRef variations = CTFontCopyVariation (ct_font);
   if (variations)
   {
+    hb_vector_t<hb_variation_t> vars;
+
     CFIndex count = CFDictionaryGetCount (variations);
     // Fetch them one by one and collect in a vector of our own.
     CFTypeRef *keys = (CFTypeRef*) hb_malloc (sizeof (CFTypeRef) * count);
     CFTypeRef *values = (CFTypeRef*) hb_malloc (sizeof (CFTypeRef) * count);
-    CFDictionaryGetKeysAndValues (variations, keys, values);
+    if (unlikely (!keys || !values))
+      goto done;
 
-    hb_vector_t<hb_variation_t> vars;
+    if (unlikely (!vars.alloc (count)))
+      goto done;
+
+    CFDictionaryGetKeysAndValues (variations, keys, values);
     for (CFIndex i = 0; i < count; i++)
     {
       int tag;
@@ -542,6 +548,7 @@ hb_coretext_font_create (CTFontRef ct_font)
     }
     hb_font_set_variations (font, vars.arrayZ, vars.length);
 
+done:
     hb_free (keys);
     hb_free (values);
     CFRelease (variations);
