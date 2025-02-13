@@ -30,10 +30,16 @@
 HB_BEGIN_DECLS
 
 HB_EXTERN hb_face_t *
-hb_directwrite_face_create (IDWriteFontFace *font_face);
+hb_directwrite_face_create (IDWriteFontFace *dw_face);
 
 HB_EXTERN IDWriteFontFace *
 hb_directwrite_face_get_font_face (hb_face_t *face);
+
+HB_EXTERN hb_font_t *
+hb_directwrite_font_create (IDWriteFont *dw_font);
+
+HB_EXTERN IDWriteFont *
+hb_directwrite_font_get_font (hb_font_t *font);
 
 HB_END_DECLS
 
