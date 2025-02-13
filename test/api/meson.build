@@ -81,6 +81,12 @@ if conf.get('HAVE_CORETEXT', 0) == 1
   ]
 endif
 
+if conf.get('HAVE_DIRECTWRITE', 0) == 1
+  tests += [
+    'test-directwrite.cc',
+  ]
+endif
+
 if conf.get('HAVE_FREETYPE', 0) == 1 and conf.get('HAVE_PTHREAD', 0) == 1
   tests += 'test-multithread.c'
 endif
