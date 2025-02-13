@@ -321,7 +321,7 @@ if host_machine.system() == 'windows' and not get_option('gdi').disabled()
   endif
 
   gdi_deps_found = true
-  foreach usplib : ['usp10', 'gdi32', 'rpcrt4']
+  foreach usplib : ['usp10', 'gdi32', 'rpcrt4', 'user32']
     dep = cpp.find_library(usplib, required: get_option('gdi'))
     gdi_deps_found = gdi_deps_found and dep.found()
     gdi_uniscribe_deps += dep
