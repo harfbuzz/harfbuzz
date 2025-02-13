@@ -36,6 +36,7 @@
 #include "hb-ot-map.hh"
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-layout-gdef-table.hh"
+#include "hb-depend-data.hh"
 
 
 namespace OT {
@@ -375,7 +376,34 @@ struct hb_collect_glyphs_context_t :
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
 
+struct hb_depend_context_t :
+       hb_dispatch_context_t<hb_depend_context_t, bool>
+{
+  typedef return_t (*recurse_func_t) (hb_depend_context_t *c, unsigned lookup_index);
+  template <typename T>
+  return_t dispatch (const T &obj) { return obj.depend (this); }
+  static return_t default_return_value () { return false; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
 
+  return_t recurse (unsigned lookup_idx)
+  {
+    if (lookups_seen.has (lookup_idx))
+        return false;
+    lookups_seen.add (lookup_idx);
+    return recurse_func (this, lookup_idx);
+  }
+
+  hb_depend_data_t *depend_data;
+  hb_face_t *face;
+  recurse_func_t recurse_func;
+  hb_codepoint_t lookup_index;
+  hb_set_t lookups_seen;
+
+  hb_depend_context_t (hb_depend_data_t *depend_data_, hb_face_t *face_)
+                      : depend_data (depend_data_), face(face_),
+                        recurse_func (nullptr) {}
+  void set_recurse_func (recurse_func_t func) { recurse_func = func; }
+};
 
 template <typename set_t>
 struct hb_collect_coverage_context_t :
@@ -1760,6 +1788,26 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
   }
 }
 
+template <typename HBUINT>
+static void context_depend_recurse_lookups (hb_depend_context_t *c,
+					     unsigned inputCount HB_UNUSED, const HBUINT input[] HB_UNUSED,
+					     unsigned lookupCount,
+					     const LookupRecord lookupRecord[] /* Array of LookupRecords--in design order */,
+					     unsigned value HB_UNUSED)
+{
+  /* XXX What this function should do is recurse through the lookups adding
+   * only those entries of the lookup that are "reachable" given the input.
+   * As it is a lookup reused in multiple contexts will be over-referenced,
+   * leading to inaccurate dependency entries.
+   *
+   * Note that c->lookup_index is not changed. Entries for sub-lookups are
+   * called back with the original index so that they can be entered with
+   * the appropriate layout tags.
+   */
+  for (unsigned int i = 0; i < lookupCount; i++)
+    c->recurse (lookupRecord[i].lookupListIndex);
+}
+
 template <typename context_t>
 static inline void recurse_lookups (context_t *c,
                                     unsigned int lookupCount,
@@ -2070,6 +2118,16 @@ struct Rule
 			       lookup_context);
   }
 
+  void depend (hb_depend_context_t *c, unsigned value) const
+  {
+    const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
+					   (inputZ.as_array ((inputCount ? inputCount - 1 : 0)));
+    context_depend_recurse_lookups (c,
+			    inputCount, inputZ.arrayZ,
+			    lookupCount, lookupRecord.arrayZ,
+			    value);
+  }
+
   void closure (hb_closure_context_t *c, unsigned value, ContextClosureLookupContext &lookup_context) const
   {
     if (unlikely (c->lookup_limit_exceeded ())) return;
@@ -2202,6 +2260,14 @@ struct RuleSet
     | hb_any
     ;
   }
+
+  void depend (hb_depend_context_t *c, unsigned value) const
+  {
+    + hb_iter (rule)
+    | hb_map (hb_add (this))
+    | hb_apply ([&] (const Rule &_) { _.depend (c, value); })
+    ;
+  } 
 
   void closure (hb_closure_context_t *c, unsigned value,
 		ContextClosureLookupContext &lookup_context) const
@@ -2443,6 +2509,15 @@ struct ContextFormat1_4
   bool may_have_non_1to1 () const
   { return true; }
 
+  bool depend (hb_depend_context_t *c) const
+  {
+    + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
+    | hb_map ([&](const hb_pair_t<hb_codepoint_t, unsigned> _) { return hb_pair_t<unsigned, const RuleSet&> (_.first, this+ruleSet[_.second]); })
+    | hb_apply ([&] (const hb_pair_t<unsigned, const RuleSet&>& _) { _.second.depend (c, _.first); })
+    ;
+    return true;
+  }
+
   void closure (hb_closure_context_t *c) const
   {
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
@@ -2610,6 +2685,18 @@ struct ContextFormat2_5
 
   bool may_have_non_1to1 () const
   { return true; }
+
+  bool depend (hb_depend_context_t *c) const
+  {
+    + hb_enumerate (ruleSet)
+    | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<RuleSet>&> _)
+                {
+                  const RuleSet& rule_set = this+_.second;
+                  rule_set.depend (c, _.first);
+                })
+    ;
+    return true;
+  }
 
   void closure (hb_closure_context_t *c) const
   {
@@ -2850,6 +2937,16 @@ struct ContextFormat3
 
   bool may_have_non_1to1 () const
   { return true; }
+
+  bool depend (hb_depend_context_t *c) const
+  {
+    const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
+    context_depend_recurse_lookups (c,
+			    glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
+			    lookupCount, lookupRecord,
+			    0);
+    return true;
+  }
 
   void closure (hb_closure_context_t *c) const
   {
@@ -3206,6 +3303,18 @@ struct ChainRule
 				     lookup_context);
   }
 
+  void depend (hb_depend_context_t *c, unsigned value) const
+  {
+    const auto &input = StructAfter<decltype (inputX)> (backtrack);
+    const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
+    const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+
+    context_depend_recurse_lookups (c,
+			    input.lenP1, input.arrayZ,
+			    lookup.len, lookup.arrayZ,
+			    value);
+  }
+
   void closure (hb_closure_context_t *c, unsigned value,
 		ChainContextClosureLookupContext &lookup_context) const
   {
@@ -3398,6 +3507,13 @@ struct ChainRuleSet
     | hb_map (hb_add (this))
     | hb_map ([&] (const ChainRule &_) { return _.intersects (glyphs, lookup_context); })
     | hb_any
+    ;
+  }
+  void depend (hb_depend_context_t *c, unsigned value) const
+  {
+    + hb_iter (rule)
+    | hb_map (hb_add (this))
+    | hb_apply ([&] (const ChainRule &_) { _.depend (c, value); })
     ;
   }
   void closure (hb_closure_context_t *c, unsigned value, ChainContextClosureLookupContext &lookup_context) const
@@ -3662,6 +3778,15 @@ struct ChainContextFormat1_4
   bool may_have_non_1to1 () const
   { return true; }
 
+  bool depend (hb_depend_context_t *c) const
+  {
+    + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
+    | hb_map ([&](const hb_pair_t<hb_codepoint_t, unsigned> _) { return hb_pair_t<unsigned, const ChainRuleSet&> (_.first, this+ruleSet[_.second]); })
+    | hb_apply ([&] (const hb_pair_t<unsigned, const ChainRuleSet&>& _) { _.second.depend (c, _.first); })
+    ;
+    return true;
+  }
+
   void closure (hb_closure_context_t *c) const
   {
     hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
@@ -3831,6 +3956,19 @@ struct ChainContextFormat2_5
 
   bool may_have_non_1to1 () const
   { return true; }
+
+  bool depend (hb_depend_context_t *c) const
+  {
+    + hb_enumerate (ruleSet)
+    | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<ChainRuleSet>&> _)
+                {
+                  const ChainRuleSet& chainrule_set = this+_.second;
+                  chainrule_set.depend (c, _.first);
+                })
+    ;
+
+    return true;
+  }
 
   void closure (hb_closure_context_t *c) const
   {
@@ -4128,6 +4266,20 @@ struct ChainContextFormat3
 
   bool may_have_non_1to1 () const
   { return true; }
+
+  bool depend (hb_depend_context_t *c) const
+  {
+    const auto &input = StructAfter<decltype (inputX)> (backtrack);
+    const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
+    const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+
+    context_depend_recurse_lookups (c,
+				  input.len, (const HBUINT16 *) input.arrayZ + 1,
+				  lookup.len, lookup.arrayZ,
+			    0);
+
+    return false;
+  }
 
   void closure (hb_closure_context_t *c) const
   {

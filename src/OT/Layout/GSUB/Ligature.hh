@@ -38,6 +38,19 @@ struct Ligature
     c->output->add (ligGlyph);
   }
 
+  void depend (hb_depend_context_t *c, hb_codepoint_t first) const
+  {
+    hb_codepoint_t ligset = c->depend_data->new_set(first);
+    c->depend_data->add_gsub_lookup (first, c->lookup_index, ligGlyph, ligset);
+
+    + hb_iter (component)
+    | hb_apply ([&] (const hb_codepoint_t &source) {
+        c->depend_data->add_to_set (ligset, source);
+        c->depend_data->add_gsub_lookup (source, c->lookup_index, ligGlyph, ligset);
+      })
+    ;
+  }
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     c->input->add_array (component.arrayZ, component.get_length ());

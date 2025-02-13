@@ -4655,6 +4655,11 @@ struct FeatureVariations
 {
   static constexpr unsigned NOT_FOUND_INDEX = 0xFFFFFFFFu;
 
+  unsigned record_count () const
+  {
+    return varRecords.len;
+  }
+
   bool find_index (const int *coords, unsigned int coord_len,
 		   unsigned int *index,
 		   ItemVarStoreInstancer *instancer) const

@@ -67,6 +67,8 @@ struct ReverseChainSingleSubstFormat1
   bool may_have_non_1to1 () const
   { return false; }
 
+  bool depend (hb_depend_context_t *c) const { return false; }
+
   void closure (hb_closure_context_t *c) const
   {
     if (!intersects (c->glyphs)) return;

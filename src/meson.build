@@ -423,11 +423,15 @@ hb_subset_sources = files(
   'graph/split-helpers.hh',
   'hb-subset.cc',
   'hb-subset.hh',
+  'hb-depend.cc',
+  'hb-depend.hh',
+  'hb-depend-data.hh',
 )
 
 hb_subset_headers = files(
   'hb-subset.h',
   'hb-subset-serialize.h'
+  'hb-depend.h',
 )
 
 hb_gobject_sources = files(

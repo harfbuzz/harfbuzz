@@ -32,6 +32,7 @@
 #include "hb-open-type.hh"
 #include "hb-set.hh"
 #include "hb-cache.hh"
+#include "hb-depend-data.hh"
 
 /*
  * cmap -- Character to Glyph Index Mapping
@@ -1198,6 +1199,18 @@ struct NonDefaultUVS : SortedArray32Of<UVSMapping>
     ;
   }
 
+  void depend (hb_depend_data_t *depend_data, hb_codepoint_t sel) const
+  {
+    for (const auto& a : as_array ())
+    {
+       hb_codepoint_t target = depend_data->get_nominal_glyph(a.unicodeValue);
+       if (target == HB_MAP_VALUE_INVALID)
+         continue;
+       depend_data->add_depend_layout(target, HB_OT_TAG_cmap,
+                                      static_cast<hb_tag_t>(sel), a.glyphID);
+    }
+  }
+
   NonDefaultUVS* copy (hb_serialize_context_t *c,
 		       const hb_set_t *unicodes,
 		       const hb_set_t *glyphs_requested,
@@ -1262,6 +1275,13 @@ struct VariationSelectorRecord
     defaultUVS = offset;
     offset = other.nonDefaultUVS;
     nonDefaultUVS = offset;
+  }
+
+  void depend (hb_depend_data_t *depend_data, const void *base) const
+  {
+    if (!nonDefaultUVS)
+      return;
+    (base+nonDefaultUVS).depend(depend_data, varSelector);
   }
 
   void collect_unicodes (hb_set_t *out, const void *base) const
@@ -1448,6 +1468,12 @@ struct CmapSubtableFormat14
     | hb_map (hb_add (this))
     | hb_apply ([=] (const NonDefaultUVS& _) { _.closure_glyphs (unicodes, glyphset); })
     ;
+  }
+
+  void depend (hb_depend_data_t *depend_data) const
+  {
+    for (const VariationSelectorRecord& _ : record)
+      _.depend (depend_data, this);
   }
 
   void collect_unicodes (hb_set_t *out) const
@@ -1909,6 +1935,16 @@ struct cmap
     | hb_map (hb_add (this))
     | hb_filter ([&] (const CmapSubtable& _) { return _.u.format.v == 14; })
     | hb_apply ([=] (const CmapSubtable& _) { _.u.format14.closure_glyphs (unicodes, glyphset); })
+    ;
+  }
+
+  void depend (hb_depend_data_t *depend_data) const
+  {
+    + hb_iter (encodingRecord)
+    | hb_map (&EncodingRecord::subtable)
+    | hb_map (hb_add (this))
+    | hb_filter ([&] (const CmapSubtable& _) { return _.u.format == 14; })
+    | hb_apply ([=] (const CmapSubtable& _) { _.u.format14.depend (depend_data); })
     ;
   }
 

@@ -34,6 +34,18 @@ struct AlternateSubstFormat1_2
   bool may_have_non_1to1 () const
   { return false; }
 
+  bool depend (hb_depend_context_t *c) const
+  {
+    + hb_zip (this+coverage, alternateSet)
+    | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, const typename Types::template OffsetTo<AlternateSet<Types>>&> &_)
+                {
+                  const AlternateSet<Types>& as = this+_.second;
+                  as.depend (c, _.first);
+                })
+    ;
+    return true;
+  }
+
   void closure (hb_closure_context_t *c) const
   {
     + hb_zip (this+coverage, alternateSet)

@@ -45,6 +45,18 @@ struct SingleSubstFormat1_3
   bool may_have_non_1to1 () const
   { return false; }
 
+  bool depend (hb_depend_context_t *c) const
+  {
+    hb_codepoint_t d = deltaGlyphID;
+    hb_codepoint_t mask = get_mask ();
+
+    + hb_iter (this+coverage)
+    | hb_map ([&] (hb_codepoint_t _) { return hb_codepoint_pair_t (_, (_ + d) & mask); })
+    | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup(_.first, c->lookup_index, _.second); })
+    ;
+    return true;
+  }
+
   void closure (hb_closure_context_t *c) const
   {
     hb_codepoint_t d = deltaGlyphID;

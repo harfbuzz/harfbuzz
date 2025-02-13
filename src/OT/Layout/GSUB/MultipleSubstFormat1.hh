@@ -44,6 +44,18 @@ struct MultipleSubstFormat1_2
     ;
   }
 
+  bool depend (hb_depend_context_t *c) const
+  {
+    + hb_zip (this+coverage, sequence)
+    | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, const typename Types::template OffsetTo<Sequence<Types>>&> &_)
+                {
+                  const Sequence<Types>& s = this+_.second;
+                  s.depend (c, _.first);
+                })
+    ;
+    return true;
+  }
+
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const

@@ -43,6 +43,18 @@ struct LigatureSubstFormat1_2
   bool may_have_non_1to1 () const
   { return true; }
 
+  bool depend (hb_depend_context_t *c) const
+  {
+    + hb_zip (this+coverage, ligatureSet)
+    | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, const typename Types::template OffsetTo<LigatureSet<Types>>&> &_)
+                {
+                  const LigatureSet<Types>& ls = this+_.second;
+                  ls.depend (c, _.first);
+                })
+    ;
+    return true;
+  }
+
   void closure (hb_closure_context_t *c) const
   {
     + hb_zip (this+coverage, ligatureSet)
