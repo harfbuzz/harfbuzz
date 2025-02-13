@@ -34,6 +34,16 @@ struct SingleSubstFormat2_4
   bool may_have_non_1to1 () const
   { return false; }
 
+  bool depend (hb_depend_context_t *c) const
+  {
+    auto &cov = this+coverage;
+
+    + hb_zip (cov, substitute)
+    | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup (_.first, c->lookup_index, _.second); })
+    ;
+    return true;
+  }
+
   void closure (hb_closure_context_t *c) const
   {
     auto &cov = this+coverage;
