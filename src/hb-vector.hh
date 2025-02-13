@@ -62,19 +62,19 @@ struct hb_vector_t
   }
   hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
   {
-    alloc (o.length, true);
+    alloc_exact (o.length);
     if (unlikely (in_error ())) return;
     copy_array (o.as_array ());
   }
   hb_vector_t (array_t o) : hb_vector_t ()
   {
-    alloc (o.length, true);
+    alloc_exact (o.length);
     if (unlikely (in_error ())) return;
     copy_array (o);
   }
   hb_vector_t (c_array_t o) : hb_vector_t ()
   {
-    alloc (o.length, true);
+    alloc_exact (o.length);
     if (unlikely (in_error ())) return;
     copy_array (o);
   }
@@ -132,7 +132,7 @@ struct hb_vector_t
   hb_vector_t& operator = (const hb_vector_t &o)
   {
     reset ();
-    alloc (o.length, true);
+    alloc_exact (o.length);
     if (unlikely (in_error ())) return *this;
 
     copy_array (o.as_array ());
@@ -432,6 +432,10 @@ struct hb_vector_t
 
     return true;
   }
+  bool alloc_exact (unsigned int size)
+  {
+    return alloc (size, true);
+  }
 
   bool resize (int size_, bool initialize = true, bool exact = false)
   {
@@ -497,7 +501,7 @@ struct hb_vector_t
     shrink_vector (size);
 
     if (shrink_memory)
-      alloc (size, true); /* To force shrinking memory if needed. */
+      alloc_exact (size); /* To force shrinking memory if needed. */
   }
 
 

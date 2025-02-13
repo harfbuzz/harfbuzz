@@ -78,11 +78,11 @@ struct hb_serialize_context_t
       head = o.head;
       tail = o.tail;
       next = nullptr;
-      real_links.alloc (o.num_real_links, true);
+      real_links.alloc_exact (o.num_real_links);
       for (unsigned i = 0 ; i < o.num_real_links; i++)
         real_links.push (o.real_links[i]);
 
-      virtual_links.alloc (o.num_virtual_links, true);
+      virtual_links.alloc_exact (o.num_virtual_links);
       for (unsigned i = 0; i < o.num_virtual_links; i++)
         virtual_links.push (o.virtual_links[i]);
     }
@@ -172,7 +172,7 @@ struct hb_serialize_context_t
     auto all_links () const HB_AUTO_RETURN
         (( hb_concat (real_links, virtual_links) ));
     auto all_links_writer () HB_AUTO_RETURN
-        (( hb_concat (real_links.writer (), virtual_links.writer ()) ));           
+        (( hb_concat (real_links.writer (), virtual_links.writer ()) ));
   };
 
   struct snapshot_t

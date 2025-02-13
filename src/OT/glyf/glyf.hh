@@ -94,7 +94,7 @@ struct glyf
     }
 
     hb_vector_t<unsigned> padded_offsets;
-    if (unlikely (!padded_offsets.alloc (c->plan->new_to_old_gid_list.length, true)))
+    if (unlikely (!padded_offsets.alloc_exact (c->plan->new_to_old_gid_list.length)))
       return_trace (false);
 
     hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
@@ -493,7 +493,7 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const
 {
   OT::glyf_accelerator_t glyf (plan->source);
-  if (!glyphs.alloc (plan->new_to_old_gid_list.length, true)) return false;
+  if (!glyphs.alloc_exact (plan->new_to_old_gid_list.length)) return false;
 
   for (const auto &pair : plan->new_to_old_gid_list)
   {

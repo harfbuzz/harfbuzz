@@ -528,7 +528,7 @@ hb_coretext_font_create (CTFontRef ct_font)
     hb_vector_t<CFTypeRef> values;
 
     CFIndex count = CFDictionaryGetCount (variations);
-    if (unlikely (!vars.alloc (count) || !keys.resize (count) || !values.resize (count)))
+    if (unlikely (!vars.alloc_exact (count) || !keys.resize_exact (count) || !values.resize_exact (count)))
       goto done;
 
     // Fetch them one by one and collect in a vector of our own.
