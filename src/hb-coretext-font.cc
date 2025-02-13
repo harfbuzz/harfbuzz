@@ -511,10 +511,6 @@ _hb_coretext_get_font_funcs ()
  * created with hb_face_create(), and therefore was not
  * initially configured to use CoreText font functions.
  *
- * An #hb_font_t object created with hb_coretext_font_create()
- * is preconfigured for CoreText font functions and does not
- * require this function to be used.
- *
  * <note>Note: Internally, this function creates a CTFont.
 * </note>
  *
