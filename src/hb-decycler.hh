@@ -41,9 +41,12 @@
  * Like Floyd's algorithm, hb_decycler_t is O(n) in the number of nodes
  * in the graph.  Unlike Floyd's algorithm, hb_decycler_t is designed
  * to be used in a DFS traversal, where the graph is not a simple
- * linked list, but a tree with cycles.  The decycler works by creating
- * an implicit linked-list on the stack, of the path from the root to
- * the current node, and apply Floyd's algorithm on that list as it goes.
+ * linked list, but a tree with cycles.  Like Floyd's algorithm, it is
+ * constant-memory (just two pointers).
+ *
+ * The decycler works by creating an implicit linked-list on the stack,
+ * of the path from the root to the current node, and apply Floyd's
+ * algorithm on that list as it goes.
  *
  * The decycler is malloc-free, and as such, much faster to use than a
  * hb_set_t or hb_map_t equivalent.
@@ -51,6 +54,24 @@
  * The decycler detects cycles in the graph *eventually*, not *immediately*.
  * That is, it may not detect a cycle until the cycle is fully traversed,
  * even multiple times. See Floyd's algorithm analysis for details.
+ *
+ * There are three method's:
+ *
+ *   - hb_decycler_node_t() constructor: Creates a new node in the traversal.
+ *     The constructor takes a reference to the decycler object and takes a
+ *     snapshot of it, and advances the hare pointer, and for every other
+ *     descent, advances the tortoise pointer.
+ *
+ *   - ~hb_decycler_node_t() destructor: Restores the decycler object to the
+ *      snapshot taken in the constructor, effectively removing the node from
+ *      the traversal path.
+ *
+ *   - bool visit(unsigned value): Called on every node in the graph.  Returns
+ *     true if the node is not part of a cycle, and false if it is.  The value
+ *     parameter is used to detect cycles.  It's the caller's responsibility
+ *     to ensure that the value is unique for each node in the graph.
+ *     The cycle detection is as simple as comparing the value to the value
+ *     held by the tortoise pointer, which is the Floyd's algorithm.
  *
  * For usage examples see test-decycler.cc.
  */
