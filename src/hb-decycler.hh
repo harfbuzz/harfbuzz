@@ -29,6 +29,32 @@
 
 #include "hb.hh"
 
+/*
+ * hb_decycler_t is an efficient cycle detector for graph traversal.
+ * It's a simple tortoise-and-hare algorithm with a twist: it's
+ * designed to detect cycles while traversing a graph in a DFS manner,
+ * instead of just a linked list.
+ *
+ * For Floyd's tortoise and hare algorithm, see:
+ * https://en.wikipedia.org/wiki/Cycle_detection#Floyd's_tortoise_and_hare
+ *
+ * Like Floyd's algorithm, hb_decycler_t is O(n) in the number of nodes
+ * in the graph.  Unlike Floyd's algorithm, hb_decycler_t is designed
+ * to be used in a DFS traversal, where the graph is not a simple
+ * linked list, but a tree with cycles.  The decycler works by creating
+ * an implicit linked-list on the stack, of the path from the root to
+ * the current node, and apply Floyd's algorithm on that list as it goes.
+ *
+ * The decycler is malloc-free, and as such, much faster to use than a
+ * hb_set_t or hb_map_t equivalent.
+ *
+ * The decycler detects cycles in the graph *eventually*, not *immediately*.
+ * That is, it may not detect a cycle until the cycle is fully traversed,
+ * even multiple times. See Floyd's algorithm analysis for details.
+ *
+ * For usage examples see test-decycler.cc.
+ */
+
 struct hb_decycler_node_t;
 
 struct hb_decycler_t
