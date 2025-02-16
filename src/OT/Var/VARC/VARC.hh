@@ -1,6 +1,7 @@
 #ifndef OT_VAR_VARC_VARC_HH
 #define OT_VAR_VARC_VARC_HH
 
+#include "../../../hb-decycler.hh"
 #include "../../../hb-geometry.hh"
 #include "../../../hb-ot-layout-common.hh"
 #include "../../../hb-ot-glyf-table.hh"
@@ -49,7 +50,7 @@ struct VarComponent
 	       hb_array_t<const int> coords,
 	       hb_transform_t transform,
 	       hb_ubytes_t record,
-	       hb_set_t *visited,
+	       hb_decycler_t *decycler,
 	       signed *edges_left,
 	       signed depth_left,
 	       VarRegionList::cache_t *cache = nullptr) const;
@@ -64,7 +65,7 @@ struct VarCompositeGlyph
 	       hb_array_t<const int> coords,
 	       hb_transform_t transform,
 	       hb_ubytes_t record,
-	       hb_set_t *visited,
+	       hb_decycler_t *decycler,
 	       signed *edges_left,
 	       signed depth_left,
 	       VarRegionList::cache_t *cache = nullptr)
@@ -75,7 +76,7 @@ struct VarCompositeGlyph
       record = comp.get_path_at (font, glyph,
 				 draw_session, coords, transform,
 				 record,
-				 visited, edges_left, depth_left, cache);
+				 decycler, edges_left, depth_left, cache);
     }
   }
 };
@@ -95,7 +96,7 @@ struct VARC
 	       hb_array_t<const int> coords,
 	       hb_transform_t transform = HB_TRANSFORM_IDENTITY,
 	       hb_codepoint_t parent_glyph = HB_CODEPOINT_INVALID,
-	       hb_set_t *visited = nullptr,
+	       hb_decycler_t *decycler = nullptr,
 	       signed *edges_left = nullptr,
 	       signed depth_left = HB_MAX_NESTING_LEVEL) const;
 

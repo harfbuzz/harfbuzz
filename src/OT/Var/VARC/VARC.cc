@@ -134,7 +134,7 @@ VarComponent::get_path_at (hb_font_t *font,
 			   hb_array_t<const int> coords,
 			   hb_transform_t total_transform,
 			   hb_ubytes_t total_record,
-			   hb_set_t *visited,
+			   hb_decycler_t *decycler,
 			   signed *edges_left,
 			   signed depth_left,
 			   VarRegionList::cache_t *cache) const
@@ -319,7 +319,7 @@ VarComponent::get_path_at (hb_font_t *font,
     VARC.get_path_at (font, gid,
 		      draw_session, component_coords, total_transform,
 		      parent_gid,
-		      visited, edges_left, depth_left - 1);
+		      decycler, edges_left, depth_left - 1);
   }
 
 #undef PROCESS_TRANSFORM_COMPONENTS
@@ -335,13 +335,13 @@ VARC::get_path_at (hb_font_t *font,
 		   hb_array_t<const int> coords,
 		   hb_transform_t transform,
 		   hb_codepoint_t parent_glyph,
-		   hb_set_t *visited,
+		   hb_decycler_t *decycler,
 		   signed *edges_left,
 		   signed depth_left) const
 {
-  hb_set_t stack_set;
-  if (visited == nullptr)
-    visited = &stack_set;
+  hb_decycler_t stack_decycler;
+  if (decycler == nullptr)
+    decycler = &stack_decycler;
   signed stack_edges = HB_MAX_GRAPH_EDGE_COUNT;
   if (edges_left == nullptr)
     edges_left = &stack_edges;
@@ -377,9 +377,9 @@ VARC::get_path_at (hb_font_t *font,
     return true;
   (*edges_left)--;
 
-  if (visited->has (glyph) || visited->in_error ())
+  hb_decycler_node_t node (*decycler);
+  if (unlikely (!node.visit (glyph)))
     return true;
-  visited->add (glyph);
 
   hb_ubytes_t record = (this+glyphRecords)[idx];
 
@@ -392,12 +392,10 @@ VARC::get_path_at (hb_font_t *font,
   VarCompositeGlyph::get_path_at (font, glyph,
 				  draw_session, coords, transform,
 				  record,
-				  visited, edges_left, depth_left,
+				  decycler, edges_left, depth_left,
 				  cache);
 
   (this+varStore).destroy_cache (cache);
-
-  visited->del (glyph);
 
   return true;
 }
