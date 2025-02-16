@@ -38,7 +38,6 @@ struct hb_decycler_t
   private:
   hb_decycler_node_t *tortoise = nullptr;
   hb_decycler_node_t *hare = nullptr;
-  bool tortoise_asleep = false;
 };
 
 struct hb_decycler_node_t
@@ -55,21 +54,12 @@ struct hb_decycler_node_t
       return;
     }
 
+    tortoise_asleep = !decycler.hare->tortoise_asleep;
     decycler.hare->next = this;
     decycler.hare = this;
 
-    if (decycler.tortoise_asleep)
-    {
-      // Wake up toirtoise.
-      decycler.tortoise_asleep = false;
-      // Time to move.
-      decycler.tortoise = decycler.tortoise->next;
-    }
-    else
-    {
-      // Put toirtoise to sleep.
-      decycler.tortoise_asleep = true;
-    }
+    if (!tortoise_asleep)
+      decycler.tortoise = decycler.tortoise->next; // Time to move.
   }
 
   ~hb_decycler_node_t ()
@@ -95,6 +85,7 @@ struct hb_decycler_node_t
   hb_decycler_t snapshot;
   hb_decycler_node_t *next = nullptr;
   unsigned value = (unsigned) -1;
+  bool tortoise_asleep = false;
 };
 
 #endif /* HB_DECYCLER_HH */
