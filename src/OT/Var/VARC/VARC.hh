@@ -94,15 +94,27 @@ struct VARC
 	       hb_codepoint_t glyph,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
-	       hb_transform_t transform = HB_TRANSFORM_IDENTITY,
-	       hb_codepoint_t parent_glyph = HB_CODEPOINT_INVALID,
-	       hb_decycler_t *decycler = nullptr,
-	       signed *edges_left = nullptr,
-	       signed depth_left = HB_MAX_NESTING_LEVEL) const;
+	       hb_transform_t transform,
+	       hb_codepoint_t parent_glyph,
+	       hb_decycler_t *decycler,
+	       signed *edges_left,
+	       signed depth_left) const;
 
   bool
   get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
-  { return get_path_at (font, gid, draw_session, hb_array (font->coords, font->num_coords)); }
+  {
+    hb_decycler_t decycler;
+    signed edges = HB_MAX_GRAPH_EDGE_COUNT;
+
+    return get_path_at (font,
+			gid,
+			draw_session,
+			hb_array (font->coords, font->num_coords),
+			HB_TRANSFORM_IDENTITY,
+			HB_CODEPOINT_INVALID,
+			&decycler,
+			&edges,
+			HB_MAX_NESTING_LEVEL); }
 
   bool paint_glyph (hb_font_t *font, hb_codepoint_t gid, hb_paint_funcs_t *funcs, void *data, hb_color_t foreground) const
   {

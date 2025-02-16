@@ -339,13 +339,6 @@ VARC::get_path_at (hb_font_t *font,
 		   signed *edges_left,
 		   signed depth_left) const
 {
-  hb_decycler_t stack_decycler;
-  if (decycler == nullptr)
-    decycler = &stack_decycler;
-  signed stack_edges = HB_MAX_GRAPH_EDGE_COUNT;
-  if (edges_left == nullptr)
-    edges_left = &stack_edges;
-
   // Don't recurse on the same glyph.
   unsigned idx = glyph == parent_glyph ?
 		 NOT_COVERED :
