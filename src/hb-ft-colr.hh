@@ -222,7 +222,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 				  &paint.u.colr_layers.layer_iterator,
 				  &other_paint))
       {
-        unsigned i = paint.u.colr_layers.layer_iterator.layer;
+	// FreeType doesn't provide a way to get the layer index, so we use the pointer
+	// for cycle detection.
+        unsigned i = (unsigned) (uintptr_t) other_paint.p;
 
 	if (unlikely (c->current_layers.has (i)))
 	  continue;
