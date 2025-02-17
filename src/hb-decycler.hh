@@ -89,6 +89,7 @@ struct hb_decycler_t
   friend struct hb_decycler_node_t;
 
   private:
+  bool tortoise_asleep = true;
   hb_decycler_node_t *tortoise = nullptr;
   hb_decycler_node_t *hare = nullptr;
 };
@@ -99,33 +100,38 @@ struct hb_decycler_node_t
   {
     u.decycler = &decycler;
 
+    decycler.tortoise_asleep = !decycler.tortoise_asleep;
+
     if (!decycler.tortoise)
     {
       // First node.
       decycler.tortoise = decycler.hare = this;
       return;
     }
+    if (!decycler.tortoise_asleep)
+      decycler.tortoise = decycler.tortoise->u.next; // Time to move.
 
-    tortoise_asleep = !decycler.hare->tortoise_asleep;
     this->prev = decycler.hare;
     decycler.hare->u.next = this;
     decycler.hare = this;
-
-    if (!tortoise_asleep)
-      decycler.tortoise = decycler.tortoise->u.next; // Time to move.
   }
 
   ~hb_decycler_node_t ()
   {
     hb_decycler_t &decycler = *u.decycler;
 
+    // Inverse of the constructor.
+
     assert (decycler.hare == this);
     decycler.hare = prev;
     if (prev)
       prev->u.decycler = &decycler;
 
-    if (!tortoise_asleep)
+    assert (decycler.tortoise);
+    if (!decycler.tortoise_asleep)
       decycler.tortoise = decycler.tortoise->prev;
+
+    decycler.tortoise_asleep = !decycler.tortoise_asleep;
   }
 
   bool visit (unsigned value_)
@@ -150,7 +156,6 @@ struct hb_decycler_node_t
   } u = {nullptr};
   hb_decycler_node_t *prev = nullptr;
   unsigned value = (unsigned) -1;
-  bool tortoise_asleep = false;
 };
 
 #endif /* HB_DECYCLER_HH */
