@@ -58,13 +58,12 @@
  * There are three method's:
  *
  *   - hb_decycler_node_t() constructor: Creates a new node in the traversal.
- *     The constructor takes a reference to the decycler object and takes a
- *     snapshot of it, and advances the hare pointer, and for every other
- *     descent, advances the tortoise pointer.
+ *     The constructor takes a reference to the decycler object and inserts
+ *     itself as the latest node in the traversal path, by advancing the hare
+ *     pointer, and for every other descent, advancing the tortoise pointer.
  *
- *   - ~hb_decycler_node_t() destructor: Restores the decycler object to the
- *      snapshot taken in the constructor, effectively removing the node from
- *      the traversal path.
+ *   - ~hb_decycler_node_t() destructor: Restores the decycler object to its
+ *      previous state by removing the node from the traversal path.
  *
  *   - bool visit(unsigned value): Called on every node in the graph.  Returns
  *     true if the node is not part of a cycle, and false if it is.  The value
@@ -92,8 +91,6 @@ struct hb_decycler_node_t
   hb_decycler_node_t (hb_decycler_t &decycler)
     : decycler (decycler)
   {
-    snapshot = decycler;
-
     if (!decycler.tortoise)
     {
       // First node.
@@ -102,6 +99,7 @@ struct hb_decycler_node_t
     }
 
     tortoise_asleep = !decycler.hare->tortoise_asleep;
+    this->prev = decycler.hare;
     decycler.hare->next = this;
     decycler.hare = this;
 
@@ -111,9 +109,13 @@ struct hb_decycler_node_t
 
   ~hb_decycler_node_t ()
   {
-    decycler = snapshot;
-    if (decycler.hare)
-      decycler.hare->next = nullptr;
+    assert (decycler.hare == this);
+    decycler.hare = prev;
+    if (prev)
+      prev->next = nullptr;
+
+    if (!tortoise_asleep)
+      decycler.tortoise = decycler.tortoise->prev;
   }
 
   bool visit (unsigned value_)
@@ -131,8 +133,8 @@ struct hb_decycler_node_t
 
   private:
   hb_decycler_t &decycler;
-  hb_decycler_t snapshot;
   hb_decycler_node_t *next = nullptr;
+  hb_decycler_node_t *prev = nullptr;
   unsigned value = (unsigned) -1;
   bool tortoise_asleep = false;
 };
