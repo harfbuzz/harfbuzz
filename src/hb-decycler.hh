@@ -112,6 +112,8 @@ struct hb_decycler_node_t
   ~hb_decycler_node_t ()
   {
     decycler = snapshot;
+    if (decycler.hare)
+      decycler.hare->next = nullptr;
   }
 
   bool visit (unsigned value_)
