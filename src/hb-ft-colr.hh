@@ -226,9 +226,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       {
 	// FreeType doesn't provide a way to get the layer index, so we use the pointer
 	// for cycle detection.
-        unsigned i = (unsigned) (uintptr_t) other_paint.p;
-
-	if (unlikely (!node.visit (i)))
+	if (unlikely (!node.visit ((uintptr_t) other_paint.p)))
 	  continue;
 
 	c->funcs->push_group (c->data);

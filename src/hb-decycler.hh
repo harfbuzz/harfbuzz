@@ -72,7 +72,7 @@
  *   - ~hb_decycler_node_t() destructor: Restores the decycler object to its
  *      previous state by removing the node from the traversal path.
  *
- *   - bool visit(unsigned value): Called on every node in the graph.  Returns
+ *   - bool visit(uintptr_t value): Called on every node in the graph.  Returns
  *     true if the node is not part of a cycle, and false if it is.  The value
  *     parameter is used to detect cycles.  It's the caller's responsibility
  *     to ensure that the value is unique for each node in the graph.
@@ -134,7 +134,7 @@ struct hb_decycler_node_t
     decycler.tortoise_asleep = !decycler.tortoise_asleep;
   }
 
-  bool visit (unsigned value_)
+  bool visit (uintptr_t value_)
   {
     value = value_;
 
@@ -155,7 +155,7 @@ struct hb_decycler_node_t
     hb_decycler_node_t *next;
   } u = {nullptr};
   hb_decycler_node_t *prev = nullptr;
-  unsigned value = (unsigned) -1;
+  uintptr_t value = 0;
 };
 
 #endif /* HB_DECYCLER_HH */
