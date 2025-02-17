@@ -55,6 +55,13 @@
  * That is, it may not detect a cycle until the cycle is fully traversed,
  * even multiple times. See Floyd's algorithm analysis for details.
  *
+ * The implementation saves a pointer storage on the stack by combining
+ * this->u.decycler and this->u.next into a union.  This is possible because
+ * at any point we only need one of those values. The invariant is that
+ * after construction, and before destruction, of a node, the u.decycler
+ * field is always valid. The u.next field is only valid when the node is
+ * in the traversal path, parent to another node.
+ *
  * There are three method's:
  *
  *   - hb_decycler_node_t() constructor: Creates a new node in the traversal.
@@ -89,8 +96,9 @@ struct hb_decycler_t
 struct hb_decycler_node_t
 {
   hb_decycler_node_t (hb_decycler_t &decycler)
-    : decycler (decycler)
   {
+    u.decycler = &decycler;
+
     if (!decycler.tortoise)
     {
       // First node.
@@ -100,19 +108,21 @@ struct hb_decycler_node_t
 
     tortoise_asleep = !decycler.hare->tortoise_asleep;
     this->prev = decycler.hare;
-    decycler.hare->next = this;
+    decycler.hare->u.next = this;
     decycler.hare = this;
 
     if (!tortoise_asleep)
-      decycler.tortoise = decycler.tortoise->next; // Time to move.
+      decycler.tortoise = decycler.tortoise->u.next; // Time to move.
   }
 
   ~hb_decycler_node_t ()
   {
+    hb_decycler_t &decycler = *u.decycler;
+
     assert (decycler.hare == this);
     decycler.hare = prev;
     if (prev)
-      prev->next = nullptr;
+      prev->u.decycler = &decycler;
 
     if (!tortoise_asleep)
       decycler.tortoise = decycler.tortoise->prev;
@@ -121,6 +131,8 @@ struct hb_decycler_node_t
   bool visit (unsigned value_)
   {
     value = value_;
+
+    hb_decycler_t &decycler = *u.decycler;
 
     if (decycler.tortoise == this)
       return true; // First node; not a cycle.
@@ -132,8 +144,10 @@ struct hb_decycler_node_t
   }
 
   private:
-  hb_decycler_t &decycler;
-  hb_decycler_node_t *next = nullptr;
+  union {
+    hb_decycler_t *decycler;
+    hb_decycler_node_t *next;
+  } u = {nullptr};
   hb_decycler_node_t *prev = nullptr;
   unsigned value = (unsigned) -1;
   bool tortoise_asleep = false;
