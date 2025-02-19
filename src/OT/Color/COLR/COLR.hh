@@ -29,6 +29,7 @@
 #define OT_COLOR_COLR_COLR_HH
 
 #include "../../../hb.hh"
+#include "../../../hb-decycler.hh"
 #include "../../../hb-open-type.hh"
 #include "../../../hb-ot-var-common.hh"
 #include "../../../hb-paint.hh"
@@ -71,8 +72,8 @@ public:
   hb_array_t<const BGRAColor> palette;
   hb_color_t foreground;
   ItemVarStoreInstancer &instancer;
-  hb_map_t current_glyphs;
-  hb_map_t current_layers;
+  hb_decycler_t glyphs_decycler;
+  hb_decycler_t layers_decycler;
   int depth_left = HB_MAX_NESTING_LEVEL;
   int edge_count = HB_MAX_GRAPH_EDGE_COUNT;
 
@@ -2580,7 +2581,9 @@ struct COLR
 	                         &(get_delta_set_index_map ()),
 	                         hb_array (font->coords, font->num_coords));
     hb_paint_context_t c (this, funcs, data, font, palette_index, foreground, instancer);
-    c.current_glyphs.add (glyph);
+
+    hb_decycler_node_t node (c.glyphs_decycler);
+    node.visit (glyph);
 
     if (version >= 1)
     {
@@ -2696,19 +2699,16 @@ void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
 {
   TRACE_PAINT (this);
   const LayerList &paint_offset_lists = c->get_colr_table ()->get_layerList ();
+  hb_decycler_node_t node (c->layers_decycler);
   for (unsigned i = firstLayerIndex; i < firstLayerIndex + numLayers; i++)
   {
-    if (unlikely (c->current_layers.has (i)))
-      continue;
-
-    c->current_layers.add (i);
+    if (unlikely (!node.visit (i)))
+      return;
 
     const Paint &paint = paint_offset_lists.get_paint (i);
     c->funcs->push_group (c->data);
     c->recurse (paint);
     c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
-
-    c->current_layers.del (i);
   }
 }
 
@@ -2716,16 +2716,14 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 {
   TRACE_PAINT (this);
 
-  if (unlikely (c->current_glyphs.has (gid)))
+  hb_decycler_node_t node (c->glyphs_decycler);
+  if (unlikely (!node.visit (gid)))
     return;
-
-  c->current_glyphs.add (gid);
 
   c->funcs->push_inverse_root_transform (c->data, c->font);
   if (c->funcs->color_glyph (c->data, gid, c->font))
   {
     c->funcs->pop_transform (c->data);
-    c->current_glyphs.del (gid);
     return;
   }
   c->funcs->pop_transform (c->data);
@@ -2748,8 +2746,6 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 
   if (has_clip_box)
     c->funcs->pop_clip (c->data);
-
-  c->current_glyphs.del (gid);
 }
 
 } /* namespace OT */
