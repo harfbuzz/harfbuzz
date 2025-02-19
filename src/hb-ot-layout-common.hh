@@ -3741,11 +3741,13 @@ struct ItemVarStoreInstancer
 
   float operator() (uint32_t varIdx, unsigned short offset = 0) const
   {
+   if (!coords || varIdx == VarIdx::NO_VARIATION)
+     return 0.f;
+
+    varIdx += offset;
     if (varIdxMap)
-      varIdx = varIdxMap->map (VarIdx::add (varIdx, offset));
-    else
-      varIdx += offset;
-    return coords ? varStore->get_delta (varIdx, coords, cache) : 0.f;
+      varIdx = varIdxMap->map (varIdx);
+    return varStore->get_delta (varIdx, coords, cache);
   }
 
   const ItemVariationStore *varStore;
@@ -3777,12 +3779,11 @@ struct MultiItemVarStoreInstancer
 
   void operator() (hb_array_t<float> out, uint32_t varIdx, unsigned short offset = 0) const
   {
-    if (coords)
+    if (coords && varIdx != VarIdx::NO_VARIATION)
     {
+      varIdx += offset;
       if (varIdxMap)
-	varIdx = varIdxMap->map (VarIdx::add (varIdx, offset));
-      else
-	varIdx += offset;
+	varIdx = varIdxMap->map (varIdx);
       varStore->get_delta (varIdx, coords, out, cache);
     }
     else

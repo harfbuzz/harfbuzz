@@ -2136,12 +2136,16 @@ struct COLR
 
     const ItemVariationStore &get_var_store () const
     { return colr->get_var_store (); }
+    const ItemVariationStore *get_var_store_ptr () const
+    { return colr->get_var_store_ptr (); }
 
     bool has_delta_set_index_map () const
     { return colr->has_delta_set_index_map (); }
 
     const DeltaSetIndexMap &get_delta_set_index_map () const
     { return colr->get_delta_set_index_map (); }
+    const DeltaSetIndexMap *get_delta_set_index_map_ptr () const
+    { return colr->get_delta_set_index_map_ptr (); }
 
     private:
     hb_blob_ptr_t<COLR> colr;
@@ -2234,9 +2238,13 @@ struct COLR
 
   const DeltaSetIndexMap &get_delta_set_index_map () const
   { return has_delta_set_index_map () && hb_barrier () ? this+varIdxMap : Null (DeltaSetIndexMap); }
+  const DeltaSetIndexMap *get_delta_set_index_map_ptr () const
+  { return has_delta_set_index_map () && hb_barrier () ? &(this+varIdxMap) : nullptr; }
 
   const ItemVariationStore &get_var_store () const
   { return has_var_store () && hb_barrier () ? this+varStore : Null (ItemVariationStore); }
+  const ItemVariationStore *get_var_store_ptr () const
+  { return has_var_store () && hb_barrier () ? &(this+varStore) : nullptr; }
 
   const ClipList &get_clip_list () const
   { return has_clip_list () && hb_barrier () ? this+clipList : Null (ClipList); }
@@ -2484,9 +2492,9 @@ struct COLR
      * after instancing */
     if (!subset_varstore (c, colr_prime)) return_trace (false);
 
-    ItemVarStoreInstancer instancer (&(get_var_store ()),
-	                         &(get_delta_set_index_map ()),
-	                         c->plan->normalized_coords.as_array ());
+    ItemVarStoreInstancer instancer (get_var_store_ptr (),
+				     get_delta_set_index_map_ptr (),
+				     c->plan->normalized_coords.as_array ());
 
     if (!colr_prime->baseGlyphList.serialize_subset (c, baseGlyphList, this, instancer))
       return_trace (false);
@@ -2515,8 +2523,8 @@ struct COLR
   get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
   {
 
-    ItemVarStoreInstancer instancer (&(get_var_store ()),
-                                     &(get_delta_set_index_map ()),
+    ItemVarStoreInstancer instancer (get_var_store_ptr (),
+                                     get_delta_set_index_map_ptr (),
                                      hb_array (font->coords, font->num_coords));
 
     if (get_clip (glyph, extents, instancer))
@@ -2577,9 +2585,9 @@ struct COLR
   bool
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette_index, hb_color_t foreground, bool clip = true) const
   {
-    ItemVarStoreInstancer instancer (&(get_var_store ()),
-	                         &(get_delta_set_index_map ()),
-	                         hb_array (font->coords, font->num_coords));
+    ItemVarStoreInstancer instancer (get_var_store_ptr (),
+				     get_delta_set_index_map_ptr (),
+				     hb_array (font->coords, font->num_coords));
     hb_paint_context_t c (this, funcs, data, font, palette_index, foreground, instancer);
 
     hb_decycler_node_t node (c.glyphs_decycler);
