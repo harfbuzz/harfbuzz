@@ -611,14 +611,11 @@ hb_ot_paint_glyph (hb_font_t *font,
   if (font->face->table.sbix->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
 #endif
 #endif
-#ifndef HB_NO_VAR_COMPOSITES
-  if (font->face->table.VARC->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
-#endif
-  if (font->face->table.glyf->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
-#ifndef HB_NO_CFF
-  if (font->face->table.cff2->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
-  if (font->face->table.cff1->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
-#endif
+
+  // Outline glyph
+  paint_funcs->push_clip_glyph (paint_data, glyph, font);
+  paint_funcs->color (paint_data, true, foreground);
+  paint_funcs->pop_clip (paint_data);
 }
 #endif
 

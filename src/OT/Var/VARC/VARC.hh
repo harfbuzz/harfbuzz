@@ -116,15 +116,6 @@ struct VARC
 			&edges,
 			HB_MAX_NESTING_LEVEL); }
 
-  bool paint_glyph (hb_font_t *font, hb_codepoint_t gid, hb_paint_funcs_t *funcs, void *data, hb_color_t foreground) const
-  {
-    funcs->push_clip_glyph (data, gid, font);
-    funcs->color (data, true, foreground);
-    funcs->pop_clip (data);
-
-    return true;
-  }
-
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

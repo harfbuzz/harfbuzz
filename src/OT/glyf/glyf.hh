@@ -425,15 +425,6 @@ struct glyf_accelerator_t
     return glyph_for_gid (gid).get_extents_without_var_scaled (font, *this, extents);
   }
 
-  bool paint_glyph (hb_font_t *font, hb_codepoint_t gid, hb_paint_funcs_t *funcs, void *data, hb_color_t foreground) const
-  {
-    funcs->push_clip_glyph (data, gid, font);
-    funcs->color (data, true, foreground);
-    funcs->pop_clip (data);
-
-    return true;
-  }
-
   const glyf_impl::Glyph
   glyph_for_gid (hb_codepoint_t gid, bool needs_padding_removal = false) const
   {
