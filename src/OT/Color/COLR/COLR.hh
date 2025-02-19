@@ -2587,7 +2587,8 @@ struct COLR
   {
     ItemVarStoreInstancer instancer (get_var_store_ptr (),
 				     get_delta_set_index_map_ptr (),
-				     hb_array (font->coords, font->num_coords));
+				     hb_array (font->coords,
+					       font->has_nonzero_coords ? font->num_coords : 0));
     hb_paint_context_t c (this, funcs, data, font, palette_index, foreground, instancer);
 
     hb_decycler_node_t node (c.glyphs_decycler);
