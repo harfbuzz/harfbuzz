@@ -34,6 +34,8 @@
 #include "../../../hb-paint.hh"
 #include "../../../hb-paint-extents.hh"
 
+#include "../CPAL/CPAL.hh"
+
 /*
  * COLR -- Color
  * https://docs.microsoft.com/en-us/typography/opentype/spec/colr
@@ -66,7 +68,7 @@ public:
   hb_paint_funcs_t *funcs;
   void *data;
   hb_font_t *font;
-  unsigned int palette_index;
+  hb_array_t<const BGRAColor> palette;
   hb_color_t foreground;
   ItemVarStoreInstancer &instancer;
   hb_map_t current_glyphs;
@@ -85,7 +87,7 @@ public:
     funcs (funcs_),
     data (data_),
     font (font_),
-    palette_index (palette_),
+    palette (font->face->table.CPAL->get_palette_colors (palette_)),
     foreground (foreground_),
     instancer (instancer_)
   { }
@@ -99,10 +101,7 @@ public:
     if (color_index != 0xffff)
     {
       if (!funcs->custom_palette_color (data, color_index, &color))
-      {
-	unsigned int clen = 1;
-	hb_ot_color_palette_get_colors (font->face, palette_index, color_index, &clen, &color);
-      }
+        color = palette[color_index];
 
       *is_foreground = false;
     }
