@@ -303,7 +303,7 @@ int main(int argc, char** argv)
   TEST_OPERATION (nominal_glyphs, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_h_advances, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_extents, benchmark::kMicrosecond);
-  TEST_OPERATION (draw_glyph, benchmark::kMicrosecond);
+  TEST_OPERATION (draw_glyph, benchmark::kMillisecond);
   TEST_OPERATION (paint_glyph, benchmark::kMillisecond);
   TEST_OPERATION (load_face_and_shape, benchmark::kMicrosecond);
 
