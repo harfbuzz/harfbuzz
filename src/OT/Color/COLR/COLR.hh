@@ -87,7 +87,11 @@ public:
     funcs (funcs_),
     data (data_),
     font (font_),
-    palette (font->face->table.CPAL->get_palette_colors (palette_)),
+    palette (
+#ifndef HB_NO_COLOR
+	     font->face->table.CPAL->get_palette_colors (palette_)
+#endif
+    ),
     foreground (foreground_),
     instancer (instancer_)
   { }
