@@ -201,9 +201,16 @@ struct SegmentMaps : Array16Of<AxisValueMap>
       // Ignore the middle ones. Return the one mapping closer to 0.
       if (value < 0) return map[j].toCoord;
       if (value > 0) return map[i].toCoord;
+
       // Mapping 0? CoreText seems confused. It seems to prefer 0 here...
       // So we'll just return the smallest one. lol
       return fabsf (map[i].toCoord) < fabsf (map[j].toCoord) ? map[i].toCoord : map[j].toCoord;
+
+      // Mapping 0? Return one not mapping to 0.
+      if (map[i].toCoord == 0)
+	return map[j].toCoord;
+      else
+	return map[i].toCoord;
     }
 
     /* There's at least two and we're not an exact match. Prepare to lerp. */
