@@ -585,7 +585,7 @@ struct hvgl
     hb_vector_t<double> scratch;
     scratch.alloc (128);
 
-    return get_part_path_at (gid, draw_session, coords_f, transforms, scratch, &stack_nodes_left, edges_left, depth_left);
+    return get_part_path_at (gid, draw_session, coords_f, transforms, scratch, nodes_left, edges_left, depth_left);
   }
 
   bool
