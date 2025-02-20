@@ -891,7 +891,7 @@ hb_directwrite_face_get_font_face (hb_face_t *face)
  *
  * Return value: #hb_font_t object corresponding to the given input
  *
- * XSince: REPLACEME
+ * Since: 10.3.0
  **/
 hb_font_t *
 hb_directwrite_font_create (IDWriteFont *dw_font)
@@ -951,7 +951,7 @@ done:
 *
 * Return value: DirectWrite IDWriteFont object corresponding to the given input
 *
-* XSince: REPLACEME
+* Since: 10.3.0
 **/
 IDWriteFont *
 hb_directwrite_font_get_dw_font (hb_font_t *font)

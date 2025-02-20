@@ -1272,7 +1272,7 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
  *
  * Return value: Total number of feature tagss.
  *
- * XSince: REPLACEME
+ * Since: 10.3.0
  */
 unsigned int
 hb_ot_shape_plan_get_feature_tags (hb_shape_plan_t *shape_plan,

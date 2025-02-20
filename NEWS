@@ -1,3 +1,46 @@
+Overview of changes leading to 10.3.0
+Thursday, February 11, 2025
+====================================
+
+- Vastly improved “AAT” shaping performance. LucidaGrande benchmark-shape
+  before: 14.6ms after: 5.9ms.
+- Improved OpenType shaping performance (kerning / ligature), at the expense of
+  ~1kb per face allocated cache memory. Roboto-Regular benchmark-shape before:
+  10.3ms after: 9.4ms.
+- Improved “COLRv1” benchmark-font paint performance. Before: 7.85ms after
+  4.85ms.
+- Don’t apply glyph substitutions in “morx” table of a font with known broken
+  “morx” table (AALMAGHRIBI.ttf font).
+- Update IANA and OT language registries.
+- Various documentation updates.
+- Various build improvements, and test speed-ups.
+- The “hb_face_reference_blob()” API now works for faces created with
+  “hb_face_create_for_tables()” if the face sets “get_table_tags” callback.
+  This constructs a new face blob from individual table blobs.
+- Various fixes to how “trak” table is handled to bring it closer to Core Text
+  behaviour. Particularly, the tracking values for sizes not explicitly set in
+  the table are now properly interpolated, and the tracking is applied to glyph
+  advances when they are returned by ot-font functions, instead of applying
+  them during shaping. The “trak” pseudo OpenType feature that could be used to
+  disable “trak” table application have been dropped.
+- Core Text font functions now support non-BMP code points.
+- The drawing algorithm used by hb-draw for “glyf” table now match the
+  algorithm used by FreeType and Core Text.
+- The “hb_coretext_font_create()” API now copy font variations from Core Text
+  font to the created HarfBuzz font.
+- Add an API to get the feature tags enabled on a given shape-plan after
+  executing it, which can be used to applications to show in the UI what
+  features are applied by default (which can vary based on the font, the
+  script, the language, and the direction set on the buffer).
+- Add APIs to created HarfBuzz font from DirectWrite font, and copy the font
+  variations.
+
+- New API:
++hb_directwrite_font_create()
++hb_directwrite_font_get_dw_font()
++hb_ot_shape_plan_get_feature_tags()
+
+
 Overview of changes leading to 10.2.0
 Saturday, January 11, 2025
 ====================================
