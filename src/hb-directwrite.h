@@ -39,7 +39,7 @@ HB_EXTERN hb_font_t *
 hb_directwrite_font_create (IDWriteFont *dw_font);
 
 HB_EXTERN IDWriteFont *
-hb_directwrite_font_get_font (hb_font_t *font);
+hb_directwrite_font_get_dw_font (hb_font_t *font);
 
 HB_END_DECLS
 
