@@ -1923,9 +1923,10 @@ apply_forward (OT::hb_ot_apply_context_t *c,
   while (buffer->idx < buffer->len && buffer->successful)
   {
     bool applied = false;
-    if (accel.digest.may_have (buffer->cur().codepoint) &&
-	(buffer->cur().mask & c->lookup_mask) &&
-	c->check_glyph_property (&buffer->cur(), c->lookup_props))
+    auto &cur = buffer->cur();
+    if (accel.digest.may_have (cur.codepoint) &&
+	(cur.mask & c->lookup_mask) &&
+	c->check_glyph_property (&cur, c->lookup_props))
      {
        applied = accel.apply (c, subtable_count, use_cache);
      }
@@ -1951,9 +1952,10 @@ apply_backward (OT::hb_ot_apply_context_t *c,
   hb_buffer_t *buffer = c->buffer;
   do
   {
-    if (accel.digest.may_have (buffer->cur().codepoint) &&
-	(buffer->cur().mask & c->lookup_mask) &&
-	c->check_glyph_property (&buffer->cur(), c->lookup_props))
+    auto &cur = buffer->cur();
+    if (accel.digest.may_have (cur.codepoint) &&
+	(cur.mask & c->lookup_mask) &&
+	c->check_glyph_property (&cur, c->lookup_props))
       ret |= accel.apply (c, subtable_count, false);
 
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
