@@ -497,7 +497,7 @@ _hb_coretext_shaper_font_data_destroy (hb_coretext_font_data_t *data)
  * CTFontRef.
  *
  * The created font uses the default font functions implemented
- * navitely by HarfBuzz. If you want to use the CoreText font functions
+ * natively by HarfBuzz. If you want to use the CoreText font functions
  * instead (rarely needed), you can do so by calling
  * by hb_coretext_font_set_funcs().
  *
