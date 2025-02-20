@@ -113,7 +113,7 @@ test_native_directwrite_basic (void)
 
   font = hb_directwrite_font_create (dwfont);
 
-  dwfont2 = hb_directwrite_font_get_font (font);
+  dwfont2 = hb_directwrite_font_get_dw_font (font);
 
   g_assert_true (dwfont2 == dwfont);
 

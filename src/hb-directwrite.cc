@@ -944,7 +944,7 @@ done:
 }
 
 /**
-* hb_directwrite_font_get_font:
+* hb_directwrite_font_get_dw_font:
 * @font: a #hb_font_t object
 *
 * Gets the DirectWrite IDWriteFont associated with @font.
@@ -954,7 +954,7 @@ done:
 * XSince: REPLACEME
 **/
 IDWriteFont *
-hb_directwrite_font_get_font (hb_font_t *font)
+hb_directwrite_font_get_dw_font (hb_font_t *font)
 {
   return (IDWriteFont *) (const void *) font->data.directwrite;
 }
