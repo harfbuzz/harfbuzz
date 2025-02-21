@@ -277,7 +277,7 @@ void
 _hb_directwrite_shaper_font_data_destroy (hb_directwrite_font_data_t *data)
 {
   if (data != HB_SHAPER_DATA_SUCCEEDED)
-    ((IDWriteFont *) data)->Release();
+    ((IDWriteFont *) (const void *) data)->Release();
 }
 
 
