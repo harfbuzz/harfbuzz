@@ -7,6 +7,10 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#if defined(HB_NO_SIMD)
+#define HB_NO_APPLE_SIMD
+#endif
+
 #if !defined(HB_NO_APPLE_SIMD) && !(defined(__APPLE__) && \
   (!defined(MAC_OS_X_VERSION_MIN_REQUIRED) || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300) \
 )
@@ -16,6 +20,13 @@
 #ifndef HB_NO_APPLE_SIMD
 #include <simd/simd.h> // Apple SIMD https://developer.apple.com/documentation/accelerate/simd
 #endif
+
+#ifndef HB_NO_SIMD
+#ifdef __AVX2__
+#include <immintrin.h>
+#endif
+#endif
+
 
 #ifndef HB_NO_VAR_HVF
 
@@ -69,6 +80,14 @@ project_on_curve_to_tangent (const segment_t offcurve1,
   y = y1 + dy * t;
 }
 
+#ifndef HB_NO_SIMD
+#ifdef __AVX2__
+__attribute__((target("avx2")))
+#endif
+#ifdef __FMA__
+__attribute__((target("fma")))
+#endif
+#endif
 void
 PartShape::get_path_at (const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
@@ -188,6 +207,31 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       const auto *src = matrix + column_idx * rows_count;
       auto *dest = v.arrayZ;
       unsigned i = 0;
+
+#ifndef HB_NO_SIMD
+      if (le && rows_count > 4)
+      {
+#ifdef __AVX2__
+	{
+	  __m256d scalar_vec = _mm256_set1_pd(scalar);
+	  for (; i + 4 <= rows_count; i += 4)
+	  {
+	    __m256d src_vec = _mm256_loadu_pd((double *) &src[i]);
+	    __m256d dest_vec = _mm256_loadu_pd(&dest[i]);
+	    // Imagine we can't use _mm256_fmadd_pd
+#ifdef __FMA__
+	    __m256d result = _mm256_fmadd_pd(src_vec, scalar_vec, dest_vec);
+#else
+	    __m256d mul = _mm256_mul_pd(src_vec, scalar_vec);
+	    __m256d result = _mm256_add_pd(mul, dest_vec);
+#endif
+	    _mm256_storeu_pd(&dest[i], result);
+	  }
+	}
+#endif
+      }
+#endif
+
       // This loop is really hot
       for (; i + 4 <= rows_count; i += 4)
       {
