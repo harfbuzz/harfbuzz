@@ -328,9 +328,9 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 
 	double x1 = segment[SEGMENT_POINT_OFF_CURVE_X];
 	double y1 = segment[SEGMENT_POINT_OFF_CURVE_Y];
-	transform.transform_point (x1, y1);
 	double x2 = next_segment[SEGMENT_POINT_ON_CURVE_X];
 	double y2 = next_segment[SEGMENT_POINT_ON_CURVE_Y];
+	transform.transform_point (x1, y1);
 	transform.transform_point (x2, y2);
 	draw_session.quadratic_to ((float) x1, (float) y1, (float) x2, (float) y2);
       }

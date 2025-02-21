@@ -134,6 +134,7 @@ struct hb_transform_t
     };
   }
 
+  HB_ALWAYS_INLINE
   void transform_distance (Float &dx, Float &dy) const
   {
     Float new_x = xx * dx + xy * dy;
@@ -142,11 +143,13 @@ struct hb_transform_t
     dy = new_y;
   }
 
+  HB_ALWAYS_INLINE
   void transform_point (Float &x, Float &y) const
   {
-    transform_distance (x, y);
-    x += x0;
-    y += y0;
+    Float new_x = x0 + xx * x + xy * y;
+    Float new_y = y0 + yx * x + yy * y;
+    x = new_x;
+    y = new_y;
   }
 
   void transform_extents (hb_extents_t<Float> &extents) const
