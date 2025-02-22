@@ -203,12 +203,12 @@ struct hb_transform_t
     yy *= scaleY;
   }
 
-  static hb_transform_t rotation (Float rotation)
+  static hb_transform_t rotation (Float radians)
   {
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L240
     Float c;
     Float s;
-    hb_sincos (rotation, s, c);
+    hb_sincos (radians, s, c);
     return {c, s, -s, c, 0, 0};
   }
 
@@ -218,6 +218,25 @@ struct hb_transform_t
       return;
 
     transform (rotation (radians), before);
+  }
+
+  static hb_transform_t rotation_around_center (Float radians, Float center_x, Float center_y)
+  {
+    Float s, c;
+    hb_sincos (radians, s, c);
+    return {
+      c, s, -s, c,
+      (1 - c) * center_x + s * center_y,
+      -s * center_x +  (1 - c) * center_y
+    };
+  }
+
+  void rotate_around_center (Float radians, Float center_x, Float center_y, bool before=false)
+  {
+    if (radians == 0)
+      return;
+
+    transform (rotation_around_center (radians, center_x, center_y), before);
   }
 
   void skew (Float skewX, Float skewY)

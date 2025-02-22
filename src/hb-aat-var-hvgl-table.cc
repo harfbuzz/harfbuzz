@@ -501,27 +501,8 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 	std::complex<double> eigen = t / _1_minus_e_iangle;
 	double center_x = eigen.real ();
 	double center_y = eigen.imag ();
-	// Scale rotation around eigen vector
-	if (false)
-	{
-	  hb_transform_t<double> transform2;
-	  transform2.translate (-center_x, -center_y, true);
-	  transform2.rotate ((double) extremum_rotation_delta * scalar, true);
-	  transform2.translate (center_x, center_y, true);
-	  transform.transform (transform2);
-	}
-	else
-	{
-	  // Inline the above "rotate-around-center" for faster code
-	  double angle = (double) extremum_rotation_delta * scalar;
-	  double s, c;
-	  hb_sincos (angle, s, c);
-	  transform.transform ({
-	    c, s, -s, c,
-	    center_x - (c * center_x + -s * center_y),
-	    center_y - (s * center_x +  c * center_y)
-	  });
-	}
+	double angle = (double) extremum_rotation_delta * scalar;
+	transform.rotate_around_center (angle, center_x, center_y);
 	is_translate_only = false;
       }
       else
