@@ -211,9 +211,9 @@ struct hb_paint_funcs_t
     if (!a)
       return false;
 
-    float cc = cosf (a * HB_PI);
-    float ss = sinf (a * HB_PI);
-    push_transform (paint_data, cc, ss, -ss, cc, 0.f, 0.f);
+    float c, s;
+    hb_sincos (a * HB_PI, s, c);
+    push_transform (paint_data, c, s, -s, c, 0.f, 0.f);
     return true;
   }
 
