@@ -1356,13 +1356,9 @@ struct PaintRotateAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
 
-    bool p1 = c->funcs->push_translate (c->data, +tCenterX, +tCenterY);
-    bool p2 = c->funcs->push_rotate (c->data, a);
-    bool p3 = c->funcs->push_translate (c->data, -tCenterX, -tCenterY);
+    bool p = c->funcs->push_rotate_around_center (c->data, a, tCenterX, tCenterY);
     c->recurse (this+src);
-    if (p3) c->funcs->pop_transform (c->data);
-    if (p2) c->funcs->pop_transform (c->data);
-    if (p1) c->funcs->pop_transform (c->data);
+    if (p) c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 26 (noVar) or 27(Var) */

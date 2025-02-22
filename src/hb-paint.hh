@@ -218,6 +218,19 @@ struct hb_paint_funcs_t
   }
 
   HB_NODISCARD
+  bool push_rotate_around_center (void *paint_data,
+				  float a, float cx, float cy)
+  {
+    if (!a)
+      return false;
+
+    float c, s;
+    hb_sincos (a * HB_PI, s, c);
+    push_transform (paint_data, c, s, -s, c, cx * (1 - c) + cy * s, cy * (1 - c) - cx * s);
+    return true;
+  }
+
+  HB_NODISCARD
   bool push_skew (void *paint_data,
                   float sx, float sy)
   {

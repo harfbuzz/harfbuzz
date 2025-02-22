@@ -424,13 +424,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float dy = paint.u.rotate.center_y / 65536.f;
       float a = paint.u.rotate.angle / 65536.f;
 
-      bool p1 = c->funcs->push_translate (c->data, +dx, +dy);
-      bool p2 = c->funcs->push_rotate (c->data, a);
-      bool p3 = c->funcs->push_translate (c->data, -dx, -dy);
+      bool p = c->funcs->push_rotate_around_center (c->data, a, dx, dy);
       c->recurse (paint.u.rotate.paint);
-      if (p3) c->funcs->pop_transform (c->data);
-      if (p2) c->funcs->pop_transform (c->data);
-      if (p1) c->funcs->pop_transform (c->data);
+      if (p) c->funcs->pop_transform (c->data);
     }
     break;
     case FT_COLR_PAINTFORMAT_SKEW:
