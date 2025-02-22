@@ -28,6 +28,7 @@
 #include "hb.hh"
 #include "hb-face.hh"
 #include "hb-font.hh"
+#include "hb-geometry.hh"
 
 #define HB_PAINT_FUNCS_IMPLEMENT_CALLBACKS \
   HB_PAINT_FUNC_IMPLEMENT (push_transform) \
@@ -180,6 +181,11 @@ struct hb_paint_funcs_t
 		    upem/xscale, 0, -slant * upem/xscale, upem/yscale, 0, 0);
   }
 
+  void push_transform (void *paint_data, hb_transform_t<float> t)
+  {
+    push_transform (paint_data, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
+  }
+
   HB_NODISCARD
   bool push_translate (void *paint_data,
                        float dx, float dy)
@@ -188,7 +194,7 @@ struct hb_paint_funcs_t
       return false;
 
     push_transform (paint_data,
-		    1.f, 0.f, 0.f, 1.f, dx, dy);
+		    hb_transform_t<float>::translation (dx, dy));
     return true;
   }
 
@@ -200,7 +206,7 @@ struct hb_paint_funcs_t
       return false;
 
     push_transform (paint_data,
-		    sx, 0.f, 0.f, sy, 0.f, 0.f);
+		    hb_transform_t<float>::scaling (sx, sy));
     return true;
   }
 
@@ -211,9 +217,8 @@ struct hb_paint_funcs_t
     if (!a)
       return false;
 
-    float c, s;
-    hb_sincos (a * HB_PI, s, c);
-    push_transform (paint_data, c, s, -s, c, 0.f, 0.f);
+    push_transform (paint_data,
+		    hb_transform_t<float>::rotation (a * HB_PI));
     return true;
   }
 
@@ -224,9 +229,8 @@ struct hb_paint_funcs_t
     if (!a)
       return false;
 
-    float c, s;
-    hb_sincos (a * HB_PI, s, c);
-    push_transform (paint_data, c, s, -s, c, cx * (1 - c) + cy * s, cy * (1 - c) - cx * s);
+    push_transform (paint_data,
+		    hb_transform_t<float>::rotation_around_center (a * HB_PI, cx, cy));
     return true;
   }
 
@@ -237,9 +241,8 @@ struct hb_paint_funcs_t
     if (!sx && !sy)
       return false;
 
-    float x = tanf (-sx * HB_PI);
-    float y = tanf (+sy * HB_PI);
-    push_transform (paint_data, 1.f, y, x, 1.f, 0.f, 0.f);
+    push_transform (paint_data,
+		    hb_transform_t<float>::skewing (-sx * HB_PI, sy * HB_PI));
     return true;
   }
 };

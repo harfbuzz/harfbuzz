@@ -175,6 +175,10 @@ struct hb_transform_t
 
   void transform (const hb_transform_t &o, bool before=false) { multiply (o, before); }
 
+  static hb_transform_t translation (Float x, Float y)
+  {
+    return {1, 0, 0, 1, x, y};
+  }
   void translate (Float x, Float y, bool before=false)
   {
     if (before)
@@ -192,6 +196,10 @@ struct hb_transform_t
     }
   }
 
+  static hb_transform_t scaling (Float scaleX, Float scaleY)
+  {
+    return {scaleX, 0, 0, scaleY, 0, 0};
+  }
   void scale (Float scaleX, Float scaleY)
   {
     if (scaleX == 1 && scaleY == 1)
@@ -211,7 +219,6 @@ struct hb_transform_t
     hb_sincos (radians, s, c);
     return {c, s, -s, c, 0, 0};
   }
-
   void rotate (Float radians, bool before=false)
   {
     if (radians == 0)
@@ -230,7 +237,6 @@ struct hb_transform_t
       -s * center_x +  (1 - c) * center_y
     };
   }
-
   void rotate_around_center (Float radians, Float center_x, Float center_y, bool before=false)
   {
     if (radians == 0)
@@ -239,18 +245,16 @@ struct hb_transform_t
     transform (rotation_around_center (radians, center_x, center_y), before);
   }
 
+  static hb_transform_t skewing (Float skewX, Float skewY)
+  {
+    return {1, skewY ? tanf (skewY) : 0, skewX ? tanf (skewX) : 0, 1, 0, 0};
+  }
   void skew (Float skewX, Float skewY)
   {
     if (skewX == 0 && skewY == 0)
       return;
 
-    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L255
-    auto other = hb_transform_t{1,
-				skewY ? tanf (skewY) : 0,
-				skewX ? tanf (skewX) : 0,
-				1,
-				0, 0};
-    transform (other);
+    transform (skewing (skewX, skewY));
   }
 
   Float xx = 1;
