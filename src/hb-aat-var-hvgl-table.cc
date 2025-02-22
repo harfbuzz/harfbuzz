@@ -218,7 +218,6 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	  {
 	    __m256d src_vec = _mm256_loadu_pd((double *) &src[i]);
 	    __m256d dest_vec = _mm256_loadu_pd(&dest[i]);
-	    // Imagine we can't use _mm256_fmadd_pd
 #ifdef __FMA__
 	    __m256d result = _mm256_fmadd_pd(src_vec, scalar_vec, dest_vec);
 #else
