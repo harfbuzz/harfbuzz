@@ -374,6 +374,8 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<double> out_coords,
   }
 }
 
+static constexpr std::complex<double> complex_i {0, 1};
+
 void
 PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transforms,
 				    hb_array_t<const double> coords) const
@@ -487,10 +489,11 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (pos != (coord > 0)) continue;
       double scalar = fabs (coord);
 
+
       if (extremum_rotation_delta)
       {
 	std::complex<double> t {(double) extremum_translation_delta.x, (double) extremum_translation_delta.y};
-	std::complex<double> _1_minus_e_iangle = 1. - std::exp (std::complex<double> (0, 1) * (double) extremum_rotation_delta);
+	std::complex<double> _1_minus_e_iangle = 1. - std::exp (complex_i * (double) extremum_rotation_delta);
 	std::complex<double> eigen = t / _1_minus_e_iangle;
 	double eigen_x = eigen.real ();
 	double eigen_y = eigen.imag ();
