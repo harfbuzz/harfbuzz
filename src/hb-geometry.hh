@@ -203,17 +203,21 @@ struct hb_transform_t
     yy *= scaleY;
   }
 
-  void rotate (Float rotation, bool before=false)
+  static hb_transform_t rotation (Float rotation)
   {
-    if (rotation == 0)
-      return;
-
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L240
     Float c;
     Float s;
     hb_sincos (rotation, s, c);
-    auto other = hb_transform_t{c, s, -s, c, 0, 0};
-    transform (other, before);
+    return {c, s, -s, c, 0, 0};
+  }
+
+  void rotate (Float radians, bool before=false)
+  {
+    if (radians == 0)
+      return;
+
+    transform (rotation (radians), before);
   }
 
   void skew (Float skewX, Float skewY)

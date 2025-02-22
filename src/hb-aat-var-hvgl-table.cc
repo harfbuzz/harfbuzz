@@ -422,7 +422,12 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
     if (master_rotation_count &&
 	*master_rotation_indices == row)
     {
-      transform.rotate ((double) *master_rotation_deltas, true);
+      // Since transform is identity by default, we can just replace it with
+      // rotation. This saves a multiplication.
+      if (true)
+	transform = hb_transform_t<double>::rotation ((double) *master_rotation_deltas);
+      else
+        transform.rotate ((double) *master_rotation_deltas, true);
       master_rotation_count--;
       master_rotation_indices++;
       master_rotation_deltas++;
