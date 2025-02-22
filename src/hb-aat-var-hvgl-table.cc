@@ -216,15 +216,15 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	  __m256d scalar_vec = _mm256_set1_pd(scalar);
 	  for (; i + 4 <= rows_count; i += 4)
 	  {
-	    __m256d src_vec = _mm256_loadu_pd((double *) &src[i]);
-	    __m256d dest_vec = _mm256_loadu_pd(&dest[i]);
+	    __m256d src_vec = _mm256_loadu_pd ((double *) &src[i]);
+	    __m256d dest_vec = _mm256_loadu_pd (&dest[i]);
+	    __m256d result =
 #ifdef __FMA__
-	    __m256d result = _mm256_fmadd_pd(src_vec, scalar_vec, dest_vec);
-#else
-	    __m256d mul = _mm256_mul_pd(src_vec, scalar_vec);
-	    __m256d result = _mm256_add_pd(mul, dest_vec);
+	      true ? _mm256_fmadd_pd (src_vec, scalar_vec, dest_vec) :
 #endif
-	    _mm256_storeu_pd(&dest[i], result);
+	      _mm256_add_pd (_mm256_mul_pd(src_vec, scalar_vec), dest_vec);
+
+	    _mm256_storeu_pd (&dest[i], result);
 	  }
 	}
 #endif
