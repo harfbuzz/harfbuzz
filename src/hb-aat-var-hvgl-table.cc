@@ -494,20 +494,34 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (pos != (coord > 0)) continue;
       double scalar = fabs (coord);
 
-
       if (extremum_rotation_delta)
       {
 	std::complex<double> t {(double) extremum_translation_delta.x, (double) extremum_translation_delta.y};
 	std::complex<double> _1_minus_e_iangle = 1. - std::exp (complex_i * (double) extremum_rotation_delta);
 	std::complex<double> eigen = t / _1_minus_e_iangle;
-	double eigen_x = eigen.real ();
-	double eigen_y = eigen.imag ();
+	double center_x = eigen.real ();
+	double center_y = eigen.imag ();
 	// Scale rotation around eigen vector
-	hb_transform_t<double> transform2;
-	transform2.translate (-eigen_x, -eigen_y, true);
-	transform2.rotate ((double) extremum_rotation_delta * scalar, true);
-	transform2.translate (eigen_x, eigen_y, true);
-	transform.transform (transform2);
+	if (false)
+	{
+	  hb_transform_t<double> transform2;
+	  transform2.translate (-center_x, -center_y, true);
+	  transform2.rotate ((double) extremum_rotation_delta * scalar, true);
+	  transform2.translate (center_x, center_y, true);
+	  transform.transform (transform2);
+	}
+	else
+	{
+	  // Inline the above "rotate-around-center" for faster code
+	  double angle = (double) extremum_rotation_delta * scalar;
+	  double s, c;
+	  hb_sincos (angle, s, c);
+	  transform.transform ({
+	    c, s, -s, c,
+	    center_x - (c * center_x + -s * center_y),
+	    center_y - (s * center_x +  c * center_y)
+	  });
+	}
 	is_translate_only = false;
       }
       else
