@@ -418,6 +418,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       break;
 
     hb_transform_t<double> transform;
+    bool is_translate_only = true;
 
     if (master_rotation_count &&
 	*master_rotation_indices == row)
@@ -428,6 +429,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 	transform = hb_transform_t<double>::rotation ((double) *master_rotation_deltas);
       else
         transform.rotate ((double) *master_rotation_deltas, true);
+      is_translate_only = false;
       master_rotation_count--;
       master_rotation_indices++;
       master_rotation_deltas++;
@@ -497,16 +499,21 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 	transform2.rotate ((double) extremum_rotation_delta * scalar, true);
 	transform2.translate (eigen_x, eigen_y, true);
 	transform.transform (transform2);
+	is_translate_only = false;
       }
       else
       {
 	// No rotation, just scale the translate
 	transform.translate ((double) extremum_translation_delta.x * scalar,
-			     (double) extremum_translation_delta.y * scalar);
+			     (double) extremum_translation_delta.y * scalar,
+			     is_translate_only);
       }
     }
 
-    transforms[row].transform (transform, true);
+    if (is_translate_only)
+      transforms[row].translate (transform.x0, transform.y0, true);
+    else
+      transforms[row].transform (transform, true);
   }
 }
 
