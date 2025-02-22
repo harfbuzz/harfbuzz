@@ -340,20 +340,25 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   }
 }
 
-void ExtremumColumnStarts::apply_to_coords (hb_array_t<double> out_coords,
-					    hb_array_t<const double> coords,
-					    unsigned axis_count,
-					    hb_array_t<const HBFLOAT32LE> master_axis_value_deltas,
-					    hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas) const
+void
+PartComposite::apply_to_coords (hb_array_t<double> out_coords,
+				hb_array_t<const double> coords) const
 {
-  const auto &masterRowIndex = StructAfter<decltype (masterRowIndexX)> (extremumColumnStart, 2 * axis_count + 1);
+  const auto &ecs = StructAtOffset<ExtremumColumnStarts> (this, extremumColumnStartsOff4 * 4);
+  const auto &extremumColumnStart = ecs.extremumColumnStart;
+  const auto &masterRowIndex = StructAfter<decltype (ecs.masterRowIndexX)> (ecs.extremumColumnStart, 2 * axisCount + 1);
+  const auto &extremumRowIndex = StructAfter<decltype (ecs.extremumRowIndexX)> (masterRowIndex, sparseMasterAxisValueCount);
+
+  const auto &masterAxisValueDeltas = StructAtOffset<MasterAxisValueDeltas> (this, masterAxisValueDeltasOff4 * 4);
+  hb_array_t<const HBFLOAT32LE> master_axis_value_deltas = masterAxisValueDeltas.as_array (sparseMasterAxisValueCount);
+  const auto &extremumAxisValueDeltas = StructAtOffset<ExtremumAxisValueDeltas> (this, extremumAxisValueDeltasOff4 * 4);
+  hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas = extremumAxisValueDeltas.as_array (sparseExtremumAxisValueCount);
+
   unsigned count = master_axis_value_deltas.length;
   for (unsigned i = 0; i < count; i++)
     out_coords[masterRowIndex.arrayZ[i]] += (double) master_axis_value_deltas.arrayZ[i];
 
-  const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, master_axis_value_deltas.length);
-
-  axis_count = hb_min (axis_count, coords.length);
+  unsigned axis_count = hb_min (axisCount, coords.length);
   for (unsigned axis_idx = 0; axis_idx < axis_count; axis_idx++)
   {
     double coord = coords.arrayZ[axis_idx];
@@ -532,21 +537,12 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
 			    signed depth_left) const
 {
   const auto &subParts = StructAtOffset<SubParts> (this, subPartsOff4 * 4);
-  const auto &extremumColumnStarts = StructAtOffset<ExtremumColumnStarts> (this, extremumColumnStartsOff4 * 4);
-  const auto &masterAxisValueDeltas = StructAtOffset<MasterAxisValueDeltas> (this, masterAxisValueDeltasOff4 * 4);
-  hb_array_t<const HBFLOAT32LE> master_axis_value_deltas = masterAxisValueDeltas.as_array (sparseMasterAxisValueCount);
-  const auto &extremumAxisValueDeltas = StructAtOffset<ExtremumAxisValueDeltas> (this, extremumAxisValueDeltasOff4 * 4);
-  hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas = extremumAxisValueDeltas.as_array (sparseExtremumAxisValueCount);
 
   coords = coords.sub_array (0, totalNumAxes);
   auto coords_head = coords.sub_array (0, axisCount);
   auto coords_tail = coords.sub_array (axisCount);
 
-  extremumColumnStarts.apply_to_coords (coords_tail,
-					coords_head,
-					axisCount,
-					master_axis_value_deltas,
-					extremum_axis_value_deltas);
+  apply_to_coords (coords_tail, coords_head);
 
   transforms = transforms.sub_array (0, totalNumParts);
   auto transforms_head = transforms[0];

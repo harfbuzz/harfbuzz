@@ -167,14 +167,9 @@ using SubParts = UnsizedArrayOf<SubPart>; // length: subPartCount. Immediate sub
 
 struct ExtremumColumnStarts
 {
-  public:
+  friend struct PartComposite;
 
-  HB_INTERNAL
-  void apply_to_coords (hb_array_t<double> out_coords,
-			hb_array_t<const double> coords,
-			unsigned axis_count,
-			hb_array_t<const HBFLOAT32LE> master_axis_value_deltas,
-			hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas) const;
+  public:
 
   bool sanitize (hb_sanitize_context_t *c,
 		 unsigned axis_count,
@@ -317,6 +312,9 @@ using Offset16LEMul4NN = Offset<HBUINT16LE, false>;
 struct PartComposite
 {
   public:
+
+  HB_INTERNAL void apply_to_coords (hb_array_t<double> out_coords,
+				    hb_array_t<const double> coords) const;
 
   HB_INTERNAL void apply_to_transforms (hb_array_t<hb_transform_t<double>> transforms,
 					hb_array_t<const double> coords) const;
