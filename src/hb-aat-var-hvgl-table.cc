@@ -450,18 +450,20 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       auto extremum_translation_delta = Null(TranslationDelta);
       auto extremum_rotation_delta = Null(HBFLOAT32LE);
 
+      bool has_row_translation = extremum_translation_count &&
+				 extremum_translation_indices->row == row;
+      bool has_row_rotation = extremum_rotation_count &&
+			      extremum_rotation_indices->row == row;
+
       unsigned column = 2 * axisCount;
-      if (extremum_translation_count &&
-	  extremum_translation_indices->row == row)
+      if (has_row_translation)
 	column = hb_min (column, extremum_translation_indices->column);
-      if (extremum_rotation_count &&
-	  extremum_rotation_indices->row == row)
+      if (has_row_rotation)
 	column = hb_min (column, extremum_rotation_indices->column);
       if (column == 2 * axisCount)
 	break;
 
-      if (extremum_translation_count &&
-	  extremum_translation_indices->row == row &&
+      if (has_row_translation &&
 	  extremum_translation_indices->column == column)
       {
 	extremum_translation_delta = *extremum_translation_deltas;
@@ -469,8 +471,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 	extremum_translation_indices++;
 	extremum_translation_deltas++;
       }
-      if (extremum_rotation_count &&
-	  extremum_rotation_indices->row == row &&
+      if (has_row_rotation &&
 	  extremum_rotation_indices->column == column)
       {
 	extremum_rotation_delta = *extremum_rotation_deltas;
