@@ -409,12 +409,8 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float sx = paint.u.scale.scale_x / 65536.f;
       float sy = paint.u.scale.scale_y / 65536.f;
 
-      bool p1 = c->funcs->push_translate (c->data, +dx, +dy);
-      bool p2 = c->funcs->push_scale (c->data, sx, sy);
-      bool p3 = c->funcs->push_translate (c->data, -dx, -dy);
+      bool p1 = c->funcs->push_scale_around_center (c->data, sx, sy, dx, dy);
       c->recurse (paint.u.scale.paint);
-      if (p3) c->funcs->pop_transform (c->data);
-      if (p2) c->funcs->pop_transform (c->data);
       if (p1) c->funcs->pop_transform (c->data);
     }
     break;
@@ -436,12 +432,8 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       float sx = paint.u.skew.x_skew_angle / 65536.f;
       float sy = paint.u.skew.y_skew_angle / 65536.f;
 
-      bool p1 = c->funcs->push_translate (c->data, +dx, +dy);
-      bool p2 = c->funcs->push_skew (c->data, sx, sy);
-      bool p3 = c->funcs->push_translate (c->data, -dx, -dy);
+      bool p1 = c->funcs->push_skew_around_center (c->data, sx, sy, dx, dy);
       c->recurse (paint.u.skew.paint);
-      if (p3) c->funcs->pop_transform (c->data);
-      if (p2) c->funcs->pop_transform (c->data);
       if (p1) c->funcs->pop_transform (c->data);
     }
     break;

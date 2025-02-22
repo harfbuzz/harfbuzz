@@ -210,6 +210,17 @@ struct hb_transform_t
     xy *= scaleY;
     yy *= scaleY;
   }
+  static hb_transform_t scaling_around_center (Float scaleX, Float scaleY, Float center_x, Float center_y)
+  {
+    return {scaleX, 0, 0, scaleY, (1 - scaleX) * center_x, (1 - scaleY) * center_y};
+  }
+  void scale_around_center (Float scaleX, Float scaleY, Float center_x, Float center_y)
+  {
+    if (scaleX == 1 && scaleY == 1)
+      return;
+
+    transform (scaling_around_center (scaleX, scaleY, center_x, center_y));
+  }
 
   static hb_transform_t rotation (Float radians)
   {
@@ -255,6 +266,22 @@ struct hb_transform_t
       return;
 
     transform (skewing (skewX, skewY));
+  }
+  static hb_transform_t skewing_around_center (Float skewX, Float skewY, Float center_x, Float center_y)
+  {
+    skewX = skewX ? tanf (skewX) : 0;
+    skewY = skewY ? tanf (skewY) : 0;
+    return {
+	    1, skewY, skewX, 1,
+	    -skewX * center_y, -skewY * center_x
+    };
+  }
+  void skew_around_center (Float skewX, Float skewY, Float center_x, Float center_y)
+  {
+    if (skewX == 0 && skewY == 0)
+	    return;
+
+    transform (skewing_around_center (skewX, skewY, center_x, center_y));
   }
 
   Float xx = 1;

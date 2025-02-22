@@ -12,17 +12,13 @@ start clip rectangle 118 -22.9 750 750
       end clip
     end transform
     push group
-      start transform 1 0 0 1 1e+03 1e+03
-        start transform 1 0.364 0.176 1 0 0
-          start transform 1 0 0 1 -1e+03 -1e+03
-            start transform 1 0 -0 1 0 0
-              start clip glyph 3
-                start transform 1 0 0 1 0 0
-                  solid 255 165 0 178
-                end transform
-              end clip
+      start transform 1 0.364 0.176 1 -176 -364
+        start transform 1 0 -0 1 0 0
+          start clip glyph 3
+            start transform 1 0 0 1 0 0
+              solid 255 165 0 178
             end transform
-          end transform
+          end clip
         end transform
       end transform
     pop group mode 4
