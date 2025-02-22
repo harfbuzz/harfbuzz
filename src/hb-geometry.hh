@@ -177,9 +177,6 @@ struct hb_transform_t
 
   void translate (Float x, Float y, bool before=false)
   {
-    if (x == 0 && y == 0)
-      return;
-
     if (before)
     {
       x0 += x;
@@ -187,6 +184,9 @@ struct hb_transform_t
     }
     else
     {
+      if (x == 0 && y == 0)
+	return;
+
       x0 += xx * x + xy * y;
       y0 += yx * x + yy * y;
     }
