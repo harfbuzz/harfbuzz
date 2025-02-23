@@ -469,14 +469,19 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 
       if (*extremum_rotation_delta)
       {
-	std::complex<double> t {(double) extremum_translation_delta->x, (double) extremum_translation_delta->y};
-	double s, c;
-	// 1 - exp(i * angle) = complex(1 - cos(angle), -sin(angle))
-	hb_sincos ((double) *extremum_rotation_delta, s, c);
-	std::complex<double> _1_minus_e_iangle = std::complex<double> (1 - c, -s);
-	std::complex<double> eigen = t / _1_minus_e_iangle;
-	double center_x = eigen.real ();
-	double center_y = eigen.imag ();
+	double center_x = (double) extremum_translation_delta->x;
+	double center_y = (double) extremum_translation_delta->y;
+	if (center_x || center_y)
+	{
+	  std::complex<double> t {center_x, center_y};
+	  double s, c;
+	  // 1 - exp(i * angle) = complex(1 - cos(angle), -sin(angle))
+	  hb_sincos ((double) *extremum_rotation_delta, s, c);
+	  std::complex<double> _1_minus_e_iangle = std::complex<double> (1 - c, -s);
+	  std::complex<double> eigen = t / _1_minus_e_iangle;
+	  center_x = eigen.real ();
+	  center_y = eigen.imag ();
+	}
 	double angle = (double) *extremum_rotation_delta * scalar;
 	transform.rotate_around_center (angle, center_x, center_y);
 	is_translate_only = false;
