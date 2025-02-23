@@ -384,13 +384,12 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 				    hb_array_t<const double> coords) const
 {
   const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
-  const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
-
   const auto &masterTranslationDelta = allTranslations.masterTranslationDelta;
   const auto &extremumTranslationDelta = StructAfter<decltype (allTranslations.extremumTranslationDeltaX)> (masterTranslationDelta, sparseMasterTranslationCount);
   const auto &extremumTranslationIndex = StructAfter<decltype (allTranslations.extremumTranslationIndexX)> (extremumTranslationDelta, sparseExtremumTranslationCount);
   const auto &masterTranslationIndex = StructAfter<decltype (allTranslations.masterTranslationIndexX)> (extremumTranslationIndex, sparseExtremumTranslationCount);
 
+  const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
   const auto &masterRotationDelta = allRotations.masterRotationDelta;
   const auto &extremumRotationDelta = StructAfter<decltype (allRotations.extremumRotationDeltaX)> (masterRotationDelta, sparseMasterRotationCount);
   const auto &extremumRotationIndex = StructAfter<decltype (allRotations.extremumRotationIndexX)> (extremumRotationDelta, sparseExtremumRotationCount);
