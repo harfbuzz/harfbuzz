@@ -538,7 +538,7 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
   apply_to_coords (coords_tail, coords_head);
 
   transforms = transforms.sub_array (0, totalNumParts);
-  auto transforms_head = transforms[0];
+  auto &transforms_head = transforms[0];
   auto transforms_tail = transforms.sub_array (1);
 
   apply_to_transforms (transforms_tail, coords_head);
