@@ -408,13 +408,10 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   auto extremum_rotation_indices = extremumRotationIndex.arrayZ;
   auto extremum_rotation_deltas = extremumRotationDelta.arrayZ;
   unsigned extremum_rotation_count = sparseExtremumRotationCount;
+
   while (true)
   {
     unsigned row = transforms.length;
-    if (master_translation_count)
-      row = hb_min (row, *master_translation_indices);
-    if (master_rotation_count)
-      row = hb_min (row, *master_rotation_indices);
     if (extremum_translation_count)
       row = hb_min (row, extremum_translation_indices->row);
     if (extremum_rotation_count)
@@ -424,31 +421,6 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 
     hb_transform_t<double> transform;
     bool is_translate_only = true;
-
-    if (master_rotation_count &&
-	*master_rotation_indices == row)
-    {
-      // Since transform is identity by default, we can just replace it with
-      // rotation. This saves a multiplication.
-      if (true)
-	transform = hb_transform_t<double>::rotation ((double) *master_rotation_deltas);
-      else
-        transform.rotate ((double) *master_rotation_deltas, true);
-      is_translate_only = false;
-      master_rotation_count--;
-      master_rotation_indices++;
-      master_rotation_deltas++;
-    }
-    if (master_translation_count &&
-	*master_translation_indices == row)
-    {
-      transform.translate ((double) master_translation_deltas->x,
-			   (double) master_translation_deltas->y,
-			   true);
-      master_translation_count--;
-      master_translation_indices++;
-      master_translation_deltas++;
-    }
 
     while (true)
     {
@@ -510,6 +482,49 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 			     (double) extremum_translation_delta.y * scalar,
 			     is_translate_only);
       }
+    }
+
+    if (is_translate_only)
+      transforms[row].translate (transform.x0, transform.y0, true);
+    else
+      transforms[row].transform (transform, true);
+  }
+  while (true)
+  {
+    unsigned row = transforms.length;
+    if (master_translation_count)
+      row = hb_min (row, *master_translation_indices);
+    if (master_rotation_count)
+      row = hb_min (row, *master_rotation_indices);
+    if (row == transforms.length)
+      break;
+
+    hb_transform_t<double> transform;
+    bool is_translate_only = true;
+
+    if (master_rotation_count &&
+	*master_rotation_indices == row)
+    {
+      // Since transform is identity by default, we can just replace it with
+      // rotation. This saves a multiplication.
+      if (true)
+	transform = hb_transform_t<double>::rotation ((double) *master_rotation_deltas);
+      else
+        transform.rotate ((double) *master_rotation_deltas, true);
+      is_translate_only = false;
+      master_rotation_count--;
+      master_rotation_indices++;
+      master_rotation_deltas++;
+    }
+    if (master_translation_count &&
+	*master_translation_indices == row)
+    {
+      transform.translate ((double) master_translation_deltas->x,
+			   (double) master_translation_deltas->y,
+			   true);
+      master_translation_count--;
+      master_translation_indices++;
+      master_translation_deltas++;
     }
 
     if (is_translate_only)
