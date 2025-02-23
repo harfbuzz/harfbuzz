@@ -212,7 +212,9 @@ struct hb_transform_t
   }
   static hb_transform_t scaling_around_center (Float scaleX, Float scaleY, Float center_x, Float center_y)
   {
-    return {scaleX, 0, 0, scaleY, (1 - scaleX) * center_x, (1 - scaleY) * center_y};
+    return {scaleX, 0, 0, scaleY,
+	    center_x ? (1 - scaleX) * center_x : 0,
+	    center_y ? (1 - scaleY) * center_y : 0};
   }
   void scale_around_center (Float scaleX, Float scaleY, Float center_x, Float center_y)
   {
@@ -273,7 +275,8 @@ struct hb_transform_t
     skewY = skewY ? tanf (skewY) : 0;
     return {
 	    1, skewY, skewX, 1,
-	    -skewX * center_y, -skewY * center_x
+	    center_y ? -skewX * center_y : 0,
+	    center_x ? -skewY * center_x : 0
     };
   }
   void skew_around_center (Float skewX, Float skewY, Float center_x, Float center_y)
