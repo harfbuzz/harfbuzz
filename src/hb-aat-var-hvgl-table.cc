@@ -441,7 +441,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 	break;
 
       const auto *extremum_translation_delta = &Null(TranslationDelta);
-      const auto *extremum_rotation_delta = &Null(HBFLOAT32LE);
+      double extremum_rotation_delta = 0.;
 
       if (has_row_translation &&
 	  extremum_translation_indices->column == column)
@@ -454,7 +454,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (has_row_rotation &&
 	  extremum_rotation_indices->column == column)
       {
-	extremum_rotation_delta = extremum_rotation_deltas;
+	extremum_rotation_delta = *extremum_rotation_deltas;
 	extremum_rotation_count--;
 	extremum_rotation_indices++;
 	extremum_rotation_deltas++;
@@ -467,22 +467,23 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (pos != (coord > 0)) continue;
       double scalar = fabs (coord);
 
-      if (*extremum_rotation_delta)
+      if (extremum_rotation_delta)
       {
 	double center_x = (double) extremum_translation_delta->x;
 	double center_y = (double) extremum_translation_delta->y;
+	double angle = extremum_rotation_delta;
 	if (center_x || center_y)
 	{
 	  std::complex<double> t {center_x, center_y};
 	  double s, c;
 	  // 1 - exp(i * angle) = complex(1 - cos(angle), -sin(angle))
-	  hb_sincos ((double) *extremum_rotation_delta, s, c);
+	  hb_sincos ((double) angle, s, c);
 	  std::complex<double> _1_minus_e_iangle = std::complex<double> (1 - c, -s);
 	  std::complex<double> eigen = t / _1_minus_e_iangle;
 	  center_x = eigen.real ();
 	  center_y = eigen.imag ();
 	}
-	double angle = (double) *extremum_rotation_delta * scalar;
+	angle *= scalar;
 	transform.rotate_around_center (angle, center_x, center_y);
 	is_translate_only = false;
       }
