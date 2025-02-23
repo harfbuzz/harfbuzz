@@ -1053,9 +1053,9 @@ struct PaintTranslate
     float ddx = dx + c->instancer (varIdxBase, 0);
     float ddy = dy + c->instancer (varIdxBase, 1);
 
-    bool p1 = c->funcs->push_translate (c->data, ddx, ddy);
+    c->funcs->push_translate (c->data, ddx, ddy);
     c->recurse (this+src);
-    if (p1) c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 14(noVar) or 15 (Var) */
@@ -1102,9 +1102,9 @@ struct PaintScale
     float sx = scaleX.to_float (c->instancer (varIdxBase, 0));
     float sy = scaleY.to_float (c->instancer (varIdxBase, 1));
 
-    bool p1 = c->funcs->push_scale (c->data, sx, sy);
+    c->funcs->push_scale (c->data, sx, sy);
     c->recurse (this+src);
-    if (p1) c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 16 (noVar) or 17(Var) */
@@ -1155,9 +1155,9 @@ struct PaintScaleAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
 
-    bool p1 = c->funcs->push_scale_around_center (c->data, sx, sy, tCenterX, tCenterY);
+    c->funcs->push_scale_around_center (c->data, sx, sy, tCenterX, tCenterY);
     c->recurse (this+src);
-    if (p1) c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 18 (noVar) or 19(Var) */
@@ -1202,9 +1202,9 @@ struct PaintScaleUniform
     TRACE_PAINT (this);
     float s = scale.to_float (c->instancer (varIdxBase, 0));
 
-    bool p1 = c->funcs->push_scale (c->data, s, s);
+    c->funcs->push_scale (c->data, s, s);
     c->recurse (this+src);
-    if (p1) c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 20 (noVar) or 21(Var) */
@@ -1252,9 +1252,9 @@ struct PaintScaleUniformAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
 
-    bool p1 = c->funcs->push_scale_around_center (c->data, s, s, tCenterX, tCenterY);
+    c->funcs->push_scale_around_center (c->data, s, s, tCenterX, tCenterY);
     c->recurse (this+src);
-    if (p1) c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 22 (noVar) or 23(Var) */
@@ -1298,9 +1298,9 @@ struct PaintRotate
     TRACE_PAINT (this);
     float a = angle.to_float (c->instancer (varIdxBase, 0));
 
-    bool p1 = c->funcs->push_rotate (c->data, a);
+    c->funcs->push_rotate (c->data, a);
     c->recurse (this+src);
-    if (p1) c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 24 (noVar) or 25(Var) */
@@ -1348,9 +1348,9 @@ struct PaintRotateAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
 
-    bool p1 = c->funcs->push_rotate_around_center (c->data, a, tCenterX, tCenterY);
+    c->funcs->push_rotate_around_center (c->data, a, tCenterX, tCenterY);
     c->recurse (this+src);
-    if (p1) c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 26 (noVar) or 27(Var) */
@@ -1398,9 +1398,9 @@ struct PaintSkew
     float sx = xSkewAngle.to_float(c->instancer (varIdxBase, 0));
     float sy = ySkewAngle.to_float(c->instancer (varIdxBase, 1));
 
-    bool p1 = c->funcs->push_skew (c->data, sx, sy);
+    c->funcs->push_skew (c->data, sx, sy);
     c->recurse (this+src);
-    if (p1) c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 28(noVar) or 29 (Var) */
@@ -1451,9 +1451,9 @@ struct PaintSkewAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
 
-    bool p1 = c->funcs->push_skew_around_center (c->data, sx, sy, tCenterX, tCenterY);
+    c->funcs->push_skew_around_center (c->data, sx, sy, tCenterX, tCenterY);
     c->recurse (this+src);
-    if (p1) c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 30(noVar) or 31 (Var) */

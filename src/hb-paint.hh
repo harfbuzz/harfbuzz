@@ -186,89 +186,54 @@ struct hb_paint_funcs_t
     push_transform (paint_data, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
   }
 
-  HB_NODISCARD
-  bool push_translate (void *paint_data,
+  void push_translate (void *paint_data,
                        float dx, float dy)
   {
-    if (!dx && !dy)
-      return false;
-
     push_transform (paint_data,
 		    hb_transform_t<float>::translation (dx, dy));
-    return true;
   }
 
-  HB_NODISCARD
-  bool push_scale (void *paint_data,
+  void push_scale (void *paint_data,
                    float sx, float sy)
   {
-    if (sx == 1.f && sy == 1.f)
-      return false;
-
     push_transform (paint_data,
 		    hb_transform_t<float>::scaling (sx, sy));
-    return true;
   }
-  HB_NODISCARD
-  bool push_scale_around_center (void *paint_data,
+  void push_scale_around_center (void *paint_data,
 				 float sx, float sy,
 				 float cx, float cy)
   {
-    if (sx == 1.f && sy == 1.f)
-      return false;
-
     push_transform (paint_data,
 		    hb_transform_t<float>::scaling_around_center (sx, sy, cx, cy));
-    return true;
   }
 
-  HB_NODISCARD
-  bool push_rotate (void *paint_data,
+  void push_rotate (void *paint_data,
                     float a)
   {
-    if (!a)
-      return false;
-
     push_transform (paint_data,
 		    hb_transform_t<float>::rotation (a * HB_PI));
-    return true;
   }
 
-  HB_NODISCARD
-  bool push_rotate_around_center (void *paint_data,
+  void push_rotate_around_center (void *paint_data,
 				  float a,
 				  float cx, float cy)
   {
-    if (!a)
-      return false;
-
     push_transform (paint_data,
 		    hb_transform_t<float>::rotation_around_center (a * HB_PI, cx, cy));
-    return true;
   }
 
-  HB_NODISCARD
-  bool push_skew (void *paint_data,
+  void push_skew (void *paint_data,
                   float sx, float sy)
   {
-    if (!sx && !sy)
-      return false;
-
     push_transform (paint_data,
 		    hb_transform_t<float>::skewing (-sx * HB_PI, sy * HB_PI));
-    return true;
   }
-  HB_NODISCARD
-  bool push_skew_around_center (void *paint_data,
+  void push_skew_around_center (void *paint_data,
 				float sx, float sy,
 				float cx, float cy)
   {
-  if (!sx && !sy)
-    return false;
-
-  push_transform (paint_data,
-		  hb_transform_t<float>::skewing_around_center (-sx * HB_PI, sy * HB_PI, cx, cy));
-  return true;
+    push_transform (paint_data,
+		    hb_transform_t<float>::skewing_around_center (-sx * HB_PI, sy * HB_PI, cx, cy));
   }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
