@@ -396,6 +396,16 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   const auto &extremumRotationIndex = StructAfter<decltype (allRotations.extremumRotationIndexX)> (extremumRotationDelta, sparseExtremumRotationCount);
   const auto &masterRotationIndex = StructAfter<decltype (allRotations.masterRotationIndexX)> (extremumRotationIndex, sparseExtremumRotationCount);
 
+  /* Note that the spec says walk four iterators together.
+   * But with careful consideration, we have figured out the order
+   * to walk two, then one, then one. This seems to work for all
+   * glyphs in PingFangUI just fine. For commits moving to this
+   * logic, see the following commits:
+   *
+   *   [hvgl/transforms] Break up the four-iterator loop again
+   *   [hvgl/transforms] Break up some more
+   */
+
   auto extremum_translation_indices = extremumTranslationIndex.arrayZ;
   auto extremum_translation_deltas = extremumTranslationDelta.arrayZ;
   unsigned extremum_translation_count = sparseExtremumTranslationCount;
