@@ -440,13 +440,13 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (column == 2 * axisCount)
 	break;
 
-      auto extremum_translation_delta = Null(TranslationDelta);
-      auto extremum_rotation_delta = Null(HBFLOAT32LE);
+      const auto *extremum_translation_delta = &Null(TranslationDelta);
+      const auto *extremum_rotation_delta = &Null(HBFLOAT32LE);
 
       if (has_row_translation &&
 	  extremum_translation_indices->column == column)
       {
-	extremum_translation_delta = *extremum_translation_deltas;
+	extremum_translation_delta = extremum_translation_deltas;
 	extremum_translation_count--;
 	extremum_translation_indices++;
 	extremum_translation_deltas++;
@@ -454,7 +454,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (has_row_rotation &&
 	  extremum_rotation_indices->column == column)
       {
-	extremum_rotation_delta = *extremum_rotation_deltas;
+	extremum_rotation_delta = extremum_rotation_deltas;
 	extremum_rotation_count--;
 	extremum_rotation_indices++;
 	extremum_rotation_deltas++;
@@ -467,22 +467,22 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (pos != (coord > 0)) continue;
       double scalar = fabs (coord);
 
-      if (extremum_rotation_delta)
+      if (*extremum_rotation_delta)
       {
-	std::complex<double> t {(double) extremum_translation_delta.x, (double) extremum_translation_delta.y};
-	std::complex<double> _1_minus_e_iangle = 1. - std::exp (std::complex<double> (0, (double) extremum_rotation_delta));
+	std::complex<double> t {(double) extremum_translation_delta->x, (double) extremum_translation_delta->y};
+	std::complex<double> _1_minus_e_iangle = 1. - std::exp (std::complex<double> (0, (double) *extremum_rotation_delta));
 	std::complex<double> eigen = t / _1_minus_e_iangle;
 	double center_x = eigen.real ();
 	double center_y = eigen.imag ();
-	double angle = (double) extremum_rotation_delta * scalar;
+	double angle = (double) *extremum_rotation_delta * scalar;
 	transform.rotate_around_center (angle, center_x, center_y);
 	is_translate_only = false;
       }
       else
       {
 	// No rotation, just scale the translate
-	transform.translate ((double) extremum_translation_delta.x * scalar,
-			     (double) extremum_translation_delta.y * scalar,
+	transform.translate ((double) extremum_translation_delta->x * scalar,
+			     (double) extremum_translation_delta->y * scalar,
 			     is_translate_only);
       }
     }
