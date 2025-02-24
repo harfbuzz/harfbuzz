@@ -1733,6 +1733,19 @@ struct TupleValues
       else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_WORDS)
       {
         if (unlikely (p + run_count * HBINT16::static_size > end)) return false;
+#ifndef HB_OPTIMIZE_SIZE
+        for (; i + 3 < stop; i += 4)
+	{
+	  values.arrayZ[i] = * (const HBINT16 *) p;
+	  p += HBINT16::static_size;
+	  values.arrayZ[i + 1] = * (const HBINT16 *) p;
+	  p += HBINT16::static_size;
+	  values.arrayZ[i + 2] = * (const HBINT16 *) p;
+	  p += HBINT16::static_size;
+	  values.arrayZ[i + 3] = * (const HBINT16 *) p;
+	  p += HBINT16::static_size;
+	}
+#endif
         for (; i < stop; i++)
         {
           values.arrayZ[i] = * (const HBINT16 *) p;
@@ -1751,10 +1764,17 @@ struct TupleValues
       else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_BYTES)
       {
         if (unlikely (p + run_count > end)) return false;
+#ifndef HB_OPTIMIZE_SIZE
+	for (; i + 3 < stop; i += 4)
+	{
+	  values.arrayZ[i] = * (const HBINT8 *) p++;
+	  values.arrayZ[i + 1] = * (const HBINT8 *) p++;
+	  values.arrayZ[i + 2] = * (const HBINT8 *) p++;
+	  values.arrayZ[i + 3] = * (const HBINT8 *) p++;
+	}
+#endif
         for (; i < stop; i++)
-        {
           values.arrayZ[i] = * (const HBINT8 *) p++;
-        }
       }
     }
     return true;
