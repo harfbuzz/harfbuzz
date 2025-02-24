@@ -1914,6 +1914,7 @@ struct TupleValues
     void _add_to (hb_array_t<float> out, float scale = 1.0f)
     {
       unsigned n = out.length;
+      float *arrayZ = out.arrayZ;
 
       for (unsigned i = 0; i < n;)
       {
@@ -1926,21 +1927,21 @@ struct TupleValues
 	  {
 	    const auto *pp = (const HBINT8 *) p;
 	    for (unsigned j = 0; j < count; j++)
-	      out.arrayZ[i + j] += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
 	  }
 	  break;
 	  case 2:
 	  {
 	    const auto *pp = (const HBINT16 *) p;
 	    for (unsigned j = 0; j < count; j++)
-	      out.arrayZ[i + j] += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
 	  }
 	  break;
 	  case 4:
 	  {
 	    const auto *pp = (const HBINT32 *) p;
 	    for (unsigned j = 0; j < count; j++)
-	      out.arrayZ[i + j] += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
 	  }
 	  break;
 	}
