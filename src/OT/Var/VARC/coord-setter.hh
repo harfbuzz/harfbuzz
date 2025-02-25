@@ -49,7 +49,7 @@ struct coord_setter_t
   { return dynamic_coords ? dynamic_coords.as_array () : hb_array (static_coords, length); }
 
   unsigned length;
-  int static_coords[32];
+  int static_coords[64];
   hb_vector_t<int> dynamic_coords;
 };
 
