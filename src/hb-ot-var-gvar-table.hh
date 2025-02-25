@@ -778,8 +778,7 @@ struct gvar
 	    if (apply_to_all)
 	      for (unsigned int i = phantom_only ? count - 4 : 0; i < count; i++)
 	      {
-		unsigned int pt_index = i;
-		auto &delta = deltas.arrayZ[pt_index];
+		auto &delta = deltas.arrayZ[i];
 		delta.x += x_deltas.arrayZ[i] * scalar;
 		delta.y += y_deltas.arrayZ[i] * scalar;
 	      }
@@ -800,8 +799,7 @@ struct gvar
 	    if (apply_to_all)
 	      for (unsigned int i = phantom_only ? count - 4 : 0; i < count; i++)
 	      {
-		unsigned int pt_index = i;
-		auto &delta = deltas.arrayZ[pt_index];
+		auto &delta = deltas.arrayZ[i];
 		delta.x += x_deltas.arrayZ[i];
 		delta.y += y_deltas.arrayZ[i];
 	      }
