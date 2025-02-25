@@ -205,7 +205,7 @@ VarComponent::get_path_at (hb_font_t *font,
     axisValues.resize (axisIndices.length, false);
     const HBUINT8 *p = (const HBUINT8 *) record;
     TupleValues::decompile (p, axisValues, (const HBUINT8 *) end);
-    record += (const unsigned char *) p - record;
+    record = (const unsigned char *) p;
   }
 
   // Apply variations if any
