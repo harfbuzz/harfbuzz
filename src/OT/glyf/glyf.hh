@@ -198,6 +198,13 @@ struct glyf_accelerator_t
   }
   ~glyf_accelerator_t ()
   {
+    auto *scratch = cached_scratch.get_relaxed ();
+    if (scratch)
+    {
+      scratch->~hb_glyf_scratch_t ();
+      hb_free (scratch);
+    }
+
     glyf_table.destroy ();
   }
 
@@ -463,10 +470,34 @@ struct glyf_accelerator_t
   bool
   get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
   {
-    hb_glyf_scratch_t scratch;
-    return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
-		       hb_array (font->coords, font->num_coords),
-		       scratch); }
+    if (!has_data ()) return false;
+
+    hb_glyf_scratch_t *scratch;
+
+    // Borrow the cached strach buffer.
+    {
+      scratch = cached_scratch.get_acquire ();
+      if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
+      {
+	scratch = (hb_glyf_scratch_t *) hb_calloc (1, sizeof (hb_glyf_scratch_t));
+	if (unlikely (!scratch))
+	  return true;
+      }
+    }
+
+    bool ret = get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
+			   hb_array (font->coords, font->num_coords),
+			   *scratch);
+
+    // Put it back.
+    if (!cached_scratch.cmpexch (nullptr, scratch))
+    {
+      scratch->~hb_glyf_scratch_t ();
+      hb_free (scratch);
+    }
+
+    return ret;
+  }
 
   bool
   get_path_at (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session,
@@ -489,6 +520,7 @@ struct glyf_accelerator_t
   unsigned int num_glyphs;
   hb_blob_ptr_t<loca> loca_table;
   hb_blob_ptr_t<glyf> glyf_table;
+  hb_atomic_ptr_t<hb_glyf_scratch_t> cached_scratch;
 };
 
 
