@@ -1953,7 +1953,17 @@ struct TupleValues
 	  case 2:
 	  {
 	    const auto *pp = (const HBINT16 *) p;
-	    for (unsigned j = 0; j < count; j++)
+	    unsigned j = 0;
+#ifndef HB_OPTIMIZE_SIZE
+	    for (; j + 3 < count; j += 4)
+	    {
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	    }
+#endif
+	    for (; j < count; j++)
 	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
 	  }
 	  break;
