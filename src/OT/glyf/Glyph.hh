@@ -3,6 +3,7 @@
 
 
 #include "../../hb-open-type.hh"
+#include "../../hb-decycler.hh"
 
 #include "GlyphHeader.hh"
 #include "SimpleGlyph.hh"
@@ -314,7 +315,7 @@ struct Glyph
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
 		   hb_array_t<const int> coords = hb_array_t<const int> (),
-		   hb_map_t *current_glyphs = nullptr,
+		   hb_decycler_t *decycler = nullptr,
 		   unsigned int depth = 0,
 		   unsigned *edge_count = nullptr) const
   {
@@ -323,10 +324,6 @@ struct Glyph
     if (!edge_count) edge_count = &stack_edge_count;
     if (unlikely (*edge_count > HB_MAX_GRAPH_EDGE_COUNT)) return false;
     (*edge_count)++;
-
-    hb_map_t current_glyphs_stack;
-    if (current_glyphs == nullptr)
-      current_glyphs = &current_glyphs_stack;
 
     if (head_maxp_info)
     {
@@ -412,15 +409,19 @@ struct Glyph
       break;
     case COMPOSITE:
     {
+      hb_decycler_t decycler_stack; // TODO Move out of here
+      if (!decycler)
+	decycler = &decycler_stack;
+
+      hb_decycler_node_t decycler_node (*decycler);
+
       unsigned int comp_index = 0;
       for (auto &item : get_composite_iterator ())
       {
 	hb_codepoint_t item_gid = item.get_gid ();
 
-        if (unlikely (current_glyphs->has (item_gid)))
+        if (unlikely (!decycler_node.visit (item_gid)))
 	  continue;
-
-	current_glyphs->add (item_gid);
 
 	unsigned old_count = all_points.length;
 
@@ -437,13 +438,10 @@ struct Glyph
 						    use_my_metrics,
 						    phantom_only,
 						    coords,
-						    current_glyphs,
+						    decycler,
 						    depth + 1,
 						    edge_count)))
-	{
-	  current_glyphs->del (item_gid);
 	  return false;
-	}
 
 	auto comp_points = all_points.as_array ().sub_array (old_count);
 
@@ -479,13 +477,9 @@ struct Glyph
 	all_points.resize (all_points.length - PHANTOM_COUNT);
 
 	if (all_points.length > HB_GLYF_MAX_POINTS)
-	{
-	  current_glyphs->del (item_gid);
 	  return false;
-	}
 
 	comp_index++;
-        current_glyphs->del (item_gid);
       }
 
       if (head_maxp_info && depth == 0)
