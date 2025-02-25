@@ -629,11 +629,11 @@ struct tuple_delta_t
           deltas_x.arrayZ[i] = infer_delta ((double) orig_points.arrayZ[i].x,
                                             (double) orig_points.arrayZ[prev].x,
                                             (double) orig_points.arrayZ[next].x,
-                                            deltas_x.arrayZ[prev], deltas_x.arrayZ[next]);
+                                            (double) deltas_x.arrayZ[prev], (double) deltas_x.arrayZ[next]);
           deltas_y.arrayZ[i] = infer_delta ((double) orig_points.arrayZ[i].y,
                                             (double) orig_points.arrayZ[prev].y,
                                             (double) orig_points.arrayZ[next].y,
-                                            deltas_y.arrayZ[prev], deltas_y.arrayZ[next]);
+                                            (double) deltas_y.arrayZ[prev], (double) deltas_y.arrayZ[next]);
           inferred_idxes.add (i);
           if (--unref_count == 0) goto no_more_gaps;
         }
