@@ -381,7 +381,8 @@ VARC::get_path_at (hb_font_t *font,
 
   hb_ubytes_t record = (this+glyphRecords)[idx];
 
-  VarRegionList::cache_t *cache = coords ? (this+varStore).create_cache () : nullptr;
+  float static_cache[128];
+  VarRegionList::cache_t *cache = (this+varStore).create_cache (hb_array (static_cache));
 
   transform.scale (font->x_multf, font->y_multf);
 
@@ -392,7 +393,7 @@ VARC::get_path_at (hb_font_t *font,
 				  scratch,
 				  cache);
 
-  (this+varStore).destroy_cache (cache);
+  (this+varStore).destroy_cache (cache, hb_array (static_cache));
 
   return true;
 }

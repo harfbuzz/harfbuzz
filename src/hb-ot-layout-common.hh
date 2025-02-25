@@ -3440,7 +3440,7 @@ struct MultiItemVariationStore
 {
   using cache_t = SparseVarRegionList::cache_t;
 
-  cache_t *create_cache () const
+  cache_t *create_cache (hb_array_t<float> static_cache = hb_array_t<float> ()) const
   {
 #ifdef HB_NO_VAR
     return nullptr;
@@ -3448,8 +3448,14 @@ struct MultiItemVariationStore
     auto &r = this+regions;
     unsigned count = r.regions.len;
 
-    float *cache = (float *) hb_malloc (sizeof (float) * count);
-    if (unlikely (!cache)) return nullptr;
+    float *cache;
+    if (count <= static_cache.length)
+      cache = static_cache.arrayZ;
+    else
+    {
+      cache = (float *) hb_malloc (sizeof (float) * count);
+      if (unlikely (!cache)) return nullptr;
+    }
 
     for (unsigned i = 0; i < count; i++)
       cache[i] = REGION_CACHE_ITEM_CACHE_INVALID;
@@ -3457,7 +3463,12 @@ struct MultiItemVariationStore
     return cache;
   }
 
-  static void destroy_cache (cache_t *cache) { hb_free (cache); }
+  static void destroy_cache (cache_t *cache,
+			     hb_array_t<float> static_cache = hb_array_t<float> ())
+  {
+    if (cache != static_cache.arrayZ)
+      hb_free (cache);
+  }
 
   private:
   void get_delta (unsigned int outer, unsigned int inner,
