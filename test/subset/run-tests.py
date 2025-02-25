@@ -41,14 +41,16 @@ def fail_test (test, cli_args, message):
 	print ('Test State:')
 	print ('  test.font_path    %s' % os.path.abspath (test.font_path))
 	print ('  test.profile_path %s' % os.path.abspath (test.profile_path))
-	print ('  test.unicodes	    %s' % test.unicodes ())
+	print ('  test.unicodes     %s' % test.unicodes ())
 	expected_file = os.path.join (test_suite.get_output_directory (),
 				      test.get_font_name ())
-	print ('  expected_file	    %s' % os.path.abspath (expected_file))
+	print ('  expected_file     %s' % os.path.abspath (expected_file))
+	print ('  out_file          %s' % os.path.abspath (test.out_file))
 	return 1
 
 def run_test (test, should_check_ots, preprocess):
 	out_file = os.path.join (tempfile.mkdtemp (), test.get_font_name () + '-subset' + test.get_font_extension ())
+	test.out_file = out_file
 	cli_args = ["--font-file=" + test.font_path,
 		    "--output-file=" + out_file,
 		    "--unicodes=%s" % test.unicodes (),
