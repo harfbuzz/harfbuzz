@@ -1783,12 +1783,12 @@ struct TupleValues
   struct iter_t : hb_iter_with_fallback_t<iter_t, int>
   {
     iter_t (const unsigned char *p_, unsigned len_)
-	    : p (p_), end (p_ + len_)
+	    : p (p_), endp (p_ + len_)
     { if (ensure_run ()) read_value (); }
 
     private:
     const unsigned char *p;
-    const unsigned char * const end;
+    const unsigned char * const endp;
     int current_value = 0;
     signed run_count = 0;
     unsigned width = 0;
@@ -1797,7 +1797,7 @@ struct TupleValues
     {
       if (likely (run_count > 0)) return true;
 
-      if (unlikely (p >= end))
+      if (unlikely (p >= endp))
       {
         run_count = 0;
         current_value = 0;
@@ -1816,7 +1816,7 @@ struct TupleValues
 	default: assert (false);
       }
 
-      if (unlikely (p + run_count * width > end))
+      if (unlikely (p + run_count * width > endp))
       {
 	run_count = 0;
 	current_value = 0;
@@ -1843,7 +1843,7 @@ struct TupleValues
     __item_t__ __item__ () const
     { return current_value; }
 
-    bool __more__ () const { return run_count || p < end; }
+    bool __more__ () const { return run_count || p < endp; }
     void __next__ ()
     {
       run_count--;
@@ -1870,7 +1870,7 @@ struct TupleValues
     { return p != o.p || run_count != o.run_count; }
     iter_t __end__ () const
     {
-      iter_t it (end, 0);
+      iter_t it (endp, 0);
       return it;
     }
   };
