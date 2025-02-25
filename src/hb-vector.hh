@@ -64,7 +64,14 @@ struct hb_vector_t
     auto iter = hb_iter (o);
     if (iter.is_random_access_iterator || iter.has_fast_len)
       alloc (hb_len (iter), true);
-    hb_copy (iter, *this);
+    while (iter)
+    {
+      if (!alloc (length + 1))
+	break;
+      unsigned room = allocated - length;
+      for (unsigned i = 0; i < room && iter; i++)
+	push_has_room (*iter++);
+    }
   }
   hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
   {
@@ -224,6 +231,10 @@ struct hb_vector_t
       // reference to it.
       return std::addressof (Crap (Type));
 
+    return push_has_room (std::forward<Args> (args)...);
+  }
+  template <typename... Args> Type *push_has_room (Args&&... args)
+  {
     /* Emplace. */
     Type *p = std::addressof (arrayZ[length++]);
     return new (p) Type (std::forward<Args> (args)...);
