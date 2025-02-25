@@ -44,6 +44,7 @@ struct hb_glyf_scratch_t
   hb_vector_t<int> x_deltas;
   hb_vector_t<int> y_deltas;
   contour_point_vector_t deltas_vec;
+  hb_vector_t<unsigned int> shared_indices;
   hb_vector_t<unsigned int> private_indices;
   hb_vector_t<unsigned> end_points;
   hb_vector_t<unsigned> axisIndices;
@@ -57,6 +58,7 @@ struct hb_glyf_scratch_t
     x_deltas.alloc (point_count);
     y_deltas.alloc (point_count);
     deltas_vec.alloc (point_count);
+    shared_indices.alloc (point_count);
     private_indices.alloc (point_count);
     end_points.alloc (point_count >> 2);
 
@@ -664,7 +666,10 @@ struct gvar
 
       hb_bytes_t var_data_bytes = table->get_glyph_var_data_bytes (table.get_blob (), glyphCount, glyph);
       if (!var_data_bytes.as<GlyphVariationData> ()->has_data ()) return true;
-      hb_vector_t<unsigned int> shared_indices;
+
+      auto &shared_indices = scratch.shared_indices;
+      shared_indices.clear ();
+
       GlyphVariationData::tuple_iterator_t iterator;
       if (!GlyphVariationData::get_tuple_iterator (var_data_bytes, table->axisCount,
 						   var_data_bytes.arrayZ,
