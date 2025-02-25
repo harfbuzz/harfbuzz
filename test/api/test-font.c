@@ -132,7 +132,7 @@ get_table_tags (const hb_face_t *face HB_UNUSED,
                 unsigned int  start_offset,
                 unsigned int *table_count,
                 hb_tag_t     *table_tags,
-                void         *user_data)
+                void         *user_data HB_UNUSED)
 {
   unsigned count = sizeof (test_tags) / sizeof (test_tags[0]);
   unsigned end_offset;
