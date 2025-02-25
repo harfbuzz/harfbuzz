@@ -1,0 +1,22 @@
+FONTS:
+Roboto-Variable.ABC.ttf
+Roboto-Variable.composite.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=300:600,wdth=85
+wght=200:300:500,wdth=80:90
+
+IUP_OPTIONS:
+No
+Yes
+
+OPTIONS:
+# Fonttools has different rounding which results in
+# differences in points dropped by IUP analysis.
+no_fonttools

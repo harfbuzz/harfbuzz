@@ -53,7 +53,7 @@ struct hb_vector_t
   }
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
-  hb_vector_t (const Iterable &o) : hb_vector_t ()
+  explicit hb_vector_t (const Iterable &o) : hb_vector_t ()
   {
     extend (o);
   }
