@@ -206,21 +206,16 @@ struct glyf_accelerator_t
   protected:
   template<typename T>
   bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer,
-		   hb_array_t<const int> coords = hb_array_t<const int> ()) const
+		   hb_array_t<const int> coords,
+		   hb_glyf_scratch_t &scratch) const
   {
-    if (!coords)
-      coords = hb_array (font->coords, font->num_coords);
-
     if (gid >= num_glyphs) return false;
 
-    /* Making this allocfree is not that easy
-       https://github.com/harfbuzz/harfbuzz/issues/2095
-       mostly because of gvar handling in VF fonts,
-       perhaps a separate path for non-VF fonts can be considered */
-    contour_point_vector_t all_points;
+    auto &all_points = scratch.all_points;
+    all_points.resize (0);
 
     bool phantom_only = !consumer.is_consuming_contour_points ();
-    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, nullptr, nullptr, nullptr, true, true, phantom_only, coords)))
+    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, scratch, nullptr, nullptr, nullptr, true, true, phantom_only, coords)))
       return false;
 
     unsigned count = all_points.length;
@@ -372,7 +367,12 @@ struct glyf_accelerator_t
 
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
     if (font->num_coords)
-      success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, false));
+    {
+      hb_glyf_scratch_t scratch;
+      success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, false),
+			    hb_array (font->coords, font->num_coords),
+			    scratch);
+    }
 
     if (unlikely (!success))
       return
@@ -392,9 +392,11 @@ struct glyf_accelerator_t
     if (unlikely (gid >= num_glyphs)) return false;
 
     hb_glyph_extents_t extents;
-
+    hb_glyf_scratch_t scratch;
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
-    if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms, false))))
+    if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms, false),
+			       hb_array (font->coords, font->num_coords),
+			       scratch)))
       return false;
 
     *lsb = is_vertical
@@ -420,7 +422,12 @@ struct glyf_accelerator_t
 
 #ifndef HB_NO_VAR
     if (font->num_coords)
-      return get_points (font, gid, points_aggregator_t (font, extents, nullptr, true));
+    {
+      hb_glyf_scratch_t scratch;
+      return get_points (font, gid, points_aggregator_t (font, extents, nullptr, true),
+			 hb_array (font->coords, font->num_coords),
+			 scratch);
+    }
 #endif
     return glyph_for_gid (gid).get_extents_without_var_scaled (font, *this, extents);
   }
@@ -455,12 +462,19 @@ struct glyf_accelerator_t
 
   bool
   get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
-  { return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session)); }
+  {
+    hb_glyf_scratch_t scratch;
+    return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
+		       hb_array (font->coords, font->num_coords),
+		       scratch); }
 
   bool
   get_path_at (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session,
-	       hb_array_t<const int> coords) const
-  { return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session), coords); }
+	       hb_array_t<const int> coords,
+	       hb_glyf_scratch_t &scratch) const
+  { return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
+		       coords,
+		       scratch); }
 
 #ifndef HB_NO_VAR
   const gvar_accelerator_t *gvar;

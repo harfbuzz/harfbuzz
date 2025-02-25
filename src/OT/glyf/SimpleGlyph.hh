@@ -190,7 +190,7 @@ struct SimpleGlyph
     unsigned int num_points = endPtsOfContours[num_contours - 1] + 1;
 
     unsigned old_length = points.length;
-    points.alloc_exact (points.length + num_points + 4); // Allocate for phantom points, to avoid a possible copy
+    points.alloc (points.length + num_points + 4); // Allocate for phantom points, to avoid a possible copy
     if (unlikely (!points.resize (points.length + num_points, false))) return false;
     auto points_ = points.as_array ().sub_array (old_length);
     if (!phantom_only)

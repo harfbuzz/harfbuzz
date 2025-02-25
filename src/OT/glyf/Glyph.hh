@@ -251,7 +251,8 @@ struct Glyph
       composite_contours_p = nullptr;
     }
 
-    if (!get_points (font, glyf, all_points, &points_with_deltas, head_maxp_info_p, composite_contours_p, false, false))
+    hb_glyf_scratch_t scratch;
+    if (!get_points (font, glyf, all_points, scratch, &points_with_deltas, head_maxp_info_p, composite_contours_p, false, false))
       return false;
 
     // .notdef, set type to empty so we only update metrics and don't compile bytes for
@@ -305,6 +306,7 @@ struct Glyph
   template <typename accelerator_t>
   bool get_points (hb_font_t *font, const accelerator_t &glyf_accelerator,
 		   contour_point_vector_t &all_points /* OUT */,
+		   hb_glyf_scratch_t &scratch,
 		   contour_point_vector_t *points_with_deltas = nullptr, /* OUT */
 		   head_maxp_info_t * head_maxp_info = nullptr, /* OUT */
 		   unsigned *composite_contours = nullptr, /* OUT */
@@ -391,6 +393,7 @@ struct Glyph
       glyf_accelerator.gvar->apply_deltas_to_points (gid,
 						     coords,
 						     points.as_array ().sub_array (old_length),
+						     scratch,
 						     phantom_only && type == SIMPLE);
 #endif
 
@@ -426,6 +429,7 @@ struct Glyph
 				       .get_points (font,
 						    glyf_accelerator,
 						    all_points,
+						    scratch,
 						    points_with_deltas,
 						    head_maxp_info,
 						    composite_contours,

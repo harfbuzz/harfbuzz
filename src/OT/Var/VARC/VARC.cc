@@ -137,6 +137,7 @@ VarComponent::get_path_at (hb_font_t *font,
 			   hb_decycler_t *decycler,
 			   signed *edges_left,
 			   signed depth_left,
+			   hb_glyf_scratch_t &scratch,
 			   VarRegionList::cache_t *cache) const
 {
   const unsigned char *end = total_record.arrayZ + total_record.length;
@@ -192,14 +193,16 @@ VarComponent::get_path_at (hb_font_t *font,
 
   // Axis values
 
-  hb_vector_t<unsigned> axisIndices;
-  hb_vector_t<float> axisValues;
+  auto &axisIndices = scratch.axisIndices;
+  axisIndices.clear ();
+  auto &axisValues = scratch.axisValues;
+  axisValues.clear ();
   if (flags & (unsigned) flags_t::HAVE_AXES)
   {
     unsigned axisIndicesIndex;
     READ_UINT32VAR (axisIndicesIndex);
-    axisIndices = (&VARC+VARC.axisIndicesList)[axisIndicesIndex];
-    axisValues.resize (axisIndices.length);
+    axisIndices.extend ((&VARC+VARC.axisIndicesList)[axisIndicesIndex]);
+    axisValues.resize (axisIndices.length, false);
     const HBUINT8 *p = (const HBUINT8 *) record;
     TupleValues::decompile (p, axisValues, (const HBUINT8 *) end);
     record += (const unsigned char *) p - record;
@@ -319,7 +322,8 @@ VarComponent::get_path_at (hb_font_t *font,
     VARC.get_path_at (font, gid,
 		      draw_session, component_coords, total_transform,
 		      parent_gid,
-		      decycler, edges_left, depth_left - 1);
+		      decycler, edges_left, depth_left - 1,
+		      scratch);
   }
 
 #undef PROCESS_TRANSFORM_COMPONENTS
@@ -337,7 +341,8 @@ VARC::get_path_at (hb_font_t *font,
 		   hb_codepoint_t parent_glyph,
 		   hb_decycler_t *decycler,
 		   signed *edges_left,
-		   signed depth_left) const
+		   signed depth_left,
+		   hb_glyf_scratch_t &scratch) const
 {
   // Don't recurse on the same glyph.
   unsigned idx = glyph == parent_glyph ?
@@ -354,7 +359,7 @@ VARC::get_path_at (hb_font_t *font,
     hb_draw_session_t transformer_session {transformer_funcs, &context};
     hb_draw_session_t &shape_draw_session = transform.is_identity () ? draw_session : transformer_session;
 
-    if (!font->face->table.glyf->get_path_at (font, glyph, shape_draw_session, coords))
+    if (!font->face->table.glyf->get_path_at (font, glyph, shape_draw_session, coords, scratch))
 #ifndef HB_NO_CFF
     if (!font->face->table.cff2->get_path_at (font, glyph, shape_draw_session, coords))
     if (!font->face->table.cff1->get_path (font, glyph, shape_draw_session)) // Doesn't have variations
@@ -386,6 +391,7 @@ VARC::get_path_at (hb_font_t *font,
 				  draw_session, coords, transform,
 				  record,
 				  decycler, edges_left, depth_left,
+				  scratch,
 				  cache);
 
   (this+varStore).destroy_cache (cache);

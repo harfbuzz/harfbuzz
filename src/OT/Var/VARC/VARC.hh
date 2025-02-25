@@ -53,6 +53,7 @@ struct VarComponent
 	       hb_decycler_t *decycler,
 	       signed *edges_left,
 	       signed depth_left,
+	       hb_glyf_scratch_t &scratch,
 	       VarRegionList::cache_t *cache = nullptr) const;
 };
 
@@ -68,6 +69,7 @@ struct VarCompositeGlyph
 	       hb_decycler_t *decycler,
 	       signed *edges_left,
 	       signed depth_left,
+	       hb_glyf_scratch_t &scratch,
 	       VarRegionList::cache_t *cache = nullptr)
   {
     while (record)
@@ -76,7 +78,7 @@ struct VarCompositeGlyph
       record = comp.get_path_at (font, glyph,
 				 draw_session, coords, transform,
 				 record,
-				 decycler, edges_left, depth_left, cache);
+				 decycler, edges_left, depth_left, scratch, cache);
     }
   }
 };
@@ -98,13 +100,16 @@ struct VARC
 	       hb_codepoint_t parent_glyph,
 	       hb_decycler_t *decycler,
 	       signed *edges_left,
-	       signed depth_left) const;
+	       signed depth_left,
+	       hb_glyf_scratch_t &scratch) const;
 
   bool
   get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
   {
     hb_decycler_t decycler;
     signed edges = HB_MAX_GRAPH_EDGE_COUNT;
+    hb_glyf_scratch_t scratch;
+    scratch.warm_up ();
 
     return get_path_at (font,
 			gid,
@@ -114,7 +119,9 @@ struct VARC
 			HB_CODEPOINT_INVALID,
 			&decycler,
 			&edges,
-			HB_MAX_NESTING_LEVEL); }
+			HB_MAX_NESTING_LEVEL,
+			scratch);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

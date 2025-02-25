@@ -37,6 +37,35 @@
  */
 #define HB_OT_TAG_gvar HB_TAG('g','v','a','r')
 
+struct hb_glyf_scratch_t
+{
+  contour_point_vector_t all_points;
+  contour_point_vector_t orig_points_vec;
+  hb_vector_t<int> x_deltas;
+  hb_vector_t<int> y_deltas;
+  contour_point_vector_t deltas_vec;
+  hb_vector_t<unsigned int> private_indices;
+  hb_vector_t<unsigned> end_points;
+  hb_vector_t<unsigned> axisIndices;
+  hb_vector_t<float> axisValues;
+
+  void warm_up ()
+  {
+    constexpr unsigned point_count = 64;
+    all_points.alloc (point_count);
+    orig_points_vec.alloc (point_count);
+    x_deltas.alloc (point_count);
+    y_deltas.alloc (point_count);
+    deltas_vec.alloc (point_count);
+    private_indices.alloc (point_count);
+    end_points.alloc (point_count >> 2);
+
+    constexpr unsigned axis_count = 32;
+    axisIndices.alloc (axis_count);
+    axisValues.alloc (axis_count);
+  }
+};
+
 namespace OT {
 
 struct GlyphVariationData : TupleVariationData
@@ -86,9 +115,10 @@ struct glyph_variations_t
       hb_bytes_t var_data = new_gid_var_data_map.get (new_gid);
 
       const GlyphVariationData* p = reinterpret_cast<const GlyphVariationData*> (var_data.arrayZ);
-      hb_vector_t<unsigned> shared_indices;
       GlyphVariationData::tuple_iterator_t iterator;
       tuple_variations_t tuple_vars;
+
+      hb_vector_t<unsigned> shared_indices;
 
       /* in case variation data is empty, push an empty struct into the vector,
        * keep the vector in sync with the new_to_old_gid_list */
@@ -627,6 +657,7 @@ struct gvar
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 hb_array_t<const int> coords,
 				 const hb_array_t<contour_point_t> points,
+				 hb_glyf_scratch_t &scratch,
 				 bool phantom_only = false) const
     {
       if (unlikely (glyph >= glyphCount)) return true;
@@ -641,21 +672,25 @@ struct gvar
 	return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */
-      contour_point_vector_t orig_points_vec; // Populated lazily
+      auto &orig_points_vec = scratch.orig_points_vec;
+      orig_points_vec.clear (); // Populated lazily
       auto orig_points = orig_points_vec.as_array ();
 
       /* flag is used to indicate referenced point */
-      contour_point_vector_t deltas_vec; // Populated lazily
+      auto &deltas_vec = scratch.deltas_vec;
+      deltas_vec.clear (); // Populated lazily
       auto deltas = deltas_vec.as_array ();
 
-      hb_vector_t<unsigned> end_points; // Populated lazily
+      auto &end_points = scratch.end_points;
+      end_points.clear (); // Populated lazily
 
       unsigned num_coords = table->axisCount;
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * num_coords);
 
-      hb_vector_t<unsigned int> private_indices;
-      hb_vector_t<int> x_deltas;
-      hb_vector_t<int> y_deltas;
+      auto &private_indices = scratch.private_indices;
+      auto &x_deltas = scratch.x_deltas;
+      auto &y_deltas = scratch.y_deltas;
+
       unsigned count = points.length;
       bool flush = false;
       do

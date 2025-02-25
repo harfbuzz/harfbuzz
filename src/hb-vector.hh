@@ -60,6 +60,15 @@ struct hb_vector_t
       alloc (hb_len (iter), true);
     hb_copy (iter, *this);
   }
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  void extend (const Iterable &o)
+  {
+    auto iter = hb_iter (o);
+    if (iter.is_random_access_iterator || iter.has_fast_len)
+      alloc (hb_len (iter), true);
+    hb_copy (iter, *this);
+  }
   hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
   {
     alloc_exact (o.length);
@@ -435,6 +444,11 @@ struct hb_vector_t
   bool alloc_exact (unsigned int size)
   {
     return alloc (size, true);
+  }
+
+  void clear ()
+  {
+    resize (0);
   }
 
   bool resize (int size_, bool initialize = true, bool exact = false)
