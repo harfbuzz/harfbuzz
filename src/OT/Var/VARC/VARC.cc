@@ -143,7 +143,7 @@ VarComponent::get_path_at (hb_font_t *font,
   const unsigned char *end = total_record.arrayZ + total_record.length;
   const unsigned char *record = total_record.arrayZ;
 
-  auto &VARC = *font->face->table.VARC;
+  auto &VARC = *font->face->table.VARC->table;
   auto &varStore = &VARC+VARC.varStore;
 
 #define READ_UINT32VAR(name) \

@@ -104,12 +104,13 @@ struct VARC
 	       hb_glyf_scratch_t &scratch) const;
 
   bool
-  get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
+  get_path (hb_font_t *font,
+	    hb_codepoint_t gid,
+	    hb_draw_session_t &draw_session,
+	    hb_glyf_scratch_t &scratch) const
   {
     hb_decycler_t decycler;
     signed edges = HB_MAX_GRAPH_EDGE_COUNT;
-    hb_glyf_scratch_t scratch;
-    scratch.warm_up ();
 
     return get_path_at (font,
 			gid,
@@ -136,6 +137,62 @@ struct VARC
 		  glyphRecords.sanitize (c, this));
   }
 
+  struct accelerator_t
+  {
+    friend struct VarComponent;
+
+    accelerator_t (hb_face_t *face)
+    {
+      table = hb_sanitize_context_t ().reference_table<VARC> (face);
+    }
+    ~accelerator_t ()
+    {
+      auto *scratch = cached_scratch.get_relaxed ();
+      if (scratch)
+      {
+	scratch->~hb_glyf_scratch_t ();
+	hb_free (scratch);
+      }
+
+      table.destroy ();
+    }
+
+    bool
+    get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
+    {
+      hb_glyf_scratch_t *scratch;
+
+      // Borrow the cached strach buffer.
+      do
+      {
+	scratch = cached_scratch.get_relaxed ();
+	if (!scratch)
+	{
+	  scratch = (hb_glyf_scratch_t *) hb_calloc (1, sizeof (hb_glyf_scratch_t));
+	  if (unlikely (!scratch))
+	    return true;
+	  break;
+	}
+      }
+      while (!cached_scratch.cmpexch (scratch, nullptr));
+
+      bool ret = table->get_path (font, gid, draw_session, *scratch);
+
+      // Put it back.
+      if (!cached_scratch.cmpexch (nullptr, scratch))
+      {
+        scratch->~hb_glyf_scratch_t ();
+	hb_free (scratch);
+      }
+
+      return ret;
+    }
+
+    private:
+    hb_blob_ptr_t<VARC> table;
+    hb_atomic_ptr_t<hb_glyf_scratch_t> cached_scratch;
+  };
+
   protected:
   FixedVersion<> version; /* Version identifier */
   Offset32To<Coverage> coverage;
@@ -145,6 +202,10 @@ struct VARC
   Offset32To<CFF2Index/*Of<VarCompositeGlyph>*/> glyphRecords;
   public:
   DEFINE_SIZE_STATIC (24);
+};
+
+struct VARC_accelerator_t : VARC::accelerator_t {
+  VARC_accelerator_t (hb_face_t *face) : VARC::accelerator_t (face) {}
 };
 
 #endif
