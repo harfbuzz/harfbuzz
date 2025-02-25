@@ -34,23 +34,25 @@ struct coord_setter_t
 	return static_coords[idx];
       }
       else
-      {
         dynamic_coords.extend (hb_array (static_coords, length));
-      }
     }
 
-    if (dynamic_coords.length <= idx &&
-	unlikely (!dynamic_coords.resize (idx + 1)))
-      return Crap(int);
+    if (dynamic_coords.length <= idx)
+    {
+      if (unlikely (!dynamic_coords.resize (idx + 1)))
+	return Crap(int);
+      length = idx + 1;
+    }
     return dynamic_coords.arrayZ[idx];
   }
 
   hb_array_t<int> get_coords ()
-  { return dynamic_coords ? dynamic_coords.as_array () : hb_array (static_coords, length); }
+  { return length <= ARRAY_LENGTH (static_coords) ? hb_array (static_coords, length) : dynamic_coords.as_array (); }
 
+  private:
+  hb_vector_t<int> dynamic_coords;
   unsigned length;
   int static_coords[64];
-  hb_vector_t<int> dynamic_coords;
 };
 
 

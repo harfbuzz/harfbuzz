@@ -66,8 +66,8 @@ struct hb_vector_t
       alloc (hb_len (iter), true);
     while (iter)
     {
-      if (!alloc (length + 1))
-	break;
+      if (unlikely (!alloc (length + 1)))
+        return;
       unsigned room = allocated - length;
       for (unsigned i = 0; i < room && iter; i++)
 	push_has_room (*iter++);
