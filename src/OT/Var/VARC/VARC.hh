@@ -160,6 +160,8 @@ struct VARC
     bool
     get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
     {
+      if (!table->has_data ()) return false;
+
       hb_glyf_scratch_t *scratch;
 
       // Borrow the cached strach buffer.
@@ -192,6 +194,8 @@ struct VARC
     hb_blob_ptr_t<VARC> table;
     hb_atomic_ptr_t<hb_glyf_scratch_t> cached_scratch;
   };
+
+  bool has_data () const { return version.major != 0; }
 
   protected:
   FixedVersion<> version; /* Version identifier */
