@@ -2576,12 +2576,6 @@ struct VarRegionList
     for (unsigned int i = 0; i < count; i++)
     {
       int coord = i < coord_len ? coords[i] : 0;
-      if (coord == 0)
-      {
-	if (cache)
-	  *cached_value = 0.f;
-	return 0.f;
-      }
       float factor = axes[i].evaluate (coord);
       if (factor == 0.f)
       {
