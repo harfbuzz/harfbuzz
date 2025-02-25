@@ -381,9 +381,7 @@ VARC::get_path_at (hb_font_t *font,
 
   hb_ubytes_t record = (this+glyphRecords)[idx];
 
-  VarRegionList::cache_t *cache = record.length >= 64 ? // Heuristic
-				 (this+varStore).create_cache ()
-				 : nullptr;
+  VarRegionList::cache_t *cache = coords ? (this+varStore).create_cache () : nullptr;
 
   transform.scale (font->x_multf, font->y_multf);
 
