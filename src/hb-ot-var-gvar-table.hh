@@ -46,7 +46,6 @@ struct hb_glyf_scratch_t
   contour_point_vector_t deltas_vec;
   hb_vector_t<unsigned int> shared_indices;
   hb_vector_t<unsigned int> private_indices;
-  hb_vector_t<unsigned> end_points;
   hb_vector_t<unsigned> axisIndices;
   hb_vector_t<float> axisValues;
 
@@ -60,7 +59,6 @@ struct hb_glyf_scratch_t
     deltas_vec.alloc (point_count);
     shared_indices.alloc (point_count);
     private_indices.alloc (point_count);
-    end_points.alloc (point_count >> 2);
 
     constexpr unsigned axis_count = 32;
     axisIndices.alloc (axis_count);
@@ -686,9 +684,6 @@ struct gvar
       deltas_vec.clear (); // Populated lazily
       auto deltas = deltas_vec.as_array ();
 
-      auto &end_points = scratch.end_points;
-      end_points.clear (); // Populated lazily
-
       unsigned num_coords = table->axisCount;
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * num_coords);
 
@@ -820,17 +815,14 @@ struct gvar
 	/* infer deltas for unreferenced points */
 	if (!apply_to_all && !phantom_only)
 	{
-	  if (!end_points)
-	  {
-	    for (unsigned i = 0; i < count; ++i)
-	      if (points.arrayZ[i].is_end_point)
-		end_points.push (i);
-	    if (unlikely (end_points.in_error ())) return false;
-	  }
-
 	  unsigned start_point = 0;
-	  for (unsigned end_point : end_points)
+	  unsigned end_point = 0;
+	  while (true)
 	  {
+	    while (end_point < count && !points.arrayZ[end_point].is_end_point)
+	      end_point++;
+	    if (unlikely (end_point == count)) break;
+
 	    /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
 	    unsigned unref_count = 0;
 	    for (unsigned i = start_point; i < end_point + 1; i++)
@@ -873,7 +865,7 @@ struct gvar
 	      }
 	    }
 	  no_more_gaps:
-	    start_point = end_point + 1;
+	    start_point = end_point = end_point + 1;
 	  }
 	}
 
