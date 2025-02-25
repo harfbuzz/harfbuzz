@@ -123,7 +123,10 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     memcpy (v.arrayZ, a.arrayZ, v.length * sizeof (v[0]));
   }
   else
-    v = a;
+  {
+    v.resize (0);
+    v.extend (a);
+  }
 
   if (unlikely (v.in_error ()))
     return;
