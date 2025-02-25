@@ -162,24 +162,16 @@ struct VARC
     {
       if (!table->has_data ()) return false;
 
-      hb_glyf_scratch_t *scratch = nullptr;
+      hb_glyf_scratch_t *scratch;
 
       // Borrow the cached strach buffer.
-    retry:
       {
-	scratch = cached_scratch.get_relaxed ();
-	if (!scratch)
+	scratch = cached_scratch.get_acquire ();
+	if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
 	{
 	  scratch = (hb_glyf_scratch_t *) hb_calloc (1, sizeof (hb_glyf_scratch_t));
 	  if (unlikely (!scratch))
 	    return true;
-
-          if (!cached_scratch.cmpexch (scratch, nullptr))
-	  {
-	    scratch->~hb_glyf_scratch_t ();
-	    hb_free (scratch);
-	    goto retry;
-	  }
 	}
       }
 
