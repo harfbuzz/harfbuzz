@@ -162,10 +162,10 @@ struct VARC
     {
       if (!table->has_data ()) return false;
 
-      hb_glyf_scratch_t *scratch;
+      hb_glyf_scratch_t *scratch = nullptr;
 
       // Borrow the cached strach buffer.
-      do
+    retry:
       {
 	scratch = cached_scratch.get_relaxed ();
 	if (!scratch)
@@ -173,10 +173,15 @@ struct VARC
 	  scratch = (hb_glyf_scratch_t *) hb_calloc (1, sizeof (hb_glyf_scratch_t));
 	  if (unlikely (!scratch))
 	    return true;
-	  break;
+
+          if (!cached_scratch.cmpexch (scratch, nullptr))
+	  {
+	    scratch->~hb_glyf_scratch_t ();
+	    hb_free (scratch);
+	    goto retry;
+	  }
 	}
       }
-      while (!cached_scratch.cmpexch (scratch, nullptr));
 
       bool ret = table->get_path (font, gid, draw_session, *scratch);
 
