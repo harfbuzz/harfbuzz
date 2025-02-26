@@ -333,13 +333,9 @@ struct hb_vector_t
   void
   copy_array (hb_array_t<const Type> other)
   {
-    length = other.length;
-    if (!HB_OPTIMIZE_SIZE_VAL && sizeof (T) >= sizeof (long long))
-      /* This runs faster because of alignment. */
-      for (unsigned i = 0; i < length; i++)
-	arrayZ[i] = other.arrayZ[i];
-    else
-       hb_memcpy ((void *) arrayZ, (const void *) other.arrayZ, length * item_size);
+    assert ((int) (length + other.length) <= allocated);
+    hb_memcpy ((void *) (arrayZ + length), (const void *) other.arrayZ, other.length * item_size);
+    length += other.length;
   }
   template <typename T = Type,
 	    hb_enable_if (!hb_is_trivially_copyable (T) &&
@@ -347,12 +343,10 @@ struct hb_vector_t
   void
   copy_array (hb_array_t<const Type> other)
   {
-    length = 0;
-    while (length < other.length)
-    {
-      length++;
-      new (std::addressof (arrayZ[length - 1])) Type (other.arrayZ[length - 1]);
-    }
+    assert ((int) (length + other.length) <= allocated);
+    for (unsigned i = 0; i < other.length; i++)
+      new (std::addressof (arrayZ[length + i])) Type (other.arrayZ[i]);
+    length += other.length;
   }
   template <typename T = Type,
 	    hb_enable_if (!hb_is_trivially_copyable (T) &&
@@ -362,13 +356,13 @@ struct hb_vector_t
   void
   copy_array (hb_array_t<const Type> other)
   {
-    length = 0;
-    while (length < other.length)
+    assert ((int) (length + other.length) <= allocated);
+    for (unsigned i = 0; i < other.length; i++)
     {
-      length++;
-      new (std::addressof (arrayZ[length - 1])) Type ();
-      arrayZ[length - 1] = other.arrayZ[length - 1];
+      new (std::addressof (arrayZ[length + i])) Type ();
+      arrayZ[length + i] = other.arrayZ[i];
     }
+    length += other.length;
   }
 
   void
