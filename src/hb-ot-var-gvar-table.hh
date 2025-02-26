@@ -39,13 +39,18 @@
 
 struct hb_glyf_scratch_t
 {
+  // glyf
   contour_point_vector_t all_points;
-  contour_point_vector_t orig_points_vec;
+
+  // gvar
+  contour_point_vector_t orig_points;
   hb_vector_t<int> x_deltas;
   hb_vector_t<int> y_deltas;
-  contour_point_vector_t deltas_vec;
+  contour_point_vector_t deltas;
   hb_vector_t<unsigned int> shared_indices;
   hb_vector_t<unsigned int> private_indices;
+
+  // VARC
   hb_vector_t<unsigned> axisIndices;
   hb_vector_t<float> axisValues;
 };
@@ -659,12 +664,12 @@ struct gvar
 	return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */
-      auto &orig_points_vec = scratch.orig_points_vec;
+      auto &orig_points_vec = scratch.orig_points;
       orig_points_vec.clear (); // Populated lazily
       auto orig_points = orig_points_vec.as_array ();
 
       /* flag is used to indicate referenced point */
-      auto &deltas_vec = scratch.deltas_vec;
+      auto &deltas_vec = scratch.deltas;
       deltas_vec.clear (); // Populated lazily
       auto deltas = deltas_vec.as_array ();
 
