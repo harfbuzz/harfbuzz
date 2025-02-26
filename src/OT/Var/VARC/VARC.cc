@@ -381,7 +381,7 @@ VARC::get_path_at (hb_font_t *font,
 
   hb_ubytes_t record = (this+glyphRecords)[idx];
 
-  float static_cache[128];
+  float static_cache[sizeof (void *) * 16];
   VarRegionList::cache_t *cache = (this+varStore).create_cache (hb_array (static_cache));
 
   transform.scale (font->x_multf, font->y_multf);
