@@ -524,9 +524,11 @@ hb_face_reference_blob (hb_face_t *face)
         hb_face_get_table_tags (face, offset, &count, tags);
         for (unsigned i = 0; i < count; i++)
         {
-          hb_blob_t *table = hb_face_reference_table (face, tags[i]);
-          hb_face_builder_add_table (builder, tags[i], table);
-          hb_blob_destroy (table);
+	  if (unlikely (!tags[i]))
+	    continue;
+	  hb_blob_t *table = hb_face_reference_table (face, tags[i]);
+	  hb_face_builder_add_table (builder, tags[i], table);
+	  hb_blob_destroy (table);
         }
       }
 
