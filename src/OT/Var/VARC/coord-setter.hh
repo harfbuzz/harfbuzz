@@ -52,7 +52,7 @@ struct coord_setter_t
   private:
   hb_vector_t<int> dynamic_coords;
   unsigned length;
-  int static_coords[64];
+  int static_coords[sizeof (void *) * 8];
 };
 
 
