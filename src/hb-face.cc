@@ -522,6 +522,8 @@ hb_face_reference_blob (hb_face_t *face)
       for (unsigned offset = 0; offset < total_count; offset += count)
       {
         hb_face_get_table_tags (face, offset, &count, tags);
+	if (unlikely (!count))
+	  break; // Allocation error
         for (unsigned i = 0; i < count; i++)
         {
 	  if (unlikely (!tags[i]))
