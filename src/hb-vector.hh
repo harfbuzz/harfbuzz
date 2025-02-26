@@ -344,6 +344,15 @@ struct hb_vector_t
   template <typename T = Type,
 	    hb_enable_if (hb_is_trivially_copyable (T))>
   void
+  copy_array (hb_array_t<Type> other)
+  {
+    assert ((int) (length + other.length) <= allocated);
+    hb_memcpy ((void *) (arrayZ + length), (const void *) other.arrayZ, other.length * item_size);
+    length += other.length;
+  }
+  template <typename T = Type,
+	    hb_enable_if (hb_is_trivially_copyable (T))>
+  void
   copy_array (hb_array_t<const Type> other)
   {
     assert ((int) (length + other.length) <= allocated);
