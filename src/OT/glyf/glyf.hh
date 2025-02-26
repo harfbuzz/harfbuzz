@@ -503,9 +503,12 @@ struct glyf_accelerator_t
   get_path_at (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       hb_glyf_scratch_t &scratch) const
-  { return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
+  {
+    if (!has_data ()) return false;
+    return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
 		       coords,
-		       scratch); }
+		       scratch);
+  }
 
 #ifndef HB_NO_VAR
   const gvar_accelerator_t *gvar;
