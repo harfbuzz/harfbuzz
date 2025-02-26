@@ -57,22 +57,6 @@ struct hb_vector_t
   {
     extend (o);
   }
-  template <typename Iterable,
-	    hb_requires (hb_is_iterable (Iterable))>
-  void extend (const Iterable &o)
-  {
-    auto iter = hb_iter (o);
-    if (iter.is_random_access_iterator || iter.has_fast_len)
-      alloc (hb_len (iter), true);
-    while (iter)
-    {
-      if (unlikely (!alloc (length + 1)))
-        return;
-      unsigned room = allocated - length;
-      for (unsigned i = 0; i < room && iter; i++)
-	push_has_room (*iter++);
-    }
-  }
   hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
   {
     alloc_exact (o.length);
@@ -99,6 +83,35 @@ struct hb_vector_t
     o.init ();
   }
   ~hb_vector_t () { fini (); }
+
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  void extend (const Iterable &o)
+  {
+    auto iter = hb_iter (o);
+    if (iter.is_random_access_iterator || iter.has_fast_len)
+      alloc (hb_len (iter), true);
+    while (iter)
+    {
+      if (unlikely (!alloc (length + 1)))
+        return;
+      unsigned room = allocated - length;
+      for (unsigned i = 0; i < room && iter; i++)
+	push_has_room (*iter++);
+    }
+  }
+  void extend (array_t o)
+  {
+    alloc (length + o.length);
+    if (unlikely (in_error ())) return;
+    copy_array (o);
+  }
+  void extend (c_array_t o)
+  {
+    alloc (length + o.length);
+    if (unlikely (in_error ())) return;
+    copy_array (o);
+  }
 
   public:
   int allocated = 0; /* < 0 means allocation failed. */
