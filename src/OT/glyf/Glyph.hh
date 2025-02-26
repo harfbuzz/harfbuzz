@@ -333,8 +333,7 @@ struct Glyph
     if (!coords)
       coords = hb_array (font->coords, font->num_coords);
 
-    contour_point_vector_t stack_points;
-    contour_point_vector_t &points = type == SIMPLE ? all_points : depth == 0 ? scratch.comp_points : stack_points;
+    contour_point_vector_t &points = type == SIMPLE ? all_points : scratch.comp_points;
     unsigned old_length = points.length;
 
     switch (type) {
@@ -450,6 +449,9 @@ struct Glyph
 	  points.resize (old_length);
 	  return false;
 	}
+
+	// points might have been reallocated. Relocate phantoms.
+	phantoms = points.as_array ().sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
 
 	auto comp_points = all_points.as_array ().sub_array (old_count);
 
