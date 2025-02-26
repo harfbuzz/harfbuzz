@@ -160,10 +160,7 @@ struct SimpleGlyph
       if (flag & short_flag)
       {
 	if (unlikely (p + 1 > end)) return false;
-	if (flag & same_flag)
-	  v += *p++;
-	else
-	  v -= *p++;
+	v += (bool(flag & same_flag) * 2 - 1) * *p++;
       }
       else
       {
