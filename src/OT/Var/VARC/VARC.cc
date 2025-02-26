@@ -202,7 +202,7 @@ VarComponent::get_path_at (hb_font_t *font,
     unsigned axisIndicesIndex;
     READ_UINT32VAR (axisIndicesIndex);
     axisIndices.extend ((&VARC+VARC.axisIndicesList)[axisIndicesIndex]);
-    axisValues.resize (axisIndices.length, false);
+    axisValues.resize (axisIndices.length);
     const HBUINT8 *p = (const HBUINT8 *) record;
     TupleValues::decompile (p, axisValues, (const HBUINT8 *) end);
     record = (const unsigned char *) p;
