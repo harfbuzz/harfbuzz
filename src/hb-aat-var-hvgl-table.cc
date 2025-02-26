@@ -481,10 +481,10 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 	  double _1_minus_c = 1 - c;
 	  if (likely (_1_minus_c))
 	  {
-	    double denom = 2 * _1_minus_c;
+	    double s_over_1_minus_c = s / _1_minus_c;
 
-	    double new_center_x = (center_x * _1_minus_c - center_y * s) / denom;
-	    double new_center_y = (center_y * _1_minus_c + center_x * s) / denom;
+	    double new_center_x = (center_x - center_y * s_over_1_minus_c) * .5;
+	    double new_center_y = (center_y + center_x * s_over_1_minus_c) * .5;
 
 	    center_x = new_center_x;
 	    center_y = new_center_y;
