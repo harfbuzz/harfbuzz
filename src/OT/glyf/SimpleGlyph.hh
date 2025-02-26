@@ -127,19 +127,20 @@ struct SimpleGlyph
 			  hb_array_t<contour_point_t> points_ /* IN/OUT */,
 			  const HBUINT8 *end)
   {
+    auto *points = points_.arrayZ;
     unsigned count = points_.length;
     for (unsigned int i = 0; i < count;)
     {
       if (unlikely (p + 1 > end)) return false;
       uint8_t flag = *p++;
-      points_.arrayZ[i++].flag = flag;
+      points[i++].flag = flag;
       if (flag & FLAG_REPEAT)
       {
 	if (unlikely (p + 1 > end)) return false;
 	unsigned int repeat_count = *p++;
 	unsigned stop = hb_min (i + repeat_count, count);
 	for (; i < stop; i++)
-	  points_.arrayZ[i].flag = flag;
+	  points[i].flag = flag;
       }
     }
     return true;
