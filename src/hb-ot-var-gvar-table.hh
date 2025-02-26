@@ -48,22 +48,6 @@ struct hb_glyf_scratch_t
   hb_vector_t<unsigned int> private_indices;
   hb_vector_t<unsigned> axisIndices;
   hb_vector_t<float> axisValues;
-
-  void warm_up ()
-  {
-    constexpr unsigned point_count = 64;
-    all_points.alloc (point_count);
-    orig_points_vec.alloc (point_count);
-    x_deltas.alloc (point_count);
-    y_deltas.alloc (point_count);
-    deltas_vec.alloc (point_count);
-    shared_indices.alloc (point_count);
-    private_indices.alloc (point_count);
-
-    constexpr unsigned axis_count = 32;
-    axisIndices.alloc (axis_count);
-    axisValues.alloc (axis_count);
-  }
 };
 
 namespace OT {
