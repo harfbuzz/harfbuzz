@@ -161,6 +161,7 @@ struct hb_vector_t
     alloc_exact (o.length);
     if (unlikely (in_error ())) return *this;
 
+    length = 0;
     copy_array (o.as_array ());
 
     return *this;
