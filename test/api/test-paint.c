@@ -404,7 +404,7 @@ test_hb_paint (gconstpointer d,
 
   /* Run
    *
-   * GENERATE_DATA=1 G_TEST_SRCDIR=./test/api ./build/test/api/test-paint -p TESTCASE > test/api/results/OUTPUT
+   * GENERATE_DATA=1 G_TEST_SRCDIR=./test/api ./build/test/api/test-paint -p TESTCASE > test/api/results-paint/OUTPUT
    *
    * to produce the expected results file.
    */
@@ -414,7 +414,7 @@ test_hb_paint (gconstpointer d,
       exit (0);
     }
 
-  file = g_test_build_filename (G_TEST_DIST, "results", test->output, NULL);
+  file = g_test_build_filename (G_TEST_DIST, "results-paint", test->output, NULL);
   if (!g_file_get_contents (file, &buffer, &len, &error))
   {
     g_test_message ("File %s not found.", file);
