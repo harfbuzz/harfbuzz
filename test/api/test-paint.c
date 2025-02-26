@@ -410,7 +410,7 @@ test_hb_paint (gconstpointer d,
    */
   if (getenv ("GENERATE_DATA"))
     {
-      g_print ("%s", data.string->str);
+      fprintf (stderr, "%s", data.string->str);
       exit (0);
     }
 
