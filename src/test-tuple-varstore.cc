@@ -38,15 +38,15 @@ test_decompile_cvar ()
   hb_map_t axis_idx_tag_map;
   axis_idx_tag_map.set (0, axis_tag);
 
-  OT::TupleVariationData::tuple_variations_t tuple_variations;
+  OT::TupleVariationData<>::tuple_variations_t tuple_variations;
   hb_vector_t<unsigned> shared_indices;
-  OT::TupleVariationData::tuple_iterator_t iterator;
+  OT::TupleVariationData<>::tuple_iterator_t iterator;
 
-  const OT::TupleVariationData* tuple_var_data = reinterpret_cast<const OT::TupleVariationData*> (cvar_data + 4);
+  const OT::TupleVariationData<>* tuple_var_data = reinterpret_cast<const OT::TupleVariationData<>*> (cvar_data + 4);
 
   unsigned len = sizeof (cvar_data);
   hb_bytes_t var_data_bytes{(const char* ) cvar_data + 4, len - 4};
-  bool result = OT::TupleVariationData::get_tuple_iterator (var_data_bytes, axis_count, cvar_table,
+  bool result = OT::TupleVariationData<>::get_tuple_iterator (var_data_bytes, axis_count, cvar_table,
                                                             shared_indices, &iterator);
   assert (result);
 

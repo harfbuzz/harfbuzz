@@ -841,6 +841,7 @@ struct tuple_delta_t
   { return (i >= end) ? start : (i + 1); }
 };
 
+template <typename OffType = HBUINT16>
 struct TupleVariationData
 {
   bool sanitize (hb_sanitize_context_t *c) const
@@ -1521,15 +1522,16 @@ struct TupleVariationData
                                  * low 12 bits are the number of tuple variation tables
                                  * for this glyph. The number of tuple variation tables
                                  * can be any number between 1 and 4095. */
-  Offset16To<HBUINT8>
+  OffsetTo<HBUINT8, OffType>
                 data;           /* Offset from the start of the base table
                                  * to the serialized data. */
   /* TupleVariationHeader tupleVariationHeaders[] *//* Array of tuple variation headers. */
   public:
-  DEFINE_SIZE_MIN (4);
+  DEFINE_SIZE_MIN (2 + OffType::static_size);
 };
 
-using tuple_variations_t = TupleVariationData::tuple_variations_t;
+// TODO: Move tuple_variations_t to outside of TupleVariationData
+using tuple_variations_t = TupleVariationData<HBUINT16>::tuple_variations_t;
 struct item_variations_t
 {
   using region_t = const hb_hashmap_t<hb_tag_t, Triple>*;
