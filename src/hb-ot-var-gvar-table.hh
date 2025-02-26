@@ -36,6 +36,7 @@
  * https://docs.microsoft.com/en-us/typography/opentype/spec/gvar
  */
 #define HB_OT_TAG_gvar HB_TAG('g','v','a','r')
+#define HB_OT_TAG_GVAR HB_TAG('G','V','A','R')
 
 struct hb_glyf_scratch_t
 {
@@ -58,12 +59,13 @@ struct hb_glyf_scratch_t
 
 namespace OT {
 
-struct GlyphVariationData : TupleVariationData
-{};
-
+template <typename OffsetType>
 struct glyph_variations_t
 {
-  using tuple_variations_t = TupleVariationData::tuple_variations_t;
+  // TODO: Move tuple_variations_t to outside of TupleVariationData
+  using tuple_variations_t = typename TupleVariationData<OffsetType>::tuple_variations_t;
+  using GlyphVariationData = TupleVariationData<OffsetType>;
+
   hb_vector_t<tuple_variations_t> glyph_variations;
 
   hb_vector_t<char> compiled_shared_tuples;
@@ -105,7 +107,7 @@ struct glyph_variations_t
       hb_bytes_t var_data = new_gid_var_data_map.get (new_gid);
 
       const GlyphVariationData* p = reinterpret_cast<const GlyphVariationData*> (var_data.arrayZ);
-      GlyphVariationData::tuple_iterator_t iterator;
+      typename GlyphVariationData::tuple_iterator_t iterator;
       tuple_variations_t tuple_vars;
 
       hb_vector_t<unsigned> shared_indices;
@@ -279,7 +281,7 @@ struct glyph_variations_t
     hb_codepoint_t last_gid = 0;
     unsigned idx = 0;
 
-    TupleVariationData* cur_glyph = c->start_embed<TupleVariationData> ();
+    GlyphVariationData* cur_glyph = c->start_embed<GlyphVariationData> ();
     if (!cur_glyph) return_trace (false);
     for (auto &_ : it)
     {
@@ -293,7 +295,7 @@ struct glyph_variations_t
 
       if (idx >= glyph_variations.length) return_trace (false);
       if (!cur_glyph->serialize (c, true, glyph_variations[idx])) return_trace (false);
-      TupleVariationData* next_glyph = c->start_embed<TupleVariationData> ();
+      GlyphVariationData* next_glyph = c->start_embed<GlyphVariationData> ();
       glyph_offset += (char *) next_glyph - (char *) cur_glyph;
 
       if (long_offset)
@@ -316,9 +318,14 @@ struct glyph_variations_t
   }
 };
 
-struct gvar
+template <typename GidOffsetType, unsigned TableTag>
+struct gvar_GVAR
 {
-  static constexpr hb_tag_t tableTag = HB_OT_TAG_gvar;
+  static constexpr hb_tag_t tableTag = TableTag;
+
+  using GlyphVariationData = TupleVariationData<GidOffsetType>;
+
+  bool has_data () const { return version.to_int () != 0; }
 
   bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
@@ -337,7 +344,7 @@ struct gvar
   { return sanitize_shallow (c); }
 
   bool decompile_glyph_variations (hb_subset_context_t *c,
-                                   glyph_variations_t& glyph_vars /* OUT */) const
+                                   glyph_variations_t<GidOffsetType>& glyph_vars /* OUT */) const
   {
     hb_hashmap_t<hb_codepoint_t, hb_bytes_t> new_gid_var_data_map;
     auto it = hb_iter (c->plan->new_to_old_gid_list);
@@ -364,14 +371,14 @@ struct gvar
   template<typename Iterator,
            hb_requires (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
-                  const glyph_variations_t& glyph_vars,
+                  const glyph_variations_t<GidOffsetType>& glyph_vars,
                   Iterator it,
                   unsigned axis_count,
                   unsigned num_glyphs,
                   bool force_long_offsets) const
   {
     TRACE_SERIALIZE (this);
-    gvar *out = c->allocate_min<gvar> ();
+    gvar_GVAR *out = c->allocate_min<gvar_GVAR> ();
     if (unlikely (!out)) return_trace (false);
 
     out->version.major = 1;
@@ -413,7 +420,7 @@ struct gvar
   bool instantiate (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    glyph_variations_t glyph_vars;
+    glyph_variations_t<GidOffsetType> glyph_vars;
     if (!decompile_glyph_variations (c, glyph_vars))
       return_trace (false);
 
@@ -443,7 +450,7 @@ struct gvar
 
     unsigned glyph_count = version.to_int () ? c->plan->source->get_num_glyphs () : 0;
 
-    gvar *out = c->serializer->allocate_min<gvar> ();
+    gvar_GVAR *out = c->serializer->allocate_min<gvar_GVAR> ();
     if (unlikely (!out)) return_trace (false);
 
     out->version.major = 1;
@@ -577,9 +584,11 @@ struct gvar
   public:
   struct accelerator_t
   {
+    bool has_data () const { return table->has_data (); }
+
     accelerator_t (hb_face_t *face)
     {
-      table = hb_sanitize_context_t ().reference_table<gvar> (face);
+      table = hb_sanitize_context_t ().reference_table<gvar_GVAR> (face);
       /* If sanitize failed, set glyphCount to 0. */
       glyphCount = table->version.to_int () ? face->get_num_glyphs () : 0;
 
@@ -658,7 +667,7 @@ struct gvar
       auto &shared_indices = scratch.shared_indices;
       shared_indices.clear ();
 
-      GlyphVariationData::tuple_iterator_t iterator;
+      typename GlyphVariationData::tuple_iterator_t iterator;
       if (!GlyphVariationData::get_tuple_iterator (var_data_bytes, table->axisCount,
 						   var_data_bytes.arrayZ,
 						   shared_indices, &iterator))
@@ -875,7 +884,7 @@ struct gvar
     unsigned int get_axis_count () const { return table->axisCount; }
 
     private:
-    hb_blob_ptr_t<gvar> table;
+    hb_blob_ptr_t<gvar_GVAR> table;
     unsigned glyphCount;
     hb_vector_t<hb_pair_t<int, int>> shared_tuple_active_idx;
   };
@@ -893,7 +902,7 @@ struct gvar
   NNOffset32To<UnsizedArrayOf<F2DOT14>>
 		sharedTuples;	/* Offset from the start of this table to the shared tuple records.
 				 * Array of tuple records shared across all glyph variation data tables. */
-  HBUINT16	glyphCountX;	/* The number of glyphs in this font. This must match the number of
+  GidOffsetType	glyphCountX;	/* The number of glyphs in this font. This must match the number of
 				 * glyphs stored elsewhere in the font. */
   HBUINT16	flags;		/* Bit-field that gives the format of the offset array that follows.
 				 * If bit 0 is clear, the offsets are uint16; if bit 0 is set, the
@@ -908,8 +917,14 @@ struct gvar
   DEFINE_SIZE_ARRAY (20, offsetZ);
 };
 
+using gvar = gvar_GVAR<HBUINT16, HB_OT_TAG_gvar>;
+using GVAR = gvar_GVAR<HBUINT24, HB_OT_TAG_GVAR>;
+
 struct gvar_accelerator_t : gvar::accelerator_t {
   gvar_accelerator_t (hb_face_t *face) : gvar::accelerator_t (face) {}
+};
+struct GVAR_accelerator_t : GVAR::accelerator_t {
+  GVAR_accelerator_t (hb_face_t *face) : GVAR::accelerator_t (face) {}
 };
 
 } /* namespace OT */

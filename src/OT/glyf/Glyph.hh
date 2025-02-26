@@ -386,11 +386,22 @@ struct Glyph
 
 #ifndef HB_NO_VAR
     if (coords)
-      glyf_accelerator.gvar->apply_deltas_to_points (gid,
-						     coords,
-						     points.as_array ().sub_array (old_length),
-						     scratch,
-						     phantom_only && type == SIMPLE);
+    {
+#ifndef HB_NO_BEYOND_64K
+      if (glyf_accelerator.GVAR->has_data ())
+	glyf_accelerator.GVAR->apply_deltas_to_points (gid,
+						       coords,
+						       points.as_array ().sub_array (old_length),
+						       scratch,
+						       phantom_only && type == SIMPLE);
+      else
+#endif
+	glyf_accelerator.gvar->apply_deltas_to_points (gid,
+						       coords,
+						       points.as_array ().sub_array (old_length),
+						       scratch,
+						       phantom_only && type == SIMPLE);
+    }
 #endif
 
     // mainly used by CompositeGlyph calculating new X/Y offset value so no need to extend it
