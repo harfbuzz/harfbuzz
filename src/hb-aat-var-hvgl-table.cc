@@ -480,7 +480,8 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 	  double s, c;
 	  // 1 - exp(i * angle) = complex(1 - cos(angle), -sin(angle))
 	  hb_sincos ((double) angle, s, c);
-	  std::complex<double> _1_minus_e_iangle = std::complex<double> (1 - c, -s);
+	  double _1_minus_c = 1 - c;
+	  std::complex<double> _1_minus_e_iangle = std::complex<double> (_1_minus_c, -s);
 	  std::complex<double> eigen = t / _1_minus_e_iangle;
 	  center_x = eigen.real ();
 	  center_y = eigen.imag ();
