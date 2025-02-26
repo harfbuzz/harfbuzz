@@ -1,7 +1,5 @@
 #include "hb-aat-var-hvgl-table.hh"
 
-#include <complex>
-
 #ifdef __APPLE__
 // For endianness
 #include <CoreFoundation/CoreFoundation.h>
@@ -476,15 +474,21 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 	double angle = extremum_rotation_delta;
 	if (center_x || center_y)
 	{
-	  std::complex<double> t {center_x, center_y};
+	  // The paper has formula for this in terms of complex numbers.
+	  // This is translated to real numbers, partly using ChatGPT.
 	  double s, c;
-	  // 1 - exp(i * angle) = complex(1 - cos(angle), -sin(angle))
 	  hb_sincos ((double) angle, s, c);
 	  double _1_minus_c = 1 - c;
-	  std::complex<double> _1_minus_e_iangle = std::complex<double> (_1_minus_c, -s);
-	  std::complex<double> eigen = t / _1_minus_e_iangle;
-	  center_x = eigen.real ();
-	  center_y = eigen.imag ();
+	  if (likely (_1_minus_c))
+	  {
+	    double denom = 2 * _1_minus_c;
+
+	    double new_center_x = (center_x * _1_minus_c - center_y * s) / denom;
+	    double new_center_y = (center_y * _1_minus_c + center_x * s) / denom;
+
+	    center_x = new_center_x;
+	    center_y = new_center_y;
+	  }
 	}
 	angle *= scalar;
 	transform.rotate_around_center (angle, center_x, center_y);
