@@ -945,6 +945,8 @@ struct CBDT
 
     bool paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
     {
+      if (!has_data ()) return false;
+
       hb_glyph_extents_t extents;
       hb_glyph_extents_t pixel_extents;
       hb_blob_t *blob = reference_png (font, glyph);
