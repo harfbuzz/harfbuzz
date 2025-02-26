@@ -941,7 +941,7 @@ struct CBDT
       }
     }
 
-    bool has_data () const { return cbdt.get_length (); }
+    bool has_data () const { return cbdt->version.major; }
 
     bool paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
     {
