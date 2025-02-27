@@ -87,7 +87,7 @@ test_native_ft_basic (void)
 
   font = hb_ft_font_create_referenced (ft_face);
 
-  ft_face2 = hb_ft_font_get_face (font);
+  ft_face2 = hb_ft_font_get_ft_face (font);
 
   g_assert_true (ft_face2 == ft_face);
 
