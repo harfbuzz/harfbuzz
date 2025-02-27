@@ -35,6 +35,7 @@
 #include "../../../hb-paint.hh"
 #include "../../../hb-paint-bounded.hh"
 #include "../../../hb-paint-extents.hh"
+#include "../../../hb-depend-data.hh"
 
 #include "../CPAL/CPAL.hh"
 
@@ -225,6 +226,41 @@ struct hb_colrv1_closure_context_t :
   {}
 };
 
+struct hb_colrv1_depend_context_t :
+       hb_dispatch_context_t<hb_colrv1_depend_context_t, bool>
+{
+  template <typename T>
+  return_t dispatch (const T &obj)
+  {
+    if (unlikely (nesting_level_left == 0))
+      return false;
+
+    nesting_level_left--;
+    obj.dependv1 (this);
+    nesting_level_left++;
+    return true;
+  }
+  static return_t default_return_value () { return false; }
+
+  const COLR* get_colr_table () const
+  { return reinterpret_cast<const COLR *> (base); }
+
+  public:
+  const void *base;
+  hb_depend_data_t *depend_data;
+  unsigned nesting_level_left;
+  hb_codepoint_t source_gid;
+
+  hb_colrv1_depend_context_t (const void *base_,
+                              hb_depend_data_t *depend_data_,
+                              unsigned nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
+                          base (base_),
+                          depend_data (depend_data_),
+                          nesting_level_left (nesting_level_left_),
+                          source_gid (0)
+  {}
+};
+
 struct LayerRecord
 {
   operator hb_ot_color_layer_t () const { return {glyphId, colorIdx}; }
@@ -285,6 +321,9 @@ struct Variable
     TRACE_SERIALIZE (this);
     return_trace (c->embed (this));
   }
+
+  void dependv1 (hb_colrv1_depend_context_t* c) const
+  { value.dependv1 (c); }
 
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
@@ -361,6 +400,9 @@ struct NoVariable
     return_trace (c->embed (this));
   }
 
+  void dependv1 (hb_colrv1_depend_context_t* c) const
+  { value.dependv1 (c); }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { value.closurev1 (c); }
 
@@ -404,6 +446,8 @@ struct NoVariable
 
 struct ColorStop
 {
+  void dependv1 (hb_colrv1_depend_context_t * c) const {}
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     c->add_palette_index (paletteIndex);
@@ -466,6 +510,12 @@ struct Extend : HBUINT8
 template <template<typename> class Var>
 struct ColorLine
 {
+  void dependv1 (hb_colrv1_depend_context_t * c) const
+  {
+    for (const auto &stop : stops.iter ())
+      stop.dependv1 (c);
+  }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     for (const auto &stop : stops.iter ())
@@ -611,6 +661,8 @@ struct Affine2x3
     return_trace (c->check_struct (this));
   }
 
+  void dependv1 (hb_colrv1_depend_context_t* c) const {}
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { c->num_var_idxes = 6; }
 
@@ -657,6 +709,7 @@ struct Affine2x3
 
 struct PaintColrLayers
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const;
   void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -688,6 +741,7 @@ struct PaintColrLayers
 
 struct PaintSolid
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const {}
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     c->add_palette_index (paletteIndex);
@@ -740,6 +794,11 @@ struct PaintSolid
 template <template<typename> class Var>
 struct PaintLinearGradient
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const
+  {
+    (this+colorLine).dependv1 (c);
+  }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     (this+colorLine).closurev1 (c);
@@ -810,6 +869,11 @@ struct PaintLinearGradient
 template <template<typename> class Var>
 struct PaintRadialGradient
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const
+  {
+    (this+colorLine).dependv1 (c);
+  }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     (this+colorLine).closurev1 (c);
@@ -880,6 +944,11 @@ struct PaintRadialGradient
 template <template<typename> class Var>
 struct PaintSweepGradient
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const
+  {
+    (this+colorLine).dependv1 (c);
+  }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     (this+colorLine).closurev1 (c);
@@ -944,6 +1013,7 @@ struct PaintSweepGradient
 // Paint a non-COLR glyph, filled as indicated by paint.
 struct PaintGlyph
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const;
   void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -987,6 +1057,7 @@ struct PaintGlyph
 
 struct PaintColrGlyph
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const;
   void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1017,6 +1088,7 @@ struct PaintColrGlyph
 template <template<typename> class Var>
 struct PaintTransform
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1056,6 +1128,7 @@ struct PaintTransform
 
 struct PaintTranslate
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1105,6 +1178,7 @@ struct PaintTranslate
 
 struct PaintScale
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1154,6 +1228,7 @@ struct PaintScale
 
 struct PaintScaleAroundCenter
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1209,6 +1284,7 @@ struct PaintScaleAroundCenter
 
 struct PaintScaleUniform
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1253,6 +1329,7 @@ struct PaintScaleUniform
 
 struct PaintScaleUniformAroundCenter
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1305,6 +1382,7 @@ struct PaintScaleUniformAroundCenter
 
 struct PaintRotate
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1349,6 +1427,7 @@ struct PaintRotate
 
 struct PaintRotateAroundCenter
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1401,6 +1480,7 @@ struct PaintRotateAroundCenter
 
 struct PaintSkew
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1450,6 +1530,7 @@ struct PaintSkew
 
 struct PaintSkewAroundCenter
 {
+  HB_INTERNAL void dependv1 (hb_colrv1_depend_context_t* c) const;
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1505,6 +1586,7 @@ struct PaintSkewAroundCenter
 
 struct PaintComposite
 {
+  void dependv1 (hb_colrv1_depend_context_t* c) const;
   void closurev1 (hb_colrv1_closure_context_t* c) const;
 
   bool subset (hb_subset_context_t *c,
@@ -1615,6 +1697,7 @@ struct ClipBoxFormat2 : Variable<ClipBoxFormat1>
     }
   }
 
+  void dependv1 (hb_colrv1_depend_context_t* c) const;
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { c->variation_indices->add_range (varIdxBase, varIdxBase + 3); }
 };
@@ -1629,6 +1712,14 @@ struct ClipBox
     case 1: return_trace (u.format1.subset (c, instancer, VarIdx::NO_VARIATION));
     case 2: return_trace (u.format2.subset (c, instancer));
     default:return_trace (c->default_return_value ());
+    }
+  }
+
+  void dependv1 (hb_colrv1_depend_context_t* c) const
+  {
+    switch (u.format) {
+    case 2: u.format2.dependv1 (c);
+    default:return;
     }
   }
 
@@ -1686,6 +1777,11 @@ struct ClipRecord
 {
   int cmp (hb_codepoint_t g) const
   { return g < startGlyphID ? -1 : g <= endGlyphID ? 0 : +1; }
+
+  void dependv1 (hb_colrv1_depend_context_t* c, const void *base) const
+  {
+    (base+clipBox).dependv1 (c);
+  }
 
   void closurev1 (hb_colrv1_closure_context_t* c, const void *base) const
   {
@@ -2184,6 +2280,9 @@ struct COLR
 
     bool is_valid () { return colr.get_blob ()->length; }
 
+    void depend (hb_depend_data_t *depend_data) const
+    { colr->depend (depend_data); }
+
     void closure_glyphs (hb_codepoint_t glyph,
 			 hb_set_t *related_ids /* OUT */) const
     { colr->closure_glyphs (glyph, related_ids); }
@@ -2244,6 +2343,31 @@ struct COLR
     private:
     mutable hb_atomic_t<hb_colr_scratch_t *> cached_scratch;
   };
+
+  void depend (hb_depend_data_t *depend_data) const
+  {
+    // v0
+    hb_array_t<const BaseGlyphRecord> baseGlyphs = (this+baseGlyphsZ).as_array (numBaseGlyphs);
+    for (const BaseGlyphRecord &record : baseGlyphs)
+    {
+      auto glyph_layers = (this+layersZ).as_array (numLayers).sub_array (record.firstLayerIdx,
+                                                                         record.numLayers);
+      for (const LayerRecord layer : glyph_layers)
+        depend_data->add_depend(record.glyphId, HB_OT_TAG_COLR, layer.glyphId);
+    }
+
+    // v1
+    hb_colrv1_depend_context_t c (this, depend_data);
+    const BaseGlyphList &baseglyph_paintrecords = this+baseGlyphList;
+
+    for (const BaseGlyphPaintRecord &baseglyph_paintrecord: baseglyph_paintrecords.iter ())
+    {
+      c.source_gid = baseglyph_paintrecord.glyphId;
+
+      const Paint &paint = &baseglyph_paintrecords+baseglyph_paintrecord.paint;
+      paint.dispatch (&c);
+    }
+  }
 
   void closure_glyphs (hb_codepoint_t glyph,
 		       hb_set_t *related_ids /* OUT */) const

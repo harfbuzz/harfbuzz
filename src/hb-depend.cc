@@ -30,7 +30,11 @@
 
 #include "hb-face.hh"
 #include "hb-ot-cmap-table.hh"
+#include "hb-ot-glyf-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
+#include "hb-ot-math-table.hh"
+#include "OT/Color/COLR/COLR.hh"
+#include "OT/Color/COLR/colrv1-depend.hh"
 
 /**
  * SECTION:hb-depend
@@ -127,6 +131,32 @@ void hb_depend_t::get_gsub_dependencies() {
     c.lookups_seen.clear ();
     c.set_recurse_func (OT::Layout::GSUB_impl::SubstLookup::dispatch_recurse_func<OT::hb_depend_context_t>);
     c.recurse(i);
+  }
+}
+
+void hb_depend_t::get_math_dependencies()
+{
+  hb_blob_t *math_blob = hb_sanitize_context_t ().reference_table<OT::MATH> (face);
+  auto math = math_blob->as<OT::MATH> ();
+  math->depend (&data);
+}
+
+void hb_depend_t::get_colr_dependencies()
+{
+  OT::COLR::accelerator_t colr (face);
+  if (!colr.is_valid ()) return;
+  colr.depend (&data);
+}
+
+void hb_depend_t::get_glyf_dependencies()
+{
+  OT::glyf_accelerator_t glyf (face);
+  if (!glyf.has_data())
+    return;
+  for (hb_codepoint_t gid = 0; gid < glyf.get_num_glyphs (); gid++) {
+    auto glyph = glyf.glyph_for_gid(gid);
+    for (auto &item : glyph.get_composite_iterator ())
+      data.add_depend (gid, HB_OT_TAG_glyf, item.get_gid ());
   }
 }
 
