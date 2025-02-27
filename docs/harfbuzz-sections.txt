@@ -524,6 +524,7 @@ hb_ft_face_create_from_file_or_fail
 hb_ft_font_create
 hb_ft_font_create_referenced
 hb_ft_font_changed
+hb_ft_font_get_ft_face
 hb_ft_font_get_face
 hb_ft_font_lock_face
 hb_ft_font_unlock_face
