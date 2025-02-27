@@ -143,7 +143,16 @@ struct hb_depend_data_t
       return;
     }
     auto &gdr = glyph_dependencies[target];
-    // XXX Check for dups here
+    for (auto &dep : gdr.dependencies) {
+      if (dep.table_tag == table_tag && dep.layout_tag == layout_tag &&
+          dep.dependent == dependent) {
+        if (dep.ligature_set == HB_CODEPOINT_INVALID && lig_set == HB_CODEPOINT_INVALID)
+          return;   // dup
+        if (dep.ligature_set != HB_CODEPOINT_INVALID && lig_set != HB_CODEPOINT_INVALID &&
+            sets[dep.ligature_set] == sets[lig_set])
+          return;   // dup
+      }
+    }
     gdr.dependencies.push(table_tag, dependent, layout_tag, lig_set,
                           context_set); // , fv_context_set, fv_only);
   }

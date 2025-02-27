@@ -194,6 +194,7 @@ set (subset_project_sources
      ${PROJECT_SOURCE_DIR}/src/graph/split-helpers.hh
      ${PROJECT_SOURCE_DIR}/src/graph/serialize.hh
      ${PROJECT_SOURCE_DIR}/src/OT/Color/COLR/colrv1-closure.hh
+     ${PROJECT_SOURCE_DIR}/src/OT/Color/COLR/colrv1-depend.hh
 )
 set (project_extra_sources)
 set (project_headers
