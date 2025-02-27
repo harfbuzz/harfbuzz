@@ -1,0 +1,583 @@
+/*
+    Title:  Roman Font GDL description -- mapping from PUA pseudo-glyphs to
+    		real Unicode glyphs.
+    		
+    Author: Sharon Correll
+    
+    Our strategy for handling deprecated PUA is the following:
+    - PUA characters are double encoded in the cmap with their approved Unicode codepoints.
+      (This enables them to look "normal" in OpenType or dumb rendering.)
+    - We create pseudo-glyphs representing the PUA characters. We don't use AutoPseudo
+      because that will create pseudos for the main Unicode characters, and we don't want that.
+    - We immediately replace the PUA pseudos with their real glyphs so that they will behave
+      like the real ones. We mark those glyphs with a user-defined slot attribute so
+      we can remember they are PUA.
+    - Later, if the "Show deprecated PUA" feature is turned on, we substitute the marked glyphs
+      with inverted versions.
+    
+*/
+
+table(glyph)
+				//       output glyph   input USV
+				//                \/        \/
+	g02C0_pua = pseudo(unicode(0x02C0), 0xF1C8);	// "ModGlottalStop",U+02C0
+	g02EC_pua = pseudo(unicode(0x02EC), 0xF1E8);	// "ModVoicing",U+02EC
+	g1D50_pua = pseudo(unicode(0x1D50), 0xF180);	// "LtnSupSmM",U+1D50
+	g1D51_pua = pseudo(unicode(0x1D51), 0xF182);	// "LtnSupSmEng",U+1D51
+	g230A_pua = pseudo(unicode(0x230A), 0xF134);	// "SqrTxtBracLowLft",U+230A
+	g230B_pua = pseudo(unicode(0x230B), 0xF135);	// "SqrTxtBracLowRt",U+230B
+	g035C_pua = pseudo(unicode(0x035C), 0xF176);	// "CombDblBreveBlw",U+035C
+	g1DC2_pua = pseudo(unicode(0x1DC2), 0xF170);	// "CombSnakeBlw",U+1DC2
+	g1D80_pua = pseudo(unicode(0x1D80), 0xF224);	// "LtnSmBPalHook",U+1D80
+	g1D81_pua = pseudo(unicode(0x1D81), 0xF226);	// "LtnSmDPalHook",U+1D81
+	g1D82_pua = pseudo(unicode(0x1D82), 0xF227);	// "LtnSmFPalHook",U+1D82
+	g1D83_pua = pseudo(unicode(0x1D83), 0xF228);	// "LtnSmScriptGPalHook",U+1D83
+	g1D84_pua = pseudo(unicode(0x1D84), 0xF229);	// "LtnSmKPalHook",U+1D84
+	g1D85_pua = pseudo(unicode(0x1D85), 0xF22A);	// "LtnSmLPalHook",U+1D85
+	g1D86_pua = pseudo(unicode(0x1D86), 0xF22B);	// "LtnSmMPalHook",U+1D86
+	g1D87_pua = pseudo(unicode(0x1D87), 0xF22C);	// "LtnSmNPalHook",U+1D87
+	g1D88_pua = pseudo(unicode(0x1D88), 0xF22D);	// "LtnSmPPalHook",U+1D88
+	g1D89_pua = pseudo(unicode(0x1D89), 0xF22E);	// "LtnSmRPalHook",U+1D89
+	g1D8A_pua = pseudo(unicode(0x1D8A), 0xF22F);	// "LtnSmSPalHook",U+1D8A
+	g1D8B_pua = pseudo(unicode(0x1D8B), 0xF230);	// "LtnSmEshPalHook",U+1D8B
+	g1D8C_pua = pseudo(unicode(0x1D8C), 0xF231);	// "LtnSmVPalHook",U+1D8C
+	g1D8D_pua = pseudo(unicode(0x1D8D), 0xF232);	// "LtnSmXPalHook",U+1D8D
+	g1D8E_pua = pseudo(unicode(0x1D8E), 0xF233);	// "LtnSmZPalHook",U+1D8E
+	g1D8F_pua = pseudo(unicode(0x1D8F), 0xF236);	// "LtnSmARetrHook",U+1D8F
+	g1D90_pua = pseudo(unicode(0x1D90), 0xF237);	// "LtnSmAlphaRetrHook",U+1D90
+	g1D91_pua = pseudo(unicode(0x1D91), 0xF20C);	// "LtnSmDTailHook",U+1D91
+	g1D92_pua = pseudo(unicode(0x1D92), 0xF238);	// "LtnSmERetrHook",U+1D92
+	g1D93_pua = pseudo(unicode(0x1D93), 0xF239);	// "LtnSmOpnERetrHook",U+1D93
+	g1D94_pua = pseudo(unicode(0x1D94), 0xF23A);	// "LtnSmRevOpnERetrHook",U+1D94
+	g1D95_pua = pseudo(unicode(0x1D95), 0xF23B);	// "LtnSmSchwaRetrHook",U+1D95
+	g1D96_pua = pseudo(unicode(0x1D96), 0xF23C);	// "LtnSmIRetrHook",U+1D96
+	g1D97_pua = pseudo(unicode(0x1D97), 0xF23D);	// "LtnSmOpnORetrHook",U+1D97
+	g1D98_pua = pseudo(unicode(0x1D98), 0xF216);	// "LtnSmEshHook",U+1D98
+	g1D99_pua = pseudo(unicode(0x1D99), 0xF23E);	// "LtnSmURetrHook",U+1D99
+	g1D9A_pua = pseudo(unicode(0x1D9A), 0xF21C);	// "LtnSmEzhHook",U+1D9A
+	g1D9B_pua = pseudo(unicode(0x1D9B), 0xF1A0);	// "LtnSupSmTurnedAlpha",U+1D9B
+	g1D9C_pua = pseudo(unicode(0x1D9C), 0xF1B9);	// "ModSmC",U+1D9C
+	g1D9D_pua = pseudo(unicode(0x1D9D), 0xF1A2);	// "LtnSupSmCCurl",U+1D9D
+	g1D9E_pua = pseudo(unicode(0x1D9E), 0xF1BA);	// "ModSmEth",U+1D9E
+	g1D9F_pua = pseudo(unicode(0x1D9F), 0xF18B);	// "LtnSupSmRevOpnE",U+1D9F
+	g1DA0_pua = pseudo(unicode(0x1DA0), 0xF1A5);	// "LtnSupSmF",U+1DA0
+	g1DA1_pua = pseudo(unicode(0x1DA1), 0xF1A9);	// "LtnSupSmDotlessJStrk",U+1DA1
+	g1DA2_pua = pseudo(unicode(0x1DA2), 0xF1A6);	// "LtnSupSmScriptG",U+1DA2
+	g1DA3_pua = pseudo(unicode(0x1DA3), 0xF1BB);	// "ModSmTurnedH",U+1DA3
+	g1DA4_pua = pseudo(unicode(0x1DA4), 0xF1A7);	// "LtnSupSmIStrk",U+1DA4
+	g1DA5_pua = pseudo(unicode(0x1DA5), 0xF1CA);	// "ModSmIota",U+1DA5
+	g1DA6_pua = pseudo(unicode(0x1DA6), 0xF1A8);	// "LtnSupSmCapI",U+1DA6
+	g1DA7_pua = pseudo(unicode(0x1DA7), 0xF1CB);	// "ModSmCapIStrk",U+1DA7
+	g1DA8_pua = pseudo(unicode(0x1DA8), 0xF1BD);	// "ModSmJCrossedTail",U+1DA8
+	g1DA9_pua = pseudo(unicode(0x1DA9), 0xF1AA);	// "LtnSupSmLRetrHook",U+1DA9
+	g1DAA_pua = pseudo(unicode(0x1DAA), 0xF1BE);	// "ModSmLPalHook",U+1DAA
+	g1DAB_pua = pseudo(unicode(0x1DAB), 0xF1BF);	// "ModSmCapL",U+1DAB
+	g1DAC_pua = pseudo(unicode(0x1DAC), 0xF1C0);	// "ModSmMHook",U+1DAC
+	g1DAD_pua = pseudo(unicode(0x1DAD), 0xF1B2);	// "LtnSupSmTurnedMLngLeg",U+1DAD
+	g1DAE_pua = pseudo(unicode(0x1DAE), 0xF181);	// "LtnSupSmNLftHook",U+1DAE
+	g1DAF_pua = pseudo(unicode(0x1DAF), 0xF1C1);	// "ModSmNRetrHook",U+1DAF
+	g1DB0_pua = pseudo(unicode(0x1DB0), 0xF1C2);	// "ModSmCapN",U+1DB0
+	g1DB1_pua = pseudo(unicode(0x1DB1), 0xF1AC);	// "LtnSupSmBarredO",U+1DB1
+	g1DB2_pua = pseudo(unicode(0x1DB2), 0xF1C3);	// "ModSmPhi",U+1DB2
+	g1DB3_pua = pseudo(unicode(0x1DB3), 0xF1C4);	// "ModSmSHook",U+1DB3
+	g1DB4_pua = pseudo(unicode(0x1DB4), 0xF1AF);	// "LtnSupSmEsh",U+1DB4
+	g1DB5_pua = pseudo(unicode(0x1DB5), 0xF1C5);	// "ModSmTPalHook",U+1DB5
+	g1DB6_pua = pseudo(unicode(0x1DB6), 0xF1B0);	// "LtnSupSmUBar",U+1DB6
+	g1DB7_pua = pseudo(unicode(0x1DB7), 0xF1B1);	// "LtnSupSmUpsilon",U+1DB7
+	g1DB8_pua = pseudo(unicode(0x1DB8), 0xF1CC);	// "ModSmCapU",U+1DB8
+	g1DB9_pua = pseudo(unicode(0x1DB9), 0xF1C6);	// "ModSmVHook",U+1DB9
+	g1DBA_pua = pseudo(unicode(0x1DBA), 0xF1B3);	// "LtnSupSmTurnedV",U+1DBA
+	g1DBB_pua = pseudo(unicode(0x1DBB), 0xF1B6);	// "LtnSupSmZ",U+1DBB
+	g1DBC_pua = pseudo(unicode(0x1DBC), 0xF1C7);	// "ModSmZRetrHook",U+1DBC
+	g1DBD_pua = pseudo(unicode(0x1DBD), 0xF1B7);	// "LtnSupSmZCurl",U+1DBD
+	g1DBE_pua = pseudo(unicode(0x1DBE), 0xF1B8);	// "LtnSupSmEzh",U+1DBE
+	g1DBF_pua = pseudo(unicode(0x1DBF), 0xF1C9);	// "ModSmTheta",U+1DBF
+	g1D6C_pua = pseudo(unicode(0x1D6C), 0xF249);	// "LtnSmBMiddleTilde",U+1D6C
+	g1D6D_pua = pseudo(unicode(0x1D6D), 0xF24A);	// "LtnSmDMiddleTilde",U+1D6D
+	g1D6E_pua = pseudo(unicode(0x1D6E), 0xF24B);	// "LtnSmFMiddleTilde",U+1D6E
+	g1D6F_pua = pseudo(unicode(0x1D6F), 0xF24C);	// "LtnSmMMiddleTilde",U+1D6F
+	g1D70_pua = pseudo(unicode(0x1D70), 0xF24D);	// "LtnSmNMiddleTilde",U+1D70
+	g1D71_pua = pseudo(unicode(0x1D71), 0xF24E);	// "LtnSmPMiddleTilde",U+1D71
+	g1D72_pua = pseudo(unicode(0x1D72), 0xF24F);	// "LtnSmRMiddleTilde",U+1D72
+	g1D73_pua = pseudo(unicode(0x1D73), 0xF250);	// "LtnSmRFishhookMiddleTilde",U+1D73
+	g1D74_pua = pseudo(unicode(0x1D74), 0xF251);	// "LtnSmSMiddleTilde",U+1D74
+	g1D75_pua = pseudo(unicode(0x1D75), 0xF252);	// "LtnSmTMiddleTilde",U+1D75
+	g1D76_pua = pseudo(unicode(0x1D76), 0xF253);	// "LtnSmZMiddleTilde",U+1D76
+	g1D7B_pua = pseudo(unicode(0x1D7B), 0xF254);	// "LtnSmCapIStrk",U+1D7B
+	g1D7C_pua = pseudo(unicode(0x1D7C), 0xF25D);	// "LtnSmIotaStrk",U+1D7C
+	g1D7D_pua = pseudo(unicode(0x1D7D), 0xF210);	// "LtnSmPStrk",U+1D7D
+	g1D7E_pua = pseudo(unicode(0x1D7E), 0xF23F);	// "LtnSmCapUBar",U+1D7E
+	g1D7F_pua = pseudo(unicode(0x1D7F), 0xF255);	// "LtnSmUpsilonStrk",U+1D7F
+	g04F6_pua = pseudo(unicode(0x04F6), 0xF320);	// "CyCapGheDesc",U+04F6
+	g04F7_pua = pseudo(unicode(0x04F7), 0xF321);	// "CySmGheDesc",U+04F7
+	g0238_pua = pseudo(unicode(0x0238), 0xF240);	// "LtnSmDBDigraph",U+0238
+	g0239_pua = pseudo(unicode(0x0239), 0xF241);	// "LtnSmQPDigraph",U+0239
+	g023C_pua = pseudo(unicode(0x023C), 0xF20B);	// "LtnSmCStrk",U+023C
+	g023D_pua = pseudo(unicode(0x023D), 0xF21F);	// "LtnCapLBar",U+023D
+	g023F_pua = pseudo(unicode(0x023F), 0xF256);	// "LtnSmSSwashTail",U+023F
+	g0240_pua = pseudo(unicode(0x0240), 0xF257);	// "LtnSmZSwashTail",U+0240
+	gA700_pua = pseudo(unicode(0xA700), 0xF1DF);	// "ModTnYinPing",U+A700
+	gA701_pua = pseudo(unicode(0xA701), 0xF1E3);	// "ModTnYangPing",U+A701
+	gA702_pua = pseudo(unicode(0xA702), 0xF1E0);	// "ModTnYinShang",U+A702
+	gA703_pua = pseudo(unicode(0xA703), 0xF1E4);	// "ModTnYangShang",U+A703
+	gA704_pua = pseudo(unicode(0xA704), 0xF1E1);	// "ModTnYinQu",U+A704
+	gA705_pua = pseudo(unicode(0xA705), 0xF1E5);	// "ModTnYangQu",U+A705
+	gA706_pua = pseudo(unicode(0xA706), 0xF1E2);	// "ModTnYinRu",U+A706
+	gA707_pua = pseudo(unicode(0xA707), 0xF1E6);	// "ModTnYangRu",U+A707
+	gA708_pua = pseudo(unicode(0xA708), 0xF1D5);	// "DotTnLtr5",U+A708
+	gA709_pua = pseudo(unicode(0xA709), 0xF1D6);	// "DotTnLtr4",U+A709
+	gA70A_pua = pseudo(unicode(0xA70A), 0xF1D7);	// "DotTnLtr3",U+A70A
+	gA70B_pua = pseudo(unicode(0xA70B), 0xF1D8);	// "DotTnLtr2",U+A70B
+	gA70C_pua = pseudo(unicode(0xA70C), 0xF1D9);	// "DotTnLtr1",U+A70C
+	gA70D_pua = pseudo(unicode(0xA70D), 0xF1DA);	// "DotLftStemTnLtr5",U+A70D
+	gA70E_pua = pseudo(unicode(0xA70E), 0xF1DB);	// "DotLftStemTnLtr4",U+A70E
+	gA70F_pua = pseudo(unicode(0xA70F), 0xF1DC);	// "DotLftStemTnLtr3",U+A70F
+	gA710_pua = pseudo(unicode(0xA710), 0xF1DD);	// "DotLftStemTnLtr2",U+A710
+	gA711_pua = pseudo(unicode(0xA711), 0xF1DE);	// "DotLftStemTnLtr1",U+A711
+	gA712_pua = pseudo(unicode(0xA712), 0xF1D0);	// "LftStemTnLtr5",U+A712
+	gA713_pua = pseudo(unicode(0xA713), 0xF1D1);	// "LftStemTnLtr4",U+A713
+	gA714_pua = pseudo(unicode(0xA714), 0xF1D2);	// "LftStemTnLtr3",U+A714
+	gA715_pua = pseudo(unicode(0xA715), 0xF1D3);	// "LftStemTnLtr2",U+A715
+	gA716_pua = pseudo(unicode(0xA716), 0xF1D4);	// "LftStemTnLtr1",U+A716
+	g0242_pua = pseudo(unicode(0x0242), 0xF21E);	// "LtnSmGlottalStop",U+0242
+	g0243_pua = pseudo(unicode(0x0243), 0xF20A);	// "LtnCapBBarredLowStem",U+0243
+	g0244_pua = pseudo(unicode(0x0244), 0xF218);	// "LtnCapUBar",U+0244
+	g0245_pua = pseudo(unicode(0x0245), 0xF219);	// "LtnCapTurnedV",U+0245
+	g0246_pua = pseudo(unicode(0x0246), 0xF221);	// "LtnCapEStrk",U+0246
+	g0247_pua = pseudo(unicode(0x0247), 0xF220);	// "LtnSmEStrk",U+0247
+	g0248_pua = pseudo(unicode(0x0248), 0xF261);	// "LtnCapJStrk",U+0248
+	g0249_pua = pseudo(unicode(0x0249), 0xF260);	// "LtnSmJStrk",U+0249
+	g024A_pua = pseudo(unicode(0x024A), 0xF212);	// "LtnCapSmQHookTail",U+024A
+	g024B_pua = pseudo(unicode(0x024B), 0xF211);	// "LtnSmQHookTail",U+024B
+	g024C_pua = pseudo(unicode(0x024C), 0xF214);	// "LtnCapRBarredStem",U+024C
+	g024D_pua = pseudo(unicode(0x024D), 0xF213);	// "LtnSmRBar",U+024D
+	g024E_pua = pseudo(unicode(0x024E), 0xF244);	// "LtnCapYStrk",U+024E
+	g024F_pua = pseudo(unicode(0x024F), 0xF243);	// "LtnSmYStrk",U+024F
+	g04FC_pua = pseudo(unicode(0x04FC), 0xF324);	// "CyCapHaHook",U+04FC
+	g04FD_pua = pseudo(unicode(0x04FD), 0xF325);	// "CySmHaHook",U+04FD
+	g04FE_pua = pseudo(unicode(0x04FE), 0xF328);	// "CyCapHaStrk",U+04FE
+	g04FF_pua = pseudo(unicode(0x04FF), 0xF329);	// "CySmHaStrk",U+04FF
+	g0510_pua = pseudo(unicode(0x0510), 0xF32A);	// "CyCapRevZe",U+0510
+	g0511_pua = pseudo(unicode(0x0511), 0xF32B);	// "CySmRevZe",U+0511
+	g0512_pua = pseudo(unicode(0x0512), 0xF322);	// "CyCapElHook",U+0512
+	g0513_pua = pseudo(unicode(0x0513), 0xF323);	// "CySmElHook",U+0513
+	g1DC4_pua = pseudo(unicode(0x1DC4), 0xF171);	// "CombMacron_Acute",U+1DC4
+	g1DC5_pua = pseudo(unicode(0x1DC5), 0xF172);	// "CombGrave_Macron",U+1DC5
+	g1DC6_pua = pseudo(unicode(0x1DC6), 0xF173);	// "CombMacron_Grave",U+1DC6
+	g1DC7_pua = pseudo(unicode(0x1DC7), 0xF174);	// "CombAcute_Macron",U+1DC7
+	g1DC8_pua = pseudo(unicode(0x1DC8), 0xF175);	// "CombGrave_Acute_Grave",U+1DC8
+	g1DC9_pua = pseudo(unicode(0x1DC9), 0xF179);	// "CombAcute_Grave_Acute",U+1DC9
+	g1DCA_pua = pseudo(unicode(0x1DCA), 0xF178);	// "CombLtnSmRBlw",U+1DCA
+	g2C60_pua = pseudo(unicode(0x2C60), 0xF20F);	// "LtnCapDblBarredL",U+2C60
+	g2C61_pua = pseudo(unicode(0x2C61), 0xF20E);	// "LtnSmDblBarredL",U+2C61
+	g2C62_pua = pseudo(unicode(0x2C62), 0xF242);	// "LtnCapLMiddleTilde",U+2C62
+	g2C63_pua = pseudo(unicode(0x2C63), 0xF25C);	// "LtnCapPStrk",U+2C63
+	g2C64_pua = pseudo(unicode(0x2C64), 0xF215);	// "LtnCapRHookTail",U+2C64
+	g2C67_pua = pseudo(unicode(0x2C67), 0xF223);	// "LtnCapHDesc",U+2C67
+	g2C68_pua = pseudo(unicode(0x2C68), 0xF222);	// "LtnSmHDesc",U+2C68
+	g2C69_pua = pseudo(unicode(0x2C69), 0xF263);	// "LtnCapKDesc",U+2C69
+	g2C6A_pua = pseudo(unicode(0x2C6A), 0xF262);	// "LtnSmKDesc",U+2C6A
+	g2C6B_pua = pseudo(unicode(0x2C6B), 0xF265);	// "LtnCapZDesc",U+2C6B
+	g2C6C_pua = pseudo(unicode(0x2C6C), 0xF264);	// "LtnSmZDesc",U+2C6C
+	g2C74_pua = pseudo(unicode(0x2C74), 0xF25E);	// "LtnSmVCurl",U+2C74
+	g02CB_pua = pseudo(unicode(0x02CB), 0xF195);	// "ModChinantecTnMrkBackslash",U+02CB
+	g02C8_pua = pseudo(unicode(0x02C8), 0xF196);	// "ModChinantecTnMrkVertBar",U+02C8
+	g02CA_pua = pseudo(unicode(0x02CA), 0xF197);	// "ModChinantecTnMrkSlash",U+02CA
+	gA717_pua = pseudo(unicode(0xA717), 0xF198);	// "ModChinantecTnMrkDotVertBar",U+A717
+	gA718_pua = pseudo(unicode(0xA718), 0xF199);	// "ModChinantecTnMrkDotSlash",U+A718
+	gA719_pua = pseudo(unicode(0xA719), 0xF19A);	// "ModChinantecTnMrkDotHorizBar",U+A719
+	gA71A_pua = pseudo(unicode(0xA71A), 0xF19B);	// "ModChinantecTnMrkLowRtCorner",U+A71A
+	gA71B_pua = pseudo(unicode(0xA71B), 0xF19C);	// "ModRaisedUpArrw",U+A71B
+	gA71C_pua = pseudo(unicode(0xA71C), 0xF19D);	// "ModRaisedDwnArrw",U+A71C
+	gA71D_pua = pseudo(unicode(0xA71D), 0xF19E);	// "ModRaisedExclamationMrk",U+A71D
+	gA71E_pua = pseudo(unicode(0xA71E), 0xF19F);	// "ModRaisedInvExclamationMrk",U+A71E
+	g2C6D_pua = pseudo(unicode(0x2C6D), 0xF208);	// "LtnCapSmAlpha",U+2C6D
+	g2C73_pua = pseudo(unicode(0x2C73), 0xF21A);	// "LtnSmWHook",U+2C73
+	g2C72_pua = pseudo(unicode(0x2C72), 0xF21B);	// "LtnCapWHook",U+2C72
+	gA72B_pua = pseudo(unicode(0xA72B), 0xF245);	// "LtnSmTresillo",U+A72B
+	gA72D_pua = pseudo(unicode(0xA72D), 0xF246);	// "LtnSmCuatrillo",U+A72D
+	gA727_pua = pseudo(unicode(0xA727), 0xF25A);	// "LtnSmHeng",U+A727
+	g2C6E_pua = pseudo(unicode(0x2C6E), 0xF25B);	// "LtnCapMHook",U+2C6E
+	g2C71_pua = pseudo(unicode(0x2C71), 0xF25F);	// "LtnSmVRtHook",U+2C71
+	gA788_pua = pseudo(unicode(0xA788), 0xF1E7);	// "ModLowCircum",U+A788
+	gA789_pua = pseudo(unicode(0xA789), 0xF1E9);	// "ModLowColon",U+A789
+	gA78A_pua = pseudo(unicode(0xA78A), 0xF1EA);	// "ModShortEqSgn",U+A78A
+	gA78B_pua = pseudo(unicode(0xA78B), 0xF26A);	// "LtnCapSaltillo",U+A78B
+	gA78C_pua = pseudo(unicode(0xA78C), 0xF21D);	// "LtnSmSaltillo",U+A78C
+	
+c_pua = (
+	g02C0_pua	// "ModGlottalStop",U+02C0
+	g02EC_pua	// "ModVoicing",U+02EC
+	g1D50_pua	// "LtnSupSmM",U+1D50
+	g1D51_pua	// "LtnSupSmEng",U+1D51
+	g230A_pua	// "SqrTxtBracLowLft",U+230A
+	g230B_pua	// "SqrTxtBracLowRt",U+230B
+	g035C_pua	// "CombDblBreveBlw",U+035C
+	g1DC2_pua	// "CombSnakeBlw",U+1DC2
+	g1D80_pua	// "LtnSmBPalHook",U+1D80
+	g1D81_pua	// "LtnSmDPalHook",U+1D81
+	g1D82_pua	// "LtnSmFPalHook",U+1D82
+	g1D83_pua	// "LtnSmScriptGPalHook",U+1D83
+	g1D84_pua	// "LtnSmKPalHook",U+1D84
+	g1D85_pua	// "LtnSmLPalHook",U+1D85
+	g1D86_pua	// "LtnSmMPalHook",U+1D86
+	g1D87_pua	// "LtnSmNPalHook",U+1D87
+	g1D88_pua	// "LtnSmPPalHook",U+1D88
+	g1D89_pua	// "LtnSmRPalHook",U+1D89
+	g1D8A_pua	// "LtnSmSPalHook",U+1D8A
+	g1D8B_pua	// "LtnSmEshPalHook",U+1D8B
+	g1D8C_pua	// "LtnSmVPalHook",U+1D8C
+	g1D8D_pua	// "LtnSmXPalHook",U+1D8D
+	g1D8E_pua	// "LtnSmZPalHook",U+1D8E
+	g1D8F_pua	// "LtnSmARetrHook",U+1D8F
+	g1D90_pua	// "LtnSmAlphaRetrHook",U+1D90
+	g1D91_pua	// "LtnSmDTailHook",U+1D91
+	g1D92_pua	// "LtnSmERetrHook",U+1D92
+	g1D93_pua	// "LtnSmOpnERetrHook",U+1D93
+	g1D94_pua	// "LtnSmRevOpnERetrHook",U+1D94
+	g1D95_pua	// "LtnSmSchwaRetrHook",U+1D95
+	g1D96_pua	// "LtnSmIRetrHook",U+1D96
+	g1D97_pua	// "LtnSmOpnORetrHook",U+1D97
+	g1D98_pua	// "LtnSmEshHook",U+1D98
+	g1D99_pua	// "LtnSmURetrHook",U+1D99
+	g1D9A_pua	// "LtnSmEzhHook",U+1D9A
+	g1D9B_pua	// "LtnSupSmTurnedAlpha",U+1D9B
+	g1D9C_pua	// "ModSmC",U+1D9C
+	g1D9D_pua	// "LtnSupSmCCurl",U+1D9D
+	g1D9E_pua	// "ModSmEth",U+1D9E
+	g1D9F_pua	// "LtnSupSmRevOpnE",U+1D9F
+	g1DA0_pua	// "LtnSupSmF",U+1DA0
+	g1DA1_pua	// "LtnSupSmDotlessJStrk",U+1DA1
+	g1DA2_pua	// "LtnSupSmScriptG",U+1DA2
+	g1DA3_pua	// "ModSmTurnedH",U+1DA3
+	g1DA4_pua	// "LtnSupSmIStrk",U+1DA4
+	g1DA5_pua	// "ModSmIota",U+1DA5
+	g1DA6_pua	// "LtnSupSmCapI",U+1DA6
+	g1DA7_pua	// "ModSmCapIStrk",U+1DA7
+	g1DA8_pua	// "ModSmJCrossedTail",U+1DA8
+	g1DA9_pua	// "LtnSupSmLRetrHook",U+1DA9
+	g1DAA_pua	// "ModSmLPalHook",U+1DAA
+	g1DAB_pua	// "ModSmCapL",U+1DAB
+	g1DAC_pua	// "ModSmMHook",U+1DAC
+	g1DAD_pua	// "LtnSupSmTurnedMLngLeg",U+1DAD
+	g1DAE_pua	// "LtnSupSmNLftHook",U+1DAE
+	g1DAF_pua	// "ModSmNRetrHook",U+1DAF
+	g1DB0_pua	// "ModSmCapN",U+1DB0
+	g1DB1_pua	// "LtnSupSmBarredO",U+1DB1
+	g1DB2_pua	// "ModSmPhi",U+1DB2
+	g1DB3_pua	// "ModSmSHook",U+1DB3
+	g1DB4_pua	// "LtnSupSmEsh",U+1DB4
+	g1DB5_pua	// "ModSmTPalHook",U+1DB5
+	g1DB6_pua	// "LtnSupSmUBar",U+1DB6
+	g1DB7_pua	// "LtnSupSmUpsilon",U+1DB7
+	g1DB8_pua	// "ModSmCapU",U+1DB8
+	g1DB9_pua	// "ModSmVHook",U+1DB9
+	g1DBA_pua	// "LtnSupSmTurnedV",U+1DBA
+	g1DBB_pua	// "LtnSupSmZ",U+1DBB
+	g1DBC_pua	// "ModSmZRetrHook",U+1DBC
+	g1DBD_pua	// "LtnSupSmZCurl",U+1DBD
+	g1DBE_pua	// "LtnSupSmEzh",U+1DBE
+	g1DBF_pua	// "ModSmTheta",U+1DBF
+	g1D6C_pua	// "LtnSmBMiddleTilde",U+1D6C
+	g1D6D_pua	// "LtnSmDMiddleTilde",U+1D6D
+	g1D6E_pua	// "LtnSmFMiddleTilde",U+1D6E
+	g1D6F_pua	// "LtnSmMMiddleTilde",U+1D6F
+	g1D70_pua	// "LtnSmNMiddleTilde",U+1D70
+	g1D71_pua	// "LtnSmPMiddleTilde",U+1D71
+	g1D72_pua	// "LtnSmRMiddleTilde",U+1D72
+	g1D73_pua	// "LtnSmRFishhookMiddleTilde",U+1D73
+	g1D74_pua	// "LtnSmSMiddleTilde",U+1D74
+	g1D75_pua	// "LtnSmTMiddleTilde",U+1D75
+	g1D76_pua	// "LtnSmZMiddleTilde",U+1D76
+	g1D7B_pua	// "LtnSmCapIStrk",U+1D7B
+	g1D7C_pua	// "LtnSmIotaStrk",U+1D7C
+	g1D7D_pua	// "LtnSmPStrk",U+1D7D
+	g1D7E_pua	// "LtnSmCapUBar",U+1D7E
+	g1D7F_pua	// "LtnSmUpsilonStrk",U+1D7F
+	g04F6_pua	// "CyCapGheDesc",U+04F6
+	g04F7_pua	// "CySmGheDesc",U+04F7
+	g0238_pua	// "LtnSmDBDigraph",U+0238
+	g0239_pua	// "LtnSmQPDigraph",U+0239
+	g023C_pua	// "LtnSmCStrk",U+023C
+	g023D_pua	// "LtnCapLBar",U+023D
+	g023F_pua	// "LtnSmSSwashTail",U+023F
+	g0240_pua	// "LtnSmZSwashTail",U+0240
+	gA700_pua	// "ModTnYinPing",U+A700
+	gA701_pua	// "ModTnYangPing",U+A701
+	gA702_pua	// "ModTnYinShang",U+A702
+	gA703_pua	// "ModTnYangShang",U+A703
+	gA704_pua	// "ModTnYinQu",U+A704
+	gA705_pua	// "ModTnYangQu",U+A705
+	gA706_pua	// "ModTnYinRu",U+A706
+	gA707_pua	// "ModTnYangRu",U+A707
+	gA708_pua	// "DotTnLtr5",U+A708
+	gA709_pua	// "DotTnLtr4",U+A709
+	gA70A_pua	// "DotTnLtr3",U+A70A
+	gA70B_pua	// "DotTnLtr2",U+A70B
+	gA70C_pua	// "DotTnLtr1",U+A70C
+	gA70D_pua	// "DotLftStemTnLtr5",U+A70D
+	gA70E_pua	// "DotLftStemTnLtr4",U+A70E
+	gA70F_pua	// "DotLftStemTnLtr3",U+A70F
+	gA710_pua	// "DotLftStemTnLtr2",U+A710
+	gA711_pua	// "DotLftStemTnLtr1",U+A711
+	gA712_pua	// "LftStemTnLtr5",U+A712
+	gA713_pua	// "LftStemTnLtr4",U+A713
+	gA714_pua	// "LftStemTnLtr3",U+A714
+	gA715_pua	// "LftStemTnLtr2",U+A715
+	gA716_pua	// "LftStemTnLtr1",U+A716
+	g0242_pua	// "LtnSmGlottalStop",U+0242
+	g0243_pua	// "LtnCapBBarredLowStem",U+0243
+	g0244_pua	// "LtnCapUBar",U+0244
+	g0245_pua	// "LtnCapTurnedV",U+0245
+	g0246_pua	// "LtnCapEStrk",U+0246
+	g0247_pua	// "LtnSmEStrk",U+0247
+	g0248_pua	// "LtnCapJStrk",U+0248
+	g0249_pua	// "LtnSmJStrk",U+0249
+	g024A_pua	// "LtnCapSmQHookTail",U+024A
+	g024B_pua	// "LtnSmQHookTail",U+024B
+	g024C_pua	// "LtnCapRBarredStem",U+024C
+	g024D_pua	// "LtnSmRBar",U+024D
+	g024E_pua	// "LtnCapYStrk",U+024E
+	g024F_pua	// "LtnSmYStrk",U+024F
+	g04FC_pua	// "CyCapHaHook",U+04FC
+	g04FD_pua	// "CySmHaHook",U+04FD
+	g04FE_pua	// "CyCapHaStrk",U+04FE
+	g04FF_pua	// "CySmHaStrk",U+04FF
+	g0510_pua	// "CyCapRevZe",U+0510
+	g0511_pua	// "CySmRevZe",U+0511
+	g0512_pua	// "CyCapElHook",U+0512
+	g0513_pua	// "CySmElHook",U+0513
+	g1DC4_pua	// "CombMacron_Acute",U+1DC4
+	g1DC5_pua	// "CombGrave_Macron",U+1DC5
+	g1DC6_pua	// "CombMacron_Grave",U+1DC6
+	g1DC7_pua	// "CombAcute_Macron",U+1DC7
+	g1DC8_pua	// "CombGrave_Acute_Grave",U+1DC8
+	g1DC9_pua	// "CombAcute_Grave_Acute",U+1DC9
+	g1DCA_pua	// "CombLtnSmRBlw",U+1DCA
+	g2C60_pua	// "LtnCapDblBarredL",U+2C60
+	g2C61_pua	// "LtnSmDblBarredL",U+2C61
+	g2C62_pua	// "LtnCapLMiddleTilde",U+2C62
+	g2C63_pua	// "LtnCapPStrk",U+2C63
+	g2C64_pua	// "LtnCapRHookTail",U+2C64
+	g2C67_pua	// "LtnCapHDesc",U+2C67
+	g2C68_pua	// "LtnSmHDesc",U+2C68
+	g2C69_pua	// "LtnCapKDesc",U+2C69
+	g2C6A_pua	// "LtnSmKDesc",U+2C6A
+	g2C6B_pua	// "LtnCapZDesc",U+2C6B
+	g2C6C_pua	// "LtnSmZDesc",U+2C6C
+	g2C74_pua	// "LtnSmVCurl",U+2C74
+	g02CB_pua	// "ModChinantecTnMrkBackslash",U+02CB
+	g02C8_pua	// "ModChinantecTnMrkVertBar",U+02C8
+	g02CA_pua	// "ModChinantecTnMrkSlash",U+02CA
+	gA717_pua	// "ModChinantecTnMrkDotVertBar",U+A717
+	gA718_pua	// "ModChinantecTnMrkDotSlash",U+A718
+	gA719_pua	// "ModChinantecTnMrkDotHorizBar",U+A719
+	gA71A_pua	// "ModChinantecTnMrkLowRtCorner",U+A71A
+	gA71B_pua	// "ModRaisedUpArrw",U+A71B
+	gA71C_pua	// "ModRaisedDwnArrw",U+A71C
+	gA71D_pua	// "ModRaisedExclamationMrk",U+A71D
+	gA71E_pua	// "ModRaisedInvExclamationMrk",U+A71E
+	g2C6D_pua	// "LtnCapSmAlpha",U+2C6D
+	g2C73_pua	// "LtnSmWHook",U+2C73
+	g2C72_pua	// "LtnCapWHook",U+2C72
+	gA72B_pua	// "LtnSmTresillo",U+A72B
+	gA72D_pua	// "LtnSmCuatrillo",U+A72D
+	gA727_pua	// "LtnSmHeng",U+A727
+	g2C6E_pua	// "LtnCapMHook",U+2C6E
+	g2C71_pua	// "LtnSmVRtHook",U+2C71
+	gA788_pua	// "ModLowCircum",U+A788
+	gA789_pua	// "ModLowColon",U+A789
+	gA78A_pua	// "ModShortEqSgn",U+A78A
+	gA78B_pua	// "LtnCapSaltillo",U+A78B
+	gA78C_pua	// "LtnSmSaltillo",U+A78C
+);
+
+
+c_noPua = (
+	unicode(0x02C0)	// "ModGlottalStop",U+F1C8,
+	unicode(0x02EC)	// "ModVoicing",U+F1E8,
+	unicode(0x1D50)	// "LtnSupSmM",U+F180,
+	unicode(0x1D51)	// "LtnSupSmEng",U+F182,
+	unicode(0x230A)	// "SqrTxtBracLowLft",U+F134,
+	unicode(0x230B)	// "SqrTxtBracLowRt",U+F135,
+	unicode(0x035C)	// "CombDblBreveBlw",U+F176,
+	unicode(0x1DC2)	// "CombSnakeBlw",U+F170,
+	unicode(0x1D80)	// "LtnSmBPalHook",U+F224,
+	unicode(0x1D81)	// "LtnSmDPalHook",U+F226,
+	unicode(0x1D82)	// "LtnSmFPalHook",U+F227,
+	unicode(0x1D83)	// "LtnSmScriptGPalHook",U+F228,
+	unicode(0x1D84)	// "LtnSmKPalHook",U+F229,
+	unicode(0x1D85)	// "LtnSmLPalHook",U+F22A,
+	unicode(0x1D86)	// "LtnSmMPalHook",U+F22B,
+	unicode(0x1D87)	// "LtnSmNPalHook",U+F22C,
+	unicode(0x1D88)	// "LtnSmPPalHook",U+F22D,
+	unicode(0x1D89)	// "LtnSmRPalHook",U+F22E,
+	unicode(0x1D8A)	// "LtnSmSPalHook",U+F22F,
+	unicode(0x1D8B)	// "LtnSmEshPalHook",U+F230,
+	unicode(0x1D8C)	// "LtnSmVPalHook",U+F231,
+	unicode(0x1D8D)	// "LtnSmXPalHook",U+F232,
+	unicode(0x1D8E)	// "LtnSmZPalHook",U+F233,
+	unicode(0x1D8F)	// "LtnSmARetrHook",U+F236,
+	unicode(0x1D90)	// "LtnSmAlphaRetrHook",U+F237,
+	unicode(0x1D91)	// "LtnSmDTailHook",U+F20C,
+	unicode(0x1D92)	// "LtnSmERetrHook",U+F238,
+	unicode(0x1D93)	// "LtnSmOpnERetrHook",U+F239,
+	unicode(0x1D94)	// "LtnSmRevOpnERetrHook",U+F23A,
+	unicode(0x1D95)	// "LtnSmSchwaRetrHook",U+F23B,
+	unicode(0x1D96)	// "LtnSmIRetrHook",U+F23C,
+	unicode(0x1D97)	// "LtnSmOpnORetrHook",U+F23D,
+	unicode(0x1D98)	// "LtnSmEshHook",U+F216,
+	unicode(0x1D99)	// "LtnSmURetrHook",U+F23E,
+	unicode(0x1D9A)	// "LtnSmEzhHook",U+F21C,
+	unicode(0x1D9B)	// "LtnSupSmTurnedAlpha",U+F1A0,
+	unicode(0x1D9C)	// "ModSmC",U+F1B9,
+	unicode(0x1D9D)	// "LtnSupSmCCurl",U+F1A2,
+	unicode(0x1D9E)	// "ModSmEth",U+F1BA,
+	unicode(0x1D9F)	// "LtnSupSmRevOpnE",U+F18B,
+	unicode(0x1DA0)	// "LtnSupSmF",U+F1A5,
+	unicode(0x1DA1)	// "LtnSupSmDotlessJStrk",U+F1A9,
+	unicode(0x1DA2)	// "LtnSupSmScriptG",U+F1A6,
+	unicode(0x1DA3)	// "ModSmTurnedH",U+F1BB,
+	unicode(0x1DA4)	// "LtnSupSmIStrk",U+F1A7,
+	unicode(0x1DA5)	// "ModSmIota",U+F1CA,
+	unicode(0x1DA6)	// "LtnSupSmCapI",U+F1A8,
+	unicode(0x1DA7)	// "ModSmCapIStrk",U+F1CB,
+	unicode(0x1DA8)	// "ModSmJCrossedTail",U+F1BD,
+	unicode(0x1DA9)	// "LtnSupSmLRetrHook",U+F1AA,
+	unicode(0x1DAA)	// "ModSmLPalHook",U+F1BE,
+	unicode(0x1DAB)	// "ModSmCapL",U+F1BF,
+	unicode(0x1DAC)	// "ModSmMHook",U+F1C0,
+	unicode(0x1DAD)	// "LtnSupSmTurnedMLngLeg",U+F1B2,
+	unicode(0x1DAE)	// "LtnSupSmNLftHook",U+F181,
+	unicode(0x1DAF)	// "ModSmNRetrHook",U+F1C1,
+	unicode(0x1DB0)	// "ModSmCapN",U+F1C2,
+	unicode(0x1DB1)	// "LtnSupSmBarredO",U+F1AC,
+	unicode(0x1DB2)	// "ModSmPhi",U+F1C3,
+	unicode(0x1DB3)	// "ModSmSHook",U+F1C4,
+	unicode(0x1DB4)	// "LtnSupSmEsh",U+F1AF,
+	unicode(0x1DB5)	// "ModSmTPalHook",U+F1C5,
+	unicode(0x1DB6)	// "LtnSupSmUBar",U+F1B0,
+	unicode(0x1DB7)	// "LtnSupSmUpsilon",U+F1B1,
+	unicode(0x1DB8)	// "ModSmCapU",U+F1CC,
+	unicode(0x1DB9)	// "ModSmVHook",U+F1C6,
+	unicode(0x1DBA)	// "LtnSupSmTurnedV",U+F1B3,
+	unicode(0x1DBB)	// "LtnSupSmZ",U+F1B6,
+	unicode(0x1DBC)	// "ModSmZRetrHook",U+F1C7,
+	unicode(0x1DBD)	// "LtnSupSmZCurl",U+F1B7,
+	unicode(0x1DBE)	// "LtnSupSmEzh",U+F1B8,
+	unicode(0x1DBF)	// "ModSmTheta",U+F1C9,
+	unicode(0x1D6C)	// "LtnSmBMiddleTilde",U+F249,
+	unicode(0x1D6D)	// "LtnSmDMiddleTilde",U+F24A,
+	unicode(0x1D6E)	// "LtnSmFMiddleTilde",U+F24B,
+	unicode(0x1D6F)	// "LtnSmMMiddleTilde",U+F24C,
+	unicode(0x1D70)	// "LtnSmNMiddleTilde",U+F24D,
+	unicode(0x1D71)	// "LtnSmPMiddleTilde",U+F24E,
+	unicode(0x1D72)	// "LtnSmRMiddleTilde",U+F24F,
+	unicode(0x1D73)	// "LtnSmRFishhookMiddleTilde",U+F250,
+	unicode(0x1D74)	// "LtnSmSMiddleTilde",U+F251,
+	unicode(0x1D75)	// "LtnSmTMiddleTilde",U+F252,
+	unicode(0x1D76)	// "LtnSmZMiddleTilde",U+F253,
+	unicode(0x1D7B)	// "LtnSmCapIStrk",U+F254,
+	unicode(0x1D7C)	// "LtnSmIotaStrk",U+F25D,
+	unicode(0x1D7D)	// "LtnSmPStrk",U+F210,
+	unicode(0x1D7E)	// "LtnSmCapUBar",U+F23F,
+	unicode(0x1D7F)	// "LtnSmUpsilonStrk",U+F255,
+	unicode(0x04F6)	// "CyCapGheDesc",U+F320,
+	unicode(0x04F7)	// "CySmGheDesc",U+F321,
+	unicode(0x0238)	// "LtnSmDBDigraph",U+F240,
+	unicode(0x0239)	// "LtnSmQPDigraph",U+F241,
+	unicode(0x023C)	// "LtnSmCStrk",U+F20B,
+	unicode(0x023D)	// "LtnCapLBar",U+F21F,
+	unicode(0x023F)	// "LtnSmSSwashTail",U+F256,
+	unicode(0x0240)	// "LtnSmZSwashTail",U+F257,
+	unicode(0xA700)	// "ModTnYinPing",U+F1DF,
+	unicode(0xA701)	// "ModTnYangPing",U+F1E3,
+	unicode(0xA702)	// "ModTnYinShang",U+F1E0,
+	unicode(0xA703)	// "ModTnYangShang",U+F1E4,
+	unicode(0xA704)	// "ModTnYinQu",U+F1E1,
+	unicode(0xA705)	// "ModTnYangQu",U+F1E5,
+	unicode(0xA706)	// "ModTnYinRu",U+F1E2,
+	unicode(0xA707)	// "ModTnYangRu",U+F1E6,
+	unicode(0xA708)	// "DotTnLtr5",U+F1D5,
+	unicode(0xA709)	// "DotTnLtr4",U+F1D6,
+	unicode(0xA70A)	// "DotTnLtr3",U+F1D7,
+	unicode(0xA70B)	// "DotTnLtr2",U+F1D8,
+	unicode(0xA70C)	// "DotTnLtr1",U+F1D9,
+	unicode(0xA70D)	// "DotLftStemTnLtr5",U+F1DA,
+	unicode(0xA70E)	// "DotLftStemTnLtr4",U+F1DB,
+	unicode(0xA70F)	// "DotLftStemTnLtr3",U+F1DC,
+	unicode(0xA710)	// "DotLftStemTnLtr2",U+F1DD,
+	unicode(0xA711)	// "DotLftStemTnLtr1",U+F1DE,
+	unicode(0xA712)	// "LftStemTnLtr5",U+F1D0,
+	unicode(0xA713)	// "LftStemTnLtr4",U+F1D1,
+	unicode(0xA714)	// "LftStemTnLtr3",U+F1D2,
+	unicode(0xA715)	// "LftStemTnLtr2",U+F1D3,
+	unicode(0xA716)	// "LftStemTnLtr1",U+F1D4,
+	unicode(0x0242)	// "LtnSmGlottalStop",U+F21E,
+	unicode(0x0243)	// "LtnCapBBarredLowStem",U+F20A,
+	unicode(0x0244)	// "LtnCapUBar",U+F218,
+	unicode(0x0245)	// "LtnCapTurnedV",U+F219,
+	unicode(0x0246)	// "LtnCapEStrk",U+F221,
+	unicode(0x0247)	// "LtnSmEStrk",U+F220,
+	unicode(0x0248)	// "LtnCapJStrk",U+F261,
+	unicode(0x0249)	// "LtnSmJStrk",U+F260,
+	unicode(0x024A)	// "LtnCapSmQHookTail",U+F212,
+	unicode(0x024B)	// "LtnSmQHookTail",U+F211,
+	unicode(0x024C)	// "LtnCapRBarredStem",U+F214,
+	unicode(0x024D)	// "LtnSmRBar",U+F213,
+	unicode(0x024E)	// "LtnCapYStrk",U+F244,
+	unicode(0x024F)	// "LtnSmYStrk",U+F243,
+	unicode(0x04FC)	// "CyCapHaHook",U+F324,
+	unicode(0x04FD)	// "CySmHaHook",U+F325,
+	unicode(0x04FE)	// "CyCapHaStrk",U+F328,
+	unicode(0x04FF)	// "CySmHaStrk",U+F329,
+	unicode(0x0510)	// "CyCapRevZe",U+F32A,
+	unicode(0x0511)	// "CySmRevZe",U+F32B,
+	unicode(0x0512)	// "CyCapElHook",U+F322,
+	unicode(0x0513)	// "CySmElHook",U+F323,
+	unicode(0x1DC4)	// "CombMacron_Acute",U+F171,
+	unicode(0x1DC5)	// "CombGrave_Macron",U+F172,
+	unicode(0x1DC6)	// "CombMacron_Grave",U+F173,
+	unicode(0x1DC7)	// "CombAcute_Macron",U+F174,
+	unicode(0x1DC8)	// "CombGrave_Acute_Grave",U+F175,
+	unicode(0x1DC9)	// "CombAcute_Grave_Acute",U+F179,
+	unicode(0x1DCA)	// "CombLtnSmRBlw",U+F178,
+	unicode(0x2C60)	// "LtnCapDblBarredL",U+F20F,
+	unicode(0x2C61)	// "LtnSmDblBarredL",U+F20E,
+	unicode(0x2C62)	// "LtnCapLMiddleTilde",U+F242,
+	unicode(0x2C63)	// "LtnCapPStrk",U+F25C,
+	unicode(0x2C64)	// "LtnCapRHookTail",U+F215,
+	unicode(0x2C67)	// "LtnCapHDesc",U+F223,
+	unicode(0x2C68)	// "LtnSmHDesc",U+F222,
+	unicode(0x2C69)	// "LtnCapKDesc",U+F263,
+	unicode(0x2C6A)	// "LtnSmKDesc",U+F262,
+	unicode(0x2C6B)	// "LtnCapZDesc",U+F265,
+	unicode(0x2C6C)	// "LtnSmZDesc",U+F264,
+	unicode(0x2C74)	// "LtnSmVCurl",U+F25E,
+	unicode(0x02CB)	// "ModChinantecTnMrkBackslash",U+F195,
+	unicode(0x02C8)	// "ModChinantecTnMrkVertBar",U+F196,
+	unicode(0x02CA)	// "ModChinantecTnMrkSlash",U+F197,
+	unicode(0xA717)	// "ModChinantecTnMrkDotVertBar",U+F198,
+	unicode(0xA718)	// "ModChinantecTnMrkDotSlash",U+F199,
+	unicode(0xA719)	// "ModChinantecTnMrkDotHorizBar",U+F19A,
+	unicode(0xA71A)	// "ModChinantecTnMrkLowRtCorner",U+F19B,
+	unicode(0xA71B)	// "ModRaisedUpArrw",U+F19C,
+	unicode(0xA71C)	// "ModRaisedDwnArrw",U+F19D,
+	unicode(0xA71D)	// "ModRaisedExclamationMrk",U+F19E,
+	unicode(0xA71E)	// "ModRaisedInvExclamationMrk",U+F19F,
+	unicode(0x2C6D)	// "LtnCapSmAlpha",U+F208,
+	unicode(0x2C73)	// "LtnSmWHook",U+F21A,
+	unicode(0x2C72)	// "LtnCapWHook",U+F21B,
+	unicode(0xA72B)	// "LtnSmTresillo",U+F245,
+	unicode(0xA72D)	// "LtnSmCuatrillo",U+F246,
+	unicode(0xA727)	// "LtnSmHeng",U+F25A,
+	unicode(0x2C6E)	// "LtnCapMHook",U+F25B,
+	unicode(0x2C71)	// "LtnSmVRtHook",U+F25F,
+	unicode(0xA788)	// "ModLowCircum",U+F1E7,
+	unicode(0xA789)	// "ModLowColon",U+F1E9,
+	unicode(0xA78A)	// "ModShortEqSgn",U+F1EA,
+	unicode(0xA78B)	// "LtnCapSaltillo",U+F26A,
+	unicode(0xA78C)	// "LtnSmSaltillo",U+F21D
+);
+
+endtable; // glyph
