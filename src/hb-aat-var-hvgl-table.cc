@@ -454,7 +454,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (has_row_rotation &&
 	  extremum_rotation_indices->column == column)
       {
-	extremum_rotation_delta = *extremum_rotation_deltas;
+	extremum_rotation_delta = (double) *extremum_rotation_deltas;
 	extremum_rotation_count--;
 	extremum_rotation_indices++;
 	extremum_rotation_deltas++;
