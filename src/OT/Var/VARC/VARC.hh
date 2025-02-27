@@ -48,7 +48,7 @@ struct VarComponent
   get_path_at (hb_font_t *font,
 	       hb_codepoint_t parent_gid,
 	       hb_draw_session_t *draw_session,
-	       hb_extents_t *extents,
+	       hb_extents_t<> *extents,
 	       hb_array_t<const int> coords,
 	       hb_transform_t<> transform,
 	       hb_ubytes_t record,
@@ -65,7 +65,7 @@ struct VarCompositeGlyph
   get_path_at (hb_font_t *font,
 	       hb_codepoint_t glyph,
 	       hb_draw_session_t *draw_session,
-	       hb_extents_t *extents,
+	       hb_extents_t<> *extents,
 	       hb_array_t<const int> coords,
 	       hb_transform_t<> transform,
 	       hb_ubytes_t record,
@@ -99,7 +99,7 @@ struct VARC
   get_path_at (hb_font_t *font,
 	       hb_codepoint_t glyph,
 	       hb_draw_session_t *draw_session,
-	       hb_extents_t *extents,
+	       hb_extents_t<> *extents,
 	       hb_array_t<const int> coords,
 	       hb_transform_t<> transform,
 	       hb_codepoint_t parent_glyph,
@@ -134,7 +134,7 @@ struct VARC
   bool
   get_extents (hb_font_t *font,
 	       hb_codepoint_t gid,
-	       hb_extents_t *extents,
+	       hb_extents_t<> *extents,
 	       hb_glyf_scratch_t &scratch) const
   {
     hb_decycler_t decycler;
@@ -205,7 +205,7 @@ struct VARC
     {
       if (!table->has_data ()) return false;
 
-      hb_extents_t f_extents;
+      hb_extents_t<> f_extents;
 
       auto *scratch = acquire_scratch ();
       if (unlikely (!scratch)) return true;

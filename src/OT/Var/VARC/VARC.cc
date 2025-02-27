@@ -131,7 +131,7 @@ hb_ubytes_t
 VarComponent::get_path_at (hb_font_t *font,
 			   hb_codepoint_t parent_gid,
 			   hb_draw_session_t *draw_session,
-			   hb_extents_t *extents,
+			   hb_extents_t<> *extents,
 			   hb_array_t<const int> coords,
 			   hb_transform_t<> total_transform,
 			   hb_ubytes_t total_record,
@@ -342,7 +342,7 @@ bool
 VARC::get_path_at (hb_font_t *font,
 		   hb_codepoint_t glyph,
 		   hb_draw_session_t *draw_session,
-		   hb_extents_t *extents,
+		   hb_extents_t<> *extents,
 		   hb_array_t<const int> coords,
 		   hb_transform_t<> transform,
 		   hb_codepoint_t parent_glyph,
@@ -389,7 +389,7 @@ VARC::get_path_at (hb_font_t *font,
 #endif
 	return false;
 
-      hb_extents_t comp_extents (glyph_extents);
+      hb_extents_t<> comp_extents (glyph_extents);
       transform.transform_extents (comp_extents);
       extents->union_ (comp_extents);
     }
