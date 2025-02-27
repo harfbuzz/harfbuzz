@@ -550,6 +550,7 @@ struct hvgl
 	       hb_codepoint_t gid,
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
+	       hb_hvgl_scratch_t &scratch,
 	       signed *nodes_left = nullptr,
 	       signed *edges_left = nullptr,
 	       signed depth_left = HB_MAX_NESTING_LEVEL) const
@@ -564,11 +565,9 @@ struct hvgl
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (gid, partCount);
 
-    hb_hvgl_scratch_t scratch;
-
     auto &coords_f = scratch.coords_f;
-
-    coords_f.resize_exact (part.get_total_num_axes ());
+    coords_f.clear ();
+    coords_f.resize (part.get_total_num_axes ());
     if (unlikely (coords_f.in_error ())) return true;
     unsigned count = hb_min (coords.length, coords_f.length);
     for (unsigned i = 0; i < count; i++)
@@ -576,10 +575,10 @@ struct hvgl
 
     auto &transforms = scratch.transforms;
     unsigned total_num_parts = part.get_total_num_parts ();
-    transforms.resize_exact (total_num_parts);
+    transforms.clear ();
+    transforms.resize (total_num_parts);
     if (unlikely (transforms.in_error ())) return true;
     transforms[0] = hb_transform_t<double>{(double) font->x_multf, 0, 0, (double) font->y_multf, 0, 0};
-
 
     signed stack_nodes_left = total_num_parts;
     if (nodes_left == nullptr)
@@ -593,12 +592,6 @@ struct hvgl
     scratch.points.alloc (128);
 
     return get_part_path_at (gid, draw_session, coords_f, transforms, scratch, nodes_left, edges_left, depth_left);
-  }
-
-  bool
-  get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
-  {
-    return get_path_at (font, gid, draw_session, hb_array (font->coords, font->num_coords));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -617,6 +610,72 @@ struct hvgl
     return_trace (true);
   }
 
+  struct accelerator_t
+  {
+    accelerator_t (hb_face_t *face)
+    {
+      table = hb_sanitize_context_t ().reference_table<hvgl> (face);
+    }
+    ~accelerator_t ()
+    {
+      auto *scratch = cached_scratch.get_relaxed ();
+      if (scratch)
+      {
+	scratch->~hb_hvgl_scratch_t ();
+	hb_free (scratch);
+      }
+
+      table.destroy ();
+    }
+
+    bool
+    get_path_at (hb_font_t *font,
+		 hb_codepoint_t gid,
+		 hb_draw_session_t &draw_session,
+		 hb_array_t<const int> coords) const
+    {
+      if (!table->has_data ()) return false;
+
+      hb_hvgl_scratch_t *scratch;
+
+      // Borrow the cached strach buffer.
+      {
+	scratch = cached_scratch.get_acquire ();
+	if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
+	{
+	  scratch = (hb_hvgl_scratch_t *) hb_calloc (1, sizeof (hb_hvgl_scratch_t));
+	  if (unlikely (!scratch))
+	    return true;
+	}
+      }
+
+      bool ret = table->get_path_at (font, gid, draw_session, coords, *scratch);
+
+      // Put it back.
+      if (!cached_scratch.cmpexch (nullptr, scratch))
+      {
+        scratch->~hb_hvgl_scratch_t ();
+	hb_free (scratch);
+      }
+
+      return ret;
+    }
+
+    bool
+    get_path (hb_font_t *font,
+	      hb_codepoint_t gid,
+	      hb_draw_session_t &draw_session) const
+    {
+      return get_path_at (font, gid, draw_session, hb_array (font->coords, font->num_coords));
+    }
+
+    private:
+    hb_blob_ptr_t<hvgl> table;
+    hb_atomic_ptr_t<hb_hvgl_scratch_t> cached_scratch;
+  };
+
+  bool has_data () const { return versionMajor != 0; }
+
   protected:
   HBUINT16LE	versionMajor;	/* Major version of the hvgl table, currently 3 */
   HBUINT16LE	versionMinor;	/* Minor version of the hvgl table, currently 1 */
@@ -627,6 +686,10 @@ struct hvgl
   HBUINT32LE	reserved;	/* Reserved; currently zero */
   public:
   DEFINE_SIZE_STATIC (24);
+};
+
+struct hvgl_accelerator_t : hvgl::accelerator_t {
+  hvgl_accelerator_t (hb_face_t *face) : hvgl::accelerator_t (face) {}
 };
 
 } // namespace AAT

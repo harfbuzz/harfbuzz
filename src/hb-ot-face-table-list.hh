@@ -134,7 +134,7 @@ HB_OT_TABLE (AAT, feat)
 // HB_OT_TABLE (AAT, opbd)
 #endif
 #ifndef HB_NO_VAR_HVF
-HB_OT_CORE_TABLE (AAT, hvgl)
+HB_OT_ACCELERATOR (AAT, hvgl)
 #endif
 
 /* OpenType color fonts. */
