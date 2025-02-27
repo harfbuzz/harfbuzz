@@ -91,7 +91,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
 		        hb_array_t<const double> coords,
 			hb_array_t<hb_transform_t<double>> transforms,
-			hb_vector_t<double> &scratch,
+			hb_hvgl_scratch_t &scratch,
 			signed *nodes_left,
 		        signed *edges_left,
 		        signed depth_left) const
@@ -104,7 +104,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, this);
 
   auto a = coordinates.get_coords (segmentCount);
-  auto &v = scratch;
+  auto &v = scratch.points;
 
 #ifdef __BYTE_ORDER
   constexpr bool le = __BYTE_ORDER == __LITTLE_ENDIAN;
@@ -540,7 +540,7 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
 			    hb_draw_session_t &draw_session,
 			    hb_array_t<double> coords,
 			    hb_array_t<hb_transform_t<double>> transforms,
-			    hb_vector_t<double> &scratch,
+			    hb_hvgl_scratch_t &scratch,
 			    signed *nodes_left,
 			    signed *edges_left,
 			    signed depth_left) const

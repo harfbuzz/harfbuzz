@@ -18,6 +18,13 @@ namespace AAT {
 
 using namespace OT;
 
+struct hb_hvgl_scratch_t
+{
+  hb_vector_t<double> coords_f;
+  hb_vector_t<hb_transform_t<double>> transforms;
+  hb_vector_t<double> points;
+};
+
 struct hvgl;
 
 namespace hvgl_impl {
@@ -103,7 +110,7 @@ struct PartShape
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const double> coords,
 	       hb_array_t<hb_transform_t<double>> transforms,
-	       hb_vector_t<double> &scratch,
+	       hb_hvgl_scratch_t &scratch,
 	       signed *nodes_left,
 	       signed *edges_left,
 	       signed depth_left) const;
@@ -330,7 +337,7 @@ struct PartComposite
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<double> coords,
 	       hb_array_t<hb_transform_t<double>> transforms,
-	       hb_vector_t<double> &scratch,
+	       hb_hvgl_scratch_t &scratch,
 	       signed *nodes_left,
 	       signed *edges_left,
 	       signed depth_left) const;
@@ -407,7 +414,7 @@ struct Part
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<double> coords,
 	       hb_array_t<hb_transform_t<double>> transforms,
-	       hb_vector_t<double> &scratch,
+	       hb_hvgl_scratch_t &scratch,
 	       signed *nodes_left,
 	       signed *edges_left,
 	       signed depth_left) const
@@ -512,7 +519,7 @@ struct hvgl
 		    hb_draw_session_t &draw_session,
 		    hb_array_t<double> coords,
 		    hb_array_t<hb_transform_t<double>> transforms,
-		    hb_vector_t<double> &scratch,
+		    hb_hvgl_scratch_t &scratch,
 		    signed *nodes_left,
 		    signed *edges_left,
 		    signed depth_left) const
@@ -557,14 +564,17 @@ struct hvgl
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (gid, partCount);
 
-    hb_vector_t<double> coords_f;
+    hb_hvgl_scratch_t scratch;
+
+    auto &coords_f = scratch.coords_f;
+
     coords_f.resize_exact (part.get_total_num_axes ());
     if (unlikely (coords_f.in_error ())) return true;
     unsigned count = hb_min (coords.length, coords_f.length);
     for (unsigned i = 0; i < count; i++)
       coords_f.arrayZ[i] = double (coords.arrayZ[i]) * (1. / (1 << 14));
 
-    hb_vector_t<hb_transform_t<double>> transforms;
+    auto &transforms = scratch.transforms;
     unsigned total_num_parts = part.get_total_num_parts ();
     transforms.resize_exact (total_num_parts);
     if (unlikely (transforms.in_error ())) return true;
@@ -580,8 +590,7 @@ struct hvgl
       return true;
     }
 
-    hb_vector_t<double> scratch;
-    scratch.alloc (128);
+    scratch.points.alloc (128);
 
     return get_part_path_at (gid, draw_session, coords_f, transforms, scratch, nodes_left, edges_left, depth_left);
   }
