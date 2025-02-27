@@ -868,6 +868,24 @@ hb_directwrite_face_create (IDWriteFontFace *dw_face)
 }
 
 /**
+* hb_directwrite_face_get_dw_font_face:
+* @face: a #hb_face_t object
+*
+* Gets the DirectWrite IDWriteFontFace associated with @face.
+*
+* Return value: DirectWrite IDWriteFontFace object corresponding to the given input
+*
+* XSince: REPLACEME
+**/
+IDWriteFontFace *
+hb_directwrite_face_get_dw_font_face (hb_face_t *face)
+{
+  return face->data.directwrite->fontFace;
+}
+
+#ifndef HB_DISABLE_DEPRECATED
+
+/**
 * hb_directwrite_face_get_font_face:
 * @face: a #hb_face_t object
 *
@@ -876,12 +894,15 @@ hb_directwrite_face_create (IDWriteFontFace *dw_face)
 * Return value: DirectWrite IDWriteFontFace object corresponding to the given input
 *
 * Since: 2.5.0
+* XDeprecated: REPLACEME: Use hb_directwrite_face_get_dw_font_face() instead
 **/
 IDWriteFontFace *
 hb_directwrite_face_get_font_face (hb_face_t *face)
 {
-  return face->data.directwrite->fontFace;
+  return hb_directwrite_face_get_dw_font_face (face);
 }
+
+#endif
 
 /**
  * hb_directwrite_font_create:
