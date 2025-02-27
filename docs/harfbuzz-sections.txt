@@ -350,6 +350,7 @@ hb_coretext_font_set_funcs
 <SECTION>
 <FILE>hb-directwrite</FILE>
 hb_directwrite_face_create
+hb_directwrite_face_get_dw_font_face
 hb_directwrite_face_get_font_face
 hb_directwrite_font_create
 hb_directwrite_font_get_dw_font
