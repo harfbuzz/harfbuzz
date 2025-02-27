@@ -551,16 +551,11 @@ struct hvgl
 	       hb_draw_session_t &draw_session,
 	       hb_array_t<const int> coords,
 	       hb_hvgl_scratch_t &scratch,
-	       signed *nodes_left = nullptr,
-	       signed *edges_left = nullptr,
-	       signed depth_left = HB_MAX_NESTING_LEVEL) const
+	       signed *nodes_left,
+	       signed *edges_left,
+	       signed depth_left) const
   {
     if (unlikely (gid >= numGlyphs)) return false;
-
-    hb_set_t stack_set;
-    signed stack_edges = HB_MAX_GRAPH_EDGE_COUNT;
-    if (edges_left == nullptr)
-      edges_left = &stack_edges;
 
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (gid, partCount);
@@ -649,7 +644,8 @@ struct hvgl
 	}
       }
 
-      bool ret = table->get_path_at (font, gid, draw_session, coords, *scratch);
+      int edges = HB_MAX_GRAPH_EDGE_COUNT;
+      bool ret = table->get_path_at (font, gid, draw_session, coords, *scratch, nullptr, &edges, HB_MAX_NESTING_LEVEL);
 
       // Put it back.
       if (!cached_scratch.cmpexch (nullptr, scratch))
