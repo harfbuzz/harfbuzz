@@ -3,7 +3,6 @@
 
 
 #include "../../hb-open-type.hh"
-#include "../../hb-decycler.hh"
 
 #include "GlyphHeader.hh"
 #include "SimpleGlyph.hh"
@@ -315,7 +314,6 @@ struct Glyph
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
 		   hb_array_t<const int> coords = hb_array_t<const int> (),
-		   hb_decycler_t *decycler = nullptr,
 		   unsigned int depth = 0,
 		   unsigned *edge_count = nullptr) const
   {
@@ -421,11 +419,7 @@ struct Glyph
       break;
     case COMPOSITE:
     {
-      hb_decycler_t decycler_stack; // TODO Move out of here
-      if (!decycler)
-	decycler = &decycler_stack;
-
-      hb_decycler_node_t decycler_node (*decycler);
+      hb_decycler_node_t decycler_node (scratch.decycler);
 
       unsigned int comp_index = 0;
       for (auto &item : get_composite_iterator ())
@@ -453,7 +447,6 @@ struct Glyph
 						    use_my_metrics,
 						    phantom_only,
 						    coords,
-						    decycler,
 						    depth + 1,
 						    edge_count)))
 	{

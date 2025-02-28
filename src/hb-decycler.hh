@@ -89,7 +89,7 @@ struct hb_decycler_t
   friend struct hb_decycler_node_t;
 
   private:
-  bool tortoise_asleep = true;
+  bool tortoise_awake = false;
   hb_decycler_node_t *tortoise = nullptr;
   hb_decycler_node_t *hare = nullptr;
 };
@@ -100,15 +100,18 @@ struct hb_decycler_node_t
   {
     u.decycler = &decycler;
 
-    decycler.tortoise_asleep = !decycler.tortoise_asleep;
+    decycler.tortoise_awake = !decycler.tortoise_awake;
 
     if (!decycler.tortoise)
     {
       // First node.
+      assert (decycler.tortoise_awake);
+      assert (!decycler.hare);
       decycler.tortoise = decycler.hare = this;
       return;
     }
-    if (!decycler.tortoise_asleep)
+
+    if (decycler.tortoise_awake)
       decycler.tortoise = decycler.tortoise->u.next; // Time to move.
 
     this->prev = decycler.hare;
@@ -128,10 +131,10 @@ struct hb_decycler_node_t
       prev->u.decycler = &decycler;
 
     assert (decycler.tortoise);
-    if (!decycler.tortoise_asleep)
+    if (decycler.tortoise_awake)
       decycler.tortoise = decycler.tortoise->prev;
 
-    decycler.tortoise_asleep = !decycler.tortoise_asleep;
+    decycler.tortoise_awake = !decycler.tortoise_awake;
   }
 
   bool visit (uintptr_t value_)

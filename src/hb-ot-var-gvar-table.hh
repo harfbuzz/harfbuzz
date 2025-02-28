@@ -28,6 +28,7 @@
 #ifndef HB_OT_VAR_GVAR_TABLE_HH
 #define HB_OT_VAR_GVAR_TABLE_HH
 
+#include "hb-decycler.hh"
 #include "hb-open-type.hh"
 #include "hb-ot-var-common.hh"
 
@@ -43,6 +44,7 @@ struct hb_glyf_scratch_t
   // glyf
   contour_point_vector_t all_points;
   contour_point_vector_t comp_points;
+  hb_decycler_t decycler;
 
   // gvar
   contour_point_vector_t orig_points;
