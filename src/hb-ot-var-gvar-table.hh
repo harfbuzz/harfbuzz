@@ -775,8 +775,8 @@ struct gvar_GVAR
 	      for (unsigned int i = phantom_only ? count - 4 : 0; i < count; i++)
 	      {
 		auto &delta = deltas.arrayZ[i];
-		delta.x += x_deltas.arrayZ[i] * scalar;
-		delta.y += y_deltas.arrayZ[i] * scalar;
+		delta.add_delta (x_deltas.arrayZ[i] * scalar,
+				 y_deltas.arrayZ[i] * scalar);
 	      }
 	    else
 	      for (unsigned int i = 0; i < num_deltas; i++)
@@ -786,8 +786,8 @@ struct gvar_GVAR
 		if (phantom_only && pt_index < count - 4) continue;
 		auto &delta = deltas.arrayZ[pt_index];
 		delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
-		delta.x += x_deltas.arrayZ[i] * scalar;
-		delta.y += y_deltas.arrayZ[i] * scalar;
+		delta.add_delta (x_deltas.arrayZ[i] * scalar,
+				 y_deltas.arrayZ[i] * scalar);
 	      }
 	  }
 	  else
@@ -796,8 +796,8 @@ struct gvar_GVAR
 	      for (unsigned int i = phantom_only ? count - 4 : 0; i < count; i++)
 	      {
 		auto &delta = deltas.arrayZ[i];
-		delta.x += x_deltas.arrayZ[i];
-		delta.y += y_deltas.arrayZ[i];
+		delta.add_delta (x_deltas.arrayZ[i],
+				 y_deltas.arrayZ[i]);
 	      }
 	    else
 	      for (unsigned int i = 0; i < num_deltas; i++)
@@ -807,8 +807,8 @@ struct gvar_GVAR
 		if (phantom_only && pt_index < count - 4) continue;
 		auto &delta = deltas.arrayZ[pt_index];
 		delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
-		delta.x += x_deltas.arrayZ[i];
-		delta.y += y_deltas.arrayZ[i];
+		delta.add_delta (x_deltas.arrayZ[i],
+				 y_deltas.arrayZ[i]);
 	      }
 	  }
 	}
