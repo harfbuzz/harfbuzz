@@ -38,11 +38,11 @@
  * For Floyd's tortoise and hare algorithm, see:
  * https://en.wikipedia.org/wiki/Cycle_detection#Floyd's_tortoise_and_hare
  *
- * Like Floyd's algorithm, hb_decycler_t is O(n) in the number of nodes
- * in the graph.  Unlike Floyd's algorithm, hb_decycler_t is designed
- * to be used in a DFS traversal, where the graph is not a simple
- * linked list, but a tree with cycles.  Like Floyd's algorithm, it is
- * constant-memory (just two pointers).
+ * hb_decycler_t is O(n) in the number of nodes in the DFS traversal
+ * if there are no cycles. Unlike Floyd's algorithm, hb_decycler_t
+ * can be used in a DFS traversal, where the graph is not a simple
+ * linked list, but a tree with possible cycles.  Like Floyd's algorithm,
+ * it is constant-memory (~three  pointers).
  *
  * The decycler works by creating an implicit linked-list on the stack,
  * of the path from the root to the current node, and apply Floyd's
