@@ -1,7 +1,26 @@
+Overview of changes leading to 10.4.0
+Saturday, March 1, 2025
+====================================
+- Drawing glyphs using hb-draw API now avoids any “malloc” calls, which
+  improves drawing performance by 10+%.
+- Add support new “GVAR” table fonts with more than 65535 glyphs. Support is
+  currently behind a compilation flag and is disabled by default.
+- Some hb-directwrite and hb-ft APIs got renamed with more clear names and the
+  old names are deprecated.
+- Various build and fuzzing fixes.
+
+- New API:
++hb_directwrite_face_get_dw_font_face()
++hb_ft_font_get_ft_face()
+
+- Deprecated API:
++hb_directwrite_face_get_font_face()
++hb_ft_font_get_face()
+
+
 Overview of changes leading to 10.3.0
 Thursday, February 11, 2025
 ====================================
-
 - Vastly improved “AAT” shaping performance. LucidaGrande benchmark-shape
   before: 14.6ms after: 5.9ms.
 - Improved OpenType shaping performance (kerning / ligature), at the expense of
@@ -226,10 +245,10 @@ Saturday, November 11, 2023
   tools. Old option is kept as an alias.
 
 - New API:
-HB_AAT_LAYOUT_FEATURE_TYPE_CURSIVE_CONNECTION
++HB_AAT_LAYOUT_FEATURE_TYPE_CURSIVE_CONNECTION
 
 - Deprecated API:
-HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
++HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
 
 Overview of changes leading to 8.2.2
 Wednesday, October 18, 2023

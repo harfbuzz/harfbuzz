@@ -290,7 +290,7 @@ hb_ft_font_get_load_flags (hb_font_t *font)
  *
  * Return value: (nullable): the FT_Face found or `NULL`
  *
- * XSince: REPLACEME
+ * Since: 10.4.0
  **/
 FT_Face
 hb_ft_font_get_ft_face (hb_font_t *font)
@@ -318,7 +318,7 @@ hb_ft_font_get_ft_face (hb_font_t *font)
  * Return value: (nullable): the FT_Face found or `NULL`
  *
  * Since: 0.9.2
- * XDeprecated: REPLACEME: Use hb_ft_font_get_ft_face() instead.
+ * Deprecated: 10.4.0: Use hb_ft_font_get_ft_face() instead.
  **/
 FT_Face
 hb_ft_font_get_face (hb_font_t *font)
