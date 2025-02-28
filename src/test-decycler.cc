@@ -99,6 +99,8 @@ static void
 test_cycle ()
 {
   hb_decycler_t decycler;
+  cycle_recurse (0, 1, decycler);
+  cycle_recurse (0, 2, decycler);
   cycle_recurse (2, 3, decycler);
   cycle_recurse (-20, 8, decycler);
 }
