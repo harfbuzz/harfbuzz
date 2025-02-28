@@ -332,6 +332,9 @@ hb_font_funcs_set_glyph_shape_func
 hb_font_get_glyph_v_kerning
 hb_font_get_glyph_v_kerning_func_t
 HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
+hb_directwrite_face_get_font_face
+hb_ft_font_get_face
+hb_graphite2_font_get_gr_font
 </SECTION>
 
 <SECTION>
@@ -351,7 +354,6 @@ hb_coretext_font_set_funcs
 <FILE>hb-directwrite</FILE>
 hb_directwrite_face_create
 hb_directwrite_face_get_dw_font_face
-hb_directwrite_face_get_font_face
 hb_directwrite_font_create
 hb_directwrite_font_get_dw_font
 </SECTION>
@@ -525,7 +527,6 @@ hb_ft_font_create
 hb_ft_font_create_referenced
 hb_ft_font_changed
 hb_ft_font_get_ft_face
-hb_ft_font_get_face
 hb_ft_font_lock_face
 hb_ft_font_unlock_face
 hb_ft_font_set_load_flags
@@ -551,7 +552,6 @@ hb_glib_blob_create
 <FILE>hb-graphite2</FILE>
 HB_GRAPHITE2_TAG_SILF
 hb_graphite2_face_get_gr_face
-hb_graphite2_font_get_gr_font
 </SECTION>
 
 <SECTION>
