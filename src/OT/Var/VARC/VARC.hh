@@ -101,7 +101,8 @@ struct VARC
 	       hb_decycler_t *decycler,
 	       signed *edges_left,
 	       signed depth_left,
-	       hb_glyf_scratch_t &scratch) const;
+	       hb_glyf_scratch_t &scratch,
+	       VarRegionList::cache_t *parent_cache = nullptr) const;
 
   bool
   get_path (hb_font_t *font,

@@ -319,11 +319,15 @@ VarComponent::get_path_at (hb_font_t *font,
     total_transform.scale (font->x_mult ? 1.f / font->x_multf : 0.f,
 			   font->y_mult ? 1.f / font->y_multf : 0.f);
 
+    bool same_coords = component_coords.length == coords.length &&
+		       component_coords.arrayZ == coords.arrayZ;
+
     VARC.get_path_at (font, gid,
 		      draw_session, component_coords, total_transform,
 		      parent_gid,
 		      decycler, edges_left, depth_left - 1,
-		      scratch);
+		      scratch,
+		      same_coords ? cache : nullptr);
   }
 
 #undef PROCESS_TRANSFORM_COMPONENTS
@@ -342,7 +346,8 @@ VARC::get_path_at (hb_font_t *font,
 		   hb_decycler_t *decycler,
 		   signed *edges_left,
 		   signed depth_left,
-		   hb_glyf_scratch_t &scratch) const
+		   hb_glyf_scratch_t &scratch,
+		   VarRegionList::cache_t *parent_cache) const
 {
   // Don't recurse on the same glyph.
   unsigned idx = glyph == parent_glyph ?
@@ -382,7 +387,9 @@ VARC::get_path_at (hb_font_t *font,
   hb_ubytes_t record = (this+glyphRecords)[idx];
 
   float static_cache[sizeof (void *) * 16];
-  VarRegionList::cache_t *cache = (this+varStore).create_cache (hb_array (static_cache));
+  VarRegionList::cache_t *cache = parent_cache ?
+				  parent_cache :
+				  (this+varStore).create_cache (hb_array (static_cache));
 
   transform.scale (font->x_multf, font->y_multf);
 
@@ -393,7 +400,8 @@ VARC::get_path_at (hb_font_t *font,
 				  scratch,
 				  cache);
 
-  (this+varStore).destroy_cache (cache, hb_array (static_cache));
+  if (cache != parent_cache)
+    (this+varStore).destroy_cache (cache, hb_array (static_cache));
 
   return true;
 }
