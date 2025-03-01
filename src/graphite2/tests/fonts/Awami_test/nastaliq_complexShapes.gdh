@@ -1,0 +1,401 @@
+// Class of glyphs that need extra octabox metrics to handle their complex (concave) shape.
+// This allows collsion fixing to be adequately smart.
+
+table(glyph)
+
+cComplexShape = (
+
+gBeh  gTeh  gTheh  gTteh  gPeh
+gJeem  gHah  gKhah
+//gTcheh
+gDal  gDdal
+gThal
+//gReh
+gRreh  gJeh
+gZain
+gSeen  gSheen
+gSad  gDad
+gTah  gZah
+gAin  gGhain
+gFeh  gQaf
+gLam
+gMeem
+gNoon
+//gWaw
+gKaf  gGaf
+//gHehGoal
+gTehMarbutaGoal  gHehGoalHamza
+gChotiyeh
+gBariyeh  gBariyehHamza
+//gDalToa2Nuqtas  gDalToa2Nuqtas_fina
+
+gRehFin_jkl  gRehFin_sshg  gRehFin  gRehFin_hgM
+////gRrehFin_jkl gRrehFin_sshg gRrehFin gRrehFin_hgM  -- not used
+////gJehFin_jkl  gJehFin_sshg  gJehFin  gJehFin_hgM  -- not used
+////gZainFin_jkl  gZainFin_sshg  gZainFin  gZainFin_hgM  -- not used
+////gThalFin  -- not used
+gDalFin
+////gDdalFin  -- not used
+
+gAinIniKfX
+gAinIniSd  // ???
+gAinIniTaF  // ???
+gAinIniTaM  // ???
+gAinIniAi
+gAinIniFe
+gAinMedFe
+gAinMedJm  // ???
+gAinMedSd  // ???
+gAinMedTaF  // ???
+gAinMedTaM  // ???
+
+gAinFin  //// gGhainFin   -- not used
+
+//gAlef // ???
+gAlefMaddaAbove
+gAlefHamzaFin // ???
+gAlefMaddaFin
+
+//gBehIni
+//gBehIniBeM1
+//gBehIniBeNn
+gBehIniAi
+gBehIniFe
+//gBehIniQf
+//gBehIniCh
+gBehIniBy
+gBehIniSn  // ???
+gBehIniSd
+gBehIniTaF
+gBehIniTaM
+//gBehMed
+//gBehMedBeM1
+//gBehMedBeNn
+gBehMedAi
+gBehMedFe
+//gBehMedNn
+//gBehMedNn_HgMB
+//gBehMedCh
+gBehMedBy
+gBehMedSn  // ???
+gBehMedSd
+gBehMedSd_ss
+//gBehMediTa
+//gBehMedTaM
+gBehMedTaF_ss
+gBehMedKfX  // ??
+
+gBehFin
+
+////gThehFin_bfkl    -- not used
+//// ThehFin    -- not used
+
+////gTehFin_bfkl  -- not used
+////gTehFin  -- not used
+////gTtehFin_bfkl  -- not used
+////gTtehFin  -- not used
+
+gChotiyehFin_bfkl
+gChotiyehFin
+
+////gDdalFin  -- not used
+
+//gHehDoIni
+//gHehDoIniBeM1
+//gHehDoIniBeNn
+gHehDoIniAi
+gHehDoIniFe
+gHehDoIniCh
+gHehDoIniBy
+gHehDoIniJm
+gHehDoIniSd
+gHehDoIniTaF
+gHehDoIniTaM
+//gHehDoMed
+//gHehDoMedBeM1
+//gHehDoMedBeNn
+//gHehDoMedAi
+//gHehDoMedFe
+gHehDoMedCh
+gHehDoMedBy
+gHehDoMedJm
+gHehDoMedSd
+gHehDoMedTaF
+gHehDoMedTaM
+
+gFehFin
+gFehIniAi    // ??
+gFehIniFe    // ??
+gFehIniHgF    // ??
+gFehIniBy
+gFehIniBeF
+gFehIniJm
+gFehIniRe
+gFehIniSd
+gFehIniTaF
+gFehIniTaM
+gFehMedAi
+gFehMedFe   // ??
+//gFehMedQf
+gFehMedBy
+gFehMedJm
+gFehMedKfX
+gFehMedSd
+gFehMedTaF
+gFehMedTaM
+
+//gQafFin
+//gQafFin_STFH
+
+//gHehGoalIni
+gHehGoalIniJm
+gHehGoalIniTaF
+gHehGoalIniAi
+gHehGoalIniHgF
+gHehGoalIniHgM
+gHehGoalIniCh
+//gHehGoalIniBy
+gHehGoalIniKfX
+gHehGoalMed
+gHehGoalMedBeM1
+gHehGoalMedBeF     // ??
+gHehGoalMedAi    // ??
+gHehGoalMedFe    // ??
+//gHehGoalMedQf
+gHehGoalMedMm
+//gHehGoalMedNn
+//gHehGoalMedHg
+gHehGoalMedHd    // ??
+gHehGoalMedCh
+gHehGoalMedBy
+gHehGoalMedBeM1
+gHehGoalMedBeF    // ??
+gHehGoalMedBeM2   // ??
+gHehGoalMedJm
+//gHehGoalMedBe
+gHehGoalMedBeRe   // ??
+gHehGoalMedBeNn
+//gHehGoalMedBeHg
+gHehGoalMedMmX    // ??
+gHehGoalMedBy
+//gHehGoalMedKfX
+//gHehGoalMedSn
+gHehGoalMedSd
+gHehGoalMedTaF
+gHehGoalMedTaM
+
+////gTehMarbutaGoalFin   -- not used
+
+gHehFin
+gJeemFin
+////gKhahFin  -- not used
+
+//gJeemIni
+gJeemIniAi
+gJeemIniFe
+gJeemIniQf
+gJeemIniHgM
+//gJeemIniBeF
+gJeemIniBeNn   // ??
+//gJeemIniBeHg
+gJeemIniSd
+gJeemIniTaF
+gJeemIniTaM
+//gJeemIniAi
+gJeemIniFe
+//gJeemIniQf
+gJeemIniHgM  // ??
+//gJeemMedBeF
+//gJeemMedKfX
+gJeemMedSd
+gJeemMedTaF
+gJeemMedTaM
+
+cKafIni
+cKafMed
+cKafIni_alt
+cKafMed_alt
+gKafFin  gGafFin
+gGafMed_short
+
+gLamIni
+gLamIniBeM1
+gLamIniBeM2
+gLamIniJm
+gLamIniRe
+gLamIniSn
+gLamIniSd
+gLamIniTaF
+gLamIniTaM
+gLamIniAi
+gLamIniFe
+gLamIniQf  // ??
+gLamIniNn
+gLamIniHgF
+gLamIniBy
+gLamIniBe
+gLamIniBeRe
+gLamIniBeNn
+gLamIniBeHg
+gLamIniKfX
+gLamMed
+gLamMedBeM1
+gLamMedBeF
+gLamMedBeM2
+gLamMedJm
+gLamMedRe
+gLamMedSn
+gLamMedSd
+gLamMedTaF
+gLamMedTaM
+gLamMedAi
+gLamMedFe
+gLamMedQf  // ??
+gLamMedNn
+gLamMedHgF
+gLamMedBy
+gLamMedBe
+gLamMedBeRe
+gLamMedBeNn
+gLamMedBeHg
+gLamMedKfX
+
+gLamFin
+
+gLamAlefFin
+gLamAlefMadda
+gLamAlefMaddaFin
+
+gMeemIniSd
+gMeemIniTaF
+gMeemIniTaM
+gMeemIniFe   // ??
+gMeemIniHgF   // ??
+//gMeemIniCh
+gMeemIniBeF
+//gMeemIniMmX
+gMeemIniKfX
+gMeemMed
+gMeemMedBeM1
+//gMeemMedBeF
+gMeemMedSd
+gMeemMedTaF
+gMeemMedTaM
+gMeemMedFe  // ??
+gMeemMedHgF
+gMeemMedHgM   // ??
+gMeemMedBy    // ??
+gMeemMedBeNn
+gMeemMedKfX
+
+gMeemFin
+
+gNoonFin
+gNoonGhunnaFin
+
+gSeenIni
+gSeenIniBeM1
+gSeenIniBeF
+gSeenIniJm
+gSeenIniRe
+gSeenIniSd  // ??
+gSeenIniTaF
+gSeenIniTaM
+//gSeenIniAi
+//gSeenIniFe
+gSeenIniHgF
+//gSeenIniCh
+gSeenIniBy
+gSeenIniBeRe  // ??
+gSeenIniBeNn
+gSeenIniBeHg  // ??
+gSeenIniMmX  // ??
+gSeenIniKfX
+gSeenMed
+gSeenMedBeM1
+gSeenMedBeF
+gSeenMedJm
+//gSeenMedRe  // ??
+gSeenMedSd 
+gSeenMedTaF
+gSeenMedTaM
+//gSeenMedAi
+//gSeenMedFe
+gSeenMedHgF    // ??
+//gSeenMedHgM
+gSeenMedCh
+gSeenMedBy
+//gSeenMedBeRe
+gSeenMedBeNn
+gSeenMedBeHg  // ??
+gSeenMedMmX  // ??
+gSeenMedKfX  // ??
+
+gSeenFin  //// gSheenFin  -- not used
+
+gSadIni
+gSadIniBeM1
+gSadIniBeF
+//gSadIniBeM2
+gSadIniJm
+gSadIniSd
+gSadIniTaF
+gSadIniTaM
+gSadIniAi  // ??
+gSadIniFe
+gSadIniQf
+//gSadIniMm
+//gSadIniNn
+gSadIniHgF
+gSadIniHgM
+//gSadIniHd
+gSadIniCh
+gSadIniBy
+//gSadIniBe
+gSadIniBeRe   // ??
+gSadIniBeNn
+gSadIniBeHg
+//gSadIniMmX
+gSadIniKfX
+gSadMed
+gSadMedBeM1
+gSadMedBeF
+//gSadMedBeM2
+gSadMedJm
+gSadMedSd
+gSadMedTaF
+gSadMedTaM
+gSadMedAi  // ??
+gSadMedFe
+gSadMedQf  // ??
+//gSadMedMm
+//gSadMedNn
+gSadMedHgF
+gSadMedHgM
+//gSadMedHd
+gSadMedCh
+gSadMedBy
+//gSadMedBe
+gSadMedBeRe   // ??
+gSadMedBeNn
+gSadMedBeHg
+//gSadMedMmX
+gSadMedKfX
+
+gSadFin  ////gDadFin  -- not used
+
+cTahIni
+cTahMed
+gTahFin  ////gZahFin  -- not used
+
+gBariyehFin
+
+gWawFin
+gWawFin_stfh
+
+) {collision.complexFit = true}
+
+; // end of class cComplexShape
+
+endtable; // glyph
+

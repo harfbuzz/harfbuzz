@@ -1,0 +1,128 @@
+FINITE STATE MACHINES
+
+
+TABLE: substitution
+
+PASS: 1
+
+Glyph ID => Column:
+  0x0023         => 0
+  0x0024..0x0026 => 1
+  0x0027         => 0
+  0x0028..0x002a => 1
+  0x002b         => 0
+  0x002c..0x0030 => 1
+  0x0031         => 0
+  0x0032..0x0036 => 1
+  0x0037         => 0
+  0x0038..0x003c => 1
+  0x0043         => 2
+  0x0044..0x0046 => 3
+  0x0047         => 2
+  0x0048..0x004a => 3
+  0x004b         => 2
+  0x004c..0x0050 => 3
+  0x0051         => 2
+  0x0052..0x0056 => 3
+  0x0057         => 2
+  0x0058..0x005c => 3
+
+
+Final Table:                 0     1     2     3
+                          - - - - - - - - - - - - 
+0: 0
+                             0     1     0     2
+   Matched=none
+   Success=none
+
+1: 1
+                            10     3     9     4
+   Matched=0,1,2,3,4,5,6,7,8,
+   Success=8,
+
+2: 1
+                            10     5    10     5
+   Matched=3,4,5,6,7,8,
+   Success=8,
+
+3: 2
+                            12     6    11     7
+   Matched=0,1,3,4,5,6,7,
+   Success=5,7,
+
+4: 2
+                            12     6    11     7
+   Matched=0,1,2,3,4,5,6,7,
+   Success=2,5,7,
+
+5: 2
+                            12     8    12     8
+   Matched=3,4,5,6,7,
+   Success=5,7,
+
+6: 3
+                            14    14    13    13
+   Matched=0,3,4,6,
+   Success=4,6,
+
+7: 3
+                            14    14    13    13
+   Matched=0,1,3,4,6,
+   Success=1,4,6,
+
+8: 3
+                            14    14    14    14
+   Matched=3,4,6,
+   Success=4,6,
+
+9: 2
+                             0     0     0     0
+   Matched=2,5,
+   Success=2,5,
+
+10: 2
+                             0     0     0     0
+   Matched=5,
+   Success=5,
+
+11: 3
+                             0     0     0     0
+   Matched=1,4,
+   Success=1,4,
+
+12: 3
+                             0     0     0     0
+   Matched=4,
+   Success=4,
+
+13: 4
+                             0     0     0     0
+   Matched=0,3,
+   Success=0,3,
+
+14: 4
+                             0     0     0     0
+   Matched=3,
+   Success=3,
+
+                          - - - - - - - - - - - - 
+
+RULE 1.0, PigLatinMain.gdl(46):  clsConsUC  clsCons  clsCons  clsWfLC  >  clsWfUC$4:4  clsConsLC$1:1 { user1=1;  }  @2 { user1=1;  }  @3 { user1=1;  }   /  _ {...}  ^  _ {...}  _ {...}  _  ;
+
+RULE 1.1, PigLatinMain.gdl(49):  clsConsUC  clsCons  clsWfLC  >  clsWfUC$3:3  clsConsLC$1:1 { user1=1;  }  @2 { user1=1;  }   /  _ {...}  ^  _ {...}  _  ;
+
+RULE 1.2, PigLatinMain.gdl(52):  clsConsUC  clsWfLC  >  clsWfUC$2:2  clsConsLC$1:1 { user1=1;  }   /  _ {...}  ^  _  ;
+
+RULE 1.3, PigLatinMain.gdl(58):  clsCons  clsCons  clsCons  clsWf  >  @4  @1 { user1=1;  }  @2 { user1=1;  }  @3 { user1=1;  }   /  _  ^  _ {...}  _ {...}  _ {...}  ;
+
+RULE 1.4, PigLatinMain.gdl(61):  clsCons  clsCons  clsWf  >  @3  @1 { user1=1;  }  @2 { user1=1;  }   /  _  ^  _ {...}  _ {...}  ;
+
+RULE 1.5, PigLatinMain.gdl(64):  clsCons  clsWf  >  @2  @1 { user1=1;  }   /  _  ^  _ {...}  ;
+
+RULE 1.6, PigLatinMain.gdl(68):  clsCons  clsCons  clsCons  _  _  >  @1  @2  @3  g_aIns:3  g_yIns:3   /  _ {...}  _ {...}  _ {...}  _  _  ;
+
+RULE 1.7, PigLatinMain.gdl(70):  clsCons  clsCons  _  _  >  @1  @2  g_aIns:2  g_yIns:2   /  _ {...}  _ {...}  _  _  ;
+
+RULE 1.8, PigLatinMain.gdl(72):  clsCons  _  _  >  @1  g_aIns:1  g_yIns:1   /  _ {...}  _  _  ;
+
+
