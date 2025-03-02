@@ -93,10 +93,10 @@ struct hb_extents_t
     return hb_glyph_extents_t {x0, y0, x1 - x0, y1 - y0};
   }
 
-  float xmin = 0.f;
-  float ymin = 0.f;
-  float xmax = -1.f;
-  float ymax = -1.f;
+  float xmin = 0;
+  float ymin = 0;
+  float xmax = -1;
+  float ymax = -1;
 };
 
 struct hb_transform_t
@@ -109,9 +109,9 @@ struct hb_transform_t
 
   bool is_identity () const
   {
-    return xx == 1.f && yx == 0.f &&
-	   xy == 0.f && yy == 1.f &&
-	   x0 == 0.f && y0 == 0.f;
+    return xx == 1 && yx == 0 &&
+	   xy == 0 && yy == 1 &&
+	   x0 == 0 && y0 == 0;
   }
 
   void multiply (const hb_transform_t &o)
@@ -167,7 +167,7 @@ struct hb_transform_t
 
   void translate (float x, float y)
   {
-    if (x == 0.f && y == 0.f)
+    if (x == 0 && y == 0)
       return;
 
     x0 += xx * x + xy * y;
@@ -176,7 +176,7 @@ struct hb_transform_t
 
   void scale (float scaleX, float scaleY)
   {
-    if (scaleX == 1.f && scaleY == 1.f)
+    if (scaleX == 1 && scaleY == 1)
       return;
 
     xx *= scaleX;
@@ -187,7 +187,7 @@ struct hb_transform_t
 
   void rotate (float rotation)
   {
-    if (rotation == 0.f)
+    if (rotation == 0)
       return;
 
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L240
@@ -199,33 +199,33 @@ struct hb_transform_t
     c = cosf (rotation);
     s = sinf (rotation);
 #endif
-    auto other = hb_transform_t{c, s, -s, c, 0.f, 0.f};
+    auto other = hb_transform_t{c, s, -s, c, 0, 0};
     transform (other);
   }
 
   void skew (float skewX, float skewY)
   {
-    if (skewX == 0.f && skewY == 0.f)
+    if (skewX == 0 && skewY == 0)
       return;
 
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L255
-    auto other = hb_transform_t{1.f,
-				skewY ? tanf (skewY) : 0.f,
-				skewX ? tanf (skewX) : 0.f,
-				1.f,
-				0.f, 0.f};
+    auto other = hb_transform_t{1,
+				skewY ? tanf (skewY) : 0,
+				skewX ? tanf (skewX) : 0,
+				1,
+				0, 0};
     transform (other);
   }
 
-  float xx = 1.f;
-  float yx = 0.f;
-  float xy = 0.f;
-  float yy = 1.f;
-  float x0 = 0.f;
-  float y0 = 0.f;
+  float xx = 1;
+  float yx = 0;
+  float xy = 0;
+  float yy = 1;
+  float x0 = 0;
+  float y0 = 0;
 };
 
-#define HB_TRANSFORM_IDENTITY hb_transform_t{1.f, 0.f, 0.f, 1.f, 0.f, 0.f}
+#define HB_TRANSFORM_IDENTITY hb_transform_t{1, 0, 0, 1, 0, 0}
 
 struct hb_bounds_t
 {
