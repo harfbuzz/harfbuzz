@@ -574,6 +574,9 @@ hb_ot_draw_glyph (hb_font_t *font,
 #ifndef HB_NO_VAR_COMPOSITES
     if (!font->face->table.VARC->get_path (font, glyph, draw_session))
 #endif
+#ifndef HB_NO_VAR_HVF
+    if (!font->face->table.hvgl->get_path (font, glyph, draw_session))
+#endif
     // Keep the following in synch with VARC::get_path_at()
     if (!font->face->table.glyf->get_path (font, glyph, draw_session))
 #ifndef HB_NO_CFF

@@ -1,6 +1,7 @@
 #ifndef HB_AAT_VAR_HVGL_TABLE_HH
 #define HB_AAT_VAR_HVGL_TABLE_HH
 
+#include "hb-draw.hh"
 #include "hb-ot-var-common.hh"
 
 /*
@@ -80,6 +81,14 @@ struct deltas_t
 struct PartShape
 {
   public:
+
+  HB_INTERNAL void
+  get_path_at (hb_font_t *font,
+	       hb_draw_session_t &draw_session,
+	       hb_array_t<const int> coords,
+	       hb_set_t *visited,
+	       signed *edges_left,
+	       signed depth_left) const;
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -287,6 +296,14 @@ struct PartComposite
 {
   public:
 
+  HB_INTERNAL void
+  get_path_at (hb_font_t *font,
+	       hb_draw_session_t &draw_session,
+	       hb_array_t<const int> coords,
+	       hb_set_t *visited,
+	       signed *edges_left,
+	       signed depth_left) const;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -340,6 +357,22 @@ struct PartComposite
 
 struct Part
 {
+  public:
+
+  void
+  get_path_at (hb_font_t *font,
+	       hb_draw_session_t &draw_session,
+	       hb_array_t<const int> coords,
+	       hb_set_t *visited,
+	       signed *edges_left,
+	       signed depth_left) const
+  {
+    switch (u.flags & 1) {
+    case 0: hb_barrier(); u.shape.get_path_at (font, draw_session, coords, visited, edges_left, depth_left); break;
+    case 1: hb_barrier(); u.composite.get_path_at (font, draw_session, coords, visited, edges_left, depth_left); break;
+    }
+  }
+
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
@@ -366,15 +399,15 @@ struct Index
 {
   public:
 
-  hb_ubytes_t get (unsigned index, unsigned count) const
+  hb_bytes_t get (unsigned index, unsigned count) const
   {
-    if (unlikely (index >= count)) return hb_ubytes_t ();
+    if (unlikely (index >= count)) return hb_bytes_t ();
     hb_barrier ();
     unsigned offset0 = offsets[index];
     unsigned offset1 = offsets[index + 1];
     if (unlikely (offset1 < offset0 || offset1 > offsets[count]))
-      return hb_ubytes_t ();
-    return hb_ubytes_t ((unsigned char *) this + offset0, offset1 - offset0);
+      return hb_bytes_t ();
+    return hb_bytes_t ((char *) this + offset0, offset1 - offset0);
   }
 
   unsigned int get_size (unsigned count) const { return offsets[count]; }
@@ -400,12 +433,12 @@ struct IndexOf : Index
 {
   public:
 
-  Type get (unsigned index, unsigned count) const
+  const Type &get (unsigned index, unsigned count) const
   {
-    hb_ubytes_t data = Index::get (index, count);
+    hb_bytes_t data = Index::get (index, count);
     hb_sanitize_context_t c (data.begin (), data.end ());
-    Type &item = *reinterpret_cast<Type *> (data.begin ());
-    if (unlikely (!item.sanitize (c))) return Null(Type);
+    const Type &item = *reinterpret_cast<const Type *> (data.begin ());
+    if (unlikely (!c.dispatch (item))) return Null(Type);
     return item;
   }
 
@@ -419,7 +452,55 @@ using PartsIndex = IndexOf<Part>;
 
 struct hvgl
 {
+  friend struct hvgl_impl::Part;
+
+  static constexpr hb_tag_t tableTag = HB_TAG ('h', 'v', 'g', 'l');
+
   public:
+
+  bool
+  get_path_at (hb_font_t *font,
+	       hb_codepoint_t part_id,
+	       hb_draw_session_t &draw_session,
+	       hb_array_t<const int> coords,
+	       hb_set_t *visited = nullptr,
+	       signed *edges_left = nullptr,
+	       signed depth_left = HB_MAX_NESTING_LEVEL) const
+  {
+    hb_set_t stack_set;
+    if (visited == nullptr)
+      visited = &stack_set;
+    signed stack_edges = HB_MAX_GRAPH_EDGE_COUNT;
+    if (edges_left == nullptr)
+      edges_left = &stack_edges;
+
+    if (depth_left <= 0)
+      return true;
+
+    if (*edges_left <= 0)
+      return true;
+    (*edges_left)--;
+
+    if (visited->has (part_id) || visited->in_error ())
+      return true;
+    visited->add (part_id);
+
+    const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
+    const auto &part = parts.get (part_id, partCount);
+
+    part.get_path_at (font, draw_session, coords, visited, edges_left, depth_left);
+
+    visited->del (part_id);
+
+    return true;
+  }
+
+  bool
+  get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
+  {
+    if (unlikely (gid >= numGlyphs)) return false;
+    return get_path_at (font, gid, draw_session, hb_array (font->coords, font->num_coords));
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

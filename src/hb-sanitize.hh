@@ -120,8 +120,8 @@
 struct hb_sanitize_context_t :
        hb_dispatch_context_t<hb_sanitize_context_t, bool, HB_DEBUG_SANITIZE>
 {
-  hb_sanitize_context_t () :
-	start (nullptr), end (nullptr),
+  hb_sanitize_context_t (const char *start_ = nullptr, const char *end_ = nullptr) :
+	start (start_), end (end_),
 	length (0),
 	max_ops (0), max_subtables (0),
         recursion_depth (0),
@@ -212,8 +212,11 @@ struct hb_sanitize_context_t :
 
   void reset_object ()
   {
-    this->start = this->blob->data;
-    this->end = this->start + this->blob->length;
+    if (this->blob)
+    {
+      this->start = this->blob->data;
+      this->end = this->start + this->blob->length;
+    }
     this->length = this->end - this->start;
     assert (this->start <= this->end); /* Must not overflow. */
   }

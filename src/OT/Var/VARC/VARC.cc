@@ -369,6 +369,9 @@ VARC::get_path_at (hb_font_t *font,
       hb_draw_session_t transformer_session {transformer_funcs, &context};
       hb_draw_session_t &shape_draw_session = transform.is_identity () ? *draw_session : transformer_session;
 
+#ifndef HB_NO_VAR_HVF
+      if (!font->face->table.hvgl->get_path_at (font, glyph, shape_draw_session, coords))
+#endif
       if (!font->face->table.glyf->get_path_at (font, glyph, shape_draw_session, coords, scratch))
 #ifndef HB_NO_CFF
       if (!font->face->table.cff2->get_path_at (font, glyph, shape_draw_session, coords))
