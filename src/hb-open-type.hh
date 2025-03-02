@@ -1943,6 +1943,11 @@ struct TupleValues
 	unsigned count = hb_min (n - i, (unsigned) run_count);
 	switch (width)
 	{
+	  case 0:
+	  {
+	    arrayZ += count;
+	    break;
+	  }
 	  case 1:
 	  {
 	    const auto *pp = (const HBINT8 *) p;
