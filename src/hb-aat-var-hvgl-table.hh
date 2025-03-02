@@ -101,8 +101,8 @@ struct PartShape
   HB_INTERNAL void
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
-	       hb_array_t<const float> coords,
-	       hb_array_t<hb_transform_t> transforms,
+	       hb_array_t<const double> coords,
+	       hb_array_t<hb_transform_t<double>> transforms,
 	       hb_vector_t<double> &scratch,
 	       signed *nodes_left,
 	       signed *edges_left,
@@ -170,8 +170,8 @@ struct ExtremumColumnStarts
   public:
 
   HB_INTERNAL
-  void apply_to_coords (hb_array_t<float> out_coords,
-			hb_array_t<const float> coords,
+  void apply_to_coords (hb_array_t<double> out_coords,
+			hb_array_t<const double> coords,
 			unsigned axis_count,
 			hb_array_t<const HBFLOAT32LE> master_axis_value_deltas,
 			hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas) const;
@@ -318,8 +318,8 @@ struct PartComposite
 {
   public:
 
-  HB_INTERNAL void apply_to_transforms (hb_array_t<hb_transform_t> transforms,
-					hb_array_t<const float> coords) const;
+  HB_INTERNAL void apply_to_transforms (hb_array_t<hb_transform_t<double>> transforms,
+					hb_array_t<const double> coords) const;
 
   unsigned get_total_num_axes () const
   { return totalNumAxes; }
@@ -330,8 +330,8 @@ struct PartComposite
   HB_INTERNAL void
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
-	       hb_array_t<float> coords,
-	       hb_array_t<hb_transform_t> transforms,
+	       hb_array_t<double> coords,
+	       hb_array_t<hb_transform_t<double>> transforms,
 	       hb_vector_t<double> &scratch,
 	       signed *nodes_left,
 	       signed *edges_left,
@@ -407,8 +407,8 @@ struct Part
   void
   get_path_at (const struct hvgl &hvgl,
 	       hb_draw_session_t &draw_session,
-	       hb_array_t<float> coords,
-	       hb_array_t<hb_transform_t> transforms,
+	       hb_array_t<double> coords,
+	       hb_array_t<hb_transform_t<double>> transforms,
 	       hb_vector_t<double> &scratch,
 	       signed *nodes_left,
 	       signed *edges_left,
@@ -512,8 +512,8 @@ struct hvgl
   bool
   get_part_path_at (hb_codepoint_t part_id,
 		    hb_draw_session_t &draw_session,
-		    hb_array_t<float> coords,
-		    hb_array_t<hb_transform_t> transforms,
+		    hb_array_t<double> coords,
+		    hb_array_t<hb_transform_t<double>> transforms,
 		    hb_vector_t<double> &scratch,
 		    signed *nodes_left,
 		    signed *edges_left,
@@ -559,18 +559,18 @@ struct hvgl
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (gid, partCount);
 
-    hb_vector_t<float> coords_f;
+    hb_vector_t<double> coords_f;
     coords_f.resize_exact (part.get_total_num_axes ());
     if (unlikely (coords_f.in_error ())) return true;
     unsigned count = hb_min (coords.length, coords_f.length);
     for (unsigned i = 0; i < count; i++)
-      coords_f.arrayZ[i] = float (coords.arrayZ[i]) * (1.f / (1 << 14));
+      coords_f.arrayZ[i] = double (coords.arrayZ[i]) * (1. / (1 << 14));
 
-    hb_vector_t<hb_transform_t> transforms;
+    hb_vector_t<hb_transform_t<double>> transforms;
     unsigned total_num_parts = part.get_total_num_parts ();
     transforms.resize_exact (total_num_parts);
     if (unlikely (transforms.in_error ())) return true;
-    transforms[0] = hb_transform_t{font->x_multf, 0, 0, font->y_multf, 0, 0};
+    transforms[0] = hb_transform_t<double>{(double) font->x_multf, 0, 0, (double) font->y_multf, 0, 0};
 
 
     signed stack_nodes_left = total_num_parts;

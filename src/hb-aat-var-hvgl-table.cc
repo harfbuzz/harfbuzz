@@ -74,14 +74,14 @@ project_on_curve_to_tangent (const segment_t offcurve1,
 void
 PartShape::get_path_at (const struct hvgl &hvgl,
 		        hb_draw_session_t &draw_session,
-		        hb_array_t<const float> coords,
-			hb_array_t<hb_transform_t> transforms,
+		        hb_array_t<const double> coords,
+			hb_array_t<hb_transform_t<double>> transforms,
 			hb_vector_t<double> &scratch,
 			signed *nodes_left,
 		        signed *edges_left,
 		        signed depth_left) const
 {
-  hb_transform_t transform = transforms[0];
+  hb_transform_t<double> transform = transforms[0];
 
   const auto &blendTypes = StructAfter<decltype (blendTypesX)> (segmentCountPerPath, pathCount);
 
@@ -181,11 +181,11 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 
     for (; axis_index < axis_count; axis_index++)
     {
-      float coord = coords.arrayZ[axis_index];
+      double coord = coords.arrayZ[axis_index];
       if (!coord) continue;
-      bool pos = coord > 0.f;
+      bool pos = coord > 0.;
       unsigned column_idx = axis_index * 2 + pos;
-      double scalar = (double) fabsf(coord);
+      double scalar = fabs(coord);
 
       const auto *src = matrix + column_idx * rows_count;
       auto *dest = v.arrayZ;
@@ -270,23 +270,23 @@ PartShape::get_path_at (const struct hvgl &hvgl,
     if (likely (start != end))
     {
       segment_t next_segment = &v.arrayZ[start * 4];
-      float x0 = (float) next_segment[SEGMENT_POINT_ON_CURVE_X];
-      float y0 = (float) next_segment[SEGMENT_POINT_ON_CURVE_Y];
+      double x0 = next_segment[SEGMENT_POINT_ON_CURVE_X];
+      double y0 = next_segment[SEGMENT_POINT_ON_CURVE_Y];
       transform.transform_point (x0, y0);
-      draw_session.move_to (x0, y0);
+      draw_session.move_to ((float) x0, (float) y0);
       for (unsigned i = start; i < end; i++)
       {
 	segment_t segment = next_segment;
 	unsigned next_i = i == end - 1 ? start : i + 1;
 	next_segment = &v.arrayZ[next_i * 4];
 
-	float x1 = (float) segment[SEGMENT_POINT_OFF_CURVE_X];
-	float y1 = (float) segment[SEGMENT_POINT_OFF_CURVE_Y];
+	double x1 = segment[SEGMENT_POINT_OFF_CURVE_X];
+	double y1 = segment[SEGMENT_POINT_OFF_CURVE_Y];
 	transform.transform_point (x1, y1);
-	float x2 = (float) next_segment[SEGMENT_POINT_ON_CURVE_X];
-	float y2 = (float) next_segment[SEGMENT_POINT_ON_CURVE_Y];
+	double x2 = next_segment[SEGMENT_POINT_ON_CURVE_X];
+	double y2 = next_segment[SEGMENT_POINT_ON_CURVE_Y];
 	transform.transform_point (x2, y2);
-	draw_session.quadratic_to (x1, y1, x2, y2);
+	draw_session.quadratic_to ((float) x1, (float) y1, (float) x2, (float) y2);
       }
       draw_session.close_path ();
     }
@@ -295,8 +295,8 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   }
 }
 
-void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
-					    hb_array_t<const float> coords,
+void ExtremumColumnStarts::apply_to_coords (hb_array_t<double> out_coords,
+					    hb_array_t<const double> coords,
 					    unsigned axis_count,
 					    hb_array_t<const HBFLOAT32LE> master_axis_value_deltas,
 					    hb_array_t<const HBFLOAT32LE> extremum_axis_value_deltas) const
@@ -304,18 +304,18 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
   const auto &masterRowIndex = StructAfter<decltype (masterRowIndexX)> (extremumColumnStart, 2 * axis_count + 1);
   unsigned count = master_axis_value_deltas.length;
   for (unsigned i = 0; i < count; i++)
-    out_coords[masterRowIndex.arrayZ[i]] += master_axis_value_deltas.arrayZ[i];
+    out_coords[masterRowIndex.arrayZ[i]] += (double) master_axis_value_deltas.arrayZ[i];
 
   const auto &extremumRowIndex = StructAfter<decltype (extremumRowIndexX)> (masterRowIndex, master_axis_value_deltas.length);
 
   axis_count = hb_min (axis_count, coords.length);
   for (unsigned axis_idx = 0; axis_idx < axis_count; axis_idx++)
   {
-    float coord = coords.arrayZ[axis_idx];
+    double coord = coords.arrayZ[axis_idx];
     if (!coord) continue;
-    bool pos = coord > 0.f;
+    bool pos = coord > 0.;
     unsigned column_idx = axis_idx * 2 + pos;
-    float scalar = fabsf (coord);
+    double scalar = fabs (coord);
 
     unsigned sparse_row_start = extremumColumnStart.arrayZ[column_idx];
     unsigned sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
@@ -323,15 +323,15 @@ void ExtremumColumnStarts::apply_to_coords (hb_array_t<float> out_coords,
     for (unsigned row_idx = sparse_row_start; row_idx < sparse_row_end; row_idx++)
     {
       unsigned row = extremumRowIndex.arrayZ[row_idx];
-      float delta = extremum_axis_value_deltas.arrayZ[row_idx];
+      double delta = (double) extremum_axis_value_deltas.arrayZ[row_idx];
       out_coords[row] += delta * scalar;
     }
   }
 }
 
 void
-PartComposite::apply_to_transforms (hb_array_t<hb_transform_t> transforms,
-				    hb_array_t<const float> coords) const
+PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transforms,
+				    hb_array_t<const double> coords) const
 {
   const auto &allTranslations = StructAtOffset<AllTranslations> (this, allTranslationsOff4 * 4);
   const auto &allRotations = StructAtOffset<AllRotations> (this, allRotationsOff4 * 4);
@@ -351,15 +351,15 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t> transforms,
     const auto master_translation_deltas = masterTranslationDelta.arrayZ;
     unsigned count = sparseMasterTranslationCount;
     for (unsigned i = 0; i < count; i++)
-      transforms[master_translation_indices[i]].translate (master_translation_deltas[i].x,
-							   master_translation_deltas[i].y);
+      transforms[master_translation_indices[i]].translate ((double) master_translation_deltas[i].x,
+							   (double) master_translation_deltas[i].y);
   }
   {
     const auto master_rotation_indices = masterRotationIndex.arrayZ;
     const auto master_rotation_deltas = masterRotationDelta.arrayZ;
     unsigned count = sparseMasterRotationCount;
     for (unsigned i = 0; i < count; i++)
-      transforms[master_rotation_indices[i]].rotate (master_rotation_deltas[i]);
+      transforms[master_rotation_indices[i]].rotate ((double) master_rotation_deltas[i]);
   }
 
   auto extremum_translation_indices = extremumTranslationIndex.arrayZ;
@@ -378,7 +378,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t> transforms,
     if (row == transforms.length)
       break;
 
-    hb_transform_t &transform = transforms[row];
+    hb_transform_t<double> &transform = transforms[row];
 
     auto extremum_translation_delta = Null(TranslationDelta);
     auto extremum_rotation_delta = Null(HBFLOAT32LE);
@@ -413,29 +413,29 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t> transforms,
     }
 
     unsigned axis_idx = column / 2;
-    float coord = coords[axis_idx];
+    double coord = coords[axis_idx];
     if (!coord) continue;
     bool pos = column & 1;
     if (pos != (coord > 0)) continue;
-    float scalar = fabsf (coord);
+    double scalar = fabs (coord);
 
     if (extremum_rotation_delta)
     {
-      std::complex<float> t {extremum_translation_delta.x, extremum_translation_delta.y};
-      std::complex<float> _1_minus_e_iangle = 1.f - std::exp (std::complex<float> (0, 1) * (float) extremum_rotation_delta);
-      std::complex<float> eigen = t / _1_minus_e_iangle;
-      float eigen_x = eigen.real ();
-      float eigen_y = eigen.imag ();
+      std::complex<double> t {(double) extremum_translation_delta.x, (double) extremum_translation_delta.y};
+      std::complex<double> _1_minus_e_iangle = 1. - std::exp (std::complex<double> (0, 1) * (double) extremum_rotation_delta);
+      std::complex<double> eigen = t / _1_minus_e_iangle;
+      double eigen_x = eigen.real ();
+      double eigen_y = eigen.imag ();
       // Scale rotation around eigen vector
       transform.translate (eigen_x, eigen_y);
-      transform.rotate (extremum_rotation_delta * scalar);
+      transform.rotate ((double) extremum_rotation_delta * scalar);
       transform.translate (-eigen_x, -eigen_y);
     }
     else
     {
       // No rotation, just scale the translate
-      transform.translate (extremum_translation_delta.x * scalar,
-			   extremum_translation_delta.y * scalar);
+      transform.translate ((double) extremum_translation_delta.x * scalar,
+			   (double) extremum_translation_delta.y * scalar);
     }
   }
 }
@@ -443,8 +443,8 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t> transforms,
 void
 PartComposite::get_path_at (const struct hvgl &hvgl,
 			    hb_draw_session_t &draw_session,
-			    hb_array_t<float> coords,
-			    hb_array_t<hb_transform_t> transforms,
+			    hb_array_t<double> coords,
+			    hb_array_t<hb_transform_t<double>> transforms,
 			    hb_vector_t<double> &scratch,
 			    signed *nodes_left,
 			    signed *edges_left,
@@ -475,8 +475,8 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
 
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
-    hb_transform_t total_transform (transforms_head);
-    hb_transform_t &transform = transforms_tail[subPart.treeTransformIndex];
+    hb_transform_t<double> total_transform (transforms_head);
+    hb_transform_t<double> &transform = transforms_tail[subPart.treeTransformIndex];
     total_transform.transform (transform);
     transform = total_transform;
     hvgl.get_part_path_at (subPart.partIndex,

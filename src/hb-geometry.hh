@@ -26,15 +26,23 @@
 
 #include "hb.hh"
 
+#include "hb-algs.hh"
+
+
+template <typename Float = float>
 struct hb_extents_t
 {
   hb_extents_t () {}
+<<<<<<< HEAD
   hb_extents_t (const hb_glyph_extents_t &extents) :
 		xmin (hb_min (extents.x_bearing, extents.x_bearing + extents.width)),
 		ymin (hb_min (extents.y_bearing, extents.y_bearing + extents.height)),
 		xmax (hb_max (extents.x_bearing, extents.x_bearing + extents.width)),
 		ymax (hb_max (extents.y_bearing, extents.y_bearing + extents.height)) {}
   hb_extents_t (float xmin, float ymin, float xmax, float ymax) :
+=======
+  hb_extents_t (Float xmin, Float ymin, Float xmax, Float ymax) :
+>>>>>>> a5e4453dd ([hvgl] Use double instead of float for coords & transforms)
     xmin (xmin), ymin (ymin), xmax (xmax), ymax (ymax) {}
 
   bool is_empty () const { return xmin >= xmax || ymin >= ymax; }
@@ -68,7 +76,7 @@ struct hb_extents_t
   }
 
   void
-  add_point (float x, float y)
+  add_point (Float x, Float y)
   {
     if (unlikely (is_void ()))
     {
@@ -93,18 +101,19 @@ struct hb_extents_t
     return hb_glyph_extents_t {x0, y0, x1 - x0, y1 - y0};
   }
 
-  float xmin = 0;
-  float ymin = 0;
-  float xmax = -1;
-  float ymax = -1;
+  Float xmin = 0;
+  Float ymin = 0;
+  Float xmax = -1;
+  Float ymax = -1;
 };
 
+template <typename Float = float>
 struct hb_transform_t
 {
   hb_transform_t () {}
-  hb_transform_t (float xx, float yx,
-		  float xy, float yy,
-		  float x0, float y0) :
+  hb_transform_t (Float xx, Float yx,
+		  Float xy, Float yy,
+		  Float x0, Float y0) :
     xx (xx), yx (yx), xy (xy), yy (yy), x0 (x0), y0 (y0) {}
 
   bool is_identity () const
@@ -127,24 +136,24 @@ struct hb_transform_t
     };
   }
 
-  void transform_distance (float &dx, float &dy) const
+  void transform_distance (Float &dx, Float &dy) const
   {
-    float new_x = xx * dx + xy * dy;
-    float new_y = yx * dx + yy * dy;
+    Float new_x = xx * dx + xy * dy;
+    Float new_y = yx * dx + yy * dy;
     dx = new_x;
     dy = new_y;
   }
 
-  void transform_point (float &x, float &y) const
+  void transform_point (Float &x, Float &y) const
   {
     transform_distance (x, y);
     x += x0;
     y += y0;
   }
 
-  void transform_extents (hb_extents_t &extents) const
+  void transform_extents (hb_extents_t<Float> &extents) const
   {
-    float quad_x[4], quad_y[4];
+    Float quad_x[4], quad_y[4];
 
     quad_x[0] = extents.xmin;
     quad_y[0] = extents.ymin;
@@ -155,7 +164,7 @@ struct hb_transform_t
     quad_x[3] = extents.xmax;
     quad_y[3] = extents.ymax;
 
-    extents = hb_extents_t {};
+    extents = hb_extents_t<Float> {};
     for (unsigned i = 0; i < 4; i++)
     {
       transform_point (quad_x[i], quad_y[i]);
@@ -165,7 +174,7 @@ struct hb_transform_t
 
   void transform (const hb_transform_t &o) { multiply (o); }
 
-  void translate (float x, float y)
+  void translate (Float x, Float y)
   {
     if (x == 0 && y == 0)
       return;
@@ -174,7 +183,7 @@ struct hb_transform_t
     y0 += yx * x + yy * y;
   }
 
-  void scale (float scaleX, float scaleY)
+  void scale (Float scaleX, Float scaleY)
   {
     if (scaleX == 1 && scaleY == 1)
       return;
@@ -185,25 +194,20 @@ struct hb_transform_t
     yy *= scaleY;
   }
 
-  void rotate (float rotation)
+  void rotate (Float rotation)
   {
     if (rotation == 0)
       return;
 
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L240
-    float c;
-    float s;
-#ifdef HAVE_SINCOSF
-    sincosf (rotation, &s, &c);
-#else
-    c = cosf (rotation);
-    s = sinf (rotation);
-#endif
+    Float c;
+    Float s;
+    hb_sincos (rotation, s, c);
     auto other = hb_transform_t{c, s, -s, c, 0, 0};
     transform (other);
   }
 
-  void skew (float skewX, float skewY)
+  void skew (Float skewX, Float skewY)
   {
     if (skewX == 0 && skewY == 0)
       return;
@@ -217,16 +221,17 @@ struct hb_transform_t
     transform (other);
   }
 
-  float xx = 1;
-  float yx = 0;
-  float xy = 0;
-  float yy = 1;
-  float x0 = 0;
-  float y0 = 0;
+  Float xx = 1;
+  Float yx = 0;
+  Float xy = 0;
+  Float yy = 1;
+  Float x0 = 0;
+  Float y0 = 0;
 };
 
-#define HB_TRANSFORM_IDENTITY hb_transform_t{1, 0, 0, 1, 0, 0}
+#define HB_TRANSFORM_IDENTITY {1, 0, 0, 1, 0, 0}
 
+template <typename Float = float>
 struct hb_bounds_t
 {
   enum status_t {
@@ -236,7 +241,7 @@ struct hb_bounds_t
   };
 
   hb_bounds_t (status_t status) : status (status) {}
-  hb_bounds_t (const hb_extents_t &extents) :
+  hb_bounds_t (const hb_extents_t<Float> &extents) :
     status (extents.is_empty () ? EMPTY : BOUNDED), extents (extents) {}
 
   void union_ (const hb_bounds_t &o)
@@ -270,20 +275,21 @@ struct hb_bounds_t
   }
 
   status_t status;
-  hb_extents_t extents;
+  hb_extents_t<Float> extents;
 };
 
+template <typename Float = float>
 struct hb_transform_decomposed_t
 {
-  float translateX = 0;
-  float translateY = 0;
-  float rotation = 0;  // in radians, counter-clockwise
-  float scaleX = 1;
-  float scaleY = 1;
-  float skewX = 0;  // in radians, counter-clockwise
-  float skewY = 0;  // in radians, counter-clockwise
-  float tCenterX = 0;
-  float tCenterY = 0;
+  Float translateX = 0;
+  Float translateY = 0;
+  Float rotation = 0;  // in radians, counter-clockwise
+  Float scaleX = 1;
+  Float scaleY = 1;
+  Float skewX = 0;  // in radians, counter-clockwise
+  Float skewY = 0;  // in radians, counter-clockwise
+  Float tCenterX = 0;
+  Float tCenterY = 0;
 
   operator bool () const
   {
@@ -294,9 +300,9 @@ struct hb_transform_decomposed_t
 	   tCenterX || tCenterY;
   }
 
-  hb_transform_t to_transform () const
+  hb_transform_t<Float> to_transform () const
   {
-    hb_transform_t t;
+    hb_transform_t<Float> t;
     t.translate (translateX + tCenterX, translateY + tCenterY);
     t.rotate (rotation);
     t.scale (scaleX, scaleY);

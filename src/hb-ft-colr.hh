@@ -530,7 +530,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
       ce.funcs->push_root_transform (ce.data, font);
       ce.recurse (paint);
       ce.funcs->pop_transform (ce.data);
-      hb_extents_t extents = extents_data.get_extents ();
+      hb_extents_t<> extents = extents_data.get_extents ();
       is_bounded = extents_data.is_bounded ();
 
       c.funcs->push_clip_rectangle (c.data,

@@ -13,7 +13,7 @@ namespace OT {
 
 struct hb_transforming_pen_context_t
 {
-  hb_transform_t transform;
+  hb_transform_t<> transform;
   hb_draw_funcs_t *dfuncs;
   void *data;
   hb_draw_state_t *st;
@@ -133,7 +133,7 @@ VarComponent::get_path_at (hb_font_t *font,
 			   hb_draw_session_t *draw_session,
 			   hb_extents_t *extents,
 			   hb_array_t<const int> coords,
-			   hb_transform_t total_transform,
+			   hb_transform_t<> total_transform,
 			   hb_ubytes_t total_record,
 			   hb_decycler_t *decycler,
 			   signed *edges_left,
@@ -244,7 +244,7 @@ VarComponent::get_path_at (hb_font_t *font,
 	PROCESS_TRANSFORM_COMPONENT (FWORD, 1.0f, HAVE_TCENTER_Y, tCenterY); \
 	} HB_STMT_END
 
-  hb_transform_decomposed_t transform;
+  hb_transform_decomposed_t<> transform;
 
   // Read transform components
 #define PROCESS_TRANSFORM_COMPONENT(type, mult, flag, name) \
@@ -344,7 +344,7 @@ VARC::get_path_at (hb_font_t *font,
 		   hb_draw_session_t *draw_session,
 		   hb_extents_t *extents,
 		   hb_array_t<const int> coords,
-		   hb_transform_t transform,
+		   hb_transform_t<> transform,
 		   hb_codepoint_t parent_glyph,
 		   hb_decycler_t *decycler,
 		   signed *edges_left,

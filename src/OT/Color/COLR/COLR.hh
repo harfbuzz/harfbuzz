@@ -2537,7 +2537,7 @@ struct COLR
     hb_paint_extents_context_t extents_data;
     bool ret = paint_glyph (font, glyph, extents_funcs, &extents_data, 0, HB_COLOR(0,0,0,0));
 
-    hb_extents_t e = extents_data.get_extents ();
+    hb_extents_t<> e = extents_data.get_extents ();
     if (e.is_void ())
     {
       extents->x_bearing = 0;
@@ -2625,7 +2625,7 @@ struct COLR
 			 palette_index, foreground,
 			 false);
 
-	    hb_extents_t extents = extents_data.get_extents ();
+	    hb_extents_t<> extents = extents_data.get_extents ();
 	    is_bounded = extents_data.is_bounded ();
 
 	    c.funcs->push_clip_rectangle (c.data,
