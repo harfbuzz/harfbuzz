@@ -1,0 +1,1995 @@
+#include "stddef.gdh"
+#define p postscript
+
+table(feature)
+smallcaps { id = 200; name.LG_USENG = string ("Small capitals"); }
+index {
+	id = 201;
+	name.LG_USENG = string ("Superiors/inferiors");
+	settings {
+		none { value = 0 }
+		sup { value = 1 }
+		inf { value = 2 }
+	}
+}
+
+num { id = 202; name.LG_USENG = string ("Old style numbers"); }
+propnum { id = 203; name.LG_USENG = string ("Proportional numbers"); }
+
+lig {
+	id = 204;
+	name.LG_USENG = string ("Ligatures");
+	default = normal;
+	settings {
+		none { value = 0 }
+		normal { value = 1 }
+		extra { value = 2 }
+	}
+}
+sep {
+
+	id = 205;
+	name.LG_USENG = string ("Thousand separator");
+	default = normal;
+	settings {
+		none { value = 0 }
+		normal { value = 1 }
+		tab { value = 2 }
+	}
+}
+
+minus { id = 206; default = 1; name.LG_USENG = string ("Minus sign"); }
+fraction { id = 207; default = 0; name.LG_USENG = string ("Fraction"); }
+umlaut { id = 208;  name.LG_USENG = string ("German umlaut variants"); } 
+eszet { id = 215;  name.LG_USENG = string ("Capital eszet"); } 
+
+titlecaps { id = 209; name.LG_USENG = string ("Title"); 
+settings { none {value = 0} first { value = 1 } all { value = 2 } wordparts { value = 3 } title { value = 4}}}
+
+numbertext { id = 210; default = 0; name.LG_USENG = string ("Numbertext");
+ settings { 
+	none {value = 0}
+	af { value = 27 }
+	ca { value = 37 }
+	cs { value = 42 }
+	da { value = 45 }
+	de { value = 49 }
+	en { value = 1 }
+	el { value = 30 }
+	eo { value = 200 }
+	es { value = 34 }
+	fi { value = 35 }
+	fr { value = 33 }
+	hu { value = 36 }
+	it { value = 39 }
+	LB { value = 201 }
+	nl { value = 31 }
+	pl { value = 48 }
+	pt { value = 3 }
+	ro { value = 40 }
+	ru { value = 7 }
+	sh { value = 52 }
+	sl { value = 50 }
+	sr { value = 51 }
+	sv { value = 46 }
+	tr { value = 90 }
+ }}
+ord { id = 211; default = 0; name.LG_USENG = string ("ord"); 
+ settings { none {value = 0} de { value = 49 } en { value = 1 } hu { value = 36 }}}
+ordabr { id = 212; default = 0; name.LG_USENG = string ("ordabr"); }
+ntvar { id = 213; default = 0; name.LG_USENG = string ("Numbertext variant"); }
+TeX { id = 214; name.LG_USENG = string ("TeX like superscript and subscript, Greek letters"); }
+endtable;
+
+table(glyph)
+
+// start for capitalization
+start = unicode(0x005E)
+
+// " ", "!", ")", ",", "-", ":", ";", "?"
+coa = (unicode(0x0020), unicode(0x0021), unicode(0x0029), unicode(0x002C), unicode(0x002D), unicode(0x003A), unicode(0x003B), unicode(0x003F));
+
+gHyphen = U+002d;
+
+clsSylBreak = unicode(0x00AD) { break = BREAK_INTRA };
+
+d0 = unicode(0x0030);
+d1 = unicode(0x0031);
+d2 = unicode(0x0032);
+d3 = unicode(0x0033);
+d4 = unicode(0x0034);
+d5 = unicode(0x0035);
+d6 = unicode(0x0036);
+d7 = unicode(0x0037);
+d8 = unicode(0x0038);
+d9 = unicode(0x0039);
+
+da = (unicode(0x0031..0x0039));
+dd = (unicode(0x0030..0x0039));
+
+ZWNJ = unicode(0x200C);
+SEPARATOR = unicode(0x005C);
+
+cdecsep = (unicode(0x002C), unicode(0x002E)); // . and ,
+
+// German umlaut variants
+cgu1 = (unicode(0x00C4), unicode(0x00D6), unicode(0x00DC));
+cgu2 = (unicode(0xE02C..0xE02E));
+
+      clsLigComp1 = (unicode(0x66));  // f
+      clsLigComp2 =
+       (unicode(0x66), unicode(0x69), unicode(0x6a), unicode(0x6c));  // fijl
+      clsLigComp3 =
+       (unicode(0x69), unicode(0x6a), unicode(0x6c));  // ijl
+
+      clsLigComp4 = (unicode(0x63), unicode(0x73));  // cs
+      clsLigComp5 = (unicode(0x74));  // t
+
+
+      // Each component is half the width of the bounding box:
+      clsLig0 = ( unicode(0xfb03,     // ffi
+            0xe033,     // ffj
+            0xfb04))     // ffl
+            {
+                  comp.c1 = box(bb.left, bb.bottom,
+                                bb.width/3, bb.top);
+                  comp.c2 = box(bb.width/3, bb.bottom,
+                                2*bb.width/3, bb.top);
+                  comp.c3 = box(2*bb.width/3, bb.bottom,
+                                bb.right, bb.top)
+            } ;
+
+
+      clsLig = (unicode(0xfb00, // ff
+            0xfb01,     // fi
+            0xe037,     // fj
+            0xfb02))     // fl
+            {
+                  comp.c1 = box(bb.left, bb.bottom,
+                                bb.width/2, bb.top);
+                  comp.c2 = box(bb.width/2, bb.bottom,
+                                bb.right, bb.top)
+            } ;
+
+      clsLig1 = (unicode(0xe03d, // st
+            0xfb06))     // ct
+            {
+                  comp.c1 = box(bb.left, bb.bottom,
+                                bb.width/2, bb.top);
+                  comp.c2 = box(bb.width/2, bb.bottom,
+                                bb.right, bb.top)
+            } ;
+
+      clsLig2 = (unicode(0xE048))
+            {
+                  comp.c1 = box(bb.left, bb.bottom,
+                                bb.width/2, bb.top);
+                  comp.c2 = box(bb.width/2, bb.bottom,
+                                bb.right, bb.top)
+            } ;
+
+// space, (, [, { and ZWNJ
+cmin = (unicode(0x0020), unicode(0x0028), unicode(0x005B), unicode(0x007B), ZWNJ);
+
+// include kern data
+
+
+csc1 = ( unicode(0xE02D), unicode(0x0061..0x007A), unicode(0x00E0..0x00F6), unicode(0x0153), unicode(0x00F8..0x00FF), unicode(0x0133), unicode(0x00DF), unicode(0x0111), unicode(0x0103), unicode(0x0105), unicode(0x0107), unicode(0x010D), unicode(0x010F), unicode(0x0119), unicode(0x011B), unicode(0x011F), unicode(0x013A), unicode(0x0142), unicode(0x0144), unicode(0x0148), unicode(0x014B), unicode(0x0151), unicode(0x0155), unicode(0x0159), unicode(0x015B), unicode(0x015F), unicode(0x0161), unicode(0x0163), unicode(0x0167), unicode(0x016F), unicode(0x0171), unicode(0x017A), unicode(0x017C), unicode(0x017E), unicode(0x013E), unicode(0x0165), unicode(0x021B), unicode(0x0219) ); 
+csc2 = ( unicode(0xE06D), unicode(0xE051..0xE06A), unicode(0xE070..0xE091), unicode(0xE097..0xE0B5) );
+
+csc3 = ( unicode(0xE02D), unicode(0x0041..0x005A), unicode(0x00C0..0x00D6), unicode(0x0152), unicode(0x00D8), unicode(0x00D9), unicode(0x00DA), unicode(0x00DB), unicode(0x00DC), unicode(0x00DD), unicode(0x00DE), unicode(0x0178), unicode(0x0132), unicode(0x0053), unicode(0x0110), unicode(0x0102), unicode(0x0104), unicode(0x0106), unicode(0x010C), unicode(0x010E), unicode(0x0118), unicode(0x011A), unicode(0x011E), unicode(0x0139), unicode(0x0141), unicode(0x0143), unicode(0x0147), unicode(0x014A), unicode(0x0150), unicode(0x0154), unicode(0x0158), unicode(0x015A), unicode(0x015E), unicode(0x0160), unicode(0x0162), unicode(0x0166), unicode(0x016E), unicode(0x0170), unicode(0x0179), unicode(0x017B), unicode(0x017D), unicode(0x013D), unicode(0x0164), unicode(0x021A), unicode(0x0218));
+
+csc123 = (csc1, csc2, csc3);
+csc123lig = (csc123, unicode(0xfb03, 0xe033, 0xfb04, 0xfb00, 0xfb01, 0xe037, 0xfb02, 0xe03d, 0xfb06, 0xE048), unicode(0x1E9E), unicode(0xE092));
+csc123ligdash = (csc123lig, unicode(0x002D))
+
+// (, ), +, =, 0-9, -, a-z
+cidx1 = (unicode(0x0028), unicode(0x0029), unicode(0x002B), unicode(0x002D), unicode(0x0030..0x0039), unicode(0x003D), unicode(0x0061..0x007A));
+cidx2 = (unicode(0x207D), unicode(0x207E), unicode(0x207A), unicode(0x207B), unicode(0x2070), unicode(0x00B9), unicode(0x00B2), unicode(0x00B3), unicode(0x2074..0x2079), unicode(0x207C), unicode(0xE0C0..0xE0C6), unicode(0x02B0), unicode(0x2071), unicode(0x02B2), unicode(0xE0CA), unicode(0x02E1), unicode(0xE0CC), unicode(0x207F), unicode(0xE0CE..0xE0D0), unicode(0x02B3), unicode(0x02E2), unicode(0xE0D3..0xE0D5), unicode(0x02B7), unicode(0x02E3), unicode(0x02B8), unicode(0xE0D9));
+cidx3 = (unicode(0x208D), unicode(0x208E), unicode(0x208A), unicode(0x208B), unicode(0x2080..0x2089), unicode(0x208C), unicode(0x2090), unicode(0xE149..0xE14B), unicode(0x2091), unicode(0xE14D..0xE155), unicode(0x2092), unicode(0xE157..0xE15E), unicode(0x2093), unicode(0xE160), unicode(0xE161));
+
+// digit variants
+cnum1 = (unicode(0x0030..0x0039));
+cnum2 = (unicode(0xE010..0xE019));
+cnum3 = (unicode(0xE020..0xE029));
+cnum4 = (unicode(0xE118..0xE121));
+
+cn31 = unicode(0xE021);
+cn41 = unicode(0xE119);
+cn42 = unicode(0xE11A);
+cn43 = unicode(0xE11B);
+
+// indices
+
+cnumsup = (unicode(0x2070), unicode(0x00B9), unicode(0x00B2), unicode(0x00B3), unicode(0x2074..0x2079));
+cnumsub = (unicode(0x2080..0x2089));
+
+cnumsep = (cnum1, cnum2, cnum3, unicode(0x202F));
+
+d1a = (d1, unicode(0xE011), unicode(0xE021), unicode(0xE119));
+
+// letters (removing extra space before colons in words)
+letters = (csc1, csc2, csc3, unicode(0x003A), cnum1, cnum2, cnum3, cnum4);
+
+cl4 = (unicode(0x56,0xe0ea,0x57,0xe0e9,0x1e82,0x174,0x1e84,0x1e80,0x474,0x476,0x1e7c,0x1e7e,0x1e86,0x1e88));
+cl17 = (unicode(0x7b,0xf6b2,0x5b,0xf6b0,0x28,0xf6ae));
+cl5 = (unicode(0x3a7,0x4b,0xe0eb,0x39a,0x136,0x58,0x416,0x41a,0x425,0x40c,0x496,0x49a,0x49c,0x49e,0x4a0,0x4b2,0x4c1,0x4dc,0x1e30,0x1e32,0x1e34,0x1e8a,0x1e8c,0x2c69));
+cl18 = (unicode(0x55,0xda,0x16c,0xdb,0xdc,0xd9,0x170,0x16a,0x172,0x16e,0x168,0x1d3,0x1d5,0x1d7,0x1d9,0x1db,0x214,0x216,0x1e72,0x1e74,0x1e76,0x1e78,0x1e7a,0x1ee4,0x1ee6,0x1ee8,0x1eea,0x1eec,0x1eee,0x1ef0));
+cl6 = (unicode(0x44,0x10e,0x110,0x4f,0xd3,0x14e,0xd4,0xd6,0xe02d,0xd2,0x150,0x14c,0x39f,0x38c,0xd8,0xd5,0x3a6,0x51,0x398,0x41e,0x42e,0x472,0x40,0xe019,0x186,0x189,0x18a,0x18f,0x1ea,0x1ec,0x20c,0x20e,0x22a,0x22c,0x22e,0x230,0x3d8,0x3f4,0x3fd,0x3ff,0x4da,0x4e6,0x4e8,0x4ea,0x4ec,0x1e0a,0x1e0c,0x1e0e,0x1e10,0x1e12,0x1e4c,0x1e4e,0x1e50,0x1e52,0xe010,0xe00f));
+cl19 = (unicode(0x14a,0x397,0x48,0x126,0x124,0x49,0x132,0xcd,0x12c,0xce,0xcf,0x130,0xcc,0x12a,0x12e,0x399,0x134,0x4e,0x143,0x147,0x145,0xd1,0x39d,0x3a0,0x414,0x418,0x419,0x41b,0x41d,0x41f,0x426,0x428,0x429,0x42b,0x42f,0x406,0x407,0x408,0x40f,0x18e,0x21e,0x40d,0x4a2,0x4e2,0x4e4,0x4f8,0x1e22,0x1e24,0x1e26,0x1e28,0x1e2a,0x1e2c,0x1e2e,0x1e44,0x1e46,0x1e48,0x1e4a,0x1ec8,0x1eca,0x1f28,0x1f29,0x1f2a,0x1f2b,0x1f2c,0x1f2d,0x1f2e,0x1f2f,0x1f38,0x1f39,0x1f3a,0x1f3b,0x1f3c,0x1f3d,0x1f3e,0x1f3f,0x1fca,0x1fcb,0x1fd8,0x1fd9,0x1fda,0x1fdb));
+cl7 = (unicode(0xde,0x443,0x45e,0x3b3,0x72,0x155,0x159,0x157,0xe064,0x4ef,0x4f1,0x1e7d,0x1e7f,0x1e87,0x1e89,0x1e8f,0x1e98,0x76,0xe066,0x77,0xe067,0x1e83,0x175,0x1e85,0x1e81,0x79,0xe069,0xfd,0xe08d,0x177,0xff,0xe08f));
+cl8 = (unicode(0x436,0x43a,0x45c,0xe03a,0xe034,0xe038,0x67,0x11f,0x1e7,0x11d,0x123,0x121,0x6b,0xe05b,0x3ba,0x137,0x138,0x1e9,0x3db,0x49f,0x4a1,0x4b3,0x4dd,0x1e31,0x1e33,0x1e35,0x78,0xe068,0x3b6));
+cl9 = (unicode(0x444,0xe0,0x62,0xe8,0xe030,0xe031,0xfe,0x450));
+cl10 = (unicode(0x435,0x451,0x43e,0x440,0xe054,0x65,0xe9,0xea,0xeb,0x6f,0xe05f,0xf3,0xe083,0xf4,0xe084,0xf6,0xe086,0xf2,0xe082,0x3bf,0x3cc,0xe088,0xf5,0xe085,0x70,0x3c6,0x3d5,0xe061,0x3c1,0x4e7,0x4e9));
+cl20 = (unicode(0x46,0x50,0x3a1,0x420,0x1a4,0x1e1e,0x1e54,0x1e56));
+cl11 = (unicode(0x4c,0x139,0x13b,0x13f,0x141,0x42a,0x42c,0xe05c,0x1e36,0x1e38,0x1e3a,0x1e3c));
+cl12 = (unicode(0xe051,0xe071,0xe098,0xe072,0xe074,0xe070,0xe099,0xe075,0xe073));
+cl21 = (unicode(0x2a,0x22,0x201c,0x201f,0x201d,0x2018,0x201b,0x2019,0x27));
+cl13 = (unicode(0x41,0xc1,0x102,0xc2,0xc4,0xe02c,0xc0,0x391,0x386,0x100,0x104,0xc5,0x1fa,0xc3,0x394,0x39b,0x410,0x1cd,0x1de,0x1e0,0x200,0x202,0x226,0x4d2,0x1e00,0x1ea0,0x1ea2,0x1ea4,0x1ea6,0x1ea8,0x1eaa,0x1eac,0x1eae,0x1eb0,0x1eb2,0x1eb4,0x1eb6,0x1f08,0x1f09,0x1f0a,0x1f0b,0x1f0c,0x1f0d,0x1f0e,0x1f0f,0x1fb8,0x1fb9,0x1fba,0x1fbb));
+cl22 = (unicode(0xe056,0xe065,0xe08a,0xe08b,0xe08c,0xe089,0xe0ae,0xe0ad));
+cl14 = (unicode(0x2c,0x2026,0x2001,0x2003,0x2000,0x2002,0x2007,0x2005,0x2024,0x2e,0x2008,0x201e,0x201a,0x2006,0x20,0x2004,0x2025,0x5f,0x2017,0x202f));
+cl1 = (unicode(0x66,0xfb00,0x17f,0x1e1f));
+cl2 = (unicode(0x393,0x54,0x3a4,0x164,0x162,0x413,0x422,0x490,0x403,0x1ac,0x21a,0x492,0x4ac,0x4f6,0x1e6a,0x1e6c,0x1e6e,0x1e70));
+cl15 = (unicode(0x2090,0x2091,0x2088,0x208c,0x2085,0x2084,0x208b,0x2089,0x2092,0x2081,0x208a,0x2087,0x2086,0x2083,0x2082,0x2094,0x2093,0x2080));
+cl3 = (unicode(0x3a5,0x3d2,0x3ab,0x38e,0x59,0xdd,0x176,0x178,0x1ef2,0x423,0x40e,0xe017,0x3d3,0x3d4,0x4ee,0x4f0,0x4f2,0x1e8e,0x1ef4,0x1ef6,0x1ef8,0x1f59,0x1f5b,0x1f5d,0x1f5f,0x1fe8,0x1fe9,0x1fea,0x1feb));
+cl16 = (unicode(0x7e,0xf7,0x2014,0x2013,0x3d,0x2012,0x3e,0xab,0xf6b6,0xbb,0xf6b7,0x2039,0xf6b8,0x203a,0xf6b9,0x2015,0x2d,0xf6ba,0xe06d,0x2011,0x2010,0x3c,0xb7,0x2b,0xad));
+cr17 = (unicode(0x62,0x68,0x127,0x125,0x6b,0x137,0x6c,0x13a,0x13e,0x13c,0x140,0x142,0xfe,0x180,0x1e03,0x1e05,0x1e07,0x1e23,0x1e25,0x1e27,0x1e29,0x1e2b,0x1e31,0x1e33,0x1e35,0x1e37,0x1e39,0x1e3b,0x1e3d));
+cr4 = (unicode(0x43,0x106,0x10c,0xc7,0x108,0x10a,0x47,0x11e,0x1e6,0x11c,0x122,0x120,0x4f,0x152,0xd3,0x14e,0xd4,0xd6,0xd2,0x1a0,0x150,0x14c,0x39f,0xd8,0x1fe,0xd5,0x3a6,0x51,0x398,0x41e,0x421,0x424,0x404,0x472,0xe016,0x187,0x193,0x19f,0x1ea,0x1ec,0x1f4,0x20c,0x20e,0x22a,0x22c,0x22e,0x230,0x298,0x3d8,0x3f4,0x3f9,0x4a8,0x4aa,0x4e6,0x4e8,0x4ea,0x1e08,0x1e20,0x1e4c,0x1e4e,0x1e50,0x1e52,0x1ecc,0x1ece,0x1ed0,0x1ed2,0x1ed4,0x1ed6,0x1ed8,0x1eda,0x1edc,0x1ede,0x1ee0,0x1ee2,0xe010,0xe00f));
+cr5 = (unicode(0x3b3,0x3bd,0xe064,0x1e7d,0x1e7f,0x1e87,0x1e89,0x1e98,0x76,0xe066,0x77,0xe067,0x1e83,0x175,0x1e85,0x1e81,0xe069,0xe08d,0xe08f));
+cr18 = (unicode(0x55,0xda,0x16c,0xdb,0xdc,0xd9,0x170,0x16a,0x172,0x16e,0x168,0x1d3,0x1d5,0x1d7,0x1d9,0x1db,0x214,0x216,0x1e72,0x1e74,0x1e76,0x1e78,0x1e7a,0x1ee4,0x1ee6,0x1ee8,0x1eea,0x1eec,0x1eee,0x1ef0));
+cr6 = (unicode(0x436,0x443,0x45e,0x3c7,0x4b3,0x4dd,0x78,0xe068,0x79,0xfd,0xff));
+cr19 = (unicode(0x42,0x392,0x44,0x10e,0x110,0x45,0xc9,0x114,0x11a,0xca,0xcb,0x116,0xc8,0x112,0x14a,0x118,0x395,0x397,0xd0,0x46,0x393,0x48,0x126,0x124,0x49,0x132,0xcd,0x12c,0xce,0xcf,0x130,0xcc,0x12a,0x12e,0x399,0x3aa,0x128,0x4b,0x39a,0x136,0x4c,0x139,0x13d,0x13b,0x13f,0x141,0x4e,0x143,0x147,0x145,0xd1,0x39d,0x50,0x3a0,0x52,0x154,0x158,0x156,0x3a1,0x411,0x412,0x413,0x415,0x401,0x418,0x419,0x41a,0x41d,0x41f,0x420,0x426,0x428,0x429,0x42b,0x42c,0x42e,0x403,0x406,0x407,0x40a,0x40c,0x40f,0x182,0x189,0x1c4,0x1c5,0x1ca,0x1cb,0x1e8,0x1f6,0x204,0x206,0x20a,0x210,0x212,0x21e,0x400,0x40d,0x494,0x49a,0x4a2,0x4a4,0x4a6,0x4e2,0x4e4,0x4f6,0x4f8,0x1e02,0x1e04,0x1e06,0x1e0a,0x1e0c,0x1e0e,0x1e10,0x1e12,0x1e14,0x1e16,0x1e18,0x1e1a,0x1e1c,0x1e1e,0x1e22,0x1e24,0x1e26,0x1e28,0x1e2a,0x1e2c,0x1e2e,0x1e30,0x1e32,0x1e34,0x1e36,0x1e38,0x1e3a,0x1e3c,0x1e44,0x1e46,0x1e48,0x1e4a,0x1e54,0x1e56,0x1e58,0x1e5a,0x1e5c,0x1e5e,0x1eb8,0x1eba,0x1ebc,0x1ebe,0x1ec0,0x1ec2,0x1ec4,0x1ec6,0x1ec8,0x1eca));
+cr7 = (unicode(0x2a,0x22,0x201c,0x201f,0x201d,0x2018,0x201b,0x2019,0x27));
+cr8 = (unicode(0x41,0xc6,0x1fc,0xc1,0x102,0xc2,0xc4,0xe02c,0xc0,0x391,0x100,0x104,0xc5,0x1fa,0xc3,0x394,0x39b,0x410,0x1cd,0x1de,0x1e0,0x1e2,0x200,0x202,0x226,0x4d2,0x1e00,0x1ea0,0x1ea2,0x1ea4,0x1ea6,0x1ea8,0x1eaa,0x1eac,0x1eae,0x1eb0,0x1eb2,0x1eb4,0x1eb6,0x1fb8,0x1fb9,0x1fbc));
+cr9 = (unicode(0x2c,0x2026,0x2024,0x2e,0x201a,0x2025));
+cr10 = (unicode(0x435,0x43e,0x441,0x454,0x4d9,0x3b1,0x63,0xe053,0xe03b,0xe03a,0xe7,0xe077,0x65,0x119,0xe057,0x6f,0xe05f,0x153,0x1a1,0x3c9,0x3ce,0x3bf,0x3c6,0x71,0xe061,0x3c3,0x3c2,0x188,0x18d,0x1dd,0x3f2,0x3f5,0x4e9,0x1e19,0x1e1b,0x1eb9,0x1ecd));
+cr20 = (unicode(0xe051,0xe071,0xe098,0xe072,0xe074,0xe070,0xe099,0xe075,0xe073));
+cr11 = (unicode(0x61,0xe1,0xe6,0x430,0x437,0x444,0x44d,0x44f,0x3ac,0x105,0x107,0x64,0xe9,0x117,0xf3,0x14d,0x3cc,0xf8,0x3d5,0x3c1,0x22f,0x3f1,0x4d5,0x1e0f,0x1ea1,0x1f71,0x1f73,0x1f79));
+cr12 = (unicode(0x432,0x433,0x438,0x43a,0x43c,0x43d,0x43f,0x440,0x445,0x446,0x448,0x449,0x45a,0x45f,0x67,0xe04c,0x6d,0x3bc,0x6e,0x70,0x72,0x73,0x3f0,0x7a));
+cr21 = (unicode(0xe0c0,0xe0c1,0xe0c2,0xe0c3,0xb0,0xe0c4,0x2078,0x207c,0xe0c5,0x2075,0x2074,0xe0c6,0x2071,0xe0ca,0xe0cc,0x207b,0x207f,0x2079,0xe0ce,0xb9,0xe0cf,0x207d,0x207e,0x207a,0xe0d0,0x2077,0x2076,0xe0d3,0xb3,0xb2,0xe0d4,0x2098,0x2099,0xe0d5,0xe0d9,0x2070));
+cr22 = (unicode(0xe065,0xe08a,0xe08b,0xe08c,0xe089,0xe0ae,0xe0ad));
+cr13 = (unicode(0x7d,0xf6b3,0x5d,0xf6b1,0x29,0xf6af));
+cr23 = (unicode(0xf6be,0x3b7,0x3b9,0x3ba,0x75,0x1ee5,0x3c5));
+cr1 = (unicode(0x54,0x3a4,0x164,0x162,0x422,0x42a,0x402,0x40b,0x21a,0x4ac,0x1e6a,0x1e6c,0x1e6e,0x1e70));
+cr14 = (unicode(0x4a,0x134,0x458,0x6a,0xe05a,0x135));
+cr15 = (unicode(0x7e,0xf7,0x2014,0x2013,0x3d,0x2012,0x3e,0xab,0xf6b6,0xbb,0xf6b7,0x2039,0xf6b8,0x203a,0xf6b9,0x2015,0x2d,0xf6ba,0xe06d,0x2011,0x2010,0x3c,0xb7,0x2b,0xad));
+cr2 = (unicode(0x3a5,0x3ab,0x59,0xdd,0x178));
+cr16 = (unicode(0x21,0x2049,0x203c,0xf6b4,0x203d,0x3f,0x2048,0x2047));
+cr3 = (unicode(0x56,0xe0ea,0x57,0xe0e9,0x1e82,0x174,0x1e84,0x1e80,0x427,0x474,0x476,0x4b6,0x1e7c,0x1e7e,0x1e86,0x1e88));
+endtable;
+table(position)
+cr4 { kern.x = -34m } / cl4 _ ;
+cr5 { kern.x = -49m } / cl4 _ ;
+cr18 { kern.x = 24m } / cl4 _ ;
+cr6 { kern.x = -24m } / cl4 _ ;
+cr19 { kern.x = 24m } / cl4 _ ;
+cr8 { kern.x = -112m } / cl4 _ ;
+cr9 { kern.x = -88m } / cl4 _ ;
+cr10 { kern.x = -49m } / cl4 _ ;
+cr20 { kern.x = -112m } / cl4 _ ;
+cr11 { kern.x = -44m } / cl4 _ ;
+cr12 { kern.x = -39m } / cl4 _ ;
+cr23 { kern.x = -24m } / cl4 _ ;
+cr1 { kern.x = 24m } / cl4 _ ;
+cr15 { kern.x = -49m } / cl4 _ ;
+cr2 { kern.x = 24m } / cl4 _ ;
+cr3 { kern.x = 24m } / cl4 _ ;
+cr17 { kern.x = 12m } / cl17 _ ;
+cr4 { kern.x = -10m } / cl17 _ ;
+cr5 { kern.x = -17m } / cl17 _ ;
+cr18 { kern.x = 12m } / cl17 _ ;
+cr19 { kern.x = 12m } / cl17 _ ;
+cr8 { kern.x = -24m } / cl17 _ ;
+cr10 { kern.x = -17m } / cl17 _ ;
+cr20 { kern.x = -12m } / cl17 _ ;
+cr11 { kern.x = -12m } / cl17 _ ;
+cr14 { kern.x = 73m } / cl17 _ ;
+cr15 { kern.x = -37m } / cl17 _ ;
+cr4 { kern.x = -24m } / cl5 _ ;
+cr5 { kern.x = -54m } / cl5 _ ;
+cr18 { kern.x = 24m } / cl5 _ ;
+cr19 { kern.x = 37m } / cl5 _ ;
+cr10 { kern.x = -20m } / cl5 _ ;
+cr11 { kern.x = -15m } / cl5 _ ;
+cr22 { kern.x = -15m } / cl5 _ ;
+cr15 { kern.x = -24m } / cl5 _ ;
+cr2 { kern.x = 24m } / cl5 _ ;
+cr3 { kern.x = 24m } / cl5 _ ;
+cr18 { kern.x = 24m } / cl18 _ ;
+cr19 { kern.x = 24m } / cl18 _ ;
+cr8 { kern.x = -59m } / cl18 _ ;
+cr9 { kern.x = -24m } / cl18 _ ;
+cr20 { kern.x = -12m } / cl18 _ ;
+cr1 { kern.x = 37m } / cl18 _ ;
+cr2 { kern.x = 24m } / cl18 _ ;
+cr3 { kern.x = 24m } / cl18 _ ;
+cr4 { kern.x = 5m } / cl6 _ ;
+cr5 { kern.x = 10m } / cl6 _ ;
+cr6 { kern.x = 10m } / cl6 _ ;
+cr8 { kern.x = -29m } / cl6 _ ;
+cr9 { kern.x = -29m } / cl6 _ ;
+cr10 { kern.x = 5m } / cl6 _ ;
+cr20 { kern.x = -37m } / cl6 _ ;
+cr11 { kern.x = 5m } / cl6 _ ;
+cr13 { kern.x = -10m } / cl6 _ ;
+cr1 { kern.x = -5m } / cl6 _ ;
+cr2 { kern.x = -34m } / cl6 _ ;
+cr3 { kern.x = -24m } / cl6 _ ;
+cr18 { kern.x = 24m } / cl19 _ ;
+cr19 { kern.x = 24m } / cl19 _ ;
+cr1 { kern.x = 37m } / cl19 _ ;
+cr2 { kern.x = 24m } / cl19 _ ;
+cr3 { kern.x = 24m } / cl19 _ ;
+cr4 { kern.x = 10m } / cl7 _ ;
+cr5 { kern.x = 15m } / cl7 _ ;
+cr6 { kern.x = 10m } / cl7 _ ;
+cr8 { kern.x = -49m } / cl7 _ ;
+cr9 { kern.x = -59m } / cl7 _ ;
+cr10 { kern.x = -5m } / cl7 _ ;
+cr20 { kern.x = -49m } / cl7 _ ;
+cr12 { kern.x = 2m } / cl7 _ ;
+cr13 { kern.x = -17m } / cl7 _ ;
+cr23 { kern.x = 2m } / cl7 _ ;
+cr1 { kern.x = -39m } / cl7 _ ;
+cr2 { kern.x = -12m } / cl7 _ ;
+cr3 { kern.x = -24m } / cl7 _ ;
+cr6 { kern.x = 10m } / cl8 _ ;
+cr10 { kern.x = -15m } / cl8 _ ;
+cr11 { kern.x = -5m } / cl8 _ ;
+cr2 { kern.x = -12m } / cl8 _ ;
+cr3 { kern.x = -24m } / cl8 _ ;
+cr5 { kern.x = -5m } / cl9 _ ;
+cr6 { kern.x = -5m } / cl9 _ ;
+cr7 { kern.x = -20m } / cl9 _ ;
+cr8 { kern.x = -20m } / cl9 _ ;
+cr9 { kern.x = -20m } / cl9 _ ;
+cr10 { kern.x = 5m } / cl9 _ ;
+cr13 { kern.x = -5m } / cl9 _ ;
+cr1 { kern.x = -29m } / cl9 _ ;
+cr2 { kern.x = -37m } / cl9 _ ;
+cr3 { kern.x = -44m } / cl9 _ ;
+cr5 { kern.x = -7m } / cl10 _ ;
+cr6 { kern.x = -7m } / cl10 _ ;
+cr7 { kern.x = -24m } / cl10 _ ;
+cr8 { kern.x = -10m } / cl10 _ ;
+cr9 { kern.x = -10m } / cl10 _ ;
+cr10 { kern.x = 7m } / cl10 _ ;
+cr11 { kern.x = 5m } / cl10 _ ;
+cr13 { kern.x = -5m } / cl10 _ ;
+cr1 { kern.x = -49m } / cl10 _ ;
+cr2 { kern.x = -54m } / cl10 _ ;
+cr3 { kern.x = -54m } / cl10 _ ;
+cr17 { kern.x = 12m } / cl20 _ ;
+cr18 { kern.x = 49m } / cl20 _ ;
+cr19 { kern.x = 29m } / cl20 _ ;
+cr7 { kern.x = 24m } / cl20 _ ;
+cr8 { kern.x = -59m } / cl20 _ ;
+cr9 { kern.x = -24m } / cl20 _ ;
+cr20 { kern.x = -49m } / cl20 _ ;
+cr13 { kern.x = 5m } / cl20 _ ;
+cr16 { kern.x = 10m } / cl20 _ ;
+cr3 { kern.x = 24m } / cl20 _ ;
+cr2 { kern.x = -49m } / cl11 _ ;
+cr5 { kern.x = -49m } / cl12 _ ;
+cr10 { kern.x = -12m } / cl12 _ ;
+cr20 { kern.x = 10m } / cl12 _ ;
+cr22 { kern.x = -24m } / cl12 _ ;
+cr13 { kern.x = -12m } / cl12 _ ;
+cr8 { kern.x = -49m } / cl21 _ ;
+cr9 { kern.x = -49m } / cl21 _ ;
+cr10 { kern.x = -24m } / cl21 _ ;
+cr4 { kern.x = -34m } / cl13 _ ;
+cr5 { kern.x = -34m } / cl13 _ ;
+cr18 { kern.x = -59m } / cl13 _ ;
+cr7 { kern.x = -73m } / cl13 _ ;
+cr10 { kern.x = -12m } / cl13 _ ;
+cr11 { kern.x = -12m } / cl13 _ ;
+cr13 { kern.x = -12m } / cl13 _ ;
+cr23 { kern.x = -34m } / cl13 _ ;
+cr1 { kern.x = -63m } / cl13 _ ;
+cr15 { kern.x = -37m } / cl13 _ ;
+cr2 { kern.x = -73m } / cl13 _ ;
+cr3 { kern.x = -112m } / cl13 _ ;
+cr8 { kern.x = -30m } / cl22 _ ;
+cr9 { kern.x = -10m } / cl22 _ ;
+cr20 { kern.x = -24m } / cl22 _ ;
+cr4 { kern.x = -10m } / cl14 _ ;
+cr7 { kern.x = -122m } / cl14 _ ;
+cr1 { kern.x = -61m } / cl14 _ ;
+cr2 { kern.x = -73m } / cl14 _ ;
+cr3 { kern.x = -73m } / cl14 _ ;
+cr17 { kern.x = 40m } / cl1 _ ;
+cr4 { kern.x = 24m } / cl1 _ ;
+cr7 { kern.x = 73m } / cl1 _ ;
+cr21 { kern.x = 88m } / cl1 _ ;
+cr13 { kern.x = 61m } / cl1 _ ;
+cr1 { kern.x = 98m } / cl1 _ ;
+cr14 { kern.x = 37m } / cl1 _ ;
+cr2 { kern.x = 98m } / cl1 _ ;
+cr16 { kern.x = 80m } / cl1 _ ;
+cr3 { kern.x = 98m } / cl1 _ ;
+cr4 { kern.x = -5m } / cl2 _ ;
+cr5 { kern.x = -49m } / cl2 _ ;
+cr18 { kern.x = 37m } / cl2 _ ;
+cr6 { kern.x = -34m } / cl2 _ ;
+cr19 { kern.x = 24m } / cl2 _ ;
+cr8 { kern.x = -49m } / cl2 _ ;
+cr9 { kern.x = -63m } / cl2 _ ;
+cr10 { kern.x = -63m } / cl2 _ ;
+cr20 { kern.x = -49m } / cl2 _ ;
+cr11 { kern.x = -49m } / cl2 _ ;
+cr12 { kern.x = -49m } / cl2 _ ;
+cr23 { kern.x = -39m } / cl2 _ ;
+cr1 { kern.x = 24m } / cl2 _ ;
+cr15 { kern.x = -59m } / cl2 _ ;
+cr2 { kern.x = 24m } / cl2 _ ;
+cr16 { kern.x = 10m } / cl2 _ ;
+cr3 { kern.x = 24m } / cl2 _ ;
+cr7 { kern.x = -73m } / cl15 _ ;
+cr21 { kern.x = -308m } / cl15 _ ;
+cr4 { kern.x = -37m } / cl3 _ ;
+cr5 { kern.x = -44m } / cl3 _ ;
+cr18 { kern.x = 24m } / cl3 _ ;
+cr6 { kern.x = -24m } / cl3 _ ;
+cr19 { kern.x = 24m } / cl3 _ ;
+cr8 { kern.x = -61m } / cl3 _ ;
+cr9 { kern.x = -44m } / cl3 _ ;
+cr10 { kern.x = -61m } / cl3 _ ;
+cr20 { kern.x = -68m } / cl3 _ ;
+cr11 { kern.x = -49m } / cl3 _ ;
+cr12 { kern.x = -49m } / cl3 _ ;
+cr23 { kern.x = -39m } / cl3 _ ;
+cr1 { kern.x = 24m } / cl3 _ ;
+cr15 { kern.x = -49m } / cl3 _ ;
+cr2 { kern.x = 24m } / cl3 _ ;
+cr3 { kern.x = 24m } / cl3 _ ;
+cr8 { kern.x = -37m } / cl16 _ ;
+cr13 { kern.x = -10m } / cl16 _ ;
+cr1 { kern.x = -49m } / cl16 _ ;
+cr2 { kern.x = -49m } / cl16 _ ;
+cr3 { kern.x = -49m } / cl16 _ ;
+
+// fix for in-word colons
+unicode(0x003A) { kern.x = -50m } / _ letters;
+
+// fix for !!, ??, ?!
+unicode(0x0021) { kern.x = -140m } / unicode(0x0021) _;
+unicode(0x0021) { kern.x = -160m } / unicode(0x003F) _;
+unicode(0x003F) { kern.x = -120m } / unicode(0x003F) _;
+unicode(0x003F) { kern.x = -100m } / unicode(0x0021) _;
+
+// fix for three dots (underline)
+unicode(0x2026) { kern.x = 50m } / unicode(0x2026) _;
+
+// put asterisk above the subscript
+
+unicode(0x002A) { kern.x = (@1.pos.x - @2.pos.x) ; adv.x = -(@2.pos.x - @1.pos.x) + @1.bb.width + 50m } / cidx3 _ { @2.bb.width <= @1.bb.width };
+unicode(0x002A) { kern.x = (@1.pos.x - @2.pos.x) } / cidx3 _;
+
+
+// subscript letter
+cidx2 { kern.x = (@1.pos.x - @2.pos.x) ; adv.x = -(@2.pos.x - @1.pos.x) + @1.bb.width + 50m } / cidx3 _ { @2.bb.width <= @1.bb.width };
+cidx2 { kern.x = (@1.pos.x - @2.pos.x) } / cidx3 _;
+
+cidx3 { kern.x =  @1.pos.x + @1.bb.width - @3.pos.x } / cidx3 cidx2 _;
+cidx2 { kern.x =  @2.bb.width - @3.bb.width } / cidx3 cidx2 cidx3 _;
+cidx3 { kern.x =  @1.bb.width - @2.bb.width + @3.bb.width - @4.bb.width } / cidx3 cidx2 cidx3 cidx2 _;
+cidx2 { kern.x = -@1.bb.width + @2.bb.width - @3.bb.width + @4.bb.width - @5.bb.width } / cidx3 cidx2 cidx3 cidx2 cidx3 _;
+
+
+
+endtable;
+
+table(sub) { MaxBackup = 50; MaxRuleLoop = 200 }
+
+// three dots
+unicode(0x002E) unicode(0x002E) unicode(0x002E) > _ _ unicode(0x2026);
+
+// degrees
+
+unicode(0x00B0) p("C") > unicode(0x2103) _;
+unicode(0x00B0) p("F") > unicode(0x2109) _;
+
+if (numbertext > 0 || ord > 0)
+
+	SEPARATOR > _;
+
+// removing left zeros
+
+	csc1 ZWNJ d0 ZWNJ > @1 / ^_ _ _ _;
+	csc1 ZWNJ d0 d0 ZWNJ > @1 ZWNJ / ^_ _ _ _ _;
+	csc1 ZWNJ d0 cnum1 ZWNJ > @1 ZWNJ @4 ZWNJ / ^_ _ _ _ _;
+	csc1 ZWNJ d0 cnum1 cnum1 ZWNJ > @1 ZWNJ @4 @5 ZWNJ / ^_ _ _ _ _ _;
+	csc1 ZWNJ d0 cnum1 cnum1 cnum1 ZWNJ > @1 ZWNJ @4 @5 @6 ZWNJ / ^_ _ _ _ _ _ _;
+	csc1 ZWNJ d0 cnum1 cnum1 cnum1 cnum1 ZWNJ > @1 ZWNJ @4 @5 @6 @7 ZWNJ / ^_ _ _ _ _ _ _ _;
+	csc1 ZWNJ d0 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > @1 ZWNJ @4 @5 @6 @7 @8 ZWNJ / ^_ _ _ _ _ _ _ _ _;
+	csc1 ZWNJ d0 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > @1 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_ _ _ _ _ _ _ _ _ _;
+	csc1 ZWNJ d0 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > @1 ZWNJ @4 @5 @6 @7 @8 @9 @10 ZWNJ / ^_ _ _ _ _ _ _ _ _ _ _;
+	csc1 ZWNJ d0 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > @1 ZWNJ @4 @5 @6 @7 @8 @9 @10 @11 ZWNJ / ^_ _ _ _ _ _ _ _ _ _ _ _;
+
+	ZWNJ d0 ZWNJ > _ / ^_ _ _ ;
+	ZWNJ d0 d0 ZWNJ > ZWNJ / ^_ _ _ _;
+	ZWNJ d0 cnum1 ZWNJ > ZWNJ @3 ZWNJ / ^_ _ _ _;
+	ZWNJ d0 cnum1 cnum1 ZWNJ > ZWNJ @3 @4 ZWNJ / ^_ _ _ _ _;
+	ZWNJ d0 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @3 @4 @5 ZWNJ / ^_ _ _ _ _ _;
+	ZWNJ d0 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @3 @4 @5 @6 ZWNJ / ^_ _ _ _ _ _ _;
+	ZWNJ d0 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @3 @4 @5 @6 @7 ZWNJ / ^_ _ _ _ _ _ _ _;
+	ZWNJ d0 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_ _ _ _ _ _ _ _ _;
+	ZWNJ d0 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @3 @4 @5 @6 @7 @8 @9 ZWNJ / ^_ _ _ _ _ _ _ _ _ _;
+	ZWNJ d0 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @3 @4 @5 @6 @7 @8 @9 @10 ZWNJ / ^_ _ _ _ _ _ _ _ _ _ _;
+
+	// optional space
+	unicode(0x003A) unicode(0x003A) d0 ZWNJ > ZWNJ / ^_ _ _ _;
+	unicode(0x003A) unicode(0x003A) dd ZWNJ > unicode(0x0020) ZWNJ / ^_ _ _ _;
+	unicode(0x003A) unicode(0x003A) d0 d0 ZWNJ > ZWNJ / ^_ _ _ _ _;
+	unicode(0x003A) unicode(0x003A) dd dd ZWNJ > unicode(0x0020) ZWNJ / ^_ _ _ _ _;
+	unicode(0x003A) unicode(0x003A) d0 d0 d0 ZWNJ > ZWNJ / ^_ _ _ _ _ _;
+	unicode(0x003A) unicode(0x003A) dd dd dd ZWNJ > unicode(0x0020) ZWNJ / ^_ _ _ _ _ _;
+	unicode(0x003A) unicode(0x003A) d0 d0 d0 d0 d0 d0 ZWNJ > ZWNJ / ^_ _ _ _ _ _ _ _ _;
+	unicode(0x003A) unicode(0x003A) dd dd dd dd dd dd ZWNJ > unicode(0x0020) ZWNJ / ^_ _ _ _ _ _ _ _ _;
+
+// Hungarian numerals
+if (numbertext == 36 || ord == 36)
+
+if (ord == 36)
+	ZWNJ d0 ZWNJ ZWNJ > p("n") p("u") p("l") p("l") p("a") p("d") p("i") p("k") / ^_ _ _ _;
+	csc1 ZWNJ d1 ZWNJ ZWNJ > @1 p("e") p("g") p("y") p("e") p("d") p("i") p("k") / ^_ _ _ _ _;
+	ZWNJ d1 ZWNJ ZWNJ > p("e") p("l") p("s") unicode(0x0151) / ^_ _ _ _;
+	ZWNJ d2 ZWNJ ZWNJ > p("m") unicode(0x00E1) p("s") p("o") p("d") p("i") p("k") / ^_ _ _ _;
+	csc1 ZWNJ d2 ZWNJ ZWNJ > @1 p("k") p("e") p("t") p("t") p("e") p("d") p("i") p("k")  / ^_ _ _ _ _;
+	ZWNJ d3 ZWNJ ZWNJ > p("h") p("a") p("r") p("m") p("a") p("d") p("i") p("k") / ^_ _ _ _;
+	ZWNJ d4 ZWNJ ZWNJ > p("n") p("e") p("g") p("y") p("e") p("d") p("i") p("k") / ^_ _ _ _;
+	ZWNJ d5 ZWNJ ZWNJ > unicode(0x00F6) p("t") unicode(0x00F6) p("d") p("i") p("k") / ^_ _ _ _;
+	ZWNJ d6 ZWNJ ZWNJ > p("h") p("a") p("t") p("o") p("d") p("i") p("k") / ^_ _ _ _;
+	ZWNJ d7 ZWNJ ZWNJ > p("h") p("e") p("t") p("e") p("d") p("i") p("k") / ^_ _ _ _;
+	ZWNJ d8 ZWNJ ZWNJ > p("n") p("y") p("o") p("l") p("c") p("a") p("d") p("i") p("k") / ^_ _ _ _;
+	ZWNJ d9 ZWNJ ZWNJ > p("k") p("i") p("l") p("e") p("n") p("c") p("e") p("d") p("i") p("k") / ^_ _ _ _;
+	ZWNJ d1 d0 ZWNJ ZWNJ > p("t") p("i") p("z") p("e") p("d") p("i") p("k") / ^_ _ _ _ _;
+	ZWNJ d2 d0 ZWNJ ZWNJ > p("h") p("u") p("s") p("z") p("a") p("d") p("i") p("k") / ^_ _ _ _ _;
+	ZWNJ (d3, d6, d8) d0 ZWNJ ZWNJ > ZWNJ @2 @3 ZWNJ p("a") p("d") p("i") p("k") / ^_ _ _ _ _;
+	ZWNJ da d0 ZWNJ ZWNJ > ZWNJ @2 @3 ZWNJ p("e") p("d") p("i") p("k") / ^_ _ _ _ _;
+	ZWNJ da d0 d0 ZWNJ ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("a") p("d") p("i") p("k") / ^_ _ _ _ _ _;
+	ZWNJ d1 d0 d0 d0 ZWNJ ZWNJ > p("e") p("z") p("r") p("e") p("d") p("i") p("k") / ^_ _ _ _ _ _ _;
+	ZWNJ da d0 d0 d0 ZWNJ ZWNJ > ZWNJ @2 ZWNJ p("e") p("z") p("r") p("e") p("d") p("i") p("k") / ^_ _ _ _ _ _ _;
+	ZWNJ da cnum1 d0 d0 d0 ZWNJ ZWNJ > ZWNJ @2 @3 ZWNJ p("e") p("z") p("r") p("e") p("d") p("i") p("k") / ^_ _ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 d0 d0 d0 ZWNJ ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("e") p("z") p("r") p("e") p("d") p("i") p("k") / ^_ _ _ _ _ _ _ _ _;
+endif;
+
+	ZWNJ d0 ZWNJ ZWNJ > p("n") p("u") p("l") p("l") p("a") / ^_ _ _ _;
+	ZWNJ d1 ZWNJ > p("e") p("g") p("y") / ^_ _ _;
+	ZWNJ d2 ZWNJ ZWNJ > p("k") p("e") p("t") p("t") unicode(0x0151) / ^_ _ _ _;
+	ZWNJ d2 ZWNJ > p("k") unicode(0x00E9) p("t") / ^_ _ _;
+	ZWNJ d3 ZWNJ > p("h") unicode(0x00E1) p("r") p("o") p("m") / ^_ _ _;
+	ZWNJ d4 ZWNJ > p("n") unicode(0x00E9) p("g") p("y") / ^_ _ _;
+	ZWNJ d5 ZWNJ > unicode(0x00F6) p("t") / ^_ _ _;
+	ZWNJ d6 ZWNJ > p("h") p("a") p("t") / ^_ _ _;
+	ZWNJ d7 ZWNJ > p("h") unicode(0x00E9) p("t") / ^_ _ _;
+	ZWNJ d8 ZWNJ > p("n") p("y") p("o") p("l") p("c") / ^_ _ _;
+	ZWNJ d9 ZWNJ > p("k") p("i") p("l") p("e") p("n") p("c") / ^_ _ _;
+
+	ZWNJ d1 d0 ZWNJ > p("t") unicode(0x00ED) p("z") / ^_ _ _ _;
+	ZWNJ d1 da ZWNJ > p("t") p("i") p("z") p("e") p("n") ZWNJ @3 ZWNJ / ^_ _ _ _;
+	ZWNJ d2 d0 ZWNJ > p("h") unicode(0x00FA) p("s") p("z") / ^_ _ _ _;
+	ZWNJ d2 da ZWNJ > p("h") p("u") p("s") p("z") p("o") p("n") ZWNJ @3 ZWNJ / ^_ _ _ _;
+	ZWNJ d3 d0 ZWNJ > p("h") p("a") p("r") p("m") p("i") p("n") p("c") ZWNJ / ^_ _ _ _;
+	ZWNJ d4 d0 ZWNJ > p("n") p("e") p("g") p("y") p("v") p("e") p("n") ZWNJ / ^_ _ _ _;
+	ZWNJ (d5, d9) d0 ZWNJ > ZWNJ @2 ZWNJ p("v") p("e") p("n") ZWNJ / ^_ _ _ _;
+	ZWNJ (d6, d8) d0 ZWNJ > ZWNJ @2 ZWNJ p("v") p("a") p("n") ZWNJ / ^_ _ _ _;
+	ZWNJ d7 d0 ZWNJ > p("h") p("e") p("t") p("v") p("e") p("n") ZWNJ / ^_ _;
+	ZWNJ da da ZWNJ > ZWNJ @2 d0 ZWNJ @3 ZWNJ / ^_;
+
+	// separator
+	unicode(0x003A) d0 d0 d0 ZWNJ > _ _ _ _ ZWNJ;
+	unicode(0x003A) cnum1 cnum1 cnum1 ZWNJ > _ _ _ _ unicode(0x002D) ZWNJ;
+	unicode(0x003A) d0 d0 d0 d0 d0 d0 ZWNJ > _ _ _ _ _ _ _ ZWNJ;
+	unicode(0x003A) cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > _ _ _ _ _ _ unicode(0x002D) ZWNJ;
+	unicode(0x003A) d0 d0 d0 d0 d0 d0 d0 d0 d0 ZWNJ > _ _ _ _ _ _ _ _ _ _ ZWNJ;
+	unicode(0x003A) cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > _ _ _ _ _ _ _ _ _ unicode(0x002D) ZWNJ;
+
+	ZWNJ d1 cnum1 cnum1 ZWNJ > p("s") p("z") unicode(0x00E1) p("z") ZWNJ @3 @4 ZWNJ / ^_ _ _ _ _;
+	ZWNJ da cnum1 cnum1 ZWNJ > ZWNJ @2 ZWNJ p("s") p("z") unicode(0x00E1) p("z") ZWNJ @3 @4 ZWNJ / ^_ _ _ _ _;
+	ZWNJ d1 cnum1 cnum1 cnum1 ZWNJ > p("e") p("z") p("e") p("r") ZWNJ @3 @4 @5 ZWNJ / ^_ _ _ _ _ _;
+	ZWNJ da d0 d0 d0 ZWNJ > ZWNJ @2 ZWNJ p("e") p("z") p("e") p("r") / ^_ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 ZWNJ p("e") p("z") p("e") p("r") unicode(0x002D) ZWNJ @3 @4 @5 ZWNJ / ^_ _ _ _ _ _;
+	ZWNJ da cnum1 d0 d0 d0 ZWNJ > ZWNJ @2 @3 ZWNJ p("e") p("z") p("e") p("r") / ^_ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 ZWNJ p("e") p("z") p("e") p("r") unicode(0x002D) ZWNJ @4 @5 @6 ZWNJ / ^_ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 d0 d0 d0 ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("e") p("z") p("e") p("r") / ^_ _ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("e") p("z") p("e") p("r") unicode(0x002D) ZWNJ @5 @6 @7 ZWNJ / ^_ _ _ _ _ _ _ _;
+	ZWNJ da d0 d0 d0 d0 d0 d0 ZWNJ > ZWNJ @2 ZWNJ p("m") p("i") p("l") p("l") p("i") unicode(0x00F3) / ^_ _ _ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 ZWNJ p("m") p("i") p("l") p("l") p("i") unicode(0x00F3) unicode(0x002D) ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_ _ _ _ _ _ _ _ _;
+	ZWNJ da cnum1 d0 d0 d0 d0 d0 d0 ZWNJ > ZWNJ @2 @3 ZWNJ p("m") p("i") p("l") p("l") p("i") unicode(0x00F3) / ^_ _ _ _ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 ZWNJ p("m") p("i") p("l") p("l") p("i") unicode(0x00F3) unicode(0x002D) ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_ _ _ _ _ _ _ _ _ _;
+//	ZWNJ da cnum1 cnum1 d0 d0 d0 d0 d0 d0 ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("m") p("i") p("l") p("l") p("i") unicode(0x00F3) / ^_ _ _ _ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("m") p("i") p("l") p("l") p("i") unicode(0x00F3) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_ _ _ _ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 ZWNJ p("m") p("i") p("l") p("l") p("i") unicode(0x00E1) p("r") p("d") unicode(0x003A) @3 @4 @5 @6 @7 @8 @9 @10 @11 ZWNJ @3 @4 @5 @6 @7 @8 @9 @10 @11 ZWNJ / ^_ _ _ _ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 ZWNJ p("m") p("i") p("l") p("l") p("i") unicode(0x00E1) p("r") p("d") unicode(0x003A) @4 @5 @6 @7 @8 @9 @10 @11 @12 ZWNJ @4 @5 @6 @7 @8 @9 @10 @11 @12 ZWNJ / ^_ _ _ _ _ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("m") p("i") p("l") p("l") p("i") unicode(0x00E1) p("r") p("d") unicode(0x003A) @4 @5 @6 @7 @8 @9 @10 @11 @12 ZWNJ @4 @5 @6 @7 @8 @9 @10 @11 @12 ZWNJ / ^_ _ _ _ _ _ _ _ _ _ _ _;
+
+// English numerals
+else if (numbertext == 1 || ord == 1)
+
+if (ord == 1)
+	ZWNJ d0 ZWNJ ZWNJ > p("z") p("e") p("r") p("o") p("t") p("h") / ^_ _ _;
+	ZWNJ d1 ZWNJ ZWNJ > p("f") p("i") p("r") p("s") p("t") / ^_ _ _;
+	ZWNJ d2 ZWNJ ZWNJ > p("s") p("e") p("c") p("o") p("n") p("d") / ^_ _ _ _;
+	ZWNJ d3 ZWNJ ZWNJ > p("t") p("h") p("i") p("r") p("d") / ^_ _ _ _;
+	ZWNJ d5 ZWNJ ZWNJ > p("f") p("i") p("f") p("t") p("h") / ^_ _ _ _;
+	ZWNJ d8 ZWNJ ZWNJ > ZWNJ d8 ZWNJ p("h") / ^_ _ _ _;
+	ZWNJ d9 ZWNJ ZWNJ > p("n") p("i") p("n") p("t") p("h") / ^_ _ _ _;
+	ZWNJ cnum1 ZWNJ ZWNJ > ZWNJ @2 ZWNJ p("t") p("h") / ^_ _ _ _;
+	ZWNJ d1 d2 ZWNJ ZWNJ > p("t") p("w") p("e") p("l") p("f") p("t") p("h") / ^_ _ _ _ _;
+	ZWNJ da d0 d0 ZWNJ ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("t") p("h") / ^_ _ _ _ _;
+	d0 d0 d0 ZWNJ ZWNJ > @1 @2 @3 ZWNJ p("t") p("h") / ^_ _ _ _ _;
+	ZWNJ d1 cnum1 ZWNJ ZWNJ > ZWNJ @2 @3 ZWNJ p("t") p("h") / ^_ _ _ _ _;
+	p("y") ZWNJ ZWNJ > p("i") p("e") p("t") p("h") / ^_ _ _;
+endif;
+
+	ZWNJ d0 ZWNJ ZWNJ > p("z") p("e") p("r") p("o") / ^_ _ _;
+	ZWNJ d1 ZWNJ > p("o") p("n") p("e") / ^_ _ _;
+	ZWNJ d2 ZWNJ > p("t") p("w") p("o") / ^_ _ _;
+	ZWNJ d3 ZWNJ > p("t") p("h") p("r") p("e") p("e") / ^_ _ _;
+	ZWNJ d4 ZWNJ > p("f") p("o") p("u") p("r") / ^_ _ _;
+	ZWNJ d5 ZWNJ > p("f") p("i") p("v") p("e") / ^_ _ _;
+	ZWNJ d6 ZWNJ > p("s") p("i") p("x") / ^_ _ _;
+	ZWNJ d7 ZWNJ > p("s") p("e") p("v") p("e") p("n") / ^_ _ _;
+	ZWNJ d8 ZWNJ > p("e") p("i") p("g") p("h") p("t") / ^_ _ _;
+	ZWNJ d9 ZWNJ > p("n") p("i") p("n") p("e") / ^_ _ _;
+	ZWNJ d1 d0 ZWNJ > p("t") p("e") p("n") / ^_ _ _ _;
+	ZWNJ d1 d1 ZWNJ > p("e") p("l") p("e") p("v") p("e") p("n") / ^_ _ _ _;
+	ZWNJ d1 d2 ZWNJ > p("t") p("w") p("e") p("l") p("v") p("e") / ^_ _ _ _;
+	ZWNJ d1 d3 ZWNJ > p("t") p("h") p("i") p("r") p("t") p("e") p("e") p("n") / ^_ _ _ _;
+	ZWNJ d1 d5 ZWNJ > p("f") p("i") p("f") p("t") p("e") p("e") p("n") / ^_ _ _ _;
+	ZWNJ d1 d8 ZWNJ > ZWNJ @3 ZWNJ p("e") p("e") p("n") / ^_ _ _ _;
+	ZWNJ d1 da ZWNJ > ZWNJ @3 ZWNJ p("t") p("e") p("e") p("n") / ^_ _ _ _;
+	ZWNJ d2 d0 ZWNJ > p("t") p("w") p("e") p("n") p("t") p("y") ZWNJ / ^_ _ _ _;
+	ZWNJ d3 d0 ZWNJ > p("t") p("h") p("i") p("r") p("t") p("y") ZWNJ / ^_ _ _ _;
+	ZWNJ d4 d0 ZWNJ > p("f") p("o") p("r") p("t") p("y") ZWNJ / ^_ _ _ _;
+	ZWNJ d5 d0 ZWNJ > p("f") p("i") p("f") p("t") p("y") ZWNJ / ^_ _ _ _;
+	ZWNJ d8 d0 ZWNJ > ZWNJ d8 ZWNJ p("y") ZWNJ / ^_ _ _ _;
+	ZWNJ da d0 ZWNJ > ZWNJ @2 ZWNJ p("t") p("y") ZWNJ / ^_ _ _ _;
+	ZWNJ da da ZWNJ > ZWNJ @2 d0 ZWNJ unicode(0x002D) ZWNJ @3 ZWNJ / ^_ _ _ _;
+
+	// separator
+	unicode(0x003A) d0 d0 ZWNJ > _ _ _ ZWNJ; // one million
+	if (ntvar == 0) 
+	unicode(0x003A) cnum1 cnum1 ZWNJ > unicode(0x0020) p("a") p("n") p("d") unicode(0x0020) ZWNJ / ^_ _ _ _; // one million and one
+	unicode(0x003A) d0 d0 d0 ZWNJ > _ _ _ _ ZWNJ; // one million
+	unicode(0x003A) d0 cnum1 cnum1 ZWNJ > unicode(0x0020) p("a") p("n") p("d") unicode(0x0020) ZWNJ / ^_ _ _ _ _; // one million and ten
+	unicode(0x003A) cnum1 cnum1 cnum1 ZWNJ > _ _ unicode(0x002C) unicode(0x0020) ZWNJ; // one million, oe thousand
+	else
+	unicode(0x003A) cnum1 cnum1 ZWNJ > _ _ unicode(0x0020) ZWNJ;
+	unicode(0x003A) cnum1 cnum1 cnum1 ZWNJ > _ _ _ unicode(0x0020) ZWNJ; // Two Thousand Ten
+	endif;
+
+	ZWNJ da cnum1 cnum1 ZWNJ > ZWNJ @2 ZWNJ unicode(0x0020) p("h") p("u") p("n") p("d") p("r") p("e") p("d") unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_ _ _ _ _;
+	ZWNJ da da cnum1 cnum1 ZWNJ > ZWNJ @2 ZWNJ unicode(0x0020) p("t") p("h") p("o") p("u") p("s") p("a") p("n") p("d") unicode(0x0020) ZWNJ @3 @4 @5 ZWNJ / ^_ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 ZWNJ unicode(0x0020) p("t") p("h") p("o") p("u") p("s") p("a") p("n") p("d") unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_ _ _ _ _ _;
+	ZWNJ da cnum1 da cnum1 cnum1 ZWNJ > ZWNJ @2 @3 ZWNJ unicode(0x0020) p("t") p("h") p("o") p("u") p("s") p("a") p("n") p("d") unicode(0x0020) ZWNJ @4 @5 @6 ZWNJ / ^_ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 ZWNJ unicode(0x0020) p("t") p("h") p("o") p("u") p("s") p("a") p("n") p("d") unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_ _ _ _ _ _ _;
+	ZWNJ da cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 @4 ZWNJ unicode(0x0020) p("t") p("h") p("o") p("u") p("s") p("a") p("n") p("d") unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_ _ _ _ _ _ _;
+
+	ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("l") p("i") p("o") p("n") unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+	ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("l") p("i") p("o") p("n")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+	ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("l") p("i") p("o") p("n")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+
+// German numerals
+else if (numbertext == 49 || ord == 49)
+
+	ZWNJ d1 ZWNJ > p("e") p("i") p("n") / ^_ _ _ csc1;
+
+if (ord==49)
+	ZWNJ d0 ZWNJ ZWNJ > p("n") p("u") p("l") p("l") p("t") p("e") / ^_ _ _ _;
+	ZWNJ d1 ZWNJ ZWNJ > p("e") p("r") p("s") p("t") p("e") / ^_ _ _ _;
+	ZWNJ d3 ZWNJ ZWNJ > p("d") p("r") p("i") p("t") p("t") p("e") / ^_ _ _ _;
+	ZWNJ d7 ZWNJ ZWNJ > p("s") p("i") p("e") p("b") p("t") p("e") / ^_ _ _ _;
+	ZWNJ d8 ZWNJ ZWNJ > p("a") p("c") p("h") p("t") p("e") / ^_ _ _ _;
+	ZWNJ da ZWNJ ZWNJ > ZWNJ @2 ZWNJ p("t") p("e") / ^_ _ _ _;
+
+	ZWNJ d1 cnum1 ZWNJ ZWNJ > ZWNJ @2 @3 ZWNJ p("t") p("e") / ^_ _ _ _ _;
+	ZWNJ da cnum1 ZWNJ ZWNJ > ZWNJ @2 @3 ZWNJ p("s") p("t") p("e") / ^_ _ _ _ _;
+	ZWNJ da d0 d0 ZWNJ ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("t") p("e") / ^_ _ _ _ _ _;
+	ZWNJ da d0 d0 d0 ZWNJ ZWNJ > ZWNJ @2 @3 @4 @5 ZWNJ p("t") p("e") / ^_ _ _ _ _ _ _;
+	ZWNJ cnum1 cnum1 d0 d0 d0 ZWNJ ZWNJ > ZWNJ @2 @3 @4 @5 @6 ZWNJ p("t") p("e") / ^_ _ _ _ _ _ _ _;
+	ZWNJ cnum1 cnum1 cnum1 d0 d0 d0 ZWNJ ZWNJ > ZWNJ @2 @3 @4 @5 @6 @7 ZWNJ p("t") p("e") / ^_ _ _ _ _ _ _ _ _;
+endif;
+
+	ZWNJ d0 ZWNJ ZWNJ > p("n") p("u") p("l") p("l") / ^_ _ _ _;
+
+	ZWNJ d1 ZWNJ > p("e") p("i") p("n") p("s") / ^_ _ _;
+
+	ZWNJ d2 ZWNJ > p("z") p("w") p("e") p("i") / ^_ _ _;
+	ZWNJ d3 ZWNJ > p("d") p("r") p("e") p("i") / ^_ _ _;
+	ZWNJ d4 ZWNJ > p("v") p("i") p("e") p("r") / ^_ _ _;
+	ZWNJ d5 ZWNJ > p("f") unicode(0x00FC) p("n") p("f") / ^_ _ _;
+	ZWNJ d6 ZWNJ > p("s") p("e") p("c") p("h") p("s") / ^_ _ _;
+	ZWNJ d7 ZWNJ > p("s") p("i") p("e") p("b") p("e") p("n") / ^_ _ _;
+	ZWNJ d8 ZWNJ > p("a") p("c") p("h") p("t") / ^_ _ _;
+	ZWNJ d9 ZWNJ > p("n") p("e") p("u") p("n") / ^_ _ _;
+
+	ZWNJ d1 d0 ZWNJ > p("z") p("e") p("h") p("n") / ^_ _ _ _;
+	ZWNJ d1 d1 ZWNJ > p("e") p("l") p("f") / ^_ _ _ _;
+	ZWNJ d1 d2 ZWNJ > p("z") p("w") U+00f6 p("l") p("f") / ^_ _ _ _;
+	ZWNJ d1 d6 ZWNJ > p("s") p("e") p("c") p("h") p("z") p("e") p("h") p("n") / ^_ _ _ _;
+	ZWNJ d1 d7 ZWNJ > p("s") p("i") p("e") p("b") p("z") p("e") p("h") p("n") / ^_ _ _ _;
+	ZWNJ d1 cnum1 ZWNJ > ZWNJ @3 ZWNJ p("z") p("e") p("h") p("n") / ^_ _ _ _;
+
+	ZWNJ d2 d0 ZWNJ > p("z") p("w") p("a") p("n") p("z") p("i") p("g") / ^_ _ _ _;
+	ZWNJ d3 d0 ZWNJ > p("d") p("r") p("e") p("i") unicode(0x00DF) p("i") p("g") / ^_ _ _ _;
+	ZWNJ d6 d0 ZWNJ > p("s") p("e") p("c") p("h") p("z") p("i") p("g") / ^_ _ _ _;
+	ZWNJ d7 d0 ZWNJ > p("s") p("i") p("e") p("b") p("z") p("i") p("g") / ^_ _ _ _;
+	ZWNJ da d0 ZWNJ > ZWNJ @2 ZWNJ p("z") p("i") p("g") / ^_ _ _ _;
+
+	ZWNJ cnum1 cnum1 ZWNJ > ZWNJ @3 ZWNJ p("u") p("n") p("d") ZWNJ @2 d0 ZWNJ / ^_ _ _ _;
+
+	ZWNJ da cnum1 cnum1 ZWNJ > ZWNJ @2 ZWNJ p("h") p("u") p("n") p("d") p("e") p("r") p("t") ZWNJ @3 @4 ZWNJ / ^_ _ _ _ _;
+	ZWNJ cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 ZWNJ p("t") p("a") p("u") p("s") p("e") p("n") p("d") ZWNJ @3 @4 @5 ZWNJ / ^_ _ _ _ _;
+	ZWNJ cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 ZWNJ p("t") p("a") p("u") p("s") p("e") p("n") p("d") ZWNJ @4 @5 @6 ZWNJ / ^_ _ _ _ _ _;
+	ZWNJ cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 ZWNJ > ZWNJ @2 @3 @4 ZWNJ p("t") p("a") p("u") p("s") p("e") p("n") p("d") ZWNJ @5 @6 @7 ZWNJ / ^_ _ _ _ _ _;
+
+	ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("e") p("i") p("n") p("e")  unicode(0x0020) p("M") p("i") p("l") p("l") p("i") p("o") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+	ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("M") p("i") p("l") p("l") p("i") p("o") p("n") p("e") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+	ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("M") p("i") p("l") p("l") p("i") p("o") p("n") p("e") p("n")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+	ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("M") p("i") p("l") p("l") p("i") p("o") p("n") p("e") p("n")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+
+endif;
+
+	// boundary signs (first step to number handling)
+	cnum1 > ZWNJ ZWNJ @1 ZWNJ ZWNJ / ^_;
+	cnum1 cnum1  > ZWNJ ZWNJ @1 @2 ZWNJ ZWNJ / ^_ _;
+	cnum1 cnum1 cnum1  > ZWNJ ZWNJ @1 @2 @3 ZWNJ ZWNJ / ^_ _ _;
+	cnum1 cnum1 cnum1 cnum1  > ZWNJ ZWNJ @1 @2 @3 @4 ZWNJ ZWNJ / ^_ _ _ _;
+	cnum1 cnum1 cnum1 cnum1 cnum1  > ZWNJ ZWNJ @1 @2 @3 @4 @5 ZWNJ ZWNJ / ^_ _ _ _ _;
+	cnum1 cnum1 cnum1 cnum1 cnum1 cnum1  > ZWNJ ZWNJ @1 @2 @3 @4 @5 @6 ZWNJ ZWNJ / ^_ _ _ _ _ _;
+	cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1  > ZWNJ ZWNJ @1 @2 @3 @4 @5 @6 @7 ZWNJ ZWNJ / ^_ _ _ _ _ _ _;
+	cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1  > ZWNJ ZWNJ @1 @2 @3 @4 @5 @6 @7 @8 ZWNJ ZWNJ / ^_ _ _ _ _ _ _ _;
+	cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1  > ZWNJ ZWNJ @1 @2 @3 @4 @5 @6 @7 @8 @9 ZWNJ ZWNJ / ^_ _ _ _ _ _ _ _ _;
+	cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > ZWNJ ZWNJ @1 @2 @3 @4 @5 @6 @7 @8 @9 @10 ZWNJ ZWNJ / ^_ _ _ _ _ _ _ _ _ _;
+	cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > ZWNJ ZWNJ @1 @2 @3 @4 @5 @6 @7 @8 @9 @10 @11 ZWNJ ZWNJ / ^_ _ _ _ _ _ _ _ _ _ _;
+	cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > ZWNJ ZWNJ @1 @2 @3 @4 @5 @6 @7 @8 @9 @10 @11 @12 ZWNJ ZWNJ / ^_ _ _ _ _ _ _ _ _ _ _ _;
+endif;
+
+
+if (numbertext==af)
+
+ZWNJ ZWNJ d0 ZWNJ ZWNJ > p("n") p("u") p("l") / ^_  _  _  _  _  ;
+ZWNJ d1  ZWNJ > p("e") p("e") p("n") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("t") p("w") p("e") p("e") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("d") p("r") p("i") p("e") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("v") p("i") p("e") p("r") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("v") p("y") p("f") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("e") p("s") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("w") p("e") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("a") p("g") p("t") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("e") p("g") p("e") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("e") p("l") p("f") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("t") p("w") p("a") p("a") p("l") p("f") / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ > p("d") p("e") p("r") p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("v") p("e") p("e") p("r") p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d7  ZWNJ > p("s") p("e") p("w") p("e") p("n") p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d9  ZWNJ > p("n") p("e") p("g") p("e") p("n") p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ   ZWNJ p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d2 d0  ZWNJ > p("t") p("w") p("i") p("n") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ d3 d0  ZWNJ > p("d") p("e") p("r") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ d4 d0  ZWNJ > p("v") p("e") p("e") p("r") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ d7 d0  ZWNJ > p("s") p("e") p("w") p("e") p("n") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ d8 d0  ZWNJ > p("t") p("a") p("g") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ d9 d0  ZWNJ > p("n") p("e") p("g") p("e") p("n") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ da d0  ZWNJ >  ZWNJ @2 ZWNJ  p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @3 ZWNJ   unicode(0x002D) p("e") p("n")  unicode(0x002D) ZWNJ  @2  d0 ZWNJ / ^_  _  _   _  ;
+endif;
+if (numbertext==ca)
+
+ZWNJ ZWNJ d0  ZWNJ > p("z") p("e") p("r") p("o") / ^_  _  _   _  ;
+ZWNJ d1 ZWNJ ZWNJ > p("u") / ^_  _  _  _  ;
+ZWNJ d1  ZWNJ > p("u") p("n") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("d") p("o") p("s") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("e") p("s") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("q") p("u") p("a") p("t") p("r") p("e") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("c") p("i") p("n") p("c") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("i") p("s") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("t") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("v") p("u") p("i") p("t") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("o") p("u") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("d") p("e") p("u") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("o") p("n") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("d") p("o") p("t") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ > p("t") p("r") p("e") p("t") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("c") p("a") p("t") p("o") p("r") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("q") p("u") p("i") p("n") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ > p("s") p("e") p("t") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d7  ZWNJ > p("d") p("i") p("s") p("s") p("e") p("t") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ > p("d") p("i")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d2 d0  ZWNJ > p("v") p("i") p("n") p("t") / ^_  _  _   _  ;
+ZWNJ d2 dd  ZWNJ > p("v") p("i") p("n") p("t")  unicode(0x002D) p("i")  unicode(0x002D)  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d3 d0  ZWNJ > p("t") p("r") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d4 d0  ZWNJ > p("q") p("u") p("a") p("r") p("a") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d5 d0  ZWNJ > p("c") p("i") p("n") p("q") p("u") p("a") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d6 d0  ZWNJ > p("s") p("e") p("i") p("x") p("a") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d7 d0  ZWNJ > p("s") p("e") p("t") p("a") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d8 d0  ZWNJ > p("v") p("u") p("i") p("t") p("a") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d9 d0  ZWNJ > p("n") p("o") p("r") p("a") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ > ZWNJ  @2  d0 ZWNJ  unicode(0x002D)  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("c") p("e") p("n") p("t")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x002D) p("c") p("e") p("n") p("t") p("s")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ > p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("u") p("n")  unicode(0x0020) p("m") p("i") p("l") p("i")  unicode(0x00F3)  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("s")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("s")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("s")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==cs)
+
+ZWNJ ZWNJ d0  ZWNJ > p("n") p("u") p("l") p("a") / ^_  _  _   _  ;
+ZWNJ ZWNJ d1 ZWNJ ZWNJ > p("j") p("e") p("d") p("n") p("o") / ^_  _  _  _  _  ;
+ZWNJ d1  ZWNJ > p("j") p("e") p("d") p("e") p("n") / ^_  _   _  ;
+ZWNJ ZWNJ d2 ZWNJ ZWNJ > p("d") p("v")  unicode(0x011B) / ^_  _  _  _  _  ;
+ZWNJ d2  ZWNJ > p("d") p("v") p("a") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t")  unicode(0x0159) p("i") / ^_  _   _  ;
+ZWNJ d4  ZWNJ >  unicode(0x010D) p("t") p("y")  unicode(0x0159) p("i") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("p")  unicode(0x011B) p("t") / ^_  _   _  ;
+ZWNJ d6  ZWNJ >  unicode(0x0161) p("e") p("s") p("t") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("d") p("m") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("s") p("m") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("d") p("e") p("v")  unicode(0x011B) p("t") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("d") p("e") p("s") p("e") p("t") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("j") p("e") p("d") p("e") p("n")  unicode(0x00E1) p("c") p("t") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ >  unicode(0x010D) p("t") p("r") p("n")  unicode(0x00E1) p("c") p("t") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("p") p("a") p("t") p("n")  unicode(0x00E1) p("c") p("t") / ^_  _  _   _  ;
+ZWNJ d1 d9  ZWNJ > p("d") p("e") p("v") p("a") p("t") p("e") p("n")  unicode(0x00E1) p("c") p("t") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("n")  unicode(0x00E1) p("c") p("t") / ^_  _  _   _  ;
+ZWNJ (d2,d3,d4) dd  ZWNJ >  ZWNJ @2 ZWNJ  p("c") p("e") p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d5 dd  ZWNJ > p("p") p("a") p("d") p("e") p("s")  unicode(0x00E1) p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d6 dd  ZWNJ >  unicode(0x0161) p("e") p("d") p("e") p("s")  unicode(0x00E1) p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d9 dd  ZWNJ > p("d") p("e") p("v") p("a") p("d") p("e") p("s")  unicode(0x00E1) p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @2 ZWNJ  p("d") p("e") p("s")  unicode(0x00E1) p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("s") p("t") p("o")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d2 dd  dd  ZWNJ > p("d") p("v")  unicode(0x011B)  unicode(0x0020) p("s") p("t")  unicode(0x011B)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ (d3,d4) dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("s") p("t") p("a")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("s") p("e") p("t")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd  dd  dd  ZWNJ > p("t") p("i") p("s")  unicode(0x00ED) p("c")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ (d2,d3,d4) dd  dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("t") p("i") p("s")  unicode(0x00ED) p("c") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ da dd  dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("t") p("i") p("s")  unicode(0x00ED) p("c") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ da dd dd  dd  dd  ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("t") p("i") p("s")  unicode(0x00ED) p("c") p("e")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _   _   _   _  ;
+ZWNJ da dd dd dd  dd  dd  ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("t") p("i") p("s")  unicode(0x00ED) p("c") p("e")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _   _   _   _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("m") p("i") p("l") p("i") p("o") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ (d2,d3,d4) dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("y")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n")  unicode(0x016F)  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n")  unicode(0x016F)  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n")  unicode(0x016F)  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==da)
+
+ZWNJ ZWNJ d0  ZWNJ > p("n") p("u") p("l") / ^_  _  _   _  ;
+ZWNJ d1 ZWNJ ZWNJ > p("e") p("n") / ^_  _  _  _  ;
+ZWNJ d1  ZWNJ > p("e") p("t") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("t") p("o") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("e") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("f") p("i") p("r") p("e") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("f") p("e") p("m") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("e") p("k") p("s") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("y") p("v") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("t") p("t") p("e") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("i") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("t") p("i") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("e") p("l") p("l") p("e") p("v") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("t") p("o") p("l") p("v") / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ > p("t") p("r") p("e") p("t") p("t") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("f") p("j") p("o") p("r") p("t") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("f") p("e") p("m") p("t") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ > p("s") p("e") p("k") p("s") p("t") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d7  ZWNJ > p("s") p("y") p("t") p("t") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d8  ZWNJ > p("a") p("t") p("t") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d9  ZWNJ > p("n") p("i") p("t") p("t") p("e") p("n")  unicode(0x0020) / ^_  _  _   _  ;
+ZWNJ d2 d0  ZWNJ > p("t") p("y") p("v") p("e") / ^_  _  _   _  ;
+ZWNJ d3 d0  ZWNJ > p("t") p("r") p("e") p("d") p("i") p("v") p("e") / ^_  _  _   _  ;
+ZWNJ d4 d0  ZWNJ > p("f") p("y") p("r") p("r") p("e") / ^_  _  _   _  ;
+ZWNJ d5 d0  ZWNJ > p("h") p("a") p("l") p("v") p("t") p("r") p("e") p("d") p("s") / ^_  _  _   _  ;
+ZWNJ d6 d0  ZWNJ > p("t") p("r") p("e") p("s") / ^_  _  _   _  ;
+ZWNJ d7 d0  ZWNJ > p("h") p("a") p("l") p("v") p("f") p("j") p("e") p("r") p("d") p("s") / ^_  _  _   _  ;
+ZWNJ d8 d0  ZWNJ > p("f") p("i") p("r") p("s") / ^_  _  _   _  ;
+ZWNJ d9 d0  ZWNJ > p("h") p("a") p("l") p("v") p("f") p("e") p("m") p("s") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @3 ZWNJ   ZWNJ p("o") p("g") ZWNJ  @2  d0 ZWNJ / ^_  _  _   _  ;
+endif;
+if (numbertext==el)
+
+ZWNJ ZWNJ d0  ZWNJ >  unicode(0x03BC)  unicode(0x03B7)  unicode(0x03B4)  unicode(0x03AD)  unicode(0x03BD) / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ >  unicode(0x03AD)  unicode(0x03BD)  unicode(0x03B1) / ^_  _   _  ;
+ZWNJ d2  ZWNJ >  unicode(0x03B4)  unicode(0x03CD)  unicode(0x03BF) / ^_  _   _  ;
+ZWNJ d3 ZWNJ ZWNJ >  unicode(0x03C4)  unicode(0x03C1)  unicode(0x03AF)  unicode(0x03B1) / ^_  _  _  _  ;
+ZWNJ d3  ZWNJ >  unicode(0x03C4)  unicode(0x03C1)  unicode(0x03B5)  unicode(0x03B9)  unicode(0x03C2) / ^_  _   _  ;
+ZWNJ d4 ZWNJ ZWNJ >  unicode(0x03C4)  unicode(0x03AD)  unicode(0x03C3)  unicode(0x03C3)  unicode(0x03B5)  unicode(0x03C1)  unicode(0x03B1) / ^_  _  _  _  ;
+ZWNJ d4  ZWNJ >  unicode(0x03C4)  unicode(0x03AD)  unicode(0x03C3)  unicode(0x03C3)  unicode(0x03B5)  unicode(0x03C1)  unicode(0x03B9)  unicode(0x03C2) / ^_  _   _  ;
+ZWNJ d5  ZWNJ >  unicode(0x03C0)  unicode(0x03AD)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B5) / ^_  _   _  ;
+ZWNJ d6  ZWNJ >  unicode(0x03AD)  unicode(0x03BE)  unicode(0x03B9) / ^_  _   _  ;
+ZWNJ d7  ZWNJ >  unicode(0x03B5)  unicode(0x03C0)  unicode(0x03C4)  unicode(0x03AC) / ^_  _   _  ;
+ZWNJ d8  ZWNJ >  unicode(0x03BF)  unicode(0x03BA)  unicode(0x03C4)  unicode(0x03CE) / ^_  _   _  ;
+ZWNJ d9  ZWNJ >  unicode(0x03B5)  unicode(0x03BD)  unicode(0x03BD)  unicode(0x03AD)  unicode(0x03B1) / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ >  unicode(0x03B4)  unicode(0x03AD)  unicode(0x03BA)  unicode(0x03B1) / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ >  unicode(0x03AD)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B5)  unicode(0x03BA)  unicode(0x03B1) / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ >  unicode(0x03B4)  unicode(0x03CE)  unicode(0x03B4)  unicode(0x03B5)  unicode(0x03BA)  unicode(0x03B1) / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  unicode(0x03B4)  unicode(0x03B5)  unicode(0x03BA)  unicode(0x03B1)  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d2 dd  ZWNJ >  unicode(0x03B5)  unicode(0x03AF)  unicode(0x03BA)  unicode(0x03BF)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d3 dd  ZWNJ >  unicode(0x03C4)  unicode(0x03C1)  unicode(0x03B9)  unicode(0x03AC)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d4 dd  ZWNJ >  unicode(0x03C3)  unicode(0x03B1)  unicode(0x03C1)  unicode(0x03AC)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d5 dd  ZWNJ >  unicode(0x03C0)  unicode(0x03B5)  unicode(0x03BD)  unicode(0x03AE)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d6 dd  ZWNJ >  unicode(0x03B5)  unicode(0x03BE)  unicode(0x03AE)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B1)  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d7 dd  ZWNJ >  unicode(0x03B5)  unicode(0x03B2)  unicode(0x03B4)  unicode(0x03BF)  unicode(0x03BC)  unicode(0x03AE)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d8 dd  ZWNJ >  unicode(0x03BF)  unicode(0x03B3)  unicode(0x03B4)  unicode(0x03CC)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d9 dd  ZWNJ >  unicode(0x03B5)  unicode(0x03BD)  unicode(0x03B5)  unicode(0x03BD)  unicode(0x03AE)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 d0 d0  ZWNJ >  unicode(0x03B5)  unicode(0x03BA)  unicode(0x03B1)  unicode(0x03C4)  unicode(0x03CC) / ^_  _  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ >  unicode(0x03B5)  unicode(0x03BA)  unicode(0x03B1)  unicode(0x03C4)  unicode(0x03CC)  unicode(0x03BD)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d2 dd  dd ZWNJ ZWNJ >  unicode(0x03B4)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _  _  _  ;
+ZWNJ d2 dd  dd  ZWNJ >  unicode(0x03B4)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d3 dd  dd ZWNJ ZWNJ >  unicode(0x03C4)  unicode(0x03C1)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _  _  _  ;
+ZWNJ d3 dd  dd  ZWNJ >  unicode(0x03C4)  unicode(0x03C1)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d4 dd  dd ZWNJ ZWNJ >  unicode(0x03C4)  unicode(0x03B5)  unicode(0x03C4)  unicode(0x03C1)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _  _  _  ;
+ZWNJ d4 dd  dd  ZWNJ >  unicode(0x03C4)  unicode(0x03B5)  unicode(0x03C4)  unicode(0x03C1)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d5 dd  dd ZWNJ ZWNJ >  unicode(0x03C0)  unicode(0x03B5)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _  _  _  ;
+ZWNJ d5 dd  dd  ZWNJ >  unicode(0x03C0)  unicode(0x03B5)  unicode(0x03BD)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d6 dd  dd ZWNJ ZWNJ >  unicode(0x03B5)  unicode(0x03BE)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _  _  _  ;
+ZWNJ d6 dd  dd  ZWNJ >  unicode(0x03B5)  unicode(0x03BE)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d7 dd  dd ZWNJ ZWNJ >  unicode(0x03B5)  unicode(0x03C0)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _  _  _  ;
+ZWNJ d7 dd  dd  ZWNJ >  unicode(0x03B5)  unicode(0x03C0)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d8 dd  dd ZWNJ ZWNJ >  unicode(0x03BF)  unicode(0x03BA)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _  _  _  ;
+ZWNJ d8 dd  dd  ZWNJ >  unicode(0x03BF)  unicode(0x03BA)  unicode(0x03C4)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d9 dd  dd ZWNJ ZWNJ >  unicode(0x03B5)  unicode(0x03BD)  unicode(0x03BD)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _  _  _  ;
+ZWNJ d9 dd  dd  ZWNJ >  unicode(0x03B5)  unicode(0x03BD)  unicode(0x03BD)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x03BA)  unicode(0x03CC)  unicode(0x03C3)  unicode(0x03B9)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ >  unicode(0x03C7)  unicode(0x03AF)  unicode(0x03BB)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020)  unicode(0x03C7)  unicode(0x03B9)  unicode(0x03BB)  unicode(0x03B9)  unicode(0x03AC)  unicode(0x03B4)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020)  unicode(0x03C7)  unicode(0x03B9)  unicode(0x03BB)  unicode(0x03B9)  unicode(0x03AC)  unicode(0x03B4)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020)  unicode(0x03C7)  unicode(0x03B9)  unicode(0x03BB)  unicode(0x03B9)  unicode(0x03AC)  unicode(0x03B4)  unicode(0x03B5)  unicode(0x03C2)  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ >  unicode(0x03AD)  unicode(0x03BD)  unicode(0x03B1)  unicode(0x0020)  unicode(0x03B5)  unicode(0x03BA)  unicode(0x03B1)  unicode(0x03C4)  unicode(0x03BF)  unicode(0x03BC)  unicode(0x03BC)  unicode(0x03CD)  unicode(0x03C1)  unicode(0x03B9)  unicode(0x03BF)  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   ZWNJ  unicode(0x0020)  unicode(0x03B5)  unicode(0x03BA)  unicode(0x03B1)  unicode(0x03C4)  unicode(0x03BF)  unicode(0x03BC)  unicode(0x03BC)  unicode(0x03CD)  unicode(0x03C1)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   ZWNJ  unicode(0x0020)  unicode(0x03B5)  unicode(0x03BA)  unicode(0x03B1)  unicode(0x03C4)  unicode(0x03BF)  unicode(0x03BC)  unicode(0x03BC)  unicode(0x03CD)  unicode(0x03C1)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   ZWNJ  unicode(0x0020)  unicode(0x03B5)  unicode(0x03BA)  unicode(0x03B1)  unicode(0x03C4)  unicode(0x03BF)  unicode(0x03BC)  unicode(0x03BC)  unicode(0x03CD)  unicode(0x03C1)  unicode(0x03B9)  unicode(0x03B1)  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==eo)
+
+ZWNJ ZWNJ d0  ZWNJ > p("n") p("u") p("l") p("o") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("u") p("n") p("u") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("d") p("u") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("i") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("k") p("v") p("a") p("r") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("k") p("v") p("i") p("n") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("e") p("s") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("p") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("k") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("a")  unicode(0x016D) / ^_  _   _  ;
+ZWNJ d1 dd  ZWNJ > p("d") p("e") p("k")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @2 ZWNJ  p("d") p("e") p("k")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("c") p("e") p("n") p("t")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ  p("c") p("e") p("n") p("t")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ > p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("u") p("n") p("u")  unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("o")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("o") p("j")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("o") p("j")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("o") p("j")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==es)
+
+ZWNJ ZWNJ d0  ZWNJ > p("c") p("e") p("r") p("o") / ^_  _  _   _  ;
+ZWNJ d1 ZWNJ ZWNJ > p("u") p("n") p("o") / ^_  _  _  _  ;
+ZWNJ d1  ZWNJ > p("u") p("n") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("d") p("o") p("s") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("e") p("s") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("c") p("u") p("a") p("t") p("r") p("o") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("c") p("i") p("n") p("c") p("o") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("e") p("i") p("s") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("i") p("e") p("t") p("e") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("c") p("h") p("o") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("u") p("e") p("v") p("e") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("d") p("i") p("e") p("z") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("o") p("n") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("d") p("o") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ > p("t") p("r") p("e") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("c") p("a") p("t") p("o") p("r") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("q") p("u") p("i") p("n") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ > p("d") p("i") p("e") p("c") p("i") p("s")  unicode(0x00E9) p("i") p("s") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ > p("d") p("i") p("e") p("c") p("i")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d2 d0  ZWNJ > p("v") p("e") p("i") p("n") p("t") p("e") / ^_  _  _   _  ;
+ZWNJ d2 d2  ZWNJ > p("v") p("e") p("i") p("n") p("t") p("i") p("d")  unicode(0x00F3) p("s") / ^_  _  _   _  ;
+ZWNJ d2 d3  ZWNJ > p("v") p("e") p("i") p("n") p("t") p("i") p("t") p("r")  unicode(0x00E9) p("s") / ^_  _  _   _  ;
+ZWNJ d2 d6  ZWNJ > p("v") p("e") p("i") p("n") p("t") p("i") p("s")  unicode(0x00E9) p("i") p("s") / ^_  _  _   _  ;
+ZWNJ d2 dd  ZWNJ > p("v") p("e") p("i") p("n") p("t") p("i")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d3 d0  ZWNJ > p("t") p("r") p("e") p("i") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d4 d0  ZWNJ > p("c") p("u") p("a") p("r") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d5 d0  ZWNJ > p("c") p("i") p("n") p("c") p("u") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d6 d0  ZWNJ > p("s") p("e") p("s") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d7 d0  ZWNJ > p("s") p("e") p("t") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d8 d0  ZWNJ > p("o") p("c") p("h") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d9 d0  ZWNJ > p("n") p("o") p("v") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ > ZWNJ  @2  d0 ZWNJ  unicode(0x0020) p("y")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 d0 d0  ZWNJ > p("c") p("i") p("e") p("n") / ^_  _  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("c") p("i") p("e") p("n") p("t") p("o")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d5 dd  dd  ZWNJ > p("q") p("u") p("i") p("n") p("i") p("e") p("n") p("t") p("o") p("s")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d7 dd  dd  ZWNJ > p("s") p("e") p("t") p("e") p("c") p("i") p("e") p("n") p("t") p("o") p("s")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d9 dd  dd  ZWNJ > p("n") p("o") p("v") p("e") p("c") p("i") p("e") p("n") p("t") p("o") p("s")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ  p("c") p("i") p("e") p("n") p("t") p("o") p("s")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ > p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("u") p("n")  unicode(0x0020) p("m") p("i") p("l") p("l")  unicode(0x00F3) p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("l") p("o") p("n") p("e") p("s")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("l") p("o") p("n") p("e") p("s")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("l") p("o") p("n") p("e") p("s")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==fi)
+
+ZWNJ ZWNJ d0  ZWNJ > p("n") p("o") p("l") p("l") p("a") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("y") p("k") p("s") p("i") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("k") p("a") p("k") p("s") p("i") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("k") p("o") p("l") p("m") p("e") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("n") p("e") p("l") p("j")  unicode(0x00E4) / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("v") p("i") p("i") p("s") p("i") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("k") p("u") p("u") p("s") p("i") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("i") p("t") p("s") p("e") p("m")  unicode(0x00E4) p("n") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("k") p("a") p("h") p("d") p("e") p("k") p("s") p("a") p("n") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("y") p("h") p("d") p("e") p("k") p("s")  unicode(0x00E4) p("n") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("k") p("y") p("m") p("m") p("e") p("n") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("t") p("o") p("i") p("s") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @2 ZWNJ  p("k") p("y") p("m") p("m") p("e") p("n") p("t")  unicode(0x00E4)  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("s") p("a") p("t") p("a")  ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ  p("s") p("a") p("t") p("a") p("a")  ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ > p("t") p("u") p("h") p("a") p("t")  ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ  p("t") p("u") p("h") p("a") p("t") p("t") p("a")  ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ  p("t") p("u") p("h") p("a") p("t") p("t") p("a")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ  p("t") p("u") p("h") p("a") p("t") p("t") p("a")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("m") p("i") p("l") p("j") p("o") p("o") p("n") p("a")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("j") p("o") p("o") p("n") p("a") p("a")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("j") p("o") p("o") p("n") p("a") p("a")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("j") p("o") p("o") p("n") p("a") p("a")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==fr)
+
+ZWNJ ZWNJ d0  ZWNJ > p("z")  unicode(0x00E9) p("r") p("o") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("u") p("n") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("d") p("e") p("u") p("x") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("o") p("i") p("s") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("q") p("u") p("a") p("t") p("r") p("e") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("c") p("i") p("n") p("q") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("i") p("x") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("p") p("t") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("h") p("u") p("i") p("t") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("e") p("u") p("f") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("d") p("i") p("x") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("o") p("n") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("d") p("o") p("u") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ > p("t") p("r") p("e") p("i") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("q") p("u") p("a") p("t") p("o") p("r") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("q") p("u") p("i") p("n") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ > p("s") p("e") p("i") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d2 d0  ZWNJ > p("v") p("i") p("n") p("g") p("t") / ^_  _  _   _  ;
+ZWNJ d3 d0  ZWNJ > p("t") p("r") p("e") p("n") p("t") p("e") / ^_  _  _   _  ;
+ZWNJ d4 d0  ZWNJ > p("q") p("u") p("a") p("r") p("a") p("n") p("t") p("e") / ^_  _  _   _  ;
+ZWNJ d5 d0  ZWNJ > p("c") p("i") p("n") p("q") p("u") p("a") p("n") p("t") p("e") / ^_  _  _   _  ;
+ZWNJ d6 d0  ZWNJ > p("s") p("o") p("i") p("x") p("a") p("n") p("t") p("e") / ^_  _  _   _  ;
+ZWNJ d7 d1  ZWNJ > p("s") p("o") p("i") p("x") p("a") p("n") p("t") p("e")  unicode(0x0020) p("e") p("t")  unicode(0x0020) p("o") p("n") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d7 dd  ZWNJ > p("s") p("o") p("i") p("x") p("a") p("n") p("t") p("e")  unicode(0x002D) ZWNJ d1  @3  ZWNJ / ^_  _  _   _  ;
+ZWNJ d8 d0 ZWNJ ZWNJ > p("q") p("u") p("a") p("t") p("r") p("e")  unicode(0x002D) p("v") p("i") p("n") p("g") p("t") p("s") / ^_  _  _  _  _  ;
+ZWNJ d8 d0  ZWNJ > p("q") p("u") p("a") p("t") p("r") p("e")  unicode(0x002D) p("v") p("i") p("n") p("g") p("t") / ^_  _  _   _  ;
+ZWNJ d8 d1  ZWNJ > p("q") p("u") p("a") p("t") p("r") p("e")  unicode(0x002D) p("v") p("i") p("n") p("g") p("t")  unicode(0x002D) p("u") p("n") / ^_  _  _   _  ;
+ZWNJ d9 dd  ZWNJ > p("q") p("u") p("a") p("t") p("r") p("e")  unicode(0x002D) p("v") p("i") p("n") p("g") p("t")  unicode(0x002D) ZWNJ d1  @3  ZWNJ / ^_  _  _   _  ;
+ZWNJ da d1  ZWNJ > ZWNJ  @2  d0 ZWNJ  unicode(0x0020) p("e") p("t")  unicode(0x0020) p("u") p("n") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ > ZWNJ  @2  d0 ZWNJ  unicode(0x002D)  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("c") p("e") p("n") p("t")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ (d2,d3,d4,d5,d6,d7,d8,d9) d0 d0 ZWNJ ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("c") p("e") p("n") p("t") p("s") / ^_  _  _  _  _  _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("c") p("e") p("n") p("t")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 d1 d0 d0  ZWNJ > p("o") p("n") p("z") p("e")  unicode(0x0020) p("c") p("e") p("n") p("t") p("s") / ^_  _  _  _  _   _  ;
+ZWNJ d1 d1 dd  dd  ZWNJ > p("o") p("n") p("z") p("e")  unicode(0x0020) p("c") p("e") p("n") p("t")  unicode(0x003A) unicode(0x003A) @4 @5 ZWNJ @4 @5 ZWNJ / ^_  _  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ > p("m") p("i") p("l") p("l") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("l") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("l") p("e")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("l") p("e")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("u") p("n")  unicode(0x0020) p("m") p("i") p("l") p("l") p("i") p("o") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   ZWNJ  unicode(0x0020) p("m") p("i") p("l") p("l") p("i") p("o") p("n") p("s")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   ZWNJ  unicode(0x0020) p("m") p("i") p("l") p("l") p("i") p("o") p("n") p("s")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   ZWNJ  unicode(0x0020) p("m") p("i") p("l") p("l") p("i") p("o") p("n") p("s")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==it)
+
+ZWNJ ZWNJ d0  ZWNJ > p("z") p("e") p("r") p("o") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("u") p("n") p("o") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("d") p("u") p("e") / ^_  _   _  ;
+ZWNJ ZWNJ d3 ZWNJ ZWNJ > p("t") p("r") p("e") / ^_  _  _  _  _  ;
+ZWNJ d3 ZWNJ ZWNJ > p("t") p("r")  unicode(0x00E9) / ^_  _  _  _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("e") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("q") p("u") p("a") p("t") p("t") p("r") p("o") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("c") p("i") p("n") p("q") p("u") p("e") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("e") p("i") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("t") p("t") p("e") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("t") p("t") p("o") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("o") p("v") p("e") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("d") p("i") p("e") p("c") p("i") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("u") p("n") p("d") p("i") p("c") p("i") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("d") p("o") p("d") p("i") p("c") p("i") / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ > p("t") p("r") p("e") p("d") p("i") p("c") p("i") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("q") p("u") p("a") p("t") p("t") p("o") p("r") p("d") p("i") p("c") p("i") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("q") p("u") p("i") p("n") p("d") p("i") p("c") p("i") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ > p("s") p("e") p("d") p("i") p("c") p("i") / ^_  _  _   _  ;
+ZWNJ d1 d7  ZWNJ > p("d") p("i") p("c") p("i") p("a") p("s") p("s") p("e") p("t") p("t") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d8  ZWNJ > p("d") p("i") p("c") p("i") p("o") p("t") p("t") p("o") / ^_  _  _   _  ;
+ZWNJ d1 d9  ZWNJ > p("d") p("i") p("c") p("i") p("a") p("n") p("n") p("o") p("v") p("e") / ^_  _  _   _  ;
+ZWNJ d2 (d1,d8) ZWNJ > p("v") p("e") p("n") p("t")  ZWNJ @3 ZWNJ / ^_  _  _  _  ;
+ZWNJ d2 dd  ZWNJ > p("v") p("e") p("n") p("t") p("i")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d3 (d1,d8) ZWNJ > p("t") p("r") p("e") p("n") p("t")  ZWNJ @3 ZWNJ / ^_  _  _  _  ;
+ZWNJ d3 dd  ZWNJ > p("t") p("r") p("e") p("n") p("t") p("a")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d4 (d1,d8) ZWNJ > p("q") p("u") p("a") p("r") p("a") p("n") p("t")  ZWNJ @3 ZWNJ / ^_  _  _  _  ;
+ZWNJ d4 dd  ZWNJ > p("q") p("u") p("a") p("r") p("a") p("n") p("t") p("a")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d5 (d1,d8) ZWNJ > p("c") p("i") p("n") p("q") p("u") p("a") p("n") p("t")  ZWNJ @3 ZWNJ / ^_  _  _  _  ;
+ZWNJ d5 dd  ZWNJ > p("c") p("i") p("n") p("q") p("u") p("a") p("n") p("t") p("a")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d6 (d1,d8) ZWNJ > p("s") p("e") p("s") p("s") p("a") p("n") p("t")  ZWNJ @3 ZWNJ / ^_  _  _  _  ;
+ZWNJ d6 dd  ZWNJ > p("s") p("e") p("s") p("s") p("a") p("n") p("t") p("a")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d7 (d1,d8) ZWNJ > p("s") p("e") p("t") p("t") p("a") p("n") p("t")  ZWNJ @3 ZWNJ / ^_  _  _  _  ;
+ZWNJ d7 dd  ZWNJ > p("s") p("e") p("t") p("t") p("a") p("n") p("t") p("a")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d8 (d1,d8) ZWNJ > p("o") p("t") p("t") p("a") p("n") p("t")  ZWNJ @3 ZWNJ / ^_  _  _  _  ;
+ZWNJ d8 dd  ZWNJ > p("o") p("t") p("t") p("a") p("n") p("t") p("a")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d9 (d1,d8) ZWNJ > p("n") p("o") p("v") p("a") p("n") p("t")  ZWNJ @3 ZWNJ / ^_  _  _  _  ;
+ZWNJ d9 dd  ZWNJ > p("n") p("o") p("v") p("a") p("n") p("t") p("a")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("c") p("e") p("n") p("t") p("o")  ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ  p("c") p("e") p("n") p("t") p("o")  ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ > p("m") p("i") p("l") p("l") p("e")  ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ  p("m") p("i") p("l") p("a")  ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ  p("m") p("i") p("l") p("a")  ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ  p("m") p("i") p("l") p("a")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("u") p("n")  unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("i")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("i")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("o") p("n") p("i")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==LB)
+
+ZWNJ ZWNJ d0  ZWNJ > p("n") p("u") p("l") p("l") / ^_  _  _   _  ;
+ZWNJ d1 ZWNJ ZWNJ > p("e") p("e") p("n") p("t") / ^_  _  _  _  ;
+ZWNJ d1  ZWNJ > p("e") p("e") p("n") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("z") p("w") p("e") p("e") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("d") p("r")  unicode(0x00E4) p("i") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("v")  unicode(0x00E9) p("i") p("e") p("r") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("f")  unicode(0x00EB) p("n") p("n") p("e") p("f") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("e") p("c") p("h") p("s") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("i") p("w") p("e") p("n") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("a") p("a") p("c") p("h") p("t") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n")  unicode(0x00E9) p("n") p("g") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("z")  unicode(0x00E9) p("n") p("g") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("e") p("e") p("l") p("e") p("f") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("z") p("w") p("i") p("e") p("l") p("e") p("f") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("f") p("o") p("f") p("z")  unicode(0x00E9) p("n") p("g") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ > p("s") p("i") p("e") p("c") p("h") p("z")  unicode(0x00E9) p("n") p("g") / ^_  _  _   _  ;
+ZWNJ d1 d7  ZWNJ > p("s") p("i") p("w") p("w") p("e") p("n") p("z")  unicode(0x00E9) p("n") p("g") / ^_  _  _   _  ;
+ZWNJ d1 d8  ZWNJ > p("u") p("e") p("c") p("h") p("z")  unicode(0x00E9) p("n") p("g") / ^_  _  _   _  ;
+ZWNJ d1 d9  ZWNJ > p("n") p("o") p("n") p("z")  unicode(0x00E9) p("n") p("g") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("z")  unicode(0x00E9) p("n") p("g") / ^_  _  _   _  ;
+ZWNJ d2 d0  ZWNJ > p("z") p("w") p("a") p("n") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d2 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("a") p("n") p("z") p("w") p("a") p("n") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d3 d0  ZWNJ > p("d") p("r")  unicode(0x00EB) p("s") p("s") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d3 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("a") p("n") p("d") p("r")  unicode(0x00EB) p("s") p("s") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d4 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("a") p("v")  unicode(0x00E9) p("i") p("e") p("r") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d5 d0  ZWNJ > p("f") p("o") p("f") p("f") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d5 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("a") p("f") p("o") p("f") p("f") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d6 d0  ZWNJ > p("s") p("i") p("e") p("c") p("h") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d6 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("a") p("s") p("i") p("e") p("c") p("h") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d7 d0  ZWNJ > p("s") p("i") p("w") p("w") p("e") p("n") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d7 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("a") p("s") p("i") p("w") p("w") p("e") p("n") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d8 d0  ZWNJ > p("a") p("c") p("h") p("t") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d8 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("a") p("n") p("a") p("c") p("h") p("t") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d9 d0  ZWNJ > p("n") p("o") p("n") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d9 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("a") p("n") p("n") p("o") p("n") p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ da d0  ZWNJ >  ZWNJ @2 ZWNJ  p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @3 ZWNJ  p("a") p("n")  ZWNJ @2 ZWNJ  p("z") p("e") p("g") / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("h") p("o") p("n") p("n") p("e") p("r") p("t")  ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ  p("h") p("o") p("n") p("n") p("e") p("r") p("t")  ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ > p("d") p("a") p("u") p("s") p("e") p("n") p("d")  ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ  p("d") p("a") p("u") p("s") p("e") p("n") p("d")  ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ  p("d") p("a") p("u") p("s") p("e") p("n") p("d")  ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ  p("d") p("a") p("u") p("s") p("e") p("n") p("d")  ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("e") p("n") p("g")  unicode(0x0020) p("M") p("i") p("l") p("l") p("i") p("o") p("u") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("M") p("i") p("l") p("l") p("i") p("o") p("u") p("n") p("e") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("M") p("i") p("l") p("l") p("i") p("o") p("u") p("n") p("e") p("n")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("M") p("i") p("l") p("l") p("i") p("o") p("u") p("n") p("e") p("n")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==nl)
+
+ZWNJ ZWNJ d0 ZWNJ ZWNJ > p("n") p("u") p("l") / ^_  _  _  _  _  ;
+ZWNJ d1 ZWNJ ZWNJ > p("e") p("e") p("n") / ^_  _  _  _  ;
+ZWNJ d1  ZWNJ > p("e") p("e") p("n") p("e") p("n") / ^_  _   _  ;
+ZWNJ d2 ZWNJ ZWNJ > p("t") p("w") p("e") p("e") / ^_  _  _  _  ;
+ZWNJ d2  ZWNJ > p("t") p("w") p("e") p("e")  unicode(0x00EB) p("n") / ^_  _   _  ;
+ZWNJ d3 ZWNJ ZWNJ > p("d") p("r") p("i") p("e") / ^_  _  _  _  ;
+ZWNJ d3  ZWNJ > p("d") p("r") p("i") p("e")  unicode(0x00EB) p("n") / ^_  _   _  ;
+ZWNJ d4 ZWNJ ZWNJ > p("v") p("i") p("e") p("r") / ^_  _  _  _  ;
+ZWNJ d4  ZWNJ > p("v") p("i") p("e") p("r") p("e") p("n") / ^_  _   _  ;
+ZWNJ d5 ZWNJ ZWNJ > p("v") p("i") p("j") p("f") / ^_  _  _  _  ;
+ZWNJ d5  ZWNJ > p("v") p("i") p("j") p("f") p("e") p("n") / ^_  _   _  ;
+ZWNJ d6 ZWNJ ZWNJ > p("z") p("e") p("s") / ^_  _  _  _  ;
+ZWNJ d6  ZWNJ > p("z") p("e") p("s") p("e") p("n") / ^_  _   _  ;
+ZWNJ d7 ZWNJ ZWNJ > p("z") p("e") p("v") p("e") p("n") / ^_  _  _  _  ;
+ZWNJ d7  ZWNJ > p("z") p("e") p("v") p("e") p("n") p("e") p("n") / ^_  _   _  ;
+ZWNJ d8 ZWNJ ZWNJ > p("a") p("c") p("h") p("t") / ^_  _  _  _  ;
+ZWNJ d8  ZWNJ > p("a") p("c") p("h") p("t") p("e") p("n") / ^_  _   _  ;
+ZWNJ d9 ZWNJ ZWNJ > p("n") p("e") p("g") p("e") p("n") / ^_  _  _  _  ;
+ZWNJ d9  ZWNJ > p("n") p("e") p("g") p("e") p("n") p("e") p("n") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("e") p("l") p("f") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("t") p("w") p("a") p("a") p("l") p("f") / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ > p("d") p("e") p("r") p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("v") p("e") p("e") p("r") p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ   ZWNJ p("t") p("i") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d2 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("t") p("w") p("i") p("n") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ d3 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("d") p("e") p("r") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ d4 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("v") p("e") p("e") p("r") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ d8 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("t") p("a") p("c") p("h") p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @3 ZWNJ   SEPARATOR  ZWNJ @2 ZWNJ   ZWNJ p("t") p("i") p("g") / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("h") p("o") p("n") p("d") p("e") p("r") p("d")  ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   ZWNJ p("h") p("o") p("n") p("d") p("e") p("r") p("d")  ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 d0 dd dd ZWNJ > p("d") p("u") p("i") p("z") p("e") p("n") p("d")  unicode(0x003A) unicode(0x003A) @4 @5 ZWNJ @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da d0 dd dd ZWNJ >  ZWNJ @2 ZWNJ   ZWNJ p("d") p("u") p("i") p("z") p("e") p("n") p("d")  unicode(0x003A) unicode(0x003A) @4 @5 ZWNJ @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ d1  dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   ZWNJ p("h") p("o") p("n") p("d") p("e") p("r") p("d")  ZWNJ @4 @5 ZWNJ / ^_  _   _  _  _  _  ;
+ZWNJ da  dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   ZWNJ p("h") p("o") p("n") p("d") p("e") p("r") p("d")  ZWNJ @4 @5 ZWNJ / ^_  _   _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   ZWNJ p("d") p("u") p("i") p("z") p("e") p("n") p("d")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   ZWNJ p("d") p("u") p("i") p("z") p("e") p("n") p("d")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   ZWNJ  unicode(0x0020) p("m") p("i") p("l") p("j") p("o") p("e") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   ZWNJ  unicode(0x0020) p("m") p("i") p("l") p("j") p("o") p("e") p("n")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   ZWNJ  unicode(0x0020) p("m") p("i") p("l") p("j") p("o") p("e") p("n")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==pl)
+
+ZWNJ ZWNJ d0  ZWNJ > p("z") p("e") p("r") p("o") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("j") p("e") p("d") p("e") p("n") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("d") p("w") p("a") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("z") p("y") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("c") p("z") p("t") p("e") p("r") p("y") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("p") p("i")  unicode(0x0119)  unicode(0x0107) / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("z") p("e")  unicode(0x015B)  unicode(0x0107) / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("i") p("e") p("d") p("e") p("m") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("s") p("i") p("e") p("m") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("d") p("z") p("i") p("e") p("w") p("i")  unicode(0x0119)  unicode(0x0107) / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("d") p("z") p("i") p("e") p("s") p("i")  unicode(0x0119)  unicode(0x0107) / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("j") p("e") p("d") p("e") p("n") p("a")  unicode(0x015B) p("c") p("i") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("c") p("z") p("t") p("e") p("r") p("n") p("a")  unicode(0x015B) p("c") p("i") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("p") p("i")  unicode(0x0119) p("t") p("n") p("a")  unicode(0x015B) p("c") p("i") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ > p("s") p("z") p("e") p("s") p("n") p("a")  unicode(0x015B) p("c") p("i") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d9  ZWNJ > p("d") p("z") p("i") p("e") p("w") p("i")  unicode(0x0119) p("t") p("n") p("a")  unicode(0x015B) p("c") p("i") p("e") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("n") p("a")  unicode(0x015B) p("c") p("i") p("e") / ^_  _  _   _  ;
+ZWNJ d2 dd  ZWNJ > p("d") p("w") p("a") p("d") p("z") p("i") p("e")  unicode(0x015B) p("c") p("i") p("a")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d3 dd  ZWNJ > p("t") p("r") p("z") p("y") p("d") p("z") p("i") p("e")  unicode(0x015B) p("c") p("i")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d4 dd  ZWNJ > p("c") p("z") p("t") p("e") p("r") p("d") p("z") p("i") p("e")  unicode(0x015B) p("c") p("i")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @2 ZWNJ  p("d") p("z") p("i") p("e") p("s") p("i")  unicode(0x0105) p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("s") p("t") p("o")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d2 dd  dd  ZWNJ > p("d") p("w") p("i") p("e")  unicode(0x015B) p("c") p("i") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ (d3,d4) dd  dd  ZWNJ >  ZWNJ @2 ZWNJ  p("s") p("t") p("a")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ  p("s") p("e") p("t")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ > p("t") p("y") p("s") p("i")  unicode(0x0105) p("c")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ (d2,d3,d4) dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("t") p("y") p("s") p("i")  unicode(0x0105) p("c") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ (d2,d3,d4,d5,d6,d7,d8,d9) (d2,d3,d4) dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("t") p("y") p("s") p("i")  unicode(0x0105) p("c") p("e")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ dd (d0,d2,d3,d4,d5,d6,d7,d8,d9) (d2,d3,d4) dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("t") p("y") p("s") p("i")  unicode(0x0105) p("c") p("e")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("t") p("y") p("s") p("i")  unicode(0x0119) p("c") p("y")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("t") p("y") p("s") p("i")  unicode(0x0119) p("c") p("y")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("t") p("y") p("s") p("i")  unicode(0x0119) p("c") p("y")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==pt)
+
+ZWNJ ZWNJ d0  ZWNJ > p("z") p("e") p("r") p("o") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("u") p("m") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("d") p("o") p("i") p("s") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r")  unicode(0x00EA) p("s") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("q") p("u") p("a") p("t") p("r") p("o") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("c") p("i") p("n") p("c") p("o") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("e") p("i") p("s") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("t") p("e") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("i") p("t") p("o") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("o") p("v") p("e") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("d") p("e") p("z") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("o") p("n") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("d") p("o") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ > p("t") p("r") p("e") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("q") p("u") p("a") p("t") p("o") p("r") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("q") p("u") p("i") p("n") p("z") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ > p("d") p("e") p("z") p("a") p("s") p("s") p("e") p("i") p("s") / ^_  _  _   _  ;
+ZWNJ d1 d7  ZWNJ > p("d") p("e") p("z") p("a") p("s") p("s") p("e") p("t") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d8  ZWNJ > p("d") p("e") p("z") p("o") p("i") p("t") p("o") / ^_  _  _   _  ;
+ZWNJ d1 d9  ZWNJ > p("d") p("e") p("z") p("a") p("n") p("o") p("v") p("e") / ^_  _  _   _  ;
+ZWNJ d2 d0  ZWNJ > p("v") p("i") p("n") p("t") p("e") / ^_  _  _   _  ;
+ZWNJ d3 d0  ZWNJ > p("t") p("r") p("i") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d4 d0  ZWNJ > p("q") p("u") p("a") p("r") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d5 d0  ZWNJ > p("c") p("i") p("n") p("q") p("u") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d6 d0  ZWNJ > p("s") p("e") p("s") p("s") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d7 d0  ZWNJ > p("s") p("e") p("t") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d8 d0  ZWNJ > p("o") p("i") p("t") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ d9 d0  ZWNJ > p("n") p("o") p("v") p("e") p("n") p("t") p("a") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ > ZWNJ  @2  d0 ZWNJ  unicode(0x0020) p("e")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 d0 d0  ZWNJ > p("c") p("e") p("m") / ^_  _  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("c") p("i") p("e") p("n") p("t") p("o")  unicode(0x0020) p("e")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d2 d0 d0  ZWNJ > p("d") p("u") p("z") p("e") p("n") p("t") p("o") p("s") / ^_  _  _  _   _  ;
+ZWNJ d3 d0 d0  ZWNJ > p("t") p("r") p("e") p("z") p("e") p("n") p("t") p("o") p("s") / ^_  _  _  _   _  ;
+ZWNJ d5 d0 d0  ZWNJ > p("q") p("u") p("i") p("n") p("h") p("e") p("n") p("t") p("o") p("s") / ^_  _  _  _   _  ;
+ZWNJ da d0 d0  ZWNJ >  ZWNJ @2 ZWNJ  p("c") p("i") p("e") p("n") p("t") p("o") p("s") / ^_  _  _  _   _  ;
+ZWNJ da dd  dd  ZWNJ > ZWNJ  @2  d0 d0 ZWNJ  unicode(0x0020) p("e")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+endif;
+if (numbertext==ro)
+
+ZWNJ ZWNJ d0  ZWNJ > p("z") p("e") p("r") p("o") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("u") p("n") p("u") / ^_  _   _  ;
+ZWNJ d2 ZWNJ ZWNJ > p("d") p("o") p("i") / ^_  _  _  _  ;
+ZWNJ d2  ZWNJ > p("d") p("o") p("u")  unicode(0x0103) / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("e") p("i") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("p") p("a") p("t") p("r") p("u") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("c") p("i") p("n") p("c") p("i") / ^_  _   _  ;
+ZWNJ d6 ZWNJ ZWNJ >  unicode(0x0219) p("a") p("s") p("e") / ^_  _  _  _  ;
+ZWNJ d6  ZWNJ >  unicode(0x0219) p("a") p("i") / ^_  _   _  ;
+ZWNJ d7  ZWNJ >  unicode(0x0219) p("a") p("p") p("t") p("e") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("p") p("t") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("o") p("u")  unicode(0x0103) / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("z") p("e") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("u") p("n") p("s") p("p") p("r") p("e") p("z") p("e") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("d") p("o") p("i") p("s") p("p") p("r") p("e") p("z") p("e") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("p") p("a") p("i") p("s") p("p") p("r") p("e") p("z") p("e") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("s") p("p") p("r") p("e") p("z") p("e") p("c") p("e") / ^_  _  _   _  ;
+ZWNJ da d0  ZWNJ >  ZWNJ @2 ZWNJ  p("z") p("e") p("c") p("i") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ > ZWNJ  @2  d0 ZWNJ  unicode(0x0020)  unicode(0x0219) p("i")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("o")  unicode(0x0020) p("s") p("u") p("t")  unicode(0x0103)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("s") p("u") p("t") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ > p("o")  unicode(0x0020) p("m") p("i") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+endif;
+if (numbertext==ru)
+
+ZWNJ ZWNJ d0  ZWNJ >  unicode(0x043D)  unicode(0x043E)  unicode(0x043B)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ >  unicode(0x043E)  unicode(0x0434)  unicode(0x0438)  unicode(0x043D) / ^_  _   _  ;
+ZWNJ d2 ZWNJ ZWNJ >  unicode(0x0434)  unicode(0x0432)  unicode(0x0430) / ^_  _  _  _  ;
+ZWNJ d2  ZWNJ >  unicode(0x0434)  unicode(0x0432)  unicode(0x0435) / ^_  _   _  ;
+ZWNJ d3  ZWNJ >  unicode(0x0442)  unicode(0x0440)  unicode(0x0438) / ^_  _   _  ;
+ZWNJ d4  ZWNJ >  unicode(0x0447)  unicode(0x0435)  unicode(0x0442)  unicode(0x044B)  unicode(0x0440)  unicode(0x0435) / ^_  _   _  ;
+ZWNJ d5  ZWNJ >  unicode(0x043F)  unicode(0x044F)  unicode(0x0442)  unicode(0x044C) / ^_  _   _  ;
+ZWNJ d6  ZWNJ >  unicode(0x0448)  unicode(0x0435)  unicode(0x0441)  unicode(0x0442)  unicode(0x044C) / ^_  _   _  ;
+ZWNJ d7  ZWNJ >  unicode(0x0441)  unicode(0x0435)  unicode(0x043C)  unicode(0x044C) / ^_  _   _  ;
+ZWNJ d8  ZWNJ >  unicode(0x0432)  unicode(0x043E)  unicode(0x0441)  unicode(0x0435)  unicode(0x043C)  unicode(0x044C) / ^_  _   _  ;
+ZWNJ d9  ZWNJ >  unicode(0x0434)  unicode(0x0435)  unicode(0x0432)  unicode(0x044F)  unicode(0x0442)  unicode(0x044C) / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ >  unicode(0x0434)  unicode(0x0435)  unicode(0x0441)  unicode(0x044F)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ >  unicode(0x043E)  unicode(0x0434)  unicode(0x0438)  unicode(0x043D)  unicode(0x043D)  unicode(0x0430)  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ >  unicode(0x0434)  unicode(0x0432)  unicode(0x0435)  unicode(0x043D)  unicode(0x0430)  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ >  unicode(0x0442)  unicode(0x0440)  unicode(0x0438)  unicode(0x043D)  unicode(0x0430)  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ >  unicode(0x0447)  unicode(0x0435)  unicode(0x0442)  unicode(0x044B)  unicode(0x0440)  unicode(0x043D)  unicode(0x0430)  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ >  unicode(0x043F)  unicode(0x044F)  unicode(0x0442)  unicode(0x043D)  unicode(0x0430)  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ >  unicode(0x0448)  unicode(0x0435)  unicode(0x0441)  unicode(0x0442)  unicode(0x043D)  unicode(0x0430)  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1 d7  ZWNJ >  unicode(0x0441)  unicode(0x0435)  unicode(0x043C)  unicode(0x043D)  unicode(0x0430)  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1 d8  ZWNJ >  unicode(0x0432)  unicode(0x043E)  unicode(0x0441)  unicode(0x0435)  unicode(0x043C)  unicode(0x043D)  unicode(0x0430)  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ d1 d9  ZWNJ >  unicode(0x0434)  unicode(0x0435)  unicode(0x0432)  unicode(0x044F)  unicode(0x0442)  unicode(0x043D)  unicode(0x0430)  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C) / ^_  _  _   _  ;
+ZWNJ (d2,d3) dd  ZWNJ >  ZWNJ @2 ZWNJ   ZWNJ  unicode(0x0434)  unicode(0x0446)  unicode(0x0430)  unicode(0x0442)  unicode(0x044C)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d4 dd  ZWNJ >  unicode(0x0441)  unicode(0x043E)  unicode(0x0440)  unicode(0x043E)  unicode(0x043A)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d9 dd  ZWNJ >  unicode(0x0434)  unicode(0x0435)  unicode(0x0432)  unicode(0x044F)  unicode(0x043D)  unicode(0x043E)  unicode(0x0441)  unicode(0x0442)  unicode(0x043E)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0434)  unicode(0x0435)  unicode(0x0441)  unicode(0x044F)  unicode(0x0442)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ >  unicode(0x0441)  unicode(0x0442)  unicode(0x043E)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d2 dd  dd  ZWNJ >  unicode(0x0434)  unicode(0x0432)  unicode(0x0435)  unicode(0x0441)  unicode(0x0442)  unicode(0x0438)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ (d3,d4) dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0441)  unicode(0x0442)  unicode(0x0430)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0441)  unicode(0x043E)  unicode(0x0442)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ >  unicode(0x043E)  unicode(0x0434)  unicode(0x043D)  unicode(0x0430)  unicode(0x0020)  unicode(0x0442)  unicode(0x044B)  unicode(0x0441)  unicode(0x044F)  unicode(0x0447)  unicode(0x0430)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ (d2,d3,d4) dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020)  unicode(0x0442)  unicode(0x044B)  unicode(0x0441)  unicode(0x044F)  unicode(0x0447)  unicode(0x0438)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ (d0,d2,d3,d4,d5,d6,d7,d8,d9) (d2,d3,d4) dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020)  unicode(0x0442)  unicode(0x044B)  unicode(0x0441)  unicode(0x044F)  unicode(0x0447)  unicode(0x0438)  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ (d2,d3,d4) dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020)  unicode(0x0442)  unicode(0x044B)  unicode(0x0441)  unicode(0x044F)  unicode(0x0447)  unicode(0x0438)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da (d0,d2,d3,d4,d5,d6,d7,d8,d9) (d2,d3,d4) dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020)  unicode(0x0442)  unicode(0x044B)  unicode(0x0441)  unicode(0x044F)  unicode(0x0447)  unicode(0x0438)  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020)  unicode(0x0442)  unicode(0x044B)  unicode(0x0441)  unicode(0x044F)  unicode(0x0447)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020)  unicode(0x0442)  unicode(0x044B)  unicode(0x0441)  unicode(0x044F)  unicode(0x0447)  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020)  unicode(0x0442)  unicode(0x044B)  unicode(0x0441)  unicode(0x044F)  unicode(0x0447)  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ >  unicode(0x043E)  unicode(0x0434)  unicode(0x0438)  unicode(0x043D)  unicode(0x0020)  unicode(0x043C)  unicode(0x0438)  unicode(0x043B)  unicode(0x043B)  unicode(0x0438)  unicode(0x043E)  unicode(0x043D)  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020)  unicode(0x043C)  unicode(0x0438)  unicode(0x043B)  unicode(0x043B)  unicode(0x0438)  unicode(0x043E)  unicode(0x043D)  unicode(0x043E)  unicode(0x0432)  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020)  unicode(0x043C)  unicode(0x0438)  unicode(0x043B)  unicode(0x043B)  unicode(0x0438)  unicode(0x043E)  unicode(0x043D)  unicode(0x043E)  unicode(0x0432)  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020)  unicode(0x043C)  unicode(0x0438)  unicode(0x043B)  unicode(0x043B)  unicode(0x0438)  unicode(0x043E)  unicode(0x043D)  unicode(0x043E)  unicode(0x0432)  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==sh)
+ZWNJ ZWNJ d0  ZWNJ > p("n") p("u") p("l") p("a") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("j") p("e") p("d") p("a") p("n") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("d") p("v") p("a") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("i") / ^_  _   _  ;
+ZWNJ d4  ZWNJ >  unicode(0x010D) p("e") p("t") p("i") p("r") p("i") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("p") p("e") p("t") / ^_  _   _  ;
+ZWNJ d6  ZWNJ >  unicode(0x0161) p("e") p("s") p("t") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("d") p("a") p("m") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("s") p("a") p("m") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("d") p("e") p("v") p("e") p("t") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("d") p("e") p("s") p("e") p("t") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("j") p("e") p("d") p("a") p("n") p("a") p("e") p("s") p("t") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ >  unicode(0x010D) p("e") p("t") p("r") p("n") p("a") p("e") p("s") p("t") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ >  unicode(0x0161) p("e") p("s") p("n") p("a") p("e") p("s") p("t") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("n") p("a") p("e") p("s") p("t") / ^_  _  _   _  ;
+ZWNJ d4 dd  ZWNJ >  unicode(0x010D) p("e") p("t") p("r") p("d") p("e") p("s") p("e") p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d5 dd  ZWNJ > p("p") p("e") p("d") p("e") p("s") p("e") p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d6 dd  ZWNJ >  unicode(0x0161) p("e") p("z") p("d") p("e") p("s") p("e") p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d9 dd  ZWNJ > p("d") p("e") p("v") p("e") p("d") p("e") p("s") p("e") p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ da d0  ZWNJ >  ZWNJ @2 ZWNJ  p("d") p("e") p("s") p("e") p("t") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @2 ZWNJ  p("d") p("e") p("s") p("e") p("t")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("s") p("t") p("o")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d2 dd  dd  ZWNJ > p("d") p("v") p("e") p("s") p("t") p("a")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d3 dd  dd  ZWNJ > p("t") p("r") p("i") p("s") p("t") p("a")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ  p("s") p("t") p("o")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd  dd  dd  ZWNJ > p("h") p("i") p("l") p("j") p("a") p("d") p("u")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ d2 dd  dd  dd  ZWNJ > p("d") p("v") p("e")  unicode(0x0020) p("h") p("i") p("l") p("j") p("a") p("d") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ (d3,d4) dd  dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("h") p("i") p("l") p("j") p("a") p("d") p("e")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+endif;
+if (numbertext==sl)
+
+ZWNJ ZWNJ d0  ZWNJ > p("n") p("i")  unicode(0x010D) / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("e") p("n") p("a") / ^_  _   _  ;
+ZWNJ d2 ZWNJ ZWNJ > p("d") p("v") p("e") / ^_  _  _  _  ;
+ZWNJ d2  ZWNJ > p("d") p("v") p("a") / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("i") / ^_  _   _  ;
+ZWNJ d4  ZWNJ >  unicode(0x0161) p("t") p("i") p("r") p("i") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("p") p("e") p("t") / ^_  _   _  ;
+ZWNJ d6  ZWNJ >  unicode(0x0161) p("e") p("s") p("t") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("e") p("d") p("e") p("m") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("o") p("s") p("e") p("m") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("d") p("e") p("v") p("e") p("t") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("d") p("e") p("s") p("e") p("t") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("e") p("n") p("a") p("j") p("s") p("t") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("n") p("a") p("j") p("s") p("t") / ^_  _  _   _  ;
+ZWNJ d2 d0  ZWNJ > p("d") p("v") p("a") p("j") p("s") p("e") p("t") / ^_  _  _   _  ;
+ZWNJ d2 dd  ZWNJ >  ZWNJ @3 ZWNJ  p("i") p("n") p("d") p("v") p("a") p("j") p("s") p("e") p("t") / ^_  _  _   _  ;
+ZWNJ da d0  ZWNJ >  ZWNJ @2 ZWNJ  p("d") p("e") p("s") p("e") p("t") / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @3 ZWNJ  p("i") p("n")  ZWNJ @2 ZWNJ  p("d") p("e") p("s") p("e") p("t") / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("s") p("t") p("o")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d2 dd  dd  ZWNJ > p("d") p("v") p("e") p("s") p("t") p("o")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ  p("s") p("t") p("o")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd  dd  dd  ZWNJ > p("t") p("i") p("s") p("o")  unicode(0x010D)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ da dd  dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("t") p("i") p("s") p("o")  unicode(0x010D)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ da dd dd  dd  dd  ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("t") p("i") p("s") p("o")  unicode(0x010D)  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _   _   _   _  ;
+ZWNJ da dd dd dd  dd  dd  ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("t") p("i") p("s") p("o")  unicode(0x010D)  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _   _   _   _  ;
+ZWNJ d1 dd dd dd dd dd dd ZWNJ > p("m") p("i") p("l") p("i") p("j") p("o") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ (d2,d3,d4) dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("j") p("o") p("n") p("a")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("j") p("o") p("n") p("o") p("v")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("j") p("o") p("n") p("o") p("v")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("i") p("j") p("o") p("n") p("o") p("v")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==sr)
+ZWNJ ZWNJ d0  ZWNJ >  unicode(0x043D)  unicode(0x0443)  unicode(0x043B)  unicode(0x0430) / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ >  unicode(0x0458)  unicode(0x0435)  unicode(0x0434)  unicode(0x0430)  unicode(0x043D) / ^_  _   _  ;
+ZWNJ d2  ZWNJ >  unicode(0x0434)  unicode(0x0432)  unicode(0x0430) / ^_  _   _  ;
+ZWNJ d3  ZWNJ >  unicode(0x0442)  unicode(0x0440)  unicode(0x0438) / ^_  _   _  ;
+ZWNJ d4  ZWNJ >  unicode(0x0447)  unicode(0x0435)  unicode(0x0442)  unicode(0x0438)  unicode(0x0440)  unicode(0x0438) / ^_  _   _  ;
+ZWNJ d5  ZWNJ >  unicode(0x043F)  unicode(0x0435)  unicode(0x0442) / ^_  _   _  ;
+ZWNJ d6  ZWNJ >  unicode(0x0448)  unicode(0x0435)  unicode(0x0441)  unicode(0x0442) / ^_  _   _  ;
+ZWNJ d7  ZWNJ >  unicode(0x0441)  unicode(0x0435)  unicode(0x0434)  unicode(0x0430)  unicode(0x043C) / ^_  _   _  ;
+ZWNJ d8  ZWNJ >  unicode(0x043E)  unicode(0x0441)  unicode(0x0430)  unicode(0x043C) / ^_  _   _  ;
+ZWNJ d9  ZWNJ >  unicode(0x0434)  unicode(0x0435)  unicode(0x0432)  unicode(0x0435)  unicode(0x0442) / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ >  unicode(0x0434)  unicode(0x0435)  unicode(0x0441)  unicode(0x0435)  unicode(0x0442) / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ >  unicode(0x0458)  unicode(0x0435)  unicode(0x0434)  unicode(0x0430)  unicode(0x043D)  unicode(0x0430)  unicode(0x0435)  unicode(0x0441)  unicode(0x0442) / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ >  unicode(0x0447)  unicode(0x0435)  unicode(0x0442)  unicode(0x0440)  unicode(0x043D)  unicode(0x0430)  unicode(0x0435)  unicode(0x0441)  unicode(0x0442) / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ >  unicode(0x0448)  unicode(0x0435)  unicode(0x0441)  unicode(0x043D)  unicode(0x0430)  unicode(0x0435)  unicode(0x0441)  unicode(0x0442) / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ >  ZWNJ @3 ZWNJ   unicode(0x043D)  unicode(0x0430)  unicode(0x0435)  unicode(0x0441)  unicode(0x0442) / ^_  _  _   _  ;
+ZWNJ d4 dd  ZWNJ >  unicode(0x0447)  unicode(0x0435)  unicode(0x0442)  unicode(0x0440)  unicode(0x0434)  unicode(0x0435)  unicode(0x0441)  unicode(0x0435)  unicode(0x0442)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d5 dd  ZWNJ >  unicode(0x043F)  unicode(0x0435)  unicode(0x0434)  unicode(0x0435)  unicode(0x0441)  unicode(0x0435)  unicode(0x0442)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d6 dd  ZWNJ >  unicode(0x0448)  unicode(0x0435)  unicode(0x0437)  unicode(0x0434)  unicode(0x0435)  unicode(0x0441)  unicode(0x0435)  unicode(0x0442)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d9 dd  ZWNJ >  unicode(0x0434)  unicode(0x0435)  unicode(0x0432)  unicode(0x0435)  unicode(0x0434)  unicode(0x0435)  unicode(0x0441)  unicode(0x0435)  unicode(0x0442)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ da d0  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0434)  unicode(0x0435)  unicode(0x0441)  unicode(0x0435)  unicode(0x0442) / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0434)  unicode(0x0435)  unicode(0x0441)  unicode(0x0435)  unicode(0x0442)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ >  unicode(0x0441)  unicode(0x0442)  unicode(0x043E)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d2 dd  dd  ZWNJ >  unicode(0x0434)  unicode(0x0432)  unicode(0x0435)  unicode(0x0441)  unicode(0x0442)  unicode(0x0430)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d3 dd  dd  ZWNJ >  unicode(0x0442)  unicode(0x0440)  unicode(0x0438)  unicode(0x0441)  unicode(0x0442)  unicode(0x0430)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0441)  unicode(0x0442)  unicode(0x043E)  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd  dd  dd  ZWNJ >  unicode(0x0445)  unicode(0x0438)  unicode(0x0459)  unicode(0x0430)  unicode(0x0434)  unicode(0x0443)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ d2 dd  dd  dd  ZWNJ >  unicode(0x0434)  unicode(0x0432)  unicode(0x0435)  unicode(0x0020)  unicode(0x0445)  unicode(0x0438)  unicode(0x0459)  unicode(0x0430)  unicode(0x0434)  unicode(0x0435)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ (d3,d4) dd  dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020)  unicode(0x0445)  unicode(0x0438)  unicode(0x0459)  unicode(0x0430)  unicode(0x0434)  unicode(0x0435)  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+endif;
+if (numbertext==sv)
+
+ZWNJ ZWNJ d0  ZWNJ > p("n") p("o") p("l") p("l") / ^_  _  _   _  ;
+ZWNJ ZWNJ d1 ZWNJ ZWNJ > p("e") p("t") p("t") / ^_  _  _  _  _  ;
+ZWNJ ZWNJ d1  ZWNJ > p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("e") p("t") p("t") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("t") p("v")  unicode(0x00E5) / ^_  _   _  ;
+ZWNJ d3  ZWNJ > p("t") p("r") p("e") / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("f") p("y") p("r") p("a") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("f") p("e") p("m") / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("s") p("e") p("x") / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("s") p("j") p("u") / ^_  _   _  ;
+ZWNJ d8  ZWNJ >  unicode(0x00E5) p("t") p("t") p("a") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("n") p("i") p("o") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("t") p("i") p("o") / ^_  _  _   _  ;
+ZWNJ d1 d1  ZWNJ > p("e") p("l") p("v") p("a") / ^_  _  _   _  ;
+ZWNJ d1 d2  ZWNJ > p("t") p("o") p("l") p("v") / ^_  _  _   _  ;
+ZWNJ d1 d3  ZWNJ > p("t") p("r") p("e") p("t") p("t") p("o") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d4  ZWNJ > p("f") p("j") p("o") p("r") p("t") p("o") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d5  ZWNJ > p("f") p("e") p("m") p("t") p("o") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d6  ZWNJ > p("s") p("e") p("x") p("t") p("o") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d7  ZWNJ > p("s") p("j") p("u") p("t") p("t") p("o") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d8  ZWNJ > p("a") p("r") p("t") p("o") p("n") / ^_  _  _   _  ;
+ZWNJ d1 d9  ZWNJ > p("n") p("i") p("t") p("t") p("o") p("n") / ^_  _  _   _  ;
+ZWNJ d2 dd  ZWNJ > p("t") p("j") p("u") p("g") p("o")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d3 dd  ZWNJ > p("t") p("r") p("e") p("t") p("t") p("i") p("o")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d4 dd  ZWNJ > p("f") p("y") p("r") p("t") p("i") p("o")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d7 dd  ZWNJ > p("s") p("j") p("u") p("t") p("t") p("i") p("o")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d8 dd  ZWNJ >  unicode(0x00E5) p("t") p("t") p("i") p("o")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d9 dd  ZWNJ > p("n") p("i") p("t") p("t") p("i") p("o")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ da dd  ZWNJ >  ZWNJ @2 ZWNJ  p("t") p("i") p("o")  ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ da dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   ZWNJ p("h") p("u") p("n") p("d") p("r") p("a")  ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   ZWNJ p("u") p("s") p("e") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ (d0,d2,d3,d4,d5,d6,d7,d8,d9) d1 dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   ZWNJ p("u") p("s") p("e") p("n")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ d1 dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   ZWNJ p("u") p("s") p("e") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da (d0,d2,d3,d4,d5,d6,d7,d8,d9) d1 dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   ZWNJ p("u") p("s") p("e") p("n")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ  p("t") p("u") p("s") p("e") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ  p("t") p("u") p("s") p("e") p("n")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ  p("t") p("u") p("s") p("e") p("n")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+endif;
+if (numbertext==tr)
+
+ZWNJ ZWNJ d0  ZWNJ > p("s")  unicode(0x0131) p("f")  unicode(0x0131) p("r") / ^_  _  _   _  ;
+ZWNJ d1  ZWNJ > p("b") p("i") p("r") / ^_  _   _  ;
+ZWNJ d2  ZWNJ > p("i") p("k") p("i") / ^_  _   _  ;
+ZWNJ d3  ZWNJ >  unicode(0x00FC)  unicode(0x00E7) / ^_  _   _  ;
+ZWNJ d4  ZWNJ > p("d")  unicode(0x00F6) p("r") p("t") / ^_  _   _  ;
+ZWNJ d5  ZWNJ > p("b") p("e")  unicode(0x015F) / ^_  _   _  ;
+ZWNJ d6  ZWNJ > p("a") p("l") p("t")  unicode(0x0131) / ^_  _   _  ;
+ZWNJ d7  ZWNJ > p("y") p("e") p("d") p("i") / ^_  _   _  ;
+ZWNJ d8  ZWNJ > p("s") p("e") p("k") p("i") p("z") / ^_  _   _  ;
+ZWNJ d9  ZWNJ > p("d") p("o") p("k") p("u") p("z") / ^_  _   _  ;
+ZWNJ d1 d0  ZWNJ > p("o") p("n") / ^_  _  _   _  ;
+ZWNJ d1 dd  ZWNJ > p("o") p("n")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d2 d0  ZWNJ > p("y") p("i") p("r") p("m") p("i") / ^_  _  _   _  ;
+ZWNJ d2 dd  ZWNJ > p("y") p("i") p("r") p("m") p("i")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d3 d0  ZWNJ > p("o") p("t") p("u") p("z") / ^_  _  _   _  ;
+ZWNJ d3 dd  ZWNJ > p("o") p("t") p("u") p("z")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d4 d0  ZWNJ > p("k")  unicode(0x0131) p("r") p("k") / ^_  _  _   _  ;
+ZWNJ d4 dd  ZWNJ > p("k")  unicode(0x0131) p("r") p("k")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d5 d0  ZWNJ > p("e") p("l") p("l") p("i") / ^_  _  _   _  ;
+ZWNJ d5 dd  ZWNJ > p("e") p("l") p("l") p("i")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d6 d0  ZWNJ > p("a") p("l") p("t") p("m")  unicode(0x0131)  unicode(0x015F) / ^_  _  _   _  ;
+ZWNJ d6 dd  ZWNJ > p("a") p("l") p("t") p("m")  unicode(0x0131)  unicode(0x015F)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d7 d0  ZWNJ > p("y") p("e") p("t") p("m") p("i")  unicode(0x015F) / ^_  _  _   _  ;
+ZWNJ d7 dd  ZWNJ > p("y") p("e") p("t") p("m") p("i")  unicode(0x015F)  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d8 d0  ZWNJ > p("s") p("e") p("k") p("s") p("e") p("n") / ^_  _  _   _  ;
+ZWNJ d8 dd  ZWNJ > p("s") p("e") p("k") p("s") p("e") p("n")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d9 d0  ZWNJ > p("d") p("o") p("k") p("s") p("a") p("n") / ^_  _  _   _  ;
+ZWNJ d9 dd  ZWNJ > p("d") p("o") p("k") p("s") p("a") p("n")  unicode(0x003A) unicode(0x003A) @3 ZWNJ @3 ZWNJ / ^_  _  _   _  ;
+ZWNJ d1 dd  dd  ZWNJ > p("y")  unicode(0x00FC) p("z")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ (d2,d3,d4,d5,d6,d7,d8,d9) dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("y")  unicode(0x00FC) p("z")  unicode(0x003A) unicode(0x003A) @3 @4 ZWNJ @3 @4 ZWNJ / ^_  _  _   _   _  ;
+ZWNJ d1 dd  dd  dd  ZWNJ > p("b") p("i") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _   _   _   _  ;
+ZWNJ da (d1,d2,d3,d4,d5,d6,d7,d8,d9) dd  dd  ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("b") p("i") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _   _   _  ;
+ZWNJ da dd (d1,d2,d3,d4,d5,d6,d7,d8,d9) dd  dd  ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("b") p("i") p("n")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _   _   _  ;
+ZWNJ da dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("b") p("i") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 ZWNJ @3 @4 @5 ZWNJ / ^_  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("b") p("i") p("n")  unicode(0x003A) unicode(0x003A) @4 @5 @6 ZWNJ @4 @5 @6 ZWNJ / ^_  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("b") p("i") p("n")  unicode(0x003A) unicode(0x003A) @5 @6 @7 ZWNJ @5 @6 @7 ZWNJ / ^_  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd ZWNJ >  ZWNJ @2 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("y") p("o") p("n")  unicode(0x003A) unicode(0x003A) @3 @4 @5 @6 @7 @8 ZWNJ @3 @4 @5 @6 @7 @8 ZWNJ / ^_  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("y") p("o") p("n")  unicode(0x003A) unicode(0x003A) @4 @5 @6 @7 @8 @9 ZWNJ @4 @5 @6 @7 @8 @9 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  ;
+ZWNJ da dd dd dd dd dd dd dd dd ZWNJ >  ZWNJ @2 @3 @4 ZWNJ   unicode(0x0020) p("m") p("i") p("l") p("y") p("o") p("n")  unicode(0x003A) unicode(0x003A) @5 @6 @7 @8 @9 @10 ZWNJ @5 @6 @7 @8 @9 @10 ZWNJ / ^_  _  _  _  _  _  _  _  _  _  _  ;
+endif;
+
+
+if (fraction)
+// 1 / 2 > unicode(0x00BC); // 1/4
+// 1 / 2 > unicode(0x00BD); // 1/2
+// 1 / 2 > unicode(0x00BE); // 3/4
+
+cnum1 cnum1 cnum1 cnum1 unicode(0x002F) cnum1 > cnumsup cnumsup cnumsup cnumsup unicode(0x2044) cnumsub / ^_ _ _ _ _ _;
+cnum1 cnum1 cnum1 unicode(0x002F) cnum1 > cnumsup cnumsup cnumsup unicode(0x2044) cnumsub / ^_ _ _ _ _;
+cnum1 cnum1 unicode(0x002F) cnum1 > cnumsup cnumsup unicode(0x2044) cnumsub / ^_ _ _ _;
+cnum1 unicode(0x002F) cnum1 > cnumsup unicode(0x2044) cnumsub / ^_ _ _;
+
+unicode(0x2044) cnumsub cnum1 cnum1 cnum1 > unicode(0x2044) @2 cnumsub cnumsub cnumsub / ^_ _ _ _ _;
+unicode(0x2044) cnumsub cnum1 cnum1 > unicode(0x2044) @2 cnumsub cnumsub / ^_ _ _ _;
+unicode(0x2044) cnumsub cnum1 > unicode(0x2044) @2 cnumsub / ^_ _ _;
+
+endif;
+
+if (TeX)
+// superiors (^n) and inferiors (_n)
+
+unicode(0x005E) cidx1 > _ cidx2;
+unicode(0x005F) cidx1 > _ cidx3;
+
+// black-board letters
+
+unicode(0x005C) p("m") p("a") p("t") p("h") p("b") p("b") unicode(0x007B) ( p("C"), p("H"), p("N"), p("P"), p("Q"), p("R"), p("Z") ) unicode(0x007D) > _ _ _ _ _ _ _ _ (unicode(0x2102), unicode(0x210D), unicode(0x2115), unicode(0x2119), unicode(0x211A), unicode(0x211D), unicode(0x2124)) _;
+
+
+// Greek letters
+
+unicode(0x005C) p("a") p("l") p("p") p("h") p("a") > _ _ _ _ _ unicode(0x03B1);
+unicode(0x005C) p("b") p("e") p("t") p("a") 	> _ _ _ _ unicode(0x03B2);
+unicode(0x005C) p("g") p("a") p("m") p("m") p("a") 	> _ _ _ _ _ unicode(0x03B3);
+unicode(0x005C) p("d") p("e") p("l") p("t") p("a") 	> _ _ _ _ _ unicode(0x03B4);
+unicode(0x005C) p("e") p("p") p("s") p("i") p("l") p("o") p("n") 	> _ _ _ _ _ _ _ _ unicode(0x03F5);
+unicode(0x005C) p("v") p("a") p("r") p("e") p("p") p("s") p("i") p("l") p("o") p("n") 	> _ _ _ _ _ _ _ _ _ _ _ unicode(0x03B5);
+unicode(0x005C) p("z") p("e") p("t") p("a") 	> _ _ _ _ unicode(0x03B6);
+unicode(0x005C) p("e") p("t") p("a") 	> _ _ _ unicode(0x03B7);
+unicode(0x005C) p("t") p("h") p("e") p("t") p("a") 	> _ _ _ _ _ unicode(0x03B8);
+unicode(0x005C) p("v") p("a") p("r") p("t") p("h") p("e") p("t") p("a") 	> _ _ _ _ _ _ _ _ unicode(0x03D1);
+unicode(0x005C) p("i") p("o") p("t") p("a") 	> _ _ _ _ unicode(0x03B9);
+unicode(0x005C) p("k") p("a") p("p") p("p") p("a") 	> _ _ _ _ _ unicode(0x03BA);
+unicode(0x005C) p("l") p("a") p("m") p("d") p("a") 	> _ _ _ _ _ unicode(0x03BB);
+unicode(0x005C) p("m") p("u") 	> _ _ unicode(0x03BC);
+unicode(0x005C) p("n") p("u") 	> _ _ unicode(0x03BD);
+unicode(0x005C) p("x") p("i") 	> _ _ unicode(0x03BE);
+unicode(0x005C) p("p") p("i") 	> _ _ unicode(0x03C0);
+unicode(0x005C) p("v") p("a") p("r") p("p") p("i") 	> _ _ _ _ _ unicode(0x03D6);
+unicode(0x005C) p("r") p("h") p("o") 	> _ _ _ unicode(0x03C1);
+unicode(0x005C) p("v") p("a") p("r") p("r") p("h") p("o") 	> _ _ _ _ _ _ unicode(0x03F1);
+unicode(0x005C) p("v") p("a") p("r") p("s") p("i") p("g") p("m") p("a") 	> _ _ _ _ _ _ _ _ unicode(0x03C2);
+unicode(0x005C) p("s") p("i") p("g") p("m") p("a") 	> _ _ _ _ _ unicode(0x03C3);
+unicode(0x005C) p("t") p("a") p("u") 	> _ _ _ _ unicode(0x03C4);
+unicode(0x005C) p("u") p("p") p("s") p("i") p("l") p("o") p("n") 	> _ _ _ _ _ _ _ unicode(0x03C5);
+unicode(0x005C) p("p") p("h") p("i") 	> _ _ _ unicode(0x03D5);
+unicode(0x005C) p("v") p("a") p("r") p("p") p("h") p("i") 	> _ _ _ _ _ _ unicode(0x03C6);
+unicode(0x005C) p("c") p("h") p("i") 	> _ _ _ unicode(0x03C7);
+unicode(0x005C) p("p") p("s") p("i") 	> _ _ _ unicode(0x03C8);
+unicode(0x005C) p("o") p("m") p("e") p("g") p("a") 	> _ _ _ _ _ _ unicode(0x03C9);
+
+unicode(0x005C) p("G") p("a") p("m") p("m") p("a") 	> _ _ _ _ _ unicode(0x0393);
+unicode(0x005C) p("D") p("e") p("l") p("t") p("a") 	> _ _ _ _ _ unicode(0x0394);
+unicode(0x005C) p("T") p("h") p("e") p("t") p("a") 	> _ _ _ _ _ unicode(0x0398);
+unicode(0x005C) p("L") p("a") p("m") p("d") p("a") 	> _ _ _ _ _ unicode(0x039B);
+unicode(0x005C) p("X") p("i") 	> _ _ unicode(0x039E);
+unicode(0x005C) p("P") p("i") 	> _ _ unicode(0x03A0);
+unicode(0x005C) p("S") p("i") p("g") p("m") p("a") 	> _ _ _ _ _ unicode(0x03A3);
+unicode(0x005C) p("U") p("p") p("s") p("i") p("l") p("o") p("n") 	> _ _ _ _ _ _ _ unicode(0x03A5);
+unicode(0x005C) p("P") p("h") p("i") 	> _ _ _ unicode(0x03A6);
+unicode(0x005C) p("P") p("s") p("i") 	> _ _ _ unicode(0x03A8);
+unicode(0x005C) p("O") p("m") p("e") p("g") p("a") 	> _ _ _ _ _ unicode(0x03A9);
+
+// other symbols
+
+unicode(0x005C) p("p") p("m") > _ _ unicode(0x00B1);
+unicode(0x005C) p("m") p("p") > _ _ unicode(0x2213);
+unicode(0x005C) p("t") p("i") p("m") p("e") p("s") > _ _ _ _ _ unicode(0x00D7);
+unicode(0x005C) p("s") p("e") p("t") p("m") p("i") p("n") p("u") p("s") > _ _ _ _ _ _ _ _ unicode(0x2216);
+unicode(0x005C) p("c") p("a") p("p") > _ _ _ unicode(0x2229);
+unicode(0x005C) p("c") p("u") p("p") > _ _ _ unicode(0x222A);
+unicode(0x005C) p("w") p("e") p("d") p("g") p("e") > _ _ _ _ _ unicode(0x2227);
+unicode(0x005C) p("v") p("e") p("e") > _ _ _ unicode(0x2228);
+unicode(0x005C) p("l") p("e") p("q") > _ _ _ unicode(0x2264);
+unicode(0x005C) p("g") p("e") p("q") > _ _ _ unicode(0x2265);
+unicode(0x005C) p("l") p("e") > _ _ unicode(0x2264);
+unicode(0x005C) p("g") p("e") > _ _ unicode(0x2265);
+unicode(0x005C) p("n") p("o") p("t") unicode(0x005C) p("l") p("e") > _ _ _ _ _ _ unicode(0x2270);
+unicode(0x005C) p("n") p("o") p("t") unicode(0x005C) p("g") p("e") > _ _ _ _ _ _ unicode(0x2271);
+unicode(0x005C) p("l") p("l") > _ _ unicode(0x226A);
+unicode(0x005C) p("g") p("g") > _ _ unicode(0x226B);
+unicode(0x005C) p("n") p("e") p("q") > _ _ _ unicode(0x2260);
+unicode(0x005C) p("i") p("n") > _ _ unicode(0x2208);
+unicode(0x005C) p("n") p("o") p("t") unicode(0x005C) p("i") p("n") > _ _ _ _ _ _ unicode(0x2209);
+unicode(0x005C) p("n") p("i") > _ _ unicode(0x220B);
+unicode(0x005C) p("n") p("o") p("t") unicode(0x005C) p("n") p("i") > _ _ _ _ _ _ unicode(0x220C);
+unicode(0x005C) p("s") p("u") p("b") p("s") p("e") p("t") > _ _ _ _ _ _ unicode(0x2282);
+unicode(0x005C) p("s") p("u") p("p") p("s") p("e") p("t") > _ _ _ _ _ _ unicode(0x2283);
+unicode(0x005C) p("n") p("o") p("t") unicode(0x005C) p("s") p("u") p("b") p("s") p("e") p("t") > _ _ _ _ _ _ _ _ _ _ unicode(0x2284);
+unicode(0x005C) p("n") p("o") p("t") unicode(0x005C) p("s") p("u") p("p") p("s") p("e") p("t") > _ _ _ _ _ _ _ _ _ _ unicode(0x2285);
+unicode(0x005C) p("s") p("i") p("m") > _ _ _ unicode(0x223C);
+unicode(0x005C) p("n") p("s") p("i") p("m") > _ _ _ _ unicode(0x2241);
+unicode(0x005C) p("a") p("p") p("p") p("r") p("o") p("x") > _ _ _ _ _ _ unicode(0x2248);
+unicode(0x005C) p("m") p("i") p("d") > _ _ _ unicode(0x2223);
+unicode(0x005C) p("n") p("m") p("i") p("d") > _ _ _ _ unicode(0x2224);
+unicode(0x005C) unicode(0x007C) > _ unicode(0x2225);
+unicode(0x005C) p("n") p("o") p("t") unicode(0x003C) > _ _ _ _ unicode(0x226E);
+unicode(0x005C) p("n") p("o") p("t") unicode(0x003E) > _ _ _ _ unicode(0x226F);
+unicode(0x005C) p("p") p("a") p("r") p("a") p("l") p("l") p("e") p("l") > _ _ _ _ _ _ _ _ unicode(0x2225);
+unicode(0x005C) p("n") p("o") p("t") unicode(0x005C) unicode(0x007C) > _ _ _ _ _ unicode(0x2226);
+unicode(0x005C) p("n") p("p") p("a") p("r") p("a") p("l") p("l") p("e") p("l") > _ _ _ _ _ _ _ _ _ unicode(0x2226);
+
+unicode(0x005C) p("g") p("e") p("t") p("s") > _ _ _ _ unicode(0x2190);
+unicode(0x005C) p("l") p("e") p("f") p("t") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ _ _ unicode(0x2190);
+unicode(0x005C) p("u") p("p") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ unicode(0x2191);
+unicode(0x005C) p("r") p("i") p("g") p("h") p("t") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ _ _ _ unicode(0x2192);
+unicode(0x005C) p("t") p("o") > _ _ unicode(0x2192);
+unicode(0x005C) p("d") p("o") p("w") p("n") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ _ _ unicode(0x2193);
+unicode(0x005C) p("l") p("e") p("f") p("t") p("r") p("i") p("g") p("h") p("t") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ _ _ _ _ _ _ _ unicode(0x2194);
+
+unicode(0x005C) p("L") p("e") p("f") p("t") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ _ _ unicode(0x21D0);
+unicode(0x005C) p("U") p("p") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ unicode(0x21D1);
+unicode(0x005C) p("R") p("i") p("g") p("h") p("t") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ _ _ _ unicode(0x21D2);
+unicode(0x005C) p("D") p("o") p("w") p("n") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ _ _ unicode(0x21D3);
+unicode(0x005C) p("L") p("e") p("f") p("t") p("r") p("i") p("g") p("h") p("t") p("a") p("r") p("r") p("o") p("w") > _ _ _ _ _ _ _ _ _ _ _ _ _ _ unicode(0x21D4);
+
+unicode(0x005C) p("h") p("b") p("a") p("r") > _ _ _ _ unicode(0x210F);
+unicode(0x005C) p("R") p("e") > _ _ unicode(0x211C);
+unicode(0x005C) p("e") p("l") p("l") > _ _ _ unicode(0x2113);
+unicode(0x005C) p("a") p("l") p("e") p("p") p("h") > _ _ _ _ _ unicode(0x2135);
+unicode(0x005C) p("t") p("r") p("i") p("a") p("n") p("g") p("l") p("e") > _ _ _ _ _ _ _ _ unicode(0x2206);
+unicode(0x005C) p("i") p("n") p("f") p("t") p("y") > _ _ _ _ _ unicode(0x221E);
+unicode(0x005C) p("p") p("a") p("r") p("t") p("i") p("a") p("l") > _ _ _ _ _ _ _ unicode(0x2202);
+
+
+unicode(0x005C) p("s") p("u") p("r") p("d") > _ _ _ _ unicode(0x221A);
+unicode(0x005C) p("s") p("u") p("m") > _ _ _ unicode(0x2211);
+unicode(0x005C) p("i") p("n") p("t") > _ _ _ unicode(0x222B);
+
+unicode(0x005C) p("p") p("r") p("o") p("d") > _ _ _ _ unicode(0x220F);
+unicode(0x005C) p("p") p("r") p("i") p("m") p("e") > _ _ _ _ _ unicode(0x2032);
+
+unicode(0x005C) p("a") p("n") p("g") p("l") p("e") > _ _ _ _ _ unicode(0x2220);
+unicode(0x005C) p("p") p("e") p("r") p("p") > _ _ _ _ unicode(0x27C2);
+unicode(0x005C) p("i") p("i") p("n") p("t") > _ _ _ _ unicode(0x222C);
+unicode(0x005C) p("i") p("i") p("i") p("n") p("t") > _ _ _ _ _ unicode(0x222D);
+unicode(0x005C) p("o") p("i") p("n") p("t") > _ _ _ _ unicode(0x222E);
+
+
+unicode(0x005C) p("e") p("m") p("p") p("t") p("y") p("s") p("e") p("t") > _ _ _ _ _ _ _ _ unicode(0x2205);
+unicode(0x005C) p("f") p("o") p("r") p("a") p("l") p("l") > _ _ _ _ _ _ unicode(0x2200);
+unicode(0x005C) p("e") p("x") p("i") p("s") p("t") p("s") > _ _ _ _ _ _ unicode(0x2203);
+
+
+endif;
+
+// Capital eszett
+if (eszet)
+	if (titlecaps == 2)
+		unicode(0x00DF) > unicode(0x1E9E);
+	else if (smallcaps)
+		unicode(0x00DF) > unicode(0xE092);
+	endif;
+else if (titlecaps == 2)
+		unicode(0x00DF) > p("S") p("S");
+endif;
+
+if (titlecaps == title) // eg. Twenty-one
+	if (smallcaps) 
+		csc1 > csc2 / csc123ligdash _;
+	else
+		csc1 > @ / csc123ligdash _;
+	endif;
+	csc1 > csc3 / ^_;
+else if (titlecaps == 2)	// eg. TWENTY-ONE
+	csc1 > csc3;
+else if (titlecaps == 3)	// eg. Twenty-One
+	if (smallcaps) 
+		csc1 > csc2 / ^csc123lig _;
+	else
+		csc1 > @ / csc123lig _;
+	endif;
+	csc1 > csc3 / ^_;
+else if (titlecaps == first)	// eg. Hundred twenty-one
+	if (smallcaps) 
+		csc1 > csc2 / ANY _;
+	else
+		csc1 > @ / ANY _;
+	endif;
+	csc1 > csc3 / ^_;
+else 
+	if (smallcaps)
+		csc1 > csc2;
+	endif;
+endif;
+
+// superiors and inferiors
+
+if (index == 1)
+	cidx1 > cidx2;
+else if (index == 2)
+	cidx1 > cidx3;
+endif;
+
+// numbers (old style and proportional)
+
+if (num == 0)
+	if (propnum == 1) // default: monospaced
+
+if (ordabr)
+if (ntvar == 0)
+
+	d1a cnum1 > unicode(0xE011) cnum2 / _ ^_ cnumsep;
+	d1a unicode(0x202F) > unicode(0xE011) unicode(0x202F) / _ ^_ cnumsep;
+	d1a cnum1 > unicode(0xE011) cnum2 p("t") p("h");
+	cnum1 > cnum2 / _ cnumsep;
+	cnum2 > cnum2 / _ cnumsep;
+	d1 > unicode(0xE011) p("s") p("t");
+	d2 > unicode(0xE012) p("n") p("d");
+	d3 > unicode(0xE013) p("r") p("d");
+	cnum1 > cnum2 p("t") p("h");
+else if (ntvar == 1) 
+	d1a cnum1 > unicode(0xE011) cnum2 / _ ^_ cnumsep;
+	d1a unicode(0x202F) > unicode(0xE011) unicode(0x202F) / _ ^_ cnumsep;
+	d1a cnum1 > unicode(0xE011) cnum2 unicode(0xE0D3) unicode(0x02B0);
+	cnum1 > cnum2 / _ cnumsep;
+	cnum2 > cnum2 / _ cnumsep;
+	d1 > unicode(0xE011) unicode(0x02E2) unicode(0xE0D3);
+	d2 > unicode(0xE012) unicode(0x207F) unicode(0xE0C3);
+	d3 > unicode(0xE013) unicode(0x02B3) unicode(0xE0C3);
+	cnum1 > cnum2 unicode(0xE0D3) unicode(0x02B0);
+ endif;
+
+endif;
+
+		cnum1 > cnum2;
+	else
+
+if (ordabr)
+if (ntvar == 0)
+
+	d1a cnumsep > @1 @2 / _ ^_ cnumsep;
+	d1a cnum1 > @1 @2 p("t") p("h");
+	cnum1 > @1 / _ cnumsep;
+	d1 > @1 p("s") p("t");
+	d2 > @1 p("n") p("d");
+	d3 > @1 p("r") p("d");
+	cnum1 > @1 p("t") p("h");
+else if (ntvar == 1) 
+	d1a cnumsep > @1 @2 / _ ^_ cnumsep;
+	d1a cnum1 > @1 @2 unicode(0xE0D3) unicode(0x02B0);
+	cnum1 > @1 / _ cnumsep;
+	d1 > @1 unicode(0x02E2) unicode(0xE0D3);
+	d2 > @1 unicode(0x207F) unicode(0xE0C3);
+	d3 > @1 unicode(0x02B3) unicode(0xE0C3);
+	cnum1 > @1 unicode(0xE0D3) unicode(0x02B0);
+ endif;
+
+endif;
+
+	
+	endif;
+else
+	if (propnum) // default for old style numbers: proportional
+
+if (ordabr)
+if (ntvar == 0)
+
+	d1a cnum1 > cn41 cnum4 / _ ^_ cnumsep;
+	d1a unicode(0x202F) > cn41 unicode(0x202F) / _ ^_ cnumsep;
+	d1a cnum1 > cn41 cnum4 p("t") p("h");
+	cn41 cnum1 > cn41 cnum4 p("t") p("h");
+	cnum1 > cnum4 / _ cnumsep;
+	cnum4 > cnum4 / _ cnumsep;
+	d1 > cn41 p("s") p("t");
+	d2 > cn42 p("n") p("d");
+	d3 > cn43 p("r") p("d");
+	cnum1 > cnum4 p("t") p("h");
+else if (ntvar == 1) 
+	d1a cnum1 > cn41 cnum4 / _ ^_ cnumsep;
+	d1a unicode(0x202F) > cn41 unicode(0x202F) / _ ^_ cnumsep;
+	d1a cnum1 > cn41 cnum4 unicode(0xE0D3) unicode(0x02B0);
+	cn41 cnum1 > cn41 cnum4 unicode(0xE0D3) unicode(0x02B0);
+	cnum1 > cnum4 / _ cnumsep;
+	cnum4 > cnum4 / _ cnumsep;
+	d1 > cn41 unicode(0x02E2) unicode(0xE0D3);
+	d2 > cn42 unicode(0x207F) unicode(0xE0C3);
+	d3 > cn43 unicode(0x02B3) unicode(0xE0C3);
+	cnum1 > cnum4 unicode(0xE0D3) unicode(0x02B0);
+ endif;
+
+endif;
+		cnum1 > cnum4;
+	else
+	
+	
+if (ordabr)
+if (ntvar == 0)
+
+	d1a cnum1 > unicode(0xE021) cnum3 / _ ^_ cnumsep;
+	d1a unicode(0x202F) > unicode(0xE021) unicode(0x202F) / _ ^_ cnumsep;
+	d1a cnum1 > unicode(0xE021) cnum3 p("t") p("h");
+	unicode(0xE021) cnum1 > unicode(0xE021) cnum3 p("t") p("h");
+	cnum1 > cnum3 / _ cnumsep;
+	cnum3 > cnum3 / _ cnumsep;
+	d1 > unicode(0xE021) p("s") p("t");
+	d2 > unicode(0xE022) p("n") p("d");
+	d3 > unicode(0xE023) p("r") p("d");
+	cnum1 > cnum3 p("t") p("h");
+else if (ntvar == 1) 
+	d1a cnum1 > unicode(0xE021) cnum3 / _ ^_ cnumsep;
+	d1a unicode(0x202F) > unicode(0xE021) unicode(0x202F) / _ ^_ cnumsep;
+	d1a cnum1 > unicode(0xE021) cnum3 unicode(0xE0D3) unicode(0x02B0);
+	unicode(0xE021) cnum1 > unicode(0xE021) cnum3 unicode(0xE0D3) unicode(0x02B0);
+	cnum1 > cnum3 / _ cnumsep;
+	cnum3 > cnum3 / _ cnumsep;
+	d1 > unicode(0xE021) unicode(0x02E2) unicode(0xE0D3);
+	d2 > unicode(0xE022) unicode(0x207F) unicode(0xE0C3);
+	d3 > unicode(0xE023) unicode(0x02B3) unicode(0xE0C3);
+	cnum1 > cnum3 unicode(0xE0D3) unicode(0x02B0);
+ endif;
+
+endif;
+
+		cnum1 > cnum3;
+	endif;
+endif;
+
+// thousand separator
+
+if (sep > 0)
+
+cdecsep cnum1 cnum1 cnum1 cnum1 > @1 @2 @3 @4 ZWNJ @5 / _ ^_ _ _ _;
+
+cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > @1 @2 @3 unicode(0x202F) @4 @5 @6 unicode(0x202F) @7 @8 @9 unicode(0x202F) @10 @11 @12 / ^_ _ _ _ _ _ _ _ _ _ _ _;
+
+cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > @1 @2 unicode(0x202F) @3 @4 @5 unicode(0x202F) @6 @7 @8 U+202f @9 @10 @11 / ^_ _ _ _ _ _ _ _ _ _ _;
+cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > @1 unicode(0x202F) @2 @3 @4 unicode(0x202F) @5 @6 @7 unicode(0x202F) @8 @9 @10 / ^ _ _ _ _ _ _ _ _ _ _;
+cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > @1 @2 @3 unicode(0x202F) @4 @5 @6 unicode(0x202F) @7 @8 @9 / ^_ _ _ _ _ _ _ _ _; 
+cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > @1 @2 unicode(0x202F) @3 @4 @5 unicode(0x202F) @6 @7 @8 / ^_ _ _ _ _ _ _ _; 
+cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > @1 unicode(0x202F) @2 @3 @4 unicode(0x202F) @5 @6 @7 / ^_ _ _ _ _ _ _; 
+cnum1 cnum1 cnum1 cnum1 cnum1 cnum1 > @1 @2 @3 unicode(0x202F) @4 @5 @6 / ^_ _ _ _ _ _; 
+cnum1 cnum1 cnum1 cnum1 cnum1 > @1 @2 unicode(0x202F) @3 @4 @5 / ^_ _ _ _ _; 
+
+  if (sep == 2)
+	cnum1 cnum1 cnum1 cnum1 > @1 unicode(0x202F) @2 @3 @4 / ^_ _ _ _; 
+  endif;
+
+endif
+
+// ligatures
+
+if (smallcaps == 0 && index == 0 && lig > 0 && titlecaps != all)
+
+p("Q") p("u") >
+            _ clsLig2:(1 2) {
+                  comp.c1.ref = @1; comp.c2.ref = @2 } / _ _;
+
+  clsLigComp1 clsLigComp1 clsLigComp3 >
+	 _ _ clsLig0:(1 3) { comp.c1.ref = @1; comp.c2.ref = @1; comp.c3.ref = @3};
+
+if (titlecaps == title) // OpenOffice.org needs Graphite hyphenation fixes
+
+  clsLigComp1 clsLigComp2 >
+            _ clsLig:(1 2) {
+                  comp.c1.ref = @1; comp.c2.ref = @2 } / csc123ligdash _ _;
+
+  if (lig == 2)
+	clsLigComp4 clsLigComp5 >
+            clsLig1:(1 2) {
+                  comp.c1.ref = @1; comp.c2.ref = @2 } _ / csc123ligdash _ _;
+  endif;
+
+else if (titlecaps == 3)
+  clsLigComp1 clsLigComp2 >
+            _ clsLig:(1 2) {
+                  comp.c1.ref = @1; comp.c2.ref = @2 } / csc123 _ _;
+
+  if (lig == 2)
+	clsLigComp4 clsLigComp5 >
+            clsLig1:(1 2) {
+                  comp.c1.ref = @1; comp.c2.ref = @2 } _ / csc123 _ _;
+  endif;
+
+else if (titlecaps == first)
+
+  clsLigComp1 clsLigComp2 >
+            _ clsLig:(1 2) {
+                  comp.c1.ref = @1; comp.c2.ref = @2 } / ANY _ _;
+
+  if (lig == 2)
+	clsLigComp4 clsLigComp5 >
+            clsLig1:(1 2) {
+                  comp.c1.ref = @1; comp.c2.ref = @2 } _ / ANY _ _;
+  endif;
+
+else if (titlecaps == 0)
+
+ // ligature in starting position
+
+ // it needs a plus letter for ligature replacement to forbid
+ // ligatures ("fi") as syllables resulted by hyphenation
+ // (switched off, OpenOffice.org needs Graphite hyphenation fixes)
+
+      clsLigComp1 clsLigComp2 >
+            _ clsLig:(1 2) {
+                  comp.c1.ref = @1; comp.c2.ref = @2 };
+//                  comp.c1.ref = @1; comp.c2.ref = @2 } / _ _ csc123;
+
+  if (lig == 2)
+	clsLigComp4 clsLigComp5 >
+            clsLig1:(1 2) {
+                  comp.c1.ref = @1; comp.c2.ref = @2 } _;
+//                  comp.c1.ref = @1; comp.c2.ref = @2 } _ / _ _ csc123;
+  endif;
+
+endif;
+
+endif;
+
+// minus sign before numbers
+
+if (minus)
+	unicode(0x002D) > unicode(0x2212) / cmin _ cnum1; // after space or parenthesis
+	unicode(0x002D) > @2 / ANY _ cnum1; // don't modify
+	unicode(0x002D) > unicode(0x2212) / _ cnum1; // at the beginning of the line
+endif;
+
+// German umlaut variants
+if (umlaut)
+	cgu1 > cgu2;
+endif;
+
+endtable;
+
+
+
