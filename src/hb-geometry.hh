@@ -30,6 +30,11 @@
 struct hb_extents_t
 {
   hb_extents_t () {}
+  hb_extents_t (const hb_glyph_extents_t &extents) :
+		xmin (hb_min (extents.x_bearing, extents.x_bearing + extents.width)),
+		ymin (hb_min (extents.y_bearing, extents.y_bearing + extents.height)),
+		xmax (hb_max (extents.x_bearing, extents.x_bearing + extents.width)),
+		ymax (hb_max (extents.y_bearing, extents.y_bearing + extents.height)) {}
   hb_extents_t (float xmin, float ymin, float xmax, float ymax) :
     xmin (xmin), ymin (ymin), xmax (xmax), ymax (ymax) {}
 
@@ -38,6 +43,12 @@ struct hb_extents_t
 
   void union_ (const hb_extents_t &o)
   {
+    if (o.is_empty ()) return;
+    if (is_empty ())
+    {
+      *this = o;
+      return;
+    }
     xmin = hb_min (xmin, o.xmin);
     ymin = hb_min (ymin, o.ymin);
     xmax = hb_max (xmax, o.xmax);
@@ -46,6 +57,11 @@ struct hb_extents_t
 
   void intersect (const hb_extents_t &o)
   {
+    if (o.is_empty () || is_empty ())
+    {
+      *this = hb_extents_t {};
+      return;
+    }
     xmin = hb_max (xmin, o.xmin);
     ymin = hb_max (ymin, o.ymin);
     xmax = hb_min (xmax, o.xmax);
@@ -67,6 +83,15 @@ struct hb_extents_t
       xmax = hb_max (xmax, x);
       ymax = hb_max (ymax, y);
     }
+  }
+
+  hb_glyph_extents_t to_glyph_extents () const
+  {
+    hb_position_t x0 = (hb_position_t) roundf (xmin);
+    hb_position_t y0 = (hb_position_t) roundf (ymin);
+    hb_position_t x1 = (hb_position_t) roundf (xmax);
+    hb_position_t y1 = (hb_position_t) roundf (ymax);
+    return hb_glyph_extents_t {x0, y0, x1 - x0, y1 - y0};
   }
 
   float xmin = 0.f;

@@ -130,7 +130,8 @@ hb_transforming_pen_get_funcs ()
 hb_ubytes_t
 VarComponent::get_path_at (hb_font_t *font,
 			   hb_codepoint_t parent_gid,
-			   hb_draw_session_t &draw_session,
+			   hb_draw_session_t *draw_session,
+			   hb_extents_t *extents,
 			   hb_array_t<const int> coords,
 			   hb_transform_t total_transform,
 			   hb_ubytes_t total_record,
@@ -323,7 +324,8 @@ VarComponent::get_path_at (hb_font_t *font,
 		       component_coords.arrayZ == coords.arrayZ;
 
     VARC.get_path_at (font, gid,
-		      draw_session, component_coords, total_transform,
+		      draw_session, extents,
+		      component_coords, total_transform,
 		      parent_gid,
 		      decycler, edges_left, depth_left - 1,
 		      scratch,
@@ -339,7 +341,8 @@ VarComponent::get_path_at (hb_font_t *font,
 bool
 VARC::get_path_at (hb_font_t *font,
 		   hb_codepoint_t glyph,
-		   hb_draw_session_t &draw_session,
+		   hb_draw_session_t *draw_session,
+		   hb_extents_t *extents,
 		   hb_array_t<const int> coords,
 		   hb_transform_t transform,
 		   hb_codepoint_t parent_glyph,
@@ -355,21 +358,38 @@ VARC::get_path_at (hb_font_t *font,
 		 (this+coverage).get_coverage (glyph);
   if (idx == NOT_COVERED)
   {
-    // Build a transforming pen to apply the transform.
-    hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
-    hb_transforming_pen_context_t context {transform,
-					   draw_session.funcs,
-					   draw_session.draw_data,
-					   &draw_session.st};
-    hb_draw_session_t transformer_session {transformer_funcs, &context};
-    hb_draw_session_t &shape_draw_session = transform.is_identity () ? draw_session : transformer_session;
+    if (draw_session)
+    {
+      // Build a transforming pen to apply the transform.
+      hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
+      hb_transforming_pen_context_t context {transform,
+					     draw_session->funcs,
+					     draw_session->draw_data,
+					     &draw_session->st};
+      hb_draw_session_t transformer_session {transformer_funcs, &context};
+      hb_draw_session_t &shape_draw_session = transform.is_identity () ? *draw_session : transformer_session;
 
-    if (!font->face->table.glyf->get_path_at (font, glyph, shape_draw_session, coords, scratch))
+      if (!font->face->table.glyf->get_path_at (font, glyph, shape_draw_session, coords, scratch))
 #ifndef HB_NO_CFF
-    if (!font->face->table.cff2->get_path_at (font, glyph, shape_draw_session, coords))
-    if (!font->face->table.cff1->get_path (font, glyph, shape_draw_session)) // Doesn't have variations
+      if (!font->face->table.cff2->get_path_at (font, glyph, shape_draw_session, coords))
+      if (!font->face->table.cff1->get_path (font, glyph, shape_draw_session)) // Doesn't have variations
 #endif
-      return false;
+	return false;
+    }
+    if (extents)
+    {
+      hb_glyph_extents_t glyph_extents;
+      if (!font->face->table.glyf->get_extents_at (font, glyph, &glyph_extents, coords))
+#ifndef HB_NO_CFF
+      if (!font->face->table.cff2->get_extents_at (font, glyph, &glyph_extents, coords))
+      if (!font->face->table.cff1->get_extents (font, glyph, &glyph_extents)) // Doesn't have variations
+#endif
+	return false;
+
+      hb_extents_t comp_extents (glyph_extents);
+      transform.transform_extents (comp_extents);
+      extents->union_ (comp_extents);
+    }
     return true;
   }
 
@@ -394,7 +414,8 @@ VARC::get_path_at (hb_font_t *font,
   transform.scale (font->x_multf, font->y_multf);
 
   VarCompositeGlyph::get_path_at (font, glyph,
-				  draw_session, coords, transform,
+				  draw_session, extents,
+				  coords, transform,
 				  record,
 				  decycler, edges_left, depth_left,
 				  scratch,

@@ -518,6 +518,10 @@ struct cff2
     HB_INTERNAL bool get_extents (hb_font_t *font,
 				  hb_codepoint_t glyph,
 				  hb_glyph_extents_t *extents) const;
+    HB_INTERNAL bool get_extents_at (hb_font_t *font,
+				     hb_codepoint_t glyph,
+				     hb_glyph_extents_t *extents,
+				     hb_array_t<const int> coords) const;
     HB_INTERNAL bool get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session) const;
     HB_INTERNAL bool get_path_at (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session, hb_array_t<const int> coords) const;
   };

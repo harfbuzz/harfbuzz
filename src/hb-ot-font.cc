@@ -471,6 +471,9 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
 
+#ifndef HB_NO_VAR_COMPOSITES
+  if (ot_face->VARC->get_extents (font, glyph, extents)) return true;
+#endif
 #if !defined(HB_NO_OT_FONT_BITMAP) && !defined(HB_NO_COLOR)
   if (ot_face->sbix->get_extents (font, glyph, extents)) return true;
   if (ot_face->CBDT->get_extents (font, glyph, extents)) return true;
