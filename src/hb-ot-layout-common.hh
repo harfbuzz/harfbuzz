@@ -2565,7 +2565,7 @@ struct VarRegionList
     if (cache)
     {
       cached_value = &(cache[region_index]);
-      if (likely (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID))
+      if (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID)
 	return *cached_value;
     }
 
@@ -2743,7 +2743,7 @@ struct SparseVarRegionList
     if (cache)
     {
       cached_value = &(cache[region_index]);
-      if (likely (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID))
+      if (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID)
 	return *cached_value;
     }
 
