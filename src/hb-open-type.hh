@@ -1888,7 +1888,7 @@ struct TupleValues
 
     bool ensure_run ()
     {
-      if (likely (run_count > 0)) return true;
+      if (run_count > 0) return true;
 
       if (unlikely (p >= end))
       {
@@ -1958,6 +1958,8 @@ struct TupleValues
 #endif
 	    for (; j < count; j++)
 	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+
+	    p = (const unsigned char *) pp;
 	  }
 	  break;
 	  case 2:
@@ -1975,6 +1977,8 @@ struct TupleValues
 #endif
 	    for (; j < count; j++)
 	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+
+	    p = (const unsigned char *) pp;
 	  }
 	  break;
 	  case 4:
@@ -1982,10 +1986,11 @@ struct TupleValues
 	    const auto *pp = (const HBINT32 *) p;
 	    for (unsigned j = 0; j < count; j++)
 	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+
+	    p = (const unsigned char *) pp;
 	  }
 	  break;
 	}
-	p += count * width;
 	run_count -= count;
 	i += count;
       }
