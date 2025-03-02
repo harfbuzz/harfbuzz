@@ -46,7 +46,8 @@ struct VarComponent
   HB_INTERNAL hb_ubytes_t
   get_path_at (hb_font_t *font,
 	       hb_codepoint_t parent_gid,
-	       hb_draw_session_t &draw_session,
+	       hb_draw_session_t *draw_session,
+	       hb_extents_t *extents,
 	       hb_array_t<const int> coords,
 	       hb_transform_t transform,
 	       hb_ubytes_t record,
@@ -62,7 +63,8 @@ struct VarCompositeGlyph
   static void
   get_path_at (hb_font_t *font,
 	       hb_codepoint_t glyph,
-	       hb_draw_session_t &draw_session,
+	       hb_draw_session_t *draw_session,
+	       hb_extents_t *extents,
 	       hb_array_t<const int> coords,
 	       hb_transform_t transform,
 	       hb_ubytes_t record,
@@ -76,7 +78,8 @@ struct VarCompositeGlyph
     {
       const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
       record = comp.get_path_at (font, glyph,
-				 draw_session, coords, transform,
+				 draw_session, extents,
+				 coords, transform,
 				 record,
 				 decycler, edges_left, depth_left, scratch, cache);
     }
@@ -94,7 +97,8 @@ struct VARC
   HB_INTERNAL bool
   get_path_at (hb_font_t *font,
 	       hb_codepoint_t glyph,
-	       hb_draw_session_t &draw_session,
+	       hb_draw_session_t *draw_session,
+	       hb_extents_t *extents,
 	       hb_array_t<const int> coords,
 	       hb_transform_t transform,
 	       hb_codepoint_t parent_glyph,
@@ -115,7 +119,30 @@ struct VARC
 
     return get_path_at (font,
 			gid,
-			draw_session,
+			&draw_session,
+			nullptr,
+			hb_array (font->coords, font->num_coords),
+			HB_TRANSFORM_IDENTITY,
+			HB_CODEPOINT_INVALID,
+			&decycler,
+			&edges,
+			HB_MAX_NESTING_LEVEL,
+			scratch);
+  }
+
+  bool
+  get_extents (hb_font_t *font,
+	       hb_codepoint_t gid,
+	       hb_extents_t *extents,
+	       hb_glyf_scratch_t &scratch) const
+  {
+    hb_decycler_t decycler;
+    signed edges = HB_MAX_GRAPH_EDGE_COUNT;
+
+    return get_path_at (font,
+			gid,
+			nullptr,
+			extents,
 			hb_array (font->coords, font->num_coords),
 			HB_TRANSFORM_IDENTITY,
 			HB_CODEPOINT_INVALID,
@@ -163,29 +190,55 @@ struct VARC
     {
       if (!table->has_data ()) return false;
 
-      hb_glyf_scratch_t *scratch;
-
-      // Borrow the cached strach buffer.
-      {
-	scratch = cached_scratch.get_acquire ();
-	if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
-	{
-	  scratch = (hb_glyf_scratch_t *) hb_calloc (1, sizeof (hb_glyf_scratch_t));
-	  if (unlikely (!scratch))
-	    return true;
-	}
-      }
-
+      auto *scratch = acquire_scratch ();
+      if (unlikely (!scratch)) return true;
       bool ret = table->get_path (font, gid, draw_session, *scratch);
+      release_scratch (scratch);
+      return ret;
+    }
 
-      // Put it back.
-      if (!cached_scratch.cmpexch (nullptr, scratch))
-      {
-        scratch->~hb_glyf_scratch_t ();
-	hb_free (scratch);
-      }
+    bool
+    get_extents (hb_font_t *font,
+		 hb_codepoint_t gid,
+		 hb_glyph_extents_t *extents) const
+    {
+      if (!table->has_data ()) return false;
+
+      hb_extents_t f_extents;
+
+      auto *scratch = acquire_scratch ();
+      if (unlikely (!scratch)) return true;
+      bool ret = table->get_extents (font, gid, &f_extents, *scratch);
+      release_scratch (scratch);
+
+      if (ret)
+	*extents = f_extents.to_glyph_extents ();
 
       return ret;
+    }
+
+    private:
+
+    hb_glyf_scratch_t *acquire_scratch () const
+    {
+      hb_glyf_scratch_t *scratch = cached_scratch.get_acquire ();
+
+      if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
+      {
+	scratch = (hb_glyf_scratch_t *) hb_calloc (1, sizeof (hb_glyf_scratch_t));
+	if (unlikely (!scratch))
+	  return nullptr;
+      }
+
+      return scratch;
+    }
+    void release_scratch (hb_glyf_scratch_t *scratch) const
+    {
+      if (!cached_scratch.cmpexch (scratch, nullptr))
+      {
+	scratch->~hb_glyf_scratch_t ();
+	hb_free (scratch);
+      }
     }
 
     private:
