@@ -107,7 +107,8 @@ struct PartShape
 
   HB_INTERNAL void
   get_path_at (const struct hvgl &hvgl,
-	       hb_draw_session_t &draw_session,
+	       hb_draw_session_t *draw_session,
+	       hb_extents_t<> *extents,
 	       hb_array_t<const double> coords,
 	       hb_array_t<hb_transform_t<double>> transforms,
 	       hb_hvgl_scratch_t &scratch,
@@ -334,7 +335,8 @@ struct PartComposite
 
   HB_INTERNAL void
   get_path_at (const struct hvgl &hvgl,
-	       hb_draw_session_t &draw_session,
+	       hb_draw_session_t *draw_session,
+	       hb_extents_t<> *extents,
 	       hb_array_t<double> coords,
 	       hb_array_t<hb_transform_t<double>> transforms,
 	       hb_hvgl_scratch_t &scratch,
@@ -411,7 +413,8 @@ struct Part
 
   void
   get_path_at (const struct hvgl &hvgl,
-	       hb_draw_session_t &draw_session,
+	       hb_draw_session_t *draw_session,
+	       hb_extents_t<> *extents,
 	       hb_array_t<double> coords,
 	       hb_array_t<hb_transform_t<double>> transforms,
 	       hb_hvgl_scratch_t &scratch,
@@ -420,8 +423,8 @@ struct Part
 	       signed depth_left) const
   {
     switch (u.flags & 1) {
-    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, coords, transforms, scratch, nodes_left, edges_left, depth_left); break;
-    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, coords, transforms, scratch, nodes_left, edges_left, depth_left); break;
+    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, extents, coords, transforms, scratch, nodes_left, edges_left, depth_left); break;
+    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, extents, coords, transforms, scratch, nodes_left, edges_left, depth_left); break;
     }
   }
 
@@ -516,7 +519,8 @@ struct hvgl
 
   bool
   get_part_path_at (hb_codepoint_t part_id,
-		    hb_draw_session_t &draw_session,
+		    hb_draw_session_t *draw_session,
+		    hb_extents_t<> *extents,
 		    hb_array_t<double> coords,
 		    hb_array_t<hb_transform_t<double>> transforms,
 		    hb_hvgl_scratch_t &scratch,
@@ -538,7 +542,7 @@ struct hvgl
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (part_id, partCount);
 
-    part.get_path_at (*this, draw_session, coords, transforms, scratch, nodes_left, edges_left, depth_left);
+    part.get_path_at (*this, draw_session, extents, coords, transforms, scratch, nodes_left, edges_left, depth_left);
 
     return true;
   }
@@ -548,7 +552,8 @@ struct hvgl
   bool
   get_path_at (hb_font_t *font,
 	       hb_codepoint_t gid,
-	       hb_draw_session_t &draw_session,
+	       hb_draw_session_t *draw_session,
+	       hb_extents_t<> *extents,
 	       hb_array_t<const int> coords,
 	       hb_hvgl_scratch_t &scratch,
 	       signed *nodes_left,
@@ -586,7 +591,7 @@ struct hvgl
 
     scratch.points.alloc (128);
 
-    return get_part_path_at (gid, draw_session, coords_f, transforms, scratch, nodes_left, edges_left, depth_left);
+    return get_part_path_at (gid, draw_session, extents, coords_f, transforms, scratch, nodes_left, edges_left, depth_left);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -631,28 +636,14 @@ struct hvgl
     {
       if (!table->has_data ()) return false;
 
-      hb_hvgl_scratch_t *scratch;
-
-      // Borrow the cached strach buffer.
-      {
-	scratch = cached_scratch.get_acquire ();
-	if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
-	{
-	  scratch = (hb_hvgl_scratch_t *) hb_calloc (1, sizeof (hb_hvgl_scratch_t));
-	  if (unlikely (!scratch))
-	    return true;
-	}
-      }
-
       int edges = HB_MAX_GRAPH_EDGE_COUNT;
-      bool ret = table->get_path_at (font, gid, draw_session, coords, *scratch, nullptr, &edges, HB_MAX_NESTING_LEVEL);
 
-      // Put it back.
-      if (!cached_scratch.cmpexch (nullptr, scratch))
-      {
-        scratch->~hb_hvgl_scratch_t ();
-	hb_free (scratch);
-      }
+      hb_hvgl_scratch_t *scratch = acquire_scratch ();
+      if (unlikely (!scratch)) return true;
+      bool ret = table->get_path_at (font, gid,
+				     &draw_session, nullptr,
+				     coords, *scratch, nullptr, &edges, HB_MAX_NESTING_LEVEL);
+      release_scratch (scratch);
 
       return ret;
     }
@@ -663,6 +654,63 @@ struct hvgl
 	      hb_draw_session_t &draw_session) const
     {
       return get_path_at (font, gid, draw_session, hb_array (font->coords, font->num_coords));
+    }
+
+    bool
+    get_extents_at (hb_font_t *font,
+		    hb_codepoint_t gid,
+		    hb_glyph_extents_t *extents,
+		    hb_array_t<const int> coords) const
+    {
+      if (!table->has_data ()) return false;
+
+      hb_extents_t<> f_extents;
+      int edges = HB_MAX_GRAPH_EDGE_COUNT;
+
+      auto *scratch = acquire_scratch ();
+      if (unlikely (!scratch)) return true;
+      bool ret = table->get_path_at (font, gid,
+				     nullptr, &f_extents,
+				     coords, *scratch, nullptr, &edges, HB_MAX_NESTING_LEVEL);
+      release_scratch (scratch);
+
+      if (ret)
+	*extents = f_extents.to_glyph_extents ();
+
+      return ret;
+    }
+
+    bool
+    get_extents (hb_font_t *font,
+		 hb_codepoint_t gid,
+		 hb_glyph_extents_t *extents) const
+    {
+      return get_extents_at (font, gid, extents,
+			     hb_array (font->coords, font->num_coords));
+    }
+
+    private:
+
+    hb_hvgl_scratch_t *acquire_scratch () const
+    {
+      hb_hvgl_scratch_t *scratch = cached_scratch.get_acquire ();
+
+      if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
+      {
+	scratch = (hb_hvgl_scratch_t *) hb_calloc (1, sizeof (hb_hvgl_scratch_t));
+	if (unlikely (!scratch))
+	  return nullptr;
+      }
+
+      return scratch;
+    }
+    void release_scratch (hb_hvgl_scratch_t *scratch) const
+    {
+      if (!cached_scratch.cmpexch (scratch, nullptr))
+      {
+	scratch->~hb_hvgl_scratch_t ();
+	hb_free (scratch);
+      }
     }
 
     private:
