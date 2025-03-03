@@ -243,7 +243,7 @@ struct hb_bounds_t
     EMPTY,
   };
 
-  hb_bounds_t (status_t status) : status (status) {}
+  hb_bounds_t (status_t status = UNBOUNDED) : status (status) {}
   hb_bounds_t (const hb_extents_t &extents) :
     status (extents.is_empty () ? EMPTY : BOUNDED), extents (extents) {}
 
