@@ -555,10 +555,7 @@ struct hvgl
 	       hb_draw_session_t *draw_session,
 	       hb_extents_t<> *extents,
 	       hb_array_t<const int> coords,
-	       hb_hvgl_scratch_t &scratch,
-	       signed *nodes_left,
-	       signed *edges_left,
-	       signed depth_left) const
+	       hb_hvgl_scratch_t &scratch) const
   {
     if (unlikely (gid >= numGlyphs)) return false;
 
@@ -580,18 +577,17 @@ struct hvgl
     if (unlikely (transforms.in_error ())) return true;
     transforms[0] = hb_transform_t<double>{(double) font->x_multf, 0, 0, (double) font->y_multf, 0, 0};
 
-    signed stack_nodes_left = total_num_parts;
-    if (nodes_left == nullptr)
-      nodes_left = &stack_nodes_left;
-    else if (*nodes_left < (signed) total_num_parts)
-    {
-      // This takes care of cycles in the graph.
-      return true;
-    }
+    int edges_left = HB_MAX_GRAPH_EDGE_COUNT;
+    signed nodes_left = total_num_parts;
+    signed depth_left = HB_MAX_NESTING_LEVEL;
 
     scratch.points.alloc (128);
 
-    return get_part_path_at (gid, draw_session, extents, coords_f, transforms, scratch, nodes_left, edges_left, depth_left);
+    return get_part_path_at (gid,
+			     draw_session, extents,
+			     coords_f, transforms,
+			     scratch,
+			     &nodes_left, &edges_left, depth_left);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -636,13 +632,12 @@ struct hvgl
     {
       if (!table->has_data ()) return false;
 
-      int edges = HB_MAX_GRAPH_EDGE_COUNT;
-
       hb_hvgl_scratch_t *scratch = acquire_scratch ();
       if (unlikely (!scratch)) return true;
       bool ret = table->get_path_at (font, gid,
 				     &draw_session, nullptr,
-				     coords, *scratch, nullptr, &edges, HB_MAX_NESTING_LEVEL);
+				     coords,
+				     *scratch);
       release_scratch (scratch);
 
       return ret;
@@ -665,13 +660,13 @@ struct hvgl
       if (!table->has_data ()) return false;
 
       hb_extents_t<> f_extents;
-      int edges = HB_MAX_GRAPH_EDGE_COUNT;
 
       auto *scratch = acquire_scratch ();
       if (unlikely (!scratch)) return true;
       bool ret = table->get_path_at (font, gid,
 				     nullptr, &f_extents,
-				     coords, *scratch, nullptr, &edges, HB_MAX_NESTING_LEVEL);
+				     coords,
+				     *scratch);
       release_scratch (scratch);
 
       if (ret)
