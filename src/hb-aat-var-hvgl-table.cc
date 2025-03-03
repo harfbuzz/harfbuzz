@@ -417,53 +417,14 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   auto extremum_rotation_indices = extremumRotationIndex.arrayZ;
   auto extremum_rotation_deltas = extremumRotationDelta.arrayZ;
   unsigned extremum_rotation_count = sparseExtremumRotationCount;
-  while (true)
+
+  if (!extremum_rotation_count)
   {
-    unsigned row = transforms.length;
-    if (extremum_translation_count)
-      row = hb_min (row, extremum_translation_indices->row);
-    if (extremum_rotation_count)
-      row = hb_min (row, extremum_rotation_indices->row);
-    if (row == transforms.length)
-      break;
-
-    hb_transform_t<double> transform;
-    bool is_translate_only = true;
-
-    while (true)
+    for (unsigned i = 0; i < extremum_translation_count; i++)
     {
-      bool has_row_translation = extremum_translation_count &&
-				 extremum_translation_indices->row == row;
-      bool has_row_rotation = extremum_rotation_count &&
-			      extremum_rotation_indices->row == row;
-
-      unsigned column = 2 * axisCount;
-      if (has_row_translation)
-	column = hb_min (column, extremum_translation_indices->column);
-      if (has_row_rotation)
-	column = hb_min (column, extremum_rotation_indices->column);
-      if (column == 2 * axisCount)
-	break;
-
-      const auto *extremum_translation_delta = &Null(TranslationDelta);
-      double extremum_rotation_delta = 0.;
-
-      if (has_row_translation &&
-	  extremum_translation_indices->column == column)
-      {
-	extremum_translation_delta = extremum_translation_deltas;
-	extremum_translation_count--;
-	extremum_translation_indices++;
-	extremum_translation_deltas++;
-      }
-      if (has_row_rotation &&
-	  extremum_rotation_indices->column == column)
-      {
-	extremum_rotation_delta = (double) *extremum_rotation_deltas;
-	extremum_rotation_count--;
-	extremum_rotation_indices++;
-	extremum_rotation_deltas++;
-      }
+      unsigned row = extremum_translation_indices[i].row;
+      if (unlikely (row >= transforms.length)) break;
+      unsigned column = extremum_translation_indices[i].column;
 
       unsigned axis_idx = column / 2;
       double coord = coords[axis_idx];
@@ -472,46 +433,109 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (pos != (coord > 0)) continue;
       double scalar = fabs (coord);
 
-      if (extremum_rotation_delta)
-      {
-	double center_x = (double) extremum_translation_delta->x;
-	double center_y = (double) extremum_translation_delta->y;
-	double angle = extremum_rotation_delta;
-	if (center_x || center_y)
-	{
-	  // The paper has formula for this in terms of complex numbers.
-	  // This is translated to real numbers, partly using ChatGPT.
-	  double s, c;
-	  hb_sincos ((double) angle, s, c);
-	  double _1_minus_c = 1 - c;
-	  if (likely (_1_minus_c))
-	  {
-	    double s_over_1_minus_c = s / _1_minus_c;
-
-	    double new_center_x = (center_x - center_y * s_over_1_minus_c) * .5;
-	    double new_center_y = (center_y + center_x * s_over_1_minus_c) * .5;
-
-	    center_x = new_center_x;
-	    center_y = new_center_y;
-	  }
-	}
-	angle *= scalar;
-	transform.rotate_around_center (angle, center_x, center_y);
-	is_translate_only = false;
-      }
-      else
-      {
-	// No rotation, just scale the translate
-	transform.translate ((double) extremum_translation_delta->x * scalar,
-			     (double) extremum_translation_delta->y * scalar,
-			     is_translate_only);
-      }
+      transforms[row].translate ((double) extremum_translation_deltas[i].x * scalar,
+				 (double) extremum_translation_deltas[i].y * scalar,
+				 true);
     }
+  }
+  else
+  {
+    while (true)
+    {
+      unsigned row = transforms.length;
+      if (extremum_translation_count)
+	row = hb_min (row, extremum_translation_indices->row);
+      if (extremum_rotation_count)
+	row = hb_min (row, extremum_rotation_indices->row);
+      if (row == transforms.length)
+	break;
 
-    if (is_translate_only)
-      transforms[row].translate (transform.x0, transform.y0, true);
-    else
-      transforms[row].transform (transform, true);
+      hb_transform_t<double> transform;
+      bool is_translate_only = true;
+
+      while (true)
+      {
+	bool has_row_translation = extremum_translation_count &&
+				   extremum_translation_indices->row == row;
+	bool has_row_rotation = extremum_rotation_count &&
+				extremum_rotation_indices->row == row;
+
+	unsigned column = 2 * axisCount;
+	if (has_row_translation)
+	  column = hb_min (column, extremum_translation_indices->column);
+	if (has_row_rotation)
+	  column = hb_min (column, extremum_rotation_indices->column);
+	if (column == 2 * axisCount)
+	  break;
+
+	const auto *extremum_translation_delta = &Null(TranslationDelta);
+	double extremum_rotation_delta = 0.;
+
+	if (has_row_translation &&
+	    extremum_translation_indices->column == column)
+	{
+	  extremum_translation_delta = extremum_translation_deltas;
+	  extremum_translation_count--;
+	  extremum_translation_indices++;
+	  extremum_translation_deltas++;
+	}
+	if (has_row_rotation &&
+	    extremum_rotation_indices->column == column)
+	{
+	  extremum_rotation_delta = (double) *extremum_rotation_deltas;
+	  extremum_rotation_count--;
+	  extremum_rotation_indices++;
+	  extremum_rotation_deltas++;
+	}
+
+	unsigned axis_idx = column / 2;
+	double coord = coords[axis_idx];
+	if (!coord) continue;
+	bool pos = column & 1;
+	if (pos != (coord > 0)) continue;
+	double scalar = fabs (coord);
+
+	if (extremum_rotation_delta)
+	{
+	  double center_x = (double) extremum_translation_delta->x;
+	  double center_y = (double) extremum_translation_delta->y;
+	  double angle = extremum_rotation_delta;
+	  if (center_x || center_y)
+	  {
+	    // The paper has formula for this in terms of complex numbers.
+	    // This is translated to real numbers, partly using ChatGPT.
+	    double s, c;
+	    hb_sincos ((double) angle, s, c);
+	    double _1_minus_c = 1 - c;
+	    if (likely (_1_minus_c))
+	    {
+	      double s_over_1_minus_c = s / _1_minus_c;
+
+	      double new_center_x = (center_x - center_y * s_over_1_minus_c) * .5;
+	      double new_center_y = (center_y + center_x * s_over_1_minus_c) * .5;
+
+	      center_x = new_center_x;
+	      center_y = new_center_y;
+	    }
+	  }
+	  angle *= scalar;
+	  transform.rotate_around_center (angle, center_x, center_y);
+	  is_translate_only = false;
+	}
+	else
+	{
+	  // No rotation, just scale the translate
+	  transform.translate ((double) extremum_translation_delta->x * scalar,
+			       (double) extremum_translation_delta->y * scalar,
+			       is_translate_only);
+	}
+      }
+
+      if (is_translate_only)
+	transforms[row].translate (transform.x0, transform.y0, true);
+      else
+	transforms[row].transform (transform, true);
+    }
   }
 
   auto master_rotation_indices = masterRotationIndex.arrayZ;
