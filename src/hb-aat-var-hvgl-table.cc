@@ -595,7 +595,7 @@ PartComposite::get_path_at (const hb_hvgl_context_t *c,
   {
     auto &this_transform = transforms_tail[subPart.treeTransformIndex];
 
-    if (this_transform.is_translation ())
+    if (likely (this_transform.is_translation ()))
     {
       double dx = this_transform.x0;
       double dy = this_transform.y0;
