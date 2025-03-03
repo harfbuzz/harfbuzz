@@ -33,6 +33,7 @@ struct hb_hvgl_context_t
   hb_draw_session_t *draw_session;
   hb_extents_t<> *extents;
   hb_hvgl_scratch_t &scratch;
+  hb_sanitize_context_t &sanitizer;
   mutable signed nodes_left;
   mutable signed edges_left;
   mutable signed depth_left;
@@ -482,12 +483,11 @@ struct IndexOf : Index
 {
   public:
 
-  const Type &get (unsigned index, unsigned count) const
+  const Type &get (unsigned index, unsigned count, hb_sanitize_context_t &c) const
   {
     hb_bytes_t data = Index::get (index, count);
-    hb_sanitize_context_t c (data.begin (), data.end ());
     const Type &item = *reinterpret_cast<const Type *> (data.begin ());
-    c.start_processing ();
+    c.start_processing (data.begin (), data.end ());
     bool sane = c.dispatch (item);
     c.end_processing ();
     if (unlikely (!sane)) return Null(Type);
@@ -529,7 +529,7 @@ struct hvgl
     c->depth_left--;
 
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
-    const auto &part = parts.get (part_id, partCount);
+    const auto &part = parts.get (part_id, partCount, c->sanitizer);
 
     part.get_path_at (c, coords, transforms);
 
@@ -550,8 +550,10 @@ struct hvgl
   {
     if (unlikely (gid >= numGlyphs)) return false;
 
+    hb_sanitize_context_t sanitizer;
+
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
-    const auto &part = parts.get (gid, partCount);
+    const auto &part = parts.get (gid, partCount, sanitizer);
 
     auto &coords_f = scratch.coords_f;
     coords_f.clear ();
@@ -570,6 +572,7 @@ struct hvgl
 
     hb_hvgl_context_t c = {*this, draw_session, extents,
 			   scratch,
+			   sanitizer,
 			   (int) total_num_parts, HB_MAX_GRAPH_EDGE_COUNT, HB_MAX_NESTING_LEVEL};
 
     scratch.points.alloc (128);

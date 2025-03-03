@@ -221,8 +221,13 @@ struct hb_sanitize_context_t :
     assert (this->start <= this->end); /* Must not overflow. */
   }
 
-  void start_processing ()
+  void start_processing (const char *start_ = nullptr, const char *end_ = nullptr)
   {
+    if (start_)
+    {
+      this->start = start_;
+      this->end = end_;
+    }
     reset_object ();
     unsigned m;
     if (unlikely (hb_unsigned_mul_overflows (this->end - this->start, HB_SANITIZE_MAX_OPS_FACTOR, &m)))
