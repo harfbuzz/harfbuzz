@@ -441,9 +441,9 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       if (pos != (coord > 0)) continue;
       double scalar = fabs (coord);
 
-      transforms[row].translate ((double) extremum_translation_deltas[i].x * scalar,
-				 (double) extremum_translation_deltas[i].y * scalar,
-				 true);
+      transforms.arrayZ[row].translate ((double) extremum_translation_deltas[i].x * scalar,
+					(double) extremum_translation_deltas[i].y * scalar,
+					true);
     }
   }
   else
@@ -540,9 +540,9 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       }
 
       if (is_translate_only)
-	transforms[row].translate (transform.x0, transform.y0, true);
+	transforms.arrayZ[row].translate (transform.x0, transform.y0, true);
       else
-	transforms[row].transform (transform, true);
+	transforms.arrayZ[row].transform (transform, true);
     }
   }
 
@@ -553,7 +553,7 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   {
     unsigned row = master_rotation_indices[i];
     if (unlikely (row >= transforms.length)) break;
-    transforms[row].rotate ((double) master_rotation_deltas[i], true);
+    transforms.arrayZ[row].rotate ((double) master_rotation_deltas[i], true);
   }
 
   auto master_translation_indices = masterTranslationIndex.arrayZ;
@@ -563,9 +563,9 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   {
     unsigned row = master_translation_indices[i];
     if (unlikely (row >= transforms.length)) break;
-    transforms[row].translate ((double) master_translation_deltas[i].x,
-			       (double) master_translation_deltas[i].y,
-			       true);
+    transforms.arrayZ[row].translate ((double) master_translation_deltas[i].x,
+				      (double) master_translation_deltas[i].y,
+				      true);
   }
 }
 
