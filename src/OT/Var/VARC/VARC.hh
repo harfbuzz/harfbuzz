@@ -21,6 +21,13 @@ namespace OT {
 
 #ifndef HB_NO_VAR_COMPOSITES
 
+struct hb_varc_scratch_t
+{
+  hb_vector_t<unsigned> axisIndices;
+  hb_vector_t<float> axisValues;
+  hb_glyf_scratch_t glyf_scratch;
+};
+
 struct hb_varc_context_t
 {
   hb_font_t *font;
@@ -29,7 +36,7 @@ struct hb_varc_context_t
   mutable hb_decycler_t decycler;
   mutable signed edges_left;
   mutable signed depth_left;
-  hb_glyf_scratch_t &scratch;
+  hb_varc_scratch_t &scratch;
 };
 
 struct VarComponent
@@ -105,7 +112,7 @@ struct VARC
   get_path (hb_font_t *font,
 	    hb_codepoint_t gid,
 	    hb_draw_session_t &draw_session,
-	    hb_glyf_scratch_t &scratch) const
+	    hb_varc_scratch_t &scratch) const
   {
     hb_varc_context_t c {font,
 			 &draw_session,
@@ -123,7 +130,7 @@ struct VARC
   get_extents (hb_font_t *font,
 	       hb_codepoint_t gid,
 	       hb_extents_t *extents,
-	       hb_glyf_scratch_t &scratch) const
+	       hb_varc_scratch_t &scratch) const
   {
     hb_varc_context_t c {font,
 			 nullptr,
@@ -163,7 +170,7 @@ struct VARC
       auto *scratch = cached_scratch.get_relaxed ();
       if (scratch)
       {
-	scratch->~hb_glyf_scratch_t ();
+	scratch->~hb_varc_scratch_t ();
 	hb_free (scratch);
       }
 
@@ -204,31 +211,31 @@ struct VARC
 
     private:
 
-    hb_glyf_scratch_t *acquire_scratch () const
+    hb_varc_scratch_t *acquire_scratch () const
     {
-      hb_glyf_scratch_t *scratch = cached_scratch.get_acquire ();
+      hb_varc_scratch_t *scratch = cached_scratch.get_acquire ();
 
       if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
       {
-	scratch = (hb_glyf_scratch_t *) hb_calloc (1, sizeof (hb_glyf_scratch_t));
+	scratch = (hb_varc_scratch_t *) hb_calloc (1, sizeof (hb_varc_scratch_t));
 	if (unlikely (!scratch))
 	  return nullptr;
       }
 
       return scratch;
     }
-    void release_scratch (hb_glyf_scratch_t *scratch) const
+    void release_scratch (hb_varc_scratch_t *scratch) const
     {
       if (!cached_scratch.cmpexch (scratch, nullptr))
       {
-	scratch->~hb_glyf_scratch_t ();
+	scratch->~hb_varc_scratch_t ();
 	hb_free (scratch);
       }
     }
 
     private:
     hb_blob_ptr_t<VARC> table;
-    hb_atomic_ptr_t<hb_glyf_scratch_t> cached_scratch;
+    hb_atomic_ptr_t<hb_varc_scratch_t> cached_scratch;
   };
 
   bool has_data () const { return version.major != 0; }

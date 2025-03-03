@@ -53,10 +53,6 @@ struct hb_glyf_scratch_t
   contour_point_vector_t deltas;
   hb_vector_t<unsigned int> shared_indices;
   hb_vector_t<unsigned int> private_indices;
-
-  // VARC
-  hb_vector_t<unsigned> axisIndices;
-  hb_vector_t<float> axisValues;
 };
 
 namespace OT {
