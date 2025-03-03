@@ -226,9 +226,9 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 #if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
   const OT::HVAR &HVAR = *hmtx.var_table;
   const OT::ItemVariationStore &varStore = &HVAR + HVAR.varStore;
-  OT::ItemVariationStore::cache_t *varStore_cache = font->num_coords * count >= 128 ? varStore.create_cache () : nullptr;
+  OT::ItemVariationStore::cache_t *varStore_cache = font->has_nonzero_coords && font->num_coords * count >= 128 ? varStore.create_cache () : nullptr;
 
-  bool use_cache = font->num_coords;
+  bool use_cache = font->has_nonzero_coords;
 #else
   OT::ItemVariationStore::cache_t *varStore_cache = nullptr;
   bool use_cache = false;
@@ -345,7 +345,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 #if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
     const OT::VVAR &VVAR = *vmtx.var_table;
     const OT::ItemVariationStore &varStore = &VVAR + VVAR.varStore;
-    OT::ItemVariationStore::cache_t *varStore_cache = font->num_coords ? varStore.create_cache () : nullptr;
+    OT::ItemVariationStore::cache_t *varStore_cache = font->has_nonzero_coords ? varStore.create_cache () : nullptr;
 #else
     OT::ItemVariationStore::cache_t *varStore_cache = nullptr;
 #endif
@@ -425,7 +425,7 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
 #ifndef HB_NO_VAR
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     const OT::VVAR &VVAR = *vmtx.var_table;
-    if (font->num_coords)
+    if (font->has_nonzero_coords)
       VVAR.get_vorg_delta_unscaled (glyph,
 				    font->coords, font->num_coords,
 				    &delta);

@@ -135,6 +135,7 @@ struct hb_font_t
 
   /* Font variation coordinates. */
   unsigned int instance_index;
+  bool has_nonzero_coords;
   unsigned int num_coords;
   int *coords;
   float *design_coords;

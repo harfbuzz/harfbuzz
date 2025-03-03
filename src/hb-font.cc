@@ -1797,6 +1797,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   0, /* ptem */
 
   HB_FONT_NO_VAR_NAMED_INSTANCE, /* instance_index */
+  false, /* has_nonzero_coords */
   0, /* num_coords */
   nullptr, /* coords */
   nullptr, /* design_coords */
@@ -1861,10 +1862,13 @@ hb_font_create (hb_face_t *face)
 
 #ifndef HB_NO_VAR
   // Initialize variations.
-  if (face && face->index >> 16)
-    hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
-  else
-    hb_font_set_variations (font, nullptr, 0);
+  if (likely (face))
+  {
+    if (face->index >> 16)
+      hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
+    else if (face->table.avar->is_biased ())
+      hb_font_set_variations (font, nullptr, 0);
+  }
 #endif
 
   return font;
@@ -1882,6 +1886,14 @@ _hb_font_adopt_var_coords (hb_font_t *font,
   font->coords = coords;
   font->design_coords = design_coords;
   font->num_coords = coords_length;
+
+  font->has_nonzero_coords = false;
+  for (unsigned int i = 0; i < coords_length; i++)
+    if (coords[i])
+    {
+      font->has_nonzero_coords = true;
+      break;
+    }
 
   font->mults_changed (); // Easiest to call this to drop cached data
 }

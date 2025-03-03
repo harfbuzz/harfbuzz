@@ -386,6 +386,19 @@ struct avar
     }
   }
 
+  bool is_biased () const
+  {
+    // Whether this table can map a 0 to a non-0 value.
+    const SegmentMaps *map = &firstAxisSegmentMaps;
+    for (unsigned int i = 0; i < axisCount; i++)
+    {
+      if (map->map (0) != 0)
+	return true;
+      map = &StructAfter<SegmentMaps> (*map);
+    }
+    return false;
+  }
+
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
