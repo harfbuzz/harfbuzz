@@ -85,13 +85,16 @@ struct hb_extents_t
     }
   }
 
-  hb_glyph_extents_t to_glyph_extents () const
+  hb_glyph_extents_t to_glyph_extents (bool xneg = false, bool yneg = false) const
   {
     hb_position_t x0 = (hb_position_t) roundf (xmin);
     hb_position_t y0 = (hb_position_t) roundf (ymin);
     hb_position_t x1 = (hb_position_t) roundf (xmax);
     hb_position_t y1 = (hb_position_t) roundf (ymax);
-    return hb_glyph_extents_t {x0, y0, x1 - x0, y1 - y0};
+    return hb_glyph_extents_t {xneg ? x1 : x0,
+			       yneg ? y0 : y1,
+			       xneg ? x0 - x1 : x1 - x0,
+			       yneg ? y1 - y0 : y0 - y1};
   }
 
   float xmin = 0.f;
