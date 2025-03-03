@@ -422,9 +422,9 @@ hb_buffer_get_flags (const hb_buffer_t *buffer);
  * @HB_BUFFER_CLUSTER_LEVEL_CHARACTERS: Don't group cluster values.
  * @HB_BUFFER_CLUSTER_LEVEL_DEFAULT: Default cluster level,
  *   equal to @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES.
- * 
+ *
  * Data type for holding HarfBuzz's clustering behavior options. The cluster level
- * dictates one aspect of how HarfBuzz will treat non-base characters 
+ * dictates one aspect of how HarfBuzz will treat non-base characters
  * during shaping.
  *
  * In @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES, non-base
@@ -446,8 +446,22 @@ typedef enum {
   HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES	= 0,
   HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS	= 1,
   HB_BUFFER_CLUSTER_LEVEL_CHARACTERS		= 2,
+  HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES		= 3,
   HB_BUFFER_CLUSTER_LEVEL_DEFAULT = HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES
 } hb_buffer_cluster_level_t;
+
+#define HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE(level) \
+	((bool) ((1u << (unsigned) (level)) & \
+		 ((1u << HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES) | \
+		  (1u << HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS))))
+#define HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES(level) \
+	((bool) ((1u << (unsigned) (level)) & \
+		 ((1u << HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES) | \
+		  (1u << HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES))))
+#define HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS(level) \
+	((bool) ((1u << (unsigned) (level)) & \
+		 ((1u << HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARCATERS) | \
+		  (1u << HB_BUFFER_CLUSTER_LEVEL_CHARACTERS))))
 
 HB_EXTERN void
 hb_buffer_set_cluster_level (hb_buffer_t               *buffer,
