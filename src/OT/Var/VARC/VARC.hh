@@ -21,6 +21,17 @@ namespace OT {
 
 #ifndef HB_NO_VAR_COMPOSITES
 
+struct hb_varc_context_t
+{
+  hb_font_t *font;
+  hb_draw_session_t *draw_session;
+  hb_extents_t *extents;
+  mutable hb_decycler_t decycler;
+  mutable signed edges_left;
+  mutable signed depth_left;
+  hb_glyf_scratch_t &scratch;
+};
+
 struct VarComponent
 {
   enum class flags_t : uint32_t
@@ -44,44 +55,32 @@ struct VarComponent
   };
 
   HB_INTERNAL hb_ubytes_t
-  get_path_at (hb_font_t *font,
+  get_path_at (const hb_varc_context_t &c,
 	       hb_codepoint_t parent_gid,
-	       hb_draw_session_t *draw_session,
-	       hb_extents_t *extents,
 	       hb_array_t<const int> coords,
 	       hb_transform_t transform,
 	       hb_ubytes_t record,
-	       hb_decycler_t *decycler,
-	       signed *edges_left,
-	       signed depth_left,
-	       hb_glyf_scratch_t &scratch,
 	       VarRegionList::cache_t *cache = nullptr) const;
 };
 
 struct VarCompositeGlyph
 {
   static void
-  get_path_at (hb_font_t *font,
-	       hb_codepoint_t glyph,
-	       hb_draw_session_t *draw_session,
-	       hb_extents_t *extents,
+  get_path_at (const hb_varc_context_t &c,
+	       hb_codepoint_t gid,
 	       hb_array_t<const int> coords,
 	       hb_transform_t transform,
 	       hb_ubytes_t record,
-	       hb_decycler_t *decycler,
-	       signed *edges_left,
-	       signed depth_left,
-	       hb_glyf_scratch_t &scratch,
-	       VarRegionList::cache_t *cache = nullptr)
+	       VarRegionList::cache_t *cache)
   {
     while (record)
     {
       const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
-      record = comp.get_path_at (font, glyph,
-				 draw_session, extents,
+      record = comp.get_path_at (c,
+				 gid,
 				 coords, transform,
 				 record,
-				 decycler, edges_left, depth_left, scratch, cache);
+				 cache);
     }
   }
 };
@@ -95,17 +94,11 @@ struct VARC
   static constexpr hb_tag_t tableTag = HB_TAG ('V', 'A', 'R', 'C');
 
   HB_INTERNAL bool
-  get_path_at (hb_font_t *font,
-	       hb_codepoint_t glyph,
-	       hb_draw_session_t *draw_session,
-	       hb_extents_t *extents,
+  get_path_at (const hb_varc_context_t &c,
+	       hb_codepoint_t gid,
 	       hb_array_t<const int> coords,
-	       hb_transform_t transform,
-	       hb_codepoint_t parent_glyph,
-	       hb_decycler_t *decycler,
-	       signed *edges_left,
-	       signed depth_left,
-	       hb_glyf_scratch_t &scratch,
+	       hb_transform_t transform = HB_TRANSFORM_IDENTITY,
+	       hb_codepoint_t parent_gid = HB_CODEPOINT_INVALID,
 	       VarRegionList::cache_t *parent_cache = nullptr) const;
 
   bool
@@ -114,20 +107,16 @@ struct VARC
 	    hb_draw_session_t &draw_session,
 	    hb_glyf_scratch_t &scratch) const
   {
-    hb_decycler_t decycler;
-    signed edges = HB_MAX_GRAPH_EDGE_COUNT;
+    hb_varc_context_t c {font,
+			 &draw_session,
+			 nullptr,
+			 hb_decycler_t {},
+			 HB_MAX_GRAPH_EDGE_COUNT,
+			 HB_MAX_NESTING_LEVEL,
+			 scratch};
 
-    return get_path_at (font,
-			gid,
-			&draw_session,
-			nullptr,
-			hb_array (font->coords, font->num_coords),
-			HB_TRANSFORM_IDENTITY,
-			HB_CODEPOINT_INVALID,
-			&decycler,
-			&edges,
-			HB_MAX_NESTING_LEVEL,
-			scratch);
+    return get_path_at (c, gid,
+			hb_array (font->coords, font->num_coords));
   }
 
   bool
@@ -136,20 +125,16 @@ struct VARC
 	       hb_extents_t *extents,
 	       hb_glyf_scratch_t &scratch) const
   {
-    hb_decycler_t decycler;
-    signed edges = HB_MAX_GRAPH_EDGE_COUNT;
+    hb_varc_context_t c {font,
+			 nullptr,
+			 extents,
+			 hb_decycler_t {},
+			 HB_MAX_GRAPH_EDGE_COUNT,
+			 HB_MAX_NESTING_LEVEL,
+			 scratch};
 
-    return get_path_at (font,
-			gid,
-			nullptr,
-			extents,
-			hb_array (font->coords, font->num_coords),
-			HB_TRANSFORM_IDENTITY,
-			HB_CODEPOINT_INVALID,
-			&decycler,
-			&edges,
-			HB_MAX_NESTING_LEVEL,
-			scratch);
+    return get_path_at (c, gid,
+			hb_array (font->coords, font->num_coords));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
