@@ -2592,7 +2592,7 @@ struct COLR
     scratch.paint_extents.clear ();
     bool ret = paint_glyph (font, glyph, extents_funcs, &scratch.paint_extents, 0, HB_COLOR(0,0,0,0), true, scratch);
 
-    hb_extents_t<> e = scratch.paint_extents.get_extents ();
+    auto e = scratch.paint_extents.get_extents ();
     if (e.is_void ())
     {
       extents->x_bearing = 0;
@@ -2687,7 +2687,7 @@ struct COLR
 			 false,
 			 scratch);
 
-	    hb_extents_t<> extents = scratch.paint_extents.get_extents ();
+	    auto extents = scratch.paint_extents.get_extents ();
 	    is_bounded = scratch.paint_extents.is_bounded ();
 
 	    c.funcs->push_clip_rectangle (c.data,
