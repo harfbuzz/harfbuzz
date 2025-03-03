@@ -2104,7 +2104,18 @@ struct COLR
     accelerator_t (hb_face_t *face)
     { colr = hb_sanitize_context_t ().reference_table<COLR> (face); }
 
-    ~accelerator_t () { this->colr.destroy (); }
+    ~accelerator_t ()
+    {
+      auto *scratch = cached_scratch.get_relaxed ();
+      if (scratch)
+      {
+	scratch->~hb_colr_scratch_t ();
+	hb_free (scratch);
+      }
+
+      colr.destroy ();
+    }
+
 
     bool has_data () const { return colr->has_data (); }
 
