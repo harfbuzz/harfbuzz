@@ -205,7 +205,7 @@ struct VARC
       release_scratch (scratch);
 
       if (ret)
-	*extents = f_extents.to_glyph_extents ();
+	*extents = f_extents.to_glyph_extents (font->x_scale < 0, font->y_scale < 0);
 
       return ret;
     }
