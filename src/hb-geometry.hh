@@ -121,6 +121,11 @@ struct hb_transform_t
 	   xy == 0 && yy == 1 &&
 	   x0 == 0 && y0 == 0;
   }
+  bool is_translation () const
+  {
+    return xx == 1 && yx == 0 &&
+	   xy == 0 && yy == 1;
+  }
 
   void multiply (const hb_transform_t &o, bool before=false)
   {

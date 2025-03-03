@@ -593,7 +593,17 @@ PartComposite::get_path_at (const hb_hvgl_context_t *c,
 
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
-    transforms_tail[subPart.treeTransformIndex].transform (transforms_head, true);
+    auto &this_transform = transforms_tail[subPart.treeTransformIndex];
+
+    if (this_transform.is_translation ())
+    {
+      hb_transform_t<double> transform = transforms_head;
+      transform.translate (this_transform.x0, this_transform.y0);
+      this_transform = transform;
+    }
+    else
+      this_transform.transform (transforms_head, true);
+
     c->hvgl_table.get_part_path_at (c,
 				    subPart.partIndex,
 				    coords_tail.sub_array (subPart.treeAxisIndex),
