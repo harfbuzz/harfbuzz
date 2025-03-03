@@ -405,10 +405,18 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
    * But with careful consideration, we have figured out the order
    * to walk two, then one, then one. This seems to work for all
    * glyphs in PingFangUI just fine. For commits moving to this
-   * logic, see the following commits:
+   * logic.
+   *
+   * Moreover, for walkting the two (extremum ones), if there is
+   * no rotation, we use a separate, faster, loop that just walks
+   * extremum translations.
+   *
+   * See the following commits:
    *
    *   [hvgl/transforms] Break up the four-iterator loop again
    *   [hvgl/transforms] Break up some more
+   *   [hvgl] Fast-path when no extremum rotations are present
+   *
    */
 
   auto extremum_translation_indices = extremumTranslationIndex.arrayZ;
