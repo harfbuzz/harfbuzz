@@ -2112,7 +2112,28 @@ struct COLR
   {
     accelerator_t (hb_face_t *face)
     { colr = hb_sanitize_context_t ().reference_table<COLR> (face); }
+
     ~accelerator_t () { this->colr.destroy (); }
+
+#ifndef HB_NO_PAINT
+    bool
+    get_extents (hb_font_t *font,
+		 hb_codepoint_t glyph,
+		 hb_glyph_extents_t *extents) const
+    {
+      return colr->get_extents (font, glyph, extents);
+    }
+
+    bool paint_glyph (hb_font_t *font,
+		      hb_codepoint_t glyph,
+		      hb_paint_funcs_t *funcs, void *data,
+		      unsigned int palette_index,
+		      hb_color_t foreground,
+		      bool clip = true) const
+    {
+      return colr->paint_glyph (font, glyph, funcs, data, palette_index, foreground, clip);
+    }
+#endif
 
     bool is_valid () { return colr.get_blob ()->length; }
 
@@ -2147,7 +2168,7 @@ struct COLR
     const DeltaSetIndexMap *get_delta_set_index_map_ptr () const
     { return colr->get_delta_set_index_map_ptr (); }
 
-    private:
+    public:
     hb_blob_ptr_t<COLR> colr;
   };
 
