@@ -597,9 +597,10 @@ PartComposite::get_path_at (const hb_hvgl_context_t *c,
 
     if (this_transform.is_translation ())
     {
-      hb_transform_t<double> transform = transforms_head;
-      transform.translate (this_transform.x0, this_transform.y0);
-      this_transform = transform;
+      double dx = this_transform.x0;
+      double dy = this_transform.y0;
+      this_transform = transforms_head;
+      this_transform.translate (dx, dy);
     }
     else
       this_transform.transform (transforms_head, true);
