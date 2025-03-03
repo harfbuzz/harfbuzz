@@ -371,10 +371,13 @@ PartComposite::apply_to_coords (hb_array_t<double> out_coords,
     if (!coord) continue;
     bool pos = coord > 0.;
     unsigned column_idx = axis_idx * 2 + pos;
-    double scalar = fabs (coord);
 
     unsigned sparse_row_start = extremumColumnStart.arrayZ[column_idx];
     unsigned sparse_row_end = extremumColumnStart.arrayZ[column_idx + 1];
+    if (sparse_row_start == sparse_row_end)
+      continue;
+
+    double scalar = fabs (coord);
     sparse_row_end = hb_min (sparse_row_end, extremum_axis_value_deltas.length);
     for (unsigned row_idx = sparse_row_start; row_idx < sparse_row_end; row_idx++)
     {
