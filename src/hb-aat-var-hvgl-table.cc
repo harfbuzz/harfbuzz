@@ -316,7 +316,7 @@ PartShape::get_path_at (const hb_hvgl_context_t *c,
       transform.transform_point (x0, y0);
       if (c->draw_session)
 	c->draw_session->move_to ((float) x0, (float) y0);
-      if (c->extents)
+      else if (c->extents)
 	c->extents->add_point ((float) x0, (float) y0);
       for (unsigned i = start; i < end; i++)
       {
@@ -332,7 +332,7 @@ PartShape::get_path_at (const hb_hvgl_context_t *c,
 	transform.transform_point (x2, y2);
 	if (c->draw_session)
 	  c->draw_session->quadratic_to ((float) x1, (float) y1, (float) x2, (float) y2);
-	if (c->extents)
+	else if (c->extents)
 	{
 	  c->extents->add_point ((float) x1, (float) y1);
 	  c->extents->add_point ((float) x2, (float) y2);
