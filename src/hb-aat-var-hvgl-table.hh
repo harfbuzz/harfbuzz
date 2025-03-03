@@ -688,7 +688,7 @@ struct hvgl
     }
     void release_scratch (hb_hvgl_scratch_t *scratch) const
     {
-      if (!cached_scratch.cmpexch (scratch, nullptr))
+      if (!cached_scratch.cmpexch (nullptr, scratch))
       {
 	scratch->~hb_hvgl_scratch_t ();
 	hb_free (scratch);
