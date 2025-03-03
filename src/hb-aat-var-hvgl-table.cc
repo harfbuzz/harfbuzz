@@ -87,15 +87,9 @@ __attribute__((target("fma")))
 #endif
 #endif
 void
-PartShape::get_path_at (const struct hvgl &hvgl,
-		        hb_draw_session_t *draw_session,
-			hb_extents_t<> *extents,
+PartShape::get_path_at (const hb_hvgl_context_t *c,
 		        hb_array_t<const double> coords,
-			hb_array_t<hb_transform_t<double>> transforms,
-			hb_hvgl_scratch_t &scratch,
-			signed *nodes_left,
-		        signed *edges_left,
-		        signed depth_left) const
+			hb_array_t<hb_transform_t<double>> transforms) const
 {
   hb_transform_t<double> transform = transforms[0];
 
@@ -105,7 +99,7 @@ PartShape::get_path_at (const struct hvgl &hvgl,
   const auto &coordinates = StructAfter<decltype (coordinatesX)> (padding, this);
 
   auto a = coordinates.get_coords (segmentCount);
-  auto &v = scratch.points;
+  auto &v = c->scratch.points;
 
 #ifdef __BYTE_ORDER
   constexpr bool le = __BYTE_ORDER == __LITTLE_ENDIAN;
@@ -320,10 +314,10 @@ PartShape::get_path_at (const struct hvgl &hvgl,
       double x0 = next_segment[SEGMENT_POINT_ON_CURVE_X];
       double y0 = next_segment[SEGMENT_POINT_ON_CURVE_Y];
       transform.transform_point (x0, y0);
-      if (draw_session)
-	draw_session->move_to ((float) x0, (float) y0);
-      if (extents)
-	extents->add_point ((float) x0, (float) y0);
+      if (c->draw_session)
+	c->draw_session->move_to ((float) x0, (float) y0);
+      if (c->extents)
+	c->extents->add_point ((float) x0, (float) y0);
       for (unsigned i = start; i < end; i++)
       {
 	segment_t segment = next_segment;
@@ -336,16 +330,16 @@ PartShape::get_path_at (const struct hvgl &hvgl,
 	double y2 = next_segment[SEGMENT_POINT_ON_CURVE_Y];
 	transform.transform_point (x1, y1);
 	transform.transform_point (x2, y2);
-	if (draw_session)
-	  draw_session->quadratic_to ((float) x1, (float) y1, (float) x2, (float) y2);
-	if (extents)
+	if (c->draw_session)
+	  c->draw_session->quadratic_to ((float) x1, (float) y1, (float) x2, (float) y2);
+	if (c->extents)
 	{
-	  extents->add_point ((float) x1, (float) y1);
-	  extents->add_point ((float) x2, (float) y2);
+	  c->extents->add_point ((float) x1, (float) y1);
+	  c->extents->add_point ((float) x2, (float) y2);
 	}
       }
-      if (draw_session)
-	draw_session->close_path ();
+      if (c->draw_session)
+	c->draw_session->close_path ();
     }
 
     start = end;
@@ -547,15 +541,9 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
 }
 
 void
-PartComposite::get_path_at (const struct hvgl &hvgl,
-			    hb_draw_session_t *draw_session,
-			    hb_extents_t<> *extents,
+PartComposite::get_path_at (const hb_hvgl_context_t *c,
 			    hb_array_t<double> coords,
-			    hb_array_t<hb_transform_t<double>> transforms,
-			    hb_hvgl_scratch_t &scratch,
-			    signed *nodes_left,
-			    signed *edges_left,
-			    signed depth_left) const
+			    hb_array_t<hb_transform_t<double>> transforms) const
 {
   const auto &subParts = StructAtOffset<SubParts> (this, subPartsOff4 * 4);
 
@@ -574,11 +562,10 @@ PartComposite::get_path_at (const struct hvgl &hvgl,
   for (const auto &subPart : subParts.as_array (subPartCount))
   {
     transforms_tail[subPart.treeTransformIndex].transform (transforms_head, true);
-    hvgl.get_part_path_at (subPart.partIndex,
-			   draw_session, extents,
-			   coords_tail.sub_array (subPart.treeAxisIndex),
-			   transforms_tail.sub_array (subPart.treeTransformIndex),
-			   scratch, nodes_left, edges_left, depth_left);
+    c->hvgl_table.get_part_path_at (c,
+				    subPart.partIndex,
+				    coords_tail.sub_array (subPart.treeAxisIndex),
+				    transforms_tail.sub_array (subPart.treeTransformIndex));
   }
 }
 

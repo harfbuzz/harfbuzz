@@ -27,6 +27,17 @@ struct hb_hvgl_scratch_t
 
 struct hvgl;
 
+struct hb_hvgl_context_t
+{
+  const hvgl &hvgl_table;
+  hb_draw_session_t *draw_session;
+  hb_extents_t<> *extents;
+  hb_hvgl_scratch_t &scratch;
+  mutable signed nodes_left;
+  mutable signed edges_left;
+  mutable signed depth_left;
+};
+
 namespace hvgl_impl {
 
 struct coordinates_t
@@ -106,15 +117,9 @@ struct PartShape
   { return 1; }
 
   HB_INTERNAL void
-  get_path_at (const struct hvgl &hvgl,
-	       hb_draw_session_t *draw_session,
-	       hb_extents_t<> *extents,
+  get_path_at (const hb_hvgl_context_t *c,
 	       hb_array_t<const double> coords,
-	       hb_array_t<hb_transform_t<double>> transforms,
-	       hb_hvgl_scratch_t &scratch,
-	       signed *nodes_left,
-	       signed *edges_left,
-	       signed depth_left) const;
+	       hb_array_t<hb_transform_t<double>> transforms) const;
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -334,15 +339,9 @@ struct PartComposite
   { return totalNumParts; }
 
   HB_INTERNAL void
-  get_path_at (const struct hvgl &hvgl,
-	       hb_draw_session_t *draw_session,
-	       hb_extents_t<> *extents,
+  get_path_at (const hb_hvgl_context_t *c,
 	       hb_array_t<double> coords,
-	       hb_array_t<hb_transform_t<double>> transforms,
-	       hb_hvgl_scratch_t &scratch,
-	       signed *nodes_left,
-	       signed *edges_left,
-	       signed depth_left) const;
+	       hb_array_t<hb_transform_t<double>> transforms) const;
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -412,19 +411,13 @@ struct Part
   }
 
   void
-  get_path_at (const struct hvgl &hvgl,
-	       hb_draw_session_t *draw_session,
-	       hb_extents_t<> *extents,
+  get_path_at (const hb_hvgl_context_t *c,
 	       hb_array_t<double> coords,
-	       hb_array_t<hb_transform_t<double>> transforms,
-	       hb_hvgl_scratch_t &scratch,
-	       signed *nodes_left,
-	       signed *edges_left,
-	       signed depth_left) const
+	       hb_array_t<hb_transform_t<double>> transforms) const
   {
     switch (u.flags & 1) {
-    case 0: hb_barrier(); u.shape.get_path_at (hvgl, draw_session, extents, coords, transforms, scratch, nodes_left, edges_left, depth_left); break;
-    case 1: hb_barrier(); u.composite.get_path_at (hvgl, draw_session, extents, coords, transforms, scratch, nodes_left, edges_left, depth_left); break;
+    case 0: hb_barrier(); u.shape.get_path_at (c, coords, transforms); break;
+    case 1: hb_barrier(); u.composite.get_path_at (c, coords, transforms); break;
     }
   }
 
@@ -518,31 +511,29 @@ struct hvgl
   protected:
 
   bool
-  get_part_path_at (hb_codepoint_t part_id,
-		    hb_draw_session_t *draw_session,
-		    hb_extents_t<> *extents,
+  get_part_path_at (const hb_hvgl_context_t *c,
+		    hb_codepoint_t part_id,
 		    hb_array_t<double> coords,
-		    hb_array_t<hb_transform_t<double>> transforms,
-		    hb_hvgl_scratch_t &scratch,
-		    signed *nodes_left,
-		    signed *edges_left,
-		    signed depth_left) const
+		    hb_array_t<hb_transform_t<double>> transforms) const
   {
-    if (unlikely (depth_left <= 0))
+    if (unlikely (c->edges_left <= 0))
       return true;
+    c->edges_left--;
 
-    if (unlikely (*edges_left <= 0))
+    if (unlikely (c->nodes_left <= 0))
       return true;
-    (*edges_left)--;
+    c->nodes_left--;
 
-    if (unlikely (*nodes_left <= 0))
+    if (unlikely (c->depth_left <= 0))
       return true;
-    (*nodes_left)--;
+    c->depth_left--;
 
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
     const auto &part = parts.get (part_id, partCount);
 
-    part.get_path_at (*this, draw_session, extents, coords, transforms, scratch, nodes_left, edges_left, depth_left);
+    part.get_path_at (c, coords, transforms);
+
+    c->depth_left++;
 
     return true;
   }
@@ -577,17 +568,13 @@ struct hvgl
     if (unlikely (transforms.in_error ())) return true;
     transforms[0] = hb_transform_t<double>{(double) font->x_multf, 0, 0, (double) font->y_multf, 0, 0};
 
-    int edges_left = HB_MAX_GRAPH_EDGE_COUNT;
-    signed nodes_left = total_num_parts;
-    signed depth_left = HB_MAX_NESTING_LEVEL;
+    hb_hvgl_context_t c = {*this, draw_session, extents,
+			   scratch,
+			   (int) total_num_parts, HB_MAX_GRAPH_EDGE_COUNT, HB_MAX_NESTING_LEVEL};
 
     scratch.points.alloc (128);
 
-    return get_part_path_at (gid,
-			     draw_session, extents,
-			     coords_f, transforms,
-			     scratch,
-			     &nodes_left, &edges_left, depth_left);
+    return get_part_path_at (&c, gid, coords_f, transforms);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
