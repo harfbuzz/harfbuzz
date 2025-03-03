@@ -551,11 +551,9 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   unsigned master_rotation_count = sparseMasterRotationCount;
   for (unsigned i = 0; i < master_rotation_count; i++)
   {
-    unsigned row = *master_rotation_indices;
-    double angle = (double) *master_rotation_deltas;
-    transforms[row].rotate (angle, true);
-    master_rotation_indices++;
-    master_rotation_deltas++;
+    unsigned row = master_rotation_indices[i];
+    if (unlikely (row >= transforms.length)) break;
+    transforms[row].rotate ((double) master_rotation_deltas[i], true);
   }
 
   auto master_translation_indices = masterTranslationIndex.arrayZ;
@@ -563,12 +561,11 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   unsigned master_translation_count = sparseMasterTranslationCount;
   for (unsigned i = 0; i < master_translation_count; i++)
   {
-    unsigned row = *master_translation_indices;
-    transforms[row].translate ((double) master_translation_deltas->x,
-			       (double) master_translation_deltas->y,
+    unsigned row = master_translation_indices[i];
+    if (unlikely (row >= transforms.length)) break;
+    transforms[row].translate ((double) master_translation_deltas[i].x,
+			       (double) master_translation_deltas[i].y,
 			       true);
-    master_translation_indices++;
-    master_translation_deltas++;
   }
 }
 
