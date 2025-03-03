@@ -433,8 +433,6 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   {
     for (unsigned i = 0; i < extremum_translation_count; i++)
     {
-      unsigned row = extremum_translation_indices[i].row;
-      if (unlikely (row >= transforms.length)) break;
       unsigned column = extremum_translation_indices[i].column;
 
       unsigned axis_idx = column / 2;
@@ -443,6 +441,9 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
       bool pos = column & 1;
       if (pos != (coord > 0)) continue;
       double scalar = fabs (coord);
+
+      unsigned row = extremum_translation_indices[i].row;
+      if (unlikely (row >= transforms.length)) break;
 
       transforms.arrayZ[row].translate ((double) extremum_translation_deltas[i].x * scalar,
 					(double) extremum_translation_deltas[i].y * scalar,
