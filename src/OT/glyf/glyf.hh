@@ -434,7 +434,7 @@ struct glyf_accelerator_t
 		    hb_codepoint_t gid,
 		    hb_glyph_extents_t *extents) const
   { return get_extents_at (font, gid, extents, hb_array (font->coords,
-							 font->has_nonzer_coords ? font->num_coords : 0)); }
+							 font->has_nonzero_coords ? font->num_coords : 0)); }
 
   bool get_extents_at (hb_font_t *font,
 		       hb_codepoint_t gid,

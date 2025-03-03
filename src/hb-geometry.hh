@@ -33,16 +33,12 @@ template <typename Float = float>
 struct hb_extents_t
 {
   hb_extents_t () {}
-<<<<<<< HEAD
   hb_extents_t (const hb_glyph_extents_t &extents) :
 		xmin (hb_min (extents.x_bearing, extents.x_bearing + extents.width)),
 		ymin (hb_min (extents.y_bearing, extents.y_bearing + extents.height)),
 		xmax (hb_max (extents.x_bearing, extents.x_bearing + extents.width)),
 		ymax (hb_max (extents.y_bearing, extents.y_bearing + extents.height)) {}
-  hb_extents_t (float xmin, float ymin, float xmax, float ymax) :
-=======
   hb_extents_t (Float xmin, Float ymin, Float xmax, Float ymax) :
->>>>>>> a5e4453dd ([hvgl] Use double instead of float for coords & transforms)
     xmin (xmin), ymin (ymin), xmax (xmax), ymax (ymax) {}
 
   bool is_empty () const { return xmin >= xmax || ymin >= ymax; }

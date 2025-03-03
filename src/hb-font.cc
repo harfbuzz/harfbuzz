@@ -1886,14 +1886,7 @@ _hb_font_adopt_var_coords (hb_font_t *font,
   font->coords = coords;
   font->design_coords = design_coords;
   font->num_coords = coords_length;
-
-  font->has_nonzero_coords = false;
-  for (unsigned int i = 0; i < coords_length; i++)
-    if (coords[i])
-    {
-      font->has_nonzero_coords = true;
-      break;
-    }
+  font->has_nonzero_coords = hb_any (hb_array (coords, coords_length));
 
   font->mults_changed (); // Easiest to call this to drop cached data
 }
