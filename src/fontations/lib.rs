@@ -4,6 +4,7 @@ include!(concat!(env!("OUT_DIR"), "/hb.rs"));
 
 use std::os::raw::{c_void};
 use std::ptr::{null_mut};
+use std::sync::atomic::{AtomicPtr, Ordering};
 
 use skrifa::{charmap, GlyphId, MetadataProvider};
 use skrifa::font::FontRef;
@@ -13,14 +14,15 @@ use skrifa::instance::{Location, Size};
 #[repr(C)]
 struct FontationsData
 {
+    face_blob: *mut hb_blob_t,
     font_ref: FontRef<'static>,
 }
 
-extern "C" fn _hb_fontations_data_destroy(ptr: *mut c_void) {
-    if !ptr.is_null() {
-        unsafe { let _ = Box::from_raw(ptr as *mut FontationsData); }
-    }
-    // TODO
+extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void)
+{
+    let data = unsafe { Box::from_raw(font_data as *mut FontationsData) };
+
+    unsafe { hb_blob_destroy(data.face_blob); }
 }
 
 extern "C" fn _hb_fontations_get_nominal_glyphs(
@@ -34,10 +36,7 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
     _user_data: *mut ::std::os::raw::c_void,
 ) -> ::std::os::raw::c_uint
 {
-    let data = unsafe {
-        assert!(!font_data.is_null());
-        &*(font_data as *const FontationsData)
-    };
+    let data = unsafe { &*(font_data as *const FontationsData) };
     let font_ref = &data.font_ref;
     let char_map = charmap::Charmap::new(font_ref);
 
@@ -60,10 +59,7 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     _user_data: *mut ::std::os::raw::c_void,
 )
 {
-    let data = unsafe {
-        assert!(!font_data.is_null());
-        &*(font_data as *const FontationsData)
-    };
+    let data = unsafe { &*(font_data as *const FontationsData) };
     let mut x_scale : i32 = 0;
     let mut y_scale : i32 = 0;
     unsafe { hb_font_get_scale(font, &mut x_scale, &mut y_scale); };
@@ -80,16 +76,32 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     }
 }
 
+
 fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t
 {
-    let ffuncs = unsafe { hb_font_funcs_create() };
+    static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
 
-    unsafe {
-        hb_font_funcs_set_nominal_glyphs_func(ffuncs, Some(_hb_fontations_get_nominal_glyphs), null_mut(), None);
-        hb_font_funcs_set_glyph_h_advances_func(ffuncs, Some(_hb_fontations_get_glyph_h_advances), null_mut(), None);
+    loop
+    {
+        let mut ffuncs = static_ffuncs.load(Ordering::Acquire);
+
+        if !ffuncs.is_null() {
+            return ffuncs;
+        }
+
+        ffuncs = unsafe { hb_font_funcs_create() };
+
+        unsafe {
+            hb_font_funcs_set_nominal_glyphs_func(ffuncs, Some(_hb_fontations_get_nominal_glyphs), null_mut(), None);
+            hb_font_funcs_set_glyph_h_advances_func(ffuncs, Some(_hb_fontations_get_glyph_h_advances), null_mut(), None);
+        }
+
+        if (static_ffuncs.compare_exchange(null_mut(), ffuncs, Ordering::SeqCst, Ordering::Relaxed)) == Ok(null_mut()) {
+            return ffuncs;
+        } else {
+            unsafe { hb_font_funcs_destroy(ffuncs); }
+        }
     }
-
-    ffuncs
 }
 
 // A helper to attach these funcs to a hb_font_t
@@ -108,8 +120,11 @@ pub extern "C" fn hb_fontations_font_set_funcs(
 
     let font_ref = FontRef::from_index(face_data, face_index).unwrap();
     // Set up some data for the callbacks to use:
-    let data = FontationsData { font_ref };
-    let data_ptr = Box::into_raw(Box::new(data)) as *mut c_void;
+    let data = Box::new(FontationsData {
+        face_blob,
+        font_ref
+    });
+    let data_ptr = Box::into_raw(data) as *mut c_void;
 
     unsafe {
         hb_font_set_funcs (font, ffuncs, data_ptr, Some(_hb_fontations_data_destroy));
