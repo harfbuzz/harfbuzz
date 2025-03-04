@@ -4,7 +4,10 @@ hb_rs = rust.bindgen(
   input : '../hb.h',
   output : 'hb.rs',
   include_directories: incsrc,
-  args : ['--allowlist-function=hb_.*', '--allowlist-type=hb_.*'],
+  args : ['--allowlist-function=hb_.*',
+          '--allowlist-type=hb_.*',
+          '--no-copy=hb_.*',
+          ],
   #args : ['--no-rustfmt-bindings'],
 )
 
