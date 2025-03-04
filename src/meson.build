@@ -708,6 +708,8 @@ if get_option('fontations').enabled()
     include_directories: incconfig,
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
+    rust_args: ['-Z', 'unstable-options',
+                '--env-set', 'BUILD_ROOT='+meson.build_root()],
     soversion: hb_so_version,
     version: version,
     rust_abi: 'c',
