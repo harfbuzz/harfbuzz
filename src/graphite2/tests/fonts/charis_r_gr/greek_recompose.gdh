@@ -1,0 +1,241 @@
+/*
+	Description: GDL rules and definitions to recompose decomposed Greek
+	Author: Sharon Correll
+
+
+	This file is part of Gentium Plus font family 
+	(http://scripts.sil.org/Gentium) and is 
+	Copyright (c) 2003-2010 SIL International (http://www.sil.org/),
+	with Reserved Font Names "Gentium" and "SIL".
+
+	This Font Software is licensed under the SIL Open Font License,
+	Version 1.1.
+
+	You should have received a copy of the license along with this Font Software.
+	If this is not the case, go to (http://scripts.sil.org/OFL) for all the
+	details including a FAQ.
+
+
+	Changes
+
+SJC     2010-02-25	File created
+
+*/
+
+
+#include "stddef.gdh"
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//	Classes
+//
+
+table(glyph)
+
+
+
+
+g0384 = g_tonos;
+g0385 = g_dieresistonos;
+g0386 = g__alphatonos;
+g0387 = g_anoteleia;
+g0388 = g__epsilontonos;
+g0389 = g__etatonos;
+g038a = g__iotatonos;
+g038c = g__omicrontonos;
+g038e = g__upsilontonos;
+g038f = g__omegatonos;
+g0390 = g_iotadieresistonos;
+g0391 = g__alpha;
+g0392 = g__beta;
+g0393 = g__gamma;
+//g0394 = g__delta;
+g0395 = g__epsilon;
+g0396 = g__zeta;
+g0397 = g__eta;
+g0398 = g__theta;
+g0399 = g__iota;
+g039a = g__kappa;
+g039b = g__lambda;
+g039c = g__mu;
+g039d = g__nu;
+g039e = g__xi;
+g039f = g__omicron;
+g03a0 = g__pi;
+g03a1 = g__rho;
+g03a3 = g__sigma;
+g03a4 = g__tau;
+g03a5 = g__upsilon;
+g03a6 = g__phi
+g03a7 = g__chi;
+g03a8 = g__psi;
+g03aa = g__iotadieresis;
+g03ab = g__upsilondieresis;
+g03ac = g_alphatonos;
+g03ad = g_epsilontonos;
+g03ae = g_etatonos;
+g03af = g_iotatonos;
+g03b0 = g_upsilondieresistonos;
+g03b1 = g_alpha;
+g03b2 = g_beta;
+g03b3 = g_gamma;
+g03b4 = g_delta;
+g03b5 = g_epsilon;
+g03b6 = g_zeta;
+g03b7 = g_eta;
+g03b8 = g_theta;
+g03b9 = g_iota;
+g03ba = g_kappa;
+g03bb = g_lambda;
+//g03bc = g_mu;
+g03bd = g_nu;
+g03be = g_xi;
+g03bf = g_omicron;
+g03c0 = g_pi;
+g03c1 = g_rho;
+g03c3 = g_sigma;
+g03c4 = g_tau;
+g03c5 = g_upsilon;
+g03c6 = g_phi
+g03c7 = g_chi;
+g03c8 = g_psi;
+g03c9 = g_omega;
+g03ca = g_iotadieresis;
+g03cb = g_upsilondieresis;
+g03cc = g_omicrontonos;
+g03cd = g_upsilontonos;
+g03ce = g_omegatonos;
+g03d1 = g_theta1;
+g03d2 = g__upsilon1;
+g03d5 = g_phi1;
+g03d6 = g_omega1;
+
+g00a8 = g_dieresis;
+
+
+
+
+cno_0300 = (g1f00	g1f01	g1f08	g1f09	g1f10	g1f11	g1f18	g1f19	g1f20	g1f21	g1f28
+			g1f29	g1f30	g1f31	g1f38	g1f39	g1f40	g1f41	g1f48	g1f49	g1f50	g1f51
+			g1f59	g1f60	g1f61	g1f68	g1f69	g03b1	g03b5	g03b7	g03b9	g03bf	g03c5
+			g03c9	g0391	g0395	g0397	g1fbf	g03ca	g0399	g1ffe	g03cb	g03a5	g00a8
+			g039f	g03a9);
+c_0300 = (	g1f02	g1f03	g1f0a	g1f0b	g1f12	g1f13	g1f1a	g1f1b	g1f22	g1f23	g1f2a
+			g1f2b	g1f32	g1f33	g1f3a	g1f3b	g1f42	g1f43	g1f4a	g1f4b	g1f52	g1f53
+			g1f5b	g1f62	g1f63	g1f6a	g1f6b	g1f70	g1f72	g1f74	g1f76	g1f78	g1f7a
+			g1f7c	g1fba	g1fc8	g1fca	g1fcd	g1fd2	g1fda	g1fdd	g1fe2	g1fea	g1fed
+			g1ff8	g1ffa);
+
+cno_0301 = (g00a8	g0391	g0395	g0397	g0399	g039f	g03a5	g03a9	g03ca	g03b1	g03b5
+			g03b7	g03b9	g03cb	g03bf	g03c5	g03c9	g03d2	g1f00	g1f01	g1f08	g1f09
+			g1f10	g1f11	g1f18	g1f19	g1f20	g1f21	g1f28	g1f29	g1f30	g1f31	g1f38
+			g1f39	g1f40	g1f41	g1f48	g1f49	g1f50	g1f51	g1f59	g1f60	g1f61	g1f68
+			g1f69	g1fbf	g1ffe);	// g0308
+
+c_0301 = (	g0385	g0386	g0388	g0389	g038a	g038c	g038e	g038f	g0390	g03ac	g03ad
+			g03ae	g03af	g03b0	g03cc	g03cd	g03ce	g03d3	g1f04	g1f05	g1f0c	g1f0d
+			g1f14	g1f15	g1f1c	g1f1d	g1f24	g1f25	g1f2c	g1f2d	g1f34	g1f35	g1f3c
+			g1f3d	g1f44	g1f45	g1f4c	g1f4d	g1f54	g1f55	g1f5d	g1f64	g1f65	g1f6d
+			g1f6d	g1fce	g1fde);	// g0344
+	
+cno_0304 = (g03b1	g0391	g03b9	g0399	g03c5	g03a5);
+
+c_0304 = (	g1fb1	g1fb9	g1fd1	g1fd9	g1fe1	g1fe9);
+
+cno_0306 = (g03f1	g0391	g03b9	g0399	g03c5	g03a5);
+
+c_0306 = (	g1fb0	g1fb8	g1fd0	g1fd8	g1fe0	g1fe8);
+
+cno_0308 = (g0399	g03a5	g03b9	g03c5	g03d2);
+
+c_0308 = (	g03aa	g03ab	g03ca	g03cb	g03d4);
+
+cno_0313 = (g03b1	g0391	g03f5	g0395	g03b7	g0397	g03b9	g0399	g03bf	g039f	g03c5
+			g03c9	g03a9	g03c1);
+			
+c_0313 = (	g1f00	g1f08	g1f10	g1f18	g1f20	g1f28	g1f30	g1f38	g1f40	g1f48	g1f50
+			g1f60	g1f68	g1fe4);
+			
+cno_0314 = (g03b1	g0391	g03b5	g0395	g03b7	g0397	g03b9	g0399	g03bf	g039f	g03c5
+			g03a5	g03c9	g03a9	g03c1	g03a1);
+			
+c_0314 = (	g1f01	g1f09	g1f11	g1f19	g1f21	g1f29	g1f31	g1f39	g1f41	g1f49	g1f51
+			g1f59	g1f61	g1f69	g1fe5	g1fec);
+
+cno_0342 = (g1f00	g1f01	g1f08	g1f09	g1f20	g1f21	g1f28	g1f29	g1f30	g1f31	g1f38
+			g1f39	g1f50	g1f51	g1f59	g1f60	g1f61	g1f68	g1f69	g03b1	g00a8	g03b7
+			g1fbf	g03b9	g03ca	g1ffe	g03c5	g03cb	g03c9);
+
+c_0342 = (	g1f06	g1f07	g1f0e	g1f0f	g1f26	g1f27	g1f2e	g1f2f	g1f36	g1f37	g1f3e
+			g1f3f	g1f56	g1f57	g1f5f	g1f66	g1f67	g1f6e	g1f6f	g1fb6	g1fc1	g1fc6
+			g1fcf	g1fd6	g1fd7	g1fdf	g1fe6	g1fe7	g1ff6);
+
+cno_0345 = (g1f00	g1f01	g1f02	g1f03	g1f04	g1f05	g1f06	g1f07	g1f08	g1f09	g1f0a
+			g1f0f	g1f0c	g1f0d	g1f0e	g1f0f	g1f20	g1f21	g1f22	g1f23	g1f24	g1f25
+			g1f26	g1f27	g1f28	g1f29	g1f2a	g1f2b	g1f2c	g1f2d	g1f2e	g1f2f	g1f60
+			g1f61	g1f62	g1f63	g1f64	g1f65	g1f66	g1f67	g1f68	g1f69	g1f6a	g1f6b
+			g1f6c	g1f6d	g1f6e	g1f6f	g1f70	g03b1	g03ac	g1fb6	g0391	g1f74	g03b7
+			g03ae	g1fc6	g0397	g1f7c	g03c9	g03ce	g1ff6	g03a9);
+
+c_0345 = (	g1f80	g1f81	g1f82	g1f83	g1f84	g1f85	g1f86	g1f87	g1f88	g1f89	g1f8a
+			g1f8b	g1f8c	g1f8d	g1f8e	g1f8f	g1f90	g1f91	g1f92	g1f93	g1f94	g1f95
+			g1f96	g1f97	g1f98	g1f99	g1f9a	g1f9b	g1f9c	g1f9d	g1f9e	g1f9f	g1fa0
+			g1fa1	g1fa2	g1fa3	g1fa4	g1fa5	g1fa6	g1fa7	g1fa8	g1fa9	g1faa	g1fab
+			g1fac	g1fad	g1fae	g1faf	g1fb2	g1fb3	g1fb4	g1fb7	g1fbc	g1fc2	g1fc3
+			g1fc4	g1fc7	g1fcc	g1ff2	g1ff3	g1ff4	g1ff7	g1ffc);
+
+
+/****
+Equivalences:
+1F71	03AC
+1F73	03AD
+1F75	03AE
+1F77	03AF
+1F79	03CC
+1F7B	03CD
+1F7D	03CE
+1FBB	0386
+1FBE	03B9
+1FC9	0388
+1FCB	0389
+1FD3	0390
+1FDB	038A
+1FE3	03B0
+1FEB	038E
+1FEE	0385
+1FEF	0060
+1FF9	038C
+1FFB	038F
+1FFD	00B4
+****/
+
+
+endtable;
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//	Rules
+//
+
+table(substitution)
+
+pass(1) {MaxBackup = 15; MaxRuleLoop = 30}
+
+// Replace decomposed Greek with precomposed forms.
+// The back-up indicators are needed because sometimes there are several layers of decomposition.
+
+cno_0300  g_gravecomb  >  c_0300:(1 2) _  /  ^ _ _;
+cno_0301  g_acutecomb  >  c_0301:(1 2) _  /  ^ _ _;
+cno_0304  g0304  >  c_0304:(1 2) _  /  ^ _ _;
+cno_0306  g0306  >  c_0306:(1 2) _  /  ^ _ _;
+cno_0308  g0308  >  c_0308:(1 2) _  /  ^ _ _;
+cno_0313  g0313  >  c_0313:(1 2) _  /  ^ _ _;
+cno_0314  g0314  >  c_0314:(1 2) _  /  ^ _ _;
+cno_0342  g0342  >  c_0342:(1 2) _  /  ^ _ _;
+cno_0345  g0345  >  c_0345:(1 2) _  /  ^ _ _;
+
+endpass;
+
+endtable;
+

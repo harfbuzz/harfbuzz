@@ -1,0 +1,12 @@
+linuxlibertine.sf.net
+If you want to report bugs please decide if you want to:
+- use the bug tracking system on sourceforge (see linuxlibertine.sf.net -> bugtracker)
+- send a mail to philthelion (at) sf.net
+
+
+-Hinting is still not perfect (you will find hinting faults that deform glyphs in an ugly way but this effetcs just the screen - not printing)
+Please note that Hinting isn't always the best way for rendering on screen (especially on Linux-systems). You may want to try the OTF-files instead of TTF to achieve a better displaytion. Please do not forget, that Hinting changes the letterforms to fit the screen pixels. Therefore the letters do look differently on screen! If you want to see how it might look printed, choose at least 600% zoom.
+
+-A few accented charakters or non-latin-charakters are probably not the style native users would prefer (even Unicode-Standards sometimes aren't). Get into contact with me, if you have something to correct. In this way I got, for example, many corrections for the Russion charakters lately, what resulted in an enormous improvement of the cyrillic alphabet in LinuxLibertine (thanks alot for your help, once again!).
+
+-...

@@ -1,0 +1,667 @@
+/*
+		Description: GDL Code to handle tone ligatures for Roman fonts.
+		Author: Sharon Correll and Mark Anderson
+
+		Changes
+
+SJC     2007-01-23	9-level pitch tramlines only happen on spaces that are surrounded by pitches
+SJC     2006-12-15      Added 9-level pitch system
+SJC/MAA 2005-05-10	Reworked to use attachments rather than ligatures.
+
+*/
+
+#include "stddef.gdh"
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//	Five-pitch system
+//
+
+// Identical-tone chain handling:
+#define TLSTATE user1
+#define TLSfirst 0  // 0 is the initial value
+#define TLSchain 1
+#define TLSstop 2
+
+// Special handling for identical-tone chain with a left-staff; these are tricky.
+#define LTFLAG user2
+#define LThit 1
+#define LTback 2
+
+// To save space, use the same user-defined variables differently for the 9-pitch system.
+
+// To mark chains:
+#define P9SEQ user1
+#define P9last 0
+#define P9more 1
+
+// For deleting superfluous 9-pitch glyph.
+#define P9DEL user2
+#define P9keep 1
+#define P9del 2
+
+// Debuggers:
+#define BBLEFT user3
+#define BBRIGHT user4
+
+table(glyph)
+
+	// Individual glyph definitions
+	
+	gRightStaff1 = postscript("uni02E9.rstaff") {tone = 1};
+	gRightStaff2 = postscript("uni02E8.rstaff") {tone = 2};
+	gRightStaff3 = postscript("uni02E7.rstaff") {tone = 3};
+	gRightStaff4 = postscript("uni02E6.rstaff") {tone = 4};
+	gRightStaff5 = postscript("uni02E5.rstaff") {tone = 5};
+
+	gRightStaff1_no = postscript("uni02E9.rstaffno") {tone = 1};
+	gRightStaff2_no = postscript("uni02E8.rstaffno") {tone = 2};
+	gRightStaff3_no = postscript("uni02E7.rstaffno") {tone = 3};
+	gRightStaff4_no = postscript("uni02E6.rstaffno") {tone = 4};
+	gRightStaff5_no = postscript("uni02E5.rstaffno") {tone = 5};
+	
+	gRightTone1  = postscript("uni02E9")   {tone = 1};
+	gRightTone11 = postscript("uni02E9.1") {tone = 1};
+	gRightTone12 = postscript("uni02E9.2") {tone = 1};
+	gRightTone13 = postscript("uni02E9.3") {tone = 1};
+	gRightTone14 = postscript("uni02E9.4") {tone = 1};
+	gRightTone15 = postscript("uni02E9.5") {tone = 1};
+	gRightTone2  = postscript("uni02E8")   {tone = 2};
+	gRightTone21 = postscript("uni02E8.1") {tone = 2};
+	gRightTone22 = postscript("uni02E8.2") {tone = 2};
+	gRightTone23 = postscript("uni02E8.3") {tone = 2};
+	gRightTone24 = postscript("uni02E8.4") {tone = 2};
+	gRightTone25 = postscript("uni02E8.5") {tone = 2};
+	gRightTone3  = postscript("uni02E7")   {tone = 3};
+	gRightTone31 = postscript("uni02E7.1") {tone = 3};
+	gRightTone32 = postscript("uni02E7.2") {tone = 3};
+	gRightTone33 = postscript("uni02E7.3") {tone = 3};
+	gRightTone34 = postscript("uni02E7.4") {tone = 3};
+	gRightTone35 = postscript("uni02E7.5") {tone = 3};
+	gRightTone4  = postscript("uni02E6")   {tone = 4};
+	gRightTone41 = postscript("uni02E6.1") {tone = 4};
+	gRightTone42 = postscript("uni02E6.2") {tone = 4};
+	gRightTone43 = postscript("uni02E6.3") {tone = 4};
+	gRightTone44 = postscript("uni02E6.4") {tone = 4};
+	gRightTone45 = postscript("uni02E6.5") {tone = 4};
+	gRightTone5  = postscript("uni02E5")   {tone = 5};
+	gRightTone51 = postscript("uni02E5.1") {tone = 5};
+	gRightTone52 = postscript("uni02E5.2") {tone = 5};
+	gRightTone53 = postscript("uni02E5.3") {tone = 5};
+	gRightTone54 = postscript("uni02E5.4") {tone = 5};
+	gRightTone55 = postscript("uni02E5.5") {tone = 5};
+	
+	gLeftStaff1 = postscript("uniA716.lstaff") {tone = 1};
+	gLeftStaff2 = postscript("uniA715.lstaff") {tone = 2};
+	gLeftStaff3 = postscript("uniA714.lstaff") {tone = 3};
+	gLeftStaff4 = postscript("uniA713.lstaff") {tone = 4};
+	gLeftStaff5 = postscript("uniA712.lstaff") {tone = 5};
+	
+	gLeftStaff1_no = postscript("uniA716.lstaffno") {tone = 1};
+	gLeftStaff2_no = postscript("uniA715.lstaffno") {tone = 2};
+	gLeftStaff3_no = postscript("uniA714.lstaffno") {tone = 3};
+	gLeftStaff4_no = postscript("uniA713.lstaffno") {tone = 4};
+	gLeftStaff5_no = postscript("uniA712.lstaffno") {tone = 5};
+
+/*
+	gLeftTone1 = postscript("uniA716");
+	gLeftTone2 = postscript("uniA715");
+	gLeftTone3 = postscript("uniA714");
+	gLeftTone4 = postscript("uniA713");
+	gLeftTone5 = postscript("uniA712");
+*/
+	gLeftTone1 = U+A716 {tone = 1};
+	gLeftTone2 = U+A715 {tone = 2};
+	gLeftTone3 = U+A714 {tone = 3};
+	gLeftTone4 = U+A713 {tone = 4};
+	gLeftTone5 = U+A712 {tone = 5};
+
+	gLeftTone11 = postscript("uniA716.1") {tone = 1};
+	gLeftTone12 = postscript("uniA715.1") {tone = 1}; // 1878
+	gLeftTone13 = postscript("uniA714.1") {tone = 1};
+	gLeftTone14 = postscript("uniA713.1") {tone = 1};
+	gLeftTone15 = postscript("uniA712.1") {tone = 1};
+	gLeftTone21 = postscript("uniA716.2") {tone = 2};
+	gLeftTone22 = postscript("uniA715.2") {tone = 2};
+	gLeftTone23 = postscript("uniA714.2") {tone = 2};
+	gLeftTone24 = postscript("uniA713.2") {tone = 2};
+	gLeftTone25 = postscript("uniA712.2") {tone = 2};
+	gLeftTone31 = postscript("uniA716.3") {tone = 3};
+	gLeftTone32 = postscript("uniA715.3") {tone = 3};
+	gLeftTone33 = postscript("uniA714.3") {tone = 3};
+	gLeftTone34 = postscript("uniA713.3") {tone = 3};
+	gLeftTone35 = postscript("uniA712.3") {tone = 3};
+	gLeftTone41 = postscript("uniA716.4") {tone = 4};
+	gLeftTone42 = postscript("uniA715.4") {tone = 4};
+	gLeftTone43 = postscript("uniA714.4") {tone = 4};
+	gLeftTone44 = postscript("uniA713.4") {tone = 4};
+	gLeftTone45 = postscript("uniA712.4") {tone = 4};
+	gLeftTone51 = postscript("uniA716.5") {tone = 5};
+	gLeftTone52 = postscript("uniA715.5") {tone = 5};
+	gLeftTone53 = postscript("uniA714.5") {tone = 5};
+	gLeftTone54 = postscript("uniA713.5") {tone = 5};
+	gLeftTone55 = postscript("uniA712.5") {tone = 5};
+	
+	
+	cSupNum = (g_onesuperior, g_twosuperior, g_threesuperior, g2074, g2075);
+
+
+	// Right staff
+	
+	cRightTone1 = (gRightTone1, gRightStaff1, gRightStaff1_no);
+	cRightTone2 = (gRightTone2, gRightStaff2, gRightStaff2_no);
+	cRightTone3 = (gRightTone3, gRightStaff3, gRightStaff3_no);
+	cRightTone4 = (gRightTone4, gRightStaff4, gRightStaff4_no);
+	cRightTone5 = (gRightTone5, gRightStaff5, gRightStaff5_no);
+
+	// indexed classes:
+	cRightTone     = (gRightTone1,    gRightTone2,    gRightTone3,    gRightTone4,    gRightTone5);
+	cRightStaff    = (gRightStaff1,   gRightStaff2,   gRightStaff3,   gRightStaff4,   gRightStaff5);
+	cRightStaff_no = (gRightStaff1_no,gRightStaff2_no,gRightStaff3_no,gRightStaff4_no,gRightStaff5_no);
+	
+	cRightTone1Contour = (gRightTone11, gRightTone12, gRightTone13, gRightTone14, gRightTone15);
+	cRightTone2Contour = (gRightTone21, gRightTone22, gRightTone23, gRightTone24, gRightTone25);
+	cRightTone3Contour = (gRightTone31, gRightTone32, gRightTone33, gRightTone34, gRightTone35);
+	cRightTone4Contour = (gRightTone41, gRightTone42, gRightTone43, gRightTone44, gRightTone45);
+	cRightTone5Contour = (gRightTone51, gRightTone52, gRightTone53, gRightTone54, gRightTone55);
+	
+	cRightToneHoriz = (gRightTone11, gRightTone22, gRightTone33, gRightTone44, gRightTone55);
+	
+	// for positioning:
+	cRightContour = (cRightTone1Contour, cRightTone2Contour,
+			cRightTone3Contour, cRightTone4Contour, cRightTone5Contour);
+			
+	cRightContourOrStaff = (cRightContour, cRightStaff, cRightStaff_no);
+
+
+	// Left staff
+
+	cLeftContourOrStaff1 = (gLeftStaff1, gLeftStaff1_no,
+			gLeftTone11, gLeftTone21, gLeftTone31, gLeftTone41, gLeftTone51);
+	cLeftContourOrStaff2 = (gLeftStaff2, gLeftStaff2_no,
+			gLeftTone12, gLeftTone22, gLeftTone32, gLeftTone42, gLeftTone52);
+	cLeftContourOrStaff3 = (gLeftStaff3, gLeftStaff3_no,
+			gLeftTone13, gLeftTone23, gLeftTone33, gLeftTone43, gLeftTone53);
+	cLeftContourOrStaff4 = (gLeftStaff4, gLeftStaff4_no,
+			gLeftTone14, gLeftTone24, gLeftTone34, gLeftTone44, gLeftTone54);
+	cLeftContourOrStaff5 = (gLeftStaff5, gLeftStaff5_no,
+			gLeftTone15, gLeftTone25, gLeftTone35, gLeftTone45, gLeftTone55);
+
+	// indexed classes:
+	cLeftTone     = (gLeftTone1,    gLeftTone2,    gLeftTone3,    gLeftTone4,    gLeftTone5);
+	cLeftStaff    = (gLeftStaff1,   gLeftStaff2,   gLeftStaff3,   gLeftStaff4,   gLeftStaff5);
+	cLeftStaff_no = (gLeftStaff1_no,gLeftStaff2_no,gLeftStaff3_no,gLeftStaff4_no,gLeftStaff5_no);
+	
+	cLeftTone1Contour = (gLeftTone11, gLeftTone12, gLeftTone13, gLeftTone14, gLeftTone15);
+	cLeftTone2Contour = (gLeftTone21, gLeftTone22, gLeftTone23, gLeftTone24, gLeftTone25);
+	cLeftTone3Contour = (gLeftTone31, gLeftTone32, gLeftTone33, gLeftTone34, gLeftTone35);
+	cLeftTone4Contour = (gLeftTone41, gLeftTone42, gLeftTone43, gLeftTone44, gLeftTone45);
+	cLeftTone5Contour = (gLeftTone51, gLeftTone52, gLeftTone53, gLeftTone54, gLeftTone55);
+
+	cLeftToneHoriz = (gLeftTone11, gLeftTone22, gLeftTone33, gLeftTone44, gLeftTone55);
+
+	// for positioning:
+	cLeftContour = (cLeftTone1Contour, cLeftTone2Contour, cLeftTone3Contour,
+			cLeftTone4Contour, cLeftTone5Contour);
+	cLeftContourOrStaff = (cLeftContour, cLeftStaff, cLeftStaff_no);
+	
+endtable; // glyph
+
+
+table(subs)
+
+pass(1) {MaxBackup = 15; MaxRuleLoop = 30}
+
+	// Right staff
+	
+	if (supernum)
+	//  _ cPitch > g207B:3 cSupNum:3 / cSupNum _ _;	// include minus sign between digits
+	    cRightTone > cSupNum;
+	    cLeftTone  > cSupNum;
+	//else
+	// NB: The normal algorithm includes this else-clause, but it cannot in this
+	// case because the cSupNum contains encoded characters that should NOT be displayed
+	// as tone bars if the feature happens to be off!
+	//	cSupNum > cPitch;
+	endif;
+	
+	// else...
+	
+	// For each of the rules below, if we have an identical-tone chain going,
+	// and the two tones are still equal, continue the chain. Identical-tone chains
+	// need to be handled specially below (in pass 2).
+	#define SETSTATE {TLSTATE = ((@1.tone == @2.tone) && (@1.TLSTATE != TLSstop)) ? TLSchain : TLSstop}
+
+	if (!supernum && hide_tone_staff)
+		// hidden staves
+		cRightTone1  cRightTone  >  cRightTone1Contour$2  cRightStaff_no$2  SETSTATE  /  _  ^  _;
+		cRightTone2  cRightTone  >  cRightTone2Contour$2  cRightStaff_no$2  SETSTATE  /  _  ^  _;
+		cRightTone3  cRightTone  >  cRightTone3Contour$2  cRightStaff_no$2  SETSTATE  /  _  ^  _;
+		cRightTone4  cRightTone  >  cRightTone4Contour$2  cRightStaff_no$2  SETSTATE  /  _  ^  _;
+		cRightTone5  cRightTone  >  cRightTone5Contour$2  cRightStaff_no$2  SETSTATE  /  _  ^  _;
+	endif;
+
+	if (!supernum && !hide_tone_staff)
+		cRightTone1  cRightTone  >  cRightTone1Contour$2  cRightStaff$2  SETSTATE  /  _  ^  _;
+		cRightTone2  cRightTone  >  cRightTone2Contour$2  cRightStaff$2  SETSTATE  /  _  ^  _;
+		cRightTone3  cRightTone  >  cRightTone3Contour$2  cRightStaff$2  SETSTATE  /  _  ^  _;
+		cRightTone4  cRightTone  >  cRightTone4Contour$2  cRightStaff$2  SETSTATE  /  _  ^  _;
+		cRightTone5  cRightTone  >  cRightTone5Contour$2  cRightStaff$2  SETSTATE  /  _  ^  _;
+	endif;
+	
+	// Left staff
+	
+	if (!supernum && hide_tone_staff)
+		cLeftTone  >  cLeftStaff_no$1  / ^ _  cLeftTone;
+	endif;
+	if (!supernum && !hide_tone_staff)
+		cLeftTone  >  cLeftStaff$1  / ^ _  cLeftTone;
+	endif;
+
+	// These will only fire in the case of !supernum. (It is more efficient to omit
+	// unnecessary constraints.)
+	cLeftContourOrStaff1  cLeftTone  >  @1  cLeftTone1Contour$2  SETSTATE  /  _  ^  _;
+	cLeftContourOrStaff2  cLeftTone  >  @1  cLeftTone2Contour$2  SETSTATE  /  _  ^  _;
+	cLeftContourOrStaff3  cLeftTone  >  @1  cLeftTone3Contour$2  SETSTATE  /  _  ^  _;
+	cLeftContourOrStaff4  cLeftTone  >  @1  cLeftTone4Contour$2  SETSTATE  /  _  ^  _;
+	cLeftContourOrStaff5  cLeftTone  >  @1  cLeftTone5Contour$2  SETSTATE  /  _  ^  _;
+
+endpass; // sub - 1
+
+pass(2) {MaxBackup = 15; MaxRuleLoop = 30}
+
+	// Identical-tone chains need special handling: the staff needs to be replaced by a staff
+	// plus a horizontal bar.
+
+	_  cRightStaff     >  cRightToneHoriz$2:2  @2  /  _  _ {TLSTATE == TLSchain};
+	_  cRightStaff_no  >  cRightToneHoriz$2:2  @2  /  _  _ {TLSTATE == TLSchain};
+
+
+	// Left-staff identical-tone chains are tricky. We have to search backwards from
+	// the end of the chain to be sure they are all the same tone. A proper chain is
+	// marked with TLSTATE == TLSchain all the way through. (An improper chain may have
+	// TLSTATE == TLSchain just at the beginning.
+  
+  	// Keep progressing through a chain (till we get to the end):
+  	cLeftContourOrStaff { LTFLAG = LThit }  /  _  { LTFLAG == 0 }  cLeftContour {LTFLAG == 0};
+  	
+		// Found the end of the chain; start backing up:
+		cLeftContour { LTFLAG = LTback }
+			/  ^ cLeftContourOrStaff {LTFLAG == LThit} // the first item might not have TLSTATE == TLSchain
+				_ {TLSTATE == TLSchain};
+			
+		// Hit the beginning of the sequence; do the insertion:
+		cLeftStaff   _    >  @1  cLeftToneHoriz$1:1
+			/  _  _  cLeftContour {LTFLAG == LTback && TLSTATE == TLSchain};
+		cLeftStaff_no  _  >  @1  cLeftToneHoriz$1:1
+			/  _  _  cLeftContour {LTFLAG == LTback && TLSTATE == TLSchain};
+
+endpass; // sub - 2
+
+endtable;  // subs
+
+
+table(positioning)
+
+pass(1)
+
+	cRightContour {BBLEFT = bb.left; BBRIGHT = bb.right}
+		cRightContourOrStaff { attach {to = @1; at = TLS; with = TLM }; insert = true; /* BBLEFT = bb.left; BBRIGHT = bb.right */ }
+			/ _  ^  _;
+
+	cLeftContourOrStaff  cLeftContour { attach {to = @1; at = TLS; with = TLM }; insert = true}
+			/ _  ^  _;
+	
+endpass; // pos - 1
+
+endtable; // positioning
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//	Nine-pitch system
+//
+
+table(glyph)
+
+	g9Pitch1 = postscript("uniF1F1");
+	g9Pitch2 = postscript("uniF1F2");
+	g9Pitch3 = postscript("uniF1F3");
+	g9Pitch4 = postscript("uniF1F4");
+	g9Pitch5 = postscript("uniF1F5");
+	g9Pitch6 = postscript("uniF1F6");
+	g9Pitch7 = postscript("uniF1F7");
+	g9Pitch8 = postscript("uniF1F8");
+	g9Pitch9 = postscript("uniF1F9");
+	
+	g9Pitch11 = pseudo(postscript("uniF1F1"));  // process this differently than g9Pitch1--it represents a 1-1 sequence
+	g9Pitch12 = postscript("uniF1F1F1F2");
+	g9Pitch13 = postscript("uniF1F1F1F3");
+	g9Pitch14 = postscript("uniF1F1F1F4");
+	g9Pitch15 = postscript("uniF1F1F1F5");
+	g9Pitch16 = postscript("uniF1F1F1F6");
+	g9Pitch17 = postscript("uniF1F1F1F7");
+	g9Pitch18 = postscript("uniF1F1F1F8");
+	g9Pitch19 = postscript("uniF1F1F1F9");
+	
+	g9Pitch21 = postscript("uniF1F2F1F1");
+	g9Pitch22 = pseudo(postscript("uniF1F2"));  // different than g9Pitch2--it represents a 2-2 sequence
+	g9Pitch23 = postscript("uniF1F2F1F3");
+	g9Pitch24 = postscript("uniF1F2F1F4");
+	g9Pitch25 = postscript("uniF1F2F1F5");
+	g9Pitch26 = postscript("uniF1F2F1F6");
+	g9Pitch27 = postscript("uniF1F2F1F7");
+	g9Pitch28 = postscript("uniF1F2F1F8");
+	g9Pitch29 = postscript("uniF1F2F1F9");
+
+	g9Pitch31 = postscript("uniF1F3F1F1");
+	g9Pitch32 = postscript("uniF1F3F1F2");
+	g9Pitch33 = pseudo(postscript("uniF1F3"));  // process this differently than g9Pitch3
+	g9Pitch34 = postscript("uniF1F3F1F4");
+	g9Pitch35 = postscript("uniF1F3F1F5");
+	g9Pitch36 = postscript("uniF1F3F1F6");
+	g9Pitch37 = postscript("uniF1F3F1F7");
+	g9Pitch38 = postscript("uniF1F3F1F8");
+	g9Pitch39 = postscript("uniF1F3F1F9");
+
+	g9Pitch41 = postscript("uniF1F4F1F1");
+	g9Pitch42 = postscript("uniF1F4F1F2");
+	g9Pitch43 = postscript("uniF1F4F1F3");
+	g9Pitch44 = pseudo(postscript("uniF1F4"));  // process this differently than g9Pitch4
+	g9Pitch45 = postscript("uniF1F4F1F5");
+	g9Pitch46 = postscript("uniF1F4F1F6");
+	g9Pitch47 = postscript("uniF1F4F1F7");
+	g9Pitch48 = postscript("uniF1F4F1F8");
+	g9Pitch49 = postscript("uniF1F4F1F9");
+
+	g9Pitch51 = postscript("uniF1F5F1F1");
+	g9Pitch52 = postscript("uniF1F5F1F2");
+	g9Pitch53 = postscript("uniF1F5F1F3");
+	g9Pitch54 = postscript("uniF1F5F1F4");
+	g9Pitch55 = pseudo(postscript("uniF1F5"));  // process this differently than g9Pitch5
+	g9Pitch56 = postscript("uniF1F5F1F6");
+	g9Pitch57 = postscript("uniF1F5F1F7");
+	g9Pitch58 = postscript("uniF1F5F1F8");
+	g9Pitch59 = postscript("uniF1F5F1F9");
+
+	g9Pitch61 = postscript("uniF1F6F1F1");
+	g9Pitch62 = postscript("uniF1F6F1F2");
+	g9Pitch63 = postscript("uniF1F6F1F3");
+	g9Pitch64 = postscript("uniF1F6F1F4");
+	g9Pitch65 = postscript("uniF1F6F1F5");
+	g9Pitch66 = pseudo(postscript("uniF1F6"));  // process this differently than g9Pitch6
+	g9Pitch67 = postscript("uniF1F6F1F7");
+	g9Pitch68 = postscript("uniF1F6F1F8");
+	g9Pitch69 = postscript("uniF1F6F1F9");
+
+	g9Pitch71 = postscript("uniF1F7F1F1");
+	g9Pitch72 = postscript("uniF1F7F1F2");
+	g9Pitch73 = postscript("uniF1F7F1F3");
+	g9Pitch74 = postscript("uniF1F7F1F4");
+	g9Pitch75 = postscript("uniF1F7F1F5");
+	g9Pitch76 = postscript("uniF1F7F1F6");
+	g9Pitch77 = pseudo(postscript("uniF1F7"));  // process this differently than g9Pitch7
+	g9Pitch78 = postscript("uniF1F7F1F8");
+	g9Pitch79 = postscript("uniF1F7F1F9");
+
+	g9Pitch81 = postscript("uniF1F8F1F1");
+	g9Pitch82 = postscript("uniF1F8F1F2");
+	g9Pitch83 = postscript("uniF1F8F1F3");
+	g9Pitch84 = postscript("uniF1F8F1F4");
+	g9Pitch85 = postscript("uniF1F8F1F5");
+	g9Pitch86 = postscript("uniF1F8F1F6");
+	g9Pitch87 = postscript("uniF1F8F1F7");
+	g9Pitch88 = pseudo(postscript("uniF1F8"));  // process this differently than g9Pitch8
+	g9Pitch89 = postscript("uniF1F8F1F9");
+	
+	g9Pitch91 = postscript("uniF1F9F1F1");
+	g9Pitch92 = postscript("uniF1F9F1F2");
+	g9Pitch93 = postscript("uniF1F9F1F3");
+	g9Pitch94 = postscript("uniF1F9F1F4");
+	g9Pitch95 = postscript("uniF1F9F1F5");
+	g9Pitch96 = postscript("uniF1F9F1F6");
+	g9Pitch97 = postscript("uniF1F9F1F7");
+	g9Pitch98 = postscript("uniF1F9F1F8");
+	g9Pitch99 = pseudo(postscript("uniF1F9"));  // process this differently than g9Pitch9
+
+	// The following 3 groups of classes must correspond.
+	c9PitchX  = (g9Pitch1 g9Pitch2 g9Pitch3 g9Pitch4 g9Pitch5 g9Pitch6 g9Pitch7 g9Pitch8 g9Pitch9);
+	
+	c9Pitch1X = (g9Pitch11 g9Pitch12 g9Pitch13 g9Pitch14 g9Pitch15 g9Pitch16 g9Pitch17 g9Pitch18 g9Pitch19);
+	c9Pitch2X = (g9Pitch21 g9Pitch22 g9Pitch23 g9Pitch24 g9Pitch25 g9Pitch26 g9Pitch27 g9Pitch28 g9Pitch29);
+	c9Pitch3X = (g9Pitch31 g9Pitch32 g9Pitch33 g9Pitch34 g9Pitch35 g9Pitch36 g9Pitch37 g9Pitch38 g9Pitch39);
+	c9Pitch4X = (g9Pitch41 g9Pitch42 g9Pitch43 g9Pitch44 g9Pitch45 g9Pitch46 g9Pitch47 g9Pitch48 g9Pitch49);
+	c9Pitch5X = (g9Pitch51 g9Pitch52 g9Pitch53 g9Pitch54 g9Pitch55 g9Pitch56 g9Pitch57 g9Pitch58 g9Pitch59);
+	c9Pitch6X = (g9Pitch61 g9Pitch62 g9Pitch63 g9Pitch64 g9Pitch65 g9Pitch66 g9Pitch67 g9Pitch68 g9Pitch69);
+	c9Pitch7X = (g9Pitch71 g9Pitch72 g9Pitch73 g9Pitch74 g9Pitch75 g9Pitch76 g9Pitch77 g9Pitch78 g9Pitch79);
+	c9Pitch8X = (g9Pitch81 g9Pitch82 g9Pitch83 g9Pitch84 g9Pitch85 g9Pitch86 g9Pitch87 g9Pitch88 g9Pitch89);
+	c9Pitch9X = (g9Pitch91 g9Pitch92 g9Pitch93 g9Pitch94 g9Pitch95 g9Pitch96 g9Pitch97 g9Pitch98 g9Pitch99);
+
+	c9PitchX1 = (g9Pitch11 g9Pitch21 g9Pitch31 g9Pitch41 g9Pitch51 g9Pitch61 g9Pitch71 g9Pitch81 g9Pitch91);
+	c9PitchX2 = (g9Pitch12 g9Pitch22 g9Pitch32 g9Pitch42 g9Pitch52 g9Pitch62 g9Pitch72 g9Pitch82 g9Pitch92);
+	c9PitchX3 = (g9Pitch13 g9Pitch23 g9Pitch33 g9Pitch43 g9Pitch53 g9Pitch63 g9Pitch73 g9Pitch83 g9Pitch93);
+	c9PitchX4 = (g9Pitch14 g9Pitch24 g9Pitch34 g9Pitch44 g9Pitch54 g9Pitch64 g9Pitch74 g9Pitch84 g9Pitch94);
+	c9PitchX5 = (g9Pitch15 g9Pitch25 g9Pitch35 g9Pitch45 g9Pitch55 g9Pitch65 g9Pitch75 g9Pitch85 g9Pitch95);
+	c9PitchX6 = (g9Pitch16 g9Pitch26 g9Pitch36 g9Pitch46 g9Pitch56 g9Pitch66 g9Pitch76 g9Pitch86 g9Pitch96);
+	c9PitchX7 = (g9Pitch17 g9Pitch27 g9Pitch37 g9Pitch47 g9Pitch57 g9Pitch67 g9Pitch77 g9Pitch87 g9Pitch97);
+	c9PitchX8 = (g9Pitch18 g9Pitch28 g9Pitch38 g9Pitch48 g9Pitch58 g9Pitch68 g9Pitch78 g9Pitch88 g9Pitch98);
+	c9PitchX9 = (g9Pitch19 g9Pitch29 g9Pitch39 g9Pitch49 g9Pitch59 g9Pitch69 g9Pitch79 g9Pitch89 g9Pitch99);
+	
+	//////
+	
+	c9PitchXX = (c9Pitch1X c9Pitch2X c9Pitch3X c9Pitch4X c9Pitch5X c9Pitch6X c9Pitch7X c9Pitch8X c9Pitch9X)
+		{ component.p1 = box(0,-descent,    aw/2,ascent);
+		  component.p2 = box(aw/2,-descent, aw,ascent) };
+	
+
+	// Glyphs with tramlines:
+
+	g9Pitch1_Lines = postscript("uniF1F1.Lines");
+	g9Pitch2_Lines = postscript("uniF1F2.Lines");
+	g9Pitch3_Lines = postscript("uniF1F3.Lines");
+	g9Pitch4_Lines = postscript("uniF1F4.Lines");
+	g9Pitch5_Lines = postscript("uniF1F5.Lines");
+	g9Pitch6_Lines = postscript("uniF1F6.Lines");
+	g9Pitch7_Lines = postscript("uniF1F7.Lines");
+	g9Pitch8_Lines = postscript("uniF1F8.Lines");
+	g9Pitch9_Lines = postscript("uniF1F9.Lines");
+	
+	g9Pitch11_Lines = postscript("uniF1F1.Lines");	// don't need a pseudo-glyph for these because no further special processing is needed
+	g9Pitch12_Lines = postscript("uniF1F1F1F2.Lines");
+	g9Pitch13_Lines = postscript("uniF1F1F1F3.Lines");
+	g9Pitch14_Lines = postscript("uniF1F1F1F4.Lines");
+	g9Pitch15_Lines = postscript("uniF1F1F1F5.Lines");
+	g9Pitch16_Lines = postscript("uniF1F1F1F6.Lines");
+	g9Pitch17_Lines = postscript("uniF1F1F1F7.Lines");
+	g9Pitch18_Lines = postscript("uniF1F1F1F8.Lines");
+	g9Pitch19_Lines = postscript("uniF1F1F1F9.Lines");
+	
+	g9Pitch21_Lines = postscript("uniF1F2F1F1.Lines");
+	g9Pitch22_Lines = postscript("uniF1F2.Lines");
+	g9Pitch23_Lines = postscript("uniF1F2F1F3.Lines");
+	g9Pitch24_Lines = postscript("uniF1F2F1F4.Lines");
+	g9Pitch25_Lines = postscript("uniF1F2F1F5.Lines");
+	g9Pitch26_Lines = postscript("uniF1F2F1F6.Lines");
+	g9Pitch27_Lines = postscript("uniF1F2F1F7.Lines");
+	g9Pitch28_Lines = postscript("uniF1F2F1F8.Lines");
+	g9Pitch29_Lines = postscript("uniF1F2F1F9.Lines");
+
+	g9Pitch31_Lines = postscript("uniF1F3F1F1.Lines");
+	g9Pitch32_Lines = postscript("uniF1F3F1F2.Lines");
+	g9Pitch33_Lines = postscript("uniF1F3.Lines");
+	g9Pitch34_Lines = postscript("uniF1F3F1F4.Lines");
+	g9Pitch35_Lines = postscript("uniF1F3F1F5.Lines");
+	g9Pitch36_Lines = postscript("uniF1F3F1F6.Lines");
+	g9Pitch37_Lines = postscript("uniF1F3F1F7.Lines");
+	g9Pitch38_Lines = postscript("uniF1F3F1F8.Lines");
+	g9Pitch39_Lines = postscript("uniF1F3F1F9.Lines");
+
+	g9Pitch41_Lines = postscript("uniF1F4F1F1.Lines");
+	g9Pitch42_Lines = postscript("uniF1F4F1F2.Lines");
+	g9Pitch43_Lines = postscript("uniF1F4F1F3.Lines");
+	g9Pitch44_Lines = postscript("uniF1F4.Lines");
+	g9Pitch45_Lines = postscript("uniF1F4F1F5.Lines");
+	g9Pitch46_Lines = postscript("uniF1F4F1F6.Lines");
+	g9Pitch47_Lines = postscript("uniF1F4F1F7.Lines");
+	g9Pitch48_Lines = postscript("uniF1F4F1F8.Lines");
+	g9Pitch49_Lines = postscript("uniF1F4F1F9.Lines");
+
+	g9Pitch51_Lines = postscript("uniF1F5F1F1.Lines");
+	g9Pitch52_Lines = postscript("uniF1F5F1F2.Lines");
+	g9Pitch53_Lines = postscript("uniF1F5F1F3.Lines");
+	g9Pitch54_Lines = postscript("uniF1F5F1F4.Lines");
+	g9Pitch55_Lines = postscript("uniF1F5.Lines");
+	g9Pitch56_Lines = postscript("uniF1F5F1F6.Lines");
+	g9Pitch57_Lines = postscript("uniF1F5F1F7.Lines");
+	g9Pitch58_Lines = postscript("uniF1F5F1F8.Lines");
+	g9Pitch59_Lines = postscript("uniF1F5F1F9.Lines");
+
+	g9Pitch61_Lines = postscript("uniF1F6F1F1.Lines");
+	g9Pitch62_Lines = postscript("uniF1F6F1F2.Lines");
+	g9Pitch63_Lines = postscript("uniF1F6F1F3.Lines");
+	g9Pitch64_Lines = postscript("uniF1F6F1F4.Lines");
+	g9Pitch65_Lines = postscript("uniF1F6F1F5.Lines");
+	g9Pitch66_Lines = postscript("uniF1F6.Lines");
+	g9Pitch67_Lines = postscript("uniF1F6F1F7.Lines");
+	g9Pitch68_Lines = postscript("uniF1F6F1F8.Lines");
+	g9Pitch69_Lines = postscript("uniF1F6F1F9.Lines");
+
+	g9Pitch71_Lines = postscript("uniF1F7F1F1.Lines");
+	g9Pitch72_Lines = postscript("uniF1F7F1F2.Lines");
+	g9Pitch73_Lines = postscript("uniF1F7F1F3.Lines");
+	g9Pitch74_Lines = postscript("uniF1F7F1F4.Lines");
+	g9Pitch75_Lines = postscript("uniF1F7F1F5.Lines");
+	g9Pitch76_Lines = postscript("uniF1F7F1F6.Lines");
+	g9Pitch77_Lines = postscript("uniF1F7.Lines");
+	g9Pitch78_Lines = postscript("uniF1F7F1F8.Lines");
+	g9Pitch79_Lines = postscript("uniF1F7F1F9.Lines");
+
+	g9Pitch81_Lines = postscript("uniF1F8F1F1.Lines");
+	g9Pitch82_Lines = postscript("uniF1F8F1F2.Lines");
+	g9Pitch83_Lines = postscript("uniF1F8F1F3.Lines");
+	g9Pitch84_Lines = postscript("uniF1F8F1F4.Lines");
+	g9Pitch85_Lines = postscript("uniF1F8F1F5.Lines");
+	g9Pitch86_Lines = postscript("uniF1F8F1F6.Lines");
+	g9Pitch87_Lines = postscript("uniF1F8F1F7.Lines");
+	g9Pitch88_Lines = postscript("uniF1F8.Lines");
+	g9Pitch89_Lines = postscript("uniF1F8F1F9.Lines");
+	
+	g9Pitch91_Lines = postscript("uniF1F9F1F1.Lines");
+	g9Pitch92_Lines = postscript("uniF1F9F1F2.Lines");
+	g9Pitch93_Lines = postscript("uniF1F9F1F3.Lines");
+	g9Pitch94_Lines = postscript("uniF1F9F1F4.Lines");
+	g9Pitch95_Lines = postscript("uniF1F9F1F5.Lines");
+	g9Pitch96_Lines = postscript("uniF1F9F1F6.Lines");
+	g9Pitch97_Lines = postscript("uniF1F9F1F7.Lines");
+	g9Pitch98_Lines = postscript("uniF1F9F1F8.Lines");
+	g9Pitch99_Lines = postscript("uniF1F9.Lines");
+
+	g_pitchSpace = pseudo(postscript("space"));	// special kind of space that might need tramlines
+	g_noPitchSpace = pseudo(postscript("space"));	// space that will not need tramlines after all
+
+	// The following two classes must correspond.
+	cno_LinesXXX = (g_pitchSpace
+		g9Pitch1  g9Pitch2  g9Pitch3  g9Pitch4  g9Pitch5  g9Pitch6  g9Pitch7  g9Pitch8  g9Pitch9
+		g9Pitch11 g9Pitch12 g9Pitch13 g9Pitch14 g9Pitch15 g9Pitch16 g9Pitch17 g9Pitch18 g9Pitch19
+		g9Pitch21 g9Pitch22 g9Pitch23 g9Pitch24 g9Pitch25 g9Pitch26 g9Pitch27 g9Pitch28 g9Pitch29
+		g9Pitch31 g9Pitch32 g9Pitch33 g9Pitch34 g9Pitch35 g9Pitch36 g9Pitch37 g9Pitch38 g9Pitch39
+		g9Pitch41 g9Pitch42 g9Pitch43 g9Pitch44 g9Pitch45 g9Pitch46 g9Pitch47 g9Pitch48 g9Pitch49
+		g9Pitch51 g9Pitch52 g9Pitch53 g9Pitch54 g9Pitch55 g9Pitch56 g9Pitch57 g9Pitch58 g9Pitch59
+		g9Pitch61 g9Pitch62 g9Pitch63 g9Pitch64 g9Pitch65 g9Pitch66 g9Pitch67 g9Pitch68 g9Pitch69
+		g9Pitch71 g9Pitch72 g9Pitch73 g9Pitch74 g9Pitch75 g9Pitch76 g9Pitch77 g9Pitch78 g9Pitch79
+		g9Pitch81 g9Pitch82 g9Pitch83 g9Pitch84 g9Pitch85 g9Pitch86 g9Pitch87 g9Pitch88 g9Pitch89
+		g9Pitch91 g9Pitch92 g9Pitch93 g9Pitch94 g9Pitch95 g9Pitch96 g9Pitch97 g9Pitch98 g9Pitch99);
+
+	cLinesXXX = (g_space_lines
+		g9Pitch1_Lines  g9Pitch2_Lines  g9Pitch3_Lines  g9Pitch4_Lines  g9Pitch5_Lines  g9Pitch6_Lines  g9Pitch7_Lines  g9Pitch8_Lines  g9Pitch9_Lines
+		g9Pitch11_Lines g9Pitch12_Lines g9Pitch13_Lines g9Pitch14_Lines g9Pitch15_Lines g9Pitch16_Lines g9Pitch17_Lines g9Pitch18_Lines g9Pitch19_Lines
+		g9Pitch21_Lines g9Pitch22_Lines g9Pitch23_Lines g9Pitch24_Lines g9Pitch25_Lines g9Pitch26_Lines g9Pitch27_Lines g9Pitch28_Lines g9Pitch29_Lines
+		g9Pitch31_Lines g9Pitch32_Lines g9Pitch33_Lines g9Pitch34_Lines g9Pitch35_Lines g9Pitch36_Lines g9Pitch37_Lines g9Pitch38_Lines g9Pitch39_Lines
+		g9Pitch41_Lines g9Pitch42_Lines g9Pitch43_Lines g9Pitch44_Lines g9Pitch45_Lines g9Pitch46_Lines g9Pitch47_Lines g9Pitch48_Lines g9Pitch49_Lines
+		g9Pitch51_Lines g9Pitch52_Lines g9Pitch53_Lines g9Pitch54_Lines g9Pitch55_Lines g9Pitch56_Lines g9Pitch57_Lines g9Pitch58_Lines g9Pitch59_Lines
+		g9Pitch61_Lines g9Pitch62_Lines g9Pitch63_Lines g9Pitch64_Lines g9Pitch65_Lines g9Pitch66_Lines g9Pitch67_Lines g9Pitch68_Lines g9Pitch69_Lines
+		g9Pitch71_Lines g9Pitch72_Lines g9Pitch73_Lines g9Pitch74_Lines g9Pitch75_Lines g9Pitch76_Lines g9Pitch77_Lines g9Pitch78_Lines g9Pitch79_Lines
+		g9Pitch81_Lines g9Pitch82_Lines g9Pitch83_Lines g9Pitch84_Lines g9Pitch85_Lines g9Pitch86_Lines g9Pitch87_Lines g9Pitch88_Lines g9Pitch89_Lines
+		g9Pitch91_Lines g9Pitch92_Lines g9Pitch93_Lines g9Pitch94_Lines g9Pitch95_Lines g9Pitch96_Lines g9Pitch97_Lines g9Pitch98_Lines g9Pitch99_Lines )
+	    { component.p1 = box(0,-descent,    aw/2,ascent);
+	      component.p2 = box(aw/2,-descent, aw,ascent) };
+
+
+endtable; // glyph
+
+
+table(substitution) {MaxBackup = 15; MaxRuleLoop = 30;}
+
+pass(1)
+
+if (pitch9 < nonLigated) // do the ligation
+
+	// Only spaces between pitches have the capacity to get tramlines.
+	
+	// space sequence that may need tramlines
+	g_space  >  g_pitchSpace  /  (cno_LinesXXX g_pitchSpace)  _  (cno_LinesXXX g_space);
+	
+	// end of space sequence followed by a pitch: leave as is (ie, can take tramlines)
+	g_pitchSpace  >  @1  /  _  cno_LinesXXX;
+	// end of space sequence that is NOT followed by a pitch: cannot take tramline, and back up
+	(g_space g_pitchSpace)  >  g_noPitchSpace /  ^ g_pitchSpace  _ ;
+	// continue marking no-tramlines after backing up
+	g_pitchSpace  >  g_noPitchSpace;
+
+
+	// Don't need to mark a single item as last: that is the default (0).
+
+	// Pick the form that ligates with the previous.
+	// During this pass we leave the first item in place, which will end up being superfluous
+	// unless we have a whole chain of identical pitches.
+	(g9Pitch1 c9PitchX1)  c9PitchX  >  @1 {P9SEQ = P9more}  c9Pitch1X / _ ^ _;
+	(g9Pitch2 c9PitchX2)  c9PitchX  >  @1 {P9SEQ = P9more}  c9Pitch2X / _ ^ _;
+	(g9Pitch3 c9PitchX3)  c9PitchX  >  @1 {P9SEQ = P9more}  c9Pitch3X / _ ^ _;
+	(g9Pitch4 c9PitchX4)  c9PitchX  >  @1 {P9SEQ = P9more}  c9Pitch4X / _ ^ _;
+	(g9Pitch5 c9PitchX5)  c9PitchX  >  @1 {P9SEQ = P9more}  c9Pitch5X / _ ^ _;
+	(g9Pitch6 c9PitchX6)  c9PitchX  >  @1 {P9SEQ = P9more}  c9Pitch6X / _ ^ _;
+	(g9Pitch7 c9PitchX7)  c9PitchX  >  @1 {P9SEQ = P9more}  c9Pitch7X / _ ^ _;
+	(g9Pitch8 c9PitchX8)  c9PitchX  >  @1 {P9SEQ = P9more}  c9Pitch8X / _ ^ _;
+	(g9Pitch9 c9PitchX9)  c9PitchX  >  @1 {P9SEQ = P9more}  c9Pitch9X / _ ^ _;
+	
+endif;
+
+endpass; // sub - 1
+
+pass(2)
+	// Note: the reason for the somewhat complicated processing is to allow us to delete the
+	// superfluous first item and do the tramline substitution in one pass, rather than adding
+	// an extra substitution pass.
+
+if (pitch9 < nonLigated) // do the ligation
+
+	// Only one item in the chain: keep it!
+	c9PitchX  >  @1 {P9DEL = P9keep} /  ^  _ {P9DEL == 0 && P9SEQ == P9last};
+	
+	// Unless we have a complete chain of all the same pitch, the first item is superfluous.
+	// If that's the case, mark the first item as one we want to keep.
+	// These rules handle a chain of up to 5 identical items.
+	g9Pitch1  >  @1 {P9DEL = P9keep} / ^ _ {P9DEL == 0}  [[g9Pitch11? g9Pitch11]? g9Pitch11 ]? g9Pitch11 {P9SEQ == P9last} ;
+	g9Pitch2  >  @1 {P9DEL = P9keep} / ^ _ {P9DEL == 0}  [[g9Pitch22? g9Pitch22]? g9Pitch22 ]? g9Pitch22 {P9SEQ == P9last} ;
+	g9Pitch3  >  @1 {P9DEL = P9keep} / ^ _ {P9DEL == 0}  [[g9Pitch33? g9Pitch33]? g9Pitch33 ]? g9Pitch33 {P9SEQ == P9last} ;
+	g9Pitch4  >  @1 {P9DEL = P9keep} / ^ _ {P9DEL == 0}  [[g9Pitch44? g9Pitch44]? g9Pitch44 ]? g9Pitch44 {P9SEQ == P9last} ;
+	g9Pitch5  >  @1 {P9DEL = P9keep} / ^ _ {P9DEL == 0}  [[g9Pitch55? g9Pitch55]? g9Pitch55 ]? g9Pitch55 {P9SEQ == P9last} ;
+	g9Pitch6  >  @1 {P9DEL = P9keep} / ^ _ {P9DEL == 0}  [[g9Pitch66? g9Pitch66]? g9Pitch66 ]? g9Pitch66 {P9SEQ == P9last} ;
+	g9Pitch7  >  @1 {P9DEL = P9keep} / ^ _ {P9DEL == 0}  [[g9Pitch77? g9Pitch77]? g9Pitch77 ]? g9Pitch77 {P9SEQ == P9last} ;
+	g9Pitch8  >  @1 {P9DEL = P9keep} / ^ _ {P9DEL == 0}  [[g9Pitch88? g9Pitch88]? g9Pitch88 ]? g9Pitch88 {P9SEQ == P9last} ;
+	g9Pitch9  >  @1 {P9DEL = P9keep} / ^ _ {P9DEL == 0}  [[g9Pitch99? g9Pitch99]? g9Pitch99 ]? g9Pitch99 {P9SEQ == P9last} ;
+
+	// There isn't a complete chain of identical items, so delete that first item.
+	c9PitchX  c9PitchXX  >  _  @2:(1 2) {comp {p1.ref = @1; p2.ref = @2 }}
+		/  _ {P9DEL != P9keep} ^ _ ;
+	
+endif;
+
+// When all other processing has been done, substitute the tramline version.
+if (pitch9 == tramlines || pitch9 == tramNonLigated) // tramlines or tramNonLigated
+	cno_LinesXXX  >  cLinesXXX;
+endif;
+
+endpass; // sub - 2
+
+endtable; // subs

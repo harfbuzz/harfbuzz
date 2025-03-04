@@ -1,0 +1,138 @@
+/*
+    File: nastaliq_rules.gdl
+
+    Graphite rules for Awami Nastaliq
+*/
+
+// Standard definitions and abbreviations:
+#include "stddef.gdh"
+
+// Collision fixing:
+#define DO_COL_FIX 1
+
+// Separate the nuqtas on final glyphs from their bases:
+#define SEP_FINAL_NUQTAS 0
+
+// just for testing the end of the compilation process; doesn't generate a workable font
+#define QUICKCOMPILE 0
+
+
+Bidi = true;
+ScriptDirection = HORIZONTAL_RIGHT_TO_LEFT;
+
+
+#if DO_COL_FIX
+
+#define COLL_FREEZE       0		// base - test for collisions but don't move this glyph; 
+                           		// the default for a glyph in the START-END range
+#define COLL_FIX          1
+#define COLL_IGNORE       2
+#define COLL_START        4
+#define COLL_END          8
+#define COLL_KERN        16
+//      COLL_ISCOL       32		// this glyph has a collision
+//      COLL_KNOWN       64		// we've figured out what's happening with this glyph
+////#define COLL_JUMPABLE   128 -- obsolete
+////#define COLL_OVERLAP    256 -- obsolete
+
+#define setbits(f,m,v) (f & (~m)) | v
+
+
+#define SET_FIX(f) 			setbits(f, COLL_FIX, COLL_FIX)
+#define CLEAR_FIX(f) 		setbits(f, COLL_FIX, 0)
+#define SET_IGNORE(f)		setbits(f, COLL_IGNORE, COLL_IGNORE)
+#define CLEAR_IGNORE(f)		setbits(f, COLL_IGNORE, 0)
+#define SET_START(f)		setbits(f, COLL_START, COLL_START)
+#define CLEAR_START(f)		setbits(f, COLL_START, 0)
+#define SET_END(f)			setbits(f, COLL_END, COLL_END)
+#define CLEAR_END(f)		setbits(f, COLL_END, 0)
+#define SET_KERN(f)			setbits(f, COLL_KERN, COLL_KERN)
+#define CLEAR_KERN(f)		setbits(f, COLL_KERN, 0)
+
+#define SET_START_END(f)	setbits(f, (COLL_START + COLL_END), (COLL_START + COLL_END))
+
+#define ORDER_LEFTDOWN	1
+#define ORDER_RIGHTUP	2
+#define ORDER_NOABOVE	4
+#define ORDER_NOBELOW	8
+
+#endif // DO_COL_FIX
+
+
+// 1 means strip out the nuqtas altogether during the contextual shaping passes and put them back in later.
+#define STRIP_NUQTAS 0
+
+
+// TEMPORARY for collision test suite
+
+table(glyph) {AttributeOverride = 1}
+
+gKafMedBeRe = pseudo(postscript("absKehehMed.bere_alt"));
+gGafMedBeRe = pseudo(postscript("absGafMed.bere_alt"));
+
+
+gJeemMedJm { nUpperS = point(213m, 1091m) }; 
+cTakes_nUpperDia += (gJeemMedJm);
+
+gLamIniJm { mLowerS = point(600m, 1300m) };   // alef + lam + ghain
+cTakes_mLowerDia += (gLamIniJm);
+
+gWaw { mLower = point(0m, 0m) }; // noon-smalltah + alef
+cTakes_mLowerDia += (gWaw);
+
+gBehMedTaM { nUpperS = point(170m, 1233m) };  // teh + zah
+
+gBehMedHgF_be { exit_hehgoalFinal = point(50m, 240m); nUpperS = point(200m, 300m) }; // dal + nuqta 2
+c_exit_hehgoalFinal += (gBehMedHgF_be);
+cTakes_nUpperDia += (gBehMedHgF_be);
+
+gHehGoalIniRe { hehhookS = point(350m, -200m) };   // gaf + teh + hamza-waw
+cTakes_hehhookDia += (gHehGoalIniRe);
+
+gSadMedBeM2 { entr_sad = point(800m, 350m); mLowerS = point(400m, 400m) };  // yeh + beh + bariyeh
+c_entr_sad += (gSadMedBeM2);
+cTakes_mLowerDia += (gSadMedBeM2);
+
+endtable;
+
+
+// Classes for contextual shaping:
+#include "nastaliq_cntxlClasses.gdh"
+
+
+#include "nastaliq_classes.gdh"
+
+
+#if DO_COL_FIX
+
+#include "nastaliq_complexShapes.gdh"
+
+#endif // DO_COL_FIX
+
+
+// FEATURES
+
+//table(feature)
+//endtable; // feature
+
+
+
+#define DIACS [cDiacritic cDiacritic?]?
+
+// TODO: include diacritic combinations
+#define MARKS  cNuqtaLike?  DIACS
+
+// In positioning table, allow two nuqta-like glyphs for some glyphs that can have
+// nuqtas both above and below
+#define MARKS2N  cNuqtaLikeLower? cNuqtaLikeUpper?  DIACS
+
+
+// SUBSTITUTION RULES
+
+#include "nastaliq_shaping.gdh"
+
+
+// POSITIONING RULES
+
+#include "nastaliq_positioning.gdh"
+
