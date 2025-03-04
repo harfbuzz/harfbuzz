@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 
 use skrifa::{charmap, GlyphId, MetadataProvider};
 use skrifa::font::FontRef;
-use skrifa::instance::{Location, Size};
+use skrifa::instance::{Location, NormalizedCoord, Size};
 
 // A struct for storing your “fontations” data
 #[repr(C)]
@@ -124,7 +124,12 @@ pub extern "C" fn hb_fontations_font_set_funcs(
 
     let char_map = charmap::Charmap::new(&font_ref);
 
-    let location = Location::default(); // TODO
+    let mut num_coords : u32 = 0;
+    let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
+    let mut location = Location::new(num_coords as usize);
+    let coords_mut = location.coords_mut();
+    for i in 0..num_coords as usize
+    { coords_mut[i] = NormalizedCoord::from_bits( unsafe { *coords.offset(i as isize) } as i16); }
 
     let mut x_scale : i32 = 0;
     let mut y_scale : i32 = 0;
