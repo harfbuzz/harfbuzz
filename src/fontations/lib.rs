@@ -21,7 +21,7 @@ struct FontationsData {
 
 // A destructor for the user_data
 #[no_mangle]
-extern "C" fn fontations_data_destroy(ptr: *mut c_void) {
+extern "C" fn _hb_fontations_data_destroy(ptr: *mut c_void) {
     if !ptr.is_null() {
         unsafe { let _ = Box::from_raw(ptr as *mut FontationsData); }
     }
@@ -45,7 +45,7 @@ extern "C" fn _hb_fontations_get_glyph_h_advance(
 }
 
 #[no_mangle]
-extern "C" fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
+fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
     let ffuncs = unsafe { hb_font_funcs_create() };
 
     unsafe {
@@ -72,7 +72,7 @@ pub extern "C" fn hb_fontations_font_set_funcs(
     let data_ptr = Box::into_raw(Box::new(data)) as *mut c_void;
 
     unsafe {
-        hb_font_set_funcs (font, ffuncs, data_ptr, Some(fontations_data_destroy));
+        hb_font_set_funcs (font, ffuncs, data_ptr, Some(_hb_fontations_data_destroy));
     }
 
     unsafe { hb_font_funcs_destroy (ffuncs); }
