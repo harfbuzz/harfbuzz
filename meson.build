@@ -225,11 +225,7 @@ incconfig = include_directories('.')
 
 add_project_arguments('-DHAVE_CONFIG_H', language: ['c', 'cpp'])
 
-warn_cflags = [
-  '-Wno-non-virtual-dtor',
-]
-
-cpp_args = cpp.get_supported_arguments(warn_cflags)
+cpp_args = []
 
 if glib_dep.found()
   conf.set('HAVE_GLIB', 1)
