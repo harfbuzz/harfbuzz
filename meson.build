@@ -6,6 +6,7 @@ project('harfbuzz', 'c', 'cpp',
     # 'cpp_rtti=false',     # Do NOT enable, wraps inherit it and ICU needs RTTI
     'cpp_std=c++11',
     'wrap_mode=nofallback', # Use --wrap-mode=default to revert, https://github.com/harfbuzz/harfbuzz/pull/2548
+    'buildtype=debugoptimized',
   ],
 )
 
