@@ -27,14 +27,24 @@
 
 #include "hb.h"
 
+/**
+ * SECTION: hb-fontations
+ * @title: hb-fontations
+ * @short_description: Fontations integration
+ * @include: hb-fontations.h
+ *
+ * Functions for using HarfBuzz with
+ * [Fontations](https://github.com/googlefonts/fontations/) fonts.
+ **/
+
 HB_BEGIN_DECLS
+
 /**
  * hb_fontations_font_set_funcs:
  * @font: #hb_font_t to work upon
  *
  * Configures the font-functions structure of the specified #hb_font_t font
- * object to use [Fontations](https://github.com/googlefonts/fontations/) font
- * functions.
+ * object to use Fontations font functions.
  *
  * XSince: REPLACEME
  **/
