@@ -69,7 +69,8 @@ jobs:
           -Ddirectwrite=enabled \
           -Dgdi=enabled \
           -Dgraphite=enabled \
-          -Dchafa=disabled
+          -Dchafa=disabled \
+          -Dragel=disabled
     - name: Build
       run: meson compile -Cbuild
     - name: Test
