@@ -14,4 +14,4 @@ libc = "0.2"
 [lib]
 name = "harfbuzz_fontations"
 path = "lib.rs"
-crate-type = ["cdylib"]
+crate-type = ["staticlib"]
