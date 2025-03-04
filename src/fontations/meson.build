@@ -30,5 +30,5 @@ harfbuzz_fontations = custom_target(
 )
 
 harfbuzz_fontations_dep = declare_dependency(
-  link_with: harfbuzz_fontations,
+  link_whole: harfbuzz_fontations,
 )
