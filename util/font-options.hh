@@ -146,7 +146,6 @@ font_options_t::post_parse (GError **error)
 	  g_string_append_c (s, '/');
 	g_string_append (s, supported_font_funcs[i].name);
       }
-      g_string_append_c (s, '\n');
       char *p = g_string_free (s, FALSE);
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Unknown font function implementation `%s'; supported values are: %s; default is %s",
@@ -307,7 +306,7 @@ font_options_t::add_options (option_parser_t *parser)
     static_assert ((ARRAY_LENGTH_CONST (supported_font_funcs) > 0),
 		   "No supported font-funcs found.");
     GString *s = g_string_new (nullptr);
-    g_string_printf (s, "Set font functions implementation to use (default: %s)\n\n    Supported font function implementations are: %s",
+    g_string_printf (s, "Set font functions implementation to use (default: %s)\n    Supported font function implementations are: %s",
 		     supported_font_funcs[0].name,
 		     supported_font_funcs[0].name);
     for (unsigned int i = 1; i < ARRAY_LENGTH (supported_font_funcs); i++)

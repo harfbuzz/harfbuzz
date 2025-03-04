@@ -176,7 +176,7 @@ face_options_t::add_options (option_parser_t *parser)
     static_assert ((ARRAY_LENGTH_CONST (supported_face_loaders) > 0),
 		   "No supported face-loaders found.");
     GString *s = g_string_new (nullptr);
-    g_string_printf (s, "Set face loader to use (default: %s)\n\n    Supported face loaders are: %s",
+    g_string_printf (s, "Set face loader to use (default: %s)\n    Supported face loaders are: %s",
 		     supported_face_loaders[0].name,
 		     supported_face_loaders[0].name);
     for (unsigned int i = 1; i < ARRAY_LENGTH (supported_face_loaders); i++)
