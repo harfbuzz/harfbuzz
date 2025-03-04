@@ -11,8 +11,8 @@ hb_rs = rust.bindgen(
 cargo = find_program('cargo')
 
 buildtype = get_option('buildtype')
-if buildtype == 'release'
-  cargo_args = ['--release']
+if buildtype == 'release' or buildtype == 'debugoptimized'
+  cargo_args = ['--profile', buildtype]
 else
   cargo_args = []
 endif
