@@ -13,17 +13,15 @@ use skrifa::instance::{Location, Size};
 #[repr(C)]
 struct FontationsData {
     font_ref: FontRef<'static>,
-    pub offset: i32,
 }
 
-// A destructor for the user_data
 extern "C" fn _hb_fontations_data_destroy(ptr: *mut c_void) {
     if !ptr.is_null() {
         unsafe { let _ = Box::from_raw(ptr as *mut FontationsData); }
     }
+    // TODO
 }
 
-// Our callback: get glyph horizontal advance
 extern "C" fn _hb_fontations_get_glyph_h_advance(
     font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -45,6 +43,35 @@ extern "C" fn _hb_fontations_get_glyph_h_advance(
     let advance = glyph_metrics.advance_width(glyph_id).unwrap_or_default();
     advance as hb_position_t
 }
+extern "C" fn _hb_fontations_get_glyph_h_advances(
+    font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    count: ::std::os::raw::c_uint,
+    first_glyph: *const hb_codepoint_t,
+    glyph_stride: ::std::os::raw::c_uint,
+    first_advance: *mut hb_position_t,
+    advance_stride: ::std::os::raw::c_uint,
+    _user_data: *mut ::std::os::raw::c_void,
+) {
+    let data = unsafe {
+        assert!(!font_data.is_null());
+        &*(font_data as *const FontationsData)
+    };
+    let mut x_scale : i32 = 0;
+    let mut y_scale : i32 = 0;
+    unsafe { hb_font_get_scale(font, &mut x_scale, &mut y_scale); };
+    let font_ref = &data.font_ref;
+    let size = Size::new(x_scale as f32);
+    let location = Location::default();
+
+    for i in 0..count {
+        let glyph = unsafe { *first_glyph.offset((i * glyph_stride) as isize) };
+        let glyph_id = GlyphId::new(glyph);
+        let glyph_metrics = font_ref.glyph_metrics(size, &location);
+        let advance = glyph_metrics.advance_width(glyph_id).unwrap_or_default();
+        unsafe { *first_advance.offset((i * advance_stride) as isize) = advance as hb_position_t; }
+    }
+}
 
 fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
     let ffuncs = unsafe { hb_font_funcs_create() };
@@ -53,6 +80,12 @@ fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
         hb_font_funcs_set_glyph_h_advance_func(
             ffuncs,
             Some(_hb_fontations_get_glyph_h_advance),
+            null_mut(),
+            None
+        );
+        hb_font_funcs_set_glyph_h_advances_func(
+            ffuncs,
+            Some(_hb_fontations_get_glyph_h_advances),
             null_mut(),
             None
         );
@@ -76,7 +109,7 @@ pub extern "C" fn hb_fontations_font_set_funcs(
 
     let font_ref = FontRef::from_index(face_data, face_index).unwrap();
     // Set up some data for the callbacks to use:
-    let data = FontationsData { font_ref, offset: 100 };
+    let data = FontationsData { font_ref };
     let data_ptr = Box::into_raw(Box::new(data)) as *mut c_void;
 
     unsafe {
