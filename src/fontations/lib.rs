@@ -78,7 +78,6 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     }
 }
 
-
 fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t
 {
     static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
