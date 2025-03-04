@@ -18,6 +18,7 @@ struct FontationsData
     font_ref: FontRef<'static>,
     char_map : charmap::Charmap<'static>,
     size: Size,
+    location: Location,
 }
 
 extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void)
@@ -66,8 +67,8 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     let data = unsafe { &*(font_data as *const FontationsData) };
     let font_ref = &data.font_ref;
     let size = &data.size;
-    let location = Location::default(); // TODO
-    let glyph_metrics = font_ref.glyph_metrics(*size, &location);
+    let location = &data.location;
+    let glyph_metrics = font_ref.glyph_metrics(*size, location);
 
     for i in 0..count {
         let glyph = unsafe { *(first_glyph as *const u8).offset((i * glyph_stride) as isize) as *const hb_codepoint_t };
@@ -123,6 +124,8 @@ pub extern "C" fn hb_fontations_font_set_funcs(
 
     let char_map = charmap::Charmap::new(&font_ref);
 
+    let location = Location::default(); // TODO
+
     let mut x_scale : i32 = 0;
     let mut y_scale : i32 = 0;
     unsafe { hb_font_get_scale(font, &mut x_scale, &mut y_scale); };
@@ -133,6 +136,7 @@ pub extern "C" fn hb_fontations_font_set_funcs(
         font_ref,
         char_map,
         size,
+        location,
     });
     let data_ptr = Box::into_raw(data) as *mut c_void;
 
