@@ -17,6 +17,7 @@ struct FontationsData
     face_blob: *mut hb_blob_t,
     font_ref: FontRef<'static>,
     char_map : charmap::Charmap<'static>,
+    size: Size,
 }
 
 extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void)
@@ -52,7 +53,7 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
     count
 }
 extern "C" fn _hb_fontations_get_glyph_h_advances(
-    font: *mut hb_font_t,
+    _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     count: ::std::os::raw::c_uint,
     first_glyph: *const hb_codepoint_t,
@@ -63,13 +64,10 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
 )
 {
     let data = unsafe { &*(font_data as *const FontationsData) };
-    let mut x_scale : i32 = 0;
-    let mut y_scale : i32 = 0;
-    unsafe { hb_font_get_scale(font, &mut x_scale, &mut y_scale); };
     let font_ref = &data.font_ref;
-    let size = Size::new(x_scale as f32);
+    let size = &data.size;
     let location = Location::default(); // TODO
-    let glyph_metrics = font_ref.glyph_metrics(size, &location);
+    let glyph_metrics = font_ref.glyph_metrics(*size, &location);
 
     for i in 0..count {
         let glyph = unsafe { *(first_glyph as *const u8).offset((i * glyph_stride) as isize) as *const hb_codepoint_t };
@@ -122,12 +120,19 @@ pub extern "C" fn hb_fontations_font_set_funcs(
     let face_data = unsafe { std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize) };
 
     let font_ref = FontRef::from_index(face_data, face_index).unwrap();
+
     let char_map = charmap::Charmap::new(&font_ref);
+
+    let mut x_scale : i32 = 0;
+    let mut y_scale : i32 = 0;
+    unsafe { hb_font_get_scale(font, &mut x_scale, &mut y_scale); };
+    let size = Size::new(x_scale as f32);
 
     let data = Box::new(FontationsData {
         face_blob,
         font_ref,
         char_map,
+        size,
     });
     let data_ptr = Box::into_raw(data) as *mut c_void;
 
