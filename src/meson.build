@@ -699,6 +699,7 @@ if get_option('fontations').enabled()
   subdir('fontations')
 
   hb_fontations_sources = [
+    'hb-fontations.cc',
   ]
 
   hb_fontations_headers = [
