@@ -16,6 +16,7 @@ struct FontationsData
 {
     face_blob: *mut hb_blob_t,
     font_ref: FontRef<'static>,
+    char_map : charmap::Charmap<'static>,
 }
 
 extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void)
@@ -37,13 +38,15 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
 ) -> ::std::os::raw::c_uint
 {
     let data = unsafe { &*(font_data as *const FontationsData) };
-    let font_ref = &data.font_ref;
-    let char_map = charmap::Charmap::new(font_ref);
+    let char_map = &data.char_map;
 
     for i in 0..count {
         let unicode = unsafe { *(first_unicode as *const u8).offset((i * unicode_stride) as isize) as *const hb_codepoint_t };
-        let glyph = u32::from(char_map.map(unicode as u32).unwrap_or(GlyphId::new(0)));
-        unsafe { *((first_glyph as *mut u8).offset((i * glyph_stride) as isize) as *mut hb_codepoint_t) = glyph as hb_codepoint_t; }
+        let glyph = char_map.map(unicode as u32);
+        if glyph.is_none()
+        { return i; }
+        let glyph_id = u32::from(glyph.unwrap()) as hb_codepoint_t;
+        unsafe { *((first_glyph as *mut u8).offset((i * glyph_stride) as isize) as *mut hb_codepoint_t) = glyph_id; }
     }
 
     count
@@ -119,10 +122,12 @@ pub extern "C" fn hb_fontations_font_set_funcs(
     let face_data = unsafe { std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize) };
 
     let font_ref = FontRef::from_index(face_data, face_index).unwrap();
-    // Set up some data for the callbacks to use:
+    let char_map = charmap::Charmap::new(&font_ref);
+
     let data = Box::new(FontationsData {
         face_blob,
-        font_ref
+        font_ref,
+        char_map,
     });
     let data_ptr = Box::into_raw(data) as *mut c_void;
 
