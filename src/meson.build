@@ -736,6 +736,16 @@ if get_option('fontations').enabled()
     subdirs: [meson.project_name()],
     version: meson.project_version(),
   )
+
+  rust = import('unstable-rust')
+
+  generated = rust.bindgen(
+    input : 'hb.h',
+    output : 'hb.rs',
+    include_directories: incsrc,
+    args : ['--allowlist-function=hb_.*', '--allowlist-type=hb_.*'],
+    #args : ['--no-rustfmt-bindings'],
+  )
 endif
 
 if get_option('tests').enabled()
