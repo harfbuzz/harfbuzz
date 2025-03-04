@@ -90,15 +90,16 @@
 
       <chapter id="integration-api">
         <title>Integration API</title>
+        <xi:include href="xml/hb-cairo.xml"/>
         <xi:include href="xml/hb-coretext.xml"/>
+        <xi:include href="xml/hb-directwrite.xml"/>
         <xi:include href="xml/hb-ft.xml"/>
+        <xi:include href="xml/hb-fontations.xml"/>
+        <xi:include href="xml/hb-gdi.xml"/>
         <xi:include href="xml/hb-glib.xml"/>
         <xi:include href="xml/hb-graphite2.xml"/>
         <xi:include href="xml/hb-icu.xml"/>
         <xi:include href="xml/hb-uniscribe.xml"/>
-        <xi:include href="xml/hb-gdi.xml"/>
-        <xi:include href="xml/hb-directwrite.xml"/>
-        <xi:include href="xml/hb-cairo.xml"/>
       </chapter>
 
       <chapter id="style-api">
