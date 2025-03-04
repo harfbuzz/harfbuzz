@@ -62,7 +62,7 @@ extern "C" fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
 
 // A helper to attach these funcs to a hb_font_t
 #[no_mangle]
-pub extern "C" fn hb_fontations_font_set_funcs(
+pub extern "C" fn _hb_fontations_font_set_funcs(
     font: *mut hb_font_t,
 ) {
     let ffuncs = _hb_fontations_font_funcs_create ();
