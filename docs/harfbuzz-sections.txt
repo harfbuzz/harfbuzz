@@ -518,6 +518,12 @@ hb_glyph_extents_t
 </SECTION>
 
 <SECTION>
+<FILE>hb-fontations</FILE>
+hb_fontations_font_set_funcs
+</SECTION>
+
+
+<SECTION>
 <FILE>hb-ft</FILE>
 hb_ft_face_create
 hb_ft_face_create_cached
