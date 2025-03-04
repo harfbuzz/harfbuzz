@@ -453,7 +453,6 @@ hb_sources = hb_base_sources + hb_base_ragel_generated_sources
 hb_headers = hb_base_headers
 
 harfbuzz_deps = [thread_dep, m_dep] + harfbuzz_extra_deps
-harfbuzz_link_args = []
 
 if get_option('with_libstdcxx')
   chosen_linker = 'cpp'
@@ -524,7 +523,6 @@ if conf.get('HAVE_FONTATIONS', 0) == 1
   hb_sources += hb_fontations_sources
   hb_headers += hb_fontations_headers
   harfbuzz_deps += [harfbuzz_fontations_dep]
-  harfbuzz_link_args += ['-Wl,--whole-archive', '-L' + meson.current_build_dir() + '/fontations', '-lharfbuzz_fontations', '-Wl,--no-whole-archive']
 endif
 
 have_icu = conf.get('HAVE_ICU', 0) == 1
@@ -612,7 +610,6 @@ darwin_versions = [hb_version_int, '@0@.0.0'.format(hb_version_int)]
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: incconfig,
   dependencies: harfbuzz_deps,
-  link_args: harfbuzz_link_args,
   cpp_args: cpp_args + extra_hb_cpp_args,
   soversion: hb_so_version,
   version: version,
