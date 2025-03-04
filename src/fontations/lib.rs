@@ -5,17 +5,14 @@ include!(concat!(env!("OUT_DIR"), "/hb.rs"));
 use std::os::raw::{c_void};
 use std::ptr::{null_mut};
 
-// If you want to parse TTF/OTF with read-fonts, etc. import them:
-//extern crate read_fonts;
-//use read_fonts::FontRef;
-// use skrifa::{...};
+use skrifa::{MetadataProvider, GlyphId};
+use skrifa::font::FontRef;
+use skrifa::instance::{Location, Size};
 
 // A struct for storing your “fontations” data
 #[repr(C)]
 struct FontationsData {
-    // e.g. storing an owned font buffer, or read-fonts handles:
-    // font_bytes: Vec<u8>,
-    // font_ref: Option<FontRef<'static>>,
+    font_ref: FontRef<'static>,
     pub offset: i32,
 }
 
@@ -28,18 +25,25 @@ extern "C" fn _hb_fontations_data_destroy(ptr: *mut c_void) {
 
 // Our callback: get glyph horizontal advance
 extern "C" fn _hb_fontations_get_glyph_h_advance(
-    _font: *mut hb_font_t,
-    font_data: *mut c_void,
+    font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
     glyph: hb_codepoint_t,
-    _user_data: *mut c_void
+    _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_position_t {
     let data = unsafe {
         assert!(!font_data.is_null());
         &*(font_data as *const FontationsData)
     };
-    // Just a dummy formula:
-    let advance = (glyph as i32) + data.offset;
-    advance
+    let mut x_scale : i32 = 0;
+    let mut y_scale : i32 = 0;
+    unsafe { hb_font_get_scale(font, &mut x_scale, &mut y_scale); };
+    let font_ref = &data.font_ref;
+    let size = Size::new(x_scale as f32);
+    let glyph_id = GlyphId::new(glyph);
+    let location = Location::default();
+    let glyph_metrics = font_ref.glyph_metrics(size, &location);
+    let advance = glyph_metrics.advance_width(glyph_id).unwrap_or_default();
+    advance as hb_position_t
 }
 
 fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
@@ -64,8 +68,15 @@ pub extern "C" fn hb_fontations_font_set_funcs(
 ) {
     let ffuncs = _hb_fontations_font_funcs_create ();
 
+    let face_index = unsafe { hb_face_get_index(hb_font_get_face(font)) };
+    let face_blob = unsafe { hb_face_reference_blob(hb_font_get_face(font)) };
+    let blob_length = unsafe { hb_blob_get_length(face_blob) };
+    let blob_data = unsafe { hb_blob_get_data(face_blob, null_mut()) };
+    let face_data = unsafe { std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize) };
+
+    let font_ref = FontRef::from_index(face_data, face_index).unwrap();
     // Set up some data for the callbacks to use:
-    let data = FontationsData { offset: 100 };
+    let data = FontationsData { font_ref, offset: 100 };
     let data_ptr = Box::into_raw(Box::new(data)) as *mut c_void;
 
     unsafe {
