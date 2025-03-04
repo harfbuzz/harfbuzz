@@ -22,7 +22,7 @@ pub struct FontationsData {
 #[no_mangle]
 pub extern "C" fn fontations_data_destroy(ptr: *mut c_void) {
     if !ptr.is_null() {
-        unsafe { Box::from_raw(ptr as *mut FontationsData); }
+        unsafe { let _ = Box::from_raw(ptr as *mut FontationsData); }
     }
 }
 
