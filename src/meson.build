@@ -326,6 +326,9 @@ hb_base_headers += hb_version_h
 hb_ft_sources = files('hb-ft.cc', 'hb-ft-colr.hh')
 hb_ft_headers = files('hb-ft.h')
 
+hb_fontations_sources = files()
+hb_fontations_headers = files('hb-fontations.h')
+
 hb_glib_sources = files('hb-glib.cc')
 hb_glib_headers = files('hb-glib.h')
 
@@ -510,7 +513,16 @@ endif
 if conf.get('HAVE_CORETEXT', 0) == 1
   hb_sources += hb_coretext_sources
   hb_headers += hb_coretext_headers
-  harfbuzz_deps += coretext_deps
+  harfbuzz_deps += coretext_dep
+endif
+
+if conf.get('HAVE_FONTATIONS', 0) == 1
+
+  subdir('fontations')
+
+  hb_sources += hb_fontations_sources
+  hb_headers += hb_fontations_headers
+  harfbuzz_deps += [harfbuzz_fontations_dep]
 endif
 
 have_icu = conf.get('HAVE_ICU', 0) == 1
@@ -687,51 +699,6 @@ if conf.get('HAVE_CAIRO', 0) == 1
 
   pkgmod.generate(libharfbuzz_cairo,
     description: 'HarfBuzz cairo support',
-    requires: ['harfbuzz = @0@'.format(meson.project_version())],
-    subdirs: [meson.project_name()],
-    version: meson.project_version(),
-  )
-endif
-
-libharfbuzz_fontations_dep = null_dep
-if get_option('fontations').enabled()
-
-  subdir('fontations')
-
-  hb_fontations_sources = [
-    'hb-fontations.cc',
-  ]
-
-  hb_fontations_headers = [
-    'hb-fontations.h',
-  ]
-
-  libharfbuzz_fontations = library('harfbuzz-fontations', hb_fontations_sources,
-    include_directories: incconfig,
-    link_with: [libharfbuzz, cargo_build],
-    soversion: hb_so_version,
-    version: version,
-    install: true,
-    darwin_versions: darwin_versions,
-    link_language: chosen_linker,
-  )
-
-  install_headers(hb_fontations_headers, subdir: meson.project_name())
-
-  libharfbuzz_fontations_dep = declare_dependency(
-    link_with: libharfbuzz_fontations,
-    include_directories: incsrc,
-    dependencies: [])
-  meson.override_dependency('harfbuzz-fontations', libharfbuzz_fontations_dep)
-
-  harfbuzz_fontations_def = custom_target('harfbuzz-fontations.def',
-    command: gen_def_cmd,
-    input: hb_fontations_headers,
-    output: 'harfbuzz-fontations.def')
-  defs_list += [harfbuzz_fontations_def]
-
-  pkgmod.generate(libharfbuzz_fontations,
-    description: 'HarfBuzz fontations support',
     requires: ['harfbuzz = @0@'.format(meson.project_version())],
     subdirs: [meson.project_name()],
     version: meson.project_version(),

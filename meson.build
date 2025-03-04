@@ -219,7 +219,7 @@ endif
 
 chafa_dep = dependency('chafa', version: chafa_min_version, required: get_option('chafa'))
 
-fontations_dep = null_dep
+fontations_dep_found = false
 if get_option('fontations').enabled()
   add_languages(['rust'], native: false, required : true)
   fontations_dep_found = true
