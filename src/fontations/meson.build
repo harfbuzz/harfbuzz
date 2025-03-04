@@ -10,10 +10,10 @@ hb_rs = rust.bindgen(
 
 cargo = find_program('cargo')
 
-libharfbuzz_fontations = custom_target(
+harfbuzz_fontations = custom_target(
   'harfbuzz_fontations',
   input: ['lib.rs'],
-  output: ['libharfbuzz_fontations.so'],
+  output: ['libharfbuzz_fontations.a'],
   depends: [hb_rs],
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
@@ -30,5 +30,5 @@ libharfbuzz_fontations = custom_target(
 )
 
 harfbuzz_fontations_dep = declare_dependency(
-  link_with: libharfbuzz_fontations,
+  link_with: harfbuzz_fontations,
 )
