@@ -693,6 +693,57 @@ if conf.get('HAVE_CAIRO', 0) == 1
   )
 endif
 
+libharfbuzz_fontations_dep = null_dep
+if get_option('fontations').enabled()
+
+  subdir('fontations')
+
+  hb_fontations_sources = [
+  ]
+
+  hb_fontations_headers = [
+    'hb-fontations.h',
+  ]
+
+  harfbuzz_fontations_rust_dep = declare_dependency(
+    link_with: harfbuzz_fontations_rust,
+    dependencies: [harfbuzz_dep], # XXX
+  )
+
+  libharfbuzz_fontations = library('harfbuzz-fontations', hb_fontations_sources,
+    include_directories: incconfig,
+    dependencies: [harfbuzz_fontations_rust_dep],
+    link_with: [libharfbuzz],
+     cpp_args: cpp_args + extra_hb_cpp_args,
+    soversion: hb_so_version,
+    version: version,
+    install: true,
+    darwin_versions: darwin_versions,
+    link_language: chosen_linker,
+  )
+
+  install_headers(hb_fontations_headers, subdir: meson.project_name())
+
+  libharfbuzz_fontations_dep = declare_dependency(
+    link_with: libharfbuzz_fontations,
+    include_directories: incsrc,
+    dependencies: [])
+  meson.override_dependency('harfbuzz-fontations', libharfbuzz_fontations_dep)
+
+  harfbuzz_fontations_def = custom_target('harfbuzz-fontations.def',
+    command: gen_def_cmd,
+    input: hb_fontations_headers,
+    output: 'harfbuzz-fontations.def')
+  defs_list += [harfbuzz_fontations_def]
+
+  pkgmod.generate(libharfbuzz_fontations,
+    description: 'HarfBuzz fontations support',
+    requires: ['harfbuzz = @0@'.format(meson.project_version())],
+    subdirs: [meson.project_name()],
+    version: meson.project_version(),
+  )
+endif
+
 if get_option('tests').enabled()
   # TODO: Microsoft LINK gives the following because extern, non dllexport
   # symbols can only be used when linking against a static library

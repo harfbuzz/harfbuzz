@@ -1,4 +1,4 @@
-project('harfbuzz', 'c', 'cpp',
+project('harfbuzz', ['c', 'cpp', 'rust'],
   meson_version: '>= 0.55.0',
   version: '10.4.0',
   default_options: [
