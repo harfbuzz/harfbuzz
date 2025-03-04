@@ -1,4 +1,4 @@
-project('harfbuzz', ['c', 'cpp', 'rust'],
+project('harfbuzz', ['c', 'cpp'],
   meson_version: '>= 0.55.0',
   version: '10.4.0',
   default_options: [
@@ -221,6 +221,7 @@ chafa_dep = dependency('chafa', version: chafa_min_version, required: get_option
 
 fontations_dep = null_dep
 if get_option('fontations').enabled()
+  add_languages(['rust'], native: false, required : true)
   fontations_dep_found = true
 endif
 
