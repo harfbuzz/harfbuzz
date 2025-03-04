@@ -696,8 +696,9 @@ endif
 libharfbuzz_fontations_dep = null_dep
 if get_option('fontations').enabled()
 
+  subdir('fontations')
+
   hb_fontations_sources = [
-    'fontations/lib.rs',
   ]
 
   hb_fontations_headers = [
@@ -706,10 +707,8 @@ if get_option('fontations').enabled()
 
   libharfbuzz_fontations = library('harfbuzz-fontations', hb_fontations_sources,
     include_directories: incconfig,
-    link_with: [libharfbuzz],
-    cpp_args: cpp_args + extra_hb_cpp_args,
-    rust_args: ['-Z', 'unstable-options',
-                '--env-set', 'BUILD_ROOT='+meson.build_root()],
+    link_with: [libharfbuzz, cargo_build],
+    dependencies: [harfbuzz_fontations_dep],
     soversion: hb_so_version,
     version: version,
     rust_abi: 'c',
@@ -737,16 +736,6 @@ if get_option('fontations').enabled()
     requires: ['harfbuzz = @0@'.format(meson.project_version())],
     subdirs: [meson.project_name()],
     version: meson.project_version(),
-  )
-
-  rust = import('unstable-rust')
-
-  generated = rust.bindgen(
-    input : 'hb.h',
-    output : 'hb.rs',
-    include_directories: incsrc,
-    args : ['--allowlist-function=hb_.*', '--allowlist-type=hb_.*'],
-    #args : ['--no-rustfmt-bindings'],
   )
 endif
 
