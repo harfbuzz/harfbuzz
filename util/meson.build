@@ -19,7 +19,7 @@ hb_subset_cli_sources = [
   'helper-subset.hh',
 ]
 
-util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep, libharfbuzz_fontations_dep]
+util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep, harfbuzz_fontations_dep]
 
 if conf.get('HAVE_GLIB', 0) == 1
   if conf.get('HAVE_CAIRO', 0) == 1

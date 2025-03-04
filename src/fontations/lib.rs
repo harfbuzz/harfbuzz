@@ -1,6 +1,6 @@
 #![allow(non_camel_case_types)]
 #![allow(non_upper_case_globals)]
-include!(concat!(env!("BUILD_ROOT"), "/src", "/hb.rs"));
+include!(concat!(env!("OUT_DIR"), "/hb.rs"));
 
 use std::os::raw::{c_void};
 use std::ptr::{null_mut};
@@ -12,7 +12,7 @@ use std::ptr::{null_mut};
 
 // A struct for storing your “fontations” data
 #[repr(C)]
-pub struct FontationsData {
+struct FontationsData {
     // e.g. storing an owned font buffer, or read-fonts handles:
     // font_bytes: Vec<u8>,
     // font_ref: Option<FontRef<'static>>,
@@ -21,7 +21,7 @@ pub struct FontationsData {
 
 // A destructor for the user_data
 #[no_mangle]
-pub extern "C" fn fontations_data_destroy(ptr: *mut c_void) {
+extern "C" fn fontations_data_destroy(ptr: *mut c_void) {
     if !ptr.is_null() {
         unsafe { let _ = Box::from_raw(ptr as *mut FontationsData); }
     }
@@ -29,7 +29,7 @@ pub extern "C" fn fontations_data_destroy(ptr: *mut c_void) {
 
 // Our callback: get glyph horizontal advance
 #[no_mangle]
-pub extern "C" fn hb_fontations_get_glyph_h_advance(
+extern "C" fn _hb_fontations_get_glyph_h_advance(
     _font: *mut hb_font_t,
     font_data: *mut c_void,
     glyph: hb_codepoint_t,
@@ -45,13 +45,13 @@ pub extern "C" fn hb_fontations_get_glyph_h_advance(
 }
 
 #[no_mangle]
-pub extern "C" fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
+extern "C" fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
     let ffuncs = unsafe { hb_font_funcs_create() };
 
     unsafe {
         hb_font_funcs_set_glyph_h_advance_func(
             ffuncs,
-            Some(hb_fontations_get_glyph_h_advance),
+            Some(_hb_fontations_get_glyph_h_advance),
             null_mut(),
             None
         );
