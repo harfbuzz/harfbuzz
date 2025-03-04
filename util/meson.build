@@ -19,7 +19,7 @@ hb_subset_cli_sources = [
   'helper-subset.hh',
 ]
 
-util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]
+util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep, libharfbuzz_fontations_dep]
 
 if conf.get('HAVE_GLIB', 0) == 1
   if conf.get('HAVE_CAIRO', 0) == 1
@@ -27,7 +27,7 @@ if conf.get('HAVE_GLIB', 0) == 1
       cpp_args: cpp_args,
       include_directories: [incconfig, incsrc],
       dependencies: [util_deps, chafa_dep],
-      link_with: [libharfbuzz, libharfbuzz_cairo, libharfbuzz_fontations],
+      link_with: [libharfbuzz, libharfbuzz_cairo],
       install: true,
     )
     meson.override_find_program('hb-view', hb_view)
@@ -37,7 +37,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
     dependencies: [util_deps],
-    link_with: [libharfbuzz, libharfbuzz_fontations],
+    link_with: [libharfbuzz],
     install: true,
   )
   meson.override_find_program('hb-shape', hb_shape)
@@ -46,7 +46,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
     dependencies: [util_deps, libharfbuzz_gobject_dep, chafa_dep],
-    link_with: [libharfbuzz, libharfbuzz_fontations],
+    link_with: [libharfbuzz],
     install: true,
   )
   meson.override_find_program('hb-info', hb_info)
@@ -64,7 +64,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
     dependencies: util_deps,
-    link_with: [libharfbuzz, libharfbuzz_fontations],
+    link_with: [libharfbuzz],
     install: true,
   )
   meson.override_find_program('hb-ot-shape-closure', hb_ot_shape_closure)
@@ -77,7 +77,7 @@ if conf.get('HAVE_GLIB', 0) == 1
         c_args: ['-DHB_EXPERIMENTAL_API'],
         include_directories: [incconfig, incsrc],
         dependencies: util_deps,
-        link_with: [libharfbuzz, libharfbuzz_subset, libharfbuzz_fontations],
+        link_with: [libharfbuzz, libharfbuzz_subset],
         install: false,
     ),
     workdir : meson.current_source_dir(),
