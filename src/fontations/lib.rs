@@ -20,7 +20,6 @@ struct FontationsData {
 }
 
 // A destructor for the user_data
-#[no_mangle]
 extern "C" fn _hb_fontations_data_destroy(ptr: *mut c_void) {
     if !ptr.is_null() {
         unsafe { let _ = Box::from_raw(ptr as *mut FontationsData); }
@@ -28,7 +27,6 @@ extern "C" fn _hb_fontations_data_destroy(ptr: *mut c_void) {
 }
 
 // Our callback: get glyph horizontal advance
-#[no_mangle]
 extern "C" fn _hb_fontations_get_glyph_h_advance(
     _font: *mut hb_font_t,
     font_data: *mut c_void,
@@ -44,7 +42,6 @@ extern "C" fn _hb_fontations_get_glyph_h_advance(
     advance
 }
 
-#[no_mangle]
 fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
     let ffuncs = unsafe { hb_font_funcs_create() };
 
