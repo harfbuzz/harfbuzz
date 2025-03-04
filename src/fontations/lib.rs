@@ -6,7 +6,8 @@ use std::os::raw::{c_void};
 use std::ptr::{null_mut};
 
 // If you want to parse TTF/OTF with read-fonts, etc. import them:
-// use read_fonts::FontRef;
+//extern crate read_fonts;
+//use read_fonts::FontRef;
 // use skrifa::{...};
 
 // A struct for storing your “fontations” data
