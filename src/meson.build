@@ -663,7 +663,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
     include_directories: incconfig,
     dependencies: [m_dep, cairo_dep],
     link_with: [libharfbuzz],
-     cpp_args: cpp_args + extra_hb_cpp_args,
+    cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,
     install: true,
@@ -696,27 +696,21 @@ endif
 libharfbuzz_fontations_dep = null_dep
 if get_option('fontations').enabled()
 
-  subdir('fontations')
-
   hb_fontations_sources = [
+    'fontations/lib.rs',
   ]
 
   hb_fontations_headers = [
     'hb-fontations.h',
   ]
 
-  harfbuzz_fontations_rust_dep = declare_dependency(
-    link_with: harfbuzz_fontations_rust,
-    dependencies: [harfbuzz_dep], # XXX
-  )
-
   libharfbuzz_fontations = library('harfbuzz-fontations', hb_fontations_sources,
     include_directories: incconfig,
-    dependencies: [harfbuzz_fontations_rust_dep],
     link_with: [libharfbuzz],
-     cpp_args: cpp_args + extra_hb_cpp_args,
+    cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,
+    rust_abi: 'c',
     install: true,
     darwin_versions: darwin_versions,
     link_language: chosen_linker,
