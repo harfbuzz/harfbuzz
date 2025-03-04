@@ -28,7 +28,16 @@
 #include "hb.h"
 
 HB_BEGIN_DECLS
-
+/**
+ * hb_fontations_font_set_funcs:
+ * @font: #hb_font_t to work upon
+ *
+ * Configures the font-functions structure of the specified #hb_font_t font
+ * object to use [Fontations](https://github.com/googlefonts/fontations/) font
+ * functions.
+ *
+ * XSince: REPLACEME
+ **/
 HB_EXTERN void
 hb_fontations_font_set_funcs (hb_font_t *font);
 
