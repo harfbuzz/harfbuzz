@@ -514,7 +514,7 @@ endif
 if conf.get('HAVE_CORETEXT', 0) == 1
   hb_sources += hb_coretext_sources
   hb_headers += hb_coretext_headers
-  harfbuzz_deps += coretext_dep
+  harfbuzz_deps += coretext_deps
 endif
 
 if conf.get('HAVE_FONTATIONS', 0) == 1
