@@ -18,7 +18,7 @@ harfbuzz_fontations = custom_target(
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     cargo, 'build',
-    '--release',
+    #'--release',
     '--lib',
     '--target-dir', meson.current_build_dir(),
     '-Z', 'unstable-options',
