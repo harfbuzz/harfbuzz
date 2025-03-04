@@ -219,6 +219,11 @@ endif
 
 chafa_dep = dependency('chafa', version: chafa_min_version, required: get_option('chafa'))
 
+fontations_dep = null_dep
+if get_option('fontations').enabled()
+  fontations_dep_found = true
+endif
+
 conf = configuration_data()
 incconfig = include_directories('.')
 
@@ -258,6 +263,10 @@ endif
 
 if chafa_dep.found()
   conf.set('HAVE_CHAFA', 1)
+endif
+
+if fontations_dep_found
+  conf.set('HAVE_FONTATIONS', 1)
 endif
 
 if wasm_dep.found()
