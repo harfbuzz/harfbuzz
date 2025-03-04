@@ -10,6 +10,13 @@ hb_rs = rust.bindgen(
 
 cargo = find_program('cargo')
 
+buildtype = get_option('buildtype')
+if buildtype == 'release'
+  cargo_args = ['--release']
+else
+  cargo_args = []
+endif
+
 harfbuzz_fontations = custom_target(
   'harfbuzz_fontations',
   input: ['lib.rs'],
@@ -18,7 +25,7 @@ harfbuzz_fontations = custom_target(
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     cargo, 'build',
-    #'--release',
+    ] + cargo_args + [
     '--lib',
     '--target-dir', meson.current_build_dir(),
     '-Z', 'unstable-options',
