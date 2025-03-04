@@ -415,6 +415,9 @@ hb_coretext_get_glyph_name (hb_font_t *font,
 		    (UInt8 *) name, size, &len);
 
   name[len] = '\0';
+
+  CFRelease (cf_name);
+
   return true;
 }
 
