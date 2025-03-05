@@ -344,6 +344,16 @@ impl HbColorPainter {
                 | ((c.alpha as f32 * alpha) as u32)) as hb_color_t
         }
     }
+
+    fn make_color_line(&mut self, color_stops : &ColorLineData) -> hb_color_line_t {
+        let mut cl = unsafe { std::mem::zeroed::<hb_color_line_t>() };
+        cl.data = self as *mut HbColorPainter as *mut ::std::os::raw::c_void;
+        cl.get_color_stops = Some(_hb_fontations_get_color_stops);
+        cl.get_color_stops_user_data = color_stops as *const ColorLineData as *mut ::std::os::raw::c_void;
+        cl.get_extend = Some(_hb_fontations_get_extend);
+        cl.get_extend_user_data = color_stops as *const ColorLineData as *mut ::std::os::raw::c_void;
+        cl
+    }
 }
 
 struct ColorLineData<'a> {
@@ -475,18 +485,12 @@ impl ColorPainter for HbColorPainter {
                 p1,
             } => {
                 let color_stops = ColorLineData { color_stops: &color_stops, extend };
+                let mut color_line = self.make_color_line(&color_stops);
                 unsafe {
-                    let mut cl = std::mem::zeroed::<hb_color_line_t>();
-                    cl.data = self as *mut HbColorPainter as *mut ::std::os::raw::c_void;
-                    cl.get_color_stops = Some(_hb_fontations_get_color_stops);
-                    cl.get_color_stops_user_data = &color_stops as *const ColorLineData as *mut ::std::os::raw::c_void;
-                    cl.get_extend = Some(_hb_fontations_get_extend);
-                    cl.get_extend_user_data = &extend as *const Extend as *mut ::std::os::raw::c_void;
-
                     hb_paint_linear_gradient(
                         self.paint_funcs,
                         self.paint_data,
-                        &mut cl,
+                        &mut color_line,
                         p0.x,
                         p0.y,
                         p1.x,
