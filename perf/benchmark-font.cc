@@ -21,7 +21,7 @@ struct test_input_t
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
-enum backend_t { HARFBUZZ, FREETYPE, CORETEXT };
+enum backend_t { HARFBUZZ, FREETYPE, FONTATIONS, CORETEXT };
 
 enum operation_t
 {
@@ -109,6 +109,12 @@ static void BM_Font (benchmark::State &state,
     case FREETYPE:
 #ifdef HAVE_FREETYPE
       hb_ft_font_set_funcs (font);
+#endif
+      break;
+
+    case FONTATIONS:
+#ifdef HAVE_FONTATIONS
+      hb_fontations_font_set_funcs (font);
 #endif
       break;
 
@@ -216,6 +222,12 @@ static void BM_Font (benchmark::State &state,
 #endif
 	    break;
 
+	  case FONTATIONS:
+#ifdef HAVE_FONTATIONS
+	    hb_fontations_font_set_funcs (font);
+#endif
+	    break;
+
 	  case CORETEXT:
 #ifdef HAVE_CORETEXT
 	    hb_coretext_font_set_funcs (font);
@@ -275,6 +287,9 @@ static void test_operation (operation_t op,
       test_backend (HARFBUZZ, "hb", is_var, op, op_name, time_unit, test_input);
 #ifdef HAVE_FREETYPE
       test_backend (FREETYPE, "ft", is_var, op, op_name, time_unit, test_input);
+#endif
+#ifdef HAVE_FONTATIONS
+      test_backend (FONTATIONS, "fontations", is_var, op, op_name, time_unit, test_input);
 #endif
 #ifdef HAVE_CORETEXT
       test_backend (CORETEXT, "coretext", is_var, op, op_name, time_unit, test_input);

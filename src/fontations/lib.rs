@@ -268,7 +268,7 @@ extern "C" fn _hb_fontations_draw_glyph(
     let _ = outline_glyph.draw(draw_settings, &mut pen);
 }
 
-fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
+fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
     static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
 
     loop {
@@ -334,7 +334,7 @@ fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
 // A helper to attach these funcs to a hb_font_t
 #[no_mangle]
 pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
-    let ffuncs = _hb_fontations_font_funcs_create();
+    let ffuncs = _hb_fontations_font_funcs_get();
 
     let face_index = unsafe { hb_face_get_index(hb_font_get_face(font)) };
     let face_blob = unsafe { hb_face_reference_blob(hb_font_get_face(font)) };

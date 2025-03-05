@@ -36,6 +36,9 @@
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
+#ifdef HAVE_FONTATIONS
+#include <hb-fontations.h>
+#endif
 #ifdef HAVE_CORETEXT
 #include <hb-coretext.h>
 #endif
