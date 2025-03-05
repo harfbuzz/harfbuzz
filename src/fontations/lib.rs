@@ -50,8 +50,8 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
 
     for i in 0..count {
         let unicode = unsafe {
-            *(first_unicode as *const u8).offset((i * unicode_stride) as isize)
-                as *const hb_codepoint_t
+            *((first_unicode as *const u8).offset((i * unicode_stride) as isize)
+                as *const hb_codepoint_t)
         };
         let glyph = char_map.map(unicode as u32);
         if glyph.is_none() {
@@ -105,7 +105,8 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
 
     for i in 0..count {
         let glyph = unsafe {
-            *(first_glyph as *const u8).offset((i * glyph_stride) as isize) as *const hb_codepoint_t
+            *((first_glyph as *const u8).offset((i * glyph_stride) as isize)
+                as *const hb_codepoint_t)
         };
         let glyph_id = GlyphId::new(glyph as u32);
         let advance = glyph_metrics
