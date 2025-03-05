@@ -6,17 +6,20 @@ use std::os::raw::c_void;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
+use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
 use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
-use skrifa::{charmap, GlyphId, MetadataProvider};
+use skrifa::outline::pen::NullPen;
+use skrifa::outline::DrawSettings;
+use skrifa::{GlyphId, MetadataProvider};
 
 // A struct for storing your “fontations” data
 #[repr(C)]
 struct FontationsData {
     face_blob: *mut hb_blob_t,
     font_ref: FontRef<'static>,
-    char_map: charmap::Charmap<'static>,
+    char_map: Charmap<'static>,
     x_size: Size,
     y_size: Size,
     location: Location,
@@ -177,6 +180,33 @@ extern "C" fn _hb_fontations_get_font_h_extents(
     true as hb_bool_t
 }
 
+extern "C" fn _hb_fontations_draw_glyph(
+    _font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    glyph: hb_codepoint_t,
+    draw_funcs: *mut hb_draw_funcs_t,
+    draw_data: *mut ::std::os::raw::c_void,
+    _user_data: *mut ::std::os::raw::c_void,
+) {
+    let data = unsafe { &*(font_data as *const FontationsData) };
+    let font_ref = &data.font_ref;
+    let x_size = &data.x_size;
+    let location = &data.location;
+
+    // Create an outline-glyph
+    let glyph_id = GlyphId::new(glyph as u32);
+    let outline_glyphs = font_ref.outline_glyphs();
+    let outline_glyph = outline_glyphs.get(glyph_id);
+    if outline_glyph.is_none() {
+        return;
+    }
+    let outline_glyph = outline_glyph.unwrap();
+    let draw_settings = DrawSettings::unhinted(*x_size, location);
+
+    let mut pen = NullPen;
+    let _ = outline_glyph.draw(draw_settings, &mut pen);
+}
+
 fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
     static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
 
@@ -220,6 +250,12 @@ fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
                 null_mut(),
                 None,
             );
+            hb_font_funcs_set_draw_glyph_func(
+                ffuncs,
+                Some(_hb_fontations_draw_glyph),
+                null_mut(),
+                None,
+            );
         }
 
         if (static_ffuncs.compare_exchange(null_mut(), ffuncs, Ordering::SeqCst, Ordering::Relaxed))
@@ -248,7 +284,7 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
 
     let font_ref = FontRef::from_index(face_data, face_index).unwrap();
 
-    let char_map = charmap::Charmap::new(&font_ref);
+    let char_map = Charmap::new(&font_ref);
 
     let mut num_coords: u32 = 0;
     let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
