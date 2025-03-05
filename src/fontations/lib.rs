@@ -281,7 +281,7 @@ struct HbColorPainter {
     font: *mut hb_font_t,
     paint_funcs: *mut hb_paint_funcs_t,
     paint_data: *mut c_void,
-    color_records: Box<[ColorRecord]>,
+    color_records: &'static [ColorRecord],
     foreground: hb_color_t,
     composite_mode: Vec<CompositeMode>,
     clip_transform_stack: Vec<bool>,
@@ -522,7 +522,8 @@ impl ColorPainter for HbColorPainter {
                 };
                 let mut color_line = self.make_color_line(&color_stops);
 
-                let (x0, y0, x1, y1, x2, y2) = _hb_fontations_unreduce_anchors(p0.x, p0.y, p1.x, p1.y);
+                let (x0, y0, x1, y1, x2, y2) =
+                    _hb_fontations_unreduce_anchors(p0.x, p0.y, p1.x, p1.y);
 
                 unsafe {
                     hb_paint_linear_gradient(
@@ -623,7 +624,7 @@ extern "C" fn _hb_fontations_paint_glyph(
     glyph: hb_codepoint_t,
     paint_funcs: *mut hb_paint_funcs_t,
     paint_data: *mut ::std::os::raw::c_void,
-    _palette_index: ::std::os::raw::c_uint,
+    palette_index: ::std::os::raw::c_uint,
     foreground: hb_color_t,
     _user_data: *mut ::std::os::raw::c_void,
 ) {
@@ -641,17 +642,25 @@ extern "C" fn _hb_fontations_paint_glyph(
     let color_glyph = color_glyph.unwrap();
 
     let cpal = font_ref.cpal();
-    let mut color_records = Box::<[ColorRecord]>::default();
-    if cpal.is_ok() {
+    let color_records = if cpal.is_err() {
+        unsafe { std::slice::from_raw_parts(std::ptr::null(), 0) }
+    } else {
         let cpal = cpal.unwrap();
-        // TODO fontations doesn't seem to provide a way to access palettes
-        // really. Just assume the first palette starts at the beginning
-        // of the color records array.
-        let color_records_array = cpal.color_records_array();
-        if !color_records_array.is_none() {
-            color_records = Box::from(color_records_array.unwrap().unwrap());
+        let num_entries: usize = cpal.num_palette_entries().into();
+        let color_records = cpal.color_records_array();
+        let start_index = cpal.color_record_indices().get(palette_index as usize);
+        if !color_records.is_none()
+            && color_records.as_ref().unwrap().is_ok()
+            && !start_index.is_none()
+        {
+            let start_index: usize = start_index.unwrap().get().into();
+            let color_records = color_records.unwrap().unwrap();
+            let color_records = &color_records[start_index..start_index + num_entries];
+            unsafe { std::slice::from_raw_parts(color_records.as_ptr(), num_entries) }
+        } else {
+            unsafe { std::slice::from_raw_parts(std::ptr::null(), 0) }
         }
-    }
+    };
 
     let mut painter = HbColorPainter {
         font: font,
