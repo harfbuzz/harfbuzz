@@ -12,6 +12,7 @@ use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
 use skrifa::outline::pen::OutlinePen;
 use skrifa::outline::DrawSettings;
+use skrifa::OutlineGlyphCollection;
 use skrifa::{GlyphId, MetadataProvider};
 
 // A struct for storing your “fontations” data
@@ -23,6 +24,7 @@ struct FontationsData {
     x_size: Size,
     y_size: Size,
     location: Location,
+    outline_glyphs: OutlineGlyphCollection<'static>,
 }
 
 extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void) {
@@ -244,13 +246,12 @@ extern "C" fn _hb_fontations_draw_glyph(
     _user_data: *mut ::std::os::raw::c_void,
 ) {
     let data = unsafe { &*(font_data as *const FontationsData) };
-    let font_ref = &data.font_ref;
     let x_size = &data.x_size;
     let location = &data.location;
+    let outline_glyphs = &data.outline_glyphs;
 
     // Create an outline-glyph
     let glyph_id = GlyphId::new(glyph as u32);
-    let outline_glyphs = font_ref.outline_glyphs();
     let outline_glyph = outline_glyphs.get(glyph_id);
     if outline_glyph.is_none() {
         return;
@@ -347,14 +348,6 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
 
     let char_map = Charmap::new(&font_ref);
 
-    let mut num_coords: u32 = 0;
-    let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
-    let mut location = Location::new(num_coords as usize);
-    let coords_mut = location.coords_mut();
-    for i in 0..num_coords as usize {
-        coords_mut[i] = NormalizedCoord::from_bits(unsafe { *coords.offset(i as isize) } as i16);
-    }
-
     let mut x_scale: i32 = 0;
     let mut y_scale: i32 = 0;
     unsafe {
@@ -363,6 +356,16 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     let x_size = Size::new(x_scale as f32);
     let y_size = Size::new(y_scale as f32);
 
+    let mut num_coords: u32 = 0;
+    let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
+    let mut location = Location::new(num_coords as usize);
+    let coords_mut = location.coords_mut();
+    for i in 0..num_coords as usize {
+        coords_mut[i] = NormalizedCoord::from_bits(unsafe { *coords.offset(i as isize) } as i16);
+    }
+
+    let outline_glyphs = font_ref.outline_glyphs();
+
     let data = Box::new(FontationsData {
         face_blob,
         font_ref,
@@ -370,6 +373,7 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
         x_size,
         y_size,
         location,
+        outline_glyphs,
     });
     let data_ptr = Box::into_raw(data) as *mut c_void;
 
