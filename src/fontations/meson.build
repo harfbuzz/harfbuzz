@@ -22,7 +22,7 @@ endif
 
 harfbuzz_fontations = custom_target(
   'harfbuzz_fontations',
-  input: ['lib.rs'],
+  input: ['lib.rs', 'Cargo.toml', 'Cargo.lock'],
   output: ['libharfbuzz_fontations.a'],
   depends: [hb_rs],
   env: ['OUT_DIR=' + meson.current_build_dir()],
