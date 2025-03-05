@@ -6,6 +6,8 @@ use std::os::raw::c_void;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
+use read_fonts::tables::cpal::ColorRecord;
+use read_fonts::TableProvider;
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
 use skrifa::color::{Brush, ColorGlyphCollection, ColorPainter, CompositeMode, Transform};
@@ -277,7 +279,7 @@ struct HbColorPainter {
     font: *mut hb_font_t,
     paint_funcs: *mut hb_paint_funcs_t,
     paint_data: *mut c_void,
-    palette_index: u32,
+    color_records: Box<[ColorRecord]>,
     foreground: hb_color_t,
     composite_mode: Vec<CompositeMode>,
     clip_transform_stack: Vec<bool>,
@@ -329,6 +331,18 @@ impl HbColorPainter {
             dx: 0.0,
             dy: 0.0,
         });
+    }
+
+    fn lookup_color(&self, color_index: u16, alpha: f32) -> hb_color_t {
+        if color_index == 0xFFFF {
+            self.foreground
+        } else {
+            let c = self.color_records[color_index as usize]; // TODO: bounds check
+            (((c.blue as u32) << 24)
+                | ((c.green as u32) << 16)
+                | ((c.red as u32) << 8)
+                | ((c.alpha as f32 * alpha) as u32)) as hb_color_t
+        }
     }
 }
 
@@ -391,14 +405,23 @@ impl ColorPainter for HbColorPainter {
             self.pop_transform();
         }
     }
-    fn fill(&mut self, _: Brush<'_>) {
-        unsafe {
-            hb_paint_color(
-                self.paint_funcs,
-                self.paint_data,
-                self.foreground as i32,
-                0x000000FF,
-            );
+    fn fill(&mut self, brush: Brush) {
+        match brush {
+            Brush::Solid {
+                palette_index: color_index,
+                alpha,
+            } => {
+                let is_foreground = color_index == 0xFFFF;
+                unsafe {
+                    hb_paint_color(
+                        self.paint_funcs,
+                        self.paint_data,
+                        is_foreground as hb_bool_t,
+                        self.lookup_color(color_index, alpha),
+                    );
+                }
+            }
+            _ => {}
         }
     }
     fn push_layer(&mut self, mode: CompositeMode) {
@@ -425,11 +448,12 @@ extern "C" fn _hb_fontations_paint_glyph(
     glyph: hb_codepoint_t,
     paint_funcs: *mut hb_paint_funcs_t,
     paint_data: *mut ::std::os::raw::c_void,
-    palette_index: ::std::os::raw::c_uint,
+    _palette_index: ::std::os::raw::c_uint,
     foreground: hb_color_t,
     _user_data: *mut ::std::os::raw::c_void,
 ) {
     let data = unsafe { &*(font_data as *const FontationsData) };
+    let font_ref = &data.font_ref;
     let location = &data.location;
     let color_glyphs = &data.color_glyphs;
 
@@ -441,11 +465,24 @@ extern "C" fn _hb_fontations_paint_glyph(
     }
     let color_glyph = color_glyph.unwrap();
 
+    let cpal = font_ref.cpal();
+    let mut color_records = Box::<[ColorRecord]>::default();
+    if cpal.is_ok() {
+        let cpal = cpal.unwrap();
+        // fontations doesn't seem to provide a way to access palettes
+        // really. Just assume the first palette starts at the beginning
+        // of the color records array.
+        let color_records_array = cpal.color_records_array();
+        if !color_records_array.is_none() {
+            color_records = Box::from(color_records_array.unwrap().unwrap());
+        }
+    }
+
     let mut painter = HbColorPainter {
         font: font,
         paint_funcs,
         paint_data,
-        palette_index,
+        color_records,
         foreground,
         composite_mode: Vec::new(),
         clip_transform_stack: Vec::new(),
