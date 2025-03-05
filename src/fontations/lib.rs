@@ -10,7 +10,7 @@ use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
 use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
-use skrifa::outline::pen::NullPen;
+use skrifa::outline::pen::OutlinePen;
 use skrifa::outline::DrawSettings;
 use skrifa::{GlyphId, MetadataProvider};
 
@@ -180,6 +180,61 @@ extern "C" fn _hb_fontations_get_font_h_extents(
     true as hb_bool_t
 }
 
+struct HbPen
+where
+    Self: OutlinePen,
+{
+    draw_state: *mut hb_draw_state_t,
+    draw_funcs: *mut hb_draw_funcs_t,
+    draw_data: *mut c_void,
+}
+
+impl OutlinePen for HbPen {
+    fn move_to(&mut self, x: f32, y: f32) {
+        unsafe {
+            hb_draw_move_to(self.draw_funcs, self.draw_data, self.draw_state, x, y);
+        }
+    }
+    fn line_to(&mut self, x: f32, y: f32) {
+        unsafe {
+            hb_draw_line_to(self.draw_funcs, self.draw_data, self.draw_state, x, y);
+        }
+    }
+    fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
+        unsafe {
+            hb_draw_quadratic_to(
+                self.draw_funcs,
+                self.draw_data,
+                self.draw_state,
+                x1,
+                y1,
+                x,
+                y,
+            );
+        }
+    }
+    fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
+        unsafe {
+            hb_draw_cubic_to(
+                self.draw_funcs,
+                self.draw_data,
+                self.draw_state,
+                x1,
+                y1,
+                x2,
+                y2,
+                x,
+                y,
+            );
+        }
+    }
+    fn close(&mut self) {
+        unsafe {
+            hb_draw_close_path(self.draw_funcs, self.draw_data, self.draw_state);
+        }
+    }
+}
+
 extern "C" fn _hb_fontations_draw_glyph(
     _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -202,8 +257,14 @@ extern "C" fn _hb_fontations_draw_glyph(
     }
     let outline_glyph = outline_glyph.unwrap();
     let draw_settings = DrawSettings::unhinted(*x_size, location);
+    // Allocate zero bytes for the draw_state_t on the stack.
+    let mut draw_state: hb_draw_state_t = unsafe { std::mem::zeroed::<hb_draw_state_t>() };
 
-    let mut pen = NullPen;
+    let mut pen = HbPen {
+        draw_state: &mut draw_state,
+        draw_funcs,
+        draw_data,
+    };
     let _ = outline_glyph.draw(draw_settings, &mut pen);
 }
 
