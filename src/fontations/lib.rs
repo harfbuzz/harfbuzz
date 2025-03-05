@@ -10,7 +10,9 @@ use read_fonts::tables::cpal::ColorRecord;
 use read_fonts::TableProvider;
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
-use skrifa::color::{Brush, ColorGlyphCollection, ColorPainter, ColorStop, CompositeMode, Extend, Transform};
+use skrifa::color::{
+    Brush, ColorGlyphCollection, ColorPainter, ColorStop, CompositeMode, Extend, Transform,
+};
 use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
 use skrifa::metrics::BoundingBox;
@@ -345,13 +347,15 @@ impl HbColorPainter {
         }
     }
 
-    fn make_color_line(&mut self, color_stops : &ColorLineData) -> hb_color_line_t {
+    fn make_color_line(&mut self, color_stops: &ColorLineData) -> hb_color_line_t {
         let mut cl = unsafe { std::mem::zeroed::<hb_color_line_t>() };
         cl.data = self as *mut HbColorPainter as *mut ::std::os::raw::c_void;
         cl.get_color_stops = Some(_hb_fontations_get_color_stops);
-        cl.get_color_stops_user_data = color_stops as *const ColorLineData as *mut ::std::os::raw::c_void;
+        cl.get_color_stops_user_data =
+            color_stops as *const ColorLineData as *mut ::std::os::raw::c_void;
         cl.get_extend = Some(_hb_fontations_get_extend);
-        cl.get_extend_user_data = color_stops as *const ColorLineData as *mut ::std::os::raw::c_void;
+        cl.get_extend_user_data =
+            color_stops as *const ColorLineData as *mut ::std::os::raw::c_void;
         cl
     }
 }
@@ -360,15 +364,14 @@ struct ColorLineData<'a> {
     color_stops: &'a [ColorStop],
     extend: Extend,
 }
-extern "C" fn _hb_fontations_get_color_stops (
+extern "C" fn _hb_fontations_get_color_stops(
     _color_line: *mut hb_color_line_t,
     color_line_data: *mut ::std::os::raw::c_void,
     start: ::std::os::raw::c_uint,
     count_out: *mut ::std::os::raw::c_uint,
     color_stops_out: *mut hb_color_stop_t,
     user_data: *mut ::std::os::raw::c_void,
-) -> ::std::os::raw::c_uint
-{
+) -> ::std::os::raw::c_uint {
     let color_painter = unsafe { &*(color_line_data as *const HbColorPainter) };
     let color_line_data = unsafe { &*(user_data as *const ColorLineData) };
     let color_stops = &color_line_data.color_stops;
@@ -379,26 +382,27 @@ extern "C" fn _hb_fontations_get_color_stops (
     for i in 0..count {
         let stop = color_stops.get(start as usize + i as usize);
         if stop.is_none() {
-            unsafe { *count_out = i; };
+            unsafe {
+                *count_out = i;
+            };
             return color_stops.len() as u32;
         }
         let stop = stop.unwrap();
         unsafe {
             *(color_stops_out.offset(i as isize)) = hb_color_stop_t {
-                    offset: stop.offset,
-                    color: color_painter.lookup_color(stop.palette_index, stop.alpha),
-                    is_foreground: (stop.palette_index == 0xFFFF) as hb_bool_t,
-                };
+                offset: stop.offset,
+                color: color_painter.lookup_color(stop.palette_index, stop.alpha),
+                is_foreground: (stop.palette_index == 0xFFFF) as hb_bool_t,
+            };
         }
     }
     return color_stops.len() as u32;
 }
-extern "C" fn _hb_fontations_get_extend (
+extern "C" fn _hb_fontations_get_extend(
     _color_line: *mut hb_color_line_t,
     color_line_data: *mut ::std::os::raw::c_void,
     _user_data: *mut ::std::os::raw::c_void,
-) -> hb_paint_extend_t
-{
+) -> hb_paint_extend_t {
     let color_line_data = unsafe { &*(color_line_data as *const ColorLineData) };
     color_line_data.extend as hb_paint_extend_t // They are the same
 }
@@ -484,7 +488,10 @@ impl ColorPainter for HbColorPainter {
                 p0,
                 p1,
             } => {
-                let color_stops = ColorLineData { color_stops: &color_stops, extend };
+                let color_stops = ColorLineData {
+                    color_stops: &color_stops,
+                    extend,
+                };
                 let mut color_line = self.make_color_line(&color_stops);
                 unsafe {
                     hb_paint_linear_gradient(
@@ -508,7 +515,10 @@ impl ColorPainter for HbColorPainter {
                 c1,
                 r1,
             } => {
-                let color_stops = ColorLineData { color_stops: &color_stops, extend };
+                let color_stops = ColorLineData {
+                    color_stops: &color_stops,
+                    extend,
+                };
                 let mut color_line = self.make_color_line(&color_stops);
                 unsafe {
                     hb_paint_radial_gradient(
@@ -524,7 +534,30 @@ impl ColorPainter for HbColorPainter {
                     );
                 }
             }
-            _ => {}
+            Brush::SweepGradient {
+                color_stops,
+                extend,
+                c0,
+                start_angle,
+                end_angle,
+            } => {
+                let color_stops = ColorLineData {
+                    color_stops: &color_stops,
+                    extend,
+                };
+                let mut color_line = self.make_color_line(&color_stops);
+                unsafe {
+                    hb_paint_sweep_gradient(
+                        self.paint_funcs,
+                        self.paint_data,
+                        &mut color_line,
+                        c0.x,
+                        c0.y,
+                        start_angle,
+                        end_angle,
+                    );
+                }
+            }
         }
     }
     fn push_layer(&mut self, mode: CompositeMode) {
