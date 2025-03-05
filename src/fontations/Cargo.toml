@@ -3,13 +3,7 @@ name = "harfbuzz_fontations"
 edition = "2021"
 
 [dependencies]
-read-fonts = { version = "0.23" }
-font-types = { version = "0.7", features = ["bytemuck"] }
-skrifa = "0.24"
-bytemuck = { version = "1.19.0" , features = [ 'derive', 'min_const_generics'] }
-bytemuck_derive = "1"
-cxx = "1.0"
-libc = "0.2"
+skrifa = "0.28.1"
 
 [lib]
 name = "harfbuzz_fontations"
