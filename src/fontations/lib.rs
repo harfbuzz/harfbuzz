@@ -17,7 +17,8 @@ struct FontationsData {
     face_blob: *mut hb_blob_t,
     font_ref: FontRef<'static>,
     char_map: charmap::Charmap<'static>,
-    size: Size,
+    x_size: Size,
+    y_size: Size,
     location: Location,
 }
 
@@ -93,7 +94,7 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
 ) {
     let data = unsafe { &*(font_data as *const FontationsData) };
     let font_ref = &data.font_ref;
-    let size = &data.size;
+    let size = &data.x_size;
     let location = &data.location;
     let glyph_metrics = font_ref.glyph_metrics(*size, location);
 
@@ -187,13 +188,15 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     unsafe {
         hb_font_get_scale(font, &mut x_scale, &mut y_scale);
     };
-    let size = Size::new(x_scale as f32);
+    let x_size = Size::new(x_scale as f32);
+    let y_size = Size::new(y_scale as f32);
 
     let data = Box::new(FontationsData {
         face_blob,
         font_ref,
         char_map,
-        size,
+        x_size,
+        y_size,
         location,
     });
     let data_ptr = Box::into_raw(data) as *mut c_void;
