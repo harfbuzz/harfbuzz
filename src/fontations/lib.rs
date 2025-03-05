@@ -359,11 +359,21 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     let mut num_coords: u32 = 0;
     let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
     let coords = unsafe { std::slice::from_raw_parts(coords, num_coords as usize) };
-    let mut location = Location::new(num_coords as usize);
-    let coords_mut = location.coords_mut();
-    for i in 0..num_coords as usize {
-        coords_mut[i] = NormalizedCoord::from_bits(coords[i] as i16);
-    }
+    let all_zeros = coords.iter().all(|&x| x == 0);
+    // if all zeros, use Location::default()
+    // otherwise, use the provided coords.
+    // This currently doesn't seem to have a perf effect on fontations, but it's a good idea to
+    // check if the coords are all zeros before creating a Location.
+    let location = if all_zeros {
+        Location::default()
+    } else {
+        let mut location = Location::new(num_coords as usize);
+        let coords_mut = location.coords_mut();
+        for i in 0..num_coords as usize {
+            coords_mut[i] = NormalizedCoord::from_bits(coords[i] as i16);
+        }
+        location
+    };
 
     let outline_glyphs = font_ref.outline_glyphs();
 
