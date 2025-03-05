@@ -376,8 +376,4 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     unsafe {
         hb_font_set_funcs(font, ffuncs, data_ptr, Some(_hb_fontations_data_destroy));
     }
-
-    unsafe {
-        hb_font_funcs_destroy(ffuncs);
-    }
 }
