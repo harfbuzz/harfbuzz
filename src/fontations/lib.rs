@@ -113,6 +113,44 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
         }
     }
 }
+extern "C" fn _hb_fontations_get_glyph_extents(
+    _font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    glyph: hb_codepoint_t,
+    extents: *mut hb_glyph_extents_t,
+    _user_data: *mut ::std::os::raw::c_void,
+) -> hb_bool_t {
+    let data = unsafe { &*(font_data as *const FontationsData) };
+    let font_ref = &data.font_ref;
+    let x_size = &data.x_size;
+    let y_size = &data.y_size;
+    let location = &data.location;
+    let x_glyph_metrics = font_ref.glyph_metrics(*x_size, location);
+    let y_glyph_metrics = font_ref.glyph_metrics(*y_size, location);
+
+    let glyph_id = GlyphId::new(glyph as u32);
+    let x_extents = x_glyph_metrics.bounds(glyph_id);
+    let y_extents = y_glyph_metrics.bounds(glyph_id);
+    if x_extents.is_none() || y_extents.is_none() {
+        return false as hb_bool_t;
+    }
+    let x_extents = x_extents.unwrap();
+    let y_extents = y_extents.unwrap();
+    unsafe {
+        (*extents).x_bearing = x_extents.x_min as hb_position_t;
+    }
+    unsafe {
+        (*extents).width = (x_extents.x_max - x_extents.x_min) as hb_position_t;
+    }
+    unsafe {
+        (*extents).y_bearing = y_extents.y_max as hb_position_t;
+    }
+    unsafe {
+        (*extents).height = (y_extents.y_min - y_extents.y_max) as hb_position_t;
+    }
+
+    true as hb_bool_t
+}
 
 fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
     static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
@@ -142,6 +180,12 @@ fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
             hb_font_funcs_set_glyph_h_advances_func(
                 ffuncs,
                 Some(_hb_fontations_get_glyph_h_advances),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_glyph_extents_func(
+                ffuncs,
+                Some(_hb_fontations_get_glyph_extents),
                 null_mut(),
                 None,
             );
