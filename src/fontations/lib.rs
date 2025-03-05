@@ -500,6 +500,30 @@ impl ColorPainter for HbColorPainter {
                     );
                 }
             }
+            Brush::RadialGradient {
+                color_stops,
+                extend,
+                c0,
+                r0,
+                c1,
+                r1,
+            } => {
+                let color_stops = ColorLineData { color_stops: &color_stops, extend };
+                let mut color_line = self.make_color_line(&color_stops);
+                unsafe {
+                    hb_paint_radial_gradient(
+                        self.paint_funcs,
+                        self.paint_data,
+                        &mut color_line,
+                        c0.x,
+                        c0.y,
+                        r0,
+                        c1.x,
+                        c1.y,
+                        r1,
+                    );
+                }
+            }
             _ => {}
         }
     }
