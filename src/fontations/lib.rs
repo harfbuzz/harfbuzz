@@ -152,6 +152,31 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     true as hb_bool_t
 }
 
+extern "C" fn _hb_fontations_get_font_h_extents(
+    _font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    extents: *mut hb_font_extents_t,
+    _user_data: *mut ::std::os::raw::c_void,
+) -> hb_bool_t {
+    let data = unsafe { &*(font_data as *const FontationsData) };
+    let font_ref = &data.font_ref;
+    let size = &data.y_size;
+    let location = &data.location;
+    let metrics = font_ref.metrics(*size, location);
+
+    unsafe {
+        (*extents).ascender = metrics.ascent as hb_position_t;
+    }
+    unsafe {
+        (*extents).descender = metrics.descent as hb_position_t;
+    }
+    unsafe {
+        (*extents).line_gap = metrics.leading as hb_position_t;
+    }
+
+    true as hb_bool_t
+}
+
 fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
     static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
 
@@ -186,6 +211,12 @@ fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
             hb_font_funcs_set_glyph_extents_func(
                 ffuncs,
                 Some(_hb_fontations_get_glyph_extents),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_font_h_extents_func(
+                ffuncs,
+                Some(_hb_fontations_get_font_h_extents),
                 null_mut(),
                 None,
             );
