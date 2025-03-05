@@ -8,8 +8,10 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
+use skrifa::color::{Brush, ColorGlyphCollection, ColorPainter, CompositeMode, Transform};
 use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
+use skrifa::metrics::BoundingBox;
 use skrifa::outline::pen::OutlinePen;
 use skrifa::outline::DrawSettings;
 use skrifa::OutlineGlyphCollection;
@@ -25,6 +27,7 @@ struct FontationsData {
     y_size: Size,
     location: Location,
     outline_glyphs: OutlineGlyphCollection<'static>,
+    color_glyphs: ColorGlyphCollection<'static>,
 }
 
 extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void) {
@@ -270,6 +273,187 @@ extern "C" fn _hb_fontations_draw_glyph(
     let _ = outline_glyph.draw(draw_settings, &mut pen);
 }
 
+struct HbColorPainter {
+    font: *mut hb_font_t,
+    paint_funcs: *mut hb_paint_funcs_t,
+    paint_data: *mut c_void,
+    palette_index: u32,
+    foreground: hb_color_t,
+    composite_mode: Vec<CompositeMode>,
+    clip_transform_stack: Vec<bool>,
+}
+
+impl HbColorPainter {
+    fn push_root_transform(&mut self) {
+        let font = self.font;
+        let face = unsafe { hb_font_get_face(font) };
+        let upem = unsafe { hb_face_get_upem(face) };
+        let mut x_scale: i32 = 0;
+        let mut y_scale: i32 = 0;
+        unsafe {
+            hb_font_get_scale(font, &mut x_scale, &mut y_scale);
+        }
+        let slant = unsafe { hb_font_get_synthetic_slant(font) };
+        let slant = if y_scale != 0 {
+            slant as f32 * x_scale as f32 / y_scale as f32
+        } else {
+            0.
+        };
+
+        self.push_transform(Transform {
+            xx: x_scale as f32 / upem as f32,
+            yx: 0.0,
+            xy: slant * y_scale as f32 / upem as f32,
+            yy: y_scale as f32 / upem as f32,
+            dx: 0.0,
+            dy: 0.0,
+        });
+    }
+
+    fn push_inverse_root_transform(&mut self) {
+        let font = self.font;
+        let face = unsafe { hb_font_get_face(font) };
+        let upem = unsafe { hb_face_get_upem(face) };
+        let mut x_scale: i32 = 0;
+        let mut y_scale: i32 = 0;
+        unsafe {
+            hb_font_get_scale(font, &mut x_scale, &mut y_scale);
+        }
+        let slant = unsafe { hb_font_get_synthetic_slant(font) };
+
+        self.push_transform(Transform {
+            xx: upem as f32 / x_scale as f32,
+            yx: 0.0,
+            xy: -slant * upem as f32 / x_scale as f32,
+            yy: upem as f32 / y_scale as f32,
+            dx: 0.0,
+            dy: 0.0,
+        });
+    }
+}
+
+impl ColorPainter for HbColorPainter {
+    fn push_transform(&mut self, transform: Transform) {
+        unsafe {
+            hb_paint_push_transform(
+                self.paint_funcs,
+                self.paint_data,
+                transform.xx,
+                transform.yx,
+                transform.xy,
+                transform.yy,
+                transform.dx,
+                transform.dy,
+            );
+        }
+    }
+    fn pop_transform(&mut self) {
+        unsafe {
+            hb_paint_pop_transform(self.paint_funcs, self.paint_data);
+        }
+    }
+    fn push_clip_glyph(&mut self, glyph: GlyphId) {
+        let gid = u32::from(glyph);
+        self.clip_transform_stack.push(true);
+        self.push_inverse_root_transform();
+        unsafe {
+            hb_paint_push_clip_glyph(
+                self.paint_funcs,
+                self.paint_data,
+                gid as hb_codepoint_t,
+                self.font,
+            );
+        }
+        self.push_root_transform();
+    }
+    fn push_clip_box(&mut self, bbox: BoundingBox) {
+        self.clip_transform_stack.push(false);
+        unsafe {
+            hb_paint_push_clip_rectangle(
+                self.paint_funcs,
+                self.paint_data,
+                bbox.x_min,
+                bbox.y_min,
+                bbox.x_max,
+                bbox.y_max,
+            );
+        }
+    }
+    fn pop_clip(&mut self) {
+        let pop_transforms = self.clip_transform_stack.pop().unwrap_or(false);
+        if pop_transforms {
+            self.pop_transform();
+        }
+        unsafe {
+            hb_paint_pop_clip(self.paint_funcs, self.paint_data);
+        }
+        if pop_transforms {
+            self.pop_transform();
+        }
+    }
+    fn fill(&mut self, _: Brush<'_>) {
+        unsafe {
+            hb_paint_color(
+                self.paint_funcs,
+                self.paint_data,
+                self.foreground as i32,
+                0x000000FF,
+            );
+        }
+    }
+    fn push_layer(&mut self, mode: CompositeMode) {
+        self.composite_mode.push(mode);
+        unsafe {
+            hb_paint_push_group(self.paint_funcs, self.paint_data);
+        }
+    }
+    fn pop_layer(&mut self) {
+        let mode = self.composite_mode.pop();
+        if mode.is_none() {
+            return;
+        }
+        let mode = mode.unwrap() as hb_paint_composite_mode_t;
+        unsafe {
+            hb_paint_pop_group(self.paint_funcs, self.paint_data, mode);
+        }
+    }
+}
+
+extern "C" fn _hb_fontations_paint_glyph(
+    font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    glyph: hb_codepoint_t,
+    paint_funcs: *mut hb_paint_funcs_t,
+    paint_data: *mut ::std::os::raw::c_void,
+    palette_index: ::std::os::raw::c_uint,
+    foreground: hb_color_t,
+    _user_data: *mut ::std::os::raw::c_void,
+) {
+    let data = unsafe { &*(font_data as *const FontationsData) };
+    let location = &data.location;
+    let color_glyphs = &data.color_glyphs;
+
+    // Create an color-glyph
+    let glyph_id = GlyphId::new(glyph as u32);
+    let color_glyph = color_glyphs.get(glyph_id);
+    if color_glyph.is_none() {
+        return;
+    }
+    let color_glyph = color_glyph.unwrap();
+
+    let mut painter = HbColorPainter {
+        font: font,
+        paint_funcs,
+        paint_data,
+        palette_index,
+        foreground,
+        composite_mode: Vec::new(),
+        clip_transform_stack: Vec::new(),
+    };
+    painter.push_root_transform();
+    let _ = color_glyph.paint(location, &mut painter);
+}
+
 fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
     static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
 
@@ -316,6 +500,12 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
             hb_font_funcs_set_draw_glyph_func(
                 ffuncs,
                 Some(_hb_fontations_draw_glyph),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_paint_glyph_func(
+                ffuncs,
+                Some(_hb_fontations_paint_glyph),
                 null_mut(),
                 None,
             );
@@ -378,6 +568,8 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
 
     let outline_glyphs = font_ref.outline_glyphs();
 
+    let color_glyphs = font_ref.color_glyphs();
+
     let data = Box::new(FontationsData {
         face_blob,
         font_ref,
@@ -386,6 +578,7 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
         y_size,
         location,
         outline_glyphs,
+        color_glyphs,
     });
     let data_ptr = Box::into_raw(data) as *mut c_void;
 
