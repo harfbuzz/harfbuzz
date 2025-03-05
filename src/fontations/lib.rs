@@ -6,6 +6,7 @@ use std::os::raw::c_void;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
+use skrifa::charmap::MapVariant::Variant;
 use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
 use skrifa::{charmap, GlyphId, MetadataProvider};
@@ -59,6 +60,27 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
 
     count
 }
+extern "C" fn _hb_fontations_get_variation_glyph(
+    _font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    unicode: hb_codepoint_t,
+    variation_selector: hb_codepoint_t,
+    glyph: *mut hb_codepoint_t,
+    _user_data: *mut ::std::os::raw::c_void,
+) -> hb_bool_t {
+    let data = unsafe { &*(font_data as *const FontationsData) };
+    let char_map = &data.char_map;
+
+    let variant = char_map.map_variant(unicode as u32, variation_selector as u32);
+    match variant {
+        Some(Variant(glyph_id)) => {
+            unsafe { *glyph = u32::from(glyph_id) as hb_codepoint_t };
+            true as hb_bool_t
+        }
+        _ => false as hb_bool_t,
+    }
+}
+
 extern "C" fn _hb_fontations_get_glyph_h_advances(
     _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -107,6 +129,12 @@ fn _hb_fontations_font_funcs_create() -> *mut hb_font_funcs_t {
             hb_font_funcs_set_nominal_glyphs_func(
                 ffuncs,
                 Some(_hb_fontations_get_nominal_glyphs),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_variation_glyph_func(
+                ffuncs,
+                Some(_hb_fontations_get_variation_glyph),
                 null_mut(),
                 None,
             );
