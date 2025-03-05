@@ -546,6 +546,8 @@ impl ColorPainter for HbColorPainter {
                     extend,
                 };
                 let mut color_line = self.make_color_line(&color_stops);
+                let start_angle = start_angle.to_radians();
+                let end_angle = end_angle.to_radians();
                 unsafe {
                     hb_paint_sweep_gradient(
                         self.paint_funcs,
@@ -553,8 +555,8 @@ impl ColorPainter for HbColorPainter {
                         &mut color_line,
                         c0.x,
                         c0.y,
+                        end_angle, // TODO Don't know why end_angle and start_angle are swapped, but produces correct results
                         start_angle,
-                        end_angle,
                     );
                 }
             }
