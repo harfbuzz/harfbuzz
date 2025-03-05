@@ -407,6 +407,52 @@ extern "C" fn _hb_fontations_get_extend(
     color_line_data.extend as hb_paint_extend_t // They are the same
 }
 
+/// Returns (x0, y0, x1, y1, x2, y2) such that the original `_hb_cairo_reduce_anchors`
+/// would produce (xx0, yy0, xx1, yy1) as outputs.
+pub fn _hb_fontations_unreduce_anchors(
+    xx0: f32,
+    yy0: f32,
+    xx1: f32,
+    yy1: f32,
+) -> (f32, f32, f32, f32, f32, f32) {
+    // 1) Force the first anchor to match directly:
+    let x0 = xx0;
+    let y0 = yy0;
+
+    // 2) Force the second anchor to match directly:
+    let x1 = xx1;
+    let y1 = yy1;
+
+    // Vector from (xx0, yy0) to (xx1, yy1)
+    let dx = xx1 - xx0;
+    let dy = yy1 - yy0;
+    let dist2 = dx * dx + dy * dy;
+
+    // 3) Pick (x2, y2)
+    let (x2, y2) = if dist2 < 1e-12 {
+        // Degenerate: both anchors are almost the same point
+        // => choose any non-zero offset from (x0, y0)
+        (xx0 + 100.0, yy0)
+    } else {
+        // Non-degenerate: pick a perpendicular vector to (dx, dy)
+        let len = dist2.sqrt();
+        let mut q2x = dy;
+        let mut q2y = -dx;
+
+        // Optionally scale it to the same length as (dx, dy)
+        let q2len = (q2x * q2x + q2y * q2y).sqrt();
+        if q2len > 1e-12 {
+            let scale = len / q2len;
+            q2x *= scale;
+            q2y *= scale;
+        }
+
+        (xx0 + q2x, yy0 + q2y)
+    };
+
+    (x0, y0, x1, y1, x2, y2)
+}
+
 impl ColorPainter for HbColorPainter {
     fn push_transform(&mut self, transform: Transform) {
         unsafe {
@@ -493,17 +539,21 @@ impl ColorPainter for HbColorPainter {
                     extend,
                 };
                 let mut color_line = self.make_color_line(&color_stops);
+
+                // Untested
+                let points = _hb_fontations_unreduce_anchors(p0.x, p0.y, p1.x, p1.y);
+
                 unsafe {
                     hb_paint_linear_gradient(
                         self.paint_funcs,
                         self.paint_data,
                         &mut color_line,
-                        p0.x,
-                        p0.y,
-                        p1.x,
-                        p1.y,
-                        p0.x, // TODO: Where's p2?
-                        p0.y,
+                        points.0,
+                        points.1,
+                        points.2,
+                        points.3,
+                        points.4,
+                        points.5,
                     );
                 }
             }
