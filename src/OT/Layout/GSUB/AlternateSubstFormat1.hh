@@ -34,6 +34,7 @@ struct AlternateSubstFormat1_2
   bool may_have_non_1to1 () const
   { return false; }
 
+#ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
     + hb_zip (this+coverage, alternateSet)
@@ -45,6 +46,7 @@ struct AlternateSubstFormat1_2
     ;
     return true;
   }
+#endif
 
   void closure (hb_closure_context_t *c) const
   {

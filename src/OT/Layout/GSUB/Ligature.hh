@@ -38,6 +38,7 @@ struct Ligature
     c->output->add (ligGlyph);
   }
 
+#ifdef HB_DEPEND_API
   void depend (hb_depend_context_t *c, hb_codepoint_t first) const
   {
     hb_codepoint_t ligset = c->depend_data->new_set(first);
@@ -50,6 +51,7 @@ struct Ligature
       })
     ;
   }
+#endif
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {

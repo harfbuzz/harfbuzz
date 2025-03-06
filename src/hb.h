@@ -31,6 +31,7 @@
 #include "hb-blob.h"
 #include "hb-buffer.h"
 #include "hb-common.h"
+#include "hb-depend.h"
 #include "hb-deprecated.h"
 #include "hb-draw.h"
 #include "hb-face.h"

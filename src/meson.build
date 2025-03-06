@@ -430,7 +430,7 @@ hb_subset_sources = files(
 
 hb_subset_headers = files(
   'hb-subset.h',
-  'hb-subset-serialize.h'
+  'hb-subset-serialize.h',
   'hb-depend.h',
 )
 

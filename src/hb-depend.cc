@@ -36,6 +36,8 @@
 #include "OT/Color/COLR/COLR.hh"
 #include "OT/Color/COLR/colrv1-depend.hh"
 
+#ifdef HB_DEPEND_API
+
 /**
  * SECTION:hb-depend
  * @title: hb-depend
@@ -261,3 +263,5 @@ hb_depend_destroy (hb_depend_t *depend)
 
   hb_free (depend);
 }
+
+#endif /* HB_DEPEND_API */
