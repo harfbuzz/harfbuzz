@@ -34,6 +34,65 @@ struct FontationsData<'a> {
     color_glyphs: ColorGlyphCollection<'a>,
 }
 
+impl FontationsData<'_> {
+    unsafe fn from_hb_font(font: *mut hb_font_t) -> Self {
+        let face_index = hb_face_get_index(hb_font_get_face(font));
+        let face_blob = hb_face_reference_blob(hb_font_get_face(font));
+        let blob_length = hb_blob_get_length(face_blob);
+        let blob_data = hb_blob_get_data(face_blob, null_mut());
+        let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
+
+        let font_ref = FontRef::from_index(face_data, face_index).unwrap();
+
+        let char_map = Charmap::new(&font_ref);
+
+        let mut x_scale: i32 = 0;
+        let mut y_scale: i32 = 0;
+        hb_font_get_scale(font, &mut x_scale, &mut y_scale);
+        let x_size = Size::new(x_scale as f32);
+        let y_size = Size::new(y_scale as f32);
+
+        let mut num_coords: u32 = 0;
+        let coords = hb_font_get_var_coords_normalized(font, &mut num_coords);
+        let coords = if coords.is_null() {
+            &[]
+        } else {
+            std::slice::from_raw_parts(coords, num_coords as usize)
+        };
+        let all_zeros = coords.iter().all(|&x| x == 0);
+        // if all zeros, use Location::default()
+        // otherwise, use the provided coords.
+        // This currently doesn't seem to have a perf effect on fontations, but it's a good idea to
+        // check if the coords are all zeros before creating a Location.
+        let location = if all_zeros {
+            Location::default()
+        } else {
+            let mut location = Location::new(num_coords as usize);
+            let coords_mut = location.coords_mut();
+            coords_mut
+                .iter_mut()
+                .zip(coords.iter().map(|v| NormalizedCoord::from_bits(*v as i16)))
+                .for_each(|(dest, source)| *dest = source);
+            location
+        };
+
+        let outline_glyphs = font_ref.outline_glyphs();
+
+        let color_glyphs = font_ref.color_glyphs();
+
+        FontationsData {
+            face_blob,
+            font_ref,
+            char_map,
+            x_size,
+            y_size,
+            location,
+            outline_glyphs,
+            color_glyphs,
+        }
+    }
+}
+
 extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void) {
     let data = unsafe { Box::from_raw(font_data as *mut FontationsData) };
 
@@ -731,61 +790,8 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
 pub unsafe extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     let ffuncs = _hb_fontations_font_funcs_get();
 
-    let face_index = hb_face_get_index(hb_font_get_face(font));
-    let face_blob = hb_face_reference_blob(hb_font_get_face(font));
-    let blob_length = hb_blob_get_length(face_blob);
-    let blob_data = hb_blob_get_data(face_blob, null_mut());
-    let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
-
-    let font_ref = FontRef::from_index(face_data, face_index).unwrap();
-
-    let char_map = Charmap::new(&font_ref);
-
-    let mut x_scale: i32 = 0;
-    let mut y_scale: i32 = 0;
-    hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-    let x_size = Size::new(x_scale as f32);
-    let y_size = Size::new(y_scale as f32);
-
-    let mut num_coords: u32 = 0;
-    let coords = hb_font_get_var_coords_normalized(font, &mut num_coords);
-    let coords = if coords.is_null() {
-        &[]
-    } else {
-        std::slice::from_raw_parts(coords, num_coords as usize)
-    };
-    let all_zeros = coords.iter().all(|&x| x == 0);
-    // if all zeros, use Location::default()
-    // otherwise, use the provided coords.
-    // This currently doesn't seem to have a perf effect on fontations, but it's a good idea to
-    // check if the coords are all zeros before creating a Location.
-    let location = if all_zeros {
-        Location::default()
-    } else {
-        let mut location = Location::new(num_coords as usize);
-        let coords_mut = location.coords_mut();
-        coords_mut
-            .iter_mut()
-            .zip(coords.iter().map(|v| NormalizedCoord::from_bits(*v as i16)))
-            .for_each(|(dest, source)| *dest = source);
-        location
-    };
-
-    let outline_glyphs = font_ref.outline_glyphs();
-
-    let color_glyphs = font_ref.color_glyphs();
-
-    let data = Box::new(FontationsData {
-        face_blob,
-        font_ref,
-        char_map,
-        x_size,
-        y_size,
-        location,
-        outline_glyphs,
-        color_glyphs,
-    });
-    let data_ptr = Box::into_raw(data) as *mut c_void;
+    let data = FontationsData::from_hb_font(font);
+    let data_ptr = Box::into_raw(Box::new(data)) as *mut c_void;
 
     hb_font_set_funcs(font, ffuncs, data_ptr, Some(_hb_fontations_data_destroy));
 }
