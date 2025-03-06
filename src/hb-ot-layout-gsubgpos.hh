@@ -376,6 +376,7 @@ struct hb_collect_glyphs_context_t :
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
 
+#ifdef HB_DEPEND_API
 struct hb_depend_context_t :
        hb_dispatch_context_t<hb_depend_context_t, bool>
 {
@@ -404,6 +405,7 @@ struct hb_depend_context_t :
                         recurse_func (nullptr) {}
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
+#endif
 
 template <typename set_t>
 struct hb_collect_coverage_context_t :
@@ -1840,6 +1842,7 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
   }
 }
 
+#ifdef HB_DEPEND_API
 template <typename HBUINT>
 static void context_depend_recurse_lookups (hb_depend_context_t *c,
 					     unsigned inputCount HB_UNUSED, const HBUINT input[] HB_UNUSED,
@@ -1859,6 +1862,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
   for (unsigned int i = 0; i < lookupCount; i++)
     c->recurse (lookupRecord[i].lookupListIndex);
 }
+#endif
 
 template <typename context_t>
 static inline void recurse_lookups (context_t *c,
@@ -2170,6 +2174,7 @@ struct Rule
 			       lookup_context);
   }
 
+#ifdef HB_DEPEND_API
   void depend (hb_depend_context_t *c, unsigned value) const
   {
     const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
@@ -2179,6 +2184,7 @@ struct Rule
 			    lookupCount, lookupRecord.arrayZ,
 			    value);
   }
+#endif
 
   void closure (hb_closure_context_t *c, unsigned value, ContextClosureLookupContext &lookup_context) const
   {
@@ -2313,6 +2319,7 @@ struct RuleSet
     ;
   }
 
+#ifdef HB_DEPEND_API
   void depend (hb_depend_context_t *c, unsigned value) const
   {
     + hb_iter (rule)
@@ -2320,6 +2327,7 @@ struct RuleSet
     | hb_apply ([&] (const Rule &_) { _.depend (c, value); })
     ;
   } 
+#endif
 
   void closure (hb_closure_context_t *c, unsigned value,
 		ContextClosureLookupContext &lookup_context) const
@@ -2561,6 +2569,7 @@ struct ContextFormat1_4
   bool may_have_non_1to1 () const
   { return true; }
 
+#ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
     + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
@@ -2569,6 +2578,7 @@ struct ContextFormat1_4
     ;
     return true;
   }
+#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -2738,6 +2748,7 @@ struct ContextFormat2_5
   bool may_have_non_1to1 () const
   { return true; }
 
+#ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
     + hb_enumerate (ruleSet)
@@ -2749,6 +2760,7 @@ struct ContextFormat2_5
     ;
     return true;
   }
+#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -2990,6 +3002,7 @@ struct ContextFormat3
   bool may_have_non_1to1 () const
   { return true; }
 
+#ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
@@ -2999,6 +3012,7 @@ struct ContextFormat3
 			    0);
     return true;
   }
+#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -3355,6 +3369,7 @@ struct ChainRule
 				     lookup_context);
   }
 
+#ifdef HB_DEPEND_API
   void depend (hb_depend_context_t *c, unsigned value) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
@@ -3366,6 +3381,7 @@ struct ChainRule
 			    lookup.len, lookup.arrayZ,
 			    value);
   }
+#endif
 
   void closure (hb_closure_context_t *c, unsigned value,
 		ChainContextClosureLookupContext &lookup_context) const
@@ -3561,6 +3577,7 @@ struct ChainRuleSet
     | hb_any
     ;
   }
+#ifdef HB_DEPEND_API
   void depend (hb_depend_context_t *c, unsigned value) const
   {
     + hb_iter (rule)
@@ -3568,6 +3585,7 @@ struct ChainRuleSet
     | hb_apply ([&] (const ChainRule &_) { _.depend (c, value); })
     ;
   }
+#endif
   void closure (hb_closure_context_t *c, unsigned value, ChainContextClosureLookupContext &lookup_context) const
   {
     if (unlikely (c->lookup_limit_exceeded ())) return;
@@ -3830,6 +3848,7 @@ struct ChainContextFormat1_4
   bool may_have_non_1to1 () const
   { return true; }
 
+#ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
     + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
@@ -3838,6 +3857,7 @@ struct ChainContextFormat1_4
     ;
     return true;
   }
+#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -4009,6 +4029,7 @@ struct ChainContextFormat2_5
   bool may_have_non_1to1 () const
   { return true; }
 
+#ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
     + hb_enumerate (ruleSet)
@@ -4021,6 +4042,7 @@ struct ChainContextFormat2_5
 
     return true;
   }
+#endif
 
   void closure (hb_closure_context_t *c) const
   {
@@ -4319,6 +4341,7 @@ struct ChainContextFormat3
   bool may_have_non_1to1 () const
   { return true; }
 
+#ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
@@ -4332,6 +4355,7 @@ struct ChainContextFormat3
 
     return false;
   }
+#endif
 
   void closure (hb_closure_context_t *c) const
   {

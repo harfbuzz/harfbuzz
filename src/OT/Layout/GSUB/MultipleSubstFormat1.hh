@@ -44,6 +44,7 @@ struct MultipleSubstFormat1_2
     ;
   }
 
+#ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
     + hb_zip (this+coverage, sequence)
@@ -55,6 +56,7 @@ struct MultipleSubstFormat1_2
     ;
     return true;
   }
+#endif
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
 
