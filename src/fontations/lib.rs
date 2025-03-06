@@ -337,13 +337,16 @@ impl HbColorPainter {
 
     fn lookup_color(&self, color_index: u16, alpha: f32) -> hb_color_t {
         if color_index == 0xFFFF {
-            self.foreground
+            // Apply alpha to foreground color
+            ((self.foreground & 0xFFFFFF00)
+                | (((self.foreground & 0xFF) as f32 * alpha).round() as u32))
+                as hb_color_t
         } else {
             let c = self.color_records[color_index as usize]; // TODO: bounds check
             (((c.blue as u32) << 24)
                 | ((c.green as u32) << 16)
                 | ((c.red as u32) << 8)
-                | ((c.alpha as f32 * alpha) as u32)) as hb_color_t
+                | ((c.alpha as f32 * alpha).round() as u32)) as hb_color_t
         }
     }
 
@@ -578,14 +581,17 @@ impl ColorPainter for HbColorPainter {
                     extend,
                 };
                 let mut color_line = self.make_color_line(&color_stops);
-                let start_angle = start_angle.to_radians();
-                let end_angle = end_angle.to_radians();
                 // Skrifa has this gem, so we swap end_angle and start_angle
                 // when passing to our API:
                 //
                 //  * Convert angles and stops from counter-clockwise to clockwise
                 //  * for the shader if the gradient is not already reversed due to
                 //  * start angle being larger than end angle.
+                //
+                //  Undo that.
+                let (start_angle, end_angle) = (360. - start_angle, 360. - end_angle);
+                let start_angle = start_angle.to_radians();
+                let end_angle = end_angle.to_radians();
                 unsafe {
                     hb_paint_sweep_gradient(
                         self.paint_funcs,
@@ -593,8 +599,8 @@ impl ColorPainter for HbColorPainter {
                         &mut color_line,
                         c0.x,
                         c0.y,
-                        end_angle,
                         start_angle,
+                        end_angle,
                     );
                 }
             }
