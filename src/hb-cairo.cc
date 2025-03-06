@@ -321,7 +321,6 @@ hb_cairo_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 {
   hb_cairo_context_t *c = (hb_cairo_context_t *) paint_data;
 
-  printf ("linear gradient %f %f %f %f %f %f\n", x0, y0, x1, y1, x2, y2);
   _hb_cairo_paint_linear_gradient (c, color_line, x0, y0, x1, y1, x2, y2);
 }
 
