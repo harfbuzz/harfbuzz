@@ -52,6 +52,8 @@ clippy = custom_target(
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     cargo, 'clippy',
+    ] + cargo_args + [
+    '--target-dir', meson.current_build_dir(),
     '--manifest-path', meson.current_source_dir() / 'Cargo.toml'
   ],
 )
