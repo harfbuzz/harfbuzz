@@ -128,6 +128,31 @@ struct hb_depend_data_t
     }
   }
 
+  bool get_glyph_entry(hb_codepoint_t gid, hb_codepoint_t index,
+                       hb_tag_t *table_tag, hb_codepoint_t *dependent,
+                       hb_tag_t *layout_tag, hb_codepoint_t *ligature_set)
+  {
+    if (gid < glyph_dependencies.length &&
+        index < glyph_dependencies[gid].dependencies.length) {
+      auto &d = glyph_dependencies[gid].dependencies[index];
+      *table_tag = d.table_tag;
+      *dependent = d.dependent;
+      *layout_tag = d.layout_tag;
+      *ligature_set = d.ligature_set;
+      return true;
+    }
+    return false;
+  }
+
+  bool get_set_from_index(hb_codepoint_t index, hb_set_t *out)
+  {
+    if (index < sets.length) {
+      out->set(sets[index]);
+      return true;
+    }
+    return false;
+  }
+
   void add_depend_layout (hb_codepoint_t target, hb_tag_t table_tag,
                           hb_tag_t layout_tag,
                           hb_codepoint_t dependent,

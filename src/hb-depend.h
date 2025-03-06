@@ -44,6 +44,19 @@ typedef struct hb_depend_t hb_depend_t;
 HB_EXTERN hb_depend_t *
 hb_depend_from_face (hb_face_t *face);
 
+HB_EXTERN hb_bool_t
+hb_depend_get_glyph_entry(hb_depend_t *depend,
+                          hb_codepoint_t gid,
+                          hb_codepoint_t index,
+                          hb_tag_t *table_tag, /* OUT */
+                          hb_codepoint_t *dependent, /* OUT */
+                          hb_tag_t *layout_tag, /* OUT */
+                          hb_codepoint_t *ligature_set /* OUT */);
+
+HB_EXTERN hb_bool_t
+hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
+                             hb_set_t *out);
+
 HB_EXTERN void
 hb_depend_print (hb_depend_t *depend);
 

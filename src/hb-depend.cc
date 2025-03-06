@@ -167,8 +167,8 @@ hb_depend_t::~hb_depend_t ()
 
 
 /**
- * hb_subset_from_face:
- * @face: font face to create the plan for.
+ * hb_depend_from_face:
+ * @face: font face to collect dependencies from
  *
  * Calculates the dependencies between glyphs in the supplied face
  *
@@ -192,6 +192,51 @@ hb_depend_from_face (hb_face_t *face)
   }
 
   return depend;
+}
+
+/**
+ * hb_depend_get_glyph_entry:
+ * @depend: depend object
+ * @gid: GID to retrive dependencies from
+ * @index: The index of the entry values to retrieve
+ * @table_tag: Returns the tag of the table associated with the entry
+ * @dependent: Returns the GID of the dependent glyph
+ * @layout_tag: Returns the layout tag associated with the dependency
+ * (when table_tag is GSUB) or the UVS codepoint (when table_tag is cmap)
+ * Otherwise is HB_CODEPOINT_INVALID
+ * @ligature_set: Returns the index of the ligature set for this entry, or
+ * HB_CODEPOINT_INVALID if there is no such set
+ *
+ * Get the values associated with a dependency entry for a glyph
+ *
+ * Return value: true if there is such an entry, false otherwise
+ *
+ * Since: ?.0.0
+ **/
+hb_bool_t
+hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
+                          hb_codepoint_t index, hb_tag_t *table_tag,
+                          hb_codepoint_t *dependent, hb_tag_t *layout_tag,
+                          hb_codepoint_t *ligature_set)
+{
+  return depend->get_glyph_entry(gid, index, table_tag, dependent, layout_tag,
+                                 ligature_set);
+}
+
+/**
+ * hb_depend_get_set_from_index:
+ * @depend: depend object
+ * @index: the index of the set
+ * @out: A pointer to a set to copy into
+ *
+ * Return value: true if there is such an entry, false otherwise
+ *
+ * Since: ?.0.0
+ **/
+hb_bool_t
+hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
+                             hb_set_t *out) {
+  return depend->get_set_from_index(index, out);
 }
 
 void
