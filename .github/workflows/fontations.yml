@@ -58,4 +58,4 @@ jobs:
     - name: Build
       run: meson compile -Cbuild
     - name: Test
-      run: meson test --print-errorlogs -Cbuild
+      run: RUST_BACKTRACE=1 meson test --print-errorlogs -Cbuild
