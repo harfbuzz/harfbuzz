@@ -42,6 +42,14 @@ extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void) {
     }
 }
 
+fn struct_at<T: Copy>(first: *const T, index: u32, stride: u32) -> T {
+    unsafe { *((first as *const u8).offset((index * stride) as isize) as *const T) }
+}
+
+fn struct_at_mut<T: Copy>(first: *mut T, index: u32, stride: u32) -> &'static mut T {
+    unsafe { &mut *((first as *mut u8).offset((index * stride) as isize) as *mut T) }
+}
+
 extern "C" fn _hb_fontations_get_nominal_glyphs(
     _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -56,19 +64,12 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
     let char_map = &data.char_map;
 
     for i in 0..count {
-        let unicode = unsafe {
-            *((first_unicode as *const u8).offset((i * unicode_stride) as isize)
-                as *const hb_codepoint_t)
-        };
-        let glyph = char_map.map(unicode);
-        if glyph.is_none() {
+        let unicode = struct_at(first_unicode, i, unicode_stride);
+        let Some(glyph) = char_map.map(unicode) else {
             return i;
-        }
-        let glyph_id = u32::from(glyph.unwrap()) as hb_codepoint_t;
-        unsafe {
-            *((first_glyph as *mut u8).offset((i * glyph_stride) as isize)
-                as *mut hb_codepoint_t) = glyph_id;
-        }
+        };
+        let glyph_id = u32::from(glyph) as hb_codepoint_t;
+        *struct_at_mut(first_glyph, i, glyph_stride) = glyph_id;
     }
 
     count
@@ -84,8 +85,7 @@ extern "C" fn _hb_fontations_get_variation_glyph(
     let data = unsafe { &*(font_data as *const FontationsData) };
     let char_map = &data.char_map;
 
-    let variant = char_map.map_variant(unicode, variation_selector);
-    match variant {
+    match char_map.map_variant(unicode, variation_selector) {
         Some(Variant(glyph_id)) => {
             unsafe { *glyph = u32::from(glyph_id) as hb_codepoint_t };
             true as hb_bool_t
@@ -151,14 +151,8 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     let y_extents = y_extents.unwrap();
     unsafe {
         (*extents).x_bearing = x_extents.x_min as hb_position_t;
-    }
-    unsafe {
         (*extents).width = (x_extents.x_max - x_extents.x_min) as hb_position_t;
-    }
-    unsafe {
         (*extents).y_bearing = y_extents.y_max as hb_position_t;
-    }
-    unsafe {
         (*extents).height = (y_extents.y_min - y_extents.y_max) as hb_position_t;
     }
 
