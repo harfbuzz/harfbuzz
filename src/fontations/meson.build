@@ -12,6 +12,7 @@ hb_rs = rust.bindgen(
 )
 
 cargo = find_program('cargo')
+rustfmt = find_program('rustfmt')
 
 buildtype = get_option('buildtype')
 if buildtype == 'release' or buildtype == 'debugoptimized'
@@ -45,11 +46,26 @@ harfbuzz_fontations_dep = declare_dependency(
 
 clippy = custom_target(
   'clippy',
+  input: 'lib.rs',
   output: 'clippy',
   depends: [hb_rs],
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     cargo, 'clippy',
     '--manifest-path', meson.current_source_dir() / 'Cargo.toml'
+  ],
+)
+
+fmt = custom_target(
+  'fmt',
+  input: 'lib.rs',
+  output: 'fmt',
+  depends: [hb_rs],
+  env: ['OUT_DIR=' + meson.current_build_dir()],
+  command: [
+    rustfmt,
+    '--edition', '2021',
+    '--',
+    meson.current_source_dir() / 'lib.rs',
   ],
 )
