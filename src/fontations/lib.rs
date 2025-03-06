@@ -751,7 +751,9 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
     }
 }
 
-// A helper to attach these funcs to a hb_font_t
+/// # Safety
+///
+/// This function is unsafe because it connects with the HarfBuzz API.
 #[no_mangle]
 pub unsafe extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     let ffuncs = _hb_fontations_font_funcs_get();
