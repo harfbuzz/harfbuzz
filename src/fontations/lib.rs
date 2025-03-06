@@ -111,19 +111,13 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     let glyph_metrics = font_ref.glyph_metrics(*size, location);
 
     for i in 0..count {
-        let glyph = unsafe {
-            *((first_glyph as *const u8).offset((i * glyph_stride) as isize)
-                as *const hb_codepoint_t)
-        };
+        let glyph = struct_at(first_glyph, i, glyph_stride);
         let glyph_id = GlyphId::new(glyph);
         let advance = glyph_metrics
             .advance_width(glyph_id)
             .unwrap_or_default()
             .round() as i32;
-        unsafe {
-            *((first_advance as *mut u8).offset((i * advance_stride) as isize)
-                as *mut hb_position_t) = advance as hb_position_t;
-        }
+        *struct_at_mut(first_advance, i, advance_stride) = advance as hb_position_t;
     }
 }
 extern "C" fn _hb_fontations_get_glyph_extents(
@@ -144,16 +138,17 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     let glyph_id = GlyphId::new(glyph);
     let x_extents = x_glyph_metrics.bounds(glyph_id);
     let y_extents = y_glyph_metrics.bounds(glyph_id);
-    if x_extents.is_none() || y_extents.is_none() {
+    let (Some(x_extents), Some(y_extents)) = (x_extents, y_extents) else {
         return false as hb_bool_t;
-    }
-    let x_extents = x_extents.unwrap();
-    let y_extents = y_extents.unwrap();
+    };
+
     unsafe {
-        (*extents).x_bearing = x_extents.x_min as hb_position_t;
-        (*extents).width = (x_extents.x_max - x_extents.x_min) as hb_position_t;
-        (*extents).y_bearing = y_extents.y_max as hb_position_t;
-        (*extents).height = (y_extents.y_min - y_extents.y_max) as hb_position_t;
+        *extents = hb_glyph_extents_t {
+            x_bearing: x_extents.x_min as hb_position_t,
+            width: (x_extents.x_max - x_extents.x_min) as hb_position_t,
+            y_bearing: y_extents.y_max as hb_position_t,
+            height: (y_extents.y_min - y_extents.y_max) as hb_position_t,
+        };
     }
 
     true as hb_bool_t
@@ -173,11 +168,7 @@ extern "C" fn _hb_fontations_get_font_h_extents(
 
     unsafe {
         (*extents).ascender = metrics.ascent as hb_position_t;
-    }
-    unsafe {
         (*extents).descender = metrics.descent as hb_position_t;
-    }
-    unsafe {
         (*extents).line_gap = metrics.leading as hb_position_t;
     }
 
@@ -254,11 +245,9 @@ extern "C" fn _hb_fontations_draw_glyph(
 
     // Create an outline-glyph
     let glyph_id = GlyphId::new(glyph);
-    let outline_glyph = outline_glyphs.get(glyph_id);
-    if outline_glyph.is_none() {
+    let Some(outline_glyph) = outline_glyphs.get(glyph_id) else {
         return;
-    }
-    let outline_glyph = outline_glyph.unwrap();
+    };
     let draw_settings = DrawSettings::unhinted(*x_size, location);
     // Allocate zero bytes for the draw_state_t on the stack.
     let mut draw_state: hb_draw_state_t = unsafe { std::mem::zeroed::<hb_draw_state_t>() };
@@ -331,17 +320,16 @@ impl HbColorPainter {
 
     fn lookup_color(&self, color_index: u16, alpha: f32) -> hb_color_t {
         let c = self.color_records.get(color_index as usize);
-        if color_index == 0xFFFF || c.is_none() {
-            // Apply alpha to foreground color
-            ((self.foreground & 0xFFFFFF00)
-                | (((self.foreground & 0xFF) as f32 * alpha).round() as u32))
-                as hb_color_t
-        } else {
-            let c = c.unwrap();
+        if let Some(c) = c.filter(|_| color_index != 0xFFFF) {
             (((c.blue as u32) << 24)
                 | ((c.green as u32) << 16)
                 | ((c.red as u32) << 8)
                 | ((c.alpha as f32 * alpha).round() as u32)) as hb_color_t
+        } else {
+            // Apply alpha to foreground color
+            ((self.foreground & 0xFFFFFF00)
+                | (((self.foreground & 0xFF) as f32 * alpha).round() as u32))
+                as hb_color_t
         }
     }
 
