@@ -60,7 +60,7 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
             *((first_unicode as *const u8).offset((i * unicode_stride) as isize)
                 as *const hb_codepoint_t)
         };
-        let glyph = char_map.map(unicode as u32);
+        let glyph = char_map.map(unicode);
         if glyph.is_none() {
             return i;
         }
@@ -84,7 +84,7 @@ extern "C" fn _hb_fontations_get_variation_glyph(
     let data = unsafe { &*(font_data as *const FontationsData) };
     let char_map = &data.char_map;
 
-    let variant = char_map.map_variant(unicode as u32, variation_selector as u32);
+    let variant = char_map.map_variant(unicode, variation_selector);
     match variant {
         Some(Variant(glyph_id)) => {
             unsafe { *glyph = u32::from(glyph_id) as hb_codepoint_t };
@@ -115,7 +115,7 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
             *((first_glyph as *const u8).offset((i * glyph_stride) as isize)
                 as *const hb_codepoint_t)
         };
-        let glyph_id = GlyphId::new(glyph as u32);
+        let glyph_id = GlyphId::new(glyph);
         let advance = glyph_metrics
             .advance_width(glyph_id)
             .unwrap_or_default()
@@ -141,7 +141,7 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     let x_glyph_metrics = font_ref.glyph_metrics(*x_size, location);
     let y_glyph_metrics = font_ref.glyph_metrics(*y_size, location);
 
-    let glyph_id = GlyphId::new(glyph as u32);
+    let glyph_id = GlyphId::new(glyph);
     let x_extents = x_glyph_metrics.bounds(glyph_id);
     let y_extents = y_glyph_metrics.bounds(glyph_id);
     if x_extents.is_none() || y_extents.is_none() {
@@ -259,7 +259,7 @@ extern "C" fn _hb_fontations_draw_glyph(
     let outline_glyphs = &data.outline_glyphs;
 
     // Create an outline-glyph
-    let glyph_id = GlyphId::new(glyph as u32);
+    let glyph_id = GlyphId::new(glyph);
     let outline_glyph = outline_glyphs.get(glyph_id);
     if outline_glyph.is_none() {
         return;
@@ -400,7 +400,7 @@ extern "C" fn _hb_fontations_get_color_stops(
             };
         }
     }
-    return color_stops.len() as u32;
+    color_stops.len() as u32
 }
 extern "C" fn _hb_fontations_get_extend(
     _color_line: *mut hb_color_line_t,
@@ -521,7 +521,7 @@ impl ColorPainter for HbColorPainter {
                 p1,
             } => {
                 let color_stops = ColorLineData {
-                    color_stops: &color_stops,
+                    color_stops,
                     extend,
                 };
                 let mut color_line = self.make_color_line(&color_stops);
@@ -552,7 +552,7 @@ impl ColorPainter for HbColorPainter {
                 r1,
             } => {
                 let color_stops = ColorLineData {
-                    color_stops: &color_stops,
+                    color_stops,
                     extend,
                 };
                 let mut color_line = self.make_color_line(&color_stops);
@@ -578,7 +578,7 @@ impl ColorPainter for HbColorPainter {
                 end_angle,
             } => {
                 let color_stops = ColorLineData {
-                    color_stops: &color_stops,
+                    color_stops,
                     extend,
                 };
                 let mut color_line = self.make_color_line(&color_stops);
@@ -641,7 +641,7 @@ extern "C" fn _hb_fontations_paint_glyph(
     let color_glyphs = &data.color_glyphs;
 
     // Create an color-glyph
-    let glyph_id = GlyphId::new(glyph as u32);
+    let glyph_id = GlyphId::new(glyph);
     let color_glyph = color_glyphs.get(glyph_id);
     if color_glyph.is_none() {
         return;
@@ -650,27 +650,27 @@ extern "C" fn _hb_fontations_paint_glyph(
 
     let cpal = font_ref.cpal();
     let color_records = if cpal.is_err() {
-        unsafe { std::slice::from_raw_parts(std::ptr::null(), 0) }
+        unsafe { std::slice::from_raw_parts(std::ptr::NonNull::dangling().as_ptr(), 0) }
     } else {
         let cpal = cpal.unwrap();
         let num_entries: usize = cpal.num_palette_entries().into();
         let color_records = cpal.color_records_array();
         let start_index = cpal.color_record_indices().get(palette_index as usize);
-        if !color_records.is_none()
+        if color_records.is_some()
             && color_records.as_ref().unwrap().is_ok()
-            && !start_index.is_none()
+            && start_index.is_some()
         {
             let start_index: usize = start_index.unwrap().get().into();
             let color_records = color_records.unwrap().unwrap();
             let color_records = &color_records[start_index..start_index + num_entries];
             unsafe { std::slice::from_raw_parts(color_records.as_ptr(), num_entries) }
         } else {
-            unsafe { std::slice::from_raw_parts(std::ptr::null(), 0) }
+            unsafe { std::slice::from_raw_parts(std::ptr::NonNull::dangling().as_ptr(), 0) }
         }
     };
 
     let mut painter = HbColorPainter {
-        font: font,
+        font,
         paint_funcs,
         paint_data,
         color_records,
