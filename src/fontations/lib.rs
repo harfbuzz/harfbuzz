@@ -336,13 +336,14 @@ impl HbColorPainter {
     }
 
     fn lookup_color(&self, color_index: u16, alpha: f32) -> hb_color_t {
-        if color_index == 0xFFFF {
+        let c = self.color_records.get(color_index as usize);
+        if color_index == 0xFFFF || c.is_none() {
             // Apply alpha to foreground color
             ((self.foreground & 0xFFFFFF00)
                 | (((self.foreground & 0xFF) as f32 * alpha).round() as u32))
                 as hb_color_t
         } else {
-            let c = self.color_records[color_index as usize]; // TODO: bounds check
+            let c = c.unwrap();
             (((c.blue as u32) << 24)
                 | ((c.green as u32) << 16)
                 | ((c.red as u32) << 8)
