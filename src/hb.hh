@@ -282,7 +282,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #define __attribute__(x)
 #endif
 
-#if defined(__MINGW32__) && (__GNUC__ >= 3)
+#if defined(__MINGW32__) && (__GNUC__ >= 3) && !defined(__clang__)
 #define HB_PRINTF_FUNC(format_idx, arg_idx) __attribute__((__format__ (gnu_printf, format_idx, arg_idx)))
 #elif defined(__GNUC__) && (__GNUC__ >= 3)
 #define HB_PRINTF_FUNC(format_idx, arg_idx) __attribute__((__format__ (__printf__, format_idx, arg_idx)))
