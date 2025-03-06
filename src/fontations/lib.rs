@@ -23,15 +23,15 @@ use skrifa::{GlyphId, MetadataProvider};
 
 // A struct for storing your “fontations” data
 #[repr(C)]
-struct FontationsData {
+struct FontationsData<'a> {
     face_blob: *mut hb_blob_t,
-    font_ref: FontRef<'static>,
-    char_map: Charmap<'static>,
+    font_ref: FontRef<'a>,
+    char_map: Charmap<'a>,
     x_size: Size,
     y_size: Size,
     location: Location,
-    outline_glyphs: OutlineGlyphCollection<'static>,
-    color_glyphs: ColorGlyphCollection<'static>,
+    outline_glyphs: OutlineGlyphCollection<'a>,
+    color_glyphs: ColorGlyphCollection<'a>,
 }
 
 extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void) {
@@ -260,17 +260,17 @@ extern "C" fn _hb_fontations_draw_glyph(
     let _ = outline_glyph.draw(draw_settings, &mut pen);
 }
 
-struct HbColorPainter {
+struct HbColorPainter<'a> {
     font: *mut hb_font_t,
     paint_funcs: *mut hb_paint_funcs_t,
     paint_data: *mut c_void,
-    color_records: &'static [ColorRecord],
+    color_records: &'a [ColorRecord],
     foreground: hb_color_t,
     composite_mode: Vec<CompositeMode>,
     clip_transform_stack: Vec<bool>,
 }
 
-impl HbColorPainter {
+impl HbColorPainter<'_> {
     fn push_root_transform(&mut self) {
         let font = self.font;
         let face = unsafe { hb_font_get_face(font) };
@@ -343,7 +343,7 @@ impl HbColorPainter {
 }
 
 struct ColorLineData<'a> {
-    painter: &'a HbColorPainter,
+    painter: &'a HbColorPainter<'a>,
     color_stops: &'a [ColorStop],
     extend: Extend,
 }
@@ -417,7 +417,7 @@ pub fn _hb_fontations_unreduce_anchors(
     (x0, y0, x1, y1, x0 + dy, y0 - dx)
 }
 
-impl ColorPainter for HbColorPainter {
+impl ColorPainter for HbColorPainter<'_> {
     fn push_transform(&mut self, transform: Transform) {
         unsafe {
             hb_paint_push_transform(
