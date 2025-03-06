@@ -333,15 +333,14 @@ impl HbColorPainter {
         }
     }
 
-    fn make_color_line(&mut self, color_stops: &ColorLineData) -> hb_color_line_t {
+    fn make_color_line(&mut self, color_line: &ColorLineData) -> hb_color_line_t {
         let mut cl = unsafe { std::mem::zeroed::<hb_color_line_t>() };
         cl.data = self as *mut HbColorPainter as *mut ::std::os::raw::c_void;
         cl.get_color_stops = Some(_hb_fontations_get_color_stops);
         cl.get_color_stops_user_data =
-            color_stops as *const ColorLineData as *mut ::std::os::raw::c_void;
+            color_line as *const ColorLineData as *mut ::std::os::raw::c_void;
         cl.get_extend = Some(_hb_fontations_get_extend);
-        cl.get_extend_user_data =
-            color_stops as *const ColorLineData as *mut ::std::os::raw::c_void;
+        cl.get_extend_user_data = color_line as *const ColorLineData as *mut ::std::os::raw::c_void;
         cl
     }
 }
@@ -384,10 +383,10 @@ extern "C" fn _hb_fontations_get_color_stops(
 }
 extern "C" fn _hb_fontations_get_extend(
     _color_line: *mut hb_color_line_t,
-    color_line_data: *mut ::std::os::raw::c_void,
-    _user_data: *mut ::std::os::raw::c_void,
+    _color_line_data: *mut ::std::os::raw::c_void,
+    user_data: *mut ::std::os::raw::c_void,
 ) -> hb_paint_extend_t {
-    let color_line_data = unsafe { &*(color_line_data as *const ColorLineData) };
+    let color_line_data = unsafe { &*(user_data as *const ColorLineData) };
     color_line_data.extend as hb_paint_extend_t // They are the same
 }
 

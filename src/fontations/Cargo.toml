@@ -3,8 +3,8 @@ name = "harfbuzz_fontations"
 edition = "2021"
 
 [dependencies]
-read-fonts = "0.27.2"
-skrifa = "0.28.1"
+read-fonts = { path = "/home/behdad/fontations/read-fonts" }
+skrifa = { path = "/home/behdad/fontations/skrifa" }
 
 [lib]
 name = "harfbuzz_fontations"
