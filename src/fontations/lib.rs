@@ -333,19 +333,17 @@ impl HbColorPainter {
         }
     }
 
-    fn make_color_line(&mut self, color_line: &ColorLineData) -> hb_color_line_t {
+    fn make_color_line(&self, color_line: &ColorLineData) -> hb_color_line_t {
         let mut cl = unsafe { std::mem::zeroed::<hb_color_line_t>() };
-        cl.data = self as *mut HbColorPainter as *mut ::std::os::raw::c_void;
+        cl.data = color_line as *const ColorLineData as *mut ::std::os::raw::c_void;
         cl.get_color_stops = Some(_hb_fontations_get_color_stops);
-        cl.get_color_stops_user_data =
-            color_line as *const ColorLineData as *mut ::std::os::raw::c_void;
         cl.get_extend = Some(_hb_fontations_get_extend);
-        cl.get_extend_user_data = color_line as *const ColorLineData as *mut ::std::os::raw::c_void;
         cl
     }
 }
 
 struct ColorLineData<'a> {
+    painter: &'a HbColorPainter,
     color_stops: &'a [ColorStop],
     extend: Extend,
 }
@@ -355,10 +353,9 @@ extern "C" fn _hb_fontations_get_color_stops(
     start: ::std::os::raw::c_uint,
     count_out: *mut ::std::os::raw::c_uint,
     color_stops_out: *mut hb_color_stop_t,
-    user_data: *mut ::std::os::raw::c_void,
+    _user_data: *mut ::std::os::raw::c_void,
 ) -> ::std::os::raw::c_uint {
-    let color_painter = unsafe { &*(color_line_data as *const HbColorPainter) };
-    let color_line_data = unsafe { &*(user_data as *const ColorLineData) };
+    let color_line_data = unsafe { &*(color_line_data as *const ColorLineData) };
     let color_stops = &color_line_data.color_stops;
     if count_out.is_null() {
         return color_stops.len() as u32;
@@ -374,7 +371,9 @@ extern "C" fn _hb_fontations_get_color_stops(
         unsafe {
             *(color_stops_out.offset(i as isize)) = hb_color_stop_t {
                 offset: stop.offset,
-                color: color_painter.lookup_color(stop.palette_index, stop.alpha),
+                color: color_line_data
+                    .painter
+                    .lookup_color(stop.palette_index, stop.alpha),
                 is_foreground: (stop.palette_index == 0xFFFF) as hb_bool_t,
             };
         }
@@ -383,10 +382,10 @@ extern "C" fn _hb_fontations_get_color_stops(
 }
 extern "C" fn _hb_fontations_get_extend(
     _color_line: *mut hb_color_line_t,
-    _color_line_data: *mut ::std::os::raw::c_void,
-    user_data: *mut ::std::os::raw::c_void,
+    color_line_data: *mut ::std::os::raw::c_void,
+    _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_paint_extend_t {
-    let color_line_data = unsafe { &*(user_data as *const ColorLineData) };
+    let color_line_data = unsafe { &*(color_line_data as *const ColorLineData) };
     color_line_data.extend as hb_paint_extend_t // They are the same
 }
 
@@ -500,6 +499,7 @@ impl ColorPainter for HbColorPainter {
                 p1,
             } => {
                 let color_stops = ColorLineData {
+                    painter: self,
                     color_stops,
                     extend,
                 };
@@ -531,6 +531,7 @@ impl ColorPainter for HbColorPainter {
                 r1,
             } => {
                 let color_stops = ColorLineData {
+                    painter: self,
                     color_stops,
                     extend,
                 };
@@ -557,6 +558,7 @@ impl ColorPainter for HbColorPainter {
                 end_angle,
             } => {
                 let color_stops = ColorLineData {
+                    painter: self,
                     color_stops,
                     extend,
                 };
