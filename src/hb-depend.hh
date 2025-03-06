@@ -51,6 +51,17 @@ struct hb_depend_t
   }
 
   void print() { data.print(); }
+  bool get_glyph_entry(hb_codepoint_t gid, hb_codepoint_t index,
+                       hb_tag_t *table_tag, hb_codepoint_t *dependent,
+                       hb_tag_t *layout_tag, hb_codepoint_t *ligature_set)
+  {
+    return data.get_glyph_entry(gid, index, table_tag, dependent, layout_tag,
+                                ligature_set);
+  }
+  bool get_set_from_index(hb_codepoint_t index, hb_set_t *out)
+  {
+    return data.get_set_from_index(index, out);
+  }
 
   void get_cmap_dependencies ();
   void get_gsub_dependencies ();
