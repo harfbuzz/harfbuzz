@@ -1044,7 +1044,7 @@ if get_option('tests').enabled()
   endforeach
   env.set('HBHEADERS', ' '.join(HBHEADERS))
 
-  if cpp.get_argument_syntax() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
+  if conf.get('HAVE_FONTATIONS', 0) == 0 and cpp.get_argument_syntax() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
     dist_check_script += ['check-static-inits', 'check-symbols']
     if get_option('wasm').disabled() and not get_option('with_libstdcxx')
       dist_check_script += ['check-libstdc++']
