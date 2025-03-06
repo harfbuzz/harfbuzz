@@ -38,7 +38,7 @@ jobs:
           libgraphite2-dev \
           libicu-dev \
           pkg-config \
-          rust-bindgen
+          bindgen
     - name: Setup Python
       uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
       with:
