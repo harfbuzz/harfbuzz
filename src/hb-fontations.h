@@ -53,4 +53,4 @@ hb_fontations_font_set_funcs (hb_font_t *font);
 
 HB_END_DECLS
 
-#endif /* HB_CAIRO_H */
+#endif /* HB_FONTATIONS_H */
