@@ -753,15 +753,14 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
 
 // A helper to attach these funcs to a hb_font_t
 #[no_mangle]
-pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
+pub unsafe extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     let ffuncs = _hb_fontations_font_funcs_get();
 
-    let face_index = unsafe { hb_face_get_index(hb_font_get_face(font)) };
-    let face_blob = unsafe { hb_face_reference_blob(hb_font_get_face(font)) };
-    let blob_length = unsafe { hb_blob_get_length(face_blob) };
-    let blob_data = unsafe { hb_blob_get_data(face_blob, null_mut()) };
-    let face_data =
-        unsafe { std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize) };
+    let face_index = hb_face_get_index(hb_font_get_face(font));
+    let face_blob = hb_face_reference_blob(hb_font_get_face(font));
+    let blob_length = hb_blob_get_length(face_blob);
+    let blob_data = hb_blob_get_data(face_blob, null_mut());
+    let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
 
     let font_ref = FontRef::from_index(face_data, face_index).unwrap();
 
@@ -769,18 +768,16 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
 
     let mut x_scale: i32 = 0;
     let mut y_scale: i32 = 0;
-    unsafe {
-        hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-    };
+    hb_font_get_scale(font, &mut x_scale, &mut y_scale);
     let x_size = Size::new(x_scale as f32);
     let y_size = Size::new(y_scale as f32);
 
     let mut num_coords: u32 = 0;
-    let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
+    let coords = hb_font_get_var_coords_normalized(font, &mut num_coords);
     let coords = if coords.is_null() {
         &[]
     } else {
-        unsafe { std::slice::from_raw_parts(coords, num_coords as usize) }
+        std::slice::from_raw_parts(coords, num_coords as usize)
     };
     let all_zeros = coords.iter().all(|&x| x == 0);
     // if all zeros, use Location::default()
@@ -814,7 +811,5 @@ pub extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     });
     let data_ptr = Box::into_raw(data) as *mut c_void;
 
-    unsafe {
-        hb_font_set_funcs(font, ffuncs, data_ptr, Some(_hb_fontations_data_destroy));
-    }
+    hb_font_set_funcs(font, ffuncs, data_ptr, Some(_hb_fontations_data_destroy));
 }
