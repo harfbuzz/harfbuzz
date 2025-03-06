@@ -294,8 +294,6 @@ _hb_cairo_get_color_stops (hb_cairo_context_t *c,
   }
   hb_color_line_get_color_stops (color_line, 0, &len, *stops);
   for (unsigned i = 0; i < len; i++)
-   {
-      printf ("stop at %g\n", (*stops)[i].offset);
     if ((*stops)[i].is_foreground)
     {
 #ifdef HAVE_CAIRO_USER_SCALED_FONT_GET_FOREGROUND_SOURCE
@@ -308,7 +306,6 @@ _hb_cairo_get_color_stops (hb_cairo_context_t *c,
 #endif
         (*stops)[i].color = HB_COLOR (0, 0, 0, hb_color_get_alpha ((*stops)[i].color));
     }
-   }
 
   *count = len;
   return true;
@@ -344,7 +341,6 @@ _hb_cairo_paint_linear_gradient (hb_cairo_context_t *c,
 
   pattern = cairo_pattern_create_linear ((double) xxx0, (double) yyy0, (double) xxx1, (double) yyy1);
   cairo_pattern_set_extend (pattern, hb_cairo_extend (hb_color_line_get_extend (color_line)));
-  printf("extend %d\n", hb_color_line_get_extend (color_line));
   for (unsigned int i = 0; i < len; i++)
     {
       double r, g, b, a;
