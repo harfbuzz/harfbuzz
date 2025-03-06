@@ -42,3 +42,16 @@ harfbuzz_fontations = custom_target(
 harfbuzz_fontations_dep = declare_dependency(
   link_whole: harfbuzz_fontations,
 )
+
+clippy = custom_target(
+  'clippy',
+  output: 'clippy',
+  depends: [hb_rs],
+  env: ['OUT_DIR=' + meson.current_build_dir()],
+  command: [
+    cargo, 'clippy',
+    '--manifest-path', meson.current_source_dir() / 'Cargo.toml'
+  ],
+  install: true,
+  install_dir: join_paths(get_option('prefix'), 'lib'),
+)

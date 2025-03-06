@@ -461,6 +461,7 @@ configure_file(output: 'config.h', configuration: conf)
 
 alias_target('lib', libharfbuzz)
 alias_target('libs', libharfbuzz, libharfbuzz_subset)
+alias_target('clippy', clippy)
 
 if meson.version().version_compare('>=0.57.0')
   # Re glib, see https://github.com/harfbuzz/harfbuzz/issues/4153#issuecomment-2646347531
