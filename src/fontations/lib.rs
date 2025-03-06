@@ -175,10 +175,7 @@ extern "C" fn _hb_fontations_get_font_h_extents(
     true as hb_bool_t
 }
 
-struct HbPen
-where
-    Self: OutlinePen,
-{
+struct HbPen {
     draw_state: *mut hb_draw_state_t,
     draw_funcs: *mut hb_draw_funcs_t,
     draw_data: *mut c_void,
