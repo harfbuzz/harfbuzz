@@ -42,11 +42,11 @@ extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void) {
     }
 }
 
-fn struct_at<T: Copy>(first: *const T, index: u32, stride: u32) -> T {
+fn struct_at_offset<T: Copy>(first: *const T, index: u32, stride: u32) -> T {
     unsafe { *((first as *const u8).offset((index * stride) as isize) as *const T) }
 }
 
-fn struct_at_mut<T: Copy>(first: *mut T, index: u32, stride: u32) -> &'static mut T {
+fn struct_at_offset_mut<T: Copy>(first: *mut T, index: u32, stride: u32) -> &'static mut T {
     unsafe { &mut *((first as *mut u8).offset((index * stride) as isize) as *mut T) }
 }
 
@@ -64,12 +64,12 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
     let char_map = &data.char_map;
 
     for i in 0..count {
-        let unicode = struct_at(first_unicode, i, unicode_stride);
+        let unicode = struct_at_offset(first_unicode, i, unicode_stride);
         let Some(glyph) = char_map.map(unicode) else {
             return i;
         };
         let glyph_id = u32::from(glyph) as hb_codepoint_t;
-        *struct_at_mut(first_glyph, i, glyph_stride) = glyph_id;
+        *struct_at_offset_mut(first_glyph, i, glyph_stride) = glyph_id;
     }
 
     count
@@ -111,13 +111,13 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     let glyph_metrics = font_ref.glyph_metrics(*size, location);
 
     for i in 0..count {
-        let glyph = struct_at(first_glyph, i, glyph_stride);
+        let glyph = struct_at_offset(first_glyph, i, glyph_stride);
         let glyph_id = GlyphId::new(glyph);
         let advance = glyph_metrics
             .advance_width(glyph_id)
             .unwrap_or_default()
             .round() as i32;
-        *struct_at_mut(first_advance, i, advance_stride) = advance as hb_position_t;
+        *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
     }
 }
 extern "C" fn _hb_fontations_get_glyph_extents(
@@ -366,14 +366,12 @@ extern "C" fn _hb_fontations_get_color_stops(
     }
     let count = unsafe { *count_out };
     for i in 0..count {
-        let stop = color_stops.get(start as usize + i as usize);
-        if stop.is_none() {
+        let Some(stop) = color_stops.get(start as usize + i as usize) else {
             unsafe {
                 *count_out = i;
             };
-            return color_stops.len() as u32;
-        }
-        let stop = stop.unwrap();
+            break;
+        };
         unsafe {
             *(color_stops_out.offset(i as isize)) = hb_color_stop_t {
                 offset: stop.offset,
@@ -624,11 +622,9 @@ extern "C" fn _hb_fontations_paint_glyph(
 
     // Create an color-glyph
     let glyph_id = GlyphId::new(glyph);
-    let color_glyph = color_glyphs.get(glyph_id);
-    if color_glyph.is_none() {
+    let Some(color_glyph) = color_glyphs.get(glyph_id) else {
         return;
-    }
-    let color_glyph = color_glyph.unwrap();
+    };
 
     let cpal = font_ref.cpal();
     let color_records = if cpal.is_err() {
@@ -638,12 +634,9 @@ extern "C" fn _hb_fontations_paint_glyph(
         let num_entries: usize = cpal.num_palette_entries().into();
         let color_records = cpal.color_records_array();
         let start_index = cpal.color_record_indices().get(palette_index as usize);
-        if color_records.is_some()
-            && color_records.as_ref().unwrap().is_ok()
-            && start_index.is_some()
-        {
-            let start_index: usize = start_index.unwrap().get().into();
-            let color_records = color_records.unwrap().unwrap();
+
+        if let (Some(Ok(color_records)), Some(start_index)) = (color_records, start_index) {
+            let start_index: usize = start_index.get().into();
             let color_records = &color_records[start_index..start_index + num_entries];
             unsafe { std::slice::from_raw_parts(color_records.as_ptr(), num_entries) }
         } else {
@@ -773,9 +766,10 @@ pub unsafe extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     } else {
         let mut location = Location::new(num_coords as usize);
         let coords_mut = location.coords_mut();
-        for i in 0..num_coords as usize {
-            coords_mut[i] = NormalizedCoord::from_bits(coords[i] as i16);
-        }
+        coords_mut
+            .iter_mut()
+            .zip(coords.iter().map(|v| NormalizedCoord::from_bits(*v as i16)))
+            .for_each(|(dest, source)| *dest = source);
         location
     };
 
