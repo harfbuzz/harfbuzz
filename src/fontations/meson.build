@@ -52,6 +52,4 @@ clippy = custom_target(
     cargo, 'clippy',
     '--manifest-path', meson.current_source_dir() / 'Cargo.toml'
   ],
-  install: true,
-  install_dir: join_paths(get_option('prefix'), 'lib'),
 )
