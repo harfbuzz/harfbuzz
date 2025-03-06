@@ -61,10 +61,12 @@ struct SubstLookup : Lookup
     return ret;
   }
 
+#ifdef HB_DEPEND_API
   hb_depend_context_t::return_t depend (hb_depend_context_t *c) const
   {
     return dispatch (c);
   }
+#endif
 
   hb_closure_lookups_context_t::return_t closure_lookups (hb_closure_lookups_context_t *c, unsigned this_index) const
   {
@@ -210,7 +212,9 @@ struct SubstLookup : Lookup
     return ret;
   }
 
+#ifdef HB_DEPEND_API
   static typename hb_depend_context_t::return_t depend_recurse_func (hb_depend_context_t *c, unsigned lookup_index);
+#endif
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const

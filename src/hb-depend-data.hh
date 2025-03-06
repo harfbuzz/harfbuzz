@@ -27,10 +27,11 @@
 #ifndef HB_DEPEND_DATA_HH
 #define HB_DEPEND_DATA_HH
 
-
 #include "hb.hh"
 
 #include "hb-multimap.hh"
+
+#ifdef HB_DEPEND_API
 
 struct hb_depend_data_record_t {
   hb_depend_data_record_t() = delete;
@@ -218,5 +219,7 @@ struct hb_depend_data_t
   hb_vector_t<hb_glyph_depend_record_t> glyph_dependencies;
   hb_vector_t<hb_set_t> lookup_features;
 };
+
+#endif /* HB_DEPEND_API */
 
 #endif /* HB_DEPEND_DATA_HH */

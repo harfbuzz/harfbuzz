@@ -32,6 +32,8 @@
 #include "hb-depend.h"
 #include "hb-depend-data.hh"
 
+#ifdef HB_DEPEND_API
+
 struct hb_depend_t
 {
   HB_INTERNAL hb_depend_t (hb_face_t *face);
@@ -73,5 +75,7 @@ struct hb_depend_t
   hb_set_t features;
   hb_depend_data_t data;
 };
+
+#endif /* HB_DEPEND_API */
 
 #endif /* HB_DEPEND_HH */

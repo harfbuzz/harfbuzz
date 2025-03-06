@@ -24,13 +24,17 @@
  * Adobe Author(s): Skef Iterum
  */
 
+#if !defined(HB_H_IN) && !defined(HB_NO_SINGLE_HEADER_ERROR)
+#error "Include <hb.h> instead."
+#endif
+
 #ifndef HB_DEPEND_H
 #define HB_DEPEND_H
 
-#include "hb.h"
-#include "hb-ot.h"
 
 HB_BEGIN_DECLS
+
+#ifdef HB_DEPEND_API
 
 /**
  * hb_depend_t:
@@ -62,6 +66,8 @@ hb_depend_print (hb_depend_t *depend);
 
 HB_EXTERN void
 hb_depend_destroy(hb_depend_t *depend);
+
+#endif
 
 HB_END_DECLS
 

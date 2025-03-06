@@ -54,6 +54,7 @@ struct LigatureSet
     ;
   }
 
+#ifdef HB_DEPEND_API
   void depend (hb_depend_context_t *c, hb_codepoint_t first) const
   {
     + hb_iter (ligature)
@@ -61,6 +62,7 @@ struct LigatureSet
     | hb_apply ([&] (const Ligature<Types> &_) { _.depend (c, first); })
     ;
   }
+#endif
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {

@@ -34,6 +34,7 @@ struct SingleSubstFormat2_4
   bool may_have_non_1to1 () const
   { return false; }
 
+#ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
     auto &cov = this+coverage;
@@ -43,6 +44,7 @@ struct SingleSubstFormat2_4
     ;
     return true;
   }
+#endif
 
   void closure (hb_closure_context_t *c) const
   {
