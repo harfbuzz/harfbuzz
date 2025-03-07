@@ -589,6 +589,7 @@ struct LigatureSubtable
 	    {
 	      DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
 	      if (unlikely (!buffer->move_to (match_positions[--match_length % ARRAY_LENGTH (match_positions)]))) return;
+	      buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
 	      _hb_glyph_info_set_default_ignorable (&buffer->cur());
 	      if (unlikely (!buffer->replace_glyph (DELETED_GLYPH))) return;
 	    }
