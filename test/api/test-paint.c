@@ -404,17 +404,19 @@ test_hb_paint (gconstpointer d,
 
   /* Run
    *
-   * GENERATE_DATA=1 G_TEST_SRCDIR=./test/api ./build/test/api/test-paint -p TESTCASE > test/api/results-paint/OUTPUT
+   * GENERATE_DATA=1 G_TEST_SRCDIR=./test/api ./build/test/api/test-paint
    *
-   * to produce the expected results file.
+   * to regenerate the expected output for all tests.
    */
+  file = g_test_build_filename (G_TEST_DIST, "results-paint", test->output, NULL);
   if (getenv ("GENERATE_DATA"))
     {
-      fprintf (stderr, "%s", data.string->str);
-      exit (0);
+      if (!g_file_set_contents (file, data.string->str, data.string->len, NULL))
+        g_error ("Failed to write %s.", file);
+
+      return;
     }
 
-  file = g_test_build_filename (G_TEST_DIST, "results-paint", test->output, NULL);
   if (!g_file_get_contents (file, &buffer, &len, &error))
   {
     g_test_message ("File %s not found.", file);
@@ -428,22 +430,6 @@ test_hb_paint (gconstpointer d,
     expected = g_strsplit (buffer, "\r\n", 0);
   else
     expected = g_strsplit (buffer, "\n", 0);
-
-  /* Strip initial comments */
-  int i;
-  for (i = 0; expected[i]; i++)
-    {
-      if (expected[i][0] != '#')
-        {
-          if (i > 0)
-            {
-              char **tmp = g_strdupv (expected + i);
-              g_strfreev (expected);
-              expected = tmp;
-            }
-          break;
-        }
-    }
 
   if (g_strv_length (lines) != g_strv_length (expected))
   {
