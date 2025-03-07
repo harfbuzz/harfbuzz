@@ -38,8 +38,7 @@ via flags to the benchmark binary. See the
 [Google Benchmark User Guide](https://github.com/google/benchmark/blob/main/docs/user_guide.md#user-guide) for more details.
 
 The most useful benchmark is `benchmark-font`. You can provide custom fonts to it too.
-For example, to run only the "paint" benchmarks, against a given font, five times for
-each font backend, you can do:
+For example, to run only the "paint" benchmarks, against a given font, you can do:
 ```
 ./build/perf/benchmark-font NotoColorEmoji-Regular.ttf --benchmark_filter="paint"
 ```
