@@ -118,14 +118,21 @@ struct hb_aat_apply_context_t :
   {
     for (unsigned int i = 0; i < count; i++)
     {
-      if (unlikely (!buffer->output_glyph (glyphs[i]))) return false;
       if (glyphs[i] == DELETED_GLYPH)
       {
 	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
-	_hb_glyph_info_set_default_ignorable (&buffer->prev());
+	_hb_glyph_info_set_default_ignorable (&buffer->cur());
       }
       else
+      {
 	buffer_glyph_set.add (glyphs[i]);
+#ifndef HB_NO_OT_LAYOUT
+	if (has_glyph_classes)
+	  _hb_glyph_info_set_glyph_props (&buffer->cur(),
+					  gdef.get_glyph_props (glyphs[i]));
+#endif
+      }
+      if (unlikely (!buffer->output_glyph (glyphs[i]))) return false;
     }
     return true;
   }
@@ -136,6 +143,11 @@ struct hb_aat_apply_context_t :
       return delete_glyph ();
 
     buffer_glyph_set.add (glyph);
+#ifndef HB_NO_OT_LAYOUT
+    if (has_glyph_classes)
+      _hb_glyph_info_set_glyph_props (&buffer->cur(),
+				      gdef.get_glyph_props (glyph));
+#endif
     return buffer->replace_glyph (glyph);
   }
 
