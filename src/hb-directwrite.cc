@@ -638,6 +638,9 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
   hb_vector_t<hb_ms_features_t *> range_features;
   hb_vector_t<uint32_t> range_char_counts;
 
+  // https://github.com/harfbuzz/harfbuzz/pull/5114
+  // The data allocated by these two vectors are used by the above two, so they
+  // should remain alive as long as the above two are.
   hb_vector_t<hb_ms_feature_t> feature_records;
   hb_vector_t<hb_ms_range_record_t> range_records;
   if (num_features)
