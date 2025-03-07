@@ -2,6 +2,7 @@
 #![allow(non_upper_case_globals)]
 include!(concat!(env!("OUT_DIR"), "/hb.rs"));
 
+use std::mem::transmute;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, Ordering};
@@ -15,7 +16,7 @@ use skrifa::color::{
 };
 use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
-use skrifa::metrics::BoundingBox;
+use skrifa::metrics::{BoundingBox, GlyphMetrics};
 use skrifa::outline::pen::OutlinePen;
 use skrifa::outline::DrawSettings;
 use skrifa::OutlineGlyphCollection;
@@ -30,6 +31,8 @@ struct FontationsData<'a> {
     x_size: Size,
     y_size: Size,
     location: Location,
+    x_glyph_metrics: Option<GlyphMetrics<'a>>,
+    y_glyph_metrics: Option<GlyphMetrics<'a>>,
     outline_glyphs: OutlineGlyphCollection<'a>,
     color_glyphs: ColorGlyphCollection<'a>,
 }
@@ -80,16 +83,25 @@ impl FontationsData<'_> {
 
         let color_glyphs = font_ref.color_glyphs();
 
-        FontationsData {
+        let mut data = FontationsData {
             face_blob,
             font_ref,
             char_map,
             x_size,
             y_size,
             location,
+            x_glyph_metrics: None,
+            y_glyph_metrics: None,
             outline_glyphs,
             color_glyphs,
-        }
+        };
+        // transmute location
+        let location = transmute::<&Location, &Location>(&data.location);
+        data.x_glyph_metrics = Some(data.font_ref.glyph_metrics(data.x_size, location));
+        let location = transmute::<&Location, &Location>(&data.location);
+        data.y_glyph_metrics = Some(data.font_ref.glyph_metrics(data.y_size, location));
+
+        data
     }
 }
 
@@ -164,10 +176,7 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     _user_data: *mut ::std::os::raw::c_void,
 ) {
     let data = unsafe { &*(font_data as *const FontationsData) };
-    let font_ref = &data.font_ref;
-    let size = &data.x_size;
-    let location = &data.location;
-    let glyph_metrics = font_ref.glyph_metrics(*size, location);
+    let glyph_metrics = &data.y_glyph_metrics.as_ref().unwrap();
 
     for i in 0..count {
         let glyph = struct_at_offset(first_glyph, i, glyph_stride);
@@ -187,12 +196,8 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
     let data = unsafe { &*(font_data as *const FontationsData) };
-    let font_ref = &data.font_ref;
-    let x_size = &data.x_size;
-    let y_size = &data.y_size;
-    let location = &data.location;
-    let x_glyph_metrics = font_ref.glyph_metrics(*x_size, location);
-    let y_glyph_metrics = font_ref.glyph_metrics(*y_size, location);
+    let x_glyph_metrics = &data.x_glyph_metrics.as_ref().unwrap();
+    let y_glyph_metrics = &data.y_glyph_metrics.as_ref().unwrap();
 
     let glyph_id = GlyphId::new(glyph);
     let x_extents = x_glyph_metrics.bounds(glyph_id);
