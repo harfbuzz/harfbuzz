@@ -1,4 +1,4 @@
-start clip rectangle 250 250 950 950
+start clip rectangle 250 250 850 750
   start transform 1 0 0 1 0 0
     push group
       start transform 1 0 -0 1 0 0
@@ -9,7 +9,7 @@ start clip rectangle 250 250 950 950
         end clip
       end transform
       push group
-        start transform 1 0 0 1 200 200
+        start transform 1 0 0 1 100 0
           start transform 1 0 -0 1 0 0
             start clip glyph 3
               start transform 1 0 0 1 0 0
