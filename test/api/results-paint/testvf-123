@@ -35,7 +35,7 @@ start clip rectangle 0 0 1e+03 1e+03
             end transform
           end transform
         end transform
-      pop group mode 5
+      pop group mode 3
     pop group mode 3
   end transform
 end clip
