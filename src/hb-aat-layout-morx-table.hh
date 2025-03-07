@@ -882,6 +882,9 @@ struct InsertionSubtable
 	  if (unlikely (!buffer->copy_glyph ())) return;
 	/* TODO We ignore KashidaLike setting. */
 	if (unlikely (!buffer->replace_glyphs (0, count, glyphs))) return;
+	for (unsigned int i = 0; i < count; i++)
+	  c->buffer_glyph_set.add (glyphs[i]);
+	ret = true;
 	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
 
