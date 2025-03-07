@@ -956,21 +956,11 @@ hb_ot_substitute_pre (const hb_ot_shape_context_t *c)
   _hb_buffer_allocate_gsubgpos_vars (c->buffer);
 
   hb_ot_substitute_plan (c);
-
-#ifndef HB_NO_AAT_SHAPE
-  if (c->plan->apply_morx && c->plan->apply_gpos)
-    hb_aat_layout_remove_deleted_glyphs (c->buffer);
-#endif
 }
 
 static inline void
 hb_ot_substitute_post (const hb_ot_shape_context_t *c)
 {
-#ifndef HB_NO_AAT_SHAPE
-  if (c->plan->apply_morx && !c->plan->apply_gpos)
-    hb_aat_layout_remove_deleted_glyphs (c->buffer);
-#endif
-
   hb_ot_deal_with_variation_selectors (c->buffer);
   hb_ot_hide_default_ignorables (c->buffer, c->font);
 
@@ -1109,10 +1099,6 @@ hb_ot_position_plan (const hb_ot_shape_context_t *c)
   /* Finish off.  Has to follow a certain order. */
   hb_ot_layout_position_finish_advances (c->font, c->buffer);
   hb_ot_zero_width_default_ignorables (c->buffer);
-#ifndef HB_NO_AAT_SHAPE
-  if (c->plan->apply_morx)
-    hb_aat_layout_zero_width_deleted_glyphs (c->buffer);
-#endif
   hb_ot_layout_position_finish_offsets (c->font, c->buffer);
 
   /* The nil glyph_h_origin() func returns 0, so no need to apply it. */

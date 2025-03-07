@@ -320,29 +320,6 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
   }
 }
 
-void
-hb_aat_layout_zero_width_deleted_glyphs (hb_buffer_t *buffer)
-{
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  hb_glyph_position_t *pos = buffer->pos;
-  for (unsigned int i = 0; i < count; i++)
-    if (unlikely (info[i].codepoint == AAT::DELETED_GLYPH))
-      pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 0;
-}
-
-static bool
-is_deleted_glyph (const hb_glyph_info_t *info)
-{
-  return info->codepoint == AAT::DELETED_GLYPH;
-}
-
-void
-hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
-{
-  buffer->delete_glyphs_inplace (is_deleted_glyph);
-}
-
 /**
  * hb_aat_layout_has_positioning:
  * @face: #hb_face_t to work upon
