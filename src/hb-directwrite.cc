@@ -637,11 +637,13 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
   static_assert ((sizeof (DWRITE_FONT_FEATURE) == sizeof (hb_ms_feature_t)), "");
   hb_vector_t<hb_ms_features_t *> range_features;
   hb_vector_t<uint32_t> range_char_counts;
+
+  hb_vector_t<hb_ms_feature_t> feature_records;
+  hb_vector_t<hb_ms_range_record_t> range_records;
   if (num_features)
   {
-    hb_vector_t<hb_ms_feature_t> feature_records;
-    hb_vector_t<hb_ms_range_record_t> range_records;
     if (hb_ms_setup_features (features, num_features, feature_records, range_records))
+    {
       hb_ms_make_feature_ranges (feature_records,
 				 range_records,
 				 0,
@@ -649,6 +651,7 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
 				 log_clusters,
 				 range_features,
 				 range_char_counts);
+    }
   }
 
   uint16_t* clusterMap;
