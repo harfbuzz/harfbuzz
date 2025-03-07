@@ -58,13 +58,14 @@ AAT::hb_aat_apply_context_t::hb_aat_apply_context_t (const hb_ot_shape_plan_t *p
 						       buffer (buffer_),
 						       sanitizer (),
 						       ankr_table (&Null (AAT::ankr)),
-						       gdef_table (
+						       gdef (
 #ifndef HB_NO_OT_LAYOUT
-							 face->table.GDEF->table
+							 *face->table.GDEF->table
 #else
-							 &Null (GDEF)
+							 Null (GDEF)
 #endif
 						       ),
+						       has_glyph_classes (gdef.has_glyph_classes ()),
 						       lookup_index (0)
 {
   sanitizer.init (blob);
