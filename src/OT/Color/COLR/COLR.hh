@@ -95,7 +95,8 @@ public:
     font (font_),
     palette (
 #ifndef HB_NO_COLOR
-	     font->face->table.CPAL->get_palette_colors (palette_)
+	     // https://github.com/harfbuzz/harfbuzz/issues/5112
+	     font->face->table.CPAL->get_palette_colors (palette_ < font->face->table.CPAL->get_palette_count () ? palette_ : 0)
 #endif
     ),
     foreground (foreground_),

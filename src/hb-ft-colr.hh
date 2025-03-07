@@ -491,6 +491,11 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
   (void) FT_Palette_Data_Get(ft_face, &palette_data);
   (void) FT_Palette_Select(ft_face, palette_index, &palette);
+  if (!palette)
+  {
+    // https://github.com/harfbuzz/harfbuzz/issues/5112
+    (void) FT_Palette_Select(ft_face, 0, &palette);
+  }
 
   auto palette_array = hb_array ((const FT_Color *) palette,
 				 palette ? palette_data.num_palette_entries : 0);

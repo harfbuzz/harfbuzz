@@ -203,7 +203,11 @@ extern "C" fn _hb_fontations_get_glyph_extents(
 
     let glyph_id = GlyphId::new(glyph);
     let x_extents = x_glyph_metrics.bounds(glyph_id);
-    let y_extents = if x_size == y_size { x_extents } else { y_glyph_metrics.bounds(glyph_id) };
+    let y_extents = if x_size == y_size {
+        x_extents
+    } else {
+        y_glyph_metrics.bounds(glyph_id)
+    };
     let (Some(x_extents), Some(y_extents)) = (x_extents, y_extents) else {
         return false as hb_bool_t;
     };
@@ -703,6 +707,12 @@ extern "C" fn _hb_fontations_paint_glyph(
         let num_entries: usize = cpal.num_palette_entries().into();
         let color_records = cpal.color_records_array();
         let start_index = cpal.color_record_indices().get(palette_index as usize);
+        let start_index = if start_index.is_some() {
+            start_index
+        } else {
+            // https://github.com/harfbuzz/harfbuzz/issues/5112
+            cpal.color_record_indices().get(0 as usize)
+        };
 
         if let (Some(Ok(color_records)), Some(start_index)) = (color_records, start_index) {
             let start_index: usize = start_index.get().into();
