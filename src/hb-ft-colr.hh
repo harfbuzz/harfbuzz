@@ -167,7 +167,7 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 					 hb_color_get_red (color),
 					 (hb_color_get_alpha (color) * stop.color.alpha) >> 14);
 	}
-	else
+	else if (c->palette)
 	{
 	  FT_Color ft_color = c->palette[stop.color.palette_index];
 	  color_stops->color = HB_COLOR (ft_color.blue,
@@ -175,6 +175,8 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 					 ft_color.red,
 					 (ft_color.alpha * stop.color.alpha) >> 14);
 	}
+	else
+	  color_stops->color = HB_COLOR (0, 0, 0, 0);
       }
 
       color_stops++;
