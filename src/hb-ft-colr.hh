@@ -493,7 +493,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
   (void) FT_Palette_Select(ft_face, palette_index, &palette);
   if (!palette)
   {
-    // https://github.com/harfbuzz/harfbuzz/issues/5112
+    // https://github.com/harfbuzz/harfbuzz/issues/5116
     (void) FT_Palette_Select(ft_face, 0, &palette);
   }
 
