@@ -196,12 +196,14 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
     let data = unsafe { &*(font_data as *const FontationsData) };
+    let x_size = &data.x_size;
+    let y_size = &data.y_size;
     let x_glyph_metrics = &data.x_glyph_metrics.as_ref().unwrap();
     let y_glyph_metrics = &data.y_glyph_metrics.as_ref().unwrap();
 
     let glyph_id = GlyphId::new(glyph);
     let x_extents = x_glyph_metrics.bounds(glyph_id);
-    let y_extents = y_glyph_metrics.bounds(glyph_id);
+    let y_extents = if x_size == y_size { x_extents } else { y_glyph_metrics.bounds(glyph_id) };
     let (Some(x_extents), Some(y_extents)) = (x_extents, y_extents) else {
         return false as hb_bool_t;
     };
