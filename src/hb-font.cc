@@ -2330,7 +2330,7 @@ static struct supported_font_funcs_t {
  * Sets the font-functions structure to use for a font, based on the
  * specified name.
  *
- * If @name is `NULL`, the first functioning font-functions are used.
+ * If @name is `NULL` or empty string, the first functioning font-functions are used.
  *
  * Return value: `true` if the font-functions was found and set, `false` otherwise
  *
@@ -2340,6 +2340,8 @@ hb_bool_t
 hb_font_set_funcs_using (hb_font_t  *font,
 			 const char *name)
 {
+  if (name && !*name) name = nullptr;
+
   for (unsigned i = 0; i < ARRAY_LENGTH (supported_font_funcs); i++)
     if (!name || strcmp (supported_font_funcs[i].name, name) == 0)
     {
@@ -2347,6 +2349,7 @@ hb_font_set_funcs_using (hb_font_t  *font,
       if (name || font->klass != hb_font_funcs_get_empty ())
 	return true;
     }
+
   return false;
 }
 
