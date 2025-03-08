@@ -1078,23 +1078,6 @@ test_hb_draw_immutable (void)
 }
 
 static void
-set_font_funcs (hb_font_t *font, const char *font_funcs_name)
-{
-  if (strcmp (font_funcs_name, "ft") == 0)
-#ifdef HAVE_FREETYPE
-    hb_ft_font_set_funcs (font);
-#else
-    g_assert_not_reached ();
-#endif
-  else if (strcmp (font_funcs_name, "fontations") == 0)
-#ifdef HAVE_FONTATIONS
-    hb_fontations_font_set_funcs (font);
-#else
-    g_assert_not_reached ();
-#endif
-}
-
-static void
 test_hb_draw_funcs (const char* font_funcs_name)
 {
   char str[1024];
@@ -1105,7 +1088,7 @@ test_hb_draw_funcs (const char* font_funcs_name)
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/glyphs.ttf");
     hb_font_t *font = hb_font_create (face);
-    set_font_funcs (font, font_funcs_name);
+    hb_font_set_funcs_using (font, font_funcs_name);
     hb_face_destroy (face);
     {
       draw_data.consumed = 0;
@@ -1124,7 +1107,7 @@ test_hb_draw_funcs (const char* font_funcs_name)
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
     hb_font_t *font = hb_font_create (face);
-    set_font_funcs (font, font_funcs_name);
+    hb_font_set_funcs_using (font, font_funcs_name);
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
@@ -1165,7 +1148,7 @@ test_hb_draw_compare_ot_funcs (const char* font_funcs_name)
   hb_font_draw_glyph (font, 1, funcs, &draw_data);
   draw_data.str[draw_data.consumed] = '\0';
 
-  set_font_funcs (font, font_funcs_name);
+  hb_font_set_funcs_using (font, font_funcs_name);
 
   hb_font_draw_glyph (font, 1, funcs, &draw_data2);
   draw_data2.str[draw_data2.consumed] = '\0';

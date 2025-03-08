@@ -458,6 +458,8 @@ hb_font_get_serial
 hb_font_changed
 hb_font_set_funcs
 hb_font_set_funcs_data
+hb_font_set_funcs_using
+hb_font_list_funcs
 hb_font_subtract_glyph_origin_for_direction
 hb_font_funcs_create
 hb_font_funcs_get_empty

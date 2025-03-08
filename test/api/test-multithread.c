@@ -93,8 +93,11 @@ thread_func (void *data)
 }
 
 static void
-test_body (void)
+test_body (const char *backend)
 {
+  if (!hb_font_set_funcs_using (font, backend))
+    return;
+
   int i;
   pthread_t *threads = calloc (num_threads, sizeof (pthread_t));
   hb_buffer_t **buffers = calloc (num_threads, sizeof (hb_buffer_t *));
@@ -145,13 +148,9 @@ main (int argc, char **argv)
   ref_buffer = hb_buffer_create ();
   fill_the_buffer (ref_buffer);
 
-  /* Unnecessary, since version 2 it is ot-font by default */
-  hb_ot_font_set_funcs (font);
-  test_body ();
-
-  /* Test hb-ft in multithread */
-  hb_ft_font_set_funcs (font);
-  test_body ();
+  // TODO Test all backends
+  test_body ("ot");
+  test_body ("ft");
 
   hb_buffer_destroy (ref_buffer);
 

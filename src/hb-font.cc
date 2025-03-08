@@ -38,6 +38,19 @@
 #include "hb-ot-var-avar-table.hh"
 #include "hb-ot-var-fvar-table.hh"
 
+#ifndef HB_NO_OT_FONT
+#include "hb-ot.h"
+#endif
+#ifdef HAVE_FREETYPE
+#include "hb-ft.h"
+#endif
+#ifdef HAVE_FONTATIONS
+#include "hb-fontations.h"
+#endif
+#ifdef HAVE_CORETEXT
+#include "hb-coretext.h"
+#endif
+
 
 /**
  * SECTION:hb-font
@@ -2292,6 +2305,100 @@ hb_font_set_funcs_data (hb_font_t         *font,
   font->destroy = destroy;
 }
 
+static struct supported_font_funcs_t {
+	char name[12];
+	void (*func) (hb_font_t *);
+} supported_font_funcs[] =
+{
+  {"ot",	hb_ot_font_set_funcs},
+#ifdef HAVE_FREETYPE
+  {"ft",	hb_ft_font_set_funcs},
+#endif
+#ifdef HAVE_FONTATIONS
+  {"fontations",hb_fontations_font_set_funcs},
+#endif
+#ifdef HAVE_CORETEXT
+  {"coretext",	hb_coretext_font_set_funcs},
+#endif
+};
+
+/**
+ * hb_font_set_funcs_using:
+ * @font: #hb_font_t to work upon
+ * @name: The name of the font-functions structure to use
+ *
+ * Sets the font-functions structure to use for a font, based on the
+ * specified name.
+ *
+ * If @name is `NULL`, the first functioning font-functions are used.
+ *
+ * Return value: `true` if the font-functions was found and set, `false` otherwise
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_font_set_funcs_using (hb_font_t  *font,
+			 const char *name)
+{
+  for (unsigned i = 0; i < ARRAY_LENGTH (supported_font_funcs); i++)
+    if (!name || strcmp (supported_font_funcs[i].name, name) == 0)
+    {
+      supported_font_funcs[i].func (font);
+      if (name || font->klass != hb_font_funcs_get_empty ())
+	return true;
+    }
+  return false;
+}
+
+static inline void free_static_font_funcs_list ();
+
+static const char * const nil_font_funcs_list[] = {nullptr};
+
+static struct hb_font_funcs_list_lazy_loader_t : hb_lazy_loader_t<const char *,
+								  hb_font_funcs_list_lazy_loader_t>
+{
+  static const char ** create ()
+  {
+    const char **font_funcs_list = (const char **) hb_calloc (1 + ARRAY_LENGTH (supported_font_funcs), sizeof (const char *));
+    if (unlikely (!font_funcs_list))
+      return nullptr;
+
+    unsigned i;
+    for (i = 0; i < ARRAY_LENGTH (supported_font_funcs); i++)
+      font_funcs_list[i] = supported_font_funcs[i].name;
+    font_funcs_list[i] = nullptr;
+
+    hb_atexit (free_static_font_funcs_list);
+
+    return font_funcs_list;
+  }
+  static void destroy (const char **l)
+  { hb_free (l); }
+  static const char * const * get_null ()
+  { return nil_font_funcs_list; }
+} static_font_funcs_list;
+
+static inline
+void free_static_font_funcs_list ()
+{
+  static_font_funcs_list.free_instance ();
+}
+
+/**
+ * hb_font_list_funcs:
+ *
+ * Retrieves the list of font functions supported by HarfBuzz.
+ *
+ * Return value: (transfer none) (array zero-terminated=1): an array of
+ *    constant strings
+ *
+ * XSince: REPLACEME
+ **/
+const char **
+hb_font_list_funcs ()
+{
+  return static_font_funcs_list.get_unconst ();
+}
 
 /**
  * hb_font_set_scale:
