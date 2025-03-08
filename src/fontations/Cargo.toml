@@ -14,7 +14,9 @@ crate-type = ["staticlib"]
 [profile.release]
 lto = true
 panic = "abort"
+codegen-units = 1
 
 [profile.debugoptimized]
 inherits = "release"
 debug = true
+codegen-units = 16
