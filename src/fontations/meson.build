@@ -56,6 +56,7 @@ harfbuzz_fontations_dep = declare_dependency(
 clippy_fix = run_target(
   'clippy-fix',
   env: ['OUT_DIR=' + meson.current_build_dir()],
+  depends: [hb_rs, harfbuzz_fontations],
   command: [
     cargo, 'clippy',
     ] + cargo_args + [
@@ -67,6 +68,7 @@ if get_option('tests').enabled() and cargo.found()
     'clippy',
     cargo,
     env: ['OUT_DIR=' + meson.current_build_dir()],
+    depends: [hb_rs, harfbuzz_fontations],
     args: [
       'clippy',
       ] + cargo_args + [
@@ -78,6 +80,7 @@ endif
 rustfmt_fix = run_target(
   'rustfmt-fix',
   env: ['OUT_DIR=' + meson.current_build_dir()],
+  depends: [hb_rs],
   command: [
     rustfmt,
     '--edition', '2021',
@@ -90,6 +93,7 @@ if get_option('tests').enabled() and rustfmt.found()
     'rustfmt',
     rustfmt,
     env: ['OUT_DIR=' + meson.current_build_dir()],
+    depends: [hb_rs],
     args: [
       '--check',
       '--edition', '2021',
