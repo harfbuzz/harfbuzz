@@ -52,8 +52,8 @@ harfbuzz_fontations_dep = declare_dependency(
   link_whole: harfbuzz_fontations,
 )
 
-clippy = run_target(
-  'clippy',
+clippy_fix = run_target(
+  'clippy-fix',
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     cargo, 'clippy',
@@ -64,21 +64,24 @@ clippy = run_target(
     '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
   ],
 )
-clippy_check = run_target(
-  'clippy-check',
-  env: ['OUT_DIR=' + meson.current_build_dir()],
-  command: [
-    cargo, 'clippy',
-    ] + cargo_args + [
-    '--lib', '-p', 'harfbuzz_fontations',
-    '--target-dir', meson.current_build_dir(),
-    '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
-    '--', '-D', 'warnings',
-  ],
-)
+if get_option('tests').enabled() and cargo.found()
+  test(
+    'clippy',
+    cargo,
+    env: ['OUT_DIR=' + meson.current_build_dir()],
+    args: [
+      'clippy',
+      ] + cargo_args + [
+      '--lib', '-p', 'harfbuzz_fontations',
+      '--target-dir', meson.current_build_dir(),
+      '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
+      '--', '-D', 'warnings',
+    ],
+  )
+endif
 
-fmt = run_target(
-  'fmt',
+rustfmt_fix = run_target(
+  'rustfmt-fix',
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     rustfmt,
@@ -87,14 +90,16 @@ fmt = run_target(
     meson.current_source_dir() / 'lib.rs',
   ],
 )
-fmt_check = run_target(
-  'fmt-check',
-  env: ['OUT_DIR=' + meson.current_build_dir()],
-  command: [
+if get_option('tests').enabled() and rustfmt.found()
+  test(
+    'rustfmt',
     rustfmt,
-    '--check',
-    '--edition', '2021',
-    '--',
-    meson.current_source_dir() / 'lib.rs',
-  ],
-)
+    env: ['OUT_DIR=' + meson.current_build_dir()],
+    args: [
+      '--check',
+      '--edition', '2021',
+      '--',
+      meson.current_source_dir() / 'lib.rs',
+    ],
+  )
+endif
