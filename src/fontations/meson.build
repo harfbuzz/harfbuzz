@@ -63,6 +63,8 @@ clippy = custom_target(
   command: [
     cargo, 'clippy',
     ] + cargo_args + [
+    '--allow-dirty', '--fix',
+    '--lib', '-p', 'harfbuzz_fontations',
     '--target-dir', meson.current_build_dir(),
     '--manifest-path', meson.current_source_dir() / 'Cargo.toml'
   ],
