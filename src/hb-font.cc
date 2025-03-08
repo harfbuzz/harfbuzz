@@ -1867,10 +1867,19 @@ hb_font_create (hb_face_t *face)
 {
   hb_font_t *font = _hb_font_create (face);
 
-#ifndef HB_NO_OT_FONT
-  /* Install our in-house, very lightweight, funcs. */
-  hb_ot_font_set_funcs (font);
-#endif
+  static hb_atomic_ptr_t<const char> static_funcs_name;
+  const char *funcs_name = static_funcs_name.get_acquire ();
+  if (!funcs_name)
+  {
+    funcs_name = getenv ("HB_FONT_FUNCS");
+    if (!funcs_name)
+      funcs_name = "";
+    if (!static_funcs_name.cmpexch (nullptr, funcs_name))
+      funcs_name = static_funcs_name.get_acquire ();
+  }
+
+  if (unlikely (!hb_font_set_funcs_using (font, funcs_name)))
+    hb_font_set_funcs_using (font, nullptr);
 
 #ifndef HB_NO_VAR
   if (face && face->index >> 16)
@@ -2310,7 +2319,9 @@ static struct supported_font_funcs_t {
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
 {
+#ifndef HB_NO_OT_FONT
   {"ot",	hb_ot_font_set_funcs},
+#endif
 #ifdef HAVE_FREETYPE
   {"ft",	hb_ft_font_set_funcs},
 #endif
