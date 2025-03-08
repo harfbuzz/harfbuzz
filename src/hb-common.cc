@@ -968,6 +968,9 @@ hb_feature_from_string (const char *str, int len,
  * understood by hb_feature_from_string(). The client in responsible for
  * allocating big enough size for @buf, 128 bytes is more than enough.
  *
+ * Note that the feature value will be omitted if it is '1', but the
+ * string won't include any whitespace.
+ *
  * Since: 0.9.5
  **/
 void
@@ -1120,6 +1123,8 @@ get_C_locale ()
  * Converts an #hb_variation_t into a `NULL`-terminated string in the format
  * understood by hb_variation_from_string(). The client in responsible for
  * allocating big enough size for @buf, 128 bytes is more than enough.
+ *
+ * Note that the string won't include any whitespace.
  *
  * Since: 1.4.2
  */
