@@ -26,8 +26,6 @@ if not nm:
 	print ('check-symbols.py: \'nm\' not found; skipping test')
 	sys.exit (77)
 
-cxxfilt = shutil.which ('c++filt')
-
 tested = False
 stat = 0
 
@@ -42,12 +40,6 @@ for soname in ['harfbuzz', 'harfbuzz-subset', 'harfbuzz-icu', 'harfbuzz-gobject'
 		EXPORTED_SYMBOLS = [s.split ()[2]
 				    for s in re.findall (r'^.+ [BCDGIRSTu] .+$', subprocess.check_output (nm.split() + [so]).decode ('utf-8'), re.MULTILINE)
 				    if not re.match (r'.* %s(%s)\b' % (symprefix, IGNORED_SYMBOLS), s)]
-
-		# run again c++filt also if is available
-		if cxxfilt:
-			EXPORTED_SYMBOLS = subprocess.check_output (
-				[cxxfilt], input='\n'.join (EXPORTED_SYMBOLS).encode ()
-			).decode ('utf-8').splitlines ()
 
 		prefix = (symprefix + os.path.basename (so)).replace ('libharfbuzz', 'hb').replace ('-', '_').split ('.')[0]
 
