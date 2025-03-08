@@ -8,7 +8,6 @@ hb_rs = rust.bindgen(
           '--allowlist-type=hb_.*',
           '--no-copy=hb_.*',
           ],
-  #args : ['--no-rustfmt-bindings'],
 )
 
 cargo = find_program('cargo')
@@ -53,26 +52,20 @@ harfbuzz_fontations_dep = declare_dependency(
   link_whole: harfbuzz_fontations,
 )
 
-clippy = custom_target(
+clippy = run_target(
   'clippy',
-  input: 'lib.rs',
-  output: 'clippy',
-  depends: [hb_rs],
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     cargo, 'clippy',
-    ] + cargo_args + [
     '--allow-dirty', '--fix',
+    ] + cargo_args + [
     '--lib', '-p', 'harfbuzz_fontations',
     '--target-dir', meson.current_build_dir(),
     '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
   ],
 )
-clippy_check = custom_target(
+clippy_check = run_target(
   'clippy-check',
-  input: 'lib.rs',
-  output: 'clippy-check',
-  depends: [hb_rs],
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     cargo, 'clippy',
@@ -84,11 +77,8 @@ clippy_check = custom_target(
   ],
 )
 
-fmt = custom_target(
+fmt = run_target(
   'fmt',
-  input: 'lib.rs',
-  output: 'fmt',
-  depends: [hb_rs],
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     rustfmt,
@@ -97,11 +87,8 @@ fmt = custom_target(
     meson.current_source_dir() / 'lib.rs',
   ],
 )
-fmt_check = custom_target(
+fmt_check = run_target(
   'fmt-check',
-  input: 'lib.rs',
-  output: 'fmt-check',
-  depends: [hb_rs],
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     rustfmt,
