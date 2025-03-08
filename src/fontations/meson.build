@@ -83,3 +83,17 @@ fmt = custom_target(
     meson.current_source_dir() / 'lib.rs',
   ],
 )
+fmt_check = custom_target(
+  'fmt-check',
+  input: 'lib.rs',
+  output: 'fmt-check',
+  depends: [hb_rs],
+  env: ['OUT_DIR=' + meson.current_build_dir()],
+  command: [
+    rustfmt,
+    '--check',
+    '--edition', '2021',
+    '--',
+    meson.current_source_dir() / 'lib.rs',
+  ],
+)

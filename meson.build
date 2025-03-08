@@ -465,6 +465,7 @@ alias_target('libs', libharfbuzz, libharfbuzz_subset)
 if get_option('fontations').enabled()
   alias_target('clippy', clippy)
   alias_target('fmt', fmt)
+  alias_target('fmt-check', fmt_check)
 endif
 
 if meson.version().version_compare('>=0.57.0')
