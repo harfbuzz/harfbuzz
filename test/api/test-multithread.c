@@ -148,9 +148,8 @@ main (int argc, char **argv)
   ref_buffer = hb_buffer_create ();
   fill_the_buffer (ref_buffer);
 
-  // TODO Test all backends
-  test_body ("ot");
-  test_body ("ft");
+  for (const char **font_funcs = hb_font_list_funcs (); *font_funcs; font_funcs++)
+    test_body (*font_funcs);
 
   hb_buffer_destroy (ref_buffer);
 

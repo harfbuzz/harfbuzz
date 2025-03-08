@@ -183,9 +183,8 @@ int main(int argc, char** argv)
     {
       bool is_var = (bool) variable;
 
-      // TODO Test all backends.
-      test_backend ("ot", is_var, test_input);
-      test_backend ("ft", is_var, test_input);
+      for (const char **font_funcs = hb_font_list_funcs (); *font_funcs; font_funcs++)
+	test_backend (*font_funcs, is_var, test_input);
     }
   }
 
