@@ -66,7 +66,22 @@ clippy = custom_target(
     '--allow-dirty', '--fix',
     '--lib', '-p', 'harfbuzz_fontations',
     '--target-dir', meson.current_build_dir(),
-    '--manifest-path', meson.current_source_dir() / 'Cargo.toml'
+    '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
+  ],
+)
+clippy_check = custom_target(
+  'clippy-check',
+  input: 'lib.rs',
+  output: 'clippy-check',
+  depends: [hb_rs],
+  env: ['OUT_DIR=' + meson.current_build_dir()],
+  command: [
+    cargo, 'clippy',
+    ] + cargo_args + [
+    '--lib', '-p', 'harfbuzz_fontations',
+    '--target-dir', meson.current_build_dir(),
+    '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
+    '--', '-D', 'warnings',
   ],
 )
 

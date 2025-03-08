@@ -464,6 +464,7 @@ alias_target('lib', libharfbuzz)
 alias_target('libs', libharfbuzz, libharfbuzz_subset)
 if get_option('fontations').enabled()
   alias_target('clippy', clippy)
+  alias_target('clippy-check', clippy_check)
   alias_target('fmt', fmt)
   alias_target('fmt-check', fmt_check)
 endif

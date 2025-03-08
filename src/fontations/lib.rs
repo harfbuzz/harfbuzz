@@ -711,7 +711,7 @@ extern "C" fn _hb_fontations_paint_glyph(
             start_index
         } else {
             // https://github.com/harfbuzz/harfbuzz/issues/5116
-            cpal.color_record_indices().get(0_usize)
+            cpal.color_record_indices().first()
         };
 
         if let (Some(Ok(color_records)), Some(start_index)) = (color_records, start_index) {
