@@ -414,28 +414,24 @@ hb_gobject_headers = files(
   'hb-gobject-structs.h',
 )
 
-ragel = find_program('ragel', version: '6.10', required: false)
+ragel = find_program('ragel', version: '6.10', required: get_option('ragel'))
 has_ragel = ragel.found()
-if not has_ragel and get_option('ragel_subproject')
-    ragel = subproject('ragel').get_variable('ragel')
-    has_ragel = true
-endif
 if not has_ragel
   if not meson.is_subproject()
-    warning('You have to install ragel if you are going to develop HarfBuzz itself')
+    message('You have to install ragel if you are going to develop HarfBuzz itself')
   endif
-else
-  ragel_helper = find_program('gen-ragel-artifacts.py')
-  foreach rl : hb_base_ragel_sources
-    hh = rl.split('.')[0] + '.hh'
-    custom_target('@0@'.format(hh),
-      build_by_default: true,
-      input: rl,
-      output: hh,
-      command: [ragel_helper, ragel, '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
-    )
-  endforeach
+  ragel = 'error'
 endif
+ragel_helper = find_program('gen-ragel-artifacts.py')
+foreach rl : hb_base_ragel_sources
+  hh = rl.split('.')[0] + '.hh'
+  custom_target('@0@'.format(hh),
+    build_by_default: true,
+    input: rl,
+    output: hh,
+    command: [ragel_helper, ragel, '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
+  )
+endforeach
 
 custom_target('harfbuzz.cc',
   build_by_default: true,
