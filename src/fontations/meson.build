@@ -25,7 +25,6 @@ endif
 opt_level = get_option('optimization')
 rust_flags += ' -C opt-level=' + opt_level
 
-
 cargo_args += ['-Z', 'build-std=std,panic_abort',
                '-Z', 'build-std-features=panic_immediate_abort']
 
