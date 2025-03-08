@@ -2389,8 +2389,10 @@ void free_static_font_funcs_list ()
  *
  * Retrieves the list of font functions supported by HarfBuzz.
  *
- * Return value: (transfer none) (array zero-terminated=1): an array of
- *    constant strings
+ * Return value: (transfer none) (array zero-terminated=1): a
+ *    `NULL`-terminated array of supported font functions
+ *    constant string. The returned array is owned by HarfBuzz
+ *    and should not be modified or freed.
  *
  * XSince: REPLACEME
  **/

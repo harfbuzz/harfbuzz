@@ -1088,7 +1088,8 @@ test_hb_draw_funcs (const char* font_funcs_name)
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/glyphs.ttf");
     hb_font_t *font = hb_font_create (face);
-    hb_font_set_funcs_using (font, font_funcs_name);
+    hb_bool_t ret = hb_font_set_funcs_using (font, font_funcs_name);
+    g_assert (ret);
     hb_face_destroy (face);
     {
       draw_data.consumed = 0;
@@ -1107,7 +1108,8 @@ test_hb_draw_funcs (const char* font_funcs_name)
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
     hb_font_t *font = hb_font_create (face);
-    hb_font_set_funcs_using (font, font_funcs_name);
+    hb_bool_t ret = hb_font_set_funcs_using (font, font_funcs_name);
+    g_assert (ret);
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
@@ -1148,7 +1150,8 @@ test_hb_draw_compare_ot_funcs (const char* font_funcs_name)
   hb_font_draw_glyph (font, 1, funcs, &draw_data);
   draw_data.str[draw_data.consumed] = '\0';
 
-  hb_font_set_funcs_using (font, font_funcs_name);
+  hb_bool_t ret = hb_font_set_funcs_using (font, font_funcs_name);
+  g_assert (ret);
 
   hb_font_draw_glyph (font, 1, funcs, &draw_data2);
   draw_data2.str[draw_data2.consumed] = '\0';

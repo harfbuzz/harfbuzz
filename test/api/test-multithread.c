@@ -95,8 +95,8 @@ thread_func (void *data)
 static void
 test_body (const char *backend)
 {
-  if (!hb_font_set_funcs_using (font, backend))
-    return;
+  bool ret = hb_font_set_funcs_using (font, backend);
+  g_assert (ret);
 
   int i;
   pthread_t *threads = calloc (num_threads, sizeof (pthread_t));
