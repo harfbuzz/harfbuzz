@@ -143,6 +143,18 @@ font_options_t::post_parse (GError **error)
   }
 }
 
+static G_GNUC_NORETURN gboolean
+list_font_funcs (const char *name G_GNUC_UNUSED,
+		 const char *arg G_GNUC_UNUSED,
+		 gpointer    data G_GNUC_UNUSED,
+		 GError    **error G_GNUC_UNUSED)
+{
+  for (const char **funcs = hb_font_list_funcs (); *funcs; funcs++)
+    g_printf ("%s\n", *funcs);
+
+  exit(0);
+}
+
 #ifndef HB_NO_VAR
 static gboolean
 parse_variations (const char *name G_GNUC_UNUSED,
@@ -315,6 +327,8 @@ font_options_t::add_options (option_parser_t *parser)
     {"font-slant",	0, font_size_flags,
 			      G_OPTION_ARG_DOUBLE,	&this->slant,			"Set synthetic slant (default: 0)",		 "slant ratio; eg. 0.2"},
     {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		font_funcs_text,				"impl"},
+    {"list-font-funcs",	0, G_OPTION_FLAG_NO_ARG,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &list_font_funcs,	"List available font functions and quit",	nullptr},
     {"sub-font",	0, G_OPTION_FLAG_HIDDEN,
 			      G_OPTION_ARG_NONE,	&this->sub_font,		"Create a sub-font (default: false)",		"boolean"},
     {"ft-load-flags",	0, 0, G_OPTION_ARG_INT,		&this->ft_load_flags,		"Set FreeType load-flags (default: 2)",		"integer"},
