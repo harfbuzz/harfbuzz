@@ -20,6 +20,8 @@ if buildtype == 'release' or buildtype == 'debugoptimized'
 else
   cargo_args = []
 endif
+cargo_args += ['-Z', 'build-std=std,panic_abort',
+               '-Z', 'build-std-features=panic_immediate_abort']
 
 harfbuzz_fontations = custom_target(
   'harfbuzz_fontations',

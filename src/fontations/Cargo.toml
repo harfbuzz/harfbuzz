@@ -12,6 +12,7 @@ path = "lib.rs"
 crate-type = ["staticlib"]
 
 [profile.release]
+strip = true
 lto = true
 panic = "abort"
 codegen-units = 1
@@ -20,3 +21,4 @@ codegen-units = 1
 inherits = "release"
 debug = true
 codegen-units = 16
+strip = false
