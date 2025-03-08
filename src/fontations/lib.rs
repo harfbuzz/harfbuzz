@@ -704,14 +704,14 @@ extern "C" fn _hb_fontations_paint_glyph(
         unsafe { std::slice::from_raw_parts(std::ptr::NonNull::dangling().as_ptr(), 0) }
     } else {
         let cpal = cpal.unwrap();
-        let num_entries: usize = cpal.num_palette_entries().into();
+        let num_entries = cpal.num_palette_entries().into();
         let color_records = cpal.color_records_array();
         let start_index = cpal.color_record_indices().get(palette_index as usize);
         let start_index = if start_index.is_some() {
             start_index
         } else {
             // https://github.com/harfbuzz/harfbuzz/issues/5116
-            cpal.color_record_indices().get(0 as usize)
+            cpal.color_record_indices().first()
         };
 
         if let (Some(Ok(color_records)), Some(start_index)) = (color_records, start_index) {

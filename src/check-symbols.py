@@ -7,17 +7,25 @@ os.environ['LC_ALL'] = 'C' # otherwise 'nm' prints in wrong order
 builddir = os.getenv ('builddir', os.path.dirname (__file__))
 libs = os.getenv ('libs', '.libs')
 
-IGNORED_SYMBOLS = '|'.join(['_fini', '_init', '_fdata', '_ftext', '_fbss',
+IGNORED_SYMBOLS = ['_fini', '_init', '_fdata', '_ftext', '_fbss',
 	'__bss_start', '__bss_start__', '__bss_end__', '_edata', '_end', '_bss_end__',
 	'__end__', '__gcov_.*', 'llvm_.*', 'flush_fn_list', 'writeout_fn_list', 'mangle_path',
-	'lprofDirMode', 'reset_fn_list'])
+	'lprofDirMode', 'reset_fn_list']
+
+# Rust
+IGNORED_SYMBOLS += [
+    'rust_eh_personality',
+    '_ZN3std9panicking11EMPTY_PANIC.*', # 'std::panicking::EMPTY_PANIC::.*'
+    '_ZN3std3sys3pal4unix4args3imp15ARGV_INIT_ARRAY.*', # 'std::sys::pal::unix::args::imp::ARGV_INIT_ARRAY::.*'
+    '_ZN17compiler_builtins4math4libm7generic4sqrt9RSQRT_TAB.*', # 'compiler_builtins::math::libm::generic::sqrt::RSQRT_TAB::.*'
+]
+
+IGNORED_SYMBOLS = '|'.join (IGNORED_SYMBOLS)
 
 nm = os.getenv ('NM', shutil.which ('nm'))
 if not nm:
 	print ('check-symbols.py: \'nm\' not found; skipping test')
 	sys.exit (77)
-
-cxxfilt = shutil.which ('c++filt')
 
 tested = False
 stat = 0
@@ -33,12 +41,6 @@ for soname in ['harfbuzz', 'harfbuzz-subset', 'harfbuzz-icu', 'harfbuzz-gobject'
 		EXPORTED_SYMBOLS = [s.split ()[2]
 				    for s in re.findall (r'^.+ [BCDGIRSTu] .+$', subprocess.check_output (nm.split() + [so]).decode ('utf-8'), re.MULTILINE)
 				    if not re.match (r'.* %s(%s)\b' % (symprefix, IGNORED_SYMBOLS), s)]
-
-		# run again c++filt also if is available
-		if cxxfilt:
-			EXPORTED_SYMBOLS = subprocess.check_output (
-				[cxxfilt], input='\n'.join (EXPORTED_SYMBOLS).encode ()
-			).decode ('utf-8').splitlines ()
 
 		prefix = (symprefix + os.path.basename (so)).replace ('libharfbuzz', 'hb').replace ('-', '_').split ('.')[0]
 

@@ -8,25 +8,33 @@ hb_rs = rust.bindgen(
           '--allowlist-type=hb_.*',
           '--no-copy=hb_.*',
           ],
-  #args : ['--no-rustfmt-bindings'],
 )
 
 cargo = find_program('cargo')
 rustfmt = find_program('rustfmt')
 
+rust_flags = ''
+cargo_args = []
+
 buildtype = get_option('buildtype')
 if buildtype == 'release' or buildtype == 'debugoptimized'
-  cargo_args = ['--profile', buildtype]
-else
-  cargo_args = []
+  cargo_args += ['--profile', buildtype]
 endif
+
+opt_level = get_option('optimization')
+rust_flags += ' -C opt-level=' + opt_level
+
+cargo_args += ['-Z', 'build-std=std,panic_abort',
+               '-Z', 'build-std-features=panic_immediate_abort']
 
 harfbuzz_fontations = custom_target(
   'harfbuzz_fontations',
   input: ['lib.rs', 'Cargo.toml', 'Cargo.lock'],
   output: ['libharfbuzz_fontations.a'],
   depends: [hb_rs],
-  env: ['OUT_DIR=' + meson.current_build_dir()],
+  env: ['OUT_DIR=' + meson.current_build_dir(),
+        'RUSTFLAGS=' + rust_flags,
+  ],
   command: [
     cargo, 'build',
     ] + cargo_args + [
@@ -44,25 +52,36 @@ harfbuzz_fontations_dep = declare_dependency(
   link_whole: harfbuzz_fontations,
 )
 
-clippy = custom_target(
-  'clippy',
-  input: 'lib.rs',
-  output: 'clippy',
-  depends: [hb_rs],
+clippy_fix = run_target(
+  'clippy-fix',
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     cargo, 'clippy',
+    '--allow-dirty', '--fix',
     ] + cargo_args + [
+    '--lib', '-p', 'harfbuzz_fontations',
     '--target-dir', meson.current_build_dir(),
-    '--manifest-path', meson.current_source_dir() / 'Cargo.toml'
+    '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
   ],
 )
+if get_option('tests').enabled() and cargo.found()
+  test(
+    'clippy',
+    cargo,
+    env: ['OUT_DIR=' + meson.current_build_dir()],
+    args: [
+      'clippy',
+      ] + cargo_args + [
+      '--lib', '-p', 'harfbuzz_fontations',
+      '--target-dir', meson.current_build_dir(),
+      '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
+      '--', '-D', 'warnings',
+    ],
+  )
+endif
 
-fmt = custom_target(
-  'fmt',
-  input: 'lib.rs',
-  output: 'fmt',
-  depends: [hb_rs],
+rustfmt_fix = run_target(
+  'rustfmt-fix',
   env: ['OUT_DIR=' + meson.current_build_dir()],
   command: [
     rustfmt,
@@ -71,3 +90,16 @@ fmt = custom_target(
     meson.current_source_dir() / 'lib.rs',
   ],
 )
+if get_option('tests').enabled() and rustfmt.found()
+  test(
+    'rustfmt',
+    rustfmt,
+    env: ['OUT_DIR=' + meson.current_build_dir()],
+    args: [
+      '--check',
+      '--edition', '2021',
+      '--',
+      meson.current_source_dir() / 'lib.rs',
+    ],
+  )
+endif
