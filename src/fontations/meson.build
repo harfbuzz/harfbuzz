@@ -14,12 +14,18 @@ hb_rs = rust.bindgen(
 cargo = find_program('cargo')
 rustfmt = find_program('rustfmt')
 
+rust_flags = ''
+cargo_args = []
+
 buildtype = get_option('buildtype')
 if buildtype == 'release' or buildtype == 'debugoptimized'
-  cargo_args = ['--profile', buildtype]
-else
-  cargo_args = []
+  cargo_args += ['--profile', buildtype]
 endif
+
+opt_level = get_option('optimization')
+rust_flags += ' -C opt-level=' + opt_level
+
+
 cargo_args += ['-Z', 'build-std=std,panic_abort',
                '-Z', 'build-std-features=panic_immediate_abort']
 
@@ -28,7 +34,9 @@ harfbuzz_fontations = custom_target(
   input: ['lib.rs', 'Cargo.toml', 'Cargo.lock'],
   output: ['libharfbuzz_fontations.a'],
   depends: [hb_rs],
-  env: ['OUT_DIR=' + meson.current_build_dir()],
+  env: ['OUT_DIR=' + meson.current_build_dir(),
+        'RUSTFLAGS=' + rust_flags,
+  ],
   command: [
     cargo, 'build',
     ] + cargo_args + [
