@@ -7,10 +7,19 @@ os.environ['LC_ALL'] = 'C' # otherwise 'nm' prints in wrong order
 builddir = os.getenv ('builddir', os.path.dirname (__file__))
 libs = os.getenv ('libs', '.libs')
 
-IGNORED_SYMBOLS = '|'.join(['_fini', '_init', '_fdata', '_ftext', '_fbss',
+IGNORED_SYMBOLS = ['_fini', '_init', '_fdata', '_ftext', '_fbss',
 	'__bss_start', '__bss_start__', '__bss_end__', '_edata', '_end', '_bss_end__',
 	'__end__', '__gcov_.*', 'llvm_.*', 'flush_fn_list', 'writeout_fn_list', 'mangle_path',
-	'lprofDirMode', 'reset_fn_list'])
+	'lprofDirMode', 'reset_fn_list']
+
+# Rust
+IGNORED_SYMBOLS += [
+    'rust_eh_personality',
+    '_ZN3std9panicking11EMPTY_PANIC.*', # 'std::panicking::EMPTY_PANIC::.*'
+    '_ZN3std3sys3pal4unix4args3imp15ARGV_INIT_ARRAY.*', # 'std::sys::pal::unix::args::imp::ARGV_INIT_ARRAY::.*'
+]
+
+IGNORED_SYMBOLS = '|'.join (IGNORED_SYMBOLS)
 
 nm = os.getenv ('NM', shutil.which ('nm'))
 if not nm:
