@@ -15,6 +15,7 @@ crate-type = ["staticlib"]
 strip = true
 lto = true
 panic = "abort"
+overflow-checks = false
 codegen-units = 1
 
 [profile.debugoptimized]
