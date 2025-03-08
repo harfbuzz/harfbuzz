@@ -13,6 +13,7 @@ crate-type = ["staticlib"]
 
 [profile.release]
 lto = true
+panic = "abort"
 
 [profile.debugoptimized]
 inherits = "release"
