@@ -2744,7 +2744,8 @@ hb_font_set_variations (hb_font_t            *font,
   if (hb_object_is_immutable (font))
     return;
 
-  font->serial_coords = ++font->serial;
+  font->serial++;
+  font->serial_coords = font->serial;
 
   if (!variations_length && font->instance_index == HB_FONT_NO_VAR_NAMED_INSTANCE)
   {
@@ -2814,7 +2815,8 @@ hb_font_set_variation (hb_font_t *font,
   if (hb_object_is_immutable (font))
     return;
 
-  font->serial_coords = ++font->serial;
+  font->serial++;
+  font->serial_coords = font->serial;
 
   // TODO Share some of this code with set_variations()
 
@@ -2886,7 +2888,8 @@ hb_font_set_var_coords_design (hb_font_t    *font,
   if (hb_object_is_immutable (font))
     return;
 
-  font->serial_coords = ++font->serial;
+  font->serial++;
+  font->serial_coords = font->serial;
 
   int *normalized = coords_length ? (int *) hb_calloc (coords_length, sizeof (int)) : nullptr;
   float *design_coords = coords_length ? (float *) hb_calloc (coords_length, sizeof (float)) : nullptr;
@@ -2924,7 +2927,8 @@ hb_font_set_var_named_instance (hb_font_t *font,
   if (font->instance_index == instance_index)
     return;
 
-  font->serial_coords = ++font->serial;
+  font->serial++;
+  font->serial_coords = font->serial;
 
   font->instance_index = instance_index;
   hb_font_set_variations (font, nullptr, 0);
@@ -2971,7 +2975,8 @@ hb_font_set_var_coords_normalized (hb_font_t    *font,
   if (hb_object_is_immutable (font))
     return;
 
-  font->serial_coords = ++font->serial;
+  font->serial++;
+  font->serial_coords = font->serial;
 
   int *copy = coords_length ? (int *) hb_calloc (coords_length, sizeof (coords[0])) : nullptr;
   int *unmapped = coords_length ? (int *) hb_calloc (coords_length, sizeof (coords[0])) : nullptr;

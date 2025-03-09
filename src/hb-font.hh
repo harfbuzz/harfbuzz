@@ -32,6 +32,7 @@
 #include "hb.hh"
 
 #include "hb-face.hh"
+#include "hb-atomic.hh"
 #include "hb-shaper.hh"
 
 
@@ -105,8 +106,8 @@ DECLARE_NULL_INSTANCE (hb_font_funcs_t);
 struct hb_font_t
 {
   hb_object_header_t header;
-  unsigned int serial;
-  unsigned int serial_coords;
+  hb_atomic_int_t serial;
+  hb_atomic_int_t serial_coords;
 
   hb_font_t *parent;
   hb_face_t *face;
