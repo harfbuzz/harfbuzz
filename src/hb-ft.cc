@@ -213,11 +213,10 @@ _hb_ft_hb_font_check_changed (hb_font_t *font,
 {
   if (font->serial != ft_font->cached_serial)
   {
-    ft_font->lock.lock ();
+    hb_lock_t lock (ft_font->lock);
     _hb_ft_hb_font_changed (font, ft_font->ft_face);
     ft_font->advance_cache.clear ();
     ft_font->cached_serial = font->serial;
-    ft_font->lock.unlock ();
     return true;
   }
   return false;
