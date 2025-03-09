@@ -2329,7 +2329,7 @@ static struct supported_font_funcs_t {
  * Sets the font-functions structure to use for a font, based on the
  * specified name.
  *
- * If @name is `NULL` or empty string, the default (first) functioning font-functions
+ * If @name is `NULL` or the empty string, the default (first) functioning font-functions
  * are used.  This default can be changed by setting the `HB_FONT_FUNCS` environment
  * variable to the name of the desired font-functions.
  *

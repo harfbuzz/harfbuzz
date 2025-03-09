@@ -349,7 +349,8 @@ static struct supported_face_loaders_t {
  * @loader_name: (nullable): The name of the loader to use, or `NULL`
  *
  * A thin wrapper around the face loader functions registered with HarfBuzz.
- * If @loader_name is `NULL`, the first available loader is used.
+ * If @loader_name is `NULL` or the empty string, the first available loader
+ * is used.
  *
  * For example, the FreeType ("ft") loader might be able to load
  * .woff and .woff2 files if FreeType is built with those features,
