@@ -478,6 +478,8 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
 			    void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  _hb_ft_hb_font_check_changed (font, ft_font);
+
   hb_position_t *orig_first_advance = first_advance;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
@@ -561,6 +563,8 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
 			   void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  _hb_ft_hb_font_check_changed (font, ft_font);
+
   hb_lock_t lock (ft_font->lock);
   FT_Fixed v;
   float y_mult;
@@ -614,6 +618,8 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
 			  void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  _hb_ft_hb_font_check_changed (font, ft_font);
+
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   float x_mult, y_mult;
@@ -658,6 +664,8 @@ hb_ft_get_glyph_h_kerning (hb_font_t *font,
 			   void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  _hb_ft_hb_font_check_changed (font, ft_font);
+
   hb_lock_t lock (ft_font->lock);
   FT_Vector kerningv;
 
@@ -677,6 +685,8 @@ hb_ft_get_glyph_extents (hb_font_t *font,
 			 void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  _hb_ft_hb_font_check_changed (font, ft_font);
+
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   float x_mult, y_mult;
@@ -749,6 +759,8 @@ hb_ft_get_glyph_contour_point (hb_font_t *font HB_UNUSED,
 			       void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  _hb_ft_hb_font_check_changed (font, ft_font);
+
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
@@ -826,6 +838,8 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  _hb_ft_hb_font_check_changed (font, ft_font);
+
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   float y_mult;
@@ -916,6 +930,8 @@ hb_ft_draw_glyph (hb_font_t *font,
 		  void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  _hb_ft_hb_font_check_changed (font, ft_font);
+
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
@@ -990,6 +1006,8 @@ hb_ft_paint_glyph (hb_font_t *font,
                    void *user_data)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  _hb_ft_hb_font_check_changed (font, ft_font);
+
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
@@ -1455,6 +1473,10 @@ hb_ft_font_changed (hb_font_t *font)
  * This function should be called after changing the size or
  * variation-axis settings on the @font.
  * This call is fast if nothing has changed on @font.
+ *
+ * Note that as of version REPLACEME, calling this function is not necessary,
+ * as HarfBuzz will automatically detect changes to the font and update
+ * the underlying FT_Face as needed.
  *
  * Return value: true if changed, false otherwise
  *
