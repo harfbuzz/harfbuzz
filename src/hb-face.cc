@@ -363,37 +363,37 @@ static struct supported_face_loaders_t {
 hb_face_t *
 hb_face_create_from_file_or_fail_using (const char   *file_name,
 					unsigned int  index,
-					const char   *name)
+					const char   *loader_name)
 {
   bool retry = false;
 
-  if (!name || !*name)
+  if (!loader_name || !*loader_name)
   {
     static hb_atomic_ptr_t<const char> static_funcs_name;
-    name = static_funcs_name.get_acquire ();
-    if (!name)
+    loader_name = static_funcs_name.get_acquire ();
+    if (!loader_name)
     {
-      name = getenv ("HB_FACE_LOADER");
-      if (!name)
-	name = "";
-      if (!static_funcs_name.cmpexch (nullptr, name))
-	name = static_funcs_name.get_acquire ();
+      loader_name = getenv ("HB_FACE_LOADER");
+      if (!loader_name)
+	loader_name = "";
+      if (!static_funcs_name.cmpexch (nullptr, loader_name))
+	loader_name = static_funcs_name.get_acquire ();
     }
     retry = true;
   }
-  if (name && !*name) name = nullptr;
+  if (loader_name && !*loader_name) loader_name = nullptr;
 
 retry:
   for (unsigned i = 0; i < ARRAY_LENGTH (supported_face_loaders); i++)
   {
-    if (!name || !strcmp (supported_face_loaders[i].name, name))
+    if (!loader_name || !strcmp (supported_face_loaders[i].name, loader_name))
       return supported_face_loaders[i].func (file_name, index);
   }
 
   if (retry)
   {
     retry = false;
-    name = nullptr;
+    loader_name = nullptr;
     goto retry;
   }
 
