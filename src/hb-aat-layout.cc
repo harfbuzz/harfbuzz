@@ -321,6 +321,19 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
   }
 }
 
+static bool
+is_deleted_glyph (const hb_glyph_info_t *info)
+{
+  return info->codepoint == AAT::DELETED_GLYPH &&
+	 _hb_glyph_info_is_default_ignorable (info);
+}
+
+void
+hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
+{
+  buffer->delete_glyphs_inplace (is_deleted_glyph);
+}
+
 /**
  * hb_aat_layout_has_positioning:
  * @face: #hb_face_t to work upon
