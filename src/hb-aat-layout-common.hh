@@ -29,6 +29,8 @@
 
 #include "hb-aat-layout.hh"
 #include "hb-aat-map.hh"
+#include "hb-ot-layout-common.hh"
+#include "hb-ot-layout-gdef-table.hh"
 #include "hb-open-type.hh"
 #include "hb-cache.hh"
 #include "hb-bit-set.hh"
@@ -48,6 +50,8 @@ struct ankr;
 using hb_aat_class_cache_t = hb_cache_t<15, 8, 7>;
 static_assert (sizeof (hb_aat_class_cache_t) == 256, "");
 
+enum { DELETED_GLYPH = 0xFFFF };
+
 struct hb_aat_apply_context_t :
        hb_dispatch_context_t<hb_aat_apply_context_t, bool, HB_DEBUG_APPLY>
 {
@@ -64,7 +68,8 @@ struct hb_aat_apply_context_t :
   hb_buffer_t *buffer;
   hb_sanitize_context_t sanitizer;
   const ankr *ankr_table;
-  const OT::GDEF *gdef_table;
+  const OT::GDEF &gdef;
+  bool has_glyph_classes;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
   bool using_buffer_glyph_set = false;
   hb_bit_set_t buffer_glyph_set;
@@ -106,14 +111,69 @@ struct hb_aat_apply_context_t :
 	return true;
     return false;
   }
+
+  template <typename T>
+  HB_NODISCARD bool output_glyphs (unsigned int count,
+				   const T *glyphs)
+  {
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (glyphs[i] == DELETED_GLYPH)
+      {
+	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
+	_hb_glyph_info_set_default_ignorable (&buffer->cur());
+      }
+      else
+      {
+	buffer_glyph_set.add (glyphs[i]);
+#ifndef HB_NO_OT_LAYOUT
+	if (has_glyph_classes)
+	  _hb_glyph_info_set_glyph_props (&buffer->cur(),
+					  gdef.get_glyph_props (glyphs[i]));
+#endif
+      }
+      if (unlikely (!buffer->output_glyph (glyphs[i]))) return false;
+    }
+    return true;
+  }
+
+  HB_NODISCARD bool replace_glyph (hb_codepoint_t glyph)
+  {
+    if (glyph == DELETED_GLYPH)
+      return delete_glyph ();
+
+    buffer_glyph_set.add (glyph);
+#ifndef HB_NO_OT_LAYOUT
+    if (has_glyph_classes)
+      _hb_glyph_info_set_glyph_props (&buffer->cur(),
+				      gdef.get_glyph_props (glyph));
+#endif
+    return buffer->replace_glyph (glyph);
+  }
+
+  HB_NODISCARD bool delete_glyph ()
+  {
+    buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
+    _hb_glyph_info_set_default_ignorable (&buffer->cur());
+    return buffer->replace_glyph (DELETED_GLYPH);
+  }
+
+  void replace_glyph_inplace (unsigned i, hb_codepoint_t glyph)
+  {
+    buffer->info[i].codepoint = glyph;
+    buffer_glyph_set.add (glyph);
+#ifndef HB_NO_OT_LAYOUT
+    if (has_glyph_classes)
+      _hb_glyph_info_set_glyph_props (&buffer->info[i],
+				      gdef.get_glyph_props (glyph));
+#endif
+  }
 };
 
 
 /*
  * Lookup Table
  */
-
-enum { DELETED_GLYPH = 0xFFFF };
 
 template <typename T> struct Lookup;
 
