@@ -325,7 +325,6 @@ hb_face_create_from_file_or_fail (const char   *file_name,
 
   return face;
 }
-#endif
 
 static struct supported_face_loaders_t {
 	char name[9];
@@ -452,6 +451,7 @@ hb_face_list_loaders ()
 {
   return static_face_loader_list.get_unconst ();
 }
+#endif
 
 
 /**
