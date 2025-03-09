@@ -1,0 +1,24 @@
+start clip rectangle 250 250 850 750
+  start transform 1 0 0 1 0 0
+    push group
+      start transform 1 0 -0 1 0 0
+        start clip glyph 3
+          start transform 1 0 0 1 0 0
+            solid 0 0 255 127
+          end transform
+        end clip
+      end transform
+      push group
+        start transform 1 0 0 1 100 0
+          start transform 1 0 -0 1 0 0
+            start clip glyph 3
+              start transform 1 0 0 1 0 0
+                solid 255 165 0 178
+              end transform
+            end clip
+          end transform
+        end transform
+      pop group mode 4
+    pop group mode 3
+  end transform
+end clip

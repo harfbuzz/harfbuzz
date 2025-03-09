@@ -3,10 +3,10 @@ version: 2.1
 executors:
   win32-executor:
     docker:
-      - image: cimg/base:2023.10
+      - image: ubuntu:24.04
   win64-executor:
     docker:
-      - image: cimg/base:2023.10
+      - image: ubuntu:24.04
   dist-executor:
     docker:
       - image: cimg/base:2023.10
@@ -58,18 +58,19 @@ jobs:
       - run: meson compile -Cbuild -j9
       - run: RUN_VALGRIND=1 meson test -Cbuild -t 10 --no-suite=slow --wrap='valgrind --leak-check=full --error-exitcode=1' --print-errorlogs --num-processes=$(($(nproc)/2 + 1))
 
-  alpine:
+  minsize:
     docker:
-      - image: alpine
+      - image: ubuntu
     steps:
       - checkout
-      - run: apk update && apk add ragel gcc g++ glib-dev freetype-dev cairo-dev git py3-pip ninja
+      - run: apt update
+      - run: DEBIAN_FRONTEND=noninteractive apt install -y ninja-build binutils gcc g++ pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev python3 python3-pip python3-venv
       - run: |
           python3 -m venv venv
           source venv/bin/activate
           pip3 install meson==0.56.0
           meson setup build --buildtype=minsize
-          meson compile -Cbuild -j9
+          meson compile -Cbuild
           meson test -Cbuild --print-errorlogs
 
   asan-ubsan:
@@ -131,7 +132,7 @@ jobs:
     executor: win32-executor
     steps:
       - checkout
-      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-i686 zip
+      - run: apt update && DEBIAN_FRONTEND=noninteractive apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-i686 zip
       - run: |
           python3 -m venv venv
           source venv/bin/activate
@@ -141,7 +142,7 @@ jobs:
           path: harfbuzz-win32.zip
       - persist_to_workspace:
           root: .
-          paths: harfbuzz-win32.zip
+          paths: [harfbuzz-win32.zip]
 
   publish-win32:
     executor: win32-executor
@@ -157,7 +158,7 @@ jobs:
     executor: win64-executor
     steps:
       - checkout
-      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-x86-64 zip
+      - run: apt update && DEBIAN_FRONTEND=noninteractive apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-x86-64 zip
       - run: |
           python3 -m venv venv
           source venv/bin/activate
@@ -167,7 +168,7 @@ jobs:
           path: harfbuzz-win64.zip
       - persist_to_workspace:
           root: .
-          paths: harfbuzz-win64.zip
+          paths: [harfbuzz-win64.zip]
 
   publish-win64:
     executor: win64-executor
@@ -199,7 +200,7 @@ workflows:
             branches:
               ignore: /.*/
       - fedora-valgrind
-      - alpine
+      - minsize
       - asan-ubsan
       - tsan
       - msan

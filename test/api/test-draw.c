@@ -29,6 +29,9 @@
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
+#ifdef HAVE_FONTATIONS
+#include <hb-fontations.h>
+#endif
 
 typedef struct draw_data_t
 {
@@ -1074,8 +1077,8 @@ test_hb_draw_immutable (void)
   hb_draw_funcs_destroy (draw_funcs);
 }
 
-#ifdef HAVE_FREETYPE
-static void test_hb_draw_ft (void)
+static void
+test_hb_draw_funcs (const char* font_funcs_name)
 {
   char str[1024];
   draw_data_t draw_data = {
@@ -1085,7 +1088,8 @@ static void test_hb_draw_ft (void)
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/glyphs.ttf");
     hb_font_t *font = hb_font_create (face);
-    hb_ft_font_set_funcs (font);
+    hb_bool_t ret = hb_font_set_funcs_using (font, font_funcs_name);
+    g_assert (ret);
     hb_face_destroy (face);
     {
       draw_data.consumed = 0;
@@ -1104,7 +1108,8 @@ static void test_hb_draw_ft (void)
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
     hb_font_t *font = hb_font_create (face);
-    hb_ft_font_set_funcs (font);
+    hb_bool_t ret = hb_font_set_funcs_using (font, font_funcs_name);
+    g_assert (ret);
     hb_face_destroy (face);
 
     draw_data.consumed = 0;
@@ -1122,7 +1127,7 @@ static void test_hb_draw_ft (void)
 }
 
 static void
-test_hb_draw_compare_ot_ft (void)
+test_hb_draw_compare_ot_funcs (const char* font_funcs_name)
 {
   char str[1024];
   draw_data_t draw_data = {
@@ -1145,7 +1150,8 @@ test_hb_draw_compare_ot_ft (void)
   hb_font_draw_glyph (font, 1, funcs, &draw_data);
   draw_data.str[draw_data.consumed] = '\0';
 
-  hb_ft_font_set_funcs (font);
+  hb_bool_t ret = hb_font_set_funcs_using (font, font_funcs_name);
+  g_assert (ret);
 
   hb_font_draw_glyph (font, 1, funcs, &draw_data2);
   draw_data2.str[draw_data2.consumed] = '\0';
@@ -1154,6 +1160,33 @@ test_hb_draw_compare_ot_ft (void)
 
   hb_font_destroy (font);
   hb_face_destroy (face);
+}
+
+#ifdef HAVE_FREETYPE
+static void
+test_hb_draw_ft (void)
+{
+  test_hb_draw_funcs ("ft");
+}
+
+static void
+test_hb_draw_compare_ot_ft (void)
+{
+  test_hb_draw_compare_ot_funcs ("ft");
+}
+#endif
+
+#ifdef HAVE_FONTATIONS
+static void
+test_hb_draw_fontations (void)
+{
+  test_hb_draw_funcs ("fontations");
+}
+
+static void
+test_hb_draw_compare_ot_fontations (void)
+{
+  test_hb_draw_compare_ot_funcs ("fontations");
 }
 #endif
 
@@ -1195,6 +1228,11 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_ft);
   hb_test_add (test_hb_draw_compare_ot_ft);
 #endif
+#ifdef HAVE_FONTATIONS
+  hb_test_add (test_hb_draw_fontations);
+  hb_test_add (test_hb_draw_compare_ot_fontations);
+#endif
+
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);

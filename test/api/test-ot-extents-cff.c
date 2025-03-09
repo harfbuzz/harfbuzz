@@ -37,7 +37,6 @@ test_extents_cff1 (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
@@ -55,7 +54,6 @@ test_extents_cff1 (void)
   hb_font_t *font_j = hb_font_create (face_j);
   hb_face_destroy (face_j);
   g_assert (font_j);
-  hb_ot_font_set_funcs (font_j);
 
   hb_bool_t result_j = hb_font_get_glyph_extents (font_j, 3, &extents);
   g_assert (result_j);
@@ -76,7 +74,6 @@ test_extents_cff1_flex (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
@@ -98,7 +95,6 @@ test_extents_cff1_seac (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 3, &extents); /* Agrave */
@@ -128,7 +124,6 @@ test_extents_cff2 (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
@@ -160,7 +155,6 @@ test_extents_cff2_vsindex (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
   float coords[2] = { 800.0f, 50.0f };
@@ -192,7 +186,6 @@ test_extents_cff2_vsindex_named_instance (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_font_set_var_named_instance (font, 6); // 6 (BlackMediumContrast): 900, 50
   hb_glyph_extents_t  extents;

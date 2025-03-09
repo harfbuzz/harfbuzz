@@ -75,7 +75,6 @@ runTest(const char *testName,
     unsigned int upem = hb_face_get_upem (face);
 
     hb_font_set_scale(font, upem, upem);
-    hb_ot_font_set_funcs (font);
 
     // setup buffer
     hb_buffer_t *buffer = hb_buffer_create();

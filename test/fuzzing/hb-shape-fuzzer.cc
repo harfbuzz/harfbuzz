@@ -17,7 +17,6 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
   hb_face_t *face = hb_face_create (blob, 0);
   hb_font_t *font = hb_font_create (face);
-  hb_ot_font_set_funcs (font);
   hb_font_set_scale (font, 12, 12);
 
   unsigned num_coords = 0;

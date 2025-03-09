@@ -21,8 +21,6 @@ struct test_input_t
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
-enum backend_t { HARFBUZZ, FREETYPE, CORETEXT };
-
 enum operation_t
 {
   nominal_glyphs,
@@ -81,7 +79,8 @@ _draw_funcs_create (void)
 }
 
 static void BM_Font (benchmark::State &state,
-		     bool is_var, backend_t backend, operation_t operation,
+		     bool is_var, const char * backend,
+		     operation_t operation,
 		     const test_input_t &test_input)
 {
   hb_font_t *font;
@@ -100,23 +99,12 @@ static void BM_Font (benchmark::State &state,
     hb_font_set_variations (font, &wght, 1);
   }
 
-  switch (backend)
+  bool ret = hb_font_set_funcs_using (font, backend);
+  if (!ret)
   {
-    case HARFBUZZ:
-      hb_ot_font_set_funcs (font);
-      break;
-
-    case FREETYPE:
-#ifdef HAVE_FREETYPE
-      hb_ft_font_set_funcs (font);
-#endif
-      break;
-
-    case CORETEXT:
-#ifdef HAVE_CORETEXT
-      hb_coretext_font_set_funcs (font);
-#endif
-      break;
+    state.SkipWithError("Backend failed to initialize for font.");
+    hb_font_destroy (font);
+    return;
   }
 
   switch (operation)
@@ -204,23 +192,12 @@ static void BM_Font (benchmark::State &state,
 	hb_font_t *font = hb_font_create (face);
 	hb_face_destroy (face);
 
-	switch (backend)
+	bool ret = hb_font_set_funcs_using (font, backend);
+	if (!ret)
 	{
-	  case HARFBUZZ:
-	    hb_ot_font_set_funcs (font);
-	    break;
-
-	  case FREETYPE:
-#ifdef HAVE_FREETYPE
-	    hb_ft_font_set_funcs (font);
-#endif
-	    break;
-
-	  case CORETEXT:
-#ifdef HAVE_CORETEXT
-	    hb_coretext_font_set_funcs (font);
-#endif
-	    break;
+	  state.SkipWithError("Backend failed to initialize for font.");
+	  hb_font_destroy (font);
+	  return;
 	}
 
 	hb_buffer_t *buffer = hb_buffer_create ();
@@ -240,8 +217,7 @@ static void BM_Font (benchmark::State &state,
   hb_font_destroy (font);
 }
 
-static void test_backend (backend_t backend,
-			  const char *backend_name,
+static void test_backend (const char *backend,
 			  bool variable,
 			  operation_t op,
 			  const char *op_name,
@@ -255,7 +231,7 @@ static void test_backend (backend_t backend,
   strcat (name, p ? p + 1 : test_input.font_path);
   strcat (name, variable ? "/var" : "");
   strcat (name, "/");
-  strcat (name, backend_name);
+  strcat (name, backend);
 
   benchmark::RegisterBenchmark (name, BM_Font, variable, backend, op, test_input)
    ->Unit(time_unit);
@@ -265,6 +241,7 @@ static void test_operation (operation_t op,
 			    const char *op_name,
 			    benchmark::TimeUnit time_unit)
 {
+  const char **supported_backends = hb_font_list_funcs ();
   for (unsigned i = 0; i < num_tests; i++)
   {
     auto& test_input = tests[i];
@@ -272,13 +249,8 @@ static void test_operation (operation_t op,
     {
       bool is_var = (bool) variable;
 
-      test_backend (HARFBUZZ, "hb", is_var, op, op_name, time_unit, test_input);
-#ifdef HAVE_FREETYPE
-      test_backend (FREETYPE, "ft", is_var, op, op_name, time_unit, test_input);
-#endif
-#ifdef HAVE_CORETEXT
-      test_backend (CORETEXT, "coretext", is_var, op, op_name, time_unit, test_input);
-#endif
+      for (const char **backend = supported_backends; *backend; backend++)
+	test_backend (*backend, is_var, op, op_name, time_unit, test_input);
     }
   }
 }

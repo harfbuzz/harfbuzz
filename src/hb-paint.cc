@@ -646,7 +646,7 @@ hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                           float x0, float y0, float r0,
                           float x1, float y1, float r1)
 {
-  funcs->radial_gradient (paint_data, color_line, x0, y0, r0, y1, x1, r1);
+  funcs->radial_gradient (paint_data, color_line, x0, y0, r0, x1, y1, r1);
 }
 
 /**

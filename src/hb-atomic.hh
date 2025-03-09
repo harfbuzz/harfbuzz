@@ -186,6 +186,8 @@ struct hb_atomic_int_t
 
   hb_atomic_int_t& operator = (int v_) { set_relaxed (v_); return *this; }
   operator int () const { return get_relaxed (); }
+  int operator ++ (int) { return inc (); }
+  int operator -- (int) { return dec (); }
 
   void set_relaxed (int v_) { hb_atomic_int_impl_set_relaxed (&v, v_); }
   void set_release (int v_) { hb_atomic_int_impl_set (&v, v_); }

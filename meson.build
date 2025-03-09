@@ -1,4 +1,4 @@
-project('harfbuzz', 'c', 'cpp',
+project('harfbuzz', ['c', 'cpp'],
   meson_version: '>= 0.55.0',
   version: '10.4.0',
   default_options: [
@@ -6,6 +6,7 @@ project('harfbuzz', 'c', 'cpp',
     # 'cpp_rtti=false',     # Do NOT enable, wraps inherit it and ICU needs RTTI
     'cpp_std=c++11',
     'wrap_mode=nofallback', # Use --wrap-mode=default to revert, https://github.com/harfbuzz/harfbuzz/pull/2548
+    'buildtype=debugoptimized',
   ],
 )
 
@@ -220,16 +221,18 @@ endif
 
 chafa_dep = dependency('chafa', version: chafa_min_version, required: get_option('chafa'))
 
+fontations_dep_found = false
+if get_option('fontations').enabled()
+  add_languages(['rust'], native: false, required : true)
+  fontations_dep_found = true
+endif
+
 conf = configuration_data()
 incconfig = include_directories('.')
 
 add_project_arguments('-DHAVE_CONFIG_H', language: ['c', 'cpp'])
 
-warn_cflags = [
-  '-Wno-non-virtual-dtor',
-]
-
-cpp_args = cpp.get_supported_arguments(warn_cflags)
+cpp_args = []
 
 if glib_dep.found()
   conf.set('HAVE_GLIB', 1)
@@ -263,6 +266,10 @@ endif
 
 if chafa_dep.found()
   conf.set('HAVE_CHAFA', 1)
+endif
+
+if fontations_dep_found
+  conf.set('HAVE_FONTATIONS', 1)
 endif
 
 if wasm_dep.found()
