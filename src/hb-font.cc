@@ -1867,19 +1867,7 @@ hb_font_create (hb_face_t *face)
 {
   hb_font_t *font = _hb_font_create (face);
 
-  static hb_atomic_ptr_t<const char> static_funcs_name;
-  const char *funcs_name = static_funcs_name.get_acquire ();
-  if (!funcs_name)
-  {
-    funcs_name = getenv ("HB_FONT_FUNCS");
-    if (!funcs_name)
-      funcs_name = "";
-    if (!static_funcs_name.cmpexch (nullptr, funcs_name))
-      funcs_name = static_funcs_name.get_acquire ();
-  }
-
-  if (unlikely (!hb_font_set_funcs_using (font, funcs_name)))
-    hb_font_set_funcs_using (font, nullptr);
+  hb_font_set_funcs_using (font, nullptr);
 
 #ifndef HB_NO_VAR
   if (face && face->index >> 16)
@@ -2341,7 +2329,9 @@ static struct supported_font_funcs_t {
  * Sets the font-functions structure to use for a font, based on the
  * specified name.
  *
- * If @name is `NULL` or empty string, the first functioning font-functions are used.
+ * If @name is `NULL` or empty string, the default (first) functioning font-functions
+ * are used.  This default can be changed by setting the `HB_FONT_FUNCS` environment
+ * variable to the name of the desired font-functions.
  *
  * Return value: `true` if the font-functions was found and set, `false` otherwise
  *
@@ -2351,8 +2341,25 @@ hb_bool_t
 hb_font_set_funcs_using (hb_font_t  *font,
 			 const char *name)
 {
+  bool retry = false;
+
+  if (!name || !*name)
+  {
+    static hb_atomic_ptr_t<const char> static_funcs_name;
+    name = static_funcs_name.get_acquire ();
+    if (!name)
+    {
+      name = getenv ("HB_FONT_FUNCS");
+      if (!name)
+	name = "";
+      if (!static_funcs_name.cmpexch (nullptr, name))
+	name = static_funcs_name.get_acquire ();
+    }
+    retry = true;
+  }
   if (name && !*name) name = nullptr;
 
+retry:
   for (unsigned i = 0; i < ARRAY_LENGTH (supported_font_funcs); i++)
     if (!name || strcmp (supported_font_funcs[i].name, name) == 0)
     {
@@ -2360,6 +2367,13 @@ hb_font_set_funcs_using (hb_font_t  *font,
       if (name || font->klass != hb_font_funcs_get_empty ())
 	return true;
     }
+
+  if (retry)
+  {
+    retry = false;
+    name = nullptr;
+    goto retry;
+  }
 
   return false;
 }
