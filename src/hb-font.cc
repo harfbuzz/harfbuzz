@@ -2116,7 +2116,7 @@ hb_font_is_immutable (hb_font_t *font)
 unsigned int
 hb_font_get_serial (hb_font_t *font)
 {
-  return font->serial;
+  return font->serial.get_acquire ();
 }
 
 /**
