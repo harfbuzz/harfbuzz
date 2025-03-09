@@ -45,7 +45,6 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   char buf[5] = {0};
   unsigned int len = 0;
   hb_glyph_extents_t extents = {0, 0, 0, 0};
-  hb_ot_font_set_funcs (font);
 
   set = hb_set_create ();
   hb_face_collect_unicodes (face, set);

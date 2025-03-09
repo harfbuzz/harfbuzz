@@ -37,7 +37,6 @@ test_extents_tt_var (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 2, &extents);
@@ -69,7 +68,6 @@ test_advance_tt_var_nohvar (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_position_t x, y;
   hb_font_get_glyph_advance_for_direction(font, 2, HB_DIRECTION_LTR, &x, &y);
@@ -105,7 +103,6 @@ test_advance_tt_var_hvarvvar (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_position_t x, y;
   hb_font_get_glyph_advance_for_direction(font, 1, HB_DIRECTION_LTR, &x, &y);
@@ -141,7 +138,6 @@ test_advance_tt_var_anchor (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 2, &extents);
@@ -173,7 +169,6 @@ test_extents_tt_var_comp (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
   float coords[1] = { 800.0f };
@@ -215,7 +210,6 @@ test_advance_tt_var_comp_v (void)
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
   g_assert (font);
-  hb_ot_font_set_funcs (font);
 
   float coords[1] = { 800.0f };
   hb_font_set_var_coords_design (font, coords, 1);
@@ -239,7 +233,6 @@ test_advance_tt_var_gvar_infer (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/TestGVAREight.ttf");
   hb_font_t *font = hb_font_create (face);
-  hb_ot_font_set_funcs (font);
   hb_face_destroy (face);
 
   int coords[6] = {100};

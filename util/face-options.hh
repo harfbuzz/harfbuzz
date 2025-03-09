@@ -29,13 +29,6 @@
 
 #include "options.hh"
 
-#ifdef HAVE_FREETYPE
-#include <hb-ft.h>
-#endif
-#ifdef HAVE_CORETEXT
-#include <hb-coretext.h>
-#endif
-
 struct face_options_t
 {
   ~face_options_t ()
@@ -74,20 +67,6 @@ struct face_options_t
 
 face_options_t::cache_t face_options_t::cache {};
 
-static struct supported_face_loaders_t {
-	char name[9];
-	hb_face_t * (*func) (const char *font_file, unsigned face_index);
-} supported_face_loaders[] =
-{
-  {"ot",	hb_face_create_from_file_or_fail},
-#ifdef HAVE_FREETYPE
-  {"ft",	hb_ft_face_create_from_file_or_fail},
-#endif
-#ifdef HAVE_CORETEXT
-  {"coretext",	hb_coretext_face_create_from_file_or_fail},
-#endif
-};
-
 void
 face_options_t::post_parse (GError **error)
 {
@@ -112,46 +91,12 @@ face_options_t::post_parse (GError **error)
 #endif
   }
 
-  hb_face_t * (*face_load) (const char *file_name, unsigned face_index) = nullptr;
-  if (!face_loader)
-  {
-    face_load = supported_face_loaders[0].func;
-  }
-  else
-  {
-    for (unsigned int i = 0; i < ARRAY_LENGTH (supported_face_loaders); i++)
-      if (0 == g_ascii_strcasecmp (face_loader, supported_face_loaders[i].name))
-      {
-	face_load = supported_face_loaders[i].func;
-	break;
-      }
-    if (!face_load)
-    {
-      GString *s = g_string_new (nullptr);
-      for (unsigned int i = 0; i < ARRAY_LENGTH (supported_face_loaders); i++)
-      {
-	if (i)
-	  g_string_append_c (s, '/');
-	g_string_append (s, supported_face_loaders[i].name);
-      }
-      g_string_append_c (s, '\n');
-      char *p = g_string_free (s, FALSE);
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Unknown face loader `%s'; supported values are: %s; default is %s",
-		   face_loader,
-		   p,
-		   supported_face_loaders[0].name);
-      free (p);
-      return;
-    }
-  }
-
   if (!cache.font_path ||
       0 != strcmp (cache.font_path, font_path) ||
       cache.face_index != face_index)
   {
     hb_face_destroy (cache.face);
-    cache.face = face_load (font_path, face_index);
+    cache.face = hb_face_create_from_file_or_fail_using (font_path, face_index, face_loader);
     cache.face_index = face_index;
 
     free ((char *) cache.font_path);
@@ -168,21 +113,37 @@ face_options_t::post_parse (GError **error)
   face = cache.face;
 }
 
+static G_GNUC_NORETURN gboolean
+list_face_loaders (const char *name G_GNUC_UNUSED,
+		   const char *arg G_GNUC_UNUSED,
+		   gpointer    data G_GNUC_UNUSED,
+		   GError    **error G_GNUC_UNUSED)
+{
+  for (const char **funcs = hb_face_list_loaders (); *funcs; funcs++)
+    g_printf ("%s\n", *funcs);
+
+  exit(0);
+}
+
 void
 face_options_t::add_options (option_parser_t *parser)
 {
   char *face_loaders_text = nullptr;
   {
-    static_assert ((ARRAY_LENGTH_CONST (supported_face_loaders) > 0),
-		   "No supported face-loaders found.");
+    const char **supported_face_loaders = hb_face_list_loaders ();
     GString *s = g_string_new (nullptr);
-    g_string_printf (s, "Set face loader to use (default: %s)\n    Supported face loaders are: %s",
-		     supported_face_loaders[0].name,
-		     supported_face_loaders[0].name);
-    for (unsigned int i = 1; i < ARRAY_LENGTH (supported_face_loaders); i++)
+    if (unlikely (!supported_face_loaders))
+      g_string_printf (s, "Set face loader to use (default: none)\n    No supported face loaders found");
+    else
     {
-      g_string_append_c (s, '/');
-      g_string_append (s, supported_face_loaders[i].name);
+      g_string_printf (s, "Set face loader to use (default: %s)\n    Supported face loaders are: %s",
+		       supported_face_loaders[0],
+		       supported_face_loaders[0]);
+      for (unsigned i = 1; supported_face_loaders[i]; i++)
+      {
+	g_string_append_c (s, '/');
+	g_string_append (s, supported_face_loaders[i]);
+      }
     }
     face_loaders_text = g_string_free (s, FALSE);
     parser->free_later (face_loaders_text);
@@ -193,6 +154,8 @@ face_options_t::add_options (option_parser_t *parser)
     {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Set font file-name",				"filename"},
     {"face-index",	'y', 0, G_OPTION_ARG_INT,	&this->face_index,		"Set face index (default: 0)",			"index"},
     {"face-loader",	0, 0, G_OPTION_ARG_STRING,	&this->face_loader,		face_loaders_text,				"loader"},
+    {"list-face-loaders",0, G_OPTION_FLAG_NO_ARG,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &list_face_loaders,	"List available face loaders and quit",		nullptr},
     {nullptr}
   };
   parser->add_group (entries,
