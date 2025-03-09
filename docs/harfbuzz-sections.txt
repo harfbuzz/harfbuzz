@@ -365,6 +365,8 @@ hb_face_t
 hb_face_create
 hb_face_create_or_fail
 hb_face_create_from_file_or_fail
+hb_face_create_from_file_or_fail_using
+hb_face_list_loaders
 hb_reference_table_func_t
 hb_face_create_for_tables
 hb_face_get_empty
