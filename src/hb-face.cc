@@ -352,6 +352,10 @@ static struct supported_face_loaders_t {
  * A thin wrapper around the face loader functions registered with HarfBuzz.
  * If @loader_name is `NULL`, the first available loader is used.
  *
+ * For example, the FreeType ("ft") loader might be able to load
+ * .woff and .woff2 files if FreeType is built with those features,
+ * whereas the OpenType ("ot") loader will not.
+ *
  * Return value: (transfer full): The new face object, or `NULL` if
  * the file cannot be read or the loader fails to load the face.
  *
@@ -360,15 +364,40 @@ static struct supported_face_loaders_t {
 hb_face_t *
 hb_face_create_from_file_or_fail_using (const char   *file_name,
 					unsigned int  index,
-					const char   *loader_name)
+					const char   *name)
 {
-  if (loader_name && !*loader_name)
-    loader_name = nullptr;
+  bool retry = false;
+
+  if (!name || !*name)
+  {
+    static hb_atomic_ptr_t<const char> static_funcs_name;
+    name = static_funcs_name.get_acquire ();
+    if (!name)
+    {
+      name = getenv ("HB_FACE_LOADER");
+      if (!name)
+	name = "";
+      if (!static_funcs_name.cmpexch (nullptr, name))
+	name = static_funcs_name.get_acquire ();
+    }
+    retry = true;
+  }
+  if (name && !*name) name = nullptr;
+
+retry:
   for (unsigned i = 0; i < ARRAY_LENGTH (supported_face_loaders); i++)
   {
-    if (!loader_name || !strcmp (supported_face_loaders[i].name, loader_name))
+    if (!name || !strcmp (supported_face_loaders[i].name, name))
       return supported_face_loaders[i].func (file_name, index);
   }
+
+  if (retry)
+  {
+    retry = false;
+    name = nullptr;
+    goto retry;
+  }
+
   return nullptr;
 }
 
