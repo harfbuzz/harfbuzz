@@ -2336,7 +2336,7 @@ static struct supported_font_funcs_t {
 /**
  * hb_font_set_funcs_using:
  * @font: #hb_font_t to work upon
- * @name: The name of the font-functions structure to use
+ * @name: The name of the font-functions structure to use, or `NULL`
  *
  * Sets the font-functions structure to use for a font, based on the
  * specified name.
@@ -2405,7 +2405,7 @@ void free_static_font_funcs_list ()
  *
  * Return value: (transfer none) (array zero-terminated=1): a
  *    `NULL`-terminated array of supported font functions
- *    constant string. The returned array is owned by HarfBuzz
+ *    constant strings. The returned array is owned by HarfBuzz
  *    and should not be modified or freed.
  *
  * XSince: REPLACEME

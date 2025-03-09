@@ -34,6 +34,13 @@
 #include "hb-ot-face.hh"
 #include "hb-ot-cmap-table.hh"
 
+#ifdef HAVE_FREETYPE
+#include "hb-ft.h"
+#endif
+#ifdef HAVE_CORETEXT
+#include "hb-coretext.h"
+#endif
+
 
 /**
  * SECTION:hb-face
@@ -319,6 +326,104 @@ hb_face_create_from_file_or_fail (const char   *file_name,
   return face;
 }
 #endif
+
+static struct supported_face_loaders_t {
+	char name[9];
+	hb_face_t * (*func) (const char *font_file, unsigned face_index);
+} supported_face_loaders[] =
+{
+#ifndef HB_NO_OPEN
+  {"ot",	hb_face_create_from_file_or_fail},
+#endif
+#ifdef HAVE_FREETYPE
+  {"ft",	hb_ft_face_create_from_file_or_fail},
+#endif
+#ifdef HAVE_CORETEXT
+  {"coretext",	hb_coretext_face_create_from_file_or_fail},
+#endif
+};
+
+/**
+ * hb_face_create_from_file_or_fail_using:
+ * @file_name: A font filename
+ * @index: The index of the face within the file
+ * @loader_name: (nullable): The name of the loader to use, or `NULL`
+ *
+ * A thin wrapper around the face loader functions registered with HarfBuzz.
+ * If @loader_name is `NULL`, the first available loader is used.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * the file cannot be read or the loader fails to load the face.
+ *
+ * XSince: REPLACEME
+ **/
+hb_face_t *
+hb_face_create_from_file_or_fail_using (const char   *file_name,
+					unsigned int  index,
+					const char   *loader_name)
+{
+  if (loader_name && !*loader_name)
+    loader_name = nullptr;
+  for (unsigned i = 0; i < ARRAY_LENGTH (supported_face_loaders); i++)
+  {
+    if (!loader_name || !strcmp (supported_face_loaders[i].name, loader_name))
+      return supported_face_loaders[i].func (file_name, index);
+  }
+  return nullptr;
+}
+
+static inline void free_static_face_loader_list ();
+
+static const char * const nil_face_loader_list[] = {nullptr};
+
+static struct hb_face_loader_list_lazy_loader_t : hb_lazy_loader_t<const char *,
+								  hb_face_loader_list_lazy_loader_t>
+{
+  static const char ** create ()
+  {
+    const char **face_loader_list = (const char **) hb_calloc (1 + ARRAY_LENGTH (supported_face_loaders), sizeof (const char *));
+    if (unlikely (!face_loader_list))
+      return nullptr;
+
+    unsigned i;
+    for (i = 0; i < ARRAY_LENGTH (supported_face_loaders); i++)
+      face_loader_list[i] = supported_face_loaders[i].name;
+    face_loader_list[i] = nullptr;
+
+    hb_atexit (free_static_face_loader_list);
+
+    return face_loader_list;
+  }
+  static void destroy (const char **l)
+  { hb_free (l); }
+  static const char * const * get_null ()
+  { return nil_face_loader_list; }
+} static_face_loader_list;
+
+static inline
+void free_static_face_loader_list ()
+{
+  static_face_loader_list.free_instance ();
+}
+
+/**
+ * hb_face_list_loaders:
+ *
+ * Retrieves the list of face loaders supported by HarfBuzz.
+ *
+ * Return value: (transfer none) (array zero-terminated=1): a
+ *    `NULL`-terminated array of supported face loaders
+ *    constant strings. The returned array is owned by HarfBuzz
+ *    and should not be modified or freed.
+ *
+ * XSince: REPLACEME
+ **/
+const char **
+hb_face_list_loaders ()
+{
+  return static_face_loader_list.get_unconst ();
+}
+
 
 /**
  * hb_face_get_empty:

@@ -29,6 +29,10 @@
 
 #include "face-options.hh"
 
+#ifdef HAVE_FREETYPE
+#include <hb-ft.h>
+#endif
+
 #define FONT_SIZE_UPEM 0x7FFFFFFF
 #define FONT_SIZE_NONE 0
 
@@ -290,13 +294,18 @@ font_options_t::add_options (option_parser_t *parser)
   {
     const char **supported_font_funcs = hb_font_list_funcs ();
     GString *s = g_string_new (nullptr);
-    g_string_printf (s, "Set font functions implementation to use (default: %s)\n    Supported font function implementations are: %s",
-		     supported_font_funcs[0],
-		     supported_font_funcs[0]);
-    for (unsigned i = 1; supported_font_funcs[i]; i++)
+    if (unlikely (!supported_font_funcs[0]))
+      g_string_printf (s, "Set font functions implementation to use (default: none)\n    No supported font function implementations found");
+    else
     {
-      g_string_append_c (s, '/');
-      g_string_append (s, supported_font_funcs[i]);
+      g_string_printf (s, "Set font functions implementation to use (default: %s)\n    Supported font function implementations are: %s",
+		       supported_font_funcs[0],
+		       supported_font_funcs[0]);
+      for (unsigned i = 1; supported_font_funcs[i]; i++)
+      {
+	g_string_append_c (s, '/');
+	g_string_append (s, supported_font_funcs[i]);
+      }
     }
     font_funcs_text = g_string_free (s, FALSE);
     parser->free_later (font_funcs_text);
