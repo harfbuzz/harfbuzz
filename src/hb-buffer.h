@@ -422,6 +422,7 @@ hb_buffer_get_flags (const hb_buffer_t *buffer);
  * @HB_BUFFER_CLUSTER_LEVEL_CHARACTERS: Don't group cluster values.
  * @HB_BUFFER_CLUSTER_LEVEL_DEFAULT: Default cluster level,
  *   equal to @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES.
+ * @HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES: Only group clusters, but don't enfore monotone order.
  *
  * Data type for holding HarfBuzz's clustering behavior options. The cluster level
  * dictates one aspect of how HarfBuzz will treat non-base characters
@@ -429,11 +430,26 @@ hb_buffer_get_flags (const hb_buffer_t *buffer);
  *
  * In @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES, non-base
  * characters are merged into the cluster of the base character that precedes them.
+ * There is also cluster merging evertim the clusters will otherwise become non-monotone.
  *
  * In @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS, non-base characters are initially
  * assigned their own cluster values, which are not merged into preceding base
  * clusters. This allows HarfBuzz to perform additional operations like reorder
- * sequences of adjacent marks.
+ * sequences of adjacent marks. The output is still monotone, but the cluster
+ * values are more granular.
+ *
+ * In @HB_BUFFER_CLUSTER_LEVEL_CHARACTERS, non-base characters are assigned their
+ * own cluster values, which are not merged into preceding base clusters. Moreover,
+ * the cluster values are not merged into monotone order. This is the most granular
+ * cluster level, and it is useful for clients that need to know the exact cluster
+ * values of each character, but is harder to use for clients, since clusters
+ * might appear in any order.
+ *
+ * In @HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES, non-base characters are merged into the
+ * cluster of the base character that precedes them. This is similar to the Unicode
+ * Grapheme Cluster algorithm, but it is not exactly the same. The output is
+ * not forced to be monotone. This is useful for clients that want to use HarfBuzz
+ * as a cheap implementation of the Unicode Grapheme Cluster algorithm.
  *
  * @HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES is the default, because it maintains
  * backward compatibility with older versions of HarfBuzz. New client programs that
