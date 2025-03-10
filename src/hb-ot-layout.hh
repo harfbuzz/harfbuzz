@@ -387,6 +387,8 @@ _hb_grapheme_group_func (const hb_glyph_info_t& a HB_UNUSED,
 static inline void
 _hb_ot_layout_reverse_graphemes (hb_buffer_t *buffer)
 {
+  // MONOTONE_GRAPHEMES was already applied and is taken care of by _hb_grapheme_group_func.
+  // So we just check for MONOTONE_CHARACTERS here.
   buffer->reverse_groups (_hb_grapheme_group_func,
 			  buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS);
 }

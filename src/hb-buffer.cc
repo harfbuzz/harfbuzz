@@ -518,7 +518,7 @@ void
 hb_buffer_t::merge_clusters_impl (unsigned int start,
 				  unsigned int end)
 {
-  if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
+  if (!HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE (cluster_level))
   {
     unsafe_to_break (start, end);
     return;
@@ -551,7 +551,7 @@ void
 hb_buffer_t::merge_out_clusters (unsigned int start,
 				 unsigned int end)
 {
-  if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
+  if (!HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE (cluster_level))
     return;
 
   if (unlikely (end - start < 2))
