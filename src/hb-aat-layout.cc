@@ -58,13 +58,14 @@ AAT::hb_aat_apply_context_t::hb_aat_apply_context_t (const hb_ot_shape_plan_t *p
 						       buffer (buffer_),
 						       sanitizer (),
 						       ankr_table (&Null (AAT::ankr)),
-						       gdef_table (
+						       gdef (
 #ifndef HB_NO_OT_LAYOUT
-							 face->table.GDEF->table
+							 *face->table.GDEF->table
 #else
-							 &Null (GDEF)
+							 Null (GDEF)
 #endif
 						       ),
+						       has_glyph_classes (gdef.has_glyph_classes ()),
 						       lookup_index (0)
 {
   sanitizer.init (blob);
@@ -320,21 +321,11 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
   }
 }
 
-void
-hb_aat_layout_zero_width_deleted_glyphs (hb_buffer_t *buffer)
-{
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  hb_glyph_position_t *pos = buffer->pos;
-  for (unsigned int i = 0; i < count; i++)
-    if (unlikely (info[i].codepoint == AAT::DELETED_GLYPH))
-      pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 0;
-}
-
 static bool
 is_deleted_glyph (const hb_glyph_info_t *info)
 {
-  return info->codepoint == AAT::DELETED_GLYPH;
+  return info->codepoint == AAT::DELETED_GLYPH &&
+	 _hb_glyph_info_is_default_ignorable (info);
 }
 
 void
