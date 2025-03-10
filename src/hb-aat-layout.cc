@@ -324,8 +324,7 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
 static bool
 is_deleted_glyph (const hb_glyph_info_t *info)
 {
-  return info->codepoint == AAT::DELETED_GLYPH &&
-	 _hb_glyph_info_is_default_ignorable (info);
+  return _hb_glyph_info_is_aat_deleted (info);
 }
 
 void

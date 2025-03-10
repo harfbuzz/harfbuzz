@@ -202,7 +202,8 @@ enum hb_unicode_props_flags_t {
   /* If GEN_CAT=FORMAT, top byte masks: */
   UPROPS_MASK_Cf_ZWJ	= 0x0100u,
   UPROPS_MASK_Cf_ZWNJ	= 0x0200u,
-  UPROPS_MASK_Cf_VS	= 0x0400u
+  UPROPS_MASK_Cf_VS	= 0x0400u,
+  UPROPS_MASK_Cf_AAT_DELETED	= 0x0800u
 };
 HB_MARK_AS_FLAG_T (hb_unicode_props_flags_t);
 
@@ -417,6 +418,17 @@ _hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
   if (!_hb_glyph_info_is_unicode_format (info))
     return;
   info->unicode_props() ^= UPROPS_MASK_Cf_ZWNJ | UPROPS_MASK_Cf_ZWJ;
+}
+static inline bool
+_hb_glyph_info_is_aat_deleted (const hb_glyph_info_t *info)
+{
+  return _hb_glyph_info_is_unicode_format (info) && (info->unicode_props() & UPROPS_MASK_Cf_AAT_DELETED);
+}
+static inline void
+_hb_glyph_info_set_aat_deleted (hb_glyph_info_t *info)
+{
+  _hb_glyph_info_set_general_category (info, HB_UNICODE_GENERAL_CATEGORY_FORMAT);
+  info->unicode_props() |= UPROPS_MASK_Cf_AAT_DELETED;
 }
 
 /* lig_props: aka lig_id / lig_comp
