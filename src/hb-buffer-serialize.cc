@@ -737,8 +737,7 @@ parse_hex (const char *pp, const char *end, uint32_t *pv)
  * Deserializes glyphs @buffer from textual representation in the format
  * produced by hb_buffer_serialize_glyphs().
  *
- * Return value: `true` if parse was successful, `false` if an error
- * occurred.
+ * Return value: `true` if the full string was parsed, `false` otherwise.
  *
  * Since: 0.9.7
  **/
@@ -810,8 +809,7 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
  * Deserializes Unicode @buffer from textual representation in the format
  * produced by hb_buffer_serialize_unicode().
  *
- * Return value: `true` if parse was successful, `false` if an error
- * occurred.
+ * Return value: `true` if the full string was parsed, `false` otherwise.
  *
  * Since: 2.7.3
  **/
