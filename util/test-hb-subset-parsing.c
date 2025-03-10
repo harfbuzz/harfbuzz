@@ -41,7 +41,7 @@ gboolean check_parsing(hb_face_t* face, const char* spec, hb_tag_t axis, float e
   g_assert_cmpuint(exp_min, ==, act_min);
   g_assert_cmpuint(exp_def, ==, act_def);
   g_assert_cmpuint(exp_max, ==, act_max);
-  
+
   hb_subset_input_destroy(input);
   return true;
 }
@@ -101,7 +101,7 @@ test_parse_instancing_spec (void)
 
 
 int
-main (int, char **)
+main (int _argc, char ** _argv)
 {
   test_parse_instancing_spec();
 

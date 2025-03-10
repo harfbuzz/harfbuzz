@@ -1109,10 +1109,6 @@ hb_ot_position_plan (const hb_ot_shape_context_t *c)
   /* Finish off.  Has to follow a certain order. */
   hb_ot_layout_position_finish_advances (c->font, c->buffer);
   hb_ot_zero_width_default_ignorables (c->buffer);
-#ifndef HB_NO_AAT_SHAPE
-  if (c->plan->apply_morx)
-    hb_aat_layout_zero_width_deleted_glyphs (c->buffer);
-#endif
   hb_ot_layout_position_finish_offsets (c->font, c->buffer);
 
   /* The nil glyph_h_origin() func returns 0, so no need to apply it. */
