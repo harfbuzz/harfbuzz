@@ -81,12 +81,12 @@ impl FontationsData<'_> {
     }
 
     unsafe fn _check_for_updates(&mut self) {
-        let _lock = self.mutex.lock().unwrap();
-
         let font_serial = hb_font_get_serial(self.font);
         if self.serial == font_serial {
             return;
         }
+
+        let _lock = self.mutex.lock().unwrap();
 
         let mut x_scale: i32 = 0;
         let mut y_scale: i32 = 0;
