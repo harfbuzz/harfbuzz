@@ -6,6 +6,7 @@ use std::mem::transmute;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, Ordering};
+use std::sync::Mutex;
 
 use read_fonts::tables::cpal::ColorRecord;
 use read_fonts::TableProvider;
@@ -26,15 +27,20 @@ use skrifa::{GlyphId, MetadataProvider};
 #[repr(C)]
 struct FontationsData<'a> {
     face_blob: *mut hb_blob_t,
+    font: *mut hb_font_t,
     font_ref: FontRef<'a>,
     char_map: Charmap<'a>,
+    outline_glyphs: OutlineGlyphCollection<'a>,
+    color_glyphs: ColorGlyphCollection<'a>,
+
+    // Mutex for the below
+    mutex: Mutex<()>,
+    serial: u32,
     x_size: Size,
     y_size: Size,
     location: Location,
     x_glyph_metrics: Option<GlyphMetrics<'a>>,
     y_glyph_metrics: Option<GlyphMetrics<'a>>,
-    outline_glyphs: OutlineGlyphCollection<'a>,
-    color_glyphs: ColorGlyphCollection<'a>,
 }
 
 impl FontationsData<'_> {
@@ -49,14 +55,47 @@ impl FontationsData<'_> {
 
         let char_map = Charmap::new(&font_ref);
 
+        let outline_glyphs = font_ref.outline_glyphs();
+
+        let color_glyphs = font_ref.color_glyphs();
+
+        let mut data = FontationsData {
+            face_blob,
+            font,
+            font_ref,
+            char_map,
+            outline_glyphs,
+            color_glyphs,
+            mutex: Mutex::new(()),
+            serial: u32::MAX,
+            x_size: Size::new(0.0),
+            y_size: Size::new(0.0),
+            location: Location::default(),
+            x_glyph_metrics: None,
+            y_glyph_metrics: None,
+        };
+
+        data.check_for_updates();
+
+        data
+    }
+
+    unsafe fn _check_for_updates(&mut self) {
+        let _lock = self.mutex.lock().unwrap();
+
+        let font_serial = hb_font_get_serial(self.font);
+        if self.serial == font_serial {
+            return;
+        }
+
         let mut x_scale: i32 = 0;
         let mut y_scale: i32 = 0;
-        hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-        let x_size = Size::new(x_scale as f32);
-        let y_size = Size::new(y_scale as f32);
+        hb_font_get_scale(self.font, &mut x_scale, &mut y_scale);
+        self.x_size = Size::new(x_scale as f32);
+        self.y_size = Size::new(y_scale as f32);
 
         let mut num_coords: u32 = 0;
-        let coords = hb_font_get_var_coords_normalized(font, &mut num_coords);
+        let coords = hb_font_get_var_coords_normalized(self.font, &mut num_coords);
         let coords = if coords.is_null() {
             &[]
         } else {
@@ -67,7 +106,7 @@ impl FontationsData<'_> {
         // otherwise, use the provided coords.
         // This currently doesn't seem to have a perf effect on fontations, but it's a good idea to
         // check if the coords are all zeros before creating a Location.
-        let location = if all_zeros {
+        self.location = if all_zeros {
             Location::default()
         } else {
             let mut location = Location::new(num_coords as usize);
@@ -79,29 +118,15 @@ impl FontationsData<'_> {
             location
         };
 
-        let outline_glyphs = font_ref.outline_glyphs();
+        let location = transmute::<&Location, &Location>(&self.location);
+        self.x_glyph_metrics = Some(self.font_ref.glyph_metrics(self.x_size, location));
+        let location = transmute::<&Location, &Location>(&self.location);
+        self.y_glyph_metrics = Some(self.font_ref.glyph_metrics(self.y_size, location));
 
-        let color_glyphs = font_ref.color_glyphs();
-
-        let mut data = FontationsData {
-            face_blob,
-            font_ref,
-            char_map,
-            x_size,
-            y_size,
-            location,
-            x_glyph_metrics: None,
-            y_glyph_metrics: None,
-            outline_glyphs,
-            color_glyphs,
-        };
-        // transmute location
-        let location = transmute::<&Location, &Location>(&data.location);
-        data.x_glyph_metrics = Some(data.font_ref.glyph_metrics(data.x_size, location));
-        let location = transmute::<&Location, &Location>(&data.location);
-        data.y_glyph_metrics = Some(data.font_ref.glyph_metrics(data.y_size, location));
-
-        data
+        self.serial = font_serial;
+    }
+    fn check_for_updates(&mut self) {
+        unsafe { self._check_for_updates() }
     }
 }
 
@@ -175,7 +200,9 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
     advance_stride: ::std::os::raw::c_uint,
     _user_data: *mut ::std::os::raw::c_void,
 ) {
-    let data = unsafe { &*(font_data as *const FontationsData) };
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    data.check_for_updates();
+
     let glyph_metrics = &data.y_glyph_metrics.as_ref().unwrap();
 
     for i in 0..count {
@@ -195,7 +222,9 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     extents: *mut hb_glyph_extents_t,
     _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
-    let data = unsafe { &*(font_data as *const FontationsData) };
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    data.check_for_updates();
+
     let x_size = &data.x_size;
     let y_size = &data.y_size;
     let x_glyph_metrics = &data.x_glyph_metrics.as_ref().unwrap();
@@ -230,7 +259,9 @@ extern "C" fn _hb_fontations_get_font_h_extents(
     extents: *mut hb_font_extents_t,
     _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
-    let data = unsafe { &*(font_data as *const FontationsData) };
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    data.check_for_updates();
+
     let font_ref = &data.font_ref;
     let size = &data.y_size;
     let location = &data.location;
@@ -305,7 +336,9 @@ extern "C" fn _hb_fontations_draw_glyph(
     draw_data: *mut ::std::os::raw::c_void,
     _user_data: *mut ::std::os::raw::c_void,
 ) {
-    let data = unsafe { &*(font_data as *const FontationsData) };
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    data.check_for_updates();
+
     let x_size = &data.x_size;
     let location = &data.location;
     let outline_glyphs = &data.outline_glyphs;
@@ -688,7 +721,9 @@ extern "C" fn _hb_fontations_paint_glyph(
     foreground: hb_color_t,
     _user_data: *mut ::std::os::raw::c_void,
 ) {
-    let data = unsafe { &*(font_data as *const FontationsData) };
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    data.check_for_updates();
+
     let font_ref = &data.font_ref;
     let location = &data.location;
     let color_glyphs = &data.color_glyphs;
