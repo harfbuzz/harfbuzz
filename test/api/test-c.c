@@ -44,10 +44,6 @@
 #include <hb-coretext.h>
 #endif
 
-#ifdef HAVE_DIRECTWRITE
-#include <hb-directwrite.h>
-#endif
-
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif

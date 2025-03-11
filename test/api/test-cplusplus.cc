@@ -32,6 +32,11 @@
 #include "test-c.c"
 #undef NO_MAIN
 
+#ifdef HAVE_DIRECTWRITE
+#include <hb-directwrite.h>
+#endif
+
+
 /* Test C++ API. */
 
 #include "hb-cplusplus.hh"
