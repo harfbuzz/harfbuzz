@@ -79,14 +79,14 @@ hb_face_count (hb_blob_t *blob)
   if (unlikely (!blob))
     return 0;
 
-  /* TODO We shouldn't be sanitizing blob.  Port to run sanitizer and return if not sane. */
-  /* Make API signature const after. */
-  hb_blob_t *sanitized = hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob));
-  const OT::OpenTypeFontFile& ot = *sanitized->as<OT::OpenTypeFontFile> ();
-  unsigned int ret = ot.get_face_count ();
-  hb_blob_destroy (sanitized);
+  hb_sanitize_context_t c (blob);
 
-  return ret;
+  const char *start = hb_blob_get_data (blob, nullptr);
+  auto *ot = reinterpret_cast<OT::OpenTypeFontFile *> (const_cast<char *> (start));
+  if (unlikely (!ot->sanitize (&c)))
+    return 0;
+
+  return ot->get_face_count ();
 }
 
 /*
