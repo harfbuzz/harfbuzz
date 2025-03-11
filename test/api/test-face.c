@@ -27,7 +27,8 @@
 /* Unit tests for hb-face.h */
 
 #define FONT_FILE "fonts/Roboto-Regular.ac.ttf"
-static const char *font_file;
+static const char *font_file = NULL;
+static unsigned int face_index = 0;
 
 hb_face_t *master_face = NULL;
 
@@ -37,55 +38,37 @@ hb_blob_t *master_head = NULL;
 static void
 test_face (hb_face_t *face)
 {
-  g_assert (face);
+  g_assert_nonnull (face);
 
   hb_blob_t *head = hb_face_reference_table (face, HEAD_TAG);
 
-  unsigned int length = hb_blob_get_length (head);
-  unsigned int master_length = hb_blob_get_length (master_head);
-  g_assert_cmpuint (length, ==, master_length);
-
-  const char *data = hb_blob_get_data (head, NULL);
-  const char *master_data = hb_blob_get_data (master_head, NULL);
-  g_assert (memcmp (data, master_data, length) == 0);
+  unsigned int length;
+  unsigned int master_length;
+  const char *data = hb_blob_get_data (head, &length);
+  const char *master_data = hb_blob_get_data (master_head, &master_length);
+  g_assert_cmpmem (data, length, master_data, master_length);
 
   hb_blob_destroy (head);
 }
 
 static void
-test_create_from_file_using (const char *loader)
+test_create_from_file_using (const void *user_data)
 {
-  hb_face_t *face = hb_face_create_from_file_or_fail_using (font_file, 0, loader);
+  const char *loader = user_data;
+  hb_face_t *face = hb_face_create_from_file_or_fail_using (font_file, face_index, loader);
   test_face (face);
   hb_face_destroy (face);
 }
 
 static void
-test_create_from_file (void)
+test_create_from_blob_using (const void *user_data)
 {
-  test_create_from_file_using (NULL);
-  const char **loaders = hb_face_list_loaders ();
-  for (unsigned i = 0; loaders[i]; i++)
-    test_create_from_file_using (loaders[i]);
-}
-
-static void
-test_create_from_blob_using (const char *loader)
-{
+  const char *loader = user_data;
   hb_blob_t *blob = hb_blob_create_from_file_or_fail (font_file);
-  hb_face_t *face = hb_face_create_or_fail_using (blob, 0, loader);
+  hb_face_t *face = hb_face_create_or_fail_using (blob, face_index, loader);
   hb_blob_destroy (blob);
   test_face (face);
   hb_face_destroy (face);
-}
-
-static void
-test_create_from_blob (void)
-{
-  test_create_from_file_using (NULL);
-  const char **loaders = hb_face_list_loaders ();
-  for (unsigned i = 0; loaders[i]; i++)
-    test_create_from_blob_using (loaders[i]);
 }
 
 int
@@ -93,13 +76,25 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  font_file = hb_test_resolve_path (FONT_FILE);
-  master_face = hb_test_open_font_file (FONT_FILE);
+  font_file = FONT_FILE;
+  if (argc > 1)
+    font_file = argv[1];
+  if (argc > 2)
+    face_index = atoi (argv[2]);
+
+  master_face = hb_test_open_font_file_with_index (font_file, face_index);
   master_head = hb_face_reference_table (master_face, HEAD_TAG);
   g_assert (hb_blob_get_length (master_head) > 0);
 
-  hb_test_add (test_create_from_file);
-  hb_test_add (test_create_from_blob);
+  font_file = hb_test_resolve_path (font_file);
+
+  hb_test_add_flavor ("", test_create_from_file_using);
+  hb_test_add_flavor ("", test_create_from_blob_using);
+  for (const char **loaders = hb_face_list_loaders (); *loaders; loaders++)
+  {
+    hb_test_add_flavor (*loaders, test_create_from_file_using);
+    hb_test_add_flavor (*loaders, test_create_from_blob_using);
+  }
 
   int ret = hb_test_run();
 
