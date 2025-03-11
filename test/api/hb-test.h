@@ -223,16 +223,6 @@ hb_test_add_func (const char *test_path,
 }
 #define hb_test_add(Func) hb_test_add_func (#Func, Func)
 
-static inline void
-hb_test_add_func_flavor (const char *test_path,
-			 const char *flavor,
-			 hb_test_func_t   test_func)
-{
-  char *path = g_strdup_printf ("%s/%s", test_path, flavor);
-  hb_test_add_func (path, test_func);
-  g_free (path);
-}
-#define hb_test_add_flavor(Flavor, Func) hb_test_add_func (#Func, Flavor, Func)
 
 static inline void
 hb_test_add_data_func (const char          *test_path,
@@ -257,6 +247,7 @@ hb_test_add_data_func_flavor (const char          *test_path,
 }
 #define hb_test_add_data_flavor(UserData, Flavor, Func) hb_test_add_data_func_flavor (#Func, Flavor, UserData, Func)
 
+#define hb_test_add_flavor(Flavor, Func) hb_test_add_data_flavor (Flavor, Flavor, Func)
 
 static inline void
 hb_test_add_vtable (const char             *test_path,

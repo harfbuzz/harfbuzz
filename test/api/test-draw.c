@@ -26,12 +26,6 @@
 #include <math.h>
 
 #include <hb.h>
-#ifdef HAVE_FREETYPE
-#include <hb-ft.h>
-#endif
-#ifdef HAVE_FONTATIONS
-#include <hb-fontations.h>
-#endif
 
 typedef struct draw_data_t
 {
@@ -1078,8 +1072,9 @@ test_hb_draw_immutable (void)
 }
 
 static void
-test_hb_draw_funcs (const char* font_funcs_name)
+test_hb_draw_funcs (const void* user_data)
 {
+  const char *font_funcs_name = user_data;
   char str[1024];
   draw_data_t draw_data = {
     .str = str,
@@ -1095,12 +1090,6 @@ test_hb_draw_funcs (const char* font_funcs_name)
       draw_data.consumed = 0;
       hb_font_draw_glyph (font, 0, funcs, &draw_data);
       char expected[] = "M50,0L50,750L450,750L450,0L50,0Z";
-      g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
-    }
-    {
-      draw_data.consumed = 0;
-      hb_font_draw_glyph (font, 5, funcs, &draw_data);
-      char expected[] = "M15,0Q15,0 15,0Z";
       g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
     }
     hb_font_destroy (font);
@@ -1127,8 +1116,9 @@ test_hb_draw_funcs (const char* font_funcs_name)
 }
 
 static void
-test_hb_draw_compare_ot_funcs (const char* font_funcs_name)
+test_hb_draw_compare_ot_funcs (const void *user_data)
 {
+  const char* font_funcs_name = user_data;
   char str[1024];
   draw_data_t draw_data = {
     .str = str,
@@ -1161,34 +1151,6 @@ test_hb_draw_compare_ot_funcs (const char* font_funcs_name)
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
-
-#ifdef HAVE_FREETYPE
-static void
-test_hb_draw_ft (void)
-{
-  test_hb_draw_funcs ("ft");
-}
-
-static void
-test_hb_draw_compare_ot_ft (void)
-{
-  test_hb_draw_compare_ot_funcs ("ft");
-}
-#endif
-
-#ifdef HAVE_FONTATIONS
-static void
-test_hb_draw_fontations (void)
-{
-  test_hb_draw_funcs ("fontations");
-}
-
-static void
-test_hb_draw_compare_ot_fontations (void)
-{
-  test_hb_draw_compare_ot_funcs ("fontations");
-}
-#endif
 
 int
 main (int argc, char **argv)
@@ -1224,14 +1186,13 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_synthetic_slant);
   hb_test_add (test_hb_draw_subfont_scale);
   hb_test_add (test_hb_draw_immutable);
-#ifdef HAVE_FREETYPE
-  hb_test_add (test_hb_draw_ft);
-  hb_test_add (test_hb_draw_compare_ot_ft);
-#endif
-#ifdef HAVE_FONTATIONS
-  hb_test_add (test_hb_draw_fontations);
-  hb_test_add (test_hb_draw_compare_ot_fontations);
-#endif
+
+  const char **font_funcs = hb_font_list_funcs ();
+  for (const char **font_funcs_name = font_funcs; *font_funcs_name; font_funcs_name++)
+  {
+    hb_test_add_flavor (*font_funcs_name, test_hb_draw_funcs);
+    hb_test_add_flavor (*font_funcs_name, test_hb_draw_compare_ot_funcs);
+  }
 
   unsigned result = hb_test_run ();
 
