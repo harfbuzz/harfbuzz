@@ -342,6 +342,21 @@ static struct supported_face_loaders_t {
 #endif
 };
 
+static const char *get_default_loader_name ()
+{
+  static hb_atomic_ptr_t<const char> static_loader_name;
+  const char *loader_name = static_loader_name.get_acquire ();
+  if (!loader_name)
+  {
+    loader_name = getenv ("HB_FACE_LOADER");
+    if (!loader_name)
+      loader_name = "";
+    if (!static_loader_name.cmpexch (nullptr, loader_name))
+      loader_name = static_loader_name.get_acquire ();
+  }
+  return loader_name;
+}
+
 /**
  * hb_face_create_from_file_or_fail_using:
  * @file_name: A font filename
@@ -367,19 +382,9 @@ hb_face_create_from_file_or_fail_using (const char   *file_name,
 					const char   *loader_name)
 {
   bool retry = false;
-
   if (!loader_name || !*loader_name)
   {
-    static hb_atomic_ptr_t<const char> static_loader_name;
-    loader_name = static_loader_name.get_acquire ();
-    if (!loader_name)
-    {
-      loader_name = getenv ("HB_FACE_LOADER");
-      if (!loader_name)
-	loader_name = "";
-      if (!static_loader_name.cmpexch (nullptr, loader_name))
-	loader_name = static_loader_name.get_acquire ();
-    }
+    loader_name = get_default_loader_name ();
     retry = true;
   }
   if (loader_name && !*loader_name) loader_name = nullptr;
