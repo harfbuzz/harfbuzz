@@ -102,8 +102,7 @@ foreach source : tests
   cpp_args = []
   test_name = source.split('.')[0]
 
-  deps = [directwrite_dep,
-          coretext_deps,
+  deps = [coretext_deps,
           freetype_dep,
           gdi_uniscribe_deps,
           glib_dep,
