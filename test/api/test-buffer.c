@@ -869,7 +869,7 @@ static const serialization_test_t serialization_tests[] = {
   { "[{\"u\":1600,\"cl\":0},{\"u\":1589,\"cl\":1}]", HB_BUFFER_SERIALIZE_FORMAT_JSON, -1, 2, TRUE },
 
   /* Unfinished */
-  //{ "[{\"u\":1600,\"cl\":0},{\"u\":1589,\"cl\":1}", HB_BUFFER_SERIALIZE_FORMAT_JSON, -1, 2, TRUE },
+  { "[{\"u\":1600,\"cl\":0},{\"u\":1589,\"cl\":1}", HB_BUFFER_SERIALIZE_FORMAT_JSON, 36, 1, TRUE },
 
   /* Mixed glyphs/Unicodes -> parse fail */
   { "[{\"u\":1600,\"cl\":0},{\"g\":1589,\"cl\":1}]", HB_BUFFER_SERIALIZE_FORMAT_JSON, -1, 0, FALSE },
@@ -894,8 +894,7 @@ test_buffer_serialize_deserialize (void)
     const serialization_test_t *test = &serialization_tests[i];
     g_test_message ("serialize test #%d", i);
 
-
-    (void) hb_buffer_deserialize_unicode (b, test->contents, -1, &end_ptr, test->format);
+    bool ret = hb_buffer_deserialize_unicode (b, test->contents, -1, &end_ptr, test->format);
 
     // Expected parse failure, got one, don't round-trip
     if (test->success)
@@ -908,13 +907,17 @@ test_buffer_serialize_deserialize (void)
 	consumed = end_ptr - test->contents;
 	g_assert_cmpint (consumed, ==, test->parsed_length);
       }
-
-      consumed = 0;
-      hb_buffer_serialize_unicode (b, 0, num_glyphs, round_trip,
-				   sizeof(round_trip), &consumed, test->format,
-				   HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
-      g_assert_cmpstr (round_trip, ==, test->contents);
+      else
+      {
+	consumed = 0;
+	hb_buffer_serialize (b, 0, num_glyphs, round_trip,
+			     sizeof(round_trip), &consumed, NULL, test->format,
+			     HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
+	g_assert_cmpstr (round_trip, ==, test->contents);
+      }
     }
+    else
+      g_assert (!ret);
 
     hb_buffer_destroy (b);
 
