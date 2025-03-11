@@ -309,10 +309,10 @@ static inline char *
 hb_test_resolve_path (const char *path)
 {
 #if GLIB_CHECK_VERSION(2,37,2)
-  return g_test_build_filename (G_TEST_DIST, path, NULL);
-#else
-  return path = g_strdup (path);
+  if (path[0] != '/')
+    return g_test_build_filename (G_TEST_DIST, path, NULL);
 #endif
+  return g_strdup (path);
 }
 
 static inline hb_face_t *
