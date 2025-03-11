@@ -65,7 +65,7 @@
 #endif
 
 #ifdef HAVE_GOBJECT
-#include <hb-gobject.h>
+//#include <hb-gobject.h> // Doesn't work uninstalled
 #endif
 
 #ifdef HAVE_ICU

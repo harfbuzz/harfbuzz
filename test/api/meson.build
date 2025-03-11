@@ -112,7 +112,8 @@ foreach source : tests
           libharfbuzz_dep,
           libharfbuzz_icu_dep,
           libharfbuzz_cairo_dep,
-          libharfbuzz_gobject_dep]
+          #libharfbuzz_gobject_dep
+  ]
   suite = ['api']
   if test_name.contains('-subset') or test_name.contains('-instance')
     deps += libharfbuzz_subset_dep
