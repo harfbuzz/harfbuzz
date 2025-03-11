@@ -27,7 +27,7 @@
 
 #include "hb.h"
 
-#include <dwrite_1.h>
+#include <dwrite_3.h>
 
 HB_BEGIN_DECLS
 

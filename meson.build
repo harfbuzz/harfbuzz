@@ -335,7 +335,7 @@ endif
 # DirectWrite (Windows)
 directwrite_dep = []
 if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
-  if get_option('directwrite').enabled() and not cpp.has_header('dwrite_1.h')
+  if get_option('directwrite').enabled() and not cpp.has_header('dwrite_3.h')
     error('DirectWrite was enabled explicitly, but required header is missing.')
   endif
   directwrite_dep = cpp.find_library('dwrite', required: false)

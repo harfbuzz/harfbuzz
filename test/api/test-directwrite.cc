@@ -25,8 +25,6 @@
  */
 
 
-#include <dwrite_3.h>
-
 #include "hb-test.h"
 
 #include "hb-directwrite.h"
