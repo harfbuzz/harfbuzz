@@ -161,29 +161,41 @@ release_data (void *info, const void *data, size_t size)
 }
 
 static CGFontRef
+create_cg_font (hb_blob_t *blob, unsigned int index)
+{
+  if (unlikely (index != 0))
+    return nullptr; // How?
+
+  hb_blob_make_immutable (blob);
+  unsigned int blob_length;
+  const char *blob_data = hb_blob_get_data (blob, &blob_length);
+  if (unlikely (!blob_length))
+    DEBUG_MSG (CORETEXT, blob, "Empty blob");
+
+  hb_blob_reference (blob);
+  CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
+  CGFontRef cg_font = nullptr;
+  if (likely (provider))
+  {
+    cg_font = CGFontCreateWithDataProvider (provider);
+    if (unlikely (!cg_font))
+      DEBUG_MSG (CORETEXT, blob, "CGFontCreateWithDataProvider() failed");
+    CGDataProviderRelease (provider);
+  }
+  return cg_font;
+}
+
+static CGFontRef
 create_cg_font (hb_face_t *face)
 {
   CGFontRef cg_font = nullptr;
   if (face->destroy == _hb_cg_font_release)
-  {
     cg_font = CGFontRetain ((CGFontRef) face->user_data);
-  }
   else
   {
     hb_blob_t *blob = hb_face_reference_blob (face);
-    unsigned int blob_length;
-    const char *blob_data = hb_blob_get_data (blob, &blob_length);
-    if (unlikely (!blob_length))
-      DEBUG_MSG (CORETEXT, face, "Face has empty blob");
-
-    CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
-    if (likely (provider))
-    {
-      cg_font = CGFontCreateWithDataProvider (provider);
-      if (unlikely (!cg_font))
-	DEBUG_MSG (CORETEXT, face, "Face CGFontCreateWithDataProvider() failed");
-      CGDataProviderRelease (provider);
-    }
+    cg_font = create_cg_font (blob, face->index);
+    hb_blob_destroy (blob);
   }
   return cg_font;
 }
@@ -393,6 +405,40 @@ hb_coretext_face_create_from_file_or_fail (const char   *file_name,
 
   auto cg_font = ct_font ? CTFontCopyGraphicsFont (ct_font, nullptr) : nullptr;
   CFRelease (ct_font);
+  if (unlikely (!cg_font))
+    return nullptr;
+
+  hb_face_t *face = hb_coretext_face_create (cg_font);
+  CFRelease (cg_font);
+  if (unlikely (hb_face_is_immutable (face)))
+    return nullptr;
+
+  return face;
+}
+
+/**
+ * hb_coretext_face_create_from_blob_or_fail:
+ * @blob: A blob containing the font data
+ * @index: The index of the face within the blob
+ *
+ * Creates an #hb_face_t face object from the specified
+ * blob and face index.
+ *
+ * This is similar in functionality to hb_face_create_from_blob_or_fail(),
+ * but uses the CoreText library for loading the font data.
+ *
+ * Note that currently only @index equal to 0 is supported.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index or the blob cannot be read.
+ *
+ * XSince: REPLACEME
+ */
+hb_face_t *
+hb_coretext_face_create_from_blob_or_fail (hb_blob_t    *blob,
+					   unsigned int  index)
+{
+  auto cg_font = create_cg_font (blob, index);
   if (unlikely (!cg_font))
     return nullptr;
 
