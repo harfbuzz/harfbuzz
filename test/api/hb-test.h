@@ -305,14 +305,20 @@ G_STMT_START { \
 } G_STMT_END
 
 
+static inline char *
+hb_test_resolve_path (const char *path)
+{
+#if GLIB_CHECK_VERSION(2,37,2)
+  return g_test_build_filename (G_TEST_DIST, path, NULL);
+#else
+  return path = g_strdup (path);
+#endif
+}
+
 static inline hb_face_t *
 hb_test_open_font_file (const char *font_path)
 {
-#if GLIB_CHECK_VERSION(2,37,2)
-  char *path = g_test_build_filename (G_TEST_DIST, font_path, NULL);
-#else
-  char *path = g_strdup (font_path);
-#endif
+  char *path = hb_test_resolve_path (font_path);
 
   hb_blob_t *blob = hb_blob_create_from_file_or_fail (path);
   hb_face_t *face;
