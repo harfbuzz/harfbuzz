@@ -49,8 +49,28 @@
 #include <hb-ft.h>
 #endif
 
+#ifdef HAVE_FONTATIONS
+#include <hb-fontations.h>
+#endif
+
+#ifdef HAVE_GRAPHITE2
+#include <hb-graphite2.h>
+#endif
+
+#ifdef HAVE_CAIRO
+#include <hb-cairo.h>
+#endif
+
+#ifdef HAVE_GDI
+#include <hb-gdi.h>
+#endif
+
 #ifdef HAVE_UNISCRIBE
 #include <hb-uniscribe.h>
+#endif
+
+#ifdef HAVE_DIRECTWRITE
+#include <hb-directwrite.h>
 #endif
 
 #ifdef HAVE_CORETEXT
