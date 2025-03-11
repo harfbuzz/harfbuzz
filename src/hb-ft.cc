@@ -1610,7 +1610,8 @@ destroy_ft_library (void *arg)
  * font file and face index.
  *
  * This is similar in functionality to hb_face_create_from_file_or_fail(),
- * but uses the FreeType library for loading the font file.
+ * but uses the FreeType library for loading the font file. This can
+ * be useful, for example, to load WOFF and WOFF2 font data.
  *
  * Return value: (transfer full): The new face object, or `NULL` if
  * no face is found at the specified index or the file cannot be read.
@@ -1643,6 +1644,75 @@ hb_ft_face_create_from_file_or_fail (const char   *file_name,
 
   if (hb_face_is_immutable (face))
     return nullptr;
+
+  return face;
+}
+
+static hb_user_data_key_t ft_blob_key = {0};
+
+static void
+_destroy_blob (void *p)
+{
+  hb_blob_destroy ((hb_blob_t *) p);
+}
+
+/**
+ * hb_ft_face_create_from_blob_or_fail:
+ * @blob: A blob
+ * @index: The index of the face within the blob
+ *
+ * Creates an #hb_face_t face object from the specified
+ * font blob and face index.
+ *
+ * This is similar in functionality to hb_face_create_from_blob_or_fail(),
+ * but uses the FreeType library for loading the font blob. This can
+ * be useful, for example, to load WOFF and WOFF2 font data.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * loading fails (eg. blob does not contain valid font data).
+ *
+ * XSince: REPLACEME
+ */
+hb_face_t *
+hb_ft_face_create_from_blob_or_fail (hb_blob_t    *blob,
+				     unsigned int  index)
+{
+  FT_Library ft_library = reference_ft_library ();
+  if (unlikely (!ft_library))
+  {
+    DEBUG_MSG (FT, ft_library, "reference_ft_library failed");
+    return nullptr;
+  }
+
+  hb_blob_make_immutable (blob);
+  unsigned blob_size;
+  const char *blob_data = hb_blob_get_data (blob, &blob_size);
+
+  FT_Face ft_face;
+  if (unlikely (FT_New_Memory_Face (ft_library,
+				    (const FT_Byte *) blob_data,
+				    blob_size,
+				    index,
+				    &ft_face)))
+    return nullptr;
+
+  hb_face_t *face = hb_ft_face_create_referenced (ft_face);
+  FT_Done_Face (ft_face);
+
+  ft_face->generic.data = ft_library;
+  ft_face->generic.finalizer = finalize_ft_library;
+
+  if (hb_face_is_immutable (face))
+    return nullptr;
+
+  // Hook the blob to the hb_face_t, since FT_Face still needs it.
+  hb_blob_reference (blob);
+  if (!hb_face_set_user_data (face, &ft_blob_key, blob, _destroy_blob, true))
+  {
+    hb_blob_destroy (blob);
+    hb_face_destroy (face);
+    return nullptr;
+  }
 
   return face;
 }

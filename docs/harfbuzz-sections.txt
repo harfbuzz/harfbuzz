@@ -536,6 +536,7 @@ hb_ft_face_create
 hb_ft_face_create_cached
 hb_ft_face_create_referenced
 hb_ft_face_create_from_file_or_fail
+hb_ft_face_create_from_blob_or_fail
 hb_ft_font_create
 hb_ft_font_create_referenced
 hb_ft_font_changed
