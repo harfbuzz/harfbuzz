@@ -36,12 +36,16 @@
 #include <hb-ot.h>
 #include <hb-aat.h>
 
-#ifdef HAVE_GLIB
-#include <hb-glib.h>
+#ifdef HAVE_CAIRO
+#include <hb-cairo.h>
 #endif
 
-#ifdef HAVE_ICU
-#include <hb-icu.h>
+#ifdef HAVE_CORETEXT
+#include <hb-coretext.h>
+#endif
+
+#ifdef HAVE_DIRECTWRITE
+#include <hb-directwrite.h>
 #endif
 
 #ifdef HAVE_FREETYPE
@@ -52,32 +56,34 @@
 #include <hb-fontations.h>
 #endif
 
+#ifdef HAVE_GDI
+#include <hb-gdi.h>
+#endif
+
+#ifdef HAVE_GLIB
+#include <hb-glib.h>
+#endif
+
 #ifdef HAVE_GRAPHITE2
 #include <hb-graphite2.h>
 #endif
 
-#ifdef HAVE_CAIRO
-#include <hb-cairo.h>
+#ifdef HAVE_GOBJECT
+#include <hb-gobject.h>
 #endif
 
-#ifdef HAVE_GDI
-#include <hb-gdi.h>
+#ifdef HAVE_ICU
+#include <hb-icu.h>
 #endif
 
 #ifdef HAVE_UNISCRIBE
 #include <hb-uniscribe.h>
 #endif
 
-#ifdef HAVE_DIRECTWRITE
-#include <hb-directwrite.h>
-#endif
-
-#ifdef HAVE_CORETEXT
-#include <hb-coretext.h>
-#endif
-
+#ifndef NO_MAIN
 int
 main (void)
 {
   return !*hb_shape_list_shapers ();
 }
+#endif

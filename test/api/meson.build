@@ -102,7 +102,17 @@ foreach source : tests
   cpp_args = []
   test_name = source.split('.')[0]
 
-  deps = [glib_dep, freetype_dep, cairo_dep, graphite2_dep, thread_dep, libharfbuzz_dep, libharfbuzz_icu_dep]
+  deps = [directwrite_dep,
+          coretext_deps,
+          freetype_dep,
+          gdi_uniscribe_deps,
+          glib_dep,
+          graphite2_dep,
+          thread_dep,
+          libharfbuzz_dep,
+          libharfbuzz_icu_dep,
+          libharfbuzz_cairo_dep,
+          libharfbuzz_gobject_dep]
   suite = ['api']
   if test_name.contains('-subset') or test_name.contains('-instance')
     deps += libharfbuzz_subset_dep
