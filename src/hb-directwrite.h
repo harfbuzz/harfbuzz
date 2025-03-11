@@ -27,6 +27,8 @@
 
 #include "hb.h"
 
+#include <dwrite_3.h>
+
 HB_BEGIN_DECLS
 
 HB_EXTERN hb_face_t *

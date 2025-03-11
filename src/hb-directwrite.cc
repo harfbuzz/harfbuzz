@@ -28,9 +28,6 @@
 
 #include "hb-shaper-impl.hh"
 
-#include <dwrite_1.h>
-#include <dwrite_3.h>
-
 #include "hb-directwrite.h"
 
 #include "hb-ms-feature-ranges.hh"
