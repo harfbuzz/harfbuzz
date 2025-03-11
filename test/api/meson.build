@@ -18,6 +18,7 @@ tests = [
   'test-draw.c',
   'test-draw-varc.c',
   'test-extents.c',
+  'test-face.c',
   'test-font.c',
   'test-font-scale.c',
   'test-get-table-tags.c',
