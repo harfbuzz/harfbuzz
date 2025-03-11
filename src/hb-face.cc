@@ -370,15 +370,15 @@ hb_face_create_from_file_or_fail_using (const char   *file_name,
 
   if (!loader_name || !*loader_name)
   {
-    static hb_atomic_ptr_t<const char> static_funcs_name;
-    loader_name = static_funcs_name.get_acquire ();
+    static hb_atomic_ptr_t<const char> static_loader_name;
+    loader_name = static_loader_name.get_acquire ();
     if (!loader_name)
     {
       loader_name = getenv ("HB_FACE_LOADER");
       if (!loader_name)
 	loader_name = "";
-      if (!static_funcs_name.cmpexch (nullptr, loader_name))
-	loader_name = static_funcs_name.get_acquire ();
+      if (!static_loader_name.cmpexch (nullptr, loader_name))
+	loader_name = static_loader_name.get_acquire ();
     }
     retry = true;
   }
