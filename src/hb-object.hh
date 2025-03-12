@@ -142,7 +142,7 @@ struct hb_lockable_set_t
 
 struct hb_reference_count_t
 {
-  mutable hb_atomic_int_t ref_count;
+  mutable hb_atomic_t<int> ref_count;
 
   void init (int v = 1) { ref_count = v; }
   int get_relaxed () const { return ref_count; }
@@ -213,7 +213,7 @@ struct hb_user_data_array_t
 struct hb_object_header_t
 {
   hb_reference_count_t ref_count;
-  mutable hb_atomic_int_t writable = 0;
+  mutable hb_atomic_t<bool> writable = false;
   hb_atomic_ptr_t<hb_user_data_array_t> user_data;
 
   bool is_inert () const { return !ref_count.get_relaxed (); }

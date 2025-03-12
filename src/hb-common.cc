@@ -42,7 +42,7 @@
 
 /* hb_options_t */
 
-hb_atomic_int_t _hb_options;
+hb_atomic_t<unsigned> _hb_options;
 
 void
 _hb_options_init ()

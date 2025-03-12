@@ -85,7 +85,7 @@ struct hb_ot_font_t
 #endif
 
   /* h_advance caching */
-  mutable hb_atomic_int_t cached_coords_serial;
+  mutable hb_atomic_t<int> cached_coords_serial;
   mutable hb_atomic_ptr_t<hb_ot_font_advance_cache_t> advance_cache;
 };
 

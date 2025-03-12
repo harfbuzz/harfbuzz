@@ -49,8 +49,8 @@ struct hb_face_t
   hb_object_header_t header;
 
   unsigned int index;			/* Face index in a collection, zero-based. */
-  mutable hb_atomic_int_t upem;		/* Units-per-EM. */
-  mutable hb_atomic_int_t num_glyphs;	/* Number of glyphs. */
+  mutable hb_atomic_t<unsigned> upem;	/* Units-per-EM. */
+  mutable hb_atomic_t<unsigned> num_glyphs;/* Number of glyphs. */
 
   hb_reference_table_func_t  reference_table_func;
   void                      *user_data;
