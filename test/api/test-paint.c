@@ -467,7 +467,7 @@ test_hb_paint (gconstpointer d,
 }
 
 static void
-test_compare_ot_ft (const char *file, hb_codepoint_t glyph)
+test_compare_to_ot (const char *file, hb_codepoint_t glyph)
 {
   hb_face_t *face;
   hb_font_t *font;
@@ -525,21 +525,15 @@ test_hb_paint_ft (gconstpointer data)
 }
 
 static void
-test_compare_ot_ft_novf (gconstpointer d)
+test_compare_to_ot_novf (gconstpointer d)
 {
-  if (have_ft_colrv1 ())
-    test_compare_ot_ft (TEST_GLYPHS, GPOINTER_TO_UINT (d));
-  else
-    g_test_skip ("FreeType COLRv1 support not present");
+  test_compare_to_ot (TEST_GLYPHS, GPOINTER_TO_UINT (d));
 }
 
 static void
-test_compare_ot_ft_vf (gconstpointer d)
+test_compare_to_ot_vf (gconstpointer d)
 {
-  if (have_ft_colrv1 ())
-    test_compare_ot_ft (TEST_GLYPHS_VF, GPOINTER_TO_UINT (d));
-  else
-    g_test_skip ("FreeType COLRv1 support not present");
+  test_compare_to_ot (TEST_GLYPHS_VF, GPOINTER_TO_UINT (d));
 }
 
 static void
@@ -650,12 +644,20 @@ main (int argc, char **argv)
 
   hb_face_t *face = hb_test_open_font_file (TEST_GLYPHS);
   unsigned glyph_count = hb_face_get_glyph_count (face);
-  for (unsigned int i = 1; i < glyph_count; i++)
+  const char **font_funcs = hb_font_list_funcs ();
+  for (const char **font_func = font_funcs; *font_func; font_func++)
   {
-    char buf[20];
-    snprintf (buf, 20, "test-%u", i);
-    hb_test_add_data_flavor (GUINT_TO_POINTER (i), buf, test_compare_ot_ft_novf);
-    hb_test_add_data_flavor (GUINT_TO_POINTER (i), buf, test_compare_ot_ft_vf);
+    if (strcmp (*font_func, "ot") == 0)
+      continue;
+    if (!have_ft_colrv1 () && strcmp (*font_func, "ft") == 0)
+      continue;
+    for (unsigned int i = 1; i < glyph_count; i++)
+    {
+      char buf[32];
+      snprintf (buf, 32, "test-%s-%u", *font_func, i);
+      hb_test_add_data_flavor (GUINT_TO_POINTER (i), buf, test_compare_to_ot_novf);
+      hb_test_add_data_flavor (GUINT_TO_POINTER (i), buf, test_compare_to_ot_vf);
+    }
   }
   hb_face_destroy (face);
 
