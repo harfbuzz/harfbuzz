@@ -35,6 +35,7 @@
 #include "hb-cache.hh"
 #include "hb-bit-set.hh"
 #include "hb-bit-page.hh"
+#include "hb-bit-vector.hh"
 
 
 namespace OT {
@@ -73,8 +74,8 @@ struct hb_aat_apply_context_t :
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
   bool using_buffer_glyph_set = false;
   hb_bit_set_t buffer_glyph_set;
-  const hb_bit_set_t *left_set = nullptr;
-  const hb_bit_set_t *right_set = nullptr;
+  const hb_bit_vector_t *left_set = nullptr;
+  const hb_bit_vector_t *right_set = nullptr;
   const hb_bit_set_t *machine_glyph_set = nullptr;
   hb_aat_class_cache_t *machine_class_cache = nullptr;
   hb_mask_t subtable_flags = 0;

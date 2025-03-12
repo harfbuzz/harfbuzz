@@ -30,7 +30,7 @@
 
 #include "hb-kern.hh"
 #include "hb-aat-layout-ankr-table.hh"
-#include "hb-set-digest.hh"
+#include "hb-bit-vector.hh"
 
 /*
  * kerx -- Extended Kerning
@@ -394,7 +394,7 @@ struct KerxSubTableFormat1
   template <typename set_t>
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
-    set_t set;
+    hb_bit_set_t set;
     machine.collect_glyphs (set, num_glyphs);
     left_set.union_ (set);
     right_set.union_ (set);
@@ -671,7 +671,7 @@ struct KerxSubTableFormat4
   template <typename set_t>
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
-    set_t set;
+    hb_bit_set_t set;
     machine.collect_glyphs (set, num_glyphs);
     left_set.union_ (set);
     right_set.union_ (set);
@@ -921,7 +921,7 @@ struct KerxSubTable
  * The 'kerx' Table
  */
 
-using kern_accelerator_data_t = hb_vector_t<hb_pair_t<hb_bit_set_t, hb_bit_set_t>>;
+using kern_accelerator_data_t = hb_vector_t<hb_pair_t<hb_bit_vector_t, hb_bit_vector_t>>;
 
 template <typename T>
 struct KerxTable
@@ -1106,9 +1106,19 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      hb_bit_set_t left_set, right_set;
+      hb_min_max_t left_range, right_range;
+      st->collect_glyphs (left_range, right_range, num_glyphs);
+
+      hb_bit_vector_t left_set (left_range.get_min (), left_range.get_max ());
+      hb_bit_vector_t right_set (right_range.get_min (), right_range.get_max ());
       st->collect_glyphs (left_set, right_set, num_glyphs);
-      accel_data.push (hb_pair (left_set, right_set));
+
+      auto pair = accel_data.push ();
+      if (unlikely (accel_data.in_error ()))
+	break;
+      pair->first = std::move (left_set);
+      pair->second = std::move (right_set);
+
       st = &StructAfter<SubTable> (*st);
     }
 

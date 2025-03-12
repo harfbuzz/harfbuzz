@@ -28,6 +28,7 @@ hb_base_sources = files(
   'hb-atomic.hh',
   'hb-bimap.hh',
   'hb-bit-page.hh',
+  'hb-bit-vector.hh',
   'hb-blob.cc',
   'hb-blob.hh',
   'hb-buffer-serialize.cc',
