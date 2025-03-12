@@ -65,6 +65,7 @@ typedef unsigned __int64 uint64_t;
 #else
 #  include <inttypes.h>
 #endif
+#include <stddef.h>
 
 #if defined(__GNUC__) && ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
 #define HB_DEPRECATED __attribute__((__deprecated__))
@@ -947,6 +948,16 @@ typedef struct hb_glyph_extents_t {
  *
  */
 typedef struct hb_font_t hb_font_t;
+
+/* Not of much use to clients. */
+HB_EXTERN void*
+hb_malloc (size_t size);
+HB_EXTERN void*
+hb_calloc (size_t nmemb, size_t size);
+HB_EXTERN void*
+hb_realloc (void *ptr, size_t size);
+HB_EXTERN void
+hb_free (void *ptr);
 
 HB_END_DECLS
 

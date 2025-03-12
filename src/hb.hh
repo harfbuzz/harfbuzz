@@ -230,33 +230,6 @@
 #define HB_PASTE(a,b) HB_PASTE1(a,b)
 
 
-/* Compile-time custom allocator support. */
-
-#if !defined(HB_CUSTOM_MALLOC) \
-  && defined(hb_malloc_impl) \
-  && defined(hb_calloc_impl) \
-  && defined(hb_realloc_impl) \
-  && defined(hb_free_impl)
-#define HB_CUSTOM_MALLOC
-#endif
-
-#ifdef HB_CUSTOM_MALLOC
-extern "C" void* hb_malloc_impl(size_t size);
-extern "C" void* hb_calloc_impl(size_t nmemb, size_t size);
-extern "C" void* hb_realloc_impl(void *ptr, size_t size);
-extern "C" void  hb_free_impl(void *ptr);
-#define hb_malloc hb_malloc_impl
-#define hb_calloc hb_calloc_impl
-#define hb_realloc hb_realloc_impl
-#define hb_free hb_free_impl
-#else
-#define hb_malloc malloc
-#define hb_calloc calloc
-#define hb_realloc realloc
-#define hb_free free
-#endif
-
-
 /*
  * Compiler attributes
  */
@@ -538,6 +511,29 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 // https://github.com/harfbuzz/harfbuzz/issues/4166
 #define HB_PI 3.14159265358979f
 #define HB_2_PI (2.f * HB_PI)
+
+/* Compile-time custom allocator support. */
+
+#if !defined(HB_CUSTOM_MALLOC) \
+  && defined(hb_malloc_impl) \
+  && defined(hb_calloc_impl) \
+  && defined(hb_realloc_impl) \
+  && defined(hb_free_impl)
+#define HB_CUSTOM_MALLOC
+#endif
+
+#ifdef HB_CUSTOM_MALLOC
+extern "C" void* hb_malloc_impl(size_t size);
+extern "C" void* hb_calloc_impl(size_t nmemb, size_t size);
+extern "C" void* hb_realloc_impl(void *ptr, size_t size);
+extern "C" void  hb_free_impl(void *ptr);
+#else
+#define hb_malloc_impl malloc
+#define hb_calloc_impl calloc
+#define hb_realloc_impl realloc
+#define hb_free_impl free
+#endif
+
 
 
 /* Headers we include for everyone.  Keep topologically sorted by dependency.
