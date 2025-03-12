@@ -18,6 +18,7 @@ tests = [
   'test-draw.c',
   'test-draw-varc.c',
   'test-extents.c',
+  'test-face.c',
   'test-font.c',
   'test-font-scale.c',
   'test-get-table-tags.c',
@@ -87,7 +88,7 @@ if conf.get('HAVE_DIRECTWRITE', 0) == 1
   ]
 endif
 
-if conf.get('HAVE_FREETYPE', 0) == 1 and conf.get('HAVE_PTHREAD', 0) == 1
+if conf.get('HAVE_PTHREAD', 0) == 1
   tests += 'test-multithread.c'
 endif
 
@@ -102,7 +103,17 @@ foreach source : tests
   cpp_args = []
   test_name = source.split('.')[0]
 
-  deps = [glib_dep, freetype_dep, thread_dep, libharfbuzz_dep, libharfbuzz_icu_dep]
+  deps = [coretext_deps,
+          freetype_dep,
+          gdi_uniscribe_deps,
+          glib_dep,
+          graphite2_dep,
+          thread_dep,
+          libharfbuzz_dep,
+          libharfbuzz_icu_dep,
+          libharfbuzz_cairo_dep,
+          #libharfbuzz_gobject_dep
+  ]
   suite = ['api']
   if test_name.contains('-subset') or test_name.contains('-instance')
     deps += libharfbuzz_subset_dep

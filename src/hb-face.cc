@@ -79,14 +79,14 @@ hb_face_count (hb_blob_t *blob)
   if (unlikely (!blob))
     return 0;
 
-  /* TODO We shouldn't be sanitizing blob.  Port to run sanitizer and return if not sane. */
-  /* Make API signature const after. */
-  hb_blob_t *sanitized = hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob));
-  const OT::OpenTypeFontFile& ot = *sanitized->as<OT::OpenTypeFontFile> ();
-  unsigned int ret = ot.get_face_count ();
-  hb_blob_destroy (sanitized);
+  hb_sanitize_context_t c (blob);
 
-  return ret;
+  const char *start = hb_blob_get_data (blob, nullptr);
+  auto *ot = reinterpret_cast<OT::OpenTypeFontFile *> (const_cast<char *> (start));
+  if (unlikely (!ot->sanitize (&c)))
+    return 0;
+
+  return ot->get_face_count ();
 }
 
 /*
@@ -328,19 +328,46 @@ hb_face_create_from_file_or_fail (const char   *file_name,
 
 static struct supported_face_loaders_t {
 	char name[9];
-	hb_face_t * (*func) (const char *font_file, unsigned face_index);
+	hb_face_t * (*from_file) (const char *font_file, unsigned face_index);
+	hb_face_t * (*from_blob) (hb_blob_t *blob, unsigned face_index);
 } supported_face_loaders[] =
 {
+  {"ot",
 #ifndef HB_NO_OPEN
-  {"ot",	hb_face_create_from_file_or_fail},
+   hb_face_create_from_file_or_fail,
+#else
+   nullptr,
 #endif
+   hb_face_create_or_fail
+  },
 #ifdef HAVE_FREETYPE
-  {"ft",	hb_ft_face_create_from_file_or_fail},
+  {"ft",
+   hb_ft_face_create_from_file_or_fail,
+   hb_ft_face_create_from_blob_or_fail
+  },
 #endif
 #ifdef HAVE_CORETEXT
-  {"coretext",	hb_coretext_face_create_from_file_or_fail},
+  {"coretext",
+   hb_coretext_face_create_from_file_or_fail,
+   hb_coretext_face_create_from_blob_or_fail
+  },
 #endif
 };
+
+static const char *get_default_loader_name ()
+{
+  static hb_atomic_ptr_t<const char> static_loader_name;
+  const char *loader_name = static_loader_name.get_acquire ();
+  if (!loader_name)
+  {
+    loader_name = getenv ("HB_FACE_LOADER");
+    if (!loader_name)
+      loader_name = "";
+    if (!static_loader_name.cmpexch (nullptr, loader_name))
+      loader_name = static_loader_name.get_acquire ();
+  }
+  return loader_name;
+}
 
 /**
  * hb_face_create_from_file_or_fail_using:
@@ -353,7 +380,7 @@ static struct supported_face_loaders_t {
  * is used.
  *
  * For example, the FreeType ("ft") loader might be able to load
- * .woff and .woff2 files if FreeType is built with those features,
+ * WOFF and WOFF2 files if FreeType is built with those features,
  * whereas the OpenType ("ot") loader will not.
  *
  * Return value: (transfer full): The new face object, or `NULL` if
@@ -366,20 +393,11 @@ hb_face_create_from_file_or_fail_using (const char   *file_name,
 					unsigned int  index,
 					const char   *loader_name)
 {
+  // Duplicated in hb_face_create_or_fail_using
   bool retry = false;
-
   if (!loader_name || !*loader_name)
   {
-    static hb_atomic_ptr_t<const char> static_funcs_name;
-    loader_name = static_funcs_name.get_acquire ();
-    if (!loader_name)
-    {
-      loader_name = getenv ("HB_FACE_LOADER");
-      if (!loader_name)
-	loader_name = "";
-      if (!static_funcs_name.cmpexch (nullptr, loader_name))
-	loader_name = static_funcs_name.get_acquire ();
-    }
+    loader_name = get_default_loader_name ();
     retry = true;
   }
   if (loader_name && !*loader_name) loader_name = nullptr;
@@ -387,8 +405,58 @@ hb_face_create_from_file_or_fail_using (const char   *file_name,
 retry:
   for (unsigned i = 0; i < ARRAY_LENGTH (supported_face_loaders); i++)
   {
-    if (!loader_name || !strcmp (supported_face_loaders[i].name, loader_name))
-      return supported_face_loaders[i].func (file_name, index);
+    if (!loader_name || (supported_face_loaders[i].from_file && !strcmp (supported_face_loaders[i].name, loader_name)))
+      return supported_face_loaders[i].from_file (file_name, index);
+  }
+
+  if (retry)
+  {
+    retry = false;
+    loader_name = nullptr;
+    goto retry;
+  }
+
+  return nullptr;
+}
+
+/**
+ * hb_face_create_or_fail_using:
+ * @blob: #hb_blob_t to work upon
+ * @index: The index of the face within @blob
+ * @loader_name: (nullable): The name of the loader to use, or `NULL`
+ *
+ * A thin wrapper around the face loader functions registered with HarfBuzz.
+ * If @loader_name is `NULL` or the empty string, the first available loader
+ * is used.
+ *
+ * For example, the FreeType ("ft") loader might be able to load
+ * WOFF and WOFF2 files if FreeType is built with those features,
+ * whereas the OpenType ("ot") loader will not.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * the loader fails to load the face.
+ *
+ * XSince: REPLACEME
+ **/
+hb_face_t *
+hb_face_create_or_fail_using (hb_blob_t    *blob,
+			      unsigned int  index,
+			      const char   *loader_name)
+{
+  // Duplicated in hb_face_create_from_file_or_fail_using
+  bool retry = false;
+  if (!loader_name || !*loader_name)
+  {
+    loader_name = get_default_loader_name ();
+    retry = true;
+  }
+  if (loader_name && !*loader_name) loader_name = nullptr;
+
+retry:
+  for (unsigned i = 0; i < ARRAY_LENGTH (supported_face_loaders); i++)
+  {
+    if (!loader_name || (supported_face_loaders[i].from_blob && !strcmp (supported_face_loaders[i].name, loader_name)))
+      return supported_face_loaders[i].from_blob (blob, index);
   }
 
   if (retry)

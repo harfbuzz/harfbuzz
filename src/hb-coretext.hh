@@ -1,5 +1,6 @@
 /*
- * Copyright © 2015-2019  Ebrahim Byagowi
+ * Copyright © 2012,2013  Mozilla Foundation.
+ * Copyright © 2012,2013  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,37 +21,33 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Mozilla Author(s): Jonathan Kew
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_DIRECTWRITE_H
-#define HB_DIRECTWRITE_H
 
-#include "hb.h"
+#ifndef HB_CORETEXT_HH
+#define HB_CORETEXT_HH
 
-#include <dwrite_3.h>
+#include "hb.hh"
 
-HB_BEGIN_DECLS
+#include "hb-coretext.h"
 
-HB_EXTERN hb_face_t *
-hb_directwrite_face_create (IDWriteFontFace *dw_face);
+#include "hb-aat-layout.hh"
 
-HB_EXTERN IDWriteFontFace *
-hb_directwrite_face_get_dw_font_face (hb_face_t *face);
 
-HB_EXTERN hb_font_t *
-hb_directwrite_font_create (IDWriteFont *dw_font);
+HB_INTERNAL CGFontRef
+create_cg_font (CFArrayRef ct_font_desc_array, unsigned int index);
 
-HB_EXTERN IDWriteFont *
-hb_directwrite_font_get_dw_font (hb_font_t *font);
+HB_INTERNAL CGFontRef
+create_cg_font (hb_blob_t *blob, unsigned int index);
 
-#ifndef HB_DISABLE_DEPRECATED
+HB_INTERNAL CGFontRef
+create_cg_font (hb_face_t *face);
 
-HB_DEPRECATED_FOR (hb_directwrite_face_get_dw_font_face)
-HB_EXTERN IDWriteFontFace *
-hb_directwrite_face_get_font_face (hb_face_t *face);
+HB_INTERNAL CTFontRef
+create_ct_font (CGFontRef cg_font, CGFloat font_size);
 
-#endif
 
-HB_END_DECLS
-
-#endif /* HB_DIRECTWRITE_H */
+#endif /* HB_OT_LAYOUT_HH */

@@ -28,7 +28,7 @@
 
 #ifdef HAVE_CORETEXT
 
-#include "hb-coretext.h"
+#include "hb-coretext.hh"
 
 #include "hb-draw.hh"
 #include "hb-font.hh"

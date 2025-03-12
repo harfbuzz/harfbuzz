@@ -223,16 +223,6 @@ hb_test_add_func (const char *test_path,
 }
 #define hb_test_add(Func) hb_test_add_func (#Func, Func)
 
-static inline void
-hb_test_add_func_flavor (const char *test_path,
-			 const char *flavor,
-			 hb_test_func_t   test_func)
-{
-  char *path = g_strdup_printf ("%s/%s", test_path, flavor);
-  hb_test_add_func (path, test_func);
-  g_free (path);
-}
-#define hb_test_add_flavor(Flavor, Func) hb_test_add_func (#Func, Flavor, Func)
 
 static inline void
 hb_test_add_data_func (const char          *test_path,
@@ -251,12 +241,18 @@ hb_test_add_data_func_flavor (const char          *test_path,
 			      gconstpointer        test_data,
 			      hb_test_data_func_t  test_func)
 {
-  char *path = g_strdup_printf ("%s/%s", test_path, flavor);
-  hb_test_add_data_func (path, test_data, test_func);
-  g_free (path);
+  if (flavor && *flavor)
+  {
+    char *path = g_strdup_printf ("%s/%s", test_path, flavor);
+    hb_test_add_data_func (path, test_data, test_func);
+    g_free (path);
+  }
+  else
+    hb_test_add_data_func (test_path, test_data, test_func);
 }
 #define hb_test_add_data_flavor(UserData, Flavor, Func) hb_test_add_data_func_flavor (#Func, Flavor, UserData, Func)
 
+#define hb_test_add_flavor(Flavor, Func) hb_test_add_data_flavor (Flavor, Flavor, Func)
 
 static inline void
 hb_test_add_vtable (const char             *test_path,
@@ -314,26 +310,37 @@ G_STMT_START { \
 } G_STMT_END
 
 
-static inline hb_face_t *
-hb_test_open_font_file (const char *font_path)
+static inline char *
+hb_test_resolve_path (const char *path)
 {
 #if GLIB_CHECK_VERSION(2,37,2)
-  char *path = g_test_build_filename (G_TEST_DIST, font_path, NULL);
-#else
-  char *path = g_strdup (font_path);
+  if (path[0] != '/')
+    return g_test_build_filename (G_TEST_DIST, path, NULL);
 #endif
+  return g_strdup (path);
+}
+
+static inline hb_face_t *
+hb_test_open_font_file_with_index (const char *font_path, unsigned face_index)
+{
+  char *path = hb_test_resolve_path (font_path);
 
   hb_blob_t *blob = hb_blob_create_from_file_or_fail (path);
   hb_face_t *face;
   if (!blob)
     g_error ("Font %s not found.", path);
 
-  face = hb_face_create (blob, 0);
+  face = hb_face_create (blob, face_index);
   hb_blob_destroy (blob);
 
   g_free (path);
 
   return face;
+}
+static inline hb_face_t *
+hb_test_open_font_file (const char *font_path)
+{
+  return hb_test_open_font_file_with_index (font_path, 0);
 }
 
 HB_END_DECLS

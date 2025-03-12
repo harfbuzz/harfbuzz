@@ -101,12 +101,12 @@ element = glyph @ensure_glyphs
 	| yadvance
 	| glyphflags;
 item	=
-	( '{' space* element (comma element)* space* '}')
+	( '{' space* element (comma element)* space* '}' space* (','|']') space* )
 	>clear_item
 	@add_item
 	;
 
-main := space* '['? space* item (comma item)* space* (','|']')?;
+main := space* '['? space* item*;
 
 }%%
 
@@ -133,7 +133,7 @@ _hb_buffer_deserialize_json (hb_buffer_t *buffer,
 
   *end_ptr = p;
 
-  return p == pe && *(p-1) != ']';
+  return p == pe;
 }
 
 #endif /* HB_BUFFER_DESERIALIZE_JSON_HH */

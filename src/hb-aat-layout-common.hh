@@ -119,10 +119,7 @@ struct hb_aat_apply_context_t :
     for (unsigned int i = 0; i < count; i++)
     {
       if (glyphs[i] == DELETED_GLYPH)
-      {
-	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
-	_hb_glyph_info_set_default_ignorable (&buffer->cur());
-      }
+	_hb_glyph_info_set_aat_deleted (&buffer->cur());
       else
       {
 	buffer_glyph_set.add (glyphs[i]);
@@ -153,8 +150,7 @@ struct hb_aat_apply_context_t :
 
   HB_NODISCARD bool delete_glyph ()
   {
-    buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
-    _hb_glyph_info_set_default_ignorable (&buffer->cur());
+    _hb_glyph_info_set_aat_deleted (&buffer->cur());
     return buffer->replace_glyph (DELETED_GLYPH);
   }
 

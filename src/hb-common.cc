@@ -1217,6 +1217,58 @@ uint8_t
   return hb_color_get_blue (color);
 }
 
+/**
+ * hb_malloc:
+ * @size: The size of the memory to allocate.
+ *
+ * Allocates @size bytes of memory, using the allocator set at
+ * compile-time. Typically just malloc().
+ *
+ * Return value: A pointer to the allocated memory.
+ *
+ * XSince: REPLACEME
+ **/
+void* hb_malloc(size_t size) { return hb_malloc_impl (size); }
+
+/**
+ * hb_calloc:
+ * @nmemb: The number of elements to allocate.
+ * @size: The size of each element.
+ *
+ * Allocates @nmemb elements of @size bytes each, initialized to zero,
+ * using the allocator set at compile-time. Typically just calloc().
+ *
+ * Return value: A pointer to the allocated memory.
+ *
+ * XSince: REPLACEME
+ **/
+void* hb_calloc(size_t nmemb, size_t size) { return hb_calloc_impl (nmemb, size); }
+
+/**
+ * hb_realloc:
+ * @ptr: The pointer to the memory to reallocate.
+ * @size: The new size of the memory.
+ *
+ * Reallocates the memory pointed to by @ptr to @size bytes, using the
+ * allocator set at compile-time. Typically just realloc().
+ *
+ * Return value: A pointer to the reallocated memory.
+ *
+ * XSince: REPLACEME
+ **/
+void* hb_realloc(void *ptr, size_t size) { return hb_realloc_impl (ptr, size); }
+
+/**
+ * hb_free:
+ * @ptr: The pointer to the memory to free.
+ *
+ * Frees the memory pointed to by @ptr, using the allocator set at
+ * compile-time. Typically just free().
+ *
+ * XSince: REPLACEME
+ **/
+void  hb_free(void *ptr) { hb_free_impl (ptr); }
+
 
 /* If there is no visibility control, then hb-static.cc will NOT
  * define anything.  Instead, we get it to define one set in here

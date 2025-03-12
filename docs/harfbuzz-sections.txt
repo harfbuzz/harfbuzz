@@ -114,6 +114,9 @@ hb_glyph_position_t
 hb_buffer_content_type_t
 hb_buffer_flags_t
 hb_buffer_cluster_level_t
+HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS
+HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES
+HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE
 hb_segment_properties_t
 hb_buffer_serialize_format_t
 hb_buffer_serialize_flags_t
@@ -181,6 +184,10 @@ uint8_t
 HB_EXTERN
 HB_DEPRECATED
 HB_DEPRECATED_FOR
+hb_malloc
+hb_calloc
+hb_realloc
+hb_free
 <SUBSECTION Private>
 HB_H_IN
 HB_OT_H_IN
@@ -344,6 +351,7 @@ HB_CORETEXT_TAG_MORT
 HB_CORETEXT_TAG_MORX
 hb_coretext_face_create
 hb_coretext_face_create_from_file_or_fail
+hb_coretext_face_create_from_blob_or_fail
 hb_coretext_font_create
 hb_coretext_face_get_cg_font
 hb_coretext_font_get_ct_font
@@ -364,6 +372,7 @@ hb_face_count
 hb_face_t
 hb_face_create
 hb_face_create_or_fail
+hb_face_create_or_fail_using
 hb_face_create_from_file_or_fail
 hb_face_create_from_file_or_fail_using
 hb_face_list_loaders
@@ -533,6 +542,7 @@ hb_ft_face_create
 hb_ft_face_create_cached
 hb_ft_face_create_referenced
 hb_ft_face_create_from_file_or_fail
+hb_ft_face_create_from_blob_or_fail
 hb_ft_font_create
 hb_ft_font_create_referenced
 hb_ft_font_changed

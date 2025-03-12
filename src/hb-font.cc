@@ -2329,6 +2329,21 @@ static struct supported_font_funcs_t {
 #endif
 };
 
+static const char *get_default_funcs_name ()
+{
+  static hb_atomic_ptr_t<const char> static_funcs_name;
+  const char *name = static_funcs_name.get_acquire ();
+  if (!name)
+  {
+    name = getenv ("HB_FONT_FUNCS");
+    if (!name)
+      name = "";
+    if (!static_funcs_name.cmpexch (nullptr, name))
+      name = static_funcs_name.get_acquire ();
+  }
+  return name;
+}
+
 /**
  * hb_font_set_funcs_using:
  * @font: #hb_font_t to work upon
@@ -2353,16 +2368,7 @@ hb_font_set_funcs_using (hb_font_t  *font,
 
   if (!name || !*name)
   {
-    static hb_atomic_ptr_t<const char> static_funcs_name;
-    name = static_funcs_name.get_acquire ();
-    if (!name)
-    {
-      name = getenv ("HB_FONT_FUNCS");
-      if (!name)
-	name = "";
-      if (!static_funcs_name.cmpexch (nullptr, name))
-	name = static_funcs_name.get_acquire ();
-    }
+    name = get_default_funcs_name ();
     retry = true;
   }
   if (name && !*name) name = nullptr;

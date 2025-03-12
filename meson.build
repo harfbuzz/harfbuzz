@@ -315,7 +315,7 @@ endif
 gdi_uniscribe_deps = []
 # GDI (Uniscribe) (Windows)
 if host_machine.system() == 'windows' and not get_option('gdi').disabled()
-  if (get_option('directwrite').enabled() and
+  if (get_option('gdi').enabled() and
       not (cpp.has_header('usp10.h') and cpp.has_header('windows.h')))
     error('GDI/Uniscribe was enabled explicitly, but required headers are missing.')
   endif
@@ -335,10 +335,9 @@ endif
 
 # DirectWrite (Windows)
 if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
-  if get_option('directwrite').enabled() and not cpp.has_header('dwrite_1.h')
+  if get_option('directwrite').enabled() and not cpp.has_header('dwrite_3.h')
     error('DirectWrite was enabled explicitly, but required header is missing.')
   endif
-
   conf.set('HAVE_DIRECTWRITE', 1)
 endif
 
