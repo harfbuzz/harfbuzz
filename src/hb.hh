@@ -533,10 +533,6 @@ extern "C" void  hb_free_impl(void *ptr);
 #define hb_realloc_impl realloc
 #define hb_free_impl free
 #endif
-extern "C" void* hb_malloc(size_t size);
-extern "C" void* hb_calloc(size_t nmemb, size_t size);
-extern "C" void* hb_realloc(void *ptr, size_t size);
-extern "C" void  hb_free(void *ptr);
 
 
 

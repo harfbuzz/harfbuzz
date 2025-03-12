@@ -24,13 +24,6 @@ use skrifa::outline::DrawSettings;
 use skrifa::OutlineGlyphCollection;
 use skrifa::{GlyphId, MetadataProvider};
 
-extern "C" {
-    pub fn hb_malloc(_: usize) -> *const ::std::os::raw::c_void;
-    pub fn hb_calloc(_: usize, _: usize) -> *const ::std::os::raw::c_void;
-    pub fn hb_realloc(_: *const ::std::os::raw::c_void, _: usize) -> *const ::std::os::raw::c_void;
-    pub fn hb_free(_: *const ::std::os::raw::c_void);
-}
-
 struct MyAllocator;
 
 unsafe impl GlobalAlloc for MyAllocator {
@@ -43,7 +36,7 @@ unsafe impl GlobalAlloc for MyAllocator {
     }
 
     unsafe fn realloc(&self, ptr: *mut u8, _layout: Layout, new_size: usize) -> *mut u8 {
-        hb_realloc(ptr as *const c_void, new_size) as *mut u8
+        hb_realloc(ptr as *mut c_void, new_size) as *mut u8
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {

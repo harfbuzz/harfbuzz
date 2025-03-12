@@ -40,12 +40,8 @@
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-maxp-table.hh"
 
-void* hb_malloc(size_t size) { return hb_malloc_impl (size); }
-void* hb_calloc(size_t nmemb, size_t size) { return hb_calloc_impl (nmemb, size); }
-void* hb_realloc(void *ptr, size_t size) { return hb_realloc_impl (ptr, size); }
-void  hb_free(void *ptr) { hb_free_impl (ptr); }
-
 #ifndef HB_NO_VISIBILITY
+
 #include "hb-ot-name-language-static.hh"
 
 uint64_t const _hb_NullPool[(HB_NULL_POOL_SIZE + sizeof (uint64_t) - 1) / sizeof (uint64_t)] = {};

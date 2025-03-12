@@ -184,6 +184,10 @@ uint8_t
 HB_EXTERN
 HB_DEPRECATED
 HB_DEPRECATED_FOR
+hb_malloc
+hb_calloc
+hb_realloc
+hb_free
 <SUBSECTION Private>
 HB_H_IN
 HB_OT_H_IN
