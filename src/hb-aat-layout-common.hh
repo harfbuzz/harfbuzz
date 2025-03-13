@@ -805,6 +805,10 @@ struct StateTable
     }
 
     // And glyphs in those classes.
+
+    if (filter (CLASS_DELETED_GLYPH))
+      glyphs.add (DELETED_GLYPH);
+
     (this+classTable).collect_glyphs_filtered (glyphs, num_glyphs, filter);
   }
 
