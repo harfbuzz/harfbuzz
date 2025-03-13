@@ -150,12 +150,12 @@ struct hb_aat_apply_context_t :
   {
     using_buffer_glyph_set = buffer->len >= 4 && buffer_glyph_set;
 
-    if (using_buffer_glyph_set)
+    if (likely (using_buffer_glyph_set))
       buffer->collect_codepoints (*buffer_glyph_set);
   }
   bool buffer_intersects_machine () const
   {
-    if (using_buffer_glyph_set)
+    if (likely (using_buffer_glyph_set))
       return buffer_glyph_set->intersects (*machine_glyph_set);
 
     // Faster for shorter buffers.
@@ -169,7 +169,8 @@ struct hb_aat_apply_context_t :
   HB_NODISCARD bool output_glyphs (unsigned int count,
 				   const T *glyphs)
   {
-    buffer_glyph_set->add_array (glyphs, count);
+    if (likely (using_buffer_glyph_set))
+      buffer_glyph_set->add_array (glyphs, count);
     for (unsigned int i = 0; i < count; i++)
     {
       if (glyphs[i] == DELETED_GLYPH)
@@ -195,7 +196,8 @@ struct hb_aat_apply_context_t :
     if (glyph == DELETED_GLYPH)
       return delete_glyph ();
 
-    buffer_glyph_set->add (glyph);
+    if (likely (using_buffer_glyph_set))
+      buffer_glyph_set->add (glyph);
 #ifndef HB_NO_OT_LAYOUT
     if (has_glyph_classes)
       _hb_glyph_info_set_glyph_props (&buffer->cur(),
@@ -214,7 +216,8 @@ struct hb_aat_apply_context_t :
   void replace_glyph_inplace (unsigned i, hb_codepoint_t glyph)
   {
     buffer->info[i].codepoint = glyph;
-    buffer_glyph_set->add (glyph);
+    if (likely (using_buffer_glyph_set))
+      buffer_glyph_set->add (glyph);
 #ifndef HB_NO_OT_LAYOUT
     if (has_glyph_classes)
       _hb_glyph_info_set_glyph_props (&buffer->info[i],
