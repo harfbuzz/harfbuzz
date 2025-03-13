@@ -52,6 +52,8 @@ static_assert (sizeof (hb_aat_class_cache_t) == 256, "");
 
 enum { DELETED_GLYPH = 0xFFFF };
 
+#define HB_BUFFER_SCRATCH_FLAG_AAT_HAS_DELETED HB_BUFFER_SCRATCH_FLAG_SHAPER0
+
 struct hb_aat_apply_context_t :
        hb_dispatch_context_t<hb_aat_apply_context_t, bool, HB_DEBUG_APPLY>
 {
@@ -120,7 +122,10 @@ struct hb_aat_apply_context_t :
     for (unsigned int i = 0; i < count; i++)
     {
       if (glyphs[i] == DELETED_GLYPH)
+      {
+        buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_AAT_HAS_DELETED;
 	_hb_glyph_info_set_aat_deleted (&buffer->cur());
+      }
       else
       {
 #ifndef HB_NO_OT_LAYOUT
@@ -150,6 +155,7 @@ struct hb_aat_apply_context_t :
 
   HB_NODISCARD bool delete_glyph ()
   {
+    buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_AAT_HAS_DELETED;
     _hb_glyph_info_set_aat_deleted (&buffer->cur());
     return buffer->replace_glyph (DELETED_GLYPH);
   }
