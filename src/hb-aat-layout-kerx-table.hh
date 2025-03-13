@@ -328,8 +328,9 @@ struct KerxSubTableFormat1
 	    }
 	    else if (buffer->info[idx].mask & kern_mask)
 	    {
-	      o.x_advance += c->font->em_scale_x (v);
-	      o.x_offset += c->font->em_scale_x (v);
+	      auto scaled = c->font->em_scale_x (v);
+	      o.x_advance += scaled;
+	      o.x_offset += scaled;
 	    }
 	  }
 	  else
@@ -398,7 +399,7 @@ struct KerxSubTableFormat1
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
     machine.collect_initial_glyphs (left_set, num_glyphs, *this);
-    machine.collect_glyphs (right_set, num_glyphs);
+    //machine.collect_glyphs (right_set, num_glyphs); // right_set is unused for machine kerning
   }
 
   protected:
@@ -673,7 +674,7 @@ struct KerxSubTableFormat4
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
     machine.collect_initial_glyphs (left_set, num_glyphs, *this);
-    machine.collect_glyphs (right_set, num_glyphs);
+    //machine.collect_glyphs (right_set, num_glyphs); // right_set is unused for machine kerning
   }
 
   protected:
@@ -1010,7 +1011,10 @@ struct KerxTable
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
-      c->machine_glyph_set = accel_data ? &accel_data[i].left_set : &Null(hb_bit_set_t);
+      c->left_set = &accel_data[i].left_set;
+      c->right_set = &accel_data[i].right_set;
+      c->machine_glyph_set = &accel_data[i].left_set;
+      c->machine_class_cache = &accel_data[i].class_cache;
 
       if (!c->buffer_intersects_machine ())
       {
@@ -1043,10 +1047,6 @@ struct KerxTable
 
       if (reverse)
 	c->buffer->reverse ();
-
-      c->left_set = &accel_data[i].left_set;
-      c->right_set = &accel_data[i].right_set;
-      c->machine_class_cache = &accel_data[i].class_cache;
 
       {
 	/* See comment in sanitize() for conditional here. */
