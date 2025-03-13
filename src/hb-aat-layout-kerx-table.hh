@@ -328,8 +328,9 @@ struct KerxSubTableFormat1
 	    }
 	    else if (buffer->info[idx].mask & kern_mask)
 	    {
-	      o.x_advance += c->font->em_scale_x (v);
-	      o.x_offset += c->font->em_scale_x (v);
+	      auto scaled = c->font->em_scale_x (v);
+	      o.x_advance += scaled;
+	      o.x_offset += scaled;
 	    }
 	  }
 	  else
@@ -1010,7 +1011,10 @@ struct KerxTable
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
+      c->left_set = &accel_data[i].left_set;
+      c->right_set = &accel_data[i].right_set;
       c->machine_glyph_set = &accel_data[i].left_set;
+      c->machine_class_cache = &accel_data[i].class_cache;
 
       if (!c->buffer_intersects_machine ())
       {
@@ -1043,10 +1047,6 @@ struct KerxTable
 
       if (reverse)
 	c->buffer->reverse ();
-
-      c->left_set = &accel_data[i].left_set;
-      c->right_set = &accel_data[i].right_set;
-      c->machine_class_cache = &accel_data[i].class_cache;
 
       {
 	/* See comment in sanitize() for conditional here. */
