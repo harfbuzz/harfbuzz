@@ -184,11 +184,9 @@ struct hb_atomic_t
   T v = 0;
 };
 
-template <typename P>
-struct hb_atomic_t<P*>
+template <typename T>
+struct hb_atomic_t<T*>
 {
-  typedef hb_remove_pointer<P> T;
-
   hb_atomic_t () = default;
   constexpr hb_atomic_t (T* v) : v (v) {}
   hb_atomic_t (const hb_atomic_t &other) = delete;
