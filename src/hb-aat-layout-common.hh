@@ -81,6 +81,8 @@ struct hb_aat_scratch_t
   }
   void destroy_buffer_glyph_set (hb_bit_set_t *s) const
   {
+    if (unlikely (!s))
+      return;
     if (buffer_glyph_set.cmpexch (nullptr, s))
       return;
     s->fini ();
@@ -137,7 +139,7 @@ struct hb_aat_apply_context_t :
 
   void setup_buffer_glyph_set ()
   {
-    using_buffer_glyph_set = buffer->len >= 4;
+    using_buffer_glyph_set = buffer->len >= 4 && buffer_glyph_set;
 
     if (using_buffer_glyph_set)
       buffer->collect_codepoints (*buffer_glyph_set);
