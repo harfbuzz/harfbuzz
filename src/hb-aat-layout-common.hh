@@ -66,6 +66,14 @@ struct hb_aat_scratch_t
     o.buffer_glyph_set.set_relaxed (nullptr);
     return *this;
   }
+  ~hb_aat_scratch_t ()
+  {
+    auto *s = buffer_glyph_set.get_relaxed ();
+    if (unlikely (!s))
+      return;
+    s->fini ();
+    hb_free (s);
+  }
 
   hb_bit_set_t *create_buffer_glyph_set () const
   {
