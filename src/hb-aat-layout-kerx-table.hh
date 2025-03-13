@@ -185,6 +185,9 @@ struct Format1Entry<true>
     DEFINE_SIZE_STATIC (2);
   };
 
+  static bool initiateAction (const Entry<EntryData> &entry)
+  { return entry.flags & Push; }
+
   static bool performAction (const Entry<EntryData> &entry)
   { return entry.data.kernActionIndex != 0xFFFF; }
 
@@ -394,10 +397,8 @@ struct KerxSubTableFormat1
   template <typename set_t>
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
-    set_t set;
-    machine.collect_glyphs (set, num_glyphs);
-    left_set.union_ (set);
-    right_set.union_ (set);
+    machine.collect_initial_glyphs (left_set, num_glyphs, *this);
+    machine.collect_glyphs (right_set, num_glyphs);
   }
 
   protected:
@@ -671,10 +672,8 @@ struct KerxSubTableFormat4
   template <typename set_t>
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
-    set_t set;
-    machine.collect_glyphs (set, num_glyphs);
-    left_set.union_ (set);
-    right_set.union_ (set);
+    machine.collect_initial_glyphs (left_set, num_glyphs, *this);
+    machine.collect_glyphs (right_set, num_glyphs);
   }
 
   protected:
@@ -1001,6 +1000,14 @@ struct KerxTable
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
+
+      c->machine_glyph_set = accel_data ? &accel_data[i].first : &Null(hb_bit_set_t);
+
+      if (!c->buffer_intersects_machine ())
+      {
+	(void) c->buffer->message (c->font, "skipped subtable %u because no glyph matches", c->lookup_index);
+	goto skip;
+      }
 
       reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
