@@ -86,13 +86,15 @@ public:
 class DWriteFontFileStream : public IDWriteFontFileStream
 {
 private:
+  hb_blob_t *mBlob;
   uint8_t *mData;
-  uint32_t mSize;
+  unsigned mSize;
 public:
-  DWriteFontFileStream (uint8_t *aData, uint32_t aSize)
+  DWriteFontFileStream (hb_blob_t *blob)
   {
-    mData = aData;
-    mSize = aSize;
+    hb_blob_make_immutable (blob);
+    mBlob = hb_blob_reference (blob);
+    mData = (uint8_t *) hb_blob_get_data (blob, &mSize);
   }
 
   // IUnknown interface
@@ -133,7 +135,10 @@ public:
   virtual HRESULT STDMETHODCALLTYPE
   GetLastWriteTime (OUT UINT64* lastWriteTime) { return E_NOTIMPL; }
 
-  virtual ~DWriteFontFileStream() {}
+  virtual ~DWriteFontFileStream()
+  {
+    hb_blob_destroy (mBlob);
+  }
 };
 
 
@@ -149,7 +154,6 @@ struct hb_directwrite_face_data_t
   DWriteFontFileStream *fontFileStream;
   DWriteFontFileLoader *fontFileLoader;
   IDWriteFontFace *fontFace;
-  hb_blob_t *faceBlob;
 };
 
 static hb_directwrite_face_data_t *
@@ -198,9 +202,7 @@ _hb_directwrite_face_data_create (hb_blob_t *blob,
     FAIL ("Failed to run DWriteCreateFactory().");
 
   DWriteFontFileStream *fontFileStream;
-  hb_blob_make_immutable (blob);
-  fontFileStream = new DWriteFontFileStream ((uint8_t *) hb_blob_get_data (blob, nullptr),
-					     hb_blob_get_length (blob));
+  fontFileStream = new DWriteFontFileStream (blob);
 
   DWriteFontFileLoader *fontFileLoader = new DWriteFontFileLoader (fontFileStream);
   dwriteFactory->RegisterFontFileLoader (fontFileLoader);
@@ -232,7 +234,6 @@ _hb_directwrite_face_data_create (hb_blob_t *blob,
   data->fontFileStream = fontFileStream;
   data->fontFileLoader = fontFileLoader;
   data->fontFace = fontFace;
-  data->faceBlob = hb_blob_reference (blob);
 
   return data;
 }
@@ -264,7 +265,6 @@ _hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
   }
   delete data->fontFileLoader;
   delete data->fontFileStream;
-  hb_blob_destroy (data->faceBlob);
   if (data->dwrite_dll)
   {
     //FreeLibrary (data->dwrite_dll);
