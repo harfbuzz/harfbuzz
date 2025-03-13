@@ -152,8 +152,9 @@ struct hb_directwrite_face_data_t
   hb_blob_t *faceBlob;
 };
 
-hb_directwrite_face_data_t *
-_hb_directwrite_shaper_face_data_create (hb_face_t *face)
+static hb_directwrite_face_data_t *
+_hb_directwrite_face_data_create (hb_blob_t *blob,
+				  unsigned index)
 {
   hb_directwrite_face_data_t *data = new hb_directwrite_face_data_t;
   if (unlikely (!data))
@@ -196,7 +197,6 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
   if (unlikely (hr != S_OK))
     FAIL ("Failed to run DWriteCreateFactory().");
 
-  hb_blob_t *blob = hb_face_reference_blob (face);
   DWriteFontFileStream *fontFileStream;
   fontFileStream = new DWriteFontFileStream ((uint8_t *) hb_blob_get_data (blob, nullptr),
 					     hb_blob_get_length (blob));
@@ -223,7 +223,7 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
 #undef FAIL
 
   IDWriteFontFace *fontFace;
-  dwriteFactory->CreateFontFace (faceType, 1, &fontFile, 0,
+  dwriteFactory->CreateFontFace (faceType, 1, &fontFile, index,
 				 DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
 
   data->dwriteFactory = dwriteFactory;
@@ -231,7 +231,19 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
   data->fontFileStream = fontFileStream;
   data->fontFileLoader = fontFileLoader;
   data->fontFace = fontFace;
-  data->faceBlob = blob;
+  data->faceBlob = hb_blob_reference (blob);
+
+  return data;
+}
+
+hb_directwrite_face_data_t *
+_hb_directwrite_shaper_face_data_create (hb_face_t *face)
+{
+  hb_blob_t *blob = hb_face_reference_blob (face);
+
+  hb_directwrite_face_data_t *data = _hb_directwrite_face_data_create (blob, face->index);
+
+  hb_blob_destroy (blob);
 
   return data;
 }
@@ -868,6 +880,35 @@ hb_directwrite_face_create (IDWriteFontFace *dw_face)
     dw_face->AddRef ();
   return hb_face_create_for_tables (_hb_directwrite_reference_table, dw_face,
 				    _hb_directwrite_face_release);
+}
+
+/**
+ * hb_directwrite_face_create_from_blob_or_fail:
+ * @blob: A blob containing the font data
+ * @index: The index of the face within the blob
+ *
+ * Creates an #hb_face_t face object from the specified
+ * blob and face index.
+ *
+ * This is similar in functionality to hb_face_create_from_blob_or_fail(),
+ * but uses the DirectWrite library for loading the font data.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index or the blob cannot be read.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN hb_face_t *
+hb_directwrite_face_create_from_blob_or_fail (hb_blob_t    *blob,
+					      unsigned int  index)
+{
+  hb_directwrite_face_data_t *data = _hb_directwrite_face_data_create (blob, index);
+  hb_face_t *face = hb_directwrite_face_create (data->fontFace);
+
+  /* Let there be dragons here... */
+  face->data.directwrite.cmpexch (nullptr, data);
+
+  return face;
 }
 
 /**
