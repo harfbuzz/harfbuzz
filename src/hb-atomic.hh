@@ -203,8 +203,6 @@ struct hb_atomic_t<T*>
 
   T *v = nullptr;
 };
-template <typename T>
-using hb_atomic_ptr_t = hb_atomic_t<T*>;
 
 static inline bool hb_barrier ()
 {

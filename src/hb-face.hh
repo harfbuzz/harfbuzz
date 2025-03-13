@@ -70,7 +70,7 @@ struct hb_face_t
     plan_node_t *next;
   };
 #ifndef HB_NO_SHAPER
-  hb_atomic_ptr_t<plan_node_t> shape_plans;
+  hb_atomic_t<plan_node_t *> shape_plans;
 #endif
 
   hb_blob_t *reference_table (hb_tag_t tag) const

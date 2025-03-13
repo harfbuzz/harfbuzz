@@ -1350,7 +1350,7 @@ struct mortmorx
 
       this->chain_count = table->get_chain_count ();
 
-      this->accels = (hb_atomic_ptr_t<hb_aat_layout_chain_accelerator_t> *) hb_calloc (this->chain_count, sizeof (*accels));
+      this->accels = (hb_atomic_t<hb_aat_layout_chain_accelerator_t *> *) hb_calloc (this->chain_count, sizeof (*accels));
       if (unlikely (!this->accels))
       {
 	this->chain_count = 0;
@@ -1397,7 +1397,7 @@ struct mortmorx
 
     hb_blob_ptr_t<T> table;
     unsigned int chain_count;
-    hb_atomic_ptr_t<hb_aat_layout_chain_accelerator_t> *accels;
+    hb_atomic_t<hb_aat_layout_chain_accelerator_t *> *accels;
   };
 
 

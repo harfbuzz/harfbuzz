@@ -214,7 +214,7 @@ struct hb_object_header_t
 {
   hb_reference_count_t ref_count;
   mutable hb_atomic_t<bool> writable = false;
-  hb_atomic_ptr_t<hb_user_data_array_t> user_data;
+  hb_atomic_t<hb_user_data_array_t *> user_data;
 
   bool is_inert () const { return !ref_count.get_relaxed (); }
 };

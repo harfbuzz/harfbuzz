@@ -273,7 +273,7 @@ struct hb_language_item_t {
 
 /* Thread-safe lockfree language list */
 
-static hb_atomic_ptr_t <hb_language_item_t> langs;
+static hb_atomic_t<hb_language_item_t *> langs;
 
 static inline void
 free_langs ()
@@ -403,7 +403,7 @@ hb_language_to_string (hb_language_t language)
 hb_language_t
 hb_language_get_default ()
 {
-  static hb_atomic_ptr_t <const hb_language_impl_t> default_language;
+  static hb_atomic_t<hb_language_t> default_language;
 
   hb_language_t language = default_language;
   if (unlikely (language == HB_LANGUAGE_INVALID))

@@ -356,7 +356,7 @@ static struct supported_face_loaders_t {
 
 static const char *get_default_loader_name ()
 {
-  static hb_atomic_ptr_t<const char> static_loader_name;
+  static hb_atomic_t<const char *> static_loader_name;
   const char *loader_name = static_loader_name.get_acquire ();
   if (!loader_name)
   {

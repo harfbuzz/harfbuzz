@@ -1483,7 +1483,7 @@ struct cff1
       int cmp (const gname_t &a) const { return cmp (&a, this); }
     };
 
-    mutable hb_atomic_ptr_t<hb_sorted_vector_t<gname_t>> glyph_names;
+    mutable hb_atomic_t<hb_sorted_vector_t<gname_t> *> glyph_names;
 
     typedef accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t> SUPER;
   };
