@@ -1,6 +1,7 @@
 #ifndef HB_AAT_VAR_HVGL_TABLE_HH
 #define HB_AAT_VAR_HVGL_TABLE_HH
 
+#include "hb-bit-vector.hh"
 #include "hb-draw.hh"
 #include "hb-geometry.hh"
 #include "hb-ot-var-common.hh"
@@ -34,6 +35,7 @@ struct hb_hvgl_context_t
   hb_extents_t<> *extents;
   hb_hvgl_scratch_t &scratch;
   hb_sanitize_context_t &sanitizer;
+  hb_bit_vector_t<true> &parts_sanitized;
   mutable signed nodes_left;
   mutable signed edges_left;
   mutable signed depth_left;
@@ -483,14 +485,24 @@ struct IndexOf : Index
 {
   public:
 
-  const Type &get (unsigned index, unsigned count, hb_sanitize_context_t &c) const
+  const Type &get (unsigned index, unsigned count,
+		   hb_sanitize_context_t &c, hb_bit_vector_t<true> &parts_sanitized) const
   {
+    if (unlikely (index >= count)) return Null(Type);
+
     hb_bytes_t data = Index::get (index, count);
     const Type &item = *reinterpret_cast<const Type *> (data.begin ());
-    c.start_processing (data.begin (), data.end ());
-    bool sane = c.dispatch (item);
-    c.end_processing ();
-    if (unlikely (!sane)) return Null(Type);
+
+    bool sanitized = parts_sanitized.get (index);
+    if (unlikely (!sanitized))
+    {
+      c.start_processing (data.begin (), data.end ());
+      bool sane = c.dispatch (item);
+      c.end_processing ();
+      if (unlikely (!sane)) return Null(Type);
+    }
+    parts_sanitized.add (index);
+
     return item;
   }
 
@@ -529,7 +541,7 @@ struct hvgl
     c->depth_left--;
 
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
-    const auto &part = parts.get (part_id, partCount, c->sanitizer);
+    const auto &part = parts.get (part_id, partCount, c->sanitizer, c->parts_sanitized);
 
     part.get_path_at (c, coords, transforms);
 
@@ -546,14 +558,15 @@ struct hvgl
 	       hb_draw_session_t *draw_session,
 	       hb_extents_t<> *extents,
 	       hb_array_t<const int> coords,
-	       hb_hvgl_scratch_t &scratch) const
+	       hb_hvgl_scratch_t &scratch,
+	       hb_bit_vector_t<true> &parts_sanitized) const
   {
     if (unlikely (gid >= numGlyphs)) return false;
 
     hb_sanitize_context_t sanitizer;
 
     const auto &parts = StructAtOffset<hvgl_impl::PartsIndex> (this, partsOff);
-    const auto &part = parts.get (gid, partCount, sanitizer);
+    const auto &part = parts.get (gid, partCount, sanitizer, parts_sanitized);
 
     auto &coords_f = scratch.coords_f;
     coords_f.clear ();
@@ -572,7 +585,7 @@ struct hvgl
 
     hb_hvgl_context_t c = {*this, draw_session, extents,
 			   scratch,
-			   sanitizer,
+			   sanitizer, parts_sanitized,
 			   (int) total_num_parts, HB_MAX_GRAPH_EDGE_COUNT, HB_MAX_NESTING_LEVEL};
 
     scratch.points.alloc (128);
@@ -601,6 +614,9 @@ struct hvgl
     accelerator_t (hb_face_t *face)
     {
       table = hb_sanitize_context_t ().reference_table<hvgl> (face);
+
+      hb_bit_vector_t<true> parts_sanitized_ (0, table->partCount);
+      parts_sanitized = std::move (parts_sanitized_);
     }
     ~accelerator_t ()
     {
@@ -627,7 +643,8 @@ struct hvgl
       bool ret = table->get_path_at (font, gid,
 				     &draw_session, nullptr,
 				     coords,
-				     *scratch);
+				     *scratch,
+				     parts_sanitized);
       release_scratch (scratch);
 
       return ret;
@@ -656,7 +673,8 @@ struct hvgl
       bool ret = table->get_path_at (font, gid,
 				     nullptr, &f_extents,
 				     coords,
-				     *scratch);
+				     *scratch,
+				     parts_sanitized);
       release_scratch (scratch);
 
       if (ret)
@@ -700,7 +718,8 @@ struct hvgl
 
     private:
     hb_blob_ptr_t<hvgl> table;
-    hb_atomic_ptr_t<hb_hvgl_scratch_t> cached_scratch;
+    hb_atomic_t<hb_hvgl_scratch_t *> cached_scratch;
+    mutable hb_bit_vector_t<true> parts_sanitized;
   };
 
   bool has_data () const { return versionMajor != 0; }

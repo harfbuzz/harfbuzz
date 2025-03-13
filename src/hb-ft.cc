@@ -101,7 +101,7 @@ struct hb_ft_font_t
 
   mutable hb_mutex_t lock; /* Protects members below. */
   FT_Face ft_face;
-  mutable hb_atomic_int_t cached_serial;
+  mutable hb_atomic_t<unsigned> cached_serial;
   mutable hb_ft_advance_cache_t advance_cache;
 };
 
@@ -118,7 +118,7 @@ _hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref)
 
   ft_font->load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
 
-  ft_font->cached_serial = -1;
+  ft_font->cached_serial = UINT_MAX;
   new (&ft_font->advance_cache) hb_ft_advance_cache_t;
 
   return ft_font;

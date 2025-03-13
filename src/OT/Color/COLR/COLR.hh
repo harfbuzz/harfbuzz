@@ -2214,7 +2214,7 @@ struct COLR
     public:
     hb_blob_ptr_t<COLR> colr;
     private:
-    hb_atomic_ptr_t<hb_colr_scratch_t> cached_scratch;
+    hb_atomic_t<hb_colr_scratch_t *> cached_scratch;
   };
 
   void closure_glyphs (hb_codepoint_t glyph,

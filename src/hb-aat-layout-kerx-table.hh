@@ -185,6 +185,9 @@ struct Format1Entry<true>
     DEFINE_SIZE_STATIC (2);
   };
 
+  static bool initiateAction (const Entry<EntryData> &entry)
+  { return entry.flags & Push; }
+
   static bool performAction (const Entry<EntryData> &entry)
   { return entry.data.kernActionIndex != 0xFFFF; }
 
@@ -325,8 +328,9 @@ struct KerxSubTableFormat1
 	    }
 	    else if (buffer->info[idx].mask & kern_mask)
 	    {
-	      o.x_advance += c->font->em_scale_x (v);
-	      o.x_offset += c->font->em_scale_x (v);
+	      auto scaled = c->font->em_scale_x (v);
+	      o.x_advance += scaled;
+	      o.x_offset += scaled;
 	    }
 	  }
 	  else
@@ -394,10 +398,8 @@ struct KerxSubTableFormat1
   template <typename set_t>
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
-    set_t set;
-    machine.collect_glyphs (set, num_glyphs);
-    left_set.union_ (set);
-    right_set.union_ (set);
+    machine.collect_initial_glyphs (left_set, num_glyphs, *this);
+    //machine.collect_glyphs (right_set, num_glyphs); // right_set is unused for machine kerning
   }
 
   protected:
@@ -671,10 +673,8 @@ struct KerxSubTableFormat4
   template <typename set_t>
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
-    set_t set;
-    machine.collect_glyphs (set, num_glyphs);
-    left_set.union_ (set);
-    right_set.union_ (set);
+    machine.collect_initial_glyphs (left_set, num_glyphs, *this);
+    //machine.collect_glyphs (right_set, num_glyphs); // right_set is unused for machine kerning
   }
 
   protected:
@@ -921,7 +921,14 @@ struct KerxSubTable
  * The 'kerx' Table
  */
 
-using kern_accelerator_data_t = hb_vector_t<hb_pair_t<hb_bit_set_t, hb_bit_set_t>>;
+struct kern_subtable_accelerator_data_t
+{
+  hb_bit_set_t left_set;
+  hb_bit_set_t right_set;
+  mutable hb_aat_class_cache_t class_cache;
+};
+
+using kern_accelerator_data_t = hb_vector_t<kern_subtable_accelerator_data_t>;
 
 template <typename T>
 struct KerxTable
@@ -985,6 +992,8 @@ struct KerxTable
   {
     c->buffer->unsafe_to_concat ();
 
+    c->setup_buffer_glyph_set ();
+
     typedef typename T::SubTable SubTable;
 
     bool ret = false;
@@ -1001,6 +1010,17 @@ struct KerxTable
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
+
+      c->left_set = &accel_data[i].left_set;
+      c->right_set = &accel_data[i].right_set;
+      c->machine_glyph_set = &accel_data[i].left_set;
+      c->machine_class_cache = &accel_data[i].class_cache;
+
+      if (!c->buffer_intersects_machine ())
+      {
+	(void) c->buffer->message (c->font, "skipped subtable %u because no glyph matches", c->lookup_index);
+	goto skip;
+      }
 
       reverse = bool (st->u.header.coverage & st->u.header.Backwards) !=
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
@@ -1027,9 +1047,6 @@ struct KerxTable
 
       if (reverse)
 	c->buffer->reverse ();
-
-      c->left_set = &accel_data[i].first;
-      c->right_set = &accel_data[i].second;
 
       {
 	/* See comment in sanitize() for conditional here. */
@@ -1106,9 +1123,13 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      hb_bit_set_t left_set, right_set;
-      st->collect_glyphs (left_set, right_set, num_glyphs);
-      accel_data.push (hb_pair (left_set, right_set));
+      kern_subtable_accelerator_data_t *accel = accel_data.push ();
+      if (unlikely (accel_data.in_error ()))
+	return accel_data;
+
+      st->collect_glyphs (accel->left_set, accel->right_set, num_glyphs);
+      accel->class_cache.clear ();
+
       st = &StructAfter<SubTable> (*st);
     }
 

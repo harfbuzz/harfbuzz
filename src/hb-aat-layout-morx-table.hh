@@ -176,12 +176,6 @@ struct RearrangementSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_intersects_machine ())
-    {
-      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
-      return_trace (false);
-    }
-
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -331,12 +325,6 @@ struct ContextualSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
-
-    if (!c->buffer_intersects_machine ())
-    {
-      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
-      return_trace (false);
-    }
 
     driver.drive (&dc, c);
 
@@ -607,12 +595,6 @@ struct LigatureSubtable
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
 
-    if (!c->buffer_intersects_machine ())
-    {
-      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
-      return_trace (false);
-    }
-
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -647,12 +629,6 @@ struct NoncontextualSubtable
   bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-
-    if (!c->buffer_intersects_machine ())
-    {
-      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
-      return_trace (false);
-    }
 
     bool ret = false;
     unsigned int num_glyphs = c->face->get_num_glyphs ();
@@ -894,12 +870,6 @@ struct InsertionSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData, Flags> driver (machine, c->face);
-
-    if (!c->buffer_intersects_machine ())
-    {
-      (void) c->buffer->message (c->font, "skipped chainsubtable because no glyph matches");
-      return_trace (false);
-    }
 
     driver.drive (&dc, c);
 
@@ -1198,6 +1168,7 @@ struct Chain
       if (hb_none (hb_iter (c->range_flags) |
 		   hb_map ([subtable_flags] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable_flags & (_.flags); })))
 	goto skip;
+
       c->subtable_flags = subtable_flags;
       c->machine_glyph_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_bit_set_t);
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
@@ -1206,6 +1177,12 @@ struct Chain
 	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
 	  bool (coverage & ChainSubtable<Types>::Vertical))
 	goto skip;
+
+      if (!c->buffer_intersects_machine ())
+      {
+	(void) c->buffer->message (c->font, "skipped chainsubtable %u because no glyph matches", c->lookup_index);
+	goto skip;
+      }
 
       /* Buffer contents is always in logical direction.  Determine if
        * we need to reverse before applying this subtable.  We reverse
@@ -1350,7 +1327,7 @@ struct mortmorx
 
       this->chain_count = table->get_chain_count ();
 
-      this->accels = (hb_atomic_ptr_t<hb_aat_layout_chain_accelerator_t> *) hb_calloc (this->chain_count, sizeof (*accels));
+      this->accels = (hb_atomic_t<hb_aat_layout_chain_accelerator_t *> *) hb_calloc (this->chain_count, sizeof (*accels));
       if (unlikely (!this->accels))
       {
 	this->chain_count = 0;
@@ -1397,7 +1374,7 @@ struct mortmorx
 
     hb_blob_ptr_t<T> table;
     unsigned int chain_count;
-    hb_atomic_ptr_t<hb_aat_layout_chain_accelerator_t> *accels;
+    hb_atomic_t<hb_aat_layout_chain_accelerator_t *> *accels;
   };
 
 

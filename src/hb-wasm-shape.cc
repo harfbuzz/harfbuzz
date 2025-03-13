@@ -113,7 +113,7 @@ struct hb_wasm_shape_plan_t {
 struct hb_wasm_face_data_t {
   hb_blob_t *wasm_blob;
   wasm_module_t wasm_module;
-  mutable hb_atomic_ptr_t<hb_wasm_shape_plan_t> plan;
+  mutable hb_atomic_t<hb_wasm_shape_plan_t *> plan;
 };
 
 static bool

@@ -2331,7 +2331,7 @@ static struct supported_font_funcs_t {
 
 static const char *get_default_funcs_name ()
 {
-  static hb_atomic_ptr_t<const char> static_funcs_name;
+  static hb_atomic_t<const char *> static_funcs_name;
   const char *name = static_funcs_name.get_acquire ();
   if (!name)
   {
