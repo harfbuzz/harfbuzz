@@ -1010,7 +1010,7 @@ struct KerxTable
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
-      c->machine_glyph_set = accel_data ? &accel_data[i].left_set : &Null(hb_bit_set_t);
+      c->machine_glyph_set = &accel_data[i].left_set;
 
       if (!c->buffer_intersects_machine ())
       {
