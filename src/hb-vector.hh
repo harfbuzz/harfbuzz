@@ -442,7 +442,6 @@ struct hb_vector_t
 	new_allocated += (new_allocated >> 1) + 8;
     }
 
-
     /* Reallocate */
 
     bool overflows =

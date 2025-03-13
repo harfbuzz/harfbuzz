@@ -88,7 +88,7 @@ struct hb_bit_set_t
   {
     if (unlikely (!successful)) return false;
 
-    if (pages.length < count && count <= 2)
+    if (pages.length < count && (unsigned) pages.allocated < count && count <= 2)
       exact_size = true; // Most sets are small and local
 
     if (unlikely (!pages.resize (count, clear, exact_size) ||
