@@ -119,13 +119,13 @@ struct hb_aat_apply_context_t :
   HB_NODISCARD bool output_glyphs (unsigned int count,
 				   const T *glyphs)
   {
+    buffer_glyph_set.add_array (glyphs, count);
     for (unsigned int i = 0; i < count; i++)
     {
       if (glyphs[i] == DELETED_GLYPH)
 	_hb_glyph_info_set_aat_deleted (&buffer->cur());
       else
       {
-	buffer_glyph_set.add (glyphs[i]);
 #ifndef HB_NO_OT_LAYOUT
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->cur(),
