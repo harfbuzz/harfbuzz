@@ -63,7 +63,7 @@ struct hb_bit_vector_t
   using int_t = uint64_t;
   using elt_t = typename std::conditional<atomic, hb_atomic_t<int_t>, int_t>::type;
 
-  hb_bit_vector_t () = default;
+  hb_bit_vector_t () = delete;
   hb_bit_vector_t (const hb_bit_vector_t &other) = delete;
   hb_bit_vector_t &operator= (const hb_bit_vector_t &other) = delete;
 
@@ -111,6 +111,7 @@ struct hb_bit_vector_t
   void del (hb_codepoint_t g) { elt (g) &= ~mask (g); }
   void set (hb_codepoint_t g, bool value) { if (value) add (g); else del (g); }
   bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
+  bool has (hb_codepoint_t g) const { return get (g); }
   bool may_have (hb_codepoint_t g) const { return get (g); }
 
   bool operator [] (hb_codepoint_t g) const { return get (g); }

@@ -330,7 +330,8 @@ is_deleted_glyph (const hb_glyph_info_t *info)
 void
 hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
 {
-  buffer->delete_glyphs_inplace (is_deleted_glyph);
+  if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_AAT_HAS_DELETED)
+    buffer->delete_glyphs_inplace (is_deleted_glyph);
 }
 
 /**
