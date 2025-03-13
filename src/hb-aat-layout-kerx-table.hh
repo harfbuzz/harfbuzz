@@ -920,7 +920,14 @@ struct KerxSubTable
  * The 'kerx' Table
  */
 
-using kern_accelerator_data_t = hb_vector_t<hb_pair_t<hb_bit_set_t, hb_bit_set_t>>;
+struct kern_subtable_accelerator_data_t
+{
+  hb_bit_set_t left_set;
+  hb_bit_set_t right_set;
+  mutable hb_aat_class_cache_t class_cache;
+};
+
+using kern_accelerator_data_t = hb_vector_t<kern_subtable_accelerator_data_t>;
 
 template <typename T>
 struct KerxTable
@@ -1001,7 +1008,7 @@ struct KerxTable
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
-      c->machine_glyph_set = accel_data ? &accel_data[i].first : &Null(hb_bit_set_t);
+      c->machine_glyph_set = accel_data ? &accel_data[i].left_set : &Null(hb_bit_set_t);
 
       if (!c->buffer_intersects_machine ())
       {
@@ -1035,8 +1042,9 @@ struct KerxTable
       if (reverse)
 	c->buffer->reverse ();
 
-      c->left_set = &accel_data[i].first;
-      c->right_set = &accel_data[i].second;
+      c->left_set = &accel_data[i].left_set;
+      c->right_set = &accel_data[i].right_set;
+      c->machine_class_cache = &accel_data[i].class_cache;
 
       {
 	/* See comment in sanitize() for conditional here. */
@@ -1113,9 +1121,13 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      hb_bit_set_t left_set, right_set;
-      st->collect_glyphs (left_set, right_set, num_glyphs);
-      accel_data.push (hb_pair (left_set, right_set));
+      kern_subtable_accelerator_data_t *accel = accel_data.push ();
+      if (unlikely (accel_data.in_error ()))
+	return accel_data;
+
+      st->collect_glyphs (accel->left_set, accel->right_set, num_glyphs);
+      accel->class_cache.clear ();
+
       st = &StructAfter<SubTable> (*st);
     }
 
