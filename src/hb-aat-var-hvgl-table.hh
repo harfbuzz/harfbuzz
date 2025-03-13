@@ -26,6 +26,8 @@ struct hb_hvgl_scratch_t
   hb_vector_t<double> points;
 };
 
+using hb_hvgl_parts_sanitized_t = hb_bit_vector_t<true>;
+
 struct hvgl;
 
 struct hb_hvgl_context_t
@@ -35,7 +37,7 @@ struct hb_hvgl_context_t
   hb_extents_t<> *extents;
   hb_hvgl_scratch_t &scratch;
   hb_sanitize_context_t &sanitizer;
-  hb_bit_vector_t<true> &parts_sanitized;
+  hb_hvgl_parts_sanitized_t &parts_sanitized;
   mutable signed nodes_left;
   mutable signed edges_left;
   mutable signed depth_left;
@@ -486,14 +488,14 @@ struct IndexOf : Index
   public:
 
   const Type &get (unsigned index, unsigned count,
-		   hb_sanitize_context_t &c, hb_bit_vector_t<true> &parts_sanitized) const
+		   hb_sanitize_context_t &c, hb_hvgl_parts_sanitized_t &parts_sanitized) const
   {
     if (unlikely (index >= count)) return Null(Type);
 
     hb_bytes_t data = Index::get (index, count);
     const Type &item = *reinterpret_cast<const Type *> (data.begin ());
 
-    bool sanitized = parts_sanitized.get (index);
+    bool sanitized = parts_sanitized.has (index);
     if (unlikely (!sanitized))
     {
       c.start_processing (data.begin (), data.end ());
@@ -559,7 +561,7 @@ struct hvgl
 	       hb_extents_t<> *extents,
 	       hb_array_t<const int> coords,
 	       hb_hvgl_scratch_t &scratch,
-	       hb_bit_vector_t<true> &parts_sanitized) const
+	       hb_hvgl_parts_sanitized_t &parts_sanitized) const
   {
     if (unlikely (gid >= numGlyphs)) return false;
 
@@ -612,12 +614,8 @@ struct hvgl
   struct accelerator_t
   {
     accelerator_t (hb_face_t *face)
-    {
-      table = hb_sanitize_context_t ().reference_table<hvgl> (face);
-
-      hb_bit_vector_t<true> parts_sanitized_ (0, table->partCount);
-      parts_sanitized = std::move (parts_sanitized_);
-    }
+      : table (hb_sanitize_context_t ().reference_table<hvgl> (face)),
+        parts_sanitized (0, table->partCount) {}
     ~accelerator_t ()
     {
       auto *scratch = cached_scratch.get_relaxed ();
@@ -719,7 +717,7 @@ struct hvgl
     private:
     hb_blob_ptr_t<hvgl> table;
     hb_atomic_t<hb_hvgl_scratch_t *> cached_scratch;
-    mutable hb_bit_vector_t<true> parts_sanitized;
+    mutable hb_hvgl_parts_sanitized_t parts_sanitized;
   };
 
   bool has_data () const { return versionMajor != 0; }
