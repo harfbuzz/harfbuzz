@@ -903,7 +903,15 @@ hb_directwrite_face_create_from_blob_or_fail (hb_blob_t    *blob,
 					      unsigned int  index)
 {
   hb_directwrite_face_data_t *data = _hb_directwrite_face_data_create (blob, index);
+  if (unlikely (!data))
+    return nullptr;
+
   hb_face_t *face = hb_directwrite_face_create (data->fontFace);
+  if (unlikely (hb_object_is_immutable (face)))
+  {
+    _hb_directwrite_shaper_face_data_destroy (data);
+    return face;
+  }
 
   /* Let there be dragons here... */
   face->data.directwrite.cmpexch (nullptr, data);
