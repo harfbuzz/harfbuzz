@@ -40,6 +40,9 @@
 #ifdef HAVE_CORETEXT
 #include "hb-coretext.h"
 #endif
+#ifdef HAVE_DIRECTWRITE
+#include "hb-directwrite.h"
+#endif
 
 
 /**
@@ -327,7 +330,7 @@ hb_face_create_from_file_or_fail (const char   *file_name,
 }
 
 static struct supported_face_loaders_t {
-	char name[9];
+	char name[16];
 	hb_face_t * (*from_file) (const char *font_file, unsigned face_index);
 	hb_face_t * (*from_blob) (hb_blob_t *blob, unsigned face_index);
 } supported_face_loaders[] =
@@ -350,6 +353,12 @@ static struct supported_face_loaders_t {
   {"coretext",
    hb_coretext_face_create_from_file_or_fail,
    hb_coretext_face_create_from_blob_or_fail
+  },
+#endif
+#ifdef HAVE_DIRECTWRITE
+  {"directwrite",
+   nullptr, //hb_directwrite_face_create_from_file_or_fail,
+   hb_directwrite_face_create_from_blob_or_fail
   },
 #endif
 };
