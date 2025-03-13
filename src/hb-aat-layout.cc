@@ -317,7 +317,7 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
     {
       AAT::hb_aat_apply_context_t c (plan, font, buffer, accel.get_blob ());
       if (!buffer->message (font, "start table mort")) return;
-      mort.apply (&c, map, accel);
+      mort.apply (&c, num_features ? map : plan->aat_map, accel);
       (void) buffer->message (font, "end table mort");
       return;
     }
