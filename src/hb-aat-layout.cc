@@ -304,7 +304,10 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
     {
       AAT::hb_aat_apply_context_t c (plan, font, buffer, accel.get_blob ());
       if (!buffer->message (font, "start table morx")) return;
+      c.buffer_glyph_set = accel.scratch.create_buffer_glyph_set ();
       morx.apply (&c, num_features ? map : plan->aat_map, accel);
+      accel.scratch.destroy_buffer_glyph_set (c.buffer_glyph_set);
+      c.buffer_glyph_set = nullptr;
       (void) buffer->message (font, "end table morx");
       return;
     }
@@ -317,7 +320,7 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
     {
       AAT::hb_aat_apply_context_t c (plan, font, buffer, accel.get_blob ());
       if (!buffer->message (font, "start table mort")) return;
-      mort.apply (&c, map, accel);
+      mort.apply (&c, num_features ? map : plan->aat_map, accel);
       (void) buffer->message (font, "end table mort");
       return;
     }
@@ -365,8 +368,11 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
 
   AAT::hb_aat_apply_context_t c (plan, font, buffer, accel.get_blob ());
   if (!buffer->message (font, "start table kerx")) return;
+  c.buffer_glyph_set = accel.scratch.create_buffer_glyph_set ();
   c.set_ankr_table (font->face->table.ankr.get ());
   accel.apply (&c);
+  accel.scratch.destroy_buffer_glyph_set (c.buffer_glyph_set);
+  c.buffer_glyph_set = nullptr;
   (void) buffer->message (font, "end table kerx");
 }
 
