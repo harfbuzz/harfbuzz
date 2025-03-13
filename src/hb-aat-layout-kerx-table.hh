@@ -991,6 +991,8 @@ struct KerxTable
   {
     c->buffer->unsafe_to_concat ();
 
+    c->setup_buffer_glyph_set ();
+
     typedef typename T::SubTable SubTable;
 
     bool ret = false;
