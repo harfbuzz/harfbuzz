@@ -1375,6 +1375,7 @@ struct mortmorx
     hb_blob_ptr_t<T> table;
     unsigned int chain_count;
     hb_atomic_t<hb_aat_layout_chain_accelerator_t *> *accels;
+    hb_aat_scratch_t scratch;
   };
 
 

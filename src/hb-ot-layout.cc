@@ -131,13 +131,15 @@ hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
 		   hb_font_t *font,
 		   hb_buffer_t  *buffer)
 {
-  hb_blob_t *blob = font->face->table.kern.get_blob ();
-  const auto& kern = *font->face->table.kern;
+  auto &accel = *font->face->table.kern;
+  hb_blob_t *blob = accel.get_blob ();
 
   AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
 
   if (!buffer->message (font, "start table kern")) return;
-  kern.apply (&c);
+  c.buffer_glyph_set = accel.scratch.create_buffer_glyph_set ();
+  accel.apply (&c);
+  accel.scratch.destroy_buffer_glyph_set (c.buffer_glyph_set);
   (void) buffer->message (font, "end table kern");
 }
 #endif

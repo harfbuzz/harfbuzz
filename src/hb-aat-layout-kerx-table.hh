@@ -928,7 +928,11 @@ struct kern_subtable_accelerator_data_t
   mutable hb_aat_class_cache_t class_cache;
 };
 
-using kern_accelerator_data_t = hb_vector_t<kern_subtable_accelerator_data_t>;
+struct kern_accelerator_data_t
+{
+  hb_vector_t<kern_subtable_accelerator_data_t> subtable_accels;
+  hb_aat_scratch_t scratch;
+};
 
 template <typename T>
 struct KerxTable
@@ -1005,16 +1009,18 @@ struct KerxTable
     {
       bool reverse;
 
+      auto &subtable_accel = accel_data.subtable_accels[i];
+
       if (!T::Types::extended && (st->u.header.coverage & st->u.header.Variation))
 	goto skip;
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
 
-      c->left_set = &accel_data[i].left_set;
-      c->right_set = &accel_data[i].right_set;
-      c->machine_glyph_set = &accel_data[i].left_set;
-      c->machine_class_cache = &accel_data[i].class_cache;
+      c->left_set = &subtable_accel.left_set;
+      c->right_set = &subtable_accel.right_set;
+      c->machine_glyph_set = &subtable_accel.left_set;
+      c->machine_class_cache = &subtable_accel.class_cache;
 
       if (!c->buffer_intersects_machine ())
       {
@@ -1123,12 +1129,12 @@ struct KerxTable
     unsigned int count = thiz()->tableCount;
     for (unsigned int i = 0; i < count; i++)
     {
-      kern_subtable_accelerator_data_t *accel = accel_data.push ();
-      if (unlikely (accel_data.in_error ()))
-	return accel_data;
+      auto &subtable_accel = *accel_data.subtable_accels.push ();
+      if (unlikely (accel_data.subtable_accels.in_error ()))
+	  return accel_data;
 
-      st->collect_glyphs (accel->left_set, accel->right_set, num_glyphs);
-      accel->class_cache.clear ();
+      st->collect_glyphs (subtable_accel.left_set, subtable_accel.right_set, num_glyphs);
+      subtable_accel.class_cache.clear ();
 
       st = &StructAfter<SubTable> (*st);
     }
@@ -1158,6 +1164,7 @@ struct KerxTable
 
     hb_blob_ptr_t<T> table;
     kern_accelerator_data_t accel_data;
+    hb_aat_scratch_t scratch;
   };
 };
 
