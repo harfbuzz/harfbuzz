@@ -84,6 +84,7 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
 						props (props),
 						map (face, props)
 #ifndef HB_NO_AAT_SHAPE
+						, aat_map (face, props)
 						, apply_morx (_hb_apply_morx (face, props))
 #endif
 {
@@ -106,6 +107,10 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   plan.props = props;
   plan.shaper = shaper;
   map.compile (plan.map, key);
+#ifndef HB_NO_AAT_SHAPE
+  if (apply_morx)
+    aat_map.compile (plan.aat_map);
+#endif
 
 #ifndef HB_NO_OT_SHAPE_FRACTIONS
   plan.frac_mask = plan.map.get_1_mask (HB_TAG ('f','r','a','c'));

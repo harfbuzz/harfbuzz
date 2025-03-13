@@ -204,7 +204,7 @@ hb_aat_layout_find_feature_mapping (hb_tag_t tag)
 #endif
 
 
-#ifndef HB_NO_AAT
+#ifndef HB_NO_AAT_SHAPE
 
 /*
  * mort/morx/kerx/trak
@@ -288,11 +288,14 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
 			  const hb_feature_t *features,
 			  unsigned num_features)
 {
-  hb_aat_map_builder_t builder (font->face, plan->props);
-  for (unsigned i = 0; i < num_features; i++)
-    builder.add_feature (features[i]);
   hb_aat_map_t map;
-  builder.compile (map);
+  if (num_features)
+  {
+    hb_aat_map_builder_t builder (font->face, plan->props);
+    for (unsigned i = 0; i < num_features; i++)
+      builder.add_feature (features[i]);
+    builder.compile (map);
+  }
 
   {
     auto &accel = *font->face->table.morx;
@@ -301,7 +304,7 @@ hb_aat_layout_substitute (const hb_ot_shape_plan_t *plan,
     {
       AAT::hb_aat_apply_context_t c (plan, font, buffer, accel.get_blob ());
       if (!buffer->message (font, "start table morx")) return;
-      morx.apply (&c, map, accel);
+      morx.apply (&c, num_features ? map : plan->aat_map, accel);
       (void) buffer->message (font, "end table morx");
       return;
     }
