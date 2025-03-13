@@ -53,16 +53,17 @@ static_assert (sizeof (hb_aat_class_cache_t) == 256, "");
 struct hb_aat_scratch_t
 {
   hb_aat_scratch_t () = default;
+  hb_aat_scratch_t (const hb_aat_scratch_t &) = delete;
 
   hb_aat_scratch_t (hb_aat_scratch_t &&o)
   {
-    buffer_glyph_set = o.buffer_glyph_set;
-    o.buffer_glyph_set = nullptr;
+    buffer_glyph_set.set_relaxed (o.buffer_glyph_set.get_relaxed ());
+    o.buffer_glyph_set.set_relaxed (nullptr);
   }
   hb_aat_scratch_t & operator = (hb_aat_scratch_t &&o)
   {
-    buffer_glyph_set = o.buffer_glyph_set;
-    o.buffer_glyph_set = nullptr;
+    buffer_glyph_set.set_relaxed (o.buffer_glyph_set.get_relaxed ());
+    o.buffer_glyph_set.set_relaxed (nullptr);
     return *this;
   }
 
