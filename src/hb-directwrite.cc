@@ -32,6 +32,8 @@
 
 #include "hb-ms-feature-ranges.hh"
 
+#include "hb-map.hh"
+
 /**
  * SECTION:hb-directwrite
  * @title: hb-directwrite
@@ -53,16 +55,25 @@ typedef HRESULT (WINAPI *t_DWriteCreateFactory)(
  * DirectWrite font stream helpers
  */
 
-// This is a font loader which provides only one font (unlike its original design).
-// For a better implementation which was also source of this
-// and DWriteFontFileStream, have a look at to NativeFontResourceDWrite.cpp in Mozilla
+// Have a look at to NativeFontResourceDWrite.cpp in Mozilla
+
 class DWriteFontFileLoader : public IDWriteFontFileLoader
 {
 private:
-  IDWriteFontFileStream *mFontFileStream;
+  hb_hashmap_t<uint64_t, IDWriteFontFileStream *> mFontStreams;
+  uint64_t mNextFontFileKey;
 public:
-  DWriteFontFileLoader (IDWriteFontFileStream *fontFileStream)
-  { mFontFileStream = fontFileStream; }
+  DWriteFontFileLoader () {}
+
+  uint64_t RegisterFontFileStream (IDWriteFontFileStream *fontFileStream)
+  {
+    mFontStreams.set (mNextFontFileKey, fontFileStream);
+    return mNextFontFileKey++;
+  }
+  void UnregisterFontFileStream (uint64_t fontFileKey)
+  {
+    mFontStreams.del (fontFileKey);
+  }
 
   // IUnknown interface
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
@@ -76,7 +87,13 @@ public:
 		       uint32_t fontFileReferenceKeySize,
 		       OUT IDWriteFontFileStream** fontFileStream)
   {
-    *fontFileStream = mFontFileStream;
+    if (fontFileReferenceKeySize != sizeof (uint64_t))
+      return E_INVALIDARG;
+    uint64_t fontFileKey = * (uint64_t *) fontFileReferenceKey;
+    IDWriteFontFileStream *stream = mFontStreams.get (fontFileKey);
+    if (!stream)
+      return E_FAIL;
+    *fontFileStream = stream;
     return S_OK;
   }
 
@@ -151,8 +168,9 @@ struct hb_directwrite_face_data_t
   HMODULE dwrite_dll;
   IDWriteFactory *dwriteFactory;
   IDWriteFontFile *fontFile;
-  DWriteFontFileStream *fontFileStream;
   DWriteFontFileLoader *fontFileLoader;
+  DWriteFontFileStream *fontFileStream;
+  uint64_t fontFileKey;
   IDWriteFontFace *fontFace;
 };
 
@@ -201,14 +219,15 @@ _hb_directwrite_face_data_create (hb_blob_t *blob,
   if (unlikely (hr != S_OK))
     FAIL ("Failed to run DWriteCreateFactory().");
 
+  DWriteFontFileLoader *fontFileLoader = new DWriteFontFileLoader ();
+  dwriteFactory->RegisterFontFileLoader (fontFileLoader);
+
   DWriteFontFileStream *fontFileStream;
   fontFileStream = new DWriteFontFileStream (blob);
 
-  DWriteFontFileLoader *fontFileLoader = new DWriteFontFileLoader (fontFileStream);
-  dwriteFactory->RegisterFontFileLoader (fontFileLoader);
+  uint64_t fontFileKey = fontFileLoader->RegisterFontFileStream (fontFileStream);
 
   IDWriteFontFile *fontFile;
-  uint64_t fontFileKey = 0;
   hr = dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
 						     fontFileLoader, &fontFile);
 
@@ -231,8 +250,9 @@ _hb_directwrite_face_data_create (hb_blob_t *blob,
 
   data->dwriteFactory = dwriteFactory;
   data->fontFile = fontFile;
-  data->fontFileStream = fontFileStream;
   data->fontFileLoader = fontFileLoader;
+  data->fontFileStream = fontFileStream;
+  data->fontFileKey = fontFileKey;
   data->fontFace = fontFace;
 
   return data;
@@ -263,8 +283,9 @@ _hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
       data->dwriteFactory->UnregisterFontFileLoader (data->fontFileLoader);
     data->dwriteFactory->Release ();
   }
-  delete data->fontFileLoader;
+  data->fontFileLoader->UnregisterFontFileStream (data->fontFileKey);
   delete data->fontFileStream;
+  delete data->fontFileLoader;
   if (data->dwrite_dll)
   {
     //FreeLibrary (data->dwrite_dll);
