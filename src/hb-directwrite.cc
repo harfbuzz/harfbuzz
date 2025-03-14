@@ -193,6 +193,42 @@ public:
   }
 };
 
+static inline void free_static_dwrite_dll ();
+
+static struct hb_dwrite_dll_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<HMODULE>,
+							     hb_dwrite_dll_lazy_loader_t>
+{
+  static HMODULE create ()
+  {
+    HMODULE l = LoadLibrary (TEXT ("DWRITE"));
+    if (unlikely (!l))
+      return nullptr;
+
+    hb_atexit (free_static_dwrite_dll);
+
+    return l;
+  }
+  static void destroy (HMODULE l)
+  {
+    FreeLibrary (l);
+  }
+  static HMODULE get_null ()
+  {
+    return nullptr;
+  }
+} static_dwrite_dll;
+
+static inline
+void free_static_dwrite_dll ()
+{
+  static_dwrite_dll.free_instance ();
+}
+
+static HMODULE
+get_dwrite_dll ()
+{
+  return static_dwrite_dll.get_unconst ();
+}
 
 /*
 * shaper face data
@@ -211,7 +247,7 @@ struct hb_directwrite_face_data_t
       _hb_directwrite_face_data_destroy (this); \
     } HB_STMT_END
 
-    dwrite_dll = LoadLibrary (TEXT ("DWRITE"));
+    auto dwrite_dll = get_dwrite_dll ();
     if (unlikely (!dwrite_dll))
       FAIL ("Cannot find DWrite.DLL");
 
@@ -268,8 +304,12 @@ struct hb_directwrite_face_data_t
 				   DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
   }
 
+  ~hb_directwrite_face_data_t ()
+   {
+     _hb_directwrite_face_data_destroy (this);
+   }
+
   public:
-  HMODULE dwrite_dll;
   IDWriteFactory *dwriteFactory;
   IDWriteFontFile *fontFile;
   DWriteFontFileLoader *fontFileLoader;
@@ -331,10 +371,6 @@ _hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data)
   {
     data->fontFileStream->Release ();
     data->fontFileStream = nullptr;
-  }
-  if (data->dwrite_dll)
-  {
-    //FreeLibrary (data->dwrite_dll);
   }
 }
 
