@@ -1027,6 +1027,33 @@ hb_directwrite_face_create (IDWriteFontFace *dw_face)
 }
 
 /**
+ * hb_directwrite_face_create_from_file_or_fail:
+ * @file_name: A font filename
+ * @index: The index of the face within the file
+ *
+ * Creates an #hb_face_t face object from the specified
+ * font file and face index.
+ *
+ * This is similar in functionality to hb_face_create_from_file_or_fail(),
+ * but uses the DirectWrite library for loading the font file.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index or the file cannot be read.
+ *
+ * XSince: REPLACEME
+ */
+hb_face_t *
+hb_directwrite_face_create_from_file_or_fail (const char   *file_name,
+					      unsigned int  index)
+{
+  auto *blob = hb_blob_create_from_file_or_fail (file_name);
+  if (unlikely (!blob))
+    return nullptr;
+
+  return hb_directwrite_face_create_from_blob_or_fail (blob, index);
+}
+
+/**
  * hb_directwrite_face_create_from_blob_or_fail:
  * @blob: A blob containing the font data
  * @index: The index of the face within the blob

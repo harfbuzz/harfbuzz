@@ -357,7 +357,7 @@ static struct supported_face_loaders_t {
 #endif
 #ifdef HAVE_DIRECTWRITE
   {"directwrite",
-   nullptr, //hb_directwrite_face_create_from_file_or_fail,
+   hb_directwrite_face_create_from_file_or_fail,
    hb_directwrite_face_create_from_blob_or_fail
   },
 #endif
