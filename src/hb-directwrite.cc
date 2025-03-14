@@ -253,7 +253,7 @@ struct hb_directwrite_global_t
   DWriteFontFileLoader *fontFileLoader;
 };
 
-static inline void free_static_dwrite_dll ();
+static inline void free_static_directwrite_global ();
 
 static struct hb_directwrite_global_lazy_loader_t : hb_lazy_loader_t<hb_directwrite_global_t,
 								     hb_directwrite_global_lazy_loader_t>
@@ -262,7 +262,7 @@ static struct hb_directwrite_global_lazy_loader_t : hb_lazy_loader_t<hb_directwr
   {
     hb_directwrite_global_t *global = new hb_directwrite_global_t;
 
-    hb_atexit (free_static_dwrite_dll);
+    hb_atexit (free_static_directwrite_global);
 
     return global;
   }
@@ -277,7 +277,7 @@ static struct hb_directwrite_global_lazy_loader_t : hb_lazy_loader_t<hb_directwr
 } static_directwrite_global;
 
 static inline
-void free_static_dwrite_dll ()
+void free_static_directwrite_global ()
 {
   static_directwrite_global.free_instance ();
 }
