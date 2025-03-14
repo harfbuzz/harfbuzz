@@ -198,8 +198,77 @@ public:
 * shaper face data
 */
 
+static void
+_hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data);
+
 struct hb_directwrite_face_data_t
 {
+  hb_directwrite_face_data_t (hb_blob_t *blob, unsigned index)
+  {
+#define FAIL(...) \
+    HB_STMT_START { \
+      DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
+      _hb_directwrite_face_data_destroy (this); \
+    } HB_STMT_END
+
+    dwrite_dll = LoadLibrary (TEXT ("DWRITE"));
+    if (unlikely (!dwrite_dll))
+      FAIL ("Cannot find DWrite.DLL");
+
+    t_DWriteCreateFactory p_DWriteCreateFactory;
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
+    p_DWriteCreateFactory = (t_DWriteCreateFactory)
+			    GetProcAddress (dwrite_dll, "DWriteCreateFactory");
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+    if (unlikely (!p_DWriteCreateFactory))
+      FAIL ("Cannot find DWriteCreateFactory().");
+
+    HRESULT hr;
+
+    // TODO: factory and fontFileLoader should be cached separately
+    hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
+				(IUnknown**) &dwriteFactory);
+
+    if (unlikely (hr != S_OK))
+      FAIL ("Failed to run DWriteCreateFactory().");
+
+    fontFileLoader = new DWriteFontFileLoader ();
+    dwriteFactory->RegisterFontFileLoader (fontFileLoader);
+
+    fontFileStream = new DWriteFontFileStream (blob);
+
+    fontFileKey = fontFileLoader->RegisterFontFileStream (fontFileStream);
+
+    hr = dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
+						       fontFileLoader, &fontFile);
+
+    if (FAILED (hr))
+      FAIL ("Failed to load font file from data!");
+
+    BOOL isSupported;
+    DWRITE_FONT_FILE_TYPE fileType;
+    DWRITE_FONT_FACE_TYPE faceType;
+    uint32_t numberOfFaces;
+    hr = fontFile->Analyze (&isSupported, &fileType, &faceType, &numberOfFaces);
+    if (FAILED (hr) || !isSupported)
+      FAIL ("Font file is not supported.");
+
+#undef FAIL
+
+    dwriteFactory->CreateFontFace (faceType, 1, &fontFile, index,
+				   DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
+  }
+
+  public:
   HMODULE dwrite_dll;
   IDWriteFactory *dwriteFactory;
   IDWriteFontFile *fontFile;
@@ -213,82 +282,9 @@ static hb_directwrite_face_data_t *
 _hb_directwrite_face_data_create (hb_blob_t *blob,
 				  unsigned index)
 {
-  hb_directwrite_face_data_t *data = new hb_directwrite_face_data_t;
-  if (unlikely (!data))
+  hb_directwrite_face_data_t *data = new hb_directwrite_face_data_t (blob, index);
+  if (unlikely (!data || !data->fontFace))
     return nullptr;
-
-#define FAIL(...) \
-  HB_STMT_START { \
-    DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
-    return nullptr; \
-  } HB_STMT_END
-
-  data->dwrite_dll = LoadLibrary (TEXT ("DWRITE"));
-  if (unlikely (!data->dwrite_dll))
-    FAIL ("Cannot find DWrite.DLL");
-
-  t_DWriteCreateFactory p_DWriteCreateFactory;
-
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-
-  p_DWriteCreateFactory = (t_DWriteCreateFactory)
-			  GetProcAddress (data->dwrite_dll, "DWriteCreateFactory");
-
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-
-  if (unlikely (!p_DWriteCreateFactory))
-    FAIL ("Cannot find DWriteCreateFactory().");
-
-  HRESULT hr;
-
-  // TODO: factory and fontFileLoader should be cached separately
-  IDWriteFactory* dwriteFactory;
-  hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
-			      (IUnknown**) &dwriteFactory);
-
-  if (unlikely (hr != S_OK))
-    FAIL ("Failed to run DWriteCreateFactory().");
-
-  DWriteFontFileLoader *fontFileLoader = new DWriteFontFileLoader ();
-  dwriteFactory->RegisterFontFileLoader (fontFileLoader);
-
-  DWriteFontFileStream *fontFileStream;
-  fontFileStream = new DWriteFontFileStream (blob);
-
-  uint64_t fontFileKey = fontFileLoader->RegisterFontFileStream (fontFileStream);
-
-  IDWriteFontFile *fontFile;
-  hr = dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
-						     fontFileLoader, &fontFile);
-
-  if (FAILED (hr))
-    FAIL ("Failed to load font file from data!");
-
-  BOOL isSupported;
-  DWRITE_FONT_FILE_TYPE fileType;
-  DWRITE_FONT_FACE_TYPE faceType;
-  uint32_t numberOfFaces;
-  hr = fontFile->Analyze (&isSupported, &fileType, &faceType, &numberOfFaces);
-  if (FAILED (hr) || !isSupported)
-    FAIL ("Font file is not supported.");
-
-#undef FAIL
-
-  IDWriteFontFace *fontFace;
-  dwriteFactory->CreateFontFace (faceType, 1, &fontFile, index,
-				 DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
-
-  data->dwriteFactory = dwriteFactory;
-  data->fontFile = fontFile;
-  data->fontFileLoader = fontFileLoader;
-  data->fontFileStream = fontFileStream;
-  data->fontFileKey = fontFileKey;
-  data->fontFace = fontFace;
 
   return data;
 }
@@ -305,28 +301,48 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
   return data;
 }
 
-void
-_hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
+static void
+_hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data)
 {
   if (data->fontFace)
+  {
     data->fontFace->Release ();
+    data->fontFace = nullptr;
+  }
   if (data->fontFile)
+  {
     data->fontFile->Release ();
+    data->fontFile = nullptr;
+  }
   if (data->dwriteFactory)
   {
     if (data->fontFileLoader)
       data->dwriteFactory->UnregisterFontFileLoader (data->fontFileLoader);
     data->dwriteFactory->Release ();
+    data->dwriteFactory = nullptr;
   }
-  data->fontFileLoader->UnregisterFontFileStream (data->fontFileKey);
-  if (data->fontFileStream)
-    data->fontFileStream->Release ();
   if (data->fontFileLoader)
+  {
+    data->fontFileLoader->UnregisterFontFileStream (data->fontFileKey);
     data->fontFileLoader->Release ();
+    data->fontFileLoader = nullptr;
+  }
+  if (data->fontFileStream)
+  {
+    data->fontFileStream->Release ();
+    data->fontFileStream = nullptr;
+  }
   if (data->dwrite_dll)
   {
     //FreeLibrary (data->dwrite_dll);
   }
+}
+
+void
+_hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
+{
+  if (data)
+    _hb_directwrite_face_data_destroy (data);
   delete data;
 }
 
