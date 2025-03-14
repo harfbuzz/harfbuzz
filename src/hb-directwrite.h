@@ -34,6 +34,14 @@ HB_BEGIN_DECLS
 HB_EXTERN hb_face_t *
 hb_directwrite_face_create (IDWriteFontFace *dw_face);
 
+HB_EXTERN hb_face_t *
+hb_directwrite_face_create_from_file_or_fail (const char   *file_name,
+					      unsigned int  index);
+
+HB_EXTERN hb_face_t *
+hb_directwrite_face_create_from_blob_or_fail (hb_blob_t    *blob,
+					      unsigned int  index);
+
 HB_EXTERN IDWriteFontFace *
 hb_directwrite_face_get_dw_font_face (hb_face_t *face);
 

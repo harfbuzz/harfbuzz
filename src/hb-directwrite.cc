@@ -32,6 +32,8 @@
 
 #include "hb-ms-feature-ranges.hh"
 
+#include "hb-map.hh"
+
 /**
  * SECTION:hb-directwrite
  * @title: hb-directwrite
@@ -53,22 +55,52 @@ typedef HRESULT (WINAPI *t_DWriteCreateFactory)(
  * DirectWrite font stream helpers
  */
 
-// This is a font loader which provides only one font (unlike its original design).
-// For a better implementation which was also source of this
-// and DWriteFontFileStream, have a look at to NativeFontResourceDWrite.cpp in Mozilla
+// Have a look at to NativeFontResourceDWrite.cpp in Mozilla
+
 class DWriteFontFileLoader : public IDWriteFontFileLoader
 {
 private:
-  IDWriteFontFileStream *mFontFileStream;
+  hb_reference_count_t mRefCount;
+  hb_hashmap_t<uint64_t, IDWriteFontFileStream *> mFontStreams;
+  uint64_t mNextFontFileKey = 0;
 public:
-  DWriteFontFileLoader (IDWriteFontFileStream *fontFileStream)
-  { mFontFileStream = fontFileStream; }
+  DWriteFontFileLoader ()
+  {
+    mRefCount.init ();
+  }
+
+  uint64_t RegisterFontFileStream (IDWriteFontFileStream *fontFileStream)
+  {
+    fontFileStream->AddRef ();
+    mFontStreams.set (mNextFontFileKey, fontFileStream);
+    return mNextFontFileKey++;
+  }
+  void UnregisterFontFileStream (uint64_t fontFileKey)
+  {
+    IDWriteFontFileStream *stream = mFontStreams.get (fontFileKey);
+    if (stream)
+    {
+      mFontStreams.del (fontFileKey);
+      stream->Release ();
+    }
+  }
 
   // IUnknown interface
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
   { return S_OK; }
-  IFACEMETHOD_ (ULONG, AddRef) ()  { return 1; }
-  IFACEMETHOD_ (ULONG, Release) () { return 1; }
+  IFACEMETHOD_ (ULONG, AddRef) ()
+  {
+    return mRefCount.inc () + 1;
+  }
+  IFACEMETHOD_ (ULONG, Release) ()
+  {
+    signed refCount = mRefCount.dec () - 1;
+    assert (refCount >= 0);
+    if (refCount)
+      return refCount;
+    delete this;
+    return 0;
+  }
 
   // IDWriteFontFileLoader methods
   virtual HRESULT STDMETHODCALLTYPE
@@ -76,30 +108,62 @@ public:
 		       uint32_t fontFileReferenceKeySize,
 		       OUT IDWriteFontFileStream** fontFileStream)
   {
-    *fontFileStream = mFontFileStream;
+    if (fontFileReferenceKeySize != sizeof (uint64_t))
+      return E_INVALIDARG;
+    uint64_t fontFileKey = * (uint64_t *) fontFileReferenceKey;
+    IDWriteFontFileStream *stream = mFontStreams.get (fontFileKey);
+    if (!stream)
+      return E_FAIL;
+    stream->AddRef ();
+    *fontFileStream = stream;
     return S_OK;
   }
 
-  virtual ~DWriteFontFileLoader() {}
+  virtual ~DWriteFontFileLoader()
+  {
+    for (auto v : mFontStreams.values ())
+      v->Release ();
+  }
 };
 
 class DWriteFontFileStream : public IDWriteFontFileStream
 {
 private:
+  hb_reference_count_t mRefCount;
+  hb_blob_t *mBlob;
   uint8_t *mData;
-  uint32_t mSize;
+  unsigned mSize;
+  DWriteFontFileLoader *mLoader;
 public:
-  DWriteFontFileStream (uint8_t *aData, uint32_t aSize)
+  uint64_t fontFileKey;
+public:
+  DWriteFontFileStream (hb_blob_t *blob, DWriteFontFileLoader *loader) :
+    mLoader (loader)
   {
-    mData = aData;
-    mSize = aSize;
+    mRefCount.init ();
+    mLoader->AddRef ();
+    hb_blob_make_immutable (blob);
+    mBlob = hb_blob_reference (blob);
+    mData = (uint8_t *) hb_blob_get_data (blob, &mSize);
+    fontFileKey = mLoader->RegisterFontFileStream (this);
   }
 
   // IUnknown interface
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
   { return S_OK; }
-  IFACEMETHOD_ (ULONG, AddRef) ()  { return 1; }
-  IFACEMETHOD_ (ULONG, Release) () { return 1; }
+  IFACEMETHOD_ (ULONG, AddRef) ()
+  {
+    return mRefCount.inc () + 1;
+  }
+  IFACEMETHOD_ (ULONG, Release) ()
+  {
+    signed refCount = mRefCount.dec () - 1;
+    assert (refCount >= 0);
+    if (refCount)
+      return refCount;
+    delete this;
+    return 0;
+  }
 
   // IDWriteFontFileStream methods
   virtual HRESULT STDMETHODCALLTYPE
@@ -133,127 +197,203 @@ public:
   virtual HRESULT STDMETHODCALLTYPE
   GetLastWriteTime (OUT UINT64* lastWriteTime) { return E_NOTIMPL; }
 
-  virtual ~DWriteFontFileStream() {}
+  virtual ~DWriteFontFileStream()
+  {
+    mLoader->UnregisterFontFileStream (fontFileKey);
+    mLoader->Release ();
+    hb_blob_destroy (mBlob);
+  }
 };
 
-
-/*
-* shaper face data
-*/
-
-struct hb_directwrite_face_data_t
+struct hb_directwrite_global_t
 {
-  HMODULE dwrite_dll;
-  IDWriteFactory *dwriteFactory;
-  IDWriteFontFile *fontFile;
-  DWriteFontFileStream *fontFileStream;
-  DWriteFontFileLoader *fontFileLoader;
-  IDWriteFontFace *fontFace;
-  hb_blob_t *faceBlob;
-};
-
-hb_directwrite_face_data_t *
-_hb_directwrite_shaper_face_data_create (hb_face_t *face)
-{
-  hb_directwrite_face_data_t *data = new hb_directwrite_face_data_t;
-  if (unlikely (!data))
-    return nullptr;
-
-#define FAIL(...) \
-  HB_STMT_START { \
-    DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
-    return nullptr; \
-  } HB_STMT_END
-
-  data->dwrite_dll = LoadLibrary (TEXT ("DWRITE"));
-  if (unlikely (!data->dwrite_dll))
-    FAIL ("Cannot find DWrite.DLL");
-
-  t_DWriteCreateFactory p_DWriteCreateFactory;
+  hb_directwrite_global_t ()
+  {
+    dwrite_dll = LoadLibraryW (L"DWrite.dll");
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
-  p_DWriteCreateFactory = (t_DWriteCreateFactory)
-			  GetProcAddress (data->dwrite_dll, "DWriteCreateFactory");
+    t_DWriteCreateFactory p_DWriteCreateFactory = (t_DWriteCreateFactory)
+			    GetProcAddress (dwrite_dll, "DWriteCreateFactory");
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 
-  if (unlikely (!p_DWriteCreateFactory))
-    FAIL ("Cannot find DWriteCreateFactory().");
+    if (unlikely (!p_DWriteCreateFactory))
+      return;
 
-  HRESULT hr;
+    HRESULT hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
+					(IUnknown**) &dwriteFactory);
 
-  // TODO: factory and fontFileLoader should be cached separately
-  IDWriteFactory* dwriteFactory;
-  hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
-			      (IUnknown**) &dwriteFactory);
+    if (unlikely (hr != S_OK))
+      return;
 
-  if (unlikely (hr != S_OK))
-    FAIL ("Failed to run DWriteCreateFactory().");
+    fontFileLoader = new DWriteFontFileLoader ();
+    dwriteFactory->RegisterFontFileLoader (fontFileLoader);
 
-  hb_blob_t *blob = hb_face_reference_blob (face);
-  DWriteFontFileStream *fontFileStream;
-  fontFileStream = new DWriteFontFileStream ((uint8_t *) hb_blob_get_data (blob, nullptr),
-					     hb_blob_get_length (blob));
+    success = true;
+  }
+  ~hb_directwrite_global_t ()
+  {
+    if (fontFileLoader)
+      fontFileLoader->Release ();
+    if (dwriteFactory)
+      dwriteFactory->Release ();
+    if (dwrite_dll)
+      FreeLibrary (dwrite_dll);
+  }
 
-  DWriteFontFileLoader *fontFileLoader = new DWriteFontFileLoader (fontFileStream);
-  dwriteFactory->RegisterFontFileLoader (fontFileLoader);
+  bool success = false;
+  HMODULE dwrite_dll;
+  IDWriteFactory *dwriteFactory;
+  DWriteFontFileLoader *fontFileLoader;
+};
 
-  IDWriteFontFile *fontFile;
-  uint64_t fontFileKey = 0;
-  hr = dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
-						     fontFileLoader, &fontFile);
+static inline void free_static_dwrite_dll ();
 
-  if (FAILED (hr))
-    FAIL ("Failed to load font file from data!");
+static struct hb_directwrite_global_lazy_loader_t : hb_lazy_loader_t<hb_directwrite_global_t,
+								     hb_directwrite_global_lazy_loader_t>
+{
+  static hb_directwrite_global_t * create ()
+  {
+    hb_directwrite_global_t *global = new hb_directwrite_global_t;
 
-  BOOL isSupported;
-  DWRITE_FONT_FILE_TYPE fileType;
-  DWRITE_FONT_FACE_TYPE faceType;
-  uint32_t numberOfFaces;
-  hr = fontFile->Analyze (&isSupported, &fileType, &faceType, &numberOfFaces);
-  if (FAILED (hr) || !isSupported)
-    FAIL ("Font file is not supported.");
+    hb_atexit (free_static_dwrite_dll);
+
+    return global;
+  }
+  static void destroy (hb_directwrite_global_t *l)
+  {
+    delete l;
+  }
+  static hb_directwrite_global_t * get_null ()
+  {
+    return nullptr;
+  }
+} static_directwrite_global;
+
+static inline
+void free_static_dwrite_dll ()
+{
+  static_directwrite_global.free_instance ();
+}
+
+static hb_directwrite_global_t *
+get_directwrite_global ()
+{
+  return static_directwrite_global.get_unconst ();
+}
+
+/*
+* shaper face data
+*/
+
+static void
+_hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data);
+
+struct hb_directwrite_face_data_t
+{
+  hb_directwrite_face_data_t (hb_blob_t *blob, unsigned index)
+  {
+#define FAIL(...) \
+    HB_STMT_START { \
+      DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
+      _hb_directwrite_face_data_destroy (this); \
+    } HB_STMT_END
+
+    auto *global = get_directwrite_global ();
+    if (unlikely (!global || !global->success))
+      FAIL ("Couldn't load DirectWrite!");
+
+    fontFileStream = new DWriteFontFileStream (blob, global->fontFileLoader);
+
+    IDWriteFontFile *fontFile;
+    auto hr = global->dwriteFactory->CreateCustomFontFileReference (&fontFileStream->fontFileKey, sizeof (fontFileStream->fontFileKey),
+								    global->fontFileLoader, &fontFile);
+
+    if (FAILED (hr))
+      FAIL ("Failed to load font file from data!");
+
+    BOOL isSupported;
+    DWRITE_FONT_FILE_TYPE fileType;
+    DWRITE_FONT_FACE_TYPE faceType;
+    uint32_t numberOfFaces;
+    hr = fontFile->Analyze (&isSupported, &fileType, &faceType, &numberOfFaces);
+    if (FAILED (hr) || !isSupported)
+      FAIL ("Font file is not supported.");
 
 #undef FAIL
 
-  IDWriteFontFace *fontFace;
-  dwriteFactory->CreateFontFace (faceType, 1, &fontFile, 0,
-				 DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
+    global->dwriteFactory->CreateFontFace (faceType, 1, &fontFile, index,
+					   DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
+    fontFile->Release ();
+  }
 
-  data->dwriteFactory = dwriteFactory;
-  data->fontFile = fontFile;
-  data->fontFileStream = fontFileStream;
-  data->fontFileLoader = fontFileLoader;
-  data->fontFace = fontFace;
-  data->faceBlob = blob;
+  ~hb_directwrite_face_data_t ()
+   {
+     _hb_directwrite_face_data_destroy (this);
+   }
+
+  public:
+  DWriteFontFileLoader *fontFileLoader;
+  DWriteFontFileStream *fontFileStream;
+  IDWriteFontFace *fontFace;
+};
+
+static hb_directwrite_face_data_t *
+_hb_directwrite_face_data_create (hb_blob_t *blob,
+				  unsigned index)
+{
+  hb_directwrite_face_data_t *data = new hb_directwrite_face_data_t (blob, index);
+  if (unlikely (!data || !data->fontFace))
+  {
+    delete data;
+    return nullptr;
+  }
 
   return data;
+}
+
+hb_directwrite_face_data_t *
+_hb_directwrite_shaper_face_data_create (hb_face_t *face)
+{
+  hb_blob_t *blob = hb_face_reference_blob (face);
+
+  hb_directwrite_face_data_t *data = _hb_directwrite_face_data_create (blob, face->index);
+
+  hb_blob_destroy (blob);
+
+  return data;
+}
+
+static void
+_hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data)
+{
+  auto *global = get_directwrite_global ();
+  if (unlikely (!global || !global->success))
+    global = nullptr;
+
+  if (data->fontFace)
+  {
+    data->fontFace->Release ();
+    data->fontFace = nullptr;
+  }
+  if (data->fontFileStream)
+  {
+    data->fontFileStream->Release ();
+    data->fontFileStream = nullptr;
+  }
 }
 
 void
 _hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
 {
-  if (data->fontFace)
-    data->fontFace->Release ();
-  if (data->fontFile)
-    data->fontFile->Release ();
-  if (data->dwriteFactory)
-  {
-    if (data->fontFileLoader)
-      data->dwriteFactory->UnregisterFontFileLoader (data->fontFileLoader);
-    data->dwriteFactory->Release ();
-  }
-  delete data->fontFileLoader;
-  delete data->fontFileStream;
-  hb_blob_destroy (data->faceBlob);
-  if (data->dwrite_dll)
-    FreeLibrary (data->dwrite_dll);
+  if (data)
+    _hb_directwrite_face_data_destroy (data);
   delete data;
 }
 
@@ -282,12 +422,24 @@ _hb_directwrite_shaper_font_data_destroy (hb_directwrite_font_data_t *data)
 // but now is relicensed to MIT for HarfBuzz use
 class TextAnalysis : public IDWriteTextAnalysisSource, public IDWriteTextAnalysisSink
 {
+private:
+  hb_reference_count_t mRefCount;
 public:
-
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
   { return S_OK; }
-  IFACEMETHOD_ (ULONG, AddRef) () { return 1; }
-  IFACEMETHOD_ (ULONG, Release) () { return 1; }
+  IFACEMETHOD_ (ULONG, AddRef) ()
+  {
+    return mRefCount.inc () + 1;
+  }
+  IFACEMETHOD_ (ULONG, Release) ()
+  {
+    signed refCount = mRefCount.dec () - 1;
+    assert (refCount >= 0);
+    if (refCount)
+      return refCount;
+    delete this;
+    return 0;
+  }
 
   // A single contiguous run of characters containing the same analysis
   // results.
@@ -315,8 +467,11 @@ public:
   TextAnalysis (const wchar_t* text, uint32_t textLength,
 		const wchar_t* localeName, DWRITE_READING_DIRECTION readingDirection)
 	       : mTextLength (textLength), mText (text), mLocaleName (localeName),
-		 mReadingDirection (readingDirection), mCurrentRun (nullptr) {}
-  ~TextAnalysis ()
+		 mReadingDirection (readingDirection), mCurrentRun (nullptr)
+  {
+    mRefCount.init ();
+  }
+  virtual ~TextAnalysis ()
   {
     // delete runs, except mRunHead which is part of the TextAnalysis object
     for (Run *run = mRunHead.nextRun; run;)
@@ -543,7 +698,12 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
 {
   hb_face_t *face = font->face;
   const hb_directwrite_face_data_t *face_data = face->data.directwrite;
-  IDWriteFactory *dwriteFactory = face_data->dwriteFactory;
+
+  auto *global = get_directwrite_global ();
+  if (unlikely (!global || !global->success))
+    return false;
+
+  IDWriteFactory *dwriteFactory = global->dwriteFactory;
   IDWriteFontFace *fontFace = face_data->fontFace;
 
   IDWriteTextAnalyzer* analyzer;
@@ -868,6 +1028,70 @@ hb_directwrite_face_create (IDWriteFontFace *dw_face)
     dw_face->AddRef ();
   return hb_face_create_for_tables (_hb_directwrite_reference_table, dw_face,
 				    _hb_directwrite_face_release);
+}
+
+/**
+ * hb_directwrite_face_create_from_file_or_fail:
+ * @file_name: A font filename
+ * @index: The index of the face within the file
+ *
+ * Creates an #hb_face_t face object from the specified
+ * font file and face index.
+ *
+ * This is similar in functionality to hb_face_create_from_file_or_fail(),
+ * but uses the DirectWrite library for loading the font file.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index or the file cannot be read.
+ *
+ * XSince: REPLACEME
+ */
+hb_face_t *
+hb_directwrite_face_create_from_file_or_fail (const char   *file_name,
+					      unsigned int  index)
+{
+  auto *blob = hb_blob_create_from_file_or_fail (file_name);
+  if (unlikely (!blob))
+    return nullptr;
+
+  return hb_directwrite_face_create_from_blob_or_fail (blob, index);
+}
+
+/**
+ * hb_directwrite_face_create_from_blob_or_fail:
+ * @blob: A blob containing the font data
+ * @index: The index of the face within the blob
+ *
+ * Creates an #hb_face_t face object from the specified
+ * blob and face index.
+ *
+ * This is similar in functionality to hb_face_create_from_blob_or_fail(),
+ * but uses the DirectWrite library for loading the font data.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index or the blob cannot be read.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN hb_face_t *
+hb_directwrite_face_create_from_blob_or_fail (hb_blob_t    *blob,
+					      unsigned int  index)
+{
+  hb_directwrite_face_data_t *data = _hb_directwrite_face_data_create (blob, index);
+  if (unlikely (!data))
+    return nullptr;
+
+  hb_face_t *face = hb_directwrite_face_create (data->fontFace);
+  if (unlikely (hb_object_is_immutable (face)))
+  {
+    _hb_directwrite_shaper_face_data_destroy (data);
+    return face;
+  }
+
+  /* Let there be dragons here... */
+  face->data.directwrite.cmpexch (nullptr, data);
+
+  return face;
 }
 
 /**
