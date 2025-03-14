@@ -197,41 +197,87 @@ public:
   }
 };
 
+struct hb_directwrite_global_t
+{
+  hb_directwrite_global_t ()
+  {
+    dwrite_dll = LoadLibraryW (L"DWrite.dll");
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
+    t_DWriteCreateFactory p_DWriteCreateFactory = (t_DWriteCreateFactory)
+			    GetProcAddress (dwrite_dll, "DWriteCreateFactory");
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+    if (unlikely (!p_DWriteCreateFactory))
+      return;
+
+    HRESULT hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
+					(IUnknown**) &dwriteFactory);
+
+    if (unlikely (hr != S_OK))
+      return;
+
+    fontFileLoader = new DWriteFontFileLoader ();
+    dwriteFactory->RegisterFontFileLoader (fontFileLoader);
+
+    success = true;
+  }
+  ~hb_directwrite_global_t ()
+  {
+    if (fontFileLoader)
+      fontFileLoader->Release ();
+    if (dwriteFactory)
+      dwriteFactory->Release ();
+    if (dwrite_dll)
+      FreeLibrary (dwrite_dll);
+  }
+
+  bool success = false;
+  HMODULE dwrite_dll;
+  IDWriteFactory *dwriteFactory;
+  DWriteFontFileLoader *fontFileLoader;
+};
+
 static inline void free_static_dwrite_dll ();
 
-static struct hb_dwrite_dll_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<HMODULE>,
-							     hb_dwrite_dll_lazy_loader_t>
+static struct hb_directwrite_global_lazy_loader_t : hb_lazy_loader_t<hb_directwrite_global_t,
+								     hb_directwrite_global_lazy_loader_t>
 {
-  static HMODULE create ()
+  static hb_directwrite_global_t * create ()
   {
-    HMODULE l = LoadLibrary (TEXT ("DWRITE"));
-    if (unlikely (!l))
-      return nullptr;
+    hb_directwrite_global_t *global = new hb_directwrite_global_t;
 
     hb_atexit (free_static_dwrite_dll);
 
-    return l;
+    return global;
   }
-  static void destroy (HMODULE l)
+  static void destroy (hb_directwrite_global_t *l)
   {
-    FreeLibrary (l);
+    delete l;
   }
-  static HMODULE get_null ()
+  static hb_directwrite_global_t * get_null ()
   {
     return nullptr;
   }
-} static_dwrite_dll;
+} static_directwrite_global;
 
 static inline
 void free_static_dwrite_dll ()
 {
-  static_dwrite_dll.free_instance ();
+  static_directwrite_global.free_instance ();
 }
 
-static HMODULE
-get_dwrite_dll ()
+static hb_directwrite_global_t *
+get_directwrite_global ()
 {
-  return static_dwrite_dll.get_unconst ();
+  return static_directwrite_global.get_unconst ();
 }
 
 /*
@@ -251,46 +297,17 @@ struct hb_directwrite_face_data_t
       _hb_directwrite_face_data_destroy (this); \
     } HB_STMT_END
 
-    auto dwrite_dll = get_dwrite_dll ();
-    if (unlikely (!dwrite_dll))
-      FAIL ("Cannot find DWrite.DLL");
-
-    t_DWriteCreateFactory p_DWriteCreateFactory;
-
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-
-    p_DWriteCreateFactory = (t_DWriteCreateFactory)
-			    GetProcAddress (dwrite_dll, "DWriteCreateFactory");
-
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-
-    if (unlikely (!p_DWriteCreateFactory))
-      FAIL ("Cannot find DWriteCreateFactory().");
-
-    HRESULT hr;
-
-    // TODO: factory and fontFileLoader should be cached separately
-    hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
-				(IUnknown**) &dwriteFactory);
-
-    if (unlikely (hr != S_OK))
-      FAIL ("Failed to run DWriteCreateFactory().");
-
-    fontFileLoader = new DWriteFontFileLoader ();
-    dwriteFactory->RegisterFontFileLoader (fontFileLoader);
+    auto *global = get_directwrite_global ();
+    if (unlikely (!global || !global->success))
+      FAIL ("Couldn't load DirectWrite!");
 
     fontFileStream = new DWriteFontFileStream (blob);
 
-    fontFileKey = fontFileLoader->RegisterFontFileStream (fontFileStream);
+    fontFileKey = global->fontFileLoader->RegisterFontFileStream (fontFileStream);
 
     IDWriteFontFile *fontFile;
-    hr = dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
-						       fontFileLoader, &fontFile);
+    auto hr = global->dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
+								    global->fontFileLoader, &fontFile);
 
     if (FAILED (hr))
       FAIL ("Failed to load font file from data!");
@@ -305,8 +322,8 @@ struct hb_directwrite_face_data_t
 
 #undef FAIL
 
-    dwriteFactory->CreateFontFace (faceType, 1, &fontFile, index,
-				   DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
+    global->dwriteFactory->CreateFontFace (faceType, 1, &fontFile, index,
+					   DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
     fontFile->Release ();
   }
 
@@ -316,7 +333,6 @@ struct hb_directwrite_face_data_t
    }
 
   public:
-  IDWriteFactory *dwriteFactory;
   DWriteFontFileLoader *fontFileLoader;
   DWriteFontFileStream *fontFileStream;
   uint64_t fontFileKey;
@@ -352,24 +368,16 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
 static void
 _hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data)
 {
+  auto *global = get_directwrite_global ();
+  if (unlikely (!global || !global->success))
+    global = nullptr;
+
   if (data->fontFace)
   {
     data->fontFace->Release ();
     data->fontFace = nullptr;
   }
-  if (data->dwriteFactory)
-  {
-    if (data->fontFileLoader)
-      data->dwriteFactory->UnregisterFontFileLoader (data->fontFileLoader);
-    data->dwriteFactory->Release ();
-    data->dwriteFactory = nullptr;
-  }
-  if (data->fontFileLoader)
-  {
-    data->fontFileLoader->UnregisterFontFileStream (data->fontFileKey);
-    data->fontFileLoader->Release ();
-    data->fontFileLoader = nullptr;
-  }
+  global->fontFileLoader->UnregisterFontFileStream (data->fontFileKey);
   if (data->fontFileStream)
   {
     data->fontFileStream->Release ();
@@ -686,7 +694,12 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
 {
   hb_face_t *face = font->face;
   const hb_directwrite_face_data_t *face_data = face->data.directwrite;
-  IDWriteFactory *dwriteFactory = face_data->dwriteFactory;
+
+  auto *global = get_directwrite_global ();
+  if (unlikely (!global || !global->success))
+    return false;
+
+  IDWriteFactory *dwriteFactory = global->dwriteFactory;
   IDWriteFontFace *fontFace = face_data->fontFace;
 
   IDWriteTextAnalyzer* analyzer;
