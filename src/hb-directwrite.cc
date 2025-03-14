@@ -60,26 +60,47 @@ typedef HRESULT (WINAPI *t_DWriteCreateFactory)(
 class DWriteFontFileLoader : public IDWriteFontFileLoader
 {
 private:
+  hb_reference_count_t mRefCount;
   hb_hashmap_t<uint64_t, IDWriteFontFileStream *> mFontStreams;
-  uint64_t mNextFontFileKey;
+  uint64_t mNextFontFileKey = 0;
 public:
-  DWriteFontFileLoader () {}
+  DWriteFontFileLoader ()
+  {
+    mRefCount.init ();
+  }
 
   uint64_t RegisterFontFileStream (IDWriteFontFileStream *fontFileStream)
   {
+    fontFileStream->AddRef ();
     mFontStreams.set (mNextFontFileKey, fontFileStream);
     return mNextFontFileKey++;
   }
   void UnregisterFontFileStream (uint64_t fontFileKey)
   {
-    mFontStreams.del (fontFileKey);
+    IDWriteFontFileStream *stream = mFontStreams.get (fontFileKey);
+    if (stream)
+    {
+      mFontStreams.del (fontFileKey);
+      stream->Release ();
+    }
   }
 
   // IUnknown interface
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
   { return S_OK; }
-  IFACEMETHOD_ (ULONG, AddRef) ()  { return 1; }
-  IFACEMETHOD_ (ULONG, Release) () { return 1; }
+  IFACEMETHOD_ (ULONG, AddRef) ()
+  {
+    return mRefCount.inc () + 1;
+  }
+  IFACEMETHOD_ (ULONG, Release) ()
+  {
+    signed refCount = mRefCount.dec () - 1;
+    assert (refCount >= 0);
+    if (refCount)
+      return refCount;
+    delete this;
+    return 0;
+  }
 
   // IDWriteFontFileLoader methods
   virtual HRESULT STDMETHODCALLTYPE
@@ -93,6 +114,7 @@ public:
     IDWriteFontFileStream *stream = mFontStreams.get (fontFileKey);
     if (!stream)
       return E_FAIL;
+    stream->AddRef ();
     *fontFileStream = stream;
     return S_OK;
   }
@@ -103,12 +125,14 @@ public:
 class DWriteFontFileStream : public IDWriteFontFileStream
 {
 private:
+  hb_reference_count_t mRefCount;
   hb_blob_t *mBlob;
   uint8_t *mData;
   unsigned mSize;
 public:
   DWriteFontFileStream (hb_blob_t *blob)
   {
+    mRefCount.init ();
     hb_blob_make_immutable (blob);
     mBlob = hb_blob_reference (blob);
     mData = (uint8_t *) hb_blob_get_data (blob, &mSize);
@@ -117,8 +141,19 @@ public:
   // IUnknown interface
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
   { return S_OK; }
-  IFACEMETHOD_ (ULONG, AddRef) ()  { return 1; }
-  IFACEMETHOD_ (ULONG, Release) () { return 1; }
+  IFACEMETHOD_ (ULONG, AddRef) ()
+  {
+    return mRefCount.inc () + 1;
+  }
+  IFACEMETHOD_ (ULONG, Release) ()
+  {
+    signed refCount = mRefCount.dec () - 1;
+    assert (refCount >= 0);
+    if (refCount)
+      return refCount;
+    delete this;
+    return 0;
+  }
 
   // IDWriteFontFileStream methods
   virtual HRESULT STDMETHODCALLTYPE
@@ -284,8 +319,10 @@ _hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
     data->dwriteFactory->Release ();
   }
   data->fontFileLoader->UnregisterFontFileStream (data->fontFileKey);
-  delete data->fontFileStream;
-  delete data->fontFileLoader;
+  if (data->fontFileStream)
+    data->fontFileStream->Release ();
+  if (data->fontFileLoader)
+    data->fontFileLoader->Release ();
   if (data->dwrite_dll)
   {
     //FreeLibrary (data->dwrite_dll);
@@ -318,12 +355,24 @@ _hb_directwrite_shaper_font_data_destroy (hb_directwrite_font_data_t *data)
 // but now is relicensed to MIT for HarfBuzz use
 class TextAnalysis : public IDWriteTextAnalysisSource, public IDWriteTextAnalysisSink
 {
+private:
+  hb_reference_count_t mRefCount;
 public:
-
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
   { return S_OK; }
-  IFACEMETHOD_ (ULONG, AddRef) () { return 1; }
-  IFACEMETHOD_ (ULONG, Release) () { return 1; }
+  IFACEMETHOD_ (ULONG, AddRef) ()
+  {
+    return mRefCount.inc () + 1;
+  }
+  IFACEMETHOD_ (ULONG, Release) ()
+  {
+    signed refCount = mRefCount.dec () - 1;
+    assert (refCount >= 0);
+    if (refCount)
+      return refCount;
+    delete this;
+    return 0;
+  }
 
   // A single contiguous run of characters containing the same analysis
   // results.
@@ -351,8 +400,11 @@ public:
   TextAnalysis (const wchar_t* text, uint32_t textLength,
 		const wchar_t* localeName, DWRITE_READING_DIRECTION readingDirection)
 	       : mTextLength (textLength), mText (text), mLocaleName (localeName),
-		 mReadingDirection (readingDirection), mCurrentRun (nullptr) {}
-  ~TextAnalysis ()
+		 mReadingDirection (readingDirection), mCurrentRun (nullptr)
+  {
+    mRefCount.init ();
+  }
+  virtual ~TextAnalysis ()
   {
     // delete runs, except mRunHead which is part of the TextAnalysis object
     for (Run *run = mRunHead.nextRun; run;)
