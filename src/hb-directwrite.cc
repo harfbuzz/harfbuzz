@@ -880,12 +880,10 @@ retry_getglyphs:
 
 #undef ALLOCATE_ARRAY
 
-  int fontEmSize = font->face->get_upem ();
-  if (fontEmSize < 0) fontEmSize = -fontEmSize;
+  unsigned fontEmSize = font->face->get_upem ();
 
-  if (fontEmSize < 0) fontEmSize = -fontEmSize;
-  double x_mult = (double) font->x_scale / fontEmSize;
-  double y_mult = (double) font->y_scale / fontEmSize;
+  float x_mult = font->x_multf;
+  float y_mult = font->y_multf;
 
   hr = analyzer->GetGlyphPlacements (textString,
 				     clusterMap,
@@ -955,9 +953,9 @@ retry_getglyphs:
     hb_glyph_position_t *pos = &buffer->pos[i];
 
     /* TODO vertical */
-    pos->x_advance = x_mult * (int32_t) info->mask;
-    pos->x_offset = x_mult * (isRightToLeft ? -info->var1.i32 : info->var1.i32);
-    pos->y_offset = y_mult * info->var2.i32;
+    pos->x_advance = round (x_mult * (int32_t) info->mask);
+    pos->x_offset = round (x_mult * (isRightToLeft ? -info->var1.i32 : info->var1.i32));
+    pos->y_offset = round (y_mult * info->var2.i32);
   }
 
   if (isRightToLeft) hb_buffer_reverse (buffer);
