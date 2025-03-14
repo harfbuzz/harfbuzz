@@ -119,7 +119,11 @@ public:
     return S_OK;
   }
 
-  virtual ~DWriteFontFileLoader() {}
+  virtual ~DWriteFontFileLoader()
+  {
+    for (auto v : mFontStreams.values ())
+      v->Release ();
+  }
 };
 
 class DWriteFontFileStream : public IDWriteFontFileStream
@@ -284,6 +288,7 @@ struct hb_directwrite_face_data_t
 
     fontFileKey = fontFileLoader->RegisterFontFileStream (fontFileStream);
 
+    IDWriteFontFile *fontFile;
     hr = dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
 						       fontFileLoader, &fontFile);
 
@@ -302,6 +307,7 @@ struct hb_directwrite_face_data_t
 
     dwriteFactory->CreateFontFace (faceType, 1, &fontFile, index,
 				   DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
+    fontFile->Release ();
   }
 
   ~hb_directwrite_face_data_t ()
@@ -311,7 +317,6 @@ struct hb_directwrite_face_data_t
 
   public:
   IDWriteFactory *dwriteFactory;
-  IDWriteFontFile *fontFile;
   DWriteFontFileLoader *fontFileLoader;
   DWriteFontFileStream *fontFileStream;
   uint64_t fontFileKey;
@@ -324,7 +329,10 @@ _hb_directwrite_face_data_create (hb_blob_t *blob,
 {
   hb_directwrite_face_data_t *data = new hb_directwrite_face_data_t (blob, index);
   if (unlikely (!data || !data->fontFace))
+  {
+    delete data;
     return nullptr;
+  }
 
   return data;
 }
@@ -348,11 +356,6 @@ _hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data)
   {
     data->fontFace->Release ();
     data->fontFace = nullptr;
-  }
-  if (data->fontFile)
-  {
-    data->fontFile->Release ();
-    data->fontFile = nullptr;
   }
   if (data->dwriteFactory)
   {
