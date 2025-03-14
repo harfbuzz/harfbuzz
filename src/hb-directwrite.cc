@@ -133,13 +133,19 @@ private:
   hb_blob_t *mBlob;
   uint8_t *mData;
   unsigned mSize;
+  DWriteFontFileLoader *mLoader;
 public:
-  DWriteFontFileStream (hb_blob_t *blob)
+  uint64_t fontFileKey;
+public:
+  DWriteFontFileStream (hb_blob_t *blob, DWriteFontFileLoader *loader) :
+    mLoader (loader)
   {
     mRefCount.init ();
+    mLoader->AddRef ();
     hb_blob_make_immutable (blob);
     mBlob = hb_blob_reference (blob);
     mData = (uint8_t *) hb_blob_get_data (blob, &mSize);
+    fontFileKey = mLoader->RegisterFontFileStream (this);
   }
 
   // IUnknown interface
@@ -193,6 +199,8 @@ public:
 
   virtual ~DWriteFontFileStream()
   {
+    mLoader->UnregisterFontFileStream (fontFileKey);
+    mLoader->Release ();
     hb_blob_destroy (mBlob);
   }
 };
@@ -301,12 +309,10 @@ struct hb_directwrite_face_data_t
     if (unlikely (!global || !global->success))
       FAIL ("Couldn't load DirectWrite!");
 
-    fontFileStream = new DWriteFontFileStream (blob);
-
-    fontFileKey = global->fontFileLoader->RegisterFontFileStream (fontFileStream);
+    fontFileStream = new DWriteFontFileStream (blob, global->fontFileLoader);
 
     IDWriteFontFile *fontFile;
-    auto hr = global->dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
+    auto hr = global->dwriteFactory->CreateCustomFontFileReference (&fontFileStream->fontFileKey, sizeof (fontFileStream->fontFileKey),
 								    global->fontFileLoader, &fontFile);
 
     if (FAILED (hr))
@@ -335,7 +341,6 @@ struct hb_directwrite_face_data_t
   public:
   DWriteFontFileLoader *fontFileLoader;
   DWriteFontFileStream *fontFileStream;
-  uint64_t fontFileKey;
   IDWriteFontFace *fontFace;
 };
 
@@ -377,7 +382,6 @@ _hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data)
     data->fontFace->Release ();
     data->fontFace = nullptr;
   }
-  global->fontFileLoader->UnregisterFontFileStream (data->fontFileKey);
   if (data->fontFileStream)
   {
     data->fontFileStream->Release ();
