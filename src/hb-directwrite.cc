@@ -32,7 +32,9 @@
 
 #include "hb-ms-feature-ranges.hh"
 
+#include "hb-mutex.hh"
 #include "hb-map.hh"
+
 
 /**
  * SECTION:hb-directwrite
@@ -61,6 +63,7 @@ class DWriteFontFileLoader : public IDWriteFontFileLoader
 {
 private:
   hb_reference_count_t mRefCount;
+  hb_mutex_t mutex;
   hb_hashmap_t<uint64_t, IDWriteFontFileStream *> mFontStreams;
   uint64_t mNextFontFileKey = 0;
 public:
@@ -72,11 +75,13 @@ public:
   uint64_t RegisterFontFileStream (IDWriteFontFileStream *fontFileStream)
   {
     fontFileStream->AddRef ();
+    auto lock = hb_lock_t (mutex);
     mFontStreams.set (mNextFontFileKey, fontFileStream);
     return mNextFontFileKey++;
   }
   void UnregisterFontFileStream (uint64_t fontFileKey)
   {
+    auto lock = hb_lock_t (mutex);
     IDWriteFontFileStream *stream = mFontStreams.get (fontFileKey);
     if (stream)
     {
@@ -137,16 +142,7 @@ private:
 public:
   uint64_t fontFileKey;
 public:
-  DWriteFontFileStream (hb_blob_t *blob, DWriteFontFileLoader *loader) :
-    mLoader (loader)
-  {
-    mRefCount.init ();
-    mLoader->AddRef ();
-    hb_blob_make_immutable (blob);
-    mBlob = hb_blob_reference (blob);
-    mData = (uint8_t *) hb_blob_get_data (blob, &mSize);
-    fontFileKey = mLoader->RegisterFontFileStream (this);
-  }
+  DWriteFontFileStream (hb_blob_t *blob);
 
   // IUnknown interface
   IFACEMETHOD (QueryInterface) (IID const& iid, OUT void** ppObject)
@@ -197,12 +193,7 @@ public:
   virtual HRESULT STDMETHODCALLTYPE
   GetLastWriteTime (OUT UINT64* lastWriteTime) { return E_NOTIMPL; }
 
-  virtual ~DWriteFontFileStream()
-  {
-    mLoader->UnregisterFontFileStream (fontFileKey);
-    mLoader->Release ();
-    hb_blob_destroy (mBlob);
-  }
+  virtual ~DWriteFontFileStream();
 };
 
 struct hb_directwrite_global_t
@@ -276,6 +267,7 @@ static struct hb_directwrite_global_lazy_loader_t : hb_lazy_loader_t<hb_directwr
   }
 } static_directwrite_global;
 
+
 static inline
 void free_static_directwrite_global ()
 {
@@ -286,6 +278,25 @@ static hb_directwrite_global_t *
 get_directwrite_global ()
 {
   return static_directwrite_global.get_unconst ();
+}
+
+DWriteFontFileStream::DWriteFontFileStream (hb_blob_t *blob)
+{
+  auto *global = get_directwrite_global ();
+  mLoader = global->fontFileLoader;
+  mRefCount.init ();
+  mLoader->AddRef ();
+  hb_blob_make_immutable (blob);
+  mBlob = hb_blob_reference (blob);
+  mData = (uint8_t *) hb_blob_get_data (blob, &mSize);
+  fontFileKey = mLoader->RegisterFontFileStream (this);
+}
+
+DWriteFontFileStream::~DWriteFontFileStream()
+{
+  mLoader->UnregisterFontFileStream (fontFileKey);
+  mLoader->Release ();
+  hb_blob_destroy (mBlob);
 }
 
 /*
@@ -309,7 +320,7 @@ struct hb_directwrite_face_data_t
     if (unlikely (!global || !global->success))
       FAIL ("Couldn't load DirectWrite!");
 
-    fontFileStream = new DWriteFontFileStream (blob, global->fontFileLoader);
+    fontFileStream = new DWriteFontFileStream (blob);
 
     IDWriteFontFile *fontFile;
     auto hr = global->dwriteFactory->CreateCustomFontFileReference (&fontFileStream->fontFileKey, sizeof (fontFileStream->fontFileKey),
