@@ -253,6 +253,14 @@ static struct hb_directwrite_global_lazy_loader_t : hb_lazy_loader_t<hb_directwr
   {
     hb_directwrite_global_t *global = new hb_directwrite_global_t;
 
+    if (unlikely (!global))
+      return nullptr;
+    if (unlikely (!global->success))
+    {
+      delete global;
+      return nullptr;
+    }
+
     hb_atexit (free_static_directwrite_global);
 
     return global;
@@ -303,70 +311,50 @@ DWriteFontFileStream::~DWriteFontFileStream()
 * shaper face data
 */
 
-static void
-_hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data);
 
-struct hb_directwrite_face_data_t
+static IDWriteFontFace *
+dw_face_create (hb_blob_t *blob, unsigned index)
 {
-  hb_directwrite_face_data_t (hb_blob_t *blob, unsigned index)
-  {
 #define FAIL(...) \
-    HB_STMT_START { \
-      DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
-      _hb_directwrite_face_data_destroy (this); \
-    } HB_STMT_END
+  HB_STMT_START { \
+    DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
+    return nullptr; \
+  } HB_STMT_END
 
-    auto *global = get_directwrite_global ();
-    if (unlikely (!global || !global->success))
-      FAIL ("Couldn't load DirectWrite!");
+  auto *global = get_directwrite_global ();
+  if (unlikely (!global))
+    FAIL ("Couldn't load DirectWrite!");
 
-    fontFileStream = new DWriteFontFileStream (blob);
+  DWriteFontFileStream *fontFileStream = new DWriteFontFileStream (blob);
 
-    IDWriteFontFile *fontFile;
-    auto hr = global->dwriteFactory->CreateCustomFontFileReference (&fontFileStream->fontFileKey, sizeof (fontFileStream->fontFileKey),
-								    global->fontFileLoader, &fontFile);
+  IDWriteFontFile *fontFile;
+  auto hr = global->dwriteFactory->CreateCustomFontFileReference (&fontFileStream->fontFileKey, sizeof (fontFileStream->fontFileKey),
+								  global->fontFileLoader, &fontFile);
 
-    if (FAILED (hr))
-      FAIL ("Failed to load font file from data!");
+  fontFileStream->Release ();
 
-    BOOL isSupported;
-    DWRITE_FONT_FILE_TYPE fileType;
-    DWRITE_FONT_FACE_TYPE faceType;
-    uint32_t numberOfFaces;
-    hr = fontFile->Analyze (&isSupported, &fileType, &faceType, &numberOfFaces);
-    if (FAILED (hr) || !isSupported)
-      FAIL ("Font file is not supported.");
+  if (FAILED (hr))
+    FAIL ("Failed to load font file from data!");
+
+  BOOL isSupported;
+  DWRITE_FONT_FILE_TYPE fileType;
+  DWRITE_FONT_FACE_TYPE faceType;
+  uint32_t numberOfFaces;
+  hr = fontFile->Analyze (&isSupported, &fileType, &faceType, &numberOfFaces);
+  if (FAILED (hr) || !isSupported)
+  {
+    fontFile->Release ();
+    FAIL ("Font file is not supported.");
+  }
 
 #undef FAIL
 
-    global->dwriteFactory->CreateFontFace (faceType, 1, &fontFile, index,
-					   DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
-    fontFile->Release ();
-  }
+  IDWriteFontFace *fontFace = nullptr;
+  global->dwriteFactory->CreateFontFace (faceType, 1, &fontFile, index,
+					 DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
+  fontFile->Release ();
 
-  ~hb_directwrite_face_data_t ()
-   {
-     _hb_directwrite_face_data_destroy (this);
-   }
-
-  public:
-  DWriteFontFileLoader *fontFileLoader;
-  DWriteFontFileStream *fontFileStream;
-  IDWriteFontFace *fontFace;
-};
-
-static hb_directwrite_face_data_t *
-_hb_directwrite_face_data_create (hb_blob_t *blob,
-				  unsigned index)
-{
-  hb_directwrite_face_data_t *data = new hb_directwrite_face_data_t (blob, index);
-  if (unlikely (!data || !data->fontFace))
-  {
-    delete data;
-    return nullptr;
-  }
-
-  return data;
+  return fontFace;
 }
 
 hb_directwrite_face_data_t *
@@ -374,38 +362,17 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
 {
   hb_blob_t *blob = hb_face_reference_blob (face);
 
-  hb_directwrite_face_data_t *data = _hb_directwrite_face_data_create (blob, face->index);
+  hb_directwrite_face_data_t *data = (hb_directwrite_face_data_t *) dw_face_create (blob, face->index);
 
   hb_blob_destroy (blob);
 
   return data;
 }
 
-static void
-_hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data)
-{
-  auto *global = get_directwrite_global ();
-  if (unlikely (!global || !global->success))
-    global = nullptr;
-
-  if (data->fontFace)
-  {
-    data->fontFace->Release ();
-    data->fontFace = nullptr;
-  }
-  if (data->fontFileStream)
-  {
-    data->fontFileStream->Release ();
-    data->fontFileStream = nullptr;
-  }
-}
-
 void
 _hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
 {
-  if (data)
-    _hb_directwrite_face_data_destroy (data);
-  delete data;
+  ((IDWriteFontFace *) data)->Release ();
 }
 
 
@@ -708,14 +675,11 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
 		       unsigned int        num_features)
 {
   hb_face_t *face = font->face;
-  const hb_directwrite_face_data_t *face_data = face->data.directwrite;
-
+  IDWriteFontFace *fontFace = (IDWriteFontFace *) (const void *) face->data.directwrite;
   auto *global = get_directwrite_global ();
-  if (unlikely (!global || !global->success))
+  if (unlikely (!global))
     return false;
-
   IDWriteFactory *dwriteFactory = global->dwriteFactory;
-  IDWriteFontFace *fontFace = face_data->fontFace;
 
   IDWriteTextAnalyzer* analyzer;
   dwriteFactory->CreateTextAnalyzer (&analyzer);
@@ -1086,19 +1050,19 @@ HB_EXTERN hb_face_t *
 hb_directwrite_face_create_from_blob_or_fail (hb_blob_t    *blob,
 					      unsigned int  index)
 {
-  hb_directwrite_face_data_t *data = _hb_directwrite_face_data_create (blob, index);
-  if (unlikely (!data))
+  IDWriteFontFace *dw_face = dw_face_create (blob, index);
+  if (unlikely (!dw_face))
     return nullptr;
 
-  hb_face_t *face = hb_directwrite_face_create (data->fontFace);
+  hb_face_t *face = hb_directwrite_face_create (dw_face);
   if (unlikely (hb_object_is_immutable (face)))
   {
-    _hb_directwrite_shaper_face_data_destroy (data);
+    dw_face->Release ();
     return face;
   }
 
   /* Let there be dragons here... */
-  face->data.directwrite.cmpexch (nullptr, data);
+  face->data.directwrite.cmpexch (nullptr, (hb_directwrite_face_data_t *) dw_face);
 
   return face;
 }
@@ -1116,7 +1080,7 @@ hb_directwrite_face_create_from_blob_or_fail (hb_blob_t    *blob,
 IDWriteFontFace *
 hb_directwrite_face_get_dw_font_face (hb_face_t *face)
 {
-  return face->data.directwrite->fontFace;
+  return (IDWriteFontFace *) (const void *) face->data.directwrite;
 }
 
 #ifndef HB_DISABLE_DEPRECATED
