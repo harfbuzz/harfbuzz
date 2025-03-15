@@ -320,11 +320,13 @@ struct hb_directwrite_face_data_t
     if (unlikely (!global || !global->success))
       FAIL ("Couldn't load DirectWrite!");
 
-    fontFileStream = new DWriteFontFileStream (blob);
+    DWriteFontFileStream *fontFileStream = new DWriteFontFileStream (blob);
 
     IDWriteFontFile *fontFile;
     auto hr = global->dwriteFactory->CreateCustomFontFileReference (&fontFileStream->fontFileKey, sizeof (fontFileStream->fontFileKey),
 								    global->fontFileLoader, &fontFile);
+
+    fontFileStream->Release ();
 
     if (FAILED (hr))
       FAIL ("Failed to load font file from data!");
@@ -350,7 +352,6 @@ struct hb_directwrite_face_data_t
    }
 
   public:
-  DWriteFontFileStream *fontFileStream;
   IDWriteFontFace *fontFace;
 };
 
@@ -391,11 +392,6 @@ _hb_directwrite_face_data_destroy (hb_directwrite_face_data_t *data)
   {
     data->fontFace->Release ();
     data->fontFace = nullptr;
-  }
-  if (data->fontFileStream)
-  {
-    data->fontFileStream->Release ();
-    data->fontFileStream = nullptr;
   }
 }
 
