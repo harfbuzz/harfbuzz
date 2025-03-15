@@ -536,8 +536,7 @@ done:
 CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
-  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
-  return ct_font ? (CTFontRef) ct_font : nullptr;
+  return (CTFontRef) (const void *) font->data.coretext;
 }
 
 
