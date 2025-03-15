@@ -316,11 +316,11 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_GLYPH:
     {
-      c->funcs->push_inverse_root_transform (c->data, c->font);
+      c->funcs->push_inverse_font_transform (c->data, c->font);
       c->ft_font->lock.unlock ();
       c->funcs->push_clip_glyph (c->data, paint.u.glyph.glyphID, c->font);
       c->ft_font->lock.lock ();
-      c->funcs->push_root_transform (c->data, c->font);
+      c->funcs->push_font_transform (c->data, c->font);
       c->recurse (paint.u.glyph.paint);
       c->funcs->pop_transform (c->data);
       c->funcs->pop_clip (c->data);
@@ -335,7 +335,7 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       if (unlikely (!node.visit (gid)))
 	return;
 
-      c->funcs->push_inverse_root_transform (c->data, c->font);
+      c->funcs->push_inverse_font_transform (c->data, c->font);
       c->ft_font->lock.unlock ();
       if (c->funcs->color_glyph (c->data, gid, c->font))
       {
@@ -536,7 +536,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			        palette_array, palette_index, foreground);
       hb_decycler_node_t node2 (ce.glyphs_decycler);
       node2.visit (gid);
-      ce.funcs->push_root_transform (ce.data, font);
+      ce.funcs->push_font_transform (ce.data, font);
       ce.recurse (paint);
       ce.funcs->pop_transform (ce.data);
       hb_extents_t extents = extents_data.get_extents ();
@@ -549,7 +549,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 				    extents.ymax);
     }
 
-    c.funcs->push_root_transform (c.data, font);
+    c.funcs->push_font_transform (c.data, font);
 
     if (is_bounded)
      {

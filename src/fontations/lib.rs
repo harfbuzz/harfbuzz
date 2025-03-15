@@ -413,53 +413,6 @@ struct HbColorPainter<'a> {
 }
 
 impl HbColorPainter<'_> {
-    fn push_root_transform(&mut self) {
-        let font = self.font;
-        let face = unsafe { hb_font_get_face(font) };
-        let upem = unsafe { hb_face_get_upem(face) };
-        let mut x_scale: i32 = 0;
-        let mut y_scale: i32 = 0;
-        unsafe {
-            hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-        }
-        let slant = unsafe { hb_font_get_synthetic_slant(font) };
-        let slant = if y_scale != 0 {
-            slant as f32 * x_scale as f32 / y_scale as f32
-        } else {
-            0.
-        };
-
-        self.push_transform(Transform {
-            xx: x_scale as f32 / upem as f32,
-            yx: 0.0,
-            xy: slant * y_scale as f32 / upem as f32,
-            yy: y_scale as f32 / upem as f32,
-            dx: 0.0,
-            dy: 0.0,
-        });
-    }
-
-    fn push_inverse_root_transform(&mut self) {
-        let font = self.font;
-        let face = unsafe { hb_font_get_face(font) };
-        let upem = unsafe { hb_face_get_upem(face) };
-        let mut x_scale: i32 = 0;
-        let mut y_scale: i32 = 0;
-        unsafe {
-            hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-        }
-        let slant = unsafe { hb_font_get_synthetic_slant(font) };
-
-        self.push_transform(Transform {
-            xx: upem as f32 / x_scale as f32,
-            yx: 0.0,
-            xy: -slant * upem as f32 / x_scale as f32,
-            yy: upem as f32 / y_scale as f32,
-            dx: 0.0,
-            dy: 0.0,
-        });
-    }
-
     fn lookup_color(&self, color_index: u16, alpha: f32) -> hb_color_t {
         if color_index == 0xFFFF {
             // Apply alpha to foreground color
@@ -587,16 +540,16 @@ impl ColorPainter for HbColorPainter<'_> {
     fn push_clip_glyph(&mut self, glyph: GlyphId) {
         let gid = u32::from(glyph);
         self.clip_transform_stack.push(true);
-        self.push_inverse_root_transform();
         unsafe {
+            hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
             hb_paint_push_clip_glyph(
                 self.paint_funcs,
                 self.paint_data,
                 gid as hb_codepoint_t,
                 self.font,
             );
+            hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
         }
-        self.push_root_transform();
     }
     fn push_clip_box(&mut self, bbox: BoundingBox) {
         self.clip_transform_stack.push(false);
@@ -809,7 +762,9 @@ extern "C" fn _hb_fontations_paint_glyph(
         composite_mode: Vec::new(),
         clip_transform_stack: Vec::new(),
     };
-    painter.push_root_transform();
+    unsafe {
+        hb_paint_push_font_transform(paint_funcs, paint_data, font);
+    }
     let _ = color_glyph.paint(location, &mut painter);
 }
 

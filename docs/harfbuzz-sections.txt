@@ -292,6 +292,8 @@ hb_paint_custom_palette_color_func_t
 hb_paint_funcs_set_custom_palette_color_func
 
 hb_paint_push_transform
+hb_paint_push_font_transform
+hb_paint_push_inverse_font_transform
 hb_paint_pop_transform
 hb_paint_color_glyph
 hb_paint_push_clip_glyph

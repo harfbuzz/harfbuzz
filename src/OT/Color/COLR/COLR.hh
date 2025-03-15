@@ -938,9 +938,9 @@ struct PaintGlyph
   void paint_glyph (hb_paint_context_t *c) const
   {
     TRACE_PAINT (this);
-    c->funcs->push_inverse_root_transform (c->data, c->font);
+    c->funcs->push_inverse_font_transform (c->data, c->font);
     c->funcs->push_clip_glyph (c->data, gid, c->font);
-    c->funcs->push_root_transform (c->data, c->font);
+    c->funcs->push_font_transform (c->data, c->font);
     c->recurse (this+paint);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_clip (c->data);
@@ -2727,7 +2727,7 @@ struct COLR
 	  }
 	}
 
-	c.funcs->push_root_transform (c.data, font);
+	c.funcs->push_font_transform (c.data, font);
 
 	if (is_bounded)
 	  c.recurse (*paint);
@@ -2817,7 +2817,7 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
   if (unlikely (!node.visit (gid)))
     return;
 
-  c->funcs->push_inverse_root_transform (c->data, c->font);
+  c->funcs->push_inverse_font_transform (c->data, c->font);
   if (c->funcs->color_glyph (c->data, gid, c->font))
   {
     c->funcs->pop_transform (c->data);
