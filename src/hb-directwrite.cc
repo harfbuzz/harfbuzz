@@ -253,6 +253,14 @@ static struct hb_directwrite_global_lazy_loader_t : hb_lazy_loader_t<hb_directwr
   {
     hb_directwrite_global_t *global = new hb_directwrite_global_t;
 
+    if (unlikely (!global))
+      return nullptr;
+    if (unlikely (!global->success))
+    {
+      delete global;
+      return nullptr;
+    }
+
     hb_atexit (free_static_directwrite_global);
 
     return global;
@@ -314,7 +322,7 @@ dw_face_create (hb_blob_t *blob, unsigned index)
   } HB_STMT_END
 
   auto *global = get_directwrite_global ();
-  if (unlikely (!global || !global->success))
+  if (unlikely (!global))
     FAIL ("Couldn't load DirectWrite!");
 
   DWriteFontFileStream *fontFileStream = new DWriteFontFileStream (blob);
@@ -668,7 +676,10 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
 {
   hb_face_t *face = font->face;
   IDWriteFontFace *fontFace = (IDWriteFontFace *) (const void *) face->data.directwrite;
-  IDWriteFactory *dwriteFactory = get_directwrite_global ()->dwriteFactory;
+  auto *global = get_directwrite_global ();
+  if (unlikely (!global))
+    return false;
+  IDWriteFactory *dwriteFactory = global->dwriteFactory;
 
   IDWriteTextAnalyzer* analyzer;
   dwriteFactory->CreateTextAnalyzer (&analyzer);
