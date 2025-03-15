@@ -41,6 +41,7 @@ HB_BEGIN_DECLS
  * @path_start_y: Y component of the start of current path
  * @current_x: X component of current point
  * @current_y: Y component of current point
+ * @slant_xy: (Since: REPLACEME) Slanting factor for synthetic oblique
  *
  * Current drawing state.
  *
@@ -55,6 +56,8 @@ typedef struct hb_draw_state_t {
   float current_x;
   float current_y;
 
+  float slant_xy;
+
   /*< private >*/
   hb_var_num_t   reserved1;
   hb_var_num_t   reserved2;
@@ -62,7 +65,6 @@ typedef struct hb_draw_state_t {
   hb_var_num_t   reserved4;
   hb_var_num_t   reserved5;
   hb_var_num_t   reserved6;
-  hb_var_num_t   reserved7;
 } hb_draw_state_t;
 
 /**

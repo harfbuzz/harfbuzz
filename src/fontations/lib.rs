@@ -357,7 +357,7 @@ impl OutlinePen for HbPen {
 }
 
 extern "C" fn _hb_fontations_draw_glyph(
-    _font: *mut hb_font_t,
+    font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     glyph: hb_codepoint_t,
     draw_funcs: *mut hb_draw_funcs_t,
@@ -380,11 +380,23 @@ extern "C" fn _hb_fontations_draw_glyph(
     // Allocate zero bytes for the draw_state_t on the stack.
     let mut draw_state: hb_draw_state_t = unsafe { std::mem::zeroed::<hb_draw_state_t>() };
 
+    let slant = unsafe { hb_font_get_synthetic_slant(font) };
+    let mut x_scale: i32 = 0;
+    let mut y_scale: i32 = 0;
+    unsafe { hb_font_get_scale(font, &mut x_scale, &mut y_scale); }
+    let slant = if y_scale != 0 {
+        slant as f32 * x_scale as f32 / y_scale as f32
+    } else {
+        0.
+    };
+    draw_state.slant_xy = slant;
+
     let mut pen = HbPen {
         draw_state: &mut draw_state,
         draw_funcs,
         draw_data,
     };
+
     let _ = outline_glyph.draw(draw_settings, &mut pen);
 }
 
