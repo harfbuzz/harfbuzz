@@ -41,7 +41,7 @@ HB_BEGIN_DECLS
  * @path_start_y: Y component of the start of current path
  * @current_x: X component of current point
  * @current_y: Y component of current point
- * @slant_xy: (Since: REPLACEME) Slanting factor for synthetic oblique
+ * @slant_xy: (XSince: REPLACEME): Slanting factor for synthetic oblique
  *
  * Current drawing state.
  *
@@ -78,7 +78,7 @@ typedef struct hb_draw_state_t {
  *
  * The default #hb_draw_state_t at the start of glyph drawing.
  */
-#define HB_DRAW_STATE_DEFAULT {0, 0.f, 0.f, 0.f, 0.f, {0.}, {0.}, {0.}, {0.}, {0.}, {0.}, {0.}}
+#define HB_DRAW_STATE_DEFAULT {0, 0.f, 0.f, 0.f, 0.f, 0.f, {0.}, {0.}, {0.}, {0.}, {0.}, {0.}}
 
 
 /**
