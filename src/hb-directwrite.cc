@@ -169,8 +169,8 @@ _hb_directwrite_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *
   uint32_t length;
   void *table_context;
   BOOL exists;
-  if (!dw_face || FAILED (dw_face->TryGetFontTable (hb_uint32_swap (tag), &data,
-						    &length, &table_context, &exists)))
+  if (FAILED (dw_face->TryGetFontTable (hb_uint32_swap (tag), &data,
+					&length, &table_context, &exists)))
     return nullptr;
 
   if (!data || !exists || !length)
@@ -180,6 +180,11 @@ _hb_directwrite_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *
   }
 
   _hb_directwrite_font_table_context *context = (_hb_directwrite_font_table_context *) hb_malloc (sizeof (_hb_directwrite_font_table_context));
+  if (unlikely (!context))
+  {
+    dw_face->ReleaseFontTable (table_context);
+    return nullptr;
+  }
   context->face = dw_face;
   context->table_context = table_context;
 
@@ -190,8 +195,7 @@ _hb_directwrite_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *
 static void
 _hb_directwrite_face_release (void *data)
 {
-  if (data)
-    ((IDWriteFontFace *) data)->Release ();
+  ((IDWriteFontFace *) data)->Release ();
 }
 
 /**
@@ -207,8 +211,10 @@ _hb_directwrite_face_release (void *data)
 hb_face_t *
 hb_directwrite_face_create (IDWriteFontFace *dw_face)
 {
-  if (dw_face)
-    dw_face->AddRef ();
+  if (!dw_face)
+    return hb_face_get_empty ();
+
+  dw_face->AddRef ();
   return hb_face_create_for_tables (_hb_directwrite_reference_table, dw_face,
 				    _hb_directwrite_face_release);
 }
