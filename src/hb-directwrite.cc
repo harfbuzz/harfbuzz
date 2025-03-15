@@ -350,7 +350,6 @@ struct hb_directwrite_face_data_t
    }
 
   public:
-  DWriteFontFileLoader *fontFileLoader;
   DWriteFontFileStream *fontFileStream;
   IDWriteFontFace *fontFace;
 };
