@@ -383,7 +383,9 @@ extern "C" fn _hb_fontations_draw_glyph(
     let slant = unsafe { hb_font_get_synthetic_slant(font) };
     let mut x_scale: i32 = 0;
     let mut y_scale: i32 = 0;
-    unsafe { hb_font_get_scale(font, &mut x_scale, &mut y_scale); }
+    unsafe {
+        hb_font_get_scale(font, &mut x_scale, &mut y_scale);
+    }
     let slant = if y_scale != 0 {
         slant as f32 * x_scale as f32 / y_scale as f32
     } else {
