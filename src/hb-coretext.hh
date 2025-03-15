@@ -50,4 +50,4 @@ HB_INTERNAL CTFontRef
 create_ct_font (CGFontRef cg_font, CGFloat font_size);
 
 
-#endif /* HB_OT_LAYOUT_HH */
+#endif /* HB_CORETEXT_HH */
