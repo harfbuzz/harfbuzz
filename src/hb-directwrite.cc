@@ -215,8 +215,14 @@ hb_directwrite_face_create (IDWriteFontFace *dw_face)
     return hb_face_get_empty ();
 
   dw_face->AddRef ();
-  return hb_face_create_for_tables (_hb_directwrite_reference_table, dw_face,
-				    _hb_directwrite_face_release);
+  hb_face_t *face = hb_face_create_for_tables (_hb_directwrite_reference_table,
+					       dw_face,
+					       _hb_directwrite_face_release);
+
+  hb_face_set_index (face, dw_face->GetIndex ());
+  hb_face_set_glyph_count (face, dw_face->GetGlyphCount ());
+
+  return face;
 }
 
 /**
