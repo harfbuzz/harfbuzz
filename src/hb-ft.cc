@@ -691,7 +691,7 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   float x_mult, y_mult;
-  float slant_xy = font->slant_xy;
+
 #ifdef HAVE_FT_GET_TRANSFORM
   if (ft_font->transform)
   {
@@ -719,33 +719,10 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   float x2 = x1 + x_mult *  ft_face->glyph->metrics.width;
   float y2 = y1 + y_mult * -ft_face->glyph->metrics.height;
 
-  /* Apply slant. */
-  if (slant_xy)
-  {
-    x1 += hb_min (y1 * slant_xy, y2 * slant_xy);
-    x2 += hb_max (y1 * slant_xy, y2 * slant_xy);
-  }
-
   extents->x_bearing = floorf (x1);
   extents->y_bearing = floorf (y1);
   extents->width = ceilf (x2) - extents->x_bearing;
   extents->height = ceilf (y2) - extents->y_bearing;
-
-  if (font->x_strength || font->y_strength)
-  {
-    /* Y */
-    int y_shift = font->y_strength;
-    if (font->y_scale < 0) y_shift = -y_shift;
-    extents->y_bearing += y_shift;
-    extents->height -= y_shift;
-
-    /* X */
-    int x_shift = font->x_strength;
-    if (font->x_scale < 0) x_shift = -x_shift;
-    if (font->embolden_in_place)
-      extents->x_bearing -= x_shift / 2;
-    extents->width += x_shift;
-  }
 
   return true;
 }
