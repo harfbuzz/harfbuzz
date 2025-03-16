@@ -9,6 +9,7 @@
 #include "hb-coretext-font.cc"
 #include "hb-coretext-shape.cc"
 #include "hb-coretext.cc"
+#include "hb-directwrite-font.cc"
 #include "hb-directwrite-shape.cc"
 #include "hb-directwrite.cc"
 #include "hb-draw.cc"
