@@ -42,7 +42,7 @@
 #  define kCTFontOrientationVertical kCTFontVerticalOrientation
 #endif
 
-#define MAX_GLYPHS 64u
+#define MAX_GLYPHS 256u
 
 static void
 _hb_coretext_font_destroy (void *font_data)
@@ -264,9 +264,7 @@ hb_coretext_get_glyph_v_advances (hb_font_t* font, void* font_data,
     }
   }
 }
-#endif
 
-#ifndef HB_NO_VERTICAL
 static hb_bool_t
 hb_coretext_get_glyph_v_origin (hb_font_t *font,
 				void *font_data,
@@ -461,10 +459,8 @@ static struct hb_coretext_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t
 
     hb_font_funcs_set_font_h_extents_func (funcs, hb_coretext_get_font_h_extents, nullptr, nullptr);
     hb_font_funcs_set_glyph_h_advances_func (funcs, hb_coretext_get_glyph_h_advances, nullptr, nullptr);
-    //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_coretext_get_glyph_h_origin, nullptr, nullptr);
 
 #ifndef HB_NO_VERTICAL
-    //hb_font_funcs_set_font_v_extents_func (funcs, hb_coretext_get_font_v_extents, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_advances_func (funcs, hb_coretext_get_glyph_v_advances, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_origin_func (funcs, hb_coretext_get_glyph_v_origin, nullptr, nullptr);
 #endif

@@ -465,6 +465,42 @@ hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
 }
 
 /**
+ * hb_paint_push_font_transform:
+ * @funcs: paint functions
+ * @paint_data: associated data passed by the caller
+ * @font: a font
+ *
+ * Push the transform reflecting the font's scale and slant
+ * settings onto the paint functions.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_paint_push_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
+                              const hb_font_t *font)
+{
+  funcs->push_font_transform (paint_data, font);
+}
+
+/**
+ * hb_paint_push_inverse_font_transform:
+ * @funcs: paint functions
+ * @paint_data: associated data passed by the caller
+ * @font: a font
+ *
+ * Push the inverse of the transform reflecting the font's
+ * scale and slant settings onto the paint functions.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_paint_push_inverse_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
+                                      const hb_font_t *font)
+{
+  funcs->push_inverse_font_transform (paint_data, font);
+}
+
+/**
  * hb_paint_pop_transform:
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller

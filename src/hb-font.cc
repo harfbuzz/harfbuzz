@@ -50,6 +50,9 @@
 #ifdef HAVE_CORETEXT
 #include "hb-coretext.h"
 #endif
+#ifdef HAVE_DIRECTWRITE
+#include "hb-directwrite.h"
+#endif
 
 
 /**
@@ -2311,7 +2314,7 @@ hb_font_set_funcs_data (hb_font_t         *font,
 }
 
 static struct supported_font_funcs_t {
-	char name[12];
+	char name[16];
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
 {
@@ -2326,6 +2329,9 @@ static struct supported_font_funcs_t {
 #endif
 #ifdef HAVE_CORETEXT
   {"coretext",	hb_coretext_font_set_funcs},
+#endif
+#ifdef HAVE_DIRECTWRITE
+  {"directwrite",hb_directwrite_font_set_funcs},
 #endif
 };
 

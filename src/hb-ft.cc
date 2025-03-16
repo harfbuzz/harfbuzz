@@ -691,7 +691,7 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   float x_mult, y_mult;
-  float slant_xy = font->slant_xy;
+
 #ifdef HAVE_FT_GET_TRANSFORM
   if (ft_font->transform)
   {
@@ -719,33 +719,10 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   float x2 = x1 + x_mult *  ft_face->glyph->metrics.width;
   float y2 = y1 + y_mult * -ft_face->glyph->metrics.height;
 
-  /* Apply slant. */
-  if (slant_xy)
-  {
-    x1 += hb_min (y1 * slant_xy, y2 * slant_xy);
-    x2 += hb_max (y1 * slant_xy, y2 * slant_xy);
-  }
-
   extents->x_bearing = floorf (x1);
   extents->y_bearing = floorf (y1);
   extents->width = ceilf (x2) - extents->x_bearing;
   extents->height = ceilf (y2) - extents->y_bearing;
-
-  if (font->x_strength || font->y_strength)
-  {
-    /* Y */
-    int y_shift = font->y_strength;
-    if (font->y_scale < 0) y_shift = -y_shift;
-    extents->y_bearing += y_shift;
-    extents->height -= y_shift;
-
-    /* X */
-    int x_shift = font->x_strength;
-    if (font->x_scale < 0) x_shift = -x_shift;
-    if (font->embolden_in_place)
-      extents->x_bearing -= x_shift / 2;
-    extents->width += x_shift;
-  }
 
   return true;
 }
@@ -1098,10 +1075,8 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
 
     hb_font_funcs_set_font_h_extents_func (funcs, hb_ft_get_font_h_extents, nullptr, nullptr);
     hb_font_funcs_set_glyph_h_advances_func (funcs, hb_ft_get_glyph_h_advances, nullptr, nullptr);
-    //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ft_get_glyph_h_origin, nullptr, nullptr);
 
 #ifndef HB_NO_VERTICAL
-    //hb_font_funcs_set_font_v_extents_func (funcs, hb_ft_get_font_v_extents, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ft_get_glyph_v_advance, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ft_get_glyph_v_origin, nullptr, nullptr);
 #endif
@@ -1109,7 +1084,6 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
 #ifndef HB_NO_OT_SHAPE_FALLBACK
     hb_font_funcs_set_glyph_h_kerning_func (funcs, hb_ft_get_glyph_h_kerning, nullptr, nullptr);
 #endif
-    //hb_font_funcs_set_glyph_v_kerning_func (funcs, hb_ft_get_glyph_v_kerning, nullptr, nullptr);
     hb_font_funcs_set_glyph_extents_func (funcs, hb_ft_get_glyph_extents, nullptr, nullptr);
     hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ft_get_glyph_contour_point, nullptr, nullptr);
     hb_font_funcs_set_glyph_name_func (funcs, hb_ft_get_glyph_name, nullptr, nullptr);

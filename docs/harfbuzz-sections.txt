@@ -292,6 +292,8 @@ hb_paint_custom_palette_color_func_t
 hb_paint_funcs_set_custom_palette_color_func
 
 hb_paint_push_transform
+hb_paint_push_font_transform
+hb_paint_push_inverse_font_transform
 hb_paint_pop_transform
 hb_paint_color_glyph
 hb_paint_push_clip_glyph
@@ -361,9 +363,12 @@ hb_coretext_font_set_funcs
 <SECTION>
 <FILE>hb-directwrite</FILE>
 hb_directwrite_face_create
+hb_directwrite_face_create_from_file_or_fail
+hb_directwrite_face_create_from_blob_or_fail
 hb_directwrite_face_get_dw_font_face
 hb_directwrite_font_create
 hb_directwrite_font_get_dw_font
+hb_directwrite_font_set_funcs
 </SECTION>
 
 <SECTION>

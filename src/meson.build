@@ -204,6 +204,7 @@ hb_base_sources = files(
   'hb-ot-os2-unicode-ranges.hh',
   'hb-ot-post-macroman.hh',
   'hb-ot-post-table.hh',
+  'hb-ot-post-table-v2subset.hh',
   'hb-ot-shaper-arabic-fallback.hh',
   'hb-ot-shaper-arabic-joining-list.hh',
   'hb-ot-shaper-arabic-pua.hh',
@@ -246,7 +247,9 @@ hb_base_sources = files(
   'hb-ot-var-varc-table.hh',
   'hb-ot-var.cc',
   'hb-ot-vorg-table.hh',
+  'hb-priority-queue.hh',
   'hb-pool.hh',
+  'hb-repacker.hh',
   'hb-sanitize.hh',
   'hb-serialize.hh',
   'hb-set-digest.hh',
@@ -348,6 +351,7 @@ hb_wasm_sources = files(
   'hb-wasm-api-common.hh',
   'hb-wasm-api-face.hh',
   'hb-wasm-api-font.hh',
+  'hb-wasm-api-list.hh',
   'hb-wasm-api-shape.hh',
   'hb-wasm-shape.cc',
 )
@@ -355,10 +359,10 @@ hb_wasm_headers = files()
 
 # System-dependent sources and headers
 
-hb_coretext_sources = files('hb-coretext.cc', 'hb-coretext-shape.cc', 'hb-coretext-font.cc')
+hb_coretext_sources = files('hb-coretext.cc', 'hb-coretext.hh', 'hb-coretext-font.cc', 'hb-coretext-shape.cc')
 hb_coretext_headers = files('hb-coretext.h')
 
-hb_directwrite_sources = files('hb-directwrite.cc')
+hb_directwrite_sources = files('hb-directwrite.cc', 'hb-directwrite.hh', 'hb-directwrite-font.cc', 'hb-directwrite-shape.cc')
 hb_directwrite_headers = files('hb-directwrite.h')
 
 hb_gdi_sources = files('hb-gdi.cc')
@@ -667,6 +671,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
   hb_cairo_sources = [
     'hb-cairo.cc',
     'hb-cairo-utils.cc',
+    'hb-cairo-utils.hh',
     'hb-static.cc'
   ]
 
