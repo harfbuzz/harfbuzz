@@ -81,7 +81,8 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
 				 &kCFTypeDictionaryKeyCallBacks,
 				 &kCFTypeDictionaryValueCallBacks);
 
-    for (unsigned i = 0; i < font->num_coords; i++)
+    unsigned count = font->num_coords;
+    for (unsigned i = 0; i < count; i++)
     {
       hb_ot_var_axis_info_t info;
       unsigned int c = 1;
