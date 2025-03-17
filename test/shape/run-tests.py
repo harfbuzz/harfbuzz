@@ -13,18 +13,6 @@ def shape_cmd(command):
 
 args = sys.argv[1:]
 
-backends = []
-if os.getenv("HAVE_FREETYPE", "1") == "1":
-    backends.append("ft")
-if os.getenv("HAVE_FONTATIONS", "0") == "1":
-    backends.append("fontations")
-if os.getenv("HAVE_CORETEXT", "0") == "1":
-    backends.append("coretext")
-if os.getenv("HAVE_DIRECTWRITE", "0") == "1":
-    backends.append("directwrite")
-if os.getenv("HAVE_UNISCRIBE", "0") == "1":
-    backends.append("uniscribe")
-
 have_freetype = int(os.getenv("HAVE_FREETYPE", 1))
 
 if not args or args[0].find("hb-shape") == -1 or not os.path.exists(args[0]):
@@ -33,6 +21,37 @@ hb_shape, args = args[0], args[1:]
 
 env = os.environ.copy()
 env["LC_ALL"] = "C"
+
+def all_for_what_var_name(what):
+    if not what.endswith("s"):
+        what += "s"
+    return 'all_' + what.replace("-", "_")
+def all_for_what(what):
+    return globals()[all_for_what_var_name(what)]
+
+# Collect supported backends
+for what in ["shaper", "face-loader", "font-funcs"]:
+    subcommand = "--list-" + what
+    if not what.endswith("s"):
+        subcommand += "s"
+
+    process = subprocess.Popen(
+        [hb_shape, subcommand],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=sys.stdout,
+        env=env,
+    )
+    # Capture the output of the process
+    what_list = process.communicate()[0].decode("utf-8").strip().split("\n")
+    print(what, end=": ")
+    print(what_list)
+    var_name = all_for_what_var_name(what)
+    globals()[var_name] = what_list
+
+
+
+
 process = subprocess.Popen(
     [hb_shape, "--batch"],
     stdin=subprocess.PIPE,
@@ -108,70 +127,55 @@ for filename in args:
         shaper = ""
         face_loader = ""
         font_funcs = ""
-        for what in ["--shaper", "--face-loader", "--font-funcs"]:
+        for what in ["shaper", "face-loader", "font-funcs"]:
             it = iter(options)
             for option in it:
-                if option.startswith(what):
+                if option.startswith('--'+what):
                     try:
                         backend = option.split("=")[1]
                     except IndexError:
                         backend = next(it)
-                    if backend not in backends:
+                    if backend not in all_for_what(what):
                         skips += 1
-                        print("Skipping test with ${what}=${backend}.")
+                        print(f"Skipping test with {what}={backend}.")
                         skip_test = True
                         break
-                    what = what[2:].replace("-", "_")
+                    what = what.replace("-", "_")
                     globals()[what] = backend
             if skip_test:
                 break
         if skip_test:
             continue
 
-        print(
-            "shaper=%s face_loader=%s font_funcs=%s" % (shaper, face_loader, font_funcs)
-        )
 
-        extra_options = []
-        if glyphs_expected != "*":
-            extra_options.append("--verify")
-            extra_options.append("--unsafe-to-concat")
+        for font_funcs in [None] if font_funcs else all_font_funcs:
 
-        if "--font-funcs=ot" in options or not have_freetype:
-            glyphs1 = shape_cmd(
-                [fontfile, "--font-funcs=ot"]
-                + extra_options
-                + ["--unicodes", unicodes]
-                + options
-            )
-        else:
-            glyphs1 = shape_cmd(
-                [fontfile, "--font-funcs=ft"]
-                + extra_options
-                + ["--unicodes", unicodes]
-                + options
-            )
-            glyphs2 = shape_cmd(
-                [fontfile, "--font-funcs=ot"]
-                + extra_options
-                + ["--unicodes", unicodes]
-                + options
-            )
+            if font_funcs == 'fontations':
+                # Fontations doesn't implement glyph names. Skip for now.
+                continue
 
-            if glyphs1 != glyphs2 and glyphs_expected != "*":
-                print("FT funcs: " + glyphs1, file=sys.stderr)
-                print("OT funcs: " + glyphs2, file=sys.stderr)
+            extra_options = []
+
+            if font_funcs:
+                extra_options.append("--font-funcs=" + font_funcs)
+
+            if glyphs_expected != "*":
+                extra_options.append("--verify")
+                extra_options.append("--unsafe-to-concat")
+
+            print(
+                "# shaper=%s face-loader=%s font-funcs=%s" % (shaper, face_loader, font_funcs)
+            )
+            cmd = [fontfile] + ["--unicodes", unicodes] + options + extra_options
+            glyphs = shape_cmd(cmd)
+
+            if glyphs.strip() != glyphs_expected and glyphs_expected != "*":
+                print(cmd, file=sys.stderr)
+                print("Actual:   " + glyphs, file=sys.stderr)
+                print("Expected: " + glyphs_expected, file=sys.stderr)
                 fails += 1
             else:
                 passes += 1
-
-        if glyphs1.strip() != glyphs_expected and glyphs_expected != "*":
-            print("hb-shape", fontfile, "--unicodes", unicodes, file=sys.stderr)
-            print("Actual:   " + glyphs1, file=sys.stderr)
-            print("Expected: " + glyphs_expected, file=sys.stderr)
-            fails += 1
-        else:
-            passes += 1
 
 print(
     "%d tests passed; %d failed; %d skipped." % (passes, fails, skips), file=sys.stderr
