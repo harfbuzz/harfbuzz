@@ -8,6 +8,7 @@ then
 fi
 
 ARCH=$1
+shift
 
 BUILD=build-win${ARCH}
 INSTALL=install-win${ARCH}
@@ -34,7 +35,8 @@ meson setup \
 	-Dchafa=disabled \
 	-Dgdi=enabled \
 	-Ddirectwrite=enabled \
-	${BUILD}
+	${BUILD} \
+	$@
 
 # building with all the cores won't work fine with CricleCI for some reason
 meson compile -C ${BUILD} -j3
