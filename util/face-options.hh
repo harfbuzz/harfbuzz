@@ -49,10 +49,12 @@ struct face_options_t
     ~cache_t ()
     {
       g_free (font_path);
+      g_free (face_loader);
       hb_face_destroy (face);
     }
 
     char *font_path = nullptr;
+    char *face_loader = nullptr;
     unsigned face_index = (unsigned) -1;
     hb_face_t *face = nullptr;
   } cache;
@@ -91,8 +93,8 @@ face_options_t::post_parse (GError **error)
 #endif
   }
 
-  if (!cache.font_path ||
-      0 != strcmp (cache.font_path, font_path) ||
+  if ((!cache.font_path || 0 != strcmp (cache.font_path, font_path)) ||
+      (cache.face_loader != face_loader && 0 != strcmp (cache.face_loader, face_loader)) ||
       cache.face_index != face_index)
   {
     hb_face_destroy (cache.face);
@@ -100,7 +102,9 @@ face_options_t::post_parse (GError **error)
     cache.face_index = face_index;
 
     free ((char *) cache.font_path);
+    free ((char *) cache.face_loader);
     cache.font_path = g_strdup (font_path);
+    cache.face_loader = face_loader ? g_strdup (face_loader) : nullptr;
 
     if (!cache.face)
     {
