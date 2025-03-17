@@ -25,6 +25,8 @@ meson setup \
 	-Dglib=enabled \
 	-Dlibffi:tests=false \
 	-Dfreetype=disabled \
+	-Dicu=disabled \
+	-Dchafa=disabled \
 	-Dgdi=enabled \
 	-Ddirectwrite=enabled \
 	${BUILD}
