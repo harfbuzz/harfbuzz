@@ -61,6 +61,15 @@ def supported_whats(what):
     return globals()[supported_whats_var_name(what)]
 
 
+def all_whats_var_name(what):
+    whats = whats_var_name(what)
+    return "all_" + whats
+
+
+def all_whats(what):
+    return globals()[all_whats_var_name(what)]
+
+
 # Collect supported backends
 for what in ["shaper", "face-loader", "font-funcs"]:
     subcommand = "--list-" + plural(what)
@@ -97,6 +106,10 @@ for filename in args:
     else:
         f = open(filename, encoding="utf8")
 
+    for what in ["shaper", "face-loader", "font-funcs"]:
+        all_var_name = all_whats_var_name(what)
+        globals()[all_var_name] = supported_whats(what)
+
     for line in f:
         comment = False
         if line.startswith("#"):
@@ -109,6 +122,27 @@ for filename in args:
 
         line = line.strip()
         if not line:
+            continue
+
+        if line.startswith("@"):
+            # Directive
+            for what in ["shaper", "face-loader", "font-funcs"]:
+                whats = plural(what)
+                if line.startswith("@" + whats):
+                    command, values = line.split("=")
+                    values = values.strip().split(",")
+
+                    supported = supported_whats(what)
+                    if command[-1] == "-":
+                        # Exclude
+                        values = [v for v in supported if v not in values]
+                    else:
+                        # Specify
+                        values = [v for v in values if v in supported]
+
+                    var_name = all_whats_var_name(what)
+                    print(f"Setting {var_name} to {values}")
+                    globals()[var_name] = values
             continue
 
         fontfile, options, unicodes, glyphs_expected = line.split(";")
@@ -174,7 +208,7 @@ for filename in args:
             continue
         options = new_options
 
-        for font_funcs in [font_funcs] if font_funcs else supported_font_funcs:
+        for font_funcs in [font_funcs] if font_funcs else all_whats("font-funcs"):
 
             extra_options = []
 
