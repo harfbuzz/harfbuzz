@@ -24,20 +24,20 @@ def open_shape_batch_process():
     return process
 
 
-process = open_shape_batch_process()
+shape_process = open_shape_batch_process()
 
 
 def shape_cmd(command):
-    global hb_shape, process
+    global hb_shape, shape_process
 
-    # Restart process if it is dead
-    if process.poll() is not None:
-        process = open_shape_batch_process()
+    # Restart shaper if it is dead
+    if shape_process.poll() is not None:
+        shape_process = open_shape_batch_process()
 
     print(hb_shape + " " + " ".join(command))
-    process.stdin.write((";".join(command) + "\n").encode("utf-8"))
-    process.stdin.flush()
-    return process.stdout.readline().decode("utf-8").strip()
+    shape_process.stdin.write((";".join(command) + "\n").encode("utf-8"))
+    shape_process.stdin.flush()
+    return shape_process.stdout.readline().decode("utf-8").strip()
 
 
 def all_for_what_var_name(what):
@@ -56,15 +56,15 @@ for what in ["shaper", "face-loader", "font-funcs"]:
     if not what.endswith("s"):
         subcommand += "s"
 
-    process = subprocess.Popen(
+    what_process = subprocess.Popen(
         [hb_shape, subcommand],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=sys.stdout,
         env=env,
     )
-    # Capture the output of the process
-    what_list = process.communicate()[0].decode("utf-8").strip().split("\n")
+    # Capture the output
+    what_list = what_process.communicate()[0].decode("utf-8").strip().split("\n")
     print(what, end=": ")
     print(what_list)
     var_name = all_for_what_var_name(what)
