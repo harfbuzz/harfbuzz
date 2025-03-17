@@ -16,6 +16,7 @@ DIST=harfbuzz-win${ARCH}
 rm -rf ${BUILD}
 
 meson setup \
+	--buildtype=release \
 	--prefix=${PWD}/${INSTALL} \
 	--cross-file=.ci/win${ARCH}-cross-file.txt \
 	--wrap-mode=default \
