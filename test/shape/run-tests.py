@@ -244,12 +244,12 @@ for filename in args:
                 if not no_glyph_names_process:
                     no_glyph_names_process = open_shape_batch_process()
 
-                cmd = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs]
-                glyphs = shape_cmd(cmd, no_glyph_names_process, verbose=False).strip()
+                cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs]
+                glyphs = shape_cmd(cmd2, no_glyph_names_process, verbose=False).strip()
 
-                cmd = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs_expected]
+                cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs_expected]
                 glyphs_expected = shape_cmd(
-                    cmd, no_glyph_names_process, verbose=False
+                    cmd2, no_glyph_names_process, verbose=False
                 ).strip()
 
             if glyphs != glyphs_expected:
