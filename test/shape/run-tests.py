@@ -143,12 +143,15 @@ for filename in args:
             continue
 
         skip_test = False
-        shaper = ""
-        face_loader = ""
-        font_funcs = ""
-        for what in ["shaper", "face-loader", "font-funcs"]:
-            it = iter(options)
-            for option in it:
+        shaper = None
+        face_loader = None
+        font_funcs = None
+        new_options = []
+        it = iter(options)
+        for option in it:
+
+            consumed = False
+            for what in ["shaper", "face-loader", "font-funcs"]:
                 if option.startswith("--" + what):
                     try:
                         backend = option.split("=")[1]
@@ -161,15 +164,24 @@ for filename in args:
                         break
                     what = what.replace("-", "_")
                     globals()[what] = backend
+                    consumed = True
+            if not consumed:
+                new_options.append(option)
+
             if skip_test:
                 break
         if skip_test:
             continue
+        options = new_options
 
-        for font_funcs in [None] if font_funcs else supported_font_funcs:
+        for font_funcs in [font_funcs] if font_funcs else supported_font_funcs:
 
             extra_options = []
 
+            if shaper:
+                extra_options.append("--shaper=" + shaper)
+            if face_loader:
+                extra_options.append("--face-loader=" + face_loader)
             if font_funcs:
                 extra_options.append("--font-funcs=" + font_funcs)
 
@@ -201,7 +213,7 @@ for filename in args:
                 ).strip()
 
             if glyphs != glyphs_expected:
-                print(" ".join(cmd), file=sys.stderr)
+                print(hb_shape + " " + " ".join(cmd), file=sys.stderr)
                 print("Actual:   " + glyphs, file=sys.stderr)
                 print("Expected: " + glyphs_expected, file=sys.stderr)
                 fails += 1
