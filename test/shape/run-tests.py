@@ -2,18 +2,7 @@
 
 import sys, os, subprocess, hashlib
 
-
-def shape_cmd(command):
-    global hb_shape, process
-    print(hb_shape + " " + " ".join(command))
-    process.stdin.write((";".join(command) + "\n").encode("utf-8"))
-    process.stdin.flush()
-    return process.stdout.readline().decode("utf-8").strip()
-
-
 args = sys.argv[1:]
-
-have_freetype = int(os.getenv("HAVE_FREETYPE", 1))
 
 if not args or args[0].find("hb-shape") == -1 or not os.path.exists(args[0]):
     sys.exit("""First argument does not seem to point to usable hb-shape.""")
@@ -22,12 +11,44 @@ hb_shape, args = args[0], args[1:]
 env = os.environ.copy()
 env["LC_ALL"] = "C"
 
+
+def open_shape_batch_process():
+    global hb_shape, env
+    process = subprocess.Popen(
+        [hb_shape, "--batch"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=sys.stdout,
+        env=env,
+    )
+    return process
+
+
+process = open_shape_batch_process()
+
+
+def shape_cmd(command):
+    global hb_shape, process
+
+    # Restart process if it is dead
+    if process.poll() is not None:
+        process = open_shape_batch_process()
+
+    print(hb_shape + " " + " ".join(command))
+    process.stdin.write((";".join(command) + "\n").encode("utf-8"))
+    process.stdin.flush()
+    return process.stdout.readline().decode("utf-8").strip()
+
+
 def all_for_what_var_name(what):
     if not what.endswith("s"):
         what += "s"
-    return 'all_' + what.replace("-", "_")
+    return "all_" + what.replace("-", "_")
+
+
 def all_for_what(what):
     return globals()[all_for_what_var_name(what)]
+
 
 # Collect supported backends
 for what in ["shaper", "face-loader", "font-funcs"]:
@@ -48,14 +69,6 @@ for what in ["shaper", "face-loader", "font-funcs"]:
     print(what_list)
     var_name = all_for_what_var_name(what)
     globals()[var_name] = what_list
-
-process = subprocess.Popen(
-    [hb_shape, "--batch"],
-    stdin=subprocess.PIPE,
-    stdout=subprocess.PIPE,
-    stderr=sys.stdout,
-    env=env,
-)
 
 passes = 0
 fails = 0
@@ -127,7 +140,7 @@ for filename in args:
         for what in ["shaper", "face-loader", "font-funcs"]:
             it = iter(options)
             for option in it:
-                if option.startswith('--'+what):
+                if option.startswith("--" + what):
                     try:
                         backend = option.split("=")[1]
                     except IndexError:
@@ -144,10 +157,9 @@ for filename in args:
         if skip_test:
             continue
 
-
         for font_funcs in [None] if font_funcs else all_font_funcs:
 
-            if font_funcs == 'fontations':
+            if font_funcs == "fontations":
                 # Fontations doesn't implement glyph names. Skip for now.
                 continue
 
@@ -161,13 +173,14 @@ for filename in args:
                 extra_options.append("--unsafe-to-concat")
 
             print(
-                "# shaper=%s face-loader=%s font-funcs=%s" % (shaper, face_loader, font_funcs)
+                "# shaper=%s face-loader=%s font-funcs=%s"
+                % (shaper, face_loader, font_funcs)
             )
             cmd = [fontfile] + ["--unicodes", unicodes] + options + extra_options
             glyphs = shape_cmd(cmd)
 
             if glyphs.strip() != glyphs_expected and glyphs_expected != "*":
-                print(' '.join(cmd), file=sys.stderr)
+                print(" ".join(cmd), file=sys.stderr)
                 print("Actual:   " + glyphs, file=sys.stderr)
                 print("Expected: " + glyphs_expected, file=sys.stderr)
                 fails += 1
