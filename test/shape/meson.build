@@ -7,6 +7,7 @@ shape_run_tests_py = find_program('run-tests.py')
 
 env = environment()
 env.set('HAVE_FREETYPE', '@0@'.format(conf.get('HAVE_FREETYPE', 0)))
+env.set('HAVE_FONTATIONS', '@0@'.format(conf.get('HAVE_FONTATIONS', 0)))
 env.set('HAVE_CORETEXT', '@0@'.format(conf.get('HAVE_CORETEXT', 0)))
 env.set('HAVE_DIRECTWRITE', '@0@'.format(conf.get('HAVE_DIRECTWRITE', 0)))
 env.set('HAVE_UNISCRIBE', '@0@'.format(conf.get('HAVE_UNISCRIBE', 0)))
