@@ -25,16 +25,18 @@ def open_shape_batch_process():
 
 
 shape_process = open_shape_batch_process()
+no_glyph_names_process = None
 
 
-def shape_cmd(command):
-    global hb_shape, shape_process
+def shape_cmd(command, shape_process, verbose=True):
+    global hb_shape
 
-    # Restart shaper if it is dead
+    # (Re)start shaper if it is dead
     if shape_process.poll() is not None:
         shape_process = open_shape_batch_process()
 
-    print(hb_shape + " " + " ".join(command))
+    if verbose:
+        print(hb_shape + " " + " ".join(command))
     shape_process.stdin.write((";".join(command) + "\n").encode("utf-8"))
     shape_process.stdin.flush()
     return shape_process.stdout.readline().decode("utf-8").strip()
@@ -64,7 +66,7 @@ for what in ["shaper", "face-loader", "font-funcs"]:
         env=env,
     )
     # Capture the output
-    what_list = what_process.communicate()[0].decode("utf-8").strip().split("\n")
+    what_list = what_process.communicate()[0].decode("utf-8").strip().split()
     print(what, end=": ")
     print(what_list)
     var_name = all_for_what_var_name(what)
@@ -159,10 +161,6 @@ for filename in args:
 
         for font_funcs in [None] if font_funcs else all_font_funcs:
 
-            if font_funcs == "fontations":
-                # Fontations doesn't implement glyph names. Skip for now.
-                continue
-
             extra_options = []
 
             if font_funcs:
@@ -177,9 +175,24 @@ for filename in args:
                 % (shaper, face_loader, font_funcs)
             )
             cmd = [fontfile] + ["--unicodes", unicodes] + options + extra_options
-            glyphs = shape_cmd(cmd)
+            glyphs = shape_cmd(cmd, shape_process).strip()
 
-            if glyphs.strip() != glyphs_expected and glyphs_expected != "*":
+            if glyphs_expected == "*":
+                passes += 1
+                continue
+
+            if glyphs != glyphs_expected and glyphs.find("gid") != -1:
+                if not no_glyph_names_process:
+                    no_glyph_names_process = open_shape_batch_process()
+
+                cmd = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs]
+                glyphs = shape_cmd(cmd, no_glyph_names_process, verbose=False).strip()
+
+                cmd = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs_expected]
+                glyphs_expected = shape_cmd(cmd, no_glyph_names_process, verbose=False).strip()
+
+
+            if glyphs != glyphs_expected:
                 print(" ".join(cmd), file=sys.stderr)
                 print("Actual:   " + glyphs, file=sys.stderr)
                 print("Expected: " + glyphs_expected, file=sys.stderr)
