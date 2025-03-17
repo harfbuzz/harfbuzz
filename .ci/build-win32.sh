@@ -10,6 +10,7 @@ meson 	--cross-file=.ci/win32-cross-file.txt \
 	-Dcairo:dwrite=disabled \
 	-Dcairo:tests=disabled \
 	-Dglib=enabled \
+	-Dlibffi:tests=false \
 	-Dfreetype=disabled \
 	-Dgdi=enabled \
 	-Ddirectwrite=enabled \
