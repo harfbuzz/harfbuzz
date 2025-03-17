@@ -137,7 +137,7 @@ jobs:
           python3 -m venv venv
           source venv/bin/activate
           pip3 install meson==1.6.0
-          bash .ci/build-win32.sh
+          bash .ci/build-win.sh 32 i686
       - store_artifacts:
           path: harfbuzz-win32.zip
       - persist_to_workspace:
@@ -163,7 +163,7 @@ jobs:
           python3 -m venv venv
           source venv/bin/activate
           pip3 install meson==1.6.0
-          bash .ci/build-win64.sh
+          bash .ci/build-win.sh 64 x86_64
       - store_artifacts:
           path: harfbuzz-win64.zip
       - persist_to_workspace:
