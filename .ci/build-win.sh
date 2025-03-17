@@ -14,11 +14,9 @@ BUILD=build-win${ARCH}
 INSTALL=install-win${ARCH}
 DIST=harfbuzz-win${ARCH}
 
-rm -rf ${BUILD}
-
 meson setup \
 	--buildtype=release \
-	--prefix=${PWD}/${INSTALL} \
+	--prefix="${PWD}/${BUILD}/${INSTALL}" \
 	--cross-file=.ci/win${ARCH}-cross-file.txt \
 	--wrap-mode=default \
 	--strip \
@@ -36,15 +34,15 @@ meson setup \
 	-Dgdi=enabled \
 	-Ddirectwrite=enabled \
 	${BUILD} \
-	$@
+	"$@"
 
 # building with all the cores won't work fine with CricleCI for some reason
 meson compile -C ${BUILD} -j3
 meson install -C ${BUILD}
 
 mkdir ${BUILD}/${DIST}
-cp ${INSTALL}/bin/hb-*.exe ${BUILD}/${DIST}
-cp ${INSTALL}/bin/*.dll ${BUILD}/${DIST}
+cp ${BUILD}/${INSTALL}/bin/hb-*.exe ${BUILD}/${DIST}
+cp ${BUILD}/${INSTALL}/bin/*.dll ${BUILD}/${DIST}
 rm -f ${DIST}.zip
 (cd ${BUILD} && zip -r ../${DIST}.zip ${DIST})
 echo "${DIST}.zip is ready."
