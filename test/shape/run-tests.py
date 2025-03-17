@@ -110,6 +110,9 @@ for filename in args:
             continue
 
         skip_test = False
+        shaper = ""
+        face_loader = ""
+        font_funcs = ""
         for what in ["--shaper", "--face-loader", "--font-funcs"]:
             it = iter(options)
             for option in it:
@@ -123,10 +126,16 @@ for filename in args:
                         print("Skipping test with ${what}=${backend}.")
                         skip_test = True
                         break
+                    what = what[2:].replace("-", "_")
+                    globals()[what] = backend
             if skip_test:
                 break
         if skip_test:
             continue
+
+        print(
+            "shaper=%s face_loader=%s font_funcs=%s" % (shaper, face_loader, font_funcs)
+        )
 
         if "--font-funcs=ot" in options or not have_freetype:
             glyphs1 = shape_cmd(
