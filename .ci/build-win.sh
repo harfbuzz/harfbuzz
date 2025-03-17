@@ -1,21 +1,25 @@
 #!/bin/bash
 set -ex
 
-if [ "$#" -lt 2 ]
+if [ "$#" -lt 1 ]
 then
-  echo "Usage $0 ARCH CPU"
+  echo "Usage $0 ARCH (ARCH can be 32 or 64)"
   exit 1
 fi
 
 ARCH=$1
-CPU=$2
 
 BUILD=build-win${ARCH}
+INSTALL=install-win${ARCH}
 DIST=harfbuzz-win${ARCH}
 
+rm -rf ${BUILD}
+
 meson setup \
+	--prefix=${PWD}/${INSTALL} \
 	--cross-file=.ci/win${ARCH}-cross-file.txt \
 	--wrap-mode=default \
+	--strip \
 	-Dtests=disabled \
 	-Dcairo=enabled \
 	-Dcairo:fontconfig=disabled \
@@ -33,12 +37,11 @@ meson setup \
 
 # building with all the cores won't work fine with CricleCI for some reason
 meson compile -C ${BUILD} -j3
+meson install -C ${BUILD}
 
-rm -rf ${BUILD}/${DIST}
 mkdir ${BUILD}/${DIST}
-cp ${BUILD}/util/hb-*.exe ${BUILD}/${DIST}
-find ${BUILD} -name '*.dll' -exec cp {} ${BUILD}/${DIST} \;
-${CPU}-w64-mingw32-strip ${BUILD}/${DIST}/*.{dll,exe}
+cp ${INSTALL}/bin/hb-*.exe ${BUILD}/${DIST}
+cp ${INSTALL}/bin/*.dll ${BUILD}/${DIST}
 rm -f ${DIST}.zip
 (cd ${BUILD} && zip -r ../${DIST}.zip ${DIST})
 echo "${DIST}.zip is ready."
