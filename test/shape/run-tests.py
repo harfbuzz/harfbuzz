@@ -100,11 +100,6 @@ for filename in args:
             cwd = os.path.dirname(filename)
             fontfile = os.path.normpath(os.path.join(cwd, fontfile))
 
-        extra_options = ["--shaper=ot"]
-        if glyphs_expected != "*":
-            extra_options.append("--verify")
-            extra_options.append("--unsafe-to-concat")
-
         if comment:
             print('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
             continue
@@ -136,6 +131,11 @@ for filename in args:
         print(
             "shaper=%s face_loader=%s font_funcs=%s" % (shaper, face_loader, font_funcs)
         )
+
+        extra_options = []
+        if glyphs_expected != "*":
+            extra_options.append("--verify")
+            extra_options.append("--unsafe-to-concat")
 
         if "--font-funcs=ot" in options or not have_freetype:
             glyphs1 = shape_cmd(
