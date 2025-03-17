@@ -106,9 +106,15 @@ for filename in args:
     else:
         f = open(filename, encoding="utf8")
 
+    # By default test all backends
     for what in ["shaper", "face-loader", "font-funcs"]:
         all_var_name = all_whats_var_name(what)
         globals()[all_var_name] = supported_whats(what)
+    all_shapers = ["ot"]  # But only 'ot' shaper
+
+    # Right now we only test the 'ot' shaper if nothing specified,
+    # but try all font-funcs unless overriden.
+    # Only 'ot' face-loader is tested.
 
     for line in f:
         comment = False
