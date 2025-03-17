@@ -42,21 +42,28 @@ def shape_cmd(command, shape_process, verbose=True):
     return shape_process.stdout.readline().decode("utf-8").strip()
 
 
-def all_for_what_var_name(what):
+def plural(what):
     if not what.endswith("s"):
         what += "s"
-    return "all_" + what.replace("-", "_")
+    return what
 
 
-def all_for_what(what):
-    return globals()[all_for_what_var_name(what)]
+def whats_var_name(what):
+    return plural(what).replace("-", "_")
+
+
+def all_whats_var_name(what):
+    whats = whats_var_name(what)
+    return "all_" + whats
+
+
+def all_whats(what):
+    return globals()[all_whats_var_name(what)]
 
 
 # Collect supported backends
 for what in ["shaper", "face-loader", "font-funcs"]:
-    subcommand = "--list-" + what
-    if not what.endswith("s"):
-        subcommand += "s"
+    subcommand = "--list-" + plural(what)
 
     what_process = subprocess.Popen(
         [hb_shape, subcommand],
@@ -69,7 +76,7 @@ for what in ["shaper", "face-loader", "font-funcs"]:
     what_list = what_process.communicate()[0].decode("utf-8").strip().split()
     print(what, end=": ")
     print(what_list)
-    var_name = all_for_what_var_name(what)
+    var_name = all_whats_var_name(what)
     globals()[var_name] = what_list
 
 passes = 0
@@ -147,7 +154,7 @@ for filename in args:
                         backend = option.split("=")[1]
                     except IndexError:
                         backend = next(it)
-                    if backend not in all_for_what(what):
+                    if backend not in all_whats(what):
                         skips += 1
                         print(f"Skipping test with {what}={backend}.")
                         skip_test = True
@@ -189,8 +196,9 @@ for filename in args:
                 glyphs = shape_cmd(cmd, no_glyph_names_process, verbose=False).strip()
 
                 cmd = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs_expected]
-                glyphs_expected = shape_cmd(cmd, no_glyph_names_process, verbose=False).strip()
-
+                glyphs_expected = shape_cmd(
+                    cmd, no_glyph_names_process, verbose=False
+                ).strip()
 
             if glyphs != glyphs_expected:
                 print(" ".join(cmd), file=sys.stderr)
