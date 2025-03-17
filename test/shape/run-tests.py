@@ -52,13 +52,13 @@ def whats_var_name(what):
     return plural(what).replace("-", "_")
 
 
-def all_whats_var_name(what):
+def supported_whats_var_name(what):
     whats = whats_var_name(what)
-    return "all_" + whats
+    return "supported_" + whats
 
 
-def all_whats(what):
-    return globals()[all_whats_var_name(what)]
+def supported_whats(what):
+    return globals()[supported_whats_var_name(what)]
 
 
 # Collect supported backends
@@ -76,7 +76,7 @@ for what in ["shaper", "face-loader", "font-funcs"]:
     what_list = what_process.communicate()[0].decode("utf-8").strip().split()
     print(what, end=": ")
     print(what_list)
-    var_name = all_whats_var_name(what)
+    var_name = supported_whats_var_name(what)
     globals()[var_name] = what_list
 
 passes = 0
@@ -154,7 +154,7 @@ for filename in args:
                         backend = option.split("=")[1]
                     except IndexError:
                         backend = next(it)
-                    if backend not in all_whats(what):
+                    if backend not in supported_whats(what):
                         skips += 1
                         print(f"Skipping test with {what}={backend}.")
                         skip_test = True
@@ -166,7 +166,7 @@ for filename in args:
         if skip_test:
             continue
 
-        for font_funcs in [None] if font_funcs else all_font_funcs:
+        for font_funcs in [None] if font_funcs else supported_font_funcs:
 
             extra_options = []
 
