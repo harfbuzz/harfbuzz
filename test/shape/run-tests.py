@@ -4,6 +4,11 @@ import sys, os, subprocess, hashlib
 
 args = sys.argv[1:]
 
+verbose = False
+if args and args[0] == "-v":
+    verbose = True
+    args = args[1:]
+
 if not args or args[0].find("hb-shape") == -1 or not os.path.exists(args[0]):
     sys.exit("""First argument does not seem to point to usable hb-shape.""")
 hb_shape, args = args[0], args[1:]
@@ -28,7 +33,7 @@ shape_process = open_shape_batch_process()
 no_glyph_names_process = None
 
 
-def shape_cmd(command, shape_process, verbose=True):
+def shape_cmd(command, shape_process, verbose=False):
     global hb_shape
 
     # (Re)start shaper if it is dead
@@ -123,7 +128,8 @@ for filename in args:
             line = line[1:]
 
             if line.startswith(" "):
-                print("#%s" % line)
+                if verbose:
+                    print("#%s" % line)
                 continue
 
         line = line.strip()
@@ -157,7 +163,7 @@ for filename in args:
                 print(line)
                 continue
             else:
-                print("Unrecognized directive: %s" % line)
+                print("Unrecognized directive: %s" % line, file=sys.stderr)
                 sys.exit(1)
 
         fontfile, options, unicodes, glyphs_expected = line.split(";")
@@ -188,7 +194,8 @@ for filename in args:
             fontfile = os.path.normpath(os.path.join(cwd, fontfile))
 
         if comment:
-            print('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
+            if verbose:
+                print('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
             continue
 
         skip_test = False
@@ -198,7 +205,6 @@ for filename in args:
         new_options = []
         it = iter(options)
         for option in it:
-
             consumed = False
             for what in ["shaper", "face-loader", "font-funcs"]:
                 if option.startswith("--" + what):
@@ -224,7 +230,6 @@ for filename in args:
         options = new_options
 
         for font_funcs in [font_funcs] if font_funcs else all_whats("font-funcs"):
-
             extra_options = []
 
             if shaper:
@@ -238,12 +243,13 @@ for filename in args:
                 extra_options.append("--verify")
                 extra_options.append("--unsafe-to-concat")
 
-            print(
-                "# shaper=%s face-loader=%s font-funcs=%s"
-                % (shaper, face_loader, font_funcs)
-            )
+            if verbose:
+                print(
+                    "# shaper=%s face-loader=%s font-funcs=%s"
+                    % (shaper, face_loader, font_funcs)
+                )
             cmd = [fontfile] + ["--unicodes", unicodes] + options + extra_options
-            glyphs = shape_cmd(cmd, shape_process).strip()
+            glyphs = shape_cmd(cmd, shape_process, verbose).strip()
 
             if glyphs_expected == "*":
                 passes += 1
@@ -254,12 +260,10 @@ for filename in args:
                     no_glyph_names_process = open_shape_batch_process()
 
                 cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs]
-                glyphs = shape_cmd(cmd2, no_glyph_names_process, verbose=False).strip()
+                glyphs = shape_cmd(cmd2, no_glyph_names_process).strip()
 
                 cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs_expected]
-                glyphs_expected = shape_cmd(
-                    cmd2, no_glyph_names_process, verbose=False
-                ).strip()
+                glyphs_expected = shape_cmd(cmd2, no_glyph_names_process).strip()
 
             if glyphs != glyphs_expected:
                 print(hb_shape + " " + " ".join(cmd), file=sys.stderr)
