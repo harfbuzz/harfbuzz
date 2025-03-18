@@ -4,7 +4,7 @@ edition = "2021"
 
 [dependencies]
 read-fonts = "0.27"
-skrifa = "0.28"
+skrifa = "0.29"
 
 [lib]
 name = "harfbuzz_fontations"
