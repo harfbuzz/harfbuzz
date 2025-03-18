@@ -22,7 +22,7 @@ use skrifa::metrics::{BoundingBox, GlyphMetrics};
 use skrifa::outline::pen::OutlinePen;
 use skrifa::outline::DrawSettings;
 use skrifa::OutlineGlyphCollection;
-use skrifa::{GlyphId, MetadataProvider};
+use skrifa::{GlyphId, GlyphNames, MetadataProvider};
 
 struct MyAllocator;
 
@@ -60,6 +60,7 @@ struct FontationsData<'a> {
     char_map: Charmap<'a>,
     outline_glyphs: OutlineGlyphCollection<'a>,
     color_glyphs: ColorGlyphCollection<'a>,
+    glyph_names: GlyphNames<'a>,
 
     // Mutex for the below
     mutex: Mutex<()>,
@@ -87,6 +88,8 @@ impl FontationsData<'_> {
 
         let color_glyphs = font_ref.color_glyphs();
 
+        let glyph_names = font_ref.glyph_names();
+
         let mut data = FontationsData {
             face_blob,
             font,
@@ -94,6 +97,7 @@ impl FontationsData<'_> {
             char_map,
             outline_glyphs,
             color_glyphs,
+            glyph_names,
             mutex: Mutex::new(()),
             serial: u32::MAX,
             x_size: Size::new(0.0),
@@ -768,6 +772,32 @@ extern "C" fn _hb_fontations_paint_glyph(
     let _ = color_glyph.paint(location, &mut painter);
 }
 
+extern "C" fn _hb_fontations_glyph_name(
+    _font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    glyph: hb_codepoint_t,
+    name: *mut ::std::os::raw::c_char,
+    size: ::std::os::raw::c_uint,
+    _user_data: *mut ::std::os::raw::c_void,
+) -> hb_bool_t {
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+
+    let glyph_name = data.glyph_names.get(GlyphId::new(glyph));
+    match glyph_name {
+        None => false as hb_bool_t,
+        Some(glyph_name) => {
+            let glyph_name = glyph_name.as_str();
+            // Copy the glyph name into the buffer, up to size-1 bytes
+            let len = glyph_name.len().min(size as usize - 1);
+            unsafe {
+                std::ptr::copy_nonoverlapping(glyph_name.as_ptr(), name as *mut u8, len);
+                *name.add(len) = 0;
+            }
+            true as hb_bool_t
+        }
+    }
+}
+
 fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
     static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
 
@@ -820,6 +850,12 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
             hb_font_funcs_set_paint_glyph_func(
                 ffuncs,
                 Some(_hb_fontations_paint_glyph),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_glyph_name_func(
+                ffuncs,
+                Some(_hb_fontations_glyph_name),
                 null_mut(),
                 None,
             );
