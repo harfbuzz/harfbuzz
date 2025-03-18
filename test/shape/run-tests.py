@@ -132,9 +132,12 @@ for filename in args:
 
         if line.startswith("@"):
             # Directive
+            line = line.strip()
+            line = line.split("#")[0].strip()[1:]
+            consumed = False
             for what in ["shaper", "face-loader", "font-funcs"]:
                 whats = plural(what)
-                if line.startswith("@" + whats):
+                if line.startswith(whats):
                     command, values = line.split("=")
                     values = values.strip().split(",")
 
@@ -149,7 +152,13 @@ for filename in args:
                     var_name = all_whats_var_name(what)
                     print(f"Setting {var_name} to {values}")
                     globals()[var_name] = values
-            continue
+                    consumed = True
+            if consumed:
+                print(line)
+                continue
+            else:
+                print("Unrecognized directive: %s" % line)
+                sys.exit(1)
 
         fontfile, options, unicodes, glyphs_expected = line.split(";")
         options = options.split()
