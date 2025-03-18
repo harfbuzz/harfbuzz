@@ -312,9 +312,9 @@ hb_coretext_get_glyph_extents (hb_font_t *font,
 						    kCTFontOrientationDefault, glyphs, NULL, 1);
 
   extents->x_bearing = round (bounds.origin.x * x_mult);
-  extents->y_bearing = round (bounds.origin.y * y_mult);
+  extents->y_bearing = round ((bounds.origin.y + bounds.size.height) * y_mult);
   extents->width = round (bounds.size.width * x_mult);
-  extents->height = round (bounds.size.height * y_mult);
+  extents->height = round (bounds.origin.y * y_mult) - extents->y_bearing;
 
   return true;
 }
