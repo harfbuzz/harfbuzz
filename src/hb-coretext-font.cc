@@ -194,6 +194,10 @@ hb_coretext_get_variation_glyph (hb_font_t *font HB_UNUSED,
     if (cg_glyph[i])
       return false;
 
+  // Humm. CoreText falls back to the default glyph if the variation selector
+  // is not supported.  We cannot truly detect that case. So, in essence,
+  // we are always returning true here...
+
   *glyph = cg_glyph[0];
   return true;
 }
@@ -308,9 +312,9 @@ hb_coretext_get_glyph_extents (hb_font_t *font,
 						    kCTFontOrientationDefault, glyphs, NULL, 1);
 
   extents->x_bearing = round (bounds.origin.x * x_mult);
-  extents->y_bearing = round (bounds.origin.y * y_mult);
+  extents->y_bearing = round ((bounds.origin.y + bounds.size.height) * y_mult);
   extents->width = round (bounds.size.width * x_mult);
-  extents->height = round (bounds.size.height * y_mult);
+  extents->height = round (bounds.origin.y * y_mult) - extents->y_bearing;
 
   return true;
 }
