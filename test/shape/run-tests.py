@@ -83,10 +83,10 @@ for what in ["shaper", "face-loader", "font-funcs"]:
     )
     # Capture the output
     what_list = what_process.communicate()[0].decode("utf-8").strip().split()
-    print(what, end=": ")
-    print(what_list)
+    whats = plural(what)
     var_name = supported_whats_var_name(what)
     globals()[var_name] = what_list
+    print(f"Supported {whats}: {what_list}")
 
 passes = 0
 fails = 0
@@ -150,7 +150,7 @@ for filename in args:
                         values = [v for v in values if v in supported]
 
                     var_name = all_whats_var_name(what)
-                    print(f"Setting {var_name} to {values}")
+                    print(f"Setting {whats} to test to {values}")
                     globals()[var_name] = values
                     consumed = True
             if consumed:
