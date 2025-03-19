@@ -73,6 +73,9 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
     return nullptr;
   }
 
+  unsigned num_axes = hb_ot_var_get_axis_count (face);
+  // https://github.com/harfbuzz/harfbuzz/issues/5163
+  if (num_axes)
   {
     CFMutableDictionaryRef variations =
       CFDictionaryCreateMutable (kCFAllocatorDefault,
@@ -80,7 +83,6 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
 				 &kCFTypeDictionaryKeyCallBacks,
 				 &kCFTypeDictionaryValueCallBacks);
 
-    unsigned num_axes = hb_ot_var_get_axis_count (face);
     unsigned count = hb_max (num_axes, font->num_coords);
     for (unsigned i = 0; i < count; i++)
     {
