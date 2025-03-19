@@ -1,5 +1,11 @@
+@font-funcs-=directwrite
 ../fonts/872d2955d326bd6676a06f66b8238ebbaabc212f.ttf;--shaper=directwrite;U+0628,U+0628,U+0628;[uni0628.fina=2+883|uni0628.medi_High=1+244|uni0628.init_High=0+233]
 ../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;--shaper=directwrite;U+0066,U+0066,U+0069;[f_f_i=0+795]
 ../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;--shaper=directwrite --features=-liga;U+0066,U+0066,U+0069;[f=0+300|f=1+300|i=2+263]
 ../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;--shaper=directwrite;U+0648,U+0628,U+0627;[alef-ar.fina=2+229|beh-ar.init=1+190|waw-ar=0+483]
 ../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;--shaper=directwrite --features=ss01;U+0648,U+0628,U+0627;[alef-ar.fina=2+229|beh-ar.init.LD=1+190|waw-ar=0+400]
+#../fonts/HBTest-VF.ttf;--shaper=directwrite --variations=TEST=491;U+0041;[A=0+496]
+#../fonts/HBTest-VF.ttf;--shaper=directwrite --variations=TEST=509;U+0041;[A=0+505]
+../fonts/ab40c89624a6104e5d0a2308e448a989302f515b.ttf;--shaper=directwrite --variations=wdth=60;U+0020;[space=0+266]
+../fonts/ab40c89624a6104e5d0a2308e448a989302f515b.ttf;--shaper=directwrite --variations=wdth=402;U+0020;[space=0+639]
+../fonts/e8691822f6a705e3e9fb48a0405c645b1a036590.ttf;--shaper=directwrite --variations=0001=500;U+002E,U+0065;[period=0+681|e=1+650]
