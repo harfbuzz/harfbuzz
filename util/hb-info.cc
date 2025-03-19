@@ -431,6 +431,8 @@ retry:
       printf ("Has AAT layout\n");
     if (_has_blob (HB_TAG('S','i','l','f')))
       printf ("Has Graphite layout\n");
+    if (_has_blob (HB_TAG('W','a','s','m')))
+      printf ("Has WebAssembly layout\n");
     if (_has_blob (HB_TAG('k','e','r','n')))
       printf ("Has legacy kerning\n");
 
