@@ -297,7 +297,7 @@ retry:
 
     bool done_something = false;
 
-#define process_item(item) if (item) { done_something = true; _##item (); }
+#define process_item(item) HB_STMT_START { if (item) { done_something = true; _##item (); } } HB_STMT_END
 
     process_item (show_face_count);
     process_item (show_family);
