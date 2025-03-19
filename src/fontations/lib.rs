@@ -3,6 +3,7 @@
 include!(concat!(env!("OUT_DIR"), "/hb.rs"));
 
 use std::alloc::{GlobalAlloc, Layout};
+use std::collections::HashMap;
 use std::mem::transmute;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
@@ -61,6 +62,7 @@ struct FontationsData<'a> {
     outline_glyphs: OutlineGlyphCollection<'a>,
     color_glyphs: ColorGlyphCollection<'a>,
     glyph_names: GlyphNames<'a>,
+    glyph_from_names: AtomicPtr<HashMap<String, hb_codepoint_t>>,
 
     // Mutex for the below
     mutex: Mutex<()>,
@@ -98,6 +100,7 @@ impl FontationsData<'_> {
             outline_glyphs,
             color_glyphs,
             glyph_names,
+            glyph_from_names: AtomicPtr::new(null_mut()),
             mutex: Mutex::new(()),
             serial: u32::MAX,
             x_size: Size::new(0.0),
@@ -167,6 +170,11 @@ extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void) {
 
     unsafe {
         hb_blob_destroy(data.face_blob);
+        // Drop the glyph_from_names HashMap, if not null
+        let glyph_from_names = data.glyph_from_names.load(Ordering::Acquire);
+        if !glyph_from_names.is_null() {
+            let _ = Box::from_raw(glyph_from_names);
+        }
     }
 }
 
@@ -798,6 +806,57 @@ extern "C" fn _hb_fontations_glyph_name(
     }
 }
 
+extern "C" fn _hb_fontations_glyph_from_name(
+    _font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    name: *const ::std::os::raw::c_char,
+    len: ::std::os::raw::c_int,
+    glyph: *mut hb_codepoint_t,
+    _user_data: *mut ::std::os::raw::c_void,
+) -> hb_bool_t {
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+
+    let name = unsafe { std::slice::from_raw_parts(name as *const u8, len as usize) };
+    let name = std::str::from_utf8(name).unwrap_or_default();
+
+    let glyph_from_names = data.glyph_from_names.load(Ordering::Acquire);
+    let glyph_from_names = if glyph_from_names.is_null() {
+        loop {
+            let mut map = HashMap::new();
+            for (glyph_id, glyph_name) in data.glyph_names.iter() {
+                map.insert(glyph_name.to_string(), u32::from(glyph_id));
+            }
+            let map = Box::into_raw(Box::new(map));
+            if data.glyph_from_names.compare_exchange(
+                null_mut(),
+                map,
+                Ordering::Acquire,
+                Ordering::Relaxed,
+            ) == Ok(null_mut())
+            {
+                break map;
+            } else {
+                unsafe {
+                    let _ = Box::from_raw(map);
+                }
+            }
+        }
+    } else {
+        glyph_from_names
+    };
+
+    let glyph_id = unsafe { &*glyph_from_names }.get(name);
+    match glyph_id {
+        None => false as hb_bool_t,
+        Some(glyph_id) => {
+            unsafe {
+                *glyph = *glyph_id;
+            }
+            true as hb_bool_t
+        }
+    }
+}
+
 fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
     static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
 
@@ -856,6 +915,12 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
             hb_font_funcs_set_glyph_name_func(
                 ffuncs,
                 Some(_hb_fontations_glyph_name),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_glyph_from_name_func(
+                ffuncs,
+                Some(_hb_fontations_glyph_from_name),
                 null_mut(),
                 None,
             );
