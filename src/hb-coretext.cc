@@ -158,10 +158,17 @@ release_data (void *info, const void *data, size_t size)
 }
 
 CGFontRef
-create_cg_font (CFArrayRef ct_font_desc_array, unsigned int index)
+create_cg_font (CFArrayRef ct_font_desc_array, unsigned int named_instance_index)
 {
-  auto ct_font_desc = (CFArrayGetCount (ct_font_desc_array) > index) ?
-		      (CTFontDescriptorRef) CFArrayGetValueAtIndex (ct_font_desc_array, index) : nullptr;
+  if (named_instance_index == 0)
+  {
+    // Default instance. We don't know which one is it. Return the first one.
+    // We will set the correct variations on it later.
+  }
+  else
+    named_instance_index--;
+  auto ct_font_desc = (CFArrayGetCount (ct_font_desc_array) > named_instance_index) ?
+		      (CTFontDescriptorRef) CFArrayGetValueAtIndex (ct_font_desc_array, named_instance_index) : nullptr;
   if (unlikely (!ct_font_desc))
   {
     CFRelease (ct_font_desc_array);
@@ -187,12 +194,21 @@ create_cg_font (hb_blob_t *blob, unsigned int index)
   if (unlikely (!blob_length))
     DEBUG_MSG (CORETEXT, blob, "Empty blob");
 
-  if (unlikely (index != 0))
+  unsigned ttc_index = index & 0xFFFF;
+  unsigned named_instance_index = index >> 16;
+
+  if (ttc_index != 0)
+  {
+    DEBUG_MSG (CORETEXT, blob, "TTC index %d not supported", ttc_index);
+    return nullptr; // CoreText does not support TTCs
+  }
+
+  if (unlikely (named_instance_index != 0))
   {
     auto ct_font_desc_array = CTFontManagerCreateFontDescriptorsFromData (CFDataCreate (kCFAllocatorDefault, (const UInt8 *) blob_data, blob_length));
     if (unlikely (!ct_font_desc_array))
       return nullptr;
-    return create_cg_font (ct_font_desc_array, index);
+    return create_cg_font (ct_font_desc_array, named_instance_index);
   }
 
   hb_blob_reference (blob);
@@ -393,13 +409,24 @@ hb_coretext_face_create_from_file_or_fail (const char   *file_name,
     return nullptr;
   }
 
-  auto cg_font = create_cg_font (ct_font_desc_array, index);
+  unsigned ttc_index = index & 0xFFFF;
+  unsigned named_instance_index = index >> 16;
+
+  if (ttc_index != 0)
+  {
+    DEBUG_MSG (CORETEXT, nullptr, "TTC index %d not supported", ttc_index);
+    return nullptr; // CoreText does not support TTCs
+  }
+
+  auto cg_font = create_cg_font (ct_font_desc_array, named_instance_index);
   CFRelease (url);
 
   hb_face_t *face = hb_coretext_face_create (cg_font);
   CFRelease (cg_font);
   if (unlikely (hb_face_is_immutable (face)))
     return nullptr;
+
+  hb_face_set_index (face, index);
 
   return face;
 }
@@ -432,6 +459,8 @@ hb_coretext_face_create_from_blob_or_fail (hb_blob_t    *blob,
   CFRelease (cg_font);
   if (unlikely (hb_face_is_immutable (face)))
     return nullptr;
+
+  hb_face_set_index (face, index);
 
   return face;
 }

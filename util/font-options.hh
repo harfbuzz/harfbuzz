@@ -101,7 +101,8 @@ font_options_t::post_parse (GError **error)
   hb_font_set_scale (font, scale_x, scale_y);
 
 #ifndef HB_NO_VAR
-  hb_font_set_var_named_instance (font, named_instance);
+  if (named_instance != HB_FONT_NO_VAR_NAMED_INSTANCE)
+    hb_font_set_var_named_instance (font, named_instance);
   hb_font_set_variations (font, variations, num_variations);
 #endif
 

@@ -255,6 +255,7 @@ struct info_t :
       true;
     }
 
+retry:
     if (show_all)
     {
       show_face_count =
@@ -294,42 +295,52 @@ struct info_t :
       true;
     }
 
-    if (show_face_count)  _show_face_count ();
-    if (show_family)	  _show_family ();
-    if (show_subfamily)	  _show_subfamily ();
-    if (show_unique_name) _show_unique_name ();
-    if (show_full_name)	  _show_full_name ();
-    if (show_postscript_name)_show_postscript_name ();
-    if (show_version)	  _show_version ();
-    if (show_technology)  _show_technology ();
-    if (show_unicode_count)_show_unicode_count ();
-    if (show_glyph_count) _show_glyph_count ();
-    if (show_upem)	  _show_upem ();
-    if (show_extents)	  _show_extents ();
+    bool done_something = false;
 
-    if (get_name)	  _get_name ();
-    if (get_style)	  _get_style ();
-    if (get_metric)	  _get_metric ();
-    if (get_baseline)	  _get_baseline ();
-    if (get_meta)	  _get_meta ();
-    if (get_table)	  _get_table ();
+#define process_item(item) HB_STMT_START { if (item) { done_something = true; _##item (); } } HB_STMT_END
 
-    if (list_names)	  _list_names ();
+    process_item (show_face_count);
+    process_item (show_family);
+    process_item (show_subfamily);
+    process_item (show_unique_name);
+    process_item (show_full_name);
+    process_item (show_postscript_name);
+    process_item (show_version);
+    process_item (show_technology);
+    process_item (show_unicode_count);
+    process_item (show_glyph_count);
+    process_item (show_upem);
+    process_item (show_extents);
+
+    process_item (get_name);
+    process_item (get_style);
+    process_item (get_metric);
+    process_item (get_baseline);
+    process_item (get_meta);
+    process_item (get_table);
+
+    process_item (list_names);
 #ifdef HB_HAS_GOBJECT
-    if (list_style)	  _list_style ();
-    if (list_metrics)	  _list_metrics ();
-    if (list_baselines)	  _list_baselines ();
+    process_item (list_style);
+    process_item (list_metrics);
+    process_item (list_baselines);
 #endif
-    if (list_tables)	  _list_tables ();
-    if (list_unicodes)	  _list_unicodes ();
-    if (list_glyphs)	  _list_glyphs ();
-    if (list_scripts)	  _list_scripts ();
-    if (list_features)	  _list_features ();
+    process_item (list_tables);
+    process_item (list_unicodes);
+    process_item (list_glyphs);
+    process_item (list_scripts);
+    process_item (list_features);
 #ifndef HB_NO_VAR
-    if (list_variations)  _list_variations ();
+    process_item (list_variations);
 #endif
-    if (list_palettes)	  _list_palettes ();
-    if (list_meta)	  _list_meta ();
+    process_item (list_palettes);
+    process_item (list_meta);
+
+    if (!done_something)
+    {
+      show_all = true;
+      goto retry;
+    }
 
     return 0;
   }
@@ -420,6 +431,8 @@ struct info_t :
       printf ("Has AAT layout\n");
     if (_has_blob (HB_TAG('S','i','l','f')))
       printf ("Has Graphite layout\n");
+    if (_has_blob (HB_TAG('W','a','s','m')))
+      printf ("Has WebAssembly layout\n");
     if (_has_blob (HB_TAG('k','e','r','n')))
       printf ("Has legacy kerning\n");
 
