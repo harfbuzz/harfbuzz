@@ -367,7 +367,7 @@ hb_directwrite_font_create (IDWriteFont *dw_font)
 	{
 	  for (uint32_t i = 0; i < count; ++i)
 	  {
-	    hb_tag_t tag = values[i].axisTag;
+	    hb_tag_t tag = hb_uint32_swap (values[i].axisTag);
 	    float value = values[i].value;
 	    vars[i] = {tag, value};
 	  }
