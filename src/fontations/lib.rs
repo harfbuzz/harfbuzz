@@ -8,7 +8,7 @@ use std::mem::transmute;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, Ordering};
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 
 use read_fonts::tables::cpal::ColorRecord;
 use read_fonts::TableProvider;
@@ -62,7 +62,7 @@ struct FontationsData<'a> {
     outline_glyphs: OutlineGlyphCollection<'a>,
     color_glyphs: ColorGlyphCollection<'a>,
     glyph_names: GlyphNames<'a>,
-    glyph_from_names: AtomicPtr<HashMap<String, hb_codepoint_t>>,
+    glyph_from_names: OnceLock<HashMap<String, hb_codepoint_t>>,
 
     // Mutex for the below
     mutex: Mutex<()>,
@@ -100,7 +100,7 @@ impl FontationsData<'_> {
             outline_glyphs,
             color_glyphs,
             glyph_names,
-            glyph_from_names: AtomicPtr::new(null_mut()),
+            glyph_from_names: OnceLock::new(),
             mutex: Mutex::new(()),
             serial: u32::MAX,
             x_size: Size::new(0.0),
@@ -170,11 +170,6 @@ extern "C" fn _hb_fontations_data_destroy(font_data: *mut c_void) {
 
     unsafe {
         hb_blob_destroy(data.face_blob);
-        // Drop the glyph_from_names HashMap, if not null
-        let glyph_from_names = data.glyph_from_names.load(Ordering::Acquire);
-        if !glyph_from_names.is_null() {
-            let _ = Box::from_raw(glyph_from_names);
-        }
     }
 }
 
@@ -819,33 +814,14 @@ extern "C" fn _hb_fontations_glyph_from_name(
     let name = unsafe { std::slice::from_raw_parts(name as *const u8, len as usize) };
     let name = std::str::from_utf8(name).unwrap_or_default();
 
-    let glyph_from_names = data.glyph_from_names.load(Ordering::Acquire);
-    let glyph_from_names = if glyph_from_names.is_null() {
-        loop {
-            let mut map = HashMap::new();
-            for (glyph_id, glyph_name) in data.glyph_names.iter() {
-                map.insert(glyph_name.to_string(), u32::from(glyph_id));
-            }
-            let map = Box::into_raw(Box::new(map));
-            if data.glyph_from_names.compare_exchange(
-                null_mut(),
-                map,
-                Ordering::Acquire,
-                Ordering::Relaxed,
-            ) == Ok(null_mut())
-            {
-                break map;
-            } else {
-                unsafe {
-                    let _ = Box::from_raw(map);
-                }
-            }
-        }
-    } else {
-        glyph_from_names
-    };
+    let glyph_from_names = data.glyph_from_names.get_or_init(|| {
+        data.glyph_names
+            .iter()
+            .map(|(gid, name)| (name.to_string(), gid.to_u32()))
+            .collect()
+    });
+    let glyph_id = glyph_from_names.get(name);
 
-    let glyph_id = unsafe { &*glyph_from_names }.get(name);
     match glyph_id {
         None => false as hb_bool_t,
         Some(glyph_id) => {
