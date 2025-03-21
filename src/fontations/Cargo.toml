@@ -13,7 +13,7 @@ crate-type = ["staticlib"]
 
 [profile.release]
 strip = true
-lto = true
+lto = "fat"
 panic = "abort"
 overflow-checks = false
 codegen-units = 1
@@ -23,3 +23,6 @@ inherits = "release"
 debug = true
 codegen-units = 16
 strip = false
+
+[profile.dev]
+lto = "fat"
