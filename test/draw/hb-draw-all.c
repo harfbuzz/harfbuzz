@@ -12,6 +12,13 @@ int main (int argc, char **argv)
   }
 
   hb_face_t *face = hb_face_create_from_file_or_fail (argv[1], 0);
+
+  if (!face)
+  {
+    fprintf (stderr, "Failed to create face\n");
+    return 1;
+  }
+
   hb_font_t *font = hb_font_create (face);
 
   if (argc > 2)
