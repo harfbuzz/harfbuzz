@@ -548,14 +548,22 @@ impl ColorPainter for HbColorPainter<'_> {
         let gid = u32::from(glyph);
         self.clip_transform_stack.push(true);
         unsafe {
-            hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
-            hb_paint_push_clip_glyph(
+            let ret = hb_paint_push_clip_unscaled_glyph(
                 self.paint_funcs,
                 self.paint_data,
                 gid as hb_codepoint_t,
                 self.font,
-            );
-            hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
+            ) != 0;
+            if !ret {
+                hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
+                hb_paint_push_clip_glyph(
+                    self.paint_funcs,
+                    self.paint_data,
+                    gid as hb_codepoint_t,
+                    self.font,
+                );
+                hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
+            }
         }
     }
     fn push_clip_box(&mut self, bbox: BoundingBox) {
