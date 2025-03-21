@@ -5,7 +5,7 @@
 
 int main (int argc, char **argv)
 {
-  if (argc < 3)
+  if (argc < 2)
   {
     fprintf (stderr, "Usage: %s font-file [font-funcs] [wght]\n", argv[0]);
     return 1;
