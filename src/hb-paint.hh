@@ -180,54 +180,34 @@ struct hb_paint_funcs_t
 		    upem/xscale, 0, -slant * upem/xscale, upem/yscale, 0, 0);
   }
 
-  HB_NODISCARD
-  bool push_translate (void *paint_data,
+  void push_translate (void *paint_data,
                        float dx, float dy)
   {
-    if (!dx && !dy)
-      return false;
-
     push_transform (paint_data,
 		    1.f, 0.f, 0.f, 1.f, dx, dy);
-    return true;
   }
 
-  HB_NODISCARD
-  bool push_scale (void *paint_data,
+  void push_scale (void *paint_data,
                    float sx, float sy)
   {
-    if (sx == 1.f && sy == 1.f)
-      return false;
-
     push_transform (paint_data,
 		    sx, 0.f, 0.f, sy, 0.f, 0.f);
-    return true;
   }
 
-  HB_NODISCARD
-  bool push_rotate (void *paint_data,
+  void push_rotate (void *paint_data,
                     float a)
   {
-    if (!a)
-      return false;
-
     float cc = cosf (a * HB_PI);
     float ss = sinf (a * HB_PI);
     push_transform (paint_data, cc, ss, -ss, cc, 0.f, 0.f);
-    return true;
   }
 
-  HB_NODISCARD
-  bool push_skew (void *paint_data,
+  void push_skew (void *paint_data,
                   float sx, float sy)
   {
-    if (!sx && !sy)
-      return false;
-
     float x = tanf (-sx * HB_PI);
     float y = tanf (+sy * HB_PI);
     push_transform (paint_data, 1.f, y, x, 1.f, 0.f, 0.f);
-    return true;
   }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
