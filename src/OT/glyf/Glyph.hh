@@ -386,19 +386,20 @@ struct Glyph
     if (coords)
     {
 #ifndef HB_NO_BEYOND_64K
-      if (glyf_accelerator.GVAR->has_data ())
-	glyf_accelerator.GVAR->apply_deltas_to_points (gid,
-						       coords,
-						       points.as_array ().sub_array (old_length),
-						       scratch,
-						       phantom_only && type == SIMPLE);
+      const GVAR_accelerator_t *GVAR = font->face->table.GVAR;
+      if (GVAR->has_data ())
+	GVAR->apply_deltas_to_points (gid,
+				      coords,
+				      points.as_array ().sub_array (old_length),
+				      scratch,
+				      phantom_only && type == SIMPLE);
       else
 #endif
-	glyf_accelerator.gvar->apply_deltas_to_points (gid,
-						       coords,
-						       points.as_array ().sub_array (old_length),
-						       scratch,
-						       phantom_only && type == SIMPLE);
+	font->face->table.gvar->apply_deltas_to_points (gid,
+							coords,
+							points.as_array ().sub_array (old_length),
+							scratch,
+							phantom_only && type == SIMPLE);
     }
 #endif
 
