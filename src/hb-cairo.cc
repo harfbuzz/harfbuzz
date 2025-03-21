@@ -193,7 +193,7 @@ hb_cairo_paint_color_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 }
 
 static void
-hb_cairo_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
+hb_cairo_push_clip_glyph (hb_paint_funcs_t *pfuncs,
 			  void *paint_data,
 			  hb_codepoint_t glyph,
 			  hb_font_t *font,
@@ -204,7 +204,11 @@ hb_cairo_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   cairo_save (cr);
   cairo_new_path (cr);
+
+  hb_paint_push_inverse_font_transform (pfuncs, paint_data, font);
   hb_font_draw_glyph (font, glyph, hb_cairo_draw_get_funcs (), cr);
+  hb_paint_push_font_transform (pfuncs, paint_data, font);
+
   cairo_close_path (cr);
   cairo_clip (cr);
 }

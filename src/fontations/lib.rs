@@ -416,7 +416,6 @@ struct HbColorPainter<'a> {
     color_records: &'a [ColorRecord],
     foreground: hb_color_t,
     composite_mode: Vec<CompositeMode>,
-    clip_transform_stack: Vec<bool>,
 }
 
 impl HbColorPainter<'_> {
@@ -546,20 +545,16 @@ impl ColorPainter for HbColorPainter<'_> {
     }
     fn push_clip_glyph(&mut self, glyph: GlyphId) {
         let gid = u32::from(glyph);
-        self.clip_transform_stack.push(true);
         unsafe {
-            hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
             hb_paint_push_clip_glyph(
                 self.paint_funcs,
                 self.paint_data,
                 gid as hb_codepoint_t,
                 self.font,
             );
-            hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
         }
     }
     fn push_clip_box(&mut self, bbox: BoundingBox) {
-        self.clip_transform_stack.push(false);
         unsafe {
             hb_paint_push_clip_rectangle(
                 self.paint_funcs,
@@ -572,15 +567,8 @@ impl ColorPainter for HbColorPainter<'_> {
         }
     }
     fn pop_clip(&mut self) {
-        let pop_transforms = self.clip_transform_stack.pop().unwrap_or(false);
-        if pop_transforms {
-            self.pop_transform();
-        }
         unsafe {
             hb_paint_pop_clip(self.paint_funcs, self.paint_data);
-        }
-        if pop_transforms {
-            self.pop_transform();
         }
     }
     fn fill(&mut self, brush: Brush) {
@@ -767,7 +755,6 @@ extern "C" fn _hb_fontations_paint_glyph(
         color_records,
         foreground,
         composite_mode: Vec::new(),
-        clip_transform_stack: Vec::new(),
     };
     unsafe {
         hb_paint_push_font_transform(paint_funcs, paint_data, font);

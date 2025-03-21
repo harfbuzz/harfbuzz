@@ -316,15 +316,11 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_GLYPH:
     {
-      c->funcs->push_inverse_font_transform (c->data, c->font);
       c->ft_font->lock.unlock ();
       c->funcs->push_clip_glyph (c->data, paint.u.glyph.glyphID, c->font);
       c->ft_font->lock.lock ();
-      c->funcs->push_font_transform (c->data, c->font);
       c->recurse (paint.u.glyph.paint);
-      c->funcs->pop_transform (c->data);
       c->funcs->pop_clip (c->data);
-      c->funcs->pop_transform (c->data);
     }
     break;
     case FT_COLR_PAINTFORMAT_COLR_GLYPH:
@@ -335,16 +331,13 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       if (unlikely (!node.visit (gid)))
 	return;
 
-      c->funcs->push_inverse_font_transform (c->data, c->font);
       c->ft_font->lock.unlock ();
       if (c->funcs->color_glyph (c->data, gid, c->font))
       {
 	c->ft_font->lock.lock ();
-	c->funcs->pop_transform (c->data);
 	return;
       }
       c->ft_font->lock.lock ();
-      c->funcs->pop_transform (c->data);
 
       FT_OpaquePaint other_paint = {0};
       if (FT_Get_Color_Glyph_Paint (ft_face, gid,
