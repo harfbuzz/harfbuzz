@@ -938,13 +938,25 @@ struct PaintGlyph
   void paint_glyph (hb_paint_context_t *c) const
   {
     TRACE_PAINT (this);
-    c->funcs->push_inverse_font_transform (c->data, c->font);
-    c->funcs->push_clip_glyph (c->data, gid, c->font);
-    c->funcs->push_font_transform (c->data, c->font);
+
+    bool ret = c->funcs->push_clip_unscaled_glyph (c->data, gid, c->font);
+    if (!ret)
+    {
+      c->funcs->push_inverse_font_transform (c->data, c->font);
+      c->funcs->push_clip_glyph (c->data, gid, c->font);
+      c->funcs->push_font_transform (c->data, c->font);
+    }
+
     c->recurse (this+paint);
-    c->funcs->pop_transform (c->data);
-    c->funcs->pop_clip (c->data);
-    c->funcs->pop_transform (c->data);
+
+    if (ret)
+      c->funcs->pop_clip (c->data);
+    else
+    {
+      c->funcs->pop_transform (c->data);
+      c->funcs->pop_clip (c->data);
+      c->funcs->pop_transform (c->data);
+    }
   }
 
   HBUINT8		format; /* format = 10 */

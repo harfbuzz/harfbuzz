@@ -316,15 +316,28 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_GLYPH:
     {
-      c->funcs->push_inverse_font_transform (c->data, c->font);
       c->ft_font->lock.unlock ();
-      c->funcs->push_clip_glyph (c->data, paint.u.glyph.glyphID, c->font);
+      bool ret = c->funcs->push_clip_unscaled_glyph (c->data, paint.u.glyph.glyphID, c->font);
       c->ft_font->lock.lock ();
-      c->funcs->push_font_transform (c->data, c->font);
+      if (!ret)
+      {
+	c->funcs->push_inverse_font_transform (c->data, c->font);
+	c->ft_font->lock.unlock ();
+	c->funcs->push_clip_glyph (c->data, paint.u.glyph.glyphID, c->font);
+	c->ft_font->lock.lock ();
+	c->funcs->push_font_transform (c->data, c->font);
+      }
+
       c->recurse (paint.u.glyph.paint);
-      c->funcs->pop_transform (c->data);
-      c->funcs->pop_clip (c->data);
-      c->funcs->pop_transform (c->data);
+
+      if (ret)
+	c->funcs->pop_clip (c->data);
+      else
+      {
+	c->funcs->pop_transform (c->data);
+	c->funcs->pop_clip (c->data);
+	c->funcs->pop_transform (c->data);
+      }
     }
     break;
     case FT_COLR_PAINTFORMAT_COLR_GLYPH:
