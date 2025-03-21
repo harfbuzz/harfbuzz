@@ -199,7 +199,7 @@ extern "C" fn _hb_fontations_get_nominal_glyphs(
         let Some(glyph) = char_map.map(unicode) else {
             return i;
         };
-        let glyph_id = u32::from(glyph) as hb_codepoint_t;
+        let glyph_id = glyph.to_u32() as hb_codepoint_t;
         *struct_at_offset_mut(first_glyph, i, glyph_stride) = glyph_id;
     }
 
@@ -218,7 +218,7 @@ extern "C" fn _hb_fontations_get_variation_glyph(
 
     match char_map.map_variant(unicode, variation_selector) {
         Some(Variant(glyph_id)) => {
-            unsafe { *glyph = u32::from(glyph_id) as hb_codepoint_t };
+            unsafe { *glyph = glyph_id.to_u32() as hb_codepoint_t };
             true as hb_bool_t
         }
         _ => false as hb_bool_t,
@@ -416,7 +416,6 @@ struct HbColorPainter<'a> {
     color_records: &'a [ColorRecord],
     foreground: hb_color_t,
     composite_mode: Vec<CompositeMode>,
-    clip_transform_stack: Vec<bool>,
 }
 
 impl HbColorPainter<'_> {
@@ -544,22 +543,41 @@ impl ColorPainter for HbColorPainter<'_> {
             hb_paint_pop_transform(self.paint_funcs, self.paint_data);
         }
     }
-    fn push_clip_glyph(&mut self, glyph: GlyphId) {
-        let gid = u32::from(glyph);
-        self.clip_transform_stack.push(true);
+    fn fill_glyph(
+        &mut self,
+        glyph_id: GlyphId,
+        brush_transform: Option<Transform>,
+        brush: Brush<'_>,
+    ) {
         unsafe {
             hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
+        }
+        self.push_clip_glyph(glyph_id);
+        unsafe {
+            hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
+        }
+        if let Some(wrap_in_transform) = brush_transform {
+            self.push_transform(wrap_in_transform);
+            self.fill(brush);
+            self.pop_transform();
+        } else {
+            self.fill(brush);
+        }
+        self.pop_transform();
+        self.pop_clip();
+        self.pop_transform();
+    }
+    fn push_clip_glyph(&mut self, glyph_id: GlyphId) {
+        unsafe {
             hb_paint_push_clip_glyph(
                 self.paint_funcs,
                 self.paint_data,
-                gid as hb_codepoint_t,
+                glyph_id.to_u32() as hb_codepoint_t,
                 self.font,
             );
-            hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
         }
     }
     fn push_clip_box(&mut self, bbox: BoundingBox) {
-        self.clip_transform_stack.push(false);
         unsafe {
             hb_paint_push_clip_rectangle(
                 self.paint_funcs,
@@ -572,15 +590,8 @@ impl ColorPainter for HbColorPainter<'_> {
         }
     }
     fn pop_clip(&mut self) {
-        let pop_transforms = self.clip_transform_stack.pop().unwrap_or(false);
-        if pop_transforms {
-            self.pop_transform();
-        }
         unsafe {
             hb_paint_pop_clip(self.paint_funcs, self.paint_data);
-        }
-        if pop_transforms {
-            self.pop_transform();
         }
     }
     fn fill(&mut self, brush: Brush) {
@@ -767,7 +778,6 @@ extern "C" fn _hb_fontations_paint_glyph(
         color_records,
         foreground,
         composite_mode: Vec::new(),
-        clip_transform_stack: Vec::new(),
     };
     unsafe {
         hb_paint_push_font_transform(paint_funcs, paint_data, font);
