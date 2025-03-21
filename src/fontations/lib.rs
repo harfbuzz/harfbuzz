@@ -415,7 +415,6 @@ struct HbColorPainter<'a> {
     paint_data: *mut c_void,
     color_records: &'a [ColorRecord],
     foreground: hb_color_t,
-    composite_mode: Vec<CompositeMode>,
 }
 
 impl HbColorPainter<'_> {
@@ -706,18 +705,13 @@ impl ColorPainter for HbColorPainter<'_> {
             }
         }
     }
-    fn push_layer(&mut self, mode: CompositeMode) {
-        self.composite_mode.push(mode);
+    fn push_layer(&mut self, _mode: CompositeMode) {
         unsafe {
             hb_paint_push_group(self.paint_funcs, self.paint_data);
         }
     }
-    fn pop_layer(&mut self) {
-        let mode = self.composite_mode.pop();
-        if mode.is_none() {
-            return;
-        }
-        let mode = mode.unwrap() as hb_paint_composite_mode_t; // They are the same
+    fn pop_layer_with_mode(&mut self, mode: CompositeMode) {
+        let mode = mode as hb_paint_composite_mode_t; // They are the same
         unsafe {
             hb_paint_pop_group(self.paint_funcs, self.paint_data, mode);
         }
@@ -777,7 +771,6 @@ extern "C" fn _hb_fontations_paint_glyph(
         paint_data,
         color_records,
         foreground,
-        composite_mode: Vec::new(),
     };
     unsafe {
         hb_paint_push_font_transform(paint_funcs, paint_data, font);
