@@ -66,6 +66,12 @@ hb_paint_push_clip_glyph_nil (hb_paint_funcs_t *funcs, void *paint_data,
                               hb_font_t *font,
                               void *user_data) {}
 
+static hb_bool_t
+hb_paint_push_clip_unscaled_glyph_nil (hb_paint_funcs_t *funcs, void *paint_data,
+				       hb_codepoint_t glyph,
+				       hb_font_t *font,
+				       void *user_data) { return false; }
+
 static void
 hb_paint_push_clip_rectangle_nil (hb_paint_funcs_t *funcs, void *paint_data,
                                   float xmin, float ymin, float xmax, float ymax,
@@ -543,6 +549,11 @@ hb_paint_color_glyph (hb_paint_funcs_t *funcs, void *paint_data,
  *
  * Perform a "push-clip-glyph" paint operation.
  *
+ * This operation clips to the glyph outline as per current @font's
+ * scale and synthetic slant settings. See also hb_paint_push_clip_unscaled_glyph()
+ * for an alternative that clips to the unscaled glyph outline, which may or
+ * may not be implemented.
+ *
  * Since: 7.0.0
  */
 void
@@ -551,6 +562,31 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_font_t *font)
 {
   funcs->push_clip_glyph (paint_data, glyph, font);
+}
+
+/**
+ * hb_paint_push_clip_unscaled_glyph:
+ * @funcs: paint functions
+ * @paint_data: associated data passed by the caller
+ * @glyph: the glyph ID
+ * @font: the font
+ *
+ * Perform a "push-clip-unscaled-glyph" paint operation.
+ *
+ * Return value: `true` if the operation was successful, `false` otherwise,
+ *   in which case you might want to fall back to
+ *   hb_paint_push_clip_glyph() combined with hb_paint_push_inverse_font_transform()
+ *   before, and hb_paint_pop_transform() after. If you choose to do this,
+ *   you should also pop those transforms in your pop-clip callback if appropriate.
+ *
+ * XSince: REPLACEME
+ */
+hb_bool_t
+hb_paint_push_clip_unscaled_glyph (hb_paint_funcs_t *funcs, void *paint_data,
+				   hb_codepoint_t glyph,
+				   hb_font_t *font)
+{
+  return funcs->push_clip_unscaled_glyph (paint_data, glyph, font);
 }
 
 /**

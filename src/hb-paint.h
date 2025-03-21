@@ -167,6 +167,10 @@ typedef hb_bool_t (*hb_paint_color_glyph_func_t) (hb_paint_funcs_t *funcs,
  * A virtual method for the #hb_paint_funcs_t to clip
  * subsequent paint calls to the outline of a glyph.
  *
+ * The glyph must be drawn according to @font's current scale and synthetic slant.
+ * For a variant that must draw the glyph unscaled and unslanted, implement
+ * hb_paint_push_clip_unscaled_glyph_func_t instead.
+ *
  * The coordinates of the glyph outline are interpreted according
  * to the current transform.
  *
@@ -181,6 +185,41 @@ typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
                                                  hb_codepoint_t glyph,
                                                  hb_font_t *font,
                                                  void *user_data);
+
+/**
+ * hb_paint_push_clip_unscaled_glyph_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
+ * @glyph: the glyph ID
+ * @font: the font
+ * @user_data: User data pointer passed to hb_paint_funcs_set_push_clip_unscaled_glyph_func()
+ *
+ * A virtual method for the #hb_paint_funcs_t to clip
+ * subsequent paint calls to the outline of a glyph.
+ *
+ * The glyph must be drawn in font coordinate systems.
+ * That is, unscaled and without synthetic slant.
+ * For a variant that must draw the glyph in the @font's current
+ * scale and synthetic slant, implement
+ * hb_paint_push_clip_glyph_func_t instead.
+ *
+ * The coordinates of the glyph outline are interpreted according
+ * to the current transform.
+ *
+ * This clip is applied in addition to the current clip,
+ * and remains in effect until a matching call to
+ * the #hb_paint_funcs_pop_clip_func_t vfunc.
+ *
+ * Return value: `true` if the glyph was painted, `false` otherwise,
+ *  in which case the hb_paint_push_clip_glyph_func_t vfunc will be called.
+ *
+ * XSince: REPLACEME
+ */
+typedef hb_bool_t (*hb_paint_push_clip_unscaled_glyph_func_t) (hb_paint_funcs_t *funcs,
+                                                               void *paint_data,
+                                                               hb_codepoint_t glyph,
+                                                               hb_font_t *font,
+                                                               void *user_data);
 
 /**
  * hb_paint_push_clip_rectangle_func_t:
@@ -778,6 +817,23 @@ hb_paint_funcs_set_push_clip_glyph_func (hb_paint_funcs_t                *funcs,
                                          hb_destroy_func_t                destroy);
 
 /**
+ * hb_paint_funcs_set_push_clip_unscaled_glyph_func:
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The push-clip-unscaled-glyph callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the push-clip-unscaled-glyph callback on the paint functions struct.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN void
+hb_paint_funcs_set_push_clip_unscaled_glyph_func (hb_paint_funcs_t                         *funcs,
+                                                  hb_paint_push_clip_unscaled_glyph_func_t  func,
+                                                  void                                     *user_data,
+                                                  hb_destroy_func_t                         destroy);
+
+/**
  * hb_paint_funcs_set_push_clip_rectangle_func:
  * @funcs: A paint functions struct
  * @func: (closure user_data) (destroy destroy) (scope notified): The push-clip-rectangle callback
@@ -976,6 +1032,11 @@ HB_EXTERN void
 hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_codepoint_t glyph,
                           hb_font_t *font);
+
+HB_EXTERN hb_bool_t
+hb_paint_push_clip_unscaled_glyph (hb_paint_funcs_t *funcs, void *paint_data,
+				   hb_codepoint_t glyph,
+				   hb_font_t *font);
 
 HB_EXTERN void
 hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,

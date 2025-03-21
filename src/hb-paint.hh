@@ -34,6 +34,7 @@
   HB_PAINT_FUNC_IMPLEMENT (pop_transform) \
   HB_PAINT_FUNC_IMPLEMENT (color_glyph) \
   HB_PAINT_FUNC_IMPLEMENT (push_clip_glyph) \
+  HB_PAINT_FUNC_IMPLEMENT (push_clip_unscaled_glyph) \
   HB_PAINT_FUNC_IMPLEMENT (push_clip_rectangle) \
   HB_PAINT_FUNC_IMPLEMENT (pop_clip) \
   HB_PAINT_FUNC_IMPLEMENT (color) \
@@ -78,13 +79,14 @@ struct hb_paint_funcs_t
   void pop_transform (void *paint_data)
   { func.pop_transform (this, paint_data,
                         !user_data ? nullptr : user_data->pop_transform); }
+  HB_NODISCARD
   bool color_glyph (void *paint_data,
                     hb_codepoint_t glyph,
                     hb_font_t *font)
   { return func.color_glyph (this, paint_data,
                              glyph,
                              font,
-                             !user_data ? nullptr : user_data->push_clip_glyph); }
+                             !user_data ? nullptr : user_data->color_glyph); }
   void push_clip_glyph (void *paint_data,
                         hb_codepoint_t glyph,
                         hb_font_t *font)
@@ -92,6 +94,14 @@ struct hb_paint_funcs_t
                           glyph,
                           font,
                           !user_data ? nullptr : user_data->push_clip_glyph); }
+  HB_NODISCARD
+  bool push_clip_unscaled_glyph (void *paint_data,
+				 hb_codepoint_t glyph,
+				 hb_font_t *font)
+  { return func.push_clip_unscaled_glyph (this, paint_data,
+					  glyph,
+					  font,
+					  !user_data ? nullptr : user_data->push_clip_unscaled_glyph); }
   void push_clip_rectangle (void *paint_data,
                            float xmin, float ymin, float xmax, float ymax)
   { func.push_clip_rectangle (this, paint_data,
@@ -154,9 +164,6 @@ struct hb_paint_funcs_t
                                       color,
                                       !user_data ? nullptr : user_data->custom_palette_color); }
 
-
-  /* Internal specializations. */
-
   void push_font_transform (void *paint_data,
                             const hb_font_t *font)
   {
@@ -179,6 +186,8 @@ struct hb_paint_funcs_t
     push_transform (paint_data,
 		    upem/xscale, 0, -slant * upem/xscale, upem/yscale, 0, 0);
   }
+
+  /* Internal specializations. */
 
   HB_NODISCARD
   bool push_translate (void *paint_data,
