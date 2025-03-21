@@ -443,6 +443,44 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
 	      hb_language_to_string (buffer->props.language), 20);
 
   /*
+   * Set up variations.
+   */
+  IDWriteFontFace5 *fontFaceVariations = nullptr;
+  if (font->num_coords)
+  {
+    IDWriteFontFace5 *fontFace5;
+    if (SUCCEEDED (fontFace->QueryInterface (__uuidof (IDWriteFontFace5), (void **) &fontFace5)))
+    {
+      IDWriteFontResource *fontResource;
+      if (SUCCEEDED (fontFace5->GetFontResource (&fontResource)))
+      {
+	hb_vector_t<DWRITE_FONT_AXIS_VALUE> axis_values;
+	if (likely (axis_values.resize_exact (font->num_coords)))
+	{
+	  for (unsigned int i = 0; i < font->num_coords; i++)
+	  {
+	    hb_ot_var_axis_info_t info;
+	    unsigned int c = 1;
+	    hb_ot_var_get_axis_infos (font->face, i, &c, &info);
+	    axis_values[i].axisTag = (DWRITE_FONT_AXIS_TAG) hb_uint32_swap (info.tag);
+	    axis_values[i].value = i < font->num_coords ?
+				   hb_clamp (font->design_coords[i], info.min_value, info.max_value) :
+				   info.default_value;
+	  }
+
+	  if (SUCCEEDED (fontResource->CreateFontFace (DWRITE_FONT_SIMULATIONS::DWRITE_FONT_SIMULATIONS_NONE,
+						       axis_values.arrayZ, axis_values.length, &fontFaceVariations)))
+	  {
+	    fontFace = fontFaceVariations;
+	  }
+	}
+	fontResource->Release ();
+      }
+      fontFace5->Release ();
+    }
+  }
+
+  /*
    * Set up features.
    */
   static_assert ((sizeof (DWRITE_TYPOGRAPHIC_FEATURES) == sizeof (hb_ms_features_t)), "");
@@ -613,6 +651,9 @@ retry_getglyphs:
   delete [] glyphProperties;
   delete [] glyphAdvances;
   delete [] glyphOffsets;
+
+  if (fontFaceVariations)
+    fontFaceVariations->Release ();
 
   /* Wow, done! */
   return true;
