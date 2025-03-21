@@ -482,6 +482,13 @@ struct cff2
       privateDicts.fini ();
       hb_blob_destroy (blob);
       blob = nullptr;
+
+      auto *scalars = cached_scalars_vector.get_acquire ();
+      if (scalars && cached_scalars_vector.cmpexch (scalars, nullptr))
+      {
+	scalars->fini ();
+	hb_free (scalars);
+      }
     }
 
     hb_vector_t<uint16_t> *create_glyph_to_sid_map () const
@@ -508,6 +515,8 @@ struct cff2
 
     hb_vector_t<cff2_font_dict_values_t>     fontDicts;
     hb_vector_t<PRIVDICTVAL>  privateDicts;
+
+    mutable hb_atomic_t<hb_vector_t<float> *> cached_scalars_vector;
 
     unsigned int	      num_glyphs = 0;
   };
