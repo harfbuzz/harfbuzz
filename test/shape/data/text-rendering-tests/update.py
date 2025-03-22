@@ -47,7 +47,7 @@ def extract_tests (input):
 		opts = '--font-size=1000 --ned --remove-default-ignorables --font-funcs=ft'
 		if variations:
 			opts = opts + ' --variations=%s' % variations
-		result.append ("../fonts/%s:%s:%s:%s" % (font, opts, unistr(text), glyphstr(glyphs)))
+		result.append ("../fonts/%s;%s;%s;%s" % (font, opts, unistr(text), glyphstr(glyphs)))
 
 	for elt in html.findall (".//*[@class='expected-no-crash'][@ft:id]", namespaces):
 		found = True
@@ -58,7 +58,7 @@ def extract_tests (input):
 		opts = ''
 		if variations:
 			opts = '--variations=%s' % variations
-		result.append ("../fonts/%s:%s:%s:*" % (font, opts, unistr (text)))
+		result.append ("../fonts/%s;%s;%s;*" % (font, opts, unistr (text)))
 
 	assert found
 	return '\n'.join (result) + '\n'
