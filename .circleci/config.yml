@@ -140,6 +140,7 @@ jobs:
           source venv/bin/activate
           pip3 install meson==1.6.0
           bash .ci/build-win.sh 32
+          meson devenv -Cbuild-win32 meson test --print-errorlogs --suite=harfbuzz
       - store_artifacts:
           path: harfbuzz-win32.zip
       - persist_to_workspace:
@@ -167,6 +168,7 @@ jobs:
           source venv/bin/activate
           pip3 install meson==1.6.0
           bash .ci/build-win.sh 64
+          meson devenv -Cbuild-win64 meson test --print-errorlogs --suite=harfbuzz
       - store_artifacts:
           path: harfbuzz-win64.zip
       - persist_to_workspace:
