@@ -372,7 +372,7 @@ _hb_directwrite_font_face_destroy (void *font_data)
 void
 hb_directwrite_font_set_funcs (hb_font_t *font)
 {
-  IDWriteFontFace *dw_face = hb_directwrite_face_get_dw_font_face (font->face);
+  IDWriteFontFace *dw_face = (IDWriteFontFace *) (const void *) font->data.directwrite;
   if (unlikely (!dw_face))
   {
     hb_font_set_funcs (font,
