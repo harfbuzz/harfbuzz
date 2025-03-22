@@ -20,6 +20,9 @@ Uniscribe usp10.dll from Windows 7 or before, you would need to build for 32bit.
 If you want to use a native DirectWrite DLL from Windows 10 or later, you would
 need to build for 64bit.
 
+We suggest you read to the end of this document before starting, as it provides
+a few different ways to build and test HarfBuzz for Windows.
+
 1. Install Wine.
 
   - Fedora: `dnf install wine`.
@@ -64,6 +67,12 @@ build HarfBuzz for Windows and how we build our Windows binaries:
   - 32bit: `./.ci/build-win.sh 32 && ln -s build-win32 build-win`
   - 64bit: `./.ci/build-win.sh 64 && ln -s build-win64 build-win`
 
+If you are on Linux and your Wine has configured itself as the processor for
+the EXE files (called `binfmt_misc` in Linux), you can run the executables
+EXE directly. But it is advised that instead, you modify the cross-file to
+use the `exe_wrapper` option, which will allow you to run the executables
+under Wine. This is the most reliable way to run the executables under Wine.
+
 This might take a while, since, if you do not have the dependencies installed,
 meson will download and build them for you.
 
@@ -80,9 +89,18 @@ to find the built HarfBuzz DLLs:
 Adjust for the path where you have built HarfBuzz.  You might want to add this
 to your `.bashrc` or `.zshrc` file.
 
+Alternatively, if you uncommented the `exe_wrapper` line in the cross-file, you
+can skip this step, as the `exe_wrapper` will make meson take care of setting the
+`WINEPATH` if commands are run through the `meson devenv` command, which we will
+introduce in the next step.
+
 7. Run the `hb-shape` executable under Wine:
 
   - `wine build-win/util/hb-shape.exe perf/fonts/Roboto-Regular.ttf Test`
+
+Or using `meson devenv to do the same:
+
+  - `meson devenv -C build-win util/hb-shape.exe perf/fonts/Roboto-Regular.ttf Test`
 
 You probably will get lots of Wine warnings, but if all works fine, you
 should see:
@@ -119,15 +137,16 @@ a PNG file.
 
   - `wine build-win/util/hb-view.exe perf/fonts/Roboto-Regular.ttf Test > test.png`
 
-9. If you are on Linux and your Wine has configured itself as the processor for
-the EXE files (called `binfmt` in Linux), you can run the executables directly:
+7. As noted, if your Linux has `binfmt_misc` enabled, you can run the executables
+directly. If not, you can modify the cross-file to use the `exe_wrapper` option as
+specified before.
 
   - `build-win/util/hb-shape.exe perf/fonts/Roboto-Regular.ttf Test`
 
 If that does not work, you can use the `wine` command as shown above.
 
-10. You can try running the test suite. If on Linux with `binfmt` enabled, you can
-run the tests directly:
+10. You can try running the test suite. If on Linux with `binfmt_misc` enabled, you
+can run the tests directly:
 
   - `ninja -C build-win test`
 
