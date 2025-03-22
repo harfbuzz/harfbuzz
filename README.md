@@ -51,6 +51,8 @@ For custom configurations, see [CONFIG.md](CONFIG.md).
 
 For testing and profiling, see [TESTING.md](TESTING.md).
 
+For cross-compiling to Windows from Linux or macOS, see [README.mingw.md](README.mingw.md).
+
 To get a better idea of where HarfBuzz stands in the text rendering stack you
 may want to read [State of Text Rendering 2024][6].
 Here are a few presentation slides about HarfBuzz at the

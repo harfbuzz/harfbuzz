@@ -20,7 +20,7 @@ meson setup \
 	--cross-file=.ci/win${ARCH}-cross-file.txt \
 	--wrap-mode=default \
 	--strip \
-	-Dtests=disabled \
+	-Dtests=enabled \
 	-Dcairo=enabled \
 	-Dcairo:fontconfig=disabled \
 	-Dcairo:freetype=disabled \
