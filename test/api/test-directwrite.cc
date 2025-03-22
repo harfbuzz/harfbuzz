@@ -100,6 +100,8 @@ get_dwfontface (const wchar_t *family_name)
   hr = font->CreateFontFace (&dw_face);
   g_assert_true (SUCCEEDED (hr));
 
+  font->Release ();
+
   return dw_face;
 }
 
