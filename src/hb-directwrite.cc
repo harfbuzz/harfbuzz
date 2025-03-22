@@ -328,7 +328,7 @@ hb_directwrite_face_get_font_face (hb_face_t *face)
 
 /**
  * hb_directwrite_font_create:
- * @dw_font: a DirectWrite IDWriteFontFace object.
+ * @dw_face: a DirectWrite IDWriteFontFace object.
  *
  * Constructs a new font object from the specified DirectWrite IDWriteFontFace.
  *
