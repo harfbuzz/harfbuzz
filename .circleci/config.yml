@@ -136,6 +136,7 @@ jobs:
       - run: apt update
       - run: DEBIAN_FRONTEND=noninteractive apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-i686 zip wine wine32
       - run: |
+          export LANG=en_US.UTF-8
           python3 -m venv venv
           source venv/bin/activate
           pip3 install meson==1.6.0
@@ -164,6 +165,7 @@ jobs:
       - run: apt update
       - run: DEBIAN_FRONTEND=noninteractive apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-x86-64 zip wine wine64
       - run: |
+          export LANG=en_US.UTF-8
           python3 -m venv venv
           source venv/bin/activate
           pip3 install meson==1.6.0
