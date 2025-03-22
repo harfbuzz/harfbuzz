@@ -188,25 +188,8 @@ struct hb_directwrite_global_t
 {
   hb_directwrite_global_t ()
   {
-    dwrite_dll = LoadLibraryW (L"DWrite.dll");
-
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-
-    t_DWriteCreateFactory p_DWriteCreateFactory = (t_DWriteCreateFactory)
-			    GetProcAddress (dwrite_dll, "DWriteCreateFactory");
-
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-
-    if (unlikely (!p_DWriteCreateFactory))
-      return;
-
-    HRESULT hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
-					(IUnknown**) &dwriteFactory);
+    HRESULT hr = DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
+				      (IUnknown**) &dwriteFactory);
 
     if (unlikely (hr != S_OK))
       return;
@@ -222,12 +205,9 @@ struct hb_directwrite_global_t
       fontFileLoader->Release ();
     if (dwriteFactory)
       dwriteFactory->Release ();
-    if (dwrite_dll)
-      FreeLibrary (dwrite_dll);
   }
 
   bool success = false;
-  HMODULE dwrite_dll;
   IDWriteFactory *dwriteFactory;
   DWriteFontFileLoader *fontFileLoader;
 };
