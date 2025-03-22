@@ -559,7 +559,7 @@ resize_and_retry:
 
     CFArrayRef glyph_runs = CTLineGetGlyphRuns (line);
     unsigned int num_runs = CFArrayGetCount (glyph_runs);
-    DEBUG_MSG (CORETEXT, nullptr, "Num runs: %d", num_runs);
+    DEBUG_MSG (CORETEXT, nullptr, "Num runs: %u", num_runs);
 
     buffer->len = 0;
     uint32_t status_or = 0;
