@@ -390,16 +390,17 @@ done:
 * hb_directwrite_font_get_dw_font:
 * @font: a #hb_font_t object
 *
-* Gets the DirectWrite IDWriteFont associated with @font.
+* Deprecated.
 *
-* Return value: DirectWrite IDWriteFont object corresponding to the given input
+* Return value: Returns `NULL`.
 *
 * Since: 10.3.0
+* XDeprecated: REPLACEME:
 **/
 IDWriteFont *
 hb_directwrite_font_get_dw_font (hb_font_t *font)
 {
-  return (IDWriteFont *) (const void *) font->data.directwrite;
+  return nullptr;
 }
 
 #endif
