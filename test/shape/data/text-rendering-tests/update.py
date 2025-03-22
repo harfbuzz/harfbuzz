@@ -44,7 +44,7 @@ def extract_tests (input):
 			assert href[0] == '#'
 			glyphname = '.'.join (href[1:].split ('/')[1].split ('.')[1:])
 			glyphs.append ((glyphname, x, y))
-		opts = '--font-size=1000 --ned --remove-default-ignorables --font-funcs=ft'
+		opts = '--font-size=1000 --ned --remove-default-ignorables'
 		if variations:
 			opts = opts + ' --variations=%s' % variations
 		result.append ("../fonts/%s;%s;%s;%s" % (font, opts, unistr(text), glyphstr(glyphs)))
