@@ -39,8 +39,8 @@
 #define MAX_GLYPHS 256u
 
 static unsigned int
-hb_directwrite_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
-				   void *font_data,
+hb_directwrite_get_nominal_glyphs (hb_font_t *font,
+				   void *font_data HB_UNUSED,
 				   unsigned int count,
 				   const hb_codepoint_t *first_unicode,
 				   unsigned int unicode_stride,
@@ -48,7 +48,7 @@ hb_directwrite_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 				   unsigned int glyph_stride,
 				   void *user_data HB_UNUSED)
 {
-  IDWriteFontFace *dw_face = (IDWriteFontFace *) font_data;
+  IDWriteFontFace *dw_face = (IDWriteFontFace *) (const void *) font->data.directwrite;
 
   for (unsigned i = 0; i < count;)
   {
@@ -82,11 +82,11 @@ hb_directwrite_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 
 static hb_bool_t
 hb_directwrite_get_font_h_extents (hb_font_t *font,
-				   void *font_data,
+				   void *font_data HB_UNUSED,
 				   hb_font_extents_t *metrics,
 				   void *user_data HB_UNUSED)
 {
-  IDWriteFontFace *dw_face = (IDWriteFontFace *) font_data;
+  IDWriteFontFace *dw_face = (IDWriteFontFace *) (const void *) font->data.directwrite;
 
   DWRITE_FONT_METRICS dw_metrics;
   dw_face->GetMetrics (&dw_metrics);
@@ -99,7 +99,8 @@ hb_directwrite_get_font_h_extents (hb_font_t *font,
 }
 
 static void
-hb_directwrite_get_glyph_h_advances (hb_font_t* font, void* font_data,
+hb_directwrite_get_glyph_h_advances (hb_font_t* font,
+				     void* font_data HB_UNUSED,
 				     unsigned count,
 				     const hb_codepoint_t *first_glyph,
 				     unsigned glyph_stride,
@@ -107,7 +108,8 @@ hb_directwrite_get_glyph_h_advances (hb_font_t* font, void* font_data,
 				     unsigned advance_stride,
 				     void *user_data HB_UNUSED)
 {
-  IDWriteFontFace *dw_face = (IDWriteFontFace *) font_data;
+  IDWriteFontFace *dw_face = (IDWriteFontFace *) (const void *) font->data.directwrite;
+
   IDWriteFontFace1 *dw_face1 = nullptr;
   dw_face->QueryInterface (__uuidof(IDWriteFontFace1), (void**)&dw_face1);
   assert (dw_face1);
@@ -139,7 +141,8 @@ hb_directwrite_get_glyph_h_advances (hb_font_t* font, void* font_data,
 #ifndef HB_NO_VERTICAL
 
 static void
-hb_directwrite_get_glyph_v_advances (hb_font_t* font, void* font_data,
+hb_directwrite_get_glyph_v_advances (hb_font_t* font,
+				     void* font_data HB_UNUSED,
 				     unsigned count,
 				     const hb_codepoint_t *first_glyph,
 				     unsigned glyph_stride,
@@ -147,7 +150,8 @@ hb_directwrite_get_glyph_v_advances (hb_font_t* font, void* font_data,
 				     unsigned advance_stride,
 				     void *user_data HB_UNUSED)
 {
-  IDWriteFontFace *dw_face = (IDWriteFontFace *) font_data;
+  IDWriteFontFace *dw_face = (IDWriteFontFace *) (const void *) font->data.directwrite;
+
   IDWriteFontFace1 *dw_face1 = nullptr;
   dw_face->QueryInterface (__uuidof(IDWriteFontFace1), (void**)&dw_face1);
   assert (dw_face1);
@@ -178,13 +182,13 @@ hb_directwrite_get_glyph_v_advances (hb_font_t* font, void* font_data,
 
 static hb_bool_t
 hb_directwrite_get_glyph_v_origin (hb_font_t *font,
-				   void *font_data,
+				   void *font_data HB_UNUSED,
 				   hb_codepoint_t glyph,
 				   hb_position_t *x,
 				   hb_position_t *y,
 				   void *user_data HB_UNUSED)
 {
-  IDWriteFontFace *dw_face = (IDWriteFontFace *) font_data;
+  IDWriteFontFace *dw_face = (IDWriteFontFace *) (const void *) font->data.directwrite;
 
   UINT16 gid = glyph;
   DWRITE_GLYPH_METRICS metrics;
@@ -201,12 +205,12 @@ hb_directwrite_get_glyph_v_origin (hb_font_t *font,
 
 static hb_bool_t
 hb_directwrite_get_glyph_extents (hb_font_t *font,
-				  void *font_data,
+				  void *font_data HB_UNUSED,
 				  hb_codepoint_t glyph,
 				  hb_glyph_extents_t *extents,
 				  void *user_data HB_UNUSED)
 {
-  IDWriteFontFace *dw_face = (IDWriteFontFace *) font_data;
+  IDWriteFontFace *dw_face = (IDWriteFontFace *) (const void *) font->data.directwrite;
 
   UINT16 gid = glyph;
   DWRITE_GLYPH_METRICS metrics;
@@ -273,12 +277,12 @@ public:
 
 static void
 hb_directwrite_draw_glyph (hb_font_t *font,
-			   void *font_data,
+			   void *font_data HB_UNUSED,
 			   hb_codepoint_t glyph,
 			   hb_draw_funcs_t *draw_funcs, void *draw_data,
 			   void *user_data)
 {
-  IDWriteFontFace *dw_face = (IDWriteFontFace *) font_data;
+  IDWriteFontFace *dw_face = (IDWriteFontFace *) (const void *) font->data.directwrite;
 
   GeometrySink sink (font, draw_funcs, draw_data);
   UINT16 gid = static_cast<UINT16>(glyph);
@@ -343,14 +347,6 @@ _hb_directwrite_get_font_funcs ()
   return static_directwrite_funcs.get_unconst ();
 }
 
-static void
-_hb_directwrite_font_face_destroy (void *font_data)
-{
-  IDWriteFontFace *dw_face = (IDWriteFontFace *) font_data;
-
-  dw_face->Release ();
-}
-
 /**
  * hb_directwrite_font_set_funcs:
  * @font: #hb_font_t to work upon
@@ -384,8 +380,7 @@ hb_directwrite_font_set_funcs (hb_font_t *font)
   dw_face->AddRef ();
   hb_font_set_funcs (font,
 		     _hb_directwrite_get_font_funcs (),
-		     (void *) dw_face,
-		     _hb_directwrite_font_face_destroy);
+		     nullptr, nullptr);
 }
 
 #undef MAX_GLYPHS
