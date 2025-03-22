@@ -20,8 +20,6 @@ EXE_WRAPPER = os.environ.get("MESON_EXE_WRAPPER")
 
 
 def open_shape_batch_process():
-    global hb_shape, env
-
     cmd = [hb_shape, "--batch"]
     if EXE_WRAPPER:
         cmd = [EXE_WRAPPER] + cmd

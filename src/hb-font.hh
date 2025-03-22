@@ -703,7 +703,7 @@ struct hb_font_t
     return false;
   }
 
-  void mults_changed ()
+  void changed ()
   {
     float upem = face->get_upem ();
 
@@ -720,6 +720,8 @@ struct hb_font_t
     slant_xy = y_scale ? slant * x_scale / y_scale : 0.f;
 
     data.fini ();
+
+    serial++;
   }
 
   hb_position_t em_mult (int16_t v, int64_t mult)
