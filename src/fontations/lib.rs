@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::mem::transmute;
 use std::os::raw::c_void;
 use std::ptr::null_mut;
-use std::sync::atomic::{AtomicPtr, Ordering};
+use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use read_fonts::tables::cpal::ColorRecord;
@@ -66,7 +66,7 @@ struct FontationsData<'a> {
 
     // Mutex for the below
     mutex: Mutex<()>,
-    serial: u32,
+    serial: AtomicU32,
     x_size: Size,
     y_size: Size,
     location: Location,
@@ -102,7 +102,7 @@ impl FontationsData<'_> {
             glyph_names,
             glyph_from_names: OnceLock::new(),
             mutex: Mutex::new(()),
-            serial: u32::MAX,
+            serial: AtomicU32::new(u32::MAX),
             x_size: Size::new(0.0),
             y_size: Size::new(0.0),
             location: Location::default(),
@@ -117,7 +117,8 @@ impl FontationsData<'_> {
 
     unsafe fn _check_for_updates(&mut self) {
         let font_serial = hb_font_get_serial(self.font);
-        if self.serial == font_serial {
+        let serial = self.serial.load(Ordering::Relaxed);
+        if serial == font_serial {
             return;
         }
 
@@ -158,7 +159,7 @@ impl FontationsData<'_> {
         let location = transmute::<&Location, &Location>(&self.location);
         self.y_glyph_metrics = Some(self.font_ref.glyph_metrics(self.y_size, location));
 
-        self.serial = font_serial;
+        self.serial.store(font_serial, Ordering::Release);
     }
     fn check_for_updates(&mut self) {
         unsafe { self._check_for_updates() }
