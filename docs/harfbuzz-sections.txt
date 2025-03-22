@@ -368,6 +368,7 @@ hb_directwrite_face_create_from_file_or_fail
 hb_directwrite_face_create_from_blob_or_fail
 hb_directwrite_face_get_dw_font_face
 hb_directwrite_font_create
+hb_directwrite_font_get_dw_font_face
 hb_directwrite_font_set_funcs
 </SECTION>
 

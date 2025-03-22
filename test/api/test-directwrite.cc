@@ -36,8 +36,8 @@ typedef HRESULT (WINAPI *t_DWriteCreateFactory)(
   IUnknown            **factory
 );
 
-IDWriteFont *
-get_dwfont (const wchar_t *family_name)
+IDWriteFontFace *
+get_dwfontface (const wchar_t *family_name)
 {
   HRESULT hr;
   t_DWriteCreateFactory CreateFactory;
@@ -96,48 +96,52 @@ get_dwfont (const wchar_t *family_name)
 
   factory->Release ();
 
-  return font;
+  IDWriteFontFace *dw_face = nullptr;
+  hr = font->CreateFontFace (&dw_face);
+  g_assert_true (SUCCEEDED (hr));
+
+  return dw_face;
 }
 
 static void
 test_native_directwrite_basic (void)
 {
-  IDWriteFont *dwfont;
+  IDWriteFontFace *dwfontface;
   hb_font_t *font;
-  IDWriteFont *dwfont2;
+  IDWriteFontFace *dwfontface2;
 
-  dwfont = get_dwfont (nullptr);
-  g_assert_nonnull (dwfont);
+  dwfontface = get_dwfontface (nullptr);
+  g_assert_nonnull (dwfontface);
 
-  font = hb_directwrite_font_create (dwfont);
+  font = hb_directwrite_font_create (dwfontface);
 
-  dwfont2 = hb_directwrite_font_get_dw_font (font);
+  dwfontface2 = hb_directwrite_font_get_dw_font_face (font);
 
-  g_assert_true (dwfont2 == dwfont);
+  g_assert_true (dwfontface2 == dwfontface);
 
   hb_font_destroy (font);
 
-  dwfont->Release ();
+  dwfontface->Release ();
 }
 
 
 static void
 test_native_directwrite_variations (void)
 {
-  IDWriteFont *dwfont;
+  IDWriteFontFace *dwfontface;
   hb_font_t *font;
   unsigned int length;
 
-  dwfont = get_dwfont (L"Bahnschrift");
-  g_assert_nonnull (dwfont);
+  dwfontface = get_dwfontface (L"Bahnschrift");
+  g_assert_nonnull (dwfontface);
 
-  font = hb_directwrite_font_create (dwfont);
+  font = hb_directwrite_font_create (dwfontface);
   hb_font_get_var_coords_normalized(font, &length);
   g_assert_cmpuint (length, !=, 0);
 
   hb_font_destroy (font);
 
-  dwfont->Release ();
+  dwfontface->Release ();
 }
 
 
