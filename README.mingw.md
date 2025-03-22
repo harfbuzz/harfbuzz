@@ -168,24 +168,35 @@ DirectWrite API by Wine, and not the real thing. If you want to test the
 Uniscribe or DirectWrite shapers against the real Uniscribe / DirectWrite, you
 can follow the instructions below.
 
-11. Uniscribe: Assuming a 32bit build for now.  Bring a 32bit version of
-`usp10.dll` for yourself from `C:\Windows\SysWOW64\usp10.dll` of your Windows
-installation (assuming you have a 64-bit installation, otherwise
-`C:\Windows\System32\usp10.dll`). You want one from Windows 7 or earlier.
-One that is not just a proxy for `textshaping.dll`.  Rule of thumb, your
-`usp10.dll` should have a size more than 500kb. Put the file in
-`build-win/src`.
+11. Old Uniscribe: Assuming a 32bit build for now.
+
+Bring a 32bit version of `usp10.dll` for yourself from
+`C:\Windows\SysWOW64\usp10.dll` of your 64bit Windows installation,
+or `C:\Windows\System32\usp10.dll` for 32bit Windows installation.
+
+You want one from Windows 7 or earlier.  One that is not just a proxy for
+`TextShaping.dll`.  Rule of thumb, your `usp10.dll` should have a size more
+than 500kb.
+
+Put the file in `~/.wine/drive_c/windows/syswow64/` so wine can find it.
 
 You can now tell wine to use the native `usp10.dll`:
 
   - `export WINEDLLOVERRIDES="usp10=n"`
   - `wine build-win/util/hb-shape.exe perf/fonts/Roboto-Regular.ttf Test --shaper=uniscribe`
 
-12. DirectWrite: You can use the same method to test the DirectWrite shaper
-against the native DirectWrite DLL. Try with a 64bit build this time. Bring
-`textshaping.dll`, `dwrite.dll`, and `usp10.dll` from your Windows installation
-(`C:\Windows\System32`) to `build-win/src`. You can now tell wine to use the
-native DirectWrite:
+12. DirectWrite and new Uniscribe: You can use the same method to test the
+DirectWrite shaper against the native DirectWrite DLL. Try with a 64bit build
+this time.
+
+Bring `TextShaping.dll`, `DWrite.dll`, and `usp10.dll` from your 64bit Windows
+installation (`C:\Windows\System32`) to `~/.wine/drive_c/windows/system32/`.
+
+You want the ones from Windows 10 or later. You might have some luck downloading
+them from the internet, but be careful with the source. I had success with the
+DLLs from [https://dllme.com](dllme.com), but I cannot vouch for the site.
+
+You can now tell wine to use the native DirectWrite:
 
   - `export WINEDLLOVERRIDES="textshaping,dwrite,usp10=n"`
   - `wine build-win/util/hb-shape.exe perf/fonts/Roboto-Regular.ttf Test --shaper=directwrite`
