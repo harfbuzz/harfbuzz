@@ -4,7 +4,7 @@ edition = "2021"
 
 [dependencies]
 read-fonts = "0.27"
-skrifa = "0.29.1"
+skrifa = "0.29.2"
 
 [lib]
 name = "harfbuzz_fontations"
@@ -13,7 +13,7 @@ crate-type = ["staticlib"]
 
 [profile.release]
 strip = true
-lto = true
+lto = "fat"
 panic = "abort"
 overflow-checks = false
 codegen-units = 1
@@ -23,3 +23,6 @@ inherits = "release"
 debug = true
 codegen-units = 16
 strip = false
+
+[profile.dev]
+lto = "fat"

@@ -16,11 +16,18 @@ hb_shape, args = args[0], args[1:]
 env = os.environ.copy()
 env["LC_ALL"] = "C"
 
+EXE_WRAPPER = os.environ.get("MESON_EXE_WRAPPER")
+
 
 def open_shape_batch_process():
     global hb_shape, env
+
+    cmd = [hb_shape, "--batch"]
+    if EXE_WRAPPER:
+        cmd = [EXE_WRAPPER] + cmd
+
     process = subprocess.Popen(
-        [hb_shape, "--batch"],
+        cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=sys.stdout,
@@ -79,8 +86,12 @@ def all_whats(what):
 for what in ["shaper", "face-loader", "font-funcs"]:
     subcommand = "--list-" + plural(what)
 
+    cmd = [hb_shape, subcommand]
+    if EXE_WRAPPER:
+        cmd = [EXE_WRAPPER] + cmd
+
     what_process = subprocess.Popen(
-        [hb_shape, subcommand],
+        cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=sys.stdout,
