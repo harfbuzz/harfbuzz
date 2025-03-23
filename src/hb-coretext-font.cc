@@ -44,22 +44,15 @@
 
 #define MAX_GLYPHS 256u
 
-static void
-_hb_coretext_font_destroy (void *font_data)
-{
-  CTFontRef ct_font = (CTFontRef) font_data;
-
-  CFRelease (ct_font);
-}
-
 static hb_bool_t
-hb_coretext_get_nominal_glyph (hb_font_t *font HB_UNUSED,
-			       void *font_data,
+hb_coretext_get_nominal_glyph (hb_font_t *font,
+			       void *font_data HB_UNUSED,
 			       hb_codepoint_t unicode,
 			       hb_codepoint_t *glyph,
 			       void *user_data HB_UNUSED)
 {
-  CTFontRef ct_font = (CTFontRef) font_data;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
+
   UniChar ch[2];
   CGGlyph cg_glyph[2];
   unsigned count = 0;
@@ -85,7 +78,7 @@ hb_coretext_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 }
 
 static unsigned int
-hb_coretext_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
+hb_coretext_get_nominal_glyphs (hb_font_t *font,
 				void *font_data,
 				unsigned int count,
 				const hb_codepoint_t *first_unicode,
@@ -94,6 +87,8 @@ hb_coretext_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 				unsigned int glyph_stride,
 				void *user_data HB_UNUSED)
 {
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
+
   // If any non-BMP codepoint is requested, use the slow path.
   bool slow_path = false;
   auto *unicode = first_unicode;
@@ -118,8 +113,6 @@ hb_coretext_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
     }
     return count;
   }
-
-  CTFontRef ct_font = (CTFontRef) font_data;
 
   UniChar ch[MAX_GLYPHS];
   CGGlyph cg_glyph[MAX_GLYPHS];
@@ -152,14 +145,14 @@ hb_coretext_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
-hb_coretext_get_variation_glyph (hb_font_t *font HB_UNUSED,
-				 void *font_data,
+hb_coretext_get_variation_glyph (hb_font_t *font,
+				 void *font_data HB_UNUSED,
 				 hb_codepoint_t unicode,
 				 hb_codepoint_t variation_selector,
 				 hb_codepoint_t *glyph,
 				 void *user_data HB_UNUSED)
 {
-  CTFontRef ct_font = (CTFontRef) font_data;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
 
   UniChar ch[4];
   CGGlyph cg_glyph[4];
@@ -203,7 +196,8 @@ hb_coretext_get_variation_glyph (hb_font_t *font HB_UNUSED,
 }
 
 static void
-hb_coretext_get_glyph_h_advances (hb_font_t* font, void* font_data,
+hb_coretext_get_glyph_h_advances (hb_font_t* font,
+				  void* font_data HB_UNUSED,
 				  unsigned count,
 				  const hb_codepoint_t *first_glyph,
 				  unsigned glyph_stride,
@@ -211,7 +205,7 @@ hb_coretext_get_glyph_h_advances (hb_font_t* font, void* font_data,
 				  unsigned advance_stride,
 				  void *user_data HB_UNUSED)
 {
-  CTFontRef ct_font = (CTFontRef) font_data;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
@@ -237,7 +231,8 @@ hb_coretext_get_glyph_h_advances (hb_font_t* font, void* font_data,
 
 #ifndef HB_NO_VERTICAL
 static void
-hb_coretext_get_glyph_v_advances (hb_font_t* font, void* font_data,
+hb_coretext_get_glyph_v_advances (hb_font_t* font,
+				  void* font_data HB_UNUSED,
 				  unsigned count,
 				  const hb_codepoint_t *first_glyph,
 				  unsigned glyph_stride,
@@ -245,7 +240,7 @@ hb_coretext_get_glyph_v_advances (hb_font_t* font, void* font_data,
 				  unsigned advance_stride,
 				  void *user_data HB_UNUSED)
 {
-  CTFontRef ct_font = (CTFontRef) font_data;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat y_mult = (CGFloat) -font->y_scale / ct_font_size;
@@ -271,13 +266,13 @@ hb_coretext_get_glyph_v_advances (hb_font_t* font, void* font_data,
 
 static hb_bool_t
 hb_coretext_get_glyph_v_origin (hb_font_t *font,
-				void *font_data,
+				void *font_data HB_UNUSED,
 				hb_codepoint_t glyph,
 				hb_position_t *x,
 				hb_position_t *y,
 				void *user_data HB_UNUSED)
 {
-  CTFontRef ct_font = (CTFontRef) font_data;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) -font->x_scale / ct_font_size;
@@ -296,12 +291,12 @@ hb_coretext_get_glyph_v_origin (hb_font_t *font,
 
 static hb_bool_t
 hb_coretext_get_glyph_extents (hb_font_t *font,
-			       void *font_data,
+			       void *font_data HB_UNUSED,
 			       hb_codepoint_t glyph,
 			       hb_glyph_extents_t *extents,
 			       void *user_data HB_UNUSED)
 {
-  CTFontRef ct_font = (CTFontRef) font_data;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
@@ -321,11 +316,12 @@ hb_coretext_get_glyph_extents (hb_font_t *font,
 
 static hb_bool_t
 hb_coretext_get_font_h_extents (hb_font_t *font,
-				void *font_data,
+				void *font_data HB_UNUSED,
 				hb_font_extents_t *metrics,
 				void *user_data HB_UNUSED)
 {
-  CTFontRef ct_font = (CTFontRef) font_data;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
+
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat y_mult = (CGFloat) font->y_scale / ct_font_size;
 
@@ -373,7 +369,7 @@ hb_coretext_draw_glyph (hb_font_t *font,
 			hb_draw_funcs_t *draw_funcs, void *draw_data,
 			void *user_data)
 {
-  CTFontRef ct_font = (CTFontRef) font_data;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
@@ -424,13 +420,13 @@ hb_coretext_get_glyph_name (hb_font_t *font,
 }
 
 static hb_bool_t
-hb_coretext_get_glyph_from_name (hb_font_t *font HB_UNUSED,
-				 void *font_data,
+hb_coretext_get_glyph_from_name (hb_font_t *font,
+				 void *font_data HB_UNUSED,
 				 const char *name, int len,
 				 hb_codepoint_t *glyph,
 				 void *user_data HB_UNUSED)
 {
-  CTFontRef ct_font = (CTFontRef) font_data;
+  CTFontRef ct_font = (CTFontRef) (const void *) font->data.coretext;
 
   if (len == -1)
     len = strlen (name);
@@ -533,8 +529,7 @@ hb_coretext_font_set_funcs (hb_font_t *font)
 
   hb_font_set_funcs (font,
 		     _hb_coretext_get_font_funcs (),
-		     (void *) CFRetain (ct_font),
-		     _hb_coretext_font_destroy);
+		     nullptr, nullptr);
 }
 
 #undef MAX_GLYPHS

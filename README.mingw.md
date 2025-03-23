@@ -26,13 +26,16 @@ a few different ways to build and test HarfBuzz for Windows.
 1. Install Wine.
 
   - Fedora: `dnf install wine`.
+  - Ubuntu, 32bit: `apt install wine wine32`.
+  - Ubuntu, 64bit: `apt install wine wine64`.
   - Mac: `brew install wine-stable`.
 
 2. Install the `mingw-w64` cross-compiler.
 
   - Fedora, 32bit: `dnf install mingw32-gcc-c++`
   - Fedora, 64bit: `dnf install mingw64-gcc-c++`
-  - Debian: `apt install g++-mingw-w64`
+  - Ubuntu, 32bit: `apt install g++-mingw-w64-i686`
+  - Ubuntu, 64bit: `apt install g++-mingw-w64-x86-64`
   - Mac: `brew install mingw-w64`
 
 3. Install dependencies.
