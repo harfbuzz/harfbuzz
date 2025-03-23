@@ -1449,7 +1449,7 @@ hb_ft_font_changed (hb_font_t *font)
  * variation-axis settings on the @font.
  * This call is fast if nothing has changed on @font.
  *
- * Note that as of version REPLACEME, calling this function is not necessary,
+ * Note that as of version 11.0.0, calling this function is not necessary,
  * as HarfBuzz will automatically detect changes to the font and update
  * the underlying FT_Face as needed.
  *
@@ -1645,7 +1645,7 @@ _destroy_blob (void *p)
  * Return value: (transfer full): The new face object, or `NULL` if
  * loading fails (eg. blob does not contain valid font data).
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  */
 hb_face_t *
 hb_ft_face_create_from_blob_or_fail (hb_blob_t    *blob,

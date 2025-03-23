@@ -363,7 +363,7 @@ _hb_directwrite_get_font_funcs ()
  * <note>Note: Internally, this function creates a DirectWrite font.
  * </note>
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 void
 hb_directwrite_font_set_funcs (hb_font_t *font)

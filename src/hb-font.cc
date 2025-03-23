@@ -2355,7 +2355,7 @@ static const char *get_default_funcs_name ()
  *
  * Return value: `true` if the font-functions was found and set, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 hb_bool_t
 hb_font_set_funcs_using (hb_font_t  *font,
@@ -2433,7 +2433,7 @@ void free_static_font_funcs_list ()
  *    constant strings. The returned array is owned by HarfBuzz
  *    and should not be modified or freed.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 const char **
 hb_font_list_funcs ()

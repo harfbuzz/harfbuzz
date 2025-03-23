@@ -473,7 +473,7 @@ typedef enum {
  * Tests whether a cluster level groups cluster values into monotone order.
  * Requires that the level be valid.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  */
 #define HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE(level) \
 	((bool) ((1u << (unsigned) (level)) & \
@@ -487,7 +487,7 @@ typedef enum {
  * Tests whether a cluster level groups cluster values by graphemes. Requires
  * that the level be valid.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  */
 #define HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES(level) \
 	((bool) ((1u << (unsigned) (level)) & \
@@ -501,7 +501,7 @@ typedef enum {
  * Tests whether a cluster level does not group cluster values by graphemes.
  * Requires that the level be valid.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  */
 #define HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS(level) \
 	((bool) ((1u << (unsigned) (level)) & \

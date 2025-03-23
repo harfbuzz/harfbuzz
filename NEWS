@@ -1,3 +1,64 @@
+Overview of changes leading to 11.0.0
+Monday, March 24, 2025
+====================================
+- There are three new font-functions implementations (integrations) in this
+  release:
+  * `hb-coretext` has gained one, calling into the CoreText library,
+  * `hb-directwrite` has gained one, calling into the DirectWrite library.
+  * `hb-fontations` has gained one, calling into the Skrifa Rust library.
+  All three are mostly useful for performance and correctness testing, but some
+  clients might find them useful.
+  An API is added to use them from a single API by providing a backend name
+  string:
+  * `hb_font_set_funcs_using()`
+- Several new APIs are added, to load a font-face using different
+  "face-loaders", and a single entry point to them all using a loader name
+  string:
+  * `hb_ft_face_create_from_file_or_fail()` and
+    `hb_ft_face_create_from_blob_or_fail()`
+  * `hb_coretext_face_create_from_file_or_fail()` and
+    `hb_coretext_face_create_from_blob_or_fail()`
+  * `hb_directwrite_face_create_from_file_or_fail()` and
+    `hb_directwrite_face_create_from_blob_or_fail()`
+  * `hb_face_create_from_file_or_fail_using()`
+- All drawing and painting operations using the default, `hb-ot` functions have
+  become memory allocation-free.
+- Several performance optimizations have been implemented.
+- Application of the `trak` table during shaping has been improved.
+- The `directwrite` shaper now supports font variations, and correctly applies
+  user features.
+- The `hb-directwrite` API and shaper has graduated from experimental.
+- Various bug fixes and other improvements.
+
+- New API:
++hb_malloc
++hb_calloc
++hb_realloc
++hb_free
++hb_face_list_loaders
++hb_face_create_or_fail_using
++hb_face_create_from_file_or_fail_using
++hb_font_list_funcs
++hb_font_set_funcs_using
++hb_coretext_face_create_from_blob_or_fail
++hb_directwrite_face_create_from_file_or_fail
++hb_directwrite_face_create_from_blob_or_fail
++hb_directwrite_font_create
++hb_directwrite_font_get_dw_font_face
++hb_directwrite_font_set_funcs
++hb_fontations_font_set_funcs
++hb_ft_face_create_from_blob_or_fail
++hb_paint_push_font_transform
++hb_paint_push_inverse_font_transform
++HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES
++HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE
++HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES
++HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS
+
+- Deprecated API:
++hb_directwrite_font_get_dw_font
+
+
 Overview of changes leading to 10.4.0
 Saturday, March 1, 2025
 ====================================

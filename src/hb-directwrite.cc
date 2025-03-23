@@ -239,7 +239,7 @@ hb_directwrite_face_create (IDWriteFontFace *dw_face)
  * Return value: (transfer full): The new face object, or `NULL` if
  * no face is found at the specified index or the file cannot be read.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  */
 hb_face_t *
 hb_directwrite_face_create_from_file_or_fail (const char   *file_name,
@@ -266,7 +266,7 @@ hb_directwrite_face_create_from_file_or_fail (const char   *file_name,
  * Return value: (transfer full): The new face object, or `NULL` if
  * no face is found at the specified index or the blob cannot be read.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  */
 HB_EXTERN hb_face_t *
 hb_directwrite_face_create_from_blob_or_fail (hb_blob_t    *blob,
@@ -334,7 +334,7 @@ hb_directwrite_face_get_font_face (hb_face_t *face)
  *
  * Return value: #hb_font_t object corresponding to the given input
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 hb_font_t *
 hb_directwrite_font_create (IDWriteFontFace *dw_face)
@@ -389,7 +389,7 @@ hb_directwrite_font_create (IDWriteFontFace *dw_face)
 *
 * Return value: DirectWrite IDWriteFontFace object corresponding to the given input
 *
-* XSince: REPLACEME
+* Since: 11.0.0
 **/
 IDWriteFontFace *
 hb_directwrite_font_get_dw_font_face (hb_font_t *font)
@@ -407,7 +407,7 @@ hb_directwrite_font_get_dw_font_face (hb_font_t *font)
 * Return value: Returns `NULL`.
 *
 * Since: 10.3.0
-* XDeprecated: REPLACEME:
+* Deprecated: 11.0.0:
 **/
 IDWriteFont *
 hb_directwrite_font_get_dw_font (hb_font_t *font)
