@@ -37,7 +37,7 @@ jobs:
       - run: meson dist --no-tests -Cbuild
       - persist_to_workspace:
           root: .
-          paths: build/meson-dist/harfbuzz-*.tar.xz
+          paths: [build/meson-dist/harfbuzz-*.tar.xz]
 
   publish-dist:
     executor: dist-executor
