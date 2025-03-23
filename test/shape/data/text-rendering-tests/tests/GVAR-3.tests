@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestGVARThree.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=wght=300;U+5F4C;[gid2]
 ../fonts/TestGVARThree.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=wght=350;U+5F4C;[gid2]
 ../fonts/TestGVARThree.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=wght=400;U+5F4C;[gid2]

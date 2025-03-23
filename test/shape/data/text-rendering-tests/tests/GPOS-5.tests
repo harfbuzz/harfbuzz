@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestGPOSFour.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=wght=100;U+0634,U+0652;[uni0652@663,144|uni0634]
 ../fonts/TestGPOSFour.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=wght=300;U+0634,U+0652;[uni0652@680,165|uni0634]
 ../fonts/TestGPOSFour.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=wght=600;U+0634,U+0652;[uni0652@730,246|uni0634]

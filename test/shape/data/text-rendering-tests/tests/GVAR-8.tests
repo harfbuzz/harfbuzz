@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestGVAREight.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=HV=0.0;U+0048;[H]
 ../fonts/TestGVAREight.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=HV=-0.2;U+0048;[H]
 ../fonts/TestGVAREight.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=HV=-0.4;U+0048;[H]

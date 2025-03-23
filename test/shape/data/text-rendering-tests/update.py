@@ -91,7 +91,9 @@ for x in sorted (os.listdir ('text-rendering-tests/testcases')):
 	if not x.endswith ('.html') or x == 'index.html': continue
 	out = 'tests/%s.tests' % x.split('.html')[0]
 	with open ('text-rendering-tests/testcases/' + x, 'r') as f: content = f.read ()
-	with open (out, 'w') as f: f.write (extract_tests (content))
+	with open (out, 'w') as f:
+		f.write ("@font-funcs=ot,ft\n")
+		f.write (extract_tests (content))
 	if out in disabled:
 		disabled_tests.append (out)
 	else:

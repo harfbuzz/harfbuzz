@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestGVARFour.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=wght=150;U+004F,U+0049,U+004F;[uni004F|uni0049@706,0|uni004F@1072,0]
 ../fonts/TestGVARFour.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=wght=200;U+004F,U+0049,U+004F;[uni004F|uni0049@707,0|uni004F@1074,0]
 ../fonts/TestGVARFour.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=wght=250;U+004F,U+0049,U+004F;[uni004F|uni0049@707,0|uni004F@1075,0]

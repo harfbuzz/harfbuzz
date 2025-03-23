@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestShapeLana.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1A36,U+1A63,U+1A74;[uni1A361A63|uni1A74@592,0]
 ../fonts/TestShapeLana.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1A3E,U+1A36,U+1A6E,U+1A63;[uni1A3E.v2|uni1A6E@732,0|uni1A361A63@1324,0]
 ../fonts/TestShapeLana.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1A36,U+1A6E,U+1A62,U+1A63;[uni1A6E|uni1A361A63@592,0|uni1A62@1184,0]

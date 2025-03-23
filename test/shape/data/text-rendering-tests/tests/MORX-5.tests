@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestMORXFour.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0050,U+0051,U+0052,U+0041,U+0058,U+0059,U+005A,U+0033;[P|Q@333,0|R@699,0|A@1050,0|X@1880,0|Y@2244,0|Z@2576,0|three@2898,0]
 ../fonts/TestMORXFour.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0050,U+0051,U+0052,U+0041,U+0058,U+0059,U+005A,U+0034;[P|Q@333,0|R@699,0|A@1050,0|X@1880,0|Y@2244,0|Z@2576,0|four@2898,0]
 ../fonts/TestMORXFour.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0050,U+0051,U+0052,U+0041,U+0058,U+0059,U+005A,U+0035;[P|Q@333,0|R@699,0|A@1050,0|X@1880,0|Y@2244,0|Z@2576,0|five@2898,0]

@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestGPOSOne.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0104,U+004A;[Aogonek|J@732,0]
 ../fonts/TestGPOSOne.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0104,U+0067;[Aogonek|g@692,0]
 ../fonts/TestGPOSOne.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0104,U+0123;[Aogonek|gcommaabove@692,0]

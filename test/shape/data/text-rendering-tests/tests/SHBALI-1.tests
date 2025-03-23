@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/NotoSansBalinese-Regular.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1B13,U+1B38,U+1B00;[gid23|gid60@1113,0|gid4@1064,0]
 ../fonts/NotoSansBalinese-Regular.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1B15,U+1B44,U+1B16,U+1B02;[gid25|gid132@1092,0|gid6@942,0]
 ../fonts/NotoSansBalinese-Regular.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1B18,U+1B3B;[gid28|gid62@796,0|gid57@794,0]

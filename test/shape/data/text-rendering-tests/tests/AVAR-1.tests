@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestAVAR.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=TEST=100;U+2A01;[gid1]
 ../fonts/TestAVAR.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=TEST=150;U+2A01;[gid1]
 ../fonts/TestAVAR.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=TEST=200;U+2A01;[gid1]

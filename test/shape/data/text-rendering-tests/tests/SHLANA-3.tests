@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestShapeLana.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1A20,U+1A6C,U+1A62,U+1A43,U+1A60,U+1A3C,U+1A7A;[uni1A20|uni1A6C.wide@933,0|uni1A62@762,0|uni1A43@933,0|antler@933,0|uni1A601A3C.wide@1865,0|uni1A7A@1964,0]
 ../fonts/TestShapeLana.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1A20,U+1A6C,U+1A62,U+1A43,U+1A7A,U+1A60,U+1A3C;[uni1A20|uni1A6C.wide@933,0|uni1A62@762,0|uni1A43@933,0|antler@933,0|uni1A7A@1964,0|uni1A601A3C.wide@1865,0]
 ../fonts/TestShapeLana.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1A20,U+1A6C,U+1A62,U+1A43,U+1A60,U+1A7A,U+1A3C;[uni1A20|uni1A6C.wide@933,0|uni1A62@762,0|uni1A43@933,0|antler@933,0|uni1A7A@1964,0|uni1A601A3C.wide@1865,0]

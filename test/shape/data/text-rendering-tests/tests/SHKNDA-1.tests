@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/NotoSerifKannada-Regular.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0CB2,U+0CCD,U+0CB2,U+0CBF;[knLI|knLAc2@757,0]
 ../fonts/NotoSerifKannada-Regular.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0C9F,U+0CCD,U+0CB8,U+0CCD;[knTT|knSAc2@1021,0]
 ../fonts/NotoSerifKannada-Regular.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0CB3,U+0CBF;[knLLI]

@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/TestMORXThree.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0041,U+0042,U+0058,U+0043,U+0044,U+0030;[A|B@363,0|X@722,0|C@1086,0|D@1402,0|zero@1793,0]
 ../fonts/TestMORXThree.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0041,U+0042,U+0058,U+0043,U+0044,U+0031;[A|B@363,0|X@722,0|C@1086,0|D@1402,0|one@1793,0]
 ../fonts/TestMORXThree.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0041,U+0042,U+0058,U+0043,U+0044,U+0032;[A|B@363,0|X@722,0|C@1086,0|D@1402,0|two@1793,0]

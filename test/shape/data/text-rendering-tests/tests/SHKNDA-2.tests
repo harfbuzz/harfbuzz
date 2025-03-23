@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/NotoSansKannada-Regular.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0CA8,U+0CCD,U+0CA8,U+0CBE;[gid150|gid57@711,0|gid116@1160,0]
 ../fonts/NotoSansKannada-Regular.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0CA8,U+0CCD,U+0CA8,U+0CBE;[gid150|gid57@711,0|gid116@1160,0]
 ../fonts/NotoSansKannada-Regular.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0CA4,U+0CCD,U+0CA4,U+0CBE;[gid146|gid57@623,0|gid112@1071,0]

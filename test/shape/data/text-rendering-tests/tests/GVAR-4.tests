@@ -1,3 +1,4 @@
+@font-funcs=ot,ft
 ../fonts/Zycon.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=M1=-1.0,T1=0.0;U+1F98E;[gid5]
 ../fonts/Zycon.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=M1=-0.8,T1=0.1;U+1F98E;[gid5]
 ../fonts/Zycon.ttf;--font-size=1000 --ned --remove-default-ignorables --variations=M1=-0.6,T1=0.2;U+1F98E;[gid5]
