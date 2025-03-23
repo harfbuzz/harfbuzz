@@ -328,29 +328,25 @@ hb_directwrite_face_get_font_face (hb_face_t *face)
 
 /**
  * hb_directwrite_font_create:
- * @dw_font: a DirectWrite IDWriteFont object.
+ * @dw_face: a DirectWrite IDWriteFontFace object.
  *
- * Constructs a new font object from the specified DirectWrite IDWriteFont.
+ * Constructs a new font object from the specified DirectWrite IDWriteFontFace.
  *
  * Return value: #hb_font_t object corresponding to the given input
  *
- * Since: 10.3.0
+ * XSince: REPLACEME
  **/
 hb_font_t *
-hb_directwrite_font_create (IDWriteFont *dw_font)
+hb_directwrite_font_create (IDWriteFontFace *dw_face)
 {
-  IDWriteFontFace *dw_face = nullptr;
   IDWriteFontFace5 *dw_face5 = nullptr;
-
-  if (FAILED (dw_font->CreateFontFace (&dw_face)))
-    return hb_font_get_empty ();
 
   hb_face_t *face = hb_directwrite_face_create (dw_face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
 
   if (unlikely (hb_object_is_immutable (font)))
-    goto done;
+    return font;
 
   /* Copy font variations */
   if (SUCCEEDED (dw_face->QueryInterface (__uuidof (IDWriteFontFace5), (void**) &dw_face5)))
@@ -378,28 +374,45 @@ hb_directwrite_font_create (IDWriteFont *dw_font)
     dw_face5->Release ();
   }
 
-  dw_font->AddRef ();
-  font->data.directwrite.cmpexch (nullptr, (hb_directwrite_font_data_t *) dw_font);
+  /* Let there be dragons here... */
+  dw_face->AddRef ();
+  font->data.directwrite.cmpexch (nullptr, (hb_directwrite_font_data_t *) dw_face);
 
-done:
-  dw_face->Release ();
   return font;
 }
+
+/**
+* hb_directwrite_font_get_dw_font_face:
+* @font: a #hb_font_t object
+*
+* Gets the DirectWrite IDWriteFontFace associated with @font.
+*
+* Return value: DirectWrite IDWriteFontFace object corresponding to the given input
+*
+* XSince: REPLACEME
+**/
+IDWriteFontFace *
+hb_directwrite_font_get_dw_font_face (hb_font_t *font)
+{
+  return (IDWriteFontFace *) (const void *) font->data.directwrite;
+}
+
 
 /**
 * hb_directwrite_font_get_dw_font:
 * @font: a #hb_font_t object
 *
-* Gets the DirectWrite IDWriteFont associated with @font.
+* Deprecated.
 *
-* Return value: DirectWrite IDWriteFont object corresponding to the given input
+* Return value: Returns `NULL`.
 *
 * Since: 10.3.0
+* XDeprecated: REPLACEME:
 **/
 IDWriteFont *
 hb_directwrite_font_get_dw_font (hb_font_t *font)
 {
-  return (IDWriteFont *) (const void *) font->data.directwrite;
+  return nullptr;
 }
 
 #endif

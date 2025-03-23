@@ -20,7 +20,7 @@ option('fontations', type: 'feature', value: 'disabled',
 option('gdi', type: 'feature', value: 'disabled',
   description: 'Enable GDI helpers and Uniscribe shaper backend (Windows only)')
 option('directwrite', type: 'feature', value: 'disabled',
-  description: 'Enable DirectWrite shaper backend on Windows (experimental)')
+  description: 'Enable DirectWrite shaper backend on Windows')
 option('coretext', type: 'feature', value: 'disabled',
   description: 'Enable CoreText shaper backend on macOS')
 option('wasm', type: 'feature', value: 'disabled',
