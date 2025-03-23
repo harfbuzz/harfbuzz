@@ -53,8 +53,8 @@ you can skip to the next step, as meson will automatically download and build
 the dependencies for you.
 
 4. If you are familiar with `meson`, you can use the cross-compile files we
-provide to find your way around. Read until the end of this section before
-deciding which one to use.
+provide to find your way around. But we do not recommend this way. Read until
+the end of this section before deciding which one to use.
 
   - 32bit: `meson --cross-file=.ci/win32-cross-file.txt build-win -Dglib-enabled -Dcairo=enabled -Dgdi=enabled -Ddirectwrite=enabled`
   - 64bit: `meson --cross-file=.ci/win64-cross-file.txt build-win -Dglib-enabled -Dcairo=enabled -Dgdi=enabled -Ddirectwrite=enabled`
@@ -69,12 +69,6 @@ build HarfBuzz for Windows and how we build our Windows binaries:
 
   - 32bit: `./.ci/build-win.sh 32 && ln -s build-win32 build-win`
   - 64bit: `./.ci/build-win.sh 64 && ln -s build-win64 build-win`
-
-If you are on Linux and your Wine has configured itself as the processor for
-the EXE files (called `binfmt_misc` in Linux), you can run the executables
-EXE directly. But it is advised that instead, you modify the cross-file to
-use the `exe_wrapper` option, which will allow you to run the executables
-under Wine. This is the most reliable way to run the executables under Wine.
 
 This might take a while, since, if you do not have the dependencies installed,
 meson will download and build them for you.
@@ -92,10 +86,10 @@ to find the built HarfBuzz DLLs:
 Adjust for the path where you have built HarfBuzz.  You might want to add this
 to your `.bashrc` or `.zshrc` file.
 
-Alternatively, if you uncommented the `exe_wrapper` line in the cross-file, you
-can skip this step, as the `exe_wrapper` will make meson take care of setting the
-`WINEPATH` if commands are run through the `meson devenv` command, which we will
-introduce in the next step.
+Alternatively, can skip this step if commands are run through the `meson devenv`
+command, which we will introduce in the next step. I personally find it more
+convenient to set the `WINEPATH` variable, as it allows me to run the executables
+directly from the shell.
 
 7. Run the `hb-shape` executable under Wine:
 
@@ -103,7 +97,7 @@ introduce in the next step.
 
 Or using `meson devenv to do the same:
 
-  - `meson devenv -C build-win util/hb-shape.exe perf/fonts/Roboto-Regular.ttf Test`
+  - `meson devenv -C build-win util/hb-shape.exe $PWD/perf/fonts/Roboto-Regular.ttf Test`
 
 You probably will get lots of Wine warnings, but if all works fine, you
 should see:
@@ -153,23 +147,21 @@ can run the tests directly:
 
   - `ninja -C build-win test`
 
-If not, you might need to reconfigure the build directory to tell meson to use
-Wine to run the tests. This part needs improvement, but for now: edit the
-cross-file you used to build HarfBuzz and uncomment the `exe_wrapper` line:
+For other situations, use `meson devenv`:
 
-  - 32bit: `.ci/win32-cross-file.txt`
-  - 64bit: `.ci/win64-cross-file.txt`
+  - `meson devenv -C build-win ninja test`
 
-Then go back to step 4 above and rebuild HarfBuzz with the `exe_wrapper` set.
-If all goes well, tests should run with the above `ninja` command. If all is
-well, you should probably see over 300 tests pass, some skipped, and just the
-`directwrite` test fail.
+If all goes well, tests should run. If all is well, you should probably see over 400
+tests pass, some skipped, but none failing.
 
-The reason the `directwrite` test fails is that we are running against the
-Wine-provided DirectWrite DLL, which is an incomplete reimplementation of the
-DirectWrite API by Wine, and not the real thing. If you want to test the
-Uniscribe or DirectWrite shapers against the real Uniscribe / DirectWrite, you
-can follow the instructions below.
+11. In the above testing situation, the `directwrite` test will be disabled
+automatically upon detection of running under Wine. The reason the `directwrite`
+test would otherwise fails is that we are running against the Wine-provided
+DirectWrite DLL, which is an incomplete reimplementation of the DirectWrite API
+by Wine, and not the real thing.
+
+If you want to test the Uniscribe or DirectWrite shapers against the real
+Uniscribe / DirectWrite, you can follow the instructions below.
 
 11. Old Uniscribe: Assuming a 32bit build for now.
 
