@@ -346,7 +346,7 @@ hb_directwrite_font_create (IDWriteFontFace *dw_face)
   hb_face_destroy (face);
 
   if (unlikely (hb_object_is_immutable (font)))
-    goto done;
+    return font;
 
   /* Copy font variations */
   if (SUCCEEDED (dw_face->QueryInterface (__uuidof (IDWriteFontFace5), (void**) &dw_face5)))
@@ -378,8 +378,6 @@ hb_directwrite_font_create (IDWriteFontFace *dw_face)
   dw_face->AddRef ();
   font->data.directwrite.cmpexch (nullptr, (hb_directwrite_font_data_t *) dw_face);
 
-done:
-  dw_face->Release ();
   return font;
 }
 
