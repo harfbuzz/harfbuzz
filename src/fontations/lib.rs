@@ -268,23 +268,23 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
     data.check_for_updates();
 
     let vert_origin = &data.vert_origin;
-    if vert_origin.is_none() {
-        return false as hb_bool_t;
+    if vert_origin.is_some() {
+        unsafe {
+            *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
+        }
+
+        let glyph_id = GlyphId::new(glyph);
+
+        let y_origin = vert_origin.as_ref().unwrap().vertical_origin_y(glyph_id);
+
+        unsafe {
+            *y = (y_origin as f32 * data.y_mult).round() as hb_position_t;
+        }
+
+        return true as hb_bool_t;
     }
 
-    unsafe {
-        *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
-    }
-
-    let glyph_id = GlyphId::new(glyph);
-
-    let y_origin = vert_origin.as_ref().unwrap().vertical_origin_y(glyph_id);
-
-    unsafe {
-        *y = (y_origin as f32 * data.y_mult).round() as hb_position_t;
-    }
-
-    true as hb_bool_t
+    false as hb_bool_t
 }
 extern "C" fn _hb_fontations_get_glyph_extents(
     _font: *mut hb_font_t,
