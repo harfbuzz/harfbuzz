@@ -76,21 +76,59 @@ test_native_directwrite_basic (void)
 static void
 test_native_directwrite_variations (void)
 {
-  IDWriteFontFace *dwfontface;
+  IDWriteFontFace *dw_face;
+  IDWriteFontResource *dw_fontresource;
+  IDWriteFontFace5 *dw_face5, *dw_facevariations;
+  DWRITE_FONT_AXIS_VALUE dw_axisvalues[5];
   hb_font_t *font;
+  const float *coords;
   unsigned int length;
 
-  dwfontface = get_dwfontface ("fonts/AdobeVFPrototype.abc.otf");
-  g_assert_nonnull (dwfontface);
+  dw_face = get_dwfontface ("fonts/AdobeVFPrototype.abc.otf");
+  g_assert_nonnull (dw_face);
 
-  font = hb_directwrite_font_create (dwfontface);
-  hb_font_get_var_coords_normalized(font, &length);
-  // Currently we optimize out coords if none is non-zero
-  //g_assert_cmpuint (length, !=, 0);
+  dw_face->QueryInterface (__uuidof(IDWriteFontFace5), (void **)&dw_face5);
+  dw_face->Release ();
+  g_assert_nonnull (dw_face5);
+
+  // Check that wght axis originally set on the face is different from what we will set.
+  if (!dw_face5->HasVariations ())
+  {
+    g_test_skip ("Font has no variations. Possiply using Wine’s DWrite.dll");
+    return;
+  }
+  g_assert_cmpuint (dw_face5->GetFontAxisValueCount (), ==, 5);
+  dw_face5->GetFontAxisValues (dw_axisvalues, 5);
+  g_assert_cmpuint (dw_axisvalues[0].axisTag, ==, DWRITE_FONT_AXIS_TAG_WEIGHT);
+  g_assert_cmpfloat (dw_axisvalues[0].value, !=, 900.0f);
+
+  dw_face5->GetFontResource (&dw_fontresource);
+  dw_face5->Release();
+  g_assert_nonnull (dw_fontresource);
+
+  // Set wght axis to 900.0
+  dw_axisvalues[0].value = 900.0f;
+  dw_fontresource->CreateFontFace (DWRITE_FONT_SIMULATIONS_NONE, dw_axisvalues, 5, &dw_facevariations);
+  dw_fontresource->Release ();
+  g_assert_nonnull (dw_facevariations);
+
+  // Check that wght axis is now set to 900.0
+  g_assert_cmpuint (dw_facevariations->GetFontAxisValueCount (), ==, 5);
+  dw_facevariations->GetFontAxisValues (dw_axisvalues, 5);
+  g_assert_cmpuint (dw_axisvalues[0].axisTag, ==, DWRITE_FONT_AXIS_TAG_WEIGHT);
+  g_assert_cmpfloat (dw_axisvalues[0].value, ==, 900.0f);
+
+  font = hb_directwrite_font_create (dw_facevariations);
+
+  // Check that wght axis is also set to 900.0 on the hb_font_t
+  coords = hb_font_get_var_coords_design(font, &length);
+  g_assert_cmpuint (length, ==, 2);
+  g_assert_cmpfloat (coords[0], ==, 900.0f);
 
   hb_font_destroy (font);
 
-  dwfontface->Release ();
+  // FIXME: This crashes!
+  //dw_facevariations->Release ();
 }
 
 
