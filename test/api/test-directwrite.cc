@@ -45,8 +45,7 @@ get_dwfontface (const char *font_path)
 
   dw_font_face->AddRef ();
 
-  // Don't destroy face, as dw_font_face is backed by its data I think.
-  //hb_face_destroy (face);
+  hb_face_destroy (face);
 
   return dw_font_face;
 }
@@ -127,8 +126,7 @@ test_native_directwrite_variations (void)
 
   hb_font_destroy (font);
 
-  // FIXME: This crashes!
-  //dw_facevariations->Release ();
+  dw_facevariations->Release ();
 }
 
 
