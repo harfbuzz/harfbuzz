@@ -37,72 +37,17 @@ typedef HRESULT (WINAPI *t_DWriteCreateFactory)(
 );
 
 IDWriteFontFace *
-get_dwfontface (const wchar_t *family_name)
+get_dwfontface (const char *font_path)
 {
-  HRESULT hr;
-  t_DWriteCreateFactory CreateFactory;
-  HMODULE dwrite_dll;
-  IDWriteFactory *factory;
-  IDWriteFactory7 *factory7;
-  IDWriteFontCollection3 *collection;
-  UINT32 count;
-  IDWriteFontFamily2 *family;
-  IDWriteFont *font;
-  UINT32 index = 0;
+  auto *face = hb_test_open_font_file (font_path);
 
-  dwrite_dll = LoadLibrary (TEXT ("DWRITE"));
-  g_assert_nonnull (dwrite_dll);
+  auto *dw_font_face = hb_directwrite_face_get_dw_font_face (face);
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
+  dw_font_face->AddRef ();
 
-  CreateFactory = (t_DWriteCreateFactory) GetProcAddress (dwrite_dll, "DWriteCreateFactory");
-  g_assert_nonnull (CreateFactory);
+  hb_face_destroy (face);
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-
-  hr = CreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory), (IUnknown**) &factory);
-  g_assert_true (SUCCEEDED (hr));
-
-  hr = factory->QueryInterface (__uuidof (IDWriteFactory7), (void**) &factory7);
-  g_assert_true (SUCCEEDED (hr));
-
-  hr = factory7->GetSystemFontCollection (FALSE, DWRITE_FONT_FAMILY_MODEL_TYPOGRAPHIC, &collection);
-  g_assert_true (SUCCEEDED (hr));
-
-  count = collection->GetFontFamilyCount ();
-  g_assert_cmpuint (count, >, 0);
-
-  if (family_name)
-  {
-    BOOL exists;
-    hr = collection->FindFamilyName (family_name, &index, &exists);
-    g_assert_true (SUCCEEDED (hr));
-    g_assert_true (exists);
-  }
-
-  hr = collection->GetFontFamily (index, &family);
-  g_assert_true (SUCCEEDED (hr));
-
-  hr = family->GetFirstMatchingFont (DWRITE_FONT_WEIGHT_NORMAL,
-                                      DWRITE_FONT_STRETCH_NORMAL,
-                                      DWRITE_FONT_STYLE_NORMAL,
-                                      &font);
-  g_assert_true (SUCCEEDED (hr));
-
-  factory->Release ();
-
-  IDWriteFontFace *dw_face = nullptr;
-  hr = font->CreateFontFace (&dw_face);
-  g_assert_true (SUCCEEDED (hr));
-
-  font->Release ();
-
-  return dw_face;
+  return dw_font_face;
 }
 
 static void
@@ -112,7 +57,7 @@ test_native_directwrite_basic (void)
   hb_font_t *font;
   IDWriteFontFace *dwfontface2;
 
-  dwfontface = get_dwfontface (nullptr);
+  dwfontface = get_dwfontface ("fonts/Roboto-Regular.abc.ttf");
   g_assert_nonnull (dwfontface);
 
   font = hb_directwrite_font_create (dwfontface);
@@ -134,7 +79,7 @@ test_native_directwrite_variations (void)
   hb_font_t *font;
   unsigned int length;
 
-  dwfontface = get_dwfontface (L"Bahnschrift");
+  dwfontface = get_dwfontface ("fonts/AdobeVFPrototype.abc.ttf");
   g_assert_nonnull (dwfontface);
 
   font = hb_directwrite_font_create (dwfontface);
