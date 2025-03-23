@@ -102,6 +102,17 @@ for what in ["shaper", "face-loader", "font-funcs"]:
     globals()[var_name] = what_list
     print(f"Supported {whats}: {what_list}")
 
+# If running under Wine and not native dlls, make the respective shapers unavailable.
+if os.environ.get("WINEPATH"):
+    overrides = os.environ.get("WINEDLLOVERRIDES", "").lower()
+    if "directwrite" in supported_shapers and overrides.find("dwrite") == -1:
+        supported_shapers.remove("directwrite")
+        print("Skipping DirectWrite shaper under Wine.")
+    if "uniscribe" in supported_shapers and overrides.find("usp10") == -1:
+        supported_shapers.remove("uniscribe")
+        print("Skipping Uniscribe shaper under Wine.")
+
+
 passes = 0
 fails = 0
 skips = 0
