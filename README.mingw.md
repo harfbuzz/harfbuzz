@@ -40,13 +40,16 @@ a few different ways to build and test HarfBuzz for Windows.
 
 3. Install dependencies.
 
+First, make sure you do not have the mingw32 harfbuzz package, as that will
+override our own build:
+
+  - Fedora, 32bit: `dnf remove mingw32-harfbuzz`
+  - Fedora, 64bit: `dnf remove mingw64-harfbuzz`
+
+Then install the actual dependencies:
+
   - Fedora, 32bit: `dnf install mingw32-glib2 mingw32-cairo mingw32-freetype`
   - Fedora, 64bit: `dnf install mingw64-glib2 mingw64-cairo mingw64-freetype`
-
-Or you could simply pull them all in one go with:
-
-  - Fedora, 32bit: `dnf install mingw32-harfbuzz`
-  - Fedora, 64bit: `dnf install mingw64-harfbuzz`
 
 If you cannot find these packages for your distribution, or you are on macOS,
 you can skip to the next step, as meson will automatically download and build
