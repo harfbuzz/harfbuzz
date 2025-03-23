@@ -47,7 +47,7 @@ get_dwfont (const wchar_t *family_name)
   IDWriteFontCollection3 *collection;
   UINT32 count;
   IDWriteFontFamily2 *family;
-  IDWriteFont *font;
+  IDWriteFont *font = nullptr;
   UINT32 index = 0;
 
   dwrite_dll = LoadLibrary (TEXT ("DWRITE"));
@@ -81,8 +81,8 @@ get_dwfont (const wchar_t *family_name)
   {
     BOOL exists;
     hr = collection->FindFamilyName (family_name, &index, &exists);
-    g_assert_true (SUCCEEDED (hr));
-    g_assert_true (exists);
+    if (FAILED (hr) || !exists)
+      goto done;
   }
 
   hr = collection->GetFontFamily (index, &family);
@@ -94,6 +94,7 @@ get_dwfont (const wchar_t *family_name)
                                       &font);
   g_assert_true (SUCCEEDED (hr));
 
+done:
   factory->Release ();
 
   return font;
@@ -129,6 +130,14 @@ test_native_directwrite_variations (void)
   unsigned int length;
 
   dwfont = get_dwfont (L"Bahnschrift");
+
+  const char *env = getenv ("MESON_EXE_WRAPPER");
+  if (env && strstr (env, "wine"))
+  {
+    g_test_skip ("Failed to load \"Bahnschrift\" font under Wine");
+    return;
+  }
+
   g_assert_nonnull (dwfont);
 
   font = hb_directwrite_font_create (dwfont);
