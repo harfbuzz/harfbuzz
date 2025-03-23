@@ -151,8 +151,11 @@ For other situations, use `meson devenv`:
 
   - `meson devenv -C build-win ninja test`
 
-If all goes well, tests should run. If all is well, you should probably see over 400
-tests pass, some skipped, but none failing.
+This might take a couple of minutes to run. Running under Wine is expensive, so
+be patient.
+
+If all goes well, tests should run. If all is well, you should probably see about
+400 tests pass, some skipped, but none failing.
 
 11. In the above testing situation, the `directwrite` test will be disabled
 automatically upon detection of running under Wine. The reason the `directwrite`
