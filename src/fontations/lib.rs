@@ -11,6 +11,7 @@ use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use read_fonts::tables::cpal::ColorRecord;
+use read_fonts::tables::vorg::Vorg;
 use read_fonts::TableProvider;
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
@@ -64,6 +65,7 @@ struct FontationsData<'a> {
     glyph_names: GlyphNames<'a>,
     glyph_from_names: OnceLock<HashMap<String, hb_codepoint_t>>,
     size: Size,
+    vert_origin: Option<Vorg<'a>>,
 
     // Mutex for the below
     mutex: Mutex<()>,
@@ -94,6 +96,9 @@ impl FontationsData<'_> {
 
         let upem = hb_face_get_upem(hb_font_get_face(font));
 
+        let vert_origin = font_ref.vorg();
+        let vert_origin = vert_origin.ok();
+
         let mut data = FontationsData {
             face_blob,
             font,
@@ -104,6 +109,7 @@ impl FontationsData<'_> {
             glyph_names,
             glyph_from_names: OnceLock::new(),
             size: Size::new(upem as f32),
+            vert_origin,
             mutex: Mutex::new(()),
             x_mult: 1.0,
             y_mult: 1.0,
@@ -249,6 +255,36 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
             .round() as i32;
         *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
     }
+}
+extern "C" fn _hb_fontations_get_glyph_v_origin(
+    font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    glyph: hb_codepoint_t,
+    x: *mut hb_position_t,
+    y: *mut hb_position_t,
+    _user_data: *mut ::std::os::raw::c_void,
+) -> hb_bool_t {
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    data.check_for_updates();
+
+    let vert_origin = &data.vert_origin;
+    if vert_origin.is_none() {
+        return false as hb_bool_t;
+    }
+
+    unsafe {
+        *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
+    }
+
+    let glyph_id = GlyphId::new(glyph);
+
+    let y_origin = vert_origin.as_ref().unwrap().vertical_origin_y(glyph_id);
+
+    unsafe {
+        *y = (y_origin as f32 * data.y_mult).round() as hb_position_t;
+    }
+
+    true as hb_bool_t
 }
 extern "C" fn _hb_fontations_get_glyph_extents(
     _font: *mut hb_font_t,
@@ -877,6 +913,12 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
             hb_font_funcs_set_glyph_h_advances_func(
                 ffuncs,
                 Some(_hb_fontations_get_glyph_h_advances),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_glyph_v_origin_func(
+                ffuncs,
+                Some(_hb_fontations_get_glyph_v_origin),
                 null_mut(),
                 None,
             );
