@@ -154,6 +154,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - run: apt update
+      - run: DEBIAN_FRONTEND=noninteractive apt install -y curl
       - run: |
           mv harfbuzz-win32{,-$CIRCLE_TAG}.zip
           .ci/publish_release_artifact.sh harfbuzz-win32-$CIRCLE_TAG.zip
@@ -183,6 +185,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - run: apt update
+      - run: DEBIAN_FRONTEND=noninteractive apt install -y curl
       - run: |
           mv harfbuzz-win64{,-$CIRCLE_TAG}.zip
           .ci/publish_release_artifact.sh harfbuzz-win64-$CIRCLE_TAG.zip
