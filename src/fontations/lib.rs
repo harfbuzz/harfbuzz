@@ -11,6 +11,7 @@ use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use read_fonts::tables::cpal::ColorRecord;
+use read_fonts::tables::vmtx::Vmtx;
 use read_fonts::tables::vorg::Vorg;
 use read_fonts::TableProvider;
 use skrifa::charmap::Charmap;
@@ -65,6 +66,7 @@ struct FontationsData<'a> {
     glyph_names: GlyphNames<'a>,
     glyph_from_names: OnceLock<HashMap<String, hb_codepoint_t>>,
     size: Size,
+    vert_metrics: Option<Vmtx<'a>>,
     vert_origin: Option<Vorg<'a>>,
 
     // Mutex for the below
@@ -96,6 +98,9 @@ impl FontationsData<'_> {
 
         let upem = hb_face_get_upem(hb_font_get_face(font));
 
+        let vert_metrics = font_ref.vmtx();
+        let vert_metrics = vert_metrics.ok();
+
         let vert_origin = font_ref.vorg();
         let vert_origin = vert_origin.ok();
 
@@ -109,6 +114,7 @@ impl FontationsData<'_> {
             glyph_names,
             glyph_from_names: OnceLock::new(),
             size: Size::new(upem as f32),
+            vert_metrics,
             vert_origin,
             mutex: Mutex::new(()),
             x_mult: 1.0,
@@ -222,6 +228,7 @@ extern "C" fn _hb_fontations_get_variation_glyph(
     _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
     let data = unsafe { &*(font_data as *const FontationsData) };
+
     let char_map = &data.char_map;
 
     match char_map.map_variant(unicode, variation_selector) {
@@ -256,6 +263,34 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
         *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
     }
 }
+
+extern "C" fn _hb_fontations_get_glyph_v_advances(
+    _font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    count: ::std::os::raw::c_uint,
+    first_glyph: *const hb_codepoint_t,
+    glyph_stride: ::std::os::raw::c_uint,
+    first_advance: *mut hb_position_t,
+    advance_stride: ::std::os::raw::c_uint,
+    _user_data: *mut ::std::os::raw::c_void,
+) {
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    //data.check_for_updates();
+
+    // TODO: This doesn't apply VVAR variations; Skrifa doesn't have API
+    // for this yet and it's tedious to do with read-fonts.
+
+    let vert_metrics = &data.vert_metrics.as_ref().unwrap();
+
+    for i in 0..count {
+        let glyph = struct_at_offset(first_glyph, i, glyph_stride);
+        let glyph_id = GlyphId::new(glyph);
+        let advance = -(vert_metrics.advance(glyph_id).unwrap_or_default() as f32 * data.y_mult)
+            .round() as i32;
+        *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
+    }
+}
+
 extern "C" fn _hb_fontations_get_glyph_v_origin(
     font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -286,6 +321,7 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
 
     false as hb_bool_t
 }
+
 extern "C" fn _hb_fontations_get_glyph_extents(
     _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -947,6 +983,12 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
             hb_font_funcs_set_glyph_h_advances_func(
                 ffuncs,
                 Some(_hb_fontations_get_glyph_h_advances),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_glyph_v_advances_func(
+                ffuncs,
+                Some(_hb_fontations_get_glyph_v_advances),
                 null_mut(),
                 None,
             );
