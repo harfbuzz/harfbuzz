@@ -46,7 +46,7 @@ Follow the instructions you got from brew. This should do it:
 3. Install dependencies.
 
 First, make sure you do not have the mingw32 harfbuzz package, as that will
-override our own build:
+override our own build with older `meson`:
 
   - Fedora, 32bit: `dnf remove mingw32-harfbuzz`
   - Fedora, 64bit: `dnf remove mingw64-harfbuzz`
