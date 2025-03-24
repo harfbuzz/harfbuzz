@@ -25,11 +25,6 @@ jobs:
             MSYS2_ARCH: clang-x86_64
     name: ${{ matrix.MSYSTEM }}
 
-    env:
-      # XXX: For some reason enabling jit debugging "fixes" random python crashes
-      # see https://github.com/msys2/MINGW-packages/issues/11864
-      MSYS: "winjitdebug"
-
     defaults:
       run:
         shell: msys2 {0}
