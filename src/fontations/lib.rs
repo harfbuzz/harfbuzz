@@ -13,6 +13,7 @@ use std::sync::{Mutex, OnceLock};
 use read_fonts::tables::cpal::ColorRecord;
 use read_fonts::tables::vmtx::Vmtx;
 use read_fonts::tables::vorg::Vorg;
+use read_fonts::tables::vvar::Vvar;
 use read_fonts::TableProvider;
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
@@ -68,6 +69,7 @@ struct FontationsData<'a> {
     size: Size,
     vert_metrics: Option<Vmtx<'a>>,
     vert_origin: Option<Vorg<'a>>,
+    vert_vars: Option<Vvar<'a>>,
 
     // Mutex for the below
     mutex: Mutex<()>,
@@ -104,6 +106,9 @@ impl FontationsData<'_> {
         let vert_origin = font_ref.vorg();
         let vert_origin = vert_origin.ok();
 
+        let vert_vars = font_ref.vvar();
+        let vert_vars = vert_vars.ok();
+
         let mut data = FontationsData {
             face_blob,
             font,
@@ -116,6 +121,7 @@ impl FontationsData<'_> {
             size: Size::new(upem as f32),
             vert_metrics,
             vert_origin,
+            vert_vars,
             mutex: Mutex::new(()),
             x_mult: 1.0,
             y_mult: 1.0,
@@ -303,6 +309,7 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
     data.check_for_updates();
 
     let vert_origin = &data.vert_origin;
+    let vert_vars = &data.vert_vars;
     if vert_origin.is_some() {
         unsafe {
             *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
@@ -310,10 +317,19 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
 
         let glyph_id = GlyphId::new(glyph);
 
-        let y_origin = vert_origin.as_ref().unwrap().vertical_origin_y(glyph_id);
+        let mut y_origin = vert_origin.as_ref().unwrap().vertical_origin_y(glyph_id) as f32;
+        if vert_vars.is_some() && !data.location.coords().is_empty() {
+            let coords = data.location.coords();
+            y_origin += vert_vars
+                .as_ref()
+                .unwrap()
+                .v_org_delta(glyph_id, coords)
+                .unwrap_or_default()
+                .to_f32();
+        }
 
         unsafe {
-            *y = (y_origin as f32 * data.y_mult).round() as hb_position_t;
+            *y = (y_origin * data.y_mult).round() as hb_position_t;
         }
 
         return true as hb_bool_t;
