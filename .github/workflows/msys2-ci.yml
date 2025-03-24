@@ -47,7 +47,7 @@ jobs:
           mingw-w64-${{ matrix.MSYS2_ARCH }}-icu
           mingw-w64-${{ matrix.MSYS2_ARCH }}-meson
           mingw-w64-${{ matrix.MSYS2_ARCH }}-ninja
-          mingw-w64-${{ matrix.MSYS2_ARCH }}-pkg-config
+          mingw-w64-${{ matrix.MSYS2_ARCH }}-pkgconf
           mingw-w64-${{ matrix.MSYS2_ARCH }}-python
           mingw-w64-${{ matrix.MSYS2_ARCH }}-python-pip
     - name: Remove installed HarfBuzz DLLs
