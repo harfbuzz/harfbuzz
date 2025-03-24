@@ -345,6 +345,9 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
         return true as hb_bool_t;
     }
 
+    // TODO: Implement the two other fallback cases, for TrueType
+    // with vmtx, and for no vmtx. See hb-ot-font implementation.
+
     false as hb_bool_t
 }
 
