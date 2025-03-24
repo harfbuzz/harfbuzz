@@ -464,6 +464,8 @@ struct HbColorPainter<'a> {
     paint_data: *mut c_void,
     color_records: &'a [ColorRecord],
     foreground: hb_color_t,
+    is_glyph_clip: u64,
+    clip_depth: u32,
 }
 
 impl HbColorPainter<'_> {
@@ -599,9 +601,12 @@ impl ColorPainter for HbColorPainter<'_> {
     ) {
         unsafe {
             hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
-        }
-        self.push_clip_glyph(glyph_id);
-        unsafe {
+            hb_paint_push_clip_glyph(
+                self.paint_funcs,
+                self.paint_data,
+                glyph_id.to_u32() as hb_codepoint_t,
+                self.font,
+            );
             hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
         }
         if let Some(wrap_in_transform) = brush_transform {
@@ -612,20 +617,36 @@ impl ColorPainter for HbColorPainter<'_> {
             self.fill(brush);
         }
         self.pop_transform();
-        self.pop_clip();
+        unsafe {
+            hb_paint_pop_clip(self.paint_funcs, self.paint_data);
+        }
         self.pop_transform();
     }
     fn push_clip_glyph(&mut self, glyph_id: GlyphId) {
+        if self.clip_depth < 64 {
+            self.is_glyph_clip |= 1 << self.clip_depth;
+            self.clip_depth += 1;
+        } else {
+            return;
+        }
         unsafe {
+            hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
             hb_paint_push_clip_glyph(
                 self.paint_funcs,
                 self.paint_data,
                 glyph_id.to_u32() as hb_codepoint_t,
                 self.font,
             );
+            hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
         }
     }
     fn push_clip_box(&mut self, bbox: BoundingBox) {
+        if self.clip_depth < 64 {
+            self.is_glyph_clip &= !(1 << self.clip_depth);
+            self.clip_depth += 1;
+        } else {
+            return;
+        }
         unsafe {
             hb_paint_push_clip_rectangle(
                 self.paint_funcs,
@@ -638,8 +659,19 @@ impl ColorPainter for HbColorPainter<'_> {
         }
     }
     fn pop_clip(&mut self) {
+        if self.clip_depth > 0 {
+            self.clip_depth -= 1;
+        } else {
+            return;
+        }
         unsafe {
+            if (self.is_glyph_clip & (1 << self.clip_depth)) != 0 {
+                hb_paint_pop_transform(self.paint_funcs, self.paint_data);
+            }
             hb_paint_pop_clip(self.paint_funcs, self.paint_data);
+            if (self.is_glyph_clip & (1 << self.clip_depth)) != 0 {
+                hb_paint_pop_transform(self.paint_funcs, self.paint_data);
+            }
         }
     }
     fn fill(&mut self, brush: Brush) {
@@ -820,6 +852,8 @@ extern "C" fn _hb_fontations_paint_glyph(
         paint_data,
         color_records,
         foreground,
+        is_glyph_clip: 0,
+        clip_depth: 0,
     };
     unsafe {
         hb_paint_push_font_transform(paint_funcs, paint_data, font);
