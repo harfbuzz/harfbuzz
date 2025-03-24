@@ -50,9 +50,6 @@ jobs:
           mingw-w64-${{ matrix.MSYS2_ARCH }}-pkgconf
           mingw-w64-${{ matrix.MSYS2_ARCH }}-python
           mingw-w64-${{ matrix.MSYS2_ARCH }}-python-pip
-    - name: Remove installed HarfBuzz DLLs
-      run: |
-        rm -f -v "$MSYSTEM_PREFIX"/bin/libharfbuzz-*.dll
     - name: Install Python Dependencies
       run: |
         pip3 install -r .ci/requirements-fonttools.txt --require-hashes
