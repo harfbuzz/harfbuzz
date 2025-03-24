@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "hb-subset-repacker.h"
+#include "hb-subset-serialize.h"
 
 typedef struct
 {
@@ -42,7 +42,7 @@ bool read(const uint8_t** data, size_t* size, T* out)
   return true;
 }
 
-void cleanup (hb_object_t* objects, uint16_t num_objects)
+void cleanup (hb_subset_serialize_object_t* objects, uint16_t num_objects)
 {
   for (uint32_t i = 0; i < num_objects; i++)
   {
@@ -51,7 +51,7 @@ void cleanup (hb_object_t* objects, uint16_t num_objects)
   }
 }
 
-void add_links_to_objects (hb_object_t* objects, uint16_t num_objects,
+void add_links_to_objects (hb_subset_serialize_object_t* objects, uint16_t num_objects,
                            link_t* links, uint16_t num_links)
 {
   unsigned* link_count = (unsigned*) calloc (num_objects, sizeof (unsigned));
@@ -65,7 +65,7 @@ void add_links_to_objects (hb_object_t* objects, uint16_t num_objects,
   for (uint32_t i = 0; i < num_objects; i++)
   {
     objects[i].num_real_links = link_count[i];
-    objects[i].real_links = (hb_link_t*) calloc (link_count[i], sizeof (hb_link_t));
+    objects[i].real_links = (hb_subset_serialize_link_t*) calloc (link_count[i], sizeof (hb_subset_serialize_link_t));
     objects[i].num_virtual_links = 0;
     objects[i].virtual_links = nullptr;
   }
@@ -74,7 +74,7 @@ void add_links_to_objects (hb_object_t* objects, uint16_t num_objects,
   {
     uint16_t parent_idx = links[i].parent;
     uint16_t child_idx = links[i].child + 1; // All indices are shifted by 1 by the null object.
-    hb_link_t* link = &(objects[parent_idx].real_links[link_count[parent_idx] - 1]);
+    hb_subset_serialize_link_t* link = &(objects[parent_idx].real_links[link_count[parent_idx] - 1]);
 
     link->width = links[i].width;
     link->position = links[i].position;
@@ -91,7 +91,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   alloc_state = _fuzzing_alloc_state (data, size);
 
   uint16_t num_objects = 0;
-  hb_object_t* objects = nullptr;
+  hb_subset_serialize_object_t* objects = nullptr;
 
   uint16_t num_real_links = 0;
   link_t* links = nullptr;
@@ -100,7 +100,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   if (!read<hb_tag_t> (&data, &size, &table_tag)) goto end;
   if (!read<uint16_t> (&data, &size, &num_objects)) goto end;
 
-  objects = (hb_object_t*) calloc (num_objects, sizeof (hb_object_t));
+  objects = (hb_subset_serialize_object_t*) calloc (num_objects, sizeof (hb_subset_serialize_object_t));
   for (uint32_t i = 0; i < num_objects; i++)
   {
     uint16_t blob_size;
@@ -129,9 +129,9 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   add_links_to_objects (objects, num_objects,
                         links, num_real_links);
 
-  hb_blob_destroy (hb_subset_repack_or_fail (table_tag,
-                                             objects,
-                                             num_objects));
+  hb_blob_destroy (hb_subset_serialize_or_fail (table_tag,
+                                                objects,
+                                                num_objects));
 
 end:
   if (objects)

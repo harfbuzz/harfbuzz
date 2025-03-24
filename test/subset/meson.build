@@ -1,5 +1,7 @@
 tests = [
   'basics',
+  'cmap',
+  'cmap14',
   'preprocess',
   'full-font',
   'cff-full-font',
@@ -35,8 +37,6 @@ tests = [
   'layout.unsorted_featurelist',
   'layout.drop_feature',
   'no_layout_closure',
-  'cmap',
-  'cmap14',
   'sbix',
   'colr',
   'colr_glyphs',
@@ -78,6 +78,8 @@ tests = [
   'feature_variation_instance_collect_lookups',
   'sync_vmetrics',
   'empty_region_vardata',
+  'colrv1_partial_instance',
+  'instantiate_gvar_padding',
 ]
 
 if get_option('experimental_api')

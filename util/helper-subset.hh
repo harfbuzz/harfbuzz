@@ -34,92 +34,6 @@
 
 #ifndef HB_NO_VAR
 
-// Parses an axis position string and sets min, default, and max to
-// the requested values. If a value should be set to it's default value
-// then it will be set to NaN.
-static gboolean
-parse_axis_position(const char* s,
-                    float* min,
-                    float* def,
-                    float* max,
-                    gboolean* drop,
-                    GError **error)
-{
-  const char* part = strpbrk(s, ":");
-  *drop = false;
-  if (!part) {
-    // Single value.
-    if (strcmp (s, "drop") == 0)
-    {
-      *min = NAN;
-      *def = NAN;
-      *max = NAN;
-      *drop = true;
-      return true;
-    }
-
-    errno = 0;
-    char *p;
-    float axis_value = strtof (s, &p);
-    if (errno || s == p)
-    {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing axis value at: '%s'", s);
-      return false;
-    }
-
-    *min = axis_value;
-    *def = axis_value;
-    *max = axis_value;
-    return true;
-  }
-
-
-  float values[3];
-  int count = 0;
-  for (int i = 0; i < 3; i++) {
-    errno = 0;
-    count++;
-    if (!*s || part == s) {
-      values[i] = NAN;
-
-      if (part == NULL) break;
-      s = part + 1;
-      part = strpbrk(s, ":");
-      continue;
-    }
-
-    char *pend;
-    values[i] = strtof (s, &pend);
-    if (errno || s == pend || (part && pend != part))
-    {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing axis value at: '%s'", s);
-      return false;
-    }
-
-    if (part == NULL) break;
-    s = pend + 1;
-    part = strpbrk(s, ":");
-  }
-
-  if (count == 2) {
-    *min = values[0];
-    *def = NAN;
-    *max = values[1];
-    return true;
-  } else if (count == 3) {
-    *min = values[0];
-    *def = values[1];
-    *max = values[2];
-    return true;
-  }
-
-  g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing axis value at: '%s'", s);
-  return false;
-}
-
 static gboolean
 parse_instancing_spec (const char *arg,
                        hb_face_t* face,
@@ -168,13 +82,7 @@ parse_instancing_spec (const char *arg,
       return false;
     }
 
-    gboolean drop;
-    float min, def, max;
-    if (!parse_axis_position(s, &min, &def, &max, &drop, error))
-      return false;
-
-    if (drop)
-    {
+    if (strcmp (s, "drop") == 0) {
       if (!hb_subset_input_pin_axis_to_default (input,
                                                 face,
                                                 axis_tag))
@@ -185,18 +93,9 @@ parse_instancing_spec (const char *arg,
       }
       continue;
     }
-
-    if (min == def && def == max) {
-      if (!hb_subset_input_pin_axis_location (input,
-                                              face, axis_tag,
-                                              def))
-      {
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
-        return false;
-      }
-      continue;
-    }
+    float min, def, max;
+    if (!hb_subset_axis_range_from_string(s, -1, &min, &max, &def))
+      return false;
 
     if (!hb_subset_input_set_axis_range (input,
                                          face, axis_tag,
@@ -207,10 +106,6 @@ parse_instancing_spec (const char *arg,
       return false;
     }
     continue;
-
-    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                 "Partial instancing is not supported.");
-    return false;
   }
 
   return true;

@@ -110,6 +110,18 @@ parse_text (const char *name G_GNUC_UNUSED,
 {
   text_options_t *text_opts = (text_options_t *) data;
 
+  if (text_opts->text && !*arg)
+  {
+    // Empty --text provided but --unicodes called; ignore it. This is useful for scripting.
+    return true;
+  }
+  if (text_opts->text && !text_opts->text_len)
+  {
+    // Empty --unicodes provided as well as text; ignore it. This is useful for scripting.
+    g_free (text_opts->text);
+    text_opts->text = nullptr;
+  }
+
   if (text_opts->text)
   {
     g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,

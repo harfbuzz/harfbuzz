@@ -52,11 +52,11 @@ struct hb_cache_t
 {
   using item_t = typename std::conditional<thread_safe,
 					   typename std::conditional<key_bits + value_bits - cache_bits <= 16,
-								     hb_atomic_short_t,
-								     hb_atomic_int_t>::type,
+								     hb_atomic_t<unsigned short>,
+								     hb_atomic_t<unsigned int>>::type,
 					   typename std::conditional<key_bits + value_bits - cache_bits <= 16,
-								     short,
-								     int>::type
+								     unsigned short,
+								     unsigned int>::type
 					  >::type;
 
   static_assert ((key_bits >= cache_bits), "");

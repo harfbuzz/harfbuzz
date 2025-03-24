@@ -128,6 +128,8 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
       write_file (output_file, result);
       hb_blob_destroy (result);
     }
+    else if (hb_face_get_glyph_count (orig_face) == 0)
+      fail (false, "Invalid font file.");
 
     hb_face_destroy (new_face);
     if (preprocess)
@@ -792,6 +794,7 @@ parse_file_for (const char *name,
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
 		   "Failed reading file `%s': %s",
 		   arg, strerror (errno));
+      fclose (fp);
       return false;
     }
     g_string_append_c (gs, '\0');
@@ -811,6 +814,8 @@ parse_file_for (const char *name,
   while (!feof (fp));
 
   g_string_free (gs, false);
+
+  fclose (fp);
 
   return true;
 }

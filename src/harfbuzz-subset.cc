@@ -58,7 +58,7 @@
 #include "hb-subset-instancer-iup.cc"
 #include "hb-subset-instancer-solver.cc"
 #include "hb-subset-plan.cc"
-#include "hb-subset-repacker.cc"
+#include "hb-subset-serialize.cc"
 #include "hb-subset.cc"
 #include "hb-ucd.cc"
 #include "hb-unicode.cc"

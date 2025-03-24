@@ -187,6 +187,9 @@ static const test_pair_t combining_class_tests_more[] =
   /* Unicode-15.0 character additions */
   {  0x10EFD, 220 },
 
+  /* Unicode-16.0 character additions */
+  {   0x0897, 230 },
+
   { 0x111111, 0 }
 };
 
@@ -275,6 +278,9 @@ static const test_pair_t general_category_tests_more[] =
 
   /* Unicode-15.1 character additions */
   {   0x31EF, HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL },
+
+  /* Unicode-16.0 character additions */
+  {  0x10D6E, HB_UNICODE_GENERAL_CATEGORY_DASH_PUNCTUATION },
 
   { 0x111111, HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED }
 };
@@ -536,6 +542,15 @@ static const test_pair_t script_tests_more[] =
   /* Unicode-15.0 additions */
   {  0x11F00, HB_SCRIPT_KAWI },
   {  0x1E4D0, HB_SCRIPT_NAG_MUNDARI },
+
+  /* Unicode-16.0 additions */
+  {  0x105C0, HB_SCRIPT_TODHRI },
+  {  0x10D40, HB_SCRIPT_GARAY },
+  {  0x11380, HB_SCRIPT_TULU_TIGALARI },
+  {  0x11BC0, HB_SCRIPT_SUNUWAR },
+  {  0x16100, HB_SCRIPT_GURUNG_KHEMA },
+  {  0x16D40, HB_SCRIPT_KIRAT_RAI },
+  {  0x1E5D0, HB_SCRIPT_OL_ONAL },
 
   { 0x111111, HB_SCRIPT_UNKNOWN }
 };

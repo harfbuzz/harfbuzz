@@ -1,0 +1,3 @@
+@font-funcs=ot,ft
+../fonts/TestCFFThree.otf;--font-size=1000 --ned --remove-default-ignorables;U+00C0;[Agrave]
+../fonts/TestCFFThree.otf;--font-size=1000 --ned --remove-default-ignorables;U+00DC;[Udieresis]

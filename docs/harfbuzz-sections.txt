@@ -81,6 +81,8 @@ hb_buffer_set_invisible_glyph
 hb_buffer_get_invisible_glyph
 hb_buffer_set_not_found_glyph
 hb_buffer_get_not_found_glyph
+hb_buffer_set_not_found_variation_selector_glyph
+hb_buffer_get_not_found_variation_selector_glyph
 hb_buffer_set_replacement_codepoint
 hb_buffer_get_replacement_codepoint
 hb_buffer_set_random_state
@@ -112,6 +114,9 @@ hb_glyph_position_t
 hb_buffer_content_type_t
 hb_buffer_flags_t
 hb_buffer_cluster_level_t
+HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS
+HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES
+HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE
 hb_segment_properties_t
 hb_buffer_serialize_format_t
 hb_buffer_serialize_flags_t
@@ -179,6 +184,10 @@ uint8_t
 HB_EXTERN
 HB_DEPRECATED
 HB_DEPRECATED_FOR
+hb_malloc
+hb_calloc
+hb_realloc
+hb_free
 <SUBSECTION Private>
 HB_H_IN
 HB_OT_H_IN
@@ -283,6 +292,8 @@ hb_paint_custom_palette_color_func_t
 hb_paint_funcs_set_custom_palette_color_func
 
 hb_paint_push_transform
+hb_paint_push_font_transform
+hb_paint_push_inverse_font_transform
 hb_paint_pop_transform
 hb_paint_color_glyph
 hb_paint_push_clip_glyph
@@ -330,6 +341,10 @@ hb_font_funcs_set_glyph_shape_func
 hb_font_get_glyph_v_kerning
 hb_font_get_glyph_v_kerning_func_t
 HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
+hb_directwrite_face_get_font_face
+hb_directwrite_font_get_dw_font
+hb_ft_font_get_face
+hb_graphite2_font_get_gr_font
 </SECTION>
 
 <SECTION>
@@ -338,15 +353,23 @@ HB_CORETEXT_TAG_KERX
 HB_CORETEXT_TAG_MORT
 HB_CORETEXT_TAG_MORX
 hb_coretext_face_create
+hb_coretext_face_create_from_file_or_fail
+hb_coretext_face_create_from_blob_or_fail
 hb_coretext_font_create
 hb_coretext_face_get_cg_font
 hb_coretext_font_get_ct_font
+hb_coretext_font_set_funcs
 </SECTION>
 
 <SECTION>
 <FILE>hb-directwrite</FILE>
 hb_directwrite_face_create
-hb_directwrite_face_get_font_face
+hb_directwrite_face_create_from_file_or_fail
+hb_directwrite_face_create_from_blob_or_fail
+hb_directwrite_face_get_dw_font_face
+hb_directwrite_font_create
+hb_directwrite_font_get_dw_font_face
+hb_directwrite_font_set_funcs
 </SECTION>
 
 <SECTION>
@@ -354,6 +377,12 @@ hb_directwrite_face_get_font_face
 hb_face_count
 hb_face_t
 hb_face_create
+hb_face_create_or_fail
+hb_face_create_or_fail_using
+hb_face_create_from_file_or_fail
+hb_face_create_from_file_or_fail_using
+hb_face_list_loaders
+hb_reference_table_func_t
 hb_face_create_for_tables
 hb_face_get_empty
 hb_face_reference
@@ -362,6 +391,8 @@ hb_face_set_user_data
 hb_face_get_user_data
 hb_face_make_immutable
 hb_face_is_immutable
+hb_get_table_tags_func_t
+hb_face_set_get_table_tags_func
 hb_face_get_table_tags
 hb_face_set_glyph_count
 hb_face_get_glyph_count
@@ -444,6 +475,8 @@ hb_font_get_serial
 hb_font_changed
 hb_font_set_funcs
 hb_font_set_funcs_data
+hb_font_set_funcs_using
+hb_font_list_funcs
 hb_font_subtract_glyph_origin_for_direction
 hb_font_funcs_create
 hb_font_funcs_get_empty
@@ -491,7 +524,6 @@ hb_font_get_variation_glyph_func_t
 hb_font_funcs_set_variation_glyph_func
 hb_font_funcs_t
 hb_font_t
-hb_reference_table_func_t
 hb_font_get_font_extents_func_t
 hb_font_get_font_h_extents_func_t
 hb_font_funcs_set_font_h_extents_func
@@ -505,14 +537,22 @@ hb_glyph_extents_t
 </SECTION>
 
 <SECTION>
+<FILE>hb-fontations</FILE>
+hb_fontations_font_set_funcs
+</SECTION>
+
+
+<SECTION>
 <FILE>hb-ft</FILE>
 hb_ft_face_create
 hb_ft_face_create_cached
 hb_ft_face_create_referenced
+hb_ft_face_create_from_file_or_fail
+hb_ft_face_create_from_blob_or_fail
 hb_ft_font_create
 hb_ft_font_create_referenced
 hb_ft_font_changed
-hb_ft_font_get_face
+hb_ft_font_get_ft_face
 hb_ft_font_lock_face
 hb_ft_font_unlock_face
 hb_ft_font_set_load_flags
@@ -538,7 +578,6 @@ hb_glib_blob_create
 <FILE>hb-graphite2</FILE>
 HB_GRAPHITE2_TAG_SILF
 hb_graphite2_face_get_gr_face
-hb_graphite2_font_get_gr_font
 </SECTION>
 
 <SECTION>
@@ -665,6 +704,7 @@ hb_ot_layout_table_get_script_tags
 hb_ot_layout_table_get_lookup_count
 hb_ot_layout_table_select_script
 hb_ot_shape_plan_collect_lookups
+hb_ot_shape_plan_get_feature_tags
 hb_ot_layout_language_get_required_feature_index
 HB_OT_MAX_TAGS_PER_LANGUAGE
 HB_OT_MAX_TAGS_PER_SCRIPT
@@ -792,8 +832,10 @@ hb_set_t
 <FILE>hb-shape</FILE>
 hb_shape
 hb_shape_full
-hb_shape_justify
 hb_shape_list_shapers
+<SUBSECTION Private>
+hb_shape_justify
+</SUBSECTION>
 </SECTION>
 
 <SECTION>
@@ -891,6 +933,8 @@ hb_subset_input_pin_axis_location
 hb_subset_input_pin_axis_to_default
 hb_subset_input_get_axis_range
 hb_subset_input_set_axis_range
+hb_subset_axis_range_from_string
+hb_subset_axis_range_to_string
 hb_subset_or_fail
 hb_subset_plan_create_or_fail
 hb_subset_plan_reference
@@ -906,10 +950,10 @@ hb_subset_flags_t
 hb_subset_input_t
 hb_subset_sets_t
 hb_subset_plan_t
+hb_subset_serialize_link_t
+hb_subset_serialize_object_t
+hb_subset_serialize_or_fail
 <SUBSECTION Private>
-hb_link_t
-hb_object_t
-hb_subset_repack_or_fail
 hb_subset_input_override_name_table
 </SECTION>
 

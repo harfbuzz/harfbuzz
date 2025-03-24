@@ -1,0 +1,5 @@
+@font-funcs=ot,ft
+../fonts/TestCMAP13.ttf;--font-size=1000 --ned --remove-default-ignorables;U+0055;[lastresortlatin]
+../fonts/TestCMAP13.ttf;--font-size=1000 --ned --remove-default-ignorables;U+13EF;[lastresortcherokee]
+../fonts/TestCMAP13.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1203C;[lastresortcuneiform]
+../fonts/TestCMAP13.ttf;--font-size=1000 --ned --remove-default-ignorables;U+1FA00;[lastresortchesssymbols]

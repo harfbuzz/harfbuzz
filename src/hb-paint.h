@@ -146,7 +146,7 @@ typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
  *
  * A virtual method for the #hb_paint_funcs_t to render a color glyph by glyph index.
  *
- * Return value: %true if the glyph was painted, %false otherwise.
+ * Return value: `true` if the glyph was painted, `false` otherwise.
  *
  * Since: 8.2.0
  */
@@ -955,6 +955,14 @@ hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
                          float xx, float yx,
                          float xy, float yy,
                          float dx, float dy);
+
+HB_EXTERN void
+hb_paint_push_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
+                              const hb_font_t *font);
+
+HB_EXTERN void
+hb_paint_push_inverse_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
+                                      const hb_font_t *font);
 
 HB_EXTERN void
 hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data);

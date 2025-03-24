@@ -247,7 +247,7 @@
     </para>
     <para>
       HarfBuzz also provides a utility function called
-      <function>hb_ft_font_has_changed()</function> that you should
+      <function>hb_ft_font_changed()</function> that you should
       call whenever you have altered the properties of your underlying
       <type>FT_Face</type>, as well as a
       <function>hb_ft_get_face()</function> that you can call on an
@@ -517,18 +517,6 @@
       that you an use to set the nominal point size on any
       <type>hb_font_t</type> font object. Core Text uses this value to
       implement optical scaling. 
-    </para>
-    <para>
-      When integrating your client code with Core Text, it is
-      important to recognize that Core Text <literal>points</literal>
-      are not typographic points (standardized at 72 per inch) as the
-      term is used elsewhere in OpenType. Instead, Core Text points
-      are CSS points, which are standardized at 96 per inch.
-    </para>
-    <para>
-      HarfBuzz's font functions take this distinction into account,
-      but it can be an easy detail to miss in cross-platform
-      code. 
     </para>
     <para>
       As a final note, you may notice a reference to an optional

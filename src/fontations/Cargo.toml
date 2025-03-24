@@ -1,0 +1,28 @@
+[package]
+name = "harfbuzz_fontations"
+edition = "2021"
+
+[dependencies]
+read-fonts = "0.27"
+skrifa = "0.29.2"
+
+[lib]
+name = "harfbuzz_fontations"
+path = "lib.rs"
+crate-type = ["staticlib"]
+
+[profile.release]
+strip = true
+lto = "fat"
+panic = "abort"
+overflow-checks = false
+codegen-units = 1
+
+[profile.debugoptimized]
+inherits = "release"
+debug = true
+codegen-units = 16
+strip = false
+
+[profile.dev]
+lto = "fat"

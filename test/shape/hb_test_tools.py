@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, os, re, difflib, unicodedata, errno, cgi, itertools
+import sys, os, re, difflib, unicodedata, errno, html, itertools
 from itertools import *
 
 diff_symbols = "-+=*&^%$#@!~/"
@@ -45,7 +45,7 @@ class ColorFormatter:
 		def end_color ():
 			return '</span>'
 		@staticmethod
-		def escape (s): return cgi.escape (s)
+		def escape (s): return html.escape (s)
 		@staticmethod
 		def newline (): return '<br/>\n'
 

@@ -4,7 +4,7 @@ cpu_family = 'x86_64'
 cpu = 'x86_64'
 endian = 'little'
 
-[properties]
+[built-in options]
 c_args = []
 c_link_args = ['-static-libgcc', '-Wl,-Bstatic', '-lpthread']
 cpp_args = []
@@ -18,3 +18,5 @@ ld = 'x86_64-w64-mingw32-ld'
 objcopy = 'x86_64-w64-mingw32-objcopy'
 strip = 'x86_64-w64-mingw32-strip'
 windres = 'x86_64-w64-mingw32-windres'
+pkg-config = 'x86_64-w64-mingw32-pkg-config'
+exe_wrapper = 'wine'

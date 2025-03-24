@@ -73,7 +73,7 @@ using object ids. The serialize context maintains a list of links between
 objects. Each link records the parent object id, the child object id, the position
 of the offset field within the parent object, and the width of the offset.
 
-Links are always added to the current in progress object and you can only link too
+Links are always added to the current in progress object and you can only link to
 objects that have been packed and thus have an ID.
 
 ### Object De-duplication

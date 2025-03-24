@@ -1,11 +1,4 @@
-/*
- * Benchmarks for hb_map_t operations.
- */
-#include "benchmark/benchmark.h"
-
-#include <cassert>
-#include <cstdlib>
-#include "hb.h"
+#include "hb-benchmark.hh"
 
 void RandomMap(unsigned size, hb_map_t* out, hb_set_t* key_sample) {
   hb_map_clear(out);

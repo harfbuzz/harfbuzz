@@ -1,2 +1,3 @@
-../fonts/TestSFNTOne.otf;--font-size=1000 --ned --remove-default-ignorables --font-funcs=ft;U+0041;[A]
-../fonts/TestSFNTOne.otf;--font-size=1000 --ned --remove-default-ignorables --font-funcs=ft;U+0042;[B]
+@font-funcs=ot,ft
+../fonts/TestSFNTOne.otf;--font-size=1000 --ned --remove-default-ignorables;U+0041;[A]
+../fonts/TestSFNTOne.otf;--font-size=1000 --ned --remove-default-ignorables;U+0042;[B]

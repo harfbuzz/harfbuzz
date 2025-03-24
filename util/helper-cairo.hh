@@ -67,6 +67,9 @@ _cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
 #    undef HAS_EPS
 #  endif
 #endif
+#ifdef CAIRO_HAS_SCRIPT_SURFACE
+#   include <cairo-script.h>
+#endif
 
 static inline bool
 helper_cairo_use_hb_draw (const font_options_t *font_opts)
@@ -153,6 +156,18 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
 							       &font_matrix,
 							       &ctm,
 							       font_options);
+  if (cairo_scaled_font_status (scaled_font) == CAIRO_STATUS_INVALID_MATRIX)
+  {
+    // Set font matrix to 0, which *does* work with cairo_scaled_font_create()
+    font_matrix.xx = font_matrix.yy = 0;
+    font_matrix.xy = font_matrix.yx = 0;
+    font_matrix.x0 = font_matrix.y0 = 0;
+    scaled_font = cairo_scaled_font_create (cairo_face,
+					    &font_matrix,
+					    &ctm,
+					    font_options);
+
+  }
 
   cairo_font_options_destroy (font_options);
   cairo_font_face_destroy (cairo_face);
@@ -386,6 +401,24 @@ _cairo_png_surface_create_for_stream (cairo_write_func_t write_func,
 
 #endif
 
+#ifdef CAIRO_HAS_SCRIPT_SURFACE
+
+static cairo_surface_t *
+_cairo_script_surface_create_for_stream (cairo_write_func_t write_func,
+				         void *closure,
+				         double width,
+				         double height,
+				         cairo_content_t content,
+				         image_protocol_t protocol HB_UNUSED)
+{
+  cairo_device_t *script = cairo_script_create_for_stream (write_func, closure);
+  cairo_surface_t *surface = cairo_script_surface_create (script, content, width, height);
+  cairo_device_destroy (script);
+  return surface;
+}
+
+#endif
+
 static cairo_status_t
 stdio_write_func (void                *closure,
 		  const unsigned char *data,
@@ -421,6 +454,9 @@ static const char *helper_cairo_supported_formats[] =
    #ifdef HAS_EPS
     "eps",
    #endif
+  #endif
+  #ifdef CAIRO_HAS_SCRIPT_SURFACE
+  "script",
   #endif
   nullptr
 };
@@ -510,6 +546,10 @@ helper_cairo_create_context (double w, double h,
     else if (0 == g_ascii_strcasecmp (extension, "eps"))
       constructor = _cairo_eps_surface_create_for_stream;
    #endif
+   #ifdef CAIRO_HAS_SCRIPT_SURFACE
+    else if (0 == g_ascii_strcasecmp (extension, "script"))
+      constructor2 = _cairo_script_surface_create_for_stream;
+   #endif
   #endif
 
 
@@ -559,10 +599,9 @@ helper_cairo_create_context (double w, double h,
     default:
     case CAIRO_CONTENT_COLOR:
     case CAIRO_CONTENT_COLOR_ALPHA:
-      cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+      cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
       cairo_set_source_rgba (cr, br / 255., bg / 255., bb / 255., ba / 255.);
       cairo_paint (cr);
-      cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
       cairo_set_source_rgba (cr, fr / 255., fg / 255., fb / 255., fa / 255.);
       break;
   }

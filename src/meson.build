@@ -28,6 +28,9 @@ hb_base_sources = files(
   'hb-atomic.hh',
   'hb-bimap.hh',
   'hb-bit-page.hh',
+  'hb-bit-set.hh',
+  'hb-bit-set-invertible.hh',
+  'hb-bit-vector.hh',
   'hb-blob.cc',
   'hb-blob.hh',
   'hb-buffer-serialize.cc',
@@ -43,6 +46,7 @@ hb_base_sources = files(
   'hb-common.cc',
   'hb-config.hh',
   'hb-debug.hh',
+  'hb-decycler.hh',
   'hb-dispatch.hh',
   'hb-draw.cc',
   'hb-draw.hh',
@@ -198,6 +202,7 @@ hb_base_sources = files(
   'hb-ot-os2-unicode-ranges.hh',
   'hb-ot-post-macroman.hh',
   'hb-ot-post-table.hh',
+  'hb-ot-post-table-v2subset.hh',
   'hb-ot-shaper-arabic-fallback.hh',
   'hb-ot-shaper-arabic-joining-list.hh',
   'hb-ot-shaper-arabic-pua.hh',
@@ -240,7 +245,9 @@ hb_base_sources = files(
   'hb-ot-var-varc-table.hh',
   'hb-ot-var.cc',
   'hb-ot-vorg-table.hh',
+  'hb-priority-queue.hh',
   'hb-pool.hh',
+  'hb-repacker.hh',
   'hb-sanitize.hh',
   'hb-serialize.hh',
   'hb-set-digest.hh',
@@ -325,6 +332,9 @@ hb_base_headers += hb_version_h
 hb_ft_sources = files('hb-ft.cc', 'hb-ft-colr.hh')
 hb_ft_headers = files('hb-ft.h')
 
+hb_fontations_sources = files()
+hb_fontations_headers = files('hb-fontations.h')
+
 hb_glib_sources = files('hb-glib.cc')
 hb_glib_headers = files('hb-glib.h')
 
@@ -339,6 +349,7 @@ hb_wasm_sources = files(
   'hb-wasm-api-common.hh',
   'hb-wasm-api-face.hh',
   'hb-wasm-api-font.hh',
+  'hb-wasm-api-list.hh',
   'hb-wasm-api-shape.hh',
   'hb-wasm-shape.cc',
 )
@@ -346,10 +357,10 @@ hb_wasm_headers = files()
 
 # System-dependent sources and headers
 
-hb_coretext_sources = files('hb-coretext.cc')
+hb_coretext_sources = files('hb-coretext.cc', 'hb-coretext.hh', 'hb-coretext-font.cc', 'hb-coretext-shape.cc')
 hb_coretext_headers = files('hb-coretext.h')
 
-hb_directwrite_sources = files('hb-directwrite.cc')
+hb_directwrite_sources = files('hb-directwrite.cc', 'hb-directwrite.hh', 'hb-directwrite-font.cc', 'hb-directwrite-shape.cc')
 hb_directwrite_headers = files('hb-directwrite.h')
 
 hb_gdi_sources = files('hb-gdi.cc')
@@ -383,7 +394,7 @@ hb_subset_sources = files(
   'hb-subset-plan.cc',
   'hb-subset-plan.hh',
   'hb-subset-plan-member-list.hh',
-  'hb-subset-repacker.cc',
+  'hb-subset-serialize.cc',
   'graph/gsubgpos-context.cc',
   'graph/gsubgpos-context.hh',
   'graph/gsubgpos-graph.hh',
@@ -398,7 +409,7 @@ hb_subset_sources = files(
 
 hb_subset_headers = files(
   'hb-subset.h',
-  'hb-subset-repacker.h'
+  'hb-subset-serialize.h'
 )
 
 hb_gobject_sources = files(
@@ -450,7 +461,13 @@ hb_headers = hb_base_headers
 
 harfbuzz_deps = [thread_dep, m_dep] + harfbuzz_extra_deps
 
-libharfbuzz_link_language = 'c'
+if get_option('with_libstdcxx')
+  chosen_linker = 'cpp'
+else
+  # Use a C linker, not C++; Don't link to libstdc++
+  chosen_linker = 'c'
+endif
+libharfbuzz_link_language = chosen_linker
 
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
@@ -496,6 +513,7 @@ endif
 if conf.get('HAVE_DIRECTWRITE', 0) == 1
   hb_sources += hb_directwrite_sources
   hb_headers += hb_directwrite_headers
+  harfbuzz_deps += directwrite_dep
   # hb-directwrite needs a C++ linker
   libharfbuzz_link_language = 'cpp'
 endif
@@ -504,6 +522,15 @@ if conf.get('HAVE_CORETEXT', 0) == 1
   hb_sources += hb_coretext_sources
   hb_headers += hb_coretext_headers
   harfbuzz_deps += coretext_deps
+endif
+
+if conf.get('HAVE_FONTATIONS', 0) == 1
+
+  subdir('fontations')
+
+  hb_sources += hb_fontations_sources
+  hb_headers += hb_fontations_headers
+  harfbuzz_deps += [harfbuzz_fontations_dep]
 endif
 
 have_icu = conf.get('HAVE_ICU', 0) == 1
@@ -551,8 +578,8 @@ hb_supported_features_h = configure_file(input: 'hb-features.h.in',
                                configuration: hb_supported_features,
                                install: false)
 
-# Base and default-included sources and headers
 
+# Base and default-included sources and headers
 gen_def = find_program('gen-def.py')
 gen_def_cmd = [gen_def, '@OUTPUT@', '@INPUT@']
 if get_option('experimental_api')
@@ -621,7 +648,7 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   version: version,
   install: true,
   darwin_versions: darwin_versions,
-  link_language: 'c',
+  link_language: chosen_linker,
 )
 
 custom_target('harfbuzz-subset.cc',
@@ -643,6 +670,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
   hb_cairo_sources = [
     'hb-cairo.cc',
     'hb-cairo-utils.cc',
+    'hb-cairo-utils.hh',
     'hb-static.cc'
   ]
 
@@ -656,12 +684,12 @@ if conf.get('HAVE_CAIRO', 0) == 1
     include_directories: incconfig,
     dependencies: [m_dep, cairo_dep],
     link_with: [libharfbuzz],
-     cpp_args: cpp_args + extra_hb_cpp_args,
+    cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,
     install: true,
     darwin_versions: darwin_versions,
-    link_language: 'c',
+    link_language: chosen_linker,
   )
 
   install_headers(hb_cairo_headers, subdir: meson.project_name())
@@ -719,6 +747,7 @@ if get_option('tests').enabled()
     'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
     'test-cff': ['test-cff.cc', 'hb-static.cc'],
     'test-classdef-graph': ['graph/test-classdef-graph.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc'],
+    'test-decycler': ['test-decycler.cc', 'hb-static.cc'],
     'test-iter': ['test-iter.cc', 'hb-static.cc'],
     'test-machinery': ['test-machinery.cc', 'hb-static.cc'],
     'test-map': ['test-map.cc', 'hb-static.cc'],
@@ -780,7 +809,7 @@ if have_icu and not have_icu_builtin
     install: true,
     darwin_versions: darwin_versions,
     # ICU links to stdc++ anyway so the default linker is good
-    # link_language: 'c',
+    # link_language: chosen_linker,
   )
 
   libharfbuzz_icu_dep = declare_dependency(
@@ -869,6 +898,7 @@ endmacro()
 cmake_config.set('PACKAGE_CMAKE_INSTALL_INCLUDEDIR', '${PACKAGE_PREFIX_DIR}/@0@'.format(cmake_install_includedir))
 cmake_config.set('PACKAGE_CMAKE_INSTALL_LIBDIR', '${PACKAGE_PREFIX_DIR}/@0@'.format(cmake_install_libdir))
 cmake_config.set('PACKAGE_INCLUDE_INSTALL_DIR', '${PACKAGE_PREFIX_DIR}/@0@/@1@'.format(cmake_install_includedir, meson.project_name()))
+cmake_config.set('HARFBUZZ_VERSION', meson.project_version())
 cmake_config.set('HB_HAVE_GOBJECT', have_gobject ? 'YES' : 'NO')
 cmake_config.set('HB_LIBRARY_TYPE', get_option('default_library') == 'static' ? 'STATIC' : 'SHARED')
 
@@ -947,7 +977,7 @@ if have_gobject
     version: version,
     install: true,
     darwin_versions: darwin_versions,
-    link_language: 'c',
+    link_language: chosen_linker,
   )
 
   gir = find_program('g-ir-scanner', required: get_option('introspection'))
@@ -1025,7 +1055,7 @@ if get_option('tests').enabled()
 
   if cpp.get_argument_syntax() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
     dist_check_script += ['check-static-inits', 'check-symbols']
-    if get_option('wasm').disabled()
+    if get_option('wasm').disabled() and not get_option('with_libstdcxx')
       dist_check_script += ['check-libstdc++']
     endif
   endif

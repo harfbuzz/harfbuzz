@@ -43,8 +43,7 @@ test_subset_32_tables (void)
   hb_set_add (codepoints, 'c');
 
   subset = hb_subset_or_fail (face, input);
-  g_assert (subset);
-  g_assert (subset != hb_face_get_empty ());
+  g_assert (!subset);
 
   hb_subset_input_destroy (input);
   hb_face_destroy (subset);
@@ -194,7 +193,7 @@ test_subset_plan (void)
 }
 
 static hb_blob_t*
-_ref_table (hb_face_t *face, hb_tag_t tag, void *user_data)
+_ref_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   return hb_face_reference_table ((hb_face_t*) user_data, tag);
 }

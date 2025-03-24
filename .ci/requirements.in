@@ -1,5 +1,4 @@
 -r requirements-fonttools.in
-meson==1.4.1
-gcovr==5.0
+meson==1.7.0
 ninja
 setuptools # https://github.com/harfbuzz/harfbuzz/issues/4475

@@ -345,14 +345,18 @@ class OpenTypeRegistryParser (HTMLParser):
 		self.from_bcp_47_uninherited = None
 		# Whether the parser is in a <td> element
 		self._td = False
-		# Whether the parser is after a <br> element within the current <tr> element
-		self._br = False
+		# Whether the parser ignores the rest of the current <td> element
+		self._disengaged = False
 		# The text of the <td> elements of the current <tr> element.
 		self._current_tr = []
 
 	def handle_starttag (self, tag, attrs):
-		if tag == 'br':
-			self._br = True
+		if tag == 'a':
+			if self._current_tr and not self._disengaged:
+				self._current_tr[-1] = ''
+				self._disengaged = True
+		elif tag == 'br':
+			self._disengaged = True
 		elif tag == 'meta':
 			for attr, value in attrs:
 				if attr == 'name' and value == 'updated_at':
@@ -362,12 +366,13 @@ class OpenTypeRegistryParser (HTMLParser):
 			self._td = True
 			self._current_tr.append ('')
 		elif tag == 'tr':
-			self._br = False
+			self._disengaged = False
 			self._current_tr = []
 
 	def handle_endtag (self, tag):
 		if tag == 'td':
 			self._td = False
+			self._disengaged = False
 		elif tag == 'tr' and self._current_tr:
 			expect (2 <= len (self._current_tr) <= 3)
 			name = self._current_tr[0].strip ()
@@ -387,7 +392,7 @@ class OpenTypeRegistryParser (HTMLParser):
 			self.ranks[tag] = rank
 
 	def handle_data (self, data):
-		if self._td and not self._br:
+		if self._td and not self._disengaged:
 			self._current_tr[-1] += data
 
 	def handle_charref (self, name):

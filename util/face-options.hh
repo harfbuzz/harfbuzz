@@ -33,6 +33,7 @@ struct face_options_t
 {
   ~face_options_t ()
   {
+    g_free (face_loader);
     g_free (font_file);
   }
 
@@ -48,20 +49,20 @@ struct face_options_t
     ~cache_t ()
     {
       g_free (font_path);
-      hb_blob_destroy (blob);
+      g_free (face_loader);
       hb_face_destroy (face);
     }
 
     char *font_path = nullptr;
-    hb_blob_t *blob = nullptr;
+    char *face_loader = nullptr;
     unsigned face_index = (unsigned) -1;
     hb_face_t *face = nullptr;
   } cache;
 
   char *font_file = nullptr;
   unsigned face_index = 0;
+  char *face_loader = nullptr;
 
-  hb_blob_t *blob = nullptr;
   hb_face_t *face = nullptr;
 };
 
@@ -92,44 +93,73 @@ face_options_t::post_parse (GError **error)
 #endif
   }
 
-  if (!cache.font_path || 0 != strcmp (cache.font_path, font_path))
+  if ((!cache.font_path || 0 != strcmp (cache.font_path, font_path)) ||
+      (cache.face_loader != face_loader && 0 != strcmp (cache.face_loader, face_loader)) ||
+      cache.face_index != face_index)
   {
-    hb_blob_destroy (cache.blob);
-    cache.blob = hb_blob_create_from_file_or_fail (font_path);
+    hb_face_destroy (cache.face);
+    cache.face = hb_face_create_from_file_or_fail_using (font_path, face_index, face_loader);
+    cache.face_index = face_index;
 
     free ((char *) cache.font_path);
+    free ((char *) cache.face_loader);
     cache.font_path = g_strdup (font_path);
+    cache.face_loader = face_loader ? g_strdup (face_loader) : nullptr;
 
-    if (!cache.blob)
+    if (!cache.face)
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
-		   "%s: Failed reading file", font_path);
+		   "%s: Failed loading font face", font_path);
       return;
     }
-
-    hb_face_destroy (cache.face);
-    cache.face = nullptr;
-    cache.face_index = (unsigned) -1;
   }
 
-  if (cache.face_index != face_index)
-  {
-    hb_face_destroy (cache.face);
-    cache.face = hb_face_create (cache.blob, face_index);
-    cache.face_index = face_index;
-  }
-
-  blob = cache.blob;
   face = cache.face;
+}
+
+static G_GNUC_NORETURN gboolean
+list_face_loaders (const char *name G_GNUC_UNUSED,
+		   const char *arg G_GNUC_UNUSED,
+		   gpointer    data G_GNUC_UNUSED,
+		   GError    **error G_GNUC_UNUSED)
+{
+  for (const char **funcs = hb_face_list_loaders (); *funcs; funcs++)
+    g_printf ("%s\n", *funcs);
+
+  exit(0);
 }
 
 void
 face_options_t::add_options (option_parser_t *parser)
 {
+  char *face_loaders_text = nullptr;
+  {
+    const char **supported_face_loaders = hb_face_list_loaders ();
+    GString *s = g_string_new (nullptr);
+    if (unlikely (!supported_face_loaders))
+      g_string_printf (s, "Set face loader to use (default: none)\n    No supported face loaders found");
+    else
+    {
+      g_string_printf (s, "Set face loader to use (default: %s)\n    Supported face loaders are: %s",
+		       supported_face_loaders[0],
+		       supported_face_loaders[0]);
+      for (unsigned i = 1; supported_face_loaders[i]; i++)
+      {
+	g_string_append_c (s, '/');
+	g_string_append (s, supported_face_loaders[i]);
+      }
+    }
+    face_loaders_text = g_string_free (s, FALSE);
+    parser->free_later (face_loaders_text);
+  }
+
   GOptionEntry entries[] =
   {
     {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Set font file-name",				"filename"},
     {"face-index",	'y', 0, G_OPTION_ARG_INT,	&this->face_index,		"Set face index (default: 0)",			"index"},
+    {"face-loader",	0, 0, G_OPTION_ARG_STRING,	&this->face_loader,		face_loaders_text,				"loader"},
+    {"list-face-loaders",0, G_OPTION_FLAG_NO_ARG,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &list_face_loaders,	"List available face loaders and quit",		nullptr},
     {nullptr}
   };
   parser->add_group (entries,

@@ -6,6 +6,7 @@ default.txt
 retain-gids.txt
 glyph-names.txt
 notdef-outline.txt
+retain-gids-glyph-names.txt
 
 SUBSETS:
 U+c30,U+c36,U+c40,U+c4d

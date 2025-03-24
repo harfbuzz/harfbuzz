@@ -101,12 +101,12 @@ element = glyph @ensure_glyphs
 	| yadvance
 	| glyphflags;
 item	=
-	( '{' space* element (comma element)* space* '}')
+	( '{' space* element (comma element)* space* '}' space* (','|']') space* )
 	>clear_item
 	@add_item
 	;
 
-main := space* item (comma item)* space* (','|']');
+main := space* '['? space* item*;
 
 }%%
 
@@ -122,11 +122,6 @@ _hb_buffer_deserialize_json (hb_buffer_t *buffer,
   /* Ensure we have positions. */
   (void) hb_buffer_get_glyph_positions (buffer, nullptr);
 
-  while (p < pe && ISSPACE (*p))
-    p++;
-  if (p < pe && *p == (buffer->len ? ',' : '['))
-    *end_ptr = ++p;
-
   const char *tok = nullptr;
   int cs;
   hb_glyph_info_t info = {0};
@@ -138,7 +133,7 @@ _hb_buffer_deserialize_json (hb_buffer_t *buffer,
 
   *end_ptr = p;
 
-  return p == pe && *(p-1) != ']';
+  return p == pe;
 }
 
 #endif /* HB_BUFFER_DESERIALIZE_JSON_HH */

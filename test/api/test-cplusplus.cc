@@ -28,33 +28,12 @@
 /* This file tests that all headers can be included from C++ files,
  * as well as test the C++ API. */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#define NO_MAIN
+#include "test-c.c"
+#undef NO_MAIN
 
-#include <hb.h>
-#include <hb-subset.h>
-#include <hb-ot.h>
-#include <hb-aat.h>
-
-#ifdef HAVE_GLIB
-#include <hb-glib.h>
-#endif
-
-#ifdef HAVE_ICU
-#include <hb-icu.h>
-#endif
-
-#ifdef HAVE_FREETYPE
-#include <hb-ft.h>
-#endif
-
-#ifdef HAVE_UNISCRIBE
-#include <hb-uniscribe.h>
-#endif
-
-#ifdef HAVE_CORETEXT
-#include <hb-coretext.h>
+#ifdef HAVE_DIRECTWRITE
+#include <hb-directwrite.h>
 #endif
 
 

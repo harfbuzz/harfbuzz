@@ -1,9 +1,9 @@
-[![Linux CI Status](https://github.com/harfbuzz/harfbuzz/workflows/linux-ci/badge.svg)](https://github.com/harfbuzz/harfbuzz/workflows/linux-ci/badge.svg)
+[![Linux CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux-ci.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux-ci.yml)
+[![macoOS CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos-ci.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos-ci.yml)
+[![Windows CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/msvc-ci.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/msvc-ci.yml)
 [![CircleCI Build Status](https://circleci.com/gh/harfbuzz/harfbuzz/tree/main.svg?style=svg)](https://circleci.com/gh/harfbuzz/harfbuzz/tree/main)
 [![OSS-Fuzz Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/harfbuzz.svg)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/15166/badge.svg)](https://scan.coverity.com/projects/harfbuzz)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/89c872f5ce1c42af802602bfcd15d90a)](https://app.codacy.com/gh/harfbuzz/harfbuzz/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![Codecov Code Coverage](https://codecov.io/gh/harfbuzz/harfbuzz/branch/main/graph/badge.svg)](https://codecov.io/gh/harfbuzz/harfbuzz)
 [![Packaging status](https://repology.org/badge/tiny-repos/harfbuzz.svg)](https://repology.org/project/harfbuzz/versions)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/harfbuzz/harfbuzz/badge)](https://securityscorecards.dev/viewer/?uri=github.com/harfbuzz/harfbuzz)
 
@@ -14,7 +14,7 @@ HarfBuzz is a text shaping engine. It primarily supports [OpenType][1], but also
 [Apple Advanced Typography][2]. HarfBuzz is used in Android, Chrome,
 ChromeOS, Firefox, GNOME, GTK+, KDE, Qt, LibreOffice, OpenJDK, XeTeX,
 PlayStation, Microsoft Edge, Adobe Photoshop, Illustrator, InDesign,
-Godot Engine, and other places.
+Godot Engine, Unreal Engine, and other places.
 
 [![xkcd-derived image](xkcd.png)](https://xkcd.com/2347/)
 
@@ -51,9 +51,11 @@ For custom configurations, see [CONFIG.md](CONFIG.md).
 
 For testing and profiling, see [TESTING.md](TESTING.md).
 
+For cross-compiling to Windows from Linux or macOS, see [README.mingw.md](README.mingw.md).
+
 To get a better idea of where HarfBuzz stands in the text rendering stack you
-may want to read [State of Text Rendering][6], though, that document is many
-years old. Here are a few presentation slides about HarfBuzz at the
+may want to read [State of Text Rendering 2024][6].
+Here are a few presentation slides about HarfBuzz at the
 Internationalization and Unicode Conference over the years:
 
 *   November 2014, [Unicode, OpenType, and HarfBuzz: Closing the Circle][7],
@@ -97,7 +99,7 @@ transliterated using the Latin script. It also means "talkative" or
 [3]: https://github.com/harfbuzz/harfbuzz/releases
 [4]: https://github.com/harfbuzz/harfbuzz
 [5]: http://mces.blogspot.com/2009/11/pango-vs-harfbuzz.html
-[6]: http://behdad.org/text/
+[6]: http://behdad.org/text2024
 [7]: https://goo.gl/FSIQuC
 [8]: https://goo.gl/2wSRu
 [9]: http://behdad.org/download/Presentations/slippy/harfbuzz_slides.pdf

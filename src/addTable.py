@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 from fontTools.ttLib import TTFont
 from fontTools.ttLib.tables.DefaultTable import DefaultTable

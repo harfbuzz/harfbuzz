@@ -36,7 +36,7 @@ if conf.get('HAVE_GLIB', 0) == 1
   hb_shape = executable('hb-shape', hb_shape_sources,
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
-    dependencies: util_deps,
+    dependencies: [util_deps],
     link_with: [libharfbuzz],
     install: true,
   )

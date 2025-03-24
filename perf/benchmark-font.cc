@@ -1,17 +1,4 @@
-#include "benchmark/benchmark.h"
-#include <cassert>
-#include <cstring>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "hb.h"
-#include "hb-ot.h"
-#ifdef HAVE_FREETYPE
-#include "hb-ft.h"
-#endif
-
+#include "hb-benchmark.hh"
 
 #define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
 
@@ -33,8 +20,6 @@ struct test_input_t
 
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
-
-enum backend_t { HARFBUZZ, FREETYPE };
 
 enum operation_t
 {
@@ -94,16 +79,15 @@ _draw_funcs_create (void)
 }
 
 static void BM_Font (benchmark::State &state,
-		     bool is_var, backend_t backend, operation_t operation,
+		     bool is_var, const char * backend,
+		     operation_t operation,
 		     const test_input_t &test_input)
 {
   hb_font_t *font;
   unsigned num_glyphs;
   {
-    hb_blob_t *blob = hb_blob_create_from_file_or_fail (test_input.font_path);
-    assert (blob);
-    hb_face_t *face = hb_face_create (blob, 0);
-    hb_blob_destroy (blob);
+    hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
+    assert (face);
     num_glyphs = hb_face_get_glyph_count (face);
     font = hb_font_create (face);
     hb_face_destroy (face);
@@ -115,17 +99,12 @@ static void BM_Font (benchmark::State &state,
     hb_font_set_variations (font, &wght, 1);
   }
 
-  switch (backend)
+  bool ret = hb_font_set_funcs_using (font, backend);
+  if (!ret)
   {
-    case HARFBUZZ:
-      hb_ot_font_set_funcs (font);
-      break;
-
-    case FREETYPE:
-#ifdef HAVE_FREETYPE
-      hb_ft_font_set_funcs (font);
-#endif
-      break;
+    state.SkipWithError("Backend failed to initialize for font.");
+    hb_font_destroy (font);
+    return;
   }
 
   switch (operation)
@@ -208,24 +187,17 @@ static void BM_Font (benchmark::State &state,
     {
       for (auto _ : state)
       {
-	hb_blob_t *blob = hb_blob_create_from_file_or_fail (test_input.font_path);
-	assert (blob);
-	hb_face_t *face = hb_face_create (blob, 0);
-	hb_blob_destroy (blob);
+	hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
+	assert (face);
 	hb_font_t *font = hb_font_create (face);
 	hb_face_destroy (face);
 
-	switch (backend)
+	bool ret = hb_font_set_funcs_using (font, backend);
+	if (!ret)
 	{
-	  case HARFBUZZ:
-	    hb_ot_font_set_funcs (font);
-	    break;
-
-	  case FREETYPE:
-#ifdef HAVE_FREETYPE
-	    hb_ft_font_set_funcs (font);
-#endif
-	    break;
+	  state.SkipWithError("Backend failed to initialize for font.");
+	  hb_font_destroy (font);
+	  return;
 	}
 
 	hb_buffer_t *buffer = hb_buffer_create ();
@@ -245,8 +217,7 @@ static void BM_Font (benchmark::State &state,
   hb_font_destroy (font);
 }
 
-static void test_backend (backend_t backend,
-			  const char *backend_name,
+static void test_backend (const char *backend,
 			  bool variable,
 			  operation_t op,
 			  const char *op_name,
@@ -260,7 +231,7 @@ static void test_backend (backend_t backend,
   strcat (name, p ? p + 1 : test_input.font_path);
   strcat (name, variable ? "/var" : "");
   strcat (name, "/");
-  strcat (name, backend_name);
+  strcat (name, backend);
 
   benchmark::RegisterBenchmark (name, BM_Font, variable, backend, op, test_input)
    ->Unit(time_unit);
@@ -270,6 +241,7 @@ static void test_operation (operation_t op,
 			    const char *op_name,
 			    benchmark::TimeUnit time_unit)
 {
+  const char **supported_backends = hb_font_list_funcs ();
   for (unsigned i = 0; i < num_tests; i++)
   {
     auto& test_input = tests[i];
@@ -277,10 +249,8 @@ static void test_operation (operation_t op,
     {
       bool is_var = (bool) variable;
 
-      test_backend (HARFBUZZ, "hb", is_var, op, op_name, time_unit, test_input);
-#ifdef HAVE_FREETYPE
-      test_backend (FREETYPE, "ft", is_var, op, op_name, time_unit, test_input);
-#endif
+      for (const char **backend = supported_backends; *backend; backend++)
+	test_backend (*backend, is_var, op, op_name, time_unit, test_input);
     }
   }
 }
@@ -305,7 +275,7 @@ int main(int argc, char** argv)
   TEST_OPERATION (nominal_glyphs, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_h_advances, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_extents, benchmark::kMicrosecond);
-  TEST_OPERATION (draw_glyph, benchmark::kMicrosecond);
+  TEST_OPERATION (draw_glyph, benchmark::kMillisecond);
   TEST_OPERATION (paint_glyph, benchmark::kMillisecond);
   TEST_OPERATION (load_face_and_shape, benchmark::kMicrosecond);
 

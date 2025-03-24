@@ -109,6 +109,7 @@ property_names = [
 	'Nukta',
 	'Virama',
 	'Pure_Killer',
+	'Reordering_Killer',
 	'Invisible_Stacker',
 	'Vowel_Independent',
 	'Vowel_Dependent',
@@ -263,6 +264,8 @@ def is_OTHER(U, UISC, UDI, UGC, AJT):
 		and not is_SYM_MOD(U, UISC, UDI, UGC, AJT)
 		and not is_Word_Joiner(U, UISC, UDI, UGC, AJT)
 	)
+def is_REORDERING_KILLER(U, UISC, UDI, UGC, AJT):
+	return UISC == Reordering_Killer
 def is_REPHA(U, UISC, UDI, UGC, AJT):
 	return UISC in [Consonant_Preceding_Repha, Consonant_Prefixed]
 def is_SAKOT(U, UISC, UDI, UGC, AJT):
@@ -306,6 +309,7 @@ use_mapping = {
 	'SE':	is_HIEROGLYPH_SEGMENT_END,
 	'ZWNJ':	is_ZWNJ,
 	'O':	is_OTHER,
+	'RK':	is_REORDERING_KILLER,
 	'R':	is_REPHA,
 	'Sk':	is_SAKOT,
 	'SM':	is_SYM_MOD,
@@ -358,6 +362,7 @@ use_positions = {
 		'Pst': [Not_Applicable],
 	},
 	'R': None,
+	'RK': None,
 	'SUB': None,
 }
 
@@ -389,7 +394,11 @@ def map_to_use(data):
 		#  and https://github.com/harfbuzz/harfbuzz/issues/1631
 		if U in [0x11302, 0x11303, 0x114C1]: UIPC = Top
 
-		assert (UIPC in [Not_Applicable, Visual_Order_Left] or U == 0x0F7F or
+		# TODO: https://github.com/microsoft/font-tools/issues/17#issuecomment-2346952091
+		if U == 0x113CF: UIPC = Bottom
+
+		assert (UIPC in [Not_Applicable, Visual_Order_Left] or
+			U in {0x0F7F, 0x11A3A} or
 			USE in use_positions), "%s %s %s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UDI, UGC, AJT)
 
 		pos_mapping = use_positions.get(USE, None)

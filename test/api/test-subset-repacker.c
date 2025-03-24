@@ -26,15 +26,14 @@
 #include "hb-test.h"
 #include "hb-subset-test.h"
 
-#ifdef HB_EXPERIMENTAL_API
-#include "hb-subset-repacker.h"
+#include "hb-subset-serialize.h"
 
 char test_gsub_data[106] = "\x0\x1\x0\x0\x0\xa\x0\x1e\x0\x2c\x0\x1\x6c\x61\x74\x6e\x0\x8\x0\x4\x0\x0\x0\x0\xff\xff\x0\x1\x0\x0\x0\x1\x74\x65\x73\x74\x0\x8\x0\x0\x0\x1\x0\x1\x0\x2\x0\x2a\x0\x6\x0\x5\x0\x0\x0\x1\x0\x8\x0\x1\x0\x8\x0\x1\x0\xe\x0\x1\x0\x1\x0\x1\x0\x1\x0\x4\x0\x2\x0\x1\x0\x2\x0\x1\x0\x0\x0\x1\x0\x0\x0\x1\x0\x8\x0\x1\x0\x6\x0\x1\x0\x1\x0\x1\x0\x2";
 
 static void
 test_hb_repack_with_cy_struct (void)
 {
-  hb_object_t *hb_objs = calloc (15, sizeof (hb_object_t));
+  hb_subset_serialize_object_t *hb_objs = calloc (15, sizeof (hb_subset_serialize_object_t));
 
   hb_objs[0].head = &(test_gsub_data[100]);
   hb_objs[0].tail = &(test_gsub_data[105]) + 1;
@@ -47,7 +46,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[1].tail = &(test_gsub_data[100]);
   hb_objs[1].num_real_links = 1;
   hb_objs[1].num_virtual_links = 0;
-  hb_objs[1].real_links = malloc (sizeof (hb_link_t));
+  hb_objs[1].real_links = malloc (sizeof (hb_subset_serialize_link_t));
   hb_objs[1].real_links[0].width = 2;
   hb_objs[1].real_links[0].position = 2;
   hb_objs[1].real_links[0].objidx = 1;
@@ -58,7 +57,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[2].tail = &(test_gsub_data[94]);
   hb_objs[2].num_real_links = 1;
   hb_objs[2].num_virtual_links = 0;
-  hb_objs[2].real_links = malloc (sizeof (hb_link_t));
+  hb_objs[2].real_links = malloc (sizeof (hb_subset_serialize_link_t));
   hb_objs[2].real_links[0].width = 2;
   hb_objs[2].real_links[0].position = 6;
   hb_objs[2].real_links[0].objidx = 2;
@@ -75,7 +74,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[4].tail = &(test_gsub_data[76]);
   hb_objs[4].num_real_links = 1;
   hb_objs[4].num_virtual_links = 0;
-  hb_objs[4].real_links = malloc (sizeof (hb_link_t));
+  hb_objs[4].real_links = malloc (sizeof (hb_subset_serialize_link_t));
   hb_objs[4].real_links[0].width = 2;
   hb_objs[4].real_links[0].position = 2;
   hb_objs[4].real_links[0].objidx = 4;
@@ -92,7 +91,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[6].tail = &(test_gsub_data[66]);
   hb_objs[6].num_real_links = 2;
   hb_objs[6].num_virtual_links = 0;
-  hb_objs[6].real_links = calloc (2, sizeof (hb_link_t));
+  hb_objs[6].real_links = calloc (2, sizeof (hb_subset_serialize_link_t));
   hb_objs[6].real_links[0].width = 2;
   hb_objs[6].real_links[0].position = 6;
   hb_objs[6].real_links[0].objidx = 5;
@@ -105,7 +104,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[7].tail = &(test_gsub_data[58]);
   hb_objs[7].num_real_links = 1;
   hb_objs[7].num_virtual_links = 0;
-  hb_objs[7].real_links = malloc (sizeof (hb_link_t));
+  hb_objs[7].real_links = malloc (sizeof (hb_subset_serialize_link_t));
   hb_objs[7].real_links[0].width = 2;
   hb_objs[7].real_links[0].position = 6;
   hb_objs[7].real_links[0].objidx = 7;
@@ -115,7 +114,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[8].tail = &(test_gsub_data[50]);
   hb_objs[8].num_real_links = 2;
   hb_objs[8].num_virtual_links = 0;
-  hb_objs[8].real_links = calloc (2, sizeof (hb_link_t));
+  hb_objs[8].real_links = calloc (2, sizeof (hb_subset_serialize_link_t));
   hb_objs[8].real_links[0].width = 2;
   hb_objs[8].real_links[0].position = 2;
   hb_objs[8].real_links[0].objidx = 3;
@@ -135,7 +134,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[10].tail = &(test_gsub_data[38]);
   hb_objs[10].num_real_links = 1;
   hb_objs[10].num_virtual_links = 0;
-  hb_objs[10].real_links = malloc (sizeof (hb_link_t));
+  hb_objs[10].real_links = malloc (sizeof (hb_subset_serialize_link_t));
   hb_objs[10].real_links[0].width = 2;
   hb_objs[10].real_links[0].position = 6;
   hb_objs[10].real_links[0].objidx = 10;
@@ -152,7 +151,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[12].tail = &(test_gsub_data[22]);
   hb_objs[12].num_real_links = 1;
   hb_objs[12].num_virtual_links = 0;
-  hb_objs[12].real_links = malloc (sizeof (hb_link_t));
+  hb_objs[12].real_links = malloc (sizeof (hb_subset_serialize_link_t));
   hb_objs[12].real_links[0].width = 2;
   hb_objs[12].real_links[0].position = 0;
   hb_objs[12].real_links[0].objidx = 12;
@@ -162,7 +161,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[13].tail = &(test_gsub_data[18]);
   hb_objs[13].num_real_links = 1;
   hb_objs[13].num_virtual_links = 0;
-  hb_objs[13].real_links = malloc (sizeof (hb_link_t));
+  hb_objs[13].real_links = malloc (sizeof (hb_subset_serialize_link_t));
   hb_objs[13].real_links[0].width = 2;
   hb_objs[13].real_links[0].position = 6;
   hb_objs[13].real_links[0].objidx = 13;
@@ -172,7 +171,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[14].tail = &(test_gsub_data[10]);
   hb_objs[14].num_real_links = 3;
   hb_objs[14].num_virtual_links = 0;
-  hb_objs[14].real_links = calloc (3, sizeof (hb_link_t));
+  hb_objs[14].real_links = calloc (3, sizeof (hb_subset_serialize_link_t));
   hb_objs[14].real_links[0].width = 2;
   hb_objs[14].real_links[0].position = 8;
   hb_objs[14].real_links[0].objidx = 9;
@@ -184,7 +183,7 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[14].real_links[2].objidx = 14;
   hb_objs[14].virtual_links = NULL;
 
-  hb_blob_t *result = hb_subset_repack_or_fail (HB_TAG_NONE, hb_objs, 15);
+  hb_blob_t *result = hb_subset_serialize_or_fail (HB_TAG_NONE, hb_objs, 15);
 
   hb_face_t *face_expected = hb_test_open_font_file ("fonts/repacker_expected.otf");
   hb_blob_t *expected_blob = hb_face_reference_table (face_expected, HB_TAG ('G','S','U','B'));
@@ -217,9 +216,3 @@ main (int argc, char **argv)
 
   return hb_test_run();
 }
-#else
-int main (int argc HB_UNUSED, char **argv HB_UNUSED)
-{
-  return 0;
-}
-#endif

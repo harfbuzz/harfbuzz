@@ -1,3 +1,232 @@
+Overview of changes leading to 11.0.0
+Monday, March 24, 2025
+====================================
+- There are three new font-functions implementations (integrations) in this
+  release:
+  * `hb-coretext` has gained one, calling into the CoreText library,
+  * `hb-directwrite` has gained one, calling into the DirectWrite library.
+  * `hb-fontations` has gained one, calling into the Skrifa Rust library.
+  All three are mostly useful for performance and correctness testing, but some
+  clients might find them useful.
+  An API is added to use them from a single API by providing a backend name
+  string:
+  * `hb_font_set_funcs_using()`
+- Several new APIs are added, to load a font-face using different
+  "face-loaders", and a single entry point to them all using a loader name
+  string:
+  * `hb_ft_face_create_from_file_or_fail()` and
+    `hb_ft_face_create_from_blob_or_fail()`
+  * `hb_coretext_face_create_from_file_or_fail()` and
+    `hb_coretext_face_create_from_blob_or_fail()`
+  * `hb_directwrite_face_create_from_file_or_fail()` and
+    `hb_directwrite_face_create_from_blob_or_fail()`
+  * `hb_face_create_from_file_or_fail_using()`
+- All drawing and painting operations using the default, `hb-ot` functions have
+  become memory allocation-free.
+- Several performance optimizations have been implemented.
+- Application of the `trak` table during shaping has been improved.
+- The `directwrite` shaper now supports font variations, and correctly applies
+  user features.
+- The `hb-directwrite` API and shaper has graduated from experimental.
+- Various bug fixes and other improvements.
+
+- New API:
++hb_malloc
++hb_calloc
++hb_realloc
++hb_free
++hb_face_list_loaders
++hb_face_create_or_fail_using
++hb_face_create_from_file_or_fail_using
++hb_font_list_funcs
++hb_font_set_funcs_using
++hb_coretext_face_create_from_blob_or_fail
++hb_directwrite_face_create_from_file_or_fail
++hb_directwrite_face_create_from_blob_or_fail
++hb_directwrite_font_create
++hb_directwrite_font_get_dw_font_face
++hb_directwrite_font_set_funcs
++hb_fontations_font_set_funcs
++hb_ft_face_create_from_blob_or_fail
++hb_paint_push_font_transform
++hb_paint_push_inverse_font_transform
++HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES
++HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE
++HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES
++HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS
+
+- Deprecated API:
++hb_directwrite_font_get_dw_font
+
+
+Overview of changes leading to 10.4.0
+Saturday, March 1, 2025
+====================================
+- Drawing glyphs using hb-draw API now avoids any “malloc” calls, which
+  improves drawing performance by 10+%.
+- Add support new “GVAR” table fonts with more than 65535 glyphs. Support is
+  currently behind a compilation flag and is disabled by default.
+- Some hb-directwrite and hb-ft APIs got renamed with more clear names and the
+  old names are deprecated.
+- Various build and fuzzing fixes.
+
+- New API:
++hb_directwrite_face_get_dw_font_face()
++hb_ft_font_get_ft_face()
+
+- Deprecated API:
++hb_directwrite_face_get_font_face()
++hb_ft_font_get_face()
+
+
+Overview of changes leading to 10.3.0
+Thursday, February 11, 2025
+====================================
+- Vastly improved “AAT” shaping performance. LucidaGrande benchmark-shape
+  before: 14.6ms after: 5.9ms.
+- Improved OpenType shaping performance (kerning / ligature), at the expense of
+  ~1kb per face allocated cache memory. Roboto-Regular benchmark-shape before:
+  10.3ms after: 9.4ms.
+- Improved “COLRv1” benchmark-font paint performance. Before: 7.85ms after
+  4.85ms.
+- Don’t apply glyph substitutions in “morx” table of a font with known broken
+  “morx” table (AALMAGHRIBI.ttf font).
+- Update IANA and OT language registries.
+- Various documentation updates.
+- Various build improvements, and test speed-ups.
+- The “hb_face_reference_blob()” API now works for faces created with
+  “hb_face_create_for_tables()” if the face sets “get_table_tags” callback.
+  This constructs a new face blob from individual table blobs.
+- Various fixes to how “trak” table is handled to bring it closer to Core Text
+  behaviour. Particularly, the tracking values for sizes not explicitly set in
+  the table are now properly interpolated, and the tracking is applied to glyph
+  advances when they are returned by ot-font functions, instead of applying
+  them during shaping. The “trak” pseudo OpenType feature that could be used to
+  disable “trak” table application have been dropped.
+- Core Text font functions now support non-BMP code points.
+- The drawing algorithm used by hb-draw for “glyf” table now match the
+  algorithm used by FreeType and Core Text.
+- The “hb_coretext_font_create()” API now copy font variations from Core Text
+  font to the created HarfBuzz font.
+- Add an API to get the feature tags enabled on a given shape-plan after
+  executing it, which can be used to applications to show in the UI what
+  features are applied by default (which can vary based on the font, the
+  script, the language, and the direction set on the buffer).
+- Add APIs to created HarfBuzz font from DirectWrite font, and copy the font
+  variations.
+
+- New API:
++hb_directwrite_font_create()
++hb_directwrite_font_get_dw_font()
++hb_ot_shape_plan_get_feature_tags()
+
+
+Overview of changes leading to 10.2.0
+Saturday, January 11, 2025
+====================================
+- Consider Unicode Variation Selectors when subsetting “cmap” table.
+- Guard hb_cairo_glyphs_from_buffer() against malformed UTF-8 strings.
+- Fix incorrect “COLR” v1 glyph scaling in hb-cairo.
+- Use locale-independent parsing of double numbers is “hb-subset” command line
+  tool.
+- Fix incorrect zeroing of advance width of base glyphs in various “Courier New”
+  font versions due to incorrect “GDEF” glyph classes.
+- Fix handling of long language codes with “HB_LEAN” configuration.
+- Update OpenType language system registry.
+- Allow all Myanmar tone marks (including visarga) in any order
+- Don’t insert U+25CC DOTTED CIRCLE before superscript/subscript digits
+- Handle Garay script as right to left script.
+- New API for serializing font tables and potentially repacking them in optimal
+  way. This was a previously experimental-only API.
+- New API for converting font variation setting from and to strings.
+- Various build fixes
+- Various subsetter and instancer fixes.
+
+- New API:
++hb_subset_serialize_link_t
++hb_subset_serialize_object_t
++hb_subset_serialize_or_fail()
++hb_subset_axis_range_from_string()
++hb_subset_axis_range_to_string()
+
+
+Overview of changes leading to 10.1.0
+Tuesday, November 5, 2024
+====================================
+- Fix the sign of fallback vertical glyph advance (used when font has no
+  vertical advance data).
+- Increase maximum “CFF” operands limit 20 times to support more complex fonts.
+- Add “--face-loader” option to command line utilities.
+- Support “COLR” v0 table in hb_font_get_glyph_extents().
+- Add support for font functions that use Core Text APIs, similar to FreeType
+  font functions. This allows, for example, using drawing fonts that use the new
+  (and undocumented) “hvgl” table.
+- Update IANA and OT language registries, as well ase USE data files.
+- Fix build with ICU 76.
+- Various compiler warnings and build fixes.
+- Various subsetter fixes.
+
+- New API:
++hb_face_create_or_fail()
++hb_face_create_from_file_or_fail()
++hb_coretext_face_create_from_file_or_fail()
++hb_coretext_font_set_funcs()
++hb_ft_face_create_from_file_or_fail()
+
+Overview of changes leading to 10.0.1
+Tuesday, September 24, 2024
+====================================
+- Relax sanitization checks for “morx” subtables to fix broken AAT shaping of
+  macOS 15.0 version of GeezaPro.
+
+
+Overview of changes leading to 10.0.0
+Monday, September 23, 2024
+====================================
+- Unicode 16.0.0 support.
+- Various documentation fixes.
+- Various build fixes.
+- Add API to allow HarfBuzz client to set what glyph to use when a Unicode
+  Variation Selector is not supported by the font, which would allow the client
+  to customize what happens in this case, by using a different font for example.
+- Add a callback to for “hb_face_t” for getting the list of table tags. This is
+  now used to make calling “hb_face_get_table_tags()” work on a faces created by
+  “hb_face_create_for_tables()” (e.g. faces returned by “hb_subset_or_fail()”).
+- CGJ and Mongolian Variation Selectors are now ignored during glyph
+  positioning, previously they would block both glyph substitution and
+  positioning across them.
+- Support cairo script as an output format for “hb-view” command line tool.
+- Drop an optimization that would cause HarfBuzz not apply pair positioning
+  lookup subtables under certain circumstances, for compatibility with other
+  implementations that do apply these subtables.
+- Subsetting will now fail if source font has no glyphs, so feeding the subsetter
+  invalid data will not silently return an empty face.
+- If after partially instancing a font no variation data is left (the instance
+  is fully static), don’t consider this a failure.
+- Workaround a Firefox bug in displaying SVGs generated be “hb-view” command
+  line tool under certain circumstances.
+- Fix bug in macroman mapping for “cmap” table.
+- Fix difference shaping output when HarfBuzz is built with with
+  “HB_NO_OT_RULESETS_FAST_PATH” enabled.
+- Various subsetting and instancing fixes.
+- Various fuzzing fixes.
+- Add “with_libstdcxx” meson build option.
+
+
+- New API:
++HB_SCRIPT_GARAY
++HB_SCRIPT_GURUNG_KHEMA
++HB_SCRIPT_KIRAT_RAI
++HB_SCRIPT_OL_ONAL
++HB_SCRIPT_SUNUWAR
++HB_SCRIPT_TODHRI
++HB_SCRIPT_TULU_TIGALARI
++hb_buffer_set_not_found_variation_selector_glyph()
++hb_buffer_get_not_found_variation_selector_glyph()
++hb_get_table_tags_func_t
++hb_face_set_get_table_tags_func()
+
+
 Overview of changes leading to 9.0.0
 Thursday, Jun 27, 2024
 ====================================
@@ -27,7 +256,7 @@ Monday, May 13, 2024
 - Various build fixes.
 - Various subsetter and instancer fixes.
 
-- New API
+- New API:
 +HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS
 +hb_subset_input_get_axis_range()
 +hb_subset_input_pin_axis_location()
@@ -77,10 +306,10 @@ Saturday, November 11, 2023
   tools. Old option is kept as an alias.
 
 - New API:
-HB_AAT_LAYOUT_FEATURE_TYPE_CURSIVE_CONNECTION
++HB_AAT_LAYOUT_FEATURE_TYPE_CURSIVE_CONNECTION
 
 - Deprecated API:
-HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
++HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
 
 Overview of changes leading to 8.2.2
 Wednesday, October 18, 2023

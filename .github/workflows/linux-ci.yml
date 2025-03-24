@@ -12,13 +12,13 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Checkout
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     - name: Setup Ccache
-      uses: hendrikmuhs/ccache-action@c92f40bee50034e84c763e33b317c77adaa81c92 # v1.2.13
+      uses: hendrikmuhs/ccache-action@a1209f81afb8c005c13b4296c32e363431bffea5 # v1.2.17
       with:
         key: ${{ github.job }}-${{ runner.os }}-${{ runner.arch }}
     - name: Install Dependencies
@@ -34,16 +34,13 @@ jobs:
           libglib2.0-dev \
           libgraphite2-dev \
           libicu-dev \
-          ninja-build \
-          pkg-config \
-          python3 \
-          python3-setuptools
+          pkg-config
     - name: Setup Python
-      uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
+      uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
       with:
-        python-version: '3.x'
+        python-version: '3.12'
     - name: Install Python Dependencies
-      run: sudo pip3 install -r .ci/requirements.txt --require-hashes
+      run: pip3 install -r .ci/requirements.txt --require-hashes
     - name: Setup Meson
       run: |
         ccache --version
@@ -52,7 +49,6 @@ jobs:
           -Dchafa=disabled \
           -Dgraphite=enabled \
           -Doptimization=2 \
-          -Db_coverage=true \
           -Ddoc_tests=true \
           -Dragel_subproject=true
     - name: Build
@@ -67,9 +63,3 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         REVISION: ${{ github.sha }}
-    - name: Generate Coverage
-      run: ninja -Cbuild coverage-xml
-    - name: Upload Coverage
-      uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
-      with:
-        file: build/meson-logs/coverage.xml

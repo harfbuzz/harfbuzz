@@ -15,10 +15,12 @@ option('graphite2', type: 'feature', value: 'disabled',
   description: 'Enable Graphite2 complementary shaper')
 option('freetype', type: 'feature', value: 'auto',
   description: 'Enable freetype interop helpers')
+option('fontations', type: 'feature', value: 'disabled',
+  description: 'Enabled fontations font functions')
 option('gdi', type: 'feature', value: 'disabled',
   description: 'Enable GDI helpers and Uniscribe shaper backend (Windows only)')
 option('directwrite', type: 'feature', value: 'disabled',
-  description: 'Enable DirectWrite shaper backend on Windows (experimental)')
+  description: 'Enable DirectWrite shaper backend on Windows')
 option('coretext', type: 'feature', value: 'disabled',
   description: 'Enable CoreText shaper backend on macOS')
 option('wasm', type: 'feature', value: 'disabled',
@@ -40,6 +42,8 @@ option('benchmark', type: 'feature', value: 'disabled',
   description: 'Enable benchmark tests')
 option('icu_builtin', type: 'boolean', value: false,
   description: 'Don\'t separate ICU support as harfbuzz-icu module')
+option('with_libstdcxx', type: 'boolean', value: false,
+  description: 'Allow linking with libstdc++')
 option('experimental_api', type: 'boolean', value: false,
   description: 'Enable experimental APIs')
 option('ragel_subproject', type: 'boolean', value: false,

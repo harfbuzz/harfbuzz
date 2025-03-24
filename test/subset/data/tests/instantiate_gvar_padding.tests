@@ -1,0 +1,15 @@
+FONTS:
+googlesansflex_subset.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+ROND=100.0,slnt=0.0,wdth=150.0,wght=500.0
+
+IUP_OPTIONS:
+Yes
+No
