@@ -30,6 +30,11 @@ a few different ways to build and test HarfBuzz for Windows.
   - Ubuntu, 64bit: `apt install wine wine64`.
   - Mac: `brew install wine-stable`.
 
+Note that to run Wine on Apple silicon systems, you need the Apple Rosetta translator.
+Follow the instructions you got from brew. This should do it:
+
+  - `softwareupdate --install-rosetta --agree-to-license`
+
 2. Install the `mingw-w64` cross-compiler.
 
   - Fedora, 32bit: `dnf install mingw32-gcc-c++`
@@ -101,10 +106,6 @@ directly from the shell.
 Or using `meson devenv to do the same:
 
   - `meson devenv -C build-win util/hb-shape.exe $PWD/perf/fonts/Roboto-Regular.ttf Test`
-
-Note that to run Wine on Apple silicon systems, you need the Apple Rosetta translator.
-Follow the instructions you got from brew or find online instructions on how to install
-it.
 
 You probably will get lots of Wine warnings, but if all works fine, you
 should see:
