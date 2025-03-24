@@ -1,6 +1,6 @@
 project('harfbuzz', ['c', 'cpp'],
   meson_version: '>= 0.55.0',
-  version: '10.4.0',
+  version: '11.0.0',
   default_options: [
     'cpp_eh=none',          # Just to support msvc, we are passing -fno-exceptions also anyway
     # 'cpp_rtti=false',     # Do NOT enable, wraps inherit it and ICU needs RTTI
@@ -333,12 +333,16 @@ if host_machine.system() == 'windows' and not get_option('gdi').disabled()
   endif
 endif
 
+directwrite_dep = []
 # DirectWrite (Windows)
 if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
   if get_option('directwrite').enabled() and not cpp.has_header('dwrite_3.h')
     error('DirectWrite was enabled explicitly, but required header is missing.')
   endif
-  conf.set('HAVE_DIRECTWRITE', 1)
+  directwrite_dep = cpp.find_library('dwrite', required: get_option('directwrite'))
+  if directwrite_dep.found()
+    conf.set('HAVE_DIRECTWRITE', 1)
+  endif
 endif
 
 # CoreText (macOS)

@@ -11,6 +11,9 @@ use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use read_fonts::tables::cpal::ColorRecord;
+use read_fonts::tables::vmtx::Vmtx;
+use read_fonts::tables::vorg::Vorg;
+use read_fonts::tables::vvar::Vvar;
 use read_fonts::TableProvider;
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
@@ -64,6 +67,9 @@ struct FontationsData<'a> {
     glyph_names: GlyphNames<'a>,
     glyph_from_names: OnceLock<HashMap<String, hb_codepoint_t>>,
     size: Size,
+    vert_metrics: Option<Vmtx<'a>>,
+    vert_origin: Option<Vorg<'a>>,
+    vert_vars: Option<Vvar<'a>>,
 
     // Mutex for the below
     mutex: Mutex<()>,
@@ -94,6 +100,15 @@ impl FontationsData<'_> {
 
         let upem = hb_face_get_upem(hb_font_get_face(font));
 
+        let vert_metrics = font_ref.vmtx();
+        let vert_metrics = vert_metrics.ok();
+
+        let vert_origin = font_ref.vorg();
+        let vert_origin = vert_origin.ok();
+
+        let vert_vars = font_ref.vvar();
+        let vert_vars = vert_vars.ok();
+
         let mut data = FontationsData {
             face_blob,
             font,
@@ -104,6 +119,9 @@ impl FontationsData<'_> {
             glyph_names,
             glyph_from_names: OnceLock::new(),
             size: Size::new(upem as f32),
+            vert_metrics,
+            vert_origin,
+            vert_vars,
             mutex: Mutex::new(()),
             x_mult: 1.0,
             y_mult: 1.0,
@@ -216,6 +234,7 @@ extern "C" fn _hb_fontations_get_variation_glyph(
     _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
     let data = unsafe { &*(font_data as *const FontationsData) };
+
     let char_map = &data.char_map;
 
     match char_map.map_variant(unicode, variation_selector) {
@@ -250,6 +269,88 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
         *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
     }
 }
+
+extern "C" fn _hb_fontations_get_glyph_v_advances(
+    _font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    count: ::std::os::raw::c_uint,
+    first_glyph: *const hb_codepoint_t,
+    glyph_stride: ::std::os::raw::c_uint,
+    first_advance: *mut hb_position_t,
+    advance_stride: ::std::os::raw::c_uint,
+    _user_data: *mut ::std::os::raw::c_void,
+) {
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    //data.check_for_updates();
+
+    // TODO: This doesn't apply VVAR variations; Skrifa doesn't have API
+    // for this yet and it's tedious to do with read-fonts.
+
+    let vert_metrics = &data.vert_metrics.as_ref().unwrap();
+    let vert_vars = &data.vert_vars;
+
+    for i in 0..count {
+        let glyph = struct_at_offset(first_glyph, i, glyph_stride);
+        let glyph_id = GlyphId::new(glyph);
+        let mut advance = vert_metrics.advance(glyph_id).unwrap_or_default() as f32;
+        if vert_vars.is_some() && !data.location.coords().is_empty() {
+            let coords = data.location.coords();
+            advance += vert_vars
+                .as_ref()
+                .unwrap()
+                .advance_height_delta(glyph_id, coords)
+                .unwrap_or_default()
+                .to_f32();
+        }
+        let advance = -(advance * data.y_mult).round() as i32;
+        *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
+    }
+}
+
+extern "C" fn _hb_fontations_get_glyph_v_origin(
+    font: *mut hb_font_t,
+    font_data: *mut ::std::os::raw::c_void,
+    glyph: hb_codepoint_t,
+    x: *mut hb_position_t,
+    y: *mut hb_position_t,
+    _user_data: *mut ::std::os::raw::c_void,
+) -> hb_bool_t {
+    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    data.check_for_updates();
+
+    let vert_origin = &data.vert_origin;
+    let vert_vars = &data.vert_vars;
+    if vert_origin.is_some() {
+        unsafe {
+            *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
+        }
+
+        let glyph_id = GlyphId::new(glyph);
+
+        let mut y_origin = vert_origin.as_ref().unwrap().vertical_origin_y(glyph_id) as f32;
+        if vert_vars.is_some() && !data.location.coords().is_empty() {
+            let coords = data.location.coords();
+            y_origin += vert_vars
+                .as_ref()
+                .unwrap()
+                .v_org_delta(glyph_id, coords)
+                .unwrap_or_default()
+                .to_f32();
+        }
+
+        unsafe {
+            *y = (y_origin * data.y_mult).round() as hb_position_t;
+        }
+
+        return true as hb_bool_t;
+    }
+
+    // TODO: Implement the two other fallback cases, for TrueType
+    // with vmtx, and for no vmtx. See hb-ot-font implementation.
+
+    false as hb_bool_t
+}
+
 extern "C" fn _hb_fontations_get_glyph_extents(
     _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
@@ -428,6 +529,8 @@ struct HbColorPainter<'a> {
     paint_data: *mut c_void,
     color_records: &'a [ColorRecord],
     foreground: hb_color_t,
+    is_glyph_clip: u64,
+    clip_depth: u32,
 }
 
 impl HbColorPainter<'_> {
@@ -563,9 +666,12 @@ impl ColorPainter for HbColorPainter<'_> {
     ) {
         unsafe {
             hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
-        }
-        self.push_clip_glyph(glyph_id);
-        unsafe {
+            hb_paint_push_clip_glyph(
+                self.paint_funcs,
+                self.paint_data,
+                glyph_id.to_u32() as hb_codepoint_t,
+                self.font,
+            );
             hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
         }
         if let Some(wrap_in_transform) = brush_transform {
@@ -576,20 +682,36 @@ impl ColorPainter for HbColorPainter<'_> {
             self.fill(brush);
         }
         self.pop_transform();
-        self.pop_clip();
+        unsafe {
+            hb_paint_pop_clip(self.paint_funcs, self.paint_data);
+        }
         self.pop_transform();
     }
     fn push_clip_glyph(&mut self, glyph_id: GlyphId) {
+        if self.clip_depth < 64 {
+            self.is_glyph_clip |= 1 << self.clip_depth;
+            self.clip_depth += 1;
+        } else {
+            return;
+        }
         unsafe {
+            hb_paint_push_inverse_font_transform(self.paint_funcs, self.paint_data, self.font);
             hb_paint_push_clip_glyph(
                 self.paint_funcs,
                 self.paint_data,
                 glyph_id.to_u32() as hb_codepoint_t,
                 self.font,
             );
+            hb_paint_push_font_transform(self.paint_funcs, self.paint_data, self.font);
         }
     }
     fn push_clip_box(&mut self, bbox: BoundingBox) {
+        if self.clip_depth < 64 {
+            self.is_glyph_clip &= !(1 << self.clip_depth);
+            self.clip_depth += 1;
+        } else {
+            return;
+        }
         unsafe {
             hb_paint_push_clip_rectangle(
                 self.paint_funcs,
@@ -602,8 +724,19 @@ impl ColorPainter for HbColorPainter<'_> {
         }
     }
     fn pop_clip(&mut self) {
+        if self.clip_depth > 0 {
+            self.clip_depth -= 1;
+        } else {
+            return;
+        }
         unsafe {
+            if (self.is_glyph_clip & (1 << self.clip_depth)) != 0 {
+                hb_paint_pop_transform(self.paint_funcs, self.paint_data);
+            }
             hb_paint_pop_clip(self.paint_funcs, self.paint_data);
+            if (self.is_glyph_clip & (1 << self.clip_depth)) != 0 {
+                hb_paint_pop_transform(self.paint_funcs, self.paint_data);
+            }
         }
     }
     fn fill(&mut self, brush: Brush) {
@@ -784,6 +917,8 @@ extern "C" fn _hb_fontations_paint_glyph(
         paint_data,
         color_records,
         foreground,
+        is_glyph_clip: 0,
+        clip_depth: 0,
     };
     unsafe {
         hb_paint_push_font_transform(paint_funcs, paint_data, font);
@@ -877,6 +1012,18 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
             hb_font_funcs_set_glyph_h_advances_func(
                 ffuncs,
                 Some(_hb_fontations_get_glyph_h_advances),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_glyph_v_advances_func(
+                ffuncs,
+                Some(_hb_fontations_get_glyph_v_advances),
+                null_mut(),
+                None,
+            );
+            hb_font_funcs_set_glyph_v_origin_func(
+                ffuncs,
+                Some(_hb_fontations_get_glyph_v_origin),
                 null_mut(),
                 None,
             );

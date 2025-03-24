@@ -1226,7 +1226,7 @@ uint8_t
  *
  * Return value: A pointer to the allocated memory.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 void* hb_malloc(size_t size) { return hb_malloc_impl (size); }
 
@@ -1240,7 +1240,7 @@ void* hb_malloc(size_t size) { return hb_malloc_impl (size); }
  *
  * Return value: A pointer to the allocated memory.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 void* hb_calloc(size_t nmemb, size_t size) { return hb_calloc_impl (nmemb, size); }
 
@@ -1254,7 +1254,7 @@ void* hb_calloc(size_t nmemb, size_t size) { return hb_calloc_impl (nmemb, size)
  *
  * Return value: A pointer to the reallocated memory.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 void* hb_realloc(void *ptr, size_t size) { return hb_realloc_impl (ptr, size); }
 
@@ -1265,7 +1265,7 @@ void* hb_realloc(void *ptr, size_t size) { return hb_realloc_impl (ptr, size); }
  * Frees the memory pointed to by @ptr, using the allocator set at
  * compile-time. Typically just free().
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 void  hb_free(void *ptr) { hb_free_impl (ptr); }
 

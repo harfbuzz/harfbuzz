@@ -107,7 +107,7 @@ _hb_directwrite_shaper_font_data_create (hb_font_t *font)
 void
 _hb_directwrite_shaper_font_data_destroy (hb_directwrite_font_data_t *data)
 {
-  ((IDWriteFontFace *) data)->Release ();
+  ((IDWriteFontFace *) (const void *) data)->Release ();
 }
 
 

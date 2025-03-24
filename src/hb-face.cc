@@ -395,7 +395,7 @@ static const char *get_default_loader_name ()
  * Return value: (transfer full): The new face object, or `NULL` if
  * the file cannot be read or the loader fails to load the face.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 hb_face_t *
 hb_face_create_from_file_or_fail_using (const char   *file_name,
@@ -445,7 +445,7 @@ retry:
  * Return value: (transfer full): The new face object, or `NULL` if
  * the loader fails to load the face.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 hb_face_t *
 hb_face_create_or_fail_using (hb_blob_t    *blob,
@@ -522,7 +522,7 @@ void free_static_face_loader_list ()
  *    constant strings. The returned array is owned by HarfBuzz
  *    and should not be modified or freed.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 const char **
 hb_face_list_loaders ()

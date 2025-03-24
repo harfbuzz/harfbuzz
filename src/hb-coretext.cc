@@ -445,7 +445,7 @@ hb_coretext_face_create_from_file_or_fail (const char   *file_name,
  * Return value: (transfer full): The new face object, or `NULL` if
  * no face is found at the specified index or the blob cannot be read.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  */
 hb_face_t *
 hb_coretext_face_create_from_blob_or_fail (hb_blob_t    *blob,

@@ -46,7 +46,7 @@ HB_BEGIN_DECLS
  * Configures the font-functions structure of the specified #hb_font_t font
  * object to use Fontations font functions.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  **/
 HB_EXTERN void
 hb_fontations_font_set_funcs (hb_font_t *font);

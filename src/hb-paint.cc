@@ -473,7 +473,7 @@ hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
  * Push the transform reflecting the font's scale and slant
  * settings onto the paint functions.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  */
 void
 hb_paint_push_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
@@ -491,7 +491,7 @@ hb_paint_push_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
  * Push the inverse of the transform reflecting the font's
  * scale and slant settings onto the paint functions.
  *
- * XSince: REPLACEME
+ * Since: 11.0.0
  */
 void
 hb_paint_push_inverse_font_transform (hb_paint_funcs_t *funcs, void *paint_data,
