@@ -287,12 +287,22 @@ extern "C" fn _hb_fontations_get_glyph_v_advances(
     // for this yet and it's tedious to do with read-fonts.
 
     let vert_metrics = &data.vert_metrics.as_ref().unwrap();
+    let vert_vars = &data.vert_vars;
 
     for i in 0..count {
         let glyph = struct_at_offset(first_glyph, i, glyph_stride);
         let glyph_id = GlyphId::new(glyph);
-        let advance = -(vert_metrics.advance(glyph_id).unwrap_or_default() as f32 * data.y_mult)
-            .round() as i32;
+        let mut advance = vert_metrics.advance(glyph_id).unwrap_or_default() as f32;
+        if vert_vars.is_some() && !data.location.coords().is_empty() {
+            let coords = data.location.coords();
+            advance += vert_vars
+                .as_ref()
+                .unwrap()
+                .advance_height_delta(glyph_id, coords)
+                .unwrap_or_default()
+                .to_f32();
+        }
+        let advance = -(advance * data.y_mult).round() as i32;
         *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
     }
 }
