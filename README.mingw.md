@@ -102,6 +102,10 @@ Or using `meson devenv to do the same:
 
   - `meson devenv -C build-win util/hb-shape.exe $PWD/perf/fonts/Roboto-Regular.ttf Test`
 
+Note that to run Wine on Apple silicon systems, you need the Apple Rosetta translator.
+Follow the instructions you got from brew or find online instructions on how to install
+it.
+
 You probably will get lots of Wine warnings, but if all works fine, you
 should see:
 ```
