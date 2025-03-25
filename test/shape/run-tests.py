@@ -249,54 +249,55 @@ for filename in args:
             continue
         options = new_options
 
-        for font_funcs in [font_funcs] if font_funcs else all_whats("font-funcs"):
-            extra_options = []
+        for shaper in [shaper] if shaper else all_whats("shaper"):
+            for font_funcs in [font_funcs] if font_funcs else all_whats("font-funcs"):
+                extra_options = []
 
-            if shaper:
-                extra_options.append("--shaper=" + shaper)
-            if face_loader:
-                extra_options.append("--face-loader=" + face_loader)
-            if font_funcs:
-                extra_options.append("--font-funcs=" + font_funcs)
+                if shaper:
+                    extra_options.append("--shaper=" + shaper)
+                if face_loader:
+                    extra_options.append("--face-loader=" + face_loader)
+                if font_funcs:
+                    extra_options.append("--font-funcs=" + font_funcs)
 
-            if glyphs_expected != "*":
-                extra_options.append("--verify")
-                extra_options.append("--unsafe-to-concat")
+                if glyphs_expected != "*":
+                    extra_options.append("--verify")
+                    extra_options.append("--unsafe-to-concat")
 
-            if verbose:
-                print(
-                    "# shaper=%s face-loader=%s font-funcs=%s"
-                    % (shaper, face_loader, font_funcs)
-                )
-            cmd = [fontfile] + ["--unicodes", unicodes] + options + extra_options
-            glyphs = shape_cmd(cmd, shape_process, verbose).strip()
+                if verbose:
+                    print(
+                        "# shaper=%s face-loader=%s font-funcs=%s"
+                        % (shaper, face_loader, font_funcs)
+                    )
+                cmd = [fontfile] + ["--unicodes", unicodes] + options + extra_options
+                glyphs = shape_cmd(cmd, shape_process, verbose).strip()
 
-            if glyphs_expected == "*":
-                passes += 1
-                continue
+                if glyphs_expected == "*":
+                    passes += 1
+                    continue
 
-            final_glyphs = glyphs
-            final_glyphs_expected = glyphs_expected
+                final_glyphs = glyphs
+                final_glyphs_expected = glyphs_expected
 
-            if glyphs != glyphs_expected and glyphs.find("gid") != -1:
-                if not no_glyph_names_process:
-                    no_glyph_names_process = open_shape_batch_process()
+                if glyphs != glyphs_expected and glyphs.find("gid") != -1:
+                    if not no_glyph_names_process:
+                        no_glyph_names_process = open_shape_batch_process()
 
-                cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs]
-                final_glyphs = shape_cmd(cmd2, no_glyph_names_process).strip()
+                    cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs]
+                    final_glyphs = shape_cmd(cmd2, no_glyph_names_process).strip()
 
-                cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs_expected]
-                final_glyphs_expected = shape_cmd(cmd2, no_glyph_names_process).strip()
+                    cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs_expected]
+                    final_glyphs_expected = shape_cmd(cmd2, no_glyph_names_process).strip()
 
-            # If the removal of glyph_ids failed, fail the test.
-            # https://github.com/harfbuzz/harfbuzz/issues/5169
-            if not final_glyphs_expected or final_glyphs != final_glyphs_expected:
-                print(hb_shape + " " + " ".join(cmd), file=sys.stderr)
-                print("Actual:   " + final_glyphs, file=sys.stderr)
-                print("Expected: " + final_glyphs_expected, file=sys.stderr)
-                fails += 1
-            else:
-                passes += 1
+                # If the removal of glyph_ids failed, fail the test.
+                # https://github.com/harfbuzz/harfbuzz/issues/5169
+                if not final_glyphs_expected or final_glyphs != final_glyphs_expected:
+                    print(hb_shape + " " + " ".join(cmd), file=sys.stderr)
+                    print("Actual:   " + final_glyphs, file=sys.stderr)
+                    print("Expected: " + final_glyphs_expected, file=sys.stderr)
+                    fails += 1
+                else:
+                    passes += 1
 
 print(
     "%d tests passed; %d failed; %d skipped." % (passes, fails, skips), file=sys.stderr
