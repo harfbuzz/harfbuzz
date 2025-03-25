@@ -58,21 +58,6 @@ jobs:
       - run: meson compile -Cbuild -j9
       - run: RUN_VALGRIND=1 meson test -Cbuild -t 10 --no-suite=slow --wrap='valgrind --leak-check=full --error-exitcode=1' --print-errorlogs --num-processes=$(($(nproc)/2 + 1))
 
-  minsize:
-    docker:
-      - image: ubuntu:24.04
-    steps:
-      - checkout
-      - run: apt update
-      - run: DEBIAN_FRONTEND=noninteractive apt install -y ninja-build binutils gcc g++ pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev python3 python3-pip python3-venv
-      - run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip3 install meson==0.56.0
-          meson setup build --buildtype=minsize
-          meson compile -Cbuild
-          meson test -Cbuild --print-errorlogs
-
   asan-ubsan:
     docker:
       - image: ubuntu
@@ -211,7 +196,6 @@ workflows:
             branches:
               ignore: /.*/
       - fedora-valgrind
-      - minsize
       - asan-ubsan
       - tsan
       - msan
