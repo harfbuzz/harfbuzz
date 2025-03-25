@@ -97,6 +97,8 @@ for what in ["shaper", "face-loader", "font-funcs"]:
     )
     # Capture the output
     what_list = what_process.communicate()[0].decode("utf-8").strip().split()
+    if what_process.returncode:
+        sys.exit(f"Failed to run: {hb_shape} {subcommand}")
     whats = plural(what)
     var_name = supported_whats_var_name(what)
     globals()[var_name] = what_list
