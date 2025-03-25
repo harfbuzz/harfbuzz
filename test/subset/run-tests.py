@@ -59,7 +59,7 @@ def fail_test(test, cli_args, message):
 
 def run_test(test, should_check_ots, preprocess):
     out_file = os.path.join(
-        tempfile.mkdtemp(), test.get_font_name() + "-subset" + test.get_font_extension()
+        out_dir, test.get_font_name() + "-subset" + test.get_font_extension()
     )
     cli_args = [
         "--font-file=" + test.font_path,
@@ -187,6 +187,7 @@ def open_subset_batch_process():
 
 
 subset_process = open_subset_batch_process()
+out_dir = tempfile.mkdtemp()
 
 fails = 0
 for path in args:
@@ -200,6 +201,7 @@ for path in args:
             fails += run_test(test, has_ots, True)
 
 if fails != 0:
-    sys.exit("%d test(s) failed." % fails)
+    sys.exit("%d test(s) failed; output left in %s" % (fails, out_dir))
 else:
     print("All tests passed.")
+    shutil.rmtree(out_dir)
