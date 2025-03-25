@@ -60,7 +60,7 @@ jobs:
 
   minsize:
     docker:
-      - image: ubuntu
+      - image: ubuntu:24.04
     steps:
       - checkout
       - run: apt update
