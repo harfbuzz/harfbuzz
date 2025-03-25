@@ -110,6 +110,7 @@ face_options_t::post_parse (GError **error)
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
 		   "%s: Failed loading font face", font_path);
+      return_value = RETURN_VALUE_FACE_LOAD_FAILED;
       return;
     }
   }
