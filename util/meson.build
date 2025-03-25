@@ -10,10 +10,6 @@ hb_info_sources = [
   'hb-info.cc',
 ]
 
-hb_ot_shape_closure_sources = [
-  'hb-ot-shape-closure.cc',
-]
-
 hb_subset_cli_sources = [
   'hb-subset.cc',
   'helper-subset.hh',
@@ -59,15 +55,6 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: true,
   )
   meson.override_find_program('hb-subset', hb_subset)
-
-  hb_ot_shape_closure = executable('hb-ot-shape-closure', hb_ot_shape_closure_sources,
-    cpp_args: cpp_args,
-    include_directories: [incconfig, incsrc],
-    dependencies: util_deps,
-    link_with: [libharfbuzz],
-    install: true,
-  )
-  meson.override_find_program('hb-ot-shape-closure', hb_ot_shape_closure)
 
   if get_option('experimental_api')
     test('test-hb-subset-parsing',
