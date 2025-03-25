@@ -1850,7 +1850,7 @@ struct ClassDefFormat2_4
     hb_sorted_vector_t<hb_codepoint_pair_t> glyph_and_klass;
     hb_set_t orig_klasses;
 
-    if (glyph_set.get_population () * hb_bit_storage ((unsigned) rangeRecord.len) / 2
+    if (glyph_set.get_population () * hb_bit_storage ((unsigned) rangeRecord.len)
 	< get_population ())
     {
       for (hb_codepoint_t g : glyph_set)
@@ -1931,7 +1931,7 @@ struct ClassDefFormat2_4
 
   bool intersects (const hb_set_t *glyphs) const
   {
-    if (rangeRecord.len > glyphs->get_population () * hb_bit_storage ((unsigned) rangeRecord.len) / 2)
+    if (rangeRecord.len > glyphs->get_population () * hb_bit_storage ((unsigned) rangeRecord.len))
     {
       for (auto g : *glyphs)
         if (get_class (g))
@@ -2000,7 +2000,7 @@ struct ClassDefFormat2_4
     }
 
     unsigned count = rangeRecord.len;
-    if (count > glyphs->get_population () * hb_bit_storage (count) * 8)
+    if (count > glyphs->get_population () * hb_bit_storage (count))
     {
       for (auto g : *glyphs)
       {
