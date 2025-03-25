@@ -110,6 +110,7 @@ font_options_t::post_parse (GError **error)
   {
     if (!hb_font_set_funcs_using (font, font_funcs))
     {
+      return_value = RETURN_VALUE_FONT_FUNCS_FAILED;
       const char **supported_font_funcs = hb_font_list_funcs ();
       if (unlikely (!supported_font_funcs[0]))
       {

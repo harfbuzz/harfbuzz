@@ -54,6 +54,14 @@
 #include <glib/gprintf.h>
 
 
+enum return_value_t
+{
+  RETURN_VALUE_SUCCESS = 0,
+  RETURN_VALUE_OPTION_PARSING_FAILED = 1,
+  RETURN_VALUE_FACE_LOAD_FAILED = 2,
+  RETURN_VALUE_OPERATION_FAILED = 3,
+  RETURN_VALUE_FONT_FUNCS_FAILED = 4,
+} return_value = RETURN_VALUE_SUCCESS;
 
 static inline void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
 
@@ -71,7 +79,10 @@ fail (hb_bool_t suggest_help, const char *format, ...)
   if (suggest_help)
     g_printerr ("Try `%s --help' for more information.\n", prgname);
 
-  exit (1);
+  if (return_value == RETURN_VALUE_SUCCESS)
+    return_value = RETURN_VALUE_OPTION_PARSING_FAILED;
+
+  exit (return_value);
 }
 
 struct option_parser_t
