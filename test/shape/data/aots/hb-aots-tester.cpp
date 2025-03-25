@@ -137,6 +137,14 @@ void printUArray (const char* s, unsigned int *a, int n)
     printArray (s, (int *) a, n);
 }
 
+void writeDirective (FILE *file)
+{
+  fseek (file, 0, SEEK_END);
+  unsigned file_size = ftell (file);
+  if (!file_size)
+    fprintf (file, "@shaper=ot\n");
+}
+
 bool gsub_test(const char *testName,
                const char *fontfileName,
                int nbIn, unsigned int *in,
@@ -169,6 +177,7 @@ bool gsub_test(const char *testName,
     char test_name[255];
     sprintf (test_name, "../../tests/%.*s.tests", (int) (strrchr (testName, '_') - testName), testName);
     FILE *tests_file = fopen (test_name, "a+");
+    writeDirective (tests_file);
     if (!ok) fprintf (tests_file, "#");
     fprintf (tests_file, "../fonts/%s;--features=\"", fontfileName + 9);
     for (unsigned int i = 0; i < data.num_features; i++)
@@ -248,6 +257,7 @@ bool cmap_test(const char *testName,
     char test_name[255];
     sprintf (test_name, "../../tests/%.*s.tests", (int) (strrchr (testName, '_') - testName), testName);
     FILE *tests_file = fopen (test_name, "a+");
+    writeDirective (tests_file);
     if (!ok) fprintf (tests_file, "#");
     fprintf (tests_file, "../fonts/%s;--features=\"", fontfileName + 9);
     for (unsigned int i = 0; i < data.num_features; i++)
@@ -378,6 +388,7 @@ bool gpos_test(const char *testName,
     char test_name[255];
     sprintf (test_name, "../../tests/%.*s.tests", (int) (strrchr (testName, '_') - testName), testName);
     FILE *tests_file = fopen (test_name, "a+");
+    writeDirective (tests_file);
     if (!ok) fprintf (tests_file, "#");
     fprintf (tests_file, "../fonts/%s;--features=\"", fontfileName + 9);
     for (unsigned int i = 0; i < data.num_features; i++)
