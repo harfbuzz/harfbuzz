@@ -165,7 +165,7 @@ for filename in args:
             consumed = False
             for what in ["shaper", "face-loader", "font-funcs"]:
                 whats = plural(what)
-                if line.startswith(whats):
+                if line.startswith(what) or line.startswith(whats):
                     command, values = line.split("=")
                     values = values.strip().split(",")
 
