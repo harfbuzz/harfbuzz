@@ -104,7 +104,7 @@ runTest(const char *testName,
 
         features = (hb_feature_t *) malloc (sizeof (*features) * nbSelect);
         for (int i = 0; i < nbSelect; i++) {
-            if (select[i] != -1) {
+            if (select[i] != (unsigned) -1) {
                 features[nbFeatures].tag = HB_TAG('t', 'e', 's', 't');
                 features[nbFeatures].value = select[i];
                 features[nbFeatures].start = i;
