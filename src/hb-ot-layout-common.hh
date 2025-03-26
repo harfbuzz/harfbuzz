@@ -1151,7 +1151,7 @@ struct Script
 
     if (has_default_lang_sys ())
     {
-      //only collect features from non-redundant langsys
+      // only collect features from non-redundant langsys
       const LangSys& d = get_default_lang_sys ();
       if (c->visitLangsys (d.get_feature_count ())) {
         d.collect_features (c);
