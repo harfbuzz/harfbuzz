@@ -635,11 +635,11 @@ for u in uu:
 		continue
 	block = indic_data[u][2]
 
-	start = u//8*8
+	start = u // 8*8
 	end = start+1
 	while end in uu and block == indic_data[end][2]:
 		end += 1
-	end = (end-1)//8*8 + 7
+	end = (end-1) // 8*8 + 7
 
 	if start != last + 1:
 		if start - last <= 1+16*2:

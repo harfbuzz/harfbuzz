@@ -113,7 +113,7 @@ def print_joining_table(f):
 				last_block = block
 				if u % 32 != 0:
 					print ()
-					print ("  /* %04X */" % (u//32*32), "  " * (u % 32), end="")
+					print ("  /* %04X */" % (u // 32*32), "  " * (u % 32), end="")
 
 			if u % 32 == 0:
 				print ()
