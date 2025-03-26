@@ -66,6 +66,8 @@ struct info_t :
 {
   void add_options ()
   {
+    set_summary ("Query font information.");
+
     font_options_t::add_options (this);
 
     GOptionEntry misc_entries[] =
@@ -242,9 +244,6 @@ struct info_t :
   operator () (int argc, char **argv)
   {
     add_options ();
-
-    if (argc == 2)
-      show_all = true;
 
     parse (&argc, &argv);
 
@@ -1431,30 +1430,6 @@ retry:
 	hb_blob_destroy (blob);
       }
     }
-  }
-
-};
-
-
-template <typename consumer_t,
-	  typename font_options_type>
-struct main_font_t :
-       option_parser_t,
-       font_options_type,
-       consumer_t
-{
-  int operator () (int argc, char **argv)
-  {
-    add_options ();
-
-    if (argc == 2)
-      consumer_t::show_all = true;
-
-    parse (&argc, &argv);
-
-    consumer_t::operator () (this);
-
-    return 0;
   }
 };
 
