@@ -152,9 +152,19 @@ struct option_parser_t
   {
     g_option_context_set_summary (context, summary);
   }
-  void set_description (const char *description)
+  void set_description (const char *description_)
   {
-    g_option_context_set_description (context, description);
+    description = description_;
+  }
+
+  void set_full_description ()
+  {
+    GString *s = g_string_new (description);
+
+    g_string_append_printf (s, "\n\nFind more information or report bugs at <https://github.com/harfbuzz/harfbuzz>\n");
+
+    g_option_context_set_description (context, s->str);
+    g_string_free (s, TRUE);
   }
 
   void free_later (char *p) {
@@ -165,6 +175,7 @@ struct option_parser_t
 
   GOptionContext *context;
   protected:
+  const char *description = nullptr;
   GPtrArray *to_free;
 };
 
@@ -198,6 +209,8 @@ inline bool
 option_parser_t::parse (int *argc, char ***argv, bool ignore_error)
 {
   setlocale (LC_ALL, "");
+
+  set_full_description ();
 
   GError *parse_error = nullptr;
   if (!g_option_context_parse (context, argc, argv, &parse_error))
