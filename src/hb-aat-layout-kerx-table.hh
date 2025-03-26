@@ -399,7 +399,7 @@ struct KerxSubTableFormat1
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
     machine.collect_initial_glyphs (left_set, num_glyphs, *this);
-    //machine.collect_glyphs (right_set, num_glyphs); // right_set is unused for machine kerning
+    // machine.collect_glyphs (right_set, num_glyphs); // right_set is unused for machine kerning
   }
 
   protected:
@@ -674,7 +674,7 @@ struct KerxSubTableFormat4
   void collect_glyphs (set_t &left_set, set_t &right_set, unsigned num_glyphs) const
   {
     machine.collect_initial_glyphs (left_set, num_glyphs, *this);
-    //machine.collect_glyphs (right_set, num_glyphs); // right_set is unused for machine kerning
+    // machine.collect_glyphs (right_set, num_glyphs); // right_set is unused for machine kerning
   }
 
   protected:

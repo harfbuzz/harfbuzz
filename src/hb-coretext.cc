@@ -546,7 +546,7 @@ done:
   font->data.coretext.cmpexch (nullptr, (hb_coretext_font_data_t *) CFRetain (ct_font));
 
   // https://github.com/harfbuzz/harfbuzz/pull/4895#issuecomment-2408471254
-  //hb_coretext_font_set_funcs (font);
+  // hb_coretext_font_set_funcs (font);
 
   return font;
 }

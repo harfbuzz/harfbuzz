@@ -1073,7 +1073,7 @@ struct ChainSubtable
   {
     TRACE_APPLY (this);
     // Disabled for https://github.com/harfbuzz/harfbuzz/issues/4873
-    //hb_sanitize_with_object_t with (&c->sanitizer, this);
+    // hb_sanitize_with_object_t with (&c->sanitizer, this);
     return_trace (dispatch (c));
   }
 
@@ -1087,7 +1087,7 @@ struct ChainSubtable
       return_trace (false);
 
     // Disabled for https://github.com/harfbuzz/harfbuzz/issues/4873
-    //hb_sanitize_with_object_t with (c, this);
+    // hb_sanitize_with_object_t with (c, this);
     return_trace (dispatch (c));
   }
 

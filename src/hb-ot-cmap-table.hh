@@ -481,7 +481,7 @@ struct CmapSubtableFormat4
       format4_iter
     };
 
-    //serialize endCode[], startCode[], idDelta[]
+    // serialize endCode[], startCode[], idDelta[]
     HBUINT16* endCode = c->start_embed<HBUINT16> ();
     unsigned segcount = serialize_find_segcount (cp_to_gid.iter());
     if (unlikely (!serialize_start_end_delta_arrays (c, cp_to_gid.iter(), segcount)))

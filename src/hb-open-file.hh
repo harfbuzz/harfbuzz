@@ -183,7 +183,7 @@ typedef struct OpenTypeOffsetTable
       CheckSum checksum;
 
       /* The following line is a slower version of the following block. */
-      //checksum.set_for_data (this, (const char *) c->head - (const char *) this);
+      // checksum.set_for_data (this, (const char *) c->head - (const char *) this);
       checksum.set_for_data (this, dir_end - (const char *) this);
       for (unsigned int i = 0; i < num_items; i++)
       {

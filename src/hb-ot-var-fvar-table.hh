@@ -107,7 +107,7 @@ struct InstanceRecord
         if (!axis_coord_pinned_or_within_axis_range (coords, i, *axis_limit))
           return_trace (false);
         
-        //skip pinned axis
+        // skip pinned axis
         if (axis_limit->is_point ())
           continue;
       }
@@ -425,7 +425,7 @@ struct fvar
   {
     TRACE_SUBSET (this);
     unsigned retained_axis_count = c->plan->axes_index_map.get_population ();
-    if (!retained_axis_count) //all axes are pinned
+    if (!retained_axis_count) // all axes are pinned
       return_trace (false);
 
     fvar *out = c->serializer->embed (this);

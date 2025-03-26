@@ -3864,7 +3864,7 @@ struct ConditionAxisRange
   Cond_with_Var_flag_t keep_with_variations (hb_collect_feature_substitutes_with_var_context_t *c,
                                              hb_map_t *condition_map /* OUT */) const
   {
-    //invalid axis index, drop the entire record
+    // invalid axis index, drop the entire record
     if (!c->axes_index_tag_map->has (axisIndex))
       return DROP_RECORD_WITH_VAR;
 
@@ -3890,12 +3890,12 @@ struct ConditionAxisRange
         axis_default_val > filter_max_val)
       c->apply = false;
 
-    //condition not met, drop the entire record
+    // condition not met, drop the entire record
     if (axis_min_val > filter_max_val || axis_max_val < filter_min_val ||
         filter_min_val > filter_max_val)
       return DROP_RECORD_WITH_VAR;
 
-    //condition met and axis pinned, drop the condition
+    // condition met and axis pinned, drop the condition
     if (axis_set_by_user && axis_range.is_point ())
       return DROP_COND_WITH_VAR;
 
@@ -4260,9 +4260,9 @@ struct ConditionSet
 
     if (!should_keep) return;
 
-    //check if condition_set is unique with variations
+    // check if condition_set is unique with variations
     if (c->conditionset_map->has (p))
-      //duplicate found, drop the entire record
+      // duplicate found, drop the entire record
       return;
 
     c->conditionset_map->set (p, 1);
