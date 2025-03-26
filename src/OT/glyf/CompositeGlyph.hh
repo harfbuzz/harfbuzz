@@ -187,7 +187,7 @@ struct CompositeGlyphRecord
         // new point value has an int8 overflow
         hb_memcpy (out, this, len_before_val);
         
-        //update flags
+        // update flags
         CompositeGlyphRecord *o = reinterpret_cast<CompositeGlyphRecord *> (out);
         o->flags = flags | ARG_1_AND_2_ARE_WORDS;
         out += len_before_val;
@@ -413,7 +413,7 @@ struct CompositeGlyph
       source_comp_len += comp_len;
     }
 
-    //copy instructions if any
+    // copy instructions if any
     if (source_len > source_comp_len)
     {
       unsigned instr_len = source_len - source_comp_len;

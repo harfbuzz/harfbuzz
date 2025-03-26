@@ -315,7 +315,7 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
       /* Faster than hb_memcpy for small strings. */
       for (unsigned i = 0; i < opstr.length; i++)
 	d[i] = opstr.ptr[i];
-      //hb_memcpy (d, opstr.ptr, opstr.length);
+      // hb_memcpy (d, opstr.ptr, opstr.length);
     }
     return_trace (true);
   }

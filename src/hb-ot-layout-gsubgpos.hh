@@ -2735,7 +2735,7 @@ struct ContextFormat2_5
 
     if (!ret || non_zero_index == -1) return_trace (false);
 
-    //prune empty trailing ruleSets
+    // prune empty trailing ruleSets
     --index;
     while (index > non_zero_index)
     {

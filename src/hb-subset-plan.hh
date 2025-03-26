@@ -173,7 +173,7 @@ struct hb_subset_plan_t
 #include "hb-subset-plan-member-list.hh"
 #undef HB_SUBSET_PLAN_MEMBER
 
-  //recalculated head/maxp table info after instancing
+  // recalculated head/maxp table info after instancing
   mutable head_maxp_info_t head_maxp_info;
 
   os2_info_t os2_info;

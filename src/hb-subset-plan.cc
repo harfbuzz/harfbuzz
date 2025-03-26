@@ -241,7 +241,7 @@ _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
 {
   if (feature_indices->is_empty ()) return;
   hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_set_t>> unique_features;
-  //find out duplicate features after subset
+  // find out duplicate features after subset
   for (unsigned i : feature_indices->iter ())
   {
     hb_tag_t t = g.get_feature_tag (i);
@@ -564,7 +564,7 @@ static void _colr_closure (hb_subset_plan_t* plan,
 
   glyphs_colred->union_ (glyphset_colrv0);
 
-  //closure for COLRv1
+  // closure for COLRv1
   hb_set_t variation_indices, delta_set_indices;
   colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices, &variation_indices, &delta_set_indices);
 

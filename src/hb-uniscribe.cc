@@ -684,7 +684,7 @@ retry:
   int item_count;
 
   /* MinGW32 doesn't define fMergeNeutralItems, so we bruteforce */
-  //bidi_control.fMergeNeutralItems = true;
+  // bidi_control.fMergeNeutralItems = true;
   *(uint32_t*)&bidi_control |= 1u<<24;
 
   bidi_state.uBidiLevel = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;

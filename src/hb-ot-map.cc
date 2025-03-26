@@ -322,7 +322,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
     map->_1_mask = (1u << map->shift) & map->mask;
     map->needs_fallback = !found;
   }
-  //feature_infos.shrink (0); /* Done with these */
+  // feature_infos.shrink (0); /* Done with these */
   if (is_simple)
     m.features.qsort ();
 

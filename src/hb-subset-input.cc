@@ -78,7 +78,7 @@ hb_subset_input_t::hb_subset_input_t ()
   sets.no_subset_tables->add_array (default_no_subset_tables,
 					 ARRAY_LENGTH (default_no_subset_tables));
 
-  //copied from _layout_features_groups in fonttools
+  // copied from _layout_features_groups in fonttools
   hb_tag_t default_layout_features[] = {
     // default shaper
     // common
@@ -90,54 +90,54 @@ hb_subset_input_t::hb_subset_input_t ()
     HB_TAG ('m', 'k', 'm', 'k'),
     HB_TAG ('r', 'l', 'i', 'g'),
 
-    //fractions
+    // fractions
     HB_TAG ('f', 'r', 'a', 'c'),
     HB_TAG ('n', 'u', 'm', 'r'),
     HB_TAG ('d', 'n', 'o', 'm'),
 
-    //horizontal
+    // horizontal
     HB_TAG ('c', 'a', 'l', 't'),
     HB_TAG ('c', 'l', 'i', 'g'),
     HB_TAG ('c', 'u', 'r', 's'),
     HB_TAG ('k', 'e', 'r', 'n'),
     HB_TAG ('r', 'c', 'l', 't'),
 
-    //vertical
+    // vertical
     HB_TAG ('v', 'a', 'l', 't'),
     HB_TAG ('v', 'e', 'r', 't'),
     HB_TAG ('v', 'k', 'r', 'n'),
     HB_TAG ('v', 'p', 'a', 'l'),
     HB_TAG ('v', 'r', 't', '2'),
 
-    //ltr
+    // ltr
     HB_TAG ('l', 't', 'r', 'a'),
     HB_TAG ('l', 't', 'r', 'm'),
 
-    //rtl
+    // rtl
     HB_TAG ('r', 't', 'l', 'a'),
     HB_TAG ('r', 't', 'l', 'm'),
 
-    //random
+    // random
     HB_TAG ('r', 'a', 'n', 'd'),
 
-    //justify
+    // justify
     HB_TAG ('j', 'a', 'l', 't'), // HarfBuzz doesn't use; others might
 
-    //East Asian spacing
+    // East Asian spacing
     HB_TAG ('c', 'h', 'w', 's'),
     HB_TAG ('v', 'c', 'h', 'w'),
     HB_TAG ('h', 'a', 'l', 't'),
     HB_TAG ('v', 'h', 'a', 'l'),
 
-    //private
+    // private
     HB_TAG ('H', 'a', 'r', 'f'),
     HB_TAG ('H', 'A', 'R', 'F'),
     HB_TAG ('B', 'u', 'z', 'z'),
     HB_TAG ('B', 'U', 'Z', 'Z'),
 
-    //shapers
+    // shapers
 
-    //arabic
+    // arabic
     HB_TAG ('i', 'n', 'i', 't'),
     HB_TAG ('m', 'e', 'd', 'i'),
     HB_TAG ('f', 'i', 'n', 'a'),
@@ -149,18 +149,18 @@ hb_subset_input_t::hb_subset_input_t ()
     HB_TAG ('m', 's', 'e', 't'),
     HB_TAG ('s', 't', 'c', 'h'),
 
-    //hangul
+    // hangul
     HB_TAG ('l', 'j', 'm', 'o'),
     HB_TAG ('v', 'j', 'm', 'o'),
     HB_TAG ('t', 'j', 'm', 'o'),
 
-    //tibetan
+    // tibetan
     HB_TAG ('a', 'b', 'v', 's'),
     HB_TAG ('b', 'l', 'w', 's'),
     HB_TAG ('a', 'b', 'v', 'm'),
     HB_TAG ('b', 'l', 'w', 'm'),
 
-    //indic
+    // indic
     HB_TAG ('n', 'u', 'k', 't'),
     HB_TAG ('a', 'k', 'h', 'n'),
     HB_TAG ('r', 'p', 'h', 'f'),

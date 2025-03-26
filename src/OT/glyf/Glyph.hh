@@ -156,7 +156,7 @@ struct Glyph
     if (hori_aw < 0) hori_aw = 0;
     int lsb = roundf (xMin - leftSideX);
     plan->hmtx_map.set_with_hash (new_gid, hash, hb_pair ((unsigned) hori_aw, lsb));
-    //flag value should be computed using non-empty glyphs
+    // flag value should be computed using non-empty glyphs
     if (type != EMPTY && lsb != xMin)
       plan->head_maxp_info.allXMinIsLsb = false;
 
@@ -265,7 +265,7 @@ struct Glyph
       dest_end = hb_bytes_t ();
     }
 
-    //dont compile bytes when pinned at default, just recalculate bounds
+    // dont compile bytes when pinned at default, just recalculate bounds
     if (!plan->pinned_at_default)
     {
       switch (type)

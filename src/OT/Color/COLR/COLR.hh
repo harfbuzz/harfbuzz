@@ -1754,7 +1754,7 @@ struct ClipList
       prev_offset = offset;
     }
 
-    //last one
+    // last one
     {
       ClipRecord record;
       record.startGlyphID = start_gid;
@@ -2407,7 +2407,7 @@ struct COLR
 
   bool downgrade_to_V0 (const hb_set_t &glyphset) const
   {
-    //no more COLRv1 glyphs, downgrade to version 0
+    // no more COLRv1 glyphs, downgrade to version 0
     for (const BaseGlyphPaintRecord& _ : get_baseglyphList ())
       if (glyphset.has (_.glyphId))
         return false;
@@ -2566,7 +2566,7 @@ struct COLR
 
     hb_barrier ();
 
-    //start version 1
+    // start version 1
     if (!c->serializer->allocate_size<void> (5 * HBUINT32::static_size)) return_trace (false);
     if (!colr_prime->serialize_V0 (c->serializer, version, base_it, layer_it)) return_trace (false);
 

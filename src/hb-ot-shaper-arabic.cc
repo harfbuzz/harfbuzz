@@ -246,7 +246,7 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
    * Note that IranNastaliq uses this feature extensively
    * to fixup broken glyph sequences.  Oh well...
    * Test case: U+0643,U+0640,U+0631. */
-  //map->enable_feature (HB_TAG('c','s','w','h'), F_MANUAL_ZWJ);
+  // map->enable_feature (HB_TAG('c','s','w','h'), F_MANUAL_ZWJ);
   map->enable_feature (HB_TAG('m','s','e','t'), F_MANUAL_ZWJ);
 }
 

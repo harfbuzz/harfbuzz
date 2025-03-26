@@ -141,7 +141,7 @@ struct InstanceRecord
   HBUINT16	flags;		/* Reserved for future use — set to 0. */
   UnsizedArrayOf<F16DOT16>
 		coordinatesZ;	/* The coordinates array for this instance. */
-  //NameID	postScriptNameIDX;/*Optional. The name ID for entries in the 'name'
+  // NameID	postScriptNameIDX;/*Optional. The name ID for entries in the 'name'
   //				  * table that provide PostScript names for this
   //				  * instance. */
 

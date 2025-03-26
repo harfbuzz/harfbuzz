@@ -196,7 +196,7 @@ struct OS2
     }
     else
     {
-      if (a == b && a == 12) return 9.0f; //200
+      if (a == b && a == 12) return 9.0f; // 200
       b = 12;
       a = 8;
     }

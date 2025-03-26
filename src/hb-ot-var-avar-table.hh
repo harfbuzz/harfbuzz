@@ -363,7 +363,7 @@ struct avar
   {
     TRACE_SUBSET (this);
     unsigned retained_axis_count = c->plan->axes_index_map.get_population ();
-    if (!retained_axis_count) //all axes are pinned/dropped
+    if (!retained_axis_count) // all axes are pinned/dropped
       return_trace (false);
 
     avar *out = c->serializer->allocate_min<avar> ();
