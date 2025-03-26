@@ -141,14 +141,11 @@ face_options_t::add_options (option_parser_t *parser)
       g_string_printf (s, "Set face loader to use (default: none)\n    No supported face loaders found");
     else
     {
+      char *supported_str = g_strjoinv ("/", (char **) supported_face_loaders);
       g_string_printf (s, "Set face loader to use (default: %s)\n    Supported face loaders are: %s",
 		       supported_face_loaders[0],
-		       supported_face_loaders[0]);
-      for (unsigned i = 1; supported_face_loaders[i]; i++)
-      {
-	g_string_append_c (s, '/');
-	g_string_append (s, supported_face_loaders[i]);
-      }
+		       supported_str);
+      g_free (supported_str);
     }
     face_loaders_text = g_string_free (s, FALSE);
     parser->free_later (face_loaders_text);

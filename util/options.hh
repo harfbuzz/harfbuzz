@@ -168,22 +168,6 @@ struct option_parser_t
   GPtrArray *to_free;
 };
 
-
-static inline gchar *
-shapers_to_string ()
-{
-  GString *shapers = g_string_new (nullptr);
-  const char **shaper_list = hb_shape_list_shapers ();
-
-  for (; *shaper_list; shaper_list++) {
-    g_string_append (shapers, *shaper_list);
-    g_string_append_c (shapers, ',');
-  }
-  g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
-
-  return g_string_free (shapers, false);
-}
-
 static G_GNUC_NORETURN gboolean
 show_version (const char *name G_GNUC_UNUSED,
 	      const char *arg G_GNUC_UNUSED,
@@ -192,9 +176,6 @@ show_version (const char *name G_GNUC_UNUSED,
 {
   g_printf ("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
 
-  char *shapers = shapers_to_string ();
-  g_printf ("Available shapers: %s\n", shapers);
-  g_free (shapers);
   if (strcmp (HB_VERSION_STRING, hb_version_string ()))
     g_printf ("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());
 
