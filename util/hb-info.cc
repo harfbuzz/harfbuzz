@@ -67,6 +67,7 @@ struct info_t :
   void add_options ()
   {
     set_summary ("Query font information.");
+    set_description ("Queries font file for various information. If no query option is specified, --show-all is assumed.");
 
     font_options_t::add_options (this);
 

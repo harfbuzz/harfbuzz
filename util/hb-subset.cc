@@ -859,6 +859,7 @@ void
 subset_main_t::add_options ()
 {
   set_summary ("Subset font to specification.");
+  set_description ("Subsets font file to a specified set of glyphs, Unicode codepoints, or text, design-space limiting, and other reductions.");
 
   face_options_t::add_options (this);
 
