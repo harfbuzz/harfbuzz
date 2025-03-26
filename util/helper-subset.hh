@@ -45,7 +45,7 @@ parse_instancing_spec (const char *arg,
   {
     arg = NULL;
     unsigned len = strlen (s);
-    if (len > 4)  //Axis tags are 4 bytes.
+    if (len > 4)  // Axis tags are 4 bytes.
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
                    "Failed parsing axis tag at: '%s'", s);

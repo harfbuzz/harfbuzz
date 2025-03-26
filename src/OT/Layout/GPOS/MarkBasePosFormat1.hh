@@ -154,7 +154,7 @@ struct MarkBasePosFormat1_2
     unsigned idx = (unsigned) c->last_base;
 
     /* Checking that matched glyph is actually a base glyph by GDEF is too strong; disabled */
-    //if (!_hb_glyph_info_is_base_glyph (&buffer->info[idx])) { return_trace (false); }
+    // if (!_hb_glyph_info_is_base_glyph (&buffer->info[idx])) { return_trace (false); }
 
     unsigned int base_index = (this+baseCoverage).get_coverage  (buffer->info[idx].codepoint);
     if (base_index == NOT_COVERED)

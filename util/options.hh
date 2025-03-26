@@ -144,7 +144,7 @@ struct option_parser_t
 					      static_cast<gpointer>(closure), nullptr);
     g_option_group_add_entries (group, entries);
     /* https://gitlab.gnome.org/GNOME/glib/-/issues/2460 */
-    //g_option_group_set_parse_hooks (group, nullptr, post_parse<Type>);
+    // g_option_group_set_parse_hooks (group, nullptr, post_parse<Type>);
     g_option_context_set_main_group (context, group);
   }
 

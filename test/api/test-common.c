@@ -88,7 +88,7 @@ test_types_direction (void)
   g_assert_cmpint (HB_DIRECTION_REVERSE (HB_DIRECTION_RTL), ==, HB_DIRECTION_LTR);
   g_assert_cmpint (HB_DIRECTION_REVERSE (HB_DIRECTION_TTB), ==, HB_DIRECTION_BTT);
   g_assert_cmpint (HB_DIRECTION_REVERSE (HB_DIRECTION_BTT), ==, HB_DIRECTION_TTB);
-  //g_assert_cmpint (HB_DIRECTION_REVERSE (HB_DIRECTION_INVALID), ==, HB_DIRECTION_INVALID);
+  // g_assert_cmpint (HB_DIRECTION_REVERSE (HB_DIRECTION_INVALID), ==, HB_DIRECTION_INVALID);
 
   g_assert_cmpint (HB_DIRECTION_INVALID, ==, hb_direction_from_string (NULL, -1));
   g_assert_cmpint (HB_DIRECTION_INVALID, ==, hb_direction_from_string ("", -1));

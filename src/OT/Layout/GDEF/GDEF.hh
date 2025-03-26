@@ -484,7 +484,7 @@ struct MarkGlyphSetsFormat1
 	break;
       }
 
-      //skip empty coverage
+      // skip empty coverage
       c->serializer->push ();
       bool res = false;
       if (offset) res = c->dispatch (this+offset);

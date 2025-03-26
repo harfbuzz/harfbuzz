@@ -129,7 +129,7 @@ struct MarkLigPosFormat1_2
     unsigned idx = (unsigned) c->last_base;
 
     /* Checking that matched glyph is actually a ligature by GDEF is too strong; disabled */
-    //if (!_hb_glyph_info_is_ligature (&buffer->info[idx])) { return_trace (false); }
+    // if (!_hb_glyph_info_is_ligature (&buffer->info[idx])) { return_trace (false); }
 
     unsigned int lig_index = (this+ligatureCoverage).get_coverage  (buffer->info[idx].codepoint);
     if (lig_index == NOT_COVERED)
