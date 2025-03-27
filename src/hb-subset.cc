@@ -708,3 +708,34 @@ hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
 end:
   return success ? hb_face_reference (plan->dest) : nullptr;
 }
+
+
+#ifdef HB_EXPERIMENTAL_API
+
+#include "hb-ot-cff1-table.hh"
+
+/**
+ * hb_subset_cff_get_charstring_data:
+ * @face: A face object
+ * @glyph_index: Glyph index to get data for.
+ *
+ * Returns the raw outline data from the CFF/CFF2 table associated with the given glyph index.
+ *
+ * XSince: EXPERIMENTAL
+ **/
+ HB_EXTERN hb_blob_t*
+ hb_subset_cff_get_charstring_data(hb_face_t* face, hb_codepoint_t glyph_index) {
+  hb_ubytes_t bytes;
+  if (_is_table_present(face, HB_TAG('C', 'F', 'F', ' '))) {
+    bytes = (*face->table.cff1->charStrings)[glyph_index];
+  } else if (_is_table_present(face, HB_TAG('C', 'F', 'F', '2'))) {
+    bytes = (*face->table.cff2->charStrings)[glyph_index];
+  }
+
+  if (!bytes) {
+    return hb_blob_get_empty ();
+  }
+
+  return hb_blob_create((const char*) bytes.arrayZ, bytes.length, HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+ }
+ #endif
