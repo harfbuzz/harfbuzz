@@ -167,6 +167,7 @@ face_options_t::add_options (option_parser_t *parser)
 		     this);
 
   parser->add_environ("HB_FACE_LOADER=face-loader; Overrides the default face loader.");
+  parser->add_exit_code (RETURN_VALUE_FACE_LOAD_FAILED, "Failed loading font face.");
 }
 
 #endif

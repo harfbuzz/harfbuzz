@@ -369,6 +369,7 @@ font_options_t::add_options (option_parser_t *parser)
 #endif
 
   parser->add_environ("HB_FONT_FUNCS=font-funcs; Overrides the default font-funcs.");
+  parser->add_exit_code (RETURN_VALUE_FONT_FUNCS_FAILED, "Failed setting font functions.");
 }
 
 #endif

@@ -28,6 +28,7 @@
 #define OPTIONS_HH
 
 #include "hb.hh"
+#include "hb-map.hh"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -90,6 +91,7 @@ struct option_parser_t
   option_parser_t (const char *parameter_string = nullptr)
   : context (g_option_context_new (parameter_string)),
     environs (g_ptr_array_new ()),
+    exit_codes (g_ptr_array_new ()),
     to_free (g_ptr_array_new ())
   {}
 
@@ -97,6 +99,7 @@ struct option_parser_t
 
   ~option_parser_t ()
   {
+    g_ptr_array_free (exit_codes, TRUE);
     g_ptr_array_free (environs, TRUE);
 
     g_option_context_free (context);
@@ -165,17 +168,28 @@ struct option_parser_t
   {
     GString *s = g_string_new (description);
 
+    // Exit codes
+    assert (exit_codes->len);
+    g_string_append_printf (s, "\n\n*Exit Codes*\n");
+    for (unsigned i = 0; i < exit_codes->len; i++)
+      if (exit_codes->pdata[i])
+	g_string_append_printf (s, "\n  %u: %s\n", i, (const char *) exit_codes->pdata[i]);
+
     // Environment variables if any
     if (environs->len)
     {
-      g_string_append_printf (s, "\n\n*Environment*\n\n");
+      g_string_append_printf (s, "\n\n*Environment*\n");
       for (unsigned i = 0; i < environs->len; i++)
-        g_string_append_printf (s, "  %s\n\n", (char *)environs->pdata[i]);
+      {
+        g_string_append_printf (s, "\n  %s\n", (char *)environs->pdata[i]);
+      }
     }
 
+    // See also
     g_string_append_printf (s, "\n\n*See also*\n");
     g_string_append_printf (s, "  hb-view(1), hb-shape(1), hb-subset(1), hb-info(1)");
 
+    // Footer
     g_string_append_printf (s, "\n\nFind more information or report bugs at <https://github.com/harfbuzz/harfbuzz>\n");
 
     g_option_context_set_description (context, s->str);
@@ -185,6 +199,13 @@ struct option_parser_t
   void add_environ (const char *environment)
   {
     g_ptr_array_add (environs, (void *) environment);
+  }
+
+  void add_exit_code (unsigned code, const char *description)
+  {
+    while (exit_codes->len <= code)
+      g_ptr_array_add (exit_codes, nullptr);
+    exit_codes->pdata[code] = (void *) description;
   }
 
   void free_later (char *p) {
@@ -197,6 +218,7 @@ struct option_parser_t
   protected:
   const char *description = nullptr;
   GPtrArray *environs;
+  GPtrArray *exit_codes;
   GPtrArray *to_free;
 };
 
@@ -230,6 +252,9 @@ inline bool
 option_parser_t::parse (int *argc, char ***argv, bool ignore_error)
 {
   setlocale (LC_ALL, "");
+
+  add_exit_code (RETURN_VALUE_SUCCESS, "Success.");
+  add_exit_code (RETURN_VALUE_OPTION_PARSING_FAILED, "Option parsing failed.");
 
   set_full_description ();
 
