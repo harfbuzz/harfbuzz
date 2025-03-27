@@ -75,3 +75,22 @@ else
   hb_shape = disabler()
   hb_subset = disabler()
 endif
+
+# Build man pages
+help2man = find_program('help2man', required: false)
+# If found, invoke it on our four binaries to build man pages
+# If not found, just skip this step
+if help2man.found()
+  foreach binary: [hb_view, hb_shape, hb_info, hb_subset]
+    target = binary.name() + '.1'
+    manpage = custom_target(target,
+      input: binary,
+      output: target,
+      command: [help2man, '--help-option=--help-all', '--no-info', '--output=' + '@OUTPUT@', '@INPUT@'],
+      build_by_default: true,
+      #install: true,
+      #install_dir: ???,
+    )
+  endforeach
+endif
+
