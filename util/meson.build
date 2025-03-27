@@ -17,7 +17,11 @@ hb_subset_cli_sources = [
 
 # If found, invoke it on our four binaries to build man pages
 # If not found, just skip this step
-help2man = find_program('help2man', required: false)
+if not get_option('docs').disabled()
+  help2man = find_program('help2man', required: false)
+else
+  help2man = disabler()
+endif
 help2man_command = [help2man, '--help-option=--help-all', '--no-info', '--output=' + '@OUTPUT@', '@INPUT@']
 
 util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]
