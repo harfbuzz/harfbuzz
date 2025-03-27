@@ -89,6 +89,7 @@ struct option_parser_t
 {
   option_parser_t (const char *parameter_string = nullptr)
   : context (g_option_context_new (parameter_string)),
+    environs (g_ptr_array_new ()),
     to_free (g_ptr_array_new ())
   {}
 
@@ -96,11 +97,7 @@ struct option_parser_t
 
   ~option_parser_t ()
   {
-    if (environs)
-    {
-      g_ptr_array_foreach (environs, _g_free_g_func, nullptr);
-      g_ptr_array_free (environs, TRUE);
-    }
+    g_ptr_array_free (environs, TRUE);
 
     g_option_context_free (context);
 
@@ -169,7 +166,7 @@ struct option_parser_t
     GString *s = g_string_new (description);
 
     // Environment variables if any
-    if (environs && environs->len)
+    if (environs->len)
     {
       g_string_append_printf (s, "\n\n*Environment*\n\n");
       for (unsigned i = 0; i < environs->len; i++)
@@ -187,9 +184,7 @@ struct option_parser_t
 
   void add_environ (const char *environment)
   {
-    if (!environs)
-      environs = g_ptr_array_new ();
-    g_ptr_array_add (environs, g_strdup (environment));
+    g_ptr_array_add (environs, (void *) environment);
   }
 
   void free_later (char *p) {
@@ -201,7 +196,7 @@ struct option_parser_t
   GOptionContext *context;
   protected:
   const char *description = nullptr;
-  GPtrArray *environs = nullptr;
+  GPtrArray *environs;
   GPtrArray *to_free;
 };
 
