@@ -88,8 +88,8 @@ if help2man.found()
       output: target,
       command: [help2man, '--help-option=--help-all', '--no-info', '--output=' + '@OUTPUT@', '@INPUT@'],
       build_by_default: true,
-      #install: true,
-      #install_dir: ???,
+      install: true,
+      install_dir: get_option('mandir') / 'man1',
     )
   endforeach
 endif
