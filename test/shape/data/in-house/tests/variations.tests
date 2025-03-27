@@ -1,4 +1,4 @@
-@font-funcs-=directwrite,coretext # hb-directwrite doe not support variations yet; hb-coretext rounding 1-off
+@font-funcs-=directwrite,coretext # hb-directwrite does not apply TEST axis; hb-coretext rounding 1-off
 ../fonts/HBTest-VF.ttf;--variations=TEST=491;U+0041;[A=0+496]
 ../fonts/HBTest-VF.ttf;--variations=TEST=509;U+0041;[A=0+505]
 ../fonts/ab40c89624a6104e5d0a2308e448a989302f515b.ttf;--variations=wdth=60;U+0020;[space=0+266]

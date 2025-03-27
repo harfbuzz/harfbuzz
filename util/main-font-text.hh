@@ -43,6 +43,8 @@ struct main_font_text_t :
   int operator () (int argc, char **argv)
   {
     add_options ();
+    add_exit_code (RETURN_VALUE_OPERATION_FAILED, "Operation failed.");
+
     parse (&argc, &argv);
 
     this->init (this);
@@ -52,7 +54,10 @@ struct main_font_text_t :
 
     this->finish (this);
 
-    return this->failed ? 1 : 0;
+    if (this->failed && return_value == RETURN_VALUE_SUCCESS)
+      return_value = RETURN_VALUE_OPERATION_FAILED;
+
+    return return_value;
   }
 
   protected:

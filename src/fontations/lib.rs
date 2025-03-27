@@ -293,14 +293,14 @@ extern "C" fn _hb_fontations_get_glyph_v_advances(
         let glyph = struct_at_offset(first_glyph, i, glyph_stride);
         let glyph_id = GlyphId::new(glyph);
         let mut advance = vert_metrics.advance(glyph_id).unwrap_or_default() as f32;
-        if vert_vars.is_some() && !data.location.coords().is_empty() {
+        if let Some(vert_vars) = vert_vars {
             let coords = data.location.coords();
-            advance += vert_vars
-                .as_ref()
-                .unwrap()
-                .advance_height_delta(glyph_id, coords)
-                .unwrap_or_default()
-                .to_f32();
+            if !coords.is_empty() {
+                advance += vert_vars
+                    .advance_height_delta(glyph_id, coords)
+                    .unwrap_or_default()
+                    .to_f32();
+            }
         }
         let advance = -(advance * data.y_mult).round() as i32;
         *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
@@ -320,22 +320,22 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
 
     let vert_origin = &data.vert_origin;
     let vert_vars = &data.vert_vars;
-    if vert_origin.is_some() {
+    if let Some(vert_origin) = vert_origin {
         unsafe {
             *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
         }
 
         let glyph_id = GlyphId::new(glyph);
 
-        let mut y_origin = vert_origin.as_ref().unwrap().vertical_origin_y(glyph_id) as f32;
-        if vert_vars.is_some() && !data.location.coords().is_empty() {
+        let mut y_origin = vert_origin.vertical_origin_y(glyph_id) as f32;
+        if let Some(vert_vars) = vert_vars {
             let coords = data.location.coords();
-            y_origin += vert_vars
-                .as_ref()
-                .unwrap()
-                .v_org_delta(glyph_id, coords)
-                .unwrap_or_default()
-                .to_f32();
+            if !coords.is_empty() {
+                y_origin += vert_vars
+                    .v_org_delta(glyph_id, coords)
+                    .unwrap_or_default()
+                    .to_f32();
+            }
         }
 
         unsafe {
@@ -543,8 +543,7 @@ impl HbColorPainter<'_> {
         }
 
         let c = self.color_records.get(color_index as usize);
-        if c.is_some() {
-            let c = c.unwrap();
+        if let Some(c) = c {
             (((c.blue as u32) << 24)
                 | ((c.green as u32) << 16)
                 | ((c.red as u32) << 8)

@@ -1,3 +1,4 @@
+@shaper=ot
 ../fonts/cmap4_font1.otf;--features="test" --single-par --no-clusters --no-glyph-names --no-positions --font-funcs=ot;U+0000,U+0001,U+0010,U+0011,U+0012,U+001E,U+001F,U+00C7,U+00C8,U+00CD,U+00D2,U+00D3,U+FFFF;[0|0|0|40|41|53|0|0|256|261|266|0|0]
 ../fonts/cmap4_font2.otf;--features="test" --single-par --no-clusters --no-glyph-names --no-positions --font-funcs=ot;U+0000,U+0001,U+0010,U+0011,U+0012,U+001E,U+001F,U+00C7,U+00C8,U+00CD,U+00D2,U+00D3,U+FFFF;[0|0|0|0|0|0|0|0|0|0|0|0|0]
 ../fonts/cmap4_font3.otf;--features="test" --single-par --no-clusters --no-glyph-names --no-positions --font-funcs=ot;U+0000,U+0001,U+0010,U+0011,U+0012,U+001E,U+001F,U+00C7,U+00C8,U+00CD,U+00D2,U+00D3,U+FFFF;[0|0|0|0|0|0|0|0|0|0|0|0|65534]

@@ -110,6 +110,7 @@ font_options_t::post_parse (GError **error)
   {
     if (!hb_font_set_funcs_using (font, font_funcs))
     {
+      return_value = RETURN_VALUE_FONT_FUNCS_FAILED;
       const char **supported_font_funcs = hb_font_list_funcs ();
       if (unlikely (!supported_font_funcs[0]))
       {
@@ -118,20 +119,13 @@ font_options_t::post_parse (GError **error)
 		     font_funcs);
 	return;
       }
-      GString *s = g_string_new (nullptr);
-      for (unsigned i = 0; supported_font_funcs[i]; i++)
-      {
-	if (i)
-	  g_string_append_c (s, '/');
-	g_string_append (s, supported_font_funcs[i]);
-      }
-      char *p = g_string_free (s, FALSE);
+      char *supported_str = g_strjoinv ("/", (char **) supported_font_funcs);
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Unknown font function implementation `%s'; supported values are: %s; default is %s",
 		   font_funcs,
-		   p,
+		   supported_str,
 		   supported_font_funcs[0]);
-      free (p);
+      g_free (supported_str);
       return;
     }
   }
@@ -299,14 +293,11 @@ font_options_t::add_options (option_parser_t *parser)
       g_string_printf (s, "Set font functions implementation to use (default: none)\n    No supported font function implementations found");
     else
     {
+      char *supported_str = g_strjoinv ("/", (char **) supported_font_funcs);
       g_string_printf (s, "Set font functions implementation to use (default: %s)\n    Supported font function implementations are: %s",
 		       supported_font_funcs[0],
-		       supported_font_funcs[0]);
-      for (unsigned i = 1; supported_font_funcs[i]; i++)
-      {
-	g_string_append_c (s, '/');
-	g_string_append (s, supported_font_funcs[i]);
-      }
+		       supported_str);
+      g_free (supported_str);
     }
     font_funcs_text = g_string_free (s, FALSE);
     parser->free_later (font_funcs_text);
@@ -376,6 +367,9 @@ font_options_t::add_options (option_parser_t *parser)
 		     "Options for font variations used",
 		     this);
 #endif
+
+  parser->add_environ("HB_FONT_FUNCS=font-funcs; Overrides the default font-funcs.");
+  parser->add_exit_code (RETURN_VALUE_FONT_FUNCS_FAILED, "Failed setting font functions.");
 }
 
 #endif

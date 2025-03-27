@@ -51,7 +51,7 @@ def fail_test(test, cli_args, message):
 
 
 def run_test(test, should_check_ots):
-    out_file = os.path.join(tempfile.mkdtemp(), test.font_name + "-subset.ttf")
+    out_file = os.path.join(out_dir, test.font_name + "-subset.ttf")
     cli_args = [
         "--font-file=" + test.font_path(),
         "--output-file=" + out_file,
@@ -117,12 +117,15 @@ path = args[0]
 if not path.endswith(".tests"):
     sys.exit("Not a valid test case path.")
 
+out_dir = tempfile.mkdtemp()
+
 with open(path, mode="r", encoding="utf-8") as f:
     # TODO(garretrieger): re-enable OTS checking.
     fails += run_test(RepackTest(path, f.read()), False)
 
 
 if fails != 0:
-    sys.exit("%d test(s) failed." % fails)
+    sys.exit("%d test(s) failed; output left in %s" % (fails, out_dir))
 else:
     print("All tests passed.")
+    shutil.rmtree(out_dir)

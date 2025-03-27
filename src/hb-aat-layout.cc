@@ -34,7 +34,7 @@
 #include "hb-aat-layout-just-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-aat-layout-kerx-table.hh"
 #include "hb-aat-layout-morx-table.hh"
-#include "hb-aat-layout-trak-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-aat-layout-trak-table.hh"
 #include "hb-aat-ltag-table.hh"
 
 #include "hb-ot-layout-gsub-table.hh"
@@ -392,6 +392,17 @@ hb_bool_t
 hb_aat_layout_has_tracking (hb_face_t *face)
 {
   return face->table.trak->has_data ();
+}
+
+void
+hb_aat_layout_track (const hb_ot_shape_plan_t *plan,
+		     hb_font_t *font,
+		     hb_buffer_t *buffer)
+{
+  const AAT::trak& trak = *font->face->table.trak;
+
+  AAT::hb_aat_apply_context_t c (plan, font, buffer);
+  trak.apply (&c);
 }
 
 /**

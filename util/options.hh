@@ -28,6 +28,7 @@
 #define OPTIONS_HH
 
 #include "hb.hh"
+#include "hb-map.hh"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -54,6 +55,14 @@
 #include <glib/gprintf.h>
 
 
+enum return_value_t
+{
+  RETURN_VALUE_SUCCESS = 0,
+  RETURN_VALUE_OPTION_PARSING_FAILED = 1,
+  RETURN_VALUE_FACE_LOAD_FAILED = 2,
+  RETURN_VALUE_OPERATION_FAILED = 3,
+  RETURN_VALUE_FONT_FUNCS_FAILED = 4,
+} return_value = RETURN_VALUE_SUCCESS;
 
 static inline void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
 
@@ -71,13 +80,18 @@ fail (hb_bool_t suggest_help, const char *format, ...)
   if (suggest_help)
     g_printerr ("Try `%s --help' for more information.\n", prgname);
 
-  exit (1);
+  if (return_value == RETURN_VALUE_SUCCESS)
+    return_value = RETURN_VALUE_OPTION_PARSING_FAILED;
+
+  exit (return_value);
 }
 
 struct option_parser_t
 {
   option_parser_t (const char *parameter_string = nullptr)
   : context (g_option_context_new (parameter_string)),
+    environs (g_ptr_array_new ()),
+    exit_codes (g_ptr_array_new ()),
     to_free (g_ptr_array_new ())
   {}
 
@@ -85,7 +99,11 @@ struct option_parser_t
 
   ~option_parser_t ()
   {
+    g_ptr_array_free (exit_codes, TRUE);
+    g_ptr_array_free (environs, TRUE);
+
     g_option_context_free (context);
+
     g_ptr_array_foreach (to_free, _g_free_g_func, nullptr);
     g_ptr_array_free (to_free, TRUE);
   }
@@ -141,9 +159,58 @@ struct option_parser_t
   {
     g_option_context_set_summary (context, summary);
   }
-  void set_description (const char *description)
+  void set_description (const char *description_)
   {
-    g_option_context_set_description (context, description);
+    description = description_;
+  }
+
+  void set_full_description ()
+  {
+    GString *s = g_string_new (description);
+
+    const char *env = getenv ("HB_UTIL_HELP_VERBOSE");
+    bool verbose = env && atoi (env);
+    if (verbose)
+    {
+      // Exit codes
+      assert (exit_codes->len);
+      g_string_append_printf (s, "\n\n*Exit Codes*\n");
+      for (unsigned i = 0; i < exit_codes->len; i++)
+	if (exit_codes->pdata[i])
+	  g_string_append_printf (s, "\n  %u: %s\n", i, (const char *) exit_codes->pdata[i]);
+
+      // Environment variables if any
+      if (environs->len)
+      {
+	g_string_append_printf (s, "\n\n*Environment*\n");
+	for (unsigned i = 0; i < environs->len; i++)
+	{
+	  g_string_append_printf (s, "\n  %s\n", (char *)environs->pdata[i]);
+	}
+      }
+
+      // See also
+      g_string_append_printf (s, "\n\n*See also*\n");
+      g_string_append_printf (s, "  hb-view(1), hb-shape(1), hb-subset(1), hb-info(1)");
+    }
+
+    // Footer
+    g_string_append_printf (s, "\n\nFind more information or report bugs at <https://github.com/harfbuzz/harfbuzz>\n");
+
+    g_option_context_set_description (context, s->str);
+    g_string_free (s, TRUE);
+  }
+
+  void add_environ (const char *environment)
+  {
+    g_ptr_array_add (environs, (void *) environment);
+  }
+
+  void add_exit_code (unsigned code, const char *description)
+  {
+    while (exit_codes->len <= code)
+      g_ptr_array_add (exit_codes, nullptr);
+    exit_codes->pdata[code] = (void *) description;
   }
 
   void free_later (char *p) {
@@ -154,24 +221,11 @@ struct option_parser_t
 
   GOptionContext *context;
   protected:
+  const char *description = nullptr;
+  GPtrArray *environs;
+  GPtrArray *exit_codes;
   GPtrArray *to_free;
 };
-
-
-static inline gchar *
-shapers_to_string ()
-{
-  GString *shapers = g_string_new (nullptr);
-  const char **shaper_list = hb_shape_list_shapers ();
-
-  for (; *shaper_list; shaper_list++) {
-    g_string_append (shapers, *shaper_list);
-    g_string_append_c (shapers, ',');
-  }
-  g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
-
-  return g_string_free (shapers, false);
-}
 
 static G_GNUC_NORETURN gboolean
 show_version (const char *name G_GNUC_UNUSED,
@@ -181,9 +235,6 @@ show_version (const char *name G_GNUC_UNUSED,
 {
   g_printf ("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
 
-  char *shapers = shapers_to_string ();
-  g_printf ("Available shapers: %s\n", shapers);
-  g_free (shapers);
   if (strcmp (HB_VERSION_STRING, hb_version_string ()))
     g_printf ("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());
 
@@ -206,6 +257,11 @@ inline bool
 option_parser_t::parse (int *argc, char ***argv, bool ignore_error)
 {
   setlocale (LC_ALL, "");
+
+  add_exit_code (RETURN_VALUE_SUCCESS, "Success.");
+  add_exit_code (RETURN_VALUE_OPTION_PARSING_FAILED, "Option parsing failed.");
+
+  set_full_description ();
 
   GError *parse_error = nullptr;
   if (!g_option_context_parse (context, argc, argv, &parse_error))

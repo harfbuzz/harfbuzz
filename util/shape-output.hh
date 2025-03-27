@@ -37,6 +37,8 @@ struct shape_output_t : output_options_t<>
   void add_options (option_parser_t *parser)
   {
     parser->set_summary ("Shape text with given font.");
+    parser->set_description ("Shows results of shaping text with a given font in textual or JSON format.");
+
     output_options_t::add_options (parser, hb_buffer_serialize_list_formats ());
     format.add_options (parser);
   }
