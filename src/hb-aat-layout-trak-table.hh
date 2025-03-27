@@ -31,6 +31,7 @@
 #include "hb-aat-layout-common.hh"
 #include "hb-ot-layout.hh"
 #include "hb-open-type.hh"
+#include "hb-ot-stat-table.hh"
 
 /*
  * trak -- Tracking
@@ -115,7 +116,7 @@ struct TrackTableEntry
 
   protected:
   F16DOT16	track;		/* Track value for this record. */
-  NameID	trackNameID;	/* The 'name' table index for this track.
+  OT::NameID	trackNameID;	/* The 'name' table index for this track.
 				 * (a short word or phrase like "loose"
 				 * or "very tight") */
   NNOffset16To<UnsizedArrayOf<FWORD>>
@@ -199,7 +200,19 @@ struct trak
   {
     float ptem = font->ptem > 0.f ? font->ptem : HB_CORETEXT_DEFAULT_FONT_SIZE;
     return font->em_scalef_y ((this+vertData).get_tracking (this, ptem, track));
- }
+  }
+  hb_position_t get_tracking (hb_font_t *font, hb_direction_t dir, float track = 0.f) const
+  {
+#ifndef HB_NO_STYLE
+    if (!font->face->table.STAT->has_data ())
+      return 0;
+    return HB_DIRECTION_IS_HORIZONTAL (dir) ?
+      get_h_tracking (font, track) :
+      get_v_tracking (font, track);
+#else
+    return 0;
+#endif
+  }
 
   bool apply (hb_aat_apply_context_t *c, float track = 0.f) const
   {
