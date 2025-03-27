@@ -165,6 +165,8 @@ face_options_t::add_options (option_parser_t *parser)
 		     "Font-face options:",
 		     "Options for the font face",
 		     this);
+
+  parser->add_environ("HB_FACE_LOADER=face-loader; Overrides the default face loader.");
 }
 
 #endif

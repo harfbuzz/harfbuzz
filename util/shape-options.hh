@@ -464,6 +464,8 @@ shape_options_t::add_options (option_parser_t *parser)
 		     "Features options:",
 		     "Options for font features used",
 		     this);
+
+  parser->add_environ("HB_SHAPER_LIST=shaper-list; Overrides the default shaper list.");
 }
 
 #endif

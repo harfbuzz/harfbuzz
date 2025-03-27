@@ -367,6 +367,8 @@ font_options_t::add_options (option_parser_t *parser)
 		     "Options for font variations used",
 		     this);
 #endif
+
+  parser->add_environ("HB_FONT_FUNCS=font-funcs; Overrides the default font-funcs.");
 }
 
 #endif

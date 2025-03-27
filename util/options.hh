@@ -96,7 +96,14 @@ struct option_parser_t
 
   ~option_parser_t ()
   {
+    if (environs)
+    {
+      g_ptr_array_foreach (environs, _g_free_g_func, nullptr);
+      g_ptr_array_free (environs, TRUE);
+    }
+
     g_option_context_free (context);
+
     g_ptr_array_foreach (to_free, _g_free_g_func, nullptr);
     g_ptr_array_free (to_free, TRUE);
   }
@@ -161,10 +168,28 @@ struct option_parser_t
   {
     GString *s = g_string_new (description);
 
+    // Environment variables if any
+    if (environs && environs->len)
+    {
+      g_string_append_printf (s, "\n\n*Environment*\n\n");
+      for (unsigned i = 0; i < environs->len; i++)
+        g_string_append_printf (s, "  %s\n\n", (char *)environs->pdata[i]);
+    }
+
+    g_string_append_printf (s, "\n\n*See also*\n");
+    g_string_append_printf (s, "  hb-view(1), hb-shape(1), hb-subset(1), hb-info(1)");
+
     g_string_append_printf (s, "\n\nFind more information or report bugs at <https://github.com/harfbuzz/harfbuzz>\n");
 
     g_option_context_set_description (context, s->str);
     g_string_free (s, TRUE);
+  }
+
+  void add_environ (const char *environ)
+  {
+    if (!environs)
+      environs = g_ptr_array_new ();
+    g_ptr_array_add (environs, g_strdup (environ));
   }
 
   void free_later (char *p) {
@@ -176,6 +201,7 @@ struct option_parser_t
   GOptionContext *context;
   protected:
   const char *description = nullptr;
+  GPtrArray *environs;
   GPtrArray *to_free;
 };
 
