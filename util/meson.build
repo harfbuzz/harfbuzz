@@ -15,6 +15,17 @@ hb_subset_cli_sources = [
   'helper-subset.hh',
 ]
 
+# If found, invoke it on our four binaries to build man pages
+# If not found, just skip this step
+if not get_option('docs').disabled()
+  help2man = find_program('help2man', required: false)
+else
+  help2man = disabler()
+endif
+help2man_command = [help2man, '--help-option=--help-all', '--no-info', '--output=' + '@OUTPUT@', '@INPUT@']
+help2man_env = environment()
+help2man_env.set('HB_UTIL_HELP_VERBOSE', '1')
+
 util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]
 
 if conf.get('HAVE_GLIB', 0) == 1
@@ -27,6 +38,18 @@ if conf.get('HAVE_GLIB', 0) == 1
       install: true,
     )
     meson.override_find_program('hb-view', hb_view)
+    if help2man.found()
+      target = hb_view.name() + '.1'
+      hb_view_manpage = custom_target(target,
+        input: hb_view,
+        output: target,
+        command: help2man_command,
+        depends: [hb_view],
+        env: help2man_env,
+        install: true,
+        install_dir: get_option('mandir') / 'man1',
+      )
+    endif
   endif
 
   hb_shape = executable('hb-shape', hb_shape_sources,
@@ -55,6 +78,21 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: true,
   )
   meson.override_find_program('hb-subset', hb_subset)
+
+  if help2man.found()
+    foreach binary: [hb_shape, hb_info, hb_subset]
+      target = binary.name() + '.1'
+      manpage = custom_target(target,
+        input: binary,
+        output: target,
+        command: help2man_command,
+        depends: [binary],
+        env: help2man_env,
+        install: true,
+        install_dir: get_option('mandir') / 'man1',
+      )
+    endforeach
+  endif
 
   if get_option('experimental_api')
     test('test-hb-subset-parsing',
