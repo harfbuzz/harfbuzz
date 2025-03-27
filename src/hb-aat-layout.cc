@@ -394,30 +394,6 @@ hb_aat_layout_has_tracking (hb_face_t *face)
   return face->table.trak->has_data ();
 }
 
-/**
- * hb_aat_layout_get_tracking:
- * @font: #hb_font_t to work upon
- * @direction: The direction of the text
- * @tracking: The tracking value to apply
- *
- * Fetches the tracking value for the specified font and direction.
- * The tracking value is a floating-point number that specifies the
- * amount of tracking value to add between characters in the text.
- * Most clients want to use 0. here.
- *
- * Return value: The tracking value for the specified font and direction
- * XSince: REPLACEME
- */
-hb_position_t
-hb_aat_layout_get_tracking (hb_font_t      *font,
-			    hb_direction_t  direction,
-			    float           tracking)
-{
-  const AAT::trak& trak = *font->face->table.trak;
-
-  return trak.get_tracking (font, direction, tracking);
-}
-
 void
 hb_aat_layout_track (const hb_ot_shape_plan_t *plan,
 		     hb_font_t *font,

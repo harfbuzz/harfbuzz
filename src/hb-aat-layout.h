@@ -789,10 +789,6 @@ hb_aat_layout_has_positioning (hb_face_t *face);
 HB_EXTERN hb_bool_t
 hb_aat_layout_has_tracking (hb_face_t *face);
 
-HB_EXTERN hb_position_t
-hb_aat_layout_get_tracking (hb_font_t      *font,
-			    hb_direction_t  direction,
-			    float           tracking);
 
 HB_END_DECLS
 

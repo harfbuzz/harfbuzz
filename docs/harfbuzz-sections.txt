@@ -10,7 +10,6 @@ hb_aat_layout_get_feature_types
 hb_aat_layout_has_positioning
 hb_aat_layout_has_substitution
 hb_aat_layout_has_tracking
-hb_aat_layout_get_tracking
 </SECTION>
 
 <SECTION>
