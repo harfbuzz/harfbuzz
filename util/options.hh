@@ -168,26 +168,31 @@ struct option_parser_t
   {
     GString *s = g_string_new (description);
 
-    // Exit codes
-    assert (exit_codes->len);
-    g_string_append_printf (s, "\n\n*Exit Codes*\n");
-    for (unsigned i = 0; i < exit_codes->len; i++)
-      if (exit_codes->pdata[i])
-	g_string_append_printf (s, "\n  %u: %s\n", i, (const char *) exit_codes->pdata[i]);
-
-    // Environment variables if any
-    if (environs->len)
+    const char *env = getenv ("HB_UTIL_HELP_VERBOSE");
+    bool verbose = env && atoi (env);
+    if (verbose)
     {
-      g_string_append_printf (s, "\n\n*Environment*\n");
-      for (unsigned i = 0; i < environs->len; i++)
-      {
-        g_string_append_printf (s, "\n  %s\n", (char *)environs->pdata[i]);
-      }
-    }
+      // Exit codes
+      assert (exit_codes->len);
+      g_string_append_printf (s, "\n\n*Exit Codes*\n");
+      for (unsigned i = 0; i < exit_codes->len; i++)
+	if (exit_codes->pdata[i])
+	  g_string_append_printf (s, "\n  %u: %s\n", i, (const char *) exit_codes->pdata[i]);
 
-    // See also
-    g_string_append_printf (s, "\n\n*See also*\n");
-    g_string_append_printf (s, "  hb-view(1), hb-shape(1), hb-subset(1), hb-info(1)");
+      // Environment variables if any
+      if (environs->len)
+      {
+	g_string_append_printf (s, "\n\n*Environment*\n");
+	for (unsigned i = 0; i < environs->len; i++)
+	{
+	  g_string_append_printf (s, "\n  %s\n", (char *)environs->pdata[i]);
+	}
+      }
+
+      // See also
+      g_string_append_printf (s, "\n\n*See also*\n");
+      g_string_append_printf (s, "  hb-view(1), hb-shape(1), hb-subset(1), hb-info(1)");
+    }
 
     // Footer
     g_string_append_printf (s, "\n\nFind more information or report bugs at <https://github.com/harfbuzz/harfbuzz>\n");

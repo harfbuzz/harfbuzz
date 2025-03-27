@@ -23,6 +23,8 @@ else
   help2man = disabler()
 endif
 help2man_command = [help2man, '--help-option=--help-all', '--no-info', '--output=' + '@OUTPUT@', '@INPUT@']
+help2man_env = environment()
+help2man_env.set('HB_UTIL_HELP_VERBOSE', '1')
 
 util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]
 
@@ -43,6 +45,7 @@ if conf.get('HAVE_GLIB', 0) == 1
         output: target,
         command: help2man_command,
         depends: [hb_view],
+        env: help2man_env,
         install: true,
         install_dir: get_option('mandir') / 'man1',
       )
@@ -84,6 +87,7 @@ if conf.get('HAVE_GLIB', 0) == 1
         output: target,
         command: help2man_command,
         depends: [binary],
+        env: help2man_env,
         install: true,
         install_dir: get_option('mandir') / 'man1',
       )
