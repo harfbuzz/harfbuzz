@@ -714,6 +714,29 @@ end:
 
 #include "hb-ot-cff1-table.hh"
 
+template<typename accel_t>
+static hb_blob_t* get_charstrings_data(accel_t& accel, hb_codepoint_t glyph_index) {
+  if (!accel.is_valid()) {
+    return hb_blob_get_empty ();
+  }
+
+  hb_ubytes_t bytes = (*accel.charStrings)[glyph_index];
+  if (!bytes) {
+    return hb_blob_get_empty ();
+  }
+
+  hb_blob_t* cff_blob = accel.get_blob();
+  uint32_t length;
+  const char* cff_data = hb_blob_get_data(cff_blob, &length) ;
+
+  long int offset = (const char*) bytes.arrayZ - cff_data;
+  if (offset < 0 || offset > UINT32_MAX) {
+    return hb_blob_get_empty ();
+  }
+
+  return hb_blob_create_sub_blob(cff_blob, (uint32_t) offset, bytes.length);
+}
+
 /**
  * hb_subset_cff_get_charstring_data:
  * @face: A face object
@@ -725,17 +748,28 @@ end:
  **/
  HB_EXTERN hb_blob_t*
  hb_subset_cff_get_charstring_data(hb_face_t* face, hb_codepoint_t glyph_index) {
-  hb_ubytes_t bytes;
-  if (_is_table_present(face, HB_TAG('C', 'F', 'F', ' '))) {
-    bytes = (*face->table.cff1->charStrings)[glyph_index];
-  } else if (_is_table_present(face, HB_TAG('C', 'F', 'F', '2'))) {
-    bytes = (*face->table.cff2->charStrings)[glyph_index];
-  }
-
-  if (!bytes) {
+  if (!_is_table_present(face, HB_TAG('C', 'F', 'F', ' '))) {
     return hb_blob_get_empty ();
   }
 
-  return hb_blob_create((const char*) bytes.arrayZ, bytes.length, HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+  return get_charstrings_data(*face->table.cff1, glyph_index);
+ }
+
+ /**
+ * hb_subset_cff2_get_charstring_data:
+ * @face: A face object
+ * @glyph_index: Glyph index to get data for.
+ *
+ * Returns the raw outline data from the CFF/CFF2 table associated with the given glyph index.
+ *
+ * XSince: EXPERIMENTAL
+ **/
+ HB_EXTERN hb_blob_t*
+ hb_subset_cff2_get_charstring_data(hb_face_t* face, hb_codepoint_t glyph_index) {
+  if (!_is_table_present(face, HB_TAG('C', 'F', 'F', '2'))) {
+    return hb_blob_get_empty ();
+  }
+
+  return get_charstrings_data(*face->table.cff2, glyph_index);
  }
  #endif

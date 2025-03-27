@@ -230,8 +230,12 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
 /*
 * Raw outline data access
 */
+
 HB_EXTERN hb_blob_t*
 hb_subset_cff_get_charstring_data(hb_face_t* face, hb_codepoint_t glyph_index);
+
+HB_EXTERN hb_blob_t*
+hb_subset_cff2_get_charstring_data(hb_face_t* face, hb_codepoint_t glyph_index);
 #endif
 
 HB_EXTERN hb_face_t *
