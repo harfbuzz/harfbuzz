@@ -201,7 +201,7 @@ struct option_parser_t
   GOptionContext *context;
   protected:
   const char *description = nullptr;
-  GPtrArray *environs;
+  GPtrArray *environs = nullptr;
   GPtrArray *to_free;
 };
 
