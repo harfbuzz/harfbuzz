@@ -185,11 +185,11 @@ struct option_parser_t
     g_string_free (s, TRUE);
   }
 
-  void add_environ (const char *environ)
+  void add_environ (const char *environment)
   {
     if (!environs)
       environs = g_ptr_array_new ();
-    g_ptr_array_add (environs, g_strdup (environ));
+    g_ptr_array_add (environs, g_strdup (environment));
   }
 
   void free_later (char *p) {
