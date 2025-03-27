@@ -748,10 +748,6 @@ static hb_blob_t* get_charstrings_data(accel_t& accel, hb_codepoint_t glyph_inde
  **/
  HB_EXTERN hb_blob_t*
  hb_subset_cff_get_charstring_data(hb_face_t* face, hb_codepoint_t glyph_index) {
-  if (!_is_table_present(face, HB_TAG('C', 'F', 'F', ' '))) {
-    return hb_blob_get_empty ();
-  }
-
   return get_charstrings_data(*face->table.cff1, glyph_index);
  }
 
@@ -766,10 +762,6 @@ static hb_blob_t* get_charstrings_data(accel_t& accel, hb_codepoint_t glyph_inde
  **/
  HB_EXTERN hb_blob_t*
  hb_subset_cff2_get_charstring_data(hb_face_t* face, hb_codepoint_t glyph_index) {
-  if (!_is_table_present(face, HB_TAG('C', 'F', 'F', '2'))) {
-    return hb_blob_get_empty ();
-  }
-
   return get_charstrings_data(*face->table.cff2, glyph_index);
  }
  #endif
