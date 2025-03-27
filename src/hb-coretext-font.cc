@@ -29,6 +29,7 @@
 #ifdef HAVE_CORETEXT
 
 #include "hb-coretext.hh"
+#include "hb-aat-layout-trak-table.hh"
 
 #include "hb-draw.hh"
 #include "hb-font.hh"
@@ -209,6 +210,7 @@ hb_coretext_get_glyph_h_advances (hb_font_t* font,
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
+  hb_position_t tracking = font->face->table.trak->get_tracking (font, HB_DIRECTION_LTR, 0.f);
 
   CGGlyph cg_glyph[MAX_GLYPHS];
   CGSize advances[MAX_GLYPHS];
@@ -223,7 +225,7 @@ hb_coretext_get_glyph_h_advances (hb_font_t* font,
     CTFontGetAdvancesForGlyphs (ct_font, kCTFontOrientationHorizontal, cg_glyph, advances, c);
     for (unsigned j = 0; j < c; j++)
     {
-      *first_advance = round (advances[j].width * x_mult);
+      *first_advance = round (advances[j].width * x_mult) - tracking;
       first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
     }
   }
@@ -244,6 +246,7 @@ hb_coretext_get_glyph_v_advances (hb_font_t* font,
 
   CGFloat ct_font_size = CTFontGetSize (ct_font);
   CGFloat y_mult = (CGFloat) -font->y_scale / ct_font_size;
+  hb_position_t tracking = font->face->table.trak->get_tracking (font, HB_DIRECTION_TTB, 0.f);
 
   CGGlyph cg_glyph[MAX_GLYPHS];
   CGSize advances[MAX_GLYPHS];
@@ -258,7 +261,7 @@ hb_coretext_get_glyph_v_advances (hb_font_t* font,
     CTFontGetAdvancesForGlyphs (ct_font, kCTFontOrientationVertical, cg_glyph, advances, c);
     for (unsigned j = 0; j < c; j++)
     {
-      *first_advance = round (advances[j].width * y_mult);
+      *first_advance = round (advances[j].width * y_mult) - tracking;
       first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
     }
   }

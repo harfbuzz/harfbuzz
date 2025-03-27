@@ -109,9 +109,11 @@ struct hb_ot_shape_plan_t
 #ifndef HB_NO_AAT_SHAPE
   bool apply_kerx : 1;
   bool apply_morx : 1;
+  bool apply_trak : 1;
 #else
   static constexpr bool apply_kerx = false;
   static constexpr bool apply_morx = false;
+  static constexpr bool apply_trak = false;
 #endif
 
   void collect_lookups (hb_tag_t table_tag, hb_set_t *lookups) const

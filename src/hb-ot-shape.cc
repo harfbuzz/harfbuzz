@@ -210,6 +210,14 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
      https://github.com/harfbuzz/harfbuzz/issues/2967. */
   if (plan.apply_morx)
     plan.adjust_mark_positioning_when_zeroing = false;
+
+  /* According to Ned, trak is applied by default for "modern fonts", as detected by presence of STAT table. */
+#ifndef HB_NO_STYLE
+  plan.apply_trak = hb_aat_layout_has_tracking (face) && face->table.STAT->has_data ();
+#else
+  plan.apply_trak = false;
+#endif
+
 #endif
 }
 
@@ -274,6 +282,11 @@ hb_ot_shape_plan_t::position (hb_font_t   *font,
 #endif
   else if (this->apply_fallback_kern)
     _hb_ot_shape_fallback_kern (this, font, buffer);
+
+#ifndef HB_NO_AAT_SHAPE
+  if (this->apply_trak)
+    hb_aat_layout_track (this, font, buffer);
+#endif
 }
 
 
