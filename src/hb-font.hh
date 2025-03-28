@@ -335,11 +335,11 @@ struct hb_font_t
 			     hb_position_t *first_advance,
 			     unsigned int advance_stride)
   {
-    return klass->get.f.glyph_h_advances (this, user_data,
-					  count,
-					  first_glyph, glyph_stride,
-					  first_advance, advance_stride,
-					  !klass->user_data ? nullptr : klass->user_data->glyph_h_advances);
+    klass->get.f.glyph_h_advances (this, user_data,
+				   count,
+				   first_glyph, glyph_stride,
+				   first_advance, advance_stride,
+				   !klass->user_data ? nullptr : klass->user_data->glyph_h_advances);
   }
 
   void get_glyph_v_advances (unsigned int count,
@@ -348,11 +348,11 @@ struct hb_font_t
 			     hb_position_t *first_advance,
 			     unsigned int advance_stride)
   {
-    return klass->get.f.glyph_v_advances (this, user_data,
-					  count,
-					  first_glyph, glyph_stride,
-					  first_advance, advance_stride,
-					  !klass->user_data ? nullptr : klass->user_data->glyph_v_advances);
+    klass->get.f.glyph_v_advances (this, user_data,
+				   count,
+				   first_glyph, glyph_stride,
+				   first_advance, advance_stride,
+				   !klass->user_data ? nullptr : klass->user_data->glyph_v_advances);
   }
 
   hb_bool_t get_glyph_h_origin (hb_codepoint_t glyph,
