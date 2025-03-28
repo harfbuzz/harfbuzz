@@ -363,7 +363,8 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
   }
 
   hb_glyph_extents_t extents = {0};
-  if (ot_face->glyf->get_extents (font, glyph, &extents))
+
+  if (hb_font_get_glyph_extents (font, glyph, &extents))
   {
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     int tsb = 0;
