@@ -89,6 +89,7 @@
 #pragma GCC diagnostic error   "-Wstring-conversion"
 #pragma GCC diagnostic error   "-Wswitch-enum"
 #pragma GCC diagnostic error   "-Wtautological-overlap-compare"
+#pragma GCC diagnostic error   "-Wuninitialized"
 #pragma GCC diagnostic error   "-Wunneeded-internal-declaration"
 #pragma GCC diagnostic error   "-Wunused"
 #pragma GCC diagnostic error   "-Wunused-local-typedefs"
