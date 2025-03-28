@@ -325,8 +325,8 @@ struct hb_font_t
     if (x_strength && !embolden_in_place)
     {
       /* Emboldening. */
-      hb_position_t x_strength = x_scale >= 0 ? x_strength : -x_strength;
-      advance += advance ? x_strength : 0;
+      hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
+      advance += advance ? strength : 0;
     }
 
     return advance;
@@ -341,8 +341,8 @@ struct hb_font_t
     if (y_strength && !embolden_in_place)
     {
       /* Emboldening. */
-      hb_position_t y_strength = y_scale >= 0 ? y_strength : -y_strength;
-      advance += advance ? y_strength : 0;
+      hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
+      advance += advance ? strength : 0;
     }
 
     return advance;
@@ -363,10 +363,10 @@ struct hb_font_t
     if (x_strength && !embolden_in_place)
     {
       /* Emboldening. */
-      hb_position_t x_strength = x_scale >= 0 ? x_strength : -x_strength;
+      hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
       for (unsigned int i = 0; i < count; i++)
       {
-	*first_advance += *first_advance ? x_strength : 0;
+	*first_advance += *first_advance ? strength : 0;
 	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
       }
     }
@@ -387,10 +387,10 @@ struct hb_font_t
     if (y_strength && !embolden_in_place)
     {
       /* Emboldening. */
-      hb_position_t y_strength = y_scale >= 0 ? y_strength : -y_strength;
+      hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
       for (unsigned int i = 0; i < count; i++)
       {
-	*first_advance += *first_advance ? y_strength : 0;
+	*first_advance += *first_advance ? strength : 0;
 	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
       }
     }
