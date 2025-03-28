@@ -271,7 +271,7 @@ extern "C" fn _hb_fontations_get_glyph_h_advances(
 }
 
 extern "C" fn _hb_fontations_get_glyph_v_advances(
-    _font: *mut hb_font_t,
+    font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     count: ::std::os::raw::c_uint,
     first_glyph: *const hb_codepoint_t,
@@ -283,24 +283,38 @@ extern "C" fn _hb_fontations_get_glyph_v_advances(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
-    let vert_metrics = &data.vert_metrics.as_ref().unwrap();
-    let vert_vars = &data.vert_vars;
-
-    for i in 0..count {
-        let glyph = struct_at_offset(first_glyph, i, glyph_stride);
-        let glyph_id = GlyphId::new(glyph);
-        let mut advance = vert_metrics.advance(glyph_id).unwrap_or_default() as f32;
-        if let Some(vert_vars) = vert_vars {
-            let coords = data.location.coords();
-            if !coords.is_empty() {
-                advance += vert_vars
-                    .advance_height_delta(glyph_id, coords)
-                    .unwrap_or_default()
-                    .to_f32();
+    if let Some(vert_metrics) = &data.vert_metrics {
+        let vert_vars = &data.vert_vars;
+        for i in 0..count {
+            let glyph = struct_at_offset(first_glyph, i, glyph_stride);
+            let glyph_id = GlyphId::new(glyph);
+            let mut advance = vert_metrics.advance(glyph_id).unwrap_or_default() as f32;
+            if let Some(vert_vars) = vert_vars {
+                let coords = data.location.coords();
+                if !coords.is_empty() {
+                    advance += vert_vars
+                        .advance_height_delta(glyph_id, coords)
+                        .unwrap_or_default()
+                        .to_f32();
+                }
             }
+            let advance = -(advance * data.y_mult).round() as i32;
+            *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
         }
-        let advance = -(advance * data.y_mult).round() as i32;
-        *struct_at_offset_mut(first_advance, i, advance_stride) = advance as hb_position_t;
+    } else {
+        let mut font_extents = unsafe { std::mem::zeroed() };
+        unsafe {
+            hb_font_get_extents_for_direction(
+                font,
+                hb_direction_t_HB_DIRECTION_LTR,
+                &mut font_extents,
+            );
+        }
+        let advance: hb_position_t = -(font_extents.ascender - font_extents.descender);
+
+        for i in 0..count {
+            *struct_at_offset_mut(first_advance, i, advance_stride) = advance;
+        }
     }
 }
 
