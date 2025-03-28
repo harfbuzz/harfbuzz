@@ -317,16 +317,34 @@ struct hb_font_t
 
   hb_position_t get_glyph_h_advance (hb_codepoint_t glyph)
   {
-    return klass->get.f.glyph_h_advance (this, user_data,
-					 glyph,
-					 !klass->user_data ? nullptr : klass->user_data->glyph_h_advance);
+    hb_position_t advance = klass->get.f.glyph_h_advance (this, user_data,
+							  glyph,
+							  !klass->user_data ? nullptr : klass->user_data->glyph_h_advance);
+
+    if (x_strength && !embolden_in_place)
+    {
+      /* Emboldening. */
+      hb_position_t x_strength = x_scale >= 0 ? x_strength : -x_strength;
+      advance += advance ? x_strength : 0;
+    }
+
+    return advance;
   }
 
   hb_position_t get_glyph_v_advance (hb_codepoint_t glyph)
   {
-    return klass->get.f.glyph_v_advance (this, user_data,
-					 glyph,
-					 !klass->user_data ? nullptr : klass->user_data->glyph_v_advance);
+    hb_position_t advance = klass->get.f.glyph_v_advance (this, user_data,
+							  glyph,
+							  !klass->user_data ? nullptr : klass->user_data->glyph_v_advance);
+
+    if (y_strength && !embolden_in_place)
+    {
+      /* Emboldening. */
+      hb_position_t y_strength = y_scale >= 0 ? y_strength : -y_strength;
+      advance += advance ? y_strength : 0;
+    }
+
+    return advance;
   }
 
   void get_glyph_h_advances (unsigned int count,
@@ -340,6 +358,17 @@ struct hb_font_t
 				   first_glyph, glyph_stride,
 				   first_advance, advance_stride,
 				   !klass->user_data ? nullptr : klass->user_data->glyph_h_advances);
+
+    if (x_strength && !embolden_in_place)
+    {
+      /* Emboldening. */
+      hb_position_t x_strength = x_scale >= 0 ? x_strength : -x_strength;
+      for (unsigned int i = 0; i < count; i++)
+      {
+	*first_advance += *first_advance ? x_strength : 0;
+	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+      }
+    }
   }
 
   void get_glyph_v_advances (unsigned int count,
@@ -353,6 +382,17 @@ struct hb_font_t
 				   first_glyph, glyph_stride,
 				   first_advance, advance_stride,
 				   !klass->user_data ? nullptr : klass->user_data->glyph_v_advances);
+
+    if (y_strength && !embolden_in_place)
+    {
+      /* Emboldening. */
+      hb_position_t y_strength = y_scale >= 0 ? y_strength : -y_strength;
+      for (unsigned int i = 0; i < count; i++)
+      {
+	*first_advance += *first_advance ? y_strength : 0;
+	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+      }
+    }
   }
 
   hb_bool_t get_glyph_h_origin (hb_codepoint_t glyph,

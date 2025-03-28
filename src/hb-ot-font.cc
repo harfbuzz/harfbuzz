@@ -205,8 +205,6 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   const hb_ot_face_t *ot_face = ot_font->ot_face;
   const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx;
 
-  hb_position_t *orig_first_advance = first_advance;
-
 #if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
   const OT::HVAR &HVAR = *hmtx.var_table;
   const OT::ItemVariationStore &varStore = &HVAR + HVAR.varStore;
@@ -280,18 +278,6 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 #if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
   OT::ItemVariationStore::destroy_cache (varStore_cache);
 #endif
-
-  if (font->x_strength && !font->embolden_in_place)
-  {
-    /* Emboldening. */
-    hb_position_t x_strength = font->x_scale >= 0 ? font->x_strength : -font->x_strength;
-    first_advance = orig_first_advance;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      *first_advance += *first_advance ? x_strength : 0;
-      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
-    }
-  }
 }
 
 #ifndef HB_NO_VERTICAL
@@ -307,8 +293,6 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
   const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
-
-  hb_position_t *orig_first_advance = first_advance;
 
   if (vmtx.has_data ())
   {
@@ -341,18 +325,6 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
     {
       *first_advance = advance;
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
-      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
-    }
-  }
-
-  if (font->y_strength && !font->embolden_in_place)
-  {
-    /* Emboldening. */
-    hb_position_t y_strength = font->y_scale >= 0 ? font->y_strength : -font->y_strength;
-    first_advance = orig_first_advance;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      *first_advance += *first_advance ? y_strength : 0;
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
   }
