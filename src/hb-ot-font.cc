@@ -34,7 +34,6 @@
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 #include "hb-ot-face.hh"
-#include "hb-outline.hh"
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
@@ -493,35 +492,17 @@ hb_ot_draw_glyph (hb_font_t *font,
 		  hb_draw_funcs_t *draw_funcs, void *draw_data,
 		  void *user_data)
 {
-  bool embolden = font->x_strength || font->y_strength;
-  hb_outline_t outline;
-
-  { // Need draw_session to be destructed before emboldening.
-    hb_draw_session_t draw_session (embolden ? hb_outline_recording_pen_get_funcs () : draw_funcs,
-				    embolden ? &outline : draw_data, font->slant_xy);
+  hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
 #ifndef HB_NO_VAR_COMPOSITES
-    if (!font->face->table.VARC->get_path (font, glyph, draw_session))
+  if (!font->face->table.VARC->get_path (font, glyph, draw_session))
 #endif
-    // Keep the following in synch with VARC::get_path_at()
-    if (!font->face->table.glyf->get_path (font, glyph, draw_session))
+  // Keep the following in synch with VARC::get_path_at()
+  if (!font->face->table.glyf->get_path (font, glyph, draw_session))
 #ifndef HB_NO_CFF
-    if (!font->face->table.cff2->get_path (font, glyph, draw_session))
-    if (!font->face->table.cff1->get_path (font, glyph, draw_session))
+  if (!font->face->table.cff2->get_path (font, glyph, draw_session))
+  if (!font->face->table.cff1->get_path (font, glyph, draw_session))
 #endif
-    {}
-  }
-
-  if (embolden)
-  {
-    float x_shift = font->embolden_in_place ? 0 : (float) font->x_strength / 2;
-    float y_shift = (float) font->y_strength / 2;
-    if (font->x_scale < 0) x_shift = -x_shift;
-    if (font->y_scale < 0) y_shift = -y_shift;
-    outline.embolden (font->x_strength, font->y_strength,
-		      x_shift, y_shift);
-
-    outline.replay (draw_funcs, draw_data);
-  }
+  {}
 }
 #endif
 
