@@ -356,7 +356,41 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
         return true as hb_bool_t;
     }
 
-    // TODO: Implement the fallback case for TrueType with vmtx.
+    let mut extents: hb_glyph_extents_t = unsafe { std::mem::zeroed() };
+    if unsafe { hb_font_get_glyph_extents(font, glyph, &mut extents) != 0 } {
+        if let Some(vert_metrics) = &data.vert_metrics {
+            let glyph = GlyphId::new(glyph);
+            let mut tsb: f32 = vert_metrics.side_bearing(glyph).unwrap_or_default() as f32;
+            if let Some(vert_vars) = &data.vert_vars {
+                let coords = data.location.coords();
+                if !coords.is_empty() {
+                    tsb += vert_vars
+                        .tsb_delta(glyph, coords)
+                        .unwrap_or_default()
+                        .to_f32();
+                }
+            }
+            unsafe {
+                *y = extents.y_bearing + (tsb * data.y_mult).round() as hb_position_t;
+            }
+            return true as hb_bool_t;
+        }
+
+        let mut font_extents: hb_font_extents_t = unsafe { std::mem::zeroed() };
+        unsafe {
+            hb_font_get_extents_for_direction(
+                font,
+                hb_direction_t_HB_DIRECTION_LTR,
+                &mut font_extents,
+            );
+        }
+        let advance: hb_position_t = font_extents.ascender - font_extents.descender;
+        let diff: hb_position_t = advance - -extents.height;
+        unsafe {
+            *y = extents.y_bearing + (diff >> 1);
+        }
+        return true as hb_bool_t;
+    }
 
     let mut font_extents: hb_font_extents_t = unsafe { std::mem::zeroed() };
     unsafe {

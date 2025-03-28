@@ -376,7 +376,7 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
     hb_font_extents_t font_extents;
     font->get_h_extents_with_fallback (&font_extents);
     hb_position_t advance = font_extents.ascender - font_extents.descender;
-    int diff = advance - -extents.height;
+    hb_position_t diff = advance - -extents.height;
     *y = extents.y_bearing + (diff >> 1);
     return true;
   }
