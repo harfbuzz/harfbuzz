@@ -145,18 +145,21 @@ struct shape_options_t
       /* Scale positions. */
       int x_scale, y_scale;
       hb_font_get_scale (font, &x_scale, &y_scale);
-      unsigned upem = hb_face_get_upem (hb_font_get_face (font));
+      signed upem = (int) hb_face_get_upem (hb_font_get_face (font));
       unsigned count;
-      auto *positions = hb_buffer_get_glyph_positions (buffer, &count);
-      for (unsigned i = 0; i < count; i++)
+      if (x_scale != upem || y_scale != upem)
       {
-	auto &pos = positions[i];
-	pos.x_offset = pos.x_offset * x_scale / upem;
-	pos.y_offset = pos.y_offset * y_scale / upem;
-	if (scale_advances)
+	auto *positions = hb_buffer_get_glyph_positions (buffer, &count);
+	for (unsigned i = 0; i < count; i++)
 	{
-	  pos.x_advance = pos.x_advance * x_scale / upem;
-	  pos.y_advance = pos.y_advance * y_scale / upem;
+	  auto &pos = positions[i];
+	  pos.x_offset = pos.x_offset * x_scale / upem;
+	  pos.y_offset = pos.y_offset * y_scale / upem;
+	  if (scale_advances)
+	  {
+	    pos.x_advance = pos.x_advance * x_scale / upem;
+	    pos.y_advance = pos.y_advance * y_scale / upem;
+	  }
 	}
       }
     }
