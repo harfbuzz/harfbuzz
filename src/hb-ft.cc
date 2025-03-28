@@ -879,38 +879,6 @@ hb_ft_draw_glyph (hb_font_t *font,
 
   hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
 
-  /* Embolden */
-  if (font->x_strength || font->y_strength)
-  {
-    FT_Outline_EmboldenXY (&ft_face->glyph->outline, font->x_strength, font->y_strength);
-
-    int x_shift = 0;
-    int y_shift = 0;
-    if (font->embolden_in_place)
-    {
-      /* Undo the FreeType shift. */
-      x_shift = -font->x_strength / 2;
-      y_shift = 0;
-      if (font->y_scale < 0) y_shift = -font->y_strength;
-    }
-    else
-    {
-      /* FreeType applied things in the wrong direction for negative scale; fix up. */
-      if (font->x_scale < 0) x_shift = -font->x_strength;
-      if (font->y_scale < 0) y_shift = -font->y_strength;
-    }
-    if (x_shift || y_shift)
-    {
-      auto &outline = ft_face->glyph->outline;
-      for (auto &point : hb_iter (outline.points, outline.contours[outline.n_contours - 1] + 1))
-      {
-	point.x += x_shift;
-	point.y += y_shift;
-      }
-    }
-  }
-
-
   FT_Outline_Decompose (&ft_face->glyph->outline,
 			&outline_funcs,
 			&draw_session);

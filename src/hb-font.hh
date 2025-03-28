@@ -34,6 +34,7 @@
 #include "hb-face.hh"
 #include "hb-atomic.hh"
 #include "hb-shaper.hh"
+#include "hb-outline.hh"
 
 
 /*
@@ -485,10 +486,30 @@ struct hb_font_t
   void draw_glyph (hb_codepoint_t glyph,
 		   hb_draw_funcs_t *draw_funcs, void *draw_data)
   {
+    bool embolden = x_strength || y_strength;
+    if (!embolden)
+    {
+      klass->get.f.draw_glyph (this, user_data,
+			       glyph,
+			       draw_funcs, draw_data,
+			       !klass->user_data ? nullptr : klass->user_data->draw_glyph);
+      return;
+    }
+
+    /* Emboldening. */
+    hb_outline_t outline;
     klass->get.f.draw_glyph (this, user_data,
 			     glyph,
-			     draw_funcs, draw_data,
+			     hb_outline_recording_pen_get_funcs (), &outline,
 			     !klass->user_data ? nullptr : klass->user_data->draw_glyph);
+
+    float x_shift = embolden_in_place ? 0 : (float) x_strength / 2;
+    float y_shift = (float) y_strength / 2;
+    if (x_scale < 0) x_shift = -x_shift;
+    if (y_scale < 0) y_shift = -y_shift;
+    outline.embolden (x_strength, y_strength, x_shift, y_shift);
+
+    outline.replay (draw_funcs, draw_data);
   }
 
   void paint_glyph (hb_codepoint_t glyph,
