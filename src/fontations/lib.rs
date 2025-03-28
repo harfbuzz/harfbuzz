@@ -281,10 +281,7 @@ extern "C" fn _hb_fontations_get_glyph_v_advances(
     _user_data: *mut ::std::os::raw::c_void,
 ) {
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
-    //data.check_for_updates();
-
-    // TODO: This doesn't apply VVAR variations; Skrifa doesn't have API
-    // for this yet and it's tedious to do with read-fonts.
+    data.check_for_updates();
 
     let vert_metrics = &data.vert_metrics.as_ref().unwrap();
     let vert_vars = &data.vert_vars;
