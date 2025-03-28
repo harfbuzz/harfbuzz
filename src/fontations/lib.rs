@@ -329,12 +329,12 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
+    unsafe {
+        *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
+    }
+
     let vert_origin = &data.vert_origin;
     if let Some(vert_origin) = vert_origin {
-        unsafe {
-            *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
-        }
-
         let glyph_id = GlyphId::new(glyph);
 
         let mut y_origin = vert_origin.vertical_origin_y(glyph_id) as f32;
@@ -356,10 +356,17 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
         return true as hb_bool_t;
     }
 
-    // TODO: Implement the two other fallback cases, for TrueType
-    // with vmtx, and for no vmtx. See hb-ot-font implementation.
+    // TODO: Implement the fallback case for TrueType with vmtx.
 
-    false as hb_bool_t
+    let mut font_extents: hb_font_extents_t = unsafe { std::mem::zeroed() };
+    unsafe {
+        hb_font_get_extents_for_direction(font, hb_direction_t_HB_DIRECTION_LTR, &mut font_extents);
+    }
+    unsafe {
+        *y = font_extents.ascender;
+    }
+
+    true as hb_bool_t
 }
 
 extern "C" fn _hb_fontations_get_glyph_extents(
