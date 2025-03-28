@@ -41,10 +41,9 @@ action clear_item {
 }
 
 action add_item {
-	buffer->add_info (info);
+	buffer->add_info_and_pos (info, pos);
 	if (unlikely (!buffer->successful))
 	  return false;
-	buffer->pos[buffer->len - 1] = pos;
 	*end_ptr = p;
 }
 
