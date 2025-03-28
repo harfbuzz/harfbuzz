@@ -316,7 +316,6 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
     data.check_for_updates();
 
     let vert_origin = &data.vert_origin;
-    let vert_vars = &data.vert_vars;
     if let Some(vert_origin) = vert_origin {
         unsafe {
             *x = hb_font_get_glyph_h_advance(font, glyph) / 2;
@@ -325,6 +324,7 @@ extern "C" fn _hb_fontations_get_glyph_v_origin(
         let glyph_id = GlyphId::new(glyph);
 
         let mut y_origin = vert_origin.vertical_origin_y(glyph_id) as f32;
+        let vert_vars = &data.vert_vars;
         if let Some(vert_vars) = vert_vars {
             let coords = data.location.coords();
             if !coords.is_empty() {
