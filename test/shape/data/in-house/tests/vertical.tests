@@ -1,4 +1,13 @@
 @font-funcs=ot,ft,fontations
+# CFF2+VORG
+../fonts/NotoSansCJK-VF.abc.otf;--direction=t;U+0041,U+0042;[gid1=0@-287,-880+0,-1000|gid2=1@-316,-880+0,-1000]
+@font-funcs=ot,fontations # TODO ft doesn't support VORG table?
+../fonts/NotoSansCJK-VF.abc.otf;--direction=t --variations wght=700;U+0041,U+0042;[gid1=0@-320,-880+0,-1000|gid2=1@-340,-880+0,-1000]
+# glyf+gvar+vmtx
+@font-funcs=ot,ft,fontations
+../fonts/NotoSansCJK-VF.abc.ttf;--direction=t;U+0041,U+0042;[gid1=0@-287,-880+0,-1000|gid2=1@-316,-880+0,-1000]
+../fonts/NotoSansCJK-VF.abc.ttf;--direction=t --variations wght=700;U+0041,U+0042;[gid1=0@-320,-880+0,-1000|gid2=1@-340,-880+0,-1000]
+@font-funcs=ot,ft,fontations
 # CFF+VORG
 ../fonts/4cbbc461be066fccc611dcc634af6e8cb2705537.ttf;--direction=t;U+FF38;[gid2=0@-500,-867+0,-1000]
 # glyf, no vmtx
