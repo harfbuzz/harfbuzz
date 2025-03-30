@@ -198,10 +198,10 @@ struct hb_font_t
     float x2 = em_scale_x (extents->x_bearing + extents->width);
     float y2 = em_scale_y (extents->y_bearing + extents->height);
 
-    extents->x_bearing = floorf (x1);
-    extents->y_bearing = floorf (y1);
-    extents->width = ceilf (x2) - extents->x_bearing;
-    extents->height = ceilf (y2) - extents->y_bearing;
+    extents->x_bearing = round (x1);
+    extents->y_bearing = round (y1);
+    extents->width = round (x2) - extents->x_bearing;
+    extents->height = round (y2) - extents->y_bearing;
   }
 
   void synthetic_glyph_extents (hb_glyph_extents_t *extents)
