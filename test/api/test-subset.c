@@ -248,6 +248,11 @@ const uint8_t CFF2[226] = {
   0x10, 0x06
 };
 
+const uint8_t CFF2_ONLY_CHARSTRINGS[12] = {
+  0x00, 0x00, 0x00, 0x02, 0x01, 0x01, 0x03, 0x05,
+  0x20, 0x0A, 0x20, 0x0A
+};
+
 static void
 test_subset_cff2_get_charstring_data (void)
 {
@@ -292,6 +297,39 @@ test_subset_cff2_get_charstring_data (void)
 }
 
 static void
+test_subset_cff2_get_all_charstrings_data (void)
+{
+  const uint8_t maxp_data[6] = {
+    0x00, 0x00, 0x50, 0x00,
+    0x00, 0x02 // numGlyphs
+  };
+
+  hb_blob_t* cff2 = hb_blob_create ((const char*) CFF2, 226, HB_MEMORY_MODE_READONLY, 0, 0);
+  hb_blob_t* maxp = hb_blob_create ((const char*) maxp_data, 6, HB_MEMORY_MODE_READONLY, 0, 0);
+  hb_face_t* builder = hb_face_builder_create ();
+  hb_face_builder_add_table (builder, HB_TAG('C', 'F', 'F', '2'), cff2);
+  hb_face_builder_add_table (builder, HB_TAG('m', 'a', 'x', 'p'), maxp);
+  hb_blob_t* face_blob = hb_face_reference_blob (builder);
+  hb_face_t* face = hb_face_create (face_blob, 0);
+
+  hb_blob_t* cs = hb_subset_cff2_get_charstrings_index (face);
+  hb_blob_destroy (cff2);
+  hb_blob_destroy (maxp);
+  hb_face_destroy (builder);
+  hb_blob_destroy (face_blob);
+  hb_face_destroy (face);
+
+  unsigned int length;
+  const uint8_t* data = (const uint8_t*) hb_blob_get_data (cs, &length);
+  g_assert_cmpint (length, ==, 12);
+  for (int i = 0; i < 12; i++) {
+    g_assert_cmpint(data[i], ==, CFF2_ONLY_CHARSTRINGS[i]);
+  }
+
+  hb_blob_destroy (cs);
+}
+
+static void
 test_subset_cff2_get_charstring_data_no_cff (void)
 {
   hb_face_t* builder = hb_face_builder_create ();
@@ -304,8 +342,7 @@ test_subset_cff2_get_charstring_data_no_cff (void)
   hb_face_destroy (builder);
   hb_blob_destroy (face_blob);
   hb_face_destroy (face);
-  hb_blob_destroy
-   (cs0);
+  hb_blob_destroy (cs0);
 }
 
 static void
@@ -381,6 +418,7 @@ main (int argc, char **argv)
 
   #ifdef HB_EXPERIMENTAL_API
   hb_test_add (test_subset_cff2_get_charstring_data);
+  hb_test_add (test_subset_cff2_get_all_charstrings_data);
   hb_test_add (test_subset_cff2_get_charstring_data_no_cff);
   hb_test_add (test_subset_cff2_get_charstring_data_invalid_cff2);
   hb_test_add (test_subset_cff2_get_charstring_data_lifetime);
