@@ -486,7 +486,12 @@ struct hb_font_t
   void draw_glyph (hb_codepoint_t glyph,
 		   hb_draw_funcs_t *draw_funcs, void *draw_data)
   {
+#ifndef HB_NO_OUTLINE
     bool embolden = x_strength || y_strength;
+#else
+    constexpr bool embolden = false;
+#endif
+
     if (!embolden)
     {
       klass->get.f.draw_glyph (this, user_data,
@@ -496,6 +501,7 @@ struct hb_font_t
       return;
     }
 
+#ifndef HB_NO_OUTLINE
     /* Emboldening. */
     hb_outline_t outline;
     klass->get.f.draw_glyph (this, user_data,
@@ -510,6 +516,7 @@ struct hb_font_t
     outline.embolden (x_strength, y_strength, x_shift, y_shift);
 
     outline.replay (draw_funcs, draw_data);
+#endif
   }
 
   void paint_glyph (hb_codepoint_t glyph,
