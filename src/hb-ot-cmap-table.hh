@@ -2014,7 +2014,8 @@ struct cmap
 
   struct accelerator_t
   {
-    using cache_t = hb_cache_t<21, 16, 8, true>;
+    using cache_t = hb_cache_t<21, 19, 8, true>;
+    static_assert (sizeof (cache_t) == 1024, "");
 
     accelerator_t (hb_face_t *face)
     {

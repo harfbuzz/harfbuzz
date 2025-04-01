@@ -61,8 +61,10 @@
  * never need to call these functions directly.
  **/
 
-using hb_ot_font_cmap_cache_t    = hb_cache_t<21, 16, 8, true>;
+using hb_ot_font_cmap_cache_t    = OT::cmap_accelerator_t::cache_t;
+static_assert (sizeof (hb_ot_font_cmap_cache_t) == 1024, "");
 using hb_ot_font_advance_cache_t = hb_cache_t<24, 16, 8, true>;
+static_assert (sizeof (hb_ot_font_advance_cache_t) == 1024, "");
 
 #ifndef HB_NO_OT_FONT_CMAP_CACHE
 static hb_user_data_key_t hb_ot_font_cmap_cache_user_data_key;
