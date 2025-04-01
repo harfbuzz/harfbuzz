@@ -48,10 +48,10 @@
  * of the integer.
  *
  * A cache hit is detected by comparing the low bits of the key
- * with the high bits of the integer at the right position in the
- * array. If they match, the value is extracted from the least
- * significant bits of the integer and returned. Otherwise, a
- * cache miss is detected.
+ * with the high bits of the integer at the array position indexed
+ * by the high bits of the key. If they match, the value is extracted
+ * from the least significant bits of the integer and returned.
+ * Otherwise, a cache miss is reported.
  *
  * Cache operations (storage and retrieval) involve just a few
  * arithmetic operations and a single memory access.
