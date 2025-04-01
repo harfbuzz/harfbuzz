@@ -431,6 +431,7 @@ _hb_glyph_info_set_aat_deleted (hb_glyph_info_t *info)
 {
   _hb_glyph_info_set_general_category (info, HB_UNICODE_GENERAL_CATEGORY_FORMAT);
   info->unicode_props() |= UPROPS_MASK_Cf_AAT_DELETED;
+  info->unicode_props() |= UPROPS_MASK_HIDDEN;
 }
 
 /* lig_props: aka lig_id / lig_comp
