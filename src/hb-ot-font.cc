@@ -202,8 +202,14 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   { /* Use cache. */
     if (ot_font->cached_coords_serial.get_acquire () != (int) font->serial_coords)
     {
-      ot_font->advance_cache->clear ();
-      ot_font->cached_coords_serial.set_release (font->serial_coords);
+      // Retire advance cache and let it be recreated.
+      auto *old_cache = ot_font->advance_cache.get_acquire ();
+      if (ot_font->advance_cache.cmpexch (cache, nullptr))
+      {
+	ot_font->cached_coords_serial.set_release (font->serial_coords);
+	hb_free (old_cache);
+      }
+      goto retry;
     }
 
     for (unsigned int i = 0; i < count; i++)
