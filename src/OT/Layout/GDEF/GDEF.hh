@@ -1014,7 +1014,8 @@ struct GDEF
     hb_blob_ptr_t<GDEF> table;
 #ifndef HB_NO_GDEF_CACHE
     hb_vector_t<hb_set_digest_t> mark_glyph_set_digests;
-    mutable hb_cache_t<21, 3, 8> glyph_props_cache;
+    mutable hb_cache_t<21, 3> glyph_props_cache;
+    static_assert (sizeof (glyph_props_cache) == 512, "");
 #endif
   };
 
