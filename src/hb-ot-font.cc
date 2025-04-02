@@ -71,6 +71,17 @@ struct hb_ot_font_t
   /* h_advance caching */
   mutable hb_atomic_t<int> cached_coords_serial;
   mutable hb_atomic_t<hb_ot_font_advance_cache_t *> advance_cache;
+  //mutable hb_atomic_t<OT::ItemVariationStore::cache_t *> varStore_cache;
+
+  OT::ItemVariationStore::cache_t *acquire_varStore_cache (const OT::ItemVariationStore &varStore) const
+  {
+    return varStore.create_cache ();
+  }
+
+  void release_varStore_cache (OT::ItemVariationStore::cache_t *cache) const
+  {
+    OT::ItemVariationStore::destroy_cache (cache);
+  }
 };
 
 static hb_ot_font_t *
@@ -156,7 +167,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 #if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
   const OT::HVAR &HVAR = *hmtx.var_table;
   const OT::ItemVariationStore &varStore = &HVAR + HVAR.varStore;
-  OT::ItemVariationStore::cache_t *varStore_cache = font->num_coords * count >= 128 ? varStore.create_cache () : nullptr;
+  OT::ItemVariationStore::cache_t *varStore_cache = font->num_coords * count >= 128 ? ot_font->acquire_varStore_cache (varStore) : nullptr;
 
   bool use_cache = font->num_coords;
 #else
@@ -230,7 +241,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   }
 
 #if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
-  OT::ItemVariationStore::destroy_cache (varStore_cache);
+  ot_font->release_varStore_cache (varStore_cache);
 #endif
 }
 
@@ -253,7 +264,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 #if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
     const OT::VVAR &VVAR = *vmtx.var_table;
     const OT::ItemVariationStore &varStore = &VVAR + VVAR.varStore;
-    OT::ItemVariationStore::cache_t *varStore_cache = font->num_coords * count >= 128 ? varStore.create_cache () : nullptr;
+    OT::ItemVariationStore::cache_t *varStore_cache = font->num_coords * count >= 128 ? ot_font->acquire_varStore_cache (varStore) : nullptr;
 #else
     OT::ItemVariationStore::cache_t *varStore_cache = nullptr;
 #endif
@@ -266,7 +277,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
     }
 
 #if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
-    OT::ItemVariationStore::destroy_cache (varStore_cache);
+    ot_font->release_varStore_cache (varStore_cache);
 #endif
   }
   else
