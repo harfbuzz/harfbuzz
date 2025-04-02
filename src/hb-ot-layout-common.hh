@@ -3187,16 +3187,23 @@ struct ItemVariationStore
 #ifdef HB_NO_VAR
     return nullptr;
 #endif
-    auto &r = this+regions;
-    unsigned count = r.regionCount;
+    unsigned count = (this+regions).regionCount;
 
     float *cache = (float *) hb_malloc (sizeof (float) * count);
-    if (unlikely (!cache)) return nullptr;
+
+    clear_cache (cache);
+
+    return cache;
+  }
+
+  void clear_cache (cache_t *cache) const
+  {
+    if (unlikely (!cache)) return;
+
+    unsigned count = (this+regions).regionCount;
 
     for (unsigned i = 0; i < count; i++)
       cache[i] = REGION_CACHE_ITEM_CACHE_INVALID;
-
-    return cache;
   }
 
   static void destroy_cache (cache_t *cache) { hb_free (cache); }
