@@ -2226,13 +2226,13 @@ struct cmap
     hb_nonnull_ptr_t<const CmapSubtable> subtable;
     hb_nonnull_ptr_t<const CmapSubtableFormat14> subtable_uvs;
 
-    hb_cmap_get_glyph_func_t get_glyph_funcZ;
-    const void *get_glyph_data;
+    hb_cmap_get_glyph_func_t get_glyph_funcZ = nullptr;
+    const void *get_glyph_data = nullptr;
 
     CmapSubtableFormat4::accelerator_t format4_accel;
 
 #ifndef HB_NO_OT_FONT_CMAP_CACHE
-    cache_t *cache;
+    cache_t *cache = nullptr;
 #endif
 
     public:
