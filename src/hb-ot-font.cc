@@ -61,7 +61,7 @@
  * never need to call these functions directly.
  **/
 
-using hb_ot_font_advance_cache_t = hb_cache_t<24, 16, 8, true>;
+using hb_ot_font_advance_cache_t = hb_cache_t<24, 16>;
 static_assert (sizeof (hb_ot_font_advance_cache_t) == 1024, "");
 
 struct hb_ot_font_t
