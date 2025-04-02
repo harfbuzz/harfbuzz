@@ -2212,6 +2212,7 @@ hb_font_set_face (hb_font_t *font,
   hb_face_destroy (old);
 
   font->changed ();
+  font->serial_coords = font->serial;
 }
 
 /**
