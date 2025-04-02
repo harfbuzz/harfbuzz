@@ -2062,20 +2062,20 @@ struct cmap
 #endif
       {
 	switch (subtable->u.format) {
-	/* Accelerate format 4 and format 12. */
-	default:
-	  this->get_glyph_funcZ = get_glyph_from<CmapSubtable>;
-	  break;
-	case 12:
-	  this->get_glyph_funcZ = get_glyph_from<CmapSubtableFormat12>;
-	  break;
-	case  4:
-	{
-	  this->format4_accel.init (&subtable->u.format4);
-	  this->get_glyph_data = &this->format4_accel;
-	  this->get_glyph_funcZ = this->format4_accel.get_glyph_func;
-	  break;
-	}
+	  /* Accelerate format 4 and format 12. */
+	  default:
+	    this->get_glyph_funcZ = get_glyph_from<CmapSubtable>;
+	    break;
+	  case 12:
+	    this->get_glyph_funcZ = get_glyph_from<CmapSubtableFormat12>;
+	    break;
+	  case  4:
+	  {
+	    this->format4_accel.init (&subtable->u.format4);
+	    this->get_glyph_data = &this->format4_accel;
+	    this->get_glyph_funcZ = this->format4_accel.get_glyph_func;
+	    break;
+	  }
 	}
       }
     }
