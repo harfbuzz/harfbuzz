@@ -288,15 +288,30 @@ for filename in args:
                     cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs]
                     final_glyphs = shape_cmd(cmd2, no_glyph_names_process).strip()
 
-                    cmd2 = [fontfile] + ["--glyphs", "--no-glyph-names", glyphs_expected]
-                    final_glyphs_expected = shape_cmd(cmd2, no_glyph_names_process).strip()
+                    cmd2 = [fontfile] + [
+                        "--glyphs",
+                        "--no-glyph-names",
+                        glyphs_expected,
+                    ]
+                    final_glyphs_expected = shape_cmd(
+                        cmd2, no_glyph_names_process
+                    ).strip()
 
                 # If the removal of glyph_ids failed, fail the test.
                 # https://github.com/harfbuzz/harfbuzz/issues/5169
                 if not final_glyphs_expected or final_glyphs != final_glyphs_expected:
                     print(hb_shape + " " + " ".join(cmd), file=sys.stderr)
-                    print("Actual:   " + final_glyphs, file=sys.stderr)
-                    print("Expected: " + final_glyphs_expected, file=sys.stderr)
+                    print("Actual:   " + glyphs, file=sys.stderr)
+                    print("Expected: " + glyphs_expected, file=sys.stderr)
+                    if final_glyphs != glyphs:
+                        print(
+                            "Actual (no glyph names):   " + final_glyphs,
+                            file=sys.stderr,
+                        )
+                        print(
+                            "Expected (no glyph names): " + final_glyphs_expected,
+                            file=sys.stderr,
+                        )
                     fails += 1
                 else:
                     passes += 1

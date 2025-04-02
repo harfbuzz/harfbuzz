@@ -34,6 +34,7 @@
 #include "hb-face.hh"
 #include "hb-atomic.hh"
 #include "hb-shaper.hh"
+#include "hb-outline.hh"
 
 
 /*
@@ -198,10 +199,10 @@ struct hb_font_t
     float x2 = em_scale_x (extents->x_bearing + extents->width);
     float y2 = em_scale_y (extents->y_bearing + extents->height);
 
-    extents->x_bearing = floorf (x1);
-    extents->y_bearing = floorf (y1);
-    extents->width = ceilf (x2) - extents->x_bearing;
-    extents->height = ceilf (y2) - extents->y_bearing;
+    extents->x_bearing = roundf (x1);
+    extents->y_bearing = roundf (y1);
+    extents->width = roundf (x2) - extents->x_bearing;
+    extents->height = roundf (y2) - extents->y_bearing;
   }
 
   void synthetic_glyph_extents (hb_glyph_extents_t *extents)
@@ -318,16 +319,34 @@ struct hb_font_t
 
   hb_position_t get_glyph_h_advance (hb_codepoint_t glyph)
   {
-    return klass->get.f.glyph_h_advance (this, user_data,
-					 glyph,
-					 !klass->user_data ? nullptr : klass->user_data->glyph_h_advance);
+    hb_position_t advance = klass->get.f.glyph_h_advance (this, user_data,
+							  glyph,
+							  !klass->user_data ? nullptr : klass->user_data->glyph_h_advance);
+
+    if (x_strength && !embolden_in_place)
+    {
+      /* Emboldening. */
+      hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
+      advance += advance ? strength : 0;
+    }
+
+    return advance;
   }
 
   hb_position_t get_glyph_v_advance (hb_codepoint_t glyph)
   {
-    return klass->get.f.glyph_v_advance (this, user_data,
-					 glyph,
-					 !klass->user_data ? nullptr : klass->user_data->glyph_v_advance);
+    hb_position_t advance = klass->get.f.glyph_v_advance (this, user_data,
+							  glyph,
+							  !klass->user_data ? nullptr : klass->user_data->glyph_v_advance);
+
+    if (y_strength && !embolden_in_place)
+    {
+      /* Emboldening. */
+      hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
+      advance += advance ? strength : 0;
+    }
+
+    return advance;
   }
 
   void get_glyph_h_advances (unsigned int count,
@@ -336,11 +355,22 @@ struct hb_font_t
 			     hb_position_t *first_advance,
 			     unsigned int advance_stride)
   {
-    return klass->get.f.glyph_h_advances (this, user_data,
-					  count,
-					  first_glyph, glyph_stride,
-					  first_advance, advance_stride,
-					  !klass->user_data ? nullptr : klass->user_data->glyph_h_advances);
+    klass->get.f.glyph_h_advances (this, user_data,
+				   count,
+				   first_glyph, glyph_stride,
+				   first_advance, advance_stride,
+				   !klass->user_data ? nullptr : klass->user_data->glyph_h_advances);
+
+    if (x_strength && !embolden_in_place)
+    {
+      /* Emboldening. */
+      hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
+      for (unsigned int i = 0; i < count; i++)
+      {
+	*first_advance += *first_advance ? strength : 0;
+	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+      }
+    }
   }
 
   void get_glyph_v_advances (unsigned int count,
@@ -349,11 +379,22 @@ struct hb_font_t
 			     hb_position_t *first_advance,
 			     unsigned int advance_stride)
   {
-    return klass->get.f.glyph_v_advances (this, user_data,
-					  count,
-					  first_glyph, glyph_stride,
-					  first_advance, advance_stride,
-					  !klass->user_data ? nullptr : klass->user_data->glyph_v_advances);
+    klass->get.f.glyph_v_advances (this, user_data,
+				   count,
+				   first_glyph, glyph_stride,
+				   first_advance, advance_stride,
+				   !klass->user_data ? nullptr : klass->user_data->glyph_v_advances);
+
+    if (y_strength && !embolden_in_place)
+    {
+      /* Emboldening. */
+      hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
+      for (unsigned int i = 0; i < count; i++)
+      {
+	*first_advance += *first_advance ? strength : 0;
+	first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+      }
+    }
   }
 
   hb_bool_t get_glyph_h_origin (hb_codepoint_t glyph,
@@ -446,10 +487,37 @@ struct hb_font_t
   void draw_glyph (hb_codepoint_t glyph,
 		   hb_draw_funcs_t *draw_funcs, void *draw_data)
   {
+#ifndef HB_NO_OUTLINE
+    bool embolden = x_strength || y_strength;
+#else
+    constexpr bool embolden = false;
+#endif
+
+    if (!embolden)
+    {
+      klass->get.f.draw_glyph (this, user_data,
+			       glyph,
+			       draw_funcs, draw_data,
+			       !klass->user_data ? nullptr : klass->user_data->draw_glyph);
+      return;
+    }
+
+#ifndef HB_NO_OUTLINE
+    /* Emboldening. */
+    hb_outline_t outline;
     klass->get.f.draw_glyph (this, user_data,
 			     glyph,
-			     draw_funcs, draw_data,
+			     hb_outline_recording_pen_get_funcs (), &outline,
 			     !klass->user_data ? nullptr : klass->user_data->draw_glyph);
+
+    float x_shift = embolden_in_place ? 0 : (float) x_strength / 2;
+    float y_shift = (float) y_strength / 2;
+    if (x_scale < 0) x_shift = -x_shift;
+    if (y_scale < 0) y_shift = -y_shift;
+    outline.embolden (x_strength, y_strength, x_shift, y_shift);
+
+    outline.replay (draw_funcs, draw_data);
+#endif
   }
 
   void paint_glyph (hb_codepoint_t glyph,

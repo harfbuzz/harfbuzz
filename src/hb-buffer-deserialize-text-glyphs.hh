@@ -274,7 +274,7 @@ static const int deserialize_text_glyphs_error = 0;
 static const int deserialize_text_glyphs_en_main = 25;
 
 
-#line 99 "hb-buffer-deserialize-text-glyphs.rl"
+#line 98 "hb-buffer-deserialize-text-glyphs.rl"
 
 
 static hb_bool_t
@@ -325,13 +325,13 @@ _resume:
 
 	switch ( _deserialize_text_glyphs_trans_actions[_trans] ) {
 	case 2:
-#line 51 "hb-buffer-deserialize-text-glyphs.rl"
+#line 50 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	tok = p;
 }
 	break;
 	case 1:
-#line 55 "hb-buffer-deserialize-text-glyphs.rl"
+#line 54 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	/* TODO Unescape delimiters. */
 	if (!hb_font_glyph_from_string (font,
@@ -341,27 +341,27 @@ _resume:
 }
 	break;
 	case 6:
-#line 63 "hb-buffer-deserialize-text-glyphs.rl"
+#line 62 "hb-buffer-deserialize-text-glyphs.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 	break;
 	case 7:
-#line 64 "hb-buffer-deserialize-text-glyphs.rl"
+#line 63 "hb-buffer-deserialize-text-glyphs.rl"
 	{ if (!parse_int  (tok, p, &pos.x_offset )) return false; }
 	break;
 	case 8:
-#line 65 "hb-buffer-deserialize-text-glyphs.rl"
+#line 64 "hb-buffer-deserialize-text-glyphs.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 	break;
 	case 4:
-#line 66 "hb-buffer-deserialize-text-glyphs.rl"
+#line 65 "hb-buffer-deserialize-text-glyphs.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 	break;
 	case 5:
-#line 67 "hb-buffer-deserialize-text-glyphs.rl"
+#line 66 "hb-buffer-deserialize-text-glyphs.rl"
 	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
 	break;
 	case 3:
-#line 68 "hb-buffer-deserialize-text-glyphs.rl"
+#line 67 "hb-buffer-deserialize-text-glyphs.rl"
 	{ if (!parse_uint (tok, p, &info.mask    )) return false; }
 	break;
 	case 9:
@@ -370,7 +370,7 @@ _resume:
 	hb_memset (&info, 0, sizeof (info));
 	hb_memset (&pos , 0, sizeof (pos ));
 }
-#line 51 "hb-buffer-deserialize-text-glyphs.rl"
+#line 50 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	tok = p;
 }
@@ -381,11 +381,11 @@ _resume:
 	hb_memset (&info, 0, sizeof (info));
 	hb_memset (&pos , 0, sizeof (pos ));
 }
-#line 51 "hb-buffer-deserialize-text-glyphs.rl"
+#line 50 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	tok = p;
 }
-#line 55 "hb-buffer-deserialize-text-glyphs.rl"
+#line 54 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	/* TODO Unescape delimiters. */
 	if (!hb_font_glyph_from_string (font,
@@ -397,10 +397,9 @@ _resume:
 	case 12:
 #line 43 "hb-buffer-deserialize-text-glyphs.rl"
 	{
-	buffer->add_info (info);
+	buffer->add_info_and_pos (info, pos);
 	if (unlikely (!buffer->successful))
 	  return false;
-	buffer->pos[buffer->len - 1] = pos;
 	*end_ptr = p;
 }
 #line 38 "hb-buffer-deserialize-text-glyphs.rl"
@@ -408,13 +407,13 @@ _resume:
 	hb_memset (&info, 0, sizeof (info));
 	hb_memset (&pos , 0, sizeof (pos ));
 }
-#line 51 "hb-buffer-deserialize-text-glyphs.rl"
+#line 50 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	tok = p;
 }
 	break;
 	case 14:
-#line 55 "hb-buffer-deserialize-text-glyphs.rl"
+#line 54 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	/* TODO Unescape delimiters. */
 	if (!hb_font_glyph_from_string (font,
@@ -427,7 +426,7 @@ _resume:
 	hb_memset (&info, 0, sizeof (info));
 	hb_memset (&pos , 0, sizeof (pos ));
 }
-#line 51 "hb-buffer-deserialize-text-glyphs.rl"
+#line 50 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	tok = p;
 }
@@ -435,10 +434,9 @@ _resume:
 	case 13:
 #line 43 "hb-buffer-deserialize-text-glyphs.rl"
 	{
-	buffer->add_info (info);
+	buffer->add_info_and_pos (info, pos);
 	if (unlikely (!buffer->successful))
 	  return false;
-	buffer->pos[buffer->len - 1] = pos;
 	*end_ptr = p;
 }
 #line 38 "hb-buffer-deserialize-text-glyphs.rl"
@@ -446,11 +444,11 @@ _resume:
 	hb_memset (&info, 0, sizeof (info));
 	hb_memset (&pos , 0, sizeof (pos ));
 }
-#line 51 "hb-buffer-deserialize-text-glyphs.rl"
+#line 50 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	tok = p;
 }
-#line 55 "hb-buffer-deserialize-text-glyphs.rl"
+#line 54 "hb-buffer-deserialize-text-glyphs.rl"
 	{
 	/* TODO Unescape delimiters. */
 	if (!hb_font_glyph_from_string (font,
@@ -459,7 +457,7 @@ _resume:
 	  return false;
 }
 	break;
-#line 463 "hb-buffer-deserialize-text-glyphs.hh"
+#line 461 "hb-buffer-deserialize-text-glyphs.hh"
 	}
 
 _again:
@@ -474,21 +472,20 @@ _again:
 	case 11:
 #line 43 "hb-buffer-deserialize-text-glyphs.rl"
 	{
-	buffer->add_info (info);
+	buffer->add_info_and_pos (info, pos);
 	if (unlikely (!buffer->successful))
 	  return false;
-	buffer->pos[buffer->len - 1] = pos;
 	*end_ptr = p;
 }
 	break;
-#line 485 "hb-buffer-deserialize-text-glyphs.hh"
+#line 482 "hb-buffer-deserialize-text-glyphs.hh"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 120 "hb-buffer-deserialize-text-glyphs.rl"
+#line 119 "hb-buffer-deserialize-text-glyphs.rl"
 
 
   *end_ptr = p;
