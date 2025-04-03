@@ -73,7 +73,102 @@ struct hb_ot_font_t
 
   /* h_advance caching */
   mutable hb_atomic_t<int> cached_coords_serial;
-  mutable hb_atomic_t<hb_ot_font_advance_cache_t *> advance_cache;
+  struct advance_cache_t
+  {
+    mutable hb_atomic_t<hb_ot_font_advance_cache_t *> advance_cache;
+    mutable hb_atomic_t<OT::ItemVariationStore::cache_t *> varStore_cache;
+
+    ~advance_cache_t ()
+    {
+      clear ();
+    }
+
+    hb_ot_font_advance_cache_t *acquire_advance_cache () const
+    {
+    retry:
+      auto *cache = advance_cache.get_acquire ();
+      if (!cache)
+      {
+        cache = (hb_ot_font_advance_cache_t *) hb_malloc (sizeof (hb_ot_font_advance_cache_t));
+	if (!cache)
+	  return nullptr;
+	new (cache) hb_ot_font_advance_cache_t;
+	return cache;
+      }
+      if (advance_cache.cmpexch (cache, nullptr))
+        return cache;
+      else
+        goto retry;
+    }
+    void release_advance_cache (hb_ot_font_advance_cache_t *cache) const
+    {
+      if (!cache)
+        return;
+      if (!advance_cache.cmpexch (nullptr, cache))
+        hb_free (cache);
+    }
+    void clear_advance_cache () const
+    {
+    retry:
+      auto *cache = advance_cache.get_acquire ();
+      if (!cache)
+	return;
+      if (advance_cache.cmpexch (cache, nullptr))
+	hb_free (cache);
+      else
+        goto retry;
+    }
+
+    OT::ItemVariationStore::cache_t *acquire_varStore_cache (const OT::ItemVariationStore &varStore) const
+    {
+    retry:
+      auto *cache = varStore_cache.get_acquire ();
+      if (!cache)
+	return varStore.create_cache ();
+      if (varStore_cache.cmpexch (cache, nullptr))
+	return cache;
+      else
+	goto retry;
+    }
+    void release_varStore_cache (OT::ItemVariationStore::cache_t *cache) const
+    {
+      if (!cache)
+	return;
+      if (!varStore_cache.cmpexch (nullptr, cache))
+	OT::ItemVariationStore::destroy_cache (cache);
+    }
+    void clear_varStore_cache () const
+    {
+    retry:
+      auto *cache = varStore_cache.get_acquire ();
+      if (!cache)
+	return;
+      if (varStore_cache.cmpexch (cache, nullptr))
+	OT::ItemVariationStore::destroy_cache (cache);
+      else
+	goto retry;
+    }
+
+    void clear () const
+    {
+      clear_advance_cache ();
+      clear_varStore_cache ();
+    }
+
+  } h, v;
+
+  void check_serial (hb_font_t *font) const
+  {
+    int font_serial = font->serial_coords.get_acquire ();
+
+    if (cached_coords_serial.get_acquire () == font_serial)
+      return;
+
+    h.clear ();
+    v.clear ();
+
+    cached_coords_serial.set_release (font_serial);
+  }
 };
 
 static hb_ot_font_t *
@@ -93,8 +188,7 @@ _hb_ot_font_destroy (void *font_data)
 {
   hb_ot_font_t *ot_font = (hb_ot_font_t *) font_data;
 
-  auto *cache = ot_font->advance_cache.get_relaxed ();
-  hb_free (cache);
+  ot_font->~hb_ot_font_t ();
 
   hb_free (ot_font);
 }
@@ -156,41 +250,20 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   const hb_ot_face_t *ot_face = ot_font->ot_face;
   const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx;
 
-#if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
+  ot_font->check_serial (font);
   const OT::HVAR &HVAR = *hmtx.var_table;
   const OT::ItemVariationStore &varStore = &HVAR + HVAR.varStore;
-  OT::ItemVariationStore::cache_t *varStore_cache = font->has_nonzero_coords && font->num_coords * count >= 128 ? varStore.create_cache () : nullptr;
+  OT::ItemVariationStore::cache_t *varStore_cache = font->has_nonzero_coords ? ot_font->h.acquire_varStore_cache (varStore) : nullptr;
+
+  hb_ot_font_advance_cache_t *advance_cache = nullptr;
 
   bool use_cache = font->has_nonzero_coords;
-#else
-  OT::ItemVariationStore::cache_t *varStore_cache = nullptr;
-  bool use_cache = false;
-#endif
-
-  hb_ot_font_advance_cache_t *cache = nullptr;
   if (use_cache)
   {
-  retry:
-    cache = ot_font->advance_cache.get_acquire ();
-    if (unlikely (!cache))
-    {
-      cache = (hb_ot_font_advance_cache_t *) hb_malloc (sizeof (hb_ot_font_advance_cache_t));
-      if (unlikely (!cache))
-      {
-	use_cache = false;
-	goto out;
-      }
-      new (cache) hb_ot_font_advance_cache_t;
-
-      if (unlikely (!ot_font->advance_cache.cmpexch (nullptr, cache)))
-      {
-	hb_free (cache);
-	goto retry;
-      }
-      ot_font->cached_coords_serial.set_release (font->serial_coords);
-    }
+    advance_cache = ot_font->h.acquire_advance_cache ();
+    if (!advance_cache)
+      use_cache = false;
   }
-  out:
 
   if (!use_cache)
   {
@@ -203,32 +276,26 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   }
   else
   { /* Use cache. */
-    if (ot_font->cached_coords_serial.get_acquire () != (int) font->serial_coords)
-    {
-      ot_font->advance_cache->clear ();
-      ot_font->cached_coords_serial.set_release (font->serial_coords);
-    }
-
     for (unsigned int i = 0; i < count; i++)
     {
       hb_position_t v;
       unsigned cv;
-      if (ot_font->advance_cache->get (*first_glyph, &cv))
+      if (advance_cache->get (*first_glyph, &cv))
 	v = cv;
       else
       {
         v = hmtx.get_advance_with_var_unscaled (*first_glyph, font, varStore_cache);
-	ot_font->advance_cache->set (*first_glyph, v);
+	advance_cache->set (*first_glyph, v);
       }
       *first_advance = font->em_scale_x (v);
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
+
+    ot_font->h.release_advance_cache (advance_cache);
   }
 
-#if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
-  OT::ItemVariationStore::destroy_cache (varStore_cache);
-#endif
+  ot_font->h.release_varStore_cache (varStore_cache);
 }
 
 #ifndef HB_NO_VERTICAL
@@ -247,13 +314,11 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 
   if (vmtx.has_data ())
   {
-#if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
+    ot_font->check_serial (font);
     const OT::VVAR &VVAR = *vmtx.var_table;
     const OT::ItemVariationStore &varStore = &VVAR + VVAR.varStore;
-    OT::ItemVariationStore::cache_t *varStore_cache = font->has_nonzero_coords ? varStore.create_cache () : nullptr;
-#else
-    OT::ItemVariationStore::cache_t *varStore_cache = nullptr;
-#endif
+    OT::ItemVariationStore::cache_t *varStore_cache = font->has_nonzero_coords ? ot_font->v.acquire_varStore_cache (varStore) : nullptr;
+    // TODO Use advance_cache.
 
     for (unsigned int i = 0; i < count; i++)
     {
@@ -262,9 +327,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
 
-#if !defined(HB_NO_VAR) && !defined(HB_NO_OT_FONT_ADVANCE_CACHE)
-    OT::ItemVariationStore::destroy_cache (varStore_cache);
-#endif
+    ot_font->v.release_varStore_cache (varStore_cache);
   }
   else
   {

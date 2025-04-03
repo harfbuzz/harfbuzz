@@ -1902,6 +1902,7 @@ _hb_font_adopt_var_coords (hb_font_t *font,
   font->has_nonzero_coords = hb_any (hb_array (coords, coords_length));
 
   font->changed ();
+  font->serial_coords = font->serial;
 }
 
 /**
@@ -2220,6 +2221,7 @@ hb_font_set_face (hb_font_t *font,
   hb_face_destroy (old);
 
   font->changed ();
+  font->serial_coords = font->serial;
 }
 
 /**

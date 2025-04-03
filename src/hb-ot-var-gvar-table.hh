@@ -590,9 +590,9 @@ struct gvar_GVAR
       /* If sanitize failed, set glyphCount to 0. */
       glyphCount = table->version.to_int () ? face->get_num_glyphs () : 0;
 
-      /* For shared tuples that only have one axis active, shared the index of
-       * that axis as a cache. This will speed up caclulate_scalar() a lot
-       * for fonts with lots of axes and many "monovar" tuples. */
+      /* For shared tuples that only have one or two axes active, shared the index
+       * of that axis as a cache. This will speed up caclulate_scalar() a lot
+       * for fonts with lots of axes and many "monovar" or "duovar" tuples. */
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
       unsigned count = table->sharedTupleCount;
       if (unlikely (!shared_tuple_active_idx.resize (count, false))) return;
