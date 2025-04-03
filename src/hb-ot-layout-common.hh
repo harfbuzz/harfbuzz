@@ -3187,8 +3187,8 @@ struct ItemVariationStore
 #ifdef HB_NO_VAR
     return nullptr;
 #endif
-    auto &r = this+regions;
-    unsigned count = r.regionCount;
+    unsigned count = (this+regions).regionCount;
+    if (!count) return nullptr;
 
     float *cache = (float *) hb_malloc (sizeof (float) * count);
     if (unlikely (!cache)) return nullptr;
