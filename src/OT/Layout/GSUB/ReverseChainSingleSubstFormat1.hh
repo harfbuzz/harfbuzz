@@ -68,8 +68,16 @@ struct ReverseChainSingleSubstFormat1
   { return false; }
 
 #ifdef HB_DEPEND_API
-  // XXX not done yet
-  bool depend (hb_depend_context_t *c) const { return false; }
+  bool depend (hb_depend_context_t *c) const {
+    const auto &lookahead = StructAfter<decltype (lookaheadX)> (backtrack);
+    const auto &substitute = StructAfter<decltype (substituteX)> (lookahead);
+
+    + hb_zip (this+coverage, substitute)
+    | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup (_.first, c->lookup_index, _.second); })
+    ;
+
+    return true;
+  }
 #endif
 
   void closure (hb_closure_context_t *c) const

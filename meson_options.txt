@@ -50,6 +50,8 @@ option('with_libstdcxx', type: 'boolean', value: false,
   description: 'Allow linking with libstdc++')
 option('experimental_api', type: 'boolean', value: false,
   description: 'Enable experimental APIs')
+option('depend_api', type: 'boolean', value: false,
+  description: 'Enable dependency analysis APIs')
 option('ragel_subproject', type: 'boolean', value: false,
   description: 'Build Ragel subproject if no suitable version is found')
 option('fuzzer_ldflags', type: 'string',
