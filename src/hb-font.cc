@@ -1894,6 +1894,7 @@ _hb_font_adopt_var_coords (hb_font_t *font,
   font->num_coords = coords_length;
 
   font->changed ();
+  font->serial_coords = font->serial;
 }
 
 /**
