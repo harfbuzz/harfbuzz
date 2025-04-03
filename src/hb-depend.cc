@@ -62,6 +62,9 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
 
   get_cmap_dependencies();
   get_gsub_dependencies();
+  get_math_dependencies();
+  get_colr_dependencies();
+  get_glyf_dependencies();
 }
 
 void hb_depend_t::get_cmap_dependencies() {
