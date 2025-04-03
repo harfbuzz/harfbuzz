@@ -737,7 +737,8 @@ struct hb_ot_apply_context_t :
   hb_ot_apply_context_t (unsigned int table_index_,
 			 hb_font_t *font_,
 			 hb_buffer_t *buffer_,
-			 hb_blob_t *table_blob_) :
+			 hb_blob_t *table_blob_,
+			 ItemVariationStore::cache_t *var_store_cache_ = nullptr) :
 			table_index (table_index_),
 			font (font_), face (font->face), buffer (buffer_),
 			sanitizer (table_blob_),
@@ -756,25 +757,12 @@ struct hb_ot_apply_context_t :
 #endif
 			     ),
 			var_store (gdef.get_var_store ()),
-			var_store_cache (
-#ifndef HB_NO_VAR
-					 table_index == 1 && font->num_coords ? var_store.create_cache () : nullptr
-#else
-					 nullptr
-#endif
-					),
+			var_store_cache (var_store_cache_),
 			direction (buffer_->props.direction),
 			has_glyph_classes (gdef.has_glyph_classes ())
   {
     init_iters ();
     buffer->collect_codepoints (digest);
-  }
-
-  ~hb_ot_apply_context_t ()
-  {
-#ifndef HB_NO_VAR
-    ItemVariationStore::destroy_cache (var_store_cache);
-#endif
   }
 
   void init_iters ()
@@ -4946,9 +4934,54 @@ struct GSUBGPOS
       return accel;
     }
 
+    void check_serial (hb_font_t *font) const
+    {
+      int font_serial = font->serial_coords.get_acquire ();
+      if (likely (font_serial == coords_serial.get_acquire ()))
+        return;
+
+    retry:
+      ItemVariationStore::cache_t *cache = var_store_cache.get_acquire ();
+      if (cache)
+      {
+        if (var_store_cache.cmpexch (cache, nullptr))
+	  ItemVariationStore::destroy_cache (cache);
+	else
+	  goto retry;
+      }
+
+      coords_serial.set_release (font_serial);
+    }
+    ItemVariationStore::cache_t *acquire_var_store_cache (hb_font_t *font) const
+    {
+      const OT::ItemVariationStore &var_store = font->face->table.GDEF->table->get_var_store ();
+
+      check_serial (font);
+
+    retry:
+      ItemVariationStore::cache_t *cache = var_store_cache.get_acquire ();
+      if (unlikely (!cache))
+        return var_store.create_cache ();
+
+      if (var_store_cache.cmpexch (cache, nullptr))
+        return cache;
+      else
+        goto retry;
+    }
+    void release_var_store_cache (ItemVariationStore::cache_t *cache) const
+    {
+      if (!cache) return;
+      if (var_store_cache.cmpexch (nullptr, cache))
+	return;
+      ItemVariationStore::destroy_cache (cache);
+    }
+
     hb_blob_ptr_t<T> table;
     unsigned int lookup_count;
     hb_atomic_t<hb_ot_layout_lookup_accelerator_t *> *accels;
+
+    mutable hb_atomic_t<int> coords_serial;
+    mutable hb_atomic_t<ItemVariationStore::cache_t *> var_store_cache;
   };
 
   protected:

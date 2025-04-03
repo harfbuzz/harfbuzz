@@ -2015,7 +2015,12 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 {
   const unsigned int table_index = proxy.table_index;
   unsigned int i = 0;
-  OT::hb_ot_apply_context_t c (table_index, font, buffer, proxy.accel.get_blob ());
+
+  OT::ItemVariationStore::cache_t *var_store_cache = nullptr;
+  if (proxy.table_index == 1 && font->num_coords)
+    var_store_cache = proxy.accel.acquire_var_store_cache (font);
+
+  OT::hb_ot_apply_context_t c (table_index, font, buffer, proxy.accel.get_blob (), var_store_cache);
   c.set_recurse_func (Proxy::Lookup::template dispatch_recurse_func<OT::hb_ot_apply_context_t>);
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
@@ -2067,6 +2072,8 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       }
     }
   }
+
+  proxy.accel.release_var_store_cache (var_store_cache);
 }
 
 void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
