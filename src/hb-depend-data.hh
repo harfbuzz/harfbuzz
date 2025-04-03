@@ -119,12 +119,12 @@ struct hb_depend_data_t
           printf("  layout %c%c%c%c -> %u", HB_UNTAG(d.layout_tag), d.dependent);
           if (d.ligature_set != HB_CODEPOINT_INVALID)
             printf("  (ligature)");
-          printf("\n");
         } else {
           printf("  %c%c%c%c -> %u", HB_UNTAG(d.table_tag), d.dependent);
           if (d.table_tag == HB_TAG('c','m','a','p'))
             printf(" (UVS is %u)", d.layout_tag);
         }
+        printf("\n");
       }
     }
   }
