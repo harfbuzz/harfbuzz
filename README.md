@@ -50,6 +50,8 @@ For custom configurations, see [CONFIG.md](CONFIG.md).
 
 For testing and profiling, see [TESTING.md](TESTING.md).
 
+For using with Python, see [README.python.md](README.python.md). There is also [uharfbuzz](https://github.com/harfbuzz/uharfbuzz).
+
 For cross-compiling to Windows from Linux or macOS, see [README.mingw.md](README.mingw.md).
 
 To report bugs or submit patches please use [github][4] issues and pull-requests.
