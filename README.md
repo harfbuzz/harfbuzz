@@ -42,10 +42,6 @@ The API that comes with `hb.h` will not change incompatibly. Other, peripheral,
 headers are more likely to go through minor modifications, but again, we do our
 best to never change API in an incompatible way. We will never break the ABI.
 
-If you are not sure whether Pango or HarfBuzz is right for you, read [Pango vs
-HarfBuzz][5].
-
-
 ## Development
 
 For build information, see [BUILD.md](BUILD.md).
@@ -107,7 +103,6 @@ transliterated using the Latin script. It also means "talkative" or
 [2]: https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6AATIntro.html
 [3]: https://github.com/harfbuzz/harfbuzz/releases
 [4]: https://github.com/harfbuzz/harfbuzz
-[5]: http://mces.blogspot.com/2009/11/pango-vs-harfbuzz.html
 [6]: http://behdad.org/text2024
 [7]: https://docs.google.com/presentation/d/1x97pfbB1gbD53Yhz6-_yBUozQMVJ_5yMqqR_D-R7b7I/preview
 [8]: https://docs.google.com/presentation/d/1ySTZaXP5XKFg0OpmHZM00v5b17GSr3ojnzJekl4U8qI/preview
