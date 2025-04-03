@@ -35,6 +35,8 @@ will also find Win32/Win64 binary bundles that include `libharfbuzz` DLL,
 `hb-view.exe`, `hb-shape.exe`, and all dependencies.
 
 The canonical source tree is available on [github][4].
+Both development and user support discussion around HarfBuzz happens on
+[github][4] as well.
 
 The API that comes with `hb.h` will not change incompatibly. Other, peripheral,
 headers are more likely to go through minor modifications, but again, we do our
@@ -42,6 +44,7 @@ best to never change API in an incompatible way. We will never break the ABI.
 
 If you are not sure whether Pango or HarfBuzz is right for you, read [Pango vs
 HarfBuzz][5].
+
 
 ## Development
 
@@ -53,24 +56,30 @@ For testing and profiling, see [TESTING.md](TESTING.md).
 
 For cross-compiling to Windows from Linux or macOS, see [README.mingw.md](README.mingw.md).
 
+To report bugs or submit patches please use [github][4] issues and pull-requests.
+
+### Developer documents
+
 To get a better idea of where HarfBuzz stands in the text rendering stack you
 may want to read [State of Text Rendering 2024][6].
 Here are a few presentation slides about HarfBuzz at the
 Internationalization and Unicode Conference over the years:
 
-*   November 2014, [Unicode, OpenType, and HarfBuzz: Closing the Circle][7],
-*   October 2012, [HarfBuzz, The Free and Open Text Shaping Engine][8],
-*   October 2009, [HarfBuzz: the Free and Open Shaping Engine][9].
+-   November 2014, [Unicode, OpenType, and HarfBuzz: Closing the Circle][7],
+-   October 2012, [HarfBuzz, The Free and Open Text Shaping Engine][8],
+-   October 2009, [HarfBuzz: the Free and Open Shaping Engine][9].
 
-Both development and user support discussion around HarfBuzz happens on the
-[github][4].
+More presentations and papers are available on [behdad][11]'s website.
+In particular, the following documents are relevant to HarfBuzz development:
 
-To report bugs or submit patches please use [github][4] issues and
-pull-requests.
+- 2025 — HarfBuzz Study: Caching — [Paper][12]
+- 2025 — HarfBuzz Study: `hb-decycler` — [Paper][13]
+- 2022 — HarfBuzz Study: `hb-iter` — [Paper][14]
+- 2022 — HarfBuzz Study: A C library written in C++ — [Paper][15]
+- 2022 — HarfBuzz Study: PackTab: A static integer table packer — [Paper][16]
+- 2014 — Reflections on Building the HarfBuzz Indic Shaper — [Paper][17]
+- 2012 — HarfBuzz Memory Consumption — [Paper][10]
 
-For a comparison of old vs new HarfBuzz memory consumption see [this][10].
-
-<!--See past and upcoming [HarfBuzz Hackfests](https://freedesktop.org/wiki/Software/HarfBuzz/Hackfests/)!-->
 
 ## Name
 
@@ -100,7 +109,14 @@ transliterated using the Latin script. It also means "talkative" or
 [4]: https://github.com/harfbuzz/harfbuzz
 [5]: http://mces.blogspot.com/2009/11/pango-vs-harfbuzz.html
 [6]: http://behdad.org/text2024
-[7]: https://goo.gl/FSIQuC
-[8]: https://goo.gl/2wSRu
+[7]: https://docs.google.com/presentation/d/1x97pfbB1gbD53Yhz6-_yBUozQMVJ_5yMqqR_D-R7b7I/preview
+[8]: https://docs.google.com/presentation/d/1ySTZaXP5XKFg0OpmHZM00v5b17GSr3ojnzJekl4U8qI/preview
 [9]: http://behdad.org/download/Presentations/slippy/harfbuzz_slides.pdf
-[10]: https://goo.gl/woyty
+[10]: https://docs.google.com/document/d/12jfNpQJzeVIAxoUSpk7KziyINAa1msbGliyXqguS86M/preview
+[11]: https://behdad.org/
+[12]: https://docs.google.com/document/d/1_VgObf6Je0J8byMLsi7HCQHnKo2emGnx_ib_sHo-bt4/preview
+[13]: https://docs.google.com/document/d/1Y-u08l9YhObRVObETZt1k8f_5lQdOix9TRH3zEXaoAw/preview
+[14]: https://docs.google.com/document/d/1o-xvxCbgMe9JYFHLVnPjk01ZY_8Cj0vB9-KTI1d0nyk/preview
+[15]: https://docs.google.com/document/d/18hI56KJpvXtwWbc9QSaz9zzhJwIMnrJ-zkAaKS-W-8k/preview
+[16]: https://docs.google.com/document/d/1Xq3owVt61HVkJqbLFHl73il6pcTy6PdPJJ7bSouQiQw/preview
+[17]: https://docs.google.com/document/d/1wMPwVNBvsIriamcyBO5aNs7Cdr8lmbwLJ8GmZBAswF4/preview
