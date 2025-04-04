@@ -53,38 +53,6 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     hb_subset_input_destroy (input);
   }
 
-  void parse_face (int argc, const char * const *argv)
-  {
-    option_parser_t parser;
-    face_options_t face_opts;
-
-    face_opts.add_options (&parser);
-
-    GOptionEntry entries[] =
-    {
-      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
-				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_face,	nullptr,	"[FONT-FILE] [TEXT]"},
-      {nullptr}
-    };
-    parser.add_main_group (entries, &face_opts);
-    parser.add_options ();
-
-    g_option_context_set_ignore_unknown_options (parser.context, true);
-    g_option_context_set_help_enabled (parser.context, false);
-
-    char **args = (char **)
-#if GLIB_CHECK_VERSION (2, 68, 0)
-      g_memdup2
-#else
-      g_memdup
-#endif
-      (argv, argc * sizeof (*argv));
-    parser.parse (&argc, &args);
-    g_free (args);
-
-    set_face (face_opts.face);
-  }
-
   void parse (int argc, char **argv)
   {
     bool help = false;
@@ -95,14 +63,26 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
 	break;
       }
 
+    add_options ();
+
     if (likely (!help))
     {
       /* Do a preliminary parse to load font-face, such that we can use it
        * during main option parsing. */
-      parse_face (argc, argv);
+      set_face (hb_face_get_empty ());
+      int argc2 = argc;
+      char **argv2 = (char **)
+#if GLIB_CHECK_VERSION (2, 68, 0)
+		      g_memdup2
+#else
+		      g_memdup
+#endif
+		      (argv, argc * sizeof (*argv));
+      option_parser_t parser2;
+      parser2.option_parser_t::parse (&argc2, &argv2, true);
+      g_free (argv2);
     }
 
-    add_options ();
     option_parser_t::parse (&argc, &argv);
   }
 
