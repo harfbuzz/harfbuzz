@@ -226,7 +226,6 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
 				     int                 str_len);
 
 
-                                     
 /*
 * Raw outline data access
 */
