@@ -46,6 +46,7 @@
 #include "hb-set.hh"
 
 #include "hb-aat-layout.hh"
+#include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-stat-table.hh"
 
 
@@ -423,17 +424,26 @@ _hb_ot_shaper_face_data_destroy (hb_ot_face_data_t *data)
  * shaper font data
  */
 
-struct hb_ot_font_data_t {};
+struct hb_ot_font_data_t {
+  OT::ItemVariationStore::cache_t unused; // Just for alignment
+};
 
 hb_ot_font_data_t *
-_hb_ot_shaper_font_data_create (hb_font_t *font HB_UNUSED)
+_hb_ot_shaper_font_data_create (hb_font_t *font)
 {
-  return (hb_ot_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  if (!font->has_nonzero_coords)
+    return (hb_ot_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+
+  const OT::ItemVariationStore &var_store = font->face->table.GDEF->table->get_var_store ();
+  auto *cache = (hb_ot_font_data_t *) var_store.create_cache ();
+  return cache ? cache : (hb_ot_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_ot_shaper_font_data_destroy (hb_ot_font_data_t *data HB_UNUSED)
+_hb_ot_shaper_font_data_destroy (hb_ot_font_data_t *data)
 {
+  if (data == HB_SHAPER_DATA_SUCCEEDED) return;
+  OT::ItemVariationStore::destroy_cache ((OT::ItemVariationStore::cache_t *) data);
 }
 
 
