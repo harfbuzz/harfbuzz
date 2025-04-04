@@ -431,8 +431,11 @@ struct hb_ot_font_data_t {
 hb_ot_font_data_t *
 _hb_ot_shaper_font_data_create (hb_font_t *font)
 {
+  if (!font->num_coords)
+    return (hb_ot_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+
   const OT::ItemVariationStore &var_store = font->face->table.GDEF->table->get_var_store ();
-  auto *cache = font->num_coords ? (hb_ot_font_data_t *) var_store.create_cache () : nullptr;
+  auto *cache = (hb_ot_font_data_t *) var_store.create_cache ();
   return cache ? cache : (hb_ot_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
