@@ -2548,11 +2548,13 @@ struct SparseVarRegionAxis
   DEFINE_SIZE_STATIC (8);
 };
 
-#define REGION_CACHE_ITEM_CACHE_INVALID 2.f
+#define REGION_CACHE_ITEM_CACHE_INVALID (1 << 30)
+#define REGION_CACHE_ITEM_MULTIPLIER (float (1 << 19))
+#define REGION_CACHE_ITEM_DIVISOR (1.f / float (1 << 19))
 
 struct VarRegionList
 {
-  using cache_t = hb_atomic_t<float>;
+  using cache_t = hb_atomic_t<int>;
 
   float evaluate (unsigned int region_index,
 		  const int *coords, unsigned int coord_len,
@@ -2566,7 +2568,7 @@ struct VarRegionList
     {
       cached_value = &(cache[region_index]);
       if (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID)
-	return *cached_value;
+	return *cached_value * REGION_CACHE_ITEM_DIVISOR;
     }
 
     const VarRegionAxis *axes = axesZ.arrayZ + (region_index * axisCount);
@@ -2587,7 +2589,7 @@ struct VarRegionList
     }
 
     if (cache)
-      *cached_value = v;
+      *cached_value = v * REGION_CACHE_ITEM_MULTIPLIER;
     return v;
   }
 
@@ -2730,7 +2732,7 @@ struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
 
 struct SparseVarRegionList
 {
-  using cache_t = hb_atomic_t<float>;
+  using cache_t = hb_atomic_t<int>;
 
   float evaluate (unsigned int region_index,
 		  const int *coords, unsigned int coord_len,
@@ -2739,12 +2741,12 @@ struct SparseVarRegionList
     if (unlikely (region_index >= regions.len))
       return 0.;
 
-    hb_atomic_t<float> *cached_value = nullptr;
+    cache_t *cached_value = nullptr;
     if (cache)
     {
       cached_value = &(cache[region_index]);
       if (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID)
-	return *cached_value;
+	return *cached_value * REGION_CACHE_ITEM_DIVISOR;
     }
 
     const SparseVariationRegion &region = this+regions[region_index];
@@ -2752,7 +2754,7 @@ struct SparseVarRegionList
     float v = region.evaluate (coords, coord_len);
 
     if (cache)
-      *cached_value = v;
+      *cached_value = v * REGION_CACHE_ITEM_MULTIPLIER;
     return v;
   }
 
