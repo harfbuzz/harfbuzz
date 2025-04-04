@@ -2015,7 +2015,11 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 {
   const unsigned int table_index = proxy.table_index;
   unsigned int i = 0;
-  OT::hb_ot_apply_context_t c (table_index, font, buffer, proxy.accel.get_blob ());
+
+  auto *font_data = font->data.ot.get ();
+  auto *var_store_cache = font_data == HB_SHAPER_DATA_SUCCEEDED ? nullptr : (OT::ItemVariationStore::cache_t *) font_data;
+
+  OT::hb_ot_apply_context_t c (table_index, font, buffer, proxy.accel.get_blob (), var_store_cache);
   c.set_recurse_func (Proxy::Lookup::template dispatch_recurse_func<OT::hb_ot_apply_context_t>);
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
