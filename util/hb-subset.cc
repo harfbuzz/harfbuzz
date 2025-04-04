@@ -55,22 +55,11 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
 
   void parse_face (int argc, const char * const *argv)
   {
-    option_parser_t parser;
-    face_options_t face_opts;
+    subset_main_t main2;
+    main2.add_options ();
 
-    face_opts.add_options (&parser);
-
-    GOptionEntry entries[] =
-    {
-      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
-				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_face,	nullptr,	"[FONT-FILE] [TEXT]"},
-      {nullptr}
-    };
-    parser.add_main_group (entries, &face_opts);
-    parser.add_options ();
-
-    g_option_context_set_ignore_unknown_options (parser.context, true);
-    g_option_context_set_help_enabled (parser.context, false);
+    g_option_context_set_ignore_unknown_options (main2.context, true);
+    g_option_context_set_help_enabled (main2.context, false);
 
     char **args = (char **)
 #if GLIB_CHECK_VERSION (2, 68, 0)
@@ -79,10 +68,10 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
       g_memdup
 #endif
       (argv, argc * sizeof (*argv));
-    parser.parse (&argc, &args);
+    main2.option_parser_t::parse (&argc, &args);
     g_free (args);
 
-    set_face (face_opts.face);
+    set_face (hb_face_reference (main2.face));
   }
 
   void parse (int argc, char **argv)
@@ -262,6 +251,12 @@ parse_glyphs (const char *name G_GNUC_UNUSED,
 	      GError    **error G_GNUC_UNUSED)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  if (!subset_main->face)
+  {
+    // We are in pre-parsing.
+    return true;
+  }
+
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
   hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *gids = hb_subset_input_glyph_set (subset_main->input);
@@ -686,8 +681,9 @@ parse_instance (const char *name,
 		GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
-  if (!subset_main->face) {
-    // There is no face, which is needed to set up instancing. Skip parsing these options.
+  if (!subset_main->face)
+  {
+    // We are in pre-parsing.
     return true;
   }
 
