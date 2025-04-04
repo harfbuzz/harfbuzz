@@ -199,7 +199,7 @@ create_cg_font (hb_blob_t *blob, unsigned int index)
 
   if (ttc_index != 0)
   {
-    DEBUG_MSG (CORETEXT, blob, "TTC index %d not supported", ttc_index);
+    DEBUG_MSG (CORETEXT, blob, "TTC index %u not supported", ttc_index);
     return nullptr; // CoreText does not support TTCs
   }
 
@@ -414,7 +414,7 @@ hb_coretext_face_create_from_file_or_fail (const char   *file_name,
 
   if (ttc_index != 0)
   {
-    DEBUG_MSG (CORETEXT, nullptr, "TTC index %d not supported", ttc_index);
+    DEBUG_MSG (CORETEXT, nullptr, "TTC index %u not supported", ttc_index);
     return nullptr; // CoreText does not support TTCs
   }
 
