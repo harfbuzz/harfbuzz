@@ -50,7 +50,7 @@
 /* Defined externally, i.e. in config.h. */
 
 
-#elif !defined(HB_NO_MT) && defined(__ATOMIC_ACQUIRE) && 0
+#elif !defined(HB_NO_MT) && defined(__ATOMIC_ACQUIRE)
 
 /* C++11-style GCC primitives. We prefer these as they don't require linking to libstdc++ / libc++. */
 
