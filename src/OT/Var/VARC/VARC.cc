@@ -392,7 +392,7 @@ VARC::get_path_at (const hb_varc_context_t &c,
 
   hb_ubytes_t record = (this+glyphRecords)[idx];
 
-  float static_cache[sizeof (void *) * 16];
+  VarRegionList::cache_t static_cache[sizeof (void *) * 16];
   VarRegionList::cache_t *cache = parent_cache ?
 				  parent_cache :
 				  (this+varStore).create_cache (hb_array (static_cache));
