@@ -12,8 +12,8 @@
           Ensure all new API / deprecations are listed correctly in docs/harfbuzz-sections.txt.
           If release added new API, add entry for new API index at the end of docs/harfbuzz-docs.xml.
 
-          If there's a backward-incompatible API change (including deletions for API used anywhere), that's a release blocker.
-          Do NOT release.
+      If there's a backward-incompatible API change (including deletions for API used anywhere), that's a release blocker.
+      Do NOT release.
 
 - [ ] Based on severity of changes, decide whether it's a minor or micro release number bump.
 
