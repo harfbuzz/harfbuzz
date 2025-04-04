@@ -41,7 +41,7 @@ HB_BEGIN_DECLS
  * @path_start_y: Y component of the start of current path
  * @current_x: X component of current point
  * @current_y: Y component of current point
- * @slant_xy: (Since: 11.0.0): Slanting factor for synthetic oblique
+ * @slant_xy: Slanting factor for synthetic oblique, Since: 11.0.0
  *
  * Current drawing state.
  *

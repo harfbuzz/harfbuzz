@@ -1,4 +1,35 @@
 Overview of changes leading to 11.0.0
+Friday, April 4, 2025
+====================================
+- The change in version 10.3.0 to apply “trak” table tracking values to glyph
+  advances directly has been reverted as it required every font functions
+  implementation to handle it, which breaks existing custom font functions.
+  Tracking is instead back to being applied during shaping.
+- When `directwrite` integration is enabled, we now link to `dwrite.dll`
+  instead of dynamically loading it.
+- A new experimental APIs for getting raw “CFF” and “CFF2” CharStrings.
+- We now provide manpages for the various command line utilities. Building
+  manpages requires “help2man” and will be skipped if it is not present.
+- The command line utilities now set different return value for different kinds
+  of failures. Details are provided in the manpages.
+- Various fixes and improvements to `fontations` font functions.
+- All shaping operations using the `ot` shaper have become memory
+  allocation-free.
+- Glyph extents returned by `hb-ot` and `hb-ft` font functions are now rounded
+  in stead of flooring/ceiling them, which also matches what other font
+  libraries do.
+- Fix “AAT” deleted glyph marks interfering with fallback mark positioning.
+- Glyph outlines emboldening have been moved out of `hb-ot` and `hb-ft` font
+  functions to the HarfBuzz font layer, so that it works with any font
+  functions implementation.
+- Fix our fallback C++11 atomics integration, which seems to not be widely
+  used.
+- Various testing fixes and improvements.
+- Various subsetting fixes and improvements.
+- Various other fixes and improvements.
+
+
+Overview of changes leading to 11.0.0
 Monday, March 24, 2025
 ====================================
 - There are three new font-functions implementations (integrations) in this
