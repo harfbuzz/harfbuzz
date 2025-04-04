@@ -408,7 +408,7 @@ _remap_variation_indices (const OT::ItemVariationStore &var_store,
 {
   if (&var_store == &Null (OT::ItemVariationStore)) return;
   unsigned subtable_count = var_store.get_sub_table_count ();
-  float *store_cache = var_store.create_cache ();
+  auto *store_cache = var_store.create_cache ();
 
   unsigned new_major = 0, new_minor = 0;
   unsigned last_major = (variation_indices.get_min ()) >> 16;
@@ -1161,12 +1161,12 @@ _update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
 
   hb_glyph_extents_t extents = {0x7FFF, -0x7FFF};
   OT::hmtx_accelerator_t _hmtx (plan->source);
-  float *hvar_store_cache = nullptr;
+  OT::ItemVariationStore::cache_t *hvar_store_cache = nullptr;
   if (_hmtx.has_data () && _hmtx.var_table.get_length ())
     hvar_store_cache = _hmtx.var_table->get_var_store ().create_cache ();
 
   OT::vmtx_accelerator_t _vmtx (plan->source);
-  float *vvar_store_cache = nullptr;
+  OT::ItemVariationStore::cache_t *vvar_store_cache = nullptr;
   if (_vmtx.has_data () && _vmtx.var_table.get_length ())
     vvar_store_cache = _vmtx.var_table->get_var_store ().create_cache ();
 
