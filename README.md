@@ -102,6 +102,8 @@ transliterated using the Latin script. It also means "talkative" or
 > TrueType that adds support for complex script rendering, and HarfBuzz is an
 > implementation of OpenType complex text shaping.
 
+## Distribution
+
 <details>
   <summary>Packaging status of HarfBuzz</summary>
 
