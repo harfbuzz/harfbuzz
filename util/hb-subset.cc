@@ -245,7 +245,7 @@ parse_gids (const char *name G_GNUC_UNUSED,
 }
 
 static gboolean
-parse_glyphs (const char *name G_GNUC_UNUSED,
+parse_glyphs (const char *name,
 	      const char *arg,
 	      gpointer    data,
 	      GError    **error G_GNUC_UNUSED)
@@ -308,7 +308,7 @@ parse_glyphs (const char *name G_GNUC_UNUSED,
 }
 
 static gboolean
-parse_text (const char *name G_GNUC_UNUSED,
+parse_text (const char *name,
 	    const char *arg,
 	    gpointer    data,
 	    GError    **error G_GNUC_UNUSED)
@@ -342,7 +342,7 @@ parse_text (const char *name G_GNUC_UNUSED,
 }
 
 static gboolean
-parse_unicodes (const char *name G_GNUC_UNUSED,
+parse_unicodes (const char *name,
 		const char *arg,
 		gpointer    data,
 		GError    **error)
@@ -809,7 +809,7 @@ parse_file_for (const char *name,
   }
   while (!feof (fp));
 
-  g_string_free (gs, false);
+  g_string_free (gs, true);
 
   fclose (fp);
 
