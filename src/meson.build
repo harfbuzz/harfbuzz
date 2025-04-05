@@ -840,15 +840,10 @@ have_gobject = conf.get('HAVE_GOBJECT', 0) == 1
 cmake_config = configuration_data()
 cmake_config_dir = cmake_package_install_dir / 'harfbuzz'
 
-have_fs_relative_to = meson.version().version_compare('>=1.3.0')
-
-if not have_fs_relative_to
-  relative_to = find_program('relative_to.py')
-endif
-
-if have_fs_relative_to
+if meson.version().version_compare('>=1.3.0')
   cmake_package_prefix_dir = fs.relative_to(get_option('prefix'), get_option('prefix') / cmake_config_dir)
 else
+  relative_to = find_program('relative_to.py')
   cmake_package_prefix_dir = run_command(relative_to, get_option('prefix'), get_option('prefix') / cmake_config_dir, check: true).stdout().strip()
 endif
 
@@ -860,7 +855,7 @@ cmake_package_prefix_dir = '${CMAKE_CURRENT_LIST_DIR}/@0@'.format(cmake_package_
 cmake_install_includedir = get_option('includedir')
 
 if fs.is_absolute(cmake_install_includedir)
-  if have_fs_relative_to
+  if meson.version().version_compare('>=1.3.0')
     cmake_install_includedir = fs.relative_to(cmake_install_includedir, get_option('prefix'))
   else
     cmake_install_includedir = run_command(relative_to, cmake_install_includedir, get_option('prefix'), check: true).stdout().strip()
@@ -870,7 +865,7 @@ endif
 cmake_install_libdir = get_option('libdir')
 
 if fs.is_absolute(cmake_install_libdir)
-  if have_fs_relative_to
+  if meson.version().version_compare('>=1.3.0')
     cmake_install_libdir = fs.relative_to(cmake_install_libdir, get_option('prefix'))
   else
     cmake_install_libdir = run_command(relative_to, cmake_install_libdir, get_option('prefix'), check: true).stdout().strip()
