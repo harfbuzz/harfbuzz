@@ -71,7 +71,7 @@ def run_test(test, should_check_ots, preprocess):
     if preprocess:
         cli_args.extend(
             [
-                "--preprocess-face",
+                "--preprocess",
             ]
         )
 
