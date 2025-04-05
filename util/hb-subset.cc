@@ -287,7 +287,7 @@ parse_glyphs (const char *name,
     if (p < end)
     {
       hb_codepoint_t gid;
-      if (!hb_font_get_glyph_from_name (font, p, end - p, &gid))
+      if (!hb_font_glyph_from_string (font, p, end - p, &gid))
       {
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		     "Failed parsing glyph name: '%s'", p);
