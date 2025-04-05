@@ -34,7 +34,8 @@ jobs:
           libglib2.0-dev \
           libgraphite2-dev \
           libicu-dev \
-          pkg-config
+          pkg-config \
+          help2man
     - name: Setup Python
       uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
       with:
