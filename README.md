@@ -76,15 +76,15 @@ Internationalization and Unicode Conference over the years:
 -   October 2009, [HarfBuzz: the Free and Open Shaping Engine][9].
 
 More presentations and papers are available on [behdad][11]'s website.
-In particular, the following documents are relevant to HarfBuzz development:
+In particular, the following _studies_ are relevant to HarfBuzz development:
 
-- 2025 — HarfBuzz Study: Caching — [Paper][12]
-- 2025 — HarfBuzz Study: `hb-decycler` — [Paper][13]
-- 2022 — HarfBuzz Study: `hb-iter` — [Paper][14]
-- 2022 — HarfBuzz Study: A C library written in C++ — [Paper][15]
-- 2022 — HarfBuzz Study: PackTab: A static integer table packer — [Paper][16]
-- 2014 — Reflections on Building the HarfBuzz Indic Shaper — [Paper][17]
-- 2012 — HarfBuzz Memory Consumption — [Paper][10]
+- 2025 — Caching — [Paper][12]
+- 2025 — `hb-decycler` — [Paper][13]
+- 2022 — `hb-iter` — [Paper][14]
+- 2022 — A C library written in C++ — [Paper][15]
+- 2022 — PackTab: A static integer table packer — [Paper][16]
+- 2014 — Building the Indic Shaper — [Paper][17]
+- 2012 — Memory Consumption — [Paper][10]
 
 
 ## Name
