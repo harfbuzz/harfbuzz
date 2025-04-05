@@ -57,8 +57,7 @@ def main():
     fails = 0
     batch_index = 0
 
-    # Run in batches of up to 64 files
-    for chunk in chunkify(files_to_test, 64):
+    for chunk in chunkify(files_to_test):
         batch_index += 1
         cmd_line = [fuzzer] + chunk
         output, returncode = run_command(cmd_line)
