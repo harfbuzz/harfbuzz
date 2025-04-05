@@ -39,5 +39,5 @@ int
 main (int argc, char **argv)
 {
   using main_t = main_font_text_t<shape_consumer_t<view_cairo_t>, font_options_t, shape_text_options_t>;
-  return batch_main<main_t> (argc, argv);
+  return batch_main<main_t, true> (argc, argv);
 }
