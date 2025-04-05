@@ -3,30 +3,23 @@ cmap14_font1.otf
 cmap14_font2.otf
 
 PROFILES:
-notdef-outline.txt
 notdef-outline-drop-hints.txt
-notdef-outline-drop-hints-retain-gids.txt
 notdef-outline-retain-gids.txt
 notdef-outline-name-ids.txt
 notdef-outline-gids.txt
 
 SUBSETS:
+*
 U+4E00,U+4E02,U+4E03
-U+4E02
-U+4E03
+U+4E00,U+4E02,U+4E03,U+E0100
 U+4E00,U+4E03
+U+4E00,U+4E03,U+E0100
 U+4E00,U+4E05,U+4E07
+U+4E00,U+4E05,U+4E07,U+E0100
+U+4E02
+U+4E02,U+E0100
 U+4E05,U+4E07,U+4E08,U+4E09
+U+4E05,U+4E07,U+4E08,U+4E09,U+E0100
 U+4E08
 U+4E08,U+4E09
-U+4E02,U+4E03,U+4E08
-*
-U+4E00,U+4E02,U+4E03,U+E0100
-U+4E02,U+E0100
-U+4E03,U+E0100
-U+4E00,U+4E03,U+E0100
-U+4E00,U+4E05,U+4E07,U+E0100
-U+4E05,U+4E07,U+4E08,U+4E09,U+E0100
-U+4E08,U+E0100
 U+4E08,U+4E09,U+E0100
-U+4E02,U+4E03,U+4E08,U+E0100
