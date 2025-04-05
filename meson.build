@@ -32,11 +32,16 @@ pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
 null_dep = dependency('', required: false)
 
+
+# Includes Microsoft Clang compiler with GNU arguments, see
+# https://github.com/harfbuzz/harfbuzz/pull/4394
+cpp_is_microsoft_compiler = host_machine.system() == 'windows' and cpp.get_define('_MSC_FULL_VER') != ''
+
 # Only perform these checks if cpp_std is c++11 as setting -std directly
 # produces a warning from meson.
 if get_option('cpp_std') == 'c++11'
   # Enforce C++14 requirement for MSVC STL
-  if cpp.get_id() == 'clang' and cpp.get_define('_MSC_FULL_VER') != ''
+  if cpp.get_id() == 'clang' and cpp_is_microsoft_compiler
     add_project_arguments('-std=c++14', language: 'cpp')
   elif cpp.get_id() == 'clang-cl'
     # Clang-cl produces a warning when using -std=c++14, but not when using /std:c++14
