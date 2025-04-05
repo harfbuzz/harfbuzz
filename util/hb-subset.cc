@@ -50,6 +50,7 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   {}
   ~subset_main_t ()
   {
+    hb_font_destroy (font);
     hb_subset_input_destroy (input);
   }
 
@@ -166,6 +167,7 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   unsigned num_iterations = 1;
   gboolean preprocess = false;
   hb_subset_input_t *input = nullptr;
+  hb_font_t *font = nullptr;
 };
 
 static gboolean
@@ -274,7 +276,10 @@ parse_glyphs (const char *name,
   const char *p = arg;
   const char *p_end = arg + strlen (arg);
 
-  hb_font_t *font = hb_font_create (subset_main->face);
+  if (!subset_main->font)
+    subset_main->font = hb_font_create (subset_main->face);
+  hb_font_t *font = subset_main->font;
+
   while (p < p_end)
   {
     while (p < p_end && (*p == ' ' || *p == ','))
