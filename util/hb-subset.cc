@@ -307,7 +307,6 @@ parse_glyphs (const char *name,
 
     p = end + 1;
   }
-  hb_font_destroy (font);
 
   return true;
 }
