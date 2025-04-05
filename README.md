@@ -71,9 +71,10 @@ may want to read [State of Text Rendering 2024][6].
 Here are a few presentation slides about HarfBuzz at the
 Internationalization and Unicode Conference over the years:
 
-- 2014 – [Unicode, OpenType, and HarfBuzz: Closing the Circle][7],
-- 2012 – [HarfBuzz, The Free and Open Text Shaping Engine][8],
-- 2009 – [HarfBuzz: the Free and Open Shaping Engine][9].
+- 2014 – [Unicode, OpenType, and HarfBuzz: Closing the Circle][7]
+- 2012 – [HarfBuzz, The Free and Open Text Shaping Engine][8]
+- 2016 – [Ten Years of HarfBuzz][20]
+- 2009 – [HarfBuzz: the Free and Open Shaping Engine][9]
 
 More presentations and papers are available on [behdad][11]'s website.
 In particular, the following _studies_ are relevant to HarfBuzz development:
@@ -82,7 +83,9 @@ In particular, the following _studies_ are relevant to HarfBuzz development:
 - 2025 – [`hb-decycler`][13]
 - 2022 – [`hb-iter`][14]
 - 2022 – [A C library written in C++][15]
+- 2022 – [The case of the slow `hb-ft` `>h_advance` function][18]
 - 2022 – [PackTab: A static integer table packer][16]
+- 2020 – [HarfBuzz OT+AAT "Unishaper"][19]
 - 2014 – [Building the Indic Shaper][17]
 - 2012 – [Memory Consumption][10]
 
@@ -127,3 +130,6 @@ transliterated using the Latin script. It also means "talkative" or
 [15]: https://docs.google.com/document/d/18hI56KJpvXtwWbc9QSaz9zzhJwIMnrJ-zkAaKS-W-8k/preview
 [16]: https://docs.google.com/document/d/1Xq3owVt61HVkJqbLFHl73il6pcTy6PdPJJ7bSouQiQw/preview
 [17]: https://docs.google.com/document/d/1wMPwVNBvsIriamcyBO5aNs7Cdr8lmbwLJ8GmZBAswF4/preview
+[18]: https://docs.google.com/document/d/1wskYbA-czBt57oH9gEuGf3sWbTx7bfOiEIcDs36-heo/preview
+[19]: https://prezi.com/view/THNPJGFVDUCWoM20syev/
+[20]: https://behdad.org/doc/harfbuzz10years-slides.pdf
