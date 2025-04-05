@@ -71,20 +71,20 @@ may want to read [State of Text Rendering 2024][6].
 Here are a few presentation slides about HarfBuzz at the
 Internationalization and Unicode Conference over the years:
 
--   November 2014, [Unicode, OpenType, and HarfBuzz: Closing the Circle][7],
--   October 2012, [HarfBuzz, The Free and Open Text Shaping Engine][8],
--   October 2009, [HarfBuzz: the Free and Open Shaping Engine][9].
+- 2014, [Unicode, OpenType, and HarfBuzz: Closing the Circle][7],
+- 2012, [HarfBuzz, The Free and Open Text Shaping Engine][8],
+- 2009, [HarfBuzz: the Free and Open Shaping Engine][9].
 
 More presentations and papers are available on [behdad][11]'s website.
 In particular, the following _studies_ are relevant to HarfBuzz development:
 
-- 2025 — Caching — [Paper][12]
-- 2025 — `hb-decycler` — [Paper][13]
-- 2022 — `hb-iter` — [Paper][14]
-- 2022 — A C library written in C++ — [Paper][15]
-- 2022 — PackTab: A static integer table packer — [Paper][16]
-- 2014 — Building the Indic Shaper — [Paper][17]
-- 2012 — Memory Consumption — [Paper][10]
+- 2025 — [CachingPaper][12]
+- 2025 — [`hb-decycler`][13]
+- 2022 — [`hb-iter`][14]
+- 2022 — [A C library written in C++][15]
+- 2022 — [PackTab: A static integer table packer][16]
+- 2014 — [Building the Indic Shaper][17]
+- 2012 — [Memory Consumption][10]
 
 
 ## Name
