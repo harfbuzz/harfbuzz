@@ -50,7 +50,6 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   {}
   ~subset_main_t ()
   {
-    hb_font_destroy (font);
     hb_subset_input_destroy (input);
   }
 
@@ -101,8 +100,23 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     parse (argc, argv);
 
     hb_face_t* orig_face = face;
+    if (orig_face != cache.face)
+    {
+      hb_face_destroy (cache.face);
+      cache.face = hb_face_reference (orig_face);
+      if (cache.face_preprocessed)
+      {
+        hb_face_destroy (cache.face_preprocessed);
+	cache.face_preprocessed = nullptr;
+      }
+    }
+
     if (preprocess)
-      orig_face = preprocess_face (face);
+    {
+      if (!cache.face_preprocessed)
+        cache.face_preprocessed = preprocess_face (cache.face);
+      orig_face = cache.face_preprocessed;
+    }
 
     hb_face_t *new_face = nullptr;
     for (unsigned i = 0; i < num_iterations; i++)
@@ -122,8 +136,6 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
       fail (false, "Invalid font file.");
 
     hb_face_destroy (new_face);
-    if (preprocess)
-      hb_face_destroy (orig_face);
 
     return success ? 0 : 1;
   }
@@ -167,8 +179,23 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   unsigned num_iterations = 1;
   gboolean preprocess = false;
   hb_subset_input_t *input = nullptr;
-  hb_font_t *font = nullptr;
+
+  static struct cache_t
+  {
+    ~cache_t ()
+    {
+      hb_face_destroy (face);
+      hb_face_destroy (face_preprocessed);
+      hb_font_destroy (font);
+    }
+
+    hb_face_t *face = nullptr;
+    hb_face_t *face_preprocessed = nullptr;
+    hb_font_t *font = nullptr;
+  } cache;
 };
+
+subset_main_t::cache_t subset_main_t::cache {};
 
 static gboolean
 parse_gids (const char *name G_GNUC_UNUSED,
@@ -276,9 +303,9 @@ parse_glyphs (const char *name,
   const char *p = arg;
   const char *p_end = arg + strlen (arg);
 
-  if (!subset_main->font)
-    subset_main->font = hb_font_create (subset_main->face);
-  hb_font_t *font = subset_main->font;
+  if (!subset_main->cache.font)
+    subset_main->cache.font = hb_font_create (subset_main->face);
+  hb_font_t *font = subset_main->cache.font;
 
   while (p < p_end)
   {
