@@ -66,6 +66,8 @@ jobs:
       - run: apt update || true
       - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip python3-venv ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
       - run: |
+          export ASAN_OPTIONS=log_path=stderr
+          export UBSAN_OPTIONS=log_path=stderr
           python3 -m venv venv
           source venv/bin/activate
           pip3 install meson==0.60.0
@@ -81,6 +83,7 @@ jobs:
       - run: apt update || true
       - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip python3-venv ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
       - run: |
+          export TSAN_OPTIONS=log_path=stderr
           python3 -m venv venv
           source venv/bin/activate
           pip3 install meson==0.60.0
@@ -96,6 +99,7 @@ jobs:
       - run: apt update || true
       - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip python3-venv ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
       - run: |
+          export MSAN_OPTIONS=log_path=stderr
           python3 -m venv venv
           source venv/bin/activate
           pip3 install meson==0.60.0
