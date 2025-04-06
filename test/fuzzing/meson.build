@@ -6,6 +6,8 @@ tests = [
   'hb-repacker-fuzzer.cc',
 ]
 
+run_fuzzer_tests = find_program('run-fuzzer-tests.py', required: true)
+
 foreach file_name : tests
   test_name = file_name.split('.')[0]
 
@@ -34,7 +36,7 @@ foreach file_name : tests
   set_variable('@0@_exe'.format(test_name.underscorify()), exe)
 endforeach
 
-test('shape-fuzzer', find_program('run-fuzzer-tests.py'),
+test('shape-fuzzer', run_fuzzer_tests,
   args: [
     hb_shape_fuzzer_exe,
     meson.current_source_dir() / 'fonts',
@@ -45,7 +47,7 @@ test('shape-fuzzer', find_program('run-fuzzer-tests.py'),
   suite: ['fuzzing'],
 )
 
-test('subset-fuzzer', find_program('run-fuzzer-tests.py'),
+test('subset-fuzzer', run_fuzzer_tests,
   args: [
     hb_subset_fuzzer_exe,
     meson.current_source_dir() / 'fonts',
@@ -56,7 +58,7 @@ test('subset-fuzzer', find_program('run-fuzzer-tests.py'),
   suite: ['fuzzing'],
 )
 
-test('repacker-fuzzer', find_program('run-fuzzer-tests.py'),
+test('repacker-fuzzer', run_fuzzer_tests,
   args: [
     hb_repacker_fuzzer_exe,
     meson.current_source_dir() / 'graphs',
@@ -66,7 +68,7 @@ test('repacker-fuzzer', find_program('run-fuzzer-tests.py'),
   suite: ['fuzzing'],
 )
 
-test('draw-fuzzer', find_program('run-fuzzer-tests.py'),
+test('draw-fuzzer', run_fuzzer_tests,
   args: [
     hb_draw_fuzzer_exe,
     meson.current_source_dir() / 'fonts',
