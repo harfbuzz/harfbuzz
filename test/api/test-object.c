@@ -195,7 +195,7 @@ static void free_up0 (void *p)
   data_t *data = (data_t *) p;
 
   g_assert_cmphex (data->value, ==, MAGIC0);
-  g_assert (!data->freed);
+  g_assert_true (!data->freed);
   data->freed = TRUE;
 }
 
@@ -204,7 +204,7 @@ static void free_up1 (void *p)
   data_t *data = (data_t *) p;
 
   g_assert_cmphex (data->value, ==, MAGIC1);
-  g_assert (!data->freed);
+  g_assert_true (!data->freed);
   data->freed = TRUE;
 }
 
@@ -219,7 +219,7 @@ static void free_deadlock_test (void *p)
 {
   deadlock_test_t *t = (deadlock_test_t *) p;
 
-  g_assert (NULL == t->klass->get_user_data (t->object, &t->key));
+  g_assert_true (NULL == t->klass->get_user_data (t->object, &t->key));
 }
 
 
@@ -242,73 +242,73 @@ test_object (void)
 
       g_test_message ("->create()");
       obj = o->create ();
-      g_assert (obj);
+      g_assert_true (obj);
 
-      g_assert (obj == o->reference (obj));
+      g_assert_true (obj == o->reference (obj));
       o->destroy (obj);
 
       if (o->is_immutable)
-	g_assert (!o->is_immutable (obj));
+	g_assert_true (!o->is_immutable (obj));
 
-      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
-      g_assert (o->get_user_data (obj, &key[0]) == &data[0]);
+      g_assert_true (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
+      g_assert_true (o->get_user_data (obj, &key[0]) == &data[0]);
 
       if (o->is_immutable) {
 	o->make_immutable (obj);
-	g_assert (o->is_immutable (obj));
+	g_assert_true (o->is_immutable (obj));
       }
 
       /* Should still work even if object is made immutable */
-      g_assert (o->set_user_data (obj, &key[1], &data[1], free_up1, TRUE));
-      g_assert (o->get_user_data (obj, &key[1]) == &data[1]);
+      g_assert_true (o->set_user_data (obj, &key[1], &data[1], free_up1, TRUE));
+      g_assert_true (o->get_user_data (obj, &key[1]) == &data[1]);
 
-      g_assert (!o->set_user_data (obj, NULL, &data[0], free_up0, TRUE));
-      g_assert (o->get_user_data (obj, &key[0]) == &data[0]);
-      g_assert (o->set_user_data (obj, &key[0], &data[1], NULL, TRUE));
-      g_assert (data[0].freed);
-      g_assert (o->get_user_data (obj, &key[0]) == &data[1]);
-      g_assert (!data[1].freed);
+      g_assert_true (!o->set_user_data (obj, NULL, &data[0], free_up0, TRUE));
+      g_assert_true (o->get_user_data (obj, &key[0]) == &data[0]);
+      g_assert_true (o->set_user_data (obj, &key[0], &data[1], NULL, TRUE));
+      g_assert_true (data[0].freed);
+      g_assert_true (o->get_user_data (obj, &key[0]) == &data[1]);
+      g_assert_true (!data[1].freed);
 
       data[0].freed = FALSE;
-      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
-      g_assert (!data[0].freed);
-      g_assert (o->set_user_data (obj, &key[0], NULL, NULL, TRUE));
-      g_assert (data[0].freed);
+      g_assert_true (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
+      g_assert_true (!data[0].freed);
+      g_assert_true (o->set_user_data (obj, &key[0], NULL, NULL, TRUE));
+      g_assert_true (data[0].freed);
 
       data[0].freed = FALSE;
       global_data = 0;
-      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
-      g_assert (!o->set_user_data (obj, &key[0], &data[0], free_up0, FALSE));
+      g_assert_true (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
+      g_assert_true (!o->set_user_data (obj, &key[0], &data[0], free_up0, FALSE));
       g_assert_cmpuint (global_data, ==, 0);
-      g_assert (o->set_user_data (obj, &key[0], NULL, global_free_up, TRUE));
+      g_assert_true (o->set_user_data (obj, &key[0], NULL, global_free_up, TRUE));
       g_assert_cmpuint (global_data, ==, 0);
-      g_assert (o->set_user_data (obj, &key[0], NULL, NULL, TRUE));
+      g_assert_true (o->set_user_data (obj, &key[0], NULL, NULL, TRUE));
       g_assert_cmpuint (global_data, ==, 1);
 
       global_data = 0;
       for (j = 2; j < 1000; j++)
-	g_assert (o->set_user_data (obj, &key[j], &data[j], global_free_up, TRUE));
+	g_assert_true (o->set_user_data (obj, &key[j], &data[j], global_free_up, TRUE));
       for (j = 2; j < 1000; j++)
-	g_assert (o->get_user_data (obj, &key[j]) == &data[j]);
+	g_assert_true (o->get_user_data (obj, &key[j]) == &data[j]);
       for (j = 100; j < 1000; j++)
-	g_assert (o->set_user_data (obj, &key[j], NULL, NULL, TRUE));
+	g_assert_true (o->set_user_data (obj, &key[j], NULL, NULL, TRUE));
       for (j = 2; j < 100; j++)
-	g_assert (o->get_user_data (obj, &key[j]) == &data[j]);
+	g_assert_true (o->get_user_data (obj, &key[j]) == &data[j]);
       for (j = 100; j < 1000; j++)
-	g_assert (!o->get_user_data (obj, &key[j]));
+	g_assert_true (!o->get_user_data (obj, &key[j]));
       g_assert_cmpuint (global_data, ==, 900);
 
       /* Test set_user_data where the destroy() func calls user_data functions.
        * Make sure it doesn't deadlock or corrupt memory. */
       deadlock_test.klass = o;
       deadlock_test.object = obj;
-      g_assert (o->set_user_data (obj, &deadlock_test.key, &deadlock_test, free_deadlock_test, TRUE));
-      g_assert (o->set_user_data (obj, &deadlock_test.key, NULL, NULL, TRUE));
+      g_assert_true (o->set_user_data (obj, &deadlock_test.key, &deadlock_test, free_deadlock_test, TRUE));
+      g_assert_true (o->set_user_data (obj, &deadlock_test.key, NULL, NULL, TRUE));
 
-      g_assert (!data[1].freed);
+      g_assert_true (!data[1].freed);
       o->destroy (obj);
-      g_assert (data[0].freed);
-      g_assert (data[1].freed);
+      g_assert_true (data[0].freed);
+      g_assert_true (data[1].freed);
       g_assert_cmpuint (global_data, ==, 1000-2);
     }
 
@@ -317,16 +317,16 @@ test_object (void)
 
       g_test_message ("->get_empty()");
       obj = o->get_empty ();
-      g_assert (obj);
+      g_assert_true (obj);
 
-      g_assert (obj == o->reference (obj));
+      g_assert_true (obj == o->reference (obj));
       o->destroy (obj);
 
       if (o->is_immutable)
-	g_assert (o->is_immutable (obj));
+	g_assert_true (o->is_immutable (obj));
 
-      g_assert (!o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
-      g_assert (!o->get_user_data (obj, &key[0]));
+      g_assert_true (!o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
+      g_assert_true (!o->get_user_data (obj, &key[0]));
 
       o->destroy (obj);
       o->destroy (obj);
@@ -334,7 +334,7 @@ test_object (void)
       o->destroy (obj);
       o->destroy (obj);
 
-      g_assert (!data[0].freed);
+      g_assert_true (!data[0].freed);
     }
 
     {
@@ -347,18 +347,18 @@ test_object (void)
       if (obj == o->get_empty ())
 	continue; /* Tested already */
 
-      g_assert (obj == o->reference (obj));
+      g_assert_true (obj == o->reference (obj));
       o->destroy (obj);
 
       if (o->is_immutable)
-	g_assert (!o->is_immutable (obj));
+	g_assert_true (!o->is_immutable (obj));
 
-      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
-      g_assert (o->get_user_data (obj, &key[0]));
+      g_assert_true (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
+      g_assert_true (o->get_user_data (obj, &key[0]));
 
       o->destroy (obj);
 
-      g_assert (data[0].freed);
+      g_assert_true (data[0].freed);
     }
   }
 }

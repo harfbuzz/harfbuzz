@@ -50,31 +50,31 @@ test_blob_empty (void)
   const char *data;
   char *data_writable;
 
-  g_assert (hb_blob_is_immutable (hb_blob_get_empty ()));
-  g_assert (hb_blob_get_empty () != NULL);
-  g_assert (hb_blob_get_empty () == hb_blob_create (NULL, 0, HB_MEMORY_MODE_READONLY, NULL, NULL));
-  g_assert (hb_blob_get_empty () == hb_blob_create ("asdf", 0, HB_MEMORY_MODE_READONLY, NULL, NULL));
-  g_assert (hb_blob_get_empty () == hb_blob_create (NULL, -1, HB_MEMORY_MODE_READONLY, NULL, NULL));
-  g_assert (hb_blob_get_empty () == hb_blob_create ("asdfg", -1, HB_MEMORY_MODE_READONLY, NULL, NULL));
+  g_assert_true (hb_blob_is_immutable (hb_blob_get_empty ()));
+  g_assert_true (hb_blob_get_empty () != NULL);
+  g_assert_true (hb_blob_get_empty () == hb_blob_create (NULL, 0, HB_MEMORY_MODE_READONLY, NULL, NULL));
+  g_assert_true (hb_blob_get_empty () == hb_blob_create ("asdf", 0, HB_MEMORY_MODE_READONLY, NULL, NULL));
+  g_assert_true (hb_blob_get_empty () == hb_blob_create (NULL, -1, HB_MEMORY_MODE_READONLY, NULL, NULL));
+  g_assert_true (hb_blob_get_empty () == hb_blob_create ("asdfg", -1, HB_MEMORY_MODE_READONLY, NULL, NULL));
 
   blob = hb_blob_get_empty ();
-  g_assert (blob == hb_blob_get_empty ());
+  g_assert_true (blob == hb_blob_get_empty ());
 
   len = hb_blob_get_length (blob);
   g_assert_cmpint (len, ==, 0);
 
   data = hb_blob_get_data (blob, NULL);
-  g_assert (data == NULL);
+  g_assert_true (data == NULL);
 
   data = hb_blob_get_data (blob, &len);
-  g_assert (data == NULL);
+  g_assert_true (data == NULL);
   g_assert_cmpint (len, ==, 0);
 
   data_writable = hb_blob_get_data_writable (blob, NULL);
-  g_assert (data_writable == NULL);
+  g_assert_true (data_writable == NULL);
 
   data_writable = hb_blob_get_data_writable (blob, &len);
-  g_assert (data_writable == NULL);
+  g_assert_true (data_writable == NULL);
   g_assert_cmpint (len, ==, 0);
 }
 
@@ -126,7 +126,7 @@ get_pagesize (void)
   pagesize = (uintptr_t) getpagesize ();
 #endif
 
-  g_assert (pagesize != (uintptr_t) -1);
+  g_assert_true (pagesize != (uintptr_t) -1);
 
   return pagesize;
 }
@@ -175,7 +175,7 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
       uintptr_t pagesize = get_pagesize ();
 
       data = mmap (NULL, pagesize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
-      g_assert (data != (char *) -1);
+      g_assert_true (data != (char *) -1);
       memcpy ((char *) data, test_data, sizeof (test_data));
       mprotect ((char *) data, pagesize, PROT_READ);
       len = sizeof (test_data);
@@ -212,7 +212,7 @@ test_blob (fixture_t *fixture, gconstpointer user_data)
   char *data_writable;
   unsigned int i;
 
-  g_assert (b);
+  g_assert_true (b);
 
   len = hb_blob_get_length (b);
   g_assert_cmpint (len, ==, fixture->len);
@@ -220,45 +220,45 @@ test_blob (fixture_t *fixture, gconstpointer user_data)
   data = hb_blob_get_data (b, &len);
   g_assert_cmpint (len, ==, fixture->len);
   if (mm == HB_MEMORY_MODE_DUPLICATE) {
-    g_assert (data != fixture->data);
+    g_assert_true (data != fixture->data);
     g_assert_cmpint (fixture->freed, ==, 1);
     mm = HB_MEMORY_MODE_WRITABLE;
   } else {
-    g_assert (data == fixture->data);
+    g_assert_true (data == fixture->data);
     g_assert_cmpint (fixture->freed, ==, 0);
   }
 
   data_writable = hb_blob_get_data_writable (b, &len);
   g_assert_cmpint (len, ==, fixture->len);
-  g_assert (data_writable);
-  g_assert (0 == memcmp (data_writable, fixture->data, fixture->len));
+  g_assert_true (data_writable);
+  g_assert_true (0 == memcmp (data_writable, fixture->data, fixture->len));
   if (mm == HB_MEMORY_MODE_READONLY) {
-    g_assert (data_writable != data);
+    g_assert_true (data_writable != data);
     g_assert_cmpint (fixture->freed, ==, 1);
   } else {
-    g_assert (data_writable == data);
+    g_assert_true (data_writable == data);
   }
 
   data = hb_blob_get_data (b, &len);
   g_assert_cmpint (len, ==, fixture->len);
-  g_assert (data == data_writable);
+  g_assert_true (data == data_writable);
 
   memset (data_writable, 0, fixture->len);
 
   /* Now, make it immutable and watch get_data_writable() fail */
 
-  g_assert (!hb_blob_is_immutable (b));
+  g_assert_true (!hb_blob_is_immutable (b));
   hb_blob_make_immutable (b);
-  g_assert (hb_blob_is_immutable (b));
+  g_assert_true (hb_blob_is_immutable (b));
 
   data_writable = hb_blob_get_data_writable (b, &len);
-  g_assert (!data_writable);
+  g_assert_true (!data_writable);
   g_assert_cmpint (len, ==, 0);
 
   data = hb_blob_get_data (b, &len);
   g_assert_cmpint (len, ==, fixture->len);
   for (i = 0; i < len; i++)
-    g_assert ('\0' == data[i]);
+    g_assert_true ('\0' == data[i]);
 }
 
 static void
@@ -283,43 +283,43 @@ test_blob_subblob (fixture_t *fixture, gconstpointer user_data)
 
   /* A sub-blob is always created READONLY. */
 
-  g_assert (b);
+  g_assert_true (b);
 
   len = hb_blob_get_length (b);
   g_assert_cmpint (len, ==, fixture->len - 2);
 
   data = hb_blob_get_data (b, &len);
   g_assert_cmpint (len, ==, fixture->len - 2);
-  g_assert (data == fixture->data + 1);
+  g_assert_true (data == fixture->data + 1);
 
   data_writable = hb_blob_get_data_writable (b, &len);
   g_assert_cmpint (len, ==, fixture->len - 2);
-  g_assert (data_writable);
+  g_assert_true (data_writable);
   if (mm == HB_MEMORY_MODE_READONLY)
-    g_assert (0 == memcmp (data_writable, fixture->data + 1, fixture->len - 2));
-  g_assert (data_writable != data);
+    g_assert_true (0 == memcmp (data_writable, fixture->data + 1, fixture->len - 2));
+  g_assert_true (data_writable != data);
   g_assert_cmpint (fixture->freed, ==, 1);
 
   data = hb_blob_get_data (b, &len);
   g_assert_cmpint (len, ==, fixture->len - 2);
-  g_assert (data == data_writable);
+  g_assert_true (data == data_writable);
 
   memset (data_writable, 0, fixture->len - 2);
 
   /* Now, make it immutable and watch get_data_writable() fail */
 
-  g_assert (!hb_blob_is_immutable (b));
+  g_assert_true (!hb_blob_is_immutable (b));
   hb_blob_make_immutable (b);
-  g_assert (hb_blob_is_immutable (b));
+  g_assert_true (hb_blob_is_immutable (b));
 
   data_writable = hb_blob_get_data_writable (b, &len);
-  g_assert (!data_writable);
+  g_assert_true (!data_writable);
   g_assert_cmpint (len, ==, 0);
 
   data = hb_blob_get_data (b, &len);
   g_assert_cmpint (len, ==, fixture->len - 2);
   for (i = 0; i < len; i++)
-    g_assert ('\0' == data[i]);
+    g_assert_true ('\0' == data[i]);
 }
 
 

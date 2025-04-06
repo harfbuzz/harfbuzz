@@ -74,18 +74,18 @@ test_ot_layout_table_find_script (void)
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoNastaliqUrdu-Regular.ttf");
   unsigned int index;
 
-  g_assert (hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB, HB_TAG ('a','r','a','b'), &index));
+  g_assert_true (hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB, HB_TAG ('a','r','a','b'), &index));
   g_assert_cmpuint (0, ==, index);
-  g_assert (hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB, HB_TAG ('d','f','l','t'), &index));
+  g_assert_true (hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB, HB_TAG ('d','f','l','t'), &index));
   g_assert_cmpuint (1, ==, index);
-  g_assert (hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB, HB_TAG ('l','a','t','n'), &index));
+  g_assert_true (hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB, HB_TAG ('l','a','t','n'), &index));
   g_assert_cmpuint (2, ==, index);
 
-  g_assert (hb_ot_layout_table_find_script (face, HB_OT_TAG_GPOS, HB_TAG ('a','r','a','b'), &index));
+  g_assert_true (hb_ot_layout_table_find_script (face, HB_OT_TAG_GPOS, HB_TAG ('a','r','a','b'), &index));
   g_assert_cmpuint (0, ==, index);
-  g_assert (!hb_ot_layout_table_find_script (face, HB_OT_TAG_GPOS, HB_TAG ('d','f','l','t'), &index));
+  g_assert_true (!hb_ot_layout_table_find_script (face, HB_OT_TAG_GPOS, HB_TAG ('d','f','l','t'), &index));
   g_assert_cmpuint (0xFFFF, ==, index);
-  g_assert (!hb_ot_layout_table_find_script (face, HB_OT_TAG_GPOS, HB_TAG ('l','a','t','n'), &index));
+  g_assert_true (!hb_ot_layout_table_find_script (face, HB_OT_TAG_GPOS, HB_TAG ('l','a','t','n'), &index));
   g_assert_cmpuint (0xFFFF, ==, index);
 
   hb_face_destroy (face);

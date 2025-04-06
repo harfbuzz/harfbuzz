@@ -83,7 +83,7 @@ test_subset_hdmx_invalid (void)
   hb_set_add (codepoints, 'c');
 
   subset = hb_subset_or_fail (face, input);
-  g_assert (!subset);
+  g_assert_true (!subset);
 
   hb_subset_input_destroy (input);
   hb_face_destroy (subset);

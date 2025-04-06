@@ -55,22 +55,11 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
 
   void parse_face (int argc, const char * const *argv)
   {
-    option_parser_t parser;
-    face_options_t face_opts;
+    subset_main_t main2;
+    main2.add_options ();
 
-    face_opts.add_options (&parser);
-
-    GOptionEntry entries[] =
-    {
-      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
-				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_face,	nullptr,	"[FONT-FILE] [TEXT]"},
-      {nullptr}
-    };
-    parser.add_main_group (entries, &face_opts);
-    parser.add_options ();
-
-    g_option_context_set_ignore_unknown_options (parser.context, true);
-    g_option_context_set_help_enabled (parser.context, false);
+    g_option_context_set_ignore_unknown_options (main2.context, true);
+    g_option_context_set_help_enabled (main2.context, false);
 
     char **args = (char **)
 #if GLIB_CHECK_VERSION (2, 68, 0)
@@ -79,10 +68,10 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
       g_memdup
 #endif
       (argv, argc * sizeof (*argv));
-    parser.parse (&argc, &args);
+    main2.option_parser_t::parse (&argc, &args);
     g_free (args);
 
-    set_face (face_opts.face);
+    set_face (hb_face_reference (main2.face));
   }
 
   void parse (int argc, char **argv)
@@ -111,8 +100,23 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     parse (argc, argv);
 
     hb_face_t* orig_face = face;
+    if (orig_face != cache.face)
+    {
+      hb_face_destroy (cache.face);
+      cache.face = hb_face_reference (orig_face);
+      if (cache.face_preprocessed)
+      {
+        hb_face_destroy (cache.face_preprocessed);
+	cache.face_preprocessed = nullptr;
+      }
+    }
+
     if (preprocess)
-      orig_face = preprocess_face (face);
+    {
+      if (!cache.face_preprocessed)
+        cache.face_preprocessed = preprocess_face (cache.face);
+      orig_face = cache.face_preprocessed;
+    }
 
     hb_face_t *new_face = nullptr;
     for (unsigned i = 0; i < num_iterations; i++)
@@ -132,8 +136,6 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
       fail (false, "Invalid font file.");
 
     hb_face_destroy (new_face);
-    if (preprocess)
-      hb_face_destroy (orig_face);
 
     return success ? 0 : 1;
   }
@@ -177,7 +179,23 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   unsigned num_iterations = 1;
   gboolean preprocess = false;
   hb_subset_input_t *input = nullptr;
+
+  static struct cache_t
+  {
+    ~cache_t ()
+    {
+      hb_face_destroy (face);
+      hb_face_destroy (face_preprocessed);
+      hb_font_destroy (font);
+    }
+
+    hb_face_t *face = nullptr;
+    hb_face_t *face_preprocessed = nullptr;
+    hb_font_t *font = nullptr;
+  } cache;
 };
+
+subset_main_t::cache_t subset_main_t::cache {};
 
 static gboolean
 parse_gids (const char *name G_GNUC_UNUSED,
@@ -256,12 +274,18 @@ parse_gids (const char *name G_GNUC_UNUSED,
 }
 
 static gboolean
-parse_glyphs (const char *name G_GNUC_UNUSED,
+parse_glyphs (const char *name,
 	      const char *arg,
 	      gpointer    data,
 	      GError    **error G_GNUC_UNUSED)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  if (!subset_main->face)
+  {
+    // We are in pre-parsing.
+    return true;
+  }
+
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
   hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *gids = hb_subset_input_glyph_set (subset_main->input);
@@ -279,7 +303,10 @@ parse_glyphs (const char *name G_GNUC_UNUSED,
   const char *p = arg;
   const char *p_end = arg + strlen (arg);
 
-  hb_font_t *font = hb_font_create (subset_main->face);
+  if (!subset_main->cache.font)
+    subset_main->cache.font = hb_font_create (subset_main->face);
+  hb_font_t *font = subset_main->cache.font;
+
   while (p < p_end)
   {
     while (p < p_end && (*p == ' ' || *p == ','))
@@ -292,7 +319,7 @@ parse_glyphs (const char *name G_GNUC_UNUSED,
     if (p < end)
     {
       hb_codepoint_t gid;
-      if (!hb_font_get_glyph_from_name (font, p, end - p, &gid))
+      if (!hb_font_glyph_from_string (font, p, end - p, &gid))
       {
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		     "Failed parsing glyph name: '%s'", p);
@@ -307,13 +334,12 @@ parse_glyphs (const char *name G_GNUC_UNUSED,
 
     p = end + 1;
   }
-  hb_font_destroy (font);
 
   return true;
 }
 
 static gboolean
-parse_text (const char *name G_GNUC_UNUSED,
+parse_text (const char *name,
 	    const char *arg,
 	    gpointer    data,
 	    GError    **error G_GNUC_UNUSED)
@@ -347,7 +373,7 @@ parse_text (const char *name G_GNUC_UNUSED,
 }
 
 static gboolean
-parse_unicodes (const char *name G_GNUC_UNUSED,
+parse_unicodes (const char *name,
 		const char *arg,
 		gpointer    data,
 		GError    **error)
@@ -686,8 +712,9 @@ parse_instance (const char *name,
 		GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
-  if (!subset_main->face) {
-    // There is no face, which is needed to set up instancing. Skip parsing these options.
+  if (!subset_main->face)
+  {
+    // We are in pre-parsing.
     return true;
   }
 
@@ -813,7 +840,7 @@ parse_file_for (const char *name,
   }
   while (!feof (fp));
 
-  g_string_free (gs, false);
+  g_string_free (gs, true);
 
   fclose (fp);
 

@@ -32,31 +32,31 @@ test_map_basic (void)
 {
   hb_map_t *empty = hb_map_get_empty ();
   hb_map_t *m;
-  g_assert (hb_map_is_empty (empty));
-  g_assert (!hb_map_allocation_successful (empty));
+  g_assert_true (hb_map_is_empty (empty));
+  g_assert_true (!hb_map_allocation_successful (empty));
   hb_map_destroy (empty);
 
   m = hb_map_create ();
-  g_assert (hb_map_allocation_successful (m));
-  g_assert (hb_map_is_empty (m));
+  g_assert_true (hb_map_allocation_successful (m));
+  g_assert_true (hb_map_is_empty (m));
 
   hb_map_set (m, 213, 223);
   hb_map_set (m, 643, 675);
   g_assert_cmpint (hb_map_get_population (m), ==, 2);
 
   g_assert_cmpint (hb_map_get (m, 213), ==, 223);
-  g_assert (!hb_map_has (m, 123));
-  g_assert (hb_map_has (m, 213));
+  g_assert_true (!hb_map_has (m, 123));
+  g_assert_true (hb_map_has (m, 213));
 
   hb_map_del (m, 213);
-  g_assert (!hb_map_has (m, 213));
+  g_assert_true (!hb_map_has (m, 213));
 
   g_assert_cmpint (hb_map_get (m, 643), ==, 675);
   hb_map_set (m, 237, 673);
-  g_assert (hb_map_has (m, 237));
+  g_assert_true (hb_map_has (m, 237));
   hb_map_clear (m);
-  g_assert (!hb_map_has (m, 237));
-  g_assert (!hb_map_has (m, 643));
+  g_assert_true (!hb_map_has (m, 237));
+  g_assert_true (!hb_map_has (m, 643));
   g_assert_cmpint (hb_map_get_population (m), ==, 0);
 
   hb_map_destroy (m);
@@ -96,8 +96,8 @@ test_map_refcount (void)
   hb_map_destroy (m);
 
   /* We copied its reference so it is still usable after one destroy */
-  g_assert (hb_map_has (m, 213));
-  g_assert (hb_map_has (m2, 213));
+  g_assert_true (hb_map_has (m, 213));
+  g_assert_true (hb_map_has (m2, 213));
 
   hb_map_destroy (m2);
 

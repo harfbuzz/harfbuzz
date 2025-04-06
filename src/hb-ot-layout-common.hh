@@ -2548,9 +2548,9 @@ struct SparseVarRegionAxis
   DEFINE_SIZE_STATIC (8);
 };
 
-#define REGION_CACHE_ITEM_CACHE_INVALID (1 << 30)
-#define REGION_CACHE_ITEM_MULTIPLIER (float (1 << 19))
-#define REGION_CACHE_ITEM_DIVISOR (1.f / float (1 << 19))
+#define REGION_CACHE_ITEM_CACHE_INVALID INT_MIN
+#define REGION_CACHE_ITEM_MULTIPLIER (float (1 << ((sizeof (int) * 8) - 2)))
+#define REGION_CACHE_ITEM_DIVISOR (1.f / float (1 << ((sizeof (int) * 8) - 2)))
 
 struct VarRegionList
 {

@@ -45,8 +45,8 @@
 #include <functional>
 #include <utility>
 
-int
-main ()
+static void
+test_smart_ptrs (void)
 {
   hb_buffer_t *b = hb_buffer_create ();
   hb::shared_ptr<hb_buffer_t> pb {b};
@@ -100,5 +100,16 @@ main ()
   assert (hash2 (pb4) == hash2 (pb2));
   assert (hash (b) == hash3 (pb5));
 
-  return pb == pb.get_empty () || pb == pb2;
+  g_assert_true (pb != pb.get_empty ());
+  g_assert_true (pb != pb2);
+}
+
+int
+main (int argc, char **argv)
+{
+  hb_test_init (&argc, &argv);
+
+  hb_test_add (test_smart_ptrs);
+
+  return hb_test_run ();
 }

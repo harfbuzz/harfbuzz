@@ -29,7 +29,7 @@ def subset_cmd(command):
     if subset_process.poll() is not None:
         subset_process = open_subset_batch_process()
 
-    print(hb_subset + " " + " ".join(command))
+    print("# " + hb_subset + " " + " ".join(command))
     subset_process.stdin.write((";".join(command) + "\n").encode("utf-8"))
     subset_process.stdin.flush()
     return subset_process.stdout.readline().decode("utf-8").strip()
@@ -45,19 +45,28 @@ def cmd(command):
 
 
 def fail_test(test, cli_args, message):
-    print("ERROR: %s" % message)
-    print("Test State:")
-    print("  test.font_path    %s" % os.path.abspath(test.font_path))
-    print("  test.profile_path %s" % os.path.abspath(test.profile_path))
-    print("  test.unicodes        %s" % test.unicodes())
+    global fails
+    fails += 1
+
     expected_file = os.path.join(
         test_suite.get_output_directory(), test.get_font_name()
     )
-    print("  expected_file        %s" % os.path.abspath(expected_file))
-    return 1
+
+    print("not ok -", test)
+    print("   ---", file=sys.stderr)
+    print("   message: \"%s\"" % message, file=sys.stderr)
+    print("   test.font_path: \"%s\"" % os.path.abspath(test.font_path), file=sys.stderr)
+    print("   test.profile_path: \"%s\"" % os.path.abspath(test.profile_path), file=sys.stderr)
+    print("   test.unicodes: \"%s\"" % test.unicodes(), file=sys.stderr)
+    print("   expected_file: \"%s\"" % os.path.abspath(expected_file), file=sys.stderr)
+    print("   ...", file=sys.stderr)
+    return False
 
 
 def run_test(test, should_check_ots, preprocess):
+    global number
+    number += 1
+
     out_file = os.path.join(
         out_dir, test.get_font_name() + "-subset" + test.get_font_extension()
     )
@@ -71,7 +80,7 @@ def run_test(test, should_check_ots, preprocess):
     if preprocess:
         cli_args.extend(
             [
-                "--preprocess-face",
+                "--preprocess",
             ]
         )
 
@@ -99,13 +108,13 @@ def run_test(test, should_check_ots, preprocess):
 
     if expected_contents == actual_contents:
         if should_check_ots:
-            print("Checking output with ots-sanitize.")
+            print("# Checking output with ots-sanitize.")
             if not check_ots(out_file):
                 return fail_test(test, cli_args, "ots for subsetted file fails.")
-        return 0
+        return True
 
     if TTFont is None:
-        print("fonttools is not present, skipping TTX diff.")
+        print("# fonttools is not present, skipping TTX diff.")
         return fail_test(test, cli_args, "hash for expected and actual does not match.")
 
     with io.StringIO() as fp:
@@ -142,7 +151,7 @@ def run_test(test, should_check_ots, preprocess):
 
 def has_ots():
     if not ots_sanitize:
-        print("OTS is not present, skipping all ots checks.")
+        print("# OTS is not present, skipping all ots checks.")
         return False
     return True
 
@@ -150,7 +159,7 @@ def has_ots():
 def check_ots(path):
     ots_report, returncode = cmd([ots_sanitize, path])
     if returncode:
-        print("OTS Failure: %s" % ots_report)
+        print("# OTS Failure: %s" % ots_report)
         return False
     return True
 
@@ -162,6 +171,8 @@ hb_subset, args = args[0], args[1:]
 
 if not len(args):
     sys.exit("No tests supplied.")
+
+print("TAP version 14")
 
 has_ots = has_ots()
 
@@ -189,19 +200,23 @@ def open_subset_batch_process():
 subset_process = open_subset_batch_process()
 out_dir = tempfile.mkdtemp()
 
+number = 0
 fails = 0
 for path in args:
     with open(path, mode="r", encoding="utf-8") as f:
-        print("Running tests in " + path)
+        print("# Running tests in " + path)
         test_suite = SubsetTestSuite(path, f.read())
         for test in test_suite.tests():
             # Tests are run with and without preprocessing, results should be the
             # same between them.
-            fails += run_test(test, has_ots, False)
-            fails += run_test(test, has_ots, True)
+            for preprocess in [False, True]:
+                if run_test(test, has_ots, preprocess):
+                    print("ok %d - %s" % (number, test))
+
+print("1..%d" % number)
 
 if fails != 0:
-    sys.exit("%d test(s) failed; output left in %s" % (fails, out_dir))
+    print("# %d test(s) failed; output left in %s" % (fails, out_dir), file=sys.stderr)
 else:
-    print("All tests passed.")
+    print("# All tests passed.")
     shutil.rmtree(out_dir)

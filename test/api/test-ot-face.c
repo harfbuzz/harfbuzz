@@ -209,7 +209,7 @@ static void
 test_ot_var_axis_on_zero_named_instance (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Zycon.ttf");
-  g_assert (hb_ot_var_get_axis_count (face));
+  g_assert_true (hb_ot_var_get_axis_count (face));
   hb_face_destroy (face);
 }
 

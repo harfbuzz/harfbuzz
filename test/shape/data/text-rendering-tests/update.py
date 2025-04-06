@@ -118,9 +118,9 @@ subprocess.run([git, "add", "tests"], check=True)
 with open("meson.build", "w") as f:
     f.write(
         "\n".join(
-            ["text_rendering_tests = ["]
+            ["text_rendering_tests_tests = ["]
             + ["  '%s'," % x.split("tests/")[1] for x in tests]
-            + ["]", "", "disabled_text_rendering_tests = ["]
+            + ["]", "", "disabled_text_rendering_tests_tests = ["]
             + ["  '%s'," % x.split("tests/")[1] for x in disabled_tests]
             + ["]", ""]
         )

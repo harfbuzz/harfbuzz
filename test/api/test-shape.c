@@ -190,7 +190,7 @@ test_shape_list (void)
     ;
 
   g_assert_cmpint (i, >, 1);
-  g_assert (!strcmp (shapers[i - 1], "fallback"));
+  g_assert_true (!strcmp (shapers[i - 1], "fallback"));
 }
 
 int

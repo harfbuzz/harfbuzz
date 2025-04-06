@@ -80,7 +80,7 @@ test_subset_name_overrides (void)
   char str6[] = "Roboto-Bold";
   char str12[] = "Non ascii test Ü";
   char str16[] = "Roboto-test-inserting";
- 
+
   hb_set_t *name_ids = hb_set_create();
   hb_face_t *face_subset;
   hb_set_add_range (name_ids, 0, 13);

@@ -43,7 +43,7 @@ test_subset_32_tables (void)
   hb_set_add (codepoints, 'c');
 
   subset = hb_subset_or_fail (face, input);
-  g_assert (!subset);
+  g_assert_true (!subset);
 
   hb_subset_input_destroy (input);
   hb_face_destroy (subset);
@@ -64,7 +64,7 @@ test_subset_no_inf_loop (void)
   hb_set_add (codepoints, 'c');
 
   subset = hb_subset_or_fail (face, input);
-  g_assert (!subset);
+  g_assert_true (!subset);
 
   hb_subset_input_destroy (input);
   hb_face_destroy (subset);
@@ -85,7 +85,7 @@ test_subset_crash (void)
   hb_set_add (codepoints, 'c');
 
   subset = hb_subset_or_fail (face, input);
-  g_assert (!subset);
+  g_assert_true (!subset);
 
   hb_subset_input_destroy (input);
   hb_face_destroy (subset);
@@ -97,14 +97,14 @@ test_subset_set_flags (void)
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
 
-  g_assert (hb_subset_input_get_flags (input) == HB_SUBSET_FLAGS_DEFAULT);
+  g_assert_true (hb_subset_input_get_flags (input) == HB_SUBSET_FLAGS_DEFAULT);
 
   hb_subset_input_set_flags (input,
                              HB_SUBSET_FLAGS_NAME_LEGACY |
                              HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
                              HB_SUBSET_FLAGS_GLYPH_NAMES);
 
-  g_assert (hb_subset_input_get_flags (input) ==
+  g_assert_true (hb_subset_input_get_flags (input) ==
             (hb_subset_flags_t) (
             HB_SUBSET_FLAGS_NAME_LEGACY |
             HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
@@ -115,7 +115,7 @@ test_subset_set_flags (void)
                              HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
                              HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES);
 
-  g_assert (hb_subset_input_get_flags (input) ==
+  g_assert_true (hb_subset_input_get_flags (input) ==
             (hb_subset_flags_t) (
             HB_SUBSET_FLAGS_NAME_LEGACY |
             HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
@@ -139,15 +139,15 @@ test_subset_sets (void)
   hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG), 87);
 
   hb_set_add (set, 83);
-  g_assert (hb_set_is_equal (hb_subset_input_glyph_set (input), set));
+  g_assert_true (hb_set_is_equal (hb_subset_input_glyph_set (input), set));
   hb_set_clear (set);
 
   hb_set_add (set, 85);
-  g_assert (hb_set_is_equal (hb_subset_input_unicode_set (input), set));
+  g_assert_true (hb_set_is_equal (hb_subset_input_unicode_set (input), set));
   hb_set_clear (set);
 
   hb_set_add (set, 87);
-  g_assert (hb_set_is_equal (hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG), set));
+  g_assert_true (hb_set_is_equal (hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG), set));
   hb_set_clear (set);
 
   hb_set_destroy (set);
@@ -167,18 +167,18 @@ test_subset_plan (void)
   hb_set_destroy (codepoints);
 
   hb_subset_plan_t* plan = hb_subset_plan_create_or_fail (face_abc, input);
-  g_assert (plan);
+  g_assert_true (plan);
 
   const hb_map_t* mapping = hb_subset_plan_old_to_new_glyph_mapping (plan);
-  g_assert (hb_map_get (mapping, 1) == 1);
-  g_assert (hb_map_get (mapping, 3) == 2);
+  g_assert_true (hb_map_get (mapping, 1) == 1);
+  g_assert_true (hb_map_get (mapping, 3) == 2);
 
   mapping = hb_subset_plan_new_to_old_glyph_mapping (plan);
-  g_assert (hb_map_get (mapping, 1) == 1);
-  g_assert (hb_map_get (mapping, 2) == 3);
+  g_assert_true (hb_map_get (mapping, 1) == 1);
+  g_assert_true (hb_map_get (mapping, 2) == 3);
 
   mapping = hb_subset_plan_unicode_to_old_glyph_mapping (plan);
-  g_assert (hb_map_get (mapping, 0x63) == 3);
+  g_assert_true (hb_map_get (mapping, 0x63) == 3);
 
   hb_face_t* face_abc_subset = hb_subset_plan_execute_or_fail (plan);
 
@@ -272,19 +272,19 @@ test_subset_cff2_get_charstring_data (void)
   hb_blob_t* cs0 = hb_subset_cff2_get_charstring_data (face, 0);
   unsigned int length;
   const uint8_t* data = (const uint8_t*) hb_blob_get_data (cs0, &length);
-  g_assert (length == 2);
-  g_assert (data[0] == 0x20);
-  g_assert (data[1] == 0x0A);
+  g_assert_true (length == 2);
+  g_assert_true (data[0] == 0x20);
+  g_assert_true (data[1] == 0x0A);
 
   hb_blob_t* cs1 = hb_subset_cff2_get_charstring_data (face, 1);
   data = (const uint8_t*) hb_blob_get_data (cs1, &length);
-  g_assert (length == 2);
-  g_assert (data[0] == 0x20);
-  g_assert (data[1] == 0x0A);
+  g_assert_true (length == 2);
+  g_assert_true (data[0] == 0x20);
+  g_assert_true (data[1] == 0x0A);
 
   hb_blob_t* cs2 = hb_subset_cff2_get_charstring_data (face, 2);
   data = (const uint8_t*) hb_blob_get_data (cs2, &length);
-  g_assert (length == 0);
+  g_assert_true (length == 0);
 
   hb_blob_destroy (cff2);
   hb_blob_destroy (maxp);
@@ -337,7 +337,7 @@ test_subset_cff2_get_charstring_data_no_cff (void)
   hb_face_t* face = hb_face_create (face_blob, 0);
 
   hb_blob_t* cs0 = hb_subset_cff2_get_charstring_data (face, 0);
-  g_assert (hb_blob_get_length (cs0) == 0);
+  g_assert_true (hb_blob_get_length (cs0) == 0);
   
   hb_face_destroy (builder);
   hb_blob_destroy (face_blob);
@@ -357,7 +357,7 @@ test_subset_cff2_get_charstring_data_invalid_cff2 (void)
   hb_face_t* face = hb_face_create (face_blob, 0);
 
   hb_blob_t* cs0 = hb_subset_cff2_get_charstring_data (face, 0);
-  g_assert (hb_blob_get_length (cs0) == 0);
+  g_assert_true (hb_blob_get_length (cs0) == 0);
 
   hb_blob_destroy (cff2);
   hb_face_destroy (builder);
@@ -394,9 +394,9 @@ test_subset_cff2_get_charstring_data_lifetime (void)
 
   unsigned int length;
   const uint8_t* data = (const uint8_t*) hb_blob_get_data (cs0, &length);
-  g_assert (length == 2);
-  g_assert (data[0] == 0x20);
-  g_assert (data[1] == 0x0A);
+  g_assert_true (length == 2);
+  g_assert_true (data[0] == 0x20);
+  g_assert_true (data[1] == 0x0A);
 
   hb_blob_destroy (cs0);
 }

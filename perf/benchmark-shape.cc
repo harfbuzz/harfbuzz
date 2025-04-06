@@ -33,6 +33,7 @@ struct test_input_t
 
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
+const char *variation = nullptr;
 
 static void BM_Shape (benchmark::State &state,
 		      const char *shaper,
@@ -44,6 +45,13 @@ static void BM_Shape (benchmark::State &state,
     assert (face);
     font = hb_font_create (face);
     hb_face_destroy (face);
+  }
+
+  if (variation)
+  {
+    hb_variation_t var;
+    hb_variation_from_string (variation, -1, &var);
+    hb_font_set_variations (font, &var, 1);
   }
 
   hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
@@ -99,16 +107,16 @@ int main(int argc, char** argv)
 {
   benchmark::Initialize(&argc, argv);
 
+  test_input_t static_test = {};
   if (argc > 2)
   {
-    num_tests = (argc - 1) / 2;
-    tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
-    for (unsigned i = 0; i < num_tests; i++)
-    {
-      tests[i].font_path = argv[1 + i * 2];
-      tests[i].text_path = argv[2 + i * 2];
-    }
+    static_test.font_path = argv[1];
+    static_test.text_path = argv[2];
+    tests = &static_test;
+    num_tests = 1;
   }
+  if (argc > 3)
+    variation = argv[3];
 
   for (unsigned i = 0; i < num_tests; i++)
   {
@@ -120,7 +128,4 @@ int main(int argc, char** argv)
 
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();
-
-  if (tests != default_tests)
-    free (tests);
 }

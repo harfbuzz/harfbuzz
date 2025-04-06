@@ -6,6 +6,7 @@ tests = [
   'hb-repacker-fuzzer.cc',
 ]
 
+# Build the binaries
 foreach file_name : tests
   test_name = file_name.split('.')[0]
 
@@ -34,43 +35,90 @@ foreach file_name : tests
   set_variable('@0@_exe'.format(test_name.underscorify()), exe)
 endforeach
 
-test('shape-fuzzer', find_program('run-fuzzer-tests.py'),
-  args: [
+glob_cmd = find_program('glob.py', required: true)
+
+fonts_glob = run_command(glob_cmd, meson.current_source_dir() / 'fonts', check:true).stdout().strip().split('\n')
+subset_fonts_glob = run_command(glob_cmd, meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts', check:true).stdout().strip().split('\n')
+graphs_glob = run_command(glob_cmd, meson.current_source_dir() / 'graphs', check:true).stdout().strip().split('\n')
+sets_glob = run_command(glob_cmd, meson.current_source_dir() / 'sets', check:true).stdout().strip().split('\n')
+
+# Chunk the glob lists to avoid command line length limits, and for parallelization
+chunk_size = 64
+foreach glob_name : ['fonts_glob', 'subset_fonts_glob', 'graphs_glob', 'sets_glob']
+  glob = get_variable(glob_name)
+  chunks = []
+  chunk = []
+  foreach item : glob
+    if chunk.length() >= chunk_size
+      chunks += [chunk]
+      chunk = []
+    endif
+    chunk += [item]
+  endforeach
+  if chunk.length() > 0
+    chunks += [chunk]
+  endif
+  set_variable('@0@_chunks'.format(glob_name), chunks)
+endforeach
+
+# Run fuzzers
+
+i = 0
+foreach chunk : fonts_glob_chunks
+  test('shape-fuzzer-chunk-@0@'.format(i),
     hb_shape_fuzzer_exe,
-    meson.current_source_dir() / 'fonts',
-  ],
-  depends: [hb_shape_fuzzer_exe, libharfbuzz, libharfbuzz_subset],
-  workdir: meson.current_build_dir() / '..' / '..',
-  priority: 1,
-  suite: ['fuzzing'],
-)
+    args: chunk,
+    workdir: meson.current_build_dir() / '..' / '..',
+    protocol: 'tap',
+    suite: ['fuzzing'],
+  )
+  i += 1
+endforeach
 
-test('subset-fuzzer', find_program('run-fuzzer-tests.py'),
-  args: [
-    hb_subset_fuzzer_exe,
-    meson.current_source_dir() / 'fonts',
-    meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts',
-  ],
-  workdir: meson.current_build_dir() / '..' / '..',
-  priority: 1,
-  suite: ['fuzzing'],
-)
-
-test('repacker-fuzzer', find_program('run-fuzzer-tests.py'),
-  args: [
-    hb_repacker_fuzzer_exe,
-    meson.current_source_dir() / 'graphs',
-  ],
-  workdir: meson.current_build_dir() / '..' / '..',
-  priority: 1,
-  suite: ['fuzzing'],
-)
-
-test('draw-fuzzer', find_program('run-fuzzer-tests.py'),
-  args: [
+i = 0
+foreach chunk : fonts_glob_chunks
+  test('draw-fuzzer-chunk-@0@'.format(i),
     hb_draw_fuzzer_exe,
-    meson.current_source_dir() / 'fonts',
-  ],
-  workdir: meson.current_build_dir() / '..' / '..',
-  suite: ['fuzzing'],
-)
+    args: chunk,
+    workdir: meson.current_build_dir() / '..' / '..',
+    protocol: 'tap',
+    suite: ['fuzzing'],
+  )
+  i += 1
+endforeach
+
+i = 0
+foreach chunk : fonts_glob_chunks + subset_fonts_glob_chunks
+  test('subset-fuzzer-chunk-@0@'.format(i),
+    hb_subset_fuzzer_exe,
+    args: chunk,
+    workdir: meson.current_build_dir() / '..' / '..',
+    protocol: 'tap',
+    suite: ['fuzzing'],
+  )
+  i += 1
+endforeach
+
+i = 0
+foreach chunk : graphs_glob_chunks
+  test('repacker-fuzzer-chunk-@0@'.format(i),
+    hb_repacker_fuzzer_exe,
+    args: chunk,
+    workdir: meson.current_build_dir() / '..' / '..',
+    protocol: 'tap',
+    suite: ['fuzzing'],
+  )
+  i += 1
+endforeach
+
+i = 0
+foreach chunk : sets_glob_chunks
+  test('set-fuzzer-chunk-@0@'.format(i),
+    hb_set_fuzzer_exe,
+    args: chunk,
+    workdir: meson.current_build_dir() / '..' / '..',
+    protocol: 'tap',
+    suite: ['fuzzing'],
+  )
+  i += 1
+endforeach
