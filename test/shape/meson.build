@@ -20,6 +20,7 @@ foreach file_name : in_house_tests
       hb_shape,
       meson.current_source_dir() / 'data' / 'in-house' / 'tests' / file_name,
     ],
+    protocol: 'tap',
     env: env,
     workdir: meson.current_build_dir() / '..' / '..',
     suite: ['shape', 'in-house'],

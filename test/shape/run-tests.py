@@ -46,7 +46,7 @@ def shape_cmd(command, shape_process, verbose=False):
         shape_process = open_shape_batch_process()
 
     if verbose:
-        print(hb_shape + " " + " ".join(command))
+        print("# " + hb_shape + " " + " ".join(command))
     shape_process.stdin.write((";".join(command) + "\n").encode("utf-8"))
     shape_process.stdin.flush()
     return shape_process.stdout.readline().decode("utf-8").strip()
@@ -102,17 +102,17 @@ for what in ["shaper", "face-loader", "font-funcs"]:
     whats = plural(what)
     var_name = supported_whats_var_name(what)
     globals()[var_name] = what_list
-    print(f"Supported {whats}: {what_list}")
+    print(f"# Supported {whats}: {what_list}")
 
 # If running under Wine and not native dlls, make the respective shapers unavailable.
 if os.environ.get("WINEPATH"):
     overrides = os.environ.get("WINEDLLOVERRIDES", "").lower()
     if "directwrite" in supported_shapers and overrides.find("dwrite") == -1:
         supported_shapers.remove("directwrite")
-        print("Skipping DirectWrite shaper under Wine.")
+        print("# Skipping DirectWrite shaper under Wine.")
     if "uniscribe" in supported_shapers and overrides.find("usp10") == -1:
         supported_shapers.remove("uniscribe")
-        print("Skipping Uniscribe shaper under Wine.")
+        print("# Skipping Uniscribe shaper under Wine.")
 
 
 passes = 0
@@ -124,9 +124,9 @@ if not len(args):
 
 for filename in args:
     if filename == "-":
-        print("Running tests from standard input")
+        print("# Running tests from standard input")
     else:
-        print("Running tests in " + filename)
+        print("# Running tests in " + filename)
 
     if filename == "-":
         f = sys.stdin
@@ -178,11 +178,11 @@ for filename in args:
                         values = [v for v in values if v in supported]
 
                     var_name = all_whats_var_name(what)
-                    print(f"Setting {whats} to test to {values}")
+                    print(f"# Setting {whats} to test to {values}")
                     globals()[var_name] = values
                     consumed = True
             if consumed:
-                print(line)
+                print("#", line)
                 continue
             else:
                 print("Unrecognized directive: %s" % line, file=sys.stderr)
@@ -202,13 +202,13 @@ for filename in args:
                         actual_hash = hashlib.sha1(ff.read()).hexdigest().strip()
                         if actual_hash != expected_hash:
                             print(
-                                "different version of %s found; Expected hash %s, got %s; skipping."
+                                "# different version of %s found; Expected hash %s, got %s; skipping."
                                 % (fontfile, expected_hash, actual_hash)
                             )
                             skips += 1
                             continue
             except IOError:
-                print("%s not found, skip." % fontfile)
+                print("# %s not found, skip." % fontfile)
                 skips += 1
                 continue
         else:
@@ -217,7 +217,7 @@ for filename in args:
 
         if comment:
             if verbose:
-                print('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
+                print('# # %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
             continue
 
         skip_test = False
@@ -236,7 +236,7 @@ for filename in args:
                         backend = next(it)
                     if backend not in supported_whats(what):
                         skips += 1
-                        print(f"Skipping test with {what}={backend}.")
+                        print(f"# Skipping test with {what}={backend}.")
                         skip_test = True
                         break
                     what = what.replace("-", "_")
@@ -317,16 +317,14 @@ for filename in args:
                     passes += 1
 
 print(
-    "%d tests passed; %d failed; %d skipped." % (passes, fails, skips), file=sys.stderr
+    "# %d tests passed; %d failed; %d skipped." % (passes, fails, skips), file=sys.stderr
 )
 if not (fails + passes):
-    print("No tests ran.")
+    print("# No tests ran.")
 elif not (fails + skips):
-    print("All tests passed.")
+    print("# All tests passed.")
 
 if fails:
     sys.exit(1)
-elif passes:
-    sys.exit(0)
 else:
-    sys.exit(77)
+    sys.exit(0)
