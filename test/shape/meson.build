@@ -29,7 +29,7 @@ foreach set : sets
       file_names,
     ],
     protocol: 'tap',
-    verbose: true,
+    #verbose: true,
     env: env,
     workdir: meson.current_build_dir() / '..' / '..',
     suite: ['shape', set],

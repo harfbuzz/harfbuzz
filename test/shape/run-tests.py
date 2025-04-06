@@ -2,6 +2,8 @@
 
 import sys, os, subprocess, hashlib
 
+print("TAP version 14")
+
 args = sys.argv[1:]
 
 verbose = False
@@ -115,6 +117,7 @@ if os.environ.get("WINEPATH"):
         print("# Skipping Uniscribe shaper under Wine.")
 
 
+number = 0
 passes = 0
 fails = 0
 skips = 0
@@ -201,15 +204,15 @@ for filename in args:
                     if expected_hash:
                         actual_hash = hashlib.sha1(ff.read()).hexdigest().strip()
                         if actual_hash != expected_hash:
+                            skips += 1
                             print(
-                                "# different version of %s found; Expected hash %s, got %s; skipping."
+                                "# Different version of %s found; Expected hash %s, got %s; skipping."
                                 % (fontfile, expected_hash, actual_hash)
                             )
-                            skips += 1
                             continue
             except IOError:
-                print("# %s not found, skip." % fontfile)
                 skips += 1
+                print("# %s not found, skip." % fontfile)
                 continue
         else:
             cwd = os.path.dirname(filename)
@@ -236,6 +239,7 @@ for filename in args:
                         backend = next(it)
                     if backend not in supported_whats(what):
                         skips += 1
+                        print(f"ok {number} - {fontfile} # skip {what}={backend} not supported")
                         print(f"# Skipping test with {what}={backend}.")
                         skip_test = True
                         break
@@ -253,6 +257,7 @@ for filename in args:
 
         for shaper in [shaper] if shaper else all_whats("shaper"):
             for font_funcs in [font_funcs] if font_funcs else all_whats("font-funcs"):
+                number += 1
                 extra_options = []
 
                 if shaper:
@@ -276,6 +281,7 @@ for filename in args:
 
                 if glyphs_expected == "*":
                     passes += 1
+                    print(f"ok {number} - {fontfile}")
                     continue
 
                 final_glyphs = glyphs
@@ -300,21 +306,23 @@ for filename in args:
                 # If the removal of glyph_ids failed, fail the test.
                 # https://github.com/harfbuzz/harfbuzz/issues/5169
                 if not final_glyphs_expected or final_glyphs != final_glyphs_expected:
-                    print(hb_shape + " " + " ".join(cmd), file=sys.stderr)
-                    print("Actual:   " + glyphs, file=sys.stderr)
-                    print("Expected: " + glyphs_expected, file=sys.stderr)
-                    if final_glyphs != glyphs:
-                        print(
-                            "Actual (no glyph names):   " + final_glyphs,
-                            file=sys.stderr,
-                        )
-                        print(
-                            "Expected (no glyph names): " + final_glyphs_expected,
-                            file=sys.stderr,
-                        )
                     fails += 1
+                    cmd = hb_shape + " " + " ".join(cmd)
+                    print(f"not ok {number} - {cmd}")
+                    print("   ---", file=sys.stderr)
+                    print("   test_file: \"" + filename + "\"", file=sys.stderr)
+                    print("   cmd: \"" + cmd + "\"", file=sys.stderr)
+                    print("   actual:   \"" + glyphs + "\"", file=sys.stderr)
+                    print("   expected: \"" + glyphs_expected + "\"", file=sys.stderr)
+                    if final_glyphs != glyphs:
+                        print("   actual_gids:   \"" + final_glyphs + "\"", file=sys.stderr)
+                        print("   expected_gids: \"" + final_glyphs_expected + "\"", file=sys.stderr)
+                    print("   ...", file=sys.stderr)
                 else:
                     passes += 1
+                    print(f"ok {number} - {fontfile}")
+
+print("1..%d" % number)
 
 print(
     "# %d tests passed; %d failed; %d skipped." % (passes, fails, skips)
