@@ -16,7 +16,6 @@ sets = ['in-house', 'aots', 'text-rendering-tests']
 foreach set : sets
   # in-house -> in_house_tests, aots -> aots_tests, text-rendering-tests -> text_rendering_tests
   varname = '@0@_tests'.format(set.underscorify())
-  varname = varname.replace('tests_tests', 'tests')
   tests = get_variable(varname)
   file_names = []
   foreach test : tests
