@@ -92,7 +92,7 @@ foreach chunk : chunks
     args: chunk,
     depends: [hb_shape_fuzzer_exe, libharfbuzz, libharfbuzz_subset],
     workdir: meson.current_build_dir() / '..' / '..',
-    priority: 1,
+    protocol: 'tap',
     suite: ['fuzzing'],
   )
   i += 1
