@@ -122,7 +122,7 @@ def run_test(test, should_check_ots, preprocess):
             with TTFont(expected_file) as font:
                 font.saveXML(fp)
         except Exception as e:
-            print(e)
+            print("#", e)
             return fail_test(test, cli_args, "ttx failed to parse the expected result")
         expected_ttx = fp.getvalue()
 
@@ -131,7 +131,7 @@ def run_test(test, should_check_ots, preprocess):
             with TTFont(out_file) as font:
                 font.saveXML(fp)
         except Exception as e:
-            print(e)
+            print("#", e)
             return fail_test(test, cli_args, "ttx failed to parse the actual result")
         actual_ttx = fp.getvalue()
 
@@ -170,7 +170,7 @@ if not args or sys.argv[1].find("hb-subset") == -1 or not os.path.exists(sys.arg
 hb_subset, args = args[0], args[1:]
 
 if not len(args):
-    sys.exit("No tests supplied.")
+    sys.exit("# No tests supplied.")
 
 print("TAP version 14")
 
@@ -213,10 +213,10 @@ for path in args:
                 if run_test(test, has_ots, preprocess):
                     print("ok %d - %s" % (number, test))
 
-print("1..%d" % number)
-
 if fails != 0:
     print("# %d test(s) failed; output left in %s" % (fails, out_dir), file=sys.stderr)
 else:
     print("# All tests passed.")
     shutil.rmtree(out_dir)
+
+print("1..%d" % number)

@@ -340,10 +340,10 @@ for filename in args:
                         passes += 1
                         print(f"ok {number} - {fontfile}")
 
-print("1..%d" % number)
-
 print("# %d tests passed; %d failed; %d skipped." % (passes, fails, skips))
 if not (fails + passes):
     print("# No tests ran.")
 elif not (fails + skips):
     print("# All tests passed.")
+
+print("1..%d" % number)
