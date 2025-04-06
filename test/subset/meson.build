@@ -111,6 +111,7 @@ foreach t : tests
     # ideally better to break and let meson handles them in parallel
     timeout: 500,
     workdir: meson.current_build_dir() / '..' / '..',
+    protocol: 'tap',
     suite: 'subset',
   )
 endforeach
@@ -126,6 +127,7 @@ foreach t : repack_tests
       meson.current_source_dir() / 'data' / 'repack_tests' / fname,
     ],
     workdir: meson.current_build_dir() / '..' / '..',
+    protocol: 'tap',
     suite: ['subset', 'repack'],
   )
 endforeach

@@ -17,8 +17,8 @@ from repack_test import RepackTest
 try:
     from fontTools.ttLib import TTFont
 except ImportError:
-    print("fonttools is not present, skipping test.")
-    sys.exit(77)
+    print("# fonttools is not present, skipping test.")
+    sys.exit()
 
 ots_sanitize = shutil.which("ots-sanitize")
 
@@ -27,7 +27,7 @@ EXE_WRAPPER = os.environ.get("MESON_EXE_WRAPPER")
 
 def subset_cmd(command):
     global hb_subset, process
-    print(hb_subset + " " + " ".join(command))
+    print("# " + hb_subset + " " + " ".join(command))
     process.stdin.write((";".join(command) + "\n").encode("utf-8"))
     process.stdin.flush()
     return process.stdout.readline().decode("utf-8").strip()
@@ -43,11 +43,20 @@ def cmd(command):
 
 
 def fail_test(test, cli_args, message):
+    global fails
+    fails += 1
+
     print("ERROR: %s" % message)
     print("Test State:")
     print("  test.font_name    %s" % test.font_name)
     print("  test.test_path %s" % os.path.abspath(test.test_path))
-    return 1
+    print("not ok -", test)
+    print("   ---", file=sys.stderr)
+    print("   message: \"%s\"" % message, file=sys.stderr)
+    print("   test.font_name: \"%s\"" % test.font_name)
+    print("   test.test_path: \"%s\"" % os.path.abspath(test.test_path))
+    print("   ...", file=sys.stderr)
+    return False
 
 
 def run_test(test, should_check_ots):
@@ -58,7 +67,7 @@ def run_test(test, should_check_ots):
         "--unicodes=%s" % test.codepoints_string(),
         "--drop-tables-=GPOS,GSUB,GDEF",
     ]
-    print(" ".join(cli_args))
+    print("#", " ".join(cli_args))
     ret = subset_cmd(cli_args)
 
     if ret != "success":
@@ -72,16 +81,16 @@ def run_test(test, should_check_ots):
         return fail_test(test, cli_args, "ttx failed to parse the result")
 
     if should_check_ots:
-        print("Checking output with ots-sanitize.")
+        print("# Checking output with ots-sanitize.")
         if not check_ots(out_file):
             return fail_test(test, cli_args, "ots for subsetted file fails.")
 
-    return 0
+    return True
 
 
 def has_ots():
     if not ots_sanitize:
-        print("OTS is not present, skipping all ots checks.")
+        print("# OTS is not present, skipping all ots checks.")
         return False
     return True
 
@@ -89,7 +98,7 @@ def has_ots():
 def check_ots(path):
     ots_report, returncode = cmd([ots_sanitize, path])
     if returncode:
-        print("OTS Failure: %s" % ots_report)
+        print("# OTS Failure: %s" % ots_report)
         return False
     return True
 
@@ -102,14 +111,16 @@ hb_subset, args = args[0], args[1:]
 if len(args) != 1:
     sys.exit("No tests supplied.")
 
-has_ots = has_ots()
-
 batch_cmd = [hb_subset, "--batch"]
 if EXE_WRAPPER:
     batch_cmd = [EXE_WRAPPER] + batch_cmd
 process = subprocess.Popen(
     batch_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stdout
 )
+
+print("TAP version 14")
+
+has_ots = has_ots()
 
 fails = 0
 
@@ -119,13 +130,17 @@ if not path.endswith(".tests"):
 
 out_dir = tempfile.mkdtemp()
 
+number = 0
 with open(path, mode="r", encoding="utf-8") as f:
     # TODO(garretrieger): re-enable OTS checking.
-    fails += run_test(RepackTest(path, f.read()), False)
+    if run_test(RepackTest(path, f.read()), False):
+        number += 1
+        print("ok %d - %s" % (number, os.path.basename(path)))
 
+print("1..%d" % number)
 
 if fails != 0:
-    sys.exit("%d test(s) failed; output left in %s" % (fails, out_dir))
+    print("# %d test(s) failed; output left in %s" % (fails, out_dir))
 else:
-    print("All tests passed.")
+    print("# All tests passed.")
     shutil.rmtree(out_dir)
