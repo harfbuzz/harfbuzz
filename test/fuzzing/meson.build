@@ -66,27 +66,13 @@ test('draw-fuzzer', run_fuzzer_tests,
   suite: ['fuzzing'],
 )
 
-ls = find_program('ls')
-if not ls.found()
-  # On Windows, we need to use the 'dir' command to list files in a directory.
-  # The 'ls' command is not available by default.
-  find = [find_program('dir', required: true), '/b', '/a-d']
-else
-  # On other platforms, we can use the 'ls' command.
-  find = [find_program('ls', required: true)]
-endif
+glob_cmd = find_program('glob.py', required: true)
 # Subset fuzzer: feed the fuzzer directly, without run-fuzzer-tests.py
 font_dirs = [
   meson.current_source_dir() / 'fonts',
   meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts',
 ]
-glob = []
-foreach font_dir : font_dirs
-  dir = run_command(find, font_dir, check:true).stdout().strip().split('\n')
-  foreach item : dir
-    glob += [font_dir / item]
-  endforeach
-endforeach
+glob = run_command(glob_cmd, font_dirs, check:true).stdout().strip().split('\n')
 
 # Chunk glob and call runner for each chunk
 chunk_size = 64
