@@ -1,11 +1,10 @@
 # https://github.com/harfbuzz/harfbuzz/issues/5142
 @shapers=ot,coretext
+@face-loaders=ot,coretext
 /System/Library/Fonts/SFNS.ttf;;U+0068,U+0065,U+006C,U+006C,U+006F;[h=0+1104|e=1+1049|l=2+418|l=3+418|o=4+1087]
-/System/Library/Fonts/SFNS.ttf;--face-loader=coretext;U+0068,U+0065,U+006C,U+006C,U+006F;[h=0+1104|e=1+1049|l=2+418|l=3+418|o=4+1087]
 /System/Library/Fonts/SFNSItalic.ttf;;U+0068,U+0065,U+006C,U+006C,U+006F;[h=0+1110|e=1+1062|l=2+424|l=3+424|o=4+1096]
-/System/Library/Fonts/SFNSItalic.ttf;--face-loader=coretext;U+0068,U+0065,U+006C,U+006C,U+006F;[h=0+1110|e=1+1062|l=2+424|l=3+424|o=4+1096]
-
-@shapers=ot # One day get most run through CoreText too
+@face-loaders=ot
+@shapers=ot # On day get most run through CoreText too
 
 # https://github.com/harfbuzz/harfbuzz/issues/5232
 /System/Library/Fonts/LucidaGrande.ttc;;U+05E8,U+05B0,U+05EA,U+05BC,U+05B4,U+05D9,U+05D5;[vavhebrew=6+655|yodhebrew=5+650|hiriqhebrew=2@81,0+0|tavdageshhebrew=2+1421|reshshevahebrew=0+1044]
