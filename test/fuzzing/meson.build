@@ -72,22 +72,20 @@ glob += run_command('find', meson.current_source_dir() / '..' / 'subset' / 'data
 # Chunk glob and call runner for each chunk
 chunk_size = 64
 chunks = []
-num_chunks = (glob.length() + chunk_size - 1) / chunk_size
-foreach i : range(0, num_chunks)
-  start = i * chunk_size
-  end = (i + 1) * chunk_size
-  if end > glob.length()
-    end = glob.length()
+chunk = []
+foreach item : glob
+  if chunk.length() >= chunk_size
+    chunks += [chunk]
+    chunk = []
   endif
-  chunk = []
-  foreach j : range(start, end)
-    chunk += [glob[j]]
-  endforeach
-  chunks += [chunk]
+  chunk += [item]
 endforeach
+if chunk.length() > 0
+  chunks += [chunk]
+endif
 
-foreach i : range(0, chunks.length() - 1)
-  chunk = chunks[i]
+i = 0
+foreach chunk : chunks
   test('subset-fuzzer-chunk-@0@'.format(i),
     hb_subset_fuzzer_exe,
     args: chunk,
@@ -96,4 +94,5 @@ foreach i : range(0, chunks.length() - 1)
     priority: 1,
     suite: ['fuzzing'],
   )
+  i += 1
 endforeach
