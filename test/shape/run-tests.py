@@ -239,6 +239,7 @@ for filename in args:
                         backend = next(it)
                     if backend not in supported_whats(what):
                         skips += 1
+                        number += 1
                         print(
                             f"ok {number} - {fontfile} # skip {what}={backend} not supported"
                         )
