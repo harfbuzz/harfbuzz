@@ -1018,18 +1018,19 @@ check_set_operations(hb_bool_t a_has_x,
     break;
   }
 
-  printf ("%s%s%s%s %-9s %s%s%s%s == %s  [%s]\n",
-          a_inverted ? "i" : " ",
-          a_has_page ? "p" : " ",
-          a_is_null ? "n" : " ",
-          a_has_x ? "{13}" : "{}  ",
-          op_name,
-          b_inverted ? "i" : " ",
-          b_has_page ? "p" : " ",
-          b_is_null ? "n" : " ",
-          b_has_x ? "{13}" : "{}  ",
-          should_have_x ? "{13}" : "{}  ",
-          has_expected ? "succeeded" : "failed");
+  if (FALSE)
+    printf ("%s%s%s%s %-9s %s%s%s%s == %s  [%s]\n",
+	    a_inverted ? "i" : " ",
+	    a_has_page ? "p" : " ",
+	    a_is_null ? "n" : " ",
+	    a_has_x ? "{13}" : "{}  ",
+	    op_name,
+	    b_inverted ? "i" : " ",
+	    b_has_page ? "p" : " ",
+	    b_is_null ? "n" : " ",
+	    b_has_x ? "{13}" : "{}  ",
+	    should_have_x ? "{13}" : "{}  ",
+	    has_expected ? "succeeded" : "failed");
 
   hb_set_destroy (a);
   hb_set_destroy (b);

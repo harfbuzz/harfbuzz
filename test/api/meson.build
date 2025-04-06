@@ -117,9 +117,12 @@ foreach source : tests
   endif
 
   test(test_name, executable(test_name, source,
-    cpp_args:  cpp_args,
-    include_directories: [incconfig],
-    dependencies: deps,
-    install: false,
-  ), env: env, suite: suite)
+      cpp_args:  cpp_args,
+      include_directories: [incconfig],
+      dependencies: deps,
+      install: false,
+    ),
+    protocol: 'tap',
+    env: env,
+    suite: suite)
 endforeach
