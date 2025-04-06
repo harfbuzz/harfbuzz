@@ -68,7 +68,12 @@ test('draw-fuzzer', run_fuzzer_tests,
 
 ls = find_program('ls')
 if not ls.found()
-  ls = find_program('dir')
+  # On Windows, we need to use the 'dir' command to list files in a directory.
+  # The 'ls' command is not available by default.
+  find = [find_program('dir', required: true), '/b', '/a-d']
+else
+  # On other platforms, we can use the 'ls' command.
+  find = [find_program('ls', required: true)]
 endif
 # Subset fuzzer: feed the fuzzer directly, without run-fuzzer-tests.py
 font_dirs = [
@@ -77,7 +82,7 @@ font_dirs = [
 ]
 glob = []
 foreach font_dir : font_dirs
-  dir = run_command(ls, font_dir, check:true).stdout().strip().split('\n')
+  dir = run_command(find, font_dir, check:true).stdout().strip().split('\n')
   foreach item : dir
     glob += [font_dir / item]
   endforeach
