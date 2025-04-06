@@ -52,9 +52,9 @@ def fail_test(test, cli_args, message):
     print("  test.test_path %s" % os.path.abspath(test.test_path))
     print("not ok -", test)
     print("   ---", file=sys.stderr)
-    print("   message: \"%s\"" % message, file=sys.stderr)
-    print("   test.font_name: \"%s\"" % test.font_name)
-    print("   test.test_path: \"%s\"" % os.path.abspath(test.test_path))
+    print('   message: "%s"' % message, file=sys.stderr)
+    print('   test.font_name: "%s"' % test.font_name)
+    print('   test.test_path: "%s"' % os.path.abspath(test.test_path))
     print("   ...", file=sys.stderr)
     return False
 

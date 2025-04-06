@@ -54,11 +54,14 @@ def fail_test(test, cli_args, message):
 
     print("not ok -", test)
     print("   ---", file=sys.stderr)
-    print("   message: \"%s\"" % message, file=sys.stderr)
-    print("   test.font_path: \"%s\"" % os.path.abspath(test.font_path), file=sys.stderr)
-    print("   test.profile_path: \"%s\"" % os.path.abspath(test.profile_path), file=sys.stderr)
-    print("   test.unicodes: \"%s\"" % test.unicodes(), file=sys.stderr)
-    print("   expected_file: \"%s\"" % os.path.abspath(expected_file), file=sys.stderr)
+    print('   message: "%s"' % message, file=sys.stderr)
+    print('   test.font_path: "%s"' % os.path.abspath(test.font_path), file=sys.stderr)
+    print(
+        '   test.profile_path: "%s"' % os.path.abspath(test.profile_path),
+        file=sys.stderr,
+    )
+    print('   test.unicodes: "%s"' % test.unicodes(), file=sys.stderr)
+    print('   expected_file: "%s"' % os.path.abspath(expected_file), file=sys.stderr)
     print("   ...", file=sys.stderr)
     return False
 
