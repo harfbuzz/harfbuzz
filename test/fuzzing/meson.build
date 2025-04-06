@@ -66,10 +66,23 @@ test('draw-fuzzer', run_fuzzer_tests,
   suite: ['fuzzing'],
 )
 
-find = find_program('find', required: true)
+ls = find_program('ls')
+if not ls.found()
+  ls = find_program('dir')
+endif
 # Subset fuzzer: feed the fuzzer directly, without run-fuzzer-tests.py
-glob = run_command(find, meson.current_source_dir() / 'fonts', '-type', 'f', check:true).stdout().strip().split('\n')
-glob += run_command(find, meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts' , '-type', 'f', check:true).stdout().strip().split('\n')
+font_dirs = [
+  meson.current_source_dir() / 'fonts',
+  meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts',
+]
+glob = []
+foreach font_dir : font_dirs
+  dir = run_command(ls, font_dir, check:true).stdout().strip().split('\n')
+  foreach item : dir
+    glob += [font_dir / item]
+  endforeach
+endforeach
+
 # Chunk glob and call runner for each chunk
 chunk_size = 64
 chunks = []
