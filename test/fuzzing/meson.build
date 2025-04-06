@@ -47,17 +47,6 @@ test('shape-fuzzer', run_fuzzer_tests,
   suite: ['fuzzing'],
 )
 
-test('subset-fuzzer', run_fuzzer_tests,
-  args: [
-    hb_subset_fuzzer_exe,
-    meson.current_source_dir() / 'fonts',
-    meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts',
-  ],
-  workdir: meson.current_build_dir() / '..' / '..',
-  priority: 1,
-  suite: ['fuzzing'],
-)
-
 test('repacker-fuzzer', run_fuzzer_tests,
   args: [
     hb_repacker_fuzzer_exe,
@@ -76,3 +65,36 @@ test('draw-fuzzer', run_fuzzer_tests,
   workdir: meson.current_build_dir() / '..' / '..',
   suite: ['fuzzing'],
 )
+
+# Subset fuzzer: feed the fuzzer directly, without run-fuzzer-tests.py
+fs = import('fs')
+glob = run_command('find', meson.current_source_dir() / 'fonts', '-type', 'f', check:true).stdout().strip().split('\n')
+glob += run_command('find', meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts' , '-type', 'f', check:true).stdout().strip().split('\n')
+# Chunk glob and call runner for each chunk
+chunk_size = 64
+chunks = []
+num_chunks = (glob.length() + chunk_size - 1) / chunk_size
+foreach i : range(0, num_chunks)
+  start = i * chunk_size
+  end = (i + 1) * chunk_size
+  if end > glob.length()
+    end = glob.length()
+  endif
+  chunk = []
+  foreach j : range(start, end)
+    chunk += [glob[j]]
+  endforeach
+  chunks += [chunk]
+endforeach
+
+foreach i : range(0, chunks.length() - 1)
+  chunk = chunks[i]
+  test('subset-fuzzer-chunk-@0@'.format(i),
+    hb_subset_fuzzer_exe,
+    args: chunk,
+    depends: [hb_shape_fuzzer_exe, libharfbuzz, libharfbuzz_subset],
+    workdir: meson.current_build_dir() / '..' / '..',
+    priority: 1,
+    suite: ['fuzzing'],
+  )
+endforeach
