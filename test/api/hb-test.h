@@ -117,17 +117,13 @@ hb_test_run (void)
 static inline char *
 hb_test_normalize_path (const char *path)
 {
-  char *s, *p;
-
   g_assert (0 == strncmp (path, "test_", 5));
   path += 4;
 
-  s = g_strdup (path);
-  for (p = s; *p; p++)
-    if (*p == '_')
-      *p = '/';
+  char *p = g_strdup (path);
+  p[0] = '/';
 
-  return s;
+  return p;
 }
 
 
