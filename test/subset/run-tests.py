@@ -40,19 +40,20 @@ def cmd(command):
         command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
     )
     (stdoutdata, stderrdata) = p.communicate()
-    print(stderrdata, end="", file=sys.stderr)
+    if stderrdata:
+        print(stderrdata, file=sys.stderr)
     return stdoutdata, p.returncode
 
 
 def fail_test(test, cli_args, message):
-    global fails
+    global fails, number
     fails += 1
 
     expected_file = os.path.join(
         test_suite.get_output_directory(), test.get_font_name()
     )
 
-    print("not ok -", test)
+    print("not ok %d - %s" % (number, test))
     print("   ---", file=sys.stderr)
     print('   message: "%s"' % message, file=sys.stderr)
     print('   test.font_path: "%s"' % os.path.abspath(test.font_path), file=sys.stderr)
@@ -217,7 +218,7 @@ for path in args:
                     print("ok %d - %s" % (number, test))
 
 if fails != 0:
-    print("# %d test(s) failed; output left in %s" % (fails, out_dir), file=sys.stderr)
+    print("# %d test(s) failed; output left in %s" % (fails, out_dir))
 else:
     print("# All tests passed.")
     shutil.rmtree(out_dir)

@@ -38,7 +38,8 @@ def cmd(command):
         command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
     )
     (stdoutdata, stderrdata) = p.communicate()
-    print(stderrdata, end="", file=sys.stderr)
+    if stderrdata:
+        print(stderrdata, file=sys.stderr)
     return stdoutdata, p.returncode
 
 
@@ -53,8 +54,8 @@ def fail_test(test, cli_args, message):
     print("not ok -", test)
     print("   ---", file=sys.stderr)
     print('   message: "%s"' % message, file=sys.stderr)
-    print('   test.font_name: "%s"' % test.font_name)
-    print('   test.test_path: "%s"' % os.path.abspath(test.test_path))
+    print('   test.font_name: "%s"' % test.font_name, file=sys.stderr)
+    print('   test.test_path: "%s"' % os.path.abspath(test.test_path), file=sys.stderr)
     print("   ...", file=sys.stderr)
     return False
 

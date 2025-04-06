@@ -17,10 +17,10 @@ class Test:
         self.options = options
 
     def __str__(self):
-        return "Test: %s %s %s %s %s %s" % (
+        # Don't print self.subset as contains non-ASCII and some CI's don't like it
+        return "Test: %s %s %s %s %s" % (
             self.font_path,
             self.profile_path,
-            self.subset,
             self.instance,
             self.iup_optimize,
             self.options,
