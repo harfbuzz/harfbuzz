@@ -34,6 +34,7 @@ tests = [
   'test-ot-layout.c',
   'test-ot-ligature-carets.c',
   'test-ot-name.c',
+  'test-ot-math.c',
   'test-ot-meta.c',
   'test-ot-metrics.c',
   'test-ot-tag.c',
@@ -71,7 +72,6 @@ tests = [
 
 if conf.get('HAVE_FREETYPE', 0) == 1
   tests += [
-    'test-ot-math.c',
     'test-ft.c',
   ]
 endif
