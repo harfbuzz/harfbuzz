@@ -33,7 +33,7 @@ class Test:
             return self.subset[0]
         elif self.subset == "no-unicodes":
             return ""
-        elif re.match("^U\+", self.subset):
+        elif re.match(r"^U\+", self.subset):
             s = re.sub(r"U\+", "", self.subset)
             return s
         else:
