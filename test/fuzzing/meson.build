@@ -67,7 +67,6 @@ test('draw-fuzzer', run_fuzzer_tests,
 )
 
 # Subset fuzzer: feed the fuzzer directly, without run-fuzzer-tests.py
-fs = import('fs')
 glob = run_command('find', meson.current_source_dir() / 'fonts', '-type', 'f', check:true).stdout().strip().split('\n')
 glob += run_command('find', meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts' , '-type', 'f', check:true).stdout().strip().split('\n')
 # Chunk glob and call runner for each chunk
