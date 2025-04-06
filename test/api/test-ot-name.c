@@ -110,7 +110,7 @@ int
 main (int argc, char **argv)
 {
   unsigned int status;
-  g_test_init (&argc, &argv, NULL);
+  hb_test_init (&argc, &argv);
 
   hb_test_add (test_ot_layout_feature_get_name_ids_and_characters);
   hb_test_add (test_ot_name);

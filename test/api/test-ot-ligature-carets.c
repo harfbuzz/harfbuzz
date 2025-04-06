@@ -165,7 +165,7 @@ test_ot_layout_get_ligature_carets_empty (void)
 int
 main (int argc, char **argv)
 {
-  g_test_init (&argc, &argv, NULL);
+  hb_test_init (&argc, &argv);
 
   hb_test_add (test_ot_layout_get_ligature_carets_ot_gdef);
   hb_test_add (test_ot_layout_get_ligature_carets_empty);
