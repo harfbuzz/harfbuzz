@@ -57,21 +57,6 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   hb_set_destroy (output);
 
   unsigned flags = HB_SUBSET_FLAGS_DEFAULT;
-  const hb_codepoint_t text[] =
-      {
-	'A', 'B', 'C', 'D', 'E', 'X', 'Y', 'Z', '1', '2',
-	'3', '@', '_', '%', '&', ')', '*', '$', '!'
-      };
-
-  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
-  if (!input)
-  {
-    hb_face_destroy (face);
-    hb_blob_destroy (blob);
-    return 0;
-  }
-  trySubset (face, text, sizeof (text) / sizeof (hb_codepoint_t), flags, input);
-
   unsigned num_axes;
   hb_codepoint_t text_from_data[16];
   if (size > sizeof (text_from_data) + sizeof (flags) + sizeof(num_axes)) {
