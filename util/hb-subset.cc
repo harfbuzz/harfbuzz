@@ -71,7 +71,7 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     main2.option_parser_t::parse (&argc, &args);
     g_free (args);
 
-    set_face (hb_face_reference (main2.face));
+    set_face (main2.face);
   }
 
   void parse (int argc, char **argv)

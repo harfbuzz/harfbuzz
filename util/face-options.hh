@@ -33,12 +33,16 @@ struct face_options_t
 {
   ~face_options_t ()
   {
-    g_free (face_loader);
     g_free (font_file);
+    g_free (face_loader);
+    hb_face_destroy (face);
   }
 
   void set_face (hb_face_t *face_)
-  { face = face_; }
+  {
+    hb_face_destroy (face);
+    face = hb_face_reference (face_);
+  }
 
   void add_options (option_parser_t *parser);
 
@@ -116,7 +120,7 @@ face_options_t::post_parse (GError **error)
     }
   }
 
-  face = cache.face;
+  set_face (cache.face);
 }
 
 static G_GNUC_NORETURN gboolean
