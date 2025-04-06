@@ -27,50 +27,19 @@
 
 #include "hb-test.h"
 
-#include "hb-ft.h"
 #include "hb-ot.h"
 
 /* Unit tests for hb-ot-math.h - OpenType MATH table  */
 
-static FT_Library ft_library;
-static FT_Face ft_face;
 static hb_font_t *hb_font;
 static hb_face_t *hb_face;
 
-static inline void
-initFreeType (void)
-{
-  FT_Error ft_error;
-  if ((ft_error = FT_Init_FreeType (&ft_library)))
-    abort();
-}
-
-static inline void
-cleanupFreeType (void)
-{
-  FT_Done_FreeType (ft_library);
-}
 
 static void
 openFont(const char* fontFile)
 {
-#if GLIB_CHECK_VERSION(2,37,2)
-  gchar* path = g_test_build_filename(G_TEST_DIST, fontFile, NULL);
-#else
-  gchar* path = g_strdup(fontFile);
-#endif
-
-  FT_Error ft_error;
-  if ((ft_error = FT_New_Face (ft_library, path, 0, &ft_face))) {
-    g_free(path);
-    abort();
-  }
-  g_free(path);
-
-  if ((ft_error = FT_Set_Char_Size (ft_face, 2000, 1000, 0, 0)))
-    abort();
-  hb_font = hb_ft_font_create (ft_face, NULL);
-  hb_face = hb_face_reference (hb_font_get_face (hb_font));
+  hb_face = hb_test_open_font_file (fontFile);
+  hb_font = hb_font_create (hb_face);
 }
 
 static inline void
@@ -78,17 +47,13 @@ closeFont (void)
 {
   hb_face_destroy (hb_face);
   hb_font_destroy (hb_font);
-  FT_Done_Face (ft_face);
   hb_face = NULL;
   hb_font = NULL;
-  ft_face = NULL;
 }
 
 static void
 test_has_data (void)
 {
-  initFreeType();
-
   openFont("fonts/MathTestFontNone.otf");
   g_assert(!hb_ot_math_has_data (hb_face)); // MATH table not available
   closeFont();
@@ -108,20 +73,17 @@ test_has_data (void)
   g_assert(!hb_ot_math_has_data (hb_face)); // MATH table not available
   hb_font_destroy (hb_font);
   hb_face_destroy (hb_face);
-
-  cleanupFreeType();
 }
 
 static void
 test_get_constant (void)
 {
-  initFreeType();
-
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert_cmpint(hb_ot_math_get_constant (hb_font, HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT), ==, 0); // MathConstants not available
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert_cmpint((hb_ot_math_get_constant (hb_font, HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT)), ==, 100);
   g_assert_cmpint((hb_ot_math_get_constant (hb_font, HB_OT_MATH_CONSTANT_DISPLAY_OPERATOR_MIN_HEIGHT)), ==, 200);
   g_assert_cmpint((hb_ot_math_get_constant (hb_font, HB_OT_MATH_CONSTANT_MATH_LEADING)), ==, 300);
@@ -190,15 +152,12 @@ test_get_constant (void)
   g_assert_cmpint((hb_ot_math_get_constant (hb_font, HB_OT_MATH_CONSTANT_DISPLAY_OPERATOR_MIN_HEIGHT)), ==, 3000);
   g_assert_cmpint((hb_ot_math_get_constant (hb_font, HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT)), ==, 2500);
   closeFont();
-
-  cleanupFreeType();
 }
 
 static void
 test_get_glyph_italics_correction (void)
 {
   hb_codepoint_t glyph;
-  initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
@@ -216,6 +175,7 @@ test_get_glyph_italics_correction (void)
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_italics_correction (hb_font, glyph), ==, 0); // Glyph without italic correction.
   g_assert(hb_font_get_glyph_from_name (hb_font, "A", -1, &glyph));
@@ -225,32 +185,33 @@ test_get_glyph_italics_correction (void)
   g_assert(hb_font_get_glyph_from_name (hb_font, "C", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_italics_correction (hb_font, glyph), ==, 904);
   closeFont();
-
-  cleanupFreeType();
 }
 
 static void
 test_get_glyph_top_accent_attachment (void)
 {
   hb_codepoint_t glyph;
-  initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_top_accent_attachment (hb_font, glyph), ==, 1000); // MathGlyphInfo not available
   closeFont();
 
   openFont("fonts/MathTestFontPartial1.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_top_accent_attachment (hb_font, glyph), ==, 1000); // MathGlyphInfo empty
   closeFont();
 
   openFont("fonts/MathTestFontPartial2.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_top_accent_attachment (hb_font, glyph), ==, 1000); // MathTopAccentAttachment empty
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_top_accent_attachment (hb_font, glyph), ==, 1000); // Glyph without top accent attachment.
   g_assert(hb_font_get_glyph_from_name (hb_font, "D", -1, &glyph));
@@ -260,15 +221,12 @@ test_get_glyph_top_accent_attachment (void)
   g_assert(hb_font_get_glyph_from_name (hb_font, "F", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_top_accent_attachment (hb_font, glyph), ==, 636);
   closeFont();
-
-  cleanupFreeType();
 }
 
 static void
 test_is_glyph_extended_shape (void)
 {
   hb_codepoint_t glyph;
-  initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
@@ -286,15 +244,12 @@ test_is_glyph_extended_shape (void)
   g_assert(hb_font_get_glyph_from_name (hb_font, "H", -1, &glyph));
   g_assert(hb_ot_math_is_glyph_extended_shape (hb_face, glyph));
   closeFont();
-
-  cleanupFreeType();
 }
 
 static void
 test_get_glyph_kerning (void)
 {
   hb_codepoint_t glyph;
-  initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
@@ -321,6 +276,7 @@ test_get_glyph_kerning (void)
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert(hb_font_get_glyph_from_name (hb_font, "I", -1, &glyph));
 
   g_assert_cmpint(hb_ot_math_get_glyph_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 7), ==, 62); // lower than min height
@@ -339,8 +295,6 @@ test_get_glyph_kerning (void)
   g_assert_cmpint(hb_ot_math_get_glyph_kerning (hb_font, glyph, HB_OT_MATH_KERN_BOTTOM_LEFT, 39), ==, 100); // bottom left
 
   closeFont();
-
-  cleanupFreeType();
 }
 
 static void
@@ -350,8 +304,6 @@ test_get_glyph_kernings (void)
   hb_ot_math_kern_entry_t entries[20];
   const unsigned entries_size = sizeof (entries) / sizeof (entries[0]);
   unsigned int count;
-
-  initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
@@ -378,6 +330,7 @@ test_get_glyph_kernings (void)
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert(hb_font_get_glyph_from_name (hb_font, "I", -1, &glyph));
 
   g_assert_cmpint(hb_ot_math_get_glyph_kernings (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0, NULL, NULL), ==, 10);
@@ -420,8 +373,6 @@ test_get_glyph_kernings (void)
   g_assert_cmpint(entries[2].kern_value, ==, 110);
 
   closeFont();
-
-  cleanupFreeType();
 }
 
 
@@ -442,7 +393,6 @@ static void
 test_get_glyph_assembly_italics_correction (void)
 {
   hb_codepoint_t glyph;
-  initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
@@ -475,6 +425,7 @@ test_get_glyph_assembly_italics_correction (void)
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowleft", -1, &glyph));
   g_assert_cmpint(get_glyph_assembly_italics_correction (hb_font, glyph, TRUE), ==, 248);
   g_assert_cmpint(get_glyph_assembly_italics_correction (hb_font, glyph, FALSE), ==, 0);
@@ -482,26 +433,21 @@ test_get_glyph_assembly_italics_correction (void)
   g_assert_cmpint(get_glyph_assembly_italics_correction (hb_font, glyph, TRUE), ==, 0);
   g_assert_cmpint(get_glyph_assembly_italics_correction (hb_font, glyph, FALSE), ==, 662);
   closeFont();
-
-  cleanupFreeType();
 }
 
 static void
 test_get_min_connector_overlap (void)
 {
-  initFreeType();
-
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, HB_DIRECTION_LTR), ==, 0); // MathVariants not available
   g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, HB_DIRECTION_TTB), ==, 0); // MathVariants not available
   closeFont();
 
   openFont("fonts/MathTestFontPartial1.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
   g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, HB_DIRECTION_LTR), ==, 108);
   g_assert_cmpint(hb_ot_math_get_min_connector_overlap(hb_font, HB_DIRECTION_TTB), ==, 54);
   closeFont();
-
-  cleanupFreeType();
 }
 
 static void
@@ -512,8 +458,6 @@ test_get_glyph_variants (void)
   unsigned variantsSize = sizeof (variants) / sizeof (variants[0]);
   unsigned int count;
   unsigned int offset = 0;
-
-  initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
@@ -546,6 +490,7 @@ test_get_glyph_variants (void)
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowleft", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_variants (hb_font,
@@ -624,8 +569,6 @@ test_get_glyph_variants (void)
   g_assert_cmpint(variants[3].advance, ==, 3751);
 
   closeFont();
-
-  cleanupFreeType();
 }
 
 static void
@@ -636,8 +579,6 @@ test_get_glyph_assembly (void)
   unsigned partsSize = sizeof (parts) / sizeof (parts[0]);
   unsigned int count;
   unsigned int offset = 0;
-
-  initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
@@ -670,6 +611,7 @@ test_get_glyph_assembly (void)
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
+  hb_font_set_scale (hb_font, 2000, 1000);
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowright", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_assembly (hb_font,
@@ -781,8 +723,6 @@ test_get_glyph_assembly (void)
   g_assert(!(parts[4].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
 
   closeFont();
-
-  cleanupFreeType();
 }
 
 int
