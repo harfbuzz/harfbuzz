@@ -317,7 +317,7 @@ for filename in args:
                     passes += 1
 
 print(
-    "# %d tests passed; %d failed; %d skipped." % (passes, fails, skips), file=sys.stderr
+    "# %d tests passed; %d failed; %d skipped." % (passes, fails, skips)
 )
 if not (fails + passes):
     print("# No tests ran.")
