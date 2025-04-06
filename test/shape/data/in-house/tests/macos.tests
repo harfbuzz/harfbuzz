@@ -1,3 +1,8 @@
+@shapers=ot #,coretext
+
+# https://github.com/harfbuzz/harfbuzz/issues/5232
+/System/Library/Fonts/LucidaGrande.ttc;;U+05E8,U+05B0,U+05EA,U+05BC,U+05B4,U+05D9,U+05D5;[vavhebrew=6+655|yodhebrew=5+650|hiriqhebrew=2@81,0+0|tavdageshhebrew=2+1421|reshshevahebrew=0+1044]
+
 # https://github.com/harfbuzz/harfbuzz/issues/5142
 
 # https://github.com/harfbuzz/harfbuzz/issues/4020
