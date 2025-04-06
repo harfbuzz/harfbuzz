@@ -302,7 +302,7 @@ test_subset_glyf_strip_hints_invalid (void)
   hb_set_destroy (codepoints);
 
   face_subset = hb_subset_or_fail (face, input);
-  g_assert (!face_subset);
+  g_assert_true (!face_subset);
 
   hb_subset_input_destroy (input);
   hb_face_destroy (face);

@@ -88,7 +88,7 @@ main (int argc, char **argv)
 
   master_face = hb_test_open_font_file_with_index (font_file, face_index);
   master_head = hb_face_reference_table (master_face, HEAD_TAG);
-  g_assert (hb_blob_get_length (master_head) > 0);
+  g_assert_true (hb_blob_get_length (master_head) > 0);
 
   font_file = hb_test_resolve_path (font_file);
 

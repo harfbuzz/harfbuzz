@@ -95,7 +95,7 @@ test_body (gconstpointer data)
 {
   const char *backend = (const char *) data;
   bool ret = hb_font_set_funcs_using (font, backend);
-  g_assert (ret);
+  g_assert_true (ret);
 
   int i;
   pthread_t *threads = calloc (num_threads, sizeof (pthread_t));

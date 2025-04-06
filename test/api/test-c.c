@@ -78,7 +78,7 @@ static void
 test_list_shapers (void)
 {
   const char *first = *hb_shape_list_shapers ();
-  g_assert (first);
+  g_assert_true (first);
 }
 
 int

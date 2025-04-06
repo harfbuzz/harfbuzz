@@ -100,8 +100,8 @@ test_smart_ptrs (void)
   assert (hash2 (pb4) == hash2 (pb2));
   assert (hash (b) == hash3 (pb5));
 
-  g_assert (pb != pb.get_empty ());
-  g_assert (pb != pb2);
+  g_assert_true (pb != pb.get_empty ());
+  g_assert_true (pb != pb2);
 }
 
 int

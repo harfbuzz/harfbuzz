@@ -52,12 +52,12 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
   g_assert_cmpuint (0, ==, hb_set_get_population (before));
   g_assert_cmpuint (684, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (54, ==, g);
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
   g_assert_cmpuint (372, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (574, ==, g);
   END();
 
@@ -67,14 +67,14 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
 
   g_assert_cmpuint (143, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (2, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
 
   g_assert_cmpuint (319, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (519, ==, g);
   END();
 
@@ -84,14 +84,14 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
 
   g_assert_cmpuint (10, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (92, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
 
   g_assert_cmpuint (9, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (6, ==, g);
   END();
 
@@ -101,14 +101,14 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
 
   g_assert_cmpuint (14, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (1823, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
 
   g_assert_cmpuint (22, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (1897, ==, g);
   END();
 
@@ -118,19 +118,19 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
 
   g_assert_cmpuint (10, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (92, ==, g);
 
   g_assert_cmpuint (2, ==, hb_set_get_population (after));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (after, &g));
+  g_assert_true (hb_set_next (after, &g));
   g_assert_cmpuint (1826, ==, g);
-  g_assert (hb_set_next (after, &g));
+  g_assert_true (hb_set_next (after, &g));
   g_assert_cmpuint (1837, ==, g);
 
   g_assert_cmpuint (9, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (6, ==, g);
   END();
 
@@ -138,19 +138,19 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
   BEGIN(HB_OT_TAG_GSUB, 13);
   g_assert_cmpuint (771, ==, hb_set_get_population (before));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (before, &g));
+  g_assert_true (hb_set_next (before, &g));
   g_assert_cmpuint (2, ==, g);
 
   g_assert_cmpuint (28, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (1823, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
 
   g_assert_cmpuint (48, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (325, ==, g);
   END();
 
@@ -160,7 +160,7 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
 
   g_assert_cmpuint (179, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (28, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
@@ -173,7 +173,7 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
 
   g_assert_cmpuint (48, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (1823, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
@@ -186,7 +186,7 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
 
   g_assert_cmpuint (1426, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (2, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
@@ -202,7 +202,7 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
 
   g_assert_cmpuint (1, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (4, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
@@ -233,22 +233,22 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
 
   g_assert_cmpuint (3, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (228, ==, g);
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (416, ==, g);
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (441, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
 
   g_assert_cmpuint (3, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (267, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (268, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (279, ==, g);
   END();
 
@@ -258,22 +258,22 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
 
   g_assert_cmpuint (3, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (228, ==, g);
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (416, ==, g);
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (441, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
 
   g_assert_cmpuint (3, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (267, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (268, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (279, ==, g);
   END();
 
@@ -281,22 +281,22 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
   BEGIN(HB_OT_TAG_GSUB, 16);
   g_assert_cmpuint (16, ==, hb_set_get_population (before));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (before, &g));
+  g_assert_true (hb_set_next (before, &g));
   g_assert_cmpuint (74, ==, g);
 
   g_assert_cmpuint (27, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (276, ==, g);
 
   g_assert_cmpuint (14, ==, hb_set_get_population (after));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (after, &g));
+  g_assert_true (hb_set_next (after, &g));
   g_assert_cmpuint (252, ==, g);
 
   g_assert_cmpuint (43, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (74, ==, g);
   END();
 
@@ -306,14 +306,14 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
 
   g_assert_cmpuint (246, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (252, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
 
   g_assert_cmpuint (258, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (74, ==, g);
   END();
 
@@ -324,7 +324,7 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
 
   g_assert_cmpuint (616, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (228, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
@@ -337,7 +337,7 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
 
   g_assert_cmpuint (46, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (1004, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
@@ -350,7 +350,7 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
 
   g_assert_cmpuint (242, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (257, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
@@ -381,26 +381,26 @@ test_ot_layout_lookup_collect_glyphs_qahiri (void)
 
   g_assert_cmpuint (4, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (52, ==, g);
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (60, ==, g);
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (62, ==, g);
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (159, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
 
   g_assert_cmpuint (4, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (53, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (61, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (63, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (160, ==, g);
   END();
 
@@ -408,26 +408,26 @@ test_ot_layout_lookup_collect_glyphs_qahiri (void)
   BEGIN(HB_OT_TAG_GSUB, 11);
   g_assert_cmpuint (1, ==, hb_set_get_population (before));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (before, &g));
+  g_assert_true (hb_set_next (before, &g));
   g_assert_cmpuint (39, ==, g);
 
   g_assert_cmpuint (2, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (154, ==, g);
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (159, ==, g);
 
   g_assert_cmpuint (1, ==, hb_set_get_population (after));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (after, &g));
+  g_assert_true (hb_set_next (after, &g));
   g_assert_cmpuint (179, ==, g);
 
   g_assert_cmpuint (2, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (155, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (162, ==, g);
   END();
 
@@ -437,20 +437,20 @@ test_ot_layout_lookup_collect_glyphs_qahiri (void)
 
   g_assert_cmpuint (4, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (53, ==, g);
 
   g_assert_cmpuint (0, ==, hb_set_get_population (after));
 
   g_assert_cmpuint (4, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (52, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (60, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (62, ==, g);
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (159, ==, g);
   END();
 
@@ -460,17 +460,17 @@ test_ot_layout_lookup_collect_glyphs_qahiri (void)
 
   g_assert_cmpuint (42, ==, hb_set_get_population (input));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (input, &g));
+  g_assert_true (hb_set_next (input, &g));
   g_assert_cmpuint (47, ==, g);
 
   g_assert_cmpuint (46, ==, hb_set_get_population (after));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (after, &g));
+  g_assert_true (hb_set_next (after, &g));
   g_assert_cmpuint (61, ==, g);
 
   g_assert_cmpuint (42, ==, hb_set_get_population (output));
   g = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (output, &g));
+  g_assert_true (hb_set_next (output, &g));
   g_assert_cmpuint (463, ==, g);
   END();
 

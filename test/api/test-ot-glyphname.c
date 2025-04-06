@@ -33,9 +33,9 @@ test_one_glyph (hb_font_t *font,  hb_codepoint_t gid, const char *name)
   char			buf[64];
   hb_codepoint_t	glyph;
 
-  g_assert(hb_font_get_glyph_name (font, gid, buf, sizeof (buf)));
+  g_assert_true(hb_font_get_glyph_name (font, gid, buf, sizeof (buf)));
   g_assert_cmpstr(buf, ==, name);
-  g_assert(hb_font_get_glyph_from_name (font, name, -1, &glyph));
+  g_assert_true(hb_font_get_glyph_from_name (font, name, -1, &glyph));
   g_assert_cmpint(glyph, ==, gid);
 }
 

@@ -38,15 +38,15 @@ test_face_empty (void)
   hb_face_t *created_from_empty;
   hb_face_t *created_from_null;
 
-  g_assert (hb_face_get_empty ());
+  g_assert_true (hb_face_get_empty ());
 
   created_from_empty = hb_face_create (hb_blob_get_empty (), 0);
-  g_assert (hb_face_get_empty () != created_from_empty);
+  g_assert_true (hb_face_get_empty () != created_from_empty);
 
   created_from_null = hb_face_create (NULL, 0);
-  g_assert (hb_face_get_empty () != created_from_null);
+  g_assert_true (hb_face_get_empty () != created_from_null);
 
-  g_assert (hb_face_reference_table (hb_face_get_empty (), HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
+  g_assert_true (hb_face_reference_table (hb_face_get_empty (), HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
 
   g_assert_cmpint (hb_face_get_upem (hb_face_get_empty ()), ==, 1000);
 
@@ -64,7 +64,7 @@ test_face_create (void)
   face = hb_face_create (blob, 0);
   hb_blob_destroy (blob);
 
-  g_assert (hb_face_reference_table (face, HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
+  g_assert_true (hb_face_reference_table (face, HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
 
   g_assert_cmpint (hb_face_get_upem (face), ==, 1000);
 
@@ -77,7 +77,7 @@ free_up (void *user_data)
 {
   int *freed = (int *) user_data;
 
-  g_assert (!*freed);
+  g_assert_true (!*freed);
 
   (*freed)++;
 }
@@ -109,22 +109,22 @@ test_face_createfortables (void)
   int freed = 0;
 
   face = hb_face_create_for_tables (get_table, &freed, free_up);
-  g_assert (!freed);
+  g_assert_true (!freed);
 
-  g_assert (hb_face_reference_table (face, HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
+  g_assert_true (hb_face_reference_table (face, HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
 
   blob = hb_face_reference_table (face, HB_TAG ('a','b','c','d'));
-  g_assert (blob != hb_blob_get_empty ());
+  g_assert_true (blob != hb_blob_get_empty ());
 
   data = hb_blob_get_data (blob, &len);
   g_assert_cmpint (len, ==, sizeof (test_data));
-  g_assert (0 == memcmp (data, test_data, sizeof (test_data)));
+  g_assert_true (0 == memcmp (data, test_data, sizeof (test_data)));
   hb_blob_destroy (blob);
 
   g_assert_cmpint (hb_face_get_upem (face), ==, 1000);
 
   hb_face_destroy (face);
-  g_assert (freed);
+  g_assert_true (freed);
 }
 
 static unsigned int
@@ -176,17 +176,17 @@ test_face_referenceblob (void)
   blob = hb_face_reference_blob (face);
   hb_face_destroy (face);
 
-  g_assert (blob != hb_blob_get_empty ());
+  g_assert_true (blob != hb_blob_get_empty ());
 
   face = hb_face_create (blob, 0);
   hb_blob_destroy (blob);
 
-  g_assert (face != hb_face_get_empty ());
+  g_assert_true (face != hb_face_get_empty ());
   g_assert_cmpuint (hb_face_get_table_tags (face, 0, NULL, NULL), ==, sizeof (test_tags) / sizeof (test_tags[0]));
   for (unsigned i = 0; i < sizeof (test_tags) / sizeof (test_tags[0]); i++)
   {
     hb_blob_t* table = hb_face_reference_table (face, test_tags[i]);
-    g_assert (table != hb_blob_get_empty ());
+    g_assert_true (table != hb_blob_get_empty ());
     hb_blob_destroy (table);
   }
 
@@ -202,7 +202,7 @@ _test_font_nil_funcs (hb_font_t *font)
   unsigned int upem = hb_face_get_upem (hb_font_get_face (font));
 
   x = y = 13;
-  g_assert (!hb_font_get_glyph_contour_point (font, 17, 2, &x, &y));
+  g_assert_true (!hb_font_get_glyph_contour_point (font, 17, 2, &x, &y));
   g_assert_cmpint (x, ==, 0);
   g_assert_cmpint (y, ==, 0);
 
@@ -218,7 +218,7 @@ _test_font_nil_funcs (hb_font_t *font)
   g_assert_cmpint (extents.height, ==, 0);
 
   glyph = 3;
-  g_assert (!hb_font_get_glyph (font, 17, 2, &glyph));
+  g_assert_true (!hb_font_get_glyph (font, 17, 2, &glyph));
   g_assert_cmpint (glyph, ==, 0);
 }
 
@@ -234,10 +234,10 @@ _test_fontfuncs_nil (hb_font_funcs_t *ffuncs)
   blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
   face = hb_face_create (blob, 0);
   hb_blob_destroy (blob);
-  g_assert (!hb_face_is_immutable (face));
+  g_assert_true (!hb_face_is_immutable (face));
   font = hb_font_create (face);
-  g_assert (font);
-  g_assert (hb_face_is_immutable (face));
+  g_assert_true (font);
+  g_assert_true (hb_face_is_immutable (face));
   hb_face_destroy (face);
 
 
@@ -247,7 +247,7 @@ _test_fontfuncs_nil (hb_font_funcs_t *ffuncs)
   _test_font_nil_funcs (font);
 
   subfont = hb_font_create_sub_font (font);
-  g_assert (subfont);
+  g_assert_true (subfont);
 
   g_assert_cmpint (freed, ==, 0);
   hb_font_destroy (font);
@@ -262,8 +262,8 @@ _test_fontfuncs_nil (hb_font_funcs_t *ffuncs)
 static void
 test_fontfuncs_empty (void)
 {
-  g_assert (hb_font_funcs_get_empty ());
-  g_assert (hb_font_funcs_is_immutable (hb_font_funcs_get_empty ()));
+  g_assert_true (hb_font_funcs_get_empty ());
+  g_assert_true (hb_font_funcs_is_immutable (hb_font_funcs_get_empty ()));
   _test_fontfuncs_nil (hb_font_funcs_get_empty ());
 }
 
@@ -274,7 +274,7 @@ test_fontfuncs_nil (void)
 
   ffuncs = hb_font_funcs_create ();
 
-  g_assert (!hb_font_funcs_is_immutable (ffuncs));
+  g_assert_true (!hb_font_funcs_is_immutable (ffuncs));
   _test_fontfuncs_nil (hb_font_funcs_get_empty ());
 
   hb_font_funcs_destroy (ffuncs);
@@ -358,13 +358,13 @@ test_fontfuncs_subclassing (void)
   hb_font_funcs_destroy (ffuncs1);
 
   x = y = 1;
-  g_assert (hb_font_get_glyph_contour_point_for_origin (font1, 1, 2, HB_DIRECTION_LTR, &x, &y));
+  g_assert_true (hb_font_get_glyph_contour_point_for_origin (font1, 1, 2, HB_DIRECTION_LTR, &x, &y));
   g_assert_cmpint (x, ==, 2);
   g_assert_cmpint (y, ==, 3);
-  g_assert (hb_font_get_glyph_contour_point_for_origin (font1, 2, 5, HB_DIRECTION_LTR, &x, &y));
+  g_assert_true (hb_font_get_glyph_contour_point_for_origin (font1, 2, 5, HB_DIRECTION_LTR, &x, &y));
   g_assert_cmpint (x, ==, 4);
   g_assert_cmpint (y, ==, 5);
-  g_assert (!hb_font_get_glyph_contour_point_for_origin (font1, 3, 7, HB_DIRECTION_RTL, &x, &y));
+  g_assert_true (!hb_font_get_glyph_contour_point_for_origin (font1, 3, 7, HB_DIRECTION_RTL, &x, &y));
   g_assert_cmpint (x, ==, 0);
   g_assert_cmpint (y, ==, 0);
   x = hb_font_get_glyph_h_advance (font1, 1);
@@ -377,13 +377,13 @@ test_fontfuncs_subclassing (void)
    */
   font2 = hb_font_create_sub_font (font1);
   font3 = hb_font_create_sub_font (font2);
-  g_assert (!hb_font_is_immutable (font1));
-  g_assert (!hb_font_is_immutable (font2));
-  g_assert (!hb_font_is_immutable (font3));
+  g_assert_true (!hb_font_is_immutable (font1));
+  g_assert_true (!hb_font_is_immutable (font2));
+  g_assert_true (!hb_font_is_immutable (font3));
   hb_font_make_immutable (font3);
-  g_assert (hb_font_is_immutable (font1));
-  g_assert (hb_font_is_immutable (font2));
-  g_assert (hb_font_is_immutable (font3));
+  g_assert_true (hb_font_is_immutable (font1));
+  g_assert_true (hb_font_is_immutable (font2));
+  g_assert_true (hb_font_is_immutable (font3));
   hb_font_destroy (font2);
   hb_font_destroy (font3);
 
@@ -397,13 +397,13 @@ test_fontfuncs_subclassing (void)
   hb_font_funcs_destroy (ffuncs2);
 
   x = y = 1;
-  g_assert (hb_font_get_glyph_contour_point_for_origin (font2, 1, 2, HB_DIRECTION_LTR, &x, &y));
+  g_assert_true (hb_font_get_glyph_contour_point_for_origin (font2, 1, 2, HB_DIRECTION_LTR, &x, &y));
   g_assert_cmpint (x, ==, 6);
   g_assert_cmpint (y, ==, 7);
-  g_assert (hb_font_get_glyph_contour_point_for_origin (font2, 2, 5, HB_DIRECTION_RTL, &x, &y));
+  g_assert_true (hb_font_get_glyph_contour_point_for_origin (font2, 2, 5, HB_DIRECTION_RTL, &x, &y));
   g_assert_cmpint (x, ==, 4);
   g_assert_cmpint (y, ==, 5);
-  g_assert (!hb_font_get_glyph_contour_point_for_origin (font2, 3, 7, HB_DIRECTION_LTR, &x, &y));
+  g_assert_true (!hb_font_get_glyph_contour_point_for_origin (font2, 3, 7, HB_DIRECTION_LTR, &x, &y));
   g_assert_cmpint (x, ==, 0);
   g_assert_cmpint (y, ==, 0);
   x = hb_font_get_glyph_h_advance (font2, 1);
@@ -416,13 +416,13 @@ test_fontfuncs_subclassing (void)
   hb_font_set_scale (font3, 20, 30);
 
   x = y = 1;
-  g_assert (hb_font_get_glyph_contour_point_for_origin (font3, 1, 2, HB_DIRECTION_RTL, &x, &y));
+  g_assert_true (hb_font_get_glyph_contour_point_for_origin (font3, 1, 2, HB_DIRECTION_RTL, &x, &y));
   g_assert_cmpint (x, ==, 6*2);
   g_assert_cmpint (y, ==, 7*3);
-  g_assert (hb_font_get_glyph_contour_point_for_origin (font3, 2, 5, HB_DIRECTION_LTR, &x, &y));
+  g_assert_true (hb_font_get_glyph_contour_point_for_origin (font3, 2, 5, HB_DIRECTION_LTR, &x, &y));
   g_assert_cmpint (x, ==, 4*2);
   g_assert_cmpint (y, ==, 5*3);
-  g_assert (!hb_font_get_glyph_contour_point_for_origin (font3, 3, 7, HB_DIRECTION_LTR, &x, &y));
+  g_assert_true (!hb_font_get_glyph_contour_point_for_origin (font3, 3, 7, HB_DIRECTION_LTR, &x, &y));
   g_assert_cmpint (x, ==, 0*2);
   g_assert_cmpint (y, ==, 0*3);
   x = hb_font_get_glyph_h_advance (font3, 1);
@@ -508,21 +508,21 @@ test_font_empty (void)
   hb_font_t *created_from_null;
   hb_font_t *created_sub_from_null;
 
-  g_assert (hb_font_get_empty ());
+  g_assert_true (hb_font_get_empty ());
 
   created_from_empty = hb_font_create (hb_face_get_empty ());
-  g_assert (hb_font_get_empty () != created_from_empty);
+  g_assert_true (hb_font_get_empty () != created_from_empty);
 
   created_from_null = hb_font_create (NULL);
-  g_assert (hb_font_get_empty () != created_from_null);
+  g_assert_true (hb_font_get_empty () != created_from_null);
 
   created_sub_from_null = hb_font_create_sub_font (NULL);
-  g_assert (hb_font_get_empty () != created_sub_from_null);
+  g_assert_true (hb_font_get_empty () != created_sub_from_null);
 
-  g_assert (hb_font_is_immutable (hb_font_get_empty ()));
+  g_assert_true (hb_font_is_immutable (hb_font_get_empty ()));
 
-  g_assert (hb_font_get_face (hb_font_get_empty ()) == hb_face_get_empty ());
-  g_assert (hb_font_get_parent (hb_font_get_empty ()) == NULL);
+  g_assert_true (hb_font_get_face (hb_font_get_empty ()) == hb_face_get_empty ());
+  g_assert_true (hb_font_get_parent (hb_font_get_empty ()) == NULL);
 
   hb_font_destroy (created_sub_from_null);
   hb_font_destroy (created_from_null);
@@ -547,19 +547,19 @@ test_font_properties (void)
   hb_face_destroy (face);
 
 
-  g_assert (hb_font_get_face (font) == face);
-  g_assert (hb_font_get_parent (font) == hb_font_get_empty ());
+  g_assert_true (hb_font_get_face (font) == face);
+  g_assert_true (hb_font_get_parent (font) == hb_font_get_empty ());
   subfont = hb_font_create_sub_font (font);
-  g_assert (hb_font_get_parent (subfont) == font);
+  g_assert_true (hb_font_get_parent (subfont) == font);
   hb_font_set_parent(subfont, NULL);
-  g_assert (hb_font_get_parent (subfont) == hb_font_get_empty());
+  g_assert_true (hb_font_get_parent (subfont) == hb_font_get_empty());
   hb_font_set_parent(subfont, font);
-  g_assert (hb_font_get_parent (subfont) == font);
+  g_assert_true (hb_font_get_parent (subfont) == font);
   hb_font_set_parent(subfont, NULL);
   hb_font_make_immutable (subfont);
-  g_assert (hb_font_get_parent (subfont) == hb_font_get_empty());
+  g_assert_true (hb_font_get_parent (subfont) == hb_font_get_empty());
   hb_font_set_parent(subfont, font);
-  g_assert (hb_font_get_parent (subfont) == hb_font_get_empty());
+  g_assert_true (hb_font_get_parent (subfont) == hb_font_get_empty());
   hb_font_destroy (subfont);
 
 
@@ -615,9 +615,9 @@ test_font_properties (void)
 
   /* Check immutable */
 
-  g_assert (!hb_font_is_immutable (font));
+  g_assert_true (!hb_font_is_immutable (font));
   hb_font_make_immutable (font);
-  g_assert (hb_font_is_immutable (font));
+  g_assert_true (hb_font_is_immutable (font));
 
   hb_font_set_scale (font, 10, 12);
   x_scale = y_scale = 13;
@@ -636,8 +636,8 @@ test_font_properties (void)
   subfont = hb_font_create_sub_font (font);
   hb_font_destroy (font);
 
-  g_assert (hb_font_get_parent (subfont) == font);
-  g_assert (hb_font_get_face (subfont) == face);
+  g_assert_true (hb_font_get_parent (subfont) == font);
+  g_assert_true (hb_font_get_face (subfont) == face);
 
   /* scale */
   x_scale = y_scale = 13;
