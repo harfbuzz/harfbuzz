@@ -180,6 +180,17 @@ test_get_constant (void)
   g_assert_cmpint((hb_ot_math_get_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT)), ==, 65);
   closeFont();
 
+  /* https://github.com/harfbuzz/harfbuzz/pull/5250
+   * The test font pretends to be Cambria Math for the purpose of
+   * MATH->is_bad_cambria() by having displayOperatorMinHeight set to 2500 and 
+   * delimitedSubFormulaMinHeight set to 3000, and the MATH table padded with
+   * zeros to be exactly 25722 bytes. When we detect this, we swap the values
+   * of the two constants. */
+  openFont("fonts/MathTestFontPretendToBeCambria.ttf");
+  g_assert_cmpint((hb_ot_math_get_constant (hb_font, HB_OT_MATH_CONSTANT_DISPLAY_OPERATOR_MIN_HEIGHT)), ==, 3000);
+  g_assert_cmpint((hb_ot_math_get_constant (hb_font, HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT)), ==, 2500);
+  closeFont();
+
   cleanupFreeType();
 }
 
