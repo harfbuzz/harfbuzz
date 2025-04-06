@@ -109,43 +109,6 @@ hb_test_run (void)
   return g_test_run ();
 }
 
-/* Bugzilla helpers */
-
-static inline void
-hb_test_bug (const char *uri_base, unsigned int number)
-{
-  char *s = g_strdup_printf ("%u", number);
-
-  g_test_bug_base (uri_base);
-  g_test_bug (s);
-
-  g_free (s);
-}
-
-static inline void
-hb_test_bug_freedesktop (unsigned int number)
-{
-  hb_test_bug ("https://bugs.freedesktop.org/", number);
-}
-
-static inline void
-hb_test_bug_gnome (unsigned int number)
-{
-  hb_test_bug ("https://bugzilla.gnome.org/", number);
-}
-
-static inline void
-hb_test_bug_mozilla (unsigned int number)
-{
-  hb_test_bug ("https://bugzilla.mozilla.org/", number);
-}
-
-static inline void
-hb_test_bug_redhat (unsigned int number)
-{
-  hb_test_bug ("https://bugzilla.redhat.com/", number);
-}
-
 
 /* Wrap glib test functions to simplify.  Should have been in glib already. */
 
