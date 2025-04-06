@@ -78,11 +78,11 @@ test_get_var_get_axis_infos (void)
   unsigned c = 1;
 
   g_assert_cmpint (hb_ot_var_get_axis_infos (face, 0, &c, &info), ==, 2);
-  g_assert (info.tag == HB_TAG ('w','g','h','t'));
+  g_assert_true (info.tag == HB_TAG ('w','g','h','t'));
   g_assert_cmpint (c, ==, 1);
 
   hb_ot_var_get_axis_infos (face, 1, &c, &info);
-  g_assert (info.tag == HB_TAG ('w','d','t','h'));
+  g_assert_true (info.tag == HB_TAG ('w','d','t','h'));
   g_assert_cmpint (c, ==, 1);
 
   hb_ot_var_get_axis_infos (face, 2, &c, &info);

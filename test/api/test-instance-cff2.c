@@ -54,8 +54,8 @@ test_instance_cff2 (void)
   hb_set_destroy (codepoints);
 
   hb_subset_test_check (expected, face_abc_subset, HB_TAG ('C','F','F', '2'));
-  g_assert (hb_face_reference_table (face_abc_subset, HB_TAG ('f', 'v', 'a', 'r'))
-            == hb_blob_get_empty ());
+  g_assert_true (hb_face_reference_table (face_abc_subset, HB_TAG ('f', 'v', 'a', 'r'))
+		 == hb_blob_get_empty ());
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);

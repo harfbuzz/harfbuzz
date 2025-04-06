@@ -26,10 +26,7 @@
 
 /* This file tests that all headers can be included from C files */
 
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "hb-test.h"
 
 #include <hb.h>
 #include <hb-subset.h>
@@ -77,9 +74,20 @@
 #endif
 
 #ifndef NO_MAIN
-int
-main (void)
+static void
+test_list_shapers (void)
 {
-  return !*hb_shape_list_shapers ();
+  const char *first = *hb_shape_list_shapers ();
+  g_assert_true (first);
+}
+
+int
+main (int argc, char **argv)
+{
+  hb_test_init (&argc, &argv);
+
+  hb_test_add (test_list_shapers);
+
+  return hb_test_run ();
 }
 #endif

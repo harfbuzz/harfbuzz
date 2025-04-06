@@ -37,13 +37,13 @@ test_collect_unicodes_format4 (void)
   hb_face_collect_unicodes (face, codepoints);
 
   cp = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x61, ==, cp);
-  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x62, ==, cp);
-  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x63, ==, cp);
-  g_assert (!hb_set_next (codepoints, &cp));
+  g_assert_true (!hb_set_next (codepoints, &cp));
 
   hb_set_destroy (codepoints);
   hb_face_destroy (face);
@@ -59,11 +59,11 @@ test_collect_unicodes_format12_notdef (void)
   hb_face_collect_unicodes (face, codepoints);
 
   cp = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x20, ==, cp);
-  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x21, ==, cp);
-  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x22, ==, cp);
 
   hb_set_destroy (codepoints);
@@ -80,13 +80,13 @@ test_collect_unicodes_format12 (void)
   hb_face_collect_unicodes (face, codepoints);
 
   cp = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x61, ==, cp);
-  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x62, ==, cp);
-  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
   g_assert_cmpuint (0x63, ==, cp);
-  g_assert (!hb_set_next (codepoints, &cp));
+  g_assert_true (!hb_set_next (codepoints, &cp));
 
   hb_set_destroy (codepoints);
   hb_face_destroy (face);
@@ -104,21 +104,21 @@ test_collect_unicodes (void)
   hb_face_collect_unicodes (face, codepoints);
   hb_face_collect_nominal_glyph_mapping (face, mapping, codepoints2);
 
-  g_assert (hb_set_is_equal (codepoints, codepoints2));
+  g_assert_true (hb_set_is_equal (codepoints, codepoints2));
   g_assert_cmpuint (hb_set_get_population (codepoints), ==, 3);
   g_assert_cmpuint (hb_map_get_population (mapping), ==, 3);
 
   cp = HB_SET_VALUE_INVALID;
-  g_assert (hb_set_next (codepoints, &cp));
-  g_assert (hb_map_has (mapping, cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_map_has (mapping, cp));
   g_assert_cmpuint (0x61, ==, cp);
-  g_assert (hb_set_next (codepoints, &cp));
-  g_assert (hb_map_has (mapping, cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_map_has (mapping, cp));
   g_assert_cmpuint (0x62, ==, cp);
-  g_assert (hb_set_next (codepoints, &cp));
-  g_assert (hb_map_has (mapping, cp));
+  g_assert_true (hb_set_next (codepoints, &cp));
+  g_assert_true (hb_map_has (mapping, cp));
   g_assert_cmpuint (0x63, ==, cp);
-  g_assert (!hb_set_next (codepoints, &cp));
+  g_assert_true (!hb_set_next (codepoints, &cp));
 
   hb_set_destroy (codepoints);
   hb_set_destroy (codepoints2);

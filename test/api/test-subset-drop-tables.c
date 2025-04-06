@@ -43,14 +43,14 @@ test_subset_drop_tables (void)
   hb_set_destroy (codepoints);
 
   hb_face_t* subset = hb_subset_or_fail (face, input);
-  g_assert (subset);
+  g_assert_true (subset);
 
   hb_blob_t *hdmx = hb_face_reference_table (subset, HB_TAG ('h', 'd', 'm', 'x'));
   hb_blob_t *hmtx = hb_face_reference_table (subset, HB_TAG ('h', 'm', 't', 'x'));
   hb_blob_t *cmap = hb_face_reference_table (subset, HB_TAG ('c', 'm', 'a', 'p'));
-  g_assert (!hb_blob_get_length (hdmx));
-  g_assert (!hb_blob_get_length (hmtx));
-  g_assert ( hb_blob_get_length (cmap));
+  g_assert_true (!hb_blob_get_length (hdmx));
+  g_assert_true (!hb_blob_get_length (hmtx));
+  g_assert_true ( hb_blob_get_length (cmap));
   hb_blob_destroy (hdmx);
   hb_blob_destroy (hmtx);
   hb_blob_destroy (cmap);

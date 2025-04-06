@@ -33,14 +33,14 @@ static void
 test_extents_cff1 (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansPro-Regular.abc.otf");
-  g_assert (face);
+  g_assert_true (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
-  g_assert (font);
+  g_assert_true (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 52);
   g_assert_cmpint (extents.y_bearing, ==, 498);
@@ -50,13 +50,13 @@ test_extents_cff1 (void)
   hb_font_destroy (font);
 
   hb_face_t *face_j = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
-  g_assert (face_j);
+  g_assert_true (face_j);
   hb_font_t *font_j = hb_font_create (face_j);
   hb_face_destroy (face_j);
-  g_assert (font_j);
+  g_assert_true (font_j);
 
   hb_bool_t result_j = hb_font_get_glyph_extents (font_j, 3, &extents);
-  g_assert (result_j);
+  g_assert_true (result_j);
 
   g_assert_cmpint (extents.x_bearing, ==, 34);
   g_assert_cmpint (extents.y_bearing, ==, 840);
@@ -70,14 +70,14 @@ static void
 test_extents_cff1_flex (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
-  g_assert (face);
+  g_assert_true (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
-  g_assert (font);
+  g_assert_true (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, -20);
   g_assert_cmpint (extents.y_bearing, ==, 520);
@@ -91,14 +91,14 @@ static void
 test_extents_cff1_seac (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_seac.otf");
-  g_assert (face);
+  g_assert_true (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
-  g_assert (font);
+  g_assert_true (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 3, &extents); /* Agrave */
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 3);
   g_assert_cmpint (extents.y_bearing, ==, 861);
@@ -106,7 +106,7 @@ test_extents_cff1_seac (void)
   g_assert_cmpint (extents.height, ==, -861);
 
   result = hb_font_get_glyph_extents (font, 4, &extents); /* Udieresis */
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 87);
   g_assert_cmpint (extents.y_bearing, ==, 827);
@@ -120,14 +120,14 @@ static void
 test_extents_cff2 (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
-  g_assert (face);
+  g_assert_true (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
-  g_assert (font);
+  g_assert_true (font);
 
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 46);
   g_assert_cmpint (extents.y_bearing, ==, 487);
@@ -137,7 +137,7 @@ test_extents_cff2 (void)
   float coords[2] = { 600.0f, 50.0f };
   hb_font_set_var_coords_design (font, coords, 2);
   result = hb_font_get_glyph_extents (font, 1, &extents);
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 38);
   g_assert_cmpint (extents.y_bearing, ==, 493);
@@ -151,16 +151,16 @@ static void
 test_extents_cff2_vsindex (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype_vsindex.otf");
-  g_assert (face);
+  g_assert_true (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
-  g_assert (font);
+  g_assert_true (font);
 
   hb_glyph_extents_t  extents;
   float coords[2] = { 800.0f, 50.0f };
   hb_font_set_var_coords_design (font, coords, 2);
   hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 12);
   g_assert_cmpint (extents.y_bearing, ==, 655);
@@ -168,7 +168,7 @@ test_extents_cff2_vsindex (void)
   g_assert_cmpint (extents.height, ==, -655);
 
   result = hb_font_get_glyph_extents (font, 2, &extents);
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 8);
   g_assert_cmpint (extents.y_bearing, ==, 669);
@@ -182,15 +182,15 @@ static void
 test_extents_cff2_vsindex_named_instance (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype_vsindex.otf");
-  g_assert (face);
+  g_assert_true (face);
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
-  g_assert (font);
+  g_assert_true (font);
 
   hb_font_set_var_named_instance (font, 6); // 6 (BlackMediumContrast): 900, 50
   hb_glyph_extents_t  extents;
   hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 13);
   g_assert_cmpint (extents.y_bearing, ==, 652);
@@ -198,7 +198,7 @@ test_extents_cff2_vsindex_named_instance (void)
   g_assert_cmpint (extents.height, ==, -652);
 
   result = hb_font_get_glyph_extents (font, 2, &extents);
-  g_assert (result);
+  g_assert_true (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 6);
   g_assert_cmpint (extents.y_bearing, ==, 675);

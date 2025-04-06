@@ -2,6 +2,8 @@
 
 import sys, os, subprocess, hashlib
 
+print("TAP version 14")
+
 args = sys.argv[1:]
 
 verbose = False
@@ -46,7 +48,7 @@ def shape_cmd(command, shape_process, verbose=False):
         shape_process = open_shape_batch_process()
 
     if verbose:
-        print(hb_shape + " " + " ".join(command))
+        print("# " + hb_shape + " " + " ".join(command))
     shape_process.stdin.write((";".join(command) + "\n").encode("utf-8"))
     shape_process.stdin.flush()
     return shape_process.stdout.readline().decode("utf-8").strip()
@@ -102,19 +104,20 @@ for what in ["shaper", "face-loader", "font-funcs"]:
     whats = plural(what)
     var_name = supported_whats_var_name(what)
     globals()[var_name] = what_list
-    print(f"Supported {whats}: {what_list}")
+    print(f"# Supported {whats}: {what_list}")
 
 # If running under Wine and not native dlls, make the respective shapers unavailable.
 if os.environ.get("WINEPATH"):
     overrides = os.environ.get("WINEDLLOVERRIDES", "").lower()
     if "directwrite" in supported_shapers and overrides.find("dwrite") == -1:
         supported_shapers.remove("directwrite")
-        print("Skipping DirectWrite shaper under Wine.")
+        print("# Skipping DirectWrite shaper under Wine.")
     if "uniscribe" in supported_shapers and overrides.find("usp10") == -1:
         supported_shapers.remove("uniscribe")
-        print("Skipping Uniscribe shaper under Wine.")
+        print("# Skipping Uniscribe shaper under Wine.")
 
 
+number = 0
 passes = 0
 fails = 0
 skips = 0
@@ -124,9 +127,9 @@ if not len(args):
 
 for filename in args:
     if filename == "-":
-        print("Running tests from standard input")
+        print("# Running tests from standard input")
     else:
-        print("Running tests in " + filename)
+        print("# Running tests in " + filename)
 
     if filename == "-":
         f = sys.stdin
@@ -178,11 +181,11 @@ for filename in args:
                         values = [v for v in values if v in supported]
 
                     var_name = all_whats_var_name(what)
-                    print(f"Setting {whats} to test to {values}")
+                    print(f"# Setting {whats} to test to {values}")
                     globals()[var_name] = values
                     consumed = True
             if consumed:
-                print(line)
+                print("#", line)
                 continue
             else:
                 print("Unrecognized directive: %s" % line, file=sys.stderr)
@@ -201,15 +204,15 @@ for filename in args:
                     if expected_hash:
                         actual_hash = hashlib.sha1(ff.read()).hexdigest().strip()
                         if actual_hash != expected_hash:
+                            skips += 1
                             print(
-                                "different version of %s found; Expected hash %s, got %s; skipping."
+                                "# Different version of %s found; Expected hash %s, got %s; skipping."
                                 % (fontfile, expected_hash, actual_hash)
                             )
-                            skips += 1
                             continue
             except IOError:
-                print("%s not found, skip." % fontfile)
                 skips += 1
+                print("# %s not found, skip." % fontfile)
                 continue
         else:
             cwd = os.path.dirname(filename)
@@ -217,7 +220,7 @@ for filename in args:
 
         if comment:
             if verbose:
-                print('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
+                print('# # %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
             continue
 
         skip_test = False
@@ -236,7 +239,11 @@ for filename in args:
                         backend = next(it)
                     if backend not in supported_whats(what):
                         skips += 1
-                        print(f"Skipping test with {what}={backend}.")
+                        number += 1
+                        print(
+                            f"ok {number} - {fontfile} # skip {what}={backend} not supported"
+                        )
+                        print(f"# Skipping test with {what}={backend}.")
                         skip_test = True
                         break
                     what = what.replace("-", "_")
@@ -253,6 +260,7 @@ for filename in args:
 
         for shaper in [shaper] if shaper else all_whats("shaper"):
             for font_funcs in [font_funcs] if font_funcs else all_whats("font-funcs"):
+                number += 1
                 extra_options = []
 
                 if shaper:
@@ -276,6 +284,7 @@ for filename in args:
 
                 if glyphs_expected == "*":
                     passes += 1
+                    print(f"ok {number} - {fontfile}")
                     continue
 
                 final_glyphs = glyphs
@@ -300,33 +309,31 @@ for filename in args:
                 # If the removal of glyph_ids failed, fail the test.
                 # https://github.com/harfbuzz/harfbuzz/issues/5169
                 if not final_glyphs_expected or final_glyphs != final_glyphs_expected:
-                    print(hb_shape + " " + " ".join(cmd), file=sys.stderr)
-                    print("Actual:   " + glyphs, file=sys.stderr)
-                    print("Expected: " + glyphs_expected, file=sys.stderr)
+                    fails += 1
+                    cmd = hb_shape + " " + " ".join(cmd)
+                    print(f"not ok {number} - {cmd}")
+                    print("   ---", file=sys.stderr)
+                    print('   test_file: "' + filename + '"', file=sys.stderr)
+                    print('   cmd: "' + cmd + '"', file=sys.stderr)
+                    print('   actual:   "' + glyphs + '"', file=sys.stderr)
+                    print('   expected: "' + glyphs_expected + '"', file=sys.stderr)
                     if final_glyphs != glyphs:
                         print(
-                            "Actual (no glyph names):   " + final_glyphs,
-                            file=sys.stderr,
+                            '   actual_gids:   "' + final_glyphs + '"', file=sys.stderr
                         )
                         print(
-                            "Expected (no glyph names): " + final_glyphs_expected,
+                            '   expected_gids: "' + final_glyphs_expected + '"',
                             file=sys.stderr,
                         )
-                    fails += 1
+                    print("   ...", file=sys.stderr)
                 else:
                     passes += 1
+                    print(f"ok {number} - {fontfile}")
 
-print(
-    "%d tests passed; %d failed; %d skipped." % (passes, fails, skips), file=sys.stderr
-)
+print("1..%d" % number)
+
+print("# %d tests passed; %d failed; %d skipped." % (passes, fails, skips))
 if not (fails + passes):
-    print("No tests ran.")
+    print("# No tests ran.")
 elif not (fails + skips):
-    print("All tests passed.")
-
-if fails:
-    sys.exit(1)
-elif passes:
-    sys.exit(0)
-else:
-    sys.exit(77)
+    print("# All tests passed.")

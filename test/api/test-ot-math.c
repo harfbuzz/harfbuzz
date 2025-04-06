@@ -38,22 +38,22 @@ test_has_data (void)
   hb_font_t *font;
 
   face = hb_test_open_font_file ("fonts/MathTestFontNone.otf");
-  g_assert (!hb_ot_math_has_data (face)); // MATH table not available
+  g_assert_true (!hb_ot_math_has_data (face)); // MATH table not available
   hb_face_destroy (face);
 
   face = hb_test_open_font_file ("fonts/MathTestFontEmpty.otf");
-  g_assert (hb_ot_math_has_data (face)); // MATH table available
+  g_assert_true (hb_ot_math_has_data (face)); // MATH table available
   hb_face_destroy (face);
 
   face = hb_face_get_empty ();
   font = hb_font_create (face);
-  g_assert (!hb_ot_math_has_data (face)); // MATH table not available
+  g_assert_true (!hb_ot_math_has_data (face)); // MATH table not available
   hb_font_destroy (font);
   hb_face_destroy (face);
 
   font = hb_font_get_empty ();
   face = hb_font_get_face (font);
-  g_assert (!hb_ot_math_has_data (face)); // MATH table not available
+  g_assert_true (!hb_ot_math_has_data (face)); // MATH table not available
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
@@ -155,21 +155,21 @@ test_get_glyph_italics_correction (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontEmpty.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_italics_correction (font, glyph), ==, 0); // MathGlyphInfo not available
   hb_font_destroy (font);
   hb_face_destroy (face);
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial1.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_italics_correction (font, glyph), ==, 0); // MathGlyphInfo empty
   hb_font_destroy (font);
   hb_face_destroy (face);
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial2.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_italics_correction (font, glyph), ==, 0); // MathItalicsCorrectionInfo empty
   hb_font_destroy (font);
   hb_face_destroy (face);
@@ -177,13 +177,13 @@ test_get_glyph_italics_correction (void)
   face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_italics_correction (font, glyph), ==, 0); // Glyph without italic correction.
-  g_assert (hb_font_get_glyph_from_name (font, "A", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "A", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_italics_correction (font, glyph), ==, 394);
-  g_assert (hb_font_get_glyph_from_name (font, "B", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "B", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_italics_correction (font, glyph), ==, 300);
-  g_assert (hb_font_get_glyph_from_name (font, "C", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "C", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_italics_correction (font, glyph), ==, 904);
   hb_font_destroy (font);
   hb_face_destroy (face);
@@ -199,7 +199,7 @@ test_get_glyph_top_accent_attachment (void)
   face = hb_test_open_font_file ("fonts/MathTestFontEmpty.otf");
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_top_accent_attachment (font, glyph), ==, 1000); // MathGlyphInfo not available
   hb_font_destroy (font);
   hb_face_destroy (face);
@@ -207,7 +207,7 @@ test_get_glyph_top_accent_attachment (void)
   face = hb_test_open_font_file ("fonts/MathTestFontPartial1.otf");
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_top_accent_attachment (font, glyph), ==, 1000); // MathGlyphInfo empty
   hb_font_destroy (font);
   hb_face_destroy (face);
@@ -215,7 +215,7 @@ test_get_glyph_top_accent_attachment (void)
   face = hb_test_open_font_file ("fonts/MathTestFontPartial2.otf");
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_top_accent_attachment (font, glyph), ==, 1000); // MathTopAccentAttachment empty
   hb_font_destroy (font);
   hb_face_destroy (face);
@@ -223,13 +223,13 @@ test_get_glyph_top_accent_attachment (void)
   face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_top_accent_attachment (font, glyph), ==, 1000); // Glyph without top accent attachment.
-  g_assert (hb_font_get_glyph_from_name (font, "D", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "D", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_top_accent_attachment (font, glyph), ==, 748);
-  g_assert (hb_font_get_glyph_from_name (font, "E", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "E", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_top_accent_attachment (font, glyph), ==, 692);
-  g_assert (hb_font_get_glyph_from_name (font, "F", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "F", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_top_accent_attachment (font, glyph), ==, 636);
   hb_font_destroy (font);
   hb_face_destroy (face);
@@ -244,24 +244,24 @@ test_is_glyph_extended_shape (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontEmpty.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
-  g_assert (!hb_ot_math_is_glyph_extended_shape (face, glyph)); // MathGlyphInfo not available
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (!hb_ot_math_is_glyph_extended_shape (face, glyph)); // MathGlyphInfo not available
   hb_font_destroy (font);
   hb_face_destroy (face);
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial1.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
-  g_assert (!hb_ot_math_is_glyph_extended_shape (face, glyph)); // MathGlyphInfo empty
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (!hb_ot_math_is_glyph_extended_shape (face, glyph)); // MathGlyphInfo empty
   hb_font_destroy (font);
   hb_face_destroy (face);
 
   face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "G", -1, &glyph));
-  g_assert (!hb_ot_math_is_glyph_extended_shape (face, glyph));
-  g_assert (hb_font_get_glyph_from_name (font, "H", -1, &glyph));
-  g_assert (hb_ot_math_is_glyph_extended_shape (face, glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "G", -1, &glyph));
+  g_assert_true (!hb_ot_math_is_glyph_extended_shape (face, glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "H", -1, &glyph));
+  g_assert_true (hb_ot_math_is_glyph_extended_shape (face, glyph));
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
@@ -275,7 +275,7 @@ test_get_glyph_kerning (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontEmpty.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0), ==, 0); // MathGlyphInfo not available
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0), ==, 0); // MathGlyphInfo not available
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0), ==, 0); // MathGlyphInfo not available
@@ -285,7 +285,7 @@ test_get_glyph_kerning (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial2.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0), ==, 0); // MathKernInfo empty
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0), ==, 0); // MathKernInfo empty
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0), ==, 0); // MathKernInfo empty
@@ -295,7 +295,7 @@ test_get_glyph_kerning (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial3.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0), ==, 0); // MathKernInfoRecords empty
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0), ==, 0); // MathKernInfoRecords empty
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0), ==, 0); // MathKernInfoRecords empty
@@ -306,7 +306,7 @@ test_get_glyph_kerning (void)
   face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
-  g_assert (hb_font_get_glyph_from_name (font, "I", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "I", -1, &glyph));
 
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 7), ==, 62); // lower than min height
   g_assert_cmpint (hb_ot_math_get_glyph_kerning (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 14), ==, 104); // equal to min height
@@ -339,7 +339,7 @@ test_get_glyph_kernings (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontEmpty.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0, NULL, NULL), ==, 0); // MathGlyphInfo not available
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0, NULL, NULL), ==, 0); // MathGlyphInfo not available
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0, NULL, NULL), ==, 0); // MathGlyphInfo not available
@@ -349,7 +349,7 @@ test_get_glyph_kernings (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial2.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0, NULL, NULL), ==, 0); // MathKernInfo empty
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0, NULL, NULL), ==, 0); // MathKernInfo empty
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0, NULL, NULL), ==, 0); // MathKernInfo empty
@@ -359,7 +359,7 @@ test_get_glyph_kernings (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial3.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0, NULL, NULL), ==, 0); // MathKernInfoRecords empty
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0, NULL, NULL), ==, 0); // MathKernInfoRecords empty
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0, NULL, NULL), ==, 0); // MathKernInfoRecords empty
@@ -370,7 +370,7 @@ test_get_glyph_kernings (void)
   face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
-  g_assert (hb_font_get_glyph_from_name (font, "I", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "I", -1, &glyph));
 
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0, NULL, NULL), ==, 10);
   g_assert_cmpint (hb_ot_math_get_glyph_kernings (font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0, NULL, NULL), ==, 3);
@@ -438,7 +438,7 @@ test_get_glyph_assembly_italics_correction (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontEmpty.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, TRUE), ==, 0); // MathVariants not available
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, FALSE), ==, 0); // MathVariants not available
   hb_font_destroy (font);
@@ -446,7 +446,7 @@ test_get_glyph_assembly_italics_correction (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial1.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, TRUE), ==, 0); // VertGlyphCoverage and HorizGlyphCoverage absent
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, FALSE), ==, 0); // VertGlyphCoverage and HorizGlyphCoverage absent
   hb_font_destroy (font);
@@ -454,7 +454,7 @@ test_get_glyph_assembly_italics_correction (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial2.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, TRUE), ==, 0); // VertGlyphCoverage and HorizGlyphCoverage empty
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, FALSE), ==, 0); // VertGlyphCoverage and HorizGlyphCoverage empty
   hb_font_destroy (font);
@@ -462,7 +462,7 @@ test_get_glyph_assembly_italics_correction (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial3.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, TRUE), ==, 0); // HorizGlyphConstruction and VertGlyphConstruction empty
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, FALSE), ==, 0);  // HorizGlyphConstruction and VertGlyphConstruction empty
   hb_font_destroy (font);
@@ -470,7 +470,7 @@ test_get_glyph_assembly_italics_correction (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial4.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, TRUE), ==, 0);
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, FALSE), ==, 0);
   hb_font_destroy (font);
@@ -479,10 +479,10 @@ test_get_glyph_assembly_italics_correction (void)
   face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
-  g_assert (hb_font_get_glyph_from_name (font, "arrowleft", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowleft", -1, &glyph));
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, TRUE), ==, 248);
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, FALSE), ==, 0);
-  g_assert (hb_font_get_glyph_from_name (font, "arrowup", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowup", -1, &glyph));
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, TRUE), ==, 0);
   g_assert_cmpint (get_glyph_assembly_italics_correction (font, glyph, FALSE), ==, 662);
   hb_font_destroy (font);
@@ -524,7 +524,7 @@ test_get_glyph_variants (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontEmpty.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -532,7 +532,7 @@ test_get_glyph_variants (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial1.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -540,7 +540,7 @@ test_get_glyph_variants (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial2.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -548,7 +548,7 @@ test_get_glyph_variants (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial3.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -556,7 +556,7 @@ test_get_glyph_variants (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial4.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -566,7 +566,7 @@ test_get_glyph_variants (void)
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
 
-  g_assert (hb_font_get_glyph_from_name (font, "arrowleft", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowleft", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font,
 						 glyph,
 						 HB_DIRECTION_BTT,
@@ -580,7 +580,7 @@ test_get_glyph_variants (void)
 						 NULL,
 						 NULL), ==, 3);
 
-  g_assert (hb_font_get_glyph_from_name (font, "arrowup", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowup", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_variants (font,
 						 glyph,
 						 HB_DIRECTION_BTT,
@@ -594,7 +594,7 @@ test_get_glyph_variants (void)
 						 NULL,
 						 NULL), ==, 0);
 
-  g_assert (hb_font_get_glyph_from_name (font, "arrowleft", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowleft", -1, &glyph));
   do {
     count = variantsSize;
     hb_ot_math_get_glyph_variants (font,
@@ -606,17 +606,17 @@ test_get_glyph_variants (void)
     offset += count;
   } while (count == variantsSize);
   g_assert_cmpint (offset, ==, 3);
-  g_assert (hb_font_get_glyph_from_name (font, "uni2190_size2", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "uni2190_size2", -1, &glyph));
   g_assert_cmpint (variants[0].glyph, ==, glyph);
   g_assert_cmpint (variants[0].advance, ==, 4302);
-  g_assert (hb_font_get_glyph_from_name (font, "uni2190_size3", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "uni2190_size3", -1, &glyph));
   g_assert_cmpint (variants[1].glyph, ==, glyph);
   g_assert_cmpint (variants[1].advance, ==, 4802);
-  g_assert (hb_font_get_glyph_from_name (font, "uni2190_size4", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "uni2190_size4", -1, &glyph));
   g_assert_cmpint (variants[2].glyph, ==, glyph);
   g_assert_cmpint (variants[2].advance, ==, 5802);
 
-  g_assert (hb_font_get_glyph_from_name (font, "arrowup", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowup", -1, &glyph));
   offset = 0;
   do {
     count = variantsSize;
@@ -629,16 +629,16 @@ test_get_glyph_variants (void)
     offset += count;
   } while (count == variantsSize);
   g_assert_cmpint (offset, ==, 4);
-  g_assert (hb_font_get_glyph_from_name (font, "uni2191_size2", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "uni2191_size2", -1, &glyph));
   g_assert_cmpint (variants[0].glyph, ==, glyph);
   g_assert_cmpint (variants[0].advance, ==, 2251);
-  g_assert (hb_font_get_glyph_from_name (font, "uni2191_size3", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "uni2191_size3", -1, &glyph));
   g_assert_cmpint (variants[1].glyph, ==, glyph);
   g_assert_cmpint (variants[1].advance, ==, 2501);
-  g_assert (hb_font_get_glyph_from_name (font, "uni2191_size4", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "uni2191_size4", -1, &glyph));
   g_assert_cmpint (variants[2].glyph, ==, glyph);
   g_assert_cmpint (variants[2].advance, ==, 3001);
-  g_assert (hb_font_get_glyph_from_name (font, "uni2191_size5", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "uni2191_size5", -1, &glyph));
   g_assert_cmpint (variants[3].glyph, ==, glyph);
   g_assert_cmpint (variants[3].advance, ==, 3751);
 
@@ -659,7 +659,7 @@ test_get_glyph_assembly (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontEmpty.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -667,7 +667,7 @@ test_get_glyph_assembly (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial1.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -675,7 +675,7 @@ test_get_glyph_assembly (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial2.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -683,7 +683,7 @@ test_get_glyph_assembly (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial3.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -691,7 +691,7 @@ test_get_glyph_assembly (void)
 
   face = hb_test_open_font_file ("fonts/MathTestFontPartial4.otf");
   font = hb_font_create (face);
-  g_assert (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "space", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_RTL, 0, NULL, NULL, NULL), ==, 0);
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font, glyph, HB_DIRECTION_BTT, 0, NULL, NULL, NULL), ==, 0);
   hb_font_destroy (font);
@@ -701,7 +701,7 @@ test_get_glyph_assembly (void)
   font = hb_font_create (face);
   hb_font_set_scale (font, 2000, 1000);
 
-  g_assert (hb_font_get_glyph_from_name (font, "arrowright", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowright", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font,
 						 glyph,
 						 HB_DIRECTION_BTT,
@@ -717,7 +717,7 @@ test_get_glyph_assembly (void)
 						 NULL,
 						 NULL), ==, 3);
 
-  g_assert (hb_font_get_glyph_from_name (font, "arrowdown", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowdown", -1, &glyph));
   g_assert_cmpint (hb_ot_math_get_glyph_assembly (font,
 						 glyph,
 						 HB_DIRECTION_BTT,
@@ -733,7 +733,7 @@ test_get_glyph_assembly (void)
 						 NULL,
 						 NULL), ==, 0);
 
-  g_assert (hb_font_get_glyph_from_name (font, "arrowright", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowright", -1, &glyph));
   do {
     count = partsSize;
     hb_ot_math_get_glyph_assembly (font,
@@ -746,26 +746,26 @@ test_get_glyph_assembly (void)
     offset += count;
   } while (count == partsSize);
   g_assert_cmpint (offset, ==, 3);
-  g_assert (hb_font_get_glyph_from_name (font, "left", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "left", -1, &glyph));
   g_assert_cmpint (parts[0].glyph, ==, glyph);
   g_assert_cmpint (parts[0].start_connector_length, ==, 800);
   g_assert_cmpint (parts[0].end_connector_length, ==, 384);
   g_assert_cmpint (parts[0].full_advance, ==, 2000);
-  g_assert (!(parts[0].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
-  g_assert (hb_font_get_glyph_from_name (font, "horizontal", -1, &glyph));
+  g_assert_true (!(parts[0].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert_true (hb_font_get_glyph_from_name (font, "horizontal", -1, &glyph));
   g_assert_cmpint (parts[1].glyph, ==, glyph);
   g_assert_cmpint (parts[1].start_connector_length, ==, 524);
   g_assert_cmpint (parts[1].end_connector_length, ==, 800);
   g_assert_cmpint (parts[1].full_advance, ==, 2000);
-  g_assert (parts[1].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER);
-  g_assert (hb_font_get_glyph_from_name (font, "right", -1, &glyph));
+  g_assert_true (parts[1].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER);
+  g_assert_true (hb_font_get_glyph_from_name (font, "right", -1, &glyph));
   g_assert_cmpint (parts[2].glyph, ==, glyph);
   g_assert_cmpint (parts[2].start_connector_length, ==, 316);
   g_assert_cmpint (parts[2].end_connector_length, ==, 454);
   g_assert_cmpint (parts[2].full_advance, ==, 2000);
-  g_assert (!(parts[2].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert_true (!(parts[2].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
 
-  g_assert (hb_font_get_glyph_from_name (font, "arrowdown", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "arrowdown", -1, &glyph));
   offset = 0;
   do {
     count = partsSize;
@@ -779,36 +779,36 @@ test_get_glyph_assembly (void)
     offset += count;
   } while (count == partsSize);
   g_assert_cmpint (offset, ==, 5);
-  g_assert (hb_font_get_glyph_from_name (font, "bottom", -1, &glyph));
+  g_assert_true (hb_font_get_glyph_from_name (font, "bottom", -1, &glyph));
   g_assert_cmpint (parts[0].glyph, ==, glyph);
   g_assert_cmpint (parts[0].start_connector_length, ==, 365);
   g_assert_cmpint (parts[0].end_connector_length, ==, 158);
   g_assert_cmpint (parts[0].full_advance, ==, 1000);
-  g_assert (!(parts[0].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
-  g_assert (hb_font_get_glyph_from_name (font, "vertical", -1, &glyph));
+  g_assert_true (!(parts[0].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert_true (hb_font_get_glyph_from_name (font, "vertical", -1, &glyph));
   g_assert_cmpint (parts[1].glyph, ==, glyph);
   g_assert_cmpint (parts[1].start_connector_length, ==, 227);
   g_assert_cmpint (parts[1].end_connector_length, ==, 365);
   g_assert_cmpint (parts[1].full_advance, ==, 1000);
-  g_assert (parts[1].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER);
-  g_assert (hb_font_get_glyph_from_name (font, "center", -1, &glyph));
+  g_assert_true (parts[1].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER);
+  g_assert_true (hb_font_get_glyph_from_name (font, "center", -1, &glyph));
   g_assert_cmpint (parts[2].glyph, ==, glyph);
   g_assert_cmpint (parts[2].start_connector_length, ==, 54);
   g_assert_cmpint (parts[2].end_connector_length, ==, 158);
   g_assert_cmpint (parts[2].full_advance, ==, 1000);
-  g_assert (!(parts[2].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
-  g_assert (hb_font_get_glyph_from_name (font, "vertical", -1, &glyph));
+  g_assert_true (!(parts[2].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert_true (hb_font_get_glyph_from_name (font, "vertical", -1, &glyph));
   g_assert_cmpint (parts[3].glyph, ==, glyph);
   g_assert_cmpint (parts[3].start_connector_length, ==, 400);
   g_assert_cmpint (parts[3].end_connector_length, ==, 296);
   g_assert_cmpint (parts[3].full_advance, ==, 1000);
-  g_assert (parts[1].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER);
-  g_assert (hb_font_get_glyph_from_name (font, "top", -1, &glyph));
+  g_assert_true (parts[1].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER);
+  g_assert_true (hb_font_get_glyph_from_name (font, "top", -1, &glyph));
   g_assert_cmpint (parts[4].glyph, ==, glyph);
   g_assert_cmpint (parts[4].start_connector_length, ==, 123);
   g_assert_cmpint (parts[4].end_connector_length, ==, 192);
   g_assert_cmpint (parts[4].full_advance, ==, 1000);
-  g_assert (!(parts[4].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert_true (!(parts[4].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
 
   hb_font_destroy (font);
   hb_face_destroy (face);

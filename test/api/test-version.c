@@ -42,32 +42,32 @@ test_version (void)
   g_assert_cmpint (micro, ==, HB_VERSION_MICRO);
 
   s = g_strdup_printf ("%u.%u.%u", major, minor, micro);
-  g_assert (0 == strcmp (HB_VERSION_STRING, s));
+  g_assert_true (0 == strcmp (HB_VERSION_STRING, s));
   g_free (s);
-  g_assert (0 == strcmp (HB_VERSION_STRING, hb_version_string ()));
+  g_assert_true (0 == strcmp (HB_VERSION_STRING, hb_version_string ()));
 
-  g_assert (HB_VERSION_ATLEAST (major, minor, micro));
+  g_assert_true (HB_VERSION_ATLEAST (major, minor, micro));
   if (major)
-    g_assert (HB_VERSION_ATLEAST (major-1, minor, micro));
+    g_assert_true (HB_VERSION_ATLEAST (major-1, minor, micro));
   if (minor)
-    g_assert (HB_VERSION_ATLEAST (major, minor-1, micro));
+    g_assert_true (HB_VERSION_ATLEAST (major, minor-1, micro));
   if (micro)
-    g_assert (HB_VERSION_ATLEAST (major, minor, micro-1));
-  g_assert (!HB_VERSION_ATLEAST (major+1, minor, micro));
-  g_assert (!HB_VERSION_ATLEAST (major, minor+1, micro));
-  g_assert (!HB_VERSION_ATLEAST (major, minor, micro+1));
-  g_assert (!HB_VERSION_ATLEAST (major, minor, micro+1));
+    g_assert_true (HB_VERSION_ATLEAST (major, minor, micro-1));
+  g_assert_true (!HB_VERSION_ATLEAST (major+1, minor, micro));
+  g_assert_true (!HB_VERSION_ATLEAST (major, minor+1, micro));
+  g_assert_true (!HB_VERSION_ATLEAST (major, minor, micro+1));
+  g_assert_true (!HB_VERSION_ATLEAST (major, minor, micro+1));
 
-  g_assert (hb_version_atleast (major, minor, micro));
+  g_assert_true (hb_version_atleast (major, minor, micro));
   if (major)
-    g_assert (hb_version_atleast (major-1, minor, micro));
+    g_assert_true (hb_version_atleast (major-1, minor, micro));
   if (minor)
-    g_assert (hb_version_atleast (major, minor-1, micro));
+    g_assert_true (hb_version_atleast (major, minor-1, micro));
   if (micro)
-    g_assert (hb_version_atleast (major, minor, micro-1));
-  g_assert (!hb_version_atleast (major+1, minor, micro));
-  g_assert (!hb_version_atleast (major, minor+1, micro));
-  g_assert (!hb_version_atleast (major, minor, micro+1));
+    g_assert_true (hb_version_atleast (major, minor, micro-1));
+  g_assert_true (!hb_version_atleast (major+1, minor, micro));
+  g_assert_true (!hb_version_atleast (major, minor+1, micro));
+  g_assert_true (!hb_version_atleast (major, minor, micro+1));
 }
 
 int

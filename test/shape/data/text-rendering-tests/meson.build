@@ -1,4 +1,4 @@
-text_rendering_tests = [
+text_rendering_tests_tests = [
   'AVAR-1.tests',
   'CFF-1.tests',
   'CFF-2.tests',
@@ -77,7 +77,7 @@ text_rendering_tests = [
   'SHKNDA-1.tests',
 ]
 
-disabled_text_rendering_tests = [
+disabled_text_rendering_tests_tests = [
   'CMAP-3.tests',
   'SHARAN-1.tests',
   'SHBALI-1.tests',
