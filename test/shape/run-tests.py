@@ -239,7 +239,9 @@ for filename in args:
                         backend = next(it)
                     if backend not in supported_whats(what):
                         skips += 1
-                        print(f"ok {number} - {fontfile} # skip {what}={backend} not supported")
+                        print(
+                            f"ok {number} - {fontfile} # skip {what}={backend} not supported"
+                        )
                         print(f"# Skipping test with {what}={backend}.")
                         skip_test = True
                         break
@@ -310,13 +312,18 @@ for filename in args:
                     cmd = hb_shape + " " + " ".join(cmd)
                     print(f"not ok {number} - {cmd}")
                     print("   ---", file=sys.stderr)
-                    print("   test_file: \"" + filename + "\"", file=sys.stderr)
-                    print("   cmd: \"" + cmd + "\"", file=sys.stderr)
-                    print("   actual:   \"" + glyphs + "\"", file=sys.stderr)
-                    print("   expected: \"" + glyphs_expected + "\"", file=sys.stderr)
+                    print('   test_file: "' + filename + '"', file=sys.stderr)
+                    print('   cmd: "' + cmd + '"', file=sys.stderr)
+                    print('   actual:   "' + glyphs + '"', file=sys.stderr)
+                    print('   expected: "' + glyphs_expected + '"', file=sys.stderr)
                     if final_glyphs != glyphs:
-                        print("   actual_gids:   \"" + final_glyphs + "\"", file=sys.stderr)
-                        print("   expected_gids: \"" + final_glyphs_expected + "\"", file=sys.stderr)
+                        print(
+                            '   actual_gids:   "' + final_glyphs + '"', file=sys.stderr
+                        )
+                        print(
+                            '   expected_gids: "' + final_glyphs_expected + '"',
+                            file=sys.stderr,
+                        )
                     print("   ...", file=sys.stderr)
                 else:
                     passes += 1
@@ -324,9 +331,7 @@ for filename in args:
 
 print("1..%d" % number)
 
-print(
-    "# %d tests passed; %d failed; %d skipped." % (passes, fails, skips)
-)
+print("# %d tests passed; %d failed; %d skipped." % (passes, fails, skips))
 if not (fails + passes):
     print("# No tests ran.")
 elif not (fails + skips):
