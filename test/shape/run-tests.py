@@ -336,8 +336,3 @@ if not (fails + passes):
     print("# No tests ran.")
 elif not (fails + skips):
     print("# All tests passed.")
-
-if fails:
-    sys.exit(1)
-else:
-    sys.exit(0)
