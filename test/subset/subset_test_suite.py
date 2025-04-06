@@ -13,6 +13,9 @@ class Test:
 		self.iup_optimize = iup_optimize
 		self.options = options
 
+	def __str__(self):
+		return "Test: %s %s %s %s %s %s" % (self.font_path, self.profile_path, self.subset, self.instance, self.iup_optimize, self.options)
+
 	def unicodes(self):
 		import re
 		if self.subset == '*':
