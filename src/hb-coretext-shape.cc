@@ -100,11 +100,13 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
       CFRelease (value_number);
     }
 
+    const void *keys[] = { kCTFontVariationAttribute, kCTFontOpticalSizeAttribute };
+    const void *values[] = { variations, CFSTR ("none") };
     CFDictionaryRef attributes =
       CFDictionaryCreate (kCFAllocatorDefault,
-			  (const void **) &kCTFontVariationAttribute,
-			  (const void **) &variations,
-			  1,
+			  keys,
+			  values,
+			  ARRAY_LENGTH (keys),
 			  &kCFTypeDictionaryKeyCallBacks,
 			  &kCFTypeDictionaryValueCallBacks);
 
