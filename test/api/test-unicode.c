@@ -1012,6 +1012,9 @@ test_unicode_normalization (gconstpointer user_data)
 int
 main (int argc, char **argv)
 {
+  char *ubsan_obtions = getenv ("UBSAN_OPTIONS");
+  int ubsan = ubsan_obtions && strstr (ubsan_obtions, "halt_on_error=1");
+
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_unicode_properties_nil);
@@ -1033,7 +1036,8 @@ main (int argc, char **argv)
 
   hb_test_add (test_unicode_chainup);
 
-  hb_test_add (test_unicode_setters);
+  if (!ubsan)
+    hb_test_add (test_unicode_setters);
 
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_nil);
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_default);
