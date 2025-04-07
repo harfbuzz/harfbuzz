@@ -4784,12 +4784,12 @@ struct VariationDevice
   hb_position_t get_x_delta (hb_font_t *font,
 			     const ItemVariationStore &store,
 			     ItemVariationStore::cache_t *store_cache = nullptr) const
-  { return font->em_scalef_x (get_delta (font, store, store_cache)); }
+  { return !font->num_coords ? 0 : font->em_scalef_x (get_delta (font, store, store_cache)); }
 
   hb_position_t get_y_delta (hb_font_t *font,
 			     const ItemVariationStore &store,
 			     ItemVariationStore::cache_t *store_cache = nullptr) const
-  { return font->em_scalef_y (get_delta (font, store, store_cache)); }
+  { return !font->num_coords ? 0 : font->em_scalef_y (get_delta (font, store, store_cache)); }
 
   VariationDevice* copy (hb_serialize_context_t *c,
                          const hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map) const
