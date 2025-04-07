@@ -2863,8 +2863,13 @@ struct VarData
                   const hb_vector_t<const hb_vector_t<int>*>& rows)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (this))) return_trace (false);
     unsigned row_count = rows.length;
+    if (!row_count) {
+      // Nothing to serialize, will be empty.
+      return false;
+    }
+
+    if (unlikely (!c->extend_min (this))) return_trace (false);    
     itemCount = row_count;
 
     int min_threshold = has_long ? -65536 : -128;
