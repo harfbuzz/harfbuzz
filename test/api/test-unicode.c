@@ -577,13 +577,22 @@ typedef struct {
   unsigned int        default_value;
 } property_t;
 
+static unsigned _hb_unicode_combining_class (hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode)
+{ return (unsigned) hb_unicode_combining_class (ufuncs, unicode); }
+static unsigned _hb_unicode_general_category (hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode)
+{ return (unsigned) hb_unicode_general_category (ufuncs, unicode); }
+static unsigned _hb_unicode_mirroring (hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode)
+{ return (unsigned) hb_unicode_mirroring (ufuncs, unicode); }
+static unsigned _hb_unicode_script (hb_unicode_funcs_t *ufuncs, hb_codepoint_t unicode)
+{ return (unsigned) hb_unicode_script (ufuncs, unicode); }
+
 #define RETURNS_UNICODE_ITSELF ((unsigned int) -1)
 
 #define PROPERTY(name, DEFAULT) \
   { \
     #name, \
     (func_setter_func_t) hb_unicode_funcs_set_##name##_func, \
-    (getter_func_t) hb_unicode_##name, \
+    _hb_unicode_##name, \
     name##_tests, \
     G_N_ELEMENTS (name##_tests), \
     name##_tests_more, \
@@ -785,19 +794,21 @@ typedef struct {
 } data_fixture_t;
 
 static void
-data_fixture_init (data_fixture_t *f, gconstpointer user_data HB_UNUSED)
+data_fixture_init (gpointer fixture, gconstpointer user_data HB_UNUSED)
 {
+  data_fixture_t *f = (data_fixture_t *) fixture;
   f->data[0].value = MAGIC0;
   f->data[1].value = MAGIC1;
 }
 static void
-data_fixture_finish (data_fixture_t *f HB_UNUSED, gconstpointer user_data HB_UNUSED)
+data_fixture_finish (gpointer fixture HB_UNUSED, gconstpointer user_data HB_UNUSED)
 {
 }
 
 static void
-test_unicode_subclassing_nil (data_fixture_t *f, gconstpointer user_data HB_UNUSED)
+test_unicode_subclassing_nil (gpointer fixture, gconstpointer user_data HB_UNUSED)
 {
+  data_fixture_t *f = (data_fixture_t *) fixture;
   hb_unicode_funcs_t *uf, *aa;
 
   uf = hb_unicode_funcs_create (NULL);
@@ -818,8 +829,9 @@ test_unicode_subclassing_nil (data_fixture_t *f, gconstpointer user_data HB_UNUS
 }
 
 static void
-test_unicode_subclassing_default (data_fixture_t *f, gconstpointer user_data HB_UNUSED)
+test_unicode_subclassing_default (gpointer fixture, gconstpointer user_data HB_UNUSED)
 {
+  data_fixture_t *f = (data_fixture_t *) fixture;
   hb_unicode_funcs_t *uf, *aa;
 
   uf = hb_unicode_funcs_get_default ();
@@ -837,8 +849,9 @@ test_unicode_subclassing_default (data_fixture_t *f, gconstpointer user_data HB_
 }
 
 static void
-test_unicode_subclassing_deep (data_fixture_t *f, gconstpointer user_data HB_UNUSED)
+test_unicode_subclassing_deep (gpointer fixture, gconstpointer user_data HB_UNUSED)
 {
+  data_fixture_t *f = (data_fixture_t *) fixture;
   hb_unicode_funcs_t *uf, *aa;
 
   uf = hb_unicode_funcs_create (NULL);
@@ -999,6 +1012,9 @@ test_unicode_normalization (gconstpointer user_data)
 int
 main (int argc, char **argv)
 {
+  char *ubsan_obtions = getenv ("UBSAN_OPTIONS");
+  int ubsan = ubsan_obtions && strstr (ubsan_obtions, "halt_on_error=1");
+
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_unicode_properties_nil);
@@ -1020,7 +1036,8 @@ main (int argc, char **argv)
 
   hb_test_add (test_unicode_chainup);
 
-  hb_test_add (test_unicode_setters);
+  if (!ubsan)
+    hb_test_add (test_unicode_setters);
 
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_nil);
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_default);

@@ -134,7 +134,7 @@ typedef GTestFixtureFunc hb_test_fixture_func_t;
 #else
 typedef void (*hb_test_func_t)         (void);
 typedef void (*hb_test_data_func_t)    (gconstpointer user_data);
-typedef void (*hb_test_fixture_func_t) (void);
+typedef void (*hb_test_fixture_func_t) (gpointer fixture, gconstpointer user_data);
 #endif
 
 #if !GLIB_CHECK_VERSION(2,30,0)
@@ -226,16 +226,7 @@ hb_test_add_vtable (const char             *test_path,
 }
 #define hb_test_add_fixture(FixturePrefix, UserData, Func) \
 G_STMT_START { \
-  typedef G_PASTE (FixturePrefix, _t) Fixture; \
-  void (*add_vtable) (const char*, gsize, gconstpointer, \
-		      void (*) (Fixture*, gconstpointer), \
-		      void (*) (Fixture*, gconstpointer), \
-		      void (*) (Fixture*, gconstpointer)) \
-	= (void (*) (const gchar *, gsize, gconstpointer, \
-		     void (*) (Fixture*, gconstpointer), \
-		     void (*) (Fixture*, gconstpointer), \
-		     void (*) (Fixture*, gconstpointer))) hb_test_add_vtable; \
-  add_vtable (#Func, sizeof (G_PASTE (FixturePrefix, _t)), UserData, \
+  hb_test_add_vtable (#Func, sizeof (G_PASTE (FixturePrefix, _t)), UserData, \
 	      G_PASTE (FixturePrefix, _init), Func, G_PASTE (FixturePrefix, _finish)); \
 } G_STMT_END
 
@@ -254,16 +245,7 @@ hb_test_add_vtable_flavor (const char             *test_path,
 }
 #define hb_test_add_fixture_flavor(FixturePrefix, UserData, Flavor, Func) \
 G_STMT_START { \
-  typedef G_PASTE (FixturePrefix, _t) Fixture; \
-  void (*add_vtable) (const char*, const char *, gsize, gconstpointer, \
-		      void (*) (Fixture*, gconstpointer), \
-		      void (*) (Fixture*, gconstpointer), \
-		      void (*) (Fixture*, gconstpointer)) \
-	= (void (*) (const gchar *, const char *, gsize, gconstpointer, \
-		     void (*) (Fixture*, gconstpointer), \
-		     void (*) (Fixture*, gconstpointer), \
-		     void (*) (Fixture*, gconstpointer))) hb_test_add_vtable_flavor; \
-  add_vtable (#Func, Flavor, sizeof (G_PASTE (FixturePrefix, _t)), UserData, \
+  hb_test_add_vtable_flavor (#Func, Flavor, sizeof (G_PASTE (FixturePrefix, _t)), UserData, \
 	      G_PASTE (FixturePrefix, _init), Func, G_PASTE (FixturePrefix, _finish)); \
 } G_STMT_END
 

@@ -98,15 +98,17 @@ typedef struct
 } fixture_t;
 
 static void
-free_up (fixture_t *fixture)
+free_up (void *fixture_)
 {
+  fixture_t *fixture = (fixture_t *) fixture_;
   g_assert_cmpint (fixture->freed, ==, 0);
   fixture->freed++;
 }
 
 static void
-free_up_free (fixture_t *fixture)
+free_up_free (void *fixture_)
 {
+  fixture_t *fixture = (fixture_t *) fixture_;
   free_up (fixture);
   free (fixture->data);
 }
@@ -132,8 +134,9 @@ get_pagesize (void)
 }
 
 static void
-free_up_munmap (fixture_t *fixture)
+free_up_munmap (void *fixture_)
 {
+  fixture_t *fixture = (fixture_t *) fixture_;
   free_up (fixture);
   munmap (fixture->data, get_pagesize ());
 }
@@ -141,8 +144,9 @@ free_up_munmap (fixture_t *fixture)
 
 #include <errno.h>
 static void
-fixture_init (fixture_t *fixture, gconstpointer user_data)
+fixture_init (gpointer fixture_, gconstpointer user_data)
 {
+  fixture_t *fixture = (fixture_t *) fixture_;
   hb_memory_mode_t mm = (hb_memory_mode_t) GPOINTER_TO_INT (user_data);
   unsigned int len;
   const char *data;
@@ -153,13 +157,13 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
     case HB_MEMORY_MODE_DUPLICATE:
       data = test_data;
       len = sizeof (test_data);
-      free_func = (hb_destroy_func_t) free_up;
+      free_func = free_up;
       break;
 
     case HB_MEMORY_MODE_READONLY:
       data = test_data;
       len = sizeof (test_data);
-      free_func = (hb_destroy_func_t) free_up;
+      free_func = free_up;
       break;
 
     case HB_MEMORY_MODE_WRITABLE:
@@ -179,7 +183,7 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
       memcpy ((char *) data, test_data, sizeof (test_data));
       mprotect ((char *) data, pagesize, PROT_READ);
       len = sizeof (test_data);
-      free_func = (hb_destroy_func_t) free_up_munmap;
+      free_func = free_up_munmap;
       break;
     }
 #endif
@@ -195,16 +199,18 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
 }
 
 static void
-fixture_finish (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
+fixture_finish (gpointer fixture_, gconstpointer user_data HB_UNUSED)
 {
+  fixture_t *fixture = (fixture_t *) fixture_;
   hb_blob_destroy (fixture->blob);
   g_assert_cmpint (fixture->freed, ==, 1);
 }
 
 
 static void
-test_blob (fixture_t *fixture, gconstpointer user_data)
+test_blob (gpointer fixture_, gconstpointer user_data)
 {
+  fixture_t *fixture = (fixture_t *) fixture_;
   hb_blob_t *b = fixture->blob;
   hb_memory_mode_t mm = GPOINTER_TO_INT (user_data);
   unsigned int len;
@@ -262,8 +268,9 @@ test_blob (fixture_t *fixture, gconstpointer user_data)
 }
 
 static void
-test_blob_subblob (fixture_t *fixture, gconstpointer user_data)
+test_blob_subblob (gpointer fixture_, gconstpointer user_data)
 {
+  fixture_t *fixture = (fixture_t *) fixture_;
   hb_blob_t *b = fixture->blob;
   hb_memory_mode_t mm = GPOINTER_TO_INT (user_data);
   unsigned int len;
