@@ -57,8 +57,9 @@ typedef struct
 } fixture_t;
 
 static void
-fixture_init (fixture_t *fixture, gconstpointer user_data)
+fixture_init (gpointer fixture_, gconstpointer user_data)
 {
+  fixture_t *fixture = fixture_;
   hb_buffer_t *b;
   unsigned int i;
 
@@ -92,15 +93,17 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
 }
 
 static void
-fixture_finish (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
+fixture_finish (gpointer fixture_, gconstpointer user_data HB_UNUSED)
 {
+  fixture_t *fixture = fixture_;
   hb_buffer_destroy (fixture->buffer);
 }
 
 
 static void
-test_buffer_properties (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
+test_buffer_properties (gpointer fixture_, gconstpointer user_data HB_UNUSED)
 {
+  fixture_t *fixture = fixture_;
   hb_buffer_t *b = fixture->buffer;
   hb_unicode_funcs_t *ufuncs;
 
@@ -177,8 +180,9 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
 }
 
 static void
-test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
+test_buffer_contents (gpointer fixture_, gconstpointer user_data)
 {
+  fixture_t *fixture = fixture_;
   hb_buffer_t *b = fixture->buffer;
   unsigned int i, len, len2;
   buffer_type_t buffer_type = GPOINTER_TO_INT (user_data);
@@ -294,8 +298,9 @@ test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
 }
 
 static void
-test_buffer_positions (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
+test_buffer_positions (gpointer fixture_, gconstpointer user_data HB_UNUSED)
 {
+  fixture_t *fixture = fixture_;
   hb_buffer_t *b = fixture->buffer;
   unsigned int i, len, len2;
   hb_glyph_position_t *positions;
@@ -319,8 +324,9 @@ test_buffer_positions (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
 }
 
 static void
-test_buffer_allocation (fixture_t *fixture, gconstpointer user_data HB_UNUSED)
+test_buffer_allocation (gpointer fixture_, gconstpointer user_data HB_UNUSED)
 {
+  fixture_t *fixture = fixture_;
   hb_buffer_t *b = fixture->buffer;
 
   g_assert_cmpint (hb_buffer_get_length (b), ==, 0);
