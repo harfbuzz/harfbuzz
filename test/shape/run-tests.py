@@ -337,8 +337,9 @@ for filename in args:
                             )
                         print("   ...", file=sys.stderr)
                     else:
+                        cmd = hb_shape + " " + " ".join(cmd)
                         passes += 1
-                        print(f"ok {number} - {fontfile}")
+                        print(f"ok {number} - {cmd}")
 
 print("# %d tests passed; %d failed; %d skipped." % (passes, fails, skips))
 if not (fails + passes):
