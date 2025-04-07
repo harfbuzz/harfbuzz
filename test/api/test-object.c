@@ -136,6 +136,9 @@ typedef struct {
   const char            *name;
 } object_t;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+
 #define OBJECT_WITHOUT_IMMUTABILITY(name) \
   { \
     (create_func_t)         create_##name, \
@@ -363,6 +366,7 @@ test_object (void)
   }
 }
 
+#pragma GCC diagnostic pop
 
 int
 main (int argc, char **argv)
