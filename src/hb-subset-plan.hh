@@ -296,14 +296,21 @@ struct hb_subset_plan_t
   }
 };
 
-void
+// hb-subset-plan implementation is split into multiple files to keep
+// compile times more reasonable:
+// - hb-subset-plan.cc
+// - hb-subset-plan-layout.cc
+//
+// The functions below are those needed to connect the split files
+// above together.
+HB_INTERNAL void
 remap_indexes (const hb_set_t *indexes,
                hb_map_t       *mapping /* OUT */);
 
 
 #ifndef HB_NO_VAR
 template<typename ItemVarStore>
-void
+HB_INTERNAL void
 remap_variation_indices (const ItemVarStore &var_store,
                          const hb_set_t &variation_indices,
                          const hb_vector_t<int>& normalized_coords,
@@ -311,7 +318,7 @@ remap_variation_indices (const ItemVarStore &var_store,
                          bool no_variations, /* all axes pinned */
                          hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> &variation_idx_delta_map /* OUT */);
 
-void
+HB_INTERNAL void
 generate_varstore_inner_maps (const hb_set_t& varidx_set,
                               unsigned subtable_count,
                               hb_vector_t<hb_inc_bimap_t> &inner_maps /* OUT */);
@@ -320,14 +327,19 @@ generate_varstore_inner_maps (const hb_set_t& varidx_set,
 #ifndef HB_NO_SUBSET_LAYOUT
 typedef hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> script_langsys_map;
 
-void layout_nameid_closure (hb_subset_plan_t* plan,
-                            hb_set_t* drop_tables);
+HB_INTERNAL void
+remap_used_mark_sets (hb_subset_plan_t *plan,
+                      hb_map_t& used_mark_sets_map);
 
-void
+HB_INTERNAL void
+layout_nameid_closure (hb_subset_plan_t* plan,
+                       hb_set_t* drop_tables);
+
+HB_INTERNAL void
 layout_populate_gids_to_retain (hb_subset_plan_t* plan,
                                 hb_set_t* drop_tables);
 
-void
+HB_INTERNAL void
 collect_layout_variation_indices (hb_subset_plan_t* plan);
 #endif
 
