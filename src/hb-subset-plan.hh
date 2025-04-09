@@ -296,5 +296,40 @@ struct hb_subset_plan_t
   }
 };
 
+void
+remap_indexes (const hb_set_t *indexes,
+               hb_map_t       *mapping /* OUT */);
+
+
+#ifndef HB_NO_VAR
+template<typename ItemVarStore>
+void
+remap_variation_indices (const ItemVarStore &var_store,
+                         const hb_set_t &variation_indices,
+                         const hb_vector_t<int>& normalized_coords,
+                         bool calculate_delta, /* not pinned at default */
+                         bool no_variations, /* all axes pinned */
+                         hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> &variation_idx_delta_map /* OUT */);
+
+void
+generate_varstore_inner_maps (const hb_set_t& varidx_set,
+                              unsigned subtable_count,
+                              hb_vector_t<hb_inc_bimap_t> &inner_maps /* OUT */);
+#endif
+
+#ifndef HB_NO_SUBSET_LAYOUT
+typedef hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> script_langsys_map;
+
+void layout_nameid_closure (hb_subset_plan_t* plan,
+                            hb_set_t* drop_tables);
+
+void
+layout_populate_gids_to_retain (hb_subset_plan_t* plan,
+                                hb_set_t* drop_tables);
+
+void
+collect_layout_variation_indices (hb_subset_plan_t* plan);
+#endif
+
 
 #endif /* HB_SUBSET_PLAN_HH */
