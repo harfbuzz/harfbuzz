@@ -33,7 +33,7 @@
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-layout-base-table.hh"
-#include "hb-ot-layout-gdef-table.hh"
+//#include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-cff1-table.hh"
 #include "hb-ot-cff2-table.hh"
 #include "OT/Color/COLR/COLR.hh"
@@ -335,25 +335,6 @@ _math_closure (hb_subset_plan_t *plan,
   if (math->has_data ())
     math->closure_glyphs (glyphset);
   math.destroy ();
-}
-
-static inline void
-_remap_used_mark_sets (hb_subset_plan_t *plan,
-                       hb_map_t& used_mark_sets_map)
-{
-  hb_blob_ptr_t<OT::GDEF> gdef = plan->source_table<OT::GDEF> ();
-
-  if (!gdef->has_data () || !gdef->has_mark_glyph_sets ())
-  {
-    gdef.destroy ();
-    return;
-  }
-
-  hb_set_t used_mark_sets;
-  gdef->get_mark_glyph_sets ().collect_used_mark_sets (plan->_glyphset_gsub, used_mark_sets);
-  gdef.destroy ();
-
-  remap_indexes (&used_mark_sets, &used_mark_sets_map);
 }
 
 static inline void
@@ -1055,8 +1036,10 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
   for (auto &v : bounds_height_vec)
     v = 0xFFFFFFFF;
 
+#ifndef HB_NO_SUBSET_LAYOUT    
   if (!drop_tables.has (HB_OT_TAG_GDEF))
-    _remap_used_mark_sets (this, used_mark_sets_map);
+    remap_used_mark_sets (this, used_mark_sets_map);
+#endif
 
 #ifndef HB_NO_VAR
 #ifndef HB_NO_BASE

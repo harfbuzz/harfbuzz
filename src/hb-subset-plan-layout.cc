@@ -35,6 +35,25 @@ using OT::Layout::GPOS;
 
 #ifndef HB_NO_SUBSET_LAYOUT
 
+void
+remap_used_mark_sets (hb_subset_plan_t *plan,
+                      hb_map_t& used_mark_sets_map)
+{
+  hb_blob_ptr_t<OT::GDEF> gdef = plan->source_table<OT::GDEF> ();
+
+  if (!gdef->has_data () || !gdef->has_mark_glyph_sets ())
+  {
+    gdef.destroy ();
+    return;
+  }
+
+  hb_set_t used_mark_sets;
+  gdef->get_mark_glyph_sets ().collect_used_mark_sets (plan->_glyphset_gsub, used_mark_sets);
+  gdef.destroy ();
+
+  remap_indexes (&used_mark_sets, &used_mark_sets_map);
+}
+
 /*
  * Removes all tags from 'tags' that are not in filter. Additionally eliminates any duplicates.
  * Returns true if anything was removed (not including duplicates).
