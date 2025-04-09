@@ -392,6 +392,7 @@ hb_subset_sources = files(
   'hb-subset-instancer-solver.hh',
   'hb-subset-instancer-solver.cc',
   'hb-subset-plan.cc',
+  'hb-subset-plan-layout.cc',
   'hb-subset-plan.hh',
   'hb-subset-plan-member-list.hh',
   'hb-subset-serialize.cc',
