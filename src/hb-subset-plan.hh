@@ -318,10 +318,33 @@ remap_variation_indices (const ItemVarStore &var_store,
                          bool no_variations, /* all axes pinned */
                          hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> &variation_idx_delta_map /* OUT */);
 
+
+template<typename DeltaSetIndexMap>
+HB_INTERNAL void
+remap_colrv1_delta_set_index_indices (const DeltaSetIndexMap &index_map,
+                                      const hb_set_t &delta_set_idxes,
+                                      hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> &variation_idx_delta_map, /* IN/OUT */
+                                      hb_map_t &new_deltaset_idx_varidx_map /* OUT */);
+
+
 HB_INTERNAL void
 generate_varstore_inner_maps (const hb_set_t& varidx_set,
                               unsigned subtable_count,
                               hb_vector_t<hb_inc_bimap_t> &inner_maps /* OUT */);
+
+HB_INTERNAL void
+normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan);
+
+HB_INTERNAL void
+update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan);
+
+HB_INTERNAL bool
+get_instance_glyphs_contour_points (hb_subset_plan_t *plan);
+
+#ifndef HB_NO_BASE
+HB_INTERNAL void
+collect_base_variation_indices (hb_subset_plan_t* plan);
+#endif
 #endif
 
 #ifndef HB_NO_SUBSET_LAYOUT
