@@ -318,6 +318,7 @@ hb_base_headers = files(
   'hb-ot-shape.h',
   'hb-ot-var.h',
   'hb-ot.h',
+  'hb-script-list.h',
   'hb-set.h',
   'hb-shape-plan.h',
   'hb-shape.h',
