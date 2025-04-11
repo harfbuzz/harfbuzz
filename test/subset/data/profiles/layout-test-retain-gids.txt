@@ -1,3 +1,4 @@
 --layout-features=*
 --notdef-outline
+--no-bidi-closure
 --retain-gids
