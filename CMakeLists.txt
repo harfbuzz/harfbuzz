@@ -204,6 +204,7 @@ set (project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-ot.h
      ${PROJECT_SOURCE_DIR}/src/hb-paint.h
      ${PROJECT_SOURCE_DIR}/src/hb-set.h
+     ${PROJECT_SOURCE_DIR}/src/hb-script-list.h
      ${PROJECT_SOURCE_DIR}/src/hb-shape-plan.h
      ${PROJECT_SOURCE_DIR}/src/hb-shape.h
      ${PROJECT_SOURCE_DIR}/src/hb-style.h
