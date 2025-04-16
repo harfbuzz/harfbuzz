@@ -76,7 +76,7 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
  * @HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS: If set perform IUP delta optimization on the
  * remaining gvar table's deltas. Since: 8.5.0
  * @HB_SUBSET_FLAGS_NO_BIDI_CLOSURE: If set do not pull mirrored versions of input
-*  codepoints into the subset. Since: REPLACEME
+ * codepoints into the subset. Since: 11.1.0
  * @HB_SUBSET_FLAGS_IFTB_REQUIREMENTS: If set enforce requirements on the output subset
  * to allow it to be used with incremental font transfer IFTB patches. Primarily,
  * this forces all outline data to use long (32 bit) offsets. Since: EXPERIMENTAL
