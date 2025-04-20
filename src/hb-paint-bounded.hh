@@ -37,10 +37,8 @@ struct hb_paint_bounded_context_t
 {
   void clear ()
   {
-    clips.clear ();
+    clips = 0;
     groups.clear ();
-
-    clips.push (false);
     groups.push (true);
   }
 
@@ -56,12 +54,12 @@ struct hb_paint_bounded_context_t
 
   void push_clip ()
   {
-    clips.push (true);
+    clips++;
   }
 
   void pop_clip ()
   {
-    clips.pop ();
+    clips--;
   }
 
   void push_group ()
@@ -99,15 +97,14 @@ struct hb_paint_bounded_context_t
 
   void paint ()
   {
-    const bool &clip = clips.tail ();
     bool &group = groups.tail ();
 
-    if (!clip)
+    if (clips <= 0)
       group = false;
   }
 
   protected:
-  hb_vector_t<bool> clips; // true if clipped
+  int clips; // number of active clips
   hb_vector_t<bool> groups; // true if bounded
 };
 
