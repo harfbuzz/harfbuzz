@@ -34,8 +34,7 @@
 
 
 /*
- * This file implements bounds-extraction as well as boundedness
- * computation of COLRv1 fonts as described in:
+ * This file implements bounds-extraction computation of COLRv1 fonts as described in:
  *
  * https://learn.microsoft.com/en-us/typography/opentype/spec/colr#glyph-metrics-and-boundedness
  */
