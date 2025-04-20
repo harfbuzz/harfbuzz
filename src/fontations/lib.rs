@@ -969,6 +969,9 @@ extern "C" fn _hb_fontations_paint_glyph(
         hb_paint_push_font_transform(paint_funcs, paint_data, font);
     }
     let _ = color_glyph.paint(location, &mut painter);
+    unsafe {
+        hb_paint_pop_transform(paint_funcs, paint_data);
+    }
 }
 
 extern "C" fn _hb_fontations_glyph_name(
