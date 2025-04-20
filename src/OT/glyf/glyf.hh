@@ -543,7 +543,7 @@ struct glyf_accelerator_t
   unsigned int num_glyphs;
   hb_blob_ptr_t<loca> loca_table;
   hb_blob_ptr_t<glyf> glyf_table;
-  hb_atomic_t<hb_glyf_scratch_t *> cached_scratch;
+  mutable hb_atomic_t<hb_glyf_scratch_t *> cached_scratch;
 };
 
 

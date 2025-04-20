@@ -194,7 +194,7 @@ struct hb_atomic_t<T*>
   void set_relaxed (T* v_) { hb_atomic_ptr_impl_set_relaxed (&v, v_); }
   T *get_relaxed () const { return (T *) hb_atomic_ptr_impl_get_relaxed (&v); }
   T *get_acquire () const { return (T *) hb_atomic_ptr_impl_get ((void **) &v); }
-  bool cmpexch (const T *old, T *new_) const { return hb_atomic_ptr_impl_cmpexch ((void **) &v, (void *) old, (void *) new_); }
+  bool cmpexch (const T *old, T *new_) { return hb_atomic_ptr_impl_cmpexch ((void **) &v, (void *) old, (void *) new_); }
 
   operator bool () const { return get_acquire () != nullptr; }
   T * operator -> () const                    { return get_acquire (); }
