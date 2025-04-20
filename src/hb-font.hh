@@ -35,7 +35,6 @@
 #include "hb-atomic.hh"
 #include "hb-shaper.hh"
 #include "hb-outline.hh"
-#include "hb-paint-bounded.hh"
 
 
 /*
@@ -525,19 +524,6 @@ struct hb_font_t
                     unsigned int palette,
                     hb_color_t foreground)
   {
-    /* COLRv1 spec says a glyph must not be painted if the paint graph
-     * draws unbounded. Implement this here such that all font-funcs
-     * benefit, since we have the code. */
-    auto *bounded_funcs = hb_paint_bounded_get_funcs ();
-    hb_paint_bounded_context_t bounded_data;
-    klass->get.f.paint_glyph (this, user_data,
-                              glyph,
-                              bounded_funcs, &bounded_data,
-                              palette, foreground,
-                              !klass->user_data ? nullptr : klass->user_data->paint_glyph);
-    if (!bounded_data.is_bounded ())
-      return;
-
     klass->get.f.paint_glyph (this, user_data,
                               glyph,
                               paint_funcs, paint_data,

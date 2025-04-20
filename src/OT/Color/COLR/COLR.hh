@@ -2695,6 +2695,7 @@ struct COLR
       {
         // COLRv1 glyph
 
+	bool is_bounded = true;
 	if (clip)
 	{
 	  hb_glyph_extents_t extents;
@@ -2709,12 +2710,30 @@ struct COLR
 					  extents.y_bearing);
 	  }
 	  else
+	  {
 	    clip = false;
+	    is_bounded = false;
+	  }
+
+	  if (!is_bounded)
+	  {
+	    auto *bounded_funcs = hb_paint_bounded_get_funcs ();
+	    scratch.paint_bounded.clear ();
+
+	    paint_glyph (font, glyph,
+			 bounded_funcs, &scratch.paint_bounded,
+			 palette_index, foreground,
+			 false,
+			 scratch);
+
+	    is_bounded = scratch.paint_bounded.is_bounded ();
+	  }
 	}
 
 	c.funcs->push_font_transform (c.data, font);
 
-	c.recurse (*paint);
+	if (is_bounded)
+	  c.recurse (*paint);
 
 	c.funcs->pop_transform (c.data);
 

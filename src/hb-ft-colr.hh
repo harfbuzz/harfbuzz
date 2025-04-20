@@ -28,6 +28,7 @@
 #include "hb.hh"
 
 #include "hb-decycler.hh"
+#include "hb-paint-bounded.hh"
 
 #include FT_COLOR_H
 
@@ -512,6 +513,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
     node.visit (gid);
 
     bool clip = false;
+    bool is_bounded = false;
     FT_ClipBox clip_box;
     if (FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box))
     {
@@ -525,11 +527,25 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 						      font->slant_xy * clip_box.top_right.y)),
 				    clip_box.top_right.y);
       clip = true;
+      is_bounded = true;
+    }
+    if (!is_bounded)
+    {
+      auto *bounded_funcs = hb_paint_bounded_get_funcs ();
+      hb_paint_bounded_context_t bounded_data;
+      hb_ft_paint_context_t ce (ft_font, font,
+			        bounded_funcs, &bounded_data,
+			        palette_array, palette_index, foreground);
+      hb_decycler_node_t node2 (ce.glyphs_decycler);
+      node2.visit (gid);
+      ce.recurse (paint);
+      is_bounded = bounded_data.is_bounded ();
     }
 
     c.funcs->push_font_transform (c.data, font);
 
-    c.recurse (paint);
+    if (is_bounded)
+      c.recurse (paint);
 
     c.funcs->pop_transform (c.data);
 
