@@ -244,4 +244,9 @@ struct hb_draw_session_t
   hb_draw_state_t st;
 };
 
+
+HB_INTERNAL hb_draw_funcs_t *
+hb_draw_extents_get_funcs ();
+
+
 #endif /* HB_DRAW_HH */

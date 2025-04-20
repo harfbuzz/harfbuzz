@@ -33,6 +33,7 @@
 #include "../../../hb-open-type.hh"
 #include "../../../hb-ot-var-common.hh"
 #include "../../../hb-paint.hh"
+#include "../../../hb-paint-bounded.hh"
 #include "../../../hb-paint-extents.hh"
 
 #include "../CPAL/CPAL.hh"
@@ -49,6 +50,7 @@ struct hb_paint_context_t;
 
 struct hb_colr_scratch_t
 {
+  hb_paint_bounded_context_t paint_bounded;
   hb_paint_extents_context_t paint_extents;
 };
 
@@ -2709,23 +2711,22 @@ struct COLR
 	  }
 	  else
 	  {
-	    auto *extents_funcs = hb_paint_extents_get_funcs ();
-	    scratch.paint_extents.clear ();
+	    clip = false;
+	    is_bounded = false;
+	  }
+
+	  if (!is_bounded)
+	  {
+	    auto *bounded_funcs = hb_paint_bounded_get_funcs ();
+	    scratch.paint_bounded.clear ();
 
 	    paint_glyph (font, glyph,
-			 extents_funcs, &scratch.paint_extents,
+			 bounded_funcs, &scratch.paint_bounded,
 			 palette_index, foreground,
 			 false,
 			 scratch);
 
-	    auto extents = scratch.paint_extents.get_extents ();
-	    is_bounded = scratch.paint_extents.is_bounded ();
-
-	    c.funcs->push_clip_rectangle (c.data,
-					  extents.xmin,
-					  extents.ymin,
-					  extents.xmax,
-					  extents.ymax);
+	    is_bounded = scratch.paint_bounded.is_bounded ();
 	  }
 	}
 
