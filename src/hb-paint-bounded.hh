@@ -59,6 +59,7 @@ struct hb_paint_bounded_context_t
 
   void pop_clip ()
   {
+    if (clips == 0) return;
     clips--;
   }
 
@@ -99,13 +100,13 @@ struct hb_paint_bounded_context_t
 
   void paint ()
   {
-    if (clips <= 0)
+    if (!clips)
       bounded = false;
   }
 
   protected:
   bool bounded; // true if current drawing bounded
-  int clips; // number of active clips
+  unsigned clips; // number of active clips
   hb_vector_t<bool> groups; // true if group bounded
 };
 
