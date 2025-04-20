@@ -467,6 +467,7 @@ build_summary = {
   'Font callbacks (the more the merrier)':
     {'Builtin' : true,
      'FreeType': conf.get('HAVE_FREETYPE', 0) == 1,
+     'Fontations': conf.get('HAVE_FONTATIONS', 0) == 1,
     },
   'Dependencies used for command-line utilities':
     {'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
