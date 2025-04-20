@@ -29,6 +29,8 @@
 #include "hb-map.hh"
 #include "hb-multimap.hh"
 #include "hb-set.hh"
+#include "hb-subset.h"
+#include "hb-unicode.h"
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
@@ -209,15 +211,46 @@ _fill_unicode_and_glyph_map(hb_subset_plan_t *plan,
   _fill_unicode_and_glyph_map(plan, unicode_iterator, unicode_to_gid_for_iterator, unicode_to_gid_for_iterator);
 }
 
+/*
+ * Finds additional unicode codepoints which are reachable from the input unicode set.
+ * Currently this adds in mirrored variants (needed for bidi) of any input unicodes.
+ */
+static hb_set_t
+_unicode_closure (const hb_set_t* unicodes, bool bidi_closure) {
+  // TODO: we may want to also consider pulling in reachable unicode composition and decompositions.
+  //       see: https://github.com/harfbuzz/harfbuzz/issues/2283
+  hb_set_t out = *unicodes;
+  if (!bidi_closure) return out;
+
+  if (out.is_inverted()) {
+    // don't closure inverted sets, they are asking to specifically exclude certain codepoints.
+    // otherwise everything is already included.
+    return out;
+  }
+
+  auto unicode_funcs = hb_unicode_funcs_get_default ();
+  for (hb_codepoint_t cp : *unicodes) {
+   hb_codepoint_t mirror = hb_unicode_mirroring(unicode_funcs, cp);
+   if (unlikely (mirror != cp)) {
+     out.add(mirror);
+   }
+  }
+
+  return out;
+}
+
 static void
-_populate_unicodes_to_retain (const hb_set_t *unicodes,
+_populate_unicodes_to_retain (const hb_set_t *unicodes_in,
                               const hb_set_t *glyphs,
                               hb_subset_plan_t *plan)
 {
+  hb_set_t unicodes = _unicode_closure(unicodes_in,
+    !(plan->flags & HB_SUBSET_FLAGS_NO_BIDI_CLOSURE));
+
   OT::cmap::accelerator_t cmap (plan->source);
   unsigned size_threshold = plan->source->get_num_glyphs ();
 
-  if (glyphs->is_empty () && unicodes->get_population () < size_threshold)
+  if (glyphs->is_empty () && unicodes.get_population () < size_threshold)
   {
 
     const hb_map_t* unicode_to_gid = nullptr;
@@ -227,9 +260,9 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     // This is approach to collection is faster, but can only be used  if glyphs
     // are not being explicitly added to the subset and the input unicodes set is
     // not excessively large (eg. an inverted set).
-    plan->unicode_to_new_gid_list.alloc (unicodes->get_population ());
+    plan->unicode_to_new_gid_list.alloc (unicodes.get_population ());
     if (!unicode_to_gid) {
-      _fill_unicode_and_glyph_map(plan, unicodes->iter(), [&] (hb_codepoint_t cp) {
+      _fill_unicode_and_glyph_map(plan, unicodes.iter(), [&] (hb_codepoint_t cp) {
         hb_codepoint_t gid;
         if (!cmap.get_nominal_glyph (cp, &gid)) {
           return HB_MAP_VALUE_INVALID;
@@ -241,7 +274,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
       // the map. This code is mostly duplicated from above to avoid doing
       // conditionals on the presence of the unicode_to_gid map each
       // iteration.
-      _fill_unicode_and_glyph_map(plan, unicodes->iter(), [&] (hb_codepoint_t cp) {
+      _fill_unicode_and_glyph_map(plan, unicodes.iter(), [&] (hb_codepoint_t cp) {
         return unicode_to_gid->get (cp);
       });
     }
@@ -258,7 +291,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 
     if (!plan->accelerator) {
       cmap.collect_mapping (&cmap_unicodes_storage, &unicode_glyphid_map_storage);
-      plan->unicode_to_new_gid_list.alloc (hb_min(unicodes->get_population ()
+      plan->unicode_to_new_gid_list.alloc (hb_min(unicodes.get_population ()
                                                   + glyphs->get_population (),
                                                   cmap_unicodes->get_population ()));
     } else {
@@ -267,10 +300,10 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     }
 
     if (plan->accelerator &&
-	unicodes->get_population () < cmap_unicodes->get_population () &&
+	unicodes.get_population () < cmap_unicodes->get_population () &&
 	glyphs->get_population () < cmap_unicodes->get_population ())
     {
-      plan->codepoint_to_glyph->alloc (unicodes->get_population () + glyphs->get_population ());
+      plan->codepoint_to_glyph->alloc (unicodes.get_population () + glyphs->get_population ());
 
       auto &gid_to_unicodes = plan->accelerator->gid_to_unicodes;
 
@@ -285,7 +318,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
         });
       }
 
-      _fill_unicode_and_glyph_map(plan, unicodes->iter(), [&] (hb_codepoint_t cp) {
+      _fill_unicode_and_glyph_map(plan, unicodes.iter(), [&] (hb_codepoint_t cp) {
           /* Don't double-add entry. */
 	if (plan->codepoint_to_glyph->has (cp))
           return HB_MAP_VALUE_INVALID;
@@ -306,7 +339,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
       {
         _fill_unicode_and_glyph_map(plan, hb_range(first, last + 1), [&] (hb_codepoint_t cp) {
           hb_codepoint_t gid = (*unicode_glyphid_map)[cp];
-	  if (!unicodes->has (cp) && !glyphs->has (gid))
+	  if (!unicodes.has (cp) && !glyphs->has (gid))
 	    return HB_MAP_VALUE_INVALID;
           return gid;
         },

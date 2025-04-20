@@ -1,5 +1,6 @@
 tests = [
   'basics',
+  'bidi',
   'cmap',
   'cmap14',
   'preprocess',
