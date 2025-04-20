@@ -28,7 +28,7 @@
 #include "hb.hh"
 
 #include "hb-decycler.hh"
-#include "hb-paint-extents.hh"
+#include "hb-paint-bounded.hh"
 
 #include FT_COLOR_H
 
@@ -500,7 +500,8 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
     hb_decycler_node_t node (c.glyphs_decycler);
     node.visit (gid);
 
-    bool is_bounded = true;
+    bool clip = false;
+    bool is_bounded = false;
     FT_ClipBox clip_box;
     if (FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box))
     {
@@ -513,39 +514,31 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 				      roundf (hb_max (font->slant_xy * clip_box.bottom_right.y,
 						      font->slant_xy * clip_box.top_right.y)),
 				    clip_box.top_right.y);
+      clip = true;
+      is_bounded = true;
     }
-    else
+    if (!is_bounded)
     {
-
-      auto *extents_funcs = hb_paint_extents_get_funcs ();
-      hb_paint_extents_context_t extents_data;
+      auto *bounded_funcs = hb_paint_bounded_get_funcs ();
+      hb_paint_bounded_context_t bounded_data;
       hb_ft_paint_context_t ce (ft_font, font,
-			        extents_funcs, &extents_data,
+			        bounded_funcs, &bounded_data,
 			        palette_array, palette_index, foreground);
       hb_decycler_node_t node2 (ce.glyphs_decycler);
       node2.visit (gid);
-      ce.funcs->push_font_transform (ce.data, font);
       ce.recurse (paint);
-      ce.funcs->pop_transform (ce.data);
-      hb_extents_t<> extents = extents_data.get_extents ();
-      is_bounded = extents_data.is_bounded ();
-
-      c.funcs->push_clip_rectangle (c.data,
-				    extents.xmin,
-				    extents.ymin,
-				    extents.xmax,
-				    extents.ymax);
+      is_bounded = bounded_data.is_bounded ();
     }
 
     c.funcs->push_font_transform (c.data, font);
 
     if (is_bounded)
-     {
       c.recurse (paint);
-     }
 
     c.funcs->pop_transform (c.data);
-    c.funcs->pop_clip (c.data);
+
+    if (clip)
+      c.funcs->pop_clip (c.data);
 
     return true;
   }
