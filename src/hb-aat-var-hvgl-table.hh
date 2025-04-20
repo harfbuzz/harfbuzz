@@ -716,7 +716,7 @@ struct hvgl
 
     private:
     hb_blob_ptr_t<hvgl> table;
-    hb_atomic_t<hb_hvgl_scratch_t *> cached_scratch;
+    mutable hb_atomic_t<hb_hvgl_scratch_t *> cached_scratch;
     mutable hb_hvgl_parts_sanitized_t parts_sanitized;
   };
 
