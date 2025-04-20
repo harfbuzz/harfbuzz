@@ -38,8 +38,8 @@ struct hb_paint_bounded_context_t
   void clear ()
   {
     clips = 0;
+    bounded = true;
     groups.clear ();
-    groups.push (true);
   }
 
   hb_paint_bounded_context_t ()
@@ -49,7 +49,7 @@ struct hb_paint_bounded_context_t
 
   bool is_bounded ()
   {
-    return groups.tail();
+    return bounded;
   }
 
   void push_clip ()
@@ -64,13 +64,15 @@ struct hb_paint_bounded_context_t
 
   void push_group ()
   {
-    groups.push (true);
+    groups.push (bounded);
+    bounded = true;
   }
 
   void pop_group (hb_paint_composite_mode_t mode)
   {
-    const bool src_bounded = groups.pop ();
-    bool &backdrop_bounded = groups.tail ();
+    const bool src_bounded = bounded;
+    bounded = groups.pop ();
+    bool &backdrop_bounded = bounded;
 
     // https://learn.microsoft.com/en-us/typography/opentype/spec/colr#format-32-paintcomposite
     switch ((int) mode)
@@ -97,15 +99,14 @@ struct hb_paint_bounded_context_t
 
   void paint ()
   {
-    bool &group = groups.tail ();
-
     if (clips <= 0)
-      group = false;
+      bounded = false;
   }
 
   protected:
+  bool bounded; // true if current drawing bounded
   int clips; // number of active clips
-  hb_vector_t<bool> groups; // true if bounded
+  hb_vector_t<bool> groups; // true if group bounded
 };
 
 HB_INTERNAL hb_paint_funcs_t *
