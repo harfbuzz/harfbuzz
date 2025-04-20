@@ -17,8 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - MSYSTEM: MINGW32
-            MSYS2_ARCH: i686
           - MSYSTEM: MINGW64
             MSYS2_ARCH: x86_64
           - MSYSTEM: CLANG64
