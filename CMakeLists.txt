@@ -161,7 +161,9 @@ set (subset_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-subset-accelerator.hh
      ${PROJECT_SOURCE_DIR}/src/hb-subset-plan.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset-plan.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-plan-layout.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset-plan-member-list.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-plan-var.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset.hh
