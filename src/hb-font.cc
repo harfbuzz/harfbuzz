@@ -2602,6 +2602,23 @@ hb_font_get_ptem (hb_font_t *font)
 }
 
 /**
+ * hb_font_is_synthetic:
+ * @font: #hb_font_t to work upon
+ *
+ * Tests whether a font is synthetic. A synthetic font is one
+ * that has either synthetic slant or synthetic bold set on it.
+ *
+ * Return value: `true` if the font is synthetic, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
+hb_bool_t
+hb_font_is_synthetic (hb_font_t *font)
+{
+  return font->x_embolden || font->y_embolden || font->slant;
+}
+
+/**
  * hb_font_set_synthetic_bold:
  * @font: #hb_font_t to work upon
  * @x_embolden: the amount to embolden horizontally

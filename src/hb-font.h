@@ -1092,6 +1092,9 @@ hb_font_set_ptem (hb_font_t *font, float ptem);
 HB_EXTERN float
 hb_font_get_ptem (hb_font_t *font);
 
+HB_EXTERN hb_bool_t
+hb_font_is_synthetic (hb_font_t *font);
+
 HB_EXTERN void
 hb_font_set_synthetic_bold (hb_font_t *font,
 			    float x_embolden, float y_embolden,

@@ -456,6 +456,7 @@ hb_font_set_ptem
 hb_font_get_ptem
 hb_font_set_scale
 hb_font_get_scale
+hb_font_is_synthetic
 hb_font_get_synthetic_bold
 hb_font_set_synthetic_bold
 hb_font_set_synthetic_slant
