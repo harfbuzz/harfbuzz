@@ -31,8 +31,6 @@
 
 #include "hb-cairo-utils.hh"
 
-#include <cairo.h>
-
 /* Some routines in this file were ported from BlackRenderer by Black Foundry.
  * Used by permission to relicense to HarfBuzz license.
  *
