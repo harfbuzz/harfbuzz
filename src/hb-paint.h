@@ -167,8 +167,16 @@ typedef hb_bool_t (*hb_paint_color_glyph_func_t) (hb_paint_funcs_t *funcs,
  * A virtual method for the #hb_paint_funcs_t to clip
  * subsequent paint calls to the outline of a glyph.
  *
- * The coordinates of the glyph outline are interpreted according
- * to the current transform.
+ * The coordinates of the glyph outline are expected in the
+ * current @font scale. The outline is transformed by the
+ * current transform.
+ *
+ * Note: If @font has synthetic slant or bold set on it,
+ * those would produce undesirable shape distortions. In
+ * such cases, the implementation can create a sub-font
+ * and set synthetic slant & bold to zero, and use that
+ * sub-font to get the outline. This is cumbersome, but
+ * necessary to avoid the distortions.
  *
  * This clip is applied in addition to the current clip,
  * and remains in effect until a matching call to
