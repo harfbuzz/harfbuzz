@@ -176,7 +176,9 @@ typedef hb_bool_t (*hb_paint_color_glyph_func_t) (hb_paint_funcs_t *funcs,
  * such cases, the implementation can create a sub-font
  * and set synthetic slant & bold to zero, and use that
  * sub-font to get the outline. This is cumbersome, but
- * necessary to avoid the distortions.
+ * necessary to avoid the distortions. The client can
+ * use hb_font_is_synthetic() to decide whether a sub-font
+ * is needed.
  *
  * This clip is applied in addition to the current clip,
  * and remains in effect until a matching call to
