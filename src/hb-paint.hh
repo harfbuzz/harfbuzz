@@ -162,10 +162,11 @@ struct hb_paint_funcs_t
   {
     float upem = font->face->get_upem ();
     int xscale = font->x_scale, yscale = font->y_scale;
-    float slant = font->slant_xy;
 
     push_transform (paint_data,
-		    xscale/upem, 0, slant * yscale/upem, yscale/upem, 0, 0);
+		    xscale/upem, 0,
+		    0, yscale/upem,
+		    0, 0);
   }
 
   void push_inverse_font_transform (void *paint_data,
@@ -174,10 +175,11 @@ struct hb_paint_funcs_t
     float upem = font->face->get_upem ();
     int xscale = font->x_scale ? font->x_scale : upem;
     int yscale = font->y_scale ? font->y_scale : upem;
-    float slant = font->slant_xy;
 
     push_transform (paint_data,
-		    upem/xscale, 0, -slant * upem/xscale, upem/yscale, 0, 0);
+		    upem/xscale, 0,
+		    0, upem/yscale,
+		    0, 0);
   }
 
   HB_NODISCARD

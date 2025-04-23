@@ -580,15 +580,26 @@ struct hb_font_t
   }
 
   void paint_glyph (hb_codepoint_t glyph,
-                    hb_paint_funcs_t *paint_funcs, void *paint_data,
-                    unsigned int palette,
-                    hb_color_t foreground)
+		    hb_paint_funcs_t *paint_funcs, void *paint_data,
+		    unsigned int palette,
+		    hb_color_t foreground,
+		    bool synthetic = true)
   {
+    /* Slant */
+    if (synthetic && slant_xy)
+      hb_paint_push_transform (paint_funcs, paint_data,
+			       1.f, 0.f,
+			       slant_xy, 1.f,
+			       0.f, 0.f);
+
     klass->get.f.paint_glyph (this, user_data,
                               glyph,
                               paint_funcs, paint_data,
                               palette, foreground,
                               !klass->user_data ? nullptr : klass->user_data->paint_glyph);
+
+    if (synthetic && slant_xy)
+      hb_paint_pop_transform (paint_funcs, paint_data);
   }
 
   /* A bit higher-level, and with fallback */

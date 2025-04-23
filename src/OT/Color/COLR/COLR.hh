@@ -2634,7 +2634,6 @@ struct COLR
     }
     else
     {
-      // Ugh. We need to undo the synthetic slant here. Leave it for now. :-(.
       extents->x_bearing = e.xmin;
       extents->y_bearing = e.ymax;
       extents->width = e.xmax - e.xmin;

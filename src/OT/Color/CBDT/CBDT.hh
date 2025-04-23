@@ -954,7 +954,7 @@ struct CBDT
       if (unlikely (blob == hb_blob_get_empty ()))
         return false;
 
-      if (unlikely (!hb_font_get_glyph_extents (font, glyph, &extents)))
+      if (unlikely (!font->get_glyph_extents (glyph, &extents, false)))
         return false;
 
       if (unlikely (!get_extents (font, glyph, &pixel_extents, false)))
@@ -964,7 +964,7 @@ struct CBDT
 			       blob,
 			       pixel_extents.width, -pixel_extents.height,
 			       HB_PAINT_IMAGE_FORMAT_PNG,
-			       font->slant_xy,
+			       0.f,
 			       &extents);
 
       hb_blob_destroy (blob);

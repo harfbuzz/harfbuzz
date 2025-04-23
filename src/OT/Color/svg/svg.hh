@@ -108,7 +108,7 @@ struct SVG
 		    blob,
 		    0, 0,
 		    HB_PAINT_IMAGE_FORMAT_SVG,
-		    font->slant_xy,
+		    0.f,
 		    nullptr);
 
       hb_blob_destroy (blob);

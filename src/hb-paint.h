@@ -281,7 +281,7 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * @width: width of the raster image in pixels, or 0
  * @height: height of the raster image in pixels, or 0
  * @format: the image format as a tag
- * @slant: the synthetic slant ratio to be applied to the image during rendering
+ * @slant: Deprecated. Always set to 0.0.
  * @extents: (nullable): glyph extents for desired rendering
  * @user_data: User data pointer passed to hb_paint_funcs_set_image_func()
  *

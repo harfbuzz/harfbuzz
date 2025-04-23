@@ -951,7 +951,7 @@ hb_ft_paint_glyph (hb_font_t *font,
 					nullptr, nullptr);
 
       hb_glyph_extents_t extents;
-      if (!hb_font_get_glyph_extents (font, gid, &extents))
+      if (!font->get_glyph_extents (gid, &extents, false))
 	goto out;
 
       if (!paint_funcs->image (paint_data,
@@ -959,7 +959,7 @@ hb_ft_paint_glyph (hb_font_t *font,
 			       bitmap.width,
 			       bitmap.rows,
 			       HB_PAINT_IMAGE_FORMAT_BGRA,
-			       font->slant_xy,
+			       0.f,
 			       &extents))
       {
         /* TODO Try a forced outline load and paint? */
