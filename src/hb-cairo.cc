@@ -586,9 +586,12 @@ hb_cairo_text_to_glyphs (cairo_scaled_font_t        *scaled_font,
   hb_buffer_guess_segment_properties (buffer);
   hb_shape (font, buffer, nullptr, 0);
 
+  int x_scale, y_scale;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+
   hb_cairo_glyphs_from_buffer (buffer,
 			       true,
-			       font->x_scale, font->y_scale,
+			       x_scale, y_scale,
 			       0., 0.,
 			       utf8, utf8_len,
 			       glyphs, (unsigned *) num_glyphs,
@@ -703,7 +706,8 @@ hb_cairo_font_face_create_for_font (hb_font_t *font)
 {
   hb_font_make_immutable (font);
 
-  auto *cairo_face =  user_font_face_create (font->face);
+  auto *hb_face = hb_font_get_face (font);
+  auto *cairo_face =  user_font_face_create (hb_face);
 
   if (unlikely (CAIRO_STATUS_SUCCESS != cairo_font_face_set_user_data (cairo_face,
 								       &hb_cairo_font_user_data_key,
