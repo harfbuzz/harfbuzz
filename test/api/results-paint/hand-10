@@ -1,6 +1,6 @@
 start clip rectangle 64 -224 1.22e+03 928
   start transform 1 0 0 1 0 0
-    start transform 1 0 -0 1 0 0
+    start transform 1 0 0 1 0 0
       start clip glyph 13
         start transform 1 0 0 1 0 0
           start transform 1 0 0 0.977 0 0
@@ -16,7 +16,7 @@ start clip rectangle 64 -224 1.22e+03 928
         end transform
       end clip
     end transform
-    start transform 1 0 -0 1 0 0
+    start transform 1 0 0 1 0 0
       start clip glyph 14
         start transform 1 0 0 1 0 0
           linear gradient
@@ -29,28 +29,28 @@ start clip rectangle 64 -224 1.22e+03 928
         end transform
       end clip
     end transform
-    start transform 1 0 -0 1 0 0
+    start transform 1 0 0 1 0 0
       start clip glyph 15
         start transform 1 0 0 1 0 0
           solid 145 103 77 255
         end transform
       end clip
     end transform
-    start transform 1 0 -0 1 0 0
+    start transform 1 0 0 1 0 0
       start clip glyph 16
         start transform 1 0 0 1 0 0
           solid 30 136 229 255
         end transform
       end clip
     end transform
-    start transform 1 0 -0 1 0 0
+    start transform 1 0 0 1 0 0
       start clip glyph 21
         start transform 1 0 0 1 0 0
           solid 145 103 77 255
         end transform
       end clip
     end transform
-    start transform 1 0 -0 1 0 0
+    start transform 1 0 0 1 0 0
       start clip glyph 16
         start transform 1 0 0 1 0 0
           linear gradient
@@ -63,14 +63,14 @@ start clip rectangle 64 -224 1.22e+03 928
         end transform
       end clip
     end transform
-    start transform 1 0 -0 1 0 0
+    start transform 1 0 0 1 0 0
       start clip glyph 18
         start transform 1 0 0 1 0 0
           solid 66 66 66 51
         end transform
       end clip
     end transform
-    start transform 1 0 -0 1 0 0
+    start transform 1 0 0 1 0 0
       start clip glyph 19
         start transform 1 0 0 1 0 0
           start transform 1 0 0 0.969 0 0
@@ -86,7 +86,7 @@ start clip rectangle 64 -224 1.22e+03 928
         end transform
       end clip
     end transform
-    start transform 1 0 -0 1 0 0
+    start transform 1 0 0 1 0 0
       start clip glyph 20
         start transform 1 0 0 1 0 0
           solid 145 103 77 255
