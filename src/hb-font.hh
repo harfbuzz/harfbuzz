@@ -841,6 +841,11 @@ struct hb_font_t
     return false;
   }
 
+  bool is_synthetic () const
+  {
+    return x_embolden || y_embolden || slant;
+  }
+
   void changed ()
   {
     float upem = face->get_upem ();

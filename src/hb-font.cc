@@ -2615,7 +2615,7 @@ hb_font_get_ptem (hb_font_t *font)
 hb_bool_t
 hb_font_is_synthetic (hb_font_t *font)
 {
-  return font->x_embolden || font->y_embolden || font->slant;
+  return font->is_synthetic ();
 }
 
 /**
