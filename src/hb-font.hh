@@ -273,8 +273,7 @@ struct hb_font_t
     if (ret)
     {
       /* Embolden */
-      int y_shift = y_strength;
-      if (y_scale < 0) y_shift = -y_shift;
+      int y_shift = y_scale < 0 ? -y_strength : y_strength;
       extents->ascender += y_shift;
     }
 
@@ -283,9 +282,24 @@ struct hb_font_t
   hb_bool_t get_font_v_extents (hb_font_extents_t *extents)
   {
     hb_memset (extents, 0, sizeof (*extents));
-    return klass->get.f.font_v_extents (this, user_data,
-					extents,
-					!klass->user_data ? nullptr : klass->user_data->font_v_extents);
+    bool ret = klass->get.f.font_v_extents (this, user_data,
+					    extents,
+					    !klass->user_data ? nullptr : klass->user_data->font_v_extents);
+
+    if (ret)
+    {
+      /* Embolden */
+      int x_shift = x_scale < 0 ? -x_strength : x_strength;
+      if (embolden_in_place)
+      {
+	extents->ascender += x_shift / 2;
+	extents->descender -= x_shift - x_shift / 2;
+      }
+      else
+	extents->ascender += x_shift;
+    }
+
+    return ret;
   }
 
   bool has_glyph (hb_codepoint_t unicode)
