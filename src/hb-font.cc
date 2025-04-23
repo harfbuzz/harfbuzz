@@ -553,7 +553,6 @@ typedef struct hb_font_draw_glyph_default_adaptor_t {
   void		  *draw_data;
   float		   x_scale;
   float		   y_scale;
-  float		   slant;
 } hb_font_draw_glyph_default_adaptor_t;
 
 static void
@@ -566,10 +565,9 @@ hb_draw_move_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED,
   hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
-  float slant   = adaptor->slant;
 
   adaptor->draw_funcs->emit_move_to (adaptor->draw_data, *st,
-				     x_scale * to_x + slant * to_y, y_scale * to_y);
+				     x_scale * to_x, y_scale * to_y);
 }
 
 static void
@@ -581,13 +579,12 @@ hb_draw_line_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
   hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
-  float slant   = adaptor->slant;
 
-  st->current_x = st->current_x * x_scale + st->current_y * slant;
+  st->current_x = st->current_x * x_scale;
   st->current_y = st->current_y * y_scale;
 
   adaptor->draw_funcs->emit_line_to (adaptor->draw_data, *st,
-				     x_scale * to_x + slant * to_y, y_scale * to_y);
+				     x_scale * to_x, y_scale * to_y);
 }
 
 static void
@@ -600,14 +597,13 @@ hb_draw_quadratic_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data
   hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
-  float slant   = adaptor->slant;
 
-  st->current_x = st->current_x * x_scale + st->current_y * slant;
+  st->current_x = st->current_x * x_scale;
   st->current_y = st->current_y * y_scale;
 
   adaptor->draw_funcs->emit_quadratic_to (adaptor->draw_data, *st,
-					  x_scale * control_x + slant * control_y, y_scale * control_y,
-					  x_scale * to_x + slant * to_y, y_scale * to_y);
+					  x_scale * control_x, y_scale * control_y,
+					  x_scale * to_x, y_scale * to_y);
 }
 
 static void
@@ -621,15 +617,14 @@ hb_draw_cubic_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
   hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
-  float slant   = adaptor->slant;
 
-  st->current_x = st->current_x * x_scale + st->current_y * slant;
+  st->current_x = st->current_x * x_scale;
   st->current_y = st->current_y * y_scale;
 
   adaptor->draw_funcs->emit_cubic_to (adaptor->draw_data, *st,
-				      x_scale * control1_x + slant * control1_y, y_scale * control1_y,
-				      x_scale * control2_x + slant * control2_y, y_scale * control2_y,
-				      x_scale * to_x + slant * to_y, y_scale * to_y);
+				      x_scale * control1_x, y_scale * control1_y,
+				      x_scale * control2_x, y_scale * control2_y,
+				      x_scale * to_x, y_scale * to_y);
 }
 
 static void
@@ -664,14 +659,13 @@ hb_font_draw_glyph_default (hb_font_t       *font,
     draw_funcs,
     draw_data,
     font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0.f,
-    font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f,
-    font->parent->y_scale ? (font->slant - font->parent->slant) *
-			    (float) font->x_scale / (float) font->parent->y_scale : 0.f
+    font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f
   };
 
   font->parent->draw_glyph (glyph,
-				 const_cast<hb_draw_funcs_t *> (&_hb_draw_funcs_default),
-				 &adaptor);
+			    const_cast<hb_draw_funcs_t *> (&_hb_draw_funcs_default),
+			    &adaptor,
+			    false);
 }
 
 static void
@@ -685,12 +679,9 @@ hb_font_paint_glyph_default (hb_font_t *font,
                              void *user_data)
 {
   paint_funcs->push_transform (paint_data,
-    font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0.f,
-    font->parent->y_scale ? (font->slant - font->parent->slant) *
-			    (float) font->x_scale / (float) font->parent->y_scale : 0.f,
-    0.f,
-    font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f,
-    0.f, 0.f);
+    font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0, 0,
+    0, font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0,
+    0, 0);
 
   font->parent->paint_glyph (glyph, paint_funcs, paint_data, palette, foreground);
 
