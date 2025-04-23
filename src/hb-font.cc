@@ -103,7 +103,7 @@ hb_font_get_font_h_extents_default (hb_font_t         *font,
 				    hb_font_extents_t *extents,
 				    void              *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_h_extents (extents);
+  hb_bool_t ret = font->parent->get_font_h_extents (extents, false);
   if (ret) {
     extents->ascender = font->parent_scale_y_distance (extents->ascender);
     extents->descender = font->parent_scale_y_distance (extents->descender);
@@ -128,7 +128,7 @@ hb_font_get_font_v_extents_default (hb_font_t         *font,
 				    hb_font_extents_t *extents,
 				    void              *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_v_extents (extents);
+  hb_bool_t ret = font->parent->get_font_v_extents (extents, false);
   if (ret) {
     extents->ascender = font->parent_scale_x_distance (extents->ascender);
     extents->descender = font->parent_scale_x_distance (extents->descender);
@@ -234,10 +234,10 @@ hb_font_get_glyph_h_advance_default (hb_font_t      *font,
   if (font->has_glyph_h_advances_func_set ())
   {
     hb_position_t ret;
-    font->get_glyph_h_advances (1, &glyph, 0, &ret, 0);
+    font->get_glyph_h_advances (1, &glyph, 0, &ret, 0, false);
     return ret;
   }
-  return font->parent_scale_x_distance (font->parent->get_glyph_h_advance (glyph));
+  return font->parent_scale_x_distance (font->parent->get_glyph_h_advance (glyph, false));
 }
 
 static hb_position_t
@@ -259,10 +259,10 @@ hb_font_get_glyph_v_advance_default (hb_font_t      *font,
   if (font->has_glyph_v_advances_func_set ())
   {
     hb_position_t ret;
-    font->get_glyph_v_advances (1, &glyph, 0, &ret, 0);
+    font->get_glyph_v_advances (1, &glyph, 0, &ret, 0, false);
     return ret;
   }
-  return font->parent_scale_y_distance (font->parent->get_glyph_v_advance (glyph));
+  return font->parent_scale_y_distance (font->parent->get_glyph_v_advance (glyph, false));
 }
 
 #define hb_font_get_glyph_h_advances_nil hb_font_get_glyph_h_advances_default
@@ -281,7 +281,7 @@ hb_font_get_glyph_h_advances_default (hb_font_t*            font,
   {
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = font->get_glyph_h_advance (*first_glyph);
+      *first_advance = font->get_glyph_h_advance (*first_glyph, false);
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
@@ -290,7 +290,8 @@ hb_font_get_glyph_h_advances_default (hb_font_t*            font,
 
   font->parent->get_glyph_h_advances (count,
 				      first_glyph, glyph_stride,
-				      first_advance, advance_stride);
+				      first_advance, advance_stride,
+				      false);
   for (unsigned int i = 0; i < count; i++)
   {
     *first_advance = font->parent_scale_x_distance (*first_advance);
@@ -313,7 +314,7 @@ hb_font_get_glyph_v_advances_default (hb_font_t*            font,
   {
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = font->get_glyph_v_advance (*first_glyph);
+      *first_advance = font->get_glyph_v_advance (*first_glyph, false);
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
@@ -322,7 +323,8 @@ hb_font_get_glyph_v_advances_default (hb_font_t*            font,
 
   font->parent->get_glyph_v_advances (count,
 				      first_glyph, glyph_stride,
-				      first_advance, advance_stride);
+				      first_advance, advance_stride,
+				      false);
   for (unsigned int i = 0; i < count; i++)
   {
     *first_advance = font->parent_scale_y_distance (*first_advance);
@@ -442,7 +444,7 @@ hb_font_get_glyph_extents_default (hb_font_t          *font,
 				   hb_glyph_extents_t *extents,
 				   void               *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_extents (glyph, extents);
+  hb_bool_t ret = font->parent->get_glyph_extents (glyph, extents, false);
   if (ret) {
     font->parent_scale_position (&extents->x_bearing, &extents->y_bearing);
     font->parent_scale_distance (&extents->width, &extents->height);
@@ -472,7 +474,7 @@ hb_font_get_glyph_contour_point_default (hb_font_t      *font,
 					 hb_position_t  *y,
 					 void           *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_contour_point (glyph, point_index, x, y);
+  hb_bool_t ret = font->parent->get_glyph_contour_point (glyph, point_index, x, y, false);
   if (ret)
     font->parent_scale_position (x, y);
   return ret;

@@ -206,7 +206,7 @@ struct hb_font_t
 
   void synthetic_glyph_extents (hb_glyph_extents_t *extents)
   {
-    /* Apply slant. */
+    /* Slant. */
     if (slant_xy)
     {
       hb_position_t x1 = extents->x_bearing;
@@ -221,6 +221,7 @@ struct hb_font_t
       extents->width = x2 - extents->x_bearing;
     }
 
+    /* Embolden. */
     if (x_strength || y_strength)
     {
       /* Y */
@@ -263,14 +264,15 @@ struct hb_font_t
   HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
 
-  hb_bool_t get_font_h_extents (hb_font_extents_t *extents)
+  hb_bool_t get_font_h_extents (hb_font_extents_t *extents,
+				bool synthetic = true)
   {
     hb_memset (extents, 0, sizeof (*extents));
     bool ret = klass->get.f.font_h_extents (this, user_data,
 					    extents,
 					    !klass->user_data ? nullptr : klass->user_data->font_h_extents);
 
-    if (ret)
+    if (synthetic && ret)
     {
       /* Embolden */
       int y_shift = y_scale < 0 ? -y_strength : y_strength;
@@ -279,14 +281,15 @@ struct hb_font_t
 
     return ret;
   }
-  hb_bool_t get_font_v_extents (hb_font_extents_t *extents)
+  hb_bool_t get_font_v_extents (hb_font_extents_t *extents,
+				bool synthetic = true)
   {
     hb_memset (extents, 0, sizeof (*extents));
     bool ret = klass->get.f.font_v_extents (this, user_data,
 					    extents,
 					    !klass->user_data ? nullptr : klass->user_data->font_v_extents);
 
-    if (ret)
+    if (synthetic && ret)
     {
       /* Embolden */
       int x_shift = x_scale < 0 ? -x_strength : x_strength;
@@ -340,15 +343,16 @@ struct hb_font_t
 					 !klass->user_data ? nullptr : klass->user_data->variation_glyph);
   }
 
-  hb_position_t get_glyph_h_advance (hb_codepoint_t glyph)
+  hb_position_t get_glyph_h_advance (hb_codepoint_t glyph,
+				     bool synthetic = true)
   {
     hb_position_t advance = klass->get.f.glyph_h_advance (this, user_data,
 							  glyph,
 							  !klass->user_data ? nullptr : klass->user_data->glyph_h_advance);
 
-    if (x_strength && !embolden_in_place)
+    if (synthetic && x_strength && !embolden_in_place)
     {
-      /* Emboldening. */
+      /* Embolden */
       hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
       advance += advance ? strength : 0;
     }
@@ -356,15 +360,16 @@ struct hb_font_t
     return advance;
   }
 
-  hb_position_t get_glyph_v_advance (hb_codepoint_t glyph)
+  hb_position_t get_glyph_v_advance (hb_codepoint_t glyph,
+				     bool synthetic = true)
   {
     hb_position_t advance = klass->get.f.glyph_v_advance (this, user_data,
 							  glyph,
 							  !klass->user_data ? nullptr : klass->user_data->glyph_v_advance);
 
-    if (y_strength && !embolden_in_place)
+    if (synthetic && y_strength && !embolden_in_place)
     {
-      /* Emboldening. */
+      /* Embolden */
       hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
       advance += advance ? strength : 0;
     }
@@ -376,7 +381,8 @@ struct hb_font_t
 			     const hb_codepoint_t *first_glyph,
 			     unsigned int glyph_stride,
 			     hb_position_t *first_advance,
-			     unsigned int advance_stride)
+			     unsigned int advance_stride,
+			     bool synthetic = true)
   {
     klass->get.f.glyph_h_advances (this, user_data,
 				   count,
@@ -384,9 +390,9 @@ struct hb_font_t
 				   first_advance, advance_stride,
 				   !klass->user_data ? nullptr : klass->user_data->glyph_h_advances);
 
-    if (x_strength && !embolden_in_place)
+    if (synthetic && x_strength && !embolden_in_place)
     {
-      /* Emboldening. */
+      /* Embolden */
       hb_position_t strength = x_scale >= 0 ? x_strength : -x_strength;
       for (unsigned int i = 0; i < count; i++)
       {
@@ -400,7 +406,8 @@ struct hb_font_t
 			     const hb_codepoint_t *first_glyph,
 			     unsigned int glyph_stride,
 			     hb_position_t *first_advance,
-			     unsigned int advance_stride)
+			     unsigned int advance_stride,
+			     bool synthetic = true)
   {
     klass->get.f.glyph_v_advances (this, user_data,
 				   count,
@@ -408,9 +415,9 @@ struct hb_font_t
 				   first_advance, advance_stride,
 				   !klass->user_data ? nullptr : klass->user_data->glyph_v_advances);
 
-    if (y_strength && !embolden_in_place)
+    if (synthetic && y_strength && !embolden_in_place)
     {
-      /* Emboldening. */
+      /* Embolden */
       hb_position_t strength = y_scale >= 0 ? y_strength : -y_strength;
       for (unsigned int i = 0; i < count; i++)
       {
@@ -463,27 +470,45 @@ struct hb_font_t
   }
 
   hb_bool_t get_glyph_extents (hb_codepoint_t glyph,
-			       hb_glyph_extents_t *extents)
+			       hb_glyph_extents_t *extents,
+			       bool synthetic = true)
   {
     hb_memset (extents, 0, sizeof (*extents));
     bool ret = klass->get.f.glyph_extents (this, user_data,
 					   glyph,
 					   extents,
 					   !klass->user_data ? nullptr : klass->user_data->glyph_extents);
-    if (ret)
+    if (synthetic && ret)
       synthetic_glyph_extents (extents);
 
     return ret;
   }
 
   hb_bool_t get_glyph_contour_point (hb_codepoint_t glyph, unsigned int point_index,
-				     hb_position_t *x, hb_position_t *y)
+				     hb_position_t *x, hb_position_t *y,
+				     bool synthetic = true)
   {
     *x = *y = 0;
-    return klass->get.f.glyph_contour_point (this, user_data,
-					     glyph, point_index,
-					     x, y,
-					     !klass->user_data ? nullptr : klass->user_data->glyph_contour_point);
+    bool ret = klass->get.f.glyph_contour_point (this, user_data,
+						 glyph, point_index,
+						 x, y,
+						 !klass->user_data ? nullptr : klass->user_data->glyph_contour_point);
+
+    if (synthetic && ret)
+    {
+      /* Slant */
+      if (slant_xy)
+        *x += roundf (*y * slant_xy);
+
+      /* Embolden */
+      if (!embolden_in_place)
+      {
+	int x_shift = x_scale < 0 ? -x_strength : x_strength;
+	*x += x_shift;
+      }
+    }
+
+    return ret;
   }
 
   hb_bool_t get_glyph_name (hb_codepoint_t glyph,
@@ -508,14 +533,15 @@ struct hb_font_t
   }
 
   void draw_glyph (hb_codepoint_t glyph,
-		   hb_draw_funcs_t *draw_funcs, void *draw_data)
+		   hb_draw_funcs_t *draw_funcs, void *draw_data,
+		   bool synthetic = true)
   {
 #ifndef HB_NO_OUTLINE
     bool embolden = x_strength || y_strength;
     bool slanted = slant_xy;
-    bool synthetic = embolden || slanted;
+    synthetic = synthetic && (embolden || slanted);
 #else
-    constexpr bool synthetic = false;
+    synthetic = false;
 #endif
 
     if (!synthetic)
