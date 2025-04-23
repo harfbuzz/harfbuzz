@@ -626,6 +626,41 @@ hb_ft_get_glyph_h_kerning (hb_font_t *font,
 }
 #endif
 
+static bool
+hb_ft_is_colr_glyph (hb_font_t *font,
+		     void *font_data,
+		     hb_codepoint_t gid)
+{
+#ifndef HB_NO_PAINT
+#if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21300
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  FT_Face ft_face = ft_font->ft_face;
+
+
+  /* COLRv1 */
+  FT_OpaquePaint paint = {0};
+  if (FT_Get_Color_Glyph_Paint (ft_face, gid,
+			        FT_COLOR_NO_ROOT_TRANSFORM,
+			        &paint))
+    return true;
+
+  /* COLRv0 */
+  FT_LayerIterator  iterator;
+  FT_UInt  layer_glyph_index;
+  FT_UInt  layer_color_index;
+  iterator.p  = NULL;
+  if (FT_Get_Color_Glyph_Layer (ft_face,
+				gid,
+				&layer_glyph_index,
+				&layer_color_index,
+				&iterator))
+    return true;
+#endif
+#endif
+
+  return false;
+}
+
 static hb_bool_t
 hb_ft_get_glyph_extents (hb_font_t *font,
 			 void *font_data,
@@ -633,6 +668,10 @@ hb_ft_get_glyph_extents (hb_font_t *font,
 			 hb_glyph_extents_t *extents,
 			 void *user_data HB_UNUSED)
 {
+  // FreeType doesn't return COLR glyph extents.
+  if (hb_ft_is_colr_glyph (font, font_data, glyph))
+    return false;
+
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   _hb_ft_hb_font_check_changed (font, ft_font);
 
