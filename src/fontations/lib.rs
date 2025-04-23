@@ -948,6 +948,17 @@ extern "C" fn _hb_fontations_paint_glyph(
         }
     };
 
+    let font = if (unsafe { hb_font_is_synthetic(font) } != false as hb_bool_t) {
+        unsafe {
+            let sub_font = hb_font_create_sub_font(font);
+            hb_font_set_synthetic_bold(sub_font, 0.0, 0.0, true as hb_bool_t);
+            hb_font_set_synthetic_slant(sub_font, 0.0);
+            sub_font
+        }
+    } else {
+        unsafe { hb_font_reference(font) }
+    };
+
     let mut painter = HbColorPainter {
         font,
         paint_funcs,
@@ -963,6 +974,7 @@ extern "C" fn _hb_fontations_paint_glyph(
     let _ = color_glyph.paint(location, &mut painter);
     unsafe {
         hb_paint_pop_transform(paint_funcs, paint_data);
+        hb_font_destroy(font);
     }
 }
 

@@ -80,15 +80,30 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
 
 struct hb_ft_paint_context_t
 {
-  hb_ft_paint_context_t (const hb_ft_font_t *ft_font,
-			 hb_font_t *font,
+  hb_ft_paint_context_t (const hb_ft_font_t *ft_font_,
+			 hb_font_t *font_,
 			 hb_paint_funcs_t *paint_funcs, void *paint_data,
 			 hb_array_t<const FT_Color> palette,
 			 unsigned palette_index,
 			 hb_color_t foreground) :
-    ft_font (ft_font), font(font),
+    ft_font (ft_font_), font (font_),
     funcs (paint_funcs), data (paint_data),
-    palette (palette), palette_index (palette_index), foreground (foreground) {}
+    palette (palette), palette_index (palette_index), foreground (foreground)
+  {
+    if (font->is_synthetic ())
+    {
+      font = hb_font_create_sub_font (font);
+      hb_font_set_synthetic_bold (font, 0, 0, true);
+      hb_font_set_synthetic_slant (font, 0);
+    }
+    else
+      hb_font_reference (font);
+  }
+
+  ~hb_ft_paint_context_t ()
+  {
+    hb_font_destroy (font);
+  }
 
   void recurse (FT_OpaquePaint paint)
   {

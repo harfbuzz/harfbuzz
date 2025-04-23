@@ -103,7 +103,21 @@ public:
     ),
     foreground (foreground_),
     instancer (instancer_)
-  { }
+  {
+    if (font->is_synthetic ())
+    {
+      font = hb_font_create_sub_font (font);
+      hb_font_set_synthetic_bold (font, 0, 0, true);
+      hb_font_set_synthetic_slant (font, 0);
+    }
+    else
+      hb_font_reference (font);
+  }
+
+  ~hb_paint_context_t ()
+  {
+    hb_font_destroy (font);
+  }
 
   hb_color_t get_color (unsigned int color_index, float alpha, hb_bool_t *is_foreground)
   {
