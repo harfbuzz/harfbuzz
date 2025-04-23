@@ -33,6 +33,8 @@
 
 #include "hb-face.hh"
 #include "hb-atomic.hh"
+#include "hb-draw.hh"
+#include "hb-paint-extents.hh"
 #include "hb-shaper.hh"
 #include "hb-outline.hh"
 
@@ -474,6 +476,40 @@ struct hb_font_t
 			       bool synthetic = true)
   {
     hb_memset (extents, 0, sizeof (*extents));
+
+    /* This one is messy gonna be messy. */
+    if (synthetic && !is_synthetic ())
+      synthetic = false;
+
+    if (!synthetic)
+    {
+      return klass->get.f.glyph_extents (this, user_data,
+					 glyph,
+					 extents,
+					 !klass->user_data ? nullptr : klass->user_data->glyph_extents);
+    }
+
+    /* Try getting extents from paint(), then draw(), *then* get_extents()
+     * and apply synthetic settings in the last case. */
+
+    hb_paint_extents_context_t paint_extents;
+    if (paint_glyph (glyph,
+		     hb_paint_extents_get_funcs (), &paint_extents,
+		     0, 0))
+    {
+      *extents = paint_extents.get_extents ().to_glyph_extents ();
+      return true;
+    }
+
+    hb_extents_t draw_extents;
+    draw_glyph (glyph,
+		hb_draw_extents_get_funcs (), &draw_extents);
+    if (!draw_extents.is_empty ())
+    {
+      *extents = draw_extents.to_glyph_extents ();
+      return true;
+    }
+
     bool ret = klass->get.f.glyph_extents (this, user_data,
 					   glyph,
 					   extents,
