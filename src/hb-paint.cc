@@ -87,7 +87,7 @@ hb_paint_image_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     unsigned int width,
                     unsigned int height,
                     hb_tag_t format,
-                    float slant_xy,
+                    float slant_xy_deprecated,
                     hb_glyph_extents_t *extents,
                     void *user_data) { return false; }
 

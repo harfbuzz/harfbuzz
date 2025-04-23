@@ -2701,7 +2701,6 @@ struct COLR
 	  if (get_clip (glyph, &extents, instancer))
 	  {
 	    font->scale_glyph_extents (&extents);
-	    font->synthetic_glyph_extents (&extents);
 	    c.funcs->push_clip_rectangle (c.data,
 					  extents.x_bearing,
 					  extents.y_bearing + extents.height,
