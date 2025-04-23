@@ -929,7 +929,7 @@ hb_ft_draw_glyph (hb_font_t *font,
 
 #include "hb-ft-colr.hh"
 
-static void
+static hb_bool_t
 hb_ft_paint_glyph (hb_font_t *font,
                    void *font_data,
                    hb_codepoint_t gid,
@@ -953,7 +953,7 @@ hb_ft_paint_glyph (hb_font_t *font,
    * eg. draw API can call back into the face.*/
 
   if (unlikely (FT_Load_Glyph (ft_face, gid, load_flags)))
-    return;
+    return false;
 
   if (ft_face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)
   {
@@ -961,26 +961,21 @@ hb_ft_paint_glyph (hb_font_t *font,
 				paint_funcs, paint_data,
 				palette_index, foreground,
 				user_data))
-      return;
+      return true;
 
-    /* Simple outline. */
-    ft_font->lock.unlock ();
-    paint_funcs->push_clip_glyph (paint_data, gid, font);
-    ft_font->lock.lock ();
-    paint_funcs->color (paint_data, true, foreground);
-    paint_funcs->pop_clip (paint_data);
-
-    return;
+    // Outline glyph
+    return false;
   }
 
   auto *glyph = ft_face->glyph;
   if (glyph->format == FT_GLYPH_FORMAT_BITMAP)
   {
+    bool ret = false;
     auto &bitmap = glyph->bitmap;
     if (bitmap.pixel_mode == FT_PIXEL_MODE_BGRA)
     {
       if (bitmap.pitch != (signed) bitmap.width * 4)
-        return;
+        return ret;
 
       ft_font->lock.unlock ();
 
@@ -993,24 +988,23 @@ hb_ft_paint_glyph (hb_font_t *font,
       if (!font->get_glyph_extents (gid, &extents, false))
 	goto out;
 
-      if (!paint_funcs->image (paint_data,
-			       blob,
-			       bitmap.width,
-			       bitmap.rows,
-			       HB_PAINT_IMAGE_FORMAT_BGRA,
-			       0.f,
-			       &extents))
-      {
-        /* TODO Try a forced outline load and paint? */
-      }
+      if (paint_funcs->image (paint_data,
+			      blob,
+			      bitmap.width,
+			      bitmap.rows,
+			      HB_PAINT_IMAGE_FORMAT_BGRA,
+			      0.f,
+			      &extents))
+        ret = true;
 
     out:
       hb_blob_destroy (blob);
       ft_font->lock.lock ();
     }
 
-    return;
+    return ret;
   }
+  return false;
 }
 #endif
 #endif

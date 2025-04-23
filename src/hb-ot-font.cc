@@ -513,7 +513,7 @@ hb_ot_draw_glyph (hb_font_t *font,
 #endif
 
 #ifndef HB_NO_PAINT
-static void
+static hb_bool_t
 hb_ot_paint_glyph (hb_font_t *font,
                    void *font_data,
                    hb_codepoint_t glyph,
@@ -523,18 +523,14 @@ hb_ot_paint_glyph (hb_font_t *font,
                    void *user_data)
 {
 #ifndef HB_NO_COLOR
-  if (font->face->table.COLR->paint_glyph (font, glyph, paint_funcs, paint_data, palette, foreground)) return;
-  if (font->face->table.SVG->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.COLR->paint_glyph (font, glyph, paint_funcs, paint_data, palette, foreground)) return true;
+  if (font->face->table.SVG->paint_glyph (font, glyph, paint_funcs, paint_data)) return true;
 #ifndef HB_NO_OT_FONT_BITMAP
-  if (font->face->table.CBDT->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
-  if (font->face->table.sbix->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.CBDT->paint_glyph (font, glyph, paint_funcs, paint_data)) return true;
+  if (font->face->table.sbix->paint_glyph (font, glyph, paint_funcs, paint_data)) return true;
 #endif
 #endif
-
-  // Outline glyph
-  paint_funcs->push_clip_glyph (paint_data, glyph, font);
-  paint_funcs->color (paint_data, true, foreground);
-  paint_funcs->pop_clip (paint_data);
+  return false;
 }
 #endif
 

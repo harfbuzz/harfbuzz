@@ -911,7 +911,7 @@ extern "C" fn _hb_fontations_paint_glyph(
     palette_index: ::std::os::raw::c_uint,
     foreground: hb_color_t,
     _user_data: *mut ::std::os::raw::c_void,
-) {
+) -> hb_bool_t {
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
@@ -921,7 +921,7 @@ extern "C" fn _hb_fontations_paint_glyph(
 
     let glyph_id = GlyphId::new(glyph);
     let Some(color_glyph) = color_glyphs.get(glyph_id) else {
-        return;
+        return false as hb_bool_t;
     };
 
     let cpal = font_ref.cpal();
@@ -976,6 +976,7 @@ extern "C" fn _hb_fontations_paint_glyph(
         hb_paint_pop_transform(paint_funcs, paint_data);
         hb_font_destroy(font);
     }
+    true as hb_bool_t
 }
 
 extern "C" fn _hb_fontations_glyph_name(

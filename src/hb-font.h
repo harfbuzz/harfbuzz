@@ -517,14 +517,16 @@ typedef void (*hb_font_draw_glyph_func_t) (hb_font_t *font, void *font_data,
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
+ * Return value: `true` if glyph was painted, `false` otherwise
+ *
  * Since: 7.0.0
  */
-typedef void (*hb_font_paint_glyph_func_t) (hb_font_t *font, void *font_data,
-                                            hb_codepoint_t glyph,
-                                            hb_paint_funcs_t *paint_funcs, void *paint_data,
-                                            unsigned int palette_index,
-                                            hb_color_t foreground,
-                                            void *user_data);
+typedef hb_bool_t (*hb_font_paint_glyph_func_t) (hb_font_t *font, void *font_data,
+						 hb_codepoint_t glyph,
+						 hb_paint_funcs_t *paint_funcs, void *paint_data,
+						 unsigned int palette_index,
+						 hb_color_t foreground,
+						 void *user_data);
 
 /* func setters */
 
@@ -901,7 +903,7 @@ hb_font_draw_glyph (hb_font_t *font,
                     hb_codepoint_t glyph,
                     hb_draw_funcs_t *dfuncs, void *draw_data);
 
-HB_EXTERN void
+HB_EXTERN hb_bool_t
 hb_font_paint_glyph (hb_font_t *font,
                      hb_codepoint_t glyph,
                      hb_paint_funcs_t *pfuncs, void *paint_data,

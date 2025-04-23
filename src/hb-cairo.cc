@@ -644,8 +644,8 @@ hb_cairo_render_color_glyph (cairo_scaled_font_t  *scaled_font,
   c.cr = cr;
   c.color_cache = (hb_map_t *) cairo_scaled_font_get_user_data (scaled_font, &color_cache_key);
 
-  hb_font_paint_glyph (font, glyph, hb_cairo_paint_get_funcs (), &c, palette, color);
-
+  if (!hb_font_paint_glyph (font, glyph, hb_cairo_paint_get_funcs (), &c, palette, color))
+    return CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED;
 
   return CAIRO_STATUS_SUCCESS;
 }

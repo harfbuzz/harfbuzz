@@ -536,7 +536,7 @@ hb_font_draw_glyph_nil (hb_font_t       *font HB_UNUSED,
 {
 }
 
-static void
+static hb_bool_t
 hb_font_paint_glyph_nil (hb_font_t *font HB_UNUSED,
                          void *font_data HB_UNUSED,
                          hb_codepoint_t glyph HB_UNUSED,
@@ -546,6 +546,7 @@ hb_font_paint_glyph_nil (hb_font_t *font HB_UNUSED,
                          hb_color_t foreground HB_UNUSED,
                          void *user_data HB_UNUSED)
 {
+  return false;
 }
 
 typedef struct hb_font_draw_glyph_default_adaptor_t {
@@ -668,7 +669,7 @@ hb_font_draw_glyph_default (hb_font_t       *font,
 			    false);
 }
 
-static void
+static hb_bool_t
 hb_font_paint_glyph_default (hb_font_t *font,
                              void *font_data,
                              hb_codepoint_t glyph,
@@ -683,9 +684,11 @@ hb_font_paint_glyph_default (hb_font_t *font,
     0, font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0,
     0, 0);
 
-  font->parent->paint_glyph (glyph, paint_funcs, paint_data, palette, foreground);
+  bool ret = font->parent->paint_glyph (glyph, paint_funcs, paint_data, palette, foreground);
 
   paint_funcs->pop_transform (paint_data);
+
+  return ret;
 }
 
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
@@ -1463,16 +1466,18 @@ hb_font_draw_glyph (hb_font_t *font,
  * then @palette_index selects the palette to use. If the font only
  * has one palette, this will be 0.
  *
+ * Return value: `true` if glyph was painted, `false` otherwise
+ *
  * Since: 7.0.0
  */
-void
+hb_bool_t
 hb_font_paint_glyph (hb_font_t *font,
                      hb_codepoint_t glyph,
                      hb_paint_funcs_t *pfuncs, void *paint_data,
                      unsigned int palette_index,
                      hb_color_t foreground)
 {
-  font->paint_glyph (glyph, pfuncs, paint_data, palette_index, foreground);
+  return font->paint_glyph (glyph, pfuncs, paint_data, palette_index, foreground);
 }
 
 /* A bit higher-level, and with fallback */
