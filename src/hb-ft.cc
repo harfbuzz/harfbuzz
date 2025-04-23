@@ -797,7 +797,7 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
     metrics->line_gap = ft_face->size->metrics.height - (metrics->ascender - metrics->descender);
   }
 
-  metrics->ascender  = (hb_position_t) (y_mult * (metrics->ascender + font->y_strength));
+  metrics->ascender  = (hb_position_t) (y_mult * metrics->ascender);
   metrics->descender = (hb_position_t) (y_mult * metrics->descender);
   metrics->line_gap  = (hb_position_t) (y_mult * metrics->line_gap);
 

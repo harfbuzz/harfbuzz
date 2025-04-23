@@ -266,9 +266,19 @@ struct hb_font_t
   hb_bool_t get_font_h_extents (hb_font_extents_t *extents)
   {
     hb_memset (extents, 0, sizeof (*extents));
-    return klass->get.f.font_h_extents (this, user_data,
-					extents,
-					!klass->user_data ? nullptr : klass->user_data->font_h_extents);
+    bool ret = klass->get.f.font_h_extents (this, user_data,
+					    extents,
+					    !klass->user_data ? nullptr : klass->user_data->font_h_extents);
+
+    if (ret)
+    {
+      /* Embolden */
+      int y_shift = y_strength;
+      if (y_scale < 0) y_shift = -y_shift;
+      extents->ascender += y_shift;
+    }
+
+    return ret;
   }
   hb_bool_t get_font_v_extents (hb_font_extents_t *extents)
   {
