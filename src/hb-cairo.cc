@@ -204,7 +204,17 @@ hb_cairo_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   cairo_save (cr);
   cairo_new_path (cr);
-  hb_font_draw_glyph (font, glyph, hb_cairo_draw_get_funcs (), cr);
+
+  // TODO Cache subfont
+  hb_font_t *sub_font = hb_font_create_sub_font (font);
+
+  hb_font_set_synthetic_slant (sub_font, 0);
+  hb_font_set_synthetic_bold (sub_font, 0, 0, true);
+
+  hb_font_draw_glyph (sub_font, glyph, hb_cairo_draw_get_funcs (), cr);
+
+  hb_font_destroy (sub_font);
+
   cairo_close_path (cr);
   cairo_clip (cr);
 }
