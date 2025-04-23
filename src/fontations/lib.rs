@@ -523,7 +523,7 @@ impl OutlinePen for HbPen {
 }
 
 extern "C" fn _hb_fontations_draw_glyph(
-    font: *mut hb_font_t,
+    _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     glyph: hb_codepoint_t,
     draw_funcs: *mut hb_draw_funcs_t,
@@ -543,21 +543,7 @@ extern "C" fn _hb_fontations_draw_glyph(
     };
     let draw_settings = DrawSettings::unhinted(*size, location);
 
-    let slant = unsafe { hb_font_get_synthetic_slant(font) };
-    let mut x_scale: i32 = 0;
-    let mut y_scale: i32 = 0;
-    unsafe {
-        hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-    }
-    let slant = if y_scale != 0 {
-        slant as f32 * x_scale as f32 / y_scale as f32
-    } else {
-        0.
-    };
-    let mut draw_state = hb_draw_state_t {
-        slant_xy: slant,
-        ..unsafe { std::mem::zeroed() }
-    };
+    let mut draw_state = unsafe { std::mem::zeroed::<hb_draw_state_t>() };
 
     let mut pen = HbPen {
         x_mult: data.x_mult,

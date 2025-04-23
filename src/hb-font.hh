@@ -512,11 +512,13 @@ struct hb_font_t
   {
 #ifndef HB_NO_OUTLINE
     bool embolden = x_strength || y_strength;
+    bool slanted = slant_xy;
+    bool synthetic = embolden || slanted;
 #else
-    constexpr bool embolden = false;
+    constexpr bool synthetic = false;
 #endif
 
-    if (!embolden)
+    if (!synthetic)
     {
       klass->get.f.draw_glyph (this, user_data,
 			       glyph,
@@ -526,18 +528,26 @@ struct hb_font_t
     }
 
 #ifndef HB_NO_OUTLINE
-    /* Emboldening. */
+
     hb_outline_t outline;
     klass->get.f.draw_glyph (this, user_data,
 			     glyph,
 			     hb_outline_recording_pen_get_funcs (), &outline,
 			     !klass->user_data ? nullptr : klass->user_data->draw_glyph);
 
-    float x_shift = embolden_in_place ? 0 : (float) x_strength / 2;
-    float y_shift = (float) y_strength / 2;
-    if (x_scale < 0) x_shift = -x_shift;
-    if (y_scale < 0) y_shift = -y_shift;
-    outline.embolden (x_strength, y_strength, x_shift, y_shift);
+    // Slant before embolden; produces nicer results.
+
+    if (slanted)
+      outline.slant (slant_xy);
+
+    if (embolden)
+    {
+      float x_shift = embolden_in_place ? 0 : (float) x_strength / 2;
+      float y_shift = (float) y_strength / 2;
+      if (x_scale < 0) x_shift = -x_shift;
+      if (y_scale < 0) y_shift = -y_shift;
+      outline.embolden (x_strength, y_strength, x_shift, y_shift);
+    }
 
     outline.replay (draw_funcs, draw_data);
 #endif

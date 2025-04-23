@@ -385,7 +385,7 @@ hb_coretext_draw_glyph (hb_font_t *font,
   if (!path)
     return;
 
-  hb_draw_session_t drawing = {draw_funcs, draw_data, font->slant};
+  hb_draw_session_t drawing {draw_funcs, draw_data};
 
   CGPathApply (path, &drawing, ct_apply_func);
 

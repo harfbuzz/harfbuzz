@@ -100,9 +100,6 @@ struct hb_draw_funcs_t
   {
     if (unlikely (st.path_open)) close_path (draw_data, st);
 
-    if (st.slant_xy)
-      to_x += to_y * st.slant_xy;
-
     st.current_x = to_x;
     st.current_y = to_y;
   }
@@ -113,9 +110,6 @@ struct hb_draw_funcs_t
 	   float to_x, float to_y)
   {
     if (unlikely (!st.path_open)) start_path (draw_data, st);
-
-    if (st.slant_xy)
-      to_x += to_y * st.slant_xy;
 
     emit_line_to (draw_data, st, to_x, to_y);
 
@@ -131,12 +125,6 @@ struct hb_draw_funcs_t
   {
     if (unlikely (!st.path_open)) start_path (draw_data, st);
 
-    if (st.slant_xy)
-    {
-      control_x += control_y * st.slant_xy;
-      to_x += to_y * st.slant_xy;
-    }
-
     emit_quadratic_to (draw_data, st, control_x, control_y, to_x, to_y);
 
     st.current_x = to_x;
@@ -151,13 +139,6 @@ struct hb_draw_funcs_t
 	    float to_x, float to_y)
   {
     if (unlikely (!st.path_open)) start_path (draw_data, st);
-
-    if (st.slant_xy)
-    {
-      control1_x += control1_y * st.slant_xy;
-      control2_x += control2_y * st.slant_xy;
-      to_x += to_y * st.slant_xy;
-    }
 
     emit_cubic_to (draw_data, st, control1_x, control1_y, control2_x, control2_y, to_x, to_y);
 
@@ -194,9 +175,9 @@ DECLARE_NULL_INSTANCE (hb_draw_funcs_t);
 
 struct hb_draw_session_t
 {
-  hb_draw_session_t (hb_draw_funcs_t *funcs_, void *draw_data_, float slant_xy = 0.f)
+  hb_draw_session_t (hb_draw_funcs_t *funcs_, void *draw_data_)
     : funcs {funcs_}, draw_data {draw_data_}, st HB_DRAW_STATE_DEFAULT
-  { st.slant_xy = slant_xy; }
+  {}
 
   ~hb_draw_session_t () { close_path (); }
 

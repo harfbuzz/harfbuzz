@@ -498,7 +498,7 @@ hb_ot_draw_glyph (hb_font_t *font,
 		  hb_draw_funcs_t *draw_funcs, void *draw_data,
 		  void *user_data)
 {
-  hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
+  hb_draw_session_t draw_session {draw_funcs, draw_data};
 #ifndef HB_NO_VAR_COMPOSITES
   if (!font->face->table.VARC->get_path (font, glyph, draw_session))
 #endif

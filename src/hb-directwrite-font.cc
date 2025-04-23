@@ -238,7 +238,7 @@ public:
   GeometrySink(hb_font_t *font,
 	       hb_draw_funcs_t *draw_funcs,
 	       void *draw_data)
-    : font (font), drawing ({draw_funcs, draw_data, font->slant}) {}
+    : font (font), drawing ({draw_funcs, draw_data}) {}
 
   virtual ~GeometrySink() {}
 
