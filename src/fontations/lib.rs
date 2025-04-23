@@ -409,9 +409,15 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
-    let glyph_metrics = &data.glyph_metrics.as_ref().unwrap();
-
     let glyph_id = GlyphId::new(glyph);
+
+    // COLRv1 color glyphs are not supported by glyph_metrics.
+    let color_glyphs = &data.color_glyphs;
+    if color_glyphs.get(glyph_id).is_some() {
+        return false as hb_bool_t;
+    };
+
+    let glyph_metrics = &data.glyph_metrics.as_ref().unwrap();
     let Some(glyph_extents) = glyph_metrics.bounds(glyph_id) else {
         return false as hb_bool_t;
     };
