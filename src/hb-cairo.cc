@@ -606,10 +606,11 @@ hb_cairo_render_glyph (cairo_scaled_font_t  *scaled_font,
 	       +1. / (x_scale ? x_scale : 1),
 	       -1. / (y_scale ? y_scale : 1));
 
-  hb_font_draw_glyph (font, glyph, hb_cairo_draw_get_funcs (), cr);
+  if (hb_font_draw_glyph_or_fail (font, glyph, hb_cairo_draw_get_funcs (), cr))
+    cairo_fill (cr);
 
-  cairo_fill (cr);
-
+  // If draw fails, we still return SUCCESS, as we want empty drawing, not
+  // setting the cairo object into error.
   return CAIRO_STATUS_SUCCESS;
 }
 
@@ -662,8 +663,7 @@ user_font_face_create (hb_face_t *face)
   cairo_user_font_face_set_text_to_glyphs_func (cairo_face, hb_cairo_text_to_glyphs);
   cairo_user_font_face_set_render_glyph_func (cairo_face, hb_cairo_render_glyph);
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
-  if (hb_ot_color_has_png (face) || hb_ot_color_has_layers (face) || hb_ot_color_has_paint (face))
-    cairo_user_font_face_set_render_color_glyph_func (cairo_face, hb_cairo_render_color_glyph);
+  cairo_user_font_face_set_render_color_glyph_func (cairo_face, hb_cairo_render_color_glyph);
 #endif
 
   if (unlikely (CAIRO_STATUS_SUCCESS != cairo_font_face_set_user_data (cairo_face,
