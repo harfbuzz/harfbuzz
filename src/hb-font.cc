@@ -103,7 +103,7 @@ hb_font_get_font_h_extents_default (hb_font_t         *font,
 				    hb_font_extents_t *extents,
 				    void              *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_h_extents (extents);
+  hb_bool_t ret = font->parent->get_font_h_extents (extents, false);
   if (ret) {
     extents->ascender = font->parent_scale_y_distance (extents->ascender);
     extents->descender = font->parent_scale_y_distance (extents->descender);
@@ -128,7 +128,7 @@ hb_font_get_font_v_extents_default (hb_font_t         *font,
 				    hb_font_extents_t *extents,
 				    void              *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_v_extents (extents);
+  hb_bool_t ret = font->parent->get_font_v_extents (extents, false);
   if (ret) {
     extents->ascender = font->parent_scale_x_distance (extents->ascender);
     extents->descender = font->parent_scale_x_distance (extents->descender);
@@ -234,10 +234,10 @@ hb_font_get_glyph_h_advance_default (hb_font_t      *font,
   if (font->has_glyph_h_advances_func_set ())
   {
     hb_position_t ret;
-    font->get_glyph_h_advances (1, &glyph, 0, &ret, 0);
+    font->get_glyph_h_advances (1, &glyph, 0, &ret, 0, false);
     return ret;
   }
-  return font->parent_scale_x_distance (font->parent->get_glyph_h_advance (glyph));
+  return font->parent_scale_x_distance (font->parent->get_glyph_h_advance (glyph, false));
 }
 
 static hb_position_t
@@ -259,10 +259,10 @@ hb_font_get_glyph_v_advance_default (hb_font_t      *font,
   if (font->has_glyph_v_advances_func_set ())
   {
     hb_position_t ret;
-    font->get_glyph_v_advances (1, &glyph, 0, &ret, 0);
+    font->get_glyph_v_advances (1, &glyph, 0, &ret, 0, false);
     return ret;
   }
-  return font->parent_scale_y_distance (font->parent->get_glyph_v_advance (glyph));
+  return font->parent_scale_y_distance (font->parent->get_glyph_v_advance (glyph, false));
 }
 
 #define hb_font_get_glyph_h_advances_nil hb_font_get_glyph_h_advances_default
@@ -281,7 +281,7 @@ hb_font_get_glyph_h_advances_default (hb_font_t*            font,
   {
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = font->get_glyph_h_advance (*first_glyph);
+      *first_advance = font->get_glyph_h_advance (*first_glyph, false);
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
@@ -290,7 +290,8 @@ hb_font_get_glyph_h_advances_default (hb_font_t*            font,
 
   font->parent->get_glyph_h_advances (count,
 				      first_glyph, glyph_stride,
-				      first_advance, advance_stride);
+				      first_advance, advance_stride,
+				      false);
   for (unsigned int i = 0; i < count; i++)
   {
     *first_advance = font->parent_scale_x_distance (*first_advance);
@@ -313,7 +314,7 @@ hb_font_get_glyph_v_advances_default (hb_font_t*            font,
   {
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = font->get_glyph_v_advance (*first_glyph);
+      *first_advance = font->get_glyph_v_advance (*first_glyph, false);
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
@@ -322,7 +323,8 @@ hb_font_get_glyph_v_advances_default (hb_font_t*            font,
 
   font->parent->get_glyph_v_advances (count,
 				      first_glyph, glyph_stride,
-				      first_advance, advance_stride);
+				      first_advance, advance_stride,
+				      false);
   for (unsigned int i = 0; i < count; i++)
   {
     *first_advance = font->parent_scale_y_distance (*first_advance);
@@ -442,7 +444,7 @@ hb_font_get_glyph_extents_default (hb_font_t          *font,
 				   hb_glyph_extents_t *extents,
 				   void               *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_extents (glyph, extents);
+  hb_bool_t ret = font->parent->get_glyph_extents (glyph, extents, false);
   if (ret) {
     font->parent_scale_position (&extents->x_bearing, &extents->y_bearing);
     font->parent_scale_distance (&extents->width, &extents->height);
@@ -472,7 +474,7 @@ hb_font_get_glyph_contour_point_default (hb_font_t      *font,
 					 hb_position_t  *y,
 					 void           *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_contour_point (glyph, point_index, x, y);
+  hb_bool_t ret = font->parent->get_glyph_contour_point (glyph, point_index, x, y, false);
   if (ret)
     font->parent_scale_position (x, y);
   return ret;
@@ -524,26 +526,28 @@ hb_font_get_glyph_from_name_default (hb_font_t      *font,
   return font->parent->get_glyph_from_name (name, len, glyph);
 }
 
-static void
-hb_font_draw_glyph_nil (hb_font_t       *font HB_UNUSED,
-			void            *font_data HB_UNUSED,
-			hb_codepoint_t   glyph,
-			hb_draw_funcs_t *draw_funcs,
-			void            *draw_data,
-			void            *user_data HB_UNUSED)
+static hb_bool_t
+hb_font_draw_glyph_or_fail_nil (hb_font_t       *font HB_UNUSED,
+				void            *font_data HB_UNUSED,
+				hb_codepoint_t   glyph,
+				hb_draw_funcs_t *draw_funcs,
+				void            *draw_data,
+				void            *user_data HB_UNUSED)
 {
+  return false;
 }
 
-static void
-hb_font_paint_glyph_nil (hb_font_t *font HB_UNUSED,
-                         void *font_data HB_UNUSED,
-                         hb_codepoint_t glyph HB_UNUSED,
-                         hb_paint_funcs_t *paint_funcs HB_UNUSED,
-                         void *paint_data HB_UNUSED,
-                         unsigned int palette HB_UNUSED,
-                         hb_color_t foreground HB_UNUSED,
-                         void *user_data HB_UNUSED)
+static hb_bool_t
+hb_font_paint_glyph_or_fail_nil (hb_font_t *font HB_UNUSED,
+				 void *font_data HB_UNUSED,
+				 hb_codepoint_t glyph HB_UNUSED,
+				 hb_paint_funcs_t *paint_funcs HB_UNUSED,
+				 void *paint_data HB_UNUSED,
+				 unsigned int palette HB_UNUSED,
+				 hb_color_t foreground HB_UNUSED,
+				 void *user_data HB_UNUSED)
 {
+  return false;
 }
 
 typedef struct hb_font_draw_glyph_default_adaptor_t {
@@ -551,7 +555,6 @@ typedef struct hb_font_draw_glyph_default_adaptor_t {
   void		  *draw_data;
   float		   x_scale;
   float		   y_scale;
-  float		   slant;
 } hb_font_draw_glyph_default_adaptor_t;
 
 static void
@@ -564,10 +567,9 @@ hb_draw_move_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED,
   hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
-  float slant   = adaptor->slant;
 
   adaptor->draw_funcs->emit_move_to (adaptor->draw_data, *st,
-				     x_scale * to_x + slant * to_y, y_scale * to_y);
+				     x_scale * to_x, y_scale * to_y);
 }
 
 static void
@@ -579,13 +581,12 @@ hb_draw_line_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
   hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
-  float slant   = adaptor->slant;
 
-  st->current_x = st->current_x * x_scale + st->current_y * slant;
+  st->current_x = st->current_x * x_scale;
   st->current_y = st->current_y * y_scale;
 
   adaptor->draw_funcs->emit_line_to (adaptor->draw_data, *st,
-				     x_scale * to_x + slant * to_y, y_scale * to_y);
+				     x_scale * to_x, y_scale * to_y);
 }
 
 static void
@@ -598,14 +599,13 @@ hb_draw_quadratic_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data
   hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
-  float slant   = adaptor->slant;
 
-  st->current_x = st->current_x * x_scale + st->current_y * slant;
+  st->current_x = st->current_x * x_scale;
   st->current_y = st->current_y * y_scale;
 
   adaptor->draw_funcs->emit_quadratic_to (adaptor->draw_data, *st,
-					  x_scale * control_x + slant * control_y, y_scale * control_y,
-					  x_scale * to_x + slant * to_y, y_scale * to_y);
+					  x_scale * control_x, y_scale * control_y,
+					  x_scale * to_x, y_scale * to_y);
 }
 
 static void
@@ -619,15 +619,14 @@ hb_draw_cubic_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
   hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
-  float slant   = adaptor->slant;
 
-  st->current_x = st->current_x * x_scale + st->current_y * slant;
+  st->current_x = st->current_x * x_scale;
   st->current_y = st->current_y * y_scale;
 
   adaptor->draw_funcs->emit_cubic_to (adaptor->draw_data, *st,
-				      x_scale * control1_x + slant * control1_y, y_scale * control1_y,
-				      x_scale * control2_x + slant * control2_y, y_scale * control2_y,
-				      x_scale * to_x + slant * to_y, y_scale * to_y);
+				      x_scale * control1_x, y_scale * control1_y,
+				      x_scale * control2_x, y_scale * control2_y,
+				      x_scale * to_x, y_scale * to_y);
 }
 
 static void
@@ -650,49 +649,47 @@ static const hb_draw_funcs_t _hb_draw_funcs_default = {
   }
 };
 
-static void
-hb_font_draw_glyph_default (hb_font_t       *font,
-				 void            *font_data HB_UNUSED,
-				 hb_codepoint_t   glyph,
-				 hb_draw_funcs_t *draw_funcs,
-				 void            *draw_data,
-				 void            *user_data HB_UNUSED)
+static hb_bool_t
+hb_font_draw_glyph_or_fail_default (hb_font_t       *font,
+				    void            *font_data HB_UNUSED,
+				    hb_codepoint_t   glyph,
+				    hb_draw_funcs_t *draw_funcs,
+				    void            *draw_data,
+				    void            *user_data HB_UNUSED)
 {
   hb_font_draw_glyph_default_adaptor_t adaptor = {
     draw_funcs,
     draw_data,
     font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0.f,
-    font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f,
-    font->parent->y_scale ? (font->slant - font->parent->slant) *
-			    (float) font->x_scale / (float) font->parent->y_scale : 0.f
+    font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f
   };
 
-  font->parent->draw_glyph (glyph,
-				 const_cast<hb_draw_funcs_t *> (&_hb_draw_funcs_default),
-				 &adaptor);
+  return font->parent->draw_glyph_or_fail (glyph,
+					   const_cast<hb_draw_funcs_t *> (&_hb_draw_funcs_default),
+					   &adaptor,
+					   false);
 }
 
-static void
-hb_font_paint_glyph_default (hb_font_t *font,
-                             void *font_data,
-                             hb_codepoint_t glyph,
-                             hb_paint_funcs_t *paint_funcs,
-                             void *paint_data,
-                             unsigned int palette,
-                             hb_color_t foreground,
-                             void *user_data)
+static hb_bool_t
+hb_font_paint_glyph_or_fail_default (hb_font_t *font,
+				     void *font_data,
+				     hb_codepoint_t glyph,
+				     hb_paint_funcs_t *paint_funcs,
+				     void *paint_data,
+				     unsigned int palette,
+				     hb_color_t foreground,
+				     void *user_data)
 {
   paint_funcs->push_transform (paint_data,
-    font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0.f,
-    font->parent->y_scale ? (font->slant - font->parent->slant) *
-			    (float) font->x_scale / (float) font->parent->y_scale : 0.f,
-    0.f,
-    font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f,
-    0.f, 0.f);
+    font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0, 0,
+    0, font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0,
+    0, 0);
 
-  font->parent->paint_glyph (glyph, paint_funcs, paint_data, palette, foreground);
+  bool ret = font->parent->paint_glyph_or_fail (glyph, paint_funcs, paint_data, palette, foreground);
 
   paint_funcs->pop_transform (paint_data);
+
+  return ret;
 }
 
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
@@ -1430,6 +1427,92 @@ hb_font_get_glyph_shape (hb_font_t *font,
 #endif
 
 /**
+ * hb_font_draw_glyph_or_fail:
+ * @font: #hb_font_t to work upon
+ * @glyph: The glyph ID
+ * @dfuncs: #hb_draw_funcs_t to draw to
+ * @draw_data: User data to pass to draw callbacks
+ *
+ * Draws the outline that corresponds to a glyph in the specified @font.
+ *
+ * This is a newer name for hb_font_draw_glyph(), that returns `false`
+ * if the font has no outlines for the glyph.
+ *
+ * The outline is returned by way of calls to the callbacks of the @dfuncs
+ * objects, with @draw_data passed to them.
+ *
+ * Return value: `true` if glyph was drawn, `false` otherwise
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_font_draw_glyph_or_fail (hb_font_t *font,
+			    hb_codepoint_t glyph,
+			    hb_draw_funcs_t *dfuncs, void *draw_data)
+{
+  return font->draw_glyph_or_fail (glyph, dfuncs, draw_data);
+}
+
+/**
+ * hb_font_paint_glyph_or_fail:
+ * @font: #hb_font_t to work upon
+ * @glyph: The glyph ID
+ * @pfuncs: #hb_paint_funcs_t to paint with
+ * @paint_data: User data to pass to paint callbacks
+ * @palette_index: The index of the font's color palette to use
+ * @foreground: The foreground color, unpremultipled
+ *
+ * Paints a color glyph.
+ *
+ * This function is similar to, but lower-level than,
+ * hb_font_paint_glyph(). It is suitable for clients that
+ * need more control.  If there are no color glyphs available,
+ * it will return `false`. The client can then fall back to
+ * hb_font_draw_glyph_or_fail() for the monochrome outline glyph.
+ *
+ * The painting instructions are returned by way of calls to
+ * the callbacks of the @funcs object, with @paint_data passed
+ * to them.
+ *
+ * If the font has color palettes (see hb_ot_color_has_palettes()),
+ * then @palette_index selects the palette to use. If the font only
+ * has one palette, this will be 0.
+ *
+ * Return value: `true` if glyph was painted, `false` otherwise
+ *
+ * XSince: REPLACEME
+ */
+hb_bool_t
+hb_font_paint_glyph_or_fail (hb_font_t *font,
+			     hb_codepoint_t glyph,
+			     hb_paint_funcs_t *pfuncs, void *paint_data,
+			     unsigned int palette_index,
+			     hb_color_t foreground)
+{
+  return font->paint_glyph_or_fail (glyph, pfuncs, paint_data, palette_index, foreground);
+}
+
+/* A bit higher-level, and with fallback */
+
+void
+hb_font_t::paint_glyph (hb_codepoint_t glyph,
+			hb_paint_funcs_t *paint_funcs, void *paint_data,
+			unsigned int palette,
+			hb_color_t foreground)
+{
+  if (paint_glyph_or_fail (glyph,
+			   paint_funcs, paint_data,
+			   palette, foreground))
+    return;
+
+  /* Fallback for outline glyph. */
+  paint_funcs->push_clip_glyph (paint_data, glyph, this);
+  paint_funcs->color (paint_data, true, foreground);
+  paint_funcs->pop_clip (paint_data);
+}
+
+
+/**
  * hb_font_draw_glyph:
  * @font: #hb_font_t to work upon
  * @glyph: The glyph ID
@@ -1438,6 +1521,9 @@ hb_font_get_glyph_shape (hb_font_t *font,
  *
  * Draws the outline that corresponds to a glyph in the specified @font.
  *
+ * This is an older name for hb_font_draw_glyph_or_fail(), with no
+ * return value.
+ *
  * The outline is returned by way of calls to the callbacks of the @dfuncs
  * objects, with @draw_data passed to them.
  *
@@ -1445,10 +1531,10 @@ hb_font_get_glyph_shape (hb_font_t *font,
  **/
 void
 hb_font_draw_glyph (hb_font_t *font,
-			 hb_codepoint_t glyph,
-			 hb_draw_funcs_t *dfuncs, void *draw_data)
+		    hb_codepoint_t glyph,
+		    hb_draw_funcs_t *dfuncs, void *draw_data)
 {
-  font->draw_glyph (glyph, dfuncs, draw_data);
+  (void) hb_font_draw_glyph_or_fail (font, glyph, dfuncs, draw_data);
 }
 
 /**
@@ -1460,7 +1546,10 @@ hb_font_draw_glyph (hb_font_t *font,
  * @palette_index: The index of the font's color palette to use
  * @foreground: The foreground color, unpremultipled
  *
- * Paints the glyph.
+ * Paints the glyph. This function is similar to
+ * hb_font_paint_glyph_or_fail(), but if painting a color glyph
+ * failed, it will fall back to painting an outline monochrome
+ * glyph.
  *
  * The painting instructions are returned by way of calls to
  * the callbacks of the @funcs object, with @paint_data passed
@@ -1481,8 +1570,6 @@ hb_font_paint_glyph (hb_font_t *font,
 {
   font->paint_glyph (glyph, pfuncs, paint_data, palette_index, foreground);
 }
-
-/* A bit higher-level, and with fallback */
 
 /**
  * hb_font_get_extents_for_direction:
@@ -2609,6 +2696,23 @@ hb_font_get_ptem (hb_font_t *font)
 }
 
 /**
+ * hb_font_is_synthetic:
+ * @font: #hb_font_t to work upon
+ *
+ * Tests whether a font is synthetic. A synthetic font is one
+ * that has either synthetic slant or synthetic bold set on it.
+ *
+ * Return value: `true` if the font is synthetic, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
+hb_bool_t
+hb_font_is_synthetic (hb_font_t *font)
+{
+  return font->is_synthetic ();
+}
+
+/**
  * hb_font_set_synthetic_bold:
  * @font: #hb_font_t to work upon
  * @x_embolden: the amount to embolden horizontally
@@ -2625,7 +2729,7 @@ hb_font_get_ptem (hb_font_t *font)
  * points of the glyph shape.
  *
  * Synthetic boldness is applied when rendering a glyph via
- * hb_font_draw_glyph().
+ * hb_font_draw_glyph_or_fail().
  *
  * If @in_place is `false`, then glyph advance-widths are also
  * adjusted, otherwise they are not.  The in-place mode is
@@ -2689,7 +2793,7 @@ hb_font_get_synthetic_bold (hb_font_t *font,
  * HarfBuzz needs to know this value to adjust shaping results,
  * metrics, and style values to match the slanted rendering.
  *
- * <note>Note: The glyph shape fetched via the hb_font_draw_glyph()
+ * <note>Note: The glyph shape fetched via the hb_font_draw_glyph_or_fail()
  * function is slanted to reflect this value as well.</note>
  *
  * <note>Note: The slant value is a ratio.  For example, a
@@ -3195,12 +3299,134 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t          *ffuncs,
 
 
 #ifndef HB_DISABLE_DEPRECATED
+
+struct hb_draw_glyph_closure_t
+{
+  hb_font_draw_glyph_func_t func;
+  void *user_data;
+  hb_destroy_func_t destroy;
+};
+static hb_bool_t
+hb_font_draw_glyph_trampoline (hb_font_t       *font,
+			       void            *font_data,
+			       hb_codepoint_t   glyph,
+			       hb_draw_funcs_t *draw_funcs,
+			       void            *draw_data,
+			       void            *user_data)
+{
+  hb_draw_glyph_closure_t *closure = (hb_draw_glyph_closure_t *) user_data;
+  closure->func (font, font_data, glyph, draw_funcs, draw_data, closure->user_data);
+  return true;
+}
+static void
+hb_font_draw_glyph_closure_destroy (void *user_data)
+{
+  hb_draw_glyph_closure_t *closure = (hb_draw_glyph_closure_t *) user_data;
+
+  if (closure->destroy)
+    closure->destroy (closure->user_data);
+  hb_free (closure);
+}
+static void
+_hb_font_funcs_set_draw_glyph_func (hb_font_funcs_t           *ffuncs,
+				    hb_font_draw_glyph_func_t  func,
+				    void                      *user_data,
+				    hb_destroy_func_t          destroy /* May be NULL. */)
+{
+  if (hb_object_is_immutable (ffuncs))
+  {
+    if (destroy)
+      destroy (user_data);
+    return;
+  }
+  hb_draw_glyph_closure_t *closure = (hb_draw_glyph_closure_t *) hb_calloc (1, sizeof (hb_draw_glyph_closure_t));
+  if (unlikely (!closure))
+  {
+    if (destroy)
+      destroy (user_data);
+    return;
+  }
+  closure->func = func;
+  closure->user_data = user_data;
+  closure->destroy = destroy;
+
+  hb_font_funcs_set_draw_glyph_or_fail_func (ffuncs,
+					     hb_font_draw_glyph_trampoline,
+					     closure,
+					     hb_font_draw_glyph_closure_destroy);
+}
+void
+hb_font_funcs_set_draw_glyph_func (hb_font_funcs_t           *ffuncs,
+                                   hb_font_draw_glyph_func_t  func,
+                                   void                      *user_data,
+                                   hb_destroy_func_t          destroy /* May be NULL. */)
+{
+  _hb_font_funcs_set_draw_glyph_func (ffuncs, func, user_data, destroy);
+}
 void
 hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t               *ffuncs,
                                    hb_font_get_glyph_shape_func_t  func,
                                    void                           *user_data,
                                    hb_destroy_func_t               destroy /* May be NULL. */)
 {
-  hb_font_funcs_set_draw_glyph_func (ffuncs, func, user_data, destroy);
+  _hb_font_funcs_set_draw_glyph_func (ffuncs, func, user_data, destroy);
+}
+
+struct hb_paint_glyph_closure_t
+{
+  hb_font_paint_glyph_func_t func;
+  void *user_data;
+  hb_destroy_func_t destroy;
+};
+static hb_bool_t
+hb_font_paint_glyph_trampoline (hb_font_t        *font,
+				void *font_data,
+				hb_codepoint_t glyph,
+				hb_paint_funcs_t *paint_funcs,
+				void *paint_data,
+				unsigned int palette,
+				hb_color_t foreground,
+				void *user_data)
+{
+  hb_paint_glyph_closure_t *closure = (hb_paint_glyph_closure_t *) user_data;
+  closure->func (font, font_data, glyph, paint_funcs, paint_data, palette, foreground, closure->user_data);
+  return true;
+}
+static void
+hb_font_paint_glyph_closure_destroy (void *user_data)
+{
+  hb_paint_glyph_closure_t *closure = (hb_paint_glyph_closure_t *) user_data;
+
+  if (closure->destroy)
+    closure->destroy (closure->user_data);
+  hb_free (closure);
+}
+void
+hb_font_funcs_set_paint_glyph_func (hb_font_funcs_t           *ffuncs,
+				    hb_font_paint_glyph_func_t  func,
+				    void                      *user_data,
+				    hb_destroy_func_t          destroy /* May be NULL. */)
+{
+  if (hb_object_is_immutable (ffuncs))
+  {
+    if (destroy)
+      destroy (user_data);
+    return;
+  }
+  hb_paint_glyph_closure_t *closure = (hb_paint_glyph_closure_t *) hb_calloc (1, sizeof (hb_paint_glyph_closure_t));
+  if (unlikely (!closure))
+  {
+    if (destroy)
+      destroy (user_data);
+    return;
+  }
+  closure->func = func;
+  closure->user_data = user_data;
+  closure->destroy = destroy;
+
+  hb_font_funcs_set_paint_glyph_or_fail_func (ffuncs,
+					      hb_font_paint_glyph_trampoline,
+					      closure,
+					      hb_font_paint_glyph_closure_destroy);
 }
 #endif

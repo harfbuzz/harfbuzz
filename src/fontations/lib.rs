@@ -409,9 +409,15 @@ extern "C" fn _hb_fontations_get_glyph_extents(
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
-    let glyph_metrics = &data.glyph_metrics.as_ref().unwrap();
-
     let glyph_id = GlyphId::new(glyph);
+
+    // COLRv1 color glyphs are not supported by glyph_metrics.
+    let color_glyphs = &data.color_glyphs;
+    if color_glyphs.get(glyph_id).is_some() {
+        return false as hb_bool_t;
+    };
+
+    let glyph_metrics = &data.glyph_metrics.as_ref().unwrap();
     let Some(glyph_extents) = glyph_metrics.bounds(glyph_id) else {
         return false as hb_bool_t;
     };
@@ -522,14 +528,14 @@ impl OutlinePen for HbPen {
     }
 }
 
-extern "C" fn _hb_fontations_draw_glyph(
-    font: *mut hb_font_t,
+extern "C" fn _hb_fontations_draw_glyph_or_fail(
+    _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     glyph: hb_codepoint_t,
     draw_funcs: *mut hb_draw_funcs_t,
     draw_data: *mut ::std::os::raw::c_void,
     _user_data: *mut ::std::os::raw::c_void,
-) {
+) -> hb_bool_t {
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
@@ -539,25 +545,11 @@ extern "C" fn _hb_fontations_draw_glyph(
 
     let glyph_id = GlyphId::new(glyph);
     let Some(outline_glyph) = outline_glyphs.get(glyph_id) else {
-        return;
+        return false as hb_bool_t;
     };
     let draw_settings = DrawSettings::unhinted(*size, location);
 
-    let slant = unsafe { hb_font_get_synthetic_slant(font) };
-    let mut x_scale: i32 = 0;
-    let mut y_scale: i32 = 0;
-    unsafe {
-        hb_font_get_scale(font, &mut x_scale, &mut y_scale);
-    }
-    let slant = if y_scale != 0 {
-        slant as f32 * x_scale as f32 / y_scale as f32
-    } else {
-        0.
-    };
-    let mut draw_state = hb_draw_state_t {
-        slant_xy: slant,
-        ..unsafe { std::mem::zeroed() }
-    };
+    let mut draw_state = unsafe { std::mem::zeroed::<hb_draw_state_t>() };
 
     let mut pen = HbPen {
         x_mult: data.x_mult,
@@ -568,6 +560,7 @@ extern "C" fn _hb_fontations_draw_glyph(
     };
 
     let _ = outline_glyph.draw(draw_settings, &mut pen);
+    true as hb_bool_t
 }
 
 struct HbColorPainter<'a> {
@@ -910,7 +903,7 @@ impl ColorPainter for HbColorPainter<'_> {
     }
 }
 
-extern "C" fn _hb_fontations_paint_glyph(
+extern "C" fn _hb_fontations_paint_glyph_or_fail(
     font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     glyph: hb_codepoint_t,
@@ -919,7 +912,7 @@ extern "C" fn _hb_fontations_paint_glyph(
     palette_index: ::std::os::raw::c_uint,
     foreground: hb_color_t,
     _user_data: *mut ::std::os::raw::c_void,
-) {
+) -> hb_bool_t {
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
@@ -929,7 +922,7 @@ extern "C" fn _hb_fontations_paint_glyph(
 
     let glyph_id = GlyphId::new(glyph);
     let Some(color_glyph) = color_glyphs.get(glyph_id) else {
-        return;
+        return false as hb_bool_t;
     };
 
     let cpal = font_ref.cpal();
@@ -956,6 +949,17 @@ extern "C" fn _hb_fontations_paint_glyph(
         }
     };
 
+    let font = if (unsafe { hb_font_is_synthetic(font) } != false as hb_bool_t) {
+        unsafe {
+            let sub_font = hb_font_create_sub_font(font);
+            hb_font_set_synthetic_bold(sub_font, 0.0, 0.0, true as hb_bool_t);
+            hb_font_set_synthetic_slant(sub_font, 0.0);
+            sub_font
+        }
+    } else {
+        unsafe { hb_font_reference(font) }
+    };
+
     let mut painter = HbColorPainter {
         font,
         paint_funcs,
@@ -971,7 +975,9 @@ extern "C" fn _hb_fontations_paint_glyph(
     let _ = color_glyph.paint(location, &mut painter);
     unsafe {
         hb_paint_pop_transform(paint_funcs, paint_data);
+        hb_font_destroy(font);
     }
+    true as hb_bool_t
 }
 
 extern "C" fn _hb_fontations_glyph_name(
@@ -1083,15 +1089,15 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
                 null_mut(),
                 None,
             );
-            hb_font_funcs_set_draw_glyph_func(
+            hb_font_funcs_set_draw_glyph_or_fail_func(
                 ffuncs,
-                Some(_hb_fontations_draw_glyph),
+                Some(_hb_fontations_draw_glyph_or_fail),
                 null_mut(),
                 None,
             );
-            hb_font_funcs_set_paint_glyph_func(
+            hb_font_funcs_set_paint_glyph_or_fail_func(
                 ffuncs,
-                Some(_hb_fontations_paint_glyph),
+                Some(_hb_fontations_paint_glyph_or_fail),
                 null_mut(),
                 None,
             );
