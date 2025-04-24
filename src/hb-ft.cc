@@ -946,7 +946,7 @@ hb_ft_paint_glyph_or_fail (hb_font_t *font,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
-  FT_Long load_flags = ft_font->load_flags | FT_LOAD_NO_BITMAP | FT_LOAD_COLOR;
+  FT_Long load_flags = ft_font->load_flags | FT_LOAD_COLOR;
 #if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21301
   load_flags |= FT_LOAD_NO_SVG;
 #endif
