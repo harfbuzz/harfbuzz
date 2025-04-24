@@ -133,6 +133,9 @@ hb_paint_extents_paint_image (hb_paint_funcs_t *funcs HB_UNUSED,
 {
   hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
 
+  if (!glyph_extents)
+    return false; // Happens with SVG images.
+
   hb_extents_t extents = {(float) glyph_extents->x_bearing,
 			  (float) glyph_extents->y_bearing + glyph_extents->height,
 			  (float) glyph_extents->x_bearing + glyph_extents->width,

@@ -258,6 +258,7 @@ struct sbix
 			       &extents);
 
       hb_blob_destroy (blob);
+
       return ret;
     }
 
