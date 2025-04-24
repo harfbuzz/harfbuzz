@@ -949,15 +949,14 @@ struct CBDT
 
       hb_glyph_extents_t extents;
       hb_glyph_extents_t pixel_extents;
-      hb_blob_t *blob = reference_png (font, glyph);
-
-      if (unlikely (blob == hb_blob_get_empty ()))
-        return false;
-
       if (unlikely (!font->get_glyph_extents (glyph, &extents, false)))
         return false;
 
       if (unlikely (!get_extents (font, glyph, &pixel_extents, false)))
+        return false;
+
+      hb_blob_t *blob = reference_png (font, glyph);
+      if (unlikely (hb_blob_is_immutable (blob)))
         return false;
 
       bool ret = funcs->image (data,
