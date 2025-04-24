@@ -478,8 +478,8 @@ struct hb_font_t
     hb_memset (extents, 0, sizeof (*extents));
 
     /* This one is messy gonna be messy. */
-    if (synthetic && !is_synthetic ())
-      synthetic = false;
+    //if (synthetic && !is_synthetic ())
+    //  synthetic = false;
 
     if (!synthetic)
     {
@@ -488,6 +488,12 @@ struct hb_font_t
 					 extents,
 					 !klass->user_data ? nullptr : klass->user_data->glyph_extents);
     }
+    if (!is_synthetic () &&
+	klass->get.f.glyph_extents (this, user_data,
+				    glyph,
+				    extents,
+				    !klass->user_data ? nullptr : klass->user_data->glyph_extents))
+      return true;
 
     /* Try getting extents from paint(), then draw(), *then* get_extents()
      * and apply synthetic settings in the last case. */
@@ -513,7 +519,7 @@ struct hb_font_t
 					   glyph,
 					   extents,
 					   !klass->user_data ? nullptr : klass->user_data->glyph_extents);
-    if (synthetic && ret)
+    if (ret)
       synthetic_glyph_extents (extents);
 
     return ret;
