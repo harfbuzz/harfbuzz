@@ -477,9 +477,7 @@ struct hb_font_t
   {
     hb_memset (extents, 0, sizeof (*extents));
 
-    /* This one is messy gonna be messy. */
-    //if (synthetic && !is_synthetic ())
-    //  synthetic = false;
+    /* This is rather messy, but necessary. */
 
     if (!synthetic)
     {
