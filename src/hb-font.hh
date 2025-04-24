@@ -61,8 +61,8 @@
   HB_FONT_FUNC_IMPLEMENT (get_,glyph_contour_point) \
   HB_FONT_FUNC_IMPLEMENT (get_,glyph_name) \
   HB_FONT_FUNC_IMPLEMENT (get_,glyph_from_name) \
-  HB_FONT_FUNC_IMPLEMENT (,draw_glyph) \
-  HB_FONT_FUNC_IMPLEMENT (,paint_glyph) \
+  HB_FONT_FUNC_IMPLEMENT (,draw_glyph_or_fail) \
+  HB_FONT_FUNC_IMPLEMENT (,paint_glyph_or_fail) \
   /* ^--- Add new callbacks here */
 
 struct hb_font_funcs_t
@@ -493,18 +493,17 @@ struct hb_font_t
      * and apply synthetic settings in the last case. */
 
     hb_paint_extents_context_t paint_extents;
-    if (paint_glyph (glyph,
-		     hb_paint_extents_get_funcs (), &paint_extents,
-		     0, 0))
+    if (paint_glyph_or_fail (glyph,
+			     hb_paint_extents_get_funcs (), &paint_extents,
+			     0, 0))
     {
       *extents = paint_extents.get_extents ().to_glyph_extents ();
       return true;
     }
 
     hb_extents_t draw_extents;
-    draw_glyph (glyph,
-		hb_draw_extents_get_funcs (), &draw_extents);
-    if (!draw_extents.is_empty ())
+    if (draw_glyph_or_fail (glyph,
+			    hb_draw_extents_get_funcs (), &draw_extents))
     {
       *extents = draw_extents.to_glyph_extents ();
       return true;
@@ -568,9 +567,9 @@ struct hb_font_t
 					 !klass->user_data ? nullptr : klass->user_data->glyph_from_name);
   }
 
-  void draw_glyph (hb_codepoint_t glyph,
-		   hb_draw_funcs_t *draw_funcs, void *draw_data,
-		   bool synthetic = true)
+  bool draw_glyph_or_fail (hb_codepoint_t glyph,
+			   hb_draw_funcs_t *draw_funcs, void *draw_data,
+			   bool synthetic = true)
   {
 #ifndef HB_NO_OUTLINE
     bool embolden = x_strength || y_strength;
@@ -582,20 +581,20 @@ struct hb_font_t
 
     if (!synthetic)
     {
-      klass->get.f.draw_glyph (this, user_data,
-			       glyph,
-			       draw_funcs, draw_data,
-			       !klass->user_data ? nullptr : klass->user_data->draw_glyph);
-      return;
+      return klass->get.f.draw_glyph_or_fail (this, user_data,
+					      glyph,
+					      draw_funcs, draw_data,
+					      !klass->user_data ? nullptr : klass->user_data->draw_glyph_or_fail);
     }
 
 #ifndef HB_NO_OUTLINE
 
     hb_outline_t outline;
-    klass->get.f.draw_glyph (this, user_data,
-			     glyph,
-			     hb_outline_recording_pen_get_funcs (), &outline,
-			     !klass->user_data ? nullptr : klass->user_data->draw_glyph);
+    if (!klass->get.f.draw_glyph_or_fail (this, user_data,
+					  glyph,
+					  hb_outline_recording_pen_get_funcs (), &outline,
+					  !klass->user_data ? nullptr : klass->user_data->draw_glyph_or_fail))
+      return false;
 
     // Slant before embolden; produces nicer results.
 
@@ -612,14 +611,16 @@ struct hb_font_t
     }
 
     outline.replay (draw_funcs, draw_data);
+
+    return true;
 #endif
   }
 
-  bool paint_glyph (hb_codepoint_t glyph,
-		    hb_paint_funcs_t *paint_funcs, void *paint_data,
-		    unsigned int palette,
-		    hb_color_t foreground,
-		    bool synthetic = true)
+  bool paint_glyph_or_fail (hb_codepoint_t glyph,
+			    hb_paint_funcs_t *paint_funcs, void *paint_data,
+			    unsigned int palette,
+			    hb_color_t foreground,
+			    bool synthetic = true)
   {
     /* Slant */
     if (synthetic && slant_xy)
@@ -628,11 +629,11 @@ struct hb_font_t
 			       slant_xy, 1.f,
 			       0.f, 0.f);
 
-    bool ret = klass->get.f.paint_glyph (this, user_data,
-					 glyph,
-					 paint_funcs, paint_data,
-					 palette, foreground,
-					 !klass->user_data ? nullptr : klass->user_data->paint_glyph);
+    bool ret = klass->get.f.paint_glyph_or_fail (this, user_data,
+						 glyph,
+						 paint_funcs, paint_data,
+						 palette, foreground,
+						 !klass->user_data ? nullptr : klass->user_data->paint_glyph_or_fail);
 
     if (synthetic && slant_xy)
       hb_paint_pop_transform (paint_funcs, paint_data);
@@ -641,6 +642,12 @@ struct hb_font_t
   }
 
   /* A bit higher-level, and with fallback */
+
+  HB_INTERNAL
+  void paint_glyph (hb_codepoint_t glyph,
+		    hb_paint_funcs_t *paint_funcs, void *paint_data,
+		    unsigned int palette,
+		    hb_color_t foreground);
 
   void get_h_extents_with_fallback (hb_font_extents_t *extents)
   {

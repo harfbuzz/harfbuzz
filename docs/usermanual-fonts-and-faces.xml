@@ -260,13 +260,13 @@
       </listitem>
       <listitem>
     <para>
-      <function>hb_font_draw_glyph_func_t</function>: gets the outlines
+      <function>hb_font_draw_glyph_or_fail_func_t</function>: gets the outlines
       of a glyph (by calling #hb_draw_funcs_t callbacks).
     </para>
       </listitem>
       <listitem>
     <para>
-      <function>hb_font_paint_glyph_func_t</function>: paints a glyph
+      <function>hb_font_paint_glyph_or_fail_func_t</function>: paints a glyph
       (by calling #hb_paint_funcs_t callbacks).
     </para>
       </listitem>
@@ -507,11 +507,12 @@
       access glyph data in this form.
     </para>
     <para>
-      In the general case, you have to use <function>hb_font_paint_glyph()</function>
+      In the general case, you have to use <function>hb_font_paint_or_fail_glyph()</function>
       and pass a <type>hb_paint_funcs_t</type> struct with callbacks to obtain paint
-      graphs for glyphs that have them. The <function>hb_font_paint_glyph()</function>
-      API can handle outline and image glyphs as well, so it provides a unified API for
-      access to glyph rendering information.
+      color glyphs, either graphs or image glyphs.
+      The <function>hb_font_paint_glyph()</function> API is higher level and can handle
+      outline glyphs as well, so it provides a unified API for access to glyph rendering
+      information.
     </para>
   </section>
 
