@@ -528,14 +528,14 @@ impl OutlinePen for HbPen {
     }
 }
 
-extern "C" fn _hb_fontations_draw_glyph(
+extern "C" fn _hb_fontations_draw_glyph_or_fail(
     _font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     glyph: hb_codepoint_t,
     draw_funcs: *mut hb_draw_funcs_t,
     draw_data: *mut ::std::os::raw::c_void,
     _user_data: *mut ::std::os::raw::c_void,
-) {
+) -> hb_bool_t {
     let data = unsafe { &mut *(font_data as *mut FontationsData) };
     data.check_for_updates();
 
@@ -545,7 +545,7 @@ extern "C" fn _hb_fontations_draw_glyph(
 
     let glyph_id = GlyphId::new(glyph);
     let Some(outline_glyph) = outline_glyphs.get(glyph_id) else {
-        return;
+        return false as hb_bool_t;
     };
     let draw_settings = DrawSettings::unhinted(*size, location);
 
@@ -560,6 +560,7 @@ extern "C" fn _hb_fontations_draw_glyph(
     };
 
     let _ = outline_glyph.draw(draw_settings, &mut pen);
+    true as hb_bool_t
 }
 
 struct HbColorPainter<'a> {
@@ -902,7 +903,7 @@ impl ColorPainter for HbColorPainter<'_> {
     }
 }
 
-extern "C" fn _hb_fontations_paint_glyph(
+extern "C" fn _hb_fontations_paint_glyph_or_fail(
     font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     glyph: hb_codepoint_t,
@@ -1088,15 +1089,15 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
                 null_mut(),
                 None,
             );
-            hb_font_funcs_set_draw_glyph_func(
+            hb_font_funcs_set_draw_glyph_or_fail_func(
                 ffuncs,
-                Some(_hb_fontations_draw_glyph),
+                Some(_hb_fontations_draw_glyph_or_fail),
                 null_mut(),
                 None,
             );
-            hb_font_funcs_set_paint_glyph_func(
+            hb_font_funcs_set_paint_glyph_or_fail_func(
                 ffuncs,
-                Some(_hb_fontations_paint_glyph),
+                Some(_hb_fontations_paint_glyph_or_fail),
                 null_mut(),
                 None,
             );

@@ -887,12 +887,12 @@ _hb_ft_cubic_to (const FT_Vector *control1,
   return FT_Err_Ok;
 }
 
-static void
-hb_ft_draw_glyph (hb_font_t *font,
-		  void *font_data,
-		  hb_codepoint_t glyph,
-		  hb_draw_funcs_t *draw_funcs, void *draw_data,
-		  void *user_data HB_UNUSED)
+static hb_bool_t
+hb_ft_draw_glyph_or_fail (hb_font_t *font,
+			  void *font_data,
+			  hb_codepoint_t glyph,
+			  hb_draw_funcs_t *draw_funcs, void *draw_data,
+			  void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   _hb_ft_hb_font_check_changed (font, ft_font);
@@ -902,10 +902,10 @@ hb_ft_draw_glyph (hb_font_t *font,
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph,
 			       FT_LOAD_NO_BITMAP | ft_font->load_flags)))
-    return;
+    return false;
 
   if (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE)
-    return;
+    return false;
 
   const FT_Outline_Funcs outline_funcs = {
     _hb_ft_move_to,
@@ -921,6 +921,8 @@ hb_ft_draw_glyph (hb_font_t *font,
   FT_Outline_Decompose (&ft_face->glyph->outline,
 			&outline_funcs,
 			&draw_session);
+
+  return true;
 }
 #endif
 
@@ -930,13 +932,13 @@ hb_ft_draw_glyph (hb_font_t *font,
 #include "hb-ft-colr.hh"
 
 static hb_bool_t
-hb_ft_paint_glyph (hb_font_t *font,
-                   void *font_data,
-                   hb_codepoint_t gid,
-                   hb_paint_funcs_t *paint_funcs, void *paint_data,
-                   unsigned int palette_index,
-                   hb_color_t foreground,
-                   void *user_data)
+hb_ft_paint_glyph_or_fail (hb_font_t *font,
+			   void *font_data,
+			   hb_codepoint_t gid,
+			   hb_paint_funcs_t *paint_funcs, void *paint_data,
+			   unsigned int palette_index,
+			   hb_color_t foreground,
+			   void *user_data)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   _hb_ft_hb_font_check_changed (font, ft_font);
@@ -1039,12 +1041,12 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
     hb_font_funcs_set_glyph_from_name_func (funcs, hb_ft_get_glyph_from_name, nullptr, nullptr);
 
 #ifndef HB_NO_DRAW
-    hb_font_funcs_set_draw_glyph_func (funcs, hb_ft_draw_glyph, nullptr, nullptr);
+    hb_font_funcs_set_draw_glyph_or_fail_func (funcs, hb_ft_draw_glyph_or_fail, nullptr, nullptr);
 #endif
 
 #ifndef HB_NO_PAINT
 #if (FREETYPE_MAJOR*10000 + FREETYPE_MINOR*100 + FREETYPE_PATCH) >= 21300
-    hb_font_funcs_set_paint_glyph_func (funcs, hb_ft_paint_glyph, nullptr, nullptr);
+    hb_font_funcs_set_paint_glyph_or_fail_func (funcs, hb_ft_paint_glyph_or_fail, nullptr, nullptr);
 #endif
 #endif
 
