@@ -103,7 +103,21 @@ public:
     ),
     foreground (foreground_),
     instancer (instancer_)
-  { }
+  {
+    if (font->is_synthetic ())
+    {
+      font = hb_font_create_sub_font (font);
+      hb_font_set_synthetic_bold (font, 0, 0, true);
+      hb_font_set_synthetic_slant (font, 0);
+    }
+    else
+      hb_font_reference (font);
+  }
+
+  ~hb_paint_context_t ()
+  {
+    hb_font_destroy (font);
+  }
 
   hb_color_t get_color (unsigned int color_index, float alpha, hb_bool_t *is_foreground)
   {
@@ -2618,7 +2632,6 @@ struct COLR
     }
     else
     {
-      // Ugh. We need to undo the synthetic slant here. Leave it for now. :-(.
       extents->x_bearing = e.xmin;
       extents->y_bearing = e.ymax;
       extents->width = e.xmax - e.xmin;
@@ -2687,7 +2700,6 @@ struct COLR
 	  if (get_clip (glyph, &extents, instancer))
 	  {
 	    font->scale_glyph_extents (&extents);
-	    font->synthetic_glyph_extents (&extents);
 	    c.funcs->push_clip_rectangle (c.data,
 					  extents.x_bearing,
 					  extents.y_bearing + extents.height,

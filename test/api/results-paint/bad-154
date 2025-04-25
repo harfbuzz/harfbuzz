@@ -2,7 +2,7 @@ start clip rectangle 0 500 500 1e+03
   start transform 1 0 0 1 0 0
     push group
       push group
-        start transform 1 0 -0 1 0 0
+        start transform 1 0 0 1 0 0
           start clip glyph 159
             start transform 1 0 0 1 0 0
               solid 128 128 128 102

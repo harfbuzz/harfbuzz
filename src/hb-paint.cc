@@ -87,7 +87,7 @@ hb_paint_image_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     unsigned int width,
                     unsigned int height,
                     hb_tag_t format,
-                    float slant_xy,
+                    float slant_xy_deprecated,
                     hb_glyph_extents_t *extents,
                     void *user_data) { return false; }
 
@@ -615,7 +615,7 @@ hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
  * @width: width of the raster image in pixels, or 0
  * @height: height of the raster image in pixels, or 0
  * @format: the image format as a tag
- * @slant: the synthetic slant ratio to be applied to the image during rendering
+ * @slant: Deprecated. set to 0.0
  * @extents: (nullable): the extents of the glyph
  *
  * Perform a "image" paint operation.
@@ -628,10 +628,10 @@ hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
                 unsigned int width,
                 unsigned int height,
                 hb_tag_t format,
-                float slant,
+                HB_UNUSED float slant,
                 hb_glyph_extents_t *extents)
 {
-  funcs->image (paint_data, image, width, height, format, slant, extents);
+  funcs->image (paint_data, image, width, height, format, 0.f, extents);
 }
 
 /**

@@ -478,16 +478,9 @@ hb_ot_get_font_h_extents (hb_font_t *font,
 			  hb_font_extents_t *metrics,
 			  void *user_data HB_UNUSED)
 {
-  bool ret = _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, &metrics->ascender) &&
-	     _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER, &metrics->descender) &&
-	     _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP, &metrics->line_gap);
-
-  /* Embolden */
-  int y_shift = font->y_strength;
-  if (font->y_scale < 0) y_shift = -y_shift;
-  metrics->ascender += y_shift;
-
-  return ret;
+  return _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, &metrics->ascender) &&
+	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER, &metrics->descender) &&
+	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP, &metrics->line_gap);
 }
 
 #ifndef HB_NO_VERTICAL
@@ -504,53 +497,49 @@ hb_ot_get_font_v_extents (hb_font_t *font,
 #endif
 
 #ifndef HB_NO_DRAW
-static void
-hb_ot_draw_glyph (hb_font_t *font,
-		  void *font_data HB_UNUSED,
-		  hb_codepoint_t glyph,
-		  hb_draw_funcs_t *draw_funcs, void *draw_data,
-		  void *user_data)
+static hb_bool_t
+hb_ot_draw_glyph_or_fail (hb_font_t *font,
+			  void *font_data HB_UNUSED,
+			  hb_codepoint_t glyph,
+			  hb_draw_funcs_t *draw_funcs, void *draw_data,
+			  void *user_data)
 {
-  hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
+  hb_draw_session_t draw_session {draw_funcs, draw_data};
 #ifndef HB_NO_VAR_COMPOSITES
-  if (!font->face->table.VARC->get_path (font, glyph, draw_session))
+  if (font->face->table.VARC->get_path (font, glyph, draw_session)) return true;
 #endif
 #ifndef HB_NO_VAR_HVF
   if (!font->face->table.hvgl->get_path (font, glyph, draw_session))
 #endif
   // Keep the following in synch with VARC::get_path_at()
-  if (!font->face->table.glyf->get_path (font, glyph, draw_session))
+  if (font->face->table.glyf->get_path (font, glyph, draw_session)) return true;
 #ifndef HB_NO_CFF
-  if (!font->face->table.cff2->get_path (font, glyph, draw_session))
-  if (!font->face->table.cff1->get_path (font, glyph, draw_session))
+  if (font->face->table.cff2->get_path (font, glyph, draw_session)) return true;
+  if (font->face->table.cff1->get_path (font, glyph, draw_session)) return true;
 #endif
-  {}
+  return false;
 }
 #endif
 
 #ifndef HB_NO_PAINT
-static void
-hb_ot_paint_glyph (hb_font_t *font,
-                   void *font_data,
-                   hb_codepoint_t glyph,
-                   hb_paint_funcs_t *paint_funcs, void *paint_data,
-                   unsigned int palette,
-                   hb_color_t foreground,
-                   void *user_data)
+static hb_bool_t
+hb_ot_paint_glyph_or_fail (hb_font_t *font,
+			   void *font_data,
+			   hb_codepoint_t glyph,
+			   hb_paint_funcs_t *paint_funcs, void *paint_data,
+			   unsigned int palette,
+			   hb_color_t foreground,
+			   void *user_data)
 {
 #ifndef HB_NO_COLOR
-  if (font->face->table.COLR->paint_glyph (font, glyph, paint_funcs, paint_data, palette, foreground)) return;
-  if (font->face->table.SVG->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.COLR->paint_glyph (font, glyph, paint_funcs, paint_data, palette, foreground)) return true;
+  if (font->face->table.SVG->paint_glyph (font, glyph, paint_funcs, paint_data)) return true;
 #ifndef HB_NO_OT_FONT_BITMAP
-  if (font->face->table.CBDT->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
-  if (font->face->table.sbix->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.CBDT->paint_glyph (font, glyph, paint_funcs, paint_data)) return true;
+  if (font->face->table.sbix->paint_glyph (font, glyph, paint_funcs, paint_data)) return true;
 #endif
 #endif
-
-  // Outline glyph
-  paint_funcs->push_clip_glyph (paint_data, glyph, font);
-  paint_funcs->color (paint_data, true, foreground);
-  paint_funcs->pop_clip (paint_data);
+  return false;
 }
 #endif
 
@@ -577,11 +566,11 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
 #endif
 
 #ifndef HB_NO_DRAW
-    hb_font_funcs_set_draw_glyph_func (funcs, hb_ot_draw_glyph, nullptr, nullptr);
+    hb_font_funcs_set_draw_glyph_or_fail_func (funcs, hb_ot_draw_glyph_or_fail, nullptr, nullptr);
 #endif
 
 #ifndef HB_NO_PAINT
-    hb_font_funcs_set_paint_glyph_func (funcs, hb_ot_paint_glyph, nullptr, nullptr);
+    hb_font_funcs_set_paint_glyph_or_fail_func (funcs, hb_ot_paint_glyph_or_fail, nullptr, nullptr);
 #endif
 
     hb_font_funcs_set_glyph_extents_func (funcs, hb_ot_get_glyph_extents, nullptr, nullptr);
