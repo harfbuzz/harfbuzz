@@ -205,10 +205,18 @@ create_cg_font (hb_blob_t *blob, unsigned int index)
 
   if (unlikely (named_instance_index != 0))
   {
+    // https://github.com/harfbuzz/harfbuzz/issues/5300
+#if (defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000) || \
+    (defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300) || \
+    (defined(__TV_OS_VERSION_MIN_REQUIRED) && __TV_OS_VERSION_MIN_REQUIRED >= 110000) || \
+    (defined(__WATCH_OS_VERSION_MIN_REQUIRED) && __WATCH_OS_VERSION_MIN_REQUIRED >= 40000) || \
+    (defined(__MACCATALYST_VERSION_MIN_REQUIRED) && __MACCATALYST_VERSION_MIN_REQUIRED >= 130100) || \
+    (defined(__VISION_OS_VERSION_MIN_REQUIRED) && __VISION_OS_VERSION_MIN_REQUIRED >= 10000)
     auto ct_font_desc_array = CTFontManagerCreateFontDescriptorsFromData (CFDataCreate (kCFAllocatorDefault, (const UInt8 *) blob_data, blob_length));
-    if (unlikely (!ct_font_desc_array))
-      return nullptr;
-    return create_cg_font (ct_font_desc_array, named_instance_index);
+    if (likely (ct_font_desc_array))
+      return create_cg_font (ct_font_desc_array, named_instance_index);
+#endif
+    return nullptr;
   }
 
   hb_blob_reference (blob);
