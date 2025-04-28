@@ -1,3 +1,26 @@
+Overview of changes leading to 11.2.0
+Monday, April 28, 2025
+====================================
+- Painting of COLRv1 fonts without clip boxes is now about 10 times faster.
+- Synthetic bold/slant of a sub font is now respected, instead of using the parent’s.
+- Glyph extents for fonts synthetic bold/slant are now accurately calculated.
+- Various build fixes
+
+- New API:
+  +hb_font_is_synthetic()
+  +hb_font_draw_glyph_or_fail_func_t
+  +hb_font_paint_glyph_or_fail_func_t
+  +hb_font_funcs_set_draw_glyph_or_fail_func()
+  +hb_font_funcs_set_paint_glyph_or_fail_func()
+  +hb_font_draw_glyph_or_fail()
+  +hb_font_paint_glyph_or_fail()
+
+- Deprecated API:
+  -hb_font_draw_glyph_func_t
+  -hb_font_paint_glyph_func_t
+  -hb_font_funcs_set_draw_glyph_func()
+  -hb_font_funcs_set_paint_glyph_func()
+
 Overview of changes leading to 11.1.0
 Wednesday, April 16, 2025
 ====================================
