@@ -205,6 +205,12 @@ if get_option('fontations').enabled()
   fontations_dep_found = true
 endif
 
+harfruzz_dep_found = false
+if get_option('harfruzz').enabled()
+  add_languages(['rust'], native: false, required : true)
+  harfruzz_dep_found = true
+endif
+
 conf = configuration_data()
 incconfig = include_directories('.')
 
@@ -248,6 +254,10 @@ endif
 
 if fontations_dep_found
   conf.set('HAVE_FONTATIONS', 1)
+endif
+
+if harfruzz_dep_found
+  conf.set('HAVE_HARFRUZZ', 1)
 endif
 
 if wasm_dep.found()
@@ -481,6 +491,7 @@ build_summary = {
     {'CoreText': conf.get('HAVE_CORETEXT', 0) == 1,
      'DirectWrite (experimental)': conf.get('HAVE_DIRECTWRITE', 0) == 1,
      'GDI/Uniscribe': (conf.get('HAVE_GDI', 0) == 1) and (conf.get('HAVE_UNISCRIBE', 0) == 1),
+     'harfRuzz': conf.get('HAVE_HARFRUZZ', 0) == 1,
     },
   'Other features':
     {'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,

@@ -23,8 +23,15 @@ cargo_args = [
   '-Z', 'build-std-features=panic_immediate_abort',
 ]
 
+features = []
 if conf.get('HAVE_FONTATIONS', 0) == 1
-  cargo_args += ['--features', 'font']
+  features += ['font']
+endif
+if conf.get('HAVE_HARFRUZZ', 0) == 1
+  features += ['shape']
+endif
+if features.length() > 0
+  cargo_args += ['--features', ','.join(features)]
 endif
 
 buildtype = get_option('buildtype')
@@ -38,6 +45,7 @@ rust_flags += ' -C opt-level=' + opt_level
 sources = [
   'lib.rs',
   'font.rs',
+  'shape.rs',
 ]
 
 harfbuzz_rust = custom_target(

@@ -1,7 +1,4 @@
-#![allow(non_camel_case_types)]
-#![allow(non_upper_case_globals)]
-#![allow(dead_code)]
-include!(concat!(env!("OUT_DIR"), "/hb.rs"));
+use super::hb::*;
 
 use std::alloc::{GlobalAlloc, Layout};
 use std::collections::HashMap;
@@ -1036,10 +1033,10 @@ extern "C" fn _hb_fontations_glyph_from_name(
 }
 
 fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
-    static static_ffuncs: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
+    static STATIC_FFUNCS: AtomicPtr<hb_font_funcs_t> = AtomicPtr::new(null_mut());
 
     loop {
-        let mut ffuncs = static_ffuncs.load(Ordering::Acquire);
+        let mut ffuncs = STATIC_FFUNCS.load(Ordering::Acquire);
 
         if !ffuncs.is_null() {
             return ffuncs;
@@ -1116,7 +1113,7 @@ fn _hb_fontations_font_funcs_get() -> *mut hb_font_funcs_t {
             );
         }
 
-        if (static_ffuncs.compare_exchange(null_mut(), ffuncs, Ordering::SeqCst, Ordering::Relaxed))
+        if (STATIC_FFUNCS.compare_exchange(null_mut(), ffuncs, Ordering::SeqCst, Ordering::Relaxed))
             == Ok(null_mut())
         {
             return ffuncs;
