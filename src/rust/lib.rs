@@ -3,13 +3,8 @@ use hb::*;
 
 #[cfg(feature = "font")]
 mod font;
-#[cfg(feature = "font")]
-pub use font::hb_fontations_font_set_funcs;
-
 #[cfg(feature = "shape")]
 mod shape;
-#[cfg(feature = "shape")]
-pub use shape::_hb_harfruzz_shape_rs;
 
 use std::alloc::{GlobalAlloc, Layout};
 use std::os::raw::c_void;
@@ -40,4 +35,3 @@ unsafe impl GlobalAlloc for MyAllocator {
 
 #[global_allocator]
 static GLOBAL: MyAllocator = MyAllocator;
-
