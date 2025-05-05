@@ -1,15 +1,18 @@
 [package]
-name = "harfbuzz_fontations"
+name = "harfbuzz_rust"
 edition = "2021"
 
 [dependencies]
-read-fonts = "0.27"
-skrifa = "0.29.2"
+read-fonts = { version = "0.27", optional = true }
+skrifa = { version = "0.29.2", optional = true }
 
 [lib]
-name = "harfbuzz_fontations"
+name = "harfbuzz_rust"
 path = "lib.rs"
 crate-type = ["staticlib"]
+
+[features]
+font = ["dep:read-fonts", "dep:skrifa"]
 
 [profile.release]
 strip = true

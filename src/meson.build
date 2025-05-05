@@ -531,11 +531,11 @@ endif
 
 if conf.get('HAVE_FONTATIONS', 0) == 1
 
-  subdir('fontations')
+  subdir('rust')
 
   hb_sources += hb_fontations_sources
   hb_headers += hb_fontations_headers
-  harfbuzz_deps += [harfbuzz_fontations_dep]
+  harfbuzz_deps += [harfbuzz_rust_dep]
 endif
 
 have_icu = conf.get('HAVE_ICU', 0) == 1

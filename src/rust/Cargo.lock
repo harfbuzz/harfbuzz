@@ -32,7 +32,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "harfbuzz_fontations"
+name = "harfbuzz_rust"
 version = "0.0.0"
 dependencies = [
  "read-fonts",
