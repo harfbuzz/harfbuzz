@@ -14,15 +14,15 @@ option('graphite', type: 'feature', value: 'disabled',
 option('graphite2', type: 'feature', value: 'disabled',
   description: 'Enable Graphite2 complementary shaper')
 option('freetype', type: 'feature', value: 'auto',
-  description: 'Enable freetype interop helpers')
+  description: 'Enable freetype font backend')
 option('fontations', type: 'feature', value: 'disabled',
-  description: 'Enabled fontations font functions')
+  description: 'Enable fontations font backend')
 option('gdi', type: 'feature', value: 'disabled',
   description: 'Enable GDI helpers and Uniscribe shaper backend (Windows only)')
 option('directwrite', type: 'feature', value: 'disabled',
-  description: 'Enable DirectWrite shaper backend on Windows')
+  description: 'Enable DirectWrite shaper and font backend on Windows')
 option('coretext', type: 'feature', value: 'disabled',
-  description: 'Enable CoreText shaper backend on macOS')
+  description: 'Enable CoreText shaper and font backend on Apple platforms')
 option('wasm', type: 'feature', value: 'disabled',
   description: 'Enable WebAssembly shaper backend (experimental)')
 

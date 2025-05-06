@@ -1,5 +1,28 @@
+Overview of changes leading to 11.2.0
+Monday, April 28, 2025
+====================================
+- Painting of COLRv1 fonts without clip boxes is now about 10 times faster.
+- Synthetic bold/slant of a sub font is now respected, instead of using the parent’s.
+- Glyph extents for fonts synthetic bold/slant are now accurately calculated.
+- Various build fixes
+
+- New API:
+  +hb_font_is_synthetic()
+  +hb_font_draw_glyph_or_fail_func_t
+  +hb_font_paint_glyph_or_fail_func_t
+  +hb_font_funcs_set_draw_glyph_or_fail_func()
+  +hb_font_funcs_set_paint_glyph_or_fail_func()
+  +hb_font_draw_glyph_or_fail()
+  +hb_font_paint_glyph_or_fail()
+
+- Deprecated API:
+  -hb_font_draw_glyph_func_t
+  -hb_font_paint_glyph_func_t
+  -hb_font_funcs_set_draw_glyph_func()
+  -hb_font_funcs_set_paint_glyph_func()
+
 Overview of changes leading to 11.1.0
-Wednesdat, April 16, 2025
+Wednesday, April 16, 2025
 ====================================
 - Include bidi mirroring variants of the requested codepoints when subsetting.
   The new HB_SUBSET_FLAGS_NO_BIDI_CLOSURE can be used to disable this
@@ -8,8 +31,8 @@ Wednesdat, April 16, 2025
 - Various build fixes and improvements.
 - Various test suite improvements.
 
-New API:
-+HB_SUBSET_FLAGS_NO_BIDI_CLOSURE
+- New API:
+  +HB_SUBSET_FLAGS_NO_BIDI_CLOSURE
 
 
 Overview of changes leading to 11.0.1
@@ -76,32 +99,32 @@ Monday, March 24, 2025
 - Various bug fixes and other improvements.
 
 - New API:
-+hb_malloc
-+hb_calloc
-+hb_realloc
-+hb_free
-+hb_face_list_loaders
-+hb_face_create_or_fail_using
-+hb_face_create_from_file_or_fail_using
-+hb_font_list_funcs
-+hb_font_set_funcs_using
-+hb_coretext_face_create_from_blob_or_fail
-+hb_directwrite_face_create_from_file_or_fail
-+hb_directwrite_face_create_from_blob_or_fail
-+hb_directwrite_font_create
-+hb_directwrite_font_get_dw_font_face
-+hb_directwrite_font_set_funcs
-+hb_fontations_font_set_funcs
-+hb_ft_face_create_from_blob_or_fail
-+hb_paint_push_font_transform
-+hb_paint_push_inverse_font_transform
-+HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES
-+HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE
-+HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES
-+HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS
+  +hb_malloc()
+  +hb_calloc()
+  +hb_realloc()
+  +hb_free()
+  +hb_face_list_loaders()
+  +hb_face_create_or_fail_using()
+  +hb_face_create_from_file_or_fail_using()
+  +hb_font_list_funcs()
+  +hb_font_set_funcs_using()
+  +hb_coretext_face_create_from_blob_or_fail()
+  +hb_directwrite_face_create_from_file_or_fail()
+  +hb_directwrite_face_create_from_blob_or_fail()
+  +hb_directwrite_font_create()
+  +hb_directwrite_font_get_dw_font_face()
+  +hb_directwrite_font_set_funcs()
+  +hb_fontations_font_set_funcs()
+  +hb_ft_face_create_from_blob_or_fail()
+  +hb_paint_push_font_transform()
+  +hb_paint_push_inverse_font_transform()
+  +HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES
+  +HB_BUFFER_CLUSTER_LEVEL_IS_MONOTONE
+  +HB_BUFFER_CLUSTER_LEVEL_IS_GRAPHEMES
+  +HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS
 
 - Deprecated API:
-+hb_directwrite_font_get_dw_font
+  -hb_directwrite_font_get_dw_font()
 
 
 Overview of changes leading to 10.4.0
@@ -116,12 +139,12 @@ Saturday, March 1, 2025
 - Various build and fuzzing fixes.
 
 - New API:
-+hb_directwrite_face_get_dw_font_face()
-+hb_ft_font_get_ft_face()
+  +hb_directwrite_face_get_dw_font_face()
+  +hb_ft_font_get_ft_face()
 
 - Deprecated API:
-+hb_directwrite_face_get_font_face()
-+hb_ft_font_get_face()
+  -hb_directwrite_face_get_font_face()
+  -hb_ft_font_get_face()
 
 
 Overview of changes leading to 10.3.0
@@ -161,9 +184,9 @@ Thursday, February 11, 2025
   variations.
 
 - New API:
-+hb_directwrite_font_create()
-+hb_directwrite_font_get_dw_font()
-+hb_ot_shape_plan_get_feature_tags()
+  +hb_directwrite_font_create()
+  +hb_directwrite_font_get_dw_font()
+  +hb_ot_shape_plan_get_feature_tags()
 
 
 Overview of changes leading to 10.2.0
@@ -188,11 +211,11 @@ Saturday, January 11, 2025
 - Various subsetter and instancer fixes.
 
 - New API:
-+hb_subset_serialize_link_t
-+hb_subset_serialize_object_t
-+hb_subset_serialize_or_fail()
-+hb_subset_axis_range_from_string()
-+hb_subset_axis_range_to_string()
+  +hb_subset_serialize_link_t
+  +hb_subset_serialize_object_t
+  +hb_subset_serialize_or_fail()
+  +hb_subset_axis_range_from_string()
+  +hb_subset_axis_range_to_string()
 
 
 Overview of changes leading to 10.1.0
@@ -212,11 +235,11 @@ Tuesday, November 5, 2024
 - Various subsetter fixes.
 
 - New API:
-+hb_face_create_or_fail()
-+hb_face_create_from_file_or_fail()
-+hb_coretext_face_create_from_file_or_fail()
-+hb_coretext_font_set_funcs()
-+hb_ft_face_create_from_file_or_fail()
+  +hb_face_create_or_fail()
+  +hb_face_create_from_file_or_fail()
+  +hb_coretext_face_create_from_file_or_fail()
+  +hb_coretext_font_set_funcs()
+  +hb_ft_face_create_from_file_or_fail()
 
 Overview of changes leading to 10.0.1
 Tuesday, September 24, 2024
@@ -259,17 +282,17 @@ Monday, September 23, 2024
 
 
 - New API:
-+HB_SCRIPT_GARAY
-+HB_SCRIPT_GURUNG_KHEMA
-+HB_SCRIPT_KIRAT_RAI
-+HB_SCRIPT_OL_ONAL
-+HB_SCRIPT_SUNUWAR
-+HB_SCRIPT_TODHRI
-+HB_SCRIPT_TULU_TIGALARI
-+hb_buffer_set_not_found_variation_selector_glyph()
-+hb_buffer_get_not_found_variation_selector_glyph()
-+hb_get_table_tags_func_t
-+hb_face_set_get_table_tags_func()
+  +HB_SCRIPT_GARAY
+  +HB_SCRIPT_GURUNG_KHEMA
+  +HB_SCRIPT_KIRAT_RAI
+  +HB_SCRIPT_OL_ONAL
+  +HB_SCRIPT_SUNUWAR
+  +HB_SCRIPT_TODHRI
+  +HB_SCRIPT_TULU_TIGALARI
+  +hb_buffer_set_not_found_variation_selector_glyph()
+  +hb_buffer_get_not_found_variation_selector_glyph()
+  +hb_get_table_tags_func_t
+  +hb_face_set_get_table_tags_func()
 
 
 Overview of changes leading to 9.0.0
@@ -302,9 +325,9 @@ Monday, May 13, 2024
 - Various subsetter and instancer fixes.
 
 - New API:
-+HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS
-+hb_subset_input_get_axis_range()
-+hb_subset_input_pin_axis_location()
+  +HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS
+  +hb_subset_input_get_axis_range()
+  +hb_subset_input_pin_axis_location()
 
 Overview of changes leading to 8.4.0
 Saturday, March 29, 2024
@@ -351,10 +374,10 @@ Saturday, November 11, 2023
   tools. Old option is kept as an alias.
 
 - New API:
-+HB_AAT_LAYOUT_FEATURE_TYPE_CURSIVE_CONNECTION
+  +HB_AAT_LAYOUT_FEATURE_TYPE_CURSIVE_CONNECTION
 
 - Deprecated API:
-+HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
+  -HB_AAT_LAYOUT_FEATURE_TYPE_CURISVE_CONNECTION
 
 Overview of changes leading to 8.2.2
 Wednesday, October 18, 2023
@@ -407,7 +430,7 @@ Tuesday, August 1, 2023
   - 5% speed up in loading Roboto.
 
 - New API:
-+hb_ot_layout_collect_features_map()
+  +hb_ot_layout_collect_features_map()
 
 
 Overview of changes leading to 8.0.1
@@ -455,12 +478,12 @@ Sunday, July 9, 2023
   this feature define the macro to just inline.
 
 - New API:
-+HB_CODEPOINT_INVALID
-+hb_ot_layout_get_baseline2()
-+hb_ot_layout_get_baseline_with_fallback2()
-+hb_ot_layout_get_font_extents()
-+hb_ot_layout_get_font_extents2()
-+hb_subset_input_set_axis_range()
+  +HB_CODEPOINT_INVALID
+  +hb_ot_layout_get_baseline2()
+  +hb_ot_layout_get_baseline_with_fallback2()
+  +hb_ot_layout_get_font_extents()
+  +hb_ot_layout_get_font_extents2()
+  +hb_subset_input_set_axis_range()
 
 
 Overview of changes leading to 7.3.0
@@ -505,11 +528,11 @@ Thursday, April 27, 2023
 - Various documentation improvements. (Behdad Esfahbod, Josef Friedrich)
 
 - New API:
-+HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE
-+HB_UNICODE_COMBINING_CLASS_CCC132
+  +HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE
+  +HB_UNICODE_COMBINING_CLASS_CCC132
 
 - Deprecated API:
-+HB_UNICODE_COMBINING_CLASS_CCC133
+  -HB_UNICODE_COMBINING_CLASS_CCC133
 
 
 Overview of changes leading to 7.1.0
@@ -559,104 +582,104 @@ Saturday, February 11, 2023
   Nirbheek Chauhan, Pedro J. Estébanez, Qunxin Liu, Sergei Trofimovich)
 
 - New API:
-+HB_FONT_NO_VAR_NAMED_INSTANCE
-+HB_PAINT_IMAGE_FORMAT_BGRA
-+HB_PAINT_IMAGE_FORMAT_PNG
-+HB_PAINT_IMAGE_FORMAT_SVG
-+hb_cairo_font_face_create_for_face
-+hb_cairo_font_face_create_for_font
-+hb_cairo_font_face_get_face
-+hb_cairo_font_face_get_font
-+hb_cairo_font_face_get_scale_factor
-+hb_cairo_font_face_set_font_init_func
-+hb_cairo_font_face_set_scale_factor
-+hb_cairo_font_init_func_t
-+hb_cairo_glyphs_from_buffer
-+hb_cairo_scaled_font_get_font
-+hb_color_line_get_color_stops
-+hb_color_line_get_color_stops_func_t
-+hb_color_line_get_extend
-+hb_color_line_get_extend_func_t
-+hb_color_line_t
-+hb_color_stop_t
-+hb_draw_funcs_get_empty
-+hb_draw_funcs_get_user_data
-+hb_draw_funcs_set_user_data
-+hb_face_collect_nominal_glyph_mapping
-+hb_font_draw_glyph
-+hb_font_draw_glyph_func_t
-+hb_font_funcs_set_draw_glyph_func
-+hb_font_funcs_set_paint_glyph_func
-+hb_font_get_synthetic_bold
-+hb_font_get_var_named_instance
-+hb_font_paint_glyph
-+hb_font_paint_glyph_func_t
-+hb_font_set_synthetic_bold
-+hb_map_keys
-+hb_map_next
-+hb_map_update
-+hb_map_values
-+hb_ot_color_glyph_has_paint
-+hb_ot_color_has_paint
-+hb_ot_layout_script_select_language2
-+hb_ot_name_id_predefined_t
-+hb_paint_color
-+hb_paint_color_func_t
-+hb_paint_composite_mode_t
-+hb_paint_custom_palette_color
-+hb_paint_custom_palette_color_func_t
-+hb_paint_extend_t
-+hb_paint_funcs_create
-+hb_paint_funcs_destroy
-+hb_paint_funcs_get_empty
-+hb_paint_funcs_get_user_data
-+hb_paint_funcs_is_immutable
-+hb_paint_funcs_make_immutable
-+hb_paint_funcs_reference
-+hb_paint_funcs_set_color_func
-+hb_paint_funcs_set_custom_palette_color_func
-+hb_paint_funcs_set_image_func
-+hb_paint_funcs_set_linear_gradient_func
-+hb_paint_funcs_set_pop_clip_func
-+hb_paint_funcs_set_pop_group_func
-+hb_paint_funcs_set_pop_transform_func
-+hb_paint_funcs_set_push_clip_glyph_func
-+hb_paint_funcs_set_push_clip_rectangle_func
-+hb_paint_funcs_set_push_group_func
-+hb_paint_funcs_set_push_transform_func
-+hb_paint_funcs_set_radial_gradient_func
-+hb_paint_funcs_set_sweep_gradient_func
-+hb_paint_funcs_set_user_data
-+hb_paint_funcs_t
-+hb_paint_image
-+hb_paint_image_func_t
-+hb_paint_linear_gradient
-+hb_paint_linear_gradient_func_t
-+hb_paint_pop_clip
-+hb_paint_pop_clip_func_t
-+hb_paint_pop_group
-+hb_paint_pop_group_func_t
-+hb_paint_pop_transform
-+hb_paint_pop_transform_func_t
-+hb_paint_push_clip_glyph
-+hb_paint_push_clip_glyph_func_t
-+hb_paint_push_clip_rectangle
-+hb_paint_push_clip_rectangle_func_t
-+hb_paint_push_group
-+hb_paint_push_group_func_t
-+hb_paint_push_transform
-+hb_paint_push_transform_func_t
-+hb_paint_radial_gradient
-+hb_paint_radial_gradient_func_t
-+hb_paint_sweep_gradient
-+hb_paint_sweep_gradient_func_t
-+hb_set_is_inverted
-+hb_subset_input_keep_everything
+  +HB_FONT_NO_VAR_NAMED_INSTANCE
+  +HB_PAINT_IMAGE_FORMAT_BGRA
+  +HB_PAINT_IMAGE_FORMAT_PNG
+  +HB_PAINT_IMAGE_FORMAT_SVG
+  +hb_cairo_font_face_create_for_face
+  +hb_cairo_font_face_create_for_font
+  +hb_cairo_font_face_get_face
+  +hb_cairo_font_face_get_font
+  +hb_cairo_font_face_get_scale_factor
+  +hb_cairo_font_face_set_font_init_func
+  +hb_cairo_font_face_set_scale_factor
+  +hb_cairo_font_init_func_t
+  +hb_cairo_glyphs_from_buffer
+  +hb_cairo_scaled_font_get_font
+  +hb_color_line_get_color_stops
+  +hb_color_line_get_color_stops_func_t
+  +hb_color_line_get_extend
+  +hb_color_line_get_extend_func_t
+  +hb_color_line_t
+  +hb_color_stop_t
+  +hb_draw_funcs_get_empty
+  +hb_draw_funcs_get_user_data
+  +hb_draw_funcs_set_user_data
+  +hb_face_collect_nominal_glyph_mapping
+  +hb_font_draw_glyph
+  +hb_font_draw_glyph_func_t
+  +hb_font_funcs_set_draw_glyph_func
+  +hb_font_funcs_set_paint_glyph_func
+  +hb_font_get_synthetic_bold
+  +hb_font_get_var_named_instance
+  +hb_font_paint_glyph
+  +hb_font_paint_glyph_func_t
+  +hb_font_set_synthetic_bold
+  +hb_map_keys
+  +hb_map_next
+  +hb_map_update
+  +hb_map_values
+  +hb_ot_color_glyph_has_paint
+  +hb_ot_color_has_paint
+  +hb_ot_layout_script_select_language2
+  +hb_ot_name_id_predefined_t
+  +hb_paint_color
+  +hb_paint_color_func_t
+  +hb_paint_composite_mode_t
+  +hb_paint_custom_palette_color
+  +hb_paint_custom_palette_color_func_t
+  +hb_paint_extend_t
+  +hb_paint_funcs_create
+  +hb_paint_funcs_destroy
+  +hb_paint_funcs_get_empty
+  +hb_paint_funcs_get_user_data
+  +hb_paint_funcs_is_immutable
+  +hb_paint_funcs_make_immutable
+  +hb_paint_funcs_reference
+  +hb_paint_funcs_set_color_func
+  +hb_paint_funcs_set_custom_palette_color_func
+  +hb_paint_funcs_set_image_func
+  +hb_paint_funcs_set_linear_gradient_func
+  +hb_paint_funcs_set_pop_clip_func
+  +hb_paint_funcs_set_pop_group_func
+  +hb_paint_funcs_set_pop_transform_func
+  +hb_paint_funcs_set_push_clip_glyph_func
+  +hb_paint_funcs_set_push_clip_rectangle_func
+  +hb_paint_funcs_set_push_group_func
+  +hb_paint_funcs_set_push_transform_func
+  +hb_paint_funcs_set_radial_gradient_func
+  +hb_paint_funcs_set_sweep_gradient_func
+  +hb_paint_funcs_set_user_data
+  +hb_paint_funcs_t
+  +hb_paint_image
+  +hb_paint_image_func_t
+  +hb_paint_linear_gradient
+  +hb_paint_linear_gradient_func_t
+  +hb_paint_pop_clip
+  +hb_paint_pop_clip_func_t
+  +hb_paint_pop_group
+  +hb_paint_pop_group_func_t
+  +hb_paint_pop_transform
+  +hb_paint_pop_transform_func_t
+  +hb_paint_push_clip_glyph
+  +hb_paint_push_clip_glyph_func_t
+  +hb_paint_push_clip_rectangle
+  +hb_paint_push_clip_rectangle_func_t
+  +hb_paint_push_group
+  +hb_paint_push_group_func_t
+  +hb_paint_push_transform
+  +hb_paint_push_transform_func_t
+  +hb_paint_radial_gradient
+  +hb_paint_radial_gradient_func_t
+  +hb_paint_sweep_gradient
+  +hb_paint_sweep_gradient_func_t
+  +hb_set_is_inverted
+  +hb_subset_input_keep_everything
 
 - Deprecated API:
-+hb_font_funcs_set_glyph_shape_func
-+hb_font_get_glyph_shape_func_t
-+hb_font_get_glyph_shape
+  -hb_font_funcs_set_glyph_shape_func
+  -hb_font_get_glyph_shape_func_t
+  -hb_font_get_glyph_shape
 
 
 Overview of changes leading to 6.0.0
@@ -716,9 +739,9 @@ Friday, December 16, 2022
 
 
 - New API
-+hb_subset_input_pin_axis_location()
-+hb_subset_input_pin_axis_to_default()
-+hb_subset_preprocess()
+  +hb_subset_input_pin_axis_location()
+  +hb_subset_input_pin_axis_to_default()
+  +hb_subset_preprocess()
 
 
 Overview of changes leading to 5.3.1
@@ -764,8 +787,8 @@ Saturday, September 17, 2022
 - Fix FreeType and ICU dependency lookup with meson. (Xavier Claessens)
 
 - New API:
-+HB_SCRIPT_KAWI
-+HB_SCRIPT_NAG_MUNDARI
+  +HB_SCRIPT_KAWI
+  +HB_SCRIPT_NAG_MUNDARI
 
 
 Overview of changes leading to 5.1.0
@@ -780,8 +803,8 @@ Sunday, July 31, 2022
 - Add “--safe-to-insert-tatweel” to “hb-shape” tool. (Behdad Esfahbod)
 
 - New API
-+HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL
-+HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL
+  +HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL
+  +HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL
 
 
 Overview of changes leading to 5.0.1
@@ -827,8 +850,8 @@ Saturday, July 23, 2022
   of hb-subset library, similar to harfbuzz.cc. (Khaled Hosny)
 
 - New API
-+HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG
-+hb_language_matches()
+  +HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG
+  +hb_language_matches()
 
 
 Overview of changes leading to 4.4.1
@@ -862,14 +885,14 @@ Monday, June 27, 2022
 - Add 32 bit var store support to the subsetter. (Garret Rieger)
 
 - New API
-+HB_BUFFER_FLAG_DEFINED
-+HB_BUFFER_SERIALIZE_FLAG_DEFINED
-+hb_font_changed()
-+hb_font_get_serial()
-+hb_ft_hb_font_changed()
-+hb_set_hash()
-+hb_map_copy()
-+hb_map_hash()
+  +HB_BUFFER_FLAG_DEFINED
+  +HB_BUFFER_SERIALIZE_FLAG_DEFINED
+  +hb_font_changed()
+  +hb_font_get_serial()
+  +hb_ft_hb_font_changed()
+  +hb_set_hash()
+  +hb_map_copy()
+  +hb_map_hash()
 
 
 Overview of changes leading to 4.3.0
@@ -886,7 +909,7 @@ Friday, May 20, 2022
 - Fix subsetting CPAL table with partial palette overlaps. (Garret Rieger)
 
 - New API
-+hb_map_is_equal() (Behdad Esfahbod)
+  +hb_map_is_equal() (Behdad Esfahbod)
 
 
 Overview of changes leading to 4.2.1
@@ -917,7 +940,7 @@ Wednesday, March 30, 2022
 - Various build fixes. (Chun-wei Fan, Khaled Hosny)
 
 - New API
-+hb_set_next_many() (Andrew John)
+  +hb_set_next_many() (Andrew John)
 
 
 Overview of changes leading to 4.1.0
@@ -932,7 +955,7 @@ Wednesday, March 23, 2022
 - Various bug fixes.
 
 - New API
-+hb_set_add_sorted_array() (Andrew John)
+  +hb_set_add_sorted_array() (Andrew John)
 
 
 Overview of changes leading to 4.0.1
@@ -950,9 +973,9 @@ Friday, March 11, 2022
   built with experimental APIs enabled. (Qunxin Liu)
 
 - New experimental API
-+hb_link_t
-+hb_object_t
-+hb_subset_repack_or_fail()
+  +hb_link_t
+  +hb_object_t
+  +hb_subset_repack_or_fail()
 
 
 Overview of changes leading to 4.0.0
@@ -1061,14 +1084,14 @@ Sunday, February 13, 2022
   pointer. (Behdad Esfahbod)
 
 - New API:
-+HB_BUFFER_FLAG_VERIFY
-+HB_OT_TAG_MATH_SCRIPT
-+HB_SCRIPT_MATH
-+hb_ot_math_kern_entry_t
-+hb_ot_math_get_glyph_kernings()
+  +HB_BUFFER_FLAG_VERIFY
+  +HB_OT_TAG_MATH_SCRIPT
+  +HB_SCRIPT_MATH
+  +hb_ot_math_kern_entry_t
+  +hb_ot_math_get_glyph_kernings()
 
 - Deprecated API
-+HB_OT_MATH_SCRIPT
+  -HB_OT_MATH_SCRIPT
 
 
 Overview of changes leading to 3.3.2
@@ -1108,12 +1131,12 @@ Monday, January 31, 2022
   tags. (David Corbett)
 
 - New API:
-+HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
-+hb_segment_properties_overlay()
-+hb_buffer_create_similar()
-+hb_font_set_synthetic_slant()
-+hb_font_get_synthetic_slant()
-+hb_font_get_var_coords_design()
+  +HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
+  +hb_segment_properties_overlay()
+  +hb_buffer_create_similar()
+  +hb_font_set_synthetic_slant()
+  +hb_font_get_synthetic_slant()
+  +hb_font_get_var_coords_design()
 
 
 Overview of changes leading to 3.2.0
@@ -1164,8 +1187,8 @@ Wednesday, November 3, 2021
 - Build and documentation fixes.
 
 - New API:
-+hb_buffer_set_not_found_glyph()
-+hb_buffer_get_not_found_glyph()
+  +hb_buffer_set_not_found_glyph()
+  +hb_buffer_get_not_found_glyph()
 
 
 Overview of changes leading to 3.0.0
@@ -1179,44 +1202,44 @@ Friday, September 17, 2021
 - The hb-style API is now stable and no longer experimental.
 
 - New API:
-+hb_style_tag_t
-+hb_style_get_value()
-+hb_subset_input_t
-+hb_subset_flags_t
-+hb_subset_sets_t
-+hb_subset_input_create_or_fail()
-+hb_subset_input_reference()
-+hb_subset_input_destroy()
-+hb_subset_input_set_user_data()
-+hb_subset_input_get_user_data()
-+hb_subset_input_unicode_set()
-+hb_subset_input_glyph_set()
-+hb_subset_input_set()
-+hb_subset_input_get_flags()
-+hb_subset_input_set_flags()
-+hb_subset_or_fail()
+  +hb_style_tag_t
+  +hb_style_get_value()
+  +hb_subset_input_t
+  +hb_subset_flags_t
+  +hb_subset_sets_t
+  +hb_subset_input_create_or_fail()
+  +hb_subset_input_reference()
+  +hb_subset_input_destroy()
+  +hb_subset_input_set_user_data()
+  +hb_subset_input_get_user_data()
+  +hb_subset_input_unicode_set()
+  +hb_subset_input_glyph_set()
+  +hb_subset_input_set()
+  +hb_subset_input_get_flags()
+  +hb_subset_input_set_flags()
+  +hb_subset_or_fail()
 
 - Removed old unstable harfbuzz-subset API:
--hb_subset_input_nameid_set()
--hb_subset_input_namelangid_set()
--hb_subset_input_layout_features_set()
--hb_subset_input_no_subset_tables_set()
--hb_subset_input_drop_tables_set()
--hb_subset_input_set_drop_hints()
--hb_subset_input_get_drop_hints()
--hb_subset_input_set_desubroutinize()
--hb_subset_input_get_desubroutinize()
--hb_subset_input_set_retain_gids()
--hb_subset_input_get_retain_gids()
--hb_subset_input_set_name_legacy()
--hb_subset_input_get_name_legacy()
--hb_subset_input_set_overlaps_flag()
--hb_subset_input_get_overlaps_flag()
--hb_subset_input_set_notdef_outline()
--hb_subset_input_get_notdef_outline()
--hb_subset_input_set_no_prune_unicode_ranges()
--hb_subset_input_get_no_prune_unicode_ranges()
--hb_subset()
+  -hb_subset_input_nameid_set()
+  -hb_subset_input_namelangid_set()
+  -hb_subset_input_layout_features_set()
+  -hb_subset_input_no_subset_tables_set()
+  -hb_subset_input_drop_tables_set()
+  -hb_subset_input_set_drop_hints()
+  -hb_subset_input_get_drop_hints()
+  -hb_subset_input_set_desubroutinize()
+  -hb_subset_input_get_desubroutinize()
+  -hb_subset_input_set_retain_gids()
+  -hb_subset_input_get_retain_gids()
+  -hb_subset_input_set_name_legacy()
+  -hb_subset_input_get_name_legacy()
+  -hb_subset_input_set_overlaps_flag()
+  -hb_subset_input_get_overlaps_flag()
+  -hb_subset_input_set_notdef_outline()
+  -hb_subset_input_get_notdef_outline()
+  -hb_subset_input_set_no_prune_unicode_ranges()
+  -hb_subset_input_get_no_prune_unicode_ranges()
+  -hb_subset()
 
 
 Overview of changes leading to 2.9.1
@@ -1231,8 +1254,9 @@ Tuesday, September 7, 2021
 - hb-view / hb-shape now accept following new arguments:
   o --unicodes-before/after: takes a list of hex numbers that represent Unicode
     codepoints.
+
 - Undeprecated API:
-  hb_set_invert()
+  +hb_set_invert()
 
 
 Overview of changes leading to 2.9.0
@@ -1267,10 +1291,11 @@ Tuesday, July 8, 2021
 - When applying morx table, mark glyph widths should not be zeroed. (Jonathan Kew)
 - GPOS is preferred over kerx, if GSUB was applied. (Behdad)
 - Regional_Indicator pairs are grouped together when clustering. (Behdad)
+
 - New API:
-+hb_blob_create_or_fail()
-+hb_blob_create_from_file_or_fail()
-+hb_set_copy()
+  +hb_blob_create_or_fail()
+  +hb_blob_create_from_file_or_fail()
+  +hb_set_copy()
 
 
 Overview of changes leading to 2.8.1
@@ -1281,6 +1306,7 @@ Tuesday, May 4, 2021
 - Build scripts no longer check for FontConfig as HarfBuzz does not use it.
 - hb-view supports iTerm2 and kitty inline image protocols (Khaled Hosny),
   it can also use Chafa for terminal graphics if available (Hans Petter Jansson).
+
 
 Overview of changes leading to 2.8.0
 Tuesday, March 16, 2021
@@ -1321,11 +1347,12 @@ Wednesday, December 23, 2020
 - More OOM fixes.
 - Improved documentation.
 - Build system improvements.
+
 - New API:
-+hb_buffer_has_positions()
-+hb_buffer_serialize()
-+hb_buffer_serialize_unicode()
-+hb_buffer_deserialize_unicode()
+  +hb_buffer_has_positions()
+  +hb_buffer_serialize()
+  +hb_buffer_serialize_unicode()
+  +hb_buffer_deserialize_unicode()
 
 
 Overview of changes leading to 2.7.2
@@ -1373,8 +1400,9 @@ Monday, June 22, 2020
   it and give us feedback.
   Autotools is still our main build system however please consider
   experimenting with meson also for packaging the library.
+
 - New API:
-+hb_ot_layout_lookup_get_glyph_alternates()
+  +hb_ot_layout_lookup_get_glyph_alternates()
 
 
 Overview of changes leading to 2.6.7
@@ -1404,9 +1432,10 @@ Friday, April 17, 2020
 - AAT is now always preferred for horizontal scripts when both AAT and OT
   layout tables exist at the same time.
 - Subsetter improvements.
+
 - New API:
-+hb_ft_font_lock_face()
-+hb_ft_font_unlock_face()
+  +hb_ft_font_lock_face()
+  +hb_ft_font_unlock_face()
 
 
 Overview of changes leading to 2.6.4
@@ -1420,8 +1449,9 @@ Overview of changes leading to 2.6.3
 Monday, October 28, 2019
 ====================================
 - Misc small fixes, mostly to build-related issues.
+
 - New API:
-+hb_font_get_nominal_glyphs()
+  +hb_font_get_nominal_glyphs()
 
 
 Overview of changes leading to 2.6.2
@@ -1449,19 +1479,20 @@ Tuesday, August 13, 2019
 - New hb-gdi.h header and API for creating hb_face_t from HFONT.
 - Amalgam: Provide a single-file harfbuzz.cc file for easier alternate building.
 - More size-reduction configurable options, enabled by HB_TINY.
+
 - New API:
-+hb_font_set_var_named_instance()
-+hb_gdi_face_create()
-+hb_ot_layout_baseline_tag_t
-+hb_ot_layout_get_baseline()
-+hb_ot_meta_tag_t
-+hb_ot_meta_get_entry_tags()
-+hb_ot_meta_reference_entry()
-+hb_ot_metrics_tag_t
-+hb_ot_metrics_get_position()
-+hb_ot_metrics_get_variation()
-+hb_ot_metrics_get_x_variation()
-+hb_ot_metrics_get_y_variation()
+  +hb_font_set_var_named_instance()
+  +hb_gdi_face_create()
+  +hb_ot_layout_baseline_tag_t
+  +hb_ot_layout_get_baseline()
+  +hb_ot_meta_tag_t
+  +hb_ot_meta_get_entry_tags()
+  +hb_ot_meta_reference_entry()
+  +hb_ot_metrics_tag_t
+  +hb_ot_metrics_get_position()
+  +hb_ot_metrics_get_variation()
+  +hb_ot_metrics_get_x_variation()
+  +hb_ot_metrics_get_y_variation()
 
 
 Overview of changes leading to 2.5.3
@@ -1514,9 +1545,10 @@ Monday, March 25, 2019
 - Unicode 12.
 - Misc fixes.
 - Subsetter improvements.
+
 - New API:
-HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE
-hb_directwrite_face_create()
+  +HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE
+  +hb_directwrite_face_create()
 
 
 Overview of changes leading to 2.3.1
@@ -1535,10 +1567,10 @@ Thursday, December 20, 2018
 - Merge CFF / CFF2 support contributed by Adobe.  This mostly involves
   the subsetter, but also get_glyph_extents on CFF fonts.
 
-New API in hb-aat.h:
-+hb_aat_layout_has_substitution()
-+hb_aat_layout_has_positioning()
-+hb_aat_layout_has_tracking()
+- New API in hb-aat.h:
+  +hb_aat_layout_has_substitution()
+  +hb_aat_layout_has_positioning()
+  +hb_aat_layout_has_tracking()
 
 
 Overview of changes leading to 2.2.0
@@ -1552,28 +1584,28 @@ Thursday, November 29, 2018
   o Implement 'feat' table API for feature detection.
   o Blacklist 'GSUB' table of fonts from 'MUTF' foundry that also have 'morx'.
 
-New API:
-+hb_aat_layout_feature_type_t
-+hb_aat_layout_feature_selector_t
-+hb_aat_layout_get_feature_types()
-+hb_aat_layout_feature_type_get_name_id
-+hb_aat_layout_feature_selector_info_t
-+HB_AAT_LAYOUT_NO_SELECTOR_INDEX
-+hb_aat_layout_feature_type_get_selector_infos()
-+hb_ot_var_axis_flags_t
-+hb_ot_var_axis_info_t
-+hb_ot_var_get_axis_infos()
-+hb_ot_var_find_axis_info()
-+hb_ot_var_get_named_instance_count()
-+hb_ot_var_named_instance_get_subfamily_name_id()
-+hb_ot_var_named_instance_get_postscript_name_id()
-+hb_ot_var_named_instance_get_design_coords()
+- New API:
+  +hb_aat_layout_feature_type_t
+  +hb_aat_layout_feature_selector_t
+  +hb_aat_layout_get_feature_types()
+  +hb_aat_layout_feature_type_get_name_id
+  +hb_aat_layout_feature_selector_info_t
+  +HB_AAT_LAYOUT_NO_SELECTOR_INDEX
+  +hb_aat_layout_feature_type_get_selector_infos()
+  +hb_ot_var_axis_flags_t
+  +hb_ot_var_axis_info_t
+  +hb_ot_var_get_axis_infos()
+  +hb_ot_var_find_axis_info()
+  +hb_ot_var_get_named_instance_count()
+  +hb_ot_var_named_instance_get_subfamily_name_id()
+  +hb_ot_var_named_instance_get_postscript_name_id()
+  +hb_ot_var_named_instance_get_design_coords()
 
-Deprecated API:
-+HB_OT_VAR_NO_AXIS_INDEX
-+hb_ot_var_axis_t
-+hb_ot_var_get_axes()
-+hb_ot_var_find_axis()
+- Deprecated API:
+  -HB_OT_VAR_NO_AXIS_INDEX
+  -hb_ot_var_axis_t
+  -hb_ot_var_get_axes()
+  -hb_ot_var_find_axis()
 
 
 Overview of changes leading to 2.1.3
@@ -1618,68 +1650,66 @@ Tuesday, October 30, 2018
   in vertical layout.
 - Various fuzzer-found bug fixes.
 
-Changed API:
+- Changed API:
+  A type and a macro added in 2.0.0 were renamed:
 
-A type and a macro added in 2.0.0 were renamed:
+  hb_name_id_t -> hb_ot_name_id_t
+  HB_NAME_ID_INVALID -> HB_OT_NAME_ID_INVALID
 
-hb_name_id_t -> hb_ot_name_id_t
-HB_NAME_ID_INVALID -> HB_OT_NAME_ID_INVALID
+- New API:
+  +hb_color_t
+  +HB_COLOR
+  +hb_color_get_alpha()
+  +hb_color_get_red()
+  +hb_color_get_green()
+  +hb_color_get_blue()
+  +hb_ot_color_has_palettes()
+  +hb_ot_color_palette_get_count()
+  +hb_ot_color_palette_get_name_id()
+  +hb_ot_color_palette_color_get_name_id()
+  +hb_ot_color_palette_flags_t
+  +hb_ot_color_palette_get_flags()
+  +hb_ot_color_palette_get_colors()
+  +hb_ot_color_has_layers()
+  +hb_ot_color_layer_t
+  +hb_ot_color_glyph_get_layers()
+  +hb_ot_color_has_svg()
+  +hb_ot_color_glyph_reference_svg()
+  +hb_ot_color_has_png()
+  +hb_ot_color_glyph_reference_png()
 
-New API:
-
-+hb_color_t
-+HB_COLOR
-+hb_color_get_alpha()
-+hb_color_get_red()
-+hb_color_get_green()
-+hb_color_get_blue()
-+hb_ot_color_has_palettes()
-+hb_ot_color_palette_get_count()
-+hb_ot_color_palette_get_name_id()
-+hb_ot_color_palette_color_get_name_id()
-+hb_ot_color_palette_flags_t
-+hb_ot_color_palette_get_flags()
-+hb_ot_color_palette_get_colors()
-+hb_ot_color_has_layers()
-+hb_ot_color_layer_t
-+hb_ot_color_glyph_get_layers()
-+hb_ot_color_has_svg()
-+hb_ot_color_glyph_reference_svg()
-+hb_ot_color_has_png()
-+hb_ot_color_glyph_reference_png()
-
-+hb_ot_name_id_t
-+HB_OT_NAME_ID_INVALID
-+HB_OT_NAME_ID_COPYRIGHT
-+HB_OT_NAME_ID_FONT_FAMILY
-+HB_OT_NAME_ID_FONT_SUBFAMILY
-+HB_OT_NAME_ID_UNIQUE_ID
-+HB_OT_NAME_ID_FULL_NAME
-+HB_OT_NAME_ID_VERSION_STRING
-+HB_OT_NAME_ID_POSTSCRIPT_NAME
-+HB_OT_NAME_ID_TRADEMARK
-+HB_OT_NAME_ID_MANUFACTURER
-+HB_OT_NAME_ID_DESIGNER
-+HB_OT_NAME_ID_DESCRIPTION
-+HB_OT_NAME_ID_VENDOR_URL
-+HB_OT_NAME_ID_DESIGNER_URL
-+HB_OT_NAME_ID_LICENSE
-+HB_OT_NAME_ID_LICENSE_URL
-+HB_OT_NAME_ID_TYPOGRAPHIC_FAMILY
-+HB_OT_NAME_ID_TYPOGRAPHIC_SUBFAMILY
-+HB_OT_NAME_ID_MAC_FULL_NAME
-+HB_OT_NAME_ID_SAMPLE_TEXT
-+HB_OT_NAME_ID_CID_FINDFONT_NAME
-+HB_OT_NAME_ID_WWS_FAMILY
-+HB_OT_NAME_ID_WWS_SUBFAMILY
-+HB_OT_NAME_ID_LIGHT_BACKGROUND
-+HB_OT_NAME_ID_DARK_BACKGROUND
-+HB_OT_NAME_ID_VARIATIONS_PS_PREFIX
-+hb_ot_name_entry_t
-+hb_ot_name_list_names()
-+hb_ot_name_get_utf8()
-+hb_ot_name_get_utf16()
-+hb_ot_name_get_utf32()
+  +hb_ot_name_id_t
+  +HB_OT_NAME_ID_INVALID
+  +HB_OT_NAME_ID_COPYRIGHT
+  +HB_OT_NAME_ID_FONT_FAMILY
+  +HB_OT_NAME_ID_FONT_SUBFAMILY
+  +HB_OT_NAME_ID_UNIQUE_ID
+  +HB_OT_NAME_ID_FULL_NAME
+  +HB_OT_NAME_ID_VERSION_STRING
+  +HB_OT_NAME_ID_POSTSCRIPT_NAME
+  +HB_OT_NAME_ID_TRADEMARK
+  +HB_OT_NAME_ID_MANUFACTURER
+  +HB_OT_NAME_ID_DESIGNER
+  +HB_OT_NAME_ID_DESCRIPTION
+  +HB_OT_NAME_ID_VENDOR_URL
+  +HB_OT_NAME_ID_DESIGNER_URL
+  +HB_OT_NAME_ID_LICENSE
+  +HB_OT_NAME_ID_LICENSE_URL
+  +HB_OT_NAME_ID_TYPOGRAPHIC_FAMILY
+  +HB_OT_NAME_ID_TYPOGRAPHIC_SUBFAMILY
+  +HB_OT_NAME_ID_MAC_FULL_NAME
+  +HB_OT_NAME_ID_SAMPLE_TEXT
+  +HB_OT_NAME_ID_CID_FINDFONT_NAME
+  +HB_OT_NAME_ID_WWS_FAMILY
+  +HB_OT_NAME_ID_WWS_SUBFAMILY
+  +HB_OT_NAME_ID_LIGHT_BACKGROUND
+  +HB_OT_NAME_ID_DARK_BACKGROUND
+  +HB_OT_NAME_ID_VARIATIONS_PS_PREFIX
+  +hb_ot_name_entry_t
+  +hb_ot_name_list_names()
+  +hb_ot_name_get_utf8()
+  +hb_ot_name_get_utf16()
+  +hb_ot_name_get_utf32()
 
 
 Overview of changes leading to 2.0.2
@@ -1733,40 +1763,40 @@ API changes:
 - New hb_font_funcs_set_nominal_glyphs_func() allows speeding
   up character to glyph mapping.
 
-New API:
-+HB_FEATURE_GLOBAL_START
-+HB_FEATURE_GLOBAL_END
-+hb_buffer_set_invisible_glyph()
-+hb_buffer_get_invisible_glyph()
-+hb_font_funcs_set_nominal_glyphs_func()
-+hb_ot_layout_table_select_script()
-+hb_ot_layout_script_select_language()
-+hb_ot_layout_feature_get_name_ids()
-+hb_ot_layout_feature_get_characters()
-+hb_name_id_t
-+HB_NAME_ID_INVALID
-+HB_OT_MAX_TAGS_PER_SCRIPT
-+hb_ot_tags_from_script_and_language()
-+hb_ot_tags_to_script_and_language()
+- New API:
+  +HB_FEATURE_GLOBAL_START
+  +HB_FEATURE_GLOBAL_END
+  +hb_buffer_set_invisible_glyph()
+  +hb_buffer_get_invisible_glyph()
+  +hb_font_funcs_set_nominal_glyphs_func()
+  +hb_ot_layout_table_select_script()
+  +hb_ot_layout_script_select_language()
+  +hb_ot_layout_feature_get_name_ids()
+  +hb_ot_layout_feature_get_characters()
+  +hb_name_id_t
+  +HB_NAME_ID_INVALID
+  +HB_OT_MAX_TAGS_PER_SCRIPT
+  +hb_ot_tags_from_script_and_language()
+  +hb_ot_tags_to_script_and_language()
 
-Deprecated API:
--hb_font_funcs_set_glyph_func()
--hb_unicode_eastasian_width_func_t
--hb_unicode_funcs_set_eastasian_width_func()
--hb_unicode_eastasian_width()
--hb_unicode_decompose_compatibility_func_t
--HB_UNICODE_MAX_DECOMPOSITION_LEN
--hb_unicode_funcs_set_decompose_compatibility_func()
--hb_unicode_decompose_compatibility()
--hb_font_funcs_set_glyph_h_kerning_func()
--hb_font_funcs_set_glyph_v_kerning_func()
--hb_font_get_glyph_h_kerning()
--hb_font_get_glyph_v_kerning()
--hb_font_get_glyph_kerning_for_direction()
--hb_ot_layout_table_choose_script()
--hb_ot_layout_script_find_language()
--hb_ot_tags_from_script()
--hb_ot_tag_from_language()
+- Deprecated API:
+  -hb_font_funcs_set_glyph_func()
+  -hb_unicode_eastasian_width_func_t
+  -hb_unicode_funcs_set_eastasian_width_func()
+  -hb_unicode_eastasian_width()
+  -hb_unicode_decompose_compatibility_func_t
+  -HB_UNICODE_MAX_DECOMPOSITION_LEN
+  -hb_unicode_funcs_set_decompose_compatibility_func()
+  -hb_unicode_decompose_compatibility()
+  -hb_font_funcs_set_glyph_h_kerning_func()
+  -hb_font_funcs_set_glyph_v_kerning_func()
+  -hb_font_get_glyph_h_kerning()
+  -hb_font_get_glyph_v_kerning()
+  -hb_font_get_glyph_kerning_for_direction()
+  -hb_ot_layout_table_choose_script()
+  -hb_ot_layout_script_find_language()
+  -hb_ot_tags_from_script()
+  -hb_ot_tag_from_language()
 
 
 Overview of changes leading to 1.9.0
@@ -1779,13 +1809,13 @@ Monday, September 10, 2018
 - Internal source header file name changes:
   hb-*-private.hh is renamed to hb-*.hh.
 
-New API:
-+HB_UNICODE_MAX
-+hb_face_collect_unicodes()
-+hb_face_collect_variation_selectors()
-+hb_face_collect_variation_unicodes()
-+hb_face_builder_create()
-+hb_face_builder_add_table()
+- New API:
+  +HB_UNICODE_MAX
+  +hb_face_collect_unicodes()
+  +hb_face_collect_variation_selectors()
+  +hb_face_collect_variation_unicodes()
+  +hb_face_builder_create()
+  +hb_face_builder_add_table()
 
 
 Overview of changes leading to 1.8.8
@@ -1816,15 +1846,16 @@ Overview of changes leading to 1.8.6
 Tuesday, August 7, 2018
 ====================================
 - Internal code shuffling.
+
 - New API to speed up getting advance widths for implementations
   that have heavy overhead in get_h_advance callback:
-+hb_font_funcs_set_glyph_h_advances_func
-+hb_font_funcs_set_glyph_v_advances_func
-+hb_font_get_glyph_advances_for_direction
-+hb_font_get_glyph_h_advances
-+hb_font_get_glyph_h_advances_func_t
-+hb_font_get_glyph_v_advances
-+hb_font_get_glyph_v_advances_func_t
+  +hb_font_funcs_set_glyph_h_advances_func
+  +hb_font_funcs_set_glyph_v_advances_func
+  +hb_font_get_glyph_advances_for_direction
+  +hb_font_get_glyph_h_advances
+  +hb_font_get_glyph_h_advances_func_t
+  +hb_font_get_glyph_v_advances
+  +hb_font_get_glyph_v_advances_func_t
 
 
 Overview of changes leading to 1.8.5
@@ -1883,50 +1914,49 @@ Tuesday, June 5, 2018
   o New cpp macro HB_NO_ATEXIT
   o New cpp macro HB_SUBSET_BUILTIN
 - Significant libharfbuzz-subset changes. API subject to change.
+
 - New API in libharfbuzz:
 
-+hb_blob_create_from_file()
-+hb_face_count()
+  +hb_blob_create_from_file()
+  +hb_face_count()
 
-A hashmap implementation:
-+hb-map.h
-+HB_MAP_VALUE_INVALID
-+hb_map_t
-+hb_map_create()
-+hb_map_get_empty()
-+hb_map_reference()
-+hb_map_destroy()
-+hb_map_set_user_data()
-+hb_map_get_user_data()
-+hb_map_allocation_successful()
-+hb_map_clear()
-+hb_map_is_empty()
-+hb_map_get_population()
-+hb_map_set()
-+hb_map_get()
-+hb_map_del()
-+hb_map_has()
+  A hashmap implementation:
+  +hb-map.h
+  +HB_MAP_VALUE_INVALID
+  +hb_map_t
+  +hb_map_create()
+  +hb_map_get_empty()
+  +hb_map_reference()
+  +hb_map_destroy()
+  +hb_map_set_user_data()
+  +hb_map_get_user_data()
+  +hb_map_allocation_successful()
+  +hb_map_clear()
+  +hb_map_is_empty()
+  +hb_map_get_population()
+  +hb_map_set()
+  +hb_map_get()
+  +hb_map_del()
+  +hb_map_has()
 
 
 Overview of changes leading to 1.7.6
 Wednesday, March 7, 2018
 ====================================
-
 - Fix to hb_set_t binary operations. Ouch.
 - New experimental harfbuzz-subset library. All of hb-subset.h
   is experimental right now and API WILL change.
 
 - New API:
-hb_blob_copy_writable_or_fail()
-HB_OT_TAG_BASE
-hb_set_previous()
-hb_set_previous_range()
+  +hb_blob_copy_writable_or_fail()
+  +HB_OT_TAG_BASE
+  +hb_set_previous()
+  +hb_set_previous_range()
 
 
 Overview of changes leading to 1.7.5
 Tuesday, January 30, 2018
 ====================================
-
 - Separate Khmer shaper from Indic.
 - First stab at AAT morx. Not hooked up.
 - Misc bug fixes.
@@ -1935,14 +1965,12 @@ Tuesday, January 30, 2018
 Overview of changes leading to 1.7.4
 Wednesday, December 20, 2017
 ====================================
-
 - Fix collect_glyphs() regression caused by hb_set_t changes.
 
 
 Overview of changes leading to 1.7.3
 Monday, December 18, 2017
 ====================================
-
 - hb_set_t performance tuning and optimizations.
 - Speed up collect_glyphs() and reject garbage data.
 - In hb_coretext_font_create() set font point-size (ptem).
@@ -1952,17 +1980,16 @@ Monday, December 18, 2017
 Overview of changes leading to 1.7.2
 Monday, December 4, 2017
 ====================================
-
 - Optimize hb_set_add_range().
 - Misc fixes.
+
 - New API:
-hb_coretext_font_create()
+  +hb_coretext_font_create()
 
 
 Overview of changes leading to 1.7.1
 Tuesday, November 14, 2017
 ====================================
-
 - Fix atexit object destruction regression.
 - Fix minor integer-overflow.
 
@@ -1970,7 +1997,6 @@ Tuesday, November 14, 2017
 Overview of changes leading to 1.7.0
 Monday, November 13, 2017
 ====================================
-
 - Minor Indic fixes.
 - Implement kerning and glyph names in hb-ot-font.
 - Various DSO optimization re .data and .bss sizes.
@@ -1982,7 +2008,6 @@ Monday, November 13, 2017
 Overview of changes leading to 1.6.3
 Thursday, October 26th, 2017
 ====================================
-
 - Fix hb_set_t some more.  Should be solid now.
 - Implement get_glyph_name() for hb-ot-font.
 - Misc fixes.
@@ -2001,20 +2026,19 @@ Monday, October 23nd, 2017
 Overview of changes leading to 1.6.1
 Sunday, October 22nd, 2017
 ====================================
-
 - Don't skip over COMBINING GRAPHEME JOINER when ligating, etc.
   To be refined: https://github.com/harfbuzz/harfbuzz/issues/554
 - Faster hb_set_t implementation.
 - Don't use deprecated ICU API.
 - Fix undefined-behavior in Myanmar shaper, introduced in 1.6.0
+
 - Deprecated API:
-  hb_set_invert()
+  -hb_set_invert()
 
 
 Overview of changes leading to 1.6.0
 Friday, October the 13th, 2017
 ====================================
-
 - Update to Unicode 10.
 
 - Various Indic and Universal Shaping Engine fixes as a result of
@@ -2039,17 +2063,16 @@ Friday, October the 13th, 2017
   o --unicodes: takes a list of hex numbers that represent Unicode
     codepoints.
 
-New API:
-+hb_face_get_table_tags()
-+hb_font_set_ptem()
-+hb_font_get_ptem()
-+hb_ft_font_changed()
+- New API:
+  +hb_face_get_table_tags()
+  +hb_font_set_ptem()
+  +hb_font_get_ptem()
+  +hb_ft_font_changed()
 
 
 Overview of changes leading to 1.5.1
 Tuesday, September 5, 2017
 ====================================
-
 - Fix "unsafe-to-break" in fallback shaping and other corner cases.
   All our tests pass with --verify now, meaning unsafe-to-break API
   works as expected.
@@ -2062,7 +2085,6 @@ Tuesday, September 5, 2017
 Overview of changes leading to 1.5.0
 Wednesday, August 23, 2017
 ====================================
-
 - Misc new API, for appending a buffer to another, and for comparing
   contents of two buffers for types of differences.
 
@@ -2081,32 +2103,31 @@ Wednesday, August 23, 2017
 
 - New API:
 
-hb_buffer_append()
+  +hb_buffer_append()
 
-hb_glyph_flags_t
-HB_GLYPH_FLAG_UNSAFE_TO_BREAK
-HB_GLYPH_FLAG_DEFINED
-hb_glyph_info_get_glyph_flags()
+  +hb_glyph_flags_t
+  +HB_GLYPH_FLAG_UNSAFE_TO_BREAK
+  +HB_GLYPH_FLAG_DEFINED
+  +hb_glyph_info_get_glyph_flags()
 
-HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS
+  +HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS
 
-hb_buffer_diff_flags_t
-HB_BUFFER_DIFF_FLAG_EQUAL
-HB_BUFFER_DIFF_FLAG_CONTENT_TYPE_MISMATCH
-HB_BUFFER_DIFF_FLAG_LENGTH_MISMATCH
-HB_BUFFER_DIFF_FLAG_NOTDEF_PRESENT
-HB_BUFFER_DIFF_FLAG_DOTTED_CIRCLE_PRESENT
-HB_BUFFER_DIFF_FLAG_CODEPOINT_MISMATCH
-HB_BUFFER_DIFF_FLAG_CLUSTER_MISMATCH
-HB_BUFFER_DIFF_FLAG_GLYPH_FLAGS_MISMATCH
-HB_BUFFER_DIFF_FLAG_POSITION_MISMATCH
-hb_buffer_diff
+  +hb_buffer_diff_flags_t
+  +HB_BUFFER_DIFF_FLAG_EQUAL
+  +HB_BUFFER_DIFF_FLAG_CONTENT_TYPE_MISMATCH
+  +HB_BUFFER_DIFF_FLAG_LENGTH_MISMATCH
+  +HB_BUFFER_DIFF_FLAG_NOTDEF_PRESENT
+  +HB_BUFFER_DIFF_FLAG_DOTTED_CIRCLE_PRESENT
+  +HB_BUFFER_DIFF_FLAG_CODEPOINT_MISMATCH
+  +HB_BUFFER_DIFF_FLAG_CLUSTER_MISMATCH
+  +HB_BUFFER_DIFF_FLAG_GLYPH_FLAGS_MISMATCH
+  +HB_BUFFER_DIFF_FLAG_POSITION_MISMATCH
+  +hb_buffer_diff
 
 
 Overview of changes leading to 1.4.8
 Tuesday, August 8, 2017
 ====================================
-
 - Major fix to avar table handling.
 - Rename hb-shape --show-message to --trace.
 - Build fixes.
@@ -2115,7 +2136,6 @@ Tuesday, August 8, 2017
 Overview of changes leading to 1.4.7
 Tuesday, July 18, 2017
 ====================================
-
 - Multiple Indic, Tibetan, and Cham fixes.
 - CoreText: Allow disabling kerning.
 - Adjust Arabic feature order again.
@@ -2125,7 +2145,6 @@ Tuesday, July 18, 2017
 Overview of changes leading to 1.4.6
 Sunday, April 23, 2017
 ====================================
-
 - Graphite2: Fix RTL positioning issue.
 - Backlist GDEF of more versions of Padauk and Tahoma.
 - New, experimental, cmake alternative build system.
@@ -2134,7 +2153,6 @@ Sunday, April 23, 2017
 Overview of changes leading to 1.4.5
 Friday, March 10, 2017
 ====================================
-
 - Revert "Fix Context lookup application when moving back after a glyph..."
   This introduced memory access problems.  To be fixed properly soon.
 
@@ -2142,7 +2160,6 @@ Friday, March 10, 2017
 Overview of changes leading to 1.4.4
 Sunday, March 5, 2017
 ====================================
-
 - Fix Context lookup application when moving back after a glyph deletion.
 - Fix buffer-overrun in Bengali.
 
@@ -2150,39 +2167,39 @@ Sunday, March 5, 2017
 Overview of changes leading to 1.4.3
 Saturday, February 25, 2017
 ====================================
-
 - Route Adlam script to Arabic shaper.
 - Misc fixes.
+
 - New API:
-  hb_font_set_face()
+  +hb_font_set_face()
+
 - Deprecate API:
-  hb_graphite2_font_get_gr_font()
+  -hb_graphite2_font_get_gr_font()
 
 
 Overview of changes leading to 1.4.2
 Monday, January 23, 2017
 ====================================
-
 - Implement OpenType Font Variation tables avar/fvar/HVAR/VVAR.
 - hb-shape and hb-view now accept --variations.
+
 - New API:
+  +hb_variation_t
+  +hb_variation_from_string()
+  +hb_variation_to_string()
 
-hb_variation_t
-hb_variation_from_string()
-hb_variation_to_string()
+  +hb_font_set_variations()
+  +hb_font_set_var_coords_design()
+  +hb_font_get_var_coords_normalized()
 
-hb_font_set_variations()
-hb_font_set_var_coords_design()
-hb_font_get_var_coords_normalized()
-
-hb-ot-var.h:
-hb_ot_var_axis_t
-hb_ot_var_has_data()
-hb_ot_var_get_axis_count()
-hb_ot_var_get_axes()
-hb_ot_var_find_axis()
-hb_ot_var_normalize_variations()
-hb_ot_var_normalize_coords()
+  +hb-ot-var.h:
+  +hb_ot_var_axis_t
+  +hb_ot_var_has_data()
+  +hb_ot_var_get_axis_count()
+  +hb_ot_var_get_axes()
+  +hb_ot_var_find_axis()
+  +hb_ot_var_normalize_variations()
+  +hb_ot_var_normalize_coords()
 
 - MVAR to be implemented later.  Access to named instances to be
   implemented later as well.
@@ -2193,7 +2210,6 @@ hb_ot_var_normalize_coords()
 Overview of changes leading to 1.4.1
 Thursday, January 5, 2017
 ====================================
-
 - Always build and use UCDN for Unicode data by default.
   Reduces dependence on version of Unicode data in glib,
   specially in the Windows bundles we are shipping, which
@@ -2203,22 +2219,21 @@ Thursday, January 5, 2017
 Overview of changes leading to 1.4.0
 Thursday, January 5, 2017
 ====================================
-
 - Merged "OpenType GX" branch which adds core of support for
   OpenType 1.8 Font Variations.  To that extent, the relevant
   new API is:
 
-New API:
-hb_font_set_var_coords_normalized()
+- New API:
+  +hb_font_set_var_coords_normalized()
 
   with supporting API:
 
-New API:
-HB_OT_LAYOUT_NO_VARIATIONS_INDEX
-hb_ot_layout_table_find_feature_variations()
-hb_ot_layout_feature_with_variations_get_lookups()
-hb_shape_plan_create2()
-hb_shape_plan_create_cached2()
+- New API:
+  +HB_OT_LAYOUT_NO_VARIATIONS_INDEX
+  +hb_ot_layout_table_find_feature_variations()
+  +hb_ot_layout_feature_with_variations_get_lookups()
+  +hb_shape_plan_create2()
+  +hb_shape_plan_create_cached2()
 
   Currently variations in GSUB/GPOS/GDEF are fully supported,
   and no other tables are supported.  In particular, fvar/avar
@@ -2245,38 +2260,36 @@ Monday, December 5, 2016
 Overview of changes leading to 1.3.3
 Wednesday, September 28, 2016
 ====================================
-
 - Implement parsing of OpenType MATH table.
-New API:
-HB_OT_TAG_MATH
-HB_OT_MATH_SCRIPT
-hb_ot_math_constant_t
-hb_ot_math_kern_t
-hb_ot_math_glyph_variant_t
-hb_ot_math_glyph_part_flags_t
-hb_ot_math_glyph_part_t
-hb_ot_math_has_data
-hb_ot_math_get_constant
-hb_ot_math_get_glyph_italics_correction
-hb_ot_math_get_glyph_top_accent_attachment
-hb_ot_math_get_glyph_kerning
-hb_ot_math_is_glyph_extended_shape
-hb_ot_math_get_glyph_variants
-hb_ot_math_get_min_connector_overlap
-hb_ot_math_get_glyph_assembly
+
+- New API:
+  +HB_OT_TAG_MATH
+  +HB_OT_MATH_SCRIPT
+  +hb_ot_math_constant_t
+  +hb_ot_math_kern_t
+  +hb_ot_math_glyph_variant_t
+  +hb_ot_math_glyph_part_flags_t
+  +hb_ot_math_glyph_part_t
+  +hb_ot_math_has_data()
+  +hb_ot_math_get_constant()
+  +hb_ot_math_get_glyph_italics_correction()
+  +hb_ot_math_get_glyph_top_accent_attachment()
+  +hb_ot_math_get_glyph_kerning()
+  +hb_ot_math_is_glyph_extended_shape()
+  +hb_ot_math_get_glyph_variants()
+  +hb_ot_math_get_min_connector_overlap()
+  +hb_ot_math_get_glyph_assembly()
 
 
 Overview of changes leading to 1.3.2
 Wednesday, September 27, 2016
 ====================================
-
 - Fix build of hb-coretext on older OS X versions.
 
 
 Overview of changes leading to 1.3.1
 Wednesday, September 7, 2016
 ====================================
-
 - Blacklist bad GDEF of more fonts (Padauk).
 - More CoreText backend crash fixes with OS X 10.9.5.
 - Misc fixes.
@@ -2285,7 +2298,6 @@ Wednesday, September 7, 2016
 Overview of changes leading to 1.3.0
 Thursday, July 21, 2016
 ====================================
-
 - Update to Unicode 9.0.0
 - Move Javanese from Indic shaper to Universal Shaping Engine.
 - Allow MultipleSubst to delete a glyph (matching Windows engine).
@@ -2300,7 +2312,6 @@ Thursday, July 21, 2016
 Overview of changes leading to 1.2.7
 Monday, May 2, 2016
 ====================================
-
 - Blacklist another version of Times New Roman (Bold) Italic from Windows 7.
 - Fix Mongolian Free Variation Selectors shaping with certain fonts.
 - Fix Tibetan shorthand contractions shaping.
@@ -2312,7 +2323,6 @@ Monday, May 2, 2016
 Overview of changes leading to 1.2.6
 Friday, April 8, 2016
 ====================================
-
 - Blacklist GDEF table of another set of Times New Roman (Bold) Italic.
 - DirectWrite backend improvements.  Note: DirectWrite backend is
   exclusively for our internal testing and should NOT be used in any
@@ -2322,14 +2332,12 @@ Friday, April 8, 2016
 Overview of changes leading to 1.2.5
 Monday, April 4, 2016
 ====================================
-
 - Fix GDEF mark-filtering-set, which was broken in 1.2.3.
 
 
 Overview of changes leading to 1.2.4
 Thursday, March 17, 2016
 ====================================
-
 - Synthesize GDEF glyph class for any glyph that does not have one in GDEF.
   I really hope we don't discover broken fonts that shape badly with this
   change.
@@ -2344,7 +2352,6 @@ Thursday, March 17, 2016
 Overview of changes leading to 1.2.3
 Thursday, February 25, 2016
 ====================================
-
 - Blacklist GDEF table of certain versions of Times New Roman (Bold) Italic,
   due to bug in glyph class of ASCII double-quote character.  This should
   address "regression" introduced in 1.2.0 when we switched mark zeroing
@@ -2363,17 +2370,17 @@ me know and I'll add HB_NDEBUG.
 
 Added get_nominal_glyph() and get_variation_glyph() instead of get_glyph()
 
-New API:
-- hb_font_get_nominal_glyph_func_t
-- hb_font_get_variation_glyph_func_t
-- hb_font_funcs_set_nominal_glyph_func()
-- hb_font_funcs_set_variation_glyph_func()
-- hb_font_get_nominal_glyph()
-- hb_font_get_variation_glyph()
+- New API:
+  +hb_font_get_nominal_glyph_func_t
+  +hb_font_get_variation_glyph_func_t
+  +hb_font_funcs_set_nominal_glyph_func()
+  +hb_font_funcs_set_variation_glyph_func()
+  +hb_font_get_nominal_glyph()
+  +hb_font_get_variation_glyph()
 
-Deprecated API:
-- hb_font_get_glyph_func_t
-- hb_font_funcs_set_glyph_func()
+- Deprecated API:
+  -hb_font_get_glyph_func_t
+  -hb_font_funcs_set_glyph_func()
 
 Clients that implement their own font-funcs are encouraged to replace
 their get_glyph() implementation with a get_nominal_glyph() and
@@ -2386,7 +2393,6 @@ just more efficient to use the new functions.
 Overview of changes leading to 1.2.2
 Wednesday, February 24, 2016
 ====================================
-
 - Fix regression with mark positioning with fonts that have
   non-zero mark advances.  This was introduced in 1.2.0 while
   trying to make mark and cursive attachments to work together.
@@ -2398,7 +2404,6 @@ Wednesday, February 24, 2016
 Overview of changes leading to 1.2.1
 Tuesday, February 23, 2016
 ====================================
-
 - CoreText: Fix bug with wrong scale if font scale was changed later.
   https://github.com/libass/libass/issues/212
 - CoreText: Drastically speed up font initialization.

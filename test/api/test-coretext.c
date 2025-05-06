@@ -79,6 +79,10 @@ test_native_coretext_variations (void)
   unsigned int length;
 
   // System UI font is a variable font
+#if !(defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) && MAC_OS_X_VERSION_MIN_REQUIRED < 1080
+# define kCTFontUIFontSystem kCTFontSystemFontType
+# define kCTFontUIFontEmphasizedSystem kCTFontEmphasizedSystemFontType
+#endif
   ctfont = CTFontCreateUIFontForLanguage (kCTFontUIFontSystem, 12.0, CFSTR ("en-US"));
   g_assert_nonnull (ctfont);
 
