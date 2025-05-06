@@ -33,7 +33,7 @@ def open_shape_batch_process():
         stderr=sys.stdout,
         env=env,
     )
-    return process
+    return [process]
 
 
 shape_process = open_shape_batch_process()
@@ -44,14 +44,16 @@ def shape_cmd(command, shape_process, verbose=False):
     global hb_shape
 
     # (Re)start shaper if it is dead
-    if shape_process.poll() is not None:
-        shape_process = open_shape_batch_process()
+    if shape_process[0].poll() is not None:
+        shape_process[0].stdin.close()
+        shape_process[0].stdout.close()
+        shape_process[0] = open_shape_batch_process()[0]
 
     if verbose:
         print("# " + hb_shape + " " + " ".join(command))
-    shape_process.stdin.write((";".join(command) + "\n").encode("utf-8"))
-    shape_process.stdin.flush()
-    return shape_process.stdout.readline().decode("utf-8").strip()
+    shape_process[0].stdin.write((";".join(command) + "\n").encode("utf-8"))
+    shape_process[0].stdin.flush()
+    return shape_process[0].stdout.readline().decode("utf-8").strip()
 
 
 def plural(what):
