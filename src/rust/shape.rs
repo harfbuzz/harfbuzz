@@ -7,7 +7,7 @@ use std::ptr::null_mut;
 use std::str::FromStr;
 
 use font_types::Tag;
-use harfruzz::{Direction, Face, FontRef, Language, Script, ShaperFont};
+use harfruzz::{Face, FontRef, ShaperFont};
 
 pub struct HBHarfRuzzFaceData<'a> {
     face_blob: *mut hb_blob_t,
@@ -94,18 +94,18 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     let language = hb_buffer_get_language(buffer);
     let direction = hb_buffer_get_direction(buffer);
     // Convert to HarfRuzz types
-    let script =
-        Script::from_iso15924_tag(Tag::from_u32(script)).unwrap_or(harfruzz::script::UNKNOWN);
+    let script = harfruzz::Script::from_iso15924_tag(Tag::from_u32(script))
+        .unwrap_or(harfruzz::script::UNKNOWN);
     let language_str = hb_language_to_string(language);
     let language_str = std::ffi::CStr::from_ptr(language_str);
     let language_str = language_str.to_str().unwrap_or("");
-    let language = Language::from_str(language_str).unwrap();
+    let language = harfruzz::Language::from_str(language_str).unwrap();
     let direction = match direction {
-        hb_direction_t_HB_DIRECTION_LTR => Direction::LeftToRight,
-        hb_direction_t_HB_DIRECTION_RTL => Direction::RightToLeft,
-        hb_direction_t_HB_DIRECTION_TTB => Direction::TopToBottom,
-        hb_direction_t_HB_DIRECTION_BTT => Direction::BottomToTop,
-        _ => Direction::Invalid,
+        hb_direction_t_HB_DIRECTION_LTR => harfruzz::Direction::LeftToRight,
+        hb_direction_t_HB_DIRECTION_RTL => harfruzz::Direction::RightToLeft,
+        hb_direction_t_HB_DIRECTION_TTB => harfruzz::Direction::TopToBottom,
+        hb_direction_t_HB_DIRECTION_BTT => harfruzz::Direction::BottomToTop,
+        _ => harfruzz::Direction::Invalid,
     };
     // Set properties on the buffer
     hr_buffer.set_script(script);
