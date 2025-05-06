@@ -4,8 +4,9 @@ import os
 import re
 import sys
 
-srcdir = os.getenv("srcdir", os.path.dirname(__file__))
-base_srcdir = os.getenv("base_srcdir", srcdir)
+srcdir = sys.argv[1]
+base_srcdir = sys.argv[2]
+builddir = sys.argv[3]
 
 os.chdir(srcdir)
 
@@ -28,6 +29,7 @@ stat = 0
 for x in HBHEADERS + HBSOURCES:
     if not x.endswith("h") or x == "hb-gobject-structs.h":
         continue
+    print(f"Checking {x}")
     tag = (
         x.upper()
         .replace(".", "_")

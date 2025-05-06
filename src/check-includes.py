@@ -4,8 +4,9 @@ import os
 import re
 import sys
 
-srcdir = os.getenv("srcdir", os.path.dirname(__file__))
-base_srcdir = os.getenv("base_srcdir", srcdir)
+srcdir = sys.argv[1]
+base_srcdir = sys.argv[2]
+builddir = sys.argv[3]
 
 os.chdir(srcdir)
 
@@ -32,6 +33,7 @@ print(
 for x in HBHEADERS:
     if x == "hb.h" or x == "hb-common.h":
         continue
+    print(f"Checking {x}")
     with open(x, "r", encoding="utf-8") as f:
         content = f.read()
     first = re.findall(r"#.*include.*", content)[0]
@@ -41,6 +43,7 @@ for x in HBHEADERS:
 
 print("Checking that source files #include a private header first (or none)")
 for x in HBSOURCES:
+    print(f"Checking {x}")
     with open(x, "r", encoding="utf-8") as f:
         content = f.read()
     includes = re.findall(r"#.*include.*", content)
@@ -51,6 +54,7 @@ for x in HBSOURCES:
 
 print("Checking that there is no #include <hb-*.h>")
 for x in HBHEADERS + HBSOURCES:
+    print(f"Checking {x}")
     with open(x, "r", encoding="utf-8") as f:
         content = f.read()
     if re.findall("#.*include.*<.*hb", content):

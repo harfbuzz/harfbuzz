@@ -5,9 +5,11 @@ import shutil
 import subprocess
 import sys
 
-os.chdir(os.getenv("srcdir", os.path.dirname(__file__)))
+srcdir = sys.argv[1]
+base_srcdir = sys.argv[2]
+builddir = sys.argv[3]
 
-libs = os.getenv("libs", ".libs")
+os.chdir(srcdir)
 
 ldd = os.getenv("LDD", shutil.which("ldd"))
 if not ldd:
@@ -24,7 +26,7 @@ tested = False
 # harfbuzz-icu links to libstdc++ because icu does.
 for soname in ["harfbuzz", "harfbuzz-subset", "harfbuzz-gobject", "harfbuzz-cairo"]:
     for suffix in ["so", "dylib"]:
-        so = os.path.join(libs, "lib%s.%s" % (soname, suffix))
+        so = os.path.join(builddir, "lib%s.%s" % (soname, suffix))
         if not os.path.exists(so):
             continue
 

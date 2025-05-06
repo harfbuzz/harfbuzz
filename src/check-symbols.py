@@ -9,8 +9,9 @@ import sys
 
 os.environ["LC_ALL"] = "C"  # otherwise 'nm' prints in wrong order
 
-builddir = os.getenv("builddir", os.path.dirname(__file__))
-libs = os.getenv("libs", ".libs")
+srcdir = sys.argv[1]
+base_srcdir = sys.argv[2]
+builddir = sys.argv[3]
 
 IGNORED_SYMBOLS = [
     "_fini",
@@ -61,7 +62,7 @@ for soname in [
     "harfbuzz-cairo",
 ]:
     for suffix in ["so", "dylib"]:
-        so = os.path.join(builddir, libs, "lib%s.%s" % (soname, suffix))
+        so = os.path.join(builddir, "lib%s.%s" % (soname, suffix))
         if not os.path.exists(so):
             continue
 

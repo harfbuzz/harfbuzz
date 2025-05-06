@@ -3,8 +3,9 @@
 import os
 import sys
 
-srcdir = os.getenv("srcdir", os.path.dirname(__file__))
-base_srcdir = os.getenv("base_srcdir", srcdir)
+srcdir = sys.argv[1]
+base_srcdir = sys.argv[2]
+builddir = sys.argv[3]
 
 os.chdir(srcdir)
 
@@ -24,6 +25,7 @@ HBSOURCES = [removeprefix(x) for x in os.getenv("HBSOURCES", "").split()] or [
 stat = 0
 
 for x in HBHEADERS:
+    print(f"Checking {x}")
     with open(x, "r", encoding="utf-8") as f:
         content = f.read()
     if ("HB_BEGIN_DECLS" not in content) or ("HB_END_DECLS" not in content):
@@ -34,6 +36,7 @@ for x in HBHEADERS:
         stat = 1
 
 for x in HBSOURCES:
+    print(f"Checking {x}")
     with open(x, "r", encoding="utf-8") as f:
         content = f.read()
     if ("HB_BEGIN_DECLS" in content) or ("HB_END_DECLS" in content):

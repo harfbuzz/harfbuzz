@@ -1038,10 +1038,6 @@ if get_option('tests').enabled()
   ]
 
   env = environment()
-  env.set('srcdir', meson.current_source_dir())
-  env.set('base_srcdir', meson.project_source_root())
-  env.set('builddir', meson.current_build_dir())
-  env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
   HBSOURCES = []
   foreach f : hb_sources
     if meson.version().version_compare('>=1.4.0')
@@ -1069,6 +1065,11 @@ if get_option('tests').enabled()
   foreach name : dist_check_script
     test(name, find_program(name + '.py'),
       env: env,
+      args: [
+        meson.current_source_dir(),
+        meson.project_source_root(),
+        meson.current_build_dir(),
+      ],
       depends: name == 'check-symbols' ? defs_list : [],
       suite: ['src'],
     )

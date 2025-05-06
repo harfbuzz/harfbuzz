@@ -7,8 +7,9 @@ import shutil
 import subprocess
 import sys
 
-builddir = os.getenv("builddir", os.path.dirname(__file__))
-libs = os.getenv("libs", ".libs")
+srcdir = sys.argv[1]
+base_srcdir = sys.argv[2]
+builddir = sys.argv[3]
 
 objdump = os.getenv("OBJDUMP", shutil.which("objdump"))
 if not objdump:
@@ -19,13 +20,16 @@ if sys.version_info < (3, 5):
     print("check-static-inits.py: needs python 3.5 for recursive support in glob")
     sys.exit(77)
 
-OBJS = glob.glob(os.path.join(builddir, libs, "**", "*hb*.o"), recursive=True)
+OBJS = glob.glob(os.path.join(builddir, "**", "*hb*.o"), recursive=True)
 if not OBJS:
     print("check-static-inits.py: object files not found; skipping test")
     sys.exit(77)
 
 stat = 0
 tested = False
+
+print("Checking that the following object files has no static initializers/finalizers")
+print("\n".join(OBJS))
 
 result = subprocess.run(
     objdump.split() + ["-t"] + OBJS, stdout=subprocess.PIPE, stderr=subprocess.PIPE
