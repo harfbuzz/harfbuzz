@@ -496,6 +496,7 @@ struct hb_font_t
     /* Try getting extents from paint(), then draw(), *then* get_extents()
      * and apply synthetic settings in the last case. */
 
+#ifndef HB_NO_PAINT
     hb_paint_extents_context_t paint_extents;
     if (paint_glyph_or_fail (glyph,
 			     hb_paint_extents_get_funcs (), &paint_extents,
@@ -504,7 +505,9 @@ struct hb_font_t
       *extents = paint_extents.get_extents ().to_glyph_extents ();
       return true;
     }
+#endif
 
+#ifndef HB_NO_DRAW
     hb_extents_t draw_extents;
     if (draw_glyph_or_fail (glyph,
 			    hb_draw_extents_get_funcs (), &draw_extents))
@@ -512,6 +515,7 @@ struct hb_font_t
       *extents = draw_extents.to_glyph_extents ();
       return true;
     }
+#endif
 
     bool ret = klass->get.f.glyph_extents (this, user_data,
 					   glyph,
@@ -575,6 +579,7 @@ struct hb_font_t
 			   hb_draw_funcs_t *draw_funcs, void *draw_data,
 			   bool synthetic = true)
   {
+#ifndef HB_NO_DRAW
 #ifndef HB_NO_OUTLINE
     bool embolden = x_strength || y_strength;
     bool slanted = slant_xy;
@@ -618,6 +623,8 @@ struct hb_font_t
 
     return true;
 #endif
+#endif
+    return false;
   }
 
   bool paint_glyph_or_fail (hb_codepoint_t glyph,
@@ -626,6 +633,7 @@ struct hb_font_t
 			    hb_color_t foreground,
 			    bool synthetic = true)
   {
+#ifndef HB_NO_PAINT
     /* Slant */
     if (synthetic && slant_xy)
       hb_paint_push_transform (paint_funcs, paint_data,
@@ -643,6 +651,8 @@ struct hb_font_t
       hb_paint_pop_transform (paint_funcs, paint_data);
 
     return ret;
+#endif
+    return false;
   }
 
   /* A bit higher-level, and with fallback */
