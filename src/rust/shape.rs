@@ -41,7 +41,6 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_destroy_rs(data: *mut c_v
     let hr_face_data = Box::from_raw(data);
     let blob = hr_face_data.face_blob;
     hb_blob_destroy(blob);
-    // The hr_font is automatically cleaned up when it goes out of scope
 }
 
 #[no_mangle]
