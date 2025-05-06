@@ -3,6 +3,7 @@ name = "harfbuzz_rust"
 edition = "2021"
 
 [dependencies]
+font-types = { version = "0.*", optional = true }
 read-fonts = { version = "0.*", optional = true }
 skrifa = { version = "0.*", optional = true }
 harfruzz = { git = "https://github.com/harfbuzz/harfruzz", optional = true }
@@ -14,7 +15,7 @@ crate-type = ["staticlib"]
 
 [features]
 font = ["dep:read-fonts", "dep:skrifa"]
-shape = ["dep:harfruzz"]
+shape = ["dep:font-types", "dep:harfruzz"]
 
 [profile.release]
 strip = true
