@@ -11,7 +11,8 @@ use harfruzz::{Direction, Face, FontRef, Language, Script, ShaperFont};
 
 pub struct HBHarfRuzzFaceData<'a> {
     face_blob: *mut hb_blob_t,
-    face: Face<'a>,
+    shaper_font: Box<ShaperFont>,
+    face: Option<Face<'a>>,
 }
 
 #[no_mangle]
@@ -26,11 +27,17 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_create_rs(
 
     let font_ref = FontRef::from_index(face_data, face_index)
         .expect("FontRef::from_index should succeed on valid HarfBuzz face data");
-    let shaper_font = ShaperFont::new(&font_ref);
-    let face = shaper_font.shaper(&font_ref, &[]);
+    let shaper_font = Box::new(ShaperFont::new(&font_ref));
 
-    let hr_face_data = HBHarfRuzzFaceData { face_blob, face };
-    let hr_face_data_ptr = Box::into_raw(Box::new(hr_face_data));
+    let hr_face_data = Box::new(HBHarfRuzzFaceData {
+        face_blob,
+        shaper_font,
+        face: None,
+    });
+
+    let hr_face_data_ptr = Box::into_raw(hr_face_data);
+    (*hr_face_data_ptr).face = Some((*hr_face_data_ptr).shaper_font.shaper(&font_ref, &[]));
+
     hr_face_data_ptr as *mut c_void
 }
 
@@ -95,7 +102,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
         hr_buffer.add(char::from_u32_unchecked(unicode), cluster);
     }
 
-    let face = &(*data).face;
+    let face = &(*data).face.as_ref().unwrap();
 
     let glyphs = harfruzz::shape(face, &[], hr_buffer);
 
