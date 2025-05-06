@@ -19,6 +19,8 @@ jobs:
           - config: HB_MINI
           - config: HB_LEAN
           - config: HB_TINY
+          - config: HB_NO_DRAW
+          - config: HB_NO_PAINT
 
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
