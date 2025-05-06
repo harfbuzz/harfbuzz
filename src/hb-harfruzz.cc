@@ -75,6 +75,19 @@ _hb_harfruzz_shaper_font_data_destroy (hb_harfruzz_font_data_t *data)
   _hb_harfruzz_shaper_font_data_destroy_rs (data);
 }
 
+/*
+ * shape plan
+ */
+
+extern "C" void *
+_hb_harfruzz_shape_plan_create_rs (const void *font_data,
+				   hb_script_t script,
+				   hb_language_t language,
+				   hb_direction_t direction);
+
+extern "C" void
+_hb_harfruzz_shape_plan_destroy_rs (void *data);
+
 
 /*
  * shaper
@@ -82,13 +95,14 @@ _hb_harfruzz_shaper_font_data_destroy (hb_harfruzz_font_data_t *data)
 
 extern "C" hb_bool_t
 _hb_harfruzz_shape_rs (const void         *face_data,
+		       const void         *rs_shape_plan,
 		       hb_font_t          *font,
 		       hb_buffer_t        *buffer,
 		       const hb_feature_t *features,
 		       unsigned int        num_features);
 
 hb_bool_t
-_hb_harfruzz_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
+_hb_harfruzz_shape (hb_shape_plan_t    *shape_plan,
 		    hb_font_t          *font,
 		    hb_buffer_t        *buffer,
 		    const hb_feature_t *features,
@@ -97,6 +111,7 @@ _hb_harfruzz_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
   const hb_harfruzz_font_data_t *font_data = font->data.harfruzz;
 
   return _hb_harfruzz_shape_rs (font_data,
+				nullptr,
 				font,
 				buffer,
 				features,

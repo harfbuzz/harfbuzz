@@ -92,8 +92,48 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_font_data_destroy_rs(data: *mut c_v
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn _hb_harfruzz_shape_plan_create_rs(
+    font_data: *const c_void,
+    script: hb_script_t,
+    language: hb_language_t,
+    direction: hb_direction_t,
+) -> *mut c_void {
+    let font_data = font_data as *const HBHarfRuzzFontData;
+
+    let script = harfruzz::Script::from_iso15924_tag(Tag::from_u32(script));
+    let language_str = hb_language_to_string(language);
+    let language_str = std::ffi::CStr::from_ptr(language_str);
+    let language_str = language_str.to_str().unwrap_or("");
+    let language = harfruzz::Language::from_str(language_str).unwrap();
+    let direction = match direction {
+        hb_direction_t_HB_DIRECTION_LTR => harfruzz::Direction::LeftToRight,
+        hb_direction_t_HB_DIRECTION_RTL => harfruzz::Direction::RightToLeft,
+        hb_direction_t_HB_DIRECTION_TTB => harfruzz::Direction::TopToBottom,
+        hb_direction_t_HB_DIRECTION_BTT => harfruzz::Direction::BottomToTop,
+        _ => harfruzz::Direction::Invalid,
+    };
+
+    let hr_shape_plan = harfruzz::ShapePlan::new(
+        (*font_data).face.as_ref().unwrap(),
+        direction,
+        script,
+        Some(&language),
+        &[],
+    );
+    let hr_shape_plan = Box::new(hr_shape_plan);
+    Box::into_raw(hr_shape_plan) as *mut c_void
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn _hb_harfruzz_shape_plan_destroy_rs(data: *mut c_void) {
+    let data = data as *mut harfruzz::ShapePlan;
+    let _hr_shape_plan = Box::from_raw(data);
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     font_data: *const c_void,
+    shape_plan: *const c_void,
     font: *mut hb_font_t,
     buffer: *mut hb_buffer_t,
     features: *const hb_feature_t,
@@ -165,28 +205,32 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
 
     let face = &(*font_data).face.as_ref().unwrap();
 
-    let features = if features.is_null() {
-        Vec::new()
+    let glyphs = if shape_plan.is_null() {
+        let features = if features.is_null() {
+            Vec::new()
+        } else {
+            let features = std::slice::from_raw_parts(features, num_features as usize);
+            features
+                .iter()
+                .map(|f| {
+                    let tag = f.tag;
+                    let value = f.value;
+                    let start = f.start;
+                    let end = f.end;
+                    harfruzz::Feature {
+                        tag: Tag::from_u32(tag),
+                        value,
+                        start,
+                        end,
+                    }
+                })
+                .collect::<Vec<_>>()
+        };
+        harfruzz::shape(face, &features, hr_buffer)
     } else {
-        let features = std::slice::from_raw_parts(features, num_features as usize);
-        features
-            .iter()
-            .map(|f| {
-                let tag = f.tag;
-                let value = f.value;
-                let start = f.start;
-                let end = f.end;
-                harfruzz::Feature {
-                    tag: Tag::from_u32(tag),
-                    value,
-                    start,
-                    end,
-                }
-            })
-            .collect::<Vec<_>>()
+        let shape_plan = shape_plan as *const harfruzz::ShapePlan;
+        harfruzz::shape_with_plan(face, shape_plan.as_ref().unwrap(), hr_buffer)
     };
-
-    let glyphs = harfruzz::shape(face, &features, hr_buffer);
 
     let count = glyphs.len();
     hb_buffer_set_content_type(
