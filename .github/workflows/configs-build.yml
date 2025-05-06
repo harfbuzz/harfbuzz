@@ -22,7 +22,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Create main.cc
+      run: |
+        cat <<EOF > main.cc
+        #include "src/harfbuzz.cc"
+        int main() { return 0; }
+        EOF
     - name: install dependencies
       run: sudo apt-get install gcc
     - name: Build with ${{ matrix.config }}
-      run: g++ -std=c++11 -c src/harfbuzz.cc -D${{ matrix.config }}
+      run: g++ -std=c++11 main.cc -D${{ matrix.config }}
