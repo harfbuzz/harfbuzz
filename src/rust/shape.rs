@@ -64,9 +64,30 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     let mut hr_buffer = harfruzz::UnicodeBuffer::new();
 
     // Set buffer properties
-    // XXX
-    //let flags = hb_buffer_get_flags(buffer);
-    //hr_buffer.set_flags(harfruzz::BufferFlags::from_bits_truncate(flags));
+    let cluster_level = hb_buffer_get_cluster_level(buffer);
+    let cluster_level = match cluster_level {
+        hb_buffer_cluster_level_t_HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES => {
+            harfruzz::BufferClusterLevel::MonotoneGraphemes
+        }
+        hb_buffer_cluster_level_t_HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS => {
+            harfruzz::BufferClusterLevel::MonotoneCharacters
+        }
+        hb_buffer_cluster_level_t_HB_BUFFER_CLUSTER_LEVEL_CHARACTERS => {
+            harfruzz::BufferClusterLevel::Characters
+        }
+        /* TODO: Enable when added to HarfRuzz
+        hb_buffer_cluster_level_t_HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES => {
+            harfruzz::BufferClusterLevel::Graphemes
+        }
+        */
+        _ => harfruzz::BufferClusterLevel::default(),
+    };
+    hr_buffer.set_cluster_level(cluster_level);
+    let flags = hb_buffer_get_flags(buffer);
+    hr_buffer.set_flags(harfruzz::BufferFlags::from_bits_truncate(flags));
+    let not_found_variation_selector_glyph =
+        hb_buffer_get_not_found_variation_selector_glyph(buffer);
+    hr_buffer.set_not_found_variation_selector_glyph(not_found_variation_selector_glyph);
 
     // Segment properties:
     let script = hb_buffer_get_script(buffer);
