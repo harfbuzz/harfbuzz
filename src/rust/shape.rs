@@ -11,8 +11,8 @@ use harfruzz::{Face, FontRef, ShaperFont};
 
 pub struct HBHarfRuzzFaceData<'a> {
     face_blob: *mut hb_blob_t,
+    font_ref: FontRef<'a>,
     shaper_font: Box<ShaperFont>,
-    face: Option<Face<'a>>,
 }
 
 #[no_mangle]
@@ -31,35 +31,54 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_create_rs(
 
     let hr_face_data = Box::new(HBHarfRuzzFaceData {
         face_blob,
+        font_ref,
         shaper_font,
-        face: None,
     });
 
-    let hr_face_data_ptr = Box::into_raw(hr_face_data);
-    (*hr_face_data_ptr).face = Some((*hr_face_data_ptr).shaper_font.shaper(&font_ref, &[]));
-
-    hr_face_data_ptr as *mut c_void
+    Box::into_raw(hr_face_data) as *mut c_void
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_destroy_rs(data: *mut c_void) {
-    // The data pointer is expected to be a pointer to HBHarfRuzzFaceData
     let data = data as *mut HBHarfRuzzFaceData;
     let hr_face_data = Box::from_raw(data);
     let blob = hr_face_data.face_blob;
     hb_blob_destroy(blob);
 }
 
+pub struct HBHarfRuzzFontData<'a> {
+    face: Option<Face<'a>>,
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn _hb_harfruzz_shaper_font_data_create_rs(
+    _font: *mut hb_font_t,
+    face_data: *const c_void,
+) -> *mut c_void {
+    let face_data = face_data as *const HBHarfRuzzFaceData;
+
+    let hr_font_data = Box::new(HBHarfRuzzFontData { face: None });
+    let hr_font_data_ptr = Box::into_raw(hr_font_data);
+    (*hr_font_data_ptr).face = Some((*face_data).shaper_font.shaper(&(*face_data).font_ref, &[]));
+
+    hr_font_data_ptr as *mut c_void
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn _hb_harfruzz_shaper_font_data_destroy_rs(data: *mut c_void) {
+    let data = data as *mut HBHarfRuzzFontData;
+    let _hr_font_data = Box::from_raw(data);
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
-    data: *const c_void,
+    font_data: *const c_void,
     font: *mut hb_font_t,
     buffer: *mut hb_buffer_t,
     _features: *const hb_feature_t,
     _num_features: u32,
 ) -> hb_bool_t {
-    // The data pointer is expected to be a pointer to HBHarfRuzzFaceData
-    let data = data as *const HBHarfRuzzFaceData;
+    let font_data = font_data as *const HBHarfRuzzFontData;
 
     let mut hr_buffer = harfruzz::UnicodeBuffer::new();
 
@@ -123,7 +142,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
         hr_buffer.add(char::from_u32_unchecked(unicode), cluster);
     }
 
-    let face = &(*data).face.as_ref().unwrap();
+    let face = &(*font_data).face.as_ref().unwrap();
 
     let glyphs = harfruzz::shape(face, &[], hr_buffer);
 
