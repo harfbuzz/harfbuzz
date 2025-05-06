@@ -25,7 +25,7 @@ if not OBJS:
     sys.exit(77)
 
 stat = 0
-tested = 0
+tested = False
 
 result = subprocess.run(
     objdump.split() + ["-t"] + OBJS, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -34,18 +34,18 @@ result = subprocess.run(
 if result.returncode:
     if result.stderr.find(b"not recognized") != -1:
         # https://github.com/harfbuzz/harfbuzz/issues/3019
-        print('objdump %s returned "not recognized", skipping')
+        print('objdump returned "not recognized", skipping')
     else:
         print("objdump returned error:\n%s" % (result.stderr.decode("utf-8")))
         stat = 2
 else:
-    tested = 1
+    tested = True
 
 result = result.stdout.decode("utf-8")
 
 # Checking that no object file has static initializers
-for l in re.findall(r"^.*\.[cd]tors.*$", result, re.MULTILINE):
-    if not re.match(r".*\b0+\b", l):
+for lib in re.findall(r"^.*\.[cd]tors.*$", result, re.MULTILINE):
+    if not re.match(r".*\b0+\b", lib):
         print("Ouch, library has static initializers/finalizers")
         stat = 1
 
