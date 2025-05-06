@@ -101,6 +101,8 @@ _hb_harfruzz_shape_rs (const void         *face_data,
 		       const hb_feature_t *features,
 		       unsigned int        num_features);
 
+static hb_user_data_key_t hr_shape_plan_key = {0};
+
 hb_bool_t
 _hb_harfruzz_shape (hb_shape_plan_t    *shape_plan,
 		    hb_font_t          *font,
@@ -110,8 +112,34 @@ _hb_harfruzz_shape (hb_shape_plan_t    *shape_plan,
 {
   const hb_harfruzz_font_data_t *font_data = font->data.harfruzz;
 
+  void *hr_shape_plan = nullptr;
+
+  if (!num_features)
+  {
+  retry:
+    hr_shape_plan = hb_shape_plan_get_user_data (shape_plan,
+						 &hr_shape_plan_key);
+    if (unlikely (!hr_shape_plan))
+    {
+      hr_shape_plan = _hb_harfruzz_shape_plan_create_rs (font_data,
+							 shape_plan->key.props.script,
+							 shape_plan->key.props.language,
+							 shape_plan->key.props.direction);
+      if (hr_shape_plan &&
+	  !hb_shape_plan_set_user_data (shape_plan,
+				       &hr_shape_plan_key,
+				       hr_shape_plan,
+				       _hb_harfruzz_shape_plan_destroy_rs,
+				       false))
+      {
+        _hb_harfruzz_shape_plan_destroy_rs (hr_shape_plan);
+	goto retry;
+      }
+    }
+  }
+
   return _hb_harfruzz_shape_rs (font_data,
-				nullptr,
+				hr_shape_plan,
 				font,
 				buffer,
 				features,
