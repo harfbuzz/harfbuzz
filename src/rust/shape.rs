@@ -25,8 +25,11 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_create_rs(
     let blob_data = hb_blob_get_data(face_blob, null_mut());
     let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
 
-    let font_ref = FontRef::from_index(face_data, face_index)
-        .expect("FontRef::from_index should succeed on valid HarfBuzz face data");
+    let font_ref = FontRef::from_index(face_data, face_index);
+    if font_ref.is_err() {
+        return null_mut() as *mut c_void;
+    }
+    let font_ref = font_ref.unwrap();
     let shaper_font = Box::new(ShaperFont::new(&font_ref));
 
     let hr_face_data = Box::new(HBHarfRuzzFaceData {
