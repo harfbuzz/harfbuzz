@@ -47,19 +47,40 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_destroy_rs(data: *mut c_v
 }
 
 pub struct HBHarfRuzzFontData<'a> {
+    coords: Vec<font_types::F2Dot14>,
     face: Option<Face<'a>>,
+}
+
+fn font_coords_to_f2dot14(font: *mut hb_font_t) -> Vec<font_types::F2Dot14> {
+    let mut num_coords: u32 = 0;
+    let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
+    let coords = if coords.is_null() {
+        &[]
+    } else {
+        unsafe { std::slice::from_raw_parts(coords, num_coords as usize) }
+    };
+    coords
+        .iter()
+        .map(|v| font_types::F2Dot14::from_bits(*v as i16))
+        .collect::<Vec<_>>()
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn _hb_harfruzz_shaper_font_data_create_rs(
-    _font: *mut hb_font_t,
+    font: *mut hb_font_t,
     face_data: *const c_void,
 ) -> *mut c_void {
     let face_data = face_data as *const HBHarfRuzzFaceData;
 
-    let hr_font_data = Box::new(HBHarfRuzzFontData { face: None });
+    let coords = font_coords_to_f2dot14(font);
+
+    let hr_font_data = Box::new(HBHarfRuzzFontData { coords, face: None });
     let hr_font_data_ptr = Box::into_raw(hr_font_data);
-    (*hr_font_data_ptr).face = Some((*face_data).shaper_font.shaper(&(*face_data).font_ref, &[]));
+    (*hr_font_data_ptr).face = Some(
+        (*face_data)
+            .shaper_font
+            .shaper(&(*face_data).font_ref, &(*hr_font_data_ptr).coords),
+    );
 
     hr_font_data_ptr as *mut c_void
 }
