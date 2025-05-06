@@ -96,8 +96,8 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     font_data: *const c_void,
     font: *mut hb_font_t,
     buffer: *mut hb_buffer_t,
-    _features: *const hb_feature_t,
-    _num_features: u32,
+    features: *const hb_feature_t,
+    num_features: u32,
 ) -> hb_bool_t {
     let font_data = font_data as *const HBHarfRuzzFontData;
 
@@ -165,7 +165,28 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
 
     let face = &(*font_data).face.as_ref().unwrap();
 
-    let glyphs = harfruzz::shape(face, &[], hr_buffer);
+    let features = if features.is_null() {
+        Vec::new()
+    } else {
+        let features = std::slice::from_raw_parts(features, num_features as usize);
+        features
+            .iter()
+            .map(|f| {
+                let tag = f.tag;
+                let value = f.value;
+                let start = f.start;
+                let end = f.end;
+                harfruzz::Feature {
+                    tag: Tag::from_u32(tag),
+                    value,
+                    start,
+                    end,
+                }
+            })
+            .collect::<Vec<_>>()
+    };
+
+    let glyphs = harfruzz::shape(face, &features, hr_buffer);
 
     let count = glyphs.len();
     hb_buffer_set_content_type(
