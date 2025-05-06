@@ -491,7 +491,7 @@ build_summary = {
     {'CoreText': conf.get('HAVE_CORETEXT', 0) == 1,
      'DirectWrite (experimental)': conf.get('HAVE_DIRECTWRITE', 0) == 1,
      'GDI/Uniscribe': (conf.get('HAVE_GDI', 0) == 1) and (conf.get('HAVE_UNISCRIBE', 0) == 1),
-     'harfRuzz': conf.get('HAVE_HARFRUZZ', 0) == 1,
+     'HarfRuzz': conf.get('HAVE_HARFRUZZ', 0) == 1,
     },
   'Other features':
     {'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,

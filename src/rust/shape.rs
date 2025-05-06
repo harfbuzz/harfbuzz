@@ -72,7 +72,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     let script = hb_buffer_get_script(buffer);
     let language = hb_buffer_get_language(buffer);
     let direction = hb_buffer_get_direction(buffer);
-    // Convert to harfRuzz types
+    // Convert to HarfRuzz types
     let script =
         Script::from_iso15924_tag(Tag::from_u32(script)).unwrap_or(harfruzz::script::UNKNOWN);
     let language_str = hb_language_to_string(language);
