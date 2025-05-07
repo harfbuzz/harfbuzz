@@ -1,8 +1,8 @@
 use super::hb::*;
 
 use std::collections::HashMap;
+use std::ffi::c_void;
 use std::mem::transmute;
-use std::os::raw::c_void;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};

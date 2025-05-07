@@ -2,7 +2,7 @@
 
 use super::hb::*;
 
-use std::os::raw::c_void;
+use std::ffi::c_void;
 use std::ptr::null_mut;
 use std::str::FromStr;
 
@@ -25,11 +25,10 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_create_rs(
     let blob_data = hb_blob_get_data(face_blob, null_mut());
     let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
 
-    let font_ref = FontRef::from_index(face_data, face_index);
-    if font_ref.is_err() {
-        return null_mut() as *mut c_void;
-    }
-    let font_ref = font_ref.unwrap();
+    let font_ref = match FontRef::from_index(face_data, face_index) {
+        Ok(f) => f,
+        Err(_) => return null_mut(),
+    };
     let shaper_font = Box::new(ShaperFont::new(&font_ref));
 
     let hr_face_data = Box::new(HBHarfRuzzFaceData {
@@ -64,7 +63,7 @@ fn font_coords_to_f2dot14(font: *mut hb_font_t) -> Vec<font_types::F2Dot14> {
     };
     coords
         .iter()
-        .map(|v| font_types::F2Dot14::from_bits(*v as i16))
+        .map(|&v| font_types::F2Dot14::from_bits(v as i16))
         .collect::<Vec<_>>()
 }
 
@@ -106,7 +105,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_plan_create_rs(
     let script = harfruzz::Script::from_iso15924_tag(Tag::from_u32(script));
     let language_str = hb_language_to_string(language);
     let language_str = std::ffi::CStr::from_ptr(language_str);
-    let language_str = language_str.to_str().unwrap_or("");
+    let language_str = language_str.to_str().unwrap_or_default();
     let language = harfruzz::Language::from_str(language_str).unwrap();
     let direction = match direction {
         hb_direction_t_HB_DIRECTION_LTR => harfruzz::Direction::LeftToRight,
@@ -181,7 +180,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
         .unwrap_or(harfruzz::script::UNKNOWN);
     let language_str = hb_language_to_string(language);
     let language_str = std::ffi::CStr::from_ptr(language_str);
-    let language_str = language_str.to_str().unwrap_or("");
+    let language_str = language_str.to_str().unwrap_or_default();
     let language = harfruzz::Language::from_str(language_str).unwrap();
     let direction = match direction {
         hb_direction_t_HB_DIRECTION_LTR => harfruzz::Direction::LeftToRight,
@@ -200,9 +199,9 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     let infos = hb_buffer_get_glyph_infos(buffer, null_mut());
 
     for i in 0..count {
-        let info = infos.add(i as usize);
-        let unicode = (*info).codepoint;
-        let cluster = (*info).cluster;
+        let info = &*infos.add(i as usize);
+        let unicode = info.codepoint;
+        let cluster = info.cluster;
         hr_buffer.add(char::from_u32_unchecked(unicode), cluster);
     }
 
@@ -260,14 +259,14 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
         .zip(glyphs.glyph_positions())
         .enumerate()
     {
-        let info = infos.add(i);
-        let pos = positions.add(i);
-        (*info).codepoint = hr_info.glyph_id;
-        (*info).cluster = hr_info.cluster;
-        (*pos).x_advance = (hr_pos.x_advance as f32 * x_scale).round() as hb_position_t;
-        (*pos).y_advance = (hr_pos.y_advance as f32 * y_scale).round() as hb_position_t;
-        (*pos).x_offset = (hr_pos.x_offset as f32 * x_scale).round() as hb_position_t;
-        (*pos).y_offset = (hr_pos.y_offset as f32 * y_scale).round() as hb_position_t;
+        let info = &mut *infos.add(i);
+        let pos = &mut *positions.add(i);
+        info.codepoint = hr_info.glyph_id;
+        info.cluster = hr_info.cluster;
+        pos.x_advance = (hr_pos.x_advance as f32 * x_scale).round() as hb_position_t;
+        pos.y_advance = (hr_pos.y_advance as f32 * y_scale).round() as hb_position_t;
+        pos.x_offset = (hr_pos.x_offset as f32 * x_scale).round() as hb_position_t;
+        pos.y_offset = (hr_pos.y_offset as f32 * y_scale).round() as hb_position_t;
     }
 
     true as hb_bool_t
