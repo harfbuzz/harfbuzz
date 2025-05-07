@@ -12,7 +12,7 @@ use harfruzz::{Face, FontRef, ShaperFont};
 pub struct HBHarfRuzzFaceData<'a> {
     face_blob: *mut hb_blob_t,
     font_ref: FontRef<'a>,
-    shaper_font: Box<ShaperFont>,
+    shaper_font: ShaperFont,
 }
 
 #[no_mangle]
@@ -29,7 +29,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_create_rs(
         Ok(f) => f,
         Err(_) => return null_mut(),
     };
-    let shaper_font = Box::new(ShaperFont::new(&font_ref));
+    let shaper_font = ShaperFont::new(&font_ref);
 
     let hr_face_data = Box::new(HBHarfRuzzFaceData {
         face_blob,

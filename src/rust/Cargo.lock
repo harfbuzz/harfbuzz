@@ -59,7 +59,7 @@ dependencies = [
 [[package]]
 name = "harfruzz"
 version = "0.0.1"
-source = "git+https://github.com/harfbuzz/harfruzz#006472176ab87e3a84e799e74e0ac19fbe943dd7"
+source = "git+https://github.com/harfbuzz/harfruzz?rev=006472176ab87e3a84e799e74e0ac19fbe943dd7#006472176ab87e3a84e799e74e0ac19fbe943dd7"
 dependencies = [
  "bitflags",
  "bytemuck",
