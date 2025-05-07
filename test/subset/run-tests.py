@@ -27,6 +27,8 @@ def subset_cmd(command):
 
     # (Re)start shaper if it is dead
     if subset_process.poll() is not None:
+        subset_process.stdin.close()
+        subset_process.stdout.close()
         subset_process = open_subset_batch_process()
 
     print("# " + hb_subset + " " + " ".join(command))
