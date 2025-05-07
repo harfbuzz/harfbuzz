@@ -235,6 +235,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     };
 
     let count = glyphs.len();
+    hb_buffer_set_length(buffer, 0u32);
     hb_buffer_set_content_type(
         buffer,
         hb_buffer_content_type_t_HB_BUFFER_CONTENT_TYPE_GLYPHS,
