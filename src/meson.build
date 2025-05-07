@@ -338,6 +338,9 @@ hb_ft_headers = files('hb-ft.h')
 hb_fontations_sources = files()
 hb_fontations_headers = files('hb-fontations.h')
 
+hb_harfruzz_sources = files('hb-harfruzz.cc')
+hb_harfruzz_headers = files()
+
 hb_glib_sources = files('hb-glib.cc')
 hb_glib_headers = files('hb-glib.h')
 
@@ -529,13 +532,19 @@ if conf.get('HAVE_CORETEXT', 0) == 1
   harfbuzz_deps += coretext_deps
 endif
 
+if conf.get('HAVE_FONTATIONS', 0) == 1 or conf.get('HAVE_HARFRUZZ', 0) == 1
+  subdir('rust')
+  harfbuzz_deps += [harfbuzz_rust_dep]
+endif
+
 if conf.get('HAVE_FONTATIONS', 0) == 1
-
-  subdir('fontations')
-
   hb_sources += hb_fontations_sources
   hb_headers += hb_fontations_headers
-  harfbuzz_deps += [harfbuzz_fontations_dep]
+endif
+
+if conf.get('HAVE_HARFRUZZ', 0) == 1
+  hb_sources += hb_harfruzz_sources
+  hb_headers += hb_harfruzz_headers
 endif
 
 have_icu = conf.get('HAVE_ICU', 0) == 1

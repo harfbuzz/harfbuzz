@@ -15,13 +15,24 @@ rustfmt = find_program('rustfmt')
 
 rust_flags = ''
 cargo_args = [
-  '--package', 'harfbuzz_fontations',
+  '--package', 'harfbuzz_rust',
   '--lib',
   '--target-dir', meson.current_build_dir(),
   '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
   '-Z', 'build-std=std,panic_abort',
   '-Z', 'build-std-features=panic_immediate_abort',
 ]
+
+features = []
+if conf.get('HAVE_FONTATIONS', 0) == 1
+  features += ['font']
+endif
+if conf.get('HAVE_HARFRUZZ', 0) == 1
+  features += ['shape']
+endif
+if features.length() > 0
+  cargo_args += ['--features', ','.join(features)]
+endif
 
 buildtype = get_option('buildtype')
 if buildtype == 'release' or buildtype == 'debugoptimized'
@@ -31,10 +42,16 @@ endif
 opt_level = get_option('optimization')
 rust_flags += ' -C opt-level=' + opt_level
 
-harfbuzz_fontations = custom_target(
-  'harfbuzz_fontations',
-  input: ['lib.rs', 'Cargo.toml', 'Cargo.lock'],
-  output: ['libharfbuzz_fontations.a'],
+sources = [
+  'lib.rs',
+  'font.rs',
+  'shape.rs',
+]
+
+harfbuzz_rust = custom_target(
+  'harfbuzz_rust',
+  input: sources + ['Cargo.toml', 'Cargo.lock'],
+  output: ['libharfbuzz_rust.a'],
   depends: [hb_rs],
   env: ['OUT_DIR=' + meson.current_build_dir(),
         'RUSTFLAGS=' + rust_flags,
@@ -49,14 +66,14 @@ harfbuzz_fontations = custom_target(
   install_dir: join_paths(get_option('prefix'), 'lib'),
 )
 
-harfbuzz_fontations_dep = declare_dependency(
-  link_with: harfbuzz_fontations,
+harfbuzz_rust_dep = declare_dependency(
+  link_with: harfbuzz_rust,
 )
 
 clippy_fix = run_target(
   'clippy-fix',
   env: ['OUT_DIR=' + meson.current_build_dir()],
-  depends: [hb_rs, harfbuzz_fontations],
+  depends: [hb_rs, harfbuzz_rust],
   command: [
     cargo, 'clippy',
     ] + cargo_args + [
@@ -68,7 +85,7 @@ if get_option('tests').enabled() and cargo.found()
     'clippy',
     cargo,
     env: ['OUT_DIR=' + meson.current_build_dir()],
-    depends: [hb_rs, harfbuzz_fontations],
+    depends: [hb_rs, harfbuzz_rust],
     args: [
       'clippy',
       ] + cargo_args + [
@@ -78,6 +95,12 @@ if get_option('tests').enabled() and cargo.found()
   )
 endif
 
+# Convert source files in their src dir by transforming the `sources` list.
+sources_in_source_dir = []
+foreach s : sources
+  sources_in_source_dir += meson.current_source_dir() / s
+endforeach
+
 rustfmt_fix = run_target(
   'rustfmt-fix',
   env: ['OUT_DIR=' + meson.current_build_dir()],
@@ -86,7 +109,7 @@ rustfmt_fix = run_target(
     rustfmt,
     '--edition', '2021',
     '--',
-    meson.current_source_dir() / 'lib.rs',
+    sources_in_source_dir,
   ],
 )
 if get_option('tests').enabled() and rustfmt.found()
@@ -99,7 +122,7 @@ if get_option('tests').enabled() and rustfmt.found()
       '--check',
       '--edition', '2021',
       '--',
-      meson.current_source_dir() / 'lib.rs',
+      sources_in_source_dir,
     ],
   )
 endif
