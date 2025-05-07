@@ -142,8 +142,8 @@ for filename in args:
     for what in ["shaper", "face-loader", "font-funcs"]:
         all_var_name = all_whats_var_name(what)
         globals()[all_var_name] = supported_whats(what)
-    all_face_loaders = ["ot"]  # But only 'ot' face-loader
-    all_shapers = ["ot"]  # But only 'ot' shaper
+    all_face_loaders = os.environ.get("HB_FACE_LOADER", "ot").split(",")
+    all_shapers = os.environ.get("HB_SHAPER_LIST", "ot").split(",")
 
     # Right now we only test the 'ot' shaper if nothing specified,
     # but try all font-funcs unless overriden.
@@ -263,8 +263,11 @@ for filename in args:
 
         for face_loader in [face_loader] if face_loader else all_whats("face-loader"):
             for shaper in [shaper] if shaper else all_whats("shaper"):
+                all_font_funcs_for_shaper = (
+                    all_whats("font-funcs") if shaper == "ot" else [None]
+                )
                 for font_funcs in (
-                    [font_funcs] if font_funcs else all_whats("font-funcs")
+                    [font_funcs] if font_funcs else all_font_funcs_for_shaper
                 ):
                     number += 1
                     extra_options = []
