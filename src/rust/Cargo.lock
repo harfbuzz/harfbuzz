@@ -58,8 +58,9 @@ dependencies = [
 
 [[package]]
 name = "harfruzz"
-version = "0.0.1"
-source = "git+https://github.com/harfbuzz/harfruzz?rev=006472176ab87e3a84e799e74e0ac19fbe943dd7#006472176ab87e3a84e799e74e0ac19fbe943dd7"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "825c14612bfcab08efb885f4b6a1df44d6f5a399e8f55497aa910eb28a11d8ea"
 dependencies = [
  "bitflags",
  "bytemuck",
