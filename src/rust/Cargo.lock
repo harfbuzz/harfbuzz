@@ -47,10 +47,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "font-types"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02a596f5713680923a2080d86de50fe472fb290693cf0f701187a1c8b36996b7"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
 name = "harfbuzz_rust"
 version = "0.0.0"
 dependencies = [
- "font-types",
  "harfruzz",
  "skrifa",
 ]
@@ -58,14 +66,13 @@ dependencies = [
 [[package]]
 name = "harfruzz"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "825c14612bfcab08efb885f4b6a1df44d6f5a399e8f55497aa910eb28a11d8ea"
+source = "git+https://github.com/harfbuzz/harfruzz#722614e2ddeaa87ae797811762e8b8675e0adf03"
 dependencies = [
  "bitflags",
  "bytemuck",
  "core_maths",
  "log",
- "read-fonts",
+ "read-fonts 0.29.0",
  "smallvec",
  "ttf-parser",
  "unicode-bidi-mirroring",
@@ -111,8 +118,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "600e807b48ac55bad68a8cb75cc3c7739f139b9248f7e003e01e080f589b5288"
 dependencies = [
  "bytemuck",
+ "font-types 0.8.4",
+]
+
+[[package]]
+name = "read-fonts"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ce8e2ca6b24313587a03ca61bb74c384e2a815bd90cf2866cfc9f5fb7a11fa0"
+dependencies = [
+ "bytemuck",
  "core_maths",
- "font-types",
+ "font-types 0.9.0",
 ]
 
 [[package]]
@@ -122,7 +139,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fa1e5622e4f7b98877e8a19890efddcac1230cec6198bd9de91ec0e00010dc8"
 dependencies = [
  "bytemuck",
- "read-fonts",
+ "read-fonts 0.28.0",
 ]
 
 [[package]]

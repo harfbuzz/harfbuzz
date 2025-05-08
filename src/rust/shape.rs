@@ -6,8 +6,7 @@ use std::ffi::c_void;
 use std::ptr::null_mut;
 use std::str::FromStr;
 
-use font_types::{F2Dot14, Tag};
-use harfruzz::{Face, FontRef, ShaperFont};
+use harfruzz::{F2Dot14, Face, FontRef, ShaperFont, Tag};
 
 pub struct HBHarfRuzzFaceData<'a> {
     face_blob: *mut hb_blob_t,
