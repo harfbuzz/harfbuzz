@@ -62,10 +62,10 @@ impl FontationsData<'_> {
         let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
 
         let font_ref = FontRef::from_index(face_data, face_index);
-        if font_ref.is_err() {
-            return None;
-        }
-        let font_ref = font_ref.unwrap();
+        let font_ref = match font_ref {
+            Ok(f) => f,
+            Err(_) => return None,
+        };
 
         let char_map = Charmap::new(&font_ref);
 
@@ -1111,10 +1111,10 @@ pub unsafe extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     let ffuncs = _hb_fontations_font_funcs_get();
 
     let data = FontationsData::from_hb_font(font);
-    if data.is_none() {
-        return;
-    }
-    let data = data.unwrap();
+    let data = match data {
+        Some(d) => d,
+        None => return,
+    };
     let data_ptr = Box::into_raw(Box::new(data)) as *mut c_void;
 
     hb_font_set_funcs(font, ffuncs, data_ptr, Some(_hb_fontations_data_destroy));
