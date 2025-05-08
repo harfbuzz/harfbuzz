@@ -169,7 +169,9 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     hr_buffer.set_flags(harfruzz::BufferFlags::from_bits_truncate(flags));
     let not_found_variation_selector_glyph =
         hb_buffer_get_not_found_variation_selector_glyph(buffer);
-    hr_buffer.set_not_found_variation_selector_glyph(not_found_variation_selector_glyph);
+    if not_found_variation_selector_glyph != u32::MAX {
+        hr_buffer.set_not_found_variation_selector_glyph(not_found_variation_selector_glyph);
+    }
 
     // Segment properties:
     let script = hb_buffer_get_script(buffer);
