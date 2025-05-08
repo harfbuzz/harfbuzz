@@ -39,15 +39,6 @@ dependencies = [
 
 [[package]]
 name = "font-types"
-version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fa6a5e5a77b5f3f7f9e32879f484aa5b3632ddfbe568a16266c904a6f32cdaf"
-dependencies = [
- "bytemuck",
-]
-
-[[package]]
-name = "font-types"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02a596f5713680923a2080d86de50fe472fb290693cf0f701187a1c8b36996b7"
@@ -66,13 +57,13 @@ dependencies = [
 [[package]]
 name = "harfruzz"
 version = "0.1.0"
-source = "git+https://github.com/harfbuzz/harfruzz#722614e2ddeaa87ae797811762e8b8675e0adf03"
+source = "git+https://github.com/harfbuzz/harfruzz#e48881dd3315c1c6c1663fb4fc54dbd7136fbfec"
 dependencies = [
  "bitflags",
  "bytemuck",
  "core_maths",
  "log",
- "read-fonts 0.29.0",
+ "read-fonts",
  "smallvec",
  "ttf-parser",
  "unicode-bidi-mirroring",
@@ -83,9 +74,9 @@ dependencies = [
 
 [[package]]
 name = "libm"
-version = "0.2.14"
+version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a25169bd5913a4b437588a7e3d127cd6e90127b60e0ffbd834a38f1599e016b8"
+checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
 
 [[package]]
 name = "log"
@@ -113,33 +104,23 @@ dependencies = [
 
 [[package]]
 name = "read-fonts"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "600e807b48ac55bad68a8cb75cc3c7739f139b9248f7e003e01e080f589b5288"
-dependencies = [
- "bytemuck",
- "font-types 0.8.4",
-]
-
-[[package]]
-name = "read-fonts"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5ce8e2ca6b24313587a03ca61bb74c384e2a815bd90cf2866cfc9f5fb7a11fa0"
 dependencies = [
  "bytemuck",
  "core_maths",
- "font-types 0.9.0",
+ "font-types",
 ]
 
 [[package]]
 name = "skrifa"
-version = "0.30.0"
+version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fa1e5622e4f7b98877e8a19890efddcac1230cec6198bd9de91ec0e00010dc8"
+checksum = "bbe6666ab11018ab91ff7b03f1a3b9fdbecfb610848436fefa5ce50343d3d913"
 dependencies = [
  "bytemuck",
- "read-fonts 0.28.0",
+ "read-fonts",
 ]
 
 [[package]]
