@@ -92,6 +92,16 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_font_data_destroy_rs(data: *mut c_v
     let _hr_font_data = Box::from_raw(data);
 }
 
+fn hb_language_to_hr_language(language: hb_language_t) -> Option<harfruzz::Language> {
+    let language_str = unsafe { hb_language_to_string(language) };
+    if language_str.is_null() {
+        return None;
+    }
+    let language_str = unsafe { std::ffi::CStr::from_ptr(language_str) };
+    let language_str = language_str.to_str().unwrap_or_default();
+    Some(harfruzz::Language::from_str(language_str).unwrap())
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn _hb_harfruzz_shape_plan_create_rs(
     font_data: *const c_void,
@@ -102,10 +112,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_plan_create_rs(
     let font_data = font_data as *const HBHarfRuzzFontData;
 
     let script = harfruzz::Script::from_iso15924_tag(Tag::from_u32(script));
-    let language_str = hb_language_to_string(language);
-    let language_str = std::ffi::CStr::from_ptr(language_str);
-    let language_str = language_str.to_str().unwrap_or_default();
-    let language = harfruzz::Language::from_str(language_str).unwrap();
+    let language = hb_language_to_hr_language(language);
     let direction = match direction {
         hb_direction_t_HB_DIRECTION_LTR => harfruzz::Direction::LeftToRight,
         hb_direction_t_HB_DIRECTION_RTL => harfruzz::Direction::RightToLeft,
@@ -118,7 +125,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_plan_create_rs(
         (*font_data).face.as_ref().unwrap(),
         direction,
         script,
-        Some(&language),
+        language.as_ref(),
         &[],
     );
     let hr_shape_plan = Box::new(hr_shape_plan);
@@ -179,10 +186,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     // Convert to HarfRuzz types
     let script = harfruzz::Script::from_iso15924_tag(Tag::from_u32(script))
         .unwrap_or(harfruzz::script::UNKNOWN);
-    let language_str = hb_language_to_string(language);
-    let language_str = std::ffi::CStr::from_ptr(language_str);
-    let language_str = language_str.to_str().unwrap_or_default();
-    let language = harfruzz::Language::from_str(language_str).unwrap();
+    let language = hb_language_to_hr_language(language);
     let direction = match direction {
         hb_direction_t_HB_DIRECTION_LTR => harfruzz::Direction::LeftToRight,
         hb_direction_t_HB_DIRECTION_RTL => harfruzz::Direction::RightToLeft,
@@ -192,7 +196,9 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
     };
     // Set properties on the buffer
     hr_buffer.set_script(script);
-    hr_buffer.set_language(language);
+    if let Some(lang) = language {
+        hr_buffer.set_language(lang);
+    }
     hr_buffer.set_direction(direction);
 
     // Populate buffer
