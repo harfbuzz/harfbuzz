@@ -6,7 +6,7 @@ use std::ffi::c_void;
 use std::ptr::null_mut;
 use std::str::FromStr;
 
-use font_types::Tag;
+use font_types::{F2Dot14, Tag};
 use harfruzz::{Face, FontRef, ShaperFont};
 
 pub struct HBHarfRuzzFaceData<'a> {
@@ -49,11 +49,11 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_destroy_rs(data: *mut c_v
 }
 
 pub struct HBHarfRuzzFontData<'a> {
-    coords: Vec<font_types::F2Dot14>,
+    coords: Vec<F2Dot14>,
     face: Option<Face<'a>>,
 }
 
-fn font_coords_to_f2dot14(font: *mut hb_font_t) -> Vec<font_types::F2Dot14> {
+fn font_coords_to_f2dot14(font: *mut hb_font_t) -> Vec<F2Dot14> {
     let mut num_coords: u32 = 0;
     let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
     let coords = if coords.is_null() {
@@ -63,7 +63,7 @@ fn font_coords_to_f2dot14(font: *mut hb_font_t) -> Vec<font_types::F2Dot14> {
     };
     coords
         .iter()
-        .map(|&v| font_types::F2Dot14::from_bits(v as i16))
+        .map(|&v| F2Dot14::from_bits(v as i16))
         .collect::<Vec<_>>()
 }
 
