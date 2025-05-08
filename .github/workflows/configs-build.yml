@@ -15,13 +15,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - config: HB_DISABLE_DEPRECATED
-          - config: HB_MINI
-          - config: HB_LEAN
-          - config: HB_TINY
-          - config: HB_NO_DRAW
-          - config: HB_NO_PAINT
+        config:
+          - HB_DISABLE_DEPRECATED
+          - HB_MINI
+          - HB_LEAN
+          - HB_TINY
+          - HB_NO_DRAW
+          - HB_NO_PAINT
 
     name: ${{ matrix.config }}
 
