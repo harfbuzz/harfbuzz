@@ -22,6 +22,9 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_face_data_create_rs(
     let face_blob = hb_face_reference_blob(face);
     let blob_length = hb_blob_get_length(face_blob);
     let blob_data = hb_blob_get_data(face_blob, null_mut());
+    if blob_data.is_null() {
+        return null_mut();
+    }
     let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
 
     let font_ref = match FontRef::from_index(face_data, face_index) {
