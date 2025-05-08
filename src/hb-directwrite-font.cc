@@ -114,6 +114,8 @@ hb_directwrite_get_glyph_h_advances (hb_font_t* font,
   dw_face->QueryInterface (__uuidof(IDWriteFontFace1), (void**)&dw_face1);
   assert (dw_face1);
 
+  unsigned int num_glyphs = font->face->get_num_glyphs ();
+
   for (unsigned i = 0; i < count;)
   {
     UINT16 gids[MAX_GLYPHS];
@@ -130,7 +132,9 @@ hb_directwrite_get_glyph_h_advances (hb_font_t* font,
     dw_face1->GetDesignGlyphAdvances (n, gids, advances, false);
     for (unsigned j = 0; j < n; j++)
     {
-      *first_advance = font->em_scale_x (advances[j]);
+      // https://github.com/harfbuzz/harfbuzz/issues/5319
+      auto advance = gids[j] < num_glyphs ? advances[j] : 0;
+      *first_advance = font->em_scale_x (advance);
       first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
     }
 
