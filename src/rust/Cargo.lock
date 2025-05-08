@@ -52,7 +52,6 @@ version = "0.0.0"
 dependencies = [
  "font-types",
  "harfruzz",
- "read-fonts",
  "skrifa",
 ]
 

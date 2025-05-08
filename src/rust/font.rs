@@ -7,11 +7,6 @@ use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};
 
-use read_fonts::tables::cpal::ColorRecord;
-use read_fonts::tables::vmtx::Vmtx;
-use read_fonts::tables::vorg::Vorg;
-use read_fonts::tables::vvar::Vvar;
-use read_fonts::TableProvider;
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
 use skrifa::color::{
@@ -22,6 +17,11 @@ use skrifa::instance::{Location, NormalizedCoord, Size};
 use skrifa::metrics::{BoundingBox, GlyphMetrics};
 use skrifa::outline::pen::OutlinePen;
 use skrifa::outline::DrawSettings;
+use skrifa::raw::tables::cpal::ColorRecord;
+use skrifa::raw::tables::vmtx::Vmtx;
+use skrifa::raw::tables::vorg::Vorg;
+use skrifa::raw::tables::vvar::Vvar;
+use skrifa::raw::TableProvider;
 use skrifa::OutlineGlyphCollection;
 use skrifa::{GlyphId, GlyphNames, MetadataProvider};
 
