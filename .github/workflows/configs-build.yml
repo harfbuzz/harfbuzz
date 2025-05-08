@@ -13,6 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         include:
           - config: HB_DISABLE_DEPRECATED
@@ -21,6 +22,8 @@ jobs:
           - config: HB_TINY
           - config: HB_NO_DRAW
           - config: HB_NO_PAINT
+
+    name: ${{ matrix.config }}
 
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
