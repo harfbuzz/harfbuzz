@@ -544,11 +544,10 @@ struct hb_ot_apply_context_t :
       backup_glyph_data ();
     }
 
-    matcher_t::may_skip_t
 #ifndef HB_OPTIMIZE_SIZE
     HB_ALWAYS_INLINE
 #endif
-    may_skip (const hb_glyph_info_t &info) const
+    matcher_t::may_skip_t may_skip (const hb_glyph_info_t &info) const
     { return matcher.may_skip (c, info); }
 
     enum match_t {
