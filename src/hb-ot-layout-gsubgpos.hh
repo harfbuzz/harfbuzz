@@ -532,11 +532,6 @@ struct skipping_iterator_t
     idx = start_index_;
   }
 
-  void reject ()
-  {
-    backup_glyph_data ();
-  }
-
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
@@ -650,15 +645,6 @@ struct skipping_iterator_t
 #ifndef HB_NO_BEYOND_64K
     else
     if (match_glyph_data24) match_glyph_data24++;
-#endif
-  }
-  void
-  backup_glyph_data ()
-  {
-    if (match_glyph_data16) match_glyph_data16--;
-#ifndef HB_NO_BEYOND_64K
-    else
-    if (match_glyph_data24) match_glyph_data24--;
 #endif
   }
 
