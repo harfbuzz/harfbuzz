@@ -401,12 +401,6 @@ struct matcher_t
 {
   typedef bool (*match_func_t) (hb_glyph_info_t &info, unsigned value, const void *data);
 
-  void set_ignore_zwnj (bool ignore_zwnj_) { ignore_zwnj = ignore_zwnj_; }
-  void set_ignore_zwj (bool ignore_zwj_) { ignore_zwj = ignore_zwj_; }
-  void set_ignore_hidden (bool ignore_hidden_) { ignore_hidden = ignore_hidden_; }
-  void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
-  void set_mask (hb_mask_t mask_) { mask = mask_; }
-  void set_per_syllable (bool per_syllable_) { per_syllable = per_syllable_; }
   void set_syllable (uint8_t syllable_)  { syllable = syllable_; }
   void set_match_func (match_func_t match_func_,
 		       const void *match_data_)
@@ -459,7 +453,7 @@ struct matcher_t
     return SKIP_NO;
   }
 
-  protected:
+  public:
   unsigned int lookup_props = 0;
   hb_mask_t mask = -1;
   bool ignore_zwnj = false;
@@ -483,21 +477,21 @@ struct skipping_iterator_t
     match_glyph_data24 = nullptr;
 #endif
     matcher.set_match_func (nullptr, nullptr);
-    matcher.set_lookup_props (c->lookup_props);
+    matcher.lookup_props = c->lookup_props;
     /* Ignore ZWNJ if we are matching GPOS, or matching GSUB context and asked to. */
-    matcher.set_ignore_zwnj (c->table_index == 1 || (context_match && c->auto_zwnj));
+    matcher.ignore_zwnj = c->table_index == 1 || (context_match && c->auto_zwnj);
     /* Ignore ZWJ if we are matching context, or asked to. */
-    matcher.set_ignore_zwj  (context_match || c->auto_zwj);
+    matcher.ignore_zwj = context_match || c->auto_zwj;
     /* Ignore hidden glyphs (like CGJ) during GPOS. */
-    matcher.set_ignore_hidden (c->table_index == 1);
-    matcher.set_mask (context_match ? -1 : c->lookup_mask);
+    matcher.ignore_hidden = c->table_index == 1;
+    matcher.mask = context_match ? -1 : c->lookup_mask;
     /* Per syllable matching is only for GSUB. */
-    matcher.set_per_syllable (c->table_index == 0 && c->per_syllable);
-    matcher.set_syllable (0);
+    matcher.per_syllable = c->table_index == 0 && c->per_syllable;
+    matcher.syllable = 0;
   }
   void set_lookup_props (unsigned int lookup_props)
   {
-    matcher.set_lookup_props (lookup_props);
+    matcher.lookup_props = lookup_props;
   }
   void set_match_func (matcher_t::match_func_t match_func_,
 		       const void *match_data_)
@@ -526,7 +520,7 @@ struct skipping_iterator_t
   {
     idx = start_index_;
     end = c->buffer->len;
-    matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
+    matcher.syllable = start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0;
   }
 
 #ifndef HB_OPTIMIZE_SIZE
