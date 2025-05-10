@@ -1269,7 +1269,7 @@ static bool match_input (hb_ot_apply_context_t *c,
 
   hb_buffer_t *buffer = c->buffer;
 
-  hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
+  auto &skippy_iter = c->iter_input;
   skippy_iter.reset (buffer->idx);
   skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (input);
@@ -1511,7 +1511,7 @@ static bool match_backtrack (hb_ot_apply_context_t *c,
 {
   TRACE_APPLY (nullptr);
 
-  hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
+  auto &skippy_iter = c->iter_context;
   skippy_iter.reset (c->buffer->backtrack_len ());
   skippy_iter.set_match_func (match_func, match_data);
   skippy_iter.set_glyph_data (backtrack);
@@ -1544,7 +1544,7 @@ static bool match_lookahead (hb_ot_apply_context_t *c,
 {
   TRACE_APPLY (nullptr);
 
-  hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
+  auto &skippy_iter = c->iter_context;
   assert (start_index >= 1);
   skippy_iter.reset (start_index - 1);
   skippy_iter.set_match_func (match_func, match_data);
@@ -2208,7 +2208,7 @@ struct RuleSet
      *
      * Replicated from LigatureSet::apply(). */
 
-    hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
+    auto &skippy_iter = c->iter_input;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
     skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
@@ -3419,7 +3419,7 @@ struct ChainRuleSet
     if (!c->auto_zwnj || !c->auto_zwj)
       goto slow;
 
-    hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
+    auto &skippy_iter = c->iter_input;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
     skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
