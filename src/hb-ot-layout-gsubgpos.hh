@@ -407,7 +407,7 @@ struct matcher_t
   void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
   void set_mask (hb_mask_t mask_) { mask = mask_; }
   void set_per_syllable (bool per_syllable_) { per_syllable = per_syllable_; }
-  void set_syllable (uint8_t syllable_)  { syllable = per_syllable ? syllable_ : 0; }
+  void set_syllable (uint8_t syllable_)  { syllable = syllable_; }
   void set_match_func (match_func_t match_func_,
 		       const void *match_data_)
   { match_func = match_func_; match_data = match_data_; }
@@ -425,7 +425,7 @@ struct matcher_t
 			 hb_codepoint_t glyph_data) const
   {
     if (!(info.mask & mask) ||
-	(syllable && syllable != info.syllable ()))
+	(per_syllable && syllable && syllable != info.syllable ()))
       return MATCH_NO;
 
     if (match_func)
