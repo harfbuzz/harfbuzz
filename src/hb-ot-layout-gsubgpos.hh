@@ -401,7 +401,23 @@ struct matcher_t
 {
   typedef bool (*match_func_t) (hb_glyph_info_t &info, unsigned value, const void *data);
 
-  void set_syllable (uint8_t syllable_)  { syllable = syllable_; }
+  template <typename context_t>
+  void init (const context_t *c, bool context_match = false)
+  {
+    set_match_func (nullptr, nullptr);
+    lookup_props = c->lookup_props;
+    /* Ignore ZWNJ if we are matching GPOS, or matching GSUB context and asked to. */
+    ignore_zwnj = c->table_index == 1 || (context_match && c->auto_zwnj);
+    /* Ignore ZWJ if we are matching context, or asked to. */
+    ignore_zwj = context_match || c->auto_zwj;
+    /* Ignore hidden glyphs (like CGJ) during GPOS. */
+    ignore_hidden = c->table_index == 1;
+    mask = context_match ? -1 : c->lookup_mask;
+    /* Per syllable matching is only for GSUB. */
+    per_syllable = c->table_index == 0 && c->per_syllable;
+    syllable = 0;
+  }
+
   void set_match_func (match_func_t match_func_,
 		       const void *match_data_)
   { match_func = match_func_; match_data = match_data_; }
@@ -476,18 +492,7 @@ struct skipping_iterator_t
 #ifndef HB_NO_BEYOND_64K
     match_glyph_data24 = nullptr;
 #endif
-    matcher.set_match_func (nullptr, nullptr);
-    matcher.lookup_props = c->lookup_props;
-    /* Ignore ZWNJ if we are matching GPOS, or matching GSUB context and asked to. */
-    matcher.ignore_zwnj = c->table_index == 1 || (context_match && c->auto_zwnj);
-    /* Ignore ZWJ if we are matching context, or asked to. */
-    matcher.ignore_zwj = context_match || c->auto_zwj;
-    /* Ignore hidden glyphs (like CGJ) during GPOS. */
-    matcher.ignore_hidden = c->table_index == 1;
-    matcher.mask = context_match ? -1 : c->lookup_mask;
-    /* Per syllable matching is only for GSUB. */
-    matcher.per_syllable = c->table_index == 0 && c->per_syllable;
-    matcher.syllable = 0;
+    matcher.init (c, context_match);
   }
   void set_lookup_props (unsigned int lookup_props)
   {
