@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""usage: ./gen-ucd-table ucd.nounihan.grouped.xml [/path/to/hb-common.h]
+"""usage: ./gen-ucd-table ucd.nounihan.grouped.xml [/path/to/hb-script-list.h]
 
 Input file:
 * https://unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip
@@ -21,7 +21,7 @@ logging.info('Loading UCDXML...')
 ucdxml = packTab.ucdxml.load_ucdxml(sys.argv[1])
 ucd = packTab.ucdxml.ucdxml_get_repertoire(ucdxml)
 
-hb_common_h = 'hb-common.h' if len (sys.argv) < 3 else sys.argv[2]
+hb_script_list_h = 'hb-script-list.h' if len (sys.argv) < 3 else sys.argv[2]
 
 logging.info('Preparing data tables...')
 
@@ -90,7 +90,7 @@ for i,v in enumerate(('Cc', 'Cf', 'Cn', 'Co', 'Cs', 'Ll', 'Lm', 'Lo', 'Lt', 'Lu'
 sc_order = dict()
 sc_array = []
 sc_re = re.compile(r"\b(HB_SCRIPT_[_A-Z]*).*HB_TAG [(]'(.)','(.)','(.)','(.)'[)]")
-for line in open(hb_common_h):
+for line in open(hb_script_list_h):
     m = sc_re.search (line)
     if not m: continue
     name = m.group(1)
