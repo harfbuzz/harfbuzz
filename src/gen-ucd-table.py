@@ -254,7 +254,7 @@ for step, text in modes.items():
             data, default, mapping=mapping, compression=compression
         )
         logging.info("      Dataset=%-8s FullCost=%d" % (name, sol.fullCost))
-        sol.genCode(code, name)
+        sol.genCode(code, name, language=language)
 
     code.print_code(linkage=language.private_function_linkage, language=language)
 
