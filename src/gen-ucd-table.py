@@ -153,6 +153,8 @@ for line in open(hb_script_list_h):
     i = len(sc_array)
     sc_order[tag] = i
     sc_order[i] = tag
+    if language.name == "rust":
+        name = name.replace("HB_SCRIPT_", "script::")
     sc_array.append(name)
 
 
@@ -184,9 +186,17 @@ if language.name == "c":
     print()
     print('#include "hb.hh"')
     print()
+elif language.name == "rust":
+    print("pub(crate) mod ucd {")
+    print()
+    print("#![allow(unused_parens)]")
+    print()
+    print("use crate::hb::algs::{HB_CODEPOINT_ENCODE3, HB_CODEPOINT_ENCODE3_11_7_14};")
+    print("use crate::hb::common::script;")
+    print("use crate::hb::common::Script as hb_script_t;")
+    print()
 else:
-    print("use hb::*;")
-
+    assert False, "Unknown language: %s" % language.name
 
 # Write mapping data
 
@@ -262,6 +272,10 @@ for step, text in modes.items():
 
 if language.name == "c":
     print("#endif /* HB_UCD_TABLE_HH */")
+elif language.name == "rust":
+    print("}")
+else:
+    assert False, "Unknown language: %s" % language.name
 print()
 print("/* == End of generated table == */")
 logging.info("Done.")
