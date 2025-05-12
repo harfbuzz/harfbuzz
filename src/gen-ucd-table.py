@@ -67,8 +67,8 @@ ce = {i for i, u in enumerate(ucd) if u["Comp_Ex"] == "Y"}
 assert not any(v for v in dm.values() if len(v) not in (1, 2))
 dm1 = sorted(set(v for v in dm.values() if len(v) == 1))
 assert all((v[0] >> 16) in (0, 2) for v in dm1)
-dm1_p0_array = ["0x%04Xu" % (v[0] & 0xFFFF) for v in dm1 if (v[0] >> 16) == 0]
-dm1_p2_array = ["0x%04Xu" % (v[0] & 0xFFFF) for v in dm1 if (v[0] >> 16) == 2]
+dm1_p0_array = ["0x%04X" % (v[0] & 0xFFFF) for v in dm1 if (v[0] >> 16) == 0]
+dm1_p2_array = ["0x%04X" % (v[0] & 0xFFFF) for v in dm1 if (v[0] >> 16) == 2]
 dm1_order = {v: i + 1 for i, v in enumerate(dm1)}
 
 dm2 = sorted(
@@ -86,11 +86,11 @@ dm2_u32_array = [v for v in dm2 if filt(v[0])]
 dm2_u64_array = [v for v in dm2 if not filt(v[0])]
 assert dm2_u32_array + dm2_u64_array == dm2
 dm2_u32_array = [
-    "HB_CODEPOINT_ENCODE3_11_7_14 (0x%04Xu, 0x%04Xu, 0x%04Xu)" % v[0]
+    "HB_CODEPOINT_ENCODE3_11_7_14 (0x%04X, 0x%04X, 0x%04X)" % v[0]
     for v in dm2_u32_array
 ]
 dm2_u64_array = [
-    "HB_CODEPOINT_ENCODE3 (0x%04Xu, 0x%04Xu, 0x%04Xu)" % v[0] for v in dm2_u64_array
+    "HB_CODEPOINT_ENCODE3 (0x%04X, 0x%04X, 0x%04X)" % v[0] for v in dm2_u64_array
 ]
 
 l = 1 + len(dm1_p0_array) + len(dm1_p2_array)
