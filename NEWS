@@ -6,7 +6,7 @@ Monday, May 12, 2025
 - Add an optional “harfruzz” shaper that uses HarfRuzz; an ongoing Rust port of
   HarfBuzz shaping. This shaper is mainly used for testing the output of the
   Rust implementation.
-- Fox regression that caused applying unsafe_to_break() to the whole buffer to
+- Fix regression that caused applying unsafe_to_break() to the whole buffer to
   be ignored.
 - Update USE data files.
 - Fix getting advances of out-of-rage glyph indices in DirectWrite font
