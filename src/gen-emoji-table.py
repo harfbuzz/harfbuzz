@@ -68,7 +68,7 @@ for typ, s in ranges.items():
 	sol = packTab.pack_table(arr, 0, compression=9)
 	code = packTab.Code('_hb_emoji')
 	sol.genCode(code, 'is_'+typ)
-	code.print_c(linkage='static inline')
+	code.print_c()
 	print()
 
 print ()
