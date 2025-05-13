@@ -27,7 +27,7 @@ for p in ("ArabicPUASimplified.txt", "ArabicPUATraditional.txt"):
     sol = packTab.pack_table(data, compression=9)
     sol.genCode(code, f'pua_{p[9:13].lower()}_map')
 
-code.print_c(linkage='static inline')
+code.print_c()
 
 print ()
 print ("#endif /* HB_OT_SHAPER_ARABIC_PUA_HH */")

@@ -509,7 +509,7 @@ for compression in (DEFAULT, COMPACT):
     sol = packTab.pack_table(data, compression=compression, default='O')
     logging.info('      FullCost=%d' % (sol.fullCost))
     sol.genCode(code, f'get_category')
-    code.print_c(linkage='static inline')
+    code.print_c()
     print ()
 
 print('#endif')

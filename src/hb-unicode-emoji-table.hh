@@ -68,7 +68,7 @@ static inline uint8_t _hb_emoji_b1 (const uint8_t* a, unsigned i)
 }
 static inline uint8_t _hb_emoji_is_Extended_Pictographic (unsigned u)
 {
-  return u<131070 ? _hb_emoji_b1(_hb_emoji_u8+264,((_hb_emoji_u8[144+(((_hb_emoji_u8[64+(((_hb_emoji_b4(_hb_emoji_u8,u>>5>>2>>3))<<3)+((u>>5>>2)&7))])<<2)+((u>>5)&3))])<<5)+((u)&31)) : 0;
+  return u<131070 ? _hb_emoji_b1(_hb_emoji_u8+264u,((_hb_emoji_u8[144u+(((_hb_emoji_u8[64u+(((_hb_emoji_b4(_hb_emoji_u8,u>>5>>2>>3))<<3)+((u>>5>>2)&7))])<<2)+((u>>5)&3))])<<5)+((u)&31)) : 0;
 }
 
 

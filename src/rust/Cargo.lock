@@ -57,7 +57,6 @@ dependencies = [
 [[package]]
 name = "harfruzz"
 version = "0.1.0"
-source = "git+https://github.com/harfbuzz/harfruzz#e48881dd3315c1c6c1663fb4fc54dbd7136fbfec"
 dependencies = [
  "bitflags",
  "bytemuck",
@@ -178,3 +177,7 @@ name = "unicode-script"
 version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fb421b350c9aff471779e262955939f565ec18b86c15364e6bdf0d662ca7c1f"
+
+[[patch.unused]]
+name = "skrifa"
+version = "0.30.0"
