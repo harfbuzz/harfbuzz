@@ -204,13 +204,20 @@ uint16_t = language.type_name("u16")
 uint32_t = language.type_name("u32")
 uint64_t = language.type_name("u64")
 
+if language.name == "c":
+    private = True
+elif language.name == "rust":
+    private = False
+else:
+    assert False, "Unknown language: %s" % language.name
+
 code = packTab.Code("_hb_ucd")
 sc_array, _ = code.addArray("hb_script_t", "sc_map", sc_array)
 dm1_p0_array, _ = code.addArray(uint16_t, "dm1_p0_map", dm1_p0_array)
 dm1_p2_array, _ = code.addArray(uint16_t, "dm1_p2_map", dm1_p2_array)
 dm2_u32_array, _ = code.addArray(uint32_t, "dm2_u32_map", dm2_u32_array)
 dm2_u64_array, _ = code.addArray(uint64_t, "dm2_u64_map", dm2_u64_array)
-code.print_code(linkage=language.private_function_linkage, language=language)
+code.print_code(language=language, private=private)
 
 datasets = [
     ("gc", gc, "Cn", gc_order),
@@ -264,9 +271,9 @@ for step, text in modes.items():
             data, default, mapping=mapping, compression=compression
         )
         logging.info("      Dataset=%-8s FullCost=%d" % (name, sol.fullCost))
-        sol.genCode(code, name, language=language)
+        sol.genCode(code, name, private=private, language=language)
 
-    code.print_code(linkage=language.private_function_linkage, language=language)
+    code.print_code(language=language)
 
     print()
 
