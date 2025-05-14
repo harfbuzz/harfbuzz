@@ -3,6 +3,7 @@ tests = [
   'bidi',
   'cmap',
   'cmap14',
+  'cmap4_overflow',
   'preprocess',
   'full-font',
   'cff-full-font',
