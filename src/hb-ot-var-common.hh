@@ -1340,17 +1340,26 @@ struct TupleVariationData
       return true;
     }
 
-    bool is_valid () const
+    bool is_valid ()
     {
-      return (index < var_data->tupleVarCount.get_count ()) &&
-             var_data_bytes.check_range (current_tuple, TupleVariationHeader::min_size) &&
-             var_data_bytes.check_range (current_tuple, current_tuple->get_size (axis_count));
+      if (unlikely (index >= var_data->tupleVarCount.get_count ()))
+	return false;
+
+      current_tuple_size = TupleVariationHeader::min_size;
+      if (unlikely (!var_data_bytes.check_range (current_tuple, current_tuple_size)))
+	return false;
+
+      current_tuple_size = current_tuple->get_size (axis_count);
+      if (unlikely (!var_data_bytes.check_range (current_tuple, current_tuple_size)))
+	return false;
+
+      return true;
     }
 
     bool move_to_next ()
     {
       data_offset += current_tuple->get_data_size ();
-      current_tuple = &current_tuple->get_next (axis_count);
+      current_tuple = &StructAtOffset<TupleVariationHeader> (current_tuple, current_tuple_size);
       index++;
       return is_valid ();
     }
@@ -1364,6 +1373,7 @@ struct TupleVariationData
     unsigned int index;
     unsigned int axis_count;
     unsigned int data_offset;
+    unsigned int current_tuple_size;
     const void *table_base;
 
     public:
