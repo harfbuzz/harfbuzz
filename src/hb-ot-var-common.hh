@@ -33,6 +33,7 @@
 
 namespace OT {
 
+using tuple_active_indices_t = hb_vector_t<uint16_t>;
 
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/otvarcommonformats#tuplevariationheader */
 struct TupleVariationHeader
@@ -100,13 +101,11 @@ struct TupleVariationHeader
 
   double calculate_scalar (hb_array_t<const int> coords, unsigned int coord_count,
 			   const hb_array_t<const F2DOT14> shared_tuples,
-			   const hb_vector_t<hb_pair_t<int,int>> *shared_tuple_active_idx = nullptr) const
+			   const hb_vector_t<tuple_active_indices_t> *shared_tuple_active_idx = nullptr) const
   {
     const F2DOT14 *peak_tuple;
 
-    unsigned start_idx = 0;
-    unsigned end_idx = coord_count;
-    unsigned step = 1;
+    const tuple_active_indices_t *active_indices = nullptr;
 
     if (has_peak ())
       peak_tuple = get_peak_tuple (coord_count).arrayZ;
@@ -121,18 +120,7 @@ struct TupleVariationHeader
       {
 	if (unlikely (index >= shared_tuple_active_idx->length))
 	  return 0.0;
-	auto _ = (*shared_tuple_active_idx).arrayZ[index];
-	if (_.second != -1)
-	{
-	  start_idx = _.first;
-	  end_idx = _.second + 1;
-	  step = _.second - _.first;
-	}
-	else if (_.first != -1)
-	{
-	  start_idx = _.first;
-	  end_idx = start_idx + 1;
-	}
+	active_indices = &(*shared_tuple_active_idx)[index];
       }
     }
 
@@ -145,9 +133,12 @@ struct TupleVariationHeader
       end_tuple = get_end_tuple (coord_count).arrayZ;
     }
 
+    unsigned count = active_indices ? active_indices->length : coord_count;
     double scalar = 1.0;
-    for (unsigned int i = start_idx; i < end_idx; i += step)
+    for (unsigned int j = 0; j < count; j++)
     {
+      unsigned i = active_indices ? (*active_indices).arrayZ[j] : j;
+
       int peak = peak_tuple[i].to_int ();
       if (!peak) continue;
 

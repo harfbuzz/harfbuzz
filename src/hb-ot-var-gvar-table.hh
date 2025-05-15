@@ -595,29 +595,17 @@ struct gvar_GVAR
        * for fonts with lots of axes and many "monovar" or "duovar" tuples. */
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
       unsigned count = table->sharedTupleCount;
-      if (unlikely (!shared_tuple_active_idx.resize (count, false))) return;
+      if (unlikely (!shared_tuple_active_idx.resize (count))) return;
       unsigned axis_count = table->axisCount;
       for (unsigned i = 0; i < count; i++)
       {
 	hb_array_t<const F2DOT14> tuple = shared_tuples.sub_array (axis_count * i, axis_count);
-	int idx1 = -1, idx2 = -1;
 	for (unsigned j = 0; j < axis_count; j++)
 	{
 	  const F2DOT14 &peak = tuple.arrayZ[j];
 	  if (peak.to_int () != 0)
-	  {
-	    if (idx1 == -1)
-	      idx1 = j;
-	    else if (idx2 == -1)
-	      idx2 = j;
-	    else
-	    {
-	      idx1 = idx2 = -1;
-	      break;
-	    }
-	  }
+	    shared_tuple_active_idx.arrayZ[i].push (j);
 	}
-	shared_tuple_active_idx.arrayZ[i] = {idx1, idx2};
       }
     }
     ~accelerator_t () { table.destroy (); }
@@ -884,7 +872,7 @@ struct gvar_GVAR
     private:
     hb_blob_ptr_t<gvar_GVAR> table;
     unsigned glyphCount;
-    hb_vector_t<hb_pair_t<int, int>> shared_tuple_active_idx;
+    hb_vector_t<tuple_active_indices_t> shared_tuple_active_idx;
   };
 
   protected:
