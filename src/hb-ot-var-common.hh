@@ -1344,8 +1344,7 @@ struct TupleVariationData
     {
       return (index < var_data->tupleVarCount.get_count ()) &&
              var_data_bytes.check_range (current_tuple, TupleVariationHeader::min_size) &&
-             var_data_bytes.check_range (current_tuple, hb_max (current_tuple->get_data_size (),
-                                                                current_tuple->get_size (axis_count)));
+             var_data_bytes.check_range (current_tuple, current_tuple->get_size (axis_count));
     }
 
     bool move_to_next ()
@@ -1356,6 +1355,7 @@ struct TupleVariationData
       return is_valid ();
     }
 
+    // TODO: Make it return (sanitized) hb_bytes_t
     const HBUINT8 *get_serialized_data () const
     { return &(table_base+var_data->data) + data_offset; }
 
