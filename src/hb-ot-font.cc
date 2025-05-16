@@ -73,7 +73,7 @@ struct hb_ot_font_t
   struct advance_cache_t
   {
     mutable hb_atomic_t<hb_ot_font_advance_cache_t *> advance_cache;
-    mutable hb_atomic_t<OT::ItemVariationStore::cache_t *> varStore_cache;
+    mutable hb_atomic_t<OT::hb_scalar_cache_t *> varStore_cache;
 
     ~advance_cache_t ()
     {
@@ -116,7 +116,7 @@ struct hb_ot_font_t
         goto retry;
     }
 
-    OT::ItemVariationStore::cache_t *acquire_varStore_cache (const OT::ItemVariationStore &varStore) const
+    OT::hb_scalar_cache_t *acquire_varStore_cache (const OT::ItemVariationStore &varStore) const
     {
     retry:
       auto *cache = varStore_cache.get_acquire ();
@@ -127,7 +127,7 @@ struct hb_ot_font_t
       else
 	goto retry;
     }
-    void release_varStore_cache (OT::ItemVariationStore::cache_t *cache) const
+    void release_varStore_cache (OT::hb_scalar_cache_t *cache) const
     {
       if (!cache)
 	return;
@@ -250,7 +250,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   ot_font->check_serial (font);
   const OT::HVAR &HVAR = *hmtx.var_table;
   const OT::ItemVariationStore &varStore = &HVAR + HVAR.varStore;
-  OT::ItemVariationStore::cache_t *varStore_cache = ot_font->h.acquire_varStore_cache (varStore);
+  OT::hb_scalar_cache_t *varStore_cache = ot_font->h.acquire_varStore_cache (varStore);
 
   hb_ot_font_advance_cache_t *advance_cache = nullptr;
 
@@ -314,7 +314,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
     ot_font->check_serial (font);
     const OT::VVAR &VVAR = *vmtx.var_table;
     const OT::ItemVariationStore &varStore = &VVAR + VVAR.varStore;
-    OT::ItemVariationStore::cache_t *varStore_cache = ot_font->v.acquire_varStore_cache (varStore);
+    OT::hb_scalar_cache_t *varStore_cache = ot_font->v.acquire_varStore_cache (varStore);
     // TODO Use advance_cache.
 
     for (unsigned int i = 0; i < count; i++)
