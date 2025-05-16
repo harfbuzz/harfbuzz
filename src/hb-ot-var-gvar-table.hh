@@ -582,6 +582,17 @@ struct gvar_GVAR
   public:
   struct accelerator_t
   {
+
+    hb_scalar_cache_t *create_cache () const
+    {
+      return hb_scalar_cache_t::create (table->sharedTupleCount);
+    }
+
+    static void destroy_cache (hb_scalar_cache_t *cache)
+    {
+      hb_scalar_cache_t::destroy (cache);
+    }
+
     bool has_data () const { return table->has_data (); }
 
     accelerator_t (hb_face_t *face)
@@ -640,6 +651,7 @@ struct gvar_GVAR
 				 hb_array_t<const int> coords,
 				 const hb_array_t<contour_point_t> points,
 				 hb_glyf_scratch_t &scratch,
+				 hb_scalar_cache_t *gvar_cache = nullptr,
 				 bool phantom_only = false) const
     {
       if (unlikely (glyph >= glyphCount)) return true;
@@ -675,10 +687,13 @@ struct gvar_GVAR
 
       unsigned count = points.length;
       bool flush = false;
+
       do
       {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples,
-								 &shared_tuple_active_idx);
+								 &shared_tuple_active_idx,
+								 gvar_cache);
+
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
 	unsigned int length = iterator.current_tuple->get_data_size ();

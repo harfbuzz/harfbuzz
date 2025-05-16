@@ -101,20 +101,34 @@ struct TupleVariationHeader
 
   double calculate_scalar (hb_array_t<const int> coords, unsigned int coord_count,
 			   const hb_array_t<const F2DOT14> shared_tuples,
-			   const hb_vector_t<tuple_active_indices_t> *shared_tuple_active_idx = nullptr) const
+			   const hb_vector_t<tuple_active_indices_t> *shared_tuple_active_idx = nullptr,
+			   hb_scalar_cache_t *shared_tuple_scalar_cache = nullptr) const
   {
     const F2DOT14 *peak_tuple;
+
+    bool has_interm = has_intermediate ();
+    if (has_interm)
+      shared_tuple_scalar_cache = nullptr;
 
     const tuple_active_indices_t *active_indices = nullptr;
 
     if (has_peak ())
+    {
       peak_tuple = get_peak_tuple (coord_count).arrayZ;
+      shared_tuple_scalar_cache = nullptr;
+    }
     else
     {
       unsigned int index = get_index ();
+
       if (unlikely ((index + 1) * coord_count > shared_tuples.length))
         return 0.0;
       peak_tuple = shared_tuples.sub_array (coord_count * index, coord_count).arrayZ;
+
+      float scalar;
+      if (shared_tuple_scalar_cache &&
+	  shared_tuple_scalar_cache->get (index, &scalar))
+	return (double) scalar;
 
       if (shared_tuple_active_idx)
       {
@@ -126,7 +140,7 @@ struct TupleVariationHeader
 
     const F2DOT14 *start_tuple = nullptr;
     const F2DOT14 *end_tuple = nullptr;
-    bool has_interm = has_intermediate ();
+
     if (has_interm)
     {
       start_tuple = get_start_tuple (coord_count).arrayZ;
@@ -151,16 +165,19 @@ struct TupleVariationHeader
         int end = end_tuple[i].to_int ();
         if (unlikely (start > peak || peak > end ||
                       (start < 0 && end > 0 && peak))) continue;
-        if (v < start || v > end) return 0.0;
+        if (v < start || v > end) { scalar = 0.0; goto done; }
         if (v < peak)
         { if (peak != start) scalar *= (double) (v - start) / (peak - start); }
         else
         { if (peak != end) scalar *= (double) (end - v) / (end - peak); }
       }
-      else if (!v || v < hb_min (0, peak) || v > hb_max (0, peak)) return 0.0;
+      else if (!v || v < hb_min (0, peak) || v > hb_max (0, peak)) { scalar = 0.0; goto done; }
       else
         scalar *= (double) v / peak;
     }
+done:
+    if (shared_tuple_scalar_cache)
+      shared_tuple_scalar_cache->set (get_index (), scalar);
     return scalar;
   }
 

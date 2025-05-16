@@ -37,6 +37,7 @@
 
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
+#include "hb-ot-var-gvar-table.hh"
 #include "hb-ot-cff2-table.hh"
 #include "hb-ot-cff1-table.hh"
 #include "hb-ot-hmtx-table.hh"
@@ -68,8 +69,8 @@ struct hb_ot_font_t
 {
   const hb_ot_face_t *ot_face;
 
-  /* h_advance caching */
   mutable hb_atomic_t<int> cached_coords_serial;
+
   struct advance_cache_t
   {
     mutable hb_atomic_t<hb_ot_font_advance_cache_t *> advance_cache;
@@ -154,6 +155,51 @@ struct hb_ot_font_t
 
   } h, v;
 
+  struct draw_cache_t
+  {
+    mutable hb_atomic_t<OT::hb_scalar_cache_t *> gvar_cache;
+
+    ~draw_cache_t ()
+    {
+      clear ();
+    }
+
+    OT::hb_scalar_cache_t *acquire_gvar_cache (const OT::gvar_accelerator_t &gvar) const
+    {
+    retry:
+      auto *cache = gvar_cache.get_acquire ();
+      if (!cache)
+	return gvar.create_cache ();
+      if (gvar_cache.cmpexch (cache, nullptr))
+	return cache;
+      else
+	goto retry;
+    }
+    void release_gvar_cache (OT::hb_scalar_cache_t *cache) const
+    {
+      if (!cache)
+	return;
+      if (!gvar_cache.cmpexch (nullptr, cache))
+	OT::gvar_accelerator_t::destroy_cache (cache);
+    }
+    void clear_gvar_cache () const
+    {
+    retry:
+      auto *cache = gvar_cache.get_acquire ();
+      if (!cache)
+	return;
+      if (gvar_cache.cmpexch (cache, nullptr))
+	OT::gvar_accelerator_t::destroy_cache (cache);
+      else
+	goto retry;
+    }
+
+    void clear () const
+    {
+      clear_gvar_cache ();
+    }
+  } draw;
+
   void check_serial (hb_font_t *font) const
   {
     int font_serial = font->serial_coords.get_acquire ();
@@ -163,6 +209,7 @@ struct hb_ot_font_t
 
     h.clear ();
     v.clear ();
+    draw.clear ();
 
     cached_coords_serial.set_release (font_serial);
   }
@@ -498,17 +545,33 @@ hb_ot_draw_glyph_or_fail (hb_font_t *font,
 			  hb_draw_funcs_t *draw_funcs, void *draw_data,
 			  void *user_data)
 {
+  const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   hb_draw_session_t draw_session {draw_funcs, draw_data};
+  bool ret = false;
+
+  OT::hb_scalar_cache_t *gvar_cache = nullptr;
+  if (font->num_coords)
+  {
+    ot_font->check_serial (font);
+    gvar_cache = ot_font->draw.acquire_gvar_cache (*ot_font->ot_face->gvar);
+  }
+
 #ifndef HB_NO_VAR_COMPOSITES
-  if (font->face->table.VARC->get_path (font, glyph, draw_session)) return true;
+  if (font->face->table.VARC->get_path (font, glyph, draw_session/*, gvar_cache*/)) { ret = true; goto done; }
 #endif
   // Keep the following in synch with VARC::get_path_at()
-  if (font->face->table.glyf->get_path (font, glyph, draw_session)) return true;
+  if (font->face->table.glyf->get_path (font, glyph, draw_session, gvar_cache)) { ret = true; goto done; }
+
 #ifndef HB_NO_CFF
-  if (font->face->table.cff2->get_path (font, glyph, draw_session)) return true;
-  if (font->face->table.cff1->get_path (font, glyph, draw_session)) return true;
+  if (font->face->table.cff2->get_path (font, glyph, draw_session)) { ret = true; goto done; }
+  if (font->face->table.cff1->get_path (font, glyph, draw_session)) { ret = true; goto done; }
 #endif
-  return false;
+
+done:
+
+  ot_font->draw.release_gvar_cache (gvar_cache);
+
+  return ret;
 }
 #endif
 
