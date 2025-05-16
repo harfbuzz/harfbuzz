@@ -600,21 +600,6 @@ struct gvar_GVAR
       table = hb_sanitize_context_t ().reference_table<gvar_GVAR> (face);
       /* If sanitize failed, set glyphCount to 0. */
       glyphCount = table->version.to_int () ? face->get_num_glyphs () : 0;
-
-      hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
-      unsigned count = table->sharedTupleCount;
-      if (unlikely (!shared_tuple_active_idx.resize (count))) return;
-      unsigned axis_count = table->axisCount;
-      for (unsigned i = 0; i < count; i++)
-      {
-	hb_array_t<const F2DOT14> tuple = shared_tuples.sub_array (axis_count * i, axis_count);
-	for (unsigned j = 0; j < axis_count; j++)
-	{
-	  const F2DOT14 &peak = tuple.arrayZ[j];
-	  if (peak.to_int () != 0)
-	    shared_tuple_active_idx.arrayZ[i].push (j);
-	}
-      }
     }
     ~accelerator_t () { table.destroy (); }
 
@@ -691,7 +676,6 @@ struct gvar_GVAR
       do
       {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples,
-								 &shared_tuple_active_idx,
 								 gvar_cache);
 
 	if (scalar == 0.f) continue;
@@ -884,7 +868,6 @@ struct gvar_GVAR
     private:
     hb_blob_ptr_t<gvar_GVAR> table;
     unsigned glyphCount;
-    hb_vector_t<tuple_active_indices_t> shared_tuple_active_idx;
   };
 
   protected:
