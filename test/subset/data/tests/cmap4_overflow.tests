@@ -9,3 +9,4 @@ SUBSETS:
 
 OPTIONS:
 no_fonttools
+no_ots
