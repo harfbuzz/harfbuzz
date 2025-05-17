@@ -52,7 +52,7 @@ struct TupleVariationHeader
   {
     const F2DOT14 *peak_tuple = nullptr;
     if (has_peak ())
-      peak_tuple = get_peak_tuple (axis_count).arrayZ;
+      peak_tuple = get_peak_tuple (axis_count);
     else
     {
       unsigned int index = get_index ();
@@ -67,8 +67,8 @@ struct TupleVariationHeader
 
     if (has_interm)
     {
-      start_tuple = get_start_tuple (axis_count).arrayZ;
-      end_tuple = get_end_tuple (axis_count).arrayZ;
+      start_tuple = get_start_tuple (axis_count);
+      end_tuple = get_end_tuple (axis_count);
     }
 
     for (unsigned i = 0; i < axis_count; i++)
@@ -111,7 +111,7 @@ struct TupleVariationHeader
 
     if (unlikely (tuple_index & TuppleIndex::EmbeddedPeakTuple)) // Inlined for performance
     {
-      peak_tuple = get_peak_tuple (coord_count).arrayZ;
+      peak_tuple = get_peak_tuple (coord_count);
       shared_tuple_scalar_cache = nullptr;
     }
     else
@@ -134,8 +134,8 @@ struct TupleVariationHeader
 
     if (has_interm)
     {
-      start_tuple = get_start_tuple (coord_count).arrayZ;
-      end_tuple = get_end_tuple (coord_count).arrayZ;
+      start_tuple = get_start_tuple (coord_count);
+      end_tuple = get_end_tuple (coord_count);
     }
 
     double scalar = 1.0;
@@ -189,12 +189,14 @@ struct TupleVariationHeader
 
   hb_array_t<const F2DOT14> get_all_tuples (unsigned axis_count) const
   { return StructAfter<UnsizedArrayOf<F2DOT14>> (tupleIndex).as_array ((has_peak () + has_intermediate () * 2) * axis_count); }
-  hb_array_t<const F2DOT14> get_peak_tuple (unsigned axis_count) const
-  { return get_all_tuples (axis_count).sub_array (0, axis_count); }
-  hb_array_t<const F2DOT14> get_start_tuple (unsigned axis_count) const
-  { return get_all_tuples (axis_count).sub_array (has_peak () * axis_count, axis_count); }
-  hb_array_t<const F2DOT14> get_end_tuple (unsigned axis_count) const
-  { return get_all_tuples (axis_count).sub_array (has_peak () * axis_count + axis_count, axis_count); }
+  const F2DOT14* get_all_tuples_base (unsigned axis_count) const
+  { return StructAfter<UnsizedArrayOf<F2DOT14>> (tupleIndex).arrayZ; }
+  const F2DOT14* get_peak_tuple (unsigned axis_count) const
+  { return get_all_tuples_base (axis_count); }
+  const F2DOT14* get_start_tuple (unsigned axis_count) const
+  { return get_all_tuples_base (axis_count) + has_peak () * axis_count; }
+  const F2DOT14* get_end_tuple (unsigned axis_count) const
+  { return get_all_tuples_base (axis_count) + has_peak () * axis_count + axis_count; }
 
   HBUINT16      varDataSize;    /* The size in bytes of the serialized
                                  * data for this tuple variation table. */
