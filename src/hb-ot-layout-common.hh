@@ -2597,6 +2597,7 @@ struct hb_scalar_cache_t
       values[i] = INVALID;
   }
 
+  HB_ALWAYS_INLINE
   bool get (unsigned i, float *value) const
   {
     if (unlikely (i >= length))
@@ -2613,6 +2614,7 @@ struct hb_scalar_cache_t
     return false;
   }
 
+  HB_ALWAYS_INLINE
   void set (unsigned i, float value)
   {
     if (unlikely (i >= length)) return;

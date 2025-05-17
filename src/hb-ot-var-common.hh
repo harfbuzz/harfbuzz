@@ -104,10 +104,10 @@ struct TupleVariationHeader
     const F2DOT14 *peak_tuple;
 
     bool has_interm = has_intermediate ();
-    if (has_interm)
+    if (unlikely (has_interm))
       shared_tuple_scalar_cache = nullptr;
 
-    if (has_peak ())
+    if (unlikely (has_peak ()))
     {
       peak_tuple = get_peak_tuple (coord_count).arrayZ;
       shared_tuple_scalar_cache = nullptr;
@@ -116,14 +116,15 @@ struct TupleVariationHeader
     {
       unsigned int index = get_index ();
 
-      if (unlikely ((index + 1) * coord_count > shared_tuples.length))
-        return 0.0;
-      peak_tuple = shared_tuples.sub_array (coord_count * index, coord_count).arrayZ;
-
       float scalar;
       if (shared_tuple_scalar_cache &&
 	  shared_tuple_scalar_cache->get (index, &scalar))
 	return (double) scalar;
+
+      if (unlikely ((index + 1) * coord_count > shared_tuples.length))
+        return 0.0;
+      peak_tuple = shared_tuples.sub_array (coord_count * index, coord_count).arrayZ;
+
     }
 
     const F2DOT14 *start_tuple = nullptr;
@@ -150,17 +151,16 @@ struct TupleVariationHeader
         int end = end_tuple[i].to_int ();
         if (unlikely (start > peak || peak > end ||
                       (start < 0 && end > 0 && peak))) continue;
-        if (v < start || v > end) { scalar = 0.0; goto done; }
+        if (v < start || v > end) { scalar = 0.0; break; }
         if (v < peak)
         { if (peak != start) scalar *= (double) (v - start) / (peak - start); }
         else
         { if (peak != end) scalar *= (double) (end - v) / (end - peak); }
       }
-      else if (!v || v < hb_min (0, peak) || v > hb_max (0, peak)) { scalar = 0.0; goto done; }
+      else if (!v || v < hb_min (0, peak) || v > hb_max (0, peak)) { scalar = 0.0; break; }
       else
         scalar *= (double) v / peak;
     }
-done:
     if (shared_tuple_scalar_cache)
       shared_tuple_scalar_cache->set (get_index (), scalar);
     return scalar;
