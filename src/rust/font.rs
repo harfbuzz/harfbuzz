@@ -902,10 +902,7 @@ extern "C" fn _hb_fontations_paint_glyph_or_fail(
     };
 
     let cpal = font_ref.cpal();
-    let color_records = if cpal.is_err() {
-        &[]
-    } else {
-        let cpal = cpal.unwrap();
+    let color_records = if let Ok(cpal) = cpal {
         let num_entries = cpal.num_palette_entries().into();
         let color_records = cpal.color_records_array();
         let start_index = cpal
@@ -923,6 +920,8 @@ extern "C" fn _hb_fontations_paint_glyph_or_fail(
         } else {
             &[]
         }
+    } else {
+        &[]
     };
 
     let font = if (unsafe { hb_font_is_synthetic(font) } != false as hb_bool_t) {
