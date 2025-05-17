@@ -2608,7 +2608,7 @@ struct hb_scalar_cache_t
     auto *cached_value = &values[i];
     if (*cached_value != INVALID)
     {
-      *value = *cached_value * DIVISOR;
+      *value = *cached_value ? *cached_value * DIVISOR : 0.f;
       return true;
     }
     return false;
@@ -2619,7 +2619,7 @@ struct hb_scalar_cache_t
   {
     if (unlikely (i >= length)) return;
     auto *cached_value = &values[i];
-    *cached_value = value * MULTIPLIER;
+    *cached_value = roundf(value * MULTIPLIER);
   }
 
   private:
