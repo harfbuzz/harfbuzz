@@ -132,7 +132,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 			   hb_array_t<const int> coords,
 			   hb_transform_t total_transform,
 			   hb_ubytes_t total_record,
-			   VarRegionList::cache_t *cache) const
+			   hb_scalar_cache_t *cache) const
 {
   const unsigned char *end = total_record.arrayZ + total_record.length;
   const unsigned char *record = total_record.arrayZ;
@@ -336,7 +336,7 @@ VARC::get_path_at (const hb_varc_context_t &c,
 		   hb_array_t<const int> coords,
 		   hb_transform_t transform,
 		   hb_codepoint_t parent_glyph,
-		   VarRegionList::cache_t *parent_cache) const
+		   hb_scalar_cache_t *parent_cache) const
 {
   // Don't recurse on the same glyph.
   unsigned idx = glyph == parent_glyph ?
@@ -392,10 +392,10 @@ VARC::get_path_at (const hb_varc_context_t &c,
 
   hb_ubytes_t record = (this+glyphRecords)[idx];
 
-  VarRegionList::cache_t static_cache[sizeof (void *) * 16];
-  VarRegionList::cache_t *cache = parent_cache ?
+  hb_scalar_cache_t static_cache;
+  hb_scalar_cache_t *cache = parent_cache ?
 				  parent_cache :
-				  (this+varStore).create_cache (hb_array (static_cache));
+				  (this+varStore).create_cache (&static_cache);
 
   transform.scale (c.font->x_multf, c.font->y_multf);
 
@@ -406,7 +406,7 @@ VARC::get_path_at (const hb_varc_context_t &c,
 				  cache);
 
   if (cache != parent_cache)
-    (this+varStore).destroy_cache (cache, hb_array (static_cache));
+    (this+varStore).destroy_cache (cache, &static_cache);
 
   return true;
 }
