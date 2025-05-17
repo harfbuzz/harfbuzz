@@ -1327,7 +1327,7 @@ struct TupleVariationData
     {
       var_data_bytes = var_data_bytes_;
       var_data = var_data_bytes_.as<TupleVariationData> ();
-      index = 0;
+      tuples_left = var_data->tupleVarCount.get_count ();
       axis_count = axis_count_;
       current_tuple = &var_data->get_tuple_var_header ();
       data_offset = 0;
@@ -1348,7 +1348,7 @@ struct TupleVariationData
 
     bool is_valid ()
     {
-      if (unlikely (index >= var_data->tupleVarCount.get_count ()))
+      if (unlikely (tuples_left <= 0))
 	return false;
 
       current_tuple_size = TupleVariationHeader::min_size;
@@ -1366,7 +1366,7 @@ struct TupleVariationData
     {
       data_offset += current_tuple->get_data_size ();
       current_tuple = &StructAtOffset<TupleVariationHeader> (current_tuple, current_tuple_size);
-      index++;
+      tuples_left--;
       return is_valid ();
     }
 
@@ -1375,8 +1375,8 @@ struct TupleVariationData
     { return &(table_base+var_data->data) + data_offset; }
 
     private:
+    signed tuples_left;
     const TupleVariationData *var_data;
-    unsigned int index;
     unsigned int axis_count;
     unsigned int data_offset;
     unsigned int current_tuple_size;
