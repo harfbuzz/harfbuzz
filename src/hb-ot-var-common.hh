@@ -97,6 +97,7 @@ struct TupleVariationHeader
     return true;
   }
 
+  HB_ALWAYS_INLINE
   double calculate_scalar (hb_array_t<const int> coords, unsigned int coord_count,
 			   const hb_array_t<const F2DOT14> shared_tuples,
 			   hb_scalar_cache_t *shared_tuple_scalar_cache = nullptr) const
@@ -1362,6 +1363,7 @@ struct TupleVariationData
       return true;
     }
 
+    HB_ALWAYS_INLINE
     bool move_to_next ()
     {
       data_offset += current_tuple->get_data_size ();
