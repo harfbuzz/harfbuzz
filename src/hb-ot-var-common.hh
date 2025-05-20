@@ -146,6 +146,7 @@ struct TupleVariationHeader
       if (!peak) continue;
 
       int v = coords[i];
+      if (!v) { scalar = 0.0; break; }
       if (v == peak) continue;
 
       if (has_interm)
@@ -160,7 +161,7 @@ struct TupleVariationHeader
         else
         { if (peak != end) scalar *= (double) (end - v) / (end - peak); }
       }
-      else if (!v || v < hb_min (0, peak) || v > hb_max (0, peak)) { scalar = 0.0; break; }
+      else if (v < hb_min (0, peak) || v > hb_max (0, peak)) { scalar = 0.0; break; }
       else
         scalar *= (double) v / peak;
     }
