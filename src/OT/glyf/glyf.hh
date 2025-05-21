@@ -446,12 +446,16 @@ struct glyf_accelerator_t
 #ifndef HB_NO_VAR
     if (coords)
     {
-      hb_glyf_scratch_t scratch;
-      return get_points (font,
-			 gid,
-			 points_aggregator_t (font, extents, nullptr, true),
-			 coords,
-			 scratch);
+      hb_glyf_scratch_t *scratch = acquire_scratch ();
+      if (unlikely (!scratch))
+        return false;
+      bool ret = get_points (font,
+			     gid,
+			     points_aggregator_t (font, extents, nullptr, true),
+			     coords,
+			     *scratch);
+      release_scratch (scratch);
+      return ret;
     }
 #endif
     return glyph_for_gid (gid).get_extents_without_var_scaled (font, *this, extents);
@@ -490,30 +494,16 @@ struct glyf_accelerator_t
   {
     if (!has_data ()) return false;
 
-    hb_glyf_scratch_t *scratch;
-
-    // Borrow the cached strach buffer.
-    {
-      scratch = cached_scratch.get_acquire ();
-      if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
-      {
-	scratch = (hb_glyf_scratch_t *) hb_calloc (1, sizeof (hb_glyf_scratch_t));
-	if (unlikely (!scratch))
-	  return true;
-      }
-    }
+    hb_glyf_scratch_t *scratch = acquire_scratch ();
+    if (unlikely (!scratch))
+      return true;
 
     bool ret = get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
 			   hb_array (font->coords, font->num_coords),
 			   *scratch,
 			    gvar_cache);
 
-    // Put it back.
-    if (!cached_scratch.cmpexch (nullptr, scratch))
-    {
-      scratch->~hb_glyf_scratch_t ();
-      hb_free (scratch);
-    }
+    release_scratch (scratch);
 
     return ret;
   }
@@ -529,6 +519,27 @@ struct glyf_accelerator_t
 		       coords,
 		       scratch,
 		       gvar_cache);
+  }
+
+
+  hb_glyf_scratch_t *acquire_scratch () const
+  {
+    hb_glyf_scratch_t *scratch = cached_scratch.get_acquire ();
+    if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
+    {
+      scratch = (hb_glyf_scratch_t *) hb_calloc (1, sizeof (hb_glyf_scratch_t));
+      if (unlikely (!scratch))
+	return nullptr;
+    }
+    return scratch;
+  }
+  void release_scratch (hb_glyf_scratch_t *scratch) const
+  {
+    if (!cached_scratch.cmpexch (nullptr, scratch))
+    {
+      scratch->~hb_glyf_scratch_t ();
+      hb_free (scratch);
+    }
   }
 
 #ifndef HB_NO_VAR
