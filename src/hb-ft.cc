@@ -184,6 +184,8 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
     FT_Set_Transform (ft_face, &matrix, nullptr);
     ft_font->transform = true;
   }
+  else
+    FT_Set_Transform (ft_face, nullptr, nullptr);
 
 #if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
   unsigned int num_coords;
@@ -199,6 +201,8 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
       hb_free (ft_coords);
     }
   }
+  else
+    FT_Set_Var_Design_Coordinates (ft_face, 0, nullptr);
 #endif
 }
 
