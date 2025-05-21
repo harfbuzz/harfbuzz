@@ -1386,10 +1386,10 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
  * @face: #hb_face_t to work upon
  * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @lookup_index: The index of the feature lookup to query
- * @glyphs_before: (out): Array of glyphs preceding the substitution range
- * @glyphs_input: (out): Array of input glyphs that would be substituted by the lookup
- * @glyphs_after: (out): Array of glyphs following the substitution range
- * @glyphs_output: (out): Array of glyphs that would be the substituted output of the lookup
+ * @glyphs_before: (out) (nullable): Array of glyphs preceding the substitution range
+ * @glyphs_input: (out) (nullable): Array of input glyphs that would be substituted by the lookup
+ * @glyphs_after: (out) (nullable): Array of glyphs following the substitution range
+ * @glyphs_output: (out) (nullable): Array of glyphs that would be the substituted output of the lookup
  *
  * Fetches a list of all glyphs affected by the specified lookup in the
  * specified face's GSUB table or GPOS table.
