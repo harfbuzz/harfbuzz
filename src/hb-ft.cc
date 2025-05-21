@@ -184,12 +184,14 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
     FT_Set_Transform (ft_face, &matrix, nullptr);
     ft_font->transform = true;
   }
+  else
+    FT_Set_Transform (ft_face, nullptr, nullptr);
 
 #if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
-  unsigned int num_coords;
-  const float *coords = hb_font_get_var_coords_design (font, &num_coords);
-  if (num_coords)
+  if (font->has_nonzero_coords)
   {
+    unsigned int num_coords;
+    const float *coords = hb_font_get_var_coords_design (font, &num_coords);
     FT_Fixed *ft_coords = (FT_Fixed *) hb_calloc (num_coords, sizeof (FT_Fixed));
     if (ft_coords)
     {
@@ -199,6 +201,8 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
       hb_free (ft_coords);
     }
   }
+  else
+    FT_Set_Var_Design_Coordinates (ft_face, 0, nullptr);
 #endif
 }
 
