@@ -2,14 +2,14 @@
 
 #define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
 
-static const hb_variation_t default_variations[] = {
+static hb_variation_t default_variations[] = {
     hb_variation_t {HB_TAG ('w','g','h','t'), 500},
     hb_variation_t {HB_TAG_NONE, 0}
 };
 
 static struct test_input_t
 {
-  const hb_variation_t *variations;
+  hb_variation_t *variations;
   const char *font_path;
 } default_tests[] =
 {
@@ -267,13 +267,15 @@ int main(int argc, char** argv)
 
   if (argc > 1)
   {
-    num_tests = argc - 1;
+    unsigned num_variations = argc - 2;
+    hb_variation_t *variations = (hb_variation_t *) calloc (num_variations + 1, sizeof (hb_variation_t));
+    for (unsigned i = 0; i < num_variations; i++)
+      hb_variation_from_string (argv[i + 2], -1, &variations[i]);
+
+    num_tests = 1;
     tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
-    for (unsigned i = 0; i < num_tests; i++)
-    {
-      tests[i].variations = nullptr;
-      tests[i].font_path = argv[i + 1];
-    }
+    tests[0].variations = num_variations ? variations : default_variations;
+    tests[0].font_path = argv[1];
   }
 
 #define TEST_OPERATION(op, time_unit) test_operation (op, #op, time_unit)
@@ -291,5 +293,9 @@ int main(int argc, char** argv)
   benchmark::Shutdown();
 
   if (tests != default_tests)
+  {
+    if (tests[0].variations != default_variations)
+      free (tests[0].variations);
     free (tests);
+  }
 }
