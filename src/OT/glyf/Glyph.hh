@@ -314,6 +314,7 @@ struct Glyph
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
 		   hb_array_t<const int> coords = hb_array_t<const int> (),
+		   hb_scalar_cache_t *gvar_cache = nullptr,
 		   unsigned int depth = 0,
 		   unsigned *edge_count = nullptr) const
   {
@@ -391,6 +392,7 @@ struct Glyph
 						       coords,
 						       points.as_array ().sub_array (old_length),
 						       scratch,
+						       gvar_cache,
 						       phantom_only && type == SIMPLE);
       else
 #endif
@@ -398,6 +400,7 @@ struct Glyph
 						       coords,
 						       points.as_array ().sub_array (old_length),
 						       scratch,
+						       gvar_cache,
 						       phantom_only && type == SIMPLE);
     }
 #endif
@@ -447,6 +450,7 @@ struct Glyph
 						    use_my_metrics,
 						    phantom_only,
 						    coords,
+						    gvar_cache,
 						    depth + 1,
 						    edge_count)))
 	{

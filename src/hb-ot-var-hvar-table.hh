@@ -156,7 +156,7 @@ struct index_map_subset_plan_t
       unsigned outer = (*new_varidx) >> 16;
       unsigned bit_count = (outer == 0) ? 1 : hb_bit_storage (outer);
       outer_bit_count = hb_max (bit_count, outer_bit_count);
-      
+
       unsigned inner = (*new_varidx) & 0xFFFF;
       bit_count = (inner == 0) ? 1 : hb_bit_storage (inner);
       inner_bit_count = hb_max (bit_count, inner_bit_count);
@@ -384,7 +384,7 @@ struct HVARVVAR
 
   float get_advance_delta_unscaled (hb_codepoint_t  glyph,
 				    const int *coords, unsigned int coord_count,
-				    ItemVariationStore::cache_t *store_cache = nullptr) const
+				    hb_scalar_cache_t *store_cache = nullptr) const
   {
     uint32_t varidx = (this+advMap).map (glyph);
     return (this+varStore).get_delta (varidx,

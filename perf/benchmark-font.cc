@@ -2,20 +2,25 @@
 
 #define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
 
-struct test_input_t
+static hb_variation_t default_variations[] = {
+    hb_variation_t {HB_TAG ('w','g','h','t'), 500},
+    hb_variation_t {HB_TAG_NONE, 0}
+};
+
+static struct test_input_t
 {
-  bool is_variable;
+  hb_variation_t *variations;
   const char *font_path;
 } default_tests[] =
 {
-  {false, SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
-  {true , SUBSET_FONT_BASE_PATH "RobotoFlex-Variable.ttf"},
-  {false, SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
-  {true , SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
-  {true , SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
-  {false, SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
-  {false, SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf"},
-  {false, SUBSET_FONT_BASE_PATH "NotoSerifMyanmar-Regular.otf"},
+  {nullptr,            SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
+  {default_variations, SUBSET_FONT_BASE_PATH "RobotoFlex-Variable.ttf"},
+  {default_variations, SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
+  {default_variations, SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
+  {default_variations, SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
+  {nullptr,            SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
+  {nullptr,            SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf"},
+  {nullptr,            SUBSET_FONT_BASE_PATH "NotoSerifMyanmar-Regular.otf"},
 };
 
 static test_input_t *tests = default_tests;
@@ -79,7 +84,7 @@ _draw_funcs_create (void)
 }
 
 static void BM_Font (benchmark::State &state,
-		     bool is_var, const char * backend,
+		     const hb_variation_t *variations, const char * backend,
 		     operation_t operation,
 		     const test_input_t &test_input)
 {
@@ -93,10 +98,12 @@ static void BM_Font (benchmark::State &state,
     hb_face_destroy (face);
   }
 
-  if (is_var)
+  if (variations)
   {
-    hb_variation_t wght = {HB_TAG ('w','g','h','t'), 500};
-    hb_font_set_variations (font, &wght, 1);
+    unsigned count = 0;
+    for (const hb_variation_t *v = variations; v->tag != HB_TAG_NONE; v++)
+      count++;
+    hb_font_set_variations (font, variations, count);
   }
 
   bool ret = hb_font_set_funcs_using (font, backend);
@@ -218,7 +225,7 @@ static void BM_Font (benchmark::State &state,
 }
 
 static void test_backend (const char *backend,
-			  bool variable,
+			  const hb_variation_t *variations,
 			  operation_t op,
 			  const char *op_name,
 			  benchmark::TimeUnit time_unit,
@@ -229,11 +236,11 @@ static void test_backend (const char *backend,
   strcat (name, "/");
   const char *p = strrchr (test_input.font_path, '/');
   strcat (name, p ? p + 1 : test_input.font_path);
-  strcat (name, variable ? "/var" : "");
+  strcat (name, variations ? "/var" : "");
   strcat (name, "/");
   strcat (name, backend);
 
-  benchmark::RegisterBenchmark (name, BM_Font, variable, backend, op, test_input)
+  benchmark::RegisterBenchmark (name, BM_Font, variations, backend, op, test_input)
    ->Unit(time_unit);
 }
 
@@ -245,12 +252,11 @@ static void test_operation (operation_t op,
   for (unsigned i = 0; i < num_tests; i++)
   {
     auto& test_input = tests[i];
-    for (int variable = 0; variable < int (test_input.is_variable) + 1; variable++)
+    for (int variable = 0; variable < int (test_input.variations != nullptr) + 1; variable++)
     {
-      bool is_var = (bool) variable;
-
+      const hb_variation_t *variations = variable ? test_input.variations : nullptr;
       for (const char **backend = supported_backends; *backend; backend++)
-	test_backend (*backend, is_var, op, op_name, time_unit, test_input);
+	test_backend (*backend, variations, op, op_name, time_unit, test_input);
     }
   }
 }
@@ -261,13 +267,15 @@ int main(int argc, char** argv)
 
   if (argc > 1)
   {
-    num_tests = argc - 1;
+    unsigned num_variations = argc - 2;
+    hb_variation_t *variations = (hb_variation_t *) calloc (num_variations + 1, sizeof (hb_variation_t));
+    for (unsigned i = 0; i < num_variations; i++)
+      hb_variation_from_string (argv[i + 2], -1, &variations[i]);
+
+    num_tests = 1;
     tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
-    for (unsigned i = 0; i < num_tests; i++)
-    {
-      tests[i].is_variable = true;
-      tests[i].font_path = argv[i + 1];
-    }
+    tests[0].variations = num_variations ? variations : default_variations;
+    tests[0].font_path = argv[1];
   }
 
 #define TEST_OPERATION(op, time_unit) test_operation (op, #op, time_unit)
@@ -285,5 +293,9 @@ int main(int argc, char** argv)
   benchmark::Shutdown();
 
   if (tests != default_tests)
+  {
+    if (tests[0].variations != default_variations)
+      free (tests[0].variations);
     free (tests);
+  }
 }

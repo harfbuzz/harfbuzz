@@ -19,8 +19,6 @@ cargo_args = [
   '--lib',
   '--target-dir', meson.current_build_dir(),
   '--manifest-path', meson.current_source_dir() / 'Cargo.toml',
-  '-Z', 'build-std=std,panic_abort',
-  '-Z', 'build-std-features=panic_immediate_abort',
 ]
 
 features = []
@@ -36,6 +34,10 @@ endif
 
 buildtype = get_option('buildtype')
 if buildtype == 'release' or buildtype == 'debugoptimized'
+  cargo_args += [
+    '-Z', 'build-std=std,panic_abort',
+    '-Z', 'build-std-features=panic_immediate_abort',
+  ]
   cargo_args += ['--profile', buildtype]
 endif
 

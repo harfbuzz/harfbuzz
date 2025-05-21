@@ -1,0 +1,12 @@
+FONTS:
+NotoSansTC.only_cmap.almost_overflow.ttf
+
+PROFILES:
+cmap4_filter.txt
+
+SUBSETS:
+*
+
+OPTIONS:
+no_fonttools
+no_ots

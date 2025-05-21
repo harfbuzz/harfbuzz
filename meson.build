@@ -1,6 +1,6 @@
 project('harfbuzz', ['c', 'cpp'],
   meson_version: '>= 0.60.0',
-  version: '11.2.0',
+  version: '11.2.1',
   default_options: [
     'cpp_eh=none',          # Just to support msvc, we are passing -fno-exceptions also anyway
     # 'cpp_rtti=false',     # Do NOT enable, wraps inherit it and ICU needs RTTI
@@ -490,7 +490,7 @@ build_summary = {
     },
   'Platform shapers (not normally needed)':
     {'CoreText': conf.get('HAVE_CORETEXT', 0) == 1,
-     'DirectWrite (experimental)': conf.get('HAVE_DIRECTWRITE', 0) == 1,
+     'DirectWrite': conf.get('HAVE_DIRECTWRITE', 0) == 1,
      'GDI/Uniscribe': (conf.get('HAVE_GDI', 0) == 1) and (conf.get('HAVE_UNISCRIBE', 0) == 1),
      'HarfRuzz': conf.get('HAVE_HARFRUZZ', 0) == 1,
     },

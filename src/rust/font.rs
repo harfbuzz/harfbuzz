@@ -7,11 +7,6 @@ use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};
 
-use read_fonts::tables::cpal::ColorRecord;
-use read_fonts::tables::vmtx::Vmtx;
-use read_fonts::tables::vorg::Vorg;
-use read_fonts::tables::vvar::Vvar;
-use read_fonts::TableProvider;
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
 use skrifa::color::{
@@ -22,6 +17,11 @@ use skrifa::instance::{Location, NormalizedCoord, Size};
 use skrifa::metrics::{BoundingBox, GlyphMetrics};
 use skrifa::outline::pen::OutlinePen;
 use skrifa::outline::DrawSettings;
+use skrifa::raw::tables::cpal::ColorRecord;
+use skrifa::raw::tables::vmtx::Vmtx;
+use skrifa::raw::tables::vorg::Vorg;
+use skrifa::raw::tables::vvar::Vvar;
+use skrifa::raw::TableProvider;
 use skrifa::OutlineGlyphCollection;
 use skrifa::{GlyphId, GlyphNames, MetadataProvider};
 
@@ -51,15 +51,21 @@ struct FontationsData<'a> {
 }
 
 impl FontationsData<'_> {
-    unsafe fn from_hb_font(font: *mut hb_font_t) -> Self {
+    unsafe fn from_hb_font(font: *mut hb_font_t) -> Option<Self> {
         let face_index = hb_face_get_index(hb_font_get_face(font));
         let face_blob = hb_face_reference_blob(hb_font_get_face(font));
         let blob_length = hb_blob_get_length(face_blob);
         let blob_data = hb_blob_get_data(face_blob, null_mut());
+        if blob_data.is_null() {
+            return None;
+        }
         let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
 
-        let font_ref = FontRef::from_index(face_data, face_index)
-            .expect("FontRef::from_index should succeed on valid HarfBuzz face data");
+        let font_ref = FontRef::from_index(face_data, face_index);
+        let font_ref = match font_ref {
+            Ok(f) => f,
+            Err(_) => return None,
+        };
 
         let char_map = Charmap::new(&font_ref);
 
@@ -98,7 +104,7 @@ impl FontationsData<'_> {
 
         data.check_for_updates();
 
-        data
+        Some(data)
     }
 
     unsafe fn _check_for_updates(&mut self) {
@@ -896,10 +902,7 @@ extern "C" fn _hb_fontations_paint_glyph_or_fail(
     };
 
     let cpal = font_ref.cpal();
-    let color_records = if cpal.is_err() {
-        &[]
-    } else {
-        let cpal = cpal.unwrap();
+    let color_records = if let Ok(cpal) = cpal {
         let num_entries = cpal.num_palette_entries().into();
         let color_records = cpal.color_records_array();
         let start_index = cpal
@@ -917,6 +920,8 @@ extern "C" fn _hb_fontations_paint_glyph_or_fail(
         } else {
             &[]
         }
+    } else {
+        &[]
     };
 
     let font = if (unsafe { hb_font_is_synthetic(font) } != false as hb_bool_t) {
@@ -1105,6 +1110,10 @@ pub unsafe extern "C" fn hb_fontations_font_set_funcs(font: *mut hb_font_t) {
     let ffuncs = _hb_fontations_font_funcs_get();
 
     let data = FontationsData::from_hb_font(font);
+    let data = match data {
+        Some(d) => d,
+        None => return,
+    };
     let data_ptr = Box::into_raw(Box::new(data)) as *mut c_void;
 
     hb_font_set_funcs(font, ffuncs, data_ptr, Some(_hb_fontations_data_destroy));

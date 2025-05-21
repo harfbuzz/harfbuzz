@@ -215,8 +215,9 @@ for path in args:
         for test in test_suite.tests():
             # Tests are run with and without preprocessing, results should be the
             # same between them.
+            should_check_ots = has_ots and ("no_ots" not in test.options)
             for preprocess in [False, True]:
-                if run_test(test, has_ots, preprocess):
+                if run_test(test, should_check_ots, preprocess):
                     print("ok %d - %s" % (number, test))
 
 if fails != 0:

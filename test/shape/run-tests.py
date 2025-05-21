@@ -281,7 +281,8 @@ for filename in args:
 
                     if glyphs_expected != "*":
                         extra_options.append("--verify")
-                        extra_options.append("--unsafe-to-concat")
+                        if shaper == "ot":
+                            extra_options.append("--unsafe-to-concat")
 
                     if verbose:
                         print(

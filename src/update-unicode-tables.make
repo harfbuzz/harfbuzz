@@ -19,7 +19,7 @@ hb-ot-shaper-indic-table.cc: gen-indic-table.py IndicSyllabicCategory.txt IndicP
 	./$^ > $@ || ($(RM) $@; false)
 hb-ot-tag-table.hh: gen-tag-table.py languagetags language-subtag-registry
 	./$^ > $@ || ($(RM) $@; false)
-hb-ucd-table.hh: gen-ucd-table.py ucd.nounihan.grouped.zip hb-common.h
+hb-ucd-table.hh: gen-ucd-table.py ucd.nounihan.grouped.zip hb-script-list.h
 	./$^ > $@ || ($(RM) $@; false)
 hb-ot-shaper-use-table.hh: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt ArabicShaping.txt DerivedCoreProperties.txt UnicodeData.txt Blocks.txt Scripts.txt ms-use/IndicSyllabicCategory-Additional.txt ms-use/IndicPositionalCategory-Additional.txt
 	./$^ > $@ || ($(RM) $@; false)

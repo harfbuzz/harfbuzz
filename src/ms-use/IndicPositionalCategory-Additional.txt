@@ -22,11 +22,15 @@
 0F7A..0F7D    ; Bottom  # Mn  [4] TIBETAN VOWEL SIGN E..TIBETAN VOWEL SIGN OO # Not really below, but need to override to fit into Universal model
 0F80          ; Bottom  # Mn      TIBETAN VOWEL SIGN REVERSED I # Not really below, but need to override to fit into Universal model
 A9BF          ; Bottom  # Mc      JAVANESE CONSONANT SIGN CAKRA
-10A38         ; Bottom  # Mn      KHAROSHTHI SIGN BAR ABOVE # Overriden, ccc controls order USE issue #26
+10A38         ; Bottom  # Mn      KHAROSHTHI SIGN BAR ABOVE # Override, ccc controls order USE issue #26
 11127..11129  ; Bottom  # Mn  [3] CHAKMA VOWEL SIGN A..CHAKMA VOWEL SIGN II
 1112D         ; Bottom  # Mn      CHAKMA VOWEL SIGN AI
 11130         ; Bottom  # Mn      CHAKMA VOWEL SIGN OI
 1BF2..1BF3    ; Bottom  # Mc  [2] BATAK PANGOLAT..BATAK PANONGONAN # see USE issue #20
+AAB0          ; Bottom  # Mn      TAI VIET MAI KANG # Overrides: ccc controls order, USE issue #58
+AAB2..AAB3    ; Bottom  # Mn      TAI VIET VOWEL I..TAI VIET VOWEL UE
+AAB7..AAB8    ; Bottom  # Mn      TAI VIET MAI KHIT..TAI VIET VOWEL Initial
+AABE          ; Bottom  # Mn      TAI VIET VOWEL AM
 
 # ================================================
 
@@ -47,6 +51,7 @@ A9BE          ; Right   # Mc      JAVANESE CONSONANT SIGN PENGKAL # Reduced from
 0F74          ; Top     # Mn       TIBETAN VOWEL SIGN U # Not really above, but need to override to fit into Universal model
 1A18          ; Top     # Mn       BUGINESE VOWEL SIGN U # Workaround to allow below to occur before above by treating all below marks as above
 AA35          ; Top     # Mn       CHAM CONSONANT SIGN
+AAB4          ; Top     # Mn       TAI VIET VOWEL U # Override: ccc controls order, USE issue #58
 1112A..1112B  ; Top     # Mn   [2] CHAKMA VOWEL SIGN U..CHAKMA VOWEL SIGN UU  # see USE issue #25
 11131..11132  ; Top     # Mn   [2] CHAKMA O MARK..CHAKMA AU MARK  # see USE issue #25
 1E4EC..1E4EF  ; Top     # Mn   [4] NAG MUNDARI SIGN MUHOR..NAG MUNDARI SIGN SUTUH # 1E4EE is below, but made to for ccc 
@@ -66,16 +71,16 @@ AA35          ; Top     # Mn       CHAM CONSONANT SIGN
 # Indic_Positional_Category=Bottom
 0859..085B    ; Bottom # Mn   [3] MANDAIC AFFRICATION MARK..MANDAIC GEMINATION MARK
 18A9          ; Bottom # Mn       MONGOLIAN LETTER ALI GALI DAGALGA
-10AE5         ; Bottom # Mn       MANICHAEAN ABBREVIATION MARK ABOVE  # Overriden, ccc controls order
+10AE5         ; Bottom # Mn       MANICHAEAN ABBREVIATION MARK ABOVE  # Override, ccc controls order
 10AE6         ; Bottom # Mn       MANICHAEAN ABBREVIATION MARK BELOW
 10F46..10F47  ; Bottom # Mn   [2] SOGDIAN COMBINING DOT BELOW..SOGDIAN COMBINING TWO DOTS BELOW
-10F48..10F4A  ; Bottom # Mn   [3] SOGDIAN COMBINING DOT ABOVE..SOGDIAN COMBINING CURVE ABOVE     # Overriden, ccc controls order
+10F48..10F4A  ; Bottom # Mn   [3] SOGDIAN COMBINING DOT ABOVE..SOGDIAN COMBINING CURVE ABOVE     # Override, ccc controls order
 10F4B         ; Bottom # Mn       SOGDIAN COMBINING CURVE BELOW
-10F4C         ; Bottom # Mn       SOGDIAN COMBINING HOOK ABOVE        # Overriden, ccc controls order
+10F4C         ; Bottom # Mn       SOGDIAN COMBINING HOOK ABOVE        # Override, ccc controls order
 10F4D..10F50  ; Bottom # Mn   [4] SOGDIAN COMBINING HOOK BELOW..SOGDIAN COMBINING STROKE BELOW
-10F82         ; Bottom # Mn       OLD UYGHUR COMBINING DOT ABOVE      # Overriden, ccc controls order
+10F82         ; Bottom # Mn       OLD UYGHUR COMBINING DOT ABOVE      # Override, ccc controls order
 10F83         ; Bottom # Mn       OLD UYGHUR COMBINING DOT BELOW
-10F84         ; Bottom # Mn       OLD UYGHUR COMBINING TWO DOTS ABOVE # Overriden, ccc controls order
+10F84         ; Bottom # Mn       OLD UYGHUR COMBINING TWO DOTS ABOVE # Override, ccc controls order
 10F85         ; Bottom # Mn       OLD UYGHUR COMBINING TWO DOTS BELOW
 113CF         ; Bottom # Mc       TULU-TIGALARI SIGN LOOPED VIRAMA    # Issue #17
 16F4F         ; Bottom # Mn       MIAO SIGN CONSONANT MODIFIER BAR
