@@ -843,16 +843,6 @@ if (HB_BUILD_UTILS)
   )
   target_link_libraries(hb-subset harfbuzz harfbuzz-subset)
 
-  add_executable(hb-ot-shape-closure
-        ${PROJECT_SOURCE_DIR}/util/face-options.hh
-        ${PROJECT_SOURCE_DIR}/util/font-options.hh
-        ${PROJECT_SOURCE_DIR}/util/hb-ot-shape-closure.cc
-        ${PROJECT_SOURCE_DIR}/util/main-font-text.hh
-        ${PROJECT_SOURCE_DIR}/util/options.hh
-        ${PROJECT_SOURCE_DIR}/util/text-options.hh
-  )
-  target_link_libraries(hb-ot-shape-closure harfbuzz)
-
   if (HB_HAVE_GOBJECT)
     add_executable(hb-info
         ${PROJECT_SOURCE_DIR}/util/batch.hh
@@ -1006,9 +996,6 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       )
     endif()
 
-    install(TARGETS hb-ot-shape-closure
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
   endif ()
   if (HB_HAVE_GOBJECT)
     install(TARGETS harfbuzz-gobject
