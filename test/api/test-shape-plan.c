@@ -41,7 +41,7 @@ test_ot_shape_plan_get_feature_tags_rtl (void)
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_set_segment_properties (buffer, &props);
-  hb_buffer_add_utf8 (buffer, u8"()", -1, 0, -1);
+  hb_buffer_add_utf8 (buffer, "()", -1, 0, -1);
 
   hb_shape_plan_t *shape_plan = hb_shape_plan_create (face, &props, NULL, 0, NULL);
   hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, NULL, 0);
@@ -90,7 +90,7 @@ test_ot_shape_plan_get_feature_tags_ltr (void)
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_set_segment_properties (buffer, &props);
-  hb_buffer_add_utf8 (buffer, u8" ", -1, 0, -1);
+  hb_buffer_add_utf8 (buffer, " ", -1, 0, -1);
 
   hb_shape_plan_t *shape_plan = hb_shape_plan_create (face, &props, NULL, 0, NULL);
   hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, NULL, 0);
@@ -132,7 +132,7 @@ test_ot_shape_plan_get_feature_tags_ttb (void)
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_set_segment_properties (buffer, &props);
-  hb_buffer_add_utf8 (buffer, u8" ", -1, 0, -1);
+  hb_buffer_add_utf8 (buffer, " ", -1, 0, -1);
 
   hb_shape_plan_t *shape_plan = hb_shape_plan_create (face, &props, NULL, 0, NULL);
   hb_bool_t ret = hb_shape_plan_execute (shape_plan, font, buffer, NULL, 0);
@@ -168,7 +168,7 @@ test_ot_shape_plan_get_feature_tags_userfeatures_enable (void)
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_set_segment_properties (buffer, &props);
-  hb_buffer_add_utf8 (buffer, u8"   ", -1, 0, -1);
+  hb_buffer_add_utf8 (buffer, "   ", -1, 0, -1);
 
   hb_feature_t user_features[1] = {{HB_TAG ('s', 's', '0', '1'), 1, 0, 1}};
 
@@ -209,7 +209,7 @@ test_ot_shape_plan_get_feature_tags_userfeatures_disable (void)
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_set_segment_properties (buffer, &props);
-  hb_buffer_add_utf8 (buffer, u8"   ", -1, 0, -1);
+  hb_buffer_add_utf8 (buffer, "   ", -1, 0, -1);
 
   hb_feature_t user_features[1] = {{HB_TAG ('k', 'e', 'r', 'n'), 0, 0, HB_FEATURE_GLOBAL_END}};
 
@@ -250,7 +250,7 @@ test_ot_shape_plan_get_feature_tags_userfeatures_disablepartial (void)
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_set_segment_properties (buffer, &props);
-  hb_buffer_add_utf8 (buffer, u8"   ", -1, 0, -1);
+  hb_buffer_add_utf8 (buffer, "   ", -1, 0, -1);
 
   hb_feature_t user_features[1] = {{HB_TAG ('k', 'e', 'r', 'n'), 0, 0, 1}};
 
@@ -291,7 +291,7 @@ test_ot_shape_plan_get_feature_tags_userfeatures_disablenondeafult (void)
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_set_segment_properties (buffer, &props);
-  hb_buffer_add_utf8 (buffer, u8"   ", -1, 0, -1);
+  hb_buffer_add_utf8 (buffer, "   ", -1, 0, -1);
 
   hb_feature_t user_features[1] = {{HB_TAG ('s', 's', '0', '1'), 0, 0, HB_FEATURE_GLOBAL_END}};
 
