@@ -2629,19 +2629,12 @@ struct hb_scalar_cache_t
 
 struct VarRegionList
 {
-  float evaluate (unsigned int region_index,
-		  const int *coords, unsigned int coord_len,
-		  hb_scalar_cache_t *cache = nullptr) const
+  private:
+  float evaluate_impl (unsigned int region_index,
+		       const int *coords, unsigned int coord_len) const
   {
-    if (unlikely (region_index >= regionCount))
-      return 0.;
-
-    float v = 1.;
-
-    if (cache && cache->get (region_index, &v))
-      return v;
-
     const VarRegionAxis *axes = axesZ.arrayZ + (region_index * axisCount);
+    float v = 1.f;
 
     unsigned int count = axisCount;
     for (unsigned int i = 0; i < count; i++)
@@ -2655,6 +2648,24 @@ struct VarRegionList
       }
       v *= factor;
     }
+
+    return v;
+  }
+
+  public:
+  HB_ALWAYS_INLINE
+  float evaluate (unsigned int region_index,
+		  const int *coords, unsigned int coord_len,
+		  hb_scalar_cache_t *cache = nullptr) const
+  {
+    if (unlikely (region_index >= regionCount))
+      return 0.;
+
+    float v;
+    if (cache && cache->get (region_index, &v))
+      return v;
+
+    v = evaluate_impl (region_index, coords, coord_len);
 
     if (cache)
       cache->set (region_index, v);
@@ -2800,6 +2811,7 @@ struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
 
 struct SparseVarRegionList
 {
+  HB_ALWAYS_INLINE
   float evaluate (unsigned int region_index,
 		  const int *coords, unsigned int coord_len,
 		  hb_scalar_cache_t *cache = nullptr) const
