@@ -2890,19 +2890,25 @@ struct VarData
    for (; i < lcount; i++)
    {
      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
-     delta += scalar * *lcursor++;
+     if (scalar)
+       delta += scalar * *lcursor;
+     lcursor++;
    }
    const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (lcursor);
    for (; i < scount; i++)
    {
      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
-     delta += scalar * *scursor++;
+     if (scalar)
+      delta += scalar * *scursor;
+     scursor++;
    }
    const HBINT8 *bcursor = reinterpret_cast<const HBINT8 *> (scursor);
    for (; i < count; i++)
    {
      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
-     delta += scalar * *bcursor++;
+     if (scalar)
+       delta += scalar * *bcursor;
+     bcursor++;
    }
 
    return delta;
