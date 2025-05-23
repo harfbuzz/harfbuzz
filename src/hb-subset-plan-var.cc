@@ -292,13 +292,18 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
       if (_vmtx.var_table.get_length ())
         vert_aw += (int) roundf (_vmtx.var_table->get_advance_delta_unscaled (old_gid, font->coords, font->num_coords,
                                                                               vvar_store_cache));
-
-      int tsb = extents.y_bearing;
-      if (!has_bounds_info)
+      hb_position_t vorg_x = 0;
+      hb_position_t vorg_y = 0;
+      int tsb = 0;
+      if (has_bounds_info &&
+           hb_font_get_glyph_v_origin (font, old_gid, &vorg_x, &vorg_y))
       {
+        tsb = vorg_y - extents.y_bearing;
+      } else {
         if (!_vmtx.get_leading_bearing_without_var_unscaled (old_gid, &tsb))
           continue;
       }
+
       plan->vmtx_map.set (new_gid, hb_pair ((unsigned) vert_aw, tsb));
       plan->bounds_height_vec[new_gid] = extents.height;
     }
