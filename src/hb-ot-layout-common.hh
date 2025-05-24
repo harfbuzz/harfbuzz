@@ -2874,44 +2874,41 @@ struct VarData
     if (unlikely (inner >= itemCount))
       return 0.;
 
-   unsigned int count = regionIndices.len;
-   bool is_long = longWords ();
-   unsigned word_count = wordCount ();
-   unsigned int scount = is_long ? count : word_count;
-   unsigned int lcount = is_long ? word_count : 0;
+    float delta = 0.f;
+    unsigned count = regionIndices.len;
+    unsigned word_count = wordCount ();
+    bool is_long = longWords ();
+    unsigned shift = is_long ? 1 : 0;
 
-   const HBUINT8 *bytes = get_delta_bytes ();
-   const HBUINT8 *row = bytes + inner * get_row_size ();
+    const HBUINT8 *bytes = get_delta_bytes ();
+    const HBUINT8 *row = bytes + inner * get_row_size ();
 
-   float delta = 0.;
-   unsigned int i = 0;
+    for (unsigned i = 0; i < count; i++)
+    {
+      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
+      if (unlikely (scalar))
+      {
+        if (is_long)
+	{
+	  if (i < word_count)
+	    delta += scalar * *reinterpret_cast<const HBINT32 *>(row);
+	  else
+	    delta += scalar * *reinterpret_cast<const HBINT16 *>(row);
+	}
+	else
+	{
+	  if (i < word_count)
+	    delta += scalar * *reinterpret_cast<const HBINT16 *>(row);
+	  else
+	    delta += scalar * *reinterpret_cast<const HBINT8 *>(row);
+	}
+      }
 
-   const HBINT32 *lcursor = reinterpret_cast<const HBINT32 *> (row);
-   for (; i < lcount; i++)
-   {
-     float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
-     if (scalar)
-       delta += scalar * *lcursor;
-     lcursor++;
-   }
-   const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (lcursor);
-   for (; i < scount; i++)
-   {
-     float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
-     if (scalar)
-      delta += scalar * *scursor;
-     scursor++;
-   }
-   const HBINT8 *bcursor = reinterpret_cast<const HBINT8 *> (scursor);
-   for (; i < count; i++)
-   {
-     float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
-     if (scalar)
-       delta += scalar * *bcursor;
-     bcursor++;
-   }
+      /* Branch-free, yay. */
+      row += 1u << (shift + (i < word_count));
+    }
 
-   return delta;
+    return delta;
   }
 
   void get_region_scalars (const int *coords, unsigned int coord_count,
