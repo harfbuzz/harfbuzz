@@ -202,7 +202,10 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
     }
   }
   else
-    FT_Set_Var_Design_Coordinates (ft_face, 0, nullptr);
+  {
+    FT_Fixed unused_stack_coord = 0;
+    FT_Set_Var_Design_Coordinates (ft_face, 0, &unused_stack_coord);
+  }
 #endif
 }
 
