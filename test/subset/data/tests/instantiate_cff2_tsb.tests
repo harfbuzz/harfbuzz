@@ -1,0 +1,14 @@
+FONTS:
+NotoSansJP-VF.subset.otf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+U+5005,U+5006,U+5009,U+500D
+
+INSTANCES:
+wght=300
+
+OPTIONS:
+no_fonttools

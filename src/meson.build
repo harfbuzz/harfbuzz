@@ -431,6 +431,8 @@ hb_gobject_headers = files(
   'hb-gobject-structs.h',
 )
 
+hb_failing_alloc_sources = files('failing-alloc.c')
+
 ragel = find_program('ragel', version: '6.10', required: false)
 has_ragel = ragel.found()
 if not has_ragel and get_option('ragel_subproject')
@@ -623,10 +625,10 @@ endif
 
 if get_option('fuzzer_ldflags') != ''
   extra_hb_cpp_args += ['-DHB_CUSTOM_MALLOC']
-  hb_sources += 'failing-alloc.c'
-  hb_subset_sources += 'failing-alloc.c'
-  hb_icu_sources += 'failing-alloc.c'
-  hb_gobject_sources += 'failing-alloc.c'
+  hb_sources += hb_failing_alloc_sources
+  hb_subset_sources += hb_failing_alloc_sources
+  hb_icu_sources += hb_failing_alloc_sources
+  hb_gobject_sources += hb_failing_alloc_sources
 endif
 
 darwin_versions = [hb_version_int, '@0@.0.0'.format(hb_version_int)]

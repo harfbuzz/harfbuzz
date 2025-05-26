@@ -61,6 +61,7 @@ tests = [
   'instantiate_colrv1',
   'instantiate_glyf',
   'instantiate_cff2',
+  'instantiate_cff2_tsb',
   'full_instance',
   'instance_feature_variations',
   'instance_no_double_free',

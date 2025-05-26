@@ -563,7 +563,7 @@ hb_ot_draw_glyph_or_fail (hb_font_t *font,
   }
 
 #ifndef HB_NO_VAR_COMPOSITES
-  if (font->face->table.VARC->get_path (font, glyph, draw_session/*, gvar_cache*/)) { ret = true; goto done; }
+  if (font->face->table.VARC->get_path (font, glyph, draw_session)) { ret = true; goto done; }
 #endif
 #ifndef HB_NO_VAR_HVF
   if (!font->face->table.hvgl->get_path (font, glyph, draw_session))
