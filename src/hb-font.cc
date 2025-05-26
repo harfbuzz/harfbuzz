@@ -2450,6 +2450,9 @@ hb_bool_t
 hb_font_set_funcs_using (hb_font_t  *font,
 			 const char *name)
 {
+  if (unlikely (hb_object_is_immutable (font)))
+    return false;
+
   bool retry = false;
 
   if (!name || !*name)
