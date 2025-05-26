@@ -201,10 +201,11 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
       hb_free (ft_coords);
     }
   }
-  else
+  else if (num_coords)
   {
-    FT_Fixed unused_stack_coord = 0;
-    FT_Set_Var_Design_Coordinates (ft_face, 0, &unused_stack_coord);
+    // Some old versions of FreeType crash if we
+    // call this function on non-variable fonts.
+    FT_Set_Var_Design_Coordinates (ft_face, 0, nullptr);
   }
 #endif
 }
