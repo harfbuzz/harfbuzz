@@ -143,6 +143,9 @@ _hb_ft_font_destroy (void *data)
 /* hb_font changed, update FT_Face. */
 static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
 {
+  if (unlikely (font->destroy != (hb_destroy_func_t) _hb_ft_font_destroy))
+    return;
+
   hb_ft_font_t *ft_font = (hb_ft_font_t *) font->user_data;
 
   float x_mult = 1.f, y_mult = 1.f;
