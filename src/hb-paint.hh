@@ -72,7 +72,11 @@ struct hb_paint_funcs_t
                        float xx, float yx,
                        float xy, float yy,
                        float dx, float dy)
-  { func.push_transform (this, paint_data,
+  {
+    // Handle -0.f to avoid -0.f == 0.f in the transform matrix.
+    if (dx == -0.f) dx = 0.f;
+    if (dy == -0.f) dy = 0.f;
+    func.push_transform (this, paint_data,
                          xx, yx, xy, yy, dx, dy,
                          !user_data ? nullptr : user_data->push_transform); }
   void pop_transform (void *paint_data)
