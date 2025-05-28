@@ -111,8 +111,8 @@ struct ValueFormat : HBUINT16
 
     if (!has_device ()) return ret;
 
-    bool use_x_device = font->x_ppem || font->num_coords;
-    bool use_y_device = font->y_ppem || font->num_coords;
+    bool use_x_device = font->x_ppem || font->has_nonzero_coords;
+    bool use_y_device = font->y_ppem || font->has_nonzero_coords;
 
     if (!use_x_device && !use_y_device) return ret;
 

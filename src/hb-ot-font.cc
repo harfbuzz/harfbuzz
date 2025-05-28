@@ -297,11 +297,11 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   ot_font->check_serial (font);
   const OT::HVAR &HVAR = *hmtx.var_table;
   const OT::ItemVariationStore &varStore = &HVAR + HVAR.varStore;
-  OT::hb_scalar_cache_t *varStore_cache = ot_font->h.acquire_varStore_cache (varStore);
+  OT::hb_scalar_cache_t *varStore_cache = font->has_nonzero_coords ? ot_font->h.acquire_varStore_cache (varStore) : nullptr;
 
   hb_ot_font_advance_cache_t *advance_cache = nullptr;
 
-  bool use_cache = font->num_coords;
+  bool use_cache = font->has_nonzero_coords;
   if (use_cache)
   {
     advance_cache = ot_font->h.acquire_advance_cache ();
@@ -361,7 +361,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
     ot_font->check_serial (font);
     const OT::VVAR &VVAR = *vmtx.var_table;
     const OT::ItemVariationStore &varStore = &VVAR + VVAR.varStore;
-    OT::hb_scalar_cache_t *varStore_cache = ot_font->v.acquire_varStore_cache (varStore);
+    OT::hb_scalar_cache_t *varStore_cache = font->has_nonzero_coords ? ot_font->v.acquire_varStore_cache (varStore) : nullptr;
     // TODO Use advance_cache.
 
     for (unsigned int i = 0; i < count; i++)
@@ -411,7 +411,7 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
 #ifndef HB_NO_VAR
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     const OT::VVAR &VVAR = *vmtx.var_table;
-    if (font->num_coords)
+    if (font->has_nonzero_coords)
       VVAR.get_vorg_delta_unscaled (glyph,
 				    font->coords, font->num_coords,
 				    &delta);

@@ -8,17 +8,13 @@ start transform 1 0 0 1 0 0
       end clip
     end transform
     push group
-      start transform 1 0 0 1 500 500
-        start transform 1 0.268 -0 1 0 0
-          start transform 1 0 0 1 -500 -500
+      start transform 1 0.268 0 1 0 -134
+        start transform 1 0 0 1 0 0
+          start clip glyph 3
             start transform 1 0 0 1 0 0
-              start clip glyph 3
-                start transform 1 0 0 1 0 0
-                  solid 255 165 0 178
-                end transform
-              end clip
+              solid 255 165 0 178
             end transform
-          end transform
+          end clip
         end transform
       end transform
     pop group mode 4
