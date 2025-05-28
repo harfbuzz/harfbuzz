@@ -57,7 +57,7 @@ dependencies = [
 [[package]]
 name = "harfruzz"
 version = "0.1.0"
-source = "git+https://github.com/harfbuzz/harfruzz#702e3bd4dfdaf9ea6b084467deb4c052a8cfa748"
+source = "git+https://github.com/harfbuzz/harfruzz#966d38a4b7b2f23b77a0ce4c356542e9395102e8"
 dependencies = [
  "bitflags",
  "bytemuck",
@@ -100,9 +100,9 @@ dependencies = [
 
 [[package]]
 name = "read-fonts"
-version = "0.29.0"
+version = "0.29.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ce8e2ca6b24313587a03ca61bb74c384e2a815bd90cf2866cfc9f5fb7a11fa0"
+checksum = "4e85935612710191461ec9df47b4b5880dd6359d4fad3b2f2ed696215f6f3146"
 dependencies = [
  "bytemuck",
  "core_maths",
@@ -111,9 +111,9 @@ dependencies = [
 
 [[package]]
 name = "skrifa"
-version = "0.31.0"
+version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbe6666ab11018ab91ff7b03f1a3b9fdbecfb610848436fefa5ce50343d3d913"
+checksum = "b9c3bb8cab5196b98d70c866ce1ea81ab516104d5b396f84ae80f8766b5d5b4e"
 dependencies = [
  "bytemuck",
  "read-fonts",
