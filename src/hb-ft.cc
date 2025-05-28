@@ -1728,7 +1728,12 @@ hb_ft_font_set_funcs (hb_font_t *font)
   ft_face->generic.finalizer = _release_blob;
 
   // And the FT_Library to the blob
-  hb_blob_set_user_data (blob, &ft_library_key, ft_library, destroy_ft_library, true);
+  if (unlikely (!hb_blob_set_user_data (blob, &ft_library_key, ft_library, destroy_ft_library, true)))
+  {
+    DEBUG_MSG (FT, font, "hb_blob_set_user_data() failed");
+    FT_Done_Face (ft_face);
+    return;
+  }
 
   _hb_ft_font_set_funcs (font, ft_face, true);
   hb_ft_font_set_load_flags (font, FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING);
