@@ -124,8 +124,7 @@ struct HBInt<BE, Type, 2>
   HBInt (Type V)
 #if HB_FAST_NUM_ACCESS
   {
-    constexpr bool be = __BYTE_ORDER == __BIG_ENDIAN;
-    if (be == BE)
+    if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
       ((hb_packed_t<uint16_t> *) v)->v = V;
     else
       ((hb_packed_t<uint16_t> *) v)->v = __builtin_bswap16 (V);
@@ -138,11 +137,11 @@ struct HBInt<BE, Type, 2>
   constexpr operator Type () const
   {
 #if HB_FAST_NUM_ACCESS
-    constexpr bool be = __BYTE_ORDER == __BIG_ENDIAN;
-    if (be == BE)
-      return ((const hb_packed_t<uint16_t> *) v)->v;
-    else
-      return __builtin_bswap16 (((const hb_packed_t<uint16_t> *) v)->v);
+    return (BE == (__BYTE_ORDER == __BIG_ENDIAN)) ?
+      ((const hb_packed_t<uint16_t> *) v)->v
+    :
+      __builtin_bswap16 (((const hb_packed_t<uint16_t> *) v)->v)
+    ;
 #else
     return (BE ? (v[0] <<  8) : (v[0]      ))
 	 + (BE ? (v[1]      ) : (v[1] <<  8));
@@ -177,8 +176,7 @@ struct HBInt<BE, Type, 4>
   HBInt (Type V)
 #if HB_FAST_NUM_ACCESS
   {
-    constexpr bool be = __BYTE_ORDER == __BIG_ENDIAN;
-    if (be == BE)
+    if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
       ((hb_packed_t<uint32_t> *) v)->v = V;
     else
       ((hb_packed_t<uint32_t> *) v)->v = __builtin_bswap32 (V);
@@ -192,11 +190,11 @@ struct HBInt<BE, Type, 4>
 
   constexpr operator Type () const {
 #if HB_FAST_NUM_ACCESS
-    constexpr bool be = __BYTE_ORDER == __BIG_ENDIAN;
-    if (be == BE)
-      return ((const hb_packed_t<uint32_t> *) v)->v;
-    else
-      return __builtin_bswap32 (((const hb_packed_t<uint32_t> *) v)->v);
+    return (BE == (__BYTE_ORDER == __BIG_ENDIAN)) ?
+      ((const hb_packed_t<uint32_t> *) v)->v
+    :
+      __builtin_bswap32 (((const hb_packed_t<uint32_t> *) v)->v)
+    ;
 #else
     return (BE ? (v[0] << 24) : (v[0]      ))
 	 + (BE ? (v[1] << 16) : (v[1] <<  8))
@@ -252,8 +250,7 @@ struct HBFloat
   {
 #if HB_FAST_NUM_ACCESS
     {
-      constexpr bool be = __BYTE_ORDER == __BIG_ENDIAN;
-      if (be == BE)
+      if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
       {
         ((hb_packed_t<Type> *) v)->v = V;
         return;
@@ -275,8 +272,7 @@ struct HBFloat
   {
 #if HB_FAST_NUM_ACCESS
     {
-      constexpr bool be = __BYTE_ORDER == __BIG_ENDIAN;
-      if (be == BE)
+      if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
 	return ((const hb_packed_t<Type> *) v)->v;
     }
 #endif
