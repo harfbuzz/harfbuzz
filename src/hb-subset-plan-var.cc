@@ -199,24 +199,44 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     {
       plan->axes_triple_distances.set (axis_tag, axis.get_triple_distances ());
 
-      int normalized_min = axis.normalize_axis_value (axis_range->minimum);
-      int normalized_default = axis.normalize_axis_value (axis_range->middle);
-      int normalized_max = axis.normalize_axis_value (axis_range->maximum);
+      float normalized_min = axis.normalize_axis_value (axis_range->minimum);
+      float normalized_default = axis.normalize_axis_value (axis_range->middle);
+      float normalized_max = axis.normalize_axis_value (axis_range->maximum);
+
+      // TODO(behdad): Spec says axis normalization should be done in 16.16;
+      // We used to do it in 2.14, but that's not correct.  I fixed this in
+      // the fvar/avar code, but keeping 2.14 here for now to keep tests
+      // happy. We might need to adjust fonttools as well.
+      // I'm only fairly confident in the above statement. Anyway,
+      // we should look deeper into this, and also update fonttools if
+      // needed.
+
+      // Round to 2.14
+      normalized_min = roundf (normalized_min * 16384.f) / 16384.f;
+      normalized_default = roundf (normalized_default * 16384.f) / 16384.f;
+      normalized_max = roundf (normalized_max * 16384.f) / 16384.f;
 
       if (has_avar && old_axis_idx < avar_axis_count)
       {
-        normalized_min = seg_maps->map (normalized_min);
-        normalized_default = seg_maps->map (normalized_default);
-        normalized_max = seg_maps->map (normalized_max);
-      }
-      plan->axes_location.set (axis_tag, Triple (static_cast<double> (normalized_min / 16384.0),
-                                                 static_cast<double> (normalized_default / 16384.0),
-                                                 static_cast<double> (normalized_max / 16384.0)));
+	normalized_min = seg_maps->map_float (normalized_min);
+	normalized_default = seg_maps->map_float (normalized_default);
+	normalized_max = seg_maps->map_float (normalized_max);
 
-      if (normalized_default != 0)
+	// Round to 2.14
+	normalized_min = roundf (normalized_min * 16384.f) / 16384.f;
+	normalized_default = roundf (normalized_default * 16384.f) / 16384.f;
+	normalized_max = roundf (normalized_max * 16384.f) / 16384.f;
+      }
+      plan->axes_location.set (axis_tag, Triple ((double) normalized_min,
+                                                 (double) normalized_default,
+                                                 (double) normalized_max));
+
+      if (normalized_default == -0.f)
+        normalized_default = 0.f; // Normalize -0 to 0
+      if (normalized_default != 0.f)
         plan->pinned_at_default = false;
 
-      plan->normalized_coords[old_axis_idx] = normalized_default;
+      plan->normalized_coords[old_axis_idx] = roundf (normalized_default * 16384.f);
     }
 
     old_axis_idx++;

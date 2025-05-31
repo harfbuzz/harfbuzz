@@ -37,12 +37,12 @@ struct AnchorFormat3
     *x = font->em_fscale_x (xCoordinate);
     *y = font->em_fscale_y (yCoordinate);
 
-    if ((font->x_ppem || font->num_coords) && xDeviceTable.sanitize (&c->sanitizer, this))
+    if ((font->x_ppem || font->has_nonzero_coords) && xDeviceTable.sanitize (&c->sanitizer, this))
     {
       hb_barrier ();
       *x += (this+xDeviceTable).get_x_delta (font, c->var_store, c->var_store_cache);
     }
-    if ((font->y_ppem || font->num_coords) && yDeviceTable.sanitize (&c->sanitizer, this))
+    if ((font->y_ppem || font->has_nonzero_coords) && yDeviceTable.sanitize (&c->sanitizer, this))
     {
       hb_barrier ();
       *y += (this+yDeviceTable).get_y_delta (font, c->var_store, c->var_store_cache);
@@ -63,7 +63,7 @@ struct AnchorFormat3
       hb_pair_t<unsigned, int> *new_varidx_delta;
       if (!c->plan->layout_variation_idx_delta_map.has (x_varidx, &new_varidx_delta))
         return_trace (false);
-     
+
       x_varidx = hb_first (*new_varidx_delta);
       int delta = hb_second (*new_varidx_delta);
       if (delta != 0)
