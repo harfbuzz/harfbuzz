@@ -210,6 +210,27 @@ _hb_roundf (float x) { return floorf (x + .5f); }
 
 #define roundf(x) _hb_roundf(x)
 
+static inline void
+hb_sincos (float rotation, float &s, float &c)
+{
+#ifdef HAVE_SINCOSF
+  sincosf (rotation, &s, &c);
+#else
+  c = cosf (rotation);
+  s = sinf (rotation);
+#endif
+}
+static inline void
+hb_sincos (double rotation, double &s, double &c)
+{
+#ifdef HAVE_SINCOS
+  sincos (rotation, &s, &c);
+#else
+  c = cos (rotation);
+  s = sin (rotation);
+#endif
+}
+
 
 /* Encodes three unsigned integers in one 64-bit number.  If the inputs have more than 21 bits,
  * values will be truncated / overlap, and might not decode exactly. */
