@@ -183,7 +183,8 @@ struct SegmentMaps : Array16Of<AxisValueMap>
 
   Triple unmap_axis_range (const Triple& axis_range) const
   {
-    F2DOT14 val, unmapped_val;
+    F2DOT14 val = {};
+    F2DOT14 unmapped_val = {};
 
     val.set_float (axis_range.minimum);
     unmapped_val.set_int (unmap (val.to_int ()));
