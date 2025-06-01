@@ -31,7 +31,8 @@ jobs:
     executor: dist-executor
     steps:
       - checkout
-      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y git ninja-build binutils gcc g++ pkg-config ragel gtk-doc-tools gobject-introspection libfreetype6-dev libglib2.0-dev libgirepository1.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
+      - run: sudo apt update || true
+      - run: DEBIAN_FRONTEND=noninteractive sudo apt install -y git ninja-build binutils gcc g++ pkg-config ragel gtk-doc-tools gobject-introspection libfreetype6-dev libglib2.0-dev libgirepository1.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
       - run: pip3 install fonttools meson --upgrade
       - run: meson setup build
       - run: meson dist --no-tests -Cbuild
@@ -122,7 +123,7 @@ jobs:
     steps:
       - checkout
       - run: dpkg --add-architecture i386
-      - run: apt update
+      - run: apt update || true
       - run: DEBIAN_FRONTEND=noninteractive apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-i686 zip wine wine32
       - run: |
           export LANG=en_US.UTF-8
@@ -154,7 +155,7 @@ jobs:
     steps:
       - checkout
       - run: dpkg --add-architecture i386
-      - run: apt update
+      - run: apt update || true
       - run: DEBIAN_FRONTEND=noninteractive apt install -y ninja-build python3 python3-pip python3-venv git g++-mingw-w64-x86-64 zip wine wine64 wine32:i386
       - run: |
           export LANG=en_US.UTF-8
@@ -175,7 +176,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: apt update
+      - run: apt update || true
       - run: DEBIAN_FRONTEND=noninteractive apt install -y curl
       - run: |
           mv harfbuzz-win64{,-$CIRCLE_TAG}.zip
