@@ -56,6 +56,10 @@ jobs:
       run: meson compile -Cbuild
     - name: Test
       run: meson test --print-errorlogs -Cbuild
+    - name: Dist
+      run: |
+        git reset --hard HEAD # ragel may have modified the source tree
+        meson dist --no-tests -Cbuild
     - name: Generate Documentations
       run: ninja -Cbuild harfbuzz-doc
     - name: Deploy Documentations
@@ -64,3 +68,37 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         REVISION: ${{ github.sha }}
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: harfbuzz
+        path: build/meson-dist/harfbuzz-*.tar.xz
+        if-no-files-found: error
+
+  release:
+    name: Create and populate release
+    needs: build
+    runs-on: ubuntu-24.04
+    if: contains(github.ref, 'refs/tags/')
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: harfbuzz
+      - name: Extract artifacts
+        run: |
+          ls -R
+          unzip harfbuzz.zip
+          ls -R
+      - name: Check for release
+        id: create_release
+        run: |
+          if ! gh release view ${{ github.ref_name }}; then
+            git show -s --format=%B ${{ github.ref_name }} | tail -n +4 | gh release create ${{ github.ref_name }} -t ${{ github.ref_name }} -F -
+          fi
+      - name: Populate release
+        run: |
+          gh release upload ${{ github.ref_name }} harfbuzz-${{ github.ref_name }}.tar.xz --clobber
