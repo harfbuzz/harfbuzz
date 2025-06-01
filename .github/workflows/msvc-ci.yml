@@ -16,13 +16,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, windows-latest]
         include:
-          - name: msvc-2019-x86
-            os: windows-2019
+          - name: msvc-2025-x86
+            os: windows-2025
             ARCH: x86
-          - name: msvc-2019-amd64
-            os: windows-latest
+          - name: msvc-2025-amd64
+            os: windows-2025
             ARCH: amd64
     name: ${{ matrix.name }}
 
