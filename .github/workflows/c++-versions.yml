@@ -1,0 +1,45 @@
+name: c++ versions
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: g++ c++11
+            CXX: g++
+            CXX_STANDARD: c++11
+            PACKAGES: g++
+          - name: g++ c++2a
+            CXX: g++
+            CXX_STANDARD: c++2a
+            PACKAGES: g++
+          - name: clang c++11
+            CXX: clang++
+            CXX_STANDARD: c++11
+            PACKAGES: clang
+          - name: clang c++2a
+            CXX: clang++
+            CXX_STANDARD: c++2a
+            PACKAGES: clang
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt install -y ${{ matrix.PACKAGES }}
+    - name: Build
+      run: ${{ matrix.CXX }} -c src/harfbuzz-subset.cc -DHB_NO_MT -Werror -std=${{ matrix.CXX_STANDARD }}
