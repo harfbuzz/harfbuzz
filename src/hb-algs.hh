@@ -98,7 +98,7 @@ struct __attribute__((packed)) hb_packed_t { Type v; };
      (__BYTE_ORDER == __LITTLE_ENDIAN && \
       hb_has_builtin(__builtin_bswap16) && \
       hb_has_builtin(__builtin_bswap32)))
-#define HB_FAST_NUM_ACCESS 0
+#define HB_FAST_NUM_ACCESS 1
 #else
 #define HB_FAST_NUM_ACCESS 0
 #endif
