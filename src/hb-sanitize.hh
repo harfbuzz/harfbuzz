@@ -463,9 +463,11 @@ struct hb_sanitize_context_t :
     }
     else
     {
-      if (edit_count && !writable) {
-	start = hb_blob_get_data_writable (blob, nullptr);
-	end = start + blob->length;
+      if (edit_count && !writable)
+      {
+        unsigned length;
+	start = hb_blob_get_data_writable (blob, &length);
+	end = start + length;
 
 	if (start)
 	{
