@@ -139,6 +139,7 @@ struct hb_font_t
 
   /* Font variation coordinates. */
   unsigned int instance_index;
+  bool has_nonzero_coords;
   unsigned int num_coords;
   int *coords;
   float *design_coords;
@@ -508,7 +509,7 @@ struct hb_font_t
 #endif
 
 #ifndef HB_NO_DRAW
-    hb_extents_t draw_extents;
+    hb_extents_t<> draw_extents;
     if (draw_glyph_or_fail (glyph,
 			    hb_draw_extents_get_funcs (), &draw_extents))
     {
