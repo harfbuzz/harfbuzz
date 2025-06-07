@@ -215,10 +215,14 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
         hr_buffer.add(char::from_u32_unchecked(unicode), cluster);
     }
 
+    let ptem = hb_font_get_ptem(font);
+    let ptem = if ptem > 0.0 { Some(ptem) } else { None };
+
     let shaper = (*face_data)
         .shaper_data
         .shaper(font_ref)
         .instance(Some(&(*font_data).shaper_instance))
+        .point_size(ptem)
         .build();
 
     let features = if features.is_null() {
