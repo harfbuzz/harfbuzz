@@ -283,6 +283,7 @@ for filename in args:
                     if glyphs_expected != "*":
                         extra_options.append("--verify")
                         extra_options.append("--unsafe-to-concat")
+                        extra_options.append("--safe-to-insert-tatweel")
 
                     if verbose:
                         print(
