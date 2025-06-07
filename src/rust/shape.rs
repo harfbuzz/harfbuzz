@@ -279,6 +279,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
         let pos = &mut *positions.add(i);
         info.codepoint = hr_info.glyph_id;
         info.cluster = hr_info.cluster;
+        info.mask = 0;
         if hr_info.unsafe_to_break() {
             info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
         }
