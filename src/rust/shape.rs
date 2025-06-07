@@ -54,7 +54,7 @@ pub struct HBHarfRuzzFontData {
     shaper_instance: ShaperInstance,
 }
 
-fn font_coords_to_f2dot14(font: *mut hb_font_t) -> Vec<NormalizedCoord> {
+fn font_to_shaper_instance(font: *mut hb_font_t, font_ref: &FontRef<'_>) -> ShaperInstance {
     let mut num_coords: u32 = 0;
     let coords = unsafe { hb_font_get_var_coords_normalized(font, &mut num_coords) };
     let coords = if coords.is_null() {
@@ -62,10 +62,8 @@ fn font_coords_to_f2dot14(font: *mut hb_font_t) -> Vec<NormalizedCoord> {
     } else {
         unsafe { std::slice::from_raw_parts(coords, num_coords as usize) }
     };
-    coords
-        .iter()
-        .map(|&v| NormalizedCoord::from_bits(v as i16))
-        .collect::<Vec<_>>()
+    let coords = coords.iter().map(|&v| NormalizedCoord::from_bits(v as i16));
+    ShaperInstance::from_coords(font_ref, coords)
 }
 
 #[no_mangle]
@@ -76,9 +74,7 @@ pub unsafe extern "C" fn _hb_harfruzz_shaper_font_data_create_rs(
     let face_data = face_data as *const HBHarfRuzzFaceData;
 
     let font_ref = &(*face_data).font_ref;
-    let coords = font_coords_to_f2dot14(font);
-
-    let shaper_instance = ShaperInstance::from_coords(font_ref, coords);
+    let shaper_instance = font_to_shaper_instance(font, font_ref);
 
     let hr_font_data = Box::new(HBHarfRuzzFontData { shaper_instance });
     let hr_font_data_ptr = Box::into_raw(hr_font_data);
