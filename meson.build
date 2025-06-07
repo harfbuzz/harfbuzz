@@ -103,6 +103,7 @@ check_funcs = [
   ['isatty', {'prefix': '#include <unistd.h>'}],
   ['uselocale', {'prefix': '#include <locale.h>'}],
   ['newlocale', {'prefix': '#include <locale.h>'}],
+  ['sincos', {'prefix': '#define _GNU_SOURCE\n#include <math.h>'}],
   ['sincosf', {'prefix': '#define _GNU_SOURCE\n#include <math.h>'}],
 ]
 

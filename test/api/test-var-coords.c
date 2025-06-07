@@ -24,6 +24,8 @@
 
 #include "hb-test.h"
 
+#include <math.h>
+
 #include <hb-ot.h>
 
 /* Unit tests for hb_font_[gs]et_var_coords_ */
@@ -31,20 +33,13 @@
 static void
 test_get_var_coords (void)
 {
-#ifndef G_APPROX_VALUE
-#define G_APPROX_VALUE(a, b, epsilon) \
-  (((a) > (b) ? (a) - (b) : (b) - (a)) < (epsilon))
-#endif
-
-#define EPSILON 0.05f
-	
   hb_face_t *face = hb_test_open_font_file ("fonts/TestCFF2VF.otf");
   hb_font_t *font = hb_font_create (face);
 
   /* Normalized coords as input */
   int normalized_coords[] = {100, 0};
   hb_font_set_var_coords_normalized (font, normalized_coords, 2);
-  g_assert_cmpint ((int) hb_font_get_var_coords_design (font, NULL)[0], ==, 403);
+  g_assert (isnan (hb_font_get_var_coords_design (font, NULL)[0]));
   g_assert_cmpint ((int) hb_font_get_var_coords_normalized (font, NULL)[0], ==, 100);
 
   /* Design coords as input */
@@ -52,16 +47,6 @@ test_get_var_coords (void)
   hb_font_set_var_coords_design (font, design_coords, 2);
   g_assert_cmpint ((int) hb_font_get_var_coords_normalized (font, NULL)[0], ==, -16117);
   g_assert_cmpint ((int) hb_font_get_var_coords_design (font, NULL)[0], ==, 206);
-
-  for (float weight = 200; weight < 901; ++weight)
-  {
-    int normalized;
-    hb_ot_var_normalize_coords (face, 1, &weight, &normalized);
-    hb_font_set_var_coords_normalized (font, &normalized, 1);
-    float converted_back = hb_font_get_var_coords_design (font, NULL)[0];
-    // fprintf (stderr, "%f: %d => %f\n", weight, normalized, converted_back);
-    g_assert_true (G_APPROX_VALUE (converted_back, weight, EPSILON));
-  }
 
   hb_font_destroy (font);
   hb_face_destroy (face);

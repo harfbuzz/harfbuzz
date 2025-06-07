@@ -191,10 +191,10 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
     FT_Set_Transform (ft_face, nullptr, nullptr);
 
 #if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
-  unsigned int num_coords;
-  const float *coords = hb_font_get_var_coords_design (font, &num_coords);
-  if (num_coords)
+  if (font->has_nonzero_coords)
   {
+    unsigned int num_coords;
+    const float *coords = hb_font_get_var_coords_design (font, &num_coords);
     FT_Fixed *ft_coords = (FT_Fixed *) hb_calloc (num_coords, sizeof (FT_Fixed));
     if (ft_coords)
     {
@@ -204,7 +204,7 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
       hb_free (ft_coords);
     }
   }
-  else if (num_coords)
+  else if (font->num_coords)
   {
     // Some old versions of FreeType crash if we
     // call this function on non-variable fonts.
@@ -1381,7 +1381,7 @@ hb_ft_font_changed (hb_font_t *font)
 
 	for (unsigned int i = 0; i < mm_var->num_axis; ++i)
 	 {
-	  coords[i] = ft_coords[i] >>= 2;
+	  coords[i] = (ft_coords[i] + 2) >> 2;
 	  nonzero = nonzero || coords[i];
 	 }
 
