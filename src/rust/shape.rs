@@ -172,11 +172,9 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
         hb_buffer_cluster_level_t_HB_BUFFER_CLUSTER_LEVEL_CHARACTERS => {
             harfruzz::BufferClusterLevel::Characters
         }
-        /* TODO: Enable when added to HarfRuzz
         hb_buffer_cluster_level_t_HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES => {
             harfruzz::BufferClusterLevel::Graphemes
         }
-        */
         _ => harfruzz::BufferClusterLevel::default(),
     };
     hr_buffer.set_cluster_level(cluster_level);
