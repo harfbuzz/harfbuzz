@@ -70,10 +70,7 @@ struct shape_consumer_t : shape_options_t
       {
 	failed = true;
 	output.error (error);
-	if (hb_buffer_get_content_type (buffer) == HB_BUFFER_CONTENT_TYPE_GLYPHS)
-	  break;
-	else
-	  return true;
+	return true;
       }
     }
 
