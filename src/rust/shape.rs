@@ -282,6 +282,12 @@ pub unsafe extern "C" fn _hb_harfruzz_shape_rs(
         if hr_info.unsafe_to_break() {
             info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
         }
+        if hr_info.unsafe_to_concat() {
+            info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+        }
+        if hr_info.safe_to_insert_tatweel() {
+            info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL;
+        }
         pos.x_advance = (hr_pos.x_advance as f32 * x_scale).round() as hb_position_t;
         pos.y_advance = (hr_pos.y_advance as f32 * y_scale).round() as hb_position_t;
         pos.x_offset = (hr_pos.x_offset as f32 * x_scale).round() as hb_position_t;
