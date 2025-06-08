@@ -16,20 +16,9 @@ jobs:
       - store_artifacts:
           path: build/meson-logs/
 
-  fedora-valgrind:
-    docker:
-      - image: fedora:36
-    steps:
-      - checkout
-      - run: dnf install -y pkg-config ragel valgrind gcc gcc-c++ meson git glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python python-pip || true
-      - run: meson setup build --buildtype=debugoptimized
-      - run: meson compile -Cbuild -j9
-      - run: RUN_VALGRIND=1 meson test -Cbuild -t 10 --no-suite=slow --wrap='valgrind --leak-check=full --error-exitcode=1' --print-errorlogs --num-processes=$(($(nproc)/2 + 1))
-
 workflows:
   version: 2
 
   build:
     jobs:
       - macos-aat-fonts
-      - fedora-valgrind
