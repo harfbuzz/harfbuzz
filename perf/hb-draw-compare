@@ -1,0 +1,309 @@
+#!/bin/bash
+
+trap "exit" INT
+
+dirname=`dirname "$0"`
+
+# Parse options
+output_dir=
+font_file=
+face_index=0
+hb_view=hb-view
+hb_info=hb-info
+hb_svg_compare=$dirname/hb-svg-compare
+tolerance=0
+font_size=upem
+features=
+variations=
+face_loader=ot
+shaper=ot
+font_funcs1=ot
+font_funcs2=coretext
+clear1=false
+clear2=false
+unicodes=
+glyphs=
+quiet=false
+help=false
+while test $# -gt 0; do
+	case "$1" in
+		-o|--output-dir)
+			shift
+			output_dir=$1
+			shift
+			;;
+		--font-file)
+			shift
+			font_file=$1
+			shift
+			;;
+		--face-index)
+			shift
+			face_index=$1
+			shift
+			;;
+		--hb-view)
+			shift
+			hb_view=$1
+			shift
+			;;
+		--hb-info)
+			shift
+			hb_info=$1
+			shift
+			;;
+		--hb-svg-compare)
+			shift
+			hb_svg_compare=$1
+			shift
+			;;
+		--tolerance)
+			shift
+			tolerance=$1
+			shift
+			;;
+		--font-size)
+			shift
+			font_size=$1
+			shift
+			;;
+		--features)
+			shift
+			features=$1
+			shift
+			;;
+		--variations)
+			shift
+			variations=$1
+			shift
+			;;
+		--unicodes)
+			shift
+			unicodes=$1
+			shift
+			;;
+		--face-loader)
+			shift
+			face_loader=$1
+			shift
+			;;
+		--shaper)
+			shift
+			shaper=$1
+			shift
+			;;
+		--font-funcs1)
+			shift
+			font_funcs1=$1
+			shift
+			;;
+		--font-funcs2)
+			shift
+			font_funcs2=$1
+			shift
+			;;
+		--clear1)
+			shift
+			clear1=true
+			;;
+		--clear2)
+			shift
+			clear2=true
+			;;
+		--quiet)
+			quiet=true
+			shift
+			;;
+		--help)
+			help=true
+			shift
+			;;
+		*)
+			if test "x$font_file" == x; then
+				font_file=$1
+				shift
+			else
+				glyphs="$glyphs $1"
+				shift
+			fi
+			;;
+	esac
+done
+
+if $help; then
+	cmd=`basename "$0"`
+	echo "Usage: $cmd [OPTIONS] FONTFILE [GLYPH...]"
+	echo "Render a font with two font backends and compare the results."
+	echo
+	echo "Options:"
+	echo "  -o, --output-dir DIR: Output in DIR"
+	echo "  --font-file FONTFILE: Font file to render"
+	echo "  --hb-view HB_VIEW: Path to hb-view; default $hb_view"
+	echo "  --hb-info HB_INFO: Path to hb-info; default $hb_info"
+	echo "  --hb-svg-compare HB_SVG_COMPARE: Path to hb-svg-compare; default $hb_svg_compare"
+	echo "  --tolerance TOLERANCE: Tolerance for SVG comparison; default $tolerance"
+	echo "  --font-size SIZE: Font size; default $font_size"
+	echo "  --features FEATURES: Font features; default none"
+	echo "  --variations VARIATIONS: Font variations; default none"
+	echo "  --face-loader: Face loader; default $face_loader"
+	echo "  --shaper: Shaper; default $shaper"
+	echo "  --font-funcs0 font_funcs: First font-funcs; default $font_funcs1"
+	echo "  --font-funcs1 font_funcs: Second font-funcs; default $font_funcs2"
+	echo "  --clear1: Clear first font backend output if exists"
+	echo "  --clear2: Clear second font backend output if exists"
+	echo "  --unicodes CODES: Unicodes to render"
+	echo "  --quiet: Quiet mode"
+	echo "  --help: Print help"
+	exit 0
+fi
+
+if test "x$font_file" == x; then
+	echo "No font file specified." >&2
+	exit 2
+fi
+if ! which "$hb_view" 2>/dev/null >/dev/null; then
+	echo "'$hb_view' not found" >&2
+	exit 2
+fi
+if ! which "$hb_info" 2>/dev/null >/dev/null; then
+	echo "'$hb_info' not found" >&2
+	exit 2
+fi
+if ! test -f "$font_file"; then
+	echo "Font file '$font_file' not found" >&2
+	exit 2
+fi
+
+# Sanity check Unicode values
+if test "x$unicodes" != x; then
+	echo "$unicodes" |
+	tr ' ' '\n' |
+	grep -v '^U[+][0-9a-fA-F]\+$' &&
+	{
+		echo "Invalid Unicode values" >&2
+		exit 2
+	}
+fi
+
+$quiet || echo "Comparing '$font_file' with '$font_funcs1' and '$font_funcs2' font backends. " >&2
+
+if test "x$output_dir" == x; then
+	output_dir=`mktemp -d`
+	echo "Output in '$output_dir'" >&2
+fi
+mkdir -p "$output_dir" || exit 1
+
+# Populate glyphs file
+glyphs_file="$output_dir/glyphs"
+> "$glyphs_file"
+echo "$unicodes" |
+sed 's/^U+//' |
+grep . |
+while read unicode; do
+	echo "uni$unicode"
+done >> "$glyphs_file"
+echo "$glyphs" |
+tr ' ' '\n' |
+grep . >> "$glyphs_file"
+if test "x$unicodes" == x -a "x$glyphs" == x; then
+	$quiet || echo "No unicodes or glyphs specified. Comparing all glyphs in the font." >&2
+	num_glyphs=`$hb_info --quiet --show-glyph-count "$font_file"`
+	$quiet || echo "Font has $num_glyphs glyphs." >&2
+	seq 0 $((num_glyphs - 1)) |
+	sed 's/^/gid/' >> "$glyphs_file"
+fi
+num_glyphs=`cat "$glyphs_file" | wc -l`
+
+flavor=
+if test "$features" != ""; then
+	flavor="$flavor.features=$features"
+fi
+if test "$variations" != ""; then
+	flavor="$flavor.variations=$variations"
+fi
+
+# Render with both font backends
+if $clear1; then
+	funcs_prefix="$output_dir/$font_funcs1$flavor"
+	$quiet || echo "Clearing '$funcs_prefix'... " >&2
+	rm -rf "$funcs_prefix"
+fi
+if $clear2; then
+	funcs_prefix="$output_dir/$font_funcs2$flavor"
+	$quiet || echo "Clearing '$funcs_prefix'... " >&2
+	rm -rf "$funcs_prefix"
+fi
+for font_funcs in "$font_funcs1" "$font_funcs2"; do
+	test "x$font_funcs" == x && continue
+	$quiet || echo "Rendering with font backend '$font_funcs'..." >&2
+
+	funcs_prefix="$output_dir/$font_funcs$flavor"
+	mkdir -p "$funcs_prefix"
+	count=0
+	cat "$glyphs_file" |
+	while read glyph; do
+		dir="$funcs_prefix"
+		svg="$dir/$glyph.svg"
+		if test -f "$svg"; then
+			continue
+		fi
+		count=$((count + 1))
+		if test $((count % 100)) == 0; then
+			$quiet || echo -n . >&2
+		fi
+		echo \
+			--font-file="$font_file" \
+			--face-index=$face_index \
+			--glyphs \
+			--face-loader=$face_loader \
+			--shaper=$this_shaper \
+			--font-funcs=$font_funcs \
+			--features="$features" \
+			--variations="$variations" \
+			--output-format=svg \
+			--font-size=$font_size \
+			--output-file="$svg" \
+			"$glyph"
+	done |
+	sed 's/ /;/g' |
+	"$hb_view" --batch
+	$quiet || echo "" >&2
+done
+
+test "x$font_funcs1" == x || test "x$font_funcs2" == x && exit 0
+
+diff="$output_dir/diff$flavor"
+rm -f "$diff"
+> "$diff"
+test "x$flavor" == x || ln -f -s "diff$flavor" "$output_dir/diff"
+$quiet || echo "Comparing SVGs into '$diff'..." >&2
+funcs1_prefix="$output_dir/$font_funcs1$flavor"
+funcs2_prefix="$output_dir/$font_funcs2$flavor"
+count=0
+cat "$glyphs_file" |
+while read glyph; do
+	count=$((count + 1))
+	if test $((count % 100)) == 0; then
+		$quiet || echo -n . >&2
+	fi
+
+	svg1="$funcs1_prefix/$glyph.svg"
+	svg2="$funcs2_prefix/$glyph.svg"
+
+	if ! test -f "$svg1" || ! test -f "$svg2"; then
+		echo -e "\n$glyph not rendered." >&2
+		exit 1
+	fi
+
+	echo -e "$svg1\t$svg2"
+done |
+"$hb_svg_compare" "$tolerance" |
+while read line; do
+	$quiet || echo -e "\n$line"
+	echo "$line" >> "$diff"
+done
+# Sort diff by error
+sort -n -o "$diff.tmp" "$diff" && mv "$diff.tmp" "$diff" || exit 1
+# Count number of differences
+num_diffs=`cat "$diff" | wc -l`
+$quiet || echo -e "\nFound $num_diffs differences in $num_glyphs glyphs." >&2

@@ -1900,6 +1900,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   0, /* ptem */
 
   HB_FONT_NO_VAR_NAMED_INSTANCE, /* instance_index */
+  false, /* has_nonzero_coords */
   0, /* num_coords */
   nullptr, /* coords */
   nullptr, /* design_coords */
@@ -1960,8 +1961,14 @@ hb_font_create (hb_face_t *face)
   hb_font_set_funcs_using (font, nullptr);
 
 #ifndef HB_NO_VAR
-  if (face && face->index >> 16)
-    hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
+  // Initialize variations.
+  if (likely (face))
+  {
+    if (face->index >> 16)
+      hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
+    else
+      hb_font_set_variations (font, nullptr, 0);
+  }
 #endif
 
   return font;
@@ -1979,6 +1986,7 @@ _hb_font_adopt_var_coords (hb_font_t *font,
   font->coords = coords;
   font->design_coords = design_coords;
   font->num_coords = coords_length;
+  font->has_nonzero_coords = hb_any (hb_array (coords, coords_length));
 
   font->changed ();
   font->serial_coords = font->serial;
@@ -2861,12 +2869,6 @@ hb_font_set_variations (hb_font_t            *font,
   if (hb_object_is_immutable (font))
     return;
 
-  if (!variations_length && font->instance_index == HB_FONT_NO_VAR_NAMED_INSTANCE)
-  {
-    hb_font_set_var_coords_normalized (font, nullptr, 0);
-    return;
-  }
-
   const OT::fvar &fvar = *font->face->table.fvar;
   auto axes = fvar.get_axes ();
   const unsigned coords_length = axes.length;
@@ -2973,7 +2975,6 @@ hb_font_set_variation (hb_font_t *font,
 
   hb_ot_var_normalize_coords (font->face, coords_length, design_coords, normalized);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
-
 }
 
 /**
@@ -2994,11 +2995,16 @@ hb_font_set_variation (hb_font_t *font,
 void
 hb_font_set_var_coords_design (hb_font_t    *font,
 			       const float  *coords,
-			       unsigned int  coords_length)
+			       unsigned int  input_coords_length)
 {
   if (hb_object_is_immutable (font))
     return;
 
+  const OT::fvar &fvar = *font->face->table.fvar;
+  auto axes = fvar.get_axes ();
+  const unsigned coords_length = axes.length;
+
+  input_coords_length = hb_min (input_coords_length, coords_length);
   int *normalized = coords_length ? (int *) hb_calloc (coords_length, sizeof (int)) : nullptr;
   float *design_coords = coords_length ? (float *) hb_calloc (coords_length, sizeof (float)) : nullptr;
 
@@ -3009,8 +3015,11 @@ hb_font_set_var_coords_design (hb_font_t    *font,
     return;
   }
 
-  if (coords_length)
-    hb_memcpy (design_coords, coords, coords_length * sizeof (font->design_coords[0]));
+  if (input_coords_length)
+    hb_memcpy (design_coords, coords, input_coords_length * sizeof (font->design_coords[0]));
+  // Fill in the rest with default values
+  for (unsigned int i = input_coords_length; i < coords_length; i++)
+    design_coords[i] = axes[i].get_default ();
 
   hb_ot_var_normalize_coords (font->face, coords_length, coords, normalized);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
@@ -3075,34 +3084,31 @@ hb_font_get_var_named_instance (hb_font_t *font)
 void
 hb_font_set_var_coords_normalized (hb_font_t    *font,
 				   const int    *coords, /* 2.14 normalized */
-				   unsigned int  coords_length)
+				   unsigned int  input_coords_length)
 {
   if (hb_object_is_immutable (font))
     return;
 
+  const OT::fvar &fvar = *font->face->table.fvar;
+  auto axes = fvar.get_axes ();
+  unsigned coords_length = axes.length;
+
+  input_coords_length = hb_min (input_coords_length, coords_length);
   int *copy = coords_length ? (int *) hb_calloc (coords_length, sizeof (coords[0])) : nullptr;
-  int *unmapped = coords_length ? (int *) hb_calloc (coords_length, sizeof (coords[0])) : nullptr;
   float *design_coords = coords_length ? (float *) hb_calloc (coords_length, sizeof (design_coords[0])) : nullptr;
 
-  if (unlikely (coords_length && !(copy && unmapped && design_coords)))
+  if (unlikely (coords_length && !(copy && design_coords)))
   {
     hb_free (copy);
-    hb_free (unmapped);
     hb_free (design_coords);
     return;
   }
 
-  if (coords_length)
-  {
-    hb_memcpy (copy, coords, coords_length * sizeof (coords[0]));
-    hb_memcpy (unmapped, coords, coords_length * sizeof (coords[0]));
-  }
+  if (input_coords_length)
+    hb_memcpy (copy, coords, input_coords_length * sizeof (coords[0]));
 
-  /* Best effort design coords simulation */
-  font->face->table.avar->unmap_coords (unmapped, coords_length);
   for (unsigned int i = 0; i < coords_length; ++i)
-    design_coords[i] = font->face->table.fvar->unnormalize_axis_value (i, unmapped[i]);
-  hb_free (unmapped);
+    design_coords[i] = NAN;
 
   _hb_font_adopt_var_coords (font, copy, design_coords, coords_length);
 }
@@ -3115,8 +3121,8 @@ hb_font_set_var_coords_normalized (hb_font_t    *font,
  * Fetches the list of normalized variation coordinates currently
  * set on a font.
  *
- * Note that this returned array may only contain values for some
- * (or none) of the axes; omitted axes effectively have zero values.
+ * <note>Note that if no variation coordinates are set, this function may
+ * return %NULL.</note>
  *
  * Return value is valid as long as variation coordinates of the font
  * are not modified.
@@ -3143,9 +3149,12 @@ hb_font_get_var_coords_normalized (hb_font_t    *font,
  * Fetches the list of variation coordinates (in design-space units) currently
  * set on a font.
  *
- * Note that this returned array may only contain values for some
- * (or none) of the axes; omitted axes effectively have their default
- * values.
+ * <note>Note that if no variation coordinates are set, this function may
+ * return %NULL.</note>
+ *
+ * <note>If variations have been set on the font using normalized coordinates
+ * (i.e. via hb_font_set_var_coords_normalized()), the design coordinates will
+ * have NaN (Not a Number) values.</note>
  *
  * Return value is valid as long as variation coordinates of the font
  * are not modified.

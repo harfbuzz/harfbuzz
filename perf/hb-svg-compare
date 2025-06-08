@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+
+import xml.etree.ElementTree as ET
+import re
+import math
+
+def tokenize_path_data(d_attribute):
+    """
+    Splits an SVG path 'd' attribute string into a list of tokens:
+      - Single-letter commands (M, m, L, l, C, c, etc.)
+      - Float values (including possible scientific notation)
+    Returns a list of strings/float, e.g. ['M', 10.0, 20.0, 'L', 30.5, 40.7, 'Z'].
+    """
+    # Regex explanation:
+    #   ([MmZzLlHhVvCcSsQqTtAa])  => one of the valid path command letters
+    #   |                        => OR
+    #   ([+-]?\d+(\.\d+)?([eE][+-]?\d+)?) => a number that may include optional +/-,
+    #                                       decimals, and scientific notation
+    token_pattern = re.compile(r'([MmZzLlHhVvCcSsQqTtAa])|([+-]?\d+(\.\d+)?([eE][+-]?\d+)?)')
+    raw_tokens = token_pattern.findall(d_attribute)
+
+    # raw_tokens is a list of tuples from the capturing groups. We only need one
+    # of those fields from each match. We'll filter out empty strings and parse floats.
+    tokens = []
+    for match in raw_tokens:
+        # match is a tuple: (command_letter, number_string, ..., ...)
+        command_letter = match[0]
+        number_string = match[1]
+        if command_letter:
+            # It's a path command like 'M', 'L', etc.
+            tokens.append(command_letter)
+        else:
+            # It's a numeric value
+            tokens.append(float(number_string))
+
+    return tokens
+
+def extract_paths_from_svg(svg_data):
+    """
+    Parses an SVG file and extracts the 'd' attribute from
+    all <path> elements in order. Returns a list of token lists.
+    """
+    root = ET.fromstring(svg_data)
+
+    # Inkscape / Illustrator SVGs often have a default namespace.
+    # You may need to adjust the namespace if the <path> tags are qualified.
+    # For example:
+    #   namespace = {'svg': 'http://www.w3.org/2000/svg'}
+    #   for path_elem in root.findall('.//svg:path', namespace):
+    #       ...
+    # If your SVGs do not use a default namespace, the below should work.
+
+    all_token_lists = []
+    for path_elem in root.findall('.//{http://www.w3.org/2000/svg}path'):
+        d_attribute = path_elem.get('d')
+        if d_attribute:
+            tokens = tokenize_path_data(d_attribute)
+            all_token_lists.append(tokens)
+
+    # If your SVG has no default namespace or if you removed it, you might do:
+    #   for path_elem in root.findall('.//path'):
+    #       d_attribute = path_elem.get('d')
+    #       ...
+    #
+    # Adjust as appropriate depending on your actual SVG structure/namespaces.
+
+    return all_token_lists
+
+def compare_token_lists(tokens_a, tokens_b):
+    """
+    Compares two lists of path tokens (commands and floats).
+    Returns True if they match (same commands in same positions,
+    numeric values within given tolerance), otherwise False.
+    """
+    if len(tokens_a) != len(tokens_b):
+        return None  # Different lengths => not a match
+
+    max_diff = 0
+    for a, b in zip(tokens_a, tokens_b):
+        if isinstance(a, str) and isinstance(b, str):
+            # Must match exactly the same command letter
+            if a != b:
+                return None
+        elif isinstance(a, float) and isinstance(b, float):
+            # Compare numeric values
+            diff = abs(a - b)
+            max_diff = max(max_diff, diff)
+        else:
+            # One is command, the other is float => mismatch
+            return None
+
+    return max_diff
+
+def compare_svg_files(svg_file_1, svg_file_2):
+    """
+    Compares two SVG files to check if they have the same number of <path> elements,
+    and each corresponding path has the same structure of commands.
+    Return max difference between respective numeric values in the paths.
+    """
+
+    svg_data_1 = open(svg_file_1).read()
+    svg_data_2 = open(svg_file_2).read()
+
+    # If contents match exactly, return 0
+    if svg_data_1 == svg_data_2:
+        return 0
+
+    paths1 = extract_paths_from_svg(svg_data_1)
+    paths2 = extract_paths_from_svg(svg_data_2)
+
+    # Check that we have the same number of <path> elements
+    if len(paths1) != len(paths2):
+        return None
+
+    # Compare each path token list
+    max_diff = 0
+    for tokens1, tokens2 in zip(paths1, paths2):
+        ret = compare_token_lists(tokens1, tokens2)
+        if ret is None:
+            return ret
+        max_diff = max(max_diff, ret)
+
+    return max_diff
+
+
+if __name__ == "__main__":
+    import sys
+
+    if '--help' in sys.argv[1:]:
+        print("Usage: hb-svg-compare TOLERANCE < file_with_svg_pairs.txt")
+        sys.exit(1)
+
+    tolerance = 0
+    if len(sys.argv) > 1:
+        tolerance = float(sys.argv[1])
+
+    # Read all lines of two SVG file paths from stdin and compare
+    for line in sys.stdin:
+        svg1, svg2 = line.strip().split()
+        diff = compare_svg_files(svg1, svg2)
+
+        if diff is None:
+            diff = "DIFF"
+        elif diff <= tolerance:
+            continue
+        else:
+            diff = f"{diff:.5f}"
+
+        print(f"{diff}\t{svg1}\t{svg2}")
+        # Flush stdout to make sure output is immediate
+        sys.stdout.flush()

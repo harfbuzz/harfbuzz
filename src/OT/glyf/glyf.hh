@@ -380,7 +380,7 @@ struct glyf_accelerator_t
     bool success = false;
 
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
-    if (font->num_coords)
+    if (font->has_nonzero_coords)
     {
       hb_glyf_scratch_t scratch;
       success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, false),
@@ -434,7 +434,8 @@ struct glyf_accelerator_t
   bool get_extents (hb_font_t *font,
 		    hb_codepoint_t gid,
 		    hb_glyph_extents_t *extents) const
-  { return get_extents_at (font, gid, extents, hb_array (font->coords, font->num_coords)); }
+  { return get_extents_at (font, gid, extents, hb_array (font->coords,
+							 font->has_nonzero_coords ? font->num_coords : 0)); }
 
   bool get_extents_at (hb_font_t *font,
 		       hb_codepoint_t gid,

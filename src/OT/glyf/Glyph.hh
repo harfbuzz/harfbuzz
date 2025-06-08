@@ -329,7 +329,7 @@ struct Glyph
       head_maxp_info->maxComponentDepth = hb_max (head_maxp_info->maxComponentDepth, depth);
     }
 
-    if (!coords)
+    if (!coords && font->has_nonzero_coords)
       coords = hb_array (font->coords, font->num_coords);
 
     contour_point_vector_t &points = type == SIMPLE ? all_points : scratch.comp_points;
@@ -384,7 +384,7 @@ struct Glyph
     }
 
 #ifndef HB_NO_VAR
-    if (coords)
+    if (hb_any (coords))
     {
 #ifndef HB_NO_BEYOND_64K
       if (glyf_accelerator.GVAR->has_data ())
