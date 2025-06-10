@@ -78,6 +78,7 @@ Internationalization and Unicode Conference over the years:
 More presentations and papers are available on [behdad][11]'s website.
 In particular, the following _studies_ are relevant to HarfBuzz development:
 
+- 2025 - [Introducing HarfRust][22]
 - 2025 – [Subsetting][21]
 - 2025 – [Caching][12]
 - 2025 – [`hb-decycler`][13]
@@ -134,3 +135,4 @@ transliterated using the Latin script. It also means "talkative" or
 [19]: https://prezi.com/view/THNPJGFVDUCWoM20syev/
 [20]: https://behdad.org/doc/harfbuzz10years-slides.pdf
 [21]: https://docs.google.com/document/d/1_vZrt97OorJ0jA1YzJ29LRcGr3YGrNJANdOABjVZGEs/preview
+[22]: https://docs.google.com/document/d/1aH_waagdEM5UhslQxCeFEb82ECBhPlZjy5_MwLNLBYo/preview
