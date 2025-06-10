@@ -338,8 +338,8 @@ hb_ft_headers = files('hb-ft.h')
 hb_fontations_sources = files()
 hb_fontations_headers = files('hb-fontations.h')
 
-hb_harfruzz_sources = files('hb-harfruzz.cc')
-hb_harfruzz_headers = files()
+hb_harfrust_sources = files('hb-harfrust.cc')
+hb_harfrust_headers = files()
 
 hb_glib_sources = files('hb-glib.cc')
 hb_glib_headers = files('hb-glib.h')
@@ -545,8 +545,8 @@ if conf.get('HAVE_FONTATIONS', 0) == 1
 endif
 
 if conf.get('HAVE_HARFRUZZ', 0) == 1
-  hb_sources += hb_harfruzz_sources
-  hb_headers += hb_harfruzz_headers
+  hb_sources += hb_harfrust_sources
+  hb_headers += hb_harfrust_headers
 endif
 
 have_icu = conf.get('HAVE_ICU', 0) == 1

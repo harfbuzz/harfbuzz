@@ -50,14 +50,14 @@ dependencies = [
 name = "harfbuzz_rust"
 version = "0.0.0"
 dependencies = [
- "harfruzz",
+ "harfrust",
  "skrifa",
 ]
 
 [[package]]
-name = "harfruzz"
+name = "harfrust"
 version = "0.1.0"
-source = "git+https://github.com/harfbuzz/harfruzz#b4ba3a04febba9ea602403a25b725840eb7078af"
+source = "git+https://github.com/harfbuzz/harfrust#2c3a8da47c8d67c88f63669ec44d8cb4f9771c62"
 dependencies = [
  "bitflags",
  "bytemuck",
