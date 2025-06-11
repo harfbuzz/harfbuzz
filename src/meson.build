@@ -534,7 +534,7 @@ if conf.get('HAVE_CORETEXT', 0) == 1
   harfbuzz_deps += coretext_deps
 endif
 
-if conf.get('HAVE_FONTATIONS', 0) == 1 or conf.get('HAVE_HARFRUZZ', 0) == 1
+if conf.get('HAVE_FONTATIONS', 0) == 1 or conf.get('HAVE_HARFRUST', 0) == 1
   subdir('rust')
   harfbuzz_deps += [harfbuzz_rust_dep]
 endif
@@ -544,7 +544,7 @@ if conf.get('HAVE_FONTATIONS', 0) == 1
   hb_headers += hb_fontations_headers
 endif
 
-if conf.get('HAVE_HARFRUZZ', 0) == 1
+if conf.get('HAVE_HARFRUST', 0) == 1
   hb_sources += hb_harfrust_sources
   hb_headers += hb_harfrust_headers
 endif

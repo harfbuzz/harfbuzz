@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 use harfrust::{FontRef, NormalizedCoord, ShaperData, ShaperInstance, Tag};
 
-pub struct HBHarfRuzzFaceData<'a> {
+pub struct HBHarfRustFaceData<'a> {
     face_blob: *mut hb_blob_t,
     font_ref: FontRef<'a>,
     shaper_data: ShaperData,
@@ -33,7 +33,7 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_create_rs(
     };
     let shaper_data = ShaperData::new(&font_ref);
 
-    let hr_face_data = Box::new(HBHarfRuzzFaceData {
+    let hr_face_data = Box::new(HBHarfRustFaceData {
         face_blob,
         font_ref,
         shaper_data,
@@ -44,13 +44,13 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_create_rs(
 
 #[no_mangle]
 pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_destroy_rs(data: *mut c_void) {
-    let data = data as *mut HBHarfRuzzFaceData;
+    let data = data as *mut HBHarfRustFaceData;
     let hr_face_data = Box::from_raw(data);
     let blob = hr_face_data.face_blob;
     hb_blob_destroy(blob);
 }
 
-pub struct HBHarfRuzzFontData {
+pub struct HBHarfRustFontData {
     shaper_instance: ShaperInstance,
 }
 
@@ -71,12 +71,12 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
     font: *mut hb_font_t,
     face_data: *const c_void,
 ) -> *mut c_void {
-    let face_data = face_data as *const HBHarfRuzzFaceData;
+    let face_data = face_data as *const HBHarfRustFaceData;
 
     let font_ref = &(*face_data).font_ref;
     let shaper_instance = font_to_shaper_instance(font, font_ref);
 
-    let hr_font_data = Box::new(HBHarfRuzzFontData { shaper_instance });
+    let hr_font_data = Box::new(HBHarfRustFontData { shaper_instance });
     let hr_font_data_ptr = Box::into_raw(hr_font_data);
 
     hr_font_data_ptr as *mut c_void
@@ -84,7 +84,7 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
 
 #[no_mangle]
 pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_destroy_rs(data: *mut c_void) {
-    let data = data as *mut HBHarfRuzzFontData;
+    let data = data as *mut HBHarfRustFontData;
     let _hr_font_data = Box::from_raw(data);
 }
 
@@ -106,8 +106,8 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
     language: hb_language_t,
     direction: hb_direction_t,
 ) -> *mut c_void {
-    let font_data = font_data as *const HBHarfRuzzFontData;
-    let face_data = face_data as *const HBHarfRuzzFaceData;
+    let font_data = font_data as *const HBHarfRustFontData;
+    let face_data = face_data as *const HBHarfRustFaceData;
 
     let font_ref = &(*face_data).font_ref;
 
@@ -149,8 +149,8 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     features: *const hb_feature_t,
     num_features: u32,
 ) -> hb_bool_t {
-    let font_data = font_data as *const HBHarfRuzzFontData;
-    let face_data = face_data as *const HBHarfRuzzFaceData;
+    let font_data = font_data as *const HBHarfRustFontData;
+    let face_data = face_data as *const HBHarfRustFaceData;
 
     let font_ref = &(*face_data).font_ref;
 
@@ -186,7 +186,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let script = hb_buffer_get_script(buffer);
     let language = hb_buffer_get_language(buffer);
     let direction = hb_buffer_get_direction(buffer);
-    // Convert to HarfRuzz types
+    // Convert to HarfRust types
     let script = harfrust::Script::from_iso15924_tag(Tag::from_u32(script))
         .unwrap_or(harfrust::script::UNKNOWN);
     let language = hb_language_to_hr_language(language);
