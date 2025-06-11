@@ -42,6 +42,7 @@ IGNORED_SYMBOLS += [
     "_ZN3std3sys3pal4unix4args3imp15ARGV_INIT_ARRAY.*",  # 'std::sys::pal::unix::args::imp::ARGV_INIT_ARRAY::.*'
     "_ZN3std3sys4args4unix3imp15ARGV_INIT_ARRAY.*",  # std::sys::args::unix::imp::ARGV_INIT_ARRAY::.*
     "_ZN17compiler_builtins.*",  # 'compiler_builtins::.*'
+    ".*__rustc.*",  # '.*__rustc.*' # Eg. _RNvCsgSLETaxrkfn_7___rustc17___rust_probestack
     '_hb_harfrust_.*_rs',
 ]
 
