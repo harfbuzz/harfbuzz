@@ -8,7 +8,7 @@ start transform 1 0 0 1 0 0
       end clip
     end transform
     push group
-      start transform 1 0.268 0 1 -0 -134
+      start transform 1 0.268 0 1 0 -134
         start transform 1 0 0 1 0 0
           start clip glyph 3
             start transform 1 0 0 1 0 0

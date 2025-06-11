@@ -231,7 +231,9 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
                                                  (double) normalized_default,
                                                  (double) normalized_max));
 
-      if (normalized_default != 0)
+      if (normalized_default == -0.f)
+        normalized_default = 0.f; // Normalize -0 to 0
+      if (normalized_default != 0.f)
         plan->pinned_at_default = false;
 
       plan->normalized_coords[old_axis_idx] = roundf (normalized_default * 16384.f);

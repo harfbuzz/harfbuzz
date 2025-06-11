@@ -30,7 +30,7 @@ def open_shape_batch_process():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=sys.stdout,
+        stderr=subprocess.PIPE,
         env=env,
     )
     return [process]
@@ -47,6 +47,7 @@ def shape_cmd(command, shape_process, verbose=False):
     if shape_process[0].poll() is not None:
         shape_process[0].stdin.close()
         shape_process[0].stdout.close()
+        shape_process[0].stderr.close()
         shape_process[0] = open_shape_batch_process()[0]
 
     if verbose:
@@ -281,8 +282,8 @@ for filename in args:
 
                     if glyphs_expected != "*":
                         extra_options.append("--verify")
-                        if shaper == "ot":
-                            extra_options.append("--unsafe-to-concat")
+                        extra_options.append("--unsafe-to-concat")
+                        extra_options.append("--safe-to-insert-tatweel")
 
                     if verbose:
                         print(

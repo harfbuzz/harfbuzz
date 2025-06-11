@@ -23,8 +23,8 @@ option('directwrite', type: 'feature', value: 'disabled',
   description: 'Enable DirectWrite shaper and font backend on Windows')
 option('coretext', type: 'feature', value: 'disabled',
   description: 'Enable CoreText shaper and font backend on Apple platforms')
-option('harfruzz', type: 'feature', value: 'disabled',
-  description: 'Enable HarfRuzz shaper backend')
+option('harfrust', type: 'feature', value: 'disabled',
+  description: 'Enable HarfRust shaper backend')
 option('wasm', type: 'feature', value: 'disabled',
   description: 'Enable WebAssembly shaper backend (experimental)')
 

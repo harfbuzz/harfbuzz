@@ -1,7 +1,6 @@
-[![Linux CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux-ci.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux-ci.yml)
-[![macoOS CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos-ci.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos-ci.yml)
-[![Windows CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/msvc-ci.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/msvc-ci.yml)
-[![CircleCI Build Status](https://circleci.com/gh/harfbuzz/harfbuzz/tree/main.svg?style=svg)](https://circleci.com/gh/harfbuzz/harfbuzz/tree/main)
+[![Linux CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux.yml)
+[![macoOS CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos.yml)
+[![Windows CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/msvc.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/msvc.yml)
 [![OSS-Fuzz Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/harfbuzz.svg)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html#harfbuzz)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/15166/badge.svg)](https://scan.coverity.com/projects/harfbuzz)
 [![Packaging status](https://repology.org/badge/tiny-repos/harfbuzz.svg)](https://repology.org/project/harfbuzz/versions)
@@ -79,6 +78,7 @@ Internationalization and Unicode Conference over the years:
 More presentations and papers are available on [behdad][11]'s website.
 In particular, the following _studies_ are relevant to HarfBuzz development:
 
+- 2025 - [Introducing HarfRust][22]
 - 2025 – [Subsetting][21]
 - 2025 – [Caching][12]
 - 2025 – [`hb-decycler`][13]
@@ -135,3 +135,4 @@ transliterated using the Latin script. It also means "talkative" or
 [19]: https://prezi.com/view/THNPJGFVDUCWoM20syev/
 [20]: https://behdad.org/doc/harfbuzz10years-slides.pdf
 [21]: https://docs.google.com/document/d/1_vZrt97OorJ0jA1YzJ29LRcGr3YGrNJANdOABjVZGEs/preview
+[22]: https://docs.google.com/document/d/1aH_waagdEM5UhslQxCeFEb82ECBhPlZjy5_MwLNLBYo/preview

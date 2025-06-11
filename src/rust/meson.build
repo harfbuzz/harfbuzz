@@ -25,7 +25,7 @@ features = []
 if conf.get('HAVE_FONTATIONS', 0) == 1
   features += ['font']
 endif
-if conf.get('HAVE_HARFRUZZ', 0) == 1
+if conf.get('HAVE_HARFRUST', 0) == 1
   features += ['shape']
 endif
 if features.length() > 0

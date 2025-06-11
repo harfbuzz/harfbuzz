@@ -193,6 +193,7 @@ elif language.name == "rust":
     print("pub(crate) mod ucd {")
     print()
     print("#![allow(unused_parens)]")
+    print("#![allow(clippy::unnecessary_cast)]")
     print()
     print("use crate::hb::algs::{HB_CODEPOINT_ENCODE3, HB_CODEPOINT_ENCODE3_11_7_14};")
     print("use crate::hb::common::script;")
