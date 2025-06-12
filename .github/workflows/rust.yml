@@ -1,4 +1,4 @@
-name: fontations
+name: rust
 
 on:
   push:
@@ -56,7 +56,8 @@ jobs:
           -Dchafa=disabled \
           -Dgraphite=enabled \
           -Doptimization=2 \
-          -Dfontations=enabled
+          -Dfontations=enabled \
+          -Dharfrust=enabled
     - name: Build
       run: meson compile -Cbuild
     - name: Test
