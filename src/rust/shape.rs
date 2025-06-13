@@ -293,10 +293,10 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         if hr_info.safe_to_insert_tatweel() {
             info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL;
         }
-        pos.x_advance = (hr_pos.x_advance as f32 * x_scale).round() as hb_position_t;
-        pos.y_advance = (hr_pos.y_advance as f32 * y_scale).round() as hb_position_t;
-        pos.x_offset = (hr_pos.x_offset as f32 * x_scale).round() as hb_position_t;
-        pos.y_offset = (hr_pos.y_offset as f32 * y_scale).round() as hb_position_t;
+        pos.x_advance = (hr_pos.x_advance as f32 * x_scale + 0.5).floor() as hb_position_t;
+        pos.y_advance = (hr_pos.y_advance as f32 * y_scale + 0.5).floor() as hb_position_t;
+        pos.x_offset = (hr_pos.x_offset as f32 * x_scale + 0.5).floor() as hb_position_t;
+        pos.y_offset = (hr_pos.y_offset as f32 * y_scale + 0.5).floor() as hb_position_t;
     }
 
     true as hb_bool_t
