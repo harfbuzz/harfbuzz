@@ -495,7 +495,8 @@ build_summary = {
      'HarfRust': conf.get('HAVE_HARFRUST', 0) == 1,
     },
   'Other features':
-    {'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,
+    {'Utilities': not get_option('utilities').disabled(),
+     'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,
      'GObject bindings': conf.get('HAVE_GOBJECT', 0) == 1,
      'Cairo integration': conf.get('HAVE_CAIRO', 0) == 1,
      'Introspection': conf.get('HAVE_INTROSPECTION', 0) == 1,
