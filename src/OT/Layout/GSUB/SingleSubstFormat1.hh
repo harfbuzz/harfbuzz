@@ -123,6 +123,18 @@ struct SingleSubstFormat1_3
     return 1;
   }
 
+  void
+  collect_glyph_alternates (hb_map_t *mapping) const
+  {
+    hb_codepoint_t d = deltaGlyphID;
+    hb_codepoint_t mask = get_mask ();
+
+    + hb_iter (this+coverage)
+    | hb_map ([d, mask] (hb_codepoint_t g) { return hb_pair (g, (g + d) & mask); })
+    | hb_sink (*mapping)
+    ;
+  }
+
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);

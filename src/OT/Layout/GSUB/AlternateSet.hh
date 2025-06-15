@@ -91,6 +91,16 @@ struct AlternateSet
     return alternates.len;
   }
 
+  void
+  collect_alternates (hb_codepoint_t gid,
+		      hb_map_t *mapping) const
+  {
+    + hb_enumerate (alternates)
+    | hb_map ([gid] (hb_pair_t<unsigned, hb_codepoint_t> _) { return hb_pair (gid + (_.first << 24), _.second); })
+    | hb_sink (mapping)
+    ;
+  }
+
   template <typename Iterator,
             hb_requires (hb_is_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,

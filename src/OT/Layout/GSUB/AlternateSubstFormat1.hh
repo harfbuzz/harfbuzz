@@ -69,6 +69,18 @@ struct AlternateSubstFormat1_2
   { return (this+alternateSet[(this+coverage).get_coverage (gid)])
            .get_alternates (start_offset, alternate_count, alternate_glyphs); }
 
+  void
+  collect_glyph_alternates (hb_map_t *mapping) const
+  {
+    + hb_iter (alternateSet)
+    | hb_map (hb_add (this))
+    | hb_zip (this+coverage)
+    | hb_apply ([mapping] (const hb_pair_t<const AlternateSet<Types> &, hb_codepoint_t> _) {
+		  _.first.collect_alternates (_.second, mapping);
+		})
+    ;
+  }
+
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);

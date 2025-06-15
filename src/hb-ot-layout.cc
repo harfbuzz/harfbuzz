@@ -2597,6 +2597,7 @@ hb_ot_layout_get_baseline_with_fallback2 (hb_font_t                   *font,
 #endif
 
 
+#ifndef HB_NO_LAYOUT_RARELY_USED
 struct hb_get_glyph_alternates_dispatch_t :
        hb_dispatch_context_t<hb_get_glyph_alternates_dispatch_t, unsigned>
 {
@@ -2616,7 +2617,6 @@ struct hb_get_glyph_alternates_dispatch_t :
   ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
 };
 
-#ifndef HB_NO_LAYOUT_RARELY_USED
 /**
  * hb_ot_layout_lookup_get_glyph_alternates:
  * @face: a face.
@@ -2650,6 +2650,57 @@ hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
   return ret;
 }
 
+struct hb_collect_glyph_alternates_dispatch_t :
+       hb_dispatch_context_t<hb_collect_glyph_alternates_dispatch_t, bool>
+{
+  static return_t default_return_value () { return false; }
+  bool stop_sublookup_iteration (return_t r) const { return false; }
+
+  private:
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
+  ( (obj.collect_glyph_alternates (std::forward<Ts> (ds)...), true) )
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
+  ( default_return_value () )
+  public:
+  template <typename T, typename ...Ts> auto
+  dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
+  ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
+};
+
+/**
+ * hb_ot_layout_lookup_collect_glyph_alternates:
+ * @face: a face.
+ * @lookup_index: index of the feature lookup to query.
+ * @mapping: (out): A mapping to collect the alternates.
+ *
+ * Collects alternates of glyphs from a given GSUB lookup index.
+ * The mapping is a map of glyph id to a list of alternate glyph ids.
+ *
+ * For one-to-one GSUB glyph substitutions, this function collects the
+ * substituted glyph.
+ *
+ * For lookups that assign multiple alternates to a glyph, the mapping
+ * will encode those mappings in a certain encoding:
+ * If G is the glyph id, and A0, A1, ..., A(n-1) are the alternate glyph ids,
+ * the mapping will contain the following entries: (G + (i << 24)) -> Ai
+ * for i = 0, 1, ..., n-1.
+ *
+ * For other lookup types, nothing is performed.
+ *
+ * Return value: `true` if alternates were collected, `false` otherwise.
+ * XSince: REPLACEME
+ */
+HB_EXTERN hb_bool_t
+hb_ot_layout_lookup_collect_glyph_alternates (hb_face_t *face,
+					      unsigned   lookup_index,
+					      hb_map_t  *mapping /* OUT */)
+{
+  hb_collect_glyph_alternates_dispatch_t c;
+  const OT::SubstLookup &lookup = face->table.GSUB->table->get_lookup (lookup_index);
+  return lookup.dispatch (&c, mapping);
+}
 
 struct hb_position_single_dispatch_t :
        hb_dispatch_context_t<hb_position_single_dispatch_t, bool>
