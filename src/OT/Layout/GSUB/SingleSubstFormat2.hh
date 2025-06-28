@@ -101,10 +101,13 @@ struct SingleSubstFormat2_4
   }
 
   void
-  collect_glyph_alternates (hb_map_t *mapping) const
+  collect_glyph_alternates (hb_map_t  *alternate_count /* IN/OUT */,
+			    hb_map_t  *alternate_glyphs /* IN/OUT */) const
   {
     + hb_zip (this+coverage, substitute)
-    | hb_sink (mapping)
+    | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> &p) -> void
+		{ _hb_collect_glyph_alternates_add (p.first, p.second,
+						    alternate_count, alternate_glyphs); })
     ;
   }
 

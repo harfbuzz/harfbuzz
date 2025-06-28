@@ -93,11 +93,14 @@ struct AlternateSet
 
   void
   collect_alternates (hb_codepoint_t gid,
-		      hb_map_t *mapping) const
+		      hb_map_t  *alternate_count /* IN/OUT */,
+		      hb_map_t  *alternate_glyphs /* IN/OUT */) const
   {
     + hb_enumerate (alternates)
     | hb_map ([gid] (hb_pair_t<unsigned, hb_codepoint_t> _) { return hb_pair (gid + (_.first << 24), _.second); })
-    | hb_sink (mapping)
+    | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> &p) -> void
+		{ _hb_collect_glyph_alternates_add (p.first, p.second,
+						    alternate_count, alternate_glyphs); })
     ;
   }
 
