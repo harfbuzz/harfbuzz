@@ -124,14 +124,17 @@ struct SingleSubstFormat1_3
   }
 
   void
-  collect_glyph_alternates (hb_map_t *mapping) const
+  collect_glyph_alternates (hb_map_t  *alternate_count /* IN/OUT */,
+			    hb_map_t  *alternate_glyphs /* IN/OUT */) const
   {
     hb_codepoint_t d = deltaGlyphID;
     hb_codepoint_t mask = get_mask ();
 
     + hb_iter (this+coverage)
     | hb_map ([d, mask] (hb_codepoint_t g) { return hb_pair (g, (g + d) & mask); })
-    | hb_sink (*mapping)
+    | hb_apply ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> &p) -> void
+		{ _hb_collect_glyph_alternates_add (p.first, p.second,
+						    alternate_count, alternate_glyphs); })
     ;
   }
 
