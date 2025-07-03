@@ -8,6 +8,8 @@
 
 /*
  * `hvgl` table
+ *
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6hvgl.html
  */
 
 #ifndef HB_NO_VAR_HVF
