@@ -24,6 +24,11 @@
 	release tarballs.
       </para>
     </abstract>
+    <releaseinfo>
+      This document is for HarfBuzz &version;.
+      The latest version of this documentation can be found on-line at
+      <ulink role="online-location" url="https://harfbuzz.github.io">https://harfbuzz.github.io</ulink>.
+    </releaseinfo>
   </bookinfo>
 
   <part id="user-manual">
@@ -42,14 +47,6 @@
   </part>
 
   <part id="reference-manual">
-    <partinfo>
-      <releaseinfo>
-        This document is for HarfBuzz &version;.
-        <!--The latest version of this documentation can be found on-line at
-        <ulink role="online-location" url="http://[SERVER]/libharfbuzz/index.html">http://[SERVER]/libharfbuzz/</ulink>.-->
-      </releaseinfo>
-    </partinfo>
-
     <title>Reference manual</title>
       <chapter id="core-api">
         <title>Core API</title>
