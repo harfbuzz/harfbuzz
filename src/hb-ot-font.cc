@@ -35,6 +35,9 @@
 #include "hb-machinery.hh"
 #include "hb-ot-face.hh"
 
+#ifndef HB_NO_VAR_HVF
+#include "hb-aat-var-hvgl-table.hh"
+#endif
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-var-gvar-table.hh"
@@ -469,6 +472,9 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 #ifndef HB_NO_VAR_COMPOSITES
   if (ot_face->VARC->get_extents (font, glyph, extents)) return true;
 #endif
+#ifndef HB_NO_VAR_HVF
+  if (ot_face->hvgl->get_extents (font, glyph, extents)) return true;
+#endif
   if (ot_face->glyf->get_extents (font, glyph, extents)) return true;
 #ifndef HB_NO_OT_FONT_CFF
   if (ot_face->cff2->get_extents (font, glyph, extents)) return true;
@@ -560,6 +566,9 @@ hb_ot_draw_glyph_or_fail (hb_font_t *font,
   if (font->face->table.VARC->get_path (font, glyph, draw_session)) { ret = true; goto done; }
 #endif
   // Keep the following in synch with VARC::get_path_at()
+#ifndef HB_NO_VAR_HVF
+  if (font->face->table.hvgl->get_path (font, glyph, draw_session)) { ret = true; goto done; }
+#endif
   if (font->face->table.glyf->get_path (font, glyph, draw_session, gvar_cache)) { ret = true; goto done; }
 
 #ifndef HB_NO_CFF
