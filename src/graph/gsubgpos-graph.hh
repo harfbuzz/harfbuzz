@@ -24,12 +24,15 @@
  * Google Author(s): Garret Rieger
  */
 
+#include "OT/Layout/GSUB/SubstLookupSubTable.hh"
 #include "graph.hh"
 #include "../hb-ot-layout-gsubgpos.hh"
 #include "../OT/Layout/GSUB/ExtensionSubst.hh"
 #include "gsubgpos-context.hh"
+#include "hb-ot.h"
 #include "pairpos-graph.hh"
 #include "markbasepos-graph.hh"
+#include "ligature-graph.hh"
 
 #ifndef GRAPH_GSUBGPOS_GRAPH_HH
 #define GRAPH_GSUBGPOS_GRAPH_HH
@@ -120,12 +123,18 @@ struct Lookup : public OT::Lookup
     unsigned type = lookupType;
     bool is_ext = is_extension (c.table_tag);
 
-    if (c.table_tag != HB_OT_TAG_GPOS)
+    if (c.table_tag != HB_OT_TAG_GPOS && c.table_tag != HB_OT_TAG_GSUB)
       return true;
 
-    if (!is_ext &&
-        type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair &&
-        type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::MarkBase)
+    bool supported_gsub = (c.table_tag == HB_OT_TAG_GSUB) && (
+      type == OT::Layout::GSUB_impl::SubstLookupSubTable::Type::Ligature
+    );
+    bool supported_gpos = (c.table_tag == HB_OT_TAG_GPOS) && (
+      type == OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair ||
+      type == OT::Layout::GPOS_impl::PosLookupSubTable::Type::MarkBase
+    );
+
+    if (!is_ext && !supported_gpos && !supported_gsub)
       return true;
 
     hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>> all_new_subtables;
@@ -150,15 +159,27 @@ struct Lookup : public OT::Lookup
       }
 
       hb_vector_t<unsigned> new_sub_tables;
-      switch (type)
-      {
-      case 2:
-        new_sub_tables = split_subtable<PairPos> (c, parent_index, subtable_index); break;
-      case 4:
-        new_sub_tables = split_subtable<MarkBasePos> (c, parent_index, subtable_index); break;
-      default:
-        break;
+
+      if (c.table_tag == HB_OT_TAG_GPOS) {
+        switch (type)
+        {
+        case 2:
+          new_sub_tables = split_subtable<PairPos> (c, parent_index, subtable_index); break;
+        case 4:
+          new_sub_tables = split_subtable<MarkBasePos> (c, parent_index, subtable_index); break;
+        default:
+          break;
+        }
+      } else if (c.table_tag == HB_OT_TAG_GSUB) {
+        switch (type)
+        {
+        case 4:
+          new_sub_tables = split_subtable<graph::LigatureSubst> (c, parent_index, subtable_index); break;
+        default:
+          break;
+        }
       }
+
       if (new_sub_tables.in_error ()) return false;
       if (!new_sub_tables) continue;
       hb_pair_t<unsigned, hb_vector_t<unsigned>>* entry = all_new_subtables.push ();

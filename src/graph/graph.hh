@@ -709,8 +709,9 @@ struct graph_t
     if (!r.table)
       return vertex_and_table_t<T> ();
 
-    if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...))
+    if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...)) {
       return vertex_and_table_t<T> ();
+    }
 
     return r;
   }
