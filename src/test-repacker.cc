@@ -24,6 +24,7 @@
  * Google Author(s): Garret Rieger
  */
 
+#include <cstdint>
 #include <string>
 
 #include "hb-repacker.hh"
@@ -240,6 +241,31 @@ static unsigned add_pair_pos_1 (unsigned* pair_sets,
     add_offset (pair_sets[(unsigned) i], c);
 
   return c->pop_pack (false);
+}
+
+static void add_liga_set_header (char liga_count,
+                                 hb_serialize_context_t* c)
+{
+  uint8_t liga_count_bytes[] = {
+    (uint8_t) (0xFF & (liga_count >> 8)),
+    (uint8_t) (0xFF & liga_count),
+  };
+
+  start_object ((const char*) liga_count_bytes, 2, c);
+}
+
+static void add_liga_header (unsigned coverage, unsigned liga_set_count, hb_serialize_context_t* c)
+{
+  uint8_t format[] = {0, 1};
+  start_object ((const char*) format, 2, c);
+  add_offset(coverage, c);
+
+  uint8_t liga_set_count_bytes[] = {
+    (uint8_t) (0xFF & (liga_set_count >> 8)),
+    (uint8_t) (0xFF & liga_set_count),
+  };
+
+  extend((const char *) liga_set_count_bytes, 2, c);
 }
 
 static unsigned add_pair_pos_2 (unsigned starting_class,
@@ -1568,6 +1594,68 @@ populate_serializer_with_large_mark_base_pos_1 (hb_serialize_context_t* c)
   c->end_serialize();
 }
 
+template<int liga_subst_count,
+         int liga_set_count,
+         int liga_per_set_count,
+         int liga_size>
+static void
+populate_serializer_with_large_liga (hb_serialize_context_t* c)
+{
+  std::string large_string(100000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned liga_subst[liga_subst_count];
+
+  for (unsigned l = 0; l < liga_subst_count; l++) {
+    unsigned coverage = add_coverage(0, liga_set_count * liga_per_set_count - 1, c);
+
+    unsigned liga[liga_set_count * liga_per_set_count];
+    unsigned liga_set[liga_set_count];
+    for (unsigned i = 0; i < liga_set_count; i++) {
+      for (unsigned j = 0; j < liga_per_set_count; j++)
+      {
+        start_object (large_string.c_str(), liga_size, c);
+        add_virtual_offset(coverage, c);
+        liga[i * liga_per_set_count + j] = c->pop_pack (false);
+      }
+
+      add_liga_set_header(liga_per_set_count, c);
+      add_virtual_offset(coverage, c);
+      for (unsigned j = 0; j < liga_per_set_count; j++)
+      {
+        add_offset(liga[i * liga_per_set_count + j], c);
+      }
+
+      liga_set[i] = c->pop_pack(false);
+    }
+
+    add_liga_header(coverage, liga_set_count, c);
+    for (unsigned i = 0; i < liga_set_count; i++)
+    {
+      add_offset(liga_set[i], c);
+    }
+
+    liga_subst[l] = c->pop_pack(false);
+  }
+
+  for (unsigned l = 0; l < liga_subst_count; l++) {
+    liga_subst[l] = add_extension(liga_subst[l], 4, c);
+  }
+
+  start_lookup (7, liga_subst_count, c);
+  for (unsigned l = 0; l < liga_subst_count; l++) {
+    add_offset(liga_subst[l], c);
+  }
+
+  unsigned lookup = finish_lookup (c);
+
+  unsigned lookup_list = add_lookup_list (&lookup, 1, c);
+
+  add_gsubgpos_header (lookup_list, c);
+
+  c->end_serialize();
+}
+
 static void test_sort_shortest ()
 {
   size_t buffer_size = 100;
@@ -2113,6 +2201,29 @@ static void test_resolve_with_basic_mark_base_pos_1_split ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_basic_liga_split ()
+{
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_large_liga<1, 1, 2, 40000>(&c);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_large_liga<2, 1, 1, 40000>(&e);
+
+  run_resolve_overflow_test ("test_resolve_with_basic_liga_split",
+                             c,
+                             e,
+                             20,
+                             true,
+                             HB_TAG('G', 'S', 'U', 'B'));
+  free (buffer);
+  free (expected_buffer);
+}
+
 static void test_resolve_overflows_via_splitting_spaces ()
 {
   size_t buffer_size = 160000;
@@ -2294,6 +2405,7 @@ main (int argc, char **argv)
   test_resolve_with_pair_pos_2_split_with_device_tables ();
   test_resolve_with_close_to_limit_pair_pos_2_split ();
   test_resolve_with_basic_mark_base_pos_1_split ();
+  test_resolve_with_basic_liga_split ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.

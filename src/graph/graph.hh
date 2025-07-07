@@ -944,9 +944,11 @@ struct graph_t
   /*
    * Moves the child of old_parent_idx pointed to by old_offset to a new
    * vertex at the new_offset.
+   *
+   * Returns the id of the child node that was moved.
    */
   template<typename O>
-  void move_child (unsigned old_parent_idx,
+  unsigned move_child (unsigned old_parent_idx,
                    const O* old_offset,
                    unsigned new_parent_idx,
                    const O* new_offset)
@@ -970,6 +972,8 @@ struct graph_t
 
     old_v.remove_real_link (child_id, old_offset);
     child.remove_parent (old_parent_idx);
+
+    return child_id;
   }
 
   /*

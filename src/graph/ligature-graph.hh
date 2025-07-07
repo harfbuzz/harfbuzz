@@ -112,8 +112,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
         accumulated += OT::HBUINT16::static_size; // for ligature offset
         accumulated += liga_size; // for the ligature table
-        
-        
+
         if (accumulated >= (1 << 16))
         {
           split_points.push(ligature_index);
@@ -180,6 +179,8 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
                         unsigned this_index,
                         unsigned start, unsigned end) const
   {
+    // TODO XXXX liga set's that are part of two clone_range's will not be pruned from the graph and will
+    //           end up orphaned. Add a test for this case.
     DEBUG_MSG (SUBSET_REPACK, nullptr,
                "  Cloning LigatureSubstFormat1 (%u) range [%u, %u).", this_index, start, end);
 
@@ -195,6 +196,17 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     LigatureSubstFormat1* liga_subst_prime = (LigatureSubstFormat1*) c.graph.object (liga_subst_prime_id).head;
     liga_subst_prime->format = this->format;
     liga_subst_prime->ligatureSet.len = this->ligatureSet.len;
+
+    // Create a place holder coverage prime id since we need to add virtual links to it while
+    // generating liga and liga sets. Afterwards it will be updated to have the correct coverage.
+    unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    unsigned coverage_prime_id = c.graph.duplicate(coverage_id);
+    auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
+    auto* coverage_prime_link = c.graph.vertices_[liga_subst_prime_id].obj.real_links.push ();
+    coverage_prime_link->width = SmallTypes::size;
+    coverage_prime_link->objidx = coverage_prime_id;
+    coverage_prime_link->position = 2;
+    coverage_prime_vertex.add_parent (liga_subst_prime_id);
 
     // Locate all liga sets with ligas between start and end.
     // Clone or move them as needed.
@@ -214,12 +226,13 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       unsigned current_start = count;
       unsigned current_end = count + num_ligas;
 
+      unsigned liga_set_prime_id;
       if (current_start >= start && current_end <= end) {
         // This liga set is fully contined within [start, end)
         // We can move the entire ligaset to the new liga subset object.
         liga_set_end = i;
         if (i < liga_set_start) liga_set_start = i;
-        c.graph.move_child<> (this_index,
+        liga_set_prime_id = c.graph.move_child<> (this_index,
                               &ligatureSet[i],
                               liga_subst_prime_id,
                               &liga_subst_prime->ligatureSet[liga_set_count++]);
@@ -230,21 +243,31 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         // a new liga set sub table and move the intersecting ligas to it.
         unsigned liga_count = std::min(end, current_end) - std::max(start, current_start);
         auto result = new_liga_set(c, liga_count);
-        unsigned prime_id = result.first;
+        liga_set_prime_id = result.first;
         LigatureSet* prime = result.second;
-        if (prime_id == (unsigned) -1) return -1;
+        if (liga_set_prime_id == (unsigned) -1) return -1;
 
         unsigned new_index = 0;
         for (unsigned j = std::max(start, current_start) - count; j < std::min(end, current_end) - count; j++) {
           c.graph.move_child<> (liga_set_index,
                                 &liga_set.table->ligature[j],
-                                prime_id,
+                                liga_set_prime_id,
                                 &prime->ligature[new_index++]);
         }
 
         liga_set_end = i;
         if (i < liga_set_start) liga_set_start = i;
-        c.graph.add_link(&liga_subst_prime->ligatureSet[liga_set_count++], liga_subst_prime_id, prime_id);
+        c.graph.add_link(&liga_subst_prime->ligatureSet[liga_set_count++], liga_subst_prime_id, liga_set_prime_id);
+      }
+
+      // The new liga and all children set needs to have a virtual link to the new coverage table:
+      auto& liga_set_prime = c.graph.vertices_[liga_set_prime_id].obj;
+      liga_set_prime.virtual_links.clear();
+      liga_set_prime.add_virtual_link(coverage_prime_id);
+      for (const auto& l : liga_set_prime.real_links) {
+        auto& liga = c.graph.vertices_[l.objidx];
+        liga.obj.virtual_links.clear();
+        liga.obj.add_virtual_link(coverage_prime_id);
       }
       
       count += num_ligas;
@@ -253,12 +276,9 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     c.graph.vertices_[liga_subst_prime_id].obj.tail -= (liga_subst_prime->ligatureSet.len - liga_set_count) * SmallTypes::size;
     liga_subst_prime->ligatureSet.len = liga_set_count;
 
-    unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
-    if (!Coverage::clone_coverage (c,
-                                   coverage_id,
-                                   liga_subst_prime_id,
-                                   2,
-                                   liga_set_start, liga_set_end))
+    if (!Coverage::filter_coverage (c,
+                                    coverage_prime_id,
+                                    liga_set_start, liga_set_end))
       return -1;
 
     return liga_subst_prime_id;

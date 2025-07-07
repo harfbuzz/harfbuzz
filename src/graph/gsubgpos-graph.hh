@@ -126,15 +126,7 @@ struct Lookup : public OT::Lookup
     if (c.table_tag != HB_OT_TAG_GPOS && c.table_tag != HB_OT_TAG_GSUB)
       return true;
 
-    bool supported_gsub = (c.table_tag == HB_OT_TAG_GSUB) && (
-      type == OT::Layout::GSUB_impl::SubstLookupSubTable::Type::Ligature
-    );
-    bool supported_gpos = (c.table_tag == HB_OT_TAG_GPOS) && (
-      type == OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair ||
-      type == OT::Layout::GPOS_impl::PosLookupSubTable::Type::MarkBase
-    );
-
-    if (!is_ext && !supported_gpos && !supported_gsub)
+    if (!is_ext && !is_supported_gpos_type(type, c) && !is_supported_gsub_type(type, c))
       return true;
 
     hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>> all_new_subtables;
@@ -153,8 +145,7 @@ struct Lookup : public OT::Lookup
 
         subtable_index = extension->get_subtable_index (c.graph, ext_subtable_index);
         type = extension->get_lookup_type ();
-        if (type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair
-            && type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::MarkBase)
+        if (!is_supported_gpos_type(type, c) && !is_supported_gsub_type(type, c))
           continue;
       }
 
@@ -355,6 +346,19 @@ struct Lookup : public OT::Lookup
   }
 
  private:
+  bool is_supported_gsub_type(unsigned type, gsubgpos_graph_context_t& c) const {
+    return (c.table_tag == HB_OT_TAG_GSUB) && (
+      type == OT::Layout::GSUB_impl::SubstLookupSubTable::Type::Ligature
+    );
+  }
+
+  bool is_supported_gpos_type(unsigned type, gsubgpos_graph_context_t& c) const {
+   return (c.table_tag == HB_OT_TAG_GPOS) && (
+      type == OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair ||
+      type == OT::Layout::GPOS_impl::PosLookupSubTable::Type::MarkBase
+    );
+  }
+
   unsigned extension_type (hb_tag_t table_tag) const
   {
     switch (table_tag)
