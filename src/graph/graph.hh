@@ -501,6 +501,9 @@ struct graph_t
       for (const auto &l : v.obj.real_links) {
         printf("%u, ", l.objidx);
       }
+      for (const auto &l : v.obj.virtual_links) {
+        printf("v%u, ", l.objidx);
+      }
       printf("]\n");
     }
   }
@@ -1284,6 +1287,7 @@ struct graph_t
     if (!DEBUG_ENABLED(SUBSET_REPACK)) return;
 
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
+
     parents_invalid = true;
     update_parents();
 

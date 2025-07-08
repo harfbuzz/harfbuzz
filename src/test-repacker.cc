@@ -148,6 +148,17 @@ static unsigned add_extension (unsigned child,
 static unsigned add_coverage (unsigned start, unsigned end,
                               hb_serialize_context_t* c)
 {
+  if (end - start == 0) {
+    uint8_t coverage[] = {
+      0, 1, // format
+      0, 1, // count
+
+      (uint8_t) ((start >> 8) & 0xFF),
+      (uint8_t) (start & 0xFF), // glyph[0]
+    };
+    return add_object ((char*) coverage, 6, c);
+  }
+
   if (end - start == 1)
   {
     uint8_t coverage[] = {
@@ -1607,7 +1618,7 @@ populate_serializer_with_large_liga (hb_serialize_context_t* c)
   unsigned liga_subst[liga_subst_count];
 
   for (unsigned l = 0; l < liga_subst_count; l++) {
-    unsigned coverage = add_coverage(0, liga_set_count * liga_per_set_count - 1, c);
+    unsigned coverage = add_coverage(0, liga_set_count - 1, c);
 
     unsigned liga[liga_set_count * liga_per_set_count];
     unsigned liga_set[liga_set_count];
