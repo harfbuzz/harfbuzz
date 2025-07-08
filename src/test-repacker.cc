@@ -1610,7 +1610,7 @@ template<int liga_subst_count,
          int liga_per_set_count,
          int liga_size>
 static void
-populate_serializer_with_large_liga (hb_serialize_context_t* c)
+populate_serializer_with_large_liga (hb_serialize_context_t* c, bool sequential_liga_sets)
 {
   std::string large_string(100000, 'a');
   c->start_serialize<char> ();
@@ -1618,7 +1618,13 @@ populate_serializer_with_large_liga (hb_serialize_context_t* c)
   unsigned liga_subst[liga_subst_count];
 
   for (unsigned l = 0; l < liga_subst_count; l++) {
-    unsigned coverage = add_coverage(0, liga_set_count - 1, c);
+    unsigned coverage_start = 0;
+    unsigned coverage_end = liga_set_count - 1;
+    if (sequential_liga_sets) {
+      coverage_start = l * liga_set_count;
+      coverage_end = (l + 1) * liga_set_count - 1;
+    }
+    unsigned coverage = add_coverage(coverage_start, coverage_end, c);
 
     unsigned liga[liga_set_count * liga_per_set_count];
     unsigned liga_set[liga_set_count];
@@ -2218,12 +2224,35 @@ static void test_resolve_with_basic_liga_split ()
   void* buffer = malloc (buffer_size);
   assert (buffer);
   hb_serialize_context_t c (buffer, buffer_size);
-  populate_serializer_with_large_liga<1, 1, 2, 40000>(&c);
+  populate_serializer_with_large_liga<1, 1, 2, 40000>(&c, false);
 
   void* expected_buffer = malloc (buffer_size);
   assert (expected_buffer);
   hb_serialize_context_t e (expected_buffer, buffer_size);
-  populate_serializer_with_large_liga<2, 1, 1, 40000>(&e);
+  populate_serializer_with_large_liga<2, 1, 1, 40000>(&e, false);
+
+  run_resolve_overflow_test ("test_resolve_with_basic_liga_split",
+                             c,
+                             e,
+                             20,
+                             true,
+                             HB_TAG('G', 'S', 'U', 'B'));
+  free (buffer);
+  free (expected_buffer);
+}
+
+static void test_resolve_with_liga_split_move ()
+{
+  size_t buffer_size = 400000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_large_liga<1, 6, 2, 16000>(&c, true);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_large_liga<3, 2, 2, 16000>(&e, true);
 
   run_resolve_overflow_test ("test_resolve_with_basic_liga_split",
                              c,
@@ -2417,6 +2446,7 @@ main (int argc, char **argv)
   test_resolve_with_close_to_limit_pair_pos_2_split ();
   test_resolve_with_basic_mark_base_pos_1_split ();
   test_resolve_with_basic_liga_split ();
+  test_resolve_with_liga_split_move ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.
