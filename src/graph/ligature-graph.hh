@@ -77,11 +77,25 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       c,
       this,
       c.graph.duplicate_if_shared (parent_index, this_index),
+      total_number_ligas(c, this_index),
     };
     return actuate_subtable_split<split_context_t> (split_context, split_points);
   }
 
  private:
+  unsigned total_number_ligas(gsubgpos_graph_context_t& c, unsigned this_index) const {
+    unsigned total = 0;
+    for (unsigned i = 0; i < ligatureSet.len; i++)
+    {
+      auto liga_set = c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]);
+      if (!liga_set.table) {
+        return 0;
+      }
+      total += liga_set.table->ligature.len;
+    }
+    return total;
+  }
+
   hb_vector_t<unsigned> compute_split_points(gsubgpos_graph_context_t& c,
                                              unsigned parent_index,
                                              unsigned this_index) const
@@ -137,19 +151,11 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     gsubgpos_graph_context_t& c;
     LigatureSubstFormat1* thiz;
     unsigned this_index;
+    unsigned original_count_;
 
     unsigned original_count ()
     {
-      unsigned total = 0;
-      for (unsigned i = 0; i < thiz->ligatureSet.len; i++)
-      {
-        auto liga_set = c.graph.as_table<LigatureSet>(this_index, &thiz->ligatureSet[i]);
-        if (!liga_set.table) {
-          return 0;
-        }
-        total += liga_set.table->ligature.len;
-      }
-      return total;
+      return original_count_;
     }
 
     unsigned clone_range (unsigned start, unsigned end)
