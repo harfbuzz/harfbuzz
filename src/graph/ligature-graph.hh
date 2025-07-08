@@ -78,6 +78,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       this,
       c.graph.duplicate_if_shared (parent_index, this_index),
       total_number_ligas(c, this_index),
+      liga_counts(c, this_index),
     };
     return actuate_subtable_split<split_context_t> (split_context, split_points);
   }
@@ -94,6 +95,16 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       total += liga_set.table->ligature.len;
     }
     return total;
+  }
+
+  hb_vector_t<unsigned> liga_counts(gsubgpos_graph_context_t& c, unsigned this_index) const {
+    hb_vector_t<unsigned> result;
+    for (unsigned i = 0; i < ligatureSet.len; i++)
+    {
+      auto liga_set = c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]);
+      result.push(!liga_set.table ? 0 : liga_set.table->ligature.len);
+    }
+    return result;
   }
 
   hb_vector_t<unsigned> compute_split_points(gsubgpos_graph_context_t& c,
@@ -152,6 +163,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     LigatureSubstFormat1* thiz;
     unsigned this_index;
     unsigned original_count_;
+    hb_vector_t<unsigned> liga_counts;
 
     unsigned original_count ()
     {
@@ -160,12 +172,12 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     unsigned clone_range (unsigned start, unsigned end)
     {
-      return thiz->clone_range (c, this_index, start, end);
+      return thiz->clone_range (c, this_index, liga_counts, start, end);
     }
 
     bool shrink (unsigned count)
     {
-      return thiz->shrink (c, this_index, original_count(), count);
+      return thiz->shrink (c, this_index, original_count(), liga_counts, count);
     }
   };
 
@@ -201,6 +213,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
   unsigned clone_range (gsubgpos_graph_context_t& c,
                         unsigned this_index,
+                        hb_vector_t<unsigned> liga_counts,
                         unsigned start, unsigned end) const
   {
     // TODO XXXX liga set's that are part of two clone_range's will not be pruned from the graph and will
@@ -238,17 +251,24 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned liga_set_count = 0;
     unsigned liga_set_start = -1;
     unsigned liga_set_end = 0; // inclusive
-    for (unsigned i = 0; i < ligatureSet.len; i++)
+    for (unsigned i = 0; i < liga_counts.length; i++)
     {
+      unsigned num_ligas = liga_counts[i];
+
+      unsigned current_start = count;
+      unsigned current_end = count + num_ligas;
+
+      if (current_start >= end || start >= current_end) {
+        // No intersection, so just skip
+        count += num_ligas;
+        continue;
+      }
+
       auto liga_set_index = c.graph.index_for_offset(this_index, &ligatureSet[i]);
       auto liga_set = c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]);
       if (!liga_set.table) {
         return -1;
       }
-      unsigned num_ligas = liga_set.table->ligature.len;
-
-      unsigned current_start = count;
-      unsigned current_end = count + num_ligas;
 
       unsigned liga_set_prime_id;
       if (current_start >= start && current_end <= end) {
@@ -261,7 +281,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
                               liga_subst_prime_id,
                               &liga_subst_prime->ligatureSet[liga_set_count++]);
       }
-      else if (current_start < end && start < current_end)
+      else
       {
         // This liga set partially overlaps [start, end). We'll need to create
         // a new liga set sub table and move the intersecting ligas to it.
@@ -282,10 +302,6 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         liga_set_end = i;
         if (i < liga_set_start) liga_set_start = i;
         c.graph.add_link(&liga_subst_prime->ligatureSet[liga_set_count++], liga_subst_prime_id, liga_set_prime_id);
-      } else {
-        // No intersection, so just skip
-        count += num_ligas;
-        continue;
       }
 
       // The new liga and all children set needs to have a virtual link to the new coverage table:
@@ -314,6 +330,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
   bool shrink (gsubgpos_graph_context_t& c,
                unsigned this_index,
                unsigned old_count,
+               hb_vector_t<unsigned> liga_counts,
                unsigned count)
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr,
@@ -325,7 +342,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     hb_set_t retained_indices;
     unsigned new_liga_set_count = 0;
-    for (unsigned i = 0; i < ligatureSet.len; i++)
+    for (unsigned i = 0; i < liga_counts.length; i++)
     {
       auto liga_set = c.graph.as_table<LigatureSet>(this_index, &ligatureSet[i]);
       if (!liga_set.table) {
@@ -345,23 +362,17 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         }
       }
 
-      unsigned num_ligas = liga_set.table->ligature.len;
-      if (num_ligas <= count) {
-        count -= num_ligas;
-        continue;
-      }
-
-      if (count == 0) {
-        // drop this liga set an all subsequent ones.
-        new_liga_set_count = i;
+      unsigned num_ligas = liga_counts[i];
+      if (num_ligas >= count) {
+        // drop the trailing liga's from this set and all subsequent liga sets
+        unsigned num_ligas_to_remove = num_ligas - count;
+        new_liga_set_count = i + 1;
+        c.graph.vertices_[liga_set.index].obj.tail -= num_ligas_to_remove * SmallTypes::size;
+        liga_set.table->ligature.len = count;
         break;
+      } else {
+        count -= num_ligas;
       }
-
-      // drop the trailing liga's from this set and all subsequent liga sets
-      new_liga_set_count = i + 1;
-      c.graph.vertices_[liga_set.index].obj.tail -= (num_ligas - count) * SmallTypes::size;
-      liga_set.table->ligature.len = count;
-      break;
     }
 
     // Adjust liga set array
