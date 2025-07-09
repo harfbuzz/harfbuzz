@@ -559,6 +559,39 @@ populate_serializer_simple (hb_serialize_context_t* c)
 }
 
 static void
+populate_serializer_virtual (hb_serialize_context_t* c, bool with_overflow)
+{
+  std::string large_string(50000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned obj_4, obj_5;
+  if (with_overflow) {
+    obj_5 = add_object("55555", 5, c);
+    obj_4 = add_object(large_string.c_str(), 50000, c);
+  } else {
+    obj_4 = add_object(large_string.c_str(), 50000, c);
+    obj_5 = add_object("55555", 5, c);
+  }
+
+  start_object(large_string.c_str(), 20000, c);
+  add_offset(obj_5, c);
+  unsigned obj_3 = c->pop_pack(false);
+
+  start_object("2", 2, c);
+  add_virtual_offset(obj_5, c);
+  unsigned obj_2 = c->pop_pack(false);
+
+  // obj 1
+  start_object("1", 1, c);
+  add_offset(obj_2, c);
+  add_offset(obj_3, c);
+  add_offset(obj_4, c);
+  c->pop_pack(false);
+
+  c->end_serialize();
+}
+
+static void
 populate_serializer_with_overflow (hb_serialize_context_t* c)
 {
   std::string large_string(50000, 'a');
@@ -2408,6 +2441,32 @@ test_repack_last ()
   free (expected_buffer);
 }
 
+static void
+test_dont_duplicate_virtual ()
+{
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_virtual (&c, true);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_virtual (&e, false);
+
+  run_resolve_overflow_test ("test_dont_duplicate_virtual",
+                             c,
+                             e,
+                             20,
+                             false,
+                             HB_TAG('a', 'b', 'c', 'd'),
+                             true);
+
+  free (buffer);
+  free (expected_buffer);
+}
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
 
@@ -2447,6 +2506,7 @@ main (int argc, char **argv)
   test_resolve_with_basic_mark_base_pos_1_split ();
   test_resolve_with_basic_liga_split ();
   test_resolve_with_liga_split_move ();
+  test_dont_duplicate_virtual ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.

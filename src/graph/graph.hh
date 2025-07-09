@@ -50,6 +50,7 @@ struct graph_t
     private:
     unsigned incoming_edges_ = 0;
     unsigned single_parent = (unsigned) -1;
+    bool has_incoming_virtual_edges_ = false;
     hb_hashmap_t<unsigned, unsigned> parents;
     public:
 
@@ -64,6 +65,11 @@ struct graph_t
     bool in_error () const
     {
       return parents.in_error ();
+    }
+
+    bool has_incoming_virtual_edges () const
+    {
+      return has_incoming_virtual_edges_;
     }
 
     bool link_positions_valid (unsigned num_objects, bool removed_nil)
@@ -162,6 +168,7 @@ struct graph_t
       hb_swap (a.single_parent, b.single_parent);
       hb_swap (a.parents, b.parents);
       hb_swap (a.incoming_edges_, b.incoming_edges_);
+      hb_swap (a.has_incoming_virtual_edges_, b.has_incoming_virtual_edges_);
       hb_swap (a.start, b.start);
       hb_swap (a.end, b.end);
       hb_swap (a.priority, b.priority);
@@ -207,13 +214,16 @@ struct graph_t
     void reset_parents ()
     {
       incoming_edges_ = 0;
+      has_incoming_virtual_edges_ = false;
       single_parent = (unsigned) -1;
       parents.reset ();
     }
 
-    void add_parent (unsigned parent_index)
+    void add_parent (unsigned parent_index, bool is_virtual)
     {
       assert (parent_index != (unsigned) -1);
+      has_incoming_virtual_edges_ |= is_virtual;
+
       if (incoming_edges_ == 0)
       {
 	single_parent = parent_index;
@@ -559,7 +569,7 @@ struct graph_t
     link->width = 2;
     link->objidx = child_id;
     link->position = (char*) offset - (char*) v.obj.head;
-    vertices_[child_id].add_parent (parent_id);
+    vertices_[child_id].add_parent (parent_id, false);
   }
 
   /*
@@ -971,7 +981,7 @@ struct graph_t
     new_link->position = (const char*) new_offset - (const char*) new_v.obj.head;
 
     auto& child = vertices_[child_id];
-    child.add_parent (new_parent_idx);
+    child.add_parent (new_parent_idx, false);
 
     old_v.remove_real_link (child_id, old_offset);
     child.remove_parent (old_parent_idx);
@@ -1023,12 +1033,12 @@ struct graph_t
     for (const auto& l : child.obj.real_links)
     {
       clone->obj.real_links.push (l);
-      vertices_[l.objidx].add_parent (clone_idx);
+      vertices_[l.objidx].add_parent (clone_idx, false);
     }
     for (const auto& l : child.obj.virtual_links)
     {
       clone->obj.virtual_links.push (l);
-      vertices_[l.objidx].add_parent (clone_idx);
+      vertices_[l.objidx].add_parent (clone_idx, true);
     }
 
     check_success (!clone->obj.real_links.in_error ());
@@ -1081,10 +1091,15 @@ struct graph_t
     const auto& child = vertices_[child_idx];
     unsigned links_to_child = child.incoming_edges_from_parent(parent_idx);
 
-    if (child.incoming_edges () <= links_to_child)
+    if (child.incoming_edges () <= links_to_child || child.has_incoming_virtual_edges())
     {
       // Can't duplicate this node, doing so would orphan the original one as all remaining links
       // to child are from parent.
+      //
+      // We don't allow duplication of nodes with incoming virtual edges because we don't track
+      // the number of virtual vs real incoming edges. As a result we can't tell if a node
+      // with virtual edges may end up orphaned by duplication (ie. where one copy is only pointed
+      // to by virtual edges).
       DEBUG_MSG (SUBSET_REPACK, nullptr, "  Not duplicating %u => %u",
                  parent_idx, child_idx);
       return -1;
@@ -1099,12 +1114,15 @@ struct graph_t
     if (parent_idx == clone_idx) parent_idx++;
 
     auto& parent = vertices_[parent_idx];
+    unsigned count = 0;
+    unsigned num_real = parent.obj.real_links.length;
     for (auto& l : parent.obj.all_links_writer ())
     {
+      count++;
       if (l.objidx != child_idx)
         continue;
 
-      reassign_link (l, parent_idx, clone_idx);
+      reassign_link (l, parent_idx, clone_idx, count > num_real);
     }
 
     return clone_idx;
@@ -1137,10 +1155,15 @@ struct graph_t
       links_to_child += child.incoming_edges_from_parent(parent_idx);
     }
 
-    if (child.incoming_edges () <= links_to_child)
+    if (child.incoming_edges () <= links_to_child || child.has_incoming_virtual_edges())
     {
       // Can't duplicate this node, doing so would orphan the original one as all remaining links
       // to child are from parent.
+      //
+      // We don't allow duplication of nodes with incoming virtual edges because we don't track
+      // the number of virtual vs real incoming edges. As a result we can't tell if a node
+      // with virtual edges may end up orphaned by duplication (ie. where one copy is only pointed
+      // to by virtual edges).
       DEBUG_MSG (SUBSET_REPACK, nullptr, "  Not duplicating %u, ..., %u => %u", first_parent, last_parent, child_idx);
       return -1;
     }
@@ -1154,12 +1177,15 @@ struct graph_t
       // duplicate shifts the root node idx, so if parent_idx was root update it.
       if (parent_idx == clone_idx) parent_idx++;
       auto& parent = vertices_[parent_idx];
+      unsigned count = 0;
+      unsigned num_real = parent.obj.real_links.length;
       for (auto& l : parent.obj.all_links_writer ())
       {
+        count++;
         if (l.objidx != child_idx)
           continue;
 
-        reassign_link (l, parent_idx, clone_idx);
+        reassign_link (l, parent_idx, clone_idx, count > num_real);
       }
     }
 
@@ -1407,8 +1433,11 @@ struct graph_t
 
     for (unsigned p = 0; p < count; p++)
     {
-      for (auto& l : vertices_.arrayZ[p].obj.all_links ())
-        vertices_[l.objidx].add_parent (p);
+      for (auto& l : vertices_.arrayZ[p].obj.real_links)
+        vertices_[l.objidx].add_parent (p, false);
+
+      for (auto& l : vertices_.arrayZ[p].obj.virtual_links)
+        vertices_[l.objidx].add_parent (p, true);
     }
 
     for (unsigned i = 0; i < count; i++)
@@ -1511,12 +1540,13 @@ struct graph_t
    */
   void reassign_link (hb_serialize_context_t::object_t::link_t& link,
                       unsigned parent_idx,
-                      unsigned new_idx)
+                      unsigned new_idx,
+                      bool is_virtual)
   {
     unsigned old_idx = link.objidx;
     link.objidx = new_idx;
     vertices_[old_idx].remove_parent (parent_idx);
-    vertices_[new_idx].add_parent (parent_idx);
+    vertices_[new_idx].add_parent (parent_idx, is_virtual);
   }
 
   /*
@@ -1530,13 +1560,16 @@ struct graph_t
     if (!id_map) return;
     for (unsigned i : subgraph)
     {
+      unsigned num_real = vertices_[i].obj.real_links.length;
+      unsigned count = 0;
       for (auto& link : vertices_[i].obj.all_links_writer ())
       {
+        count++;
         const uint32_t *v;
         if (!id_map.has (link.objidx, &v)) continue;
         if (only_wide && !(link.width == 4 && !link.is_signed)) continue;
 
-        reassign_link (link, i, *v);
+        reassign_link (link, i, *v, count > num_real);
       }
     }
   }

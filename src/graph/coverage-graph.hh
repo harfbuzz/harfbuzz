@@ -98,7 +98,7 @@ struct Coverage : public OT::Layout::Common::Coverage
     coverage_link->width = SmallTypes::size;
     coverage_link->objidx = coverage_prime_id;
     coverage_link->position = link_position;
-    coverage_prime_vertex.add_parent (parent_id);
+    coverage_prime_vertex.add_parent (parent_id, false);
 
     return (Coverage*) coverage_prime_vertex.obj.head;
   }

@@ -206,7 +206,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
   void add_virtual_link(gsubgpos_graph_context_t& c, unsigned from, unsigned to) const {
     auto& from_obj = c.graph.vertices_[from].obj;
-    c.graph.vertices_[to].add_parent(from);
+    c.graph.vertices_[to].add_parent(from, true);
     auto& link = *from_obj.virtual_links.push ();
     link.objidx = to;
   }
@@ -243,7 +243,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     coverage_prime_link->width = SmallTypes::size;
     coverage_prime_link->objidx = coverage_prime_id;
     coverage_prime_link->position = 2;
-    coverage_prime_vertex.add_parent (liga_subst_prime_id);
+    coverage_prime_vertex.add_parent (liga_subst_prime_id, false);
 
     // Locate all liga sets with ligas between start and end.
     // Clone or move them as needed.
