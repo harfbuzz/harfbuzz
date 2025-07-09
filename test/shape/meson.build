@@ -5,13 +5,6 @@ subdir('data/text-rendering-tests') # text_rendering_tests
 
 shape_run_tests_py = find_program('run-tests.py')
 
-env = environment()
-env.set('HAVE_FREETYPE', '@0@'.format(conf.get('HAVE_FREETYPE', 0)))
-env.set('HAVE_FONTATIONS', '@0@'.format(conf.get('HAVE_FONTATIONS', 0)))
-env.set('HAVE_CORETEXT', '@0@'.format(conf.get('HAVE_CORETEXT', 0)))
-env.set('HAVE_DIRECTWRITE', '@0@'.format(conf.get('HAVE_DIRECTWRITE', 0)))
-env.set('HAVE_UNISCRIBE', '@0@'.format(conf.get('HAVE_UNISCRIBE', 0)))
-
 sets = ['in-house', 'aots', 'text-rendering-tests']
 foreach set : sets
   # in-house -> in_house_tests, aots -> aots_tests, text-rendering-tests -> text_rendering_tests
@@ -29,7 +22,6 @@ foreach set : sets
     ],
     protocol: 'tap',
     #verbose: true,
-    env: env,
     workdir: meson.current_build_dir() / '..' / '..',
     suite: ['shape', set],
   )

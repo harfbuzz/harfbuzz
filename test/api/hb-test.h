@@ -127,19 +127,10 @@ hb_test_normalize_path (const char *path)
 }
 
 
-#if GLIB_CHECK_VERSION(2,25,12)
 typedef GTestFunc        hb_test_func_t;
 typedef GTestDataFunc    hb_test_data_func_t;
 typedef GTestFixtureFunc hb_test_fixture_func_t;
-#else
-typedef void (*hb_test_func_t)         (void);
-typedef void (*hb_test_data_func_t)    (gconstpointer user_data);
-typedef void (*hb_test_fixture_func_t) (gpointer fixture, gconstpointer user_data);
-#endif
 
-#if !GLIB_CHECK_VERSION(2,30,0)
-#define g_test_fail() g_error("Test failed")
-#endif
 #ifndef g_assert_true
 #define g_assert_true g_assert
 #endif

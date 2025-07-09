@@ -76,11 +76,7 @@ struct view_cairo_t : view_options_t, output_options_t<>
       helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
       line.finish ();
     }
-#if GLIB_CHECK_VERSION (2, 22, 0)
     g_array_unref (lines);
-#else
-    g_array_free (lines, TRUE);
-#endif
   }
 
   protected:

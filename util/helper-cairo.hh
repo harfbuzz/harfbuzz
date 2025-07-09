@@ -46,8 +46,7 @@
 #endif
 #ifdef CAIRO_HAS_PS_SURFACE
 #  include <cairo-ps.h>
-#  if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1,6,0)
-#    define HAS_EPS 1
+#  define HAS_EPS 1
 
 static cairo_surface_t *
 _cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
@@ -63,9 +62,6 @@ _cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
   return surface;
 }
 
-#  else
-#    undef HAS_EPS
-#  endif
 #endif
 #ifdef CAIRO_HAS_SCRIPT_SURFACE
 #   include <cairo-script.h>
