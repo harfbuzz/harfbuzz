@@ -1706,6 +1706,95 @@ populate_serializer_with_large_liga (hb_serialize_context_t* c, bool sequential_
   c->end_serialize();
 }
 
+static void
+populate_serializer_with_large_liga_overlapping_clone_result (hb_serialize_context_t* c)
+{
+  std::string large_string(100000, 'a');
+  c->start_serialize<char> ();
+
+  constexpr unsigned liga_size = 30000;
+
+  unsigned liga[6];
+  unsigned liga_subst[3];
+  unsigned liga_set[2];
+
+  // LigaSubst 3
+  unsigned coverage = add_coverage(1, 1, c);
+  for (int i = 1; i >= 0; i--) {
+    start_object (large_string.c_str(), liga_size, c);
+    add_virtual_offset(coverage, c);
+    liga[i] = c->pop_pack (false);
+  }
+
+  add_liga_set_header(2, c);
+  add_virtual_offset(coverage, c);
+  for (unsigned i = 0; i < 2; i++)
+    add_offset(liga[i], c);
+  liga_set[0] = c->pop_pack(false);
+
+  add_liga_header(coverage, 1, c);
+  add_offset(liga_set[0], c);
+  liga_subst[2] = c->pop_pack(false);
+
+  // LigaSubst 2
+  coverage = add_coverage(0, 1, c);
+  for (int i = 1; i >= 0; i--) {
+    start_object (large_string.c_str(), liga_size, c);
+    add_virtual_offset(coverage, c);
+    liga[i] = c->pop_pack (false);
+  }
+
+  add_liga_set_header(1, c);
+  add_virtual_offset(coverage, c);
+  add_offset(liga[1], c);
+  liga_set[1] = c->pop_pack(false);
+
+  add_liga_set_header(1, c);
+  add_virtual_offset(coverage, c);
+  add_offset(liga[0], c);
+  liga_set[0] = c->pop_pack(false);
+
+  add_liga_header(coverage, 2, c);
+  add_offset(liga_set[0], c);
+  add_offset(liga_set[1], c);
+  liga_subst[1] = c->pop_pack(false);
+
+  // LigaSubst 1
+  coverage = add_coverage(0, 0, c);
+  for (int i = 1; i >= 0; i--) {
+    start_object (large_string.c_str(), liga_size, c);
+    add_virtual_offset(coverage, c);
+    liga[i] = c->pop_pack (false);
+  }
+
+  add_liga_set_header(2, c);
+  add_virtual_offset(coverage, c);
+  for (unsigned i = 0; i < 2; i++)
+    add_offset(liga[i], c);
+  liga_set[0] = c->pop_pack(false);
+
+  add_liga_header(coverage, 1, c);
+  add_offset(liga_set[0], c);
+  liga_subst[0] = c->pop_pack(false);
+
+  for (int l = 2; l >= 0; l--) {
+    liga_subst[l] = add_extension(liga_subst[l], 4, c);
+  }
+
+  start_lookup (7, 3, c);
+  for (unsigned l = 0; l < 3; l++) {
+    add_offset(liga_subst[l], c);
+  }
+
+  unsigned lookup = finish_lookup (c);
+
+  unsigned lookup_list = add_lookup_list (&lookup, 1, c);
+
+  add_gsubgpos_header (lookup_list, c);
+
+  c->end_serialize();
+}
+
 static void test_sort_shortest ()
 {
   size_t buffer_size = 100;
@@ -2287,7 +2376,30 @@ static void test_resolve_with_liga_split_move ()
   hb_serialize_context_t e (expected_buffer, buffer_size);
   populate_serializer_with_large_liga<3, 2, 2, 16000>(&e, true);
 
-  run_resolve_overflow_test ("test_resolve_with_basic_liga_split",
+  run_resolve_overflow_test ("test_resolve_with_liga_split_move",
+                             c,
+                             e,
+                             20,
+                             true,
+                             HB_TAG('G', 'S', 'U', 'B'));
+  free (buffer);
+  free (expected_buffer);
+}
+
+static void test_resolve_with_liga_split_overlapping_clone ()
+{
+  size_t buffer_size = 400000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_large_liga<1, 2, 3, 30000>(&c, true);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_large_liga_overlapping_clone_result(&e);
+
+  run_resolve_overflow_test ("test_resolve_with_liga_split_overlapping_clone",
                              c,
                              e,
                              20,
@@ -2507,6 +2619,7 @@ main (int argc, char **argv)
   test_resolve_with_basic_liga_split ();
   test_resolve_with_liga_split_move ();
   test_dont_duplicate_virtual ();
+  test_resolve_with_liga_split_overlapping_clone ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.

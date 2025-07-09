@@ -211,13 +211,47 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     link.objidx = to;
   }
 
+  hb_pair_t<unsigned, unsigned> current_liga_set_bounds (gsubgpos_graph_context_t& c,
+                                                         unsigned liga_set_index,
+                                                         const hb_serialize_context_t::object_t& liga_set) const
+  {
+    // Finds the actual liga indices present in the liga set currently. Takes
+    // into account those that have been removed by processing.
+    unsigned min_index = (unsigned) -1;
+    unsigned max_index = 0;
+    for (const auto& l : liga_set.real_links) {
+      if (l.position < 2) continue;
+
+      unsigned liga_index = (l.position - 2) / 2;
+      min_index = hb_min(min_index, liga_index);
+      max_index = hb_max(max_index, liga_index);
+    }
+    return hb_pair(min_index, max_index + 1);
+  }
+
+  void compact_liga_set (gsubgpos_graph_context_t& c, LigatureSet* table, hb_serialize_context_t::object_t& obj) const
+  {
+    if (table->ligature.len <= obj.real_links.length) return;
+
+    // compact the remaining linked liga offsets into a continous array and shrink the node as needed.
+    unsigned to_remove = table->ligature.len - obj.real_links.length;
+    unsigned new_position = SmallTypes::size;
+    obj.real_links.qsort(); // for this to work we need to process links in order of position.
+    for (auto& l : obj.real_links)
+    {
+      l.position = new_position;
+      new_position += SmallTypes::size;
+    }
+
+    table->ligature.len = obj.real_links.length;
+    obj.tail -= to_remove * SmallTypes::size;
+  }
+
   unsigned clone_range (gsubgpos_graph_context_t& c,
                         unsigned this_index,
                         hb_vector_t<unsigned> liga_counts,
                         unsigned start, unsigned end) const
   {
-    // TODO XXXX liga set's that are part of two clone_range's will not be pruned from the graph and will
-    //           end up orphaned. Add a test for this case.
     DEBUG_MSG (SUBSET_REPACK, nullptr,
                "  Cloning LigatureSubstFormat1 (%u) range [%u, %u).", this_index, start, end);
 
@@ -270,6 +304,11 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         return -1;
       }
 
+      // Bounds may need to be adjusted if some ligas have been previously removed.
+      hb_pair_t<unsigned, unsigned> liga_bounds = current_liga_set_bounds(c, liga_set_index, liga_set.vertex->obj);
+      current_start = hb_max(count + liga_bounds.first, current_start);
+      current_end = hb_min(count + liga_bounds.second, current_end);
+
       unsigned liga_set_prime_id;
       if (current_start >= start && current_end <= end) {
         // This liga set is fully contined within [start, end)
@@ -280,6 +319,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
                               &ligatureSet[i],
                               liga_subst_prime_id,
                               &liga_subst_prime->ligatureSet[liga_set_count++]);
+        compact_liga_set(c, liga_set.table, liga_set.vertex->obj);
       }
       else
       {

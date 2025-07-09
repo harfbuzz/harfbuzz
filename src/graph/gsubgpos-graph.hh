@@ -24,7 +24,7 @@
  * Google Author(s): Garret Rieger
  */
 
-#include "OT/Layout/GSUB/SubstLookupSubTable.hh"
+#include "../OT/Layout/GSUB/SubstLookupSubTable.hh"
 #include "graph.hh"
 #include "../hb-ot-layout-gsubgpos.hh"
 #include "../OT/Layout/GSUB/ExtensionSubst.hh"
@@ -203,14 +203,14 @@ struct Lookup : public OT::Lookup
                        hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>>& subtable_ids)
   {
     bool is_ext = is_extension (c.table_tag);
-    auto& v = c.graph.vertices_[this_index];
+    auto* v = &c.graph.vertices_[this_index];
     fix_existing_subtable_links (c, this_index, subtable_ids);
 
     unsigned new_subtable_count = 0;
     for (const auto& p : subtable_ids)
       new_subtable_count += p.second.length;
 
-    size_t new_size = v.table_size ()
+    size_t new_size = v->table_size ()
                       + new_subtable_count * OT::Offset16::static_size;
     char* buffer = (char*) hb_calloc (1, new_size);
     if (!buffer) return false;
@@ -219,10 +219,10 @@ struct Lookup : public OT::Lookup
       hb_free (buffer);
      return false;
     }
-    hb_memcpy (buffer, v.obj.head, v.table_size());
+    hb_memcpy (buffer, v->obj.head, v->table_size());
 
-    v.obj.head = buffer;
-    v.obj.tail = buffer + new_size;
+    v->obj.head = buffer;
+    v->obj.tail = buffer + new_size;
 
     Lookup* new_lookup = (Lookup*) buffer;
 
@@ -240,9 +240,11 @@ struct Lookup : public OT::Lookup
           unsigned ext_id = create_extension_subtable (c, subtable_id, type);
           c.graph.vertices_[subtable_id].add_parent (ext_id, false);
           subtable_id = ext_id;
+          // the reference to v may have changed on adding a node, so reassign it.
+          v = &c.graph.vertices_[this_index];
         }
 
-        auto* link = v.obj.real_links.push ();
+        auto* link = v->obj.real_links.push ();
         link->width = 2;
         link->objidx = subtable_id;
         link->position = (char*) &new_lookup->subTable[offset_index++] -
@@ -252,7 +254,7 @@ struct Lookup : public OT::Lookup
     }
 
     // Repacker sort order depends on link order, which we've messed up so resort it.
-    v.obj.real_links.qsort ();
+    v->obj.real_links.qsort ();
 
     // The head location of the lookup has changed, invalidating the lookups map entry
     // in the context. Update the map.

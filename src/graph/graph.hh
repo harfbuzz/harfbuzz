@@ -127,7 +127,9 @@ struct graph_t
       }
     }
 
-    bool equals (const vertex_t& other,
+    bool equals (unsigned this_index,
+                 unsigned other_index,
+                 const vertex_t& other,
                  const graph_t& graph,
                  const graph_t& other_graph,
                  unsigned depth) const
@@ -135,8 +137,10 @@ struct graph_t
       if (!(as_bytes () == other.as_bytes ()))
       {
         DEBUG_MSG (SUBSET_REPACK, nullptr,
-                   "vertex [%lu] bytes != [%lu] bytes, depth = %u",
+                   "vertex %u [%lu] bytes != %u [%lu] bytes, depth = %u",
+                   this_index,
                    (unsigned long) table_size (),
+                   other_index,
                    (unsigned long) other.table_size (),
                    depth);
 
@@ -418,7 +422,7 @@ struct graph_t
             link_a.bias != link_b.bias)
           return false;
 
-        if (!graph.vertices_[link_a.objidx].equals (
+        if (!graph.vertices_[link_a.objidx].equals (link_a.objidx, link_b.objidx,
                 other_graph.vertices_[link_b.objidx], graph, other_graph, depth + 1))
           return false;
 
@@ -500,7 +504,7 @@ struct graph_t
 
   bool operator== (const graph_t& other) const
   {
-    return root ().equals (other.root (), *this, other, 0);
+    return root ().equals (root_idx(), other.root_idx(), other.root (), *this, other, 0);
   }
 
   void print () const {
