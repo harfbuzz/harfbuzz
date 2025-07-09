@@ -407,10 +407,9 @@ PartComposite::apply_to_transforms (hb_array_t<hb_transform_t<double>> transform
   /* Note that the spec says walk four iterators together.
    * But with careful consideration, we have figured out the order
    * to walk two, then one, then one. This seems to work for all
-   * glyphs in PingFangUI just fine. For commits moving to this
-   * logic.
+   * glyphs in PingFangUI just fine.
    *
-   * Moreover, for walkting the two (extremum ones), if there is
+   * Moreover, for walking the two (extremum ones), if there is
    * no rotation, we use a separate, faster, loop that just walks
    * extremum translations.
    *
