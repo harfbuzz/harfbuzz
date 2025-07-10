@@ -27,13 +27,11 @@
 #ifndef GRAPH_LIGATURE_GRAPH_HH
 #define GRAPH_LIGATURE_GRAPH_HH
 
-#include "OT/Layout/GSUB/LigatureSet.hh"
-#include "OT/Layout/types.hh"
-#include "hb-ot-layout-common.hh"
-
 #include "graph.hh"
 #include "../OT/Layout/GSUB/LigatureSubst.hh"
 #include "../OT/Layout/GSUB/LigatureSubstFormat1.hh"
+#include "../OT/Layout/GSUB/LigatureSet.hh"
+#include "../OT/Layout/types.hh"
 #include <algorithm>
 #include <utility>
 
@@ -181,16 +179,16 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     }
   };
 
-  std::pair<unsigned, LigatureSet*> new_liga_set(gsubgpos_graph_context_t& c, unsigned count) const {
+  hb_pair_t<unsigned, LigatureSet*> new_liga_set(gsubgpos_graph_context_t& c, unsigned count) const {
     unsigned prime_size = OT::Layout::GSUB_impl::LigatureSet<SmallTypes>::min_size
                           + count * SmallTypes::size;
 
     unsigned prime_id = c.create_node (prime_size);
-    if (prime_id == (unsigned) -1) return std::make_pair(-1, nullptr);
+    if (prime_id == (unsigned) -1) return hb_pair(-1, nullptr);
 
     LigatureSet* prime = (LigatureSet*) c.graph.object (prime_id).head;
     prime->ligature.len = count;
-    return std::make_pair(prime_id, prime);
+    return hb_pair(prime_id, prime);
   }
 
   void clear_virtual_links (gsubgpos_graph_context_t& c, unsigned node_index) const
@@ -325,14 +323,14 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       {
         // This liga set partially overlaps [start, end). We'll need to create
         // a new liga set sub table and move the intersecting ligas to it.
-        unsigned liga_count = std::min(end, current_end) - std::max(start, current_start);
+        unsigned liga_count = hb_min(end, current_end) - hb_max(start, current_start);
         auto result = new_liga_set(c, liga_count);
         liga_set_prime_id = result.first;
         LigatureSet* prime = result.second;
         if (liga_set_prime_id == (unsigned) -1) return -1;
 
         unsigned new_index = 0;
-        for (unsigned j = std::max(start, current_start) - count; j < std::min(end, current_end) - count; j++) {
+        for (unsigned j = hb_max(start, current_start) - count; j < hb_min(end, current_end) - count; j++) {
           c.graph.move_child<> (liga_set_index,
                                 &liga_set.table->ligature[j],
                                 liga_set_prime_id,

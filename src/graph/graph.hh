@@ -137,7 +137,7 @@ struct graph_t
       if (!(as_bytes () == other.as_bytes ()))
       {
         DEBUG_MSG (SUBSET_REPACK, nullptr,
-                   "vertex %u [%lu] bytes != %u [%lu] bytes, depth = %u",
+                   "vertex %u [%lu bytes] != %u [%lu bytes], depth = %u",
                    this_index,
                    (unsigned long) table_size (),
                    other_index,
@@ -726,9 +726,8 @@ struct graph_t
     if (!r.table)
       return vertex_and_table_t<T> ();
 
-    if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...)) {
+    if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...))
       return vertex_and_table_t<T> ();
-    }
 
     return r;
   }

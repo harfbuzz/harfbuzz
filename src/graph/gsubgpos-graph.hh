@@ -24,12 +24,11 @@
  * Google Author(s): Garret Rieger
  */
 
-#include "../OT/Layout/GSUB/SubstLookupSubTable.hh"
 #include "graph.hh"
 #include "../hb-ot-layout-gsubgpos.hh"
 #include "../OT/Layout/GSUB/ExtensionSubst.hh"
+#include "../OT/Layout/GSUB/SubstLookupSubTable.hh"
 #include "gsubgpos-context.hh"
-#include "hb-ot.h"
 #include "pairpos-graph.hh"
 #include "markbasepos-graph.hh"
 #include "ligature-graph.hh"
