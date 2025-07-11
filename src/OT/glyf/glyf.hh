@@ -405,6 +405,8 @@ struct glyf_accelerator_t
   {
     if (unlikely (gid >= num_glyphs)) return false;
 
+    // TODO: If HVAR/VVAR have side-bearing deltas, we should use them.
+
     hb_glyph_extents_t extents;
     hb_glyf_scratch_t scratch;
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
