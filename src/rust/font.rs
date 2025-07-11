@@ -5,7 +5,7 @@ use std::ffi::c_void;
 use std::mem::transmute;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex};
 
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
@@ -35,7 +35,6 @@ struct FontationsData<'a> {
     outline_glyphs: OutlineGlyphCollection<'a>,
     color_glyphs: ColorGlyphCollection<'a>,
     glyph_names: GlyphNames<'a>,
-    glyph_from_names: OnceLock<HashMap<String, hb_codepoint_t>>,
     size: Size,
     vert_metrics: Option<Vmtx<'a>>,
     vert_origin: Option<Vorg<'a>>,
@@ -89,7 +88,6 @@ impl FontationsData<'_> {
             outline_glyphs,
             color_glyphs,
             glyph_names,
-            glyph_from_names: OnceLock::new(),
             size: Size::new(upem as f32),
             vert_metrics,
             vert_origin,
@@ -980,8 +978,14 @@ extern "C" fn _hb_fontations_glyph_name(
     }
 }
 
+static mut GLYPH_FROM_NAMES_KEY: hb_user_data_key_t = hb_user_data_key_t { unused: 0 };
+
+extern "C" fn _hb_glyph_from_names_destroy(data: *mut c_void) {
+    let _ = unsafe { Arc::from_raw(data as *const HashMap<String, u32>) };
+}
+
 extern "C" fn _hb_fontations_glyph_from_name(
-    _font: *mut hb_font_t,
+    font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     name: *const ::std::os::raw::c_char,
     len: ::std::os::raw::c_int,
@@ -992,13 +996,35 @@ extern "C" fn _hb_fontations_glyph_from_name(
 
     let name = unsafe { std::slice::from_raw_parts(name as *const u8, len as usize) };
     let name = std::str::from_utf8(name).unwrap_or_default();
+    let mut glyph_from_names: *mut c_void;
 
-    let glyph_from_names = data.glyph_from_names.get_or_init(|| {
-        data.glyph_names
-            .iter()
-            .map(|(gid, name)| (name.to_string(), gid.to_u32()))
-            .collect()
-    });
+    let face = unsafe { hb_font_get_face(font) };
+    loop {
+        glyph_from_names = unsafe { hb_face_get_user_data(face, &raw mut GLYPH_FROM_NAMES_KEY) };
+        if !glyph_from_names.is_null() {
+            break;
+        }
+        // Create a new HashMap to store the glyph names
+        let mut glyph_from_names = HashMap::new();
+        for (glyph_id, glyph_name) in data.glyph_names.iter() {
+            glyph_from_names.insert(glyph_name.to_string(), glyph_id.to_u32());
+        }
+
+        let glyph_from_names = Arc::new(glyph_from_names);
+        unsafe {
+            if hb_face_set_user_data(
+                face,
+                &raw mut GLYPH_FROM_NAMES_KEY,
+                Arc::into_raw(glyph_from_names) as *mut c_void,
+                Some(_hb_glyph_from_names_destroy),
+                true as hb_bool_t,
+            ) != false as hb_bool_t
+            {
+                break;
+            }
+        }
+    }
+    let glyph_from_names = unsafe { &*(glyph_from_names as *const HashMap<String, u32>) };
     if let Some(glyph_id) = glyph_from_names.get(name) {
         unsafe {
             *glyph = *glyph_id;
