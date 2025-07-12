@@ -23,6 +23,8 @@ hb_base_sources = files(
   'hb-aat-ltag-table.hh',
   'hb-aat-map.cc',
   'hb-aat-map.hh',
+  'hb-aat-var-hvgl-table.cc',
+  'hb-aat-var-hvgl-table.hh',
   'hb-algs.hh',
   'hb-array.hh',
   'hb-atomic.hh',
