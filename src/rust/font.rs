@@ -5,7 +5,7 @@ use std::ffi::c_void;
 use std::mem::transmute;
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
-use std::sync::{Mutex, OnceLock};
+use std::sync::Mutex;
 
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
@@ -35,7 +35,6 @@ struct FontationsData<'a> {
     outline_glyphs: OutlineGlyphCollection<'a>,
     color_glyphs: ColorGlyphCollection<'a>,
     glyph_names: GlyphNames<'a>,
-    glyph_from_names: OnceLock<HashMap<String, hb_codepoint_t>>,
     size: Size,
     vert_metrics: Option<Vmtx<'a>>,
     vert_origin: Option<Vorg<'a>>,
@@ -89,7 +88,6 @@ impl FontationsData<'_> {
             outline_glyphs,
             color_glyphs,
             glyph_names,
-            glyph_from_names: OnceLock::new(),
             size: Size::new(upem as f32),
             vert_metrics,
             vert_origin,
@@ -980,32 +978,76 @@ extern "C" fn _hb_fontations_glyph_name(
     }
 }
 
+static mut GLYPH_FROM_NAMES_KEY: hb_user_data_key_t = hb_user_data_key_t { unused: 0 };
+
+extern "C" fn _hb_glyph_from_names_destroy(data: *mut c_void) {
+    let _ = unsafe { Box::from_raw(data as *mut HashMap<String, u32>) };
+}
+
 extern "C" fn _hb_fontations_glyph_from_name(
-    _font: *mut hb_font_t,
+    font: *mut hb_font_t,
     font_data: *mut ::std::os::raw::c_void,
     name: *const ::std::os::raw::c_char,
     len: ::std::os::raw::c_int,
     glyph: *mut hb_codepoint_t,
     _user_data: *mut ::std::os::raw::c_void,
 ) -> hb_bool_t {
-    let data = unsafe { &mut *(font_data as *mut FontationsData) };
+    let data = unsafe { &*(font_data as *const FontationsData) };
 
-    let name = unsafe { std::slice::from_raw_parts(name as *const u8, len as usize) };
-    let name = std::str::from_utf8(name).unwrap_or_default();
+    // SAFETY: HarfBuzz guarantees the string is valid memory for `len` bytes.
+    let name_bytes = unsafe { std::slice::from_raw_parts(name as *const u8, len as usize) };
+    let name_str = match std::str::from_utf8(name_bytes) {
+        Ok(s) => s,
+        Err(_) => return false as hb_bool_t,
+    };
 
-    let glyph_from_names = data.glyph_from_names.get_or_init(|| {
-        data.glyph_names
-            .iter()
-            .map(|(gid, name)| (name.to_string(), gid.to_u32()))
-            .collect()
-    });
-    if let Some(glyph_id) = glyph_from_names.get(name) {
-        unsafe {
-            *glyph = *glyph_id;
+    let face = unsafe { hb_font_get_face(font) };
+    let mut user_data_ptr: *mut c_void;
+
+    loop {
+        user_data_ptr =
+            unsafe { hb_face_get_user_data(face, std::ptr::addr_of_mut!(GLYPH_FROM_NAMES_KEY)) };
+        if !user_data_ptr.is_null() {
+            break;
         }
-        true as hb_bool_t
-    } else {
-        false as hb_bool_t
+
+        // Build the HashMap from glyph names to IDs
+        let mut map = HashMap::new();
+        for (glyph_id, glyph_name) in data.glyph_names.iter() {
+            map.insert(glyph_name.to_string(), glyph_id.to_u32());
+        }
+
+        let boxed_map = Box::new(map);
+        let ptr = Box::into_raw(boxed_map) as *mut c_void;
+
+        let success = unsafe {
+            hb_face_set_user_data(
+                face,
+                std::ptr::addr_of_mut!(GLYPH_FROM_NAMES_KEY),
+                ptr,
+                Some(_hb_glyph_from_names_destroy),
+                true as hb_bool_t,
+            )
+        };
+
+        if success != false as hb_bool_t {
+            user_data_ptr = ptr;
+            break;
+        }
+
+        // We failed to set user data — reclaim the pointer to avoid leaking
+        _hb_glyph_from_names_destroy(ptr);
+        // Try again in next loop iteration
+    }
+
+    let glyph_from_names = unsafe { &*(user_data_ptr as *const HashMap<String, u32>) };
+
+    match glyph_from_names.get(name_str) {
+        Some(gid) => {
+            unsafe { *glyph = *gid };
+            true as hb_bool_t
+        }
+        None => false as hb_bool_t,
     }
 }
 
