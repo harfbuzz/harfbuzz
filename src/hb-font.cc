@@ -2401,7 +2401,7 @@ hb_font_set_funcs_data (hb_font_t         *font,
   font->changed ();
 }
 
-static struct supported_font_funcs_t {
+static const struct supported_font_funcs_t {
 	char name[16];
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
