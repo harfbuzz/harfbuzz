@@ -178,7 +178,14 @@ struct hb_colrv1_closure_context_t :
   { glyphs->add (glyph_id); }
 
   void add_layer_indices (unsigned first_layer_index, unsigned num_of_layers)
-  { layer_indices->add_range (first_layer_index, first_layer_index + num_of_layers - 1); }
+  {
+    if (num_of_layers == 0)
+    {
+      layer_indices->add (first_layer_index);
+      return;
+    }
+    layer_indices->add_range (first_layer_index, first_layer_index + num_of_layers - 1);
+  }
 
   void add_palette_index (unsigned palette_index)
   { palette_indices->add (palette_index); }
