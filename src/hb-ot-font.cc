@@ -289,37 +289,57 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 			    unsigned advance_stride,
 			    void *user_data HB_UNUSED)
 {
+  // Duplicated in v_advances. Ugly. Keep in sync'ish.
 
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
   const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx;
 
-  ot_font->check_serial (font);
-  const OT::HVAR &HVAR = *hmtx.var_table;
-  const OT::ItemVariationStore &varStore = &HVAR + HVAR.varStore;
-  OT::hb_scalar_cache_t *varStore_cache = font->has_nonzero_coords ? ot_font->h.acquire_varStore_cache (varStore) : nullptr;
-
-  hb_ot_font_advance_cache_t *advance_cache = nullptr;
-
-  bool use_cache = font->has_nonzero_coords;
-  if (use_cache)
+  if (unlikely (!hmtx.has_data ()))
   {
-    advance_cache = ot_font->h.acquire_advance_cache ();
-    if (!advance_cache)
-      use_cache = false;
-  }
-
-  if (!use_cache)
-  {
+    hb_position_t advance = font->face->get_upem () / 2;
+    advance = font->em_scale_x (advance);
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = font->em_scale_x (hmtx.get_advance_with_var_unscaled (*first_glyph, font, varStore_cache));
+      *first_advance = advance;
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+    return;
+  }
+
+#ifndef HB_NO_VAR
+  if (!font->has_nonzero_coords)
+#endif
+  {
+  fallback:
+    // Just plain htmx data. No need to cache.
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance = font->em_scale_x (hmtx.get_advance_without_var_unscaled (*first_glyph));
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
+    return;
   }
-  else
-  { /* Use cache. */
+
+#ifndef HB_NO_VAR
+  /* has_nonzero_coords. */
+
+  ot_font->check_serial (font);
+  hb_ot_font_advance_cache_t *advance_cache = ot_font->h.acquire_advance_cache ();
+  if (!advance_cache)
+  {
+    // malloc failure. Just use the fallback non-variable path.
+    goto fallback;
+  }
+
+  /* If HVAR is present, use it.*/
+  const OT::HVAR &HVAR = *hmtx.var_table;
+  if (HVAR.has_data ())
+  {
+    const OT::ItemVariationStore &varStore = &HVAR + HVAR.varStore;
+    OT::hb_scalar_cache_t *varStore_cache = ot_font->h.acquire_varStore_cache (varStore);
+
     for (unsigned int i = 0; i < count; i++)
     {
       hb_position_t v;
@@ -336,10 +356,42 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
 
+    ot_font->h.release_varStore_cache (varStore_cache);
     ot_font->h.release_advance_cache (advance_cache);
+    return;
   }
 
-  ot_font->h.release_varStore_cache (varStore_cache);
+  const auto &gvar = *ot_face->gvar;
+  if (gvar.has_data ())
+  {
+    const auto &glyf = *ot_face->glyf;
+    OT::hb_scalar_cache_t *gvar_cache = ot_font->draw.acquire_gvar_cache (gvar);
+
+    for (unsigned int i = 0; i < count; i++)
+    {
+      hb_position_t v;
+      unsigned cv;
+      if (advance_cache->get (*first_glyph, &cv))
+	v = cv;
+      else
+      {
+        v = glyf.get_advance_with_var_unscaled (*first_glyph, font, false, gvar_cache);
+	advance_cache->set (*first_glyph, v);
+      }
+      *first_advance = font->em_scale_x (v);
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+
+    ot_font->draw.release_gvar_cache (gvar_cache);
+    ot_font->h.release_advance_cache (advance_cache);
+    return;
+  }
+
+  ot_font->h.release_advance_cache (advance_cache);
+  // No HVAR or GVAR.  Just use the fallback non-variable path.
+  goto fallback;
+#endif
 }
 
 #ifndef HB_NO_VERTICAL
@@ -352,40 +404,111 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 			    unsigned advance_stride,
 			    void *user_data HB_UNUSED)
 {
+  // Duplicated from h_advances. Ugly. Keep in sync'ish.
+
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
   const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
 
-  if (vmtx.has_data ())
+  if (unlikely (!vmtx.has_data ()))
   {
-    ot_font->check_serial (font);
-    const OT::VVAR &VVAR = *vmtx.var_table;
+    hb_font_extents_t font_extents;
+    font->get_h_extents_with_fallback (&font_extents);
+    hb_position_t advance = font_extents.ascender - font_extents.descender;
+    advance = font->em_scale_y (- (int) advance);
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance = advance;
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+    return;
+  }
+
+#ifndef HB_NO_VAR
+  if (!font->has_nonzero_coords)
+#endif
+  {
+  fallback:
+    // Just plain vtmx data. No need to cache.
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance = font->em_scale_y (- (int) vmtx.get_advance_without_var_unscaled (*first_glyph));
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+    return;
+  }
+
+#ifndef HB_NO_VAR
+  /* has_nonzero_coords. */
+
+  ot_font->check_serial (font);
+  hb_ot_font_advance_cache_t *advance_cache = ot_font->v.acquire_advance_cache ();
+  if (!advance_cache)
+  {
+    // malloc failure. Just use the fallback non-variable path.
+    goto fallback;
+  }
+
+  /* If VVAR is present, use it.*/
+  const OT::VVAR &VVAR = *vmtx.var_table;
+  if (VVAR.has_data ())
+  {
     const OT::ItemVariationStore &varStore = &VVAR + VVAR.varStore;
-    OT::hb_scalar_cache_t *varStore_cache = font->has_nonzero_coords ? ot_font->v.acquire_varStore_cache (varStore) : nullptr;
-    // TODO Use advance_cache.
+    OT::hb_scalar_cache_t *varStore_cache = ot_font->v.acquire_varStore_cache (varStore);
 
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = font->em_scale_y (-(int) vmtx.get_advance_with_var_unscaled (*first_glyph, font, varStore_cache));
+      hb_position_t v;
+      unsigned cv;
+      if (advance_cache->get (*first_glyph, &cv))
+	v = cv;
+      else
+      {
+        v = vmtx.get_advance_with_var_unscaled (*first_glyph, font, varStore_cache);
+	advance_cache->set (*first_glyph, v);
+      }
+      *first_advance = font->em_scale_y (- (int) v);
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
 
     ot_font->v.release_varStore_cache (varStore_cache);
+    ot_font->v.release_advance_cache (advance_cache);
+    return;
   }
-  else
+
+  const auto &gvar = *ot_face->gvar;
+  if (gvar.has_data ())
   {
-    hb_font_extents_t font_extents;
-    font->get_h_extents_with_fallback (&font_extents);
-    hb_position_t advance = -(font_extents.ascender - font_extents.descender);
+    const auto &glyf = *ot_face->glyf;
+    OT::hb_scalar_cache_t *gvar_cache = ot_font->draw.acquire_gvar_cache (gvar);
 
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = advance;
+      hb_position_t v;
+      unsigned cv;
+      if (advance_cache->get (*first_glyph, &cv))
+	v = cv;
+      else
+      {
+        v = glyf.get_advance_with_var_unscaled (*first_glyph, font, true, gvar_cache);
+	advance_cache->set (*first_glyph, v);
+      }
+      *first_advance = font->em_scale_y (- (int) v);
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
+
+    ot_font->draw.release_gvar_cache (gvar_cache);
+    ot_font->v.release_advance_cache (advance_cache);
+    return;
   }
+
+  ot_font->v.release_advance_cache (advance_cache);
+  // No HVAR or GVAR.  Just use the fallback non-variable path.
+  goto fallback;
+#endif
 }
 #endif
 

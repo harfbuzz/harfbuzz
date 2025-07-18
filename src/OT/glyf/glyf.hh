@@ -372,34 +372,34 @@ struct glyf_accelerator_t
     contour_point_t *get_phantoms_sink () { return phantoms; }
   };
 
+#ifndef HB_NO_VAR
   unsigned
-  get_advance_with_var_unscaled (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
+  get_advance_with_var_unscaled (hb_codepoint_t gid,
+				 hb_font_t *font,
+				 bool is_vertical,
+				 hb_scalar_cache_t *gvar_cache = nullptr) const
   {
     if (unlikely (gid >= num_glyphs)) return 0;
 
     bool success = false;
 
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
-    if (font->has_nonzero_coords)
-    {
-      hb_glyf_scratch_t scratch;
-      success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, false),
-			    hb_array (font->coords, font->num_coords),
-			    scratch);
-    }
-
+    hb_glyf_scratch_t scratch;
+    success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, false),
+			  hb_array (font->coords, font->num_coords),
+			  scratch, gvar_cache);
     if (unlikely (!success))
-      return
-#ifndef HB_NO_VERTICAL
-	is_vertical ? vmtx->get_advance_without_var_unscaled (gid) :
-#endif
-	hmtx->get_advance_without_var_unscaled (gid);
+    {
+      unsigned upem = font->face->get_upem ();
+      return is_vertical ? upem : upem / 2;
+    }
 
     float result = is_vertical
 		 ? phantoms[glyf_impl::PHANTOM_TOP].y - phantoms[glyf_impl::PHANTOM_BOTTOM].y
 		 : phantoms[glyf_impl::PHANTOM_RIGHT].x - phantoms[glyf_impl::PHANTOM_LEFT].x;
     return hb_clamp (roundf (result), 0.f, (float) UINT_MAX / 2);
   }
+#endif
 
   bool get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t gid, bool is_vertical, int *lsb) const
   {

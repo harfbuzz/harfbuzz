@@ -284,6 +284,8 @@ struct HVARVVAR
   static constexpr hb_tag_t HVARTag = HB_OT_TAG_HVAR;
   static constexpr hb_tag_t VVARTag = HB_OT_TAG_VVAR;
 
+  bool has_data () const { return version.major != 0; }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

@@ -48,9 +48,6 @@
 HB_INTERNAL bool
 _glyf_get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical, int *lsb);
 
-HB_INTERNAL unsigned
-_glyf_get_advance_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
-
 HB_INTERNAL bool
 _glyf_get_leading_bearing_without_var_unscaled (hb_face_t *face, hb_codepoint_t gid, bool is_vertical, int *lsb);
 
@@ -402,27 +399,17 @@ struct hmtxvmtx
       return advances[hb_min (glyph - num_bearings, num_advances - num_bearings - 1)];
     }
 
-    unsigned get_advance_with_var_unscaled (hb_codepoint_t  glyph,
-					    hb_font_t      *font,
+#ifndef HB_NO_VAR
+    unsigned get_advance_with_var_unscaled (hb_codepoint_t     glyph,
+					    hb_font_t         *font,
 					    hb_scalar_cache_t *store_cache = nullptr) const
     {
       unsigned int advance = get_advance_without_var_unscaled (glyph);
-
-#ifndef HB_NO_VAR
-      if (unlikely (glyph >= num_bearings) || !font->has_nonzero_coords)
-	return advance;
-
-      if (var_table.get_length ())
-	return advance + roundf (var_table->get_advance_delta_unscaled (glyph,
-									font->coords, font->num_coords,
-									store_cache));
-
-      unsigned glyf_advance = _glyf_get_advance_with_var_unscaled (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
-      return glyf_advance ? glyf_advance : advance;
-#else
-      return advance;
-#endif
+      return advance + roundf (var_table->get_advance_delta_unscaled (glyph,
+								      font->coords, font->num_coords,
+								      store_cache));
     }
+#endif
 
     protected:
     // 0 <= num_long_metrics <= num_bearings <= num_advances <= num_glyphs
