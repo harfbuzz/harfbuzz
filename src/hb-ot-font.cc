@@ -309,9 +309,11 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 
 #ifndef HB_NO_VAR
   if (!font->has_nonzero_coords)
-#endif
   {
   fallback:
+#else
+  {
+#endif
     // Just plain htmx data. No need to cache.
     for (unsigned int i = 0; i < count; i++)
     {
@@ -426,9 +428,11 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 
 #ifndef HB_NO_VAR
   if (!font->has_nonzero_coords)
-#endif
   {
   fallback:
+#else
+  {
+#endif
     // Just plain vtmx data. No need to cache.
     for (unsigned int i = 0; i < count; i++)
     {
