@@ -234,7 +234,7 @@ struct hmtxvmtx
 
     auto it =
     + hb_iter (c->plan->new_to_old_gid_list)
-    | hb_map ([c, &_mtx, mtx_map] (hb_codepoint_pair_t _)
+    | hb_map ([&_mtx, mtx_map] (hb_codepoint_pair_t _)
 	      {
 		hb_codepoint_t new_gid = _.first;
 		hb_codepoint_t old_gid = _.second;
@@ -243,8 +243,7 @@ struct hmtxvmtx
 		if (!mtx_map->has (new_gid, &v))
 		{
 		  int lsb = 0;
-		  if (!_mtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb))
-		    (void) _glyf_get_leading_bearing_without_var_unscaled (c->plan->source, old_gid, !T::is_horizontal, &lsb);
+		  _mtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb);
 		  return hb_pair (_mtx.get_advance_without_var_unscaled (old_gid), +lsb);
 		}
 		return *v;
@@ -323,21 +322,23 @@ struct hmtxvmtx
 
     bool has_data () const { return (bool) num_bearings; }
 
-    bool get_leading_bearing_without_var_unscaled (hb_codepoint_t glyph,
+    void get_leading_bearing_without_var_unscaled (hb_codepoint_t glyph,
 						   int *lsb) const
     {
       if (glyph < num_long_metrics)
       {
 	*lsb = table->longMetricZ[glyph].sb;
-	return true;
+	return;
       }
 
       if (unlikely (glyph >= num_bearings))
-	return false;
+      {
+        *lsb = 0;
+	return;
+      }
 
       const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_long_metrics];
       *lsb = bearings[glyph - num_long_metrics];
-      return true;
     }
 
     bool get_leading_bearing_with_var_unscaled (hb_font_t *font,
@@ -345,13 +346,16 @@ struct hmtxvmtx
 						int *lsb) const
     {
       if (!font->has_nonzero_coords)
-	return get_leading_bearing_without_var_unscaled (glyph, lsb);
+      {
+	get_leading_bearing_without_var_unscaled (glyph, lsb);
+	return has_data ();
+      }
 
 #ifndef HB_NO_VAR
       float delta;
-      if (var_table->get_lsb_delta_unscaled (glyph, font->coords, font->num_coords, &delta) &&
-	  get_leading_bearing_without_var_unscaled (glyph, lsb))
+      if (var_table->get_lsb_delta_unscaled (glyph, font->coords, font->num_coords, &delta))
       {
+	get_leading_bearing_without_var_unscaled (glyph, lsb);
 	*lsb += roundf (delta);
 	return true;
       }
