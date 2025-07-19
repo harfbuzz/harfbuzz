@@ -429,6 +429,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   if (gvar.has_data ())
   {
     const auto &glyf = *ot_face->glyf;
+    auto *scratch = glyf.acquire_scratch ();
     OT::hb_scalar_cache_t *gvar_cache = ot_font->draw.acquire_gvar_cache (gvar);
 
     for (unsigned int i = 0; i < count; i++)
@@ -439,7 +440,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 	v = cv;
       else
       {
-        v = glyf.get_advance_with_var_unscaled (*first_glyph, font, false, gvar_cache);
+        v = glyf.get_advance_with_var_unscaled (*first_glyph, font, false, *scratch, gvar_cache);
 	advance_cache->set (*first_glyph, v);
       }
       *first_advance = font->em_scale_x (v);
@@ -448,6 +449,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
     }
 
     ot_font->draw.release_gvar_cache (gvar_cache);
+    glyf.release_scratch (scratch);
     ot_font->h.release_advance_cache (advance_cache);
     return;
   }
@@ -548,6 +550,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   if (gvar.has_data ())
   {
     const auto &glyf = *ot_face->glyf;
+    auto *scratch = glyf.acquire_scratch ();
     OT::hb_scalar_cache_t *gvar_cache = ot_font->draw.acquire_gvar_cache (gvar);
 
     for (unsigned int i = 0; i < count; i++)
@@ -558,7 +561,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 	v = cv;
       else
       {
-        v = glyf.get_advance_with_var_unscaled (*first_glyph, font, true, gvar_cache);
+        v = glyf.get_advance_with_var_unscaled (*first_glyph, font, true, *scratch, gvar_cache);
 	advance_cache->set (*first_glyph, v);
       }
       *first_advance = font->em_scale_y (- (int) v);
@@ -567,6 +570,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
     }
 
     ot_font->draw.release_gvar_cache (gvar_cache);
+    glyf.release_scratch (scratch);
     ot_font->v.release_advance_cache (advance_cache);
     return;
   }

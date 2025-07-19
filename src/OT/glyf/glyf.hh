@@ -377,6 +377,7 @@ struct glyf_accelerator_t
   get_advance_with_var_unscaled (hb_codepoint_t gid,
 				 hb_font_t *font,
 				 bool is_vertical,
+				  hb_glyf_scratch_t &scratch,
 				 hb_scalar_cache_t *gvar_cache = nullptr) const
   {
     if (unlikely (gid >= num_glyphs)) return 0;
@@ -384,7 +385,6 @@ struct glyf_accelerator_t
     bool success = false;
 
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
-    hb_glyf_scratch_t scratch;
     success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, false),
 			  hb_array (font->coords, font->num_coords),
 			  scratch, gvar_cache);
