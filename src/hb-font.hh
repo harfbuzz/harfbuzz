@@ -542,7 +542,7 @@ struct hb_font_t
 					     first_x, x_stride, first_y, y_stride,
 					     !klass->user_data ? nullptr : klass->user_data->glyph_v_origins);
 
-    if (synthetic && ret)
+    if (synthetic && is_synthetic && ret)
     {
       hb_position_t x_shift = x_scale < 0 ? -x_strength : x_strength;
       hb_position_t y_shift = y_scale < 0 ? -y_strength : y_strength;
