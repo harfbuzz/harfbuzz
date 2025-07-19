@@ -261,10 +261,14 @@ struct hb_ot_font_t
 
     if (cached_serial.get_acquire () != font_serial)
     {
+      /* These caches are dependent on scale and synthetic settings.
+       * Any change to the font invalidates them. */
       v_origin.clear ();
 
       if (cached_coords_serial.get_acquire () != font_serial)
       {
+        /* These caches are independent of scale or synthetic settings.
+	 * Just variation changes will invalidate them. */
 	h.clear ();
 	v.clear ();
 	draw.clear ();
@@ -620,15 +624,14 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 				first_x, x_stride);
   for (unsigned i = 0; i < count; i++)
   {
-    *first_x = *first_x / 2;
+    *first_x /= 2;
     first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
   }
 
   /* The vertical origin business is messy...
    *
    * We allocate the cache, then have various code paths that use the cache.
-   * If cache allocation failed or none of the code paths apply, we fallback
-   * at the end.
+   * Each one is responsible to free it before returning.
    */
   hb_ot_font_origin_cache_t *origin_cache = ot_font->v_origin.acquire_origin_cache ();
 
