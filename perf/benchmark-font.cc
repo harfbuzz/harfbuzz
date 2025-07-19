@@ -7,6 +7,8 @@ static hb_variation_t default_variations[] = {
     hb_variation_t {HB_TAG_NONE, 0}
 };
 
+static unsigned max_num_glyphs = 0;
+
 static struct test_input_t
 {
   hb_variation_t *variations;
@@ -96,6 +98,8 @@ static void BM_Font (benchmark::State &state,
     hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
     assert (face);
     num_glyphs = hb_face_get_glyph_count (face);
+    if (max_num_glyphs && num_glyphs > max_num_glyphs)
+      num_glyphs = max_num_glyphs;
     font = hb_font_create (face);
     hb_face_destroy (face);
   }
@@ -304,6 +308,18 @@ static void test_operation (operation_t op,
 int main(int argc, char** argv)
 {
   benchmark::Initialize(&argc, argv);
+
+  if (argc > 1 && strcmp (argv[1], "--max-glyphs") == 0)
+  {
+    if (argc < 3)
+    {
+      fprintf (stderr, "Usage: %s [--max-glyphs <number>] [<font> <variation>...]\n", argv[0]);
+      return 1;
+    }
+    max_num_glyphs = atoi (argv[2]);
+    argc -= 2;
+    argv += 2;
+  }
 
   if (argc > 1)
   {
