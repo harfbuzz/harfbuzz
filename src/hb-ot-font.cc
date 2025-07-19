@@ -587,22 +587,6 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 #endif
 
 #ifndef HB_NO_VERTICAL
-static inline hb_position_t
-_hb_ot_get_glyph_v_origin_from_VORG_VVAR (hb_font_t *font,
-					  const OT::VORG &VORG,
-					  const OT::VVAR &VVAR,
-					  hb_codepoint_t glyph)
-{
-  float origin = VORG.get_y_origin (glyph);
-
-#ifndef HB_NO_VAR
-  if (font->has_nonzero_coords)
-    origin += VVAR.get_vorg_delta_unscaled (glyph, font->coords, font->num_coords);
-#endif
-
-  return font->em_scalef_y (origin);
-}
-
 static hb_bool_t
 hb_ot_get_glyph_v_origins (hb_font_t *font,
 			   void *font_data,
@@ -639,24 +623,52 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
   const OT::VORG &VORG = *ot_face->VORG;
   if (origin_cache && VORG.has_data ())
   {
-    const OT::VVAR &VVAR = *ot_face->vmtx->var_table;
-    for (unsigned i = 0; i < count; i++)
+#ifndef HB_NO_VAR
+    if (!font->has_nonzero_coords)
+#endif
     {
-      hb_position_t origin;
-      unsigned cv;
-      if (origin_cache->get (*first_glyph, &cv))
-	origin = font->y_scale < 0 ? -cv : cv;
-      else
+      for (unsigned i = 0; i < count; i++)
       {
-	origin = _hb_ot_get_glyph_v_origin_from_VORG_VVAR (font, VORG, VVAR, *first_glyph);
-	origin_cache->set (*first_glyph, font->y_scale < 0 ? -origin : origin);
+	hb_position_t origin;
+	unsigned cv;
+	if (origin_cache->get (*first_glyph, &cv))
+	  origin = font->y_scale < 0 ? -cv : cv;
+	else
+	{
+	  origin = font->em_scalef_y (VORG.get_y_origin (*first_glyph));
+	  origin_cache->set (*first_glyph, font->y_scale < 0 ? -origin : origin);
+	}
+
+	*first_y = origin;
+
+	first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+	first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
       }
-
-      *first_y = origin;
-
-      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
-      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
     }
+#ifndef HB_NO_VAR
+    else
+    {
+      const OT::VVAR &VVAR = *ot_face->vmtx->var_table;
+      for (unsigned i = 0; i < count; i++)
+      {
+	hb_position_t origin;
+	unsigned cv;
+	if (origin_cache->get (*first_glyph, &cv))
+	  origin = font->y_scale < 0 ? -cv : cv;
+	else
+	{
+	  origin = font->em_scalef_y (VORG.get_y_origin (*first_glyph) +
+				      VVAR.get_vorg_delta_unscaled (*first_glyph, font->coords, font->num_coords));
+	  origin_cache->set (*first_glyph, font->y_scale < 0 ? -origin : origin);
+	}
+
+	*first_y = origin;
+
+	first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+	first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+      }
+    }
+#endif
     ot_font->v_origin.release_origin_cache (origin_cache);
     return true;
   }
