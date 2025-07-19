@@ -425,15 +425,6 @@ struct glyf_accelerator_t
 #endif
 #endif
 
-  bool get_leading_bearing_without_var_unscaled (hb_codepoint_t gid, bool is_vertical, int *lsb) const
-  {
-    if (unlikely (gid >= num_glyphs)) return false;
-    if (is_vertical) return false; // TODO Humm, what to do here?
-
-    *lsb = glyph_for_gid (gid).get_header ()->xMin;
-    return true;
-  }
-
   public:
 
   bool get_extents (hb_font_t *font,
