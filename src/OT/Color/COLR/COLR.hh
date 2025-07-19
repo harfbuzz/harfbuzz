@@ -104,7 +104,7 @@ public:
     foreground (foreground_),
     instancer (instancer_)
   {
-    if (font->is_synthetic ())
+    if (font->is_synthetic)
     {
       font = hb_font_create_sub_font (font);
       hb_font_set_synthetic_bold (font, 0, 0, true);

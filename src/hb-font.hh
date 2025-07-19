@@ -120,6 +120,8 @@ struct hb_font_t
   int32_t x_scale;
   int32_t y_scale;
 
+  bool is_synthetic;
+
   float x_embolden;
   float y_embolden;
   bool embolden_in_place;
@@ -603,7 +605,7 @@ struct hb_font_t
 					 extents,
 					 !klass->user_data ? nullptr : klass->user_data->glyph_extents);
     }
-    if (!is_synthetic () &&
+    if (!is_synthetic &&
 	klass->get.f.glyph_extents (this, user_data,
 				    glyph,
 				    extents,
@@ -1144,11 +1146,6 @@ struct hb_font_t
     return false;
   }
 
-  bool is_synthetic () const
-  {
-    return x_embolden || y_embolden || slant;
-  }
-
   void changed ()
   {
     float upem = face->get_upem ();
@@ -1159,6 +1156,8 @@ struct hb_font_t
     x_mult = (x_neg ? -((int64_t) -x_scale << 16) : ((int64_t) x_scale << 16)) / upem;
     bool y_neg = y_scale < 0;
     y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) / upem;
+
+    is_synthetic =  x_embolden || y_embolden || slant;
 
     x_strength = roundf (abs (x_scale) * x_embolden);
     y_strength = roundf (abs (y_scale) * y_embolden);

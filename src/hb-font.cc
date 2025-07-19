@@ -2044,6 +2044,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
 
   1000, /* x_scale */
   1000, /* y_scale */
+  false, /* is_synthetic */
   0.f, /* x_embolden */
   0.f, /* y_embolden */
   true, /* embolden_in_place */
@@ -2881,7 +2882,7 @@ hb_font_get_ptem (hb_font_t *font)
 hb_bool_t
 hb_font_is_synthetic (hb_font_t *font)
 {
-  return font->is_synthetic ();
+  return font->is_synthetic;
 }
 
 /**

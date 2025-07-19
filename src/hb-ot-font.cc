@@ -258,25 +258,25 @@ struct hb_ot_font_t
   void check_serial (hb_font_t *font) const
   {
     int font_serial = font->serial_coords.get_acquire ();
-
     if (cached_serial.get_acquire () != font_serial)
     {
       /* These caches are dependent on scale and synthetic settings.
        * Any change to the font invalidates them. */
       v_origin.clear ();
 
-      if (cached_coords_serial.get_acquire () != font_serial)
-      {
-        /* These caches are independent of scale or synthetic settings.
-	 * Just variation changes will invalidate them. */
-	h.clear ();
-	v.clear ();
-	draw.clear ();
-
-	cached_coords_serial.set_release (font_serial);
-      }
-
       cached_serial.set_release (font_serial);
+    }
+
+    int font_serial_coords = font->serial_coords.get_acquire ();
+    if (cached_coords_serial.get_acquire () != font_serial_coords)
+    {
+      /* These caches are independent of scale or synthetic settings.
+       * Just variation changes will invalidate them. */
+      h.clear ();
+      v.clear ();
+      draw.clear ();
+
+      cached_coords_serial.set_release (font_serial_coords);
     }
   }
 };
