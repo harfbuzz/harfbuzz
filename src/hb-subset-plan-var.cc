@@ -299,8 +299,7 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
       int lsb = extents.x_bearing;
       if (!has_bounds_info)
       {
-        if (!_hmtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb))
-          continue;
+        _hmtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb);
       }
       plan->hmtx_map.set (new_gid, hb_pair ((unsigned) hori_aw, lsb));
       plan->bounds_width_vec[new_gid] = extents.width;
@@ -320,8 +319,7 @@ update_instance_metrics_map_from_cff2 (hb_subset_plan_t *plan)
       {
         tsb = vorg_y - extents.y_bearing;
       } else {
-        if (!_vmtx.get_leading_bearing_without_var_unscaled (old_gid, &tsb))
-          continue;
+        _vmtx.get_leading_bearing_without_var_unscaled (old_gid, &tsb);
       }
 
       plan->vmtx_map.set (new_gid, hb_pair ((unsigned) vert_aw, tsb));

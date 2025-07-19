@@ -34,6 +34,7 @@ struct test_input_t
 static test_input_t *tests = default_tests;
 static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 const char *variation = nullptr;
+const char *direction = nullptr;
 
 static void BM_Shape (benchmark::State &state,
 		      const char *shaper,
@@ -71,6 +72,8 @@ static void BM_Shape (benchmark::State &state,
       hb_buffer_clear_contents (buf);
       hb_buffer_add_utf8 (buf, text, text_length, 0, end - text);
       hb_buffer_guess_segment_properties (buf);
+      if (direction)
+	hb_buffer_set_direction (buf, hb_direction_from_string (direction, -1));
       const char *shaper_list[] = {shaper, nullptr};
       hb_shape_full (font, buf, nullptr, 0, shaper_list);
 
@@ -117,6 +120,8 @@ int main(int argc, char** argv)
   }
   if (argc > 3)
     variation = argv[3];
+  if (argc > 4)
+    direction = argv[4];
 
   for (unsigned i = 0; i < num_tests; i++)
   {
