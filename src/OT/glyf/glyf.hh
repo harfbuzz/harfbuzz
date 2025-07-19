@@ -412,7 +412,8 @@ struct glyf_accelerator_t
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
     hb_glyf_scratch_t scratch;
     success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, false),
-			  hb_array (font->coords, font->num_coords),
+			  hb_array (font->coords,
+				    font->has_nonzero_coords ? font->num_coords : 0),
 			  scratch, gvar_cache);
     if (unlikely (!success))
     {

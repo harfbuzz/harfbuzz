@@ -595,54 +595,6 @@ _hb_ot_get_glyph_v_origin_from_VORG_VVAR (hb_font_t *font,
   return font->em_scalef_y (origin);
 }
 
-
-static inline hb_position_t
-_hb_ot_get_glyph_v_origin (hb_font_t *font,
-			   const hb_ot_font_t *ot_font,
-			   const hb_ot_face_t *ot_face,
-			   hb_codepoint_t glyph,
-			   hb_ot_font_origin_cache_t *origin_cache)
-{
-  const auto &vmtx = *ot_face->vmtx;
-  const auto &glyf = *ot_face->glyf;
-  // If and only if `vmtx` is present and it's a `glyf` font,
-  // we use the top phantom point, deduced from vmtx,glyf[,gvar]
-  if (origin_cache && vmtx.has_data() && glyf.has_data ())
-  {
-    OT::hb_scalar_cache_t *gvar_cache = font->has_nonzero_coords ?
-					ot_font->draw.acquire_gvar_cache (*ot_face->gvar) :
-					nullptr;
-
-    hb_position_t origin = font->em_scalef_y (glyf.get_v_origin_with_var_unscaled (glyph, font, gvar_cache));
-
-    if (gvar_cache)
-      ot_font->draw.release_gvar_cache (gvar_cache);
-
-    return origin;
-  }
-
-  hb_glyph_extents_t extents = {0};
-  if (origin_cache && hb_font_get_glyph_extents (font, glyph, &extents))
-  {
-    hb_font_extents_t font_extents;
-    font->get_h_extents_with_fallback (&font_extents);
-    hb_position_t advance = font_extents.ascender - font_extents.descender;
-
-    hb_position_t diff = advance - -extents.height;
-    hb_position_t origin = extents.y_bearing + (diff >> 1);
-
-    return origin;
-  }
-
-  /* Otherwise, use horizontal font ascender as every glyph's vertical origin.
-   * No cache necessary. */
-  hb_font_extents_t font_extents;
-  font->get_h_extents_with_fallback (&font_extents);
-
-  hb_position_t origin = font_extents.ascender;
-  return origin;
-}
-
 static hb_bool_t
 hb_ot_get_glyph_v_origins (hb_font_t *font,
 			   void *font_data,
@@ -676,6 +628,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
    */
   hb_ot_font_origin_cache_t *origin_cache = ot_font->v_origin.acquire_origin_cache ();
 
+  /* If there is VORG, always use it. It uses VVAR for variations if necessary. */
   const OT::VORG &VORG = *ot_face->VORG;
   if (origin_cache && VORG.has_data ())
   {
@@ -700,12 +653,71 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
     return true;
   }
 
-  for (unsigned i = 0; i < count; i++)
+  /* If and only if `vmtx` is present and it's a `glyf` font,
+   * we use the top phantom point, deduced from vmtx,glyf[,gvar]. */
+  const auto &vmtx = *ot_face->vmtx;
+  const auto &glyf = *ot_face->glyf;
+  if (origin_cache && vmtx.has_data() && glyf.has_data ())
   {
-    *first_y = _hb_ot_get_glyph_v_origin (font, ot_font, ot_face, *first_glyph, origin_cache);
+    OT::hb_scalar_cache_t *gvar_cache = font->has_nonzero_coords ?
+					ot_font->draw.acquire_gvar_cache (*ot_face->gvar) :
+					nullptr;
 
-    first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
-    first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_position_t origin;
+      unsigned cv;
+      if (origin_cache->get (*first_glyph, &cv))
+	origin = cv;
+      else
+      {
+	origin = font->em_scalef_y (glyf.get_v_origin_with_var_unscaled (*first_glyph, font, gvar_cache));
+	origin_cache->set (*first_glyph, origin);
+      }
+
+      *first_y = origin;
+
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    }
+
+    if (gvar_cache)
+      ot_font->draw.release_gvar_cache (gvar_cache);
+
+    return true;
+  }
+
+  /* Otherwise, use glyph extents to center the glyph vertically.
+   * If getting glyph extents failed, just use the font ascender. */
+  if (origin_cache && font->has_glyph_extents_func ())
+  {
+    hb_font_extents_t font_extents;
+    font->get_h_extents_with_fallback (&font_extents);
+    hb_position_t font_advance = font_extents.ascender - font_extents.descender;
+
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_position_t origin;
+      unsigned cv;
+
+      if (origin_cache->get (*first_glyph, &cv))
+	origin = cv;
+      else
+      {
+	hb_glyph_extents_t extents = {0};
+	if (likely (hb_font_get_glyph_extents (font, *first_glyph, &extents)))
+	  origin = extents.y_bearing + ((font_advance - -extents.height) >> 1);
+	else
+	  origin = font_extents.ascender;
+
+	origin_cache->set (*first_glyph, origin);
+      }
+
+      *first_y = origin;
+
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    }
   }
 
   ot_font->v_origin.release_origin_cache (origin_cache);
