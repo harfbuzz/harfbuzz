@@ -48,9 +48,6 @@
 HB_INTERNAL bool
 _glyf_get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical, int *lsb);
 
-HB_INTERNAL bool
-_glyf_get_leading_bearing_without_var_unscaled (hb_face_t *face, hb_codepoint_t gid, bool is_vertical, int *lsb);
-
 
 namespace OT {
 

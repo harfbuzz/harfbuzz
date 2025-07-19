@@ -65,18 +65,22 @@
 using hb_ot_font_advance_cache_t = hb_cache_t<24, 16>;
 static_assert (sizeof (hb_ot_font_advance_cache_t) == 1024, "");
 
+using hb_ot_font_origin_cache_t = hb_cache_t<20, 20>;
+static_assert (sizeof (hb_ot_font_origin_cache_t) == 1024, "");
+
 struct hb_ot_font_t
 {
   const hb_ot_face_t *ot_face;
 
+  mutable hb_atomic_t<int> cached_serial;
   mutable hb_atomic_t<int> cached_coords_serial;
 
-  struct advance_cache_t
+  struct direction_cache_t
   {
     mutable hb_atomic_t<hb_ot_font_advance_cache_t *> advance_cache;
     mutable hb_atomic_t<OT::hb_scalar_cache_t *> varStore_cache;
 
-    ~advance_cache_t ()
+    ~direction_cache_t ()
     {
       clear ();
     }
@@ -155,6 +159,57 @@ struct hb_ot_font_t
 
   } h, v;
 
+  struct origin_cache_t
+  {
+    mutable hb_atomic_t<hb_ot_font_origin_cache_t *> origin_cache;
+
+    ~origin_cache_t ()
+    {
+      clear ();
+    }
+
+    hb_ot_font_origin_cache_t *acquire_origin_cache () const
+    {
+    retry:
+      auto *cache = origin_cache.get_acquire ();
+      if (!cache)
+      {
+        cache = (hb_ot_font_origin_cache_t *) hb_malloc (sizeof (hb_ot_font_origin_cache_t));
+	if (!cache)
+	  return nullptr;
+	new (cache) hb_ot_font_origin_cache_t;
+	return cache;
+      }
+      if (origin_cache.cmpexch (cache, nullptr))
+        return cache;
+      else
+        goto retry;
+    }
+    void release_origin_cache (hb_ot_font_origin_cache_t *cache) const
+    {
+      if (!cache)
+        return;
+      if (!origin_cache.cmpexch (nullptr, cache))
+        hb_free (cache);
+    }
+    void clear_origin_cache () const
+    {
+    retry:
+      auto *cache = origin_cache.get_acquire ();
+      if (!cache)
+	return;
+      if (origin_cache.cmpexch (cache, nullptr))
+	hb_free (cache);
+      else
+        goto retry;
+    }
+
+    void clear () const
+    {
+      clear_origin_cache ();
+    }
+  } v_origin;
+
   struct draw_cache_t
   {
     mutable hb_atomic_t<OT::hb_scalar_cache_t *> gvar_cache;
@@ -204,14 +259,21 @@ struct hb_ot_font_t
   {
     int font_serial = font->serial_coords.get_acquire ();
 
-    if (cached_coords_serial.get_acquire () == font_serial)
-      return;
+    if (cached_serial.get_acquire () != font_serial)
+    {
+      v_origin.clear ();
 
-    h.clear ();
-    v.clear ();
-    draw.clear ();
+      if (cached_coords_serial.get_acquire () != font_serial)
+      {
+	h.clear ();
+	v.clear ();
+	draw.clear ();
 
-    cached_coords_serial.set_release (font_serial);
+	cached_coords_serial.set_release (font_serial);
+      }
+
+      cached_serial.set_release (font_serial);
+    }
   }
 };
 
@@ -518,10 +580,10 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 
 #ifndef HB_NO_VERTICAL
 static inline hb_position_t
-_hb_ot_get_glyph_v_origin_from_VORG_VVAR_unscaled (hb_font_t *font,
-						   const OT::VORG &VORG,
-						   const OT::VVAR &VVAR,
-						   hb_codepoint_t glyph)
+_hb_ot_get_glyph_v_origin_from_VORG_VVAR (hb_font_t *font,
+					  const OT::VORG &VORG,
+					  const OT::VVAR &VVAR,
+					  hb_codepoint_t glyph)
 {
   float origin = VORG.get_y_origin (glyph);
 
@@ -530,7 +592,7 @@ _hb_ot_get_glyph_v_origin_from_VORG_VVAR_unscaled (hb_font_t *font,
     origin += VVAR.get_vorg_delta_unscaled (glyph, font->coords, font->num_coords);
 #endif
 
-  return round(origin);
+  return font->em_scalef_y (origin);
 }
 
 
@@ -538,32 +600,28 @@ static inline hb_position_t
 _hb_ot_get_glyph_v_origin (hb_font_t *font,
 			   const hb_ot_font_t *ot_font,
 			   const hb_ot_face_t *ot_face,
-			   hb_codepoint_t glyph)
+			   hb_codepoint_t glyph,
+			   hb_ot_font_origin_cache_t *origin_cache)
 {
-  const OT::VORG &VORG = *ot_face->VORG;
-  const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
-  const OT::VVAR &VVAR = *vmtx.var_table;
-
-  if (VORG.has_data ())
-  {
-    hb_position_t origin_unscaled = _hb_ot_get_glyph_v_origin_from_VORG_VVAR_unscaled (font, VORG, VVAR, glyph);
-    return font->em_scale_y (origin_unscaled);
-  }
-
   hb_glyph_extents_t extents = {0};
+  bool has_glyph_extents = hb_font_get_glyph_extents (font, glyph, &extents);
 
-  if (hb_font_get_glyph_extents (font, glyph, &extents))
+  if (has_glyph_extents)
   {
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     int tsb = 0;
     if (vmtx.get_leading_bearing_with_var_unscaled (font, glyph, &tsb))
       return extents.y_bearing + font->em_scale_y (tsb);
+  }
 
+  if (has_glyph_extents)
+  {
     hb_font_extents_t font_extents;
     font->get_h_extents_with_fallback (&font_extents);
     hb_position_t advance = font_extents.ascender - font_extents.descender;
     hb_position_t diff = advance - -extents.height;
-    return extents.y_bearing + (diff >> 1);
+    hb_position_t origin = extents.y_bearing + (diff >> 1);
+    return origin;
   }
 
   /* Otherwise, use horizontal font ascender as every glyph's vertical origin.
@@ -602,17 +660,46 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 
   /* The vertical origin business is messy...
    *
-   *
-   *
+   * We allocate the cache, then have various code paths that use the cache.
+   * If cache allocation failed or none of the code paths apply, we fallback
+   * at the end.
    */
+  hb_ot_font_origin_cache_t *origin_cache = ot_font->v_origin.acquire_origin_cache ();
+
+  const OT::VORG &VORG = *ot_face->VORG;
+  if (origin_cache && VORG.has_data ())
+  {
+    const OT::VVAR &VVAR = *ot_face->vmtx->var_table;
+    for (unsigned i = 0; i < count; i++)
+    {
+      hb_position_t origin;
+      unsigned cv;
+      if (origin_cache->get (*first_glyph, &cv))
+	origin = cv;
+      else
+      {
+	origin = _hb_ot_get_glyph_v_origin_from_VORG_VVAR (font, VORG, VVAR, *first_glyph);
+	origin_cache->set (*first_glyph, origin);
+      }
+
+      *first_y = origin;
+
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    }
+    return true;
+  }
 
   for (unsigned i = 0; i < count; i++)
   {
-    *first_y = _hb_ot_get_glyph_v_origin (font, ot_font, ot_face, *first_glyph);
+    *first_y = _hb_ot_get_glyph_v_origin (font, ot_font, ot_face, *first_glyph, origin_cache);
 
     first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
     first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
   }
+
+  ot_font->v_origin.release_origin_cache (origin_cache);
+
   return true;
 }
 #endif
