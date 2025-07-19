@@ -518,12 +518,11 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 
 #ifndef HB_NO_VERTICAL
 static hb_bool_t
-hb_ot_get_glyph_v_origin (hb_font_t *font,
-			  void *font_data,
-			  hb_codepoint_t glyph,
-			  hb_position_t *x,
-			  hb_position_t *y,
-			  void *user_data HB_UNUSED)
+_hb_ot_get_glyph_v_origin (hb_font_t *font,
+			   void *font_data,
+			   hb_codepoint_t glyph,
+			   hb_position_t *x,
+			   hb_position_t *y)
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
@@ -572,6 +571,29 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
   font->get_h_extents_with_fallback (&font_extents);
   *y = font_extents.ascender;
 
+  return true;
+}
+
+static hb_bool_t
+hb_ot_get_glyph_v_origins (hb_font_t *font,
+			   void *font_data,
+			   unsigned int count,
+			   const hb_codepoint_t *first_glyph,
+			   unsigned glyph_stride,
+			   hb_position_t *first_x,
+			   unsigned x_stride,
+			   hb_position_t *first_y,
+			   unsigned y_stride,
+			   void *user_data HB_UNUSED)
+{
+  for (unsigned i = 0; i < count; i++)
+  {
+    _hb_ot_get_glyph_v_origin (font, font_data, *first_glyph, first_x, first_y);
+
+    first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+    first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+  }
   return true;
 }
 #endif
@@ -738,12 +760,11 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
 
     hb_font_funcs_set_font_h_extents_func (funcs, hb_ot_get_font_h_extents, nullptr, nullptr);
     hb_font_funcs_set_glyph_h_advances_func (funcs, hb_ot_get_glyph_h_advances, nullptr, nullptr);
-    //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ot_get_glyph_h_origin, nullptr, nullptr);
 
 #ifndef HB_NO_VERTICAL
     hb_font_funcs_set_font_v_extents_func (funcs, hb_ot_get_font_v_extents, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_advances_func (funcs, hb_ot_get_glyph_v_advances, nullptr, nullptr);
-    hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ot_get_glyph_v_origin, nullptr, nullptr);
+    hb_font_funcs_set_glyph_v_origins_func (funcs, hb_ot_get_glyph_v_origins, nullptr, nullptr);
 #endif
 
 #ifndef HB_NO_DRAW
