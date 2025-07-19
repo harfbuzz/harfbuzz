@@ -394,16 +394,6 @@ struct HVARVVAR
 				      store_cache);
   }
 
-  bool get_lsb_delta_unscaled (hb_codepoint_t glyph,
-			       const int *coords, unsigned int coord_count,
-			       float *lsb) const
-  {
-    if (!lsbMap) return false;
-    uint32_t varidx = (this+lsbMap).map (glyph);
-    *lsb = (this+varStore).get_delta (varidx, coords, coord_count);
-    return true;
-  }
-
   public:
   FixedVersion<>version;	/* Version of the metrics variation table
 				 * initially set to 0x00010000u */
