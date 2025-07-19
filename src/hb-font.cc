@@ -369,7 +369,6 @@ hb_font_get_glyph_v_origin_nil (hb_font_t      *font HB_UNUSED,
 				hb_position_t  *y,
 				void           *user_data HB_UNUSED)
 {
-  *x = *y = 0;
   return false;
 }
 
