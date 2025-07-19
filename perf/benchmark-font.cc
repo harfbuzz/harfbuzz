@@ -324,7 +324,7 @@ int main(int argc, char** argv)
   if (argc > 1)
   {
     unsigned num_variations = argc - 2;
-    hb_variation_t *variations = (hb_variation_t *) calloc (num_variations + 1, sizeof (hb_variation_t));
+    hb_variation_t *variations = num_variations ? (hb_variation_t *) calloc (num_variations, sizeof (hb_variation_t)) : nullptr;
     for (unsigned i = 0; i < num_variations; i++)
       hb_variation_from_string (argv[i + 2], -1, &variations[i]);
 
