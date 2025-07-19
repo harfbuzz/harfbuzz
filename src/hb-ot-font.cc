@@ -659,6 +659,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
   const auto &glyf = *ot_face->glyf;
   if (origin_cache && vmtx.has_data() && glyf.has_data ())
   {
+    auto *scratch = glyf.acquire_scratch ();
     OT::hb_scalar_cache_t *gvar_cache = font->has_nonzero_coords ?
 					ot_font->draw.acquire_gvar_cache (*ot_face->gvar) :
 					nullptr;
@@ -671,7 +672,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 	origin = cv;
       else
       {
-	origin = font->em_scalef_y (glyf.get_v_origin_with_var_unscaled (*first_glyph, font, gvar_cache));
+	origin = font->em_scalef_y (glyf.get_v_origin_with_var_unscaled (*first_glyph, font, *scratch, gvar_cache));
 	origin_cache->set (*first_glyph, origin);
       }
 
@@ -683,6 +684,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 
     if (gvar_cache)
       ot_font->draw.release_gvar_cache (gvar_cache);
+    glyf.release_scratch (scratch);
 
     return true;
   }
