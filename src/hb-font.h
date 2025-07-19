@@ -97,7 +97,7 @@ hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs);
  * @descender: The depth of typographic descenders.
  * @line_gap: The suggested line-spacing gap.
  *
- * Font-wide extent values, measured in font units.
+ * Font-wide extent values, measured in scaled units.
  *
  * Note that typically @ascender is positive and @descender
  * negative, in coordinate systems that grow up.
@@ -332,7 +332,7 @@ typedef hb_font_get_glyph_advances_func_t hb_font_get_glyph_v_advances_func_t;
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
- * This method should retrieve the (X,Y) coordinates (in font units) of the
+ * This method should retrieve the (X,Y) coordinates (in scaled units) of the
  * origin for a glyph. Each coordinate must be returned in an #hb_position_t
  * output parameter.
  *
@@ -349,7 +349,7 @@ typedef hb_bool_t (*hb_font_get_glyph_origin_func_t) (hb_font_t *font, void *fon
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
- * This method should retrieve the (X,Y) coordinates (in font units) of the
+ * This method should retrieve the (X,Y) coordinates (in scaled units) of the
  * origin for a glyph, for horizontal-direction text segments. Each
  * coordinate must be returned in an #hb_position_t output parameter.
  * 
@@ -361,7 +361,7 @@ typedef hb_font_get_glyph_origin_func_t hb_font_get_glyph_h_origin_func_t;
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
- * This method should retrieve the (X,Y) coordinates (in font units) of the
+ * This method should retrieve the (X,Y) coordinates (in scaled units) of the
  * origin for a glyph, for vertical-direction text segments. Each coordinate
  * must be returned in an #hb_position_t output parameter.
  * 
@@ -428,7 +428,7 @@ typedef hb_bool_t (*hb_font_get_glyph_extents_func_t) (hb_font_t *font, void *fo
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
- * This method should retrieve the (X,Y) coordinates (in font units) for a
+ * This method should retrieve the (X,Y) coordinates (in scaled units) for a
  * specified contour point in a glyph. Each coordinate must be returned as
  * an #hb_position_t output parameter.
  * 
