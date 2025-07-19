@@ -518,26 +518,36 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 
 #ifndef HB_NO_VERTICAL
 static inline hb_position_t
+_hb_ot_get_glyph_v_origin_from_VORG_VVAR_unscaled (hb_font_t *font,
+						   const OT::VORG &VORG,
+						   const OT::VVAR &VVAR,
+						   hb_codepoint_t glyph)
+{
+  float origin = VORG.get_y_origin (glyph);
+
+#ifndef HB_NO_VAR
+  if (font->has_nonzero_coords)
+    origin += VVAR.get_vorg_delta_unscaled (glyph, font->coords, font->num_coords);
+#endif
+
+  return round(origin);
+}
+
+
+static inline hb_position_t
 _hb_ot_get_glyph_v_origin (hb_font_t *font,
 			   const hb_ot_font_t *ot_font,
 			   const hb_ot_face_t *ot_face,
 			   hb_codepoint_t glyph)
 {
   const OT::VORG &VORG = *ot_face->VORG;
+  const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
+  const OT::VVAR &VVAR = *vmtx.var_table;
+
   if (VORG.has_data ())
   {
-    float delta = 0;
-
-#ifndef HB_NO_VAR
-    const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
-    const OT::VVAR &VVAR = *vmtx.var_table;
-    if (font->has_nonzero_coords)
-      VVAR.get_vorg_delta_unscaled (glyph,
-				    font->coords, font->num_coords,
-				    &delta);
-#endif
-
-    return font->em_scalef_y (VORG.get_y_origin (glyph) + delta);
+    hb_position_t origin_unscaled = _hb_ot_get_glyph_v_origin_from_VORG_VVAR_unscaled (font, VORG, VVAR, glyph);
+    return font->em_scale_y (origin_unscaled);
   }
 
   hb_glyph_extents_t extents = {0};
@@ -556,9 +566,13 @@ _hb_ot_get_glyph_v_origin (hb_font_t *font,
     return extents.y_bearing + (diff >> 1);
   }
 
+  /* Otherwise, use horizontal font ascender as every glyph's vertical origin.
+   * No cache necessary. */
   hb_font_extents_t font_extents;
   font->get_h_extents_with_fallback (&font_extents);
-  return font_extents.ascender;
+
+  hb_position_t origin = font_extents.ascender;
+  return origin;
 }
 
 static hb_bool_t
@@ -585,6 +599,12 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
     *first_x = *first_x / 2;
     first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
   }
+
+  /* The vertical origin business is messy...
+   *
+   *
+   *
+   */
 
   for (unsigned i = 0; i < count; i++)
   {
