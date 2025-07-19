@@ -1362,7 +1362,7 @@ hb_font_get_glyph_v_origin (hb_font_t      *font,
  *
  * Return value: `true` if data found, `false` otherwise
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_bool_t
 hb_font_get_glyph_h_origins (hb_font_t      *font,
@@ -1397,7 +1397,7 @@ hb_font_get_glyph_h_origins (hb_font_t      *font,
  *
  * Return value: `true` if data found, `false` otherwise
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_bool_t
 hb_font_get_glyph_v_origins (hb_font_t      *font,

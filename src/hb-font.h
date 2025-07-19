@@ -413,7 +413,7 @@ typedef hb_bool_t (*hb_font_get_glyph_origins_func_t) (hb_font_t *font, void *fo
 typedef hb_font_get_glyph_origins_func_t hb_font_get_glyph_h_origins_func_t;
 
 /**
- * hb_font_get_glyph_v_origin_func_t:
+ * hb_font_get_glyph_v_origins_func_t:
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
@@ -772,7 +772,7 @@ hb_font_funcs_set_glyph_v_origin_func (hb_font_funcs_t *ffuncs,
  *
  * Sets the implementation function for #hb_font_get_glyph_h_origins_func_t.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 HB_EXTERN void
 hb_font_funcs_set_glyph_h_origins_func (hb_font_funcs_t *ffuncs,
@@ -788,7 +788,7 @@ hb_font_funcs_set_glyph_h_origins_func (hb_font_funcs_t *ffuncs,
  *
  * Sets the implementation function for #hb_font_get_glyph_v_origins_func_t.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 HB_EXTERN void
 hb_font_funcs_set_glyph_v_origins_func (hb_font_funcs_t *ffuncs,
