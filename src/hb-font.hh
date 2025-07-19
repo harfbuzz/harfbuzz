@@ -831,6 +831,15 @@ struct hb_font_t
       get_glyph_v_advances (count, first_glyph, glyph_stride, first_advance, advance_stride);
   }
 
+  void apply_offset (hb_position_t *x, hb_position_t *y,
+		     hb_position_t dx, hb_position_t dy,
+		     signed mult)
+  {
+    assert (mult == -1 || mult == +1);
+
+    *x += dx * mult;
+    *y += dy * mult;
+  }
   void add_offset (hb_position_t *x, hb_position_t *y,
 		   hb_position_t dx, hb_position_t dy)
   {
@@ -840,8 +849,8 @@ struct hb_font_t
   void subtract_offset (hb_position_t *x, hb_position_t *y,
 			hb_position_t dx, hb_position_t dy)
   {
-    *x += dx;
-    *y += dy;
+    *x -= dx;
+    *y -= dy;
   }
 
   void guess_v_origin_minus_h_origin (hb_codepoint_t glyph,
@@ -852,6 +861,141 @@ struct hb_font_t
     hb_font_extents_t extents;
     get_h_extents_with_fallback (&extents);
     *y = extents.ascender;
+  }
+
+  void apply_glyph_h_origins_with_fallback (hb_buffer_t *buf, int mult)
+  {
+    bool has_ascender = false;
+    hb_position_t ascender = 0;
+
+    struct { hb_position_t x, y; } origins[32];
+
+    unsigned int offset = 0;
+    unsigned int count = buf->len;
+    while (offset < count)
+    {
+      unsigned n = hb_min (count - offset, ARRAY_LENGTH (origins));
+      if (!get_glyph_h_origins (n,
+				&buf->info[offset].codepoint, sizeof (hb_glyph_info_t),
+				&origins[0].x, sizeof (origins[0]),
+				&origins[0].y, sizeof (origins[0])))
+      {
+        if (get_glyph_v_origins (n,
+				  &buf->info[offset].codepoint, sizeof (hb_glyph_info_t),
+				  &origins[0].x, sizeof (origins[0]),
+				  &origins[0].y, sizeof (origins[0])))
+	{
+	  if (!has_ascender)
+	  {
+	    hb_font_extents_t extents;
+	    get_h_extents_with_fallback (&extents);
+	    ascender = extents.ascender;
+	    has_ascender = true;
+	  }
+
+	  /* We got the v_origins, adjust them to h_origins. */
+	  for (unsigned j = 0; j < n; j++)
+	  {
+	    hb_codepoint_t glyph = buf->info[offset + j].codepoint;
+	    origins[j].x -= get_glyph_h_advance (glyph) / 2;
+	    origins[j].y -= ascender;
+	  }
+	}
+	else
+	{
+	  for (unsigned j = 0; j < n; j++)
+	  {
+	    origins[j].x = 0;
+	    origins[j].y = 0;
+	  }
+	}
+      }
+
+      assert (mult == -1 || mult == +1);
+      if (mult == +1)
+        for (unsigned j = 0; j < n; j++)
+	{
+	  hb_glyph_position_t *pos = &buf->pos[offset + j];
+	  add_offset (&pos->x_offset, &pos->y_offset,
+		      origins[j].x, origins[j].y);
+	}
+      else /* mult == -1 */
+	for (unsigned j = 0; j < n; j++)
+	{
+	  hb_glyph_position_t *pos = &buf->pos[offset + j];
+	  subtract_offset (&pos->x_offset, &pos->y_offset,
+			   origins[j].x, origins[j].y);
+	}
+
+      offset += n;
+    }
+  }
+  void apply_glyph_v_origins_with_fallback (hb_buffer_t *buf, int mult)
+  {
+    bool has_ascender = false;
+    hb_position_t ascender = 0;
+
+    struct { hb_position_t x, y; } origins[32];
+
+    unsigned int offset = 0;
+    unsigned int count = buf->len;
+    while (offset < count)
+    {
+      unsigned n = hb_min (count - offset, ARRAY_LENGTH (origins));
+      if (!get_glyph_v_origins (n,
+				&buf->info[offset].codepoint, sizeof (hb_glyph_info_t),
+				&origins[0].x, sizeof (origins[0]),
+				&origins[0].y, sizeof (origins[0])))
+      {
+	if (get_glyph_h_origins (n,
+				 &buf->info[offset].codepoint, sizeof (hb_glyph_info_t),
+				 &origins[0].x, sizeof (origins[0]),
+				 &origins[0].y, sizeof (origins[0])))
+	{
+	  if (!has_ascender)
+	  {
+	    hb_font_extents_t extents;
+	    get_h_extents_with_fallback (&extents);
+	    ascender = extents.ascender;
+	    has_ascender = true;
+	  }
+
+	  /* We got the h_origins, adjust them to v_origins. */
+	  for (unsigned j = 0; j < n; j++)
+	  {
+	    hb_codepoint_t glyph = buf->info[offset + j].codepoint;
+	    origins[j].x += get_glyph_h_advance (glyph) / 2;
+	    origins[j].y += ascender;
+	  }
+	}
+	else
+	{
+	  for (unsigned j = 0; j < n; j++)
+	  {
+	    origins[j].x = 0;
+	    origins[j].y = 0;
+	  }
+	}
+      }
+
+      assert (mult == -1 || mult == +1);
+      if (mult == +1)
+        for (unsigned j = 0; j < n; j++)
+	{
+	  hb_glyph_position_t *pos = &buf->pos[offset + j];
+	  add_offset (&pos->x_offset, &pos->y_offset,
+		      origins[j].x, origins[j].y);
+	}
+      else /* mult == -1 */
+	for (unsigned j = 0; j < n; j++)
+	{
+	  hb_glyph_position_t *pos = &buf->pos[offset + j];
+	  subtract_offset (&pos->x_offset, &pos->y_offset,
+			   origins[j].x, origins[j].y);
+	}
+
+      offset += n;
+    }
   }
 
   void get_glyph_h_origin_with_fallback (hb_codepoint_t glyph,
@@ -887,68 +1031,38 @@ struct hb_font_t
       get_glyph_v_origin_with_fallback (glyph, x, y);
   }
 
-  void add_glyph_h_origin (hb_codepoint_t glyph,
-			   hb_position_t *x, hb_position_t *y)
+  void add_glyph_h_origins (hb_buffer_t *buf)
   {
-    hb_position_t origin_x, origin_y;
-
-    get_glyph_h_origin_with_fallback (glyph, &origin_x, &origin_y);
-
-    *x += origin_x;
-    *y += origin_y;
+    apply_glyph_h_origins_with_fallback (buf, +1);
   }
-  void add_glyph_v_origin (hb_codepoint_t glyph,
-			   hb_position_t *x, hb_position_t *y)
+  void add_glyph_v_origins (hb_buffer_t *buf)
   {
-    hb_position_t origin_x, origin_y;
-
-    get_glyph_v_origin_with_fallback (glyph, &origin_x, &origin_y);
-
-    *x += origin_x;
-    *y += origin_y;
+    apply_glyph_v_origins_with_fallback (buf, +1);
   }
   void add_glyph_origin_for_direction (hb_codepoint_t glyph,
 				       hb_direction_t direction,
 				       hb_position_t *x, hb_position_t *y)
   {
     hb_position_t origin_x, origin_y;
-
     get_glyph_origin_for_direction (glyph, direction, &origin_x, &origin_y);
-
-    *x += origin_x;
-    *y += origin_y;
+    add_offset (x, y, origin_x, origin_y);
   }
 
-  void subtract_glyph_h_origin (hb_codepoint_t glyph,
-				hb_position_t *x, hb_position_t *y)
+  void subtract_glyph_h_origins (hb_buffer_t *buf)
   {
-    hb_position_t origin_x, origin_y;
-
-    get_glyph_h_origin_with_fallback (glyph, &origin_x, &origin_y);
-
-    *x -= origin_x;
-    *y -= origin_y;
+    apply_glyph_h_origins_with_fallback (buf, -1);
   }
-  void subtract_glyph_v_origin (hb_codepoint_t glyph,
-				hb_position_t *x, hb_position_t *y)
+  void subtract_glyph_v_origins (hb_buffer_t *buf)
   {
-    hb_position_t origin_x, origin_y;
-
-    get_glyph_v_origin_with_fallback (glyph, &origin_x, &origin_y);
-
-    *x -= origin_x;
-    *y -= origin_y;
+    apply_glyph_v_origins_with_fallback (buf, -1);
   }
   void subtract_glyph_origin_for_direction (hb_codepoint_t glyph,
 					    hb_direction_t direction,
 					    hb_position_t *x, hb_position_t *y)
   {
     hb_position_t origin_x, origin_y;
-
     get_glyph_origin_for_direction (glyph, direction, &origin_x, &origin_y);
-
-    *x -= origin_x;
-    *y -= origin_y;
+    subtract_offset (x, y, origin_x, origin_y);
   }
 
   void get_glyph_kerning_for_direction (hb_codepoint_t first_glyph, hb_codepoint_t second_glyph,
