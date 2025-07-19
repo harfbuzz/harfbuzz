@@ -619,6 +619,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 #endif
 
 #ifndef HB_NO_VERTICAL
+HB_HOT
 static hb_bool_t
 hb_ot_get_glyph_v_origins (hb_font_t *font,
 			   void *font_data,

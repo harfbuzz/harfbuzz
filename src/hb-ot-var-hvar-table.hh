@@ -384,6 +384,7 @@ struct HVARVVAR
 						hvar_plan.index_map_plans.as_array ()));
   }
 
+  HB_ALWAYS_INLINE
   float get_advance_delta_unscaled (hb_codepoint_t  glyph,
 				    const int *coords, unsigned int coord_count,
 				    hb_scalar_cache_t *store_cache = nullptr) const
@@ -446,9 +447,10 @@ struct VVAR : HVARVVAR {
 
   bool subset (hb_subset_context_t *c) const { return HVARVVAR::_subset<VVAR> (c); }
 
+  HB_ALWAYS_INLINE
   float get_vorg_delta_unscaled (hb_codepoint_t glyph,
 				 const int *coords, unsigned int coord_count,
-				    hb_scalar_cache_t *store_cache = nullptr) const
+				 hb_scalar_cache_t *store_cache = nullptr) const
   {
     if (!vorgMap) return 0.f;
     uint32_t varidx = (this+vorgMap).map (glyph);
