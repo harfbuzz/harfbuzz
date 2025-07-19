@@ -645,11 +645,11 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
       hb_position_t origin;
       unsigned cv;
       if (origin_cache->get (*first_glyph, &cv))
-	origin = cv;
+	origin = font->y_scale < 0 ? -cv : cv;
       else
       {
 	origin = _hb_ot_get_glyph_v_origin_from_VORG_VVAR (font, VORG, VVAR, *first_glyph);
-	origin_cache->set (*first_glyph, origin);
+	origin_cache->set (*first_glyph, font->y_scale < 0 ? -origin : origin);
       }
 
       *first_y = origin;
@@ -677,11 +677,11 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
       hb_position_t origin;
       unsigned cv;
       if (origin_cache->get (*first_glyph, &cv))
-	origin = cv;
+	origin = font->y_scale < 0 ? -cv : cv;
       else
       {
 	origin = font->em_scalef_y (glyf.get_v_origin_with_var_unscaled (*first_glyph, font, *scratch, gvar_cache));
-	origin_cache->set (*first_glyph, origin);
+	origin_cache->set (*first_glyph, font->y_scale < 0 ? -origin : origin);
       }
 
       *first_y = origin;
@@ -711,7 +711,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
       unsigned cv;
 
       if (origin_cache->get (*first_glyph, &cv))
-	origin = cv;
+	origin = font->y_scale < 0 ? -cv : cv;
       else
       {
 	hb_glyph_extents_t extents = {0};
@@ -720,7 +720,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 	else
 	  origin = font_extents.ascender;
 
-	origin_cache->set (*first_glyph, origin);
+	origin_cache->set (*first_glyph, font->y_scale < 0 ? -origin : origin);
       }
 
       *first_y = origin;
