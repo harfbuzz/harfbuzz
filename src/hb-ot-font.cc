@@ -580,7 +580,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   }
 
   ot_font->v.release_advance_cache (advance_cache);
-  // No HVAR or GVAR.  Just use the fallback non-variable path.
+  // No VVAR or GVAR.  Just use the fallback non-variable path.
   goto fallback;
 #endif
 }
