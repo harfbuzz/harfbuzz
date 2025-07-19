@@ -369,6 +369,62 @@ typedef hb_font_get_glyph_origin_func_t hb_font_get_glyph_h_origin_func_t;
 typedef hb_font_get_glyph_origin_func_t hb_font_get_glyph_v_origin_func_t;
 
 /**
+ * hb_font_get_glyph_origins_func_t:
+ * @font: #hb_font_t to work upon
+ * @font_data: @font user data pointer
+ * @first_glyph: The first glyph ID to query
+ * @count: number of glyphs to query
+ * @glyph_stride: The stride between successive glyph IDs
+ * @first_x: (out): The first origin X coordinate retrieved
+ * @x_stride: The stride between successive origin X coordinates
+ * @first_y: (out): The first origin Y coordinate retrieved
+ * @y_stride: The stride between successive origin Y coordinates
+ * @user_data: User data pointer passed by the caller
+ *
+ * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
+ *
+ * This method should retrieve the (X,Y) coordinates (in scaled units) of the
+ * origin for each requested glyph. Each coordinate value must be returned in
+ * an #hb_position_t in the two output parameters.
+ *
+ * Return value: `true` if data found, `false` otherwise
+ * 
+ **/
+typedef hb_bool_t (*hb_font_get_glyph_origins_func_t) (hb_font_t *font, void *font_data,
+						       unsigned int count,
+						       const hb_codepoint_t *first_glyph,
+						       unsigned glyph_stride,
+						       hb_position_t *first_x,
+						       unsigned x_stride,
+						       hb_position_t *first_y,
+						       unsigned y_stride,
+						       void *user_data);
+
+/**
+ * hb_font_get_glyph_h_origins_func_t:
+ *
+ * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
+ *
+ * This method should retrieve the (X,Y) coordinates (in scaled units) of the
+ * origin for requested glyph, for horizontal-direction text segments. Each
+ * coordinate must be returned in a the x/y #hb_position_t output parameters.
+ * 
+ **/
+typedef hb_font_get_glyph_origins_func_t hb_font_get_glyph_h_origins_func_t;
+
+/**
+ * hb_font_get_glyph_v_origin_func_t:
+ *
+ * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
+ *
+ * This method should retrieve the (X,Y) coordinates (in scaled units) of the
+ * origin for requested glyph, for vertical-direction text segments. Each
+ * coordinate must be returned in a the x/y #hb_position_t output parameters.
+ * 
+ **/
+typedef hb_font_get_glyph_origins_func_t hb_font_get_glyph_v_origins_func_t;
+
+/**
  * hb_font_get_glyph_kerning_func_t:
  * @font: #hb_font_t to work upon
  * @font_data: @font user data pointer
@@ -708,6 +764,38 @@ hb_font_funcs_set_glyph_v_origin_func (hb_font_funcs_t *ffuncs,
 				       void *user_data, hb_destroy_func_t destroy);
 
 /**
+ * hb_font_funcs_set_glyph_h_origins_func:
+ * @ffuncs: A font-function structure
+ * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
+ *
+ * Sets the implementation function for #hb_font_get_glyph_h_origins_func_t.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN void
+hb_font_funcs_set_glyph_h_origins_func (hb_font_funcs_t *ffuncs,
+					hb_font_get_glyph_h_origins_func_t func,
+					void *user_data, hb_destroy_func_t destroy);
+
+/**
+ * hb_font_funcs_set_glyph_v_origins_func:
+ * @ffuncs: A font-function structure
+ * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
+ *
+ * Sets the implementation function for #hb_font_get_glyph_v_origins_func_t.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN void
+hb_font_funcs_set_glyph_v_origins_func (hb_font_funcs_t *ffuncs,
+					hb_font_get_glyph_v_origins_func_t func,
+					void *user_data, hb_destroy_func_t destroy);
+
+/**
  * hb_font_funcs_set_glyph_h_kerning_func:
  * @ffuncs: A font-function structure
  * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
@@ -875,6 +963,26 @@ HB_EXTERN hb_bool_t
 hb_font_get_glyph_v_origin (hb_font_t *font,
 			    hb_codepoint_t glyph,
 			    hb_position_t *x, hb_position_t *y);
+
+HB_EXTERN hb_bool_t
+hb_font_get_glyph_h_origins (hb_font_t *font,
+			     unsigned int count,
+			     const hb_codepoint_t *first_glyph,
+			     unsigned glyph_stride,
+			     hb_position_t *first_x,
+			     unsigned x_stride,
+			     hb_position_t *first_y,
+			     unsigned y_stride);
+
+HB_EXTERN hb_bool_t
+hb_font_get_glyph_v_origins (hb_font_t *font,
+			     unsigned int count,
+			     const hb_codepoint_t *first_glyph,
+			     unsigned glyph_stride,
+			     hb_position_t *first_x,
+			     unsigned x_stride,
+			     hb_position_t *first_y,
+			     unsigned y_stride);
 
 HB_EXTERN hb_position_t
 hb_font_get_glyph_h_kerning (hb_font_t *font,

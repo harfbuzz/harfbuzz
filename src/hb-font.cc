@@ -246,7 +246,6 @@ hb_font_get_glyph_v_advance_nil (hb_font_t      *font,
 				 hb_codepoint_t  glyph HB_UNUSED,
 				 void           *user_data HB_UNUSED)
 {
-  /* TODO use font_extents.ascender+descender */
   return -font->y_scale;
 }
 
@@ -352,6 +351,10 @@ hb_font_get_glyph_h_origin_default (hb_font_t      *font,
 				    hb_position_t  *y,
 				    void           *user_data HB_UNUSED)
 {
+  if (font->has_glyph_h_origins_func_set ())
+  {
+    return font->get_glyph_h_origins (1, &glyph, 0, x, 0, y, 0, false);
+  }
   hb_bool_t ret = font->parent->get_glyph_h_origin (glyph, x, y);
   if (ret)
     font->parent_scale_position (x, y);
@@ -378,9 +381,97 @@ hb_font_get_glyph_v_origin_default (hb_font_t      *font,
 				    hb_position_t  *y,
 				    void           *user_data HB_UNUSED)
 {
+  if (font->has_glyph_v_origins_func_set ())
+  {
+    return font->get_glyph_v_origins (1, &glyph, 0, x, 0, y, 0, false);
+  }
   hb_bool_t ret = font->parent->get_glyph_v_origin (glyph, x, y);
   if (ret)
     font->parent_scale_position (x, y);
+  return ret;
+}
+
+#define hb_font_get_glyph_h_origins_nil hb_font_get_glyph_h_origins_default
+
+static hb_bool_t
+hb_font_get_glyph_h_origins_default (hb_font_t *font HB_UNUSED,
+				     void *font_data HB_UNUSED,
+				     unsigned int count,
+				     const hb_codepoint_t *first_glyph HB_UNUSED,
+				     unsigned glyph_stride HB_UNUSED,
+				     hb_position_t *first_x,
+				     unsigned x_stride,
+				     hb_position_t *first_y,
+				     unsigned y_stride,
+				     void *user_data HB_UNUSED)
+{
+  if (font->has_glyph_h_origin_func_set ())
+  {
+    for (unsigned int i = 0; i < count; i++)
+    {
+      font->get_glyph_h_origin (*first_glyph, first_x, first_y, false);
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    }
+    return true;
+  }
+
+  hb_bool_t ret = font->parent->get_glyph_h_origins (count,
+						     first_glyph, glyph_stride,
+						     first_x, x_stride,
+						     first_y, y_stride);
+  if (ret)
+  {
+    for (unsigned i = 0; i < count; i++)
+    {
+      font->parent_scale_position (first_x, first_y);
+      first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    }
+  }
+  return ret;
+}
+
+#define hb_font_get_glyph_v_origins_nil hb_font_get_glyph_v_origins_default
+
+static hb_bool_t
+hb_font_get_glyph_v_origins_default (hb_font_t *font HB_UNUSED,
+				     void *font_data HB_UNUSED,
+				     unsigned int count,
+				     const hb_codepoint_t *first_glyph HB_UNUSED,
+				     unsigned glyph_stride HB_UNUSED,
+				     hb_position_t *first_x,
+				     unsigned x_stride,
+				     hb_position_t *first_y,
+				     unsigned y_stride,
+				     void *user_data HB_UNUSED)
+{
+  if (font->has_glyph_v_origin_func_set ())
+  {
+    for (unsigned int i = 0; i < count; i++)
+    {
+      font->get_glyph_v_origin (*first_glyph, first_x, first_y, false);
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    }
+    return true;
+  }
+
+  hb_bool_t ret = font->parent->get_glyph_v_origins (count,
+						     first_glyph, glyph_stride,
+						     first_x, x_stride,
+						     first_y, y_stride);
+  if (ret)
+  {
+    for (unsigned i = 0; i < count; i++)
+    {
+      font->parent_scale_position (first_x, first_y);
+      first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    }
+  }
   return ret;
 }
 
@@ -1255,6 +1346,77 @@ hb_font_get_glyph_v_origin (hb_font_t      *font,
 {
   return font->get_glyph_v_origin (glyph, x, y);
 }
+
+/**
+ * hb_font_get_glyph_h_origins:
+ * @font: #hb_font_t to work upon
+ * @count: The number of glyph IDs in the sequence queried
+ * @first_glyph: The first glyph ID to query
+ * @glyph_stride: The stride between successive glyph IDs
+ * @first_x: (out): The first X coordinate of the origin retrieved
+ * @x_stride: The stride between successive X coordinates
+ * @first_y: (out): The first Y coordinate of the origin retrieved
+ * @y_stride: The stride between successive Y coordinates
+ *
+ * Fetches the (X,Y) coordinates of the origin for requested glyph IDs
+ * in the specified font, for horizontal text segments.
+ *
+ * Return value: `true` if data found, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_font_get_glyph_h_origins (hb_font_t      *font,
+			     unsigned int    count,
+			     const hb_codepoint_t *first_glyph,
+			     unsigned int    glyph_stride,
+			     hb_position_t  *first_x,
+			     unsigned int    x_stride,
+			     hb_position_t  *first_y,
+			     unsigned int    y_stride)
+
+{
+  return font->get_glyph_h_origins (count,
+				    first_glyph, glyph_stride,
+				    first_x, x_stride,
+				    first_y, y_stride);
+}
+
+/**
+ * hb_font_get_glyph_v_origins:
+ * @font: #hb_font_t to work upon
+ * @count: The number of glyph IDs in the sequence queried
+ * @first_glyph: The first glyph ID to query
+ * @glyph_stride: The stride between successive glyph IDs
+ * @first_x: (out): The first X coordinate of the origin retrieved
+ * @x_stride: The stride between successive X coordinates
+ * @first_y: (out): The first Y coordinate of the origin retrieved
+ * @y_stride: The stride between successive Y coordinates
+ *
+ * Fetches the (X,Y) coordinates of the origin for requested glyph IDs
+ * in the specified font, for vertical text segments.
+ *
+ * Return value: `true` if data found, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_font_get_glyph_v_origins (hb_font_t      *font,
+			     unsigned int    count,
+			     const hb_codepoint_t *first_glyph,
+			     unsigned int    glyph_stride,
+			     hb_position_t  *first_x,
+			     unsigned int    x_stride,
+			     hb_position_t  *first_y,
+			     unsigned int    y_stride)
+
+{
+  return font->get_glyph_h_origins (count,
+				    first_glyph, glyph_stride,
+				    first_x, x_stride,
+				    first_y, y_stride);
+}
+
 
 /**
  * hb_font_get_glyph_h_kerning:

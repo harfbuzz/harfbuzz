@@ -55,6 +55,8 @@
   HB_FONT_FUNC_IMPLEMENT (get_,glyph_v_advances) \
   HB_FONT_FUNC_IMPLEMENT (get_,glyph_h_origin) \
   HB_FONT_FUNC_IMPLEMENT (get_,glyph_v_origin) \
+  HB_FONT_FUNC_IMPLEMENT (get_,glyph_h_origins) \
+  HB_FONT_FUNC_IMPLEMENT (get_,glyph_v_origins) \
   HB_FONT_FUNC_IMPLEMENT (get_,glyph_h_kerning) \
   HB_IF_NOT_DEPRECATED (HB_FONT_FUNC_IMPLEMENT (get_,glyph_v_kerning)) \
   HB_FONT_FUNC_IMPLEMENT (get_,glyph_extents) \
@@ -431,21 +433,135 @@ struct hb_font_t
   }
 
   hb_bool_t get_glyph_h_origin (hb_codepoint_t glyph,
-				hb_position_t *x, hb_position_t *y)
+				hb_position_t *x, hb_position_t *y,
+				bool synthetic = true)
   {
     *x = *y = 0;
-    return klass->get.f.glyph_h_origin (this, user_data,
-					glyph, x, y,
-					!klass->user_data ? nullptr : klass->user_data->glyph_h_origin);
+    bool ret = klass->get.f.glyph_h_origin (this, user_data,
+					    glyph, x, y,
+					    !klass->user_data ? nullptr : klass->user_data->glyph_h_origin);
+
+    if (synthetic && ret)
+    {
+      /* Slant */
+      if (slant_xy)
+	*x += roundf (*y * slant_xy);
+
+      /* Embolden */
+      if (!embolden_in_place)
+      {
+        *x += x_scale < 0 ? -x_strength : x_strength;
+	*y += y_scale < 0 ? -y_strength : y_strength;
+      }
+    }
+
+    return ret;
   }
 
   hb_bool_t get_glyph_v_origin (hb_codepoint_t glyph,
-				hb_position_t *x, hb_position_t *y)
+				hb_position_t *x, hb_position_t *y,
+				bool synthetic = true)
   {
     *x = *y = 0;
-    return klass->get.f.glyph_v_origin (this, user_data,
-					glyph, x, y,
-					!klass->user_data ? nullptr : klass->user_data->glyph_v_origin);
+    bool ret = klass->get.f.glyph_v_origin (this, user_data,
+					    glyph, x, y,
+					    !klass->user_data ? nullptr : klass->user_data->glyph_h_origin);
+
+    if (synthetic && ret)
+    {
+      /* Slant */
+      if (slant_xy)
+	*x += roundf (*y * slant_xy);
+
+      /* Embolden */
+      if (!embolden_in_place)
+      {
+        *x += x_scale < 0 ? -x_strength : x_strength;
+	*y += y_scale < 0 ? -y_strength : y_strength;
+      }
+    }
+
+    return ret;
+  }
+
+  hb_bool_t get_glyph_h_origins (unsigned int count,
+				 const hb_codepoint_t *first_glyph,
+				 unsigned int glyph_stride,
+				 hb_position_t *first_x,
+				 unsigned int x_stride,
+				 hb_position_t *first_y,
+				 unsigned int y_stride,
+				 bool synthetic = true)
+
+  {
+    bool ret = klass->get.f.glyph_h_origins (this, user_data,
+					     count,
+					     first_glyph, glyph_stride,
+					     first_x, x_stride, first_y, y_stride,
+					     !klass->user_data ? nullptr : klass->user_data->glyph_h_origins);
+
+    if (synthetic && ret)
+    {
+      hb_position_t x_shift = x_scale < 0 ? -x_strength : x_strength;
+      hb_position_t y_shift = y_scale < 0 ? -y_strength : y_strength;
+      for (unsigned i = 0; i < count; i++)
+      {
+	/* Slant */
+	if (slant_xy)
+	  *first_x += roundf (*first_y * slant_xy);
+
+	/* Embolden */
+	if (!embolden_in_place)
+	{
+	  *first_x += x_shift;
+	  *first_y += y_shift;
+	}
+      }
+      first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    }
+
+    return ret;
+  }
+
+  hb_bool_t get_glyph_v_origins (unsigned int count,
+				 const hb_codepoint_t *first_glyph,
+				 unsigned int glyph_stride,
+				 hb_position_t *first_x,
+				 unsigned int x_stride,
+				 hb_position_t *first_y,
+				 unsigned int y_stride,
+				 bool synthetic = true)
+
+  {
+    bool ret = klass->get.f.glyph_v_origins (this, user_data,
+					     count,
+					     first_glyph, glyph_stride,
+					     first_x, x_stride, first_y, y_stride,
+					     !klass->user_data ? nullptr : klass->user_data->glyph_v_origins);
+
+    if (synthetic && ret)
+    {
+      hb_position_t x_shift = x_scale < 0 ? -x_strength : x_strength;
+      hb_position_t y_shift = y_scale < 0 ? -y_strength : y_strength;
+      for (unsigned i = 0; i < count; i++)
+      {
+	/* Slant */
+	if (slant_xy)
+	  *first_x += roundf (*first_y * slant_xy);
+
+	/* Embolden */
+	if (!embolden_in_place)
+	{
+	  *first_x += x_shift;
+	  *first_y += y_shift;
+	}
+      }
+      first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
+    }
+
+    return ret;
   }
 
   hb_position_t get_glyph_h_kerning (hb_codepoint_t left_glyph,
