@@ -521,13 +521,10 @@ static hb_bool_t
 _hb_ot_get_glyph_v_origin (hb_font_t *font,
 			   void *font_data,
 			   hb_codepoint_t glyph,
-			   hb_position_t *x,
 			   hb_position_t *y)
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   const hb_ot_face_t *ot_face = ot_font->ot_face;
-
-  *x = font->get_glyph_h_advance (glyph) / 2;
 
   const OT::VORG &VORG = *ot_face->VORG;
   if (VORG.has_data ())
@@ -586,12 +583,21 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 			   unsigned y_stride,
 			   void *user_data HB_UNUSED)
 {
+  /* First, set all the x values to half the advance width. */
+  hb_font_get_glyph_h_advances (font, count,
+				first_glyph, glyph_stride,
+				first_x, x_stride);
   for (unsigned i = 0; i < count; i++)
   {
-    _hb_ot_get_glyph_v_origin (font, font_data, *first_glyph, first_x, first_y);
+    *first_x = *first_x / 2;
+    first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+  }
+
+  for (unsigned i = 0; i < count; i++)
+  {
+    _hb_ot_get_glyph_v_origin (font, font_data, *first_glyph, first_y);
 
     first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
-    first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
     first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
   }
   return true;
