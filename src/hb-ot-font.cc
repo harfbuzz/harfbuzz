@@ -650,6 +650,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
     }
+    ot_font->v_origin.release_origin_cache (origin_cache);
     return true;
   }
 
@@ -685,7 +686,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
     if (gvar_cache)
       ot_font->draw.release_gvar_cache (gvar_cache);
     glyf.release_scratch (scratch);
-
+    ot_font->v_origin.release_origin_cache (origin_cache);
     return true;
   }
 
@@ -723,7 +724,6 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
   }
 
   ot_font->v_origin.release_origin_cache (origin_cache);
-
   return true;
 }
 #endif
