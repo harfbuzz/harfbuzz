@@ -517,15 +517,12 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 #endif
 
 #ifndef HB_NO_VERTICAL
-static hb_bool_t
+static inline hb_position_t
 _hb_ot_get_glyph_v_origin (hb_font_t *font,
-			   void *font_data,
-			   hb_codepoint_t glyph,
-			   hb_position_t *y)
+			   const hb_ot_font_t *ot_font,
+			   const hb_ot_face_t *ot_face,
+			   hb_codepoint_t glyph)
 {
-  const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
-  const hb_ot_face_t *ot_face = ot_font->ot_face;
-
   const OT::VORG &VORG = *ot_face->VORG;
   if (VORG.has_data ())
   {
@@ -540,8 +537,7 @@ _hb_ot_get_glyph_v_origin (hb_font_t *font,
 				    &delta);
 #endif
 
-    *y = font->em_scalef_y (VORG.get_y_origin (glyph) + delta);
-    return true;
+    return font->em_scalef_y (VORG.get_y_origin (glyph) + delta);
   }
 
   hb_glyph_extents_t extents = {0};
@@ -551,24 +547,18 @@ _hb_ot_get_glyph_v_origin (hb_font_t *font,
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     int tsb = 0;
     if (vmtx.get_leading_bearing_with_var_unscaled (font, glyph, &tsb))
-    {
-      *y = extents.y_bearing + font->em_scale_y (tsb);
-      return true;
-    }
+      return extents.y_bearing + font->em_scale_y (tsb);
 
     hb_font_extents_t font_extents;
     font->get_h_extents_with_fallback (&font_extents);
     hb_position_t advance = font_extents.ascender - font_extents.descender;
     hb_position_t diff = advance - -extents.height;
-    *y = extents.y_bearing + (diff >> 1);
-    return true;
+    return extents.y_bearing + (diff >> 1);
   }
 
   hb_font_extents_t font_extents;
   font->get_h_extents_with_fallback (&font_extents);
-  *y = font_extents.ascender;
-
-  return true;
+  return font_extents.ascender;
 }
 
 static hb_bool_t
@@ -583,6 +573,9 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 			   unsigned y_stride,
 			   void *user_data HB_UNUSED)
 {
+  const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
+  const hb_ot_face_t *ot_face = ot_font->ot_face;
+
   /* First, set all the x values to half the advance width. */
   hb_font_get_glyph_h_advances (font, count,
 				first_glyph, glyph_stride,
@@ -595,7 +588,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 
   for (unsigned i = 0; i < count; i++)
   {
-    _hb_ot_get_glyph_v_origin (font, font_data, *first_glyph, first_y);
+    *first_y = _hb_ot_get_glyph_v_origin (font, ot_font, ot_face, *first_glyph);
 
     first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
     first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
