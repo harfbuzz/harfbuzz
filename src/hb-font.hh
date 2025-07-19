@@ -831,6 +831,19 @@ struct hb_font_t
       get_glyph_v_advances (count, first_glyph, glyph_stride, first_advance, advance_stride);
   }
 
+  void add_offset (hb_position_t *x, hb_position_t *y,
+		   hb_position_t dx, hb_position_t dy)
+  {
+    *x += dx;
+    *y += dy;
+  }
+  void subtract_offset (hb_position_t *x, hb_position_t *y,
+			hb_position_t dx, hb_position_t dy)
+  {
+    *x += dx;
+    *y += dy;
+  }
+
   void guess_v_origin_minus_h_origin (hb_codepoint_t glyph,
 				      hb_position_t *x, hb_position_t *y)
   {
@@ -849,7 +862,7 @@ struct hb_font_t
     {
       hb_position_t dx, dy;
       guess_v_origin_minus_h_origin (glyph, &dx, &dy);
-      *x -= dx; *y -= dy;
+      subtract_offset (x, y, dx, dy);
     }
   }
   void get_glyph_v_origin_with_fallback (hb_codepoint_t glyph,
@@ -860,7 +873,7 @@ struct hb_font_t
     {
       hb_position_t dx, dy;
       guess_v_origin_minus_h_origin (glyph, &dx, &dy);
-      *x += dx; *y += dy;
+      add_offset (x, y, dx, dy);
     }
   }
 
