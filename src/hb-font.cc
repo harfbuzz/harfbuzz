@@ -1410,7 +1410,7 @@ hb_font_get_glyph_v_origins (hb_font_t      *font,
 			     unsigned int    y_stride)
 
 {
-  return font->get_glyph_h_origins (count,
+  return font->get_glyph_v_origins (count,
 				    first_glyph, glyph_stride,
 				    first_x, x_stride,
 				    first_y, y_stride);
