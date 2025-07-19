@@ -30,6 +30,8 @@ enum operation_t
 {
   nominal_glyphs,
   glyph_h_advances,
+  glyph_v_advances,
+  glyph_v_origin,
   glyph_extents,
   draw_glyph,
   paint_glyph,
@@ -159,6 +161,44 @@ static void BM_Font (benchmark::State &state,
       free (glyphs);
       break;
     }
+    case glyph_v_advances:
+    {
+      hb_codepoint_t *glyphs = (hb_codepoint_t *) calloc (num_glyphs, sizeof (hb_codepoint_t));
+      hb_position_t *advances = (hb_position_t *) calloc (num_glyphs, sizeof (hb_codepoint_t));
+
+      for (unsigned g = 0; g < num_glyphs; g++)
+        glyphs[g] = g;
+
+      for (auto _ : state)
+	hb_font_get_glyph_v_advances (font,
+				      num_glyphs,
+				      glyphs, sizeof (*glyphs),
+				      advances, sizeof (*advances));
+
+      free (advances);
+      free (glyphs);
+      break;
+    }
+    case glyph_v_origin:
+    {
+      hb_codepoint_t *glyphs = (hb_codepoint_t *) calloc (num_glyphs, sizeof (hb_codepoint_t));
+      hb_position_t *origins_x = (hb_position_t *) calloc (num_glyphs, sizeof (hb_codepoint_t));
+      hb_position_t *origins_y = (hb_position_t *) calloc (num_glyphs, sizeof (hb_codepoint_t));
+
+      for (unsigned g = 0; g < num_glyphs; g++)
+        glyphs[g] = g;
+
+      for (auto _ : state)
+	for (unsigned g = 0; g < num_glyphs; g++)
+	  hb_font_get_glyph_v_origin (font,
+				      glyphs[g],
+				      &origins_x[g], &origins_y[g]);
+
+      free (origins_y);
+      free (origins_x);
+      free (glyphs);
+      break;
+    }
     case glyph_extents:
     {
       hb_glyph_extents_t extents;
@@ -282,6 +322,8 @@ int main(int argc, char** argv)
 
   TEST_OPERATION (nominal_glyphs, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_h_advances, benchmark::kMicrosecond);
+  TEST_OPERATION (glyph_v_advances, benchmark::kMicrosecond);
+  TEST_OPERATION (glyph_v_origin, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_extents, benchmark::kMicrosecond);
   TEST_OPERATION (draw_glyph, benchmark::kMillisecond);
   TEST_OPERATION (paint_glyph, benchmark::kMillisecond);
