@@ -162,6 +162,7 @@ struct hb_ot_font_t
   struct origin_cache_t
   {
     mutable hb_atomic_t<hb_ot_font_origin_cache_t *> origin_cache;
+    mutable hb_atomic_t<OT::hb_scalar_cache_t *> varStore_cache;
 
     ~origin_cache_t ()
     {
@@ -204,9 +205,40 @@ struct hb_ot_font_t
         goto retry;
     }
 
+    OT::hb_scalar_cache_t *acquire_varStore_cache (const OT::ItemVariationStore &varStore) const
+    {
+    retry:
+      auto *cache = varStore_cache.get_acquire ();
+      if (!cache)
+	return varStore.create_cache ();
+      if (varStore_cache.cmpexch (cache, nullptr))
+	return cache;
+      else
+	goto retry;
+    }
+    void release_varStore_cache (OT::hb_scalar_cache_t *cache) const
+    {
+      if (!cache)
+	return;
+      if (!varStore_cache.cmpexch (nullptr, cache))
+	OT::ItemVariationStore::destroy_cache (cache);
+    }
+    void clear_varStore_cache () const
+    {
+    retry:
+      auto *cache = varStore_cache.get_acquire ();
+      if (!cache)
+	return;
+      if (varStore_cache.cmpexch (cache, nullptr))
+	OT::ItemVariationStore::destroy_cache (cache);
+      else
+	goto retry;
+    }
+
     void clear () const
     {
       clear_origin_cache ();
+      clear_varStore_cache ();
     }
   } v_origin;
 
@@ -649,6 +681,8 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
     else
     {
       const OT::VVAR &VVAR = *ot_face->vmtx->var_table;
+      const auto &varStore = &VVAR + VVAR.varStore;
+      auto *varStore_cache = ot_font->v_origin.acquire_varStore_cache (varStore);
       for (unsigned i = 0; i < count; i++)
       {
 	hb_position_t origin;
@@ -658,7 +692,9 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 	else
 	{
 	  origin = font->em_scalef_y (VORG.get_y_origin (*first_glyph) +
-				      VVAR.get_vorg_delta_unscaled (*first_glyph, font->coords, font->num_coords));
+				      VVAR.get_vorg_delta_unscaled (*first_glyph,
+								    font->coords, font->num_coords,
+								    varStore_cache));
 	  origin_cache->set (*first_glyph, font->y_scale < 0 ? -origin : origin);
 	}
 
@@ -667,6 +703,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
 	first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
 	first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
       }
+      ot_font->v_origin.release_varStore_cache (varStore_cache);
     }
 #endif
     ot_font->v_origin.release_origin_cache (origin_cache);

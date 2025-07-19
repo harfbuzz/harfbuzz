@@ -447,11 +447,14 @@ struct VVAR : HVARVVAR {
   bool subset (hb_subset_context_t *c) const { return HVARVVAR::_subset<VVAR> (c); }
 
   float get_vorg_delta_unscaled (hb_codepoint_t glyph,
-				 const int *coords, unsigned int coord_count) const
+				 const int *coords, unsigned int coord_count,
+				    hb_scalar_cache_t *store_cache = nullptr) const
   {
     if (!vorgMap) return 0.f;
     uint32_t varidx = (this+vorgMap).map (glyph);
-    return (this+varStore).get_delta (varidx, coords, coord_count);
+    return (this+varStore).get_delta (varidx,
+				      coords, coord_count,
+				      store_cache);
   }
 
   protected:
