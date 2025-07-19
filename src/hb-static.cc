@@ -113,15 +113,4 @@ hb_face_t::load_upem () const
   return ret;
 }
 
-
-#ifndef HB_NO_VAR
-bool
-_glyf_get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical,
-					     int *lsb)
-{
-  return font->face->table.glyf->get_leading_bearing_with_var_unscaled (font, glyph, is_vertical, lsb);
-}
-#endif
-
-
 #endif

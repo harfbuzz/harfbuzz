@@ -45,10 +45,6 @@
 #define HB_OT_TAG_vmtx HB_TAG('v','m','t','x')
 
 
-HB_INTERNAL bool
-_glyf_get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical, int *lsb);
-
-
 namespace OT {
 
 
@@ -336,37 +332,6 @@ struct hmtxvmtx
 
       const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_long_metrics];
       *lsb = bearings[glyph - num_long_metrics];
-    }
-
-    bool get_leading_bearing_with_var_unscaled (hb_font_t *font,
-						hb_codepoint_t glyph,
-						int *lsb) const
-    {
-      if (!font->has_nonzero_coords)
-      {
-	get_leading_bearing_without_var_unscaled (glyph, lsb);
-	return has_data ();
-      }
-
-#ifndef HB_NO_VAR
-      float delta;
-      if (var_table->get_lsb_delta_unscaled (glyph, font->coords, font->num_coords, &delta))
-      {
-	get_leading_bearing_without_var_unscaled (glyph, lsb);
-	*lsb += roundf (delta);
-	return true;
-      }
-
-      // If there's no vmtx data, the phantom points from glyf table are not accurate,
-      // so we cannot take the next path.
-      bool is_vertical = T::tableTag == HB_OT_TAG_vmtx;
-      if (is_vertical && !has_data ())
-        return false;
-
-      return _glyf_get_leading_bearing_with_var_unscaled (font, glyph, is_vertical, lsb);
-#else
-      return false;
-#endif
     }
 
     unsigned int get_advance_without_var_unscaled (hb_codepoint_t glyph) const

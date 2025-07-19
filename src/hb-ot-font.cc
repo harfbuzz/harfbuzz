@@ -603,24 +603,34 @@ _hb_ot_get_glyph_v_origin (hb_font_t *font,
 			   hb_codepoint_t glyph,
 			   hb_ot_font_origin_cache_t *origin_cache)
 {
-  hb_glyph_extents_t extents = {0};
-  bool has_glyph_extents = hb_font_get_glyph_extents (font, glyph, &extents);
-
-  if (has_glyph_extents)
+  const auto &vmtx = *ot_face->vmtx;
+  const auto &glyf = *ot_face->glyf;
+  // If and only if `vmtx` is present and it's a `glyf` font,
+  // we use the top phantom point, deduced from vmtx,glyf[,gvar]
+  if (origin_cache && vmtx.has_data() && glyf.has_data ())
   {
-    const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
-    int tsb = 0;
-    if (vmtx.get_leading_bearing_with_var_unscaled (font, glyph, &tsb))
-      return extents.y_bearing + font->em_scale_y (tsb);
+    OT::hb_scalar_cache_t *gvar_cache = font->has_nonzero_coords ?
+					ot_font->draw.acquire_gvar_cache (*ot_face->gvar) :
+					nullptr;
+
+    hb_position_t origin = font->em_scalef_y (glyf.get_v_origin_with_var_unscaled (glyph, font, gvar_cache));
+
+    if (gvar_cache)
+      ot_font->draw.release_gvar_cache (gvar_cache);
+
+    return origin;
   }
 
-  if (has_glyph_extents)
+  hb_glyph_extents_t extents = {0};
+  if (origin_cache && hb_font_get_glyph_extents (font, glyph, &extents))
   {
     hb_font_extents_t font_extents;
     font->get_h_extents_with_fallback (&font_extents);
     hb_position_t advance = font_extents.ascender - font_extents.descender;
+
     hb_position_t diff = advance - -extents.height;
     hb_position_t origin = extents.y_bearing + (diff >> 1);
+
     return origin;
   }
 

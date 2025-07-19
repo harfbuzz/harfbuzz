@@ -399,27 +399,29 @@ struct glyf_accelerator_t
 		 : phantoms[glyf_impl::PHANTOM_RIGHT].x - phantoms[glyf_impl::PHANTOM_LEFT].x;
     return hb_clamp (roundf (result), 0.f, (float) UINT_MAX / 2);
   }
-#endif
 
-  bool get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t gid, bool is_vertical, int *lsb) const
+  float
+  get_v_origin_with_var_unscaled (hb_codepoint_t gid,
+				  hb_font_t *font,
+				  hb_scalar_cache_t *gvar_cache = nullptr) const
   {
-    if (unlikely (gid >= num_glyphs)) return false;
+    if (unlikely (gid >= num_glyphs)) return 0;
 
-    // TODO: If HVAR/VVAR have side-bearing deltas, we should use them.
+    bool success = false;
 
-    hb_glyph_extents_t extents;
-    hb_glyf_scratch_t scratch;
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
-    if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms, false),
-			       hb_array (font->coords, font->num_coords),
-			       scratch)))
-      return false;
+    hb_glyf_scratch_t scratch;
+    success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, false),
+			  hb_array (font->coords, font->num_coords),
+			  scratch, gvar_cache);
+    if (unlikely (!success))
+    {
+      return font->face->get_upem ();
+    }
 
-    *lsb = is_vertical
-	 ? roundf (phantoms[glyf_impl::PHANTOM_TOP].y) - extents.y_bearing
-	 : roundf (phantoms[glyf_impl::PHANTOM_LEFT].x);
-    return true;
+    return phantoms[glyf_impl::PHANTOM_TOP].y;
   }
+#endif
 #endif
 
   bool get_leading_bearing_without_var_unscaled (hb_codepoint_t gid, bool is_vertical, int *lsb) const
