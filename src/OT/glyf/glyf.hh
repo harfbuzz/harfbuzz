@@ -505,7 +505,8 @@ struct glyf_accelerator_t
       return true;
 
     bool ret = get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
-			   hb_array (font->coords, font->num_coords),
+			   hb_array (font->coords,
+				     font->has_nonzero_coords ? font->num_coords : 0),
 			   *scratch,
 			    gvar_cache);
 
