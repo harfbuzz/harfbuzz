@@ -636,9 +636,9 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
   const hb_ot_face_t *ot_face = ot_font->ot_face;
 
   /* First, set all the x values to half the advance width. */
-  hb_font_get_glyph_h_advances (font, count,
-				first_glyph, glyph_stride,
-				first_x, x_stride);
+  font->get_glyph_h_advances (count,
+			      first_glyph, glyph_stride,
+			      first_x, x_stride);
   for (unsigned i = 0; i < count; i++)
   {
     *first_x /= 2;
@@ -765,7 +765,7 @@ hb_ot_get_glyph_v_origins (hb_font_t *font,
       else
       {
 	hb_glyph_extents_t extents = {0};
-	if (likely (hb_font_get_glyph_extents (font, *first_glyph, &extents)))
+	if (likely (font->get_glyph_extents (*first_glyph, &extents)))
 	  origin = extents.y_bearing + ((font_advance - -extents.height) >> 1);
 	else
 	  origin = font_extents.ascender;
