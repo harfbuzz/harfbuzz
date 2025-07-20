@@ -83,6 +83,7 @@ struct hb_cache_t
       v = -1;
   }
 
+  HB_HOT
   bool get (unsigned int key, unsigned int *value) const
   {
     unsigned int k = key & ((1u<<cache_bits)-1);
@@ -94,6 +95,7 @@ struct hb_cache_t
     return true;
   }
 
+  HB_HOT
   void set (unsigned int key, unsigned int value)
   {
     if (unlikely ((key >> key_bits) || (value >> value_bits)))
