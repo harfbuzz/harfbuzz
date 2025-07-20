@@ -1,3 +1,9 @@
+Overview of changes leading to 11.3.1
+Sunday, July 20, 2025
+====================================
+- Fix crasher in the glyph_v_origin function introduced in
+  11.3.0.
+
 Overview of changes leading to 11.3.0
 Sunday, July 20, 2025
 ====================================
