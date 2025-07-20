@@ -1182,6 +1182,7 @@ _hb_cmp_operator (const void *pkey, const void *pval)
 }
 
 template <typename V, typename K, typename ...Ts>
+HB_HOT
 static inline bool
 hb_bsearch_impl (unsigned *pos, /* Out */
 		 const K& key,

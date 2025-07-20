@@ -2866,52 +2866,62 @@ struct VarData
 	 + itemCount * get_row_size ();
   }
 
+  float _get_delta (unsigned int inner,
+		    const int *coords, unsigned int coord_count,
+		    const VarRegionList &regions,
+		    hb_scalar_cache_t *cache = nullptr) const
+  {
+    if (unlikely (inner >= itemCount))
+      return 0.;
+    bool is_long = longWords ();
+    unsigned int count = regionIndices.len;
+    unsigned word_count = wordCount ();
+    unsigned int scount = is_long ? count : word_count;
+    unsigned int lcount = is_long ? word_count : 0;
+
+    const HBUINT8 *bytes = get_delta_bytes ();
+    const HBUINT8 *row = bytes + inner * get_row_size ();
+
+    float delta = 0.;
+    unsigned int i = 0;
+
+    const HBINT32 *lcursor = reinterpret_cast<const HBINT32 *> (row);
+    for (; i < lcount; i++)
+    {
+      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
+      if (scalar)
+        delta += scalar * *lcursor;
+      lcursor++;
+    }
+    const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (lcursor);
+    for (; i < scount; i++)
+    {
+      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
+      if (scalar)
+       delta += scalar * *scursor;
+      scursor++;
+    }
+    const HBINT8 *bcursor = reinterpret_cast<const HBINT8 *> (scursor);
+    for (; i < count; i++)
+    {
+      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
+      if (scalar)
+        delta += scalar * *bcursor;
+      bcursor++;
+    }
+
+    return delta;
+  }
+
+  HB_ALWAYS_INLINE
   float get_delta (unsigned int inner,
 		   const int *coords, unsigned int coord_count,
 		   const VarRegionList &regions,
 		   hb_scalar_cache_t *cache = nullptr) const
   {
-    if (unlikely (inner >= itemCount))
-      return 0.;
-
-   unsigned int count = regionIndices.len;
-   bool is_long = longWords ();
-   unsigned word_count = wordCount ();
-   unsigned int scount = is_long ? count : word_count;
-   unsigned int lcount = is_long ? word_count : 0;
-
-   const HBUINT8 *bytes = get_delta_bytes ();
-   const HBUINT8 *row = bytes + inner * get_row_size ();
-
-   float delta = 0.;
-   unsigned int i = 0;
-
-   const HBINT32 *lcursor = reinterpret_cast<const HBINT32 *> (row);
-   for (; i < lcount; i++)
-   {
-     float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
-     if (scalar)
-       delta += scalar * *lcursor;
-     lcursor++;
-   }
-   const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (lcursor);
-   for (; i < scount; i++)
-   {
-     float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
-     if (scalar)
-      delta += scalar * *scursor;
-     scursor++;
-   }
-   const HBINT8 *bcursor = reinterpret_cast<const HBINT8 *> (scursor);
-   for (; i < count; i++)
-   {
-     float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
-     if (scalar)
-       delta += scalar * *bcursor;
-     bcursor++;
-   }
-
-   return delta;
+    unsigned int count = regionIndices.len;
+    if (!count) return 0.f; // This is quite common, so optimize it.
+    return _get_delta (inner, coords, coord_count, regions, cache);
   }
 
   void get_region_scalars (const int *coords, unsigned int coord_count,
@@ -3648,13 +3658,18 @@ struct DeltaSetIndexMapFormat01
     return_trace (true);
   }
 
+  HB_ALWAYS_INLINE
   uint32_t map (unsigned int v) const /* Returns 16.16 outer.inner. */
   {
     /* If count is zero, pass value unchanged.  This takes
      * care of direct mapping for advance map. */
     if (!mapCount)
       return v;
+    return _map (v);
+  }
 
+  uint32_t _map (unsigned int v) const /* Returns 16.16 outer.inner. */
+  {
     if (v >= mapCount)
       v = mapCount - 1;
 

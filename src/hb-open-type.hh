@@ -1724,7 +1724,8 @@ struct TupleValues
   static bool decompile (const HBUINT8 *&p /* IN/OUT */,
 			 hb_vector_t<T> &values /* IN/OUT */,
 			 const HBUINT8 *end,
-			 bool consume_all = false)
+			 bool consume_all = false,
+			 unsigned start = 0)
   {
     unsigned i = 0;
     unsigned count = consume_all ? UINT_MAX : values.length;
@@ -1742,6 +1743,10 @@ struct TupleValues
       }
       unsigned stop = i + run_count;
       if (unlikely (stop > count)) return false;
+
+      unsigned skip = i < start ? hb_min (start - i, run_count) : 0;
+      i += skip;
+
       if ((control & VALUES_SIZE_MASK) == VALUES_ARE_ZEROS)
       {
         for (; i < stop; i++)
@@ -1750,6 +1755,7 @@ struct TupleValues
       else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_WORDS)
       {
         if (unlikely (p + run_count * HBINT16::static_size > end)) return false;
+	p += skip * HBINT16::static_size;
 #ifndef HB_OPTIMIZE_SIZE
         for (; i + 3 < stop; i += 4)
 	{
@@ -1772,6 +1778,7 @@ struct TupleValues
       else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_LONGS)
       {
         if (unlikely (p + run_count * HBINT32::static_size > end)) return false;
+	p += skip * HBINT32::static_size;
         for (; i < stop; i++)
         {
           values.arrayZ[i] = * (const HBINT32 *) p;
@@ -1781,6 +1788,7 @@ struct TupleValues
       else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_BYTES)
       {
         if (unlikely (p + run_count > end)) return false;
+	p += skip * HBINT8::static_size;
 #ifndef HB_OPTIMIZE_SIZE
 	for (; i + 3 < stop; i += 4)
 	{

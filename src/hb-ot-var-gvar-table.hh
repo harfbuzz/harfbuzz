@@ -701,11 +701,12 @@ struct gvar_GVAR
 	const hb_array_t<unsigned int> &indices = has_private_points ? private_indices : shared_indices;
 
 	bool apply_to_all = (indices.length == 0);
-	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
+	unsigned num_deltas = apply_to_all ? points.length : indices.length;
+	unsigned start_deltas = (phantom_only && num_deltas >= 4 ? num_deltas - 4 : 0);
 	if (unlikely (!x_deltas.resize (num_deltas, false))) return false;
-	if (unlikely (!GlyphVariationData::decompile_deltas (p, x_deltas, end))) return false;
+	if (unlikely (!GlyphVariationData::decompile_deltas (p, x_deltas, end, false, start_deltas))) return false;
 	if (unlikely (!y_deltas.resize (num_deltas, false))) return false;
-	if (unlikely (!GlyphVariationData::decompile_deltas (p, y_deltas, end))) return false;
+	if (unlikely (!GlyphVariationData::decompile_deltas (p, y_deltas, end, false, start_deltas))) return false;
 
 	if (!apply_to_all)
 	{

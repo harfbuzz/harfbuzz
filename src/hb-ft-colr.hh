@@ -90,7 +90,7 @@ struct hb_ft_paint_context_t
     funcs (paint_funcs), data (paint_data),
     palette (palette), palette_index (palette_index), foreground (foreground)
   {
-    if (font->is_synthetic ())
+    if (font->is_synthetic)
     {
       font = hb_font_create_sub_font (font);
       hb_font_set_synthetic_bold (font, 0, 0, true);
