@@ -3658,13 +3658,18 @@ struct DeltaSetIndexMapFormat01
     return_trace (true);
   }
 
+  HB_ALWAYS_INLINE
   uint32_t map (unsigned int v) const /* Returns 16.16 outer.inner. */
   {
     /* If count is zero, pass value unchanged.  This takes
      * care of direct mapping for advance map. */
     if (!mapCount)
       return v;
+    return _map (v);
+  }
 
+  uint32_t _map (unsigned int v) const /* Returns 16.16 outer.inner. */
+  {
     if (v >= mapCount)
       v = mapCount - 1;
 
