@@ -467,7 +467,7 @@ struct hb_font_t
     *x = *y = 0;
     bool ret = klass->get.f.glyph_v_origin (this, user_data,
 					    glyph, x, y,
-					    !klass->user_data ? nullptr : klass->user_data->glyph_h_origin);
+					    !klass->user_data ? nullptr : klass->user_data->glyph_v_origin);
 
     if (synthetic && ret)
     {
