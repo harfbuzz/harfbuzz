@@ -1,3 +1,9 @@
+Overview of changes leading to 11.3.2
+Sunday, July 20, 2025
+====================================
+- Fix build with non-compliant C++11 compilers that don't recognize
+  the "and" keyword.
+
 Overview of changes leading to 11.3.1
 Sunday, July 20, 2025
 ====================================
