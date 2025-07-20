@@ -554,7 +554,7 @@ typedef hb_bool_t (*hb_font_get_glyph_from_name_func_t) (hb_font_t *font, void *
  *
  * Return value: `true` if glyph was drawn, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 11.2.0
  **/
 typedef hb_bool_t (*hb_font_draw_glyph_or_fail_func_t) (hb_font_t *font, void *font_data,
 							hb_codepoint_t glyph,
@@ -576,7 +576,7 @@ typedef hb_bool_t (*hb_font_draw_glyph_or_fail_func_t) (hb_font_t *font, void *f
  *
  * Return value: `true` if glyph was painted, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 11.2.0
  */
 typedef hb_bool_t (*hb_font_paint_glyph_or_fail_func_t) (hb_font_t *font, void *font_data,
 							 hb_codepoint_t glyph,
@@ -884,7 +884,7 @@ hb_font_funcs_set_glyph_from_name_func (hb_font_funcs_t *ffuncs,
  *
  * Sets the implementation function for #hb_font_draw_glyph_or_fail_func_t.
  *
- * XSince: REPLACEME
+ * Since: 11.2.0
  **/
 HB_EXTERN void
 hb_font_funcs_set_draw_glyph_or_fail_func (hb_font_funcs_t *ffuncs,
@@ -900,7 +900,7 @@ hb_font_funcs_set_draw_glyph_or_fail_func (hb_font_funcs_t *ffuncs,
  *
  * Sets the implementation function for #hb_font_paint_glyph_or_fail_func_t.
  *
- * XSince: REPLACEME
+ * Since: 11.2.0
  */
 HB_EXTERN void
 hb_font_funcs_set_paint_glyph_or_fail_func (hb_font_funcs_t *ffuncs,
