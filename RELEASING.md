@@ -36,6 +36,7 @@
 
 - [ ] Push the commit and tag out: `git push --follow-tags`.
 
-- [ ] There should be a GitHub release automatically created.
+- [ ] There should be a GitHub release automatically created,
+      but it takes a few minutes as a bot has to build it.
       When it does, go to that release page and add description.
       The description should be the NEWS file additions.
