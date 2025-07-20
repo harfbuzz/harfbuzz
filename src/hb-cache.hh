@@ -94,14 +94,13 @@ struct hb_cache_t
     return true;
   }
 
-  bool set (unsigned int key, unsigned int value)
+  void set (unsigned int key, unsigned int value)
   {
     if (unlikely ((key >> key_bits) || (value >> value_bits)))
-      return false; /* Overflows */
+      return; /* Overflows */
     unsigned int k = key & ((1u<<cache_bits)-1);
     unsigned int v = ((key>>cache_bits)<<value_bits) | value;
     values[k] = v;
-    return true;
   }
 
   private:
