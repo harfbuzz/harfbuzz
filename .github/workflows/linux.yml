@@ -88,11 +88,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: harfbuzz
-      - name: Extract artifacts
-        run: |
-          ls -R
-          unzip harfbuzz.zip
-          ls -R
       - name: Check for release
         id: create_release
         run: |
