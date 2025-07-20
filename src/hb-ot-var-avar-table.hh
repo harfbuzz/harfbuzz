@@ -171,9 +171,9 @@ struct SegmentMaps : Array16Of<AxisValueMap>
 
     unsigned start = 0;
     unsigned end = len;
-    if (map[start].fromCoord == -1 && map[start].toCoord == -1 and map[start+1].fromCoord == -1)
+    if (map[start].fromCoord == -1 && map[start].toCoord == -1 && map[start+1].fromCoord == -1)
       start++;
-    if (map[end-1].fromCoord == +1 && map[end-1].toCoord == +1 and map[end-2].fromCoord == +1)
+    if (map[end-1].fromCoord == +1 && map[end-1].toCoord == +1 && map[end-2].fromCoord == +1)
       end--;
 
     /* Look for exact match first, and do lots of special-casing. */
