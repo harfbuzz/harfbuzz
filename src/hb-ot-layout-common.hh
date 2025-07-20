@@ -3668,6 +3668,7 @@ struct DeltaSetIndexMapFormat01
     return _map (v);
   }
 
+  HB_HOT
   uint32_t _map (unsigned int v) const /* Returns 16.16 outer.inner. */
   {
     if (v >= mapCount)
