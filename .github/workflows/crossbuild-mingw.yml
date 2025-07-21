@@ -1,4 +1,4 @@
-name: crossbuild
+name: crossbuild-mingw
 
 on:
   push:
@@ -67,7 +67,6 @@ jobs:
         uses: actions/download-artifact@v4
       - name: Rename artifacts
         run: |
-          ls -R
           for file in harfbuzz-win*.zip; do
             mv -v "$file" "${file%.zip}-${{ github.ref_name }}.zip"
           done
