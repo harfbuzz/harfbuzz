@@ -521,6 +521,7 @@ struct glyf_accelerator_t
 
   hb_glyf_scratch_t *acquire_scratch () const
   {
+    if (!has_data ()) return nullptr;
     hb_glyf_scratch_t *scratch = cached_scratch.get_acquire ();
     if (!scratch || unlikely (!cached_scratch.cmpexch (scratch, nullptr)))
     {
