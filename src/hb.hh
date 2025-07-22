@@ -239,6 +239,8 @@
 // clang defines it so no need.
 #ifdef __has_builtin
 #define hb_has_builtin __has_builtin
+#elif defined(_MSC_VER)
+#define hb_has_builtin(x) 0
 #else
 #define hb_has_builtin(x) ((defined(__GNUC__) && __GNUC__ >= 5))
 #endif
