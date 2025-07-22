@@ -445,8 +445,7 @@ struct glyf_accelerator_t
     if (coords)
     {
       hb_glyf_scratch_t *scratch = acquire_scratch ();
-      if (unlikely (!scratch))
-        return false;
+      if (unlikely (!scratch)) return false;
       bool ret = get_points (font,
 			     gid,
 			     points_aggregator_t (font, extents, nullptr, true),
@@ -493,8 +492,7 @@ struct glyf_accelerator_t
     if (!has_data ()) return false;
 
     hb_glyf_scratch_t *scratch = acquire_scratch ();
-    if (unlikely (!scratch))
-      return true;
+    if (unlikely (!scratch)) return true;
 
     bool ret = get_points (font, gid, glyf_impl::path_builder_t (font, draw_session),
 			   hb_array (font->coords,
@@ -534,6 +532,8 @@ struct glyf_accelerator_t
   }
   void release_scratch (hb_glyf_scratch_t *scratch) const
   {
+    if (!scratch)
+      return;
     if (!cached_scratch.cmpexch (nullptr, scratch))
     {
       scratch->~hb_glyf_scratch_t ();
