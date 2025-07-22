@@ -191,7 +191,7 @@ static const struct thai_above_state_machine_edge_t {
 };
 
 
-static enum thai_below_state_t
+static const enum thai_below_state_t
 {
   B0, /* No descender */
   B1, /* Removable descender */
