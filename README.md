@@ -119,7 +119,7 @@ transliterated using the Latin script. It also means "talkative" or
 [2]: https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6AATIntro.html
 [3]: https://github.com/harfbuzz/harfbuzz/releases
 [4]: https://github.com/harfbuzz/harfbuzz
-[6]: http://behdad.org/text2024
+[6]: https://behdad.org/text2024
 [7]: https://docs.google.com/presentation/d/1x97pfbB1gbD53Yhz6-_yBUozQMVJ_5yMqqR_D-R7b7I/preview
 [8]: https://docs.google.com/presentation/d/1ySTZaXP5XKFg0OpmHZM00v5b17GSr3ojnzJekl4U8qI/preview
 [9]: https://behdad.org/doc/harfbuzz2009-slides.pdf
