@@ -187,6 +187,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned this_index;
     unsigned original_count_;
     hb_vector_t<unsigned> liga_counts;
+    hb_vector_t<hb_vector_t<unsigned>> liga_index_to_object_id;
 
     unsigned original_count ()
     {
@@ -195,7 +196,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     unsigned clone_range (unsigned start, unsigned end)
     {
-      return thiz->clone_range (c, this_index, liga_counts, start, end);
+      return thiz->clone_range (c, liga_index_to_object_id, this_index, liga_counts, start, end);
     }
 
     bool shrink (unsigned count)
@@ -271,6 +272,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
   }
 
   unsigned clone_range (gsubgpos_graph_context_t& c,
+                        hb_vector_t<hb_vector_t<unsigned>>& liga_index_to_object_id,
                         unsigned this_index,
                         hb_vector_t<unsigned> liga_counts,
                         unsigned start, unsigned end) const
@@ -354,7 +356,11 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         LigatureSet* prime = result.second;
         if (liga_set_prime_id == (unsigned) -1) return -1;
 
-        auto index_to_id = ligature_index_to_object_id(liga_set);
+        if (!liga_index_to_object_id.length)
+          liga_index_to_object_id.resize_exact(liga_counts.length);
+        auto& index_to_id = liga_index_to_object_id[i];
+        if (!index_to_id.length)
+          index_to_id = ligature_index_to_object_id(liga_set);
         if (index_to_id.in_error()) return -1;
 
         unsigned new_index = 0;
