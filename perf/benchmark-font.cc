@@ -237,6 +237,9 @@ static void BM_Font (benchmark::State &state,
     }
     case load_face_and_shape:
     {
+      const char *text = getenv ("HB_BENCHMARK_TEXT");
+      if (!text || !*text)
+        text = " ";
       for (auto _ : state)
       {
 	hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
@@ -253,7 +256,7 @@ static void BM_Font (benchmark::State &state,
 	}
 
 	hb_buffer_t *buffer = hb_buffer_create ();
-	hb_buffer_add_utf8 (buffer, " ", -1, 0, -1);
+	hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
 	hb_buffer_guess_segment_properties (buffer);
 
 	hb_shape (font, buffer, nullptr, 0);
