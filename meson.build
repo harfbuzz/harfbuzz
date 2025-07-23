@@ -212,6 +212,11 @@ if get_option('harfrust').enabled()
   harfrust_dep_found = true
 endif
 
+kbts_dep = null_dep
+if get_option('kbts').enabled()
+  kbts_dep = subproject('kbts').get_variable('kbts_dep')
+endif
+
 conf = configuration_data()
 incconfig = include_directories('.')
 
@@ -259,6 +264,10 @@ endif
 
 if harfrust_dep_found
   conf.set('HAVE_HARFRUST', 1)
+endif
+
+if kbts_dep.found()
+  conf.set('HAVE_KBTS', 1)
 endif
 
 if wasm_dep.found()
@@ -493,6 +502,7 @@ build_summary = {
      'DirectWrite': conf.get('HAVE_DIRECTWRITE', 0) == 1,
      'GDI/Uniscribe': (conf.get('HAVE_GDI', 0) == 1) and (conf.get('HAVE_UNISCRIBE', 0) == 1),
      'HarfRust': conf.get('HAVE_HARFRUST', 0) == 1,
+     'kbts': conf.get('HAVE_KBTS', 0) == 1,
     },
   'Other features':
     {'Utilities': not get_option('utilities').disabled(),

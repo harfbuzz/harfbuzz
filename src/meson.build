@@ -343,6 +343,9 @@ hb_fontations_headers = files('hb-fontations.h')
 hb_harfrust_sources = files('hb-harfrust.cc')
 hb_harfrust_headers = files()
 
+hb_kbts_sources = files('hb-kbts.cc')
+hb_kbts_headers = files()
+
 hb_glib_sources = files('hb-glib.cc')
 hb_glib_headers = files('hb-glib.h')
 
@@ -549,6 +552,12 @@ endif
 if conf.get('HAVE_HARFRUST', 0) == 1
   hb_sources += hb_harfrust_sources
   hb_headers += hb_harfrust_headers
+endif
+
+if conf.get('HAVE_KBTS', 0) == 1
+  hb_sources += hb_kbts_sources
+  hb_headers += hb_kbts_headers
+  harfbuzz_deps += [kbts_dep]
 endif
 
 have_icu = conf.get('HAVE_ICU', 0) == 1
