@@ -1,0 +1,8 @@
+@shapers=kbts
+../fonts/872d2955d326bd6676a06f66b8238ebbaabc212f.ttf;;U+0628,U+0628,U+0628;[uni0628.fina=0+883|uni0628.medi_High=0+244|uni0628.init_High=0+233]
+../fonts/872d2955d326bd6676a06f66b8238ebbaabc212f.ttf;--features=-calt[0];U+0628,U+0628,U+0628,U+0628,U+0628;[uni0628.fina=0+883|uni0628.medi=0+244|uni0628.medi_High=0+244|uni0628.medi=0+244|uni0628.init=0+190]
+../fonts/872d2955d326bd6676a06f66b8238ebbaabc212f.ttf;--features=-calt;U+0628,U+0628,U+0628,U+0628,U+0628;[uni0628.fina=0+883|uni0628.medi=0+244|uni0628.medi=0+244|uni0628.medi=0+244|uni0628.init=0+190]
+../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;;U+0066,U+0066,U+0069;[f_f_i=0+795]
+../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;--features=-liga;U+0066,U+0066,U+0069;[f=0+300|f=0+300|i=0+263]
+../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;;U+0648,U+0628,U+0627;[alef-ar.fina=0+229|beh-ar.init=0+190|waw-ar=0@83,0+483]
+#../fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf;--features=ss01;U+0648,U+0628,U+0627;[alef-ar.fina=0+229|beh-ar.init.LD=0+190|waw-ar=0+400]
