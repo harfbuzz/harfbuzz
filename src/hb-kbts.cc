@@ -1,6 +1,4 @@
 /*
- * Copyright © 2012  Google, Inc.
- *
  *  This is part of HarfBuzz, a text shaping library.
  *
  * Permission is hereby granted, without written agreement and without
@@ -21,53 +19,55 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Behdad Esfahbod
+ * Author(s): Khaled Hosny
  */
 
-#ifndef HB_SHAPER_LIST_HH
-#define HB_SHAPER_LIST_HH
-#endif /* HB_SHAPER_LIST_HH */ /* Dummy header guards */
+#include "hb.hh"
 
-#ifndef HB_NO_SHAPER
+#if HAVE_KBTS
+
+#include "hb-shaper-impl.hh"
+
+#define KB_TEXT_SHAPE_IMPLEMENTATION
+#define KB_TEXT_SHAPE_STATIC
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#include "kb_text_shape.h"
+#pragma GCC diagnostic pop
 
 
-/* v--- Add new shapers in the right place here. */
+hb_kbts_face_data_t *
+_hb_kbts_shaper_face_data_create (hb_face_t *face)
+{
+  return nullptr;
+}
 
-#ifdef HAVE_WASM
-/* Only picks up fonts that have a "Wasm" table. */
-HB_SHAPER_IMPLEMENT (wasm)
-#endif
+void
+_hb_kbts_shaper_face_data_destroy (hb_kbts_face_data_t *data)
+{
+}
 
-#ifdef HAVE_GRAPHITE2
-/* Only picks up fonts that have a "Silf" table. */
-HB_SHAPER_IMPLEMENT (graphite2)
-#endif
+hb_kbts_font_data_t *
+_hb_kbts_shaper_font_data_create (hb_font_t *font)
+{
+  return nullptr;
+}
 
-#ifndef HB_NO_OT_SHAPE
-HB_SHAPER_IMPLEMENT (ot) /* <--- This is our main shaper. */
-#endif
+void
+_hb_kbts_shaper_font_data_destroy (hb_kbts_font_data_t *data)
+{
+}
 
-#ifdef HAVE_UNISCRIBE
-HB_SHAPER_IMPLEMENT (uniscribe)
-#endif
-#ifdef HAVE_DIRECTWRITE
-HB_SHAPER_IMPLEMENT (directwrite)
-#endif
-#ifdef HAVE_CORETEXT
-HB_SHAPER_IMPLEMENT (coretext)
-#endif
-
-#ifdef HAVE_HARFRUST
-HB_SHAPER_IMPLEMENT (harfrust)
-#endif
-
-#ifdef HAVE_KBTS
-HB_SHAPER_IMPLEMENT (kbts)
-#endif
-
-#ifndef HB_NO_FALLBACK_SHAPE
-HB_SHAPER_IMPLEMENT (fallback) /* <--- This should be last. */
-#endif
-
+hb_bool_t
+_hb_kbts_shape (hb_shape_plan_t    *shape_plan,
+		hb_font_t          *font,
+		hb_buffer_t        *buffer,
+		const hb_feature_t *features,
+		unsigned int        num_features)
+{
+  return false;
+}
 
 #endif

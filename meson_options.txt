@@ -25,6 +25,8 @@ option('coretext', type: 'feature', value: 'disabled',
   description: 'Enable CoreText shaper and font backend on Apple platforms')
 option('harfrust', type: 'feature', value: 'disabled',
   description: 'Enable HarfRust shaper backend')
+option('kbts', type: 'feature', value: 'disabled',
+  description: 'Enable kb_text_shape backend')
 option('wasm', type: 'feature', value: 'disabled',
   description: 'Enable WebAssembly shaper backend (experimental)')
 
