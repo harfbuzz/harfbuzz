@@ -32,6 +32,7 @@
 #include "../OT/Layout/GSUB/LigatureSubstFormat1.hh"
 #include "../OT/Layout/GSUB/LigatureSet.hh"
 #include "../OT/Layout/types.hh"
+#include "hb-map.hh"
 #include <algorithm>
 #include <utility>
 
@@ -105,6 +106,24 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     return result;
   }
 
+  hb_vector_t<unsigned> ligature_index_to_object_id(const graph_t::vertex_and_table_t<LigatureSet>& liga_set) const {
+    hb_vector_t<unsigned> map;
+    map.resize_exact(liga_set.table->ligature.len);
+    if (map.in_error()) return hb_vector_t<unsigned>();
+
+    for (unsigned i = 0; i < map.length; i++) {
+      map[i] = (unsigned) -1;
+    }
+
+    for (const auto& l : liga_set.vertex->obj.real_links) {
+      if (l.position < 2) continue;
+      unsigned array_index = (l.position - 2) / 2;
+      if (array_index >= map.length) continue;
+      map[array_index] = l.objidx;
+    }
+    return map;
+  }
+
   hb_vector_t<unsigned> compute_split_points(gsubgpos_graph_context_t& c,
                                              unsigned parent_index,
                                              unsigned this_index) const
@@ -128,9 +147,16 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         return hb_vector_t<unsigned> {};
       }
 
+      // Finding the object id associated with an array index is O(n)
+      // so to avoid O(n^2), precompute the mapping by scanning through
+      // all links
+      auto index_to_id = ligature_index_to_object_id(liga_set);
+      if (index_to_id.in_error()) return hb_vector_t<unsigned>();
+
       for (unsigned j = 0; j < liga_set.table->ligature.len; j++)
       {
-        const unsigned liga_id = c.graph.index_for_offset (liga_set.index, &liga_set.table->ligature[j]);
+        const unsigned liga_id = index_to_id[j];
+        if (liga_id == (unsigned) -1) continue; // no outgoing link, ignore
         const unsigned liga_size = c.graph.vertices_[liga_id].table_size ();
 
         accumulated += OT::HBUINT16::static_size; // for ligature offset
@@ -153,7 +179,6 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     return split_points;
   }
-
 
   struct split_context_t
   {
