@@ -49,6 +49,7 @@ jobs:
           -Dauto_features=enabled \
           -Dchafa=disabled \
           -Dgraphite=enabled \
+          -Dkbts=enabled \
           -Doptimization=2 \
           -Ddoc_tests=true \
           -Dragel_subproject=true
