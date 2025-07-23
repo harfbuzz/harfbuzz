@@ -32,7 +32,6 @@
 #include "../OT/Layout/GSUB/LigatureSubstFormat1.hh"
 #include "../OT/Layout/GSUB/LigatureSet.hh"
 #include "../OT/Layout/types.hh"
-#include "hb-map.hh"
 #include <algorithm>
 #include <utility>
 
@@ -109,7 +108,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
   hb_vector_t<unsigned> ligature_index_to_object_id(const graph_t::vertex_and_table_t<LigatureSet>& liga_set) const {
     hb_vector_t<unsigned> map;
     map.resize_exact(liga_set.table->ligature.len);
-    if (map.in_error()) return hb_vector_t<unsigned>();
+    if (map.in_error()) return map;
 
     for (unsigned i = 0; i < map.length; i++) {
       map[i] = (unsigned) -1;
@@ -118,7 +117,6 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     for (const auto& l : liga_set.vertex->obj.real_links) {
       if (l.position < 2) continue;
       unsigned array_index = (l.position - 2) / 2;
-      if (array_index >= map.length) continue;
       map[array_index] = l.objidx;
     }
     return map;
@@ -187,7 +185,6 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     unsigned this_index;
     unsigned original_count_;
     hb_vector_t<unsigned> liga_counts;
-    hb_vector_t<hb_vector_t<unsigned>> liga_index_to_object_id;
 
     unsigned original_count ()
     {
@@ -196,7 +193,7 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
 
     unsigned clone_range (unsigned start, unsigned end)
     {
-      return thiz->clone_range (c, liga_index_to_object_id, this_index, liga_counts, start, end);
+      return thiz->clone_range (c, this_index, liga_counts, start, end);
     }
 
     bool shrink (unsigned count)
@@ -272,7 +269,6 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
   }
 
   unsigned clone_range (gsubgpos_graph_context_t& c,
-                        hb_vector_t<hb_vector_t<unsigned>>& liga_index_to_object_id,
                         unsigned this_index,
                         hb_vector_t<unsigned> liga_counts,
                         unsigned start, unsigned end) const
@@ -350,30 +346,19 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       {
         // This liga set partially overlaps [start, end). We'll need to create
         // a new liga set sub table and move the intersecting ligas to it.
-        unsigned liga_count = hb_min(end, current_end) - hb_max(start, current_start);
+        unsigned start_index = hb_max(start, current_start) - count;
+        unsigned end_index = hb_min(end, current_end) - count;
+        unsigned liga_count = end_index - start_index;
         auto result = new_liga_set(c, liga_count);
         liga_set_prime_id = result.first;
-        LigatureSet* prime = result.second;
         if (liga_set_prime_id == (unsigned) -1) return -1;
 
-        if (!liga_index_to_object_id.length)
-          liga_index_to_object_id.resize_exact(liga_counts.length);
-        auto& index_to_id = liga_index_to_object_id[i];
-        if (!index_to_id.length)
-          index_to_id = ligature_index_to_object_id(liga_set);
-        if (index_to_id.in_error()) return -1;
-
-        unsigned new_index = 0;
-        for (unsigned j = hb_max(start, current_start) - count; j < hb_min(end, current_end) - count; j++)
-        {
-          unsigned liga_index = index_to_id[j];
-          if (liga_index == (unsigned) -1) continue;
-          c.graph.move_child<> (liga_set_index,
-                                &liga_set.table->ligature[j],
-                                liga_set_prime_id,
-                                &prime->ligature[new_index++],
-                                liga_index);
-        }
+        c.graph.move_children<OT::Offset16>(
+          liga_set_index,
+          2 + start_index * 2,
+          2 + end_index * 2,
+          liga_set_prime_id,
+          2);
 
         liga_set_end = i;
         if (i < liga_set_start) liga_set_start = i;

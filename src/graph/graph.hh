@@ -967,8 +967,7 @@ struct graph_t
   unsigned move_child (unsigned old_parent_idx,
                        const O* old_offset,
                        unsigned new_parent_idx,
-                       const O* new_offset,
-                       unsigned child_id = -1)
+                       const O* new_offset)
   {
     distance_invalid = true;
     positions_invalid = true;
@@ -976,10 +975,8 @@ struct graph_t
     auto& old_v = vertices_[old_parent_idx];
     auto& new_v = vertices_[new_parent_idx];
 
-    if (child_id == (unsigned) -1) {
-      child_id = index_for_offset (old_parent_idx,
-                                   old_offset);
-    }
+    unsigned child_id = index_for_offset (old_parent_idx,
+                                          old_offset);
 
     auto* new_link = new_v.obj.real_links.push ();
     new_link->width = O::static_size;
@@ -993,6 +990,50 @@ struct graph_t
     child.remove_parent (old_parent_idx);
 
     return child_id;
+  }
+
+  /*
+   * Moves all outgoing links in old parent that have
+   * a link position between [old_post_start, old_pos_end)
+   * to the new parent. Links are placed serially in the new
+   * parent starting at new_pos_start.
+   */
+  template<typename O>
+  void move_children (unsigned old_parent_idx,
+                      unsigned old_pos_start,
+                      unsigned old_pos_end,
+                      unsigned new_parent_idx,
+                      unsigned new_pos_start)
+  {
+    distance_invalid = true;
+    positions_invalid = true;
+
+    auto& old_v = vertices_[old_parent_idx];
+    auto& new_v = vertices_[new_parent_idx];
+
+    hb_vector_t<hb_serialize_context_t::object_t::link_t> old_links;
+    for (const auto& l : old_v.obj.real_links)
+    {
+      if (l.position < old_pos_start || l.position >= old_pos_end)
+      {
+        old_links.push(l);
+        continue;
+      }
+
+      unsigned array_pos = l.position - old_pos_start;
+
+      unsigned child_id = l.objidx;
+      auto* new_link = new_v.obj.real_links.push ();
+      new_link->width = O::static_size;
+      new_link->objidx = child_id;
+      new_link->position = new_pos_start + array_pos;
+
+      auto& child = vertices_[child_id];
+      child.add_parent (new_parent_idx, false);
+      child.remove_parent (old_parent_idx);
+    }
+
+    old_v.obj.real_links = std::move (old_links);
   }
 
   /*
