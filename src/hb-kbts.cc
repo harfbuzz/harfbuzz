@@ -149,15 +149,22 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   kbts_script kb_script = KBTS_SCRIPT_DONT_KNOW;
   kbts_language kb_language = KBTS_LANGUAGE_DEFAULT;
   {
-    hb_tag_t script;
+    hb_tag_t scripts[HB_OT_MAX_TAGS_PER_SCRIPT];
     hb_tag_t language;
-    unsigned int script_count = 1;
+    unsigned int script_count = ARRAY_LENGTH (scripts);
     unsigned int language_count = 1;
+
     hb_ot_tags_from_script_and_language (buffer->props.script, buffer->props.language,
-					 &script_count, &script,
+					 &script_count, scripts,
 					 &language_count, &language);
-    if (script_count)
-      kb_script = kbts_ScriptTagToScript (hb_uint32_swap (script));
+
+    for (unsigned int i = 0; i < script_count && scripts[i] != HB_TAG_NONE; ++i)
+    {
+      kb_script = kbts_ScriptTagToScript (hb_uint32_swap (scripts[i]));
+      if (kb_script != KBTS_SCRIPT_DONT_KNOW)
+        break;
+    }
+
     if (language_count)
       kb_language = (kbts_language) hb_uint32_swap (language);
   }
