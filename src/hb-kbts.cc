@@ -171,7 +171,27 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
 
   if (num_features)
   {
-    // TODO
+    for (unsigned int i = 0; i < num_features; ++i)
+    {
+      hb_feature_t feature = features[i];
+      for (unsigned int j = 0; j < kb_glyphs.length; ++j)
+      {
+	kbts_glyph *kb_glyph = &kb_glyphs.arrayZ[j];
+	if (hb_in_range (j, feature.start, feature.end))
+	{
+	  if (!kb_glyph->Config)
+	    kb_glyph->Config = (kbts_glyph_config *) hb_calloc (1, sizeof (kbts_glyph_config));
+	  kbts_glyph_config *config = kb_glyph->Config;
+	  while (!kbts_GlyphConfigOverrideFeatureFromTag (config, hb_uint32_swap (feature.tag),
+	                                                  feature.value > 1, feature.value))
+	  {
+	    config->FeatureOverrides = (kbts_feature_override *) hb_realloc (config->FeatureOverrides,
+									     config->RequiredFeatureOverrideCapacity);
+	    config->FeatureOverrideCapacity += 1;
+	  }
+	}
+      }
+    }
   }
 
   kbts_shape_state *kb_shape_state;
@@ -205,6 +225,9 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
     pos[i].y_advance = font->em_scalef_y (kb_glyph.AdvanceY);
     pos[i].x_offset = font->em_scalef_x (kb_glyph.OffsetX);
     pos[i].y_offset = font->em_scalef_y (kb_glyph.OffsetY);
+
+    if (kb_glyph.Config)
+      hb_free (kb_glyph.Config->FeatureOverrides);
   }
 
   hb_free (kb_shape_state);
