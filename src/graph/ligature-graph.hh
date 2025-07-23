@@ -417,8 +417,12 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
       // duplicated. Code later on will re-add the virtual links as needed (via retained_indices).
       clear_virtual_links(c, liga_set.index);
       retained_indices.add(liga_set.index);
-      for (const auto& liga_offset : liga_set.table->ligature) {
-        unsigned liga_index = c.graph.index_for_offset(liga_set.index, &liga_offset);
+
+      auto index_to_id = ligature_index_to_object_id(liga_set);
+      if (index_to_id.in_error()) return false;
+
+      for (unsigned i = 0; i < liga_set.table->ligature.len; i++) {
+        unsigned liga_index = index_to_id[i];
         if (liga_index != (unsigned) -1) {
           clear_virtual_links(c, liga_index);
           retained_indices.add(liga_index);
