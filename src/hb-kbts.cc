@@ -218,7 +218,10 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
       return false;
   }
 
+  hb_buffer_clear_contents (buffer);
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
   hb_buffer_set_length (buffer, glyph_count);
+
   hb_glyph_info_t *info = buffer->info;
   hb_glyph_position_t *pos = buffer->pos;
 
@@ -238,6 +241,9 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   }
 
   hb_free (kb_shape_state);
+
+  buffer->clear_glyph_flags ();
+  buffer->unsafe_to_break ();
 
   return true;
 }
