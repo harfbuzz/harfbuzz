@@ -394,6 +394,10 @@ struct hb_no_trace_t {
 #define HB_DEBUG_WASM (HB_DEBUG+0)
 #endif
 
+#ifndef HB_DEBUG_KBTS
+#define HB_DEBUG_KBTS (HB_DEBUG+0)
+#endif
+
 /*
  * With tracing.
  */
