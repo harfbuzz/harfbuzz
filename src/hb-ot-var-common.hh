@@ -1459,9 +1459,10 @@ struct TupleVariationData
   static bool decompile_deltas (const HBUINT8 *&p /* IN/OUT */,
 				hb_vector_t<T> &deltas /* IN/OUT */,
 				const HBUINT8 *end,
-				bool consume_all = false)
+				bool consume_all = false,
+				unsigned start = 0)
   {
-    return TupleValues::decompile (p, deltas, end, consume_all);
+    return TupleValues::decompile (p, deltas, end, consume_all, start);
   }
 
   bool has_data () const { return tupleVarCount; }

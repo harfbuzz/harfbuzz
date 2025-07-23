@@ -93,7 +93,7 @@ if get_option('tests').enabled() and cargo.found()
       ] + cargo_args + [
       '--', '-D', 'warnings',
     ],
-    timeout: 120,
+    timeout: 300,
   )
 endif
 

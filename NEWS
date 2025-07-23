@@ -1,3 +1,41 @@
+Overview of changes leading to 11.3.2
+Sunday, July 20, 2025
+====================================
+- Fix build with non-compliant C++11 compilers that don't recognize
+  the "and" keyword.
+
+Overview of changes leading to 11.3.1
+Sunday, July 20, 2025
+====================================
+- Fix crasher in the glyph_v_origin function introduced in
+  11.3.0.
+
+Overview of changes leading to 11.3.0
+Sunday, July 20, 2025
+====================================
+- Speed up handling fonts with very large number of variations:
+  - Drawing by up to 40%.
+  - Calculating glyph extents by up to 15%.
+  - Getting horizontal glyph advances by up to 45%.
+- Speed up getting horizontal and vertical glyph advances by up to 24%.
+- Significantly speed up vertical text shaping.
+- Various documentation improvements.
+- Various build improvements.
+- Various subsetting improvements.
+- Various improvements to Rust font functions (fontations integration) and shaper (HarfRust integration).
+- Rename harfruzz option and shaper to harfrust following upstream rename.
+- Implement hb_face_reference_blob() for DirectWrite font functions.
+
+- New API:
+  +hb_font_get_glyph_origins_func_t
+  +hb_font_get_glyph_h_origins_func_t
+  +hb_font_get_glyph_v_origins_func_t
+  +hb_font_funcs_set_glyph_h_origins_func()
+  +hb_font_funcs_set_glyph_v_origins_func()
+  +hb_font_get_glyph_h_origins()
+  +hb_font_get_glyph_v_origins()
+
+
 Overview of changes leading to 11.2.1
 Monday, May 12, 2025
 ====================================

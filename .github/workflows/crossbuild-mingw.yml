@@ -1,13 +1,14 @@
-name: crossbuild
+name: crossbuild-mingw
 
 on:
   push:
     branches: [ main ]
+    tags: ["*.*.*"]
   pull_request:
     branches: [ main ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -66,7 +67,6 @@ jobs:
         uses: actions/download-artifact@v4
       - name: Rename artifacts
         run: |
-          ls -R
           for file in harfbuzz-win*.zip; do
             mv -v "$file" "${file%.zip}-${{ github.ref_name }}.zip"
           done
@@ -74,7 +74,7 @@ jobs:
         id: create_release
         run: |
           if ! gh release view ${{ github.ref_name }}; then
-            git show -s --format=%B ${{ github.ref_name }} | tail -n +4 | gh release create ${{ github.ref_name }} -t ${{ github.ref_name }} -F -
+            gh release create ${{ github.ref_name }} --title ${{ github.ref_name }} --draft
           fi
       - name: Populate release
         run: |

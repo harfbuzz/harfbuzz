@@ -91,11 +91,13 @@ struct AnchorFormat3
       }
     }
 
-    /* in case that all axes are pinned or no variations after instantiation,
-     * both var_idxes will be mapped to HB_OT_LAYOUT_NO_VARIATIONS_INDEX */
-    if (x_varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX &&
-        y_varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX &&
-        c->plan->normalized_coords)
+
+    bool no_downgrade = (!xDeviceTable.is_null () && !(this+xDeviceTable).is_variation_device ()) ||
+                        x_varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX ||
+                        y_varidx != HB_OT_LAYOUT_NO_VARIATIONS_INDEX ||
+                        (!yDeviceTable.is_null () && !(this+yDeviceTable).is_variation_device ());
+
+    if (!no_downgrade)
       return_trace (c->serializer->check_assign (out->format, 1, HB_SERIALIZE_ERROR_INT_OVERFLOW));
 
     if (!c->serializer->embed (xDeviceTable)) return_trace (false);

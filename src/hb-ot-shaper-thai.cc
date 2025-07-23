@@ -163,7 +163,7 @@ thai_pua_shape (hb_codepoint_t u, thai_action_t action, hb_font_t *font)
 }
 
 
-static enum thai_above_state_t
+static const enum thai_above_state_t
 {     /* Cluster above looks like: */
   T0, /*  ⣤                      */
   T1, /*     ⣼                   */
@@ -191,7 +191,7 @@ static const struct thai_above_state_machine_edge_t {
 };
 
 
-static enum thai_below_state_t
+static const enum thai_below_state_t
 {
   B0, /* No descender */
   B1, /* Removable descender */

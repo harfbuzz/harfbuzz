@@ -284,6 +284,8 @@ struct HVARVVAR
   static constexpr hb_tag_t HVARTag = HB_OT_TAG_HVAR;
   static constexpr hb_tag_t VVARTag = HB_OT_TAG_VVAR;
 
+  bool has_data () const { return version.major != 0; }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -382,6 +384,7 @@ struct HVARVVAR
 						hvar_plan.index_map_plans.as_array ()));
   }
 
+  HB_ALWAYS_INLINE
   float get_advance_delta_unscaled (hb_codepoint_t  glyph,
 				    const int *coords, unsigned int coord_count,
 				    hb_scalar_cache_t *store_cache = nullptr) const
@@ -390,16 +393,6 @@ struct HVARVVAR
     return (this+varStore).get_delta (varidx,
 				      coords, coord_count,
 				      store_cache);
-  }
-
-  bool get_lsb_delta_unscaled (hb_codepoint_t glyph,
-			       const int *coords, unsigned int coord_count,
-			       float *lsb) const
-  {
-    if (!lsbMap) return false;
-    uint32_t varidx = (this+lsbMap).map (glyph);
-    *lsb = (this+varStore).get_delta (varidx, coords, coord_count);
-    return true;
   }
 
   public:
@@ -454,14 +447,16 @@ struct VVAR : HVARVVAR {
 
   bool subset (hb_subset_context_t *c) const { return HVARVVAR::_subset<VVAR> (c); }
 
-  bool get_vorg_delta_unscaled (hb_codepoint_t glyph,
-				const int *coords, unsigned int coord_count,
-				float *delta) const
+  HB_ALWAYS_INLINE
+  float get_vorg_delta_unscaled (hb_codepoint_t glyph,
+				 const int *coords, unsigned int coord_count,
+				 hb_scalar_cache_t *store_cache = nullptr) const
   {
-    if (!vorgMap) return false;
+    if (!vorgMap) return 0.f;
     uint32_t varidx = (this+vorgMap).map (glyph);
-    *delta = (this+varStore).get_delta (varidx, coords, coord_count);
-    return true;
+    return (this+varStore).get_delta (varidx,
+				      coords, coord_count,
+				      store_cache);
   }
 
   protected:

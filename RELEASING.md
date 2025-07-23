@@ -36,6 +36,5 @@
 
 - [ ] Push the commit and tag out: `git push --follow-tags`.
 
-- [ ] There should be a GitHub release automatically created.
-      When it does, go to that release page and add description.
-      The description should be the NEWS file additions.
+- [ ] Go to GitHub releases page and create a new release for the pushed tag. Or wait a few minutes and the CI job will create on automatically.
+      Add description to the release, which should be the NEWS file additions.
