@@ -36,6 +36,29 @@ static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 const char *variation = nullptr;
 const char *direction = nullptr;
 
+static void shape (hb_buffer_t *buf,
+		   hb_font_t *font,
+		   const char *text,
+		   unsigned text_length,
+		   const char *shaper)
+{
+  const char *end;
+  while ((end = (const char *) memchr (text, '\n', text_length)))
+  {
+    hb_buffer_clear_contents (buf);
+    hb_buffer_add_utf8 (buf, text, text_length, 0, end - text);
+    hb_buffer_guess_segment_properties (buf);
+    if (direction)
+      hb_buffer_set_direction (buf, hb_direction_from_string (direction, -1));
+    const char *shaper_list[] = {shaper, nullptr};
+    hb_shape_full (font, buf, nullptr, 0, shaper_list);
+
+    unsigned skip = end - text + 1;
+    text_length -= skip;
+    text += skip;
+  }
+}
+
 static void BM_Shape (benchmark::State &state,
 		      const char *shaper,
 		      const test_input_t &input)
@@ -57,31 +80,17 @@ static void BM_Shape (benchmark::State &state,
 
   hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
   assert (text_blob);
-  unsigned orig_text_length;
-  const char *orig_text = hb_blob_get_data (text_blob, &orig_text_length);
+  unsigned text_length;
+  const char *text = hb_blob_get_data (text_blob, &text_length);
 
   hb_buffer_t *buf = hb_buffer_create ();
+
+  // Shape once, to initialize the font and buffer.
+  shape (buf, font, text, text_length, shaper);
+
   for (auto _ : state)
-  {
-    unsigned text_length = orig_text_length;
-    const char *text = orig_text;
+    shape (buf, font, text, text_length, shaper);
 
-    const char *end;
-    while ((end = (const char *) memchr (text, '\n', text_length)))
-    {
-      hb_buffer_clear_contents (buf);
-      hb_buffer_add_utf8 (buf, text, text_length, 0, end - text);
-      hb_buffer_guess_segment_properties (buf);
-      if (direction)
-	hb_buffer_set_direction (buf, hb_direction_from_string (direction, -1));
-      const char *shaper_list[] = {shaper, nullptr};
-      hb_shape_full (font, buf, nullptr, 0, shaper_list);
-
-      unsigned skip = end - text + 1;
-      text_length -= skip;
-      text += skip;
-    }
-  }
   hb_buffer_destroy (buf);
 
   hb_blob_destroy (text_blob);
