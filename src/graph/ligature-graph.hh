@@ -354,12 +354,19 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
         LigatureSet* prime = result.second;
         if (liga_set_prime_id == (unsigned) -1) return -1;
 
+        auto index_to_id = ligature_index_to_object_id(liga_set);
+        if (index_to_id.in_error()) return -1;
+
         unsigned new_index = 0;
-        for (unsigned j = hb_max(start, current_start) - count; j < hb_min(end, current_end) - count; j++) {
+        for (unsigned j = hb_max(start, current_start) - count; j < hb_min(end, current_end) - count; j++)
+        {
+          unsigned liga_index = index_to_id[j];
+          if (liga_index == (unsigned) -1) continue;
           c.graph.move_child<> (liga_set_index,
                                 &liga_set.table->ligature[j],
                                 liga_set_prime_id,
-                                &prime->ligature[new_index++]);
+                                &prime->ligature[new_index++],
+                                liga_index);
         }
 
         liga_set_end = i;

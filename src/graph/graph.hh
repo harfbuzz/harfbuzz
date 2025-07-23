@@ -965,9 +965,10 @@ struct graph_t
    */
   template<typename O>
   unsigned move_child (unsigned old_parent_idx,
-                   const O* old_offset,
-                   unsigned new_parent_idx,
-                   const O* new_offset)
+                       const O* old_offset,
+                       unsigned new_parent_idx,
+                       const O* new_offset,
+                       unsigned child_id = -1)
   {
     distance_invalid = true;
     positions_invalid = true;
@@ -975,8 +976,10 @@ struct graph_t
     auto& old_v = vertices_[old_parent_idx];
     auto& new_v = vertices_[new_parent_idx];
 
-    unsigned child_id = index_for_offset (old_parent_idx,
-                                          old_offset);
+    if (child_id == (unsigned) -1) {
+      child_id = index_for_offset (old_parent_idx,
+                                   old_offset);
+    }
 
     auto* new_link = new_v.obj.real_links.push ();
     new_link->width = O::static_size;
