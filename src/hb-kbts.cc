@@ -221,7 +221,6 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
       return false;
   }
 
-  hb_buffer_clear_contents (buffer);
   hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
   hb_buffer_set_length (buffer, glyph_count);
 
