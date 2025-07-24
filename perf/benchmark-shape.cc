@@ -91,7 +91,7 @@ static void BM_Shape (benchmark::State &state,
   bool ret = shape (buf, font, text, text_length, shaper);
   if (!ret)
   {
-    state.SkipWithError ("Shaper does not support this font.");
+    state.SkipWithError ("Shaping failed.");
     goto done;
   }
 
