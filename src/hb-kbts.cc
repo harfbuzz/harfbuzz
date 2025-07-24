@@ -44,13 +44,6 @@
 hb_kbts_face_data_t *
 _hb_kbts_shaper_face_data_create (hb_face_t *face)
 {
-  kbts_font *kb_font = nullptr;
-  void *data = nullptr;
-  void *scratch = nullptr;
-  void *memory = nullptr;
-  size_t scratch_size = 0;
-  size_t memory_size = 0;
-
   hb_blob_t *blob = hb_face_reference_blob (face);
 
   unsigned int blob_length;
@@ -58,45 +51,47 @@ _hb_kbts_shaper_face_data_create (hb_face_t *face)
   if (unlikely (!blob_length))
   {
     DEBUG_MSG (KBTS, blob, "Empty blob");
-    goto fail;
+    hb_blob_destroy (blob);
+    return nullptr;
   }
 
-  data = hb_malloc (blob_length);
-  if (unlikely (!data))
-    goto fail;
+  void *data = hb_malloc (blob_length);
+  if (likely (data))
+    hb_memcpy (data, blob_data, blob_length);
 
-  kb_font = (kbts_font *) hb_calloc (1, sizeof (kbts_font));
+  hb_blob_destroy (blob);
+  blob = nullptr;
+
+  if (unlikely (!data))
+  {
+    DEBUG_MSG (KBTS, face, "Failed to allocate memory for font data");
+    return nullptr;
+  }
+
+  kbts_font *kb_font = (kbts_font *) hb_calloc (1, sizeof (kbts_font));
   if (unlikely (!kb_font))
   {
     hb_free (data);
-    goto fail;
+    return nullptr;
   }
 
-  // Copy the blob data because kbts_ReadFontData() will modify it.
-  hb_memcpy (data, blob_data, blob_length);
-
-  // The `data` and `memory` pointers will be freed by kbts_FreeFont().
-
-  scratch_size = kbts_ReadFontHeader (kb_font, data, blob_length);
-  scratch = hb_malloc (scratch_size);
-  memory_size = kbts_ReadFontData (kb_font, scratch, scratch_size);
-
-  memory = scratch;
-  if (memory_size > scratch_size)
-    memory = hb_realloc (memory, memory_size);
-
-  kbts_PostReadFontInitialize (kb_font, memory, memory_size);
-
-  if (unlikely (!kbts_FontIsValid(kb_font)))
+  size_t memory_size;
   {
-    DEBUG_MSG (KBTS, face, "kbts_font creation failed");
-    _hb_kbts_shaper_face_data_destroy ((hb_kbts_face_data_t *) kb_font);
-    kb_font = nullptr;
-    goto fail;
+    unsigned scratch_size = kbts_ReadFontHeader (kb_font, data, blob_length);
+    void *scratch = hb_malloc (scratch_size);
+    memory_size = kbts_ReadFontData (kb_font, scratch, scratch_size);
+    hb_free (scratch);
   }
 
-fail:
-  hb_blob_destroy (blob);
+  void *memory = hb_malloc (memory_size);
+  if (unlikely (!kbts_PostReadFontInitialize (kb_font, memory, memory_size)))
+  {
+    DEBUG_MSG (KBTS, face, "kbts_PostReadFontInitialize failed");
+    hb_free (memory);
+    hb_free (data);
+    hb_free (kb_font);
+    return nullptr;
+  }
 
   return (hb_kbts_face_data_t *) kb_font;
 }
@@ -105,6 +100,9 @@ void
 _hb_kbts_shaper_face_data_destroy (hb_kbts_face_data_t *data)
 {
   kbts_font *font = (kbts_font *) data;
+
+  assert (kbts_FontIsValid (font));
+
   hb_free (font->FileBase);
   hb_free (font->GlyphLookupMatrix);
   hb_free (font);
