@@ -168,7 +168,7 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   }
 
   hb_vector_t<kbts_glyph> kb_glyphs;
-  if (unlikely (!kb_glyphs.resize (buffer->len, false)))
+  if (unlikely (!kb_glyphs.resize_exact (buffer->len, false)))
     return false;
 
   for (size_t i = 0; i < buffer->len; ++i)
@@ -217,7 +217,13 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
 		     kb_glyphs.arrayZ, &glyph_count, glyph_capacity))
   {
     glyph_capacity = kb_shape_state->RequiredGlyphCapacity;
-    if (unlikely (!kb_glyphs.resize (glyph_capacity, false)))
+    /* kb increases capacity by a fixed number only. We increase it by 50% to
+     * avoid O(n^2) behavior in case of expanding text.
+     *
+     * https://github.com/JimmyLefevre/kb/issues/32
+     */
+    glyph_capacity += glyph_capacity / 2;
+    if (unlikely (!kb_glyphs.resize_exact (glyph_capacity, false)))
       return false;
   }
 
