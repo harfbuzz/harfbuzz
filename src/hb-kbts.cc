@@ -203,6 +203,11 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   {
     size_t kb_shape_state_size = kbts_SizeOfShapeState (kb_font);
     void *kb_shape_state_buffer = hb_malloc (kb_shape_state_size);
+    if (unlikely (!kb_shape_state_buffer))
+    {
+      DEBUG_MSG (KBTS, face, "Failed to allocate memory for shape state");
+      return false;
+    }
     kb_shape_state = kbts_PlaceShapeState (kb_shape_state_buffer, kb_shape_state_size);
   }
   kbts_shape_config kb_shape_config = kbts_ShapeConfig (kb_font, kb_script, kb_language);
