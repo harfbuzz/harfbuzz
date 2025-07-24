@@ -36,7 +36,7 @@ static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 const char *variation = nullptr;
 const char *direction = nullptr;
 
-static void shape (hb_buffer_t *buf,
+static bool shape (hb_buffer_t *buf,
 		   hb_font_t *font,
 		   const char *text,
 		   unsigned text_length,
@@ -51,12 +51,14 @@ static void shape (hb_buffer_t *buf,
     if (direction)
       hb_buffer_set_direction (buf, hb_direction_from_string (direction, -1));
     const char *shaper_list[] = {shaper, nullptr};
-    hb_shape_full (font, buf, nullptr, 0, shaper_list);
+    if (!hb_shape_full (font, buf, nullptr, 0, shaper_list))
+      return false;
 
     unsigned skip = end - text + 1;
     text_length -= skip;
     text += skip;
   }
+  return true;
 }
 
 static void BM_Shape (benchmark::State &state,
@@ -85,12 +87,21 @@ static void BM_Shape (benchmark::State &state,
 
   hb_buffer_t *buf = hb_buffer_create ();
 
-  // Shape once, to initialize the font and buffer.
-  shape (buf, font, text, text_length, shaper);
+  // Shape once, to warm up the font and buffer.
+  bool ret = shape (buf, font, text, text_length, shaper);
+  if (!ret)
+  {
+    state.SkipWithError ("Shaper does not support this font.");
+    goto done;
+  }
 
   for (auto _ : state)
-    shape (buf, font, text, text_length, shaper);
+  {
+    bool ret = shape (buf, font, text, text_length, shaper);
+    assert (ret);
+  }
 
+done:
   hb_buffer_destroy (buf);
 
   hb_blob_destroy (text_blob);
