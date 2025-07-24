@@ -138,10 +138,10 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
     case HB_DIRECTION_BTT:
       DEBUG_MSG (KBTS, face, "Vertical direction is not supported");
       return false;
+    default:
     case HB_DIRECTION_INVALID:
       DEBUG_MSG (KBTS, face, "Invalid direction");
       return false;
-    default: break;
   }
 
   kbts_script kb_script = KBTS_SCRIPT_DONT_KNOW;
