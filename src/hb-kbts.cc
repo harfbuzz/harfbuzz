@@ -170,7 +170,7 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   }
 
   hb_vector_t<kbts_glyph> kb_glyphs;
-  if (unlikely (!kb_glyphs.resize (buffer->len)))
+  if (unlikely (!kb_glyphs.resize (buffer->len, false)))
     return false;
 
   for (size_t i = 0; i < buffer->len; ++i)
@@ -181,7 +181,7 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
     for (unsigned int i = 0; i < num_features; ++i)
     {
       hb_feature_t feature = features[i];
-      for (unsigned int j = 0; j < kb_glyphs.length; ++j)
+      for (unsigned int j = 0; j < buffer->len; ++j)
       {
 	kbts_glyph *kb_glyph = &kb_glyphs.arrayZ[j];
 	if (hb_in_range (j, feature.start, feature.end))
@@ -208,13 +208,13 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
     kb_shape_state = kbts_PlaceShapeState (kb_shape_state_buffer, kb_shape_state_size);
   }
   kbts_shape_config kb_shape_config = kbts_ShapeConfig (kb_font, kb_script, kb_language);
-  uint32_t glyph_count = kb_glyphs.length;
-  uint32_t glyph_capacity = glyph_count;
+  uint32_t glyph_count = buffer->len;
+  uint32_t glyph_capacity = kb_glyphs.length;
   while (kbts_Shape (kb_shape_state, &kb_shape_config, KBTS_DIRECTION_LTR, kb_direction,
 		     kb_glyphs.arrayZ, &glyph_count, glyph_capacity))
   {
     glyph_capacity = kb_shape_state->RequiredGlyphCapacity;
-    if (unlikely (!kb_glyphs.resize (glyph_capacity)))
+    if (unlikely (!kb_glyphs.resize (glyph_capacity, false)))
       return false;
   }
 
