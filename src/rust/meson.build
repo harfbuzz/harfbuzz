@@ -52,7 +52,7 @@ sources = [
 
 harfbuzz_rust = custom_target(
   'harfbuzz_rust',
-  input: sources + ['Cargo.toml', 'Cargo.lock'],
+  input: sources + ['Cargo.toml'],
   output: ['libharfbuzz_rust.a'],
   depends: [hb_rs],
   env: ['OUT_DIR=' + meson.current_build_dir(),
