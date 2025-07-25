@@ -197,4 +197,21 @@ _hb_subset_table (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
   return result;
 }
 
+static HB_UNUSED bool
+_hb_subset_table_passthrough (hb_subset_plan_t *plan, hb_tag_t tag)
+{
+  hb_blob_t *source_table = hb_face_reference_table (plan->source, tag);
+  bool result = plan->add_table (tag, source_table);
+  hb_blob_destroy (source_table);
+  return result;
+}
+
+
+HB_INTERNAL bool _hb_subset_table_layout	(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_tag_t tag, bool *success);
+HB_INTERNAL bool _hb_subset_table_var		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_tag_t tag, bool *success);
+HB_INTERNAL bool _hb_subset_table_cff		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_tag_t tag, bool *success);
+HB_INTERNAL bool _hb_subset_table_color		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_tag_t tag, bool *success);
+HB_INTERNAL bool _hb_subset_table_other		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_tag_t tag, bool *success);
+
+
 #endif /* HB_SUBSET_TABLE_HH */
