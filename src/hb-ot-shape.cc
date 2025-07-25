@@ -614,14 +614,14 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
     for (unsigned i = 0; i < count; i++)
     {
       auto gc = _hb_glyph_info_get_general_category (&info[i]);
-      if (gc == HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER)
-	found_number = true;
-      else if (HB_UNICODE_GENERAL_CATEGORY_IS_LETTER (gc))
+      if (HB_UNICODE_GENERAL_CATEGORY_IS_LETTER (gc))
       {
 	found_letter = true;
 	break;
       }
-      else if (_hb_codepoint_is_regional_indicator (info[i].codepoint))
+      else if (gc == HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER)
+	found_number = true;
+      else if (unlikely (_hb_codepoint_is_regional_indicator (info[i].codepoint)))
 	found_ri = true;
     }
     if ((found_number || found_ri) && !found_letter)
