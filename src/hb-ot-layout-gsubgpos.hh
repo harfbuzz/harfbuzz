@@ -455,7 +455,7 @@ struct matcher_t
   HB_ALWAYS_INLINE
 #endif
   may_skip_t may_skip (const context_t *c,
-		       const hb_glyph_info_t       &info) const
+		       hb_glyph_info_t &info) const
   {
     if (!c->check_glyph_property (&info, lookup_props))
       return SKIP_YES;
@@ -470,7 +470,7 @@ struct matcher_t
   }
 
   public:
-  unsigned int lookup_props = 0;
+  unsigned int lookup_props = (unsigned) -1;
   hb_mask_t mask = -1;
   bool ignore_zwnj = false;
   bool ignore_zwj = false;
@@ -540,7 +540,7 @@ struct skipping_iterator_t
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  matcher_t::may_skip_t may_skip (const hb_glyph_info_t &info) const
+  matcher_t::may_skip_t may_skip (hb_glyph_info_t &info) const
   { return matcher.may_skip (c, info); }
 
   enum match_t {
@@ -706,7 +706,8 @@ struct hb_ot_apply_context_t :
   hb_direction_t direction;
   hb_mask_t lookup_mask = 1;
   unsigned int lookup_index = (unsigned) -1;
-  unsigned int lookup_props = 0;
+  unsigned int lookup_props = (unsigned) -1;
+  unsigned int cached_props = (unsigned) -1; /* Cached glyph properties for the current lookup. */
   unsigned int nesting_level_left = HB_MAX_NESTING_LEVEL;
 
   bool has_glyph_classes;
@@ -795,10 +796,14 @@ struct hb_ot_apply_context_t :
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  bool check_glyph_property (const hb_glyph_info_t *info,
-			     unsigned int  match_props) const
+  bool check_glyph_property (hb_glyph_info_t *info,
+			     unsigned match_props,
+			     bool cached = true) const
   {
     unsigned int glyph_props = _hb_glyph_info_get_glyph_props (info);
+
+    if (likely (cached && match_props == cached_props))
+      return _hb_glyph_info_matches (info);
 
     /* Not covered, if, for example, glyph class is ligature and
      * match_props includes LookupFlags::IgnoreLigatures
@@ -849,6 +854,9 @@ struct hb_ot_apply_context_t :
     }
     else
       _hb_glyph_info_set_glyph_props (&buffer->cur(), props);
+
+    _hb_glyph_info_set_match (&buffer->cur(),
+			      check_glyph_property (&buffer->cur(), cached_props, false));
   }
 
   void replace_glyph (hb_codepoint_t glyph_index)
@@ -1321,7 +1329,7 @@ static bool match_input (hb_ot_apply_context_t *c,
 	if (ligbase == LIGBASE_NOT_CHECKED)
 	{
 	  bool found = false;
-	  const auto *out = buffer->out_info;
+	  auto *out = buffer->out_info;
 	  unsigned int j = buffer->out_len;
 	  while (j && _hb_glyph_info_get_lig_id (&out[j - 1]) == first_lig_id)
 	  {
