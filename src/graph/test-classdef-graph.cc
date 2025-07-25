@@ -101,9 +101,9 @@ static bool check_coverage_size(graph::class_def_size_estimator_t& estimator,
   return true;
 }
 
-static bool check_add_class_def_size(graph::class_def_size_estimator_t& estimator,
-                                     const gid_and_class_list_t& map,
-                                     unsigned klass, hb_vector_t<unsigned> klasses)
+static HB_UNUSED bool check_add_class_def_size(graph::class_def_size_estimator_t& estimator,
+					       const gid_and_class_list_t& map,
+					       unsigned klass, hb_vector_t<unsigned> klasses)
 {
   unsigned result = estimator.add_class_def_size(klass);
   unsigned expected = actual_class_def_size(map, klasses);
@@ -115,7 +115,7 @@ static bool check_add_class_def_size(graph::class_def_size_estimator_t& estimato
   return check_coverage_size(estimator, map, klasses);
 }
 
-static bool check_add_class_def_size (const gid_and_class_list_t& list, unsigned klass)
+static HB_UNUSED bool check_add_class_def_size (const gid_and_class_list_t& list, unsigned klass)
 {
   graph::class_def_size_estimator_t estimator (list.iter ());
 
