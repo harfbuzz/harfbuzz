@@ -1982,7 +1982,22 @@ apply_string (OT::hb_ot_apply_context_t *c,
 
   bool ret = false;
 
-  c->set_lookup_props (lookup.get_props ());
+  unsigned lookup_props = lookup.get_props ();
+  if (lookup_props != c->cached_props)
+  {
+    bool cache_it = subtable_count > 1 && (lookup_props & OT::LookupFlag::UseMarkFilteringSet);
+    if (cache_it)
+    {
+      auto &info = buffer->info;
+      for (unsigned int i = 0; i < buffer->len; i++)
+	_hb_glyph_info_set_match (&info[i],
+				  c->check_glyph_property (&info[i], lookup_props, false));
+      c->cached_props = lookup_props;
+    }
+    else
+      c->cached_props = (unsigned) -1;
+  }
+  c->set_lookup_props (lookup_props);
 
   if (likely (!lookup.is_reverse ()))
   {
