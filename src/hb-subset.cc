@@ -213,41 +213,6 @@ _get_table_tags (const hb_subset_plan_t* plan,
 }
 
 
-static unsigned
-_plan_estimate_subset_table_size (hb_subset_plan_t *plan,
-				  unsigned table_len,
-				  hb_tag_t table_tag)
-{
-  unsigned src_glyphs = plan->source->get_num_glyphs ();
-  unsigned dst_glyphs = plan->glyphset ()->get_population ();
-
-  unsigned bulk = 8192;
-  /* Tables that we want to allocate same space as the source table. For GSUB/GPOS it's
-   * because those are expensive to subset, so giving them more room is fine. */
-  bool same_size = table_tag == HB_OT_TAG_GSUB ||
-		   table_tag == HB_OT_TAG_GPOS ||
-		   table_tag == HB_OT_TAG_name;
-
-  if (plan->flags & HB_SUBSET_FLAGS_RETAIN_GIDS)
-  {
-    if (table_tag == HB_OT_TAG_CFF1)
-    {
-      /* Add some extra room for the CFF charset. */
-      bulk += src_glyphs * 16;
-    }
-    else if (table_tag == HB_OT_TAG_CFF2)
-    {
-      /* Just extra CharString offsets. */
-      bulk += src_glyphs * 4;
-    }
-  }
-
-  if (unlikely (!src_glyphs) || same_size)
-    return bulk + table_len;
-
-  return bulk + (unsigned) (table_len * sqrt ((double) dst_glyphs / src_glyphs));
-}
-
 /*
  * Repack the serialization buffer if any offset overflows exist.
  */
@@ -267,44 +232,6 @@ _repack (hb_tag_t tag, const hb_serialize_context_t& c)
   }
 
   return result;
-}
-
-template<typename TableType>
-static
-bool
-_try_subset (const TableType *table,
-             hb_vector_t<char>* buf,
-             hb_subset_context_t* c /* OUT */)
-{
-  c->serializer->start_serialize ();
-  if (c->serializer->in_error ()) return false;
-
-  bool needed = table->subset (c);
-  if (!c->serializer->ran_out_of_room ())
-  {
-    c->serializer->end_serialize ();
-    return needed;
-  }
-
-  unsigned buf_size = buf->allocated;
-  buf_size = buf_size * 2 + 16;
-
-
-
-
-  DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c ran out of room; reallocating to %u bytes.",
-             HB_UNTAG (c->table_tag), buf_size);
-
-  if (unlikely (buf_size > c->source_blob->length * 256 ||
-		!buf->alloc_exact (buf_size)))
-  {
-    DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c failed to reallocate %u bytes.",
-               HB_UNTAG (c->table_tag), buf_size);
-    return needed;
-  }
-
-  c->serializer->reset (buf->arrayZ, buf->allocated);
-  return _try_subset (table, buf, c);
 }
 
 template <typename T>
@@ -330,7 +257,7 @@ _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
     return false;
   }
 
-  unsigned buf_size = _plan_estimate_subset_table_size (plan, blob->length, TableType::tableTag);
+  unsigned buf_size = _hb_subset_estimate_table_size (plan, blob->length, TableType::tableTag);
   DEBUG_MSG (SUBSET, nullptr,
              "OT::%c%c%c%c initial estimated table size: %u bytes.", HB_UNTAG (tag), buf_size);
   if (unlikely (!buf.alloc (buf_size)))
@@ -344,7 +271,7 @@ _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
   hb_serialize_context_t serializer (buf.arrayZ, buf.allocated);
   {
     hb_subset_context_t c (blob, plan, &serializer, tag);
-    needed = _try_subset (table, &buf, &c);
+    needed = _hb_subset_table_try (table, &buf, &c);
   }
   _do_destroy (source_blob, hb_prioritize);
 
