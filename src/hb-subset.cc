@@ -28,6 +28,7 @@
 #include "hb-open-type.hh"
 
 #include "hb-subset.hh"
+#include "hb-subset-table.hh"
 
 #include "hb-open-file.hh"
 #include "hb-ot-cmap-table.hh"
@@ -59,7 +60,6 @@
 #include "hb-ot-var-mvar-table.hh"
 #include "hb-ot-math-table.hh"
 #include "hb-ot-stat-table.hh"
-#include "hb-repacker.hh"
 #include "hb-subset-accelerator.hh"
 
 using OT::Layout::GSUB;
@@ -213,96 +213,6 @@ _get_table_tags (const hb_subset_plan_t* plan,
 }
 
 
-/*
- * Repack the serialization buffer if any offset overflows exist.
- */
-static hb_blob_t*
-_repack (hb_tag_t tag, const hb_serialize_context_t& c)
-{
-  if (!c.offset_overflow ())
-    return c.copy_blob ();
-
-  hb_blob_t* result = hb_resolve_overflows (c.object_graph (), tag);
-
-  if (unlikely (!result))
-  {
-    DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c offset overflow resolution failed.",
-               HB_UNTAG (tag));
-    return nullptr;
-  }
-
-  return result;
-}
-
-template <typename T>
-static auto _do_destroy (T &t, hb_priority<1>) HB_RETURN (void, t.destroy ())
-
-template <typename T>
-static void _do_destroy (T &t, hb_priority<0>) {}
-
-template<typename TableType>
-static bool
-_subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
-{
-  auto &&source_blob = plan->source_table<TableType> ();
-  auto *table = source_blob.get ();
-
-  hb_tag_t tag = TableType::tableTag;
-  hb_blob_t *blob = source_blob.get_blob();
-  if (unlikely (!blob || !blob->data))
-  {
-    DEBUG_MSG (SUBSET, nullptr,
-               "OT::%c%c%c%c::subset sanitize failed on source table.", HB_UNTAG (tag));
-    _do_destroy (source_blob, hb_prioritize);
-    return false;
-  }
-
-  unsigned buf_size = _hb_subset_estimate_table_size (plan, blob->length, TableType::tableTag);
-  DEBUG_MSG (SUBSET, nullptr,
-             "OT::%c%c%c%c initial estimated table size: %u bytes.", HB_UNTAG (tag), buf_size);
-  if (unlikely (!buf.alloc (buf_size)))
-  {
-    DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c failed to allocate %u bytes.", HB_UNTAG (tag), buf_size);
-    _do_destroy (source_blob, hb_prioritize);
-    return false;
-  }
-
-  bool needed = false;
-  hb_serialize_context_t serializer (buf.arrayZ, buf.allocated);
-  {
-    hb_subset_context_t c (blob, plan, &serializer, tag);
-    needed = _hb_subset_table_try (table, &buf, &c);
-  }
-  _do_destroy (source_blob, hb_prioritize);
-
-  if (serializer.in_error () && !serializer.only_offset_overflow ())
-  {
-    DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c::subset FAILED!", HB_UNTAG (tag));
-    return false;
-  }
-
-  if (!needed)
-  {
-    DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c::subset table subsetted to empty.", HB_UNTAG (tag));
-    return true;
-  }
-
-  bool result = false;
-  hb_blob_t *dest_blob = _repack (tag, serializer);
-  if (dest_blob)
-  {
-    DEBUG_MSG (SUBSET, nullptr,
-               "OT::%c%c%c%c final subset table size: %u bytes.",
-               HB_UNTAG (tag), dest_blob->length);
-    result = plan->add_table (tag, dest_blob);
-    hb_blob_destroy (dest_blob);
-  }
-
-  DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c::subset %s",
-             HB_UNTAG (tag), result ? "success" : "FAILED!");
-  return result;
-}
-
 static bool
 _is_table_present (hb_face_t *source, hb_tag_t tag)
 {
@@ -409,62 +319,62 @@ _subset_table (hb_subset_plan_t *plan,
   DEBUG_MSG (SUBSET, nullptr, "subset %c%c%c%c", HB_UNTAG (tag));
   switch (tag)
   {
-  case HB_OT_TAG_glyf: return _subset<const OT::glyf> (plan, buf);
-  case HB_OT_TAG_hdmx: return _subset<const OT::hdmx> (plan, buf);
-  case HB_OT_TAG_name: return _subset<const OT::name> (plan, buf);
+  case HB_OT_TAG_glyf: return _hb_subset_table<const OT::glyf> (plan, buf);
+  case HB_OT_TAG_hdmx: return _hb_subset_table<const OT::hdmx> (plan, buf);
+  case HB_OT_TAG_name: return _hb_subset_table<const OT::name> (plan, buf);
   case HB_OT_TAG_head:
     if (_is_table_present (plan->source, HB_OT_TAG_glyf) && !_should_drop_table (plan, HB_OT_TAG_glyf))
       return true; /* skip head, handled by glyf */
-    return _subset<const OT::head> (plan, buf);
+    return _hb_subset_table<const OT::head> (plan, buf);
   case HB_OT_TAG_hhea: return true; /* skip hhea, handled by hmtx */
-  case HB_OT_TAG_hmtx: return _subset<const OT::hmtx> (plan, buf);
+  case HB_OT_TAG_hmtx: return _hb_subset_table<const OT::hmtx> (plan, buf);
   case HB_OT_TAG_vhea: return true; /* skip vhea, handled by vmtx */
-  case HB_OT_TAG_vmtx: return _subset<const OT::vmtx> (plan, buf);
-  case HB_OT_TAG_maxp: return _subset<const OT::maxp> (plan, buf);
-  case HB_OT_TAG_sbix: return _subset<const OT::sbix> (plan, buf);
+  case HB_OT_TAG_vmtx: return _hb_subset_table<const OT::vmtx> (plan, buf);
+  case HB_OT_TAG_maxp: return _hb_subset_table<const OT::maxp> (plan, buf);
+  case HB_OT_TAG_sbix: return _hb_subset_table<const OT::sbix> (plan, buf);
   case HB_OT_TAG_loca: return true; /* skip loca, handled by glyf */
-  case HB_OT_TAG_cmap: return _subset<const OT::cmap> (plan, buf);
-  case HB_OT_TAG_OS2 : return _subset<const OT::OS2 > (plan, buf);
-  case HB_OT_TAG_post: return _subset<const OT::post> (plan, buf);
-  case HB_OT_TAG_COLR: return _subset<const OT::COLR> (plan, buf);
-  case HB_OT_TAG_CPAL: return _subset<const OT::CPAL> (plan, buf);
-  case HB_OT_TAG_CBLC: return _subset<const OT::CBLC> (plan, buf);
+  case HB_OT_TAG_cmap: return _hb_subset_table<const OT::cmap> (plan, buf);
+  case HB_OT_TAG_OS2 : return _hb_subset_table<const OT::OS2 > (plan, buf);
+  case HB_OT_TAG_post: return _hb_subset_table<const OT::post> (plan, buf);
+  case HB_OT_TAG_COLR: return _hb_subset_table<const OT::COLR> (plan, buf);
+  case HB_OT_TAG_CPAL: return _hb_subset_table<const OT::CPAL> (plan, buf);
+  case HB_OT_TAG_CBLC: return _hb_subset_table<const OT::CBLC> (plan, buf);
   case HB_OT_TAG_CBDT: return true; /* skip CBDT, handled by CBLC */
-  case HB_OT_TAG_MATH: return _subset<const OT::MATH> (plan, buf);
-  case HB_OT_TAG_BASE: return _subset<const OT::BASE> (plan, buf);
+  case HB_OT_TAG_MATH: return _hb_subset_table<const OT::MATH> (plan, buf);
+  case HB_OT_TAG_BASE: return _hb_subset_table<const OT::BASE> (plan, buf);
 
 #ifndef HB_NO_SUBSET_CFF
-  case HB_OT_TAG_CFF1: return _subset<const OT::cff1> (plan, buf);
-  case HB_OT_TAG_CFF2: return _subset<const OT::cff2> (plan, buf);
-  case HB_OT_TAG_VORG: return _subset<const OT::VORG> (plan, buf);
+  case HB_OT_TAG_CFF1: return _hb_subset_table<const OT::cff1> (plan, buf);
+  case HB_OT_TAG_CFF2: return _hb_subset_table<const OT::cff2> (plan, buf);
+  case HB_OT_TAG_VORG: return _hb_subset_table<const OT::VORG> (plan, buf);
 #endif
 
 #ifndef HB_NO_SUBSET_LAYOUT
-  case HB_OT_TAG_GDEF: return _subset<const OT::GDEF> (plan, buf);
-  case HB_OT_TAG_GSUB: return _subset<const GSUB> (plan, buf);
-  case HB_OT_TAG_GPOS: return _subset<const GPOS> (plan, buf);
-  case HB_OT_TAG_gvar: return _subset<const OT::gvar> (plan, buf);
-  case HB_OT_TAG_HVAR: return _subset<const OT::HVAR> (plan, buf);
-  case HB_OT_TAG_VVAR: return _subset<const OT::VVAR> (plan, buf);
+  case HB_OT_TAG_GDEF: return _hb_subset_table<const OT::GDEF> (plan, buf);
+  case HB_OT_TAG_GSUB: return _hb_subset_table<const GSUB> (plan, buf);
+  case HB_OT_TAG_GPOS: return _hb_subset_table<const GPOS> (plan, buf);
+  case HB_OT_TAG_gvar: return _hb_subset_table<const OT::gvar> (plan, buf);
+  case HB_OT_TAG_HVAR: return _hb_subset_table<const OT::HVAR> (plan, buf);
+  case HB_OT_TAG_VVAR: return _hb_subset_table<const OT::VVAR> (plan, buf);
 #endif
 
 #ifndef HB_NO_VAR
   case HB_OT_TAG_fvar:
     if (plan->user_axes_location.is_empty ()) return _passthrough (plan, tag);
-    return _subset<const OT::fvar> (plan, buf);
+    return _hb_subset_table<const OT::fvar> (plan, buf);
   case HB_OT_TAG_avar:
     if (plan->user_axes_location.is_empty ()) return _passthrough (plan, tag);
-    return _subset<const OT::avar> (plan, buf);
+    return _hb_subset_table<const OT::avar> (plan, buf);
   case HB_OT_TAG_cvar:
     if (plan->user_axes_location.is_empty ()) return _passthrough (plan, tag);
-    return _subset<const OT::cvar> (plan, buf);
+    return _hb_subset_table<const OT::cvar> (plan, buf);
   case HB_OT_TAG_MVAR:
     if (plan->user_axes_location.is_empty ()) return _passthrough (plan, tag);
-    return _subset<const OT::MVAR> (plan, buf);
+    return _hb_subset_table<const OT::MVAR> (plan, buf);
 #endif
 
   case HB_OT_TAG_STAT:
-    if (!plan->user_axes_location.is_empty ()) return _subset<const OT::STAT> (plan, buf);
+    if (!plan->user_axes_location.is_empty ()) return _hb_subset_table<const OT::STAT> (plan, buf);
     else return _passthrough (plan, tag);
 
   case HB_TAG ('c', 'v', 't', ' '):
