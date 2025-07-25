@@ -773,15 +773,20 @@ struct hb_ot_apply_context_t :
     return buffer->random_state;
   }
 
-  bool match_properties_mark (hb_codepoint_t  glyph,
+  bool match_properties_mark (const hb_glyph_info_t *info,
 			      unsigned int    glyph_props,
-			      unsigned int    match_props) const
+			      unsigned int    match_props,
+			      bool            cached) const
   {
     /* If using mark filtering sets, the high short of
      * match_props has the set index.
      */
     if (match_props & LookupFlag::UseMarkFilteringSet)
-      return gdef_accel.mark_set_covers (match_props >> 16, glyph);
+    {
+      if (cached && match_props == cached_props)
+	return _hb_glyph_info_matches (info);
+      return gdef_accel.mark_set_covers (match_props >> 16, info->codepoint);
+    }
 
     /* The second byte of match_props has the meaning
      * "ignore marks of attachment type different than
@@ -796,14 +801,11 @@ struct hb_ot_apply_context_t :
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  bool check_glyph_property (hb_glyph_info_t *info,
+  bool check_glyph_property (const hb_glyph_info_t *info,
 			     unsigned match_props,
 			     bool cached = true) const
   {
     unsigned int glyph_props = _hb_glyph_info_get_glyph_props (info);
-
-    if (likely (cached && match_props == cached_props))
-      return _hb_glyph_info_matches (info);
 
     /* Not covered, if, for example, glyph class is ligature and
      * match_props includes LookupFlags::IgnoreLigatures
@@ -812,7 +814,7 @@ struct hb_ot_apply_context_t :
       return false;
 
     if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
-      return match_properties_mark (info->codepoint, glyph_props, match_props);
+      return match_properties_mark (info, glyph_props, match_props, cached);
 
     return true;
   }
@@ -855,8 +857,9 @@ struct hb_ot_apply_context_t :
     else
       _hb_glyph_info_set_glyph_props (&buffer->cur(), props);
 
-    _hb_glyph_info_set_match (&buffer->cur(),
-			      check_glyph_property (&buffer->cur(), cached_props, false));
+    if (cached_props != (unsigned) -1)
+      _hb_glyph_info_set_match (&buffer->cur(),
+				check_glyph_property (&buffer->cur(), cached_props, false));
   }
 
   void replace_glyph (hb_codepoint_t glyph_index)
