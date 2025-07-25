@@ -2575,7 +2575,7 @@ struct hb_scalar_cache_t
       return scratch_cache;
     }
 
-    auto *cache = (hb_scalar_cache_t *) hb_malloc (sizeof (hb_scalar_cache_t) - sizeof (values) + sizeof (values[0]) * count);
+    auto *cache = (hb_scalar_cache_t *) hb_malloc (sizeof (hb_scalar_cache_t) - sizeof (static_values) + sizeof (static_values[0]) * count);
     if (unlikely (!cache)) return (hb_scalar_cache_t *) &Null(hb_scalar_cache_t);
 
     cache->length = count;
@@ -2593,6 +2593,7 @@ struct hb_scalar_cache_t
 
   void clear ()
   {
+    auto *values = &static_values[0];
     for (unsigned i = 0; i < length; i++)
       values[i] = INVALID;
   }
@@ -2605,6 +2606,7 @@ struct hb_scalar_cache_t
       *value = 0.f;
       return true;
     }
+    auto *values = &static_values[0];
     auto *cached_value = &values[i];
     if (*cached_value != INVALID)
     {
@@ -2618,13 +2620,14 @@ struct hb_scalar_cache_t
   void set (unsigned i, float value)
   {
     if (unlikely (i >= length)) return;
+    auto *values = &static_values[0];
     auto *cached_value = &values[i];
     *cached_value = roundf(value * MULTIPLIER);
   }
 
   private:
   unsigned length;
-  mutable hb_atomic_t<int> values[STATIC_LENGTH];
+  mutable hb_atomic_t<int> static_values[STATIC_LENGTH];
 };
 
 struct VarRegionList
