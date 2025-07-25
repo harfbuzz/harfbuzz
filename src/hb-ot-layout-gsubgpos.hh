@@ -773,6 +773,8 @@ struct hb_ot_apply_context_t :
     return buffer->random_state;
   }
 
+  HB_ALWAYS_INLINE
+  HB_HOT
   bool match_properties_mark (const hb_glyph_info_t *info,
 			      unsigned int    glyph_props,
 			      unsigned int    match_props,
