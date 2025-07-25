@@ -110,7 +110,7 @@ _hb_subset_estimate_table_size (hb_subset_plan_t *plan,
 /*
  * Repack the serialization buffer if any offset overflows exist.
  */
-static hb_blob_t*
+static HB_UNUSED hb_blob_t*
 _hb_subset_repack (hb_tag_t tag, const hb_serialize_context_t& c)
 {
   if (!c.offset_overflow ())
