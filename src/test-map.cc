@@ -36,10 +36,10 @@ main (int argc, char **argv)
     hb_map_t v1;
     v1.set (1, 2);
     hb_map_t v2 {v1};
-    assert (v1.get_population () == 1);
-    assert (v2.get_population () == 1);
-    assert (v1[1] == 2);
-    assert (v2[1] == 2);
+    hb_always_assert (v1.get_population () == 1);
+    hb_always_assert (v2.get_population () == 1);
+    hb_always_assert (v1[1] == 2);
+    hb_always_assert (v2[1] == 2);
   }
 
   /* Test copy assignment. */
@@ -47,10 +47,10 @@ main (int argc, char **argv)
     hb_map_t v1;
     v1.set (1, 2);
     hb_map_t v2 = v1;
-    assert (v1.get_population () == 1);
-    assert (v2.get_population () == 1);
-    assert (v1[1] == 2);
-    assert (v2[1] == 2);
+    hb_always_assert (v1.get_population () == 1);
+    hb_always_assert (v2.get_population () == 1);
+    hb_always_assert (v1[1] == 2);
+    hb_always_assert (v2[1] == 2);
   }
 
   /* Test move constructor. */
@@ -58,8 +58,8 @@ main (int argc, char **argv)
     hb_map_t s {};
     s.set (1, 2);
     hb_map_t v (std::move (s));
-    assert (s.get_population () == 0);
-    assert (v.get_population () == 1);
+    hb_always_assert (s.get_population () == 0);
+    hb_always_assert (v.get_population () == 1);
   }
 
   /* Test move assignment. */
@@ -68,8 +68,8 @@ main (int argc, char **argv)
     s.set (1, 2);
     hb_map_t v;
     v = std::move (s);
-    assert (s.get_population () == 0);
-    assert (v.get_population () == 1);
+    hb_always_assert (s.get_population () == 0);
+    hb_always_assert (v.get_population () == 1);
   }
 
   /* Test initializing from iterable. */
@@ -84,10 +84,10 @@ main (int argc, char **argv)
     hb_map_t v1 (s);
     hb_map_t v2 (std::move (s));
 
-    assert (s.get_population () == 0);
-    assert (v0.get_population () == 2);
-    assert (v1.get_population () == 2);
-    assert (v2.get_population () == 2);
+    hb_always_assert (s.get_population () == 0);
+    hb_always_assert (v0.get_population () == 2);
+    hb_always_assert (v1.get_population () == 2);
+    hb_always_assert (v2.get_population () == 2);
   }
 
   /* Test call fini() twice. */
@@ -107,7 +107,7 @@ main (int argc, char **argv)
 
     hb_map_t v (hb_iter (s));
 
-    assert (v.get_population () == 2);
+    hb_always_assert (v.get_population () == 2);
   }
 
   /* Test initializing from initializer list and swapping. */
@@ -116,8 +116,8 @@ main (int argc, char **argv)
     hb_map_t v1 {pair_t{1,2}, pair_t{4,5}};
     hb_map_t v2 {pair_t{3,4}};
     hb_swap (v1, v2);
-    assert (v1.get_population () == 1);
-    assert (v2.get_population () == 2);
+    hb_always_assert (v1.get_population () == 1);
+    hb_always_assert (v2.get_population () == 2);
   }
 
   /* Test class key / value types. */
@@ -125,9 +125,9 @@ main (int argc, char **argv)
     hb_hashmap_t<hb_bytes_t, int> m1;
     hb_hashmap_t<int, hb_bytes_t> m2;
     hb_hashmap_t<hb_bytes_t, hb_bytes_t> m3;
-    assert (m1.get_population () == 0);
-    assert (m2.get_population () == 0);
-    assert (m3.get_population () == 0);
+    hb_always_assert (m1.get_population () == 0);
+    hb_always_assert (m2.get_population () == 0);
+    hb_always_assert (m3.get_population () == 0);
   }
 
   {
@@ -157,8 +157,8 @@ main (int argc, char **argv)
     m1.set (hb_map_t (), hb_map_t {pair (1u, 2u)});
     m1.set (hb_map_t {pair (1u, 2u)}, hb_map_t {pair (2u, 3u)});
 
-    assert (m1.get (hb_map_t ()) == hb_map_t {pair (1u, 2u)});
-    assert (m1.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
+    hb_always_assert (m1.get (hb_map_t ()) == hb_map_t {pair (1u, 2u)});
+    hb_always_assert (m1.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
   }
 
   /* Test hashing sets. */
@@ -169,8 +169,8 @@ main (int argc, char **argv)
     m1.set (hb_set_t (), hb_set_t {1});
     m1.set (hb_set_t {1, 1000}, hb_set_t {2});
 
-    assert (m1.get (hb_set_t ()) == hb_set_t {1});
-    assert (m1.get (hb_set_t {1000, 1}) == hb_set_t {2});
+    hb_always_assert (m1.get (hb_set_t ()) == hb_set_t {1});
+    hb_always_assert (m1.get (hb_set_t {1000, 1}) == hb_set_t {2});
   }
 
   /* Test hashing vectors. */
@@ -184,8 +184,8 @@ main (int argc, char **argv)
 
     m1 << hb_pair_t<vector_t, vector_t> {vector_t {2}, vector_t ()};
 
-    assert (m1.get (vector_t ()) == vector_t {1});
-    assert (m1.get (vector_t {1}) == vector_t {2});
+    hb_always_assert (m1.get (vector_t ()) == vector_t {1});
+    hb_always_assert (m1.get (vector_t {1}) == vector_t {2});
   }
 
   /* Test moving values */
@@ -194,20 +194,20 @@ main (int argc, char **argv)
 
     hb_hashmap_t<vector_t, vector_t> m1;
     vector_t v {3};
-    assert (v.length == 1);
+    hb_always_assert (v.length == 1);
     m1 << hb_pair_t<vector_t, vector_t> {vector_t {3}, v};
-    assert (v.length == 1);
+    hb_always_assert (v.length == 1);
     m1 << hb_pair_t<vector_t, vector_t&&> {vector_t {4}, std::move (v)};
-    assert (v.length == 0);
+    hb_always_assert (v.length == 0);
     m1 << hb_pair_t<vector_t&&, vector_t> {vector_t {4}, vector_t {5}};
     m1 << hb_pair_t<vector_t&&, vector_t&&> {vector_t {4}, vector_t {5}};
 
     hb_hashmap_t<vector_t, vector_t> m2;
     vector_t v2 {3};
     m2.set (vector_t {4}, v2);
-    assert (v2.length == 1);
+    hb_always_assert (v2.length == 1);
     m2.set (vector_t {5}, std::move (v2));
-    assert (v2.length == 0);
+    hb_always_assert (v2.length == 0);
   }
 
   /* Test hb::shared_ptr. */
@@ -250,10 +250,10 @@ main (int argc, char **argv)
     hb::shared_ptr<hb_map_t> p2 {m2};
     m.set (p1,1);
 
-    assert (m.has (p2));
+    hb_always_assert (m.has (p2));
 
     m1->set (2,4);
-    assert (!m.has (p2));
+    hb_always_assert (!m.has (p2));
   }
   /* Test value type with hb_bytes_t. */
   {
@@ -262,8 +262,8 @@ main (int argc, char **argv)
     hb_bytes_t bytes (c_str);
 
     m.set (1, bytes);
-    assert (m.has (1));
-    assert (m.get (1) == hb_bytes_t {"Test"});
+    hb_always_assert (m.has (1));
+    hb_always_assert (m.get (1) == hb_bytes_t {"Test"});
   }
   /* Test operators. */
   {
@@ -275,16 +275,16 @@ main (int argc, char **argv)
     m3.set (1, 3);
     m3.set (3, 5);
 
-    assert (m1 == m2);
-    assert (m1 != m3);
-    assert (!(m2 == m3));
+    hb_always_assert (m1 == m2);
+    hb_always_assert (m1 != m3);
+    hb_always_assert (!(m2 == m3));
 
     m2 = m3;
-    assert (m2.has (1));
-    assert (!m2.has (2));
-    assert (m2.has (3));
+    hb_always_assert (m2.has (1));
+    hb_always_assert (!m2.has (2));
+    hb_always_assert (m2.has (3));
 
-    assert (m3.has (3));
+    hb_always_assert (m3.has (3));
   }
   /* Test reset. */
   {
@@ -309,15 +309,15 @@ main (int argc, char **argv)
 	 m.next (&i, &k, &v);)
     {
       pop++;
-           if (k == 1) assert (v == 1);
-      else if (k == 2) assert (v == 1);
-      else if (k == 3) assert (v == 2);
-      else if (k == 4) assert (v == 3);
-      else if (k == 5) assert (v == 5);
-      else if (k == 6) assert (v == 8);
-      else assert (false);
+           if (k == 1) hb_always_assert (v == 1);
+      else if (k == 2) hb_always_assert (v == 1);
+      else if (k == 3) hb_always_assert (v == 2);
+      else if (k == 4) hb_always_assert (v == 3);
+      else if (k == 5) hb_always_assert (v == 5);
+      else if (k == 6) hb_always_assert (v == 8);
+      else hb_always_assert (false);
     }
-    assert (pop == m.get_population ());
+    hb_always_assert (pop == m.get_population ());
   }
   /* Test update */
   {
@@ -327,9 +327,9 @@ main (int argc, char **argv)
     m2.set (1, 3);
 
     m1.update (m2);
-    assert (m1.get_population () == 2);
-    assert (m1[1] == 3);
-    assert (m1[2] == 4);
+    hb_always_assert (m1.get_population () == 2);
+    hb_always_assert (m1[1] == 3);
+    hb_always_assert (m1[2] == 4);
   }
   /* Test keys / values */
   {
@@ -347,11 +347,11 @@ main (int argc, char **argv)
     hb_copy (m.keys (), keys);
     hb_copy (m.values (), values);
 
-    assert (keys.is_equal (hb_set_t ({1, 2, 3, 4, 5, 6})));
-    assert (values.is_equal (hb_set_t ({1, 1, 2, 3, 5, 8})));
+    hb_always_assert (keys.is_equal (hb_set_t ({1, 2, 3, 4, 5, 6})));
+    hb_always_assert (values.is_equal (hb_set_t ({1, 1, 2, 3, 5, 8})));
 
-    assert (keys.is_equal (hb_set_t (m.keys ())));
-    assert (values.is_equal (hb_set_t (m.values ())));
+    hb_always_assert (keys.is_equal (hb_set_t (m.keys ())));
+    hb_always_assert (values.is_equal (hb_set_t (m.values ())));
   }
 
   return 0;

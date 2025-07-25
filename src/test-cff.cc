@@ -64,9 +64,9 @@ main (int argc, char **argv)
       struct num_tp_test num_tp_test = num_tp_tests[t];
       number.set_real (num_tp_test.input);
       encoder.encode_num_tp (number);
-      assert (buff.length == num_tp_test.length);
+      hb_always_assert (buff.length == num_tp_test.length);
       for (unsigned i = 0; i < buff.length; i++)
-	assert (buff[i] == num_tp_test.output[i]);
+	hb_always_assert (buff[i] == num_tp_test.output[i]);
       encoder.reset ();
     }
   }

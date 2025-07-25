@@ -36,7 +36,7 @@ test_reverse ()
 
   int expected_values[] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
   hb_array_t<int> expected (expected_values, 9);
-  assert (a == expected);
+  hb_always_assert (a == expected);
 }
 
 static void
@@ -48,7 +48,7 @@ test_reverse_range ()
 
   int expected_values[] = {1, 2, 6, 5, 4, 3, 7, 8, 9};
   hb_array_t<int> expected (expected_values, 9);
-  assert (a == expected);
+  hb_always_assert (a == expected);
 }
 
 static void
@@ -64,14 +64,14 @@ test_reverse_invalid ()
 
   int expected_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   hb_array_t<int> expected (expected_values, 9);
-  assert (a == expected);
+  hb_always_assert (a == expected);
 }
 
 int
 main (int argc, char **argv)
 {
   /* The following fails on MSVC. */
-  // assert (sizeof (hb_array_t<int>) == sizeof (hb_sorted_array_t<int>));
+  // hb_always_assert (sizeof (hb_array_t<int>) == sizeof (hb_sorted_array_t<int>));
 
   test_reverse ();
   test_reverse_range ();

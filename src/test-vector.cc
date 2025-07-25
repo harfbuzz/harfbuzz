@@ -33,19 +33,19 @@
 int
 main (int argc, char **argv)
 {
-  assert (sizeof (hb_vector_t<int>) == sizeof (hb_sorted_vector_t<int>));
+  hb_always_assert (sizeof (hb_vector_t<int>) == sizeof (hb_sorted_vector_t<int>));
 
   /* Test copy constructor. */
   {
     hb_vector_t<int> v1 {1, 2};
     hb_vector_t<int> v2 {v1};
     hb_vector_t<int> V2 {v1};
-    assert (v1.length == 2);
-    assert (v1[0] == 1);
-    assert (v1[1] == 2);
-    assert (v2.length == 2);
-    assert (v2[0] == 1);
-    assert (v2[1] == 2);
+    hb_always_assert (v1.length == 2);
+    hb_always_assert (v1[0] == 1);
+    hb_always_assert (v1[1] == 2);
+    hb_always_assert (v2.length == 2);
+    hb_always_assert (v2[0] == 1);
+    hb_always_assert (v2[1] == 2);
   }
 
   /* Test copy assignment. */
@@ -53,12 +53,12 @@ main (int argc, char **argv)
     hb_vector_t<int> v1 {1, 2};
     hb_vector_t<int> v2 = v1;
     hb_vector_t<int> V2 = v1;
-    assert (v1.length == 2);
-    assert (v1[0] == 1);
-    assert (v1[1] == 2);
-    assert (v2.length == 2);
-    assert (v2[0] == 1);
-    assert (v2[1] == 2);
+    hb_always_assert (v1.length == 2);
+    hb_always_assert (v1[0] == 1);
+    hb_always_assert (v1[1] == 2);
+    hb_always_assert (v2.length == 2);
+    hb_always_assert (v2[0] == 1);
+    hb_always_assert (v2[1] == 2);
   }
 
   /* Test move constructor. */
@@ -67,11 +67,11 @@ main (int argc, char **argv)
     hb_sorted_vector_t<int> S {1, 2};
     hb_vector_t<int> v (std::move (s));
     hb_sorted_vector_t<int> V (std::move (S));
-    assert (s.length == 0);
-    assert (S.length == 0);
-    assert (v.length == 2);
-    assert (v[0] == 1);
-    assert (v[1] == 2);
+    hb_always_assert (s.length == 0);
+    hb_always_assert (S.length == 0);
+    hb_always_assert (v.length == 2);
+    hb_always_assert (v[0] == 1);
+    hb_always_assert (v[1] == 2);
   }
 
   /* Test move assignment. */
@@ -82,12 +82,12 @@ main (int argc, char **argv)
     hb_sorted_vector_t<int> V;
     v = std::move (s);
     V = std::move (S);
-    assert (s.length == 0);
-    assert (S.length == 0);
-    assert (v.length == 2);
-    assert (V.length == 2);
-    assert (v[0] == 1);
-    assert (v[1] == 2);
+    hb_always_assert (s.length == 0);
+    hb_always_assert (S.length == 0);
+    hb_always_assert (v.length == 2);
+    hb_always_assert (V.length == 2);
+    hb_always_assert (v[0] == 1);
+    hb_always_assert (v[1] == 2);
   }
 
   /* Test initializing from iterable. */
@@ -100,12 +100,12 @@ main (int argc, char **argv)
     hb_vector_t<int> v (s);
     hb_sorted_vector_t<int> V (s);
 
-    assert (v.length == 2);
-    assert (V.length == 2);
-    assert (v[0] == 12);
-    assert (V[0] == 12);
-    assert (v[1] == 18);
-    assert (V[1] == 18);
+    hb_always_assert (v.length == 2);
+    hb_always_assert (V.length == 2);
+    hb_always_assert (v[0] == 12);
+    hb_always_assert (V[0] == 12);
+    hb_always_assert (v[1] == 18);
+    hb_always_assert (V[1] == 18);
   }
 
   /* Test initializing from iterator. */
@@ -118,12 +118,12 @@ main (int argc, char **argv)
     hb_vector_t<int> v (hb_iter (s));
     hb_vector_t<int> V (hb_iter (s));
 
-    assert (v.length == 2);
-    assert (V.length == 2);
-    assert (v[0] == 12);
-    assert (V[0] == 12);
-    assert (v[1] == 18);
-    assert (V[1] == 18);
+    hb_always_assert (v.length == 2);
+    hb_always_assert (V.length == 2);
+    hb_always_assert (v[0] == 12);
+    hb_always_assert (V[0] == 12);
+    hb_always_assert (v[1] == 18);
+    hb_always_assert (V[1] == 18);
   }
 
   /* Test initializing from initializer list and swapping. */
@@ -131,10 +131,10 @@ main (int argc, char **argv)
     hb_vector_t<int> v1 {1, 2, 3};
     hb_vector_t<int> v2 {4, 5};
     hb_swap (v1, v2);
-    assert (v1.length == 2);
-    assert (v1[0] == 4);
-    assert (v2.length == 3);
-    assert (v2[2] == 3);
+    hb_always_assert (v1.length == 2);
+    hb_always_assert (v1[0] == 4);
+    hb_always_assert (v2.length == 3);
+    hb_always_assert (v2[2] == 3);
   }
 
   /* Test initializing sorted-vector from initializer list and swapping. */
@@ -142,10 +142,10 @@ main (int argc, char **argv)
     hb_sorted_vector_t<int> v1 {1, 2, 3};
     hb_sorted_vector_t<int> v2 {4, 5};
     hb_swap (v1, v2);
-    assert (v1.length == 2);
-    assert (v1[0] == 4);
-    assert (v2.length == 3);
-    assert (v2[2] == 3);
+    hb_always_assert (v1.length == 2);
+    hb_always_assert (v1[0] == 4);
+    hb_always_assert (v2.length == 3);
+    hb_always_assert (v2[2] == 3);
   }
 
   {
@@ -171,9 +171,9 @@ main (int argc, char **argv)
     hb_set_t s {1, 5, 7};
     v.push (s);
     v << s;
-    assert (s.get_population () == 3);
+    hb_always_assert (s.get_population () == 3);
     v << std::move (s);
-    assert (s.get_population () == 0);
+    hb_always_assert (s.get_population () == 0);
   }
 
   {

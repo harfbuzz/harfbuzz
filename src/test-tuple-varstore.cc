@@ -48,33 +48,33 @@ test_decompile_cvar ()
   hb_bytes_t var_data_bytes{(const char* ) cvar_data + 4, len - 4};
   bool result = OT::TupleVariationData<>::get_tuple_iterator (var_data_bytes, axis_count, cvar_table,
                                                             shared_indices, &iterator);
-  assert (result);
+  hb_always_assert (result);
 
   result = tuple_var_data->decompile_tuple_variations (point_count, false, iterator, &axis_idx_tag_map,
                                                        shared_indices, hb_array<const OT::F2DOT14> (),
                                                        tuple_variations);
 
-  assert (result);
-  assert (tuple_variations.tuple_vars.length == 2);
+  hb_always_assert (result);
+  hb_always_assert (tuple_variations.tuple_vars.length == 2);
   for (unsigned i = 0; i < 2; i++)
   {
-    assert (tuple_variations.tuple_vars[i].axis_tuples.get_population () == 1);
-    assert (!tuple_variations.tuple_vars[i].deltas_y);
-    assert (tuple_variations.tuple_vars[i].indices.length == 65);
-    assert (tuple_variations.tuple_vars[i].indices.length == tuple_variations.tuple_vars[i].deltas_x.length);
+    hb_always_assert (tuple_variations.tuple_vars[i].axis_tuples.get_population () == 1);
+    hb_always_assert (!tuple_variations.tuple_vars[i].deltas_y);
+    hb_always_assert (tuple_variations.tuple_vars[i].indices.length == 65);
+    hb_always_assert (tuple_variations.tuple_vars[i].indices.length == tuple_variations.tuple_vars[i].deltas_x.length);
   }
-  assert (tuple_variations.tuple_vars[0].axis_tuples.get (axis_tag) == Triple (-1.0, -1.0, 0.0));
-  assert (tuple_variations.tuple_vars[1].axis_tuples.get (axis_tag) == Triple (0.0, 1.0, 1.0));
+  hb_always_assert (tuple_variations.tuple_vars[0].axis_tuples.get (axis_tag) == Triple (-1.0, -1.0, 0.0));
+  hb_always_assert (tuple_variations.tuple_vars[1].axis_tuples.get (axis_tag) == Triple (0.0, 1.0, 1.0));
 
   hb_vector_t<float> deltas_1 {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, -3.0, 1.0, 0.0, -1.0, 0.0, -3.0, 1.0, 0.0, -37.0, -37.0, -26.0, -26.0, 0.0, 0.0, 0.0, -3.0, 0.0, 0.0, 0.0, 0.0, 0.0, -3.0, 0.0, 2.0, -29.0, -29.0, -20.0, -20.0, 0.0, 0.0, 0.0, 1.0, -29.0, -29.0, -20.0, -20.0, 0.0, 0.0, 0.0, 1.0};
   for (unsigned i = 0; i < 65; i++)
   {
     if (i < 23)
-      assert (tuple_variations.tuple_vars[0].indices[i] == 0);
+      hb_always_assert (tuple_variations.tuple_vars[0].indices[i] == 0);
     else
     {
-      assert (tuple_variations.tuple_vars[0].indices[i] == 1);
-      assert (tuple_variations.tuple_vars[0].deltas_x[i] == deltas_1[i]);
+      hb_always_assert (tuple_variations.tuple_vars[0].indices[i] == 1);
+      hb_always_assert (tuple_variations.tuple_vars[0].deltas_x[i] == deltas_1[i]);
     }
   }
 
@@ -82,11 +82,11 @@ test_decompile_cvar ()
   for (unsigned i = 0 ; i < 65; i++)
   {
     if (i < 23)
-      assert (tuple_variations.tuple_vars[1].indices[i] == 0);
+      hb_always_assert (tuple_variations.tuple_vars[1].indices[i] == 0);
     else
     {
-      assert (tuple_variations.tuple_vars[1].indices[i] == 1);
-      assert (tuple_variations.tuple_vars[1].deltas_x[i] == deltas_2[i]);
+      hb_always_assert (tuple_variations.tuple_vars[1].indices[i] == 1);
+      hb_always_assert (tuple_variations.tuple_vars[1].deltas_x[i] == deltas_2[i]);
     }
   }
 
@@ -99,12 +99,12 @@ test_decompile_cvar ()
 
   tuple_variations.instantiate (normalized_axes_location, axes_triple_distances);
 
-  assert (tuple_variations.tuple_vars[0].indices.length == 65);
-  assert (tuple_variations.tuple_vars[1].indices.length == 65);
-  assert (!tuple_variations.tuple_vars[0].deltas_y);
-  assert (!tuple_variations.tuple_vars[1].deltas_y);
-  assert (tuple_variations.tuple_vars[0].axis_tuples.get (axis_tag) == Triple (-1.0, -1.0, 0.0));
-  assert (tuple_variations.tuple_vars[1].axis_tuples.get (axis_tag) == Triple (0.0, 1.0, 1.0));
+  hb_always_assert (tuple_variations.tuple_vars[0].indices.length == 65);
+  hb_always_assert (tuple_variations.tuple_vars[1].indices.length == 65);
+  hb_always_assert (!tuple_variations.tuple_vars[0].deltas_y);
+  hb_always_assert (!tuple_variations.tuple_vars[1].deltas_y);
+  hb_always_assert (tuple_variations.tuple_vars[0].axis_tuples.get (axis_tag) == Triple (-1.0, -1.0, 0.0));
+  hb_always_assert (tuple_variations.tuple_vars[1].axis_tuples.get (axis_tag) == Triple (0.0, 1.0, 1.0));
 
   hb_vector_t<float> rounded_deltas_1 {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1, 0.0, -2, 1, 0.0, -1, 0.0, -2, 1, 0.0, -19, -19, -13, -13, 0.0, 0.0, 0.0, -2, 0.0, 0.0, 0.0, 0.0, 0.0, -2, 0.0, 1, -15, -15, -10.0, -10.0, 0.0, 0.0, 0.0, 1, -15, -15, -10.0, -10.0, 0.0, 0.0, 0.0, 1};
 
@@ -114,41 +114,41 @@ test_decompile_cvar ()
   {
     if (i < 23)
     {
-      assert (tuple_variations.tuple_vars[0].indices[i] == 0);
-      assert (tuple_variations.tuple_vars[1].indices[i] == 0);
+      hb_always_assert (tuple_variations.tuple_vars[0].indices[i] == 0);
+      hb_always_assert (tuple_variations.tuple_vars[1].indices[i] == 0);
     }
     else
     {
-      assert (tuple_variations.tuple_vars[0].indices[i] == 1);
-      assert (tuple_variations.tuple_vars[1].indices[i] == 1);
-      assert (roundf (tuple_variations.tuple_vars[0].deltas_x[i]) == rounded_deltas_1[i]);
-      assert (roundf (tuple_variations.tuple_vars[1].deltas_x[i]) == rounded_deltas_2[i]);
+      hb_always_assert (tuple_variations.tuple_vars[0].indices[i] == 1);
+      hb_always_assert (tuple_variations.tuple_vars[1].indices[i] == 1);
+      hb_always_assert (roundf (tuple_variations.tuple_vars[0].deltas_x[i]) == rounded_deltas_1[i]);
+      hb_always_assert (roundf (tuple_variations.tuple_vars[1].deltas_x[i]) == rounded_deltas_2[i]);
     }
   }
 
   hb_map_t axes_index_map;
   axes_index_map.set (0, 0);
   bool res = tuple_variations.compile_bytes (axes_index_map, axis_idx_tag_map, false);
-  assert (res);
-  assert (tuple_variations.tuple_vars[0].compiled_tuple_header.length == 6);
+  hb_always_assert (res);
+  hb_always_assert (tuple_variations.tuple_vars[0].compiled_tuple_header.length == 6);
   const unsigned char tuple_var_header_1[] = "\x0\x51\xa0\x0\xc0\x0";
   for (unsigned i = 0; i < 6; i++)
-    assert(tuple_variations.tuple_vars[0].compiled_tuple_header.arrayZ[i] == tuple_var_header_1[i]);
+    hb_always_assert(tuple_variations.tuple_vars[0].compiled_tuple_header.arrayZ[i] == tuple_var_header_1[i]);
 
-  assert (tuple_variations.tuple_vars[1].compiled_tuple_header.length == 6);
+  hb_always_assert (tuple_variations.tuple_vars[1].compiled_tuple_header.length == 6);
   const unsigned char tuple_var_header_2[] = "\x0\x54\xa0\x0\x40\x0";
   for (unsigned i = 0; i < 6; i++)
-    assert(tuple_variations.tuple_vars[1].compiled_tuple_header.arrayZ[i] == tuple_var_header_2[i]);
+    hb_always_assert(tuple_variations.tuple_vars[1].compiled_tuple_header.arrayZ[i] == tuple_var_header_2[i]);
 
-  assert (tuple_variations.tuple_vars[0].compiled_deltas.length == 37);
-  assert (tuple_variations.tuple_vars[1].compiled_deltas.length == 40);
+  hb_always_assert (tuple_variations.tuple_vars[0].compiled_deltas.length == 37);
+  hb_always_assert (tuple_variations.tuple_vars[1].compiled_deltas.length == 40);
   const unsigned char compiled_deltas_1[] = "\x0d\xff\x00\xfe\x01\x00\xff\x00\xfe\x01\x00\xed\xed\xf3\xf3\x82\x00\xfe\x84\x06\xfe\x00\x01\xf1\xf1\xf6\xf6\x82\x04\x01\xf1\xf1\xf6\xf6\x82\x00\x01";
   for (unsigned i = 0; i < 37; i++)
-    assert (tuple_variations.tuple_vars[0].compiled_deltas.arrayZ[i] == compiled_deltas_1[i]);
+    hb_always_assert (tuple_variations.tuple_vars[0].compiled_deltas.arrayZ[i] == compiled_deltas_1[i]);
 
   const unsigned char compiled_deltas_2[] = "\x0d\x01\x00\x04\xfe\x00\x01\x00\x04\xfe\x00\x44\x44\x30\x30\x82\x00\x04\x81\x09\x01\xff\x01\x05\xff\xfc\x33\x33\x25\x25\x82\x04\xff\x33\x33\x25\x25\x82\x00\xff";
   for (unsigned i = 0; i < 40; i++)
-    assert (tuple_variations.tuple_vars[1].compiled_deltas.arrayZ[i] == compiled_deltas_2[i]);
+    hb_always_assert (tuple_variations.tuple_vars[1].compiled_deltas.arrayZ[i] == compiled_deltas_2[i]);
 }
 
 int

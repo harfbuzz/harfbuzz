@@ -43,7 +43,7 @@ test_item_variations ()
   const OT::ItemVariationStore& src_var_store = hvar_table+(hvar_table->varStore);
   bool result = item_vars.create_from_item_varstore (src_var_store, axis_idx_tag_map);
       
-  assert (result);
+  hb_always_assert (result);
 
   /* partial instancing wght=300:800 */
   hb_hashmap_t<hb_tag_t, Triple> normalized_axes_location;
@@ -53,10 +53,10 @@ test_item_variations ()
   axes_triple_distances.set (axis_tag, TripleDistances (200.0, 500.0));
 
   result = item_vars.instantiate_tuple_vars (normalized_axes_location, axes_triple_distances);
-  assert (result);
+  hb_always_assert (result);
   result = item_vars.as_item_varstore (false);
-  assert (result);
-  assert (item_vars.get_region_list().length == 8);
+  hb_always_assert (result);
+  hb_always_assert (item_vars.get_region_list().length == 8);
 }
 
 int

@@ -33,9 +33,9 @@ main (int argc, char **argv)
   {
     hb_set_t v1 {1, 2};
     hb_set_t v2 {v1};
-    assert (v1.get_population () == 2);
-    assert (hb_len (hb_iter (v1)) == 2);
-    assert (v2.get_population () == 2);
+    hb_always_assert (v1.get_population () == 2);
+    hb_always_assert (hb_len (hb_iter (v1)) == 2);
+    hb_always_assert (v2.get_population () == 2);
   }
 
   /* Test copy assignment. */
@@ -43,17 +43,17 @@ main (int argc, char **argv)
     hb_set_t v1 {1, 2};
     hb_set_t v2;
     v2 = v1;
-    assert (v1.get_population () == 2);
-    assert (v2.get_population () == 2);
+    hb_always_assert (v1.get_population () == 2);
+    hb_always_assert (v2.get_population () == 2);
   }
 
   /* Test move constructor. */
   {
     hb_set_t s {1, 2};
     hb_set_t v (std::move (s));
-    assert (s.get_population () == 0);
-    assert (hb_len (hb_iter (s)) == 0);
-    assert (v.get_population () == 2);
+    hb_always_assert (s.get_population () == 0);
+    hb_always_assert (hb_len (hb_iter (s)) == 0);
+    hb_always_assert (v.get_population () == 2);
   }
 
   /* Test move assignment. */
@@ -61,8 +61,8 @@ main (int argc, char **argv)
     hb_set_t s = hb_set_t {1, 2};
     hb_set_t v;
     v = std::move (s);
-    assert (s.get_population () == 0);
-    assert (v.get_population () == 2);
+    hb_always_assert (s.get_population () == 0);
+    hb_always_assert (v.get_population () == 2);
   }
 
   /* Test initializing from iterable. */
@@ -77,10 +77,10 @@ main (int argc, char **argv)
     hb_set_t v1 (s);
     hb_set_t v2 (std::move (s));
 
-    assert (s.get_population () == 0);
-    assert (v0.get_population () == 2);
-    assert (v1.get_population () == 2);
-    assert (v2.get_population () == 2);
+    hb_always_assert (s.get_population () == 0);
+    hb_always_assert (v0.get_population () == 2);
+    hb_always_assert (v1.get_population () == 2);
+    hb_always_assert (v2.get_population () == 2);
   }
 
   /* Test initializing from iterator. */
@@ -95,7 +95,7 @@ main (int argc, char **argv)
 
     hb_set_t v (hb_iter (s));
 
-    assert (v.get_population () == 5);
+    hb_always_assert (v.get_population () == 5);
   }
 
   /* Test initializing from initializer list and swapping. */
@@ -103,8 +103,8 @@ main (int argc, char **argv)
     hb_set_t v1 {1, 2, 3};
     hb_set_t v2 {4, 5};
     hb_swap (v1, v2);
-    assert (v1.get_population () == 2);
-    assert (v2.get_population () == 3);
+    hb_always_assert (v1.get_population () == 2);
+    hb_always_assert (v2.get_population () == 3);
   }
 
   /* Test inverted sets. */
@@ -114,27 +114,27 @@ main (int argc, char **argv)
     s.del (5);
 
     hb_codepoint_t start = HB_SET_VALUE_INVALID, last = HB_SET_VALUE_INVALID;
-    assert (s.next_range (&start, &last));
-    assert (start == 0);
-    assert (last == 4);
-    assert (s.next_range (&start, &last));
-    assert (start == 6);
-    assert (last == HB_SET_VALUE_INVALID - 1);
-    assert (!s.next_range (&start, &last));
+    hb_always_assert (s.next_range (&start, &last));
+    hb_always_assert (start == 0);
+    hb_always_assert (last == 4);
+    hb_always_assert (s.next_range (&start, &last));
+    hb_always_assert (start == 6);
+    hb_always_assert (last == HB_SET_VALUE_INVALID - 1);
+    hb_always_assert (!s.next_range (&start, &last));
 
     start = HB_SET_VALUE_INVALID;
     last = HB_SET_VALUE_INVALID;
-    assert (s.previous_range (&start, &last));
-    assert (start == 6);
-    assert (last == HB_SET_VALUE_INVALID - 1);
-    assert (s.previous_range (&start, &last));
-    assert (start == 0);
-    assert (last == 4);
-    assert (!s.previous_range (&start, &last));
+    hb_always_assert (s.previous_range (&start, &last));
+    hb_always_assert (start == 6);
+    hb_always_assert (last == HB_SET_VALUE_INVALID - 1);
+    hb_always_assert (s.previous_range (&start, &last));
+    hb_always_assert (start == 0);
+    hb_always_assert (last == 4);
+    hb_always_assert (!s.previous_range (&start, &last));
 
-    assert (s.is_inverted ());
+    hb_always_assert (s.is_inverted ());
     /* Inverted set returns true for invalid value; oh well. */
-    assert (s.has (HB_SET_VALUE_INVALID));
+    hb_always_assert (s.has (HB_SET_VALUE_INVALID));
   }
 
   /* Adding HB_SET_VALUE_INVALID */
@@ -142,23 +142,23 @@ main (int argc, char **argv)
     hb_set_t s;
 
     s.add(HB_SET_VALUE_INVALID);
-    assert(!s.has(HB_SET_VALUE_INVALID));
+    hb_always_assert(!s.has(HB_SET_VALUE_INVALID));
 
     s.clear();
-    assert(!s.add_range(HB_SET_VALUE_INVALID - 2, HB_SET_VALUE_INVALID));
-    assert(!s.has(HB_SET_VALUE_INVALID));
+    hb_always_assert(!s.add_range(HB_SET_VALUE_INVALID - 2, HB_SET_VALUE_INVALID));
+    hb_always_assert(!s.has(HB_SET_VALUE_INVALID));
 
     hb_codepoint_t array[] = {(unsigned) HB_SET_VALUE_INVALID, 0, 2};
     s.clear();
     s.add_array(array, 3);
-    assert(!s.has(HB_SET_VALUE_INVALID));
-    assert(s.has(2));
+    hb_always_assert(!s.has(HB_SET_VALUE_INVALID));
+    hb_always_assert(s.has(2));
 
     hb_codepoint_t sorted_array[] = {0, 2, (unsigned) HB_SET_VALUE_INVALID};
     s.clear();
     s.add_sorted_array(sorted_array, 3);
-    assert(!s.has(HB_SET_VALUE_INVALID));
-    assert(s.has(2));
+    hb_always_assert(!s.has(HB_SET_VALUE_INVALID));
+    hb_always_assert(s.has(2));
   }
 
   return 0;
