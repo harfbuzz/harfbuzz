@@ -455,7 +455,7 @@ struct matcher_t
   HB_ALWAYS_INLINE
 #endif
   may_skip_t may_skip (const context_t *c,
-		       hb_glyph_info_t &info) const
+		       const hb_glyph_info_t &info) const
   {
     if (!c->check_glyph_property (&info, lookup_props))
       return SKIP_YES;
@@ -540,7 +540,7 @@ struct skipping_iterator_t
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  matcher_t::may_skip_t may_skip (hb_glyph_info_t &info) const
+  matcher_t::may_skip_t may_skip (const hb_glyph_info_t &info) const
   { return matcher.may_skip (c, info); }
 
   enum match_t {
