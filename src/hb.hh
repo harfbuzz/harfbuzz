@@ -559,4 +559,13 @@ extern "C" void  hb_free_impl(void *ptr);
 #include "hb-vector.hh"	// Requires: hb-array hb-null
 #include "hb-object.hh"	// Requires: hb-atomic hb-mutex hb-vector
 
+
+/* Our src/test-*.cc use hb_assert(), such that it's not compiled out under NDEBUG.
+ * https://github.com/harfbuzz/harfbuzz/issues/5418 */
+#define hb_always_assert(x) \
+	HB_STMT_START { \
+	  if (!(x)) { fprintf(stderr, "Assertion failed: %s, at %s:%d\n", #x, __FILE__, __LINE__); abort(); } \
+	} HB_STMT_END
+
+
 #endif /* HB_HH */

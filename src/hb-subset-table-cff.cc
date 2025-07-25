@@ -40,6 +40,7 @@ bool _hb_subset_table_cff		(hb_subset_plan_t *plan, hb_vector_t<char> &buf, hb_t
 
 
 #ifdef HB_EXPERIMENTAL_API
+#ifndef HB_NO_CFF
 
 template<typename accel_t>
 static hb_blob_t* get_charstrings_data(accel_t& accel, hb_codepoint_t glyph_index) {
@@ -111,7 +112,7 @@ HB_EXTERN hb_blob_t*
 hb_subset_cff_get_charstrings_index (hb_face_t* face) {
   return get_charstrings_index (*face->table.cff1);
 }
- 
+
 /**
  * hb_subset_cff2_get_charstring_data:
  * @face: A face object
@@ -138,4 +139,5 @@ HB_EXTERN hb_blob_t*
 hb_subset_cff2_get_charstrings_index (hb_face_t* face) {
   return get_charstrings_index (*face->table.cff2);
 }
+#endif
 #endif

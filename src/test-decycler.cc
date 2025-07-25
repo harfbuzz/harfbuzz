@@ -38,7 +38,7 @@ tree_recurse_binary (unsigned value,
   hb_decycler_node_t node (decycler);
 
   bool ret = node.visit (value);
-  assert (ret);
+  hb_always_assert (ret);
 
   tree_recurse_binary (value * 2 + 1, max_value, decycler);
   tree_recurse_binary (value * 2 + 2, max_value, decycler);
@@ -63,7 +63,7 @@ tree_recurse_tertiary (unsigned value,
   for (unsigned i = 1; i <= 3; i++)
   {
     bool ret = node.visit (value + i);
-    assert (ret);
+    hb_always_assert (ret);
 
     tree_recurse_tertiary (value + i, max_value, decycler);
   }
@@ -82,7 +82,7 @@ cycle_recurse (signed value,
 	       signed cycle_length,
 	       hb_decycler_t &decycler)
 {
-  assert (cycle_length > 0);
+  hb_always_assert (cycle_length > 0);
 
   hb_decycler_node_t node (decycler);
 

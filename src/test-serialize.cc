@@ -45,7 +45,7 @@ main (int argc, char **argv)
   s.end_serialize ();
 
   hb_bytes_t bytes = s.copy_bytes ();
-  assert (bytes.length == 10);
+  hb_always_assert (bytes.length == 10);
   bytes.fini ();
 
   return 0;

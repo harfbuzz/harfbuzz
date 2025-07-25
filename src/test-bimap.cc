@@ -32,45 +32,45 @@ main (int argc, char **argv)
 {
   hb_bimap_t	bm;
 
-  assert (bm.is_empty () == true);
+  hb_always_assert (bm.is_empty () == true);
   bm.set (1, 4);
   bm.set (2, 5);
   bm.set (3, 6);
-  assert (bm.get_population () == 3);
-  assert (bm.has (1) == true);
-  assert (bm.has (4) == false);
-  assert (bm[2] == 5);
-  assert (bm.backward (6) == 3);
+  hb_always_assert (bm.get_population () == 3);
+  hb_always_assert (bm.has (1) == true);
+  hb_always_assert (bm.has (4) == false);
+  hb_always_assert (bm[2] == 5);
+  hb_always_assert (bm.backward (6) == 3);
   bm.del (1);
-  assert (bm.has (1) == false);
-  assert (bm.has (3) == true);
+  hb_always_assert (bm.has (1) == false);
+  hb_always_assert (bm.has (3) == true);
   bm.clear ();
-  assert (bm.get_population () == 0);
+  hb_always_assert (bm.get_population () == 0);
 
   hb_inc_bimap_t  ibm;
 
-  assert (ibm.add (13) == 0);
-  assert (ibm.add (8) == 1);
-  assert (ibm.add (10) == 2);
-  assert (ibm.add (8) == 1);
-  assert (ibm.add (7) == 3);
-  assert (ibm.get_population () == 4);
-  assert (ibm[7] == 3);
+  hb_always_assert (ibm.add (13) == 0);
+  hb_always_assert (ibm.add (8) == 1);
+  hb_always_assert (ibm.add (10) == 2);
+  hb_always_assert (ibm.add (8) == 1);
+  hb_always_assert (ibm.add (7) == 3);
+  hb_always_assert (ibm.get_population () == 4);
+  hb_always_assert (ibm[7] == 3);
 
   ibm.sort ();
-  assert (ibm.get_population () == 4);
-  assert (ibm[7] == 0);
-  assert (ibm[13] == 3);
+  hb_always_assert (ibm.get_population () == 4);
+  hb_always_assert (ibm[7] == 0);
+  hb_always_assert (ibm[13] == 3);
 
   ibm.identity (3);
-  assert (ibm.get_population () == 3);
-  assert (ibm[0] == 0);
-  assert (ibm[1] == 1);
-  assert (ibm[2] == 2);
-  assert (ibm.backward (0) == 0);
-  assert (ibm.backward (1) == 1);
-  assert (ibm.backward (2) == 2);
-  assert (ibm.has (4) == false);
+  hb_always_assert (ibm.get_population () == 3);
+  hb_always_assert (ibm[0] == 0);
+  hb_always_assert (ibm[1] == 1);
+  hb_always_assert (ibm[2] == 2);
+  hb_always_assert (ibm.backward (0) == 0);
+  hb_always_assert (ibm.backward (1) == 1);
+  hb_always_assert (ibm.backward (2) == 2);
+  hb_always_assert (ibm.has (4) == false);
 
   return 0;
 }
