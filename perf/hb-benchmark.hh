@@ -32,17 +32,6 @@
 #include <hb.h>
 #include <hb-subset.h>
 
-#include <hb-ot.h>
-#ifdef HAVE_FREETYPE
-#include <hb-ft.h>
-#endif
-#ifdef HAVE_FONTATIONS
-#include <hb-fontations.h>
-#endif
-#ifdef HAVE_CORETEXT
-#include <hb-coretext.h>
-#endif
-
 #include <benchmark/benchmark.h>
 
 #include <cassert>

@@ -1,3 +1,8 @@
+if conf.get('HAVE_GLIB', 0) == 0
+  message('You need to have glib support enabled to build perf benchmarks.')
+  subdir_done()
+endif
+
 google_benchmark = subproject('google-benchmark')
 google_benchmark_dep = google_benchmark.get_variable('google_benchmark_dep')
 
@@ -13,11 +18,10 @@ foreach source : benchmarks
   benchmark_name = source.split('.')[0]
   benchmark(benchmark_name, executable(benchmark_name, source,
     dependencies: [
-      google_benchmark_dep, freetype_dep, coretext_deps,
+      google_benchmark_dep, libharfbuzz_dep
     ],
     cpp_args: [],
     include_directories: [incconfig, incsrc],
-    link_with: [libharfbuzz],
     install: false,
   ), workdir: meson.current_source_dir() / '..', timeout: 100)
 endforeach
@@ -30,11 +34,10 @@ foreach source : benchmarks_subset
   benchmark_name = source.split('.')[0]
   benchmark(benchmark_name, executable(benchmark_name, source,
     dependencies: [
-      google_benchmark_dep, freetype_dep, coretext_deps,
+      google_benchmark_dep, libharfbuzz_dep, libharfbuzz_subset_dep
     ],
     cpp_args: [],
     include_directories: [incconfig, incsrc],
-    link_with: [libharfbuzz, libharfbuzz_subset],
     install: false,
   ), workdir: meson.current_source_dir() / '..', timeout: 100)
 endforeach
