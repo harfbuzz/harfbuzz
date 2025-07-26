@@ -97,7 +97,7 @@ struct Coverage
     }
   }
   unsigned int get_coverage (hb_codepoint_t glyph_id,
-			     hb_ot_lookup_cache_t *cache) const
+			     hb_ot_layout_mapping_cache_t *cache) const
   {
     unsigned coverage;
     if (cache && cache->get (glyph_id, &coverage)) return coverage;

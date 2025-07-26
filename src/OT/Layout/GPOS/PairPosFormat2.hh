@@ -125,9 +125,9 @@ struct PairPosFormat2_4 : ValueBase
 
   struct pair_pos_cache_t
   {
-    hb_ot_lookup_cache_t coverage;
-    hb_ot_lookup_cache_t first;
-    hb_ot_lookup_cache_t second;
+    hb_ot_layout_mapping_cache_t coverage;
+    hb_ot_layout_mapping_cache_t first;
+    hb_ot_layout_mapping_cache_t second;
   };
 
   unsigned cache_cost () const
