@@ -704,14 +704,14 @@ struct MathGlyphPartRecord
   }
 
   void extract (hb_ot_math_glyph_part_t &out,
-		int64_t mult,
+		float multf,
 		hb_font_t *font) const
   {
     out.glyph			= glyph;
 
-    out.start_connector_length	= font->em_mult (startConnectorLength, mult);
-    out.end_connector_length	= font->em_mult (endConnectorLength, mult);
-    out.full_advance		= font->em_mult (fullAdvance, mult);
+    out.start_connector_length	= font->em_multf (startConnectorLength, multf);
+    out.end_connector_length	= font->em_multf (endConnectorLength, multf);
+    out.full_advance		= font->em_multf (fullAdvance, multf);
 
     static_assert ((unsigned int) HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER ==
 		   (unsigned int) PartFlags::Extender, "");
@@ -776,7 +776,7 @@ struct MathGlyphAssembly
   {
     if (parts_count)
     {
-      int64_t mult = font->dir_mult (direction);
+      float mult = font->dir_multf (direction);
       for (auto _ : hb_zip (partRecords.as_array ().sub_array (start_offset, parts_count),
 			    hb_array (parts, *parts_count)))
 	_.first.extract (_.second, mult, font);
@@ -845,10 +845,10 @@ struct MathGlyphConstruction
   {
     if (variants_count)
     {
-      int64_t mult = font->dir_mult (direction);
+      float mult = font->dir_multf (direction);
       for (auto _ : hb_zip (mathGlyphVariantRecord.as_array ().sub_array (start_offset, variants_count),
 			    hb_array (variants, *variants_count)))
-	_.second = {_.first.variantGlyph, font->em_mult (_.first.advanceMeasurement, mult)};
+	_.second = {_.first.variantGlyph, font->em_multf (_.first.advanceMeasurement, mult)};
     }
     return mathGlyphVariantRecord.len;
   }

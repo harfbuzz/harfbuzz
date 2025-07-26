@@ -2054,8 +2054,6 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   0.f, /* slant_xy; */
   1.f, /* x_multf */
   1.f, /* y_multf */
-  1<<16, /* x_mult */
-  1<<16, /* y_mult */
 
   0, /* x_ppem */
   0, /* y_ppem */
@@ -2092,7 +2090,6 @@ _hb_font_create (hb_face_t *face)
   font->x_scale = font->y_scale = face->get_upem ();
   font->embolden_in_place = true;
   font->x_multf = font->y_multf = 1.f;
-  font->x_mult = font->y_mult = 1 << 16;
   font->instance_index = HB_FONT_NO_VAR_NAMED_INSTANCE;
 
   return font;

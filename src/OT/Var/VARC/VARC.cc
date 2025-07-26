@@ -312,8 +312,8 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
       transform.scaleY = transform.scaleX;
 
     total_transform.transform (transform.to_transform ());
-    total_transform.scale (c.font->x_mult ? 1.f / c.font->x_multf : 0.f,
-			   c.font->y_mult ? 1.f / c.font->y_multf : 0.f);
+    total_transform.scale (c.font->x_multf ? 1.f / c.font->x_multf : 0.f,
+			   c.font->y_multf ? 1.f / c.font->y_multf : 0.f);
 
     bool same_coords = component_coords.length == coords.length &&
 		       component_coords.arrayZ == coords.arrayZ;
