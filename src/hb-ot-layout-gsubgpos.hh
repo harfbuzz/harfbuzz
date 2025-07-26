@@ -888,7 +888,7 @@ struct hb_ot_apply_context_t :
   }
 };
 
-enum class hb_ot_lookup_cache_op_t
+enum class hb_ot_subtable_cache_op_t
 {
   CREATE,
   ENTER,
@@ -920,22 +920,22 @@ struct hb_accelerate_subtables_context_t :
 
   template <typename T>
   static inline auto cache_func_ (void *p,
-				  hb_ot_lookup_cache_op_t op,
+				  hb_ot_subtable_cache_op_t op,
 				  hb_priority<1>) HB_RETURN (void *, T::cache_func (p, op) )
   template <typename T=void>
   static inline void * cache_func_ (void *p,
-				    hb_ot_lookup_cache_op_t op HB_UNUSED,
+				    hb_ot_subtable_cache_op_t op HB_UNUSED,
 				    hb_priority<0>) { return (void *) false; }
   template <typename Type>
   static inline void * cache_func_to (void *p,
-				      hb_ot_lookup_cache_op_t op)
+				      hb_ot_subtable_cache_op_t op)
   {
     return cache_func_<Type> (p, op, hb_prioritize);
   }
 #endif
 
   typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c);
-  typedef void * (*hb_cache_func_t) (void *p, hb_ot_lookup_cache_op_t op);
+  typedef void * (*hb_cache_func_t) (void *p, hb_ot_subtable_cache_op_t op);
 
   struct hb_applicable_t
   {
@@ -972,11 +972,11 @@ struct hb_accelerate_subtables_context_t :
     }
     bool cache_enter (hb_ot_apply_context_t *c) const
     {
-      return (bool) cache_func (c, hb_ot_lookup_cache_op_t::ENTER);
+      return (bool) cache_func (c, hb_ot_subtable_cache_op_t::ENTER);
     }
     void cache_leave (hb_ot_apply_context_t *c) const
     {
-      cache_func (c, hb_ot_lookup_cache_op_t::LEAVE);
+      cache_func (c, hb_ot_subtable_cache_op_t::LEAVE);
     }
 #endif
 
@@ -1021,10 +1021,10 @@ struct hb_accelerate_subtables_context_t :
      * and we allocate the cache opportunity to the costliest subtable.
      */
     unsigned cost = cache_cost (obj, hb_prioritize);
-    if (cost > cache_user_cost)
+    if (cost > subtable_cache_user_cost)
     {
-      cache_user_idx = i - 1;
-      cache_user_cost = cost;
+      subtable_cache_user_idx = i - 1;
+      subtable_cache_user_cost = cost;
     }
 #endif
 
@@ -1039,8 +1039,8 @@ struct hb_accelerate_subtables_context_t :
   unsigned i = 0;
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-  unsigned cache_user_idx = (unsigned) -1;
-  unsigned cache_user_cost = 0;
+  unsigned subtable_cache_user_idx = (unsigned) -1;
+  unsigned subtable_cache_user_cost = 0;
 #endif
 };
 
@@ -2623,13 +2623,13 @@ struct ContextFormat2_5
     unsigned c = (this+classDef).cost () * ruleSet.len;
     return c >= 4 ? c : 0;
   }
-  static void * cache_func (void *p, hb_ot_lookup_cache_op_t op)
+  static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
   {
     switch (op)
     {
-      case hb_ot_lookup_cache_op_t::CREATE:
+      case hb_ot_subtable_cache_op_t::CREATE:
 	return (void *) true;
-      case hb_ot_lookup_cache_op_t::ENTER:
+      case hb_ot_subtable_cache_op_t::ENTER:
       {
 	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
 	if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
@@ -2641,14 +2641,14 @@ struct ContextFormat2_5
 	c->new_syllables = 255;
 	return (void *) true;
       }
-      case hb_ot_lookup_cache_op_t::LEAVE:
+      case hb_ot_subtable_cache_op_t::LEAVE:
       {
 	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
 	c->new_syllables = (unsigned) -1;
 	HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
 	return nullptr;
       }
-      case hb_ot_lookup_cache_op_t::DESTROY:
+      case hb_ot_subtable_cache_op_t::DESTROY:
         return nullptr;
     }
     return nullptr;
@@ -3873,13 +3873,13 @@ struct ChainContextFormat2_5
   {
     return (this+lookaheadClassDef).cost () * ruleSet.len;
   }
-  static void * cache_func (void *p, hb_ot_lookup_cache_op_t op)
+  static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
   {
     switch (op)
     {
-      case hb_ot_lookup_cache_op_t::CREATE:
+      case hb_ot_subtable_cache_op_t::CREATE:
 	return (void *) true;
-      case hb_ot_lookup_cache_op_t::ENTER:
+      case hb_ot_subtable_cache_op_t::ENTER:
       {
 	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
 	if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
@@ -3891,14 +3891,14 @@ struct ChainContextFormat2_5
 	c->new_syllables = 255;
 	return (void *) true;
       }
-      case hb_ot_lookup_cache_op_t::LEAVE:
+      case hb_ot_subtable_cache_op_t::LEAVE:
       {
 	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
 	c->new_syllables = (unsigned) -1;
 	HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
 	return nullptr;
       }
-      case hb_ot_lookup_cache_op_t::DESTROY:
+      case hb_ot_subtable_cache_op_t::DESTROY:
         return nullptr;
     }
     return nullptr;
@@ -4427,20 +4427,20 @@ struct hb_ot_layout_lookup_accelerator_t
       thiz->digest.union_ (subtable.digest);
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    if (c_accelerate_subtables.cache_user_cost < 4)
-      c_accelerate_subtables.cache_user_idx = (unsigned) -1;
+    if (c_accelerate_subtables.subtable_cache_user_cost < 4)
+      c_accelerate_subtables.subtable_cache_user_idx = (unsigned) -1;
 
-    thiz->cache_user_idx = c_accelerate_subtables.cache_user_idx;
+    thiz->subtable_cache_user_idx = c_accelerate_subtables.subtable_cache_user_idx;
 
-    if (thiz->cache_user_idx != (unsigned) -1)
+    if (thiz->subtable_cache_user_idx != (unsigned) -1)
     {
-      thiz->cache = thiz->subtables[thiz->cache_user_idx].cache_func (nullptr, hb_ot_lookup_cache_op_t::CREATE);
-      if (!thiz->cache)
-	thiz->cache_user_idx = (unsigned) -1;
+      thiz->subtable_cache = thiz->subtables[thiz->subtable_cache_user_idx].cache_func (nullptr, hb_ot_subtable_cache_op_t::CREATE);
+      if (!thiz->subtable_cache)
+	thiz->subtable_cache_user_idx = (unsigned) -1;
     }
 
     for (unsigned i = 0; i < count; i++)
-      if (i != thiz->cache_user_idx)
+      if (i != thiz->subtable_cache_user_idx)
 	thiz->subtables[i].apply_cached_func = thiz->subtables[i].apply_func;
 #endif
 
@@ -4450,10 +4450,10 @@ struct hb_ot_layout_lookup_accelerator_t
   void fini ()
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    if (cache)
+    if (subtable_cache)
     {
-      assert (cache_user_idx != (unsigned) -1);
-      subtables[cache_user_idx].cache_func (cache, hb_ot_lookup_cache_op_t::DESTROY);
+      assert (subtable_cache_user_idx != (unsigned) -1);
+      subtables[subtable_cache_user_idx].cache_func (subtable_cache, hb_ot_subtable_cache_op_t::DESTROY);
     }
 #endif
   }
@@ -4491,8 +4491,8 @@ struct hb_ot_layout_lookup_accelerator_t
   bool cache_enter (hb_ot_apply_context_t *c) const
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    return cache_user_idx != (unsigned) -1 &&
-	   subtables[cache_user_idx].cache_enter (c);
+    return subtable_cache_user_idx != (unsigned) -1 &&
+	   subtables[subtable_cache_user_idx].cache_enter (c);
 #else
     return false;
 #endif
@@ -4500,7 +4500,7 @@ struct hb_ot_layout_lookup_accelerator_t
   void cache_leave (hb_ot_apply_context_t *c) const
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    subtables[cache_user_idx].cache_leave (c);
+    subtables[subtable_cache_user_idx].cache_leave (c);
 #endif
   }
 
@@ -4508,9 +4508,9 @@ struct hb_ot_layout_lookup_accelerator_t
   hb_set_digest_t digest;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   public:
-  void *cache = nullptr;
+  void *subtable_cache = nullptr;
   private:
-  unsigned cache_user_idx = (unsigned) -1;
+  unsigned subtable_cache_user_idx = (unsigned) -1;
 #endif
   private:
   hb_accelerate_subtables_context_t::hb_applicable_t subtables[HB_VAR_ARRAY];
