@@ -1,3 +1,8 @@
+Overview of changes leading to 11.3.3
+Sunday, July 26, 2025
+====================================
+- Fix but in vertical shaping of fonts without the vmtx table.
+
 Overview of changes leading to 11.3.2
 Sunday, July 20, 2025
 ====================================
