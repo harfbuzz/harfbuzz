@@ -1,5 +1,7 @@
 #include "hb-benchmark.hh"
 
+#include <glib.h>
+
 #define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
 
 static hb_variation_t default_variations[] = {
@@ -8,6 +10,7 @@ static hb_variation_t default_variations[] = {
 };
 
 static unsigned max_num_glyphs = 0;
+static const char *text = " ";
 
 static struct test_input_t
 {
@@ -237,9 +240,6 @@ static void BM_Font (benchmark::State &state,
     }
     case load_face_and_shape:
     {
-      const char *text = getenv ("HB_BENCHMARK_TEXT");
-      if (!text || !*text)
-        text = " ";
       for (auto _ : state)
       {
 	hb_face_t *face = hb_benchmark_face_create_from_file_or_fail (test_input.font_path, 0);
@@ -309,33 +309,113 @@ static void test_operation (operation_t op,
   }
 }
 
+static const char *font_file = nullptr;
+static const char *variations_str = nullptr;
+
+static GOptionEntry entries[] =
+{
+  {"font-file", 0, 0, G_OPTION_ARG_STRING, &font_file, "Font file-path to benchmark", "FONTFILE"},
+  {"variations", 0, 0, G_OPTION_ARG_STRING, &variations_str, "Variations to apply", "VAR"},
+  {"max-glyphs", 0, 0, G_OPTION_ARG_INT, &max_num_glyphs, "Maximum number of glyphs to process", "NUM"},
+  {"text", 0, 0, G_OPTION_ARG_STRING, &text, "Text to use for load_face_and_shape test", "TEXT"},
+  {nullptr}
+};
+
+static void print_usage (const char *prgname)
+{
+  g_print ("Usage: %s [OPTIONS] [FONTFILE]\n", prgname);
+}
+
 int main(int argc, char** argv)
 {
-  benchmark::Initialize(&argc, argv);
+  const char *prgname = g_path_get_basename (argv[0]);
 
-  if (argc > 1 && strcmp (argv[1], "--max-glyphs") == 0)
+  GOptionContext *context = g_option_context_new ("");
+  g_option_context_set_summary (context, "Benchmark font operations");
+  g_option_context_set_description (context, "Benchmark Options:");
+  g_option_context_add_main_entries (context, entries, nullptr);
+
+  bool show_help = false;
+  for (int i = 1; i < argc; i++)
   {
-    if (argc < 3)
+    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
     {
-      fprintf (stderr, "Usage: %s [--max-glyphs <number>] [<font> <variation>...]\n", argv[0]);
-      return 1;
+      argv[i] = (char *) "--help"; // Ensure it is recognized by both google-benchmark
+      show_help = true;
+      break;
     }
-    max_num_glyphs = atoi (argv[2]);
-    argc -= 2;
-    argv += 2;
+  }
+  if (show_help)
+  {
+    print_usage (prgname);
+
+    gchar *help_text = g_option_context_get_help (context, false, nullptr);
+    help_text = strstr (help_text, "\n\n");
+    g_print ("%s", help_text);
+
+    benchmark::Initialize(&argc, argv); // This shows the help for google-benchmark
   }
 
-  if (argc > 1)
+  benchmark::Initialize(&argc, argv);
+  g_option_context_parse (context, &argc, &argv, nullptr);
+  g_option_context_free (context);
+
+  argc--;
+  argv++;
+  if (!font_file && argc)
   {
-    unsigned num_variations = argc - 2;
+    font_file = *argv;
+    argc--;
+    argv++;
+  }
+
+  if (argc)
+  {
+    g_printerr ("Unexpected arguments: ");
+    for (int i = 0; i < argc; i++)
+      g_printerr ("%s ", argv[i]);
+    g_printerr ("\n\n");
+    print_usage (prgname);
+    return 1;
+  }
+
+  if (font_file)
+  {
+    unsigned num_variations = 0;
+    if (variations_str)
+    {
+      const char *p = variations_str;
+      while (p && *p)
+      {
+	num_variations++;
+	p = strchr (p, ',');
+	if (p) p++;
+      }
+    }
     hb_variation_t *variations = num_variations ? (hb_variation_t *) calloc (num_variations, sizeof (hb_variation_t)) : nullptr;
-    for (unsigned i = 0; i < num_variations; i++)
-      hb_variation_from_string (argv[i + 2], -1, &variations[i]);
+    if (variations_str)
+    {
+      const char *p = variations_str;
+      for (unsigned i = 0; i < num_variations; i++)
+      {
+	const char *end = strchr (p, ',');
+	if (end)
+	{
+	  hb_variation_from_string (p, end - p, &variations[i]);
+	  p = end + 1;
+	}
+	else
+	{
+	  hb_variation_from_string (p, -1, &variations[i]);
+	  p = nullptr;
+	}
+      }
+    }
 
     num_tests = 1;
     tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
     tests[0].variations = num_variations ? variations : default_variations;
-    tests[0].font_path = argv[1];
+    tests[0].font_path = font_file;
   }
 
 #define TEST_OPERATION(op, time_unit) test_operation (op, #op, time_unit)
@@ -361,3 +441,4 @@ int main(int argc, char** argv)
     free (tests);
   }
 }
+
