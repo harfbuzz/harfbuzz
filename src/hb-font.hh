@@ -158,8 +158,8 @@ struct hb_font_t
   /* Convert from font-space to user-space */
   int64_t dir_mult (hb_direction_t direction)
   { return HB_DIRECTION_IS_VERTICAL(direction) ? y_mult : x_mult; }
-  hb_position_t em_scale_x (int16_t v) { return em_mult (v, x_mult); }
-  hb_position_t em_scale_y (int16_t v) { return em_mult (v, y_mult); }
+  hb_position_t em_scale_x (int32_t v) { return em_multf (v, x_multf); }
+  hb_position_t em_scale_y (int32_t v) { return em_multf (v, y_multf); }
   hb_position_t em_scalef_x (float v) { return em_multf (v, x_multf); }
   hb_position_t em_scalef_y (float v) { return em_multf (v, y_multf); }
   float em_fscale_x (int16_t v) { return em_fmult (v, x_multf); }
