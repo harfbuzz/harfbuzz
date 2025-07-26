@@ -17,6 +17,7 @@
 # glyf, no vmtx
 ../fonts/191826b9643e3f124d865d617ae609db6a2ce203.ttf;--direction=t;U+300C;[uni300C.vert=0@-512,-578+0,-1024]
 ../fonts/f9b1dd4dcb515e757789a22cb4241107746fd3d0.ttf;--direction=t;U+0041,U+0042;[gid1=0@-654,-2128+0,-2789|gid2=1@-665,-2125+0,-2789]
+../fonts/NotoSans-VF.abc.ttf;--direction=t --font-size=2000;U+0062,U+0063;[gid2=0@-615,-2112+0,-2724|gid3=1@-480,-1898+0,-2724]
 # glyf+gvar, no vmtx
 ../fonts/NotoSans-VF.abc.ttf;--direction=t;U+0061,U+0062;[gid1=0@-280,-948+0,-1362|gid2=1@-307,-1056+0,-1362]
 ../fonts/NotoSans-VF.abc.ttf;--direction=t --variations wght=700;U+0061,U+0062;[gid1=0@-302,-954+0,-1362|gid2=1@-316,-1056+0,-1362]
