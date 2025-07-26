@@ -113,7 +113,7 @@ struct PairPosFormat1_3
     {
       case hb_ot_subtable_cache_op_t::CREATE:
       {
-	hb_ot_lookup_cache_t *cache = (hb_ot_lookup_cache_t *) hb_malloc (sizeof (hb_ot_lookup_cache_t));
+	hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) hb_malloc (sizeof (hb_ot_layout_mapping_cache_t));
 	if (likely (cache))
 	  cache->clear ();
 	return cache;
@@ -124,7 +124,7 @@ struct PairPosFormat1_3
 	return nullptr;
       case hb_ot_subtable_cache_op_t::DESTROY:
       {
-	hb_ot_lookup_cache_t *cache = (hb_ot_lookup_cache_t *) p;
+	hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) p;
 	hb_free (cache);
 	return nullptr;
       }
@@ -141,7 +141,7 @@ struct PairPosFormat1_3
     hb_buffer_t *buffer = c->buffer;
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    hb_ot_lookup_cache_t *cache = cached ? (hb_ot_lookup_cache_t *) c->lookup_accel->subtable_cache : nullptr;
+    hb_ot_layout_mapping_cache_t *cache = cached ? (hb_ot_layout_mapping_cache_t *) c->lookup_accel->subtable_cache : nullptr;
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, cache);
 #else
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
