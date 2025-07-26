@@ -724,7 +724,7 @@ struct hb_serialize_context_t
 	   hb_requires (hb_is_iterator (Iterator)),
 	   typename ...Ts>
   void copy_all (Iterator it, Ts&&... ds)
-  { for (decltype (*it) _ : it) copy (_, std::forward<Ts> (ds)...); }
+  { for (decltype (*it) _ : it) copy (_, ds...); }
 
   template <typename Type>
   hb_serialize_context_t& operator << (const Type &obj) & { embed (obj); return *this; }

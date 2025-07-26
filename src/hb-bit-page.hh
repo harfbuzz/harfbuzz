@@ -290,7 +290,7 @@ struct hb_bit_page_t
     unsigned int j = m & ELT_MASK;
 
     const elt_t vv = v[i] & ~((elt_t (1) << j) - 1);
-    for (const elt_t *p = &vv; i < len (); p = &v[++i])
+    for (const elt_t *p = &vv; i < len (); p = ((const elt_t *) &v[0]) + (++i))
       if (*p)
       {
 	*codepoint = i * ELT_BITS + elt_get_min (*p);
