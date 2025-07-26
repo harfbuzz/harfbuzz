@@ -888,6 +888,79 @@ struct hb_ot_apply_context_t :
   }
 };
 
+using hb_coverage_digests_map_t = hb_hashmap_t<uint32_t, hb_set_digest_t>;
+
+struct hb_ot_lookup_cache_t
+{
+  hb_ot_lookup_cache_t () = default;
+  hb_ot_lookup_cache_t (const hb_ot_lookup_cache_t &) = delete;
+  hb_ot_lookup_cache_t &operator= (const hb_ot_lookup_cache_t &) = delete;
+  ~hb_ot_lookup_cache_t () = default;
+
+  bool may_have (const Coverage &coverage, hb_codepoint_t glyph) const
+  {
+    uint32_t key = (uintptr_t(&coverage) & 0xFFFFFFFF);
+    const hb_set_digest_t *v;
+    if (coverage_digests_map.has (key, &v))
+      return v->may_have (glyph);
+    return true;
+  }
+
+  /* Map from ((&coverage)&0xFFFFFFFF) to its digest.
+   * Used by (Chain)ContextFormat3's sequence coverages. */
+  hb_coverage_digests_map_t coverage_digests_map;
+};
+
+struct hb_accelerate_lookup_context_t :
+       hb_dispatch_context_t<hb_accelerate_lookup_context_t>
+{
+  template <typename T>
+  auto accelerate_lookup (const T &obj, hb_priority<1>) HB_AUTO_RETURN ( (obj.accelerate_lookup (this), hb_empty_t ()) )
+  template <typename T>
+  auto accelerate_lookup (const T &obj, hb_priority<0>) HB_AUTO_RETURN ( hb_empty_t () )
+
+  /* Dispatch interface. */
+  template <typename T>
+  return_t dispatch (const T &obj)
+  {
+    return accelerate_lookup (obj, hb_prioritize);
+  }
+  static return_t default_return_value () { return hb_empty_t (); }
+
+  hb_accelerate_lookup_context_t (hb_ot_lookup_cache_t **lookup_cache_ptr_) :
+				     lookup_cache_ptr (lookup_cache_ptr_) {}
+
+  void digest_coverage (const Coverage &coverage)
+  {
+    uint32_t key = (uintptr_t(&coverage) & 0xFFFFFFFF);
+
+    auto &map = get_coverage_digests_map ();
+    if (map.has (key))
+      return; // Already digested.
+
+    hb_set_digest_t digest;
+    coverage.collect_coverage (&digest);
+    map.set (key, digest);
+  }
+
+  protected:
+  hb_coverage_digests_map_t &get_coverage_digests_map ()
+  {
+    if (unlikely (!*lookup_cache_ptr))
+    {
+      *lookup_cache_ptr = (hb_ot_lookup_cache_t *) hb_calloc (1, sizeof (hb_ot_lookup_cache_t));
+      if (unlikely (!*lookup_cache_ptr))
+	return (hb_coverage_digests_map_t &) Null(hb_coverage_digests_map_t);
+      new (*lookup_cache_ptr) hb_ot_lookup_cache_t ();
+    }
+    return (*lookup_cache_ptr)->coverage_digests_map;
+  }
+
+  private:
+  hb_ot_lookup_cache_t **lookup_cache_ptr;
+};
+
+
 enum class hb_ot_subtable_cache_op_t
 {
   CREATE,
@@ -4150,6 +4223,19 @@ struct ChainContextFormat3
     return this+input[0];
   }
 
+  void accelerate_lookup (hb_accelerate_lookup_context_t *c) const
+  {
+    const auto &input = StructAfter<decltype (inputX)> (backtrack);
+    const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
+
+    for (auto &cov_offset : hb_iter (backtrack))
+      c->digest_coverage (this+cov_offset);
+    for (auto &cov_offset : hb_iter (input))
+      c->digest_coverage (this+cov_offset);
+    for (auto &cov_offset : hb_iter (lookahead))
+      c->digest_coverage (this+cov_offset);
+  }
+
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -4164,6 +4250,7 @@ struct ChainContextFormat3
       {{match_coverage, match_coverage, match_coverage}},
       {this, this, this}
     };
+//struct hb_ot_lookup_cache_t
     return_trace (chain_context_apply_lookup (c,
 					      backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
 					      input.len, (const HBUINT16 *) input.arrayZ + 1,
@@ -4419,6 +4506,9 @@ struct hb_ot_layout_lookup_accelerator_t
     if (unlikely (!thiz))
       return nullptr;
 
+    hb_accelerate_lookup_context_t c_accelerate_lookups (&thiz->lookup_cache);
+    lookup.dispatch (&c_accelerate_lookups);
+
     hb_accelerate_subtables_context_t c_accelerate_subtables (thiz->subtables);
     lookup.dispatch (&c_accelerate_subtables);
 
@@ -4450,6 +4540,11 @@ struct hb_ot_layout_lookup_accelerator_t
   void fini ()
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    if (lookup_cache)
+    {
+      lookup_cache->~hb_ot_lookup_cache_t ();
+      hb_free (lookup_cache);
+    }
     if (subtable_cache)
     {
       assert (subtable_cache_user_idx != (unsigned) -1);
@@ -4508,6 +4603,7 @@ struct hb_ot_layout_lookup_accelerator_t
   hb_set_digest_t digest;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   public:
+  hb_ot_lookup_cache_t *lookup_cache = nullptr;
   void *subtable_cache = nullptr;
   private:
   unsigned subtable_cache_user_idx = (unsigned) -1;
