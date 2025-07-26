@@ -1295,11 +1295,19 @@ static inline bool match_class_cached2 (hb_glyph_info_t &info, unsigned value, c
     info.syllable() = (info.syllable() & 0x0F) | (klass << 4);
   return klass == value;
 }
+
+static struct hb_ot_lookup_cache_t *lookup_cache = nullptr; // XXX
+
 static inline bool match_coverage (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   Offset16To<Coverage> coverage;
   coverage = value;
-  return (data+coverage).get_coverage (info.codepoint) != NOT_COVERED;
+  auto &cov = (data+coverage);
+
+  if (lookup_cache && !lookup_cache->may_have (cov, info.codepoint))
+    return false;
+
+  return cov.get_coverage (info.codepoint) != NOT_COVERED;
 }
 
 template <typename HBUINT>
@@ -4236,7 +4244,8 @@ struct ChainContextFormat3
       c->digest_coverage (this+cov_offset);
   }
 
-  bool apply (hb_ot_apply_context_t *c) const
+  template <typename ot_apply_context_t>
+  bool apply (ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
@@ -4250,12 +4259,14 @@ struct ChainContextFormat3
       {{match_coverage, match_coverage, match_coverage}},
       {this, this, this}
     };
-//struct hb_ot_lookup_cache_t
-    return_trace (chain_context_apply_lookup (c,
-					      backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
-					      input.len, (const HBUINT16 *) input.arrayZ + 1,
-					      lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
-					      lookup.len, lookup.arrayZ, lookup_context));
+    lookup_cache = c->lookup_accel->lookup_cache;
+    bool ret = (chain_context_apply_lookup (c,
+					    backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
+					    input.len, (const HBUINT16 *) input.arrayZ + 1,
+					    lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
+					    lookup.len, lookup.arrayZ, lookup_context));
+    lookup_cache = nullptr;
+    return_trace (ret);
   }
 
   template<typename Iterator,
