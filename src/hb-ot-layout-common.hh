@@ -3442,7 +3442,7 @@ struct ItemVariationStore
     for (unsigned i = 0; i < count; i++)
     {
       hb_inc_bimap_t *map = inner_maps.push ();
-      if (!c->propagate_error(inner_maps))
+      if (unlikely (!c->propagate_error(inner_maps)))
         return_trace(nullptr);
       auto &data = this+dataSets[i];
 
