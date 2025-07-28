@@ -133,11 +133,11 @@ PartShape::get_path_at (const hb_hvgl_context_t *c,
     const auto matrix = deltas.get_matrix (axisCount, segmentCount).arrayZ;
     unsigned axis_count = coords.length;
     unsigned axis_index = 0;
-    HB_UNUSED bool src_aligned = (uintptr_t) matrix % 8 == 0;
 
 #ifndef HB_NO_APPLE_SIMD
     // APPLE SIMD
 
+    bool src_aligned = (uintptr_t) matrix % 8 == 0;
     // dest is always aligned.
     if (le && src_aligned)
     {
@@ -205,17 +205,14 @@ PartShape::get_path_at (const hb_hvgl_context_t *c,
       unsigned i = 0;
 
 #ifndef HB_NO_SIMD
-      if (le && src_aligned && rows_count > 4)
+      if (le && rows_count > 4)
       {
 #ifdef __AVX2__
 	{
 	  __m256d scalar_vec = _mm256_set1_pd(scalar);
 	  for (; i + 4 <= rows_count; i += 4)
 	  {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
 	    __m256d src_vec = _mm256_loadu_pd ((double *) &src[i]);
-#pragma GCC diagnostic pop
 	    __m256d dest_vec = _mm256_loadu_pd (&dest[i]);
 	    __m256d result =
 #ifdef __FMA__
