@@ -70,11 +70,13 @@ static inline Type& StructAtOffsetUnaligned(void *P, unsigned int offset)
  * Any extra arguments are forwarded to get_size, so for example
  * it can work with UnsizedArrayOf<> as well. */
 template <typename Type, typename TObject, typename ...Ts>
-static inline const Type& StructAfter(const TObject &X, Ts... args)
-{ return StructAtOffset<Type>(&X, X.get_size(std::forward<Ts> (args)...)); }
+static inline auto StructAfter(const TObject &X, Ts... args) HB_AUTO_RETURN((
+  StructAtOffset<Type>(&X, X.get_size(std::forward<Ts> (args)...))
+))
 template <typename Type, typename TObject, typename ...Ts>
-static inline Type& StructAfter(TObject &X, Ts... args)
-{ return StructAtOffset<Type>(&X, X.get_size(std::forward<Ts> (args)...)); }
+static inline auto StructAfter(TObject &X, Ts... args) HB_AUTO_RETURN((
+  StructAtOffset<Type>(&X, X.get_size(std::forward<Ts> (args)...))
+))
 
 
 /*
