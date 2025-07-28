@@ -71,10 +71,10 @@ static inline Type& StructAtOffsetUnaligned(void *P, unsigned int offset)
  * it can work with UnsizedArrayOf<> as well. */
 template <typename Type, typename TObject, typename ...Ts>
 static inline const Type& StructAfter(const TObject &X, Ts... args)
-{ return StructAtOffset<Type>(&X, X.get_size(args...)); }
+{ return StructAtOffset<Type>(&X, X.get_size(std::forward<Ts> (args)...)); }
 template <typename Type, typename TObject, typename ...Ts>
 static inline Type& StructAfter(TObject &X, Ts... args)
-{ return StructAtOffset<Type>(&X, X.get_size(args...)); }
+{ return StructAtOffset<Type>(&X, X.get_size(std::forward<Ts> (args)...)); }
 
 
 /*
