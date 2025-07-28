@@ -3,7 +3,6 @@
 
 #include "../../../hb-decycler.hh"
 #include "../../../hb-geometry.hh"
-#include "../../../hb-aat-var-hvgl-table.hh"
 #include "../../../hb-ot-layout-common.hh"
 #include "../../../hb-ot-glyf-table.hh"
 #include "../../../hb-ot-cff2-table.hh"
