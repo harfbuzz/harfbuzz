@@ -36,5 +36,6 @@
 
 - [ ] Push the commit and tag out: `git push --follow-tags`.
 
-- [ ] Go to GitHub releases page and create a new release for the pushed tag. Or wait a few minutes and the CI job will create on automatically.
-      Add description to the release, which should be the NEWS file additions.
+- [ ] Wait a few minutes and the CI job will create a GitHub release automatically, and it will use the NEWS file additions for release description.
+      The new release will be in draft mode, check everything is fine, or make any needed edits, then publish the release.
+      The release should also automatically include Windows binaries, but they take a bit longer to build and upload.
