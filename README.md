@@ -78,7 +78,7 @@ Internationalization and Unicode Conference over the years:
 More presentations and papers are available on [behdad][11]'s website.
 In particular, the following _studies_ are relevant to HarfBuzz development:
 
-- 2025 - [Introducing HarfRust][22]
+- 2025 – [Introducing HarfRust][22]
 - 2025 – [Subsetting][21]
 - 2025 – [Caching][12]
 - 2025 – [`hb-decycler`][13]
