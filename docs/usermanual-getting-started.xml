@@ -235,7 +235,7 @@
       hb_buffer_set_language(buf, hb_language_from_string("en", -1));
 
       // If you don't know the direction, script, and language
-      hb_buffer_guess_segment_properties(buffer);
+      hb_buffer_guess_segment_properties(buf);
     </programlisting>
     <orderedlist numeration="arabic">
       <listitem override="3">
