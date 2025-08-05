@@ -364,6 +364,7 @@ if (WIN32 AND HB_HAVE_DIRECTWRITE)
   add_definitions(-DHAVE_DIRECTWRITE)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-directwrite.h)
   list(APPEND THIRD_PARTY_LIBS dwrite)
+  list(APPEND PC_LIBS_PRIV -ldwrite)
 endif ()
 
 if (HB_HAVE_CAIRO)
