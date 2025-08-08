@@ -843,11 +843,11 @@ hb_ot_hide_default_ignorables (hb_buffer_t *buffer,
 static inline void
 hb_ot_map_glyphs_fast (hb_buffer_t  *buffer)
 {
-  /* Normalization process sets up glyph_index(), we just copy it. */
+  /* Normalization process sets up normalizer_glyph_index(), we just copy it. */
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    info[i].codepoint = info[i].glyph_index();
+    info[i].codepoint = info[i].normalizer_glyph_index();
 
   buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
 }
@@ -885,7 +885,7 @@ hb_ot_substitute_default (const hb_ot_shape_context_t *c)
 
   hb_ot_rotate_chars (c);
 
-  HB_BUFFER_ALLOCATE_VAR (buffer, glyph_index);
+  HB_BUFFER_ALLOCATE_VAR (buffer, normalizer_glyph_index);
 
   _hb_ot_shape_normalize (c->plan, buffer, c->font);
 
@@ -897,7 +897,7 @@ hb_ot_substitute_default (const hb_ot_shape_context_t *c)
 
   hb_ot_map_glyphs_fast (buffer);
 
-  HB_BUFFER_DEALLOCATE_VAR (buffer, glyph_index);
+  HB_BUFFER_DEALLOCATE_VAR (buffer, normalizer_glyph_index);
 }
 
 static inline void
