@@ -2620,7 +2620,7 @@ struct ContextFormat2_5
 
   unsigned cache_cost () const
   {
-    return (this+classDef).cost () * ruleSet.len;
+    return (this+classDef).cost ();
   }
   static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
   {
@@ -3870,7 +3870,7 @@ struct ChainContextFormat2_5
 
   unsigned cache_cost () const
   {
-    return ((this+inputClassDef).cost () + (this+lookaheadClassDef).cost ()) * ruleSet.len;
+    return (this+inputClassDef).cost () + (this+lookaheadClassDef).cost ();
   }
   static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
   {
@@ -4426,7 +4426,6 @@ struct hb_ot_layout_lookup_accelerator_t
       thiz->digest.union_ (subtable.digest);
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-
     thiz->subtable_cache_user_idx = c_accelerate_subtables.subtable_cache_user_idx;
 
     if (thiz->subtable_cache_user_idx != (unsigned) -1)
