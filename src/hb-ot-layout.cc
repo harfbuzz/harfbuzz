@@ -1918,7 +1918,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
 	       unsigned subtable_count)
 {
-  bool use_cache = accel.cache_enter (c);
+  bool use_hot_subtable_cache = accel.cache_enter (c);
 
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
@@ -1930,7 +1930,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 	(cur.mask & c->lookup_mask) &&
 	c->check_glyph_property (&cur, c->lookup_props))
      {
-       applied = accel.apply (c, subtable_count, use_cache);
+       applied = accel.apply (c, subtable_count, use_hot_subtable_cache);
      }
 
     if (applied)
@@ -1939,7 +1939,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
       (void) buffer->next_glyph ();
   }
 
-  if (use_cache)
+  if (use_hot_subtable_cache)
     accel.cache_leave (c);
 
   return ret;
