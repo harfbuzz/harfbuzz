@@ -1189,38 +1189,50 @@ static inline bool match_class (hb_glyph_info_t &info, unsigned value, const voi
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   return class_def.get_class (info.codepoint) == value;
 }
-static inline bool match_class_cached (hb_glyph_info_t &info, unsigned value, const void *data)
+static inline unsigned get_class_cached (const ClassDef &class_def, hb_glyph_info_t &info)
 {
   unsigned klass = info.syllable();
   if (klass < 255)
-    return klass == value;
-  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+    return klass;
   klass = class_def.get_class (info.codepoint);
   if (likely (klass < 255))
     info.syllable() = klass;
-  return klass == value;
+  return klass;
 }
-static inline bool match_class_cached1 (hb_glyph_info_t &info, unsigned value, const void *data)
+static inline bool match_class_cached (hb_glyph_info_t &info, unsigned value, const void *data)
+{
+  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+  return get_class_cached (class_def, info) == value;
+}
+static inline unsigned get_class_cached1 (const ClassDef &class_def, hb_glyph_info_t &info)
 {
   unsigned klass = info.syllable() & 0x0F;
   if (klass < 15)
-    return klass == value;
-  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+    return klass;
   klass = class_def.get_class (info.codepoint);
   if (likely (klass < 15))
     info.syllable() = (info.syllable() & 0xF0) | klass;
-  return klass == value;
+  return klass;
 }
-static inline bool match_class_cached2 (hb_glyph_info_t &info, unsigned value, const void *data)
+static inline bool match_class_cached1 (hb_glyph_info_t &info, unsigned value, const void *data)
+{
+  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+  return get_class_cached1 (class_def, info) == value;
+}
+static inline unsigned get_class_cached2 (const ClassDef &class_def, hb_glyph_info_t &info)
 {
   unsigned klass = (info.syllable() & 0xF0) >> 4;
   if (klass < 15)
-    return klass == value;
-  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+    return klass;
   klass = class_def.get_class (info.codepoint);
   if (likely (klass < 15))
     info.syllable() = (info.syllable() & 0x0F) | (klass << 4);
-  return klass == value;
+  return klass;
+}
+static inline bool match_class_cached2 (hb_glyph_info_t &info, unsigned value, const void *data)
+{
+  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+  return get_class_cached2 (class_def, info) == value;
 }
 static inline bool match_coverage (hb_glyph_info_t &info, unsigned value, const void *data)
 {
@@ -2668,10 +2680,7 @@ struct ContextFormat2_5
       &class_def
     };
 
-    if (cached && c->buffer->cur().syllable() < 255)
-      index = c->buffer->cur().syllable ();
-    else
-      index = class_def.get_class (c->buffer->cur().codepoint);
+    index = cached ? get_class_cached (class_def, c->buffer->cur()) : class_def.get_class (c->buffer->cur().codepoint);
     const RuleSet &rule_set = this+ruleSet[index];
     return_trace (rule_set.apply (c, lookup_context));
   }
@@ -3926,11 +3935,9 @@ struct ChainContextFormat2_5
        &lookahead_class_def}
     };
 
-    // Note: Corresponds to match_class_cached2
-    if (cached && ((c->buffer->cur().syllable() & 0xF0) >> 4) < 15)
-      index = (c->buffer->cur().syllable () & 0xF0) >> 4;
-    else
-      index = input_class_def.get_class (c->buffer->cur().codepoint);
+    index = cached
+         ? get_class_cached2 (input_class_def, c->buffer->cur())
+          : input_class_def.get_class (c->buffer->cur().codepoint);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     return_trace (rule_set.apply (c, lookup_context));
   }
