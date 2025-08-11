@@ -670,8 +670,14 @@ struct hb_ot_apply_context_t :
 {
   const char *get_name () { return "APPLY"; }
   typedef return_t (*recurse_func_t) (hb_ot_apply_context_t *c, unsigned int lookup_index);
+
   template <typename T>
-  return_t dispatch (const T &obj) { return obj.apply (this); }
+  static inline auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (return_t, obj.apply (c, nullptr) )
+  template <typename T>
+  static inline auto apply_ (const T &obj, hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (return_t, obj.apply (c) )
+  template <typename T>
+  return_t dispatch (const T &obj) { return apply_(obj, this, hb_prioritize); }
+
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int sub_lookup_index)
@@ -899,23 +905,29 @@ enum class hb_ot_subtable_cache_op_t
 struct hb_accelerate_subtables_context_t :
        hb_dispatch_context_t<hb_accelerate_subtables_context_t>
 {
-  template <typename Type>
-  static inline bool apply_to (const void *obj, hb_ot_apply_context_t *c)
+  template <typename T>
+  static inline auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
+  template <typename T>
+  static inline auto apply_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
+  template <typename T>
+  static inline bool apply_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
   {
-    const Type *typed_obj = (const Type *) obj;
-    return typed_obj->apply (c);
+    const T *typed_obj = (const T *) obj;
+    return apply_ (typed_obj, c, external_cache, hb_prioritize);
   }
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   template <typename T>
-  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->apply_cached (c) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<2>) HB_RETURN (bool, obj->apply_cached (c, external_cache) )
   template <typename T>
-  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
-  template <typename Type>
-  static inline bool apply_cached_to (const void *obj, hb_ot_apply_context_t *c)
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<1>) HB_RETURN (bool, obj->apply (c, external_cache) )
+  template <typename T>
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, void *external_cache, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
+  template <typename T>
+  static inline bool apply_cached_to (const void *obj, hb_ot_apply_context_t *c, void *external_cache)
   {
-    const Type *typed_obj = (const Type *) obj;
-    return apply_cached_ (typed_obj, c, hb_prioritize);
+    const T *typed_obj = (const T *) obj;
+    return apply_cached_ (typed_obj, c, external_cache, hb_prioritize);
   }
 
   template <typename T>
@@ -925,7 +937,7 @@ struct hb_accelerate_subtables_context_t :
   template <typename T=void>
   static inline void * cache_func_ (void *p,
 				    hb_ot_subtable_cache_op_t op HB_UNUSED,
-				    hb_priority<0>) { return (void *) false; }
+				    hb_priority<0>) { return nullptr; }
   template <typename Type>
   static inline void * cache_func_to (void *p,
 				      hb_ot_subtable_cache_op_t op)
@@ -934,7 +946,7 @@ struct hb_accelerate_subtables_context_t :
   }
 #endif
 
-  typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c);
+  typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c, void *external_cache);
   typedef void * (*hb_cache_func_t) (void *p, hb_ot_subtable_cache_op_t op);
 
   struct hb_applicable_t
@@ -956,19 +968,29 @@ struct hb_accelerate_subtables_context_t :
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
       apply_cached_func = apply_cached_func_;
       cache_func = cache_func_;
+      external_cache = cache_create ();
 #endif
       digest.init ();
       obj_.get_coverage ().collect_coverage (&digest);
     }
 
+#ifdef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     bool apply (hb_ot_apply_context_t *c) const
     {
-      return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c);
+      return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c, nullptr);
     }
-#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+#else
+    bool apply (hb_ot_apply_context_t *c) const
+    {
+      return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c, external_cache);
+    }
     bool apply_cached (hb_ot_apply_context_t *c) const
     {
-      return digest.may_have (c->buffer->cur().codepoint) &&  apply_cached_func (obj, c);
+      return digest.may_have (c->buffer->cur().codepoint) &&  apply_cached_func (obj, c, external_cache);
+    }
+    void *cache_create () const
+    {
+	return cache_func (nullptr, hb_ot_subtable_cache_op_t::CREATE);
     }
     bool cache_enter (hb_ot_apply_context_t *c) const
     {
@@ -986,6 +1008,7 @@ struct hb_accelerate_subtables_context_t :
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     hb_apply_func_t apply_cached_func;
     hb_cache_func_t cache_func;
+    void *external_cache;
 #endif
     hb_set_digest_t digest;
   };
@@ -2639,7 +2662,7 @@ struct ContextFormat2_5
     switch (op)
     {
       case hb_ot_subtable_cache_op_t::CREATE:
-	return (void *) true;
+	return nullptr;
       case hb_ot_subtable_cache_op_t::ENTER:
       {
 	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
@@ -2665,7 +2688,7 @@ struct ContextFormat2_5
     return nullptr;
   }
 
-  bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }
+  bool apply_cached (hb_ot_apply_context_t *c, void *external_cache HB_UNUSED) const { return _apply (c, true); }
   bool apply (hb_ot_apply_context_t *c) const { return _apply (c, false); }
   bool _apply (hb_ot_apply_context_t *c, bool cached) const
   {
@@ -3886,7 +3909,7 @@ struct ChainContextFormat2_5
     switch (op)
     {
       case hb_ot_subtable_cache_op_t::CREATE:
-	return (void *) true;
+	return nullptr;
       case hb_ot_subtable_cache_op_t::ENTER:
       {
 	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
@@ -3912,7 +3935,7 @@ struct ChainContextFormat2_5
     return nullptr;
   }
 
-  bool apply_cached (hb_ot_apply_context_t *c) const { return _apply (c, true); }
+  bool apply_cached (hb_ot_apply_context_t *c, void *external_cache HB_UNUSED) const { return _apply (c, true); }
   bool apply (hb_ot_apply_context_t *c) const { return _apply (c, false); }
   bool _apply (hb_ot_apply_context_t *c, bool cached) const
   {
@@ -4433,18 +4456,12 @@ struct hb_ot_layout_lookup_accelerator_t
       thiz->digest.union_ (subtable.digest);
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    thiz->count = count;
     thiz->subtable_cache_user_idx = c_accelerate_subtables.subtable_cache_user_idx;
-
-    if (thiz->subtable_cache_user_idx != (unsigned) -1)
-    {
-      thiz->subtable_cache = thiz->subtables[thiz->subtable_cache_user_idx].cache_func (nullptr, hb_ot_subtable_cache_op_t::CREATE);
-      if (!thiz->subtable_cache)
-	thiz->subtable_cache_user_idx = (unsigned) -1;
-    }
 
     for (unsigned i = 0; i < count; i++)
       if (i != thiz->subtable_cache_user_idx)
-	thiz->subtables[i].apply_cached_func = thiz->subtables[i].apply_func;
+       thiz->subtables[i].apply_cached_func = thiz->subtables[i].apply_func;
 #endif
 
     return thiz;
@@ -4453,11 +4470,9 @@ struct hb_ot_layout_lookup_accelerator_t
   void fini ()
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    if (subtable_cache)
-    {
-      assert (subtable_cache_user_idx != (unsigned) -1);
-      subtables[subtable_cache_user_idx].cache_func (subtable_cache, hb_ot_subtable_cache_op_t::DESTROY);
-    }
+    for (unsigned i = 0; i < count; i++)
+      if (subtables[i].external_cache)
+	subtables[i].cache_func (subtables[i].external_cache, hb_ot_subtable_cache_op_t::DESTROY);
 #endif
   }
 
@@ -4510,9 +4525,8 @@ struct hb_ot_layout_lookup_accelerator_t
 
   hb_set_digest_t digest;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-  public:
-  void *subtable_cache = nullptr;
   private:
+  unsigned count = 0; /* Number of subtables in the array. */
   unsigned subtable_cache_user_idx = (unsigned) -1;
 #endif
   private:
