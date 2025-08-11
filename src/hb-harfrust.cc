@@ -103,7 +103,7 @@ _hb_harfrust_shape_rs (const void         *font_data,
 		       const hb_feature_t *features,
 		       unsigned int        num_features);
 
-static hb_user_data_key_t hr_shape_plan_key = {0};
+static hb_user_data_key_t hb_object_key = {0};
 
 hb_bool_t
 _hb_harfrust_shape (hb_shape_plan_t    *shape_plan,
@@ -121,7 +121,7 @@ _hb_harfrust_shape (hb_shape_plan_t    *shape_plan,
   {
   retry:
     hr_shape_plan = hb_shape_plan_get_user_data (shape_plan,
-						 &hr_shape_plan_key);
+						 &hb_object_key);
     if (unlikely (!hr_shape_plan))
     {
       hr_shape_plan = _hb_harfrust_shape_plan_create_rs (font_data, face_data,
@@ -130,7 +130,7 @@ _hb_harfrust_shape (hb_shape_plan_t    *shape_plan,
 							 shape_plan->key.props.direction);
       if (hr_shape_plan &&
 	  !hb_shape_plan_set_user_data (shape_plan,
-				       &hr_shape_plan_key,
+				       &hb_object_key,
 				       hr_shape_plan,
 				       _hb_harfrust_shape_plan_destroy_rs,
 				       false))
