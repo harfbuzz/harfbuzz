@@ -937,7 +937,7 @@ struct hb_accelerate_subtables_context_t :
   template <typename T=void>
   static inline void * cache_func_ (void *p,
 				    hb_ot_subtable_cache_op_t op HB_UNUSED,
-				    hb_priority<0>) { return (void *) false; }
+				    hb_priority<0>) { return nullptr; }
   template <typename Type>
   static inline void * cache_func_to (void *p,
 				      hb_ot_subtable_cache_op_t op)
@@ -974,11 +974,16 @@ struct hb_accelerate_subtables_context_t :
       obj_.get_coverage ().collect_coverage (&digest);
     }
 
+#ifdef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     bool apply (hb_ot_apply_context_t *c) const
     {
       return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c, nullptr);
     }
-#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+#else
+    bool apply (hb_ot_apply_context_t *c) const
+    {
+      return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c, external_cache);
+    }
     bool apply_cached (hb_ot_apply_context_t *c) const
     {
       return digest.may_have (c->buffer->cur().codepoint) &&  apply_cached_func (obj, c, external_cache);
@@ -4453,6 +4458,10 @@ struct hb_ot_layout_lookup_accelerator_t
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     thiz->count = count;
     thiz->subtable_cache_user_idx = c_accelerate_subtables.subtable_cache_user_idx;
+
+    for (unsigned i = 0; i < count; i++)
+      if (i != thiz->subtable_cache_user_idx)
+       thiz->subtables[i].apply_cached_func = thiz->subtables[i].apply_func;
 #endif
 
     return thiz;

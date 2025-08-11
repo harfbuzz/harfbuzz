@@ -103,10 +103,6 @@ struct PairPosFormat1_3
 
   const Coverage &get_coverage () const { return this+coverage; }
 
-  unsigned cache_cost () const
-  {
-    return (this+coverage).cost ();
-  }
   static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
   {
     switch (op)
@@ -119,7 +115,7 @@ struct PairPosFormat1_3
 	return cache;
       }
       case hb_ot_subtable_cache_op_t::ENTER:
-	return (void *) true;
+	return nullptr;
       case hb_ot_subtable_cache_op_t::LEAVE:
 	return nullptr;
       case hb_ot_subtable_cache_op_t::DESTROY:

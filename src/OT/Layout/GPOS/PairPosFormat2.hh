@@ -130,10 +130,6 @@ struct PairPosFormat2_4 : ValueBase
     hb_ot_layout_mapping_cache_t second;
   };
 
-  unsigned cache_cost () const
-  {
-    return (this+coverage).cost () + (this+classDef1).cost () + (this+classDef2).cost ();
-  }
   static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
   {
     switch (op)
@@ -150,7 +146,7 @@ struct PairPosFormat2_4 : ValueBase
 	return cache;
       }
       case hb_ot_subtable_cache_op_t::ENTER:
-	return (void *) true;
+	return nullptr;
       case hb_ot_subtable_cache_op_t::LEAVE:
 	return nullptr;
       case hb_ot_subtable_cache_op_t::DESTROY:
