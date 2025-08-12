@@ -104,9 +104,9 @@ struct Coverage
     coverage = get_coverage (glyph_id);
     if (cache) {
       if (coverage == NOT_COVERED)
-	cache->set (glyph_id, cache->MAX_VALUE);
+	cache->set_unchecked (glyph_id, cache->MAX_VALUE);
       else if (likely (coverage < cache->MAX_VALUE))
-	cache->set (glyph_id, coverage);
+	cache->set_unchecked (glyph_id, coverage);
     }
     return coverage;
   }
