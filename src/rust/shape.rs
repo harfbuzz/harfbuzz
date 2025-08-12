@@ -99,6 +99,18 @@ fn hb_language_to_hr_language(language: hb_language_t) -> Option<harfrust::Langu
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn _hb_harfrust_buffer_create_rs() -> *mut c_void {
+    let hr_buffer = Box::new(harfrust::UnicodeBuffer::new());
+    Box::into_raw(hr_buffer) as *mut c_void
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn _hb_harfrust_buffer_destroy_rs(data: *mut c_void) {
+    let data = data as *mut harfrust::UnicodeBuffer;
+    let _hr_buffer = Box::from_raw(data);
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
     font_data: *const c_void,
     face_data: *const c_void,
@@ -144,6 +156,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     font_data: *const c_void,
     face_data: *const c_void,
     shape_plan: *const c_void,
+    hr_buffer_box: *const c_void,
     font: *mut hb_font_t,
     buffer: *mut hb_buffer_t,
     features: *const hb_feature_t,
@@ -154,7 +167,9 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
 
     let font_ref = &(*face_data).font_ref;
 
-    let mut hr_buffer = harfrust::UnicodeBuffer::new();
+    let hr_buffer_box = hr_buffer_box as *mut harfrust::UnicodeBuffer;
+    let mut hr_buffer_box = Box::from_raw(hr_buffer_box);
+    let mut hr_buffer = *hr_buffer_box;
 
     // Set buffer properties
     let cluster_level = hb_buffer_get_cluster_level(buffer);
@@ -298,6 +313,10 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         pos.x_offset = (hr_pos.x_offset as f32 * x_scale + 0.5).floor() as hb_position_t;
         pos.y_offset = (hr_pos.y_offset as f32 * y_scale + 0.5).floor() as hb_position_t;
     }
+
+    let hr_buffer = glyphs.clear();
+    *hr_buffer_box = hr_buffer; // Move the buffer back into the box
+    let _ = Box::into_raw(hr_buffer_box); // Prevent double free
 
     true as hb_bool_t
 }
