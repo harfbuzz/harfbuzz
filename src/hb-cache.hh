@@ -75,6 +75,8 @@ struct hb_cache_t
   static_assert ((key_bits >= cache_bits), "");
   static_assert ((key_bits + value_bits <= cache_bits + 8 * sizeof (item_t)), "");
 
+  static constexpr unsigned MAX_VALUE = (1u << value_bits) - 1;
+
   hb_cache_t () { clear (); }
 
   void clear ()
