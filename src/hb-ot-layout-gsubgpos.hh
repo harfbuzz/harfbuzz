@@ -2027,6 +2027,37 @@ static bool context_apply_lookup (hb_ot_apply_context_t *c,
   return ret;
 }
 
+static void * context_cache_func (void *p, hb_ot_subtable_cache_op_t op)
+{
+  switch (op)
+  {
+    case hb_ot_subtable_cache_op_t::CREATE:
+      return nullptr;
+    case hb_ot_subtable_cache_op_t::ENTER:
+    {
+      hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
+      if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
+	return (void *) false;
+      auto &info = c->buffer->info;
+      unsigned count = c->buffer->len;
+      for (unsigned i = 0; i < count; i++)
+	info[i].syllable() = 255;
+      c->new_syllables = 255;
+      return (void *) true;
+    }
+    case hb_ot_subtable_cache_op_t::LEAVE:
+    {
+      hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
+      c->new_syllables = (unsigned) -1;
+      HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
+      return nullptr;
+    }
+    case hb_ot_subtable_cache_op_t::DESTROY:
+      return nullptr;
+  }
+  return nullptr;
+}
+
 template <typename Types>
 struct Rule
 {
@@ -2659,33 +2690,7 @@ struct ContextFormat2_5
   }
   static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
   {
-    switch (op)
-    {
-      case hb_ot_subtable_cache_op_t::CREATE:
-	return nullptr;
-      case hb_ot_subtable_cache_op_t::ENTER:
-      {
-	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
-	if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
-	  return (void *) false;
-	auto &info = c->buffer->info;
-	unsigned count = c->buffer->len;
-	for (unsigned i = 0; i < count; i++)
-	  info[i].syllable() = 255;
-	c->new_syllables = 255;
-	return (void *) true;
-      }
-      case hb_ot_subtable_cache_op_t::LEAVE:
-      {
-	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
-	c->new_syllables = (unsigned) -1;
-	HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
-	return nullptr;
-      }
-      case hb_ot_subtable_cache_op_t::DESTROY:
-        return nullptr;
-    }
-    return nullptr;
+    return context_cache_func (p, op);
   }
 
   bool apply_cached (hb_ot_apply_context_t *c, void *external_cache HB_UNUSED) const { return _apply (c, true); }
@@ -3906,33 +3911,7 @@ struct ChainContextFormat2_5
   }
   static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
   {
-    switch (op)
-    {
-      case hb_ot_subtable_cache_op_t::CREATE:
-	return nullptr;
-      case hb_ot_subtable_cache_op_t::ENTER:
-      {
-	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
-	if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
-	  return (void *) false;
-	auto &info = c->buffer->info;
-	unsigned count = c->buffer->len;
-	for (unsigned i = 0; i < count; i++)
-	  info[i].syllable() = 255;
-	c->new_syllables = 255;
-	return (void *) true;
-      }
-      case hb_ot_subtable_cache_op_t::LEAVE:
-      {
-	hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
-	c->new_syllables = (unsigned) -1;
-	HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
-	return nullptr;
-      }
-      case hb_ot_subtable_cache_op_t::DESTROY:
-        return nullptr;
-    }
-    return nullptr;
+    return context_cache_func (p, op);
   }
 
   bool apply_cached (hb_ot_apply_context_t *c, void *external_cache HB_UNUSED) const { return _apply (c, true); }
