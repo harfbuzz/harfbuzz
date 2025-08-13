@@ -92,7 +92,6 @@ _hb_harfrust_shaper_font_data_destroy (hb_harfrust_font_data_t *data)
 
 extern "C" void *
 _hb_harfrust_shape_plan_create_rs (const void *font_data,
-				   const void *face_data,
 				   hb_script_t script,
 				   hb_language_t language,
 				   hb_direction_t direction);
@@ -154,7 +153,7 @@ retry_buffer:
     hr_shape_plan = hb_shape_plan_get_user_data (shape_plan, &hb_object_key);
     if (unlikely (!hr_shape_plan))
     {
-      hr_shape_plan = _hb_harfrust_shape_plan_create_rs (font_data, face_data,
+      hr_shape_plan = _hb_harfrust_shape_plan_create_rs (font_data,
 							 shape_plan->key.props.script,
 							 shape_plan->key.props.language,
 							 shape_plan->key.props.direction);
