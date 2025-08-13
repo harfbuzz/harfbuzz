@@ -2027,7 +2027,7 @@ static bool context_apply_lookup (hb_ot_apply_context_t *c,
   return ret;
 }
 
-static void * context_cache_func (void *p, hb_ot_subtable_cache_op_t op)
+static inline void * context_cache_func (void *p, hb_ot_subtable_cache_op_t op)
 {
   switch (op)
   {
