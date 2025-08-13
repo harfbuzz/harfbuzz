@@ -3,10 +3,11 @@
 use super::hb::*;
 
 use std::ffi::c_void;
+use std::mem::transmute;
 use std::ptr::null_mut;
 use std::str::FromStr;
 
-use harfrust::{FontRef, NormalizedCoord, ShaperData, ShaperInstance, Tag};
+use harfrust::{FontRef, NormalizedCoord, Shaper, ShaperData, ShaperInstance, Tag};
 
 pub struct HBHarfRustFaceData<'a> {
     face_blob: *mut hb_blob_t,
@@ -51,7 +52,8 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_destroy_rs(data: *mut c_v
 }
 
 pub struct HBHarfRustFontData {
-    shaper_instance: ShaperInstance,
+    shaper_instance: Box<ShaperInstance>,
+    shaper: Shaper<'static>,
 }
 
 fn font_to_shaper_instance(font: *mut hb_font_t, font_ref: &FontRef<'_>) -> ShaperInstance {
@@ -74,9 +76,19 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_font_data_create_rs(
     let face_data = face_data as *const HBHarfRustFaceData;
 
     let font_ref = &(*face_data).font_ref;
-    let shaper_instance = font_to_shaper_instance(font, font_ref);
+    let shaper_instance = Box::new(font_to_shaper_instance(font, font_ref));
 
-    let hr_font_data = Box::new(HBHarfRustFontData { shaper_instance });
+    let shaper_instance_ref = &*(&*shaper_instance as *const _);
+    let shaper = (*face_data)
+        .shaper_data
+        .shaper(font_ref)
+        .instance(Some(shaper_instance_ref))
+        .build();
+
+    let hr_font_data = Box::new(HBHarfRustFontData {
+        shaper_instance,
+        shaper: transmute::<harfrust::Shaper<'_>, harfrust::Shaper<'_>>(shaper),
+    });
     let hr_font_data_ptr = Box::into_raw(hr_font_data);
 
     hr_font_data_ptr as *mut c_void
@@ -113,15 +125,11 @@ pub unsafe extern "C" fn _hb_harfrust_buffer_destroy_rs(data: *mut c_void) {
 #[no_mangle]
 pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
     font_data: *const c_void,
-    face_data: *const c_void,
     script: hb_script_t,
     language: hb_language_t,
     direction: hb_direction_t,
 ) -> *mut c_void {
     let font_data = font_data as *const HBHarfRustFontData;
-    let face_data = face_data as *const HBHarfRustFaceData;
-
-    let font_ref = &(*face_data).font_ref;
 
     let script = harfrust::Script::from_iso15924_tag(Tag::from_u32(script));
     let language = hb_language_to_hr_language(language);
@@ -133,14 +141,9 @@ pub unsafe extern "C" fn _hb_harfrust_shape_plan_create_rs(
         _ => harfrust::Direction::Invalid,
     };
 
-    let shaper = (*face_data)
-        .shaper_data
-        .shaper(font_ref)
-        .instance(Some(&(*font_data).shaper_instance))
-        .build();
+    let shaper = &(*font_data).shaper;
 
-    let hr_shape_plan =
-        harfrust::ShapePlan::new(&shaper, direction, script, language.as_ref(), &[]);
+    let hr_shape_plan = harfrust::ShapePlan::new(shaper, direction, script, language.as_ref(), &[]);
     let hr_shape_plan = Box::new(hr_shape_plan);
     Box::into_raw(hr_shape_plan) as *mut c_void
 }
@@ -233,12 +236,16 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let ptem = hb_font_get_ptem(font);
     let ptem = if ptem > 0.0 { Some(ptem) } else { None };
 
-    let shaper = (*face_data)
-        .shaper_data
-        .shaper(font_ref)
-        .instance(Some(&(*font_data).shaper_instance))
-        .point_size(ptem)
-        .build();
+    let shaper = if ptem.is_some() {
+        (*face_data)
+            .shaper_data
+            .shaper(font_ref)
+            .instance(Some(&(*font_data).shaper_instance))
+            .point_size(ptem)
+            .build()
+    } else {
+        (*font_data).shaper.clone()
+    };
 
     let features = if features.is_null() {
         Vec::new()
