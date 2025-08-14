@@ -226,6 +226,8 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let count = hb_buffer_get_length(buffer);
     let infos = hb_buffer_get_glyph_infos(buffer, null_mut());
 
+    hr_buffer.ensure(count as usize);
+
     for i in 0..count {
         let info = &*infos.add(i as usize);
         let unicode = info.codepoint;
