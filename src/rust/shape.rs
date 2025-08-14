@@ -295,8 +295,20 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let mut y_scale: i32 = 0;
     hb_font_get_scale(font, &mut x_scale, &mut y_scale);
     let upem = shaper.units_per_em();
-    let x_scale = x_scale as f32 / upem as f32;
-    let y_scale = y_scale as f32 / upem as f32;
+    let upem = if upem > 0 { upem } else { 1000 };
+    let x_mult = if x_scale < 0 {
+        -((-x_scale as i64) << 16)
+    } else {
+        (x_scale as i64) << 16
+    } / upem as i64;
+    let y_mult = if y_scale < 0 {
+        -((-y_scale as i64) << 16)
+    } else {
+        (y_scale as i64) << 16
+    } / upem as i64;
+
+    let em_mult =
+        |v: i32, mult: i64| -> hb_position_t { ((v as i64 * mult + 32768) >> 16) as hb_position_t };
 
     for (i, (hr_info, hr_pos)) in glyphs
         .glyph_infos()
@@ -318,10 +330,10 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         if hr_info.safe_to_insert_tatweel() {
             info.mask |= hb_glyph_flags_t_HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL;
         }
-        pos.x_advance = (hr_pos.x_advance as f32 * x_scale + 0.5).floor() as hb_position_t;
-        pos.y_advance = (hr_pos.y_advance as f32 * y_scale + 0.5).floor() as hb_position_t;
-        pos.x_offset = (hr_pos.x_offset as f32 * x_scale + 0.5).floor() as hb_position_t;
-        pos.y_offset = (hr_pos.y_offset as f32 * y_scale + 0.5).floor() as hb_position_t;
+        pos.x_advance = em_mult(hr_pos.x_advance, x_mult);
+        pos.y_advance = em_mult(hr_pos.y_advance, y_mult);
+        pos.x_offset = em_mult(hr_pos.x_offset, x_mult);
+        pos.y_offset = em_mult(hr_pos.y_offset, y_mult);
     }
 
     let hr_buffer = glyphs.clear();
