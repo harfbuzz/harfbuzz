@@ -78,7 +78,7 @@ inline bool SubstLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_app
 
   bool ret = false;
   auto *accel = gsub->get_accel (lookup_index);
-  ret = accel && accel->apply (c, l.get_subtable_count (), false);
+  ret = accel && accel->apply (c, false);
 
   c->set_lookup_index (saved_lookup_index);
   c->set_lookup_props (saved_lookup_props);

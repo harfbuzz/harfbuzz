@@ -4434,8 +4434,9 @@ struct hb_ot_layout_lookup_accelerator_t
     for (auto& subtable : hb_iter (thiz->subtables, count))
       thiz->digest.union_ (subtable.digest);
 
-#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     thiz->count = count;
+
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     thiz->subtable_cache_user_idx = c_accelerate_subtables.subtable_cache_user_idx;
 
     for (unsigned i = 0; i < count; i++)
@@ -4461,14 +4462,14 @@ struct hb_ot_layout_lookup_accelerator_t
 #ifndef HB_OPTIMIZE_SIZE
   HB_ALWAYS_INLINE
 #endif
-  bool apply (hb_ot_apply_context_t *c, unsigned subtables_count, bool use_cache) const
+  bool apply (hb_ot_apply_context_t *c, bool use_cache) const
   {
     c->lookup_accel = this;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
       return
-      + hb_iter (hb_iter (subtables, subtables_count))
+      + hb_iter (hb_iter (subtables, count))
       | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply_cached (c); })
       | hb_any
       ;
@@ -4477,7 +4478,7 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
     {
       return
-      + hb_iter (hb_iter (subtables, subtables_count))
+      + hb_iter (hb_iter (subtables, count))
       | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply (c); })
       | hb_any
       ;
@@ -4503,12 +4504,11 @@ struct hb_ot_layout_lookup_accelerator_t
 
 
   hb_set_digest_t digest;
-#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   private:
   unsigned count = 0; /* Number of subtables in the array. */
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   unsigned subtable_cache_user_idx = (unsigned) -1;
 #endif
-  private:
   hb_accelerate_subtables_context_t::hb_applicable_t subtables[HB_VAR_ARRAY];
 };
 

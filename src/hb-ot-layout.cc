@@ -1915,8 +1915,7 @@ struct GPOSProxy
 
 static inline bool
 apply_forward (OT::hb_ot_apply_context_t *c,
-	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
-	       unsigned subtable_count)
+	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
   bool use_hot_subtable_cache = accel.cache_enter (c);
 
@@ -1930,7 +1929,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 	(cur.mask & c->lookup_mask) &&
 	c->check_glyph_property (&cur, c->lookup_props))
      {
-       applied = accel.apply (c, subtable_count, use_hot_subtable_cache);
+       applied = accel.apply (c, use_hot_subtable_cache);
      }
 
     if (applied)
@@ -1947,8 +1946,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 
 static inline bool
 apply_backward (OT::hb_ot_apply_context_t *c,
-	       const OT::hb_ot_layout_lookup_accelerator_t &accel,
-	       unsigned subtable_count)
+	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
@@ -1958,7 +1956,7 @@ apply_backward (OT::hb_ot_apply_context_t *c,
     if (accel.digest.may_have (cur.codepoint) &&
 	(cur.mask & c->lookup_mask) &&
 	c->check_glyph_property (&cur, c->lookup_props))
-      ret |= accel.apply (c, subtable_count, false);
+      ret |= accel.apply (c, false);
 
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
     buffer->idx--;
@@ -2006,7 +2004,7 @@ apply_string (OT::hb_ot_apply_context_t *c,
       buffer->clear_output ();
 
     buffer->idx = 0;
-    ret = apply_forward (c, accel, subtable_count);
+    ret = apply_forward (c, accel);
 
     if (!Proxy::always_inplace)
       buffer->sync ();
@@ -2016,7 +2014,7 @@ apply_string (OT::hb_ot_apply_context_t *c,
     /* in-place backward substitution/positioning */
     assert (!buffer->have_output);
     buffer->idx = buffer->len - 1;
-    ret = apply_backward (c, accel, subtable_count);
+    ret = apply_backward (c, accel);
   }
 
   return ret;
