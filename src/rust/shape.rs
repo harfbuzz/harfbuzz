@@ -284,11 +284,12 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
         hb_buffer_content_type_t_HB_BUFFER_CONTENT_TYPE_GLYPHS,
     );
     hb_buffer_set_length(buffer, count as u32);
-    if hb_buffer_get_length(buffer) != count as u32 {
+    let mut count_out: u32 = 0;
+    let infos = hb_buffer_get_glyph_infos(buffer, &mut count_out);
+    let positions = hb_buffer_get_glyph_positions(buffer, null_mut());
+    if count != count_out as usize {
         return false as hb_bool_t;
     }
-    let infos = hb_buffer_get_glyph_infos(buffer, null_mut());
-    let positions = hb_buffer_get_glyph_positions(buffer, null_mut());
 
     let mut x_scale: i32 = 0;
     let mut y_scale: i32 = 0;
