@@ -79,7 +79,7 @@ struct LigatureSet
     unsigned int num_ligs = ligature.len;
 
 #ifndef HB_NO_OT_RULESETS_FAST_PATH
-    if (HB_OPTIMIZE_SIZE_VAL || num_ligs <= 4)
+    if (HB_OPTIMIZE_SIZE_VAL || num_ligs <= 1)
 #endif
     {
     slow:
