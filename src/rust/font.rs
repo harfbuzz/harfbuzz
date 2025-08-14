@@ -1,11 +1,13 @@
 use super::hb::*;
 
-use std::collections::HashMap;
-use std::ffi::c_void;
-use std::mem::transmute;
-use std::ptr::null_mut;
-use std::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
-use std::sync::Mutex;
+extern crate alloc;
+use alloc::collections::HashMap;
+
+use core::ffi::c_void;
+use core::mem::transmute;
+use core::ptr::null_mut;
+use core::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
+use core::sync::Mutex;
 
 use skrifa::charmap::Charmap;
 use skrifa::charmap::MapVariant::Variant;
@@ -58,7 +60,7 @@ impl FontationsData<'_> {
         if blob_data.is_null() {
             return None;
         }
-        let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
+        let face_data = core::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
 
         let font_ref = FontRef::from_index(face_data, face_index);
         let font_ref = match font_ref {
@@ -126,7 +128,7 @@ impl FontationsData<'_> {
         let coords = if coords.is_null() {
             &[]
         } else {
-            std::slice::from_raw_parts(coords, num_coords as usize)
+            core::slice::from_raw_parts(coords, num_coords as usize)
         };
         let all_zeros = coords.iter().all(|&x| x == 0);
         // if all zeros, use Location::default()

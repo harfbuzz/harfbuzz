@@ -2,10 +2,16 @@
 
 use super::hb::*;
 
-use std::ffi::c_void;
-use std::mem::transmute;
-use std::ptr::null_mut;
-use std::str::FromStr;
+extern crate alloc;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+
+use core_maths::CoreFloat;
+
+use core::ffi::c_void;
+use core::mem::transmute;
+use core::ptr::null_mut;
+use core::str::FromStr;
 
 use harfrust::{FontRef, NormalizedCoord, Shaper, ShaperData, ShaperInstance, Tag};
 
@@ -26,7 +32,7 @@ pub unsafe extern "C" fn _hb_harfrust_shaper_face_data_create_rs(
     if blob_data.is_null() {
         return null_mut();
     }
-    let face_data = std::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
+    let face_data = core::slice::from_raw_parts(blob_data as *const u8, blob_length as usize);
 
     let font_ref = match FontRef::from_index(face_data, face_index) {
         Ok(f) => f,
@@ -62,7 +68,7 @@ fn font_to_shaper_instance(font: *mut hb_font_t, font_ref: &FontRef<'_>) -> Shap
     let coords = if coords.is_null() {
         &[]
     } else {
-        unsafe { std::slice::from_raw_parts(coords, num_coords as usize) }
+        unsafe { core::slice::from_raw_parts(coords, num_coords as usize) }
     };
     let coords = coords.iter().map(|&v| NormalizedCoord::from_bits(v as i16));
     ShaperInstance::from_coords(font_ref, coords)
@@ -105,7 +111,7 @@ fn hb_language_to_hr_language(language: hb_language_t) -> Option<harfrust::Langu
     if language_str.is_null() {
         return None;
     }
-    let language_str = unsafe { std::ffi::CStr::from_ptr(language_str) };
+    let language_str = unsafe { core::ffi::CStr::from_ptr(language_str) };
     let language_str = language_str.to_str().unwrap_or_default();
     Some(harfrust::Language::from_str(language_str).unwrap())
 }
@@ -250,7 +256,7 @@ pub unsafe extern "C" fn _hb_harfrust_shape_rs(
     let features = if features.is_null() {
         Vec::new()
     } else {
-        let features = std::slice::from_raw_parts(features, num_features as usize);
+        let features = core::slice::from_raw_parts(features, num_features as usize);
         features
             .iter()
             .map(|f| {

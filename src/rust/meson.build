@@ -7,6 +7,8 @@ hb_rs = rust.bindgen(
   args : ['--allowlist-function=hb_.*',
           '--allowlist-type=hb_.*',
           '--no-copy=hb_.*',
+          '--use-core',
+          '--ctypes-prefix=core::ffi',
           ],
 )
 
