@@ -97,8 +97,11 @@ struct ValueFormat : HBUINT16
 #endif
       ;
 
-    if (format & xPlacement) glyph_pos.x_offset  += font->em_scale_x (get_short (values++, &ret));
-    if (format & yPlacement) glyph_pos.y_offset  += font->em_scale_y (get_short (values++, &ret));
+    if (format & (xPlacement | yPlacement))
+    {
+      if (format & xPlacement) glyph_pos.x_offset  += font->em_scale_x (get_short (values++, &ret));
+      if (format & yPlacement) glyph_pos.y_offset  += font->em_scale_y (get_short (values++, &ret));
+    }
     if (format & xAdvance) {
       if (likely (horizontal)) glyph_pos.x_advance += font->em_scale_x (get_short (values, &ret));
       values++;
