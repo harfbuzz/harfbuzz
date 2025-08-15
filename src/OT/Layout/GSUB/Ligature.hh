@@ -44,6 +44,12 @@ struct Ligature
     c->output->add (ligGlyph);
   }
 
+  template <typename set_t>
+  void collect_second (set_t &s) const
+  {
+    s.add (component[1]); // This adds codepoint 0 if component array is empty.
+  }
+
   bool would_apply (hb_would_apply_context_t *c) const
   {
     if (c->len != component.lenP1)
