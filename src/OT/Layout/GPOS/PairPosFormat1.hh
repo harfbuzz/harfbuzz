@@ -106,6 +106,7 @@ struct PairPosFormat1_3
   struct external_cache_t
   {
     hb_ot_layout_mapping_cache_t coverage;
+    hb_set_digest_t seconds;
   };
   void *external_cache_create () const
   {
@@ -113,6 +114,12 @@ struct PairPosFormat1_3
     if (likely (cache))
     {
       cache->coverage.clear ();
+
+      cache->seconds.init ();
+      + hb_iter (pairSet)
+      | hb_map (hb_add (this))
+      | hb_apply ([cache, this] (const PairSet &_) { _.collect_seconds (cache->seconds, this->valueFormat); })
+      ;
     }
     return cache;
   }
@@ -125,8 +132,10 @@ struct PairPosFormat1_3
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     external_cache_t *cache = (external_cache_t *) external_cache;
+    const hb_set_digest_t *seconds = cache ? &cache->seconds : nullptr;
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
 #else
+    const hb_set_digest_t *seconds = nullptr;
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
 #endif
     if (index == NOT_COVERED) return_trace (false);
@@ -137,6 +146,12 @@ struct PairPosFormat1_3
     if (unlikely (!skippy_iter.next (&unsafe_to)))
     {
       buffer->unsafe_to_concat (buffer->idx, unsafe_to);
+      return_trace (false);
+    }
+
+    if (seconds && !seconds->may_have (buffer->info[skippy_iter.idx].codepoint))
+    {
+      buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
       return_trace (false);
     }
 

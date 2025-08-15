@@ -84,6 +84,21 @@ struct PairSet : ValueBase
     c->input->add_array (&record->secondGlyph, len, record_size);
   }
 
+  template <typename set_t>
+  void collect_seconds (set_t &s,
+			const ValueFormat *valueFormats) const
+  {
+    unsigned record_size = get_size (valueFormats);
+
+    const PairValueRecord *record = &firstPairValueRecord;
+    unsigned count = len;
+    for (unsigned i = 0; i < count; i++)
+    {
+      s.add (record->secondGlyph);
+      record = &StructAtOffset<const PairValueRecord> (record, record_size);
+    }
+  }
+
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
                                   const ValueFormat *valueFormats) const
   {
