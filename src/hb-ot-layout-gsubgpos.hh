@@ -896,10 +896,8 @@ struct hb_ot_apply_context_t :
 
 enum class hb_ot_subtable_cache_op_t
 {
-  CREATE,
   ENTER,
   LEAVE,
-  DESTROY,
 };
 
 struct hb_accelerate_subtables_context_t :
@@ -968,7 +966,7 @@ struct hb_accelerate_subtables_context_t :
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
       apply_cached_func = apply_cached_func_;
       cache_func = cache_func_;
-      external_cache = cache_create ();
+      external_cache = external_cache_create (obj_);
 #endif
       digest.init ();
       obj_.get_coverage ().collect_coverage (&digest);
@@ -988,9 +986,15 @@ struct hb_accelerate_subtables_context_t :
     {
       return digest.may_have (c->buffer->cur().codepoint) &&  apply_cached_func (obj, c, external_cache);
     }
-    void *cache_create () const
+
+    template <typename T>
+    auto _external_cache_create (const T &obj, hb_priority<1>) HB_AUTO_RETURN ( obj.external_cache_create () )
+    template <typename T>
+    auto _external_cache_create (const T &obj, hb_priority<0>) HB_AUTO_RETURN ( nullptr )
+    template <typename T>
+    void *external_cache_create (const T &obj)
     {
-	return cache_func (nullptr, hb_ot_subtable_cache_op_t::CREATE);
+      return _external_cache_create (obj, hb_prioritize);
     }
     bool cache_enter (hb_ot_apply_context_t *c) const
     {
@@ -2031,8 +2035,6 @@ static inline void * context_cache_func (void *p, hb_ot_subtable_cache_op_t op)
 {
   switch (op)
   {
-    case hb_ot_subtable_cache_op_t::CREATE:
-      return nullptr;
     case hb_ot_subtable_cache_op_t::ENTER:
     {
       hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
@@ -2052,8 +2054,6 @@ static inline void * context_cache_func (void *p, hb_ot_subtable_cache_op_t op)
       HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
       return nullptr;
     }
-    case hb_ot_subtable_cache_op_t::DESTROY:
-      return nullptr;
   }
   return nullptr;
 }
@@ -4451,8 +4451,7 @@ struct hb_ot_layout_lookup_accelerator_t
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     for (unsigned i = 0; i < count; i++)
-      if (subtables[i].external_cache)
-	subtables[i].cache_func (subtables[i].external_cache, hb_ot_subtable_cache_op_t::DESTROY);
+      hb_free (subtables[i].external_cache);
 #endif
   }
 

@@ -78,29 +78,12 @@ struct LigatureSubstFormat1_2
     return lig_set.would_apply (c);
   }
 
-  static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
+  void *external_cache_create () const
   {
-    switch (op)
-    {
-      case hb_ot_subtable_cache_op_t::CREATE:
-      {
-	hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) hb_malloc (sizeof (hb_ot_layout_mapping_cache_t));
-	if (likely (cache))
-	  cache->clear ();
-	return cache;
-      }
-      case hb_ot_subtable_cache_op_t::ENTER:
-	return nullptr;
-      case hb_ot_subtable_cache_op_t::LEAVE:
-	return nullptr;
-      case hb_ot_subtable_cache_op_t::DESTROY:
-      {
-	hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) p;
-	hb_free (cache);
-	return nullptr;
-      }
-    }
-    return nullptr;
+    hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) hb_malloc (sizeof (hb_ot_layout_mapping_cache_t));
+    if (likely (cache))
+      cache->clear ();
+    return cache;
   }
 
   bool apply (hb_ot_apply_context_t *c, void *external_cache) const
