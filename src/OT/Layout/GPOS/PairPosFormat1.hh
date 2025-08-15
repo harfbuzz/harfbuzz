@@ -103,29 +103,18 @@ struct PairPosFormat1_3
 
   const Coverage &get_coverage () const { return this+coverage; }
 
-  static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
+  struct external_cache_t
   {
-    switch (op)
+    hb_ot_layout_mapping_cache_t coverage;
+  };
+  void *external_cache_create () const
+  {
+    external_cache_t *cache = (external_cache_t *) hb_malloc (sizeof (external_cache_t));
+    if (likely (cache))
     {
-      case hb_ot_subtable_cache_op_t::CREATE:
-      {
-	hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) hb_malloc (sizeof (hb_ot_layout_mapping_cache_t));
-	if (likely (cache))
-	  cache->clear ();
-	return cache;
-      }
-      case hb_ot_subtable_cache_op_t::ENTER:
-	return nullptr;
-      case hb_ot_subtable_cache_op_t::LEAVE:
-	return nullptr;
-      case hb_ot_subtable_cache_op_t::DESTROY:
-      {
-	hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) p;
-	hb_free (cache);
-	return nullptr;
-      }
+      cache->coverage.clear ();
     }
-    return nullptr;
+    return cache;
   }
 
   bool apply (hb_ot_apply_context_t *c, void *external_cache) const
@@ -135,8 +124,8 @@ struct PairPosFormat1_3
     hb_buffer_t *buffer = c->buffer;
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) external_cache;
-    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, cache);
+    external_cache_t *cache = (external_cache_t *) external_cache;
+    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
 #else
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
 #endif
