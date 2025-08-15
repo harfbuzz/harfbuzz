@@ -165,7 +165,7 @@ COMPACT = "COMPACT"
 SLOPPY = "SLOPPY"
 
 compression_level = {
-    DEFAULT: 5,
+    DEFAULT: 3,
     COMPACT: 9,
     SLOPPY: 9,
 }
