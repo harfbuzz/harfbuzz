@@ -866,8 +866,8 @@ struct hb_ot_apply_context_t :
       _hb_glyph_info_set_glyph_props (&buffer->cur(), props);
 
     if (cached_props != (unsigned) -1)
-      _hb_glyph_info_set_match (&buffer->cur(),
-				check_glyph_property (&buffer->cur(), cached_props, false));
+      _hb_glyph_info_set_matches (&buffer->cur(),
+				  check_glyph_property (&buffer->cur(), cached_props, false));
   }
 
   void replace_glyph (hb_codepoint_t glyph_index)

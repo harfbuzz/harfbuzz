@@ -617,9 +617,9 @@ _hb_glyph_info_matches (const hb_glyph_info_t *info)
   return info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MATCHES;
 }
 static inline void
-_hb_glyph_info_set_match (hb_glyph_info_t *info, bool match)
+_hb_glyph_info_set_matches (hb_glyph_info_t *info, bool matches)
 {
-  if (match)
+  if (matches)
     info->glyph_props() |= HB_OT_LAYOUT_GLYPH_PROPS_MATCHES;
   else
     info->glyph_props() &= ~HB_OT_LAYOUT_GLYPH_PROPS_MATCHES;

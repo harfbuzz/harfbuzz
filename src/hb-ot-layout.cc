@@ -1982,8 +1982,8 @@ apply_string (OT::hb_ot_apply_context_t *c,
     {
       auto &info = buffer->info;
       for (unsigned int i = 0; i < buffer->len; i++)
-	_hb_glyph_info_set_match (&info[i],
-				  c->check_glyph_property (&info[i], lookup_props, false));
+	_hb_glyph_info_set_matches (&info[i],
+				    c->check_glyph_property (&info[i], lookup_props, false));
       c->cached_props = lookup_props;
     }
     else
