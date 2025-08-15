@@ -929,23 +929,23 @@ struct hb_accelerate_subtables_context_t :
   }
 
   template <typename T>
-  static inline auto cache_func_ (void *p,
+  static inline auto cache_func_ (hb_ot_apply_context_t *c,
 				  hb_ot_subtable_cache_op_t op,
-				  hb_priority<1>) HB_RETURN (void *, T::cache_func (p, op) )
+				  hb_priority<1>) HB_RETURN (bool, T::cache_func (c, op) )
   template <typename T=void>
-  static inline void * cache_func_ (void *p,
-				    hb_ot_subtable_cache_op_t op HB_UNUSED,
-				    hb_priority<0>) { return nullptr; }
+  static inline bool cache_func_ (hb_ot_apply_context_t *c,
+				  hb_ot_subtable_cache_op_t op HB_UNUSED,
+				  hb_priority<0>) { return false; }
   template <typename Type>
-  static inline void * cache_func_to (void *p,
-				      hb_ot_subtable_cache_op_t op)
+  static inline bool cache_func_to (hb_ot_apply_context_t *c,
+				    hb_ot_subtable_cache_op_t op)
   {
-    return cache_func_<Type> (p, op, hb_prioritize);
+    return cache_func_<Type> (c, op, hb_prioritize);
   }
 #endif
 
   typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c, void *external_cache);
-  typedef void * (*hb_cache_func_t) (void *p, hb_ot_subtable_cache_op_t op);
+  typedef bool (*hb_cache_func_t) (hb_ot_apply_context_t *c, hb_ot_subtable_cache_op_t op);
 
   struct hb_applicable_t
   {
@@ -998,7 +998,7 @@ struct hb_accelerate_subtables_context_t :
     }
     bool cache_enter (hb_ot_apply_context_t *c) const
     {
-      return (bool) cache_func (c, hb_ot_subtable_cache_op_t::ENTER);
+      return cache_func (c, hb_ot_subtable_cache_op_t::ENTER);
     }
     void cache_leave (hb_ot_apply_context_t *c) const
     {
@@ -2031,31 +2031,29 @@ static bool context_apply_lookup (hb_ot_apply_context_t *c,
   return ret;
 }
 
-static inline void * context_cache_func (void *p, hb_ot_subtable_cache_op_t op)
+static inline bool context_cache_func (hb_ot_apply_context_t *c, hb_ot_subtable_cache_op_t op)
 {
   switch (op)
   {
     case hb_ot_subtable_cache_op_t::ENTER:
     {
-      hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
       if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
-	return (void *) false;
+	return false;
       auto &info = c->buffer->info;
       unsigned count = c->buffer->len;
       for (unsigned i = 0; i < count; i++)
 	info[i].syllable() = 255;
       c->new_syllables = 255;
-      return (void *) true;
+      return true;
     }
     case hb_ot_subtable_cache_op_t::LEAVE:
     {
-      hb_ot_apply_context_t *c = (hb_ot_apply_context_t *) p;
       c->new_syllables = (unsigned) -1;
       HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
-      return nullptr;
+      break;
     }
   }
-  return nullptr;
+  return false;
 }
 
 template <typename Types>
@@ -2688,9 +2686,9 @@ struct ContextFormat2_5
   {
     return (this+classDef).cost ();
   }
-  static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
+  static bool cache_func (hb_ot_apply_context_t *c, hb_ot_subtable_cache_op_t op)
   {
-    return context_cache_func (p, op);
+    return context_cache_func (c, op);
   }
 
   bool apply_cached (hb_ot_apply_context_t *c, void *external_cache HB_UNUSED) const { return _apply (c, true); }
@@ -3909,9 +3907,9 @@ struct ChainContextFormat2_5
   {
     return (this+inputClassDef).cost () + (this+lookaheadClassDef).cost ();
   }
-  static void * cache_func (void *p, hb_ot_subtable_cache_op_t op)
+  static bool cache_func (hb_ot_apply_context_t *c, hb_ot_subtable_cache_op_t op)
   {
-    return context_cache_func (p, op);
+    return context_cache_func (c, op);
   }
 
   bool apply_cached (hb_ot_apply_context_t *c, void *external_cache HB_UNUSED) const { return _apply (c, true); }
