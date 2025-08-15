@@ -103,11 +103,17 @@ struct PairPosFormat1_3
 
   const Coverage &get_coverage () const { return this+coverage; }
 
+  struct external_cache_t
+  {
+    hb_ot_layout_mapping_cache_t coverage;
+  };
   void *external_cache_create () const
   {
-    hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) hb_malloc (sizeof (hb_ot_layout_mapping_cache_t));
+    external_cache_t *cache = (external_cache_t *) hb_malloc (sizeof (external_cache_t));
     if (likely (cache))
-      cache->clear ();
+    {
+      cache->coverage.clear ();
+    }
     return cache;
   }
 
@@ -118,8 +124,8 @@ struct PairPosFormat1_3
     hb_buffer_t *buffer = c->buffer;
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    hb_ot_layout_mapping_cache_t *cache = (hb_ot_layout_mapping_cache_t *) external_cache;
-    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, cache);
+    external_cache_t *cache = (external_cache_t *) external_cache;
+    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
 #else
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
 #endif
