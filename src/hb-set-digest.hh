@@ -60,9 +60,11 @@
  * of the input number (glyph-id in this case) and checks whether
  * its pattern is amongst the patterns of any of the accepted values.
  * The accepted patterns are represented as a "long" integer. The
- * check is done using four bitwise operations only.
+ * check is done using four bitwise operations only and branch-free.
  */
 
+// The order of these values used to matter when we were using if
+// statements. Now that we are branch-free, the order does not matter.
 static constexpr unsigned hb_set_digest_shifts[] = {4, 0, 6};
 
 struct hb_set_digest_t
@@ -152,18 +154,18 @@ struct hb_set_digest_t
   HB_ALWAYS_INLINE
   bool may_have (hb_codepoint_t g) const
   {
+    bool have = true;
     for (unsigned i = 0; i < n; i++)
-      if (!(masks[i] & (one << ((g >> hb_set_digest_shifts[i]) & mb1))))
-	return false;
-    return true;
+      have &= bool(masks[i] & (one << ((g >> hb_set_digest_shifts[i]) & mb1)));
+    return have;
   }
 
   bool may_intersect (const hb_set_digest_t &o) const
   {
+    bool have = true;
     for (unsigned i = 0; i < n; i++)
-      if (!(masks[i] & o.masks[i]))
-	return false;
-    return true;
+      have &= bool(masks[i] & o.masks[i]);
+    return have;
   }
 
   private:
