@@ -97,7 +97,7 @@ struct Ligature
     unsigned int total_component_count = 0;
 
     if (unlikely (count > HB_MAX_CONTEXT_LENGTH)) return false;
-    unsigned match_positions_stack[4];
+    unsigned match_positions_stack[8];
     unsigned *match_positions = match_positions_stack;
     if (unlikely (count > ARRAY_LENGTH (match_positions_stack)))
     {

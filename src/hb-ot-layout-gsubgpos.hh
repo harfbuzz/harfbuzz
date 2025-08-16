@@ -1996,7 +1996,7 @@ static bool context_apply_lookup (hb_ot_apply_context_t *c,
 				  const ContextApplyLookupContext &lookup_context)
 {
   if (unlikely (inputCount > HB_MAX_CONTEXT_LENGTH)) return false;
-  unsigned match_positions_stack[4];
+  unsigned match_positions_stack[8];
   unsigned *match_positions = match_positions_stack;
   if (unlikely (inputCount > ARRAY_LENGTH (match_positions_stack)))
   {
