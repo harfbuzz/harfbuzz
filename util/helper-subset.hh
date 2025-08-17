@@ -34,7 +34,7 @@
 
 #ifndef HB_NO_VAR
 
-static gboolean
+static inline gboolean
 parse_instancing_spec (const char *arg,
                        hb_face_t* face,
                        hb_subset_input_t* input,
