@@ -12,7 +12,6 @@ hb_info_sources = [
 
 hb_subset_cli_sources = [
   'hb-subset.cc',
-  'helper-subset.hh',
 ]
 
 # If found, invoke it on our four binaries to build man pages
@@ -97,7 +96,7 @@ if conf.get('HAVE_GLIB', 0) == 1
   if get_option('experimental_api')
     test('test-hb-subset-parsing',
       executable('test-hb-subset-parsing',
-        ['test-hb-subset-parsing.c', 'helper-subset.hh'],
+        ['test-hb-subset-parsing.c'],
         cpp_args: cpp_args,
         c_args: ['-DHB_EXPERIMENTAL_API'],
         include_directories: [incconfig, incsrc],
