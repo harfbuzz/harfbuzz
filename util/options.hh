@@ -47,7 +47,9 @@
 #endif
 
 
+#ifndef HB_NO_FEATURES_H
 #include <hb-features.h>
+#endif
 #include <hb.h>
 #include <hb-ot.h>
 
