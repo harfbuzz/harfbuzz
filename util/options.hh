@@ -47,7 +47,9 @@
 #endif
 
 
+#ifndef HB_NO_FEATURES_H
 #include <hb-features.h>
+#endif
 #include <hb.h>
 #include <hb-ot.h>
 
@@ -233,7 +235,7 @@ show_version (const char *name G_GNUC_UNUSED,
 	      gpointer    data G_GNUC_UNUSED,
 	      GError    **error G_GNUC_UNUSED)
 {
-  g_printf ("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
+  g_printf ("%s (HarfBuzz) %s\n", g_get_prgname (), HB_VERSION_STRING);
 
   if (strcmp (HB_VERSION_STRING, hb_version_string ()))
     g_printf ("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());

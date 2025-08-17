@@ -375,9 +375,6 @@ if host_machine.system() != 'windows'
   endif
 endif
 
-conf.set_quoted('PACKAGE_NAME', 'HarfBuzz')
-conf.set_quoted('PACKAGE_VERSION', meson.project_version())
-
 foreach check : check_headers
   name = check[0]
 
