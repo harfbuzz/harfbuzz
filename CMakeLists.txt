@@ -801,9 +801,6 @@ endif ()
 
 ## Additional harfbuzz build artifacts
 if (HB_BUILD_UTILS)
-  add_definitions("-DPACKAGE_NAME=\"HarfBuzz\"")
-  add_definitions("-DPACKAGE_VERSION=\"${HB_VERSION}\"")
-
   if (HB_HAVE_CAIRO)
     add_executable(hb-view
         ${PROJECT_SOURCE_DIR}/util/ansi-print.hh
