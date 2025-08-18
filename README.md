@@ -78,6 +78,8 @@ Internationalization and Unicode Conference over the years:
 More presentations and papers are available on [behdad][11]'s website.
 In particular, the following _studies_ are relevant to HarfBuzz development:
 
+- 2025 – [AAT layout caches][24]
+- 2025 – [OpenType Layout lookup caches][23]
 - 2025 – [Introducing HarfRust][22]
 - 2025 – [Subsetting][21]
 - 2025 – [Caching][12]
@@ -136,3 +138,5 @@ transliterated using the Latin script. It also means "talkative" or
 [20]: https://behdad.org/doc/harfbuzz10years-slides.pdf
 [21]: https://docs.google.com/document/d/1_vZrt97OorJ0jA1YzJ29LRcGr3YGrNJANdOABjVZGEs/preview
 [22]: https://docs.google.com/document/d/1aH_waagdEM5UhslQxCeFEb82ECBhPlZjy5_MwLNLBYo/preview
+[23]: https://docs.google.com/document/d/1hRd5oYQJLrt0JuwWhEJWi7wh_9rbaIJkX6IR9DW7rZQ/preview
+[24]: https://docs.google.com/document/d/1a3K6fHjsiWW36vSzwJwCwEBOgznunKs80PSpBbpfHiA/preview
