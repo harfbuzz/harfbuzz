@@ -47,8 +47,7 @@ using namespace OT;
 
 struct ankr;
 
-using hb_aat_class_cache_t = hb_cache_t<15, 8, 7>;
-static_assert (sizeof (hb_aat_class_cache_t) == 256, "");
+using hb_aat_class_cache_t = hb_ot_layout_mapping_cache_t;
 
 struct hb_aat_scratch_t
 {
