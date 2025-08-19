@@ -1081,6 +1081,8 @@ struct SubtableGlyphCoverage
     for (unsigned i = 0; i < subtable_count; i++)
     {
       uint32_t offset = (uint32_t) subtableOffsets[i];
+      // A font file called SFNSDisplay.ttf has value 0xFFFFFFFF in the offsets.
+      // Just ignore it.
       if (offset == 0 || offset == 0xFFFFFFFF)
         continue;
       if (unlikely (!subtableOffsets[i].sanitize (c, this, bytes)))
