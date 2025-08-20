@@ -76,12 +76,18 @@ inline bool SubstLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_app
   c->set_lookup_index (lookup_index);
   c->set_lookup_props (l.get_props ());
 
+  hb_vector_t<uint32_t> saved_match_positions;
+  hb_swap (c->match_positions, saved_match_positions);
+
   bool ret = false;
   auto *accel = gsub->get_accel (lookup_index);
   ret = accel && accel->apply (c, false);
 
   c->set_lookup_index (saved_lookup_index);
   c->set_lookup_props (saved_lookup_props);
+
+  hb_swap (c->match_positions, saved_match_positions);
+
   return ret;
 }
 #endif
