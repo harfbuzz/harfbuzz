@@ -957,7 +957,7 @@ struct hb_accelerate_subtables_context_t :
     friend struct hb_ot_layout_lookup_accelerator_t;
 
     template <typename T>
-    bool init (const T &obj_,
+    void init (const T &obj_,
 	       hb_apply_func_t apply_func_
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
 	       , hb_apply_func_t apply_cached_func_
@@ -971,14 +971,9 @@ struct hb_accelerate_subtables_context_t :
       apply_cached_func = apply_cached_func_;
       cache_func = cache_func_;
       external_cache = external_cache_create (obj_);
-      if (unlikely (!external_cache))
-        return false;
-      if (external_cache == (void *) 1)
-        external_cache = nullptr; // Special value to indicate no cache.
 #endif
       digest.init ();
       obj_.get_coverage ().collect_coverage (&digest);
-      return true;
     }
 
 #ifdef HB_NO_OT_LAYOUT_LOOKUP_CACHE
@@ -999,7 +994,7 @@ struct hb_accelerate_subtables_context_t :
     template <typename T>
     auto _external_cache_create (const T &obj, hb_priority<1>) HB_AUTO_RETURN ( obj.external_cache_create () )
     template <typename T>
-    auto _external_cache_create (const T &obj, hb_priority<0>) HB_AUTO_RETURN ( (void *) 1 )
+    auto _external_cache_create (const T &obj, hb_priority<0>) HB_AUTO_RETURN ( nullptr )
     template <typename T>
     void *external_cache_create (const T &obj)
     {
@@ -1039,17 +1034,13 @@ struct hb_accelerate_subtables_context_t :
   {
     hb_applicable_t *entry = &array[i++];
 
-    if (!entry->init (obj,
-			        apply_to<T>
+    entry->init (obj,
+		 apply_to<T>
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-			        , apply_cached_to<T>
-			        , cache_func_to<T>
+		 , apply_cached_to<T>
+		 , cache_func_to<T>
 #endif
-			        ))
-    {
-      i--;
-      return hb_empty_t ();
-    }
+		 );
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     /* Cache handling

@@ -148,9 +148,8 @@ struct PairPosFormat2_4 : ValueBase
     hb_buffer_t *buffer = c->buffer;
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    // external_cache is always non-nullptr.
     external_cache_t *cache = (external_cache_t *) external_cache;
-    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, &cache->coverage);
+    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
 #else
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
 #endif
@@ -166,8 +165,8 @@ struct PairPosFormat2_4 : ValueBase
     }
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    unsigned int klass1 = (this+classDef1).get_class (buffer->cur().codepoint, &cache->first);
-    unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint, &cache->second);
+    unsigned int klass1 = (this+classDef1).get_class (buffer->cur().codepoint, cache ? &cache->first : nullptr);
+    unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint, cache ? &cache->second : nullptr);
 #else
     unsigned int klass1 = (this+classDef1).get_class (buffer->cur().codepoint);
     unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint);
