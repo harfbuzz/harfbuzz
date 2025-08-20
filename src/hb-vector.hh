@@ -524,9 +524,7 @@ struct hb_vector_t
   bool resize (int size_, bool initialize = true, bool exact = false)
   {
     unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
-    // The comparison with length is there to handle foreign arrays,
-    // in which case allocated is zero.
-    if (size > length && !alloc (size, exact))
+    if (!alloc (size, exact))
       return false;
 
     if (size > length)
