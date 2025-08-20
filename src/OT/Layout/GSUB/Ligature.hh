@@ -97,15 +97,6 @@ struct Ligature
     unsigned int total_component_count = 0;
 
     if (unlikely (count > HB_MAX_CONTEXT_LENGTH)) return false;
-    unsigned match_positions_stack[8];
-    unsigned *match_positions = match_positions_stack;
-    if (unlikely (count > ARRAY_LENGTH (match_positions_stack)))
-    {
-      match_positions = (unsigned *) hb_malloc (hb_max (count, 1u) * sizeof (unsigned));
-      if (unlikely (!match_positions))
-	return_trace (false);
-    }
-
     unsigned int match_end = 0;
 
     if (likely (!match_input (c, count,
@@ -113,12 +104,9 @@ struct Ligature
                               match_glyph,
                               nullptr,
                               &match_end,
-                              match_positions,
                               &total_component_count)))
     {
       c->buffer->unsafe_to_concat (c->buffer->idx, match_end);
-      if (match_positions != match_positions_stack)
-        hb_free (match_positions);
       return_trace (false);
     }
 
@@ -135,10 +123,10 @@ struct Ligature
       match_end += delta;
       for (unsigned i = 0; i < count; i++)
       {
-	match_positions[i] += delta;
+	c->match_positions[i] += delta;
 	if (i)
 	  *p++ = ',';
-	snprintf (p, sizeof(buf) - (p - buf), "%u", match_positions[i]);
+	snprintf (p, sizeof(buf) - (p - buf), "%u", c->match_positions[i]);
 	p += strlen(p);
       }
 
@@ -149,7 +137,6 @@ struct Ligature
 
     ligate_input (c,
                   count,
-                  match_positions,
                   match_end,
                   ligGlyph,
                   total_component_count);
@@ -162,8 +149,6 @@ struct Ligature
 			  pos);
     }
 
-    if (match_positions != match_positions_stack)
-      hb_free (match_positions);
     return_trace (true);
   }
 

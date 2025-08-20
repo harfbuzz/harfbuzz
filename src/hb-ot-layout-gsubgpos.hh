@@ -726,6 +726,9 @@ struct hb_ot_apply_context_t :
   signed last_base = -1; // GPOS uses
   unsigned last_base_until = 0; // GPOS uses
 
+  hb_vector_t<uint32_t> match_positions;
+  uint32_t stack_match_positions[8];
+
   hb_ot_apply_context_t (unsigned int table_index_,
 			 hb_font_t *font_,
 			 hb_buffer_t *buffer_,
@@ -755,6 +758,7 @@ struct hb_ot_apply_context_t :
   {
     init_iters ();
     buffer->collect_codepoints (digest);
+    match_positions.set_storage (stack_match_positions);
   }
 
   void init_iters ()
@@ -1307,7 +1311,6 @@ static bool match_input (hb_ot_apply_context_t *c,
 			 match_func_t match_func,
 			 const void *match_data,
 			 unsigned int *end_position,
-			 unsigned int *match_positions,
 			 unsigned int *p_total_component_count = nullptr)
 {
   TRACE_APPLY (nullptr);
@@ -1365,7 +1368,10 @@ static bool match_input (hb_ot_apply_context_t *c,
       return_trace (false);
     }
 
-    match_positions[i] = skippy_iter.idx;
+    if (unlikely (i + 1 > c->match_positions.length &&
+		  !c->match_positions.resize (i + 1, false)))
+      return_trace (false);
+    c->match_positions.arrayZ[i] = skippy_iter.idx;
 
     unsigned int this_lig_id = _hb_glyph_info_get_lig_id (&buffer->info[skippy_iter.idx]);
     unsigned int this_lig_comp = _hb_glyph_info_get_lig_comp (&buffer->info[skippy_iter.idx]);
@@ -1425,13 +1431,12 @@ static bool match_input (hb_ot_apply_context_t *c,
     *p_total_component_count = total_component_count;
   }
 
-  match_positions[0] = buffer->idx;
+  c->match_positions.arrayZ[0] = buffer->idx;
 
   return_trace (true);
 }
 static inline bool ligate_input (hb_ot_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
-				 const unsigned int *match_positions, /* Including the first glyph */
 				 unsigned int match_end,
 				 hb_codepoint_t lig_glyph,
 				 unsigned int total_component_count)
@@ -1474,10 +1479,10 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
    *   https://bugzilla.gnome.org/show_bug.cgi?id=437633
    */
 
-  bool is_base_ligature = _hb_glyph_info_is_base_glyph (&buffer->info[match_positions[0]]);
-  bool is_mark_ligature = _hb_glyph_info_is_mark (&buffer->info[match_positions[0]]);
+  bool is_base_ligature = _hb_glyph_info_is_base_glyph (&buffer->info[c->match_positions.arrayZ[0]]);
+  bool is_mark_ligature = _hb_glyph_info_is_mark (&buffer->info[c->match_positions.arrayZ[0]]);
   for (unsigned int i = 1; i < count; i++)
-    if (!_hb_glyph_info_is_mark (&buffer->info[match_positions[i]]))
+    if (!_hb_glyph_info_is_mark (&buffer->info[c->match_positions.arrayZ[i]]))
     {
       is_base_ligature = false;
       is_mark_ligature = false;
@@ -1503,7 +1508,7 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 
   for (unsigned int i = 1; i < count; i++)
   {
-    while (buffer->idx < match_positions[i] && buffer->successful)
+    while (buffer->idx < c->match_positions.arrayZ[i] && buffer->successful)
     {
       if (is_ligature)
       {
@@ -1742,16 +1747,12 @@ static inline void recurse_lookups (context_t *c,
 
 static inline void apply_lookup (hb_ot_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
-				 unsigned int *match_positions, /* Including the first glyph */
 				 unsigned int lookupCount,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
 				 unsigned int match_end)
 {
   hb_buffer_t *buffer = c->buffer;
   int end;
-
-  unsigned int *match_positions_input = match_positions;
-  unsigned int match_positions_count = count;
 
   /* All positions are distance from beginning of *output* buffer.
    * Adjust. */
@@ -1762,7 +1763,7 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
     int delta = bl - buffer->idx;
     /* Convert positions to new indexing. */
     for (unsigned int j = 0; j < count; j++)
-      match_positions[j] += delta;
+      c->match_positions.arrayZ[j] += delta;
   }
 
   for (unsigned int i = 0; i < lookupCount && buffer->successful; i++)
@@ -1774,10 +1775,10 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
     unsigned int orig_len = buffer->backtrack_len () + buffer->lookahead_len ();
 
     /* This can happen if earlier recursed lookups deleted many entries. */
-    if (unlikely (match_positions[idx] >= orig_len))
+    if (unlikely (c->match_positions.arrayZ[idx] >= orig_len))
       continue;
 
-    if (unlikely (!buffer->move_to (match_positions[idx])))
+    if (unlikely (!buffer->move_to (c->match_positions.arrayZ[idx])))
       break;
 
     if (unlikely (buffer->max_ops <= 0))
@@ -1836,9 +1837,9 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
      */
 
     end += delta;
-    if (end < int (match_positions[idx]))
+    if (end < int (c->match_positions.arrayZ[idx]))
     {
-      /* End might end up being smaller than match_positions[idx] if the recursed
+      /* End might end up being smaller than match_positions.arrayZ[idx] if the recursed
        * lookup ended up removing many items.
        * Just never rewind end beyond start of current position, since that is
        * not possible in the recursed lookup.  Also adjust delta as such.
@@ -1846,8 +1847,8 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
        * https://bugs.chromium.org/p/chromium/issues/detail?id=659496
        * https://github.com/harfbuzz/harfbuzz/issues/1611
        */
-      delta += match_positions[idx] - end;
-      end = match_positions[idx];
+      delta += c->match_positions.arrayZ[idx] - end;
+      end = c->match_positions.arrayZ[idx];
     }
 
     unsigned int next = idx + 1; /* next now is the position after the recursed lookup. */
@@ -1856,27 +1857,9 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
     {
       if (unlikely (delta + count > HB_MAX_CONTEXT_LENGTH))
 	break;
-      if (unlikely (delta + count > match_positions_count))
-      {
-        unsigned new_match_positions_count = hb_max (delta + count, hb_max(match_positions_count, 4u) * 1.5);
-        if (match_positions == match_positions_input)
-	{
-	  match_positions = (unsigned int *) hb_malloc (new_match_positions_count * sizeof (match_positions[0]));
-	  if (unlikely (!match_positions))
-	    break;
-	  memcpy (match_positions, match_positions_input, count * sizeof (match_positions[0]));
-	  match_positions_count = new_match_positions_count;
-	}
-	else
-	{
-	  unsigned int *new_match_positions = (unsigned int *) hb_realloc (match_positions, new_match_positions_count * sizeof (match_positions[0]));
-	  if (unlikely (!new_match_positions))
-	    break;
-	  match_positions = new_match_positions;
-	  match_positions_count = new_match_positions_count;
-	}
-      }
-
+      if (unlikely (count + delta > c->match_positions.length &&
+		    !c->match_positions.resize (count + delta, false)))
+        return;
     }
     else
     {
@@ -1886,22 +1869,19 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
     }
 
     /* Shift! */
-    memmove (match_positions + next + delta, match_positions + next,
-	     (count - next) * sizeof (match_positions[0]));
+    memmove (c->match_positions + next + delta, c->match_positions + next,
+	     (count - next) * sizeof (c->match_positions.arrayZ[0]));
     next += delta;
     count += delta;
 
     /* Fill in new entries. */
     for (unsigned int j = idx + 1; j < next; j++)
-      match_positions[j] = match_positions[j - 1] + 1;
+      c->match_positions.arrayZ[j] = c->match_positions.arrayZ[j - 1] + 1;
 
     /* And fixup the rest. */
     for (; next < count; next++)
-      match_positions[next] += delta;
+      c->match_positions.arrayZ[next] += delta;
   }
-
-  if (match_positions != match_positions_input)
-    hb_free (match_positions);
 
   assert (end >= 0);
   (void) buffer->move_to (end);
@@ -2005,25 +1985,17 @@ static bool context_apply_lookup (hb_ot_apply_context_t *c,
 				  const ContextApplyLookupContext &lookup_context)
 {
   if (unlikely (inputCount > HB_MAX_CONTEXT_LENGTH)) return false;
-  unsigned match_positions_stack[8];
-  unsigned *match_positions = match_positions_stack;
-  if (unlikely (inputCount > ARRAY_LENGTH (match_positions_stack)))
-  {
-    match_positions = (unsigned *) hb_malloc (hb_max (inputCount, 1u) * sizeof (match_positions[0]));
-    if (unlikely (!match_positions))
-      return false;
-  }
 
   unsigned match_end = 0;
   bool ret = false;
   if (match_input (c,
 		   inputCount, input,
 		   lookup_context.funcs.match, lookup_context.match_data,
-		   &match_end, match_positions))
+		   &match_end))
   {
     c->buffer->unsafe_to_break (c->buffer->idx, match_end);
     apply_lookup (c,
-		  inputCount, match_positions,
+		  inputCount,
 		  lookupCount, lookupRecord,
 		  match_end);
     ret = true;
@@ -2033,9 +2005,6 @@ static bool context_apply_lookup (hb_ot_apply_context_t *c,
     c->buffer->unsafe_to_concat (c->buffer->idx, match_end);
     ret = false;
   }
-
-  if (unlikely (match_positions != match_positions_stack))
-    hb_free (match_positions);
 
   return ret;
 }
@@ -3123,14 +3092,6 @@ static bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 					const ChainContextApplyLookupContext &lookup_context)
 {
   if (unlikely (inputCount > HB_MAX_CONTEXT_LENGTH)) return false;
-  unsigned match_positions_stack[4];
-  unsigned *match_positions = match_positions_stack;
-  if (unlikely (inputCount > ARRAY_LENGTH (match_positions_stack)))
-  {
-    match_positions = (unsigned *) hb_malloc (hb_max (inputCount, 1u) * sizeof (match_positions[0]));
-    if (unlikely (!match_positions))
-      return false;
-  }
 
   unsigned start_index = c->buffer->out_len;
   unsigned end_index = c->buffer->idx;
@@ -3139,7 +3100,7 @@ static bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
   if (!(match_input (c,
 		     inputCount, input,
 		     lookup_context.funcs.match[1], lookup_context.match_data[1],
-		     &match_end, match_positions) && (end_index = match_end)
+		     &match_end) && (end_index = match_end)
        && match_lookahead (c,
 			   lookaheadCount, lookahead,
 			   lookup_context.funcs.match[2], lookup_context.match_data[2],
@@ -3162,13 +3123,10 @@ static bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 
   c->buffer->unsafe_to_break_from_outbuffer (start_index, end_index);
   apply_lookup (c,
-		inputCount, match_positions,
+		inputCount,
 		lookupCount, lookupRecord,
 		match_end);
   done:
-
-  if (unlikely (match_positions != match_positions_stack))
-    hb_free (match_positions);
 
   return ret;
 }
