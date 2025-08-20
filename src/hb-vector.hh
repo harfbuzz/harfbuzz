@@ -160,11 +160,9 @@ struct hb_vector_t
     /* We allow a hack to make the vector point to a foreign array
      * by the user. In that case length/arrayZ are non-zero but
      * allocated is zero. Don't free anything. */
-    if (allocated)
-    {
-      shrink_vector (0);
+    shrink_vector (0);
+    if (is_owned ())
       hb_free (arrayZ);
-    }
     init ();
   }
 
@@ -281,6 +279,11 @@ struct hb_vector_t
     return new (p) Type (std::forward<Args> (args)...);
   }
 
+  bool is_owned () const
+  {
+    return allocated != 0 && allocated != -1;
+  }
+
   bool in_error () const { return allocated < 0; }
   void set_error ()
   {
@@ -298,7 +301,7 @@ struct hb_vector_t
   {
     if (!new_allocated)
     {
-      if (allocated)
+      if (is_owned ())
 	hb_free (arrayZ);
       return nullptr;
     }
@@ -319,7 +322,7 @@ struct hb_vector_t
   {
     if (!new_allocated)
     {
-      if (allocated)
+      if (is_owned ())
 	hb_free (arrayZ);
       return nullptr;
     }
@@ -332,7 +335,7 @@ struct hb_vector_t
 	new_array[i] = std::move (arrayZ[i]);
 	arrayZ[i].~Type ();
       }
-      if (allocated)
+      if (is_owned ())
 	hb_free (arrayZ);
     }
     return new_array;
