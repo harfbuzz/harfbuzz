@@ -433,40 +433,6 @@ print ()
 print ('#include "hb-ot-shaper-use-machine.hh"')
 print ()
 
-total = 0
-used = 0
-last_block = None
-def print_block (block, start, end, use_data):
-	global total, used, last_block
-	if block and block != last_block:
-		print ()
-		print ()
-		print ("  /* %s */" % block)
-		if start % 16:
-			print (' ' * (20 + (start % 16 * 6)), end='')
-	num = 0
-	assert start % 8 == 0
-	assert (end+1) % 8 == 0
-	for u in range (start, end+1):
-		if u % 16 == 0:
-			print ()
-			print ("  /* %04X */" % u, end='')
-		if u in use_data:
-			num += 1
-		d = use_data.get (u)
-		if d is not None:
-			d = d[0]
-		elif u in unicode_data[4]:
-			d = 'O'
-		else:
-			d = 'WJ'
-		print ("%6s," % d, end='')
-
-	total += end - start + 1
-	used += num
-	if block:
-		last_block = block
-
 uu = sorted (use_data.keys ())
 
 last = -100000
