@@ -727,6 +727,7 @@ struct hb_ot_apply_context_t :
   unsigned last_base_until = 0; // GPOS uses
 
   hb_vector_t<uint32_t> match_positions;
+  uint32_t stack_match_positions[8];
 
   hb_ot_apply_context_t (unsigned int table_index_,
 			 hb_font_t *font_,
@@ -757,7 +758,7 @@ struct hb_ot_apply_context_t :
   {
     init_iters ();
     buffer->collect_codepoints (digest);
-    match_positions.resize (1);
+    match_positions.set_storage (stack_match_positions);
   }
 
   void init_iters ()

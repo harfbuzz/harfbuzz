@@ -78,6 +78,8 @@ inline bool SubstLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_app
 
   hb_vector_t<uint32_t> saved_match_positions;
   hb_swap (c->match_positions, saved_match_positions);
+  uint32_t stack_match_positions[8];
+  c->match_positions.set_storage (stack_match_positions);
 
   bool ret = false;
   auto *accel = gsub->get_accel (lookup_index);
