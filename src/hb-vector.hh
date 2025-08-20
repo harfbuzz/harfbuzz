@@ -88,6 +88,12 @@ struct hb_vector_t
   void
   set_storage (Type (&array)[n])
   {
+    set_storage (array, n);
+  }
+
+  void
+  set_storage (Type *array, unsigned n)
+  {
     if (unlikely (in_error ()))
       return;
 
