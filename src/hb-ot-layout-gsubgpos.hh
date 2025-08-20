@@ -3102,8 +3102,7 @@ static bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 			   match_end, &end_index)))
   {
     c->buffer->unsafe_to_concat (c->buffer->idx, end_index);
-    ret = false;
-    goto done;
+    return false;
   }
 
   if (!match_backtrack (c,
@@ -3112,8 +3111,7 @@ static bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 			&start_index))
   {
     c->buffer->unsafe_to_concat_from_outbuffer (start_index, end_index);
-    ret = false;
-    goto done;
+    return false;
   }
 
   c->buffer->unsafe_to_break_from_outbuffer (start_index, end_index);
@@ -3121,7 +3119,6 @@ static bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 		inputCount,
 		lookupCount, lookupRecord,
 		match_end);
-  done:
 
   return ret;
 }
