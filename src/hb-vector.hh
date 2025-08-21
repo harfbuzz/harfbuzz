@@ -444,9 +444,9 @@ struct hb_vector_t
     if (!std::is_trivially_destructible<Type>::value)
     {
       unsigned count = length - size;
-      Type *p = arrayZ + length - 1;
+      Type *p = arrayZ + length;
       while (count--)
-        p--->~Type ();
+        (--p)->~Type ();
     }
     length = size;
   }
