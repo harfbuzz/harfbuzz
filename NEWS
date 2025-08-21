@@ -1,3 +1,15 @@
+Overview of changes leading to 11.4.2
+Thursday, August 21, 2025
+====================================
+- Various performance and memory usage improvements.
+- The `hb-shape` command line tool can now be built with the amalgamated
+  `harfbuzz.cc` source.
+- Fix regression in handling version 2 of `avar` table.
+- Increase various buffer length limits for better handling of fonts that
+  generate huge number of glyphs per codepoint (e.g. Noto Sans Duployan)
+- Improvements to the harfrust shaper for more accurate testing.
+
+
 Overview of changes leading to 11.4.1
 Wednesday, August 13, 2025
 ====================================
