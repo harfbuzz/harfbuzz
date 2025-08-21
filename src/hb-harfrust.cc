@@ -28,6 +28,8 @@
 
 #include "hb-shaper-impl.hh"
 
+#include "hb-utf.hh"
+
 
 /*
  * buffer
@@ -111,6 +113,10 @@ _hb_harfrust_shape_rs (const void         *font_data,
 		       const void         *rs_buffer,
 		       hb_font_t          *font,
 		       hb_buffer_t        *buffer,
+		       const uint8_t      *pre_context,
+		       uint32_t            pre_context_len,
+		       const uint8_t      *post_context,
+		       uint32_t            post_context_len,
 		       const hb_feature_t *features,
 		       unsigned int        num_features);
 
@@ -170,12 +176,28 @@ retry_buffer:
     }
   }
 
+  // Encode buffer context as UTF-8, so that HarfRust can use it.
+  const int CONTEXT_BYTE_SIZE = 4 * buffer->CONTEXT_LENGTH;
+  uint8_t context[2][CONTEXT_BYTE_SIZE];
+  unsigned context_len[2] = { 0, 0 };
+  for (unsigned i = 0; i < 2; i++)
+    for (unsigned j = 0; j < buffer->context_len[i]; j++)
+    {
+      context_len[i] = hb_utf8_t::encode (context[i] + context_len[i],
+					  context[i] + CONTEXT_BYTE_SIZE,
+					  buffer->context[i][j]) - context[i];
+    }
+
   return _hb_harfrust_shape_rs (font_data,
 				face_data,
 				hr_shape_plan,
 				hr_buffer,
 				font,
 				buffer,
+				context[0],
+				context_len[0],
+				context[1],
+				context_len[1],
 				features,
 				num_features);
 }
