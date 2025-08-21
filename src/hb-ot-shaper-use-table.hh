@@ -664,7 +664,9 @@ static inline uint8_t hb_use_get_category (unsigned u)
   return u<921600 ? hb_use_u8[3265u+((hb_use_u8[937u+((hb_use_u16[((hb_use_u8[369u+((hb_use_u8[113u+((hb_use_b4(hb_use_u8,((((((((((u)>>1))>>3))>>1))>>3))>>4)))<<4)+((((((((((u)>>1))>>3))>>1))>>3))&15)])<<3)+((((((((u)>>1))>>3))>>1))&7)])<<1)+((((((u)>>1))>>3))&1)])<<3)+((((u)>>1))&7)])<<1)+((u)&1)] : O;
 }
 
+
 #endif
+
 
 #undef B
 #undef CGJ

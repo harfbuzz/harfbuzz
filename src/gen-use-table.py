@@ -15,9 +15,21 @@ Input files:
 * ms-use/IndicPositionalCategory-Additional.txt
 """
 
+import packTab
+
+import sys
 import logging
+
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
+if len(sys.argv) > 1 and sys.argv[1] == "--rust":
+    del sys.argv[1]
+    logging.info("Generating Rust code...")
+    language = "rust"
+else:
+    logging.info("Generating C code...")
+    language = "c"
+language = packTab.languages[language]
 
 import sys
 
@@ -425,71 +437,100 @@ for h in headers:
 		print (" * %s" % (l.strip()))
 print (" */")
 print ()
-print ("#ifndef HB_OT_SHAPER_USE_TABLE_HH")
-print ("#define HB_OT_SHAPER_USE_TABLE_HH")
-print ()
-print ('#include "hb.hh"')
-print ()
-print ('#include "hb-ot-shaper-use-machine.hh"')
-print ()
+if language.name == "c":
+    print ("#ifndef HB_OT_SHAPER_USE_TABLE_HH")
+    print ("#define HB_OT_SHAPER_USE_TABLE_HH")
+    print ()
+    print ('#include "hb.hh"')
+    print ()
+    print ('#include "hb-ot-shaper-use-machine.hh"')
+    print ()
+
+    print ('#pragma GCC diagnostic push')
+    print ('#pragma GCC diagnostic ignored "-Wunused-macros"')
+    for k,v in sorted(use_mapping.items()):
+        if k in use_positions and use_positions[k]: continue
+        print ("#define %s	USE(%s)	/* %s */" % (k, k, v.__name__[3:]))
+    for k,v in sorted(use_positions.items()):
+        if not v: continue
+        for suf in v.keys():
+            tag = k + suf
+            print ("#define %s	USE(%s)" % (tag, tag))
+    print ('#pragma GCC diagnostic pop')
+    print ("")
+
+elif language.name == "rust":
+    print()
+    print("#![allow(unused_parens)]")
+    print("#![allow(clippy::unnecessary_cast, clippy::unreadable_literal, clippy::double_parens)]")
+    print()
+    print("use super::ot_shaper_use::category::*;")
+    print()
+else:
+    assert False, "Unknown language: %s" % language.name
 
 uu = sorted (use_data.keys ())
 
-last = -100000
-num = 0
-offset = 0
-starts = []
-ends = []
-print ('#pragma GCC diagnostic push')
-print ('#pragma GCC diagnostic ignored "-Wunused-macros"')
-for k,v in sorted(use_mapping.items()):
-	if k in use_positions and use_positions[k]: continue
-	print ("#define %s	USE(%s)	/* %s */" % (k, k, v.__name__[3:]))
-for k,v in sorted(use_positions.items()):
-	if not v: continue
-	for suf in v.keys():
-		tag = k + suf
-		print ("#define %s	USE(%s)" % (tag, tag))
-print ('#pragma GCC diagnostic pop')
-print ("")
-
-
-import packTab
 data = {u:v[0] for u,v in use_data.items()}
 
-DEFAULT = 5
-COMPACT = 9
-for compression in (DEFAULT, COMPACT):
+if language.name == "c":
+    private = True
+elif language.name == "rust":
+    private = False
+    language.public_function_linkage = "pub(crate)"
+else:
+    assert False, "Unknown language: %s" % language.name
 
-    logging.info('  Compression=%d:' % compression)
+
+DEFAULT = "DEFAULT"
+COMPACT = "COMPACT"
+
+compression_level = {
+    DEFAULT: 5,
+    COMPACT: 9,
+}
+
+modes = {}
+if language.name == "c":
+    modes[DEFAULT] = "#ifndef HB_OPTIMIZE_SIZE"
+    modes[COMPACT] = "#else"
+    modes[None] = "#endif"
+else:
+    modes[DEFAULT] = ""
+
+for step, text in modes.items():
     print()
-    if compression == DEFAULT:
-        print('#ifndef HB_OPTIMIZE_SIZE')
-    elif compression == COMPACT:
-        print('#else')
-    else:
-        assert False
-    print()
+    if text:
+        print(text)
+        print()
+    if step is None:
+        continue
+
+    compression = compression_level[step]
+    logging.info("  Compression=%d:" % compression)
 
     code = packTab.Code('hb_use')
     sol = packTab.pack_table(data, compression=compression, default='O')
     logging.info('      FullCost=%d' % (sol.fullCost))
-    sol.genCode(code, f'get_category')
-    code.print_c()
+    sol.genCode(code, f'get_category', language=language, private=private)
+    code.print_code(language=language, private=private)
     print ()
 
-print('#endif')
-
-print ()
-for k in sorted(use_mapping.keys()):
-	if k in use_positions and use_positions[k]: continue
-	print ("#undef %s" % k)
-for k,v in sorted(use_positions.items()):
-	if not v: continue
-	for suf in v.keys():
-		tag = k + suf
-		print ("#undef %s" % tag)
-print ()
-print ()
-print ("#endif /* HB_OT_SHAPER_USE_TABLE_HH */")
+if language.name == "c":
+    print ()
+    for k in sorted(use_mapping.keys()):
+        if k in use_positions and use_positions[k]: continue
+        print ("#undef %s" % k)
+    for k,v in sorted(use_positions.items()):
+        if not v: continue
+        for suf in v.keys():
+            tag = k + suf
+            print ("#undef %s" % tag)
+    print ()
+    print ()
+    print ("#endif /* HB_OT_SHAPER_USE_TABLE_HH */")
+elif language.name == "rust":
+    pass
+else:
+    assert False, "Unknown language: %s" % language.name
 print ("/* == End of generated table == */")
