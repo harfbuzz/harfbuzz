@@ -227,6 +227,13 @@ hb_buffer_t::shift_forward (unsigned int count)
   assert (have_output);
   if (unlikely (!ensure (len + count))) return false;
 
+  max_ops -= len - idx;
+  if (unlikely (max_ops < 0))
+  {
+    successful = false;
+    return false;
+  }
+
   memmove (info + idx + count, info + idx, (len - idx) * sizeof (info[0]));
   if (idx + count > len)
   {
