@@ -682,9 +682,17 @@ struct hb_ot_apply_context_t :
   bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int sub_lookup_index)
   {
-    if (unlikely (nesting_level_left == 0 || !recurse_func || buffer->max_ops-- <= 0))
+    assert (recurse_func);
+    if (unlikely (nesting_level_left == 0))
     {
-      buffer->shaping_failed = true;
+      buffer->successful = false;
+      return default_return_value ();
+    }
+
+    buffer->max_ops--;
+    if (unlikely (buffer->max_ops < 0))
+    {
+      buffer->successful = false;
       return default_return_value ();
     }
 
