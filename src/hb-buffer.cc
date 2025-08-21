@@ -158,13 +158,15 @@ hb_segment_properties_overlay (hb_segment_properties_t *p,
 bool
 hb_buffer_t::enlarge (unsigned int size)
 {
-  if (unlikely (!successful))
-    return false;
   if (unlikely (size > max_len))
   {
+    shaping_failed = true;
     successful = false;
     return false;
   }
+
+  if (unlikely (!successful))
+    return false;
 
   unsigned int new_allocated = allocated;
   hb_glyph_position_t *new_pos = nullptr;
