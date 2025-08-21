@@ -1171,8 +1171,6 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   _hb_buffer_deallocate_unicode_vars (c->buffer);
 
   c->buffer->props.direction = c->target_direction;
-
-  c->buffer->leave ();
 }
 
 
