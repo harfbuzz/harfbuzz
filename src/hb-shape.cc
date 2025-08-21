@@ -149,14 +149,11 @@ hb_shape_full (hb_font_t          *font,
 
   hb_bool_t res = hb_shape_plan_execute (shape_plan, font, buffer, features, num_features);
 
-  if (buffer->max_ops <= 0)
-    buffer->shaping_failed = true;
-
   hb_shape_plan_destroy (shape_plan);
 
   if (text_buffer)
   {
-    if (res && buffer->successful && !buffer->shaping_failed
+    if (res && buffer->successful
 	    && text_buffer->successful
 	    && !buffer->verify (text_buffer,
 				font,
