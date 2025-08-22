@@ -84,13 +84,19 @@ struct hb_vector_t
   }
   ~hb_vector_t () { fini (); }
 
-  template <unsigned n>
+  template <unsigned n,
+	    typename T = Type,
+	    hb_enable_if (hb_is_trivially_constructible(T) &&
+			  hb_is_trivially_destructible(T))>
   void
   set_storage (Type (&array)[n])
   {
     set_storage (array, n);
   }
 
+  template <typename T = Type,
+	    hb_enable_if (hb_is_trivially_constructible(T) &&
+			  hb_is_trivially_destructible(T))>
   void
   set_storage (Type *array, unsigned n)
   {
@@ -160,9 +166,11 @@ struct hb_vector_t
     /* We allow a hack to make the vector point to a foreign array
      * by the user. In that case length/arrayZ are non-zero but
      * allocated is zero. Don't free anything. */
-    shrink_vector (0);
     if (is_owned ())
+    {
+      shrink_vector (0);
       hb_free (arrayZ);
+    }
     init ();
   }
 
@@ -441,7 +449,7 @@ struct hb_vector_t
   shrink_vector (unsigned size)
   {
     assert (size <= length);
-    if (!std::is_trivially_destructible<Type>::value)
+    if (!hb_is_trivially_destructible(Type))
     {
       unsigned count = length - size;
       Type *p = arrayZ + length;
