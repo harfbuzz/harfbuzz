@@ -8,3 +8,8 @@ retain-base-table-filter-scripts.txt
 SUBSETS:
 abc
 
+# diff with fonttools
+# BASE table(fonttools doesn't support BASE table)
+OPTIONS:
+no_fonttools
+
