@@ -14,3 +14,9 @@ drop-hints-desubroutinize-retain-gids.txt
 SUBSETS:
 明
 acek
+
+# TODO temporary until diff with fonttools on FDSelect format is fixed.
+# diff on feature list is expected since fonttools doesn't de-duplicate features
+OPTIONS:
+no_fonttools
+
