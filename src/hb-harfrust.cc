@@ -177,7 +177,7 @@ retry_buffer:
   }
 
   // Encode buffer context as UTF-8, so that HarfRust can use it.
-  const int CONTEXT_BYTE_SIZE = 4 * buffer->CONTEXT_LENGTH;
+  constexpr int CONTEXT_BYTE_SIZE = 4 * hb_buffer_t::CONTEXT_LENGTH;
   uint8_t context[2][CONTEXT_BYTE_SIZE];
   unsigned context_len[2] = { 0, 0 };
   for (unsigned i = 0; i < 2; i++)
