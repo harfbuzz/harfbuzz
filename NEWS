@@ -1,3 +1,13 @@
+Overview of changes leading to 11.4.3
+Saturday, August 23, 2025
+====================================
+- Make shaping fail much faster for certain malformed fonts (e.g., those that
+  trigger infinite recursion).
+- Fix undefined behaviour introduced in 11.4.2.
+- Fix detection of the “Cambria Math” font when fonts are scaled, so the
+  workaround for the bad `MATH` table constant is applied.
+
+
 Overview of changes leading to 11.4.2
 Thursday, August 21, 2025
 ====================================
@@ -15,6 +25,7 @@ Wednesday, August 13, 2025
 ====================================
 - Fix clang compiler warnings.
 
+
 Overview of changes leading to 11.4.0
 Wednesday, August 13, 2025
 ====================================
@@ -28,10 +39,12 @@ Wednesday, August 13, 2025
   performance evaluation and we do NOT recommend using it for any
   other purposes.
 
+
 Overview of changes leading to 11.3.3
 Sunday, July 26, 2025
 ====================================
 - Fix but in vertical shaping of fonts without the vmtx table.
+
 
 Overview of changes leading to 11.3.2
 Sunday, July 20, 2025
@@ -39,11 +52,13 @@ Sunday, July 20, 2025
 - Fix build with non-compliant C++11 compilers that don't recognize
   the "and" keyword.
 
+
 Overview of changes leading to 11.3.1
 Sunday, July 20, 2025
 ====================================
 - Fix crasher in the glyph_v_origin function introduced in
   11.3.0.
+
 
 Overview of changes leading to 11.3.0
 Sunday, July 20, 2025
