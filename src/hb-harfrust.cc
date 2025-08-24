@@ -176,17 +176,20 @@ retry_buffer:
     }
   }
 
-  // Encode buffer context as UTF-8, so that HarfRust can use it.
+  // Encode buffer pre/post-context as UTF-8, so that HarfRust can use it.
   constexpr int CONTEXT_BYTE_SIZE = 4 * hb_buffer_t::CONTEXT_LENGTH;
-  uint8_t context[2][CONTEXT_BYTE_SIZE];
-  unsigned context_len[2] = { 0, 0 };
-  for (unsigned i = 0; i < 2; i++)
-    for (unsigned j = 0; j < buffer->context_len[i]; j++)
-    {
-      context_len[i] = hb_utf8_t::encode (context[i] + context_len[i],
-					  context[i] + CONTEXT_BYTE_SIZE,
-					  buffer->context[i][j]) - context[i];
-    }
+  uint8_t pre_context[CONTEXT_BYTE_SIZE];
+  unsigned pre_context_len = 0;
+  for (unsigned i = buffer->context_len[0]; i; i--)
+    pre_context_len = hb_utf8_t::encode (pre_context + pre_context_len,
+					 pre_context + CONTEXT_BYTE_SIZE,
+					 buffer->context[0][i - 1]) - pre_context;
+  uint8_t post_context[CONTEXT_BYTE_SIZE];
+  unsigned post_context_len = 0;
+  for (unsigned i = 0; i < buffer->context_len[1]; i++)
+    post_context_len = hb_utf8_t::encode (post_context + post_context_len,
+					  post_context + CONTEXT_BYTE_SIZE,
+					  buffer->context[1][i]) - post_context;
 
   return _hb_harfrust_shape_rs (font_data,
 				face_data,
@@ -194,10 +197,10 @@ retry_buffer:
 				hr_buffer,
 				font,
 				buffer,
-				context[0],
-				context_len[0],
-				context[1],
-				context_len[1],
+				pre_context,
+				pre_context_len,
+				post_context,
+				post_context_len,
 				features,
 				num_features);
 }
