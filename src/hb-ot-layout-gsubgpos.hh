@@ -470,7 +470,7 @@ struct matcher_t
   }
 
   public:
-  unsigned int lookup_props = (unsigned) -1;
+  unsigned int lookup_props = 0;
   hb_mask_t mask = -1;
   bool ignore_zwnj = false;
   bool ignore_zwj = false;
@@ -720,8 +720,7 @@ struct hb_ot_apply_context_t :
   hb_direction_t direction;
   hb_mask_t lookup_mask = 1;
   unsigned int lookup_index = (unsigned) -1;
-  unsigned int lookup_props = (unsigned) -1;
-  unsigned int cached_props = (unsigned) -1; /* Cached glyph properties for the current lookup. */
+  unsigned int lookup_props = 0;
   unsigned int nesting_level_left = HB_MAX_NESTING_LEVEL;
 
   bool has_glyph_classes;
@@ -795,18 +794,13 @@ struct hb_ot_apply_context_t :
   HB_HOT
   bool match_properties_mark (const hb_glyph_info_t *info,
 			      unsigned int    glyph_props,
-			      unsigned int    match_props,
-			      bool            cached) const
+			      unsigned int    match_props) const
   {
     /* If using mark filtering sets, the high short of
      * match_props has the set index.
      */
     if (match_props & LookupFlag::UseMarkFilteringSet)
-    {
-      if (cached && match_props == cached_props)
-	return _hb_glyph_info_matches (info);
       return gdef_accel.mark_set_covers (match_props >> 16, info->codepoint);
-    }
 
     /* The second byte of match_props has the meaning
      * "ignore marks of attachment type different than
@@ -822,8 +816,7 @@ struct hb_ot_apply_context_t :
   HB_ALWAYS_INLINE
 #endif
   bool check_glyph_property (const hb_glyph_info_t *info,
-			     unsigned match_props,
-			     bool cached = true) const
+			     unsigned match_props) const
   {
     unsigned int glyph_props = _hb_glyph_info_get_glyph_props (info);
 
@@ -834,7 +827,7 @@ struct hb_ot_apply_context_t :
       return false;
 
     if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
-      return match_properties_mark (info, glyph_props, match_props, cached);
+      return match_properties_mark (info, glyph_props, match_props);
 
     return true;
   }
@@ -876,10 +869,6 @@ struct hb_ot_apply_context_t :
     }
     else
       _hb_glyph_info_set_glyph_props (&buffer->cur(), props);
-
-    if (cached_props != (unsigned) -1)
-      _hb_glyph_info_set_matches (&buffer->cur(),
-				  check_glyph_property (&buffer->cur(), cached_props, false));
   }
 
   void replace_glyph (hb_codepoint_t glyph_index)
@@ -1391,7 +1380,7 @@ static bool match_input (hb_ot_apply_context_t *c,
 	if (ligbase == LIGBASE_NOT_CHECKED)
 	{
 	  bool found = false;
-	  auto *out = buffer->out_info;
+	  const auto *out = buffer->out_info;
 	  unsigned int j = buffer->out_len;
 	  while (j && _hb_glyph_info_get_lig_id (&out[j - 1]) == first_lig_id)
 	  {
