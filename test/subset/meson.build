@@ -33,6 +33,7 @@ tests = [
   'layout.context_format2',
   'layout.gdef-varstore',
   'layout.gdef-attachlist',
+  'layout.markfilteringset',
   'layout.notonastaliqurdu',
   'layout.tinos',
   'layout.duplicate_features',
