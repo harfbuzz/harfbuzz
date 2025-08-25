@@ -47,7 +47,13 @@ struct Ligature
   template <typename set_t>
   void collect_second (set_t &s) const
   {
-    s.add (component[1]); // This adds codepoint 0 if component array is empty.
+    if (unlikely (!component.get_length ()))
+    {
+      // A ligature without any components. Anything matches.
+      s = set_t::full ();
+      return;
+    }
+    s.add (component.arrayZ[0]);
   }
 
   bool would_apply (hb_would_apply_context_t *c) const
