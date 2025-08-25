@@ -81,10 +81,9 @@ enum hb_ot_layout_glyph_props_flags_t
   HB_OT_LAYOUT_GLYPH_PROPS_MARK		= 0x08u,
 
   /* The following are used internally; not derived from GDEF. */
-  HB_OT_LAYOUT_GLYPH_PROPS_MATCHES      = 0x10u,
-  HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED	= 0x20u,
-  HB_OT_LAYOUT_GLYPH_PROPS_LIGATED	= 0x40u,
-  HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED	= 0x80u,
+  HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED	= 0x10u,
+  HB_OT_LAYOUT_GLYPH_PROPS_LIGATED	= 0x20u,
+  HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED	= 0x40u,
 
   HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE     = HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED |
 					  HB_OT_LAYOUT_GLYPH_PROPS_LIGATED |
@@ -609,20 +608,6 @@ _hb_clear_substitution_flags (const hb_ot_shape_plan_t *plan HB_UNUSED,
   for (unsigned int i = 0; i < count; i++)
     _hb_glyph_info_clear_substituted (&info[i]);
   return false;
-}
-
-static inline bool
-_hb_glyph_info_matches (const hb_glyph_info_t *info)
-{
-  return info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MATCHES;
-}
-static inline void
-_hb_glyph_info_set_matches (hb_glyph_info_t *info, bool matches)
-{
-  if (matches)
-    info->glyph_props() |= HB_OT_LAYOUT_GLYPH_PROPS_MATCHES;
-  else
-    info->glyph_props() &= ~HB_OT_LAYOUT_GLYPH_PROPS_MATCHES;
 }
 
 
