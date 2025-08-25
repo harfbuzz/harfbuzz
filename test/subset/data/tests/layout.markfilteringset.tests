@@ -1,0 +1,11 @@
+FONTS:
+AmiriQuran.ttf
+
+PROFILES:
+layout-test.txt
+
+SUBSETS:
+U+0649,U+064E,U+0647,U+0627
+
+OPTIONS:
+no_fonttools

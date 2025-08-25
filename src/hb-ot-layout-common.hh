@@ -1387,6 +1387,11 @@ struct Lookup
       {
         unsigned new_flag = lookupFlag;
         new_flag &= ~LookupFlag::UseMarkFilteringSet;
+        // https://github.com/harfbuzz/harfbuzz/issues/5499
+        // If we remove UseMarkFilteringSet flag because the set is now empty,
+        // we need to add IgnoreMarks flag, otherwise the lookup will not
+        // ignore any marks, which changes the behavior.
+        new_flag |= LookupFlag::IgnoreMarks;
         out->lookupFlag = new_flag;
       }
       else
