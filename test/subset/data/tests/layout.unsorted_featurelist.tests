@@ -9,3 +9,7 @@ retain-gids.txt
 SUBSETS:
 U+392,U+3a7,U+3b2,U+3c7
 *
+
+# diff with fonttools on duplicate features only, fonttools doesn't de-duplicate features
+OPTIONS:
+no_fonttools
