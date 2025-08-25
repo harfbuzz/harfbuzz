@@ -1,3 +1,10 @@
+Overview of changes leading to 11.4.4
+Tuesday, August 26, 2025
+=====================================
+- Fix a shaping regression affecting mark glyphs in certain fonts.
+- Fix pruning of mark filtering sets when subsetting fonts, which caused changes in shaping behaviour.
+
+
 Overview of changes leading to 11.4.3
 Saturday, August 23, 2025
 ====================================
