@@ -697,6 +697,15 @@ hb_subset_plan_t::hb_subset_plan_t (hb_face_t *face,
     return;
   }
 
+#ifdef HB_EXPERIMENTAL_API  
+  if ((input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS) &&
+      (input->flags & HB_SUBSET_FLAGS_RETAIN_NUM_GLYPHS)) {
+    // We've been requested to maintain the num glyphs count from the
+    // input face.
+    _num_output_glyphs = source->get_num_glyphs ();
+  }
+#endif
+
   _create_glyph_map_gsub (
       &_glyphset_gsub,
       glyph_map,
