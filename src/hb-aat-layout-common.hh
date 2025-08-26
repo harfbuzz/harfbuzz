@@ -837,11 +837,6 @@ struct StateTable
     STATE_START_OF_LINE = 1,
   };
 
-  template <typename set_t>
-  void collect_glyphs (set_t &glyphs, unsigned num_glyphs) const
-  {
-    (this+classTable).collect_glyphs (glyphs, num_glyphs);
-  }
   template <typename set_t, typename table_t>
   void collect_initial_glyphs (set_t &glyphs, unsigned num_glyphs, const table_t &table) const
   {
