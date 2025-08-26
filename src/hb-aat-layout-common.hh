@@ -78,7 +78,10 @@ struct hb_aat_scratch_t
   {
     hb_bit_set_t *s = buffer_glyph_set.get_acquire ();
     if (s && buffer_glyph_set.cmpexch (s, nullptr))
+    {
+      s->clear ();
       return s;
+    }
 
     s = (hb_bit_set_t *) hb_calloc (1, sizeof (hb_bit_set_t));
     if (unlikely (!s))
