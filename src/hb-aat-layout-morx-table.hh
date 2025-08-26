@@ -1170,7 +1170,7 @@ struct Chain
 	goto skip;
 
       c->subtable_flags = subtable_flags;
-      c->machine_glyph_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_bit_set_t);
+      c->first_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_bit_set_t);
       c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!(coverage & ChainSubtable<Types>::AllDirections) &&

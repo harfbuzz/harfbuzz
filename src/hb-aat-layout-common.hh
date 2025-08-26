@@ -125,9 +125,8 @@ struct hb_aat_apply_context_t :
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
   bool using_buffer_glyph_set = false;
   hb_bit_set_t *buffer_glyph_set = nullptr;
-  const hb_bit_set_t *left_set = nullptr;
-  const hb_bit_set_t *right_set = nullptr;
-  const hb_bit_set_t *machine_glyph_set = nullptr;
+  const hb_bit_set_t *first_set = nullptr;
+  const hb_bit_set_t *second_set = nullptr;
   hb_aat_class_cache_t *machine_class_cache = nullptr;
   hb_mask_t subtable_flags = 0;
 
@@ -155,11 +154,11 @@ struct hb_aat_apply_context_t :
   bool buffer_intersects_machine () const
   {
     if (likely (using_buffer_glyph_set))
-      return buffer_glyph_set->intersects (*machine_glyph_set);
+      return buffer_glyph_set->intersects (*first_set);
 
     // Faster for shorter buffers.
     for (unsigned i = 0; i < buffer->len; i++)
-      if (machine_glyph_set->has (buffer->info[i].codepoint))
+      if (first_set->has (buffer->info[i].codepoint))
 	return true;
     return false;
   }
