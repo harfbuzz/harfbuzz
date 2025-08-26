@@ -638,6 +638,23 @@ struct LookupFormat10
     glyphs.add_range (firstGlyph, firstGlyph + glyphCount - 1);
   }
 
+  template <typename set_t, typename filter_t>
+  void collect_glyphs_filtered (set_t &glyphs, const filter_t &filter) const
+  {
+    if (unlikely (!glyphCount)) return;
+    if (firstGlyph == DELETED_GLYPH) return;
+    const HBUINT8 *p = valueArrayZ.arrayZ;
+    for (unsigned i = 0; i < glyphCount; i++)
+    {
+      unsigned int v = 0;
+      unsigned int count = valueSize;
+      for (unsigned int j = 0; j < count; j++)
+	v = (v << 8) | *p++;
+      if (filter (v))
+	glyphs.add (firstGlyph + i);
+    }
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -708,6 +725,7 @@ struct Lookup
     case 4: hb_barrier (); u.format4.collect_glyphs_filtered (glyphs, filter); return;
     case 6: hb_barrier (); u.format6.collect_glyphs_filtered (glyphs, filter); return;
     case 8: hb_barrier (); u.format8.collect_glyphs_filtered (glyphs, filter); return;
+    case 10: hb_barrier (); u.format10.collect_glyphs_filtered (glyphs, filter); return;
     default:return;
     }
   }
