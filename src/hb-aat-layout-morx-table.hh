@@ -1169,14 +1169,14 @@ struct Chain
 		   hb_map ([subtable_flags] (const hb_aat_map_t::range_flags_t _) -> bool { return subtable_flags & (_.flags); })))
 	goto skip;
 
-      c->subtable_flags = subtable_flags;
-      c->first_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_bit_set_t);
-      c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
-
       if (!(coverage & ChainSubtable<Types>::AllDirections) &&
 	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
 	  bool (coverage & ChainSubtable<Types>::Vertical))
 	goto skip;
+
+      c->subtable_flags = subtable_flags;
+      c->first_set = accel ? &accel->subtables[i].glyph_set : &Null(hb_bit_set_t);
+      c->machine_class_cache = accel ? &accel->subtables[i].class_cache : nullptr;
 
       if (!c->buffer_intersects_machine ())
       {
