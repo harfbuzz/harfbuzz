@@ -1000,6 +1000,7 @@ struct KerxTable
 
     typedef typename T::SubTable SubTable;
 
+    bool buffer_is_reversed = false;
     bool ret = false;
     bool seenCrossStream = false;
     c->set_lookup_index (0);
@@ -1050,8 +1051,11 @@ struct KerxTable
 	}
       }
 
-      if (reverse)
+      if (reverse != buffer_is_reversed)
+      {
 	c->buffer->reverse ();
+	buffer_is_reversed = reverse;
+      }
 
       {
 	/* See comment in sanitize() for conditional here. */
@@ -1059,15 +1063,14 @@ struct KerxTable
 	ret |= st->dispatch (c);
       }
 
-      if (reverse)
-	c->buffer->reverse ();
-
       (void) c->buffer->message (c->font, "end subtable %u", c->lookup_index);
 
     skip:
       st = &StructAfter<SubTable> (*st);
       c->set_lookup_index (c->lookup_index + 1);
     }
+    if (buffer_is_reversed)
+      c->buffer->reverse ();
 
     return ret;
   }
