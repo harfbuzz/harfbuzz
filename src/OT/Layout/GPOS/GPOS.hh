@@ -149,8 +149,15 @@ GPOS::position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
 
   /* Handle attachments */
   if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT)
-    for (unsigned i = 0; i < len; i++)
-      propagate_attachment_offsets (pos, len, i, direction);
+  {
+    // https://github.com/harfbuzz/harfbuzz/issues/5514
+    if (HB_DIRECTION_IS_FORWARD (direction))
+      for (unsigned i = 0; i < len; i++)
+	propagate_attachment_offsets (pos, len, i, direction);
+    else
+      for (unsigned i = len; i-- > 0; )
+	propagate_attachment_offsets (pos, len, i, direction);
+  }
 
   if (unlikely (font->slant_xy) &&
       HB_DIRECTION_IS_HORIZONTAL (direction))
