@@ -403,20 +403,12 @@ struct hb_buffer_t
   /* Adds glyph flags in mask to infos with clusters between start and end.
    * The start index will be from out-buffer if from_out_buffer is true.
    * If interior is true, then the cluster having the minimum value is skipped. */
-  void _set_glyph_flags (hb_mask_t mask,
-			 unsigned start = 0,
-			 unsigned end = (unsigned) -1,
-			 bool interior = false,
-			 bool from_out_buffer = false)
+  void _set_glyph_flags_impl (hb_mask_t mask,
+			      unsigned start,
+			      unsigned end,
+			      bool interior,
+			      bool from_out_buffer)
   {
-    if (unlikely (end != (unsigned) -1 && end - start > 255))
-      return;
-
-    end = hb_min (end, len);
-
-    if (interior && !from_out_buffer && end - start < 2)
-      return;
-
     scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
 
     if (!from_out_buffer || !have_output)
@@ -454,6 +446,25 @@ struct hb_buffer_t
       }
     }
   }
+
+  HB_ALWAYS_INLINE
+  void _set_glyph_flags (hb_mask_t mask,
+			 unsigned start = 0,
+			 unsigned end = (unsigned) -1,
+			 bool interior = false,
+			 bool from_out_buffer = false)
+  {
+    if (unlikely (end != (unsigned) -1 && end - start > 255))
+      return;
+
+    end = hb_min (end, len);
+
+    if (interior && !from_out_buffer && end - start < 2)
+      return;
+
+    _set_glyph_flags_impl (mask, start, end, interior, from_out_buffer);
+  }
+
 
   void unsafe_to_break (unsigned int start = 0, unsigned int end = -1)
   {
