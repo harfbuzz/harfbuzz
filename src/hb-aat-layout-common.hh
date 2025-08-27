@@ -875,7 +875,7 @@ struct StateTable
     {
       const auto &entry = get_entry (STATE_START_OF_TEXT, i);
       if (new_state (entry.newState) == STATE_START_OF_TEXT &&
-	  !table.is_action_initiable (entry) && !table.is_actionable (entry))
+	  !table.is_action_initiable (entry))
 	continue;
 
       filter.add (i);
