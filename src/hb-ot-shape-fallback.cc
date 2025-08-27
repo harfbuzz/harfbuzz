@@ -416,9 +416,6 @@ position_cluster_impl (const hb_ot_shape_plan_t *plan,
 		       unsigned int end,
 		       bool adjust_offsets_when_zeroing)
 {
-  if (end - start < 2)
-    return;
-
   /* Find the base glyph */
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = start; i < end; i++)
