@@ -126,12 +126,14 @@ struct hb_aat_apply_context_t :
   const OT::GDEF &gdef;
   bool has_glyph_classes;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
+  hb_mask_t subtable_flags = 0;
+  // Caches
   bool using_buffer_glyph_set = false;
   hb_bit_set_t *buffer_glyph_set = nullptr;
   const hb_bit_set_t *first_set = nullptr;
   const hb_bit_set_t *second_set = nullptr;
   hb_aat_class_cache_t *machine_class_cache = nullptr;
-  hb_mask_t subtable_flags = 0;
+  uint64_t start_end_safe_to_break = 0;
 
   /* Unused. For debug tracing only. */
   unsigned int lookup_index;
@@ -889,6 +891,21 @@ struct StateTable
     (this+classTable).collect_glyphs_filtered (glyphs, num_glyphs, filter);
   }
 
+  template <typename table_t>
+  uint64_t collect_start_end_safe_to_break (const table_t &table) const
+  {
+    uint64_t result = 0;
+    for (unsigned state = 0; state < 64; state++)
+    {
+      const auto &entry = get_entry (state, (unsigned) CLASS_END_OF_TEXT);
+      bool bit = !table.is_actionable (entry);
+      if (bit) {
+	result |= 1 << state;
+      }
+    }
+    return result;
+  }
+
   int new_state (unsigned int newState) const
   { return Types::extended ? newState : ((int) newState - (int) stateArrayTable) / (int) nClasses; }
 
@@ -1297,7 +1314,12 @@ struct StateTableDriver
 	  ) &&
 
           /* 3. */
-          !c->table->is_actionable (machine.get_entry (state, CLASS_END_OF_TEXT))
+	  (
+	    state < 64 ?
+	      (ac->start_end_safe_to_break & (1 << state))
+	    :
+	      !c->table->is_actionable (machine.get_entry (state, CLASS_END_OF_TEXT))
+	  )
       );
 
       if (!is_safe_to_break && buffer->backtrack_len () && buffer->idx < buffer->len)
