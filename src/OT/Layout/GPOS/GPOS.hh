@@ -80,9 +80,8 @@ propagate_attachment_offsets (hb_glyph_position_t *pos,
 {
   /* Adjusts offsets of attached glyphs (both cursive and mark) to accumulate
    * offset of glyph they are attached to. */
-  int chain = pos[i].attach_chain(), type = pos[i].attach_type();
-  if (likely (!chain))
-    return;
+  int chain = pos[i].attach_chain();
+  int type = pos[i].attach_type();
 
   pos[i].attach_chain() = 0;
 
@@ -94,7 +93,8 @@ propagate_attachment_offsets (hb_glyph_position_t *pos,
   if (unlikely (!nesting_level))
     return;
 
-  propagate_attachment_offsets (pos, len, j, direction, nesting_level - 1);
+  if (pos[j].attach_chain())
+    propagate_attachment_offsets (pos, len, j, direction, nesting_level - 1);
 
   assert (!!(type & GPOS_impl::ATTACH_TYPE_MARK) ^ !!(type & GPOS_impl::ATTACH_TYPE_CURSIVE));
 
@@ -150,13 +150,18 @@ GPOS::position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
   /* Handle attachments */
   if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT)
   {
+    auto *pos = buffer->pos;
     // https://github.com/harfbuzz/harfbuzz/issues/5514
     if (HB_DIRECTION_IS_FORWARD (direction))
+    {
       for (unsigned i = 0; i < len; i++)
-	propagate_attachment_offsets (pos, len, i, direction);
-    else
+	if (pos[i].attach_chain())
+	  propagate_attachment_offsets (pos, len, i, direction);
+    } else {
       for (unsigned i = len; i-- > 0; )
-	propagate_attachment_offsets (pos, len, i, direction);
+	if (pos[i].attach_chain())
+	  propagate_attachment_offsets (pos, len, i, direction);
+    }
   }
 
   if (unlikely (font->slant_xy) &&
