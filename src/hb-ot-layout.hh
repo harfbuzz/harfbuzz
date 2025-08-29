@@ -410,18 +410,6 @@ _hb_glyph_info_is_zwj (const hb_glyph_info_t *info)
   return _hb_glyph_info_is_unicode_format (info) && (info->unicode_props() & UPROPS_MASK_Cf_ZWJ);
 }
 static inline bool
-_hb_glyph_info_is_joiner (const hb_glyph_info_t *info)
-{
-  return _hb_glyph_info_is_unicode_format (info) && (info->unicode_props() & (UPROPS_MASK_Cf_ZWNJ|UPROPS_MASK_Cf_ZWJ));
-}
-static inline void
-_hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
-{
-  if (!_hb_glyph_info_is_unicode_format (info))
-    return;
-  info->unicode_props() ^= UPROPS_MASK_Cf_ZWNJ | UPROPS_MASK_Cf_ZWJ;
-}
-static inline bool
 _hb_glyph_info_is_aat_deleted (const hb_glyph_info_t *info)
 {
   return _hb_glyph_info_is_unicode_format (info) && (info->unicode_props() & UPROPS_MASK_Cf_AAT_DELETED);
