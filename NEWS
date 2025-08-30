@@ -1,3 +1,9 @@
+Overview of changes leading to 11.4.5
+Saturday, August 30, 2025
+=====================================
+* Bug fixes for “AAT” shaping, and other shaping micro optimizations.
+
+
 Overview of changes leading to 11.4.4
 Tuesday, August 26, 2025
 =====================================
