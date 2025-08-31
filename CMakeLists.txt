@@ -169,6 +169,11 @@ set (subset_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-subset-plan-member-list.hh
      ${PROJECT_SOURCE_DIR}/src/hb-subset-plan-var.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-table-layout.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-table-var.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-table-cff.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-table-color.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-subset-table-other.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset.cc
      ${PROJECT_SOURCE_DIR}/src/hb-subset.hh
      ${PROJECT_SOURCE_DIR}/src/hb-repacker.hh
