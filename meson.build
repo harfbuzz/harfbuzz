@@ -151,10 +151,8 @@ wasm_dep = cpp.find_library('iwasm', required: get_option('wasm'))
 # How to check whether iwasm was built, and hence requires, LLVM?
 #llvm_dep = cpp.find_library('LLVM-15', required: get_option('wasm'))
 
-# pkg-config: icu-uc, cmake: ICU but with components
-icu_dep = dependency('icu-uc', 'ICU',
+icu_dep = dependency('icu-uc',
                           version: icu_min_version,
-                          components: 'uc',
                           required: get_option('icu'),
                           allow_fallback: true)
 
