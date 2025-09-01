@@ -126,12 +126,14 @@ struct hb_aat_apply_context_t :
   const OT::GDEF &gdef;
   bool has_glyph_classes;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
+  hb_mask_t subtable_flags = 0;
+  bool buffer_is_reversed = false;
+  // Caches
   bool using_buffer_glyph_set = false;
   hb_bit_set_t *buffer_glyph_set = nullptr;
   const hb_bit_set_t *first_set = nullptr;
   const hb_bit_set_t *second_set = nullptr;
   hb_aat_class_cache_t *machine_class_cache = nullptr;
-  hb_mask_t subtable_flags = 0;
 
   /* Unused. For debug tracing only. */
   unsigned int lookup_index;
@@ -146,6 +148,12 @@ struct hb_aat_apply_context_t :
   HB_INTERNAL void set_ankr_table (const AAT::ankr *ankr_table_);
 
   void set_lookup_index (unsigned int i) { lookup_index = i; }
+
+  void reverse_buffer ()
+  {
+    buffer->reverse ();
+    buffer_is_reversed = !buffer_is_reversed;
+  }
 
   void setup_buffer_glyph_set ()
   {
