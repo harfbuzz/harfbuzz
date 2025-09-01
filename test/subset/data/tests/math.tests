@@ -10,3 +10,7 @@ notdef-outline.txt
 SUBSETS:
 U+2f,U+7c,U+305
 *
+
+# diff with fonttools on duplicate features only, fonttools doesn't de-duplicate features
+OPTIONS:
+no_fonttools
