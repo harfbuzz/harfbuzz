@@ -118,7 +118,6 @@ struct index_map_subset_plan_t
 	      const hb_vector_t<hb_inc_bimap_t> &inner_maps,
 	      const hb_subset_plan_t *plan)
   {
-    if (!input_map) return;
     outer_bit_count = 1;
     inner_bit_count = 1;
 
