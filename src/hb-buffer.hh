@@ -616,6 +616,10 @@ struct hb_buffer_t
     if (unlikely (start == end))
       return;
 
+    max_ops -= end - start;
+    if (unlikely (max_ops < 0))
+      successful = false;
+
     unsigned cluster_first = infos[start].cluster;
     unsigned cluster_last = infos[end - 1].cluster;
 
