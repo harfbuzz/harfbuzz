@@ -30,7 +30,8 @@ jobs:
           --toolchain nightly-x86_64-unknown-linux-gnu
         sudo apt-get update
         sudo apt-get install \
-          gcc \
+          clang \
+          lld \
           gobject-introspection \
           gtk-doc-tools \
           libcairo2-dev \
@@ -50,7 +51,7 @@ jobs:
     - name: Setup Meson
       run: |
         ccache --version
-        meson setup build \
+        CC_LD=lld CXX_LD=lld CC=clang CXX=clang++ meson setup build \
           -Dauto_features=enabled \
           -Dchafa=disabled \
           -Dgraphite=enabled \
