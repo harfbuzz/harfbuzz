@@ -27,7 +27,6 @@ codegen-units = 1
 [profile.debugoptimized]
 inherits = "release"
 debug = true
-codegen-units = 16
 strip = false
 
 [profile.dev]
