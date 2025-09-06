@@ -15,9 +15,7 @@ cairo_min_version = '>= 1.10.0'
 chafa_min_version = '>= 1.6.0'
 icu_min_version = '>= 49.0'
 graphite2_min_version = '>= 1.2.0'
-
-freetype_min_version_actual = '>= 2.4.2'
-freetype_min_version = '>= 12.0.6'    # Corresponds to `freetype_min_version_actual`
+freetype_min_version = '>= 12.0.6'
 
 hb_version_arr = meson.project_version().split('.')
 hb_version_major = hb_version_arr[0].to_int()
@@ -109,40 +107,7 @@ check_funcs = [
 
 m_dep = cpp.find_library('m', required: false)
 
-# Painful hack to handle multiple dependencies but also respect options
-if get_option('freetype').disabled()
-  freetype_dep = dependency('', required: false)
-else
-  # Sadly, FreeType's versioning schemes are different between pkg-config and CMake
-
-  # Try pkg-config name
-  freetype_dep = dependency('freetype2',
-                            version: freetype_min_version,
-                            method: 'pkg-config',
-                            required: false,
-                            allow_fallback: false)
-  if not freetype_dep.found()
-    # Try cmake name
-    freetype_dep = dependency('Freetype',
-                              version: freetype_min_version_actual,
-                              method: 'cmake',
-                              required: false,
-                              allow_fallback: false)
-    # Subproject fallback
-    if not freetype_dep.found()
-      freetype_proj = subproject('freetype2',
-                                version: freetype_min_version_actual,
-                                required: get_option('freetype'),
-                                default_options: ['harfbuzz=disabled'])
-      if freetype_proj.found()
-        freetype_dep = freetype_proj.get_variable('freetype_dep')
-      else
-        freetype_dep = dependency('', required: false)
-      endif
-    endif
-  endif
-endif
-
+freetype_dep = dependency('freetype2', version: freetype_min_version, required: get_option('freetype'), default_options: ['harfbuzz=disabled'])
 glib_dep = dependency('glib-2.0', version: glib_min_version, required: get_option('glib'))
 gobject_dep = dependency('gobject-2.0', version: glib_min_version, required: get_option('gobject'))
 graphite2_dep = dependency('graphite2', version: graphite2_min_version, required: get_option('graphite2'))
