@@ -116,11 +116,7 @@ wasm_dep = cpp.find_library('iwasm', required: get_option('wasm'))
 # How to check whether iwasm was built, and hence requires, LLVM?
 #llvm_dep = cpp.find_library('LLVM-15', required: get_option('wasm'))
 
-icu_dep = dependency('icu-uc',
-                          version: icu_min_version,
-                          required: get_option('icu'),
-                          allow_fallback: true)
-
+icu_dep = dependency('icu-uc', version: icu_min_version, required: get_option('icu'))
 if icu_dep.found() and icu_dep.version().version_compare('>=75.1') and (get_option('cpp_std') == 'c++11' or get_option('cpp_std') == 'c++14')
   cpp17_arg = cpp.get_argument_syntax() == 'msvc' ? '/std:c++17' : '-std=c++17'
   add_project_arguments(cpp17_arg, language: 'cpp')
