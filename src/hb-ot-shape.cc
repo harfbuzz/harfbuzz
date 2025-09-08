@@ -484,6 +484,9 @@ hb_set_unicode_props (hb_buffer_t *buffer)
   {
     _hb_glyph_info_set_unicode_props (&info[i], buffer);
 
+    if (info[i].codepoint < 0x80)
+      continue;
+
     unsigned gen_cat = _hb_glyph_info_get_general_category (&info[i]);
     if (FLAG_UNSAFE (gen_cat) &
 	(FLAG (HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER) |
