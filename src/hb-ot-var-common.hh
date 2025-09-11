@@ -1094,9 +1094,12 @@ struct TupleVariationData
     bool merge_tuple_variations (contour_point_vector_t* contour_points = nullptr)
     {
       hb_vector_t<tuple_delta_t> new_vars;
+      // The pre-allocation is essential for address stability of pointers
+      // we store in the hashmap.
+      if (unlikely (!new_vars.alloc (tuple_vars.length)))
+	return false;
       hb_hashmap_t<const hb_hashmap_t<hb_tag_t, Triple>*, unsigned> m;
-      unsigned i = 0;
-      for (const tuple_delta_t& var : tuple_vars)
+      for (tuple_delta_t& var : tuple_vars)
       {
         /* if all axes are pinned, drop the tuple variation */
         if (var.axis_tuples.is_empty ())
@@ -1116,12 +1119,17 @@ struct TupleVariationData
         }
         else
         {
-          new_vars.push (var);
-          if (!m.set (&(var.axis_tuples), i))
+	  auto *new_var = new_vars.push ();
+	  if (unlikely (new_vars.in_error ()))
+	    return false;
+          hb_swap (*new_var, var);
+          if (unlikely (!m.set (&(new_var->axis_tuples), new_vars.length - 1)))
             return false;
-          i++;
         }
       }
+      m.fini (); // Just in case, since it points into new_vars data.
+		 // Shouldn't be necessary though, since we only move new_vars, not its
+		 // contents.
       tuple_vars = std::move (new_vars);
       return true;
     }
