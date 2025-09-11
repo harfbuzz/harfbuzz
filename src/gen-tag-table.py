@@ -914,7 +914,10 @@ def get_variant_set (name):
 	Returns:
 		A set of normalized language names.
 	"""
-	return set (unicodedata.normalize ('NFD', n.replace ('\u2019', "'"))
+	return set (unicodedata.normalize (
+				'NFD',
+				n.replace ('\u02BC', "'").replace ('\u2019', "'"),
+			)
 			.encode ('ASCII', 'ignore')
 			.strip ()
 			for n in re.split ('[\n(),]', name) if n)
