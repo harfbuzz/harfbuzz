@@ -2430,16 +2430,20 @@ struct delta_row_encoding_t
     return hb_max (0, (int) overhead - count);
   }
 
-  int gain_from_merging (const delta_row_encoding_t& other_encoding) const
+  int gain_from_merging (const delta_row_encoding_t& other_encoding,
+			 hb_vector_t<uint8_t> &scratch) const
   {
     int combined_width = 0;
     for (unsigned i = 0; i < chars.length; i++)
       combined_width += hb_max (chars.arrayZ[i], other_encoding.chars.arrayZ[i]);
 
-    hb_vector_t<uint8_t> combined_columns;
-    combined_columns.alloc (columns.length);
+    hb_vector_t<uint8_t> &combined_columns = scratch;
+    combined_columns.reset ();
+
+    if (unlikely (!combined_columns.resize (columns.length, false)))
+      return 0;
     for (unsigned i = 0; i < columns.length; i++)
-      combined_columns.push (columns.arrayZ[i] | other_encoding.columns.arrayZ[i]);
+      combined_columns.arrayZ[i] = columns.arrayZ[i] | other_encoding.columns.arrayZ[i];
 
     int combined_overhead = get_chars_overhead (combined_columns);
     int combined_gain = (int) overhead + (int) other_encoding.overhead - combined_overhead
