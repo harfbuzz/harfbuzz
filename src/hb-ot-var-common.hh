@@ -322,26 +322,27 @@ struct tuple_delta_t
     return *this;
   }
 
-  hb_vector_t<tuple_delta_t> change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit,
-							  TripleDistances axis_triple_distances,
-							  rebase_tent_result_scratch_t &scratch) const
+  void change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit,
+				    TripleDistances axis_triple_distances,
+				    hb_vector_t<tuple_delta_t>& out,
+				    rebase_tent_result_scratch_t &scratch) const
   {
-    hb_vector_t<tuple_delta_t> out;
+    out.reset ();
     Triple *tent;
     if (!axis_tuples.has (axis_tag, &tent))
     {
       out.push (*this);
-      return out;
+      return;
     }
 
     if ((tent->minimum < 0.0 && tent->maximum > 0.0) ||
         !(tent->minimum <= tent->middle && tent->middle <= tent->maximum))
-      return out;
+      return;
 
     if (tent->middle == 0.0)
     {
       out.push (*this);
-      return out;
+      return;
     }
 
     rebase_tent_result_t &solutions = scratch.first;
@@ -357,8 +358,6 @@ struct tuple_delta_t
       new_var *= t.first;
       out.push (std::move (new_var));
     }
-
-    return out;
   }
 
   bool compile_peak_coords (const hb_map_t& axes_index_map,
@@ -1053,7 +1052,9 @@ struct TupleVariationData
       for (auto t : normalized_axes_location.keys ())
         axis_tags.push (t);
 
+      // Reused vectors for reduced malloc pressure.
       rebase_tent_result_scratch_t scratch;
+      hb_vector_t<tuple_delta_t> out;
 
       axis_tags.qsort (_cmp_axis_tag);
       for (auto axis_tag : axis_tags)
@@ -1068,7 +1069,7 @@ struct TupleVariationData
         hb_vector_t<tuple_delta_t> new_vars;
         for (const tuple_delta_t& var : tuple_vars)
         {
-          hb_vector_t<tuple_delta_t> out = var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, scratch);
+	  var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, out, scratch);
           if (!out) continue;
 
           unsigned new_len = new_vars.length + out.length;
