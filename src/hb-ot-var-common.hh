@@ -568,14 +568,17 @@ struct tuple_delta_t
     return TupleValues::compile (deltas, encoded_bytes);
   }
 
-  bool calc_inferred_deltas (const contour_point_vector_t& orig_points)
+  bool calc_inferred_deltas (const contour_point_vector_t& orig_points,
+			     hb_vector_t<unsigned> &scratch)
   {
     unsigned point_count = orig_points.length;
     if (point_count != indices.length)
       return false;
 
     unsigned ref_count = 0;
-    hb_vector_t<unsigned> end_points;
+
+    hb_vector_t<unsigned> &end_points = scratch;
+    end_points.reset ();
 
     for (unsigned i = 0; i < point_count; i++)
     {
@@ -1179,10 +1182,11 @@ struct TupleVariationData
       }
     }
 
-    bool calc_inferred_deltas (const contour_point_vector_t& contour_points)
+    bool calc_inferred_deltas (const contour_point_vector_t& contour_points,
+			       hb_vector_t<unsigned> &scratch)
     {
       for (tuple_delta_t& var : tuple_vars)
-        if (!var.calc_inferred_deltas (contour_points))
+        if (!var.calc_inferred_deltas (contour_points, scratch))
           return false;
 
       return true;
@@ -1209,8 +1213,11 @@ struct TupleVariationData
         return false;
       /* compute inferred deltas only for gvar */
       if (contour_points)
-        if (!calc_inferred_deltas (*contour_points))
-          return false;
+      {
+	hb_vector_t<unsigned> scratch;
+	if (!calc_inferred_deltas (*contour_points, scratch))
+	  return false;
+      }
 
       /* if iup delta opt is on, contour_points can't be null */
       if (optimize && !contour_points)
