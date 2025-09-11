@@ -33,6 +33,8 @@
 
 namespace OT {
 
+using rebase_tent_result_scratch_t = hb_pair_t<rebase_tent_result_t, rebase_tent_result_t>;
+
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/otvarcommonformats#tuplevariationheader */
 struct TupleVariationHeader
 {
@@ -321,7 +323,8 @@ struct tuple_delta_t
   }
 
   hb_vector_t<tuple_delta_t> change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit,
-                                                          TripleDistances axis_triple_distances) const
+							  TripleDistances axis_triple_distances,
+							  rebase_tent_result_scratch_t &scratch) const
   {
     hb_vector_t<tuple_delta_t> out;
     Triple *tent;
@@ -341,7 +344,8 @@ struct tuple_delta_t
       return out;
     }
 
-    rebase_tent_result_t solutions = rebase_tent (*tent, axis_limit, axis_triple_distances);
+    rebase_tent_result_t &solutions = scratch.first;
+    rebase_tent (*tent, axis_limit, axis_triple_distances, solutions, scratch.second);
     for (auto &t : solutions)
     {
       tuple_delta_t new_var = *this;
@@ -1049,6 +1053,8 @@ struct TupleVariationData
       for (auto t : normalized_axes_location.keys ())
         axis_tags.push (t);
 
+      rebase_tent_result_scratch_t scratch;
+
       axis_tags.qsort (_cmp_axis_tag);
       for (auto axis_tag : axis_tags)
       {
@@ -1062,7 +1068,7 @@ struct TupleVariationData
         hb_vector_t<tuple_delta_t> new_vars;
         for (const tuple_delta_t& var : tuple_vars)
         {
-          hb_vector_t<tuple_delta_t> out = var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances);
+          hb_vector_t<tuple_delta_t> out = var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, scratch);
           if (!out) continue;
 
           unsigned new_len = new_vars.length + out.length;

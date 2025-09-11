@@ -107,8 +107,10 @@ HB_INTERNAL double renormalizeValue (double v, const Triple &triple,
  * If tent value is Triple{}, that is a special deltaset that should
  * be always-enabled (called "gain").
  */
-HB_INTERNAL rebase_tent_result_t rebase_tent (Triple tent,
-					      Triple axisLimit,
-					      TripleDistances axis_triple_distances);
+HB_INTERNAL void rebase_tent (Triple tent,
+			      Triple axisLimit,
+			      TripleDistances axis_triple_distances,
+			      rebase_tent_result_t &out,
+			      rebase_tent_result_t &scratch);
 
 #endif /* HB_SUBSET_INSTANCER_SOLVER_HH */
