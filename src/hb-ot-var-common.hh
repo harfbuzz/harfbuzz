@@ -1122,7 +1122,6 @@ struct TupleVariationData
           i++;
         }
       }
-      tuple_vars.fini ();
       tuple_vars = std::move (new_vars);
       return true;
     }
