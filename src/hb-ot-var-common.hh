@@ -932,6 +932,9 @@ struct TupleVariationData
                                      const hb_array_t<const F2DOT14> shared_tuples,
                                      bool is_composite_glyph)
     {
+      hb_vector_t<unsigned> private_indices;
+      hb_vector_t<int> deltas_x;
+      hb_vector_t<int> deltas_y;
       do
       {
         const HBUINT8 *p = iterator.get_serialized_data ();
@@ -939,12 +942,12 @@ struct TupleVariationData
         if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
           return false;
 
-        hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
+	hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
         if (!iterator.current_tuple->unpack_axis_tuples (iterator.get_axis_count (), shared_tuples, axes_old_index_tag_map, axis_tuples)
             || axis_tuples.is_empty ())
           return false;
 
-        hb_vector_t<unsigned> private_indices;
+	private_indices.reset ();
         bool has_private_points = iterator.current_tuple->has_private_points ();
         const HBUINT8 *end = p + length;
         if (has_private_points &&
@@ -955,13 +958,10 @@ struct TupleVariationData
         bool apply_to_all = (indices.length == 0);
         unsigned num_deltas = apply_to_all ? point_count : indices.length;
 
-        hb_vector_t<int> deltas_x;
-
         if (unlikely (!deltas_x.resize (num_deltas, false) ||
                       !TupleVariationData::decompile_deltas (p, deltas_x, end)))
           return false;
 
-        hb_vector_t<int> deltas_y;
         if (is_gvar)
         {
           if (unlikely (!deltas_y.resize (num_deltas, false) ||
