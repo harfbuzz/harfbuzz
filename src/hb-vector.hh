@@ -32,6 +32,12 @@
 #include "hb-meta.hh"
 #include "hb-null.hh"
 
+// Change to 1 to force inline vector allocs, to see callsite in malloc-stats tool.
+#if 0
+#define HB_ALWAYS_INLINE_VECTOR_ALLOCS HB_ALWAYS_INLINE
+#else
+#define HB_ALWAYS_INLINE_VECTOR_ALLOCS
+#endif
 
 template <typename Type,
 	  bool sorted=false>
@@ -45,6 +51,7 @@ struct hb_vector_t
   using c_array_t = typename std::conditional<sorted, hb_sorted_array_t<const Type>, hb_array_t<const Type>>::type;
 
   hb_vector_t () = default;
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   hb_vector_t (std::initializer_list<Type> lst) : hb_vector_t ()
   {
     alloc (lst.size (), true);
@@ -57,18 +64,21 @@ struct hb_vector_t
   {
     extend (o);
   }
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
   {
     alloc_exact (o.length);
     if (unlikely (in_error ())) return;
     copy_array (o.as_array ());
   }
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   hb_vector_t (array_t o) : hb_vector_t ()
   {
     alloc_exact (o.length);
     if (unlikely (in_error ())) return;
     copy_array (o);
   }
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   hb_vector_t (c_array_t o) : hb_vector_t ()
   {
     alloc_exact (o.length);
@@ -113,6 +123,7 @@ struct hb_vector_t
 
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   void extend (const Iterable &o)
   {
     auto iter = hb_iter (o);
@@ -133,12 +144,14 @@ struct hb_vector_t
 	push_has_room (*iter++);
     }
   }
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   void extend (array_t o)
   {
     alloc (length + o.length);
     if (unlikely (in_error ())) return;
     copy_array (o);
   }
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   void extend (c_array_t o)
   {
     alloc (length + o.length);
@@ -174,6 +187,7 @@ struct hb_vector_t
     init ();
   }
 
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   void reset ()
   {
     if (unlikely (in_error ()))
@@ -264,13 +278,16 @@ struct hb_vector_t
   Type * operator  + (unsigned int i) { return arrayZ + i; }
   const Type * operator  + (unsigned int i) const { return arrayZ + i; }
 
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   Type *push ()
   {
     if (unlikely (!resize (length + 1)))
       return std::addressof (Crap (Type));
     return std::addressof (arrayZ[length - 1]);
   }
-  template <typename... Args> Type *push (Args&&... args)
+  template <typename... Args>
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
+  Type *push (Args&&... args)
   {
     if (unlikely ((int) length >= allocated && !alloc (length + 1)))
       // If push failed to allocate then don't copy v, since this may cause
@@ -280,7 +297,9 @@ struct hb_vector_t
 
     return push_has_room (std::forward<Args> (args)...);
   }
-  template <typename... Args> Type *push_has_room (Args&&... args)
+  template <typename... Args>
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
+  Type *push_has_room (Args&&... args)
   {
     /* Emplace. */
     Type *p = std::addressof (arrayZ[length++]);
@@ -467,6 +486,7 @@ struct hb_vector_t
   }
 
   /* Allocate for size but don't adjust length. */
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   bool alloc (unsigned int size, bool exact=false)
   {
     if (unlikely (in_error ()))
@@ -522,16 +542,19 @@ struct hb_vector_t
 
     return true;
   }
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   bool alloc_exact (unsigned int size)
   {
     return alloc (size, true);
   }
 
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   void clear ()
   {
     resize (0);
   }
 
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   bool resize (int size_, bool initialize = true, bool exact = false)
   {
     unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
@@ -552,6 +575,7 @@ struct hb_vector_t
     length = size;
     return true;
   }
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   bool resize_exact (int size_, bool initialize = true)
   {
     return resize (size_, initialize, true);
