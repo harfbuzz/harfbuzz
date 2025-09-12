@@ -1857,7 +1857,7 @@ struct item_variations_t
         if (!front_mapping.set ((major<<16) + minor, &row))
           return false;
 
-        hb_vector_t<uint8_t> chars = delta_row_encoding_t::get_row_chars (row);
+	auto chars = delta_row_encoding_t::get_row_chars (row);
         if (!chars) return false;
 
         if (delta_rows_map.has (&row))
@@ -1922,7 +1922,7 @@ struct item_variations_t
       removed_todo_idxes.add (i);
       removed_todo_idxes.add (j);
 
-      hb_vector_t<uint8_t> combined_chars;
+      delta_row_encoding_t::chars_t combined_chars;
       if (!combined_chars.alloc (encoding.chars.length))
         return false;
 

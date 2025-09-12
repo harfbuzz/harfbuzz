@@ -2331,14 +2331,18 @@ struct delta_row_encoding_t
 {
   /* each byte represents a region, value is one of 0/1/2/4, which means bytes
    * needed for this region */
-  hb_vector_t<uint8_t> chars;
+  struct chars_t : hb_vector_t<uint8_t>
+  {
+  };
+
+  chars_t chars;
   unsigned width = 0;
   hb_bit_set_t columns;
   unsigned overhead = 0;
   hb_vector_t<const hb_vector_t<int>*> items;
 
   delta_row_encoding_t () = default;
-  delta_row_encoding_t (hb_vector_t<uint8_t>&& chars_,
+  delta_row_encoding_t (chars_t&& chars_,
                         const hb_vector_t<int>* row = nullptr) :
                         delta_row_encoding_t ()
 
@@ -2353,9 +2357,9 @@ struct delta_row_encoding_t
   bool is_empty () const
   { return !items; }
 
-  static hb_vector_t<uint8_t> get_row_chars (const hb_vector_t<int>& row)
+  static chars_t get_row_chars (const hb_vector_t<int>& row)
   {
-    hb_vector_t<uint8_t> ret;
+    chars_t ret;
     if (!ret.alloc (row.length)) return ret;
 
     bool long_words = false;
