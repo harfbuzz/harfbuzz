@@ -592,7 +592,7 @@ struct tuple_delta_t
       return true;
     if (unlikely (end_points.in_error ())) return false;
 
-    hb_set_t inferred_idxes;
+    hb_bit_set_t inferred_idxes;
     unsigned start_point = 0;
     for (unsigned end_point : end_points)
     {
@@ -1909,7 +1909,7 @@ struct item_variations_t
       }
     }
 
-    hb_set_t removed_todo_idxes;
+    hb_bit_set_t removed_todo_idxes;
     while (queue)
     {
       auto t = queue.pop_minimum ().first;
