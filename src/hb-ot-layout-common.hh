@@ -2430,18 +2430,26 @@ struct delta_row_encoding_t
   int gain_from_merging (const delta_row_encoding_t& other_encoding,
 			 hb_bit_set_t &scratch) const
   {
+    int combined_gain = (int) overhead + (int) other_encoding.overhead;
+
     int combined_width = 0;
     for (unsigned i = 0; i < chars.length; i++)
       combined_width += hb_max (chars.arrayZ[i], other_encoding.chars.arrayZ[i]);
+
+    combined_gain -= (combined_width - (int) width) * items.length;
+    combined_gain -= (combined_width - (int) other_encoding.width) * other_encoding.items.length;
+
+    // If the returned gain is negative, the actual magnitude is unused.
+    // Short-circuit if that is gonna happen.
+    if (combined_gain <= 0)
+      return combined_gain;
 
     hb_bit_set_t &combined_columns = scratch;
     combined_columns = columns;
     combined_columns.union_ (other_encoding.columns);
 
     int combined_overhead = get_chars_overhead (combined_columns);
-    int combined_gain = (int) overhead + (int) other_encoding.overhead - combined_overhead
-                        - (combined_width - (int) width) * items.length
-                        - (combined_width - (int) other_encoding.width) * other_encoding.items.length;
+    combined_gain -= combined_overhead;
 
     return combined_gain;
   }
