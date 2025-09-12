@@ -1893,7 +1893,7 @@ struct item_variations_t
     /* sort encoding_objs */
     encoding_objs.qsort ();
 
-    hb_vector_t<uint8_t> scratch;
+    hb_bit_set_t scratch;
 
     /* main algorithm: repeatedly pick 2 best encodings to combine, and combine
      * them */

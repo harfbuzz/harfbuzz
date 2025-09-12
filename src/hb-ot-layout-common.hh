@@ -2333,7 +2333,7 @@ struct delta_row_encoding_t
    * needed for this region */
   hb_vector_t<uint8_t> chars;
   unsigned width = 0;
-  hb_vector_t<uint8_t> columns;
+  hb_bit_set_t columns;
   unsigned overhead = 0;
   hb_vector_t<const hb_vector_t<int>*> items;
 
@@ -2403,24 +2403,21 @@ struct delta_row_encoding_t
     return ret;
   }
 
-  hb_vector_t<uint8_t> get_columns ()
+  hb_bit_set_t get_columns ()
   {
-    hb_vector_t<uint8_t> cols;
-    cols.alloc (chars.length);
-    for (auto v : chars)
+    hb_bit_set_t cols;
+    for (auto _ : + hb_enumerate (chars))
     {
-      uint8_t flag = v ? 1 : 0;
-      cols.push (flag);
+      if (_.second)
+	cols.add (_.first);
     }
     return cols;
   }
 
-  static inline unsigned get_chars_overhead (const hb_vector_t<uint8_t>& cols)
+  static inline unsigned get_chars_overhead (const hb_bit_set_t& cols)
   {
     unsigned c = 4 + 6; // 4 bytes for LOffset, 6 bytes for VarData header
-    unsigned cols_bit_count = 0;
-    for (auto v : cols)
-      if (v) cols_bit_count++;
+    unsigned cols_bit_count = cols.get_population ();
     return c + cols_bit_count * 2;
   }
 
@@ -2431,19 +2428,15 @@ struct delta_row_encoding_t
   }
 
   int gain_from_merging (const delta_row_encoding_t& other_encoding,
-			 hb_vector_t<uint8_t> &scratch) const
+			 hb_bit_set_t &scratch) const
   {
     int combined_width = 0;
     for (unsigned i = 0; i < chars.length; i++)
       combined_width += hb_max (chars.arrayZ[i], other_encoding.chars.arrayZ[i]);
 
-    hb_vector_t<uint8_t> &combined_columns = scratch;
-    combined_columns.reset ();
-
-    if (unlikely (!combined_columns.resize (columns.length, false)))
-      return 0;
-    for (unsigned i = 0; i < columns.length; i++)
-      combined_columns.arrayZ[i] = columns.arrayZ[i] | other_encoding.columns.arrayZ[i];
+    hb_bit_set_t &combined_columns = scratch;
+    combined_columns = columns;
+    combined_columns.union_ (other_encoding.columns);
 
     int combined_overhead = get_chars_overhead (combined_columns);
     int combined_gain = (int) overhead + (int) other_encoding.overhead - combined_overhead
