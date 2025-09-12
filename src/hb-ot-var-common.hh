@@ -1906,6 +1906,10 @@ struct item_variations_t
 	  auto item = item_t (combined_gain_idx_tuple_t (combining_gain, i, j), 0);
           queue_items.push (item);
 	}
+
+	// Some heuristic to reduce work we do at the expense of less optimal result.
+	if (num_todos - j > 8 && combining_gain > (int) encoding_objs[j].get_gain ())
+	  break;
       }
     }
 

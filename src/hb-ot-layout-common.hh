@@ -2507,7 +2507,7 @@ struct delta_row_encoding_t
     int gain_b = b->get_gain ();
 
     if (gain_a != gain_b)
-      return gain_a - gain_b;
+      return gain_b - gain_a;
 
     return b->chars.cmp (a->chars);
   }
