@@ -1755,11 +1755,10 @@ struct item_variations_t
     uint64_t encoded;
 
     combined_gain_idx_tuple_t () = default;
-    combined_gain_idx_tuple_t (int gain, unsigned i, unsigned j)
-        : encoded ((uint64_t (0xFFFFFF + gain) << 40) | (uint64_t (i) << 20) | uint64_t (j))
+    combined_gain_idx_tuple_t (unsigned gain, unsigned i, unsigned j)
+        : encoded ((uint64_t (0xFFFFFF - gain) << 40) | (uint64_t (i) << 20) | uint64_t (j))
     {
-      assert (gain < 0);
-      assert (0xFFFFFF + gain >= 0);
+      assert (gain < 0xFFFFFF);
       assert (i < 0xFFFFFFF && j < 0xFFFFFFF);
     }
 
@@ -1904,7 +1903,7 @@ struct item_variations_t
         int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j]);
         if (combining_gain > 0)
 	{
-	  auto item = item_t (combined_gain_idx_tuple_t (-combining_gain, i, j), 0);
+	  auto item = item_t (combined_gain_idx_tuple_t (combining_gain, i, j), 0);
           queue_items.push (item);
 	}
       }
@@ -1955,7 +1954,7 @@ struct item_variations_t
 
         int combined_gain = combined_encoding_obj.gain_from_merging (obj);
         if (combined_gain > 0)
-          queue.insert (combined_gain_idx_tuple_t (-combined_gain, idx, encoding_objs.length), 0);
+          queue.insert (combined_gain_idx_tuple_t (combined_gain, idx, encoding_objs.length), 0);
       }
 
       encoding_objs.push (std::move (combined_encoding_obj));
