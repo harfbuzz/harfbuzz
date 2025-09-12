@@ -2443,18 +2443,17 @@ struct delta_row_encoding_t
     chars = std::move (chars_);
     width = chars.get_width ();
     columns = chars.get_columns ();
-    overhead = get_chars_overhead (columns);
+    overhead = get_chars_overhead (columns.get_population ());
     if (row) items.push (row);
   }
 
   bool is_empty () const
   { return !items; }
 
-  static inline unsigned get_chars_overhead (const hb_bit_set_t& cols)
+  static inline unsigned get_chars_overhead (unsigned num_columns)
   {
     unsigned c = 4 + 6; // 4 bytes for LOffset, 6 bytes for VarData header
-    unsigned cols_bit_count = cols.get_population ();
-    return c + cols_bit_count * 2;
+    return c + num_columns * 2;
   }
 
   unsigned get_gain () const
@@ -2482,7 +2481,7 @@ struct delta_row_encoding_t
     combined_columns = columns;
     combined_columns.union_ (other_encoding.columns);
 
-    int combined_overhead = get_chars_overhead (combined_columns);
+    int combined_overhead = get_chars_overhead (combined_columns.get_population ());
     combined_gain -= combined_overhead;
 
     return combined_gain;
