@@ -2329,8 +2329,8 @@ static inline bool ClassDef_serialize (hb_serialize_context_t *c,
 /* ported from fonttools (class _Encoding) */
 struct delta_row_encoding_t
 {
-  /* each byte represents a region, value is one of 0/1/2/4, which means bytes
-   * needed for this region */
+  /* each byte represents a region, value is one of 0/1/3/15, which means
+   * 0/1/2/4 bytes needed for this region respectively (one bit for each) */
   struct chars_t : hb_vector_t<uint8_t>
   {
     static chars_t get_row_chars (const hb_vector_t<int>& row)
@@ -2352,7 +2352,7 @@ struct delta_row_encoding_t
 	  break;
 	}
 	else if (v > 127 || v < -128)
-	  ret.push (2);
+	  ret.push (3);
 	else
 	  ret.push (1);
       }
@@ -2368,18 +2368,23 @@ struct delta_row_encoding_t
 	if (v == 0)
 	  ret.push (0);
 	else if (v > 32767 || v < -32768)
-	  ret.push (4);
+	  ret.push (15);
 	else
-	  ret.push (2);
+	  ret.push (3);
       }
       return ret;
     }
 
     inline unsigned get_width ()
     {
-      unsigned ret = + iter ()
-		     | hb_reduce (hb_add, 0u)
-		     ;
+      unsigned ret = 0;
+      unsigned i = 0;
+      for (; i + 8 <= length; i += 8)
+	ret += hb_popcount (* (uint64_t *) &arrayZ[i]);
+      for (; i + 4 <= length; i += 4)
+        ret += hb_popcount (* (uint32_t *) &arrayZ[i]);
+      for (; i < length; i++)
+        ret += hb_popcount (arrayZ[i]);
       return ret;
     }
 
@@ -2407,7 +2412,7 @@ struct delta_row_encoding_t
 
       for (unsigned idx = 0; idx < length; idx++)
       {
-	uint8_t v = hb_max (arrayZ[idx], other.arrayZ[idx]);
+	uint8_t v = arrayZ[idx] | other.arrayZ[idx];
 	combined_chars.push (v);
       }
       return combined_chars;
@@ -2415,10 +2420,15 @@ struct delta_row_encoding_t
 
     unsigned combine_width (const chars_t& other) const
     {
-      int combined_width = 0;
-      for (unsigned i = 0; i < length; i++)
-	combined_width += hb_max (arrayZ[i], other.arrayZ[i]);
-      return combined_width;
+      unsigned ret = 0;
+      unsigned i = 0;
+      for (; i + 8 <= length; i += 8)
+        ret += hb_popcount (* (uint64_t *) &arrayZ[i] | * (uint64_t *) &other.arrayZ[i]);
+      for (; i + 4 <= length; i += 4)
+        ret += hb_popcount (* (uint32_t *) &arrayZ[i] | * (uint32_t *) &other.arrayZ[i]);
+      for (; i < length; i++)
+        ret += hb_popcount (arrayZ[i] | other.arrayZ[i]);
+      return ret;
     }
   };
 
