@@ -1795,7 +1795,7 @@ struct item_variations_t
     hb_hashmap_t<unsigned, const hb_vector_t<int>*> front_mapping;
     unsigned start_row = 0;
     hb_vector_t<delta_row_encoding_t> encoding_objs;
-    hb_hashmap_t<hb_vector_t<uint8_t>, unsigned> chars_idx_map;
+    hb_hashmap_t<delta_row_encoding_t::chars_t, unsigned> chars_idx_map;
 
     /* delta_rows map, used for filtering out duplicate rows */
     hb_hashmap_t<const hb_vector_t<int>*, unsigned> delta_rows_map;
