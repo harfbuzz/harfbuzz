@@ -1762,19 +1762,16 @@ struct item_variations_t
 
     bool operator < (const combined_gain_idx_tuple_t& o)
     {
-      if (gain != o.gain)
-        return gain < o.gain;
-
-      if (idx_1 != o.idx_1)
-        return idx_1 < o.idx_1;
-
-      return idx_2 < o.idx_2;
+      return gain < o.gain ||
+	     (gain == o.gain && (idx_1 < o.idx_1 ||
+				 (idx_1 == o.idx_1 && idx_2 < o.idx_2)));
     }
 
     bool operator <= (const combined_gain_idx_tuple_t& o)
     {
-      if (*this < o) return true;
-      return gain == o.gain && idx_1 == o.idx_1 && idx_2 == o.idx_2;
+      return gain < o.gain ||
+	     (gain == o.gain && (idx_1 < o.idx_1 ||
+				 (idx_1 == o.idx_1 && idx_2 <= o.idx_2)));
     }
   };
 
