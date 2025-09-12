@@ -33,6 +33,8 @@
 
 namespace OT {
 
+using rebase_tent_result_scratch_t = hb_pair_t<rebase_tent_result_t, rebase_tent_result_t>;
+
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/otvarcommonformats#tuplevariationheader */
 struct TupleVariationHeader
 {
@@ -320,28 +322,31 @@ struct tuple_delta_t
     return *this;
   }
 
-  hb_vector_t<tuple_delta_t> change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit,
-                                                          TripleDistances axis_triple_distances) const
+  void change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit,
+				    TripleDistances axis_triple_distances,
+				    hb_vector_t<tuple_delta_t>& out,
+				    rebase_tent_result_scratch_t &scratch) const
   {
-    hb_vector_t<tuple_delta_t> out;
+    out.reset ();
     Triple *tent;
     if (!axis_tuples.has (axis_tag, &tent))
     {
       out.push (*this);
-      return out;
+      return;
     }
 
     if ((tent->minimum < 0.0 && tent->maximum > 0.0) ||
         !(tent->minimum <= tent->middle && tent->middle <= tent->maximum))
-      return out;
+      return;
 
     if (tent->middle == 0.0)
     {
       out.push (*this);
-      return out;
+      return;
     }
 
-    rebase_tent_result_t solutions = rebase_tent (*tent, axis_limit, axis_triple_distances);
+    rebase_tent_result_t &solutions = scratch.first;
+    rebase_tent (*tent, axis_limit, axis_triple_distances, solutions, scratch.second);
     for (auto &t : solutions)
     {
       tuple_delta_t new_var = *this;
@@ -353,8 +358,6 @@ struct tuple_delta_t
       new_var *= t.first;
       out.push (std::move (new_var));
     }
-
-    return out;
   }
 
   bool compile_peak_coords (const hb_map_t& axes_index_map,
@@ -402,7 +405,7 @@ struct tuple_delta_t
     unsigned cur_axis_count = axes_index_map.get_population ();
     /* allocate enough memory: 1 peak + 2 intermediate coords + fixed header size */
     unsigned alloc_len = 3 * cur_axis_count * (F2DOT14::static_size) + 4;
-    if (unlikely (!compiled_tuple_header.resize (alloc_len))) return false;
+    if (unlikely (!compiled_tuple_header.resize (alloc_len, false))) return false;
 
     unsigned flag = 0;
     /* skip the first 4 header bytes: variationDataSize+tupleIndex */
@@ -535,7 +538,7 @@ struct tuple_delta_t
     if (y_deltas)
       alloc_len *= 2;
 
-    if (unlikely (!compiled_deltas.resize (alloc_len))) return false;
+    if (unlikely (!compiled_deltas.resize (alloc_len, false))) return false;
 
     unsigned encoded_len = compile_deltas (compiled_deltas, rounded_deltas);
 
@@ -565,14 +568,17 @@ struct tuple_delta_t
     return TupleValues::compile (deltas, encoded_bytes);
   }
 
-  bool calc_inferred_deltas (const contour_point_vector_t& orig_points)
+  bool calc_inferred_deltas (const contour_point_vector_t& orig_points,
+			     hb_vector_t<unsigned> &scratch)
   {
     unsigned point_count = orig_points.length;
     if (point_count != indices.length)
       return false;
 
     unsigned ref_count = 0;
-    hb_vector_t<unsigned> end_points;
+
+    hb_vector_t<unsigned> &end_points = scratch;
+    end_points.reset ();
 
     for (unsigned i = 0; i < point_count; i++)
     {
@@ -926,6 +932,9 @@ struct TupleVariationData
                                      const hb_array_t<const F2DOT14> shared_tuples,
                                      bool is_composite_glyph)
     {
+      hb_vector_t<unsigned> private_indices;
+      hb_vector_t<int> deltas_x;
+      hb_vector_t<int> deltas_y;
       do
       {
         const HBUINT8 *p = iterator.get_serialized_data ();
@@ -933,12 +942,12 @@ struct TupleVariationData
         if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
           return false;
 
-        hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
+	hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
         if (!iterator.current_tuple->unpack_axis_tuples (iterator.get_axis_count (), shared_tuples, axes_old_index_tag_map, axis_tuples)
             || axis_tuples.is_empty ())
           return false;
 
-        hb_vector_t<unsigned> private_indices;
+	private_indices.reset ();
         bool has_private_points = iterator.current_tuple->has_private_points ();
         const HBUINT8 *end = p + length;
         if (has_private_points &&
@@ -949,13 +958,10 @@ struct TupleVariationData
         bool apply_to_all = (indices.length == 0);
         unsigned num_deltas = apply_to_all ? point_count : indices.length;
 
-        hb_vector_t<int> deltas_x;
-
         if (unlikely (!deltas_x.resize (num_deltas, false) ||
                       !TupleVariationData::decompile_deltas (p, deltas_x, end)))
           return false;
 
-        hb_vector_t<int> deltas_y;
         if (is_gvar)
         {
           if (unlikely (!deltas_y.resize (num_deltas, false) ||
@@ -1049,6 +1055,10 @@ struct TupleVariationData
       for (auto t : normalized_axes_location.keys ())
         axis_tags.push (t);
 
+      // Reused vectors for reduced malloc pressure.
+      rebase_tent_result_scratch_t scratch;
+      hb_vector_t<tuple_delta_t> out;
+
       axis_tags.qsort (_cmp_axis_tag);
       for (auto axis_tag : axis_tags)
       {
@@ -1062,7 +1072,7 @@ struct TupleVariationData
         hb_vector_t<tuple_delta_t> new_vars;
         for (const tuple_delta_t& var : tuple_vars)
         {
-          hb_vector_t<tuple_delta_t> out = var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances);
+	  var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, out, scratch);
           if (!out) continue;
 
           unsigned new_len = new_vars.length + out.length;
@@ -1084,9 +1094,12 @@ struct TupleVariationData
     bool merge_tuple_variations (contour_point_vector_t* contour_points = nullptr)
     {
       hb_vector_t<tuple_delta_t> new_vars;
+      // The pre-allocation is essential for address stability of pointers
+      // we store in the hashmap.
+      if (unlikely (!new_vars.alloc (tuple_vars.length)))
+	return false;
       hb_hashmap_t<const hb_hashmap_t<hb_tag_t, Triple>*, unsigned> m;
-      unsigned i = 0;
-      for (const tuple_delta_t& var : tuple_vars)
+      for (tuple_delta_t& var : tuple_vars)
       {
         /* if all axes are pinned, drop the tuple variation */
         if (var.axis_tuples.is_empty ())
@@ -1106,13 +1119,17 @@ struct TupleVariationData
         }
         else
         {
-          new_vars.push (var);
-          if (!m.set (&(var.axis_tuples), i))
+	  auto *new_var = new_vars.push ();
+	  if (unlikely (new_vars.in_error ()))
+	    return false;
+          hb_swap (*new_var, var);
+          if (unlikely (!m.set (&(new_var->axis_tuples), new_vars.length - 1)))
             return false;
-          i++;
         }
       }
-      tuple_vars.fini ();
+      m.fini (); // Just in case, since it points into new_vars data.
+		 // Shouldn't be necessary though, since we only move new_vars, not its
+		 // contents.
       tuple_vars = std::move (new_vars);
       return true;
     }
@@ -1172,10 +1189,11 @@ struct TupleVariationData
       }
     }
 
-    bool calc_inferred_deltas (const contour_point_vector_t& contour_points)
+    bool calc_inferred_deltas (const contour_point_vector_t& contour_points,
+			       hb_vector_t<unsigned> &scratch)
     {
       for (tuple_delta_t& var : tuple_vars)
-        if (!var.calc_inferred_deltas (contour_points))
+        if (!var.calc_inferred_deltas (contour_points, scratch))
           return false;
 
       return true;
@@ -1202,8 +1220,11 @@ struct TupleVariationData
         return false;
       /* compute inferred deltas only for gvar */
       if (contour_points)
-        if (!calc_inferred_deltas (*contour_points))
-          return false;
+      {
+	hb_vector_t<unsigned> scratch;
+	if (!calc_inferred_deltas (*contour_points, scratch))
+	  return false;
+      }
 
       /* if iup delta opt is on, contour_points can't be null */
       if (optimize && !contour_points)
@@ -1872,6 +1893,8 @@ struct item_variations_t
     /* sort encoding_objs */
     encoding_objs.qsort ();
 
+    hb_vector_t<uint8_t> scratch;
+
     /* main algorithm: repeatedly pick 2 best encodings to combine, and combine
      * them */
     hb_priority_queue_t<combined_gain_idx_tuple_t> queue;
@@ -1880,7 +1903,7 @@ struct item_variations_t
     {
       for (unsigned j = i + 1; j < num_todos; j++)
       {
-        int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j]);
+        int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j], scratch);
         if (combining_gain > 0)
           queue.insert (combined_gain_idx_tuple_t (-combining_gain, i, j), 0);
       }
@@ -1930,7 +1953,7 @@ struct item_variations_t
           continue;
         }
 
-        int combined_gain = combined_encoding_obj.gain_from_merging (obj);
+        int combined_gain = combined_encoding_obj.gain_from_merging (obj, scratch);
         if (combined_gain > 0)
           queue.insert (combined_gain_idx_tuple_t (-combined_gain, idx, encoding_objs.length), 0);
       }
