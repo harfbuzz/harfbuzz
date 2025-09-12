@@ -2503,20 +2503,6 @@ struct delta_row_encoding_t
     const delta_row_encoding_t *a = (const delta_row_encoding_t *)pa;
     const delta_row_encoding_t *b = (const delta_row_encoding_t *)pb;
 
-    int gain_a = a->get_gain ();
-    int gain_b = b->get_gain ();
-
-    if (gain_a != gain_b)
-      return gain_b - gain_a;
-
-    return b->chars.cmp (a->chars);
-  }
-
-  static int cmp_width (const void *pa, const void *pb)
-  {
-    const delta_row_encoding_t *a = (const delta_row_encoding_t *)pa;
-    const delta_row_encoding_t *b = (const delta_row_encoding_t *)pb;
-
     if (a->width != b->width)
       return (int) a->width - (int) b->width;
 

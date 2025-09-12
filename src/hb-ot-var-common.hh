@@ -1975,7 +1975,7 @@ struct item_variations_t
     }
 
     /* sort again based on width, make result deterministic */
-    encodings.qsort (delta_row_encoding_t::cmp_width);
+    encodings.qsort ();
 
     return compile_varidx_map (front_mapping);
   }
