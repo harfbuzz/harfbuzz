@@ -1936,7 +1936,7 @@ struct item_variations_t
 
         const delta_row_encoding_t& obj = encoding_objs.arrayZ[idx];
 	// In the unlikely event that the same encoding exists already, combine it.
-        if (obj.chars == combined_encoding_obj.chars)
+        if (obj.width == combined_encoding_obj.width && obj.chars == combined_encoding_obj.chars)
         {
 	  // This is straight port from fonttools algorithm. I added this branch there
 	  // because I thought it can happen. But looks like we never get in here in
