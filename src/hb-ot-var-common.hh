@@ -1894,7 +1894,8 @@ struct item_variations_t
 
     /* main algorithm: repeatedly pick 2 best encodings to combine, and combine
      * them */
-    hb_priority_queue_t<combined_gain_idx_tuple_t> queue;
+    using item_t = hb_priority_queue_t<combined_gain_idx_tuple_t>::item_t;
+    hb_vector_t<item_t> queue_items;
     unsigned num_todos = encoding_objs.length;
     for (unsigned i = 0; i < num_todos; i++)
     {
@@ -1902,9 +1903,14 @@ struct item_variations_t
       {
         int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j], scratch);
         if (combining_gain > 0)
-          queue.insert (combined_gain_idx_tuple_t (-combining_gain, i, j), 0);
+	{
+	  auto item = item_t (combined_gain_idx_tuple_t (-combining_gain, i, j), 0);
+          queue_items.push (item);
+	}
       }
     }
+
+    hb_priority_queue_t<combined_gain_idx_tuple_t> queue (std::move (queue_items));
 
     hb_bit_set_t removed_todo_idxes;
     while (queue)
