@@ -2331,21 +2331,118 @@ struct delta_row_encoding_t
 {
   /* each byte represents a region, value is one of 0/1/2/4, which means bytes
    * needed for this region */
-  hb_vector_t<uint8_t> chars;
+  struct chars_t : hb_vector_t<uint8_t>
+  {
+    static chars_t get_row_chars (const hb_vector_t<int>& row)
+    {
+      chars_t ret;
+      if (!ret.alloc (row.length)) return ret;
+
+      bool long_words = false;
+
+      /* 0/1/2 byte encoding */
+      for (int i = row.length - 1; i >= 0; i--)
+      {
+	int v =  row.arrayZ[i];
+	if (v == 0)
+	  ret.push (0);
+	else if (v > 32767 || v < -32768)
+	{
+	  long_words = true;
+	  break;
+	}
+	else if (v > 127 || v < -128)
+	  ret.push (2);
+	else
+	  ret.push (1);
+      }
+
+      if (!long_words)
+	return ret;
+
+      /* redo, 0/2/4 bytes encoding */
+      ret.reset ();
+      for (int i = row.length - 1; i >= 0; i--)
+      {
+	int v =  row.arrayZ[i];
+	if (v == 0)
+	  ret.push (0);
+	else if (v > 32767 || v < -32768)
+	  ret.push (4);
+	else
+	  ret.push (2);
+      }
+      return ret;
+    }
+
+    inline unsigned get_width ()
+    {
+      unsigned ret = + iter ()
+		     | hb_reduce (hb_add, 0u)
+		     ;
+      return ret;
+    }
+
+    hb_bit_set_t get_columns ()
+    {
+      hb_bit_set_t cols;
+      for (auto _ : + hb_enumerate (iter ()))
+      {
+	if (_.second)
+	  cols.add (_.first);
+      }
+      return cols;
+    }
+
+    int cmp (const chars_t& other) const
+    {
+      return as_array ().cmp (other.as_array ());
+    }
+
+    chars_t combine_chars (const chars_t& other) const
+    {
+      chars_t combined_chars;
+      if (!combined_chars.alloc (length))
+	return combined_chars;
+
+      for (unsigned idx = 0; idx < length; idx++)
+      {
+	uint8_t v = hb_max (arrayZ[idx], other.arrayZ[idx]);
+	combined_chars.push (v);
+      }
+      return combined_chars;
+    }
+
+    unsigned combine_width (const chars_t& other) const
+    {
+      int combined_width = 0;
+      for (unsigned i = 0; i < length; i++)
+	combined_width += hb_max (arrayZ[i], other.arrayZ[i]);
+      return combined_width;
+    }
+  };
+
+  chars_t combine_chars (const delta_row_encoding_t& other_encoding) const { return chars.combine_chars (other_encoding.chars); }
+  unsigned combine_width (const delta_row_encoding_t& other_encoding) const { return chars.combine_width (other_encoding.chars); }
+  static chars_t get_row_chars (const hb_vector_t<int>& row) { return chars_t::get_row_chars (row); }
+
+  // Actual data
+
+  chars_t chars;
   unsigned width = 0;
-  hb_vector_t<uint8_t> columns;
+  hb_bit_set_t columns;
   unsigned overhead = 0;
   hb_vector_t<const hb_vector_t<int>*> items;
 
   delta_row_encoding_t () = default;
-  delta_row_encoding_t (hb_vector_t<uint8_t>&& chars_,
+  delta_row_encoding_t (chars_t&& chars_,
                         const hb_vector_t<int>* row = nullptr) :
                         delta_row_encoding_t ()
 
   {
     chars = std::move (chars_);
-    width = get_width ();
-    columns = get_columns ();
+    width = chars.get_width ();
+    columns = chars.get_columns ();
     overhead = get_chars_overhead (columns);
     if (row) items.push (row);
   }
@@ -2353,74 +2450,10 @@ struct delta_row_encoding_t
   bool is_empty () const
   { return !items; }
 
-  static hb_vector_t<uint8_t> get_row_chars (const hb_vector_t<int>& row)
-  {
-    hb_vector_t<uint8_t> ret;
-    if (!ret.alloc (row.length)) return ret;
-
-    bool long_words = false;
-
-    /* 0/1/2 byte encoding */
-    for (int i = row.length - 1; i >= 0; i--)
-    {
-      int v =  row.arrayZ[i];
-      if (v == 0)
-        ret.push (0);
-      else if (v > 32767 || v < -32768)
-      {
-        long_words = true;
-        break;
-      }
-      else if (v > 127 || v < -128)
-        ret.push (2);
-      else
-        ret.push (1);
-    }
-
-    if (!long_words)
-      return ret;
-
-    /* redo, 0/2/4 bytes encoding */
-    ret.reset ();
-    for (int i = row.length - 1; i >= 0; i--)
-    {
-      int v =  row.arrayZ[i];
-      if (v == 0)
-        ret.push (0);
-      else if (v > 32767 || v < -32768)
-        ret.push (4);
-      else
-        ret.push (2);
-    }
-    return ret;
-  }
-
-  inline unsigned get_width ()
-  {
-    unsigned ret = + hb_iter (chars)
-                   | hb_reduce (hb_add, 0u)
-                   ;
-    return ret;
-  }
-
-  hb_vector_t<uint8_t> get_columns ()
-  {
-    hb_vector_t<uint8_t> cols;
-    cols.alloc (chars.length);
-    for (auto v : chars)
-    {
-      uint8_t flag = v ? 1 : 0;
-      cols.push (flag);
-    }
-    return cols;
-  }
-
-  static inline unsigned get_chars_overhead (const hb_vector_t<uint8_t>& cols)
+  static inline unsigned get_chars_overhead (const hb_bit_set_t& cols)
   {
     unsigned c = 4 + 6; // 4 bytes for LOffset, 6 bytes for VarData header
-    unsigned cols_bit_count = 0;
-    for (auto v : cols)
-      if (v) cols_bit_count++;
+    unsigned cols_bit_count = cols.get_population ();
     return c + cols_bit_count * 2;
   }
 
@@ -2431,24 +2464,26 @@ struct delta_row_encoding_t
   }
 
   int gain_from_merging (const delta_row_encoding_t& other_encoding,
-			 hb_vector_t<uint8_t> &scratch) const
+			 hb_bit_set_t &scratch) const
   {
-    int combined_width = 0;
-    for (unsigned i = 0; i < chars.length; i++)
-      combined_width += hb_max (chars.arrayZ[i], other_encoding.chars.arrayZ[i]);
+    int combined_gain = (int) overhead + (int) other_encoding.overhead;
 
-    hb_vector_t<uint8_t> &combined_columns = scratch;
-    combined_columns.reset ();
+    int combined_width = combine_width (other_encoding);
 
-    if (unlikely (!combined_columns.resize (columns.length, false)))
-      return 0;
-    for (unsigned i = 0; i < columns.length; i++)
-      combined_columns.arrayZ[i] = columns.arrayZ[i] | other_encoding.columns.arrayZ[i];
+    combined_gain -= (combined_width - (int) width) * items.length;
+    combined_gain -= (combined_width - (int) other_encoding.width) * other_encoding.items.length;
+
+    // If the returned gain is negative, the actual magnitude is unused.
+    // Short-circuit if that is gonna happen.
+    if (combined_gain <= 0)
+      return combined_gain;
+
+    hb_bit_set_t &combined_columns = scratch;
+    combined_columns = columns;
+    combined_columns.union_ (other_encoding.columns);
 
     int combined_overhead = get_chars_overhead (combined_columns);
-    int combined_gain = (int) overhead + (int) other_encoding.overhead - combined_overhead
-                        - (combined_width - (int) width) * items.length
-                        - (combined_width - (int) other_encoding.width) * other_encoding.items.length;
+    combined_gain -= combined_overhead;
 
     return combined_gain;
   }
@@ -2464,7 +2499,7 @@ struct delta_row_encoding_t
     if (gain_a != gain_b)
       return gain_a - gain_b;
 
-    return (b->chars).as_array ().cmp ((a->chars).as_array ());
+    return b->chars.cmp (a->chars);
   }
 
   static int cmp_width (const void *pa, const void *pb)
@@ -2475,7 +2510,7 @@ struct delta_row_encoding_t
     if (a->width != b->width)
       return (int) a->width - (int) b->width;
 
-    return (b->chars).as_array ().cmp ((a->chars).as_array ());
+    return b->chars.cmp (a->chars);
   }
 
   bool add_row (const hb_vector_t<int>* row)

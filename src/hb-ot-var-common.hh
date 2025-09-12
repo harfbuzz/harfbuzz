@@ -592,7 +592,7 @@ struct tuple_delta_t
       return true;
     if (unlikely (end_points.in_error ())) return false;
 
-    hb_set_t inferred_idxes;
+    hb_bit_set_t inferred_idxes;
     unsigned start_point = 0;
     for (unsigned end_point : end_points)
     {
@@ -1762,19 +1762,16 @@ struct item_variations_t
 
     bool operator < (const combined_gain_idx_tuple_t& o)
     {
-      if (gain != o.gain)
-        return gain < o.gain;
-
-      if (idx_1 != o.idx_1)
-        return idx_1 < o.idx_1;
-
-      return idx_2 < o.idx_2;
+      return gain < o.gain ||
+	     (gain == o.gain && (idx_1 < o.idx_1 ||
+				 (idx_1 == o.idx_1 && idx_2 < o.idx_2)));
     }
 
     bool operator <= (const combined_gain_idx_tuple_t& o)
     {
-      if (*this < o) return true;
-      return gain == o.gain && idx_1 == o.idx_1 && idx_2 == o.idx_2;
+      return gain < o.gain ||
+	     (gain == o.gain && (idx_1 < o.idx_1 ||
+				 (idx_1 == o.idx_1 && idx_2 <= o.idx_2)));
     }
   };
 
@@ -1860,7 +1857,7 @@ struct item_variations_t
         if (!front_mapping.set ((major<<16) + minor, &row))
           return false;
 
-        hb_vector_t<uint8_t> chars = delta_row_encoding_t::get_row_chars (row);
+	auto chars = delta_row_encoding_t::get_row_chars (row);
         if (!chars) return false;
 
         if (delta_rows_map.has (&row))
@@ -1893,11 +1890,12 @@ struct item_variations_t
     /* sort encoding_objs */
     encoding_objs.qsort ();
 
-    hb_vector_t<uint8_t> scratch;
+    hb_bit_set_t scratch;
 
     /* main algorithm: repeatedly pick 2 best encodings to combine, and combine
      * them */
-    hb_priority_queue_t<combined_gain_idx_tuple_t> queue;
+    using item_t = hb_priority_queue_t<combined_gain_idx_tuple_t>::item_t;
+    hb_vector_t<item_t> queue_items;
     unsigned num_todos = encoding_objs.length;
     for (unsigned i = 0; i < num_todos; i++)
     {
@@ -1905,11 +1903,16 @@ struct item_variations_t
       {
         int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j], scratch);
         if (combining_gain > 0)
-          queue.insert (combined_gain_idx_tuple_t (-combining_gain, i, j), 0);
+	{
+	  auto item = item_t (combined_gain_idx_tuple_t (-combining_gain, i, j), 0);
+          queue_items.push (item);
+	}
       }
     }
 
-    hb_set_t removed_todo_idxes;
+    hb_priority_queue_t<combined_gain_idx_tuple_t> queue (std::move (queue_items));
+
+    hb_bit_set_t removed_todo_idxes;
     while (queue)
     {
       auto t = queue.pop_minimum ().first;
@@ -1925,17 +1928,7 @@ struct item_variations_t
       removed_todo_idxes.add (i);
       removed_todo_idxes.add (j);
 
-      hb_vector_t<uint8_t> combined_chars;
-      if (!combined_chars.alloc (encoding.chars.length))
-        return false;
-
-      for (unsigned idx = 0; idx < encoding.chars.length; idx++)
-      {
-        uint8_t v = hb_max (encoding.chars.arrayZ[idx], other_encoding.chars.arrayZ[idx]);
-        combined_chars.push (v);
-      }
-
-      delta_row_encoding_t combined_encoding_obj (std::move (combined_chars));
+      delta_row_encoding_t combined_encoding_obj (std::move (encoding.combine_chars (other_encoding)));
       for (const auto& row : hb_concat (encoding.items, other_encoding.items))
         combined_encoding_obj.add_row (row);
 
@@ -1944,8 +1937,15 @@ struct item_variations_t
         if (removed_todo_idxes.has (idx)) continue;
 
         const delta_row_encoding_t& obj = encoding_objs.arrayZ[idx];
-        if (obj.chars == combined_chars)
+	// In the unlikely event that the same encoding exists already, combine it.
+        if (obj.chars == combined_encoding_obj.chars)
         {
+	  // This is straight port from fonttools algorithm. I added this branch there
+	  // because I thought it can happen. But looks like we never get in here in
+	  // practice. I'm not confident enough to remove it though; in theory it can
+	  // happen. I think it's just that our tests are not extensive enough to hit
+	  // this path.
+
           for (const auto& row : obj.items)
             combined_encoding_obj.add_row (row);
 
