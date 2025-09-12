@@ -1795,9 +1795,9 @@ struct item_variations_t
     hb_hashmap_t<unsigned, const hb_vector_t<int>*> front_mapping;
     unsigned start_row = 0;
     hb_vector_t<delta_row_encoding_t> encoding_objs;
-    hb_hashmap_t<delta_row_encoding_t::chars_t, unsigned> chars_idx_map;
 
     /* delta_rows map, used for filtering out duplicate rows */
+    hb_vector_t<const hb_vector_t<int> *> major_rows;
     hb_hashmap_t<const hb_vector_t<int>*, unsigned> delta_rows_map;
     for (unsigned major = 0; major < vars.length; major++)
     {
@@ -1805,6 +1805,9 @@ struct item_variations_t
        * (row based) delta */
       const tuple_variations_t& tuples = vars[major];
       unsigned num_rows = var_data_num_rows[major];
+
+      if (!num_rows) continue;
+
       for (const tuple_delta_t& tuple: tuples.tuple_vars)
       {
         if (tuple.deltas_x.length != num_rows)
@@ -1824,75 +1827,60 @@ struct item_variations_t
         }
       }
 
-      if (!optimize)
-      {
-        /* assemble a delta_row_encoding_t for this subtable, skip optimization so
-         * chars is not initialized, we only need delta rows for serialization */
-        delta_row_encoding_t obj;
-        for (unsigned r = start_row; r < start_row + num_rows; r++)
-          obj.add_row (&(delta_rows.arrayZ[r]));
-
-        encodings.push (std::move (obj));
-        start_row += num_rows;
-        continue;
-      }
-
+      major_rows.clear ();
       for (unsigned minor = 0; minor < num_rows; minor++)
       {
-        const hb_vector_t<int>& row = delta_rows[start_row + minor];
-        if (use_no_variation_idx)
-        {
-          bool all_zeros = true;
-          for (int delta : row)
-          {
-            if (delta != 0)
-            {
-              all_zeros = false;
-              break;
-            }
-          }
-          if (all_zeros)
-            continue;
-        }
+	const hb_vector_t<int>& row = delta_rows[start_row + minor];
+	if (use_no_variation_idx)
+	{
+	  bool all_zeros = true;
+	  for (int delta : row)
+	  {
+	    if (delta != 0)
+	    {
+	      all_zeros = false;
+	      break;
+	    }
+	  }
+	  if (all_zeros)
+	    continue;
+	}
 
-        if (!front_mapping.set ((major<<16) + minor, &row))
-          return false;
+	if (!front_mapping.set ((major<<16) + minor, &row))
+	  return false;
 
-	auto chars = delta_row_encoding_t::get_row_chars (row);
-        if (!chars) return false;
+	if (delta_rows_map.has (&row))
+	  continue;
 
-        if (delta_rows_map.has (&row))
-          continue;
+	delta_rows_map.set (&row, 1);
 
-        delta_rows_map.set (&row, 1);
-        unsigned *obj_idx;
-        if (chars_idx_map.has (chars, &obj_idx))
-        {
-          delta_row_encoding_t& obj = encoding_objs[*obj_idx];
-          if (!obj.add_row (&row))
-            return false;
-        }
-        else
-        {
-          if (!chars_idx_map.set (chars, encoding_objs.length))
-            return false;
-          delta_row_encoding_t obj (std::move (chars), &row);
-          encoding_objs.push (std::move (obj));
-        }
+	major_rows.push (&row);
       }
+
+      if (major_rows)
+	encoding_objs.push (delta_row_encoding_t (major_rows));
 
       start_row += num_rows;
     }
 
     /* return directly if no optimization, maintain original VariationIndex so
      * varidx_map would be empty */
-    if (!optimize) return !encodings.in_error ();
+    if (!optimize)
+    {
+      encodings = std::move (encoding_objs);
+      return !encodings.in_error ();
+    }
+
+    /* NOTE: Fonttools instancer always optimizes VarStore from scratch. This
+     * is too costly for large fonts. So, instead, we retain the encodings of
+     * the original VarStore, and just try to combine them if possible. This
+     * is a compromise between optimization and performance and practically
+     * works very well. */
 
     /* sort encoding_objs */
     encoding_objs.qsort ();
 
-    /* main algorithm: repeatedly pick 2 best encodings to combine, and combine
-     * them */
+    /* main algorithm: repeatedly pick 2 best encodings to combine, and combine them */
     using item_t = hb_priority_queue_t<combined_gain_idx_tuple_t>::item_t;
     hb_vector_t<item_t> queue_items;
     unsigned num_todos = encoding_objs.length;
@@ -1902,14 +1890,7 @@ struct item_variations_t
       {
         int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j]);
         if (combining_gain > 0)
-	{
-	  auto item = item_t (combined_gain_idx_tuple_t (combining_gain, i, j), 0);
-          queue_items.push (item);
-	}
-
-	// Some heuristic to reduce work we do at the expense of less optimal result.
-	if (num_todos - j > 8 && combining_gain > (int) encoding_objs[j].get_gain ())
-	  break;
+          queue_items.push (item_t (combined_gain_idx_tuple_t (combining_gain, i, j), 0));
       }
     }
 
@@ -1931,9 +1912,7 @@ struct item_variations_t
       removed_todo_idxes.add (i);
       removed_todo_idxes.add (j);
 
-      delta_row_encoding_t combined_encoding_obj (std::move (encoding.combine_chars (other_encoding)));
-      for (const auto& row : hb_concat (encoding.items, other_encoding.items))
-        combined_encoding_obj.add_row (row);
+      delta_row_encoding_t combined_encoding_obj (hb_concat (encoding.items, other_encoding.items));
 
       for (unsigned idx = 0; idx < encoding_objs.length; idx++)
       {

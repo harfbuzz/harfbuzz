@@ -2333,45 +2333,45 @@ struct delta_row_encoding_t
    * needed for this region */
   struct chars_t : hb_vector_t<uint8_t>
   {
-    static chars_t get_row_chars (const hb_vector_t<int>& row)
+    template <typename iter_t,
+	      hb_requires (hb_is_source_of (iter_t, const hb_vector_t<int> *))>
+    static chars_t get_rows_chars (iter_t rows)
     {
+      assert (rows);
+
       chars_t ret;
-      if (!ret.alloc (row.length)) return ret;
+      if (!ret.resize ((*hb_iter (rows))->length)) return ret;
 
       bool long_words = false;
 
-      /* 0/1/2 byte encoding */
-      for (int i = row.length - 1; i >= 0; i--)
+      for (auto row : rows)
       {
-	int v =  row.arrayZ[i];
-	if (v == 0)
-	  ret.push (0);
-	else if (v > 32767 || v < -32768)
+	/* 0/1/2 byte encoding */
+	for (int i = row->length - 1; i >= 0; i--)
 	{
-	  long_words = true;
-	  break;
+	  int v =  row->arrayZ[i];
+	  if (v == 0)
+	    continue;
+	  else if (v > 32767 || v < -32768)
+	  {
+	    long_words = true;
+	    ret.arrayZ[i] = hb_max (ret.arrayZ[i], 4);
+	  }
+	  else if (v > 127 || v < -128)
+	    ret.arrayZ[i] = hb_max (ret.arrayZ[i], 2);
+	  else
+	    ret.arrayZ[i] = hb_max (ret.arrayZ[i], 1);
 	}
-	else if (v > 127 || v < -128)
-	  ret.push (2);
-	else
-	  ret.push (1);
       }
 
-      if (!long_words)
-	return ret;
-
-      /* redo, 0/2/4 bytes encoding */
-      ret.reset ();
-      for (int i = row.length - 1; i >= 0; i--)
+      if (long_words)
       {
-	int v =  row.arrayZ[i];
-	if (v == 0)
-	  ret.push (0);
-	else if (v > 32767 || v < -32768)
-	  ret.push (4);
-	else
-	  ret.push (2);
+	// Convert 1s to 2s
+	for (auto &v : ret)
+	  if (v == 1)
+	    v = 2;
       }
+
       return ret;
     }
 
@@ -2389,20 +2389,6 @@ struct delta_row_encoding_t
     int cmp (const chars_t& other) const
     {
       return as_array ().cmp (other.as_array ());
-    }
-
-    chars_t combine_chars (const chars_t& other) const
-    {
-      chars_t combined_chars;
-      if (!combined_chars.alloc (length))
-	return combined_chars;
-
-      for (unsigned idx = 0; idx < length; idx++)
-      {
-	uint8_t v = hb_max (arrayZ[idx], other.arrayZ[idx]);
-	combined_chars.push (v);
-      }
-      return combined_chars;
     }
 
     hb_pair_t<unsigned, unsigned> get_width ()
@@ -2433,9 +2419,7 @@ struct delta_row_encoding_t
     }
   };
 
-  chars_t combine_chars (const delta_row_encoding_t& other_encoding) const { return chars.combine_chars (other_encoding.chars); }
   hb_pair_t<unsigned, unsigned> combine_width (const delta_row_encoding_t& other_encoding) const { return chars.combine_width (other_encoding.chars); }
-  static chars_t get_row_chars (const hb_vector_t<int>& row) { return chars_t::get_row_chars (row); }
 
   // Actual data
 
@@ -2445,16 +2429,18 @@ struct delta_row_encoding_t
   hb_vector_t<const hb_vector_t<int>*> items;
 
   delta_row_encoding_t () = default;
-  delta_row_encoding_t (chars_t&& chars_,
-                        const hb_vector_t<int>* row = nullptr) :
-                        delta_row_encoding_t ()
-
+  template <typename iter_t,
+	    hb_requires (hb_is_source_of (iter_t, const hb_vector_t<int> *))>
+  delta_row_encoding_t (iter_t rows = hb_array_t<const hb_vector_t<int> *> ())
   {
-    chars = std::move (chars_);
+    for (auto row : rows)
+      add_row (row);
+
+    chars = chars_t::get_rows_chars (rows);
+
     auto _ = chars.get_width ();
     width = _.first;
     overhead = get_chars_overhead (_.second);
-    if (row) items.push (row);
   }
 
   bool is_empty () const
