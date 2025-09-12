@@ -2418,6 +2418,7 @@ struct delta_row_encoding_t
       return hb_pair (width, columns);
     }
 
+    HB_HOT
     hb_pair_t<unsigned, unsigned> combine_width (const chars_t& other) const
     {
       unsigned combined_width = 0;
