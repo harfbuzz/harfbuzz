@@ -89,6 +89,7 @@ tests = [
 if get_option('experimental_api')
   tests += [
     'iftb_requirements',
+    'retain-num-glyphs',
   ]
 endif
 

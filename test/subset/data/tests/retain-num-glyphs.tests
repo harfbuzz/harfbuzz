@@ -1,0 +1,13 @@
+FONTS:
+Roboto-Regular.ttf
+NotoSansJP-VF.subset.otf
+
+PROFILES:
+retain-num-glyphs.txt
+
+SUBSETS:
+ac倉
+*
+
+OPTIONS:
+no_fonttools
