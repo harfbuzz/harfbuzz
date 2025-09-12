@@ -1890,8 +1890,6 @@ struct item_variations_t
     /* sort encoding_objs */
     encoding_objs.qsort ();
 
-    hb_bit_set_t scratch;
-
     /* main algorithm: repeatedly pick 2 best encodings to combine, and combine
      * them */
     using item_t = hb_priority_queue_t<combined_gain_idx_tuple_t>::item_t;
@@ -1901,7 +1899,7 @@ struct item_variations_t
     {
       for (unsigned j = i + 1; j < num_todos; j++)
       {
-        int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j], scratch);
+        int combining_gain = encoding_objs.arrayZ[i].gain_from_merging (encoding_objs.arrayZ[j]);
         if (combining_gain > 0)
 	{
 	  auto item = item_t (combined_gain_idx_tuple_t (-combining_gain, i, j), 0);
@@ -1953,7 +1951,7 @@ struct item_variations_t
           continue;
         }
 
-        int combined_gain = combined_encoding_obj.gain_from_merging (obj, scratch);
+        int combined_gain = combined_encoding_obj.gain_from_merging (obj);
         if (combined_gain > 0)
           queue.insert (combined_gain_idx_tuple_t (-combined_gain, idx, encoding_objs.length), 0);
       }

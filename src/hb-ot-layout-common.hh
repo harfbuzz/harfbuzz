@@ -2375,14 +2375,6 @@ struct delta_row_encoding_t
       return ret;
     }
 
-    inline unsigned get_width ()
-    {
-      unsigned ret = + iter ()
-		     | hb_reduce (hb_add, 0u)
-		     ;
-      return ret;
-    }
-
     hb_bit_set_t get_columns ()
     {
       hb_bit_set_t cols;
@@ -2413,24 +2405,41 @@ struct delta_row_encoding_t
       return combined_chars;
     }
 
-    unsigned combine_width (const chars_t& other) const
+    hb_pair_t<unsigned, unsigned> get_width ()
     {
-      int combined_width = 0;
+      unsigned width = 0;
+      unsigned columns = 0;
       for (unsigned i = 0; i < length; i++)
-	combined_width += hb_max (arrayZ[i], other.arrayZ[i]);
-      return combined_width;
+      {
+	unsigned v = arrayZ[i];
+	width += v;
+	columns += (v != 0);
+      }
+      return hb_pair (width, columns);
+    }
+
+    hb_pair_t<unsigned, unsigned> combine_width (const chars_t& other) const
+    {
+      unsigned combined_width = 0;
+      unsigned combined_columns = 0;
+      for (unsigned i = 0; i < length; i++)
+      {
+        unsigned v = hb_max (arrayZ[i], other.arrayZ[i]);
+	combined_width += v;
+	combined_columns += (v != 0);
+      }
+      return hb_pair (combined_width, combined_columns);
     }
   };
 
   chars_t combine_chars (const delta_row_encoding_t& other_encoding) const { return chars.combine_chars (other_encoding.chars); }
-  unsigned combine_width (const delta_row_encoding_t& other_encoding) const { return chars.combine_width (other_encoding.chars); }
+  hb_pair_t<unsigned, unsigned> combine_width (const delta_row_encoding_t& other_encoding) const { return chars.combine_width (other_encoding.chars); }
   static chars_t get_row_chars (const hb_vector_t<int>& row) { return chars_t::get_row_chars (row); }
 
   // Actual data
 
   chars_t chars;
   unsigned width = 0;
-  hb_bit_set_t columns;
   unsigned overhead = 0;
   hb_vector_t<const hb_vector_t<int>*> items;
 
@@ -2441,9 +2450,9 @@ struct delta_row_encoding_t
 
   {
     chars = std::move (chars_);
-    width = chars.get_width ();
-    columns = chars.get_columns ();
-    overhead = get_chars_overhead (columns.get_population ());
+    auto _ = chars.get_width ();
+    width = _.first;
+    overhead = get_chars_overhead (_.second);
     if (row) items.push (row);
   }
 
@@ -2462,27 +2471,17 @@ struct delta_row_encoding_t
     return hb_max (0, (int) overhead - count);
   }
 
-  int gain_from_merging (const delta_row_encoding_t& other_encoding,
-			 hb_bit_set_t &scratch) const
+  int gain_from_merging (const delta_row_encoding_t& other_encoding) const
   {
+
+    auto pair = combine_width (other_encoding);
+    unsigned combined_width = pair.first;
+    unsigned combined_columns = pair.second;
+
     int combined_gain = (int) overhead + (int) other_encoding.overhead;
-
-    int combined_width = combine_width (other_encoding);
-
     combined_gain -= (combined_width - (int) width) * items.length;
     combined_gain -= (combined_width - (int) other_encoding.width) * other_encoding.items.length;
-
-    // If the returned gain is negative, the actual magnitude is unused.
-    // Short-circuit if that is gonna happen.
-    if (combined_gain <= 0)
-      return combined_gain;
-
-    hb_bit_set_t &combined_columns = scratch;
-    combined_columns = columns;
-    combined_columns.union_ (other_encoding.columns);
-
-    int combined_overhead = get_chars_overhead (combined_columns.get_population ());
-    combined_gain -= combined_overhead;
+    combined_gain -= get_chars_overhead (combined_columns);
 
     return combined_gain;
   }
