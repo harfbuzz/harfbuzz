@@ -1922,17 +1922,7 @@ struct item_variations_t
       removed_todo_idxes.add (i);
       removed_todo_idxes.add (j);
 
-      delta_row_encoding_t::chars_t combined_chars;
-      if (!combined_chars.alloc (encoding.chars.length))
-        return false;
-
-      for (unsigned idx = 0; idx < encoding.chars.length; idx++)
-      {
-        uint8_t v = hb_max (encoding.chars.arrayZ[idx], other_encoding.chars.arrayZ[idx]);
-        combined_chars.push (v);
-      }
-
-      delta_row_encoding_t combined_encoding_obj (std::move (combined_chars));
+      delta_row_encoding_t combined_encoding_obj (std::move (encoding.combine_chars (other_encoding)));
       for (const auto& row : hb_concat (encoding.items, other_encoding.items))
         combined_encoding_obj.add_row (row);
 
