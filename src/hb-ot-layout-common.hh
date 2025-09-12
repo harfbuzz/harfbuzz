@@ -2465,14 +2465,26 @@ struct delta_row_encoding_t
     return c + num_columns * 2;
   }
 
-  unsigned get_gain () const
+  unsigned get_gain (unsigned additional_bytes_per_rows = 1) const
   {
     int count = items.length;
-    return hb_max (0, (int) overhead - count);
+    return hb_max (0, (int) overhead - count * (int) additional_bytes_per_rows);
   }
 
   int gain_from_merging (const delta_row_encoding_t& other_encoding) const
   {
+    // Back of the envelope calculations to reject early.
+    signed additional_bytes_per_rows = other_encoding.width - width;
+    if (additional_bytes_per_rows > 0)
+    {
+      if (get_gain (additional_bytes_per_rows) == 0)
+        return 0;
+    }
+    else
+    {
+      if (other_encoding.get_gain (-additional_bytes_per_rows) == 0)
+	return 0;
+    }
 
     auto pair = combine_width (other_encoding);
     unsigned combined_width = pair.first;
