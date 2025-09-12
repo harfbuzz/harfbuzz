@@ -405,7 +405,7 @@ struct tuple_delta_t
     unsigned cur_axis_count = axes_index_map.get_population ();
     /* allocate enough memory: 1 peak + 2 intermediate coords + fixed header size */
     unsigned alloc_len = 3 * cur_axis_count * (F2DOT14::static_size) + 4;
-    if (unlikely (!compiled_tuple_header.resize (alloc_len))) return false;
+    if (unlikely (!compiled_tuple_header.resize (alloc_len, false))) return false;
 
     unsigned flag = 0;
     /* skip the first 4 header bytes: variationDataSize+tupleIndex */
@@ -538,7 +538,7 @@ struct tuple_delta_t
     if (y_deltas)
       alloc_len *= 2;
 
-    if (unlikely (!compiled_deltas.resize (alloc_len))) return false;
+    if (unlikely (!compiled_deltas.resize (alloc_len, false))) return false;
 
     unsigned encoded_len = compile_deltas (compiled_deltas, rounded_deltas);
 
