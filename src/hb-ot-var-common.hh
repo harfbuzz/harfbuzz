@@ -1752,27 +1752,29 @@ struct item_variations_t
 
   struct combined_gain_idx_tuple_t
   {
-    int gain;
-    unsigned idx_1;
-    unsigned idx_2;
+    uint64_t encoded;
 
     combined_gain_idx_tuple_t () = default;
-    combined_gain_idx_tuple_t (int gain_, unsigned i, unsigned j)
-        :gain (gain_), idx_1 (i), idx_2 (j) {}
+    combined_gain_idx_tuple_t (int gain, unsigned i, unsigned j)
+        : encoded ((uint64_t (0xFFFF + gain) << 48) | (uint64_t (i) << 24) | uint64_t (j))
+    {
+      assert (gain < 0);
+      assert (0xFFFF + gain >= 0);
+      assert (i < 0xFFFFFF && j < 0xFFFFFF);
+    }
 
     bool operator < (const combined_gain_idx_tuple_t& o)
     {
-      return gain < o.gain ||
-	     (gain == o.gain && (idx_1 < o.idx_1 ||
-				 (idx_1 == o.idx_1 && idx_2 < o.idx_2)));
+      return encoded < o.encoded;
     }
 
     bool operator <= (const combined_gain_idx_tuple_t& o)
     {
-      return gain < o.gain ||
-	     (gain == o.gain && (idx_1 < o.idx_1 ||
-				 (idx_1 == o.idx_1 && idx_2 <= o.idx_2)));
+      return encoded <= o.encoded;
     }
+
+    unsigned idx_1 () const { return (encoded >> 24) & 0xFFFFFF; };
+    unsigned idx_2 () const { return encoded & 0xFFFFFF; };
   };
 
   bool as_item_varstore (bool optimize=true, bool use_no_variation_idx=true)
@@ -1914,8 +1916,8 @@ struct item_variations_t
     while (queue)
     {
       auto t = queue.pop_minimum ().first;
-      unsigned i = t.idx_1;
-      unsigned j = t.idx_2;
+      unsigned i = t.idx_1 ();
+      unsigned j = t.idx_2 ();
 
       if (removed_todo_idxes.has (i) || removed_todo_idxes.has (j))
         continue;

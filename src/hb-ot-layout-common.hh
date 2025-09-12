@@ -2456,14 +2456,6 @@ struct delta_row_encoding_t
     if (row) items.push (row);
   }
 
-  friend void swap (delta_row_encoding_t& a, delta_row_encoding_t& b) noexcept
-  {
-    hb_swap (a.chars, b.chars);
-    hb_swap (a.width, b.width);
-    hb_swap (a.overhead, b.overhead);
-    hb_swap (a.items, b.items);
-  }
-
   bool is_empty () const
   { return !items; }
 
