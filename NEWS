@@ -1,7 +1,14 @@
+Overview of changes leading to 11.5.0
+Saturday, September 12, 2025
+=====================================
+- Update to Unicode 17.0.0.
+- Subsetter optimizations.
+
+
 Overview of changes leading to 11.4.5
 Saturday, August 30, 2025
 =====================================
-* Bug fixes for “AAT” shaping, and other shaping micro optimizations.
+- Bug fixes for “AAT” shaping, and other shaping micro optimizations.
 
 
 Overview of changes leading to 11.4.4
