@@ -1756,11 +1756,11 @@ struct item_variations_t
 
     combined_gain_idx_tuple_t () = default;
     combined_gain_idx_tuple_t (int gain, unsigned i, unsigned j)
-        : encoded ((uint64_t (0xFFFF + gain) << 48) | (uint64_t (i) << 24) | uint64_t (j))
+        : encoded ((uint64_t (0xFFFFFF + gain) << 40) | (uint64_t (i) << 20) | uint64_t (j))
     {
       assert (gain < 0);
-      assert (0xFFFF + gain >= 0);
-      assert (i < 0xFFFFFF && j < 0xFFFFFF);
+      assert (0xFFFFFF + gain >= 0);
+      assert (i < 0xFFFFFFF && j < 0xFFFFFFF);
     }
 
     bool operator < (const combined_gain_idx_tuple_t& o)
@@ -1773,8 +1773,8 @@ struct item_variations_t
       return encoded <= o.encoded;
     }
 
-    unsigned idx_1 () const { return (encoded >> 24) & 0xFFFFFF; };
-    unsigned idx_2 () const { return encoded & 0xFFFFFF; };
+    unsigned idx_1 () const { return (encoded >> 20) & 0xFFFFF; };
+    unsigned idx_2 () const { return encoded & 0xFFFFF; };
   };
 
   bool as_item_varstore (bool optimize=true, bool use_no_variation_idx=true)
