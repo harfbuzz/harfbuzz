@@ -11,3 +11,8 @@ SUBSETS:
 غير
 سماء لا
 الحب
+
+# diff with fonttools on duplicate features only, fonttools doesn't de-duplicate features
+OPTIONS:
+no_fonttools
+
