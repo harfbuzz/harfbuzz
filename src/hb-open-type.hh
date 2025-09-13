@@ -1509,9 +1509,9 @@ struct TupleValues
       int val = values.arrayZ[i];
       if (val == 0)
         encoded_len += encode_value_run_as_zeroes (i, encoded_bytes.sub_array (encoded_len), values);
-      else if (val >= -128 && val <= 127)
+      else if ((int8_t) val == val)
         encoded_len += encode_value_run_as_bytes (i, encoded_bytes.sub_array (encoded_len), values);
-      else if (val >= -32768 && val <= 32767)
+      else if ((int16_t) val == val)
         encoded_len += encode_value_run_as_words (i, encoded_bytes.sub_array (encoded_len), values);
       else
         encoded_len += encode_value_run_as_longs (i, encoded_bytes.sub_array (encoded_len), values);
@@ -1557,7 +1557,7 @@ struct TupleValues
     while (i < num_values)
     {
       int val = values.arrayZ[i];
-      if (val > 127 || val < -128)
+      if ((int8_t) val != val)
         break;
 
       /* from fonttools: if there're 2 or more zeros in a sequence,
@@ -1612,15 +1612,18 @@ struct TupleValues
     {
       int val = values.arrayZ[i];
 
-      /* start a new run for a single zero value*/
+      if ((int16_t) val != val)
+        break;
+
+      /* start a new run for a single zero value. */
       if (val == 0) break;
 
-      /* from fonttools: continue word-encoded run if there's only one
+      /* From fonttools: continue word-encoded run if there's only one
        * single value in the range [-128, 127] because it is more compact.
        * Only start a new run when there're 2 continuous such values. */
-      if (val >= -128 && val <= 127 &&
+      if ((int8_t) val == val &&
           i + 1 < num_values &&
-          values.arrayZ[i+1] >= -128 && values.arrayZ[i+1] <= 127)
+          (int8_t) values.arrayZ[i+1] == values.arrayZ[i+1])
         break;
 
       i++;
@@ -1673,7 +1676,7 @@ struct TupleValues
     {
       int val = values.arrayZ[i];
 
-      if (val >= -32768 && val <= 32767)
+      if ((int16_t) val == val)
         break;
 
       i++;
