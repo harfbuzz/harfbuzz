@@ -2333,6 +2333,11 @@ struct delta_row_encoding_t
    * needed for this region */
   struct chars_t : hb_vector_t<uint8_t>
   {
+    int cmp (const chars_t& other) const
+    {
+      return as_array ().cmp (other.as_array ());
+    }
+
     hb_pair_t<unsigned, unsigned> get_width ()
     {
       unsigned width = 0;
@@ -2486,6 +2491,17 @@ struct delta_row_encoding_t
 
   bool add_row (const hb_vector_t<int>* row)
   { return items.push (row); }
+
+  static int cmp (const void *pa, const void *pb)
+  {
+    const delta_row_encoding_t *a = (const delta_row_encoding_t *)pa;
+    const delta_row_encoding_t *b = (const delta_row_encoding_t *)pb;
+
+    if (a->width != b->width)
+      return (int) a->width - (int) b->width;
+
+    return b->chars.cmp (a->chars);
+  }
 };
 
 struct VarRegionAxis
