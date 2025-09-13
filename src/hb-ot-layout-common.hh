@@ -2386,7 +2386,7 @@ struct delta_row_encoding_t
   void merge (const delta_row_encoding_t& other)
   {
     items.alloc (items.length + other.items.length);
-    for (auto row : other.items)
+    for (auto &row : other.items)
       add_row (row);
 
     // Merge chars
@@ -2409,7 +2409,7 @@ struct delta_row_encoding_t
 
     bool long_words = false;
 
-    for (auto row : items)
+    for (auto &row : items)
     {
       assert (row->length == chars.length);
 
