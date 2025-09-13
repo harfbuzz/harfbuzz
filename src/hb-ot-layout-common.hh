@@ -2333,59 +2333,6 @@ struct delta_row_encoding_t
    * needed for this region */
   struct chars_t : hb_vector_t<uint8_t>
   {
-    template <typename iter_t,
-	      hb_requires (hb_is_source_of (iter_t, const hb_vector_t<int> *))>
-    static chars_t get_rows_chars (iter_t rows)
-    {
-      assert (rows);
-
-      chars_t ret;
-      if (!ret.resize ((*hb_iter (rows))->length)) return ret;
-
-      bool long_words = false;
-
-      for (auto row : rows)
-      {
-	/* 0/1/2 byte encoding */
-	for (int i = row->length - 1; i >= 0; i--)
-	{
-	  int v =  row->arrayZ[i];
-	  if (v == 0)
-	    continue;
-	  else if (v > 32767 || v < -32768)
-	  {
-	    long_words = true;
-	    ret.arrayZ[i] = hb_max (ret.arrayZ[i], 4);
-	  }
-	  else if (v > 127 || v < -128)
-	    ret.arrayZ[i] = hb_max (ret.arrayZ[i], 2);
-	  else
-	    ret.arrayZ[i] = hb_max (ret.arrayZ[i], 1);
-	}
-      }
-
-      if (long_words)
-      {
-	// Convert 1s to 2s
-	for (auto &v : ret)
-	  if (v == 1)
-	    v = 2;
-      }
-
-      return ret;
-    }
-
-    hb_bit_set_t get_columns ()
-    {
-      hb_bit_set_t cols;
-      for (auto _ : + hb_enumerate (iter ()))
-      {
-	if (_.second)
-	  cols.add (_.first);
-      }
-      return cols;
-    }
-
     hb_pair_t<unsigned, unsigned> get_width ()
     {
       unsigned width = 0;
@@ -2428,14 +2375,56 @@ struct delta_row_encoding_t
 	    hb_requires (hb_is_source_of (iter_t, const hb_vector_t<int> *))>
   delta_row_encoding_t (iter_t rows = hb_array_t<const hb_vector_t<int> *> ())
   {
+    assert (rows);
+
     for (auto row : rows)
       add_row (row);
 
-    chars = chars_t::get_rows_chars (rows);
+    calculate_chars ();
 
     auto _ = chars.get_width ();
     width = _.first;
     overhead = get_chars_overhead (_.second);
+  }
+
+  void calculate_chars ()
+  {
+    assert (items);
+
+    if (unlikely (!chars.resize (items[0]->length)))
+      return;
+
+    bool long_words = false;
+
+    for (auto row : items)
+    {
+      assert (row->length == chars.length);
+
+      /* 0/1/2 byte encoding */
+      for (unsigned i = 0; i < row->length; i++)
+      {
+	int v =  row->arrayZ[i];
+	if (v == 0)
+	  continue;
+	else if (v > 32767 || v < -32768)
+	{
+	  long_words = true;
+	  chars.arrayZ[i] = hb_max (chars.arrayZ[i], 4);
+	}
+	else if (v > 127 || v < -128)
+	  chars.arrayZ[i] = hb_max (chars.arrayZ[i], 2);
+	else
+	  chars.arrayZ[i] = hb_max (chars.arrayZ[i], 1);
+      }
+    }
+
+    if (long_words)
+    {
+      // Convert 1s to 2s
+      for (auto &v : chars)
+	if (v == 1)
+	  v = 2;
+    }
   }
 
   bool is_empty () const
