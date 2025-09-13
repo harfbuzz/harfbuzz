@@ -1877,8 +1877,6 @@ struct item_variations_t
      * is a compromise between optimization and performance and practically
      * works very well. */
 
-    /* sort encoding_objs */
-    encoding_objs.qsort ();
 
     /* main algorithm: repeatedly pick 2 best encodings to combine, and combine them */
     using item_t = hb_priority_queue_t<combined_gain_idx_tuple_t>::item_t;
@@ -1952,9 +1950,6 @@ struct item_variations_t
       if (removed_todo_idxes.has (i)) continue;
       encodings.push (std::move (encoding_objs.arrayZ[i]));
     }
-
-    /* sort again based on width, make result deterministic */
-    encodings.qsort ();
 
     return compile_varidx_map (front_mapping);
   }

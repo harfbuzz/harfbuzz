@@ -2386,11 +2386,6 @@ struct delta_row_encoding_t
       return cols;
     }
 
-    int cmp (const chars_t& other) const
-    {
-      return as_array ().cmp (other.as_array ());
-    }
-
     hb_pair_t<unsigned, unsigned> get_width ()
     {
       unsigned width = 0;
@@ -2483,17 +2478,6 @@ struct delta_row_encoding_t
     combined_gain -= get_chars_overhead (combined_columns);
 
     return combined_gain;
-  }
-
-  static int cmp (const void *pa, const void *pb)
-  {
-    const delta_row_encoding_t *a = (const delta_row_encoding_t *)pa;
-    const delta_row_encoding_t *b = (const delta_row_encoding_t *)pb;
-
-    if (a->width != b->width)
-      return (int) a->width - (int) b->width;
-
-    return b->chars.cmp (a->chars);
   }
 
   bool add_row (const hb_vector_t<int>* row)
