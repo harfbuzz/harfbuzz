@@ -2371,17 +2371,33 @@ struct delta_row_encoding_t
   hb_vector_t<const hb_vector_t<int>*> items;
 
   delta_row_encoding_t () = default;
-  template <typename iter_t,
-	    hb_requires (hb_is_source_of (iter_t, const hb_vector_t<int> *))>
-  delta_row_encoding_t (iter_t rows = hb_array_t<const hb_vector_t<int> *> ())
+  delta_row_encoding_t (hb_vector_t<const hb_vector_t<int>*> &&rows, unsigned num_cols)
   {
     assert (rows);
 
-    for (auto row : rows)
-      add_row (row);
+    items = std::move (rows);
+
+    if (unlikely (!chars.resize (num_cols)))
+      return;
 
     calculate_chars ();
+  }
 
+  void merge (const delta_row_encoding_t& other)
+  {
+    items.alloc (items.length + other.items.length);
+    for (auto row : other.items)
+      add_row (row);
+
+    // Merge chars
+    assert (chars.length == other.chars.length);
+    for (unsigned i = 0; i < chars.length; i++)
+      chars.arrayZ[i] = hb_max (chars.arrayZ[i], other.chars.arrayZ[i]);
+    chars_changed ();
+  }
+
+  void chars_changed ()
+  {
     auto _ = chars.get_width ();
     width = _.first;
     overhead = get_chars_overhead (_.second);
@@ -2390,9 +2406,6 @@ struct delta_row_encoding_t
   void calculate_chars ()
   {
     assert (items);
-
-    if (unlikely (!chars.resize (items[0]->length)))
-      return;
 
     bool long_words = false;
 
@@ -2425,6 +2438,8 @@ struct delta_row_encoding_t
 	if (v == 1)
 	  v = 2;
     }
+
+    chars_changed ();
   }
 
   bool is_empty () const

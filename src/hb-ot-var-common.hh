@@ -1858,7 +1858,7 @@ struct item_variations_t
       }
 
       if (major_rows)
-	encoding_objs.push (delta_row_encoding_t (major_rows));
+	encoding_objs.push (delta_row_encoding_t (std::move (major_rows), num_cols));
 
       start_row += num_rows;
     }
@@ -1910,7 +1910,7 @@ struct item_variations_t
       removed_todo_idxes.add (i);
       removed_todo_idxes.add (j);
 
-      delta_row_encoding_t combined_encoding_obj (hb_concat (encoding.items, other_encoding.items));
+      encoding.merge (other_encoding);
 
       for (unsigned idx = 0; idx < encoding_objs.length; idx++)
       {
@@ -1918,7 +1918,7 @@ struct item_variations_t
 
         const delta_row_encoding_t& obj = encoding_objs.arrayZ[idx];
 	// In the unlikely event that the same encoding exists already, combine it.
-        if (obj.width == combined_encoding_obj.width && obj.chars == combined_encoding_obj.chars)
+        if (obj.width == encoding.width && obj.chars == encoding.chars)
         {
 	  // This is straight port from fonttools algorithm. I added this branch there
 	  // because I thought it can happen. But looks like we never get in here in
@@ -1927,18 +1927,19 @@ struct item_variations_t
 	  // this path.
 
           for (const auto& row : obj.items)
-            combined_encoding_obj.add_row (row);
+            encoding.add_row (row);
 
           removed_todo_idxes.add (idx);
           continue;
         }
 
-        int combined_gain = combined_encoding_obj.gain_from_merging (obj);
+        int combined_gain = encoding.gain_from_merging (obj);
         if (combined_gain > 0)
           queue.insert (combined_gain_idx_tuple_t (combined_gain, idx, encoding_objs.length), 0);
       }
 
-      encoding_objs.push (std::move (combined_encoding_obj));
+      auto moved_encoding = std::move (encoding);
+      encoding_objs.push (moved_encoding);
     }
 
     int num_final_encodings = (int) encoding_objs.length - (int) removed_todo_idxes.get_population ();
