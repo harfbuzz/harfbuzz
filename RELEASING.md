@@ -37,5 +37,5 @@
 - [ ] Push the commit and tag out: `git push --follow-tags`.
 
 - [ ] Wait a few minutes and the CI job will create a GitHub release automatically, and it will use the NEWS file additions for release description.
-      The new release will be in draft mode, check everything is fine, or make any needed edits, then publish the release.
+      Take a look at the release and make any needed edits needed.
       The release should also automatically include Windows binaries, but they take a bit longer to build and upload.
