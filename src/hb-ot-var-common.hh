@@ -247,6 +247,7 @@ struct tuple_delta_t
 
   tuple_delta_t () = default;
   tuple_delta_t (const tuple_delta_t& o) = default;
+  tuple_delta_t& operator = (const tuple_delta_t& o) = default;
 
   friend void swap (tuple_delta_t& a, tuple_delta_t& b) noexcept
   {
@@ -325,13 +326,15 @@ struct tuple_delta_t
   void change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit,
 				    TripleDistances axis_triple_distances,
 				    hb_vector_t<tuple_delta_t>& out,
-				    rebase_tent_result_scratch_t &scratch) const
+				    rebase_tent_result_scratch_t &scratch)
   {
+    // May move *this out.
+
     out.reset ();
     Triple *tent;
     if (!axis_tuples.has (axis_tag, &tent))
     {
-      out.push (*this);
+      out.push (std::move (*this));
       return;
     }
 
@@ -341,15 +344,22 @@ struct tuple_delta_t
 
     if (tent->middle == 0.0)
     {
-      out.push (*this);
+      out.push (std::move (*this));
       return;
     }
 
     rebase_tent_result_t &solutions = scratch.first;
     rebase_tent (*tent, axis_limit, axis_triple_distances, solutions, scratch.second);
-    for (auto &t : solutions)
+    for (unsigned i = 0; i < solutions.length; i++)
     {
-      tuple_delta_t new_var = *this;
+      auto &t = solutions.arrayZ[i];
+
+      tuple_delta_t new_var;
+      if (i < solutions.length - 1)
+	new_var = *this;
+      else
+	new_var = std::move (*this);
+
       if (t.second == Triple ())
         new_var.remove_axis (axis_tag);
       else
@@ -1070,8 +1080,9 @@ struct TupleVariationData
           axis_triple_distances = axes_triple_distances.get (axis_tag);
 
         hb_vector_t<tuple_delta_t> new_vars;
-        for (const tuple_delta_t& var : tuple_vars)
+        for (tuple_delta_t& var : tuple_vars)
         {
+	  // This may move var out.
 	  var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, out, scratch);
           if (!out) continue;
 
@@ -1822,8 +1833,7 @@ struct item_variations_t
         {
           int rounded_delta = roundf (tuple.deltas_x[i]);
           delta_rows[start_row + i][*col_idx] += rounded_delta;
-          if ((!has_long) && (rounded_delta < -65536 || rounded_delta > 65535))
-            has_long = true;
+          has_long |= rounded_delta < -65536 || rounded_delta > 65535;
         }
       }
 
