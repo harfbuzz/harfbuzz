@@ -201,7 +201,7 @@ struct hb_hashmap_t
 
     if (new_population != 0 && (new_population + new_population / 2) < mask) return true;
 
-    unsigned int power = hb_bit_storage (hb_max ((unsigned) population, new_population) * 2 + 8);
+    unsigned int power = hb_bit_storage (hb_max (hb_max ((unsigned) population, new_population) * 2, 4u));
     unsigned int new_size = 1u << power;
     item_t *new_items = (item_t *) hb_malloc ((size_t) new_size * sizeof (item_t));
     if (unlikely (!new_items))

@@ -242,8 +242,8 @@ struct tuple_delta_t
   hb_vector_t<unsigned char> compiled_tuple_header;
   hb_vector_t<unsigned char> compiled_deltas;
 
-  /* compiled peak coords, empty for non-gvar tuples */
   hb_vector_t<char> compiled_peak_coords;
+  hb_vector_t<F2DOT14> compiled_interm_coords;
 
   tuple_delta_t () = default;
   tuple_delta_t (const tuple_delta_t& o) = default;
@@ -370,34 +370,52 @@ struct tuple_delta_t
     }
   }
 
-  bool compile_peak_coords (const hb_map_t& axes_index_map,
-                            const hb_map_t& axes_old_index_tag_map)
+  bool compile_coords (const hb_map_t& axes_index_map,
+		       const hb_map_t& axes_old_index_tag_map)
   {
-    unsigned axis_count = axes_index_map.get_population ();
-    if (unlikely (!compiled_peak_coords.alloc (axis_count * F2DOT14::static_size)))
+    unsigned cur_axis_count = axes_index_map.get_population ();
+    if (unlikely (!compiled_peak_coords.resize (cur_axis_count * F2DOT14::static_size)))
       return false;
+    if (unlikely (!compiled_interm_coords.resize (2 * cur_axis_count)))
+      return false;
+    auto start_coords = compiled_interm_coords.as_array ().sub_array (0, cur_axis_count);
+    auto end_coords = compiled_interm_coords.as_array (). sub_array (cur_axis_count);
+    bool interms_needed = false;
 
     unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
+    unsigned j = 0;
     for (unsigned i = 0; i < orig_axis_count; i++)
     {
       if (!axes_index_map.has (i))
         continue;
 
       hb_tag_t axis_tag = axes_old_index_tag_map.get (i);
-      Triple *coords;
+      Triple *coords = nullptr;
       F2DOT14 peak_coord;
       if (axis_tuples.has (axis_tag, &coords))
-        peak_coord.set_float (coords->middle);
-      else
-        peak_coord.set_int (0);
+      {
+	float min_val = coords->minimum;
+	float val = coords->middle;
+	float max_val = coords->maximum;
 
-      /* push F2DOT14 value into char vector */
-      int16_t val = peak_coord.to_int ();
-      compiled_peak_coords.push (static_cast<char> (val >> 8));
-      compiled_peak_coords.push (static_cast<char> (val & 0xFF));
+	peak_coord.set_float (val);
+	int16_t peak_val = peak_coord.to_int ();
+	compiled_peak_coords.arrayZ[2 * j] = static_cast<char> (peak_val >> 8);
+	compiled_peak_coords.arrayZ[2 * j + 1] = static_cast<char> (peak_val & 0xFF);
+
+	start_coords[j].set_float (min_val);
+	end_coords[j].set_float (max_val);
+	if (min_val != hb_min (val, 0.f) || max_val != hb_max (val, 0.f))
+	  interms_needed = true;
+      }
+
+      j++;
     }
 
-    return !compiled_peak_coords.in_error ();
+    if (!interms_needed)
+      compiled_interm_coords.clear ();
+
+    return !compiled_peak_coords.in_error () && !compiled_interm_coords.in_error ();
   }
 
   /* deltas should be compiled already before we compile tuple
@@ -423,6 +441,9 @@ struct tuple_delta_t
     F2DOT14* end = reinterpret_cast<F2DOT14 *> (compiled_tuple_header.end ());
     hb_array_t<F2DOT14> coords (p, end - p);
 
+    if (!shared_tuples_idx_map)
+      compile_coords (axes_index_map, axes_old_index_tag_map); // non-gvar tuples do not have compiled coords yet
+
     /* encode peak coords */
     unsigned peak_count = 0;
     unsigned *shared_tuple_idx;
@@ -433,12 +454,12 @@ struct tuple_delta_t
     }
     else
     {
-      peak_count = encode_peak_coords(coords, flag, axes_index_map, axes_old_index_tag_map);
+      peak_count = encode_peak_coords(coords, flag);
       if (!peak_count) return false;
     }
 
     /* encode interim coords, it's optional so returned num could be 0 */
-    unsigned interim_count = encode_interm_coords (coords.sub_array (peak_count), flag, axes_index_map, axes_old_index_tag_map);
+    unsigned interim_count = encode_interm_coords (coords.sub_array (peak_count), flag);
 
     /* pointdata length = 0 implies "use shared points" */
     if (points_data_length)
@@ -454,73 +475,23 @@ struct tuple_delta_t
   }
 
   unsigned encode_peak_coords (hb_array_t<F2DOT14> peak_coords,
-                               unsigned& flag,
-                               const hb_map_t& axes_index_map,
-                               const hb_map_t& axes_old_index_tag_map) const
+                               unsigned& flag) const
   {
-    unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
-    auto it = peak_coords.iter ();
-    unsigned count = 0;
-    for (unsigned i = 0; i < orig_axis_count; i++)
-    {
-      if (!axes_index_map.has (i)) /* axis pinned */
-        continue;
-      hb_tag_t axis_tag = axes_old_index_tag_map.get (i);
-      Triple *coords;
-      if (!axis_tuples.has (axis_tag, &coords))
-        (*it).set_int (0);
-      else
-        (*it).set_float (coords->middle);
-      it++;
-      count++;
-    }
+    hb_memcpy (&peak_coords[0], &compiled_peak_coords[0], compiled_peak_coords.length * sizeof (compiled_peak_coords[0]));
     flag |= TupleVariationHeader::TuppleIndex::EmbeddedPeakTuple;
-    return count;
+    return compiled_peak_coords.length / F2DOT14::static_size;
   }
 
   /* if no need to encode intermediate coords, then just return p */
   unsigned encode_interm_coords (hb_array_t<F2DOT14> coords,
-                                 unsigned& flag,
-                                 const hb_map_t& axes_index_map,
-                                 const hb_map_t& axes_old_index_tag_map) const
+                                 unsigned& flag) const
   {
-    unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
-    unsigned cur_axis_count = axes_index_map.get_population ();
-
-    auto start_coords_iter = coords.sub_array (0, cur_axis_count).iter ();
-    auto end_coords_iter = coords.sub_array (cur_axis_count).iter ();
-    bool encode_needed = false;
-    unsigned count = 0;
-    for (unsigned i = 0; i < orig_axis_count; i++)
+    if (compiled_interm_coords)
     {
-      if (!axes_index_map.has (i)) /* axis pinned */
-        continue;
-      hb_tag_t axis_tag = axes_old_index_tag_map.get (i);
-      Triple *coords;
-      float min_val = 0.f, val = 0.f, max_val = 0.f;
-      if (axis_tuples.has (axis_tag, &coords))
-      {
-        min_val = coords->minimum;
-        val = coords->middle;
-        max_val = coords->maximum;
-      }
-
-      (*start_coords_iter).set_float (min_val);
-      (*end_coords_iter).set_float (max_val);
-
-      start_coords_iter++;
-      end_coords_iter++;
-      count += 2;
-      if (min_val != hb_min (val, 0.f) || max_val != hb_max (val, 0.f))
-        encode_needed = true;
-    }
-
-    if (encode_needed)
-    {
+      hb_memcpy (&coords[0], &compiled_interm_coords[0], compiled_interm_coords.length * sizeof (compiled_interm_coords[0]));
       flag |= TupleVariationHeader::TuppleIndex::IntermediateRegion;
-      return count;
     }
-    return 0;
+    return compiled_interm_coords.length;
   }
 
   bool compile_deltas ()
