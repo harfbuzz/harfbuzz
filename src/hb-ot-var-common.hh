@@ -242,7 +242,7 @@ struct tuple_delta_t
   hb_vector_t<unsigned char> compiled_tuple_header;
   hb_vector_t<unsigned char> compiled_deltas;
 
-  hb_vector_t<char> compiled_peak_coords;
+  hb_vector_t<F2DOT14> compiled_peak_coords;
   hb_vector_t<F2DOT14> compiled_interm_coords;
 
   tuple_delta_t () = default;
@@ -374,7 +374,7 @@ struct tuple_delta_t
 		       const hb_map_t& axes_old_index_tag_map)
   {
     unsigned cur_axis_count = axes_index_map.get_population ();
-    if (unlikely (!compiled_peak_coords.resize (cur_axis_count * F2DOT14::static_size)))
+    if (unlikely (!compiled_peak_coords.resize (cur_axis_count)))
       return false;
     if (unlikely (!compiled_interm_coords.resize (2 * cur_axis_count)))
       return false;
@@ -391,20 +391,16 @@ struct tuple_delta_t
 
       hb_tag_t axis_tag = axes_old_index_tag_map.get (i);
       Triple *coords = nullptr;
-      F2DOT14 peak_coord;
       if (axis_tuples.has (axis_tag, &coords))
       {
 	float min_val = coords->minimum;
 	float val = coords->middle;
 	float max_val = coords->maximum;
 
-	peak_coord.set_float (val);
-	int16_t peak_val = peak_coord.to_int ();
-	compiled_peak_coords.arrayZ[2 * j] = static_cast<char> (peak_val >> 8);
-	compiled_peak_coords.arrayZ[2 * j + 1] = static_cast<char> (peak_val & 0xFF);
+	compiled_peak_coords.arrayZ[j].set_float (val);
 
-	start_coords[j].set_float (min_val);
-	end_coords[j].set_float (max_val);
+	start_coords.arrayZ[j].set_float (min_val);
+	end_coords.arrayZ[j].set_float (max_val);
 	if (min_val != hb_min (val, 0.f) || max_val != hb_max (val, 0.f))
 	  interms_needed = true;
       }
@@ -424,7 +420,7 @@ struct tuple_delta_t
   bool compile_tuple_var_header (const hb_map_t& axes_index_map,
                                  unsigned points_data_length,
                                  const hb_map_t& axes_old_index_tag_map,
-                                 const hb_hashmap_t<const hb_vector_t<char>*, unsigned>* shared_tuples_idx_map)
+                                 const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map)
   {
     /* compiled_deltas could be empty after iup delta optimization, we can skip
      * compiling this tuple and return true */
@@ -479,7 +475,7 @@ struct tuple_delta_t
   {
     hb_memcpy (&peak_coords[0], &compiled_peak_coords[0], compiled_peak_coords.length * sizeof (compiled_peak_coords[0]));
     flag |= TupleVariationHeader::TuppleIndex::EmbeddedPeakTuple;
-    return compiled_peak_coords.length / F2DOT14::static_size;
+    return compiled_peak_coords.length;
   }
 
   /* if no need to encode intermediate coords, then just return p */
@@ -1223,7 +1219,7 @@ struct TupleVariationData
                         const hb_map_t& axes_old_index_tag_map,
                         bool use_shared_points,
                         bool is_gvar = false,
-                        const hb_hashmap_t<const hb_vector_t<char>*, unsigned>* shared_tuples_idx_map = nullptr)
+                        const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map = nullptr)
     {
       // return true for empty glyph
       if (!tuple_vars)
