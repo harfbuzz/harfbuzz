@@ -458,24 +458,10 @@ struct tuple_delta_t
                                const hb_map_t& axes_index_map,
                                const hb_map_t& axes_old_index_tag_map) const
   {
-    unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
-    auto it = peak_coords.iter ();
-    unsigned count = 0;
-    for (unsigned i = 0; i < orig_axis_count; i++)
-    {
-      if (!axes_index_map.has (i)) /* axis pinned */
-        continue;
-      hb_tag_t axis_tag = axes_old_index_tag_map.get (i);
-      Triple *coords;
-      if (!axis_tuples.has (axis_tag, &coords))
-        (*it).set_int (0);
-      else
-        (*it).set_float (coords->middle);
-      it++;
-      count++;
-    }
+    unsigned peak_count = compiled_peak_coords.length / F2DOT14::static_size;
+    hb_memcpy (&peak_coords[0], &compiled_peak_coords[0], peak_count * F2DOT14::static_size);
     flag |= TupleVariationHeader::TuppleIndex::EmbeddedPeakTuple;
-    return count;
+    return peak_count;
   }
 
   /* if no need to encode intermediate coords, then just return p */
