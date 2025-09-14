@@ -179,7 +179,7 @@ struct glyph_variations_t
     {
       for (tuple_delta_t& var : vars.tuple_vars)
       {
-        if (!var.compile_peak_coords (axes_index_map, axes_old_index_tag_map))
+        if (!var.compile_coords (axes_index_map, axes_old_index_tag_map))
           return false;
         unsigned* count;
         if (coords_count_map.has (&(var.compiled_peak_coords), &count))

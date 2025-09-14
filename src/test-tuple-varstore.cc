@@ -128,8 +128,6 @@ test_decompile_cvar ()
 
   hb_map_t axes_index_map;
   axes_index_map.set (0, 0);
-  for (auto &tuple_var : tuple_variations.tuple_vars)
-    tuple_var.compile_peak_coords (axes_index_map, axis_idx_tag_map);
   bool res = tuple_variations.compile_bytes (axes_index_map, axis_idx_tag_map, false);
   hb_always_assert (res);
   hb_always_assert (tuple_variations.tuple_vars[0].compiled_tuple_header.length == 6);
