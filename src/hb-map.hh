@@ -51,7 +51,7 @@ struct hb_hashmap_t
   {
     if (unlikely (!o.mask)) return;
 
-    if (item_t::is_trivial)
+    if (hb_is_trivially_copy_assignable (item_t))
     {
       items = (item_t *) hb_malloc (sizeof (item_t) * (o.mask + 1));
       if (unlikely (!items))
@@ -138,10 +138,7 @@ struct hb_hashmap_t
     uint32_t total_hash () const
     { return (hash * 31u) + hb_hash (value); }
 
-    static constexpr bool is_trivial = hb_is_trivially_constructible(K) &&
-				       hb_is_trivially_destructible(K) &&
-				       hb_is_trivially_constructible(V) &&
-				       hb_is_trivially_destructible(V);
+    static constexpr bool is_trivially_constructible = (hb_is_trivially_constructible(K) && hb_is_trivially_constructible(V));
   };
 
   hb_object_header_t header;
@@ -182,9 +179,8 @@ struct hb_hashmap_t
     if (likely (items))
     {
       unsigned size = mask + 1;
-      if (!item_t::is_trivial)
-	for (unsigned i = 0; i < size; i++)
-	  items[i].~item_t ();
+      for (unsigned i = 0; i < size; i++)
+	items[i].~item_t ();
       hb_free (items);
       items = nullptr;
     }
@@ -213,7 +209,7 @@ struct hb_hashmap_t
       successful = false;
       return false;
     }
-    if (!item_t::is_trivial)
+    if (!item_t::is_trivially_constructible)
       for (auto &_ : hb_iter (new_items, new_size))
 	new (&_) item_t ();
     else
@@ -239,9 +235,8 @@ struct hb_hashmap_t
 		       std::move (old_items[i].value));
       }
     }
-    if (!item_t::is_trivial)
-      for (unsigned int i = 0; i < old_size; i++)
-	old_items[i].~item_t ();
+    for (unsigned int i = 0; i < old_size; i++)
+      old_items[i].~item_t ();
 
     hb_free (old_items);
 
