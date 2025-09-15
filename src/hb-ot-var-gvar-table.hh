@@ -183,7 +183,7 @@ struct glyph_variations_t
           return false;
         unsigned* count;
         if (coords_count_map.has (&(var.compiled_peak_coords), &count))
-          coords_count_map.set (&(var.compiled_peak_coords), *count + 1);
+	  (*count)++;
         else
           coords_count_map.set (&(var.compiled_peak_coords), 1);
       }
