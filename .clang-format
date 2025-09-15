@@ -9,7 +9,7 @@ AllowShortLoopsOnASingleLine: true
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterEnum: true
-  AfterStruct: false
+  AfterStruct: true
   SplitEmptyFunction: false
   AfterClass: true
   AfterControlStatement: true
