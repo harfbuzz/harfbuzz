@@ -9,3 +9,7 @@ retain-gids.txt
 
 SUBSETS:
 A
+
+# diff with fonttools on duplicate features only, fonttools doesn't de-duplicate features
+OPTIONS:
+no_fonttools

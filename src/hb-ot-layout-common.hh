@@ -141,6 +141,7 @@ struct hb_subset_layout_context_t :
   const hb_map_t *lookup_index_map;
   const hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map;
   const hb_map_t *feature_index_map;
+  const hb_map_t *feature_map_w_duplicates;
   const hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map;
   hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map;
   const hb_set_t *catch_all_record_feature_idxes;
@@ -165,6 +166,7 @@ struct hb_subset_layout_context_t :
       lookup_index_map = &c_->plan->gsub_lookups;
       script_langsys_map = &c_->plan->gsub_langsys;
       feature_index_map = &c_->plan->gsub_features;
+      feature_map_w_duplicates = &c_->plan->gsub_features_w_duplicates;
       feature_substitutes_map = &c_->plan->gsub_feature_substitutes_map;
       feature_record_cond_idx_map = c_->plan->user_axes_location.is_empty () ? nullptr : &c_->plan->gsub_feature_record_cond_idx_map;
       catch_all_record_feature_idxes = &c_->plan->gsub_old_features;
@@ -175,6 +177,7 @@ struct hb_subset_layout_context_t :
       lookup_index_map = &c_->plan->gpos_lookups;
       script_langsys_map = &c_->plan->gpos_langsys;
       feature_index_map = &c_->plan->gpos_features;
+      feature_map_w_duplicates = &c_->plan->gpos_features_w_duplicates;
       feature_substitutes_map = &c_->plan->gpos_feature_substitutes_map;
       feature_record_cond_idx_map = c_->plan->user_axes_location.is_empty () ? nullptr : &c_->plan->gpos_feature_record_cond_idx_map;
       catch_all_record_feature_idxes = &c_->plan->gpos_old_features;
@@ -1082,15 +1085,15 @@ struct LangSys
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     const uint32_t *v;
-    out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex, &v) ? *v : 0xFFFFu;
+    out->reqFeatureIndex = l->feature_map_w_duplicates->has (reqFeatureIndex, &v) ? *v : 0xFFFFu;
 
     if (!l->visitFeatureIndex (featureIndex.len))
       return_trace (false);
 
     auto it =
     + hb_iter (featureIndex)
-    | hb_filter (l->feature_index_map)
-    | hb_map (l->feature_index_map)
+    | hb_filter (l->feature_map_w_duplicates)
+    | hb_map (l->feature_map_w_duplicates)
     ;
 
     bool ret = bool (it);
@@ -4459,7 +4462,7 @@ struct FeatureTableSubstitutionRecord
     if (unlikely (!s->extend_min (this))) return_trace (false);
 
     uint32_t *new_feature_idx;
-    if (!c->feature_index_map->has (feature_index, &new_feature_idx))
+    if (!c->feature_map_w_duplicates->has (feature_index, &new_feature_idx))
       return_trace (false);
 
     if (!s->check_assign (featureIndex, *new_feature_idx, HB_SERIALIZE_ERROR_INT_OVERFLOW))
@@ -4477,7 +4480,7 @@ struct FeatureTableSubstitutionRecord
   {
     TRACE_SUBSET (this);
     uint32_t *new_feature_index;
-    if (!c->feature_index_map->has (featureIndex, &new_feature_index))
+    if (!c->feature_map_w_duplicates->has (featureIndex, &new_feature_index))
       return_trace (false);
 
     auto *out = c->subset_context->serializer->embed (this);
@@ -4751,7 +4754,7 @@ struct FeatureVariations
 
     int keep_up_to = -1;
     for (int i = varRecords.len - 1; i >= 0; i--) {
-      if (varRecords[i].intersects_features (this, l->feature_index_map)) {
+      if (varRecords[i].intersects_features (this, l->feature_map_w_duplicates)) {
         keep_up_to = i;
         break;
       }

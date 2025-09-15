@@ -14,3 +14,9 @@ SUBSETS:
 الحب
 سے
 *
+
+# diff with fonttools:
+# temporary: fonttools doesn't prune empty Base glyphs in MarkBasePos table
+# fonttools doesn't de-duplicate features
+OPTIONS:
+no_fonttools
