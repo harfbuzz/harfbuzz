@@ -1798,71 +1798,87 @@ populate_serializer_with_large_liga_overlapping_clone_result (hb_serialize_conte
 static void test_sort_shortest ()
 {
   size_t buffer_size = 100;
-  void* buffer = malloc (buffer_size);
-  hb_serialize_context_t c (buffer, buffer_size);
-  populate_serializer_complex_2 (&c);
+  void* buffer_a = malloc (buffer_size);
+  void* buffer_e = malloc (buffer_size);
+  hb_serialize_context_t a (buffer_a, buffer_size);
+  hb_serialize_context_t e (buffer_e, buffer_size);
+  populate_serializer_complex_2 (&a);
 
-  graph_t graph (c.object_graph ());
+  graph_t graph (a.object_graph ());
   graph.sort_shortest_distance ();
+  graph.normalize();
   hb_always_assert (!graph.in_error ());
 
-  hb_always_assert(strncmp (graph.object (4).head, "abc", 3) == 0);
-  hb_always_assert(graph.object (4).real_links.length == 3);
-  hb_always_assert(graph.object (4).real_links[0].objidx == 2);
-  hb_always_assert(graph.object (4).real_links[1].objidx == 0);
-  hb_always_assert(graph.object (4).real_links[2].objidx == 3);
+  // Expected graph
+  e.start_serialize();
+  unsigned jkl = add_object ("jkl", 3, &e);
 
-  hb_always_assert(strncmp (graph.object (3).head, "mn", 2) == 0);
-  hb_always_assert(graph.object (3).real_links.length == 0);
+  start_object("ghi", 3, &e);
+  add_offset(jkl, &e);
+  unsigned ghi = e.pop_pack(false);
 
-  hb_always_assert(strncmp (graph.object (2).head, "def", 3) == 0);
-  hb_always_assert(graph.object (2).real_links.length == 1);
-  hb_always_assert(graph.object (2).real_links[0].objidx == 1);
+  start_object("def", 3, &e);
+  add_offset(ghi, &e);
+  unsigned def = e.pop_pack(false);
 
-  hb_always_assert(strncmp (graph.object (1).head, "ghi", 3) == 0);
-  hb_always_assert(graph.object (1).real_links.length == 1);
-  hb_always_assert(graph.object (1).real_links[0].objidx == 0);
+  unsigned mn = add_object("mn", 2, &e);
 
-  hb_always_assert(strncmp (graph.object (0).head, "jkl", 3) == 0);
-  hb_always_assert(graph.object (0).real_links.length == 0);
+  start_object ("abc", 3, &e);
+  add_offset (def, &e);
+  add_offset (jkl, &e);
+  add_offset (mn, &e);
+  e.pop_pack (false);
+  e.end_serialize();
 
-  free (buffer);
+  graph_t expected(e.object_graph());
+  expected.normalize();
+
+  assert(expected == graph);
+
+  free (buffer_a);
+  free (buffer_e);
 }
 
 static void test_duplicate_leaf ()
 {
   size_t buffer_size = 100;
-  void* buffer = malloc (buffer_size);
-  hb_serialize_context_t c (buffer, buffer_size);
-  populate_serializer_complex_2 (&c);
+  void* buffer_a = malloc (buffer_size);
+  void* buffer_e = malloc (buffer_size);
+  hb_serialize_context_t a (buffer_a, buffer_size);
+  hb_serialize_context_t e (buffer_e, buffer_size);
+  populate_serializer_complex_2 (&a);
 
-  graph_t graph (c.object_graph ());
+  graph_t graph (a.object_graph ());
   graph.duplicate (4, 1);
+  graph.normalize();
 
-  hb_always_assert(strncmp (graph.object (5).head, "abc", 3) == 0);
-  hb_always_assert(graph.object (5).real_links.length == 3);
-  hb_always_assert(graph.object (5).real_links[0].objidx == 3);
-  hb_always_assert(graph.object (5).real_links[1].objidx == 4);
-  hb_always_assert(graph.object (5).real_links[2].objidx == 0);
+  e.start_serialize();
+  unsigned mn = add_object("mn", 2, &e);
+  unsigned jkl_2 = add_object("jkl", 3, &e);
 
-  hb_always_assert(strncmp (graph.object (4).head, "jkl", 3) == 0);
-  hb_always_assert(graph.object (4).real_links.length == 0);
+  start_object("ghi", 3, &e);
+  add_offset(jkl_2, &e);
+  unsigned ghi = e.pop_pack(false);
 
-  hb_always_assert(strncmp (graph.object (3).head, "def", 3) == 0);
-  hb_always_assert(graph.object (3).real_links.length == 1);
-  hb_always_assert(graph.object (3).real_links[0].objidx == 2);
+  start_object("def", 3, &e);
+  add_offset(ghi, &e);
+  unsigned def = e.pop_pack(false);
 
-  hb_always_assert(strncmp (graph.object (2).head, "ghi", 3) == 0);
-  hb_always_assert(graph.object (2).real_links.length == 1);
-  hb_always_assert(graph.object (2).real_links[0].objidx == 1);
+  unsigned jkl_1 = add_object("jkl", 3, &e);
 
-  hb_always_assert(strncmp (graph.object (1).head, "jkl", 3) == 0);
-  hb_always_assert(graph.object (1).real_links.length == 0);
+  start_object("abc", 3, &e);
+  add_offset(def, &e);
+  add_offset(jkl_1, &e);
+  add_offset(mn, &e);
+  e.pop_pack(false);
 
-  hb_always_assert(strncmp (graph.object (0).head, "mn", 2) == 0);
-  hb_always_assert(graph.object (0).real_links.length == 0);
+  graph_t expected(e.object_graph());
+  expected.normalize();
 
-  free (buffer);
+  assert(expected == graph);
+
+  free (buffer_a);
+  free (buffer_e);
 }
 
 static void test_duplicate_interior ()
@@ -1875,15 +1891,15 @@ static void test_duplicate_interior ()
   graph_t graph (c.object_graph ());
   graph.duplicate (3, 2);
 
-  hb_always_assert(strncmp (graph.object (6).head, "abc", 3) == 0);
-  hb_always_assert(graph.object (6).real_links.length == 3);
-  hb_always_assert(graph.object (6).real_links[0].objidx == 4);
-  hb_always_assert(graph.object (6).real_links[1].objidx == 2);
-  hb_always_assert(graph.object (6).real_links[2].objidx == 1);
+  hb_always_assert(strncmp (graph.object (6).head, "jkl", 3) == 0);
+  hb_always_assert(graph.object (6).real_links.length == 1);
+  hb_always_assert(graph.object (6).real_links[0].objidx == 0);
 
-  hb_always_assert(strncmp (graph.object (5).head, "jkl", 3) == 0);
-  hb_always_assert(graph.object (5).real_links.length == 1);
-  hb_always_assert(graph.object (5).real_links[0].objidx == 0);
+  hb_always_assert(strncmp (graph.object (5).head, "abc", 3) == 0);
+  hb_always_assert(graph.object (5).real_links.length == 3);
+  hb_always_assert(graph.object (5).real_links[0].objidx == 4);
+  hb_always_assert(graph.object (5).real_links[1].objidx == 2);
+  hb_always_assert(graph.object (5).real_links[2].objidx == 1);
 
   hb_always_assert(strncmp (graph.object (4).head, "def", 3) == 0);
   hb_always_assert(graph.object (4).real_links.length == 1);
@@ -1891,7 +1907,7 @@ static void test_duplicate_interior ()
 
   hb_always_assert(strncmp (graph.object (3).head, "ghi", 3) == 0);
   hb_always_assert(graph.object (3).real_links.length == 1);
-  hb_always_assert(graph.object (3).real_links[0].objidx == 5);
+  hb_always_assert(graph.object (3).real_links[0].objidx == 6);
 
   hb_always_assert(strncmp (graph.object (2).head, "jkl", 3) == 0);
   hb_always_assert(graph.object (2).real_links.length == 1);
@@ -1930,6 +1946,7 @@ static void test_will_overflow_1 ()
   size_t buffer_size = 100;
   void* buffer = malloc (buffer_size);
   hb_serialize_context_t c (buffer, buffer_size);
+
   populate_serializer_complex_2 (&c);
   graph_t graph (c.object_graph ());
 
