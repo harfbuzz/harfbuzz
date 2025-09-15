@@ -79,7 +79,7 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 
 #include <atomic>
 
-#define STL_ATOMIC_IMPL
+#define HB_STL_ATOMIC_IMPL
 
 #define _hb_memory_r_barrier()			std::atomic_thread_fence(std::memory_order_acquire)
 #define _hb_memory_w_barrier()			std::atomic_thread_fence(std::memory_order_release)
@@ -142,7 +142,7 @@ inline T hb_atomic_int_impl_get (const T *AI)	{ T v = *AI; _hb_memory_r_barrier 
 inline void *hb_atomic_ptr_impl_get (void ** const P)	{ void *v = *P; _hb_memory_r_barrier (); return v; }
 #endif
 
-#ifdef STL_ATOMIC_IMPL
+#ifdef HB_STL_ATOMIC_IMPL
 template <typename T>
 struct hb_atomic_t
 {
