@@ -376,11 +376,8 @@ struct tuple_delta_t
     unsigned cur_axis_count = axes_index_map.get_population ();
     if (unlikely (!compiled_peak_coords.resize (cur_axis_count)))
       return false;
-    if (unlikely (!compiled_interm_coords.resize (2 * cur_axis_count)))
-      return false;
-    auto start_coords = compiled_interm_coords.as_array ().sub_array (0, cur_axis_count);
-    auto end_coords = compiled_interm_coords.as_array (). sub_array (cur_axis_count);
-    bool interms_needed = false;
+
+    hb_array_t<F2DOT14> start_coords, end_coords;
 
     unsigned orig_axis_count = axes_old_index_tag_map.get_population ();
     unsigned j = 0;
@@ -399,17 +396,35 @@ struct tuple_delta_t
 
 	compiled_peak_coords.arrayZ[j].set_float (val);
 
-	start_coords.arrayZ[j].set_float (min_val);
-	end_coords.arrayZ[j].set_float (max_val);
 	if (min_val != hb_min (val, 0.f) || max_val != hb_max (val, 0.f))
-	  interms_needed = true;
+	{
+	  if (!compiled_interm_coords)
+	  {
+	    if (unlikely (!compiled_interm_coords.resize (2 * cur_axis_count)))
+	      return false;
+	    start_coords = compiled_interm_coords.as_array ().sub_array (0, cur_axis_count);
+	    end_coords = compiled_interm_coords.as_array ().sub_array (cur_axis_count);
+
+	    for (unsigned k = 0; k < j; k++)
+	    {
+	      signed peak = compiled_peak_coords.arrayZ[k].to_int ();
+	      if (!peak) continue;
+	      start_coords.arrayZ[k].set_int (hb_min (peak, 0));
+	      end_coords.arrayZ[k].set_int (hb_max (peak, 0));
+	    }
+	  }
+
+	}
+
+	if (compiled_interm_coords)
+	{
+	  start_coords.arrayZ[j].set_float (min_val);
+	  end_coords.arrayZ[j].set_float (max_val);
+	}
       }
 
       j++;
     }
-
-    if (!interms_needed)
-      compiled_interm_coords.clear ();
 
     return !compiled_peak_coords.in_error () && !compiled_interm_coords.in_error ();
   }
