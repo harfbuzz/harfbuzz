@@ -473,9 +473,10 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
     unsigned best_cost = n + 1;
     int len = costs.length;
     hb_set_t best_sol;
+    hb_set_t solution;
     for (int start = n - 1; start < len; start++)
     {
-      hb_set_t solution;
+      solution.clear ();
       int i = start;
       int lookback = start - (int) n;
       while (i > lookback)
