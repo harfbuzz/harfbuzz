@@ -338,7 +338,13 @@ struct hb_hashmap_t
   bool has (const K &key, VV **vp = nullptr) const
   {
     if (!items) return false;
-    auto *item = fetch_item (key, hb_hash (key));
+    return has_with_hash (key, hb_hash (key), vp);
+  }
+  template <typename VV=V>
+  bool has_with_hash (const K &key, uint32_t hash, VV **vp = nullptr) const
+  {
+    if (!items) return false;
+    auto *item = fetch_item (key, hash);
     if (item)
     {
       if (vp) *vp = std::addressof (item->value);

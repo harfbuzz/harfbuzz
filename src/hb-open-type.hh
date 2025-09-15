@@ -82,7 +82,7 @@ struct NumType
   NumType operator ++ (int) { NumType c (*this); ++*this; return c; }
   NumType operator -- (int) { NumType c (*this); --*this; return c; }
 
-  unsigned hash () const { return hb_array ((const char *) &v, sizeof (v)).hash (); }
+  uint32_t hash () const { return hb_array ((const char *) &v, sizeof (v)).hash (); }
   HB_INTERNAL static int cmp (const NumType *a, const NumType *b)
   { return b->cmp (*a); }
   HB_INTERNAL static int cmp (const void *a, const void *b)
