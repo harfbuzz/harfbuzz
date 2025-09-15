@@ -149,7 +149,11 @@ struct hb_atomic_t
 {
   hb_atomic_t () = default;
   constexpr hb_atomic_t (T v) : v (v) {}
+  constexpr hb_atomic_t (const hb_atomic_t& o) : v (o.get_relaxed ()) {}
+  constexpr hb_atomic_t (hb_atomic_t&& o) : v (o.get_relaxed ()) { o.set_relaxed({}); }
 
+  hb_atomic_t &operator= (const hb_atomic_t& o) { set_relaxed (o.get_relaxed ()); return *this; }
+  hb_atomic_t &operator= (hb_atomic_t&& o){ set_relaxed (o.get_relaxed ()); o.set_relaxed ({}); return *this; }
   hb_atomic_t &operator= (T v_)
   {
     set_relaxed (v_);
@@ -170,6 +174,13 @@ struct hb_atomic_t
   {
     set_relaxed (get_relaxed () | v_);
     return *this;
+  }
+
+  void swap( hb_atomic_t &o )
+  {
+    T v = o.get_acquire ();
+    o.set_relaxed (get_acquire ());
+    set_relaxed (v);
   }
 
   std::atomic<T> v = 0;
@@ -196,9 +207,23 @@ struct hb_atomic_t<T *>
     return get_acquire ();
   }
 
+  void swap( hb_atomic_t &o ){
+    T *p = o.get_acquire ();
+    o.set_relaxed (get_acquire ());
+    set_relaxed (p);
+  }
+
   std::atomic<T *> v = nullptr;
 };
 
+namespace std
+{
+template<class T>
+void swap (hb_atomic_t<T> &a, hb_atomic_t<T> &b)
+{
+  a.swap (b);
+}
+}
 #else
 
 template <typename T>
