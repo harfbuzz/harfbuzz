@@ -181,11 +181,12 @@ struct glyph_variations_t
       {
         if (!var.compile_coords (axes_index_map, axes_old_index_tag_map))
           return false;
-        unsigned* count;
-        if (coords_count_map.has (&(var.compiled_peak_coords), &count))
+        unsigned *count;
+	unsigned hash = hb_hash (&var.compiled_peak_coords);
+        if (coords_count_map.has_with_hash (&(var.compiled_peak_coords), hash, &count))
 	  (*count)++;
         else
-          coords_count_map.set (&(var.compiled_peak_coords), 1);
+          coords_count_map.set_with_hash (&(var.compiled_peak_coords), hash, 1);
       }
     }
 
