@@ -193,66 +193,45 @@ struct glyph_variations_t
       return false;
 
     /* add only those coords that are used more than once into the vector and sort */
-    hb_vector_t<const hb_vector_t<F2DOT14>*> shared_coords;
-    if (unlikely (!shared_coords.alloc (coords_count_map.get_population ())))
-      return false;
-
-    for (const auto _ : coords_count_map.iter ())
-    {
-      if (_.second == 1) continue;
-      shared_coords.push (_.first);
-    }
+    hb_vector_t<hb_pair_t<const hb_vector_t<F2DOT14>*, unsigned>> shared_coords {
+      + hb_iter (coords_count_map)
+      | hb_filter ([] (const hb_pair_t<const hb_vector_t<F2DOT14>*, unsigned>& p) { return p.second > 1; })
+    };
+    if (unlikely (shared_coords.in_error ())) return false;
 
     /* no shared tuples: no coords are used more than once */
     if (!shared_coords) return true;
     /* sorting based on the coords frequency first (high to low), then compare
      * the coords bytes */
-    hb_qsort (shared_coords.arrayZ, shared_coords.length, sizeof (hb_vector_t<F2DOT14>*), _cmp_coords, (void *) (&coords_count_map));
+    shared_coords.qsort (_cmp_coords);
 
     /* build shared_coords->idx map and shared tuples byte array */
 
     shared_tuples_count = hb_min (0xFFFu + 1, shared_coords.length);
-    unsigned len = shared_tuples_count * (shared_coords[0]->length);
+    unsigned len = shared_tuples_count * (shared_coords[0].first->length);
     if (unlikely (!compiled_shared_tuples.alloc (len)))
       return false;
 
     for (unsigned i = 0; i < shared_tuples_count; i++)
     {
-      shared_tuples_idx_map.set (shared_coords[i], i);
+      shared_tuples_idx_map.set (shared_coords[i].first, i);
       /* add a concat() in hb_vector_t? */
-      for (auto c : shared_coords[i]->iter ())
+      for (auto c : shared_coords[i].first->iter ())
         compiled_shared_tuples.push (c);
     }
 
     return true;
   }
 
-  static int _cmp_coords (const void *pa, const void *pb, void *arg)
+  static int _cmp_coords (const void *pa, const void *pb)
   {
-    const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* coords_count_map =
-        reinterpret_cast<const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>*> (arg);
+    const hb_pair_t<hb_vector_t<F2DOT14> *, unsigned> *a = (const hb_pair_t<hb_vector_t<F2DOT14> *, unsigned> *) pa;
+    const hb_pair_t<hb_vector_t<F2DOT14> *, unsigned> *b = (const hb_pair_t<hb_vector_t<F2DOT14> *, unsigned> *) pb;
 
-    /* shared_coords is hb_vector_t<const hb_vector_t<F2DOT14>*> so casting pa/pb
-     * to be a pointer to a pointer */
-    const hb_vector_t<F2DOT14>** a = reinterpret_cast<const hb_vector_t<F2DOT14>**> (const_cast<void*>(pa));
-    const hb_vector_t<F2DOT14>** b = reinterpret_cast<const hb_vector_t<F2DOT14>**> (const_cast<void*>(pb));
+    if (a->second != b->second)
+      return b->second - a->second; // high to low
 
-    bool has_a = coords_count_map->has (*a);
-    bool has_b = coords_count_map->has (*b);
-
-    if (has_a && has_b)
-    {
-      unsigned a_num = coords_count_map->get (*a);
-      unsigned b_num = coords_count_map->get (*b);
-
-      if (a_num != b_num)
-        return b_num - a_num;
-
-      return (*b)->as_array().cmp ((*a)->as_array ());
-    }
-    else if (has_a) return -1;
-    else if (has_b) return 1;
-    else return 0;
+    return b->first->as_array().cmp (a->first->as_array ());
   }
 
   template<typename Iterator,
