@@ -13,10 +13,8 @@ BraceWrapping:
   SplitEmptyFunction: false
   AfterClass: true
   AfterControlStatement: true
-  AfterEnum: false
   AfterFunction: true
   AfterNamespace: false
-  AfterStruct: true
   AfterUnion: true
   BeforeElse: true
 AlwaysBreakTemplateDeclarations: true
@@ -28,7 +26,6 @@ AlwaysBreakAfterDefinitionReturnType: TopLevel
 BinPackParameters: false
 AllowShortFunctionsOnASingleLine: Inline
 AccessModifierOffset: 0
-AlignTrailingComments: true
 AllowShortIfStatementsOnASingleLine: true
 AlignAfterOpenBracket: Align
 AlignOperands: true
