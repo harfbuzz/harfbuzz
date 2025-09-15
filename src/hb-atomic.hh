@@ -149,7 +149,7 @@ struct hb_atomic_t
   hb_atomic_t () = default;
   constexpr hb_atomic_t (T v) : v (v) {}
   constexpr hb_atomic_t (const hb_atomic_t& o) : v (o.get_relaxed ()) {}
-  constexpr hb_atomic_t (hb_atomic_t&& o) : v (o.get_relaxed ()) { o.set_relaxed({}); }
+  constexpr hb_atomic_t (hb_atomic_t&& o) : v (o.get_relaxed ()) { o.set_relaxed ({}); }
 
   hb_atomic_t &operator= (const hb_atomic_t& o) { set_relaxed (o.get_relaxed ()); return *this; }
   hb_atomic_t &operator= (hb_atomic_t&& o){ set_relaxed (o.get_relaxed ()); o.set_relaxed ({}); return *this; }
