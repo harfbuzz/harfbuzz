@@ -66,6 +66,7 @@ struct glyph_variations_t
 
   hb_vector_t<tuple_variations_t> glyph_variations;
 
+  hb_vector_t<F2DOT14> peak_coords_storage;
   hb_vector_t<F2DOT14> compiled_shared_tuples;
   private:
   unsigned shared_tuples_count = 0;
@@ -174,12 +175,20 @@ struct glyph_variations_t
      * function will always deref pointers first */
     hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned> coords_count_map;
 
+    unsigned tuple_vars_count = + hb_iter (glyph_variations)
+				| hb_map ([] (const tuple_variations_t& vars) { return vars.tuple_vars.length; })
+				| hb_reduce (hb_add, 0)
+				;
+    if (unlikely (!peak_coords_storage.resize (tuple_vars_count * axes_index_map.get_population())))
+      return false;
+    hb_array_t<F2DOT14> peak_coords_array = peak_coords_storage.as_array ();
+
     /* count the num of shared coords */
     for (tuple_variations_t& vars: glyph_variations)
     {
       for (tuple_delta_t& var : vars.tuple_vars)
       {
-        if (!var.compile_coords (axes_index_map, axes_old_index_tag_map))
+        if (!var.compile_coords (axes_index_map, axes_old_index_tag_map, std::addressof (peak_coords_array)))
           return false;
         unsigned *count;
 	unsigned hash = hb_hash (&var.compiled_peak_coords);

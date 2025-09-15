@@ -94,16 +94,13 @@ struct hb_vector_t
   }
   ~hb_vector_t () { fini (); }
 
-  template <unsigned n,
-	    typename T = Type,
-	    hb_enable_if (hb_is_trivially_constructible(T) &&
-			  hb_is_trivially_destructible(T))>
+  template <unsigned n>
   void
   set_storage (Type (&array)[n])
-  {
-    set_storage (array, n);
-  }
-
+  { set_storage (array, n); }
+  void
+  set_storage (hb_array_t<Type> array)
+  { set_storage (array.arrayZ, array.length); }
   template <typename T = Type,
 	    hb_enable_if (hb_is_trivially_constructible(T) &&
 			  hb_is_trivially_destructible(T))>
@@ -113,7 +110,6 @@ struct hb_vector_t
     if (unlikely (in_error ()))
       return;
 
-    assert (n > 0);
     assert (allocated == 0);
     assert (length == 0);
 
