@@ -264,12 +264,13 @@ static bool _can_iup_in_between (const hb_array_t<const contour_point_t> contour
 
   unsigned num = contour_points.length;
 
+  double tolerance_sq = tolerance * tolerance;
   for (unsigned i = 0; i < num; i++)
   {
     double dx = static_cast<double> (x_deltas.arrayZ[i]) - interp_x_deltas.arrayZ[i];
     double dy = static_cast<double> (y_deltas.arrayZ[i]) - interp_y_deltas.arrayZ[i];
-  
-    if (sqrt (dx * dx + dy * dy) > tolerance)
+
+    if (dx * dx + dy * dy > tolerance_sq)
       return false;
   }
   return true;
@@ -294,7 +295,7 @@ static bool _iup_contour_optimize_dp (const contour_point_vector_t& contour_poin
   for (unsigned i = 0; i < n; i++)
   {
     unsigned best_cost = (i == 0 ? 1 : costs.arrayZ[i-1] + 1);
-    
+
     costs.arrayZ[i] = best_cost;
     chain.arrayZ[i] = (i == 0 ? -1 : i - 1);
 
@@ -342,11 +343,12 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
     return false;
 
   bool all_within_tolerance = true;
+  double tolerance_sq = tolerance * tolerance;
   for (unsigned i = 0; i < n; i++)
   {
     int dx = x_deltas.arrayZ[i];
     int dy = y_deltas.arrayZ[i];
-    if (sqrt ((double) dx * dx + (double) dy * dy) > tolerance)
+    if ((double) dx * dx + (double) dy * dy > tolerance_sq)
     {
       all_within_tolerance = false;
       break;
