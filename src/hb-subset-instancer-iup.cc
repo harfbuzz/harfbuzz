@@ -254,9 +254,10 @@ static bool _can_iup_in_between (const hb_array_t<const contour_point_t> contour
                                  const contour_point_t& p1, const contour_point_t& p2,
                                  int p1_dx, int p2_dx,
                                  int p1_dy, int p2_dy,
-                                 double tolerance)
+                                 double tolerance,
+				 hb_vector_t<double> &interp_x_deltas, /* scratch */
+				 hb_vector_t<double> &interp_y_deltas /* scratch */)
 {
-  hb_vector_t<double> interp_x_deltas, interp_y_deltas;
   if (!_iup_segment (contour_points, x_deltas, y_deltas,
                      p1, p2, p1_dx, p2_dx, p1_dy, p2_dy,
                      interp_x_deltas, interp_y_deltas))
@@ -283,7 +284,9 @@ static bool _iup_contour_optimize_dp (const contour_point_vector_t& contour_poin
                                       double tolerance,
                                       unsigned lookback,
                                       hb_vector_t<unsigned>& costs, /* OUT */
-                                      hb_vector_t<int>& chain /* OUT */)
+                                      hb_vector_t<int>& chain, /* OUT */
+				      hb_vector_t<double> &interp_x_deltas_scratch,
+				      hb_vector_t<double> &interp_y_deltas_scratch)
 {
   unsigned n = contour_points.length;
   if (unlikely (!costs.resize (n, false) ||
@@ -316,7 +319,8 @@ static bool _iup_contour_optimize_dp (const contour_point_vector_t& contour_poin
                                contour_points.arrayZ[p1], contour_points.arrayZ[i],
                                x_deltas.arrayZ[p1], x_deltas.arrayZ[i],
                                y_deltas.arrayZ[p1], y_deltas.arrayZ[i],
-                               tolerance))
+                               tolerance,
+			       interp_x_deltas_scratch, interp_y_deltas_scratch))
       {
         best_cost = cost;
         costs.arrayZ[i] = best_cost;
@@ -334,7 +338,9 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
                                    const hb_array_t<const int> x_deltas,
                                    const hb_array_t<const int> y_deltas,
                                    hb_array_t<bool> opt_indices, /* OUT */
-                                   double tolerance = 0.0)
+                                   double tolerance,
+				   hb_vector_t<double> &interp_x_deltas_scratch,
+				   hb_vector_t<double> &interp_y_deltas_scratch)
 {
   unsigned n = contour_points.length;
   if (opt_indices.length != n ||
@@ -407,7 +413,8 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 
     if (!_iup_contour_optimize_dp (rot_points, rot_x_deltas, rot_y_deltas,
                                    rot_forced_set, tolerance, n,
-                                   costs, chain))
+                                   costs, chain,
+				   interp_x_deltas_scratch, interp_y_deltas_scratch))
       return false;
 
     hb_set_t solution;
@@ -459,7 +466,8 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
     hb_vector_t<int> chain;
     if (!_iup_contour_optimize_dp (repeat_points, repeat_x_deltas, repeat_y_deltas,
                                    forced_set, tolerance, n,
-                                   costs, chain))
+                                   costs, chain,
+				   interp_x_deltas_scratch, interp_y_deltas_scratch))
       return false;
 
     unsigned best_cost = n + 1;
@@ -518,6 +526,8 @@ bool iup_delta_optimize (const contour_point_vector_t& contour_points,
 
   if (end_points.in_error ()) return false;
 
+  hb_vector_t<double> interp_x_deltas_scratch, interp_y_deltas_scratch;
+
   unsigned start = 0;
   for (unsigned end : end_points)
   {
@@ -526,7 +536,8 @@ bool iup_delta_optimize (const contour_point_vector_t& contour_points,
                                 x_deltas.as_array ().sub_array (start, len),
                                 y_deltas.as_array ().sub_array (start, len),
                                 opt_indices.as_array ().sub_array (start, len),
-                                tolerance))
+                                tolerance,
+				interp_x_deltas_scratch, interp_y_deltas_scratch))
       return false;
     start = end + 1;
   }
