@@ -66,12 +66,12 @@ struct glyph_variations_t
 
   hb_vector_t<tuple_variations_t> glyph_variations;
 
-  hb_vector_t<char> compiled_shared_tuples;
+  hb_vector_t<F2DOT14> compiled_shared_tuples;
   private:
   unsigned shared_tuples_count = 0;
 
   /* shared coords-> index map after instantiation */
-  hb_hashmap_t<const hb_vector_t<char>*, unsigned> shared_tuples_idx_map;
+  hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned> shared_tuples_idx_map;
 
   public:
   unsigned compiled_shared_tuples_count () const
@@ -172,7 +172,7 @@ struct glyph_variations_t
   {
     /* key is pointer to compiled_peak_coords inside each tuple, hashing
      * function will always deref pointers first */
-    hb_hashmap_t<const hb_vector_t<char>*, unsigned> coords_count_map;
+    hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned> coords_count_map;
 
     /* count the num of shared coords */
     for (tuple_variations_t& vars: glyph_variations)
@@ -193,7 +193,7 @@ struct glyph_variations_t
       return false;
 
     /* add only those coords that are used more than once into the vector and sort */
-    hb_vector_t<const hb_vector_t<char>*> shared_coords;
+    hb_vector_t<const hb_vector_t<F2DOT14>*> shared_coords;
     if (unlikely (!shared_coords.alloc (coords_count_map.get_population ())))
       return false;
 
@@ -207,7 +207,7 @@ struct glyph_variations_t
     if (!shared_coords) return true;
     /* sorting based on the coords frequency first (high to low), then compare
      * the coords bytes */
-    hb_qsort (shared_coords.arrayZ, shared_coords.length, sizeof (hb_vector_t<char>*), _cmp_coords, (void *) (&coords_count_map));
+    hb_qsort (shared_coords.arrayZ, shared_coords.length, sizeof (hb_vector_t<F2DOT14>*), _cmp_coords, (void *) (&coords_count_map));
 
     /* build shared_coords->idx map and shared tuples byte array */
 
@@ -220,7 +220,7 @@ struct glyph_variations_t
     {
       shared_tuples_idx_map.set (shared_coords[i], i);
       /* add a concat() in hb_vector_t? */
-      for (char c : shared_coords[i]->iter ())
+      for (auto c : shared_coords[i]->iter ())
         compiled_shared_tuples.push (c);
     }
 
@@ -229,13 +229,13 @@ struct glyph_variations_t
 
   static int _cmp_coords (const void *pa, const void *pb, void *arg)
   {
-    const hb_hashmap_t<const hb_vector_t<char>*, unsigned>* coords_count_map =
-        reinterpret_cast<const hb_hashmap_t<const hb_vector_t<char>*, unsigned>*> (arg);
+    const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* coords_count_map =
+        reinterpret_cast<const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>*> (arg);
 
-    /* shared_coords is hb_vector_t<const hb_vector_t<char>*> so casting pa/pb
+    /* shared_coords is hb_vector_t<const hb_vector_t<F2DOT14>*> so casting pa/pb
      * to be a pointer to a pointer */
-    const hb_vector_t<char>** a = reinterpret_cast<const hb_vector_t<char>**> (const_cast<void*>(pa));
-    const hb_vector_t<char>** b = reinterpret_cast<const hb_vector_t<char>**> (const_cast<void*>(pb));
+    const hb_vector_t<F2DOT14>** a = reinterpret_cast<const hb_vector_t<F2DOT14>**> (const_cast<void*>(pa));
+    const hb_vector_t<F2DOT14>** b = reinterpret_cast<const hb_vector_t<F2DOT14>**> (const_cast<void*>(pb));
 
     bool has_a = coords_count_map->has (*a);
     bool has_b = coords_count_map->has (*b);
@@ -402,9 +402,9 @@ struct gvar_GVAR
       out->sharedTuples = 0;
     else
     {
-      hb_array_t<const char> shared_tuples = glyph_vars.compiled_shared_tuples.as_array ().copy (c);
+      hb_array_t<const F2DOT14> shared_tuples = glyph_vars.compiled_shared_tuples.as_array ().copy (c);
       if (!shared_tuples.arrayZ) return_trace (false);
-      out->sharedTuples = shared_tuples.arrayZ - (char *) out;
+      out->sharedTuples = (const char *) shared_tuples.arrayZ - (char *) out;
     }
 
     char *glyph_var_data = c->start_embed<char> ();
