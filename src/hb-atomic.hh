@@ -32,14 +32,13 @@
 #ifndef HB_ATOMIC_HH
 #define HB_ATOMIC_HH
 
-// #include "hb.hh"
-// #include "hb-meta.hh"
+#include "hb.hh"
+#include "hb-meta.hh"
 
 
 /*
  * Atomic integers and pointers.
  */
-
 
 /* We need external help for these */
 
@@ -176,11 +175,11 @@ struct hb_atomic_t
     return *this;
   }
 
-  void swap( hb_atomic_t &o )
+  friend void swap (hb_atomic_t &a, hb_atomic_t &b) noexcept
   {
-    T v = o.get_acquire ();
-    o.set_relaxed (get_acquire ());
-    set_relaxed (v);
+    T v = a.get_acquire ();
+    a.set_relaxed (b.get_acquire ());
+    b.set_relaxed (v);
   }
 
   std::atomic<T> v = 0;
@@ -207,23 +206,16 @@ struct hb_atomic_t<T *>
     return get_acquire ();
   }
 
-  void swap( hb_atomic_t &o ){
-    T *p = o.get_acquire ();
-    o.set_relaxed (get_acquire ());
-    set_relaxed (p);
+  friend void swap (hb_atomic_t &a, hb_atomic_t &b) noexcept
+  {
+    T *p = a.get_acquire ();
+    a.set_relaxed (b.get_acquire ());
+    b.set_relaxed (p);
   }
 
   std::atomic<T *> v = nullptr;
 };
 
-namespace std
-{
-template<class T>
-void swap (hb_atomic_t<T> &a, hb_atomic_t<T> &b)
-{
-  a.swap (b);
-}
-}
 #else
 
 template <typename T>
