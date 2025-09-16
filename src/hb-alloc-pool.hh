@@ -40,13 +40,13 @@
 
 struct hb_alloc_pool_t
 {
-  unsigned ChunkSize = 65536;
+  unsigned ChunkSize = 65536 - 2 * sizeof (void *);
 
   void *alloc (size_t size)
   {
     if (unlikely (chunks.in_error ())) return nullptr;
 
-    if (size > ChunkSize / 8)
+    if (size > (ChunkSize) / 4)
     {
       /* Big chunk, allocate separately.  */
       hb_vector_t<char> chunk;
@@ -69,7 +69,7 @@ struct hb_alloc_pool_t
       chunks.push ();
       if (unlikely (chunks.in_error ())) return nullptr;
       hb_vector_t<char> &chunk = chunks.arrayZ[chunks.length - 1];
-      if (unlikely (!chunk.resize (ChunkSize - 2 * sizeof (void *)))) return nullptr;
+      if (unlikely (!chunk.resize (ChunkSize))) return nullptr;
       current_chunk = chunk;
     }
 

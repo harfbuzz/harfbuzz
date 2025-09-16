@@ -150,7 +150,7 @@ struct glyph_variations_t
       contour_point_vector_t *all_points;
       if (!plan->new_gid_contour_points_map.has (new_gid, &all_points))
         return false;
-      if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, scratch, all_points, iup_optimize))
+      if (!glyph_variations[i].instantiate (plan->axes_location, plan->axes_triple_distances, scratch, &pool, all_points, iup_optimize))
         return false;
     }
     return true;

@@ -261,7 +261,7 @@ struct tuple_delta_t
   hb_vector_t<F2DOT14> compiled_peak_coords;
   hb_vector_t<F2DOT14> compiled_interm_coords;
 
-  tuple_delta_t () = default;
+  tuple_delta_t (hb_alloc_pool_t *pool = nullptr) {}
   tuple_delta_t (const tuple_delta_t& o) = default;
   tuple_delta_t& operator = (const tuple_delta_t& o) = default;
 
@@ -283,6 +283,18 @@ struct tuple_delta_t
   {
     hb_swap (*this, o);
     return *this;
+  }
+
+  void copy_from (const tuple_delta_t& o, hb_alloc_pool_t *pool = nullptr)
+  {
+    axis_tuples = o.axis_tuples;
+    indices.allocate_from_pool (pool, o.indices);
+    deltas_x.allocate_from_pool (pool, o.deltas_x);
+    deltas_y.allocate_from_pool (pool, o.deltas_y);
+    compiled_tuple_header.allocate_from_pool (pool, o.compiled_tuple_header);
+    compiled_deltas.allocate_from_pool (pool, o.compiled_deltas);
+    compiled_peak_coords.allocate_from_pool (pool, o.compiled_peak_coords);
+    compiled_interm_coords.allocate_from_pool (pool, o.compiled_interm_coords);
   }
 
   void remove_axis (hb_tag_t axis_tag)
@@ -342,7 +354,8 @@ struct tuple_delta_t
   void change_tuple_var_axis_limit (hb_tag_t axis_tag, Triple axis_limit,
 				    TripleDistances axis_triple_distances,
 				    hb_vector_t<tuple_delta_t>& out,
-				    rebase_tent_result_scratch_t &scratch)
+				    rebase_tent_result_scratch_t &scratch,
+				    hb_alloc_pool_t *pool = nullptr)
   {
     // May move *this out.
 
@@ -372,7 +385,7 @@ struct tuple_delta_t
 
       tuple_delta_t new_var;
       if (i < solutions.length - 1)
-	new_var = *this;
+	new_var.copy_from (*this, pool);
       else
 	new_var = std::move (*this);
 
@@ -1064,7 +1077,8 @@ struct TupleVariationData
     }
 
     bool change_tuple_variations_axis_limits (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
-                                              const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
+                                              const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
+					      hb_alloc_pool_t *pool = nullptr)
     {
       /* sort axis_tag/axis_limits, make result deterministic */
       hb_vector_t<hb_tag_t> axis_tags;
@@ -1091,7 +1105,7 @@ struct TupleVariationData
         for (tuple_delta_t& var : tuple_vars)
         {
 	  // This may move var out.
-	  var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, out, scratch);
+	  var.change_tuple_var_axis_limit (axis_tag, *axis_limit, axis_triple_distances, out, scratch, pool);
           if (!out) continue;
 
           unsigned new_len = new_vars.length + out.length;
@@ -1232,11 +1246,12 @@ struct TupleVariationData
     bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                       const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
 		      optimize_scratch_t &scratch,
+		      hb_alloc_pool_t *pool = nullptr,
                       contour_point_vector_t* contour_points = nullptr,
                       bool optimize = false)
     {
       if (!tuple_vars) return true;
-      if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances))
+      if (!change_tuple_variations_axis_limits (normalized_axes_location, axes_triple_distances, pool))
         return false;
       /* compute inferred deltas only for gvar */
       if (contour_points)

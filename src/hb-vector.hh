@@ -417,7 +417,6 @@ struct hb_vector_t
   void
   copy_array (hb_array_t<Type> other)
   {
-    assert ((int) (length + other.length) <= allocated);
     hb_memcpy ((void *) (arrayZ + length), (const void *) other.arrayZ, other.length * item_size);
     length += other.length;
   }
@@ -426,7 +425,6 @@ struct hb_vector_t
   void
   copy_array (hb_array_t<const Type> other)
   {
-    assert ((int) (length + other.length) <= allocated);
     hb_memcpy ((void *) (arrayZ + length), (const void *) other.arrayZ, other.length * item_size);
     length += other.length;
   }
@@ -436,7 +434,6 @@ struct hb_vector_t
   void
   copy_array (hb_array_t<const Type> other)
   {
-    assert ((int) (length + other.length) <= allocated);
     for (unsigned i = 0; i < other.length; i++)
       new (std::addressof (arrayZ[length + i])) Type (other.arrayZ[i]);
     length += other.length;
@@ -449,7 +446,6 @@ struct hb_vector_t
   void
   copy_array (hb_array_t<const Type> other)
   {
-    assert ((int) (length + other.length) <= allocated);
     for (unsigned i = 0; i < other.length; i++)
     {
       new (std::addressof (arrayZ[length + i])) Type ();
@@ -570,6 +566,17 @@ struct hb_vector_t
       return true;
     }
     return resize_full ((int) size, initialize, true);
+  }
+
+  template <typename allocator_t>
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
+  bool allocate_from_pool (allocator_t *allocator, const hb_vector_t &other)
+  {
+    if (unlikely (!allocate_from_pool (allocator, other.length, false)))
+      return false;
+    length = 0;
+    copy_array (other.as_array ());
+    return true;
   }
 
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
