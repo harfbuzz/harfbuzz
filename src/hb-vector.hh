@@ -545,9 +545,9 @@ struct hb_vector_t
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
   bool allocate_from_pool (allocator_t *allocator, unsigned size, unsigned int initialize = true)
   {
-    assert (!length && !allocated);
     if (allocator)
     {
+      assert (!length && !allocated);
       arrayZ = (Type *) allocator->alloc (size * sizeof (Type));
       if (unlikely (!arrayZ))
       {

@@ -547,14 +547,16 @@ struct tuple_delta_t
     return compiled_interm_coords.length;
   }
 
-  bool compile_deltas (hb_vector_t<int> &rounded_deltas_scratch)
-  { return compile_deltas (indices, deltas_x, deltas_y, compiled_deltas, rounded_deltas_scratch); }
+  bool compile_deltas (hb_vector_t<int> &rounded_deltas_scratch,
+		       hb_alloc_pool_t *pool = nullptr)
+  { return compile_deltas (indices, deltas_x, deltas_y, compiled_deltas, rounded_deltas_scratch, pool); }
 
   static bool compile_deltas (hb_array_t<const bool> point_indices,
 			      hb_array_t<const float> x_deltas,
 			      hb_array_t<const float> y_deltas,
 			      hb_vector_t<unsigned char> &compiled_deltas, /* OUT */
-			      hb_vector_t<int> &rounded_deltas /* scratch */)
+			      hb_vector_t<int> &rounded_deltas, /* scratch */
+			      hb_alloc_pool_t *pool = nullptr)
   {
     if (unlikely (!rounded_deltas.resize_dirty  (point_indices.length)))
       return false;
@@ -573,7 +575,7 @@ struct tuple_delta_t
     if (y_deltas)
       alloc_len *= 2;
 
-    if (unlikely (!compiled_deltas.resize_dirty  (alloc_len))) return false;
+    if (unlikely (!compiled_deltas.allocate_from_pool (pool, alloc_len, false))) return false;
 
     unsigned encoded_len = compile_deltas (compiled_deltas, rounded_deltas);
 
@@ -594,7 +596,8 @@ struct tuple_delta_t
       if (j != rounded_deltas.length) return false;
       encoded_len += compile_deltas (compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
     }
-    return compiled_deltas.resize (encoded_len);
+    compiled_deltas.shrink (encoded_len);
+    return true;
   }
 
   static unsigned compile_deltas (hb_array_t<unsigned char> encoded_bytes,
@@ -1313,7 +1316,7 @@ struct TupleVariationData
          * this tuple */
         if (!points_data->length)
           continue;
-        if (!tuple.compile_deltas (rounded_deltas_scratch))
+        if (!tuple.compile_deltas (rounded_deltas_scratch, pool))
           return false;
 
         unsigned points_data_length = (points_data != shared_points_bytes) ? points_data->length : 0;
