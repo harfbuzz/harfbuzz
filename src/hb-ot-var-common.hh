@@ -745,15 +745,11 @@ struct tuple_delta_t
 
     if (opt_point_data.length + opt_deltas_data.length < point_data.length + deltas_data.length)
     {
-      indices.fini ();
       indices = std::move (opt_indices);
 
       if (is_comp_glyph_wo_deltas)
       {
-        deltas_x.fini ();
         deltas_x = std::move (opt_deltas_x);
-
-        deltas_y.fini ();
         deltas_y = std::move (opt_deltas_y);
       }
     }
@@ -1100,7 +1096,6 @@ struct TupleVariationData
           for (unsigned i = 0; i < out.length; i++)
             new_vars.push (std::move (out[i]));
         }
-        tuple_vars.fini ();
         tuple_vars = std::move (new_vars);
       }
       return true;
@@ -1216,9 +1211,9 @@ struct TupleVariationData
       return true;
     }
 
-    bool iup_optimize (const contour_point_vector_t& contour_points)
+    bool iup_optimize (const contour_point_vector_t& contour_points,
+		       optimize_scratch_t &scratch)
     {
-      optimize_scratch_t scratch;
       for (tuple_delta_t& var : tuple_vars)
       {
         if (!var.optimize (contour_points, is_composite, scratch))
@@ -1230,6 +1225,7 @@ struct TupleVariationData
     public:
     bool instantiate (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                       const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances,
+		      optimize_scratch_t &scratch,
                       contour_point_vector_t* contour_points = nullptr,
                       bool optimize = false)
     {
@@ -1251,7 +1247,7 @@ struct TupleVariationData
       if (!merge_tuple_variations (optimize ? contour_points : nullptr))
         return false;
 
-      if (optimize && !iup_optimize (*contour_points)) return false;
+      if (optimize && !iup_optimize (*contour_points, scratch)) return false;
       return !tuple_vars.in_error ();
     }
 
@@ -1685,8 +1681,9 @@ struct item_variations_t
   bool instantiate_tuple_vars (const hb_hashmap_t<hb_tag_t, Triple>& normalized_axes_location,
                                const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
   {
+    optimize_scratch_t scratch;
     for (tuple_variations_t& tuple_vars : vars)
-      if (!tuple_vars.instantiate (normalized_axes_location, axes_triple_distances))
+      if (!tuple_vars.instantiate (normalized_axes_location, axes_triple_distances, scratch))
         return false;
 
     if (!build_region_list ()) return false;
