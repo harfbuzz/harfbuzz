@@ -745,15 +745,11 @@ struct tuple_delta_t
 
     if (opt_point_data.length + opt_deltas_data.length < point_data.length + deltas_data.length)
     {
-      indices.fini ();
       indices = std::move (opt_indices);
 
       if (is_comp_glyph_wo_deltas)
       {
-        deltas_x.fini ();
         deltas_x = std::move (opt_deltas_x);
-
-        deltas_y.fini ();
         deltas_y = std::move (opt_deltas_y);
       }
     }
@@ -1100,7 +1096,6 @@ struct TupleVariationData
           for (unsigned i = 0; i < out.length; i++)
             new_vars.push (std::move (out[i]));
         }
-        tuple_vars.fini ();
         tuple_vars = std::move (new_vars);
       }
       return true;
