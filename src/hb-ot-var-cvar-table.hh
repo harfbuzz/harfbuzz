@@ -66,7 +66,7 @@ struct cvar
     if (!TupleVariationData<>::get_tuple_iterator (var_data_bytes, axis_count, this,
                                                  shared_indices, &iterator))
       return false;
-    
+
     return tupleVariationData.decompile_tuple_variations (point_count, is_gvar, iterator,
                                                           axes_old_index_tag_map,
                                                           shared_indices,

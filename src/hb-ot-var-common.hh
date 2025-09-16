@@ -27,6 +27,7 @@
 #define HB_OT_VAR_COMMON_HH
 
 #include "hb-ot-layout-common.hh"
+#include "hb-alloc-pool.hh"
 #include "hb-priority-queue.hh"
 #include "hb-subset-instancer-iup.hh"
 
@@ -942,7 +943,8 @@ struct TupleVariationData
                                      const hb_map_t *axes_old_index_tag_map,
                                      const hb_vector_t<unsigned> &shared_indices,
                                      const hb_array_t<const F2DOT14> shared_tuples,
-                                     bool is_composite_glyph)
+				     hb_alloc_pool_t *pool = nullptr,
+                                     bool is_composite_glyph = false)
     {
       hb_vector_t<unsigned> private_indices;
       hb_vector_t<int> deltas_x;
@@ -983,11 +985,11 @@ struct TupleVariationData
 
         tuple_delta_t var;
         var.axis_tuples = std::move (axis_tuples);
-        if (unlikely (!var.indices.resize (point_count) ||
-                      !var.deltas_x.resize_dirty  (point_count)))
+        if (unlikely (!var.indices.allocate_from_pool (pool, point_count) ||
+                      !var.deltas_x.allocate_from_pool (pool, point_count, false)))
           return false;
 
-        if (is_gvar && unlikely (!var.deltas_y.resize_dirty  (point_count)))
+        if (is_gvar && unlikely (!var.deltas_y.allocate_from_pool (pool, point_count, false)))
           return false;
 
         for (unsigned i = 0; i < num_deltas; i++)
@@ -1510,6 +1512,7 @@ struct TupleVariationData
                                    const hb_vector_t<unsigned> &shared_indices,
                                    const hb_array_t<const F2DOT14> shared_tuples,
                                    tuple_variations_t& tuple_variations, /* OUT */
+				   hb_alloc_pool_t *pool = nullptr,
                                    bool is_composite_glyph = false) const
   {
     return tuple_variations.create_from_tuple_var_data (iterator, tupleVarCount,
@@ -1517,6 +1520,7 @@ struct TupleVariationData
                                                         axes_old_index_tag_map,
                                                         shared_indices,
                                                         shared_tuples,
+							pool,
                                                         is_composite_glyph);
   }
 
