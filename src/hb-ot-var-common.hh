@@ -475,7 +475,8 @@ struct tuple_delta_t
   bool compile_tuple_var_header (const hb_map_t& axes_index_map,
                                  unsigned points_data_length,
                                  const hb_map_t& axes_old_index_tag_map,
-                                 const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map)
+                                 const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map,
+				 hb_alloc_pool_t *pool = nullptr)
   {
     /* compiled_deltas could be empty after iup delta optimization, we can skip
      * compiling this tuple and return true */
@@ -484,7 +485,7 @@ struct tuple_delta_t
     unsigned cur_axis_count = axes_index_map.get_population ();
     /* allocate enough memory: 1 peak + 2 intermediate coords + fixed header size */
     unsigned alloc_len = 3 * cur_axis_count * (F2DOT14::static_size) + 4;
-    if (unlikely (!compiled_tuple_header.resize_dirty  (alloc_len))) return false;
+    if (unlikely (!compiled_tuple_header.allocate_from_pool (pool, alloc_len, false))) return false;
 
     unsigned flag = 0;
     /* skip the first 4 header bytes: variationDataSize+tupleIndex */
@@ -522,7 +523,8 @@ struct tuple_delta_t
     o->tupleIndex = flag;
 
     unsigned total_header_len = 4 + (peak_count + interim_count) * (F2DOT14::static_size);
-    return compiled_tuple_header.resize (total_header_len);
+    compiled_tuple_header.shrink (total_header_len);
+    return true;
   }
 
   unsigned encode_peak_coords (hb_array_t<F2DOT14> peak_coords,
@@ -1276,7 +1278,8 @@ struct TupleVariationData
                         const hb_map_t& axes_old_index_tag_map,
                         bool use_shared_points,
                         bool is_gvar = false,
-                        const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map = nullptr)
+                        const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map = nullptr,
+			hb_alloc_pool_t *pool = nullptr)
     {
       // return true for empty glyph
       if (!tuple_vars)
@@ -1315,7 +1318,8 @@ struct TupleVariationData
 
         unsigned points_data_length = (points_data != shared_points_bytes) ? points_data->length : 0;
         if (!tuple.compile_tuple_var_header (axes_index_map, points_data_length, axes_old_index_tag_map,
-                                             shared_tuples_idx_map))
+                                             shared_tuples_idx_map,
+					     pool))
           return false;
         compiled_byte_size += tuple.compiled_tuple_header.length + points_data_length + tuple.compiled_deltas.length;
       }
