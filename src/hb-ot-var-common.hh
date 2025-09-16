@@ -388,14 +388,13 @@ struct tuple_delta_t
 
   bool compile_coords (const hb_map_t& axes_index_map,
 		       const hb_map_t& axes_old_index_tag_map,
-		       hb_array_t<F2DOT14> *storage = nullptr)
+		       hb_alloc_pool_t *pool= nullptr)
   {
     unsigned cur_axis_count = axes_index_map.get_population ();
-    if (storage)
+    if (pool)
     {
-      assert (storage->length >= cur_axis_count);
-      compiled_peak_coords.set_storage (storage->sub_array (0, cur_axis_count));
-      *storage += cur_axis_count;
+      if (unlikely (!compiled_peak_coords.allocate_from_pool (pool, cur_axis_count)))
+	return false;
     }
     else if (unlikely (!compiled_peak_coords.resize (cur_axis_count)))
       return false;
