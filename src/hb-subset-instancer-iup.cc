@@ -476,7 +476,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
     hb_set_t solution;
     for (int start = n - 1; start < len; start++)
     {
-      solution.clear ();
+      solution.reset ();
       int i = start;
       int lookback = start - (int) n;
       while (i > lookback)
@@ -507,12 +507,14 @@ bool iup_delta_optimize (const contour_point_vector_t& contour_points,
                          const hb_vector_t<int>& x_deltas,
                          const hb_vector_t<int>& y_deltas,
                          hb_vector_t<bool>& opt_indices, /* OUT */
+			 iup_scratch_t &scratch,
                          double tolerance)
 {
   if (!opt_indices.resize (contour_points.length))
       return false;
 
-  hb_vector_t<unsigned> end_points;
+  hb_vector_t<unsigned> &end_points = scratch.end_points.reset ();
+
   unsigned count = contour_points.length;
   if (unlikely (!end_points.alloc (count)))
     return false;
@@ -527,8 +529,6 @@ bool iup_delta_optimize (const contour_point_vector_t& contour_points,
 
   if (end_points.in_error ()) return false;
 
-  hb_vector_t<double> interp_x_deltas_scratch, interp_y_deltas_scratch;
-
   unsigned start = 0;
   for (unsigned end : end_points)
   {
@@ -538,7 +538,7 @@ bool iup_delta_optimize (const contour_point_vector_t& contour_points,
                                 y_deltas.as_array ().sub_array (start, len),
                                 opt_indices.as_array ().sub_array (start, len),
                                 tolerance,
-				interp_x_deltas_scratch, interp_y_deltas_scratch))
+				scratch.interp_x_deltas, scratch.interp_y_deltas))
       return false;
     start = end + 1;
   }

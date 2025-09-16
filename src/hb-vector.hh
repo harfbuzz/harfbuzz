@@ -181,11 +181,12 @@ struct hb_vector_t
   }
 
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
-  void reset ()
+  hb_vector_t &reset ()
   {
     if (unlikely (in_error ()))
       reset_error ();
     resize (0);
+    return *this;
   }
 
   friend void swap (hb_vector_t& a, hb_vector_t& b) noexcept
