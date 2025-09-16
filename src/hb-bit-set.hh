@@ -108,10 +108,11 @@ struct hb_bit_set_t
     page_map.alloc (sz);
   }
 
-  void reset ()
+  hb_bit_set_t& reset ()
   {
     successful = true;
     clear ();
+    return *this;
   }
 
   void clear ()
