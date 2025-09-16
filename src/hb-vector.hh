@@ -649,7 +649,7 @@ struct hb_vector_t
 
     shrink_vector (size);
 
-    if (shrink_memory)
+    if (is_owned () && shrink_memory)
       alloc_exact (size); /* To force shrinking memory if needed. */
   }
 
