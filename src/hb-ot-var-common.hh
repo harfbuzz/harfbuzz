@@ -598,8 +598,7 @@ struct tuple_delta_t
 
     for (unsigned i = 0; i < point_count; i++)
     {
-      if (indices.arrayZ[i])
-        ref_count++;
+      ref_count += indices.arrayZ[i];
       if (orig_points.arrayZ[i].is_end_point)
         end_points.push (i);
     }
