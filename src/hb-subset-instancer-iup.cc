@@ -37,7 +37,7 @@ constexpr static unsigned MAX_LOOKBACK = 8;
 static void _iup_contour_bound_forced_set (const hb_array_t<const contour_point_t> contour_points,
                                            const hb_array_t<const int> x_deltas,
                                            const hb_array_t<const int> y_deltas,
-                                           hb_set_t& forced_set, /* OUT */
+                                           hb_bit_set_t& forced_set, /* OUT */
                                            double tolerance = 0.0)
 {
   unsigned len = contour_points.length;
@@ -150,10 +150,10 @@ static bool rotate_array (const hb_array_t<const T>& org_array,
   return true;
 }
 
-static bool rotate_set (const hb_set_t& org_set,
+static bool rotate_set (const hb_bit_set_t& org_set,
                         int k,
                         unsigned n,
-                        hb_set_t& out)
+                        hb_bit_set_t& out)
 {
   if (!n) return false;
   k %= n;
@@ -280,7 +280,7 @@ static bool _can_iup_in_between (const hb_array_t<const contour_point_t> contour
 static bool _iup_contour_optimize_dp (const contour_point_vector_t& contour_points,
                                       const hb_vector_t<int>& x_deltas,
                                       const hb_vector_t<int>& y_deltas,
-                                      const hb_set_t& forced_set,
+                                      const hb_bit_set_t& forced_set,
                                       double tolerance,
                                       unsigned lookback,
                                       hb_vector_t<unsigned>& costs, /* OUT */
@@ -390,7 +390,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
   }
 
   /* else, solve the general problem using Dynamic Programming */
-  hb_set_t forced_set;
+  hb_bit_set_t forced_set;
   _iup_contour_bound_forced_set (contour_points, x_deltas, y_deltas, forced_set, tolerance);
 
   if (!forced_set.is_empty ())
@@ -401,7 +401,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 
     hb_vector_t<int> rot_x_deltas, rot_y_deltas;
     contour_point_vector_t rot_points;
-    hb_set_t rot_forced_set;
+    hb_bit_set_t rot_forced_set;
     if (!rotate_array (contour_points, k, rot_points) ||
         !rotate_array (x_deltas, k, rot_x_deltas) ||
         !rotate_array (y_deltas, k, rot_y_deltas) ||
@@ -417,7 +417,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 				   interp_x_deltas_scratch, interp_y_deltas_scratch))
       return false;
 
-    hb_set_t solution;
+    hb_bit_set_t solution;
     int index = n - 1;
     while (index != -1)
     {
@@ -472,8 +472,8 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 
     unsigned best_cost = n + 1;
     int len = costs.length;
-    hb_set_t best_sol;
-    hb_set_t solution;
+    hb_bit_set_t best_sol;
+    hb_bit_set_t solution;
     for (int start = n - 1; start < len; start++)
     {
       solution.reset ();
