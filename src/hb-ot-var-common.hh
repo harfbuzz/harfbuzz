@@ -422,7 +422,12 @@ struct tuple_delta_t
 	{
 	  if (!compiled_interm_coords)
 	  {
-	    if (unlikely (!compiled_interm_coords.resize (2 * cur_axis_count)))
+	    if (pool)
+	    {
+	      if (unlikely (!compiled_interm_coords.allocate_from_pool (pool, 2 * cur_axis_count)))
+		return false;
+	    }
+	    else if (unlikely (!compiled_interm_coords.resize (2 * cur_axis_count)))
 	      return false;
 	    start_coords = compiled_interm_coords.as_array ().sub_array (0, cur_axis_count);
 	    end_coords = compiled_interm_coords.as_array ().sub_array (cur_axis_count);
