@@ -34,6 +34,10 @@ struct iup_scratch_t
   hb_vector_t<double> interp_y_deltas;
   hb_vector_t<unsigned> costs;
   hb_vector_t<int> chain;
+  hb_vector_t<bool> rot_indices;
+  hb_vector_t<int> rot_x_deltas;
+  hb_vector_t<int> rot_y_deltas;
+  contour_point_vector_t rot_points;
   hb_bit_set_t forced_set;
   hb_bit_set_t rot_forced_set;
   hb_bit_set_t solution;

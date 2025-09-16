@@ -401,8 +401,10 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
     if (k < 0)
       return false;
 
-    hb_vector_t<int> rot_x_deltas, rot_y_deltas;
-    contour_point_vector_t rot_points;
+    hb_vector_t<int> &rot_x_deltas = scratch.rot_x_deltas.reset ();
+    hb_vector_t<int> &rot_y_deltas = scratch.rot_y_deltas.reset ();
+    contour_point_vector_t &rot_points = scratch.rot_points;
+    rot_points.reset ();
     hb_bit_set_t &rot_forced_set = scratch.rot_forced_set.reset ();
     if (!rotate_array (contour_points, k, rot_points) ||
         !rotate_array (x_deltas, k, rot_x_deltas) ||
@@ -431,7 +433,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
     for (unsigned i : solution)
       opt_indices.arrayZ[i] = true;
 
-    hb_vector_t<bool> rot_indices;
+    hb_vector_t<bool> &rot_indices = scratch.rot_indices.reset ();
     const hb_array_t<const bool> opt_indices_array (opt_indices.arrayZ, opt_indices.length);
     rotate_array (opt_indices_array, -k, rot_indices);
 
