@@ -388,14 +388,13 @@ struct tuple_delta_t
 
   bool compile_coords (const hb_map_t& axes_index_map,
 		       const hb_map_t& axes_old_index_tag_map,
-		       hb_array_t<F2DOT14> *storage = nullptr)
+		       hb_alloc_pool_t *pool= nullptr)
   {
     unsigned cur_axis_count = axes_index_map.get_population ();
-    if (storage)
+    if (pool)
     {
-      assert (storage->length >= cur_axis_count);
-      compiled_peak_coords.set_storage (storage->sub_array (0, cur_axis_count));
-      *storage += cur_axis_count;
+      if (unlikely (!compiled_peak_coords.allocate_from_pool (pool, cur_axis_count)))
+	return false;
     }
     else if (unlikely (!compiled_peak_coords.resize (cur_axis_count)))
       return false;
@@ -423,7 +422,12 @@ struct tuple_delta_t
 	{
 	  if (!compiled_interm_coords)
 	  {
-	    if (unlikely (!compiled_interm_coords.resize (2 * cur_axis_count)))
+	    if (pool)
+	    {
+	      if (unlikely (!compiled_interm_coords.allocate_from_pool (pool, 2 * cur_axis_count)))
+		return false;
+	    }
+	    else if (unlikely (!compiled_interm_coords.resize (2 * cur_axis_count)))
 	      return false;
 	    start_coords = compiled_interm_coords.as_array ().sub_array (0, cur_axis_count);
 	    end_coords = compiled_interm_coords.as_array ().sub_array (cur_axis_count);
@@ -581,7 +585,8 @@ struct tuple_delta_t
   static unsigned compile_deltas (hb_array_t<unsigned char> encoded_bytes,
 				  hb_array_t<const int> deltas)
   {
-    return TupleValues::compile (deltas, encoded_bytes);
+    assert (encoded_bytes.length >= 5 * deltas.length);
+    return TupleValues::compile_unsafe (deltas, encoded_bytes);
   }
 
   bool calc_inferred_deltas (const contour_point_vector_t& orig_points,
@@ -597,8 +602,7 @@ struct tuple_delta_t
 
     for (unsigned i = 0; i < point_count; i++)
     {
-      if (indices.arrayZ[i])
-        ref_count++;
+      ref_count += indices.arrayZ[i];
       if (orig_points.arrayZ[i].is_end_point)
         end_points.push (i);
     }
