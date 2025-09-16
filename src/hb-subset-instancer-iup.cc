@@ -339,8 +339,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
                                    const hb_array_t<const int> y_deltas,
                                    hb_array_t<bool> opt_indices, /* OUT */
                                    double tolerance,
-				   hb_vector_t<double> &interp_x_deltas_scratch,
-				   hb_vector_t<double> &interp_y_deltas_scratch)
+				   iup_scratch_t &scratch)
 {
   unsigned n = contour_points.length;
   if (opt_indices.length != n ||
@@ -393,6 +392,9 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
   hb_bit_set_t forced_set;
   _iup_contour_bound_forced_set (contour_points, x_deltas, y_deltas, forced_set, tolerance);
 
+  hb_vector_t<unsigned> &costs = scratch.costs.reset ();
+  hb_vector_t<int> &chain = scratch.chain.reset ();
+
   if (!forced_set.is_empty ())
   {
     int k = n - 1 - forced_set.get_max ();
@@ -408,13 +410,10 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
         !rotate_set (forced_set, k, n, rot_forced_set))
       return false;
 
-    hb_vector_t<unsigned> costs;
-    hb_vector_t<int> chain;
-
     if (!_iup_contour_optimize_dp (rot_points, rot_x_deltas, rot_y_deltas,
                                    rot_forced_set, tolerance, n,
                                    costs, chain,
-				   interp_x_deltas_scratch, interp_y_deltas_scratch))
+				   scratch.interp_x_deltas, scratch.interp_y_deltas))
       return false;
 
     hb_bit_set_t solution;
@@ -462,12 +461,10 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
       hb_memcpy ((void *) (repeat_points.arrayZ + n), (const void *) contour_points.arrayZ, n * contour_point_size);
     }
 
-    hb_vector_t<unsigned> costs;
-    hb_vector_t<int> chain;
     if (!_iup_contour_optimize_dp (repeat_points, repeat_x_deltas, repeat_y_deltas,
                                    forced_set, tolerance, n,
                                    costs, chain,
-				   interp_x_deltas_scratch, interp_y_deltas_scratch))
+				   scratch.interp_x_deltas, scratch.interp_y_deltas))
       return false;
 
     unsigned best_cost = n + 1;
@@ -538,7 +535,7 @@ bool iup_delta_optimize (const contour_point_vector_t& contour_points,
                                 y_deltas.as_array ().sub_array (start, len),
                                 opt_indices.as_array ().sub_array (start, len),
                                 tolerance,
-				scratch.interp_x_deltas, scratch.interp_y_deltas))
+				scratch))
       return false;
     start = end + 1;
   }
