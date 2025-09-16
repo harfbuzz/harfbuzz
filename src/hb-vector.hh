@@ -107,6 +107,9 @@ struct hb_vector_t
   void
   set_storage (Type *array, unsigned n)
   {
+    if (unlikely (in_error ()))
+      return;
+
     assert (allocated == 0);
     assert (length == 0);
 
@@ -554,10 +557,12 @@ struct hb_vector_t
 	set_error ();
 	return false;
       }
+      set_storage (arrayZ, size);
       if (initialize)
+      {
+	length = 0;
 	grow_vector (size, hb_prioritize);
-      else
-        length = size;
+      }
       return true;
     }
     return resize_full ((int) size, initialize, true);
