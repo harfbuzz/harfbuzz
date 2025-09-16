@@ -113,7 +113,7 @@ struct cvar
 
       bool apply_to_all = (indices.length == 0);
       unsigned num_deltas = apply_to_all ? num_cvt_item : indices.length;
-      if (unlikely (!unpacked_deltas.resize (num_deltas, false))) return false;
+      if (unlikely (!unpacked_deltas.resize_dirty  (num_deltas))) return false;
       if (unlikely (!TupleVariationData<>::decompile_deltas (p, unpacked_deltas, end))) return false;
 
       for (unsigned int i = 0; i < num_deltas; i++)
