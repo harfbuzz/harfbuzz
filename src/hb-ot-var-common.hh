@@ -581,7 +581,8 @@ struct tuple_delta_t
   static unsigned compile_deltas (hb_array_t<unsigned char> encoded_bytes,
 				  hb_array_t<const int> deltas)
   {
-    return TupleValues::compile (deltas, encoded_bytes);
+    assert (encoded_bytes.length >= 5 * deltas.length);
+    return TupleValues::compile_unsafe (deltas, encoded_bytes);
   }
 
   bool calc_inferred_deltas (const contour_point_vector_t& orig_points,
