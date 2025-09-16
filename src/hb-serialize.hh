@@ -34,7 +34,7 @@
 #include "hb.hh"
 #include "hb-blob.hh"
 #include "hb-map.hh"
-#include "hb-pool.hh"
+#include "hb-free-pool.hh"
 
 #include "hb-subset-serialize.h"
 
@@ -815,7 +815,7 @@ struct hb_serialize_context_t
   }
 
   /* Object memory pool. */
-  hb_pool_t<object_t> object_pool;
+  hb_free_pool_t<object_t> object_pool;
 
   /* Stack of currently under construction objects. */
   object_t *current;

@@ -248,7 +248,7 @@ hb_base_sources = files(
   'hb-ot-var.cc',
   'hb-ot-vorg-table.hh',
   'hb-priority-queue.hh',
-  'hb-pool.hh',
+  'hb-free-pool.hh',
   'hb-repacker.hh',
   'hb-sanitize.hh',
   'hb-serialize.hh',
