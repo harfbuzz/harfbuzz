@@ -570,8 +570,12 @@ struct tuple_delta_t
     rounded_deltas.resize (j);
 
     if (!rounded_deltas) return true;
-    /* allocate enough memories 5 * num_deltas */
-    unsigned alloc_len = 5 * rounded_deltas.length;
+    /* Allocate enough memory: this is the correct bound:
+     * Worst case scenario is that each delta has to be encoded in 4 bytes, and there
+     * are runs of 64 items each. Any delta encoded in less than 4 bytes (2, 1, or 0)
+     * is still smaller than the 4-byte encoding even with their control byte.
+     * The initial 2 is to handle length==0, for both x and y deltas. */
+    unsigned alloc_len = 2 + 4 * rounded_deltas.length + (rounded_deltas.length + 63) / 64;
     if (y_deltas)
       alloc_len *= 2;
 
@@ -603,7 +607,6 @@ struct tuple_delta_t
   static unsigned compile_deltas (hb_array_t<unsigned char> encoded_bytes,
 				  hb_array_t<const int> deltas)
   {
-    assert (encoded_bytes.length >= 5 * deltas.length);
     return TupleValues::compile_unsafe (deltas, encoded_bytes);
   }
 
