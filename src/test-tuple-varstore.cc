@@ -97,7 +97,8 @@ test_decompile_cvar ()
   hb_hashmap_t<hb_tag_t, TripleDistances> axes_triple_distances;
   axes_triple_distances.set (axis_tag, TripleDistances (1.0, 1.0));
 
-  tuple_variations.instantiate (normalized_axes_location, axes_triple_distances);
+  OT::optimize_scratch_t scratch;
+  tuple_variations.instantiate (normalized_axes_location, axes_triple_distances, scratch);
 
   hb_always_assert (tuple_variations.tuple_vars[0].indices.length == 65);
   hb_always_assert (tuple_variations.tuple_vars[1].indices.length == 65);
