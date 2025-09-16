@@ -187,10 +187,11 @@ struct hb_hashmap_t
     population = occupancy = 0;
   }
 
-  void reset ()
+  hb_hashmap_t& reset ()
   {
     successful = true;
     clear ();
+    return *this;
   }
 
   bool in_error () const { return !successful; }

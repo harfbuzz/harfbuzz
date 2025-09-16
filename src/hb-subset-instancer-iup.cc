@@ -389,7 +389,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
   }
 
   /* else, solve the general problem using Dynamic Programming */
-  hb_bit_set_t forced_set;
+  hb_bit_set_t &forced_set = scratch.forced_set.reset ();
   _iup_contour_bound_forced_set (contour_points, x_deltas, y_deltas, forced_set, tolerance);
 
   hb_vector_t<unsigned> &costs = scratch.costs.reset ();
@@ -403,7 +403,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 
     hb_vector_t<int> rot_x_deltas, rot_y_deltas;
     contour_point_vector_t rot_points;
-    hb_bit_set_t rot_forced_set;
+    hb_bit_set_t &rot_forced_set = scratch.rot_forced_set.reset ();
     if (!rotate_array (contour_points, k, rot_points) ||
         !rotate_array (x_deltas, k, rot_x_deltas) ||
         !rotate_array (y_deltas, k, rot_y_deltas) ||
@@ -416,7 +416,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 				   scratch.interp_x_deltas, scratch.interp_y_deltas))
       return false;
 
-    hb_bit_set_t solution;
+    hb_bit_set_t &solution = scratch.solution.reset ();
     int index = n - 1;
     while (index != -1)
     {
@@ -469,8 +469,8 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 
     unsigned best_cost = n + 1;
     int len = costs.length;
-    hb_bit_set_t best_sol;
-    hb_bit_set_t solution;
+    hb_bit_set_t &solution = scratch.solution.reset ();
+    hb_bit_set_t &best_sol = scratch.best_sol.reset ();
     for (int start = n - 1; start < len; start++)
     {
       solution.reset ();

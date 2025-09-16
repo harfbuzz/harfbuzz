@@ -32,6 +32,12 @@ struct iup_scratch_t
   hb_vector_t<unsigned> end_points;
   hb_vector_t<double> interp_x_deltas;
   hb_vector_t<double> interp_y_deltas;
+  hb_vector_t<unsigned> costs;
+  hb_vector_t<int> chain;
+  hb_bit_set_t forced_set;
+  hb_bit_set_t rot_forced_set;
+  hb_bit_set_t solution;
+  hb_bit_set_t best_sol;
 };
 
 /* given contour points and deltas, optimize a set of referenced points within error
