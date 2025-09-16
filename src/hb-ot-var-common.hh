@@ -966,6 +966,9 @@ struct TupleVariationData
       hb_vector_t<unsigned> private_indices;
       hb_vector_t<int> deltas_x;
       hb_vector_t<int> deltas_y;
+      if (unlikely (!tuple_vars.allocate_from_pool (pool, iterator.var_data->tupleVarCount.get_count ())))
+        return false;
+      tuple_vars.length = 0;
       do
       {
         const HBUINT8 *p = iterator.get_serialized_data ();
@@ -1018,7 +1021,7 @@ struct TupleVariationData
           if (is_gvar)
             var.deltas_y[idx] = deltas_y[i];
         }
-        tuple_vars.push (std::move (var));
+        tuple_vars.arrayZ[tuple_vars.length++] = std::move (var);
       } while (iterator.move_to_next ());
 
       is_composite = is_composite_glyph;
@@ -1434,9 +1437,9 @@ struct TupleVariationData
     const HBUINT8 *get_serialized_data () const
     { return &(table_base+var_data->data) + data_offset; }
 
+    const TupleVariationData *var_data;
     private:
     signed tuples_left;
-    const TupleVariationData *var_data;
     unsigned int axis_count;
     unsigned int data_offset;
     unsigned int current_tuple_size;
