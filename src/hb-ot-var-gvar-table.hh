@@ -74,6 +74,8 @@ struct glyph_variations_t
   /* shared coords-> index map after instantiation */
   hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned> shared_tuples_idx_map;
 
+  hb_alloc_pool_t pool;
+
   public:
   unsigned compiled_shared_tuples_count () const
   { return shared_tuples_count; }
@@ -129,6 +131,7 @@ struct glyph_variations_t
                                           iterator, &(plan->axes_old_index_tag_map),
                                           shared_indices, shared_tuples,
                                           tuple_vars, /* OUT */
+					  &pool,
                                           is_composite_glyph))
         return false;
       glyph_variations.push (std::move (tuple_vars));

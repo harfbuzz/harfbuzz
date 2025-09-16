@@ -548,6 +548,30 @@ struct hb_vector_t
     resize (0);
   }
 
+  template <typename allocator_t>
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
+  bool allocate_from_pool (allocator_t *allocator, unsigned size, unsigned int initialize = true)
+  {
+    assert (!length && !allocated);
+    if (allocator)
+    {
+      arrayZ = (Type *) allocator->alloc (size * sizeof (Type));
+      if (unlikely (!arrayZ))
+      {
+	set_error ();
+	return false;
+      }
+      set_storage (arrayZ, size);
+      if (initialize)
+      {
+	length = 0;
+	grow_vector (size, hb_prioritize);
+      }
+      return true;
+    }
+    return resize_full ((int) size, initialize, true);
+  }
+
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
   bool resize_full (int size_, bool initialize, bool exact)
   {
