@@ -2060,7 +2060,7 @@ struct delta_set_index_map_subset_plan_t
     outer_bit_count = 1;
     inner_bit_count = 1;
 
-    if (unlikely (!output_map.resize (map_count, false))) return false;
+    if (unlikely (!output_map.resize_dirty (map_count))) return false;
 
     for (unsigned idx = 0; idx < map_count; idx++)
     {

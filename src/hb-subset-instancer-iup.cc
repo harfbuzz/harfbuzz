@@ -136,7 +136,7 @@ static bool rotate_array (const hb_array_t<const T>& org_array,
 {
   unsigned n = org_array.length;
   if (!n) return true;
-  if (unlikely (!out.resize (n, false)))
+  if (unlikely (!out.resize_dirty  (n)))
     return false;
 
   unsigned item_size = hb_static_size (T);
@@ -184,8 +184,8 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
                           hb_vector_t<double>& interp_y_deltas /* OUT */)
 {
   unsigned n = contour_points.length;
-  if (unlikely (!interp_x_deltas.resize (n, false) ||
-                !interp_y_deltas.resize (n, false)))
+  if (unlikely (!interp_x_deltas.resize_dirty  (n) ||
+                !interp_y_deltas.resize_dirty  (n)))
     return false;
 
   for (unsigned j = 0; j < 2; j++)
@@ -289,8 +289,8 @@ static bool _iup_contour_optimize_dp (const contour_point_vector_t& contour_poin
 				      hb_vector_t<double> &interp_y_deltas_scratch)
 {
   unsigned n = contour_points.length;
-  if (unlikely (!costs.resize (n, false) ||
-                !chain.resize (n, false)))
+  if (unlikely (!costs.resize_dirty  (n) ||
+                !chain.resize_dirty  (n)))
     return false;
 
   lookback = hb_min (lookback, MAX_LOOKBACK);
@@ -445,9 +445,9 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
     hb_vector_t<int> repeat_x_deltas, repeat_y_deltas;
     contour_point_vector_t repeat_points;
 
-    if (unlikely (!repeat_x_deltas.resize (n * 2, false) ||
-                  !repeat_y_deltas.resize (n * 2, false) ||
-                  !repeat_points.resize (n * 2, false)))
+    if (unlikely (!repeat_x_deltas.resize_dirty  (n * 2) ||
+                  !repeat_y_deltas.resize_dirty  (n * 2) ||
+                  !repeat_points.resize_dirty  (n * 2)))
       return false;
 
     unsigned contour_point_size = hb_static_size (contour_point_t);

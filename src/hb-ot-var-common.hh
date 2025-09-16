@@ -466,7 +466,7 @@ struct tuple_delta_t
     unsigned cur_axis_count = axes_index_map.get_population ();
     /* allocate enough memory: 1 peak + 2 intermediate coords + fixed header size */
     unsigned alloc_len = 3 * cur_axis_count * (F2DOT14::static_size) + 4;
-    if (unlikely (!compiled_tuple_header.resize (alloc_len, false))) return false;
+    if (unlikely (!compiled_tuple_header.resize_dirty  (alloc_len))) return false;
 
     unsigned flag = 0;
     /* skip the first 4 header bytes: variationDataSize+tupleIndex */
@@ -536,7 +536,7 @@ struct tuple_delta_t
 			      hb_vector_t<unsigned char> &compiled_deltas, /* OUT */
 			      hb_vector_t<int> &rounded_deltas /* scratch */)
   {
-    if (unlikely (!rounded_deltas.resize (point_indices.length, false)))
+    if (unlikely (!rounded_deltas.resize_dirty  (point_indices.length)))
       return false;
 
     unsigned j = 0;
@@ -553,7 +553,7 @@ struct tuple_delta_t
     if (y_deltas)
       alloc_len *= 2;
 
-    if (unlikely (!compiled_deltas.resize (alloc_len, false))) return false;
+    if (unlikely (!compiled_deltas.resize_dirty  (alloc_len))) return false;
 
     unsigned encoded_len = compile_deltas (compiled_deltas, rounded_deltas);
 
@@ -692,8 +692,8 @@ struct tuple_delta_t
     hb_vector_t<int> &rounded_x_deltas = scratch.rounded_x_deltas;
     hb_vector_t<int> &rounded_y_deltas = scratch.rounded_y_deltas;
 
-    if (unlikely (!rounded_x_deltas.resize (count, false) ||
-                  !rounded_y_deltas.resize (count, false)))
+    if (unlikely (!rounded_x_deltas.resize_dirty  (count) ||
+                  !rounded_y_deltas.resize_dirty  (count)))
       return false;
 
     for (unsigned i = 0; i < count; i++)
@@ -774,7 +774,7 @@ struct tuple_delta_t
 
     /* allocate enough memories: 2 bytes for count + 3 bytes for each point */
     unsigned num_bytes = 2 + 3 *num_points;
-    if (unlikely (!compiled_points.resize (num_bytes, false)))
+    if (unlikely (!compiled_points.resize_dirty  (num_bytes)))
       return false;
 
     unsigned pos = 0;
@@ -838,7 +838,7 @@ struct tuple_delta_t
       else
         compiled_points.arrayZ[header_pos] = (run_length - 1) | 0x80;
     }
-    return compiled_points.resize (pos, false);
+    return compiled_points.resize_dirty  (pos);
   }
 
   static double infer_delta (double target_val, double prev_val, double next_val, double prev_delta, double next_delta)
@@ -970,13 +970,13 @@ struct TupleVariationData
         bool apply_to_all = (indices.length == 0);
         unsigned num_deltas = apply_to_all ? point_count : indices.length;
 
-        if (unlikely (!deltas_x.resize (num_deltas, false) ||
+        if (unlikely (!deltas_x.resize_dirty  (num_deltas) ||
                       !TupleVariationData::decompile_deltas (p, deltas_x, end)))
           return false;
 
         if (is_gvar)
         {
-          if (unlikely (!deltas_y.resize (num_deltas, false) ||
+          if (unlikely (!deltas_y.resize_dirty  (num_deltas) ||
                         !TupleVariationData::decompile_deltas (p, deltas_y, end)))
             return false;
         }
@@ -984,10 +984,10 @@ struct TupleVariationData
         tuple_delta_t var;
         var.axis_tuples = std::move (axis_tuples);
         if (unlikely (!var.indices.resize (point_count) ||
-                      !var.deltas_x.resize (point_count, false)))
+                      !var.deltas_x.resize_dirty  (point_count)))
           return false;
 
-        if (is_gvar && unlikely (!var.deltas_y.resize (point_count, false)))
+        if (is_gvar && unlikely (!var.deltas_y.resize_dirty  (point_count)))
           return false;
 
         for (unsigned i = 0; i < num_deltas; i++)
@@ -1029,8 +1029,8 @@ struct TupleVariationData
         /* In VarData, deltas are organized in rows, convert them into
          * column(region) based tuples, resize deltas_x first */
         tuple_delta_t tuple;
-        if (!tuple.deltas_x.resize (item_count, false) ||
-            !tuple.indices.resize (item_count, false))
+        if (!tuple.deltas_x.resize_dirty  (item_count) ||
+            !tuple.indices.resize_dirty  (item_count))
           return false;
 
         for (unsigned i = 0; i < item_count; i++)
@@ -1457,7 +1457,7 @@ struct TupleVariationData
       if (unlikely (p + 1 > end)) return false;
       count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
     }
-    if (unlikely (!points.resize (count, false))) return false;
+    if (unlikely (!points.resize_dirty  (count))) return false;
 
     unsigned n = 0;
     unsigned i = 0;

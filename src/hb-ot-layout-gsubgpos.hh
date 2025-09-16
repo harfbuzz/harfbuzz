@@ -1361,7 +1361,7 @@ static bool match_input (hb_ot_apply_context_t *c,
     }
 
     if (unlikely (i + 1 > c->match_positions.length &&
-		  !c->match_positions.resize (i + 1, false)))
+		  !c->match_positions.resize_dirty  (i + 1)))
       return_trace (false);
     c->match_positions.arrayZ[i] = skippy_iter.idx;
 
@@ -1850,7 +1850,7 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
       if (unlikely (delta + count > HB_MAX_CONTEXT_LENGTH))
 	break;
       if (unlikely (count + delta > c->match_positions.length &&
-		    !c->match_positions.resize (count + delta, false)))
+		    !c->match_positions.resize_dirty  (count + delta)))
         return;
     }
     else

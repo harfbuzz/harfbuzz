@@ -168,7 +168,7 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   }
 
   hb_vector_t<kbts_glyph> kb_glyphs;
-  if (unlikely (!kb_glyphs.resize_exact (buffer->len, false)))
+  if (unlikely (!kb_glyphs.resize_full (buffer->len, false, true)))
     return false;
 
   for (size_t i = 0; i < buffer->len; ++i)
@@ -223,7 +223,7 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
      * https://github.com/JimmyLefevre/kb/issues/32
      */
     glyph_capacity += glyph_capacity / 2;
-    if (unlikely (!kb_glyphs.resize_exact (glyph_capacity, false)))
+    if (unlikely (!kb_glyphs.resize_full (glyph_capacity, false, true)))
       return false;
   }
 

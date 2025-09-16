@@ -91,10 +91,10 @@ struct hb_bit_set_t
     if (pages.length < count && (unsigned) pages.allocated < count && count <= 2)
       exact_size = true; // Most sets are small and local
 
-    if (unlikely (!pages.resize (count, clear, exact_size) ||
-	!page_map.resize (count, clear)))
+    if (unlikely (!pages.resize_full (count, clear, exact_size) ||
+	!page_map.resize_full (count, clear, false)))
     {
-      pages.resize (page_map.length, clear, exact_size);
+      pages.resize_full (page_map.length, clear, exact_size);
       successful = false;
       return false;
     }
@@ -395,7 +395,7 @@ struct hb_bit_set_t
   {
     if (unlikely (!successful)) return;
     unsigned int count = other.pages.length;
-    if (unlikely (!resize (count, false, exact_size)))
+    if (unlikely (!resize  (count, false, exact_size)))
       return;
     population = other.population;
 

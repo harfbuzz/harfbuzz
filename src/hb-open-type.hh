@@ -1742,7 +1742,7 @@ struct TupleValues
       unsigned run_count = (control & VALUE_RUN_COUNT_MASK) + 1;
       if (consume_all)
       {
-        if (unlikely (!values.resize (values.length + run_count, false)))
+        if (unlikely (!values.resize_dirty  (values.length + run_count)))
 	  return false;
       }
       unsigned stop = i + run_count;
