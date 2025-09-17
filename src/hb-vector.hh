@@ -107,9 +107,6 @@ struct hb_vector_t
   void
   set_storage (Type *array, unsigned n)
   {
-    if (unlikely (in_error ()))
-      return;
-
     assert (allocated == 0);
     assert (length == 0);
 
@@ -548,21 +545,19 @@ struct hb_vector_t
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
   bool allocate_from_pool (allocator_t *allocator, unsigned size, unsigned int initialize = true)
   {
-    assert (!length && !allocated);
     if (allocator)
     {
+      assert (!length && !allocated);
       arrayZ = (Type *) allocator->alloc (size * sizeof (Type));
       if (unlikely (!arrayZ))
       {
 	set_error ();
 	return false;
       }
-      set_storage (arrayZ, size);
       if (initialize)
-      {
-	length = 0;
 	grow_vector (size, hb_prioritize);
-      }
+      else
+	length = size;
       return true;
     }
     return resize_full ((int) size, initialize, true);
@@ -654,7 +649,7 @@ struct hb_vector_t
 
     shrink_vector (size);
 
-    if (shrink_memory)
+    if (is_owned () && shrink_memory)
       alloc_exact (size); /* To force shrinking memory if needed. */
   }
 

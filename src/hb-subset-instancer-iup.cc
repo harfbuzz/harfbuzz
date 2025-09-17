@@ -24,6 +24,10 @@
 
 #include "hb-subset-instancer-iup.hh"
 
+#include "hb-bit-page.hh"
+
+using hb_iup_set_t = hb_bit_page_t;
+
 /* This file is a straight port of the following:
  *
  * https://github.com/fonttools/fonttools/blob/main/Lib/fontTools/varLib/iup.py
@@ -37,7 +41,7 @@ constexpr static unsigned MAX_LOOKBACK = 8;
 static void _iup_contour_bound_forced_set (const hb_array_t<const contour_point_t> contour_points,
                                            const hb_array_t<const int> x_deltas,
                                            const hb_array_t<const int> y_deltas,
-                                           hb_bit_set_t& forced_set, /* OUT */
+                                           hb_iup_set_t& forced_set, /* OUT */
                                            double tolerance = 0.0)
 {
   unsigned len = contour_points.length;
@@ -150,10 +154,10 @@ static bool rotate_array (const hb_array_t<const T>& org_array,
   return true;
 }
 
-static bool rotate_set (const hb_bit_set_t& org_set,
+static bool rotate_set (const hb_iup_set_t& org_set,
                         int k,
                         unsigned n,
-                        hb_bit_set_t& out)
+                        hb_iup_set_t& out)
 {
   if (!n) return false;
   k %= n;
@@ -162,14 +166,14 @@ static bool rotate_set (const hb_bit_set_t& org_set,
 
   if (k == 0)
   {
-    out.set (org_set);
+    out = org_set;
   }
   else
   {
-    for (auto v : org_set)
+    for (unsigned v : org_set)
       out.add ((v + k) % n);
   }
-  return !out.in_error ();
+  return true;
 }
 
 /* Given two reference coordinates (start and end of contour_points array),
@@ -280,7 +284,7 @@ static bool _can_iup_in_between (const hb_array_t<const contour_point_t> contour
 static bool _iup_contour_optimize_dp (const contour_point_vector_t& contour_points,
                                       const hb_vector_t<int>& x_deltas,
                                       const hb_vector_t<int>& y_deltas,
-                                      const hb_bit_set_t& forced_set,
+                                      const hb_iup_set_t& forced_set,
                                       double tolerance,
                                       unsigned lookback,
                                       hb_vector_t<unsigned>& costs, /* OUT */
@@ -347,6 +351,9 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
       y_deltas.length != n)
     return false;
 
+  if (unlikely (n > hb_iup_set_t::PAGE_BITS))
+    return true; // Refuse to work
+
   bool all_within_tolerance = true;
   double tolerance_sq = tolerance * tolerance;
   for (unsigned i = 0; i < n; i++)
@@ -389,7 +396,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
   }
 
   /* else, solve the general problem using Dynamic Programming */
-  hb_bit_set_t &forced_set = scratch.forced_set.reset ();
+  hb_iup_set_t forced_set;
   _iup_contour_bound_forced_set (contour_points, x_deltas, y_deltas, forced_set, tolerance);
 
   hb_vector_t<unsigned> &costs = scratch.costs.reset ();
@@ -405,7 +412,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
     hb_vector_t<int> &rot_y_deltas = scratch.rot_y_deltas.reset ();
     contour_point_vector_t &rot_points = scratch.rot_points;
     rot_points.reset ();
-    hb_bit_set_t &rot_forced_set = scratch.rot_forced_set.reset ();
+    hb_iup_set_t rot_forced_set;
     if (!rotate_array (contour_points, k, rot_points) ||
         !rotate_array (x_deltas, k, rot_x_deltas) ||
         !rotate_array (y_deltas, k, rot_y_deltas) ||
@@ -418,7 +425,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 				   scratch.interp_x_deltas, scratch.interp_y_deltas))
       return false;
 
-    hb_bit_set_t &solution = scratch.solution.reset ();
+    hb_iup_set_t solution;
     int index = n - 1;
     while (index != -1)
     {
@@ -471,11 +478,10 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
 
     unsigned best_cost = n + 1;
     int len = costs.length;
-    hb_bit_set_t &solution = scratch.solution.reset ();
-    hb_bit_set_t &best_sol = scratch.best_sol.reset ();
+    hb_iup_set_t best_sol;
     for (int start = n - 1; start < len; start++)
     {
-      solution.reset ();
+      hb_iup_set_t solution;
       int i = start;
       int lookback = start - (int) n;
       while (i > lookback)
@@ -489,7 +495,7 @@ static bool _iup_contour_optimize (const hb_array_t<const contour_point_t> conto
         unsigned cost = costs.arrayZ[start] - cost_i;
         if (cost <= best_cost)
         {
-          best_sol.set (solution);
+          best_sol = solution;
           best_cost = cost;
         }
       }

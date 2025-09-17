@@ -38,10 +38,6 @@ struct iup_scratch_t
   hb_vector_t<int> rot_x_deltas;
   hb_vector_t<int> rot_y_deltas;
   contour_point_vector_t rot_points;
-  hb_bit_set_t forced_set;
-  hb_bit_set_t rot_forced_set;
-  hb_bit_set_t solution;
-  hb_bit_set_t best_sol;
 };
 
 /* given contour points and deltas, optimize a set of referenced points within error

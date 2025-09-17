@@ -475,7 +475,8 @@ struct tuple_delta_t
   bool compile_tuple_var_header (const hb_map_t& axes_index_map,
                                  unsigned points_data_length,
                                  const hb_map_t& axes_old_index_tag_map,
-                                 const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map)
+                                 const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map,
+				 hb_alloc_pool_t *pool = nullptr)
   {
     /* compiled_deltas could be empty after iup delta optimization, we can skip
      * compiling this tuple and return true */
@@ -484,7 +485,7 @@ struct tuple_delta_t
     unsigned cur_axis_count = axes_index_map.get_population ();
     /* allocate enough memory: 1 peak + 2 intermediate coords + fixed header size */
     unsigned alloc_len = 3 * cur_axis_count * (F2DOT14::static_size) + 4;
-    if (unlikely (!compiled_tuple_header.resize_dirty  (alloc_len))) return false;
+    if (unlikely (!compiled_tuple_header.allocate_from_pool (pool, alloc_len, false))) return false;
 
     unsigned flag = 0;
     /* skip the first 4 header bytes: variationDataSize+tupleIndex */
@@ -522,7 +523,8 @@ struct tuple_delta_t
     o->tupleIndex = flag;
 
     unsigned total_header_len = 4 + (peak_count + interim_count) * (F2DOT14::static_size);
-    return compiled_tuple_header.resize (total_header_len);
+    compiled_tuple_header.shrink (total_header_len);
+    return true;
   }
 
   unsigned encode_peak_coords (hb_array_t<F2DOT14> peak_coords,
@@ -545,14 +547,16 @@ struct tuple_delta_t
     return compiled_interm_coords.length;
   }
 
-  bool compile_deltas (hb_vector_t<int> &rounded_deltas_scratch)
-  { return compile_deltas (indices, deltas_x, deltas_y, compiled_deltas, rounded_deltas_scratch); }
+  bool compile_deltas (hb_vector_t<int> &rounded_deltas_scratch,
+		       hb_alloc_pool_t *pool = nullptr)
+  { return compile_deltas (indices, deltas_x, deltas_y, compiled_deltas, rounded_deltas_scratch, pool); }
 
   static bool compile_deltas (hb_array_t<const bool> point_indices,
 			      hb_array_t<const float> x_deltas,
 			      hb_array_t<const float> y_deltas,
 			      hb_vector_t<unsigned char> &compiled_deltas, /* OUT */
-			      hb_vector_t<int> &rounded_deltas /* scratch */)
+			      hb_vector_t<int> &rounded_deltas, /* scratch */
+			      hb_alloc_pool_t *pool = nullptr)
   {
     if (unlikely (!rounded_deltas.resize_dirty  (point_indices.length)))
       return false;
@@ -566,12 +570,16 @@ struct tuple_delta_t
     rounded_deltas.resize (j);
 
     if (!rounded_deltas) return true;
-    /* allocate enough memories 5 * num_deltas */
-    unsigned alloc_len = 5 * rounded_deltas.length;
+    /* Allocate enough memory: this is the correct bound:
+     * Worst case scenario is that each delta has to be encoded in 4 bytes, and there
+     * are runs of 64 items each. Any delta encoded in less than 4 bytes (2, 1, or 0)
+     * is still smaller than the 4-byte encoding even with their control byte.
+     * The initial 2 is to handle length==0, for both x and y deltas. */
+    unsigned alloc_len = 2 + 4 * rounded_deltas.length + (rounded_deltas.length + 63) / 64;
     if (y_deltas)
       alloc_len *= 2;
 
-    if (unlikely (!compiled_deltas.resize_dirty  (alloc_len))) return false;
+    if (unlikely (!compiled_deltas.allocate_from_pool (pool, alloc_len, false))) return false;
 
     unsigned encoded_len = compile_deltas (compiled_deltas, rounded_deltas);
 
@@ -592,13 +600,13 @@ struct tuple_delta_t
       if (j != rounded_deltas.length) return false;
       encoded_len += compile_deltas (compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
     }
-    return compiled_deltas.resize (encoded_len);
+    compiled_deltas.shrink (encoded_len);
+    return true;
   }
 
   static unsigned compile_deltas (hb_array_t<unsigned char> encoded_bytes,
 				  hb_array_t<const int> deltas)
   {
-    assert (encoded_bytes.length >= 5 * deltas.length);
     return TupleValues::compile_unsafe (deltas, encoded_bytes);
   }
 
@@ -1276,7 +1284,8 @@ struct TupleVariationData
                         const hb_map_t& axes_old_index_tag_map,
                         bool use_shared_points,
                         bool is_gvar = false,
-                        const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map = nullptr)
+                        const hb_hashmap_t<const hb_vector_t<F2DOT14>*, unsigned>* shared_tuples_idx_map = nullptr,
+			hb_alloc_pool_t *pool = nullptr)
     {
       // return true for empty glyph
       if (!tuple_vars)
@@ -1310,12 +1319,13 @@ struct TupleVariationData
          * this tuple */
         if (!points_data->length)
           continue;
-        if (!tuple.compile_deltas (rounded_deltas_scratch))
+        if (!tuple.compile_deltas (rounded_deltas_scratch, pool))
           return false;
 
         unsigned points_data_length = (points_data != shared_points_bytes) ? points_data->length : 0;
         if (!tuple.compile_tuple_var_header (axes_index_map, points_data_length, axes_old_index_tag_map,
-                                             shared_tuples_idx_map))
+                                             shared_tuples_idx_map,
+					     pool))
           return false;
         compiled_byte_size += tuple.compiled_tuple_header.length + points_data_length + tuple.compiled_deltas.length;
       }

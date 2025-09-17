@@ -142,6 +142,7 @@ struct hb_bit_page_t
 
   bool operator [] (hb_codepoint_t g) const { return get (g); }
   bool operator () (hb_codepoint_t g) const { return get (g); }
+  bool has (hb_codepoint_t g) const { return get (g); }
 
   void add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
@@ -345,6 +346,38 @@ struct hb_bit_page_t
 	return i * ELT_BITS + elt_get_max (v[i]);
     return 0;
   }
+
+  /*
+   * Iterator implementation.
+   */
+  struct iter_t : hb_iter_with_fallback_t<iter_t, hb_codepoint_t>
+  {
+    static constexpr bool is_sorted_iterator = true;
+    iter_t (const hb_bit_page_t &s_ = Null (hb_bit_page_t), bool init = true) : s (&s_), v (INVALID)
+    {
+      if (init)
+	v = s->get_min ();
+    }
+
+    typedef hb_codepoint_t __item_t__;
+    hb_codepoint_t __item__ () const { return v; }
+    bool __more__ () const { return v != INVALID; }
+    void __next__ () {
+       s->next (&v); if (l) l--;
+    }
+    void __prev__ () { s->previous (&v); }
+    unsigned __len__ () const { return l; }
+    iter_t end () const { return iter_t (*s, false); }
+    bool operator != (const iter_t& o) const
+    { return s != o.s || v != o.v; }
+
+    protected:
+    const hb_bit_page_t *s;
+    hb_codepoint_t v;
+    unsigned l;
+  };
+  iter_t iter () const { return iter_t (*this); }
+  operator iter_t () const { return iter (); }
 
   static constexpr hb_codepoint_t INVALID = HB_SET_VALUE_INVALID;
 

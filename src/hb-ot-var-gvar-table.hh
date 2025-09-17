@@ -165,7 +165,8 @@ struct glyph_variations_t
       if (!vars.compile_bytes (axes_index_map, axes_old_index_tag_map,
                                true, /* use shared points*/
                                true,
-                               &shared_tuples_idx_map))
+                               &shared_tuples_idx_map,
+			       &pool))
         return false;
 
     return true;
