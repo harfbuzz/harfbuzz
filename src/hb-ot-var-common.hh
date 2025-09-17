@@ -982,8 +982,6 @@ struct TupleVariationData
           return false;
 
 	hb_hashmap_t<hb_tag_t, Triple> axis_tuples;
-	axis_tuples.allocate_from_pool (pool, iterator.get_axis_count ());
-
         if (!iterator.current_tuple->unpack_axis_tuples (iterator.get_axis_count (), shared_tuples, axes_old_index_tag_map, axis_tuples)
             || axis_tuples.is_empty ())
           return false;
