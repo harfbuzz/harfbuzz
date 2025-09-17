@@ -143,6 +143,7 @@ struct hb_hashmap_t
 
   hb_object_header_t header;
   bool successful; /* Allocations successful */
+  bool foreign; /* Is items array allocated outside */
   unsigned short max_chain_length;
   unsigned int population; /* Not including tombstones. */
   unsigned int occupancy; /* Including tombstones. */
@@ -160,12 +161,14 @@ struct hb_hashmap_t
     hb_swap (a.mask, b.mask);
     hb_swap (a.prime, b.prime);
     hb_swap (a.items, b.items);
+    hb_swap (a.foreign, b.foreign);
   }
   void init ()
   {
     hb_object_init (this);
 
     successful = true;
+    foreign = false;
     max_chain_length = 0;
     population = occupancy = 0;
     mask = 0;
@@ -181,7 +184,9 @@ struct hb_hashmap_t
       unsigned size = mask + 1;
       for (unsigned i = 0; i < size; i++)
 	items[i].~item_t ();
-      hb_free (items);
+      if (!foreign)
+	hb_free (items);
+      foreign = false;
       items = nullptr;
     }
     population = occupancy = 0;
@@ -196,15 +201,25 @@ struct hb_hashmap_t
 
   bool in_error () const { return !successful; }
 
-  bool alloc (unsigned new_population = 0)
+  unsigned power_for (unsigned int desired_population) const
+  {
+    unsigned int power = hb_bit_storage (hb_max (desired_population * 2, 4u));
+    return power;
+  }
+  unsigned size_for (unsigned int desired_population) const
+  {
+    return 1u << power_for (desired_population);
+  }
+
+  bool alloc (unsigned new_population = 0, item_t *foreign_items = nullptr)
   {
     if (unlikely (!successful)) return false;
 
     if (new_population != 0 && (new_population + new_population / 2) < mask) return true;
 
-    unsigned int power = hb_bit_storage (hb_max (hb_max ((unsigned) population, new_population) * 2, 4u));
-    unsigned int new_size = 1u << power;
-    item_t *new_items = (item_t *) hb_malloc ((size_t) new_size * sizeof (item_t));
+    unsigned power = power_for (hb_max ((unsigned) population, new_population));
+    unsigned new_size = 1u << power;
+    item_t *new_items = foreign_items ? foreign_items : (item_t *) hb_malloc ((size_t) new_size * sizeof (item_t));
     if (unlikely (!new_items))
     {
       successful = false;
@@ -239,9 +254,24 @@ struct hb_hashmap_t
     for (unsigned int i = 0; i < old_size; i++)
       old_items[i].~item_t ();
 
-    hb_free (old_items);
+    if (!foreign)
+      hb_free (old_items);
+
+    foreign = foreign_items != nullptr;
 
     return true;
+  }
+
+  template <typename allocator_t>
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
+  bool allocate_from_pool (allocator_t *allocator, unsigned size)
+  {
+    item_t *arrayZ = nullptr;
+
+    if (allocator)
+      arrayZ = (item_t *) allocator->alloc (size_for (size) * sizeof (item_t));
+
+    return alloc (size, arrayZ);
   }
 
   template <typename KK, typename VV>
