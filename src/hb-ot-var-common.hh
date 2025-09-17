@@ -523,7 +523,7 @@ struct tuple_delta_t
     o->tupleIndex = flag;
 
     unsigned total_header_len = 4 + (peak_count + interim_count) * (F2DOT14::static_size);
-    compiled_tuple_header.shrink (total_header_len);
+    compiled_tuple_header.shrink (total_header_len, false);
     return true;
   }
 
@@ -600,7 +600,7 @@ struct tuple_delta_t
       if (j != rounded_deltas.length) return false;
       encoded_len += compile_deltas (compiled_deltas.as_array ().sub_array (encoded_len), rounded_deltas);
     }
-    compiled_deltas.shrink (encoded_len);
+    compiled_deltas.shrink (encoded_len, false);
     return true;
   }
 
