@@ -548,7 +548,7 @@ struct hb_vector_t
     if (allocator)
     {
       assert (!length && !allocated);
-      arrayZ = (Type *) allocator->alloc (size * sizeof (Type));
+      arrayZ = (Type *) allocator->alloc (size * sizeof (Type), alignof (Type));
       if (unlikely (!arrayZ))
       {
 	set_error ();
