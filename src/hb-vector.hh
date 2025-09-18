@@ -548,7 +548,7 @@ struct hb_vector_t
     if (allocator)
     {
       assert (!length && !allocated);
-      arrayZ = (Type *) allocator->alloc (size * sizeof (Type));
+      arrayZ = (Type *) allocator->alloc (size * sizeof (Type), alignof (Type));
       if (unlikely (!arrayZ))
       {
 	set_error ();
@@ -572,6 +572,17 @@ struct hb_vector_t
     length = 0;
     copy_array (other.as_array ());
     return true;
+  }
+
+  template <typename allocator_t>
+  void shrink_back_to_pool (allocator_t *allocator, int size)
+  {
+    unsigned orig_length = length;
+
+    shrink (size, false);
+
+    if (allocator && !is_owned ())
+      allocator->discard (arrayZ + length, (orig_length - length) * sizeof (Type));
   }
 
   HB_ALWAYS_INLINE_VECTOR_ALLOCS

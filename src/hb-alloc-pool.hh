@@ -42,9 +42,13 @@ struct hb_alloc_pool_t
 {
   unsigned ChunkSize = 65536 - 2 * sizeof (void *);
 
-  void *alloc (size_t size)
+  void *alloc (size_t size, unsigned alignment = 2 * sizeof (void *))
   {
     if (unlikely (chunks.in_error ())) return nullptr;
+
+    assert (alignment > 0);
+    assert (alignment <= 2 * sizeof (void *));
+    assert ((alignment & (alignment - 1)) == 0); /* power of two */
 
     if (size > (ChunkSize) / 4)
     {
@@ -63,8 +67,11 @@ struct hb_alloc_pool_t
       return ret;
     }
 
+    unsigned pad = current_chunk.length & (alignment - 1);
+    if (pad) pad = alignment - pad;
+
     // Small chunk, allocate from the last chunk.
-    if (current_chunk.length < size)
+    if (current_chunk.length < pad + size)
     {
       chunks.push ();
       if (unlikely (chunks.in_error ())) return nullptr;
@@ -72,11 +79,21 @@ struct hb_alloc_pool_t
       if (unlikely (!chunk.resize (ChunkSize))) return nullptr;
       current_chunk = chunk;
     }
+    else
+      current_chunk += pad;
 
     assert (current_chunk.length >= size);
     void *ret = current_chunk.arrayZ;
     current_chunk += size;
     return ret;
+  }
+
+  void discard (void *p_, size_t size)
+  {
+    // Reclaim memory if we can.
+    char *p = (char *) p_;
+    if (current_chunk.arrayZ == p + size && current_chunk.backwards_length >= size)
+      current_chunk -= size;
   }
 
   private:
