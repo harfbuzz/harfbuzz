@@ -574,6 +574,17 @@ struct hb_vector_t
     return true;
   }
 
+  template <typename allocator_t>
+  void shrink_back_to_pool (allocator_t *allocator, int size)
+  {
+    unsigned orig_length = length;
+
+    shrink (size, false);
+
+    if (allocator && !is_owned ())
+      allocator->discard (arrayZ + length, (orig_length - length) * sizeof (Type));
+  }
+
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
   bool resize_full (int size_, bool initialize, bool exact)
   {

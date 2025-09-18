@@ -88,6 +88,14 @@ struct hb_alloc_pool_t
     return ret;
   }
 
+  void discard (void *p_, size_t size)
+  {
+    // Reclaim memory if we can.
+    char *p = (char *) p_;
+    if (current_chunk.arrayZ == p + size && current_chunk.backwards_length >= size)
+      current_chunk -= size;
+  }
+
   private:
   hb_vector_t<hb_vector_t<char>> chunks;
   hb_array_t<char> current_chunk;
