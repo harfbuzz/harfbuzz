@@ -645,4 +645,18 @@ _hb_buffer_assert_gsubgpos_vars (hb_buffer_t *buffer)
 #undef lig_props
 #undef glyph_props
 
+static inline void
+_hb_collect_glyph_alternates_add (hb_codepoint_t from,
+				  hb_codepoint_t to,
+				  hb_map_t *alternate_count,
+				  hb_map_t *alternate_glyphs)
+{
+  hb_codepoint_t zero = 0;
+  hb_codepoint_t *i = &zero;
+  alternate_count->has (from, &i);
+  alternate_glyphs->set (from | (*i << 24), to);
+  alternate_count->set (from, *i + 1);
+}
+
+
 #endif /* HB_OT_LAYOUT_HH */
