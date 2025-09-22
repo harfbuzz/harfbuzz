@@ -1,3 +1,10 @@
+Overview of changes leading to 11.5.1
+Monday, September 22, 2025
+=====================================
+- Optimized partial-instancing of fonts with a large number of axes. Now over two times faster.
+- Fix C++ STL atomics implementation.
+
+
 Overview of changes leading to 11.5.0
 Saturday, September 12, 2025
 =====================================
