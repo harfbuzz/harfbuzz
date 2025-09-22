@@ -1921,13 +1921,21 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
-  while (buffer->idx < buffer->len && buffer->successful)
+  while (buffer->successful)
   {
-    auto &cur = buffer->cur();
-    if (accel.digest.may_have (cur.codepoint) &&
-	(cur.mask & c->lookup_mask) &&
-	c->check_glyph_property (&cur, c->lookup_props) &&
-        accel.apply (c, use_hot_subtable_cache))
+    hb_glyph_info_t *info = buffer->info;
+    unsigned j = buffer->idx;
+    while (j < buffer->len &&
+	   !(accel.digest.may_have (info[j].codepoint) &&
+	     (info[j].mask & c->lookup_mask) &&
+	     c->check_glyph_property (&info[j], c->lookup_props)))
+      j++;
+    if (unlikely (j > buffer->idx && !buffer->next_glyphs (j - buffer->idx)))
+      break;
+    if (buffer->idx >= buffer->len)
+      break;
+
+    if (accel.apply (c, use_hot_subtable_cache))
       ret = true;
     else
       (void) buffer->next_glyph ();
