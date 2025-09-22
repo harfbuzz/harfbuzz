@@ -184,6 +184,7 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
                           const contour_point_t& p1, const contour_point_t& p2,
                           int p1_dx, int p2_dx,
                           int p1_dy, int p2_dy,
+			  double tolerance_sq,
                           hb_vector_t<double>& interp_x_deltas, /* OUT */
                           hb_vector_t<double>& interp_y_deltas /* OUT */)
 {
@@ -195,6 +196,7 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
   for (unsigned j = 0; j < 2; j++)
   {
     double x1, x2, d1, d2;
+    const int *in;
     double *out;
     if (j == 0)
     {
@@ -202,6 +204,7 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
       x2 = static_cast<double> (p2.x);
       d1 = p1_dx;
       d2 = p2_dx;
+      in = x_deltas.arrayZ;
       out = interp_x_deltas.arrayZ;
     }
     else
@@ -210,6 +213,7 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
       x2 = static_cast<double> (p2.y);
       d1 = p1_dy;
       d2 = p2_dy;
+      in = y_deltas.arrayZ;
       out = interp_y_deltas.arrayZ;
     }
 
@@ -247,6 +251,9 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
         d = d1 + (x - x1) * scale;
 
       out[i] = d;
+      double err = d - in[i];
+      if (err * err > tolerance_sq)
+	return false;
     }
   }
   return true;
@@ -264,6 +271,7 @@ static bool _can_iup_in_between (const hb_array_t<const contour_point_t> contour
 {
   if (!_iup_segment (contour_points, x_deltas, y_deltas,
                      p1, p2, p1_dx, p2_dx, p1_dy, p2_dy,
+		     tolerance_sq,
                      interp_x_deltas, interp_y_deltas))
     return false;
 
