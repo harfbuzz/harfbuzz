@@ -2028,11 +2028,8 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       if (buffer->messaging () &&
 	  !buffer->message (font, "start lookup %u feature '%c%c%c%c'", lookup_index, HB_UNTAG (lookup.feature_tag))) continue;
 
-      /* c.digest is a digest of all the current glyphs in the buffer
-       * (plus some past glyphs).
-       *
-       * Only try applying the lookup if there is any overlap. */
-      if (accel->digest.may_intersect (c.digest))
+      /* Only try applying the lookup if there is any overlap. */
+      if (accel->digest.may_intersect (buffer->digest))
       {
 	c.set_lookup_index (lookup_index);
 	c.set_lookup_mask (lookup.mask, false);
@@ -2058,7 +2055,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       if (stage->pause_func (plan, font, buffer))
       {
 	/* Refresh working buffer digest since buffer changed. */
-	buffer->collect_codepoints (c.digest);
+	buffer->update_digest ();
       }
     }
   }

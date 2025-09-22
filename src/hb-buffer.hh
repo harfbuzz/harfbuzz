@@ -32,6 +32,7 @@
 
 #include "hb.hh"
 #include "hb-unicode.hh"
+#include "hb-set-digest.hh"
 
 
 static_assert ((sizeof (hb_glyph_info_t) == 20), "");
@@ -109,6 +110,7 @@ struct hb_buffer_t
   hb_codepoint_t context[2][CONTEXT_LENGTH];
   unsigned int context_len[2];
 
+  hb_set_digest_t digest; /* Manually updated sometimes */
 
   /*
    * Managed by enter / leave
@@ -198,6 +200,12 @@ struct hb_buffer_t
   template <typename set_t>
   void collect_codepoints (set_t &d) const
   { d.clear (); d.add_array (&info[0].codepoint, len, sizeof (info[0])); }
+
+  void update_digest ()
+  {
+    digest = hb_set_digest_t ();
+    collect_codepoints (digest);
+  }
 
   HB_INTERNAL void similar (const hb_buffer_t &src);
   HB_INTERNAL void reset ();
