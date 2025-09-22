@@ -921,11 +921,17 @@ hb_ot_substitute_plan (const hb_ot_shape_context_t *c)
 
 #ifndef HB_NO_AAT_SHAPE
   if (unlikely (c->plan->apply_morx))
+  {
     hb_aat_layout_substitute (c->plan, c->font, c->buffer,
 			      c->user_features, c->num_user_features);
+    c->buffer->update_digest ();
+  }
   else
 #endif
+  {
+    c->buffer->update_digest ();
     c->plan->substitute (c->font, buffer);
+  }
 }
 
 static inline void
@@ -934,7 +940,6 @@ hb_ot_substitute_pre (const hb_ot_shape_context_t *c)
   hb_ot_substitute_default (c);
 
   _hb_buffer_allocate_gsubgpos_vars (c->buffer);
-  c->buffer->update_digest ();
 
   hb_ot_substitute_plan (c);
 
