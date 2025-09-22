@@ -715,7 +715,6 @@ struct hb_ot_apply_context_t :
   const hb_ot_layout_lookup_accelerator_t *lookup_accel = nullptr;
   const ItemVariationStore &var_store;
   hb_scalar_cache_t *var_store_cache;
-  hb_set_digest_t digest;
 
   hb_direction_t direction;
   hb_mask_t lookup_mask = 1;
@@ -764,7 +763,6 @@ struct hb_ot_apply_context_t :
 			has_glyph_classes (gdef.has_glyph_classes ())
   {
     init_iters ();
-    buffer->collect_codepoints (digest);
     match_positions.set_storage (stack_match_positions);
   }
 
@@ -837,7 +835,7 @@ struct hb_ot_apply_context_t :
 			  bool ligature = false,
 			  bool component = false)
   {
-    digest.add (glyph_index);
+    buffer->digest.add (glyph_index);
 
     if (new_syllables != (unsigned) -1)
       buffer->cur().syllable() = new_syllables;

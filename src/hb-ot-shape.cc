@@ -934,6 +934,7 @@ hb_ot_substitute_pre (const hb_ot_shape_context_t *c)
   hb_ot_substitute_default (c);
 
   _hb_buffer_allocate_gsubgpos_vars (c->buffer);
+  c->buffer->update_digest ();
 
   hb_ot_substitute_plan (c);
 
