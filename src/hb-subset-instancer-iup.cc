@@ -195,11 +195,13 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
 
   for (unsigned j = 0; j < 2; j++)
   {
+    float contour_point_t::* xp;
     double x1, x2, d1, d2;
     const int *in;
     double *out;
     if (j == 0)
     {
+      xp = &contour_point_t::x;
       x1 = static_cast<double> (p1.x);
       x2 = static_cast<double> (p2.x);
       d1 = p1_dx;
@@ -209,6 +211,7 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
     }
     else
     {
+      xp = &contour_point_t::y;
       x1 = static_cast<double> (p1.y);
       x2 = static_cast<double> (p2.y);
       d1 = p1_dy;
@@ -241,7 +244,7 @@ static bool _iup_segment (const hb_array_t<const contour_point_t> contour_points
     double scale = (d2 - d1) / (x2 - x1);
     for (unsigned i = 0; i < n; i++)
     {
-      double x = (j == 0 ? static_cast<double> (contour_points.arrayZ[i].x) : static_cast<double> (contour_points.arrayZ[i].y));
+      double x = (double) (contour_points.arrayZ[i].*xp);
       double d;
       if (x <= x1)
         d = d1;
