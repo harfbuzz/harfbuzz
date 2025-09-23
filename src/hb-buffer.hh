@@ -370,7 +370,7 @@ struct hb_buffer_t
     {
       if (out_info != info || out_len != idx)
       {
-	if (unlikely (!make_room_for (n, n))) return false;
+	if (unlikely (!ensure (out_len + n))) return false;
 	memmove (out_info + out_len, info + idx, n * sizeof (out_info[0]));
       }
       out_len += n;
