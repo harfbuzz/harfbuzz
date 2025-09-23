@@ -1134,7 +1134,9 @@ hb_propagate_flags (hb_buffer_t *buffer)
   {
     unsigned int mask = 0;
     for (unsigned int i = start; i < end; i++)
-      mask |= info[i].mask & HB_GLYPH_FLAG_DEFINED;
+      mask |= info[i].mask;
+
+    mask &= HB_GLYPH_FLAG_DEFINED;
 
     if (flip_tatweel)
     {
