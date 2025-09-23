@@ -1116,41 +1116,60 @@ hb_propagate_flags (hb_buffer_t *buffer)
   if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS))
     return;
 
+  hb_mask_t and_mask = HB_GLYPH_FLAG_DEFINED;
+  if ((buffer->flags & HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT) == 0)
+    and_mask |= ~HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+
+  hb_glyph_info_t *info = buffer->info;
+
+  if (buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL)
+  {
+    foreach_cluster (buffer, start, end)
+    {
+      if (end - start == 1)
+	continue;
+
+      unsigned int mask = 0;
+      for (unsigned int i = start; i < end; i++)
+	mask |= info[i].mask;
+
+      mask &= and_mask;
+
+      for (unsigned int i = start; i < end; i++)
+	info[i].mask = mask;
+    }
+    return;
+  }
+
   /* If we are producing SAFE_TO_INSERT_TATWEEL, then do two things:
    *
    * - If the places that the Arabic shaper marked as SAFE_TO_INSERT_TATWEEL,
    *   are UNSAFE_TO_BREAK, then clear the SAFE_TO_INSERT_TATWEEL,
    * - Any place that is SAFE_TO_INSERT_TATWEEL, is also now UNSAFE_TO_BREAK.
    *
-   * We couldn't make this interaction earlier. It has to be done here.
+   * We couldn't make this interaction earlier. It has to be done this way.
    */
-  bool flip_tatweel = buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL;
-
-  bool clear_concat = (buffer->flags & HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT) == 0;
-
-  hb_glyph_info_t *info = buffer->info;
-
-  foreach_cluster (buffer, start, end)
+  if (buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL)
   {
-    unsigned int mask = 0;
-    for (unsigned int i = start; i < end; i++)
-      mask |= info[i].mask;
-
-    mask &= HB_GLYPH_FLAG_DEFINED;
-
-    if (flip_tatweel)
+    foreach_cluster (buffer, start, end)
     {
+      if (end - start == 1)
+	continue;
+
+      unsigned int mask = 0;
+      for (unsigned int i = start; i < end; i++)
+	mask |= info[i].mask;
+
       if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
 	mask &= ~HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL;
       if (mask & HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL)
 	mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+
+      mask &= and_mask;
+
+      for (unsigned int i = start; i < end; i++)
+	info[i].mask = mask;
     }
-
-    if (clear_concat)
-	mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
-
-    for (unsigned int i = start; i < end; i++)
-      info[i].mask = mask;
   }
 }
 
