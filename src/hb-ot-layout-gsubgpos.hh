@@ -3461,7 +3461,7 @@ struct ChainRuleSet
       const auto &input = StructAfter<decltype (r.inputX)> (r.backtrack);
       const auto &lookahead = StructAfter<decltype (r.lookaheadX)> (input);
 
-      unsigned lenP1 = hb_max ((unsigned) input.lenP1, 1u);
+      unsigned lenP1 = input.lenP1;
       if (lenP1 > 1 ?
 	   (!match_input ||
 	    match_input (*first, input.arrayZ[0], input_data))
@@ -3469,6 +3469,7 @@ struct ChainRuleSet
 	   (!lookahead.len || !match_lookahead ||
 	    match_lookahead (*first, lookahead.arrayZ[0], lookahead_data)))
       {
+	lenP1 = hb_max (lenP1, 1u);
         if (!second ||
 	    (lenP1 > 2 ?
 	     (!match_input ||
