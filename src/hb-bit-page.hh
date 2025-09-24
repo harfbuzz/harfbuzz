@@ -363,10 +363,9 @@ struct hb_bit_page_t
     hb_codepoint_t __item__ () const { return v; }
     bool __more__ () const { return v != INVALID; }
     void __next__ () {
-       s->next (&v); if (l) l--;
+       s->next (&v);
     }
     void __prev__ () { s->previous (&v); }
-    unsigned __len__ () const { return l; }
     iter_t end () const { return iter_t (*s, false); }
     bool operator != (const iter_t& o) const
     { return v != o.v; }
@@ -374,7 +373,6 @@ struct hb_bit_page_t
     protected:
     const hb_bit_page_t *s;
     hb_codepoint_t v;
-    unsigned l;
   };
   iter_t iter () const { return iter_t (*this); }
   operator iter_t () const { return iter (); }
