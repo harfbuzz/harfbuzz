@@ -217,8 +217,6 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
 
   if (u >= 0x80u)
   {
-    buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII;
-
     if (unlikely (unicode->is_default_ignorable (u)))
     {
       buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
