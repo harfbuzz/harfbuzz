@@ -854,6 +854,17 @@ HB_FUNCOBJ (hb_clamp);
  * Bithacks.
  */
 
+/* Return the number of 1 bits in a uint8_t; faster than hb_popcount() */
+static inline unsigned
+hb_popcount8 (unsigned v)
+{
+  static const uint8_t popcount4[16] = {
+    0, 1, 1, 2, 1, 2, 2, 3,
+    1, 2, 2, 3, 2, 3, 3, 4
+  };
+  return popcount4[v & 0xF] + popcount4[v >> 4];
+}
+
 /* Return the number of 1 bits in v. */
 template <typename T>
 static inline unsigned int

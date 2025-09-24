@@ -58,7 +58,7 @@ struct ValueFormat : HBUINT16
 
   NumType& operator = (uint16_t i) { v = i; return *this; }
 
-  unsigned int get_len () const  { return hb_popcount ((unsigned int) *this); }
+  unsigned int get_len () const  { return hb_popcount8 ((unsigned int) *this); }
   unsigned int get_size () const { return get_len () * Value::static_size; }
 
   hb_vector_t<unsigned> get_device_table_indices () const {
