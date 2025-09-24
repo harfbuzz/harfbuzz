@@ -50,9 +50,8 @@ enum hb_buffer_scratch_flags_t {
   HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK		= 0x00000004u,
   HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT		= 0x00000008u,
   HB_BUFFER_SCRATCH_FLAG_HAS_CGJ			= 0x00000010u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS		= 0x00000020u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE		= 0x00000040u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_VARIATION_SELECTOR_FALLBACK= 0x00000080u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE		= 0x00000020u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_VARIATION_SELECTOR_FALLBACK= 0x00000040u,
 
   /* Reserved for shapers' internal use. */
   HB_BUFFER_SCRATCH_FLAG_SHAPER0			= 0x01000000u,
@@ -417,8 +416,6 @@ struct hb_buffer_t
 			      bool interior,
 			      bool from_out_buffer)
   {
-    scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
-
     if (!from_out_buffer || !have_output)
     {
       if (!interior)
@@ -636,10 +633,7 @@ struct hb_buffer_t
     {
       for (unsigned int i = start; i < end; i++)
 	if (cluster != infos[i].cluster)
-	{
-	  scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
 	  infos[i].mask |= mask;
-	}
       return;
     }
 
@@ -648,18 +642,12 @@ struct hb_buffer_t
     if (cluster == cluster_first)
     {
       for (unsigned int i = end; start < i && infos[i - 1].cluster != cluster_first; i--)
-      {
-	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
 	infos[i - 1].mask |= mask;
-      }
     }
     else /* cluster == cluster_last */
     {
       for (unsigned int i = start; i < end && infos[i].cluster != cluster_last; i++)
-      {
-	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
 	infos[i].mask |= mask;
-      }
     }
   }
   unsigned
