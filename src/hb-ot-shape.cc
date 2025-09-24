@@ -1122,12 +1122,15 @@ hb_propagate_flags (hb_buffer_t *buffer)
 
   hb_glyph_info_t *info = buffer->info;
 
-  if (buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL)
+  if ((buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL) == 0)
   {
     foreach_cluster (buffer, start, end)
     {
       if (end - start == 1)
+      {
+        info[start].mask &= and_mask;
 	continue;
+      }
 
       unsigned int mask = 0;
       for (unsigned int i = start; i < end; i++)
@@ -1149,27 +1152,21 @@ hb_propagate_flags (hb_buffer_t *buffer)
    *
    * We couldn't make this interaction earlier. It has to be done this way.
    */
-  if (buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL)
+  foreach_cluster (buffer, start, end)
   {
-    foreach_cluster (buffer, start, end)
-    {
-      if (end - start == 1)
-	continue;
+    unsigned int mask = 0;
+    for (unsigned int i = start; i < end; i++)
+      mask |= info[i].mask;
 
-      unsigned int mask = 0;
-      for (unsigned int i = start; i < end; i++)
-	mask |= info[i].mask;
+    if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
+      mask &= ~HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL;
+    if (mask & HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL)
+      mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
 
-      if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
-	mask &= ~HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL;
-      if (mask & HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL)
-	mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+    mask &= and_mask;
 
-      mask &= and_mask;
-
-      for (unsigned int i = start; i < end; i++)
-	info[i].mask = mask;
-    }
+    for (unsigned int i = start; i < end; i++)
+      info[i].mask = mask;
   }
 }
 
