@@ -1113,9 +1113,6 @@ hb_propagate_flags (hb_buffer_t *buffer)
   /* Propagate cluster-level glyph flags to be the same on all cluster glyphs.
    * Simplifies using them. */
 
-  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS))
-    return;
-
   hb_mask_t and_mask = HB_GLYPH_FLAG_DEFINED;
   if ((buffer->flags & HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT) == 0)
     and_mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
