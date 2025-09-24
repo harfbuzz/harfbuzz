@@ -36,7 +36,7 @@ buildtype = get_option('buildtype')
 if buildtype == 'release' or buildtype == 'debugoptimized'
   cargo_args += [
     '-Z', 'build-std=std,panic_abort',
-    '-Z', 'build-std-features=panic_immediate_abort',
+    '-Z', 'build-std-features=optimize_for_size',
   ]
   cargo_args += ['--profile', buildtype]
 endif
