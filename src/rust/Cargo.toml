@@ -19,13 +19,13 @@ shape = ["dep:harfrust"]
 
 [profile.release]
 strip = true
-lto = "fat"
 panic = "abort"
 overflow-checks = false
+lto = "fat"
 codegen-units = 1
 
 [profile.debugoptimized]
 inherits = "dev"
-
-[profile.dev]
+overflow-checks = false
 lto = "fat"
+codegen-units = 1
