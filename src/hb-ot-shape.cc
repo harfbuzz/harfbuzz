@@ -1118,7 +1118,7 @@ hb_propagate_flags (hb_buffer_t *buffer)
 
   hb_mask_t and_mask = HB_GLYPH_FLAG_DEFINED;
   if ((buffer->flags & HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT) == 0)
-    and_mask |= ~HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+    and_mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
 
   hb_glyph_info_t *info = buffer->info;
 
