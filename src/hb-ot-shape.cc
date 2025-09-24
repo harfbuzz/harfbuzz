@@ -540,6 +540,8 @@ hb_set_unicode_props (hb_buffer_t *buffer)
      */
     else if (unlikely (hb_in_ranges<hb_codepoint_t> (info[i].codepoint, 0xFF9Eu, 0xFF9Fu, 0xE0020u, 0xE007Fu)))
       _hb_glyph_info_set_continuation (&info[i], buffer);
+    else if (unlikely (info[i].codepoint == 0x2044u /* FRACTION SLASH */))
+      buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_FRACTION_SLASH;
   }
 }
 
@@ -690,7 +692,7 @@ hb_ot_shape_setup_masks_fraction (const hb_ot_shape_context_t *c)
   return;
 #endif
 
-  if (!(c->buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII) ||
+  if (!(c->buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_FRACTION_SLASH) ||
       !c->plan->has_frac)
     return;
 
