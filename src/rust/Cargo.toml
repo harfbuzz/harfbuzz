@@ -25,9 +25,7 @@ overflow-checks = false
 codegen-units = 1
 
 [profile.debugoptimized]
-inherits = "release"
-debug = true
-strip = false
+inherits = "dev"
 
 [profile.dev]
 lto = "fat"
