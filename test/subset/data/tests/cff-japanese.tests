@@ -14,3 +14,8 @@ drop-hints-desubroutinize-retain-gids.txt
 SUBSETS:
 明
 acek
+
+# TODO temporary until diff with fonttools on FDSelect format is fixed.
+OPTIONS:
+# no_fonttools
+
