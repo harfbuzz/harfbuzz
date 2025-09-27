@@ -1,3 +1,36 @@
+Overview of changes leading to 12.0.0
+Sunday, September 28, 2025
+=====================================
+- The major feature of this release is that the Variable Composites /
+  Components (`VARC` table) addition to the ISO OpenFontFormat has graduated
+  from experimental, and is now enabled by default. It can be disabled at
+  compile time by defining the `HB_NO_VAR_COMPOSITES`z macro.
+
+  `VARC` table is a new way to store glyph outlines, that allows for better
+  shape reuse, and can reduce font file size for Chinese, Japanese, Korean, and
+  some other scripts drastically. Some font design tools provide a similar
+  feature to designers, known as "smart components". This technology brings the
+  same idea to the compiled font file. For the format specification, see:
+  https://github.com/harfbuzz/boring-expansion-spec/blob/main/VARC.md
+
+  Test fonts can be found at:
+  https://github.com/notofonts/noto-cjk-varco/releases/tag/v0.003
+
+  The Fontra font editor already supports this technology.
+
+  Note that this new format involves just the HarfBuzz draw API and does not
+  affect shaping.
+
+- Correctly handle `markFilteringSet` lookup field during subsetting.
+- Deduplicate features during subsetting.
+- Disable “more” buffer messages that give more verbose output when using
+  buffer messages callbacks, as it has a performance overhead. Users/tools that
+  need the more verbose messages should define `HB_BUFFER_MESSAGE_MORE` to 1
+  when building HarfBuzz.
+- Shaping and instancing optimizations.
+- Fix subsetting issues when building with GCC 12.
+
+
 Overview of changes leading to 11.5.1
 Monday, September 22, 2025
 =====================================
