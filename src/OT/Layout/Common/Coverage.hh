@@ -337,7 +337,7 @@ struct Coverage
     }
     iter_t __end__ () const
     {
-      iter_t it = {};
+      iter_t it;
       it.format = format;
       switch (format)
       {
