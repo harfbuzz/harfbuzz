@@ -109,13 +109,21 @@
 #pragma GCC diagnostic warning "-Wformat-signedness"
 #pragma GCC diagnostic warning "-Wignored-pragma-optimize"
 #pragma GCC diagnostic warning "-Wlogical-op"
-#pragma GCC diagnostic warning "-Wmaybe-uninitialized"
 #pragma GCC diagnostic warning "-Wmissing-format-attribute"
 #pragma GCC diagnostic warning "-Wpessimizing-move"
 #pragma GCC diagnostic warning "-Wundef"
-#pragma GCC diagnostic warning "-Wuninitialized"
 #pragma GCC diagnostic warning "-Wunsafe-loop-optimizations"
 #pragma GCC diagnostic warning "-Wunused-but-set-variable"
+#ifdef __clang__
+// The following are too buggy on gcc
+// https://github.com/harfbuzz/harfbuzz/issues/5589
+// https://github.com/harfbuzz/harfbuzz/pull/5367
+#pragma GCC diagnostic warning "-Wmaybe-uninitialized"
+#pragma GCC diagnostic warning "-Wuninitialized"
+#else
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wuninitialized"
+#endif
 #endif
 
 /* Ignored currently, but should be fixed at some point. */
