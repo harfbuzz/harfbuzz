@@ -2597,6 +2597,7 @@ hb_ot_layout_get_baseline_with_fallback2 (hb_font_t                   *font,
 #endif
 
 
+#ifndef HB_NO_LAYOUT_RARELY_USED
 struct hb_get_glyph_alternates_dispatch_t :
        hb_dispatch_context_t<hb_get_glyph_alternates_dispatch_t, unsigned>
 {
@@ -2616,7 +2617,6 @@ struct hb_get_glyph_alternates_dispatch_t :
   ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
 };
 
-#ifndef HB_NO_LAYOUT_RARELY_USED
 /**
  * hb_ot_layout_lookup_get_glyph_alternates:
  * @face: a face.
@@ -2650,6 +2650,64 @@ hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
   return ret;
 }
 
+struct hb_collect_glyph_alternates_dispatch_t :
+       hb_dispatch_context_t<hb_collect_glyph_alternates_dispatch_t, bool>
+{
+  static return_t default_return_value () { return false; }
+  bool stop_sublookup_iteration (return_t r) const { return false; }
+
+  private:
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
+  ( (obj.collect_glyph_alternates (std::forward<Ts> (ds)...), true) )
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
+  ( default_return_value () )
+  public:
+  template <typename T, typename ...Ts> auto
+  dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
+  ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
+};
+
+/**
+ * hb_ot_layout_lookup_collect_glyph_alternates:
+ * @face: a face.
+ * @lookup_index: index of the feature lookup to query.
+ * @alternate_count: (inout): mapping from glyph index to number of alternates for that glyph.
+ * @alternate_glyphs: (inout): mapping from encoded glyph index and alternate index, to alternate glyph ids.
+ *
+ * Collects alternates of glyphs from a given GSUB lookup index.
+ *
+ * For one-to-one GSUB glyph substitutions, this function collects the
+ * substituted glyph.
+ *
+ * For lookups that assign multiple alternates to a glyph, all alternate glyphs are collected.
+ *
+ * For other lookup types, nothing is performed and `false` is returned.
+ *
+ * The `alternate_count` mapping will contain the number of alternates for each glyph id.
+ * Upon entry, this mapping should contain the glyph ids as keys, and the number of alternates
+ * currently known for each glyph id as values.
+ *
+ * The `alternate_glyphs` mapping will contain the alternate glyph ids for each glyph id.
+ * The mapping is encoded in the following way, upon entry and after processing:
+ * If G is the glyph id, and A0, A1, ..., A(n-1) are the alternate glyph ids,
+ * the mapping will contain the following entries: (G + (i << 24)) -> A(i)
+ * for i = 0, 1, ..., n-1 where n is the number of alternates for G as per `alternate_count`.
+ *
+ * Return value: `true` if alternates were collected, `false` otherwise.
+ * XSince: REPLACEME
+ */
+HB_EXTERN hb_bool_t
+hb_ot_layout_lookup_collect_glyph_alternates (hb_face_t *face,
+					      unsigned   lookup_index,
+					      hb_map_t  *alternate_count /* IN/OUT */,
+					      hb_map_t  *alternate_glyphs /* IN/OUT */)
+{
+  hb_collect_glyph_alternates_dispatch_t c;
+  const OT::SubstLookup &lookup = face->table.GSUB->table->get_lookup (lookup_index);
+  return lookup.dispatch (&c, alternate_count, alternate_glyphs);
+}
 
 struct hb_position_single_dispatch_t :
        hb_dispatch_context_t<hb_position_single_dispatch_t, bool>
