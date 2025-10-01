@@ -466,7 +466,7 @@ typedef enum
   HB_SCRIPT_TULU_TIGALARI		= HB_TAG ('T','u','t','g'), /*16.0*/
 
   /*
-   * Since REPLACEME
+   * Since 11.5.0
    */
   HB_SCRIPT_BERIA_ERFE			= HB_TAG ('B','e','r','f'), /*17.0*/
   HB_SCRIPT_SIDETIC			= HB_TAG ('S','i','d','t'), /*17.0*/

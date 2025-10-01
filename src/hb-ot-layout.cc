@@ -2696,7 +2696,7 @@ struct hb_collect_glyph_alternates_dispatch_t :
  * for i = 0, 1, ..., n-1 where n is the number of alternates for G as per `alternate_count`.
  *
  * Return value: `true` if alternates were collected, `false` otherwise.
- * XSince: REPLACEME
+ * Since: 12.1.0
  */
 HB_EXTERN hb_bool_t
 hb_ot_layout_lookup_collect_glyph_alternates (hb_face_t *face,

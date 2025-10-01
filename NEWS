@@ -1,3 +1,17 @@
+Overview of changes leading to 12.1.0
+Wednesday, October 1, 2025
+=====================================
+- Build fixes with GCC 15 on some 32 bit platforms.
+- Fix misaligned pointer use.
+- New API, `hb_ot_layout_lookup_collect_glyph_alternates()`, to collect glyph
+  substitutions from single and alternate substitution lookups in one call,
+  instead of getting substitutions one by one using
+  `hb_ot_layout_lookup_get_glyph_alternates()`.
+
+- New API
++hb_ot_layout_lookup_collect_glyph_alternates()
+
+
 Overview of changes leading to 12.0.0
 Sunday, September 28, 2025
 =====================================
