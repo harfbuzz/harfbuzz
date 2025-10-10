@@ -163,7 +163,7 @@ struct Coverage : public OT::Layout::Common::Coverage
     int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < OT::Layout::Common::Coverage::min_size) return false;
     hb_barrier ();
-    switch (u.format)
+    switch (u.format.v)
     {
     case 1: return ((CoverageFormat1*)this)->sanitize (vertex);
     case 2: return ((CoverageFormat2*)this)->sanitize (vertex);
