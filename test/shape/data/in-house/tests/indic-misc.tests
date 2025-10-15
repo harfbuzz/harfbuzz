@@ -1,0 +1,2 @@
+@font-funcs-=coretext,ft,directwrite # They produce different advances from this heavily subset font
+../fonts/755160ddba002332349fda3eb999e629d63dccf6.ttf;;U+0A2D,U+0A4D,U+0A30,U+0A42;[gid1=0+594|gid5=0+0|gid3=0+0]
