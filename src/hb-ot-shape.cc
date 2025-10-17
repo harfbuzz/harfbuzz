@@ -184,7 +184,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
     else {}
   }
 
-  plan.apply_fallback_kern = !(plan.apply_gpos || plan.apply_kerx || plan.apply_kern);
+  plan.apply_fallback_kern = script_fallback_position && !(plan.apply_gpos || plan.apply_kerx || plan.apply_kern);
 
   plan.zero_marks = script_zero_marks &&
 		    !plan.apply_kerx &&
