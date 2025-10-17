@@ -1,0 +1,22 @@
+# No GPOS or legacy kern table, expect advance widths only
+../fonts/36b3cea27560cf68b1f3a5d5b6f29d29a96393aa.ttf;;U+002E,U+002E;[period=0+100|period=1+100]
+../fonts/36b3cea27560cf68b1f3a5d5b6f29d29a96393aa.ttf;--script=Deva;U+002E,U+002E;[period=0+100|period=1+100]
+../fonts/36b3cea27560cf68b1f3a5d5b6f29d29a96393aa.ttf;--script=Latn;U+002E,U+002E;[period=0+100|period=1+100]
+
+# Only GPOS, expect 500 kerning everywhere
+../fonts/96fcf8dc57095c3d89f69b0f74f0d802c213f4da.ttf;;U+002E,U+002E;[period=0+600|period=1+100]
+../fonts/96fcf8dc57095c3d89f69b0f74f0d802c213f4da.ttf;--script=Deva;U+002E,U+002E;[period=0+600|period=1+100]
+../fonts/96fcf8dc57095c3d89f69b0f74f0d802c213f4da.ttf;--script=Latn;U+002E,U+002E;[period=0+600|period=1+100]
+
+# Only legacy kern table, expect 500 kerning everywhere aside from Devanagari
+# https://github.com/harfbuzz/harfbuzz/pull/5609
+../fonts/a04cc6365876308945033b2a49f54afe899e7bf8.ttf;;U+002E,U+002E;[period=0+350|period=1@250,0+350]
+../fonts/a04cc6365876308945033b2a49f54afe899e7bf8.ttf;--script=Deva;U+002E,U+002E;[period=0+100|period=1+100]
+../fonts/a04cc6365876308945033b2a49f54afe899e7bf8.ttf;--script=Latn;U+002E,U+002E;[period=0+350|period=1@250,0+350]
+
+# Both GPOS and legacy kern table, expect 500 kerning everywhere, with no double
+# kerning for a dist-based script such as Devanagari
+# https://github.com/harfbuzz/harfbuzz/pull/5609
+../fonts/8a312e38b9b90183ef154a0c2ab92a9def6cb82f.ttf;;U+002E,U+002E;[period=0+600|period=1+100]
+../fonts/8a312e38b9b90183ef154a0c2ab92a9def6cb82f.ttf;--script=Deva;U+002E,U+002E;[period=0+600|period=1+100]
+../fonts/8a312e38b9b90183ef154a0c2ab92a9def6cb82f.ttf;--script=Latn;U+002E,U+002E;[period=0+600|period=1+100]

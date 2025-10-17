@@ -56,6 +56,7 @@ in_house_tests = [
   'nested-mark-filtering-sets.tests',
   'none-directional.tests',
   'positioning-features.tests',
+  'per-script-kern-fallback.tests',
   'rand.tests',
   'reverse-sub.tests',
   'rotation.tests',
