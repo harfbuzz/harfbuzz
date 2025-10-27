@@ -70,7 +70,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         REVISION: ${{ github.sha }}
     - name: Archive artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: harfbuzz
         path: build/meson-dist/harfbuzz-*.tar.xz
