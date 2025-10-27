@@ -48,7 +48,7 @@ jobs:
     - name: Test
       run: meson devenv -Cbuild-win${{ matrix.ARCH }} meson test -t 10 --print-errorlogs --suite=harfbuzz
     - name: Archive artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: harfbuzz-win${{ matrix.ARCH }}
         path: harfbuzz-win${{ matrix.ARCH }}.zip
