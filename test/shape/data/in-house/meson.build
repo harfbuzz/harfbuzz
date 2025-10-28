@@ -64,6 +64,7 @@ in_house_tests = [
   'simple.tests',
   'sinhala.tests',
   'spaces.tests',
+  'synthetic.tests',
   'tibetan-contractions-1.tests',
   'tibetan-contractions-2.tests',
   'tibetan-vowels.tests',

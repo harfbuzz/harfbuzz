@@ -518,9 +518,9 @@ struct hb_font_t
 	  *first_x += x_shift;
 	  *first_y += y_shift;
 	}
+	first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+	first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
       }
-      first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
-      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
     }
 
     return ret;
@@ -558,9 +558,9 @@ struct hb_font_t
 	  *first_x += x_shift;
 	  *first_y += y_shift;
 	}
+	first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
+	first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
       }
-      first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
-      first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
     }
 
     return ret;
