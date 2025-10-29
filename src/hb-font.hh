@@ -508,9 +508,7 @@ struct hb_font_t
       hb_position_t y_shift = y_scale < 0 ? -y_strength : y_strength;
       for (unsigned i = 0; i < count; i++)
       {
-	/* Slant */
-	if (slant_xy)
-	  *first_x += roundf (*first_y * slant_xy);
+	/* Slant is ignored as it does not affect glyph origin */
 
 	/* Embolden */
 	if (!embolden_in_place)
@@ -548,9 +546,7 @@ struct hb_font_t
       hb_position_t y_shift = y_scale < 0 ? -y_strength : y_strength;
       for (unsigned i = 0; i < count; i++)
       {
-	/* Slant */
-	if (slant_xy)
-	  *first_x += roundf (*first_y * slant_xy);
+	/* Slant is ignored as it does not affect glyph origin */
 
 	/* Embolden */
 	if (!embolden_in_place)
