@@ -1,0 +1,3 @@
+@font-funcs-=coretext,ft,directwrite # TODO investigate why these font funcs fail
+../fonts/NotoSans-VF.abc.ttf;--font-slant=0.5 --direction=ttb;U+0061,U+0062,U+0063;[gid1=0@-280,-948+0,-1362|gid2=1@-307,-1056+0,-1362|gid3=2@-240,-949+0,-1362]
+../fonts/NotoSans-VF.abc.ttf;--font-bold=0.1 --direction=ttb;U+0061,U+0062,U+0063;[gid1=0@-430,-1148+0,-1362|gid2=1@-457,-1256+0,-1362|gid3=2@-390,-1149+0,-1362]
