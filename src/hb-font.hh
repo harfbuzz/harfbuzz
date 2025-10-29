@@ -445,9 +445,7 @@ struct hb_font_t
 
     if (synthetic && ret)
     {
-      /* Slant */
-      if (slant_xy)
-	*x += roundf (*y * slant_xy);
+      /* Slant is ignored as it does not affect glyph origin */
 
       /* Embolden */
       if (!embolden_in_place)
@@ -471,9 +469,7 @@ struct hb_font_t
 
     if (synthetic && ret)
     {
-      /* Slant */
-      if (slant_xy)
-	*x += roundf (*y * slant_xy);
+      /* Slant is ignored as it does not affect glyph origin */
 
       /* Embolden */
       if (!embolden_in_place)
