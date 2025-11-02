@@ -532,7 +532,7 @@ struct skipping_iterator_t
   {
     // For GSUB backward iterator
     idx = start_index_;
-    matcher.syllable = 0;
+    matcher.syllable = c->buffer->cur().syllable ();
   }
 
 #ifndef HB_OPTIMIZE_SIZE
