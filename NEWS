@@ -1,3 +1,25 @@
+Overview of changes leading to 12.2.0
+Wednesday, November 5, 2025
+=====================================
+- While Windows platform contain the matching of the ChainContext rules to
+  within the syllable for those features that are applied per syllable (in
+  Indic-like and USE shapers), in 2015 we decided that in HarfBuzz we would
+  allow the backtrack / lookahead parts of the rule to match across syllables.
+  However, our implementation had a latent bug, causing the backtrack sequence
+  to be matched within syllable most of the time, and inconsistently so. As
+  such, and after empirical testing, we have decided to match the Windows
+  implementation for this, so now both backtrack and lookahead sequences are
+  contained to within the syllable, just like DirectWrite does.
+- Disable legacy `kern` table for most shapers, enabling it only for default,
+  Arabic, Hangul, and Hebrew shapers.
+- When dropping `STAT` table during subsetting, drop also named IDs that are
+  referenced only by it.
+- Don’t apply synthetic slant to glyph origin, fixing horizontal shift in
+  slanted glyphs.
+- Various build and fuzzing fixes.
+- Documentation fixes.
+
+
 Overview of changes leading to 12.1.0
 Wednesday, October 1, 2025
 =====================================
