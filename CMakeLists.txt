@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(harfbuzz)
 
-message(WARNING "HarfBuzz has a Meson port and tries to migrate all the other build systems to it, please consider using it as we might remove our cmake port soon.")
+message(WARNING "The main build system for HarfBuzz is Meson. CMake build support is community-maintained and is not actively supported by HarfBuzz developers.")
 
 if(POLICY CMP0063)
   cmake_policy(SET CMP0063 NEW)
