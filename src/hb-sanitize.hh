@@ -440,7 +440,6 @@ struct hb_sanitize_context_t :
 
     init (blob);
 
-  retry:
     DEBUG_MSG_FUNC (SANITIZE, start, "start");
 
     start_processing ();
@@ -454,38 +453,6 @@ struct hb_sanitize_context_t :
     Type *t = reinterpret_cast<Type *> (const_cast<char *> (start));
 
     sane = t->sanitize (this);
-    if (sane)
-    {
-      if (edit_count)
-      {
-	DEBUG_MSG_FUNC (SANITIZE, start, "passed first round with %u edits; going for second round", edit_count);
-
-	/* sanitize again to ensure no toe-stepping */
-	edit_count = 0;
-	sane = t->sanitize (this);
-	if (edit_count) {
-	  DEBUG_MSG_FUNC (SANITIZE, start, "requested %u edits in second round; FAILING", edit_count);
-	  sane = false;
-	}
-      }
-    }
-    else
-    {
-      if (edit_count && !writable)
-      {
-        unsigned length;
-	start = hb_blob_get_data_writable (blob, &length);
-	end = start + length;
-
-	if (start)
-	{
-	  writable = true;
-	  /* ok, we made it writable by relocating.  try again */
-	  DEBUG_MSG_FUNC (SANITIZE, start, "retry");
-	  goto retry;
-	}
-      }
-    }
 
     end_processing ();
 
