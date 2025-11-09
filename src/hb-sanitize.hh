@@ -64,9 +64,6 @@
  *
  *   - Cast blob content to T*, call sanitize() method of it,
  *   - If sanitize succeeded, return blob.
- *   - Otherwise, if blob is not writable, try making it writable,
- *     or copy if cannot be made writable in-place,
- *   - Call sanitize() again.  Return blob if sanitize succeeded.
  *   - Return empty blob otherwise.
  *
  *
@@ -98,6 +95,12 @@
  * structure is so complicated that by checking all offsets at sanitize() time,
  * we make the code much simpler in other methods, as offsets and referenced
  * objects do not need to be validated at each use site.
+ *
+ * Note:
+ * Sanitize was named so because it used to try to recover from errors by
+ * modifying the data to make it valid.  This is no longer the case, as it
+ * could make HarfBuzz hallucinate new rules if there was aliasing in the
+ * data.  However, the name stuck.  See: https://behdad.github.io/harfbust/
  */
 
 /* This limits sanitizing time on really broken fonts. */
