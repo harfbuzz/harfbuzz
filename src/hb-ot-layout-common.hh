@@ -828,46 +828,7 @@ struct Feature
 		 const Record_sanitize_closure_t *closure = nullptr) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!(c->check_struct (this) && lookupIndex.sanitize (c))))
-      return_trace (false);
-    hb_barrier ();
-
-    /* Some earlier versions of Adobe tools calculated the offset of the
-     * FeatureParams subtable from the beginning of the FeatureList table!
-     *
-     * If sanitizing "failed" for the FeatureParams subtable, try it with the
-     * alternative location.  We would know sanitize "failed" if old value
-     * of the offset was non-zero, but it's zeroed now.
-     *
-     * Only do this for the 'size' feature, since at the time of the faulty
-     * Adobe tools, only the 'size' feature had FeatureParams defined.
-     */
-
-    if (likely (featureParams.is_null ()))
-      return_trace (true);
-
-    unsigned int orig_offset = featureParams;
-    if (unlikely (!featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE)))
-      return_trace (false);
-    hb_barrier ();
-
-    if (featureParams == 0 && closure &&
-	closure->tag == HB_TAG ('s','i','z','e') &&
-	closure->list_base && closure->list_base < this)
-    {
-      unsigned int new_offset_int = orig_offset -
-				    (((char *) this) - ((char *) closure->list_base));
-
-      Offset16To<FeatureParams> new_offset;
-      /* Check that it would not overflow. */
-      new_offset = new_offset_int;
-      if (new_offset == new_offset_int &&
-	  c->try_set (&featureParams, new_offset_int) &&
-	  !featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE))
-	return_trace (false);
-    }
-
-    return_trace (true);
+    return_trace (c->check_struct (this) && lookupIndex.sanitize (c));
   }
 
   Offset16To<FeatureParams>
@@ -1433,7 +1394,7 @@ struct Lookup
     if (unlikely (!get_subtables<TSubTable> ().sanitize (c, this, get_type ())))
       return_trace (false);
 
-    if (unlikely (get_type () == TSubTable::Extension && !c->get_edit_count ()))
+    if (unlikely (get_type () == TSubTable::Extension))
     {
       hb_barrier ();
 
@@ -1441,11 +1402,6 @@ struct Lookup
        * have the same type, which shall not be the Extension type
        * itself (but we already checked for that).
        * This is specially important if one has a reverse type!
-       *
-       * We only do this if sanitizer edit_count is zero.  Otherwise,
-       * some of the subtables might have become insane after they
-       * were sanity-checked by the edits of subsequent subtables.
-       * https://bugs.chromium.org/p/chromium/issues/detail?id=960331
        */
       unsigned int type = get_subtable<TSubTable> (0).u.extension.get_type ();
       for (unsigned int i = 1; i < subtables; i++)

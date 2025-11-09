@@ -125,7 +125,7 @@ struct hb_sanitize_context_t :
 	length (0),
 	max_ops (0), max_subtables (0),
         recursion_depth (0),
-	writable (false), edit_count (0),
+	writable (false),
 	blob (nullptr),
 	num_glyphs (65536),
 	num_glyphs_set (false),
@@ -236,7 +236,6 @@ struct hb_sanitize_context_t :
       this->max_ops = hb_clamp (m,
 				(unsigned) HB_SANITIZE_MAX_OPS_MIN,
 				(unsigned) HB_SANITIZE_MAX_OPS_MAX);
-    this->edit_count = 0;
     this->debug_depth = 0;
     this->recursion_depth = 0;
 
@@ -249,17 +248,14 @@ struct hb_sanitize_context_t :
   void end_processing ()
   {
     DEBUG_MSG_LEVEL (SANITIZE, this->start, 0, -1,
-		     "end [%p..%p] %u edit requests",
-		     this->start, this->end, this->edit_count);
+		     "end [%p..%p]",
+		     this->start, this->end);
 
     hb_blob_destroy (this->blob);
     this->blob = nullptr;
     this->start = this->end = nullptr;
     this->length = 0;
   }
-
-  unsigned get_edit_count () { return edit_count; }
-
 
   bool check_ops(unsigned count)
   {
@@ -404,35 +400,6 @@ struct hb_sanitize_context_t :
       return likely (this->check_point ((const char *) obj + obj->min_size));
   }
 
-  bool may_edit (const void *base, unsigned int len)
-  {
-    if (this->edit_count >= HB_SANITIZE_MAX_EDITS)
-      return false;
-
-    const char *p = (const char *) base;
-    this->edit_count++;
-
-    DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
-       "may_edit(%u) [%p..%p] (%u bytes) in [%p..%p] -> %s",
-       this->edit_count,
-       p, p + len, len,
-       this->start, this->end,
-       this->writable ? "GRANTED" : "DENIED");
-
-    return this->writable;
-  }
-
-  template <typename Type, typename ValueType>
-  bool try_set (const Type *obj, const ValueType &v)
-  {
-    if (this->may_edit (obj, hb_static_size (Type)))
-    {
-      * const_cast<Type *> (obj) = v;
-      return true;
-    }
-    return false;
-  }
-
   template <typename Type>
   hb_blob_t *sanitize_blob (hb_blob_t *blob)
   {
@@ -483,7 +450,6 @@ struct hb_sanitize_context_t :
   private:
   int recursion_depth;
   bool writable;
-  unsigned int edit_count;
   hb_blob_t *blob;
   unsigned int num_glyphs;
   bool  num_glyphs_set;

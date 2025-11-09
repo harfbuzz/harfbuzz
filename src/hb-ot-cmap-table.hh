@@ -697,16 +697,7 @@ struct CmapSubtableFormat4
     hb_barrier ();
 
     if (unlikely (!c->check_range (this, length)))
-    {
-      /* Some broken fonts have too long of a "length" value.
-       * If that is the case, just change the value to truncate
-       * the subtable at the end of the blob. */
-      uint16_t new_length = (uint16_t) hb_min ((uintptr_t) 65535,
-					       (uintptr_t) (c->end -
-							    (char *) this));
-      if (!c->try_set (&length, new_length))
-	return_trace (false);
-    }
+      return_trace (false);
 
     return_trace (16 + 4 * (unsigned int) segCountX2 <= length);
   }

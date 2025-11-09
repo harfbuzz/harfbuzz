@@ -522,16 +522,9 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return_trace (sanitize_shallow (c, base) &&
 		  hb_barrier () &&
 		  (this->is_null () ||
-		   c->dispatch (StructAtOffset<Type> (base, *this), std::forward<Ts> (ds)...) ||
-		   neuter (c)));
+		   c->dispatch (StructAtOffset<Type> (base, *this), std::forward<Ts> (ds)...)));
   }
 
-  /* Set the offset to Null */
-  bool neuter (hb_sanitize_context_t *c) const
-  {
-    if (!has_null) return false;
-    return c->try_set (this, 0);
-  }
   DEFINE_SIZE_STATIC (sizeof (OffsetType));
 };
 /* Partial specializations. */
