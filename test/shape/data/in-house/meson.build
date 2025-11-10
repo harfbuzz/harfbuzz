@@ -23,6 +23,7 @@ in_house_tests = [
   'fallback-positioning.tests',
   'glyph-props-no-gdef.tests',
   'hangul-jamo.tests',
+  'harfbust.tests',
   'hebrew-diacritics.tests',
   'hyphens.tests',
   'indic-consonant-with-stacker.tests',
