@@ -5,7 +5,7 @@ rust-version = "1.87.0"
 
 [dependencies]
 skrifa = { version = "0.*", optional = true }
-harfrust = { version = "0.3.0", optional = true }
+harfrust = { version = "0.4.*", optional = true }
 # harfrust = { git = "https://github.com/harfbuzz/harfrust", optional = true }
 
 [lib]
