@@ -1487,7 +1487,7 @@ struct CmapSubtable
   bool get_glyph (hb_codepoint_t codepoint,
 		  hb_codepoint_t *glyph) const
   {
-    switch (u.format) {
+    switch (u.format.v) {
     case  0: hb_barrier (); return u.format0 .get_glyph (codepoint, glyph);
     case  4: hb_barrier (); return u.format4 .get_glyph (codepoint, glyph);
     case  6: hb_barrier (); return u.format6 .get_glyph (codepoint, glyph);
@@ -1500,7 +1500,7 @@ struct CmapSubtable
   }
   void collect_unicodes (hb_set_t *out, unsigned int num_glyphs = UINT_MAX) const
   {
-    switch (u.format) {
+    switch (u.format.v) {
     case  0: hb_barrier (); u.format0 .collect_unicodes (out); return;
     case  4: hb_barrier (); u.format4 .collect_unicodes (out); return;
     case  6: hb_barrier (); u.format6 .collect_unicodes (out); return;
@@ -1516,7 +1516,7 @@ struct CmapSubtable
 			hb_map_t *mapping, /* OUT */
 			unsigned num_glyphs = UINT_MAX) const
   {
-    switch (u.format) {
+    switch (u.format.v) {
     case  0: hb_barrier (); u.format0 .collect_mapping (unicodes, mapping); return;
     case  4: hb_barrier (); u.format4 .collect_mapping (unicodes, mapping); return;
     case  6: hb_barrier (); u.format6 .collect_mapping (unicodes, mapping); return;
@@ -1530,7 +1530,7 @@ struct CmapSubtable
 
   unsigned get_language () const
   {
-    switch (u.format) {
+    switch (u.format.v) {
     case  0: hb_barrier (); return u.format0 .get_language ();
     case  4: hb_barrier (); return u.format4 .get_language ();
     case  6: hb_barrier (); return u.format6 .get_language ();
@@ -1561,9 +1561,9 @@ struct CmapSubtable
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return_trace (false);
+    if (!u.format.v.sanitize (c)) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (u.format.v) {
     case  0: hb_barrier (); return_trace (u.format0 .sanitize (c));
     case  4: hb_barrier (); return_trace (u.format4 .sanitize (c));
     case  6: hb_barrier (); return_trace (u.format6 .sanitize (c));
@@ -1577,7 +1577,7 @@ struct CmapSubtable
 
   public:
   union {
-  HBUINT16		format;		/* Format identifier */
+  struct { HBUINT16 v; }	format;		/* Format identifier */
   CmapSubtableFormat0	format0;
   CmapSubtableFormat4	format4;
   CmapSubtableFormat6	format6;
@@ -1587,7 +1587,7 @@ struct CmapSubtable
   CmapSubtableFormat14	format14;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, format);
+  DEFINE_SIZE_UNION (2, format.v);
 };
 
 
@@ -1797,7 +1797,7 @@ struct cmap
       if (c->in_error ())
         return false;
 
-      unsigned format = (base+_.subtable).u.format;
+      unsigned format = (base+_.subtable).u.format.v;
       if (format != 4 && format != 12 && format != 14) continue;
 
       const hb_set_t* unicodes_set = unicodes_cache->set_for (&_, local_unicodes_cache);
@@ -1899,7 +1899,7 @@ struct cmap
     + hb_iter (encodingRecord)
     | hb_map (&EncodingRecord::subtable)
     | hb_map (hb_add (this))
-    | hb_filter ([&] (const CmapSubtable& _) { return _.u.format == 14; })
+    | hb_filter ([&] (const CmapSubtable& _) { return _.u.format.v == 14; })
     | hb_apply ([=] (const CmapSubtable& _) { _.u.format14.closure_glyphs (unicodes, glyphset); })
     ;
   }
@@ -1924,7 +1924,7 @@ struct cmap
 
     for (const EncodingRecord& _ : encodingrec_iter)
     {
-      unsigned format = (this + _.subtable).u.format;
+      unsigned format = (this + _.subtable).u.format.v;
       if (format == 12) has_format12 = true;
 
       const EncodingRecord *table = std::addressof (_);
@@ -2012,7 +2012,7 @@ struct cmap
       this->subtable_uvs = &Null (CmapSubtableFormat14);
       {
 	const CmapSubtable *st = table->find_subtable (0, 5);
-	if (st && st->u.format == 14)
+	if (st && st->u.format.v == 14)
 	  subtable_uvs = &st->u.format14;
       }
 
@@ -2056,7 +2056,7 @@ struct cmap
       else
 #endif
       {
-	switch (subtable->u.format) {
+	switch (subtable->u.format.v) {
 	  /* Accelerate format 4 and format 12. */
 	  default:
 	    this->get_glyph_funcZ = get_glyph_from<CmapSubtable>;
@@ -2263,7 +2263,7 @@ struct cmap
         (_.platformID == 0 && _.encodingID == 4) ||
         (_.platformID == 3 && _.encodingID == 1) ||
         (_.platformID == 3 && _.encodingID == 10) ||
-        (cmap + _.subtable).u.format == 14;
+        (cmap + _.subtable).u.format.v == 14;
   }
 
   protected:

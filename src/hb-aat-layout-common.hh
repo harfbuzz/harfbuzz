@@ -692,7 +692,7 @@ struct Lookup
 {
   const T* get_value (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
-    switch (u.format) {
+    switch (u.format.v) {
     case 0: hb_barrier (); return u.format0.get_value (glyph_id, num_glyphs);
     case 2: hb_barrier (); return u.format2.get_value (glyph_id);
     case 4: hb_barrier (); return u.format4.get_value (glyph_id);
@@ -704,7 +704,7 @@ struct Lookup
 
   const typename T::type get_value_or_null (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
-    switch (u.format) {
+    switch (u.format.v) {
       /* Format 10 cannot return a pointer. */
       case 10: hb_barrier (); return u.format10.get_value_or_null (glyph_id);
       default:
@@ -716,7 +716,7 @@ struct Lookup
   template <typename set_t>
   void collect_glyphs (set_t &glyphs, unsigned int num_glyphs) const
   {
-    switch (u.format) {
+    switch (u.format.v) {
     case 0: hb_barrier (); u.format0.collect_glyphs (glyphs, num_glyphs); return;
     case 2: hb_barrier (); u.format2.collect_glyphs (glyphs); return;
     case 4: hb_barrier (); u.format4.collect_glyphs (glyphs); return;
@@ -729,7 +729,7 @@ struct Lookup
   template <typename set_t, typename filter_t>
   void collect_glyphs_filtered (set_t &glyphs, unsigned num_glyphs, const filter_t &filter) const
   {
-    switch (u.format) {
+    switch (u.format.v) {
     case 0: hb_barrier (); u.format0.collect_glyphs_filtered (glyphs, num_glyphs, filter); return;
     case 2: hb_barrier (); u.format2.collect_glyphs_filtered (glyphs, filter); return;
     case 4: hb_barrier (); u.format4.collect_glyphs_filtered (glyphs, filter); return;
@@ -751,9 +751,9 @@ struct Lookup
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return_trace (false);
+    if (!u.format.v.sanitize (c)) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (u.format.v) {
     case 0: hb_barrier (); return_trace (u.format0.sanitize (c));
     case 2: hb_barrier (); return_trace (u.format2.sanitize (c));
     case 4: hb_barrier (); return_trace (u.format4.sanitize (c));
@@ -766,9 +766,9 @@ struct Lookup
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return_trace (false);
+    if (!u.format.v.sanitize (c)) return_trace (false);
     hb_barrier ();
-    switch (u.format) {
+    switch (u.format.v) {
     case 0: hb_barrier (); return_trace (u.format0.sanitize (c, base));
     case 2: hb_barrier (); return_trace (u.format2.sanitize (c, base));
     case 4: hb_barrier (); return_trace (u.format4.sanitize (c, base));
@@ -781,7 +781,7 @@ struct Lookup
 
   protected:
   union {
-  HBUINT16		format;		/* Format identifier */
+  struct { HBUINT16 v; }	format;		/* Format identifier */
   LookupFormat0<T>	format0;
   LookupFormat2<T>	format2;
   LookupFormat4<T>	format4;
@@ -790,7 +790,7 @@ struct Lookup
   LookupFormat10<T>	format10;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, format);
+  DEFINE_SIZE_UNION (2, format.v);
 };
 DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (AAT, Lookup, 2);
 
