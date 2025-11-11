@@ -1,10 +1,10 @@
 [wrap-file]
-directory = cairo-1.18.2
-source_url = https://www.cairographics.org/releases/cairo-1.18.2.tar.xz
-source_filename = cairo-1.18.2.tar.xz
-source_hash = a62b9bb42425e844cc3d6ddde043ff39dbabedd1542eba57a2eb79f85889d45a
-source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/cairo_1.18.2-1/cairo-1.18.2.tar.xz
-wrapdb_version = 1.18.2-1
+directory = cairo-1.18.4
+source_url = https://www.cairographics.org/releases/cairo-1.18.4.tar.xz
+source_filename = cairo-1.18.4.tar.xz
+source_hash = 445ed8208a6e4823de1226a74ca319d3600e83f6369f99b14265006599c32ccb
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/cairo_1.18.4-2/cairo-1.18.4.tar.xz
+wrapdb_version = 1.18.4-2
 
 [provide]
-dependency_names = cairo, cairo-gobject
+dependency_names = cairo, cairo-gobject, cairo-script-interpreter
