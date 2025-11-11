@@ -610,7 +610,7 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
                                          unsigned parent_index,
                                          unsigned this_index)
   {
-    switch (u.format) {
+    switch (u.format.v) {
     case 1:
       return ((PairPosFormat1*)(&u.format1))->split_subtables (c, parent_index, this_index);
     case 2:
@@ -628,10 +628,10 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
   bool sanitize (graph_t::vertex_t& vertex) const
   {
     int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
-    if (vertex_len < u.format.get_size ()) return false;
+    if (vertex_len < u.format.v.get_size ()) return false;
     hb_barrier ();
 
-    switch (u.format) {
+    switch (u.format.v) {
     case 1:
       return ((PairPosFormat1*)(&u.format1))->sanitize (vertex);
     case 2:
