@@ -828,7 +828,9 @@ struct Feature
 		 const Record_sanitize_closure_t *closure = nullptr) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && lookupIndex.sanitize (c));
+    return_trace (c->check_struct (this) &&
+		  featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE) &&
+		  lookupIndex.sanitize (c));
   }
 
   Offset16To<FeatureParams>
