@@ -123,9 +123,15 @@ if (NOT MSVC)
   endif ()
 endif ()
 
+include (CheckCCompilerFlag)
 if (MSVC)
-  add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
-  add_definitions(-bigobj)
+  add_compile_options(/wd4244 /wd4267) # lossy type conversion (e.g. double/size_t -> int)
+  add_compile_options(/bigobj) # hb-subset.cc -- compile error C1128: number of sections exceeded object file format limit
+  check_c_compiler_flag(/utf-8 MSVC_UTF8_FLAG_SUPPORTED)
+  if (MSVC_UTF8_FLAG_SUPPORTED)
+    add_compile_options(/utf-8) # set the input encoding to utf-8
+  endif ()
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
 endif ()
 
 
