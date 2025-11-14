@@ -589,6 +589,8 @@ struct interp_env_t
 		str_ref;
   arg_stack_t<ARG>
 		argStack;
+
+  using ELEM = ARG;
 };
 
 using num_interp_env_t =  interp_env_t<>;
