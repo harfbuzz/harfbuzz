@@ -178,9 +178,7 @@ struct Lookup : public OT::Lookup
 
       if (new_sub_tables.in_error ()) return false;
       if (!new_sub_tables) continue;
-      hb_pair_t<unsigned, hb_vector_t<unsigned>>* entry = all_new_subtables.push ();
-      entry->first = i;
-      entry->second = std::move (new_sub_tables);
+      all_new_subtables.push (hb_pair (i, std::move (new_sub_tables)));
     }
 
     if (all_new_subtables) {
@@ -205,7 +203,7 @@ struct Lookup : public OT::Lookup
   bool add_sub_tables (gsubgpos_graph_context_t& c,
                        unsigned this_index,
                        unsigned type,
-                       hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>>& subtable_ids)
+                       const hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>>& subtable_ids)
   {
     bool is_ext = is_extension (c.table_tag);
     auto* v = &c.graph.vertices_[this_index];
@@ -272,7 +270,7 @@ struct Lookup : public OT::Lookup
 
   void fix_existing_subtable_links (gsubgpos_graph_context_t& c,
                                     unsigned this_index,
-                                    hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>>& subtable_ids)
+                                    const hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>>& subtable_ids)
   {
     auto& v = c.graph.vertices_[this_index];
     Lookup* lookup = (Lookup*) v.obj.head;
@@ -326,7 +324,7 @@ struct Lookup : public OT::Lookup
     unsigned* existing_ext_index = nullptr;
     if (c.subtable_to_extension.has(subtable_index, &existing_ext_index)) {
       ext_index = *existing_ext_index;
-    } else {    
+    } else {
       ext_index = create_extension_subtable(c, subtable_index, type);
       c.subtable_to_extension.set(subtable_index, ext_index);
     }
