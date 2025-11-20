@@ -640,7 +640,7 @@ struct NoncontextualSubtable
     for (unsigned int i = 0; i < count; i++)
     {
       /* This block copied from StateTableDriver::drive. Keep in sync. */
-      if (last_range)
+      if (unlikely (last_range))
       {
 	auto *range = last_range;
 	{
