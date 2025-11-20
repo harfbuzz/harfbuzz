@@ -392,7 +392,7 @@ int main(int argc, char** argv)
 	if (p) p++;
       }
     }
-    hb_variation_t *variations = num_variations ? (hb_variation_t *) calloc (num_variations, sizeof (hb_variation_t)) : nullptr;
+    hb_variation_t *variations = variations_str ? (hb_variation_t *) calloc (num_variations, sizeof (hb_variation_t)) : nullptr;
     if (variations_str)
     {
       const char *p = variations_str;
@@ -414,7 +414,7 @@ int main(int argc, char** argv)
 
     num_tests = 1;
     tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
-    tests[0].variations = num_variations ? variations : default_variations;
+    tests[0].variations = variations_str ? variations : default_variations;
     tests[0].font_path = font_file;
   }
 
