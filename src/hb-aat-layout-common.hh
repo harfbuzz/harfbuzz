@@ -1219,7 +1219,7 @@ struct StateTableDriver
     for (buffer->idx = 0; buffer->successful;)
     {
       /* This block is copied in NoncontextualSubtable::apply. Keep in sync. */
-      if (last_range)
+      if (unlikely (last_range))
       {
 	auto *range = last_range;
 	if (buffer->idx < buffer->len)
