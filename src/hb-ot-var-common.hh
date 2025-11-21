@@ -109,18 +109,18 @@ struct TupleVariationHeader
 
     const F2DOT14 *peak_tuple;
 
-    bool has_interm = tuple_index & TuppleIndex::IntermediateRegion; // Inlined for performance
+    bool has_interm = tuple_index & TupleIndex::IntermediateRegion; // Inlined for performance
     if (unlikely (has_interm))
       shared_tuple_scalar_cache = nullptr;
 
-    if (unlikely (tuple_index & TuppleIndex::EmbeddedPeakTuple)) // Inlined for performance
+    if (unlikely (tuple_index & TupleIndex::EmbeddedPeakTuple)) // Inlined for performance
     {
       peak_tuple = get_peak_tuple (coord_count);
       shared_tuple_scalar_cache = nullptr;
     }
     else
     {
-      unsigned int index = tuple_index & TuppleIndex::TupleIndexMask; // Inlined for performance
+      unsigned int index = tuple_index & TupleIndex::TupleIndexMask; // Inlined for performance
 
       float scalar;
       if (shared_tuple_scalar_cache &&
@@ -173,13 +173,13 @@ struct TupleVariationHeader
     return scalar;
   }
 
-  bool           has_peak () const { return tupleIndex & TuppleIndex::EmbeddedPeakTuple; }
-  bool   has_intermediate () const { return tupleIndex & TuppleIndex::IntermediateRegion; }
-  bool has_private_points () const { return tupleIndex & TuppleIndex::PrivatePointNumbers; }
-  unsigned      get_index () const { return tupleIndex & TuppleIndex::TupleIndexMask; }
+  bool           has_peak () const { return tupleIndex & TupleIndex::EmbeddedPeakTuple; }
+  bool   has_intermediate () const { return tupleIndex & TupleIndex::IntermediateRegion; }
+  bool has_private_points () const { return tupleIndex & TupleIndex::PrivatePointNumbers; }
+  unsigned      get_index () const { return tupleIndex & TupleIndex::TupleIndexMask; }
 
   protected:
-  struct TuppleIndex : HBUINT16
+  struct TupleIndex : HBUINT16
   {
     enum Flags {
       EmbeddedPeakTuple   = 0x8000u,
@@ -188,7 +188,7 @@ struct TupleVariationHeader
       TupleIndexMask      = 0x0FFFu
     };
 
-    TuppleIndex& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
+    TupleIndex& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
     DEFINE_SIZE_STATIC (2);
   };
 
@@ -205,7 +205,7 @@ struct TupleVariationHeader
 
   HBUINT16      varDataSize;    /* The size in bytes of the serialized
                                  * data for this tuple variation table. */
-  TuppleIndex   tupleIndex;     /* A packed field. The high 4 bits are flags (see below).
+  TupleIndex    tupleIndex;     /* A packed field. The high 4 bits are flags (see below).
                                    The low 12 bits are an index into a shared tuple
                                    records array. */
   /* UnsizedArrayOf<F2DOT14> peakTuple - optional */
@@ -515,7 +515,7 @@ struct tuple_delta_t
 
     /* pointdata length = 0 implies "use shared points" */
     if (points_data_length)
-      flag |= TupleVariationHeader::TuppleIndex::PrivatePointNumbers;
+      flag |= TupleVariationHeader::TupleIndex::PrivatePointNumbers;
 
     unsigned serialized_data_size = points_data_length + compiled_deltas.length;
     TupleVariationHeader *o = reinterpret_cast<TupleVariationHeader *> (compiled_tuple_header.begin ());
@@ -531,7 +531,7 @@ struct tuple_delta_t
                                unsigned& flag) const
   {
     hb_memcpy (&peak_coords[0], &compiled_peak_coords[0], compiled_peak_coords.length * sizeof (compiled_peak_coords[0]));
-    flag |= TupleVariationHeader::TuppleIndex::EmbeddedPeakTuple;
+    flag |= TupleVariationHeader::TupleIndex::EmbeddedPeakTuple;
     return compiled_peak_coords.length;
   }
 
@@ -542,7 +542,7 @@ struct tuple_delta_t
     if (compiled_interm_coords)
     {
       hb_memcpy (&coords[0], &compiled_interm_coords[0], compiled_interm_coords.length * sizeof (compiled_interm_coords[0]));
-      flag |= TupleVariationHeader::TuppleIndex::IntermediateRegion;
+      flag |= TupleVariationHeader::TupleIndex::IntermediateRegion;
     }
     return compiled_interm_coords.length;
   }
