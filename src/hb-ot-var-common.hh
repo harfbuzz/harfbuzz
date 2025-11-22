@@ -41,7 +41,16 @@ struct TupleVariationHeader
 {
   friend struct tuple_delta_t;
   unsigned get_size (unsigned axis_count) const
-  { return min_size + get_all_tuples (axis_count).get_size (); }
+  {
+    // This function is super hot in mega-var-fonts with hundreds of masters.
+    unsigned ti = tupleIndex;
+    if (unlikely ((ti & (TupleIndex::EmbeddedPeakTuple | TupleIndex::IntermediateRegion))))
+    {
+      unsigned count = ((ti & TupleIndex::EmbeddedPeakTuple) != 0) + ((ti & TupleIndex::IntermediateRegion) != 0) * 2;
+      return min_size + count * axis_count * F2DOT14::static_size;
+    }
+    return min_size;
+  }
 
   unsigned get_data_size () const { return varDataSize; }
 
@@ -1421,11 +1430,11 @@ struct TupleVariationData
 	return false;
 
       current_tuple_size = TupleVariationHeader::min_size;
-      if (unlikely (!var_data_bytes.check_range (current_tuple, current_tuple_size)))
+      if (unlikely (!var_data_bytes.check_end ((const char *) current_tuple + current_tuple_size)))
 	return false;
 
       current_tuple_size = current_tuple->get_size (axis_count);
-      if (unlikely (!var_data_bytes.check_range (current_tuple, current_tuple_size)))
+      if (unlikely (!var_data_bytes.check_end ((const char *) current_tuple + current_tuple_size)))
 	return false;
 
       return true;
