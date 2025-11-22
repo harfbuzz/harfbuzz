@@ -1430,11 +1430,11 @@ struct TupleVariationData
 	return false;
 
       current_tuple_size = TupleVariationHeader::min_size;
-      if (unlikely (!var_data_bytes.check_range (current_tuple, current_tuple_size)))
+      if (unlikely (!var_data_bytes.check_end ((const char *) current_tuple + current_tuple_size)))
 	return false;
 
       current_tuple_size = current_tuple->get_size (axis_count);
-      if (unlikely (!var_data_bytes.check_range (current_tuple, current_tuple_size)))
+      if (unlikely (!var_data_bytes.check_end ((const char *) current_tuple + current_tuple_size)))
 	return false;
 
       return true;
