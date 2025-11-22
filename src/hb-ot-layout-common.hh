@@ -2601,14 +2601,15 @@ struct hb_scalar_cache_t
     auto *values = &static_values[0];
     auto *cached_value = &values[i];
     // Super hot. Most common path is that we have a cached value of 0.
-    if (likely (!*cached_value))
+    int v = *cached_value;
+    if (likely (!v))
     {
       *value = 0.f;
       return true;
     }
-    if (*cached_value == INVALID)
+    if (v == INVALID)
       return false;
-    *value = *cached_value * DIVISOR;
+    *value = v * DIVISOR;
     return true;
   }
 
