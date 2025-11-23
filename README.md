@@ -1,3 +1,9 @@
+# HarfBuzz
+
+<div align="center">
+
+<p><img src="HarfBuzz.jpg" alt="HarfBuzz Logo" width="256" align="center"/></p>
+
 [![Linux CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux.yml)
 [![macoOS CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos.yml)
 [![Windows CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/msvc.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/msvc.yml)
@@ -6,8 +12,7 @@
 [![Packaging status](https://repology.org/badge/tiny-repos/harfbuzz.svg)](https://repology.org/project/harfbuzz/versions)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/harfbuzz/harfbuzz/badge)](https://securityscorecards.dev/viewer/?uri=github.com/harfbuzz/harfbuzz)
 
-
-# HarfBuzz
+</div>
 
 HarfBuzz is a text shaping engine. It primarily supports [OpenType][1], but also
 [Apple Advanced Typography][2]. HarfBuzz is used in Android, Chrome,
