@@ -1739,8 +1739,8 @@ struct TupleValues
 
       if ((control & VALUES_SIZE_MASK) == VALUES_ARE_ZEROS)
       {
-        for (; i < stop; i++)
-          values.arrayZ[i] = 0;
+	hb_memset (&values.arrayZ[i], 0, (stop - i) * sizeof (T));
+	i = stop;
       }
       else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_WORDS)
       {
