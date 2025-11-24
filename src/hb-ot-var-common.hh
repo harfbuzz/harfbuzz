@@ -1534,6 +1534,7 @@ struct TupleVariationData
   }
 
   template <typename T>
+  HB_ALWAYS_INLINE
   static bool decompile_deltas (const HBUINT8 *&p /* IN/OUT */,
 				hb_vector_t<T> &deltas /* IN/OUT */,
 				const HBUINT8 *end,
