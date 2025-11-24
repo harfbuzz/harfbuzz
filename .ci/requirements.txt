@@ -64,9 +64,9 @@ fonttools==4.60.1 \
     --hash=sha256:f3d5be054c461d6a2268831f04091dc82753176f6ea06dc6047a5e168265a987 \
     --hash=sha256:f4b5c37a5f40e4d733d3bbaaef082149bee5a5ea3156a785ff64d949bd1353fa
     # via -r requirements-fonttools.in
-meson==1.9.0 \
-    --hash=sha256:45e51ddc41e37d961582d06e78c48e0f9039011587f3495c4d6b0781dad92357 \
-    --hash=sha256:cd27277649b5ed50d19875031de516e270b22e890d9db65ed9af57d18ebc498d
+meson==1.9.1 \
+    --hash=sha256:4e076606f2afff7881d195574bddcd8d89286f35a17b4977a216f535dc0c74ac \
+    --hash=sha256:f824ab770c041a202f532f69e114c971918ed2daff7ea56583d80642564598d0
     # via -r requirements.in
 ninja==1.13.0 \
     --hash=sha256:11be2d22027bde06f14c343f01d31446747dbb51e72d00decca2eb99be911e2f \
