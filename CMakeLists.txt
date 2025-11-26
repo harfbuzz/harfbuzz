@@ -945,48 +945,19 @@ macro (make_hb_features_h)
 endmacro (make_hb_features_h)
 
 if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
-  install(TARGETS harfbuzz
-    EXPORT harfbuzzConfig
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    FRAMEWORK DESTINATION Library/Frameworks 
-    COMPONENT runtime OPTIONAL
-  )
+  set(hb_install_targets)
+  list(APPEND hb_install_targets harfbuzz)
   make_pkgconfig_pc_file("harfbuzz")
-  install(EXPORT harfbuzzConfig
-      NAMESPACE harfbuzz::
-      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/harfbuzz
-  )
   if (HB_HAVE_ICU)
-    install(TARGETS harfbuzz-icu
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      FRAMEWORK DESTINATION Library/Frameworks 
-      COMPONENT runtime OPTIONAL
-    )
+    list(APPEND hb_install_targets harfbuzz-icu)
     make_pkgconfig_pc_file("harfbuzz-icu")
   endif ()
   if (HB_HAVE_CAIRO)
-    install(TARGETS harfbuzz-cairo
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      FRAMEWORK DESTINATION Library/Frameworks 
-      COMPONENT runtime OPTIONAL
-    )
+    list(APPEND hb_install_targets harfbuzz-cairo)
     make_pkgconfig_pc_file("harfbuzz-cairo")
   endif ()
   if (HB_BUILD_SUBSET)
-    install(TARGETS harfbuzz-subset
-      EXPORT harfbuzz-subset
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      FRAMEWORK DESTINATION Library/Frameworks 
-      COMPONENT runtime OPTIONAL
-    )
+    list(APPEND hb_install_targets harfbuzz-subset)
     make_pkgconfig_pc_file("harfbuzz-subset")
   endif ()
   if (HB_BUILD_UTILS)
@@ -1042,4 +1013,16 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     endif ()
   endif ()
   make_hb_features_h()
+  install(TARGETS ${hb_install_targets}
+    EXPORT harfbuzzConfig
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    FRAMEWORK DESTINATION Library/Frameworks
+    COMPONENT runtime OPTIONAL
+  )
+  install(EXPORT harfbuzzConfig
+    NAMESPACE harfbuzz::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/harfbuzz
+  )
 endif ()
