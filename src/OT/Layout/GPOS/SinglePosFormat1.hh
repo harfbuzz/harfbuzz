@@ -13,7 +13,7 @@ struct SinglePosFormat1_3 : ValueBase
 {
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
-  typename Types::template OffsetTo<Coverage>
+  typename Types::template LOffsetTo<Coverage>
                 coverage;               /* Offset to Coverage table--from
                                          * beginning of subtable */
   ValueFormat   valueFormat;            /* Defines the types of data in the
@@ -22,7 +22,7 @@ struct SinglePosFormat1_3 : ValueBase
                                          * value(s)--applied to all glyphs in
                                          * the Coverage table */
   public:
-  DEFINE_SIZE_ARRAY (4 + Types::size, values);
+  DEFINE_SIZE_ARRAY (2 + Types::LOffset::static_size + ValueFormat::static_size, values);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
