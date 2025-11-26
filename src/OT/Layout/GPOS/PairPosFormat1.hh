@@ -25,9 +25,9 @@ struct PairPosFormat1_3
                                         /* [1] Defines the types of data in
                                          * ValueRecord2--for the second glyph
                                          * in the pair--may be zero (0) */
-  Array16Of<typename Types::template OffsetTo<PairSet>>
-                pairSet;                /* Array of PairSet tables
-                                         * ordered by Coverage Index */
+  typename Types::template ArrayOf<typename Types::template OffsetTo<PairSet>>
+                pairSet;                /* Array of PairSet tables ordered by
+                                         * Coverage Index */
   public:
   DEFINE_SIZE_ARRAY (8 + Types::size, pairSet);
 
@@ -54,9 +54,10 @@ struct PairPosFormat1_3
   {
     auto &cov = this+coverage;
 
-    if (pairSet.len > glyphs->get_population () * hb_bit_storage ((unsigned) pairSet.len))
+    unsigned ps_len = (unsigned) pairSet.len;
+    if (ps_len > glyphs->get_population () * hb_bit_storage (ps_len))
     {
-      for (hb_codepoint_t g : glyphs->iter())
+      for (hb_codepoint_t g : glyphs->iter ())
       {
 	unsigned i = cov.get_coverage (g);
 	if ((this+pairSet[i]).intersects (glyphs, valueFormat))
