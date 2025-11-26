@@ -41,8 +41,11 @@ struct SmallTypes {
   using HBUINT = HBUINT16;
   using HBGlyphID = HBGlyphID16;
   using Offset = Offset16;
+  using LOffset = Offset16;
   template <typename Type, typename BaseType=void, bool has_null=true>
   using OffsetTo = OT::Offset16To<Type, BaseType, has_null>;
+  template <typename Type, typename BaseType=void, bool has_null=true>
+  using LOffsetTo = OT::Offset16To<Type, BaseType, has_null>;
   template <typename Type>
   using ArrayOf = OT::Array16Of<Type>;
   template <typename Type>
@@ -55,8 +58,12 @@ struct MediumTypes {
   using HBUINT = HBUINT24;
   using HBGlyphID = HBGlyphID24;
   using Offset = Offset24;
+   /* Long offsets for large tables. */
+  using LOffset = Offset32;
   template <typename Type, typename BaseType=void, bool has_null=true>
   using OffsetTo = OT::Offset24To<Type, BaseType, has_null>;
+  template <typename Type, typename BaseType=void, bool has_null=true>
+  using LOffsetTo = OT::Offset32To<Type, BaseType, has_null>;
   template <typename Type>
   using ArrayOf = OT::Array24Of<Type>;
   template <typename Type>
