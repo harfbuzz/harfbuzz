@@ -54,8 +54,7 @@ struct PairPosFormat1_3
   {
     auto &cov = this+coverage;
 
-    unsigned ps_len = (unsigned) pairSet.len;
-    if (ps_len > glyphs->get_population () * hb_bit_storage (ps_len))
+    if (pairSet.len > glyphs->get_population () * hb_bit_storage ((unsigned) pairSet.len))
     {
       for (hb_codepoint_t g : glyphs->iter ())
       {
