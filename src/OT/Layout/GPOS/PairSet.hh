@@ -46,14 +46,14 @@ struct PairSet : ValueBase
   bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) const
   {
     TRACE_SANITIZE (this);
-    unsigned int count = (unsigned) len;
     if (!(c->check_struct (this) &&
 	  hb_barrier () &&
           c->check_range (&firstPairValueRecord,
-                          count,
+                          len,
                           closure->stride))) return_trace (false);
     hb_barrier ();
 
+    unsigned int count = len;
     const PairValueRecord *record = &firstPairValueRecord;
     return_trace (c->lazy_some_gpos ||
 		  (closure->valueFormats[0].sanitize_values_stride_unsafe (c, this, &record->values[0], count, closure->stride) &&
@@ -66,7 +66,7 @@ struct PairSet : ValueBase
     unsigned record_size = get_size (valueFormats);
 
     const PairValueRecord *record = &firstPairValueRecord;
-    unsigned int count = (unsigned) len;
+    unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
     {
       if (glyphs->has (record->secondGlyph))
@@ -82,7 +82,7 @@ struct PairSet : ValueBase
     unsigned record_size = get_size (valueFormats);
 
     const PairValueRecord *record = &firstPairValueRecord;
-    c->input->add_array (&record->secondGlyph, (unsigned) len, record_size);
+    c->input->add_array (&record->secondGlyph, len, record_size);
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
