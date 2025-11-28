@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<p><img src="HarfBuzz.jpg" alt="HarfBuzz Logo" width="256" align="center"/></p>
+<p><img src="HarfBuzz.png" alt="HarfBuzz Logo" width="256" align="center"/></p>
 
 [![Linux CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux.yml)
 [![macoOS CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos.yml)
