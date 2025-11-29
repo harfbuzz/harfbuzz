@@ -24,7 +24,7 @@
 
 #include "hb.hh"
 
-#if HAVE_KBTS
+#ifdef HAVE_KBTS
 
 #include "hb-shaper-impl.hh"
 
