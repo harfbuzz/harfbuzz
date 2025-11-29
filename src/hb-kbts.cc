@@ -172,10 +172,10 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   }
 
   uint32_t glyph_count = 0;
-  hb_glyph_info_t *info = buffer->info;
-  hb_glyph_position_t *pos = buffer->pos;
   kbts_glyph *kb_glyph = nullptr;
   kbts_glyph_iterator kb_output;
+  hb_glyph_info_t *info;
+  hb_glyph_position_t *pos;
 
   kbts_shape_config *kb_shape_config = kbts_CreateShapeConfig (kb_font, kb_script, kb_language, nullptr, nullptr);
   hb_bool_t res = kbts_ShapeDirect (kb_shape_config, kb_glyph_storage, kb_direction,
@@ -190,6 +190,9 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   hb_buffer_set_length (buffer, glyph_count);
 
   buffer->clear_positions ();
+
+  info = buffer->info;
+  pos = buffer->pos;
 
   for (auto it = kb_output; kbts_GlyphIteratorNext (&it, &kb_glyph); info++, pos++)
   {
