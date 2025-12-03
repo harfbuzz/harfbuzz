@@ -1235,7 +1235,7 @@ struct StateTableDriver
 	}
 	if (!(range->flags & ac->subtable_flags))
 	{
-	  if (buffer->idx == buffer->len || unlikely (!buffer->successful))
+	  if (buffer->idx == buffer->len)
 	    break;
 
 	  state = StateTableT::STATE_START_OF_TEXT;
@@ -1316,7 +1316,7 @@ struct StateTableDriver
       state = next_state;
       DEBUG_MSG (APPLY, nullptr, "s%d", state);
 
-      if (buffer->idx == buffer->len || unlikely (!buffer->successful))
+      if (buffer->idx == buffer->len)
 	break;
 
       if (!(entry.flags & Flags::DontAdvance) || buffer->max_ops-- <= 0)
