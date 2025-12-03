@@ -94,12 +94,12 @@ _add_loca_and_head (hb_subset_context_t *c,
   unsigned num_offsets = c->plan->num_output_glyphs () + 1;
   unsigned entry_size = use_short_loca ? 2 : 4;
 
-  char *loca_prime_data = (char *) hb_malloc (entry_size * num_offsets);
+  char *loca_prime_data = (char *) hb_malloc (entry_size * (size_t)num_offsets);
 
   if (unlikely (!loca_prime_data)) return false;
 
-  DEBUG_MSG (SUBSET, nullptr, "loca entry_size %u num_offsets %u size %u",
-	     entry_size, num_offsets, entry_size * num_offsets);
+  DEBUG_MSG (SUBSET, nullptr, "loca entry_size %u num_offsets %u size %zu",
+	     entry_size, num_offsets, entry_size * (size_t)num_offsets);
 
   if (use_short_loca)
     _write_loca (padded_offsets, c->plan->new_to_old_gid_list, true, (HBUINT16 *) loca_prime_data, num_offsets);
