@@ -127,8 +127,8 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
       return false;
   }
 
-  kbts_glyph_storage *kb_glyph_storage = kbts_PlaceGlyphStorage (nullptr, nullptr, hb_malloc (kbts_SizeOfGlyphStorage ()));
-  if (unlikely (!kb_glyph_storage))
+  kbts_glyph_storage kb_glyph_storage;
+  if (unlikely (!kbts_InitializeGlyphStorage (&kb_glyph_storage, nullptr, nullptr)))
     return false;
 
   kbts_script kb_script = KBTS_SCRIPT_DONT_KNOW;
@@ -168,7 +168,7 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
       if (kb_features)
         kb_config = kbts_CreateGlyphConfig (kb_features.arrayZ, kb_features.length, nullptr, nullptr);
     }
-    kbts_PushGlyph (kb_glyph_storage, kb_font, buffer->info[i].codepoint, kb_config, buffer->info[i].cluster);
+    kbts_PushGlyph (&kb_glyph_storage, kb_font, buffer->info[i].codepoint, kb_config, buffer->info[i].cluster);
   }
 
   uint32_t glyph_count = 0;
@@ -178,7 +178,7 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   hb_glyph_position_t *pos;
 
   kbts_shape_config *kb_shape_config = kbts_CreateShapeConfig (kb_font, kb_script, kb_language, nullptr, nullptr);
-  hb_bool_t res = kbts_ShapeDirect (kb_shape_config, kb_glyph_storage, kb_direction,
+  hb_bool_t res = kbts_ShapeDirect (kb_shape_config, &kb_glyph_storage, kb_direction,
 		                    nullptr, nullptr, &kb_output) == KBTS_SHAPE_ERROR_NONE;
   if (unlikely (!res))
       goto done;
@@ -208,8 +208,7 @@ done:
   kbts_DestroyShapeConfig (kb_shape_config);
   while (kbts_GlyphIteratorNext (&kb_output, &kb_glyph))
     kbts_DestroyGlyphConfig (kb_glyph->Config);
-  kbts_FreeAllGlyphs (kb_glyph_storage);
-  hb_free (kb_glyph_storage);
+  kbts_FreeAllGlyphs (&kb_glyph_storage);
 
   buffer->clear_glyph_flags ();
   buffer->unsafe_to_break ();
