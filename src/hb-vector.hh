@@ -50,7 +50,7 @@ struct hb_vector_t
   using array_t = typename std::conditional<sorted, hb_sorted_array_t<Type>, hb_array_t<Type>>::type;
   using c_array_t = typename std::conditional<sorted, hb_sorted_array_t<const Type>, hb_array_t<const Type>>::type;
 
-  hb_vector_t () = default;
+  hb_vector_t () : allocated (0), error (false), owned (false), length (0) {}
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
   hb_vector_t (std::initializer_list<Type> lst) : hb_vector_t ()
   {
@@ -107,11 +107,12 @@ struct hb_vector_t
   void
   set_storage (Type *array, unsigned n)
   {
-    assert (allocated == 0);
-    assert (length == 0);
+    assert (!arrayZ);
 
     arrayZ = array;
+    allocated = n;
     length = n;
+    owned = false;
   }
 
   template <typename Iterable,
@@ -153,14 +154,17 @@ struct hb_vector_t
   }
 
   public:
-  int allocated = 0; /* < 0 means allocation failed. */
-  unsigned int length = 0;
+  unsigned int allocated : 30;
+  unsigned int error : 1;
+  unsigned int owned : 1;
+  unsigned int length;
   public:
   Type *arrayZ = nullptr;
 
   void init ()
   {
     allocated = length = 0;
+    error = owned = false;
     arrayZ = nullptr;
   }
   void init0 ()
@@ -169,7 +173,7 @@ struct hb_vector_t
 
   void fini ()
   {
-    if (is_owned ())
+    if (owned)
     {
       shrink_vector (0);
       hb_free (arrayZ);
@@ -180,15 +184,17 @@ struct hb_vector_t
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
   hb_vector_t &reset ()
   {
-    if (unlikely (in_error ()))
-      reset_error ();
+    error = false;
     resize (0);
     return *this;
   }
 
   friend void swap (hb_vector_t& a, hb_vector_t& b) noexcept
   {
-    hb_swap (a.allocated, b.allocated);
+    unsigned int tmp;
+    tmp = a.allocated; a.allocated = b.allocated; b.allocated = tmp;
+    tmp = a.error; a.error = b.error; b.error = tmp;
+    tmp = a.owned; a.owned = b.owned; b.owned = tmp;
     hb_swap (a.length, b.length);
     hb_swap (a.arrayZ, b.arrayZ);
   }
@@ -297,26 +303,20 @@ struct hb_vector_t
     return new (p) Type (std::forward<Args> (args)...);
   }
 
-  bool is_owned () const
-  {
-    return allocated != 0 && allocated != -1;
-  }
-
-  bool in_error () const { return allocated < 0; }
+  bool in_error () const { return error; }
   void set_error ()
   {
-    assert (allocated >= 0);
-    allocated = -allocated - 1;
+    assert (!error);
+    error = 1;
   }
   void reset_error ()
   {
-    assert (allocated < 0);
-    allocated = -(allocated + 1);
+    assert (error);
+    error = 0;
   }
   void ensure_error ()
   {
-    if (!in_error ())
-      set_error ();
+    error = 1;
   }
 
   Type *
@@ -324,14 +324,12 @@ struct hb_vector_t
   {
     if (!new_allocated)
     {
-      if (is_owned ())
+      if (owned)
 	hb_free (arrayZ);
       return nullptr;
     }
-    if (!allocated && arrayZ)
+    if (!owned)
     {
-      /* If we have a non-null arrayZ but allocated is 0, then we are
-       * reallocating from a foreign array. */
       Type *new_array = (Type *) hb_malloc (new_allocated * sizeof (Type));
       if (unlikely (!new_array))
 	return nullptr;
@@ -345,7 +343,7 @@ struct hb_vector_t
   {
     if (!new_allocated)
     {
-      if (is_owned ())
+      if (owned)
 	hb_free (arrayZ);
       return nullptr;
     }
@@ -358,7 +356,7 @@ struct hb_vector_t
 	new_array[i] = std::move (arrayZ[i]);
 	arrayZ[i].~Type ();
       }
-      if (is_owned ())
+      if (owned)
 	hb_free (arrayZ);
     }
     return new_array;
@@ -531,6 +529,7 @@ struct hb_vector_t
 
     arrayZ = new_array;
     allocated = new_allocated;
+    owned = 1;
 
     return true;
   }
@@ -586,7 +585,7 @@ struct hb_vector_t
 
     shrink (size, false);
 
-    if (allocator && !is_owned ())
+    if (allocator && !owned)
       allocator->discard (arrayZ + length, (orig_length - length) * sizeof (Type));
   }
 
@@ -665,7 +664,7 @@ struct hb_vector_t
 
     shrink_vector (size);
 
-    if (is_owned () && shrink_memory)
+    if (owned && shrink_memory)
       alloc_exact (size); /* To force shrinking memory if needed. */
   }
 
