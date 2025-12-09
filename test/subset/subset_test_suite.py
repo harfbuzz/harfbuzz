@@ -43,7 +43,9 @@ class Test:
         if not self.instance:
             return self.instance
         else:
-            s = "." + self.instance.replace(":", "-")
+            # include the first 6 axes to avoid file name too long error
+            axes = self.instance.replace(":", "-").split(",")
+            s = "." + ",".join(axes[:6])
             if self.iup_optimize:
                 s += ".iup_optimize"
             return s
