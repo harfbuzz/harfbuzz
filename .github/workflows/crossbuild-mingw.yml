@@ -64,7 +64,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.1
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           merge-multiple: true
       - name: Rename artifacts
