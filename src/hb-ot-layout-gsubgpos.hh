@@ -1312,9 +1312,18 @@ static bool match_input (hb_ot_apply_context_t *c,
 {
   TRACE_APPLY (nullptr);
 
-  if (unlikely (count > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
-
   hb_buffer_t *buffer = c->buffer;
+
+  if (count == 1)
+  {
+    *end_position = buffer->idx + 1;
+    c->match_positions[0] = buffer->idx;
+    if (p_total_component_count)
+      *p_total_component_count = _hb_glyph_info_get_lig_num_comps (&buffer->cur());
+    return_trace (true);
+  }
+
+  if (unlikely (count > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
 
   auto &skippy_iter = c->iter_input;
   skippy_iter.reset (buffer->idx);
@@ -1560,6 +1569,12 @@ static bool match_backtrack (hb_ot_apply_context_t *c,
 {
   TRACE_APPLY (nullptr);
 
+  if (!count)
+  {
+    *match_start = c->buffer->backtrack_len ();
+    return_trace (true);
+  }
+
   auto &skippy_iter = c->iter_context;
   skippy_iter.reset_back (c->buffer->backtrack_len ());
   skippy_iter.set_match_func (match_func, match_data);
@@ -1592,6 +1607,12 @@ static bool match_lookahead (hb_ot_apply_context_t *c,
 			     unsigned int *end_index)
 {
   TRACE_APPLY (nullptr);
+
+  if (!count)
+  {
+    *end_index = start_index;
+    return_trace (true);
+  }
 
   auto &skippy_iter = c->iter_context;
   assert (start_index >= 1);
