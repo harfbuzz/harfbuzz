@@ -3544,6 +3544,18 @@ struct ChainRuleSet
       {
 	if (unsafe_to == (unsigned) -1)
 	  unsafe_to = unsafe_to1;
+
+	if (lenP1 > 1)
+	{
+	  // Skip ahead to next possible first glyph match.
+	  for (; i + 1 < num_rules; i++)
+	  {
+	    const auto &r2 = this+rule.arrayZ[i + 1];
+	    const auto &input2 = StructAfter<decltype (r2.inputX)> (r2.backtrack);
+	    if (input2.lenP1 <= 1 || input2.arrayZ[0] != input.arrayZ[0])
+	      break;
+	  }
+	}
       }
     }
     if (likely (unsafe_to != (unsigned) -1))
