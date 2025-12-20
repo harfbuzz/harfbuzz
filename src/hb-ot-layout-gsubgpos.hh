@@ -2338,6 +2338,15 @@ struct RuleSet
       {
 	if (unsafe_to == (unsigned) -1)
 	  unsafe_to = unsafe_to1;
+
+	// Skip ahead to next possible first glyph match.
+	for (; i + 1 < num_rules; i++)
+	{
+	  const auto &r2 = this+rule.arrayZ[i + 1];
+	  const auto &input2 = r2.inputZ;
+	  if (r2.inputCount <= 1 || input2.arrayZ[0] != input.arrayZ[0])
+	    break;
+	}
       }
     }
     if (likely (unsafe_to != (unsigned) -1))
