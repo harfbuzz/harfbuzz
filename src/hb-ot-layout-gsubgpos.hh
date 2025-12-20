@@ -1312,9 +1312,18 @@ static bool match_input (hb_ot_apply_context_t *c,
 {
   TRACE_APPLY (nullptr);
 
-  if (unlikely (count > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
-
   hb_buffer_t *buffer = c->buffer;
+
+  if (count == 1)
+  {
+    *end_position = buffer->idx + 1;
+    c->match_positions[0] = buffer->idx;
+    if (p_total_component_count)
+      *p_total_component_count = _hb_glyph_info_get_lig_num_comps (&buffer->cur());
+    return_trace (true);
+  }
+
+  if (unlikely (count > HB_MAX_CONTEXT_LENGTH)) return_trace (false);
 
   auto &skippy_iter = c->iter_input;
   skippy_iter.reset (buffer->idx);
@@ -1560,6 +1569,12 @@ static bool match_backtrack (hb_ot_apply_context_t *c,
 {
   TRACE_APPLY (nullptr);
 
+  if (!count)
+  {
+    *match_start = c->buffer->backtrack_len ();
+    return_trace (true);
+  }
+
   auto &skippy_iter = c->iter_context;
   skippy_iter.reset_back (c->buffer->backtrack_len ());
   skippy_iter.set_match_func (match_func, match_data);
@@ -1592,6 +1607,12 @@ static bool match_lookahead (hb_ot_apply_context_t *c,
 			     unsigned int *end_index)
 {
   TRACE_APPLY (nullptr);
+
+  if (!count)
+  {
+    *end_index = start_index;
+    return_trace (true);
+  }
 
   auto &skippy_iter = c->iter_context;
   assert (start_index >= 1);
@@ -2246,7 +2267,12 @@ struct RuleSet
      *
      * Replicated from LigatureSet::apply(). */
 
-    auto &skippy_iter = c->iter_input;
+    /* We use the iter_context instead of iter_input, to avoid skipping
+     * default-ignorables and such.
+     *
+     * Related: https://github.com/harfbuzz/harfbuzz/issues/4813
+     */
+    auto &skippy_iter = c->iter_context;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
     skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
@@ -2255,15 +2281,15 @@ struct RuleSet
     bool matched = skippy_iter.next ();
     if (likely (matched))
     {
-      first = &c->buffer->info[skippy_iter.idx];
-      unsafe_to = skippy_iter.idx + 1;
-
       if (skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]))
       {
 	/* Can't use the fast path if eg. the next char is a default-ignorable
 	 * or other skippable. */
         goto slow;
       }
+
+      first = &c->buffer->info[skippy_iter.idx];
+      unsafe_to = skippy_iter.idx + 1;
     }
     else
     {
@@ -2279,8 +2305,15 @@ struct RuleSet
       ;
     }
     matched = skippy_iter.next ();
-    if (likely (matched && !skippy_iter.may_skip (c->buffer->info[skippy_iter.idx])))
+    if (likely (matched))
     {
+      if (skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]))
+      {
+	/* Can't use the fast path if eg. the next char is a default-ignorable
+	 * or other skippable. */
+        goto slow;
+      }
+
       second = &c->buffer->info[skippy_iter.idx];
       unsafe_to2 = skippy_iter.idx + 1;
     }
@@ -2317,6 +2350,15 @@ struct RuleSet
       {
 	if (unsafe_to == (unsigned) -1)
 	  unsafe_to = unsafe_to1;
+
+	// Skip ahead to next possible first glyph match.
+	for (; i + 1 < num_rules; i++)
+	{
+	  const auto &r2 = this+rule.arrayZ[i + 1];
+	  const auto &input2 = r2.inputZ;
+	  if (r2.inputCount <= 1 || input2.arrayZ[0] != input.arrayZ[0])
+	    break;
+	}
       }
     }
     if (likely (unsafe_to != (unsigned) -1))
@@ -3404,16 +3446,12 @@ struct ChainRuleSet
      *
      * Replicated from LigatureSet::apply(). */
 
-    /* If the input skippy has non-auto joiners behavior (as in Indic shapers),
-     * skip this fast path, as we don't distinguish between input & lookahead
-     * matching in the fast path.
+    /* We use the iter_context instead of iter_input, to avoid skipping
+     * default-ignorables and such.
      *
-     * https://github.com/harfbuzz/harfbuzz/issues/4813
+     * Related: https://github.com/harfbuzz/harfbuzz/issues/4813
      */
-    if (!c->auto_zwnj || !c->auto_zwj)
-      goto slow;
-
-    auto &skippy_iter = c->iter_input;
+    auto &skippy_iter = c->iter_context;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
     skippy_iter.set_glyph_data ((HBUINT16 *) nullptr);
@@ -3422,15 +3460,15 @@ struct ChainRuleSet
     bool matched = skippy_iter.next ();
     if (likely (matched))
     {
-      first = &c->buffer->info[skippy_iter.idx];
-      unsafe_to1 = skippy_iter.idx + 1;
-
       if (skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]))
       {
 	/* Can't use the fast path if eg. the next char is a default-ignorable
 	 * or other skippable. */
         goto slow;
       }
+
+      first = &c->buffer->info[skippy_iter.idx];
+      unsafe_to1 = skippy_iter.idx + 1;
     }
     else
     {
@@ -3451,8 +3489,15 @@ struct ChainRuleSet
       ;
     }
     matched = skippy_iter.next ();
-    if (likely (matched && !skippy_iter.may_skip (c->buffer->info[skippy_iter.idx])))
+    if (likely (matched))
     {
+      if (skippy_iter.may_skip (c->buffer->info[skippy_iter.idx]))
+      {
+	/* Can't use the fast path if eg. the next char is a default-ignorable
+	 * or other skippable. */
+        goto slow;
+      }
+
       second = &c->buffer->info[skippy_iter.idx];
       unsafe_to2 = skippy_iter.idx + 1;
     }
