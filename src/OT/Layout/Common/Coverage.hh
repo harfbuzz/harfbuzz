@@ -111,6 +111,21 @@ struct Coverage
     return coverage;
   }
 
+  unsigned int get_coverage_binary (hb_codepoint_t glyph_id,
+				    hb_ot_layout_binary_cache_t *cache) const
+  {
+    unsigned coverage;
+    if (cache && cache->get (glyph_id, &coverage)) return coverage < cache->MAX_VALUE ? coverage : NOT_COVERED;
+    coverage = get_coverage (glyph_id);
+    if (cache) {
+      if (coverage == NOT_COVERED)
+	cache->set_unchecked (glyph_id, cache->MAX_VALUE);
+      else
+	cache->set_unchecked (glyph_id, 0);
+    }
+    return coverage;
+  }
+
   unsigned get_population () const
   {
     switch (u.format.v) {

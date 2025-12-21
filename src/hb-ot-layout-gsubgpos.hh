@@ -2710,7 +2710,7 @@ struct ContextFormat2_5
 
   struct external_cache_t
   {
-    hb_ot_layout_mapping_cache_t coverage;
+    hb_ot_layout_binary_cache_t coverage;
   };
   void *external_cache_create () const
   {
@@ -2728,7 +2728,7 @@ struct ContextFormat2_5
     TRACE_APPLY (this);
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     external_cache_t *cache = (external_cache_t *) external_cache;
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
+    unsigned int index = (this+coverage).get_coverage_binary (c->buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
 #else
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
 #endif
@@ -3951,7 +3951,7 @@ struct ChainContextFormat2_5
 
   struct external_cache_t
   {
-    hb_ot_layout_mapping_cache_t coverage;
+    hb_ot_layout_binary_cache_t coverage;
   };
   void *external_cache_create () const
   {
@@ -3969,7 +3969,7 @@ struct ChainContextFormat2_5
     TRACE_APPLY (this);
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     external_cache_t *cache = (external_cache_t *) external_cache;
-    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
+    unsigned int index = (this+coverage).get_coverage_binary (c->buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
 #else
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
 #endif
