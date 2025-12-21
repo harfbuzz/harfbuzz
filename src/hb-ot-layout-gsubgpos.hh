@@ -2708,12 +2708,30 @@ struct ContextFormat2_5
     return context_cache_func (c, op);
   }
 
-  bool apply_cached (hb_ot_apply_context_t *c, void *external_cache HB_UNUSED) const { return _apply (c, true); }
-  bool apply (hb_ot_apply_context_t *c) const { return _apply (c, false); }
-  bool _apply (hb_ot_apply_context_t *c, bool cached) const
+  struct external_cache_t
+  {
+    hb_ot_layout_binary_cache_t coverage;
+  };
+  void *external_cache_create () const
+  {
+    external_cache_t *cache = (external_cache_t *) hb_malloc (sizeof (external_cache_t));
+    if (likely (cache))
+    {
+      cache->coverage.clear ();
+    }
+    return cache;
+  }
+  bool apply_cached (hb_ot_apply_context_t *c, void *external_cache) const { return _apply (c, true, external_cache); }
+  bool apply (hb_ot_apply_context_t *c, void *external_cache) const { return _apply (c, false, external_cache); }
+  bool _apply (hb_ot_apply_context_t *c, bool cached, void *external_cache) const
   {
     TRACE_APPLY (this);
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    external_cache_t *cache = (external_cache_t *) external_cache;
+    unsigned int index = (this+coverage).get_coverage_binary (c->buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
+#else
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
+#endif
     if (index == NOT_COVERED) return_trace (false);
 
     const ClassDef &class_def = this+classDef;
@@ -3931,12 +3949,30 @@ struct ChainContextFormat2_5
     return context_cache_func (c, op);
   }
 
-  bool apply_cached (hb_ot_apply_context_t *c, void *external_cache HB_UNUSED) const { return _apply (c, true); }
-  bool apply (hb_ot_apply_context_t *c) const { return _apply (c, false); }
-  bool _apply (hb_ot_apply_context_t *c, bool cached) const
+  struct external_cache_t
+  {
+    hb_ot_layout_binary_cache_t coverage;
+  };
+  void *external_cache_create () const
+  {
+    external_cache_t *cache = (external_cache_t *) hb_malloc (sizeof (external_cache_t));
+    if (likely (cache))
+    {
+      cache->coverage.clear ();
+    }
+    return cache;
+  }
+  bool apply_cached (hb_ot_apply_context_t *c, void *external_cache) const { return _apply (c, true, external_cache); }
+  bool apply (hb_ot_apply_context_t *c, void *external_cache) const { return _apply (c, false, external_cache); }
+  bool _apply (hb_ot_apply_context_t *c, bool cached, void *external_cache) const
   {
     TRACE_APPLY (this);
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+    external_cache_t *cache = (external_cache_t *) external_cache;
+    unsigned int index = (this+coverage).get_coverage_binary (c->buffer->cur().codepoint, cache ? &cache->coverage : nullptr);
+#else
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
+#endif
     if (index == NOT_COVERED) return_trace (false);
 
     const ClassDef &backtrack_class_def = this+backtrackClassDef;
