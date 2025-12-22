@@ -134,7 +134,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 			   hb_array_t<const int> coords,
 			   hb_transform_t<> total_transform,
 			   hb_ubytes_t total_record,
-			   hb_scalar_cache_t *cache) const
+			   _hb_scalar_cache_t<false> *cache) const
 {
   const unsigned char *end = total_record.arrayZ + total_record.length;
   const unsigned char *record = total_record.arrayZ;
@@ -183,7 +183,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
     unsigned conditionIndex;
     READ_UINT32VAR (conditionIndex);
     const auto &condition = (&VARC+VARC.conditionList)[conditionIndex];
-    auto instancer = MultiItemVarStoreInstancer(&varStore, nullptr, coords, cache);
+    auto instancer = MultiItemVarStoreInstancer<false> (&varStore, nullptr, coords, cache);
     show = condition.evaluate (coords.arrayZ, coords.length, &instancer);
   }
 
@@ -338,7 +338,7 @@ VARC::get_path_at (const hb_varc_context_t &c,
 		   hb_array_t<const int> coords,
 		   hb_transform_t<> transform,
 		   hb_codepoint_t parent_glyph,
-		   hb_scalar_cache_t *parent_cache) const
+		   _hb_scalar_cache_t<false> *parent_cache) const
 {
   // Don't recurse on the same glyph.
   unsigned idx = glyph == parent_glyph ?
@@ -394,10 +394,10 @@ VARC::get_path_at (const hb_varc_context_t &c,
 
   hb_ubytes_t record = (this+glyphRecords)[idx];
 
-  hb_scalar_cache_t static_cache;
-  hb_scalar_cache_t *cache = parent_cache ?
-				  parent_cache :
-				  (this+varStore).create_cache (&static_cache);
+  _hb_scalar_cache_t<false> static_cache;
+  _hb_scalar_cache_t<false> *cache = parent_cache ?
+				    parent_cache :
+				    (this+varStore).create_cache (&static_cache);
 
   transform.scale (c.font->x_multf, c.font->y_multf);
 
