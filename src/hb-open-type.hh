@@ -2040,7 +2040,10 @@ struct TupleValues
       }
 
 #ifndef HB_OPTIMIZE_SIZE
-      if (scale == 1.0f)
+      // The following branch is supposed to speed things up by avoiding
+      // the multiplication in _add_to<> if scale is 1.0f.
+      // But in practice it seems to bloat the code and slow things down.
+      if (false && scale == 1.0f)
         _add_to<false> (out);
       else
 #endif
