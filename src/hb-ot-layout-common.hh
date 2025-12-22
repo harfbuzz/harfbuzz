@@ -2540,8 +2540,7 @@ struct SparseVarRegionAxis
   DEFINE_SIZE_STATIC (8);
 };
 
-template <bool thread_safe>
-struct _hb_scalar_cache_t
+struct hb_scalar_cache_t
 {
   private:
   static constexpr unsigned STATIC_LENGTH = 16;
@@ -2550,17 +2549,17 @@ struct _hb_scalar_cache_t
   static constexpr float DIVISOR = 1.f / MULTIPLIER;
 
   public:
-  _hb_scalar_cache_t () : length (STATIC_LENGTH) { clear (); }
+  hb_scalar_cache_t () : length (STATIC_LENGTH) { clear (); }
 
-  _hb_scalar_cache_t (const _hb_scalar_cache_t&) = delete;
-  _hb_scalar_cache_t (_hb_scalar_cache_t&&) = delete;
-  _hb_scalar_cache_t& operator= (const _hb_scalar_cache_t&) = delete;
-  _hb_scalar_cache_t& operator= (_hb_scalar_cache_t&&) = delete;
+  hb_scalar_cache_t (const hb_scalar_cache_t&) = delete;
+  hb_scalar_cache_t (hb_scalar_cache_t&&) = delete;
+  hb_scalar_cache_t& operator= (const hb_scalar_cache_t&) = delete;
+  hb_scalar_cache_t& operator= (hb_scalar_cache_t&&) = delete;
 
-  static _hb_scalar_cache_t *create (unsigned int count,
-				    _hb_scalar_cache_t *scratch_cache = nullptr)
+  static hb_scalar_cache_t *create (unsigned int count,
+				    hb_scalar_cache_t *scratch_cache = nullptr)
   {
-    if (!count) return (_hb_scalar_cache_t *) &Null(_hb_scalar_cache_t);
+    if (!count) return (hb_scalar_cache_t *) &Null(hb_scalar_cache_t);
 
     if (scratch_cache && count <= scratch_cache->length)
     {
@@ -2568,8 +2567,8 @@ struct _hb_scalar_cache_t
       return scratch_cache;
     }
 
-    auto *cache = (_hb_scalar_cache_t *) hb_malloc (sizeof (_hb_scalar_cache_t) - sizeof (static_values) + sizeof (static_values[0]) * count);
-    if (unlikely (!cache)) return (_hb_scalar_cache_t *) &Null(_hb_scalar_cache_t);
+    auto *cache = (hb_scalar_cache_t *) hb_malloc (sizeof (hb_scalar_cache_t) - sizeof (static_values) + sizeof (static_values[0]) * count);
+    if (unlikely (!cache)) return (hb_scalar_cache_t *) &Null(hb_scalar_cache_t);
 
     cache->length = count;
     cache->clear ();
@@ -2577,10 +2576,10 @@ struct _hb_scalar_cache_t
     return cache;
   }
 
-  static void destroy (_hb_scalar_cache_t *cache,
-		       _hb_scalar_cache_t *scratch_cache = nullptr)
+  static void destroy (hb_scalar_cache_t *cache,
+		       hb_scalar_cache_t *scratch_cache = nullptr)
   {
-    if (cache != &Null(_hb_scalar_cache_t) && cache != scratch_cache)
+    if (cache != &Null(hb_scalar_cache_t) && cache != scratch_cache)
       hb_free (cache);
   }
 
@@ -2633,14 +2632,10 @@ struct _hb_scalar_cache_t
     *cached_value = roundf(value * MULTIPLIER);
   }
 
-  using type_t = std::conditional_t<thread_safe, hb_atomic_t<int>, int>;
-
   private:
   unsigned length;
-  mutable type_t static_values[STATIC_LENGTH];
+  mutable hb_atomic_t<int> static_values[STATIC_LENGTH];
 };
-
-using hb_scalar_cache_t = _hb_scalar_cache_t<true>;
 
 struct VarRegionList
 {
@@ -2668,7 +2663,6 @@ struct VarRegionList
   }
 
   public:
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   HB_ALWAYS_INLINE
   float evaluate (unsigned int region_index,
 		  const int *coords, unsigned int coord_len,
@@ -2827,7 +2821,6 @@ struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
 
 struct SparseVarRegionList
 {
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   HB_ALWAYS_INLINE
   float evaluate (unsigned int region_index,
 		  const int *coords, unsigned int coord_len,
@@ -2883,7 +2876,6 @@ struct VarData
 	 + itemCount * get_row_size ();
   }
 
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   float _get_delta (unsigned int inner,
 		    const int *coords, unsigned int coord_count,
 		    const VarRegionList &regions,
@@ -2931,7 +2923,6 @@ struct VarData
     return delta;
   }
 
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   HB_ALWAYS_INLINE
   float get_delta (unsigned int inner,
 		   const int *coords, unsigned int coord_count,
@@ -3255,7 +3246,6 @@ struct MultiVarData
 	 + StructAfter<CFF2Index> (regionIndices).get_size ();
   }
 
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   void get_delta (unsigned int inner,
 		  const int *coords, unsigned int coord_count,
 		  const SparseVarRegionList &regions,
@@ -3298,7 +3288,6 @@ struct ItemVariationStore
 {
   friend struct item_variations_t;
 
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   hb_scalar_cache_t *create_cache () const
   {
 #ifdef HB_NO_VAR
@@ -3307,14 +3296,12 @@ struct ItemVariationStore
     return hb_scalar_cache_t::create ((this+regions).regionCount);
   }
 
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   static void destroy_cache (hb_scalar_cache_t *cache)
   {
     hb_scalar_cache_t::destroy (cache);
   }
 
   private:
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   float get_delta (unsigned int outer, unsigned int inner,
 		   const int *coords, unsigned int coord_count,
 		   hb_scalar_cache_t *cache = nullptr) const
@@ -3333,7 +3320,6 @@ struct ItemVariationStore
   }
 
   public:
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   float get_delta (unsigned int index,
 		   const int *coords, unsigned int coord_count,
 		   hb_scalar_cache_t *cache = nullptr) const
@@ -3342,7 +3328,6 @@ struct ItemVariationStore
     unsigned int inner = index & 0xFFFF;
     return get_delta (outer, inner, coords, coord_count, cache);
   }
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   float get_delta (unsigned int index,
 		   hb_array_t<const int> coords,
 		   hb_scalar_cache_t *cache = nullptr) const
@@ -3553,7 +3538,6 @@ struct ItemVariationStore
 
 struct MultiItemVariationStore
 {
-  template <typename hb_scalar_cache_t>
   hb_scalar_cache_t *create_cache (hb_scalar_cache_t *static_cache = nullptr) const
   {
 #ifdef HB_NO_VAR
@@ -3565,7 +3549,6 @@ struct MultiItemVariationStore
     return hb_scalar_cache_t::create (count, static_cache);
   }
 
-  template <typename hb_scalar_cache_t>
   static void destroy_cache (hb_scalar_cache_t *cache,
 			     hb_scalar_cache_t *static_cache = nullptr)
   {
@@ -3573,7 +3556,6 @@ struct MultiItemVariationStore
   }
 
   private:
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   void get_delta (unsigned int outer, unsigned int inner,
 		  const int *coords, unsigned int coord_count,
 		  hb_array_t<float> out,
@@ -3594,7 +3576,6 @@ struct MultiItemVariationStore
   }
 
   public:
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   void get_delta (unsigned int index,
 		  const int *coords, unsigned int coord_count,
 		  hb_array_t<float> out,
@@ -3604,7 +3585,6 @@ struct MultiItemVariationStore
     unsigned int inner = index & 0xFFFF;
     get_delta (outer, inner, coords, coord_count, out, cache);
   }
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   void get_delta (unsigned int index,
 		  hb_array_t<const int> coords,
 		  hb_array_t<float> out,
@@ -3867,11 +3847,8 @@ struct ItemVarStoreInstancer
   hb_scalar_cache_t *cache;
 };
 
-template <bool thread_safe=true>
 struct MultiItemVarStoreInstancer
 {
-  using hb_scalar_cache_t = _hb_scalar_cache_t<thread_safe>;
-
   MultiItemVarStoreInstancer (const MultiItemVariationStore *varStore,
 			      const DeltaSetIndexMap *varIdxMap,
 			      hb_array_t<const int> coords,
@@ -4926,7 +4903,6 @@ struct VariationDevice
 
   private:
 
-  template <typename hb_scalar_cache_t=hb_scalar_cache_t>
   float get_delta (hb_font_t *font,
 		   const ItemVariationStore &store,
 		   hb_scalar_cache_t *store_cache = nullptr) const

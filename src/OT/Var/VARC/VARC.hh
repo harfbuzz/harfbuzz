@@ -67,7 +67,7 @@ struct VarComponent
 	       hb_array_t<const int> coords,
 	       hb_transform_t<> transform,
 	       hb_ubytes_t record,
-	       _hb_scalar_cache_t<false> *cache = nullptr) const;
+	       hb_scalar_cache_t *cache = nullptr) const;
 };
 
 struct VarCompositeGlyph
@@ -78,7 +78,7 @@ struct VarCompositeGlyph
 	       hb_array_t<const int> coords,
 	       hb_transform_t<> transform,
 	       hb_ubytes_t record,
-	       _hb_scalar_cache_t<false> *cache)
+	       hb_scalar_cache_t *cache)
   {
     while (record)
     {
@@ -106,7 +106,7 @@ struct VARC
 	       hb_array_t<const int> coords,
 	       hb_transform_t<> transform = HB_TRANSFORM_IDENTITY,
 	       hb_codepoint_t parent_gid = HB_CODEPOINT_INVALID,
-	       _hb_scalar_cache_t<false> *parent_cache = nullptr) const;
+	       hb_scalar_cache_t *parent_cache = nullptr) const;
 
   bool
   get_path (hb_font_t *font,
