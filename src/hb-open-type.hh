@@ -1802,7 +1802,7 @@ struct TupleValues
   {
     iter_t (const unsigned char *p_, unsigned len_)
 	    : p (p_), endp (p_ + len_)
-    { if (ensure_run ()) read_value (); }
+    { if (likely (ensure_run ())) read_value (); }
 
     private:
     const unsigned char *p;
@@ -1811,10 +1811,14 @@ struct TupleValues
     signed run_count = 0;
     unsigned width = 0;
 
+    HB_ALWAYS_INLINE
     bool ensure_run ()
     {
       if (likely (run_count > 0)) return true;
-
+      return _ensure_run ();
+    }
+    bool _ensure_run ()
+    {
       if (unlikely (p >= endp))
       {
         run_count = 0;
@@ -1904,10 +1908,15 @@ struct TupleValues
     signed run_count = 0;
     unsigned width = 0;
 
+    HB_ALWAYS_INLINE
     bool ensure_run ()
     {
-      if (run_count > 0) return true;
+      if (likely (run_count > 0)) return true;
+      return _ensure_run ();
+    }
 
+    bool _ensure_run ()
+    {
       if (unlikely (p >= end))
       {
         run_count = 0;
