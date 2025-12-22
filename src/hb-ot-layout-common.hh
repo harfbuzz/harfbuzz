@@ -2586,7 +2586,17 @@ struct hb_scalar_cache_t
   void clear ()
   {
     auto *values = &static_values[0];
-    for (unsigned i = 0; i < length; i++)
+    unsigned i = 0;
+#ifndef HB_OPTIMIZE_SIZE
+    for (; i + 3 < length; i += 4)
+    {
+      values[i + 0] = INVALID;
+      values[i + 1] = INVALID;
+      values[i + 2] = INVALID;
+      values[i + 3] = INVALID;
+    }
+#endif
+    for (; i < length; i++)
       values[i] = INVALID;
   }
 
