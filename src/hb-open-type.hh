@@ -62,7 +62,7 @@ struct NumType
   typedef Type type;
   /* For reason we define cast out operator for signed/unsigned, instead of Type, see:
    * https://github.com/harfbuzz/harfbuzz/pull/2875/commits/09836013995cab2b9f07577a179ad7b024130467 */
-  typedef typename std::conditional<std::is_integral<Type>::value,
+  typedef typename std::conditional<std::is_integral<Type>::value && sizeof (Type) <= sizeof(int),
 				     typename std::conditional<std::is_signed<Type>::value, signed, unsigned>::type,
 				     Type>::type WideType;
 
@@ -118,6 +118,8 @@ typedef NumType<true, uint16_t> HBUINT16;	/* 16-bit big-endian unsigned integer.
 typedef NumType<true, int16_t>  HBINT16;	/* 16-bit big-endian signed integer. */
 typedef NumType<true, uint32_t> HBUINT32;	/* 32-bit big-endian unsigned integer. */
 typedef NumType<true, int32_t>  HBINT32;	/* 32-bit big-endian signed integer. */
+typedef NumType<true, uint64_t> HBUINT64;	/* 64-bit big-endian unsigned integer. */
+typedef NumType<true, int64_t>  HBINT64;	/* 64-bit big-endian signed integer. */
 /* Note: we cannot defined a signed HBINT24 because there's no corresponding C type.
  * Works for unsigned, but not signed, since we rely on compiler for sign-extension. */
 typedef NumType<true, uint32_t, 3> HBUINT24;	/* 24-bit big-endian unsigned integer. */
@@ -126,6 +128,8 @@ typedef NumType<false, uint16_t> HBUINT16LE;	/* 16-bit little-endian unsigned in
 typedef NumType<false, int16_t>  HBINT16LE;	/* 16-bit little-endian signed integer. */
 typedef NumType<false, uint32_t> HBUINT32LE;	/* 32-bit little-endian unsigned integer. */
 typedef NumType<false, int32_t>  HBINT32LE;	/* 32-bit little-endian signed integer. */
+typedef NumType<false, uint64_t> HBUINT64LE;	/* 64-bit little-endian unsigned integer. */
+typedef NumType<false, int64_t>  HBINT64LE;	/* 64-bit little-endian signed integer. */
 
 typedef NumType<true,  float>  HBFLOAT32BE;	/* 32-bit little-endian floating point number. */
 typedef NumType<true,  double> HBFLOAT64BE;	/* 64-bit little-endian floating point number. */

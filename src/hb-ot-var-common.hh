@@ -119,8 +119,6 @@ struct TupleVariationHeader
     const F2DOT14 *peak_tuple;
 
     bool has_interm = tuple_index & TupleIndex::IntermediateRegion; // Inlined for performance
-    if (unlikely (has_interm))
-      shared_tuple_scalar_cache = nullptr;
 
     if (unlikely (tuple_index & TupleIndex::EmbeddedPeakTuple)) // Inlined for performance
     {
@@ -134,7 +132,12 @@ struct TupleVariationHeader
       float scalar;
       if (shared_tuple_scalar_cache &&
 	  shared_tuple_scalar_cache->get (index, &scalar))
-	return (double) scalar;
+      {
+        if (has_interm && scalar)
+	  shared_tuple_scalar_cache = nullptr;
+	else
+	  return (double) scalar;
+      }
 
       if (unlikely ((index + 1) * coord_count > shared_tuples.length))
         return 0.0;
@@ -152,8 +155,21 @@ struct TupleVariationHeader
     }
 
     double scalar = 1.0;
+#ifndef HB_OPTIMIZE_SIZE
+#if HB_FAST_NUM_ACCESS
+    bool skip = coord_count >= 16;
+#endif
+#endif
     for (unsigned int i = 0; i < coord_count; i++)
     {
+#ifndef HB_OPTIMIZE_SIZE
+#if HB_FAST_NUM_ACCESS
+      if (skip)
+	while (i + 4 < coord_count && * (HBUINT64LE *) &peak_tuple[i] == 0)
+	  i += 4;
+#endif
+#endif
+
       int peak = peak_tuple[i].to_int ();
       if (!peak) continue;
 
@@ -163,6 +179,7 @@ struct TupleVariationHeader
 
       if (has_interm)
       {
+	shared_tuple_scalar_cache = nullptr;
         int start = start_tuple[i].to_int ();
         int end = end_tuple[i].to_int ();
         if (unlikely (start > peak || peak > end ||
