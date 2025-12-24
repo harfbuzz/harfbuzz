@@ -119,8 +119,6 @@ struct TupleVariationHeader
     const F2DOT14 *peak_tuple;
 
     bool has_interm = tuple_index & TupleIndex::IntermediateRegion; // Inlined for performance
-    if (unlikely (has_interm))
-      shared_tuple_scalar_cache = nullptr;
 
     if (unlikely (tuple_index & TupleIndex::EmbeddedPeakTuple)) // Inlined for performance
     {
@@ -134,7 +132,12 @@ struct TupleVariationHeader
       float scalar;
       if (shared_tuple_scalar_cache &&
 	  shared_tuple_scalar_cache->get (index, &scalar))
-	return (double) scalar;
+      {
+        if (has_interm && scalar)
+	  shared_tuple_scalar_cache = nullptr;
+	else
+	  return (double) scalar;
+      }
 
       if (unlikely ((index + 1) * coord_count > shared_tuples.length))
         return 0.0;
@@ -176,6 +179,7 @@ struct TupleVariationHeader
 
       if (has_interm)
       {
+	shared_tuple_scalar_cache = nullptr;
         int start = start_tuple[i].to_int ();
         int end = end_tuple[i].to_int ();
         if (unlikely (start > peak || peak > end ||
