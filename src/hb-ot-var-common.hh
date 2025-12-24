@@ -165,8 +165,12 @@ struct TupleVariationHeader
 #ifndef HB_OPTIMIZE_SIZE
 #if HB_FAST_NUM_ACCESS
       if (skip)
+      {
 	while (i + 4 < coord_count && * (HBUINT64LE *) &peak_tuple[i] == 0)
 	  i += 4;
+	while (i + 1 < coord_count && peak_tuple[i].to_int () == 0)
+	  i += 1;
+      }
 #endif
 #endif
 
