@@ -133,7 +133,7 @@ struct TupleVariationHeader
       if (shared_tuple_scalar_cache &&
 	  shared_tuple_scalar_cache->get (index, &scalar))
       {
-        if (has_interm && scalar)
+        if (has_interm && (scalar != 0 && scalar != 1.f))
 	  shared_tuple_scalar_cache = nullptr;
 	else
 	  return (double) scalar;
