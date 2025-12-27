@@ -8,7 +8,7 @@ on:
     branches: [ main ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -56,8 +56,6 @@ jobs:
 
   release:
     name: Create and populate release
-    permissions:
-      contents: write
     needs: build
     runs-on: ubuntu-24.04
     if: contains(github.ref, 'refs/tags/')
