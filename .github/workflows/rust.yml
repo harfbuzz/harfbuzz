@@ -20,7 +20,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
       with:
         key: ${{ github.job }}-${{ runner.os }}-${{ runner.arch }}
-    - uses: dtolnay/rust-toolchain@nightly
+    - uses: dtolnay/rust-toolchain@881ba7bf39a41cda34ac9e123fb41b44ed08232f # nightly
     - name: Install Dependencies
       run: |
         rustup component add \
