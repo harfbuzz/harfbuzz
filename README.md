@@ -16,6 +16,8 @@
 
 HarfBuzz is a text shaping engine. It primarily supports [OpenType][1], but also
 [Apple Advanced Typography][2].
+Check “[What is HarfBuzz?](https://harfbuzz.github.io/what-is-harfbuzz.html)” chapter
+in the user manual for more inforamation on what HarfBuzz do and what it doesn’t do.
 
 The canonical source tree and bug trackers are available on [github][4].
 Both development and user support discussion around HarfBuzz happen on
