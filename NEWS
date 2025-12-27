@@ -13,7 +13,7 @@ Saturday, December 27, 2025
   * Drawing mega variable-fonts: 30% speedup on GoogleSansFlex benchmark.
   * Drawing `VARC` fonts: 5% speedup on varc-hanzi benchmark.
 - Always apply synthetic slant around horizontal glyph origin in hb-draw API.
-- Fix undefined C++ behavior in some uses union.
+- Fix undefined C++ behavior in some uses of union.
 - Remove the disabled by default uniscribe-bug-compatible mode from Indic and
   Khmer shapers, that used to be used when testing against Uniscribe shaping
   behaviour.
