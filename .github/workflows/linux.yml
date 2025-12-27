@@ -70,7 +70,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         REVISION: ${{ github.sha }}
     - name: Archive artifacts
-      uses: actions/upload-artifact@v6.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         name: harfbuzz
         path: build/meson-dist/harfbuzz-*.tar.xz
@@ -84,9 +84,9 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: harfbuzz
       - name: Check for release

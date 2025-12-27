@@ -10,12 +10,12 @@ jobs:
     steps:
     - name: Build Fuzzers
       id: build
-      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
+      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@a09cb739e2aa7722ecbc681411975d76d270be44 # master
       with:
         oss-fuzz-project-name: 'harfbuzz'
         dry-run: false
     - name: Run Fuzzers
-      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
+      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@a09cb739e2aa7722ecbc681411975d76d270be44 # master
       with:
         oss-fuzz-project-name: 'harfbuzz'
         fuzz-seconds: 600
