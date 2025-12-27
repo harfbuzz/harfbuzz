@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<p><img src="HarfBuzz.png" alt="HarfBuzz Logo" width="256" align="center"/></p>
+<p><img src="HarfBuzz.png" alt="HarfBuzz Logo" width="256"/></p>
 
 [![Linux CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/linux.yml)
 [![macoOS CI Status](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos.yml/badge.svg)](https://github.com/harfbuzz/harfbuzz/actions/workflows/macos.yml)
@@ -15,32 +15,15 @@
 </div>
 
 HarfBuzz is a text shaping engine. It primarily supports [OpenType][1], but also
-[Apple Advanced Typography][2]. HarfBuzz is used in Android, Chrome,
-ChromeOS, Firefox, GNOME, GTK+, KDE, Qt, LibreOffice, OpenJDK, XeTeX,
-PlayStation, Microsoft Edge, Amazon Kindle, Adobe Photoshop, Illustrator,
-InDesign, Godot Engine, Unreal Engine, QuarkXPress, Figma, and other places.
+[Apple Advanced Typography][2].
 
-[![xkcd-derived image](xkcd.png)](https://xkcd.com/2347/)
-
-For bug reports, mailing list, and other information please visit:
-
-  http://harfbuzz.org/
+The canonical source tree and bug trackers are available on [github][4].
+Both development and user support discussion around HarfBuzz happens on
+[github][4] as well.
 
 For license information, see [COPYING](COPYING).
 
-## Documentation
-
-For user manual as well as API documentation, check: https://harfbuzz.github.io
-
-## Download
-
-For tarball releases of HarfBuzz, look [here][3]. At the same place you
-will also find Win32/Win64 binary bundles that include `libharfbuzz` DLL,
-`hb-view.exe`, `hb-shape.exe`, and all dependencies.
-
-The canonical source tree is available on [github][4].
-Both development and user support discussion around HarfBuzz happens on
-[github][4] as well.
+## API stability
 
 The API that comes with `hb.h` will not change incompatibly. Other, peripheral,
 headers are more likely to go through minor modifications, but again, we do our
@@ -53,6 +36,16 @@ If one day we need to break the API/ABI, that would be called a new a library.
 As such, we bump the major version number only when we add major new features,
 the minor version when there is new API, and the micro version when there
 are bug fixes.
+
+## Documentation
+
+For user manual as well as API documentation, check: https://harfbuzz.github.io
+
+## Download
+
+Tarball releases of HarfBuzz are available on [github releases][3] page. At the same place you
+will also find Win32/Win64 binary bundles that include `libharfbuzz` DLL,
+`hb-view.exe`, `hb-shape.exe`, and all dependencies.
 
 ## Development
 
@@ -112,6 +105,19 @@ transliterated using the Latin script. It also means "talkative" or
 > Persian is written in the Arabic script, and OpenType is an extension of
 > TrueType that adds support for complex script rendering, and HarfBuzz is an
 > implementation of OpenType complex text shaping.
+
+## Users
+
+HarfBuzz is used in Android, Chrome,
+ChromeOS, Firefox, GNOME, GTK+, KDE, Qt, LibreOffice, OpenJDK, XeTeX, Scribus,
+PlayStation, Microsoft Edge, Amazon Kindle, Adobe Photoshop, Illustrator,
+InDesign, Godot Engine, Unreal Engine, QuarkXPress, Figma, and other places.
+
+<p align="center">
+  <a href="https://xkcd.com/2347/" rel="nofollow">
+    <img src="xkcd.png" width="256" alt="xkcd-derived image">
+  </a>
+</p>
 
 ## Distribution
 
