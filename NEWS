@@ -1,3 +1,26 @@
+Overview of changes leading to 12.3.0
+Saturday, December 27, 2025
+=====================================
+- Invalid font tables (eg. GSUB/GPOS) are outright rejected, instead of
+  partially validated and used. This behavior is different from DirectWrite
+  and HarfRust, and is in line with CoreText. For context and reasoning see:
+  https://github.com/harfbuzz/harfbuzz/issues/5535#issuecomment-3573738217
+- Various speed optimizations:
+  * AAT shaping: speed up state machine on Apple silicon using a fast-path.
+    12% faster in LucidaGrande benchmark.
+  * OpenType shaping: speed up (Chain)Context lookup shaping using a fast-path
+    and Coverage caching. 20% speedup in NotoNastaliqUrdu benchmark.
+  * Drawing mega variable-fonts: 30% speedup on GoogleSansFlex benchmark.
+  * Drawing `VARC` fonts: 5% speedup on varc-hanzi benchmark.
+- Always apply synthetic slant around horizontal glyph origin in hb-draw API.
+- Fix undefined C++ behavior in some uses union.
+- Remove the disabled by default uniscribe-bug-compatible mode from Indic and
+  Khmer shapers, that used to be used when testing against Uniscribe shaping
+  behaviour.
+- Support full instancing fonts with v2 `avar` table.
+- Various subsetting, build, fuzzing, and documentation fixes.
+
+
 Overview of changes leading to 12.2.0
 Wednesday, November 5, 2025
 =====================================
