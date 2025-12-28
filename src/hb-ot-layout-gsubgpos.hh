@@ -2289,7 +2289,7 @@ struct RuleSet
       }
 
       first = &c->buffer->info[skippy_iter.idx];
-      unsafe_to = skippy_iter.idx + 1;
+      unsafe_to1 = skippy_iter.idx + 1;
     }
     else
     {
