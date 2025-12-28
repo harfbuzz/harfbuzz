@@ -33,7 +33,7 @@ best to never change API in an incompatible way. We will never break the ABI.
 
 The API and ABI are stable even across major version number jumps. In fact,
 current HarfBuzz is API/ABI compatible all the way back to the 0.9.x series.
-If one day we need to break the API/ABI, that would be called a new a library.
+If one day we need to break the API/ABI, that would be called a new library.
 
 As such, we bump the major version number only when we add major new features,
 the minor version when there is new API, and the micro version when there
