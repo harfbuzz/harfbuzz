@@ -1994,7 +1994,6 @@ static inline bool context_would_apply_lookup (hb_would_apply_context_t *c,
 }
 
 template <typename HBUINT>
-HB_ALWAYS_INLINE
 static bool context_apply_lookup (hb_ot_apply_context_t *c,
 				  unsigned int inputCount, /* Including the first glyph (not matched) */
 				  const HBUINT input[], /* Array of input values--start with second glyph */
@@ -3136,7 +3135,6 @@ static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c
 }
 
 template <typename HBUINT>
-HB_ALWAYS_INLINE
 static bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 					unsigned int backtrackCount,
 					const HBUINT backtrack[],
