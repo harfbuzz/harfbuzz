@@ -831,7 +831,7 @@ struct hb_ot_apply_context_t :
     if (glyph_props & match_props & LookupFlag::IgnoreFlags)
       return false;
 
-    if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
+    if (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK)
       return match_properties_mark (info, glyph_props, match_props);
 
     return true;
