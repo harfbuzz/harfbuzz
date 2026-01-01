@@ -21,7 +21,7 @@ if not get_option('docs').disabled()
 else
   help2man = disabler()
 endif
-help2man_command = [help2man, '--help-option=--help-all', '--no-info', '--output=' + '@OUTPUT@', '@INPUT@']
+help2man_command = [help2man, '--help-option=--help-all', '--no-info', '-n "$(' + '@OUTPUT@' + ' --help | head -n 3 | tail -n 1)"', '--output=' + '@OUTPUT@', '@INPUT@']
 help2man_env = environment()
 help2man_env.set('HB_UTIL_HELP_VERBOSE', '1')
 
