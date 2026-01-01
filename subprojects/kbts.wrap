@@ -1,5 +1,5 @@
 [wrap-git]
 url = https://github.com/JimmyLefevre/kb.git
-revision = dcd99275eb41d9cc24d86bd6b2aecd98f6bba38e
+revision = ca6c9624dd7c6b774e6cec9901f3d8d998d6f62a
 depth = 1
 patch_directory = kbts
