@@ -154,8 +154,22 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
       kb_language = (kbts_language) hb_uint32_swap (language);
   }
 
-  kbts_shape_config *kb_shape_config = kbts_CreateShapeConfig (kb_font, kb_script, kb_language, nullptr, nullptr);
-  kbts_shape_scratchpad *kb_shape_scratchpad = kbts_CreateShapeScratchpad (kb_shape_config, nullptr, nullptr);
+  kbts_shape_config *kb_shape_config = nullptr;
+  kbts_shape_scratchpad *kb_shape_scratchpad = nullptr;
+  uint32_t glyph_count = 0;
+  kbts_glyph *kb_glyph = nullptr;
+  kbts_glyph_iterator kb_output;
+  hb_glyph_info_t *info;
+  hb_glyph_position_t *pos;
+  hb_bool_t res = false;
+
+  kb_shape_config = kbts_CreateShapeConfig (kb_font, kb_script, kb_language, nullptr, nullptr);
+  if (unlikely (!kb_shape_config))
+    goto done;
+
+  kb_shape_scratchpad = kbts_CreateShapeScratchpad (kb_shape_config, nullptr, nullptr);
+  if (unlikely (!kb_shape_scratchpad))
+    goto done;
 
   for (size_t i = 0; i < buffer->len; ++i)
   {
@@ -174,19 +188,12 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
     kbts_PushGlyph (&kb_glyph_storage, kb_font, buffer->info[i].codepoint, kb_config, buffer->info[i].cluster);
   }
 
-  uint32_t glyph_count = 0;
-  kbts_glyph *kb_glyph = nullptr;
-  kbts_glyph_iterator kb_output;
-  hb_glyph_info_t *info;
-  hb_glyph_position_t *pos;
-
-  hb_bool_t res = kbts_ShapeDirect (kb_shape_scratchpad, &kb_glyph_storage, kb_direction,
-		                    &kb_output) == KBTS_SHAPE_ERROR_NONE;
+  res = kbts_ShapeDirect (kb_shape_scratchpad, &kb_glyph_storage, kb_direction, &kb_output) == KBTS_SHAPE_ERROR_NONE;
   if (unlikely (!res))
-      goto done;
+    goto done;
 
   for (auto it = kb_output; kbts_GlyphIteratorNext (&it, &kb_glyph); )
-   glyph_count += 1;
+    glyph_count += 1;
 
   hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
   hb_buffer_set_length (buffer, glyph_count);
@@ -207,8 +214,10 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   }
 
 done:
-  kbts_DestroyShapeConfig (kb_shape_config);
-  kbts_DestroyShapeScratchpad (kb_shape_scratchpad);
+  if (likely (kb_shape_config))
+    kbts_DestroyShapeConfig (kb_shape_config);
+  if (likely (kb_shape_scratchpad))
+    kbts_DestroyShapeScratchpad (kb_shape_scratchpad);
   while (kbts_GlyphIteratorNext (&kb_output, &kb_glyph))
     kbts_DestroyGlyphConfig (kb_glyph->Config);
   kbts_FreeAllGlyphs (&kb_glyph_storage);
