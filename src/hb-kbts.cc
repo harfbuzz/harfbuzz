@@ -214,10 +214,10 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   }
 
 done:
-  if (likely (kb_shape_config))
-    kbts_DestroyShapeConfig (kb_shape_config);
   if (likely (kb_shape_scratchpad))
     kbts_DestroyShapeScratchpad (kb_shape_scratchpad);
+  if (likely (kb_shape_config))
+    kbts_DestroyShapeConfig (kb_shape_config);
   while (kbts_GlyphIteratorNext (&kb_output, &kb_glyph))
     kbts_DestroyGlyphConfig (kb_glyph->Config);
   kbts_FreeAllGlyphs (&kb_glyph_storage);
