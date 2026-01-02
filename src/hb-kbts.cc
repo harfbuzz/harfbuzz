@@ -39,9 +39,124 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
 #pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wextra-semi-stmt"
 #include "kb_text_shape.h"
 #pragma GCC diagnostic pop
+
+static hb_user_data_key_t hb_kbts_shape_plan_data_key = {0};
+
+struct hb_kbts_shape_plan_data_t
+{
+  kbts_shape_config *config = nullptr;
+  mutable hb_atomic_t<kbts_shape_scratchpad *> scratchpad;
+};
+
+static void
+hb_kbts_shape_plan_data_destroy (void *data)
+{
+  auto *plan_data = (hb_kbts_shape_plan_data_t *) data;
+  if (!plan_data)
+    return;
+
+  auto *scratchpad = plan_data->scratchpad.get_acquire ();
+  if (scratchpad && plan_data->scratchpad.cmpexch (scratchpad, nullptr))
+    kbts_DestroyShapeScratchpad (scratchpad);
+
+  if (plan_data->config)
+    kbts_DestroyShapeConfig (plan_data->config);
+
+  hb_free (plan_data);
+}
+
+static void
+hb_kbts_plan_props_to_script_language (const hb_segment_properties_t &props,
+				       kbts_script *kb_script,
+				       kbts_language *kb_language)
+{
+  hb_tag_t scripts[HB_OT_MAX_TAGS_PER_SCRIPT];
+  hb_tag_t language;
+  unsigned int script_count = ARRAY_LENGTH (scripts);
+  unsigned int language_count = 1;
+
+  *kb_script = KBTS_SCRIPT_DONT_KNOW;
+  *kb_language = KBTS_LANGUAGE_DEFAULT;
+
+  hb_ot_tags_from_script_and_language (props.script, props.language,
+				       &script_count, scripts,
+				       &language_count, &language);
+
+  for (unsigned int i = 0; i < script_count && scripts[i] != HB_TAG_NONE; ++i)
+  {
+    *kb_script = kbts_ScriptTagToScript (hb_uint32_swap (scripts[i]));
+    if (*kb_script != KBTS_SCRIPT_DONT_KNOW)
+      break;
+  }
+
+  if (language_count)
+    *kb_language = (kbts_language) hb_uint32_swap (language);
+}
+
+static hb_kbts_shape_plan_data_t *
+hb_kbts_get_shape_plan_data (hb_shape_plan_t *shape_plan,
+			     kbts_font *kb_font)
+{
+retry:
+  auto *plan_data = (hb_kbts_shape_plan_data_t *)
+    hb_shape_plan_get_user_data (shape_plan, &hb_kbts_shape_plan_data_key);
+  if (plan_data)
+    return plan_data;
+
+  kbts_script kb_script;
+  kbts_language kb_language;
+  hb_kbts_plan_props_to_script_language (shape_plan->key.props, &kb_script, &kb_language);
+
+  kbts_shape_config *config = kbts_CreateShapeConfig (kb_font, kb_script, kb_language, nullptr, nullptr);
+  if (unlikely (!config))
+    return nullptr;
+
+  plan_data = (hb_kbts_shape_plan_data_t *) hb_calloc (1, sizeof (*plan_data));
+  if (unlikely (!plan_data))
+  {
+    kbts_DestroyShapeConfig (config);
+    return nullptr;
+  }
+
+  plan_data->config = config;
+  plan_data->scratchpad.init (nullptr);
+
+  if (!hb_shape_plan_set_user_data (shape_plan,
+				    &hb_kbts_shape_plan_data_key,
+				    plan_data,
+				    hb_kbts_shape_plan_data_destroy,
+				    false))
+  {
+    hb_kbts_shape_plan_data_destroy (plan_data);
+    goto retry;
+  }
+
+  return plan_data;
+}
+
+static kbts_shape_scratchpad *
+hb_kbts_acquire_shape_scratchpad (hb_kbts_shape_plan_data_t *plan_data)
+{
+  auto *scratchpad = plan_data->scratchpad.get_acquire ();
+  if (!scratchpad || unlikely (!plan_data->scratchpad.cmpexch (scratchpad, nullptr)))
+    scratchpad = kbts_CreateShapeScratchpad (plan_data->config, nullptr, nullptr);
+
+  return scratchpad;
+}
+
+static void
+hb_kbts_release_shape_scratchpad (hb_kbts_shape_plan_data_t *plan_data,
+				  kbts_shape_scratchpad *scratchpad)
+{
+  if (!scratchpad)
+    return;
+
+  if (!plan_data->scratchpad.cmpexch (nullptr, scratchpad))
+    kbts_DestroyShapeScratchpad (scratchpad);
+}
 
 
 hb_kbts_face_data_t *
@@ -131,28 +246,26 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   if (unlikely (!kbts_InitializeGlyphStorage (&kb_glyph_storage, nullptr, nullptr)))
     return false;
 
-  kbts_script kb_script = KBTS_SCRIPT_DONT_KNOW;
-  kbts_language kb_language = KBTS_LANGUAGE_DEFAULT;
+  hb_kbts_shape_plan_data_t *plan_data = hb_kbts_get_shape_plan_data (shape_plan, kb_font);
+  if (unlikely (!plan_data))
   {
-    hb_tag_t scripts[HB_OT_MAX_TAGS_PER_SCRIPT];
-    hb_tag_t language;
-    unsigned int script_count = ARRAY_LENGTH (scripts);
-    unsigned int language_count = 1;
-
-    hb_ot_tags_from_script_and_language (buffer->props.script, buffer->props.language,
-					 &script_count, scripts,
-					 &language_count, &language);
-
-    for (unsigned int i = 0; i < script_count && scripts[i] != HB_TAG_NONE; ++i)
-    {
-      kb_script = kbts_ScriptTagToScript (hb_uint32_swap (scripts[i]));
-      if (kb_script != KBTS_SCRIPT_DONT_KNOW)
-        break;
-    }
-
-    if (language_count)
-      kb_language = (kbts_language) hb_uint32_swap (language);
+    kbts_FreeAllGlyphs (&kb_glyph_storage);
+    return false;
   }
+
+  kbts_shape_config *kb_shape_config = nullptr;
+  kbts_shape_scratchpad *kb_shape_scratchpad = nullptr;
+  uint32_t glyph_count = 0;
+  kbts_glyph *kb_glyph = nullptr;
+  kbts_glyph_iterator kb_output;
+  hb_glyph_info_t *info;
+  hb_glyph_position_t *pos;
+  hb_bool_t res = false;
+
+  kb_shape_config = plan_data->config;
+  kb_shape_scratchpad = hb_kbts_acquire_shape_scratchpad (plan_data);
+  if (unlikely (!kb_shape_scratchpad))
+    goto done;
 
   for (size_t i = 0; i < buffer->len; ++i)
   {
@@ -166,25 +279,17 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
 	  kb_features.push<kbts_feature_override>({ hb_uint32_swap (features[j].tag), (int)features[j].value });
       }
       if (kb_features)
-        kb_config = kbts_CreateGlyphConfig (kb_features.arrayZ, kb_features.length, nullptr, nullptr);
+        kb_config = kbts_CreateGlyphConfig (kb_shape_config, kb_features.arrayZ, kb_features.length, nullptr, nullptr);
     }
     kbts_PushGlyph (&kb_glyph_storage, kb_font, buffer->info[i].codepoint, kb_config, buffer->info[i].cluster);
   }
 
-  uint32_t glyph_count = 0;
-  kbts_glyph *kb_glyph = nullptr;
-  kbts_glyph_iterator kb_output;
-  hb_glyph_info_t *info;
-  hb_glyph_position_t *pos;
-
-  kbts_shape_config *kb_shape_config = kbts_CreateShapeConfig (kb_font, kb_script, kb_language, nullptr, nullptr);
-  hb_bool_t res = kbts_ShapeDirect (kb_shape_config, &kb_glyph_storage, kb_direction,
-		                    nullptr, nullptr, &kb_output) == KBTS_SHAPE_ERROR_NONE;
+  res = kbts_ShapeDirect (kb_shape_scratchpad, &kb_glyph_storage, kb_direction, &kb_output) == KBTS_SHAPE_ERROR_NONE;
   if (unlikely (!res))
-      goto done;
+    goto done;
 
   for (auto it = kb_output; kbts_GlyphIteratorNext (&it, &kb_glyph); )
-   glyph_count += 1;
+    glyph_count += 1;
 
   hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
   hb_buffer_set_length (buffer, glyph_count);
@@ -205,7 +310,8 @@ _hb_kbts_shape (hb_shape_plan_t    *shape_plan,
   }
 
 done:
-  kbts_DestroyShapeConfig (kb_shape_config);
+  if (likely (kb_shape_scratchpad))
+    hb_kbts_release_shape_scratchpad (plan_data, kb_shape_scratchpad);
   while (kbts_GlyphIteratorNext (&kb_output, &kb_glyph))
     kbts_DestroyGlyphConfig (kb_glyph->Config);
   kbts_FreeAllGlyphs (&kb_glyph_storage);
