@@ -17,6 +17,12 @@ struct test_input_t
   {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
    "perf/texts/fa-words.txt"},
 
+  {"perf/fonts/Gulzar-Regular.ttf",
+   "perf/texts/fa-thelittleprince.txt"},
+
+  {"perf/fonts/Gulzar-Regular.ttf",
+   "perf/texts/fa-words.txt"},
+
   {"perf/fonts/Amiri-Regular.ttf",
    "perf/texts/fa-thelittleprince.txt"},
 
