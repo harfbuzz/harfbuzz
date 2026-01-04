@@ -7,6 +7,7 @@ project('harfbuzz', ['c', 'cpp'],
     'cpp_std=c++11',
     'wrap_mode=nofallback', # Use --wrap-mode=default to revert, https://github.com/harfbuzz/harfbuzz/pull/2548
     'buildtype=debugoptimized',
+    'b_ndebug=if-release',  # Disable asserts in release builds
   ],
 )
 
@@ -29,7 +30,6 @@ hb_libtool_version_info = '@0@:0:@0@'.format(hb_version_int)
 pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
 null_dep = dependency('', required: false)
-
 
 # Includes Microsoft Clang compiler with GNU arguments, see
 # https://github.com/harfbuzz/harfbuzz/pull/4394
