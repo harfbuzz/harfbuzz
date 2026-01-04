@@ -1006,10 +1006,24 @@ struct GDEF
     {
       return
 #ifndef HB_NO_GDEF_CACHE
-	     mark_glyph_sets[set_index].may_have (glyph_id) &&
+	     // We can access arrayZ directly because of sanitize_lookup_props() guarantee.
+	     mark_glyph_sets.arrayZ[set_index].may_have (glyph_id) &&
 #endif
 	     table->mark_set_covers (set_index, glyph_id)
       ;
+    }
+
+    unsigned sanitize_lookup_props (unsigned lookup_props) const
+    {
+#ifndef HB_NO_GDEF_CACHE
+      if (lookup_props & LookupFlag::UseMarkFilteringSet &&
+	  (lookup_props >> 16) >= mark_glyph_sets.length)
+      {
+        // Invalid mark filtering set index; unset the flag.
+	lookup_props &= ~LookupFlag::UseMarkFilteringSet;
+      }
+#endif
+      return lookup_props;
     }
 
     hb_blob_ptr_t<GDEF> table;

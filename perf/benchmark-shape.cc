@@ -10,25 +10,6 @@ struct test_input_t
   const char *text_path;
 } default_tests[] =
 {
-
-  {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
-   "perf/texts/fa-thelittleprince.txt"},
-
-  {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
-   "perf/texts/fa-words.txt"},
-
-  {"perf/fonts/Gulzar-Regular.ttf",
-   "perf/texts/fa-thelittleprince.txt"},
-
-  {"perf/fonts/Gulzar-Regular.ttf",
-   "perf/texts/fa-words.txt"},
-
-  {"perf/fonts/Amiri-Regular.ttf",
-   "perf/texts/fa-thelittleprince.txt"},
-
-  {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf",
-   "perf/texts/hi-words.txt"},
-
   {"perf/fonts/Roboto-Regular.ttf",
    "perf/texts/en-thelittleprince.txt"},
 
@@ -37,6 +18,27 @@ struct test_input_t
 
   {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
    "perf/texts/react-dom.txt"},
+
+  {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf",
+   "perf/texts/hi-words.txt"},
+
+  {"perf/fonts/Amiri-Regular.ttf",
+   "perf/texts/fa-thelittleprince.txt"},
+
+  {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+   "perf/texts/fa-thelittleprince.txt"},
+
+  {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+   "perf/texts/fa-words.txt"},
+
+  {"perf/fonts/Gulzar-Regular.ttf",
+   "perf/texts/fa-thelittleprince.txt"},
+
+  {"perf/fonts/Gulzar-Regular.ttf",
+   "perf/texts/fa-words.txt"},
+
+  {"perf/fonts/NotoSansDuployan-Regular.otf",
+   "perf/texts/duployan.txt"},
 };
 
 static test_input_t *tests = default_tests;
