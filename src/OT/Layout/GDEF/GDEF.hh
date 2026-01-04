@@ -967,6 +967,12 @@ struct GDEF
 
   struct accelerator_t
   {
+    struct mark_glyph_set_cache_t : hb_set_digest_t
+    {
+      mark_glyph_set_cache_t () { binary_cache.clear (); }
+      mutable hb_ot_layout_binary_cache_t binary_cache;
+    };
+
     accelerator_t (hb_face_t *face)
     {
       table = hb_sanitize_context_t ().reference_table<GDEF> (face);
@@ -1004,13 +1010,24 @@ struct GDEF
 
     bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
     {
-      return
 #ifndef HB_NO_GDEF_CACHE
-	     // We can access arrayZ directly because of sanitize_lookup_props() guarantee.
-	     mark_glyph_sets.arrayZ[set_index].may_have (glyph_id) &&
+      // We can access arrayZ directly because of sanitize_lookup_props() guarantee.
+      const auto &cache = mark_glyph_sets.arrayZ[set_index];
+
+      if (!cache.may_have (glyph_id)) return false;
+
+      unsigned cached_value;
+      if (cache.binary_cache.get (glyph_id, &cached_value))
+	return cached_value;
 #endif
-	     table->mark_set_covers (set_index, glyph_id)
-      ;
+
+      bool ret = table->mark_set_covers (set_index, glyph_id);
+
+#ifndef HB_NO_GDEF_CACHE
+	cache.binary_cache.set (glyph_id, ret);
+#endif
+
+      return ret;
     }
 
     unsigned sanitize_lookup_props (unsigned lookup_props) const
@@ -1028,7 +1045,7 @@ struct GDEF
 
     hb_blob_ptr_t<GDEF> table;
 #ifndef HB_NO_GDEF_CACHE
-    hb_vector_t<hb_set_digest_t> mark_glyph_sets;
+    hb_vector_t<mark_glyph_set_cache_t> mark_glyph_sets;
     mutable hb_cache_t<21, 3> glyph_props_cache;
     static_assert (sizeof (glyph_props_cache) == 512, "");
 #endif
