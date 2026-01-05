@@ -1002,6 +1002,7 @@ struct GDEF
 
     }
 
+    HB_ALWAYS_INLINE
     bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
     {
       return
