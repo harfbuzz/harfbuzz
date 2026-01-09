@@ -1670,6 +1670,10 @@ struct SubtableUnicodesCache {
   {
     SubtableUnicodesCache* cache =
         (SubtableUnicodesCache*) hb_malloc (sizeof(SubtableUnicodesCache));
+
+    if (unlikely (!cache))
+      return nullptr;
+
     new (cache) SubtableUnicodesCache (source_table);
     return cache;
   }
