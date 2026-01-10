@@ -320,13 +320,13 @@ struct tuple_delta_t
   void copy_from (const tuple_delta_t& o, hb_alloc_pool_t *pool = nullptr)
   {
     axis_tuples = o.axis_tuples;
-    indices.allocate_from_pool (pool, o.indices);
-    deltas_x.allocate_from_pool (pool, o.deltas_x);
-    deltas_y.allocate_from_pool (pool, o.deltas_y);
-    compiled_tuple_header.allocate_from_pool (pool, o.compiled_tuple_header);
-    compiled_deltas.allocate_from_pool (pool, o.compiled_deltas);
-    compiled_peak_coords.allocate_from_pool (pool, o.compiled_peak_coords);
-    compiled_interm_coords.allocate_from_pool (pool, o.compiled_interm_coords);
+    indices.duplicate_vector_from_pool (pool, o.indices);
+    deltas_x.duplicate_vector_from_pool (pool, o.deltas_x);
+    deltas_y.duplicate_vector_from_pool (pool, o.deltas_y);
+    compiled_tuple_header.duplicate_vector_from_pool (pool, o.compiled_tuple_header);
+    compiled_deltas.duplicate_vector_from_pool (pool, o.compiled_deltas);
+    compiled_peak_coords.duplicate_vector_from_pool (pool, o.compiled_peak_coords);
+    compiled_interm_coords.duplicate_vector_from_pool (pool, o.compiled_interm_coords);
   }
 
   void remove_axis (hb_tag_t axis_tag)
