@@ -570,7 +570,7 @@ struct hb_vector_t
 
   template <typename allocator_t>
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
-  bool allocate_from_pool (allocator_t *allocator, const hb_vector_t &other)
+  bool duplicate_vector_from_pool (allocator_t *allocator, const hb_vector_t &other)
   {
     if (unlikely (!allocate_from_pool (allocator, other.length, false)))
       return false;
