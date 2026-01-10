@@ -41,7 +41,6 @@
 
 #include "hb-cplusplus.hh"
 
-#include <cassert>
 #include <functional>
 #include <utility>
 
@@ -52,28 +51,28 @@ test_smart_ptrs (void)
   hb::shared_ptr<hb_buffer_t> pb {b};
 
   /* Test copy-construction. */
-  assert (bool (pb));
+  g_assert_true (bool (pb));
   hb::shared_ptr<hb_buffer_t> pb2 {pb};
-  assert (bool (pb2));
-  assert (bool (pb));
+  g_assert_true (bool (pb2));
+  g_assert_true (bool (pb));
 
   /* Test move-construction. */
-  assert (bool (pb2));
+  g_assert_true (bool (pb2));
   hb::shared_ptr<hb_buffer_t> pb4 {std::move (pb2)};
-  assert (!bool (pb2));
-  assert (bool (pb4));
+  g_assert_true (!bool (pb2));
+  g_assert_true (bool (pb4));
 
   /* Test copy-assignment. */
   hb::shared_ptr<hb_buffer_t> pb3;
-  assert (!bool (pb3));
+  g_assert_true (!bool (pb3));
   pb3 = pb;
-  assert (bool (pb3));
-  assert (bool (pb));
+  g_assert_true (bool (pb3));
+  g_assert_true (bool (pb));
 
   /* Test move-assignment. */
-  assert (bool (pb));
+  g_assert_true (bool (pb));
   pb2 = std::move (pb);
-  assert (!bool (pb));
+  g_assert_true (!bool (pb));
 
   pb.reference ();
   pb.destroy ();
@@ -96,9 +95,9 @@ test_smart_ptrs (void)
   std::hash<hb::shared_ptr<hb_buffer_t>> hash2 {};
   std::hash<hb::unique_ptr<hb_buffer_t>> hash3 {};
 
-  assert (hash (b) == hash2 (pb4));
-  assert (hash2 (pb4) == hash2 (pb2));
-  assert (hash (b) == hash3 (pb5));
+  g_assert_true (hash (b) == hash2 (pb4));
+  g_assert_true (hash2 (pb4) == hash2 (pb2));
+  g_assert_true (hash (b) == hash3 (pb5));
 
   g_assert_true (pb != pb.get_empty ());
   g_assert_true (pb != pb2);

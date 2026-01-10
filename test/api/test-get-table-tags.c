@@ -142,10 +142,10 @@ test_get_table_tags_ct (void)
 							     hb_blob_get_data (blob, NULL),
 							     hb_blob_get_length (blob),
 							     NULL);
-  assert (provider);
+  g_assert_true (provider);
 
   CGFontRef cg_font = CGFontCreateWithDataProvider (provider);
-  assert (cg_font);
+  g_assert_true (cg_font);
   CGDataProviderRelease (provider);
 
   hb_face_t *face = hb_coretext_face_create (cg_font);

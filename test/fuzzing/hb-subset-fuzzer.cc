@@ -34,7 +34,8 @@ trySubset (hb_face_t *face,
     unsigned int bytes_count = 0;
     for (unsigned int i = 0; i < length; ++i)
       if (data[i]) ++bytes_count;
-    assert (bytes_count || !length);
+    if (!(bytes_count || !length))
+      abort ();
 
     hb_blob_destroy (blob);
   }
