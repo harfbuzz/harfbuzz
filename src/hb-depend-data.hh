@@ -33,6 +33,14 @@
 
 #ifdef HB_DEPEND_API
 
+/**
+ * hb_depend_data_record_t:
+ *
+ * Internal structure representing a single dependency relationship.
+ * Records that glyph A depends on glyph B through a specific OpenType
+ * mechanism (table_tag), optionally with additional context (layout_tag,
+ * ligature_set).
+ */
 struct hb_depend_data_record_t {
   hb_depend_data_record_t() = delete;
   hb_depend_data_record_t(hb_tag_t table_tag,
@@ -56,10 +64,24 @@ struct hb_depend_data_record_t {
   // bool fv_only {false};
 };
 
+/**
+ * hb_glyph_depend_record_t:
+ *
+ * Internal structure holding all dependency records for a single glyph.
+ * Contains a vector of hb_depend_data_record_t entries, indexed sequentially
+ * starting from 0.
+ */
 struct hb_glyph_depend_record_t {
   hb_vector_t<hb_depend_data_record_t> dependencies;
 };
 
+/**
+ * hb_lookup_feature_record_t:
+ *
+ * Internal structure tracking which features are associated with a lookup.
+ * Used during GSUB dependency analysis to record the feature tags that
+ * activate each lookup.
+ */
 struct hb_lookup_feature_record_t {
   hb_lookup_feature_record_t () = default;
   explicit hb_lookup_feature_record_t (bool full) : full (full) {}
@@ -78,6 +100,19 @@ struct hb_lookup_feature_record_t {
   hb_set_t fv_indexes;
 };
 
+/**
+ * hb_depend_data_t:
+ *
+ * Internal container for all dependency graph data. Stores:
+ * - Per-glyph dependency records (glyph_dependencies)
+ * - Ligature sets indexed by set ID (sets)
+ * - Nominal glyph mapping from Unicode codepoints (nominal_glyphs)
+ * - Set of all Unicode codepoints in the font (unicodes)
+ * - Lookup to feature mapping (lookup_features)
+ *
+ * This structure is owned by hb_depend_t and freed when the depend
+ * object is destroyed.
+ */
 struct hb_depend_data_t
 {
   hb_depend_data_t () {}
