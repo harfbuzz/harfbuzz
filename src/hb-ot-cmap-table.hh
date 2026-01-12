@@ -1950,7 +1950,7 @@ struct cmap
     + hb_iter (encodingRecord)
     | hb_map (&EncodingRecord::subtable)
     | hb_map (hb_add (this))
-    | hb_filter ([&] (const CmapSubtable& _) { return _.u.format == 14; })
+    | hb_filter ([&] (const CmapSubtable& _) { return _.u.format.v == 14; })
     | hb_apply ([=] (const CmapSubtable& _) { _.u.format14.depend (depend_data); })
     ;
   }

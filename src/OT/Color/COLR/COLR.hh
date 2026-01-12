@@ -1757,7 +1757,7 @@ struct ClipBox
 #ifdef HB_DEPEND_API
   void dependv1 (hb_colrv1_depend_context_t* c) const
   {
-    switch (u.format) {
+    switch (u.format.v) {
     case 2: u.format2.dependv1 (c);
     default:return;
     }
