@@ -39,8 +39,11 @@ HB_BEGIN_DECLS
 /**
  * hb_depend_t:
  *
- * Contains information about dependencies between UVS codepoints
- * and glyphs.
+ * Data type for holding glyph dependency graphs.
+ *
+ * <warning>Highly experimental API. Subject to change.</warning>
+ *
+ * Since: REPLACEME
  */
 
 typedef struct hb_depend_t hb_depend_t;
