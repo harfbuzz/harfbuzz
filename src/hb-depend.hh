@@ -34,6 +34,16 @@
 
 #ifdef HB_DEPEND_API
 
+/**
+ * hb_depend_t:
+ *
+ * Internal structure implementing the dependency graph API.
+ * Contains the dependency data (data), the source font face (face),
+ * and the set of features referenced by dependencies (features).
+ *
+ * Initialized via hb_depend_from_face() which computes the dependency
+ * graph once. The graph remains immutable for the lifetime of the object.
+ */
 struct hb_depend_t
 {
   HB_INTERNAL hb_depend_t (hb_face_t *face);

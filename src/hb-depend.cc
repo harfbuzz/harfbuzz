@@ -41,10 +41,24 @@
 /**
  * SECTION:hb-depend
  * @title: hb-depend
- * @short_description: Represents dependencies between glyphs in an OpenType font
+ * @short_description: Glyph dependency graph for font optimization
  * @include: hb-depend.h
  *
- * XXX Todo.
+ * <warning>This API is highly experimental and subject to change. It is not
+ * enabled by default and should not be used in production code without
+ * understanding the stability implications.</warning>
+ *
+ * Functions for extracting a glyph dependency graph.
+ *
+ * A dependency graph represents the relationships between glyphs in a font,
+ * tracking which glyphs reference or produce other glyphs through OpenType
+ * mechanisms such as character mapping, glyph substitution, composite
+ * construction, color layering, and math variants.
+ *
+ * Dependency graphs enable finding all glyphs reachable from a given input set.
+ * This is useful for font subsetting, analyzing glyph coverage, optimizing
+ * font delivery, and determining which glyphs are needed to render specific
+ * characters.
  */
 
 hb_depend_t::hb_depend_t (hb_face_t *f)
@@ -60,6 +74,7 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
   }
   successful = true;
 
+  /* Extract dependencies from all relevant OpenType tables */
   get_cmap_dependencies();
   get_gsub_dependencies();
   get_math_dependencies();
@@ -67,6 +82,14 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
   get_glyf_dependencies();
 }
 
+/*
+ * Algorithm: Character Map (cmap) Dependencies
+ *
+ * Collects nominal glyph mappings (Unicode codepoint -> glyph ID) and
+ * Unicode Variation Sequence mappings (codepoint + selector -> glyph ID).
+ * These form the base layer of dependencies showing which glyphs are directly
+ * reachable from character input.
+ */
 void hb_depend_t::get_cmap_dependencies() {
   hb_face_collect_nominal_glyph_mapping(face, &data.nominal_glyphs, &data.unicodes);
 
@@ -74,6 +97,21 @@ void hb_depend_t::get_cmap_dependencies() {
   cmap.table->depend(&data);
 }
 
+/*
+ * Algorithm: Glyph Substitution (GSUB) Dependencies
+ *
+ * For each lookup in the GSUB table:
+ * 1. Determine which features reference the lookup
+ * 2. Call the lookup's depend() method which:
+ *    - Iterates through covered glyphs (input glyphs)
+ *    - Records each substitution (input -> output) as a dependency
+ *    - Tags with the feature tag and table tag (GSUB)
+ *    - For ligatures, assigns a ligature_set ID to group alternatives
+ *
+ * The result is a complete graph of all possible glyph substitutions
+ * that could occur through OpenType Layout features, regardless of
+ * script, language, or shaping context.
+ */
 void hb_depend_t::get_gsub_dependencies() {
   hb_blob_t *gsub_blob = hb_sanitize_context_t ().reference_table<OT::Layout::GSUB> (face);
   auto table = gsub_blob->as<OT::Layout::GSUB> ();
@@ -139,6 +177,13 @@ void hb_depend_t::get_gsub_dependencies() {
   }
 }
 
+/*
+ * Algorithm: Math Variants (MATH) Dependencies
+ *
+ * Extracts dependencies from the MATH table for mathematical typesetting.
+ * Records which glyphs are used as size variants or assembly components
+ * for other glyphs, enabling proper rendering of mathematical expressions.
+ */
 void hb_depend_t::get_math_dependencies()
 {
   hb_blob_t *math_blob = hb_sanitize_context_t ().reference_table<OT::MATH> (face);
@@ -146,6 +191,14 @@ void hb_depend_t::get_math_dependencies()
   math->depend (&data);
 }
 
+/*
+ * Algorithm: Color Layers (COLR) Dependencies
+ *
+ * For fonts with color glyph support, records which glyphs are used as
+ * color layers for other glyphs. Both COLRv0 (simple layers) and COLRv1
+ * (gradient/transform-based) are supported. Each base glyph depends on
+ * its layer glyphs.
+ */
 void hb_depend_t::get_colr_dependencies()
 {
   OT::COLR::accelerator_t colr (face);
@@ -153,6 +206,14 @@ void hb_depend_t::get_colr_dependencies()
   colr.depend (&data);
 }
 
+/*
+ * Algorithm: Composite Glyph (glyf) Dependencies
+ *
+ * For TrueType fonts, iterates through all glyphs and records component
+ * dependencies for composite glyphs. A composite glyph depends on each
+ * of its component glyphs. This is essential for subset operations to
+ * preserve glyph integrity.
+ */
 void hb_depend_t::get_glyf_dependencies()
 {
   OT::glyf_accelerator_t glyf (face);
@@ -175,13 +236,22 @@ hb_depend_t::~hb_depend_t ()
  * hb_depend_from_face:
  * @face: font face to collect dependencies from
  *
- * Calculates the dependencies between glyphs in the supplied face
+ * Calculates the dependencies between glyphs in the supplied face.
+ * Extracts dependency information from cmap, GSUB, glyf, COLR, and
+ * MATH tables.
+ *
+ * Example:
+ * ```c
+ * hb_depend_t *depend = hb_depend_from_face (face);
+ * // ... use depend ...
+ * hb_depend_destroy (depend);
+ * ```
  *
  * Return value: (transfer full): New depend object. Destroy with
  * hb_depend_destroy(). If there is a failure creating the depend
- * object * nullptr will be returned.
+ * object nullptr will be returned.
  *
- * Since: ?.0.0
+ * Since: REPLACEME
  **/
 hb_depend_t *
 hb_depend_from_face (hb_face_t *face)
@@ -202,21 +272,37 @@ hb_depend_from_face (hb_face_t *face)
 /**
  * hb_depend_get_glyph_entry:
  * @depend: depend object
- * @gid: GID to retrive dependencies from
+ * @gid: GID to retrieve dependencies from
  * @index: The index of the entry values to retrieve
- * @table_tag: Returns the tag of the table associated with the entry
- * @dependent: Returns the GID of the dependent glyph
- * @layout_tag: Returns the layout tag associated with the dependency
- * (when table_tag is GSUB) or the UVS codepoint (when table_tag is cmap)
+ * @table_tag: (out): Returns the tag of the table associated with the entry
+ * @dependent: (out): Returns the GID of the dependent glyph
+ * @layout_tag: (out): Returns the layout tag associated with the dependency
+ * (when table_tag is GSUB) or the UVS codepoint (when table_tag is cmap).
  * Otherwise is HB_CODEPOINT_INVALID
- * @ligature_set: Returns the index of the ligature set for this entry, or
+ * @ligature_set: (out): Returns the index of the ligature set for this entry, or
  * HB_CODEPOINT_INVALID if there is no such set
  *
- * Get the values associated with a dependency entry for a glyph
+ * Get the values associated with a dependency entry for a glyph.
+ * Dependencies are indexed sequentially starting from 0.
+ *
+ * Example:
+ * ```c
+ * hb_codepoint_t index = 0;
+ * hb_tag_t table_tag;
+ * hb_codepoint_t dependent;
+ * hb_tag_t layout_tag;
+ * hb_codepoint_t ligature_set;
+ *
+ * while (hb_depend_get_glyph_entry (depend, gid, index++,
+ *                                    &table_tag, &dependent,
+ *                                    &layout_tag, &ligature_set)) {
+ *   // Process dependency...
+ * }
+ * ```
  *
  * Return value: true if there is such an entry, false otherwise
  *
- * Since: ?.0.0
+ * Since: REPLACEME
  **/
 hb_bool_t
 hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
@@ -232,11 +318,24 @@ hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
  * hb_depend_get_set_from_index:
  * @depend: depend object
  * @index: the index of the set
- * @out: A pointer to a set to copy into
+ * @out: (out): A pointer to a set to copy into
  *
- * Return value: true if there is such an entry, false otherwise
+ * Get all glyphs in a ligature set identified by @index.
+ * The ligature set index comes from the ligature_set field
+ * returned by hb_depend_get_glyph_entry().
  *
- * Since: ?.0.0
+ * Example:
+ * ```c
+ * hb_set_t *ligature_glyphs = hb_set_create ();
+ * if (hb_depend_get_set_from_index (depend, ligature_set, ligature_glyphs)) {
+ *   // Process glyphs in the set...
+ * }
+ * hb_set_destroy (ligature_glyphs);
+ * ```
+ *
+ * Return value: true if there is such a set, false otherwise
+ *
+ * Since: REPLACEME
  **/
 hb_bool_t
 hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
@@ -244,6 +343,21 @@ hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
   return depend->get_set_from_index(index, out);
 }
 
+/**
+ * hb_depend_print:
+ * @depend: a #hb_depend_t
+ *
+ * Prints the dependency graph to standard output for debugging purposes.
+ * For each glyph that has dependencies, prints the glyph ID followed by
+ * its dependent glyphs, including the source table (cmap, GSUB, glyf,
+ * COLR, MATH) and any relevant feature tags or variant information.
+ *
+ * Note: This function is primarily for debugging and testing. The output
+ * format is not stable and may change in future versions. For programmatic
+ * access to dependency information, use hb_depend_get_glyph_entry().
+ *
+ * Since: REPLACEME
+ **/
 void
 hb_depend_print (hb_depend_t *depend)
 {
@@ -257,7 +371,7 @@ hb_depend_print (hb_depend_t *depend)
  * Decreases the reference count on @depend, and if it reaches zero, destroys
  * @depend, freeing all memory.
  *
- * Since: ?.0.0
+ * Since: REPLACEME
  **/
 void
 hb_depend_destroy (hb_depend_t *depend)
