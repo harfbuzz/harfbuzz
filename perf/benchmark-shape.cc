@@ -108,7 +108,8 @@ static void BM_Shape (benchmark::State &state,
   for (auto _ : state)
   {
     bool ret = shape (buf, font, text, text_length, shaper);
-    assert (ret);
+    if (!ret)
+      abort ();
   }
 
 done:
