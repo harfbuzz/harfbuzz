@@ -80,6 +80,7 @@ struct hb_depend_t
   void get_math_dependencies ();
   void get_colr_dependencies ();
   void get_glyf_dependencies ();
+  void get_cff_dependencies ();
 
   hb_face_t *face;
   hb_set_t features;

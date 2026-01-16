@@ -49,7 +49,12 @@ HB_INTERNAL void PaintColrLayers::dependv1 (hb_colrv1_depend_context_t* c) const
 
 HB_INTERNAL void PaintGlyph::dependv1 (hb_colrv1_depend_context_t* c) const
 {
-  c->depend_data->add_depend(c->source_gid, HB_OT_TAG_COLR, gid);
+  // PaintGlyph (Format 10) references glyph outlines (from glyf/CFF), not paint graphs.
+  // Self-reference is valid per OpenType spec: a base glyph can reference its own
+  // outline as geometry to fill. This is not a dependency in the traditional sense
+  // since the outline is part of the same glyph data, so we skip it.
+  if (gid != c->source_gid)
+    c->depend_data->add_depend(c->source_gid, HB_OT_TAG_COLR, gid);
   (this+paint).dispatch (c);
 }
 

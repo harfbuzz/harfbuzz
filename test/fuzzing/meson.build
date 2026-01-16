@@ -4,6 +4,7 @@ tests = [
   'hb-raster-fuzzer.cc',
   'hb-vector-fuzzer.cc',
   'hb-repacker-fuzzer.cc',
+  'hb-depend-fuzzer.cc',
 ]
 
 # Build the binaries
@@ -15,7 +16,12 @@ foreach file_name : tests
   extra_cpp_args = []
 
   if get_option('fuzzer_ldflags') == ''
-    sources += 'main.cc'
+    # hb-depend-fuzzer has custom main that sets font path global
+    if test_name == 'hb-depend-fuzzer'
+      sources += 'hb-depend-fuzzer-main.cc'
+    else
+      sources += 'main.cc'
+    endif
   else
     fuzzer_ldflags += get_option('fuzzer_ldflags').split()
     extra_cpp_args += '-DHB_IS_IN_FUZZER'
@@ -63,10 +69,12 @@ glob_cmd = find_program('glob.py', required: true)
 fonts_glob = run_command(glob_cmd, meson.current_source_dir() / 'fonts', check:true).stdout().strip().split('\n')
 subset_fonts_glob = run_command(glob_cmd, meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts', check:true).stdout().strip().split('\n')
 graphs_glob = run_command(glob_cmd, meson.current_source_dir() / 'graphs', check:true).stdout().strip().split('\n')
+# Use well-formed API test fonts for depend fuzzer (not malformed clusterfuzz fonts)
+api_fonts_glob = run_command(glob_cmd, meson.current_source_dir() / '..' / 'api' / 'fonts', check:true).stdout().strip().split('\n')
 
 # Chunk the glob lists to avoid command line length limits, and for parallelization
 chunk_size = 64
-foreach glob_name : ['fonts_glob', 'subset_fonts_glob', 'graphs_glob']
+foreach glob_name : ['fonts_glob', 'subset_fonts_glob', 'graphs_glob', 'api_fonts_glob']
   glob = get_variable(glob_name)
   chunks = []
   chunk = []
@@ -145,6 +153,20 @@ if not get_option('subset').disabled()
     test('repacker-fuzzer-chunk-@0@'.format(i),
       hb_repacker_fuzzer_exe,
       args: chunk,
+      workdir: meson.current_build_dir() / '..' / '..',
+      protocol: 'tap',
+      suite: ['fuzzing'],
+    )
+    i += 1
+  endforeach
+endif
+
+if conf.get('HB_DEPEND_API', 0) == 1
+  i = 0
+  foreach chunk : api_fonts_glob_chunks
+    test('depend-fuzzer-chunk-@0@'.format(i),
+      hb_depend_fuzzer_exe,
+      args: ['-s', '42'] + chunk,
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
       suite: ['fuzzing'],

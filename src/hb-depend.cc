@@ -33,6 +33,7 @@
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-math-table.hh"
+#include "hb-ot-cff1-table.hh"
 #include "OT/Color/COLR/COLR.hh"
 #include "OT/Color/COLR/colrv1-depend.hh"
 
@@ -80,6 +81,15 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
   get_math_dependencies();
   get_colr_dependencies();
   get_glyf_dependencies();
+  get_cff_dependencies();
+
+  /* Free temporary structures - no longer needed after graph extraction */
+  data.edge_hashes.fini();
+  data.unicodes.fini();
+  data.nominal_glyphs.fini();
+  for (auto &fs : data.lookup_features)
+    fs.fini();
+  data.lookup_features.fini();
 }
 
 /*
@@ -158,22 +168,37 @@ void hb_depend_t::get_gsub_dependencies() {
       for (auto lookup_index : lookup_indexes) {
         if (!data.lookup_features[lookup_index].has (ft))
           data.lookup_features[lookup_index].add (ft);
-        // auto rec = data.lookup_info[lookup_index].get (ft);
-        // rec.fv_indexes.add(i);
       }
     }
   }
 
-  OT::hb_depend_context_t c (&data, face);
+  hb_set_t all_glyphs;
+  all_glyphs.add_range (0, face->get_num_glyphs () - 1);
+
+  // During graph extraction, all lookups see ALL glyphs, allowing us to record all possible edges.
+  OT::hb_depend_context_t c (&data, face, &all_glyphs);
+
+  const char *debug_depend = getenv ("HB_DEPEND_DEBUG_LOOKUPS");
+  bool debug_lookups = debug_depend && atoi(debug_depend);
+
   int i = -1;
   for (auto &feature_set : data.lookup_features) {
     i++;
-    if (feature_set.is_empty ())
+    if (feature_set.is_empty ()) {
+      if (debug_lookups)
+        fprintf (stderr, "[DEPEND] Skipping lookup %d (no features)\n", i);
       continue;
+    }
+    if (debug_lookups) {
+      fprintf (stderr, "[DEPEND] Processing lookup %d with features:", i);
+      hb_codepoint_t f = HB_SET_VALUE_INVALID;
+      while (hb_set_next (&feature_set, &f))
+        fprintf (stderr, " %c%c%c%c", HB_UNTAG((hb_tag_t)f));
+      fprintf (stderr, "\n");
+    }
     c.lookup_index = i;
     c.lookups_seen.clear ();
-    c.set_recurse_func (OT::Layout::GSUB_impl::SubstLookup::dispatch_recurse_func<OT::hb_depend_context_t>);
-    c.recurse(i);
+    table->get_lookup (i).depend (&c);
   }
 }
 
@@ -226,6 +251,35 @@ void hb_depend_t::get_glyf_dependencies()
   }
 }
 
+/*
+ * Algorithm: CFF/CFF2 SEAC Dependencies
+ *
+ * CFF1 supports SEAC (Standard Encoding Accented Character), which allows
+ * a glyph to be defined as a combination of two component glyphs (base and
+ * accent). This is similar to glyf composite glyphs but specific to CFF1.
+ *
+ * CFF2 does not support SEAC, so we only check CFF1 tables.
+ *
+ * For each glyph, we check if it uses SEAC and record dependencies to its
+ * base and accent components.
+ */
+void hb_depend_t::get_cff_dependencies()
+{
+  OT::cff1::accelerator_subset_t cff (face);
+  if (!cff.is_valid())
+    return;
+
+  unsigned int num_glyphs = face->get_num_glyphs();
+  for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++) {
+    hb_codepoint_t base_gid, accent_gid;
+    if (cff.get_seac_components(gid, &base_gid, &accent_gid)) {
+      // SEAC glyph found - add dependencies to base and accent
+      data.add_depend(gid, HB_TAG('C','F','F',' '), base_gid);
+      data.add_depend(gid, HB_TAG('C','F','F',' '), accent_gid);
+    }
+  }
+}
+
 hb_depend_t::~hb_depend_t ()
 {
   hb_face_destroy(face);
@@ -237,8 +291,8 @@ hb_depend_t::~hb_depend_t ()
  * @face: font face to collect dependencies from
  *
  * Calculates the dependencies between glyphs in the supplied face.
- * Extracts dependency information from cmap, GSUB, glyf, COLR, and
- * MATH tables.
+ * Extracts dependency information from cmap, GSUB, glyf, CFF, COLR,
+ * and MATH tables.
  *
  * Example:
  * ```c

@@ -12,8 +12,8 @@ maps input glyphs to output glyphs through various OpenType mechanisms:
   Unicode Variation Sequences (UVS)
 - **Glyph substitution (GSUB)**: Tracks which glyphs can be substituted for
   other glyphs through OpenType Layout features
-- **Composite glyphs (glyf)**: Records component glyphs used in composite glyph
-  construction
+- **Composite glyphs (glyf, CFF)**: Records component glyphs used in composite
+  glyph construction (TrueType glyf composites and CFF1 SEAC)
 - **Color layers (COLR)**: Identifies glyphs used as color layers
 - **Math variants (MATH)**: Tracks mathematical variant glyphs
 
@@ -27,7 +27,6 @@ analyzing glyph coverage, and optimizing font delivery.
 
 ```c
 #include <hb.h>
-#include <hb-depend.h>
 
 hb_blob_t *blob = hb_blob_create_from_file("font.ttf");
 hb_face_t *face = hb_face_create(blob, 0);
@@ -138,6 +137,13 @@ printf("Found %u reachable glyphs\n", hb_set_get_population(reachable));
 hb_set_destroy(reachable);
 ```
 
+**Note:** This simple algorithm doesn't handle ligature dependencies correctly.
+Ligatures should only be added when all component glyphs in their ligature set
+are present. For a production-quality implementation that correctly handles
+ligatures and feature filtering to compute closures similar to HarfBuzz's subset
+API, see `compute_depend_closure()` in `test/fuzzing/hb-depend-fuzzer.cc` and
+`docs/depend-for-closure.md`.
+
 ## Working with Ligature Sets
 
 When a dependency entry belongs to a ligature set, you can find all other members
@@ -213,18 +219,20 @@ future HarfBuzz releases.
 
 # Implementation Notes
 
-- The dependency graph is computed once when `hb_depend_from_face()` is called
-  and cached for the lifetime of the `hb_depend_t` object
-- Dependencies are stored per-glyph and indexed sequentially starting from 0
-- For GSUB dependencies, the graph includes all potential substitutions that
-  could occur through layout features, not just those active for a particular
-  shaping operation
-- The `hb_depend_print()` function is primarily for debugging; use
-  `hb_depend_get_glyph_entry()` for programmatic access
-- Sets returned by `hb_depend_get_set_from_index()` are copied into the
-  provided set parameter. The original sets remain referenced in the
-  `hb_depend_t` object and are freed when the depend object is destroyed.
-  The caller owns the output set and is responsible for destroying it after use
+**⚠️ Warning: Graph Cycles in Invalid Fonts**
+
+The dependency graph may contain cycles when processing invalid or malicious fonts.
+While the OpenType specification requires COLR paint graphs to be directed acyclic
+graphs (DAGs), the depend API faithfully reports the graph structure as it exists
+in the font, including any cycles that may be present. Implementations traversing
+the depend graph should implement cycle detection to protect against invalid fonts.
+
+For details on how cycles can occur and how PaintGlyph self-references are filtered,
+see the "COLR Cycles and Self-References" section in `docs/depend-implementation.md`.
+
+For detailed information about the depend API implementation, including memory
+management, data structures, and performance characteristics, see
+`docs/depend-implementation.md`.
 
 # Use Cases
 
