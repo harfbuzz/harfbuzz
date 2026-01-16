@@ -2405,6 +2405,9 @@ struct COLR
         depend_data->add_depend(record.glyphId, HB_OT_TAG_COLR, layer.glyphId);
     }
 
+    if (!has_v1_data())
+      return;
+
     // v1
     hb_colrv1_depend_context_t c (this, depend_data);
     const BaseGlyphList &baseglyph_paintrecords = this+baseGlyphList;

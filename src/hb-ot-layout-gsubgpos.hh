@@ -380,28 +380,58 @@ struct hb_collect_glyphs_context_t :
 struct hb_depend_context_t :
        hb_dispatch_context_t<hb_depend_context_t, bool>
 {
-  typedef return_t (*recurse_func_t) (hb_depend_context_t *c, unsigned lookup_index);
+  typedef return_t (*recurse_func_t) (hb_depend_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indicies, unsigned seq_index, unsigned end_index);
   template <typename T>
   return_t dispatch (const T &obj) { return obj.depend (this); }
   static return_t default_return_value () { return false; }
-  bool stop_sublookup_iteration (return_t r) const { return r; }
+  bool stop_sublookup_iteration (return_t r) const { return false; }
 
-  return_t recurse (unsigned lookup_idx)
+  return_t recurse (unsigned lookup_idx, hb_set_t *covered_seq_indicies, unsigned seq_index, unsigned end_index)
   {
-    if (lookups_seen.has (lookup_idx))
-        return false;
-    lookups_seen.add (lookup_idx);
-    return recurse_func (this, lookup_idx);
+    // Don't use lookups_seen check here - same lookup can be called multiple times
+    // with different active glyphs for different sequence positions
+    return recurse_func (this, lookup_idx, covered_seq_indicies, seq_index, end_index);
+  }
+
+  const hb_set_t& parent_active_glyphs ()
+  {
+    if (!active_glyphs_stack)
+      return *glyphs;
+
+    return active_glyphs_stack.tail ();
+  }
+
+  hb_set_t* push_cur_active_glyphs ()
+  {
+    hb_set_t *s = active_glyphs_stack.push ();
+    if (unlikely (active_glyphs_stack.in_error ()))
+      return nullptr;
+    return s;
+  }
+
+  bool pop_cur_done_glyphs ()
+  {
+    if (!active_glyphs_stack)
+      return false;
+
+    active_glyphs_stack.pop ();
+    return true;
   }
 
   hb_depend_data_t *depend_data;
   hb_face_t *face;
+  hb_set_t *glyphs;
+  hb_vector_t<hb_set_t> active_glyphs_stack;
   recurse_func_t recurse_func;
   hb_codepoint_t lookup_index;
   hb_set_t lookups_seen;
 
-  hb_depend_context_t (hb_depend_data_t *depend_data_, hb_face_t *face_)
-                      : depend_data (depend_data_), face(face_),
+  hb_depend_context_t (hb_depend_data_t *depend_data_,
+                       hb_face_t *face_,
+                       hb_set_t *glyphs_)
+                      : depend_data (depend_data_),
+                        face(face_),
+                        glyphs (glyphs_),
                         recurse_func (nullptr) {}
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
@@ -1793,22 +1823,49 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
 #ifdef HB_DEPEND_API
 template <typename HBUINT>
 static void context_depend_recurse_lookups (hb_depend_context_t *c,
-					     unsigned inputCount HB_UNUSED, const HBUINT input[] HB_UNUSED,
+					     unsigned inputCount, const HBUINT input[],
 					     unsigned lookupCount,
 					     const LookupRecord lookupRecord[] /* Array of LookupRecords--in design order */,
-					     unsigned value HB_UNUSED)
+					     unsigned value,
+					     ContextFormat context_format,
+					     const void *data,
+					     intersected_glyphs_func_t intersected_glyphs_func,
+					     void *cache)
 {
-  /* XXX What this function should do is recurse through the lookups adding
-   * only those entries of the lookup that are "reachable" given the input.
-   * As it is a lookup reused in multiple contexts will be over-referenced,
-   * leading to inaccurate dependency entries.
-   *
-   * Note that c->lookup_index is not changed. Entries for sub-lookups are
-   * called back with the original index so that they can be entered with
-   * the appropriate layout tags.
-   */
+#ifndef NDEBUG
+  if (unlikely (getenv ("HB_DEPEND_DEBUG_MODE"))) {
+    fprintf (stderr, "DEPEND: context_depend_recurse: parent_active=%u, lookups=%u\n",
+             c->parent_active_glyphs().get_population(), lookupCount);
+  }
+#endif
+
+  /* During graph extraction, we use simple recursion without sequential accumulation.
+   * We want to record ALL possible dependencies, so every lookup sees ALL glyphs
+   * (parent_active_glyphs). Sequential accumulation would limit the active glyphs
+   * based on outputs, causing us to miss edges. */
+  hb_set_t covered_seq_indicies;
   for (unsigned int i = 0; i < lookupCount; i++)
-    c->recurse (lookupRecord[i].lookupListIndex);
+  {
+    unsigned seqIndex = lookupRecord[i].sequenceIndex;
+    if (seqIndex >= inputCount)
+      continue;
+
+    covered_seq_indicies.add (seqIndex);
+
+    hb_set_t *cur_active_glyphs = c->push_cur_active_glyphs ();
+    if (unlikely (!cur_active_glyphs))
+      return;
+
+    // For graph extraction, pass ALL glyphs (the universe) to ensure nested contexts see everything
+    cur_active_glyphs->set (*c->glyphs);
+
+    unsigned endIndex = inputCount;
+    if (context_format == ContextFormat::CoverageBasedContext)
+      endIndex += 1;
+
+    c->recurse (lookupRecord[i].lookupListIndex, &covered_seq_indicies, seqIndex, endIndex);
+    c->pop_cur_done_glyphs ();
+  }
 }
 #endif
 
@@ -1976,6 +2033,17 @@ struct ContextClosureLookupContext
   void *intersected_glyphs_cache;
 };
 
+#ifdef HB_DEPEND_API
+struct ContextDependLookupContext
+{
+  ContextClosureFuncs funcs;
+  ContextFormat context_format;
+  const void *intersects_data;
+  void *intersects_cache;
+  void *intersected_glyphs_cache;
+};
+#endif
+
 struct ContextCollectGlyphsLookupContext
 {
   ContextCollectGlyphsFuncs funcs;
@@ -2022,6 +2090,32 @@ static inline void context_closure_lookup (hb_closure_context_t *c,
 				     lookup_context.funcs.intersected_glyphs,
 				     lookup_context.intersected_glyphs_cache);
 }
+
+#ifdef HB_DEPEND_API
+template <typename HBUINT>
+static inline void context_depend_lookup (hb_depend_context_t *c,
+					  unsigned int inputCount, /* Including the first glyph (not matched) */
+					  const HBUINT input[], /* Array of input values--start with second glyph */
+					  unsigned int lookupCount,
+					  const LookupRecord lookupRecord[],
+					  unsigned value, /* Index of first glyph in Coverage or Class value in ClassDef table */
+					  ContextDependLookupContext &lookup_context)
+{
+  // ContextDependLookupContext has the same layout as ContextClosureLookupContext
+  auto &closure_lookup_context = reinterpret_cast<ContextClosureLookupContext &>(lookup_context);
+  if (context_intersects (c->glyphs,
+			  inputCount, input,
+			  closure_lookup_context))
+    context_depend_recurse_lookups (c,
+				    inputCount, input,
+				    lookupCount, lookupRecord,
+				    value,
+				    lookup_context.context_format,
+				    lookup_context.intersects_data,
+				    lookup_context.funcs.intersected_glyphs,
+				    lookup_context.intersected_glyphs_cache);
+}
+#endif
 
 template <typename HBUINT>
 static inline void context_collect_glyphs_lookup (hb_collect_glyphs_context_t *c,
@@ -2123,14 +2217,14 @@ struct Rule
   }
 
 #ifdef HB_DEPEND_API
-  void depend (hb_depend_context_t *c, unsigned value) const
+  void depend (hb_depend_context_t *c, unsigned value, ContextDependLookupContext &lookup_context) const
   {
     const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 					   (inputZ.as_array ((inputCount ? inputCount - 1 : 0)));
-    context_depend_recurse_lookups (c,
-			    inputCount, inputZ.arrayZ,
-			    lookupCount, lookupRecord.arrayZ,
-			    value);
+    context_depend_lookup (c,
+			   inputCount, inputZ.arrayZ,
+			   lookupCount, lookupRecord.arrayZ,
+			   value, lookup_context);
   }
 #endif
 
@@ -2268,13 +2362,13 @@ struct RuleSet
   }
 
 #ifdef HB_DEPEND_API
-  void depend (hb_depend_context_t *c, unsigned value) const
+  void depend (hb_depend_context_t *c, unsigned value, ContextDependLookupContext &lookup_context) const
   {
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const Rule &_) { _.depend (c, value); })
+    | hb_apply ([&] (const Rule &_) { _.depend (c, value, lookup_context); })
     ;
-  } 
+  }
 #endif
 
   void closure (hb_closure_context_t *c, unsigned value,
@@ -2520,10 +2614,26 @@ struct ContextFormat1_4
 #ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
+    hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
+    if (unlikely (!cur_active_glyphs)) return true;
+    get_coverage ().intersect_set (*c->glyphs, *cur_active_glyphs);
+
+    struct ContextDependLookupContext lookup_context = {
+      {intersects_glyph, intersected_glyph},
+      ContextFormat::SimpleContext,
+      nullptr
+    };
+
     + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
+    | hb_filter ([&] (hb_codepoint_t _) {
+      return c->parent_active_glyphs ().has (_);
+    }, hb_first)
     | hb_map ([&](const hb_pair_t<hb_codepoint_t, unsigned> _) { return hb_pair_t<unsigned, const RuleSet&> (_.first, this+ruleSet[_.second]); })
-    | hb_apply ([&] (const hb_pair_t<unsigned, const RuleSet&>& _) { _.second.depend (c, _.first); })
+    | hb_apply ([&] (const hb_pair_t<unsigned, const RuleSet&>& _) { _.second.depend (c, _.first, lookup_context); })
     ;
+
+    c->pop_cur_done_glyphs ();
+
     return true;
   }
 #endif
@@ -2699,13 +2809,38 @@ struct ContextFormat2_5
 #ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
+    if (!(this+coverage).intersects (c->glyphs))
+      return true;
+
+    hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
+    if (unlikely (!cur_active_glyphs)) return true;
+    get_coverage ().intersect_set (*c->glyphs, *cur_active_glyphs);
+
+    const ClassDef &class_def = this+classDef;
+
+    hb_map_t cache;
+    intersected_class_cache_t intersected_cache;
+    struct ContextDependLookupContext lookup_context = {
+      {intersects_class, intersected_class_glyphs},
+      ContextFormat::ClassBasedContext,
+      &class_def,
+      &cache,
+      &intersected_cache
+    };
+
     + hb_enumerate (ruleSet)
+    | hb_filter ([&] (unsigned _)
+    { return class_def.intersects_class (&c->parent_active_glyphs (), _); },
+		 hb_first)
     | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<RuleSet>&> _)
                 {
                   const RuleSet& rule_set = this+_.second;
-                  rule_set.depend (c, _.first);
+                  rule_set.depend (c, _.first, lookup_context);
                 })
     ;
+
+    c->pop_cur_done_glyphs ();
+
     return true;
   }
 #endif
@@ -2953,11 +3088,26 @@ struct ContextFormat3
 #ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
+    if (!(this+coverageZ[0]).intersects (c->glyphs))
+      return true;
+
+    hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
+    if (unlikely (!cur_active_glyphs)) return true;
+    get_coverage ().intersect_set (*c->glyphs, *cur_active_glyphs);
+
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
-    context_depend_recurse_lookups (c,
-			    glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
-			    lookupCount, lookupRecord,
-			    0);
+    struct ContextDependLookupContext lookup_context = {
+      {intersects_coverage, intersected_coverage_glyphs},
+      ContextFormat::CoverageBasedContext,
+      this
+    };
+    context_depend_lookup (c,
+			   glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
+			   lookupCount, lookupRecord,
+			   0, lookup_context);
+
+    c->pop_cur_done_glyphs ();
+
     return true;
   }
 #endif
@@ -3141,6 +3291,17 @@ struct ChainContextClosureLookupContext
   void *intersected_glyphs_cache;
 };
 
+#ifdef HB_DEPEND_API
+struct ChainContextDependLookupContext
+{
+  ContextClosureFuncs funcs;
+  ContextFormat context_format;
+  const void *intersects_data[3];
+  void *intersects_cache[3];
+  void *intersected_glyphs_cache;
+};
+#endif
+
 struct ChainContextCollectGlyphsLookupContext
 {
   ContextCollectGlyphsFuncs funcs;
@@ -3207,6 +3368,38 @@ static inline void chain_context_closure_lookup (hb_closure_context_t *c,
 		     lookup_context.funcs.intersected_glyphs,
 		     lookup_context.intersected_glyphs_cache);
 }
+
+#ifdef HB_DEPEND_API
+template <typename HBUINT>
+static inline void chain_context_depend_lookup (hb_depend_context_t *c,
+						unsigned int backtrackCount,
+						const HBUINT backtrack[],
+						unsigned int inputCount, /* Including the first glyph (not matched) */
+						const HBUINT input[], /* Array of input values--start with second glyph */
+						unsigned int lookaheadCount,
+						const HBUINT lookahead[],
+						unsigned int lookupCount,
+						const LookupRecord lookupRecord[],
+						unsigned value,
+						ChainContextDependLookupContext &lookup_context)
+{
+  // ChainContextDependLookupContext has the same layout as ChainContextClosureLookupContext
+  auto &closure_lookup_context = reinterpret_cast<ChainContextClosureLookupContext &>(lookup_context);
+  if (chain_context_intersects (c->glyphs,
+				backtrackCount, backtrack,
+				inputCount, input,
+				lookaheadCount, lookahead,
+				closure_lookup_context))
+    context_depend_recurse_lookups (c,
+				    inputCount, input,
+				    lookupCount, lookupRecord,
+				    value,
+				    lookup_context.context_format,
+				    lookup_context.intersects_data[1],
+				    lookup_context.funcs.intersected_glyphs,
+				    lookup_context.intersected_glyphs_cache);
+}
+#endif
 
 template <typename HBUINT>
 static inline void chain_context_collect_glyphs_lookup (hb_collect_glyphs_context_t *c,
@@ -3318,16 +3511,18 @@ struct ChainRule
   }
 
 #ifdef HB_DEPEND_API
-  void depend (hb_depend_context_t *c, unsigned value) const
+  void depend (hb_depend_context_t *c, unsigned value, ChainContextDependLookupContext &lookup_context) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
-
-    context_depend_recurse_lookups (c,
-			    input.lenP1, input.arrayZ,
-			    lookup.len, lookup.arrayZ,
-			    value);
+    chain_context_depend_lookup (c,
+				 backtrack.len, backtrack.arrayZ,
+				 input.lenP1, input.arrayZ,
+				 lookahead.len, lookahead.arrayZ,
+				 lookup.len, lookup.arrayZ,
+				 value,
+				 lookup_context);
   }
 #endif
 
@@ -3526,11 +3721,11 @@ struct ChainRuleSet
     ;
   }
 #ifdef HB_DEPEND_API
-  void depend (hb_depend_context_t *c, unsigned value) const
+  void depend (hb_depend_context_t *c, unsigned value, ChainContextDependLookupContext &lookup_context) const
   {
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const ChainRule &_) { _.depend (c, value); })
+    | hb_apply ([&] (const ChainRule &_) { _.depend (c, value, lookup_context); })
     ;
   }
 #endif
@@ -3799,10 +3994,26 @@ struct ChainContextFormat1_4
 #ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
+    hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
+    if (unlikely (!cur_active_glyphs)) return true;
+    get_coverage ().intersect_set (*c->glyphs, *cur_active_glyphs);
+
+    struct ChainContextDependLookupContext lookup_context = {
+      {intersects_glyph, intersected_glyph},
+      ContextFormat::SimpleContext,
+      {nullptr, nullptr, nullptr}
+    };
+
     + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
+    | hb_filter ([&] (hb_codepoint_t _) {
+      return c->parent_active_glyphs ().has (_);
+    }, hb_first)
     | hb_map ([&](const hb_pair_t<hb_codepoint_t, unsigned> _) { return hb_pair_t<unsigned, const ChainRuleSet&> (_.first, this+ruleSet[_.second]); })
-    | hb_apply ([&] (const hb_pair_t<unsigned, const ChainRuleSet&>& _) { _.second.depend (c, _.first); })
+    | hb_apply ([&] (const hb_pair_t<unsigned, const ChainRuleSet&>& _) { _.second.depend (c, _.first, lookup_context); })
     ;
+
+    c->pop_cur_done_glyphs ();
+
     return true;
   }
 #endif
@@ -3980,13 +4191,41 @@ struct ChainContextFormat2_5
 #ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const
   {
+    if (!(this+coverage).intersects (c->glyphs))
+      return true;
+
+    hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
+    if (unlikely (!cur_active_glyphs)) return true;
+    get_coverage ().intersect_set (*c->glyphs, *cur_active_glyphs);
+
+    const ClassDef &backtrack_class_def = this+backtrackClassDef;
+    const ClassDef &input_class_def = this+inputClassDef;
+    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
+
+    hb_map_t caches[3] = {};
+    intersected_class_cache_t intersected_cache;
+    struct ChainContextDependLookupContext lookup_context = {
+      {intersects_class, intersected_class_glyphs},
+      ContextFormat::ClassBasedContext,
+      {&backtrack_class_def,
+       &input_class_def,
+       &lookahead_class_def},
+      {&caches[0], &caches[1], &caches[2]},
+      &intersected_cache
+    };
+
     + hb_enumerate (ruleSet)
+    | hb_filter ([&] (unsigned _)
+    { return input_class_def.intersects_class (&c->parent_active_glyphs (), _); },
+		 hb_first)
     | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<ChainRuleSet>&> _)
                 {
                   const ChainRuleSet& chainrule_set = this+_.second;
-                  chainrule_set.depend (c, _.first);
+                  chainrule_set.depend (c, _.first, lookup_context);
                 })
     ;
+
+    c->pop_cur_done_glyphs ();
 
     return true;
   }
@@ -4293,15 +4532,32 @@ struct ChainContextFormat3
   bool depend (hb_depend_context_t *c) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
+
+    if (!(this+input[0]).intersects (c->glyphs))
+      return true;
+
+    hb_set_t* cur_active_glyphs = c->push_cur_active_glyphs ();
+    if (unlikely (!cur_active_glyphs))
+      return true;
+    get_coverage ().intersect_set (*c->glyphs, *cur_active_glyphs);
+
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     const auto &lookup = StructAfter<decltype (lookupX)> (lookahead);
+    struct ChainContextDependLookupContext lookup_context = {
+      {intersects_coverage, intersected_coverage_glyphs},
+      ContextFormat::CoverageBasedContext,
+      {this, this, this}
+    };
+    chain_context_depend_lookup (c,
+				 backtrack.len, (const HBUINT16 *) backtrack.arrayZ,
+				 input.len, (const HBUINT16 *) input.arrayZ + 1,
+				 lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
+				 lookup.len, lookup.arrayZ,
+				 0, lookup_context);
 
-    context_depend_recurse_lookups (c,
-				  input.len, (const HBUINT16 *) input.arrayZ + 1,
-				  lookup.len, lookup.arrayZ,
-			    0);
+    c->pop_cur_done_glyphs ();
 
-    return false;
+    return true;
   }
 #endif
 

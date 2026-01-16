@@ -38,8 +38,24 @@ struct SingleSubstFormat2_4
   bool depend (hb_depend_context_t *c) const
   {
     auto &cov = this+coverage;
+    auto &glyph_set = c->parent_active_glyphs ();
+
+    // Filter by active glyphs like closure does
+    if (substitute.len > glyph_set.get_population () * 4)
+    {
+      for (auto g : glyph_set)
+      {
+	unsigned i = cov.get_coverage (g);
+	if (i == NOT_COVERED || i >= substitute.len)
+	  continue;
+	c->depend_data->add_gsub_lookup (g, c->lookup_index, substitute.arrayZ[i]);
+      }
+
+      return true;
+    }
 
     + hb_zip (cov, substitute)
+    | hb_filter (glyph_set, hb_first)
     | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup (_.first, c->lookup_index, _.second); })
     ;
     return true;

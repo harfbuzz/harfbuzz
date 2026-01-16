@@ -47,21 +47,15 @@ struct hb_depend_data_record_t {
                    hb_codepoint_t dependent,
                    hb_tag_t layout_tag,
                    hb_codepoint_t ligature_set,
-                   hb_codepoint_t context_set  // ,
-                   // hb_codepoint_t fv_context_set,
-                   // bool fv_only
-                   ) : table_tag(table_tag),
+                   hb_codepoint_t context_set) : table_tag(table_tag),
      dependent(dependent), layout_tag(layout_tag),
-     ligature_set(ligature_set), context_set(context_set) // ,
-     // fv_context_set(fv_context_set), fv_only(fv_only)
+     ligature_set(ligature_set), context_set(context_set)
      {}
   hb_tag_t table_tag;
   hb_codepoint_t dependent;
   hb_tag_t layout_tag;
   hb_codepoint_t ligature_set;
   hb_codepoint_t context_set;
-  // hb_codepoint_t fv_context_set;
-  // bool fv_only {false};
 };
 
 /**
@@ -119,6 +113,18 @@ struct hb_depend_data_t
 
   ~hb_depend_data_t () {}
 
+  void free_set (hb_codepoint_t set_index)
+  {
+    // Should only be called to free the most recently allocated set
+    if (set_index + 1 == sets.length) {
+      sets.resize(sets.length - 1);  // Pop it off
+    } else {
+      // Unexpected - freeing a set that's not the last one
+      DEBUG_MSG (SUBSET, nullptr, "Attempting to free set %u but last set is %u",
+                 set_index, sets.length - 1);
+    }
+  }
+
   hb_codepoint_t new_set (hb_codepoint_t cp)
   {
     hb_codepoint_t set_index = sets.length;
@@ -164,6 +170,75 @@ struct hb_depend_data_t
     }
   }
 
+  hb_vector_t<uint32_t> get_edge_components(hb_codepoint_t source,
+                                              hb_tag_t table_tag,
+                                              hb_tag_t layout_tag,
+                                              hb_codepoint_t dependent,
+                                              hb_codepoint_t lig_set_index)
+  {
+    hb_vector_t<uint32_t> components;
+    components.push(source);
+    components.push(table_tag);
+    components.push(layout_tag);
+    components.push(dependent);
+
+    // If there's a ligature set, add its contents in canonical order
+    if (lig_set_index != HB_CODEPOINT_INVALID) {
+      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+      while (sets[lig_set_index].next(&cp)) {
+        components.push(cp);
+      }
+    }
+
+    return components;
+  }
+
+  uint64_t compute_edge_hash(hb_codepoint_t source,
+                             hb_tag_t table_tag,
+                             hb_tag_t layout_tag,
+                             hb_codepoint_t dependent,
+                             hb_codepoint_t lig_set_index)
+  {
+    // Polynomial rolling hash with prime multiplier (31)
+    uint64_t hash = hb_hash(source);
+    hash = hash * 31 + hb_hash(table_tag);
+    hash = hash * 31 + hb_hash(layout_tag);
+    hash = hash * 31 + hb_hash(dependent);
+
+    // If there's a ligature set, incorporate its contents in canonical order
+    if (lig_set_index != HB_CODEPOINT_INVALID) {
+      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+      while (sets[lig_set_index].next(&cp)) {
+        hash = hash * 31 + hb_hash(cp);
+      }
+    }
+
+    return hash;
+  }
+
+  bool edges_equal(hb_codepoint_t target,
+                   hb_tag_t table_tag,
+                   hb_tag_t layout_tag,
+                   hb_codepoint_t dependent,
+                   hb_codepoint_t lig_set,
+                   const hb_depend_data_record_t &existing)
+  {
+    // Check basic fields (not including context_set)
+    if (existing.table_tag != table_tag ||
+        existing.layout_tag != layout_tag ||
+        existing.dependent != dependent)
+      return false;
+
+    // Check ligature sets
+    if (existing.ligature_set == HB_CODEPOINT_INVALID && lig_set == HB_CODEPOINT_INVALID)
+      return true;
+
+    if (existing.ligature_set != HB_CODEPOINT_INVALID && lig_set != HB_CODEPOINT_INVALID)
+      return sets[existing.ligature_set] == sets[lig_set];
+
+    return false;
+  }
+
   bool get_glyph_entry(hb_codepoint_t gid, hb_codepoint_t index,
                        hb_tag_t *table_tag, hb_codepoint_t *dependent,
                        hb_tag_t *layout_tag, hb_codepoint_t *ligature_set)
@@ -189,47 +264,76 @@ struct hb_depend_data_t
     return false;
   }
 
-  void add_depend_layout (hb_codepoint_t target, hb_tag_t table_tag,
+  bool add_depend_layout (hb_codepoint_t target, hb_tag_t table_tag,
                           hb_tag_t layout_tag,
                           hb_codepoint_t dependent,
                           hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
-                          hb_codepoint_t context_set = HB_CODEPOINT_INVALID // ,
-                          // hb_codepoint_t fv_context_set = HB_CODEPOINT_INVALID,
-                          // bool fv_only = false
-                          )
+                          hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
   {
     if (target >= glyph_dependencies.length) {
       DEBUG_MSG (SUBSET, nullptr, "Dependency glyph %u for %c%c%c%c too large",
                  target, HB_UNTAG(table_tag));
-      return;
+      return false;
     }
-    auto &gdr = glyph_dependencies[target];
-    for (auto &dep : gdr.dependencies) {
-      if (dep.table_tag == table_tag && dep.layout_tag == layout_tag &&
-          dep.dependent == dependent) {
-        if (dep.ligature_set == HB_CODEPOINT_INVALID && lig_set == HB_CODEPOINT_INVALID)
-          return;   // dup
-        if (dep.ligature_set != HB_CODEPOINT_INVALID && lig_set != HB_CODEPOINT_INVALID &&
-            sets[dep.ligature_set] == sets[lig_set])
-          return;   // dup
+
+    // Compute edge hash for deduplication (without context_set)
+    uint64_t edge_hash = compute_edge_hash(target, table_tag, layout_tag, dependent, lig_set);
+
+    // Get component vector for this edge
+    auto new_components = get_edge_components(target, table_tag, layout_tag, dependent, lig_set);
+
+    // Check if we've already seen this hash (O(1) hash table lookup)
+    if (edge_hashes.has(edge_hash)) {
+      // Compare stored components with new components
+      const auto &stored_components = edge_hashes.get(edge_hash);
+      bool components_match = (stored_components == new_components);
+
+      // DEBUG: Check if vector comparison might be wrong
+      if (components_match && stored_components.length != new_components.length) {
+        printf("[BUG] Vector lengths differ but comparison says equal! stored=%u new=%u\n",
+               (unsigned)stored_components.length, (unsigned)new_components.length);
+      }
+
+      if (components_match) {
+        return false;  // True duplicate - same hash, same components
+      } else {
+        // Hash collision! Same hash but different edge components
+        // Fall back to O(n) search through this glyph's dependencies
+        // real_collisions++;  // TODO: Remove before production
+
+        auto &gdr = glyph_dependencies[target];
+        for (auto &dep : gdr.dependencies) {
+          if (edges_equal(target, table_tag, layout_tag, dependent, lig_set, dep)) {
+            return false;  // Found via fallback
+          }
+        }
+        // DON'T update hash table - leave original stored components
+        // Just add the edge
+        gdr.dependencies.push(table_tag, dependent, layout_tag, lig_set,
+                              context_set);
+        return true;
       }
     }
-    gdr.dependencies.push(table_tag, dependent, layout_tag, lig_set,
-                          context_set); // , fv_context_set, fv_only);
+
+    // New edge - store components in hash table and add to dependency list
+    edge_hashes.set(edge_hash, new_components);
+
+    auto &gdr = glyph_dependencies[target];
+    gdr.dependencies.push(table_tag, dependent, layout_tag, lig_set, context_set);
+    return true;
   }
 
-  void add_gsub_lookup (hb_codepoint_t target, hb_codepoint_t lookup_index,
+  bool add_gsub_lookup (hb_codepoint_t target, hb_codepoint_t lookup_index,
                         hb_codepoint_t dependent,
                         hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
                         hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
   {
+    bool any_added = false;
     for (auto t : lookup_features[lookup_index]) {
-      // hb_codepoint_t fv_context_set {HB_CODEPOINT_INVALID};
-      // if (!e.second.fv_indexes.is_empty ())
-      //   fv_context_set = new_set(e.second.fv_indexes);
-      add_depend_layout(target, HB_OT_TAG_GSUB, t, dependent, lig_set,
-                        context_set); // , fv_context_set, !e.second.full);
+      if (add_depend_layout(target, HB_OT_TAG_GSUB, t, dependent, lig_set, context_set))
+        any_added = true;
     }
+    return any_added;
   }
 
   void add_depend (hb_codepoint_t target, hb_tag_t table_tag,
@@ -253,6 +357,9 @@ struct hb_depend_data_t
 
   hb_vector_t<hb_glyph_depend_record_t> glyph_dependencies;
   hb_vector_t<hb_set_t> lookup_features;
+
+  // Hash-based deduplication: edge hash -> component vector for collision detection
+  hb_hashmap_t<uint64_t, hb_vector_t<uint32_t>> edge_hashes;
 };
 
 #endif /* HB_DEPEND_API */
