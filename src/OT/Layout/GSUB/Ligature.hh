@@ -41,15 +41,31 @@ struct Ligature
 #ifdef HB_DEPEND_API
   void depend (hb_depend_context_t *c, hb_codepoint_t first) const
   {
-    hb_codepoint_t ligset = c->depend_data->new_set(first);
-    c->depend_data->add_gsub_lookup (first, c->lookup_index, ligGlyph, ligset);
+    // Build the complete ligature set upfront before adding any edges
+    hb_set_t complete_ligset;
+    complete_ligset.add(first);
+    for (const auto &source : component)
+      complete_ligset.add(source);
+
+    hb_codepoint_t ligset = c->depend_data->new_set(complete_ligset);
+
+    // Track whether any edge using this ligset was actually added
+    bool any_added = false;
+
+    // Now add all edges with the complete, immutable set
+    if (c->depend_data->add_gsub_lookup (first, c->lookup_index, ligGlyph, ligset))
+      any_added = true;
 
     + hb_iter (component)
     | hb_apply ([&] (const hb_codepoint_t &source) {
-        c->depend_data->add_to_set (ligset, source);
-        c->depend_data->add_gsub_lookup (source, c->lookup_index, ligGlyph, ligset);
+        if (c->depend_data->add_gsub_lookup (source, c->lookup_index, ligGlyph, ligset))
+          any_added = true;
       })
     ;
+
+    // If no edges were added, the ligset is unused - free it for reuse
+    if (!any_added)
+      c->depend_data->free_set(ligset);
   }
 #endif
 

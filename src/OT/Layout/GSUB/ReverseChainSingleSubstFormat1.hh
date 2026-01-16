@@ -69,10 +69,14 @@ struct ReverseChainSingleSubstFormat1
 
 #ifdef HB_DEPEND_API
   bool depend (hb_depend_context_t *c) const {
+    // Filter by intersects and parent_active_glyphs like closure does (lines 83-95)
+    if (!intersects (c->glyphs)) return true;
+
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (backtrack);
     const auto &substitute = StructAfter<decltype (substituteX)> (lookahead);
 
     + hb_zip (this+coverage, substitute)
+    | hb_filter (c->parent_active_glyphs (), hb_first)
     | hb_apply ([&] (const hb_codepoint_pair_t &_) { c->depend_data->add_gsub_lookup (_.first, c->lookup_index, _.second); })
     ;
 
