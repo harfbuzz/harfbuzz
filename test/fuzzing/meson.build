@@ -4,6 +4,7 @@ tests = [
   'hb-set-fuzzer.cc',
   'hb-draw-fuzzer.cc',
   'hb-repacker-fuzzer.cc',
+  'hb-depend-closure-parity.cc',
   'hb-depend-fuzzer.cc',
 ]
 
@@ -16,9 +17,9 @@ foreach file_name : tests
   extra_cpp_args = []
 
   if get_option('fuzzer_ldflags') == ''
-    # hb-depend-fuzzer has custom main that sets font path global
-    if test_name == 'hb-depend-fuzzer'
-      sources += 'hb-depend-fuzzer-main.cc'
+    # hb-depend-closure-parity has custom main that sets font path global
+    if test_name == 'hb-depend-closure-parity'
+      sources += 'hb-depend-closure-parity-main.cc'
     else
       sources += 'main.cc'
     endif
@@ -134,9 +135,21 @@ endforeach
 if conf.get('HB_DEPEND_API', 0) == 1
   i = 0
   foreach chunk : api_fonts_glob_chunks
+    test('depend-closure-parity-chunk-@0@'.format(i),
+      hb_depend_closure_parity_exe,
+      args: ['-s', '42'] + chunk,
+      workdir: meson.current_build_dir() / '..' / '..',
+      protocol: 'tap',
+      suite: ['fuzzing'],
+    )
+    i += 1
+  endforeach
+
+  i = 0
+  foreach chunk : fonts_glob_chunks
     test('depend-fuzzer-chunk-@0@'.format(i),
       hb_depend_fuzzer_exe,
-      args: ['-s', '42'] + chunk,
+      args: chunk,
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
       suite: ['fuzzing'],
