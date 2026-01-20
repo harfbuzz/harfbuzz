@@ -1,3 +1,11 @@
+Overview of changes leading to 12.3.1
+Tuesday, January 20, 2026
+=====================================
+- Various speed optimizations.
+- Build fixes for GCC 4.9.
+- Fix NULL pointer deference when malloc fails.
+
+
 Overview of changes leading to 12.3.0
 Saturday, December 27, 2025
 =====================================
