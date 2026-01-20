@@ -85,6 +85,7 @@ tests = [
   'colrv1_partial_instance',
   'instantiate_gvar_padding',
   'avar2_full_instance',
+  'subset_gvar_padding',
 ]
 
 if get_option('experimental_api')
