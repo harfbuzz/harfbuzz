@@ -448,6 +448,9 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     if (coverage_idx == (unsigned) -1) return false;
 
     auto& coverage_v = c.graph.vertices_[coverage_idx];
+    unsigned coverage_size = coverage_v.table_size ();
+    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
+
     if (coverage_v.is_shared ())
     {
       coverage_idx = c.graph.remap_child (this_index, coverage_idx);
@@ -457,8 +460,6 @@ struct LigatureSubstFormat1 : public OT::Layout::GSUB_impl::LigatureSubstFormat1
     for (unsigned i : retained_indices.iter())
       add_virtual_link(c, i, coverage_idx);
 
-    unsigned coverage_size = coverage_v.table_size ();
-    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
     auto new_coverage =
         + hb_zip (coverage_table->iter (), hb_range ())
         | hb_filter ([&] (hb_pair_t<unsigned, unsigned> p) {
