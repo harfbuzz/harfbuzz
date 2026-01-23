@@ -1767,6 +1767,10 @@ struct cmap
     ;
 
     SubtableUnicodesCache* cache = SubtableUnicodesCache::create(source_table);
+
+    if (unlikely (!cache))
+      return nullptr;
+
     for (const EncodingRecord& _ : it)
       cache->set_for(&_); // populate the cache for this encoding record.
 
