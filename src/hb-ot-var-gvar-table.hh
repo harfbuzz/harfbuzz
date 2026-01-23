@@ -488,7 +488,7 @@ struct gvar_GVAR
 
     /* This ordering relative to the shared tuples array, which puts the glyphVariationData
        last in the table, is required when HB_SUBSET_FLAGS_IFTB_REQUIREMENTS is set */
-    if (is_long_offset () && long_offset)
+    if (long_offset)
       subset_data_size -= padding_size;
     char *subset_data = c->serializer->allocate_size<char> (subset_data_size, false);
     if (!subset_data) return_trace (false);
