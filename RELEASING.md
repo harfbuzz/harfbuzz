@@ -3,7 +3,7 @@
 - [ ] Open gitk and review changes since last release.
 
 	- [ ] Print all public API changes:
-          `git diff $(git describe | sed 's/-.*//').. src/*.h`
+          `git diff $(git describe --abbrev=0).. src/*.h`
 
     - [ ]  Document them in NEWS.
            All API and API semantic changes should be clearly marked as API additions, API changes, or API deletions.
