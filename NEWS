@@ -2,7 +2,7 @@ Overview of changes leading to 12.3.2
 Tuesday, January 24, 2026
 =====================================
 - Fix padding `gvar` table during subsetting when the original font uses long
-  format and subset font using short format.
+  format and subset font uses short format.
 - Various fuzzing fixes.
 - Fix NULL pointer deference when malloc fails.
 
