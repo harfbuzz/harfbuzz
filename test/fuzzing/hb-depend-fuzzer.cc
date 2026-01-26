@@ -27,18 +27,21 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
       hb_codepoint_t dependent;
       hb_tag_t layout_tag;
       hb_codepoint_t ligature_set;
+      hb_codepoint_t context_set;
 
       // Iterate through up to 10 entries per glyph
       while (index < 10 &&
              hb_depend_get_glyph_entry (depend, gid, index++,
                                         &table_tag, &dependent,
-                                        &layout_tag, &ligature_set))
+                                        &layout_tag, &ligature_set,
+                                        &context_set))
       {
         // Just access the data; success = no crash
         (void) table_tag;
         (void) dependent;
         (void) layout_tag;
         (void) ligature_set;
+        (void) context_set;
       }
     }
 

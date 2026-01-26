@@ -58,7 +58,8 @@ hb_depend_get_glyph_entry(hb_depend_t *depend,
                           hb_tag_t *table_tag, /* OUT */
                           hb_codepoint_t *dependent, /* OUT */
                           hb_tag_t *layout_tag, /* OUT */
-                          hb_codepoint_t *ligature_set /* OUT */);
+                          hb_codepoint_t *ligature_set, /* OUT */
+                          hb_codepoint_t *context_set /* OUT */);
 
 HB_EXTERN hb_bool_t
 hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
