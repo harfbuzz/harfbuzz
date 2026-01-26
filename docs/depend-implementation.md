@@ -23,27 +23,44 @@ The closure only tells you what's reachable from a specific starting point. The 
 
 ## Graph Extraction Strategy
 
-The depend implementation uses a simple strategy for graph extraction: it processes the entire font structure once to record all possible dependency edges.
+The depend implementation extracts the complete dependency graph by walking the
+font structure once to record all possible dependency edges.
 
-The `context_depend_recurse_lookups()` function (around line 1827) handles contextual and chaining contextual lookups during graph extraction.
+### Active Glyph Filtering
 
-### Graph Extraction Implementation
+During graph extraction, depend filters by active glyphs using `parent_active_glyphs()`
+(same as closure does). This prevents recording spurious edges for glyphs that can
+never participate in a particular substitution.
 
-During graph construction, depend walks the font structure similarly to closure, but with a critical difference:
+**Critical difference from closure:** Depend does NOT do sequential accumulation.
+In a contextual rule with multiple lookups, closure accumulates outputs from earlier
+lookups as inputs to later lookups. Depend records edges from ALL lookups independently
+to capture the complete graph structure.
 
-**Goal**: Record ALL possible dependency edges that exist in the font.
+### Context Requirement Recording
 
-**Strategy**: Every nested lookup sees ALL glyphs in the font (via `c->glyphs`), not just contextually relevant ones.
+For Context and ChainContext GSUB rules, depend records positional requirements
+(backtrack/lookahead) in context_set indices. This allows filtering during closure
+computation - edges are only followed when their positional requirements are satisfied.
 
-**Implementation**: Uses simple recursion without sequential accumulation. Each lookup in a contextual rule independently processes the full glyph universe.
+Implementation in `context_depend_recurse_lookups()` (hb-ot-layout-gsubgpos.hh):
+1. Build backtrack and lookahead glyph sets for the rule
+2. Call `build_context_set()` to store these requirements
+3. Set `current_context_set_index` so nested edges inherit the context
+4. Recurse into nested lookups
+5. Clear context index when done
 
-**Why process all glyphs?**: We want to record all edges that exist in the font structure, not just those reachable from a specific starting set. Limiting glyph visibility during graph extraction would cause us to miss edges.
+### Graph Completeness
 
-The tradeoff is that graph extraction may record edges that are "theoretically possible but practically unreachable", but this is acceptable - it's better to over-approximate than under-approximate the dependency graph.
+The depend graph captures all edges that exist in the font structure. Recent testing
+with proper ligature_set, context_set, and feature filtering has not generated
+over-approximation cases when computing closures.
 
 ### Using the Graph for Closure Computation
 
-To compute closures using the extracted graph, see `depend-for-closure.md` which documents how the fuzzer implements closure by iteratively following edges in the dependency graph.
+To compute closures using the extracted graph, see `depend-for-closure.md` which
+documents how to implement closure by iteratively following edges in the dependency
+graph with appropriate filtering.
 
 ## Data Structures
 
@@ -64,14 +81,16 @@ Depend builds a persistent graph with deduplication:
 struct hb_depend_data_t {
   hb_vector_t<hb_glyph_depend_record_t> glyph_dependencies;  // Per-glyph edge lists
   hb_map_t<uint64_t, hb_vector_t<uint32_t>> edge_hashes;    // Deduplication
-  hb_vector_t<hb_set_t> sets;                                // Ligature sets
+  hb_vector_t<hb_set_t> sets;                                // Ligature and context sets
   hb_map_t lookup_features[256];                             // Feature tracking
+  hb_codepoint_t current_context_set_index;                  // Current context during extraction
 };
 ```
 
 **Key features**:
 - **Deduplication**: Hash-based duplicate detection prevents storing the same edge multiple times
-- **Ligature sets**: Tracks alternate glyphs in ligature sets (e.g., for smart quotes)
+- **Ligature sets**: Tracks complete set of component glyphs needed for each ligature
+- **Context sets**: Records backtrack/lookahead requirements for contextual rules
 - **Feature tracking**: Records which features activate which lookups
 - **Persistent storage**: Graph survives beyond initial extraction
 
@@ -93,11 +112,11 @@ This reduces memory footprint while keeping the graph queryable for the lifetime
 
 Dependencies are stored per-glyph and indexed sequentially starting from 0. Use `hb_depend_get_glyph_entry()` with incrementing index values to iterate through all dependencies for a given glyph.
 
-## Context Filtering
+## Context Filtering and Recording
 
 ### Closure Behavior
 
-Closure filters glyphs by context but doesn't track the filtering:
+Closure filters glyphs by context during execution:
 
 ```c++
 // In ContextSubst Format 1
@@ -111,7 +130,7 @@ const auto &input_coverage = this+coverageZ[0];
 
 ### Depend Behavior
 
-Depend filters glyphs AND records which context they came from:
+Depend filters glyphs AND records positional requirements:
 
 ```c++
 // In ContextSubst Format 1 depend method
@@ -125,9 +144,26 @@ Depend filters glyphs AND records which context they came from:
 ;
 ```
 
-The `value` parameter identifies which glyph from the coverage was matched, allowing the depend code to filter nested lookups to only glyphs reachable from that specific context.
+The `value` parameter identifies which glyph from the coverage was matched, allowing
+the depend code to filter nested lookups appropriately.
 
-This filtering is critical for correctness - it prevents recording spurious edges for glyphs that can never actually participate in a particular contextual substitution.
+Additionally, for Context and ChainContext rules, depend builds and records context_set:
+
+```c++
+// Build context set for this rule (in context_depend_recurse_lookups)
+hb_codepoint_t context_set_idx = c->depend_data->build_context_set(
+    &lookahead_sets, nullptr);  // or both backtrack and lookahead
+c->depend_data->current_context_set_index = context_set_idx;
+
+// Recurse into lookups - all edges inherit this context_set
+context_depend_recurse_lookups(...);
+
+// Clear context after processing
+c->depend_data->current_context_set_index = HB_CODEPOINT_INVALID;
+```
+
+This records which backtrack and lookahead glyphs must be present for each edge,
+enabling accurate closure computation that matches subset behavior in recent testing.
 
 ## Feature Tagging
 
@@ -166,18 +202,25 @@ This is stored in the `layout_tag` field of each dependency record and can be qu
 
 ## Ligature Sets
 
-For alternate glyphs (like smart quotes or stylistic alternates), depend tracks which alternates belong to the same "set". This is stored as a set of glyphs indexed by a `ligature_set` ID.
+For ligature substitutions, depend tracks the complete set of component glyphs needed
+to form each ligature. This is stored as a set of glyphs indexed by a `ligature_set` ID.
 
 ### Why This Matters
 
-Consider a substitution rule:
+Consider a ligature substitution rule:
 ```
-"ff" → "ff_ligature"
+"f" + "f" → "ff_ligature"
 ```
 
-If a font contains the ligature, then both 'f' characters depend on the ligature. But more importantly, if you're subsetting and keeping one 'f', you need to keep BOTH 'f' glyphs (even if they're different alternates) to maintain the ability to form the ligature.
+The ligature output depends on BOTH component glyphs. During closure computation, the
+ligature should only be added when ALL components are present in the closure.
 
-The ligature_set field groups these related glyphs so subsetting tools can handle them correctly.
+The ligature_set field identifies which components must be present together. All edges
+for the same ligature (from each component to the ligature output) share the same
+ligature_set index, allowing closure computation to check if all components are available
+before adding the ligature output.
+
+This enables correct ligature handling during closure computation.
 
 ## COLR Cycles and Self-References
 
@@ -269,10 +312,11 @@ This keeps related code together and makes it easier to maintain consistency.
 | **Goal** | Compute reachable glyphs from a starting set | Extract complete dependency graph |
 | **Output** | Modified glyph set | Persistent graph with edges |
 | **Repeated queries** | Must re-walk font each time | O(1) edge lookups in graph |
-| **Glyph visibility** | Filters glyphs contextually during lookup processing | Processes all glyphs to capture complete graph |
-| **Context filtering** | Filters but doesn't track | Filters AND tracks context |
+| **Active glyph filtering** | Filters by active glyphs during traversal | Filters by parent_active_glyphs() during extraction |
+| **Sequential accumulation** | Accumulates outputs for next lookup | Does NOT accumulate (records all edges) |
+| **Context filtering** | Filters during execution | Records requirements in context_set |
 | **Feature tagging** | Not tracked | Tracks which features activate edges |
-| **Ligature sets** | Not tracked | Groups related alternate glyphs |
+| **Ligature sets** | Not tracked | Tracks complete component sets |
 | **Deduplication** | Not needed | Hash-based to prevent duplicate edges |
 | **Memory management** | Minimal - no persistent graph | Temporary structures freed after construction |
 | **Space complexity** | O(1) | O(edges) |

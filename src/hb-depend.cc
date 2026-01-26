@@ -85,6 +85,7 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
 
   /* Free temporary structures - no longer needed after graph extraction */
   data.edge_hashes.fini();
+  data.set_hashes.fini();
   data.unicodes.fini();
   data.nominal_glyphs.fini();
   for (auto &fs : data.lookup_features)
@@ -335,6 +336,10 @@ hb_depend_from_face (hb_face_t *face)
  * Otherwise is HB_CODEPOINT_INVALID
  * @ligature_set: (out): Returns the index of the ligature set for this entry, or
  * HB_CODEPOINT_INVALID if there is no such set
+ * @context_set: (out): Returns the index of the context set for this entry, or
+ * HB_CODEPOINT_INVALID if there is no such set. Context sets specify which
+ * backtrack and lookahead glyphs must be present for this dependency to apply
+ * (currently only populated for contextual GSUB substitutions).
  *
  * Get the values associated with a dependency entry for a glyph.
  * Dependencies are indexed sequentially starting from 0.
@@ -346,10 +351,11 @@ hb_depend_from_face (hb_face_t *face)
  * hb_codepoint_t dependent;
  * hb_tag_t layout_tag;
  * hb_codepoint_t ligature_set;
+ * hb_codepoint_t context_set;
  *
  * while (hb_depend_get_glyph_entry (depend, gid, index++,
  *                                    &table_tag, &dependent,
- *                                    &layout_tag, &ligature_set)) {
+ *                                    &layout_tag, &ligature_set, &context_set)) {
  *   // Process dependency...
  * }
  * ```
@@ -362,10 +368,10 @@ hb_bool_t
 hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
                           hb_codepoint_t index, hb_tag_t *table_tag,
                           hb_codepoint_t *dependent, hb_tag_t *layout_tag,
-                          hb_codepoint_t *ligature_set)
+                          hb_codepoint_t *ligature_set, hb_codepoint_t *context_set)
 {
   return depend->get_glyph_entry(gid, index, table_tag, dependent, layout_tag,
-                                 ligature_set);
+                                 ligature_set, context_set);
 }
 
 /**

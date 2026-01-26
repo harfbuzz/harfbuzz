@@ -109,33 +109,70 @@ struct hb_lookup_feature_record_t {
  */
 struct hb_depend_data_t
 {
-  hb_depend_data_t () {}
+  hb_depend_data_t ()
+#ifdef HB_DEPEND_API
+    : current_context_set_index (HB_CODEPOINT_INVALID)
+#endif
+  {}
 
   ~hb_depend_data_t () {}
 
   void free_set (hb_codepoint_t set_index)
   {
-    // Should only be called to free the most recently allocated set
-    if (set_index + 1 == sets.length) {
-      sets.resize(sets.length - 1);  // Pop it off
-    } else {
-      // Unexpected - freeing a set that's not the last one
-      DEBUG_MSG (SUBSET, nullptr, "Attempting to free set %u but last set is %u",
+    if (set_index >= sets.length)
+    {
+      DEBUG_MSG (SUBSET, nullptr, "Attempting to free invalid set %u (max is %u)",
                  set_index, sets.length - 1);
+      return;
     }
+
+    /* Add to free list for reuse */
+    free_set_list.push (set_index);
+
+    /* Clear the set to save memory */
+    sets[set_index].clear ();
   }
 
   hb_codepoint_t new_set (hb_codepoint_t cp)
   {
-    hb_codepoint_t set_index = sets.length;
-    sets.push(std::initializer_list<hb_codepoint_t>({cp}));
+    hb_codepoint_t set_index;
+
+    if (free_set_list.length > 0)
+    {
+      /* Reuse freed set */
+      set_index = free_set_list[free_set_list.length - 1];
+      free_set_list.resize (free_set_list.length - 1);
+      sets[set_index].clear ();
+      sets[set_index].add (cp);
+    }
+    else
+    {
+      /* Allocate new set */
+      set_index = sets.length;
+      sets.push (std::initializer_list<hb_codepoint_t>({cp}));
+    }
+
     return set_index;
   }
 
   hb_codepoint_t new_set (hb_set_t &set)
   {
-    hb_codepoint_t set_index = sets.length;
-    sets.push(set);
+    hb_codepoint_t set_index;
+
+    if (free_set_list.length > 0)
+    {
+      /* Reuse freed set */
+      set_index = free_set_list[free_set_list.length - 1];
+      free_set_list.resize (free_set_list.length - 1);
+      sets[set_index].set (set);
+    }
+    else
+    {
+      /* Allocate new set */
+      set_index = sets.length;
+      sets.push (set);
+    }
+
     return set_index;
   }
 
@@ -147,6 +184,140 @@ struct hb_depend_data_t
     // else error
     return set_index;
   }
+
+  /* Compute hash of a set's contents (for deduplication) */
+  uint64_t compute_set_hash (const hb_set_t &set) const
+  {
+    uint64_t hash = 0;
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    /* Need to use non-const iteration since next() modifies internal state */
+    hb_set_t temp_set;
+    temp_set.set (set);
+    while (temp_set.next (&cp))
+      hash = hash * 31 + hb_hash (cp);
+    return hash;
+  }
+
+  /* Find existing set with same contents, or create new one (with deduplication).
+   * Use this for context sets. For ligature sets, call new_set() directly. */
+  hb_codepoint_t find_or_create_set (const hb_set_t &set)
+  {
+    uint64_t hash = compute_set_hash (set);
+
+    /* Check if we already have this set */
+    if (set_hashes.has (hash))
+    {
+      hb_codepoint_t existing_idx = set_hashes.get (hash);
+      if (sets[existing_idx] == set)
+        return existing_idx;  /* Reuse existing set */
+
+      /* Hash collision - different set, same hash */
+      /* Fall through to create new set */
+    }
+
+    /* Create new set and store in hash table */
+    hb_codepoint_t new_idx = new_set (const_cast<hb_set_t&>(set));
+    set_hashes.set (hash, new_idx);
+    return new_idx;
+  }
+
+#ifdef HB_DEPEND_API
+  /* Build a context set from context information.
+   * Encodes backtrack and lookahead requirements as a flattened set.
+   * Returns HB_CODEPOINT_INVALID if no context.
+   *
+   * To ensure canonical encoding and avoid redundancy:
+   * 1. First pass: collect all direct (single-glyph) requirements
+   * 2. Second pass: create disjunction sets, subtracting direct requirements
+   * 3. Combine: add direct requirements and filtered disjunction references
+   */
+  hb_codepoint_t build_context_set (const hb_vector_t<hb_set_t> *backtrack_sets,
+                                     const hb_vector_t<hb_set_t> *lookahead_sets)
+  {
+    if ((!backtrack_sets || backtrack_sets->length == 0) &&
+        (!lookahead_sets || lookahead_sets->length == 0))
+      return HB_CODEPOINT_INVALID;
+
+    /* First pass: collect all direct (single-glyph) requirements */
+    hb_set_t direct_requirements;
+
+    if (backtrack_sets)
+    {
+      for (const auto &back_set : *backtrack_sets)
+      {
+        if (back_set.get_population () == 1)
+        {
+          hb_codepoint_t gid = back_set.get_min ();
+          direct_requirements.add (gid);
+        }
+      }
+    }
+
+    if (lookahead_sets)
+    {
+      for (const auto &look_set : *lookahead_sets)
+      {
+        if (look_set.get_population () == 1)
+        {
+          hb_codepoint_t gid = look_set.get_min ();
+          direct_requirements.add (gid);
+        }
+      }
+    }
+
+    /* Second pass: create disjunction sets, filtering out direct requirements */
+    hb_set_t context_elements;
+
+    if (backtrack_sets)
+    {
+      for (const auto &back_set : *backtrack_sets)
+      {
+        if (back_set.get_population () > 1)
+        {
+          /* Multiple glyphs - filter and create set reference */
+          hb_set_t filtered_set;
+          filtered_set.set (back_set);
+          filtered_set.subtract (direct_requirements);
+
+          if (!filtered_set.is_empty ())
+          {
+            hb_codepoint_t set_idx = find_or_create_set (filtered_set);
+            context_elements.add (0x80000000 | set_idx);
+          }
+        }
+      }
+    }
+
+    if (lookahead_sets)
+    {
+      for (const auto &look_set : *lookahead_sets)
+      {
+        if (look_set.get_population () > 1)
+        {
+          /* Multiple glyphs - filter and create set reference */
+          hb_set_t filtered_set;
+          filtered_set.set (look_set);
+          filtered_set.subtract (direct_requirements);
+
+          if (!filtered_set.is_empty ())
+          {
+            hb_codepoint_t set_idx = find_or_create_set (filtered_set);
+            context_elements.add (0x80000000 | set_idx);
+          }
+        }
+      }
+    }
+
+    /* Add direct requirements */
+    context_elements.union_ (direct_requirements);
+
+    if (context_elements.is_empty ())
+      return HB_CODEPOINT_INVALID;
+
+    /* Store context elements with deduplication */
+    return find_or_create_set (context_elements);
+  }
+#endif
 
   void print()
   {
@@ -174,7 +345,8 @@ struct hb_depend_data_t
                                               hb_tag_t table_tag,
                                               hb_tag_t layout_tag,
                                               hb_codepoint_t dependent,
-                                              hb_codepoint_t lig_set_index)
+                                              hb_codepoint_t lig_set_index,
+                                              hb_codepoint_t context_set_index)
   {
     hb_vector_t<uint32_t> components;
     components.push(source);
@@ -185,7 +357,21 @@ struct hb_depend_data_t
     // If there's a ligature set, add its contents in canonical order
     if (lig_set_index != HB_CODEPOINT_INVALID) {
       hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-      while (sets[lig_set_index].next(&cp)) {
+      /* Need temp copy because next() modifies iterator state */
+      hb_set_t temp_set;
+      temp_set.set (sets[lig_set_index]);
+      while (temp_set.next(&cp)) {
+        components.push(cp);
+      }
+    }
+
+    // If there's a context set, add its contents in canonical order
+    if (context_set_index != HB_CODEPOINT_INVALID) {
+      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+      /* Need temp copy because next() modifies iterator state */
+      hb_set_t temp_set;
+      temp_set.set (sets[context_set_index]);
+      while (temp_set.next(&cp)) {
         components.push(cp);
       }
     }
@@ -197,7 +383,8 @@ struct hb_depend_data_t
                              hb_tag_t table_tag,
                              hb_tag_t layout_tag,
                              hb_codepoint_t dependent,
-                             hb_codepoint_t lig_set_index)
+                             hb_codepoint_t lig_set_index,
+                             hb_codepoint_t context_set_index)
   {
     // Polynomial rolling hash with prime multiplier (31)
     uint64_t hash = hb_hash(source);
@@ -208,7 +395,21 @@ struct hb_depend_data_t
     // If there's a ligature set, incorporate its contents in canonical order
     if (lig_set_index != HB_CODEPOINT_INVALID) {
       hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-      while (sets[lig_set_index].next(&cp)) {
+      /* Need temp copy because next() modifies iterator state */
+      hb_set_t temp_set;
+      temp_set.set (sets[lig_set_index]);
+      while (temp_set.next(&cp)) {
+        hash = hash * 31 + hb_hash(cp);
+      }
+    }
+
+    // If there's a context set, incorporate its contents in canonical order
+    if (context_set_index != HB_CODEPOINT_INVALID) {
+      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+      /* Need temp copy because next() modifies iterator state */
+      hb_set_t temp_set;
+      temp_set.set (sets[context_set_index]);
+      while (temp_set.next(&cp)) {
         hash = hash * 31 + hb_hash(cp);
       }
     }
@@ -221,27 +422,40 @@ struct hb_depend_data_t
                    hb_tag_t layout_tag,
                    hb_codepoint_t dependent,
                    hb_codepoint_t lig_set,
+                   hb_codepoint_t context_set,
                    const hb_depend_data_record_t &existing)
   {
-    // Check basic fields (not including context_set)
+    // Check basic fields
     if (existing.table_tag != table_tag ||
         existing.layout_tag != layout_tag ||
         existing.dependent != dependent)
       return false;
 
     // Check ligature sets
-    if (existing.ligature_set == HB_CODEPOINT_INVALID && lig_set == HB_CODEPOINT_INVALID)
-      return true;
+    if (existing.ligature_set != lig_set)
+    {
+      if (existing.ligature_set == HB_CODEPOINT_INVALID || lig_set == HB_CODEPOINT_INVALID)
+        return false;
+      if (!(sets[existing.ligature_set] == sets[lig_set]))
+        return false;
+    }
 
-    if (existing.ligature_set != HB_CODEPOINT_INVALID && lig_set != HB_CODEPOINT_INVALID)
-      return sets[existing.ligature_set] == sets[lig_set];
+    // Check context sets
+    if (existing.context_set != context_set)
+    {
+      if (existing.context_set == HB_CODEPOINT_INVALID || context_set == HB_CODEPOINT_INVALID)
+        return false;
+      if (!(sets[existing.context_set] == sets[context_set]))
+        return false;
+    }
 
-    return false;
+    return true;
   }
 
   bool get_glyph_entry(hb_codepoint_t gid, hb_codepoint_t index,
                        hb_tag_t *table_tag, hb_codepoint_t *dependent,
-                       hb_tag_t *layout_tag, hb_codepoint_t *ligature_set)
+                       hb_tag_t *layout_tag, hb_codepoint_t *ligature_set,
+                       hb_codepoint_t *context_set)
   {
     if (gid < glyph_dependencies.length &&
         index < glyph_dependencies[gid].dependencies.length) {
@@ -250,6 +464,7 @@ struct hb_depend_data_t
       *dependent = d.dependent;
       *layout_tag = d.layout_tag;
       *ligature_set = d.ligature_set;
+      *context_set = d.context_set;
       return true;
     }
     return false;
@@ -276,11 +491,11 @@ struct hb_depend_data_t
       return false;
     }
 
-    // Compute edge hash for deduplication (without context_set)
-    uint64_t edge_hash = compute_edge_hash(target, table_tag, layout_tag, dependent, lig_set);
+    // Compute edge hash for deduplication (including context_set)
+    uint64_t edge_hash = compute_edge_hash(target, table_tag, layout_tag, dependent, lig_set, context_set);
 
     // Get component vector for this edge
-    auto new_components = get_edge_components(target, table_tag, layout_tag, dependent, lig_set);
+    auto new_components = get_edge_components(target, table_tag, layout_tag, dependent, lig_set, context_set);
 
     // Check if we've already seen this hash (O(1) hash table lookup)
     if (edge_hashes.has(edge_hash)) {
@@ -288,22 +503,14 @@ struct hb_depend_data_t
       const auto &stored_components = edge_hashes.get(edge_hash);
       bool components_match = (stored_components == new_components);
 
-      // DEBUG: Check if vector comparison might be wrong
-      if (components_match && stored_components.length != new_components.length) {
-        printf("[BUG] Vector lengths differ but comparison says equal! stored=%u new=%u\n",
-               (unsigned)stored_components.length, (unsigned)new_components.length);
-      }
-
       if (components_match) {
         return false;  // True duplicate - same hash, same components
       } else {
         // Hash collision! Same hash but different edge components
         // Fall back to O(n) search through this glyph's dependencies
-        // real_collisions++;  // TODO: Remove before production
-
         auto &gdr = glyph_dependencies[target];
         for (auto &dep : gdr.dependencies) {
-          if (edges_equal(target, table_tag, layout_tag, dependent, lig_set, dep)) {
+          if (edges_equal(target, table_tag, layout_tag, dependent, lig_set, context_set, dep)) {
             return false;  // Found via fallback
           }
         }
@@ -328,6 +535,12 @@ struct hb_depend_data_t
                         hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
                         hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
   {
+#ifdef HB_DEPEND_API
+    /* Use pre-computed context set index for the current rule */
+    if (context_set == HB_CODEPOINT_INVALID)
+      context_set = current_context_set_index;
+#endif
+
     bool any_added = false;
     for (auto t : lookup_features[lookup_index]) {
       if (add_depend_layout(target, HB_OT_TAG_GSUB, t, dependent, lig_set, context_set))
@@ -341,7 +554,7 @@ struct hb_depend_data_t
                    hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
                    hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
   {
-    add_depend_layout (target, table_tag, 0, dependent, lig_set,
+    add_depend_layout (target, table_tag, HB_CODEPOINT_INVALID, dependent, lig_set,
                        context_set);
   }
 
@@ -354,12 +567,23 @@ struct hb_depend_data_t
   hb_map_t nominal_glyphs;
 
   hb_vector_t<hb_set_t> sets;
+  hb_vector_t<hb_codepoint_t> free_set_list;  /* Indices of freed sets for reuse */
 
   hb_vector_t<hb_glyph_depend_record_t> glyph_dependencies;
   hb_vector_t<hb_set_t> lookup_features;
 
-  // Hash-based deduplication: edge hash -> component vector for collision detection
+  /* Hash-based deduplication: edge hash -> component vector for collision detection */
   hb_hashmap_t<uint64_t, hb_vector_t<uint32_t>> edge_hashes;
+
+  /* Set deduplication: set_hash -> set_index (for context sets) */
+  hb_hashmap_t<uint64_t, hb_codepoint_t> set_hashes;
+
+#ifdef HB_DEPEND_API
+  /* Temporary: Context set index for the current rule.
+   * Built once per rule by context_depend_lookup/chain_context_depend_lookup,
+   * then used by all edges recorded from nested lookups. */
+  hb_codepoint_t current_context_set_index;
+#endif
 };
 
 #endif /* HB_DEPEND_API */
