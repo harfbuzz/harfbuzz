@@ -28,7 +28,7 @@ jobs:
         shell: msys2 {0}
     steps:
     - name: Checkout
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     - name: Setup MSYS2
       uses: msys2/setup-msys2@cf96e00c0aab3788743aaf63b64146f0d383cee9 # v2
       with:
