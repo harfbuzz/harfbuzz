@@ -11,6 +11,17 @@
 #ifdef HB_DEPEND_API
 #include <hb.h>
 
+/* Debug messaging - follows HarfBuzz DEBUG_MSG pattern but simplified for fuzzer */
+#ifndef HB_DEBUG_DEPEND
+#define HB_DEBUG_DEPEND 1
+#endif
+
+#if HB_DEBUG_DEPEND
+#define DEBUG_MSG_DEPEND(msg, ...) fprintf (stderr, "%-10s" msg "\n", "DEPEND", ##__VA_ARGS__)
+#else
+#define DEBUG_MSG_DEPEND(msg, ...) do {} while (0)
+#endif
+
 /* Globals for configuration (set by main() in standalone mode) */
 const char *_hb_depend_fuzzer_current_font_path = NULL;
 unsigned _hb_depend_fuzzer_seed = 0;
@@ -18,7 +29,20 @@ uint64_t _hb_depend_fuzzer_single_test = 0;  /* Specific test to run, or 0 for a
 unsigned _hb_depend_fuzzer_num_tests = 1024; /* Number of tests to run */
 bool _hb_depend_fuzzer_verbose = false;
 bool _hb_depend_fuzzer_report_over_approximation = false;
-hb_codepoint_t _hb_depend_fuzzer_debug_gid = HB_CODEPOINT_INVALID;  /* Specific glyph to debug */
+bool _hb_depend_fuzzer_report_under_approximation = false;
+float _hb_depend_fuzzer_inject_over_approx = 0.0f;
+float _hb_depend_fuzzer_inject_under_approx = 0.0f;
+
+/* Explicit test mode */
+bool _hb_depend_fuzzer_explicit_test = false;
+const char *_hb_depend_fuzzer_explicit_unicodes = NULL;
+const char *_hb_depend_fuzzer_explicit_gids = NULL;
+bool _hb_depend_fuzzer_explicit_no_layout_closure = false;
+const char *_hb_depend_fuzzer_explicit_layout_features = NULL;
+
+/* Debug control (only used when HB_DEBUG_DEPEND > 0) */
+static hb_codepoint_t debug_gid = HB_CODEPOINT_INVALID;  /* Specific glyph to debug */
+static bool trace_closure = false;  /* Trace closure computation in detail */
 
 static bool config_initialized = false;
 
@@ -34,10 +58,15 @@ init_fuzzer_config ()
   /* Initialize RNG with seed (already set by main or defaulted to random) */
   srand (_hb_depend_fuzzer_seed);
 
-  /* Check for debug glyph ID */
+  /* Check for debug glyph ID (only used when HB_DEBUG_DEPEND > 0) */
   const char *debug_gid_str = getenv ("HB_DEPEND_FUZZER_DEBUG_GID");
   if (debug_gid_str)
-    _hb_depend_fuzzer_debug_gid = (hb_codepoint_t) strtoul (debug_gid_str, NULL, 0);
+    debug_gid = (hb_codepoint_t) strtoul (debug_gid_str, NULL, 0);
+
+  /* Check for closure tracing (only used when HB_DEBUG_DEPEND > 0) */
+  const char *trace_closure_str = getenv ("HB_DEPEND_FUZZER_TRACE_CLOSURE");
+  if (trace_closure_str && strcmp (trace_closure_str, "1") == 0)
+    trace_closure = true;
 }
 
 /* Simple RNG helpers */
@@ -101,6 +130,175 @@ rng_select_from_set (hb_set_t *out, unsigned n, const hb_set_t *source)
   free (array);
 }
 
+/* Forward declaration */
+static hb_set_t * get_gsub_features (hb_face_t *face);
+
+/* Parse comma-separated list of unicodes (U+XXXX, decimal, or ranges) into a set */
+static bool
+parse_unicodes (const char *str, hb_set_t *unicodes)
+{
+  if (!str || !*str)
+    return false;
+
+  const char *p = str;
+  while (*p)
+  {
+    /* Skip whitespace and commas */
+    while (*p == ' ' || *p == ',')
+      p++;
+    if (!*p)
+      break;
+
+    /* Parse unicode value (U+XXXX or decimal) */
+    const char *start = p;
+    hb_codepoint_t start_cp;
+    if (*p == 'U' && *(p + 1) == '+')
+    {
+      /* U+XXXX format */
+      start_cp = (hb_codepoint_t) strtoul (p + 2, (char **) &p, 16);
+    }
+    else
+    {
+      /* Decimal format */
+      start_cp = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
+    }
+
+    /* Check if parsing advanced (avoid infinite loop on invalid input) */
+    if (p == start || (p == start + 2 && start[0] == 'U' && start[1] == '+'))
+    {
+      fprintf (stderr, "Error: Invalid unicode value at: %.20s\n", start);
+      return false;
+    }
+
+    /* Check for range */
+    if (*p == '-')
+    {
+      p++;
+      const char *end_start = p;
+      hb_codepoint_t end_cp;
+      if (*p == 'U' && *(p + 1) == '+')
+        end_cp = (hb_codepoint_t) strtoul (p + 2, (char **) &p, 16);
+      else
+        end_cp = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
+
+      /* Check if parsing advanced */
+      if (p == end_start || (p == end_start + 2 && end_start[0] == 'U' && end_start[1] == '+'))
+      {
+        fprintf (stderr, "Error: Invalid unicode value in range at: %.20s\n", end_start);
+        return false;
+      }
+
+      hb_set_add_range (unicodes, start_cp, end_cp);
+    }
+    else
+    {
+      hb_set_add (unicodes, start_cp);
+    }
+  }
+
+  return !hb_set_is_empty (unicodes);
+}
+
+/* Parse comma-separated list of glyph IDs (decimal or ranges) into a set */
+static bool
+parse_gids (const char *str, hb_set_t *gids)
+{
+  if (!str || !*str)
+    return false;
+
+  const char *p = str;
+  while (*p)
+  {
+    /* Skip whitespace and commas */
+    while (*p == ' ' || *p == ',')
+      p++;
+    if (!*p)
+      break;
+
+    /* Parse glyph ID */
+    const char *start = p;
+    hb_codepoint_t start_gid = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
+
+    /* Check if parsing advanced (avoid infinite loop on invalid input) */
+    if (p == start)
+    {
+      fprintf (stderr, "Error: Invalid glyph ID at: %.20s\n", start);
+      return false;
+    }
+
+    /* Check for range */
+    if (*p == '-')
+    {
+      p++;
+      const char *end_start = p;
+      hb_codepoint_t end_gid = (hb_codepoint_t) strtoul (p, (char **) &p, 10);
+
+      /* Check if parsing advanced */
+      if (p == end_start)
+      {
+        fprintf (stderr, "Error: Invalid glyph ID in range at: %.20s\n", end_start);
+        return false;
+      }
+
+      hb_set_add_range (gids, start_gid, end_gid);
+    }
+    else
+    {
+      hb_set_add (gids, start_gid);
+    }
+  }
+
+  return !hb_set_is_empty (gids);
+}
+
+/* Parse comma-separated list of feature tags into a set
+ * Special value "*" means all features */
+static bool
+parse_features (const char *str, hb_set_t *features, hb_face_t *face)
+{
+  if (!str || !*str)
+    return false;
+
+  /* Check for special "*" value (all features) */
+  if (strcmp (str, "*") == 0)
+  {
+    /* Get all GSUB features */
+    hb_set_t *all_features = get_gsub_features (face);
+    hb_set_union (features, all_features);
+    hb_set_destroy (all_features);
+    return true;
+  }
+
+  const char *p = str;
+  while (*p)
+  {
+    /* Skip whitespace and commas */
+    while (*p == ' ' || *p == ',')
+      p++;
+    if (!*p)
+      break;
+
+    /* Parse 4-character tag */
+    char tag_str[5] = {0};
+    int i = 0;
+    while (*p && *p != ',' && *p != ' ' && i < 4)
+      tag_str[i++] = *p++;
+
+    if (i > 0)
+    {
+      /* Pad with spaces if needed */
+      while (i < 4)
+        tag_str[i++] = ' ';
+      tag_str[4] = '\0';
+
+      hb_tag_t tag = HB_TAG (tag_str[0], tag_str[1], tag_str[2], tag_str[3]);
+      hb_set_add (features, tag);
+    }
+  }
+
+  return !hb_set_is_empty (features);
+}
+
 /* Test parameters generated from a 64-bit seed */
 struct test_params
 {
@@ -137,6 +335,82 @@ get_gsub_features (hb_face_t *face)
   }
 
   return features;
+}
+
+/* Generate test parameters from explicit command-line arguments */
+static test_params
+generate_test_from_explicit (hb_face_t *face, hb_font_t *font)
+{
+  test_params params;
+  params.glyphs = hb_set_create ();
+  params.codepoints = NULL;
+  params.features = NULL;
+  params.target_size = 0;
+
+  /* Parse unicodes or gids */
+  if (_hb_depend_fuzzer_explicit_unicodes)
+  {
+    /* GSUB test mode with unicodes */
+    params.is_gsub = true;
+    params.codepoints = hb_set_create ();
+
+    if (!parse_unicodes (_hb_depend_fuzzer_explicit_unicodes, params.codepoints))
+    {
+      fprintf (stderr, "Error: Failed to parse --unicodes argument\n");
+      hb_set_destroy (params.glyphs);
+      hb_set_destroy (params.codepoints);
+      params.glyphs = NULL;
+      params.codepoints = NULL;
+      return params;
+    }
+
+    /* Map codepoints to glyphs */
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    while (hb_set_next (params.codepoints, &cp))
+    {
+      hb_codepoint_t gid;
+      if (hb_font_get_nominal_glyph (font, cp, &gid))
+        hb_set_add (params.glyphs, gid);
+    }
+
+    params.target_size = hb_set_get_population (params.codepoints);
+  }
+  else if (_hb_depend_fuzzer_explicit_gids)
+  {
+    /* Non-GSUB test mode with glyph IDs */
+    params.is_gsub = !_hb_depend_fuzzer_explicit_no_layout_closure;
+
+    if (!parse_gids (_hb_depend_fuzzer_explicit_gids, params.glyphs))
+    {
+      fprintf (stderr, "Error: Failed to parse --gids argument\n");
+      hb_set_destroy (params.glyphs);
+      params.glyphs = NULL;
+      return params;
+    }
+
+    params.target_size = hb_set_get_population (params.glyphs);
+  }
+  else
+  {
+    fprintf (stderr, "Error: Explicit mode requires --unicodes or --gids\n");
+    hb_set_destroy (params.glyphs);
+    params.glyphs = NULL;
+    return params;
+  }
+
+  /* Parse layout features if specified */
+  if (_hb_depend_fuzzer_explicit_layout_features)
+  {
+    params.features = hb_set_create ();
+    if (!parse_features (_hb_depend_fuzzer_explicit_layout_features, params.features, face))
+    {
+      fprintf (stderr, "Error: Failed to parse --layout-features argument\n");
+      hb_set_destroy (params.features);
+      params.features = NULL;
+    }
+  }
+
+  return params;
 }
 
 /* Generate a test from a 64-bit seed
@@ -344,49 +618,128 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
  * battle-tested subset closure implementation.
  */
 
-/* Compute closure using depend API by following the dependency graph
- * skip_gsub: if true, skip GSUB dependencies to match subset behavior
- * (subset doesn't follow GSUB when starting with glyph IDs)
- * active_features: if non-NULL, only follow GSUB dependencies from these features */
-static void
-compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
-                        hb_set_t *active_features)
+/* Check if context requirements are satisfied
+ *
+ * Context sets encode which backtrack and lookahead glyphs must be present
+ * for a dependency edge to apply. Elements in the context set can be:
+ * - Direct GID reference (value < 0x80000000): that specific glyph must be in closure
+ * - Indirect set reference (value >= 0x80000000): at least one glyph from that set must be in closure
+ *
+ * Returns true if ALL context requirements are met, false otherwise.
+ */
+static bool
+check_context_satisfied (hb_depend_t *depend,
+                         hb_codepoint_t context_set_idx,
+                         hb_set_t *current_closure)
 {
-  if (_hb_depend_fuzzer_debug_gid != HB_CODEPOINT_INVALID)
+  if (context_set_idx == HB_CODEPOINT_INVALID)
+    return true;  /* No context requirements */
+
+  hb_set_t *context_elements = hb_set_create ();
+  if (!hb_depend_get_set_from_index (depend, context_set_idx, context_elements))
   {
-    fprintf (stderr, "[DEBUG] Starting closure, glyph %u %s in initial set\n",
-             _hb_depend_fuzzer_debug_gid,
-             hb_set_has (glyphs, _hb_depend_fuzzer_debug_gid) ? "IS" : "is NOT");
+    hb_set_destroy (context_elements);
+    return true;  /* Invalid context set, don't filter */
   }
 
-  hb_set_t *to_process = hb_set_create ();
-  hb_set_union (to_process, glyphs);
+  bool satisfied = true;
+  hb_codepoint_t elem = HB_SET_VALUE_INVALID;
+  while (hb_set_next (context_elements, &elem))
+  {
+    if (elem < 0x80000000)
+    {
+      /* Direct GID reference - this specific glyph must be present */
+      if (!hb_set_has (current_closure, elem))
+      {
+        satisfied = false;
+        break;
+      }
+    }
+    else
+    {
+      /* Indirect set reference - at least one glyph from this set must be present */
+      hb_codepoint_t set_idx = elem & 0x7FFFFFFF;
+      hb_set_t *required_glyphs = hb_set_create ();
 
-  /* Track ligature glyph IDs separately for deferred processing */
-  hb_set_t *deferred_ligatures = hb_set_create ();
+      if (!hb_depend_get_set_from_index (depend, set_idx, required_glyphs))
+      {
+        hb_set_destroy (required_glyphs);
+        continue;  /* Invalid set reference, skip this requirement */
+      }
 
-  /* Phase 1: Process non-ligature dependencies normally */
+      /* Check if ANY glyph from required_glyphs is in current_closure */
+      bool any_present = false;
+      hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+      while (hb_set_next (required_glyphs, &gid))
+      {
+        if (hb_set_has (current_closure, gid))
+        {
+          any_present = true;
+          break;
+        }
+      }
+
+      hb_set_destroy (required_glyphs);
+
+      if (!any_present)
+      {
+        satisfied = false;
+        break;
+      }
+    }
+  }
+
+  hb_set_destroy (context_elements);
+  return satisfied;
+}
+
+/* Helper: Process edges for specific table(s)
+ * table_filter: if non-NULL, only process edges from these tables
+ * Returns: true if any new glyphs were added */
+static bool
+process_edges_for_tables (hb_depend_t *depend,
+                          hb_set_t *glyphs,
+                          hb_set_t *to_process,
+                          hb_set_t *deferred_ligatures,
+                          hb_set_t *table_filter,
+                          bool skip_gsub,
+                          hb_set_t *active_features)
+{
+  bool added_any = false;
+
   while (!hb_set_is_empty (to_process))
   {
     hb_codepoint_t gid = hb_set_get_min (to_process);
     hb_set_del (to_process, gid);
 
-    if (gid == _hb_depend_fuzzer_debug_gid)
-      fprintf (stderr, "[DEBUG] Processing glyph %u\n", gid);
+    if (gid == debug_gid)
+      DEBUG_MSG_DEPEND("Processing glyph %u", gid);
 
     hb_codepoint_t index = 0;
     hb_tag_t table_tag;
     hb_codepoint_t dependent;
     hb_tag_t layout_tag;
     hb_codepoint_t ligature_set;
+    hb_codepoint_t context_set;
 
     while (hb_depend_get_glyph_entry (depend, gid, index++,
                                       &table_tag, &dependent,
-                                      &layout_tag, &ligature_set))
+                                      &layout_tag, &ligature_set, &context_set))
     {
-      if (dependent == _hb_depend_fuzzer_debug_gid || gid == _hb_depend_fuzzer_debug_gid)
-        fprintf (stderr, "[DEBUG] Edge: %u -> %u (table=%c%c%c%c, ligset=%u)\n",
-                 gid, dependent, HB_UNTAG(table_tag), ligature_set);
+      /* Debug: trace all edges involving our debug glyph */
+      if (debug_gid != HB_CODEPOINT_INVALID &&
+          (gid == debug_gid || dependent == debug_gid))
+        DEBUG_MSG_DEPEND("Considering edge: %u -> %u (feature=%c%c%c%c, ctx=%u)",
+                   gid, dependent, HB_UNTAG(layout_tag), context_set);
+
+      /* Filter by table if requested */
+      if (table_filter && !hb_set_has (table_filter, table_tag))
+        continue;
+
+      if (dependent == debug_gid || gid == debug_gid)
+        DEBUG_MSG_DEPEND("Edge: %u -> %u (table=%c%c%c%c, ligset=%u)",
+                   gid, dependent, HB_UNTAG(table_tag), ligature_set);
+
       /* Skip GSUB dependencies if requested (to match subset behavior) */
       if (skip_gsub && table_tag == HB_OT_TAG_GSUB)
         continue;
@@ -395,7 +748,48 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
       if (active_features && table_tag == HB_OT_TAG_GSUB)
       {
         if (!hb_set_has (active_features, layout_tag))
-          continue; /* Skip dependencies from inactive features */
+        {
+          /* Over-approximation injection: sometimes follow inactive feature edges */
+          bool skip_feature_check = false;
+          if (_hb_depend_fuzzer_inject_over_approx > 0.0f) {
+            float r = (float)rand() / (float)RAND_MAX;
+            if (r < _hb_depend_fuzzer_inject_over_approx) {
+              skip_feature_check = true;
+            }
+          }
+
+          if (!skip_feature_check)
+          {
+            if (dependent == debug_gid)
+              DEBUG_MSG_DEPEND("Skipping edge %u -> %u: feature %c%c%c%c not active",
+                         gid, dependent, HB_UNTAG(layout_tag));
+            continue; /* Skip dependencies from inactive features */
+          }
+        }
+      }
+
+      /* Check context requirements - skip edge if context not satisfied */
+      if (context_set != HB_CODEPOINT_INVALID)
+      {
+        if (!check_context_satisfied (depend, context_set, glyphs))
+        {
+          /* Over-approximation injection: sometimes follow edges with unsatisfied context */
+          bool skip_context_check = false;
+          if (_hb_depend_fuzzer_inject_over_approx > 0.0f) {
+            float r = (float)rand() / (float)RAND_MAX;
+            if (r < _hb_depend_fuzzer_inject_over_approx) {
+              skip_context_check = true;
+            }
+          }
+
+          if (!skip_context_check)
+          {
+            if (dependent == debug_gid)
+              DEBUG_MSG_DEPEND("Skipping edge %u -> %u: context not satisfied (ctx_set=%u)",
+                         gid, dependent, context_set);
+            continue;  /* Context requirements not met, skip this edge */
+          }
+        }
       }
 
       /* Check if this is a ligature dependency (has a ligature set) */
@@ -408,158 +802,230 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
       }
       else
       {
+        /* Under-approximation injection: randomly skip following this edge */
+        if (_hb_depend_fuzzer_inject_under_approx > 0.0f) {
+          float r = (float)rand() / (float)RAND_MAX;
+          if (r < _hb_depend_fuzzer_inject_under_approx) {
+            /* Skip this edge to inject under-approximation */
+            continue;
+          }
+        }
+
         /* Non-ligature dependency: add immediately */
         if (!hb_set_has (glyphs, dependent))
         {
-          if (dependent == _hb_depend_fuzzer_debug_gid)
-            fprintf (stderr, "[DEBUG] Adding glyph %u to closure (from %u)\n", dependent, gid);
+          if (dependent == debug_gid)
+            DEBUG_MSG_DEPEND("Adding glyph %u to closure (from %u, feature=%c%c%c%c, ctx=%u)",
+                       dependent, gid, HB_UNTAG(layout_tag), context_set);
+          if (trace_closure)
+            DEBUG_MSG_DEPEND("Depend: %u -> %u (table=%c%c%c%c, feature=%c%c%c%c)",
+                       gid, dependent, HB_UNTAG(table_tag), HB_UNTAG(layout_tag));
           hb_set_add (glyphs, dependent);
           hb_set_add (to_process, dependent);
+          added_any = true;
         }
       }
     }
   }
 
-  /* Phase 2: Process deferred ligatures iteratively
-   * Only add a ligature when ALL glyphs in its ligature set are in closure */
+  return added_any;
+}
+
+/* Compute closure using depend API by following the dependency graph
+ * skip_gsub: if true, skip GSUB dependencies to match subset behavior
+ * (subset doesn't follow GSUB when starting with glyph IDs)
+ * active_features: if non-NULL, only follow GSUB dependencies from these features */
+static void
+compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
+                        hb_set_t *active_features)
+{
+  if (debug_gid != HB_CODEPOINT_INVALID)
+  {
+    DEBUG_MSG_DEPEND("Starting closure, glyph %u %s in initial set",
+               debug_gid,
+               hb_set_has (glyphs, debug_gid) ? "IS" : "is NOT");
+  }
+
+  if (trace_closure)
+  {
+    hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+    fprintf (stderr, "DEPEND: Initial set:");
+    while (hb_set_next (glyphs, &gid))
+      fprintf (stderr, " %u", gid);
+    fprintf (stderr, "\n");
+  }
+
+  hb_set_t *to_process = hb_set_create ();
+  hb_set_t *deferred_ligatures = hb_set_create ();
+
+  /* Process edges in stages matching subset's table order:
+   * 1. GSUB (iterate internally until stable - handles context dependencies)
+   * 2. MATH (on glyphs from GSUB)
+   * 3. COLR (on glyphs from GSUB+MATH)
+   * 4. glyf/CFF (on glyphs from GSUB+MATH+COLR)
+   *
+   * No loop back to GSUB after glyf/CFF - glyf components are rendering
+   * implementation details, not shaping inputs. Subset doesn't loop back either. */
+
+  /* Helper sets for ligature processing (used in GSUB stage) */
   hb_set_t *ligature_set_glyphs = hb_set_create ();
   hb_set_t *ligatures_to_remove = hb_set_create ();
-  bool made_progress = true;
 
-  while (made_progress && !hb_set_is_empty (deferred_ligatures))
   {
-    made_progress = false;
-    hb_set_clear (ligatures_to_remove);
+    /* Stage 1: GSUB closure - iterate until stable (like subset does internally)
+     * Ligatures are processed HERE as part of GSUB, not after glyf/CFF.
+     * This matches subset behavior where GSUB closure completes before glyf. */
+    if (!skip_gsub)
+  {
+    hb_set_t *gsub_filter = hb_set_create ();
+    hb_set_add (gsub_filter, HB_OT_TAG_GSUB);
 
-    hb_codepoint_t lig_glyph = HB_SET_VALUE_INVALID;
-    while (hb_set_next (deferred_ligatures, &lig_glyph))
-    {
-      /* A ligature may appear in multiple ligature sets (different component combinations).
-       * We need to check ALL ligature sets and add the ligature if ANY set is satisfied.
-       * Example: uni1FFC can be formed by Omega+uni1FBE OR Omega+uni0345 */
-      bool found_any_ligature_set = false;
-      bool any_set_satisfied = false;
+    unsigned prev_gsub_count;
+    unsigned iteration = 0;
+    do {
+      prev_gsub_count = hb_set_get_population (glyphs);
 
-      /* Scan through all glyphs to find ALL ligature sets that produce this ligature */
-      hb_codepoint_t src_glyph = HB_SET_VALUE_INVALID;
-      while (hb_set_next (glyphs, &src_glyph))
+      /* Process non-ligature GSUB edges */
+      hb_set_union (to_process, glyphs);
+      process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
+                                gsub_filter, skip_gsub, active_features);
+
+      /* Process deferred ligatures (GSUB ligatures only)
+       * Only add a ligature when ALL glyphs in its ligature set are in closure */
+      bool lig_made_progress = true;
+      while (lig_made_progress && !hb_set_is_empty (deferred_ligatures))
       {
-        hb_codepoint_t idx = 0;
-        hb_tag_t ttag;
-        hb_codepoint_t dep;
-        hb_tag_t ltag;
-        hb_codepoint_t ligset;
+        lig_made_progress = false;
+        hb_set_clear (ligatures_to_remove);
 
-        while (hb_depend_get_glyph_entry (depend, src_glyph, idx++,
-                                          &ttag, &dep, &ltag, &ligset))
+        hb_codepoint_t lig_glyph = HB_SET_VALUE_INVALID;
+        while (hb_set_next (deferred_ligatures, &lig_glyph))
         {
-          if (dep == lig_glyph && ligset != HB_CODEPOINT_INVALID)
+          bool any_set_satisfied = false;
+
+          /* Scan through glyphs in closure to find ligature sets */
+          hb_codepoint_t src_glyph = HB_SET_VALUE_INVALID;
+          while (hb_set_next (glyphs, &src_glyph))
           {
-            found_any_ligature_set = true;
-
-            /* Check if this particular ligature set is satisfied */
-            hb_set_clear (ligature_set_glyphs);
-            hb_depend_get_set_from_index (depend, ligset, ligature_set_glyphs);
-
-            if (hb_set_is_subset (ligature_set_glyphs, glyphs))
-            {
-              /* This ligature set is satisfied - we can add the ligature */
-              any_set_satisfied = true;
-              break;
-            }
-          }
-        }
-        if (any_set_satisfied)
-          break;
-      }
-
-      if (!found_any_ligature_set)
-      {
-        /* No ligature set found at all, remove from deferred */
-        hb_set_add (ligatures_to_remove, lig_glyph);
-        continue;
-      }
-
-      /* If any ligature set was satisfied, add the ligature to closure */
-      if (any_set_satisfied)
-      {
-        /* All components present - add the ligature to closure */
-        if (!hb_set_has (glyphs, lig_glyph))
-        {
-          hb_set_add (glyphs, lig_glyph);
-
-          /* Process the ligature's non-ligature dependencies */
-          hb_codepoint_t index = 0;
-          hb_tag_t table_tag;
-          hb_codepoint_t dependent;
-          hb_tag_t layout_tag;
-          hb_codepoint_t ligature_set_id;
-
-          while (hb_depend_get_glyph_entry (depend, lig_glyph, index++,
-                                            &table_tag, &dependent,
-                                            &layout_tag, &ligature_set_id))
-          {
-            /* Only process non-ligature dependencies */
-            if (ligature_set_id == HB_CODEPOINT_INVALID)
-            {
-              if (!hb_set_has (glyphs, dependent))
-              {
-                hb_set_add (glyphs, dependent);
-                hb_set_add (to_process, dependent);
-              }
-            }
-          }
-
-          /* Process newly added non-ligature dependencies */
-          while (!hb_set_is_empty (to_process))
-          {
-            hb_codepoint_t gid = hb_set_get_min (to_process);
-            hb_set_del (to_process, gid);
-
             hb_codepoint_t idx = 0;
             hb_tag_t ttag;
             hb_codepoint_t dep;
             hb_tag_t ltag;
             hb_codepoint_t ligset;
+            hb_codepoint_t ctxset;
 
-            while (hb_depend_get_glyph_entry (depend, gid, idx++,
-                                              &ttag, &dep, &ltag, &ligset))
+            while (hb_depend_get_glyph_entry (depend, src_glyph, idx++,
+                                              &ttag, &dep, &ltag, &ligset, &ctxset))
             {
-              /* Skip GSUB if requested */
-              if (skip_gsub && ttag == HB_OT_TAG_GSUB)
-                continue;
-
-              /* Filter by active features */
-              if (active_features && ttag == HB_OT_TAG_GSUB)
+              if (dep == lig_glyph && ligset != HB_CODEPOINT_INVALID && ttag == HB_OT_TAG_GSUB)
               {
-                if (!hb_set_has (active_features, ltag))
-                  continue;
-              }
+                /* Check if this ligature set is satisfied */
+                hb_set_clear (ligature_set_glyphs);
+                hb_depend_get_set_from_index (depend, ligset, ligature_set_glyphs);
 
-              /* Only follow non-ligature dependencies */
-              if (ligset == HB_CODEPOINT_INVALID)
-              {
-                if (!hb_set_has (glyphs, dep))
+                if (hb_set_is_subset (ligature_set_glyphs, glyphs))
                 {
-                  hb_set_add (glyphs, dep);
-                  hb_set_add (to_process, dep);
+                  any_set_satisfied = true;
+                  break;
                 }
               }
             }
+            if (any_set_satisfied)
+              break;
           }
 
-          made_progress = true;
+          /* Over-approximation injection: sometimes add ligature even when components NOT satisfied */
+          if (!any_set_satisfied && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
+            float r = (float)rand() / (float)RAND_MAX;
+            if (r < _hb_depend_fuzzer_inject_over_approx) {
+              any_set_satisfied = true;  /* Pretend it's satisfied */
+            }
+          }
+
+          if (any_set_satisfied)
+          {
+            /* Under-approximation injection: randomly skip adding ligature */
+            bool skip_ligature = false;
+            if (_hb_depend_fuzzer_inject_under_approx > 0.0f) {
+              float r = (float)rand() / (float)RAND_MAX;
+              if (r < _hb_depend_fuzzer_inject_under_approx) {
+                skip_ligature = true;
+              }
+            }
+
+            if (!skip_ligature && !hb_set_has (glyphs, lig_glyph))
+            {
+              if (trace_closure)
+                DEBUG_MSG_DEPEND("Adding GSUB ligature %u (components satisfied)", lig_glyph);
+              hb_set_add (glyphs, lig_glyph);
+              lig_made_progress = true;
+            }
+            hb_set_add (ligatures_to_remove, lig_glyph);
+          }
         }
 
-        /* Mark this ligature for removal from deferred list */
-        hb_set_add (ligatures_to_remove, lig_glyph);
+        hb_set_subtract (deferred_ligatures, ligatures_to_remove);
       }
-    }
 
-    /* Remove processed ligatures from deferred set */
-    hb_set_subtract (deferred_ligatures, ligatures_to_remove);
+      iteration++;
+    } while (hb_set_get_population (glyphs) > prev_gsub_count && iteration < 64);
+
+    hb_set_destroy (gsub_filter);
+
+    if (trace_closure)
+      DEBUG_MSG_DEPEND("After GSUB (%u iterations): closure has %u glyphs",
+                 iteration, hb_set_get_population (glyphs));
   }
 
+  /* Stage 2: MATH closure */
+  {
+    hb_set_t *math_filter = hb_set_create ();
+    hb_set_add (math_filter, HB_OT_TAG_MATH);
+
+    hb_set_union (to_process, glyphs);
+    process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
+                              math_filter, skip_gsub, active_features);
+    hb_set_destroy (math_filter);
+
+    if (trace_closure)
+      DEBUG_MSG_DEPEND("After MATH: closure has %u glyphs",
+                 hb_set_get_population (glyphs));
+  }
+
+  /* Stage 3: COLR closure */
+  {
+    hb_set_t *colr_filter = hb_set_create ();
+    hb_set_add (colr_filter, HB_TAG('C','O','L','R'));
+
+    hb_set_union (to_process, glyphs);
+    process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
+                              colr_filter, skip_gsub, active_features);
+    hb_set_destroy (colr_filter);
+
+    if (trace_closure)
+      DEBUG_MSG_DEPEND("After COLR: closure has %u glyphs",
+                 hb_set_get_population (glyphs));
+  }
+
+  /* Stage 4: glyf/CFF closure */
+  {
+    hb_set_t *glyf_filter = hb_set_create ();
+    hb_set_add (glyf_filter, HB_TAG('g','l','y','f'));
+    hb_set_add (glyf_filter, HB_TAG('C','F','F',' '));
+    hb_set_add (glyf_filter, HB_TAG('c','m','a','p'));  /* Include cmap for UVS */
+
+    hb_set_union (to_process, glyphs);
+    process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
+                              glyf_filter, skip_gsub, active_features);
+    hb_set_destroy (glyf_filter);
+
+    if (trace_closure)
+      DEBUG_MSG_DEPEND("After glyf/CFF: closure has %u glyphs",
+                 hb_set_get_population (glyphs));
+  }
+  }  /* End table stages */
+
+  /* Cleanup */
   hb_set_destroy (ligatures_to_remove);
   hb_set_destroy (ligature_set_glyphs);
   hb_set_destroy (deferred_ligatures);
@@ -634,11 +1100,11 @@ compute_subset_closure (hb_face_t *face, hb_set_t *glyphs, bool skip_gsub,
   while (hb_map_next (glyph_map, &idx, &key, &value))
     hb_set_add (glyphs, key);
 
-  if (_hb_depend_fuzzer_debug_gid != HB_CODEPOINT_INVALID)
+  if (debug_gid != HB_CODEPOINT_INVALID)
   {
-    fprintf (stderr, "[DEBUG] Subset closure %s glyph %u\n",
-             hb_set_has (glyphs, _hb_depend_fuzzer_debug_gid) ? "INCLUDES" : "does not include",
-             _hb_depend_fuzzer_debug_gid);
+    DEBUG_MSG_DEPEND("Subset closure %s glyph %u",
+               hb_set_has (glyphs, debug_gid) ? "INCLUDES" : "does not include",
+               debug_gid);
   }
 
   hb_subset_plan_destroy (plan);
@@ -729,21 +1195,37 @@ compare_closures (hb_face_t *face, hb_depend_t *depend,
    * This will replace subset_closure with the actual closure. */
   compute_subset_closure (face, subset_closure, skip_gsub, codepoints, active_features);
 
+  if (trace_closure)
+  {
+    DEBUG_MSG_DEPEND("Subset: Final closure has %u glyphs, checking for 82 and 124...",
+               hb_set_get_population (subset_closure));
+    DEBUG_MSG_DEPEND("Subset: glyph 82 ('o') %s in closure",
+               hb_set_has (subset_closure, 82) ? "IS" : "is NOT");
+    DEBUG_MSG_DEPEND("Subset: glyph 124 (ordmasculine) %s in closure",
+               hb_set_has (subset_closure, 124) ? "IS" : "is NOT");
+  }
+
   /* Extract starting glyphs from subset's closure for fair comparison.
-   * For GSUB tests starting from codepoints, subset internally maps them to glyphs
-   * which may differ from our fuzzer's mapping. We need to use subset's starting
-   * glyphs to ensure both methods start from the same point. */
+   * For GSUB tests starting from codepoints, we need to map codepoints to glyphs
+   * using ONLY cmap (not glyf/COLR/MATH), matching subset's order. */
   hb_set_t *actual_start_glyphs = hb_set_create ();
 
-  /* Find glyphs that are in subset_closure.
-   * For GSUB tests, this includes glyphs mapped from input codepoints.
-   * We'll temporarily compute without GSUB to get just the starting glyphs. */
+  /* For GSUB tests, map codepoints to glyphs via cmap only */
   if (is_gsub && codepoints && !hb_set_is_empty (codepoints))
   {
-    hb_set_t *temp_closure = hb_set_create ();
-    compute_subset_closure (face, temp_closure, true /* skip GSUB */, codepoints, NULL);
-    hb_set_union (actual_start_glyphs, temp_closure);
-    hb_set_destroy (temp_closure);
+    /* Add .notdef */
+    hb_set_add (actual_start_glyphs, 0);
+
+    /* Map each codepoint to its glyph via cmap */
+    hb_font_t *font = hb_font_create (face);
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    while (hb_set_next (codepoints, &cp))
+    {
+      hb_codepoint_t gid;
+      if (hb_font_get_nominal_glyph (font, cp, &gid))
+        hb_set_add (actual_start_glyphs, gid);
+    }
+    hb_font_destroy (font);
   }
   else
   {
@@ -760,6 +1242,24 @@ compare_closures (hb_face_t *face, hb_depend_t *depend,
   hb_set_add (depend_closure, 0);
 
   /* Run depend with same active features as subset */
+  if (debug_gid != HB_CODEPOINT_INVALID && active_features)
+  {
+    hb_codepoint_t feat = HB_SET_VALUE_INVALID;
+    fprintf (stderr, "DEPEND: Active features (%u):", hb_set_get_population (active_features));
+    while (hb_set_next (active_features, &feat))
+      fprintf (stderr, " %c%c%c%c", HB_UNTAG(feat));
+    fprintf (stderr, "\n");
+  }
+
+  /* Seed RNG for error injection based on test seed to ensure reproducibility.
+   * For a given test seed and injection probability, the same edges will be
+   * skipped/added every time. */
+  if (_hb_depend_fuzzer_inject_over_approx > 0.0f ||
+      _hb_depend_fuzzer_inject_under_approx > 0.0f)
+  {
+    srand ((unsigned) seed);
+  }
+
   compute_depend_closure (depend, depend_closure, skip_gsub,
                           skip_gsub ? NULL : active_features);
 
@@ -780,143 +1280,32 @@ compare_closures (hb_face_t *face, hb_depend_t *depend,
 
   /* CRITICAL ERROR: Subset found glyphs that depend API missed.
    * This means the depend API is incomplete - it failed to extract
-   * dependencies that actually exist in the font.
-   * Abort to signal fuzzer that a bug was found. */
+   * dependencies that actually exist in the font. */
   if (!hb_set_is_empty (in_subset_not_depend))
   {
-    fprintf (stderr, "\n=== DEPEND API BUG DETECTED ===\n");
-    fprintf (stderr, "Font: %s\n", font_path ? font_path : "(unknown)");
-    fprintf (stderr, "Test seed: 0x%016llx\n", (unsigned long long) seed);
-
-    /* DEBUG: Check if dependencies exist in the graph for missing glyphs */
-    fprintf (stderr, "\n[DEBUG] Checking if dependencies exist in graph for missing glyphs:\n");
-    hb_codepoint_t missing_gid = HB_SET_VALUE_INVALID;
-    unsigned missing_count = 0;
-    while (hb_set_next (in_subset_not_depend, &missing_gid) && missing_count < 3)
+    /* Report if verbose or reporting flag is set */
+    if (_hb_depend_fuzzer_report_under_approximation ||
+        _hb_depend_fuzzer_report_over_approximation ||
+        _hb_depend_fuzzer_verbose)
     {
-      fprintf (stderr, "[DEBUG] Glyph %u: Looking for incoming edges...\n", missing_gid);
+      fprintf (stderr, "Test 0x%016llx: UNDER-APPROX - Depend missed %u glyphs:",
+               (unsigned long long) seed, hb_set_get_population (in_subset_not_depend));
 
-      // Check if any glyph in the depend closure has this as a dependency
-      bool found_edge = false;
-      hb_codepoint_t src_gid = HB_SET_VALUE_INVALID;
-      while (hb_set_next (depend_closure, &src_gid))
-      {
-        unsigned int index = 0;
-        hb_tag_t table_tag;
-        hb_codepoint_t dependent;
-        hb_tag_t layout_tag;
-        hb_codepoint_t ligature_set;
-
-        while (hb_depend_get_glyph_entry (depend, src_gid, index++,
-                                          &table_tag, &dependent,
-                                          &layout_tag, &ligature_set))
-        {
-          if (dependent == missing_gid)
-          {
-            fprintf (stderr, "[DEBUG]   Edge found: %u -> %u (table=%c%c%c%c, ligset=%u)\n",
-                     src_gid, missing_gid, HB_UNTAG(table_tag), ligature_set);
-            found_edge = true;
-            break;
-          }
-        }
-        if (found_edge) break;
-      }
-
-      if (!found_edge)
-      {
-        fprintf (stderr, "[DEBUG]   NO EDGE FOUND from any glyph in depend_closure!\n");
-        fprintf (stderr, "[DEBUG]   This is a GRAPH EXTRACTION BUG - dependency not recorded.\n");
-      }
-      else
-      {
-        fprintf (stderr, "[DEBUG]   Edge exists but wasn't followed - CLOSURE BUG!\n");
-      }
-
-      missing_count++;
-    }
-    fprintf (stderr, "\n");
-
-    fprintf (stderr, "Starting glyphs (%u): ", hb_set_get_population (start_glyphs));
-    hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-    unsigned gid_count = 0;
-    while (hb_set_next (start_glyphs, &gid) && gid_count < 20)
-    {
-      fprintf (stderr, "%u ", gid);
-      gid_count++;
-    }
-    if (gid_count == 20 && hb_set_get_population (start_glyphs) > 20)
-      fprintf (stderr, "...");
-    fprintf (stderr, "\n");
-
-    if (codepoints && !hb_set_is_empty (codepoints))
-    {
-      fprintf (stderr, "Starting codepoints (%u): ", hb_set_get_population (codepoints));
-      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-      unsigned cp_count = 0;
-      /* Print all codepoints to enable exact reproduction */
-      while (hb_set_next (codepoints, &cp))
-      {
-        fprintf (stderr, "U+%04X ", cp);
-        cp_count++;
-        if (cp_count % 20 == 0)
-          fprintf (stderr, "\n  ");
-      }
-      fprintf (stderr, "\n");
-    }
-
-    if (!skip_gsub && !hb_set_is_empty (active_features))
-    {
-      fprintf (stderr, "Active features (%u): ", hb_set_get_population (active_features));
-      hb_codepoint_t feature = HB_SET_VALUE_INVALID;
+      hb_codepoint_t gid = HB_SET_VALUE_INVALID;
       unsigned count = 0;
-      while (hb_set_next (active_features, &feature) && count < 10)
+      while (hb_set_next (in_subset_not_depend, &gid) && count < 20)
       {
-        fprintf (stderr, "%c%c%c%c ",
-                 HB_UNTAG ((hb_tag_t) feature));
+        fprintf (stderr, " %u", gid);
         count++;
       }
-      if (count == 10 && !hb_set_is_empty (active_features))
-        fprintf (stderr, "...");
+      if (count == 20)
+        fprintf (stderr, " ...");
       fprintf (stderr, "\n");
     }
 
-    /* DEBUG: Print both closures */
-    fprintf (stderr, "\nDEBUG - Subset closure glyphs: ");
-    gid = HB_SET_VALUE_INVALID;
-    while (hb_set_next (subset_closure, &gid))
-      fprintf (stderr, "%u ", gid);
-    fprintf (stderr, "\n");
-
-    fprintf (stderr, "DEBUG - Depend closure glyphs: ");
-    gid = HB_SET_VALUE_INVALID;
-    while (hb_set_next (depend_closure, &gid))
-      fprintf (stderr, "%u ", gid);
-    fprintf (stderr, "\n\n");
-
-    fprintf (stderr, "Depend closure: %u glyphs\n", hb_set_get_population (depend_closure));
-    fprintf (stderr, "Subset closure: %u glyphs\n", hb_set_get_population (subset_closure));
-    fprintf (stderr, "\nMissing glyphs in depend (%u):",
-             hb_set_get_population (in_subset_not_depend));
-    gid = HB_SET_VALUE_INVALID;
-    unsigned count = 0;
-    while (hb_set_next (in_subset_not_depend, &gid) && count < 50)
-    {
-      fprintf (stderr, " %u", gid);
-      count++;
-    }
-    if (count == 50 && !hb_set_is_empty (in_subset_not_depend))
-      fprintf (stderr, " ...");
-    fprintf (stderr, "\n");
-    fprintf (stderr, "===============================\n\n");
-
-    hb_set_destroy (in_subset_not_depend);
-    hb_set_destroy (in_depend_not_subset);
-    hb_set_destroy (active_features);
-    hb_set_destroy (subset_closure);
-    hb_set_destroy (depend_closure);
-
-    /* Abort to signal fuzzer about the bug */
-    assert (0 && "Depend API missed glyphs that subset found");
+    /* Abort unless reporting flag is set */
+    if (!_hb_depend_fuzzer_report_under_approximation)
+      assert (0 && "Depend API missed glyphs that subset found");
   }
 
   /* Report cases where depend has extra glyphs (over-approximation)
@@ -994,11 +1383,106 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     return 0;
   }
 
+  /* Calculate adaptive probabilities based on graph size if error injection is enabled.
+   * Goal: achieve ~2% detection rate regardless of font complexity.
+   *
+   * Strategy:
+   * - Count total edges E in the dependency graph
+   * - Estimate average edges traversed per test: V ≈ E * 0.0025 (0.25%)
+   * - Calculate per-edge probability: P = target_rate / V
+   *
+   * This makes user input (e.g., -u 0.02) specify the TARGET detection rate (2%),
+   * which is then scaled based on font complexity. Complex fonts like NotoNastaliq
+   * get lower per-edge probability, simple fonts get higher per-edge probability.
+   *
+   * The 0.0025 multiplier was tuned empirically across 8 system fonts to achieve
+   * avg ~2% detection rate (measured: 2.12% under, 3.20% over on 4000 tests).
+   */
+  if (_hb_depend_fuzzer_inject_over_approx > 0.0f ||
+      _hb_depend_fuzzer_inject_under_approx > 0.0f)
+  {
+    /* Count total edges in dependency graph */
+    unsigned total_edges = 0;
+    unsigned num_glyphs = hb_face_get_glyph_count (face);
+    for (unsigned gid = 0; gid < num_glyphs; gid++)
+    {
+      hb_codepoint_t idx = 0;
+      hb_tag_t table_tag;
+      hb_codepoint_t dependent;
+      hb_tag_t layout_tag;
+      hb_codepoint_t ligature_set;
+      hb_codepoint_t context_set;
+
+      while (hb_depend_get_glyph_entry (depend, gid, idx++,
+                                        &table_tag, &dependent,
+                                        &layout_tag, &ligature_set, &context_set))
+      {
+        total_edges++;
+      }
+    }
+
+    /* Estimate average edges traversed per test (roughly 0.25% of total edges) */
+    float estimated_edges_per_test = total_edges * 0.0025f;
+    if (estimated_edges_per_test < 5.0f)
+      estimated_edges_per_test = 5.0f;  /* Minimum to avoid division issues */
+
+    /* Calculate adaptive probabilities to achieve target detection rate
+     * User input is now interpreted as TARGET_RATE not per-edge probability */
+    if (_hb_depend_fuzzer_inject_over_approx > 0.0f)
+    {
+      float target_rate = _hb_depend_fuzzer_inject_over_approx;
+      _hb_depend_fuzzer_inject_over_approx = target_rate / estimated_edges_per_test;
+    }
+
+    if (_hb_depend_fuzzer_inject_under_approx > 0.0f)
+    {
+      float target_rate = _hb_depend_fuzzer_inject_under_approx;
+      _hb_depend_fuzzer_inject_under_approx = target_rate / estimated_edges_per_test;
+    }
+
+    if (_hb_depend_fuzzer_verbose)
+    {
+      fprintf (stderr, "# Adaptive error injection: %u total edges, est. %.0f edges/test\n",
+               total_edges, estimated_edges_per_test);
+      fprintf (stderr, "# Calculated per-edge probabilities: over=%.6f under=%.6f\n",
+               _hb_depend_fuzzer_inject_over_approx,
+               _hb_depend_fuzzer_inject_under_approx);
+    }
+  }
+
   /* Create font for codepoint-to-glyph mapping */
   hb_font_t *font = hb_font_create (face);
 
-  /* Check if running single test or full test suite */
-  if (_hb_depend_fuzzer_single_test != 0)
+  /* Check test mode: explicit, single test, or full suite */
+  if (_hb_depend_fuzzer_explicit_test)
+  {
+    /* Run explicit test with command-line parameters */
+    test_params params = generate_test_from_explicit (face, font);
+
+    /* Check if parsing succeeded */
+    if (params.glyphs == NULL)
+    {
+      fprintf (stderr, "Error: Failed to generate test from explicit parameters\n");
+    }
+    else
+    {
+      /* Always print parameters for explicit test */
+      print_test_params (0, params.is_gsub, params.glyphs, params.codepoints, params.features);
+
+      /* Run closure comparison (use seed 0 for explicit tests) */
+      compare_closures (face, depend, 0, _hb_depend_fuzzer_current_font_path,
+                        params.is_gsub, params.glyphs, params.codepoints, params.features);
+    }
+
+    /* Clean up test parameters */
+    if (params.glyphs)
+      hb_set_destroy (params.glyphs);
+    if (params.codepoints)
+      hb_set_destroy (params.codepoints);
+    if (params.features)
+      hb_set_destroy (params.features);
+  }
+  else if (_hb_depend_fuzzer_single_test != 0)
   {
     /* Run single specific test */
     uint64_t test_seed = _hb_depend_fuzzer_single_test;

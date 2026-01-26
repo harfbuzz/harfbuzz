@@ -418,10 +418,33 @@ struct hb_depend_context_t :
     return true;
   }
 
+  /* Context information for recording contextual dependencies */
+  struct context_info_t {
+    hb_vector_t<hb_set_t> backtrack_sets;  /* Sets of glyphs in backtrack positions */
+    hb_vector_t<hb_set_t> lookahead_sets;  /* Sets of glyphs in lookahead positions */
+  };
+
+  void push_context (context_info_t &&ctx)
+  {
+    context_stack.push (std::move (ctx));
+  }
+
+  void pop_context ()
+  {
+    if (context_stack.length > 0)
+      context_stack.resize (context_stack.length - 1);
+  }
+
+  const context_info_t* current_context () const
+  {
+    return context_stack.length > 0 ? &context_stack[context_stack.length - 1] : nullptr;
+  }
+
   hb_depend_data_t *depend_data;
   hb_face_t *face;
   hb_set_t *glyphs;
   hb_vector_t<hb_set_t> active_glyphs_stack;
+  hb_vector_t<context_info_t> context_stack;  /* Stack of context information */
   recurse_func_t recurse_func;
   hb_codepoint_t lookup_index;
   hb_set_t lookups_seen;
@@ -1832,32 +1855,65 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
 					     intersected_glyphs_func_t intersected_glyphs_func,
 					     void *cache)
 {
-#ifndef NDEBUG
-  if (unlikely (getenv ("HB_DEPEND_DEBUG_MODE"))) {
-    fprintf (stderr, "DEPEND: context_depend_recurse: parent_active=%u, lookups=%u\n",
-             c->parent_active_glyphs().get_population(), lookupCount);
-  }
-#endif
+  /* For depend graph extraction, we filter active glyphs by InputCoverage constraints
+   * (same as closure), but we do NOT do sequential accumulation of outputs.
+   *
+   * - Position filtering (InputCoverage): Required. The contextual rule can only match
+   *   glyphs in its InputCoverage. Edges for other glyphs are spurious.
+   * - Sequential accumulation: Not done. We want ALL possible edges, so we don't
+   *   limit later lookups based on outputs from earlier lookups in the same rule. */
 
-  /* During graph extraction, we use simple recursion without sequential accumulation.
-   * We want to record ALL possible dependencies, so every lookup sees ALL glyphs
-   * (parent_active_glyphs). Sequential accumulation would limit the active glyphs
-   * based on outputs, causing us to miss edges. */
   hb_set_t covered_seq_indicies;
+  hb_set_t pos_glyphs;
   for (unsigned int i = 0; i < lookupCount; i++)
   {
     unsigned seqIndex = lookupRecord[i].sequenceIndex;
     if (seqIndex >= inputCount)
       continue;
 
-    covered_seq_indicies.add (seqIndex);
+    bool has_pos_glyphs = false;
 
+    if (!covered_seq_indicies.has (seqIndex))
+    {
+      has_pos_glyphs = true;
+      pos_glyphs.clear ();
+      if (seqIndex == 0)
+      {
+        switch (context_format) {
+        case ContextFormat::SimpleContext:
+          pos_glyphs.add (value);
+          break;
+        case ContextFormat::ClassBasedContext:
+          intersected_glyphs_func (&c->parent_active_glyphs (), data, value, &pos_glyphs, cache);
+          break;
+        case ContextFormat::CoverageBasedContext:
+          pos_glyphs.set (c->parent_active_glyphs ());
+          break;
+        }
+      }
+      else
+      {
+        const void *input_data = input;
+        unsigned input_value = seqIndex - 1;
+        if (context_format != ContextFormat::SimpleContext)
+        {
+          input_data = data;
+          input_value = input[seqIndex - 1];
+        }
+
+        intersected_glyphs_func (c->glyphs, input_data, input_value, &pos_glyphs, cache);
+      }
+    }
+
+    covered_seq_indicies.add (seqIndex);
     hb_set_t *cur_active_glyphs = c->push_cur_active_glyphs ();
     if (unlikely (!cur_active_glyphs))
       return;
-
-    // For graph extraction, pass ALL glyphs (the universe) to ensure nested contexts see everything
-    cur_active_glyphs->set (*c->glyphs);
+    if (has_pos_glyphs) {
+      *cur_active_glyphs = std::move (pos_glyphs);
+    } else {
+      *cur_active_glyphs = *c->glyphs;
+    }
 
     unsigned endIndex = inputCount;
     if (context_format == ContextFormat::CoverageBasedContext)
@@ -2103,17 +2159,57 @@ static inline void context_depend_lookup (hb_depend_context_t *c,
 {
   // ContextDependLookupContext has the same layout as ContextClosureLookupContext
   auto &closure_lookup_context = reinterpret_cast<ContextClosureLookupContext &>(lookup_context);
-  if (context_intersects (c->glyphs,
-			  inputCount, input,
-			  closure_lookup_context))
-    context_depend_recurse_lookups (c,
-				    inputCount, input,
-				    lookupCount, lookupRecord,
-				    value,
-				    lookup_context.context_format,
-				    lookup_context.intersects_data,
-				    lookup_context.funcs.intersected_glyphs,
-				    lookup_context.intersected_glyphs_cache);
+  if (!context_intersects (c->glyphs,
+			   inputCount, input,
+			   closure_lookup_context))
+    return;
+
+  /* Build context information - for ContextSubst, input positions are lookahead */
+  typename hb_depend_context_t::context_info_t ctx_info;
+
+  for (unsigned i = 0; i < inputCount - 1; i++)
+  {
+    hb_set_t pos_glyphs;
+    /* Extract glyphs at this position based on context format */
+    switch (lookup_context.context_format)
+    {
+      case ContextFormat::SimpleContext:
+        /* For SimpleContext, input[i] is the glyph ID directly */
+        pos_glyphs.add (input[i]);
+        break;
+      case ContextFormat::ClassBasedContext:
+        /* For class-based context, input[i] is a class index */
+        collect_class (&pos_glyphs, input[i], lookup_context.intersects_data);
+        break;
+      case ContextFormat::CoverageBasedContext:
+        /* For coverage-based context, input[i] is a coverage offset */
+        collect_coverage (&pos_glyphs, input[i], lookup_context.intersects_data);
+        break;
+    }
+    if (!pos_glyphs.is_empty ())
+      ctx_info.lookahead_sets.push (pos_glyphs);
+  }
+
+  /* Build context set once for this rule */
+  hb_codepoint_t context_set_idx = c->depend_data->build_context_set (
+      &ctx_info.lookahead_sets, nullptr);
+  c->depend_data->current_context_set_index = context_set_idx;
+
+  /* Push context before recursing (use move to avoid copy issues) */
+  c->push_context (std::move (ctx_info));
+
+  context_depend_recurse_lookups (c,
+				  inputCount, input,
+				  lookupCount, lookupRecord,
+				  value,
+				  lookup_context.context_format,
+				  lookup_context.intersects_data,
+				  lookup_context.funcs.intersected_glyphs,
+				  lookup_context.intersected_glyphs_cache);
+
+  /* Pop context and clear context set index */
+  c->pop_context ();
+  c->depend_data->current_context_set_index = HB_CODEPOINT_INVALID;
 }
 #endif
 
@@ -2621,7 +2717,9 @@ struct ContextFormat1_4
     struct ContextDependLookupContext lookup_context = {
       {intersects_glyph, intersected_glyph},
       ContextFormat::SimpleContext,
-      nullptr
+      nullptr,
+      nullptr,  /* intersects_cache */
+      nullptr   /* intersected_glyphs_cache */
     };
 
     + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
@@ -3099,7 +3197,9 @@ struct ContextFormat3
     struct ContextDependLookupContext lookup_context = {
       {intersects_coverage, intersected_coverage_glyphs},
       ContextFormat::CoverageBasedContext,
-      this
+      this,
+      nullptr,  /* intersects_cache */
+      nullptr   /* intersected_glyphs_cache */
     };
     context_depend_lookup (c,
 			   glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
@@ -3385,19 +3485,84 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
 {
   // ChainContextDependLookupContext has the same layout as ChainContextClosureLookupContext
   auto &closure_lookup_context = reinterpret_cast<ChainContextClosureLookupContext &>(lookup_context);
-  if (chain_context_intersects (c->glyphs,
-				backtrackCount, backtrack,
-				inputCount, input,
-				lookaheadCount, lookahead,
-				closure_lookup_context))
-    context_depend_recurse_lookups (c,
-				    inputCount, input,
-				    lookupCount, lookupRecord,
-				    value,
-				    lookup_context.context_format,
-				    lookup_context.intersects_data[1],
-				    lookup_context.funcs.intersected_glyphs,
-				    lookup_context.intersected_glyphs_cache);
+  if (!chain_context_intersects (c->glyphs,
+				 backtrackCount, backtrack,
+				 inputCount, input,
+				 lookaheadCount, lookahead,
+				 closure_lookup_context))
+    return;
+
+  /* Build context information - extract backtrack and lookahead glyphs */
+  typename hb_depend_context_t::context_info_t ctx_info;
+
+  /* Extract backtrack glyphs */
+  for (unsigned i = 0; i < backtrackCount; i++)
+  {
+    hb_set_t pos_glyphs;
+    /* Extract glyphs based on context format */
+    switch (lookup_context.context_format)
+    {
+      case ContextFormat::SimpleContext:
+        /* For SimpleContext, backtrack[i] is the glyph ID directly */
+        pos_glyphs.add (backtrack[i]);
+        break;
+      case ContextFormat::ClassBasedContext:
+        /* For class-based context, backtrack[i] is a class index */
+        collect_class (&pos_glyphs, backtrack[i], lookup_context.intersects_data[0]);
+        break;
+      case ContextFormat::CoverageBasedContext:
+        /* For coverage-based context, backtrack[i] is a coverage offset */
+        collect_coverage (&pos_glyphs, backtrack[i], lookup_context.intersects_data[0]);
+        break;
+    }
+    if (!pos_glyphs.is_empty ())
+      ctx_info.backtrack_sets.push (pos_glyphs);
+  }
+
+  /* Extract lookahead glyphs */
+  for (unsigned i = 0; i < lookaheadCount; i++)
+  {
+    hb_set_t pos_glyphs;
+    /* Extract glyphs based on context format */
+    switch (lookup_context.context_format)
+    {
+      case ContextFormat::SimpleContext:
+        /* For SimpleContext, lookahead[i] is the glyph ID directly */
+        pos_glyphs.add (lookahead[i]);
+        break;
+      case ContextFormat::ClassBasedContext:
+        /* For class-based context, lookahead[i] is a class index */
+        collect_class (&pos_glyphs, lookahead[i], lookup_context.intersects_data[2]);
+        break;
+      case ContextFormat::CoverageBasedContext:
+        /* For coverage-based context, lookahead[i] is a coverage offset */
+        collect_coverage (&pos_glyphs, lookahead[i], lookup_context.intersects_data[2]);
+        break;
+    }
+    if (!pos_glyphs.is_empty ())
+      ctx_info.lookahead_sets.push (pos_glyphs);
+  }
+
+  /* Build context set once for this rule */
+  hb_codepoint_t context_set_idx = c->depend_data->build_context_set (
+      &ctx_info.backtrack_sets, &ctx_info.lookahead_sets);
+  c->depend_data->current_context_set_index = context_set_idx;
+
+  /* Push context before recursing (use move to avoid copy issues) */
+  c->push_context (std::move (ctx_info));
+
+  context_depend_recurse_lookups (c,
+				  inputCount, input,
+				  lookupCount, lookupRecord,
+				  value,
+				  lookup_context.context_format,
+				  lookup_context.intersects_data[1],
+				  lookup_context.funcs.intersected_glyphs,
+				  lookup_context.intersected_glyphs_cache);
+
+  /* Pop context and clear context set index */
+  c->pop_context ();
+  c->depend_data->current_context_set_index = HB_CODEPOINT_INVALID;
 }
 #endif
 
@@ -4001,7 +4166,9 @@ struct ChainContextFormat1_4
     struct ChainContextDependLookupContext lookup_context = {
       {intersects_glyph, intersected_glyph},
       ContextFormat::SimpleContext,
-      {nullptr, nullptr, nullptr}
+      {nullptr, nullptr, nullptr},
+      {nullptr, nullptr, nullptr},  /* intersects_cache */
+      nullptr                        /* intersected_glyphs_cache */
     };
 
     + hb_zip (this+coverage, hb_range ((unsigned) ruleSet.len))
@@ -4546,7 +4713,9 @@ struct ChainContextFormat3
     struct ChainContextDependLookupContext lookup_context = {
       {intersects_coverage, intersected_coverage_glyphs},
       ContextFormat::CoverageBasedContext,
-      {this, this, this}
+      {this, this, this},
+      {nullptr, nullptr, nullptr},  /* intersects_cache */
+      nullptr                        /* intersected_glyphs_cache */
     };
     chain_context_depend_lookup (c,
 				 backtrack.len, (const HBUINT16 *) backtrack.arrayZ,

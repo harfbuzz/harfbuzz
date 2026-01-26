@@ -245,6 +245,7 @@ find_dependency (hb_depend_t *depend,
   hb_codepoint_t dependent;
   hb_tag_t layout_tag;
   hb_codepoint_t ligature_set;
+  hb_codepoint_t context_set;
   hb_tag_t filter_layout_tag = (out_layout_tag && *out_layout_tag != HB_TAG_NONE)
                                 ? *out_layout_tag : HB_TAG_NONE;
 
@@ -252,7 +253,7 @@ find_dependency (hb_depend_t *depend,
   {
     hb_bool_t found = hb_depend_get_glyph_entry (depend, source_glyph, index,
                                                   &table_tag, &dependent,
-                                                  &layout_tag, &ligature_set);
+                                                  &layout_tag, &ligature_set, &context_set);
     if (!found)
       break;
 
@@ -549,7 +550,13 @@ test_depend_gsub_formats (void)
   g_assert_true (find_dependency (depend_notosans, 3948, 4017, HB_OT_TAG_GSUB,
                                   &layout_tag, &ligature_set));
   g_test_message ("  ligature_set = %u", ligature_set);
-  g_assert_cmpuint (684, ==, ligature_set);
+
+  /* Verify ligature set contains the other component glyph (3969) */
+  g_assert_cmpuint (HB_CODEPOINT_INVALID, !=, ligature_set);
+  hb_set_t *lig_set = hb_set_create ();
+  g_assert_true (hb_depend_get_set_from_index (depend_notosans, ligature_set, lig_set));
+  g_assert_true (hb_set_has (lig_set, 3969));  /* uni0944 is the other ligature component */
+  hb_set_destroy (lig_set);
 
   hb_depend_destroy (depend_notosans);
   hb_face_destroy (face_notosans);
