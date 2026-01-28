@@ -11,7 +11,7 @@
 #ifdef HB_DEPEND_API
 #include <hb.h>
 
-/* Debug messaging - follows HarfBuzz DEBUG_MSG pattern but simplified for fuzzer */
+/* Debug messaging - follows HarfBuzz DEBUG_MSG pattern but simplified for parity checker */
 #ifndef HB_DEBUG_DEPEND
 #define HB_DEBUG_DEPEND 1
 #endif
@@ -48,7 +48,7 @@ static bool config_initialized = false;
 
 /* Initialize configuration - uses globals set by main */
 static void
-init_fuzzer_config ()
+init_parity_config ()
 {
   if (config_initialized)
     return;
@@ -59,12 +59,12 @@ init_fuzzer_config ()
   srand (_hb_depend_fuzzer_seed);
 
   /* Check for debug glyph ID (only used when HB_DEBUG_DEPEND > 0) */
-  const char *debug_gid_str = getenv ("HB_DEPEND_FUZZER_DEBUG_GID");
+  const char *debug_gid_str = getenv ("HB_DEPEND_PARITY_DEBUG_GID");
   if (debug_gid_str)
     debug_gid = (hb_codepoint_t) strtoul (debug_gid_str, NULL, 0);
 
   /* Check for closure tracing (only used when HB_DEBUG_DEPEND > 0) */
-  const char *trace_closure_str = getenv ("HB_DEPEND_FUZZER_TRACE_CLOSURE");
+  const char *trace_closure_str = getenv ("HB_DEPEND_PARITY_TRACE_CLOSURE");
   if (trace_closure_str && strcmp (trace_closure_str, "1") == 0)
     trace_closure = true;
 }
@@ -604,9 +604,9 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
 }
 
 /*
- * Depend Fuzzer - Validates depend API correctness by comparing closures
+ * Depend Parity Checker - Validates depend API correctness by comparing closures
  *
- * For each font, this fuzzer:
+ * For each font, this parity checker:
  * 1. Extracts the dependency graph using hb_depend_from_face()
  * 2. For various starting glyphs, computes closure via:
  *    a) Following the depend API dependency graph
@@ -703,7 +703,8 @@ process_edges_for_tables (hb_depend_t *depend,
                           hb_set_t *deferred_ligatures,
                           hb_set_t *table_filter,
                           bool skip_gsub,
-                          hb_set_t *active_features)
+                          hb_set_t *active_features,
+                          bool *hit_flagged_edge)
 {
   bool added_any = false;
 
@@ -721,10 +722,11 @@ process_edges_for_tables (hb_depend_t *depend,
     hb_tag_t layout_tag;
     hb_codepoint_t ligature_set;
     hb_codepoint_t context_set;
+    uint8_t flags;
 
     while (hb_depend_get_glyph_entry (depend, gid, index++,
                                       &table_tag, &dependent,
-                                      &layout_tag, &ligature_set, &context_set))
+                                      &layout_tag, &ligature_set, &context_set, &flags))
     {
       /* Debug: trace all edges involving our debug glyph */
       if (debug_gid != HB_CODEPOINT_INVALID &&
@@ -814,6 +816,10 @@ process_edges_for_tables (hb_depend_t *depend,
         /* Non-ligature dependency: add immediately */
         if (!hb_set_has (glyphs, dependent))
         {
+          /* Track if we hit a flagged edge (from contextual position) */
+          if (hit_flagged_edge && (flags & 0x01))
+            *hit_flagged_edge = true;
+
           if (dependent == debug_gid)
             DEBUG_MSG_DEPEND("Adding glyph %u to closure (from %u, feature=%c%c%c%c, ctx=%u)",
                        dependent, gid, HB_UNTAG(layout_tag), context_set);
@@ -837,7 +843,7 @@ process_edges_for_tables (hb_depend_t *depend,
  * active_features: if non-NULL, only follow GSUB dependencies from these features */
 static void
 compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
-                        hb_set_t *active_features)
+                        hb_set_t *active_features, bool *hit_flagged_edge)
 {
   if (debug_gid != HB_CODEPOINT_INVALID)
   {
@@ -888,7 +894,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
       /* Process non-ligature GSUB edges */
       hb_set_union (to_process, glyphs);
       process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
-                                gsub_filter, skip_gsub, active_features);
+                                gsub_filter, skip_gsub, active_features, hit_flagged_edge);
 
       /* Process deferred ligatures (GSUB ligatures only)
        * Only add a ligature when ALL glyphs in its ligature set are in closure */
@@ -913,9 +919,10 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
             hb_tag_t ltag;
             hb_codepoint_t ligset;
             hb_codepoint_t ctxset;
+            uint8_t fls;
 
             while (hb_depend_get_glyph_entry (depend, src_glyph, idx++,
-                                              &ttag, &dep, &ltag, &ligset, &ctxset))
+                                              &ttag, &dep, &ltag, &ligset, &ctxset, &fls))
             {
               if (dep == lig_glyph && ligset != HB_CODEPOINT_INVALID && ttag == HB_OT_TAG_GSUB)
               {
@@ -984,7 +991,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
-                              math_filter, skip_gsub, active_features);
+                              math_filter, skip_gsub, active_features, hit_flagged_edge);
     hb_set_destroy (math_filter);
 
     if (trace_closure)
@@ -999,7 +1006,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
-                              colr_filter, skip_gsub, active_features);
+                              colr_filter, skip_gsub, active_features, hit_flagged_edge);
     hb_set_destroy (colr_filter);
 
     if (trace_closure)
@@ -1016,7 +1023,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
-                              glyf_filter, skip_gsub, active_features);
+                              glyf_filter, skip_gsub, active_features, NULL);
     hb_set_destroy (glyf_filter);
 
     if (trace_closure)
@@ -1260,8 +1267,9 @@ compare_closures (hb_face_t *face, hb_depend_t *depend,
     srand ((unsigned) seed);
   }
 
+  bool hit_flagged_edge = false;
   compute_depend_closure (depend, depend_closure, skip_gsub,
-                          skip_gsub ? NULL : active_features);
+                          skip_gsub ? NULL : active_features, &hit_flagged_edge);
 
   hb_set_destroy (actual_start_glyphs);
 
@@ -1308,45 +1316,81 @@ compare_closures (hb_face_t *face, hb_depend_t *depend,
       assert (0 && "Depend API missed glyphs that subset found");
   }
 
-  /* Report cases where depend has extra glyphs (over-approximation)
-   * if verbose mode or over-approximation reporting is enabled
-   * (not a critical error, but potentially inefficient) */
-  if (!match && (_hb_depend_fuzzer_verbose || _hb_depend_fuzzer_report_over_approximation)
-      && !hb_set_is_empty (in_depend_not_subset))
+  /* Handle over-approximation cases where depend has extra glyphs.
+   * Two scenarios:
+   * 1. Expected: hit a flagged edge (from contextual position) → informational only
+   * 2. Unexpected: no flagged edge hit → CRITICAL ERROR (like under-approximation) */
+  if (!hb_set_is_empty (in_depend_not_subset))
   {
-    /* Use compact single-line format for -r flag, multi-line for -v */
-    if (_hb_depend_fuzzer_report_over_approximation && !_hb_depend_fuzzer_verbose)
+    if (hit_flagged_edge)
     {
-      /* Compact format: Test 0xHEX: Depend found N extra glyphs: gid1 gid2 ... */
-      fprintf (stderr, "Test 0x%016llx: Depend found %u extra glyphs not in subset closure:",
-               (unsigned long long) seed, hb_set_get_population (in_depend_not_subset));
+      /* Expected over-approximation: hit an edge from contextual position.
+       * Report if verbose or over-approximation reporting enabled. */
+      if (_hb_depend_fuzzer_verbose || _hb_depend_fuzzer_report_over_approximation)
+      {
+        /* Use compact single-line format for -r flag, multi-line for -v */
+        if (_hb_depend_fuzzer_report_over_approximation && !_hb_depend_fuzzer_verbose)
+        {
+          /* Compact format: Test 0xHEX: Depend found N extra glyphs: gid1 gid2 ... */
+          fprintf (stderr, "Test 0x%016llx: Depend found %u extra glyphs (expected, hit flagged edge):",
+                   (unsigned long long) seed, hb_set_get_population (in_depend_not_subset));
 
-      hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-      while (hb_set_next (in_depend_not_subset, &gid))
-        fprintf (stderr, " %u", gid);
-      fprintf (stderr, "\n");
+          hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+          while (hb_set_next (in_depend_not_subset, &gid))
+            fprintf (stderr, " %u", gid);
+          fprintf (stderr, "\n");
+        }
+        else
+        {
+          /* Verbose multi-line format */
+          fprintf (stderr, "\n=== DEPEND API OVER-APPROXIMATION (EXPECTED) ===\n");
+          fprintf (stderr, "Font: %s\n", font_path ? font_path : "(unknown)");
+          fprintf (stderr, "Test seed: 0x%016llx\n", (unsigned long long) seed);
+          fprintf (stderr, "Depend found %u extra glyphs not in subset closure:\n",
+                   hb_set_get_population (in_depend_not_subset));
+
+          hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+          unsigned count = 0;
+          while (hb_set_next (in_depend_not_subset, &gid) && count < 50)
+          {
+            fprintf (stderr, " %u", gid);
+            count++;
+          }
+          if (count == 50)
+            fprintf (stderr, " ...");
+          fprintf (stderr, "\n");
+          fprintf (stderr, "Note: Hit flagged edge from contextual position (intermediate glyph consumer).\n");
+          fprintf (stderr, "This is expected over-approximation, not a bug.\n");
+          fprintf (stderr, "===============================================\n\n");
+        }
+      }
     }
     else
     {
-      /* Verbose multi-line format */
-      fprintf (stderr, "\n=== DEPEND API OVER-APPROXIMATION ===\n");
-      fprintf (stderr, "Font: %s\n", font_path ? font_path : "(unknown)");
-      fprintf (stderr, "Test seed: 0x%016llx\n", (unsigned long long) seed);
-      fprintf (stderr, "Depend found %u extra glyphs not in subset closure:\n",
-               hb_set_get_population (in_depend_not_subset));
-
-      hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-      unsigned count = 0;
-      while (hb_set_next (in_depend_not_subset, &gid) && count < 50)
+      /* UNEXPECTED over-approximation: No flagged edge hit, but still have extra glyphs.
+       * This is a CRITICAL ERROR - depend is including glyphs it shouldn't. */
+      if (_hb_depend_fuzzer_report_under_approximation ||
+          _hb_depend_fuzzer_report_over_approximation ||
+          _hb_depend_fuzzer_verbose)
       {
-        fprintf (stderr, " %u", gid);
-        count++;
+        fprintf (stderr, "Test 0x%016llx: UNEXPECTED OVER-APPROX - Depend found %u extra glyphs WITHOUT hitting flagged edge:",
+                 (unsigned long long) seed, hb_set_get_population (in_depend_not_subset));
+
+        hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+        unsigned count = 0;
+        while (hb_set_next (in_depend_not_subset, &gid) && count < 20)
+        {
+          fprintf (stderr, " %u", gid);
+          count++;
+        }
+        if (count == 20)
+          fprintf (stderr, " ...");
+        fprintf (stderr, "\n");
       }
-      if (count == 50)
-        fprintf (stderr, " ...");
-      fprintf (stderr, "\n");
-      fprintf (stderr, "Note: This is not a bug, but may indicate over-conservative dependency extraction.\n");
-      fprintf (stderr, "======================================\n\n");
+
+      /* Abort unless reporting flag is set */
+      if (!_hb_depend_fuzzer_report_under_approximation)
+        assert (0 && "Depend API has unexpected over-approximation without flagged edges");
     }
   }
 
@@ -1368,7 +1412,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   alloc_state = _fuzzing_alloc_state (data, size);
 
   /* Initialize configuration on first run */
-  init_fuzzer_config ();
+  init_parity_config ();
 
   hb_blob_t *blob = hb_blob_create ((const char *) data, size,
                                     HB_MEMORY_MODE_READONLY, nullptr, nullptr);
@@ -1415,7 +1459,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 
       while (hb_depend_get_glyph_entry (depend, gid, idx++,
                                         &table_tag, &dependent,
-                                        &layout_tag, &ligature_set, &context_set))
+                                        &layout_tag, &ligature_set, &context_set, NULL))
       {
         total_edges++;
       }
@@ -1515,13 +1559,13 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   }
   else
   {
-    /* Generate T pseudo-random 64-bit test seeds from the fuzzer seed
+    /* Generate T pseudo-random 64-bit test seeds from the parity checker seed
      * Each seed deterministically generates a test with specific parameters
      * Distribution follows research-backed proportions (see generate_test_from_seed) */
 
     unsigned T = _hb_depend_fuzzer_num_tests;
 
-    /* Initialize RNG with fuzzer seed to generate test seeds */
+    /* Initialize RNG with parity checker seed to generate test seeds */
     srand (_hb_depend_fuzzer_seed);
 
     for (unsigned i = 0; i < T; i++)
