@@ -695,6 +695,7 @@ check_context_satisfied (hb_depend_t *depend,
 
 /* Helper: Process edges for specific table(s)
  * table_filter: if non-NULL, only process edges from these tables
+ * hit_flagged_edge: if non-NULL, set to true if any edge with FROM_CONTEXT_POSITION flag is traversed
  * Returns: true if any new glyphs were added */
 static bool
 process_edges_for_tables (hb_depend_t *depend,
@@ -840,7 +841,8 @@ process_edges_for_tables (hb_depend_t *depend,
 /* Compute closure using depend API by following the dependency graph
  * skip_gsub: if true, skip GSUB dependencies to match subset behavior
  * (subset doesn't follow GSUB when starting with glyph IDs)
- * active_features: if non-NULL, only follow GSUB dependencies from these features */
+ * active_features: if non-NULL, only follow GSUB dependencies from these features
+ * hit_flagged_edge: if non-NULL, set to true if any edge with FROM_CONTEXT_POSITION flag is traversed */
 static void
 compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
                         hb_set_t *active_features, bool *hit_flagged_edge)
