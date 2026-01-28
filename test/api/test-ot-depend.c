@@ -253,7 +253,8 @@ find_dependency (hb_depend_t *depend,
   {
     hb_bool_t found = hb_depend_get_glyph_entry (depend, source_glyph, index,
                                                   &table_tag, &dependent,
-                                                  &layout_tag, &ligature_set, &context_set);
+                                                  &layout_tag, &ligature_set, &context_set,
+                                                  NULL);
     if (!found)
       break;
 

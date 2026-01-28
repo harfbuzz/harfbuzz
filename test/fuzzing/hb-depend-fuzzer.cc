@@ -34,7 +34,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
              hb_depend_get_glyph_entry (depend, gid, index++,
                                         &table_tag, &dependent,
                                         &layout_tag, &ligature_set,
-                                        &context_set))
+                                        &context_set, NULL))
       {
         // Just access the data; success = no crash
         (void) table_tag;

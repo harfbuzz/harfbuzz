@@ -34,12 +34,17 @@
 #ifdef HB_DEPEND_API
 
 /**
+ * Edge flags for hb_depend_data_record_t
+ */
+#define HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION 0x01
+
+/**
  * hb_depend_data_record_t:
  *
  * Internal structure representing a single dependency relationship.
  * Records that glyph A depends on glyph B through a specific OpenType
  * mechanism (table_tag), optionally with additional context (layout_tag,
- * ligature_set).
+ * ligature_set, context_set, flags).
  */
 struct hb_depend_data_record_t {
   hb_depend_data_record_t() = delete;
@@ -47,15 +52,18 @@ struct hb_depend_data_record_t {
                    hb_codepoint_t dependent,
                    hb_tag_t layout_tag,
                    hb_codepoint_t ligature_set,
-                   hb_codepoint_t context_set) : table_tag(table_tag),
+                   hb_codepoint_t context_set,
+                   uint8_t flags = 0) : table_tag(table_tag),
      dependent(dependent), layout_tag(layout_tag),
-     ligature_set(ligature_set), context_set(context_set)
+     ligature_set(ligature_set), context_set(context_set),
+     flags(flags)
      {}
   hb_tag_t table_tag;
   hb_codepoint_t dependent;
   hb_tag_t layout_tag;
   hb_codepoint_t ligature_set;
   hb_codepoint_t context_set;
+  uint8_t flags;
 };
 
 /**
@@ -111,7 +119,8 @@ struct hb_depend_data_t
 {
   hb_depend_data_t ()
 #ifdef HB_DEPEND_API
-    : current_context_set_index (HB_CODEPOINT_INVALID)
+    : current_context_set_index (HB_CODEPOINT_INVALID),
+      current_edge_flags (0)
 #endif
   {}
 
@@ -455,7 +464,7 @@ struct hb_depend_data_t
   bool get_glyph_entry(hb_codepoint_t gid, hb_codepoint_t index,
                        hb_tag_t *table_tag, hb_codepoint_t *dependent,
                        hb_tag_t *layout_tag, hb_codepoint_t *ligature_set,
-                       hb_codepoint_t *context_set)
+                       hb_codepoint_t *context_set, uint8_t *flags)
   {
     if (gid < glyph_dependencies.length &&
         index < glyph_dependencies[gid].dependencies.length) {
@@ -465,6 +474,7 @@ struct hb_depend_data_t
       *layout_tag = d.layout_tag;
       *ligature_set = d.ligature_set;
       *context_set = d.context_set;
+      if (flags) *flags = d.flags;
       return true;
     }
     return false;
@@ -483,7 +493,8 @@ struct hb_depend_data_t
                           hb_tag_t layout_tag,
                           hb_codepoint_t dependent,
                           hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
-                          hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
+                          hb_codepoint_t context_set = HB_CODEPOINT_INVALID,
+                          uint8_t flags = 0)
   {
     if (target >= glyph_dependencies.length) {
       DEBUG_MSG (SUBSET, nullptr, "Dependency glyph %u for %c%c%c%c too large",
@@ -517,7 +528,7 @@ struct hb_depend_data_t
         // DON'T update hash table - leave original stored components
         // Just add the edge
         gdr.dependencies.push(table_tag, dependent, layout_tag, lig_set,
-                              context_set);
+                              context_set, flags);
         return true;
       }
     }
@@ -526,7 +537,7 @@ struct hb_depend_data_t
     edge_hashes.set(edge_hash, new_components);
 
     auto &gdr = glyph_dependencies[target];
-    gdr.dependencies.push(table_tag, dependent, layout_tag, lig_set, context_set);
+    gdr.dependencies.push(table_tag, dependent, layout_tag, lig_set, context_set, flags);
     return true;
   }
 
@@ -539,11 +550,16 @@ struct hb_depend_data_t
     /* Use pre-computed context set index for the current rule */
     if (context_set == HB_CODEPOINT_INVALID)
       context_set = current_context_set_index;
+
+    /* Use current edge flags */
+    uint8_t flags = current_edge_flags;
+#else
+    uint8_t flags = 0;
 #endif
 
     bool any_added = false;
     for (auto t : lookup_features[lookup_index]) {
-      if (add_depend_layout(target, HB_OT_TAG_GSUB, t, dependent, lig_set, context_set))
+      if (add_depend_layout(target, HB_OT_TAG_GSUB, t, dependent, lig_set, context_set, flags))
         any_added = true;
     }
     return any_added;
@@ -552,10 +568,11 @@ struct hb_depend_data_t
   void add_depend (hb_codepoint_t target, hb_tag_t table_tag,
                    hb_codepoint_t dependent,
                    hb_codepoint_t lig_set = HB_CODEPOINT_INVALID,
-                   hb_codepoint_t context_set = HB_CODEPOINT_INVALID)
+                   hb_codepoint_t context_set = HB_CODEPOINT_INVALID,
+                   uint8_t flags = 0)
   {
     add_depend_layout (target, table_tag, HB_CODEPOINT_INVALID, dependent, lig_set,
-                       context_set);
+                       context_set, flags);
   }
 
   hb_codepoint_t get_nominal_glyph(hb_codepoint_t cp)
@@ -583,6 +600,11 @@ struct hb_depend_data_t
    * Built once per rule by context_depend_lookup/chain_context_depend_lookup,
    * then used by all edges recorded from nested lookups. */
   hb_codepoint_t current_context_set_index;
+
+  /* Temporary: Edge flags for the current position.
+   * Set by context_depend_recurse_lookups to mark edges created from
+   * non-zero positions in contextual rules (potential intermediate consumers). */
+  uint8_t current_edge_flags;
 #endif
 };
 

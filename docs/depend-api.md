@@ -47,7 +47,7 @@ hb_codepoint_t context_set;
 printf("Dependencies for glyph %u:\n", gid);
 while (hb_depend_get_glyph_entry(depend, gid, index++,
                                   &table_tag, &dependent,
-                                  &layout_tag, &ligature_set, &context_set)) {
+                                  &layout_tag, &ligature_set, &context_set, NULL)) {
   printf("  -> glyph %u via %c%c%c%c\n",
          dependent, HB_UNTAG(table_tag));
 }
@@ -75,7 +75,7 @@ hb_codepoint_t context_set;
 // Iterate through all dependencies for this glyph
 while (hb_depend_get_glyph_entry(depend, gid, index,
                                   &table_tag, &dependent,
-                                  &layout_tag, &ligature_set, &context_set)) {
+                                  &layout_tag, &ligature_set, &context_set, NULL)) {
   // Process dependency information
   if (table_tag == HB_OT_TAG_GSUB) {
     // GSUB dependency: layout_tag contains feature tag
@@ -118,7 +118,7 @@ void find_reachable_glyphs(hb_depend_t *depend, hb_set_t *reachable)
 
     while (hb_depend_get_glyph_entry(depend, gid, index++,
                                       &table_tag, &dependent,
-                                      &layout_tag, &ligature_set, &context_set)) {
+                                      &layout_tag, &ligature_set, &context_set, NULL)) {
       if (!hb_set_has(reachable, dependent)) {
         hb_set_add(reachable, dependent);
         hb_set_add(to_process, dependent);
@@ -173,7 +173,7 @@ if (hb_depend_get_set_from_index(depend, ligature_set, ligature_glyphs)) {
 
     while (hb_depend_get_glyph_entry(depend, lig_gid, lig_index++,
                                       &lig_table_tag, &lig_dependent,
-                                      &lig_layout_tag, &lig_ligature_set, &lig_context_set)) {
+                                      &lig_layout_tag, &lig_ligature_set, &lig_context_set, NULL)) {
       if (lig_ligature_set == ligature_set) {
         printf("  gid=%u, index=%u\n", lig_gid, lig_index - 1);
         break;
@@ -302,6 +302,11 @@ Each dependency entry returned by `hb_depend_get_glyph_entry()` contains:
   for this dependency. Can be ignored (treated as always satisfied) for conservative
   over-approximation, or checked for more precise closure computation. See "Working with
   Context Sets" section for details. *(Experimental feature from Phase 3 implementation)*
+- **flags** (optional, nullable): Edge metadata flags. Pass NULL if not needed. Currently defined:
+  - `HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01): Edge created from non-zero position
+    in a multi-position contextual rule. These edges may consume intermediate glyphs (glyphs
+    produced then immediately transformed). When computing closure, hitting such an edge
+    indicates expected over-approximation compared to subset's closure.
 
 ## Compilation
 
