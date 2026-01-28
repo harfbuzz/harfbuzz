@@ -368,10 +368,11 @@ hb_bool_t
 hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
                           hb_codepoint_t index, hb_tag_t *table_tag,
                           hb_codepoint_t *dependent, hb_tag_t *layout_tag,
-                          hb_codepoint_t *ligature_set, hb_codepoint_t *context_set)
+                          hb_codepoint_t *ligature_set, hb_codepoint_t *context_set,
+                          uint8_t *flags)
 {
   return depend->get_glyph_entry(gid, index, table_tag, dependent, layout_tag,
-                                 ligature_set, context_set);
+                                 ligature_set, context_set, flags);
 }
 
 /**
