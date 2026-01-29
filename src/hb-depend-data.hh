@@ -37,6 +37,7 @@
  * Edge flags for hb_depend_data_record_t
  */
 #define HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION 0x01
+#define HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT   0x02
 
 /**
  * hb_depend_data_record_t:

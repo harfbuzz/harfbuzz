@@ -1943,16 +1943,32 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
       ? HB_CODEPOINT_INVALID
       : c->depend_data->find_or_create_set (position_context);
 
+    /* Save outer context to restore later - this preserves the outer context
+     * across all rules when a contextual lookup calls another contextual lookup. */
+    hb_codepoint_t saved_context_set_index = c->depend_data->current_context_set_index;
+    uint8_t saved_edge_flags = c->depend_data->current_edge_flags;
+
+    /* Detect nested contextual: if we already have a context set, we're inside
+     * an outer contextual rule that called this one. The outer context will be
+     * lost, so edges created here may over-approximate. */
+    bool nested_contextual = (saved_context_set_index != HB_CODEPOINT_INVALID);
+
     /* Set for this position's edges */
     c->depend_data->current_context_set_index = context_set_idx;
 
-    /* Mark edges from non-zero positions in multi-position rules as potentially
-     * consuming intermediate glyphs. These edges are risky because their source
-     * glyphs are contextual requirements that might be produced elsewhere and
-     * immediately consumed here. */
+    /* Mark edges in multi-position rules as potentially over-approximate.
+     * For seqIndex > 0: the source glyph might be produced by earlier lookups.
+     * For seqIndex == 0 with inputCount > 1: context glyphs from other input
+     * positions might be produced, satisfying the context check but not the
+     * actual positional requirements.
+     * In both cases, the edge is "risky" - the rule might not fire even when
+     * all required glyphs are in the closure. */
     c->depend_data->current_edge_flags = 0;
-    if (seqIndex > 0 && inputCount > 1) {
+    if (inputCount > 1) {
       c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION;
+    }
+    if (nested_contextual) {
+      c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT;
     }
 
     bool has_pos_glyphs = false;
@@ -2006,9 +2022,10 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     c->recurse (lookupRecord[i].lookupListIndex, &covered_seq_indicies, seqIndex, endIndex);
     c->pop_cur_done_glyphs ();
 
-    /* Clear context and flags after this position */
-    c->depend_data->current_context_set_index = HB_CODEPOINT_INVALID;
-    c->depend_data->current_edge_flags = 0;
+    /* Restore outer context after this position - this ensures the outer context
+     * persists across multiple rules when processing nested contextual lookups. */
+    c->depend_data->current_context_set_index = saved_context_set_index;
+    c->depend_data->current_edge_flags = saved_edge_flags;
   }
 }
 #endif
@@ -3525,21 +3542,23 @@ static inline bool chain_context_intersects (const hb_set_t *glyphs,
 					     const HBUINT lookahead[],
 					     ChainContextClosureLookupContext &lookup_context)
 {
-  return array_is_subset_of (glyphs,
+  bool bt_ok = array_is_subset_of (glyphs,
 			     backtrackCount, backtrack,
 			     lookup_context.funcs.intersects,
 			     lookup_context.intersects_data[0],
-			     lookup_context.intersects_cache[0])
-      && array_is_subset_of (glyphs,
+			     lookup_context.intersects_cache[0]);
+  bool in_ok = array_is_subset_of (glyphs,
 			     inputCount ? inputCount - 1 : 0, input,
 			     lookup_context.funcs.intersects,
 			     lookup_context.intersects_data[1],
-			     lookup_context.intersects_cache[1])
-      && array_is_subset_of (glyphs,
+			     lookup_context.intersects_cache[1]);
+  bool la_ok = array_is_subset_of (glyphs,
 			     lookaheadCount, lookahead,
 			     lookup_context.funcs.intersects,
 			     lookup_context.intersects_data[2],
 			     lookup_context.intersects_cache[2]);
+
+  return bt_ok && in_ok && la_ok;
 }
 
 template <typename HBUINT>

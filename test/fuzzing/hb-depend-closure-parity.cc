@@ -817,8 +817,9 @@ process_edges_for_tables (hb_depend_t *depend,
         /* Non-ligature dependency: add immediately */
         if (!hb_set_has (glyphs, dependent))
         {
-          /* Track if we hit a flagged edge (from contextual position) */
-          if (hit_flagged_edge && (flags & 0x01))
+          /* Track if we hit a flagged edge (from contextual position or nested context)
+           * Flag values: 0x01 = FROM_CONTEXT_POSITION, 0x02 = FROM_NESTED_CONTEXT */
+          if (hit_flagged_edge && (flags & 0x03))
             *hit_flagged_edge = true;
 
           if (dependent == debug_gid)
@@ -910,6 +911,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
         while (hb_set_next (deferred_ligatures, &lig_glyph))
         {
           bool any_set_satisfied = false;
+          uint8_t satisfied_edge_flags = 0;  /* Track flags from the edge that satisfied */
 
           /* Scan through glyphs in closure to find ligature sets */
           hb_codepoint_t src_glyph = HB_SET_VALUE_INVALID;
@@ -928,6 +930,10 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
             {
               if (dep == lig_glyph && ligset != HB_CODEPOINT_INVALID && ttag == HB_OT_TAG_GSUB)
               {
+                /* Must also check feature is active (same as non-ligature edge processing) */
+                if (active_features && !hb_set_has (active_features, ltag))
+                  continue;
+
                 /* Check if this ligature set is satisfied */
                 hb_set_clear (ligature_set_glyphs);
                 hb_depend_get_set_from_index (depend, ligset, ligature_set_glyphs);
@@ -935,6 +941,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
                 if (hb_set_is_subset (ligature_set_glyphs, glyphs))
                 {
                   any_set_satisfied = true;
+                  satisfied_edge_flags = fls;  /* Remember flags from this edge */
                   break;
                 }
               }
@@ -964,8 +971,13 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
 
             if (!skip_ligature && !hb_set_has (glyphs, lig_glyph))
             {
+              /* Check if this ligature edge has flags (from contextual position or nested context) */
+              if (hit_flagged_edge && (satisfied_edge_flags & 0x03))
+                *hit_flagged_edge = true;
+
               if (trace_closure)
-                DEBUG_MSG_DEPEND("Adding GSUB ligature %u (components satisfied)", lig_glyph);
+                DEBUG_MSG_DEPEND("Adding GSUB ligature %u (components satisfied, flags=0x%02x)",
+                           lig_glyph, satisfied_edge_flags);
               hb_set_add (glyphs, lig_glyph);
               lig_made_progress = true;
             }
@@ -1016,12 +1028,14 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
                  hb_set_get_population (glyphs));
   }
 
-  /* Stage 4: glyf/CFF closure */
+  /* Stage 4: glyf/CFF closure
+   * Note: cmap edges (UVS) are NOT included here because:
+   * 1. Subset doesn't follow UVS for glyph-based closure
+   * 2. UVS is about Unicode→glyph mapping, not glyph→glyph rendering deps */
   {
     hb_set_t *glyf_filter = hb_set_create ();
     hb_set_add (glyf_filter, HB_TAG('g','l','y','f'));
     hb_set_add (glyf_filter, HB_TAG('C','F','F',' '));
-    hb_set_add (glyf_filter, HB_TAG('c','m','a','p'));  /* Include cmap for UVS */
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
