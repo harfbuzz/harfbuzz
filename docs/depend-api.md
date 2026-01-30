@@ -303,10 +303,22 @@ Each dependency entry returned by `hb_depend_get_glyph_entry()` contains:
   over-approximation, or checked for more precise closure computation. See "Working with
   Context Sets" section for details. *(Experimental feature from Phase 3 implementation)*
 - **flags** (optional, nullable): Edge metadata flags. Pass NULL if not needed. Currently defined:
-  - `HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01): Edge created from non-zero position
-    in a multi-position contextual rule. These edges may consume intermediate glyphs (glyphs
-    produced then immediately transformed). When computing closure, hitting such an edge
-    indicates expected over-approximation compared to subset's closure.
+  - `HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01): Edge created from a multi-position
+    contextual rule (Context or ChainContext with inputCount > 1). Depend extraction
+    records edges based on what glyphs COULD be at each position according to the static
+    input coverage/class. But during closure computation, lookups within the rule are
+    applied sequentially: lookups at earlier positions may transform glyphs at later
+    positions, and multiple lookups at the same position may interact (one produces a
+    glyph, another immediately consumes it as an "intermediate"). So a glyph matching
+    the coverage might not actually persist at that position when closure traverses
+    the rule. These edges may cause over-approximation.
+  - `HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT` (0x02): Edge created from a lookup that was
+    called from within another contextual lookup (nested context). The outer context's
+    requirements are not preserved on this edge, so it may over-approximate.
+
+  These flags help distinguish between "true" over-approximation (a bug) and "expected"
+  over-approximation (a known limitation of the static dependency analysis). Closure
+  implementations can use these flags to report which type of over-approximation occurred.
 
 ## Compilation
 

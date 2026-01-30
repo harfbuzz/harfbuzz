@@ -8,8 +8,33 @@
 
 #include "hb-subset.h"
 
+#include <vector>
+
 #ifdef HB_DEPEND_API
 #include <hb.h>
+
+/**
+ * deferred_ligature_t:
+ *
+ * Stores information needed to process a deferred ligature dependency.
+ * When we encounter a ligature edge, we defer processing until we know
+ * whether all glyphs in the ligature set are present in the closure.
+ * By storing this info at deferral time, we avoid re-scanning edges later.
+ */
+struct deferred_ligature_t
+{
+  deferred_ligature_t () = default;
+  deferred_ligature_t (hb_codepoint_t dependent_,
+		       hb_codepoint_t ligature_set_index_,
+		       uint8_t flags_)
+    : dependent (dependent_),
+      ligature_set_index (ligature_set_index_),
+      flags (flags_) {}
+
+  hb_codepoint_t dependent;
+  hb_codepoint_t ligature_set_index;
+  uint8_t flags;
+};
 
 /* Debug messaging - follows HarfBuzz DEBUG_MSG pattern but simplified for parity checker */
 #ifndef HB_DEBUG_DEPEND
@@ -701,7 +726,7 @@ static bool
 process_edges_for_tables (hb_depend_t *depend,
                           hb_set_t *glyphs,
                           hb_set_t *to_process,
-                          hb_set_t *deferred_ligatures,
+                          std::vector<deferred_ligature_t> *deferred_ligatures,
                           hb_set_t *table_filter,
                           bool skip_gsub,
                           hb_set_t *active_features,
@@ -800,8 +825,10 @@ process_edges_for_tables (hb_depend_t *depend,
 
       if (is_ligature)
       {
-        /* Defer ligature dependencies for later processing */
-        hb_set_add (deferred_ligatures, dependent);
+        /* Defer ligature dependencies for later processing.
+         * Store all info needed to process later: dependent glyph, ligature set index, and flags.
+         * Feature filtering has already been done above, so no need to re-check later. */
+        deferred_ligatures->push_back (deferred_ligature_t (dependent, ligature_set, flags));
       }
       else
       {
@@ -865,7 +892,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
   }
 
   hb_set_t *to_process = hb_set_create ();
-  hb_set_t *deferred_ligatures = hb_set_create ();
+  std::vector<deferred_ligature_t> deferred_ligatures;
 
   /* Process edges in stages matching subset's table order:
    * 1. GSUB (iterate internally until stable - handles context dependencies)
@@ -876,9 +903,8 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
    * No loop back to GSUB after glyf/CFF - glyf components are rendering
    * implementation details, not shaping inputs. Subset doesn't loop back either. */
 
-  /* Helper sets for ligature processing (used in GSUB stage) */
+  /* Helper set for ligature processing (used in GSUB stage) */
   hb_set_t *ligature_set_glyphs = hb_set_create ();
-  hb_set_t *ligatures_to_remove = hb_set_create ();
 
   {
     /* Stage 1: GSUB closure - iterate until stable (like subset does internally)
@@ -896,69 +922,37 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
 
       /* Process non-ligature GSUB edges */
       hb_set_union (to_process, glyphs);
-      process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
+      process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
                                 gsub_filter, skip_gsub, active_features, hit_flagged_edge);
 
       /* Process deferred ligatures (GSUB ligatures only)
-       * Only add a ligature when ALL glyphs in its ligature set are in closure */
+       * Only add a ligature when ALL glyphs in its ligature set are in closure.
+       * Since we stored {dependent, ligature_set_index, flags} at deferral time,
+       * we just need to check if each ligature set is satisfied - no re-scanning needed. */
       bool lig_made_progress = true;
-      while (lig_made_progress && !hb_set_is_empty (deferred_ligatures))
+      while (lig_made_progress && !deferred_ligatures.empty ())
       {
         lig_made_progress = false;
-        hb_set_clear (ligatures_to_remove);
 
-        hb_codepoint_t lig_glyph = HB_SET_VALUE_INVALID;
-        while (hb_set_next (deferred_ligatures, &lig_glyph))
+        for (size_t i = 0; i < deferred_ligatures.size (); )
         {
-          bool any_set_satisfied = false;
-          uint8_t satisfied_edge_flags = 0;  /* Track flags from the edge that satisfied */
+          const deferred_ligature_t &def = deferred_ligatures[i];
 
-          /* Scan through glyphs in closure to find ligature sets */
-          hb_codepoint_t src_glyph = HB_SET_VALUE_INVALID;
-          while (hb_set_next (glyphs, &src_glyph))
-          {
-            hb_codepoint_t idx = 0;
-            hb_tag_t ttag;
-            hb_codepoint_t dep;
-            hb_tag_t ltag;
-            hb_codepoint_t ligset;
-            hb_codepoint_t ctxset;
-            uint8_t fls;
+          /* Check if ligature set is satisfied */
+          hb_set_clear (ligature_set_glyphs);
+          hb_depend_get_set_from_index (depend, def.ligature_set_index, ligature_set_glyphs);
 
-            while (hb_depend_get_glyph_entry (depend, src_glyph, idx++,
-                                              &ttag, &dep, &ltag, &ligset, &ctxset, &fls))
-            {
-              if (dep == lig_glyph && ligset != HB_CODEPOINT_INVALID && ttag == HB_OT_TAG_GSUB)
-              {
-                /* Must also check feature is active (same as non-ligature edge processing) */
-                if (active_features && !hb_set_has (active_features, ltag))
-                  continue;
-
-                /* Check if this ligature set is satisfied */
-                hb_set_clear (ligature_set_glyphs);
-                hb_depend_get_set_from_index (depend, ligset, ligature_set_glyphs);
-
-                if (hb_set_is_subset (ligature_set_glyphs, glyphs))
-                {
-                  any_set_satisfied = true;
-                  satisfied_edge_flags = fls;  /* Remember flags from this edge */
-                  break;
-                }
-              }
-            }
-            if (any_set_satisfied)
-              break;
-          }
+          bool set_satisfied = hb_set_is_subset (ligature_set_glyphs, glyphs);
 
           /* Over-approximation injection: sometimes add ligature even when components NOT satisfied */
-          if (!any_set_satisfied && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
+          if (!set_satisfied && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
             float r = (float)rand() / (float)RAND_MAX;
             if (r < _hb_depend_fuzzer_inject_over_approx) {
-              any_set_satisfied = true;  /* Pretend it's satisfied */
+              set_satisfied = true;  /* Pretend it's satisfied */
             }
           }
 
-          if (any_set_satisfied)
+          if (set_satisfied)
           {
             /* Under-approximation injection: randomly skip adding ligature */
             bool skip_ligature = false;
@@ -969,23 +963,29 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
               }
             }
 
-            if (!skip_ligature && !hb_set_has (glyphs, lig_glyph))
+            if (!skip_ligature && !hb_set_has (glyphs, def.dependent))
             {
               /* Check if this ligature edge has flags (from contextual position or nested context) */
-              if (hit_flagged_edge && (satisfied_edge_flags & 0x03))
+              if (hit_flagged_edge && (def.flags & 0x03))
                 *hit_flagged_edge = true;
 
               if (trace_closure)
                 DEBUG_MSG_DEPEND("Adding GSUB ligature %u (components satisfied, flags=0x%02x)",
-                           lig_glyph, satisfied_edge_flags);
-              hb_set_add (glyphs, lig_glyph);
+                           def.dependent, def.flags);
+              hb_set_add (glyphs, def.dependent);
               lig_made_progress = true;
             }
-            hb_set_add (ligatures_to_remove, lig_glyph);
+
+            /* Remove from deferred list by swapping with last element */
+            deferred_ligatures[i] = deferred_ligatures.back ();
+            deferred_ligatures.pop_back ();
+            /* Don't increment i - need to check the swapped element */
+          }
+          else
+          {
+            i++;
           }
         }
-
-        hb_set_subtract (deferred_ligatures, ligatures_to_remove);
       }
 
       iteration++;
@@ -1004,7 +1004,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
     hb_set_add (math_filter, HB_OT_TAG_MATH);
 
     hb_set_union (to_process, glyphs);
-    process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
+    process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
                               math_filter, skip_gsub, active_features, hit_flagged_edge);
     hb_set_destroy (math_filter);
 
@@ -1019,7 +1019,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
     hb_set_add (colr_filter, HB_TAG('C','O','L','R'));
 
     hb_set_union (to_process, glyphs);
-    process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
+    process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
                               colr_filter, skip_gsub, active_features, hit_flagged_edge);
     hb_set_destroy (colr_filter);
 
@@ -1038,7 +1038,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
     hb_set_add (glyf_filter, HB_TAG('C','F','F',' '));
 
     hb_set_union (to_process, glyphs);
-    process_edges_for_tables (depend, glyphs, to_process, deferred_ligatures,
+    process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
                               glyf_filter, skip_gsub, active_features, NULL);
     hb_set_destroy (glyf_filter);
 
@@ -1049,9 +1049,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
   }  /* End table stages */
 
   /* Cleanup */
-  hb_set_destroy (ligatures_to_remove);
   hb_set_destroy (ligature_set_glyphs);
-  hb_set_destroy (deferred_ligatures);
   hb_set_destroy (to_process);
 }
 
