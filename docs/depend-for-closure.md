@@ -80,6 +80,39 @@ if (!hb_set_has(glyphs, dependent)) {
 }
 ```
 
+## Edge Flags and Over-Approximation Detection
+
+Each dependency edge has an optional `flags` field that indicates potential over-approximation:
+
+- **`HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01)**: Edge from a multi-position
+  contextual rule
+- **`HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT` (0x02)**: Edge from a nested contextual
+  lookup
+
+When computing closure, track whether any flagged edges contributed to the result:
+
+```c++
+bool hit_flagged_edge = false;
+
+// When following an edge...
+uint8_t flags;
+hb_depend_get_glyph_entry(depend, gid, idx, ..., &flags);
+
+if (!hb_set_has(closure, dependent)) {
+  hb_set_add(closure, dependent);
+  if (flags & 0x03)  // Either flag set
+    hit_flagged_edge = true;
+}
+
+// After closure computation...
+if (depend_closure.is_superset_of(subset_closure)) {
+  if (hit_flagged_edge)
+    printf("Expected over-approximation (hit flagged edge)\n");
+  else
+    printf("UNEXPECTED over-approximation (bug)\n");
+}
+```
+
 ## Optional Over-Approximation
 
 You can choose to skip context_set checking for:

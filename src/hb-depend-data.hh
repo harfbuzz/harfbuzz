@@ -34,7 +34,28 @@
 #ifdef HB_DEPEND_API
 
 /**
- * Edge flags for hb_depend_data_record_t
+ * Edge flags for hb_depend_data_record_t.
+ *
+ * These flags mark edges that may cause "expected" over-approximation when
+ * computing closure via the depend graph compared to hb_ot_layout_lookups_substitute_closure().
+ * They help distinguish between bugs (unexpected over-approx) and known limitations
+ * of static dependency analysis (expected over-approx).
+ *
+ * HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION (0x01):
+ *   Edge created from a multi-position contextual rule (Context or ChainContext
+ *   with inputCount > 1). Depend extraction records edges based on what glyphs
+ *   COULD be at each position according to the static input coverage/class. But
+ *   during closure computation, lookups within the rule are applied sequentially:
+ *   lookups at earlier positions may transform glyphs at later positions, and
+ *   multiple lookups at the same position may interact (one produces a glyph,
+ *   another immediately consumes it as an "intermediate"). So a glyph matching
+ *   the coverage might not actually persist at that position when closure
+ *   traverses the rule. These edges may cause over-approximation.
+ *
+ * HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT (0x02):
+ *   Edge created from a lookup called within another contextual lookup (nested
+ *   context). The outer context's requirements are not preserved on this edge,
+ *   so it may over-approximate.
  */
 #define HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION 0x01
 #define HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT   0x02
@@ -42,10 +63,16 @@
 /**
  * hb_depend_data_record_t:
  *
- * Internal structure representing a single dependency relationship.
+ * Internal structure representing a single dependency edge in the graph.
  * Records that glyph A depends on glyph B through a specific OpenType
- * mechanism (table_tag), optionally with additional context (layout_tag,
- * ligature_set, context_set, flags).
+ * mechanism (table_tag), with additional metadata:
+ *
+ * - table_tag: Source table (GSUB, cmap, glyf, CFF, COLR, MATH)
+ * - dependent: Target glyph ID
+ * - layout_tag: Feature tag (for GSUB) or UVS codepoint (for cmap), else 0
+ * - ligature_set: Index into sets array for ligature components, else INVALID
+ * - context_set: Index into sets array for context requirements, else INVALID
+ * - flags: Edge flags (FROM_CONTEXT_POSITION, FROM_NESTED_CONTEXT)
  */
 struct hb_depend_data_record_t {
   hb_depend_data_record_t() = delete;
@@ -106,12 +133,23 @@ struct hb_lookup_feature_record_t {
 /**
  * hb_depend_data_t:
  *
- * Internal container for all dependency graph data. Stores:
- * - Per-glyph dependency records (glyph_dependencies)
- * - Ligature sets indexed by set ID (sets)
- * - Nominal glyph mapping from Unicode codepoints (nominal_glyphs)
- * - Set of all Unicode codepoints in the font (unicodes)
- * - Lookup to feature mapping (lookup_features)
+ * Internal container for all dependency graph data.
+ *
+ * Persistent data (retained after graph construction):
+ * - glyph_dependencies: Per-glyph edge lists
+ * - sets: Ligature sets and context sets indexed by set ID
+ *
+ * Temporary data (freed after construction via cleanup()):
+ * - unicodes: Set of all Unicode codepoints in the font
+ * - nominal_glyphs: Codepoint to nominal glyph mapping
+ * - lookup_features: Lookup index to feature tag mapping
+ * - edge_hashes: Hash-based edge deduplication table
+ * - set_hashes: Hash-based set deduplication table
+ * - free_set_list: Indices of freed sets available for reuse
+ *
+ * Extraction state (used during graph construction):
+ * - current_context_set_index: Context requirements for current rule
+ * - current_edge_flags: Flags to apply to edges being recorded
  *
  * This structure is owned by hb_depend_t and freed when the depend
  * object is destroyed.
@@ -602,9 +640,10 @@ struct hb_depend_data_t
    * then used by all edges recorded from nested lookups. */
   hb_codepoint_t current_context_set_index;
 
-  /* Temporary: Edge flags for the current position.
-   * Set by context_depend_recurse_lookups to mark edges created from
-   * non-zero positions in contextual rules (potential intermediate consumers). */
+  /* Temporary: Edge flags for edges being recorded.
+   * Set by context_depend_recurse_lookups before recursing into nested lookups.
+   * FROM_CONTEXT_POSITION: multi-position contextual rule (inputCount > 1)
+   * FROM_NESTED_CONTEXT: lookup called from within another contextual lookup */
   uint8_t current_edge_flags;
 #endif
 };
