@@ -1911,14 +1911,13 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
       filtered.subtract (position_context);
 
       if (filtered == original_set) {
-        /* Unchanged - reuse original index */
+        /* No overlap with position_context - add full requirement */
         filtered_disjunctive_indices.add (elem);
-      } else if (!filtered.is_empty ()) {
-        /* Changed - allocate new */
-        hb_codepoint_t new_idx = c->depend_data->find_or_create_set (filtered);
-        filtered_disjunctive_indices.add (0x80000000 | new_idx);
       }
-      /* If empty after filtering, skip entirely */
+      /* Otherwise: position_context intersects with original_set.
+       * Since disjunctive requirements need only ONE glyph from the set,
+       * and position_context already has a glyph from this set, the
+       * requirement is satisfied - no need to add anything. */
     }
 
     /* Process non-singleton input positions */
@@ -1928,10 +1927,12 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
         filtered.set ((*input_position_glyphs)[j]);
         filtered.subtract (position_context);
 
-        if (!filtered.is_empty ()) {
-          hb_codepoint_t idx = c->depend_data->find_or_create_set (filtered);
+        if (filtered == (*input_position_glyphs)[j]) {
+          /* No overlap with position_context - add full requirement */
+          hb_codepoint_t idx = c->depend_data->find_or_create_set ((*input_position_glyphs)[j]);
           filtered_disjunctive_indices.add (0x80000000 | idx);
         }
+        /* Otherwise: position_context intersects, requirement satisfied */
       }
     }
 
@@ -1943,8 +1944,9 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
       ? HB_CODEPOINT_INVALID
       : c->depend_data->find_or_create_set (position_context);
 
-    /* Save outer context to restore later - this preserves the outer context
-     * across all rules when a contextual lookup calls another contextual lookup. */
+    /* Save outer context to restore after this lookup. When a contextual lookup
+     * calls another contextual lookup, we want each lookup in this rule to see
+     * the same outer context, not context from a sibling lookup. */
     hb_codepoint_t saved_context_set_index = c->depend_data->current_context_set_index;
     uint8_t saved_edge_flags = c->depend_data->current_edge_flags;
 
@@ -1956,13 +1958,14 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     /* Set for this position's edges */
     c->depend_data->current_context_set_index = context_set_idx;
 
-    /* Mark edges in multi-position rules as potentially over-approximate.
-     * For seqIndex > 0: the source glyph might be produced by earlier lookups.
-     * For seqIndex == 0 with inputCount > 1: context glyphs from other input
-     * positions might be produced, satisfying the context check but not the
-     * actual positional requirements.
-     * In both cases, the edge is "risky" - the rule might not fire even when
-     * all required glyphs are in the closure. */
+    /* Mark edges from multi-position rules (inputCount > 1) as potentially
+     * over-approximate. Depend extraction records edges based on what glyphs
+     * COULD be at each position per the static input coverage/class. But during
+     * closure computation, lookups within the rule are applied sequentially:
+     * lookups at earlier positions may transform later positions, and multiple
+     * lookups at the same position may interact (one produces a glyph, another
+     * immediately consumes it as an "intermediate"). So a glyph matching the
+     * coverage might not persist at that position when closure traverses. */
     c->depend_data->current_edge_flags = 0;
     if (inputCount > 1) {
       c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION;
@@ -2022,8 +2025,8 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     c->recurse (lookupRecord[i].lookupListIndex, &covered_seq_indicies, seqIndex, endIndex);
     c->pop_cur_done_glyphs ();
 
-    /* Restore outer context after this position - this ensures the outer context
-     * persists across multiple rules when processing nested contextual lookups. */
+    /* Restore outer context after this lookup, so subsequent lookups in this
+     * rule see the original context rather than this lookup's context. */
     c->depend_data->current_context_set_index = saved_context_set_index;
     c->depend_data->current_edge_flags = saved_edge_flags;
   }

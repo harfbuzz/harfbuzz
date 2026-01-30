@@ -50,6 +50,40 @@ Implementation in `context_depend_recurse_lookups()` (hb-ot-layout-gsubgpos.hh):
 4. Recurse into nested lookups
 5. Clear context index when done
 
+### Edge Flags for Over-Approximation Detection
+
+Certain contextual edges cannot be precisely modeled by the static dependency graph.
+The depend API marks these edges with flags so closure implementations can distinguish
+between "expected" over-approximation (a known limitation) and "unexpected" over-approximation
+(a bug).
+
+Two flags are defined in `hb-depend-data.hh`:
+
+- **`HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION` (0x01)**: Set when an edge comes from a
+  multi-position contextual rule (inputCount > 1). Depend extraction records edges based
+  on what glyphs COULD be at each position per the static input coverage/class. But during
+  closure computation, lookups within the rule are applied sequentially: lookups at earlier
+  positions may transform later positions, and multiple lookups at the same position may
+  interact (one produces a glyph, another immediately consumes it as an "intermediate").
+  So depend may record edges from glyphs that wouldn't persist at that position.
+
+- **`HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT` (0x02)**: Set when a lookup is called from
+  within another contextual lookup. The outer context's requirements are not preserved,
+  so the edge may over-approximate.
+
+These flags are set in `context_depend_recurse_lookups()`:
+```c++
+if (inputCount > 1) {
+  c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_CONTEXT_POSITION;
+}
+if (nested_contextual) {
+  c->depend_data->current_edge_flags |= HB_DEPEND_EDGE_FLAG_FROM_NESTED_CONTEXT;
+}
+```
+
+Closure implementations should track whether any flagged edges contributed to the result.
+If so, any extra glyphs compared to subset's closure are "expected" over-approximation.
+
 ### Graph Completeness
 
 The depend graph captures all edges that exist in the font structure. Recent testing
@@ -84,6 +118,7 @@ struct hb_depend_data_t {
   hb_vector_t<hb_set_t> sets;                                // Ligature and context sets
   hb_map_t lookup_features[256];                             // Feature tracking
   hb_codepoint_t current_context_set_index;                  // Current context during extraction
+  uint8_t current_edge_flags;                                // Flags for edges being extracted
 };
 ```
 
@@ -92,6 +127,7 @@ struct hb_depend_data_t {
 - **Ligature sets**: Tracks complete set of component glyphs needed for each ligature
 - **Context sets**: Records backtrack/lookahead requirements for contextual rules
 - **Feature tracking**: Records which features activate which lookups
+- **Edge flags**: Marks edges that may cause expected over-approximation (FROM_CONTEXT_POSITION, FROM_NESTED_CONTEXT)
 - **Persistent storage**: Graph survives beyond initial extraction
 
 ## Graph Lifecycle and Memory Management
@@ -315,6 +351,7 @@ This keeps related code together and makes it easier to maintain consistency.
 | **Active glyph filtering** | Filters by active glyphs during traversal | Filters by parent_active_glyphs() during extraction |
 | **Sequential accumulation** | Accumulates outputs for next lookup | Does NOT accumulate (records all edges) |
 | **Context filtering** | Filters during execution | Records requirements in context_set |
+| **Edge flags** | N/A | Marks edges for expected over-approximation |
 | **Feature tagging** | Not tracked | Tracks which features activate edges |
 | **Ligature sets** | Not tracked | Tracks complete component sets |
 | **Deduplication** | Not needed | Hash-based to prevent duplicate edges |
