@@ -2543,13 +2543,13 @@ struct SparseVarRegionAxis
 struct hb_scalar_cache_t
 {
   private:
-  static constexpr unsigned STATIC_LENGTH = 16;
+  static constexpr unsigned STATIC_LENGTH = 128;
   static constexpr int INVALID = INT_MIN;
   static constexpr float MULTIPLIER = 1 << ((sizeof (int) * 8) - 2);
   static constexpr float DIVISOR = 1.f / MULTIPLIER;
 
   public:
-  hb_scalar_cache_t () : length (STATIC_LENGTH) { clear (); }
+  hb_scalar_cache_t () {}
 
   hb_scalar_cache_t (const hb_scalar_cache_t&) = delete;
   hb_scalar_cache_t (hb_scalar_cache_t&&) = delete;
@@ -2561,8 +2561,9 @@ struct hb_scalar_cache_t
   {
     if (!count) return (hb_scalar_cache_t *) &Null(hb_scalar_cache_t);
 
-    if (scratch_cache && count <= scratch_cache->length)
+    if (scratch_cache && count <= STATIC_LENGTH)
     {
+      scratch_cache->length = count;
       scratch_cache->clear ();
       return scratch_cache;
     }
