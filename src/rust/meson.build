@@ -42,7 +42,7 @@ if buildtype == 'release' or buildtype == 'debugoptimized'
 endif
 
 opt_level = get_option('optimization')
-rust_flags += ' -C opt-level=' + opt_level
+rust_flags += ' -C force-frame-pointers=yes -C force-unwind-tables=no -C opt-level=' + opt_level
 
 sources = [
   'lib.rs',
