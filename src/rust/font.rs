@@ -15,7 +15,7 @@ use skrifa::color::{
 use skrifa::font::FontRef;
 use skrifa::instance::{Location, NormalizedCoord, Size};
 use skrifa::metrics::{BoundingBox, GlyphMetrics};
-use skrifa::outline::pen::OutlinePen;
+use skrifa::outline::pen::{OutlinePen, PathStyle};
 use skrifa::outline::DrawSettings;
 use skrifa::raw::tables::cpal::ColorRecord;
 use skrifa::raw::tables::vmtx::Vmtx;
@@ -521,7 +521,8 @@ extern "C" fn _hb_fontations_draw_glyph_or_fail(
     let Some(outline_glyph) = outline_glyphs.get(glyph_id) else {
         return false as hb_bool_t;
     };
-    let draw_settings = DrawSettings::unhinted(*size, location);
+    let draw_settings = DrawSettings::unhinted(*size, location)
+                                     .with_path_style(PathStyle::HarfBuzz);
 
     let mut draw_state = unsafe { std::mem::zeroed::<hb_draw_state_t>() };
 
