@@ -734,17 +734,7 @@ struct gvar_GVAR
 	return true; /* so isn't applied at all */
 
       bool any_private_points = false;
-      {
-	auto scan = iterator;
-	do
-	{
-	  if (scan.current_tuple->has_private_points ())
-	  {
-	    any_private_points = true;
-	    break;
-	  }
-	} while (scan.move_to_next ());
-      }
+      bool private_points_checked = false;
 
       /* Save original points for inferred delta calculation */
       auto &orig_points_vec = scratch.orig_points;
@@ -772,6 +762,20 @@ struct gvar_GVAR
 								 gvar_cache);
 
 	if (scalar == 0.f) continue;
+
+	if (!private_points_checked)
+	{
+	  auto scan = iterator;
+	  do
+	  {
+	    if (scan.current_tuple->has_private_points ())
+	    {
+	      any_private_points = true;
+	      break;
+	    }
+	  } while (scan.move_to_next ());
+	  private_points_checked = true;
+	}
 	const HBUINT8 *p = iterator.get_serialized_data ();
 	unsigned int length = iterator.current_tuple->get_data_size ();
 	if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
