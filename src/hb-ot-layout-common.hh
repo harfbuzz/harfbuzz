@@ -3257,12 +3257,24 @@ struct MultiVarData
 
     auto values_iter = deltaSets.fetcher (inner);
     unsigned regionCount = regionIndices.len;
+    unsigned skip = 0;
     for (unsigned regionIndex = 0; regionIndex < regionCount; regionIndex++)
     {
       float scalar = regions.evaluate (regionIndices.arrayZ[regionIndex],
 				       coords, coord_count,
 				       cache);
-      values_iter.add_to (out, scalar);
+      // We skip lazily. Helps with the tail end.
+      if (scalar == 0.0f)
+        skip += out.length;
+      else
+      {
+        if (skip)
+	{
+	  values_iter.skip (skip);
+	  skip = 0;
+	}
+	values_iter.add_to (out, scalar);
+      }
     }
   }
 
