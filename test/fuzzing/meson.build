@@ -44,8 +44,12 @@ foreach file_name : tests
     continue
   endif
 
+  if test_name.contains('depend') and not get_option('depend_api')
+    continue
+  endif
+
   link_with_libs = [libharfbuzz]
-  if test_name.contains('subset') or test_name.contains('repacker')
+  if test_name.contains('subset') or test_name.contains('repacker') or test_name.contains('depend')
     link_with_libs += [libharfbuzz_subset]
   endif
   if test_name.contains('raster')
@@ -55,9 +59,16 @@ foreach file_name : tests
     link_with_libs += [libharfbuzz_vector]
   endif
 
+  # hb-depend-closure-parity needs glib for option parsing
+  test_deps = []
+  if test_name == 'hb-depend-closure-parity'
+    test_deps = [glib_dep]
+  endif
+
   exe = executable(test_name, sources,
     cpp_args: cpp_args + extra_cpp_args,
     include_directories: [incconfig, incsrc],
+    dependencies: test_deps,
     link_args: fuzzer_ldflags,
     link_with: link_with_libs,
     install: false,
