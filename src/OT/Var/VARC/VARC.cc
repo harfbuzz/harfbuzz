@@ -270,9 +270,8 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
   {
     // Only use coord_setter if there's actually any axis overrides.
     coord_setter_t coord_setter (axisIndices ? component_coords : hb_array<int> ());
-    // Go backwards, to reduce coord_setter vector reallocations.
-    for (unsigned i = axisIndices.length; i; i--)
-      coord_setter[axisIndices[i - 1]] = axisValues[i - 1];
+    for (unsigned i = 0; i < axisIndices.length; i++)
+      coord_setter[axisIndices[i]] = axisValues[i];
     if (axisIndices)
       component_coords = coord_setter.get_coords ();
 
