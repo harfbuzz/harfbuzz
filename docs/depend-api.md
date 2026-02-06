@@ -32,7 +32,11 @@ hb_blob_t *blob = hb_blob_create_from_file("font.ttf");
 hb_face_t *face = hb_face_create(blob, 0);
 
 // Extract dependency graph
-hb_depend_t *depend = hb_depend_from_face(face);
+hb_depend_t *depend = hb_depend_from_face_or_fail(face);
+if (!depend) {
+    // Handle error
+    return;
+}
 
 // Query dependencies for a specific glyph
 hb_codepoint_t gid = 42;  // Glyph to query

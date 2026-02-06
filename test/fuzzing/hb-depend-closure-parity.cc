@@ -8,6 +8,7 @@
 
 #include "hb-subset.h"
 
+#include <random>
 #include <vector>
 
 #ifdef HB_DEPEND_API
@@ -80,9 +81,6 @@ init_parity_config ()
 
   config_initialized = true;
 
-  /* Initialize RNG with seed (already set by main or defaulted to random) */
-  srand (_hb_depend_fuzzer_seed);
-
   /* Check for debug glyph ID (only used when HB_DEBUG_DEPEND > 0) */
   const char *debug_gid_str = getenv ("HB_DEPEND_PARITY_DEBUG_GID");
   if (debug_gid_str)
@@ -94,18 +92,19 @@ init_parity_config ()
     trace_closure = true;
 }
 
-/* Simple RNG helpers */
+/* Simple RNG helpers - use std::mt19937 for deterministic cross-platform behavior */
 static unsigned
-rng_range (unsigned min, unsigned max)
+rng_range (std::mt19937 &rng, unsigned min, unsigned max)
 {
   if (max <= min)
     return min;
-  return min + (rand () % (max - min + 1));
+  std::uniform_int_distribution<unsigned> dist (min, max);
+  return dist (rng);
 }
 
 /* Select n random distinct values from range [0, max) */
 static void
-rng_select_distinct (hb_set_t *out, unsigned n, unsigned max)
+rng_select_distinct (std::mt19937 &rng, hb_set_t *out, unsigned n, unsigned max)
 {
   if (n >= max)
   {
@@ -118,14 +117,14 @@ rng_select_distinct (hb_set_t *out, unsigned n, unsigned max)
   /* Simple approach: keep trying random values until we have enough distinct ones */
   while (hb_set_get_population (out) < n)
   {
-    unsigned val = rng_range (0, max - 1);
+    unsigned val = rng_range (rng, 0, max - 1);
     hb_set_add (out, val);
   }
 }
 
 /* Select n random distinct values from an existing set */
 static void
-rng_select_from_set (hb_set_t *out, unsigned n, const hb_set_t *source)
+rng_select_from_set (std::mt19937 &rng, hb_set_t *out, unsigned n, const hb_set_t *source)
 {
   unsigned source_size = hb_set_get_population (source);
   if (n == 0 || source_size == 0)
@@ -148,7 +147,7 @@ rng_select_from_set (hb_set_t *out, unsigned n, const hb_set_t *source)
   /* Select n random indices */
   while (hb_set_get_population (out) < n)
   {
-    unsigned random_idx = rng_range (0, source_size - 1);
+    unsigned random_idx = rng_range (rng, 0, source_size - 1);
     hb_set_add (out, array[random_idx]);
   }
 
@@ -443,7 +442,7 @@ generate_test_from_explicit (hb_face_t *face, hb_font_t *font)
  * The seed determines:
  * - Test type (GSUB vs non-GSUB, size category) via seed % 100
  * - Target size within range via middle bits
- * - Specific element selection via high bits
+ * - Specific element selection via separate RNG seeded from high bits
  * - For GSUB tests: which features to activate (from available GSUB features)
  *
  * Test type distribution (percentages of total tests):
@@ -549,9 +548,10 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
     return params;
   }
 
-  /* Step 3: Select specific elements using full seed with mixing */
+  /* Step 3: Select specific elements using full seed with mixing
+   * Create a separate RNG for element selection, seeded from high bits */
   unsigned selection_seed = (unsigned)((seed >> 32) ^ seed);
-  srand (selection_seed);
+  std::mt19937 selection_rng (selection_seed);
 
   if (params.is_gsub)
   {
@@ -561,7 +561,7 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
 
     /* Select random codepoints by index */
     hb_set_t *cp_indices = hb_set_create ();
-    rng_select_distinct (cp_indices, params.target_size, num_codepoints);
+    rng_select_distinct (selection_rng, cp_indices, params.target_size, num_codepoints);
 
     /* Convert indices to actual codepoints */
     hb_codepoint_t idx = HB_SET_VALUE_INVALID;
@@ -592,17 +592,18 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
 
     if (num_features > 0)
     {
-      unsigned feature_selector = rand () % 100;
+      std::uniform_int_distribution<unsigned> feat_dist (0, 99);
+      unsigned feature_selector = feat_dist (selection_rng);
       unsigned num_to_select;
 
       if (feature_selector < 30)
         num_to_select = 1;  /* Single (30%) */
       else if (feature_selector < 65)
-        num_to_select = rng_range (2, 5);  /* Small (35%) */
+        num_to_select = rng_range (selection_rng, 2, 5);  /* Small (35%) */
       else if (feature_selector < 85)
-        num_to_select = rng_range (6, 15);  /* Medium (20%) */
+        num_to_select = rng_range (selection_rng, 6, 15);  /* Medium (20%) */
       else if (feature_selector < 95)
-        num_to_select = rng_range (16, 50);  /* Large (10%) */
+        num_to_select = rng_range (selection_rng, 16, 50);  /* Large (10%) */
       else
         num_to_select = num_features;  /* All (5%) */
 
@@ -612,7 +613,7 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
 
       /* Select specific features */
       params.features = hb_set_create ();
-      rng_select_from_set (params.features, num_to_select, available_features);
+      rng_select_from_set (selection_rng, params.features, num_to_select, available_features);
     }
 
     hb_set_destroy (available_features);
@@ -621,7 +622,7 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
   {
     /* Non-GSUB test: select glyphs directly */
     params.glyphs = hb_set_create ();
-    rng_select_distinct (params.glyphs, params.target_size, num_glyphs);
+    rng_select_distinct (selection_rng, params.glyphs, params.target_size, num_glyphs);
   }
 
   hb_set_destroy (all_codepoints);
@@ -632,7 +633,7 @@ generate_test_from_seed (uint64_t seed, hb_face_t *face, hb_font_t *font)
  * Depend Parity Checker - Validates depend API correctness by comparing closures
  *
  * For each font, this parity checker:
- * 1. Extracts the dependency graph using hb_depend_from_face()
+ * 1. Extracts the dependency graph using hb_depend_from_face_or_fail()
  * 2. For various starting glyphs, computes closure via:
  *    a) Following the depend API dependency graph
  *    b) Using HarfBuzz's subset plan closure calculation
@@ -721,6 +722,7 @@ check_context_satisfied (hb_depend_t *depend,
 /* Helper: Process edges for specific table(s)
  * table_filter: if non-NULL, only process edges from these tables
  * hit_flagged_edge: if non-NULL, set to true if any edge with FROM_CONTEXT_POSITION flag is traversed
+ * injection_rng: if non-NULL, use for error injection
  * Returns: true if any new glyphs were added */
 static bool
 process_edges_for_tables (hb_depend_t *depend,
@@ -730,7 +732,8 @@ process_edges_for_tables (hb_depend_t *depend,
                           hb_set_t *table_filter,
                           bool skip_gsub,
                           hb_set_t *active_features,
-                          bool *hit_flagged_edge)
+                          bool *hit_flagged_edge,
+                          std::mt19937 *injection_rng)
 {
   bool added_any = false;
 
@@ -779,8 +782,9 @@ process_edges_for_tables (hb_depend_t *depend,
         {
           /* Over-approximation injection: sometimes follow inactive feature edges */
           bool skip_feature_check = false;
-          if (_hb_depend_fuzzer_inject_over_approx > 0.0f) {
-            float r = (float)rand() / (float)RAND_MAX;
+          if (injection_rng && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
+            std::uniform_real_distribution<float> dist (0.0f, 1.0f);
+            float r = dist (*injection_rng);
             if (r < _hb_depend_fuzzer_inject_over_approx) {
               skip_feature_check = true;
             }
@@ -803,8 +807,9 @@ process_edges_for_tables (hb_depend_t *depend,
         {
           /* Over-approximation injection: sometimes follow edges with unsatisfied context */
           bool skip_context_check = false;
-          if (_hb_depend_fuzzer_inject_over_approx > 0.0f) {
-            float r = (float)rand() / (float)RAND_MAX;
+          if (injection_rng && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
+            std::uniform_real_distribution<float> dist (0.0f, 1.0f);
+            float r = dist (*injection_rng);
             if (r < _hb_depend_fuzzer_inject_over_approx) {
               skip_context_check = true;
             }
@@ -833,8 +838,9 @@ process_edges_for_tables (hb_depend_t *depend,
       else
       {
         /* Under-approximation injection: randomly skip following this edge */
-        if (_hb_depend_fuzzer_inject_under_approx > 0.0f) {
-          float r = (float)rand() / (float)RAND_MAX;
+        if (injection_rng && _hb_depend_fuzzer_inject_under_approx > 0.0f) {
+          std::uniform_real_distribution<float> dist (0.0f, 1.0f);
+          float r = dist (*injection_rng);
           if (r < _hb_depend_fuzzer_inject_under_approx) {
             /* Skip this edge to inject under-approximation */
             continue;
@@ -870,10 +876,12 @@ process_edges_for_tables (hb_depend_t *depend,
  * skip_gsub: if true, skip GSUB dependencies to match subset behavior
  * (subset doesn't follow GSUB when starting with glyph IDs)
  * active_features: if non-NULL, only follow GSUB dependencies from these features
- * hit_flagged_edge: if non-NULL, set to true if any edge with FROM_CONTEXT_POSITION flag is traversed */
+ * hit_flagged_edge: if non-NULL, set to true if any edge with FROM_CONTEXT_POSITION flag is traversed
+ * injection_rng: if non-NULL, use for error injection */
 static void
 compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
-                        hb_set_t *active_features, bool *hit_flagged_edge)
+                        hb_set_t *active_features, bool *hit_flagged_edge,
+                        std::mt19937 *injection_rng)
 {
   if (debug_gid != HB_CODEPOINT_INVALID)
   {
@@ -923,7 +931,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
       /* Process non-ligature GSUB edges */
       hb_set_union (to_process, glyphs);
       process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                                gsub_filter, skip_gsub, active_features, hit_flagged_edge);
+                                gsub_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng);
 
       /* Process deferred ligatures (GSUB ligatures only)
        * Only add a ligature when ALL glyphs in its ligature set are in closure.
@@ -945,8 +953,9 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
           bool set_satisfied = hb_set_is_subset (ligature_set_glyphs, glyphs);
 
           /* Over-approximation injection: sometimes add ligature even when components NOT satisfied */
-          if (!set_satisfied && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
-            float r = (float)rand() / (float)RAND_MAX;
+          if (!set_satisfied && injection_rng && _hb_depend_fuzzer_inject_over_approx > 0.0f) {
+            std::uniform_real_distribution<float> dist (0.0f, 1.0f);
+            float r = dist (*injection_rng);
             if (r < _hb_depend_fuzzer_inject_over_approx) {
               set_satisfied = true;  /* Pretend it's satisfied */
             }
@@ -956,8 +965,9 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
           {
             /* Under-approximation injection: randomly skip adding ligature */
             bool skip_ligature = false;
-            if (_hb_depend_fuzzer_inject_under_approx > 0.0f) {
-              float r = (float)rand() / (float)RAND_MAX;
+            if (injection_rng && _hb_depend_fuzzer_inject_under_approx > 0.0f) {
+              std::uniform_real_distribution<float> dist (0.0f, 1.0f);
+              float r = dist (*injection_rng);
               if (r < _hb_depend_fuzzer_inject_under_approx) {
                 skip_ligature = true;
               }
@@ -1005,7 +1015,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                              math_filter, skip_gsub, active_features, hit_flagged_edge);
+                              math_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng);
     hb_set_destroy (math_filter);
 
     if (trace_closure)
@@ -1020,7 +1030,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                              colr_filter, skip_gsub, active_features, hit_flagged_edge);
+                              colr_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng);
     hb_set_destroy (colr_filter);
 
     if (trace_closure)
@@ -1039,7 +1049,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                              glyf_filter, skip_gsub, active_features, NULL);
+                              glyf_filter, skip_gsub, active_features, NULL, injection_rng);
     hb_set_destroy (glyf_filter);
 
     if (trace_closure)
@@ -1274,16 +1284,19 @@ compare_closures (hb_face_t *face, hb_depend_t *depend,
 
   /* Seed RNG for error injection based on test seed to ensure reproducibility.
    * For a given test seed and injection probability, the same edges will be
-   * skipped/added every time. */
+   * skipped/added every time. Use std::mt19937 for deterministic cross-platform behavior. */
+  std::mt19937 *injection_rng = nullptr;
+  std::mt19937 injection_rng_storage;
   if (_hb_depend_fuzzer_inject_over_approx > 0.0f ||
       _hb_depend_fuzzer_inject_under_approx > 0.0f)
   {
-    srand ((unsigned) seed);
+    injection_rng_storage.seed ((unsigned) seed);
+    injection_rng = &injection_rng_storage;
   }
 
   bool hit_flagged_edge = false;
   compute_depend_closure (depend, depend_closure, skip_gsub,
-                          skip_gsub ? NULL : active_features, &hit_flagged_edge);
+                          skip_gsub ? NULL : active_features, &hit_flagged_edge, injection_rng);
 
   hb_set_destroy (actual_start_glyphs);
 
@@ -1433,7 +1446,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   hb_face_t *face = hb_face_create (blob, 0);
 
   /* Extract dependency graph */
-  hb_depend_t *depend = hb_depend_from_face (face);
+  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
   if (!depend)
   {
     hb_face_destroy (face);
@@ -1575,17 +1588,19 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   {
     /* Generate T pseudo-random 64-bit test seeds from the parity checker seed
      * Each seed deterministically generates a test with specific parameters
-     * Distribution follows research-backed proportions (see generate_test_from_seed) */
+     * Distribution follows research-backed proportions (see generate_test_from_seed)
+     * Use std::mt19937 for deterministic cross-platform behavior */
 
     unsigned T = _hb_depend_fuzzer_num_tests;
 
     /* Initialize RNG with parity checker seed to generate test seeds */
-    srand (_hb_depend_fuzzer_seed);
+    std::mt19937 test_rng (_hb_depend_fuzzer_seed);
+    std::uniform_int_distribution<uint32_t> uint32_dist;
 
     for (unsigned i = 0; i < T; i++)
     {
       /* Generate pseudo-random 64-bit test seed */
-      uint64_t test_seed = ((uint64_t)rand() << 32) | (uint64_t)rand();
+      uint64_t test_seed = ((uint64_t)uint32_dist (test_rng) << 32) | (uint64_t)uint32_dist (test_rng);
 
       /* Generate test parameters from seed */
       test_params params = generate_test_from_seed (test_seed, face, font);

@@ -47,7 +47,7 @@ struct Ligature
     for (const auto &source : component)
       complete_ligset.add(source);
 
-    hb_codepoint_t ligset = c->depend_data->new_set(complete_ligset);
+    hb_codepoint_t ligset = c->depend_data->new_ligature_set(complete_ligset);
 
     // Track whether any edge using this ligset was actually added
     bool any_added = false;
@@ -65,7 +65,7 @@ struct Ligature
 
     // If no edges were added, the ligset is unused - free it for reuse
     if (!any_added)
-      c->depend_data->free_set(ligset);
+      c->depend_data->free_ligature_set(ligset);
   }
 #endif
 

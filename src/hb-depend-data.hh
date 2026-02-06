@@ -144,7 +144,7 @@ struct hb_lookup_feature_record_t {
  * - nominal_glyphs: Codepoint to nominal glyph mapping
  * - lookup_features: Lookup index to feature tag mapping
  * - edge_hashes: Hash-based edge deduplication table
- * - set_hashes: Hash-based set deduplication table
+ * - set_to_index: Content-based context set deduplication map
  * - free_set_list: Indices of freed sets available for reuse
  *
  * Extraction state (used during graph construction):
@@ -165,7 +165,10 @@ struct hb_depend_data_t
 
   ~hb_depend_data_t () {}
 
-  void free_set (hb_codepoint_t set_index)
+  /* Free an unused ligature set for reuse.
+   * Only called for ligature sets that were allocated but had no edges added.
+   * Ligature sets are never in set_to_index, so no hashmap manipulation needed. */
+  void free_ligature_set (hb_codepoint_t set_index)
   {
     if (set_index >= sets.length)
     {
@@ -174,98 +177,71 @@ struct hb_depend_data_t
       return;
     }
 
+    /* Clear the set to save memory */
+    sets[set_index]->clear ();
+
     /* Add to free list for reuse */
     free_set_list.push (set_index);
-
-    /* Clear the set to save memory */
-    sets[set_index].clear ();
   }
 
-  hb_codepoint_t new_set (hb_codepoint_t cp)
+  /* Allocate a new ligature set (no deduplication).
+   * Used for ligature component sets - each must be unique per API contract. */
+  hb_codepoint_t new_ligature_set (hb_codepoint_t cp)
   {
-    hb_codepoint_t set_index;
-
-    if (free_set_list.length > 0)
-    {
-      /* Reuse freed set */
-      set_index = free_set_list[free_set_list.length - 1];
-      free_set_list.resize (free_set_list.length - 1);
-      sets[set_index].clear ();
-      sets[set_index].add (cp);
-    }
-    else
-    {
-      /* Allocate new set */
-      set_index = sets.length;
-      sets.push (std::initializer_list<hb_codepoint_t>({cp}));
-    }
-
-    return set_index;
-  }
-
-  hb_codepoint_t new_set (hb_set_t &set)
-  {
-    hb_codepoint_t set_index;
-
-    if (free_set_list.length > 0)
-    {
-      /* Reuse freed set */
-      set_index = free_set_list[free_set_list.length - 1];
-      free_set_list.resize (free_set_list.length - 1);
-      sets[set_index].set (set);
-    }
-    else
-    {
-      /* Allocate new set */
-      set_index = sets.length;
-      sets.push (set);
-    }
-
-    return set_index;
-  }
-
-  hb_codepoint_t add_to_set (hb_codepoint_t set_index, hb_codepoint_t cp) {
-    if (set_index == HB_CODEPOINT_INVALID)
-      set_index = new_set(cp);
-    else if (set_index < sets.length)
-      sets[set_index].add(cp);
-    // else error
-    return set_index;
-  }
-
-  /* Compute hash of a set's contents (for deduplication) */
-  uint64_t compute_set_hash (const hb_set_t &set) const
-  {
-    uint64_t hash = 0;
-    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-    /* Need to use non-const iteration since next() modifies internal state */
     hb_set_t temp_set;
-    temp_set.set (set);
-    while (temp_set.next (&cp))
-      hash = hash * 31 + hb_hash (cp);
-    return hash;
+    temp_set.add (cp);
+    return new_ligature_set (temp_set);
   }
 
-  /* Find existing set with same contents, or create new one (with deduplication).
-   * Use this for context sets. For ligature sets, call new_set() directly. */
-  hb_codepoint_t find_or_create_set (const hb_set_t &set)
+  hb_codepoint_t new_ligature_set (hb_set_t &set)
   {
-    uint64_t hash = compute_set_hash (set);
+    hb_codepoint_t set_index;
 
-    /* Check if we already have this set */
-    if (set_hashes.has (hash))
+    if (free_set_list.length > 0)
     {
-      hb_codepoint_t existing_idx = set_hashes.get (hash);
-      if (sets[existing_idx] == set)
-        return existing_idx;  /* Reuse existing set */
-
-      /* Hash collision - different set, same hash */
-      /* Fall through to create new set */
+      /* Reuse freed set */
+      set_index = free_set_list[free_set_list.length - 1];
+      free_set_list.resize (free_set_list.length - 1);
+      sets[set_index]->set (set);
+    }
+    else
+    {
+      /* Allocate new set */
+      set_index = sets.length;
+      hb_set_t *new_set = hb_set_create ();
+      if (unlikely (!new_set))
+        return HB_CODEPOINT_INVALID;
+      new_set->set (set);
+      sets.push (hb::unique_ptr<hb_set_t> {new_set});
     }
 
-    /* Create new set and store in hash table */
-    hb_codepoint_t new_idx = new_set (const_cast<hb_set_t&>(set));
-    set_hashes.set (hash, new_idx);
+    return set_index;
+  }
+
+
+  /* Find existing context set with same contents, or create new one (with deduplication).
+   * Only for context sets. For ligature sets, call new_ligature_set() directly.
+   *
+   * Uses content-based deduplication via hb_hashmap_t with pointer keys:
+   * hb_hash dereferences pointers and hashes content, so identical context sets
+   * are found regardless of pointer address.
+   *
+   * Note: Context sets may reuse indices from ligature sets if the contents match.
+   * This is acceptable since the API only guarantees uniqueness for ligature sets. */
+  hb_codepoint_t find_or_create_context_set (const hb_set_t &set)
+  {
+    /* Check if we already have this set (content-based lookup via pointer hash) */
+    hb_codepoint_t *existing_idx = nullptr;
+    if (set_to_index.has (&set, &existing_idx))
+      return *existing_idx;  /* Reuse existing set */
+
+    /* Create new set (allocated as if it were a ligature set, but will be deduplicated) */
+    hb_codepoint_t new_idx = new_ligature_set (const_cast<hb_set_t&>(set));
+    if (unlikely (new_idx == HB_CODEPOINT_INVALID))
+      return HB_CODEPOINT_INVALID;
+
+    /* Add to deduplication map for future context set lookups */
+    set_to_index.set (sets[new_idx].get (), new_idx);
     return new_idx;
   }
 
@@ -329,7 +305,7 @@ struct hb_depend_data_t
 
           if (!filtered_set.is_empty ())
           {
-            hb_codepoint_t set_idx = find_or_create_set (filtered_set);
+            hb_codepoint_t set_idx = find_or_create_context_set (filtered_set);
             context_elements.add (0x80000000 | set_idx);
           }
         }
@@ -349,7 +325,7 @@ struct hb_depend_data_t
 
           if (!filtered_set.is_empty ())
           {
-            hb_codepoint_t set_idx = find_or_create_set (filtered_set);
+            hb_codepoint_t set_idx = find_or_create_context_set (filtered_set);
             context_elements.add (0x80000000 | set_idx);
           }
         }
@@ -363,7 +339,7 @@ struct hb_depend_data_t
       return HB_CODEPOINT_INVALID;
 
     /* Store context elements with deduplication */
-    return find_or_create_set (context_elements);
+    return find_or_create_context_set (context_elements);
   }
 #endif
 
@@ -407,7 +383,7 @@ struct hb_depend_data_t
       hb_codepoint_t cp = HB_SET_VALUE_INVALID;
       /* Need temp copy because next() modifies iterator state */
       hb_set_t temp_set;
-      temp_set.set (sets[lig_set_index]);
+      temp_set.set (*sets[lig_set_index]);
       while (temp_set.next(&cp)) {
         components.push(cp);
       }
@@ -418,7 +394,7 @@ struct hb_depend_data_t
       hb_codepoint_t cp = HB_SET_VALUE_INVALID;
       /* Need temp copy because next() modifies iterator state */
       hb_set_t temp_set;
-      temp_set.set (sets[context_set_index]);
+      temp_set.set (*sets[context_set_index]);
       while (temp_set.next(&cp)) {
         components.push(cp);
       }
@@ -445,7 +421,7 @@ struct hb_depend_data_t
       hb_codepoint_t cp = HB_SET_VALUE_INVALID;
       /* Need temp copy because next() modifies iterator state */
       hb_set_t temp_set;
-      temp_set.set (sets[lig_set_index]);
+      temp_set.set (*sets[lig_set_index]);
       while (temp_set.next(&cp)) {
         hash = hash * 31 + hb_hash(cp);
       }
@@ -456,7 +432,7 @@ struct hb_depend_data_t
       hb_codepoint_t cp = HB_SET_VALUE_INVALID;
       /* Need temp copy because next() modifies iterator state */
       hb_set_t temp_set;
-      temp_set.set (sets[context_set_index]);
+      temp_set.set (*sets[context_set_index]);
       while (temp_set.next(&cp)) {
         hash = hash * 31 + hb_hash(cp);
       }
@@ -484,7 +460,7 @@ struct hb_depend_data_t
     {
       if (existing.ligature_set == HB_CODEPOINT_INVALID || lig_set == HB_CODEPOINT_INVALID)
         return false;
-      if (!(sets[existing.ligature_set] == sets[lig_set]))
+      if (!(*sets[existing.ligature_set] == *sets[lig_set]))
         return false;
     }
 
@@ -493,7 +469,7 @@ struct hb_depend_data_t
     {
       if (existing.context_set == HB_CODEPOINT_INVALID || context_set == HB_CODEPOINT_INVALID)
         return false;
-      if (!(sets[existing.context_set] == sets[context_set]))
+      if (!(*sets[existing.context_set] == *sets[context_set]))
         return false;
     }
 
@@ -522,7 +498,7 @@ struct hb_depend_data_t
   bool get_set_from_index(hb_codepoint_t index, hb_set_t *out)
   {
     if (index < sets.length) {
-      out->set(sets[index]);
+      out->set(*sets[index]);
       return true;
     }
     return false;
@@ -622,17 +598,21 @@ struct hb_depend_data_t
   hb_set_t unicodes;
   hb_map_t nominal_glyphs;
 
-  hb_vector_t<hb_set_t> sets;
+  /* Set storage: vector of heap-allocated sets (both ligature and context sets)
+   * Using unique_ptr follows HarfBuzz pattern and provides stable pointers. */
+  hb_vector_t<hb::unique_ptr<hb_set_t>> sets;
   hb_vector_t<hb_codepoint_t> free_set_list;  /* Indices of freed sets for reuse */
+  /* Context set deduplication: set pointer (content-hashed) -> set_index.
+   * Uses HarfBuzz's established pattern where hb_hash dereferences pointers
+   * to hash contents, enabling content-based deduplication.
+   * Only context sets are added to this map; ligature sets remain unique. */
+  hb_hashmap_t<const hb_set_t*, hb_codepoint_t> set_to_index;
 
   hb_vector_t<hb_glyph_depend_record_t> glyph_dependencies;
   hb_vector_t<hb_set_t> lookup_features;
 
   /* Hash-based deduplication: edge hash -> component vector for collision detection */
   hb_hashmap_t<uint64_t, hb_vector_t<uint32_t>> edge_hashes;
-
-  /* Set deduplication: set_hash -> set_index (for context sets) */
-  hb_hashmap_t<uint64_t, hb_codepoint_t> set_hashes;
 
 #ifdef HB_DEPEND_API
   /* Temporary: Context set index for the current rule.

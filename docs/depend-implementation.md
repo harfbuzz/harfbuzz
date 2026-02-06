@@ -134,7 +134,7 @@ struct hb_depend_data_t {
 
 The depend graph is immutable after construction:
 
-1. **Construction**: `hb_depend_from_face()` walks all relevant OpenType tables once to build the complete graph
+1. **Construction**: `hb_depend_from_face_or_fail()` walks all relevant OpenType tables once to build the complete graph
 2. **Temporary structures freed**: After graph extraction, temporary structures used only during construction are freed:
    - `edge_hashes` - deduplication hash table
    - `unicodes` - Unicode codepoint set
