@@ -4054,7 +4054,7 @@ struct ConditionValue
   bool evaluate (const int *coords, unsigned int coord_len,
 		 Instancer *instancer) const
   {
-    signed value = defaultValue;
+    float value = defaultValue;
     value += (*instancer)[varIdx];
     return value > 0;
   }
