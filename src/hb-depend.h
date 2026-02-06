@@ -43,7 +43,7 @@ HB_BEGIN_DECLS
  *
  * <warning>Highly experimental API. Subject to change.</warning>
  *
- * Since: 12.4.0
+ * Since: REPLACEME
  */
 
 typedef struct hb_depend_t hb_depend_t;
