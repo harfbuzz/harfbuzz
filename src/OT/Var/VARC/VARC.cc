@@ -305,8 +305,6 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
       transform.scaleY = transform.scaleX;
 
     total_transform.transform (transform.to_transform ());
-    total_transform.scale (c.font->x_mult ? 1.f / c.font->x_multf : 0.f,
-			   c.font->y_mult ? 1.f / c.font->y_multf : 0.f);
 
     bool same_coords = component_coords.length == coords.length &&
 		       component_coords.arrayZ == coords.arrayZ;
@@ -341,14 +339,18 @@ VARC::get_path_at (const hb_varc_context_t &c,
   {
     if (c.draw_session)
     {
+      hb_transform_t<> leaf_transform = transform;
+      leaf_transform.x0 *= c.font->x_multf;
+      leaf_transform.y0 *= c.font->y_multf;
+
       // Build a transforming pen to apply the transform.
       hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
-      hb_transforming_pen_context_t context {transform,
+      hb_transforming_pen_context_t context {leaf_transform,
 					     c.draw_session->funcs,
 					     c.draw_session->draw_data,
 					     &c.draw_session->st};
       hb_draw_session_t transformer_session {transformer_funcs, &context};
-      hb_draw_session_t &shape_draw_session = transform.is_identity () ? *c.draw_session : transformer_session;
+      hb_draw_session_t &shape_draw_session = leaf_transform.is_identity () ? *c.draw_session : transformer_session;
 
       if (c.font->face->table.glyf->get_path_at (c.font, glyph, shape_draw_session, coords, c.scratch.glyf_scratch)) return true;
 #ifndef HB_NO_CFF
@@ -368,7 +370,10 @@ VARC::get_path_at (const hb_varc_context_t &c,
 	return false;
 
       hb_extents_t<> comp_extents (glyph_extents);
-      transform.transform_extents (comp_extents);
+      hb_transform_t<> leaf_transform = transform;
+      leaf_transform.x0 *= c.font->x_multf;
+      leaf_transform.y0 *= c.font->y_multf;
+      leaf_transform.transform_extents (comp_extents);
       c.extents->union_ (comp_extents);
     }
     return true;
@@ -391,8 +396,6 @@ VARC::get_path_at (const hb_varc_context_t &c,
   hb_scalar_cache_t *cache = parent_cache ?
 				  parent_cache :
 				  (this+varStore).create_cache (&static_cache);
-
-  transform.scale (c.font->x_multf, c.font->y_multf);
 
   VarCompositeGlyph::get_path_at (c,
 				  glyph,
