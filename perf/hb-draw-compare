@@ -266,7 +266,7 @@ for font_funcs in "$font_funcs1" "$font_funcs2"; do
 			"$glyph"
 	done |
 	sed 's/ /;/g' |
-	"$hb_view" --batch >/dev/null
+	"$hb_view" --batch | grep -v success
 	$quiet || echo "" >&2
 done
 
