@@ -21,6 +21,44 @@ The dependency graph enables finding the transitive closure of all glyphs
 reachable from a given input set, which is useful for font subsetting,
 analyzing glyph coverage, and optimizing font delivery.
 
+# Building with the Depend API
+
+The dependency API is optional and controlled by the `depend_api` build option.
+**This is a highly experimental feature and disabled by default.**
+
+## Enabling the depend_api option
+
+```bash
+meson setup build -Ddepend_api=true
+meson compile -C build
+```
+
+In code, check for availability:
+
+```c
+#ifdef HB_DEPEND_API
+  // Use dependency API
+#endif
+```
+
+## Discovering available options
+
+To see all available HarfBuzz build options, including `depend_api`:
+
+```bash
+# After setting up a build directory
+meson configure build
+
+# Or to see just the option values
+meson introspect build --buildoptions | jq '.[] | select(.section == "user")'
+```
+
+You can also view all available options in the source file `meson_options.txt`.
+
+**Important:** This API is experimental and may change without notice. Do not
+use in production applications without being prepared for breaking changes in
+future HarfBuzz releases.
+
 # Usage
 
 ## Basic Example
@@ -323,28 +361,6 @@ Each dependency entry returned by `hb_depend_get_glyph_entry()` contains:
   These flags help distinguish between "true" over-approximation (a bug) and "expected"
   over-approximation (a known limitation of the static dependency analysis). Closure
   implementations can use these flags to report which type of over-approximation occurred.
-
-## Compilation
-
-The dependency API is optional and controlled by the `depend_api` build option.
-**This is a highly experimental feature and disabled by default.**
-
-```bash
-meson setup build -Ddepend_api=true
-meson compile -C build
-```
-
-In code, check for availability:
-
-```c
-#ifdef HB_DEPEND_API
-  // Use dependency API
-#endif
-```
-
-**Important:** This API is experimental and may change without notice. Do not
-use in production applications without being prepared for breaking changes in
-future HarfBuzz releases.
 
 # Implementation Notes
 

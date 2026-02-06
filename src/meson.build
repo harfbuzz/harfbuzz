@@ -621,6 +621,9 @@ gen_def_cmd = [gen_def, '@OUTPUT@', '@INPUT@']
 if get_option('experimental_api')
   gen_def_cmd += '--experimental-api'
 endif
+if get_option('depend_api')
+  gen_def_cmd += '--depend-api'
+endif
 
 # harfbuzz
 harfbuzz_def = custom_target('harfbuzz.def',
