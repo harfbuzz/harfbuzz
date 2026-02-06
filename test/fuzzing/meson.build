@@ -4,6 +4,9 @@ tests = [
   'hb-set-fuzzer.cc',
   'hb-draw-fuzzer.cc',
   'hb-repacker-fuzzer.cc',
+]
+
+depend_tests = [
   'hb-depend-closure-parity.cc',
   'hb-depend-fuzzer.cc',
 ]
@@ -17,12 +20,7 @@ foreach file_name : tests
   extra_cpp_args = []
 
   if get_option('fuzzer_ldflags') == ''
-    # hb-depend-closure-parity has custom main that sets font path global
-    if test_name == 'hb-depend-closure-parity'
-      sources += 'hb-depend-closure-parity-main.cc'
-    else
-      sources += 'main.cc'
-    endif
+    sources += 'main.cc'
   else
     fuzzer_ldflags += get_option('fuzzer_ldflags').split()
     extra_cpp_args += '-DHB_IS_IN_FUZZER'
@@ -32,22 +30,59 @@ foreach file_name : tests
     extra_cpp_args += '-DHB_EXPERIMENTAL_API'
   endif
 
-  # hb-depend-closure-parity needs glib for option parsing
-  test_deps = []
-  if test_name == 'hb-depend-closure-parity'
-    test_deps = [glib_dep]
-  endif
-
   exe = executable(test_name, sources,
     cpp_args: cpp_args + extra_cpp_args,
     include_directories: [incconfig, incsrc],
-    dependencies: test_deps,
+    dependencies: [],
     link_args: fuzzer_ldflags,
     link_with: [libharfbuzz, libharfbuzz_subset],
     install: false,
   )
   set_variable('@0@_exe'.format(test_name.underscorify()), exe)
 endforeach
+
+# Build depend-related fuzzers only if depend_api is enabled
+if conf.get('HB_DEPEND_API', 0) == 1
+  foreach file_name : depend_tests
+    test_name = file_name.split('.')[0]
+
+    sources = [file_name]
+    fuzzer_ldflags = []
+    extra_cpp_args = []
+
+    if get_option('fuzzer_ldflags') == ''
+      # hb-depend-closure-parity has custom main that sets font path global
+      if test_name == 'hb-depend-closure-parity'
+        sources += 'hb-depend-closure-parity-main.cc'
+      else
+        sources += 'main.cc'
+      endif
+    else
+      fuzzer_ldflags += get_option('fuzzer_ldflags').split()
+      extra_cpp_args += '-DHB_IS_IN_FUZZER'
+    endif
+
+    if get_option('experimental_api')
+      extra_cpp_args += '-DHB_EXPERIMENTAL_API'
+    endif
+
+    # hb-depend-closure-parity needs glib for option parsing
+    test_deps = []
+    if test_name == 'hb-depend-closure-parity'
+      test_deps = [glib_dep]
+    endif
+
+    exe = executable(test_name, sources,
+      cpp_args: cpp_args + extra_cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: test_deps,
+      link_args: fuzzer_ldflags,
+      link_with: [libharfbuzz, libharfbuzz_subset],
+      install: false,
+    )
+    set_variable('@0@_exe'.format(test_name.underscorify()), exe)
+  endforeach
+endif
 
 glob_cmd = find_program('glob.py', required: true)
 
