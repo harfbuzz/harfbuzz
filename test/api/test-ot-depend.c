@@ -452,7 +452,14 @@ test_depend_gsub_formats (void)
   g_assert_true (find_dependency (depend_source, 1829, 1910, HB_OT_TAG_GSUB,
                                   &layout_tag, &ligature_set));
   g_test_message ("  ligature_set = %u", ligature_set);
-  g_assert_cmpuint (0, <, ligature_set);
+
+  /* Verify ligature set is valid and contains the other component(s) */
+  g_assert_cmpuint (HB_CODEPOINT_INVALID, !=, ligature_set);
+  hb_set_t *lig_set_source = hb_set_create ();
+  g_assert_true (hb_depend_get_set_from_index (depend_source, ligature_set, lig_set_source));
+  g_assert_cmpuint (0, <, hb_set_get_population (lig_set_source));  /* Non-empty */
+  g_test_message ("  ligature set contains %u component(s)", hb_set_get_population (lig_set_source));
+  hb_set_destroy (lig_set_source);
 
   hb_depend_destroy (depend_source);
   hb_face_destroy (face_source);
