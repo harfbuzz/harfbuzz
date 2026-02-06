@@ -337,6 +337,9 @@ hb_depend_from_face_or_fail (hb_face_t *face)
  * HB_CODEPOINT_INVALID if there is no such set. Context sets specify which
  * backtrack and lookahead glyphs must be present for this dependency to apply
  * (currently only populated for contextual GSUB substitutions).
+ * @flags: (out) (nullable): Returns edge flags (FROM_CONTEXT_POSITION,
+ * FROM_NESTED_CONTEXT) indicating whether this edge came from a contextual
+ * substitution. May be NULL if flags are not needed.
  *
  * Get the values associated with a dependency entry for a glyph.
  * Dependencies are indexed sequentially starting from 0.
