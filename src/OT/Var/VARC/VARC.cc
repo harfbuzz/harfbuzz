@@ -233,10 +233,10 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HB_PI, HAVE_ROTATION, rotation); \
 	PROCESS_TRANSFORM_COMPONENT (10, F6DOT10, 1.0f, HAVE_SCALE_X, scaleX); \
 	PROCESS_TRANSFORM_COMPONENT (10, F6DOT10, 1.0f, HAVE_SCALE_Y, scaleY); \
-	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HB_PI, HAVE_SKEW_X, skewX); \
-	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HB_PI, HAVE_SKEW_Y, skewY); \
 	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, 1.0f, HAVE_TCENTER_X, tCenterX); \
 	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, 1.0f, HAVE_TCENTER_Y, tCenterY); \
+	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HB_PI, HAVE_SKEW_X, skewX); \
+	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HB_PI, HAVE_SKEW_Y, skewY); \
 	} HB_STMT_END
 
   hb_transform_decomposed_t<> transform;
@@ -340,8 +340,8 @@ VARC::get_path_at (const hb_varc_context_t &c,
     if (c.draw_session)
     {
       hb_transform_t<> leaf_transform = transform;
-      leaf_transform.x0 = c.font->em_fscalef_x (leaf_transform.x0);
-      leaf_transform.y0 = c.font->em_fscalef_y (leaf_transform.y0);
+      leaf_transform.x0 *= c.font->x_multf;
+      leaf_transform.y0 *= c.font->y_multf;
 
       // Build a transforming pen to apply the transform.
       hb_draw_funcs_t *transformer_funcs = hb_transforming_pen_get_funcs ();
@@ -371,8 +371,8 @@ VARC::get_path_at (const hb_varc_context_t &c,
 
       hb_extents_t<> comp_extents (glyph_extents);
       hb_transform_t<> leaf_transform = transform;
-      leaf_transform.x0 = c.font->em_fscalef_x (leaf_transform.x0);
-      leaf_transform.y0 = c.font->em_fscalef_y (leaf_transform.y0);
+      leaf_transform.x0 *= c.font->x_multf;
+      leaf_transform.y0 *= c.font->y_multf;
       leaf_transform.transform_extents (comp_extents);
       c.extents->union_ (comp_extents);
     }
