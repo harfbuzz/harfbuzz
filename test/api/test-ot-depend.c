@@ -453,12 +453,12 @@ test_depend_gsub_formats (void)
                                   &layout_tag, &ligature_set));
   g_test_message ("  ligature_set = %u", ligature_set);
 
-  /* Verify ligature set is valid and contains the other component(s) */
+  /* Verify ligature set contains both components (1823, 1829) */
   g_assert_cmpuint (HB_CODEPOINT_INVALID, !=, ligature_set);
   hb_set_t *lig_set_source = hb_set_create ();
   g_assert_true (hb_depend_get_set_from_index (depend_source, ligature_set, lig_set_source));
-  g_assert_cmpuint (0, <, hb_set_get_population (lig_set_source));  /* Non-empty */
-  g_test_message ("  ligature set contains %u component(s)", hb_set_get_population (lig_set_source));
+  g_assert_true (hb_set_has (lig_set_source, 1823));  /* First ligature component */
+  g_assert_true (hb_set_has (lig_set_source, 1829));  /* Second ligature component (uni0302) */
   hb_set_destroy (lig_set_source);
 
   hb_depend_destroy (depend_source);
