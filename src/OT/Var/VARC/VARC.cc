@@ -297,7 +297,7 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
     // Divide them by their divisors
 #define PROCESS_TRANSFORM_COMPONENT(shift, type, flag, name) \
 	  if (shift && (flags & (unsigned) flags_t::flag)) \
-	     transform.name /= (1 << shift);
+	     transform.name *= 1.f / (1 << shift);
     PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
 
