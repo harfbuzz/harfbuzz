@@ -1,5 +1,7 @@
 #include "hb-fuzzer.hh"
 
+#include <glib.h>
+
 #include <cassert>
 #include <cstdio>
 #include <cstring>
@@ -24,6 +26,37 @@ extern const char *_hb_depend_fuzzer_explicit_gids;
 extern bool _hb_depend_fuzzer_explicit_no_layout_closure;
 extern const char *_hb_depend_fuzzer_explicit_layout_features;
 
+/* Container for injection rate variables passed to callback */
+struct inject_rates_t {
+  float *over_approx;
+  float *under_approx;
+};
+
+/* Glib option parsing callback for optional float arguments with defaults */
+static gboolean
+parse_inject_rate (const gchar *option_name,
+                   const gchar *value,
+                   gpointer data,
+                   GError **error)
+{
+  inject_rates_t *rates = (inject_rates_t *) data;
+  float *target;
+
+  /* Determine which rate to set based on option name */
+  if (g_str_equal (option_name, "-o") || g_str_equal (option_name, "--inject-over-approx"))
+    target = rates->over_approx;
+  else if (g_str_equal (option_name, "-u") || g_str_equal (option_name, "--inject-under-approx"))
+    target = rates->under_approx;
+  else
+    return FALSE;  /* Unknown option */
+
+  if (value)
+    *target = strtof (value, NULL);
+  else
+    *target = 0.02f;  /* Default 2% */
+  return TRUE;
+}
+
 static void
 print_usage (const char *prog)
 {
@@ -33,7 +66,7 @@ print_usage (const char *prog)
   fprintf (stderr, "\n");
   fprintf (stderr, "Test Modes:\n");
   fprintf (stderr, "  (default)             Run random tests using seed\n");
-  fprintf (stderr, "  -t, --test HEXSEED    Run only specific test (64-bit hex, with or without 0x)\n");
+  fprintf (stderr, "  -t, --test HEXSEED    Run only specific test (64-bit hex with 0x prefix)\n");
   fprintf (stderr, "  --unicodes LIST       Run explicit test with given unicodes (U+XXXX or decimal)\n");
   fprintf (stderr, "  --gids LIST           Run explicit test with given glyph IDs (decimal)\n");
   fprintf (stderr, "\n");
@@ -70,195 +103,118 @@ print_usage (const char *prog)
 int main (int argc, char **argv)
 {
   unsigned seed = 0;
-  uint64_t single_test = 0;
+  gint64 single_test = 0;  /* Use gint64 for glib */
   unsigned num_tests = 1024;
-  bool verbose = false;
-  bool report_over_approximation = false;
-  bool report_under_approximation = false;
-  bool seed_specified = false;
+  gboolean verbose = FALSE;
+  gboolean report_over_approximation = FALSE;
+  gboolean report_under_approximation = FALSE;
+  gboolean seed_specified = FALSE;
   float inject_over_approx = 0.0f;
   float inject_under_approx = 0.0f;
 
   /* Explicit test mode */
-  bool explicit_test = false;
+  gboolean explicit_test = FALSE;
   const char *explicit_unicodes = NULL;
   const char *explicit_gids = NULL;
-  bool explicit_no_layout_closure = false;
+  gboolean explicit_no_layout_closure = FALSE;
   const char *explicit_layout_features = NULL;
 
-  /* Parse options */
-  int arg_idx = 1;
-  while (arg_idx < argc && argv[arg_idx][0] == '-')
+  /* Injection rate callback data */
+  inject_rates_t inject_rates = {&inject_over_approx, &inject_under_approx};
+
+  /* Define glib option entries */
+  GOptionEntry test_mode_entries[] =
   {
-    if (strcmp (argv[arg_idx], "-h") == 0 || strcmp (argv[arg_idx], "--help") == 0)
-    {
-      print_usage (argv[0]);
-      return 0;
-    }
-    else if (strcmp (argv[arg_idx], "-v") == 0 || strcmp (argv[arg_idx], "--verbose") == 0)
-    {
-      verbose = true;
-      arg_idx++;
-    }
-    else if (strcmp (argv[arg_idx], "-r") == 0 || strcmp (argv[arg_idx], "--report-over-approximation") == 0)
-    {
-      report_over_approximation = true;
-      arg_idx++;
-    }
-    else if (strcmp (argv[arg_idx], "--report-under-approximation") == 0)
-    {
-      report_under_approximation = true;
-      arg_idx++;
-    }
-    else if (strcmp (argv[arg_idx], "-s") == 0 || strcmp (argv[arg_idx], "--seed") == 0)
-    {
-      if (arg_idx + 1 >= argc)
-      {
-        fprintf (stderr, "Error: %s requires an argument\n", argv[arg_idx]);
-        print_usage (argv[0]);
-        return 1;
-      }
-      seed = (unsigned) atoi (argv[arg_idx + 1]);
-      seed_specified = true;
-      arg_idx += 2;
-    }
-    else if (strcmp (argv[arg_idx], "-n") == 0 || strcmp (argv[arg_idx], "--num-tests") == 0)
-    {
-      if (arg_idx + 1 >= argc)
-      {
-        fprintf (stderr, "Error: %s requires an argument\n", argv[arg_idx]);
-        print_usage (argv[0]);
-        return 1;
-      }
-      num_tests = (unsigned) atoi (argv[arg_idx + 1]);
-      arg_idx += 2;
-    }
-    else if (strcmp (argv[arg_idx], "-t") == 0 || strcmp (argv[arg_idx], "--test") == 0)
-    {
-      if (arg_idx + 1 >= argc)
-      {
-        fprintf (stderr, "Error: %s requires an argument\n", argv[arg_idx]);
-        print_usage (argv[0]);
-        return 1;
-      }
-      /* Parse 64-bit hex number (with or without 0x prefix) */
-      single_test = strtoull (argv[arg_idx + 1], NULL, 16);
-      arg_idx += 2;
-    }
-    else if (strcmp (argv[arg_idx], "-o") == 0 || strcmp (argv[arg_idx], "--inject-over-approx") == 0)
-    {
-      /* Check if next arg exists and is a number (not another flag) */
-      if (arg_idx + 1 < argc && argv[arg_idx + 1][0] != '-')
-      {
-        inject_over_approx = strtof (argv[arg_idx + 1], NULL);
-        arg_idx += 2;
-      }
-      else
-      {
-        /* Use default target rate (2%) */
-        inject_over_approx = 0.02f;
-        arg_idx++;
-      }
-    }
-    else if (strcmp (argv[arg_idx], "-u") == 0 || strcmp (argv[arg_idx], "--inject-under-approx") == 0)
-    {
-      /* Check if next arg exists and is a number (not another flag) */
-      if (arg_idx + 1 < argc && argv[arg_idx + 1][0] != '-')
-      {
-        inject_under_approx = strtof (argv[arg_idx + 1], NULL);
-        arg_idx += 2;
-      }
-      else
-      {
-        /* Use default target rate (2%) */
-        inject_under_approx = 0.02f;
-        arg_idx++;
-      }
-    }
-    else if (strncmp (argv[arg_idx], "--unicodes=", 11) == 0)
-    {
-      explicit_test = true;
-      explicit_unicodes = argv[arg_idx] + 11;
-      arg_idx++;
-    }
-    else if (strcmp (argv[arg_idx], "--unicodes") == 0)
-    {
-      if (arg_idx + 1 >= argc)
-      {
-        fprintf (stderr, "Error: --unicodes requires an argument\n");
-        print_usage (argv[0]);
-        return 1;
-      }
-      explicit_test = true;
-      explicit_unicodes = argv[arg_idx + 1];
-      arg_idx += 2;
-    }
-    else if (strncmp (argv[arg_idx], "--gids=", 7) == 0)
-    {
-      explicit_test = true;
-      explicit_gids = argv[arg_idx] + 7;
-      arg_idx++;
-    }
-    else if (strcmp (argv[arg_idx], "--gids") == 0)
-    {
-      if (arg_idx + 1 >= argc)
-      {
-        fprintf (stderr, "Error: --gids requires an argument\n");
-        print_usage (argv[0]);
-        return 1;
-      }
-      explicit_test = true;
-      explicit_gids = argv[arg_idx + 1];
-      arg_idx += 2;
-    }
-    else if (strcmp (argv[arg_idx], "--no-layout-closure") == 0)
-    {
-      explicit_no_layout_closure = true;
-      arg_idx++;
-    }
-    else if (strncmp (argv[arg_idx], "--layout-features=", 18) == 0)
-    {
-      explicit_layout_features = argv[arg_idx] + 18;
-      arg_idx++;
-    }
-    else if (strcmp (argv[arg_idx], "--layout-features") == 0)
-    {
-      if (arg_idx + 1 >= argc)
-      {
-        fprintf (stderr, "Error: --layout-features requires an argument\n");
-        print_usage (argv[0]);
-        return 1;
-      }
-      explicit_layout_features = argv[arg_idx + 1];
-      arg_idx += 2;
-    }
-    else
-    {
-      fprintf (stderr, "Error: Unknown option %s\n", argv[arg_idx]);
-      print_usage (argv[0]);
-      return 1;
-    }
+    {"test", 't', 0, G_OPTION_ARG_INT64, &single_test,
+     "Run only specific test (64-bit hex with 0x prefix)", "0xHEXSEED"},
+    {"unicodes", 0, 0, G_OPTION_ARG_STRING, &explicit_unicodes,
+     "Run explicit test with given unicodes (U+XXXX or decimal)", "LIST"},
+    {"gids", 0, 0, G_OPTION_ARG_STRING, &explicit_gids,
+     "Run explicit test with given glyph IDs (decimal)", "LIST"},
+    {NULL}
+  };
+
+  GOptionEntry explicit_test_entries[] =
+  {
+    {"no-layout-closure", 0, 0, G_OPTION_ARG_NONE, &explicit_no_layout_closure,
+     "Skip GSUB closure (use with --gids)", NULL},
+    {"layout-features", 0, 0, G_OPTION_ARG_STRING, &explicit_layout_features,
+     "Specify GSUB features (comma-separated tags or * for all, default: subset's default features)", "LIST"},
+    {NULL}
+  };
+
+  GOptionEntry general_entries[] =
+  {
+    {"seed", 's', 0, G_OPTION_ARG_INT, &seed,
+     "Use specific random seed (default: random)", "SEED"},
+    {"num-tests", 'n', 0, G_OPTION_ARG_INT, &num_tests,
+     "Run N tests per font (default: 1024)", "N"},
+    {"verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
+     "Enable verbose output (all test details)", NULL},
+    {"report-over-approximation", 'r', 0, G_OPTION_ARG_NONE, &report_over_approximation,
+     "Report when depend finds more glyphs than subset", NULL},
+    {"report-under-approximation", 0, 0, G_OPTION_ARG_NONE, &report_under_approximation,
+     "Report under-approximation instead of aborting", NULL},
+    {"inject-over-approx", 'o', G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &parse_inject_rate,
+     "Inject over-approximation errors (default rate: 0.02 = 2%)", "[RATE]"},
+    {"inject-under-approx", 'u', G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &parse_inject_rate,
+     "Inject under-approximation errors (default rate: 0.02 = 2%)", "[RATE]"},
+    {NULL}
+  };
+
+  /* Parse command line options */
+  GError *error = NULL;
+  GOptionContext *context = g_option_context_new ("FONT... - Validate depend API by comparing closures against subset");
+
+  /* Add main entries (no callbacks, no user_data needed) */
+  GOptionGroup *main_group = g_option_group_new (nullptr, nullptr, nullptr, nullptr, nullptr);
+  g_option_group_add_entries (main_group, test_mode_entries);
+  g_option_context_set_main_group (context, main_group);
+
+  GOptionGroup *explicit_group = g_option_group_new ("explicit", "Explicit Test Options:", "Show explicit test options", NULL, NULL);
+  g_option_group_add_entries (explicit_group, explicit_test_entries);
+  g_option_context_add_group (context, explicit_group);
+
+  GOptionGroup *general_group = g_option_group_new ("general", "General Options:", "Show general options",
+                                                     static_cast<gpointer>(&inject_rates), nullptr);
+  g_option_group_add_entries (general_group, general_entries);
+  g_option_context_add_group (context, general_group);
+
+  if (!g_option_context_parse (context, &argc, &argv, &error))
+  {
+    fprintf (stderr, "Error parsing options: %s\n", error->message);
+    g_error_free (error);
+    g_option_context_free (context);
+    return 1;
   }
+  g_option_context_free (context);
 
   /* Check if we have font files */
-  if (arg_idx >= argc)
+  if (argc < 2)
   {
-    fprintf (stderr, "Error: No font files specified\n");
+    fprintf (stderr, "Error: No font files specified\n\n");
     print_usage (argv[0]);
     return 1;
   }
 
+  /* Derive seed_specified from whether seed was explicitly set */
+  /* Note: glib doesn't directly tell us if an option was set, so we check if seed != 0 */
+  seed_specified = (seed != 0);
+
+  /* Derive explicit_test from whether --unicodes or --gids was specified */
+  explicit_test = (explicit_unicodes != NULL || explicit_gids != NULL);
+
   /* Validate test mode combinations */
   if (explicit_test && single_test != 0)
   {
-    fprintf (stderr, "Error: Cannot use both explicit test mode (--unicodes/--gids) and -t/--test\n");
+    fprintf (stderr, "Error: Cannot use both explicit test mode (--unicodes/--gids) and -t/--test\n\n");
     print_usage (argv[0]);
     return 1;
   }
 
   if (explicit_unicodes && explicit_gids)
   {
-    fprintf (stderr, "Error: Cannot specify both --unicodes and --gids\n");
+    fprintf (stderr, "Error: Cannot specify both --unicodes and --gids\n\n");
     print_usage (argv[0]);
     return 1;
   }
@@ -274,7 +230,7 @@ int main (int argc, char **argv)
 
   /* Set global configuration */
   _hb_depend_fuzzer_seed = seed;
-  _hb_depend_fuzzer_single_test = single_test;
+  _hb_depend_fuzzer_single_test = (uint64_t) single_test;
   _hb_depend_fuzzer_num_tests = num_tests;
   _hb_depend_fuzzer_verbose = verbose;
   _hb_depend_fuzzer_report_over_approximation = report_over_approximation;
@@ -310,9 +266,9 @@ int main (int argc, char **argv)
   else
     printf ("# Running single test: 0x%016llx\n", (unsigned long long) single_test);
 
-  /* Process font files */
+  /* Process font files (glib leaves non-option arguments in argv[1..argc-1]) */
   int file_count = 0;
-  for (int i = arg_idx; i < argc; i++)
+  for (int i = 1; i < argc; i++)
   {
     file_count++;
     hb_blob_t *blob = hb_blob_create_from_file_or_fail (argv[i]);
