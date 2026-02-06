@@ -84,7 +84,7 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
   get_cff_dependencies();
 
   /* Free temporary structures - no longer needed after graph extraction */
-  data.edge_hashes.fini();
+  data.seen_edges.fini();
   data.set_to_index.fini();
   data.unicodes.fini();
   data.nominal_glyphs.fini();
