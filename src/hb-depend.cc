@@ -303,7 +303,7 @@ hb_depend_t::~hb_depend_t ()
  * Return value: (transfer full): New depend object, or `nullptr` if creation
  * failed (out of memory or invalid face). Destroy with hb_depend_destroy().
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_depend_t *
 hb_depend_from_face_or_fail (hb_face_t *face)
@@ -359,7 +359,7 @@ hb_depend_from_face_or_fail (hb_face_t *face)
  *
  * Return value: true if there is such an entry, false otherwise
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_bool_t
 hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
@@ -393,7 +393,7 @@ hb_depend_get_glyph_entry(hb_depend_t *depend, hb_codepoint_t gid,
  *
  * Return value: true if there is such a set, false otherwise
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_bool_t
 hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
@@ -414,7 +414,7 @@ hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
  * format is not stable and may change in future versions. For programmatic
  * access to dependency information, use hb_depend_get_glyph_entry().
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_depend_print (hb_depend_t *depend)
@@ -429,7 +429,7 @@ hb_depend_print (hb_depend_t *depend)
  * Decreases the reference count on @depend, and if it reaches zero, destroys
  * @depend, freeing all memory.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_depend_destroy (hb_depend_t *depend)
