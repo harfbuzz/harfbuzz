@@ -27,6 +27,17 @@ hb_subset_cff2_get_charstring_data
 hb_subset_cff2_get_charstrings_index
 """.splitlines ()
 	symbols = [x for x in symbols if x not in experimental_symbols]
+
+if '--depend-api' not in sys.argv:
+	# Depend API symbols - only included when depend_api=true
+	depend_symbols = \
+"""hb_depend_from_face_or_fail
+hb_depend_get_glyph_entry
+hb_depend_get_set_from_index
+hb_depend_print
+hb_depend_destroy
+""".splitlines ()
+	symbols = [x for x in symbols if x not in depend_symbols]
 symbols = "\n".join (symbols)
 
 result = symbols if os.getenv ('PLAIN_LIST', '') else """EXPORTS
