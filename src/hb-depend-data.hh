@@ -86,12 +86,82 @@ struct hb_depend_data_record_t {
      ligature_set(ligature_set), context_set(context_set),
      flags(flags)
      {}
+
+  bool operator == (const hb_depend_data_record_t &o) const
+  {
+    /* NOTE: flags intentionally excluded from equality comparison.
+     * Flags are metadata about how an edge was discovered (e.g.,
+     * FROM_CONTEXT_POSITION, FROM_NESTED_CONTEXT), not part of the
+     * edge's identity. Multiple discoveries of the same edge via
+     * different paths should be treated as duplicates. */
+    return table_tag == o.table_tag &&
+           dependent == o.dependent &&
+           layout_tag == o.layout_tag &&
+           ligature_set == o.ligature_set &&
+           context_set == o.context_set;
+  }
+
+  uint32_t hash () const
+  {
+    /* FNV-1a hash of all identity fields (excludes flags) */
+    uint32_t current = 0x84222325;  /* FNV-1a offset basis */
+    current = current ^ hb_hash (table_tag);
+    current = current * 16777619;   /* FNV-1a prime */
+    current = current ^ hb_hash (dependent);
+    current = current * 16777619;
+    current = current ^ hb_hash (layout_tag);
+    current = current * 16777619;
+    current = current ^ hb_hash (ligature_set);
+    current = current * 16777619;
+    current = current ^ hb_hash (context_set);
+    current = current * 16777619;
+    return current;
+  }
+
   hb_tag_t table_tag;
   hb_codepoint_t dependent;
   hb_tag_t layout_tag;
   hb_codepoint_t ligature_set;
   hb_codepoint_t context_set;
   uint8_t flags;
+};
+
+/**
+ * edge_key_t:
+ *
+ * Key structure for edge deduplication. Combines source glyph with edge record.
+ * Uses the record's equality and hash operators for comparison.
+ */
+struct edge_key_t {
+  hb_codepoint_t source;
+  hb_depend_data_record_t record;
+
+  edge_key_t () : source (0), record (0, 0, 0, HB_CODEPOINT_INVALID, HB_CODEPOINT_INVALID, 0) {}
+
+  edge_key_t (hb_codepoint_t source,
+              hb_tag_t table_tag,
+              hb_tag_t layout_tag,
+              hb_codepoint_t dependent,
+              hb_codepoint_t ligature_set,
+              hb_codepoint_t context_set)
+    : source (source),
+      record (table_tag, dependent, layout_tag, ligature_set, context_set, 0) {}
+
+  bool operator == (const edge_key_t &o) const
+  {
+    return source == o.source && record == o.record;
+  }
+
+  uint32_t hash () const
+  {
+    /* Combine source hash with record hash */
+    uint32_t current = 0x84222325;  /* FNV-1a offset basis */
+    current = current ^ hb_hash (source);
+    current = current * 16777619;   /* FNV-1a prime */
+    current = current ^ record.hash ();
+    current = current * 16777619;
+    return current;
+  }
 };
 
 /**
@@ -143,7 +213,7 @@ struct hb_lookup_feature_record_t {
  * - unicodes: Set of all Unicode codepoints in the font
  * - nominal_glyphs: Codepoint to nominal glyph mapping
  * - lookup_features: Lookup index to feature tag mapping
- * - edge_hashes: Hash-based edge deduplication table
+ * - seen_edges: Struct-based edge deduplication table
  * - set_to_index: Content-based context set deduplication map
  * - free_set_list: Indices of freed sets available for reuse
  *
@@ -365,117 +435,6 @@ struct hb_depend_data_t
     }
   }
 
-  hb_vector_t<uint32_t> get_edge_components(hb_codepoint_t source,
-                                              hb_tag_t table_tag,
-                                              hb_tag_t layout_tag,
-                                              hb_codepoint_t dependent,
-                                              hb_codepoint_t lig_set_index,
-                                              hb_codepoint_t context_set_index)
-  {
-    hb_vector_t<uint32_t> components;
-    components.push(source);
-    components.push(table_tag);
-    components.push(layout_tag);
-    components.push(dependent);
-
-    // If there's a ligature set, add its contents in canonical order
-    if (lig_set_index != HB_CODEPOINT_INVALID) {
-      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-      /* Need temp copy because next() modifies iterator state */
-      hb_set_t temp_set;
-      temp_set.set (*sets[lig_set_index]);
-      while (temp_set.next(&cp)) {
-        components.push(cp);
-      }
-    }
-
-    // If there's a context set, add its contents in canonical order
-    if (context_set_index != HB_CODEPOINT_INVALID) {
-      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-      /* Need temp copy because next() modifies iterator state */
-      hb_set_t temp_set;
-      temp_set.set (*sets[context_set_index]);
-      while (temp_set.next(&cp)) {
-        components.push(cp);
-      }
-    }
-
-    return components;
-  }
-
-  uint64_t compute_edge_hash(hb_codepoint_t source,
-                             hb_tag_t table_tag,
-                             hb_tag_t layout_tag,
-                             hb_codepoint_t dependent,
-                             hb_codepoint_t lig_set_index,
-                             hb_codepoint_t context_set_index)
-  {
-    // Polynomial rolling hash with prime multiplier (31)
-    uint64_t hash = hb_hash(source);
-    hash = hash * 31 + hb_hash(table_tag);
-    hash = hash * 31 + hb_hash(layout_tag);
-    hash = hash * 31 + hb_hash(dependent);
-
-    // If there's a ligature set, incorporate its contents in canonical order
-    if (lig_set_index != HB_CODEPOINT_INVALID) {
-      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-      /* Need temp copy because next() modifies iterator state */
-      hb_set_t temp_set;
-      temp_set.set (*sets[lig_set_index]);
-      while (temp_set.next(&cp)) {
-        hash = hash * 31 + hb_hash(cp);
-      }
-    }
-
-    // If there's a context set, incorporate its contents in canonical order
-    if (context_set_index != HB_CODEPOINT_INVALID) {
-      hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-      /* Need temp copy because next() modifies iterator state */
-      hb_set_t temp_set;
-      temp_set.set (*sets[context_set_index]);
-      while (temp_set.next(&cp)) {
-        hash = hash * 31 + hb_hash(cp);
-      }
-    }
-
-    return hash;
-  }
-
-  bool edges_equal(hb_codepoint_t target,
-                   hb_tag_t table_tag,
-                   hb_tag_t layout_tag,
-                   hb_codepoint_t dependent,
-                   hb_codepoint_t lig_set,
-                   hb_codepoint_t context_set,
-                   const hb_depend_data_record_t &existing)
-  {
-    // Check basic fields
-    if (existing.table_tag != table_tag ||
-        existing.layout_tag != layout_tag ||
-        existing.dependent != dependent)
-      return false;
-
-    // Check ligature sets
-    if (existing.ligature_set != lig_set)
-    {
-      if (existing.ligature_set == HB_CODEPOINT_INVALID || lig_set == HB_CODEPOINT_INVALID)
-        return false;
-      if (!(*sets[existing.ligature_set] == *sets[lig_set]))
-        return false;
-    }
-
-    // Check context sets
-    if (existing.context_set != context_set)
-    {
-      if (existing.context_set == HB_CODEPOINT_INVALID || context_set == HB_CODEPOINT_INVALID)
-        return false;
-      if (!(*sets[existing.context_set] == *sets[context_set]))
-        return false;
-    }
-
-    return true;
-  }
-
   bool get_glyph_entry(hb_codepoint_t gid, hb_codepoint_t index,
                        hb_tag_t *table_tag, hb_codepoint_t *dependent,
                        hb_tag_t *layout_tag, hb_codepoint_t *ligature_set,
@@ -517,42 +476,17 @@ struct hb_depend_data_t
       return false;
     }
 
-    // Compute edge hash for deduplication (including context_set)
-    uint64_t edge_hash = compute_edge_hash(target, table_tag, layout_tag, dependent, lig_set, context_set);
+    /* Check if we've already seen this edge (uses struct-based hashing) */
+    edge_key_t key (target, table_tag, layout_tag, dependent, lig_set, context_set);
+    if (seen_edges.has (key))
+      return false;  /* Duplicate edge */
 
-    // Get component vector for this edge
-    auto new_components = get_edge_components(target, table_tag, layout_tag, dependent, lig_set, context_set);
-
-    // Check if we've already seen this hash (O(1) hash table lookup)
-    if (edge_hashes.has(edge_hash)) {
-      // Compare stored components with new components
-      const auto &stored_components = edge_hashes.get(edge_hash);
-      bool components_match = (stored_components == new_components);
-
-      if (components_match) {
-        return false;  // True duplicate - same hash, same components
-      } else {
-        // Hash collision! Same hash but different edge components
-        // Fall back to O(n) search through this glyph's dependencies
-        auto &gdr = glyph_dependencies[target];
-        for (auto &dep : gdr.dependencies) {
-          if (edges_equal(target, table_tag, layout_tag, dependent, lig_set, context_set, dep)) {
-            return false;  // Found via fallback
-          }
-        }
-        // DON'T update hash table - leave original stored components
-        // Just add the edge
-        gdr.dependencies.push(table_tag, dependent, layout_tag, lig_set,
-                              context_set, flags);
-        return true;
-      }
-    }
-
-    // New edge - store components in hash table and add to dependency list
-    edge_hashes.set(edge_hash, new_components);
+    /* Record as seen and add to dependency list */
+    seen_edges.set (key, true);
 
     auto &gdr = glyph_dependencies[target];
-    gdr.dependencies.push(table_tag, dependent, layout_tag, lig_set, context_set, flags);
+    gdr.dependencies.push (table_tag, dependent, layout_tag, lig_set,
+                           context_set, flags);
     return true;
   }
 
@@ -611,8 +545,8 @@ struct hb_depend_data_t
   hb_vector_t<hb_glyph_depend_record_t> glyph_dependencies;
   hb_vector_t<hb_set_t> lookup_features;
 
-  /* Hash-based deduplication: edge hash -> component vector for collision detection */
-  hb_hashmap_t<uint64_t, hb_vector_t<uint32_t>> edge_hashes;
+  /* Edge deduplication: struct-based hashing via edge_key_t */
+  hb_hashmap_t<edge_key_t, bool> seen_edges;
 
 #ifdef HB_DEPEND_API
   /* Temporary: Context set index for the current rule.
