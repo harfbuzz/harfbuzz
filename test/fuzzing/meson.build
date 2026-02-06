@@ -32,9 +32,16 @@ foreach file_name : tests
     extra_cpp_args += '-DHB_EXPERIMENTAL_API'
   endif
 
+  # hb-depend-closure-parity needs glib for option parsing
+  test_deps = []
+  if test_name == 'hb-depend-closure-parity'
+    test_deps = [glib_dep]
+  endif
+
   exe = executable(test_name, sources,
     cpp_args: cpp_args + extra_cpp_args,
     include_directories: [incconfig, incsrc],
+    dependencies: test_deps,
     link_args: fuzzer_ldflags,
     link_with: [libharfbuzz, libharfbuzz_subset],
     install: false,
