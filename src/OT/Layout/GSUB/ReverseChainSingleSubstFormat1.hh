@@ -90,7 +90,7 @@ struct ReverseChainSingleSubstFormat1
         context_glyphs.add (back_glyphs.get_min ());
       else if (back_glyphs.get_population () > 1)
       {
-        hb_codepoint_t set_idx = c->depend_data->find_or_create_set (back_glyphs);
+        hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (back_glyphs);
         context_glyphs.add (0x80000000 | set_idx);
       }
     }
@@ -105,7 +105,7 @@ struct ReverseChainSingleSubstFormat1
         context_glyphs.add (look_glyphs.get_min ());
       else if (look_glyphs.get_population () > 1)
       {
-        hb_codepoint_t set_idx = c->depend_data->find_or_create_set (look_glyphs);
+        hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (look_glyphs);
         context_glyphs.add (0x80000000 | set_idx);
       }
     }
@@ -113,7 +113,7 @@ struct ReverseChainSingleSubstFormat1
     /* Allocate context set and save/restore around edge creation */
     hb_codepoint_t context_set_idx = context_glyphs.is_empty ()
       ? HB_CODEPOINT_INVALID
-      : c->depend_data->find_or_create_set (context_glyphs);
+      : c->depend_data->find_or_create_context_set (context_glyphs);
 
     hb_codepoint_t saved_context = c->depend_data->current_context_set_index;
     c->depend_data->current_context_set_index = context_set_idx;

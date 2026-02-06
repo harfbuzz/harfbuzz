@@ -49,7 +49,7 @@ HB_BEGIN_DECLS
 typedef struct hb_depend_t hb_depend_t;
 
 HB_EXTERN hb_depend_t *
-hb_depend_from_face (hb_face_t *face);
+hb_depend_from_face_or_fail (hb_face_t *face);
 
 HB_EXTERN hb_bool_t
 hb_depend_get_glyph_entry(hb_depend_t *depend,

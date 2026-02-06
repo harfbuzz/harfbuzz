@@ -303,7 +303,7 @@ test_depend_cmap (void)
    * This creates dependency: GID 7 → GID 10 with layout_tag=0xE01E5 */
 
   hb_face_t *face = hb_test_open_font_file ("fonts/base.ttf");
-  hb_depend_t *depend = hb_depend_from_face (face);
+  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   g_test_message ("Testing cmap NonDefault UVS: cid00007 (7) → cid00010 (10) with selector 0xE01E5");
@@ -321,7 +321,7 @@ test_depend_glyf (void)
 {
   /* NotoSans-Bold.ttf has composite glyphs */
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
-  hb_depend_t *depend = hb_depend_from_face (face);
+  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   /* Composite glyph "Aacute" (131) is composed of two components:
@@ -347,7 +347,7 @@ test_depend_cff (void)
 {
   /* cff1_seac.C0.otf has a SEAC composite glyph */
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_seac.C0.otf");
-  hb_depend_t *depend = hb_depend_from_face (face);
+  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   /* Glyph 2 is a SEAC composite defined as base (glyph 1) + accent (glyph 3).
@@ -371,7 +371,7 @@ test_depend_colr (void)
 {
   /* COLRv0: base glyph with layer glyphs */
   hb_face_t *face = hb_test_open_font_file ("fonts/COLRv0.extents.ttf");
-  hb_depend_t *depend = hb_depend_from_face (face);
+  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   g_test_message ("Testing COLRv0: glyph00013 (13) → glyph00010 (10)");
@@ -382,7 +382,7 @@ test_depend_colr (void)
 
   /* COLRv1: Paint graph dependencies */
   face = hb_test_open_font_file ("fonts/test_glyphs-glyf_colr_1.ttf");
-  depend = hb_depend_from_face (face);
+  depend = hb_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   g_test_message ("Testing COLRv1 v0 layer: glyph 168 → glyph 176");
@@ -404,7 +404,7 @@ test_depend_math (void)
 {
   /* MathTestFontFull.otf has full MATH table with variants and assemblies */
   hb_face_t *face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
-  hb_depend_t *depend = hb_depend_from_face (face);
+  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
   g_assert_nonnull (depend);
 
   /* Base glyph "arrowup" (31) has:
@@ -439,7 +439,7 @@ test_depend_gsub_formats (void)
 
   /* SourceSansPro-Regular.otf */
   hb_face_t *face_source = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
-  hb_depend_t *depend_source = hb_depend_from_face (face_source);
+  hb_depend_t *depend_source = hb_depend_from_face_or_fail (face_source);
   g_assert_nonnull (depend_source);
 
   /* AlternateSubst: A → A.sc (tests AlternateSet with multiple alternates) */
@@ -459,7 +459,7 @@ test_depend_gsub_formats (void)
 
   /* Qahiri-Regular.ttf */
   hb_face_t *face_qahiri = hb_test_open_font_file ("fonts/Qahiri-Regular.ttf");
-  hb_depend_t *depend_qahiri = hb_depend_from_face (face_qahiri);
+  hb_depend_t *depend_qahiri = hb_depend_from_face_or_fail (face_qahiri);
   g_assert_nonnull (depend_qahiri);
 
   /* ReverseChainSingleSubst */
@@ -512,7 +512,7 @@ test_depend_gsub_formats (void)
 
   /* NotoSans-Bold.ttf has ContextSubst Format 1, Format 2, and ChainContextSubst Format 2 */
   hb_face_t *face_notosans = hb_test_open_font_file ("fonts/NotoSans-Bold.ttf");
-  hb_depend_t *depend_notosans = hb_depend_from_face (face_notosans);
+  hb_depend_t *depend_notosans = hb_depend_from_face_or_fail (face_notosans);
   g_assert_nonnull (depend_notosans);
 
   /* ContextSubst Format 1 → LigatureSubst
@@ -572,7 +572,7 @@ test_depend_gsub_formats (void)
    *   - Lookup 25, 119: ChainContextSubst Format 2 → SingleSubst test
    * Test runtime: 4+ seconds → 0.02 seconds (200× faster) */
   hb_face_t *face_context = hb_test_open_font_file ("fonts/ContextFormat2-Depend-Test.ttf");
-  hb_depend_t *depend_context = hb_depend_from_face (face_context);
+  hb_depend_t *depend_context = hb_depend_from_face_or_fail (face_context);
   g_assert_nonnull (depend_context);
 
   /* ContextSubst Format 2 → MultipleSubst
@@ -611,7 +611,7 @@ test_depend_gsub_formats (void)
 
   /* ChainContextSubst Format 3 → MultipleSubst + feature tagging */
   face_source = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
-  depend_source = hb_depend_from_face (face_source);
+  depend_source = hb_depend_from_face_or_fail (face_source);
   g_assert_nonnull (depend_source);
 
   /* Lookup 8: Format 3 chain context invokes Lookup 7 (MultipleSubst)
