@@ -14,7 +14,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
                                     HB_MEMORY_MODE_READONLY, nullptr, nullptr);
   hb_face_t *face = hb_face_create (blob, 0);
 
-  hb_depend_t *depend = hb_depend_from_face (face);
+  hb_depend_t *depend = hb_depend_from_face_or_fail (face);
 
   if (depend)
   {

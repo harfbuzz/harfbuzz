@@ -85,7 +85,7 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
 
   /* Free temporary structures - no longer needed after graph extraction */
   data.edge_hashes.fini();
-  data.set_hashes.fini();
+  data.set_to_index.fini();
   data.unicodes.fini();
   data.nominal_glyphs.fini();
   for (auto &fs : data.lookup_features)
@@ -179,24 +179,18 @@ void hb_depend_t::get_gsub_dependencies() {
   // During graph extraction, all lookups see ALL glyphs, allowing us to record all possible edges.
   OT::hb_depend_context_t c (&data, face, &all_glyphs);
 
-  const char *debug_depend = getenv ("HB_DEPEND_DEBUG_LOOKUPS");
-  bool debug_lookups = debug_depend && atoi(debug_depend);
-
+  /* Debug output at level 1: per-lookup processing details.
+   * Use HB_DEBUG_DEPEND=2 or higher to see these messages. */
   int i = -1;
   for (auto &feature_set : data.lookup_features) {
     i++;
     if (feature_set.is_empty ()) {
-      if (debug_lookups)
-        fprintf (stderr, "[DEPEND] Skipping lookup %d (no features)\n", i);
+      DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
+                       "Skipping lookup %d (no features)", i);
       continue;
     }
-    if (debug_lookups) {
-      fprintf (stderr, "[DEPEND] Processing lookup %d with features:", i);
-      hb_codepoint_t f = HB_SET_VALUE_INVALID;
-      while (hb_set_next (&feature_set, &f))
-        fprintf (stderr, " %c%c%c%c", HB_UNTAG((hb_tag_t)f));
-      fprintf (stderr, "\n");
-    }
+    DEBUG_MSG_LEVEL (DEPEND, nullptr, 1, 0,
+                     "Processing lookup %d with features:", i);
     c.lookup_index = i;
     c.lookups_seen.clear ();
     table->get_lookup (i).depend (&c);
@@ -288,7 +282,7 @@ hb_depend_t::~hb_depend_t ()
 
 
 /**
- * hb_depend_from_face:
+ * hb_depend_from_face_or_fail:
  * @face: font face to collect dependencies from
  *
  * Calculates the dependencies between glyphs in the supplied face.
@@ -297,19 +291,22 @@ hb_depend_t::~hb_depend_t ()
  *
  * Example:
  * ```c
- * hb_depend_t *depend = hb_depend_from_face (face);
+ * hb_depend_t *depend = hb_depend_from_face_or_fail (face);
+ * if (!depend) {
+ *   // Handle error (OOM or invalid face)
+ *   return;
+ * }
  * // ... use depend ...
  * hb_depend_destroy (depend);
  * ```
  *
- * Return value: (transfer full): New depend object. Destroy with
- * hb_depend_destroy(). If there is a failure creating the depend
- * object nullptr will be returned.
+ * Return value: (transfer full): New depend object, or `nullptr` if creation
+ * failed (out of memory or invalid face). Destroy with hb_depend_destroy().
  *
  * Since: REPLACEME
  **/
 hb_depend_t *
-hb_depend_from_face (hb_face_t *face)
+hb_depend_from_face_or_fail (hb_face_t *face)
 {
   hb_depend_t *depend;
   if (unlikely (!(depend = hb_object_create<hb_depend_t> (face))))

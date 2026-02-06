@@ -1929,7 +1929,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
 
         if (filtered == (*input_position_glyphs)[j]) {
           /* No overlap with position_context - add full requirement */
-          hb_codepoint_t idx = c->depend_data->find_or_create_set ((*input_position_glyphs)[j]);
+          hb_codepoint_t idx = c->depend_data->find_or_create_context_set ((*input_position_glyphs)[j]);
           filtered_disjunctive_indices.add (0x80000000 | idx);
         }
         /* Otherwise: position_context intersects, requirement satisfied */
@@ -1942,7 +1942,7 @@ static void context_depend_recurse_lookups (hb_depend_context_t *c,
     /* Allocate final context_set */
     hb_codepoint_t context_set_idx = position_context.is_empty ()
       ? HB_CODEPOINT_INVALID
-      : c->depend_data->find_or_create_set (position_context);
+      : c->depend_data->find_or_create_context_set (position_context);
 
     /* Save outer context to restore after this lookup. When a contextual lookup
      * calls another contextual lookup, we want each lookup in this rule to see
@@ -3665,7 +3665,7 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
     if (back_set.get_population () == 1) {
       preliminary_context.add (back_set.get_min ());  // Direct glyph
     } else if (back_set.get_population () > 1) {
-      hb_codepoint_t set_idx = c->depend_data->find_or_create_set (back_set);
+      hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (back_set);
       preliminary_context.add (0x80000000 | set_idx);  // Encoded set reference
     }
   }
@@ -3674,7 +3674,7 @@ static inline void chain_context_depend_lookup (hb_depend_context_t *c,
     if (look_set.get_population () == 1) {
       preliminary_context.add (look_set.get_min ());  // Direct glyph
     } else if (look_set.get_population () > 1) {
-      hb_codepoint_t set_idx = c->depend_data->find_or_create_set (look_set);
+      hb_codepoint_t set_idx = c->depend_data->find_or_create_context_set (look_set);
       preliminary_context.add (0x80000000 | set_idx);  // Encoded set reference
     }
   }
