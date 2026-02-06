@@ -228,21 +228,21 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
 
 #define PROCESS_TRANSFORM_COMPONENTS \
 	HB_STMT_START { \
-	PROCESS_TRANSFORM_COMPONENT (FWORD, 1.0f, HAVE_TRANSLATE_X, translateX); \
-	PROCESS_TRANSFORM_COMPONENT (FWORD, 1.0f, HAVE_TRANSLATE_Y, translateY); \
-	PROCESS_TRANSFORM_COMPONENT (F4DOT12, HB_PI, HAVE_ROTATION, rotation); \
-	PROCESS_TRANSFORM_COMPONENT (F6DOT10, 1.0f, HAVE_SCALE_X, scaleX); \
-	PROCESS_TRANSFORM_COMPONENT (F6DOT10, 1.0f, HAVE_SCALE_Y, scaleY); \
-	PROCESS_TRANSFORM_COMPONENT (F4DOT12, HB_PI, HAVE_SKEW_X, skewX); \
-	PROCESS_TRANSFORM_COMPONENT (F4DOT12, HB_PI, HAVE_SKEW_Y, skewY); \
-	PROCESS_TRANSFORM_COMPONENT (FWORD, 1.0f, HAVE_TCENTER_X, tCenterX); \
-	PROCESS_TRANSFORM_COMPONENT (FWORD, 1.0f, HAVE_TCENTER_Y, tCenterY); \
+	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, 1.0f, HAVE_TRANSLATE_X, translateX); \
+	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, 1.0f, HAVE_TRANSLATE_Y, translateY); \
+	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HB_PI, HAVE_ROTATION, rotation); \
+	PROCESS_TRANSFORM_COMPONENT (10, F6DOT10, 1.0f, HAVE_SCALE_X, scaleX); \
+	PROCESS_TRANSFORM_COMPONENT (10, F6DOT10, 1.0f, HAVE_SCALE_Y, scaleY); \
+	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HB_PI, HAVE_SKEW_X, skewX); \
+	PROCESS_TRANSFORM_COMPONENT (12, F4DOT12, HB_PI, HAVE_SKEW_Y, skewY); \
+	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, 1.0f, HAVE_TCENTER_X, tCenterX); \
+	PROCESS_TRANSFORM_COMPONENT ( 0, FWORD, 1.0f, HAVE_TCENTER_Y, tCenterY); \
 	} HB_STMT_END
 
   hb_transform_decomposed_t<> transform;
 
   // Read transform components
-#define PROCESS_TRANSFORM_COMPONENT(type, mult, flag, name) \
+#define PROCESS_TRANSFORM_COMPONENT(shift, type, mult, flag, name) \
 	if (flags & (unsigned) flags_t::flag) \
 	{ \
 	  static_assert (type::static_size == HBINT16::static_size, ""); \
@@ -281,14 +281,14 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
     {
       float transformValues[9];
       unsigned numTransformValues = 0;
-#define PROCESS_TRANSFORM_COMPONENT(type, mult, flag, name) \
+#define PROCESS_TRANSFORM_COMPONENT(shift, type, mult, flag, name) \
 	  if (flags & (unsigned) flags_t::flag) \
 	    transformValues[numTransformValues++] = transform.name / mult;
       PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
       varStore.get_delta (transformVarIdx, coords, hb_array (transformValues, numTransformValues), cache);
       numTransformValues = 0;
-#define PROCESS_TRANSFORM_COMPONENT(type, mult, flag, name) \
+#define PROCESS_TRANSFORM_COMPONENT(shift, type, mult, flag, name) \
 	  if (flags & (unsigned) flags_t::flag) \
 	    transform.name = transformValues[numTransformValues++] * mult;
       PROCESS_TRANSFORM_COMPONENTS;
@@ -296,15 +296,9 @@ VarComponent::get_path_at (const hb_varc_context_t &c,
     }
 
     // Divide them by their divisors
-#define PROCESS_TRANSFORM_COMPONENT(type, mult, flag, name) \
-	  if (flags & (unsigned) flags_t::flag) \
-	  { \
-	    HBINT16 int_v; \
-	    int_v = roundf (transform.name); \
-	    type typed_v = * (const type *) &int_v; \
-	    float float_v = (float) typed_v; \
-	    transform.name = float_v; \
-	  }
+#define PROCESS_TRANSFORM_COMPONENT(shift, type, mult, flag, name) \
+	  if (shift && (flags & (unsigned) flags_t::flag)) \
+	     transform.name /= (1 << shift);
     PROCESS_TRANSFORM_COMPONENTS;
 #undef PROCESS_TRANSFORM_COMPONENT
 
