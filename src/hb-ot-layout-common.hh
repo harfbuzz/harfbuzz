@@ -2467,36 +2467,30 @@ struct delta_row_encoding_t
 
 struct VarRegionAxis
 {
-  float evaluate (float coord) const
+  float evaluate (int coord) const
   {
-    float peak = (float) peakCoord.to_int ();
-    if (peak == 0.f || coord == peak)
+    int peak = peakCoord.to_int ();
+    if (peak == 0 || coord == peak)
       return 1.f;
-    else if (coord == 0.f) // Faster
+    else if (coord == 0) // Faster
       return 0.f;
 
-    float start = (float) startCoord.to_int ();
-    float end = (float) endCoord.to_int ();
+    int start = startCoord.to_int (), end = endCoord.to_int ();
 
     /* TODO Move these to sanitize(). */
     if (unlikely (start > peak || peak > end))
       return 1.f;
-    if (unlikely (start < 0.f && end > 0.f && peak != 0.f))
+    if (unlikely (start < 0 && end > 0 && peak != 0))
       return 1.f;
 
     if (coord <= start || end <= coord)
       return 0.f;
 
-    /* Interpolate in raw 2.14 space. */
+    /* Interpolate */
     if (coord < peak)
-      return (coord - start) / (peak - start);
+      return float (coord - start) / (peak - start);
     else
-      return (end - coord) / (end - peak);
-  }
-
-  float evaluate (int coord) const
-  {
-    return evaluate ((float) coord);
+      return float (end - coord) / (end - peak);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -2524,13 +2518,6 @@ struct SparseVarRegionAxis
   {
     unsigned i = axisIndex;
     int coord = i < coord_len ? coords[i] : 0;
-    return axis.evaluate (coord);
-  }
-
-  float evaluate (const float *coords, unsigned int coord_len) const
-  {
-    unsigned i = axisIndex;
-    float coord = i < coord_len ? coords[i] : 0.f;
     return axis.evaluate (coord);
   }
 
@@ -2826,21 +2813,7 @@ struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
     {
       float factor = arrayZ[i].evaluate (coords, coord_len);
       if (factor == 0.f)
-        return 0.f;
-      v *= factor;
-    }
-    return v;
-  }
-
-  float evaluate (const float *coords, unsigned int coord_len) const
-  {
-    float v = 1.f;
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      float factor = arrayZ[i].evaluate (coords, coord_len);
-      if (factor == 0.f)
-        return 0.f;
+	return 0.;
       v *= factor;
     }
     return v;
@@ -2851,8 +2824,8 @@ struct SparseVarRegionList
 {
   HB_ALWAYS_INLINE
   float evaluate (unsigned int region_index,
-                  const int *coords, unsigned int coord_len,
-                  hb_scalar_cache_t *cache = nullptr) const
+		  const int *coords, unsigned int coord_len,
+		  hb_scalar_cache_t *cache = nullptr) const
   {
     if (unlikely (region_index >= regions.len))
       return 0.;
@@ -2868,34 +2841,6 @@ struct SparseVarRegionList
       cache->set (region_index, v);
 
     return v;
-  }
-
-  HB_ALWAYS_INLINE
-  float evaluate (unsigned int region_index,
-                  const float *coords, unsigned int coord_len,
-                  hb_scalar_cache_t *cache = nullptr) const
-  {
-    if (unlikely (region_index >= regions.len))
-      return 0.;
-
-    float v;
-    if (cache && cache->get (region_index, &v))
-      return v;
-
-    const SparseVariationRegion &region = this+regions[region_index];
-
-    v = region.evaluate (coords, coord_len);
-    if (cache)
-      cache->set (region_index, v);
-
-    return v;
-  }
-
-  float evaluate (unsigned int region_index,
-                  hb_array_t<const float> coords,
-                  hb_scalar_cache_t *cache = nullptr) const
-  {
-    return evaluate (region_index, coords.arrayZ, coords.length, cache);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -3302,17 +3247,13 @@ struct MultiVarData
 	 + StructAfter<CFF2Index> (regionIndices).get_size ();
   }
 
-  template <typename CoordT>
-  void get_delta_impl (unsigned int inner,
-                       const CoordT *coords, unsigned int coord_count,
-                       const SparseVarRegionList &regions,
-                       hb_array_t<float> out,
-                       hb_scalar_cache_t *cache = nullptr) const
+  void get_delta (unsigned int inner,
+		  const int *coords, unsigned int coord_count,
+		  const SparseVarRegionList &regions,
+		  hb_array_t<float> out,
+		  hb_scalar_cache_t *cache = nullptr) const
   {
     auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
-
-    if (unlikely (!out.length))
-      return;
 
     auto values_iter = deltaSets.fetcher (inner);
     unsigned regionCount = regionIndices.len;
@@ -3320,95 +3261,20 @@ struct MultiVarData
     for (unsigned regionIndex = 0; regionIndex < regionCount; regionIndex++)
     {
       float scalar = regions.evaluate (regionIndices.arrayZ[regionIndex],
-                                       coords, coord_count,
-                                       cache);
+				       coords, coord_count,
+				       cache);
       // We skip lazily. Helps with the tail end.
       if (scalar == 0.0f)
         skip += out.length;
       else
       {
         if (skip)
-        {
-          values_iter.skip (skip);
-          skip = 0;
-        }
-        values_iter.add_to (out, scalar);
+	{
+	  values_iter.skip (skip);
+	  skip = 0;
+	}
+	values_iter.add_to (out, scalar);
       }
-    }
-  }
-
-  void get_delta (unsigned int inner,
-                  const int *coords, unsigned int coord_count,
-                  const SparseVarRegionList &regions,
-                  hb_array_t<float> out,
-                  hb_scalar_cache_t *cache = nullptr) const
-  {
-    get_delta_impl (inner, coords, coord_count, regions, out, cache);
-  }
-
-  void get_delta (unsigned int inner,
-                  const float *coords, unsigned int coord_count,
-                  const SparseVarRegionList &regions,
-                  hb_array_t<float> out,
-                  hb_scalar_cache_t *cache = nullptr) const
-  {
-    get_delta_impl (inner, coords, coord_count, regions, out, cache);
-  }
-
-  void debug_rotation_region_terms (unsigned int inner,
-                                    const float *coords, unsigned int coord_count,
-                                    const SparseVarRegionList &regions,
-                                    unsigned int tuple_len,
-                                    unsigned int rotation_index,
-                                    unsigned int parent_gid,
-                                    unsigned int gid,
-                                    unsigned int var_idx,
-                                    hb_scalar_cache_t *cache = nullptr) const
-  {
-    if (unlikely (!tuple_len || rotation_index >= tuple_len || tuple_len > 9))
-      return;
-
-    auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
-    auto values_iter = deltaSets.fetcher (inner);
-    unsigned regionCount = regionIndices.len;
-    unsigned skip = 0;
-    float tmp[9] = {};
-    float running_f32 = 0.0f;
-    double running_f64 = 0.0;
-
-    for (unsigned region_order = 0; region_order < regionCount; region_order++)
-    {
-      unsigned region_index = regionIndices.arrayZ[region_order];
-      float scalar = regions.evaluate (region_index, coords, coord_count, cache);
-      if (scalar == 0.0f)
-      {
-        skip += tuple_len;
-        fprintf (stderr,
-                 "VARC_ROT_REGION parent_gid=%u gid=%u var_idx=%u region_order=%u region_idx=%u scalar=%.16f raw=%.16f contrib=%.16f running_f32=%.16f running_f64=%.16f\n",
-                 parent_gid, gid, var_idx, region_order, region_index,
-                 0.0, 0.0, 0.0, (double) running_f32, running_f64);
-        continue;
-      }
-
-      if (skip)
-      {
-        values_iter.skip (skip);
-        skip = 0;
-      }
-
-      for (unsigned i = 0; i < tuple_len; i++)
-        tmp[i] = 0.0f;
-      values_iter.add_to (hb_array (tmp, tuple_len), 1.0f);
-
-      float raw = tmp[rotation_index];
-      float contrib = raw * scalar;
-      running_f32 += contrib;
-      running_f64 += (double) raw * (double) scalar;
-      fprintf (stderr,
-               "VARC_ROT_REGION parent_gid=%u gid=%u var_idx=%u region_order=%u region_idx=%u scalar=%.16f raw=%.16f contrib=%.16f running_f32=%.16f running_f64=%.16f\n",
-               parent_gid, gid, var_idx, region_order, region_index,
-               (double) scalar, (double) raw, (double) contrib,
-               (double) running_f32, running_f64);
     }
   }
 
@@ -3703,118 +3569,44 @@ struct MultiItemVariationStore
   }
 
   private:
-  template <typename CoordT>
-  void get_delta_impl (unsigned int outer, unsigned int inner,
-                       const CoordT *coords, unsigned int coord_count,
-                       hb_array_t<float> out,
-                       hb_scalar_cache_t *cache = nullptr) const
+  void get_delta (unsigned int outer, unsigned int inner,
+		  const int *coords, unsigned int coord_count,
+		  hb_array_t<float> out,
+		  hb_scalar_cache_t *cache = nullptr) const
   {
 #ifdef HB_NO_VAR
     return;
 #endif
-
-    if (unlikely (!out.length))
-      return;
-
-    if (unlikely (!coords && coord_count))
-      return;
-
-    if (unlikely (!coords))
-      coord_count = 0;
 
     if (unlikely (outer >= dataSets.len))
       return;
 
     return (this+dataSets[outer]).get_delta (inner,
-                                             coords, coord_count,
-                                             this+regions,
-                                             out,
-                                             cache);
-  }
-
-  void get_delta (unsigned int outer, unsigned int inner,
-                  const int *coords, unsigned int coord_count,
-                  hb_array_t<float> out,
-                  hb_scalar_cache_t *cache = nullptr) const
-  {
-    get_delta_impl (outer, inner, coords, coord_count, out, cache);
-  }
-
-  void get_delta (unsigned int outer, unsigned int inner,
-                  const float *coords, unsigned int coord_count,
-                  hb_array_t<float> out,
-                  hb_scalar_cache_t *cache = nullptr) const
-  {
-    get_delta_impl (outer, inner, coords, coord_count, out, cache);
+					     coords, coord_count,
+					     this+regions,
+					     out,
+					     cache);
   }
 
   public:
   void get_delta (unsigned int index,
-                  const int *coords, unsigned int coord_count,
-                  hb_array_t<float> out,
-                  hb_scalar_cache_t *cache = nullptr) const
+		  const int *coords, unsigned int coord_count,
+		  hb_array_t<float> out,
+		  hb_scalar_cache_t *cache = nullptr) const
   {
     unsigned int outer = index >> 16;
     unsigned int inner = index & 0xFFFF;
     get_delta (outer, inner, coords, coord_count, out, cache);
   }
-
   void get_delta (unsigned int index,
-                  const float *coords, unsigned int coord_count,
-                  hb_array_t<float> out,
-                  hb_scalar_cache_t *cache = nullptr) const
-  {
-    unsigned int outer = index >> 16;
-    unsigned int inner = index & 0xFFFF;
-    get_delta (outer, inner, coords, coord_count, out, cache);
-  }
-
-  void get_delta (unsigned int index,
-                  hb_array_t<const int> coords,
-                  hb_array_t<float> out,
-                  hb_scalar_cache_t *cache = nullptr) const
+		  hb_array_t<const int> coords,
+		  hb_array_t<float> out,
+		  hb_scalar_cache_t *cache = nullptr) const
   {
     return get_delta (index,
-                      coords.arrayZ, coords.length,
-                      out,
-                      cache);
-  }
-
-  void get_delta (unsigned int index,
-                  hb_array_t<const float> coords,
-                  hb_array_t<float> out,
-                  hb_scalar_cache_t *cache = nullptr) const
-  {
-    return get_delta (index,
-                      coords.arrayZ, coords.length,
-                      out,
-                      cache);
-  }
-
-  void debug_rotation_region_terms (unsigned int index,
-                                    const float *coords, unsigned int coord_count,
-                                    unsigned int tuple_len,
-                                    unsigned int rotation_index,
-                                    unsigned int parent_gid,
-                                    unsigned int gid,
-                                    hb_scalar_cache_t *cache = nullptr) const
-  {
-#ifdef HB_NO_VAR
-    return;
-#endif
-    unsigned int outer = index >> 16;
-    unsigned int inner = index & 0xFFFF;
-    if (unlikely (!coords && coord_count))
-      return;
-    if (unlikely (!coords))
-      coord_count = 0;
-    if (unlikely (outer >= dataSets.len))
-      return;
-    return (this+dataSets[outer]).debug_rotation_region_terms (inner,
-                                                                coords, coord_count,
-                                                                this+regions,
-                                                                tuple_len, rotation_index,
-                                                                parent_gid, gid, index, cache);
+		      coords.arrayZ, coords.length,
+		      out,
+		      cache);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -4071,21 +3863,16 @@ struct ItemVarStoreInstancer
 struct MultiItemVarStoreInstancer
 {
   MultiItemVarStoreInstancer (const MultiItemVariationStore *varStore,
-                              const DeltaSetIndexMap *varIdxMap,
-                              hb_array_t<const int> coords,
-                              hb_array_t<const float> coords_f32 = hb_array_t<const float> (),
-                              hb_scalar_cache_t *cache = nullptr) :
-    varStore (varStore),
-    varIdxMap (varIdxMap),
-    coords (coords),
-    coords_f32 (coords_f32),
-    cache (cache)
+			      const DeltaSetIndexMap *varIdxMap,
+			      hb_array_t<const int> coords,
+			      hb_scalar_cache_t *cache = nullptr) :
+    varStore (varStore), varIdxMap (varIdxMap), coords (coords), cache (cache)
   {
     if (!varStore)
       varStore = &Null(MultiItemVariationStore);
   }
 
-  operator bool () const { return varStore && (bool (coords_f32) || bool (coords)); }
+  operator bool () const { return varStore && bool (coords); }
 
   float operator[] (uint32_t varIdx) const
   {
@@ -4096,15 +3883,12 @@ struct MultiItemVarStoreInstancer
 
   void operator() (hb_array_t<float> out, uint32_t varIdx, unsigned short offset = 0) const
   {
-    if ((coords_f32 || coords) && varIdx != VarIdx::NO_VARIATION)
+    if (coords && varIdx != VarIdx::NO_VARIATION)
     {
       varIdx += offset;
       if (varIdxMap)
-        varIdx = varIdxMap->map (varIdx);
-      if (coords_f32)
-        varStore->get_delta (varIdx, coords_f32, out, cache);
-      else
-        varStore->get_delta (varIdx, coords, out, cache);
+	varIdx = varIdxMap->map (varIdx);
+      varStore->get_delta (varIdx, coords, out, cache);
     }
     else
       for (unsigned i = 0; i < out.length; i++)
@@ -4114,7 +3898,6 @@ struct MultiItemVarStoreInstancer
   const MultiItemVariationStore *varStore;
   const DeltaSetIndexMap *varIdxMap;
   hb_array_t<const int> coords;
-  hb_array_t<const float> coords_f32;
   hb_scalar_cache_t *cache;
 };
 

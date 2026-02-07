@@ -1963,14 +1963,6 @@ struct TupleValues
     }
 
     private:
-    HB_ALWAYS_INLINE
-    static float mul_unfused (float a, float b)
-    {
-      // Keep mul/add unfused for cross-engine numeric debugging.
-      volatile float product = a * b;
-      return product;
-    }
-
     template <bool scaled>
     void _add_to (hb_array_t<float> out, float scale = 1.0f)
     {
@@ -1996,14 +1988,14 @@ struct TupleValues
 #ifndef HB_OPTIMIZE_SIZE
 	    for (; j + 3 < count; j += 4)
 	    {
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
 	    }
 #endif
 	    for (; j < count; j++)
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
 
 	    p = (const unsigned char *) pp;
 	  }
@@ -2015,14 +2007,14 @@ struct TupleValues
 #ifndef HB_OPTIMIZE_SIZE
 	    for (; j + 3 < count; j += 4)
 	    {
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
 	    }
 #endif
 	    for (; j < count; j++)
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
 
 	    p = (const unsigned char *) pp;
 	  }
@@ -2031,7 +2023,7 @@ struct TupleValues
 	  {
 	    const auto *pp = (const HBINT32 *) p;
 	    for (unsigned j = 0; j < count; j++)
-	      *arrayZ++ += scaled ? mul_unfused (*pp++, scale) : *pp++;
+	      *arrayZ++ += scaled ? *pp++ * scale : *pp++;
 
 	    p = (const unsigned char *) pp;
 	  }

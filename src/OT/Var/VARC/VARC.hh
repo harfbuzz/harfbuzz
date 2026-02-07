@@ -8,6 +8,7 @@
 #include "../../../hb-ot-cff2-table.hh"
 #include "../../../hb-ot-cff1-table.hh"
 
+#include "coord-setter.hh"
 
 namespace OT {
 
@@ -63,11 +64,10 @@ struct VarComponent
   HB_INTERNAL hb_ubytes_t
   get_path_at (const hb_varc_context_t &c,
 	       hb_codepoint_t parent_gid,
-	       hb_array_t<const float> coords_f32,
+	       hb_array_t<const int> coords,
 	       hb_transform_t<> transform,
 	       hb_ubytes_t record,
-	       hb_scalar_cache_t *cache = nullptr,
-	       uint32_t trace_var_idx = VarIdx::NO_VARIATION) const;
+	       hb_scalar_cache_t *cache = nullptr) const;
 };
 
 struct VarCompositeGlyph
@@ -75,21 +75,19 @@ struct VarCompositeGlyph
   static void
   get_path_at (const hb_varc_context_t &c,
 	       hb_codepoint_t gid,
-	       hb_array_t<const float> coords_f32,
+	       hb_array_t<const int> coords,
 	       hb_transform_t<> transform,
 	       hb_ubytes_t record,
-	       hb_scalar_cache_t *cache,
-	       uint32_t trace_var_idx)
+	       hb_scalar_cache_t *cache)
   {
     while (record)
     {
       const VarComponent &comp = * (const VarComponent *) (record.arrayZ);
       record = comp.get_path_at (c,
 				 gid,
-				 coords_f32, transform,
+				 coords, transform,
 				 record,
-				 cache,
-				 trace_var_idx);
+				 cache);
     }
   }
 };
@@ -105,11 +103,10 @@ struct VARC
   HB_INTERNAL bool
   get_path_at (const hb_varc_context_t &c,
 	       hb_codepoint_t gid,
-	       hb_array_t<const float> coords_f32,
+	       hb_array_t<const int> coords,
 	       hb_transform_t<> transform = HB_TRANSFORM_IDENTITY,
 	       hb_codepoint_t parent_gid = HB_CODEPOINT_INVALID,
-	       hb_scalar_cache_t *parent_cache = nullptr,
-	       uint32_t trace_var_idx = VarIdx::NO_VARIATION) const;
+	       hb_scalar_cache_t *parent_cache = nullptr) const;
 
   bool
   get_path (hb_font_t *font,
@@ -125,14 +122,8 @@ struct VARC
 			 HB_MAX_NESTING_LEVEL,
 			 scratch};
 
-    hb_vector_t<float> coords_f32;
-    if (font->num_coords && unlikely (!coords_f32.resize (font->num_coords)))
-      return false;
-    for (unsigned i = 0; i < font->num_coords; i++)
-      coords_f32[i] = (float) font->coords[i];
-
     return get_path_at (c, gid,
-			coords_f32.as_array ());
+			hb_array (font->coords, font->num_coords));
   }
 
   bool
@@ -149,14 +140,8 @@ struct VARC
 			 HB_MAX_NESTING_LEVEL,
 			 scratch};
 
-    hb_vector_t<float> coords_f32;
-    if (font->num_coords && unlikely (!coords_f32.resize (font->num_coords)))
-      return false;
-    for (unsigned i = 0; i < font->num_coords; i++)
-      coords_f32[i] = (float) font->coords[i];
-
     return get_path_at (c, gid,
-			coords_f32.as_array ());
+			hb_array (font->coords, font->num_coords));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
