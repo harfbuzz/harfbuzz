@@ -82,6 +82,7 @@ struct view_cairo_t : view_options_t, output_options_t<>
   protected:
 
   void render (const font_options_t *font_opts);
+  void draw_lines (cairo_t *cr, hb_font_t *font, double leading, int vert, int horiz);
 
   hb_direction_t direction = HB_DIRECTION_INVALID; // Remove this, make segment_properties accessible
   GArray *lines = nullptr;
@@ -89,76 +90,8 @@ struct view_cairo_t : view_options_t, output_options_t<>
 };
 
 inline void
-view_cairo_t::render (const font_options_t *font_opts)
+view_cairo_t::draw_lines (cairo_t *cr, hb_font_t *font, double leading, int vert, int horiz)
 {
-  bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
-  int vert  = vertical ? 1 : 0;
-  int horiz = vertical ? 0 : 1;
-
-  int x_sign = font_opts->font_size_x < 0 ? -1 : +1;
-  int y_sign = font_opts->font_size_y < 0 ? -1 : +1;
-
-  hb_font_t *font = font_opts->font;
-
-  if (!have_font_extents)
-  {
-    hb_font_extents_t hb_extents;
-    hb_font_get_extents_for_direction (font, direction, &hb_extents);
-    font_extents.ascent = scalbn ((double) hb_extents.ascender, - (int) subpixel_bits);
-    font_extents.descent = -scalbn ((double) hb_extents.descender, - (int) subpixel_bits);
-    font_extents.line_gap = scalbn ((double) hb_extents.line_gap, - (int) subpixel_bits);
-    have_font_extents = true;
-  }
-
-  double ascent = y_sign * font_extents.ascent;
-  double descent = y_sign * font_extents.descent;
-  double line_gap = y_sign * font_extents.line_gap + line_space;
-  double leading = ascent + descent + line_gap;
-
-  /* Calculate surface size. */
-  double w = 0, h = 0;
-  (vertical ? w : h) = (int) lines->len * leading - (font_extents.line_gap + line_space);
-  (vertical ? h : w) = 0;
-  for (unsigned int i = 0; i < lines->len; i++) {
-    helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
-    double x_advance, y_advance;
-    line.get_advance (&x_advance, &y_advance);
-    if (vertical)
-      h =  MAX (h, y_sign * y_advance);
-    else
-      w =  MAX (w, x_sign * x_advance);
-  }
-
-  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts,
-								      this);
-
-  /* See if font needs color. */
-  cairo_content_t content = CAIRO_CONTENT_ALPHA;
-  if (helper_cairo_scaled_font_has_color (scaled_font))
-    content = CAIRO_CONTENT_COLOR;
-
-  /* Create surface. */
-  cairo_t *cr = helper_cairo_create_context (w + margin.l + margin.r,
-					     h + margin.t + margin.b,
-					     this,
-					     this,
-					     content);
-  cairo_set_scaled_font (cr, scaled_font);
-
-  /* Setup coordinate system. */
-  cairo_translate (cr, margin.l, margin.t);
-  if (vertical)
-    cairo_translate (cr,
-		     w - ascent, /* We currently always stack lines right to left */
-		     y_sign < 0 ? h : 0);
-  else
-   {
-    cairo_translate (cr,
-		     x_sign < 0 ? w : 0,
-		     y_sign < 0 ? descent : ascent);
-   }
-
-  /* Draw. */
   cairo_translate (cr, +vert * leading, -horiz * leading);
   for (unsigned int i = 0; i < lines->len; i++)
   {
@@ -214,6 +147,115 @@ view_cairo_t::render (const font_options_t *font_opts)
 #endif
       cairo_show_glyphs (cr, l.glyphs, l.num_glyphs);
   }
+}
+
+inline void
+view_cairo_t::render (const font_options_t *font_opts)
+{
+  bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
+  int vert  = vertical ? 1 : 0;
+  int horiz = vertical ? 0 : 1;
+
+  int x_sign = font_opts->font_size_x < 0 ? -1 : +1;
+  int y_sign = font_opts->font_size_y < 0 ? -1 : +1;
+
+  hb_font_t *font = font_opts->font;
+
+  if (!have_font_extents)
+  {
+    hb_font_extents_t hb_extents;
+    hb_font_get_extents_for_direction (font, direction, &hb_extents);
+    font_extents.ascent = scalbn ((double) hb_extents.ascender, - (int) subpixel_bits);
+    font_extents.descent = -scalbn ((double) hb_extents.descender, - (int) subpixel_bits);
+    font_extents.line_gap = scalbn ((double) hb_extents.line_gap, - (int) subpixel_bits);
+    have_font_extents = true;
+  }
+
+  double ascent = y_sign * font_extents.ascent;
+  double descent = y_sign * font_extents.descent;
+  double line_gap = y_sign * font_extents.line_gap + line_space;
+  double leading = ascent + descent + line_gap;
+
+  /* Calculate logical surface size. */
+  double logical_w = 0, logical_h = 0;
+  (vertical ? logical_w : logical_h) = (int) lines->len * leading - (font_extents.line_gap + line_space);
+  (vertical ? logical_h : logical_w) = 0;
+  for (unsigned int i = 0; i < lines->len; i++) {
+    helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
+    double x_advance, y_advance;
+    line.get_advance (&x_advance, &y_advance);
+    if (vertical)
+      logical_h =  MAX (logical_h, y_sign * y_advance);
+    else
+      logical_w =  MAX (logical_w, x_sign * x_advance);
+  }
+
+  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts,
+								      this);
+
+  /* See if font needs color. */
+  cairo_content_t content = CAIRO_CONTENT_ALPHA;
+  if (helper_cairo_scaled_font_has_color (scaled_font))
+    content = CAIRO_CONTENT_COLOR;
+
+  double surface_w = logical_w, surface_h = logical_h;
+  double ink_shift_x = 0, ink_shift_y = 0;
+  if (ink)
+  {
+    cairo_surface_t *ink_surface = cairo_recording_surface_create (content, nullptr);
+    cairo_t *ink_cr = cairo_create (ink_surface);
+    cairo_set_scaled_font (ink_cr, scaled_font);
+
+    if (vertical)
+      cairo_translate (ink_cr,
+		       logical_w - ascent, /* We currently always stack lines right to left */
+		       y_sign < 0 ? logical_h : 0);
+    else
+     {
+      cairo_translate (ink_cr,
+		       x_sign < 0 ? logical_w : 0,
+		       y_sign < 0 ? descent : ascent);
+     }
+
+    draw_lines (ink_cr, font, leading, vert, horiz);
+
+    double ink_x, ink_y, ink_w, ink_h;
+    cairo_recording_surface_ink_extents (ink_surface, &ink_x, &ink_y, &ink_w, &ink_h);
+    if (ink_w > 0 && ink_h > 0)
+    {
+      surface_w = ink_w;
+      surface_h = ink_h;
+      ink_shift_x = -ink_x;
+      ink_shift_y = -ink_y;
+    }
+
+    cairo_destroy (ink_cr);
+    cairo_surface_destroy (ink_surface);
+  }
+
+  /* Create surface. */
+  cairo_t *cr = helper_cairo_create_context (surface_w + margin.l + margin.r,
+					     surface_h + margin.t + margin.b,
+					     this,
+					     this,
+					     content);
+  cairo_set_scaled_font (cr, scaled_font);
+
+  /* Setup coordinate system. */
+  cairo_translate (cr, margin.l + ink_shift_x, margin.t + ink_shift_y);
+  if (vertical)
+    cairo_translate (cr,
+		     logical_w - ascent, /* We currently always stack lines right to left */
+		     y_sign < 0 ? logical_h : 0);
+  else
+   {
+    cairo_translate (cr,
+		     x_sign < 0 ? logical_w : 0,
+		     y_sign < 0 ? descent : ascent);
+   }
+
+  /* Draw. */
+  draw_lines (cr, font, leading, vert, horiz);
 
   /* Clean up. */
   helper_cairo_destroy_context (cr);

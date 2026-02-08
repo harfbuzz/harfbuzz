@@ -56,6 +56,7 @@ struct view_options_t
   struct margin_t {
     double t, r, b, l;
   } margin = {DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN};
+  hb_bool_t ink = false;
   hb_bool_t show_extents = false;
 };
 
@@ -117,6 +118,7 @@ view_options_t::add_options (option_parser_t *parser)
     {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&this->line_space,		"Set space between lines (default: 0)",			"units"},
     {"font-extents",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_extents,	"Set font ascent/descent/line-gap (default: auto)","one to three numbers"},
     {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: " G_STRINGIFY(DEFAULT_MARGIN) ")","one to four numbers"},
+    {"ink",		0, 0, G_OPTION_ARG_NONE,	&this->ink,			"Render to ink box instead of logical box",			nullptr},
     {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Draw glyph extents",							nullptr},
     {nullptr}
   };
