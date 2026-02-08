@@ -199,8 +199,10 @@ view_cairo_t::render (const font_options_t *font_opts)
     content = CAIRO_CONTENT_COLOR;
 
   double surface_w = logical_w, surface_h = logical_h;
-  double ink_shift_x = 0, ink_shift_y = 0;
-  if (ink)
+  double surface_shift_x = 0, surface_shift_y = 0;
+  bool include_logical = logical || !ink;
+  bool include_ink = ink || !logical;
+  if (include_ink)
   {
     cairo_surface_t *ink_surface = cairo_recording_surface_create (content, nullptr);
     cairo_t *ink_cr = cairo_create (ink_surface);
@@ -223,10 +225,24 @@ view_cairo_t::render (const font_options_t *font_opts)
     cairo_recording_surface_ink_extents (ink_surface, &ink_x, &ink_y, &ink_w, &ink_h);
     if (ink_w > 0 && ink_h > 0)
     {
-      surface_w = ink_w;
-      surface_h = ink_h;
-      ink_shift_x = -ink_x;
-      ink_shift_y = -ink_y;
+      if (include_logical)
+      {
+	double x1 = MIN (0., ink_x);
+	double y1 = MIN (0., ink_y);
+	double x2 = MAX (logical_w, ink_x + ink_w);
+	double y2 = MAX (logical_h, ink_y + ink_h);
+	surface_w = x2 - x1;
+	surface_h = y2 - y1;
+	surface_shift_x = -x1;
+	surface_shift_y = -y1;
+      }
+      else
+      {
+	surface_w = ink_w;
+	surface_h = ink_h;
+	surface_shift_x = -ink_x;
+	surface_shift_y = -ink_y;
+      }
     }
 
     cairo_destroy (ink_cr);
@@ -242,7 +258,7 @@ view_cairo_t::render (const font_options_t *font_opts)
   cairo_set_scaled_font (cr, scaled_font);
 
   /* Setup coordinate system. */
-  cairo_translate (cr, margin.l + ink_shift_x, margin.t + ink_shift_y);
+  cairo_translate (cr, margin.l + surface_shift_x, margin.t + surface_shift_y);
   if (vertical)
     cairo_translate (cr,
 		     logical_w - ascent, /* We currently always stack lines right to left */
