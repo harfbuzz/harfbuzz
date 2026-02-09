@@ -8,10 +8,12 @@ dirname=`dirname "$0"`
 output_dir=
 font_file=
 face_index=0
-hb_view=hb-view
 hb_info=hb-info
+hb_draw=hb-draw
 hb_svg_compare=$dirname/hb-svg-compare
 tolerance=0
+draw_precision=
+precision=
 font_size=upem
 features=
 variations=
@@ -41,9 +43,9 @@ while test $# -gt 0; do
 			face_index=$1
 			shift
 			;;
-		--hb-view)
+		--hb-draw)
 			shift
-			hb_view=$1
+			hb_draw=$1
 			shift
 			;;
 		--hb-info)
@@ -59,6 +61,11 @@ while test $# -gt 0; do
 		--tolerance)
 			shift
 			tolerance=$1
+			shift
+			;;
+		--precision)
+			shift
+			precision=$1
 			shift
 			;;
 		--font-size)
@@ -132,10 +139,11 @@ if $help; then
 	echo "Options:"
 	echo "  -o, --output-dir DIR: Output in DIR"
 	echo "  --font-file FONTFILE: Font file to render"
-	echo "  --hb-view HB_VIEW: Path to hb-view; default $hb_view"
+	echo "  --hb-draw HB_DRAW: Path to hb-draw; default $hb_draw"
 	echo "  --hb-info HB_INFO: Path to hb-info; default $hb_info"
 	echo "  --hb-svg-compare HB_SVG_COMPARE: Path to hb-svg-compare; default $hb_svg_compare"
 	echo "  --tolerance TOLERANCE: Tolerance for SVG comparison; default $tolerance"
+	echo "  --precision N: hb-draw precision override; default 6"
 	echo "  --font-size SIZE: Font size; default $font_size"
 	echo "  --features FEATURES: Font features; default none"
 	echo "  --variations VARIATIONS: Font variations; default none"
@@ -154,8 +162,8 @@ if test "x$font_file" == x; then
 	echo "No font file specified." >&2
 	exit 2
 fi
-if ! which "$hb_view" 2>/dev/null >/dev/null; then
-	echo "'$hb_view' not found" >&2
+if ! which "$hb_draw" 2>/dev/null >/dev/null; then
+	echo "'$hb_draw' not found" >&2
 	exit 2
 fi
 if ! which "$hb_info" 2>/dev/null >/dev/null; then
@@ -186,10 +194,22 @@ if test "x$output_dir" == x; then
 fi
 mkdir -p "$output_dir" || exit 1
 
+if test "x$precision" != x; then
+	echo "$precision" | grep -Eq '^[0-9]+$' || {
+		echo "Invalid precision '$precision'" >&2
+		exit 2
+	}
+	draw_precision="$precision"
+else
+	draw_precision=6
+fi
+$quiet || echo "Using precision=$draw_precision for tolerance=$tolerance." >&2
+
 # Populate glyphs file
 glyphs_file="$output_dir/glyphs"
 > "$glyphs_file"
 echo "$unicodes" |
+tr ' ' '\n' |
 sed 's/^U+//' |
 grep . |
 while read unicode; do
@@ -252,13 +272,13 @@ for font_funcs in "$font_funcs1" "$font_funcs2"; do
 			--font-funcs=$font_funcs \
 			--features="$features" \
 			--variations="$variations" \
-			--output-format=svg \
 			--font-size=$font_size \
+			--precision=$draw_precision \
 			--output-file="$svg" \
 			"$glyph"
 	done |
 	sed 's/ /;/g' |
-	"$hb_view" --batch | grep -v success
+	"$hb_draw" --batch | grep -v success
 	$quiet || echo "" >&2
 done
 
