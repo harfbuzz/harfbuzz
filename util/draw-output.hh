@@ -447,7 +447,7 @@ struct draw_output_t : output_options_t<>
       dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
-    // Match hb-view default: union logical bounds with ink bounds.
+    // Use logical extents and advances for viewBox sizing.
     hb_font_extents_t logical_extents = {0, 0, 0};
     hb_font_get_extents_for_direction (font, dir, &logical_extents);
     int axis_scale = vertical ? x_scale : y_scale;
@@ -479,25 +479,6 @@ struct draw_output_t : output_options_t<>
 	y2 = offset.second + logical_max;
       }
       include_scaled_rect (&box, glyph_scale_x, glyph_scale_y, x1, y1, x2, y2);
-    }
-
-    for (unsigned li = 0; li < lines.size (); li++)
-    {
-      const line_t &line = lines[li];
-      const auto &offset = offsets[li];
-      for (const glyph_instance_t &glyph : line.glyphs)
-      {
-	hb_glyph_extents_t extents = {0, 0, 0, 0};
-	if (!hb_font_get_glyph_extents (upem_font, glyph.gid, &extents))
-	  continue;
-
-	float x1 = offset.first + glyph.x + extents.x_bearing;
-	float x2 = x1 + extents.width;
-	float y2 = offset.second + glyph.y + extents.y_bearing;
-	float y1 = y2 + extents.height;
-
-	include_scaled_rect (&box, glyph_scale_x, glyph_scale_y, x1, y1, x2, y2);
-      }
     }
 
     if (box.valid)
