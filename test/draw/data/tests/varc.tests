@@ -1,5 +1,5 @@
 # font-file;options;unicodes;expected-file
 ../../../api/fonts/varc-ac00-ac01.ttf;;U+AC00,U+AC01;../expected/varc/default.svg
 ../../../api/fonts/varc-ac00-ac01.ttf;--variations=wght=840.3;U+AC00,U+AC01;../expected/varc/wght840p3.svg
-../../../api/fonts/varc-ac01-conditional.ttf;-q;U+AC01;../expected/varc/conditional-default.txt
-../../../api/fonts/varc-ac01-conditional.ttf;-q --variations=opsz=1;U+AC01;../expected/varc/conditional-opsz1.txt
+../../../api/fonts/varc-ac01-conditional.ttf;;U+AC01;../expected/varc/conditional-default.svg
+../../../api/fonts/varc-ac01-conditional.ttf;--variations=wght=840.3;U+AC01;../expected/varc/conditional-wght840p3.svg
