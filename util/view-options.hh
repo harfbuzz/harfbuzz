@@ -219,12 +219,12 @@ view_options_t::setup_foreground ()
   {
     static const char *rainbow[] =
     {
-      "#E40303",
-      "#FF8C00",
-      "#E0CC00",
-      "#008026",
-      "#004DFF",
-      "#750787",
+      "#DA0000BB",
+      "#FF6200BB",
+      "#D4B900BB",
+      "#005100BB",
+      "#000CFFBB",
+      "#42005BBB",
       nullptr
     };
 
