@@ -16,7 +16,6 @@ font_size=upem
 features=
 variations=
 face_loader=ot
-shaper=ot
 font_funcs1=ot
 font_funcs2=fontations
 clear1=false
@@ -87,11 +86,6 @@ while test $# -gt 0; do
 			face_loader=$1
 			shift
 			;;
-		--shaper)
-			shift
-			shaper=$1
-			shift
-			;;
 		--font-funcs1)
 			shift
 			font_funcs1=$1
@@ -146,7 +140,6 @@ if $help; then
 	echo "  --features FEATURES: Font features; default none"
 	echo "  --variations VARIATIONS: Font variations; default none"
 	echo "  --face-loader: Face loader; default $face_loader"
-	echo "  --shaper: Shaper; default $shaper"
 	echo "  --font-funcs1 font_funcs: First font-funcs; default $font_funcs1"
 	echo "  --font-funcs2 font_funcs: Second font-funcs; default $font_funcs2"
 	echo "  --clear1: Clear first font backend output if exists"
@@ -256,7 +249,6 @@ for font_funcs in "$font_funcs1" "$font_funcs2"; do
 			--face-index=$face_index \
 			--glyphs \
 			--face-loader=$face_loader \
-			--shaper=$this_shaper \
 			--font-funcs=$font_funcs \
 			--features="$features" \
 			--variations="$variations" \
