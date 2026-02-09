@@ -158,6 +158,17 @@ if $help; then
 	exit 0
 fi
 
+get_num_jobs() {
+	n=`getconf _NPROCESSORS_ONLN 2>/dev/null || true`
+	test "x$n" == x && n=`nproc 2>/dev/null || true`
+	test "x$n" == x && n=`sysctl -n hw.ncpu 2>/dev/null || true`
+	case "$n" in
+		''|*[!0-9]*) n=1 ;;
+	esac
+	test "$n" -lt 1 && n=1
+	echo "$n"
+}
+
 if test "x$font_file" == x; then
 	echo "No font file specified." >&2
 	exit 2
@@ -225,7 +236,11 @@ if test "x$unicodes" == x -a "x$glyphs" == x; then
 	seq 0 $((num_glyphs - 1)) |
 	sed 's/^/gid/' >> "$glyphs_file"
 fi
-num_glyphs=`cat "$glyphs_file" | wc -l`
+num_glyphs=`wc -l < "$glyphs_file" | tr -d '[:space:]'`
+compare_jobs=`get_num_jobs`
+if test "$compare_jobs" -gt "$num_glyphs"; then
+	compare_jobs="$num_glyphs"
+fi
 
 flavor=
 if test "$features" != ""; then
@@ -289,10 +304,14 @@ rm -f "$diff"
 > "$diff"
 test "x$flavor" == x || ln -f -s "diff$flavor" "$output_dir/diff"
 $quiet || echo "Comparing SVGs into '$diff'..." >&2
+if test "$compare_jobs" -gt 1; then
+	$quiet || echo "Using $compare_jobs compare shards." >&2
+fi
 funcs1_prefix="$output_dir/$font_funcs1$flavor"
 funcs2_prefix="$output_dir/$font_funcs2$flavor"
+pairs="$output_dir/pairs$flavor"
+> "$pairs"
 count=0
-cat "$glyphs_file" |
 while read glyph; do
 	count=$((count + 1))
 	if test $((count % 100)) == 0; then
@@ -307,13 +326,32 @@ while read glyph; do
 		exit 1
 	fi
 
-	echo -e "$svg1\t$svg2"
-done |
-"$hb_svg_compare" "$tolerance" |
+	echo -e "$svg1\t$svg2" >> "$pairs"
+done < "$glyphs_file"
+
+raw_diff="$output_dir/diff.raw$flavor"
+if test "$compare_jobs" -gt 1; then
+	shard_dir="$output_dir/compare-shards$flavor"
+	rm -rf "$shard_dir"
+	mkdir -p "$shard_dir" || exit 1
+	split -d -n l/"$compare_jobs" "$pairs" "$shard_dir/pairs." || exit 1
+	pids=
+	for shard in "$shard_dir"/pairs.*; do
+		"$hb_svg_compare" "$tolerance" < "$shard" > "$shard.out" &
+		pids="$pids $!"
+	done
+	for pid in $pids; do
+		wait "$pid" || exit 1
+	done
+	cat "$shard_dir"/pairs.*.out > "$raw_diff" || exit 1
+else
+	"$hb_svg_compare" "$tolerance" < "$pairs" > "$raw_diff" || exit 1
+fi
+
 while read line; do
 	$quiet || echo -e "\n$line"
 	echo "$line" >> "$diff"
-done
+done < "$raw_diff"
 # Sort diff by error
 sort -n -o "$diff.tmp" "$diff" && mv "$diff.tmp" "$diff" || exit 1
 # Count number of differences
