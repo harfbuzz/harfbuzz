@@ -165,7 +165,11 @@ struct path_builder_t
 				   first_oncurve.x, first_oncurve.y);
     }
     else if (first_oncurve)
-      draw_session->line_to (first_oncurve.x, first_oncurve.y);
+    {
+      if (draw_session->st.current_x != first_oncurve.x ||
+	  draw_session->st.current_y != first_oncurve.y)
+	draw_session->line_to (first_oncurve.x, first_oncurve.y);
+    }
     else if (first_offcurve)
     {
       float x = first_offcurve.x, y = first_offcurve.y;
