@@ -381,6 +381,24 @@ struct draw_output_t : output_options_t<>
     box->y2 = MAX (box->y2, y);
   }
 
+  static void include_transformed_point (bbox_t *box,
+					 float sx, float sy,
+					 float x, float y,
+					 unsigned upem)
+  {
+    include_point (box, sx * x / upem, sy * y / upem);
+  }
+
+  static void include_transformed_rect (bbox_t *box,
+					float sx, float sy,
+					float x1, float y1,
+					float x2, float y2,
+					unsigned upem)
+  {
+    include_transformed_point (box, sx, sy, x1, y1, upem);
+    include_transformed_point (box, sx, sy, x2, y2, upem);
+  }
+
   std::vector<std::pair<float, float>> line_offsets () const
   {
     std::vector<std::pair<float, float>> offsets;
@@ -393,13 +411,11 @@ struct draw_output_t : output_options_t<>
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
     hb_font_extents_t extents = {0, 0, 0};
     hb_font_get_extents_for_direction (font, dir, &extents);
-    hb_position_t step = extents.ascender - extents.descender + extents.line_gap;
-    if (!step)
-      step = vertical ? abs (x_scale) : abs (y_scale);
-
-    float step_upem = vertical ? fabsf ((float) step * upem / x_scale)
-			       : fabsf ((float) step * upem / y_scale);
-    if (!step_upem)
+    int axis_scale = vertical ? x_scale : y_scale;
+    if (!axis_scale)
+      axis_scale = upem;
+    float step_upem = fabsf ((float) (extents.ascender - extents.descender + extents.line_gap) * upem / axis_scale);
+    if (!(step_upem > 0.f))
       step_upem = upem;
 
     for (unsigned i = 0; i < lines.size (); i++)
@@ -417,6 +433,44 @@ struct draw_output_t : output_options_t<>
     bbox_t box {};
     float sx = scalbnf ((float) x_scale, -(int) subpixel_bits);
     float sy = -scalbnf ((float) y_scale, -(int) subpixel_bits);
+    hb_direction_t dir = direction;
+    if (dir == HB_DIRECTION_INVALID)
+      dir = HB_DIRECTION_LTR;
+    bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
+
+    // Match hb-view default: union logical bounds with ink bounds.
+    hb_font_extents_t logical_extents = {0, 0, 0};
+    hb_font_get_extents_for_direction (font, dir, &logical_extents);
+    int axis_scale = vertical ? x_scale : y_scale;
+    if (!axis_scale)
+      axis_scale = upem;
+    float logical_asc = (float) logical_extents.ascender * upem / axis_scale;
+    float logical_desc = (float) logical_extents.descender * upem / axis_scale;
+    float logical_min = MIN (logical_desc, logical_asc);
+    float logical_max = MAX (logical_desc, logical_asc);
+
+    for (unsigned li = 0; li < lines.size (); li++)
+    {
+      const line_t &line = lines[li];
+      const auto &offset = offsets[li];
+
+      float x1, y1, x2, y2;
+      if (vertical)
+      {
+	x1 = offset.first + logical_min;
+	x2 = offset.first + logical_max;
+	y1 = MIN (0.f, line.advance_y);
+	y2 = MAX (0.f, line.advance_y);
+      }
+      else
+      {
+	x1 = MIN (0.f, line.advance_x);
+	x2 = MAX (0.f, line.advance_x);
+	y1 = offset.second + logical_min;
+	y2 = offset.second + logical_max;
+      }
+      include_transformed_rect (&box, sx, sy, x1, y1, x2, y2, upem);
+    }
 
     for (unsigned li = 0; li < lines.size (); li++)
     {
@@ -433,13 +487,7 @@ struct draw_output_t : output_options_t<>
 	float y2 = offset.second + glyph.y + extents.y_bearing;
 	float y1 = y2 + extents.height;
 
-	float fx1 = sx * x1 / upem;
-	float fx2 = sx * x2 / upem;
-	float fy1 = sy * y1 / upem;
-	float fy2 = sy * y2 / upem;
-
-	include_point (&box, fx1, fy1);
-	include_point (&box, fx2, fy2);
+	include_transformed_rect (&box, sx, sy, x1, y1, x2, y2, upem);
       }
     }
 
