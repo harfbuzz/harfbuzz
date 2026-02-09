@@ -56,6 +56,7 @@ out=/dev/stdout
 test_name=
 expected_file=
 expected_dir=../expected
+expected_dir_explicit=false
 subset_dir=../fonts
 
 while [ $# -gt 0 ]; do
@@ -74,6 +75,7 @@ while [ $# -gt 0 ]; do
       ;;
     --expected-dir)
       expected_dir=$2
+      expected_dir_explicit=true
       shift 2
       ;;
     --subset-dir)
@@ -258,6 +260,16 @@ if [ -z "$expected_file" ]; then
     echo "Specify --test-name NAME (or --expected-file PATH)." >&2
     exit 1
   fi
+
+  if ! $expected_dir_explicit && [ "$out" != "/dev/stdout" ] && [ "$out" != "-" ]; then
+    tests_base="$(basename "$out")"
+    tests_stem="${tests_base%.tests}"
+    if [ -z "$tests_stem" ]; then
+      tests_stem="$tests_base"
+    fi
+    expected_dir="$expected_dir/$tests_stem"
+  fi
+
   expected_file="$expected_dir/$test_name.$ext"
 fi
 if [ "x${expected_file:0:1}" = "x/" ]; then

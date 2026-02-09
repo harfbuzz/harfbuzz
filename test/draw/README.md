@@ -23,7 +23,7 @@ font-file;options;unicodes;expected-file
 Example:
 
 ```
-../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64;U+0061,U+0062,U+0063;../expected/reuse-svg.svg
+../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64;U+0061,U+0062,U+0063;../expected/basic/reuse-svg.svg
 ```
 
 Running draw tests
@@ -53,7 +53,8 @@ Use `record-test.sh`:
 It subsets the input font, verifies subset-vs-original rendering with
 `hb-view`, stores the subset font under `../fonts/<sha1>.ttf` (relative to the target
 `.tests` file), writes expected output under
-`../expected/<test-name>.<ext>` (unless `--expected-file` is provided), and
+`../expected/<tests-stem>/<test-name>.<ext>` by default (unless
+`--expected-dir` or `--expected-file` is provided), and
 appends one test line to the target `.tests` file. `hb-shape`, `hb-view`, and
 `hb-subset` are resolved as sibling executables next to the provided
 `hb-draw` binary. The emitted test line uses Unicode codepoint input in the
