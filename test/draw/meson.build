@@ -2,6 +2,7 @@ run_test = find_program('run-tests.py')
 
 tests = [
   'basic',
+  'varc',
 ]
 
 foreach t : tests
