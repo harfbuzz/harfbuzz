@@ -95,6 +95,7 @@ view_cairo_t::draw_lines (cairo_t *cr, hb_font_t *font, double leading, int vert
 {
   const bool use_foreground_palette =
     foreground_use_palette && foreground_palette && foreground_palette->len;
+  const bool use_stroke = stroke_enabled && stroke_width > 0;
 
   cairo_translate (cr, +vert * leading, -horiz * leading);
   for (unsigned int i = 0; i < lines->len; i++)
@@ -166,6 +167,23 @@ view_cairo_t::draw_lines (cairo_t *cr, hb_font_t *font, double leading, int vert
       else
 #endif
 	cairo_show_glyphs (cr, l.glyphs, l.num_glyphs);
+    }
+
+    if (use_stroke && l.num_glyphs)
+    {
+      cairo_save (cr);
+      cairo_set_source_rgba (cr,
+			     stroke_color.r / 255.,
+			     stroke_color.g / 255.,
+			     stroke_color.b / 255.,
+			     stroke_color.a / 255.);
+      cairo_set_line_width (cr, stroke_width);
+      cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
+      cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+      cairo_new_path (cr);
+      cairo_glyph_path (cr, l.glyphs, l.num_glyphs);
+      cairo_stroke (cr);
+      cairo_restore (cr);
     }
   }
 }

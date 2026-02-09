@@ -557,6 +557,8 @@ helper_cairo_create_context (double w, double h,
   fr = fg = fb = 0; fa = 255;
   bool foreground_has_color = false;
   bool foreground_has_alpha = false;
+  bool stroke_has_color = false;
+  bool stroke_has_alpha = false;
   using rgba_color_t = typename view_options_t::rgba_color_t;
 
   if (view_opts->foreground_use_palette &&
@@ -586,14 +588,22 @@ helper_cairo_create_context (double w, double h,
     foreground_has_alpha = fa != 255;
   }
 
+  if (view_opts->stroke_enabled)
+  {
+    auto &stroke = view_opts->stroke_color;
+    stroke_has_color = stroke.r != stroke.g || stroke.g != stroke.b;
+    stroke_has_alpha = stroke.a != 255;
+  }
+
   if (content == CAIRO_CONTENT_ALPHA)
   {
     if (view_opts->show_extents ||
-		br != bg || bg != bb ||
-		foreground_has_color)
+			br != bg || bg != bb ||
+			foreground_has_color ||
+			stroke_has_color)
       content = CAIRO_CONTENT_COLOR;
   }
-  if (ba != 255 || foreground_has_alpha)
+  if (ba != 255 || foreground_has_alpha || stroke_has_alpha)
     content = CAIRO_CONTENT_COLOR_ALPHA;
 
   cairo_surface_t *surface;
