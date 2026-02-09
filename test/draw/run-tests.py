@@ -28,28 +28,12 @@ def resolve_path(base, path):
     return os.path.normpath(os.path.join(base, path))
 
 
-def run_draw(font_path, options, text, unicodes):
+def run_draw(font_path, options, unicodes):
     cmd = [hb_draw]
-    option_argv = []
     if options:
-        option_argv = shlex.split(options)
-        cmd.extend(option_argv)
-
-    # Prefer --unicodes to keep argv ASCII and avoid locale-dependent UTF-8
-    # decoding failures when LC_ALL=C.
-    has_text_input_option = False
-    for opt in option_argv:
-        if opt in ("-t", "--text", "-u", "--unicodes"):
-            has_text_input_option = True
-            break
-        if opt.startswith("--text=") or opt.startswith("--unicodes="):
-            has_text_input_option = True
-            break
-
-    if has_text_input_option:
-        cmd.extend([font_path, text])
-    else:
-        cmd.extend([f"--unicodes={unicodes}", font_path])
+        cmd.extend(shlex.split(options))
+    # Keep argv ASCII regardless of locale.
+    cmd.extend([f"--unicodes={unicodes}", font_path])
     if EXE_WRAPPER:
         cmd = [EXE_WRAPPER] + cmd
     return subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -109,14 +93,14 @@ for filename in args:
             continue
 
         try:
-            text = parse_unicodes(unicodes)
+            parse_unicodes(unicodes)
         except ValueError as e:
             fails += 1
             print(f"not ok {number} - {name}")
             print("# " + str(e))
             continue
 
-        result = run_draw(font_path, options, text, unicodes)
+        result = run_draw(font_path, options, unicodes)
         if result.returncode != 0:
             fails += 1
             print(f"not ok {number} - {name}")
