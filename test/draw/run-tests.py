@@ -56,14 +56,15 @@ for filename in args:
             continue
 
         number += 1
-        fields = line.split(";", 4)
-        if len(fields) != 5:
+        fields = line.split(";", 3)
+        if len(fields) != 4:
             fails += 1
             print(f"not ok {number} - parse:{filename}:{lineno}")
-            print("# malformed test line, expected 5 ';'-separated fields")
+            print("# malformed test line, expected 4 ';'-separated fields")
             continue
 
-        name, font_file, options, text, expected_file = fields
+        font_file, options, text, expected_file = fields
+        name = expected_file
         font_path = resolve_path(base, font_file)
         expected_path = resolve_path(base, expected_file)
 
