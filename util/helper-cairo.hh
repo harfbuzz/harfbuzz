@@ -555,17 +555,45 @@ helper_cairo_create_context (double w, double h,
   color = view_opts->back ? view_opts->back : DEFAULT_BACK;
   parse_color (color, br, bg, bb, ba);
   fr = fg = fb = 0; fa = 255;
-  color = view_opts->fore ? view_opts->fore : DEFAULT_FORE;
-  parse_color (color, fr, fg, fb, fa);
+  bool foreground_has_color = false;
+  bool foreground_has_alpha = false;
+  using rgba_color_t = typename view_options_t::rgba_color_t;
+
+  if (view_opts->foreground_use_palette &&
+      view_opts->foreground_palette &&
+      view_opts->foreground_palette->len)
+  {
+    auto &first = g_array_index (view_opts->foreground_palette,
+				 rgba_color_t, 0);
+    fr = first.r;
+    fg = first.g;
+    fb = first.b;
+    fa = first.a;
+    foreground_has_color = view_opts->foreground_palette->len > 1;
+    for (unsigned i = 0; i < view_opts->foreground_palette->len; i++)
+    {
+      auto &c = g_array_index (view_opts->foreground_palette,
+			       rgba_color_t, i);
+      foreground_has_color |= c.r != c.g || c.g != c.b;
+      foreground_has_alpha |= c.a != 255;
+    }
+  }
+  else
+  {
+    color = view_opts->fore ? view_opts->fore : DEFAULT_FORE;
+    parse_color (color, fr, fg, fb, fa);
+    foreground_has_color = fr != fg || fg != fb;
+    foreground_has_alpha = fa != 255;
+  }
 
   if (content == CAIRO_CONTENT_ALPHA)
   {
     if (view_opts->show_extents ||
-	br != bg || bg != bb ||
-	fr != fg || fg != fb)
+		br != bg || bg != bb ||
+		foreground_has_color)
       content = CAIRO_CONTENT_COLOR;
   }
-  if (ba != 255)
+  if (ba != 255 || foreground_has_alpha)
     content = CAIRO_CONTENT_COLOR_ALPHA;
 
   cairo_surface_t *surface;

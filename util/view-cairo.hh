@@ -51,6 +51,7 @@ struct view_cairo_t : view_options_t, output_options_t<>
   {
     lines = g_array_new (false, false, sizeof (helper_cairo_line_t));
     subpixel_bits = font_opts->subpixel_bits;
+    setup_foreground ();
   }
   void new_line () {}
   void consume_text (hb_buffer_t  *buffer,
@@ -92,6 +93,9 @@ struct view_cairo_t : view_options_t, output_options_t<>
 inline void
 view_cairo_t::draw_lines (cairo_t *cr, hb_font_t *font, double leading, int vert, int horiz)
 {
+  const bool use_foreground_palette =
+    foreground_use_palette && foreground_palette && foreground_palette->len;
+
   cairo_translate (cr, +vert * leading, -horiz * leading);
   for (unsigned int i = 0; i < lines->len; i++)
   {
@@ -135,17 +139,34 @@ view_cairo_t::draw_lines (cairo_t *cr, hb_font_t *font, double leading, int vert
       cairo_restore (cr);
     }
 
-  // https://github.com/harfbuzz/harfbuzz/issues/4378
-#if CAIRO_VERSION >= 11705
-    if (l.num_clusters)
-      cairo_show_text_glyphs (cr,
-			      l.utf8, l.utf8_len,
-			      l.glyphs, l.num_glyphs,
-			      l.clusters, l.num_clusters,
-			      l.cluster_flags);
+    if (use_foreground_palette)
+    {
+      for (unsigned j = 0; j < l.num_glyphs; j++)
+      {
+	auto &color = g_array_index (foreground_palette, rgba_color_t,
+				      j % foreground_palette->len);
+	cairo_set_source_rgba (cr,
+			       color.r / 255.,
+			       color.g / 255.,
+			       color.b / 255.,
+			       color.a / 255.);
+	cairo_show_glyphs (cr, l.glyphs + j, 1);
+      }
+    }
     else
+    {
+      // https://github.com/harfbuzz/harfbuzz/issues/4378
+#if CAIRO_VERSION >= 11705
+      if (l.num_clusters)
+	cairo_show_text_glyphs (cr,
+				l.utf8, l.utf8_len,
+				l.glyphs, l.num_glyphs,
+				l.clusters, l.num_clusters,
+				l.cluster_flags);
+      else
 #endif
-      cairo_show_glyphs (cr, l.glyphs, l.num_glyphs);
+	cairo_show_glyphs (cr, l.glyphs, l.num_glyphs);
+    }
   }
 }
 
