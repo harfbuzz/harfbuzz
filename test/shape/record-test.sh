@@ -1,5 +1,13 @@
 #!/bin/bash
 
+usage() {
+	cat <<EOF
+Usage: $0 [-o TESTS_FILE] HB_SHAPE FONT_FILE [SHAPE_OPTIONS] [TEXT]
+EOF
+}
+
+scriptdir="$(cd "$(dirname "$0")" && pwd)"
+
 dir=`mktemp -d`
 
 if which sha1sum 2>/dev/null >/dev/null; then
@@ -14,13 +22,19 @@ else
 fi
 
 out=/dev/stdout
+if test "x$1" == 'x-h' -o "x$1" == 'x--help'; then
+	usage
+	exit 0
+fi
 if test "x$1" == 'x-o'; then
 	shift
 	out=$1
 	shift
 fi
-hb_subset=$1
-shift
+if test $# -lt 2; then
+	usage >&2
+	exit 1
+fi
 hb_shape=$1
 shift
 fontfile=$1
@@ -29,12 +43,29 @@ if test "x${fontfile:0:1}" == 'x-'; then
 	exit 1
 fi
 shift
-if ! echo "$hb_subset" | grep -q 'subset'; then
-	echo "Specify hb-subset (or \"fonttools subset\"): got '$hb_subset'." >&2
-	exit 1
-fi
 if ! echo "$hb_shape" | grep -q 'hb-shape'; then
 	echo "Specify hb-shape (not hb-view, etc): got '$hb_shape'." >&2
+	exit 1
+fi
+if test "x${hb_shape#*/}" != "x$hb_shape"; then
+	hb_shape_path="$hb_shape"
+else
+	hb_shape_path="$(command -v "$hb_shape" 2>/dev/null)"
+fi
+if ! test -x "$hb_shape_path"; then
+	echo "hb-shape not found or not executable: '$hb_shape'." >&2
+	exit 1
+fi
+hb_shape="$hb_shape_path"
+tool_dir="$(cd "$(dirname "$hb_shape")" && pwd)"
+hb_subset="$tool_dir/hb-subset"
+hb_view="$tool_dir/hb-view"
+if ! test -x "$hb_subset"; then
+	echo "Required sibling tool not found or not executable: '$hb_subset'." >&2
+	exit 1
+fi
+if ! test -x "$hb_view"; then
+	echo "Required sibling tool not found or not executable: '$hb_view'." >&2
 	exit 1
 fi
 options=
@@ -58,7 +89,7 @@ done
 if ! $have_text; then
 	text=`cat`
 fi
-unicodes=`echo "$text" | ./hb-unicode-decode`
+unicodes=`echo "$text" | "$scriptdir/hb-unicode-decode"`
 glyphs=`echo "$text" | $hb_shape $options "$fontfile"`
 if test $? != 0; then
 	echo "hb-shape failed." >&2
@@ -94,7 +125,6 @@ glyphs_subset=`echo "$text" | $hb_shape $options "$dir/font.subset.ttf"`
 if ! test "x$glyphs" = "x$glyphs_subset"; then
 	echo "Subset font produced different glyphs!" >&2
 	echo "Perhaps font doesn't have glyph names; checking visually..." >&2
-	hb_view=${hb_shape/shape/view}
 	echo "$text" | $hb_view $options "$dir/font.ttf" --output-format=png --output-file="$dir/orig.png"
 	echo "$text" | $hb_view $options "$dir/font.subset.ttf" --output-format=png --output-file="$dir/subset.png"
 	if ! cmp "$dir/orig.png" "$dir/subset.png"; then

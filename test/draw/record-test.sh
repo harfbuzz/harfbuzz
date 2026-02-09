@@ -4,20 +4,19 @@ set -euo pipefail
 
 usage() {
   cat <<EOF
-Usage: $0 [-o TESTS_FILE] [-e EXPECTED_FILE] [--expected-dir DIR] [--subset-dir DIR] [--hb-shape PATH] [--hb-view PATH] HB_SUBSET HB_DRAW FONT_FILE [DRAW_OPTIONS] [TEXT]
+Usage: $0 [-o TESTS_FILE] [-n TEST_NAME] [-e EXPECTED_FILE] [--expected-dir DIR] [--subset-dir DIR] HB_DRAW FONT_FILE [DRAW_OPTIONS] [TEXT]
 
 Subset font, verify visual equivalence with hb-view, and append draw test line:
   font-file;options;text;expected-file
 
 Options:
   -o TESTS_FILE       Append test line to this file (default: stdout).
-  -e EXPECTED_FILE    Expected output file path (default: hash-based name).
+  -n TEST_NAME        Test name used for default expected filename.
+  -e EXPECTED_FILE    Expected output file path.
   --expected-dir DIR  Directory for auto-generated expected files, relative
                       to TESTS_FILE directory (default: ../expected).
   --subset-dir DIR    Directory for subset fonts, relative to TESTS_FILE
                       directory (default: ../fonts).
-  --hb-shape PATH     Path to hb-shape (default: derived from HB_DRAW).
-  --hb-view PATH      Path to hb-view (default: derived from HB_DRAW).
 EOF
 }
 
@@ -28,16 +27,6 @@ sha1_file() {
     shasum -a 1 "$1" | cut -d' ' -f1
   else
     digest -a sha1 "$1" | cut -d' ' -f1
-  fi
-}
-
-sha1_stdin() {
-  if [ "$SHA1SUM_KIND" = "sha1sum" ]; then
-    sha1sum | cut -d' ' -f1
-  elif [ "$SHA1SUM_KIND" = "shasum" ]; then
-    shasum -a 1 | cut -d' ' -f1
-  else
-    digest -a sha1 | cut -d' ' -f1
   fi
 }
 
@@ -64,16 +53,19 @@ else
 fi
 
 out=/dev/stdout
+test_name=
 expected_file=
 expected_dir=../expected
 subset_dir=../fonts
-hb_shape=
-hb_view=
 
 while [ $# -gt 0 ]; do
   case "$1" in
     -o)
       out=$2
+      shift 2
+      ;;
+    -n|--test-name)
+      test_name=$2
       shift 2
       ;;
     -e|--expected-file)
@@ -86,14 +78,6 @@ while [ $# -gt 0 ]; do
       ;;
     --subset-dir)
       subset_dir=$2
-      shift 2
-      ;;
-    --hb-shape)
-      hb_shape=$2
-      shift 2
-      ;;
-    --hb-view)
-      hb_view=$2
       shift 2
       ;;
     -h|--help)
@@ -110,13 +94,11 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-if [ $# -lt 3 ]; then
+if [ $# -lt 2 ]; then
   usage >&2
   exit 1
 fi
 
-hb_subset=$1
-shift
 hb_draw=$1
 shift
 fontfile=$1
@@ -130,21 +112,38 @@ if [ ! -f "$fontfile" ]; then
   echo "Font file not found: '$fontfile'." >&2
   exit 1
 fi
-if ! echo "$hb_subset" | grep -q 'subset'; then
-  echo "Specify hb-subset as first positional argument: got '$hb_subset'." >&2
-  exit 1
-fi
 if ! echo "$hb_draw" | grep -q 'draw'; then
-  echo "Specify hb-draw as second positional argument: got '$hb_draw'." >&2
+  echo "Specify hb-draw as first positional argument: got '$hb_draw'." >&2
   exit 1
 fi
 
-if [ -z "$hb_shape" ]; then
-  hb_shape=$(echo "$hb_draw" | sed 's/hb-draw/hb-shape/g')
+if [[ "$hb_draw" == */* ]]; then
+  hb_draw_path="$hb_draw"
+else
+  hb_draw_path="$(command -v "$hb_draw" 2>/dev/null || true)"
 fi
-if [ -z "$hb_view" ]; then
-  hb_view=$(echo "$hb_draw" | sed 's/hb-draw/hb-view/g')
+if [ -z "${hb_draw_path:-}" ] || [ ! -x "$hb_draw_path" ]; then
+  echo "hb-draw not found or not executable: '$hb_draw'." >&2
+  exit 1
 fi
+hb_draw="$hb_draw_path"
+tool_dir="$(cd "$(dirname "$hb_draw")" && pwd)"
+hb_shape="$tool_dir/hb-shape"
+hb_view="$tool_dir/hb-view"
+hb_subset="$tool_dir/hb-subset"
+for tool in "$hb_shape" "$hb_view" "$hb_subset"; do
+  if [ ! -x "$tool" ]; then
+    echo "Required sibling tool not found or not executable: '$tool'." >&2
+    exit 1
+  fi
+done
+
+if [ "x${fontfile:0:1}" = "x/" ]; then
+  fontfile_path="$fontfile"
+else
+  fontfile_path="$PWD/$fontfile"
+fi
+fontfile="$fontfile_path"
 
 options=()
 shape_view_options=()
@@ -181,6 +180,14 @@ if [[ "$text" == *';'* ]]; then
 fi
 if [[ "$text" == *$'\n'* ]]; then
   echo "Multiline text is not supported by .tests format." >&2
+  exit 1
+fi
+if [[ "$test_name" == *';'* ]]; then
+  echo "Test name cannot contain ';'." >&2
+  exit 1
+fi
+if [[ "$test_name" == *$'\n'* ]]; then
+  echo "Test name cannot contain newlines." >&2
   exit 1
 fi
 
@@ -246,10 +253,11 @@ if ! test -f "$subset_path"; then
 fi
 
 if [ -z "$expected_file" ]; then
-  expected_hash=$(
-    printf '%s;%s;%s' "$subset_hash" "$options_str" "$text" | sha1_stdin
-  )
-  expected_file="$expected_dir/$expected_hash.$ext"
+  if [ -z "$test_name" ]; then
+    echo "Specify --test-name NAME (or --expected-file PATH)." >&2
+    exit 1
+  fi
+  expected_file="$expected_dir/$test_name.$ext"
 fi
 if [ "x${expected_file:0:1}" = "x/" ]; then
   expected_path="$expected_file"

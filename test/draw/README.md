@@ -46,10 +46,13 @@ Recording a new test case
 Use `record-test.sh`:
 
 ```sh
-./record-test.sh -o data/tests/basic.tests ../../build-default/util/hb-subset ../../build-default/util/hb-draw ../api/fonts/Roboto-Regular.abc.ttf --font-size=64 abc
+./record-test.sh -o data/tests/basic.tests --test-name reuse-svg ../../build-default/util/hb-draw ../api/fonts/Roboto-Regular.abc.ttf --font-size=64 abc
 ```
 
 It subsets the input font, verifies subset-vs-original rendering with
-`hb-view`, stores the subset font under `../fonts/` (relative to the target
-`.tests` file), writes expected output under `../expected/`, and appends one
-test line to the target `.tests` file.
+`hb-view`, stores the subset font under `../fonts/<sha1>.ttf` (relative to the target
+`.tests` file), writes expected output under
+`../expected/<test-name>.<ext>` (unless `--expected-file` is provided), and
+appends one test line to the target `.tests` file. `hb-shape`, `hb-view`, and
+`hb-subset` are resolved as sibling executables next to the provided
+`hb-draw` binary.
