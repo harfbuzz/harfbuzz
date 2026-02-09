@@ -522,6 +522,11 @@ struct draw_output_t : output_options_t<>
     bbox_t box = compute_bbox (offsets);
     emit_svg_header (box);
 
+    float font_scale_x = scalbnf ((float) x_scale, -(int) subpixel_bits);
+    float font_scale_y = scalbnf ((float) y_scale, -(int) subpixel_bits);
+    bool upem_scale = font_scale_x == (float) upem &&
+		      font_scale_y == (float) upem;
+
     std::vector<hb_codepoint_t> unique_gids;
     unique_gids.reserve (128);
     std::unordered_set<hb_codepoint_t> seen;
@@ -536,22 +541,34 @@ struct draw_output_t : output_options_t<>
     for (hb_codepoint_t gid : unique_gids)
     {
       if (!draw_glyph (upem_font, gid, defs_data))
-	fprintf (out_fp, "<path id=\"g%u\" d=\"\"/>\n", gid);
+	fprintf (out_fp,
+		 upem_scale
+		 ? "<path id=\"g%u\" transform=\"scale(1 -1)\" d=\"\"/>\n"
+		 : "<path id=\"g%u\" d=\"\"/>\n",
+		 gid);
       else
-	fprintf (out_fp, "<path id=\"g%u\" d=\"%s\"/>\n", gid, path->str);
+	fprintf (out_fp,
+		 upem_scale
+		 ? "<path id=\"g%u\" transform=\"scale(1 -1)\" d=\"%s\"/>\n"
+		 : "<path id=\"g%u\" d=\"%s\"/>\n",
+		 gid,
+		 path->str);
     }
     fprintf (out_fp, "</defs>\n");
 
-    g_string_set_size (path, 0);
-    append_num (scalbnf ((float) x_scale, -(int) subpixel_bits), precision, true);
-    g_string_append_c (path, ' ');
-    append_num (-scalbnf ((float) y_scale, -(int) subpixel_bits), precision, true);
-    fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
+    if (!upem_scale)
+    {
+      g_string_set_size (path, 0);
+      append_num (font_scale_x, precision, true);
+      g_string_append_c (path, ' ');
+      append_num (-font_scale_y, precision, true);
+      fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
 
-    g_string_set_size (path, 0);
-    int upem_scale_precision = precision < 9 ? 9 : precision;
-    append_num (1.f / upem, upem_scale_precision, true);
-    fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
+      g_string_set_size (path, 0);
+      int upem_scale_precision = precision < 9 ? 9 : precision;
+      append_num (1.f / upem, upem_scale_precision, true);
+      fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
+    }
 
     for (unsigned li = 0; li < lines.size (); li++)
     {
@@ -562,7 +579,10 @@ struct draw_output_t : output_options_t<>
 	g_string_set_size (path, 0);
 	append_num (offset.first + glyph.x, precision, false);
 	g_string_append_c (path, ' ');
-	append_num (offset.second + glyph.y, precision, false);
+	append_num (upem_scale ? -(offset.second + glyph.y)
+			       :  (offset.second + glyph.y),
+		    precision,
+		    false);
 	fprintf (out_fp,
 		 "<use href=\"#g%u\" transform=\"translate(%s)\"/>\n",
 		 glyph.gid,
@@ -570,7 +590,9 @@ struct draw_output_t : output_options_t<>
       }
     }
 
-    fprintf (out_fp, "</g>\n</g>\n</svg>\n");
+    if (!upem_scale)
+      fprintf (out_fp, "</g>\n</g>\n");
+    fprintf (out_fp, "</svg>\n");
   }
 
   void write_flat_svg ()
