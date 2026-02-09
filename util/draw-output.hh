@@ -206,6 +206,17 @@ struct draw_output_t : output_options_t<>
     float y2 = 0.f;
   };
 
+  struct layout_t
+  {
+    std::vector<std::pair<float, float>> offsets;
+    bbox_t box {};
+    float font_scale_x = 1.f;
+    float font_scale_y = 1.f;
+    float glyph_scale_x = 1.f;
+    float glyph_scale_y = -1.f;
+    bool upem_scale = false;
+  };
+
   static void
   move_to (hb_draw_funcs_t *, draw_data_t *data,
 	   hb_draw_state_t *,
@@ -381,22 +392,20 @@ struct draw_output_t : output_options_t<>
     box->y2 = MAX (box->y2, y);
   }
 
-  static void include_transformed_point (bbox_t *box,
-					 float sx, float sy,
-					 float x, float y,
-					 unsigned upem)
+  static void include_scaled_point (bbox_t *box,
+				    float sx, float sy,
+				    float x, float y)
   {
-    include_point (box, sx * x / upem, sy * y / upem);
+    include_point (box, sx * x, sy * y);
   }
 
-  static void include_transformed_rect (bbox_t *box,
-					float sx, float sy,
-					float x1, float y1,
-					float x2, float y2,
-					unsigned upem)
+  static void include_scaled_rect (bbox_t *box,
+				   float sx, float sy,
+				   float x1, float y1,
+				   float x2, float y2)
   {
-    include_transformed_point (box, sx, sy, x1, y1, upem);
-    include_transformed_point (box, sx, sy, x2, y2, upem);
+    include_scaled_point (box, sx, sy, x1, y1);
+    include_scaled_point (box, sx, sy, x2, y2);
   }
 
   std::vector<std::pair<float, float>> line_offsets () const
@@ -428,11 +437,11 @@ struct draw_output_t : output_options_t<>
     return offsets;
   }
 
-  bbox_t compute_bbox (const std::vector<std::pair<float, float>> &offsets) const
+  bbox_t compute_bbox (const std::vector<std::pair<float, float>> &offsets,
+		       float glyph_scale_x,
+		       float glyph_scale_y) const
   {
     bbox_t box {};
-    float sx = scalbnf ((float) x_scale, -(int) subpixel_bits);
-    float sy = -scalbnf ((float) y_scale, -(int) subpixel_bits);
     hb_direction_t dir = direction;
     if (dir == HB_DIRECTION_INVALID)
       dir = HB_DIRECTION_LTR;
@@ -469,7 +478,7 @@ struct draw_output_t : output_options_t<>
 	y1 = offset.second + logical_min;
 	y2 = offset.second + logical_max;
       }
-      include_transformed_rect (&box, sx, sy, x1, y1, x2, y2, upem);
+      include_scaled_rect (&box, glyph_scale_x, glyph_scale_y, x1, y1, x2, y2);
     }
 
     for (unsigned li = 0; li < lines.size (); li++)
@@ -487,7 +496,7 @@ struct draw_output_t : output_options_t<>
 	float y2 = offset.second + glyph.y + extents.y_bearing;
 	float y1 = y2 + extents.height;
 
-	include_transformed_rect (&box, sx, sy, x1, y1, x2, y2, upem);
+	include_scaled_rect (&box, glyph_scale_x, glyph_scale_y, x1, y1, x2, y2);
       }
     }
 
@@ -504,28 +513,56 @@ struct draw_output_t : output_options_t<>
       for (unsigned li = 0; li < lines.size (); li++)
       {
 	const line_t &line = lines[li];
-	max_w = MAX (max_w, fabsf (sx * line.advance_x / upem));
-	max_h = MAX (max_h, fabsf (sy * line.advance_y / upem));
+	max_w = MAX (max_w, fabsf (glyph_scale_x * line.advance_x));
+	max_h = MAX (max_h, fabsf (glyph_scale_y * line.advance_y));
       }
       if (!(max_w > 0.f))
-	max_w = fabsf (sx);
+	max_w = fabsf (glyph_scale_x);
       if (!(max_h > 0.f))
-	max_h = fabsf (sy);
+	max_h = fabsf (glyph_scale_y);
       include_point (&box, max_w, max_h);
     }
     return box;
   }
 
+  layout_t compute_layout (bool include_bbox) const
+  {
+    layout_t layout {};
+    layout.offsets = line_offsets ();
+    layout.font_scale_x = scalbnf ((float) x_scale, -(int) subpixel_bits);
+    layout.font_scale_y = scalbnf ((float) y_scale, -(int) subpixel_bits);
+    layout.glyph_scale_x = layout.font_scale_x / upem;
+    layout.glyph_scale_y = -layout.font_scale_y / upem;
+
+    int upem_scaled = (int) ((unsigned) upem << subpixel_bits);
+    layout.upem_scale = x_scale == upem_scaled && y_scale == upem_scaled;
+
+    if (include_bbox)
+      layout.box = compute_bbox (layout.offsets,
+				 layout.glyph_scale_x,
+				 layout.glyph_scale_y);
+    return layout;
+  }
+
+  draw_data_t glyph_draw_data (const layout_t &layout,
+			       const std::pair<float, float> &offset,
+			       const glyph_instance_t &glyph)
+  {
+    draw_data_t data =
+    {
+      this,
+      layout.glyph_scale_x * (offset.first + glyph.x),
+      layout.glyph_scale_y * (offset.second + glyph.y),
+      layout.glyph_scale_x,
+      layout.glyph_scale_y
+    };
+    return data;
+  }
+
   void write_reuse_svg ()
   {
-    std::vector<std::pair<float, float>> offsets = line_offsets ();
-    bbox_t box = compute_bbox (offsets);
-    emit_svg_header (box);
-
-    float font_scale_x = scalbnf ((float) x_scale, -(int) subpixel_bits);
-    float font_scale_y = scalbnf ((float) y_scale, -(int) subpixel_bits);
-    int upem_scaled = (int) ((unsigned) upem << subpixel_bits);
-    bool upem_scale = x_scale == upem_scaled && y_scale == upem_scaled;
+    layout_t layout = compute_layout (true);
+    emit_svg_header (layout.box);
 
     std::vector<hb_codepoint_t> unique_gids;
     unique_gids.reserve (128);
@@ -542,13 +579,13 @@ struct draw_output_t : output_options_t<>
     {
       if (!draw_glyph (upem_font, gid, defs_data))
 	fprintf (out_fp,
-		 upem_scale
+		 layout.upem_scale
 		 ? "<path id=\"g%u\" transform=\"scale(1 -1)\" d=\"\"/>\n"
 		 : "<path id=\"g%u\" d=\"\"/>\n",
 		 gid);
       else
 	fprintf (out_fp,
-		 upem_scale
+		 layout.upem_scale
 		 ? "<path id=\"g%u\" transform=\"scale(1 -1)\" d=\"%s\"/>\n"
 		 : "<path id=\"g%u\" d=\"%s\"/>\n",
 		 gid,
@@ -556,12 +593,12 @@ struct draw_output_t : output_options_t<>
     }
     fprintf (out_fp, "</defs>\n");
 
-    if (!upem_scale)
+    if (!layout.upem_scale)
     {
       g_string_set_size (path, 0);
-      append_num (font_scale_x, precision, true);
+      append_num (layout.font_scale_x, precision, true);
       g_string_append_c (path, ' ');
-      append_num (-font_scale_y, precision, true);
+      append_num (-layout.font_scale_y, precision, true);
       fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
 
       g_string_set_size (path, 0);
@@ -573,14 +610,14 @@ struct draw_output_t : output_options_t<>
     for (unsigned li = 0; li < lines.size (); li++)
     {
       const line_t &line = lines[li];
-      const auto &offset = offsets[li];
+      const auto &offset = layout.offsets[li];
       for (const glyph_instance_t &glyph : line.glyphs)
       {
 	g_string_set_size (path, 0);
 	append_num (offset.first + glyph.x, precision, false);
 	g_string_append_c (path, ' ');
-	append_num (upem_scale ? -(offset.second + glyph.y)
-			       :  (offset.second + glyph.y),
+	append_num (layout.upem_scale ? -(offset.second + glyph.y)
+				      :  (offset.second + glyph.y),
 		    precision,
 		    false);
 	fprintf (out_fp,
@@ -590,33 +627,22 @@ struct draw_output_t : output_options_t<>
       }
     }
 
-    if (!upem_scale)
+    if (!layout.upem_scale)
       fprintf (out_fp, "</g>\n</g>\n");
     fprintf (out_fp, "</svg>\n");
   }
 
   void write_flat_svg ()
   {
-    std::vector<std::pair<float, float>> offsets = line_offsets ();
-    bbox_t box = compute_bbox (offsets);
-    emit_svg_header (box);
-
-    float sx = scalbnf ((float) x_scale, -(int) subpixel_bits) / upem;
-    float sy = -scalbnf ((float) y_scale, -(int) subpixel_bits) / upem;
+    layout_t layout = compute_layout (true);
+    emit_svg_header (layout.box);
     for (unsigned li = 0; li < lines.size (); li++)
     {
       const line_t &line = lines[li];
-      const auto &offset = offsets[li];
+      const auto &offset = layout.offsets[li];
       for (const glyph_instance_t &glyph : line.glyphs)
       {
-	draw_data_t data =
-	{
-	  this,
-	  sx * (offset.first + glyph.x),
-	  sy * (offset.second + glyph.y),
-	  sx,
-	  sy
-	};
+	draw_data_t data = glyph_draw_data (layout, offset, glyph);
 	if (draw_glyph (upem_font, glyph.gid, data))
 	  fprintf (out_fp, "<path d=\"%s\"/>\n", path->str);
 	else
@@ -629,24 +655,15 @@ struct draw_output_t : output_options_t<>
 
   void write_raw_paths ()
   {
-    std::vector<std::pair<float, float>> offsets = line_offsets ();
-    float sx = scalbnf ((float) x_scale, -(int) subpixel_bits) / upem;
-    float sy = -scalbnf ((float) y_scale, -(int) subpixel_bits) / upem;
+    layout_t layout = compute_layout (false);
 
     for (unsigned li = 0; li < lines.size (); li++)
     {
       const line_t &line = lines[li];
-      const auto &offset = offsets[li];
+      const auto &offset = layout.offsets[li];
       for (const glyph_instance_t &glyph : line.glyphs)
       {
-	draw_data_t data =
-	{
-	  this,
-	  sx * (offset.first + glyph.x),
-	  sy * (offset.second + glyph.y),
-	  sx,
-	  sy
-	};
+	draw_data_t data = glyph_draw_data (layout, offset, glyph);
 	if (draw_glyph (upem_font, glyph.gid, data))
 	  fprintf (out_fp, "%s\n", path->str);
 	else
