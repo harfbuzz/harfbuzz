@@ -524,8 +524,8 @@ struct draw_output_t : output_options_t<>
 
     float font_scale_x = scalbnf ((float) x_scale, -(int) subpixel_bits);
     float font_scale_y = scalbnf ((float) y_scale, -(int) subpixel_bits);
-    bool upem_scale = font_scale_x == (float) upem &&
-		      font_scale_y == (float) upem;
+    int upem_scaled = (int) ((unsigned) upem << subpixel_bits);
+    bool upem_scale = x_scale == upem_scaled && y_scale == upem_scaled;
 
     std::vector<hb_codepoint_t> unique_gids;
     unique_gids.reserve (128);
