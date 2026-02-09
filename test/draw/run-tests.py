@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -37,6 +38,16 @@ def run_draw(font_path, options, text):
     return subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
+def parse_unicodes(s):
+    # Match test/shape/hb_test_tools.py Unicode.parse semantics.
+    s = re.sub(r"0[xX]", " ", s)
+    s = re.sub(r"[<+\->{},;&#\\xXuUnNiI\n\t]", " ", s)
+    try:
+        return "".join(chr(int(x, 16)) for x in s.split())
+    except ValueError as e:
+        raise ValueError(f"invalid unicode codepoint list: {s!r}") from e
+
+
 number = 0
 fails = 0
 
@@ -63,7 +74,7 @@ for filename in args:
             print("# malformed test line, expected 4 ';'-separated fields")
             continue
 
-        font_file, options, text, expected_file = fields
+        font_file, options, unicodes, expected_file = fields
         name = expected_file
         font_path = resolve_path(base, font_file)
         expected_path = resolve_path(base, expected_file)
@@ -78,6 +89,14 @@ for filename in args:
             fails += 1
             print(f"not ok {number} - {name}")
             print(f"# expected output file not found: {expected_path}")
+            continue
+
+        try:
+            text = parse_unicodes(unicodes)
+        except ValueError as e:
+            fails += 1
+            print(f"not ok {number} - {name}")
+            print("# " + str(e))
             continue
 
         result = run_draw(font_path, options, text)

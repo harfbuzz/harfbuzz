@@ -1,4 +1,4 @@
-# font-file;options;text;expected-file
-../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64;abc;../expected/reuse-svg.svg
-../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64 --ned;abc;../expected/flat-svg.svg
-../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64 -q;a a;../expected/quiet-paths-space.txt
+# font-file;options;unicodes;expected-file
+../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64;U+0061,U+0062,U+0063;../expected/reuse-svg.svg
+../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64 --ned;U+0061,U+0062,U+0063;../expected/flat-svg.svg
+../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64 -q;U+0061,U+0020,U+0061;../expected/quiet-paths-space.txt

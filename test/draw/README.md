@@ -10,19 +10,20 @@ Test file format (`data/tests/*.tests`)
 Each non-empty, non-comment line has 4 semicolon-separated fields:
 
 ```
-font-file;options;text;expected-file
+font-file;options;unicodes;expected-file
 ```
 
 - `font-file`: relative to the `.tests` file (or absolute path).
 - `options`: shell-split arguments passed to `hb-draw`.
-- `text`: literal UTF-8 text argument passed to `hb-draw`.
+- `unicodes`: Unicode sequence, using shape-style codepoint format
+  (for example `U+0061,U+0062,U+0063`).
 - `expected-file`: path to golden output, relative to the `.tests` file.
   This is also used as the TAP test name.
 
 Example:
 
 ```
-../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64;abc;../expected/reuse-svg.svg
+../../../api/fonts/Roboto-Regular.abc.ttf;--font-size=64;U+0061,U+0062,U+0063;../expected/reuse-svg.svg
 ```
 
 Running draw tests
@@ -55,4 +56,5 @@ It subsets the input font, verifies subset-vs-original rendering with
 `../expected/<test-name>.<ext>` (unless `--expected-file` is provided), and
 appends one test line to the target `.tests` file. `hb-shape`, `hb-view`, and
 `hb-subset` are resolved as sibling executables next to the provided
-`hb-draw` binary.
+`hb-draw` binary. The emitted test line uses Unicode codepoint input in the
+`unicodes` field.

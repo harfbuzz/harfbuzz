@@ -7,7 +7,7 @@ usage() {
 Usage: $0 [-o TESTS_FILE] [-n TEST_NAME] [-e EXPECTED_FILE] [--expected-dir DIR] [--subset-dir DIR] HB_DRAW FONT_FILE [DRAW_OPTIONS] [TEXT]
 
 Subset font, verify visual equivalence with hb-view, and append draw test line:
-  font-file;options;text;expected-file
+  font-file;options;unicodes;expected-file
 
 Options:
   -o TESTS_FILE       Append test line to this file (default: stdout).
@@ -190,6 +190,7 @@ if [[ "$test_name" == *$'\n'* ]]; then
   echo "Test name cannot contain newlines." >&2
   exit 1
 fi
+unicodes=$(/usr/bin/env python3 -c 'import sys; s=sys.argv[1]; print(",".join(f"U+{ord(c):04X}" for c in s))' "$text")
 
 options_str=
 for arg in "${options[@]}"; do
@@ -278,6 +279,6 @@ else
   out_file="$out"
 fi
 
-echo "${font_field};${options_str};${text};${expected_field}" >> "$out_file"
+echo "${font_field};${options_str};${unicodes};${expected_field}" >> "$out_file"
 
 rm -rf "$tmpdir"
