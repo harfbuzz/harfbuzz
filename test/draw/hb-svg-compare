@@ -66,7 +66,212 @@ def extract_paths_from_svg(svg_data):
 
     return all_token_lists
 
-def compare_token_lists(tokens_a, tokens_b):
+def normalize_tokens(tokens):
+    """
+    Normalize path tokens for structural comparison.
+    Currently this drops degenerate linear segments:
+      - L/l where endpoint equals current point
+      - H/h where x stays unchanged
+      - V/v where y stays unchanged
+    """
+    out = []
+    i = 0
+    cmd = None
+    cx = 0.0
+    cy = 0.0
+    sx = 0.0
+    sy = 0.0
+    have_current = False
+
+    def gather_numbers(start):
+        j = start
+        vals = []
+        while j < len(tokens) and not isinstance(tokens[j], str):
+            vals.append(tokens[j])
+            j += 1
+        return vals, j
+
+    while i < len(tokens):
+        token = tokens[i]
+        if isinstance(token, str):
+            cmd = token
+            i += 1
+        elif cmd is None:
+            # Malformed path: no command to apply.
+            return tokens
+
+        if cmd in ('Z', 'z'):
+            out.append(cmd)
+            if have_current:
+                cx, cy = sx, sy
+            continue
+
+        values, i = gather_numbers(i)
+
+        if cmd in ('M', 'm'):
+            if len(values) < 2:
+                return tokens
+
+            # First pair is moveto and cannot be dropped.
+            out.extend([cmd, values[0], values[1]])
+            if cmd == 'M':
+                cx, cy = values[0], values[1]
+            else:
+                if have_current:
+                    cx += values[0]
+                    cy += values[1]
+                else:
+                    cx, cy = values[0], values[1]
+            sx, sy = cx, cy
+            have_current = True
+
+            # Remaining pairs are implicit lineto.
+            kept = []
+            k = 2
+            while k + 1 < len(values):
+                x = values[k]
+                y = values[k + 1]
+                if cmd == 'M':
+                    nx, ny = x, y
+                else:
+                    nx, ny = cx + x, cy + y
+
+                if nx != cx or ny != cy:
+                    kept.extend([x, y])
+                    cx, cy = nx, ny
+                k += 2
+
+            out.extend(kept)
+            continue
+
+        if cmd in ('L', 'l'):
+            kept = []
+            k = 0
+            while k + 1 < len(values):
+                x = values[k]
+                y = values[k + 1]
+                if cmd == 'L':
+                    nx, ny = x, y
+                else:
+                    nx, ny = cx + x, cy + y
+
+                if nx != cx or ny != cy:
+                    kept.extend([x, y])
+                    cx, cy = nx, ny
+                k += 2
+
+            if kept:
+                out.append(cmd)
+                out.extend(kept)
+            continue
+
+        if cmd in ('H', 'h'):
+            kept = []
+            for x in values:
+                nx = x if cmd == 'H' else cx + x
+                if nx != cx:
+                    kept.append(x)
+                    cx = nx
+            if kept:
+                out.append(cmd)
+                out.extend(kept)
+            continue
+
+        if cmd in ('V', 'v'):
+            kept = []
+            for y in values:
+                ny = y if cmd == 'V' else cy + y
+                if ny != cy:
+                    kept.append(y)
+                    cy = ny
+            if kept:
+                out.append(cmd)
+                out.extend(kept)
+            continue
+
+        # For other commands, keep original parameters and just track current point.
+        if cmd in ('C', 'c'):
+            if values:
+                out.append(cmd)
+                out.extend(values)
+            k = 0
+            while k + 5 < len(values):
+                if cmd == 'C':
+                    cx, cy = values[k + 4], values[k + 5]
+                else:
+                    cx += values[k + 4]
+                    cy += values[k + 5]
+                k += 6
+            have_current = True
+            continue
+
+        if cmd in ('S', 's'):
+            if values:
+                out.append(cmd)
+                out.extend(values)
+            k = 0
+            while k + 3 < len(values):
+                if cmd == 'S':
+                    cx, cy = values[k + 2], values[k + 3]
+                else:
+                    cx += values[k + 2]
+                    cy += values[k + 3]
+                k += 4
+            have_current = True
+            continue
+
+        if cmd in ('Q', 'q'):
+            if values:
+                out.append(cmd)
+                out.extend(values)
+            k = 0
+            while k + 3 < len(values):
+                if cmd == 'Q':
+                    cx, cy = values[k + 2], values[k + 3]
+                else:
+                    cx += values[k + 2]
+                    cy += values[k + 3]
+                k += 4
+            have_current = True
+            continue
+
+        if cmd in ('T', 't'):
+            if values:
+                out.append(cmd)
+                out.extend(values)
+            k = 0
+            while k + 1 < len(values):
+                if cmd == 'T':
+                    cx, cy = values[k], values[k + 1]
+                else:
+                    cx += values[k]
+                    cy += values[k + 1]
+                k += 2
+            have_current = True
+            continue
+
+        if cmd in ('A', 'a'):
+            if values:
+                out.append(cmd)
+                out.extend(values)
+            k = 0
+            while k + 6 < len(values):
+                if cmd == 'A':
+                    cx, cy = values[k + 5], values[k + 6]
+                else:
+                    cx += values[k + 5]
+                    cy += values[k + 6]
+                k += 7
+            have_current = True
+            continue
+
+        # Unknown command: keep as-is.
+        out.append(cmd)
+        out.extend(values)
+
+    return out
+
+def compare_token_lists_exact(tokens_a, tokens_b):
     """
     Compares two lists of path tokens (commands and floats).
     Returns True if they match (same commands in same positions,
@@ -90,6 +295,19 @@ def compare_token_lists(tokens_a, tokens_b):
             return None
 
     return max_diff
+
+def compare_token_lists(tokens_a, tokens_b):
+    """
+    Compare path token streams with a fallback that ignores degenerate
+    linear segments (no-op L/l/H/h/V/v) when needed to resolve
+    structural mismatches.
+    """
+    ret = compare_token_lists_exact(tokens_a, tokens_b)
+    if ret is not None:
+        return ret
+
+    return compare_token_lists_exact(normalize_tokens(tokens_a),
+                                     normalize_tokens(tokens_b))
 
 def compare_svg_files(svg_file_1, svg_file_2):
     """
