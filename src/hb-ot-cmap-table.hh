@@ -674,23 +674,36 @@ struct CmapSubtableFormat4
     unsigned int glyphIdArrayLength;
   };
 
-  bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
+  bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph,
+		  unsigned int subtable_data_size) const
   {
-    accelerator_t accel (this);
+    accelerator_t accel;
+    accel.init (this, subtable_data_size);
     return accel.get_glyph_func (&accel, codepoint, glyph);
   }
-  void collect_unicodes (hb_set_t *out) const
+  bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
+  { return get_glyph (codepoint, glyph, length); }
+
+  void collect_unicodes (hb_set_t *out, unsigned int subtable_data_size) const
   {
-    accelerator_t accel (this);
+    accelerator_t accel;
+    accel.init (this, subtable_data_size);
     accel.collect_unicodes (out);
   }
+  void collect_unicodes (hb_set_t *out) const
+  { collect_unicodes (out, length); }
 
   void collect_mapping (hb_set_t *unicodes, /* OUT */
-			hb_map_t *mapping /* OUT */) const
+			hb_map_t *mapping, /* OUT */
+			unsigned int subtable_data_size) const
   {
-    accelerator_t accel (this);
+    accelerator_t accel;
+    accel.init (this, subtable_data_size);
     accel.collect_mapping (unicodes, mapping);
   }
+  void collect_mapping (hb_set_t *unicodes, /* OUT */
+			hb_map_t *mapping /* OUT */) const
+  { collect_mapping (unicodes, mapping, length); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -1483,11 +1496,14 @@ struct CmapSubtable
   /* Note: We intentionally do NOT implement subtable formats 2 and 8. */
 
   bool get_glyph (hb_codepoint_t codepoint,
-		  hb_codepoint_t *glyph) const
+		  hb_codepoint_t *glyph,
+		  unsigned int subtable_data_size = 0) const
   {
     switch (u.format.v) {
     case  0: hb_barrier (); return u.format0 .get_glyph (codepoint, glyph);
-    case  4: hb_barrier (); return u.format4 .get_glyph (codepoint, glyph);
+    case  4: hb_barrier (); return subtable_data_size
+				      ? u.format4.get_glyph (codepoint, glyph, subtable_data_size)
+				      : u.format4.get_glyph (codepoint, glyph);
     case  6: hb_barrier (); return u.format6 .get_glyph (codepoint, glyph);
     case 10: hb_barrier (); return u.format10.get_glyph (codepoint, glyph);
     case 12: hb_barrier (); return u.format12.get_glyph (codepoint, glyph);
@@ -1496,11 +1512,17 @@ struct CmapSubtable
     default: return false;
     }
   }
-  void collect_unicodes (hb_set_t *out, unsigned int num_glyphs = UINT_MAX) const
+  void collect_unicodes (hb_set_t *out,
+			 unsigned int num_glyphs = UINT_MAX,
+			 unsigned int subtable_data_size = 0) const
   {
     switch (u.format.v) {
     case  0: hb_barrier (); u.format0 .collect_unicodes (out); return;
-    case  4: hb_barrier (); u.format4 .collect_unicodes (out); return;
+    case  4: hb_barrier (); if (subtable_data_size)
+			      u.format4.collect_unicodes (out, subtable_data_size);
+			    else
+			      u.format4.collect_unicodes (out);
+			    return;
     case  6: hb_barrier (); u.format6 .collect_unicodes (out); return;
     case 10: hb_barrier (); u.format10.collect_unicodes (out); return;
     case 12: hb_barrier (); u.format12.collect_unicodes (out, num_glyphs); return;
@@ -1512,11 +1534,16 @@ struct CmapSubtable
 
   void collect_mapping (hb_set_t *unicodes, /* OUT */
 			hb_map_t *mapping, /* OUT */
-			unsigned num_glyphs = UINT_MAX) const
+			unsigned num_glyphs = UINT_MAX,
+			unsigned int subtable_data_size = 0) const
   {
     switch (u.format.v) {
     case  0: hb_barrier (); u.format0 .collect_mapping (unicodes, mapping); return;
-    case  4: hb_barrier (); u.format4 .collect_mapping (unicodes, mapping); return;
+    case  4: hb_barrier (); if (subtable_data_size)
+			      u.format4.collect_mapping (unicodes, mapping, subtable_data_size);
+			    else
+			      u.format4.collect_mapping (unicodes, mapping);
+			    return;
     case  6: hb_barrier (); u.format6 .collect_mapping (unicodes, mapping); return;
     case 10: hb_barrier (); u.format10.collect_mapping (unicodes, mapping); return;
     case 12: hb_barrier (); u.format12.collect_mapping (unicodes, mapping, num_glyphs); return;
@@ -1660,6 +1687,7 @@ struct SubtableUnicodesCache {
  private:
   hb_blob_ptr_t<cmap> base_blob;
   const char* base;
+  unsigned int table_length;
   hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> cached_unicodes;
 
  public:
@@ -1684,15 +1712,18 @@ struct SubtableUnicodesCache {
     hb_free (cache);
   }
 
-  SubtableUnicodesCache(const void* cmap_base)
+  SubtableUnicodesCache(const void* cmap_base,
+			unsigned int table_length_ = 0)
       : base_blob(),
         base ((const char*) cmap_base),
+        table_length (table_length_),
         cached_unicodes ()
   {}
 
   SubtableUnicodesCache(hb_blob_ptr_t<cmap> base_blob_)
       : base_blob(base_blob_),
         base ((const char *) base_blob.get()),
+        table_length (base_blob.get_length ()),
         cached_unicodes ()
   {}
 
@@ -1723,7 +1754,10 @@ struct SubtableUnicodesCache {
       if (unlikely (s->in_error ()))
 	return hb_set_get_empty ();
 
-      (base+record->subtable).collect_unicodes (s);
+      unsigned int subtable_data_size = record->subtable < table_length
+					? table_length - (unsigned int) record->subtable
+					: 0;
+      (base+record->subtable).collect_unicodes (s, UINT_MAX, subtable_data_size);
 
       if (unlikely (!cached_unicodes.set ((unsigned) ((const char *) record - base), hb::unique_ptr<hb_set_t> {s})))
         return hb_set_get_empty ();
@@ -1782,7 +1816,8 @@ struct cmap
 		  EncodingRecIter encodingrec_iter,
 		  const void *base,
 		  hb_subset_plan_t *plan,
-                  bool drop_format_4 = false)
+	                  bool drop_format_4 = false,
+			  unsigned int source_table_length = 0)
   {
     if (unlikely (!c->extend_min ((*this))))  return false;
     this->version = 0;
@@ -1790,7 +1825,7 @@ struct cmap
     unsigned format4objidx = 0, format12objidx = 0, format14objidx = 0;
     auto snap = c->snapshot ();
 
-    SubtableUnicodesCache local_unicodes_cache (base);
+    SubtableUnicodesCache local_unicodes_cache (base, source_table_length);
     const SubtableUnicodesCache* unicodes_cache = &local_unicodes_cache;
 
     if (plan->accelerator &&
@@ -1819,7 +1854,8 @@ struct cmap
                             encodingrec_iter,
                             base,
                             plan,
-                            true);
+                            true,
+			    source_table_length);
         }
       }
 
@@ -1953,7 +1989,9 @@ struct cmap
                                          it,
                                          encodingrec_iter,
                                          this,
-                                         c->plan));
+                                         c->plan,
+					 false,
+					 c->source_blob->length));
   }
 
   const CmapSubtable *find_best_subtable (bool *symbol = nullptr,
@@ -2154,10 +2192,10 @@ struct cmap
     }
 
     void collect_unicodes (hb_set_t *out, unsigned int num_glyphs) const
-    { subtable->collect_unicodes (out, num_glyphs); }
+    { subtable->collect_unicodes (out, num_glyphs, get_subtable_data_size (subtable)); }
     void collect_mapping (hb_set_t *unicodes, hb_map_t *mapping,
 			  unsigned num_glyphs = UINT_MAX) const
-    { subtable->collect_mapping (unicodes, mapping, num_glyphs); }
+    { subtable->collect_mapping (unicodes, mapping, num_glyphs, get_subtable_data_size (subtable)); }
     void collect_variation_selectors (hb_set_t *out) const
     { subtable_uvs->collect_variation_selectors (out); }
     void collect_variation_unicodes (hb_codepoint_t variation_selector,
@@ -2218,7 +2256,7 @@ struct cmap
 
     unsigned int get_subtable_data_size (const CmapSubtable *subtable) const
     {
-      unsigned int table_length = this->table.get_blob ()->length;
+      unsigned int table_length = this->table.get_length ();
       uintptr_t table_start = (uintptr_t) (const void *) this->table.get ();
       uintptr_t subtable_addr = (uintptr_t) (const void *) subtable;
       if (unlikely (subtable_addr < table_start))
