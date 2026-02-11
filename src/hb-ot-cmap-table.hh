@@ -519,7 +519,7 @@ struct CmapSubtableFormat4
   struct accelerator_t
   {
     accelerator_t () {}
-    accelerator_t (const CmapSubtableFormat4 *subtable) { init (subtable, subtable->length); }
+    accelerator_t (const CmapSubtableFormat4 *subtable) = delete;
 
     void init (const CmapSubtableFormat4 *subtable,
 	       unsigned int              subtable_data_size)
@@ -682,7 +682,7 @@ struct CmapSubtableFormat4
     return accel.get_glyph_func (&accel, codepoint, glyph);
   }
   bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
-  { return get_glyph (codepoint, glyph, length); }
+  { return false; }
 
   void collect_unicodes (hb_set_t *out, unsigned int subtable_data_size) const
   {
@@ -1503,7 +1503,7 @@ struct CmapSubtable
     case  0: hb_barrier (); return u.format0 .get_glyph (codepoint, glyph);
     case  4: hb_barrier (); return subtable_data_size
 				      ? u.format4.get_glyph (codepoint, glyph, subtable_data_size)
-				      : u.format4.get_glyph (codepoint, glyph);
+				      : false;
     case  6: hb_barrier (); return u.format6 .get_glyph (codepoint, glyph);
     case 10: hb_barrier (); return u.format10.get_glyph (codepoint, glyph);
     case 12: hb_barrier (); return u.format12.get_glyph (codepoint, glyph);
@@ -2071,52 +2071,41 @@ struct cmap
       this->get_glyph_data = subtable;
 #ifndef HB_NO_CMAP_LEGACY_SUBTABLES
       bool is_format4 = subtable->u.format.v == 4;
+      auto set_format4_getter = [this] (bool (*func) (const void *,
+						      hb_codepoint_t,
+						      hb_codepoint_t *))
+      {
+	this->format4_accel.init (&this->subtable->u.format4,
+				  get_subtable_data_size (this->subtable));
+	this->get_glyph_data = &this->format4_accel;
+	this->get_glyph_funcZ = func;
+      };
       if (unlikely (symbol))
       {
 	switch ((unsigned) face->table.OS2->get_font_page ()) {
 	case OS2::font_page_t::FONT_PAGE_NONE:
 	  if (is_format4)
-	  {
-	    this->format4_accel.init (&subtable->u.format4,
-				      get_subtable_data_size (subtable));
-	    this->get_glyph_data = &this->format4_accel;
-	    this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_symbol_pua_map>;
-	  }
+	    set_format4_getter (get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_symbol_pua_map>);
 	  else
 	    this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_symbol_pua_map>;
 	  break;
 #ifndef HB_NO_OT_SHAPER_ARABIC_FALLBACK
 	case OS2::font_page_t::FONT_PAGE_SIMP_ARABIC:
 	  if (is_format4)
-	  {
-	    this->format4_accel.init (&subtable->u.format4,
-				      get_subtable_data_size (subtable));
-	    this->get_glyph_data = &this->format4_accel;
-	    this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_arabic_pua_simp_map>;
-	  }
+	    set_format4_getter (get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_arabic_pua_simp_map>);
 	  else
 	    this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_simp_map>;
 	  break;
 	case OS2::font_page_t::FONT_PAGE_TRAD_ARABIC:
 	  if (is_format4)
-	  {
-	    this->format4_accel.init (&subtable->u.format4,
-				      get_subtable_data_size (subtable));
-	    this->get_glyph_data = &this->format4_accel;
-	    this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_arabic_pua_trad_map>;
-	  }
+	    set_format4_getter (get_glyph_from_symbol<CmapSubtableFormat4::accelerator_t, _hb_arabic_pua_trad_map>);
 	  else
 	    this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_trad_map>;
 	  break;
 #endif
 	default:
 	  if (is_format4)
-	  {
-	    this->format4_accel.init (&subtable->u.format4,
-				      get_subtable_data_size (subtable));
-	    this->get_glyph_data = &this->format4_accel;
-	    this->get_glyph_funcZ = get_glyph_from<CmapSubtableFormat4::accelerator_t>;
-	  }
+	    set_format4_getter (get_glyph_from<CmapSubtableFormat4::accelerator_t>);
 	  else
 	    this->get_glyph_funcZ = get_glyph_from<CmapSubtable>;
 	  break;
@@ -2125,24 +2114,14 @@ struct cmap
       else if (unlikely (macroman))
       {
 	if (is_format4)
-	{
-	  this->format4_accel.init (&subtable->u.format4,
-				    get_subtable_data_size (subtable));
-	  this->get_glyph_data = &this->format4_accel;
-	  this->get_glyph_funcZ = get_glyph_from_macroman<CmapSubtableFormat4::accelerator_t>;
-	}
+	  set_format4_getter (get_glyph_from_macroman<CmapSubtableFormat4::accelerator_t>);
 	else
 	  this->get_glyph_funcZ = get_glyph_from_macroman<CmapSubtable>;
       }
       else if (unlikely (mac))
       {
 	if (is_format4)
-	{
-	  this->format4_accel.init (&subtable->u.format4,
-				    get_subtable_data_size (subtable));
-	  this->get_glyph_data = &this->format4_accel;
-	  this->get_glyph_funcZ = get_glyph_from_ascii<CmapSubtableFormat4::accelerator_t>;
-	}
+	  set_format4_getter (get_glyph_from_ascii<CmapSubtableFormat4::accelerator_t>);
 	else
 	  this->get_glyph_funcZ = get_glyph_from_ascii<CmapSubtable>;
       }
