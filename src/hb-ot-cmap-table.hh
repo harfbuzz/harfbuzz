@@ -2219,11 +2219,16 @@ struct cmap
     unsigned int get_subtable_data_size (const CmapSubtable *subtable) const
     {
       unsigned int table_length = this->table.get_blob ()->length;
-      unsigned int subtable_offset = (const char *) subtable - (const char *) this->table.get ();
+      uintptr_t table_start = (uintptr_t) (const void *) this->table.get ();
+      uintptr_t subtable_addr = (uintptr_t) (const void *) subtable;
+      if (unlikely (subtable_addr < table_start))
+	return 0;
+
+      uintptr_t subtable_offset = subtable_addr - table_start;
       if (unlikely (subtable_offset >= table_length))
 	return 0;
 
-      return table_length - subtable_offset;
+      return table_length - (unsigned int) subtable_offset;
     }
 
     private:
