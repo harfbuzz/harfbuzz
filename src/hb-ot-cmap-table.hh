@@ -237,8 +237,6 @@ struct CmapSubtableFormat0
 
 struct CmapSubtableFormat4
 {
-
-
   template<typename Iterator,
       typename Writer,
 	   hb_requires (hb_is_iterator (Iterator))>
@@ -531,7 +529,7 @@ struct CmapSubtableFormat4
       idDelta = startCount + segCount;
       idRangeOffset = idDelta + segCount;
       glyphIdArray = idRangeOffset + segCount;
-      glyphIdArrayLength = (subtable->length - 16 - 8 * segCount) / 2;
+      glyphIdArrayLength = (subtable->length - 16 - 8 * segCount) / 2; // XXX length can be wrong; should be calculated from the actual subtable data size
     }
 
     bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
@@ -696,13 +694,8 @@ struct CmapSubtableFormat4
       return_trace (false);
     hb_barrier ();
 
-    if (unlikely (!c->check_range (this, length)))
-      return_trace (false);
-
-    return_trace (16 + 4 * (unsigned int) segCountX2 <= length);
+    return_trace (c->check_range (values, 2 + 4 * segCountX2));
   }
-
-
 
   protected:
   HBUINT16	format;		/* Format number is set to 4. */
