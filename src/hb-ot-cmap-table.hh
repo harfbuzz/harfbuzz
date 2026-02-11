@@ -519,9 +519,10 @@ struct CmapSubtableFormat4
   struct accelerator_t
   {
     accelerator_t () {}
-    accelerator_t (const CmapSubtableFormat4 *subtable) { init (subtable); }
+    accelerator_t (const CmapSubtableFormat4 *subtable) { init (subtable, subtable->length); }
 
-    void init (const CmapSubtableFormat4 *subtable)
+    void init (const CmapSubtableFormat4 *subtable,
+	       unsigned int              subtable_data_size)
     {
       segCount = subtable->segCountX2 / 2;
       endCount = subtable->values.arrayZ;
@@ -529,7 +530,11 @@ struct CmapSubtableFormat4
       idDelta = startCount + segCount;
       idRangeOffset = idDelta + segCount;
       glyphIdArray = idRangeOffset + segCount;
-      glyphIdArrayLength = (subtable->length - 16 - 8 * segCount) / 2; // XXX length can be wrong; should be calculated from the actual subtable data size
+
+      unsigned int values_offset = 16 + 8 * segCount;
+      glyphIdArrayLength = subtable_data_size > values_offset
+			   ? (subtable_data_size - values_offset) / 2
+			   : 0;
     }
 
     bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
@@ -2067,7 +2072,8 @@ struct cmap
 	    break;
 	  case  4:
 	  {
-	    this->format4_accel.init (&subtable->u.format4);
+	    this->format4_accel.init (&subtable->u.format4,
+				      get_subtable_data_size (subtable));
 	    this->get_glyph_data = &this->format4_accel;
 	    this->get_glyph_funcZ = this->format4_accel.get_glyph_func;
 	    break;
@@ -2208,6 +2214,16 @@ struct cmap
       const Type *typed_obj = (const Type *) obj;
       unsigned c = unicode_to_macroman (codepoint);
       return c && typed_obj->get_glyph (c, glyph);
+    }
+
+    unsigned int get_subtable_data_size (const CmapSubtable *subtable) const
+    {
+      unsigned int table_length = this->table.get_blob ()->length;
+      unsigned int subtable_offset = (const char *) subtable - (const char *) this->table.get ();
+      if (unlikely (subtable_offset >= table_length))
+	return 0;
+
+      return table_length - subtable_offset;
     }
 
     private:
