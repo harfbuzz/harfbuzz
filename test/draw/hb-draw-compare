@@ -395,12 +395,37 @@ for pid in $pids; do
 done
 cat "$shard_dir"/pairs.*.out > "$raw_diff" || exit 1
 
-while IFS= read -r line; do
-	$quiet || echo "$line"
-	echo "$line" >> "$diff"
-done < "$raw_diff"
 # Sort diff by error
-sort -n -o "$diff.tmp" "$diff" && mv "$diff.tmp" "$diff" || exit 1
+python3 - "$raw_diff" "$diff" <<'PY' || exit 1
+import math
+import sys
+
+src, dst = sys.argv[1], sys.argv[2]
+rows = []
+
+with open(src, encoding='utf-8') as f:
+  for idx, line in enumerate(f):
+    line = line.rstrip('\n')
+    first = line.split('\t', 1)[0]
+    try:
+      value = float(first)
+      key = (0, value, idx) if math.isfinite(value) else (1, float('inf'), idx)
+    except ValueError:
+      key = (1, float('inf'), idx)
+    rows.append((key, line))
+
+rows.sort(key=lambda row: row[0])
+
+with open(dst, 'w', encoding='utf-8') as f:
+  for _, line in rows:
+    f.write(line + '\n')
+PY
+
+if ! $quiet; then
+	while IFS= read -r line; do
+		echo "$line"
+	done < "$diff"
+fi
 # Count number of differences
 num_diffs=`cat "$diff" | wc -l`
 $quiet || echo -e "\nFound $num_diffs differences in $num_glyphs glyphs." >&2
