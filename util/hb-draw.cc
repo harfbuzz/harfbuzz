@@ -30,7 +30,7 @@
 #include "text-options.hh"
 
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
-const unsigned SUBPIXEL_BITS = 0;
+const unsigned SUBPIXEL_BITS = 6;
 
 int
 main (int argc, char **argv)
