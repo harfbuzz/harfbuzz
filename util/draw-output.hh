@@ -103,7 +103,7 @@ struct draw_output_t : output_options_t<>
     if (!upem)
       fail (false, "Face UPEM cannot be zero.");
 
-    upem_font = hb_font_create_sub_font (font);
+    upem_font = hb_font_create (hb_font_get_face (font));
     hb_font_set_scale (upem_font, upem, upem);
 
     path = g_string_new (nullptr);

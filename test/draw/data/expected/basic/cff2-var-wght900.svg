@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -984 1800 1257" width="1800" height="1257">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 -984 1800 1257" width="1800" height="1257">
 <defs>
-<path id="g0" transform="scale(1 -1)" d="M24,0L576,0L576,660L24,660L24,0ZM236,104L262,160L298,256L302,256L338,160L364,104L236,104ZM136,172L136,508L218,340L136,172ZM298,424L258,520L240,556L360,556L342,520L302,424L298,424ZM382,340L464,508L464,172L382,340Z"/>
+<path id="p0" d="M62,0L538,0L538,660L62,660L62,0ZM171,59L244,190L298,292L302,292L354,190L427,59L171,59ZM127,111L127,572L254,340L127,111ZM298,388L248,481L182,600L416,600L351,481L302,388L298,388ZM346,340L472,572L472,111L346,340Z"/>
 </defs>
-<use href="#g0" transform="translate(0 0)"/>
-<use href="#g0" transform="translate(600 0)"/>
-<use href="#g0" transform="translate(1200 0)"/>
+<use href="#p0" transform="translate(0 0) scale(1,-1)"/>
+<use href="#p0" transform="translate(600 0) scale(1,-1)"/>
+<use href="#p0" transform="translate(1200 0) scale(1,-1)"/>
 </svg>
