@@ -712,6 +712,29 @@ struct draw_output_t : output_options_t<>
       }
     }
 
+    /* Color glyph defs for reuse. */
+    for (hb_codepoint_t gid : unique_gids)
+    {
+      if (!color_gids.count (gid))
+	continue;
+
+      GString *body = g_string_new (nullptr);
+      GString *defs = g_string_new (nullptr);
+
+      if (paint_glyph_to_svg (gid, defs, body))
+      {
+	if (defs->len)
+	  g_string_append_len (all_defs, defs->str, defs->len);
+
+	g_string_append_printf (all_defs, "<g id=\"cg%u\">\n", gid);
+	g_string_append_len (all_defs, body->str, body->len);
+	g_string_append (all_defs, "</g>\n");
+      }
+
+      g_string_free (body, true);
+      g_string_free (defs, true);
+    }
+
     if (!layout.upem_scale)
     {
       g_string_set_size (path, 0);
@@ -732,53 +755,31 @@ struct draw_output_t : output_options_t<>
       const auto &offset = layout.offsets[li];
       for (const glyph_instance_t &glyph : line.glyphs)
       {
+	g_string_set_size (path, 0);
+	append_num (offset.first + glyph.x, precision, false);
+	g_string_append_c (path, ' ');
+	append_num (layout.upem_scale ? -(offset.second + glyph.y)
+				      :  (offset.second + glyph.y),
+		    precision,
+		    false);
+
 	if (color_gids.count (glyph.gid))
 	{
-	  GString *body = g_string_new (nullptr);
-	  GString *defs = g_string_new (nullptr);
-
-	  if (paint_glyph_to_svg (glyph.gid, defs, body))
-	  {
-	    if (defs->len)
-	      g_string_append_len (all_defs, defs->str, defs->len);
-
-	    /* Paint output is in upem coordinates.
-	     * In upem_scale mode there's no outer wrapper, so we Y-flip here.
-	     * In non-upem_scale mode we're inside scale(fsx,-fsy)*scale(1/upem)
-	     * which already flips Y, so just translate. */
-	    float tx = offset.first + glyph.x;
-	    float ty = offset.second + glyph.y;
-
-	    g_string_append (all_body, "<g transform=\"translate(");
-	    append_num_to (all_body, tx, precision);
-	    g_string_append_c (all_body, ',');
-	    if (layout.upem_scale)
-	    {
-	      append_num_to (all_body, -ty, precision);
-	      g_string_append (all_body, ") scale(1,-1)\">\n");
-	    }
-	    else
-	    {
-	      append_num_to (all_body, ty, precision);
-	      g_string_append (all_body, ")\">\n");
-	    }
-	    g_string_append_len (all_body, body->str, body->len);
-	    g_string_append (all_body, "</g>\n");
-	  }
-
-	  g_string_free (body, true);
-	  g_string_free (defs, true);
+	  /* Color: use shared color glyph definition with Y-flip on <use>. */
+	  if (layout.upem_scale)
+	    g_string_append_printf (all_body,
+				    "<use href=\"#cg%u\" transform=\"translate(%s) scale(1,-1)\"/>\n",
+				    glyph.gid,
+				    path->str);
+	  else
+	    g_string_append_printf (all_body,
+				    "<use href=\"#cg%u\" transform=\"translate(%s)\"/>\n",
+				    glyph.gid,
+				    path->str);
 	}
 	else
 	{
 	  /* Non-color: use shared outline with Y-flip on <use>. */
-	  g_string_set_size (path, 0);
-	  append_num (offset.first + glyph.x, precision, false);
-	  g_string_append_c (path, ' ');
-	  append_num (layout.upem_scale ? -(offset.second + glyph.y)
-					:  (offset.second + glyph.y),
-		      precision,
-		      false);
 	  if (layout.upem_scale)
 	    g_string_append_printf (all_body,
 				    "<use href=\"#p%u\" transform=\"translate(%s) scale(1,-1)\"/>\n",
