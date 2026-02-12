@@ -630,7 +630,8 @@ struct draw_output_t : output_options_t<>
 	fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
 
 	g_string_set_size (path, 0);
-	append_num (1.f / upem, scale_precision (), true);
+	int upem_precision = scale_precision () < 9 ? 9 : scale_precision ();
+	append_num (1.f / upem, upem_precision, true);
 	fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
       }
 
@@ -720,7 +721,8 @@ struct draw_output_t : output_options_t<>
       g_string_append_printf (all_body, "<g transform=\"scale(%s)\">\n", path->str);
 
       g_string_set_size (path, 0);
-      append_num (1.f / upem, scale_precision (), true);
+      int upem_precision = scale_precision () < 9 ? 9 : scale_precision ();
+      append_num (1.f / upem, upem_precision, true);
       g_string_append_printf (all_body, "<g transform=\"scale(%s)\">\n", path->str);
     }
 
@@ -740,20 +742,26 @@ struct draw_output_t : output_options_t<>
 	    if (defs->len)
 	      g_string_append_len (all_defs, defs->str, defs->len);
 
-	    float tx = layout.glyph_scale_x * (offset.first + glyph.x);
-	    float ty = layout.glyph_scale_y * (offset.second + glyph.y);
-	    float sx = layout.glyph_scale_x;
-	    float sy = layout.glyph_scale_y;
+	    /* Paint output is in upem coordinates.
+	     * In upem_scale mode there's no outer wrapper, so we Y-flip here.
+	     * In non-upem_scale mode we're inside scale(fsx,-fsy)*scale(1/upem)
+	     * which already flips Y, so just translate. */
+	    float tx = offset.first + glyph.x;
+	    float ty = offset.second + glyph.y;
 
 	    g_string_append (all_body, "<g transform=\"translate(");
-	    append_num_to (all_body, tx, scale_precision ());
+	    append_num_to (all_body, tx, precision);
 	    g_string_append_c (all_body, ',');
-	    append_num_to (all_body, ty, scale_precision ());
-	    g_string_append (all_body, ") scale(");
-	    append_num_to (all_body, sx, scale_precision ());
-	    g_string_append_c (all_body, ',');
-	    append_num_to (all_body, sy, scale_precision ());
-	    g_string_append (all_body, ")\">\n");
+	    if (layout.upem_scale)
+	    {
+	      append_num_to (all_body, -ty, precision);
+	      g_string_append (all_body, ") scale(1,-1)\">\n");
+	    }
+	    else
+	    {
+	      append_num_to (all_body, ty, precision);
+	      g_string_append (all_body, ")\">\n");
+	    }
 	    g_string_append_len (all_body, body->str, body->len);
 	    g_string_append (all_body, "</g>\n");
 	  }
