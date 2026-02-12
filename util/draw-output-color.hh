@@ -304,7 +304,7 @@ static const char *composite_mode_str (hb_paint_composite_mode_t mode)
 
 /* ===== Sweep gradient decomposition ===== */
 
-#define MAX_ANGLE (HB_PI / 8.f)
+#define MAX_ANGLE (HB_PI / 16.f)
 
 void add_sweep_patch (GString *body,
 		      float cx, float cy, float radius,
