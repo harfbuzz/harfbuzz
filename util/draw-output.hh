@@ -25,6 +25,7 @@
 #ifndef HB_DRAW_OUTPUT_HH
 #define HB_DRAW_OUTPUT_HH
 
+#include <cmath>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -46,6 +47,9 @@ struct draw_output_t : output_options_t<>
       {"quiet",		'q', 0, G_OPTION_ARG_NONE,	&this->quiet,		"Path-data only; implies --ned",			nullptr},
       {"ned",		0, 0, G_OPTION_ARG_NONE,	&this->ned,		"No extra data: flatten geometry and disable reuse",	nullptr},
       {"precision",	0, 0, G_OPTION_ARG_INT,		&this->precision,	"Decimal precision (default: 2)",			"N"},
+      {"no-color",	0, 0, G_OPTION_ARG_NONE,	&this->no_color,	"Disable color font rendering",				nullptr},
+      {"palette",	0, 0, G_OPTION_ARG_INT,		&this->palette,		"Color palette index (default: 0)",			"N"},
+      {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->foreground_str,	"Foreground color (default: 000000)",			"rrggbb[aa]"},
       {nullptr}
     };
     parser->add_group (entries,
@@ -65,7 +69,22 @@ struct draw_output_t : output_options_t<>
     }
 
     if (quiet)
+    {
       ned = true;
+      no_color = true;
+    }
+
+    if (foreground_str)
+    {
+      unsigned r, g, b, a;
+      if (!parse_color (foreground_str, r, g, b, a))
+      {
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Invalid foreground color: %s", foreground_str);
+	return;
+      }
+      foreground = HB_COLOR (b, g, r, a);
+    }
   }
 
   template <typename app_t>
@@ -94,6 +113,26 @@ struct draw_output_t : output_options_t<>
     hb_draw_funcs_set_quadratic_to_func (draw_funcs, (hb_draw_quadratic_to_func_t) quadratic_to, nullptr, nullptr);
     hb_draw_funcs_set_cubic_to_func (draw_funcs, (hb_draw_cubic_to_func_t) cubic_to, nullptr, nullptr);
     hb_draw_funcs_set_close_path_func (draw_funcs, (hb_draw_close_path_func_t) close_path, nullptr, nullptr);
+
+    if (!no_color)
+    {
+      probe_paint_funcs = hb_paint_funcs_create ();
+
+      paint_funcs = hb_paint_funcs_create ();
+      hb_paint_funcs_set_push_transform_func (paint_funcs, (hb_paint_push_transform_func_t) paint_push_transform, nullptr, nullptr);
+      hb_paint_funcs_set_pop_transform_func (paint_funcs, (hb_paint_pop_transform_func_t) paint_pop_transform, nullptr, nullptr);
+      hb_paint_funcs_set_push_clip_glyph_func (paint_funcs, (hb_paint_push_clip_glyph_func_t) paint_push_clip_glyph, nullptr, nullptr);
+      hb_paint_funcs_set_push_clip_rectangle_func (paint_funcs, (hb_paint_push_clip_rectangle_func_t) paint_push_clip_rectangle, nullptr, nullptr);
+      hb_paint_funcs_set_pop_clip_func (paint_funcs, (hb_paint_pop_clip_func_t) paint_pop_clip, nullptr, nullptr);
+      hb_paint_funcs_set_color_func (paint_funcs, (hb_paint_color_func_t) paint_color, nullptr, nullptr);
+      hb_paint_funcs_set_image_func (paint_funcs, (hb_paint_image_func_t) paint_image, nullptr, nullptr);
+      hb_paint_funcs_set_linear_gradient_func (paint_funcs, (hb_paint_linear_gradient_func_t) paint_linear_gradient, nullptr, nullptr);
+      hb_paint_funcs_set_radial_gradient_func (paint_funcs, (hb_paint_radial_gradient_func_t) paint_radial_gradient, nullptr, nullptr);
+      hb_paint_funcs_set_sweep_gradient_func (paint_funcs, (hb_paint_sweep_gradient_func_t) paint_sweep_gradient, nullptr, nullptr);
+      hb_paint_funcs_set_push_group_func (paint_funcs, (hb_paint_push_group_func_t) paint_push_group, nullptr, nullptr);
+      hb_paint_funcs_set_pop_group_func (paint_funcs, (hb_paint_pop_group_func_t) paint_pop_group, nullptr, nullptr);
+      hb_paint_funcs_set_color_glyph_func (paint_funcs, (hb_paint_color_glyph_func_t) paint_color_glyph, nullptr, nullptr);
+    }
   }
 
   void new_line ()
@@ -163,6 +202,16 @@ struct draw_output_t : output_options_t<>
 
     hb_draw_funcs_destroy (draw_funcs);
     draw_funcs = nullptr;
+    if (paint_funcs)
+    {
+      hb_paint_funcs_destroy (paint_funcs);
+      paint_funcs = nullptr;
+    }
+    if (probe_paint_funcs)
+    {
+      hb_paint_funcs_destroy (probe_paint_funcs);
+      probe_paint_funcs = nullptr;
+    }
     g_string_free (path, true);
     path = nullptr;
     hb_font_destroy (upem_font);
@@ -216,6 +265,11 @@ struct draw_output_t : output_options_t<>
     float glyph_scale_y = -1.f;
     bool upem_scale = false;
   };
+
+  /* Color font rendering: paint callbacks, SVG generation, gradient helpers. */
+#include "draw-output-color.hh"
+
+  /* ===== Draw callbacks ===== */
 
   static void
   move_to (hb_draw_funcs_t *, draw_data_t *data,
@@ -366,7 +420,7 @@ struct draw_output_t : output_options_t<>
     g_string_append_c (path, ' ');
     append_num (h, precision, false);
     fprintf (out_fp,
-	     "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"%s\" width=\"",
+	     "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"%s\" width=\"",
 	     path->str);
     g_string_set_size (path, 0);
     append_num (w, precision, false);
@@ -543,8 +597,85 @@ struct draw_output_t : output_options_t<>
   void write_reuse_svg ()
   {
     layout_t layout = compute_layout (true);
-    emit_svg_header (layout.box);
 
+    if (!paint_funcs)
+    {
+      /* No color: original reuse path. */
+      emit_svg_header (layout.box);
+
+      std::vector<hb_codepoint_t> unique_gids;
+      unique_gids.reserve (128);
+      std::unordered_set<hb_codepoint_t> seen;
+
+      for (const line_t &line : lines)
+	for (const glyph_instance_t &glyph : line.glyphs)
+	  if (seen.insert (glyph.gid).second)
+	    unique_gids.push_back (glyph.gid);
+
+      fprintf (out_fp, "<defs>\n");
+      draw_data_t defs_data = {this, 0.f, 0.f, 1.f, 1.f};
+      for (hb_codepoint_t gid : unique_gids)
+      {
+	draw_glyph (upem_font, gid, defs_data);
+	fprintf (out_fp, "<path id=\"p%u\" d=\"%s\"/>\n", gid, path->str);
+      }
+      fprintf (out_fp, "</defs>\n");
+
+      if (!layout.upem_scale)
+      {
+	g_string_set_size (path, 0);
+	append_num (layout.font_scale_x, precision, true);
+	g_string_append_c (path, ' ');
+	append_num (-layout.font_scale_y, precision, true);
+	fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
+
+	g_string_set_size (path, 0);
+	int upem_scale_precision = precision < 9 ? 9 : precision;
+	append_num (1.f / upem, upem_scale_precision, true);
+	fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
+      }
+
+      for (unsigned li = 0; li < lines.size (); li++)
+      {
+	const line_t &line = lines[li];
+	const auto &offset = layout.offsets[li];
+	for (const glyph_instance_t &glyph : line.glyphs)
+	{
+	  g_string_set_size (path, 0);
+	  append_num (offset.first + glyph.x, precision, false);
+	  g_string_append_c (path, ' ');
+	  append_num (layout.upem_scale ? -(offset.second + glyph.y)
+					:  (offset.second + glyph.y),
+		      precision,
+		      false);
+	  if (layout.upem_scale)
+	    fprintf (out_fp,
+		     "<use href=\"#p%u\" transform=\"translate(%s) scale(1,-1)\"/>\n",
+		     glyph.gid,
+		     path->str);
+	  else
+	    fprintf (out_fp,
+		     "<use href=\"#p%u\" transform=\"translate(%s)\"/>\n",
+		     glyph.gid,
+		     path->str);
+	}
+      }
+
+      if (!layout.upem_scale)
+	fprintf (out_fp, "</g>\n</g>\n");
+      fprintf (out_fp, "</svg>\n");
+      return;
+    }
+
+    /* Color mode with reuse: color glyphs rendered inline,
+     * non-color glyphs use <defs>/<use> reuse. */
+
+    rect_clip_counter = 0;
+    gradient_counter = 0;
+    defined_outlines.clear ();
+    defined_clips.clear ();
+
+    std::unordered_set<hb_codepoint_t> color_gids;
     std::vector<hb_codepoint_t> unique_gids;
     unique_gids.reserve (128);
     std::unordered_set<hb_codepoint_t> seen;
@@ -554,25 +685,32 @@ struct draw_output_t : output_options_t<>
 	if (seen.insert (glyph.gid).second)
 	  unique_gids.push_back (glyph.gid);
 
-    fprintf (out_fp, "<defs>\n");
-    draw_data_t defs_data = {this, 0.f, 0.f, 1.f, 1.f};
+    /* Probe for color glyphs using no-op paint funcs (no side effects). */
     for (hb_codepoint_t gid : unique_gids)
+      if (hb_font_paint_glyph_or_fail (upem_font, gid,
+					probe_paint_funcs, nullptr,
+					palette, foreground))
+	color_gids.insert (gid);
+
+    GString *all_defs = g_string_new (nullptr);
+    GString *all_body = g_string_new (nullptr);
+
+    /* Non-color glyph outline defs for reuse.
+     * Stored as raw outlines (no Y-flip) so clips can share them. */
     {
-      if (!draw_glyph (upem_font, gid, defs_data))
-	fprintf (out_fp,
-		 layout.upem_scale
-		 ? "<path id=\"g%u\" transform=\"scale(1 -1)\" d=\"\"/>\n"
-		 : "<path id=\"g%u\" d=\"\"/>\n",
-		 gid);
-      else
-	fprintf (out_fp,
-		 layout.upem_scale
-		 ? "<path id=\"g%u\" transform=\"scale(1 -1)\" d=\"%s\"/>\n"
-		 : "<path id=\"g%u\" d=\"%s\"/>\n",
-		 gid,
-		 path->str);
+      draw_data_t defs_data = {this, 0.f, 0.f, 1.f, 1.f};
+      for (hb_codepoint_t gid : unique_gids)
+      {
+	if (color_gids.count (gid))
+	  continue;
+	draw_glyph (upem_font, gid, defs_data);
+	g_string_append_printf (all_defs,
+				"<path id=\"p%u\" d=\"%s\"/>\n",
+				gid,
+				path->str);
+	defined_outlines.insert (gid);
+      }
     }
-    fprintf (out_fp, "</defs>\n");
 
     if (!layout.upem_scale)
     {
@@ -580,12 +718,12 @@ struct draw_output_t : output_options_t<>
       append_num (layout.font_scale_x, precision, true);
       g_string_append_c (path, ' ');
       append_num (-layout.font_scale_y, precision, true);
-      fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
+      g_string_append_printf (all_body, "<g transform=\"scale(%s)\">\n", path->str);
 
       g_string_set_size (path, 0);
       int upem_scale_precision = precision < 9 ? 9 : precision;
       append_num (1.f / upem, upem_scale_precision, true);
-      fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
+      g_string_append_printf (all_body, "<g transform=\"scale(%s)\">\n", path->str);
     }
 
     for (unsigned li = 0; li < lines.size (); li++)
@@ -594,44 +732,168 @@ struct draw_output_t : output_options_t<>
       const auto &offset = layout.offsets[li];
       for (const glyph_instance_t &glyph : line.glyphs)
       {
-	g_string_set_size (path, 0);
-	append_num (offset.first + glyph.x, precision, false);
-	g_string_append_c (path, ' ');
-	append_num (layout.upem_scale ? -(offset.second + glyph.y)
-				      :  (offset.second + glyph.y),
-		    precision,
-		    false);
-	fprintf (out_fp,
-		 "<use href=\"#g%u\" transform=\"translate(%s)\"/>\n",
-		 glyph.gid,
-		 path->str);
+	if (color_gids.count (glyph.gid))
+	{
+	  GString *body = g_string_new (nullptr);
+	  GString *defs = g_string_new (nullptr);
+
+	  if (paint_glyph_to_svg (glyph.gid, defs, body))
+	  {
+	    if (defs->len)
+	      g_string_append_len (all_defs, defs->str, defs->len);
+
+	    float tx = layout.glyph_scale_x * (offset.first + glyph.x);
+	    float ty = layout.glyph_scale_y * (offset.second + glyph.y);
+	    float sx = layout.glyph_scale_x;
+	    float sy = layout.glyph_scale_y;
+
+	    g_string_append (all_body, "<g transform=\"translate(");
+	    append_num_to (all_body, tx, precision);
+	    g_string_append_c (all_body, ',');
+	    append_num_to (all_body, ty, precision);
+	    g_string_append (all_body, ") scale(");
+	    append_num_to (all_body, sx, precision);
+	    g_string_append_c (all_body, ',');
+	    append_num_to (all_body, sy, precision);
+	    g_string_append (all_body, ")\">\n");
+	    g_string_append_len (all_body, body->str, body->len);
+	    g_string_append (all_body, "</g>\n");
+	  }
+
+	  g_string_free (body, true);
+	  g_string_free (defs, true);
+	}
+	else
+	{
+	  /* Non-color: use shared outline with Y-flip on <use>. */
+	  g_string_set_size (path, 0);
+	  append_num (offset.first + glyph.x, precision, false);
+	  g_string_append_c (path, ' ');
+	  append_num (layout.upem_scale ? -(offset.second + glyph.y)
+					:  (offset.second + glyph.y),
+		      precision,
+		      false);
+	  if (layout.upem_scale)
+	    g_string_append_printf (all_body,
+				    "<use href=\"#p%u\" transform=\"translate(%s) scale(1,-1)\"/>\n",
+				    glyph.gid,
+				    path->str);
+	  else
+	    g_string_append_printf (all_body,
+				    "<use href=\"#p%u\" transform=\"translate(%s)\"/>\n",
+				    glyph.gid,
+				    path->str);
+	}
       }
     }
 
     if (!layout.upem_scale)
-      fprintf (out_fp, "</g>\n</g>\n");
+      g_string_append (all_body, "</g>\n</g>\n");
+
+    emit_svg_header (layout.box);
+    if (all_defs->len)
+    {
+      fprintf (out_fp, "<defs>\n");
+      fwrite (all_defs->str, 1, all_defs->len, out_fp);
+      fprintf (out_fp, "</defs>\n");
+    }
+    fwrite (all_body->str, 1, all_body->len, out_fp);
     fprintf (out_fp, "</svg>\n");
+
+    g_string_free (all_defs, true);
+    g_string_free (all_body, true);
   }
 
   void write_flat_svg ()
   {
     layout_t layout = compute_layout (true);
-    emit_svg_header (layout.box);
+
+    if (!paint_funcs)
+    {
+      emit_svg_header (layout.box);
+      for (unsigned li = 0; li < lines.size (); li++)
+      {
+	const line_t &line = lines[li];
+	const auto &offset = layout.offsets[li];
+	for (const glyph_instance_t &glyph : line.glyphs)
+	{
+	  draw_data_t data = glyph_draw_data (layout, offset, glyph);
+	  if (draw_glyph (upem_font, glyph.gid, data))
+	    fprintf (out_fp, "<path d=\"%s\"/>\n", path->str);
+	  else
+	    fprintf (out_fp, "\n");
+	}
+      }
+      fprintf (out_fp, "</svg>\n");
+      return;
+    }
+
+    /* Color mode: buffer everything so defs come first. */
+    rect_clip_counter = 0;
+    gradient_counter = 0;
+    defined_outlines.clear ();
+    defined_clips.clear ();
+
+    GString *all_defs = g_string_new (nullptr);
+    GString *all_body = g_string_new (nullptr);
+
     for (unsigned li = 0; li < lines.size (); li++)
     {
       const line_t &line = lines[li];
       const auto &offset = layout.offsets[li];
       for (const glyph_instance_t &glyph : line.glyphs)
       {
-	draw_data_t data = glyph_draw_data (layout, offset, glyph);
-	if (draw_glyph (upem_font, glyph.gid, data))
-	  fprintf (out_fp, "<path d=\"%s\"/>\n", path->str);
+	GString *body = g_string_new (nullptr);
+	GString *defs = g_string_new (nullptr);
+
+	if (paint_glyph_to_svg (glyph.gid, defs, body))
+	{
+	  if (defs->len)
+	    g_string_append_len (all_defs, defs->str, defs->len);
+
+	  float tx = layout.glyph_scale_x * (offset.first + glyph.x);
+	  float ty = layout.glyph_scale_y * (offset.second + glyph.y);
+	  float sx = layout.glyph_scale_x;
+	  float sy = layout.glyph_scale_y;
+
+	  g_string_append (all_body, "<g transform=\"translate(");
+	  append_num_to (all_body, tx, precision);
+	  g_string_append_c (all_body, ',');
+	  append_num_to (all_body, ty, precision);
+	  g_string_append (all_body, ") scale(");
+	  append_num_to (all_body, sx, precision);
+	  g_string_append_c (all_body, ',');
+	  append_num_to (all_body, sy, precision);
+	  g_string_append (all_body, ")\">\n");
+	  g_string_append_len (all_body, body->str, body->len);
+	  g_string_append (all_body, "</g>\n");
+	}
 	else
-	  fprintf (out_fp, "\n");
+	{
+	  draw_data_t data = glyph_draw_data (layout, offset, glyph);
+	  if (draw_glyph (upem_font, glyph.gid, data))
+	    g_string_append_printf (all_body, "<path d=\"%s\"/>\n", path->str);
+	  else
+	    g_string_append (all_body, "\n");
+	}
+
+	g_string_free (body, true);
+	g_string_free (defs, true);
       }
     }
 
+    emit_svg_header (layout.box);
+    if (all_defs->len)
+    {
+      fprintf (out_fp, "<defs>\n");
+      fwrite (all_defs->str, 1, all_defs->len, out_fp);
+      fprintf (out_fp, "</defs>\n");
+    }
+    fwrite (all_body->str, 1, all_body->len, out_fp);
     fprintf (out_fp, "</svg>\n");
+
+    g_string_free (all_defs, true);
+    g_string_free (all_body, true);
   }
 
   void write_raw_paths ()
@@ -655,11 +917,17 @@ struct draw_output_t : output_options_t<>
 
   hb_bool_t quiet = false;
   hb_bool_t ned = false;
+  hb_bool_t no_color = false;
   int precision = 2;
+  int palette = 0;
+  char *foreground_str = nullptr;
+  hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
 
   hb_font_t *font = nullptr;
   hb_font_t *upem_font = nullptr;
   hb_draw_funcs_t *draw_funcs = nullptr;
+  hb_paint_funcs_t *paint_funcs = nullptr;
+  hb_paint_funcs_t *probe_paint_funcs = nullptr;
   GString *path = nullptr;
   std::vector<line_t> lines;
   hb_direction_t direction = HB_DIRECTION_INVALID;
@@ -668,6 +936,12 @@ struct draw_output_t : output_options_t<>
   int x_scale = 0;
   int y_scale = 0;
   unsigned subpixel_bits = 0;
+
+  /* Persistent state across paint calls within one SVG. */
+  unsigned rect_clip_counter = 0;
+  unsigned gradient_counter = 0;
+  std::unordered_set<hb_codepoint_t> defined_outlines;
+  std::unordered_set<hb_codepoint_t> defined_clips;
 };
 
 
