@@ -574,17 +574,17 @@ paint_push_transform (hb_paint_funcs_t *, svg_paint_data_t *data,
 {
   GString *body = data->body ();
   g_string_append (body, "<g transform=\"matrix(");
-  data->that->append_num_to (body, xx, data->that->precision);
+  data->that->append_num_to (body, xx, data->that->scale_precision ());
   g_string_append_c (body, ',');
-  data->that->append_num_to (body, yx, data->that->precision);
+  data->that->append_num_to (body, yx, data->that->scale_precision ());
   g_string_append_c (body, ',');
-  data->that->append_num_to (body, xy, data->that->precision);
+  data->that->append_num_to (body, xy, data->that->scale_precision ());
   g_string_append_c (body, ',');
-  data->that->append_num_to (body, yy, data->that->precision);
+  data->that->append_num_to (body, yy, data->that->scale_precision ());
   g_string_append_c (body, ',');
-  data->that->append_num_to (body, dx, data->that->precision);
+  data->that->append_num_to (body, dx, data->that->scale_precision ());
   g_string_append_c (body, ',');
-  data->that->append_num_to (body, dy, data->that->precision);
+  data->that->append_num_to (body, dy, data->that->scale_precision ());
   g_string_append (body, ")\">\n");
 }
 

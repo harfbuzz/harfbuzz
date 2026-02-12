@@ -624,14 +624,13 @@ struct draw_output_t : output_options_t<>
       if (!layout.upem_scale)
       {
 	g_string_set_size (path, 0);
-	append_num (layout.font_scale_x, precision, true);
+	append_num (layout.font_scale_x, scale_precision (), true);
 	g_string_append_c (path, ' ');
-	append_num (-layout.font_scale_y, precision, true);
+	append_num (-layout.font_scale_y, scale_precision (), true);
 	fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
 
 	g_string_set_size (path, 0);
-	int upem_scale_precision = precision < 9 ? 9 : precision;
-	append_num (1.f / upem, upem_scale_precision, true);
+	append_num (1.f / upem, scale_precision (), true);
 	fprintf (out_fp, "<g transform=\"scale(%s)\">\n", path->str);
       }
 
@@ -715,14 +714,13 @@ struct draw_output_t : output_options_t<>
     if (!layout.upem_scale)
     {
       g_string_set_size (path, 0);
-      append_num (layout.font_scale_x, precision, true);
+      append_num (layout.font_scale_x, scale_precision (), true);
       g_string_append_c (path, ' ');
-      append_num (-layout.font_scale_y, precision, true);
+      append_num (-layout.font_scale_y, scale_precision (), true);
       g_string_append_printf (all_body, "<g transform=\"scale(%s)\">\n", path->str);
 
       g_string_set_size (path, 0);
-      int upem_scale_precision = precision < 9 ? 9 : precision;
-      append_num (1.f / upem, upem_scale_precision, true);
+      append_num (1.f / upem, scale_precision (), true);
       g_string_append_printf (all_body, "<g transform=\"scale(%s)\">\n", path->str);
     }
 
@@ -748,13 +746,13 @@ struct draw_output_t : output_options_t<>
 	    float sy = layout.glyph_scale_y;
 
 	    g_string_append (all_body, "<g transform=\"translate(");
-	    append_num_to (all_body, tx, precision);
+	    append_num_to (all_body, tx, scale_precision ());
 	    g_string_append_c (all_body, ',');
-	    append_num_to (all_body, ty, precision);
+	    append_num_to (all_body, ty, scale_precision ());
 	    g_string_append (all_body, ") scale(");
-	    append_num_to (all_body, sx, precision);
+	    append_num_to (all_body, sx, scale_precision ());
 	    g_string_append_c (all_body, ',');
-	    append_num_to (all_body, sy, precision);
+	    append_num_to (all_body, sy, scale_precision ());
 	    g_string_append (all_body, ")\">\n");
 	    g_string_append_len (all_body, body->str, body->len);
 	    g_string_append (all_body, "</g>\n");
@@ -857,13 +855,13 @@ struct draw_output_t : output_options_t<>
 	  float sy = layout.glyph_scale_y;
 
 	  g_string_append (all_body, "<g transform=\"translate(");
-	  append_num_to (all_body, tx, precision);
+	  append_num_to (all_body, tx, scale_precision ());
 	  g_string_append_c (all_body, ',');
-	  append_num_to (all_body, ty, precision);
+	  append_num_to (all_body, ty, scale_precision ());
 	  g_string_append (all_body, ") scale(");
-	  append_num_to (all_body, sx, precision);
+	  append_num_to (all_body, sx, scale_precision ());
 	  g_string_append_c (all_body, ',');
-	  append_num_to (all_body, sy, precision);
+	  append_num_to (all_body, sy, scale_precision ());
 	  g_string_append (all_body, ")\">\n");
 	  g_string_append_len (all_body, body->str, body->len);
 	  g_string_append (all_body, "</g>\n");
@@ -919,6 +917,7 @@ struct draw_output_t : output_options_t<>
   hb_bool_t ned = false;
   hb_bool_t no_color = false;
   int precision = 2;
+  int scale_precision () const { return precision < 5 ? 5 : precision; }
   int palette = 0;
   char *foreground_str = nullptr;
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
