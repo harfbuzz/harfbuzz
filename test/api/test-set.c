@@ -25,6 +25,7 @@
  */
 
 #include "hb-test.h"
+#include "hb.h"
 
 /* Unit tests for hb-set.h */
 
@@ -261,6 +262,90 @@ test_set_subsets (void)
   hb_set_add (l, 0x2FFFF);
 
   hb_set_del (l, 0x1FFFF);
+  g_assert_true (!hb_set_is_subset (s, l));
+
+  hb_set_destroy (s);
+  hb_set_destroy (l);
+}
+
+static void
+test_set_subsets_empty_pages (void)
+{
+  hb_set_t *s = hb_set_create ();
+  hb_set_t *l = hb_set_create ();
+  hb_set_add (s, 0x00F);
+  hb_set_add (s, 0xFFF);
+  hb_set_del (s, 0x00F);
+
+  hb_set_add (l, 0xFFF);
+
+  g_assert_true (hb_set_is_subset (s, l));
+  g_assert_true (hb_set_is_subset (l, s));
+
+  hb_set_destroy (s);
+  hb_set_destroy (l);
+
+  s = hb_set_create ();
+  l = hb_set_create ();
+  hb_set_add (s, 0xFFF);
+  hb_set_add (s, 0x00F);
+  hb_set_del (s, 0xFFF);
+
+  hb_set_add (l, 0x00F);
+
+  g_assert_true (hb_set_is_subset (s, l));
+  g_assert_true (hb_set_is_subset (l, s));
+
+  hb_set_destroy (s);
+  hb_set_destroy (l);
+}
+
+static void
+test_set_subsets_inverted (void)
+{
+  hb_set_t *s = hb_set_create ();
+  hb_set_t *l = hb_set_create ();
+
+  hb_set_add (s, 1);
+  hb_set_add (l, 1);
+  hb_set_invert (l);
+
+  // s contains {1}.
+  // l contains everything except {1}.
+  // s should not be a subset of l.
+  g_assert_true (!hb_set_is_subset (s, l));
+
+  hb_set_clear (s);
+  hb_set_add (s, 2);
+  // s contains {2}.
+  // l contains everything except {1}.
+  // s should be a subset of l.
+  g_assert_true (hb_set_is_subset (s, l));
+
+  hb_set_invert (s);
+  // s contains everything except {2}.
+  // l contains everything except {1}.
+  // s is not a subset of l.
+  g_assert_true (!hb_set_is_subset (s, l));
+
+  hb_set_clear (s);
+  hb_set_add (s, 1);
+  hb_set_add (s, 2);
+  hb_set_invert (s);
+  // s contains everything except {1, 2}.
+  // l contains everything except {1}.
+  // s should be a subset of l.
+  g_assert_true (hb_set_is_subset (s, l));
+
+  hb_set_clear (s);
+  hb_set_clear (l);
+  hb_set_invert(s);
+  hb_set_add (l, 0);
+  hb_set_add (l, 1);
+  hb_set_add (l, 2);
+  // s contains everything except
+  // l contains {0, 1, 2}.
+  // s should not be a subset of l.
   g_assert_true (!hb_set_is_subset (s, l));
 
   hb_set_destroy (s);
@@ -1199,6 +1284,8 @@ main (int argc, char **argv)
 
   hb_test_add (test_set_basic);
   hb_test_add (test_set_subsets);
+  hb_test_add (test_set_subsets_empty_pages);
+  hb_test_add (test_set_subsets_inverted);
   hb_test_add (test_set_algebra);
   hb_test_add (test_set_iter);
   hb_test_add (test_set_empty);
