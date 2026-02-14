@@ -80,6 +80,8 @@ struct draw_output_t : output_options_t<>
       {"background",	0, 0, G_OPTION_ARG_STRING,	&this->background_str,	"Background color",					"rrggbb[aa]"},
       {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->foreground_str,	"Foreground color (default: 000000)",			"rrggbb[aa]"},
       {"margin",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin, "Margin around output (default: 0)",		"one to four numbers"},
+      {"logical",	0, 0, G_OPTION_ARG_NONE,	&this->logical,		"Use logical extents for bounding box (default)",	nullptr},
+      {"ink",		0, 0, G_OPTION_ARG_NONE,	&this->ink,		"Use ink extents for bounding box",			nullptr},
       {nullptr}
     };
     parser->add_group (entries,
@@ -596,38 +598,63 @@ struct draw_output_t : output_options_t<>
       dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
-    // Use logical extents and advances for viewBox sizing.
-    hb_font_extents_t logical_extents = {0, 0, 0};
-    hb_font_get_extents_for_direction (font, dir, &logical_extents);
-    int axis_scale = vertical ? x_scale : y_scale;
-    if (!axis_scale)
-      axis_scale = upem;
-    float logical_asc = (float) logical_extents.ascender * upem / axis_scale;
-    float logical_desc = (float) logical_extents.descender * upem / axis_scale;
-    float logical_min = MIN (logical_desc, logical_asc);
-    float logical_max = MAX (logical_desc, logical_asc);
-
-    for (unsigned li = 0; li < lines.size (); li++)
+    if (ink)
     {
-      const line_t &line = lines[li];
-      const auto &offset = offsets[li];
+      // Use ink (actual glyph) extents
+      for (unsigned li = 0; li < lines.size (); li++)
+      {
+	const line_t &line = lines[li];
+	const auto &offset = offsets[li];
 
-      float x1, y1, x2, y2;
-      if (vertical)
-      {
-	x1 = offset.first + logical_min;
-	x2 = offset.first + logical_max;
-	y1 = MIN (0.f, line.advance_y);
-	y2 = MAX (0.f, line.advance_y);
+	for (const glyph_instance_t &glyph : line.glyphs)
+	{
+	  hb_glyph_extents_t extents;
+	  if (hb_font_get_glyph_extents (upem_font, glyph.gid, &extents))
+	  {
+	    float x1 = offset.first + glyph.x + extents.x_bearing;
+	    float y1 = offset.second + glyph.y - extents.y_bearing;
+	    float x2 = x1 + extents.width;
+	    float y2 = y1 - extents.height;
+	    include_scaled_rect (&box, glyph_scale_x, glyph_scale_y, x1, y1, x2, y2);
+	  }
+	}
       }
-      else
+    }
+    else
+    {
+      // Use logical extents and advances for viewBox sizing (default).
+      hb_font_extents_t logical_extents = {0, 0, 0};
+      hb_font_get_extents_for_direction (font, dir, &logical_extents);
+      int axis_scale = vertical ? x_scale : y_scale;
+      if (!axis_scale)
+	axis_scale = upem;
+      float logical_asc = (float) logical_extents.ascender * upem / axis_scale;
+      float logical_desc = (float) logical_extents.descender * upem / axis_scale;
+      float logical_min = MIN (logical_desc, logical_asc);
+      float logical_max = MAX (logical_desc, logical_asc);
+
+      for (unsigned li = 0; li < lines.size (); li++)
       {
-	x1 = MIN (0.f, line.advance_x);
-	x2 = MAX (0.f, line.advance_x);
-	y1 = offset.second + logical_min;
-	y2 = offset.second + logical_max;
+	const line_t &line = lines[li];
+	const auto &offset = offsets[li];
+
+	float x1, y1, x2, y2;
+	if (vertical)
+	{
+	  x1 = offset.first + logical_min;
+	  x2 = offset.first + logical_max;
+	  y1 = MIN (0.f, line.advance_y);
+	  y2 = MAX (0.f, line.advance_y);
+	}
+	else
+	{
+	  x1 = MIN (0.f, line.advance_x);
+	  x2 = MAX (0.f, line.advance_x);
+	  y1 = offset.second + logical_min;
+	  y2 = offset.second + logical_max;
+	}
+	include_scaled_rect (&box, glyph_scale_x, glyph_scale_y, x1, y1, x2, y2);
       }
-      include_scaled_rect (&box, glyph_scale_x, glyph_scale_y, x1, y1, x2, y2);
     }
 
     if (box.valid)
@@ -1038,6 +1065,8 @@ struct draw_output_t : output_options_t<>
   char *foreground_str = nullptr;
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
   margin_t margin = {0., 0., 0., 0.};
+  hb_bool_t logical = false;
+  hb_bool_t ink = false;
 
   hb_font_t *font = nullptr;
   hb_font_t *upem_font = nullptr;
