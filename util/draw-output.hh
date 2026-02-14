@@ -1073,7 +1073,7 @@ struct draw_output_t : output_options_t<>
   hb_bool_t flat = false;
   hb_bool_t no_color = false;
   int precision = 2;
-  int scale_precision () const { return precision < 5 ? 5 : precision; }
+  int scale_precision () const { return precision < 7 ? 7 : precision; }
   int palette = 0;
   char *background_str = nullptr;
   hb_color_t background = HB_COLOR (255, 255, 255, 255);
