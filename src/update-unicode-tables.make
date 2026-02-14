@@ -7,7 +7,12 @@ all: packtab \
 	hb-ucd-table.hh hb-ot-shaper-use-table.hh \
 	hb-ot-shaper-vowel-constraints.cc
 
-.PHONY: all clean packtab
+SOURCES = \
+		ArabicShaping.txt UnicodeData.txt Blocks.txt emoji-data.txt \
+		IndicSyllabicCategory.txt IndicPositionalCategory.txt \
+		languagetags language-subtag-registry ucd.nounihan.grouped.zip Scripts.txt
+
+.PHONY: all touch clean packtab
 
 hb-ot-shaper-arabic-joining-list.hh: gen-arabic-joining-list.py ArabicShaping.txt Scripts.txt
 	./$^ > $@ || ($(RM) $@; false)
@@ -43,7 +48,7 @@ ucd.nounihan.grouped.zip:
 	curl -O https://unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip
 
 clean:
-	$(RM) \
-		ArabicShaping.txt UnicodeData.txt Blocks.txt emoji-data.txt \
-		IndicSyllabicCategory.txt IndicPositionalCategory.txt \
-		languagetags language-subtag-registry ucd.nounihan.grouped.zip Scripts.txt
+	$(RM) $(SOURCES)
+
+touch:
+	touch $(SOURCES)
