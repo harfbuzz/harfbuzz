@@ -26,6 +26,7 @@
 #define HB_DRAW_OUTPUT_HH
 
 #include <cmath>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
