@@ -598,9 +598,12 @@ struct draw_output_t : output_options_t<>
       dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
-    if (ink)
+    bool include_logical = logical || (!logical && !ink);
+    bool include_ink = ink;
+
+    if (include_ink)
     {
-      // Use ink (actual glyph) extents
+      // Include ink (actual glyph) extents
       for (unsigned li = 0; li < lines.size (); li++)
       {
 	const line_t &line = lines[li];
@@ -620,9 +623,10 @@ struct draw_output_t : output_options_t<>
 	}
       }
     }
-    else
+
+    if (include_logical)
     {
-      // Use logical extents and advances for viewBox sizing (default).
+      // Include logical extents and advances
       hb_font_extents_t logical_extents = {0, 0, 0};
       hb_font_get_extents_for_direction (font, dir, &logical_extents);
       int axis_scale = vertical ? x_scale : y_scale;
