@@ -49,6 +49,7 @@ struct draw_output_t : output_options_t<>
       {"precision",	0, 0, G_OPTION_ARG_INT,		&this->precision,	"Decimal precision (default: 2)",			"N"},
       {"no-color",	0, 0, G_OPTION_ARG_NONE,	&this->no_color,	"Disable color font rendering",				nullptr},
       {"palette",	0, 0, G_OPTION_ARG_INT,		&this->palette,		"Color palette index (default: 0)",			"N"},
+      {"background",	0, 0, G_OPTION_ARG_STRING,	&this->background_str,	"Background color",					"rrggbb[aa]"},
       {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->foreground_str,	"Foreground color (default: 000000)",			"rrggbb[aa]"},
       {nullptr}
     };
@@ -72,6 +73,19 @@ struct draw_output_t : output_options_t<>
     {
       ned = true;
       no_color = true;
+    }
+
+    if (background_str)
+    {
+      unsigned r, g, b, a;
+      if (!parse_color (background_str, r, g, b, a))
+      {
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Invalid background color: %s", background_str);
+	return;
+      }
+      background = HB_COLOR (b, g, r, a);
+      has_background = true;
     }
 
     if (foreground_str)
@@ -428,6 +442,34 @@ struct draw_output_t : output_options_t<>
     g_string_set_size (path, 0);
     append_num (h, precision, false);
     fprintf (out_fp, "%s\">\n", path->str);
+
+    if (has_background)
+      emit_svg_background (x, y, w, h);
+  }
+
+  void emit_svg_background (float x, float y, float w, float h)
+  {
+    unsigned r = hb_color_get_red (background);
+    unsigned g = hb_color_get_green (background);
+    unsigned b = hb_color_get_blue (background);
+    unsigned a = hb_color_get_alpha (background);
+
+    fprintf (out_fp, "<rect x=\"");
+    g_string_set_size (path, 0);
+    append_num (x, precision, false);
+    fprintf (out_fp, "%s\" y=\"", path->str);
+    g_string_set_size (path, 0);
+    append_num (y, precision, false);
+    fprintf (out_fp, "%s\" width=\"", path->str);
+    g_string_set_size (path, 0);
+    append_num (w, precision, false);
+    fprintf (out_fp, "%s\" height=\"", path->str);
+    g_string_set_size (path, 0);
+    append_num (h, precision, false);
+    fprintf (out_fp, "%s\" fill=\"#%02X%02X%02X\"", path->str, r, g, b);
+    if (a != 255)
+      fprintf (out_fp, " fill-opacity=\"%.3f\"", a / 255.);
+    fprintf (out_fp, "/>\n");
   }
 
   static void include_point (bbox_t *box, float x, float y)
@@ -928,6 +970,9 @@ struct draw_output_t : output_options_t<>
   int precision = 2;
   int scale_precision () const { return precision < 5 ? 5 : precision; }
   int palette = 0;
+  char *background_str = nullptr;
+  hb_color_t background = HB_COLOR (255, 255, 255, 255);
+  hb_bool_t has_background = false;
   char *foreground_str = nullptr;
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
 
