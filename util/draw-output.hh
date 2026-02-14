@@ -73,8 +73,8 @@ struct draw_output_t : output_options_t<>
 
     GOptionEntry entries[] =
     {
-      {"quiet",		'q', 0, G_OPTION_ARG_NONE,	&this->quiet,		"Path-data only; implies --ned",			nullptr},
-      {"ned",		0, 0, G_OPTION_ARG_NONE,	&this->ned,		"No extra data: flatten geometry and disable reuse",	nullptr},
+      {"quiet",		'q', 0, G_OPTION_ARG_NONE,	&this->quiet,		"Path-data only; implies --flat",			nullptr},
+      {"flat",		0, 0, G_OPTION_ARG_NONE,	&this->flat,		"Flatten geometry and disable reuse",			nullptr},
       {"precision",	0, 0, G_OPTION_ARG_INT,		&this->precision,	"Decimal precision (default: 2)",			"N"},
       {"no-color",	0, 0, G_OPTION_ARG_NONE,	&this->no_color,	"Disable color font rendering",				nullptr},
       {"palette",	0, 0, G_OPTION_ARG_INT,		&this->palette,		"Color palette index (default: 0)",			"N"},
@@ -103,7 +103,7 @@ struct draw_output_t : output_options_t<>
 
     if (quiet)
     {
-      ned = true;
+      flat = true;
       no_color = true;
     }
 
@@ -241,7 +241,7 @@ struct draw_output_t : output_options_t<>
   {
     if (quiet)
       write_raw_paths ();
-    else if (ned)
+    else if (flat)
       write_flat_svg ();
     else
       write_reuse_svg ();
@@ -1070,7 +1070,7 @@ struct draw_output_t : output_options_t<>
   }
 
   hb_bool_t quiet = false;
-  hb_bool_t ned = false;
+  hb_bool_t flat = false;
   hb_bool_t no_color = false;
   int precision = 2;
   int scale_precision () const { return precision < 5 ? 5 : precision; }
