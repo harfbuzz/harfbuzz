@@ -73,7 +73,6 @@ struct draw_output_t : output_options_t<>
 
     GOptionEntry entries[] =
     {
-      {"quiet",		'q', 0, G_OPTION_ARG_NONE,	&this->quiet,		"Path-data only; implies --flat",			nullptr},
       {"flat",		0, 0, G_OPTION_ARG_NONE,	&this->flat,		"Flatten geometry and disable reuse",			nullptr},
       {"precision",	0, 0, G_OPTION_ARG_INT,		&this->precision,	"Decimal precision (default: 2)",			"N"},
       {"no-color",	0, 0, G_OPTION_ARG_NONE,	&this->no_color,	"Disable color font rendering",				nullptr},
@@ -99,12 +98,6 @@ struct draw_output_t : output_options_t<>
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "precision must be non-negative");
       return;
-    }
-
-    if (quiet)
-    {
-      flat = true;
-      no_color = true;
     }
 
     if (background_str)
@@ -239,9 +232,7 @@ struct draw_output_t : output_options_t<>
   template <typename app_t>
   void finish (hb_buffer_t *buffer HB_UNUSED, const app_t *font_opts HB_UNUSED)
   {
-    if (quiet)
-      write_raw_paths ();
-    else if (flat)
+    if (flat)
       write_flat_svg ();
     else
       write_reuse_svg ();
@@ -1050,26 +1041,6 @@ struct draw_output_t : output_options_t<>
     g_string_free (all_body, true);
   }
 
-  void write_raw_paths ()
-  {
-    layout_t layout = compute_layout (false);
-
-    for (unsigned li = 0; li < lines.size (); li++)
-    {
-      const line_t &line = lines[li];
-      const auto &offset = layout.offsets[li];
-      for (const glyph_instance_t &glyph : line.glyphs)
-      {
-	draw_data_t data = glyph_draw_data (layout, offset, glyph);
-	if (draw_glyph (upem_font, glyph.gid, data))
-	  fprintf (out_fp, "%s\n", path->str);
-	else
-	  fprintf (out_fp, "\n");
-      }
-    }
-  }
-
-  hb_bool_t quiet = false;
   hb_bool_t flat = false;
   hb_bool_t no_color = false;
   int precision = 2;
