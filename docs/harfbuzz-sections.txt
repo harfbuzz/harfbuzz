@@ -977,6 +977,16 @@ hb_subset_cff2_get_charstrings_index
 </SECTION>
 
 <SECTION>
+<FILE>hb-depend</FILE>
+hb_depend_t
+hb_depend_from_face_or_fail
+hb_depend_get_glyph_entry
+hb_depend_get_set_from_index
+hb_depend_print
+hb_depend_destroy
+</SECTION>
+
+<SECTION>
 <FILE>hb-cairo</FILE>
 hb_cairo_font_face_create_for_font
 hb_cairo_font_face_get_font
