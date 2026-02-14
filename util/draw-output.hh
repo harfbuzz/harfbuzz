@@ -472,6 +472,30 @@ struct draw_output_t : output_options_t<>
     fprintf (out_fp, "/>\n");
   }
 
+  void emit_fill_group_open ()
+  {
+    if (!foreground_str)
+      return;
+
+    unsigned r = hb_color_get_red (foreground);
+    unsigned g = hb_color_get_green (foreground);
+    unsigned b = hb_color_get_blue (foreground);
+    unsigned a = hb_color_get_alpha (foreground);
+
+    fprintf (out_fp, "<g fill=\"#%02X%02X%02X\"", r, g, b);
+    if (a != 255)
+      fprintf (out_fp, " fill-opacity=\"%.3f\"", a / 255.);
+    fprintf (out_fp, ">\n");
+  }
+
+  void emit_fill_group_close ()
+  {
+    if (!foreground_str)
+      return;
+
+    fprintf (out_fp, "</g>\n");
+  }
+
   static void include_point (bbox_t *box, float x, float y)
   {
     if (!box->valid)
@@ -663,6 +687,8 @@ struct draw_output_t : output_options_t<>
       }
       fprintf (out_fp, "</defs>\n");
 
+      emit_fill_group_open ();
+
       if (!layout.upem_scale)
       {
 	g_string_set_size (path, 0);
@@ -705,6 +731,7 @@ struct draw_output_t : output_options_t<>
 
       if (!layout.upem_scale)
 	fprintf (out_fp, "</g>\n</g>\n");
+      emit_fill_group_close ();
       fprintf (out_fp, "</svg>\n");
       return;
     }
@@ -846,7 +873,9 @@ struct draw_output_t : output_options_t<>
       fwrite (all_defs->str, 1, all_defs->len, out_fp);
       fprintf (out_fp, "</defs>\n");
     }
+    emit_fill_group_open ();
     fwrite (all_body->str, 1, all_body->len, out_fp);
+    emit_fill_group_close ();
     fprintf (out_fp, "</svg>\n");
 
     g_string_free (all_defs, true);
@@ -860,6 +889,7 @@ struct draw_output_t : output_options_t<>
     if (!paint_funcs)
     {
       emit_svg_header (layout.box);
+      emit_fill_group_open ();
       for (unsigned li = 0; li < lines.size (); li++)
       {
 	const line_t &line = lines[li];
@@ -873,6 +903,7 @@ struct draw_output_t : output_options_t<>
 	    fprintf (out_fp, "\n");
 	}
       }
+      emit_fill_group_close ();
       fprintf (out_fp, "</svg>\n");
       return;
     }
@@ -938,7 +969,9 @@ struct draw_output_t : output_options_t<>
       fwrite (all_defs->str, 1, all_defs->len, out_fp);
       fprintf (out_fp, "</defs>\n");
     }
+    emit_fill_group_open ();
     fwrite (all_body->str, 1, all_body->len, out_fp);
+    emit_fill_group_close ();
     fprintf (out_fp, "</svg>\n");
 
     g_string_free (all_defs, true);
