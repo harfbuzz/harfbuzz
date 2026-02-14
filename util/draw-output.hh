@@ -35,6 +35,34 @@
 
 struct draw_output_t : output_options_t<>
 {
+  struct margin_t {
+    float t, r, b, l;
+  };
+
+  static gboolean
+  parse_margin (const char *name G_GNUC_UNUSED,
+		const char *arg,
+		gpointer    data,
+		GError    **error G_GNUC_UNUSED)
+  {
+    draw_output_t *draw_opts = (draw_output_t *) data;
+    margin_t &m = draw_opts->margin;
+    double t, r, b, l;
+    switch (sscanf (arg, "%lf%*[ ,]%lf%*[ ,]%lf%*[ ,]%lf", &t, &r, &b, &l)) {
+      case 1: r = t; HB_FALLTHROUGH;
+      case 2: b = t; HB_FALLTHROUGH;
+      case 3: l = r; HB_FALLTHROUGH;
+      case 4:
+	m.t = t; m.r = r; m.b = b; m.l = l;
+	return true;
+      default:
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "%s argument should be one to four space-separated numbers",
+		     name);
+	return false;
+    }
+  }
+
   void add_options (option_parser_t *parser)
   {
     parser->set_summary ("Draw text with given font.");
@@ -51,6 +79,7 @@ struct draw_output_t : output_options_t<>
       {"palette",	0, 0, G_OPTION_ARG_INT,		&this->palette,		"Color palette index (default: 0)",			"N"},
       {"background",	0, 0, G_OPTION_ARG_STRING,	&this->background_str,	"Background color",					"rrggbb[aa]"},
       {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->foreground_str,	"Foreground color (default: 000000)",			"rrggbb[aa]"},
+      {"margin",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin, "Margin around output (default: 0)",		"one to four numbers"},
       {nullptr}
     };
     parser->add_group (entries,
@@ -416,10 +445,10 @@ struct draw_output_t : output_options_t<>
 
   void emit_svg_header (const bbox_t &box)
   {
-    float x = box.x1;
-    float y = box.y1;
-    float w = box.x2 - box.x1;
-    float h = box.y2 - box.y1;
+    float x = box.x1 - margin.l;
+    float y = box.y1 - margin.t;
+    float w = box.x2 - box.x1 + margin.l + margin.r;
+    float h = box.y2 - box.y1 + margin.t + margin.b;
     if (!(w > 0.f))
       w = 1.f;
     if (!(h > 0.f))
@@ -1008,6 +1037,7 @@ struct draw_output_t : output_options_t<>
   hb_bool_t has_background = false;
   char *foreground_str = nullptr;
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
+  margin_t margin = {0., 0., 0., 0.};
 
   hb_font_t *font = nullptr;
   hb_font_t *upem_font = nullptr;
