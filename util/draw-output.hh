@@ -604,6 +604,8 @@ struct draw_output_t : output_options_t<>
     if (include_ink)
     {
       // Include ink (actual glyph) extents
+      std::unordered_map<hb_codepoint_t, hb_glyph_extents_t> extents_cache;
+
       for (unsigned li = 0; li < lines.size (); li++)
       {
 	const line_t &line = lines[li];
@@ -612,14 +614,23 @@ struct draw_output_t : output_options_t<>
 	for (const glyph_instance_t &glyph : line.glyphs)
 	{
 	  hb_glyph_extents_t extents;
-	  if (hb_font_get_glyph_extents (upem_font, glyph.gid, &extents))
+	  auto it = extents_cache.find (glyph.gid);
+	  if (it != extents_cache.end ())
 	  {
-	    float x1 = offset.first + glyph.x + extents.x_bearing;
-	    float y1 = offset.second + glyph.y - extents.y_bearing;
-	    float x2 = x1 + extents.width;
-	    float y2 = y1 - extents.height;
-	    include_scaled_rect (&box, glyph_scale_x, glyph_scale_y, x1, y1, x2, y2);
+	    extents = it->second;
 	  }
+	  else if (hb_font_get_glyph_extents (upem_font, glyph.gid, &extents))
+	  {
+	    extents_cache[glyph.gid] = extents;
+	  }
+	  else
+	    continue;
+
+	  float x1 = offset.first + glyph.x + extents.x_bearing;
+	  float y1 = offset.second + glyph.y - extents.y_bearing;
+	  float x2 = x1 + extents.width;
+	  float y2 = y1 - extents.height;
+	  include_scaled_rect (&box, glyph_scale_x, glyph_scale_y, x1, y1, x2, y2);
 	}
       }
     }
