@@ -754,7 +754,7 @@ paint_image (hb_paint_funcs_t *, svg_paint_data_t *data,
     g_string_append (body, "<g transform=\"translate(");
     data->that->append_num_to (body, (float) extents->x_bearing, data->that->precision);
     g_string_append_c (body, ',');
-    data->that->append_num_to (body, (float) (extents->y_bearing + extents->height), data->that->precision);
+    data->that->append_num_to (body, (float) extents->y_bearing, data->that->precision);
     g_string_append (body, ") scale(");
     data->that->append_num_to (body, (float) extents->width / width, data->that->precision);
     g_string_append_c (body, ',');
