@@ -319,12 +319,14 @@ parse_color (const char *s,
   sa = 255;
   if (sscanf (s, "%2x%2x%2x%2x", &sr, &sg, &sb, &sa) <= 2)
   {
-    if (sscanf (s, "%1x%1x%1x%1x", &sr, &sg, &sb, &sa) >= 3)
+    int n = sscanf (s, "%1x%1x%1x%1x", &sr, &sg, &sb, &sa);
+    if (n >= 3)
     {
       sr *= 17;
       sg *= 17;
       sb *= 17;
-      sa *= 17;
+      if (n >= 4)
+	sa *= 17;
       ret = true;
     }
   }
