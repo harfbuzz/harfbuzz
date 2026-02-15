@@ -14,8 +14,11 @@ FontTools from <https://github.com/behdad/fonttools>.
 
 To use `record-test.sh`, just put it right before the `hb-shape` invocation:
 ```sh
-$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh ../../util/hb-subset ../../util/hb-shape font.ttf
+$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh ../../util/hb-shape font.ttf
 ```
+`hb-subset` and `hb-view` are resolved as sibling executables next to the
+provided `hb-shape` binary.
+
 what this does is:
   * Subset the font for the sequence of Unicode characters requested,
   * Compare the `hb-shape` output of the original font versus the subset
@@ -28,7 +31,7 @@ what this does is:
     to an existing or new test file in `data/in-house/tests` using `-o`,
     e.g.:
 ```sh
-$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh -o data/in-house/tests/test-name.tests ../../util/hb-subset ../../util/hb-shape font.ttf
+$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh -o data/in-house/tests/test-name.tests ../../util/hb-shape font.ttf
 ```
 
 If you created a new test file, add it to `data/in-house/meson.build`
