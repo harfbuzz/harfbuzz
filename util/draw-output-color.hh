@@ -112,6 +112,8 @@ static float dot (point_t p, point_t q)
 static point_t normalize_pt (point_t p)
 {
   float len = sqrtf (dot (p, p));
+  if (len == 0.f)
+    return {0.f, 0.f};
   return {p.x / len, p.y / len};
 }
 
@@ -211,7 +213,14 @@ void get_color_stops (svg_paint_data_t *pd HB_UNUSED,
 {
   unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
   if (len > *count)
-    *stops = (hb_color_stop_t *) malloc (len * sizeof (hb_color_stop_t));
+  {
+    hb_color_stop_t *new_stops = (hb_color_stop_t *) malloc (len * sizeof (hb_color_stop_t));
+    if (!new_stops)
+      return;
+    if (*stops != nullptr)
+      free (*stops);
+    *stops = new_stops;
+  }
   hb_color_line_get_color_stops (color_line, 0, &len, *stops);
 
   for (unsigned i = 0; i < len; i++)

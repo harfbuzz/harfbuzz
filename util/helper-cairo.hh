@@ -628,7 +628,7 @@ helper_cairo_create_context (double w, double h,
       cairo_set_source_rgba (cr, 1., 1., 1., br / 255.);
       cairo_paint (cr);
       cairo_set_source_rgba (cr, 1., 1., 1.,
-			     (fr / 255.) * (fa / 255.) + (br / 255) * (1 - (fa / 255.)));
+			     (fr / 255.) * (fa / 255.) + (br / 255.) * (1 - (fa / 255.)));
       break;
     default:
     case CAIRO_CONTENT_COLOR:
