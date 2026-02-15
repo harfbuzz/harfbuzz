@@ -672,7 +672,12 @@ hb_buffer_normalize_glyphs (hb_buffer_t *buffer);
  * @HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS: serialize glyph extents.
  * @HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS: serialize glyph flags. Since: 1.5.0
  * @HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES: do not serialize glyph advances,
- *  glyph offsets will reflect absolute glyph positions. Since: 1.8.0
+ *  glyph offsets will reflect absolute glyph positions. Since: 1.8.0.
+ *  Note: when this flag is used with a partial range of the buffer (i.e.
+ *  @start is not 0), calculating the absolute positions has a cost
+ *  proportional to @start. If the buffer is serialized in many small
+ *  chunks, this can lead to quadratic behavior. It is recommended to
+ *  use a larger @buf_size to minimize this cost.
  * @HB_BUFFER_SERIALIZE_FLAG_DEFINED: All currently defined flags. Since: 4.4.0
  *
  * Flags that control what glyph information are serialized in hb_buffer_serialize_glyphs().

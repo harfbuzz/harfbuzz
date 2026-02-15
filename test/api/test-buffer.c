@@ -946,6 +946,63 @@ test_buffer_serialize_deserialize (void)
 
 }
 
+static void
+test_buffer_serialize_no_advances (void)
+{
+  hb_face_t *face = hb_test_open_font_file_with_index ("fonts/Roboto-Regular.ac.ttf", 0);
+  hb_font_t *font = hb_font_create(face);
+
+  hb_buffer_t *buffer = hb_buffer_create();
+  hb_buffer_add_utf8(buffer, "aaa", -1, 0, -1);
+  hb_buffer_guess_segment_properties(buffer);
+  hb_shape(font, buffer, NULL, 0);
+
+  unsigned int num_glyphs = hb_buffer_get_length(buffer);
+
+  {
+    char test[32];
+    unsigned int start = 0;
+    GString *gstr = g_string_new ("");
+    while (start < num_glyphs)
+    {
+      unsigned int consumed;
+      start += hb_buffer_serialize(buffer, start, num_glyphs,
+                                  test, sizeof(test), &consumed,
+                                  font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
+                                  HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES);
+      if (consumed == 0) break;
+      g_string_append_len (gstr, test, consumed);
+    }
+    g_assert_cmpstr (gstr->str, ==, "[gid1=0|gid1=1@1114,0|gid1=2@2228,0]");
+    g_string_free (gstr, TRUE);
+  }
+
+  {
+    char test[64];
+    unsigned int start = 0;
+    GString *gstr = g_string_new ("");
+    while (start < num_glyphs)
+    {
+      unsigned int consumed;
+      start += hb_buffer_serialize(buffer, start, num_glyphs,
+                                  test, sizeof(test), &consumed,
+                                  font, HB_BUFFER_SERIALIZE_FORMAT_JSON,
+                                  HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES);
+      if (consumed == 0) break;
+      g_string_append_len (gstr, test, consumed);
+    }
+    g_assert_cmpstr (gstr->str, ==, "\
+[{\"g\":\"gid1\",\"cl\":0,\"dx\":0,\"dy\":0},\
+{\"g\":\"gid1\",\"cl\":1,\"dx\":1114,\"dy\":0},\
+{\"g\":\"gid1\",\"cl\":2,\"dx\":2228,\"dy\":0}]");
+    g_string_free (gstr, TRUE);
+  }
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+  hb_buffer_destroy (buffer);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -971,6 +1028,7 @@ main (int argc, char **argv)
   hb_test_add (test_buffer_utf32_conversion);
   hb_test_add (test_buffer_empty);
   hb_test_add (test_buffer_serialize_deserialize);
+  hb_test_add (test_buffer_serialize_no_advances);
 
   return hb_test_run();
 }
