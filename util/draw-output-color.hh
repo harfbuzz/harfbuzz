@@ -690,6 +690,20 @@ paint_color (hb_paint_funcs_t *, svg_paint_data_t *data,
   g_string_append (body, "/>\n");
 }
 
+/* ===== Probe callbacks (no-op, just return success) ===== */
+
+static hb_bool_t
+probe_paint_image (hb_paint_funcs_t *, void *,
+		   hb_blob_t *, unsigned, unsigned,
+		   hb_tag_t, float,
+		   hb_glyph_extents_t *,
+		   void *)
+{
+  return true;
+}
+
+/* ===== Actual paint callbacks ===== */
+
 static hb_bool_t
 paint_image (hb_paint_funcs_t *, svg_paint_data_t *data,
 	     hb_blob_t *image, unsigned width, unsigned height,
@@ -737,17 +751,25 @@ paint_image (hb_paint_funcs_t *, svg_paint_data_t *data,
     gchar *b64 = g_base64_encode ((const guchar *) png_data, len);
 
     GString *body = data->body ();
+    g_string_append (body, "<g transform=\"translate(");
+    data->that->append_num_to (body, (float) extents->x_bearing, data->that->precision);
+    g_string_append_c (body, ',');
+    data->that->append_num_to (body, (float) extents->y_bearing, data->that->precision);
+    g_string_append (body, ") scale(");
+    data->that->append_num_to (body, (float) extents->width / width, data->that->precision);
+    g_string_append_c (body, ',');
+    data->that->append_num_to (body, (float) extents->height / height, data->that->precision);
+    g_string_append (body, ")\">\n");
+
     g_string_append (body, "<image href=\"data:image/png;base64,");
     g_string_append (body, b64);
-    g_string_append (body, "\" x=\"");
-    data->that->append_num_to (body, (float) extents->x_bearing, data->that->precision);
-    g_string_append (body, "\" y=\"");
-    data->that->append_num_to (body, (float) extents->y_bearing, data->that->precision);
     g_string_append (body, "\" width=\"");
-    data->that->append_num_to (body, (float) extents->width, data->that->precision);
+    data->that->append_num_to (body, (float) width, data->that->precision);
     g_string_append (body, "\" height=\"");
-    data->that->append_num_to (body, (float) extents->height, data->that->precision);
+    data->that->append_num_to (body, (float) height, data->that->precision);
     g_string_append (body, "\"/>\n");
+
+    g_string_append (body, "</g>\n");
 
     g_free (b64);
     return true;

@@ -156,6 +156,7 @@ struct draw_output_t : output_options_t<>
     if (!no_color)
     {
       probe_paint_funcs = hb_paint_funcs_create ();
+      hb_paint_funcs_set_image_func (probe_paint_funcs, (hb_paint_image_func_t) probe_paint_image, nullptr, nullptr);
 
       paint_funcs = hb_paint_funcs_create ();
       hb_paint_funcs_set_push_transform_func (paint_funcs, (hb_paint_push_transform_func_t) paint_push_transform, nullptr, nullptr);
