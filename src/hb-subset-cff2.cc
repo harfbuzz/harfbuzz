@@ -692,7 +692,7 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
     }
   }
 
-  // 3. FDArray (use FDArray directly with cff2 types)
+  // 3. FDArray - serialize CFF2 font dicts as CFF1
   {
     auto *fda = c->push<FDArray<HBUINT16>> ();
     cff_font_dict_op_serializer_t fontSzr;
@@ -702,14 +702,15 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
                 { return plan.fdmap.has (&_ - &acc.fontDicts[0]); }),
               hb_iter (private_dict_infos))
     ;
-    // Use cff2_font_dict_values_t as both DICTVAL and INFO types
+    // Explicitly specify template parameters: DICTVAL, INFO
     bool success = fda->serialize<cff2_font_dict_values_t, table_info_t> (c, it, fontSzr);
-    if (unlikely (!success))
+    if (success)
+      plan.info.fd_array_link = c->pop_pack (false);
+    else
     {
       c->pop_discard ();
       return_trace (false);
     }
-    plan.info.fd_array_link = c->pop_pack (false);
   }
 
   // 4. FDSelect (required in CFF1)
