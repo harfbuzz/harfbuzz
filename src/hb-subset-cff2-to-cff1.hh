@@ -119,16 +119,17 @@ struct cff1_from_cff2_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<>
     // We use "Adobe", "Identity", 0 for maximum compatibility
 
     // Allocate space and encode directly
-    // Registry: SID for "Adobe" (standard string #1038)
-    // Ordering: SID for "Identity" (standard string #1039)
+    // Registry: SID for "Adobe" (custom string at index 0 = SID 391)
+    // Ordering: SID for "Identity" (custom string at index 1 = SID 392)
     // Supplement: 0
+    // Note: CFF standard strings end at SID 390, custom strings start at 391
 
     str_buff_t buff;
     str_encoder_t encoder (buff);
 
-    encoder.encode_int (1038);  // Registry SID
-    encoder.encode_int (1039);  // Ordering SID
-    encoder.encode_int (0);     // Supplement
+    encoder.encode_int (391);  // Registry SID ("Adobe" in our String INDEX)
+    encoder.encode_int (392);  // Ordering SID ("Identity" in our String INDEX)
+    encoder.encode_int (0);    // Supplement
     encoder.encode_op (OpCode_ROS);
 
     if (encoder.in_error ())

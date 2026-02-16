@@ -771,21 +771,56 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
     }
   }
 
-  // 7. String INDEX (empty for CID fonts - just a count of 0)
-  // Use push/pop to write to tail side, not head side
+  // 7. String INDEX - Add "Adobe" and "Identity" for ROS operator
   {
-    c->push ();
-    HBUINT16 count;
-    count = 0;
-    if (unlikely (!c->copy (count)))
+    const char *adobe_str = "Adobe";
+    const char *identity_str = "Identity";
+    unsigned adobe_len = 5;  // strlen("Adobe")
+    unsigned identity_len = 8;  // strlen("Identity")
+
+    // Build strings array
+    hb_vector_t<hb_ubytes_t> strings;
+    strings.alloc (2);
+    strings.push (hb_ubytes_t ((const unsigned char *) adobe_str, adobe_len));
+    strings.push (hb_ubytes_t ((const unsigned char *) identity_str, identity_len));
+
+    // Serialize as CFF INDEX
+    auto *dest = c->push<CFF1Index> ();
+    if (likely (dest->serialize (c, strings)))
+      c->pop_pack (false);
+    else
     {
       c->pop_discard ();
       return_trace (false);
     }
-    c->pop_pack (false);
   }
 
-  // 8. Top DICT INDEX
+  // 8. CFF Header
+  OT::cff1 *cff = c->allocate_min<OT::cff1> ();
+  if (unlikely (!cff)) return_trace (false);
+
+  /* header */
+  cff->version.major = 0x01;
+  cff->version.minor = 0x00;
+  cff->nameIndex = cff->min_size;
+  cff->offSize = 4; /* unused? */
+
+  // 9. Name INDEX (single entry: "CFF1Font")
+  {
+    const char *name = "CFF1Font";
+    unsigned name_len = strlen (name);
+
+    CFF1Index *idx = c->start_embed<CFF1Index> ();
+    if (unlikely (!idx)) return_trace (false);
+
+    if (unlikely (!idx->serialize_header (c, hb_iter (&name_len, 1), name_len)))
+      return_trace (false);
+
+    if (unlikely (!c->embed (name, name_len)))
+      return_trace (false);
+  }
+
+  // 10. Top DICT INDEX
   {
     // Serialize the Top DICT data first
     c->push<TopDict> ();
@@ -821,30 +856,6 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
     // Serialize INDEX header
     auto *dest = c->start_embed<CFF1Index> ();
     if (unlikely (!dest->serialize_header (c, hb_iter (&top_size, 1), top_size)))
-      return_trace (false);
-  }
-
-  // 9 & 10. Header + Name INDEX
-  OT::cff1 *cff = c->allocate_min<OT::cff1> ();
-  if (unlikely (!cff)) return_trace (false);
-
-  cff->version.major = 0x01;
-  cff->version.minor = 0x00;
-  cff->nameIndex = OT::cff1::min_size;
-  cff->offSize = 4;
-
-  // Name INDEX (single entry: "CFF1Font")
-  {
-    const char *name = "CFF1Font";
-    unsigned name_len = strlen (name);
-
-    CFF1Index *idx = c->start_embed<CFF1Index> ();
-    if (unlikely (!idx)) return_trace (false);
-
-    if (unlikely (!idx->serialize_header (c, hb_iter (&name_len, 1), name_len)))
-      return_trace (false);
-
-    if (unlikely (!c->embed (name, name_len)))
       return_trace (false);
   }
 
