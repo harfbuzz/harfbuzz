@@ -34,6 +34,7 @@
 #include "hb-subset-plan.hh"
 #include "hb-subset-cff-common.hh"
 #include "hb-cff2-interp-cs.hh"
+#include "hb-subset-cff2-to-cff1.hh"
 
 using namespace CFF;
 
@@ -521,6 +522,332 @@ struct cff2_subset_plan
 };
 } // namespace OT
 
+/*
+ * CFF2 to CFF1 Converter Implementation
+ */
+
+/* Serialize charstrings using CFF1 format (CARD16 counts) */
+static bool
+_serialize_cff1_charstrings (hb_serialize_context_t *c,
+                             OT::cff2_subset_plan &plan)
+{
+  c->push ();
+
+  unsigned data_size = 0;
+  unsigned total_size = CFF1CharStrings::total_size (plan.subset_charstrings, &data_size);
+  if (unlikely (!c->start_zerocopy (total_size)))
+  {
+    c->pop_discard ();
+    return false;
+  }
+
+  auto *cs = c->start_embed<CFF1CharStrings> ();
+  if (unlikely (!cs->serialize (c, plan.subset_charstrings)))
+  {
+    c->pop_discard ();
+    return false;
+  }
+
+  plan.info.char_strings_link = c->pop_pack (false);
+  return true;
+}
+
+/* Serialize CID Charset (format 2 range: gid 0-N -> cid 0-N) */
+static bool
+_serialize_cff1_charset (hb_serialize_context_t *c,
+                         unsigned int num_glyphs,
+                         objidx_t &charset_link)
+{
+  // For CID fonts, create a simple identity charset
+  // Format 2: one range covering all glyphs (except .notdef)
+  c->push ();
+
+  auto *charset = c->start_embed<Charset> ();
+  if (unlikely (!charset))
+  {
+    c->pop_discard ();
+    return false;
+  }
+
+  // Create a single range for CID 1 to num_glyphs-1
+  hb_vector_t<code_pair_t> ranges;
+  if (num_glyphs > 1)
+  {
+    code_pair_t range;
+    range.code = 1;  // first CID
+    range.glyph = num_glyphs - 2;  // nLeft (covers glyphs 1 to num_glyphs-1)
+    ranges.push (range);
+  }
+
+  if (unlikely (!charset->serialize (c, 2, num_glyphs, ranges)))
+  {
+    c->pop_discard ();
+    return false;
+  }
+
+  charset_link = c->pop_pack ();
+  return true;
+}
+
+/* CFF2 to CFF1 serialization */
+namespace CFF {
+
+bool
+serialize_cff2_to_cff1 (hb_serialize_context_t *c,
+                        OT::cff2_subset_plan &plan,
+                        const cff2_top_dict_values_t &cff2_topDict,
+                        const OT::cff2::accelerator_subset_t &acc)
+{
+  TRACE_SERIALIZE (this);
+
+  /*
+   * CFF1 Serialization Order (reverse, as HarfBuzz packs from end):
+   * 1. CharStrings
+   * 2. Private DICs & Local Subrs
+   * 3. FDArray
+   * 4. FDSelect
+   * 5. Charset
+   * 6. Global Subrs
+   * 7. String INDEX
+   * 8. Top DICT INDEX
+   * 9. Name INDEX
+   * 10. Header
+   */
+
+  // 1. CharStrings
+  if (!_serialize_cff1_charstrings (c, plan))
+    return_trace (false);
+
+  // 2. Private DICs & Local Subrs (same as CFF2)
+  hb_vector_t<table_info_t> private_dict_infos;
+  if (unlikely (!private_dict_infos.resize (plan.subset_fdcount)))
+    return_trace (false);
+
+  for (int i = (int)acc.privateDicts.length; --i >= 0;)
+  {
+    if (plan.fdmap.has (i))
+    {
+      objidx_t subrs_link = 0;
+
+      if (plan.subset_localsubrs[i].length > 0)
+      {
+        auto *dest = c->push<CFF1Subrs> ();
+        if (likely (dest->serialize (c, plan.subset_localsubrs[i])))
+          subrs_link = c->pop_pack (false);
+        else
+        {
+          c->pop_discard ();
+          return_trace (false);
+        }
+      }
+
+      auto *pd = c->push<PrivateDict> ();
+      // For CFF1, use a simple serializer that copies operators
+      // We already flattened/instantiated, so no blend operators remain
+      struct cff1_private_dict_op_serializer_t : op_serializer_t
+      {
+        cff1_private_dict_op_serializer_t (bool desubroutinize_, bool drop_hints_)
+          : desubroutinize (desubroutinize_), drop_hints (drop_hints_) {}
+
+        bool serialize (hb_serialize_context_t *c,
+                        const op_str_t &opstr,
+                        objidx_t subrs_link) const
+        {
+          TRACE_SERIALIZE (this);
+
+          if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
+            return_trace (true);
+
+          if (opstr.op == OpCode_Subrs)
+          {
+            if (desubroutinize || !subrs_link)
+              return_trace (true);
+            else
+              return_trace (FontDict::serialize_link2_op (c, opstr.op, subrs_link));
+          }
+
+          // Skip CFF2-specific operators
+          if (opstr.op == OpCode_vsindexdict || opstr.op == OpCode_blenddict)
+            return_trace (true);
+
+          return_trace (copy_opstr (c, opstr));
+        }
+
+        const bool desubroutinize;
+        const bool drop_hints;
+      };
+
+      cff1_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
+      if (likely (pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link)))
+      {
+        unsigned fd = plan.fdmap[i];
+        private_dict_infos[fd].size = c->length ();
+        private_dict_infos[fd].link = c->pop_pack ();
+      }
+      else
+      {
+        c->pop_discard ();
+        return_trace (false);
+      }
+    }
+  }
+
+  // 3. FDArray (use FDArray directly with cff2 types)
+  {
+    auto *fda = c->push<FDArray<HBUINT16>> ();
+    cff_font_dict_op_serializer_t fontSzr;
+    auto it =
+    + hb_zip (+ hb_iter (acc.fontDicts)
+              | hb_filter ([&] (const cff2_font_dict_values_t &_)
+                { return plan.fdmap.has (&_ - &acc.fontDicts[0]); }),
+              hb_iter (private_dict_infos))
+    ;
+    // Use cff2_font_dict_values_t as both DICTVAL and INFO types
+    bool success = fda->serialize<cff2_font_dict_values_t, table_info_t> (c, it, fontSzr);
+    if (unlikely (!success))
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+    plan.info.fd_array_link = c->pop_pack (false);
+  }
+
+  // 4. FDSelect (required in CFF1)
+  if (acc.fdSelect != &Null (CFF2FDSelect))
+  {
+    c->push ();
+    if (likely (hb_serialize_cff_fdselect (c, plan.num_glyphs,
+                                          *(const FDSelect *)acc.fdSelect,
+                                          plan.orig_fdcount,
+                                          plan.subset_fdselect_format,
+                                          plan.subset_fdselect_size,
+                                          plan.subset_fdselect_ranges)))
+      plan.info.fd_select.link = c->pop_pack ();
+    else
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+  }
+  else if (plan.subset_fdcount > 1)
+  {
+    // CFF2 doesn't require FDSelect if there's only one FD, but CFF1 does
+    // Create a default FDSelect mapping all glyphs to FD 0
+    c->push ();
+    FDSelect0 *fdsel = c->start_embed<FDSelect0> ();
+    if (unlikely (!fdsel))
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+
+    for (unsigned i = 0; i < plan.num_glyphs; i++)
+    {
+      HBUINT8 fd;
+      fd = 0;
+      if (unlikely (!c->embed (fd)))
+      {
+        c->pop_discard ();
+        return_trace (false);
+      }
+    }
+    plan.info.fd_select.link = c->pop_pack ();
+  }
+
+  // 5. Charset (CID charset for identity mapping)
+  objidx_t charset_link;
+  if (!_serialize_cff1_charset (c, plan.num_glyphs, charset_link))
+    return_trace (false);
+
+  // 6. Global Subrs
+  {
+    auto *dest = c->push<CFF1Subrs> ();
+    if (likely (dest->serialize (c, plan.subset_globalsubrs)))
+      c->pop_pack (false);
+    else
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+  }
+
+  // 7. String INDEX (empty for CID fonts)
+  {
+    CFF1StringIndex *idx = c->start_embed<CFF1StringIndex> ();
+    if (unlikely (!idx)) return_trace (false);
+    HBUINT16 count;
+    count = 0;
+    if (unlikely (!c->embed (count))) return_trace (false);
+  }
+
+  // 8. Top DICT INDEX
+  {
+    // Serialize the Top DICT data first
+    c->push<TopDict> ();
+    cff1_from_cff2_top_dict_op_serializer_t topSzr;
+
+    // Serialize ROS first
+    if (unlikely (!topSzr.serialize_ros (c)))
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+
+    // Serialize charset operator
+    if (charset_link && unlikely (!FontDict::serialize_link4_op (c, OpCode_charset, charset_link, whence_t::Absolute)))
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+
+    // Serialize other operators from CFF2 TopDict
+    for (const auto &opstr : cff2_topDict.values)
+    {
+      if (unlikely (!topSzr.serialize (c, opstr, plan.info)))
+      {
+        c->pop_discard ();
+        return_trace (false);
+      }
+    }
+
+    unsigned top_size = c->length ();
+    c->pop_pack (false);
+
+    // Serialize INDEX header
+    auto *dest = c->start_embed<CFF1Index> ();
+    if (unlikely (!dest->serialize_header (c, hb_iter (&top_size, 1), top_size)))
+      return_trace (false);
+  }
+
+  // 9 & 10. Header + Name INDEX
+  OT::cff1 *cff = c->allocate_min<OT::cff1> ();
+  if (unlikely (!cff)) return_trace (false);
+
+  cff->version.major = 0x01;
+  cff->version.minor = 0x00;
+  cff->nameIndex = OT::cff1::min_size;
+  cff->offSize = 4;
+
+  // Name INDEX (single entry: "CFF1Font")
+  {
+    const char *name = "CFF1Font";
+    unsigned name_len = strlen (name);
+
+    CFF1Index *idx = c->start_embed<CFF1Index> ();
+    if (unlikely (!idx)) return_trace (false);
+
+    if (unlikely (!idx->serialize_header (c, hb_iter (&name_len, 1), name_len)))
+      return_trace (false);
+
+    if (unlikely (!c->embed (name, name_len)))
+      return_trace (false);
+  }
+
+  return_trace (true);
+}
+
+} /* namespace CFF */
+
 static bool _serialize_cff2_charstrings (hb_serialize_context_t *c,
 			     cff2_subset_plan &plan,
 			     const OT::cff2::accelerator_subset_t  &acc)
@@ -669,6 +996,13 @@ OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
   cff2_subset_plan cff2_plan;
 
   if (unlikely (!cff2_plan.create (*this, c->plan))) return false;
+
+  // If instantiating (pinned), convert to CFF1
+  if (cff2_plan.pinned)
+  {
+    return CFF::serialize_cff2_to_cff1 (c->serializer, cff2_plan, topDict, *this);
+  }
+
   return serialize (c->serializer, cff2_plan,
 		    c->plan->normalized_coords.as_array ());
 }
