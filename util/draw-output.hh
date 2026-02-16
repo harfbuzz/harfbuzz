@@ -144,6 +144,12 @@ struct draw_output_t : output_options_t<>
 
     upem_font = hb_font_create (hb_font_get_face (font));
     hb_font_set_scale (upem_font, upem, upem);
+#ifndef HB_NO_VAR
+    unsigned int coords_length;
+    const float *coords = hb_font_get_var_coords_design (font, &coords_length);
+    if (coords_length)
+      hb_font_set_var_coords_design (upem_font, coords, coords_length);
+#endif
 
     path = g_string_new (nullptr);
     draw_funcs = hb_draw_funcs_create ();
