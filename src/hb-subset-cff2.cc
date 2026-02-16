@@ -771,13 +771,18 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
     }
   }
 
-  // 7. String INDEX (empty for CID fonts)
+  // 7. String INDEX (empty for CID fonts - just a count of 0)
+  // Use push/pop to write to tail side, not head side
   {
-    CFF1StringIndex *idx = c->start_embed<CFF1StringIndex> ();
-    if (unlikely (!idx)) return_trace (false);
+    c->push ();
     HBUINT16 count;
     count = 0;
-    if (unlikely (!c->embed (count))) return_trace (false);
+    if (unlikely (!c->copy (count)))
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+    c->pop_pack (false);
   }
 
   // 8. Top DICT INDEX
@@ -1000,7 +1005,33 @@ OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
   // If instantiating (pinned), convert to CFF1
   if (cff2_plan.pinned)
   {
-    return CFF::serialize_cff2_to_cff1 (c->serializer, cff2_plan, topDict, *this);
+    // Serialize CFF1 using the same serializer
+    bool result = CFF::serialize_cff2_to_cff1 (c->serializer, cff2_plan, topDict, *this);
+
+    if (result && !c->serializer->in_error ())
+    {
+      // Copy the serialized CFF1 data (don't end_serialize, caller will do that)
+      hb_bytes_t bytes = c->serializer->copy_bytes ();
+      hb_blob_t *dest_blob = hb_blob_create (bytes.arrayZ, bytes.length,
+                                              HB_MEMORY_MODE_WRITABLE,
+                                              (char *) bytes.arrayZ, hb_free);
+
+      if (dest_blob)
+      {
+        // Add as CFF table (not CFF2)
+        c->plan->add_table (HB_TAG('C','F','F',' '), dest_blob);
+        hb_blob_destroy (dest_blob);
+
+        // Return false to signal CFF2 table is not needed
+        return false;
+      }
+      else
+      {
+        hb_free ((void*)bytes.arrayZ);
+      }
+    }
+
+    // Fallback to regular CFF2 if conversion fails
   }
 
   return serialize (c->serializer, cff2_plan,
