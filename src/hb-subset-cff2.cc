@@ -536,8 +536,34 @@ _serialize_cff1_charstrings (hb_serialize_context_t *c,
 {
   c->push ();
 
+  // CFF1 requires endchar at the end of each CharString, but CFF2 doesn't
+  // Append endchar (opcode 14) to each flattened CFF2 CharString if not present
+  str_buff_vec_t cff1_charstrings;
+  if (unlikely (!cff1_charstrings.resize (plan.subset_charstrings.length)))
+  {
+    c->pop_discard ();
+    return false;
+  }
+
+  for (unsigned i = 0; i < plan.subset_charstrings.length; i++)
+  {
+    const str_buff_t &cs = plan.subset_charstrings[i];
+    cff1_charstrings[i] = cs; // Copy the CharString
+
+    // Check if it already ends with endchar (0x0e) or return (0x0b)
+    if (cs.length == 0 || (cs.tail () != 0x0e && cs.tail () != 0x0b))
+    {
+      // Append endchar operator
+      if (unlikely (!cff1_charstrings[i].push (0x0e)))
+      {
+        c->pop_discard ();
+        return false;
+      }
+    }
+  }
+
   unsigned data_size = 0;
-  unsigned total_size = CFF1CharStrings::total_size (plan.subset_charstrings, &data_size);
+  unsigned total_size = CFF1CharStrings::total_size (cff1_charstrings, &data_size);
   if (unlikely (!c->start_zerocopy (total_size)))
   {
     c->pop_discard ();
@@ -545,7 +571,7 @@ _serialize_cff1_charstrings (hb_serialize_context_t *c,
   }
 
   auto *cs = c->start_embed<CFF1CharStrings> ();
-  if (unlikely (!cs->serialize (c, plan.subset_charstrings)))
+  if (unlikely (!cs->serialize (c, cff1_charstrings)))
   {
     c->pop_discard ();
     return false;
@@ -683,7 +709,9 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
     }
   }
 
-  // 4. FDSelect (required in CFF1)
+  // 4. FDSelect (required in CFF1 CID-keyed fonts)
+  // CFF1 requires FDSelect for all CID-keyed fonts, even with just one FD
+  // CFF2 makes it optional when there's only one FD
   if (acc.fdSelect != &Null (CFF2FDSelect))
   {
     c->push ();
@@ -700,10 +728,9 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
       return_trace (false);
     }
   }
-  else if (plan.subset_fdcount > 1)
+  else
   {
-    // CFF2 doesn't require FDSelect if there's only one FD, but CFF1 does
-    // Create a default FDSelect mapping all glyphs to FD 0
+    // Create an FDSelect mapping all glyphs to FD 0
     c->push ();
     FDSelect0 *fdsel = c->start_embed<FDSelect0> ();
     if (unlikely (!fdsel))
@@ -806,6 +833,20 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
 
     // Serialize charset operator
     if (charset_link && unlikely (!FontDict::serialize_link4_op (c, OpCode_charset, charset_link, whence_t::Absolute)))
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+
+    // Serialize FDSelect operator (required for CID-keyed CFF1 fonts)
+    if (plan.info.fd_select.link && unlikely (!FontDict::serialize_link4_op (c, OpCode_FDSelect, plan.info.fd_select.link, whence_t::Absolute)))
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+
+    // Serialize FDArray operator (required for CID-keyed CFF1 fonts)
+    if (plan.info.fd_array_link && unlikely (!FontDict::serialize_link4_op (c, OpCode_FDArray, plan.info.fd_array_link, whence_t::Absolute)))
     {
       c->pop_discard ();
       return_trace (false);

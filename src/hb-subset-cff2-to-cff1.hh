@@ -100,10 +100,10 @@ struct cff1_from_cff2_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<>
         return_trace (FontDict::serialize_link4_op(c, opstr.op, info.char_strings_link, whence_t::Absolute));
 
       case OpCode_FDArray:
-        return_trace (FontDict::serialize_link4_op(c, opstr.op, info.fd_array_link, whence_t::Absolute));
-
       case OpCode_FDSelect:
-        return_trace (FontDict::serialize_link4_op(c, opstr.op, info.fd_select.link, whence_t::Absolute));
+        // These are explicitly serialized in the main function to ensure they're present
+        // even if CFF2 doesn't have them. Skip them here to avoid duplication.
+        return_trace (true);
 
       default:
         return_trace (copy_opstr (c, opstr));
