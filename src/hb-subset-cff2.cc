@@ -439,6 +439,7 @@ struct cff2_subset_plan
     pinned = (bool) plan->normalized_coords;
     normalized_coords = plan->normalized_coords;
     head_maxp_info = plan->head_maxp_info;
+    hmtx_map = &plan->hmtx_map;
     desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE ||
 		     pinned; // For instancing we need this path
 
@@ -524,6 +525,11 @@ struct cff2_subset_plan
 
   hb_array_t<int> normalized_coords; // For instantiation
   head_maxp_info_t head_maxp_info;  // For FontBBox
+  const hb_hashmap_t<hb_codepoint_t, hb_pair_t<unsigned, int>> *hmtx_map; // For widths
+
+  // Width optimization results (for CFF1 conversion)
+  unsigned default_width = 0;
+  unsigned nominal_width = 0;
 };
 } // namespace OT
 
@@ -531,15 +537,20 @@ struct cff2_subset_plan
  * CFF2 to CFF1 Converter Implementation
  */
 
-/* Serialize charstrings using CFF1 format (CARD16 counts) */
+#include "hb-cff-width-optimizer.hh"
+
+/* Serialize charstrings using CFF1 format with widths */
 static bool
 _serialize_cff1_charstrings (hb_serialize_context_t *c,
-                             OT::cff2_subset_plan &plan)
+                             OT::cff2_subset_plan &plan,
+                             unsigned default_width,
+                             unsigned nominal_width)
 {
   c->push ();
 
-  // CFF1 requires endchar at the end of each CharString, but CFF2 doesn't
-  // Append endchar (opcode 14) to each flattened CFF2 CharString if not present
+  // CFF1 requires:
+  // 1. Width at the beginning (if != defaultWidthX)
+  // 2. endchar at the end
   str_buff_vec_t cff1_charstrings;
   if (unlikely (!cff1_charstrings.resize (plan.subset_charstrings.length)))
   {
@@ -550,7 +561,23 @@ _serialize_cff1_charstrings (hb_serialize_context_t *c,
   for (unsigned i = 0; i < plan.subset_charstrings.length; i++)
   {
     const str_buff_t &cs = plan.subset_charstrings[i];
-    cff1_charstrings[i] = cs; // Copy the CharString
+
+    // Get width for this glyph from hmtx_map
+    unsigned width = 0;
+    if (plan.hmtx_map->has (i))
+      width = plan.hmtx_map->get (i).first;
+
+    // Encode width if different from default
+    str_encoder_t encoder (cff1_charstrings[i]);
+    if (width != default_width)
+    {
+      int delta = (int) width - (int) nominal_width;
+      encoder.encode_int (delta);
+    }
+
+    // Copy the CharString
+    for (unsigned j = 0; j < cs.length; j++)
+      cff1_charstrings[i].push (cs[j]);
 
     // Check if it already ends with endchar (0x0e) or return (0x0b)
     if (cs.length == 0 || (cs.tail () != 0x0e && cs.tail () != 0x0b))
@@ -645,8 +672,26 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
    * 10. Header
    */
 
-  // 1. CharStrings
-  if (!_serialize_cff1_charstrings (c, plan))
+  // 0. Optimize width encoding (for all FDs)
+  {
+    // Collect widths from hmtx_map
+    hb_vector_t<unsigned> widths;
+    widths.alloc (plan.num_glyphs);
+
+    for (unsigned gid = 0; gid < plan.num_glyphs; gid++)
+    {
+      unsigned width = 0;
+      if (plan.hmtx_map->has (gid))
+        width = plan.hmtx_map->get (gid).first;
+      widths.push (width);
+    }
+
+    // Optimize defaultWidthX and nominalWidthX
+    CFF::optimize_widths (widths, plan.default_width, plan.nominal_width);
+  }
+
+  // 1. CharStrings (with widths prepended)
+  if (!_serialize_cff1_charstrings (c, plan, plan.default_width, plan.nominal_width))
     return_trace (false);
 
   // 2. Private DICs & Local Subrs (same as CFF2)
@@ -678,9 +723,25 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
                                                   acc.varStore, plan.normalized_coords);
       if (likely (pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link)))
       {
-        unsigned fd = plan.fdmap[i];
-        private_dict_infos[fd].size = c->length ();
-        private_dict_infos[fd].link = c->pop_pack ();
+        // Add defaultWidthX and nominalWidthX for CFF1
+        str_buff_t width_ops;
+        str_encoder_t encoder (width_ops);
+        encoder.encode_int (plan.default_width);
+        encoder.encode_op (OpCode_defaultWidthX);
+        encoder.encode_int (plan.nominal_width);
+        encoder.encode_op (OpCode_nominalWidthX);
+
+        if (!encoder.in_error () && c->embed (width_ops.as_bytes ().arrayZ, width_ops.length))
+        {
+          unsigned fd = plan.fdmap[i];
+          private_dict_infos[fd].size = c->length ();
+          private_dict_infos[fd].link = c->pop_pack ();
+        }
+        else
+        {
+          c->pop_discard ();
+          return_trace (false);
+        }
       }
       else
       {
