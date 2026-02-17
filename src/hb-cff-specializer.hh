@@ -25,21 +25,138 @@ is_zero (const number_t &n)
   return n.to_int () == 0;
 }
 
+/* Generalize CharString commands to canonical form
+ *
+ * Converts all operators to their general forms and breaks down
+ * multi-segment operators into single segments. This ensures we
+ * start from a clean baseline before specialization.
+ *
+ * Based on fontTools.cffLib.specializer.generalizeCommands
+ */
+static void
+generalize_commands (hb_vector_t<cs_command_t> &commands)
+{
+  hb_vector_t<cs_command_t> result;
+  result.alloc (commands.length * 2);  /* Estimate: might expand */
+
+  for (unsigned i = 0; i < commands.length; i++)
+  {
+    auto &cmd = commands[i];
+
+    switch (cmd.op)
+    {
+      case OpCode_hmoveto:
+      case OpCode_vmoveto:
+      {
+        /* Convert to rmoveto with explicit dx,dy */
+        cs_command_t gen (OpCode_rmoveto);
+        gen.args.alloc (2);
+
+        if (cmd.op == OpCode_hmoveto && cmd.args.length >= 1)
+        {
+          gen.args.push (cmd.args[0]);  /* dx */
+          number_t zero; zero.set_int (0);
+          gen.args.push (zero);          /* dy = 0 */
+        }
+        else if (cmd.op == OpCode_vmoveto && cmd.args.length >= 1)
+        {
+          number_t zero; zero.set_int (0);
+          gen.args.push (zero);          /* dx = 0 */
+          gen.args.push (cmd.args[0]);  /* dy */
+        }
+        result.push (gen);
+        break;
+      }
+
+      case OpCode_hlineto:
+      case OpCode_vlineto:
+      {
+        /* Convert h/v lineto to rlineto, breaking into single segments
+         * hlineto alternates: dx1 (→ dx1,0) dy1 (→ 0,dy1) dx2 (→ dx2,0) ...
+         * vlineto alternates: dy1 (→ 0,dy1) dx1 (→ dx1,0) dy2 (→ 0,dy2) ... */
+        bool is_h = (cmd.op == OpCode_hlineto);
+        number_t zero; zero.set_int (0);
+
+        for (unsigned j = 0; j < cmd.args.length; j++)
+        {
+          cs_command_t seg (OpCode_rlineto);
+          seg.args.alloc (2);
+
+          bool is_horizontal = is_h ? (j % 2 == 0) : (j % 2 == 1);
+          if (is_horizontal)
+          {
+            seg.args.push (cmd.args[j]);  /* dx */
+            seg.args.push (zero);          /* dy = 0 */
+          }
+          else
+          {
+            seg.args.push (zero);          /* dx = 0 */
+            seg.args.push (cmd.args[j]);  /* dy */
+          }
+          result.push (seg);
+        }
+        break;
+      }
+
+      case OpCode_rlineto:
+      {
+        /* Break into single segments (dx,dy pairs) */
+        for (unsigned j = 0; j + 1 < cmd.args.length; j += 2)
+        {
+          cs_command_t seg (OpCode_rlineto);
+          seg.args.alloc (2);
+          seg.args.push (cmd.args[j]);
+          seg.args.push (cmd.args[j + 1]);
+          result.push (seg);
+        }
+        break;
+      }
+
+      case OpCode_rrcurveto:
+      {
+        /* Break into single segments (6 args each) */
+        for (unsigned j = 0; j + 5 < cmd.args.length; j += 6)
+        {
+          cs_command_t seg (OpCode_rrcurveto);
+          seg.args.alloc (6);
+          for (unsigned k = 0; k < 6; k++)
+            seg.args.push (cmd.args[j + k]);
+          result.push (seg);
+        }
+        break;
+      }
+
+      default:
+        /* Keep other operators as-is */
+        result.push (cmd);
+        break;
+    }
+  }
+
+  /* Replace commands with generalized result */
+  commands.resize (0);
+  for (unsigned i = 0; i < result.length; i++)
+    commands.push (result[i]);
+}
+
 /* Specialize CharString commands to optimize bytecode size
  *
- * Performs key optimizations:
- * 1. Convert rmoveto/rlineto to h/v variants when dx or dy is zero
- * 2. Combine adjacent compatible operators
- * 3. Respect maxstack limit (default 48 for CFF1)
+ * Follows fontTools approach:
+ * 0. Generalize: Break down to canonical single-segment form
+ * 1. Specialize: Convert rmoveto/rlineto to h/v variants when dx or dy is zero
+ * 2. Combine: Merge adjacent compatible operators
+ * 3. Enforce: Respect maxstack limit (default 48 for CFF1)
  *
- * For now, implements essential optimizations. Full specialization
- * (curve variants, peephole opts, etc.) can be added later.
+ * This ensures we never exceed stack depth while optimizing bytecode.
  */
 static void
 specialize_commands (hb_vector_t<cs_command_t> &commands,
                      unsigned maxstack = 48)
 {
   if (commands.length == 0) return;
+
+  /* Pass 0: Generalize to canonical form (fontTools does this first) */
+  generalize_commands (commands);
 
   /* Pass 1: Specialize rmoveto/rlineto into h/v variants */
   for (unsigned i = 0; i < commands.length; i++)
