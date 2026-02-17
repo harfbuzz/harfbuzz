@@ -46,16 +46,35 @@ struct cff2_top_dict_values_t;
 /*
  * CFF2 to CFF1 Converter
  *
- * Converts an instantiated CFF2 font to CFF1 format.
+ * Converts an instantiated (pinned) CFF2 variable font to CFF1 format.
  * This is used when instantiating a variable font to a static instance.
+ *
+ * IMPLEMENTATION STATUS:
+ * ✓ CFF1 structure (Header, Name INDEX, String INDEX, Top DICT INDEX)
+ * ✓ ROS operator (makes font CID-keyed: "Adobe-Identity-0")
+ * ✓ FDArray and FDSelect in Top DICT (required for CID fonts)
+ * ✓ FDSelect3 format (compact range-based, 8 bytes for single-FD fonts)
+ * ✓ CID Charset with identity mapping (format 2)
+ * ✓ CharStrings with endchar operators (CFF1 requires, CFF2 doesn't)
+ * ✓ Private DICT instantiation (blend operators evaluated)
+ * ✓ Desubroutinized path (CharStrings are flattened, no subroutines)
+ * ✓ OTS validation passes
+ * ✓ HarfBuzz rendering works
+ *
+ * KNOWN LIMITATIONS:
+ * ✗ FontBBox is "0 0 0 0" (should calculate actual bounds)
+ * ✗ Width handling not verified (CFF2 uses hmtx, CFF1 encodes in CharStrings)
+ * ✗ Stack depth not checked (CFF1 max=48, CFF2 max=513, could overflow)
+ * ✗ Only supports CID-keyed fonts (name-keyed not needed for variable fonts)
  *
  * Key conversions:
  * - Version: 2 -> 1
  * - Add Name INDEX (required in CFF1)
  * - Wrap Top DICT in an INDEX (inline in CFF2, indexed in CFF1)
- * - Add String INDEX (empty for CID fonts)
- * - Add ROS operator to Top DICT (make it CID-keyed)
- * - Ensure FDSelect exists (optional in CFF2, required in CFF1)
+ * - Add String INDEX ("Adobe", "Identity" for ROS operator)
+ * - Add ROS operator to Top DICT (makes it CID-keyed)
+ * - Add FDSelect to Top DICT (required in CFF1 even with single FD)
+ * - Add endchar to CharStrings (required in CFF1, optional in CFF2)
  */
 
 struct cff1_subset_plan_from_cff2_t
