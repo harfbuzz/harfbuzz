@@ -1215,8 +1215,8 @@ OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
 
   if (unlikely (!cff2_plan.create (*this, c->plan))) return false;
 
-  // If instantiating (pinned), convert to CFF1
-  if (cff2_plan.pinned)
+  // If instantiating (pinned) and downgrade flag is set, convert to CFF1
+  if (cff2_plan.pinned && (c->plan->flags & HB_SUBSET_FLAGS_DOWNGRADE_CFF2))
   {
     // Serialize CFF1 to the subsetter's serializer
     // If we run out of room, returning true will cause subsetter to retry with larger buffer
