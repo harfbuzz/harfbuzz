@@ -55,6 +55,11 @@ struct cff2_top_dict_values_t;
  * ✓ FDArray and FDSelect in Top DICT (required for CID fonts)
  * ✓ FDSelect3 format (compact range-based, 8 bytes for single-FD fonts)
  * ✓ CID Charset with identity mapping (format 2)
+ * ✓ FontBBox from head table (xMin, yMin, xMax, yMax)
+ * ✓ Width optimization (defaultWidthX/nominalWidthX with O(n) algorithm)
+ * ✓ Width encoding in CharStrings (prepended if != defaultWidthX)
+ * ✓ CharString specialization (h/v operators, combined when possible)
+ * ✓ Stack depth control (generalize→specialize with maxstack=48)
  * ✓ CharStrings with endchar operators (CFF1 requires, CFF2 doesn't)
  * ✓ Private DICT instantiation (blend operators evaluated)
  * ✓ Desubroutinized path (CharStrings are flattened, no subroutines)
@@ -62,10 +67,9 @@ struct cff2_top_dict_values_t;
  * ✓ HarfBuzz rendering works
  *
  * KNOWN LIMITATIONS:
- * ✗ FontBBox is "0 0 0 0" (should calculate actual bounds)
- * ✗ Width handling not verified (CFF2 uses hmtx, CFF1 encodes in CharStrings)
- * ✗ Stack depth not checked (CFF1 max=48, CFF2 max=513, could overflow)
  * ✗ Only supports CID-keyed fonts (name-keyed not needed for variable fonts)
+ * ✗ Curve operator specialization not implemented (hhcurveto, vvcurveto, etc.)
+ * ✗ Peephole optimization not implemented (minor size optimization)
  *
  * Key conversions:
  * - Version: 2 -> 1
