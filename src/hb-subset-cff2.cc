@@ -730,25 +730,47 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
   }
   else
   {
-    // Create an FDSelect mapping all glyphs to FD 0
+    // Create a range-based FDSelect3 mapping all glyphs to FD 0
+    // Format: format(1) + nRanges(2) + range(3) + sentinel(2) = 8 bytes
     c->push ();
-    FDSelect0 *fdsel = c->start_embed<FDSelect0> ();
-    if (unlikely (!fdsel))
+
+    // Format byte
+    HBUINT8 format;
+    format = 3;
+    if (unlikely (!c->embed (format)))
     {
       c->pop_discard ();
       return_trace (false);
     }
 
-    for (unsigned i = 0; i < plan.num_glyphs; i++)
+    // nRanges
+    HBUINT16 nRanges;
+    nRanges = 1;
+    if (unlikely (!c->embed (nRanges)))
     {
-      HBUINT8 fd;
-      fd = 0;
-      if (unlikely (!c->embed (fd)))
-      {
-        c->pop_discard ();
-        return_trace (false);
-      }
+      c->pop_discard ();
+      return_trace (false);
     }
+
+    // Single range: {first: 0, fd: 0}
+    FDSelect3_Range range;
+    range.first = 0;
+    range.fd = 0;
+    if (unlikely (!c->embed (range)))
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+
+    // Sentinel (number of glyphs)
+    HBUINT16 sentinel;
+    sentinel = plan.num_glyphs;
+    if (unlikely (!c->embed (sentinel)))
+    {
+      c->pop_discard ();
+      return_trace (false);
+    }
+
     plan.info.fd_select.link = c->pop_pack ();
   }
 
