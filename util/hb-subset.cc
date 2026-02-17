@@ -980,6 +980,7 @@ subset_main_t::add_options ()
     {"no-hinting",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_HINTING>,		"Whether to drop hints", nullptr},
     {"retain-gids",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,		"If set don't renumber glyph ids in the subset.", nullptr},
     {"desubroutinize",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,		"Remove CFF/CFF2 use of subroutines", nullptr},
+    {"downgrade-cff2",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DOWNGRADE_CFF2>,		"Convert instantiated variable fonts from CFF2 to CFF1", nullptr},
     {"name-legacy",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NAME_LEGACY>,		"Keep legacy (non-Unicode) 'name' table entries", nullptr},
     {"set-overlaps-flag",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG>,	"Set the overlaps flag on each glyph.", nullptr},
     {"notdef-outline",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NOTDEF_OUTLINE>,		"Keep the outline of \'.notdef\' glyph", nullptr},

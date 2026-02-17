@@ -54,6 +54,7 @@
 #include "hb-style.cc"
 #include "hb-subset-cff-common.cc"
 #include "hb-subset-cff1.cc"
+#include "hb-subset-cff2-to-cff1.cc"
 #include "hb-subset-cff2.cc"
 #include "hb-subset-input.cc"
 #include "hb-subset-instancer-iup.cc"
