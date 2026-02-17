@@ -43,6 +43,9 @@ namespace CFF {
 // Forward declaration
 struct cff2_top_dict_values_t;
 
+// Default font name for converted CFF1 fonts
+static constexpr const char CFF1_DEFAULT_FONT_NAME[] = "CFF1Font";
+
 /*
  * CFF2 to CFF1 Converter
  *
@@ -93,11 +96,9 @@ struct cff1_subset_plan_from_cff2_t
     cff2_plan = &cff2_plan_;
 
     // Create a simple font name (CFF1 requires a Name INDEX)
-    // For subsets, we can use a generic name
-    const char *name = "CFF1Font";
-    fontName.resize (strlen (name));
+    fontName.resize (strlen (CFF1_DEFAULT_FONT_NAME));
     if (fontName.in_error ()) return false;
-    memcpy (fontName.arrayZ, name, strlen (name));
+    memcpy (fontName.arrayZ, CFF1_DEFAULT_FONT_NAME, strlen (CFF1_DEFAULT_FONT_NAME));
 
     return true;
   }

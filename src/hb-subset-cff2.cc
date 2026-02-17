@@ -975,10 +975,9 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
   cff->nameIndex = cff->min_size;
   cff->offSize = 4; /* unused? */
 
-  // 9. Name INDEX (single entry: "CFF1Font")
+  // 9. Name INDEX (single entry)
   {
-    const char *name = "CFF1Font";
-    unsigned name_len = strlen (name);
+    unsigned name_len = strlen (CFF1_DEFAULT_FONT_NAME);
 
     CFF1Index *idx = c->start_embed<CFF1Index> ();
     if (unlikely (!idx)) return_trace (false);
@@ -986,7 +985,7 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
     if (unlikely (!idx->serialize_header (c, hb_iter (&name_len, 1), name_len)))
       return_trace (false);
 
-    if (unlikely (!c->embed (name, name_len)))
+    if (unlikely (!c->embed (CFF1_DEFAULT_FONT_NAME, name_len)))
       return_trace (false);
   }
 
