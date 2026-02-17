@@ -608,6 +608,7 @@ struct cff2_subset_plan
  */
 
 #include "hb-cff-width-optimizer.hh"
+#include "hb-cff-specializer.hh"
 
 /* Serialize charstrings using CFF1 format with widths */
 static bool
@@ -630,8 +631,6 @@ _serialize_cff1_charstrings (hb_serialize_context_t *c,
 
   for (unsigned i = 0; i < plan.subset_charstrings.length; i++)
   {
-    const str_buff_t &cs = plan.subset_charstrings[i];
-
     // Get width for this glyph from hmtx_map
     unsigned width = 0;
     if (plan.hmtx_map->has (i))
@@ -645,12 +644,30 @@ _serialize_cff1_charstrings (hb_serialize_context_t *c,
       encoder.encode_int (delta);
     }
 
-    // Copy the CharString
-    for (unsigned j = 0; j < cs.length; j++)
-      cff1_charstrings[i].push (cs[j]);
+    // Use specialized commands if available, otherwise use binary
+    if (plan.capture_commands && i < plan.charstring_commands.length &&
+        plan.charstring_commands[i].length > 0)
+    {
+      // Specialize and encode commands
+      auto &commands = plan.charstring_commands[i];
+      CFF::specialize_commands (commands, 48);  /* maxstack=48 for CFF1 */
+      if (unlikely (!CFF::encode_commands (commands, cff1_charstrings[i])))
+      {
+        c->pop_discard ();
+        return false;
+      }
+    }
+    else
+    {
+      // Use binary CharString
+      const str_buff_t &cs = plan.subset_charstrings[i];
+      for (unsigned j = 0; j < cs.length; j++)
+        cff1_charstrings[i].push (cs[j]);
+    }
 
     // Check if it already ends with endchar (0x0e) or return (0x0b)
-    if (cs.length == 0 || (cs.tail () != 0x0e && cs.tail () != 0x0b))
+    if (cff1_charstrings[i].length == 0 ||
+        (cff1_charstrings[i].tail () != 0x0e && cff1_charstrings[i].tail () != 0x0b))
     {
       // Append endchar operator
       if (unlikely (!cff1_charstrings[i].push (0x0e)))
