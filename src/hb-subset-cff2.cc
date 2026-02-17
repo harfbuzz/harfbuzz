@@ -74,6 +74,56 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
 {
   static void flush_args_and_op (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
   {
+    /* Optionally capture command for specialization (before flushing, to preserve args) */
+    if (param.commands)
+    {
+      bool skip_command = false;
+
+      switch (op)
+      {
+	case OpCode_return:
+	case OpCode_endchar:
+	  skip_command = true;
+	  break;
+
+	case OpCode_hstem:
+	case OpCode_hstemhm:
+	case OpCode_vstem:
+	case OpCode_vstemhm:
+	case OpCode_hintmask:
+	case OpCode_cntrmask:
+	  if (param.drop_hints)
+	    skip_command = true;
+	  break;
+
+	default:
+	  break;
+      }
+
+      if (!skip_command)
+      {
+	cs_command_t cmd (op);
+	/* Capture resolved blend values */
+	for (unsigned int i = 0; i < env.argStack.get_count ();)
+	{
+	  const blend_arg_t &arg = env.argStack[i];
+	  if (arg.blending ())
+	  {
+	    /* For blend args, capture only the resolved default value */
+	    cmd.args.push (arg);
+	    /* Skip over the multiple blend values */
+	    i += arg.numValues;
+	  }
+	  else
+	  {
+	    cmd.args.push (arg);
+	    i++;
+	  }
+	}
+	param.commands->push (cmd);
+      }
+    }
+
     switch (op)
     {
       case OpCode_return:
@@ -443,6 +493,9 @@ struct cff2_subset_plan
     desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE ||
 		     pinned; // For instancing we need this path
 
+    /* Enable command capture for CFF2→CFF1 conversion (for specialization) */
+    capture_commands = pinned;
+
  #ifdef HB_EXPERIMENTAL_API
     min_charstrings_off_size = (plan->flags & HB_SUBSET_FLAGS_IFTB_REQUIREMENTS) ? 4 : 0;
  #else
@@ -454,8 +507,21 @@ struct cff2_subset_plan
       /* Flatten global & local subrs */
       subr_flattener_t<const OT::cff2::accelerator_subset_t, cff2_cs_interp_env_t<blend_arg_t>, cff2_cs_opset_flatten_t>
 		    flattener(acc, plan);
-      if (!flattener.flatten (subset_charstrings))
-	return false;
+
+      /* Enable command capture if requested (for specialization) */
+      if (capture_commands)
+      {
+	if (!charstring_commands.resize_exact (num_glyphs))
+	  return false;
+
+	if (!flattener.flatten (subset_charstrings, &charstring_commands))
+	  return false;
+      }
+      else
+      {
+	if (!flattener.flatten (subset_charstrings))
+	  return false;
+      }
     }
     else
     {
@@ -530,6 +596,10 @@ struct cff2_subset_plan
   // Width optimization results (for CFF1 conversion)
   unsigned default_width = 0;
   unsigned nominal_width = 0;
+
+  // Command capture for specialization (CFF2→CFF1 conversion)
+  bool capture_commands = false;
+  hb_vector_t<hb_vector_t<cs_command_t>> charstring_commands;
 };
 } // namespace OT
 
