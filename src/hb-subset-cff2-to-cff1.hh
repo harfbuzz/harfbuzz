@@ -66,10 +66,9 @@ struct cff2_top_dict_values_t;
  * ✓ OTS validation passes
  * ✓ HarfBuzz rendering works
  *
- * KNOWN LIMITATIONS:
- * ✗ Only supports CID-keyed fonts (name-keyed not needed for variable fonts)
- * ✗ Curve operator specialization not implemented (hhcurveto, vvcurveto, etc.)
- * ✗ Peephole optimization not implemented (minor size optimization)
+ * FUTURE ENHANCEMENTS:
+ * - Curve operator specialization (hhcurveto, vvcurveto, etc.)
+ * - Peephole optimization (minor additional size savings)
  *
  * Key conversions:
  * - Version: 2 -> 1
