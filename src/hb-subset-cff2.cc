@@ -437,6 +437,7 @@ struct cff2_subset_plan
 
     drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
     pinned = (bool) plan->normalized_coords;
+    normalized_coords = plan->normalized_coords;
     desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE ||
 		     pinned; // For instancing we need this path
 
@@ -519,6 +520,8 @@ struct cff2_subset_plan
   bool	    desubroutinize = false;
 
   unsigned  min_charstrings_off_size = 0;
+
+  hb_array_t<int> normalized_coords; // For instantiation
 };
 } // namespace OT
 
@@ -642,42 +645,9 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
       }
 
       auto *pd = c->push<PrivateDict> ();
-      // For CFF1, use a simple serializer that copies operators
-      // We already flattened/instantiated, so no blend operators remain
-      struct cff1_private_dict_op_serializer_t : op_serializer_t
-      {
-        cff1_private_dict_op_serializer_t (bool desubroutinize_, bool drop_hints_)
-          : desubroutinize (desubroutinize_), drop_hints (drop_hints_) {}
-
-        bool serialize (hb_serialize_context_t *c,
-                        const op_str_t &opstr,
-                        objidx_t subrs_link) const
-        {
-          TRACE_SERIALIZE (this);
-
-          if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
-            return_trace (true);
-
-          if (opstr.op == OpCode_Subrs)
-          {
-            if (desubroutinize || !subrs_link)
-              return_trace (true);
-            else
-              return_trace (FontDict::serialize_link2_op (c, opstr.op, subrs_link));
-          }
-
-          // Skip CFF2-specific operators
-          if (opstr.op == OpCode_vsindexdict || opstr.op == OpCode_blenddict)
-            return_trace (true);
-
-          return_trace (copy_opstr (c, opstr));
-        }
-
-        const bool desubroutinize;
-        const bool drop_hints;
-      };
-
-      cff1_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
+      // Use the CFF2 Private DICT serializer which instantiates blends when pinned=true
+      cff2_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints, plan.pinned,
+                                                  acc.varStore, plan.normalized_coords);
       if (likely (pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link)))
       {
         unsigned fd = plan.fdmap[i];
@@ -1017,33 +987,32 @@ OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
   // If instantiating (pinned), convert to CFF1
   if (cff2_plan.pinned)
   {
-    // Serialize CFF1 using the same serializer
+    // Serialize CFF1 to the subsetter's serializer
+    // If we run out of room, returning true will cause subsetter to retry with larger buffer
     bool result = CFF::serialize_cff2_to_cff1 (c->serializer, cff2_plan, topDict, *this);
+
+    if (c->serializer->ran_out_of_room ())
+      return true; // Subsetter will retry with larger buffer
 
     if (result && !c->serializer->in_error ())
     {
-      // Copy the serialized CFF1 data (don't end_serialize, caller will do that)
-      hb_bytes_t bytes = c->serializer->copy_bytes ();
-      hb_blob_t *dest_blob = hb_blob_create (bytes.arrayZ, bytes.length,
-                                              HB_MEMORY_MODE_WRITABLE,
-                                              (char *) bytes.arrayZ, hb_free);
+      // Success - end serialization to resolve links
+      c->serializer->end_serialize ();
 
-      if (dest_blob)
+      // Copy the serialized CFF1 data and add as CFF table
+      hb_blob_t *cff_blob = c->serializer->copy_blob ();
+      if (cff_blob)
       {
-        // Add as CFF table (not CFF2)
-        c->plan->add_table (HB_TAG('C','F','F',' '), dest_blob);
-        hb_blob_destroy (dest_blob);
+        c->plan->add_table (HB_TAG('C','F','F',' '), cff_blob);
+        hb_blob_destroy (cff_blob);
 
         // Return false to signal CFF2 table is not needed
         return false;
       }
-      else
-      {
-        hb_free ((void*)bytes.arrayZ);
-      }
     }
 
-    // Fallback to regular CFF2 if conversion fails
+    // Conversion failed - don't fall back, fail hard for debugging
+    return false;
   }
 
   return serialize (c->serializer, cff2_plan,
