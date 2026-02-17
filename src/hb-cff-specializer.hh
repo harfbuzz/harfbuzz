@@ -171,16 +171,16 @@ specialize_commands (hb_vector_t<cs_command_t> &commands,
 
       if (dx_zero && !dy_zero)
       {
-        /* Horizontal: keep only dy */
-        cmd.op = (cmd.op == OpCode_rmoveto) ? OpCode_hmoveto : OpCode_hlineto;
+        /* Vertical movement (dx=0): keep only dy */
+        cmd.op = (cmd.op == OpCode_rmoveto) ? OpCode_vmoveto : OpCode_vlineto;
         /* Shift dy to position 0 */
         cmd.args[0] = cmd.args[1];
         cmd.args.resize (1);
       }
       else if (!dx_zero && dy_zero)
       {
-        /* Vertical: keep only dx */
-        cmd.op = (cmd.op == OpCode_rmoveto) ? OpCode_vmoveto : OpCode_vlineto;
+        /* Horizontal movement (dy=0): keep only dx */
+        cmd.op = (cmd.op == OpCode_rmoveto) ? OpCode_hmoveto : OpCode_hlineto;
         cmd.args.resize (1);  /* Keep only dx */
       }
       /* else: both zero or both non-zero, keep as rmoveto/rlineto */
