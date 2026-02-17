@@ -438,6 +438,7 @@ struct cff2_subset_plan
     drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
     pinned = (bool) plan->normalized_coords;
     normalized_coords = plan->normalized_coords;
+    head_maxp_info = plan->head_maxp_info;
     desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE ||
 		     pinned; // For instancing we need this path
 
@@ -522,6 +523,7 @@ struct cff2_subset_plan
   unsigned  min_charstrings_off_size = 0;
 
   hb_array_t<int> normalized_coords; // For instantiation
+  head_maxp_info_t head_maxp_info;  // For FontBBox
 };
 } // namespace OT
 
@@ -851,6 +853,24 @@ serialize_cff2_to_cff1 (hb_serialize_context_t *c,
     {
       c->pop_discard ();
       return_trace (false);
+    }
+
+    // Serialize FontBBox from head table
+    {
+      str_buff_t bbox_buff;
+      str_encoder_t encoder (bbox_buff);
+
+      encoder.encode_int (plan.head_maxp_info.xMin);
+      encoder.encode_int (plan.head_maxp_info.yMin);
+      encoder.encode_int (plan.head_maxp_info.xMax);
+      encoder.encode_int (plan.head_maxp_info.yMax);
+      encoder.encode_op (OpCode_FontBBox);
+
+      if (encoder.in_error () || !c->embed (bbox_buff.as_bytes ().arrayZ, bbox_buff.length))
+      {
+        c->pop_discard ();
+        return_trace (false);
+      }
     }
 
     // Serialize charset operator
