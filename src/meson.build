@@ -775,7 +775,7 @@ install_headers(hb_raster_headers, subdir: meson.project_name())
 libharfbuzz_raster_dep = declare_dependency(
   link_with: libharfbuzz_raster,
   include_directories: incsrc,
-  dependencies: [m_dep])
+  dependencies: [libharfbuzz_dep])
 meson.override_dependency('harfbuzz-raster', libharfbuzz_raster_dep)
 
 harfbuzz_raster_def = custom_target('harfbuzz-raster.def',
@@ -790,6 +790,7 @@ pkgmod.generate(libharfbuzz_raster,
   subdirs: [meson.project_name()],
   version: meson.project_version(),
 )
+
 
 if get_option('tests').enabled()
   # TODO: Microsoft LINK gives the following because extern, non dllexport

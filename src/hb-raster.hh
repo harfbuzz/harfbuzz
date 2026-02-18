@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 #include "hb-raster.h"
+#include "hb-geometry.hh"
 #include "hb-object.hh"
 #include "hb-vector.hh"
 
@@ -66,7 +67,7 @@ struct hb_raster_draw_t
 
   /* Configuration */
   hb_raster_format_t  format            = HB_RASTER_FORMAT_A8;
-  float               xx=1,yx=0,xy=0,yy=1,ddx=0,ddy=0; /* affine */
+  hb_transform_t<>    transform         = {1, 0, 0, 1, 0, 0};
   hb_raster_extents_t fixed_extents     = {};
   bool                has_fixed_extents = false;
 
