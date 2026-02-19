@@ -58,7 +58,7 @@ typedef enum {
  *
  * Pixel-buffer extents for raster operations.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef struct hb_raster_extents_t {
   int      x_origin, y_origin;
