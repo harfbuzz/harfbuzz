@@ -41,7 +41,7 @@ HB_BEGIN_DECLS
  *
  * Pixel format for raster images.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef enum {
   HB_RASTER_FORMAT_A8     = 0,

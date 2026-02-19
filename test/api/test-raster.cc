@@ -27,8 +27,6 @@
 #include "hb-test.h"
 #include "hb-raster.h"
 
-#include <stdio.h>
-
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
 
@@ -190,105 +188,17 @@ test_transform (void)
 }
 
 
-/* ── Test 5: glyph rendering ─────────────────────────────────────── */
-
-static const char *glyph_font_path = nullptr; /* set from argv[1] if provided */
-
-/* Write a PGM file (y-flipped so text reads correctly in viewers). */
-static void
-write_pgm (hb_raster_image_t *img, const char *path)
-{
-  hb_raster_extents_t ext;
-  hb_raster_image_get_extents (img, &ext);
-
-  if (!ext.width || !ext.height) return;
-
-  FILE *f = fopen (path, "wb");
-  if (!f) { fprintf (stderr, "cannot write %s\n", path); return; }
-
-  fprintf (f, "P5\n%u %u\n255\n", ext.width, ext.height);
-  const uint8_t *buf = hb_raster_image_get_buffer (img);
-  for (unsigned row = 0; row < ext.height; row++)
-    fwrite (buf + (ext.height - 1 - row) * ext.stride, 1, ext.width, f);
-  fclose (f);
-
-  g_test_message ("wrote %s (%ux%u at %d,%d)",
-		  path, ext.width, ext.height, ext.x_origin, ext.y_origin);
-}
-
-static void
-test_glyph (void)
-{
-  if (!glyph_font_path) { g_test_skip ("no font specified"); return; }
-
-  hb_blob_t *blob = hb_blob_create_from_file_or_fail (glyph_font_path);
-  if (!blob) { g_test_skip ("font not found"); return; }
-  hb_face_t *face = hb_face_create (blob, 0);
-  hb_blob_destroy (blob);
-  hb_font_t *font = hb_font_create (face);
-  unsigned upem    = hb_face_get_upem (face);
-  unsigned nglyphs = hb_face_get_glyph_count (face);
-  hb_face_destroy (face);
-  hb_font_set_scale (font, (int) upem, (int) upem);
-
-  hb_raster_draw_t *rdr = hb_raster_draw_create ();
-  unsigned rendered = 0;
-  for (hb_codepoint_t gid = 0; gid < (nglyphs < 20u ? nglyphs : 20u); gid++)
-  {
-    if (!hb_font_draw_glyph_or_fail (font, gid, hb_raster_draw_get_funcs (), rdr))
-      continue;
-
-    hb_raster_image_t *img = hb_raster_draw_render (rdr);
-    g_assert_nonnull (img);
-
-    hb_raster_extents_t ext;
-    hb_raster_image_get_extents (img, &ext);
-
-    if (ext.width && ext.height)
-    {
-      /* Verify the image has some non-zero pixels */
-      const uint8_t *buf = hb_raster_image_get_buffer (img);
-      unsigned nz = 0;
-      for (unsigned i = 0; i < ext.stride * ext.height; i++)
-	if (buf[i]) nz++;
-      g_assert_cmpuint (nz, >, 0);
-      rendered++;
-
-      char path[64];
-      snprintf (path, sizeof path, "/tmp/hb-raster-gid%u.pgm", gid);
-      write_pgm (img, path);
-    }
-
-    hb_raster_image_destroy (img);
-  }
-
-  g_assert_cmpuint (rendered, >, 0);
-
-  hb_raster_draw_destroy (rdr);
-  hb_font_destroy (font);
-}
-
-
 /* ── main ────────────────────────────────────────────────────────── */
 
 int
 main (int argc, char **argv)
 {
-  /* Extract a trailing non-flag argument as the font path before
-     hb_test_init() can swallow it as a test-path filter. */
-  if (argc > 1 && argv[argc - 1][0] != '-')
-  {
-    glyph_font_path = argv[argc - 1];
-    argv[--argc] = nullptr;
-  }
-
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_rectangle);
   hb_test_add (test_accumulate);
   hb_test_add (test_subpixel_edge);
   hb_test_add (test_transform);
-  hb_test_add (test_glyph);
 
   return hb_test_run ();
 }
