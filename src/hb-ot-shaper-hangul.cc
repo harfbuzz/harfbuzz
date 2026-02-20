@@ -208,7 +208,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	if (unlikely (!buffer->next_glyph ())) break;
 	if (!is_zero_width_char (font, u))
 	{
-	  buffer->merge_out_clusters (start, end + 1);
+	  buffer->merge_out_grapheme_clusters (start, end + 1);
 	  hb_glyph_info_t *info = buffer->out_info;
 	  hb_glyph_info_t tone = info[end];
 	  memmove (&info[start + 1], &info[start], (end - start) * sizeof (hb_glyph_info_t));
@@ -298,7 +298,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	  end = start + 2;
 	if (unlikely (!buffer->successful))
 	  break;
-	buffer->merge_out_clusters (start, end);
+	buffer->merge_out_grapheme_clusters (start, end);
 	continue;
       }
     }
@@ -371,7 +371,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	  if (i < end)
 	    info[i++].hangul_shaping_feature() = TJMO;
 
-	  buffer->merge_out_clusters (start, end);
+	  buffer->merge_out_grapheme_clusters (start, end);
 	  continue;
 	}
 	else if ((!tindex && buffer->idx + 1 < count && isT (buffer->cur(+1).codepoint)))

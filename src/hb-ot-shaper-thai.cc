@@ -349,7 +349,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
     if (start + 2 < end)
     {
       /* Move Nikhahit (end-2) to the beginning */
-      buffer->merge_out_clusters (start, end);
+      buffer->merge_out_grapheme_clusters (start, end);
       hb_glyph_info_t t = buffer->out_info[end - 2];
       memmove (buffer->out_info + start + 1,
 	       buffer->out_info + start,
@@ -361,7 +361,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
       /* Since we decomposed, and NIKHAHIT is combining, merge clusters with the
        * previous cluster. */
       if (start)
-	buffer->merge_out_clusters (start - 1, end);
+	buffer->merge_out_grapheme_clusters (start - 1, end);
     }
   }
   buffer->sync ();
