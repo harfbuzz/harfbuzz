@@ -495,7 +495,7 @@ typedef enum {
 		  (1u << HB_BUFFER_CLUSTER_LEVEL_GRAPHEMES))))
 
 /**
- * HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS
+ * HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS:
  * @level: #hb_buffer_cluster_level_t to test
  *
  * Tests whether a cluster level does not group cluster values by graphemes.
@@ -505,7 +505,7 @@ typedef enum {
  */
 #define HB_BUFFER_CLUSTER_LEVEL_IS_CHARACTERS(level) \
 	((bool) ((1u << (unsigned) (level)) & \
-		 ((1u << HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARCATERS) | \
+		 ((1u << HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS) | \
 		  (1u << HB_BUFFER_CLUSTER_LEVEL_CHARACTERS))))
 
 HB_EXTERN void
