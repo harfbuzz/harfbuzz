@@ -76,6 +76,7 @@ struct view_options_t
   hb_bool_t logical = false;
   hb_bool_t ink = false;
   hb_bool_t show_extents = false;
+  hb_bool_t raster = false;
 };
 
 
@@ -142,6 +143,7 @@ view_options_t::add_options (option_parser_t *parser)
     {"logical",		0, 0, G_OPTION_ARG_NONE,	&this->logical,		"Render to logical box instead of union of logical and ink boxes",	nullptr},
     {"ink",		0, 0, G_OPTION_ARG_NONE,	&this->ink,			"Render to ink box instead of union of logical and ink boxes",	nullptr},
     {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Draw glyph extents",							nullptr},
+    {"raster",		0, 0, G_OPTION_ARG_NONE,	&this->raster,			"Use hb-raster for glyph rendering instead of Cairo",			nullptr},
     {nullptr}
   };
   parser->add_group (entries,

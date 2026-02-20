@@ -29,6 +29,7 @@
 #ifdef HAVE_CAIRO
 
 #include "hb-cairo.h"
+#include "hb-raster.h"
 
 #include "hb-cairo-utils.hh"
 
@@ -464,6 +465,7 @@ static const cairo_user_data_key_t hb_cairo_font_user_data_key = {0};
 static const cairo_user_data_key_t hb_cairo_font_init_func_user_data_key = {0};
 static const cairo_user_data_key_t hb_cairo_font_init_user_data_user_data_key = {0};
 static const cairo_user_data_key_t hb_cairo_scale_factor_user_data_key = {0};
+static const cairo_user_data_key_t hb_cairo_raster_user_data_key = {0};
 
 static void hb_cairo_face_destroy (void *p) { hb_face_destroy ((hb_face_t *) p); }
 static void hb_cairo_font_destroy (void *p) { hb_font_destroy ((hb_font_t *) p); }
@@ -606,8 +608,35 @@ hb_cairo_render_glyph (cairo_scaled_font_t  *scaled_font,
 	       +1. / (x_scale ? x_scale : 1),
 	       -1. / (y_scale ? y_scale : 1));
 
-  if (hb_font_draw_glyph_or_fail (font, glyph, hb_cairo_draw_get_funcs (), cr))
-    cairo_fill (cr);
+  if (hb_cairo_font_face_get_raster (cairo_scaled_font_get_font_face (scaled_font)))
+  {
+    hb_raster_draw_t *rdr = hb_raster_draw_create ();
+    if (hb_font_draw_glyph_or_fail (font, glyph, hb_raster_draw_get_funcs (), rdr))
+    {
+      hb_raster_image_t *img = hb_raster_draw_render (rdr);
+      if (img)
+      {
+	hb_raster_extents_t ext;
+	hb_raster_image_get_extents (img, &ext);
+	if (ext.width && ext.height)
+	{
+	  cairo_surface_t *surface =
+	    cairo_image_surface_create_for_data ((unsigned char *) hb_raster_image_get_buffer (img),
+						 CAIRO_FORMAT_A8,
+						 ext.width, ext.height, (int) ext.stride);
+	  cairo_mask_surface (cr, surface, ext.x_origin, ext.y_origin);
+	  cairo_surface_destroy (surface);
+	}
+	hb_raster_image_destroy (img);
+      }
+    }
+    hb_raster_draw_destroy (rdr);
+  }
+  else
+  {
+    if (hb_font_draw_glyph_or_fail (font, glyph, hb_cairo_draw_get_funcs (), cr))
+      cairo_fill (cr);
+  }
 
   // If draw fails, we still return SUCCESS, as we want empty drawing, not
   // setting the cairo object into error.
@@ -880,6 +909,46 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
   return (unsigned int) (uintptr_t)
 	 cairo_font_face_get_user_data (font_face,
 					&hb_cairo_scale_factor_user_data_key);
+}
+
+/**
+ * hb_cairo_font_face_set_raster:
+ * @font_face: a #cairo_font_face_t
+ * @raster: whether to use hb_raster for glyph rendering
+ *
+ * Sets whether to use the HarfBuzz CPU rasterizer to render glyphs
+ * instead of Cairo's own rasterizer.  When enabled, the render-glyph
+ * callback rasterizes the glyph outline with hb_raster and blits the
+ * resulting A8 coverage image into the Cairo glyph surface.
+ *
+ * Since: REPLACEME
+ */
+void
+hb_cairo_font_face_set_raster (cairo_font_face_t *font_face,
+			       hb_bool_t raster)
+{
+  cairo_font_face_set_user_data (font_face,
+				 &hb_cairo_raster_user_data_key,
+				 (void *) (uintptr_t) raster,
+				 nullptr);
+}
+
+/**
+ * hb_cairo_font_face_get_raster:
+ * @font_face: a #cairo_font_face_t
+ *
+ * Gets whether the HarfBuzz CPU rasterizer is enabled on @font_face.
+ *
+ * Returns: %TRUE if hb_raster rendering is enabled
+ *
+ * Since: REPLACEME
+ */
+hb_bool_t
+hb_cairo_font_face_get_raster (cairo_font_face_t *font_face)
+{
+  return (hb_bool_t) (uintptr_t)
+	 cairo_font_face_get_user_data (font_face,
+					&hb_cairo_raster_user_data_key);
 }
 
 
