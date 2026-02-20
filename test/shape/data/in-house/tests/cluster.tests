@@ -7,5 +7,11 @@
 ../fonts/c2d320136762887c43d245ecd2ffc2c0d57cfcb3.ttf;;U+0DAF,U+0DCF,U+0DAF;[dasinh=0+547|aavowelsignsinh=0+379|dasinh=2+532]
 
 # https://github.com/harfbuzz/harfbuzz/issues/5750
+../fonts/4fac3929fc3332834e93673780ec0fe94342d193.ttf;--cluster-level=0 --no-positions --no-glyph-names;U+0020,U+0E33;[0=0|0=0|0=0]
 ../fonts/4fac3929fc3332834e93673780ec0fe94342d193.ttf;--cluster-level=1 --no-positions --no-glyph-names;U+0020,U+0E33;[0=0|0=1|0=1]
+../fonts/4fac3929fc3332834e93673780ec0fe94342d193.ttf;--cluster-level=2 --no-positions --no-glyph-names;U+0020,U+0E33;[0=0|0=1|0=1]
 ../fonts/4fac3929fc3332834e93673780ec0fe94342d193.ttf;--cluster-level=3 --no-positions --no-glyph-names;U+0020,U+0E33;[0=0|0=0|0=0]
+../fonts/4fac3929fc3332834e93673780ec0fe94342d193.ttf;--cluster-level=0 --no-positions --no-glyph-names;U+0020,U+0E34,U+0E33;[0=0|0=0|0=0|0=0]
+../fonts/4fac3929fc3332834e93673780ec0fe94342d193.ttf;--cluster-level=1 --no-positions --no-glyph-names;U+0020,U+0E34,U+0E33;[0=0|0=1|0=1|0=1]
+../fonts/4fac3929fc3332834e93673780ec0fe94342d193.ttf;--cluster-level=2 --no-positions --no-glyph-names;U+0020,U+0E34,U+0E33;[0=0|0=2|0=1|0=2]
+../fonts/4fac3929fc3332834e93673780ec0fe94342d193.ttf;--cluster-level=3 --no-positions --no-glyph-names;U+0020,U+0E34,U+0E33;[0=0|0=0|0=0|0=0]
