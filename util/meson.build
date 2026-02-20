@@ -10,6 +10,10 @@ hb_draw_sources = [
   'hb-draw.cc',
 ]
 
+hb_raster_sources = [
+  'hb-raster.cc',
+]
+
 hb_info_sources = [
   'hb-info.cc',
 ]
@@ -76,6 +80,14 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: true,
   )
   meson.override_find_program('hb-draw', hb_draw)
+
+  hb_raster_util = executable('hb-raster', hb_raster_sources,
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    dependencies: [util_deps],
+    link_with: [libharfbuzz, libharfbuzz_raster],
+    install: false,
+  )
 
   hb_info = executable('hb-info', [hb_info_sources, gobject_enums_h],
     cpp_args: cpp_args,
