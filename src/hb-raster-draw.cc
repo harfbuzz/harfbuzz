@@ -46,6 +46,8 @@
 #define HB_RASTER_PIXEL_MASK (HB_RASTER_ONE_PIXEL - 1)
 /* Full-coverage alpha = 2 * ONE_PIXEL^2 */
 #define HB_RASTER_FULL_COVERAGE (2 * HB_RASTER_ONE_PIXEL * HB_RASTER_ONE_PIXEL)
+/* Flatness threshold for Bézier flattening: max deviation in pixels */
+#define HB_RASTER_FLAT_THRESH 0.25f
 
 
 /* Normalized edge: yH > yL always */
@@ -400,7 +402,7 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
   float dx = mx - chord_mx;
   float dy = my - chord_my;
   /* threshold: 0.25^2 in pixel space */
-  static const float flat_thresh = 0.25f * 0.25f;
+  static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
 
   if (depth >= 16 || (dx * dx + dy * dy) <= flat_thresh) {
     emit_segment (draw, x0, y0, x2, y2);
@@ -430,7 +432,7 @@ flatten_quadratic_fd (hb_raster_draw_t *draw,
   float devy = (y0 - 2 * y1 + y2) * 0.25f;
   float err2 = devx * devx + devy * devy;
 
-  static const float flat_thresh = 0.25f * 0.25f;
+  static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
 
   if (err2 <= flat_thresh)
   {
@@ -509,7 +511,7 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
   float dx1 = x1 - chord_x1, dy1 = y1 - chord_y1;
   float dx2 = x2 - chord_x2, dy2 = y2 - chord_y2;
 
-  static const float flat_thresh = 0.25f * 0.25f;
+  static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
 
   if (depth >= 16 ||
       ((dx1 * dx1 + dy1 * dy1) <= flat_thresh &&
@@ -551,7 +553,7 @@ flatten_cubic_fd (hb_raster_draw_t *draw,
   float e2 = dx2*dx2 + dy2*dy2;
   float err2 = e1 > e2 ? e1 : e2;
 
-  static const float flat_thresh = 0.25f * 0.25f;
+  static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
 
   if (err2 <= flat_thresh)
   {
