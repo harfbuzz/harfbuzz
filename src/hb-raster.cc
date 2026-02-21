@@ -666,6 +666,16 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  row_cover[x] = cover_accum * 128;
 	}
 
+	/* If cover doesn't cancel, the fill extends to the row end. */
+	unsigned x_end = x_max;
+	if (cover_accum != 0)
+	{
+	  int32_t fill = cover_accum * 128;
+	  x_end = ext.width - 1;
+	  for (unsigned x = x_max + 1; x <= x_end; x++)
+	    row_cover[x] = fill;
+	}
+
 	/* Phase 2: compute alpha = clamp(|cover*128 - area|, 8192) * 255 / 8192
 	   and write to output, then clear work arrays. */
 	uint8_t *row_buf = image->buffer + row * ext.stride;
@@ -676,7 +686,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	int32x4_t clamp = vdupq_n_s32 (8192);
 	int32x4_t bias  = vdupq_n_s32 (4096);
 	int32x4_t zero  = vdupq_n_s32 (0);
-	for (; x + 7 <= x_max; x += 8)
+	for (; x + 7 <= x_end; x += 8)
 	{
 	  int32x4_t c0 = vld1q_s32 (row_cover.arrayZ + x);
 	  int32x4_t c1 = vld1q_s32 (row_cover.arrayZ + x + 4);
@@ -713,7 +723,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	__m128i clamp_v = _mm_set1_epi32 (8192);
 	__m128i bias_v  = _mm_set1_epi32 (4096);
 	__m128i zero_v  = _mm_setzero_si128 ();
-	for (; x + 7 <= x_max; x += 8)
+	for (; x + 7 <= x_end; x += 8)
 	{
 	  __m128i c0 = _mm_loadu_si128 ((__m128i *) (row_cover.arrayZ + x));
 	  __m128i c1 = _mm_loadu_si128 ((__m128i *) (row_cover.arrayZ + x + 4));
@@ -754,7 +764,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 #endif
 
 	/* Scalar tail. */
-	for (; x <= x_max; x++)
+	for (; x <= x_end; x++)
 	{
 	  int32_t val   = row_cover[x] - row_area[x];
 	  int32_t alpha = val < 0 ? -val : val;
