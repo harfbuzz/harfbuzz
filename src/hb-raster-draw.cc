@@ -39,6 +39,15 @@
 #endif
 
 
+/* Fixed-point precision: 6 bits = 26.6 (like FreeType outlines),
+   8 bits = 24.8 (like FreeType's rasterizer internally). */
+#define HB_RASTER_PIXEL_BITS 6
+#define HB_RASTER_ONE_PIXEL  (1 << HB_RASTER_PIXEL_BITS)
+#define HB_RASTER_PIXEL_MASK (HB_RASTER_ONE_PIXEL - 1)
+/* Full-coverage alpha = 2 * ONE_PIXEL^2 */
+#define HB_RASTER_FULL_COVERAGE (2 * HB_RASTER_ONE_PIXEL * HB_RASTER_ONE_PIXEL)
+
+
 /* Normalized edge: yH > yL always */
 struct hb_raster_edge_t
 {
@@ -357,10 +366,10 @@ emit_segment (hb_raster_draw_t *draw,
 	      float x0, float y0,
 	      float x1, float y1)
 {
-  int32_t X0 = (int32_t) roundf (x0 * 64.f);
-  int32_t Y0 = (int32_t) roundf (y0 * 64.f);
-  int32_t X1 = (int32_t) roundf (x1 * 64.f);
-  int32_t Y1 = (int32_t) roundf (y1 * 64.f);
+  int32_t X0 = (int32_t) roundf (x0 * HB_RASTER_ONE_PIXEL);
+  int32_t Y0 = (int32_t) roundf (y0 * HB_RASTER_ONE_PIXEL);
+  int32_t X1 = (int32_t) roundf (x1 * HB_RASTER_ONE_PIXEL);
+  int32_t Y1 = (int32_t) roundf (y1 * HB_RASTER_ONE_PIXEL);
 
   if (Y0 == Y1) return; /* horizontal — skip */
 
@@ -610,24 +619,24 @@ edge_sweep_row (int32_t                *area,
 		unsigned               &x_min,
 		unsigned               &x_max)
 {
-  int32_t y_bot = y_top + 64;
+  int32_t y_bot = y_top + HB_RASTER_ONE_PIXEL;
 
   int32_t ey0 = hb_max (edge.yL, y_top);
   int32_t ey1 = hb_min (edge.yH, y_bot);
   if (ey0 >= ey1) return;
 
-  /* X at clipped endpoints (26.6) */
+  /* X at clipped endpoints (fixed-point) */
   int32_t x0 = edge.xL + (int32_t) ((int64_t) (ey0 - edge.yL) * edge.slope >> 16);
   int32_t x1 = edge.xL + (int32_t) ((int64_t) (ey1 - edge.yL) * edge.slope >> 16);
 
-  /* Fractional y within this pixel row [0, 64] */
+  /* Fractional y within this pixel row [0, ONE_PIXEL] */
   int32_t fy0 = ey0 - y_top;
   int32_t fy1 = ey1 - y_top;
 
-  int32_t cx0 = x0 >> 6;
-  int32_t fx0 = x0 & 63;
-  int32_t cx1 = x1 >> 6;
-  int32_t fx1 = x1 & 63;
+  int32_t cx0 = x0 >> HB_RASTER_PIXEL_BITS;
+  int32_t fx0 = x0 & HB_RASTER_PIXEL_MASK;
+  int32_t cx1 = x1 >> HB_RASTER_PIXEL_BITS;
+  int32_t fx1 = x1 & HB_RASTER_PIXEL_MASK;
   int32_t wind = edge.wind;
 
   /* Fast path: both endpoints in the same pixel column. */
@@ -640,21 +649,21 @@ edge_sweep_row (int32_t                *area,
   int32_t total_dx = x1 - x0;
   int32_t total_dy = fy1 - fy0;
 
-  /* fy increment per pixel column (constant since x_b advances by 64). */
-  int32_t delta_fy = (int32_t) ((int64_t) 64 * total_dy / total_dx);
+  /* fy increment per pixel column (constant since x_b advances by ONE_PIXEL). */
+  int32_t delta_fy = (int32_t) ((int64_t) HB_RASTER_ONE_PIXEL * total_dy / total_dx);
 
   if (total_dx > 0)
   {
     /* Left-to-right edge. */
-    int32_t x_b  = (cx0 + 1) << 6;
+    int32_t x_b  = (cx0 + 1) << HB_RASTER_PIXEL_BITS;
     int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
-    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 64, fy_b, wind, x_min, x_max);
+    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, HB_RASTER_ONE_PIXEL, fy_b, wind, x_min, x_max);
 
     int32_t fy_prev = fy_b;
     for (int32_t cx = cx0 + 1; cx < cx1; cx++)
     {
       fy_b = fy_prev + delta_fy;
-      cell_add (area, cover, width, cx - x_org, 0, fy_prev, 64, fy_b, wind, x_min, x_max);
+      cell_add (area, cover, width, cx - x_org, 0, fy_prev, HB_RASTER_ONE_PIXEL, fy_b, wind, x_min, x_max);
       fy_prev = fy_b;
     }
 
@@ -663,7 +672,7 @@ edge_sweep_row (int32_t                *area,
   else
   {
     /* Right-to-left edge. */
-    int32_t x_b  = cx0 << 6;
+    int32_t x_b  = cx0 << HB_RASTER_PIXEL_BITS;
     int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
     cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 0, fy_b, wind, x_min, x_max);
 
@@ -671,11 +680,11 @@ edge_sweep_row (int32_t                *area,
     for (int32_t cx = cx0 - 1; cx > cx1; cx--)
     {
       fy_b = fy_prev - delta_fy;
-      cell_add (area, cover, width, cx - x_org, 64, fy_prev, 0, fy_b, wind, x_min, x_max);
+      cell_add (area, cover, width, cx - x_org, HB_RASTER_ONE_PIXEL, fy_prev, 0, fy_b, wind, x_min, x_max);
       fy_prev = fy_b;
     }
 
-    cell_add (area, cover, width, cx1 - x_org, 64, fy_prev, fx1, fy1, wind, x_min, x_max);
+    cell_add (area, cover, width, cx1 - x_org, HB_RASTER_ONE_PIXEL, fy_prev, fx1, fy1, wind, x_min, x_max);
   }
 }
 
@@ -704,15 +713,15 @@ sweep_row_to_alpha (uint8_t *row_buf,
   unsigned x = x_min;
 
 #ifdef HB_RASTER_NEON
-  int32x4_t clamp_v = vdupq_n_s32 (8192);
-  int32x4_t bias_v  = vdupq_n_s32 (4096);
+  int32x4_t clamp_v = vdupq_n_s32 (HB_RASTER_FULL_COVERAGE);
+  int32x4_t bias_v  = vdupq_n_s32 (HB_RASTER_FULL_COVERAGE / 2);
   int32x4_t zero32  = vdupq_n_s32 (0);
   int16x8_t zero16  = vdupq_n_s16 (0);
   for (; x + 7 <= x_max; x += 8)
   {
     int16x8_t c16 = vld1q_s16 (cover + x);
-    int32x4_t c0  = vshlq_n_s32 (vmovl_s16 (vget_low_s16 (c16)), 7);
-    int32x4_t c1  = vshlq_n_s32 (vmovl_s16 (vget_high_s16 (c16)), 7);
+    int32x4_t c0  = vshlq_n_s32 (vmovl_s16 (vget_low_s16 (c16)), HB_RASTER_PIXEL_BITS + 1);
+    int32x4_t c1  = vshlq_n_s32 (vmovl_s16 (vget_high_s16 (c16)), HB_RASTER_PIXEL_BITS + 1);
     int32x4_t a0  = vld1q_s32 (area + x);
     int32x4_t a1  = vld1q_s32 (area + x + 4);
 
@@ -722,8 +731,8 @@ sweep_row_to_alpha (uint8_t *row_buf,
     v0 = vminq_s32 (v0, clamp_v);
     v1 = vminq_s32 (v1, clamp_v);
 
-    int32x4_t r0 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v0, 255), 13);
-    int32x4_t r1 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v1, 255), 13);
+    int32x4_t r0 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v0, 255), 2 * HB_RASTER_PIXEL_BITS + 1);
+    int32x4_t r1 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v1, 255), 2 * HB_RASTER_PIXEL_BITS + 1);
 
     int16x4_t h0 = vmovn_s32 (r0);
     int16x4_t h1 = vmovn_s32 (r1);
@@ -736,14 +745,14 @@ sweep_row_to_alpha (uint8_t *row_buf,
     vst1q_s16 (cover + x,    zero16);
   }
 #elif defined(HB_RASTER_SSE2)
-  __m128i clamp_v = _mm_set1_epi32 (8192);
-  __m128i bias_v  = _mm_set1_epi32 (4096);
+  __m128i clamp_v = _mm_set1_epi32 (HB_RASTER_FULL_COVERAGE);
+  __m128i bias_v  = _mm_set1_epi32 (HB_RASTER_FULL_COVERAGE / 2);
   __m128i zero_v  = _mm_setzero_si128 ();
   for (; x + 7 <= x_max; x += 8)
   {
     __m128i c16 = _mm_loadu_si128 ((__m128i *) (void *) (cover + x));
-    __m128i c0  = _mm_slli_epi32 (_mm_srai_epi32 (_mm_unpacklo_epi16 (c16, c16), 16), 7);
-    __m128i c1  = _mm_slli_epi32 (_mm_srai_epi32 (_mm_unpackhi_epi16 (c16, c16), 16), 7);
+    __m128i c0  = _mm_slli_epi32 (_mm_srai_epi32 (_mm_unpacklo_epi16 (c16, c16), 16), HB_RASTER_PIXEL_BITS + 1);
+    __m128i c1  = _mm_slli_epi32 (_mm_srai_epi32 (_mm_unpackhi_epi16 (c16, c16), 16), HB_RASTER_PIXEL_BITS + 1);
     __m128i a0  = _mm_loadu_si128 ((__m128i *) (void *) (area + x));
     __m128i a1  = _mm_loadu_si128 ((__m128i *) (void *) (area + x + 4));
 
@@ -760,8 +769,8 @@ sweep_row_to_alpha (uint8_t *row_buf,
     v0 = _mm_or_si128 (_mm_and_si128 (lt0, v0), _mm_andnot_si128 (lt0, clamp_v));
     v1 = _mm_or_si128 (_mm_and_si128 (lt1, v1), _mm_andnot_si128 (lt1, clamp_v));
 
-    __m128i r0 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v0, 8), v0), bias_v), 13);
-    __m128i r1 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v1, 8), v1), bias_v), 13);
+    __m128i r0 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v0, 8), v0), bias_v), 2 * HB_RASTER_PIXEL_BITS + 1);
+    __m128i r1 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v1, 8), v1), bias_v), 2 * HB_RASTER_PIXEL_BITS + 1);
 
     __m128i h = _mm_packs_epi32 (r0, r1);
     __m128i b = _mm_packus_epi16 (h, h);
@@ -775,10 +784,10 @@ sweep_row_to_alpha (uint8_t *row_buf,
 
   for (; x <= x_max; x++)
   {
-    int32_t val   = (int32_t) cover[x] * 128 - area[x];
+    int32_t val   = (int32_t) cover[x] * (2 * HB_RASTER_ONE_PIXEL) - area[x];
     int32_t alpha = val < 0 ? -val : val;
-    if (alpha > 8192) alpha = 8192;
-    row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
+    if (alpha > HB_RASTER_FULL_COVERAGE) alpha = HB_RASTER_FULL_COVERAGE;
+    row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
     area[x]  = 0;
     cover[x] = 0;
   }
@@ -832,10 +841,10 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       }
 
       /* Convert 26.6 → pixels (floor for min, ceil for max) */
-      int x0 = xmin >> 6;
-      int y0 = ymin >> 6;
-      int x1 = (xmax + 63) >> 6;
-      int y1 = (ymax + 63) >> 6;
+      int x0 = xmin >> HB_RASTER_PIXEL_BITS;
+      int y0 = ymin >> HB_RASTER_PIXEL_BITS;
+      int x1 = (xmax + HB_RASTER_PIXEL_MASK) >> HB_RASTER_PIXEL_BITS;
+      int y1 = (ymax + HB_RASTER_PIXEL_MASK) >> HB_RASTER_PIXEL_BITS;
 
       ext.x_origin = x0;
       ext.y_origin = y0;
@@ -907,7 +916,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
     for (unsigned i = 0; i < draw->edges.length; i++)
     {
-      int row = (draw->edges.arrayZ[i].yL >> 6) - ext.y_origin;
+      int row = (draw->edges.arrayZ[i].yL >> HB_RASTER_PIXEL_BITS) - ext.y_origin;
       if (row < 0) row = 0;
       if ((unsigned) row >= ext.height) continue;
       draw->edge_buckets.arrayZ[row].push (i);
@@ -918,7 +927,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
     for (unsigned row = 0; row < ext.height; row++)
     {
-      int32_t y_top = (ext.y_origin + (int) row) << 6;
+      int32_t y_top = (ext.y_origin + (int) row) << HB_RASTER_PIXEL_BITS;
 
       /* Add new edges from this row's bucket. */
       draw->active_edges.extend (draw->edge_buckets.arrayZ[row]);
@@ -946,10 +955,10 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	/* If cover doesn't cancel, memset the constant-alpha tail. */
 	if (cover_accum != 0)
 	{
-	  int32_t alpha = cover_accum * 128;
+	  int32_t alpha = cover_accum * (2 * HB_RASTER_ONE_PIXEL);
 	  alpha = alpha < 0 ? -alpha : alpha;
-	  if (alpha > 8192) alpha = 8192;
-	  uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
+	  if (alpha > HB_RASTER_FULL_COVERAGE) alpha = HB_RASTER_FULL_COVERAGE;
+	  uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
 
 	  uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
 	  memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
