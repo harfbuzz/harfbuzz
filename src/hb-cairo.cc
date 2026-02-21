@@ -604,13 +604,24 @@ hb_cairo_render_glyph (cairo_scaled_font_t  *scaled_font,
 
   hb_position_t x_scale, y_scale;
   hb_font_get_scale (font, &x_scale, &y_scale);
-  cairo_scale (cr,
-	       +1. / (x_scale ? x_scale : 1),
-	       -1. / (y_scale ? y_scale : 1));
 
   if (hb_cairo_font_face_get_raster (cairo_scaled_font_get_font_face (scaled_font)))
   {
+    /* Render at device-pixel resolution to avoid expensive Cairo resampling.
+     * px_x/px_y = device pixels per font-scale unit (from the CTM without
+     * the subpixel factor baked in via the scale_matrix). */
+    cairo_matrix_t scale_matrix;
+    cairo_scaled_font_get_scale_matrix (scaled_font, &scale_matrix);
+    double px_x = fabs (scale_matrix.xx ? scale_matrix.xx : 1.);
+    double px_y = fabs (scale_matrix.yy ? scale_matrix.yy : 1.);
+
     hb_raster_draw_t *rdr = hb_raster_draw_create ();
+    /* Transform from font-scale units to device pixels (Y up → Y down). */
+    hb_raster_draw_set_transform (rdr,
+				  (float) (px_x / (x_scale ? x_scale : 1)),
+				  0.f, 0.f,
+				  (float) (px_y / (y_scale ? y_scale : 1)),
+				  0.f, 0.f);
     if (hb_font_draw_glyph_or_fail (font, glyph, hb_raster_draw_get_funcs (), rdr))
     {
       hb_raster_image_t *img = hb_raster_draw_render (rdr);
@@ -624,6 +635,8 @@ hb_cairo_render_glyph (cairo_scaled_font_t  *scaled_font,
 	    cairo_image_surface_create_for_data ((unsigned char *) hb_raster_image_get_buffer (img),
 						 CAIRO_FORMAT_A8,
 						 ext.width, ext.height, (int) ext.stride);
+	  /* Map device pixels back to glyph-space units for placement. */
+	  cairo_scale (cr, 1. / px_x, -1. / px_y);
 	  cairo_mask_surface (cr, surface, ext.x_origin, ext.y_origin);
 	  cairo_surface_destroy (surface);
 	}
@@ -634,6 +647,9 @@ hb_cairo_render_glyph (cairo_scaled_font_t  *scaled_font,
   }
   else
   {
+    cairo_scale (cr,
+		 +1. / (x_scale ? x_scale : 1),
+		 -1. / (y_scale ? y_scale : 1));
     if (hb_font_draw_glyph_or_fail (font, glyph, hb_cairo_draw_get_funcs (), cr))
       cairo_fill (cr);
   }
