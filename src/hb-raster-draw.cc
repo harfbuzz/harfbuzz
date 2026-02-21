@@ -680,7 +680,10 @@ edge_sweep_row (int32_t                *area,
   }
 }
 
-/* Prefix-sum cover in-place, scaled by 128. Returns final accumulator. */
+/* Prefix-sum cover in-place, scaled by 128. Returns final accumulator.
+   Clamp cover_accum to [-64, 64] to avoid int16 overflow (winding > ±3
+   would exceed ±8192 after ×128).  Clamping is correct: the alpha
+   formula clamps |val| to 8192 anyway, so extra winding is fully opaque. */
 static int32_t
 prefix_sum_cover (int16_t *cover, unsigned x_min, unsigned x_max)
 {
@@ -688,7 +691,8 @@ prefix_sum_cover (int16_t *cover, unsigned x_min, unsigned x_max)
   for (unsigned x = x_min; x <= x_max; x++)
   {
     cover_accum += cover[x];
-    cover[x] = (int16_t) (cover_accum * 128);
+    int32_t clamped = hb_clamp (cover_accum, -64, 64);
+    cover[x] = (int16_t) (clamped * 128);
   }
   return cover_accum;
 }
