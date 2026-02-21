@@ -29,14 +29,6 @@
 #include "hb-raster.hh"
 #include "hb-machinery.hh"
 
-#if defined(__aarch64__) || defined(_M_ARM64)
-#include <arm_neon.h>
-#define HB_RASTER_NEON 1
-#elif defined(__SSE4_1__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 4) || defined(__AVX__)
-#include <smmintrin.h>
-#define HB_RASTER_SSE41 1
-#endif
-
 
 /*
  * hb_raster_image_t
@@ -195,8 +187,6 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->fixed_extents     = {};
   draw->has_fixed_extents = false;
   draw->edges.resize (0);
-  draw->tile_offsets.resize (0);
-  draw->tile_edge_indices.resize (0);
 }
 
 
@@ -418,300 +408,119 @@ hb_raster_draw_get_funcs (void)
 
 
 /*
- * Tile rasterization
+ * Analytic coverage rasterizer
+ *
+ * For each line-segment edge and each pixel row it crosses, we compute
+ * exact area/cover contributions per pixel cell.  A left-to-right sweep
+ * then converts accumulated (area, cover) into alpha values.
+ *
+ * Coordinates are 26.6 fixed-point (1 pixel = 64 sub-pixel units).
+ *
+ *   cover[x] = Σ dy · wind        — signed vertical extent per cell
+ *   area[x]  = Σ (fx₀+fx₁)·dy·wind — twice the signed trapezoidal area
+ *
+ * Sweep:
+ *   cover_accum += cover[x]
+ *   α = min(|cover_accum·128 − area[x]|, 8192) · 255 / 8192
  */
 
-/* Sub-pixel sample offsets in 26.6 units within a pixel cell */
-static const unsigned HB_RASTER_SAMPLES = 8;
-static const int32_t sx26[HB_RASTER_SAMPLES] = { 10, 22, 35, 51, 13, 29, 45, 54 };
-static const int32_t sy26[HB_RASTER_SAMPLES] = { 19, 51, 10, 29, 38, 29, 54, 13 };
+/* Add one edge piece's area/cover into a single cell. */
+static inline void
+cell_add (int32_t *area, int32_t *cover, unsigned width, int col,
+	  int32_t fx0, int32_t fy0, int32_t fx1, int32_t fy1, int32_t wind)
+{
+  if ((unsigned) col >= width) return;
+  int32_t dy = fy1 - fy0;
+  area[col]  += (fx0 + fx1) * dy * wind;
+  cover[col] += dy * wind;
+}
 
-/* Rasterize a 16×16 tile at pixel position (px0, py0) using nonzero winding.
-   tile_edges/n_edges: the edges that overlap this tile.
-   image: output image. */
-
-#if defined (HB_RASTER_NEON)
-
+/* Walk one edge through the pixel cells of a single pixel row,
+   accumulating area/cover.  py is the integer pixel-row index. */
 static void
-rasterize_tile_neon (hb_raster_image_t          *image,
-		     int                         px0,
-		     int                         py0,
-		     int                         px1,
-		     int                         py1,
-		     const hb_raster_edge_t     *tile_edges,
-		     unsigned                    n_edges)
+edge_sweep_row (int32_t                *area,
+		int32_t                *cover,
+		unsigned                width,
+		int                     x_org,
+		int32_t                 py,
+		const hb_raster_edge_t &edge)
 {
-  uint8_t  *buf    = image->buffer;
-  unsigned  stride = image->extents.stride;
-  int       x_org  = image->extents.x_origin;
-  int       y_org  = image->extents.y_origin;
+  int32_t y_top = py << 6;
+  int32_t y_bot = y_top + 64;
 
-  for (int row = 0; row < 16; row++)
+  int32_t ey0 = hb_max (edge.yL, y_top);
+  int32_t ey1 = hb_min (edge.yH, y_bot);
+  if (ey0 >= ey1) return;
+
+  /* X at clipped endpoints (26.6) */
+  int32_t x0 = edge.xL + (int32_t) ((int64_t) (ey0 - edge.yL) * edge.dx / edge.dy);
+  int32_t x1 = edge.xL + (int32_t) ((int64_t) (ey1 - edge.yL) * edge.dx / edge.dy);
+
+  /* Fractional y within this pixel row [0, 64] */
+  int32_t fy0 = ey0 - y_top;
+  int32_t fy1 = ey1 - y_top;
+
+  int32_t cx0 = x0 >> 6;
+  int32_t fx0 = x0 & 63;
+  int32_t cx1 = x1 >> 6;
+  int32_t fx1 = x1 & 63;
+  int32_t wind = edge.wind;
+
+  /* Fast path: both endpoints in the same pixel column. */
+  if (cx0 == cx1)
   {
-    int     py       = py0 + row;
-    if (py >= py1) break;
-    int32_t y_base26 = py << 6;
-    uint8_t *row_buf = buf + (unsigned)(py - y_org) * stride;
+    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, fx1, fy1, wind);
+    return;
+  }
 
-    /* Process 4 pixels at a time */
-    for (int col = 0; col < 16; col += 4)
+  int32_t total_dx = x1 - x0;
+  int32_t total_dy = fy1 - fy0;
+
+  if (total_dx > 0)
+  {
+    /* Left-to-right edge. */
+    int32_t x_b  = (cx0 + 1) << 6;
+    int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
+    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 64, fy_b, wind);
+
+    int32_t fy_prev = fy_b;
+    for (int32_t cx = cx0 + 1; cx < cx1; cx++)
     {
-      int n_write = hb_min (4, px1 - (px0 + col));
-      if (n_write <= 0) break;
-      /* x_base for 4 adjacent pixels */
-      int32_t xb[4] = {
-	(px0 + col + 0) << 6,
-	(px0 + col + 1) << 6,
-	(px0 + col + 2) << 6,
-	(px0 + col + 3) << 6,
-      };
-      int32x4_t x_base = vld1q_s32 (xb);
-
-      int32x4_t inside_count = vdupq_n_s32 (0);
-
-      for (unsigned k = 0; k < HB_RASTER_SAMPLES; k++)
-      {
-	int32_t ys = y_base26 + sy26[k];
-	int32x4_t xs = vaddq_s32 (x_base, vdupq_n_s32 (sx26[k]));
-
-	int32x4_t winding = vdupq_n_s32 (0);
-
-	for (unsigned e = 0; e < n_edges; e++)
-	{
-	  const hb_raster_edge_t &edge = tile_edges[e];
-	  if (ys < edge.yL || ys >= edge.yH) continue;
-
-	  int64_t B = (int64_t)(ys - edge.yL) * edge.dx;
-	  int32_t dy = edge.dy;
-	  int32_t xL = edge.xL;
-	  int32_t wind = edge.wind;
-
-	  /* expr[i] = (xL - xs[i]) * dy + B */
-	  /* compute (xL - xs) as int32x4 */
-	  int32x4_t xL_minus_xs = vsubq_s32 (vdupq_n_s32 (xL), xs);
-
-	  /* widen to int64 pairs for full precision */
-	  int64x2_t expr_lo = vmlal_s32 (vdupq_n_s64 (B),
-					  vget_low_s32  (xL_minus_xs),
-					  vdup_n_s32 (dy));
-	  int64x2_t expr_hi = vmlal_s32 (vdupq_n_s64 (B),
-					  vget_high_s32 (xL_minus_xs),
-					  vdup_n_s32 (dy));
-
-	  /* mask: expr > 0 */
-	  uint64x2_t mask_lo = vcgtq_s64 (expr_lo, vdupq_n_s64 (0));
-	  uint64x2_t mask_hi = vcgtq_s64 (expr_hi, vdupq_n_s64 (0));
-
-	  /* narrow masks to 32-bit (top 32 bits of each 64-bit lane hold the value) */
-	  uint32x2_t narrow_lo = vmovn_u64 (mask_lo);
-	  uint32x2_t narrow_hi = vmovn_u64 (mask_hi);
-	  uint32x4_t mask32 = vcombine_u32 (narrow_lo, narrow_hi);
-
-	  /* masked wind add */
-	  int32x4_t wind_v = vdupq_n_s32 (wind);
-	  winding = vaddq_s32 (winding,
-			       vandq_s32 (wind_v, vreinterpretq_s32_u32 (mask32)));
-	}
-
-	/* if winding != 0: inside_count++ */
-	uint32x4_t nonzero = vtstq_s32 (winding, winding);
-	inside_count = vaddq_s32 (inside_count,
-				  vreinterpretq_s32_u32 (vshrq_n_u32 (nonzero, 31)));
-      }
-
-      /* scale to [0,255] and store (only in-bounds pixels) */
-      int32_t ic[4];
-      vst1q_s32 (ic, inside_count);
-      int bx = px0 + col - x_org;
-      for (int i = 0; i < n_write; i++)
-	row_buf[bx + i] = (uint8_t)((ic[i] * 255 + HB_RASTER_SAMPLES / 2) / HB_RASTER_SAMPLES);
+      x_b  = (cx + 1) << 6;
+      fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
+      cell_add (area, cover, width, cx - x_org, 0, fy_prev, 64, fy_b, wind);
+      fy_prev = fy_b;
     }
+
+    cell_add (area, cover, width, cx1 - x_org, 0, fy_prev, fx1, fy1, wind);
+  }
+  else
+  {
+    /* Right-to-left edge. */
+    int32_t x_b  = cx0 << 6;
+    int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
+    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 0, fy_b, wind);
+
+    int32_t fy_prev = fy_b;
+    for (int32_t cx = cx0 - 1; cx > cx1; cx--)
+    {
+      x_b  = cx << 6;
+      fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
+      cell_add (area, cover, width, cx - x_org, 64, fy_prev, 0, fy_b, wind);
+      fy_prev = fy_b;
+    }
+
+    cell_add (area, cover, width, cx1 - x_org, 64, fy_prev, fx1, fy1, wind);
   }
 }
 
-static inline void
-rasterize_tile (hb_raster_image_t      *image,
-		int                     px0,
-		int                     py0,
-		int                     px1,
-		int                     py1,
-		const hb_raster_edge_t *tile_edges,
-		unsigned                n_edges)
-{ rasterize_tile_neon (image, px0, py0, px1, py1, tile_edges, n_edges); }
-
-#elif defined (HB_RASTER_SSE41)
-
-static void
-rasterize_tile_sse41 (hb_raster_image_t          *image,
-		      int                         px0,
-		      int                         py0,
-		      int                         px1,
-		      int                         py1,
-		      const hb_raster_edge_t     *tile_edges,
-		      unsigned                    n_edges)
+static int
+cmp_edge_y (const void *a, const void *b)
 {
-  uint8_t  *buf    = image->buffer;
-  unsigned  stride = image->extents.stride;
-  int       x_org  = image->extents.x_origin;
-  int       y_org  = image->extents.y_origin;
-
-  for (int row = 0; row < 16; row++)
-  {
-    int     py       = py0 + row;
-    if (py >= py1) break;
-    int32_t y_base26 = py << 6;
-    uint8_t *row_buf = buf + (unsigned)(py - y_org) * stride;
-
-    for (int col = 0; col < 16; col += 4)
-    {
-      int n_write = hb_min (4, px1 - (px0 + col));
-      if (n_write <= 0) break;
-      int32_t xb[4] = {
-	(px0 + col + 0) << 6,
-	(px0 + col + 1) << 6,
-	(px0 + col + 2) << 6,
-	(px0 + col + 3) << 6,
-      };
-      __m128i x_base = _mm_loadu_si128 ((__m128i *) xb);
-
-      __m128i inside_count = _mm_setzero_si128 ();
-
-      for (unsigned k = 0; k < HB_RASTER_SAMPLES; k++)
-      {
-	int32_t ys = y_base26 + sy26[k];
-	__m128i xs = _mm_add_epi32 (x_base, _mm_set1_epi32 (sx26[k]));
-
-	__m128i winding = _mm_setzero_si128 ();
-
-	for (unsigned e = 0; e < n_edges; e++)
-	{
-	  const hb_raster_edge_t &edge = tile_edges[e];
-	  if (ys < edge.yL || ys >= edge.yH) continue;
-
-	  int64_t B    = (int64_t)(ys - edge.yL) * edge.dx;
-	  int32_t dy   = edge.dy;
-	  int32_t xL   = edge.xL;
-	  int32_t wind = edge.wind;
-
-	  /* xL_minus_xs[i] = xL - xs[i] */
-	  __m128i xL_minus_xs = _mm_sub_epi32 (_mm_set1_epi32 (xL), xs);
-
-	  /* widen pairs to i64, multiply by dy, add B */
-	  __m128i dy_v = _mm_set1_epi32 (dy);
-	  __m128i lo32 = _mm_unpacklo_epi32 (xL_minus_xs, _mm_setzero_si128 ());
-	  __m128i hi32 = _mm_unpackhi_epi32 (xL_minus_xs, _mm_setzero_si128 ());
-
-	  /* SSE4.1: _mm_cvtepi32_epi64 sign-extends 2 i32 → 2 i64 */
-	  __m128i xmx_lo = _mm_cvtepi32_epi64 (_mm_unpacklo_epi32 (xL_minus_xs, xL_minus_xs));
-	  __m128i xmx_hi = _mm_cvtepi32_epi64 (_mm_unpackhi_epi32 (xL_minus_xs, xL_minus_xs));
-	  /* Actually _mm_cvtepi32_epi64 takes lower 2 ints from a 128-bit register */
-	  xmx_lo = _mm_cvtepi32_epi64 (xL_minus_xs);
-	  xmx_hi = _mm_cvtepi32_epi64 (_mm_srli_si128 (xL_minus_xs, 8));
-
-	  __m128i dy64   = _mm_set1_epi64x ((int64_t) dy);
-	  __m128i B_v    = _mm_set1_epi64x (B);
-	  __m128i expr_lo = _mm_add_epi64 (B_v, _mm_mul_epi32 (xmx_lo, dy64));
-	  __m128i expr_hi = _mm_add_epi64 (B_v, _mm_mul_epi32 (xmx_hi, dy64));
-
-	  /* mask: expr > 0 */
-	  __m128i zero64 = _mm_setzero_si128 ();
-	  __m128i mask_lo = _mm_cmpgt_epi64 (expr_lo, zero64);
-	  __m128i mask_hi = _mm_cmpgt_epi64 (expr_hi, zero64);
-
-	  /* pack 64-bit masks to 32-bit: take high 32 of each 64-bit lane */
-	  __m128i mask32 = _mm_packs_epi32 (
-	    _mm_shuffle_epi32 (mask_lo, _MM_SHUFFLE (3,1,2,0)),
-	    _mm_shuffle_epi32 (mask_hi, _MM_SHUFFLE (3,1,2,0)));
-	  /* mask32 lanes are now 0xFFFFFFFF or 0x00000000 */
-
-	  __m128i wind_v = _mm_set1_epi32 (wind);
-	  winding = _mm_add_epi32 (winding, _mm_and_si128 (wind_v, mask32));
-
-	  (void) lo32; (void) hi32; (void) dy_v; /* suppress unused */
-	}
-
-	/* if winding != 0: inside_count++ */
-	__m128i nonzero = _mm_cmpgt_epi32 (winding, _mm_setzero_si128 ());
-	__m128i nonzero2 = _mm_or_si128 (nonzero,
-	  _mm_cmpgt_epi32 (_mm_setzero_si128 (), winding));
-	inside_count = _mm_sub_epi32 (inside_count,
-				      _mm_srli_epi32 (nonzero2, 31));
-      }
-
-      int32_t ic[4];
-      _mm_storeu_si128 ((__m128i *) ic, inside_count);
-      int bx = px0 + col - x_org;
-      for (int i = 0; i < n_write; i++)
-	row_buf[bx + i] = (uint8_t)((ic[i] * 255 + HB_RASTER_SAMPLES / 2) / HB_RASTER_SAMPLES);
-    }
-  }
+  int32_t ya = ((const hb_raster_edge_t *) a)->yL;
+  int32_t yb = ((const hb_raster_edge_t *) b)->yL;
+  return (ya > yb) - (ya < yb);
 }
-
-static inline void
-rasterize_tile (hb_raster_image_t      *image,
-		int                     px0,
-		int                     py0,
-		int                     px1,
-		int                     py1,
-		const hb_raster_edge_t *tile_edges,
-		unsigned                n_edges)
-{ rasterize_tile_sse41 (image, px0, py0, px1, py1, tile_edges, n_edges); }
-
-#else /* scalar */
-
-static inline void
-rasterize_tile (hb_raster_image_t      *image,
-		int                     px0,
-		int                     py0,
-		int                     px1,
-		int                     py1,
-		const hb_raster_edge_t *tile_edges,
-		unsigned                n_edges)
-{
-  uint8_t  *buf    = image->buffer;
-  unsigned  stride = image->extents.stride;
-  int       x_org  = image->extents.x_origin;
-  int       y_org  = image->extents.y_origin;
-
-  for (int row = 0; row < 16; row++)
-  {
-    int     py       = py0 + row;
-    if (py >= py1) break;
-    int32_t y_base26 = py << 6;
-    uint8_t *row_buf = buf + (unsigned)(py - y_org) * stride;
-
-    for (int col = 0; col < 16; col++)
-    {
-      int     px       = px0 + col;
-      if (px >= px1) break;
-      int32_t x_base26 = px << 6;
-
-      int inside_count = 0;
-
-      for (unsigned k = 0; k < HB_RASTER_SAMPLES; k++)
-      {
-	int32_t ys = y_base26 + sy26[k];
-	int32_t xs = x_base26 + sx26[k];
-
-	int winding = 0;
-	for (unsigned e = 0; e < n_edges; e++)
-	{
-	  const hb_raster_edge_t &edge = tile_edges[e];
-	  if (ys < edge.yL || ys >= edge.yH) continue;
-
-	  int64_t B    = (int64_t)(ys - edge.yL) * edge.dx;
-	  int64_t expr = (int64_t)(edge.xL - xs) * edge.dy + B;
-	  if (expr > 0) winding += edge.wind;
-	}
-	if (winding != 0) inside_count++;
-      }
-
-      row_buf[(unsigned)(px - x_org)] = (uint8_t)((inside_count * 255 + HB_RASTER_SAMPLES / 2) / HB_RASTER_SAMPLES);
-    }
-  }
-}
-
-#endif /* HB_RASTER_NEON / HB_RASTER_SSE41 / scalar */
 
 
 /*
@@ -795,106 +604,47 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   image->extents = ext;
   image->format  = draw->format;
 
-  /* ── 4. Tile assignment ────────────────────────────────────────── */
+  /* ── 4. Sort edges and rasterize scanlines ────────────────────── */
   if (draw->edges.length && ext.width && ext.height)
   {
-    unsigned ntx = (ext.width  + 15) / 16;
-    unsigned nty = (ext.height + 15) / 16;
-    unsigned n_tiles = ntx * nty;
+    qsort (draw->edges.arrayZ, draw->edges.length,
+	   sizeof (hb_raster_edge_t), cmp_edge_y);
 
-    /* Pass 1: count edges per tile */
-    if (unlikely (!draw->tile_offsets.resize (n_tiles + 1)))
-      goto done;
-    memset (draw->tile_offsets.arrayZ, 0, (n_tiles + 1) * sizeof (uint32_t));
-
-    for (const auto &e : draw->edges)
-    {
-      /* Tile y/x range of edge (pixel coords relative to x_origin/y_origin).
-	 x: edges are assigned from tx=0 to the edge's rightmost tile because
-	 the winding test needs edges to the right of each sample point.  */
-      int ex1 = (hb_max (e.xL, e.xH) + 63) >> 6;  ex1 -= ext.x_origin;
-      int ey0 = (e.yL >> 6) - ext.y_origin;
-      int ey1 = (e.yH + 63) >> 6;                  ey1 -= ext.y_origin;
-
-      int tx0 = 0;
-      int tx1 = hb_min ((int) ntx - 1, (ex1 - 1) / 16);
-      int ty0 = hb_max (0, ey0 / 16);
-      int ty1 = hb_min ((int) nty - 1, (ey1 - 1) / 16);
-
-      for (int ty = ty0; ty <= ty1; ty++)
-	for (int tx = tx0; tx <= tx1; tx++)
-	  draw->tile_offsets[ty * ntx + tx]++;
-    }
-
-    /* Prefix-sum */
-    uint32_t total = 0;
-    for (unsigned i = 0; i < n_tiles; i++)
-    {
-      uint32_t cnt = draw->tile_offsets[i];
-      draw->tile_offsets[i] = total;
-      total += cnt;
-    }
-    draw->tile_offsets[n_tiles] = total;
-
-    /* Pass 2: fill tile_edge_indices */
-    if (unlikely (!draw->tile_edge_indices.resize (total)))
+    hb_vector_t<int32_t> row_area;
+    hb_vector_t<int32_t> row_cover;
+    if (unlikely (!row_area.resize (ext.width) ||
+		  !row_cover.resize (ext.width)))
       goto done;
 
-    hb_vector_t<uint32_t> tile_fill;
-    if (unlikely (!tile_fill.resize (n_tiles)))
-      goto done;
-    memcpy (tile_fill.arrayZ, draw->tile_offsets.arrayZ, n_tiles * sizeof (uint32_t));
-
-    for (unsigned ei = 0; ei < draw->edges.length; ei++)
+    for (unsigned row = 0; row < ext.height; row++)
     {
-      const auto &e = draw->edges[ei];
+      int32_t py    = ext.y_origin + (int) row;
+      int32_t y_top = py << 6;
+      int32_t y_bot = y_top + 64;
 
-      int ex1 = (hb_max (e.xL, e.xH) + 63) >> 6;  ex1 -= ext.x_origin;
-      int ey0 = (e.yL >> 6) - ext.y_origin;
-      int ey1 = (e.yH + 63) >> 6;                  ey1 -= ext.y_origin;
+      memset (row_area.arrayZ,  0, ext.width * sizeof (int32_t));
+      memset (row_cover.arrayZ, 0, ext.width * sizeof (int32_t));
 
-      int tx0 = 0;
-      int tx1 = hb_min ((int) ntx - 1, (ex1 - 1) / 16);
-      int ty0 = hb_max (0, ey0 / 16);
-      int ty1 = hb_min ((int) nty - 1, (ey1 - 1) / 16);
-
-      for (int ty = ty0; ty <= ty1; ty++)
-	for (int tx = tx0; tx <= tx1; tx++)
-	{
-	  unsigned tile_id = ty * ntx + tx;
-	  draw->tile_edge_indices[tile_fill[tile_id]++] = ei;
-	}
-    }
-
-    /* ── 5. Rasterize each tile ──────────────────────────────────── */
-    hb_vector_t<hb_raster_edge_t> tile_edge_buf;
-    for (unsigned ty = 0; ty < nty; ty++)
-    {
-      for (unsigned tx = 0; tx < ntx; tx++)
+      for (unsigned i = 0; i < draw->edges.length; i++)
       {
-	unsigned tile_id = ty * ntx + tx;
-	unsigned start   = draw->tile_offsets[tile_id];
-	unsigned end     = draw->tile_offsets[tile_id + 1];
-	unsigned n       = end - start;
+	const auto &e = draw->edges[i];
+	if (e.yL >= y_bot) break;     /* sorted: no more edges can overlap */
+	if (e.yH <= y_top) continue;  /* edge is above this row */
 
-	if (!n) continue;
+	edge_sweep_row (row_area.arrayZ, row_cover.arrayZ,
+			ext.width, ext.x_origin, py, e);
+      }
 
-	/* Build local edge list */
-	if (unlikely (!tile_edge_buf.resize (n)))
-	  goto done;
-	for (unsigned i = 0; i < n; i++)
-	  tile_edge_buf[i] = draw->edges[draw->tile_edge_indices[start + i]];
-
-	/* Pixel origin of tile */
-	int px0 = ext.x_origin + (int)(tx * 16);
-	int py0 = ext.y_origin + (int)(ty * 16);
-
-	/* Clip tile to image bounds */
-	int px1 = hb_min (px0 + 16, (int)(ext.x_origin + (int) ext.width));
-	int py1 = hb_min (py0 + 16, (int)(ext.y_origin + (int) ext.height));
-	if (px0 >= px1 || py0 >= py1) continue;
-
-	rasterize_tile (image, px0, py0, px1, py1, tile_edge_buf.arrayZ, n);
+      /* Sweep left-to-right: convert area/cover to alpha. */
+      uint8_t *row_buf = image->buffer + row * ext.stride;
+      int32_t cover_accum = 0;
+      for (unsigned x = 0; x < ext.width; x++)
+      {
+	cover_accum += row_cover[x];
+	int32_t val   = cover_accum * 128 - row_area[x];
+	int32_t alpha = val < 0 ? -val : val;
+	if (alpha > 8192) alpha = 8192;
+	row_buf[x] = (uint8_t) ((alpha * 255 + 4096) / 8192);
       }
     }
   }

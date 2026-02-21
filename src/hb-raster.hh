@@ -73,10 +73,6 @@ struct hb_raster_draw_t
 
   /* Accumulated geometry */
   hb_vector_t<hb_raster_edge_t> edges;
-
-  /* Scratch — reused across render() calls */
-  hb_vector_t<uint32_t> tile_offsets;
-  hb_vector_t<uint32_t> tile_edge_indices;
 };
 
 
