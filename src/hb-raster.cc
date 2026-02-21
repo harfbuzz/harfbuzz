@@ -674,14 +674,14 @@ hb_raster_draw_get_funcs (void)
 
 /* Add one edge piece's area/cover into a single cell. */
 static inline void
-cell_add (int32_t *area, int32_t *cover, unsigned width, int col,
+cell_add (int32_t *area, int16_t *cover, unsigned width, int col,
 	  int32_t fx0, int32_t fy0, int32_t fx1, int32_t fy1, int32_t wind,
 	  unsigned &x_min, unsigned &x_max)
 {
   if ((unsigned) col >= width) return;
   int32_t dy = fy1 - fy0;
   area[col]  += (fx0 + fx1) * dy * wind;
-  cover[col] += dy * wind;
+  cover[col] += (int16_t) (dy * wind);
   x_min = hb_min (x_min, (unsigned) col);
   x_max = hb_max (x_max, (unsigned) col);
 }
@@ -690,7 +690,7 @@ cell_add (int32_t *area, int32_t *cover, unsigned width, int col,
    accumulating area/cover.  py is the integer pixel-row index. */
 static void
 edge_sweep_row (int32_t                *area,
-		int32_t                *cover,
+		int16_t                *cover,
 		unsigned                width,
 		int                     x_org,
 		int32_t                 py,
@@ -874,12 +874,12 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	      sizeof (hb_raster_edge_t), cmp_edge_y);
 
     hb_vector_t<int32_t> row_area;
-    hb_vector_t<int32_t> row_cover;
+    hb_vector_t<int16_t> row_cover;
     if (unlikely (!row_area.resize (ext.width) ||
 		  !row_cover.resize (ext.width)))
       goto done;
     memset (row_area.arrayZ,  0, ext.width * sizeof (int32_t));
-    memset (row_cover.arrayZ, 0, ext.width * sizeof (int32_t));
+    memset (row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
 
     unsigned start = 0;
     for (unsigned row = 0; row < ext.height; row++)
@@ -908,52 +908,60 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       /* Sweep touched range: convert area/cover to alpha, then clear. */
       if (x_min <= x_max)
       {
-	/* Phase 1: prefix-sum cover in-place and scale by 128. */
+	/* Phase 1: prefix-sum cover in-place, scaled by 128.
+	   int16 range: cover_accum * 128 maxes at ±8192, fits int16. */
 	int32_t cover_accum = 0;
 	for (unsigned x = x_min; x <= x_max; x++)
 	{
 	  cover_accum += row_cover[x];
-	  row_cover[x] = cover_accum * 128;
+	  row_cover[x] = (int16_t) (cover_accum * 128);
 	}
 
-	/* If cover doesn't cancel, the fill extends to the row end. */
+	/* If cover doesn't cancel, memset the constant-alpha tail. */
 	unsigned x_end = x_max;
 	if (cover_accum != 0)
 	{
-	  int32_t fill = cover_accum * 128;
+	  int32_t alpha = cover_accum * 128;
+	  alpha = alpha < 0 ? -alpha : alpha;
+	  if (alpha > 8192) alpha = 8192;
+	  uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
+
 	  x_end = ext.width - 1;
-	  for (unsigned x = x_max + 1; x <= x_end; x++)
-	    row_cover[x] = fill;
+	  uint8_t *row_buf = image->buffer + row * ext.stride;
+	  memset (row_buf + x_max + 1, byte, x_end - x_max);
 	}
 
-	/* Phase 2: compute alpha = clamp(|cover*128 - area|, 8192) * 255 / 8192
-	   and write to output, then clear work arrays. */
+	/* Phase 2: compute alpha over [x_min, x_max] from prefix-summed
+	   cover (int16) and area (int32), then clear both. */
 	uint8_t *row_buf = image->buffer + row * ext.stride;
 	unsigned x = x_min;
 
 #ifdef HB_RASTER_NEON
-	/* Process 8 pixels at a time. */
-	int32x4_t clamp = vdupq_n_s32 (8192);
-	int32x4_t bias  = vdupq_n_s32 (4096);
-	int32x4_t zero  = vdupq_n_s32 (0);
-	for (; x + 7 <= x_end; x += 8)
+	/* Process 8 pixels at a time.
+	   Load 8 × int16 cover, widen to 2 × int32x4 for the math. */
+	int32x4_t clamp_v = vdupq_n_s32 (8192);
+	int32x4_t bias_v  = vdupq_n_s32 (4096);
+	int32x4_t zero32  = vdupq_n_s32 (0);
+	int16x8_t zero16  = vdupq_n_s16 (0);
+	for (; x + 7 <= x_max; x += 8)
 	{
-	  int32x4_t c0 = vld1q_s32 (row_cover.arrayZ + x);
-	  int32x4_t c1 = vld1q_s32 (row_cover.arrayZ + x + 4);
-	  int32x4_t a0 = vld1q_s32 (row_area.arrayZ + x);
-	  int32x4_t a1 = vld1q_s32 (row_area.arrayZ + x + 4);
+	  int16x8_t c16 = vld1q_s16 (row_cover.arrayZ + x);
+	  int32x4_t c0  = vmovl_s16 (vget_low_s16 (c16));
+	  int32x4_t c1  = vmovl_s16 (vget_high_s16 (c16));
+	  int32x4_t a0  = vld1q_s32 (row_area.arrayZ + x);
+	  int32x4_t a1  = vld1q_s32 (row_area.arrayZ + x + 4);
 
 	  /* |cover*128 - area| */
 	  int32x4_t v0 = vabsq_s32 (vsubq_s32 (c0, a0));
 	  int32x4_t v1 = vabsq_s32 (vsubq_s32 (c1, a1));
 
 	  /* clamp to 8192 */
-	  v0 = vminq_s32 (v0, clamp);
-	  v1 = vminq_s32 (v1, clamp);
+	  v0 = vminq_s32 (v0, clamp_v);
+	  v1 = vminq_s32 (v1, clamp_v);
 
 	  /* (v * 255 + 4096) >> 13 */
-	  int32x4_t r0 = vshrq_n_s32 (vmlaq_n_s32 (bias, v0, 255), 13);
-	  int32x4_t r1 = vshrq_n_s32 (vmlaq_n_s32 (bias, v1, 255), 13);
+	  int32x4_t r0 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v0, 255), 13);
+	  int32x4_t r1 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v1, 255), 13);
 
 	  /* Narrow: int32x4 -> int16x4 -> int8x8 -> store 8 bytes */
 	  int16x4_t h0 = vmovn_s32 (r0);
@@ -963,22 +971,25 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  vst1_u8 (row_buf + x, b);
 
 	  /* Clear work arrays. */
-	  vst1q_s32 (row_area.arrayZ + x,     zero);
-	  vst1q_s32 (row_area.arrayZ + x + 4, zero);
-	  vst1q_s32 (row_cover.arrayZ + x,     zero);
-	  vst1q_s32 (row_cover.arrayZ + x + 4, zero);
+	  vst1q_s32 (row_area.arrayZ + x,     zero32);
+	  vst1q_s32 (row_area.arrayZ + x + 4, zero32);
+	  vst1q_s16 (row_cover.arrayZ + x,    zero16);
 	}
 #elif defined(HB_RASTER_SSE2)
-	/* Process 8 pixels at a time (SSE2 baseline). */
+	/* Process 8 pixels at a time.
+	   Load 8 × int16 cover, widen to 2 × int32x4 for the math. */
 	__m128i clamp_v = _mm_set1_epi32 (8192);
 	__m128i bias_v  = _mm_set1_epi32 (4096);
 	__m128i zero_v  = _mm_setzero_si128 ();
-	for (; x + 7 <= x_end; x += 8)
+	for (; x + 7 <= x_max; x += 8)
 	{
-	  __m128i c0 = _mm_loadu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x));
-	  __m128i c1 = _mm_loadu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x + 4));
-	  __m128i a0 = _mm_loadu_si128 ((__m128i *) (void *) (row_area.arrayZ + x));
-	  __m128i a1 = _mm_loadu_si128 ((__m128i *) (void *) (row_area.arrayZ + x + 4));
+	  /* Load 8 int16, sign-extend to 2 × 4 int32.
+	     SSE2: unpack with sign extension. */
+	  __m128i c16 = _mm_loadu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x));
+	  __m128i c0  = _mm_srai_epi32 (_mm_unpacklo_epi16 (c16, c16), 16);
+	  __m128i c1  = _mm_srai_epi32 (_mm_unpackhi_epi16 (c16, c16), 16);
+	  __m128i a0  = _mm_loadu_si128 ((__m128i *) (void *) (row_area.arrayZ + x));
+	  __m128i a1  = _mm_loadu_si128 ((__m128i *) (void *) (row_area.arrayZ + x + 4));
 
 	  /* v = cover - area */
 	  __m128i v0 = _mm_sub_epi32 (c0, a0);
@@ -1008,15 +1019,14 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  /* Clear work arrays. */
 	  _mm_storeu_si128 ((__m128i *) (void *) (row_area.arrayZ + x),     zero_v);
 	  _mm_storeu_si128 ((__m128i *) (void *) (row_area.arrayZ + x + 4), zero_v);
-	  _mm_storeu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x),     zero_v);
-	  _mm_storeu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x + 4), zero_v);
+	  _mm_storeu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x),    zero_v);
 	}
 #endif
 
 	/* Scalar tail. */
-	for (; x <= x_end; x++)
+	for (; x <= x_max; x++)
 	{
-	  int32_t val   = row_cover[x] - row_area[x];
+	  int32_t val   = (int32_t) row_cover[x] - row_area[x];
 	  int32_t alpha = val < 0 ? -val : val;
 	  if (alpha > 8192) alpha = 8192;
 	  row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
