@@ -492,14 +492,14 @@ flatten_quadratic (hb_raster_draw_t *draw,
     flatten_quadratic_recursive (draw, x0, y0, x1, y1, x2, y2);
 }
 
-/* Cubic Bézier flattener — de Casteljau at t=0.5 */
-static void
-flatten_cubic (hb_raster_draw_t *draw,
-	       float x0, float y0,
-	       float x1, float y1,
-	       float x2, float y2,
-	       float x3, float y3,
-	       int depth)
+/* Cubic Bézier flattener — de Casteljau recursive at t=0.5 */
+static inline void
+flatten_cubic_recursive (hb_raster_draw_t *draw,
+			 float x0, float y0,
+			 float x1, float y1,
+			 float x2, float y2,
+			 float x3, float y3,
+			 int depth = 0)
 {
   /* Check both control points */
   float chord_x1 = x0 + (x3 - x0) * (1.f / 3.f);
@@ -526,8 +526,100 @@ flatten_cubic (hb_raster_draw_t *draw,
   float x123 = (x12 + x23) * 0.5f, y123 = (y12 + y23) * 0.5f;
   float xm   = (x012 + x123) * 0.5f, ym   = (y012 + y123) * 0.5f;
 
-  flatten_cubic (draw, x0, y0, x01, y01, x012, y012, xm, ym, depth + 1);
-  flatten_cubic (draw, xm, ym, x123, y123, x23, y23, x3, y3, depth + 1);
+  flatten_cubic_recursive (draw, x0, y0, x01, y01, x012, y012, xm, ym, depth + 1);
+  flatten_cubic_recursive (draw, xm, ym, x123, y123, x23, y23, x3, y3, depth + 1);
+}
+
+/* Cubic Bézier flattener using forward differencing.
+   Control-point deviation also shrinks 4× per de Casteljau subdivision,
+   so err² shrinks 16× per level — same subdivision-count logic as quadratic.
+   The cubic adds a constant third difference d³f = 6·a·h³. */
+static inline void
+flatten_cubic_fd (hb_raster_draw_t *draw,
+		  float x0, float y0,
+		  float x1, float y1,
+		  float x2, float y2,
+		  float x3, float y3)
+{
+  float chord_x1 = x0 + (x3 - x0) * (1.f / 3.f);
+  float chord_y1 = y0 + (y3 - y0) * (1.f / 3.f);
+  float chord_x2 = x0 + (x3 - x0) * (2.f / 3.f);
+  float chord_y2 = y0 + (y3 - y0) * (2.f / 3.f);
+  float dx1 = x1 - chord_x1, dy1 = y1 - chord_y1;
+  float dx2 = x2 - chord_x2, dy2 = y2 - chord_y2;
+  float e1 = dx1*dx1 + dy1*dy1;
+  float e2 = dx2*dx2 + dy2*dy2;
+  float err2 = e1 > e2 ? e1 : e2;
+
+  static const float flat_thresh = 0.25f * 0.25f;
+
+  if (err2 <= flat_thresh)
+  {
+    emit_segment (draw, x0, y0, x3, y3);
+    return;
+  }
+
+  /* err² shrinks 16× per subdivision level. */
+  unsigned n = 1;
+  {
+    float ratio = err2 / flat_thresh;
+    while (ratio > 16.f) { ratio *= (1.f / 16.f); n++; }
+    if (n > 16) n = 16;
+  }
+  unsigned N = 1u << n;
+  float h = 1.f / N;
+
+  /* Cubic: B(t) = a·t³ + b·t² + c·t + d
+     a = -P₀ + 3P₁ - 3P₂ + P₃
+     b =  3P₀ - 6P₁ + 3P₂
+     c =  3(P₁ - P₀)
+     d =  P₀
+     Forward differences with step h:
+       d³f  = 6·a·h³              (constant)
+       d²f₀ = 6·a·h³ + 2·b·h²
+       d¹f₀ = a·h³ + b·h² + c·h
+       f₀   = d = P₀              */
+  float ax = -x0 + 3*x1 - 3*x2 + x3;
+  float ay = -y0 + 3*y1 - 3*y2 + y3;
+  float bx =  3*x0 - 6*x1 + 3*x2;
+  float by =  3*y0 - 6*y1 + 3*y2;
+  float cx =  3*(x1 - x0);
+  float cy =  3*(y1 - y0);
+
+  float h2 = h * h, h3 = h2 * h;
+  float d3fx = 6 * ax * h3;
+  float d3fy = 6 * ay * h3;
+  float d2fx = d3fx + 2 * bx * h2;
+  float d2fy = d3fy + 2 * by * h2;
+  float dfx  = ax * h3 + bx * h2 + cx * h;
+  float dfy  = ay * h3 + by * h2 + cy * h;
+  float fx   = x0;
+  float fy   = y0;
+
+  for (unsigned i = 1; i < N; i++)
+  {
+    float nx = fx + dfx;
+    float ny = fy + dfy;
+    emit_segment (draw, fx, fy, nx, ny);
+    fx = nx;  fy = ny;
+    dfx += d2fx;  dfy += d2fy;
+    d2fx += d3fx; d2fy += d3fy;
+  }
+  /* Last segment uses exact endpoint to avoid drift. */
+  emit_segment (draw, fx, fy, x3, y3);
+}
+
+static void
+flatten_cubic (hb_raster_draw_t *draw,
+	       float x0, float y0,
+	       float x1, float y1,
+	       float x2, float y2,
+	       float x3, float y3)
+{
+  if (true)
+    flatten_cubic_fd (draw, x0, y0, x1, y1, x2, y2, x3, y3);
+  else
+    flatten_cubic_recursive (draw, x0, y0, x1, y1, x2, y2, x3, y3);
 }
 
 
@@ -591,7 +683,7 @@ hb_raster_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
   transform_point (draw, control1_x,    control1_y,     tx1, ty1);
   transform_point (draw, control2_x,    control2_y,     tx2, ty2);
   transform_point (draw, to_x,          to_y,           tx3, ty3);
-  flatten_cubic (draw, tx0, ty0, tx1, ty1, tx2, ty2, tx3, ty3, 0);
+  flatten_cubic (draw, tx0, ty0, tx1, ty1, tx2, ty2, tx3, ty3);
 }
 
 static void
