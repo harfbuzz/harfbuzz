@@ -62,7 +62,7 @@ struct hb_vector_t
 	    hb_requires (hb_is_iterable (Iterable))>
   explicit hb_vector_t (const Iterable &o) : hb_vector_t ()
   {
-    extend (o);
+    extend (o, true);
   }
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
   hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
@@ -117,12 +117,12 @@ struct hb_vector_t
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
-  void extend (const Iterable &o)
+  void extend (const Iterable &o, bool exact=false)
   {
     auto iter = hb_iter (o);
     if (iter.is_random_access_iterator || iter.has_fast_len)
     {
-      if (unlikely (!alloc (length + hb_len (iter))))
+      if (unlikely (!alloc (length + hb_len (iter), exact)))
 	return;
       unsigned count = hb_len (iter);
       for (unsigned i = 0; i < count; i++)
@@ -138,16 +138,16 @@ struct hb_vector_t
     }
   }
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
-  void extend (array_t o)
+  void extend (array_t o, bool exact=false)
   {
-    alloc (length + o.length);
+    alloc (length + o.length, exact);
     if (unlikely (in_error ())) return;
     copy_array (o);
   }
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
-  void extend (c_array_t o)
+  void extend (c_array_t o, bool exact=false)
   {
-    alloc (length + o.length);
+    alloc (length + o.length, exact);
     if (unlikely (in_error ())) return;
     copy_array (o);
   }
