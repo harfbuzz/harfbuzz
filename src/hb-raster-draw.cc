@@ -605,12 +605,11 @@ edge_sweep_row (int32_t                *area,
 		int16_t                *cover,
 		unsigned                width,
 		int                     x_org,
-		int32_t                 py,
+		int32_t                 y_top,
 		const hb_raster_edge_t &edge,
 		unsigned               &x_min,
 		unsigned               &x_max)
 {
-  int32_t y_top = py << 6;
   int32_t y_bot = y_top + 64;
 
   int32_t ey0 = hb_max (edge.yL, y_top);
@@ -920,7 +919,6 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     for (unsigned row = 0; row < ext.height; row++)
     {
       int32_t y_top = (ext.y_origin + (int) row) << 6;
-      int32_t py    = y_top >> 6;
 
       /* Add new edges from this row's bucket. */
       draw->active_edges.extend (draw->edge_buckets.arrayZ[row]);
@@ -937,7 +935,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	}
 
 	edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
-			ext.width, ext.x_origin, py, e, x_min, x_max);
+			ext.width, ext.x_origin, y_top, e, x_min, x_max);
 	j++;
       }
 
