@@ -857,8 +857,7 @@ edge_sweep_row (int32_t                *area,
   }
 }
 
-/* Prefix-sum cover in-place. Returns final accumulator.
-   The ×128 scaling is deferred to the sweep for a tighter loop here. */
+/* Prefix-sum cover in-place. Returns final accumulator. */
 static int32_t
 prefix_sum_cover (int16_t *cover, unsigned x_min, unsigned x_max)
 {
