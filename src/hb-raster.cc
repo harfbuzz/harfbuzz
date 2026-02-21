@@ -221,8 +221,7 @@ emit_segment (hb_raster_draw_t *draw,
   } else {
     e.xL = X1; e.yL = Y1; e.xH = X0; e.yH = Y0; e.wind = -1;
   }
-  e.dx = e.xH - e.xL;
-  e.dy = e.yH - e.yL;
+  e.slope = ((int64_t) (e.xH - e.xL) << 16) / (e.yH - e.yL);
 
   draw->edges.push (e);
 }
@@ -458,8 +457,8 @@ edge_sweep_row (int32_t                *area,
   if (ey0 >= ey1) return;
 
   /* X at clipped endpoints (26.6) */
-  int32_t x0 = edge.xL + (int32_t) ((int64_t) (ey0 - edge.yL) * edge.dx / edge.dy);
-  int32_t x1 = edge.xL + (int32_t) ((int64_t) (ey1 - edge.yL) * edge.dx / edge.dy);
+  int32_t x0 = edge.xL + (int32_t) ((int64_t) (ey0 - edge.yL) * edge.slope >> 16);
+  int32_t x1 = edge.xL + (int32_t) ((int64_t) (ey1 - edge.yL) * edge.slope >> 16);
 
   /* Fractional y within this pixel row [0, 64] */
   int32_t fy0 = ey0 - y_top;

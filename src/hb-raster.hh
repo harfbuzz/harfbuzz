@@ -34,13 +34,12 @@
 #include "hb-vector.hh"
 
 
-/* Normalized edge: dy > 0 always */
+/* Normalized edge: yH > yL always */
 struct hb_raster_edge_t
 {
   int32_t xL, yL;   /* lower endpoint (26.6) */
   int32_t xH, yH;   /* upper endpoint (26.6) */
-  int32_t dx;       /* xH - xL */
-  int32_t dy;       /* yH - yL, always > 0 */
+  int64_t slope;    /* dx/dy in 16.16 fixed point: ((int64_t)dx << 16) / dy */
   int32_t wind;     /* +1 or -1 */
 };
 
