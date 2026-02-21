@@ -27,6 +27,7 @@
 #include "hb.hh"
 
 #include "hb-raster.hh"
+#include "hb-geometry.hh"
 #include "hb-machinery.hh"
 
 #if defined(__aarch64__) || defined(_M_ARM64)
@@ -36,6 +37,40 @@
 #include <emmintrin.h>
 #define HB_RASTER_SSE2 1
 #endif
+
+
+/* Normalized edge: yH > yL always */
+struct hb_raster_edge_t
+{
+  int32_t xL, yL;   /* lower endpoint (26.6) */
+  int32_t xH, yH;   /* upper endpoint (26.6) */
+  int64_t slope;    /* dx/dy in 16.16 fixed point: ((int64_t)dx << 16) / dy */
+  int32_t wind;     /* +1 or -1 */
+};
+
+/* hb_raster_draw_t — outline rasterizer */
+struct hb_raster_draw_t
+{
+  hb_object_header_t header;
+
+  /* Configuration */
+  hb_raster_format_t  format            = HB_RASTER_FORMAT_A8;
+  hb_transform_t<>    transform         = {1, 0, 0, 1, 0, 0};
+  hb_raster_extents_t fixed_extents     = {};
+  bool                has_fixed_extents = false;
+
+  /* Accumulated geometry */
+  hb_vector_t<hb_raster_edge_t> edges;
+
+  /* Scratch — reused across render() calls */
+  hb_vector_t<int32_t> row_area;
+  hb_vector_t<int16_t> row_cover;
+  hb_vector_t<hb_vector_t<unsigned>> edge_buckets;
+  hb_vector_t<unsigned> active_edges;
+
+  /* Recycled image for zero-malloc render */
+  hb_raster_image_t *recycled_image = nullptr;
+};
 
 
 /* hb_raster_draw_t */
