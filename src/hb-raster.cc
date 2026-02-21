@@ -673,7 +673,7 @@ hb_raster_draw_get_funcs (void)
  */
 
 /* Add one edge piece's area/cover into a single cell. */
-static inline void
+static HB_ALWAYS_INLINE void
 cell_add (int32_t *area, int16_t *cover, unsigned width, int col,
 	  int32_t fx0, int32_t fy0, int32_t fx1, int32_t fy1, int32_t wind,
 	  unsigned &x_min, unsigned &x_max)
@@ -688,7 +688,7 @@ cell_add (int32_t *area, int16_t *cover, unsigned width, int col,
 
 /* Walk one edge through the pixel cells of a single pixel row,
    accumulating area/cover.  py is the integer pixel-row index. */
-static void
+static HB_ALWAYS_INLINE void
 edge_sweep_row (int32_t                *area,
 		int16_t                *cover,
 		unsigned                width,
@@ -774,6 +774,139 @@ cmp_edge_y (const void *a, const void *b)
   int32_t ya = ((const hb_raster_edge_t *) a)->yL;
   int32_t yb = ((const hb_raster_edge_t *) b)->yL;
   return (ya > yb) - (ya < yb);
+}
+
+/* Rasterize all active edges into area/cover for one scanline row. */
+static void
+rasterize_edges_to_cells (const hb_raster_edge_t *edges,
+			  unsigned                n_edges,
+			  unsigned               &start,
+			  int32_t                *area,
+			  int16_t                *cover,
+			  unsigned                width,
+			  int                     x_org,
+			  int32_t                 y_top,
+			  int32_t                 y_bot,
+			  unsigned               &x_min,
+			  unsigned               &x_max)
+{
+  int32_t py = y_top >> 6;
+
+  while (start < n_edges && edges[start].yH <= y_top)
+    start++;
+
+  for (unsigned i = start; i < n_edges; i++)
+  {
+    const auto &e = edges[i];
+    if (e.yL >= y_bot) break;
+    if (e.yH <= y_top) continue;
+
+    edge_sweep_row (area, cover, width, x_org, py, e, x_min, x_max);
+  }
+}
+
+/* Prefix-sum cover in-place, scaled by 128. Returns final accumulator. */
+static int32_t
+prefix_sum_cover (int16_t *cover, unsigned x_min, unsigned x_max)
+{
+  int32_t cover_accum = 0;
+  for (unsigned x = x_min; x <= x_max; x++)
+  {
+    cover_accum += cover[x];
+    cover[x] = (int16_t) (cover_accum * 128);
+  }
+  return cover_accum;
+}
+
+/* Convert prefix-summed cover + area to alpha bytes, then clear. */
+static void
+sweep_row_to_alpha (uint8_t *row_buf,
+		    int32_t *area,
+		    int16_t *cover,
+		    unsigned x_min,
+		    unsigned x_max)
+{
+  unsigned x = x_min;
+
+#ifdef HB_RASTER_NEON
+  int32x4_t clamp_v = vdupq_n_s32 (8192);
+  int32x4_t bias_v  = vdupq_n_s32 (4096);
+  int32x4_t zero32  = vdupq_n_s32 (0);
+  int16x8_t zero16  = vdupq_n_s16 (0);
+  for (; x + 7 <= x_max; x += 8)
+  {
+    int16x8_t c16 = vld1q_s16 (cover + x);
+    int32x4_t c0  = vmovl_s16 (vget_low_s16 (c16));
+    int32x4_t c1  = vmovl_s16 (vget_high_s16 (c16));
+    int32x4_t a0  = vld1q_s32 (area + x);
+    int32x4_t a1  = vld1q_s32 (area + x + 4);
+
+    int32x4_t v0 = vabsq_s32 (vsubq_s32 (c0, a0));
+    int32x4_t v1 = vabsq_s32 (vsubq_s32 (c1, a1));
+
+    v0 = vminq_s32 (v0, clamp_v);
+    v1 = vminq_s32 (v1, clamp_v);
+
+    int32x4_t r0 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v0, 255), 13);
+    int32x4_t r1 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v1, 255), 13);
+
+    int16x4_t h0 = vmovn_s32 (r0);
+    int16x4_t h1 = vmovn_s32 (r1);
+    int16x8_t h  = vcombine_s16 (h0, h1);
+    uint8x8_t b  = vqmovun_s16 (h);
+    vst1_u8 (row_buf + x, b);
+
+    vst1q_s32 (area + x,     zero32);
+    vst1q_s32 (area + x + 4, zero32);
+    vst1q_s16 (cover + x,    zero16);
+  }
+#elif defined(HB_RASTER_SSE2)
+  __m128i clamp_v = _mm_set1_epi32 (8192);
+  __m128i bias_v  = _mm_set1_epi32 (4096);
+  __m128i zero_v  = _mm_setzero_si128 ();
+  for (; x + 7 <= x_max; x += 8)
+  {
+    __m128i c16 = _mm_loadu_si128 ((__m128i *) (void *) (cover + x));
+    __m128i c0  = _mm_srai_epi32 (_mm_unpacklo_epi16 (c16, c16), 16);
+    __m128i c1  = _mm_srai_epi32 (_mm_unpackhi_epi16 (c16, c16), 16);
+    __m128i a0  = _mm_loadu_si128 ((__m128i *) (void *) (area + x));
+    __m128i a1  = _mm_loadu_si128 ((__m128i *) (void *) (area + x + 4));
+
+    __m128i v0 = _mm_sub_epi32 (c0, a0);
+    __m128i v1 = _mm_sub_epi32 (c1, a1);
+
+    __m128i s0 = _mm_srai_epi32 (v0, 31);
+    __m128i s1 = _mm_srai_epi32 (v1, 31);
+    v0 = _mm_sub_epi32 (_mm_xor_si128 (v0, s0), s0);
+    v1 = _mm_sub_epi32 (_mm_xor_si128 (v1, s1), s1);
+
+    __m128i lt0 = _mm_cmplt_epi32 (v0, clamp_v);
+    __m128i lt1 = _mm_cmplt_epi32 (v1, clamp_v);
+    v0 = _mm_or_si128 (_mm_and_si128 (lt0, v0), _mm_andnot_si128 (lt0, clamp_v));
+    v1 = _mm_or_si128 (_mm_and_si128 (lt1, v1), _mm_andnot_si128 (lt1, clamp_v));
+
+    __m128i r0 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v0, 8), v0), bias_v), 13);
+    __m128i r1 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v1, 8), v1), bias_v), 13);
+
+    __m128i h = _mm_packs_epi32 (r0, r1);
+    __m128i b = _mm_packus_epi16 (h, h);
+    _mm_storel_epi64 ((__m128i *) (void *) (row_buf + x), b);
+
+    _mm_storeu_si128 ((__m128i *) (void *) (area + x),     zero_v);
+    _mm_storeu_si128 ((__m128i *) (void *) (area + x + 4), zero_v);
+    _mm_storeu_si128 ((__m128i *) (void *) (cover + x),    zero_v);
+  }
+#endif
+
+  for (; x <= x_max; x++)
+  {
+    int32_t val   = (int32_t) cover[x] - area[x];
+    int32_t alpha = val < 0 ? -val : val;
+    if (alpha > 8192) alpha = 8192;
+    row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
+    area[x]  = 0;
+    cover[x] = 0;
+  }
 }
 
 
@@ -884,41 +1017,23 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     unsigned start = 0;
     for (unsigned row = 0; row < ext.height; row++)
     {
-      int32_t py    = ext.y_origin + (int) row;
-      int32_t y_top = py << 6;
+      int32_t y_top = (ext.y_origin + (int) row) << 6;
       int32_t y_bot = y_top + 64;
-
-      /* Advance past edges that can no longer reach this row. */
-      while (start < draw->edges.length && draw->edges.arrayZ[start].yH <= y_top)
-	start++;
 
       unsigned x_min = ext.width, x_max = 0;
 
-      for (unsigned i = start; i < draw->edges.length; i++)
-      {
-	const auto &e = draw->edges.arrayZ[i];
-	if (e.yL >= y_bot) break;     /* sorted: no more edges can overlap */
-	if (e.yH <= y_top) continue;  /* edge is above this row */
+      rasterize_edges_to_cells (draw->edges.arrayZ, draw->edges.length,
+				start,
+				row_area.arrayZ, row_cover.arrayZ,
+				ext.width, ext.x_origin,
+				y_top, y_bot,
+				x_min, x_max);
 
-	edge_sweep_row (row_area.arrayZ, row_cover.arrayZ,
-			ext.width, ext.x_origin, py, e,
-			x_min, x_max);
-      }
-
-      /* Sweep touched range: convert area/cover to alpha, then clear. */
       if (x_min <= x_max)
       {
-	/* Phase 1: prefix-sum cover in-place, scaled by 128.
-	   int16 range: cover_accum * 128 maxes at ±8192, fits int16. */
-	int32_t cover_accum = 0;
-	for (unsigned x = x_min; x <= x_max; x++)
-	{
-	  cover_accum += row_cover.arrayZ[x];
-	  row_cover.arrayZ[x] = (int16_t) (cover_accum * 128);
-	}
+	int32_t cover_accum = prefix_sum_cover (row_cover.arrayZ, x_min, x_max);
 
 	/* If cover doesn't cancel, memset the constant-alpha tail. */
-	unsigned x_end = x_max;
 	if (cover_accum != 0)
 	{
 	  int32_t alpha = cover_accum * 128;
@@ -926,113 +1041,13 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  if (alpha > 8192) alpha = 8192;
 	  uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
 
-	  x_end = ext.width - 1;
 	  uint8_t *row_buf = image->buffer + row * ext.stride;
-	  memset (row_buf + x_max + 1, byte, x_end - x_max);
+	  memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
 	}
 
-	/* Phase 2: compute alpha over [x_min, x_max] from prefix-summed
-	   cover (int16) and area (int32), then clear both. */
-	uint8_t *row_buf = image->buffer + row * ext.stride;
-	unsigned x = x_min;
-
-#ifdef HB_RASTER_NEON
-	/* Process 8 pixels at a time.
-	   Load 8 × int16 cover, widen to 2 × int32x4 for the math. */
-	int32x4_t clamp_v = vdupq_n_s32 (8192);
-	int32x4_t bias_v  = vdupq_n_s32 (4096);
-	int32x4_t zero32  = vdupq_n_s32 (0);
-	int16x8_t zero16  = vdupq_n_s16 (0);
-	for (; x + 7 <= x_max; x += 8)
-	{
-	  int16x8_t c16 = vld1q_s16 (row_cover.arrayZ + x);
-	  int32x4_t c0  = vmovl_s16 (vget_low_s16 (c16));
-	  int32x4_t c1  = vmovl_s16 (vget_high_s16 (c16));
-	  int32x4_t a0  = vld1q_s32 (row_area.arrayZ + x);
-	  int32x4_t a1  = vld1q_s32 (row_area.arrayZ + x + 4);
-
-	  /* |cover*128 - area| */
-	  int32x4_t v0 = vabsq_s32 (vsubq_s32 (c0, a0));
-	  int32x4_t v1 = vabsq_s32 (vsubq_s32 (c1, a1));
-
-	  /* clamp to 8192 */
-	  v0 = vminq_s32 (v0, clamp_v);
-	  v1 = vminq_s32 (v1, clamp_v);
-
-	  /* (v * 255 + 4096) >> 13 */
-	  int32x4_t r0 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v0, 255), 13);
-	  int32x4_t r1 = vshrq_n_s32 (vmlaq_n_s32 (bias_v, v1, 255), 13);
-
-	  /* Narrow: int32x4 -> int16x4 -> int8x8 -> store 8 bytes */
-	  int16x4_t h0 = vmovn_s32 (r0);
-	  int16x4_t h1 = vmovn_s32 (r1);
-	  int16x8_t h  = vcombine_s16 (h0, h1);
-	  uint8x8_t b  = vqmovun_s16 (h);
-	  vst1_u8 (row_buf + x, b);
-
-	  /* Clear work arrays. */
-	  vst1q_s32 (row_area.arrayZ + x,     zero32);
-	  vst1q_s32 (row_area.arrayZ + x + 4, zero32);
-	  vst1q_s16 (row_cover.arrayZ + x,    zero16);
-	}
-#elif defined(HB_RASTER_SSE2)
-	/* Process 8 pixels at a time.
-	   Load 8 × int16 cover, widen to 2 × int32x4 for the math. */
-	__m128i clamp_v = _mm_set1_epi32 (8192);
-	__m128i bias_v  = _mm_set1_epi32 (4096);
-	__m128i zero_v  = _mm_setzero_si128 ();
-	for (; x + 7 <= x_max; x += 8)
-	{
-	  /* Load 8 int16, sign-extend to 2 × 4 int32.
-	     SSE2: unpack with sign extension. */
-	  __m128i c16 = _mm_loadu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x));
-	  __m128i c0  = _mm_srai_epi32 (_mm_unpacklo_epi16 (c16, c16), 16);
-	  __m128i c1  = _mm_srai_epi32 (_mm_unpackhi_epi16 (c16, c16), 16);
-	  __m128i a0  = _mm_loadu_si128 ((__m128i *) (void *) (row_area.arrayZ + x));
-	  __m128i a1  = _mm_loadu_si128 ((__m128i *) (void *) (row_area.arrayZ + x + 4));
-
-	  /* v = cover - area */
-	  __m128i v0 = _mm_sub_epi32 (c0, a0);
-	  __m128i v1 = _mm_sub_epi32 (c1, a1);
-
-	  /* abs(v): sign = v >> 31; abs = (v ^ sign) - sign */
-	  __m128i s0 = _mm_srai_epi32 (v0, 31);
-	  __m128i s1 = _mm_srai_epi32 (v1, 31);
-	  v0 = _mm_sub_epi32 (_mm_xor_si128 (v0, s0), s0);
-	  v1 = _mm_sub_epi32 (_mm_xor_si128 (v1, s1), s1);
-
-	  /* min(v, 8192): lt = v < clamp; result = (v & lt) | (clamp & ~lt) */
-	  __m128i lt0 = _mm_cmplt_epi32 (v0, clamp_v);
-	  __m128i lt1 = _mm_cmplt_epi32 (v1, clamp_v);
-	  v0 = _mm_or_si128 (_mm_and_si128 (lt0, v0), _mm_andnot_si128 (lt0, clamp_v));
-	  v1 = _mm_or_si128 (_mm_and_si128 (lt1, v1), _mm_andnot_si128 (lt1, clamp_v));
-
-	  /* (v * 255 + 4096) >> 13;  v*255 = (v<<8) - v */
-	  __m128i r0 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v0, 8), v0), bias_v), 13);
-	  __m128i r1 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v1, 8), v1), bias_v), 13);
-
-	  /* Narrow: int32x4x2 -> int16x8 -> uint8x8 -> store 8 bytes */
-	  __m128i h = _mm_packs_epi32 (r0, r1);
-	  __m128i b = _mm_packus_epi16 (h, h);
-	  _mm_storel_epi64 ((__m128i *) (void *) (row_buf + x), b);
-
-	  /* Clear work arrays. */
-	  _mm_storeu_si128 ((__m128i *) (void *) (row_area.arrayZ + x),     zero_v);
-	  _mm_storeu_si128 ((__m128i *) (void *) (row_area.arrayZ + x + 4), zero_v);
-	  _mm_storeu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x),    zero_v);
-	}
-#endif
-
-	/* Scalar tail. */
-	for (; x <= x_max; x++)
-	{
-	  int32_t val   = (int32_t) row_cover.arrayZ[x] - row_area.arrayZ[x];
-	  int32_t alpha = val < 0 ? -val : val;
-	  if (alpha > 8192) alpha = 8192;
-	  row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
-	  row_area.arrayZ[x]  = 0;
-	  row_cover.arrayZ[x] = 0;
-	}
+	sweep_row_to_alpha (image->buffer + row * ext.stride,
+			    row_area.arrayZ, row_cover.arrayZ,
+			    x_min, x_max);
       }
     }
   }
