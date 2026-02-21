@@ -101,6 +101,27 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: false,
   )
 
+  hb_draw_all = executable('hb-draw-all', ['hb-draw-all.c'],
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    link_with: [libharfbuzz],
+    install: false,
+  )
+
+  hb_paint_all = executable('hb-paint-all', ['hb-paint-all.c'],
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    link_with: [libharfbuzz],
+    install: false,
+  )
+
+  hb_raster_all = executable('hb-raster-all', ['hb-raster-all.cc'],
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    link_with: [libharfbuzz, libharfbuzz_raster],
+    install: false,
+  )
+
   hb_info = executable('hb-info', [hb_info_sources, gobject_enums_h],
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
