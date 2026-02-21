@@ -62,13 +62,22 @@ typedef enum {
  */
 typedef struct hb_raster_extents_t {
   int      x_origin, y_origin;
-  unsigned width, height;
-  unsigned stride;
+  unsigned int width, height;
+  unsigned int stride;
 } hb_raster_extents_t;
 
 
 /* ── hb_raster_image_t ────────────────────────────────────────────── */
 
+/**
+ * hb_raster_image_t:
+ *
+ * An opaque raster image object holding a pixel buffer produced by
+ * hb_raster_draw_render().  Use hb_raster_image_get_buffer() and
+ * hb_raster_image_get_extents() to access the pixels.
+ *
+ * XSince: REPLACEME
+ **/
 typedef struct hb_raster_image_t hb_raster_image_t;
 
 HB_EXTERN hb_raster_image_t *
@@ -101,6 +110,15 @@ hb_raster_image_get_format (hb_raster_image_t *image);
 
 /* ── hb_raster_draw_t ─────────────────────────────────────────────── */
 
+/**
+ * hb_raster_draw_t:
+ *
+ * An opaque outline rasterizer object.  Accumulates glyph outlines
+ * via #hb_draw_funcs_t callbacks obtained from hb_raster_draw_get_funcs(),
+ * then produces an #hb_raster_image_t with hb_raster_draw_render().
+ *
+ * XSince: REPLACEME
+ **/
 typedef struct hb_raster_draw_t hb_raster_draw_t;
 
 HB_EXTERN hb_raster_draw_t *

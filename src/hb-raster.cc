@@ -38,16 +38,52 @@
 #endif
 
 
-/*
- * hb_raster_image_t
- */
+/**
+ * SECTION:hb-raster
+ * @title: hb-raster
+ * @short_description: Glyph rasterization
+ * @include: hb-raster.h
+ *
+ * Functions for rasterizing glyph outlines into pixel buffers.
+ *
+ * The #hb_raster_draw_t object accumulates glyph outlines via
+ * #hb_draw_funcs_t callbacks obtained from hb_raster_draw_get_funcs(),
+ * then produces an #hb_raster_image_t with hb_raster_draw_render().
+ **/
 
+
+/* hb_raster_image_t */
+
+/**
+ * hb_raster_image_reference: (skip)
+ * @image: a raster image
+ *
+ * Increases the reference count on @image by one.
+ *
+ * This prevents @image from being destroyed until a matching
+ * call to hb_raster_image_destroy() is made.
+ *
+ * Return value: (transfer full):
+ * The referenced #hb_raster_image_t.
+ *
+ * XSince: REPLACEME
+ **/
 hb_raster_image_t *
 hb_raster_image_reference (hb_raster_image_t *image)
 {
   return hb_object_reference (image);
 }
 
+/**
+ * hb_raster_image_destroy: (skip)
+ * @image: a raster image
+ *
+ * Decreases the reference count on @image by one. When the
+ * reference count reaches zero, the image and its pixel buffer
+ * are freed.
+ *
+ * XSince: REPLACEME
+ **/
 void
 hb_raster_image_destroy (hb_raster_image_t *image)
 {
@@ -55,6 +91,20 @@ hb_raster_image_destroy (hb_raster_image_t *image)
   hb_free (image);
 }
 
+/**
+ * hb_raster_image_set_user_data: (skip)
+ * @image: a raster image
+ * @key: the user-data key
+ * @data: a pointer to the user data
+ * @destroy: (nullable): a callback to call when @data is not needed anymore
+ * @replace: whether to replace an existing data with the same key
+ *
+ * Attaches a user-data key/data pair to the specified raster image.
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * XSince: REPLACEME
+ **/
 hb_bool_t
 hb_raster_image_set_user_data (hb_raster_image_t  *image,
 			       hb_user_data_key_t *key,
@@ -65,6 +115,19 @@ hb_raster_image_set_user_data (hb_raster_image_t  *image,
   return hb_object_set_user_data (image, key, data, destroy, replace);
 }
 
+/**
+ * hb_raster_image_get_user_data: (skip)
+ * @image: a raster image
+ * @key: the user-data key
+ *
+ * Fetches the user-data associated with the specified key,
+ * attached to the specified raster image.
+ *
+ * Return value: (transfer none):
+ * A pointer to the user data
+ *
+ * XSince: REPLACEME
+ **/
 void *
 hb_raster_image_get_user_data (hb_raster_image_t  *image,
 			       hb_user_data_key_t *key)
@@ -72,6 +135,19 @@ hb_raster_image_get_user_data (hb_raster_image_t  *image,
   return hb_object_get_user_data (image, key);
 }
 
+/**
+ * hb_raster_image_get_buffer:
+ * @image: a raster image
+ *
+ * Fetches the raw pixel buffer of @image.  The buffer layout is
+ * described by the extents obtained from hb_raster_image_get_extents()
+ * and the format from hb_raster_image_get_format().
+ *
+ * Return value: (transfer none) (array):
+ * The pixel buffer, or `NULL`
+ *
+ * XSince: REPLACEME
+ **/
 const uint8_t *
 hb_raster_image_get_buffer (hb_raster_image_t *image)
 {
@@ -79,6 +155,15 @@ hb_raster_image_get_buffer (hb_raster_image_t *image)
   return image->buffer;
 }
 
+/**
+ * hb_raster_image_get_extents:
+ * @image: a raster image
+ * @extents: (out): the image extents
+ *
+ * Fetches the pixel-buffer extents of @image.
+ *
+ * XSince: REPLACEME
+ **/
 void
 hb_raster_image_get_extents (hb_raster_image_t   *image,
 			     hb_raster_extents_t *extents)
@@ -87,6 +172,17 @@ hb_raster_image_get_extents (hb_raster_image_t   *image,
   *extents = image->extents;
 }
 
+/**
+ * hb_raster_image_get_format:
+ * @image: a raster image
+ *
+ * Fetches the pixel format of @image.
+ *
+ * Return value:
+ * The #hb_raster_format_t of the image
+ *
+ * XSince: REPLACEME
+ **/
 hb_raster_format_t
 hb_raster_image_get_format (hb_raster_image_t *image)
 {
@@ -95,10 +191,22 @@ hb_raster_image_get_format (hb_raster_image_t *image)
 }
 
 
-/*
- * hb_raster_draw_t
- */
+/* hb_raster_draw_t */
 
+/**
+ * hb_raster_draw_create:
+ *
+ * Creates a new rasterizer object.
+ *
+ * Return value: (transfer full):
+ * A newly allocated #hb_raster_draw_t with a reference count of 1. The
+ * initial reference count should be released with hb_raster_draw_destroy()
+ * when you are done using the #hb_raster_draw_t. This function never
+ * returns `NULL`. If memory cannot be allocated, a special singleton
+ * #hb_raster_draw_t object will be returned.
+ *
+ * XSince: REPLACEME
+ **/
 hb_raster_draw_t *
 hb_raster_draw_create (void)
 {
@@ -107,12 +215,35 @@ hb_raster_draw_create (void)
   return draw;
 }
 
+/**
+ * hb_raster_draw_reference: (skip)
+ * @draw: a rasterizer
+ *
+ * Increases the reference count on @draw by one.
+ *
+ * This prevents @draw from being destroyed until a matching
+ * call to hb_raster_draw_destroy() is made.
+ *
+ * Return value: (transfer full):
+ * The referenced #hb_raster_draw_t.
+ *
+ * XSince: REPLACEME
+ **/
 hb_raster_draw_t *
 hb_raster_draw_reference (hb_raster_draw_t *draw)
 {
   return hb_object_reference (draw);
 }
 
+/**
+ * hb_raster_draw_destroy: (skip)
+ * @draw: a rasterizer
+ *
+ * Decreases the reference count on @draw by one. When the
+ * reference count reaches zero, the rasterizer is freed.
+ *
+ * XSince: REPLACEME
+ **/
 void
 hb_raster_draw_destroy (hb_raster_draw_t *draw)
 {
@@ -120,6 +251,20 @@ hb_raster_draw_destroy (hb_raster_draw_t *draw)
   hb_free (draw);
 }
 
+/**
+ * hb_raster_draw_set_user_data: (skip)
+ * @draw: a rasterizer
+ * @key: the user-data key
+ * @data: a pointer to the user data
+ * @destroy: (nullable): a callback to call when @data is not needed anymore
+ * @replace: whether to replace an existing data with the same key
+ *
+ * Attaches a user-data key/data pair to the specified rasterizer.
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * XSince: REPLACEME
+ **/
 hb_bool_t
 hb_raster_draw_set_user_data (hb_raster_draw_t   *draw,
 			      hb_user_data_key_t *key,
@@ -130,6 +275,19 @@ hb_raster_draw_set_user_data (hb_raster_draw_t   *draw,
   return hb_object_set_user_data (draw, key, data, destroy, replace);
 }
 
+/**
+ * hb_raster_draw_get_user_data: (skip)
+ * @draw: a rasterizer
+ * @key: the user-data key
+ *
+ * Fetches the user-data associated with the specified key,
+ * attached to the specified rasterizer.
+ *
+ * Return value: (transfer none):
+ * A pointer to the user data
+ *
+ * XSince: REPLACEME
+ **/
 void *
 hb_raster_draw_get_user_data (hb_raster_draw_t   *draw,
 			      hb_user_data_key_t *key)
@@ -137,6 +295,16 @@ hb_raster_draw_get_user_data (hb_raster_draw_t   *draw,
   return hb_object_get_user_data (draw, key);
 }
 
+/**
+ * hb_raster_draw_set_format:
+ * @draw: a rasterizer
+ * @format: the pixel format to use
+ *
+ * Sets the output pixel format for subsequent renders.
+ * The default is @HB_RASTER_FORMAT_A8.
+ *
+ * XSince: REPLACEME
+ **/
 void
 hb_raster_draw_set_format (hb_raster_draw_t  *draw,
 			   hb_raster_format_t format)
@@ -145,6 +313,17 @@ hb_raster_draw_set_format (hb_raster_draw_t  *draw,
   draw->format = format;
 }
 
+/**
+ * hb_raster_draw_get_format:
+ * @draw: a rasterizer
+ *
+ * Fetches the output pixel format of the rasterizer.
+ *
+ * Return value:
+ * The #hb_raster_format_t of the rasterizer
+ *
+ * XSince: REPLACEME
+ **/
 hb_raster_format_t
 hb_raster_draw_get_format (hb_raster_draw_t *draw)
 {
@@ -152,6 +331,21 @@ hb_raster_draw_get_format (hb_raster_draw_t *draw)
   return draw->format;
 }
 
+/**
+ * hb_raster_draw_set_transform:
+ * @draw: a rasterizer
+ * @xx: xx component of the transform matrix
+ * @yx: yx component of the transform matrix
+ * @xy: xy component of the transform matrix
+ * @yy: yy component of the transform matrix
+ * @dx: x translation
+ * @dy: y translation
+ *
+ * Sets a 2×3 affine transform applied to all incoming draw
+ * coordinates before rasterization.  The default is the identity.
+ *
+ * XSince: REPLACEME
+ **/
 void
 hb_raster_draw_set_transform (hb_raster_draw_t *draw,
 			      float xx, float yx,
@@ -162,6 +356,20 @@ hb_raster_draw_set_transform (hb_raster_draw_t *draw,
   draw->transform = {xx, yx, xy, yy, dx, dy};
 }
 
+/**
+ * hb_raster_draw_get_transform:
+ * @draw: a rasterizer
+ * @xx: (out) (optional): xx component of the transform matrix
+ * @yx: (out) (optional): yx component of the transform matrix
+ * @xy: (out) (optional): xy component of the transform matrix
+ * @yy: (out) (optional): yy component of the transform matrix
+ * @dx: (out) (optional): x translation
+ * @dy: (out) (optional): y translation
+ *
+ * Fetches the current affine transform of the rasterizer.
+ *
+ * XSince: REPLACEME
+ **/
 void
 hb_raster_draw_get_transform (hb_raster_draw_t *draw,
 			      float *xx, float *yx,
@@ -177,6 +385,17 @@ hb_raster_draw_get_transform (hb_raster_draw_t *draw,
   if (dy) *dy = draw->transform.y0;
 }
 
+/**
+ * hb_raster_draw_set_extents:
+ * @draw: a rasterizer
+ * @extents: the desired output extents
+ *
+ * Overrides the output image extents for the next render.  When set,
+ * hb_raster_draw_render() uses the given extents instead of
+ * auto-computing them from the accumulated geometry.
+ *
+ * XSince: REPLACEME
+ **/
 void
 hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 			    const hb_raster_extents_t *extents)
@@ -186,6 +405,16 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
   draw->has_fixed_extents = true;
 }
 
+/**
+ * hb_raster_draw_reset:
+ * @draw: a rasterizer
+ *
+ * Resets the rasterizer to its initial state, clearing all accumulated
+ * geometry, the transform, format, and fixed extents.  The object can
+ * then be reused for a new glyph.
+ *
+ * XSince: REPLACEME
+ **/
 void
 hb_raster_draw_reset (hb_raster_draw_t *draw)
 {
@@ -407,6 +636,18 @@ free_static_raster_draw_funcs ()
   static_raster_draw_funcs.free_instance ();
 }
 
+/**
+ * hb_raster_draw_get_funcs:
+ *
+ * Fetches the singleton #hb_draw_funcs_t that feeds outline data
+ * into an #hb_raster_draw_t.  Pass the #hb_raster_draw_t as the
+ * @draw_data argument when calling the draw functions.
+ *
+ * Return value: (transfer none):
+ * The rasterizer draw functions
+ *
+ * XSince: REPLACEME
+ **/
 hb_draw_funcs_t *
 hb_raster_draw_get_funcs (void)
 {
@@ -536,10 +777,19 @@ cmp_edge_y (const void *a, const void *b)
 }
 
 
-/*
- * hb_raster_draw_render
- */
-
+/**
+ * hb_raster_draw_render:
+ * @draw: a rasterizer
+ *
+ * Rasterizes the accumulated outline geometry into a new
+ * #hb_raster_image_t.  After rendering, the accumulated edges are
+ * cleared so the rasterizer can be reused.
+ *
+ * Return value: (transfer full):
+ * A newly allocated #hb_raster_image_t, or `NULL` on allocation failure
+ *
+ * XSince: REPLACEME
+ **/
 hb_raster_image_t *
 hb_raster_draw_render (hb_raster_draw_t *draw)
 {

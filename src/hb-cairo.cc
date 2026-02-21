@@ -937,8 +937,8 @@ hb_cairo_font_face_get_scale_factor (cairo_font_face_t *font_face)
  * callback rasterizes the glyph outline with hb_raster and blits the
  * resulting A8 coverage image into the Cairo glyph surface.
  *
- * Since: REPLACEME
- */
+ * XSince: REPLACEME
+ **/
 void
 hb_cairo_font_face_set_raster (cairo_font_face_t *font_face,
 			       hb_bool_t raster)
@@ -955,10 +955,11 @@ hb_cairo_font_face_set_raster (cairo_font_face_t *font_face,
  *
  * Gets whether the HarfBuzz CPU rasterizer is enabled on @font_face.
  *
- * Returns: %TRUE if hb_raster rendering is enabled
+ * Return value:
+ * `true` if hb_raster rendering is enabled
  *
- * Since: REPLACEME
- */
+ * XSince: REPLACEME
+ **/
 hb_bool_t
 hb_cairo_font_face_get_raster (cairo_font_face_t *font_face)
 {
