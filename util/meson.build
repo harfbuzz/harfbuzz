@@ -14,6 +14,10 @@ hb_raster_sources = [
   'hb-raster.cc',
 ]
 
+hb_ft_raster_sources = [
+  'hb-ft-raster.cc',
+]
+
 hb_info_sources = [
   'hb-info.cc',
 ]
@@ -86,6 +90,14 @@ if conf.get('HAVE_GLIB', 0) == 1
     include_directories: [incconfig, incsrc],
     dependencies: [util_deps],
     link_with: [libharfbuzz, libharfbuzz_raster],
+    install: false,
+  )
+
+  hb_ft_raster_util = executable('hb-ft-raster', hb_ft_raster_sources,
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    dependencies: [util_deps],
+    link_with: [libharfbuzz],
     install: false,
   )
 
