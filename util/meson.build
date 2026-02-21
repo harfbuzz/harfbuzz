@@ -101,6 +101,14 @@ if conf.get('HAVE_GLIB', 0) == 1
       link_with: [libharfbuzz],
       install: false,
     )
+
+    hb_ft_raster_all = executable('hb-ft-raster-all', ['hb-ft-raster-all.cc'],
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: [util_deps],
+      link_with: [libharfbuzz],
+      install: false,
+    )
   endif
 
   hb_draw_all = executable('hb-draw-all', ['hb-draw-all.c'],
