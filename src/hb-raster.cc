@@ -480,6 +480,9 @@ edge_sweep_row (int32_t                *area,
   int32_t total_dx = x1 - x0;
   int32_t total_dy = fy1 - fy0;
 
+  /* fy increment per pixel column (constant since x_b advances by 64). */
+  int32_t delta_fy = (int32_t) ((int64_t) 64 * total_dy / total_dx);
+
   if (total_dx > 0)
   {
     /* Left-to-right edge. */
@@ -490,8 +493,7 @@ edge_sweep_row (int32_t                *area,
     int32_t fy_prev = fy_b;
     for (int32_t cx = cx0 + 1; cx < cx1; cx++)
     {
-      x_b  = (cx + 1) << 6;
-      fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
+      fy_b = fy_prev + delta_fy;
       cell_add (area, cover, width, cx - x_org, 0, fy_prev, 64, fy_b, wind, x_min, x_max);
       fy_prev = fy_b;
     }
@@ -508,8 +510,7 @@ edge_sweep_row (int32_t                *area,
     int32_t fy_prev = fy_b;
     for (int32_t cx = cx0 - 1; cx > cx1; cx--)
     {
-      x_b  = cx << 6;
-      fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
+      fy_b = fy_prev - delta_fy;
       cell_add (area, cover, width, cx - x_org, 64, fy_prev, 0, fy_b, wind, x_min, x_max);
       fy_prev = fy_b;
     }
