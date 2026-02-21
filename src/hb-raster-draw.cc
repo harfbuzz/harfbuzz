@@ -494,6 +494,27 @@ flatten_quadratic (hb_raster_draw_t *draw,
     flatten_quadratic_recursive (draw, x0, y0, x1, y1, x2, y2);
 }
 
+/* For cubic B(t), the max deviation from its chord on [0,1] is bounded by:
+     max||B(t)-L(t)|| <= max_t ||B''(t)|| / 8.
+   B''(t) is linear, so max norm is attained at t=0 or t=1:
+     B''(0)=6*(P0-2P1+P2), B''(1)=6*(P1-2P2+P3). */
+static inline float
+cubic_chord_error_bound2 (float x0, float y0,
+			  float x1, float y1,
+			  float x2, float y2,
+			  float x3, float y3)
+{
+  float d20x = x0 - 2 * x1 + x2;
+  float d20y = y0 - 2 * y1 + y2;
+  float d21x = x1 - 2 * x2 + x3;
+  float d21y = y1 - 2 * y2 + y3;
+  float m0 = d20x * d20x + d20y * d20y;
+  float m1 = d21x * d21x + d21y * d21y;
+  float m = m0 > m1 ? m0 : m1;
+  /* (max||B''||/8)^2 = (6/8)^2 * max||d2||^2 = (3/4)^2 * m. */
+  return m * (9.f / 16.f);
+}
+
 /* Cubic Bézier flattener — de Casteljau recursive at t=0.5 */
 static inline void
 flatten_cubic_recursive (hb_raster_draw_t *draw,
@@ -503,19 +524,10 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
 			 float x3, float y3,
 			 int depth = 0)
 {
-  /* Check both control points */
-  float chord_x1 = x0 + (x3 - x0) * (1.f / 3.f);
-  float chord_y1 = y0 + (y3 - y0) * (1.f / 3.f);
-  float chord_x2 = x0 + (x3 - x0) * (2.f / 3.f);
-  float chord_y2 = y0 + (y3 - y0) * (2.f / 3.f);
-  float dx1 = x1 - chord_x1, dy1 = y1 - chord_y1;
-  float dx2 = x2 - chord_x2, dy2 = y2 - chord_y2;
-
+  float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
   static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
 
-  if (depth >= 16 ||
-      ((dx1 * dx1 + dy1 * dy1) <= flat_thresh &&
-       (dx2 * dx2 + dy2 * dy2) <= flat_thresh))
+  if (depth >= 16 || err2 <= flat_thresh)
   {
     emit_segment (draw, x0, y0, x3, y3);
     return;
@@ -533,8 +545,8 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
 }
 
 /* Cubic Bézier flattener using forward differencing.
-   Control-point deviation also shrinks 4× per de Casteljau subdivision,
-   so err² shrinks 16× per level — same subdivision-count logic as quadratic.
+   Use a curvature-based chord-error bound (max||B''||/8), then choose a
+   uniform subdivision count n such that the bound drops below threshold.
    The cubic adds a constant third difference d³f = 6·a·h³. */
 static inline void
 flatten_cubic_fd (hb_raster_draw_t *draw,
@@ -543,15 +555,7 @@ flatten_cubic_fd (hb_raster_draw_t *draw,
 		  float x2, float y2,
 		  float x3, float y3)
 {
-  float chord_x1 = x0 + (x3 - x0) * (1.f / 3.f);
-  float chord_y1 = y0 + (y3 - y0) * (1.f / 3.f);
-  float chord_x2 = x0 + (x3 - x0) * (2.f / 3.f);
-  float chord_y2 = y0 + (y3 - y0) * (2.f / 3.f);
-  float dx1 = x1 - chord_x1, dy1 = y1 - chord_y1;
-  float dx2 = x2 - chord_x2, dy2 = y2 - chord_y2;
-  float e1 = dx1*dx1 + dy1*dy1;
-  float e2 = dx2*dx2 + dy2*dy2;
-  float err2 = e1 > e2 ? e1 : e2;
+  float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
 
   static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
 
@@ -561,7 +565,7 @@ flatten_cubic_fd (hb_raster_draw_t *draw,
     return;
   }
 
-  /* err² shrinks 16× per subdivision level. */
+  /* The bound scales with h², so err² shrinks 16× per subdivision level. */
   unsigned n = 1;
   {
     float ratio = err2 / flat_thresh;
