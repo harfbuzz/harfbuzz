@@ -50,7 +50,7 @@
 
 
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
-const unsigned SUBPIXEL_BITS = 0;
+const unsigned SUBPIXEL_BITS = 6;
 
 struct ft_raster_output_t : output_options_t<true>
 {
