@@ -680,10 +680,8 @@ edge_sweep_row (int32_t                *area,
   }
 }
 
-/* Prefix-sum cover in-place, scaled by 128. Returns final accumulator.
-   Clamp cover_accum to [-64, 64] to avoid int16 overflow (winding > ±3
-   would exceed ±8192 after ×128).  Clamping is correct: the alpha
-   formula clamps |val| to 8192 anyway, so extra winding is fully opaque. */
+/* Prefix-sum cover in-place. Returns final accumulator.
+   The ×128 scaling is deferred to the sweep for a tighter loop here. */
 static int32_t
 prefix_sum_cover (int16_t *cover, unsigned x_min, unsigned x_max)
 {
@@ -691,8 +689,7 @@ prefix_sum_cover (int16_t *cover, unsigned x_min, unsigned x_max)
   for (unsigned x = x_min; x <= x_max; x++)
   {
     cover_accum += cover[x];
-    int32_t clamped = hb_clamp (cover_accum, -64, 64);
-    cover[x] = (int16_t) (clamped * 128);
+    cover[x] = (int16_t) cover_accum;
   }
   return cover_accum;
 }
@@ -715,8 +712,8 @@ sweep_row_to_alpha (uint8_t *row_buf,
   for (; x + 7 <= x_max; x += 8)
   {
     int16x8_t c16 = vld1q_s16 (cover + x);
-    int32x4_t c0  = vmovl_s16 (vget_low_s16 (c16));
-    int32x4_t c1  = vmovl_s16 (vget_high_s16 (c16));
+    int32x4_t c0  = vshlq_n_s32 (vmovl_s16 (vget_low_s16 (c16)), 7);
+    int32x4_t c1  = vshlq_n_s32 (vmovl_s16 (vget_high_s16 (c16)), 7);
     int32x4_t a0  = vld1q_s32 (area + x);
     int32x4_t a1  = vld1q_s32 (area + x + 4);
 
@@ -746,8 +743,8 @@ sweep_row_to_alpha (uint8_t *row_buf,
   for (; x + 7 <= x_max; x += 8)
   {
     __m128i c16 = _mm_loadu_si128 ((__m128i *) (void *) (cover + x));
-    __m128i c0  = _mm_srai_epi32 (_mm_unpacklo_epi16 (c16, c16), 16);
-    __m128i c1  = _mm_srai_epi32 (_mm_unpackhi_epi16 (c16, c16), 16);
+    __m128i c0  = _mm_slli_epi32 (_mm_srai_epi32 (_mm_unpacklo_epi16 (c16, c16), 16), 7);
+    __m128i c1  = _mm_slli_epi32 (_mm_srai_epi32 (_mm_unpackhi_epi16 (c16, c16), 16), 7);
     __m128i a0  = _mm_loadu_si128 ((__m128i *) (void *) (area + x));
     __m128i a1  = _mm_loadu_si128 ((__m128i *) (void *) (area + x + 4));
 
@@ -779,7 +776,7 @@ sweep_row_to_alpha (uint8_t *row_buf,
 
   for (; x <= x_max; x++)
   {
-    int32_t val   = (int32_t) cover[x] - area[x];
+    int32_t val   = (int32_t) cover[x] * 128 - area[x];
     int32_t alpha = val < 0 ? -val : val;
     if (alpha > 8192) alpha = 8192;
     row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
