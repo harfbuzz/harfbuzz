@@ -812,8 +812,8 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     }
     else
     {
-      int32_t xmin = draw->edges[0].xL, xmax = draw->edges[0].xL;
-      int32_t ymin = draw->edges[0].yL, ymax = draw->edges[0].yH;
+      int32_t xmin = draw->edges.arrayZ[0].xL, xmax = draw->edges.arrayZ[0].xL;
+      int32_t ymin = draw->edges.arrayZ[0].yL, ymax = draw->edges.arrayZ[0].yH;
 
       for (const auto &e : draw->edges)
       {
@@ -889,14 +889,14 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       int32_t y_bot = y_top + 64;
 
       /* Advance past edges that can no longer reach this row. */
-      while (start < draw->edges.length && draw->edges[start].yH <= y_top)
+      while (start < draw->edges.length && draw->edges.arrayZ[start].yH <= y_top)
 	start++;
 
       unsigned x_min = ext.width, x_max = 0;
 
       for (unsigned i = start; i < draw->edges.length; i++)
       {
-	const auto &e = draw->edges[i];
+	const auto &e = draw->edges.arrayZ[i];
 	if (e.yL >= y_bot) break;     /* sorted: no more edges can overlap */
 	if (e.yH <= y_top) continue;  /* edge is above this row */
 
@@ -913,8 +913,8 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	int32_t cover_accum = 0;
 	for (unsigned x = x_min; x <= x_max; x++)
 	{
-	  cover_accum += row_cover[x];
-	  row_cover[x] = (int16_t) (cover_accum * 128);
+	  cover_accum += row_cover.arrayZ[x];
+	  row_cover.arrayZ[x] = (int16_t) (cover_accum * 128);
 	}
 
 	/* If cover doesn't cancel, memset the constant-alpha tail. */
@@ -1026,12 +1026,12 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	/* Scalar tail. */
 	for (; x <= x_max; x++)
 	{
-	  int32_t val   = (int32_t) row_cover[x] - row_area[x];
+	  int32_t val   = (int32_t) row_cover.arrayZ[x] - row_area.arrayZ[x];
 	  int32_t alpha = val < 0 ? -val : val;
 	  if (alpha > 8192) alpha = 8192;
 	  row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
-	  row_area[x]  = 0;
-	  row_cover[x] = 0;
+	  row_area.arrayZ[x]  = 0;
+	  row_cover.arrayZ[x] = 0;
 	}
       }
     }
