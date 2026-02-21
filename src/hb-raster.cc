@@ -29,6 +29,11 @@
 #include "hb-raster.hh"
 #include "hb-machinery.hh"
 
+#if defined(__aarch64__) || defined(_M_ARM64)
+#include <arm_neon.h>
+#define HB_RASTER_NEON 1
+#endif
+
 
 /*
  * hb_raster_image_t
@@ -650,12 +655,62 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       /* Sweep touched range: convert area/cover to alpha, then clear. */
       if (x_min <= x_max)
       {
-	uint8_t *row_buf = image->buffer + row * ext.stride;
+	/* Phase 1: prefix-sum cover in-place and scale by 128. */
 	int32_t cover_accum = 0;
 	for (unsigned x = x_min; x <= x_max; x++)
 	{
 	  cover_accum += row_cover[x];
-	  int32_t val   = cover_accum * 128 - row_area[x];
+	  row_cover[x] = cover_accum * 128;
+	}
+
+	/* Phase 2: compute alpha = clamp(|cover*128 - area|, 8192) * 255 / 8192
+	   and write to output, then clear work arrays. */
+	uint8_t *row_buf = image->buffer + row * ext.stride;
+	unsigned x = x_min;
+
+#ifdef HB_RASTER_NEON
+	/* Process 8 pixels at a time. */
+	int32x4_t clamp = vdupq_n_s32 (8192);
+	int32x4_t bias  = vdupq_n_s32 (4096);
+	int32x4_t zero  = vdupq_n_s32 (0);
+	for (; x + 7 <= x_max; x += 8)
+	{
+	  int32x4_t c0 = vld1q_s32 (row_cover.arrayZ + x);
+	  int32x4_t c1 = vld1q_s32 (row_cover.arrayZ + x + 4);
+	  int32x4_t a0 = vld1q_s32 (row_area.arrayZ + x);
+	  int32x4_t a1 = vld1q_s32 (row_area.arrayZ + x + 4);
+
+	  /* |cover*128 - area| */
+	  int32x4_t v0 = vabsq_s32 (vsubq_s32 (c0, a0));
+	  int32x4_t v1 = vabsq_s32 (vsubq_s32 (c1, a1));
+
+	  /* clamp to 8192 */
+	  v0 = vminq_s32 (v0, clamp);
+	  v1 = vminq_s32 (v1, clamp);
+
+	  /* (v * 255 + 4096) >> 13 */
+	  int32x4_t r0 = vshrq_n_s32 (vmlaq_n_s32 (bias, v0, 255), 13);
+	  int32x4_t r1 = vshrq_n_s32 (vmlaq_n_s32 (bias, v1, 255), 13);
+
+	  /* Narrow: int32x4 -> int16x4 -> int8x8 -> store 8 bytes */
+	  int16x4_t h0 = vmovn_s32 (r0);
+	  int16x4_t h1 = vmovn_s32 (r1);
+	  int16x8_t h  = vcombine_s16 (h0, h1);
+	  uint8x8_t b  = vqmovun_s16 (h);
+	  vst1_u8 (row_buf + x, b);
+
+	  /* Clear work arrays. */
+	  vst1q_s32 (row_area.arrayZ + x,     zero);
+	  vst1q_s32 (row_area.arrayZ + x + 4, zero);
+	  vst1q_s32 (row_cover.arrayZ + x,     zero);
+	  vst1q_s32 (row_cover.arrayZ + x + 4, zero);
+	}
+#endif
+
+	/* Scalar tail. */
+	for (; x <= x_max; x++)
+	{
+	  int32_t val   = row_cover[x] - row_area[x];
 	  int32_t alpha = val < 0 ? -val : val;
 	  if (alpha > 8192) alpha = 8192;
 	  row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
