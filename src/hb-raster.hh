@@ -70,6 +70,8 @@ struct hb_raster_draw_t
   /* Scratch — reused across render() calls */
   hb_vector_t<int32_t> row_area;
   hb_vector_t<int16_t> row_cover;
+  hb_vector_t<hb_vector_t<unsigned>> edge_buckets;
+  hb_vector_t<unsigned> active_edges;
 
   /* Recycled image for zero-malloc render */
   hb_raster_image_t *recycled_image = nullptr;

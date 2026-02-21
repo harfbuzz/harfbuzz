@@ -427,6 +427,8 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->edges.resize (0);
   draw->row_area.resize (0);
   draw->row_cover.resize (0);
+  draw->edge_buckets.resize (0);
+  draw->active_edges.resize (0);
   hb_raster_image_destroy (draw->recycled_image);
   draw->recycled_image = nullptr;
 }
@@ -796,43 +798,6 @@ edge_sweep_row (int32_t                *area,
   }
 }
 
-static int
-cmp_edge_y (const void *a, const void *b)
-{
-  int32_t ya = ((const hb_raster_edge_t *) a)->yL;
-  int32_t yb = ((const hb_raster_edge_t *) b)->yL;
-  return (ya > yb) - (ya < yb);
-}
-
-/* Rasterize all active edges into area/cover for one scanline row. */
-static void
-rasterize_edges_to_cells (const hb_raster_edge_t *edges,
-			  unsigned                n_edges,
-			  unsigned               &start,
-			  int32_t                *area,
-			  int16_t                *cover,
-			  unsigned                width,
-			  int                     x_org,
-			  int32_t                 y_top,
-			  int32_t                 y_bot,
-			  unsigned               &x_min,
-			  unsigned               &x_max)
-{
-  int32_t py = y_top >> 6;
-
-  while (start < n_edges && edges[start].yH <= y_top)
-    start++;
-
-  for (unsigned i = start; i < n_edges; i++)
-  {
-    const auto &e = edges[i];
-    if (e.yL >= y_bot) break;
-    if (e.yH <= y_top) continue;
-
-    edge_sweep_row (area, cover, width, x_org, py, e, x_min, x_max);
-  }
-}
-
 /* Prefix-sum cover in-place, scaled by 128. Returns final accumulator. */
 static int32_t
 prefix_sum_cover (int16_t *cover, unsigned x_min, unsigned x_max)
@@ -1037,32 +1002,62 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   else
     image->buffer.resize (0);
 
-  /* ── 4. Sort edges and rasterize scanlines ────────────────────── */
+  /* ── 4. Bucket edges by starting row and rasterize scanlines ──── */
   if (draw->edges.length && ext.width && ext.height)
   {
-    hb_qsort (draw->edges.arrayZ, draw->edges.length,
-	      sizeof (hb_raster_edge_t), cmp_edge_y);
-
     if (unlikely (!draw->row_area.resize_dirty (ext.width) ||
 		  !draw->row_cover.resize_dirty (ext.width)))
       goto done;
     memset (draw->row_area.arrayZ,  0, ext.width * sizeof (int32_t));
     memset (draw->row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
 
-    unsigned start = 0;
+    /* Bucket edges by their starting pixel row.
+       Only grow the outer vector; clear inner vectors without freeing. */
+    unsigned old_buckets = draw->edge_buckets.length;
+    if (ext.height > old_buckets)
+    {
+      if (unlikely (!draw->edge_buckets.resize (ext.height)))
+	goto done;
+    }
+    for (unsigned i = 0; i < hb_min (ext.height, old_buckets); i++)
+      draw->edge_buckets.arrayZ[i].resize (0);
+    /* New buckets (if any) are already empty from resize's zero-init. */
+
+    for (unsigned i = 0; i < draw->edges.length; i++)
+    {
+      int row = (draw->edges.arrayZ[i].yL >> 6) - ext.y_origin;
+      if (row < 0) row = 0;
+      if ((unsigned) row >= ext.height) continue;
+      draw->edge_buckets.arrayZ[row].push (i);
+    }
+
+    /* Scanline loop with active edge list. */
+    draw->active_edges.resize (0);
+
     for (unsigned row = 0; row < ext.height; row++)
     {
       int32_t y_top = (ext.y_origin + (int) row) << 6;
-      int32_t y_bot = y_top + 64;
+      int32_t py    = y_top >> 6;
 
+      /* Add new edges from this row's bucket. */
+      for (unsigned idx : draw->edge_buckets.arrayZ[row])
+	draw->active_edges.push (idx);
+
+      /* Process active edges, removing expired ones. */
       unsigned x_min = ext.width, x_max = 0;
+      for (unsigned j = 0; j < draw->active_edges.length; )
+      {
+	const auto &e = draw->edges.arrayZ[draw->active_edges.arrayZ[j]];
+	if (e.yH <= y_top)
+	{
+	  draw->active_edges.remove_unordered (j);
+	  continue;
+	}
 
-      rasterize_edges_to_cells (draw->edges.arrayZ, draw->edges.length,
-				start,
-				draw->row_area.arrayZ, draw->row_cover.arrayZ,
-				ext.width, ext.x_origin,
-				y_top, y_bot,
-				x_min, x_max);
+	edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
+			ext.width, ext.x_origin, py, e, x_min, x_max);
+	j++;
+      }
 
       if (x_min <= x_max)
       {
