@@ -975,10 +975,10 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	__m128i zero_v  = _mm_setzero_si128 ();
 	for (; x + 7 <= x_end; x += 8)
 	{
-	  __m128i c0 = _mm_loadu_si128 ((__m128i *) (row_cover.arrayZ + x));
-	  __m128i c1 = _mm_loadu_si128 ((__m128i *) (row_cover.arrayZ + x + 4));
-	  __m128i a0 = _mm_loadu_si128 ((__m128i *) (row_area.arrayZ + x));
-	  __m128i a1 = _mm_loadu_si128 ((__m128i *) (row_area.arrayZ + x + 4));
+	  __m128i c0 = _mm_loadu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x));
+	  __m128i c1 = _mm_loadu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x + 4));
+	  __m128i a0 = _mm_loadu_si128 ((__m128i *) (void *) (row_area.arrayZ + x));
+	  __m128i a1 = _mm_loadu_si128 ((__m128i *) (void *) (row_area.arrayZ + x + 4));
 
 	  /* v = cover - area */
 	  __m128i v0 = _mm_sub_epi32 (c0, a0);
@@ -1003,13 +1003,13 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  /* Narrow: int32x4x2 -> int16x8 -> uint8x8 -> store 8 bytes */
 	  __m128i h = _mm_packs_epi32 (r0, r1);
 	  __m128i b = _mm_packus_epi16 (h, h);
-	  _mm_storel_epi64 ((__m128i *) (row_buf + x), b);
+	  _mm_storel_epi64 ((__m128i *) (void *) (row_buf + x), b);
 
 	  /* Clear work arrays. */
-	  _mm_storeu_si128 ((__m128i *) (row_area.arrayZ + x),     zero_v);
-	  _mm_storeu_si128 ((__m128i *) (row_area.arrayZ + x + 4), zero_v);
-	  _mm_storeu_si128 ((__m128i *) (row_cover.arrayZ + x),     zero_v);
-	  _mm_storeu_si128 ((__m128i *) (row_cover.arrayZ + x + 4), zero_v);
+	  _mm_storeu_si128 ((__m128i *) (void *) (row_area.arrayZ + x),     zero_v);
+	  _mm_storeu_si128 ((__m128i *) (void *) (row_area.arrayZ + x + 4), zero_v);
+	  _mm_storeu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x),     zero_v);
+	  _mm_storeu_si128 ((__m128i *) (void *) (row_cover.arrayZ + x + 4), zero_v);
 	}
 #endif
 
