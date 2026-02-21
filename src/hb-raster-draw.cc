@@ -384,35 +384,70 @@ emit_segment (hb_raster_draw_t *draw,
   draw->edges.push (e);
 }
 
-/* Quadratic Bézier flattener — de Casteljau at t=0.5 */
+/* Quadratic Bézier flattener using forward differencing.
+   The error (midpoint deviation) shrinks exactly 4× per de Casteljau
+   subdivision, so we compute the subdivision count upfront and iterate
+   with constant-cost additions instead of recursive branching. */
 static void
 flatten_quadratic (hb_raster_draw_t *draw,
 		   float x0, float y0,
 		   float x1, float y1,
 		   float x2, float y2,
-		   int depth)
+		   int depth HB_UNUSED)
 {
-  /* Flatness: squared distance of midpoint deviation from chord */
-  float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
-  float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
-  float chord_mx = (x0 + x2) * 0.5f;
-  float chord_my = (y0 + y2) * 0.5f;
-  float dx = mx - chord_mx;
-  float dy = my - chord_my;
-  /* threshold: 0.25^2 in pixel space */
+  /* Deviation of curve midpoint from chord midpoint (squared). */
+  float devx = (x0 - 2 * x1 + x2) * 0.25f;
+  float devy = (y0 - 2 * y1 + y2) * 0.25f;
+  float err2 = devx * devx + devy * devy;
+
   static const float flat_thresh = 0.25f * 0.25f;
 
-  if (depth >= 16 || (dx * dx + dy * dy) <= flat_thresh) {
+  if (err2 <= flat_thresh)
+  {
     emit_segment (draw, x0, y0, x2, y2);
     return;
   }
 
-  float x01 = (x0 + x1) * 0.5f, y01 = (y0 + y1) * 0.5f;
-  float x12 = (x1 + x2) * 0.5f, y12 = (y1 + y2) * 0.5f;
-  float xm  = (x01 + x12) * 0.5f, ym  = (y01 + y12) * 0.5f;
+  /* err² shrinks 16× per subdivision level.  Find n such that
+     err2 / 16^n <= flat_thresh, i.e. n = ceil(log₁₆(err2/flat_thresh)). */
+  unsigned n = 1;
+  {
+    float ratio = err2 / flat_thresh;
+    while (ratio > 16.f) { ratio *= (1.f / 16.f); n++; }
+    if (n > 16) n = 16;
+  }
+  unsigned N = 1u << n;   /* number of line segments */
+  float h = 1.f / N;
 
-  flatten_quadratic (draw, x0, y0, x01, y01, xm,  ym,  depth + 1);
-  flatten_quadratic (draw, xm, ym, x12, y12, x2,  y2,  depth + 1);
+  /* Quadratic: B(t) = a·t² + b·t + c
+     Forward differences with step h:
+       d²f = 2·a·h²   (constant)
+       df₀ = a·h² + b·h
+       f₀  = c = P₀                     */
+  float ax = x0 - 2 * x1 + x2;
+  float ay = y0 - 2 * y1 + y2;
+  float bx = 2 * (x1 - x0);
+  float by = 2 * (y1 - y0);
+
+  float d2fx = 2 * ax * h * h;
+  float d2fy = 2 * ay * h * h;
+  float dfx  = ax * h * h + bx * h;
+  float dfy  = ay * h * h + by * h;
+  float fx   = x0;
+  float fy   = y0;
+
+  for (unsigned i = 1; i < N; i++)
+  {
+    float nx = fx + dfx;
+    float ny = fy + dfy;
+    emit_segment (draw, fx, fy, nx, ny);
+    fx = nx;
+    fy = ny;
+    dfx += d2fx;
+    dfy += d2fy;
+  }
+  /* Last segment uses exact endpoint to avoid drift. */
+  emit_segment (draw, fx, fy, x2, y2);
 }
 
 /* Cubic Bézier flattener — de Casteljau at t=0.5 */
