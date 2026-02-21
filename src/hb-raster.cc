@@ -427,12 +427,15 @@ hb_raster_draw_get_funcs (void)
 /* Add one edge piece's area/cover into a single cell. */
 static inline void
 cell_add (int32_t *area, int32_t *cover, unsigned width, int col,
-	  int32_t fx0, int32_t fy0, int32_t fx1, int32_t fy1, int32_t wind)
+	  int32_t fx0, int32_t fy0, int32_t fx1, int32_t fy1, int32_t wind,
+	  unsigned &x_min, unsigned &x_max)
 {
   if ((unsigned) col >= width) return;
   int32_t dy = fy1 - fy0;
   area[col]  += (fx0 + fx1) * dy * wind;
   cover[col] += dy * wind;
+  x_min = hb_min (x_min, (unsigned) col);
+  x_max = hb_max (x_max, (unsigned) col);
 }
 
 /* Walk one edge through the pixel cells of a single pixel row,
@@ -443,7 +446,9 @@ edge_sweep_row (int32_t                *area,
 		unsigned                width,
 		int                     x_org,
 		int32_t                 py,
-		const hb_raster_edge_t &edge)
+		const hb_raster_edge_t &edge,
+		unsigned               &x_min,
+		unsigned               &x_max)
 {
   int32_t y_top = py << 6;
   int32_t y_bot = y_top + 64;
@@ -469,7 +474,7 @@ edge_sweep_row (int32_t                *area,
   /* Fast path: both endpoints in the same pixel column. */
   if (cx0 == cx1)
   {
-    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, fx1, fy1, wind);
+    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, fx1, fy1, wind, x_min, x_max);
     return;
   }
 
@@ -481,36 +486,36 @@ edge_sweep_row (int32_t                *area,
     /* Left-to-right edge. */
     int32_t x_b  = (cx0 + 1) << 6;
     int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
-    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 64, fy_b, wind);
+    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 64, fy_b, wind, x_min, x_max);
 
     int32_t fy_prev = fy_b;
     for (int32_t cx = cx0 + 1; cx < cx1; cx++)
     {
       x_b  = (cx + 1) << 6;
       fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
-      cell_add (area, cover, width, cx - x_org, 0, fy_prev, 64, fy_b, wind);
+      cell_add (area, cover, width, cx - x_org, 0, fy_prev, 64, fy_b, wind, x_min, x_max);
       fy_prev = fy_b;
     }
 
-    cell_add (area, cover, width, cx1 - x_org, 0, fy_prev, fx1, fy1, wind);
+    cell_add (area, cover, width, cx1 - x_org, 0, fy_prev, fx1, fy1, wind, x_min, x_max);
   }
   else
   {
     /* Right-to-left edge. */
     int32_t x_b  = cx0 << 6;
     int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
-    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 0, fy_b, wind);
+    cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 0, fy_b, wind, x_min, x_max);
 
     int32_t fy_prev = fy_b;
     for (int32_t cx = cx0 - 1; cx > cx1; cx--)
     {
       x_b  = cx << 6;
       fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
-      cell_add (area, cover, width, cx - x_org, 64, fy_prev, 0, fy_b, wind);
+      cell_add (area, cover, width, cx - x_org, 64, fy_prev, 0, fy_b, wind, x_min, x_max);
       fy_prev = fy_b;
     }
 
-    cell_add (area, cover, width, cx1 - x_org, 64, fy_prev, fx1, fy1, wind);
+    cell_add (area, cover, width, cx1 - x_org, 64, fy_prev, fx1, fy1, wind, x_min, x_max);
   }
 }
 
@@ -607,14 +612,16 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   /* ── 4. Sort edges and rasterize scanlines ────────────────────── */
   if (draw->edges.length && ext.width && ext.height)
   {
-    qsort (draw->edges.arrayZ, draw->edges.length,
-	   sizeof (hb_raster_edge_t), cmp_edge_y);
+    hb_qsort (draw->edges.arrayZ, draw->edges.length,
+	      sizeof (hb_raster_edge_t), cmp_edge_y);
 
     hb_vector_t<int32_t> row_area;
     hb_vector_t<int32_t> row_cover;
     if (unlikely (!row_area.resize (ext.width) ||
 		  !row_cover.resize (ext.width)))
       goto done;
+    memset (row_area.arrayZ,  0, ext.width * sizeof (int32_t));
+    memset (row_cover.arrayZ, 0, ext.width * sizeof (int32_t));
 
     for (unsigned row = 0; row < ext.height; row++)
     {
@@ -622,8 +629,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       int32_t y_top = py << 6;
       int32_t y_bot = y_top + 64;
 
-      memset (row_area.arrayZ,  0, ext.width * sizeof (int32_t));
-      memset (row_cover.arrayZ, 0, ext.width * sizeof (int32_t));
+      unsigned x_min = ext.width, x_max = 0;
 
       for (unsigned i = 0; i < draw->edges.length; i++)
       {
@@ -632,19 +638,25 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	if (e.yH <= y_top) continue;  /* edge is above this row */
 
 	edge_sweep_row (row_area.arrayZ, row_cover.arrayZ,
-			ext.width, ext.x_origin, py, e);
+			ext.width, ext.x_origin, py, e,
+			x_min, x_max);
       }
 
-      /* Sweep left-to-right: convert area/cover to alpha. */
-      uint8_t *row_buf = image->buffer + row * ext.stride;
-      int32_t cover_accum = 0;
-      for (unsigned x = 0; x < ext.width; x++)
+      /* Sweep touched range: convert area/cover to alpha, then clear. */
+      if (x_min <= x_max)
       {
-	cover_accum += row_cover[x];
-	int32_t val   = cover_accum * 128 - row_area[x];
-	int32_t alpha = val < 0 ? -val : val;
-	if (alpha > 8192) alpha = 8192;
-	row_buf[x] = (uint8_t) ((alpha * 255 + 4096) / 8192);
+	uint8_t *row_buf = image->buffer + row * ext.stride;
+	int32_t cover_accum = 0;
+	for (unsigned x = x_min; x <= x_max; x++)
+	{
+	  cover_accum += row_cover[x];
+	  int32_t val   = cover_accum * 128 - row_area[x];
+	  int32_t alpha = val < 0 ? -val : val;
+	  if (alpha > 8192) alpha = 8192;
+	  row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
+	  row_area[x]  = 0;
+	  row_cover[x] = 0;
+	}
       }
     }
   }
