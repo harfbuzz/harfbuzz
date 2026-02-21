@@ -623,15 +623,20 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     memset (row_area.arrayZ,  0, ext.width * sizeof (int32_t));
     memset (row_cover.arrayZ, 0, ext.width * sizeof (int32_t));
 
+    unsigned start = 0;
     for (unsigned row = 0; row < ext.height; row++)
     {
       int32_t py    = ext.y_origin + (int) row;
       int32_t y_top = py << 6;
       int32_t y_bot = y_top + 64;
 
+      /* Advance past edges that can no longer reach this row. */
+      while (start < draw->edges.length && draw->edges[start].yH <= y_top)
+	start++;
+
       unsigned x_min = ext.width, x_max = 0;
 
-      for (unsigned i = 0; i < draw->edges.length; i++)
+      for (unsigned i = start; i < draw->edges.length; i++)
       {
 	const auto &e = draw->edges[i];
 	if (e.yL >= y_bot) break;     /* sorted: no more edges can overlap */
