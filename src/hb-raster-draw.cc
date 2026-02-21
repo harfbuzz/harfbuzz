@@ -384,16 +384,46 @@ emit_segment (hb_raster_draw_t *draw,
   draw->edges.push (e);
 }
 
+/* Quadratic Bézier flattener — de Casteljau recursive at t=0.5 */
+static inline void
+flatten_quadratic_recursive (hb_raster_draw_t *draw,
+			     float x0, float y0,
+			     float x1, float y1,
+			     float x2, float y2,
+			     int depth = 0)
+{
+  /* Flatness: squared distance of midpoint deviation from chord */
+  float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
+  float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
+  float chord_mx = (x0 + x2) * 0.5f;
+  float chord_my = (y0 + y2) * 0.5f;
+  float dx = mx - chord_mx;
+  float dy = my - chord_my;
+  /* threshold: 0.25^2 in pixel space */
+  static const float flat_thresh = 0.25f * 0.25f;
+
+  if (depth >= 16 || (dx * dx + dy * dy) <= flat_thresh) {
+    emit_segment (draw, x0, y0, x2, y2);
+    return;
+  }
+
+  float x01 = (x0 + x1) * 0.5f, y01 = (y0 + y1) * 0.5f;
+  float x12 = (x1 + x2) * 0.5f, y12 = (y1 + y2) * 0.5f;
+  float xm  = (x01 + x12) * 0.5f, ym  = (y01 + y12) * 0.5f;
+
+  flatten_quadratic_recursive (draw, x0, y0, x01, y01, xm,  ym,  depth + 1);
+  flatten_quadratic_recursive (draw, xm, ym, x12, y12, x2,  y2,  depth + 1);
+}
+
 /* Quadratic Bézier flattener using forward differencing.
    The error (midpoint deviation) shrinks exactly 4× per de Casteljau
    subdivision, so we compute the subdivision count upfront and iterate
    with constant-cost additions instead of recursive branching. */
-static void
-flatten_quadratic (hb_raster_draw_t *draw,
-		   float x0, float y0,
-		   float x1, float y1,
-		   float x2, float y2,
-		   int depth HB_UNUSED)
+static inline void
+flatten_quadratic_fd (hb_raster_draw_t *draw,
+		      float x0, float y0,
+		      float x1, float y1,
+		      float x2, float y2)
 {
   /* Deviation of curve midpoint from chord midpoint (squared). */
   float devx = (x0 - 2 * x1 + x2) * 0.25f;
@@ -448,6 +478,18 @@ flatten_quadratic (hb_raster_draw_t *draw,
   }
   /* Last segment uses exact endpoint to avoid drift. */
   emit_segment (draw, fx, fy, x2, y2);
+}
+
+static void
+flatten_quadratic (hb_raster_draw_t *draw,
+		   float x0, float y0,
+		   float x1, float y1,
+		   float x2, float y2)
+{
+  if (true)
+    flatten_quadratic_fd (draw, x0, y0, x1, y1, x2, y2);
+  else
+    flatten_quadratic_recursive (draw, x0, y0, x1, y1, x2, y2);
 }
 
 /* Cubic Bézier flattener — de Casteljau at t=0.5 */
@@ -530,7 +572,7 @@ hb_raster_quadratic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
   transform_point (draw, st->current_x, st->current_y, tx0, ty0);
   transform_point (draw, control_x,     control_y,      tx1, ty1);
   transform_point (draw, to_x,          to_y,           tx2, ty2);
-  flatten_quadratic (draw, tx0, ty0, tx1, ty1, tx2, ty2, 0);
+  flatten_quadratic (draw, tx0, ty0, tx1, ty1, tx2, ty2);
 }
 
 static void
