@@ -173,6 +173,10 @@ hb_raster_draw_render (hb_raster_draw_t *draw);
 HB_EXTERN void
 hb_raster_draw_reset (hb_raster_draw_t *draw);
 
+HB_EXTERN void
+hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
+			      hb_raster_image_t *image);
+
 
 HB_END_DECLS
 

@@ -48,15 +48,9 @@ struct hb_raster_image_t
 {
   hb_object_header_t  header;
 
-  uint8_t            *buffer      = nullptr;
-  size_t              buffer_size = 0;
-  hb_raster_extents_t extents     = {};
-  hb_raster_format_t  format      = HB_RASTER_FORMAT_A8;
-
-  ~hb_raster_image_t ()
-  {
-    hb_free (buffer);
-  }
+  hb_vector_t<uint8_t> buffer;
+  hb_raster_extents_t  extents     = {};
+  hb_raster_format_t   format      = HB_RASTER_FORMAT_A8;
 };
 
 /* hb_raster_draw_t — outline rasterizer */
@@ -76,6 +70,9 @@ struct hb_raster_draw_t
   /* Scratch — reused across render() calls */
   hb_vector_t<int32_t> row_area;
   hb_vector_t<int16_t> row_cover;
+
+  /* Recycled image for zero-malloc render */
+  hb_raster_image_t *recycled_image = nullptr;
 };
 
 

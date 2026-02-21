@@ -1018,4 +1018,5 @@ hb_raster_draw_set_extents
 hb_raster_draw_reset
 hb_raster_draw_get_funcs
 hb_raster_draw_render
+hb_raster_draw_recycle_image
 </SECTION>

@@ -85,7 +85,7 @@ main (int argc, char **argv)
     {
       if (outdir)
 	write_pgm (img, outdir, gid);
-      hb_raster_image_destroy (img);
+      hb_raster_draw_recycle_image (rdr, img);
     }
   }
 

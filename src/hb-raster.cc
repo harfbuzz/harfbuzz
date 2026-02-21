@@ -152,7 +152,7 @@ const uint8_t *
 hb_raster_image_get_buffer (hb_raster_image_t *image)
 {
   if (unlikely (!image)) return nullptr;
-  return image->buffer;
+  return image->buffer.arrayZ;
 }
 
 /**
@@ -248,6 +248,7 @@ void
 hb_raster_draw_destroy (hb_raster_draw_t *draw)
 {
   if (!hb_object_destroy (draw)) return;
+  hb_raster_image_destroy (draw->recycled_image);
   hb_free (draw);
 }
 
@@ -426,6 +427,31 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->edges.resize (0);
   draw->row_area.resize (0);
   draw->row_cover.resize (0);
+  hb_raster_image_destroy (draw->recycled_image);
+  draw->recycled_image = nullptr;
+}
+
+/**
+ * hb_raster_draw_recycle_image:
+ * @draw: a rasterizer
+ * @image: a raster image to recycle
+ *
+ * Recycles @image for reuse by a subsequent hb_raster_draw_render()
+ * call, avoiding per-render memory allocation.  The caller transfers
+ * ownership of @image to @draw and must not use it afterwards.
+ *
+ * If @draw already holds a recycled image, the previously recycled
+ * image is destroyed.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
+			      hb_raster_image_t *image)
+{
+  if (unlikely (!draw || !image)) return;
+  hb_raster_image_destroy (draw->recycled_image);
+  draw->recycled_image = image;
 }
 
 
@@ -981,26 +1007,35 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       ext.stride = (ext.width + 3u) & ~3u;
   }
 
-  /* ── 3. Allocate image ─────────────────────────────────────────── */
-  hb_raster_image_t *image = hb_object_create<hb_raster_image_t> ();
-  if (unlikely (!image)) goto done;
+  /* ── 3. Allocate or reuse image ─────────────────────────────────── */
+  hb_raster_image_t *image;
+  if (draw->recycled_image)
+  {
+    image = draw->recycled_image;
+    draw->recycled_image = nullptr;
+  }
+  else
+  {
+    image = hb_object_create<hb_raster_image_t> ();
+    if (unlikely (!image)) goto done;
+  }
+
+  image->extents = ext;
+  image->format  = draw->format;
 
   if (ext.width && ext.height)
   {
     size_t buf_size = (size_t) ext.stride * ext.height;
-    image->buffer = (uint8_t *) hb_malloc (buf_size);
-    if (unlikely (!image->buffer))
+    if (unlikely (!image->buffer.resize_dirty (buf_size)))
     {
       hb_raster_image_destroy (image);
       image = nullptr;
       goto done;
     }
-    image->buffer_size = buf_size;
-    memset (image->buffer, 0, buf_size);
+    memset (image->buffer.arrayZ, 0, buf_size);
   }
-
-  image->extents = ext;
-  image->format  = draw->format;
+  else
+    image->buffer.resize (0);
 
   /* ── 4. Sort edges and rasterize scanlines ────────────────────── */
   if (draw->edges.length && ext.width && ext.height)
@@ -1041,11 +1076,11 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  if (alpha > 8192) alpha = 8192;
 	  uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + 4096) >> 13);
 
-	  uint8_t *row_buf = image->buffer + row * ext.stride;
+	  uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
 	  memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
 	}
 
-	sweep_row_to_alpha (image->buffer + row * ext.stride,
+	sweep_row_to_alpha (image->buffer.arrayZ + row * ext.stride,
 			    draw->row_area.arrayZ, draw->row_cover.arrayZ,
 			    x_min, x_max);
       }
