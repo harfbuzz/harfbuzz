@@ -701,6 +701,7 @@ meson.override_dependency('harfbuzz-subset', libharfbuzz_subset_dep)
 
 hb_raster_sources = [
   'hb-raster.cc',
+  'hb-raster-draw.cc',
   'hb-raster.hh',
   'hb-static.cc',
 ]
