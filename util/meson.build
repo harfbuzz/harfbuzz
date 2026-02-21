@@ -93,13 +93,15 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: false,
   )
 
-  hb_ft_raster_util = executable('hb-ft-raster', hb_ft_raster_sources,
-    cpp_args: cpp_args,
-    include_directories: [incconfig, incsrc],
-    dependencies: [util_deps],
-    link_with: [libharfbuzz],
-    install: false,
-  )
+  if conf.get('HAVE_FREETYPE', 0) == 1
+    hb_ft_raster_util = executable('hb-ft-raster', hb_ft_raster_sources,
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: [util_deps],
+      link_with: [libharfbuzz],
+      install: false,
+    )
+  endif
 
   hb_draw_all = executable('hb-draw-all', ['hb-draw-all.c'],
     cpp_args: cpp_args,
