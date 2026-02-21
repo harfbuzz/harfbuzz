@@ -32,6 +32,9 @@
 #if defined(__aarch64__) || defined(_M_ARM64)
 #include <arm_neon.h>
 #define HB_RASTER_NEON 1
+#elif defined(__SSE2__) || defined(_M_X64) || defined(_M_AMD64)
+#include <emmintrin.h>
+#define HB_RASTER_SSE2 1
 #endif
 
 
@@ -704,6 +707,49 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  vst1q_s32 (row_area.arrayZ + x + 4, zero);
 	  vst1q_s32 (row_cover.arrayZ + x,     zero);
 	  vst1q_s32 (row_cover.arrayZ + x + 4, zero);
+	}
+#elif defined(HB_RASTER_SSE2)
+	/* Process 8 pixels at a time (SSE2 baseline). */
+	__m128i clamp_v = _mm_set1_epi32 (8192);
+	__m128i bias_v  = _mm_set1_epi32 (4096);
+	__m128i zero_v  = _mm_setzero_si128 ();
+	for (; x + 7 <= x_max; x += 8)
+	{
+	  __m128i c0 = _mm_loadu_si128 ((__m128i *) (row_cover.arrayZ + x));
+	  __m128i c1 = _mm_loadu_si128 ((__m128i *) (row_cover.arrayZ + x + 4));
+	  __m128i a0 = _mm_loadu_si128 ((__m128i *) (row_area.arrayZ + x));
+	  __m128i a1 = _mm_loadu_si128 ((__m128i *) (row_area.arrayZ + x + 4));
+
+	  /* v = cover - area */
+	  __m128i v0 = _mm_sub_epi32 (c0, a0);
+	  __m128i v1 = _mm_sub_epi32 (c1, a1);
+
+	  /* abs(v): sign = v >> 31; abs = (v ^ sign) - sign */
+	  __m128i s0 = _mm_srai_epi32 (v0, 31);
+	  __m128i s1 = _mm_srai_epi32 (v1, 31);
+	  v0 = _mm_sub_epi32 (_mm_xor_si128 (v0, s0), s0);
+	  v1 = _mm_sub_epi32 (_mm_xor_si128 (v1, s1), s1);
+
+	  /* min(v, 8192): lt = v < clamp; result = (v & lt) | (clamp & ~lt) */
+	  __m128i lt0 = _mm_cmplt_epi32 (v0, clamp_v);
+	  __m128i lt1 = _mm_cmplt_epi32 (v1, clamp_v);
+	  v0 = _mm_or_si128 (_mm_and_si128 (lt0, v0), _mm_andnot_si128 (lt0, clamp_v));
+	  v1 = _mm_or_si128 (_mm_and_si128 (lt1, v1), _mm_andnot_si128 (lt1, clamp_v));
+
+	  /* (v * 255 + 4096) >> 13;  v*255 = (v<<8) - v */
+	  __m128i r0 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v0, 8), v0), bias_v), 13);
+	  __m128i r1 = _mm_srai_epi32 (_mm_add_epi32 (_mm_sub_epi32 (_mm_slli_epi32 (v1, 8), v1), bias_v), 13);
+
+	  /* Narrow: int32x4x2 -> int16x8 -> uint8x8 -> store 8 bytes */
+	  __m128i h = _mm_packs_epi32 (r0, r1);
+	  __m128i b = _mm_packus_epi16 (h, h);
+	  _mm_storel_epi64 ((__m128i *) (row_buf + x), b);
+
+	  /* Clear work arrays. */
+	  _mm_storeu_si128 ((__m128i *) (row_area.arrayZ + x),     zero_v);
+	  _mm_storeu_si128 ((__m128i *) (row_area.arrayZ + x + 4), zero_v);
+	  _mm_storeu_si128 ((__m128i *) (row_cover.arrayZ + x),     zero_v);
+	  _mm_storeu_si128 ((__m128i *) (row_cover.arrayZ + x + 4), zero_v);
 	}
 #endif
 
