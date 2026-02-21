@@ -926,8 +926,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       int32_t py    = y_top >> 6;
 
       /* Add new edges from this row's bucket. */
-      for (unsigned idx : draw->edge_buckets.arrayZ[row])
-	draw->active_edges.push (idx);
+      draw->active_edges.extend (draw->edge_buckets.arrayZ[row]);
 
       /* Process active edges, removing expired ones. */
       unsigned x_min = ext.width, x_max = 0;
