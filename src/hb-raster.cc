@@ -424,6 +424,8 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->fixed_extents     = {};
   draw->has_fixed_extents = false;
   draw->edges.resize (0);
+  draw->row_area.resize (0);
+  draw->row_cover.resize (0);
 }
 
 
@@ -1006,13 +1008,11 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     hb_qsort (draw->edges.arrayZ, draw->edges.length,
 	      sizeof (hb_raster_edge_t), cmp_edge_y);
 
-    hb_vector_t<int32_t> row_area;
-    hb_vector_t<int16_t> row_cover;
-    if (unlikely (!row_area.resize (ext.width) ||
-		  !row_cover.resize (ext.width)))
+    if (unlikely (!draw->row_area.resize_dirty (ext.width) ||
+		  !draw->row_cover.resize_dirty (ext.width)))
       goto done;
-    memset (row_area.arrayZ,  0, ext.width * sizeof (int32_t));
-    memset (row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
+    memset (draw->row_area.arrayZ,  0, ext.width * sizeof (int32_t));
+    memset (draw->row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
 
     unsigned start = 0;
     for (unsigned row = 0; row < ext.height; row++)
@@ -1024,14 +1024,14 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
       rasterize_edges_to_cells (draw->edges.arrayZ, draw->edges.length,
 				start,
-				row_area.arrayZ, row_cover.arrayZ,
+				draw->row_area.arrayZ, draw->row_cover.arrayZ,
 				ext.width, ext.x_origin,
 				y_top, y_bot,
 				x_min, x_max);
 
       if (x_min <= x_max)
       {
-	int32_t cover_accum = prefix_sum_cover (row_cover.arrayZ, x_min, x_max);
+	int32_t cover_accum = prefix_sum_cover (draw->row_cover.arrayZ, x_min, x_max);
 
 	/* If cover doesn't cancel, memset the constant-alpha tail. */
 	if (cover_accum != 0)
@@ -1046,7 +1046,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	}
 
 	sweep_row_to_alpha (image->buffer + row * ext.stride,
-			    row_area.arrayZ, row_cover.arrayZ,
+			    draw->row_area.arrayZ, draw->row_cover.arrayZ,
 			    x_min, x_max);
       }
     }
