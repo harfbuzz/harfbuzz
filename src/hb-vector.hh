@@ -122,7 +122,7 @@ struct hb_vector_t
     auto iter = hb_iter (o);
     if (iter.is_random_access_iterator || iter.has_fast_len)
     {
-      if (unlikely (!alloc (hb_len (iter), true)))
+      if (unlikely (!alloc (length + hb_len (iter))))
 	return;
       unsigned count = hb_len (iter);
       for (unsigned i = 0; i < count; i++)
