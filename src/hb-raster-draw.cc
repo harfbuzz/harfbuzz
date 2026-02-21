@@ -39,9 +39,9 @@
 #endif
 
 
-/* Fixed-point precision: 6 bits = 26.6 (like FreeType outlines),
-   8 bits = 24.8 (like FreeType's rasterizer internally). */
-#define HB_RASTER_PIXEL_BITS 6
+/* Fixed-point precision for sub-pixel coordinates.
+   8 bits = 24.8: 256 sub-pixel units per pixel. */
+#define HB_RASTER_PIXEL_BITS 8
 #define HB_RASTER_ONE_PIXEL  (1 << HB_RASTER_PIXEL_BITS)
 #define HB_RASTER_PIXEL_MASK (HB_RASTER_ONE_PIXEL - 1)
 /* Full-coverage alpha = 2 * ONE_PIXEL^2 */
@@ -51,8 +51,8 @@
 /* Normalized edge: yH > yL always */
 struct hb_raster_edge_t
 {
-  int32_t xL, yL;   /* lower endpoint (26.6) */
-  int32_t xH, yH;   /* upper endpoint (26.6) */
+  int32_t xL, yL;   /* lower endpoint (fixed-point) */
+  int32_t xH, yH;   /* upper endpoint (fixed-point) */
   int64_t slope;    /* dx/dy in 16.16 fixed point: ((int64_t)dx << 16) / dy */
   int32_t wind;     /* +1 or -1 */
 };
@@ -399,7 +399,7 @@ flatten_quadratic (hb_raster_draw_t *draw,
   float chord_my = (y0 + y2) * 0.5f;
   float dx = mx - chord_mx;
   float dy = my - chord_my;
-  /* threshold: (0.25 * 64)^2 = 16^2 = 256 in 26.6; in float space (0.25)^2 */
+  /* threshold: 0.25^2 in pixel space */
   static const float flat_thresh = 0.25f * 0.25f;
 
   if (depth >= 16 || (dx * dx + dy * dy) <= flat_thresh) {
@@ -583,7 +583,7 @@ hb_raster_draw_get_funcs (void)
  * exact area/cover contributions per pixel cell.  A left-to-right sweep
  * then converts accumulated (area, cover) into alpha values.
  *
- * Coordinates are 26.6 fixed-point (1 pixel = 64 sub-pixel units).
+ * Coordinates are fixed-point.
  *
  *   cover[x] = Σ dy · wind        — signed vertical extent per cell
  *   area[x]  = Σ (fx₀+fx₁)·dy·wind — twice the signed trapezoidal area
@@ -840,7 +840,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	ymax = hb_max (ymax, e.yH);
       }
 
-      /* Convert 26.6 → pixels (floor for min, ceil for max) */
+      /* Convert fixed-point → pixels (floor for min, ceil for max) */
       int x0 = xmin >> HB_RASTER_PIXEL_BITS;
       int y0 = ymin >> HB_RASTER_PIXEL_BITS;
       int x1 = (xmax + HB_RASTER_PIXEL_MASK) >> HB_RASTER_PIXEL_BITS;
