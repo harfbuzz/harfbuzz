@@ -925,12 +925,19 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       int32_t y_top = (ext.y_origin + (int) row) << 6;
       int32_t py    = y_top >> 6;
 
-      /* Add new edges from this row's bucket. */
-      for (unsigned idx : draw->edge_buckets.arrayZ[row])
-	draw->active_edges.push (idx);
-
-      /* Process active edges, removing expired ones. */
+      /* Process new edges from this row's bucket.  Only add to the
+	 active list if they span beyond this row. */
       unsigned x_min = ext.width, x_max = 0;
+      for (unsigned idx : draw->edge_buckets.arrayZ[row])
+      {
+	const auto &e = draw->edges.arrayZ[idx];
+	edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
+			ext.width, ext.x_origin, py, e, x_min, x_max);
+	if (((e.yH - 1) >> 6) > py)
+	  draw->active_edges.push (idx);
+      }
+
+      /* Process continuing active edges, removing expired ones. */
       for (unsigned j = 0; j < draw->active_edges.length; )
       {
 	const auto &e = draw->edges.arrayZ[draw->active_edges.arrayZ[j]];
