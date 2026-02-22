@@ -51,7 +51,7 @@ struct raster_output_t : output_options_t<true>
   void add_options (option_parser_t *parser)
   {
     parser->set_summary ("Rasterize text with given font.");
-    parser->set_description ("Renders shaped text as a raster image (PGM for outlines, PPM for color).");
+    parser->set_description ("Renders shaped text as a PPM raster image.");
     output_options_t::add_options (parser);
 
     GOptionEntry entries[] =
@@ -206,7 +206,7 @@ struct raster_output_t : output_options_t<true>
       hb_raster_image_t *img = hb_raster_draw_render (rdr);
       if (img)
       {
-	write_pgm (img);
+	write_a8_as_ppm (img);
 	hb_raster_image_destroy (img);
       }
     }
@@ -337,17 +337,33 @@ struct raster_output_t : output_options_t<true>
     write_ppm (out_buf.data (), w, h, stride);
   }
 
-  /* Write a PGM file; Y-flipped so text reads correctly in viewers. */
-  void write_pgm (hb_raster_image_t *img)
+  /* Write an A8 alpha image as PPM; composited over fg/bg, Y-flipped. */
+  void write_a8_as_ppm (hb_raster_image_t *img)
   {
     hb_raster_extents_t ext;
     hb_raster_image_get_extents (img, &ext);
     if (!ext.width || !ext.height) return;
 
+    uint8_t fg_r = hb_color_get_red (fg_color);
+    uint8_t fg_g = hb_color_get_green (fg_color);
+    uint8_t fg_b = hb_color_get_blue (fg_color);
+
     const uint8_t *buf = hb_raster_image_get_buffer (img);
-    fprintf (out_fp, "P5\n%u %u\n255\n", ext.width, ext.height);
+    fprintf (out_fp, "P6\n%u %u\n255\n", ext.width, ext.height);
+    std::vector<uint8_t> row_buf (ext.width * 3);
     for (unsigned row = 0; row < ext.height; row++)
-      fwrite (buf + (ext.height - 1 - row) * ext.stride, 1, ext.width, out_fp);
+    {
+      const uint8_t *src = buf + (ext.height - 1 - row) * ext.stride;
+      for (unsigned x = 0; x < ext.width; x++)
+      {
+	uint8_t a = src[x];
+	unsigned inv_a = 255 - a;
+	row_buf[x * 3 + 0] = (uint8_t) ((fg_r * a + bg_r * inv_a + 127) / 255);
+	row_buf[x * 3 + 1] = (uint8_t) ((fg_g * a + bg_g * inv_a + 127) / 255);
+	row_buf[x * 3 + 2] = (uint8_t) ((fg_b * a + bg_b * inv_a + 127) / 255);
+      }
+      fwrite (row_buf.data (), 1, ext.width * 3, out_fp);
+    }
   }
 
   /* Write a PPM file from BGRA32 buffer; Y-flipped, composited over white. */

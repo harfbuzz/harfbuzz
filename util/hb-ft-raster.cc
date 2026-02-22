@@ -65,7 +65,7 @@ struct ft_raster_output_t : output_options_t<true>
   void add_options (option_parser_t *parser)
   {
     parser->set_summary ("Rasterize text with FreeType rasterizer.");
-    parser->set_description ("Renders shaped text as a PGM raster image using FreeType.");
+    parser->set_description ("Renders shaped text as a PPM raster image using FreeType.");
     output_options_t::add_options (parser);
   }
 
@@ -275,10 +275,16 @@ struct ft_raster_output_t : output_options_t<true>
       FT_Outline_Render (ft_lib, outline, &params);
     }
 
-    /* Write PGM, y-flipped so text reads correctly in viewers. */
-    fprintf (out_fp, "P5\n%u %u\n255\n", width, height);
+    /* Write PPM (black on white), y-flipped so text reads correctly. */
+    fprintf (out_fp, "P6\n%u %u\n255\n", width, height);
+    std::vector<uint8_t> rgb_row (width * 3);
     for (unsigned row = 0; row < height; row++)
-      fwrite (pixels.data () + row * stride, 1, width, out_fp);
+    {
+      const uint8_t *src = pixels.data () + row * stride;
+      for (unsigned x = 0; x < width; x++)
+	rgb_row[x * 3 + 0] = rgb_row[x * 3 + 1] = rgb_row[x * 3 + 2] = (uint8_t) (255 - src[x]);
+      fwrite (rgb_row.data (), 1, width * 3, out_fp);
+    }
 
     cleanup ();
   }
