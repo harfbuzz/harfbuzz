@@ -903,27 +903,17 @@ edge_sweep_row (int32_t                *area,
   }
 }
 
-/* Prefix-sum cover in-place. Returns final accumulator. */
+/* Convert cover-delta + area to alpha bytes, then clear.
+   Returns final cover accumulator over [x_min, x_max]. */
 static int32_t
-prefix_sum_cover (int16_t *cover, unsigned x_min, unsigned x_max)
-{
-  int32_t cover_accum = 0;
-  for (unsigned x = x_min; x <= x_max; x++)
-  {
-    cover_accum += cover[x];
-    cover[x] = (int16_t) cover_accum;
-  }
-  return cover_accum;
-}
-
-/* Convert prefix-summed cover + area to alpha bytes, then clear. */
-static void
 sweep_row_to_alpha (uint8_t *row_buf,
 		    int32_t *area,
 		    int16_t *cover,
 		    unsigned x_min,
 		    unsigned x_max)
 {
+  const int32_t cover_scale = 2 * HB_RASTER_ONE_PIXEL;
+  int32_t cover_accum = 0;
   unsigned x = x_min;
 
 #ifdef HB_RASTER_NEON
@@ -933,9 +923,15 @@ sweep_row_to_alpha (uint8_t *row_buf,
   int16x8_t zero16  = vdupq_n_s16 (0);
   for (; x + 7 <= x_max; x += 8)
   {
-    int16x8_t c16 = vld1q_s16 (cover + x);
-    int32x4_t c0  = vshlq_n_s32 (vmovl_s16 (vget_low_s16 (c16)), HB_RASTER_PIXEL_BITS + 1);
-    int32x4_t c1  = vshlq_n_s32 (vmovl_s16 (vget_high_s16 (c16)), HB_RASTER_PIXEL_BITS + 1);
+    int32_t ctmp[8];
+    for (unsigned i = 0; i < 8; i++)
+    {
+      cover_accum += cover[x + i];
+      ctmp[i] = cover_accum * cover_scale;
+    }
+
+    int32x4_t c0  = vld1q_s32 (ctmp + 0);
+    int32x4_t c1  = vld1q_s32 (ctmp + 4);
     int32x4_t a0  = vld1q_s32 (area + x);
     int32x4_t a1  = vld1q_s32 (area + x + 4);
 
@@ -964,9 +960,15 @@ sweep_row_to_alpha (uint8_t *row_buf,
   __m128i zero_v  = _mm_setzero_si128 ();
   for (; x + 7 <= x_max; x += 8)
   {
-    __m128i c16 = _mm_loadu_si128 ((__m128i *) (void *) (cover + x));
-    __m128i c0  = _mm_slli_epi32 (_mm_srai_epi32 (_mm_unpacklo_epi16 (c16, c16), 16), HB_RASTER_PIXEL_BITS + 1);
-    __m128i c1  = _mm_slli_epi32 (_mm_srai_epi32 (_mm_unpackhi_epi16 (c16, c16), 16), HB_RASTER_PIXEL_BITS + 1);
+    int32_t ctmp[8];
+    for (unsigned i = 0; i < 8; i++)
+    {
+      cover_accum += cover[x + i];
+      ctmp[i] = cover_accum * cover_scale;
+    }
+
+    __m128i c0  = _mm_loadu_si128 ((__m128i *) (void *) (ctmp + 0));
+    __m128i c1  = _mm_loadu_si128 ((__m128i *) (void *) (ctmp + 4));
     __m128i a0  = _mm_loadu_si128 ((__m128i *) (void *) (area + x));
     __m128i a1  = _mm_loadu_si128 ((__m128i *) (void *) (area + x + 4));
 
@@ -998,13 +1000,16 @@ sweep_row_to_alpha (uint8_t *row_buf,
 
   for (; x <= x_max; x++)
   {
-    int32_t val   = (int32_t) cover[x] * (2 * HB_RASTER_ONE_PIXEL) - area[x];
+    cover_accum += cover[x];
+    int32_t val   = cover_accum * cover_scale - area[x];
     int32_t alpha = val < 0 ? -val : val;
     if (alpha > HB_RASTER_FULL_COVERAGE) alpha = HB_RASTER_FULL_COVERAGE;
     row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
     area[x]  = 0;
     cover[x] = 0;
   }
+
+  return cover_accum;
 }
 
 
@@ -1164,7 +1169,9 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
       if (x_min <= x_max)
       {
-	int32_t cover_accum = prefix_sum_cover (draw->row_cover.arrayZ, x_min, x_max);
+	int32_t cover_accum = sweep_row_to_alpha (image->buffer.arrayZ + row * ext.stride,
+						   draw->row_area.arrayZ, draw->row_cover.arrayZ,
+						   x_min, x_max);
 
 	/* If cover doesn't cancel, memset the constant-alpha tail. */
 	if (cover_accum != 0)
@@ -1177,10 +1184,6 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
 	  memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
 	}
-
-	sweep_row_to_alpha (image->buffer.arrayZ + row * ext.stride,
-			    draw->row_area.arrayZ, draw->row_cover.arrayZ,
-			    x_min, x_max);
       }
     }
   }
