@@ -762,7 +762,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
   libharfbuzz_cairo = library('harfbuzz-cairo', hb_cairo_sources,
     include_directories: incconfig,
     dependencies: [m_dep, cairo_dep],
-    link_with: [libharfbuzz, libharfbuzz_raster],
+    link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
     version: version,

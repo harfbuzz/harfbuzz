@@ -99,8 +99,6 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
   {
     cairo_face = hb_cairo_font_face_create_for_font (font);
     hb_cairo_font_face_set_scale_factor (cairo_face, 1 << font_opts->subpixel_bits);
-    if (view_opts->raster)
-      hb_cairo_font_face_set_raster (cairo_face, true);
   }
 #ifdef HAVE_CAIRO_FT
   else
