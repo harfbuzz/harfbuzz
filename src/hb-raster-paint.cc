@@ -219,16 +219,29 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned h = surf->extents.height;
 
   const hb_transform_t<> &t = c->current_transform ();
+  bool is_axis_aligned = (t.xy == 0.f && t.yx == 0.f);
 
-  /* Transform rectangle corners to pixel space */
-  hb_extents_t<> rect_ext {xmin, ymin, xmax, ymax};
-  t.transform_extents (rect_ext);
+  /* Transform the four corners to pixel space */
+  float cx[4], cy[4];
+  cx[0] = xmin; cy[0] = ymin;
+  cx[1] = xmax; cy[1] = ymin;
+  cx[2] = xmax; cy[2] = ymax;
+  cx[3] = xmin; cy[3] = ymax;
+  for (unsigned i = 0; i < 4; i++)
+    t.transform_point (cx[i], cy[i]);
 
-  /* Convert to pixel coordinates relative to surface origin */
-  int px0 = (int) floorf (rect_ext.xmin) - surf->extents.x_origin;
-  int py0 = (int) floorf (rect_ext.ymin) - surf->extents.y_origin;
-  int px1 = (int) ceilf (rect_ext.xmax) - surf->extents.x_origin;
-  int py1 = (int) ceilf (rect_ext.ymax) - surf->extents.y_origin;
+  /* Compute bounding box in pixel coords */
+  float fmin_x = cx[0], fmin_y = cy[0], fmax_x = cx[0], fmax_y = cy[0];
+  for (unsigned i = 1; i < 4; i++)
+  {
+    fmin_x = hb_min (fmin_x, cx[i]); fmin_y = hb_min (fmin_y, cy[i]);
+    fmax_x = hb_max (fmax_x, cx[i]); fmax_y = hb_max (fmax_y, cy[i]);
+  }
+
+  int px0 = (int) floorf (fmin_x) - surf->extents.x_origin;
+  int py0 = (int) floorf (fmin_y) - surf->extents.y_origin;
+  int px1 = (int) ceilf (fmax_x) - surf->extents.x_origin;
+  int py1 = (int) ceilf (fmax_y) - surf->extents.y_origin;
 
   /* Clamp to surface bounds */
   px0 = hb_max (px0, 0);
@@ -243,9 +256,9 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   new_clip.height = h;
   new_clip.stride = (w + 3u) & ~3u;
 
-  if (old_clip.is_rect)
+  if (is_axis_aligned && old_clip.is_rect)
   {
-    /* Fast path: rect-on-rect intersection */
+    /* Fast path: axis-aligned rect-on-rect intersection */
     new_clip.is_rect = true;
     new_clip.rect_x0 = hb_max (px0, old_clip.rect_x0);
     new_clip.rect_y0 = hb_max (py0, old_clip.rect_y0);
@@ -255,7 +268,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
   else
   {
-    /* General case: intersect rectangle with existing alpha mask */
+    /* General case: rasterize transformed quad as alpha mask */
     new_clip.is_rect = false;
     if (unlikely (!new_clip.alpha.resize (new_clip.stride * h)))
     {
@@ -268,17 +281,55 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
       return;
     }
     memset (new_clip.alpha.arrayZ, 0, new_clip.stride * h);
-    /* Intersect within old clip bounds clamped to new rect */
+
+    /* Convert quad corners to pixel-relative coords */
+    float qx[4], qy[4];
+    int ox = surf->extents.x_origin;
+    int oy = surf->extents.y_origin;
+    for (unsigned i = 0; i < 4; i++)
+    {
+      qx[i] = cx[i] - ox;
+      qy[i] = cy[i] - oy;
+    }
+
+    /* For each pixel in the bounding box, test if inside the quad
+     * using cross-product edge tests (winding order). */
     unsigned iy0 = (unsigned) hb_max (py0, (int) old_clip.min_y);
     unsigned iy1 = (unsigned) hb_min (py1, (int) old_clip.max_y);
     unsigned ix0 = (unsigned) hb_max (px0, (int) old_clip.min_x);
     unsigned ix1 = (unsigned) hb_min (px1, (int) old_clip.max_x);
     new_clip.min_x = w; new_clip.min_y = h;
     new_clip.max_x = 0; new_clip.max_y = 0;
+
+    /* Precompute edge normals for point-in-quad test.
+     * Edge i goes from corner i to corner (i+1)%4.
+     * Normal = (dy, -dx); inside test: dot(normal, p-corner) >= 0 */
+    float enx[4], eny[4], ed[4];
+    for (unsigned i = 0; i < 4; i++)
+    {
+      unsigned j = (i + 1) & 3;
+      float edx = qx[j] - qx[i], edy = qy[j] - qy[i];
+      enx[i] = edy;       /* normal x */
+      eny[i] = -edx;      /* normal y */
+      ed[i] = enx[i] * qx[i] + eny[i] * qy[i]; /* distance threshold */
+    }
+
     for (unsigned y = iy0; y < iy1; y++)
       for (unsigned x = ix0; x < ix1; x++)
       {
-	uint8_t a = old_clip.get_alpha (x, y);
+	float px_f = x + 0.5f, py_f = y + 0.5f;
+	/* Test if pixel center is inside the quad */
+	bool inside = true;
+	for (unsigned i = 0; i < 4; i++)
+	  if (enx[i] * px_f + eny[i] * py_f < ed[i])
+	  {
+	    inside = false;
+	    break;
+	  }
+	uint8_t rect_alpha = inside ? 255 : 0;
+	uint8_t a = old_clip.is_rect
+		  ? (rect_alpha ? old_clip.get_alpha (x, y) : 0)
+		  : hb_raster_div255 ((unsigned) rect_alpha * old_clip.get_alpha (x, y));
 	new_clip.alpha[y * new_clip.stride + x] = a;
 	if (a)
 	{
