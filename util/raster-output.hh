@@ -27,6 +27,7 @@
 #ifndef RASTER_OUTPUT_HH
 #define RASTER_OUTPUT_HH
 
+#include "options.hh"
 #include "output-options.hh"
 #include "hb-raster.h"
 #include "hb-ot.h"
@@ -43,6 +44,8 @@ struct raster_output_t : output_options_t<true>
     hb_raster_paint_destroy (pnt);
     hb_font_destroy (upem_font);
     hb_font_destroy (font);
+    g_free (fore);
+    g_free (back);
   }
 
   void add_options (option_parser_t *parser)
@@ -50,6 +53,18 @@ struct raster_output_t : output_options_t<true>
     parser->set_summary ("Rasterize text with given font.");
     parser->set_description ("Renders shaped text as a raster image (PGM for outlines, PPM for color).");
     output_options_t::add_options (parser);
+
+    GOptionEntry entries[] =
+    {
+      {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,	"Set background color (default: #FFFFFF)",	"rrggbb/rrggbbaa"},
+      {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,	"Set foreground color (default: #000000)",	"rrggbb/rrggbbaa"},
+      {nullptr}
+    };
+    parser->add_group (entries,
+		       "view",
+		       "View options:",
+		       "Options for output rendering",
+		       this);
   }
 
   template <typename app_t>
@@ -77,9 +92,31 @@ struct raster_output_t : output_options_t<true>
 		hb_ot_color_has_layers (face) ||
 		hb_ot_color_has_png (face);
 
+    /* Parse foreground / background colors */
+    {
+      const char *fg_spec = fore ? fore : "#000000";
+      unsigned r, g, b, a;
+      if (parse_color (fg_spec, r, g, b, a))
+	fg_color = HB_COLOR ((uint8_t) b, (uint8_t) g, (uint8_t) r, (uint8_t) a);
+    }
+    {
+      const char *bg_spec = back ? back : "#FFFFFF";
+      unsigned r, g, b, a;
+      if (parse_color (bg_spec, r, g, b, a))
+      {
+	bg_r = (uint8_t) r;
+	bg_g = (uint8_t) g;
+	bg_b = (uint8_t) b;
+	bg_a = (uint8_t) a;
+      }
+    }
+
     rdr = hb_raster_draw_create ();
     if (has_color)
+    {
       pnt = hb_raster_paint_create ();
+      hb_raster_paint_set_foreground (pnt, fg_color);
+    }
   }
 
   void new_line () { lines.emplace_back (); }
@@ -259,7 +296,7 @@ struct raster_output_t : output_options_t<true>
 
 	hb_font_paint_glyph (upem_font, g.gid,
 			     hb_raster_paint_get_funcs (), pnt,
-			     0, HB_COLOR (0, 0, 0, 255));
+			     0, fg_color);
 
 	hb_raster_image_t *img = hb_raster_paint_render (pnt);
 	if (img)
@@ -331,16 +368,20 @@ struct raster_output_t : output_options_t<true>
 	uint8_t g = (uint8_t) ((px >> 8) & 0xFF);
 	uint8_t r = (uint8_t) ((px >> 16) & 0xFF);
 	uint8_t a = (uint8_t) (px >> 24);
-	/* Composite over white background */
+	/* Composite over background color */
 	unsigned inv_a = 255 - a;
-	row_buf[x * 3 + 0] = (uint8_t) (r + ((255 * inv_a + 128 + ((255 * inv_a + 128) >> 8)) >> 8));
-	row_buf[x * 3 + 1] = (uint8_t) (g + ((255 * inv_a + 128 + ((255 * inv_a + 128) >> 8)) >> 8));
-	row_buf[x * 3 + 2] = (uint8_t) (b + ((255 * inv_a + 128 + ((255 * inv_a + 128) >> 8)) >> 8));
+	row_buf[x * 3 + 0] = (uint8_t) (r + ((bg_r * inv_a + 128 + ((bg_r * inv_a + 128) >> 8)) >> 8));
+	row_buf[x * 3 + 1] = (uint8_t) (g + ((bg_g * inv_a + 128 + ((bg_g * inv_a + 128) >> 8)) >> 8));
+	row_buf[x * 3 + 2] = (uint8_t) (b + ((bg_b * inv_a + 128 + ((bg_b * inv_a + 128) >> 8)) >> 8));
       }
       fwrite (row_buf.data (), 1, w * 3, out_fp);
     }
   }
 
+  char              *fore      = nullptr;
+  char              *back      = nullptr;
+  hb_color_t         fg_color  = HB_COLOR (0, 0, 0, 255);
+  uint8_t            bg_r = 255, bg_g = 255, bg_b = 255, bg_a = 255;
   hb_raster_draw_t  *rdr       = nullptr;
   hb_raster_paint_t *pnt       = nullptr;
   hb_font_t         *font      = nullptr;
