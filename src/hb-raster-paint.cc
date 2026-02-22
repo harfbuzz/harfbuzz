@@ -212,47 +212,9 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   ensure_initialized (c);
 
+  if (!c->surface_stack.length) return;
+
   const hb_transform_t<> &t = c->current_transform ();
-
-  /* Auto-compute image extents from first clip rectangle.
-   * The font transform may have already been pushed, so use
-   * the current transform (which includes font scaling). */
-  if (!c->has_fixed_extents)
-  {
-    float bx[4] = {xmin, xmax, xmax, xmin};
-    float by[4] = {ymin, ymin, ymax, ymax};
-    for (unsigned i = 0; i < 4; i++)
-      t.transform_point (bx[i], by[i]);
-
-    float bmin_x = bx[0], bmin_y = by[0], bmax_x = bx[0], bmax_y = by[0];
-    for (unsigned i = 1; i < 4; i++)
-    {
-      bmin_x = hb_min (bmin_x, bx[i]); bmin_y = hb_min (bmin_y, by[i]);
-      bmax_x = hb_max (bmax_x, bx[i]); bmax_y = hb_max (bmax_y, by[i]);
-    }
-
-    int x0 = (int) floorf (bmin_x) - 1;
-    int y0 = (int) floorf (bmin_y) - 1;
-    int x1 = (int) ceilf (bmax_x) + 1;
-    int y1 = (int) ceilf (bmax_y) + 1;
-    unsigned aw = (unsigned) (x1 - x0);
-    unsigned ah = (unsigned) (y1 - y0);
-
-    c->fixed_extents = {x0, y0, aw, ah, aw * 4};
-    c->has_fixed_extents = true;
-
-    /* Resize the root surface to match. */
-    hb_raster_image_t *root = c->current_surface ();
-    if (root)
-    {
-      root->extents = c->fixed_extents;
-      size_t buf_size = (size_t) root->extents.stride * root->extents.height;
-      if (likely (root->buffer.resize_dirty (buf_size)))
-	memset (root->buffer.arrayZ, 0, buf_size);
-      /* Update initial clip to match new dimensions. */
-      c->clip_stack[0].init_full (aw, ah);
-    }
-  }
 
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return;
@@ -1181,6 +1143,16 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
  *
  * Sets the output image extents (pixel rectangle).
  *
+ * Call this before hb_font_paint_glyph() for each render.
+ * A common pattern is:
+ * ```
+ * hb_glyph_extents_t gext;
+ * hb_raster_extents_t ext;
+ * if (hb_font_get_glyph_extents (font, gid, &gext) &&
+ *     hb_raster_extents_from_glyph_extents (&gext, &ext))
+ *   hb_raster_paint_set_extents (paint, &ext);
+ * ```
+ *
  * XSince: REPLACEME
  **/
 void
@@ -1239,6 +1211,7 @@ hb_raster_paint_get_funcs (void)
  * the result returned as a new #hb_raster_image_t.
  *
  * Call hb_font_paint_glyph() before calling this function.
+ * hb_raster_paint_set_extents() must be called before painting.
  * Internal drawing state is cleared here so the same object can
  * be reused without client-side clearing.
  *
@@ -1251,6 +1224,17 @@ hb_raster_image_t *
 hb_raster_paint_render (hb_raster_paint_t *paint)
 {
   if (unlikely (!paint)) return nullptr;
+
+  if (unlikely (!paint->has_fixed_extents))
+  {
+    for (auto *s : paint->surface_stack)
+      paint->release_surface (s);
+    paint->surface_stack.resize (0);
+    paint->transform_stack.resize (0);
+    paint->clip_stack.resize (0);
+    hb_raster_draw_reset (paint->clip_rdr);
+    return nullptr;
+  }
 
   hb_raster_image_t *result = nullptr;
 

@@ -115,14 +115,22 @@ main (int argc, char **argv)
 
     if (pnt)
     {
-      hb_bool_t painted = hb_font_paint_glyph_or_fail (font, gid,
-							hb_raster_paint_get_funcs (), pnt,
-							0, HB_COLOR (0, 0, 0, 255));
-      img = hb_raster_paint_render (pnt);
-      if (!painted && img)
+      hb_glyph_extents_t gext;
+      hb_raster_extents_t ext;
+      if (hb_font_get_glyph_extents (font, gid, &gext) &&
+	  hb_raster_extents_from_glyph_extents (&gext, &ext))
       {
-	hb_raster_paint_recycle_image (pnt, img);
-	img = nullptr;
+	hb_raster_paint_set_extents (pnt, &ext);
+
+	hb_bool_t painted = hb_font_paint_glyph_or_fail (font, gid,
+							  hb_raster_paint_get_funcs (), pnt,
+							  0, HB_COLOR (0, 0, 0, 255));
+	img = hb_raster_paint_render (pnt);
+	if (!painted && img)
+	{
+	  hb_raster_paint_recycle_image (pnt, img);
+	  img = nullptr;
+	}
       }
 
       if (img)
