@@ -50,20 +50,28 @@ ceil_div_64 (FT_Pos v)
 }
 
 static void
-write_pgm (const std::vector<uint8_t> &pixels,
+write_ppm (const std::vector<uint8_t> &pixels,
 	   unsigned width, unsigned height, unsigned stride,
 	   const char *dir, unsigned gid)
 {
   if (!width || !height) return;
 
   char path[512];
-  snprintf (path, sizeof path, "%s/%05u.pgm", dir, gid);
+  snprintf (path, sizeof path, "%s/%05u.ppm", dir, gid);
   FILE *f = fopen (path, "wb");
   if (!f) { fprintf (stderr, "cannot write %s\n", path); return; }
 
-  fprintf (f, "P5\n%u %u\n255\n", width, height);
+  fprintf (f, "P6\n%u %u\n255\n", width, height);
+  uint8_t rgb[3];
   for (unsigned row = 0; row < height; row++)
-    fwrite (pixels.data () + row * stride, 1, width, f);
+  {
+    const uint8_t *src = pixels.data () + row * stride;
+    for (unsigned x = 0; x < width; x++)
+    {
+      rgb[0] = rgb[1] = rgb[2] = (uint8_t) (255 - src[x]);
+      fwrite (rgb, 1, 3, f);
+    }
+  }
   fclose (f);
 }
 
@@ -139,7 +147,7 @@ main (int argc, char **argv)
     FT_Outline_Render (ft_lib, outline, &params);
 
     if (outdir)
-      write_pgm (pixels, width, height, stride, outdir, gid);
+      write_ppm (pixels, width, height, stride, outdir, gid);
   }
 
   FT_Done_Face (ft_face);

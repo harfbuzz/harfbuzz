@@ -25,28 +25,57 @@
  */
 
 #include <hb.h>
+#include <hb-ot.h>
 #include "hb-raster.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 
 static void
-write_pgm (hb_raster_image_t *img, const char *dir, unsigned gid)
+write_ppm (hb_raster_image_t *img, const char *dir, unsigned gid)
 {
   hb_raster_extents_t ext;
   hb_raster_image_get_extents (img, &ext);
   if (!ext.width || !ext.height) return;
 
   char path[512];
-  snprintf (path, sizeof path, "%s/%05u.pgm", dir, gid);
+  snprintf (path, sizeof path, "%s/%05u.ppm", dir, gid);
   FILE *f = fopen (path, "wb");
   if (!f) { fprintf (stderr, "cannot write %s\n", path); return; }
 
   const uint8_t *buf = hb_raster_image_get_buffer (img);
-  fprintf (f, "P5\n%u %u\n255\n", ext.width, ext.height);
+  hb_raster_format_t fmt = hb_raster_image_get_format (img);
+
+  fprintf (f, "P6\n%u %u\n255\n", ext.width, ext.height);
+  uint8_t rgb[3];
   for (unsigned row = 0; row < ext.height; row++)
-    fwrite (buf + (ext.height - 1 - row) * ext.stride, 1, ext.width, f);
+  {
+    const uint8_t *src = buf + (ext.height - 1 - row) * ext.stride;
+    for (unsigned x = 0; x < ext.width; x++)
+    {
+      if (fmt == HB_RASTER_FORMAT_A8)
+      {
+	rgb[0] = rgb[1] = rgb[2] = (uint8_t) (255 - src[x]);
+      }
+      else /* BGRA32 — composite over white */
+      {
+	uint32_t px;
+	memcpy (&px, src + x * 4, 4);
+	uint8_t b = (uint8_t) (px & 0xFF);
+	uint8_t g = (uint8_t) ((px >> 8) & 0xFF);
+	uint8_t r = (uint8_t) ((px >> 16) & 0xFF);
+	uint8_t a = (uint8_t) (px >> 24);
+	unsigned inv_a = 255 - a;
+	rgb[0] = (uint8_t) (r + ((255 * inv_a + 128 + ((255 * inv_a + 128) >> 8)) >> 8));
+	rgb[1] = (uint8_t) (g + ((255 * inv_a + 128 + ((255 * inv_a + 128) >> 8)) >> 8));
+	rgb[2] = (uint8_t) (b + ((255 * inv_a + 128 + ((255 * inv_a + 128) >> 8)) >> 8));
+      }
+      fwrite (rgb, 1, 3, f);
+    }
+  }
   fclose (f);
 }
 
@@ -72,23 +101,64 @@ main (int argc, char **argv)
   hb_font_t *font = hb_font_create (face);
   hb_font_set_scale (font, font_size, font_size);
 
-  hb_raster_draw_t *rdr = hb_raster_draw_create ();
+  bool has_color = hb_ot_color_has_paint (face) ||
+		   hb_ot_color_has_layers (face) ||
+		   hb_ot_color_has_png (face);
+
+  hb_raster_draw_t  *rdr = hb_raster_draw_create ();
+  hb_raster_paint_t *pnt = has_color ? hb_raster_paint_create () : nullptr;
   unsigned glyph_count = hb_face_get_glyph_count (face);
 
   for (unsigned gid = 0; gid < glyph_count; gid++)
   {
+    hb_raster_image_t *img = nullptr;
+
+    if (pnt)
+    {
+      hb_glyph_extents_t gext;
+      if (hb_font_get_glyph_extents (font, gid, &gext) &&
+	  gext.width && gext.height)
+      {
+	int x0 = gext.x_bearing - 1;
+	int y0 = gext.y_bearing + gext.height - 1;
+	int x1 = gext.x_bearing + gext.width + 1;
+	int y1 = gext.y_bearing + 1;
+	if (x0 > x1) { int t = x0; x0 = x1; x1 = t; }
+	if (y0 > y1) { int t = y0; y0 = y1; y1 = t; }
+	unsigned w = (unsigned) (x1 - x0);
+	unsigned h = (unsigned) (y1 - y0);
+
+	hb_raster_extents_t ext = {x0, y0, w, h, w * 4};
+	hb_raster_paint_set_extents (pnt, &ext);
+
+	if (hb_font_paint_glyph_or_fail (font, gid,
+					 hb_raster_paint_get_funcs (), pnt,
+					 0, HB_COLOR (0, 0, 0, 255)))
+	  img = hb_raster_paint_render (pnt);
+      }
+
+      if (img)
+      {
+	if (outdir)
+	  write_ppm (img, outdir, gid);
+	hb_raster_paint_recycle_image (pnt, img);
+	continue;
+      }
+    }
+
     if (!hb_font_draw_glyph_or_fail (font, gid, hb_raster_draw_get_funcs (), rdr))
       continue;
 
-    hb_raster_image_t *img = hb_raster_draw_render (rdr);
+    img = hb_raster_draw_render (rdr);
     if (img)
     {
       if (outdir)
-	write_pgm (img, outdir, gid);
+	write_ppm (img, outdir, gid);
       hb_raster_draw_recycle_image (rdr, img);
     }
   }
 
+  hb_raster_paint_destroy (pnt);
   hb_raster_draw_destroy (rdr);
   hb_font_destroy (font);
   hb_face_destroy (face);
