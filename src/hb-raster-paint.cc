@@ -587,9 +587,9 @@ evaluate_color_line (const hb_color_stop_t *stops, unsigned len, float t,
   }
   else /* REFLECT */
   {
-    t = t - floorf (t);
+    if (t < 0) t = -t;
     int period = (int) floorf (t);
-    float frac = t - floorf (t);
+    float frac = t - (float) period;
     t = (period & 1) ? 1.f - frac : frac;
   }
 
@@ -931,8 +931,9 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 
 	float angle = atan2f (gy - cy, gx - cx);
+	/* Normalize to [0, 2*pi) — matches OT spec seam at angle 0. */
+	if (angle < 0) angle += (float) HB_2_PI;
 
-	/* Map angle to normalized gradient parameter */
 	float grad_t = (angle - a0) * inv_angle_range;
 
 	uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
