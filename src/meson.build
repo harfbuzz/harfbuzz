@@ -699,6 +699,53 @@ libharfbuzz_subset_dep = declare_dependency(
   dependencies: [m_dep])
 meson.override_dependency('harfbuzz-subset', libharfbuzz_subset_dep)
 
+hb_raster_sources = [
+  'hb-raster.cc',
+  'hb-raster-image.cc',
+  'hb-raster-draw.cc',
+  'hb-raster-paint.cc',
+  'hb-raster.hh',
+  'hb-raster-paint.hh',
+  'hb-static.cc',
+]
+
+hb_raster_headers = [
+  'hb-raster.h',
+]
+
+libharfbuzz_raster = library('harfbuzz-raster', hb_raster_sources,
+  include_directories: incconfig,
+  dependencies: [m_dep],
+  link_with: [libharfbuzz],
+  cpp_args: cpp_args + extra_hb_cpp_args,
+  soversion: hb_so_version,
+  version: version,
+  install: true,
+  darwin_versions: darwin_versions,
+  link_language: chosen_linker,
+)
+
+install_headers(hb_raster_headers, subdir: meson.project_name())
+
+libharfbuzz_raster_dep = declare_dependency(
+  link_with: libharfbuzz_raster,
+  include_directories: incsrc,
+  dependencies: [libharfbuzz_dep])
+meson.override_dependency('harfbuzz-raster', libharfbuzz_raster_dep)
+
+harfbuzz_raster_def = custom_target('harfbuzz-raster.def',
+  command: gen_def_cmd,
+  input: hb_raster_headers,
+  output: 'harfbuzz-raster.def')
+defs_list += [harfbuzz_raster_def]
+
+pkgmod.generate(libharfbuzz_raster,
+  description: 'HarfBuzz CPU rasterizer',
+  requires: ['harfbuzz = @0@'.format(meson.project_version())],
+  subdirs: [meson.project_name()],
+  version: meson.project_version(),
+)
+
 libharfbuzz_cairo_dep = null_dep
 if conf.get('HAVE_CAIRO', 0) == 1
   hb_cairo_sources = [
@@ -747,6 +794,7 @@ if conf.get('HAVE_CAIRO', 0) == 1
     version: meson.project_version(),
   )
 endif
+
 
 if get_option('tests').enabled()
   # TODO: Microsoft LINK gives the following because extern, non dllexport

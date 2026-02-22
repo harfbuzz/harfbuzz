@@ -10,6 +10,14 @@ hb_draw_sources = [
   'hb-draw.cc',
 ]
 
+hb_raster_sources = [
+  'hb-raster.cc',
+]
+
+hb_ft_raster_sources = [
+  'hb-ft-raster.cc',
+]
+
 hb_info_sources = [
   'hb-info.cc',
 ]
@@ -76,6 +84,53 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: true,
   )
   meson.override_find_program('hb-draw', hb_draw)
+
+  hb_raster_util = executable('hb-raster', hb_raster_sources,
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    dependencies: [util_deps],
+    link_with: [libharfbuzz, libharfbuzz_raster],
+    install: false,
+  )
+
+  if conf.get('HAVE_FREETYPE', 0) == 1
+    hb_ft_raster_util = executable('hb-ft-raster', hb_ft_raster_sources,
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: [util_deps],
+      link_with: [libharfbuzz],
+      install: false,
+    )
+
+    hb_ft_raster_all = executable('hb-ft-raster-all', ['hb-ft-raster-all.cc'],
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: [util_deps],
+      link_with: [libharfbuzz],
+      install: false,
+    )
+  endif
+
+  hb_draw_all = executable('hb-draw-all', ['hb-draw-all.c'],
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    link_with: [libharfbuzz],
+    install: false,
+  )
+
+  hb_paint_all = executable('hb-paint-all', ['hb-paint-all.c'],
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    link_with: [libharfbuzz],
+    install: false,
+  )
+
+  hb_raster_all = executable('hb-raster-all', ['hb-raster-all.cc'],
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    link_with: [libharfbuzz, libharfbuzz_raster],
+    install: false,
+  )
 
   hb_info = executable('hb-info', [hb_info_sources, gobject_enums_h],
     cpp_args: cpp_args,

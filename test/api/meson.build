@@ -126,3 +126,13 @@ foreach source : tests
     env: env,
     suite: suite)
 endforeach
+
+test('test-raster',
+  executable('test-raster', 'test-raster.cc',
+    include_directories: [incconfig],
+    dependencies: [libharfbuzz_raster_dep],
+    install: false,
+  ),
+  protocol: 'tap',
+  env: env,
+  suite: ['api', 'raster'])

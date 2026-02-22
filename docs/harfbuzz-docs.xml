@@ -96,6 +96,7 @@
         <xi:include href="xml/hb-glib.xml"/>
         <xi:include href="xml/hb-graphite2.xml"/>
         <xi:include href="xml/hb-icu.xml"/>
+        <xi:include href="xml/hb-raster.xml"/>
         <xi:include href="xml/hb-uniscribe.xml"/>
       </chapter>
 
