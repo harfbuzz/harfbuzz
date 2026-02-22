@@ -394,17 +394,31 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
 			     float x2, float y2,
 			     int depth = 0)
 {
-  /* Flatness: squared distance of midpoint deviation from chord */
-  float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
-  float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
-  float chord_mx = (x0 + x2) * 0.5f;
-  float chord_my = (y0 + y2) * 0.5f;
-  float dx = mx - chord_mx;
-  float dy = my - chord_my;
-  /* threshold: 0.25^2 in pixel space */
-  static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+  bool is_flat;
+  if (false)
+  {
+    /* Old behavior: midpoint deviation from chord midpoint. */
+    float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
+    float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
+    float chord_mx = (x0 + x2) * 0.5f;
+    float chord_my = (y0 + y2) * 0.5f;
+    float dx = mx - chord_mx;
+    float dy = my - chord_my;
+    static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+    is_flat = (dx * dx + dy * dy) <= flat_thresh;
+  }
+  else
+  {
+    /* FreeType behavior: control-point deviation from chord center. */
+    const float flat_thresh = 0.25f;
+    float dx = x0 + x2 - 2.f * x1;
+    float dy = y0 + y2 - 2.f * y1;
+    if (dx < 0) dx = -dx;
+    if (dy < 0) dy = -dy;
+    is_flat = dx <= flat_thresh && dy <= flat_thresh;
+  }
 
-  if (depth >= 16 || (dx * dx + dy * dy) <= flat_thresh) {
+  if (depth >= 16 || is_flat) {
     emit_segment (draw, x0, y0, x2, y2);
     return;
   }
@@ -488,7 +502,7 @@ flatten_quadratic (hb_raster_draw_t *draw,
 		   float x1, float y1,
 		   float x2, float y2)
 {
-  if (true)
+  if (false)
     flatten_quadratic_fd (draw, x0, y0, x1, y1, x2, y2);
   else
     flatten_quadratic_recursive (draw, x0, y0, x1, y1, x2, y2);
