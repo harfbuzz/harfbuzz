@@ -790,11 +790,11 @@ edge_sweep_row (int32_t                *area,
 		unsigned                width,
 		int                     x_org,
 		int32_t                 y_top,
+		int32_t                 y_bot,
 		const hb_raster_edge_t &edge,
 		unsigned               &x_min,
 		unsigned               &x_max)
 {
-  int32_t y_bot = y_top + HB_RASTER_ONE_PIXEL;
 
   int32_t ey0 = hb_max (edge.yL, y_top);
   int32_t ey1 = hb_min (edge.yH, y_bot);
@@ -1107,7 +1107,14 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       draw->active_edges.extend (draw->edge_buckets.arrayZ[row]);
 
       /* Process active edges, removing expired ones. */
-      unsigned x_min = ext.width, x_max = 0;
+      int32_t y_bot = y_top + HB_RASTER_ONE_PIXEL;
+
+      /* Detect seam: an edge ending mid-row at the same y where another
+	 edge starts.  When opposite-winding edges overlap in a single
+	 row, the signed cover partially cancels, producing a visible
+	 one-row artifact.  Fix: split the row at the seam y and process
+	 each sub-row independently. */
+      int32_t seam_y = 0;
       for (unsigned j = 0; j < draw->active_edges.length; )
       {
 	const auto &e = draw->edges.arrayZ[draw->active_edges.arrayZ[j]];
@@ -1117,30 +1124,110 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  continue;
 	}
 
-	edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
-			ext.width, ext.x_origin, y_top, e, x_min, x_max);
+	if (!seam_y && e.yH > y_top && e.yH < y_bot)
+	{
+	  /* Edge ends mid-row.  Check if any edge starts at this y. */
+	  for (unsigned k = 0; k < draw->active_edges.length; k++)
+	  {
+	    const auto &f = draw->edges.arrayZ[draw->active_edges.arrayZ[k]];
+	    if (f.yL == e.yH && f.yL > y_top)
+	    {
+	      seam_y = e.yH;
+	      break;
+	    }
+	  }
+	}
+
 	j++;
       }
 
-      if (x_min <= x_max)
+      if (seam_y)
       {
-	int32_t cover_accum = prefix_sum_cover (draw->row_cover.arrayZ, x_min, x_max);
+	/* Split row at seam_y and process each sub-row independently.
+	   Accumulate |cover·512 − area| per sub-row; the sum gives the
+	   correct alpha even when winding changes direction mid-row. */
+	int32_t y_splits[] = { y_top, seam_y, y_bot };
+	unsigned x_min_total = ext.width, x_max_total = 0;
 
-	/* If cover doesn't cancel, memset the constant-alpha tail. */
-	if (cover_accum != 0)
+	/* Temporary buffer for accumulated raw alpha values. */
+	if (unlikely (!draw->row_area.resize_dirty (ext.width * 2)))
+	  goto done;
+	int32_t *alpha_buf = draw->row_area.arrayZ + ext.width;
+	memset (alpha_buf, 0, ext.width * sizeof (int32_t));
+
+	for (int s = 0; s < 2; s++)
 	{
-	  int32_t alpha = cover_accum * (2 * HB_RASTER_ONE_PIXEL);
-	  alpha = alpha < 0 ? -alpha : alpha;
-	  if (alpha > HB_RASTER_FULL_COVERAGE) alpha = HB_RASTER_FULL_COVERAGE;
-	  uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
+	  int32_t sy_top = y_splits[s];
+	  int32_t sy_bot = y_splits[s + 1];
+	  unsigned x_min_s = ext.width, x_max_s = 0;
 
-	  uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
-	  memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
+	  for (unsigned j = 0; j < draw->active_edges.length; j++)
+	  {
+	    const auto &e = draw->edges.arrayZ[draw->active_edges.arrayZ[j]];
+	    edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
+			    ext.width, ext.x_origin, sy_top, sy_bot, e,
+			    x_min_s, x_max_s);
+	  }
+
+	  if (x_min_s <= x_max_s)
+	  {
+	    prefix_sum_cover (draw->row_cover.arrayZ, x_min_s, x_max_s);
+
+	    for (unsigned x = x_min_s; x <= x_max_s; x++)
+	    {
+	      int32_t val = (int32_t) draw->row_cover.arrayZ[x] * (2 * HB_RASTER_ONE_PIXEL) - draw->row_area.arrayZ[x];
+	      int32_t a = val < 0 ? -val : val;
+	      alpha_buf[x] += a;
+	      draw->row_area.arrayZ[x] = 0;
+	      draw->row_cover.arrayZ[x] = 0;
+	    }
+
+	    x_min_total = hb_min (x_min_total, x_min_s);
+	    x_max_total = hb_max (x_max_total, x_max_s);
+	  }
 	}
 
-	sweep_row_to_alpha (image->buffer.arrayZ + row * ext.stride,
-			    draw->row_area.arrayZ, draw->row_cover.arrayZ,
-			    x_min, x_max);
+	if (x_min_total <= x_max_total)
+	{
+	  uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
+	  for (unsigned x = x_min_total; x <= x_max_total; x++)
+	  {
+	    int32_t a = alpha_buf[x];
+	    if (a > HB_RASTER_FULL_COVERAGE) a = HB_RASTER_FULL_COVERAGE;
+	    row_buf[x] = (uint8_t) (((unsigned) a * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
+	  }
+	}
+      }
+      else
+      {
+	unsigned x_min = ext.width, x_max = 0;
+	for (unsigned j = 0; j < draw->active_edges.length; j++)
+	{
+	  const auto &e = draw->edges.arrayZ[draw->active_edges.arrayZ[j]];
+	  edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
+			  ext.width, ext.x_origin, y_top, y_bot, e, x_min, x_max);
+	}
+
+	if (x_min <= x_max)
+	{
+	  int32_t cover_accum = prefix_sum_cover (draw->row_cover.arrayZ, x_min, x_max);
+
+	  /* If cover doesn't cancel, memset the constant-alpha tail. */
+	  if (cover_accum != 0)
+	  {
+	    int32_t alpha = cover_accum * (2 * HB_RASTER_ONE_PIXEL);
+	    alpha = alpha < 0 ? -alpha : alpha;
+	    if (alpha > HB_RASTER_FULL_COVERAGE) alpha = HB_RASTER_FULL_COVERAGE;
+	    uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
+
+	    uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
+	    memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
+	  }
+
+	  sweep_row_to_alpha (image->buffer.arrayZ + row * ext.stride,
+			      draw->row_area.arrayZ, draw->row_cover.arrayZ,
+			      x_min, x_max);
+	}
       }
     }
   }
