@@ -524,10 +524,36 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
 			 float x3, float y3,
 			 int depth = 0)
 {
-  float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
-  static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+  bool is_flat;
+  if (false)
+  {
+    /* Old behavior: curvature/chord-error bound. */
+    float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
+    static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+    is_flat = err2 <= flat_thresh;
+  }
+  else
+  {
+    /* FreeType behavior: chord-trisection distance test. */
+    const float flat_thresh = 0.5f;
 
-  if (depth >= 16 || err2 <= flat_thresh)
+    float d10x = 2.f * x0 - 3.f * x1 + x3;
+    float d10y = 2.f * y0 - 3.f * y1 + y3;
+    float d20x = x0 - 3.f * x2 + 2.f * x3;
+    float d20y = y0 - 3.f * y2 + 2.f * y3;
+
+    if (d10x < 0) d10x = -d10x;
+    if (d10y < 0) d10y = -d10y;
+    if (d20x < 0) d20x = -d20x;
+    if (d20y < 0) d20y = -d20y;
+
+    is_flat = d10x <= flat_thresh &&
+              d10y <= flat_thresh &&
+              d20x <= flat_thresh &&
+              d20y <= flat_thresh;
+  }
+
+  if (depth >= 16 || is_flat)
   {
     emit_segment (draw, x0, y0, x3, y3);
     return;
@@ -622,7 +648,7 @@ flatten_cubic (hb_raster_draw_t *draw,
 	       float x2, float y2,
 	       float x3, float y3)
 {
-  if (true)
+  if (false)
     flatten_cubic_fd (draw, x0, y0, x1, y1, x2, y2, x3, y3);
   else
     flatten_cubic_recursive (draw, x0, y0, x1, y1, x2, y2, x3, y3);
