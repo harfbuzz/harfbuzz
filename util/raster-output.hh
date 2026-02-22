@@ -52,6 +52,7 @@ struct raster_output_t : output_options_t<true>
   {
     parser->set_summary ("Rasterize text with given font.");
     parser->set_description ("Renders shaped text as a PPM raster image.");
+    refuse_tty = true;
     output_options_t::add_options (parser);
 
     GOptionEntry entries[] =
