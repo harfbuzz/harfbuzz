@@ -45,6 +45,10 @@ struct hb_raster_clip_t
   int rect_x0 = 0, rect_y0 = 0;
   int rect_x1 = 0, rect_y1 = 0;
 
+  /* Bounding box of non-zero alpha region (valid for both rect and mask) */
+  unsigned min_x = 0, min_y = 0;
+  unsigned max_x = 0, max_y = 0;
+
   void init_full (unsigned w, unsigned h)
   {
     width = w;
@@ -55,6 +59,18 @@ struct hb_raster_clip_t
     rect_y0 = 0;
     rect_x1 = (int) w;
     rect_y1 = (int) h;
+    min_x = 0;
+    min_y = 0;
+    max_x = w;
+    max_y = h;
+  }
+
+  void update_bounds_from_rect ()
+  {
+    min_x = (unsigned) hb_max (rect_x0, 0);
+    min_y = (unsigned) hb_max (rect_y0, 0);
+    max_x = (unsigned) hb_max (hb_min (rect_x1, (int) width), 0);
+    max_y = (unsigned) hb_max (hb_min (rect_y1, (int) height), 0);
   }
 
   uint8_t get_alpha (unsigned x, unsigned y) const

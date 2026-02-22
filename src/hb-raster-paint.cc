@@ -154,6 +154,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.is_rect = true;
     new_clip.rect_x0 = new_clip.rect_y0 = 0;
     new_clip.rect_x1 = new_clip.rect_y1 = 0;
+    new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
     c->clip_stack.push (new_clip);
     return;
   }
@@ -166,6 +167,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.is_rect = true;
     new_clip.rect_x0 = new_clip.rect_y0 = 0;
     new_clip.rect_x1 = new_clip.rect_y1 = 0;
+    new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
     c->clip_stack.push (new_clip);
     return;
   }
@@ -175,13 +177,24 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_get_extents (mask_img, &mask_ext);
   const hb_raster_clip_t &old_clip = c->current_clip ();
 
-  for (unsigned y = 0; y < h; y++)
-    for (unsigned x = 0; x < w; x++)
+  new_clip.min_x = w; new_clip.min_y = h;
+  new_clip.max_x = 0; new_clip.max_y = 0;
+
+  for (unsigned y = old_clip.min_y; y < old_clip.max_y; y++)
+    for (unsigned x = old_clip.min_x; x < old_clip.max_x; x++)
     {
       uint8_t glyph_alpha = (x < mask_ext.width && y < mask_ext.height)
 			    ? mask_buf[y * mask_ext.stride + x] : 0;
       uint8_t old_alpha = old_clip.get_alpha (x, y);
-      new_clip.alpha[y * new_clip.stride + x] = hb_raster_div255 (glyph_alpha * old_alpha);
+      uint8_t a = hb_raster_div255 (glyph_alpha * old_alpha);
+      new_clip.alpha[y * new_clip.stride + x] = a;
+      if (a)
+      {
+	new_clip.min_x = hb_min (new_clip.min_x, x);
+	new_clip.min_y = hb_min (new_clip.min_y, y);
+	new_clip.max_x = hb_max (new_clip.max_x, x + 1);
+	new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+      }
     }
 
   hb_raster_draw_recycle_image (rdr, mask_img);
@@ -238,6 +251,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.rect_y0 = hb_max (py0, old_clip.rect_y0);
     new_clip.rect_x1 = hb_min (px1, old_clip.rect_x1);
     new_clip.rect_y1 = hb_min (py1, old_clip.rect_y1);
+    new_clip.update_bounds_from_rect ();
   }
   else
   {
@@ -249,13 +263,31 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
       new_clip.is_rect = true;
       new_clip.rect_x0 = new_clip.rect_y0 = 0;
       new_clip.rect_x1 = new_clip.rect_y1 = 0;
+      new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
       c->clip_stack.push (new_clip);
       return;
     }
     memset (new_clip.alpha.arrayZ, 0, new_clip.stride * h);
-    for (int y = py0; y < py1; y++)
-      for (int x = px0; x < px1; x++)
-	new_clip.alpha[y * new_clip.stride + x] = old_clip.get_alpha (x, y);
+    /* Intersect within old clip bounds clamped to new rect */
+    unsigned iy0 = (unsigned) hb_max (py0, (int) old_clip.min_y);
+    unsigned iy1 = (unsigned) hb_min (py1, (int) old_clip.max_y);
+    unsigned ix0 = (unsigned) hb_max (px0, (int) old_clip.min_x);
+    unsigned ix1 = (unsigned) hb_min (px1, (int) old_clip.max_x);
+    new_clip.min_x = w; new_clip.min_y = h;
+    new_clip.max_x = 0; new_clip.max_y = 0;
+    for (unsigned y = iy0; y < iy1; y++)
+      for (unsigned x = ix0; x < ix1; x++)
+      {
+	uint8_t a = old_clip.get_alpha (x, y);
+	new_clip.alpha[y * new_clip.stride + x] = a;
+	if (a)
+	{
+	  new_clip.min_x = hb_min (new_clip.min_x, x);
+	  new_clip.min_y = hb_min (new_clip.min_y, y);
+	  new_clip.max_x = hb_max (new_clip.max_x, x + 1);
+	  new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+	}
+      }
   }
 
   c->clip_stack.push (new_clip);
@@ -330,14 +362,12 @@ hb_raster_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
   uint32_t premul = color_to_premul_pixel (color);
   const hb_raster_clip_t &clip = c->current_clip ();
 
-  unsigned w = surf->extents.width;
-  unsigned h = surf->extents.height;
   unsigned stride = surf->extents.stride;
 
-  for (unsigned y = 0; y < h; y++)
+  for (unsigned y = clip.min_y; y < clip.max_y; y++)
   {
     uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + y * stride);
-    for (unsigned x = 0; x < w; x++)
+    for (unsigned x = clip.min_x; x < clip.max_x; x++)
     {
       uint8_t clip_alpha = clip.get_alpha (x, y);
       if (clip_alpha == 0) continue;
@@ -388,8 +418,6 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   float inv_x0 = (t.xy * t.y0 - t.yy * t.x0) * inv_det;
   float inv_y0 = (t.yx * t.x0 - t.xx * t.y0) * inv_det;
 
-  unsigned surf_w = surf->extents.width;
-  unsigned surf_h = surf->extents.height;
   unsigned surf_stride = surf->extents.stride;
   int ox = surf->extents.x_origin;
   int oy = surf->extents.y_origin;
@@ -400,10 +428,10 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   float img_sx = (float) extents->width / width;
   float img_sy = (float) -extents->height / height; /* flip Y */
 
-  for (unsigned py = 0; py < surf_h; py++)
+  for (unsigned py = clip.min_y; py < clip.max_y; py++)
   {
     uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * surf_stride);
-    for (unsigned px = 0; px < surf_w; px++)
+    for (unsigned px = clip.min_x; px < clip.max_x; px++)
     {
       uint8_t clip_alpha = clip.get_alpha (px, py);
       if (clip_alpha == 0) continue;
@@ -641,21 +669,19 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     float inv_denom = 1.f / denom;
 
     const hb_raster_clip_t &clip = c->current_clip ();
-    unsigned w = surf->extents.width;
-    unsigned h = surf->extents.height;
     unsigned stride = surf->extents.stride;
     int ox = surf->extents.x_origin;
     int oy = surf->extents.y_origin;
 
-    for (unsigned py = 0; py < h; py++)
+    for (unsigned py = clip.min_y; py < clip.max_y; py++)
     {
       uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
-      for (unsigned px = 0; px < w; px++)
+      for (unsigned px = clip.min_x; px < clip.max_x; px++)
       {
 	uint8_t clip_alpha = clip.get_alpha (px, py);
 	if (clip_alpha == 0) continue;
 
-	/* Pixel center → glyph space */
+	/* Pixel center -> glyph space */
 	float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
 	float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 
@@ -736,16 +762,14 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     float A = cdx * cdx + cdy * cdy - dr * dr;
 
     const hb_raster_clip_t &clip = c->current_clip ();
-    unsigned w = surf->extents.width;
-    unsigned h = surf->extents.height;
     unsigned stride = surf->extents.stride;
     int ox = surf->extents.x_origin;
     int oy = surf->extents.y_origin;
 
-    for (unsigned py = 0; py < h; py++)
+    for (unsigned py = clip.min_y; py < clip.max_y; py++)
     {
       uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
-      for (unsigned px = 0; px < w; px++)
+      for (unsigned px = clip.min_x; px < clip.max_x; px++)
       {
 	uint8_t clip_alpha = clip.get_alpha (px, py);
 	if (clip_alpha == 0) continue;
@@ -840,16 +864,14 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     float inv_angle_range = 1.f / angle_range;
 
     const hb_raster_clip_t &clip = c->current_clip ();
-    unsigned w = surf->extents.width;
-    unsigned h = surf->extents.height;
     unsigned stride = surf->extents.stride;
     int ox = surf->extents.x_origin;
     int oy = surf->extents.y_origin;
 
-    for (unsigned py = 0; py < h; py++)
+    for (unsigned py = clip.min_y; py < clip.max_y; py++)
     {
       uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
-      for (unsigned px = 0; px < w; px++)
+      for (unsigned px = clip.min_x; px < clip.max_x; px++)
       {
 	uint8_t clip_alpha = clip.get_alpha (px, py);
 	if (clip_alpha == 0) continue;
