@@ -1151,21 +1151,22 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       /* Add new edges from this row's bucket. */
       draw->active_edges.extend (draw->edge_buckets.arrayZ[row]);
 
-      /* Process active edges, removing expired ones. */
+      /* Process active edges and compact live ones in one linear pass. */
       unsigned x_min = ext.width, x_max = 0;
-      for (unsigned j = 0; j < draw->active_edges.length; )
+      unsigned write = 0;
+      unsigned active_len = draw->active_edges.length;
+      for (unsigned j = 0; j < active_len; j++)
       {
-	const auto &e = draw->edges.arrayZ[draw->active_edges.arrayZ[j]];
+	unsigned edge_idx = draw->active_edges.arrayZ[j];
+	const auto &e = draw->edges.arrayZ[edge_idx];
 	if (e.yH <= y_top)
-	{
-	  draw->active_edges.remove_unordered (j);
 	  continue;
-	}
 
 	edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
 			ext.width, ext.x_origin, y_top, e, x_min, x_max);
-	j++;
+	draw->active_edges.arrayZ[write++] = edge_idx;
       }
+      draw->active_edges.resize (write);
 
       if (x_min <= x_max)
       {
