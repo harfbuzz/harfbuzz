@@ -178,6 +178,64 @@ hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
 			      hb_raster_image_t *image);
 
 
+
+/* ── hb_raster_paint_t ───────────────────────────────────────────── */
+
+/**
+ * hb_raster_paint_t:
+ *
+ * An opaque color-glyph paint context.  Implements #hb_paint_funcs_t
+ * callbacks that render COLRv0/v1 color glyphs into a BGRA32
+ * #hb_raster_image_t.
+ *
+ * XSince: REPLACEME
+ **/
+typedef struct hb_raster_paint_t hb_raster_paint_t;
+
+HB_EXTERN hb_raster_paint_t *
+hb_raster_paint_create (void);
+
+HB_EXTERN hb_raster_paint_t *
+hb_raster_paint_reference (hb_raster_paint_t *paint);
+
+HB_EXTERN void
+hb_raster_paint_destroy (hb_raster_paint_t *paint);
+
+HB_EXTERN hb_bool_t
+hb_raster_paint_set_user_data (hb_raster_paint_t  *paint,
+			       hb_user_data_key_t *key,
+			       void               *data,
+			       hb_destroy_func_t   destroy,
+			       hb_bool_t           replace);
+
+HB_EXTERN void *
+hb_raster_paint_get_user_data (hb_raster_paint_t  *paint,
+			       hb_user_data_key_t *key);
+
+HB_EXTERN void
+hb_raster_paint_set_transform (hb_raster_paint_t *paint,
+			       float xx, float yx,
+			       float xy, float yy,
+			       float dx, float dy);
+
+HB_EXTERN void
+hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
+			     const hb_raster_extents_t *extents);
+
+HB_EXTERN hb_paint_funcs_t *
+hb_raster_paint_get_funcs (void);
+
+HB_EXTERN hb_raster_image_t *
+hb_raster_paint_render (hb_raster_paint_t *paint);
+
+HB_EXTERN void
+hb_raster_paint_reset (hb_raster_paint_t *paint);
+
+HB_EXTERN void
+hb_raster_paint_recycle_image (hb_raster_paint_t  *paint,
+			       hb_raster_image_t  *image);
+
+
 HB_END_DECLS
 
 #endif /* HB_RASTER_H */
