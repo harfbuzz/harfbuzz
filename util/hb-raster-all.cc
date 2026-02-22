@@ -115,26 +115,14 @@ main (int argc, char **argv)
 
     if (pnt)
     {
-      hb_glyph_extents_t gext;
-      if (hb_font_get_glyph_extents (font, gid, &gext) &&
-	  gext.width && gext.height)
+      hb_bool_t painted = hb_font_paint_glyph_or_fail (font, gid,
+							hb_raster_paint_get_funcs (), pnt,
+							0, HB_COLOR (0, 0, 0, 255));
+      img = hb_raster_paint_render (pnt);
+      if (!painted && img)
       {
-	int x0 = gext.x_bearing - 1;
-	int y0 = gext.y_bearing + gext.height - 1;
-	int x1 = gext.x_bearing + gext.width + 1;
-	int y1 = gext.y_bearing + 1;
-	if (x0 > x1) { int t = x0; x0 = x1; x1 = t; }
-	if (y0 > y1) { int t = y0; y0 = y1; y1 = t; }
-	unsigned w = (unsigned) (x1 - x0);
-	unsigned h = (unsigned) (y1 - y0);
-
-	hb_raster_extents_t ext = {x0, y0, w, h, w * 4};
-	hb_raster_paint_set_extents (pnt, &ext);
-
-	if (hb_font_paint_glyph_or_fail (font, gid,
-					 hb_raster_paint_get_funcs (), pnt,
-					 0, HB_COLOR (0, 0, 0, 255)))
-	  img = hb_raster_paint_render (pnt);
+	hb_raster_paint_recycle_image (pnt, img);
+	img = nullptr;
       }
 
       if (img)
