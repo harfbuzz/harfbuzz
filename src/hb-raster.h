@@ -66,17 +66,6 @@ typedef struct hb_raster_extents_t {
   unsigned int stride;
 } hb_raster_extents_t;
 
-/**
- * hb_raster_extents_from_glyph_extents:
- * @glyph_extents: glyph extents from hb_font_get_glyph_extents()
- * @extents: (out): output raster extents
- *
- * Converts #hb_glyph_extents_t to #hb_raster_extents_t with no extra padding.
- *
- * Return value: `true` if extents are non-empty, `false` otherwise.
- *
- * XSince: REPLACEME
- */
 HB_EXTERN hb_bool_t
 hb_raster_extents_from_glyph_extents (const hb_glyph_extents_t *glyph_extents,
 				      hb_raster_extents_t      *extents);
