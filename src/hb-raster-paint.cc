@@ -1178,6 +1178,24 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 }
 
 /**
+ * hb_raster_paint_set_foreground:
+ * @paint: a paint context
+ * @foreground: the foreground color
+ *
+ * Sets the foreground color used when paint callbacks request it
+ * (e.g. `is_foreground` in color stops or solid fills).
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
+				hb_color_t         foreground)
+{
+  if (unlikely (!paint)) return;
+  paint->foreground = foreground;
+}
+
+/**
  * hb_raster_paint_get_funcs:
  *
  * Fetches the singleton #hb_paint_funcs_t that renders color glyphs

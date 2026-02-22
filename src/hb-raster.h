@@ -222,6 +222,10 @@ HB_EXTERN void
 hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 			     const hb_raster_extents_t *extents);
 
+HB_EXTERN void
+hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
+				hb_color_t         foreground);
+
 HB_EXTERN hb_paint_funcs_t *
 hb_raster_paint_get_funcs (void);
 
