@@ -790,11 +790,11 @@ edge_sweep_row (int32_t                *area,
 		unsigned                width,
 		int                     x_org,
 		int32_t                 y_top,
-		int32_t                 y_bot,
 		const hb_raster_edge_t &edge,
 		unsigned               &x_min,
 		unsigned               &x_max)
 {
+  int32_t y_bot = y_top + HB_RASTER_ONE_PIXEL;
 
   int32_t ey0 = hb_max (edge.yL, y_top);
   int32_t ey1 = hb_min (edge.yH, y_bot);
@@ -1096,29 +1096,6 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
       draw->edge_buckets.arrayZ[row].push (i);
     }
 
-    /* Pre-compute seam rows.  A seam occurs when one edge ends (yH) and
-       another begins (yL) at the same mid-pixel-row y-coordinate, causing
-       opposite-winding coverage to cancel in the signed accumulation. */
-    hb_vector_t<int32_t> row_seam_y;
-    if (unlikely (!row_seam_y.resize (ext.height)))
-      goto done;
-    for (unsigned i = 0; i < draw->edges.length; i++)
-    {
-      int32_t yL = draw->edges.arrayZ[i].yL;
-      if (!(yL & HB_RASTER_PIXEL_MASK)) continue;
-      int row_ = (yL >> HB_RASTER_PIXEL_BITS) - ext.y_origin;
-      if (row_ < 0 || (unsigned) row_ >= ext.height) continue;
-      if (row_seam_y.arrayZ[row_]) continue;
-      for (unsigned k = 0; k < draw->edges.length; k++)
-	if (draw->edges.arrayZ[k].yH == yL)
-	{
-	  row_seam_y.arrayZ[row_] = yL;
-	  break;
-	}
-    }
-
-    hb_vector_t<int32_t> row_alpha;
-
     /* Scanline loop with active edge list. */
     draw->active_edges.resize (0);
 
@@ -1128,96 +1105,6 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
       /* Add new edges from this row's bucket. */
       draw->active_edges.extend (draw->edge_buckets.arrayZ[row]);
-
-      /* Handle seam rows by splitting into independent sub-rows
-	 and summing absolute alpha to avoid winding cancellation. */
-      if (unlikely (row_seam_y.arrayZ[row]))
-      {
-	int32_t seam_y = row_seam_y.arrayZ[row];
-
-	/* Remove expired edges. */
-	for (unsigned j = 0; j < draw->active_edges.length; )
-	{
-	  const auto &e = draw->edges.arrayZ[draw->active_edges.arrayZ[j]];
-	  if (e.yH <= y_top) { draw->active_edges.remove_unordered (j); continue; }
-	  j++;
-	}
-
-	if (unlikely (!row_alpha.length && !row_alpha.resize (ext.width)))
-	  goto done;
-
-	/* Sub-row A: y_top to seam_y. */
-	unsigned x_min_a = ext.width, x_max_a = 0;
-	for (unsigned j = 0; j < draw->active_edges.length; j++)
-	{
-	  const auto &e = draw->edges.arrayZ[draw->active_edges.arrayZ[j]];
-	  edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
-			  ext.width, ext.x_origin, y_top, seam_y, e, x_min_a, x_max_a);
-	}
-	int32_t cover_accum_a = 0;
-	if (x_min_a <= x_max_a)
-	{
-	  cover_accum_a = prefix_sum_cover (draw->row_cover.arrayZ, x_min_a, x_max_a);
-	  for (unsigned x = x_min_a; x <= x_max_a; x++)
-	  {
-	    int32_t val = (int32_t) draw->row_cover.arrayZ[x] * (2 * HB_RASTER_ONE_PIXEL) - draw->row_area.arrayZ[x];
-	    row_alpha.arrayZ[x] = val < 0 ? -val : val;
-	    draw->row_area.arrayZ[x] = 0;
-	    draw->row_cover.arrayZ[x] = 0;
-	  }
-	}
-
-	/* Sub-row B: seam_y to y_top + ONE_PIXEL. */
-	unsigned x_min_b = ext.width, x_max_b = 0;
-	for (unsigned j = 0; j < draw->active_edges.length; j++)
-	{
-	  const auto &e = draw->edges.arrayZ[draw->active_edges.arrayZ[j]];
-	  edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
-			  ext.width, ext.x_origin, seam_y, y_top + HB_RASTER_ONE_PIXEL, e, x_min_b, x_max_b);
-	}
-	int32_t cover_accum_b = 0;
-	if (x_min_b <= x_max_b)
-	{
-	  cover_accum_b = prefix_sum_cover (draw->row_cover.arrayZ, x_min_b, x_max_b);
-	  for (unsigned x = x_min_b; x <= x_max_b; x++)
-	  {
-	    int32_t val = (int32_t) draw->row_cover.arrayZ[x] * (2 * HB_RASTER_ONE_PIXEL) - draw->row_area.arrayZ[x];
-	    row_alpha.arrayZ[x] += val < 0 ? -val : val;
-	    draw->row_area.arrayZ[x] = 0;
-	    draw->row_cover.arrayZ[x] = 0;
-	  }
-	}
-
-	unsigned x_min = hb_min (x_min_a, x_min_b);
-	unsigned x_max = hb_max (x_max_a, x_max_b);
-	if (x_min <= x_max)
-	{
-	  /* Handle constant-alpha tail. */
-	  int32_t tail_a = cover_accum_a * (2 * HB_RASTER_ONE_PIXEL);
-	  tail_a = tail_a < 0 ? -tail_a : tail_a;
-	  int32_t tail_b = cover_accum_b * (2 * HB_RASTER_ONE_PIXEL);
-	  tail_b = tail_b < 0 ? -tail_b : tail_b;
-	  int32_t tail_alpha = tail_a + tail_b;
-	  if (tail_alpha > HB_RASTER_FULL_COVERAGE) tail_alpha = HB_RASTER_FULL_COVERAGE;
-	  if (tail_alpha != 0)
-	  {
-	    uint8_t byte = (uint8_t) (((unsigned) tail_alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
-	    uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
-	    memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
-	  }
-
-	  /* Convert accumulated alpha to bytes. */
-	  uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
-	  for (unsigned x = x_min; x <= x_max; x++)
-	  {
-	    int32_t alpha = row_alpha.arrayZ[x];
-	    if (alpha > HB_RASTER_FULL_COVERAGE) alpha = HB_RASTER_FULL_COVERAGE;
-	    row_buf[x] = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
-	    row_alpha.arrayZ[x] = 0;
-	  }
-	}
-	continue;
-      }
 
       /* Process active edges, removing expired ones. */
       unsigned x_min = ext.width, x_max = 0;
@@ -1231,7 +1118,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	}
 
 	edge_sweep_row (draw->row_area.arrayZ, draw->row_cover.arrayZ,
-			ext.width, ext.x_origin, y_top, y_top + HB_RASTER_ONE_PIXEL, e, x_min, x_max);
+			ext.width, ext.x_origin, y_top, e, x_min, x_max);
 	j++;
       }
 
