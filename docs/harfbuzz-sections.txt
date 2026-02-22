@@ -994,6 +994,7 @@ hb_cairo_glyphs_from_buffer
 <FILE>hb-raster</FILE>
 hb_raster_format_t
 hb_raster_extents_t
+hb_raster_extents_from_glyph_extents
 hb_raster_image_t
 hb_raster_image_reference
 hb_raster_image_destroy
