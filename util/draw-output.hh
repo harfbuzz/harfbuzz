@@ -75,7 +75,6 @@ struct draw_output_t : output_options_t<>
     {
       {"flat",		0, 0, G_OPTION_ARG_NONE,	&this->flat,		"Flatten geometry and disable reuse",			nullptr},
       {"precision",	0, 0, G_OPTION_ARG_INT,		&this->precision,	"Decimal precision (default: 2)",			"N"},
-      {"no-color",	0, 0, G_OPTION_ARG_NONE,	&this->no_color,	"Disable color font rendering",				nullptr},
       {"palette",	0, 0, G_OPTION_ARG_INT,		&this->palette,		"Color palette index (default: 0)",			"N"},
       {"background",	0, 0, G_OPTION_ARG_STRING,	&this->background_str,	"Background color",					"rrggbb[aa]"},
       {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->foreground_str,	"Foreground color (default: 000000)",			"rrggbb[aa]"},
@@ -159,26 +158,23 @@ struct draw_output_t : output_options_t<>
     hb_draw_funcs_set_cubic_to_func (draw_funcs, (hb_draw_cubic_to_func_t) cubic_to, nullptr, nullptr);
     hb_draw_funcs_set_close_path_func (draw_funcs, (hb_draw_close_path_func_t) close_path, nullptr, nullptr);
 
-    if (!no_color)
-    {
-      probe_paint_funcs = hb_paint_funcs_create ();
-      hb_paint_funcs_set_image_func (probe_paint_funcs, (hb_paint_image_func_t) probe_paint_image, nullptr, nullptr);
+    probe_paint_funcs = hb_paint_funcs_create ();
+    hb_paint_funcs_set_image_func (probe_paint_funcs, (hb_paint_image_func_t) probe_paint_image, nullptr, nullptr);
 
-      paint_funcs = hb_paint_funcs_create ();
-      hb_paint_funcs_set_push_transform_func (paint_funcs, (hb_paint_push_transform_func_t) paint_push_transform, nullptr, nullptr);
-      hb_paint_funcs_set_pop_transform_func (paint_funcs, (hb_paint_pop_transform_func_t) paint_pop_transform, nullptr, nullptr);
-      hb_paint_funcs_set_push_clip_glyph_func (paint_funcs, (hb_paint_push_clip_glyph_func_t) paint_push_clip_glyph, nullptr, nullptr);
-      hb_paint_funcs_set_push_clip_rectangle_func (paint_funcs, (hb_paint_push_clip_rectangle_func_t) paint_push_clip_rectangle, nullptr, nullptr);
-      hb_paint_funcs_set_pop_clip_func (paint_funcs, (hb_paint_pop_clip_func_t) paint_pop_clip, nullptr, nullptr);
-      hb_paint_funcs_set_color_func (paint_funcs, (hb_paint_color_func_t) paint_color, nullptr, nullptr);
-      hb_paint_funcs_set_image_func (paint_funcs, (hb_paint_image_func_t) paint_image, nullptr, nullptr);
-      hb_paint_funcs_set_linear_gradient_func (paint_funcs, (hb_paint_linear_gradient_func_t) paint_linear_gradient, nullptr, nullptr);
-      hb_paint_funcs_set_radial_gradient_func (paint_funcs, (hb_paint_radial_gradient_func_t) paint_radial_gradient, nullptr, nullptr);
-      hb_paint_funcs_set_sweep_gradient_func (paint_funcs, (hb_paint_sweep_gradient_func_t) paint_sweep_gradient, nullptr, nullptr);
-      hb_paint_funcs_set_push_group_func (paint_funcs, (hb_paint_push_group_func_t) paint_push_group, nullptr, nullptr);
-      hb_paint_funcs_set_pop_group_func (paint_funcs, (hb_paint_pop_group_func_t) paint_pop_group, nullptr, nullptr);
-      hb_paint_funcs_set_color_glyph_func (paint_funcs, (hb_paint_color_glyph_func_t) paint_color_glyph, nullptr, nullptr);
-    }
+    paint_funcs = hb_paint_funcs_create ();
+    hb_paint_funcs_set_push_transform_func (paint_funcs, (hb_paint_push_transform_func_t) paint_push_transform, nullptr, nullptr);
+    hb_paint_funcs_set_pop_transform_func (paint_funcs, (hb_paint_pop_transform_func_t) paint_pop_transform, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_glyph_func (paint_funcs, (hb_paint_push_clip_glyph_func_t) paint_push_clip_glyph, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_rectangle_func (paint_funcs, (hb_paint_push_clip_rectangle_func_t) paint_push_clip_rectangle, nullptr, nullptr);
+    hb_paint_funcs_set_pop_clip_func (paint_funcs, (hb_paint_pop_clip_func_t) paint_pop_clip, nullptr, nullptr);
+    hb_paint_funcs_set_color_func (paint_funcs, (hb_paint_color_func_t) paint_color, nullptr, nullptr);
+    hb_paint_funcs_set_image_func (paint_funcs, (hb_paint_image_func_t) paint_image, nullptr, nullptr);
+    hb_paint_funcs_set_linear_gradient_func (paint_funcs, (hb_paint_linear_gradient_func_t) paint_linear_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_radial_gradient_func (paint_funcs, (hb_paint_radial_gradient_func_t) paint_radial_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_sweep_gradient_func (paint_funcs, (hb_paint_sweep_gradient_func_t) paint_sweep_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_push_group_func (paint_funcs, (hb_paint_push_group_func_t) paint_push_group, nullptr, nullptr);
+    hb_paint_funcs_set_pop_group_func (paint_funcs, (hb_paint_pop_group_func_t) paint_pop_group, nullptr, nullptr);
+    hb_paint_funcs_set_color_glyph_func (paint_funcs, (hb_paint_color_glyph_func_t) paint_color_glyph, nullptr, nullptr);
   }
 
   void new_line ()
@@ -1049,7 +1045,6 @@ struct draw_output_t : output_options_t<>
   }
 
   hb_bool_t flat = false;
-  hb_bool_t no_color = false;
   int precision = 2;
   int scale_precision () const { return precision < 7 ? 7 : precision; }
   int palette = 0;
