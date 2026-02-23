@@ -346,6 +346,19 @@ struct cff2_private_dict_blend_opset_t : dict_opset_t
 				 const hb_array_t<const number_t> blends,
 				 unsigned n, unsigned i)
   {
+    if (env.have_coords ())
+      arg.set_int (round (arg.to_real () + env.blend_deltas (blends)));
+    else
+      arg.set_blends (n, i, blends);
+  }
+
+  template <typename T = ELEM,
+	    hb_enable_if (!hb_is_same (T, blend_arg_t))>
+  static void process_arg_blend (cff2_private_blend_encoder_param_t& param,
+				 number_t &arg,
+				 const hb_array_t<const number_t> blends,
+				 unsigned n, unsigned i)
+  {
     arg.set_int (round (arg.to_real () + param.blend_deltas (blends)));
   }
 
@@ -504,6 +517,12 @@ struct cff2_subset_plan
 
     if (desubroutinize)
     {
+      /* Partial instancing */
+      if (plan->normalized_coords && !plan->all_axes_pinned)
+      {
+        
+      }
+
       /* Flatten global & local subrs */
       subr_flattener_t<const OT::cff2::accelerator_subset_t, cff2_cs_interp_env_t<blend_arg_t>, cff2_cs_opset_flatten_t>
 		    flattener(acc, plan);
