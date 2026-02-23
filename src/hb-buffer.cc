@@ -2278,6 +2278,22 @@ hb_buffer_diff (hb_buffer_t *buffer,
  * Debugging.
  */
 
+void
+hb_buffer_t::changed ()
+{
+#ifdef HB_NO_BUFFER_MESSAGE
+  return;
+#else
+  if (!message_depth)
+    return;
+
+  if (changed_func)
+    changed_func (this, changed_data);
+  else
+    update_digest ();
+#endif
+}
+
 #ifndef HB_NO_BUFFER_MESSAGE
 /**
  * hb_buffer_set_message_func:
@@ -2329,10 +2345,7 @@ hb_buffer_set_message_func (hb_buffer_t *buffer,
 void
 hb_buffer_changed (hb_buffer_t *buffer)
 {
-  if (!buffer->message_depth)
-    return;
-
-  buffer->update_digest ();
+  buffer->changed ();
 }
 
 bool
