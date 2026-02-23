@@ -42,7 +42,6 @@ struct raster_output_t : output_options_t<true>
   {
     hb_raster_draw_destroy (rdr);
     hb_raster_paint_destroy (pnt);
-    hb_font_destroy (upem_font);
     hb_font_destroy (font);
     g_free (fore);
     g_free (back);
@@ -75,18 +74,7 @@ struct raster_output_t : output_options_t<true>
     direction = HB_DIRECTION_INVALID;
 
     font = hb_font_reference (font_opts->font);
-    upem = hb_face_get_upem (hb_font_get_face (font));
-    hb_font_get_scale (font, &x_scale, &y_scale);
     subpixel_bits = font_opts->subpixel_bits;
-
-    upem_font = hb_font_create (hb_font_get_face (font));
-    hb_font_set_scale (upem_font, (int) upem, (int) upem);
-#ifndef HB_NO_VAR
-    unsigned coords_len;
-    const float *coords = hb_font_get_var_coords_design (font, &coords_len);
-    if (coords_len)
-      hb_font_set_var_coords_design (upem_font, coords, coords_len);
-#endif
 
     hb_face_t *face = hb_font_get_face (font);
     has_color = hb_ot_color_has_paint (face) ||
@@ -153,35 +141,38 @@ struct raster_output_t : output_options_t<true>
     {
       line.glyphs.push_back ({
 	infos[i].codepoint,
-	to_upem_x (pen_x + positions[i].x_offset),
-	to_upem_y (pen_y + positions[i].y_offset),
+	(float) (pen_x + positions[i].x_offset),
+	(float) (pen_y + positions[i].y_offset),
       });
       pen_x += positions[i].x_advance;
       pen_y += positions[i].y_advance;
     }
-    line.advance_x = to_upem_x (pen_x);
-    line.advance_y = to_upem_y (pen_y);
+    line.advance_x = (float) pen_x;
+    line.advance_y = (float) pen_y;
   }
 
   template <typename app_t>
   void finish (hb_buffer_t *buffer HB_UNUSED, const app_t *font_opts HB_UNUSED)
   {
-    /* pixels per upem unit */
-    float sx = scalbnf ((float) x_scale, -(int) subpixel_bits) / upem;
-    float sy = scalbnf ((float) y_scale, -(int) subpixel_bits) / upem;
+    /* pixels per font unit */
+    float sx = scalbnf (1.f, -(int) subpixel_bits);
+    float sy = scalbnf (1.f, -(int) subpixel_bits);
 
-    /* line step in upem units */
+    /* line step in font units */
     hb_direction_t dir = direction;
     if (dir == HB_DIRECTION_INVALID) dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
     hb_font_extents_t extents = {};
     hb_font_get_extents_for_direction (font, dir, &extents);
-    int axis_scale = vertical ? x_scale : y_scale;
-    if (!axis_scale) axis_scale = (int) upem;
-    float step = fabsf ((float) (extents.ascender - extents.descender + extents.line_gap)
-			* upem / axis_scale);
-    if (!(step > 0.f)) step = (float) upem;
+    float step = fabsf ((float) (extents.ascender - extents.descender + extents.line_gap));
+    if (!(step > 0.f))
+    {
+      int x_scale = 0, y_scale = 0;
+      hb_font_get_scale (font, &x_scale, &y_scale);
+      int axis_scale = vertical ? x_scale : y_scale;
+      step = axis_scale ? fabsf ((float) axis_scale) : 1.f;
+    }
 
     if (has_color && pnt)
     {
@@ -199,7 +190,7 @@ struct raster_output_t : output_options_t<true>
 	  float pen_x = (g.x + off_x) * sx;
 	  float pen_y = (g.y + off_y) * sy;
 	  hb_raster_draw_set_transform (rdr, sx, 0.f, 0.f, sy, pen_x, pen_y);
-	  hb_font_draw_glyph (upem_font, g.gid, hb_raster_draw_get_funcs (), rdr);
+	  hb_font_draw_glyph (font, g.gid, hb_raster_draw_get_funcs (), rdr);
 	}
       }
 
@@ -213,7 +204,6 @@ struct raster_output_t : output_options_t<true>
 
     hb_raster_draw_destroy (rdr);  rdr      = nullptr;
     hb_raster_paint_destroy (pnt); pnt      = nullptr;
-    hb_font_destroy (upem_font);   upem_font = nullptr;
     hb_font_destroy (font);        font      = nullptr;
     lines.clear ();
     direction = HB_DIRECTION_INVALID;
@@ -227,11 +217,6 @@ struct raster_output_t : output_options_t<true>
     float advance_x = 0.f, advance_y = 0.f;
     std::vector<glyph_instance_t> glyphs;
   };
-
-  float to_upem_x (hb_position_t v) const
-  { return x_scale ? (float) v * upem / x_scale : (float) v; }
-  float to_upem_y (hb_position_t v) const
-  { return y_scale ? (float) v * upem / y_scale : (float) v; }
 
   void finish_paint (float sx, float sy, float step, bool vertical)
   {
@@ -247,7 +232,7 @@ struct raster_output_t : output_options_t<true>
       for (const auto &g : lines[li].glyphs)
       {
 	hb_glyph_extents_t gext;
-	if (!hb_font_get_glyph_extents (upem_font, g.gid, &gext))
+	if (!hb_font_get_glyph_extents (font, g.gid, &gext))
 	  continue;
 
 	float gx = (g.x + off_x) * sx;
@@ -294,7 +279,7 @@ struct raster_output_t : output_options_t<true>
 	hb_raster_paint_set_transform (pnt, sx, 0.f, 0.f, sy, pen_x, pen_y);
 	hb_raster_paint_set_extents (pnt, &ext);
 
-	hb_font_paint_glyph (upem_font, g.gid,
+	hb_font_paint_glyph (font, g.gid,
 			     hb_raster_paint_get_funcs (), pnt,
 			     0, fg_color);
 
@@ -401,10 +386,6 @@ struct raster_output_t : output_options_t<true>
   hb_raster_draw_t  *rdr       = nullptr;
   hb_raster_paint_t *pnt       = nullptr;
   hb_font_t         *font      = nullptr;
-  hb_font_t         *upem_font = nullptr;
-  unsigned           upem          = 0;
-  int                x_scale       = 0;
-  int                y_scale       = 0;
   unsigned           subpixel_bits = 0;
   bool               has_color     = false;
   hb_direction_t     direction     = HB_DIRECTION_INVALID;
