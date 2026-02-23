@@ -187,6 +187,43 @@ test_transform (void)
   hb_raster_draw_destroy (rdr);
 }
 
+/* ── Test 5: transformed glyph extents helper ───────────────────── */
+
+static void
+test_set_glyph_extents_with_transform (void)
+{
+  hb_raster_draw_t *rdr = hb_raster_draw_create ();
+
+  hb_raster_draw_set_transform (rdr, 2.f, 0.f, 0.f, 3.f, 5.f, 7.f);
+
+  hb_glyph_extents_t gext = {
+    1,   /* x_bearing */
+    4,   /* y_bearing */
+    10,  /* width */
+    -6   /* height */
+  };
+
+  g_assert_true (hb_raster_draw_set_glyph_extents (rdr, &gext));
+
+  draw_rect (rdr, (float) gext.x_bearing,
+	     (float) gext.y_bearing + gext.height,
+	     (float) gext.x_bearing + gext.width,
+	     (float) gext.y_bearing);
+
+  hb_raster_image_t *img = hb_raster_draw_render (rdr);
+  g_assert_nonnull (img);
+
+  hb_raster_extents_t ext;
+  hb_raster_image_get_extents (img, &ext);
+  g_assert_cmpint (ext.x_origin, ==, 7);   /* 2*1 + 5 */
+  g_assert_cmpint (ext.y_origin, ==, 1);   /* 3*(-2) + 7 */
+  g_assert_cmpuint (ext.width, ==, 20);    /* 2*10 */
+  g_assert_cmpuint (ext.height, ==, 18);   /* 3*6 */
+
+  hb_raster_image_destroy (img);
+  hb_raster_draw_destroy (rdr);
+}
+
 
 /* ── main ────────────────────────────────────────────────────────── */
 
@@ -199,6 +236,7 @@ main (int argc, char **argv)
   hb_test_add (test_accumulate);
   hb_test_add (test_subpixel_edge);
   hb_test_add (test_transform);
+  hb_test_add (test_set_glyph_extents_with_transform);
 
   return hb_test_run ();
 }

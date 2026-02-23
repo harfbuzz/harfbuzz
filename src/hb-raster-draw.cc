@@ -300,6 +300,79 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 }
 
 /**
+ * hb_raster_draw_set_glyph_extents:
+ * @draw: a rasterizer
+ * @glyph_extents: glyph extents from hb_font_get_glyph_extents()
+ *
+ * Transforms @glyph_extents with the rasterizer's current transform and
+ * sets the resulting pixel extents for the next render.
+ *
+ * This is equivalent to computing a transformed bounding box in pixel
+ * space and calling hb_raster_draw_set_extents().
+ *
+ * Return value: `true` if transformed extents are non-empty and set;
+ * `false` otherwise.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
+				  const hb_glyph_extents_t *glyph_extents)
+{
+  if (unlikely (!draw || !glyph_extents))
+    return false;
+
+  float x0 = (float) glyph_extents->x_bearing;
+  float y0 = (float) glyph_extents->y_bearing;
+  float x1 = (float) glyph_extents->x_bearing + glyph_extents->width;
+  float y1 = (float) glyph_extents->y_bearing + glyph_extents->height;
+
+  float xmin = hb_min (x0, x1);
+  float xmax = hb_max (x0, x1);
+  float ymin = hb_min (y0, y1);
+  float ymax = hb_max (y0, y1);
+
+  float px[4] = {xmin, xmin, xmax, xmax};
+  float py[4] = {ymin, ymax, ymin, ymax};
+
+  float tx, ty;
+  draw->transform.transform_point (px[0], py[0]);
+  tx = px[0]; ty = py[0];
+  float tx_min = tx, tx_max = tx;
+  float ty_min = ty, ty_max = ty;
+
+  for (unsigned i = 1; i < 4; i++)
+  {
+    draw->transform.transform_point (px[i], py[i]);
+    tx_min = hb_min (tx_min, px[i]);
+    tx_max = hb_max (tx_max, px[i]);
+    ty_min = hb_min (ty_min, py[i]);
+    ty_max = hb_max (ty_max, py[i]);
+  }
+
+  int ex0 = (int) floorf (tx_min);
+  int ey0 = (int) floorf (ty_min);
+  int ex1 = (int) ceilf  (tx_max);
+  int ey1 = (int) ceilf  (ty_max);
+
+  if (ex1 <= ex0 || ey1 <= ey0)
+  {
+    draw->fixed_extents = {};
+    draw->has_fixed_extents = false;
+    return false;
+  }
+
+  draw->fixed_extents = {
+    ex0, ey0,
+    (unsigned) (ex1 - ex0),
+    (unsigned) (ey1 - ey0),
+    0
+  };
+  draw->has_fixed_extents = true;
+  return true;
+}
+
+/**
  * hb_raster_draw_reset:
  * @draw: a rasterizer
  *

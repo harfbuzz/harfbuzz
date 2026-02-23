@@ -1147,10 +1147,8 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
  * A common pattern is:
  * ```
  * hb_glyph_extents_t gext;
- * hb_raster_extents_t ext;
- * if (hb_font_get_glyph_extents (font, gid, &gext) &&
- *     hb_raster_extents_from_glyph_extents (&gext, &ext))
- *   hb_raster_paint_set_extents (paint, &ext);
+ * if (hb_font_get_glyph_extents (font, gid, &gext))
+ *   hb_raster_paint_set_glyph_extents (paint, &gext);
  * ```
  *
  * XSince: REPLACEME
@@ -1164,6 +1162,81 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
   paint->has_fixed_extents = true;
   if (paint->fixed_extents.stride == 0)
     paint->fixed_extents.stride = paint->fixed_extents.width * 4;
+}
+
+/**
+ * hb_raster_paint_set_glyph_extents:
+ * @paint: a paint context
+ * @glyph_extents: glyph extents from hb_font_get_glyph_extents()
+ *
+ * Transforms @glyph_extents with the paint context's base transform and
+ * sets the resulting output image extents.
+ *
+ * This is equivalent to computing a transformed bounding box in pixel
+ * space and calling hb_raster_paint_set_extents().
+ *
+ * Return value: `true` if transformed extents are non-empty and set;
+ * `false` otherwise.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
+				   const hb_glyph_extents_t *glyph_extents)
+{
+  if (unlikely (!paint || !glyph_extents))
+    return false;
+
+  float x0 = (float) glyph_extents->x_bearing;
+  float y0 = (float) glyph_extents->y_bearing;
+  float x1 = (float) glyph_extents->x_bearing + glyph_extents->width;
+  float y1 = (float) glyph_extents->y_bearing + glyph_extents->height;
+
+  float xmin = hb_min (x0, x1);
+  float xmax = hb_max (x0, x1);
+  float ymin = hb_min (y0, y1);
+  float ymax = hb_max (y0, y1);
+
+  float px[4] = {xmin, xmin, xmax, xmax};
+  float py[4] = {ymin, ymax, ymin, ymax};
+
+  float tx, ty;
+  paint->base_transform.transform_point (px[0], py[0]);
+  tx = px[0]; ty = py[0];
+  float tx_min = tx, tx_max = tx;
+  float ty_min = ty, ty_max = ty;
+
+  for (unsigned i = 1; i < 4; i++)
+  {
+    paint->base_transform.transform_point (px[i], py[i]);
+    tx_min = hb_min (tx_min, px[i]);
+    tx_max = hb_max (tx_max, px[i]);
+    ty_min = hb_min (ty_min, py[i]);
+    ty_max = hb_max (ty_max, py[i]);
+  }
+
+  int ex0 = (int) floorf (tx_min);
+  int ey0 = (int) floorf (ty_min);
+  int ex1 = (int) ceilf  (tx_max);
+  int ey1 = (int) ceilf  (ty_max);
+
+  if (ex1 <= ex0 || ey1 <= ey0)
+  {
+    paint->fixed_extents = {};
+    paint->has_fixed_extents = false;
+    return false;
+  }
+
+  paint->fixed_extents = {
+    ex0, ey0,
+    (unsigned) (ex1 - ex0),
+    (unsigned) (ey1 - ey0),
+    0
+  };
+  paint->has_fixed_extents = true;
+  if (paint->fixed_extents.stride == 0)
+    paint->fixed_extents.stride = paint->fixed_extents.width * 4;
+  return true;
 }
 
 /**
@@ -1211,7 +1284,8 @@ hb_raster_paint_get_funcs (void)
  * the result returned as a new #hb_raster_image_t.
  *
  * Call hb_font_paint_glyph() before calling this function.
- * hb_raster_paint_set_extents() must be called before painting.
+ * hb_raster_paint_set_extents() or hb_raster_paint_set_glyph_extents()
+ * must be called before painting.
  * Internal drawing state is cleared here so the same object can
  * be reused without client-side clearing.
  *

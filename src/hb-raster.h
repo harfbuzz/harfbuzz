@@ -66,10 +66,6 @@ typedef struct hb_raster_extents_t {
   unsigned int stride;
 } hb_raster_extents_t;
 
-HB_EXTERN hb_bool_t
-hb_raster_extents_from_glyph_extents (const hb_glyph_extents_t *glyph_extents,
-				      hb_raster_extents_t      *extents);
-
 
 /* ── hb_raster_image_t ────────────────────────────────────────────── */
 
@@ -168,6 +164,10 @@ HB_EXTERN void
 hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 			    const hb_raster_extents_t *extents);
 
+HB_EXTERN hb_bool_t
+hb_raster_draw_set_glyph_extents (hb_raster_draw_t          *draw,
+				  const hb_glyph_extents_t  *glyph_extents);
+
 HB_EXTERN hb_draw_funcs_t *
 hb_raster_draw_get_funcs (void);
 
@@ -225,6 +225,10 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 HB_EXTERN void
 hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 			     const hb_raster_extents_t *extents);
+
+HB_EXTERN hb_bool_t
+hb_raster_paint_set_glyph_extents (hb_raster_paint_t         *paint,
+				   const hb_glyph_extents_t  *glyph_extents);
 
 HB_EXTERN void
 hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
