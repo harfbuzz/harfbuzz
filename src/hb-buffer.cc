@@ -2315,6 +2315,26 @@ hb_buffer_set_message_func (hb_buffer_t *buffer,
     buffer->message_destroy = nullptr;
   }
 }
+/**
+ * hb_buffer_changed:
+ * @buffer: An #hb_buffer_t
+ *
+ * Called by a message callback after modifying buffer glyph indices,
+ * to update internal caches.
+ *
+ * If not called from inside a message callback, does nothing.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_buffer_changed (hb_buffer_t *buffer)
+{
+  if (!buffer->message_depth)
+    return;
+
+  buffer->update_digest ();
+}
+
 bool
 hb_buffer_t::message_impl (hb_font_t *font, const char *fmt, va_list ap)
 {
