@@ -777,22 +777,29 @@ struct hb_ot_apply_context_t :
   {
     init_iters ();
     match_positions.set_storage (stack_match_positions);
+
 #ifndef HB_NO_BUFFER_MESSAGE
-    assert (buffer->changed_func == nullptr ||
-	    buffer->changed_func == buffer_changed_trampoline);
-    orig_changed_func = buffer->changed_func;
-    orig_changed_data = buffer->changed_data;
-    buffer->changed_func = buffer_changed_trampoline;
-    buffer->changed_data = this;
+    if (buffer->messaging ())
+    {
+      assert (buffer->changed_func == nullptr ||
+	      buffer->changed_func == buffer_changed_trampoline);
+      orig_changed_func = buffer->changed_func;
+      orig_changed_data = buffer->changed_data;
+      buffer->changed_func = buffer_changed_trampoline;
+      buffer->changed_data = this;
+    }
 #endif
   }
   ~hb_ot_apply_context_t ()
   {
 #ifndef HB_NO_BUFFER_MESSAGE
-    assert (buffer->changed_func == buffer_changed_trampoline);
-    assert (buffer->changed_data == this);
-    buffer->changed_func = orig_changed_func;
-    buffer->changed_data = orig_changed_data;
+    if (buffer->messaging ())
+    {
+      assert (buffer->changed_func == buffer_changed_trampoline);
+      assert (buffer->changed_data == this);
+      buffer->changed_func = orig_changed_func;
+      buffer->changed_data = orig_changed_data;
+    }
 #endif
   }
 
