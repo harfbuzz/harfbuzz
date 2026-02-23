@@ -1658,7 +1658,7 @@ struct EncodingRecord
       CmapSubtable *cmapsubtable = c->push<CmapSubtable> ();
       unsigned origin_length = c->length ();
       cmapsubtable->serialize (c, it, format, plan, &(base+subtable));
-      if (c->length () - origin_length > 0 && !c->in_error()) *objidx = c->pop_pack ();
+      if (c->length () > origin_length && !c->in_error()) *objidx = c->pop_pack ();
       else c->pop_discard ();
     }
 
