@@ -56,7 +56,6 @@ struct ft_raster_output_t : output_options_t<true>
 {
   ~ft_raster_output_t ()
   {
-    hb_font_destroy (upem_font);
     hb_font_destroy (font);
     if (ft_face) FT_Done_Face (ft_face);
     if (ft_lib)  FT_Done_FreeType (ft_lib);
@@ -76,18 +75,7 @@ struct ft_raster_output_t : output_options_t<true>
     direction = HB_DIRECTION_INVALID;
 
     font = hb_font_reference (font_opts->font);
-    upem = hb_face_get_upem (hb_font_get_face (font));
-    hb_font_get_scale (font, &x_scale, &y_scale);
     subpixel_bits = font_opts->subpixel_bits;
-
-    upem_font = hb_font_create (hb_font_get_face (font));
-    hb_font_set_scale (upem_font, (int) upem, (int) upem);
-#ifndef HB_NO_VAR
-    unsigned coords_len;
-    const float *coords = hb_font_get_var_coords_design (font, &coords_len);
-    if (coords_len)
-      hb_font_set_var_coords_design (upem_font, coords, coords_len);
-#endif
 
     /* Set up FreeType */
     FT_Init_FreeType (&ft_lib);
@@ -102,10 +90,20 @@ struct ft_raster_output_t : output_options_t<true>
 			hb_face_get_index (face), &ft_face);
     hb_blob_destroy (blob);
 
-    /* Set size to upem so outline coordinates match hb_font_draw_glyph with upem_font */
-    FT_Set_Char_Size (ft_face, (FT_F26Dot6) upem * 64, (FT_F26Dot6) upem * 64, 72, 72);
+    int x_scale = 0, y_scale = 0;
+    hb_font_get_scale (font, &x_scale, &y_scale);
+    unsigned ft_x_scale = x_scale ? (unsigned) fabsf ((float) x_scale) : 1;
+    unsigned ft_y_scale = y_scale ? (unsigned) fabsf ((float) y_scale) : 1;
+
+    /* Match FT outlines to the shaping font scale. */
+    FT_Set_Char_Size (ft_face,
+		      (FT_F26Dot6) ft_x_scale * 64,
+		      (FT_F26Dot6) ft_y_scale * 64,
+		      72, 72);
 
 #ifndef HB_NO_VAR
+    unsigned coords_len;
+    const float *coords = hb_font_get_var_coords_design (font, &coords_len);
     if (coords_len)
     {
       FT_Fixed *ft_coords = (FT_Fixed *) malloc (coords_len * sizeof (FT_Fixed));
@@ -151,35 +149,38 @@ struct ft_raster_output_t : output_options_t<true>
     {
       line.glyphs.push_back ({
 	infos[i].codepoint,
-	to_upem_x (pen_x + positions[i].x_offset),
-	to_upem_y (pen_y + positions[i].y_offset),
+	(float) (pen_x + positions[i].x_offset),
+	(float) (pen_y + positions[i].y_offset),
       });
       pen_x += positions[i].x_advance;
       pen_y += positions[i].y_advance;
     }
-    line.advance_x = to_upem_x (pen_x);
-    line.advance_y = to_upem_y (pen_y);
+    line.advance_x = (float) pen_x;
+    line.advance_y = (float) pen_y;
   }
 
   template <typename app_t>
   void finish (hb_buffer_t *buffer HB_UNUSED, const app_t *font_opts HB_UNUSED)
   {
-    /* pixels per upem unit */
-    float sx = scalbnf ((float) x_scale, -(int) subpixel_bits) / upem;
-    float sy = scalbnf ((float) y_scale, -(int) subpixel_bits) / upem;
+    /* pixels per font unit */
+    float sx = scalbnf (1.f, -(int) subpixel_bits);
+    float sy = scalbnf (1.f, -(int) subpixel_bits);
 
-    /* line step in upem units */
+    /* line step in font units */
     hb_direction_t dir = direction;
     if (dir == HB_DIRECTION_INVALID) dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
     hb_font_extents_t extents = {};
     hb_font_get_extents_for_direction (font, dir, &extents);
-    int axis_scale = vertical ? x_scale : y_scale;
-    if (!axis_scale) axis_scale = (int) upem;
-    float step = fabsf ((float) (extents.ascender - extents.descender + extents.line_gap)
-			* upem / axis_scale);
-    if (!(step > 0.f)) step = (float) upem;
+    float step = fabsf ((float) (extents.ascender - extents.descender + extents.line_gap));
+    if (!(step > 0.f))
+    {
+      int x_scale = 0, y_scale = 0;
+      hb_font_get_scale (font, &x_scale, &y_scale);
+      int axis_scale = vertical ? x_scale : y_scale;
+      step = axis_scale ? fabsf ((float) axis_scale) : 1.f;
+    }
 
     /* First pass: compute bounding box of all glyphs in pixel space */
     float img_xmin = 1e30f, img_ymin = 1e30f;
@@ -207,7 +208,7 @@ struct ft_raster_output_t : output_options_t<true>
 	FT_BBox bbox;
 	FT_Outline_Get_BBox (outline, &bbox);
 
-	/* bbox is in 26.6 upem-space; transform to pixel space */
+	/* bbox is in 26.6 font-space; transform to pixel space */
 	float gx0 = pen_x + (float) bbox.xMin * sx / 64.f;
 	float gy0 = pen_y + (float) bbox.yMin * sy / 64.f;
 	float gx1 = pen_x + (float) bbox.xMax * sx / 64.f;
@@ -244,7 +245,7 @@ struct ft_raster_output_t : output_options_t<true>
       FT_Load_Glyph (ft_face, r.gid, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
       FT_Outline *outline = &ft_face->glyph->outline;
 
-      /* We need to transform the outline from upem 26.6 to pixel space,
+      /* We need to transform the outline from font-space 26.6 to pixel space,
 	 then translate so that pixel (x0, y0) maps to bitmap (0, 0). */
       FT_Matrix matrix;
       matrix.xx = (FT_Fixed) (sx * 65536.f);
@@ -295,7 +296,6 @@ struct ft_raster_output_t : output_options_t<true>
   {
     if (ft_face) { FT_Done_Face (ft_face); ft_face = nullptr; }
     if (ft_lib)  { FT_Done_FreeType (ft_lib); ft_lib = nullptr; }
-    hb_font_destroy (upem_font);   upem_font = nullptr;
     hb_font_destroy (font);        font      = nullptr;
     lines.clear ();
     direction = HB_DIRECTION_INVALID;
@@ -308,16 +308,7 @@ struct ft_raster_output_t : output_options_t<true>
     std::vector<glyph_instance_t> glyphs;
   };
 
-  float to_upem_x (hb_position_t v) const
-  { return x_scale ? (float) v * upem / x_scale : (float) v; }
-  float to_upem_y (hb_position_t v) const
-  { return y_scale ? (float) v * upem / y_scale : (float) v; }
-
   hb_font_t        *font      = nullptr;
-  hb_font_t        *upem_font = nullptr;
-  unsigned          upem          = 0;
-  int               x_scale       = 0;
-  int               y_scale       = 0;
   unsigned          subpixel_bits = 0;
   hb_direction_t    direction     = HB_DIRECTION_INVALID;
   std::vector<line_t> lines;
