@@ -262,8 +262,7 @@ struct vector_output_t : output_options_t<>
 
         hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
         if (hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
-                                   extents_mode,
-                                   palette, foreground))
+                                   extents_mode))
         {
           had_paint = true;
           continue;

@@ -49,13 +49,15 @@ main (int argc, char **argv)
     return 1;
   }
 
+  hb_vector_paint_set_palette (paint, 0);
+  hb_vector_paint_set_foreground (paint, HB_COLOR (0, 0, 0, 255));
+
   unsigned glyph_count = hb_face_get_glyph_count (face);
   for (unsigned gid = 0; gid < glyph_count; gid++)
   {
     hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
     if (hb_vector_paint_glyph (paint, font, gid, 0.f, 0.f,
-                               HB_VECTOR_EXTENTS_MODE_EXPAND,
-                               0, HB_COLOR (0, 0, 0, 255)))
+                               HB_VECTOR_EXTENTS_MODE_EXPAND))
     {
       hb_blob_t *blob = hb_vector_paint_render (paint);
       hb_vector_paint_recycle_blob (paint, blob);

@@ -512,8 +512,6 @@ hb_vector_paint_get_funcs (void);
  * @pen_x: glyph x origin before context transform.
  * @pen_y: glyph y origin before context transform.
  * @extents_mode: extents update mode.
- * @palette: color palette index.
- * @foreground: fallback foreground color.
  *
  * Paints one color glyph into @paint.
  *
@@ -527,9 +525,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 		       hb_codepoint_t     glyph,
 		       float              pen_x,
 		       float              pen_y,
-		       hb_vector_extents_mode_t extents_mode,
-		       unsigned           palette,
-		       hb_color_t         foreground);
+		       hb_vector_extents_mode_t extents_mode);
 
 /**
  * hb_vector_svg_paint_set_flat:

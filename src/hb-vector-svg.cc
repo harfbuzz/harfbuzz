@@ -2315,13 +2315,8 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 		       hb_codepoint_t     glyph,
 		       float              pen_x,
 		       float              pen_y,
-		       hb_vector_extents_mode_t extents_mode,
-		       unsigned           palette,
-		       hb_color_t         foreground)
+		       hb_vector_extents_mode_t extents_mode)
 {
-  paint->palette = (int) palette;
-  paint->foreground = foreground;
-
   float xx = paint->transform.xx;
   float yx = paint->transform.yx;
   float xy = paint->transform.xy;
@@ -2350,7 +2345,9 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   hb_vector_paint_ensure_initialized (paint);
 
   bool can_cache = !paint->flat;
-  hb_svg_color_glyph_cache_key_t cache_key = hb_svg_color_glyph_cache_key (glyph, palette, foreground);
+  hb_svg_color_glyph_cache_key_t cache_key = hb_svg_color_glyph_cache_key (glyph,
+                                                                            (unsigned) paint->palette,
+                                                                            paint->foreground);
   if (can_cache)
   {
     if (paint->defined_color_glyphs.has (cache_key))
@@ -2392,7 +2389,8 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     paint->current_face = hb_font_get_face (font);
     hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						  hb_vector_paint_get_funcs (), paint,
-						  palette, foreground);
+						  (unsigned) paint->palette,
+						  paint->foreground);
     paint->current_svg_image_glyph = old_gid;
     paint->current_face = old_face;
     if (unlikely (!ret))
@@ -2452,7 +2450,8 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   paint->current_face = hb_font_get_face (font);
   hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						hb_vector_paint_get_funcs (), paint,
-						palette, foreground);
+						(unsigned) paint->palette,
+						paint->foreground);
   paint->current_svg_image_glyph = old_gid;
   paint->current_face = old_face;
   hb_svg_append_str (&body, "</g>\n");
