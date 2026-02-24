@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 -984 1800 1257" width="1800" height="1257">
-<defs>
-<path id="p0" d="M24,0L576,0L576,660L24,660L24,0ZM236,104L262,160L298,256L302,256L338,160L364,104L236,104ZM136,172L136,508L218,340L136,172ZM298,424L258,520L240,556L360,556L342,520L302,424L298,424ZM382,340L464,508L464,172L382,340Z"/>
-</defs>
-<use href="#p0" transform="translate(0 0) scale(1,-1)"/>
-<use href="#p0" transform="translate(600 0) scale(1,-1)"/>
-<use href="#p0" transform="translate(1200 0) scale(1,-1)"/>
-</svg>
