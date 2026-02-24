@@ -138,6 +138,8 @@ hb_svg_append_num (hb_vector_t<char> *buf,
                    bool keep_nonzero = false)
 {
   unsigned effective_precision = precision;
+  if (effective_precision > 12)
+    effective_precision = 12;
   if (keep_nonzero && v != 0.f)
     while (effective_precision < 12)
     {
@@ -161,10 +163,12 @@ hb_svg_append_num (hb_vector_t<char> *buf,
     return;
   }
 
-  char fmt[20];
-  snprintf (fmt, sizeof (fmt), "%%.%uf", effective_precision);
+  static const char float_formats[13][6] = {
+    "%.0f",  "%.1f",  "%.2f",  "%.3f",  "%.4f",  "%.5f",  "%.6f",
+    "%.7f",  "%.8f",  "%.9f",  "%.10f", "%.11f", "%.12f",
+  };
   char out[128];
-  snprintf (out, sizeof (out), fmt, (double) v);
+  snprintf (out, sizeof (out), float_formats[effective_precision], (double) v);
 
   const char *decimal_point = ".";
 #ifndef HB_NO_SETLOCALE
