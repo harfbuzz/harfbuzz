@@ -365,5 +365,29 @@ parse_color (const char *s,
   return ret;
 }
 
+static inline bool
+parse_1to4_doubles (const char *arg,
+                    double *t,
+                    double *r,
+                    double *b,
+                    double *l)
+{
+  double tt, rr, bb, ll;
+  switch (sscanf (arg, "%lf%*[ ,]%lf%*[ ,]%lf%*[ ,]%lf", &tt, &rr, &bb, &ll))
+  {
+    case 1: rr = tt; HB_FALLTHROUGH;
+    case 2: bb = tt; HB_FALLTHROUGH;
+    case 3: ll = rr; HB_FALLTHROUGH;
+    case 4:
+      if (t) *t = tt;
+      if (r) *r = rr;
+      if (b) *b = bb;
+      if (l) *l = ll;
+      return true;
+    default:
+      return false;
+  }
+}
+
 
 #endif

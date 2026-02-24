@@ -37,9 +37,36 @@
 struct vector_output_t : output_options_t<>
 {
   static const bool repeat_shape = false;
+  struct margin_t {
+    float t, r, b, l;
+  };
+
+  static gboolean
+  parse_margin (const char *name G_GNUC_UNUSED,
+                const char *arg,
+                gpointer    data,
+                GError    **error)
+  {
+    vector_output_t *opts = (vector_output_t *) data;
+    margin_t &m = opts->margin;
+    double t, r, b, l;
+    if (parse_1to4_doubles (arg, &t, &r, &b, &l))
+    {
+      m.t = (float) t;
+      m.r = (float) r;
+      m.b = (float) b;
+      m.l = (float) l;
+      return true;
+    }
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                 "%s argument should be one to four space-separated numbers",
+                 name);
+    return false;
+  }
 
   ~vector_output_t ()
   {
+    g_free (background_str);
     hb_font_destroy (font);
     hb_font_destroy (upem_font);
     g_free (foreground_str);
@@ -59,6 +86,8 @@ struct vector_output_t : output_options_t<>
       {"flat",       0, 0, G_OPTION_ARG_NONE,   &this->flat,          "Flatten geometry and disable reuse", nullptr},
       {"precision",  0, 0, G_OPTION_ARG_INT,    &this->precision,     "Decimal precision (default: 2)",     "N"},
       {"palette",    0, 0, G_OPTION_ARG_INT,    &this->palette,       "Color palette index (default: 0)",   "N"},
+      {"background", 0, 0, G_OPTION_ARG_STRING, &this->background_str,"Background color",                    "rrggbb[aa]"},
+      {"margin",     0, 0, G_OPTION_ARG_CALLBACK,(gpointer) &parse_margin, "Margin around output (default: 0)","one to four numbers"},
       {"foreground", 0, 0, G_OPTION_ARG_STRING, &this->foreground_str,"Foreground color (default: 000000)", "rrggbb[aa]"},
       {nullptr}
     };
@@ -88,6 +117,19 @@ struct vector_output_t : output_options_t<>
         return;
       }
       foreground = HB_COLOR (b, g, r, a);
+    }
+
+    if (background_str)
+    {
+      unsigned r, g, b, a;
+      if (!parse_color (background_str, r, g, b, a))
+      {
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Invalid background color: %s", background_str);
+        return;
+      }
+      background = HB_COLOR (b, g, r, a);
+      has_background = true;
     }
   }
 
@@ -173,6 +215,7 @@ struct vector_output_t : output_options_t<>
     hb_vector_extents_t extents = {};
     if (!compute_extents (&extents))
       return;
+    final_extents = extents;
 
     hb_vector_draw_t *draw = hb_vector_draw_create_or_fail ();
     hb_vector_paint_t *paint = hb_vector_paint_create_or_fail ();
@@ -378,6 +421,11 @@ struct vector_output_t : output_options_t<>
     if (y2 <= y1)
       y2 = y1 + 1;
 
+    x1 -= margin.l;
+    y1 -= margin.t;
+    x2 += margin.r;
+    y2 += margin.b;
+
     extents->x = x1;
     extents->y = y1;
     extents->width = x2 - x1;
@@ -466,11 +514,34 @@ struct vector_output_t : output_options_t<>
 
   void write_blob (hb_blob_t *blob)
   {
-    unsigned len = 0;
-    const char *data = hb_blob_get_data (blob, &len);
-    if (!data || !len)
+    unsigned in_len = 0;
+    const char *in_data = hb_blob_get_data (blob, &in_len);
+    if (!in_data || !in_len)
       return;
-    fwrite (data, 1, len, out_fp);
+
+    const char *hdr_end = strstr (in_data, ">");
+    if (!hdr_end)
+      return;
+
+    slice_t defs, body;
+    if (!slice_svg (in_data, in_len, &defs, &body))
+      return;
+
+    fwrite (in_data, 1, (hdr_end - in_data + 1), out_fp);
+    fputc ('\n', out_fp);
+
+    if (defs.len)
+    {
+      fputs ("<defs>\n", out_fp);
+      fwrite (defs.p, 1, defs.len, out_fp);
+      fputs ("</defs>\n", out_fp);
+    }
+
+    emit_background_rect ();
+
+    if (body.len)
+      fwrite (body.p, 1, body.len, out_fp);
+    fputs ("</svg>\n", out_fp);
   }
 
   void write_combined_svg (hb_blob_t *draw_blob,
@@ -505,6 +576,8 @@ struct vector_output_t : output_options_t<>
       fputs ("</defs>\n", out_fp);
     }
 
+    emit_background_rect ();
+
     if (draw_body.len)
       fwrite (draw_body.p, 1, draw_body.len, out_fp);
     if (paint_body.len)
@@ -513,13 +586,36 @@ struct vector_output_t : output_options_t<>
     fputs ("</svg>\n", out_fp);
   }
 
+  void emit_background_rect ()
+  {
+    if (!has_background)
+      return;
+    unsigned r = hb_color_get_red (background);
+    unsigned g = hb_color_get_green (background);
+    unsigned b = hb_color_get_blue (background);
+    unsigned a = hb_color_get_alpha (background);
+    fprintf (out_fp, "<rect x=\"%.*g\" y=\"%.*g\" width=\"%.*g\" height=\"%.*g\" fill=\"#%02X%02X%02X\"",
+             precision + 4, (double) final_extents.x,
+             precision + 4, (double) final_extents.y,
+             precision + 4, (double) final_extents.width,
+             precision + 4, (double) final_extents.height,
+             r, g, b);
+    if (a != 255)
+      fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
+    fputs ("/>\n", out_fp);
+  }
+
   hb_bool_t flat = false;
   hb_bool_t logical = false;
   hb_bool_t ink = false;
   int precision = 2;
   int palette = 0;
+  margin_t margin = {0.f, 0.f, 0.f, 0.f};
+  char *background_str = nullptr;
   char *foreground_str = nullptr;
+  hb_color_t background = HB_COLOR (255, 255, 255, 255);
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
+  hb_bool_t has_background = false;
 
   hb_font_t *font = nullptr;
   hb_font_t *upem_font = nullptr;
@@ -530,6 +626,7 @@ struct vector_output_t : output_options_t<>
   int y_scale = 0;
   unsigned upem = 0;
   unsigned subpixel_bits = 0;
+  hb_vector_extents_t final_extents = {0, 0, 1, 1};
 };
 
 #endif
