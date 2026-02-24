@@ -23,7 +23,7 @@
  */
 
 #include "batch.hh"
-#include "draw-output.hh"
+#include "vector-output.hh"
 #include "font-options.hh"
 #include "main-font-text.hh"
 #include "shape-consumer.hh"
@@ -35,6 +35,6 @@ const unsigned SUBPIXEL_BITS = 6;
 int
 main (int argc, char **argv)
 {
-  using main_t = main_font_text_t<shape_consumer_t<draw_output_t>, font_options_t, shape_text_options_t>;
+  using main_t = main_font_text_t<shape_consumer_t<vector_output_t>, font_options_t, shape_text_options_t>;
   return batch_main<main_t, true> (argc, argv);
 }
