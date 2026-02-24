@@ -887,19 +887,21 @@ cell_add (int32_t *area, int16_t *cover, unsigned width, int col,
 	  int32_t fx0, int32_t fy0, int32_t fx1, int32_t fy1, int32_t wind,
 	  unsigned &x_min, unsigned &x_max)
 {
-  if (col < 0)
+  if (unlikely ((unsigned) col >= width))
   {
-    /* Edge is to the left of the surface.  The winding contribution
-     * still carries into the visible region, so add the cover delta
-     * to column 0.  Area is not added since the edge doesn't cross
-     * column 0's cell. */
-    int32_t dy = fy1 - fy0;
-    cover[0] += (int16_t) (dy * wind);
-    x_min = hb_min (x_min, 0u);
-    x_max = hb_max (x_max, 0u);
+    if (unlikely (col < 0))
+    {
+      /* Edge is to the left of the surface.  The winding contribution
+       * still carries into the visible region, so add the cover delta
+       * to column 0.  Area is not added since the edge doesn't cross
+       * column 0's cell. */
+      int32_t dy = fy1 - fy0;
+      cover[0] += (int16_t) (dy * wind);
+      x_min = hb_min (x_min, 0u);
+      x_max = hb_max (x_max, 0u);
+    }
     return;
   }
-  if ((unsigned) col >= width) return;
   int32_t dy = fy1 - fy0;
   area[col]  += (fx0 + fx1) * dy * wind;
   cover[col] += (int16_t) (dy * wind);
