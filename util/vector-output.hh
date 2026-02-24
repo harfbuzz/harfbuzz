@@ -550,7 +550,7 @@ struct vector_output_t : output_options_t<>
     if (!in_data || !in_len)
       return;
 
-    const char *hdr_end = strstr (in_data, ">");
+    const char *hdr_end = (const char *) memchr (in_data, '>', in_len);
     if (!hdr_end)
       return;
 
@@ -591,7 +591,7 @@ struct vector_output_t : output_options_t<>
     if (!draw_data || !paint_data)
       return;
 
-    const char *draw_hdr_end = strstr (draw_data, ">");
+    const char *draw_hdr_end = (const char *) memchr (draw_data, '>', draw_len);
     if (!draw_hdr_end)
       return;
 

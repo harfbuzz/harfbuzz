@@ -34,7 +34,6 @@
 
 #include <algorithm>
 #include <math.h>
-#include <stdarg.h>
 #include <string.h>
 
 
@@ -87,42 +86,6 @@ hb_svg_append_hex_byte (hb_vector_t<char> *buf, unsigned v)
   static const char hex[] = "0123456789ABCDEF";
   char tmp[2] = {hex[(v >> 4) & 15], hex[v & 15]};
   return hb_svg_append_len (buf, tmp, 2);
-}
-
-static bool
-hb_svg_append_printf (hb_vector_t<char> *buf, const char *fmt, ...)
-{
-  unsigned old_len = buf->length;
-  if (unlikely (!buf->alloc (old_len + 64)))
-    return false;
-
-  while (true)
-  {
-    unsigned avail = (unsigned) (buf->allocated - (int) old_len);
-    if (avail < 2)
-    {
-      if (unlikely (!buf->alloc (old_len + 64)))
-        return false;
-      continue;
-    }
-
-    va_list ap;
-    va_start (ap, fmt);
-    int n = vsnprintf (buf->arrayZ + old_len, avail, fmt, ap);
-    va_end (ap);
-
-    if (unlikely (n < 0))
-      return false;
-
-    if ((unsigned) n < avail)
-    {
-      buf->length = old_len + (unsigned) n;
-      return true;
-    }
-
-    if (unlikely (!buf->alloc (old_len + (unsigned) n + 1, true)))
-      return false;
-  }
 }
 
 static void
@@ -1056,7 +1019,9 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
     paint->path.clear ();
     hb_svg_path_sink_t sink = {&paint->path, paint->precision};
     hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_singleton (), &sink);
-    hb_svg_append_printf (&paint->defs, "<path id=\"p%u\" d=\"", glyph);
+    hb_svg_append_str (&paint->defs, "<path id=\"p");
+    hb_svg_append_unsigned (&paint->defs, glyph);
+    hb_svg_append_str (&paint->defs, "\" d=\"");
     hb_svg_append_len (&paint->defs, paint->path.arrayZ, paint->path.length);
     hb_svg_append_str (&paint->defs, "\"/>\n");
   }
@@ -1064,13 +1029,16 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
   if (!hb_set_has (paint->defined_clips, glyph))
   {
     hb_set_add (paint->defined_clips, glyph);
-    hb_svg_append_printf (&paint->defs,
-                          "<clipPath id=\"clip-g%u\"><use href=\"#p%u\"/></clipPath>\n",
-                          glyph,
-                          glyph);
+    hb_svg_append_str (&paint->defs, "<clipPath id=\"clip-g");
+    hb_svg_append_unsigned (&paint->defs, glyph);
+    hb_svg_append_str (&paint->defs, "\"><use href=\"#p");
+    hb_svg_append_unsigned (&paint->defs, glyph);
+    hb_svg_append_str (&paint->defs, "\"/></clipPath>\n");
   }
 
-  hb_svg_append_printf (&paint->current_body (), "<g clip-path=\"url(#clip-g%u)\">\n", glyph);
+  hb_svg_append_str (&paint->current_body (), "<g clip-path=\"url(#clip-g");
+  hb_svg_append_unsigned (&paint->current_body (), glyph);
+  hb_svg_append_str (&paint->current_body (), ")\">\n");
 }
 
 static void
@@ -1084,7 +1052,9 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   hb_vector_paint_ensure_initialized (paint);
 
   unsigned clip_id = paint->clip_rect_counter++;
-  hb_svg_append_printf (&paint->defs, "<clipPath id=\"c%u\"><rect x=\"", clip_id);
+  hb_svg_append_str (&paint->defs, "<clipPath id=\"c");
+  hb_svg_append_unsigned (&paint->defs, clip_id);
+  hb_svg_append_str (&paint->defs, "\"><rect x=\"");
   hb_svg_append_num (&paint->defs, xmin, paint->precision);
   hb_svg_append_str (&paint->defs, "\" y=\"");
   hb_svg_append_num (&paint->defs, ymin, paint->precision);
@@ -1094,7 +1064,9 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
   hb_svg_append_num (&paint->defs, ymax - ymin, paint->precision);
   hb_svg_append_str (&paint->defs, "\"/></clipPath>\n");
 
-  hb_svg_append_printf (&paint->current_body (), "<g clip-path=\"url(#c%u)\">\n", clip_id);
+  hb_svg_append_str (&paint->current_body (), "<g clip-path=\"url(#c");
+  hb_svg_append_unsigned (&paint->current_body (), clip_id);
+  hb_svg_append_str (&paint->current_body (), ")\">\n");
 }
 
 static void
@@ -1201,7 +1173,9 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
 
   unsigned grad_id = paint->gradient_counter++;
 
-  hb_svg_append_printf (&paint->defs, "<linearGradient id=\"gr%u\" gradientUnits=\"userSpaceOnUse\" x1=\"", grad_id);
+  hb_svg_append_str (&paint->defs, "<linearGradient id=\"gr");
+  hb_svg_append_unsigned (&paint->defs, grad_id);
+  hb_svg_append_str (&paint->defs, "\" gradientUnits=\"userSpaceOnUse\" x1=\"");
   hb_svg_append_num (&paint->defs, x0, paint->precision);
   hb_svg_append_str (&paint->defs, "\" y1=\"");
   hb_svg_append_num (&paint->defs, y0, paint->precision);
@@ -1209,13 +1183,16 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   hb_svg_append_num (&paint->defs, x1 + (x1 - x2), paint->precision);
   hb_svg_append_str (&paint->defs, "\" y2=\"");
   hb_svg_append_num (&paint->defs, y1 + (y1 - y2), paint->precision);
-  hb_svg_append_printf (&paint->defs, "\" spreadMethod=\"%s\">\n", hb_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
+  hb_svg_append_str (&paint->defs, "\" spreadMethod=\"");
+  hb_svg_append_str (&paint->defs, hb_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
+  hb_svg_append_str (&paint->defs, "\">\n");
   hb_svg_emit_color_stops (paint, &paint->defs, &stops);
   hb_svg_append_str (&paint->defs, "</linearGradient>\n");
 
-  hb_svg_append_printf (&paint->current_body (),
-                        "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#gr%u)\"/>\n",
-                        grad_id);
+  hb_svg_append_str (&paint->current_body (),
+                     "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#gr");
+  hb_svg_append_unsigned (&paint->current_body (), grad_id);
+  hb_svg_append_str (&paint->current_body (), ")\"/>\n");
 }
 
 static void
@@ -1237,7 +1214,9 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
 
   unsigned grad_id = paint->gradient_counter++;
 
-  hb_svg_append_printf (&paint->defs, "<radialGradient id=\"gr%u\" gradientUnits=\"userSpaceOnUse\" cx=\"", grad_id);
+  hb_svg_append_str (&paint->defs, "<radialGradient id=\"gr");
+  hb_svg_append_unsigned (&paint->defs, grad_id);
+  hb_svg_append_str (&paint->defs, "\" gradientUnits=\"userSpaceOnUse\" cx=\"");
   hb_svg_append_num (&paint->defs, x1, paint->precision);
   hb_svg_append_str (&paint->defs, "\" cy=\"");
   hb_svg_append_num (&paint->defs, y1, paint->precision);
@@ -1252,13 +1231,16 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
     hb_svg_append_str (&paint->defs, "\" fr=\"");
     hb_svg_append_num (&paint->defs, r0, paint->precision);
   }
-  hb_svg_append_printf (&paint->defs, "\" spreadMethod=\"%s\">\n", hb_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
+  hb_svg_append_str (&paint->defs, "\" spreadMethod=\"");
+  hb_svg_append_str (&paint->defs, hb_svg_extend_mode_str (hb_color_line_get_extend (color_line)));
+  hb_svg_append_str (&paint->defs, "\">\n");
   hb_svg_emit_color_stops (paint, &paint->defs, &stops);
   hb_svg_append_str (&paint->defs, "</radialGradient>\n");
 
-  hb_svg_append_printf (&paint->current_body (),
-                        "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#gr%u)\"/>\n",
-                        grad_id);
+  hb_svg_append_str (&paint->current_body (),
+                     "<rect x=\"-32767\" y=\"-32767\" width=\"65534\" height=\"65534\" fill=\"url(#gr");
+  hb_svg_append_unsigned (&paint->current_body (), grad_id);
+  hb_svg_append_str (&paint->current_body (), ")\"/>\n");
 }
 
 static void
@@ -1319,7 +1301,9 @@ hb_vector_paint_pop_group (hb_paint_funcs_t *,
   const char *blend = hb_svg_composite_mode_str (mode);
   if (blend)
   {
-    hb_svg_append_printf (&body, "<g style=\"mix-blend-mode:%s\">\n", blend);
+    hb_svg_append_str (&body, "<g style=\"mix-blend-mode:");
+    hb_svg_append_str (&body, blend);
+    hb_svg_append_str (&body, "\">\n");
     hb_svg_append_len (&body, group.arrayZ, group.length);
     hb_svg_append_str (&body, "</g>\n");
   }
@@ -1511,7 +1495,9 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
     hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_singleton (), &sink);
     if (!draw->path.length)
       return false;
-    hb_svg_append_printf (&draw->defs, "<path id=\"p%u\" d=\"", glyph);
+    hb_svg_append_str (&draw->defs, "<path id=\"p");
+    hb_svg_append_unsigned (&draw->defs, glyph);
+    hb_svg_append_str (&draw->defs, "\" d=\"");
     hb_svg_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
     hb_svg_append_str (&draw->defs, "\"/>\n");
   }
@@ -1580,7 +1566,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
   float ty = (draw->transform.y0 + draw->transform.yx * pen_x + draw->transform.yy * pen_y) / draw->y_scale_factor;
 
   hb_svg_append_str (&draw->body, "<use href=\"#p");
-  hb_svg_append_printf (&draw->body, "%u", glyph);
+  hb_svg_append_unsigned (&draw->body, glyph);
   hb_svg_append_str (&draw->body, "\" transform=\"");
   if (draw->transform.xx == 1.f && draw->transform.yx == 0.f &&
       draw->transform.xy == 0.f && draw->transform.yy == 1.f)
@@ -1899,7 +1885,6 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   }
 
   hb_vector_paint_ensure_initialized (paint);
-  auto &body = paint->current_body ();
 
   bool can_cache = !paint->flat;
   uint64_t cache_key = hb_svg_color_glyph_cache_key (glyph, palette, foreground);
@@ -1910,8 +1895,9 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
       uint64_t entry = paint->defined_color_glyphs.get (cache_key);
       unsigned def_id = hb_svg_cache_entry_def_id (entry);
       bool image_like = hb_svg_cache_entry_image_like (entry);
+      auto &body = paint->current_body ();
       hb_svg_append_str (&body, "<use href=\"#cg");
-      hb_svg_append_printf (&body, "%u", def_id);
+      hb_svg_append_unsigned (&body, def_id);
       hb_svg_append_str (&body, "\" transform=\"");
       if (image_like)
         hb_svg_append_image_instance_translate (&body, paint->precision,
@@ -1963,13 +1949,14 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
       return false;
 
     hb_svg_append_str (&paint->defs, "<g id=\"cg");
-    hb_svg_append_printf (&paint->defs, "%u", def_id);
+    hb_svg_append_unsigned (&paint->defs, def_id);
     hb_svg_append_str (&paint->defs, "\">\n");
     hb_svg_append_len (&paint->defs, captured.arrayZ, captured.length);
     hb_svg_append_str (&paint->defs, "</g>\n");
 
+    auto &body = paint->current_body ();
     hb_svg_append_str (&body, "<use href=\"#cg");
-    hb_svg_append_printf (&body, "%u", def_id);
+    hb_svg_append_unsigned (&body, def_id);
     hb_svg_append_str (&body, "\" transform=\"");
     if (has_svg_image)
       hb_svg_append_image_instance_translate (&body, paint->precision,
@@ -1985,6 +1972,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     return true;
   }
 
+  auto &body = paint->current_body ();
   hb_svg_append_str (&body, "<g transform=\"");
   hb_svg_append_instance_transform (&body, paint->precision,
 				    paint->x_scale_factor,
