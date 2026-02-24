@@ -54,6 +54,8 @@ struct vector_output_t : output_options_t<>
 
     GOptionEntry entries[] =
     {
+      {"logical",    0, 0, G_OPTION_ARG_NONE,   &this->logical,       "Use logical extents for bounding box (default)", nullptr},
+      {"ink",        0, 0, G_OPTION_ARG_NONE,   &this->ink,           "Use ink extents for bounding box",               nullptr},
       {"flat",       0, 0, G_OPTION_ARG_NONE,   &this->flat,          "Flatten geometry and disable reuse", nullptr},
       {"precision",  0, 0, G_OPTION_ARG_INT,    &this->precision,     "Decimal precision (default: 2)",     "N"},
       {"palette",    0, 0, G_OPTION_ARG_INT,    &this->palette,       "Color palette index (default: 0)",   "N"},
@@ -191,6 +193,8 @@ struct vector_output_t : output_options_t<>
 
     bool had_draw = false;
     bool had_paint = false;
+    hb_vector_extents_mode_t extents_mode = ink ? HB_VECTOR_EXTENTS_MODE_EXPAND
+                                                : HB_VECTOR_EXTENTS_MODE_NONE;
 
     hb_direction_t dir = direction;
     if (dir == HB_DIRECTION_INVALID)
@@ -215,7 +219,7 @@ struct vector_output_t : output_options_t<>
 
         hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
         if (hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
-                                   HB_VECTOR_EXTENTS_MODE_NONE,
+                                   extents_mode,
                                    palette, foreground))
         {
           had_paint = true;
@@ -223,7 +227,7 @@ struct vector_output_t : output_options_t<>
         }
 
         if (hb_vector_draw_glyph (draw, upem_font, g.gid, pen_x, pen_y,
-                                  HB_VECTOR_EXTENTS_MODE_NONE))
+                                  extents_mode))
           had_draw = true;
       }
     }
@@ -298,6 +302,8 @@ struct vector_output_t : output_options_t<>
 
     bool valid = false;
     float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    bool include_logical = logical || (!logical && !ink);
+    bool include_ink = ink;
 
     auto include_point = [&] (float x, float y)
     {
@@ -322,36 +328,40 @@ struct vector_output_t : output_options_t<>
 
       const line_t &line = lines[li];
 
-      float log_min = hb_min ((float) fext.descender, (float) fext.ascender);
-      float log_max = hb_max ((float) fext.descender, (float) fext.ascender);
-      if (vertical)
+      if (include_logical)
       {
-        include_point (off_x + log_min, hb_min (0.f, line.advance_y));
-        include_point (off_x + log_max, hb_max (0.f, line.advance_y));
+        float log_min = hb_min ((float) fext.descender, (float) fext.ascender);
+        float log_max = hb_max ((float) fext.descender, (float) fext.ascender);
+        if (vertical)
+        {
+          include_point (off_x + log_min, hb_min (0.f, line.advance_y));
+          include_point (off_x + log_max, hb_max (0.f, line.advance_y));
+        }
+        else
+        {
+          include_point (hb_min (0.f, line.advance_x), off_y + log_min);
+          include_point (hb_max (0.f, line.advance_x), off_y + log_max);
+        }
       }
-      else
-      {
-        include_point (hb_min (0.f, line.advance_x), off_y + log_min);
-        include_point (hb_max (0.f, line.advance_x), off_y + log_max);
-      }
 
-      for (const auto &g : line.glyphs)
-      {
-        hb_glyph_extents_t ge;
-        if (!hb_font_get_glyph_extents (upem_font, g.gid, &ge))
-          continue;
+      if (include_ink)
+        for (const auto &g : line.glyphs)
+        {
+          hb_glyph_extents_t ge;
+          if (!hb_font_get_glyph_extents (upem_font, g.gid, &ge))
+            continue;
 
-        float gx = g.x + off_x;
-        float gy = g.y + off_y;
+          float gx = g.x + off_x;
+          float gy = g.y + off_y;
 
-        float xa = gx + ge.x_bearing;
-        float ya = gy + ge.y_bearing;
-        float xb = xa + ge.width;
-        float yb = ya + ge.height;
+          float xa = gx + ge.x_bearing;
+          float ya = gy + ge.y_bearing;
+          float xb = xa + ge.width;
+          float yb = ya + ge.height;
 
-        include_point (xa, ya);
-        include_point (xb, yb);
-      }
+          include_point (xa, ya);
+          include_point (xb, yb);
+        }
     }
 
     if (!valid)
@@ -504,6 +514,8 @@ struct vector_output_t : output_options_t<>
   }
 
   hb_bool_t flat = false;
+  hb_bool_t logical = false;
+  hb_bool_t ink = false;
   int precision = 2;
   int palette = 0;
   char *foreground_str = nullptr;
