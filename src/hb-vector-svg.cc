@@ -29,6 +29,7 @@
 #include "hb-vector.h"
 #include "hb-blob.hh"
 #include "hb-geometry.hh"
+#include "hb-machinery.hh"
 #include "hb-map.hh"
 #include "hb-vector-svg-subset.hh"
 
@@ -810,38 +811,65 @@ hb_svg_path_close_path (hb_draw_funcs_t *,
   hb_svg_append_c (s->path, 'Z');
 }
 
+static inline void free_static_vector_draw_funcs ();
+static inline void free_static_svg_path_draw_funcs ();
+
+static struct hb_vector_draw_funcs_lazy_loader_t
+  : hb_draw_funcs_lazy_loader_t<hb_vector_draw_funcs_lazy_loader_t>
+{
+  static hb_draw_funcs_t *create ()
+  {
+    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+    hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) hb_vector_draw_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) hb_vector_draw_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) hb_vector_draw_quadratic_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_draw_cubic_to, nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_draw_close_path, nullptr, nullptr);
+    hb_draw_funcs_make_immutable (funcs);
+    hb_atexit (free_static_vector_draw_funcs);
+    return funcs;
+  }
+} static_vector_draw_funcs;
+
+static struct hb_svg_path_draw_funcs_lazy_loader_t
+  : hb_draw_funcs_lazy_loader_t<hb_svg_path_draw_funcs_lazy_loader_t>
+{
+  static hb_draw_funcs_t *create ()
+  {
+    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+    hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) hb_svg_path_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) hb_svg_path_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) hb_svg_path_quadratic_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_svg_path_cubic_to, nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_svg_path_close_path, nullptr, nullptr);
+    hb_draw_funcs_make_immutable (funcs);
+    hb_atexit (free_static_svg_path_draw_funcs);
+    return funcs;
+  }
+} static_svg_path_draw_funcs;
+
+static inline void
+free_static_vector_draw_funcs ()
+{
+  static_vector_draw_funcs.free_instance ();
+}
+
+static inline void
+free_static_svg_path_draw_funcs ()
+{
+  static_svg_path_draw_funcs.free_instance ();
+}
+
 static hb_draw_funcs_t *
 hb_vector_draw_funcs_singleton ()
 {
-  static hb_draw_funcs_t *funcs = nullptr;
-  if (likely (funcs))
-    return funcs;
-
-  funcs = hb_draw_funcs_create ();
-  hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) hb_vector_draw_move_to, nullptr, nullptr);
-  hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) hb_vector_draw_line_to, nullptr, nullptr);
-  hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) hb_vector_draw_quadratic_to, nullptr, nullptr);
-  hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_draw_cubic_to, nullptr, nullptr);
-  hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_draw_close_path, nullptr, nullptr);
-  hb_draw_funcs_make_immutable (funcs);
-  return funcs;
+  return static_vector_draw_funcs.get_unconst ();
 }
 
 static hb_draw_funcs_t *
 hb_svg_path_draw_funcs_singleton ()
 {
-  static hb_draw_funcs_t *funcs = nullptr;
-  if (likely (funcs))
-    return funcs;
-
-  funcs = hb_draw_funcs_create ();
-  hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) hb_svg_path_move_to, nullptr, nullptr);
-  hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) hb_svg_path_line_to, nullptr, nullptr);
-  hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) hb_svg_path_quadratic_to, nullptr, nullptr);
-  hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_svg_path_cubic_to, nullptr, nullptr);
-  hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_svg_path_close_path, nullptr, nullptr);
-  hb_draw_funcs_make_immutable (funcs);
-  return funcs;
+  return static_svg_path_draw_funcs.get_unconst ();
 }
 
 
@@ -1285,29 +1313,42 @@ static void hb_vector_paint_push_group (hb_paint_funcs_t *, void *, void *);
 static void hb_vector_paint_pop_group (hb_paint_funcs_t *, void *, hb_paint_composite_mode_t, void *);
 static hb_bool_t hb_vector_paint_color_glyph (hb_paint_funcs_t *, void *, hb_codepoint_t, hb_font_t *, void *);
 
+static inline void free_static_vector_paint_funcs ();
+static struct hb_vector_paint_funcs_lazy_loader_t
+  : hb_paint_funcs_lazy_loader_t<hb_vector_paint_funcs_lazy_loader_t>
+{
+  static hb_paint_funcs_t *create ()
+  {
+    hb_paint_funcs_t *funcs = hb_paint_funcs_create ();
+    hb_paint_funcs_set_push_transform_func (funcs, (hb_paint_push_transform_func_t) hb_vector_paint_push_transform, nullptr, nullptr);
+    hb_paint_funcs_set_pop_transform_func (funcs, (hb_paint_pop_transform_func_t) hb_vector_paint_pop_transform, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_glyph_func (funcs, (hb_paint_push_clip_glyph_func_t) hb_vector_paint_push_clip_glyph, nullptr, nullptr);
+    hb_paint_funcs_set_push_clip_rectangle_func (funcs, (hb_paint_push_clip_rectangle_func_t) hb_vector_paint_push_clip_rectangle, nullptr, nullptr);
+    hb_paint_funcs_set_pop_clip_func (funcs, (hb_paint_pop_clip_func_t) hb_vector_paint_pop_clip, nullptr, nullptr);
+    hb_paint_funcs_set_color_func (funcs, (hb_paint_color_func_t) hb_vector_paint_color, nullptr, nullptr);
+    hb_paint_funcs_set_image_func (funcs, (hb_paint_image_func_t) hb_vector_paint_image, nullptr, nullptr);
+    hb_paint_funcs_set_linear_gradient_func (funcs, (hb_paint_linear_gradient_func_t) hb_vector_paint_linear_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_radial_gradient_func (funcs, (hb_paint_radial_gradient_func_t) hb_vector_paint_radial_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_sweep_gradient_func (funcs, (hb_paint_sweep_gradient_func_t) hb_vector_paint_sweep_gradient, nullptr, nullptr);
+    hb_paint_funcs_set_push_group_func (funcs, (hb_paint_push_group_func_t) hb_vector_paint_push_group, nullptr, nullptr);
+    hb_paint_funcs_set_pop_group_func (funcs, (hb_paint_pop_group_func_t) hb_vector_paint_pop_group, nullptr, nullptr);
+    hb_paint_funcs_set_color_glyph_func (funcs, (hb_paint_color_glyph_func_t) hb_vector_paint_color_glyph, nullptr, nullptr);
+    hb_paint_funcs_make_immutable (funcs);
+    hb_atexit (free_static_vector_paint_funcs);
+    return funcs;
+  }
+} static_vector_paint_funcs;
+
+static inline void
+free_static_vector_paint_funcs ()
+{
+  static_vector_paint_funcs.free_instance ();
+}
+
 static hb_paint_funcs_t *
 hb_vector_paint_funcs_singleton ()
 {
-  static hb_paint_funcs_t *funcs = nullptr;
-  if (likely (funcs))
-    return funcs;
-
-  funcs = hb_paint_funcs_create ();
-  hb_paint_funcs_set_push_transform_func (funcs, (hb_paint_push_transform_func_t) hb_vector_paint_push_transform, nullptr, nullptr);
-  hb_paint_funcs_set_pop_transform_func (funcs, (hb_paint_pop_transform_func_t) hb_vector_paint_pop_transform, nullptr, nullptr);
-  hb_paint_funcs_set_push_clip_glyph_func (funcs, (hb_paint_push_clip_glyph_func_t) hb_vector_paint_push_clip_glyph, nullptr, nullptr);
-  hb_paint_funcs_set_push_clip_rectangle_func (funcs, (hb_paint_push_clip_rectangle_func_t) hb_vector_paint_push_clip_rectangle, nullptr, nullptr);
-  hb_paint_funcs_set_pop_clip_func (funcs, (hb_paint_pop_clip_func_t) hb_vector_paint_pop_clip, nullptr, nullptr);
-  hb_paint_funcs_set_color_func (funcs, (hb_paint_color_func_t) hb_vector_paint_color, nullptr, nullptr);
-  hb_paint_funcs_set_image_func (funcs, (hb_paint_image_func_t) hb_vector_paint_image, nullptr, nullptr);
-  hb_paint_funcs_set_linear_gradient_func (funcs, (hb_paint_linear_gradient_func_t) hb_vector_paint_linear_gradient, nullptr, nullptr);
-  hb_paint_funcs_set_radial_gradient_func (funcs, (hb_paint_radial_gradient_func_t) hb_vector_paint_radial_gradient, nullptr, nullptr);
-  hb_paint_funcs_set_sweep_gradient_func (funcs, (hb_paint_sweep_gradient_func_t) hb_vector_paint_sweep_gradient, nullptr, nullptr);
-  hb_paint_funcs_set_push_group_func (funcs, (hb_paint_push_group_func_t) hb_vector_paint_push_group, nullptr, nullptr);
-  hb_paint_funcs_set_pop_group_func (funcs, (hb_paint_pop_group_func_t) hb_vector_paint_pop_group, nullptr, nullptr);
-  hb_paint_funcs_set_color_glyph_func (funcs, (hb_paint_color_glyph_func_t) hb_vector_paint_color_glyph, nullptr, nullptr);
-  hb_paint_funcs_make_immutable (funcs);
-  return funcs;
+  return static_vector_paint_funcs.get_unconst ();
 }
 
 static void
