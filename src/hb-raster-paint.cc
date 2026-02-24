@@ -1827,7 +1827,7 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 /**
  * hb_raster_paint_get_extents:
  * @paint: a paint context
- * @extents: (out): where to write current extents
+ * @extents: (out) (nullable): where to write current extents
  *
  * Gets currently configured output extents.
  *

@@ -217,7 +217,7 @@ hb_vector_draw_set_extents (hb_vector_draw_t *draw,
 /**
  * hb_vector_draw_get_extents:
  * @draw: a draw context.
- * @extents: (out): where to store current output extents.
+ * @extents: (out) (nullable): where to store current output extents.
  *
  * Gets current output extents from @draw.
  *
@@ -469,7 +469,7 @@ hb_vector_paint_set_extents (hb_vector_paint_t *paint,
 /**
  * hb_vector_paint_get_extents:
  * @paint: a paint context.
- * @extents: (out): where to store current output extents.
+ * @extents: (out) (nullable): where to store current output extents.
  *
  * Gets current output extents from @paint.
  *

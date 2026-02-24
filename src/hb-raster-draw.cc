@@ -312,7 +312,7 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 /**
  * hb_raster_draw_get_extents:
  * @draw: a rasterizer
- * @extents: (out): where to write current extents
+ * @extents: (out) (nullable): where to write current extents
  *
  * Gets currently configured output extents.
  *
