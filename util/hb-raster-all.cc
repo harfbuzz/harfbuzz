@@ -162,12 +162,8 @@ main (int argc, char **argv)
 	  hb_bool_t painted = hb_font_paint_glyph_or_fail (font, gid,
 							    hb_raster_paint_get_funcs (), pnt,
 							    0, HB_COLOR (0, 0, 0, 255));
-	  img = hb_raster_paint_render (pnt);
-	  if (!painted && img)
-	  {
-	    hb_raster_paint_recycle_image (pnt, img);
-	    img = nullptr;
-	  }
+	  if (painted)
+	    img = hb_raster_paint_render (pnt);
 	}
 
 	if (img)
