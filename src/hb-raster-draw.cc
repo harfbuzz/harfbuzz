@@ -69,7 +69,7 @@ struct hb_raster_draw_t
   float               x_scale_factor    = 1.f;
   float               y_scale_factor    = 1.f;
   hb_raster_extents_t fixed_extents     = {};
-  bool                has_fixed_extents = false;
+  bool                has_extents = false;
 
   /* Accumulated geometry */
   hb_vector_t<hb_raster_edge_t> edges;
@@ -306,7 +306,7 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 			    const hb_raster_extents_t *extents)
 {
   draw->fixed_extents     = *extents;
-  draw->has_fixed_extents = true;
+  draw->has_extents = true;
 }
 
 /**
@@ -364,7 +364,7 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
   if (ex1 <= ex0 || ey1 <= ey0)
   {
     draw->fixed_extents = {};
-    draw->has_fixed_extents = false;
+    draw->has_extents = false;
     return false;
   }
 
@@ -374,7 +374,7 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
     (unsigned) (ey1 - ey0),
     0
   };
-  draw->has_fixed_extents = true;
+  draw->has_extents = true;
   return true;
 }
 
@@ -398,7 +398,7 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->x_scale_factor    = 1.f;
   draw->y_scale_factor    = 1.f;
   draw->fixed_extents     = {};
-  draw->has_fixed_extents = false;
+  draw->has_extents = false;
   draw->edges.clear ();
   draw->active_edges.clear ();
 }
@@ -1168,7 +1168,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   /* ── 1. Compute result extents ─────────────────────────────────── */
   hb_raster_extents_t ext;
 
-  if (draw->has_fixed_extents)
+  if (draw->has_extents)
   {
     ext = draw->fixed_extents;
   }
@@ -1312,7 +1312,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 done:
   /* ── 6. Reset one-shot state ────────────────────────────────────── */
   draw->edges.clear ();
-  draw->has_fixed_extents = false;
+  draw->has_extents = false;
   draw->fixed_extents     = {};
 
   return image;

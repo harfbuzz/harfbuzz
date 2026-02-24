@@ -94,7 +94,7 @@ struct hb_raster_paint_t
   float               x_scale_factor     = 1.f;
   float               y_scale_factor     = 1.f;
   hb_raster_extents_t fixed_extents      = {};
-  bool                has_fixed_extents  = false;
+  bool                has_extents  = false;
   hb_color_t          foreground         = HB_COLOR (0, 0, 0, 255);
 
   /* Stacks */
@@ -1819,7 +1819,7 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 			     const hb_raster_extents_t *extents)
 {
   paint->fixed_extents = *extents;
-  paint->has_fixed_extents = true;
+  paint->has_extents = true;
   if (paint->fixed_extents.stride == 0)
     paint->fixed_extents.stride = paint->fixed_extents.width * 4;
 }
@@ -1883,7 +1883,7 @@ hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
   if (ex1 <= ex0 || ey1 <= ey0)
   {
     paint->fixed_extents = {};
-    paint->has_fixed_extents = false;
+    paint->has_extents = false;
     return false;
   }
 
@@ -1893,7 +1893,7 @@ hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
     (unsigned) (ey1 - ey0),
     0
   };
-  paint->has_fixed_extents = true;
+  paint->has_extents = true;
   if (paint->fixed_extents.stride == 0)
     paint->fixed_extents.stride = paint->fixed_extents.width * 4;
   return true;
@@ -1961,7 +1961,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
 {
   hb_raster_image_t *result = nullptr;
 
-  if (unlikely (!paint->has_fixed_extents))
+  if (unlikely (!paint->has_extents))
     goto fail;
 
   if (paint->surface_stack.length)
@@ -1984,7 +1984,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
   paint->transform_stack.clear ();
   paint->release_all_clips ();
   hb_raster_draw_reset (paint->clip_rdr);
-  paint->has_fixed_extents = false;
+  paint->has_extents = false;
   paint->fixed_extents = {};
 
   return result;
@@ -1993,7 +1993,7 @@ fail:
   paint->transform_stack.clear ();
   paint->release_all_clips ();
   hb_raster_draw_reset (paint->clip_rdr);
-  paint->has_fixed_extents = false;
+  paint->has_extents = false;
   paint->fixed_extents = {};
   return nullptr;
 }
@@ -2014,7 +2014,7 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
   paint->x_scale_factor = 1.f;
   paint->y_scale_factor = 1.f;
   paint->fixed_extents = {};
-  paint->has_fixed_extents = false;
+  paint->has_extents = false;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
   paint->transform_stack.clear ();
   paint->release_all_clips ();
