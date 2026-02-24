@@ -32,6 +32,10 @@
 #include "hb-map.hh"
 
 #include <algorithm>
+#include <locale.h>
+#ifdef HAVE_XLOCALE_H
+#include <xlocale.h>
+#endif
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
@@ -114,10 +118,40 @@ hb_svg_append_num (hb_vector_t<char> *buf,
   if (fabsf (v) < rounded_zero_threshold)
     v = 0.f;
 
+  if (!(v == v) || !isfinite (v))
+  {
+    hb_svg_append_c (buf, '0');
+    return;
+  }
+
   char fmt[20];
   snprintf (fmt, sizeof (fmt), "%%.%uf", effective_precision);
   char out[128];
   snprintf (out, sizeof (out), fmt, (double) v);
+
+  const char *decimal_point = ".";
+  lconv *lc = nullptr;
+#if defined(HAVE_XLOCALE_H) && !defined(HB_NO_SETLOCALE)
+  hb_locale_t current_locale = hb_uselocale ((hb_locale_t) 0);
+  if (current_locale)
+    lc = localeconv_l (current_locale);
+#endif
+  if (!lc)
+    lc = localeconv ();
+  if (lc && lc->decimal_point && lc->decimal_point[0])
+    decimal_point = lc->decimal_point;
+
+  if (decimal_point[0] != '.' || decimal_point[1] != '\0')
+  {
+    char *p = strstr (out, decimal_point);
+    if (p)
+    {
+      unsigned dp_len = (unsigned) strlen (decimal_point);
+      unsigned tail_len = (unsigned) strlen (p + dp_len);
+      memmove (p + 1, p + dp_len, tail_len + 1);
+      *p = '.';
+    }
+  }
 
   char *dot = strchr (out, '.');
   if (dot)
