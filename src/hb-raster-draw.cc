@@ -459,7 +459,7 @@ emit_segment (hb_raster_draw_t *draw,
   draw->edges.push (e);
 }
 
-/* Quadratic Bézier flattener — de Casteljau recursive at t=0.5 */
+/* Quadratic Bézier flattener — iterative de Casteljau at t=0.5. */
 static inline void
 flatten_quadratic_recursive (hb_raster_draw_t *draw,
 			     float x0, float y0,
@@ -467,41 +467,63 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
 			     float x2, float y2,
 			     int depth = 0)
 {
-  bool is_flat;
-  if (false)
+  struct quad_node_t
   {
-    /* Old behavior: midpoint deviation from chord midpoint. */
-    float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
-    float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
-    float chord_mx = (x0 + x2) * 0.5f;
-    float chord_my = (y0 + y2) * 0.5f;
-    float dx = mx - chord_mx;
-    float dy = my - chord_my;
-    static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
-    is_flat = (dx * dx + dy * dy) <= flat_thresh;
-  }
-  else
+    float x0, y0, x1, y1, x2, y2;
+    int depth;
+  };
+
+  quad_node_t stack[16];
+  unsigned top = 0;
+
+  while (true)
   {
-    /* FreeType behavior: control-point deviation from chord center. */
-    const float flat_thresh = 0.25f;
-    float dx = x0 + x2 - 2.f * x1;
-    float dy = y0 + y2 - 2.f * y1;
-    if (dx < 0) dx = -dx;
-    if (dy < 0) dy = -dy;
-    is_flat = dx <= flat_thresh && dy <= flat_thresh;
+    bool is_flat;
+    if (false)
+    {
+      /* Old behavior: midpoint deviation from chord midpoint. */
+      float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
+      float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
+      float chord_mx = (x0 + x2) * 0.5f;
+      float chord_my = (y0 + y2) * 0.5f;
+      float dx = mx - chord_mx;
+      float dy = my - chord_my;
+      static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+      is_flat = (dx * dx + dy * dy) <= flat_thresh;
+    }
+    else
+    {
+      /* FreeType behavior: control-point deviation from chord center. */
+      const float flat_thresh = 0.25f;
+      float dx = x0 + x2 - 2.f * x1;
+      float dy = y0 + y2 - 2.f * y1;
+      if (dx < 0) dx = -dx;
+      if (dy < 0) dy = -dy;
+      is_flat = dx <= flat_thresh && dy <= flat_thresh;
+    }
+
+    if (depth >= 16 || is_flat)
+    {
+      emit_segment (draw, x0, y0, x2, y2);
+      if (!top) return;
+      const quad_node_t &n = stack[--top];
+      x0 = n.x0; y0 = n.y0;
+      x1 = n.x1; y1 = n.y1;
+      x2 = n.x2; y2 = n.y2;
+      depth = n.depth;
+      continue;
+    }
+
+    float x01 = (x0 + x1) * 0.5f, y01 = (y0 + y1) * 0.5f;
+    float x12 = (x1 + x2) * 0.5f, y12 = (y1 + y2) * 0.5f;
+    float xm  = (x01 + x12) * 0.5f, ym  = (y01 + y12) * 0.5f;
+
+    /* Depth is capped at 16, so stack capacity 16 is sufficient. */
+    stack[top++] = {xm, ym, x12, y12, x2, y2, depth + 1};
+    x2 = xm; y2 = ym;
+    x1 = x01; y1 = y01;
+    depth++;
   }
-
-  if (depth >= 16 || is_flat) {
-    emit_segment (draw, x0, y0, x2, y2);
-    return;
-  }
-
-  float x01 = (x0 + x1) * 0.5f, y01 = (y0 + y1) * 0.5f;
-  float x12 = (x1 + x2) * 0.5f, y12 = (y1 + y2) * 0.5f;
-  float xm  = (x01 + x12) * 0.5f, ym  = (y01 + y12) * 0.5f;
-
-  flatten_quadratic_recursive (draw, x0, y0, x01, y01, xm,  ym,  depth + 1);
-  flatten_quadratic_recursive (draw, xm, ym, x12, y12, x2,  y2,  depth + 1);
 }
 
 /* Quadratic Bézier flattener using forward differencing.
