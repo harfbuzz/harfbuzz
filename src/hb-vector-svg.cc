@@ -1566,6 +1566,10 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
 
   hb_vector_t<char> out;
   hb_svg_recover_recycled_buffer (draw->recycled_blob, &out);
+  unsigned estimated = draw->defs.length +
+                       (draw->body.length ? draw->body.length : draw->path.length) +
+                       256;
+  out.alloc (estimated);
   hb_svg_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
   hb_svg_append_num (&out, draw->extents.x, draw->precision);
   hb_svg_append_c (&out, ' ');
@@ -1946,6 +1950,10 @@ hb_vector_paint_render (hb_vector_paint_t *paint)
 
   hb_vector_t<char> out;
   hb_svg_recover_recycled_buffer (paint->recycled_blob, &out);
+  unsigned estimated = paint->defs.length +
+                       paint->group_stack.arrayZ[0].length +
+                       320;
+  out.alloc (estimated);
   hb_svg_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"");
   hb_svg_append_num (&out, paint->extents.x, paint->precision);
   hb_svg_append_c (&out, ' ');

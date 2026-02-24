@@ -360,6 +360,7 @@ hb_svg_subset_glyph_image (hb_blob_t *image,
   int defs_open_i = hb_svg_find_substr (svg, len, 0, "<defs", 5);
   int defs_close_i = hb_svg_find_substr (svg, len, 0, "</defs>", 7);
   hb_vector_t<hb_svg_defs_entry_t> defs_entries;
+  defs_entries.alloc (64);
   if (defs_open_i >= 0 && defs_close_i > defs_open_i)
   {
     int defs_gt = hb_svg_find_substr (svg, len, (unsigned) defs_open_i, ">", 1);
@@ -397,10 +398,12 @@ hb_svg_subset_glyph_image (hb_blob_t *image,
   }
 
   hb_vector_t<hb_svg_id_span_t> needed_ids;
+  needed_ids.alloc (16);
   if (!hb_svg_collect_refs (svg + glyph_start, glyph_end - glyph_start, &needed_ids))
     return false;
 
   hb_vector_t<unsigned> chosen_defs;
+  chosen_defs.alloc (16);
   for (unsigned qi = 0; qi < needed_ids.length; qi++)
   {
     const auto &need = needed_ids.arrayZ[qi];
@@ -428,6 +431,8 @@ hb_svg_subset_glyph_image (hb_blob_t *image,
   int prefix_len = snprintf (prefix, sizeof (prefix), "hbimg%u_", (*image_counter)++);
   if (prefix_len <= 0 || (unsigned) prefix_len >= sizeof (prefix))
     return false;
+
+  body_dst->alloc (body_dst->length + (glyph_end - glyph_start) + (unsigned) prefix_len + 32);
 
   for (unsigned i = 0; i < chosen_defs.length; i++)
   {
