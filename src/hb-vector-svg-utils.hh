@@ -29,6 +29,9 @@
 
 #include "hb.hh"
 #include "hb-vector.hh"
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 static inline bool
 hb_svg_append_len (hb_vector_t<char> *buf,
@@ -46,6 +49,88 @@ static inline bool
 hb_svg_append_c (hb_vector_t<char> *buf, char c)
 {
   return !!buf->push (c);
+}
+
+static inline void
+hb_svg_append_num (hb_vector_t<char> *buf,
+                   float v,
+                   unsigned precision,
+                   bool keep_nonzero = false)
+{
+  unsigned effective_precision = precision;
+  if (effective_precision > 12)
+    effective_precision = 12;
+  if (keep_nonzero && v != 0.f)
+    while (effective_precision < 12)
+    {
+      float rounded_zero_threshold = 0.5f;
+      for (unsigned i = 0; i < effective_precision; i++)
+        rounded_zero_threshold *= 0.1f;
+      if (fabsf (v) >= rounded_zero_threshold)
+        break;
+      effective_precision++;
+    }
+
+  float rounded_zero_threshold = 0.5f;
+  for (unsigned i = 0; i < effective_precision; i++)
+    rounded_zero_threshold *= 0.1f;
+  if (fabsf (v) < rounded_zero_threshold)
+    v = 0.f;
+
+  if (!(v == v) || !isfinite (v))
+  {
+    hb_svg_append_c (buf, '0');
+    return;
+  }
+
+  static const char float_formats[13][6] = {
+    "%.0f",  "%.1f",  "%.2f",  "%.3f",  "%.4f",  "%.5f",  "%.6f",
+    "%.7f",  "%.8f",  "%.9f",  "%.10f", "%.11f", "%.12f",
+  };
+  char out[128];
+  snprintf (out, sizeof (out), float_formats[effective_precision], (double) v);
+
+  const char *decimal_point = ".";
+#ifndef HB_NO_SETLOCALE
+#if defined(HAVE_XLOCALE_H)
+  lconv *lc = nullptr;
+  hb_locale_t current_locale = hb_uselocale ((hb_locale_t) 0);
+  if (current_locale)
+    lc = localeconv_l (current_locale);
+  if (lc && lc->decimal_point && lc->decimal_point[0])
+    decimal_point = lc->decimal_point;
+#endif
+#endif
+
+  if (decimal_point[0] != '.' || decimal_point[1] != '\0')
+  {
+    char *p = strstr (out, decimal_point);
+    if (p)
+    {
+      unsigned dp_len = (unsigned) strlen (decimal_point);
+      unsigned tail_len = (unsigned) strlen (p + dp_len);
+      memmove (p + 1, p + dp_len, tail_len + 1);
+      *p = '.';
+    }
+  }
+
+  char *dot = strchr (out, '.');
+  if (dot)
+  {
+    char *end = out + strlen (out) - 1;
+    while (end > dot && *end == '0')
+      *end-- = '\0';
+    if (end == dot)
+      *end = '\0';
+  }
+
+  hb_svg_append_len (buf, out, (unsigned) strlen (out));
+}
+
+static inline unsigned
+hb_svg_scale_precision (unsigned precision)
+{
+  return precision < 7 ? 7 : precision;
 }
 
 #endif /* HB_VECTOR_SVG_UTILS_HH */
