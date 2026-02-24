@@ -128,7 +128,7 @@ hb_svg_append_with_prefix (hb_vector_t<char> *out,
       }
       continue;
     }
-    if (i + 5 <= n && !memcmp (s + i, "id='", 4))
+    if (i + 4 <= n && !memcmp (s + i, "id='", 4))
     {
       if (!hb_svg_append_len (out, s + i, 4)) return false;
       i += 4;
@@ -170,6 +170,30 @@ hb_svg_append_with_prefix (hb_vector_t<char> *out,
       i += 5;
       if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != ')')
+      {
+        if (!hb_svg_append_c (out, s[i])) return false;
+        i++;
+      }
+      continue;
+    }
+    if (i + 6 <= n && !memcmp (s + i, "url(\"#", 6))
+    {
+      if (!hb_svg_append_len (out, s + i, 6)) return false;
+      i += 6;
+      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      while (i < n && s[i] != '"')
+      {
+        if (!hb_svg_append_c (out, s[i])) return false;
+        i++;
+      }
+      continue;
+    }
+    if (i + 6 <= n && !memcmp (s + i, "url('#", 6))
+    {
+      if (!hb_svg_append_len (out, s + i, 6)) return false;
+      i += 6;
+      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      while (i < n && s[i] != '\'')
       {
         if (!hb_svg_append_c (out, s[i])) return false;
         i++;
@@ -231,66 +255,25 @@ hb_svg_collect_refs (const char *s,
       if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
       continue;
     }
+    if (i + 6 <= n && !memcmp (s + i, "url(\"#", 6))
+    {
+      i += 6;
+      unsigned b = i;
+      while (i < n && s[i] != '"') i++;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      continue;
+    }
+    if (i + 6 <= n && !memcmp (s + i, "url('#", 6))
+    {
+      i += 6;
+      unsigned b = i;
+      while (i < n && s[i] != '\'') i++;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      continue;
+    }
     i++;
   }
   return true;
-}
-
-static bool
-hb_svg_find_element_bounds (const char *svg,
-                            unsigned len,
-                            unsigned elem_start,
-                            unsigned *elem_end)
-{
-  int gt = hb_svg_find_substr (svg, len, elem_start, ">", 1);
-  if (gt < 0) return false;
-  unsigned open_end = (unsigned) gt;
-  if (open_end > elem_start && svg[open_end - 1] == '/')
-  {
-    *elem_end = open_end + 1;
-    return true;
-  }
-  unsigned depth = 1;
-  unsigned pos = open_end + 1;
-  while (pos < len)
-  {
-    int lt_i = hb_svg_find_substr (svg, len, pos, "<", 1);
-    if (lt_i < 0) return false;
-    unsigned lt = (unsigned) lt_i;
-    if (lt + 4 <= len && !memcmp (svg + lt, "<!--", 4))
-    {
-      int cend = hb_svg_find_substr (svg, len, lt + 4, "-->", 3);
-      if (cend < 0) return false;
-      pos = (unsigned) cend + 3;
-      continue;
-    }
-    if (lt + 9 <= len && !memcmp (svg + lt, "<![CDATA[", 9))
-    {
-      int cend = hb_svg_find_substr (svg, len, lt + 9, "]]>", 3);
-      if (cend < 0) return false;
-      pos = (unsigned) cend + 3;
-      continue;
-    }
-    int gt_i = hb_svg_find_substr (svg, len, lt, ">", 1);
-    if (gt_i < 0) return false;
-    unsigned gt2 = (unsigned) gt_i;
-    bool closing = (lt + 1 < len && svg[lt + 1] == '/');
-    bool self_closing = (gt2 > lt && svg[gt2 - 1] == '/');
-    if (!closing && !self_closing)
-      depth++;
-    else if (closing)
-    {
-      if (!depth) return false;
-      depth--;
-      if (!depth)
-      {
-        *elem_end = gt2 + 1;
-        return true;
-      }
-    }
-    pos = gt2 + 1;
-  }
-  return false;
 }
 
 static bool
@@ -327,86 +310,6 @@ hb_svg_parse_id_in_start_tag (const char *svg,
     p++;
   }
   return false;
-}
-
-static bool
-hb_svg_find_element_by_id (const char *svg,
-                           unsigned len,
-                           const char *id,
-                           unsigned id_len,
-                           unsigned *start,
-                           unsigned *end)
-{
-  unsigned p = 0;
-  while (p < len)
-  {
-    int k = hb_svg_find_substr (svg, len, p, "id=\"", 4);
-    if (k < 0) break;
-    unsigned id_pos = (unsigned) k + 4;
-    if (id_pos + id_len <= len &&
-        !memcmp (svg + id_pos, id, id_len) &&
-        id_pos + id_len < len &&
-        svg[id_pos + id_len] == '"')
-    {
-      unsigned s = (unsigned) k;
-      while (s && svg[s] != '<')
-        s--;
-      if (svg[s] == '<' && hb_svg_find_element_bounds (svg, len, s, end))
-      {
-        *start = s;
-        return true;
-      }
-    }
-    p = (unsigned) k + 1;
-  }
-  return false;
-}
-
-static bool
-hb_svg_parse_defs_entries (const char *svg,
-                           unsigned len,
-                           hb_vector_t<hb_svg_defs_entry_t> *defs_entries)
-{
-  int defs_open_i = hb_svg_find_substr (svg, len, 0, "<defs", 5);
-  int defs_close_i = hb_svg_find_substr (svg, len, 0, "</defs>", 7);
-  defs_entries->alloc (64);
-  if (defs_open_i < 0 || defs_close_i <= defs_open_i)
-    return true;
-
-  int defs_gt = hb_svg_find_substr (svg, len, (unsigned) defs_open_i, ">", 1);
-  if (defs_gt <= defs_open_i)
-    return true;
-
-  unsigned p = (unsigned) defs_gt + 1;
-  unsigned defs_end = (unsigned) defs_close_i;
-  while (p < defs_end)
-  {
-    int lt_i = hb_svg_find_substr (svg, len, p, "<", 1);
-    if (lt_i < 0 || (unsigned) lt_i >= defs_end)
-      break;
-    unsigned lt = (unsigned) lt_i;
-    if (lt + 2 <= len && svg[lt + 1] == '/')
-      break;
-    unsigned elem_end = 0;
-    if (!hb_svg_find_element_bounds (svg, len, lt, &elem_end) || elem_end > defs_end)
-      break;
-    int gt_i = hb_svg_find_substr (svg, len, lt, ">", 1);
-    if (gt_i < 0 || (unsigned) gt_i >= elem_end)
-      break;
-    hb_svg_id_span_t id = {nullptr, 0};
-    if (hb_svg_parse_id_in_start_tag (svg, lt, (unsigned) gt_i, &id))
-    {
-      auto *slot = defs_entries->push ();
-      if (unlikely (!slot))
-        return false;
-      slot->id = id;
-      slot->start = lt;
-      slot->end = elem_end;
-    }
-    p = elem_end;
-  }
-
-  return true;
 }
 
 struct hb_svg_open_elem_t
@@ -714,6 +617,7 @@ hb_svg_get_or_make_face_cache (hb_face_t *face)
   unsigned doc_count = hb_ot_color_get_svg_document_count (face);
   if (doc_count && !face_cache->slots.resize (doc_count))
   {
+    face_cache->slots.fini ();
     hb_free (face_cache);
     return nullptr;
   }
@@ -726,6 +630,7 @@ hb_svg_get_or_make_face_cache (hb_face_t *face)
                               hb_svg_face_cache_destroy,
                               false))
   {
+    face_cache->slots.fini ();
     hb_free (face_cache);
     face_cache = (hb_svg_face_cache_t *) hb_face_get_user_data (face, &hb_svg_face_cache_user_data_key);
   }
@@ -790,41 +695,24 @@ hb_svg_subset_glyph_image (hb_face_t *face,
 
   auto *doc_cache = hb_svg_get_or_make_doc_cache (face, image, svg, len,
                                                   doc_index, start_glyph, end_glyph);
-  if (doc_cache)
-  {
-    svg = doc_cache->svg;
-    len = doc_cache->len;
-  }
+  if (!doc_cache)
+    return false;
+  svg = doc_cache->svg;
+  len = doc_cache->len;
 
   unsigned glyph_start = 0, glyph_end = 0;
-  if (doc_cache)
-  {
-    static const uint32_t INVALID_SPAN = 0xFFFFFFFFu;
-    if (doc_cache->start_glyph == HB_CODEPOINT_INVALID ||
-        glyph < doc_cache->start_glyph ||
-        glyph > doc_cache->end_glyph)
-      return false;
-
-    const auto &span = doc_cache->glyph_spans.arrayZ[glyph - doc_cache->start_glyph];
-    if (span.first == INVALID_SPAN)
-      return false;
-    glyph_start = span.first;
-    glyph_end = span.second;
-  }
-  else
-  {
-    char glyph_id[48];
-    int gid_len = snprintf (glyph_id, sizeof (glyph_id), "glyph%u", glyph);
-    if (gid_len <= 0 || (unsigned) gid_len >= sizeof (glyph_id))
-      return false;
-    if (!hb_svg_find_element_by_id (svg, len, glyph_id, (unsigned) gid_len, &glyph_start, &glyph_end))
-      return false;
-  }
-
-  hb_vector_t<hb_svg_defs_entry_t> defs_entries_local;
-  auto *defs_entries = doc_cache ? &doc_cache->defs_entries : &defs_entries_local;
-  if (!doc_cache && !hb_svg_parse_defs_entries (svg, len, defs_entries))
+  static const uint32_t INVALID_SPAN = 0xFFFFFFFFu;
+  if (doc_cache->start_glyph == HB_CODEPOINT_INVALID ||
+      glyph < doc_cache->start_glyph ||
+      glyph > doc_cache->end_glyph)
     return false;
+  const auto &span = doc_cache->glyph_spans.arrayZ[glyph - doc_cache->start_glyph];
+  if (span.first == INVALID_SPAN)
+    return false;
+  glyph_start = span.first;
+  glyph_end = span.second;
+
+  auto *defs_entries = &doc_cache->defs_entries;
 
   hb_vector_t<hb_svg_id_span_t> needed_ids;
   needed_ids.alloc (16);
