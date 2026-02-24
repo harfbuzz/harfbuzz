@@ -995,10 +995,13 @@ hb_cairo_glyphs_from_buffer
 hb_raster_format_t
 hb_raster_extents_t
 hb_raster_image_t
+hb_raster_image_create
 hb_raster_image_reference
 hb_raster_image_destroy
 hb_raster_image_set_user_data
 hb_raster_image_get_user_data
+hb_raster_image_configure
+hb_raster_image_clear
 hb_raster_image_get_buffer
 hb_raster_image_get_extents
 hb_raster_image_get_format

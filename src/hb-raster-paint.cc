@@ -124,11 +124,12 @@ struct hb_raster_paint_t
       if (unlikely (!img)) return nullptr;
     }
 
-    if (unlikely (!img->reconfigure (HB_RASTER_FORMAT_BGRA32, fixed_extents)))
+    if (unlikely (!img->configure (HB_RASTER_FORMAT_BGRA32, fixed_extents)))
     {
       hb_raster_image_destroy (img);
       return nullptr;
     }
+    img->clear ();
     return img;
   }
 

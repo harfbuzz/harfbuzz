@@ -1227,12 +1227,13 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     if (unlikely (!image)) goto done;
   }
 
-  if (unlikely (!image->reconfigure (draw->format, ext)))
+  if (unlikely (!image->configure (draw->format, ext)))
   {
     hb_raster_image_destroy (image);
     image = nullptr;
     goto done;
   }
+  image->clear ();
 
   /* ── 4. Bucket edges by starting row and rasterize scanlines ──── */
   if (draw->edges.length && ext.width && ext.height)

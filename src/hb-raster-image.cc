@@ -342,8 +342,8 @@ hb_raster_image_t::bytes_per_pixel (hb_raster_format_t format)
 }
 
 bool
-hb_raster_image_t::reconfigure (hb_raster_format_t format,
-				hb_raster_extents_t extents)
+hb_raster_image_t::configure (hb_raster_format_t format,
+			      hb_raster_extents_t extents)
 {
   if (format != HB_RASTER_FORMAT_A8 &&
       format != HB_RASTER_FORMAT_BGRA32)
@@ -364,30 +364,9 @@ hb_raster_image_t::reconfigure (hb_raster_format_t format,
   if (unlikely (!buffer.resize_dirty (buf_size)))
     return false;
 
-  hb_memset (buffer.arrayZ, 0, buf_size);
-
   this->format = format;
   this->extents = extents;
   return true;
-}
-
-bool
-hb_raster_image_t::set_format (hb_raster_format_t format)
-{
-  return reconfigure (format, extents);
-}
-
-bool
-hb_raster_image_t::set_extents (const hb_raster_extents_t *extents)
-{
-  if (unlikely (!extents))
-  {
-    this->extents = {};
-    buffer.resize_exact (0);
-    return true;
-  }
-
-  return reconfigure (format, *extents);
 }
 
 void
@@ -531,46 +510,42 @@ hb_raster_image_get_user_data (hb_raster_image_t  *image,
 }
 
 /**
- * hb_raster_image_set_format:
+ * hb_raster_image_configure:
  * @image: a raster image
  * @format: the pixel format
+ * @extents: (nullable): desired image extents
  *
- * Sets the pixel format of @image and resizes its backing buffer to match
- * current extents.
+ * Configures @image format and extents together, resizing backing storage
+ * at most once. This function does not clear pixel contents.
  *
- * XSince: REPLACEME
- **/
-void
-hb_raster_image_set_format (hb_raster_image_t *image,
-			    hb_raster_format_t format)
-{
-  if (unlikely (!image)) return;
-  (void) image->set_format (format);
-}
-
-/**
- * hb_raster_image_set_extents:
- * @image: a raster image
- * @extents: the desired image extents
+ * Passing `NULL` for @extents clears extents and releases the backing
+ * allocation.
  *
- * Sets the extents of @image and resizes its backing buffer to match
- * current format.
+ * Return value: `true` if configuration succeeds, `false` on allocation
+ * failure
  *
  * XSince: REPLACEME
  **/
-void
-hb_raster_image_set_extents (hb_raster_image_t         *image,
-			     const hb_raster_extents_t *extents)
+hb_bool_t
+hb_raster_image_configure (hb_raster_image_t         *image,
+			   hb_raster_format_t        format,
+			   const hb_raster_extents_t *extents)
 {
-  if (unlikely (!image)) return;
-  (void) image->set_extents (extents);
+  if (unlikely (!image)) return false;
+  if (unlikely (!extents))
+  {
+    image->extents = {};
+    image->buffer.resize_exact (0);
+    return true;
+  }
+  return image->configure (format, *extents);
 }
 
 /**
  * hb_raster_image_clear:
  * @image: a raster image
  *
- * Clears @image pixels to zero.
+ * Clears @image pixels to zero while keeping current extents and format.
  *
  * XSince: REPLACEME
  **/

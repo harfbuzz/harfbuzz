@@ -100,13 +100,10 @@ HB_EXTERN void *
 hb_raster_image_get_user_data (hb_raster_image_t  *image,
 			       hb_user_data_key_t *key);
 
-HB_EXTERN void
-hb_raster_image_set_format (hb_raster_image_t *image,
-			    hb_raster_format_t format);
-
-HB_EXTERN void
-hb_raster_image_set_extents (hb_raster_image_t         *image,
-			     const hb_raster_extents_t *extents);
+HB_EXTERN hb_bool_t
+hb_raster_image_configure (hb_raster_image_t         *image,
+			   hb_raster_format_t        format,
+			   const hb_raster_extents_t *extents);
 
 HB_EXTERN void
 hb_raster_image_clear (hb_raster_image_t *image);

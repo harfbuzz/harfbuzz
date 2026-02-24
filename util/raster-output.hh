@@ -271,8 +271,11 @@ struct raster_output_t : output_options_t<true>
     hb_raster_extents_t ext = {ix0, iy0, w, h, stride};
     hb_raster_image_t *out_img = hb_raster_image_create ();
     if (!out_img) return;
-    hb_raster_image_set_format (out_img, HB_RASTER_FORMAT_BGRA32);
-    hb_raster_image_set_extents (out_img, &ext);
+    if (!hb_raster_image_configure (out_img, HB_RASTER_FORMAT_BGRA32, &ext))
+    {
+      hb_raster_image_destroy (out_img);
+      return;
+    }
     uint8_t *out_buf = const_cast<uint8_t *> (hb_raster_image_get_buffer (out_img));
     if (!out_buf)
     {
