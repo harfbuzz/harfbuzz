@@ -510,7 +510,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
       c->clip_stack.push (new_clip);
       return;
     }
-    memset (new_clip.alpha.arrayZ, 0, new_clip.stride * h);
+    hb_memset (new_clip.alpha.arrayZ, 0, new_clip.stride * h);
 
     /* Convert quad corners to pixel-relative coords */
     float qx[4], qy[4];

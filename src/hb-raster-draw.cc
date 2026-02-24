@@ -1240,8 +1240,8 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     if (unlikely (!draw->row_area.resize_dirty (ext.width) ||
 		  !draw->row_cover.resize_dirty (ext.width)))
       goto fail;
-    memset (draw->row_area.arrayZ,  0, ext.width * sizeof (int32_t));
-    memset (draw->row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
+    hb_memset (draw->row_area.arrayZ,  0, ext.width * sizeof (int32_t));
+    hb_memset (draw->row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
 
     /* Bucket edges by their starting pixel row.
        Only grow the outer vector; clear inner vectors without freeing. */
@@ -1305,7 +1305,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
 
 	  uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
-	  memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
+	  hb_memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
 	}
       }
     }
