@@ -391,22 +391,57 @@ struct vector_output_t : output_options_t<>
     body->p = nullptr;
     body->len = 0;
 
-    const char *start = strstr (data, ">");
-    const char *end = strstr (data, "</svg>");
-    if (!start || !end || end <= start)
+    const char *data_end = data + len;
+    const char *start = (const char *) memchr (data, '>', len);
+    if (!start)
       return false;
     start += 1;
 
-    const char *defs_start = strstr (start, "<defs>");
-    const char *defs_end = defs_start ? strstr (defs_start, "</defs>") : nullptr;
+    if (len < 6)
+      return false;
+
+    const char *end = nullptr;
+    for (const char *p = data_end - 6; p >= data; p--)
+    {
+      if (memcmp (p, "</svg>", 6) == 0)
+      {
+        end = p;
+        break;
+      }
+      if (p == data)
+        break;
+    }
+    if (!end || end <= start)
+      return false;
+
+    const char *defs_start = nullptr;
+    for (const char *p = start; p + 6 <= end; p++)
+      if (memcmp (p, "<defs>", 6) == 0)
+      {
+        defs_start = p;
+        break;
+      }
+
+    const char *defs_end = nullptr;
+    if (defs_start)
+      for (const char *p = defs_start + 6; p + 7 <= end; p++)
+        if (memcmp (p, "</defs>", 7) == 0)
+        {
+          defs_end = p;
+          break;
+        }
 
     if (defs_start && defs_end && defs_start < end && defs_end < end)
     {
       defs->p = defs_start + strlen ("<defs>");
       defs->len = (unsigned) (defs_end - defs->p);
 
-      body->p = start;
-      body->len = (unsigned) (defs_start - start);
+      const char *body_start = defs_end + strlen ("</defs>");
+      if (body_start < end)
+      {
+        body->p = body_start;
+        body->len = (unsigned) (end - body_start);
+      }
     }
     else
     {
