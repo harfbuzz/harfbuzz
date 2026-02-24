@@ -98,6 +98,7 @@ struct hb_raster_paint_t
   /* Stacks */
   hb_vector_t<hb_transform_t<>>     transform_stack;
   hb_vector_t<hb_raster_clip_t>     clip_stack;
+  hb_vector_t<hb_raster_clip_t>     clip_cache;
   hb_vector_t<hb_raster_image_t *>  surface_stack;
 
   /* Cached surface pool (freelist for reuse across push/pop group) */
@@ -141,6 +142,30 @@ struct hb_raster_paint_t
   void release_surface (hb_raster_image_t *img)
   {
     surface_cache.push (img);
+  }
+
+  hb_raster_clip_t acquire_clip (unsigned w, unsigned h)
+  {
+    hb_raster_clip_t clip;
+    if (clip_cache.length)
+      clip = clip_cache.pop ();
+    clip.width = w;
+    clip.height = h;
+    clip.stride = (w + 3u) & ~3u;
+    clip.is_rect = false;
+    return clip;
+  }
+
+  void release_clip (hb_raster_clip_t &&clip)
+  {
+    if (clip.alpha.arrayZ)
+      clip_cache.push (std::move (clip));
+  }
+
+  void release_all_clips ()
+  {
+    while (clip_stack.length)
+      release_clip (clip_stack.pop ());
   }
 
   hb_raster_image_t *current_surface ()
@@ -256,11 +281,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned w = surf->extents.width;
   unsigned h = surf->extents.height;
 
-  hb_raster_clip_t new_clip;
-  new_clip.width = w;
-  new_clip.height = h;
-  new_clip.stride = (w + 3u) & ~3u;
-  new_clip.is_rect = false;
+  hb_raster_clip_t new_clip = c->acquire_clip (w, h);
 
   /* Rasterize glyph outline as A8 alpha mask using internal rasterizer */
   hb_raster_draw_t *rdr = c->clip_rdr;
@@ -451,10 +472,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   const hb_raster_clip_t &old_clip = c->current_clip ();
 
-  hb_raster_clip_t new_clip;
-  new_clip.width = w;
-  new_clip.height = h;
-  new_clip.stride = (w + 3u) & ~3u;
+  hb_raster_clip_t new_clip = c->acquire_clip (w, h);
 
   if (is_axis_aligned && old_clip.is_rect)
   {
@@ -578,7 +596,8 @@ hb_raster_paint_pop_clip (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
-  c->clip_stack.pop ();
+  if (!c->clip_stack.length) return;
+  c->release_clip (c->clip_stack.pop ());
 }
 
 static void
@@ -1897,7 +1916,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
       paint->release_surface (s);
     paint->surface_stack.resize (0);
     paint->transform_stack.resize (0);
-    paint->clip_stack.resize (0);
+    paint->release_all_clips ();
     hb_raster_draw_reset (paint->clip_rdr);
     return nullptr;
   }
@@ -1916,7 +1935,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
 
   /* Clean up stacks and reset auto-extents for next glyph. */
   paint->transform_stack.resize (0);
-  paint->clip_stack.resize (0);
+  paint->release_all_clips ();
   hb_raster_draw_reset (paint->clip_rdr);
   paint->has_fixed_extents = false;
   paint->fixed_extents = {};
@@ -1942,7 +1961,7 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
   paint->has_fixed_extents = false;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
   paint->transform_stack.resize (0);
-  paint->clip_stack.resize (0);
+  paint->release_all_clips ();
   for (auto *s : paint->surface_stack)
     paint->release_surface (s);
   paint->surface_stack.resize (0);
