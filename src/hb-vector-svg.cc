@@ -1943,6 +1943,9 @@ hb_vector_draw_recycle_blob (hb_vector_draw_t *draw,
                              hb_blob_t *blob)
 {
   hb_blob_destroy (draw->recycled_blob);
+  draw->recycled_blob = nullptr;
+  if (!blob || blob == hb_blob_get_empty ())
+    return;
   draw->recycled_blob = blob;
 }
 
@@ -2320,5 +2323,8 @@ hb_vector_paint_recycle_blob (hb_vector_paint_t *paint,
                               hb_blob_t *blob)
 {
   hb_blob_destroy (paint->recycled_blob);
+  paint->recycled_blob = nullptr;
+  if (!blob || blob == hb_blob_get_empty ())
+    return;
   paint->recycled_blob = blob;
 }
