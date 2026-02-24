@@ -10,7 +10,7 @@ foreach t : tests
 
   test(t, run_test,
     args: [
-      hb_draw,
+      hb_vector,
       meson.current_source_dir() / 'data' / 'tests' / fname,
     ],
     workdir: meson.current_build_dir() / '..' / '..',

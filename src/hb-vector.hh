@@ -186,6 +186,34 @@ struct hb_vector_t
     return *this;
   }
 
+  /* Transfer ownership of the backing storage to caller.
+   * Returns nullptr if storage is not owned by this vector. */
+  Type *
+  steal (unsigned *len = nullptr, int *allocated_out = nullptr)
+  {
+    if (!is_owned ())
+      return nullptr;
+    if (len)
+      *len = length;
+    if (allocated_out)
+      *allocated_out = allocated;
+    Type *p = arrayZ;
+    init ();
+    return p;
+  }
+
+  /* Adopt a previously detached owned buffer. */
+  void
+  recycle_buffer (Type *buffer,
+                  unsigned len,
+                  int allocated_len)
+  {
+    fini ();
+    arrayZ = buffer;
+    length = len;
+    allocated = allocated_len;
+  }
+
   friend void swap (hb_vector_t& a, hb_vector_t& b) noexcept
   {
     hb_swap (a.allocated, b.allocated);

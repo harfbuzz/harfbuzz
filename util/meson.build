@@ -7,7 +7,7 @@ hb_shape_sources = [
 ]
 
 hb_draw_sources = [
-  'hb-draw.cc',
+  'hb-vector.cc',
 ]
 
 hb_raster_sources = [
@@ -76,14 +76,14 @@ if conf.get('HAVE_GLIB', 0) == 1
   )
   meson.override_find_program('hb-shape', hb_shape)
 
-  hb_draw = executable('hb-draw', hb_draw_sources,
+  hb_vector = executable('hb-vector', hb_draw_sources,
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
     dependencies: [util_deps],
-    link_with: [libharfbuzz],
+    link_with: [libharfbuzz, libharfbuzz_vector],
     install: true,
   )
-  meson.override_find_program('hb-draw', hb_draw)
+  meson.override_find_program('hb-vector', hb_vector)
 
   hb_raster_util = executable('hb-raster', hb_raster_sources,
     cpp_args: cpp_args,
@@ -151,7 +151,7 @@ if conf.get('HAVE_GLIB', 0) == 1
   meson.override_find_program('hb-subset', hb_subset)
 
   if help2man.found()
-    foreach binary: [hb_shape, hb_draw, hb_info, hb_subset]
+    foreach binary: [hb_shape, hb_vector, hb_info, hb_subset]
       target = binary.name() + '.1'
       manpage = custom_target(target,
         input: binary,
@@ -183,7 +183,7 @@ else
   # Disable tests that use this
   hb_view = disabler()
   hb_shape = disabler()
-  hb_draw = disabler()
+  hb_vector = disabler()
   hb_info = disabler()
   hb_subset = disabler()
 endif
