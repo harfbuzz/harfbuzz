@@ -459,6 +459,8 @@ struct hb_vector_paint_t
   hb_set_t *defined_clips = nullptr;
   hb_hashmap_t<uint64_t, uint64_t> defined_color_glyphs;
   hb_vector_t<hb_color_stop_t> color_stops_scratch;
+  hb_vector_t<char> subset_body_scratch;
+  hb_vector_t<char> captured_scratch;
   hb_blob_t *recycled_blob = nullptr;
   bool current_color_glyph_has_svg_image = false;
   hb_codepoint_t current_svg_image_glyph = HB_CODEPOINT_INVALID;
@@ -930,7 +932,9 @@ hb_vector_paint_ensure_initialized (hb_vector_paint_t *paint)
 {
   if (paint->group_stack.length)
     return;
-  paint->group_stack.push (hb_vector_t<char> {});
+  auto *root = paint->group_stack.push ();
+  if (likely (root))
+    root->alloc (4096);
 }
 
 static void
@@ -1122,12 +1126,12 @@ hb_vector_paint_image (hb_paint_funcs_t *,
   auto &body = paint->current_body ();
   paint->current_color_glyph_has_svg_image = true;
 
-  hb_vector_t<char> subset_body;
+  paint->subset_body_scratch.clear ();
   bool subset_ok = hb_svg_subset_glyph_image (image,
                                               paint->current_svg_image_glyph,
                                               &paint->svg_image_counter,
                                               &paint->defs,
-                                              &subset_body);
+                                              &paint->subset_body_scratch);
   if (unlikely (!subset_ok))
     return false;
 
@@ -1144,7 +1148,9 @@ hb_vector_paint_image (hb_paint_funcs_t *,
     hb_svg_append_str (&body, ")\">\n");
   }
 
-  hb_svg_append_len (&body, subset_body.arrayZ, subset_body.length);
+  hb_svg_append_len (&body,
+                     paint->subset_body_scratch.arrayZ,
+                     paint->subset_body_scratch.length);
   hb_svg_append_c (&body, '\n');
 
   if (extents)
@@ -1339,6 +1345,9 @@ hb_vector_draw_create_or_fail (void)
   if (unlikely (!draw))
     return nullptr;
   draw->defined_glyphs = hb_set_create ();
+  draw->defs.alloc (2048);
+  draw->body.alloc (8192);
+  draw->path.alloc (2048);
   return draw;
 }
 
@@ -1717,6 +1726,12 @@ hb_vector_paint_create_or_fail (void)
 
   paint->defined_outlines = hb_set_create ();
   paint->defined_clips = hb_set_create ();
+  paint->defs.alloc (4096);
+  paint->body.alloc (8192);
+  paint->path.alloc (2048);
+  paint->subset_body_scratch.alloc (2048);
+  paint->captured_scratch.alloc (4096);
+  paint->color_stops_scratch.alloc (16);
 
   return paint;
 }
@@ -1914,7 +1929,6 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     }
   }
 
-  hb_vector_t<char> captured;
   bool has_svg_image = false;
   if (can_cache)
   {
@@ -1936,10 +1950,10 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
       return false;
     }
 
-    captured = paint->group_stack.pop ();
+    paint->captured_scratch = paint->group_stack.pop ();
     has_svg_image = paint->current_color_glyph_has_svg_image ||
-		    hb_svg_buffer_contains (captured, "<svg");
-    if (unlikely (!captured.length))
+		    hb_svg_buffer_contains (paint->captured_scratch, "<svg");
+    if (unlikely (!paint->captured_scratch.length))
       return false;
 
     unsigned def_id = paint->color_glyph_counter++;
@@ -1951,7 +1965,9 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     hb_svg_append_str (&paint->defs, "<g id=\"cg");
     hb_svg_append_unsigned (&paint->defs, def_id);
     hb_svg_append_str (&paint->defs, "\">\n");
-    hb_svg_append_len (&paint->defs, captured.arrayZ, captured.length);
+    hb_svg_append_len (&paint->defs,
+                       paint->captured_scratch.arrayZ,
+                       paint->captured_scratch.length);
     hb_svg_append_str (&paint->defs, "</g>\n");
 
     auto &body = paint->current_body ();
@@ -2084,6 +2100,8 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   hb_set_clear (paint->defined_clips);
   paint->defined_color_glyphs.clear ();
   paint->color_stops_scratch.clear ();
+  paint->subset_body_scratch.clear ();
+  paint->captured_scratch.clear ();
 }
 
 void
