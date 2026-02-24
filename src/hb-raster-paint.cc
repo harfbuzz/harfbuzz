@@ -238,7 +238,7 @@ ensure_initialized (hb_raster_paint_t *c)
   /* Initial clip: full coverage rectangle */
   hb_raster_clip_t clip;
   clip.init_full (c->fixed_extents.width, c->fixed_extents.height);
-  c->clip_stack.push (clip);
+  c->clip_stack.push (std::move (clip));
 }
 
 static void
@@ -313,7 +313,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.rect_x0 = new_clip.rect_y0 = 0;
     new_clip.rect_x1 = new_clip.rect_y1 = 0;
     new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
-    c->clip_stack.push (new_clip);
+    c->clip_stack.push (std::move (new_clip));
     return;
   }
 
@@ -326,7 +326,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.rect_x0 = new_clip.rect_y0 = 0;
     new_clip.rect_x1 = new_clip.rect_y1 = 0;
     new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
-    c->clip_stack.push (new_clip);
+    c->clip_stack.push (std::move (new_clip));
     return;
   }
 
@@ -354,7 +354,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.rect_x0 = new_clip.rect_y0 = 0;
     new_clip.rect_x1 = new_clip.rect_y1 = 0;
     new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
-    c->clip_stack.push (new_clip);
+    c->clip_stack.push (std::move (new_clip));
     return;
   }
 
@@ -372,23 +372,21 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     {
       const uint8_t *mask_row = mask_buf + (unsigned) ((int) y - mask_y0) * mask_ext.stride;
       uint8_t *out_row = new_clip.alpha.arrayZ + y * new_clip.stride;
-      unsigned mx0 = (unsigned) ((int) ix0 - mask_x0);
-      memcpy (out_row + ix0, mask_row + mx0, ix1 - ix0);
-
       unsigned row_min = ix1;
       unsigned row_max = ix0;
+      unsigned mx = (unsigned) ((int) ix0 - mask_x0);
       for (unsigned x = ix0; x < ix1; x++)
-	if (mask_row[(unsigned) ((int) x - mask_x0)])
+      {
+	uint8_t a = mask_row[mx++];
+	out_row[x] = a;
+	if (a && row_min == ix1)
 	{
 	  row_min = x;
-	  break;
+	  row_max = x + 1;
 	}
-      for (unsigned x = ix1; x > row_min; x--)
-	if (mask_row[(unsigned) ((int) (x - 1) - mask_x0)])
-	{
-	  row_max = x;
-	  break;
-	}
+	else if (a)
+	  row_max = x + 1;
+      }
       if (row_min < row_max)
       {
 	new_clip.min_x = hb_min (new_clip.min_x, row_min);
@@ -429,7 +427,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
 
   hb_raster_draw_recycle_image (rdr, mask_img);
-  c->clip_stack.push (new_clip);
+  c->clip_stack.push (std::move (new_clip));
 }
 
 static void
@@ -507,7 +505,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
       new_clip.rect_x0 = new_clip.rect_y0 = 0;
       new_clip.rect_x1 = new_clip.rect_y1 = 0;
       new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
-      c->clip_stack.push (new_clip);
+      c->clip_stack.push (std::move (new_clip));
       return;
     }
     hb_memset (new_clip.alpha.arrayZ, 0, new_clip.stride * h);
@@ -599,7 +597,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
   }
 
-  c->clip_stack.push (new_clip);
+  c->clip_stack.push (std::move (new_clip));
 }
 
 static void
