@@ -65,7 +65,6 @@ struct hb_raster_draw_t
   hb_object_header_t header;
 
   /* Configuration */
-  hb_raster_format_t  format            = HB_RASTER_FORMAT_A8;
   hb_transform_t<>    transform         = {1, 0, 0, 1, 0, 0};
   hb_raster_extents_t fixed_extents     = {};
   bool                has_fixed_extents = false;
@@ -185,40 +184,6 @@ hb_raster_draw_get_user_data (hb_raster_draw_t   *draw,
 			      hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (draw, key);
-}
-
-/**
- * hb_raster_draw_set_format:
- * @draw: a rasterizer
- * @format: the pixel format to use
- *
- * Sets the output pixel format for subsequent renders.
- * The default is @HB_RASTER_FORMAT_A8.
- *
- * XSince: REPLACEME
- **/
-void
-hb_raster_draw_set_format (hb_raster_draw_t  *draw,
-			   hb_raster_format_t format)
-{
-  draw->format = format;
-}
-
-/**
- * hb_raster_draw_get_format:
- * @draw: a rasterizer
- *
- * Fetches the output pixel format of the rasterizer.
- *
- * Return value:
- * The #hb_raster_format_t of the rasterizer
- *
- * XSince: REPLACEME
- **/
-hb_raster_format_t
-hb_raster_draw_get_format (hb_raster_draw_t *draw)
-{
-  return draw->format;
 }
 
 /**
@@ -375,7 +340,6 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
 void
 hb_raster_draw_reset (hb_raster_draw_t *draw)
 {
-  draw->format            = HB_RASTER_FORMAT_A8;
   draw->transform         = {1, 0, 0, 1, 0, 0};
   draw->fixed_extents     = {};
   draw->has_fixed_extents = false;
@@ -1141,6 +1105,14 @@ sweep_row_to_alpha (uint8_t *__restrict row_buf,
  * #hb_raster_image_t.  After rendering, the accumulated edges are
  * cleared so the rasterizer can be reused.
  *
+ * Typical usage:
+ * ```
+ * hb_raster_draw_t *draw = hb_raster_draw_create_or_fail ();
+ * hb_raster_draw_set_glyph_extents (draw, &glyph_extents);
+ * hb_font_draw_glyph (font, gid, hb_raster_draw_get_funcs (), draw);
+ * hb_raster_image_t *img = hb_raster_draw_render (draw);
+ * ```
+ *
  * Return value: (transfer full):
  * A rendered #hb_raster_image_t. Returns `NULL` on allocation/configuration
  * failure. If no geometry was accumulated, returns an empty image.
@@ -1194,12 +1166,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
   /* ── 2. Compute stride ─────────────────────────────────────────── */
   if (ext.stride == 0)
-  {
-    if (draw->format == HB_RASTER_FORMAT_BGRA32)
-      ext.stride = ext.width * 4;
-    else
-      ext.stride = (ext.width + 3u) & ~3u;
-  }
+    ext.stride = (ext.width + 3u) & ~3u;
 
   /* ── 3. Allocate or reuse image ─────────────────────────────────── */
   hb_raster_image_t *image;
@@ -1214,7 +1181,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     if (unlikely (!image)) goto fail;
   }
 
-  if (unlikely (!image->configure (draw->format, ext)))
+  if (unlikely (!image->configure (HB_RASTER_FORMAT_A8, ext)))
   {
     hb_raster_image_destroy (image);
     image = nullptr;

@@ -152,13 +152,6 @@ hb_raster_draw_get_user_data (hb_raster_draw_t   *draw,
 			      hb_user_data_key_t *key);
 
 HB_EXTERN void
-hb_raster_draw_set_format (hb_raster_draw_t  *draw,
-			   hb_raster_format_t format);
-
-HB_EXTERN hb_raster_format_t
-hb_raster_draw_get_format (hb_raster_draw_t *draw);
-
-HB_EXTERN void
 hb_raster_draw_set_transform (hb_raster_draw_t *draw,
 			      float xx, float yx,
 			      float xy, float yy,

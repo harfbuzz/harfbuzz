@@ -281,7 +281,6 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_draw_t *rdr = c->clip_rdr;
   const hb_transform_t<> &t = c->current_transform ();
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
-  hb_raster_draw_set_format (rdr, HB_RASTER_FORMAT_A8);
   /* Let draw-render choose tight glyph extents; we map by mask origin below. */
 
   hb_font_draw_glyph (font, glyph, hb_raster_draw_get_funcs (), rdr);
@@ -1887,6 +1886,15 @@ hb_raster_paint_get_funcs (void)
  * Extracts the rendered image after hb_font_paint_glyph() has
  * completed.  The paint context's surface stack is consumed and
  * the result returned as a new #hb_raster_image_t.
+ *
+ * Typical usage:
+ * ```
+ * hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+ * hb_raster_paint_set_foreground (paint, foreground);
+ * hb_raster_paint_set_glyph_extents (paint, &glyph_extents);
+ * hb_font_paint_glyph (font, gid, hb_raster_paint_get_funcs (), paint, 0, foreground);
+ * hb_raster_image_t *img = hb_raster_paint_render (paint);
+ * ```
  *
  * Call hb_font_paint_glyph() before calling this function.
  * hb_raster_paint_set_extents() or hb_raster_paint_set_glyph_extents()

@@ -1011,8 +1011,6 @@ hb_raster_draw_reference
 hb_raster_draw_destroy
 hb_raster_draw_set_user_data
 hb_raster_draw_get_user_data
-hb_raster_draw_set_format
-hb_raster_draw_get_format
 hb_raster_draw_set_transform
 hb_raster_draw_get_transform
 hb_raster_draw_set_extents
