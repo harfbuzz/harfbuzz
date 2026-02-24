@@ -1193,7 +1193,7 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   hb_vector_paint_ensure_initialized (paint);
 
-  hb_vector_t<hb_color_stop_t> stops;
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
   if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
@@ -1229,7 +1229,7 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   hb_vector_paint_ensure_initialized (paint);
 
-  hb_vector_t<hb_color_stop_t> stops;
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
   if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
@@ -1272,7 +1272,7 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   hb_vector_paint_ensure_initialized (paint);
 
-  hb_vector_t<hb_color_stop_t> stops;
+  hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
   if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
     return;
 
@@ -2095,6 +2095,7 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   hb_set_clear (paint->defined_outlines);
   hb_set_clear (paint->defined_clips);
   paint->defined_color_glyphs.clear ();
+  paint->color_stops_scratch.clear ();
 }
 
 void
