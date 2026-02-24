@@ -111,10 +111,17 @@ if conf.get('HAVE_GLIB', 0) == 1
     )
   endif
 
-  hb_vector_all = executable('hb-vector-all', ['hb-vector-all.c'],
+  hb_draw_all = executable('hb-draw-all', ['hb-draw-all.c'],
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
     link_with: [libharfbuzz],
+    install: false,
+  )
+
+  hb_vector_svg_all = executable('hb-vector-svg-all', ['hb-vector-svg-all.c'],
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    link_with: [libharfbuzz, libharfbuzz_vector],
     install: false,
   )
 
