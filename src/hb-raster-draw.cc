@@ -1155,16 +1155,8 @@ sweep_row_to_alpha (uint8_t *__restrict row_buf,
  *
  * Rasterizes the accumulated outline geometry into a new
  * #hb_raster_image_t.  After rendering, the accumulated edges are
- * cleared so the rasterizer can be reused.
- *
- * Typical usage:
- * ```
- * hb_raster_draw_t *draw = hb_raster_draw_create_or_fail ();
- * hb_raster_draw_set_scale_factor (draw, 64.f, 64.f);
- * hb_raster_draw_set_glyph_extents (draw, &glyph_extents);
- * hb_font_draw_glyph (font, gid, hb_raster_draw_get_funcs (), draw);
- * hb_raster_image_t *img = hb_raster_draw_render (draw);
- * ```
+ * cleared so the rasterizer can be reused. Output format is always
+ * @HB_RASTER_FORMAT_A8.
  *
  * Return value: (transfer full):
  * A rendered #hb_raster_image_t. Returns `NULL` on allocation/configuration

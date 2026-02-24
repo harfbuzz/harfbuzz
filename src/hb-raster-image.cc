@@ -422,6 +422,10 @@ hb_raster_image_composite (hb_raster_image_t *dst,
  * A newly allocated #hb_raster_image_t with a reference count of 1,
  * or `NULL` on allocation failure.
  *
+ * The returned image can be released with hb_raster_image_destroy(), or
+ * transferred for reuse with hb_raster_draw_recycle_image() or
+ * hb_raster_paint_recycle_image().
+ *
  * XSince: REPLACEME
  **/
 hb_raster_image_t *
