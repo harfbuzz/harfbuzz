@@ -102,6 +102,7 @@ struct hb_raster_paint_t
 
   /* Cached surface pool (freelist for reuse across push/pop group) */
   hb_vector_t<hb_raster_image_t *>  surface_cache;
+  hb_vector_t<hb_color_stop_t>      scratch_color_stops;
 
   /* Internal rasterizer for clip-to-glyph */
   hb_raster_draw_t *clip_rdr = nullptr;
@@ -828,9 +829,9 @@ get_color_stops (hb_raster_paint_t *c,
   unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
   if (len > *count)
   {
-    *stops = (hb_color_stop_t *) hb_malloc (len * sizeof (hb_color_stop_t));
-    if (unlikely (!*stops))
+    if (unlikely (!c->scratch_color_stops.resize (len)))
       return false;
+    *stops = c->scratch_color_stops.arrayZ;
   }
   hb_color_line_get_color_stops (color_line, 0, &len, *stops);
   for (unsigned i = 0; i < len; i++)
@@ -1147,8 +1148,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
 
 done:
-  if (stops != stops_)
-    hb_free (stops);
+  (void) stops_;
 }
 
 static void
@@ -1387,8 +1387,7 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
 
 done:
-  if (stops != stops_)
-    hb_free (stops);
+  (void) stops_;
 }
 
 static void
@@ -1540,8 +1539,7 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
 
 done:
-  if (stops != stops_)
-    hb_free (stops);
+  (void) stops_;
 }
 
 static hb_bool_t
