@@ -1,5 +1,5 @@
 /*
- * Copyright © 2026  Behdad Esfahbod
+ * Copyright (C) 2026  Behdad Esfahbod
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -32,7 +32,7 @@
 HB_BEGIN_DECLS
 
 
-/* ── Shared types ─────────────────────────────────────────────────── */
+/* Shared types */
 
 /**
  * hb_raster_format_t:
@@ -67,7 +67,7 @@ typedef struct hb_raster_extents_t {
 } hb_raster_extents_t;
 
 
-/* ── hb_raster_image_t ────────────────────────────────────────────── */
+/* hb_raster_image_t */
 
 /**
  * hb_raster_image_t:
@@ -79,6 +79,9 @@ typedef struct hb_raster_extents_t {
  * XSince: REPLACEME
  **/
 typedef struct hb_raster_image_t hb_raster_image_t;
+
+HB_EXTERN hb_raster_image_t *
+hb_raster_image_create (void);
 
 HB_EXTERN hb_raster_image_t *
 hb_raster_image_reference (hb_raster_image_t *image);
@@ -97,6 +100,17 @@ HB_EXTERN void *
 hb_raster_image_get_user_data (hb_raster_image_t  *image,
 			       hb_user_data_key_t *key);
 
+HB_EXTERN void
+hb_raster_image_set_format (hb_raster_image_t *image,
+			    hb_raster_format_t format);
+
+HB_EXTERN void
+hb_raster_image_set_extents (hb_raster_image_t         *image,
+			     const hb_raster_extents_t *extents);
+
+HB_EXTERN void
+hb_raster_image_clear (hb_raster_image_t *image);
+
 HB_EXTERN const uint8_t *
 hb_raster_image_get_buffer (hb_raster_image_t *image);
 
@@ -108,7 +122,7 @@ HB_EXTERN hb_raster_format_t
 hb_raster_image_get_format (hb_raster_image_t *image);
 
 
-/* ── hb_raster_draw_t ─────────────────────────────────────────────── */
+/* hb_raster_draw_t */
 
 /**
  * hb_raster_draw_t:
@@ -183,7 +197,7 @@ hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
 
 
 
-/* ── hb_raster_paint_t ───────────────────────────────────────────── */
+/* hb_raster_paint_t */
 
 /**
  * hb_raster_paint_t:

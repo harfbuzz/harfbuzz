@@ -41,6 +41,15 @@ struct hb_raster_image_t
   hb_vector_t<uint8_t> buffer;
   hb_raster_extents_t  extents     = {};
   hb_raster_format_t   format      = HB_RASTER_FORMAT_A8;
+
+  static unsigned bytes_per_pixel (hb_raster_format_t format);
+  bool reconfigure (hb_raster_format_t format, hb_raster_extents_t extents);
+  bool set_format (hb_raster_format_t format);
+  bool set_extents (const hb_raster_extents_t *extents);
+  void clear ();
+  const uint8_t *get_buffer () const;
+  void composite_from (const hb_raster_image_t *src,
+		       hb_paint_composite_mode_t mode);
 };
 
 

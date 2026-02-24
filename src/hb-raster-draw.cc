@@ -1223,26 +1223,16 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   }
   else
   {
-    image = hb_object_create<hb_raster_image_t> ();
+    image = hb_raster_image_create ();
     if (unlikely (!image)) goto done;
   }
 
-  image->extents = ext;
-  image->format  = draw->format;
-
-  if (ext.width && ext.height)
+  if (unlikely (!image->reconfigure (draw->format, ext)))
   {
-    size_t buf_size = (size_t) ext.stride * ext.height;
-    if (unlikely (!image->buffer.resize_dirty (buf_size)))
-    {
-      hb_raster_image_destroy (image);
-      image = nullptr;
-      goto done;
-    }
-    memset (image->buffer.arrayZ, 0, buf_size);
+    hb_raster_image_destroy (image);
+    image = nullptr;
+    goto done;
   }
-  else
-    image->buffer.resize (0);
 
   /* ── 4. Bucket edges by starting row and rasterize scanlines ──── */
   if (draw->edges.length && ext.width && ext.height)

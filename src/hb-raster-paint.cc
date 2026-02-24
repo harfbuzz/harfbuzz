@@ -120,22 +120,15 @@ struct hb_raster_paint_t
       img = surface_cache.pop ();
     else
     {
-      img = hb_object_create<hb_raster_image_t> ();
+      img = hb_raster_image_create ();
       if (unlikely (!img)) return nullptr;
     }
 
-    img->format = HB_RASTER_FORMAT_BGRA32;
-    img->extents = fixed_extents;
-    if (img->extents.stride == 0)
-      img->extents.stride = img->extents.width * 4;
-
-    size_t buf_size = (size_t) img->extents.stride * img->extents.height;
-    if (unlikely (!img->buffer.resize_dirty (buf_size)))
+    if (unlikely (!img->reconfigure (HB_RASTER_FORMAT_BGRA32, fixed_extents)))
     {
       hb_raster_image_destroy (img);
       return nullptr;
     }
-    memset (img->buffer.arrayZ, 0, buf_size);
     return img;
   }
 
