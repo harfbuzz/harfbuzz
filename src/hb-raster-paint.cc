@@ -98,6 +98,7 @@ struct hb_raster_paint_t
   /* Stacks */
   hb_vector_t<hb_transform_t<>>     transform_stack;
   hb_vector_t<hb_raster_clip_t>     clip_stack;
+  unsigned                          clip_stack_len = 0;
   hb_vector_t<hb_raster_image_t *>  surface_stack;
 
   /* Cached surface pool (freelist for reuse across push/pop group) */
@@ -149,7 +150,29 @@ struct hb_raster_paint_t
 
   hb_raster_clip_t &current_clip ()
   {
-    return clip_stack.tail ();
+    return clip_stack[clip_stack_len - 1];
+  }
+
+  void push_clip (const hb_raster_clip_t &clip)
+  {
+    if (clip_stack_len < clip_stack.length)
+      clip_stack[clip_stack_len++] = clip;
+    else
+    {
+      clip_stack.push (clip);
+      clip_stack_len = clip_stack.length;
+    }
+  }
+
+  void pop_clip ()
+  {
+    if (clip_stack_len)
+      clip_stack_len--;
+  }
+
+  void clear_clips ()
+  {
+    clip_stack_len = 0;
   }
 
   hb_transform_t<> &current_transform ()
@@ -199,7 +222,7 @@ ensure_initialized (hb_raster_paint_t *c)
   /* Initial clip: full coverage rectangle */
   hb_raster_clip_t clip;
   clip.init_full (c->fixed_extents.width, c->fixed_extents.height);
-  c->clip_stack.push (clip);
+  c->push_clip (clip);
 }
 
 static void
@@ -283,7 +306,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.rect_x0 = new_clip.rect_y0 = 0;
     new_clip.rect_x1 = new_clip.rect_y1 = 0;
     new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
-    c->clip_stack.push (new_clip);
+    c->push_clip (new_clip);
     return;
   }
 
@@ -296,7 +319,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.rect_x0 = new_clip.rect_y0 = 0;
     new_clip.rect_x1 = new_clip.rect_y1 = 0;
     new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
-    c->clip_stack.push (new_clip);
+    c->push_clip (new_clip);
     return;
   }
 
@@ -348,7 +371,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
 
   hb_raster_draw_recycle_image (rdr, mask_img);
-  c->clip_stack.push (new_clip);
+  c->push_clip (new_clip);
 }
 
 static void
@@ -429,7 +452,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
       new_clip.rect_x0 = new_clip.rect_y0 = 0;
       new_clip.rect_x1 = new_clip.rect_y1 = 0;
       new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
-      c->clip_stack.push (new_clip);
+      c->push_clip (new_clip);
       return;
     }
     memset (new_clip.alpha.arrayZ, 0, new_clip.stride * h);
@@ -521,7 +544,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
   }
 
-  c->clip_stack.push (new_clip);
+  c->push_clip (new_clip);
 }
 
 static void
@@ -530,7 +553,7 @@ hb_raster_paint_pop_clip (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
-  c->clip_stack.pop ();
+  c->pop_clip ();
 }
 
 static void
@@ -1616,7 +1639,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
       paint->release_surface (s);
     paint->surface_stack.resize (0);
     paint->transform_stack.resize (0);
-    paint->clip_stack.resize (0);
+    paint->clear_clips ();
     hb_raster_draw_reset (paint->clip_rdr);
     return nullptr;
   }
@@ -1635,7 +1658,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
 
   /* Clean up stacks and reset auto-extents for next glyph. */
   paint->transform_stack.resize (0);
-  paint->clip_stack.resize (0);
+  paint->clear_clips ();
   hb_raster_draw_reset (paint->clip_rdr);
   paint->has_fixed_extents = false;
   paint->fixed_extents = {};
@@ -1661,7 +1684,7 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
   paint->has_fixed_extents = false;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
   paint->transform_stack.resize (0);
-  paint->clip_stack.resize (0);
+  paint->clear_clips ();
   for (auto *s : paint->surface_stack)
     hb_raster_image_destroy (s);
   paint->surface_stack.resize (0);
