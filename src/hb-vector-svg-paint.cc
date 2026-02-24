@@ -115,20 +115,6 @@ hb_svg_append_base64 (hb_vector_t<char> *buf,
   return true;
 }
 
-static inline bool
-hb_svg_buffer_contains (const hb_vector_t<char> &buf, const char *needle)
-{
-  unsigned nlen = (unsigned) strlen (needle);
-  if (!nlen || buf.length < nlen)
-    return false;
-
-  for (unsigned i = 0; i + nlen <= buf.length; i++)
-    if (buf.arrayZ[i] == needle[0] &&
-        !memcmp (buf.arrayZ + i, needle, nlen))
-      return true;
-  return false;
-}
-
 struct hb_svg_blob_meta_t
 {
   char *data;
@@ -1755,8 +1741,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     }
 
     paint->captured_scratch = paint->group_stack.pop ();
-    has_svg_image = paint->current_color_glyph_has_svg_image ||
-		    hb_svg_buffer_contains (paint->captured_scratch, "<svg");
+    has_svg_image = paint->current_color_glyph_has_svg_image;
     if (unlikely (!paint->captured_scratch.length))
       return false;
 
