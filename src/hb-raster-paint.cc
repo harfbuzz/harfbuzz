@@ -266,11 +266,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   const hb_transform_t<> &t = c->current_transform ();
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
   hb_raster_draw_set_format (rdr, HB_RASTER_FORMAT_A8);
-  hb_raster_extents_t clip_ext = {
-    surf->extents.x_origin, surf->extents.y_origin,
-    w, h, 0
-  };
-  hb_raster_draw_set_extents (rdr, &clip_ext);
+  /* Let draw-render choose tight glyph extents; we map by mask origin below. */
 
   hb_font_draw_glyph (font, glyph, hb_raster_draw_get_funcs (), rdr);
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
@@ -305,12 +301,18 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_get_extents (mask_img, &mask_ext);
   const hb_raster_clip_t &old_clip = c->current_clip ();
 
-  unsigned iy0 = hb_max (old_clip.min_y, 0u);
-  unsigned iy1 = hb_min (old_clip.max_y, mask_ext.height);
-  unsigned ix0 = hb_max (old_clip.min_x, 0u);
-  unsigned ix1 = hb_min (old_clip.max_x, mask_ext.width);
+  /* Convert mask extents from surface coordinates to clip-buffer coordinates. */
+  int mask_x0 = mask_ext.x_origin - surf->extents.x_origin;
+  int mask_y0 = mask_ext.y_origin - surf->extents.y_origin;
+  int mask_x1 = mask_x0 + (int) mask_ext.width;
+  int mask_y1 = mask_y0 + (int) mask_ext.height;
 
-  if (ix0 >= ix1 || iy0 >= iy1)
+  int ix0_i = hb_max ((int) old_clip.min_x, hb_max (mask_x0, 0));
+  int iy0_i = hb_max ((int) old_clip.min_y, hb_max (mask_y0, 0));
+  int ix1_i = hb_min ((int) old_clip.max_x, hb_min (mask_x1, (int) w));
+  int iy1_i = hb_min ((int) old_clip.max_y, hb_min (mask_y1, (int) h));
+
+  if (ix0_i >= ix1_i || iy0_i >= iy1_i)
   {
     hb_raster_draw_recycle_image (rdr, mask_img);
     new_clip.init_full (w, h);
@@ -322,6 +324,11 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     return;
   }
 
+  unsigned ix0 = (unsigned) ix0_i;
+  unsigned iy0 = (unsigned) iy0_i;
+  unsigned ix1 = (unsigned) ix1_i;
+  unsigned iy1 = (unsigned) iy1_i;
+
   new_clip.min_x = w; new_clip.min_y = h;
   new_clip.max_x = 0; new_clip.max_y = 0;
 
@@ -329,20 +336,21 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   {
     for (unsigned y = iy0; y < iy1; y++)
     {
-      const uint8_t *mask_row = mask_buf + y * mask_ext.stride;
+      const uint8_t *mask_row = mask_buf + (unsigned) ((int) y - mask_y0) * mask_ext.stride;
       uint8_t *out_row = new_clip.alpha.arrayZ + y * new_clip.stride;
-      memcpy (out_row + ix0, mask_row + ix0, ix1 - ix0);
+      unsigned mx0 = (unsigned) ((int) ix0 - mask_x0);
+      memcpy (out_row + ix0, mask_row + mx0, ix1 - ix0);
 
       unsigned row_min = ix1;
       unsigned row_max = ix0;
       for (unsigned x = ix0; x < ix1; x++)
-	if (mask_row[x])
+	if (mask_row[(unsigned) ((int) x - mask_x0)])
 	{
 	  row_min = x;
 	  break;
 	}
       for (unsigned x = ix1; x > row_min; x--)
-	if (mask_row[x - 1])
+	if (mask_row[(unsigned) ((int) (x - 1) - mask_x0)])
 	{
 	  row_max = x;
 	  break;
@@ -361,13 +369,14 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     for (unsigned y = iy0; y < iy1; y++)
     {
       const uint8_t *old_row = old_clip.alpha.arrayZ + y * old_clip.stride;
-      const uint8_t *mask_row = mask_buf + y * mask_ext.stride;
+      const uint8_t *mask_row = mask_buf + (unsigned) ((int) y - mask_y0) * mask_ext.stride;
       uint8_t *out_row = new_clip.alpha.arrayZ + y * new_clip.stride;
       unsigned row_min = ix1;
       unsigned row_max = ix0;
       for (unsigned x = ix0; x < ix1; x++)
       {
-	uint8_t a = hb_raster_div255 (mask_row[x] * old_row[x]);
+	unsigned mx = (unsigned) ((int) x - mask_x0);
+	uint8_t a = hb_raster_div255 (mask_row[mx] * old_row[x]);
 	out_row[x] = a;
 	if (a)
 	{
