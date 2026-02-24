@@ -268,14 +268,21 @@ struct raster_output_t : output_options_t<true>
     unsigned h = (unsigned) (iy1 - iy0);
     unsigned stride = w * 4;
 
-    /* Allocate output BGRA32 buffer */
-    std::vector<uint8_t> out_buf (stride * h, 0);
-
     hb_raster_extents_t ext = {ix0, iy0, w, h, stride};
+    hb_raster_image_t *out_img = hb_raster_image_create ();
+    if (!out_img) return;
+    hb_raster_image_set_format (out_img, HB_RASTER_FORMAT_BGRA32);
+    hb_raster_image_set_extents (out_img, &ext);
+    uint8_t *out_buf = const_cast<uint8_t *> (hb_raster_image_get_buffer (out_img));
+    if (!out_buf)
+    {
+      hb_raster_image_destroy (out_img);
+      return;
+    }
 
     for (unsigned int iter = 0; iter < num_iterations; iter++)
     {
-      std::fill (out_buf.begin (), out_buf.end (), 0);
+      hb_raster_image_clear (out_img);
       /* Second pass: paint each glyph */
       for (unsigned li = 0; li < lines.size (); li++)
       {
@@ -310,7 +317,7 @@ struct raster_output_t : output_options_t<true>
 		if (!s) continue;
 		uint8_t sa = (uint8_t) (s >> 24);
 		uint32_t d;
-		memcpy (&d, out_buf.data () + y * stride + x * 4, 4);
+		memcpy (&d, out_buf + y * stride + x * 4, 4);
 		if (sa == 255) { d = s; }
 		else
 		{
@@ -321,7 +328,7 @@ struct raster_output_t : output_options_t<true>
 		  uint8_t ra = (uint8_t) ((((d >> 24) & 0xFF) * inv_sa + 128 + ((((d >> 24) & 0xFF) * inv_sa + 128) >> 8)) >> 8) + sa;
 		  d = (uint32_t) rb | ((uint32_t) rg << 8) | ((uint32_t) rr << 16) | ((uint32_t) ra << 24);
 		}
-		memcpy (out_buf.data () + y * stride + x * 4, &d, 4);
+		memcpy (out_buf + y * stride + x * 4, &d, 4);
 	      }
 
 	    hb_raster_paint_recycle_image (pnt, img);
@@ -331,8 +338,9 @@ struct raster_output_t : output_options_t<true>
 
       if (iter + 1 == num_iterations)
 	/* Write as PPM (RGB, Y-flipped). */
-	write_ppm (out_buf.data (), w, h, stride);
+	write_ppm (out_buf, w, h, stride);
     }
+    hb_raster_image_destroy (out_img);
   }
 
   /* Write an A8 alpha image as PPM; composited over fg/bg, Y-flipped. */
