@@ -347,6 +347,9 @@ struct hb_vector_paint_t
   hb_vector_t<char> body;
   hb_vector_t<char> path;
   hb_vector_t<hb_vector_t<char>> group_stack;
+  uint64_t transform_group_open_mask = 0;
+  unsigned transform_group_depth = 0;
+  unsigned transform_group_overflow_depth = 0;
 
   unsigned clip_rect_counter = 0;
   unsigned gradient_counter = 0;
@@ -797,6 +800,27 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   hb_vector_paint_ensure_initialized (paint);
 
+  if (unlikely (paint->transform_group_overflow_depth))
+  {
+    paint->transform_group_overflow_depth++;
+    return;
+  }
+  if (unlikely (paint->transform_group_depth >= 64))
+  {
+    paint->transform_group_overflow_depth = 1;
+    return;
+  }
+
+  hb_bool_t opened =
+    !(fabsf (xx - 1.f) < 1e-6f && fabsf (yx) < 1e-6f &&
+      fabsf (xy) < 1e-6f && fabsf (yy - 1.f) < 1e-6f &&
+      fabsf (dx) < 1e-6f && fabsf (dy) < 1e-6f);
+  paint->transform_group_open_mask = (paint->transform_group_open_mask << 1) | (opened ? 1ull : 0ull);
+  paint->transform_group_depth++;
+
+  if (!opened)
+    return;
+
   auto &body = paint->current_body ();
   hb_svg_append_str (&body, "<g transform=\"matrix(");
   hb_svg_append_num (&body, xx, paint->precision);
@@ -820,7 +844,18 @@ hb_vector_paint_pop_transform (hb_paint_funcs_t *,
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
   hb_vector_paint_ensure_initialized (paint);
-  hb_svg_append_str (&paint->current_body (), "</g>\n");
+  if (unlikely (paint->transform_group_overflow_depth))
+  {
+    paint->transform_group_overflow_depth--;
+    return;
+  }
+  if (!paint->transform_group_depth)
+    return;
+  paint->transform_group_depth--;
+  hb_bool_t opened = !!(paint->transform_group_open_mask & 1ull);
+  paint->transform_group_open_mask >>= 1;
+  if (opened)
+    hb_svg_append_str (&paint->current_body (), "</g>\n");
 }
 
 static void
@@ -1816,6 +1851,9 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->body.clear ();
   paint->path.clear ();
   paint->group_stack.clear ();
+  paint->transform_group_open_mask = 0;
+  paint->transform_group_depth = 0;
+  paint->transform_group_overflow_depth = 0;
   paint->clip_rect_counter = 0;
   paint->gradient_counter = 0;
   paint->color_glyph_counter = 0;
