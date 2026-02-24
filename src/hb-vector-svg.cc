@@ -301,7 +301,10 @@ struct hb_vector_draw_t
   unsigned precision = 2;
   bool flat = false;
 
+  hb_vector_t<char> defs;
+  hb_vector_t<char> body;
   hb_vector_t<char> path;
+  hb_set_t *defined_glyphs = nullptr;
   hb_blob_t *recycled_blob = nullptr;
 
   void append_xy (float x, float y)
@@ -1060,7 +1063,11 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
 hb_vector_draw_t *
 hb_vector_draw_create_or_fail (void)
 {
-  return hb_object_create<hb_vector_draw_t> ();
+  hb_vector_draw_t *draw = hb_object_create<hb_vector_draw_t> ();
+  if (unlikely (!draw))
+    return nullptr;
+  draw->defined_glyphs = hb_set_create ();
+  return draw;
 }
 
 hb_vector_draw_t *
@@ -1074,6 +1081,7 @@ hb_vector_draw_destroy (hb_vector_draw_t *draw)
 {
   if (!hb_object_destroy (draw)) return;
   hb_blob_destroy (draw->recycled_blob);
+  hb_set_destroy (draw->defined_glyphs);
   hb_free (draw);
 }
 
@@ -1155,6 +1163,71 @@ hb_vector_draw_get_funcs (void)
   return hb_vector_draw_funcs_singleton ();
 }
 
+hb_bool_t
+hb_vector_draw_glyph (hb_vector_draw_t *draw,
+                      hb_font_t *font,
+                      hb_codepoint_t glyph,
+                      float pen_x,
+                      float pen_y)
+{
+  if (draw->format != HB_VECTOR_FORMAT_SVG)
+    return false;
+
+  bool needs_def = !draw->flat && !hb_set_has (draw->defined_glyphs, glyph);
+  if (needs_def)
+  {
+    hb_set_add (draw->defined_glyphs, glyph);
+    draw->path.clear ();
+    hb_svg_path_sink_t sink = {&draw->path, draw->precision};
+    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_singleton (), &sink);
+    if (!draw->path.length)
+      return false;
+    hb_svg_append_printf (&draw->defs, "<path id=\"p%u\" d=\"", glyph);
+    hb_svg_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
+    hb_svg_append_str (&draw->defs, "\"/>\n");
+  }
+
+  if (draw->flat)
+  {
+    hb_transform_t<> saved = draw->transform;
+    draw->transform.x0 += saved.xx * pen_x + saved.xy * pen_y;
+    draw->transform.y0 += saved.yx * pen_x + saved.yy * pen_y;
+
+    draw->path.clear ();
+    hb_font_draw_glyph (font, glyph, hb_vector_draw_get_funcs (), draw);
+
+    draw->transform = saved;
+
+    if (!draw->path.length)
+      return false;
+    hb_svg_append_str (&draw->body, "<path d=\"");
+    hb_svg_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+    hb_svg_append_str (&draw->body, "\"/>\n");
+    return true;
+  }
+
+  hb_svg_append_str (&draw->body, "<use href=\"#p");
+  hb_svg_append_printf (&draw->body, "%u", glyph);
+  hb_svg_append_str (&draw->body, "\" transform=\"matrix(");
+  hb_svg_append_num (&draw->body, draw->transform.xx / draw->x_scale_factor, draw->precision);
+  hb_svg_append_c (&draw->body, ',');
+  hb_svg_append_num (&draw->body, draw->transform.yx / draw->y_scale_factor, draw->precision);
+  hb_svg_append_c (&draw->body, ',');
+  hb_svg_append_num (&draw->body, draw->transform.xy / draw->x_scale_factor, draw->precision);
+  hb_svg_append_c (&draw->body, ',');
+  hb_svg_append_num (&draw->body, draw->transform.yy / draw->y_scale_factor, draw->precision);
+  hb_svg_append_c (&draw->body, ',');
+  hb_svg_append_num (&draw->body,
+                     (draw->transform.x0 + draw->transform.xx * pen_x + draw->transform.xy * pen_y) / draw->x_scale_factor,
+                     draw->precision);
+  hb_svg_append_c (&draw->body, ',');
+  hb_svg_append_num (&draw->body,
+                     (draw->transform.y0 + draw->transform.yx * pen_x + draw->transform.yy * pen_y) / draw->y_scale_factor,
+                     draw->precision);
+  hb_svg_append_str (&draw->body, ")\"/>\n");
+  return true;
+}
+
 void
 hb_vector_svg_set_flat (hb_vector_draw_t *draw,
                         hb_bool_t flat)
@@ -1193,7 +1266,18 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
   hb_svg_append_num (&out, draw->extents.height, draw->precision);
   hb_svg_append_str (&out, "\">\n");
 
-  if (draw->path.length)
+  if (draw->defs.length)
+  {
+    hb_svg_append_str (&out, "<defs>\n");
+    hb_svg_append_len (&out, draw->defs.arrayZ, draw->defs.length);
+    hb_svg_append_str (&out, "</defs>\n");
+  }
+
+  if (draw->body.length)
+  {
+    hb_svg_append_len (&out, draw->body.arrayZ, draw->body.length);
+  }
+  else if (draw->path.length)
   {
     hb_svg_append_str (&out, "<path d=\"");
     hb_svg_append_len (&out, draw->path.arrayZ, draw->path.length);
@@ -1205,6 +1289,9 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
   hb_blob_t *blob = hb_svg_blob_from_buffer (&draw->recycled_blob, &out);
 
   draw->path.clear ();
+  draw->defs.clear ();
+  draw->body.clear ();
+  hb_set_clear (draw->defined_glyphs);
   draw->has_extents = false;
   draw->extents = {0, 0, 0, 0};
 
@@ -1222,7 +1309,10 @@ hb_vector_draw_reset (hb_vector_draw_t *draw)
   draw->has_extents = false;
   draw->precision = 2;
   draw->flat = false;
+  draw->defs.clear ();
+  draw->body.clear ();
   draw->path.clear ();
+  hb_set_clear (draw->defined_glyphs);
 }
 
 void

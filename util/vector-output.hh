@@ -213,9 +213,8 @@ struct vector_output_t : output_options_t<>
           continue;
         }
 
-        hb_vector_draw_set_transform (draw, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
-        hb_font_draw_glyph (font, g.gid, hb_vector_draw_get_funcs (), draw);
-        had_draw = true;
+        if (hb_vector_draw_glyph (draw, font, g.gid, pen_x, pen_y))
+          had_draw = true;
       }
     }
 

@@ -111,6 +111,13 @@ hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
 HB_EXTERN hb_draw_funcs_t *
 hb_vector_draw_get_funcs (void);
 
+HB_EXTERN hb_bool_t
+hb_vector_draw_glyph (hb_vector_draw_t *draw,
+                      hb_font_t *font,
+                      hb_codepoint_t glyph,
+                      float pen_x,
+                      float pen_y);
+
 HB_EXTERN void
 hb_vector_svg_set_flat (hb_vector_draw_t *draw,
                         hb_bool_t flat);
