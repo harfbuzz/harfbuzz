@@ -26,7 +26,7 @@
 
 #include "hb.hh"
 
-#include "hb-raster.hh"
+#include "hb-raster-image.hh"
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
 

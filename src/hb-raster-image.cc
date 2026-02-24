@@ -26,7 +26,7 @@
 
 #include "hb.hh"
 
-#include "hb-raster.hh"
+#include "hb-raster-image.hh"
 
 #include <math.h>
 
@@ -402,9 +402,9 @@ hb_raster_image_t::composite_from (const hb_raster_image_t *src,
 /* Composite src image onto dst image.
  * Both images must have the same extents and BGRA32 format. */
 void
-hb_raster_composite_images (hb_raster_image_t *dst,
-			    const hb_raster_image_t *src,
-			    hb_paint_composite_mode_t mode)
+hb_raster_image_composite (hb_raster_image_t *dst,
+			   const hb_raster_image_t *src,
+			   hb_paint_composite_mode_t mode)
 {
   if (unlikely (!dst || !src)) return;
   dst->composite_from (src, mode);

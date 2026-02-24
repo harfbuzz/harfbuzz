@@ -26,7 +26,7 @@
 
 #include "hb.hh"
 
-#include "hb-raster.hh"
+#include "hb-raster.h"
 
 /**
  * SECTION:hb-raster

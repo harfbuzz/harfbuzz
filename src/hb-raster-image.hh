@@ -24,8 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_RASTER_HH
-#define HB_RASTER_HH
+#ifndef HB_RASTER_IMAGE_HH
+#define HB_RASTER_IMAGE_HH
 
 #include "hb.hh"
 #include "hb-raster.h"
@@ -105,9 +105,9 @@ hb_raster_alpha_mul (uint32_t px, unsigned a)
 
 /* Composite src image onto dst. */
 HB_INTERNAL void
-hb_raster_composite_images (hb_raster_image_t *dst,
-			    const hb_raster_image_t *src,
-			    hb_paint_composite_mode_t mode);
+hb_raster_image_composite (hb_raster_image_t *dst,
+			   const hb_raster_image_t *src,
+			   hb_paint_composite_mode_t mode);
 
 
-#endif /* HB_RASTER_HH */
+#endif /* HB_RASTER_IMAGE_HH */

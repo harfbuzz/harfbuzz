@@ -26,7 +26,7 @@
 
 #include "hb.hh"
 
-#include "hb-raster.hh"
+#include "hb-raster-image.hh"
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
 
@@ -622,7 +622,7 @@ hb_raster_paint_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_t *dst = c->current_surface ();
 
   if (dst && src)
-    hb_raster_composite_images (dst, src, mode);
+    hb_raster_image_composite (dst, src, mode);
 
   c->release_surface (src);
 }
