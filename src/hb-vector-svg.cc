@@ -194,9 +194,18 @@ struct hb_svg_blob_meta_t
 static hb_user_data_key_t hb_svg_blob_meta_user_data_key;
 
 static void
-hb_svg_blob_meta_destroy (void *data)
+hb_svg_blob_meta_set_buffer (hb_svg_blob_meta_t *meta,
+			     char *data,
+			     int allocated)
 {
-  auto *meta = (hb_svg_blob_meta_t *) data;
+  meta->data = data;
+  meta->allocated = allocated;
+  meta->transferred = false;
+}
+
+static void
+hb_svg_blob_meta_release_buffer (hb_svg_blob_meta_t *meta)
+{
   if (!meta)
     return;
   if (!meta->transferred && meta->data)
@@ -204,6 +213,13 @@ hb_svg_blob_meta_destroy (void *data)
   meta->data = nullptr;
   meta->allocated = 0;
   meta->transferred = true;
+}
+
+static void
+hb_svg_blob_meta_destroy (void *data)
+{
+  auto *meta = (hb_svg_blob_meta_t *) data;
+  hb_svg_blob_meta_release_buffer (meta);
   if (meta->in_replace)
   {
     meta->in_replace = false;
@@ -247,18 +263,14 @@ hb_svg_blob_from_buffer (hb_blob_t **recycled_blob,
 
   if (reused_blob)
   {
+    /* replace_buffer() first destroys old buffer user_data; keep meta alive. */
     meta->in_replace = true;
     blob->replace_buffer (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_svg_blob_meta_destroy);
-    meta->in_replace = false;
-    meta->data = data;
-    meta->allocated = allocated;
-    meta->transferred = false;
+    hb_svg_blob_meta_set_buffer (meta, data, allocated);
   }
   else
   {
-    meta->data = data;
-    meta->allocated = allocated;
-    meta->transferred = false;
+    hb_svg_blob_meta_set_buffer (meta, data, allocated);
     blob = hb_blob_create (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_svg_blob_meta_destroy);
   }
 
