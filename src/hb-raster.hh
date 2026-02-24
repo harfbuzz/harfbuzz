@@ -48,20 +48,27 @@ struct hb_raster_image_t
  * Shared pixel helpers (used by both paint and image compositing)
  */
 
-static inline uint8_t
+static HB_ALWAYS_INLINE uint8_t
 hb_raster_div255 (unsigned a)
 {
+  if (true)
+  {
+    // An approximation. Slightly faster.
+    // https://github.com/linebender/vello/blob/ab58009c8289e83689cd0effc4e34d1c6e8b51f5/sparse_strips/vello_cpu/src/util.rs#L10-L63
+    return (a + 255) >> 8;
+  }
+
   return (uint8_t) ((a + 128 + ((a + 128) >> 8)) >> 8);
 }
 
-static inline uint32_t
+static HB_ALWAYS_INLINE uint32_t
 hb_raster_pack_pixel (uint8_t b, uint8_t g, uint8_t r, uint8_t a)
 {
   return (uint32_t) b | ((uint32_t) g << 8) | ((uint32_t) r << 16) | ((uint32_t) a << 24);
 }
 
 /* SRC_OVER: premultiplied src over premultiplied dst. */
-static inline uint32_t
+static HB_ALWAYS_INLINE uint32_t
 hb_raster_src_over (uint32_t src, uint32_t dst)
 {
   uint8_t sa = (uint8_t) (src >> 24);
@@ -76,7 +83,7 @@ hb_raster_src_over (uint32_t src, uint32_t dst)
 }
 
 /* Scale a premultiplied pixel by an alpha [0,255]. */
-static inline uint32_t
+static HB_ALWAYS_INLINE uint32_t
 hb_raster_alpha_mul (uint32_t px, unsigned a)
 {
   if (a == 255) return px;
