@@ -399,8 +399,8 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->y_scale_factor    = 1.f;
   draw->fixed_extents     = {};
   draw->has_fixed_extents = false;
-  draw->edges.resize (0);
-  draw->active_edges.resize (0);
+  draw->edges.clear ();
+  draw->active_edges.clear ();
 }
 
 /**
@@ -1250,7 +1250,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	goto fail;
     }
     for (unsigned i = 0; i < hb_min (ext.height, old_buckets); i++)
-      draw->edge_buckets.arrayZ[i].resize (0);
+      draw->edge_buckets.arrayZ[i].clear ();
     /* New buckets (if any) are already empty from resize's zero-init. */
 
     for (unsigned i = 0; i < draw->edges.length; i++)
@@ -1262,7 +1262,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     }
 
     /* Scanline loop with active edge list. */
-    draw->active_edges.resize (0);
+    draw->active_edges.clear ();
 
     for (unsigned row = 0; row < ext.height; row++)
     {
@@ -1311,7 +1311,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
 done:
   /* ── 6. Reset one-shot state ────────────────────────────────────── */
-  draw->edges.resize (0);
+  draw->edges.clear ();
   draw->has_fixed_extents = false;
   draw->fixed_extents     = {};
 

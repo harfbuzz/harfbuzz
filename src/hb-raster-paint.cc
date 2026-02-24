@@ -1971,7 +1971,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
      * well-formed paint calls, but be safe). */
     for (unsigned i = 1; i < paint->surface_stack.length; i++)
       paint->release_surface (paint->surface_stack[i]);
-    paint->surface_stack.resize (0);
+    paint->surface_stack.clear ();
   }
   else
   {
@@ -1981,7 +1981,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
   }
 
   /* Clean up stacks and reset auto-extents for next glyph. */
-  paint->transform_stack.resize (0);
+  paint->transform_stack.clear ();
   paint->release_all_clips ();
   hb_raster_draw_reset (paint->clip_rdr);
   paint->has_fixed_extents = false;
@@ -1990,7 +1990,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
   return result;
 
 fail:
-  paint->transform_stack.resize (0);
+  paint->transform_stack.clear ();
   paint->release_all_clips ();
   hb_raster_draw_reset (paint->clip_rdr);
   paint->has_fixed_extents = false;
@@ -2016,11 +2016,11 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
   paint->fixed_extents = {};
   paint->has_fixed_extents = false;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
-  paint->transform_stack.resize (0);
+  paint->transform_stack.clear ();
   paint->release_all_clips ();
   for (auto *s : paint->surface_stack)
     paint->release_surface (s);
-  paint->surface_stack.resize (0);
+  paint->surface_stack.clear ();
 }
 
 /**
