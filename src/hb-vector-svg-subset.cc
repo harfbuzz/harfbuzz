@@ -27,6 +27,7 @@
 #include "hb.hh"
 
 #include "hb-vector-svg-subset.hh"
+#include "hb-vector-svg-utils.hh"
 #include "hb-ot-color.h"
 
 #include <ctype.h>
@@ -72,24 +73,6 @@ struct hb_svg_face_cache_t
 };
 
 static hb_user_data_key_t hb_svg_face_cache_user_data_key;
-
-static bool
-hb_svg_append_len (hb_vector_t<char> *buf,
-                   const char *s,
-                   unsigned len)
-{
-  unsigned old_len = buf->length;
-  if (unlikely (!buf->resize_dirty ((int) (old_len + len))))
-    return false;
-  hb_memcpy (buf->arrayZ + old_len, s, len);
-  return true;
-}
-
-static bool
-hb_svg_append_c (hb_vector_t<char> *buf, char c)
-{
-  return !!buf->push (c);
-}
 
 static int
 hb_svg_find_substr (const char *s,

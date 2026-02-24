@@ -32,29 +32,12 @@
 #include "hb-machinery.hh"
 #include "hb-map.hh"
 #include "hb-vector-svg-subset.hh"
+#include "hb-vector-svg-utils.hh"
 
 #include <algorithm>
 #include <math.h>
 #include <string.h>
 
-
-static bool
-hb_svg_append_len (hb_vector_t<char> *buf,
-                   const char *s,
-                   unsigned len)
-{
-  unsigned old_len = buf->length;
-  if (unlikely (!buf->resize_dirty ((int) (old_len + len))))
-    return false;
-  hb_memcpy (buf->arrayZ + old_len, s, len);
-  return true;
-}
-
-static bool
-hb_svg_append_c (hb_vector_t<char> *buf, char c)
-{
-  return !!buf->push (c);
-}
 
 static bool
 hb_svg_append_str (hb_vector_t<char> *buf, const char *s)
