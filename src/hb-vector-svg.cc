@@ -513,7 +513,6 @@ struct hb_vector_paint_t
   bool flat = false;
 
   hb_vector_t<char> defs;
-  hb_vector_t<char> body;
   hb_vector_t<char> path;
   hb_vector_t<hb_vector_t<char>> group_stack;
   uint64_t transform_group_open_mask = 0;
@@ -2144,7 +2143,6 @@ hb_vector_paint_create_or_fail (hb_vector_format_t format)
   paint->defined_outlines = hb_set_create ();
   paint->defined_clips = hb_set_create ();
   paint->defs.alloc (4096);
-  paint->body.alloc (8192);
   paint->path.alloc (2048);
   paint->subset_body_scratch.alloc (2048);
   paint->captured_scratch.alloc (4096);
@@ -2441,7 +2439,6 @@ hb_vector_paint_clear_render_state (hb_vector_paint_t *paint)
   paint->has_extents = false;
 
   paint->defs.clear ();
-  paint->body.clear ();
   paint->path.clear ();
   paint->group_stack.clear ();
   paint->transform_group_open_mask = 0;
