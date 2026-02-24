@@ -29,6 +29,11 @@
 #include "hb-raster.hh"
 
 #include <math.h>
+#include <string.h>
+
+#ifdef __ARM_NEON
+#include <arm_neon.h>
+#endif
 
 
 /*
@@ -333,6 +338,42 @@ composite_pixel (uint32_t src, uint32_t dst,
   }
 }
 
+static inline void
+composite_row_plus (uint32_t *dp,
+		    const uint32_t *sp,
+		    unsigned w)
+{
+#ifdef __ARM_NEON
+  uint8_t *d8 = reinterpret_cast<uint8_t *> (dp);
+  const uint8_t *s8 = reinterpret_cast<const uint8_t *> (sp);
+  unsigned n = w * 4;
+  unsigned i = 0;
+
+  for (; i + 16 <= n; i += 16)
+  {
+    uint8x16_t sv = vld1q_u8 (s8 + i);
+    uint8x16_t dv = vld1q_u8 (d8 + i);
+    vst1q_u8 (d8 + i, vqaddq_u8 (sv, dv));
+  }
+
+  for (; i < n; i++)
+  {
+    unsigned v = (unsigned) s8[i] + d8[i];
+    d8[i] = (uint8_t) hb_min (v, 255u);
+  }
+#else
+  for (unsigned x = 0; x < w; x++)
+  {
+    uint32_t src = sp[x], dst = dp[x];
+    uint8_t rb = (uint8_t) hb_min (255u, (unsigned) (src & 0xFF) + (dst & 0xFF));
+    uint8_t rg = (uint8_t) hb_min (255u, (unsigned) ((src >> 8) & 0xFF) + ((dst >> 8) & 0xFF));
+    uint8_t rr = (uint8_t) hb_min (255u, (unsigned) ((src >> 16) & 0xFF) + ((dst >> 16) & 0xFF));
+    uint8_t ra = (uint8_t) hb_min (255u, (unsigned) (src >> 24) + (dst >> 24));
+    dp[x] = hb_raster_pack_pixel (rb, rg, rr, ra);
+  }
+#endif
+}
+
 /* Composite src image onto dst image.
  * Both images must have the same extents and BGRA32 format. */
 void
@@ -342,14 +383,168 @@ hb_raster_composite_images (hb_raster_image_t *dst,
 {
   unsigned w = dst->extents.width;
   unsigned h = dst->extents.height;
-  unsigned stride = dst->extents.stride;
+  unsigned dst_stride = dst->extents.stride;
+  unsigned src_stride = src->extents.stride;
+  unsigned row_bytes = w * 4;
 
-  for (unsigned y = 0; y < h; y++)
+  if (!w || !h) return;
+
+  switch (mode)
   {
-    uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + y * stride);
-    const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + y * stride);
-    for (unsigned x = 0; x < w; x++)
-      dp[x] = composite_pixel (sp[x], dp[x], mode);
+  case HB_PAINT_COMPOSITE_MODE_CLEAR:
+    for (unsigned y = 0; y < h; y++)
+      memset (dst->buffer.arrayZ + y * dst_stride, 0, row_bytes);
+    return;
+
+  case HB_PAINT_COMPOSITE_MODE_SRC:
+    for (unsigned y = 0; y < h; y++)
+      memcpy (dst->buffer.arrayZ + y * dst_stride, src->buffer.arrayZ + y * src_stride, row_bytes);
+    return;
+
+  case HB_PAINT_COMPOSITE_MODE_DEST:
+    return;
+
+  case HB_PAINT_COMPOSITE_MODE_SRC_OVER:
+    for (unsigned y = 0; y < h; y++)
+    {
+      uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + y * dst_stride);
+      const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + y * src_stride);
+      for (unsigned x = 0; x < w; x++)
+	dp[x] = hb_raster_src_over (sp[x], dp[x]);
+    }
+    return;
+
+  case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+    for (unsigned y = 0; y < h; y++)
+    {
+      uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + y * dst_stride);
+      const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + y * src_stride);
+      for (unsigned x = 0; x < w; x++)
+	dp[x] = hb_raster_alpha_mul (sp[x], dp[x] >> 24);
+    }
+    return;
+
+  case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+    for (unsigned y = 0; y < h; y++)
+    {
+      uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + y * dst_stride);
+      const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + y * src_stride);
+      for (unsigned x = 0; x < w; x++)
+	dp[x] = hb_raster_alpha_mul (dp[x], sp[x] >> 24);
+    }
+    return;
+
+  case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+    for (unsigned y = 0; y < h; y++)
+    {
+      uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + y * dst_stride);
+      const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + y * src_stride);
+      for (unsigned x = 0; x < w; x++)
+	dp[x] = hb_raster_alpha_mul (sp[x], 255 - (dp[x] >> 24));
+    }
+    return;
+
+  case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+    for (unsigned y = 0; y < h; y++)
+    {
+      uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + y * dst_stride);
+      const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + y * src_stride);
+      for (unsigned x = 0; x < w; x++)
+	dp[x] = hb_raster_alpha_mul (dp[x], 255 - (sp[x] >> 24));
+    }
+    return;
+
+  case HB_PAINT_COMPOSITE_MODE_PLUS:
+    for (unsigned y = 0; y < h; y++)
+    {
+      uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + y * dst_stride);
+      const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + y * src_stride);
+      composite_row_plus (dp, sp, w);
+    }
+    return;
+
+  case HB_PAINT_COMPOSITE_MODE_DEST_OVER:
+  case HB_PAINT_COMPOSITE_MODE_SRC_ATOP:
+  case HB_PAINT_COMPOSITE_MODE_DEST_ATOP:
+  case HB_PAINT_COMPOSITE_MODE_XOR:
+  case HB_PAINT_COMPOSITE_MODE_SCREEN:
+  case HB_PAINT_COMPOSITE_MODE_OVERLAY:
+  case HB_PAINT_COMPOSITE_MODE_DARKEN:
+  case HB_PAINT_COMPOSITE_MODE_LIGHTEN:
+  case HB_PAINT_COMPOSITE_MODE_COLOR_DODGE:
+  case HB_PAINT_COMPOSITE_MODE_COLOR_BURN:
+  case HB_PAINT_COMPOSITE_MODE_HARD_LIGHT:
+  case HB_PAINT_COMPOSITE_MODE_SOFT_LIGHT:
+  case HB_PAINT_COMPOSITE_MODE_DIFFERENCE:
+  case HB_PAINT_COMPOSITE_MODE_EXCLUSION:
+  case HB_PAINT_COMPOSITE_MODE_MULTIPLY:
+  case HB_PAINT_COMPOSITE_MODE_HSL_HUE:
+  case HB_PAINT_COMPOSITE_MODE_HSL_SATURATION:
+  case HB_PAINT_COMPOSITE_MODE_HSL_COLOR:
+  case HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY:
+    /* Extended mode: route through generic compositor path. */
+    for (unsigned y = 0; y < h; y++)
+    {
+      uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + y * dst_stride);
+      const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + y * src_stride);
+      for (unsigned x = 0; x < w; x++)
+	dp[x] = composite_pixel (sp[x], dp[x], mode);
+    }
+    return;
+
+  default:
+    return;
+  }
+}
+
+void
+hb_raster_composite_images_clipped (hb_raster_image_t *dst,
+				    const hb_raster_image_t *src,
+				    hb_paint_composite_mode_t mode,
+				    const hb_raster_image_t *clip_mask,
+				    int clip_x0, int clip_y0,
+				    int clip_x1, int clip_y1)
+{
+  unsigned w = dst->extents.width;
+  unsigned h = dst->extents.height;
+  unsigned dst_stride = dst->extents.stride;
+  unsigned src_stride = src->extents.stride;
+
+  clip_x0 = hb_max (clip_x0, 0);
+  clip_y0 = hb_max (clip_y0, 0);
+  clip_x1 = hb_min (clip_x1, (int) w);
+  clip_y1 = hb_min (clip_y1, (int) h);
+  if (clip_x0 >= clip_x1 || clip_y0 >= clip_y1)
+    return;
+
+  for (int y = clip_y0; y < clip_y1; y++)
+  {
+    uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + (unsigned) y * dst_stride);
+    const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + (unsigned) y * src_stride);
+
+    if (!clip_mask)
+    {
+      for (int x = clip_x0; x < clip_x1; x++)
+	dp[x] = composite_pixel (sp[x], dp[x], mode);
+      continue;
+    }
+
+    int my = y - clip_mask->extents.y_origin;
+    if (my < 0 || my >= (int) clip_mask->extents.height)
+      continue;
+    const uint8_t *mr = clip_mask->buffer.arrayZ + (unsigned) my * clip_mask->extents.stride;
+    int mx0 = clip_mask->extents.x_origin;
+
+    for (int x = clip_x0; x < clip_x1; x++)
+    {
+      int mx = x - mx0;
+      if (mx < 0 || mx >= (int) clip_mask->extents.width)
+	continue;
+      uint8_t a = mr[mx];
+      if (!a) continue;
+      uint32_t src_px = hb_raster_alpha_mul (sp[x], a);
+      dp[x] = composite_pixel (src_px, dp[x], mode);
+    }
   }
 }
 
