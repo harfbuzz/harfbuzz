@@ -1929,7 +1929,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
  * @paint: a paint context
  *
  * Resets the paint context to its initial state, clearing all
- * configuration and cached surfaces.
+ * configuration while preserving internal image caches.
  *
  * XSince: REPLACEME
  **/
@@ -1944,13 +1944,8 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
   paint->transform_stack.resize (0);
   paint->clip_stack.resize (0);
   for (auto *s : paint->surface_stack)
-    hb_raster_image_destroy (s);
+    paint->release_surface (s);
   paint->surface_stack.resize (0);
-  for (auto *s : paint->surface_cache)
-    hb_raster_image_destroy (s);
-  paint->surface_cache.resize (0);
-  hb_raster_image_destroy (paint->recycled_image);
-  paint->recycled_image = nullptr;
 }
 
 /**
