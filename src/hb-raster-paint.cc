@@ -305,17 +305,36 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_get_extents (mask_img, &mask_ext);
   const hb_raster_clip_t &old_clip = c->current_clip ();
 
+  unsigned iy0 = hb_max (old_clip.min_y, 0u);
+  unsigned iy1 = hb_min (old_clip.max_y, mask_ext.height);
+  unsigned ix0 = hb_max (old_clip.min_x, 0u);
+  unsigned ix1 = hb_min (old_clip.max_x, mask_ext.width);
+
+  if (ix0 >= ix1 || iy0 >= iy1)
+  {
+    hb_raster_draw_recycle_image (rdr, mask_img);
+    new_clip.init_full (w, h);
+    new_clip.is_rect = true;
+    new_clip.rect_x0 = new_clip.rect_y0 = 0;
+    new_clip.rect_x1 = new_clip.rect_y1 = 0;
+    new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
+    c->clip_stack.push (new_clip);
+    return;
+  }
+
   new_clip.min_x = w; new_clip.min_y = h;
   new_clip.max_x = 0; new_clip.max_y = 0;
 
   if (old_clip.is_rect)
   {
-    for (unsigned y = old_clip.min_y; y < old_clip.max_y; y++)
-      for (unsigned x = old_clip.min_x; x < old_clip.max_x; x++)
+    for (unsigned y = iy0; y < iy1; y++)
+    {
+      const uint8_t *mask_row = mask_buf + y * mask_ext.stride;
+      uint8_t *out_row = new_clip.alpha.arrayZ + y * new_clip.stride;
+      for (unsigned x = ix0; x < ix1; x++)
       {
-	uint8_t a = (x < mask_ext.width && y < mask_ext.height)
-		    ? mask_buf[y * mask_ext.stride + x] : 0;
-	new_clip.alpha[y * new_clip.stride + x] = a;
+	uint8_t a = mask_row[x];
+	out_row[x] = a;
 	if (a)
 	{
 	  new_clip.min_x = hb_min (new_clip.min_x, x);
@@ -324,18 +343,19 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	  new_clip.max_y = hb_max (new_clip.max_y, y + 1);
 	}
       }
+    }
   }
   else
   {
-    for (unsigned y = old_clip.min_y; y < old_clip.max_y; y++)
+    for (unsigned y = iy0; y < iy1; y++)
     {
       const uint8_t *old_row = old_clip.alpha.arrayZ + y * old_clip.stride;
-      for (unsigned x = old_clip.min_x; x < old_clip.max_x; x++)
+      const uint8_t *mask_row = mask_buf + y * mask_ext.stride;
+      uint8_t *out_row = new_clip.alpha.arrayZ + y * new_clip.stride;
+      for (unsigned x = ix0; x < ix1; x++)
       {
-	uint8_t glyph_alpha = (x < mask_ext.width && y < mask_ext.height)
-			      ? mask_buf[y * mask_ext.stride + x] : 0;
-	uint8_t a = hb_raster_div255 (glyph_alpha * old_row[x]);
-	new_clip.alpha[y * new_clip.stride + x] = a;
+	uint8_t a = hb_raster_div255 (mask_row[x] * old_row[x]);
+	out_row[x] = a;
 	if (a)
 	{
 	  new_clip.min_x = hb_min (new_clip.min_x, x);
