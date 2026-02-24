@@ -199,6 +199,8 @@ struct vector_output_t : output_options_t<>
         infos[i].codepoint,
         scale_to_upem_x (pen_x + positions[i].x_offset),
         scale_to_upem_y (pen_y + positions[i].y_offset),
+        scale_to_upem_x (positions[i].x_advance),
+        scale_to_upem_y (positions[i].y_advance),
       });
 
       pen_x += positions[i].x_advance;
@@ -269,6 +271,9 @@ struct vector_output_t : output_options_t<>
           continue;
         }
 
+        if (g.gid == 1 && g.ax == 0.f && g.ay == 0.f)
+          continue;
+
         if (hb_vector_draw_glyph (draw, upem_font, g.gid, pen_x, pen_y,
                                   extents_mode))
           had_draw = true;
@@ -305,6 +310,8 @@ struct vector_output_t : output_options_t<>
     hb_codepoint_t gid;
     float x;
     float y;
+    float ax;
+    float ay;
   };
 
   struct line_t
