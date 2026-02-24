@@ -181,22 +181,44 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   new_clip.min_x = w; new_clip.min_y = h;
   new_clip.max_x = 0; new_clip.max_y = 0;
 
-  for (unsigned y = old_clip.min_y; y < old_clip.max_y; y++)
-    for (unsigned x = old_clip.min_x; x < old_clip.max_x; x++)
-    {
-      uint8_t glyph_alpha = (x < mask_ext.width && y < mask_ext.height)
-			    ? mask_buf[y * mask_ext.stride + x] : 0;
-      uint8_t old_alpha = old_clip.get_alpha (x, y);
-      uint8_t a = hb_raster_div255 (glyph_alpha * old_alpha);
-      new_clip.alpha[y * new_clip.stride + x] = a;
-      if (a)
+  if (old_clip.is_rect)
+  {
+    for (unsigned y = old_clip.min_y; y < old_clip.max_y; y++)
+      for (unsigned x = old_clip.min_x; x < old_clip.max_x; x++)
       {
-	new_clip.min_x = hb_min (new_clip.min_x, x);
-	new_clip.min_y = hb_min (new_clip.min_y, y);
-	new_clip.max_x = hb_max (new_clip.max_x, x + 1);
-	new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+	uint8_t a = (x < mask_ext.width && y < mask_ext.height)
+		    ? mask_buf[y * mask_ext.stride + x] : 0;
+	new_clip.alpha[y * new_clip.stride + x] = a;
+	if (a)
+	{
+	  new_clip.min_x = hb_min (new_clip.min_x, x);
+	  new_clip.min_y = hb_min (new_clip.min_y, y);
+	  new_clip.max_x = hb_max (new_clip.max_x, x + 1);
+	  new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+	}
+      }
+  }
+  else
+  {
+    for (unsigned y = old_clip.min_y; y < old_clip.max_y; y++)
+    {
+      const uint8_t *old_row = old_clip.alpha.arrayZ + y * old_clip.stride;
+      for (unsigned x = old_clip.min_x; x < old_clip.max_x; x++)
+      {
+	uint8_t glyph_alpha = (x < mask_ext.width && y < mask_ext.height)
+			      ? mask_buf[y * mask_ext.stride + x] : 0;
+	uint8_t a = hb_raster_div255 (glyph_alpha * old_row[x]);
+	new_clip.alpha[y * new_clip.stride + x] = a;
+	if (a)
+	{
+	  new_clip.min_x = hb_min (new_clip.min_x, x);
+	  new_clip.min_y = hb_min (new_clip.min_y, y);
+	  new_clip.max_x = hb_max (new_clip.max_x, x + 1);
+	  new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+	}
       }
     }
+  }
 
   hb_raster_draw_recycle_image (rdr, mask_img);
   c->clip_stack.push (new_clip);
@@ -317,31 +339,59 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
       ed[i] = enx[i] * qx[i] + eny[i] * qy[i]; /* distance threshold */
     }
 
-    for (unsigned y = iy0; y < iy1; y++)
-      for (unsigned x = ix0; x < ix1; x++)
-      {
-	float px_f = x + 0.5f, py_f = y + 0.5f;
-	/* Test if pixel center is inside the quad */
-	bool inside = true;
-	for (unsigned i = 0; i < 4; i++)
-	  if (enx[i] * px_f + eny[i] * py_f < ed[i])
-	  {
-	    inside = false;
-	    break;
-	  }
-	uint8_t rect_alpha = inside ? 255 : 0;
-	uint8_t a = old_clip.is_rect
-		  ? (rect_alpha ? old_clip.get_alpha (x, y) : 0)
-		  : hb_raster_div255 ((unsigned) rect_alpha * old_clip.get_alpha (x, y));
-	new_clip.alpha[y * new_clip.stride + x] = a;
-	if (a)
+    if (old_clip.is_rect)
+    {
+      for (unsigned y = iy0; y < iy1; y++)
+	for (unsigned x = ix0; x < ix1; x++)
 	{
-	  new_clip.min_x = hb_min (new_clip.min_x, x);
-	  new_clip.min_y = hb_min (new_clip.min_y, y);
-	  new_clip.max_x = hb_max (new_clip.max_x, x + 1);
-	  new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+	  float px_f = x + 0.5f, py_f = y + 0.5f;
+	  /* Test if pixel center is inside the quad */
+	  bool inside = true;
+	  for (unsigned i = 0; i < 4; i++)
+	    if (enx[i] * px_f + eny[i] * py_f < ed[i])
+	    {
+	      inside = false;
+	      break;
+	    }
+	  uint8_t a = inside ? 255 : 0;
+	  new_clip.alpha[y * new_clip.stride + x] = a;
+	  if (a)
+	  {
+	    new_clip.min_x = hb_min (new_clip.min_x, x);
+	    new_clip.min_y = hb_min (new_clip.min_y, y);
+	    new_clip.max_x = hb_max (new_clip.max_x, x + 1);
+	    new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+	  }
+	}
+    }
+    else
+    {
+      for (unsigned y = iy0; y < iy1; y++)
+      {
+	const uint8_t *old_row = old_clip.alpha.arrayZ + y * old_clip.stride;
+	for (unsigned x = ix0; x < ix1; x++)
+	{
+	  float px_f = x + 0.5f, py_f = y + 0.5f;
+	  /* Test if pixel center is inside the quad */
+	  bool inside = true;
+	  for (unsigned i = 0; i < 4; i++)
+	    if (enx[i] * px_f + eny[i] * py_f < ed[i])
+	    {
+	      inside = false;
+	      break;
+	    }
+	  uint8_t a = inside ? old_row[x] : 0;
+	  new_clip.alpha[y * new_clip.stride + x] = a;
+	  if (a)
+	  {
+	    new_clip.min_x = hb_min (new_clip.min_x, x);
+	    new_clip.min_y = hb_min (new_clip.min_y, y);
+	    new_clip.max_x = hb_max (new_clip.max_x, x + 1);
+	    new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+	  }
 	}
       }
+    }
   }
 
   c->clip_stack.push (new_clip);
@@ -418,15 +468,28 @@ hb_raster_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   unsigned stride = surf->extents.stride;
 
-  for (unsigned y = clip.min_y; y < clip.max_y; y++)
+  if (clip.is_rect)
   {
-    uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + y * stride);
-    for (unsigned x = clip.min_x; x < clip.max_x; x++)
+    for (unsigned y = clip.min_y; y < clip.max_y; y++)
     {
-      uint8_t clip_alpha = clip.get_alpha (x, y);
-      if (clip_alpha == 0) continue;
-      uint32_t src = hb_raster_alpha_mul (premul, clip_alpha);
-      row[x] = hb_raster_src_over (src, row[x]);
+      uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + y * stride);
+      for (unsigned x = clip.min_x; x < clip.max_x; x++)
+	row[x] = hb_raster_src_over (premul, row[x]);
+    }
+  }
+  else
+  {
+    for (unsigned y = clip.min_y; y < clip.max_y; y++)
+    {
+      uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + y * stride);
+      const uint8_t *clip_row = clip.alpha.arrayZ + y * clip.stride;
+      for (unsigned x = clip.min_x; x < clip.max_x; x++)
+      {
+	uint8_t clip_alpha = clip_row[x];
+	if (clip_alpha == 0) continue;
+	uint32_t src = hb_raster_alpha_mul (premul, clip_alpha);
+	row[x] = hb_raster_src_over (src, row[x]);
+      }
     }
   }
 }
@@ -482,28 +545,55 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   float img_sx = (float) extents->width / width;
   float img_sy = (float) -extents->height / height; /* flip Y */
 
-  for (unsigned py = clip.min_y; py < clip.max_y; py++)
+  if (clip.is_rect)
   {
-    uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * surf_stride);
-    for (unsigned px = clip.min_x; px < clip.max_x; px++)
+    for (unsigned py = clip.min_y; py < clip.max_y; py++)
     {
-      uint8_t clip_alpha = clip.get_alpha (px, py);
-      if (clip_alpha == 0) continue;
+      uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * surf_stride);
+      for (unsigned px = clip.min_x; px < clip.max_x; px++)
+      {
+	/* Map pixel to glyph space */
+	float gx = inv_xx * (px + ox) + inv_xy * (py + oy) + inv_x0;
+	float gy = inv_yx * (px + ox) + inv_yy * (py + oy) + inv_y0;
 
-      /* Map pixel to glyph space */
-      float gx = inv_xx * (px + ox) + inv_xy * (py + oy) + inv_x0;
-      float gy = inv_yx * (px + ox) + inv_yy * (py + oy) + inv_y0;
+	/* Map glyph space to image texel */
+	int ix = (int) floorf ((gx - img_x) / img_sx);
+	int iy = (int) floorf ((gy - img_y) / img_sy);
 
-      /* Map glyph space to image texel */
-      int ix = (int) floorf ((gx - img_x) / img_sx);
-      int iy = (int) floorf ((gy - img_y) / img_sy);
+	if (ix < 0 || ix >= (int) width || iy < 0 || iy >= (int) height)
+	  continue;
 
-      if (ix < 0 || ix >= (int) width || iy < 0 || iy >= (int) height)
-	continue;
+	uint32_t src_px = reinterpret_cast<const uint32_t *> (data)[iy * width + ix];
+	row[px] = hb_raster_src_over (src_px, row[px]);
+      }
+    }
+  }
+  else
+  {
+    for (unsigned py = clip.min_y; py < clip.max_y; py++)
+    {
+      uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * surf_stride);
+      const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
+      for (unsigned px = clip.min_x; px < clip.max_x; px++)
+      {
+	uint8_t clip_alpha = clip_row[px];
+	if (clip_alpha == 0) continue;
 
-      uint32_t src_px = reinterpret_cast<const uint32_t *> (data)[iy * width + ix];
-      src_px = hb_raster_alpha_mul (src_px, clip_alpha);
-      row[px] = hb_raster_src_over (src_px, row[px]);
+	/* Map pixel to glyph space */
+	float gx = inv_xx * (px + ox) + inv_xy * (py + oy) + inv_x0;
+	float gy = inv_yx * (px + ox) + inv_yy * (py + oy) + inv_y0;
+
+	/* Map glyph space to image texel */
+	int ix = (int) floorf ((gx - img_x) / img_sx);
+	int iy = (int) floorf ((gy - img_y) / img_sy);
+
+	if (ix < 0 || ix >= (int) width || iy < 0 || iy >= (int) height)
+	  continue;
+
+	uint32_t src_px = reinterpret_cast<const uint32_t *> (data)[iy * width + ix];
+	src_px = hb_raster_alpha_mul (src_px, clip_alpha);
+	row[px] = hb_raster_src_over (src_px, row[px]);
+      }
     }
   }
 
@@ -727,24 +817,47 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     int ox = surf->extents.x_origin;
     int oy = surf->extents.y_origin;
 
-    for (unsigned py = clip.min_y; py < clip.max_y; py++)
+    if (clip.is_rect)
     {
-      uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
-      for (unsigned px = clip.min_x; px < clip.max_x; px++)
+      for (unsigned py = clip.min_y; py < clip.max_y; py++)
       {
-	uint8_t clip_alpha = clip.get_alpha (px, py);
-	if (clip_alpha == 0) continue;
+	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
+	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	{
+	  /* Pixel center -> glyph space */
+	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 
-	/* Pixel center -> glyph space */
-	float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
-	float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
+	  /* Project onto gradient axis: t = dot(p - p0, dir) / dot(dir, dir) */
+	  float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
 
-	/* Project onto gradient axis: t = dot(p - p0, dir) / dot(dir, dir) */
-	float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
+	  uint32_t src = evaluate_color_line (stops, len, proj_t, extend);
+	  row[px] = hb_raster_src_over (src, row[px]);
+	}
+      }
+    }
+    else
+    {
+      for (unsigned py = clip.min_y; py < clip.max_y; py++)
+      {
+	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
+	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
+	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	{
+	  uint8_t clip_alpha = clip_row[px];
+	  if (clip_alpha == 0) continue;
 
-	uint32_t src = evaluate_color_line (stops, len, proj_t, extend);
-	src = hb_raster_alpha_mul (src, clip_alpha);
-	row[px] = hb_raster_src_over (src, row[px]);
+	  /* Pixel center -> glyph space */
+	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
+
+	  /* Project onto gradient axis: t = dot(p - p0, dir) / dot(dir, dir) */
+	  float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
+
+	  uint32_t src = evaluate_color_line (stops, len, proj_t, extend);
+	  src = hb_raster_alpha_mul (src, clip_alpha);
+	  row[px] = hb_raster_src_over (src, row[px]);
+	}
       }
     }
   }
@@ -820,46 +933,91 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     int ox = surf->extents.x_origin;
     int oy = surf->extents.y_origin;
 
-    for (unsigned py = clip.min_y; py < clip.max_y; py++)
+    if (clip.is_rect)
     {
-      uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
-      for (unsigned px = clip.min_x; px < clip.max_x; px++)
+      for (unsigned py = clip.min_y; py < clip.max_y; py++)
       {
-	uint8_t clip_alpha = clip.get_alpha (px, py);
-	if (clip_alpha == 0) continue;
-
-	float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
-	float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-
-	float dpx = gx - cx0, dpy = gy - cy0;
-	float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
-	float C = dpx * dpx + dpy * dpy - cr0 * cr0;
-
-	float grad_t;
-	if (fabsf (A) > 1e-10f)
+	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
+	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
-	  float disc = B * B - 4.f * A * C;
-	  if (disc < 0.f) continue;
-	  float sq = sqrtf (disc);
-	  /* Pick the larger root (t closer to 1 = outer circle) */
-	  float t1 = (-B + sq) / (2.f * A);
-	  float t2 = (-B - sq) / (2.f * A);
-	  /* Choose the root that gives a positive radius */
-	  if (cr0 + t1 * dr >= 0.f)
-	    grad_t = t1;
+	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
+
+	  float dpx = gx - cx0, dpy = gy - cy0;
+	  float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
+	  float C = dpx * dpx + dpy * dpy - cr0 * cr0;
+
+	  float grad_t;
+	  if (fabsf (A) > 1e-10f)
+	  {
+	    float disc = B * B - 4.f * A * C;
+	    if (disc < 0.f) continue;
+	    float sq = sqrtf (disc);
+	    /* Pick the larger root (t closer to 1 = outer circle) */
+	    float t1 = (-B + sq) / (2.f * A);
+	    float t2 = (-B - sq) / (2.f * A);
+	    /* Choose the root that gives a positive radius */
+	    if (cr0 + t1 * dr >= 0.f)
+	      grad_t = t1;
+	    else
+	      grad_t = t2;
+	  }
 	  else
-	    grad_t = t2;
-	}
-	else
-	{
-	  /* Linear case: Bt + C = 0 */
-	  if (fabsf (B) < 1e-10f) continue;
-	  grad_t = -C / B;
-	}
+	  {
+	    /* Linear case: Bt + C = 0 */
+	    if (fabsf (B) < 1e-10f) continue;
+	    grad_t = -C / B;
+	  }
 
-	uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
-	src = hb_raster_alpha_mul (src, clip_alpha);
-	row[px] = hb_raster_src_over (src, row[px]);
+	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+	  row[px] = hb_raster_src_over (src, row[px]);
+	}
+      }
+    }
+    else
+    {
+      for (unsigned py = clip.min_y; py < clip.max_y; py++)
+      {
+	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
+	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
+	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	{
+	  uint8_t clip_alpha = clip_row[px];
+	  if (clip_alpha == 0) continue;
+
+	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
+
+	  float dpx = gx - cx0, dpy = gy - cy0;
+	  float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
+	  float C = dpx * dpx + dpy * dpy - cr0 * cr0;
+
+	  float grad_t;
+	  if (fabsf (A) > 1e-10f)
+	  {
+	    float disc = B * B - 4.f * A * C;
+	    if (disc < 0.f) continue;
+	    float sq = sqrtf (disc);
+	    /* Pick the larger root (t closer to 1 = outer circle) */
+	    float t1 = (-B + sq) / (2.f * A);
+	    float t2 = (-B - sq) / (2.f * A);
+	    /* Choose the root that gives a positive radius */
+	    if (cr0 + t1 * dr >= 0.f)
+	      grad_t = t1;
+	    else
+	      grad_t = t2;
+	  }
+	  else
+	  {
+	    /* Linear case: Bt + C = 0 */
+	    if (fabsf (B) < 1e-10f) continue;
+	    grad_t = -C / B;
+	  }
+
+	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+	  src = hb_raster_alpha_mul (src, clip_alpha);
+	  row[px] = hb_raster_src_over (src, row[px]);
+	}
       }
     }
   }
@@ -922,26 +1080,51 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     int ox = surf->extents.x_origin;
     int oy = surf->extents.y_origin;
 
-    for (unsigned py = clip.min_y; py < clip.max_y; py++)
+    if (clip.is_rect)
     {
-      uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
-      for (unsigned px = clip.min_x; px < clip.max_x; px++)
+      for (unsigned py = clip.min_y; py < clip.max_y; py++)
       {
-	uint8_t clip_alpha = clip.get_alpha (px, py);
-	if (clip_alpha == 0) continue;
+	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
+	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	{
+	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 
-	float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
-	float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
+	  float angle = atan2f (gy - cy, gx - cx);
+	  /* Normalize to [0, 2*pi) — matches OT spec seam at angle 0. */
+	  if (angle < 0) angle += (float) HB_2_PI;
 
-	float angle = atan2f (gy - cy, gx - cx);
-	/* Normalize to [0, 2*pi) — matches OT spec seam at angle 0. */
-	if (angle < 0) angle += (float) HB_2_PI;
+	  float grad_t = (angle - a0) * inv_angle_range;
 
-	float grad_t = (angle - a0) * inv_angle_range;
+	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+	  row[px] = hb_raster_src_over (src, row[px]);
+	}
+      }
+    }
+    else
+    {
+      for (unsigned py = clip.min_y; py < clip.max_y; py++)
+      {
+	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
+	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
+	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	{
+	  uint8_t clip_alpha = clip_row[px];
+	  if (clip_alpha == 0) continue;
 
-	uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
-	src = hb_raster_alpha_mul (src, clip_alpha);
-	row[px] = hb_raster_src_over (src, row[px]);
+	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
+
+	  float angle = atan2f (gy - cy, gx - cx);
+	  /* Normalize to [0, 2*pi) — matches OT spec seam at angle 0. */
+	  if (angle < 0) angle += (float) HB_2_PI;
+
+	  float grad_t = (angle - a0) * inv_angle_range;
+
+	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+	  src = hb_raster_alpha_mul (src, clip_alpha);
+	  row[px] = hb_raster_src_over (src, row[px]);
+	}
       }
     }
   }
