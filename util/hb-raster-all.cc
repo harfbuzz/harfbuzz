@@ -24,7 +24,7 @@
  * Author(s): Behdad Esfahbod
  */
 
-#include <hb.h>
+#include "hb.hh"
 #include <hb-ot.h>
 #include "hb-raster.h"
 
@@ -63,7 +63,7 @@ write_ppm (hb_raster_image_t *img, const char *dir, unsigned gid)
       else /* BGRA32 — composite over white */
       {
 	uint32_t px;
-	memcpy (&px, src + x * 4, 4);
+	hb_memcpy (&px, src + x * 4, 4);
 	uint8_t b = (uint8_t) (px & 0xFF);
 	uint8_t g = (uint8_t) ((px >> 8) & 0xFF);
 	uint8_t r = (uint8_t) ((px >> 16) & 0xFF);
@@ -143,8 +143,8 @@ main (int argc, char **argv)
   bool has_color = hb_ot_color_has_paint (face) ||
 		   hb_ot_color_has_layers (face);
 
-  hb_raster_draw_t  *rdr = hb_raster_draw_create ();
-  hb_raster_paint_t *pnt = has_color ? hb_raster_paint_create () : nullptr;
+  hb_raster_draw_t  *rdr = hb_raster_draw_create_or_fail ();
+  hb_raster_paint_t *pnt = has_color ? hb_raster_paint_create_or_fail () : nullptr;
   unsigned glyph_count = hb_face_get_glyph_count (face);
 
   for (unsigned gid = 0; gid < glyph_count; gid++)

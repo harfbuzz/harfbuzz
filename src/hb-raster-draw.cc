@@ -26,7 +26,7 @@
 
 #include "hb.hh"
 
-#include "hb-raster.hh"
+#include "hb-raster-image.hh"
 #include "hb-geometry.hh"
 #include "hb-machinery.hh"
 
@@ -65,8 +65,9 @@ struct hb_raster_draw_t
   hb_object_header_t header;
 
   /* Configuration */
-  hb_raster_format_t  format            = HB_RASTER_FORMAT_A8;
   hb_transform_t<>    transform         = {1, 0, 0, 1, 0, 0};
+  float               x_scale_factor    = 1.f;
+  float               y_scale_factor    = 1.f;
   hb_raster_extents_t fixed_extents     = {};
   bool                has_fixed_extents = false;
 
@@ -83,28 +84,37 @@ struct hb_raster_draw_t
   hb_raster_image_t *recycled_image = nullptr;
 };
 
+static HB_ALWAYS_INLINE void
+hb_raster_draw_transform_point (const hb_raster_draw_t *draw,
+				float x, float y,
+				float &tx, float &ty)
+{
+  tx = x; ty = y;
+  draw->transform.transform_point (tx, ty);
+  tx /= draw->x_scale_factor;
+  ty /= draw->y_scale_factor;
+}
+
 
 /* hb_raster_draw_t */
 
 /**
- * hb_raster_draw_create:
+ * hb_raster_draw_create_or_fail:
  *
  * Creates a new rasterizer object.
  *
  * Return value: (transfer full):
  * A newly allocated #hb_raster_draw_t with a reference count of 1. The
  * initial reference count should be released with hb_raster_draw_destroy()
- * when you are done using the #hb_raster_draw_t. This function never
- * returns `NULL`. If memory cannot be allocated, a special singleton
- * #hb_raster_draw_t object will be returned.
+ * when you are done using the #hb_raster_draw_t, or `NULL` on
+ * allocation failure.
  *
  * XSince: REPLACEME
  **/
 hb_raster_draw_t *
-hb_raster_draw_create (void)
+hb_raster_draw_create_or_fail (void)
 {
   hb_raster_draw_t *draw = hb_object_create<hb_raster_draw_t> ();
-  if (unlikely (!draw)) return nullptr;
   return draw;
 }
 
@@ -190,42 +200,6 @@ hb_raster_draw_get_user_data (hb_raster_draw_t   *draw,
 }
 
 /**
- * hb_raster_draw_set_format:
- * @draw: a rasterizer
- * @format: the pixel format to use
- *
- * Sets the output pixel format for subsequent renders.
- * The default is @HB_RASTER_FORMAT_A8.
- *
- * XSince: REPLACEME
- **/
-void
-hb_raster_draw_set_format (hb_raster_draw_t  *draw,
-			   hb_raster_format_t format)
-{
-  if (unlikely (!draw)) return;
-  draw->format = format;
-}
-
-/**
- * hb_raster_draw_get_format:
- * @draw: a rasterizer
- *
- * Fetches the output pixel format of the rasterizer.
- *
- * Return value:
- * The #hb_raster_format_t of the rasterizer
- *
- * XSince: REPLACEME
- **/
-hb_raster_format_t
-hb_raster_draw_get_format (hb_raster_draw_t *draw)
-{
-  if (unlikely (!draw)) return HB_RASTER_FORMAT_A8;
-  return draw->format;
-}
-
-/**
  * hb_raster_draw_set_transform:
  * @draw: a rasterizer
  * @xx: xx component of the transform matrix
@@ -246,8 +220,46 @@ hb_raster_draw_set_transform (hb_raster_draw_t *draw,
 			      float xy, float yy,
 			      float dx, float dy)
 {
-  if (unlikely (!draw)) return;
   draw->transform = {xx, yx, xy, yy, dx, dy};
+}
+
+/**
+ * hb_raster_draw_set_scale_factor:
+ * @draw: a rasterizer
+ * @x_scale_factor: x-axis minification factor
+ * @y_scale_factor: y-axis minification factor
+ *
+ * Sets post-transform minification factors applied during rasterization.
+ * Factors larger than 1 shrink the output in pixels. The default is 1.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_draw_set_scale_factor (hb_raster_draw_t *draw,
+				 float x_scale_factor,
+				 float y_scale_factor)
+{
+  draw->x_scale_factor = x_scale_factor > 0.f ? x_scale_factor : 1.f;
+  draw->y_scale_factor = y_scale_factor > 0.f ? y_scale_factor : 1.f;
+}
+
+/**
+ * hb_raster_draw_get_scale_factor:
+ * @draw: a rasterizer
+ * @x_scale_factor: (out) (optional): x-axis minification factor
+ * @y_scale_factor: (out) (optional): y-axis minification factor
+ *
+ * Fetches the current post-transform minification factors.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_draw_get_scale_factor (hb_raster_draw_t *draw,
+				 float *x_scale_factor,
+				 float *y_scale_factor)
+{
+  if (x_scale_factor) *x_scale_factor = draw->x_scale_factor;
+  if (y_scale_factor) *y_scale_factor = draw->y_scale_factor;
 }
 
 /**
@@ -270,7 +282,6 @@ hb_raster_draw_get_transform (hb_raster_draw_t *draw,
 			      float *xy, float *yy,
 			      float *dx, float *dy)
 {
-  if (unlikely (!draw)) return;
   if (xx) *xx = draw->transform.xx;
   if (yx) *yx = draw->transform.yx;
   if (xy) *xy = draw->transform.xy;
@@ -294,7 +305,6 @@ void
 hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 			    const hb_raster_extents_t *extents)
 {
-  if (unlikely (!draw || !extents)) return;
   draw->fixed_extents     = *extents;
   draw->has_fixed_extents = true;
 }
@@ -319,9 +329,6 @@ hb_bool_t
 hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
 				  const hb_glyph_extents_t *glyph_extents)
 {
-  if (unlikely (!draw || !glyph_extents))
-    return false;
-
   float x0 = (float) glyph_extents->x_bearing;
   float y0 = (float) glyph_extents->y_bearing;
   float x1 = (float) glyph_extents->x_bearing + glyph_extents->width;
@@ -336,18 +343,17 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
   float py[4] = {ymin, ymax, ymin, ymax};
 
   float tx, ty;
-  draw->transform.transform_point (px[0], py[0]);
-  tx = px[0]; ty = py[0];
+  hb_raster_draw_transform_point (draw, px[0], py[0], tx, ty);
   float tx_min = tx, tx_max = tx;
   float ty_min = ty, ty_max = ty;
 
   for (unsigned i = 1; i < 4; i++)
   {
-    draw->transform.transform_point (px[i], py[i]);
-    tx_min = hb_min (tx_min, px[i]);
-    tx_max = hb_max (tx_max, px[i]);
-    ty_min = hb_min (ty_min, py[i]);
-    ty_max = hb_max (ty_max, py[i]);
+    hb_raster_draw_transform_point (draw, px[i], py[i], tx, ty);
+    tx_min = hb_min (tx_min, tx);
+    tx_max = hb_max (tx_max, tx);
+    ty_min = hb_min (ty_min, ty);
+    ty_max = hb_max (ty_max, ty);
   }
 
   int ex0 = (int) floorf (tx_min);
@@ -385,9 +391,9 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
 void
 hb_raster_draw_reset (hb_raster_draw_t *draw)
 {
-  if (unlikely (!draw)) return;
-  draw->format            = HB_RASTER_FORMAT_A8;
   draw->transform         = {1, 0, 0, 1, 0, 0};
+  draw->x_scale_factor    = 1.f;
+  draw->y_scale_factor    = 1.f;
   draw->fixed_extents     = {};
   draw->has_fixed_extents = false;
   draw->edges.resize (0);
@@ -417,7 +423,6 @@ void
 hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
 			      hb_raster_image_t *image)
 {
-  if (unlikely (!draw || !image)) return;
   hb_raster_image_destroy (draw->recycled_image);
   draw->recycled_image = image;
 }
@@ -432,8 +437,7 @@ transform_point (const hb_raster_draw_t *draw,
 		 float  x,  float  y,
 		 float &tx, float &ty)
 {
-  tx = x; ty = y;
-  draw->transform.transform_point (tx, ty);
+  hb_raster_draw_transform_point (draw, x, y, tx, ty);
 }
 
 static void
@@ -459,7 +463,7 @@ emit_segment (hb_raster_draw_t *draw,
   draw->edges.push (e);
 }
 
-/* Quadratic Bézier flattener — de Casteljau recursive at t=0.5 */
+/* Quadratic Bézier flattener — iterative de Casteljau at t=0.5. */
 static inline void
 flatten_quadratic_recursive (hb_raster_draw_t *draw,
 			     float x0, float y0,
@@ -467,41 +471,63 @@ flatten_quadratic_recursive (hb_raster_draw_t *draw,
 			     float x2, float y2,
 			     int depth = 0)
 {
-  bool is_flat;
-  if (false)
+  struct quad_node_t
   {
-    /* Old behavior: midpoint deviation from chord midpoint. */
-    float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
-    float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
-    float chord_mx = (x0 + x2) * 0.5f;
-    float chord_my = (y0 + y2) * 0.5f;
-    float dx = mx - chord_mx;
-    float dy = my - chord_my;
-    static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
-    is_flat = (dx * dx + dy * dy) <= flat_thresh;
-  }
-  else
+    float x0, y0, x1, y1, x2, y2;
+    int depth;
+  };
+
+  quad_node_t stack[16];
+  unsigned top = 0;
+
+  while (true)
   {
-    /* FreeType behavior: control-point deviation from chord center. */
-    const float flat_thresh = 0.25f;
-    float dx = x0 + x2 - 2.f * x1;
-    float dy = y0 + y2 - 2.f * y1;
-    if (dx < 0) dx = -dx;
-    if (dy < 0) dy = -dy;
-    is_flat = dx <= flat_thresh && dy <= flat_thresh;
+    bool is_flat;
+    if (false)
+    {
+      /* Old behavior: midpoint deviation from chord midpoint. */
+      float mx = x0 * 0.25f + x1 * 0.5f + x2 * 0.25f;
+      float my = y0 * 0.25f + y1 * 0.5f + y2 * 0.25f;
+      float chord_mx = (x0 + x2) * 0.5f;
+      float chord_my = (y0 + y2) * 0.5f;
+      float dx = mx - chord_mx;
+      float dy = my - chord_my;
+      static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+      is_flat = (dx * dx + dy * dy) <= flat_thresh;
+    }
+    else
+    {
+      /* FreeType behavior: control-point deviation from chord center. */
+      const float flat_thresh = 0.25f;
+      float dx = x0 + x2 - 2.f * x1;
+      float dy = y0 + y2 - 2.f * y1;
+      if (dx < 0) dx = -dx;
+      if (dy < 0) dy = -dy;
+      is_flat = dx <= flat_thresh && dy <= flat_thresh;
+    }
+
+    if (depth >= 16 || is_flat)
+    {
+      emit_segment (draw, x0, y0, x2, y2);
+      if (!top) return;
+      const quad_node_t &n = stack[--top];
+      x0 = n.x0; y0 = n.y0;
+      x1 = n.x1; y1 = n.y1;
+      x2 = n.x2; y2 = n.y2;
+      depth = n.depth;
+      continue;
+    }
+
+    float x01 = (x0 + x1) * 0.5f, y01 = (y0 + y1) * 0.5f;
+    float x12 = (x1 + x2) * 0.5f, y12 = (y1 + y2) * 0.5f;
+    float xm  = (x01 + x12) * 0.5f, ym  = (y01 + y12) * 0.5f;
+
+    /* Depth is capped at 16, so stack capacity 16 is sufficient. */
+    stack[top++] = {xm, ym, x12, y12, x2, y2, depth + 1};
+    x2 = xm; y2 = ym;
+    x1 = x01; y1 = y01;
+    depth++;
   }
-
-  if (depth >= 16 || is_flat) {
-    emit_segment (draw, x0, y0, x2, y2);
-    return;
-  }
-
-  float x01 = (x0 + x1) * 0.5f, y01 = (y0 + y1) * 0.5f;
-  float x12 = (x1 + x2) * 0.5f, y12 = (y1 + y2) * 0.5f;
-  float xm  = (x01 + x12) * 0.5f, ym  = (y01 + y12) * 0.5f;
-
-  flatten_quadratic_recursive (draw, x0, y0, x01, y01, xm,  ym,  depth + 1);
-  flatten_quadratic_recursive (draw, xm, ym, x12, y12, x2,  y2,  depth + 1);
 }
 
 /* Quadratic Bézier flattener using forward differencing.
@@ -602,7 +628,7 @@ cubic_chord_error_bound2 (float x0, float y0,
   return m * (9.f / 16.f);
 }
 
-/* Cubic Bézier flattener — de Casteljau recursive at t=0.5 */
+/* Cubic Bézier flattener — iterative de Casteljau at t=0.5. */
 static inline void
 flatten_cubic_recursive (hb_raster_draw_t *draw,
 			 float x0, float y0,
@@ -611,50 +637,73 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
 			 float x3, float y3,
 			 int depth = 0)
 {
-  bool is_flat;
-  if (false)
+  struct cubic_node_t
   {
-    /* Old behavior: curvature/chord-error bound. */
-    float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
-    static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
-    is_flat = err2 <= flat_thresh;
-  }
-  else
+    float x0, y0, x1, y1, x2, y2, x3, y3;
+    int depth;
+  };
+
+  cubic_node_t stack[16];
+  unsigned top = 0;
+
+  while (true)
   {
-    /* FreeType behavior: chord-trisection distance test. */
-    const float flat_thresh = 0.5f;
+    bool is_flat;
+    if (false)
+    {
+      /* Old behavior: curvature/chord-error bound. */
+      float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
+      static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+      is_flat = err2 <= flat_thresh;
+    }
+    else
+    {
+      /* FreeType behavior: chord-trisection distance test. */
+      const float flat_thresh = 0.5f;
 
-    float d10x = 2.f * x0 - 3.f * x1 + x3;
-    float d10y = 2.f * y0 - 3.f * y1 + y3;
-    float d20x = x0 - 3.f * x2 + 2.f * x3;
-    float d20y = y0 - 3.f * y2 + 2.f * y3;
+      float d10x = 2.f * x0 - 3.f * x1 + x3;
+      float d10y = 2.f * y0 - 3.f * y1 + y3;
+      float d20x = x0 - 3.f * x2 + 2.f * x3;
+      float d20y = y0 - 3.f * y2 + 2.f * y3;
 
-    if (d10x < 0) d10x = -d10x;
-    if (d10y < 0) d10y = -d10y;
-    if (d20x < 0) d20x = -d20x;
-    if (d20y < 0) d20y = -d20y;
+      if (d10x < 0) d10x = -d10x;
+      if (d10y < 0) d10y = -d10y;
+      if (d20x < 0) d20x = -d20x;
+      if (d20y < 0) d20y = -d20y;
 
-    is_flat = d10x <= flat_thresh &&
-              d10y <= flat_thresh &&
-              d20x <= flat_thresh &&
-              d20y <= flat_thresh;
+      is_flat = d10x <= flat_thresh &&
+                d10y <= flat_thresh &&
+                d20x <= flat_thresh &&
+                d20y <= flat_thresh;
+    }
+
+    if (depth >= 16 || is_flat)
+    {
+      emit_segment (draw, x0, y0, x3, y3);
+      if (!top) return;
+      const cubic_node_t &n = stack[--top];
+      x0 = n.x0; y0 = n.y0;
+      x1 = n.x1; y1 = n.y1;
+      x2 = n.x2; y2 = n.y2;
+      x3 = n.x3; y3 = n.y3;
+      depth = n.depth;
+      continue;
+    }
+
+    float x01  = (x0 + x1) * 0.5f, y01  = (y0 + y1) * 0.5f;
+    float x12  = (x1 + x2) * 0.5f, y12  = (y1 + y2) * 0.5f;
+    float x23  = (x2 + x3) * 0.5f, y23  = (y2 + y3) * 0.5f;
+    float x012 = (x01 + x12) * 0.5f, y012 = (y01 + y12) * 0.5f;
+    float x123 = (x12 + x23) * 0.5f, y123 = (y12 + y23) * 0.5f;
+    float xm   = (x012 + x123) * 0.5f, ym   = (y012 + y123) * 0.5f;
+
+    /* Depth is capped at 16, so stack capacity 16 is sufficient. */
+    stack[top++] = {xm, ym, x123, y123, x23, y23, x3, y3, depth + 1};
+    x3 = xm; y3 = ym;
+    x2 = x012; y2 = y012;
+    x1 = x01; y1 = y01;
+    depth++;
   }
-
-  if (depth >= 16 || is_flat)
-  {
-    emit_segment (draw, x0, y0, x3, y3);
-    return;
-  }
-
-  float x01  = (x0 + x1) * 0.5f, y01  = (y0 + y1) * 0.5f;
-  float x12  = (x1 + x2) * 0.5f, y12  = (y1 + y2) * 0.5f;
-  float x23  = (x2 + x3) * 0.5f, y23  = (y2 + y3) * 0.5f;
-  float x012 = (x01 + x12) * 0.5f, y012 = (y01 + y12) * 0.5f;
-  float x123 = (x12 + x23) * 0.5f, y123 = (y12 + y23) * 0.5f;
-  float xm   = (x012 + x123) * 0.5f, ym   = (y012 + y123) * 0.5f;
-
-  flatten_cubic_recursive (draw, x0, y0, x01, y01, x012, y012, xm, ym, depth + 1);
-  flatten_cubic_recursive (draw, xm, ym, x123, y123, x23, y23, x3, y3, depth + 1);
 }
 
 /* Cubic Bézier flattener using forward differencing.
@@ -887,19 +936,21 @@ cell_add (int32_t *area, int16_t *cover, unsigned width, int col,
 	  int32_t fx0, int32_t fy0, int32_t fx1, int32_t fy1, int32_t wind,
 	  unsigned &x_min, unsigned &x_max)
 {
-  if (col < 0)
+  if (unlikely ((unsigned) col >= width))
   {
-    /* Edge is to the left of the surface.  The winding contribution
-     * still carries into the visible region, so add the cover delta
-     * to column 0.  Area is not added since the edge doesn't cross
-     * column 0's cell. */
-    int32_t dy = fy1 - fy0;
-    cover[0] += (int16_t) (dy * wind);
-    x_min = hb_min (x_min, 0u);
-    x_max = hb_max (x_max, 0u);
+    if (unlikely (col < 0))
+    {
+      /* Edge is to the left of the surface.  The winding contribution
+       * still carries into the visible region, so add the cover delta
+       * to column 0.  Area is not added since the edge doesn't cross
+       * column 0's cell. */
+      int32_t dy = fy1 - fy0;
+      cover[0] += (int16_t) (dy * wind);
+      x_min = hb_min (x_min, 0u);
+      x_max = hb_max (x_max, 0u);
+    }
     return;
   }
-  if ((unsigned) col >= width) return;
   int32_t dy = fy1 - fy0;
   area[col]  += (fx0 + fx1) * dy * wind;
   cover[col] += (int16_t) (dy * wind);
@@ -991,9 +1042,9 @@ edge_sweep_row (int32_t                *area,
 /* Convert cover-delta + area to alpha bytes, then clear.
    Returns final cover accumulator over [x_min, x_max]. */
 static int32_t
-sweep_row_to_alpha (uint8_t *row_buf,
-		    int32_t *area,
-		    int16_t *cover,
+sweep_row_to_alpha (uint8_t *__restrict row_buf,
+		    int32_t *__restrict area,
+		    int16_t *__restrict cover,
 		    unsigned x_min,
 		    unsigned x_max)
 {
@@ -1104,18 +1155,18 @@ sweep_row_to_alpha (uint8_t *row_buf,
  *
  * Rasterizes the accumulated outline geometry into a new
  * #hb_raster_image_t.  After rendering, the accumulated edges are
- * cleared so the rasterizer can be reused.
+ * cleared so the rasterizer can be reused. Output format is always
+ * @HB_RASTER_FORMAT_A8.
  *
  * Return value: (transfer full):
- * A newly allocated #hb_raster_image_t, or `NULL` on allocation failure
+ * A rendered #hb_raster_image_t. Returns `NULL` on allocation/configuration
+ * failure. If no geometry was accumulated, returns an empty image.
  *
  * XSince: REPLACEME
  **/
 hb_raster_image_t *
 hb_raster_draw_render (hb_raster_draw_t *draw)
 {
-  if (unlikely (!draw)) return nullptr;
-
   /* ── 1. Compute result extents ─────────────────────────────────── */
   hb_raster_extents_t ext;
 
@@ -1160,12 +1211,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
   /* ── 2. Compute stride ─────────────────────────────────────────── */
   if (ext.stride == 0)
-  {
-    if (draw->format == HB_RASTER_FORMAT_BGRA32)
-      ext.stride = ext.width * 4;
-    else
-      ext.stride = (ext.width + 3u) & ~3u;
-  }
+    ext.stride = (ext.width + 3u) & ~3u;
 
   /* ── 3. Allocate or reuse image ─────────────────────────────────── */
   hb_raster_image_t *image;
@@ -1176,35 +1222,26 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   }
   else
   {
-    image = hb_object_create<hb_raster_image_t> ();
-    if (unlikely (!image)) goto done;
+    image = hb_raster_image_create_or_fail ();
+    if (unlikely (!image)) goto fail;
   }
 
-  image->extents = ext;
-  image->format  = draw->format;
-
-  if (ext.width && ext.height)
+  if (unlikely (!image->configure (HB_RASTER_FORMAT_A8, ext)))
   {
-    size_t buf_size = (size_t) ext.stride * ext.height;
-    if (unlikely (!image->buffer.resize_dirty (buf_size)))
-    {
-      hb_raster_image_destroy (image);
-      image = nullptr;
-      goto done;
-    }
-    memset (image->buffer.arrayZ, 0, buf_size);
+    hb_raster_image_destroy (image);
+    image = nullptr;
+    goto fail;
   }
-  else
-    image->buffer.resize (0);
+  image->clear ();
 
   /* ── 4. Bucket edges by starting row and rasterize scanlines ──── */
   if (draw->edges.length && ext.width && ext.height)
   {
     if (unlikely (!draw->row_area.resize_dirty (ext.width) ||
 		  !draw->row_cover.resize_dirty (ext.width)))
-      goto done;
-    memset (draw->row_area.arrayZ,  0, ext.width * sizeof (int32_t));
-    memset (draw->row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
+      goto fail;
+    hb_memset (draw->row_area.arrayZ,  0, ext.width * sizeof (int32_t));
+    hb_memset (draw->row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
 
     /* Bucket edges by their starting pixel row.
        Only grow the outer vector; clear inner vectors without freeing. */
@@ -1212,7 +1249,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     if (ext.height > old_buckets)
     {
       if (unlikely (!draw->edge_buckets.resize (ext.height)))
-	goto done;
+	goto fail;
     }
     for (unsigned i = 0; i < hb_min (ext.height, old_buckets); i++)
       draw->edge_buckets.arrayZ[i].resize (0);
@@ -1268,7 +1305,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 	  uint8_t byte = (uint8_t) (((unsigned) alpha * 255 + HB_RASTER_FULL_COVERAGE / 2) >> (2 * HB_RASTER_PIXEL_BITS + 1));
 
 	  uint8_t *row_buf = image->buffer.arrayZ + row * ext.stride;
-	  memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
+	  hb_memset (row_buf + x_max + 1, byte, ext.width - 1 - x_max);
 	}
       }
     }
@@ -1281,4 +1318,9 @@ done:
   draw->fixed_extents     = {};
 
   return image;
+
+fail:
+  hb_raster_image_destroy (image);
+  image = nullptr;
+  goto done;
 }

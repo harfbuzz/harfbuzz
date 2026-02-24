@@ -960,6 +960,9 @@ void
 hb_buffer_set_content_type (hb_buffer_t              *buffer,
 			    hb_buffer_content_type_t  content_type)
 {
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return;
+
   buffer->content_type = content_type;
 }
 

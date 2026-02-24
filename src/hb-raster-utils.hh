@@ -28,40 +28,30 @@
 #define HB_RASTER_HH
 
 #include "hb.hh"
-#include "hb-raster.h"
-#include "hb-object.hh"
-#include "hb-vector.hh"
 
+/* Shared pixel helpers (used by paint and image compositing). */
 
-/* hb_raster_image_t — pixel artifact */
-struct hb_raster_image_t
-{
-  hb_object_header_t  header;
-
-  hb_vector_t<uint8_t> buffer;
-  hb_raster_extents_t  extents     = {};
-  hb_raster_format_t   format      = HB_RASTER_FORMAT_A8;
-};
-
-
-/*
- * Shared pixel helpers (used by both paint and image compositing)
- */
-
-static inline uint8_t
+static HB_ALWAYS_INLINE uint8_t
 hb_raster_div255 (unsigned a)
 {
+  if (true)
+  {
+    // An approximation. Slightly faster.
+    // https://github.com/linebender/vello/blob/ab58009c8289e83689cd0effc4e34d1c6e8b51f5/sparse_strips/vello_cpu/src/util.rs#L10-L63
+    return (a + 255) >> 8;
+  }
+
   return (uint8_t) ((a + 128 + ((a + 128) >> 8)) >> 8);
 }
 
-static inline uint32_t
+static HB_ALWAYS_INLINE uint32_t
 hb_raster_pack_pixel (uint8_t b, uint8_t g, uint8_t r, uint8_t a)
 {
   return (uint32_t) b | ((uint32_t) g << 8) | ((uint32_t) r << 16) | ((uint32_t) a << 24);
 }
 
 /* SRC_OVER: premultiplied src over premultiplied dst. */
-static inline uint32_t
+static HB_ALWAYS_INLINE uint32_t
 hb_raster_src_over (uint32_t src, uint32_t dst)
 {
   uint8_t sa = (uint8_t) (src >> 24);
@@ -76,7 +66,7 @@ hb_raster_src_over (uint32_t src, uint32_t dst)
 }
 
 /* Scale a premultiplied pixel by an alpha [0,255]. */
-static inline uint32_t
+static HB_ALWAYS_INLINE uint32_t
 hb_raster_alpha_mul (uint32_t px, unsigned a)
 {
   if (a == 255) return px;
@@ -87,13 +77,5 @@ hb_raster_alpha_mul (uint32_t px, unsigned a)
   uint8_t ra = hb_raster_div255 (((px >> 24) & 0xFF) * a);
   return (uint32_t) rb | ((uint32_t) rg << 8) | ((uint32_t) rr << 16) | ((uint32_t) ra << 24);
 }
-
-
-/* Composite src image onto dst. */
-HB_INTERNAL void
-hb_raster_composite_images (hb_raster_image_t *dst,
-			    const hb_raster_image_t *src,
-			    hb_paint_composite_mode_t mode);
-
 
 #endif /* HB_RASTER_HH */

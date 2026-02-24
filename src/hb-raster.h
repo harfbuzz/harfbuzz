@@ -1,5 +1,5 @@
 /*
- * Copyright © 2026  Behdad Esfahbod
+ * Copyright (C) 2026  Behdad Esfahbod
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -31,8 +31,7 @@
 
 HB_BEGIN_DECLS
 
-
-/* ── Shared types ─────────────────────────────────────────────────── */
+/* Shared types */
 
 /**
  * hb_raster_format_t:
@@ -67,7 +66,7 @@ typedef struct hb_raster_extents_t {
 } hb_raster_extents_t;
 
 
-/* ── hb_raster_image_t ────────────────────────────────────────────── */
+/* hb_raster_image_t */
 
 /**
  * hb_raster_image_t:
@@ -79,6 +78,9 @@ typedef struct hb_raster_extents_t {
  * XSince: REPLACEME
  **/
 typedef struct hb_raster_image_t hb_raster_image_t;
+
+HB_EXTERN hb_raster_image_t *
+hb_raster_image_create_or_fail (void);
 
 HB_EXTERN hb_raster_image_t *
 hb_raster_image_reference (hb_raster_image_t *image);
@@ -97,6 +99,14 @@ HB_EXTERN void *
 hb_raster_image_get_user_data (hb_raster_image_t  *image,
 			       hb_user_data_key_t *key);
 
+HB_EXTERN hb_bool_t
+hb_raster_image_configure (hb_raster_image_t         *image,
+			   hb_raster_format_t        format,
+			   const hb_raster_extents_t *extents);
+
+HB_EXTERN void
+hb_raster_image_clear (hb_raster_image_t *image);
+
 HB_EXTERN const uint8_t *
 hb_raster_image_get_buffer (hb_raster_image_t *image);
 
@@ -108,7 +118,7 @@ HB_EXTERN hb_raster_format_t
 hb_raster_image_get_format (hb_raster_image_t *image);
 
 
-/* ── hb_raster_draw_t ─────────────────────────────────────────────── */
+/* hb_raster_draw_t */
 
 /**
  * hb_raster_draw_t:
@@ -122,7 +132,7 @@ hb_raster_image_get_format (hb_raster_image_t *image);
 typedef struct hb_raster_draw_t hb_raster_draw_t;
 
 HB_EXTERN hb_raster_draw_t *
-hb_raster_draw_create (void);
+hb_raster_draw_create_or_fail (void);
 
 HB_EXTERN hb_raster_draw_t *
 hb_raster_draw_reference (hb_raster_draw_t *draw);
@@ -142,17 +152,20 @@ hb_raster_draw_get_user_data (hb_raster_draw_t   *draw,
 			      hb_user_data_key_t *key);
 
 HB_EXTERN void
-hb_raster_draw_set_format (hb_raster_draw_t  *draw,
-			   hb_raster_format_t format);
-
-HB_EXTERN hb_raster_format_t
-hb_raster_draw_get_format (hb_raster_draw_t *draw);
-
-HB_EXTERN void
 hb_raster_draw_set_transform (hb_raster_draw_t *draw,
 			      float xx, float yx,
 			      float xy, float yy,
 			      float dx, float dy);
+
+HB_EXTERN void
+hb_raster_draw_set_scale_factor (hb_raster_draw_t *draw,
+				 float x_scale_factor,
+				 float y_scale_factor);
+
+HB_EXTERN void
+hb_raster_draw_get_scale_factor (hb_raster_draw_t *draw,
+				 float *x_scale_factor,
+				 float *y_scale_factor);
 
 HB_EXTERN void
 hb_raster_draw_get_transform (hb_raster_draw_t *draw,
@@ -183,7 +196,7 @@ hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
 
 
 
-/* ── hb_raster_paint_t ───────────────────────────────────────────── */
+/* hb_raster_paint_t */
 
 /**
  * hb_raster_paint_t:
@@ -197,7 +210,7 @@ hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
 typedef struct hb_raster_paint_t hb_raster_paint_t;
 
 HB_EXTERN hb_raster_paint_t *
-hb_raster_paint_create (void);
+hb_raster_paint_create_or_fail (void);
 
 HB_EXTERN hb_raster_paint_t *
 hb_raster_paint_reference (hb_raster_paint_t *paint);
@@ -221,6 +234,16 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 			       float xx, float yx,
 			       float xy, float yy,
 			       float dx, float dy);
+
+HB_EXTERN void
+hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
+				  float x_scale_factor,
+				  float y_scale_factor);
+
+HB_EXTERN void
+hb_raster_paint_get_scale_factor (hb_raster_paint_t *paint,
+				  float *x_scale_factor,
+				  float *y_scale_factor);
 
 HB_EXTERN void
 hb_raster_paint_set_extents (hb_raster_paint_t         *paint,

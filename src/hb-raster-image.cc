@@ -26,7 +26,7 @@
 
 #include "hb.hh"
 
-#include "hb-raster.hh"
+#include "hb-raster-image.hh"
 
 #include <math.h>
 
@@ -333,28 +333,106 @@ composite_pixel (uint32_t src, uint32_t dst,
   }
 }
 
-/* Composite src image onto dst image.
- * Both images must have the same extents and BGRA32 format. */
-void
-hb_raster_composite_images (hb_raster_image_t *dst,
-			    const hb_raster_image_t *src,
-			    hb_paint_composite_mode_t mode)
+/* hb_raster_image_t */
+
+#define HB_RASTER_IMAGE_MAX_BUFFER_SIZE ((size_t) 1 << 30)
+
+unsigned
+hb_raster_image_t::bytes_per_pixel (hb_raster_format_t format)
 {
-  unsigned w = dst->extents.width;
-  unsigned h = dst->extents.height;
-  unsigned stride = dst->extents.stride;
+  return format == HB_RASTER_FORMAT_BGRA32 ? 4u : 1u;
+}
+
+bool
+hb_raster_image_t::configure (hb_raster_format_t format,
+			      hb_raster_extents_t extents)
+{
+  if (format != HB_RASTER_FORMAT_A8 &&
+      format != HB_RASTER_FORMAT_BGRA32)
+    format = HB_RASTER_FORMAT_A8;
+
+  unsigned bpp = bytes_per_pixel (format);
+  if (extents.width > UINT_MAX / bpp)
+    return false;
+
+  unsigned min_stride = extents.width * bpp;
+  if (extents.stride == 0 || extents.stride < min_stride)
+    extents.stride = min_stride;
+
+  if (extents.height && extents.stride > (size_t) -1 / extents.height)
+    return false;
+
+  size_t buf_size = (size_t) extents.stride * extents.height;
+  if (buf_size > HB_RASTER_IMAGE_MAX_BUFFER_SIZE)
+    return false;
+  if (unlikely (!buffer.resize_dirty (buf_size)))
+    return false;
+
+  this->format = format;
+  this->extents = extents;
+  return true;
+}
+
+void
+hb_raster_image_t::clear ()
+{
+  size_t buf_size = (size_t) extents.stride * extents.height;
+  hb_memset (buffer.arrayZ, 0, buf_size);
+}
+
+const uint8_t *
+hb_raster_image_t::get_buffer () const
+{
+  return buffer.arrayZ;
+}
+
+void
+hb_raster_image_t::composite_from (const hb_raster_image_t *src,
+				   hb_paint_composite_mode_t mode)
+{
+  unsigned w = extents.width;
+  unsigned h = extents.height;
+  unsigned stride = extents.stride;
 
   for (unsigned y = 0; y < h; y++)
   {
-    uint32_t *dp = reinterpret_cast<uint32_t *> (dst->buffer.arrayZ + y * stride);
+    uint32_t *dp = reinterpret_cast<uint32_t *> (buffer.arrayZ + y * stride);
     const uint32_t *sp = reinterpret_cast<const uint32_t *> (src->buffer.arrayZ + y * stride);
     for (unsigned x = 0; x < w; x++)
       dp[x] = composite_pixel (sp[x], dp[x], mode);
   }
 }
 
+/* Composite src image onto dst image.
+ * Both images must have the same extents and BGRA32 format. */
+void
+hb_raster_image_composite (hb_raster_image_t *dst,
+			   const hb_raster_image_t *src,
+			   hb_paint_composite_mode_t mode)
+{
+  dst->composite_from (src, mode);
+}
 
-/* hb_raster_image_t */
+/**
+ * hb_raster_image_create_or_fail:
+ *
+ * Creates a new raster image object.
+ *
+ * Return value: (transfer full):
+ * A newly allocated #hb_raster_image_t with a reference count of 1,
+ * or `NULL` on allocation failure.
+ *
+ * The returned image can be released with hb_raster_image_destroy(), or
+ * transferred for reuse with hb_raster_draw_recycle_image() or
+ * hb_raster_paint_recycle_image().
+ *
+ * XSince: REPLACEME
+ **/
+hb_raster_image_t *
+hb_raster_image_create_or_fail (void)
+{
+  return hb_object_create<hb_raster_image_t> ();
+}
 
 /**
  * hb_raster_image_reference: (skip)
@@ -438,6 +516,51 @@ hb_raster_image_get_user_data (hb_raster_image_t  *image,
 }
 
 /**
+ * hb_raster_image_configure:
+ * @image: a raster image
+ * @format: the pixel format
+ * @extents: (nullable): desired image extents
+ *
+ * Configures @image format and extents together, resizing backing storage
+ * at most once. This function does not clear pixel contents.
+ *
+ * Passing `NULL` for @extents clears extents and releases the backing
+ * allocation.
+ *
+ * Return value: `true` if configuration succeeds, `false` on allocation
+ * failure
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_image_configure (hb_raster_image_t         *image,
+			   hb_raster_format_t        format,
+			   const hb_raster_extents_t *extents)
+{
+  if (unlikely (!extents))
+  {
+    image->extents = {};
+    image->buffer.resize_exact (0);
+    return true;
+  }
+  return image->configure (format, *extents);
+}
+
+/**
+ * hb_raster_image_clear:
+ * @image: a raster image
+ *
+ * Clears @image pixels to zero while keeping current extents and format.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_image_clear (hb_raster_image_t *image)
+{
+  image->clear ();
+}
+
+/**
  * hb_raster_image_get_buffer:
  * @image: a raster image
  *
@@ -453,8 +576,7 @@ hb_raster_image_get_user_data (hb_raster_image_t  *image,
 const uint8_t *
 hb_raster_image_get_buffer (hb_raster_image_t *image)
 {
-  if (unlikely (!image)) return nullptr;
-  return image->buffer.arrayZ;
+  return image->get_buffer ();
 }
 
 /**
@@ -470,7 +592,6 @@ void
 hb_raster_image_get_extents (hb_raster_image_t   *image,
 			     hb_raster_extents_t *extents)
 {
-  if (unlikely (!image || !extents)) return;
   *extents = image->extents;
 }
 
@@ -488,6 +609,5 @@ hb_raster_image_get_extents (hb_raster_image_t   *image,
 hb_raster_format_t
 hb_raster_image_get_format (hb_raster_image_t *image)
 {
-  if (unlikely (!image)) return HB_RASTER_FORMAT_A8;
   return image->format;
 }
