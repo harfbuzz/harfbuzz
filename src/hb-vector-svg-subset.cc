@@ -28,6 +28,7 @@
 
 #include "hb-vector-svg-subset.hh"
 #include "hb-vector-svg-utils.hh"
+#include "hb-map.hh"
 #include "hb-ot-color.h"
 
 #include <ctype.h>
@@ -38,6 +39,19 @@ struct hb_svg_id_span_t
 {
   const char *p;
   unsigned len;
+
+  bool operator == (const hb_svg_id_span_t &o) const
+  {
+    return len == o.len && !memcmp (p, o.p, len);
+  }
+
+  uint32_t hash () const
+  {
+    uint32_t h = hb_hash (len);
+    for (unsigned i = 0; i < len; i++)
+      h = h * 33u + (unsigned char) p[i];
+    return h;
+  }
 };
 
 struct hb_svg_defs_entry_t
@@ -216,24 +230,27 @@ hb_svg_append_with_prefix (hb_vector_t<char> *out,
 
 static bool
 hb_svg_add_unique_id (hb_vector_t<hb_svg_id_span_t> *v,
+                      hb_hashmap_t<hb_svg_id_span_t, hb_bool_t> *seen_ids,
                       const char *p,
                       unsigned n)
 {
   if (!n) return false;
-  for (unsigned i = 0; i < v->length; i++)
-    if (v->arrayZ[i].len == n && !memcmp (v->arrayZ[i].p, p, n))
-      return false;
+  hb_svg_id_span_t key = {p, n};
+  if (seen_ids->has (key))
+    return false;
+  if (unlikely (!seen_ids->set (key, true)))
+    return false;
   auto *slot = v->push ();
   if (!slot) return false;
-  slot->p = p;
-  slot->len = n;
+  *slot = key;
   return true;
 }
 
 static bool
 hb_svg_collect_refs (const char *s,
                      unsigned n,
-                     hb_vector_t<hb_svg_id_span_t> *ids)
+                     hb_vector_t<hb_svg_id_span_t> *ids,
+                     hb_hashmap_t<hb_svg_id_span_t, hb_bool_t> *seen_ids)
 {
   unsigned i = 0;
   while (i < n)
@@ -243,7 +260,7 @@ hb_svg_collect_refs (const char *s,
       i += 7;
       unsigned b = i;
       while (i < n && s[i] != '"' && s[i] != '\'' && s[i] != ' ' && s[i] != '>') i++;
-      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, seen_ids, s + b, i - b))) return false;
       continue;
     }
     if (i + 7 <= n && !memcmp (s + i, "href='#", 7))
@@ -251,7 +268,7 @@ hb_svg_collect_refs (const char *s,
       i += 7;
       unsigned b = i;
       while (i < n && s[i] != '\'' && s[i] != '"' && s[i] != ' ' && s[i] != '>') i++;
-      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, seen_ids, s + b, i - b))) return false;
       continue;
     }
     if (i + 13 <= n && !memcmp (s + i, "xlink:href=\"#", 13))
@@ -259,7 +276,7 @@ hb_svg_collect_refs (const char *s,
       i += 13;
       unsigned b = i;
       while (i < n && s[i] != '"' && s[i] != '\'' && s[i] != ' ' && s[i] != '>') i++;
-      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, seen_ids, s + b, i - b))) return false;
       continue;
     }
     if (i + 13 <= n && !memcmp (s + i, "xlink:href='#", 13))
@@ -267,7 +284,7 @@ hb_svg_collect_refs (const char *s,
       i += 13;
       unsigned b = i;
       while (i < n && s[i] != '\'' && s[i] != '"' && s[i] != ' ' && s[i] != '>') i++;
-      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, seen_ids, s + b, i - b))) return false;
       continue;
     }
     if (i + 5 <= n && !memcmp (s + i, "url(#", 5))
@@ -275,7 +292,7 @@ hb_svg_collect_refs (const char *s,
       i += 5;
       unsigned b = i;
       while (i < n && s[i] != ')') i++;
-      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, seen_ids, s + b, i - b))) return false;
       continue;
     }
     if (i + 6 <= n && !memcmp (s + i, "url(\"#", 6))
@@ -283,7 +300,7 @@ hb_svg_collect_refs (const char *s,
       i += 6;
       unsigned b = i;
       while (i < n && s[i] != '"') i++;
-      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, seen_ids, s + b, i - b))) return false;
       continue;
     }
     if (i + 6 <= n && !memcmp (s + i, "url('#", 6))
@@ -291,7 +308,7 @@ hb_svg_collect_refs (const char *s,
       i += 6;
       unsigned b = i;
       while (i < n && s[i] != '\'') i++;
-      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, seen_ids, s + b, i - b))) return false;
       continue;
     }
     i++;
@@ -744,11 +761,17 @@ hb_svg_subset_glyph_image (hb_face_t *face,
 
   hb_vector_t<hb_svg_id_span_t> needed_ids;
   needed_ids.alloc (16);
-  if (!hb_svg_collect_refs (svg + glyph_start, glyph_end - glyph_start, &needed_ids))
+  hb_hashmap_t<hb_svg_id_span_t, hb_bool_t> needed_ids_set;
+  if (!hb_svg_collect_refs (svg + glyph_start, glyph_end - glyph_start,
+                            &needed_ids, &needed_ids_set))
     return false;
 
   hb_vector_t<unsigned> chosen_defs;
   chosen_defs.alloc (16);
+  hb_vector_t<uint8_t> chosen_def_marks;
+  if (unlikely (!chosen_def_marks.resize ((int) defs_entries->length)))
+    return false;
+  hb_memset (chosen_def_marks.arrayZ, 0, defs_entries->length);
   for (unsigned qi = 0; qi < needed_ids.length; qi++)
   {
     const auto &need = needed_ids.arrayZ[qi];
@@ -757,14 +780,13 @@ hb_svg_subset_glyph_image (hb_face_t *face,
       const auto &e = defs_entries->arrayZ[i];
       if (e.id.len == need.len && !memcmp (e.id.p, need.p, need.len))
       {
-        bool seen = false;
-        for (unsigned j = 0; j < chosen_defs.length; j++)
-          if (chosen_defs.arrayZ[j] == i) { seen = true; break; }
-        if (!seen)
+        if (!chosen_def_marks.arrayZ[i])
         {
+          chosen_def_marks.arrayZ[i] = 1;
           if (unlikely (!chosen_defs.push (i)))
             return false;
-          if (!hb_svg_collect_refs (svg + e.start, e.end - e.start, &needed_ids))
+          if (!hb_svg_collect_refs (svg + e.start, e.end - e.start,
+                                    &needed_ids, &needed_ids_set))
             return false;
         }
         break;
