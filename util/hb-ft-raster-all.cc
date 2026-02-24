@@ -24,7 +24,7 @@
  * Author(s): Behdad Esfahbod
  */
 
-#include <hb.h>
+#include "hb.hh"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

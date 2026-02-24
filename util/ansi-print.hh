@@ -184,7 +184,7 @@ struct biimage_t
     /* Set the data... */
 
     if (unicolor) {
-      memset (data, 0, sizeof (data[0]) * width * height);
+      hb_memset (data, 0, sizeof (data[0]) * width * height);
       return;
     }
 

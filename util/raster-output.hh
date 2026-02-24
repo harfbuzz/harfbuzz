@@ -313,11 +313,11 @@ struct raster_output_t : output_options_t<true>
 	      for (unsigned x = 0; x < w; x++)
 	      {
 		uint32_t s;
-		memcpy (&s, src + y * img_ext.stride + x * 4, 4);
+		hb_memcpy (&s, src + y * img_ext.stride + x * 4, 4);
 		if (!s) continue;
 		uint8_t sa = (uint8_t) (s >> 24);
 		uint32_t d;
-		memcpy (&d, out_buf + y * stride + x * 4, 4);
+		hb_memcpy (&d, out_buf + y * stride + x * 4, 4);
 		if (sa == 255) { d = s; }
 		else
 		{
@@ -328,7 +328,7 @@ struct raster_output_t : output_options_t<true>
 		  uint8_t ra = (uint8_t) ((((d >> 24) & 0xFF) * inv_sa + 128 + ((((d >> 24) & 0xFF) * inv_sa + 128) >> 8)) >> 8) + sa;
 		  d = (uint32_t) rb | ((uint32_t) rg << 8) | ((uint32_t) rr << 16) | ((uint32_t) ra << 24);
 		}
-		memcpy (out_buf + y * stride + x * 4, &d, 4);
+		hb_memcpy (out_buf + y * stride + x * 4, &d, 4);
 	      }
 
 	    hb_raster_paint_recycle_image (pnt, img);
@@ -385,7 +385,7 @@ struct raster_output_t : output_options_t<true>
       for (unsigned x = 0; x < w; x++)
       {
 	uint32_t px;
-	memcpy (&px, src + x * 4, 4);
+	hb_memcpy (&px, src + x * 4, 4);
 	uint8_t b = (uint8_t) (px & 0xFF);
 	uint8_t g = (uint8_t) ((px >> 8) & 0xFF);
 	uint8_t r = (uint8_t) ((px >> 16) & 0xFF);
