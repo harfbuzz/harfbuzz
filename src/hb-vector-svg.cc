@@ -1189,42 +1189,100 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
 
   if (draw->flat)
   {
-    hb_transform_t<> saved = draw->transform;
-    draw->transform.x0 += saved.xx * pen_x + saved.xy * pen_y;
-    draw->transform.y0 += saved.yx * pen_x + saved.yy * pen_y;
-
     draw->path.clear ();
-    hb_font_draw_glyph (font, glyph, hb_vector_draw_get_funcs (), draw);
-
-    draw->transform = saved;
+    hb_svg_path_sink_t sink = {&draw->path, draw->precision};
+    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_singleton (), &sink);
 
     if (!draw->path.length)
       return false;
+
+    float xx = draw->transform.xx / draw->x_scale_factor;
+    float yx = draw->transform.yx / draw->y_scale_factor;
+    float xy = draw->transform.xy / draw->x_scale_factor;
+    float yy = draw->transform.yy / draw->y_scale_factor;
+    float tx = (draw->transform.x0 + draw->transform.xx * pen_x + draw->transform.xy * pen_y) / draw->x_scale_factor;
+    float ty = (draw->transform.y0 + draw->transform.yx * pen_x + draw->transform.yy * pen_y) / draw->y_scale_factor;
+
     hb_svg_append_str (&draw->body, "<path d=\"");
     hb_svg_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
+    hb_svg_append_str (&draw->body, "\" transform=\"");
+    if (draw->transform.xx == 1.f && draw->transform.yx == 0.f &&
+	draw->transform.xy == 0.f && draw->transform.yy == 1.f)
+    {
+      float sx = 1.f / draw->x_scale_factor;
+      float sy = 1.f / draw->y_scale_factor;
+      hb_svg_append_str (&draw->body, "translate(");
+      hb_svg_append_num (&draw->body, tx, draw->precision);
+      hb_svg_append_c (&draw->body, ',');
+      hb_svg_append_num (&draw->body, ty, draw->precision);
+      hb_svg_append_str (&draw->body, ") scale(");
+      hb_svg_append_num (&draw->body, sx, draw->precision);
+      hb_svg_append_c (&draw->body, ',');
+      hb_svg_append_num (&draw->body, -sy, draw->precision);
+      hb_svg_append_c (&draw->body, ')');
+    }
+    else
+    {
+      hb_svg_append_str (&draw->body, "matrix(");
+      hb_svg_append_num (&draw->body, xx, draw->precision);
+      hb_svg_append_c (&draw->body, ',');
+      hb_svg_append_num (&draw->body, yx, draw->precision);
+      hb_svg_append_c (&draw->body, ',');
+      hb_svg_append_num (&draw->body, -xy, draw->precision);
+      hb_svg_append_c (&draw->body, ',');
+      hb_svg_append_num (&draw->body, -yy, draw->precision);
+      hb_svg_append_c (&draw->body, ',');
+      hb_svg_append_num (&draw->body, tx, draw->precision);
+      hb_svg_append_c (&draw->body, ',');
+      hb_svg_append_num (&draw->body, ty, draw->precision);
+      hb_svg_append_c (&draw->body, ')');
+    }
     hb_svg_append_str (&draw->body, "\"/>\n");
     return true;
   }
 
+  float xx = draw->transform.xx / draw->x_scale_factor;
+  float yx = draw->transform.yx / draw->y_scale_factor;
+  float xy = draw->transform.xy / draw->x_scale_factor;
+  float yy = draw->transform.yy / draw->y_scale_factor;
+  float tx = (draw->transform.x0 + draw->transform.xx * pen_x + draw->transform.xy * pen_y) / draw->x_scale_factor;
+  float ty = (draw->transform.y0 + draw->transform.yx * pen_x + draw->transform.yy * pen_y) / draw->y_scale_factor;
+
   hb_svg_append_str (&draw->body, "<use href=\"#p");
   hb_svg_append_printf (&draw->body, "%u", glyph);
-  hb_svg_append_str (&draw->body, "\" transform=\"matrix(");
-  hb_svg_append_num (&draw->body, draw->transform.xx / draw->x_scale_factor, draw->precision);
-  hb_svg_append_c (&draw->body, ',');
-  hb_svg_append_num (&draw->body, draw->transform.yx / draw->y_scale_factor, draw->precision);
-  hb_svg_append_c (&draw->body, ',');
-  hb_svg_append_num (&draw->body, draw->transform.xy / draw->x_scale_factor, draw->precision);
-  hb_svg_append_c (&draw->body, ',');
-  hb_svg_append_num (&draw->body, draw->transform.yy / draw->y_scale_factor, draw->precision);
-  hb_svg_append_c (&draw->body, ',');
-  hb_svg_append_num (&draw->body,
-                     (draw->transform.x0 + draw->transform.xx * pen_x + draw->transform.xy * pen_y) / draw->x_scale_factor,
-                     draw->precision);
-  hb_svg_append_c (&draw->body, ',');
-  hb_svg_append_num (&draw->body,
-                     (draw->transform.y0 + draw->transform.yx * pen_x + draw->transform.yy * pen_y) / draw->y_scale_factor,
-                     draw->precision);
-  hb_svg_append_str (&draw->body, ")\"/>\n");
+  hb_svg_append_str (&draw->body, "\" transform=\"");
+  if (draw->transform.xx == 1.f && draw->transform.yx == 0.f &&
+      draw->transform.xy == 0.f && draw->transform.yy == 1.f)
+  {
+    float sx = 1.f / draw->x_scale_factor;
+    float sy = 1.f / draw->y_scale_factor;
+    hb_svg_append_str (&draw->body, "translate(");
+    hb_svg_append_num (&draw->body, tx, draw->precision);
+    hb_svg_append_c (&draw->body, ',');
+    hb_svg_append_num (&draw->body, ty, draw->precision);
+    hb_svg_append_str (&draw->body, ") scale(");
+    hb_svg_append_num (&draw->body, sx, draw->precision);
+    hb_svg_append_c (&draw->body, ',');
+    hb_svg_append_num (&draw->body, -sy, draw->precision);
+    hb_svg_append_c (&draw->body, ')');
+  }
+  else
+  {
+    hb_svg_append_str (&draw->body, "matrix(");
+    hb_svg_append_num (&draw->body, xx, draw->precision);
+    hb_svg_append_c (&draw->body, ',');
+    hb_svg_append_num (&draw->body, yx, draw->precision);
+    hb_svg_append_c (&draw->body, ',');
+    hb_svg_append_num (&draw->body, -xy, draw->precision);
+    hb_svg_append_c (&draw->body, ',');
+    hb_svg_append_num (&draw->body, -yy, draw->precision);
+    hb_svg_append_c (&draw->body, ',');
+    hb_svg_append_num (&draw->body, tx, draw->precision);
+    hb_svg_append_c (&draw->body, ',');
+    hb_svg_append_num (&draw->body, ty, draw->precision);
+    hb_svg_append_c (&draw->body, ')');
+  }
+  hb_svg_append_str (&draw->body, "\"/>\n");
   return true;
 }
 

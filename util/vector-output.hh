@@ -41,6 +41,7 @@ struct vector_output_t : output_options_t<>
   ~vector_output_t ()
   {
     hb_font_destroy (font);
+    hb_font_destroy (upem_font);
     g_free (foreground_str);
   }
 
@@ -97,6 +98,16 @@ struct vector_output_t : output_options_t<>
     font = hb_font_reference (font_opts->font);
     subpixel_bits = font_opts->subpixel_bits;
     hb_font_get_scale (font, &x_scale, &y_scale);
+    upem = hb_face_get_upem (hb_font_get_face (font));
+
+    upem_font = hb_font_create (hb_font_get_face (font));
+    hb_font_set_scale (upem_font, upem, upem);
+#ifndef HB_NO_VAR
+    unsigned int coords_length = 0;
+    const float *coords = hb_font_get_var_coords_design (font, &coords_length);
+    if (coords_length)
+      hb_font_set_var_coords_design (upem_font, coords, coords_length);
+#endif
   }
 
   void new_line ()
@@ -142,16 +153,16 @@ struct vector_output_t : output_options_t<>
     {
       line.glyphs.push_back ({
         infos[i].codepoint,
-        (float) (pen_x + positions[i].x_offset),
-        (float) (pen_y + positions[i].y_offset),
+        scale_to_upem_x (pen_x + positions[i].x_offset),
+        scale_to_upem_y (pen_y + positions[i].y_offset),
       });
 
       pen_x += positions[i].x_advance;
       pen_y += positions[i].y_advance;
     }
 
-    line.advance_x = (float) pen_x;
-    line.advance_y = (float) pen_y;
+    line.advance_x = scale_to_upem_x (pen_x);
+    line.advance_y = scale_to_upem_y (pen_y);
   }
 
   template <typename app_t>
@@ -161,18 +172,16 @@ struct vector_output_t : output_options_t<>
     if (!compute_extents (&extents))
       return;
 
-    float scale_factor = scalbnf (1.f, (int) subpixel_bits);
-
     hb_vector_draw_t *draw = hb_vector_draw_create_or_fail ();
     hb_vector_paint_t *paint = hb_vector_paint_create_or_fail ();
 
-    hb_vector_draw_set_scale_factor (draw, scale_factor, scale_factor);
+    hb_vector_draw_set_scale_factor (draw, 1.f, 1.f);
     hb_vector_draw_set_extents (draw, &extents);
     hb_vector_draw_set_format (draw, HB_VECTOR_FORMAT_SVG);
     hb_vector_svg_set_precision (draw, precision);
     hb_vector_svg_set_flat (draw, flat);
 
-    hb_vector_paint_set_scale_factor (paint, scale_factor, scale_factor);
+    hb_vector_paint_set_scale_factor (paint, 1.f, 1.f);
     hb_vector_paint_set_extents (paint, &extents);
     hb_vector_paint_set_format (paint, HB_VECTOR_FORMAT_SVG);
     hb_vector_paint_set_foreground (paint, foreground);
@@ -189,10 +198,10 @@ struct vector_output_t : output_options_t<>
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
     hb_font_extents_t fext = {0, 0, 0};
-    hb_font_get_extents_for_direction (font, dir, &fext);
+    hb_font_get_extents_for_direction (upem_font, dir, &fext);
     float step = fabsf ((float) (fext.ascender - fext.descender + fext.line_gap));
     if (!(step > 0.f))
-      step = (float) (vertical ? x_scale : y_scale);
+      step = (float) upem;
 
     for (unsigned li = 0; li < lines.size (); li++)
     {
@@ -205,7 +214,7 @@ struct vector_output_t : output_options_t<>
         float pen_y = g.y + off_y;
 
         hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
-        if (hb_font_paint_glyph_or_fail (font, g.gid,
+        if (hb_font_paint_glyph_or_fail (upem_font, g.gid,
                                          hb_vector_paint_get_funcs (), paint,
                                          palette, foreground))
         {
@@ -213,7 +222,7 @@ struct vector_output_t : output_options_t<>
           continue;
         }
 
-        if (hb_vector_draw_glyph (draw, font, g.gid, pen_x, pen_y))
+        if (hb_vector_draw_glyph (draw, upem_font, g.gid, pen_x, pen_y))
           had_draw = true;
       }
     }
@@ -234,6 +243,8 @@ struct vector_output_t : output_options_t<>
     hb_vector_draw_destroy (draw);
     hb_vector_paint_destroy (paint);
 
+    hb_font_destroy (upem_font);
+    upem_font = nullptr;
     hb_font_destroy (font);
     font = nullptr;
     lines.clear ();
@@ -278,13 +289,11 @@ struct vector_output_t : output_options_t<>
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
     hb_font_extents_t fext = {0, 0, 0};
-    hb_font_get_extents_for_direction (font, dir, &fext);
+    hb_font_get_extents_for_direction (upem_font, dir, &fext);
 
     float step = fabsf ((float) (fext.ascender - fext.descender + fext.line_gap));
     if (!(step > 0.f))
-      step = (float) (vertical ? x_scale : y_scale);
-
-    float unit = scalbnf (1.f, -(int) subpixel_bits);
+      step = (float) upem;
 
     bool valid = false;
     float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
@@ -315,28 +324,28 @@ struct vector_output_t : output_options_t<>
       float log_max = hb_max ((float) fext.descender, (float) fext.ascender);
       if (vertical)
       {
-        include_point ((off_x + log_min) * unit, hb_min (0.f, line.advance_y) * unit);
-        include_point ((off_x + log_max) * unit, hb_max (0.f, line.advance_y) * unit);
+        include_point (off_x + log_min, hb_min (0.f, line.advance_y));
+        include_point (off_x + log_max, hb_max (0.f, line.advance_y));
       }
       else
       {
-        include_point (hb_min (0.f, line.advance_x) * unit, (off_y + log_min) * unit);
-        include_point (hb_max (0.f, line.advance_x) * unit, (off_y + log_max) * unit);
+        include_point (hb_min (0.f, line.advance_x), off_y + log_min);
+        include_point (hb_max (0.f, line.advance_x), off_y + log_max);
       }
 
       for (const auto &g : line.glyphs)
       {
         hb_glyph_extents_t ge;
-        if (!hb_font_get_glyph_extents (font, g.gid, &ge))
+        if (!hb_font_get_glyph_extents (upem_font, g.gid, &ge))
           continue;
 
-        float gx = (g.x + off_x) * unit;
-        float gy = (g.y + off_y) * unit;
+        float gx = g.x + off_x;
+        float gy = g.y + off_y;
 
-        float xa = gx + ge.x_bearing * unit;
-        float ya = gy + ge.y_bearing * unit;
-        float xb = xa + ge.width * unit;
-        float yb = ya + ge.height * unit;
+        float xa = gx + ge.x_bearing;
+        float ya = gy + ge.y_bearing;
+        float xb = xa + ge.width;
+        float yb = ya + ge.height;
 
         include_point (xa, ya);
         include_point (xb, yb);
@@ -362,6 +371,16 @@ struct vector_output_t : output_options_t<>
     extents->width = x2 - x1;
     extents->height = y2 - y1;
     return true;
+  }
+
+  float scale_to_upem_x (hb_position_t v) const
+  {
+    return (float) v * upem / x_scale;
+  }
+
+  float scale_to_upem_y (hb_position_t v) const
+  {
+    return (float) v * upem / y_scale;
   }
 
   static bool slice_svg (const char *data, unsigned len,
@@ -454,11 +473,13 @@ struct vector_output_t : output_options_t<>
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
 
   hb_font_t *font = nullptr;
+  hb_font_t *upem_font = nullptr;
   std::vector<line_t> lines;
   hb_direction_t direction = HB_DIRECTION_INVALID;
 
   int x_scale = 0;
   int y_scale = 0;
+  unsigned upem = 0;
   unsigned subpixel_bits = 0;
 };
 
