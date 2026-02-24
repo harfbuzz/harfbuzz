@@ -624,7 +624,7 @@ cubic_chord_error_bound2 (float x0, float y0,
   return m * (9.f / 16.f);
 }
 
-/* Cubic Bézier flattener — de Casteljau recursive at t=0.5 */
+/* Cubic Bézier flattener — iterative de Casteljau at t=0.5. */
 static inline void
 flatten_cubic_recursive (hb_raster_draw_t *draw,
 			 float x0, float y0,
@@ -633,50 +633,73 @@ flatten_cubic_recursive (hb_raster_draw_t *draw,
 			 float x3, float y3,
 			 int depth = 0)
 {
-  bool is_flat;
-  if (false)
+  struct cubic_node_t
   {
-    /* Old behavior: curvature/chord-error bound. */
-    float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
-    static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
-    is_flat = err2 <= flat_thresh;
-  }
-  else
+    float x0, y0, x1, y1, x2, y2, x3, y3;
+    int depth;
+  };
+
+  cubic_node_t stack[16];
+  unsigned top = 0;
+
+  while (true)
   {
-    /* FreeType behavior: chord-trisection distance test. */
-    const float flat_thresh = 0.5f;
+    bool is_flat;
+    if (false)
+    {
+      /* Old behavior: curvature/chord-error bound. */
+      float err2 = cubic_chord_error_bound2 (x0, y0, x1, y1, x2, y2, x3, y3);
+      static const float flat_thresh = HB_RASTER_FLAT_THRESH * HB_RASTER_FLAT_THRESH;
+      is_flat = err2 <= flat_thresh;
+    }
+    else
+    {
+      /* FreeType behavior: chord-trisection distance test. */
+      const float flat_thresh = 0.5f;
 
-    float d10x = 2.f * x0 - 3.f * x1 + x3;
-    float d10y = 2.f * y0 - 3.f * y1 + y3;
-    float d20x = x0 - 3.f * x2 + 2.f * x3;
-    float d20y = y0 - 3.f * y2 + 2.f * y3;
+      float d10x = 2.f * x0 - 3.f * x1 + x3;
+      float d10y = 2.f * y0 - 3.f * y1 + y3;
+      float d20x = x0 - 3.f * x2 + 2.f * x3;
+      float d20y = y0 - 3.f * y2 + 2.f * y3;
 
-    if (d10x < 0) d10x = -d10x;
-    if (d10y < 0) d10y = -d10y;
-    if (d20x < 0) d20x = -d20x;
-    if (d20y < 0) d20y = -d20y;
+      if (d10x < 0) d10x = -d10x;
+      if (d10y < 0) d10y = -d10y;
+      if (d20x < 0) d20x = -d20x;
+      if (d20y < 0) d20y = -d20y;
 
-    is_flat = d10x <= flat_thresh &&
-              d10y <= flat_thresh &&
-              d20x <= flat_thresh &&
-              d20y <= flat_thresh;
+      is_flat = d10x <= flat_thresh &&
+                d10y <= flat_thresh &&
+                d20x <= flat_thresh &&
+                d20y <= flat_thresh;
+    }
+
+    if (depth >= 16 || is_flat)
+    {
+      emit_segment (draw, x0, y0, x3, y3);
+      if (!top) return;
+      const cubic_node_t &n = stack[--top];
+      x0 = n.x0; y0 = n.y0;
+      x1 = n.x1; y1 = n.y1;
+      x2 = n.x2; y2 = n.y2;
+      x3 = n.x3; y3 = n.y3;
+      depth = n.depth;
+      continue;
+    }
+
+    float x01  = (x0 + x1) * 0.5f, y01  = (y0 + y1) * 0.5f;
+    float x12  = (x1 + x2) * 0.5f, y12  = (y1 + y2) * 0.5f;
+    float x23  = (x2 + x3) * 0.5f, y23  = (y2 + y3) * 0.5f;
+    float x012 = (x01 + x12) * 0.5f, y012 = (y01 + y12) * 0.5f;
+    float x123 = (x12 + x23) * 0.5f, y123 = (y12 + y23) * 0.5f;
+    float xm   = (x012 + x123) * 0.5f, ym   = (y012 + y123) * 0.5f;
+
+    /* Depth is capped at 16, so stack capacity 16 is sufficient. */
+    stack[top++] = {xm, ym, x123, y123, x23, y23, x3, y3, depth + 1};
+    x3 = xm; y3 = ym;
+    x2 = x012; y2 = y012;
+    x1 = x01; y1 = y01;
+    depth++;
   }
-
-  if (depth >= 16 || is_flat)
-  {
-    emit_segment (draw, x0, y0, x3, y3);
-    return;
-  }
-
-  float x01  = (x0 + x1) * 0.5f, y01  = (y0 + y1) * 0.5f;
-  float x12  = (x1 + x2) * 0.5f, y12  = (y1 + y2) * 0.5f;
-  float x23  = (x2 + x3) * 0.5f, y23  = (y2 + y3) * 0.5f;
-  float x012 = (x01 + x12) * 0.5f, y012 = (y01 + y12) * 0.5f;
-  float x123 = (x12 + x23) * 0.5f, y123 = (y12 + y23) * 0.5f;
-  float xm   = (x012 + x123) * 0.5f, ym   = (y012 + y123) * 0.5f;
-
-  flatten_cubic_recursive (draw, x0, y0, x01, y01, x012, y012, xm, ym, depth + 1);
-  flatten_cubic_recursive (draw, xm, ym, x123, y123, x23, y23, x3, y3, depth + 1);
 }
 
 /* Cubic Bézier flattener using forward differencing.
