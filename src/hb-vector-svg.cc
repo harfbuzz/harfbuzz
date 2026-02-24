@@ -464,6 +464,7 @@ struct hb_vector_paint_t
   hb_blob_t *recycled_blob = nullptr;
   bool current_color_glyph_has_svg_image = false;
   hb_codepoint_t current_svg_image_glyph = HB_CODEPOINT_INVALID;
+  hb_face_t *current_face = nullptr;
   unsigned svg_image_counter = 0;
 
   hb_vector_t<char> &current_body () { return group_stack.tail (); }
@@ -1127,7 +1128,8 @@ hb_vector_paint_image (hb_paint_funcs_t *,
   paint->current_color_glyph_has_svg_image = true;
 
   paint->subset_body_scratch.clear ();
-  bool subset_ok = hb_svg_subset_glyph_image (image,
+  bool subset_ok = hb_svg_subset_glyph_image (paint->current_face,
+                                              image,
                                               paint->current_svg_image_glyph,
                                               &paint->svg_image_counter,
                                               &paint->defs,
@@ -1327,13 +1329,16 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   hb_vector_paint_ensure_initialized (paint);
   hb_codepoint_t old_gid = paint->current_svg_image_glyph;
+  hb_face_t *old_face = paint->current_face;
   paint->current_svg_image_glyph = glyph;
+  paint->current_face = hb_font_get_face (font);
   hb_font_paint_glyph (font, glyph,
                        hb_vector_paint_funcs_singleton (),
                        paint,
                        paint->palette,
                        paint->foreground);
   paint->current_svg_image_glyph = old_gid;
+  paint->current_face = old_face;
   return true;
 }
 
@@ -1887,8 +1892,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 							&paint->extents,
 							&has_extents);
       paint->has_extents = has_extents;
-      if (!ret)
-	return false;
+      (void) ret;
     }
   }
 
@@ -1932,11 +1936,14 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   if (can_cache)
   {
     hb_codepoint_t old_gid = paint->current_svg_image_glyph;
+    hb_face_t *old_face = paint->current_face;
     paint->current_svg_image_glyph = glyph;
+    paint->current_face = hb_font_get_face (font);
     hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						  hb_vector_paint_get_funcs (), paint,
 						  palette, foreground);
     paint->current_svg_image_glyph = old_gid;
+    paint->current_face = old_face;
     if (unlikely (!ret))
     {
       paint->group_stack.pop ();
@@ -1989,11 +1996,14 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 				    xx, yx, xy, yy, tx, ty);
   hb_svg_append_str (&body, "\">\n");
   hb_codepoint_t old_gid = paint->current_svg_image_glyph;
+  hb_face_t *old_face = paint->current_face;
   paint->current_svg_image_glyph = glyph;
+  paint->current_face = hb_font_get_face (font);
   hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						hb_vector_paint_get_funcs (), paint,
 						palette, foreground);
   paint->current_svg_image_glyph = old_gid;
+  paint->current_face = old_face;
   hb_svg_append_str (&body, "</g>\n");
   return ret;
 }
@@ -2087,6 +2097,7 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->color_glyph_counter = 0;
   paint->current_color_glyph_has_svg_image = false;
   paint->current_svg_image_glyph = HB_CODEPOINT_INVALID;
+  paint->current_face = nullptr;
   paint->svg_image_counter = 0;
   hb_set_clear (paint->defined_outlines);
   hb_set_clear (paint->defined_clips);

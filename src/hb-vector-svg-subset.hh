@@ -30,9 +30,11 @@
 #include "hb.hh"
 #include "hb-vector.hh"
 #include "hb-blob.hh"
+#include "hb-face.h"
 
 HB_INTERNAL bool
-hb_svg_subset_glyph_image (hb_blob_t *image,
+hb_svg_subset_glyph_image (hb_face_t *face,
+                           hb_blob_t *image,
                            hb_codepoint_t glyph,
                            unsigned *image_counter,
                            hb_vector_t<char> *defs_dst,
