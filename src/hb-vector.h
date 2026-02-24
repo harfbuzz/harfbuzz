@@ -59,6 +59,20 @@ typedef struct hb_vector_extents_t {
   float width, height;
 } hb_vector_extents_t;
 
+/**
+ * hb_vector_extents_mode_t:
+ * @HB_VECTOR_EXTENTS_MODE_NONE: Do not update extents.
+ * @HB_VECTOR_EXTENTS_MODE_EXPAND: Union glyph ink extents into current extents.
+ *
+ * Controls whether convenience glyph APIs update context extents.
+ *
+ * XSince: REPLACEME
+ */
+typedef enum {
+  HB_VECTOR_EXTENTS_MODE_NONE = 0,
+  HB_VECTOR_EXTENTS_MODE_EXPAND = 1,
+} hb_vector_extents_mode_t;
+
 
 typedef struct hb_vector_draw_t hb_vector_draw_t;
 typedef struct hb_vector_paint_t hb_vector_paint_t;
@@ -116,7 +130,8 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
                       hb_font_t *font,
                       hb_codepoint_t glyph,
                       float pen_x,
-                      float pen_y);
+                      float pen_y,
+                      hb_vector_extents_mode_t extents_mode);
 
 HB_EXTERN void
 hb_vector_svg_set_flat (hb_vector_draw_t *draw,
@@ -199,6 +214,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 		       hb_codepoint_t     glyph,
 		       float              pen_x,
 		       float              pen_y,
+		       hb_vector_extents_mode_t extents_mode,
 		       unsigned           palette,
 		       hb_color_t         foreground);
 
