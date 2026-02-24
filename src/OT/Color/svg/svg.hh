@@ -45,6 +45,12 @@ struct SVGDocumentIndexEntry
   int cmp (hb_codepoint_t g) const
   { return g < startGlyphID ? -1 : g > endGlyphID ? 1 : 0; }
 
+  hb_codepoint_t get_start_glyph () const
+  { return startGlyphID; }
+
+  hb_codepoint_t get_end_glyph () const
+  { return endGlyphID; }
+
   hb_blob_t *reference_blob (hb_blob_t *svg_blob, unsigned int index_offset) const
   {
     return hb_blob_create_sub_blob (svg_blob,
@@ -98,6 +104,11 @@ struct SVG
     bool get_glyph_document_index (hb_codepoint_t glyph_id, unsigned *index) const
     { return table->get_glyph_document_index (glyph_id, index); }
 
+    bool get_document_glyph_range (unsigned index,
+                                   hb_codepoint_t *start_glyph,
+                                   hb_codepoint_t *end_glyph) const
+    { return table->get_document_glyph_range (index, start_glyph, end_glyph); }
+
     bool has_data () const { return table->has_data (); }
 
     bool paint_glyph (hb_font_t *font HB_UNUSED, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
@@ -143,6 +154,23 @@ struct SVG
     if (!has_data ())
       return false;
     return (this + svgDocEntries).bfind (glyph_id, index);
+  }
+
+  bool get_document_glyph_range (unsigned index,
+                                 hb_codepoint_t *start_glyph,
+                                 hb_codepoint_t *end_glyph) const
+  {
+    if (!has_data ())
+      return false;
+
+    const auto &entries = this + svgDocEntries;
+    if (index >= entries.len)
+      return false;
+
+    const auto &entry = entries.arrayZ[index];
+    if (start_glyph) *start_glyph = entry.get_start_glyph ();
+    if (end_glyph) *end_glyph = entry.get_end_glyph ();
+    return true;
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

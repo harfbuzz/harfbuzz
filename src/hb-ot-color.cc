@@ -331,6 +331,30 @@ hb_ot_color_glyph_get_svg_document_index (hb_face_t      *face,
 }
 
 /**
+ * hb_ot_color_get_svg_document_glyph_range:
+ * @face: #hb_face_t to work upon.
+ * @svg_document_index: SVG document index.
+ * @start_glyph_id: (out) (nullable): output start glyph ID.
+ * @end_glyph_id: (out) (nullable): output end glyph ID.
+ *
+ * Gets the glyph range covered by an `SVG`-table document index.
+ *
+ * Return value: `true` if @svg_document_index is valid, `false` otherwise.
+ *
+ * Since: 12.2.0
+ */
+hb_bool_t
+hb_ot_color_get_svg_document_glyph_range (hb_face_t      *face,
+                                          unsigned int    svg_document_index,
+                                          hb_codepoint_t *start_glyph_id,
+                                          hb_codepoint_t *end_glyph_id)
+{
+  return face->table.SVG->get_document_glyph_range (svg_document_index,
+                                                    start_glyph_id,
+                                                    end_glyph_id);
+}
+
+/**
  * hb_ot_color_glyph_reference_svg:
  * @face: #hb_face_t to work upon
  * @glyph: a svg glyph index

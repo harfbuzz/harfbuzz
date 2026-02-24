@@ -650,6 +650,7 @@ hb_ot_color_glyph_reference_png
 hb_ot_color_has_svg
 hb_ot_color_get_svg_document_count
 hb_ot_color_glyph_get_svg_document_index
+hb_ot_color_get_svg_document_glyph_range
 hb_ot_color_glyph_reference_svg
 hb_color_t
 hb_ot_color_layer_t
