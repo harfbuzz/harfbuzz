@@ -721,6 +721,7 @@ hb_vector_sources = [
   'hb-vector-svg-path.hh',
   'hb-vector-svg-subset.cc',
   'hb-vector-svg-subset.hh',
+  'hb-vector-svg-utils.cc',
   'hb-vector-svg-utils.hh',
   'hb-static.cc',
 ]

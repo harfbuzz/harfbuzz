@@ -33,6 +33,9 @@
 #include <stdio.h>
 #include <string.h>
 
+HB_INTERNAL const char *
+hb_svg_decimal_point_get (void);
+
 static inline bool
 hb_svg_append_len (hb_vector_t<char> *buf,
                    const char *s,
@@ -90,17 +93,7 @@ hb_svg_append_num (hb_vector_t<char> *buf,
   char out[128];
   snprintf (out, sizeof (out), float_formats[effective_precision], (double) v);
 
-  const char *decimal_point = ".";
-#ifndef HB_NO_SETLOCALE
-#if defined(HAVE_XLOCALE_H)
-  lconv *lc = nullptr;
-  hb_locale_t current_locale = hb_uselocale ((hb_locale_t) 0);
-  if (current_locale)
-    lc = localeconv_l (current_locale);
-  if (lc && lc->decimal_point && lc->decimal_point[0])
-    decimal_point = lc->decimal_point;
-#endif
-#endif
+  const char *decimal_point = hb_svg_decimal_point_get ();
 
   if (decimal_point[0] != '.' || decimal_point[1] != '\0')
   {
