@@ -383,8 +383,11 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
  * @draw: a rasterizer
  *
  * Resets the rasterizer to its initial state, clearing all accumulated
- * geometry, the transform, format, and fixed extents.  The object can
- * then be reused for a new glyph.
+ * geometry, the transform, and fixed extents.  The object can then be
+ * reused for a new glyph.
+ *
+ * Internal scratch buffers and recycled image cache are preserved for
+ * reuse across subsequent renders.
  *
  * XSince: REPLACEME
  **/
@@ -397,12 +400,7 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
   draw->fixed_extents     = {};
   draw->has_fixed_extents = false;
   draw->edges.resize (0);
-  draw->row_area.resize (0);
-  draw->row_cover.resize (0);
-  draw->edge_buckets.resize (0);
   draw->active_edges.resize (0);
-  hb_raster_image_destroy (draw->recycled_image);
-  draw->recycled_image = nullptr;
 }
 
 /**
