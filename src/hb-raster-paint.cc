@@ -807,6 +807,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 #define PREALLOCATED_COLOR_STOPS 16
 #define GRADIENT_LUT_SIZE 256
+#define GRADIENT_LUT_MIN_PIXELS (64u * 64u)
 
 static int
 cmp_color_stop (const void *p1, const void *p2)
@@ -1022,8 +1023,13 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   normalize_color_line (stops, len, &mn, &mx);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  const hb_raster_clip_t &clip = c->current_clip ();
+  unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
+  unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
+  bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
   uint32_t lut[GRADIENT_LUT_SIZE];
-  build_gradient_lut (stops, len, lut);
+  if (use_lut)
+    build_gradient_lut (stops, len, lut);
 
   /* Reduce 3-point anchor to 2-point gradient axis */
   float lx0, ly0, lx1, ly1;
@@ -1055,7 +1061,6 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     if (denom < 1e-10f) goto done;
     float inv_denom = 1.f / denom;
 
-    const hb_raster_clip_t &clip = c->current_clip ();
     unsigned stride = surf->extents.stride;
     int ox = surf->extents.x_origin;
     int oy = surf->extents.y_origin;
@@ -1067,15 +1072,27 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
 	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
 	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	if (use_lut)
 	{
-	  /* Project onto gradient axis: t = dot(p - p0, dir) / dot(dir, dir) */
-	  float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
-
-	  uint32_t src = lookup_gradient_lut (lut, proj_t, extend);
-	  row[px] = hb_raster_src_over (src, row[px]);
-	  gx += inv_xx;
-	  gy += inv_yx;
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	  {
+	    float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
+	    uint32_t src = lookup_gradient_lut (lut, proj_t, extend);
+	    row[px] = hb_raster_src_over (src, row[px]);
+	    gx += inv_xx;
+	    gy += inv_yx;
+	  }
+	}
+	else
+	{
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	  {
+	    float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
+	    uint32_t src = evaluate_color_line (stops, len, proj_t, extend);
+	    row[px] = hb_raster_src_over (src, row[px]);
+	    gx += inv_xx;
+	    gy += inv_yx;
+	  }
 	}
       }
     }
@@ -1087,24 +1104,43 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
 	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
 	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	if (use_lut)
 	{
-	  uint8_t clip_alpha = clip_row[px];
-	  if (clip_alpha == 0)
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	  {
+	    uint8_t clip_alpha = clip_row[px];
+	    if (clip_alpha == 0)
+	    {
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
+	    }
+	    float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
+	    uint32_t src = lookup_gradient_lut (lut, proj_t, extend);
+	    src = hb_raster_alpha_mul (src, clip_alpha);
+	    row[px] = hb_raster_src_over (src, row[px]);
 	    gx += inv_xx;
 	    gy += inv_yx;
-	    continue;
 	  }
-
-	  /* Project onto gradient axis: t = dot(p - p0, dir) / dot(dir, dir) */
-	  float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
-
-	  uint32_t src = lookup_gradient_lut (lut, proj_t, extend);
-	  src = hb_raster_alpha_mul (src, clip_alpha);
-	  row[px] = hb_raster_src_over (src, row[px]);
-	  gx += inv_xx;
-	  gy += inv_yx;
+	}
+	else
+	{
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	  {
+	    uint8_t clip_alpha = clip_row[px];
+	    if (clip_alpha == 0)
+	    {
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
+	    }
+	    float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
+	    uint32_t src = evaluate_color_line (stops, len, proj_t, extend);
+	    src = hb_raster_alpha_mul (src, clip_alpha);
+	    row[px] = hb_raster_src_over (src, row[px]);
+	    gx += inv_xx;
+	    gy += inv_yx;
+	  }
 	}
       }
     }
@@ -1140,8 +1176,13 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   normalize_color_line (stops, len, &mn, &mx);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  const hb_raster_clip_t &clip = c->current_clip ();
+  unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
+  unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
+  bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
   uint32_t lut[GRADIENT_LUT_SIZE];
-  build_gradient_lut (stops, len, lut);
+  if (use_lut)
+    build_gradient_lut (stops, len, lut);
 
   /* Apply normalization to circle parameters */
   float cx0 = x0 + mn * (x1 - x0);
@@ -1178,7 +1219,6 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     float dr = cr1 - cr0;
     float A = cdx * cdx + cdy * cdy - dr * dr;
 
-    const hb_raster_clip_t &clip = c->current_clip ();
     unsigned stride = surf->extents.stride;
     int ox = surf->extents.x_origin;
     int oy = surf->extents.y_origin;
@@ -1190,38 +1230,71 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
 	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
 	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	if (use_lut)
 	{
-	  float dpx = gx - cx0, dpy = gy - cy0;
-	  float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
-	  float C = dpx * dpx + dpy * dpy - cr0 * cr0;
-
-	  float grad_t;
-	  if (fabsf (A) > 1e-10f)
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	  {
-	    float disc = B * B - 4.f * A * C;
-	    if (disc < 0.f) continue;
-	    float sq = sqrtf (disc);
-	    /* Pick the larger root (t closer to 1 = outer circle) */
-	    float t1 = (-B + sq) / (2.f * A);
-	    float t2 = (-B - sq) / (2.f * A);
-	    /* Choose the root that gives a positive radius */
-	    if (cr0 + t1 * dr >= 0.f)
-	      grad_t = t1;
+	    float dpx = gx - cx0, dpy = gy - cy0;
+	    float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
+	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
+
+	    float grad_t;
+	    if (fabsf (A) > 1e-10f)
+	    {
+	      float disc = B * B - 4.f * A * C;
+	      if (disc < 0.f) continue;
+	      float sq = sqrtf (disc);
+	      /* Pick the larger root (t closer to 1 = outer circle) */
+	      float t1 = (-B + sq) / (2.f * A);
+	      float t2 = (-B - sq) / (2.f * A);
+	      /* Choose the root that gives a positive radius */
+	      if (cr0 + t1 * dr >= 0.f)
+		grad_t = t1;
+	      else
+		grad_t = t2;
+	    }
 	    else
-	      grad_t = t2;
-	  }
-	  else
-	  {
-	    /* Linear case: Bt + C = 0 */
-	    if (fabsf (B) < 1e-10f) continue;
-	    grad_t = -C / B;
-	  }
+	    {
+	      /* Linear case: Bt + C = 0 */
+	      if (fabsf (B) < 1e-10f) continue;
+	      grad_t = -C / B;
+	    }
 
-		  uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
-	  row[px] = hb_raster_src_over (src, row[px]);
-	  gx += inv_xx;
-	  gy += inv_yx;
+	    uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
+	    row[px] = hb_raster_src_over (src, row[px]);
+	    gx += inv_xx;
+	    gy += inv_yx;
+	  }
+	}
+	else
+	{
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	  {
+	    float dpx = gx - cx0, dpy = gy - cy0;
+	    float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
+	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
+
+	    float grad_t;
+	    if (fabsf (A) > 1e-10f)
+	    {
+	      float disc = B * B - 4.f * A * C;
+	      if (disc < 0.f) continue;
+	      float sq = sqrtf (disc);
+	      float t1 = (-B + sq) / (2.f * A);
+	      float t2 = (-B - sq) / (2.f * A);
+	      grad_t = (cr0 + t1 * dr >= 0.f) ? t1 : t2;
+	    }
+	    else
+	    {
+	      if (fabsf (B) < 1e-10f) continue;
+	      grad_t = -C / B;
+	    }
+
+	    uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+	    row[px] = hb_raster_src_over (src, row[px]);
+	    gx += inv_xx;
+	    gy += inv_yx;
+	  }
 	}
       }
     }
@@ -1233,47 +1306,81 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
 	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
 	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	if (use_lut)
 	{
-	  uint8_t clip_alpha = clip_row[px];
-	  if (clip_alpha == 0)
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	  {
+	    uint8_t clip_alpha = clip_row[px];
+	    if (clip_alpha == 0)
+	    {
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
+	    }
+	    float dpx = gx - cx0, dpy = gy - cy0;
+	    float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
+	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
+
+	    float grad_t;
+	    if (fabsf (A) > 1e-10f)
+	    {
+	      float disc = B * B - 4.f * A * C;
+	      if (disc < 0.f) continue;
+	      float sq = sqrtf (disc);
+	      float t1 = (-B + sq) / (2.f * A);
+	      float t2 = (-B - sq) / (2.f * A);
+	      grad_t = (cr0 + t1 * dr >= 0.f) ? t1 : t2;
+	    }
+	    else
+	    {
+	      if (fabsf (B) < 1e-10f) continue;
+	      grad_t = -C / B;
+	    }
+
+	    uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
+	    src = hb_raster_alpha_mul (src, clip_alpha);
+	    row[px] = hb_raster_src_over (src, row[px]);
 	    gx += inv_xx;
 	    gy += inv_yx;
-	    continue;
 	  }
-
-	  float dpx = gx - cx0, dpy = gy - cy0;
-	  float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
-	  float C = dpx * dpx + dpy * dpy - cr0 * cr0;
-
-	  float grad_t;
-	  if (fabsf (A) > 1e-10f)
+	}
+	else
+	{
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	  {
-	    float disc = B * B - 4.f * A * C;
-	    if (disc < 0.f) continue;
-	    float sq = sqrtf (disc);
-	    /* Pick the larger root (t closer to 1 = outer circle) */
-	    float t1 = (-B + sq) / (2.f * A);
-	    float t2 = (-B - sq) / (2.f * A);
-	    /* Choose the root that gives a positive radius */
-	    if (cr0 + t1 * dr >= 0.f)
-	      grad_t = t1;
+	    uint8_t clip_alpha = clip_row[px];
+	    if (clip_alpha == 0)
+	    {
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
+	    }
+	    float dpx = gx - cx0, dpy = gy - cy0;
+	    float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
+	    float C = dpx * dpx + dpy * dpy - cr0 * cr0;
+
+	    float grad_t;
+	    if (fabsf (A) > 1e-10f)
+	    {
+	      float disc = B * B - 4.f * A * C;
+	      if (disc < 0.f) continue;
+	      float sq = sqrtf (disc);
+	      float t1 = (-B + sq) / (2.f * A);
+	      float t2 = (-B - sq) / (2.f * A);
+	      grad_t = (cr0 + t1 * dr >= 0.f) ? t1 : t2;
+	    }
 	    else
-	      grad_t = t2;
-	  }
-	  else
-	  {
-	    /* Linear case: Bt + C = 0 */
-	    if (fabsf (B) < 1e-10f) continue;
-	    grad_t = -C / B;
-	  }
+	    {
+	      if (fabsf (B) < 1e-10f) continue;
+	      grad_t = -C / B;
+	    }
 
-		  uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
-	  src = hb_raster_alpha_mul (src, clip_alpha);
-	  row[px] = hb_raster_src_over (src, row[px]);
-	  gx += inv_xx;
-	  gy += inv_yx;
+	    uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+	    src = hb_raster_alpha_mul (src, clip_alpha);
+	    row[px] = hb_raster_src_over (src, row[px]);
+	    gx += inv_xx;
+	    gy += inv_yx;
+	  }
 	}
       }
     }
@@ -1310,8 +1417,13 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   normalize_color_line (stops, len, &mn, &mx);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  const hb_raster_clip_t &clip = c->current_clip ();
+  unsigned clip_w = clip.max_x > clip.min_x ? clip.max_x - clip.min_x : 0;
+  unsigned clip_h = clip.max_y > clip.min_y ? clip.max_y - clip.min_y : 0;
+  bool use_lut = (uint64_t) clip_w * clip_h >= GRADIENT_LUT_MIN_PIXELS;
   uint32_t lut[GRADIENT_LUT_SIZE];
-  build_gradient_lut (stops, len, lut);
+  if (use_lut)
+    build_gradient_lut (stops, len, lut);
 
   /* Apply normalization to angle range */
   float a0 = start_angle + mn * (end_angle - start_angle);
@@ -1334,7 +1446,6 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
     float inv_angle_range = 1.f / angle_range;
 
-    const hb_raster_clip_t &clip = c->current_clip ();
     unsigned stride = surf->extents.stride;
     int ox = surf->extents.x_origin;
     int oy = surf->extents.y_origin;
@@ -1346,18 +1457,31 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
 	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
 	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	if (use_lut)
 	{
-	  float angle = atan2f (gy - cy, gx - cx);
-	  /* Normalize to [0, 2*pi) — matches OT spec seam at angle 0. */
-	  if (angle < 0) angle += (float) HB_2_PI;
-
-	  float grad_t = (angle - a0) * inv_angle_range;
-
-		  uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
-	  row[px] = hb_raster_src_over (src, row[px]);
-	  gx += inv_xx;
-	  gy += inv_yx;
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	  {
+	    float angle = atan2f (gy - cy, gx - cx);
+	    if (angle < 0) angle += (float) HB_2_PI;
+	    float grad_t = (angle - a0) * inv_angle_range;
+	    uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
+	    row[px] = hb_raster_src_over (src, row[px]);
+	    gx += inv_xx;
+	    gy += inv_yx;
+	  }
+	}
+	else
+	{
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	  {
+	    float angle = atan2f (gy - cy, gx - cx);
+	    if (angle < 0) angle += (float) HB_2_PI;
+	    float grad_t = (angle - a0) * inv_angle_range;
+	    uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+	    row[px] = hb_raster_src_over (src, row[px]);
+	    gx += inv_xx;
+	    gy += inv_yx;
+	  }
 	}
       }
     }
@@ -1369,27 +1493,47 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
 	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
 	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-	for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	if (use_lut)
 	{
-	  uint8_t clip_alpha = clip_row[px];
-	  if (clip_alpha == 0)
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	  {
+	    uint8_t clip_alpha = clip_row[px];
+	    if (clip_alpha == 0)
+	    {
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
+	    }
+	    float angle = atan2f (gy - cy, gx - cx);
+	    if (angle < 0) angle += (float) HB_2_PI;
+	    float grad_t = (angle - a0) * inv_angle_range;
+	    uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
+	    src = hb_raster_alpha_mul (src, clip_alpha);
+	    row[px] = hb_raster_src_over (src, row[px]);
 	    gx += inv_xx;
 	    gy += inv_yx;
-	    continue;
 	  }
-
-	  float angle = atan2f (gy - cy, gx - cx);
-	  /* Normalize to [0, 2*pi) — matches OT spec seam at angle 0. */
-	  if (angle < 0) angle += (float) HB_2_PI;
-
-	  float grad_t = (angle - a0) * inv_angle_range;
-
-		  uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
-	  src = hb_raster_alpha_mul (src, clip_alpha);
-	  row[px] = hb_raster_src_over (src, row[px]);
-	  gx += inv_xx;
-	  gy += inv_yx;
+	}
+	else
+	{
+	  for (unsigned px = clip.min_x; px < clip.max_x; px++)
+	  {
+	    uint8_t clip_alpha = clip_row[px];
+	    if (clip_alpha == 0)
+	    {
+	      gx += inv_xx;
+	      gy += inv_yx;
+	      continue;
+	    }
+	    float angle = atan2f (gy - cy, gx - cx);
+	    if (angle < 0) angle += (float) HB_2_PI;
+	    float grad_t = (angle - a0) * inv_angle_range;
+	    uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+	    src = hb_raster_alpha_mul (src, clip_alpha);
+	    row[px] = hb_raster_src_over (src, row[px]);
+	    gx += inv_xx;
+	    gy += inv_yx;
+	  }
 	}
       }
     }
