@@ -143,8 +143,8 @@ main (int argc, char **argv)
   bool has_color = hb_ot_color_has_paint (face) ||
 		   hb_ot_color_has_layers (face);
 
-  hb_raster_draw_t  *rdr = hb_raster_draw_create ();
-  hb_raster_paint_t *pnt = has_color ? hb_raster_paint_create () : nullptr;
+  hb_raster_draw_t  *rdr = hb_raster_draw_create_or_fail ();
+  hb_raster_paint_t *pnt = has_color ? hb_raster_paint_create_or_fail () : nullptr;
   unsigned glyph_count = hb_face_get_glyph_count (face);
 
   for (unsigned gid = 0; gid < glyph_count; gid++)

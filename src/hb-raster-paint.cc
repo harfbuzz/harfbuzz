@@ -120,7 +120,7 @@ struct hb_raster_paint_t
       img = surface_cache.pop ();
     else
     {
-      img = hb_raster_image_create ();
+      img = hb_raster_image_create_or_fail ();
       if (unlikely (!img)) return nullptr;
     }
 
@@ -1613,22 +1613,28 @@ free_static_raster_paint_funcs ()
  */
 
 /**
- * hb_raster_paint_create:
+ * hb_raster_paint_create_or_fail:
  *
  * Creates a new color-glyph paint context.
  *
  * Return value: (transfer full):
- * A newly allocated #hb_raster_paint_t.
+ * A newly allocated #hb_raster_paint_t, or `NULL` on allocation failure.
  *
  * XSince: REPLACEME
  **/
 hb_raster_paint_t *
-hb_raster_paint_create (void)
+hb_raster_paint_create_or_fail (void)
 {
   hb_raster_paint_t *paint = hb_object_create<hb_raster_paint_t> ();
-  if (unlikely (!paint)) return nullptr;
+  if (unlikely (!paint))
+    return nullptr;
 
-  paint->clip_rdr = hb_raster_draw_create ();
+  paint->clip_rdr = hb_raster_draw_create_or_fail ();
+  if (unlikely (!paint->clip_rdr))
+  {
+    hb_free (paint);
+    return nullptr;
+  }
 
   return paint;
 }
@@ -1737,7 +1743,6 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 			       float xy, float yy,
 			       float dx, float dy)
 {
-  if (unlikely (!paint)) return;
   paint->base_transform = {xx, yx, xy, yy, dx, dy};
 }
 
@@ -1762,7 +1767,6 @@ void
 hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 			     const hb_raster_extents_t *extents)
 {
-  if (unlikely (!paint || !extents)) return;
   paint->fixed_extents = *extents;
   paint->has_fixed_extents = true;
   if (paint->fixed_extents.stride == 0)
@@ -1789,9 +1793,6 @@ hb_bool_t
 hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
 				   const hb_glyph_extents_t *glyph_extents)
 {
-  if (unlikely (!paint || !glyph_extents))
-    return false;
-
   float x0 = (float) glyph_extents->x_bearing;
   float y0 = (float) glyph_extents->y_bearing;
   float x1 = (float) glyph_extents->x_bearing + glyph_extents->width;
@@ -1858,7 +1859,6 @@ void
 hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
 				hb_color_t         foreground)
 {
-  if (unlikely (!paint)) return;
   paint->foreground = foreground;
 }
 
@@ -1890,32 +1890,24 @@ hb_raster_paint_get_funcs (void)
  *
  * Call hb_font_paint_glyph() before calling this function.
  * hb_raster_paint_set_extents() or hb_raster_paint_set_glyph_extents()
- * must be called before painting.
+ * must be called before painting; otherwise this function returns `NULL`.
  * Internal drawing state is cleared here so the same object can
  * be reused without client-side clearing.
  *
  * Return value: (transfer full):
- * A newly allocated #hb_raster_image_t, or `NULL` on failure
+ * A rendered #hb_raster_image_t. Returns `NULL` if extents were not set
+ * or if allocation/configuration fails. If extents were set but nothing
+ * was painted, returns an empty image.
  *
  * XSince: REPLACEME
  **/
 hb_raster_image_t *
 hb_raster_paint_render (hb_raster_paint_t *paint)
 {
-  if (unlikely (!paint)) return nullptr;
+  hb_raster_image_t *result = nullptr;
 
   if (unlikely (!paint->has_fixed_extents))
-  {
-    for (auto *s : paint->surface_stack)
-      paint->release_surface (s);
-    paint->surface_stack.resize (0);
-    paint->transform_stack.resize (0);
-    paint->release_all_clips ();
-    hb_raster_draw_reset (paint->clip_rdr);
-    return nullptr;
-  }
-
-  hb_raster_image_t *result = nullptr;
+    goto fail;
 
   if (paint->surface_stack.length)
   {
@@ -1926,6 +1918,12 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
       paint->release_surface (paint->surface_stack[i]);
     paint->surface_stack.resize (0);
   }
+  else
+  {
+    result = paint->acquire_surface ();
+    if (unlikely (!result))
+      goto fail;
+  }
 
   /* Clean up stacks and reset auto-extents for next glyph. */
   paint->transform_stack.resize (0);
@@ -1935,6 +1933,14 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
   paint->fixed_extents = {};
 
   return result;
+
+fail:
+  paint->transform_stack.resize (0);
+  paint->release_all_clips ();
+  hb_raster_draw_reset (paint->clip_rdr);
+  paint->has_fixed_extents = false;
+  paint->fixed_extents = {};
+  return nullptr;
 }
 
 /**
@@ -1949,7 +1955,6 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
 void
 hb_raster_paint_reset (hb_raster_paint_t *paint)
 {
-  if (unlikely (!paint)) return;
   paint->base_transform = {1, 0, 0, 1, 0, 0};
   paint->fixed_extents = {};
   paint->has_fixed_extents = false;
@@ -1975,7 +1980,6 @@ void
 hb_raster_paint_recycle_image (hb_raster_paint_t  *paint,
 			       hb_raster_image_t  *image)
 {
-  if (unlikely (!paint || !image)) return;
   hb_raster_image_destroy (paint->recycled_image);
   paint->recycled_image = image;
 }

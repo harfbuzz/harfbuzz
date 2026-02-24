@@ -31,7 +31,6 @@
 
 HB_BEGIN_DECLS
 
-
 /* Shared types */
 
 /**
@@ -81,7 +80,7 @@ typedef struct hb_raster_extents_t {
 typedef struct hb_raster_image_t hb_raster_image_t;
 
 HB_EXTERN hb_raster_image_t *
-hb_raster_image_create (void);
+hb_raster_image_create_or_fail (void);
 
 HB_EXTERN hb_raster_image_t *
 hb_raster_image_reference (hb_raster_image_t *image);
@@ -133,7 +132,7 @@ hb_raster_image_get_format (hb_raster_image_t *image);
 typedef struct hb_raster_draw_t hb_raster_draw_t;
 
 HB_EXTERN hb_raster_draw_t *
-hb_raster_draw_create (void);
+hb_raster_draw_create_or_fail (void);
 
 HB_EXTERN hb_raster_draw_t *
 hb_raster_draw_reference (hb_raster_draw_t *draw);
@@ -208,7 +207,7 @@ hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
 typedef struct hb_raster_paint_t hb_raster_paint_t;
 
 HB_EXTERN hb_raster_paint_t *
-hb_raster_paint_create (void);
+hb_raster_paint_create_or_fail (void);
 
 HB_EXTERN hb_raster_paint_t *
 hb_raster_paint_reference (hb_raster_paint_t *paint);

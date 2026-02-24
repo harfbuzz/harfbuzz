@@ -335,6 +335,8 @@ composite_pixel (uint32_t src, uint32_t dst,
 
 /* hb_raster_image_t */
 
+#define HB_RASTER_IMAGE_MAX_BUFFER_SIZE ((size_t) 1 << 30)
+
 unsigned
 hb_raster_image_t::bytes_per_pixel (hb_raster_format_t format)
 {
@@ -361,6 +363,8 @@ hb_raster_image_t::configure (hb_raster_format_t format,
     return false;
 
   size_t buf_size = (size_t) extents.stride * extents.height;
+  if (buf_size > HB_RASTER_IMAGE_MAX_BUFFER_SIZE)
+    return false;
   if (unlikely (!buffer.resize_dirty (buf_size)))
     return false;
 
@@ -406,24 +410,22 @@ hb_raster_image_composite (hb_raster_image_t *dst,
 			   const hb_raster_image_t *src,
 			   hb_paint_composite_mode_t mode)
 {
-  if (unlikely (!dst || !src)) return;
   dst->composite_from (src, mode);
 }
 
 /**
- * hb_raster_image_create:
+ * hb_raster_image_create_or_fail:
  *
  * Creates a new raster image object.
  *
  * Return value: (transfer full):
- * A newly allocated #hb_raster_image_t with a reference count of 1.
- * This function never returns `NULL`; if memory cannot be allocated,
- * a special singleton #hb_raster_image_t object will be returned.
+ * A newly allocated #hb_raster_image_t with a reference count of 1,
+ * or `NULL` on allocation failure.
  *
  * XSince: REPLACEME
  **/
 hb_raster_image_t *
-hb_raster_image_create (void)
+hb_raster_image_create_or_fail (void)
 {
   return hb_object_create<hb_raster_image_t> ();
 }
@@ -531,7 +533,6 @@ hb_raster_image_configure (hb_raster_image_t         *image,
 			   hb_raster_format_t        format,
 			   const hb_raster_extents_t *extents)
 {
-  if (unlikely (!image)) return false;
   if (unlikely (!extents))
   {
     image->extents = {};
@@ -552,7 +553,6 @@ hb_raster_image_configure (hb_raster_image_t         *image,
 void
 hb_raster_image_clear (hb_raster_image_t *image)
 {
-  if (unlikely (!image)) return;
   image->clear ();
 }
 
@@ -572,7 +572,6 @@ hb_raster_image_clear (hb_raster_image_t *image)
 const uint8_t *
 hb_raster_image_get_buffer (hb_raster_image_t *image)
 {
-  if (unlikely (!image)) return nullptr;
   return image->get_buffer ();
 }
 
@@ -589,7 +588,6 @@ void
 hb_raster_image_get_extents (hb_raster_image_t   *image,
 			     hb_raster_extents_t *extents)
 {
-  if (unlikely (!image || !extents)) return;
   *extents = image->extents;
 }
 
@@ -607,6 +605,5 @@ hb_raster_image_get_extents (hb_raster_image_t   *image,
 hb_raster_format_t
 hb_raster_image_get_format (hb_raster_image_t *image)
 {
-  if (unlikely (!image)) return HB_RASTER_FORMAT_A8;
   return image->format;
 }

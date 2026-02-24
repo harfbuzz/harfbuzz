@@ -101,10 +101,10 @@ struct raster_output_t : output_options_t<true>
       }
     }
 
-    rdr = hb_raster_draw_create ();
+    rdr = hb_raster_draw_create_or_fail ();
     if (has_color)
     {
-      pnt = hb_raster_paint_create ();
+      pnt = hb_raster_paint_create_or_fail ();
       hb_raster_paint_set_foreground (pnt, fg_color);
     }
   }
@@ -269,7 +269,7 @@ struct raster_output_t : output_options_t<true>
     unsigned stride = w * 4;
 
     hb_raster_extents_t ext = {ix0, iy0, w, h, stride};
-    hb_raster_image_t *out_img = hb_raster_image_create ();
+    hb_raster_image_t *out_img = hb_raster_image_create_or_fail ();
     if (!out_img) return;
     if (!hb_raster_image_configure (out_img, HB_RASTER_FORMAT_BGRA32, &ext))
     {

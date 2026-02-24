@@ -68,7 +68,7 @@ pixel_at (hb_raster_image_t *img, int x, int y)
 static void
 test_rectangle (void)
 {
-  hb_raster_draw_t *rdr = hb_raster_draw_create ();
+  hb_raster_draw_t *rdr = hb_raster_draw_create_or_fail ();
 
   draw_rect (rdr, 2.f, 2.f, 30.f, 30.f);
 
@@ -116,7 +116,7 @@ test_rectangle (void)
 static void
 test_accumulate (void)
 {
-  hb_raster_draw_t *rdr = hb_raster_draw_create ();
+  hb_raster_draw_t *rdr = hb_raster_draw_create_or_fail ();
 
   /* Two non-overlapping boxes accumulated before a single render() */
   draw_rect (rdr, 0.f, 0.f, 10.f, 10.f);
@@ -142,7 +142,7 @@ test_accumulate (void)
 static void
 test_subpixel_edge (void)
 {
-  hb_raster_draw_t *rdr = hb_raster_draw_create ();
+  hb_raster_draw_t *rdr = hb_raster_draw_create_or_fail ();
 
   /* Box with a half-pixel offset so the leftmost pixel column is split */
   draw_rect (rdr, 2.5f, 2.f, 30.f, 30.f);
@@ -168,7 +168,7 @@ test_subpixel_edge (void)
 static void
 test_transform (void)
 {
-  hb_raster_draw_t *rdr = hb_raster_draw_create ();
+  hb_raster_draw_t *rdr = hb_raster_draw_create_or_fail ();
 
   /* Scale by 2 — same unit-square box maps to (0,0)→(20,20) */
   hb_raster_draw_set_transform (rdr, 2.f, 0.f, 0.f, 2.f, 0.f, 0.f);
@@ -192,7 +192,7 @@ test_transform (void)
 static void
 test_set_glyph_extents_with_transform (void)
 {
-  hb_raster_draw_t *rdr = hb_raster_draw_create ();
+  hb_raster_draw_t *rdr = hb_raster_draw_create_or_fail ();
 
   hb_raster_draw_set_transform (rdr, 2.f, 0.f, 0.f, 3.f, 5.f, 7.f);
 

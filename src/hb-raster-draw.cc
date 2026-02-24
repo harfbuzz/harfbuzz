@@ -87,24 +87,22 @@ struct hb_raster_draw_t
 /* hb_raster_draw_t */
 
 /**
- * hb_raster_draw_create:
+ * hb_raster_draw_create_or_fail:
  *
  * Creates a new rasterizer object.
  *
  * Return value: (transfer full):
  * A newly allocated #hb_raster_draw_t with a reference count of 1. The
  * initial reference count should be released with hb_raster_draw_destroy()
- * when you are done using the #hb_raster_draw_t. This function never
- * returns `NULL`. If memory cannot be allocated, a special singleton
- * #hb_raster_draw_t object will be returned.
+ * when you are done using the #hb_raster_draw_t, or `NULL` on
+ * allocation failure.
  *
  * XSince: REPLACEME
  **/
 hb_raster_draw_t *
-hb_raster_draw_create (void)
+hb_raster_draw_create_or_fail (void)
 {
   hb_raster_draw_t *draw = hb_object_create<hb_raster_draw_t> ();
-  if (unlikely (!draw)) return nullptr;
   return draw;
 }
 
@@ -203,7 +201,6 @@ void
 hb_raster_draw_set_format (hb_raster_draw_t  *draw,
 			   hb_raster_format_t format)
 {
-  if (unlikely (!draw)) return;
   draw->format = format;
 }
 
@@ -221,7 +218,6 @@ hb_raster_draw_set_format (hb_raster_draw_t  *draw,
 hb_raster_format_t
 hb_raster_draw_get_format (hb_raster_draw_t *draw)
 {
-  if (unlikely (!draw)) return HB_RASTER_FORMAT_A8;
   return draw->format;
 }
 
@@ -246,7 +242,6 @@ hb_raster_draw_set_transform (hb_raster_draw_t *draw,
 			      float xy, float yy,
 			      float dx, float dy)
 {
-  if (unlikely (!draw)) return;
   draw->transform = {xx, yx, xy, yy, dx, dy};
 }
 
@@ -270,7 +265,6 @@ hb_raster_draw_get_transform (hb_raster_draw_t *draw,
 			      float *xy, float *yy,
 			      float *dx, float *dy)
 {
-  if (unlikely (!draw)) return;
   if (xx) *xx = draw->transform.xx;
   if (yx) *yx = draw->transform.yx;
   if (xy) *xy = draw->transform.xy;
@@ -294,7 +288,6 @@ void
 hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 			    const hb_raster_extents_t *extents)
 {
-  if (unlikely (!draw || !extents)) return;
   draw->fixed_extents     = *extents;
   draw->has_fixed_extents = true;
 }
@@ -319,9 +312,6 @@ hb_bool_t
 hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
 				  const hb_glyph_extents_t *glyph_extents)
 {
-  if (unlikely (!draw || !glyph_extents))
-    return false;
-
   float x0 = (float) glyph_extents->x_bearing;
   float y0 = (float) glyph_extents->y_bearing;
   float x1 = (float) glyph_extents->x_bearing + glyph_extents->width;
@@ -385,7 +375,6 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
 void
 hb_raster_draw_reset (hb_raster_draw_t *draw)
 {
-  if (unlikely (!draw)) return;
   draw->format            = HB_RASTER_FORMAT_A8;
   draw->transform         = {1, 0, 0, 1, 0, 0};
   draw->fixed_extents     = {};
@@ -417,7 +406,6 @@ void
 hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
 			      hb_raster_image_t *image)
 {
-  if (unlikely (!draw || !image)) return;
   hb_raster_image_destroy (draw->recycled_image);
   draw->recycled_image = image;
 }
@@ -1154,15 +1142,14 @@ sweep_row_to_alpha (uint8_t *__restrict row_buf,
  * cleared so the rasterizer can be reused.
  *
  * Return value: (transfer full):
- * A newly allocated #hb_raster_image_t, or `NULL` on allocation failure
+ * A rendered #hb_raster_image_t. Returns `NULL` on allocation/configuration
+ * failure. If no geometry was accumulated, returns an empty image.
  *
  * XSince: REPLACEME
  **/
 hb_raster_image_t *
 hb_raster_draw_render (hb_raster_draw_t *draw)
 {
-  if (unlikely (!draw)) return nullptr;
-
   /* ── 1. Compute result extents ─────────────────────────────────── */
   hb_raster_extents_t ext;
 
@@ -1223,15 +1210,15 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   }
   else
   {
-    image = hb_raster_image_create ();
-    if (unlikely (!image)) goto done;
+    image = hb_raster_image_create_or_fail ();
+    if (unlikely (!image)) goto fail;
   }
 
   if (unlikely (!image->configure (draw->format, ext)))
   {
     hb_raster_image_destroy (image);
     image = nullptr;
-    goto done;
+    goto fail;
   }
   image->clear ();
 
@@ -1240,7 +1227,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
   {
     if (unlikely (!draw->row_area.resize_dirty (ext.width) ||
 		  !draw->row_cover.resize_dirty (ext.width)))
-      goto done;
+      goto fail;
     memset (draw->row_area.arrayZ,  0, ext.width * sizeof (int32_t));
     memset (draw->row_cover.arrayZ, 0, ext.width * sizeof (int16_t));
 
@@ -1250,7 +1237,7 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
     if (ext.height > old_buckets)
     {
       if (unlikely (!draw->edge_buckets.resize (ext.height)))
-	goto done;
+	goto fail;
     }
     for (unsigned i = 0; i < hb_min (ext.height, old_buckets); i++)
       draw->edge_buckets.arrayZ[i].resize (0);
@@ -1319,4 +1306,9 @@ done:
   draw->fixed_extents     = {};
 
   return image;
+
+fail:
+  hb_raster_image_destroy (image);
+  image = nullptr;
+  goto done;
 }
