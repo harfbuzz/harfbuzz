@@ -282,9 +282,9 @@ struct vector_output_t : output_options_t<>
         paint_blob && paint_blob != hb_blob_get_empty ())
       write_combined_svg (draw_blob, paint_blob);
     else if (paint_blob && paint_blob != hb_blob_get_empty ())
-      write_blob (paint_blob);
+      write_blob (paint_blob, false);
     else if (draw_blob && draw_blob != hb_blob_get_empty ())
-      write_blob (draw_blob);
+      write_blob (draw_blob, true);
 
     hb_blob_destroy (draw_blob);
     hb_blob_destroy (paint_blob);
@@ -512,7 +512,31 @@ struct vector_output_t : output_options_t<>
     return true;
   }
 
-  void write_blob (hb_blob_t *blob)
+  void emit_fill_group_open ()
+  {
+    if (!foreground_str)
+      return;
+
+    unsigned r = hb_color_get_red (foreground);
+    unsigned g = hb_color_get_green (foreground);
+    unsigned b = hb_color_get_blue (foreground);
+    unsigned a = hb_color_get_alpha (foreground);
+
+    fprintf (out_fp, "<g fill=\"#%02X%02X%02X\"", r, g, b);
+    if (a != 255)
+      fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
+    fprintf (out_fp, ">\n");
+  }
+
+  void emit_fill_group_close ()
+  {
+    if (!foreground_str)
+      return;
+    fputs ("</g>\n", out_fp);
+  }
+
+  void write_blob (hb_blob_t *blob,
+                   hb_bool_t is_draw_blob)
   {
     unsigned in_len = 0;
     const char *in_data = hb_blob_get_data (blob, &in_len);
@@ -539,8 +563,15 @@ struct vector_output_t : output_options_t<>
 
     emit_background_rect ();
 
+    if (is_draw_blob)
+      emit_fill_group_open ();
+
     if (body.len)
       fwrite (body.p, 1, body.len, out_fp);
+
+    if (is_draw_blob)
+      emit_fill_group_close ();
+
     fputs ("</svg>\n", out_fp);
   }
 
@@ -578,8 +609,10 @@ struct vector_output_t : output_options_t<>
 
     emit_background_rect ();
 
+    emit_fill_group_open ();
     if (draw_body.len)
       fwrite (draw_body.p, 1, draw_body.len, out_fp);
+    emit_fill_group_close ();
     if (paint_body.len)
       fwrite (paint_body.p, 1, paint_body.len, out_fp);
 
