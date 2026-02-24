@@ -88,6 +88,48 @@ hb_svg_append_hex_byte (hb_vector_t<char> *buf, unsigned v)
   return hb_svg_append_len (buf, tmp, 2);
 }
 
+static bool
+hb_svg_append_base64 (hb_vector_t<char> *buf,
+                      const uint8_t *data,
+                      unsigned len)
+{
+  static const char b64[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+  unsigned out_len = ((len + 2) / 3) * 4;
+  unsigned old_len = buf->length;
+  if (unlikely (!buf->resize_dirty ((int) (old_len + out_len))))
+    return false;
+
+  char *dst = buf->arrayZ + old_len;
+  unsigned di = 0;
+  unsigned i = 0;
+  while (i + 2 < len)
+  {
+    unsigned v = ((unsigned) data[i] << 16) |
+                 ((unsigned) data[i + 1] << 8) |
+                 ((unsigned) data[i + 2]);
+    dst[di++] = b64[(v >> 18) & 63];
+    dst[di++] = b64[(v >> 12) & 63];
+    dst[di++] = b64[(v >> 6) & 63];
+    dst[di++] = b64[v & 63];
+    i += 3;
+  }
+
+  if (i < len)
+  {
+    unsigned v = (unsigned) data[i] << 16;
+    if (i + 1 < len)
+      v |= (unsigned) data[i + 1] << 8;
+    dst[di++] = b64[(v >> 18) & 63];
+    dst[di++] = b64[(v >> 12) & 63];
+    dst[di++] = (i + 1 < len) ? b64[(v >> 6) & 63] : '=';
+    dst[di++] = '=';
+  }
+
+  return true;
+}
+
 static void
 hb_svg_append_num (hb_vector_t<char> *buf,
                    float v,
@@ -1121,24 +1163,55 @@ hb_vector_paint_image (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   hb_vector_paint_ensure_initialized (paint);
 
-  if (format != HB_TAG ('s','v','g',' '))
-    return false;
-
   auto &body = paint->current_body ();
-  paint->current_color_glyph_has_svg_image = true;
-
-  paint->subset_body_scratch.clear ();
-  bool subset_ok = hb_svg_subset_glyph_image (paint->current_face,
-                                              image,
-                                              paint->current_svg_image_glyph,
-                                              &paint->svg_image_counter,
-                                              &paint->defs,
-                                              &paint->subset_body_scratch);
-  if (unlikely (!subset_ok))
-    return false;
-
-  if (extents)
+  if (format == HB_TAG ('s','v','g',' '))
   {
+    paint->current_color_glyph_has_svg_image = true;
+
+    paint->subset_body_scratch.clear ();
+    bool subset_ok = hb_svg_subset_glyph_image (paint->current_face,
+                                                image,
+                                                paint->current_svg_image_glyph,
+                                                &paint->svg_image_counter,
+                                                &paint->defs,
+                                                &paint->subset_body_scratch);
+    if (unlikely (!subset_ok))
+      return false;
+
+    if (extents)
+    {
+      hb_svg_append_str (&body, "<g transform=\"translate(");
+      hb_svg_append_num (&body, (float) extents->x_bearing, paint->precision);
+      hb_svg_append_c (&body, ',');
+      hb_svg_append_num (&body, (float) extents->y_bearing, paint->precision);
+      hb_svg_append_str (&body, ") scale(");
+      hb_svg_append_num (&body, (float) extents->width / width, paint->precision);
+      hb_svg_append_c (&body, ',');
+      hb_svg_append_num (&body, (float) extents->height / height, paint->precision);
+      hb_svg_append_str (&body, ")\">\n");
+    }
+
+    hb_svg_append_len (&body,
+                       paint->subset_body_scratch.arrayZ,
+                       paint->subset_body_scratch.length);
+    hb_svg_append_c (&body, '\n');
+
+    if (extents)
+      hb_svg_append_str (&body, "</g>\n");
+
+    return true;
+  }
+
+  if (format == HB_TAG ('p','n','g',' '))
+  {
+    if (!extents || !width || !height)
+      return false;
+
+    unsigned len = 0;
+    const char *png_data = hb_blob_get_data (image, &len);
+    if (!png_data || !len)
+      return false;
+
     hb_svg_append_str (&body, "<g transform=\"translate(");
     hb_svg_append_num (&body, (float) extents->x_bearing, paint->precision);
     hb_svg_append_c (&body, ',');
@@ -1148,17 +1221,19 @@ hb_vector_paint_image (hb_paint_funcs_t *,
     hb_svg_append_c (&body, ',');
     hb_svg_append_num (&body, (float) extents->height / height, paint->precision);
     hb_svg_append_str (&body, ")\">\n");
+
+    hb_svg_append_str (&body, "<image href=\"data:image/png;base64,");
+    hb_svg_append_base64 (&body, (const uint8_t *) png_data, len);
+    hb_svg_append_str (&body, "\" width=\"");
+    hb_svg_append_num (&body, (float) width, paint->precision);
+    hb_svg_append_str (&body, "\" height=\"");
+    hb_svg_append_num (&body, (float) height, paint->precision);
+    hb_svg_append_str (&body, "\"/>\n</g>\n");
+
+    return true;
   }
 
-  hb_svg_append_len (&body,
-                     paint->subset_body_scratch.arrayZ,
-                     paint->subset_body_scratch.length);
-  hb_svg_append_c (&body, '\n');
-
-  if (extents)
-    hb_svg_append_str (&body, "</g>\n");
-
-  return true;
+  return false;
 }
 
 static void
@@ -1500,7 +1575,6 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
   bool needs_def = !draw->flat && !hb_set_has (draw->defined_glyphs, glyph);
   if (needs_def)
   {
-    hb_set_add (draw->defined_glyphs, glyph);
     draw->path.clear ();
     hb_svg_path_sink_t sink = {&draw->path, draw->precision};
     hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_singleton (), &sink);
@@ -1511,6 +1585,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
     hb_svg_append_str (&draw->defs, "\" d=\"");
     hb_svg_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
     hb_svg_append_str (&draw->defs, "\"/>\n");
+    hb_set_add (draw->defined_glyphs, glyph);
   }
 
   if (draw->flat)
