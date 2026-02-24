@@ -160,8 +160,10 @@ struct ft_raster_output_t : output_options_t<true>
   }
 
   template <typename app_t>
-  void finish (hb_buffer_t *buffer HB_UNUSED, const app_t *font_opts HB_UNUSED)
+  void finish (hb_buffer_t *buffer HB_UNUSED, const app_t *app)
   {
+    unsigned int num_iterations = app->num_iterations ? app->num_iterations : 1;
+
     /* pixels per font unit */
     float sx = scalbnf (1.f, -(int) subpixel_bits);
     float sy = scalbnf (1.f, -(int) subpixel_bits);
@@ -238,53 +240,60 @@ struct ft_raster_output_t : output_options_t<true>
     unsigned stride = (width + 3u) & ~3u;
 
     std::vector<uint8_t> pixels (stride * height, 0);
-
-    /* Second pass: rasterize each glyph with FreeType */
-    for (const auto &r : renders)
+    for (unsigned int iter = 0; iter < num_iterations; iter++)
     {
-      FT_Load_Glyph (ft_face, r.gid, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
-      FT_Outline *outline = &ft_face->glyph->outline;
+      std::fill (pixels.begin (), pixels.end (), 0);
 
-      /* We need to transform the outline from font-space 26.6 to pixel space,
-	 then translate so that pixel (x0, y0) maps to bitmap (0, 0). */
-      FT_Matrix matrix;
-      matrix.xx = (FT_Fixed) (sx * 65536.f);
-      matrix.xy = 0;
-      matrix.yx = 0;
-      matrix.yy = (FT_Fixed) (sy * 65536.f);
+      /* Second pass: rasterize each glyph with FreeType */
+      for (const auto &r : renders)
+      {
+	FT_Load_Glyph (ft_face, r.gid, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
+	FT_Outline *outline = &ft_face->glyph->outline;
 
-      /* pen position in 26.6 pixel space */
-      FT_Vector delta;
-      delta.x = (FT_Pos) roundf ((r.pen_x - x0) * 64.f);
-      delta.y = (FT_Pos) roundf ((r.pen_y - y0) * 64.f);
+	/* We need to transform the outline from font-space 26.6 to pixel space,
+	   then translate so that pixel (x0, y0) maps to bitmap (0, 0). */
+	FT_Matrix matrix;
+	matrix.xx = (FT_Fixed) (sx * 65536.f);
+	matrix.xy = 0;
+	matrix.yx = 0;
+	matrix.yy = (FT_Fixed) (sy * 65536.f);
 
-      FT_Outline_Transform (outline, &matrix);
-      FT_Outline_Translate (outline, delta.x, delta.y);
+	/* pen position in 26.6 pixel space */
+	FT_Vector delta;
+	delta.x = (FT_Pos) roundf ((r.pen_x - x0) * 64.f);
+	delta.y = (FT_Pos) roundf ((r.pen_y - y0) * 64.f);
 
-      FT_Bitmap bitmap;
-      FT_Bitmap_Init (&bitmap);
-      bitmap.rows       = height;
-      bitmap.width      = width;
-      bitmap.pitch      = (int) stride;
-      bitmap.buffer     = pixels.data ();
-      bitmap.pixel_mode = FT_PIXEL_MODE_GRAY;
-      bitmap.num_grays  = 256;
+	FT_Outline_Transform (outline, &matrix);
+	FT_Outline_Translate (outline, delta.x, delta.y);
 
-      FT_Raster_Params params = {};
-      params.target = &bitmap;
-      params.flags  = FT_RASTER_FLAG_AA;
-      FT_Outline_Render (ft_lib, outline, &params);
-    }
+	FT_Bitmap bitmap;
+	FT_Bitmap_Init (&bitmap);
+	bitmap.rows       = height;
+	bitmap.width      = width;
+	bitmap.pitch      = (int) stride;
+	bitmap.buffer     = pixels.data ();
+	bitmap.pixel_mode = FT_PIXEL_MODE_GRAY;
+	bitmap.num_grays  = 256;
 
-    /* Write PPM (black on white), y-flipped so text reads correctly. */
-    fprintf (out_fp, "P6\n%u %u\n255\n", width, height);
-    std::vector<uint8_t> rgb_row (width * 3);
-    for (unsigned row = 0; row < height; row++)
-    {
-      const uint8_t *src = pixels.data () + row * stride;
-      for (unsigned x = 0; x < width; x++)
-	rgb_row[x * 3 + 0] = rgb_row[x * 3 + 1] = rgb_row[x * 3 + 2] = (uint8_t) (255 - src[x]);
-      fwrite (rgb_row.data (), 1, width * 3, out_fp);
+	FT_Raster_Params params = {};
+	params.target = &bitmap;
+	params.flags  = FT_RASTER_FLAG_AA;
+	FT_Outline_Render (ft_lib, outline, &params);
+      }
+
+      if (iter + 1 == num_iterations)
+      {
+	/* Write PPM (black on white), y-flipped so text reads correctly. */
+	fprintf (out_fp, "P6\n%u %u\n255\n", width, height);
+	std::vector<uint8_t> rgb_row (width * 3);
+	for (unsigned row = 0; row < height; row++)
+	{
+	  const uint8_t *src = pixels.data () + row * stride;
+	  for (unsigned x = 0; x < width; x++)
+	    rgb_row[x * 3 + 0] = rgb_row[x * 3 + 1] = rgb_row[x * 3 + 2] = (uint8_t) (255 - src[x]);
+	  fwrite (rgb_row.data (), 1, width * 3, out_fp);
+	}
+      }
     }
 
     cleanup ();

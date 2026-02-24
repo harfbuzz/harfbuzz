@@ -152,8 +152,10 @@ struct raster_output_t : output_options_t<true>
   }
 
   template <typename app_t>
-  void finish (hb_buffer_t *buffer HB_UNUSED, const app_t *font_opts HB_UNUSED)
+  void finish (hb_buffer_t *buffer HB_UNUSED, const app_t *app)
   {
+    unsigned int num_iterations = app->num_iterations ? app->num_iterations : 1;
+
     /* pixels per font unit */
     float sx = scalbnf (1.f, -(int) subpixel_bits);
     float sy = scalbnf (1.f, -(int) subpixel_bits);
@@ -176,29 +178,33 @@ struct raster_output_t : output_options_t<true>
 
     if (has_color && pnt)
     {
-      finish_paint (sx, sy, step, vertical);
+      finish_paint (sx, sy, step, vertical, num_iterations);
     }
     else
     {
-      for (unsigned li = 0; li < lines.size (); li++)
+      for (unsigned int iter = 0; iter < num_iterations; iter++)
       {
-	float off_x = vertical ? -(step * (float) li) : 0.f;
-	float off_y = vertical ?  0.f                 : -(step * (float) li);
-
-	for (const auto &g : lines[li].glyphs)
+	for (unsigned li = 0; li < lines.size (); li++)
 	{
-	  float pen_x = (g.x + off_x) * sx;
-	  float pen_y = (g.y + off_y) * sy;
-	  hb_raster_draw_set_transform (rdr, sx, 0.f, 0.f, sy, pen_x, pen_y);
-	  hb_font_draw_glyph (font, g.gid, hb_raster_draw_get_funcs (), rdr);
-	}
-      }
+	  float off_x = vertical ? -(step * (float) li) : 0.f;
+	  float off_y = vertical ?  0.f                 : -(step * (float) li);
 
-      hb_raster_image_t *img = hb_raster_draw_render (rdr);
-      if (img)
-      {
-	write_a8_as_ppm (img);
-	hb_raster_image_destroy (img);
+	  for (const auto &g : lines[li].glyphs)
+	  {
+	    float pen_x = (g.x + off_x) * sx;
+	    float pen_y = (g.y + off_y) * sy;
+	    hb_raster_draw_set_transform (rdr, sx, 0.f, 0.f, sy, pen_x, pen_y);
+	    hb_font_draw_glyph (font, g.gid, hb_raster_draw_get_funcs (), rdr);
+	  }
+	}
+
+	hb_raster_image_t *img = hb_raster_draw_render (rdr);
+	if (img)
+	{
+	  if (iter + 1 == num_iterations)
+	    write_a8_as_ppm (img);
+	  hb_raster_draw_recycle_image (rdr, img);
+	}
       }
     }
 
@@ -218,7 +224,7 @@ struct raster_output_t : output_options_t<true>
     std::vector<glyph_instance_t> glyphs;
   };
 
-  void finish_paint (float sx, float sy, float step, bool vertical)
+  void finish_paint (float sx, float sy, float step, bool vertical, unsigned int num_iterations)
   {
     /* First pass: compute bounding box in pixel space */
     float pmin_x = 1e30f, pmin_y = 1e30f;
@@ -265,61 +271,66 @@ struct raster_output_t : output_options_t<true>
 
     hb_raster_extents_t ext = {ix0, iy0, w, h, stride};
 
-    /* Second pass: paint each glyph */
-    for (unsigned li = 0; li < lines.size (); li++)
+    for (unsigned int iter = 0; iter < num_iterations; iter++)
     {
-      float off_x = vertical ? -(step * (float) li) : 0.f;
-      float off_y = vertical ?  0.f                 : -(step * (float) li);
-
-      for (const auto &g : lines[li].glyphs)
+      std::fill (out_buf.begin (), out_buf.end (), 0);
+      /* Second pass: paint each glyph */
+      for (unsigned li = 0; li < lines.size (); li++)
       {
-	float pen_x = (g.x + off_x) * sx;
-	float pen_y = (g.y + off_y) * sy;
+	float off_x = vertical ? -(step * (float) li) : 0.f;
+	float off_y = vertical ?  0.f                 : -(step * (float) li);
 
-	hb_raster_paint_set_transform (pnt, sx, 0.f, 0.f, sy, pen_x, pen_y);
-	hb_raster_paint_set_extents (pnt, &ext);
-
-	hb_font_paint_glyph (font, g.gid,
-			     hb_raster_paint_get_funcs (), pnt,
-			     0, fg_color);
-
-	hb_raster_image_t *img = hb_raster_paint_render (pnt);
-	if (img)
+	for (const auto &g : lines[li].glyphs)
 	{
-	  /* Composite onto output buffer (SRC_OVER) */
-	  const uint8_t *src = hb_raster_image_get_buffer (img);
-	  hb_raster_extents_t img_ext;
-	  hb_raster_image_get_extents (img, &img_ext);
+	  float pen_x = (g.x + off_x) * sx;
+	  float pen_y = (g.y + off_y) * sy;
 
-	  for (unsigned y = 0; y < h; y++)
-	    for (unsigned x = 0; x < w; x++)
-	    {
-	      uint32_t s;
-	      memcpy (&s, src + y * img_ext.stride + x * 4, 4);
-	      if (!s) continue;
-	      uint8_t sa = (uint8_t) (s >> 24);
-	      uint32_t d;
-	      memcpy (&d, out_buf.data () + y * stride + x * 4, 4);
-	      if (sa == 255) { d = s; }
-	      else
+	  hb_raster_paint_set_transform (pnt, sx, 0.f, 0.f, sy, pen_x, pen_y);
+	  hb_raster_paint_set_extents (pnt, &ext);
+
+	  hb_font_paint_glyph (font, g.gid,
+			       hb_raster_paint_get_funcs (), pnt,
+			       0, fg_color);
+
+	  hb_raster_image_t *img = hb_raster_paint_render (pnt);
+	  if (img)
+	  {
+	    /* Composite onto output buffer (SRC_OVER) */
+	    const uint8_t *src = hb_raster_image_get_buffer (img);
+	    hb_raster_extents_t img_ext;
+	    hb_raster_image_get_extents (img, &img_ext);
+
+	    for (unsigned y = 0; y < h; y++)
+	      for (unsigned x = 0; x < w; x++)
 	      {
-		unsigned inv_sa = 255 - sa;
-		uint8_t rb = (uint8_t) (((d & 0xFF) * inv_sa + 128 + (((d & 0xFF) * inv_sa + 128) >> 8)) >> 8) + (uint8_t) (s & 0xFF);
-		uint8_t rg = (uint8_t) ((((d >> 8) & 0xFF) * inv_sa + 128 + ((((d >> 8) & 0xFF) * inv_sa + 128) >> 8)) >> 8) + (uint8_t) ((s >> 8) & 0xFF);
-		uint8_t rr = (uint8_t) ((((d >> 16) & 0xFF) * inv_sa + 128 + ((((d >> 16) & 0xFF) * inv_sa + 128) >> 8)) >> 8) + (uint8_t) ((s >> 16) & 0xFF);
-		uint8_t ra = (uint8_t) ((((d >> 24) & 0xFF) * inv_sa + 128 + ((((d >> 24) & 0xFF) * inv_sa + 128) >> 8)) >> 8) + sa;
-		d = (uint32_t) rb | ((uint32_t) rg << 8) | ((uint32_t) rr << 16) | ((uint32_t) ra << 24);
+		uint32_t s;
+		memcpy (&s, src + y * img_ext.stride + x * 4, 4);
+		if (!s) continue;
+		uint8_t sa = (uint8_t) (s >> 24);
+		uint32_t d;
+		memcpy (&d, out_buf.data () + y * stride + x * 4, 4);
+		if (sa == 255) { d = s; }
+		else
+		{
+		  unsigned inv_sa = 255 - sa;
+		  uint8_t rb = (uint8_t) (((d & 0xFF) * inv_sa + 128 + (((d & 0xFF) * inv_sa + 128) >> 8)) >> 8) + (uint8_t) (s & 0xFF);
+		  uint8_t rg = (uint8_t) ((((d >> 8) & 0xFF) * inv_sa + 128 + ((((d >> 8) & 0xFF) * inv_sa + 128) >> 8)) >> 8) + (uint8_t) ((s >> 8) & 0xFF);
+		  uint8_t rr = (uint8_t) ((((d >> 16) & 0xFF) * inv_sa + 128 + ((((d >> 16) & 0xFF) * inv_sa + 128) >> 8)) >> 8) + (uint8_t) ((s >> 16) & 0xFF);
+		  uint8_t ra = (uint8_t) ((((d >> 24) & 0xFF) * inv_sa + 128 + ((((d >> 24) & 0xFF) * inv_sa + 128) >> 8)) >> 8) + sa;
+		  d = (uint32_t) rb | ((uint32_t) rg << 8) | ((uint32_t) rr << 16) | ((uint32_t) ra << 24);
+		}
+		memcpy (out_buf.data () + y * stride + x * 4, &d, 4);
 	      }
-	      memcpy (out_buf.data () + y * stride + x * 4, &d, 4);
-	    }
 
-	  hb_raster_paint_recycle_image (pnt, img);
+	    hb_raster_paint_recycle_image (pnt, img);
+	  }
 	}
       }
-    }
 
-    /* Write as PPM (RGB, Y-flipped) */
-    write_ppm (out_buf.data (), w, h, stride);
+      if (iter + 1 == num_iterations)
+	/* Write as PPM (RGB, Y-flipped). */
+	write_ppm (out_buf.data (), w, h, stride);
+    }
   }
 
   /* Write an A8 alpha image as PPM; composited over fg/bg, Y-flipped. */
