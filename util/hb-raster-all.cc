@@ -159,9 +159,9 @@ main (int argc, char **argv)
 	if (hb_font_get_glyph_extents (font, gid, &gext) &&
 	    hb_raster_paint_set_glyph_extents (pnt, &gext))
 	{
-	  hb_bool_t painted = hb_font_paint_glyph_or_fail (font, gid,
-							    hb_raster_paint_get_funcs (), pnt,
-							    0, HB_COLOR (0, 0, 0, 255));
+	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+	  hb_bool_t painted = hb_raster_paint_glyph (pnt, font, gid, 0.f, 0.f,
+							     0, HB_COLOR (0, 0, 0, 255));
 	  if (painted)
 	    img = hb_raster_paint_render (pnt);
 	}
@@ -175,8 +175,8 @@ main (int argc, char **argv)
 	}
       }
 
-      if (!hb_font_draw_glyph_or_fail (font, gid, hb_raster_draw_get_funcs (), rdr))
-	break;
+      hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+      hb_raster_draw_glyph (rdr, font, gid, 0.f, 0.f);
 
       img = hb_raster_draw_render (rdr);
       if (img)

@@ -200,8 +200,8 @@ struct raster_output_t : output_options_t<true>
 	  {
 	    float pen_x = g.x + off_x;
 	    float pen_y = g.y + off_y;
-	    hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
-	    hb_font_draw_glyph (font, g.gid, hb_raster_draw_get_funcs (), rdr);
+	    hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+	    hb_raster_draw_glyph (rdr, font, g.gid, pen_x, pen_y);
 	  }
 	}
 
@@ -302,12 +302,10 @@ struct raster_output_t : output_options_t<true>
 	  float pen_x = g.x + off_x;
 	  float pen_y = g.y + off_y;
 
-	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
+	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
 	  hb_raster_paint_set_extents (pnt, &ext);
 
-	  hb_font_paint_glyph (font, g.gid,
-			       hb_raster_paint_get_funcs (), pnt,
-			       0, fg_color);
+	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y, 0, fg_color);
 
 	  hb_raster_image_t *img = hb_raster_paint_render (pnt);
 	  if (img)
