@@ -31,13 +31,25 @@
 #include "shape-options.hh"
 #include "text-options.hh"
 
+template <typename output_t, typename = void>
+struct output_repeat_shape_t
+{
+  static const bool value = true;
+};
 
 template <typename output_t>
-struct shape_consumer_t : shape_options_t
+struct output_repeat_shape_t<output_t, decltype ((void) output_t::repeat_shape, void ())>
+{
+  static const bool value = output_t::repeat_shape;
+};
+
+template <typename output_t>
+struct shape_consumer_t : shape_options_t, iteration_options_t
 {
   void add_options (option_parser_t *parser)
   {
     shape_options_t::add_options (parser);
+    iteration_options_t::add_options (parser);
     output.add_options (parser);
   }
 
@@ -59,7 +71,10 @@ struct shape_consumer_t : shape_options_t
 
     output.new_line ();
 
-    for (unsigned int n = num_iterations; n; n--)
+    unsigned int shape_iterations = output_repeat_shape_t<output_t>::value
+				    ? num_iterations
+				    : 1;
+    for (unsigned int n = shape_iterations; n; n--)
     {
       populate_buffer (buffer, text, text_len, app.text_before, app.text_after, app.font);
       if (n == 1)

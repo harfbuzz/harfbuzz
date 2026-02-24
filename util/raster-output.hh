@@ -38,6 +38,8 @@
 
 struct raster_output_t : output_options_t<true>
 {
+  static const bool repeat_shape = false;
+
   ~raster_output_t ()
   {
     hb_raster_draw_destroy (rdr);

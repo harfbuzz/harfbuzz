@@ -258,7 +258,6 @@ struct shape_options_t
   hb_bool_t verify = false;
   hb_bool_t unsafe_to_concat = false;
   hb_bool_t safe_to_insert_tatweel = false;
-  unsigned int num_iterations = 1;
 };
 
 
@@ -410,8 +409,6 @@ shape_options_t::add_options (option_parser_t *parser)
     {"safe-to-insert-tatweel",0, 0, G_OPTION_ARG_NONE,	&this->safe_to_insert_tatweel,	"Produce safe-to-insert-tatweel glyph flag",	nullptr},
     {"glyphs",		0, 0, G_OPTION_ARG_NONE,	&this->glyphs,			"Interpret input as glyph string",	nullptr},
     {"verify",		0, 0, G_OPTION_ARG_NONE,	&this->verify,			"Perform sanity checks on shaping results",	nullptr},
-    {"num-iterations",	'n',G_OPTION_FLAG_IN_MAIN,
-			      G_OPTION_ARG_INT,		&this->num_iterations,		"Run shaper N times (default: 1)",	"N"},
     {nullptr}
   };
   parser->add_group (entries,

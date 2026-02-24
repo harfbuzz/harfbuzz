@@ -54,6 +54,8 @@ const unsigned SUBPIXEL_BITS = 6;
 
 struct ft_raster_output_t : output_options_t<true>
 {
+  static const bool repeat_shape = false;
+
   ~ft_raster_output_t ()
   {
     hb_font_destroy (font);
