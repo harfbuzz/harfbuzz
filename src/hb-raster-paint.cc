@@ -118,7 +118,12 @@ struct hb_raster_paint_t
   hb_raster_image_t *acquire_surface ()
   {
     hb_raster_image_t *img;
-    if (surface_cache.length)
+    if (recycled_image)
+    {
+      img = recycled_image;
+      recycled_image = nullptr;
+    }
+    else if (surface_cache.length)
       img = surface_cache.pop ();
     else
     {
