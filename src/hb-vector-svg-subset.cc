@@ -375,7 +375,12 @@ hb_svg_parse_glyph_id_span (const hb_svg_id_span_t &id,
     unsigned char c = (unsigned char) id.p[i];
     if (c < '0' || c > '9')
       return false;
-    gid = (hb_codepoint_t) (gid * 10 + (c - '0'));
+    hb_codepoint_t digit = (hb_codepoint_t) (c - '0');
+    if (unlikely (gid > HB_CODEPOINT_INVALID / 10 ||
+                  (gid == HB_CODEPOINT_INVALID / 10 &&
+                   digit > HB_CODEPOINT_INVALID % 10)))
+      return false;
+    gid = (hb_codepoint_t) (gid * 10 + digit);
   }
 
   *glyph = gid;
