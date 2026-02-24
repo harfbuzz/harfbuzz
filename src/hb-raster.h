@@ -247,6 +247,12 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 			       float dx, float dy);
 
 HB_EXTERN void
+hb_raster_paint_get_transform (hb_raster_paint_t *paint,
+			       float *xx, float *yx,
+			       float *xy, float *yy,
+			       float *dx, float *dy);
+
+HB_EXTERN void
 hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
 				  float x_scale_factor,
 				  float y_scale_factor);
