@@ -147,6 +147,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   hb_font_draw_glyph (font, glyph, hb_raster_draw_get_funcs (), rdr);
   hb_raster_image_t *mask_img = hb_raster_draw_render (rdr);
+
   if (unlikely (!mask_img))
   {
     /* If mask rendering fails, push a fully transparent clip */
