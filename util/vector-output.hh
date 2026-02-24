@@ -213,10 +213,9 @@ struct vector_output_t : output_options_t<>
         float pen_x = g.x + off_x;
         float pen_y = g.y + off_y;
 
-        hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
-        if (hb_font_paint_glyph_or_fail (upem_font, g.gid,
-                                         hb_vector_paint_get_funcs (), paint,
-                                         palette, foreground))
+        hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+        if (hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
+                                   palette, foreground))
         {
           had_paint = true;
           continue;

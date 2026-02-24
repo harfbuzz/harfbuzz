@@ -193,6 +193,15 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
 HB_EXTERN hb_paint_funcs_t *
 hb_vector_paint_get_funcs (void);
 
+HB_EXTERN hb_bool_t
+hb_vector_paint_glyph (hb_vector_paint_t *paint,
+		       hb_font_t         *font,
+		       hb_codepoint_t     glyph,
+		       float              pen_x,
+		       float              pen_y,
+		       unsigned           palette,
+		       hb_color_t         foreground);
+
 HB_EXTERN void
 hb_vector_svg_paint_set_flat (hb_vector_paint_t *paint,
                               hb_bool_t flat);

@@ -1503,6 +1503,40 @@ hb_vector_paint_get_funcs (void)
   return hb_vector_paint_funcs_singleton ();
 }
 
+hb_bool_t
+hb_vector_paint_glyph (hb_vector_paint_t *paint,
+		       hb_font_t         *font,
+		       hb_codepoint_t     glyph,
+		       float              pen_x,
+		       float              pen_y,
+		       unsigned           palette,
+		       hb_color_t         foreground)
+{
+  float xx = paint->transform.xx;
+  float yx = paint->transform.yx;
+  float xy = paint->transform.xy;
+  float yy = paint->transform.yy;
+  float dx = paint->transform.x0;
+  float dy = paint->transform.y0;
+
+  float tx = dx + xx * pen_x + xy * pen_y;
+  float ty = dy + yx * pen_x + yy * pen_y;
+
+  hb_vector_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
+  if (!paint->has_extents)
+  {
+    hb_glyph_extents_t ge;
+    if (hb_font_get_glyph_extents (font, glyph, &ge))
+      hb_vector_paint_set_glyph_extents (paint, &ge);
+  }
+
+  hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
+						hb_vector_paint_get_funcs (), paint,
+						palette, foreground);
+  hb_vector_paint_set_transform (paint, xx, yx, xy, yy, dx, dy);
+  return ret;
+}
+
 void
 hb_vector_svg_paint_set_flat (hb_vector_paint_t *paint,
                               hb_bool_t flat)

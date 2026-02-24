@@ -1968,10 +1968,20 @@ hb_raster_paint_glyph (hb_raster_paint_t *paint,
   float dx = paint->base_transform.x0;
   float dy = paint->base_transform.y0;
 
-  hb_raster_paint_set_transform (paint,
-				 xx, yx, xy, yy,
-				 dx + xx * pen_x + xy * pen_y,
-				 dy + yx * pen_x + yy * pen_y);
+  float tx = dx + xx * pen_x + xy * pen_y;
+  float ty = dy + yx * pen_x + yy * pen_y;
+
+  if (!paint->has_extents)
+  {
+    hb_glyph_extents_t ge;
+    if (hb_font_get_glyph_extents (font, glyph, &ge))
+    {
+      hb_raster_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
+      hb_raster_paint_set_glyph_extents (paint, &ge);
+    }
+  }
+
+  hb_raster_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
   hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						hb_raster_paint_get_funcs (), paint,
 						palette, foreground);
