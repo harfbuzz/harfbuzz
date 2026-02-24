@@ -993,9 +993,9 @@ edge_sweep_row (int32_t                *area,
 /* Convert cover-delta + area to alpha bytes, then clear.
    Returns final cover accumulator over [x_min, x_max]. */
 static int32_t
-sweep_row_to_alpha (uint8_t *row_buf,
-		    int32_t *area,
-		    int16_t *cover,
+sweep_row_to_alpha (uint8_t *__restrict row_buf,
+		    int32_t *__restrict area,
+		    int16_t *__restrict cover,
 		    unsigned x_min,
 		    unsigned x_max)
 {
