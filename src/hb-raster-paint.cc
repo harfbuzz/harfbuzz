@@ -806,6 +806,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
  */
 
 #define PREALLOCATED_COLOR_STOPS 16
+#define GRADIENT_LUT_SIZE 256
 
 static int
 cmp_color_stop (const void *p1, const void *p2)
@@ -927,6 +928,46 @@ evaluate_color_line (const hb_color_stop_t *stops, unsigned len, float t,
   return (uint32_t) pb | ((uint32_t) pg << 8) | ((uint32_t) pr << 16) | ((uint32_t) pa << 24);
 }
 
+static HB_ALWAYS_INLINE float
+normalize_gradient_t (float t, hb_paint_extend_t extend)
+{
+  if (extend == HB_PAINT_EXTEND_PAD)
+    return hb_clamp (t, 0.f, 1.f);
+  if (extend == HB_PAINT_EXTEND_REPEAT)
+  {
+    t = t - floorf (t);
+    return t < 0.f ? t + 1.f : t;
+  }
+
+  /* REFLECT */
+  if (t < 0.f) t = -t;
+  int period = (int) floorf (t);
+  float frac = t - (float) period;
+  return (period & 1) ? 1.f - frac : frac;
+}
+
+static void
+build_gradient_lut (const hb_color_stop_t *stops,
+		    unsigned len,
+		    uint32_t *lut)
+{
+  for (unsigned i = 0; i < GRADIENT_LUT_SIZE; i++)
+  {
+    float t = (float) i / (GRADIENT_LUT_SIZE - 1);
+    lut[i] = evaluate_color_line (stops, len, t, HB_PAINT_EXTEND_PAD);
+  }
+}
+
+static HB_ALWAYS_INLINE uint32_t
+lookup_gradient_lut (const uint32_t *lut,
+		     float t,
+		     hb_paint_extend_t extend)
+{
+  float u = normalize_gradient_t (t, extend);
+  unsigned idx = (unsigned) (u * (GRADIENT_LUT_SIZE - 1) + 0.5f);
+  return lut[idx];
+}
+
 static void
 reduce_anchors (float x0, float y0,
 		float x1, float y1,
@@ -981,6 +1022,8 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   normalize_color_line (stops, len, &mn, &mx);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  uint32_t lut[GRADIENT_LUT_SIZE];
+  build_gradient_lut (stops, len, lut);
 
   /* Reduce 3-point anchor to 2-point gradient axis */
   float lx0, ly0, lx1, ly1;
@@ -1029,7 +1072,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	  /* Project onto gradient axis: t = dot(p - p0, dir) / dot(dir, dir) */
 	  float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
 
-	  uint32_t src = evaluate_color_line (stops, len, proj_t, extend);
+	  uint32_t src = lookup_gradient_lut (lut, proj_t, extend);
 	  row[px] = hb_raster_src_over (src, row[px]);
 	  gx += inv_xx;
 	  gy += inv_yx;
@@ -1057,7 +1100,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	  /* Project onto gradient axis: t = dot(p - p0, dir) / dot(dir, dir) */
 	  float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
 
-	  uint32_t src = evaluate_color_line (stops, len, proj_t, extend);
+	  uint32_t src = lookup_gradient_lut (lut, proj_t, extend);
 	  src = hb_raster_alpha_mul (src, clip_alpha);
 	  row[px] = hb_raster_src_over (src, row[px]);
 	  gx += inv_xx;
@@ -1097,6 +1140,8 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   normalize_color_line (stops, len, &mn, &mx);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  uint32_t lut[GRADIENT_LUT_SIZE];
+  build_gradient_lut (stops, len, lut);
 
   /* Apply normalization to circle parameters */
   float cx0 = x0 + mn * (x1 - x0);
@@ -1173,7 +1218,7 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    grad_t = -C / B;
 	  }
 
-	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+		  uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
 	  row[px] = hb_raster_src_over (src, row[px]);
 	  gx += inv_xx;
 	  gy += inv_yx;
@@ -1224,7 +1269,7 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    grad_t = -C / B;
 	  }
 
-	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+		  uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
 	  src = hb_raster_alpha_mul (src, clip_alpha);
 	  row[px] = hb_raster_src_over (src, row[px]);
 	  gx += inv_xx;
@@ -1265,6 +1310,8 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   normalize_color_line (stops, len, &mn, &mx);
 
   hb_paint_extend_t extend = hb_color_line_get_extend (color_line);
+  uint32_t lut[GRADIENT_LUT_SIZE];
+  build_gradient_lut (stops, len, lut);
 
   /* Apply normalization to angle range */
   float a0 = start_angle + mn * (end_angle - start_angle);
@@ -1307,7 +1354,7 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 	  float grad_t = (angle - a0) * inv_angle_range;
 
-	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+		  uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
 	  row[px] = hb_raster_src_over (src, row[px]);
 	  gx += inv_xx;
 	  gy += inv_yx;
@@ -1338,7 +1385,7 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 	  float grad_t = (angle - a0) * inv_angle_range;
 
-	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
+		  uint32_t src = lookup_gradient_lut (lut, grad_t, extend);
 	  src = hb_raster_alpha_mul (src, clip_alpha);
 	  row[px] = hb_raster_src_over (src, row[px]);
 	  gx += inv_xx;
