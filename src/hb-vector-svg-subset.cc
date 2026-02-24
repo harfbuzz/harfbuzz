@@ -152,12 +152,36 @@ hb_svg_append_with_prefix (hb_vector_t<char> *out,
       }
       continue;
     }
+    if (i + 7 <= n && !memcmp (s + i, "href='#", 7))
+    {
+      if (!hb_svg_append_len (out, s + i, 7)) return false;
+      i += 7;
+      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      while (i < n && s[i] != '\'')
+      {
+        if (!hb_svg_append_c (out, s[i])) return false;
+        i++;
+      }
+      continue;
+    }
     if (i + 13 <= n && !memcmp (s + i, "xlink:href=\"#", 13))
     {
       if (!hb_svg_append_len (out, s + i, 13)) return false;
       i += 13;
       if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
       while (i < n && s[i] != '"')
+      {
+        if (!hb_svg_append_c (out, s[i])) return false;
+        i++;
+      }
+      continue;
+    }
+    if (i + 13 <= n && !memcmp (s + i, "xlink:href='#", 13))
+    {
+      if (!hb_svg_append_len (out, s + i, 13)) return false;
+      i += 13;
+      if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+      while (i < n && s[i] != '\'')
       {
         if (!hb_svg_append_c (out, s[i])) return false;
         i++;
@@ -239,11 +263,27 @@ hb_svg_collect_refs (const char *s,
       if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
       continue;
     }
+    if (i + 7 <= n && !memcmp (s + i, "href='#", 7))
+    {
+      i += 7;
+      unsigned b = i;
+      while (i < n && s[i] != '\'' && s[i] != '"' && s[i] != ' ' && s[i] != '>') i++;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      continue;
+    }
     if (i + 13 <= n && !memcmp (s + i, "xlink:href=\"#", 13))
     {
       i += 13;
       unsigned b = i;
       while (i < n && s[i] != '"' && s[i] != '\'' && s[i] != ' ' && s[i] != '>') i++;
+      if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
+      continue;
+    }
+    if (i + 13 <= n && !memcmp (s + i, "xlink:href='#", 13))
+    {
+      i += 13;
+      unsigned b = i;
+      while (i < n && s[i] != '\'' && s[i] != '"' && s[i] != ' ' && s[i] != '>') i++;
       if (i > b && unlikely (!hb_svg_add_unique_id (ids, s + b, i - b))) return false;
       continue;
     }
