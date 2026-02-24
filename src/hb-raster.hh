@@ -102,13 +102,5 @@ hb_raster_composite_images (hb_raster_image_t *dst,
 			    const hb_raster_image_t *src,
 			    hb_paint_composite_mode_t mode);
 
-HB_INTERNAL void
-hb_raster_composite_images_clipped (hb_raster_image_t *dst,
-				    const hb_raster_image_t *src,
-				    hb_paint_composite_mode_t mode,
-				    const hb_raster_image_t *clip_mask,
-				    int clip_x0, int clip_y0,
-				    int clip_x1, int clip_y1);
-
 
 #endif /* HB_RASTER_HH */

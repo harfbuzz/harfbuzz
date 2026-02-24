@@ -35,10 +35,10 @@
 /* hb_raster_clip_t — alpha mask for clipping */
 struct hb_raster_clip_t
 {
-  hb_raster_image_t *mask = nullptr; /* A8 mask, bounded to clip region */
-  bool mask_from_draw = false;
-  unsigned width  = 0;  /* Surface width (for rect clamping) */
-  unsigned height = 0;  /* Surface height (for rect clamping) */
+  hb_vector_t<uint8_t> alpha;	/* A8 mask, same extents as root surface */
+  unsigned width  = 0;
+  unsigned height = 0;
+  unsigned stride = 0;
 
   /* Fast path: simple rectangle (no alpha buffer needed) */
   bool is_rect = true;
@@ -53,6 +53,7 @@ struct hb_raster_clip_t
   {
     width = w;
     height = h;
+    stride = (w + 3u) & ~3u;
     is_rect = true;
     rect_x0 = 0;
     rect_y0 = 0;
@@ -77,26 +78,8 @@ struct hb_raster_clip_t
     if (is_rect)
       return ((int) x >= rect_x0 && (int) x < rect_x1 &&
 	      (int) y >= rect_y0 && (int) y < rect_y1) ? 255 : 0;
-    if (!mask) return 0;
-    const hb_raster_extents_t &e = mask->extents;
-    if ((int) x < e.x_origin || (int) y < e.y_origin) return 0;
-    unsigned mx = (unsigned) ((int) x - e.x_origin);
-    unsigned my = (unsigned) ((int) y - e.y_origin);
-    if (mx >= e.width || my >= e.height) return 0;
-    return mask->buffer[my * e.stride + mx];
-  }
-
-  inline const uint8_t *mask_row (unsigned y) const
-  {
-    if (is_rect || !mask) return nullptr;
-    int my = (int) y - mask->extents.y_origin;
-    if (my < 0 || my >= (int) mask->extents.height) return nullptr;
-    return mask->buffer.arrayZ + (unsigned) my * mask->extents.stride;
-  }
-
-  inline int mask_x_origin () const
-  {
-    return mask ? mask->extents.x_origin : 0;
+    if (x >= width || y >= height) return 0;
+    return alpha[y * stride + x];
   }
 };
 
@@ -119,7 +102,6 @@ struct hb_raster_paint_t
 
   /* Cached surface pool (freelist for reuse across push/pop group) */
   hb_vector_t<hb_raster_image_t *>  surface_cache;
-  hb_vector_t<hb_raster_image_t *>  clip_mask_cache;
 
   /* Internal rasterizer for clip-to-glyph */
   hb_raster_draw_t *clip_rdr = nullptr;
@@ -160,48 +142,6 @@ struct hb_raster_paint_t
     surface_cache.push (img);
   }
 
-  hb_raster_image_t *acquire_clip_mask (int x_origin, int y_origin,
-					unsigned w, unsigned h)
-  {
-    hb_raster_image_t *img;
-    if (clip_mask_cache.length)
-      img = clip_mask_cache.pop ();
-    else
-    {
-      img = hb_object_create<hb_raster_image_t> ();
-      if (unlikely (!img)) return nullptr;
-    }
-
-    img->format = HB_RASTER_FORMAT_A8;
-    img->extents = {x_origin, y_origin, w, h, (w + 3u) & ~3u};
-    size_t buf_size = (size_t) img->extents.stride * h;
-    if (unlikely (!img->buffer.resize_dirty (buf_size)))
-    {
-      hb_raster_image_destroy (img);
-      return nullptr;
-    }
-    memset (img->buffer.arrayZ, 0, buf_size);
-    return img;
-  }
-
-  void release_clip_mask (hb_raster_clip_t &clip)
-  {
-    if (!clip.mask) return;
-    if (clip.mask_from_draw)
-      hb_raster_draw_recycle_image (clip_rdr, clip.mask);
-    else
-      clip_mask_cache.push (clip.mask);
-    clip.mask = nullptr;
-    clip.mask_from_draw = false;
-  }
-
-  void clear_clips ()
-  {
-    for (auto &clip : clip_stack)
-      release_clip_mask (clip);
-    clip_stack.resize (0);
-  }
-
   hb_raster_image_t *current_surface ()
   {
     return surface_stack.length ? surface_stack.tail () : nullptr;
@@ -232,18 +172,6 @@ color_to_premul_pixel (hb_color_t color)
   uint8_t g = hb_raster_div255 (hb_color_get_green (color) * a);
   uint8_t b = hb_raster_div255 (hb_color_get_blue (color) * a);
   return (uint32_t) b | ((uint32_t) g << 8) | ((uint32_t) r << 16) | ((uint32_t) a << 24);
-}
-
-static inline hb_raster_clip_t
-make_empty_clip (unsigned w, unsigned h)
-{
-  hb_raster_clip_t clip;
-  clip.init_full (w, h);
-  clip.is_rect = true;
-  clip.rect_x0 = clip.rect_y0 = 0;
-  clip.rect_x1 = clip.rect_y1 = 0;
-  clip.min_x = clip.min_y = clip.max_x = clip.max_y = 0;
-  return clip;
 }
 
 
@@ -326,13 +254,12 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   unsigned w = surf->extents.width;
   unsigned h = surf->extents.height;
-  const hb_raster_clip_t &old_clip = c->current_clip ();
 
-  if (old_clip.min_x >= old_clip.max_x || old_clip.min_y >= old_clip.max_y)
-  {
-    c->clip_stack.push (make_empty_clip (w, h));
-    return;
-  }
+  hb_raster_clip_t new_clip;
+  new_clip.width = w;
+  new_clip.height = h;
+  new_clip.stride = (w + 3u) & ~3u;
+  new_clip.is_rect = false;
 
   /* Rasterize glyph outline as A8 alpha mask using internal rasterizer */
   hb_raster_draw_t *rdr = c->clip_rdr;
@@ -340,11 +267,8 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
   hb_raster_draw_set_format (rdr, HB_RASTER_FORMAT_A8);
   hb_raster_extents_t clip_ext = {
-    surf->extents.x_origin + (int) old_clip.min_x,
-    surf->extents.y_origin + (int) old_clip.min_y,
-    old_clip.max_x - old_clip.min_x,
-    old_clip.max_y - old_clip.min_y,
-    0
+    surf->extents.x_origin, surf->extents.y_origin,
+    w, h, 0
   };
   hb_raster_draw_set_extents (rdr, &clip_ext);
 
@@ -353,87 +277,77 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   if (unlikely (!mask_img))
   {
-    c->clip_stack.push (make_empty_clip (w, h));
+    /* If mask rendering fails, push a fully transparent clip */
+    new_clip.init_full (w, h);
+    new_clip.is_rect = true;
+    new_clip.rect_x0 = new_clip.rect_y0 = 0;
+    new_clip.rect_x1 = new_clip.rect_y1 = 0;
+    new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
+    c->clip_stack.push (new_clip);
     return;
   }
 
+  /* Allocate alpha buffer and intersect with previous clip */
+  if (unlikely (!new_clip.alpha.resize (new_clip.stride * h)))
+  {
+    hb_raster_draw_recycle_image (rdr, mask_img);
+    new_clip.init_full (w, h);
+    new_clip.is_rect = true;
+    new_clip.rect_x0 = new_clip.rect_y0 = 0;
+    new_clip.rect_x1 = new_clip.rect_y1 = 0;
+    new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
+    c->clip_stack.push (new_clip);
+    return;
+  }
+
+  const uint8_t *mask_buf = hb_raster_image_get_buffer (mask_img);
   hb_raster_extents_t mask_ext;
   hb_raster_image_get_extents (mask_img, &mask_ext);
-  /* Rebase draw mask extents to surface-local coordinates so clip
-   * math and sampling use the same coordinate space. */
-  mask_ext.x_origin -= surf->extents.x_origin;
-  mask_ext.y_origin -= surf->extents.y_origin;
-  mask_img->extents.x_origin = mask_ext.x_origin;
-  mask_img->extents.y_origin = mask_ext.y_origin;
+  const hb_raster_clip_t &old_clip = c->current_clip ();
 
-  int mx0 = mask_ext.x_origin;
-  int my0 = mask_ext.y_origin;
-  int mx1 = mx0 + (int) mask_ext.width;
-  int my1 = my0 + (int) mask_ext.height;
-  if (mx0 < 0) mx0 = 0;
-  if (my0 < 0) my0 = 0;
-  if (mx1 > (int) w) mx1 = (int) w;
-  if (my1 > (int) h) my1 = (int) h;
-
-  hb_raster_clip_t new_clip;
-  new_clip.width = w;
-  new_clip.height = h;
-  new_clip.is_rect = false;
-  new_clip.mask = mask_img;
-  new_clip.mask_from_draw = true;
   new_clip.min_x = w; new_clip.min_y = h;
   new_clip.max_x = 0; new_clip.max_y = 0;
 
-  uint8_t *mask_buf = mask_img->buffer.arrayZ;
-
   if (old_clip.is_rect)
   {
-    for (int y = my0; y < my1; y++)
-    {
-      uint8_t *row = mask_buf + (unsigned) (y - mask_ext.y_origin) * mask_ext.stride;
-      for (int x = mx0; x < mx1; x++)
+    for (unsigned y = old_clip.min_y; y < old_clip.max_y; y++)
+      for (unsigned x = old_clip.min_x; x < old_clip.max_x; x++)
       {
-	uint8_t a = row[x - mask_ext.x_origin];
+	uint8_t a = (x < mask_ext.width && y < mask_ext.height)
+		    ? mask_buf[y * mask_ext.stride + x] : 0;
+	new_clip.alpha[y * new_clip.stride + x] = a;
 	if (a)
 	{
-	  new_clip.min_x = hb_min (new_clip.min_x, (unsigned) x);
-	  new_clip.min_y = hb_min (new_clip.min_y, (unsigned) y);
-	  new_clip.max_x = hb_max (new_clip.max_x, (unsigned) x + 1);
-	  new_clip.max_y = hb_max (new_clip.max_y, (unsigned) y + 1);
+	  new_clip.min_x = hb_min (new_clip.min_x, x);
+	  new_clip.min_y = hb_min (new_clip.min_y, y);
+	  new_clip.max_x = hb_max (new_clip.max_x, x + 1);
+	  new_clip.max_y = hb_max (new_clip.max_y, y + 1);
 	}
       }
-    }
   }
   else
   {
-    int old_x0 = old_clip.mask_x_origin ();
-    for (int y = my0; y < my1; y++)
+    for (unsigned y = old_clip.min_y; y < old_clip.max_y; y++)
     {
-      const uint8_t *old_row = old_clip.mask_row ((unsigned) y);
-      if (!old_row) continue;
-      uint8_t *row = mask_buf + (unsigned) (y - mask_ext.y_origin) * mask_ext.stride;
-      for (int x = mx0; x < mx1; x++)
+      const uint8_t *old_row = old_clip.alpha.arrayZ + y * old_clip.stride;
+      for (unsigned x = old_clip.min_x; x < old_clip.max_x; x++)
       {
-	uint8_t a = hb_raster_div255 (row[x - mask_ext.x_origin] * old_row[x - old_x0]);
-	row[x - mask_ext.x_origin] = a;
+	uint8_t glyph_alpha = (x < mask_ext.width && y < mask_ext.height)
+			      ? mask_buf[y * mask_ext.stride + x] : 0;
+	uint8_t a = hb_raster_div255 (glyph_alpha * old_row[x]);
+	new_clip.alpha[y * new_clip.stride + x] = a;
 	if (a)
 	{
-	  new_clip.min_x = hb_min (new_clip.min_x, (unsigned) x);
-	  new_clip.min_y = hb_min (new_clip.min_y, (unsigned) y);
-	  new_clip.max_x = hb_max (new_clip.max_x, (unsigned) x + 1);
-	  new_clip.max_y = hb_max (new_clip.max_y, (unsigned) y + 1);
+	  new_clip.min_x = hb_min (new_clip.min_x, x);
+	  new_clip.min_y = hb_min (new_clip.min_y, y);
+	  new_clip.max_x = hb_max (new_clip.max_x, x + 1);
+	  new_clip.max_y = hb_max (new_clip.max_y, y + 1);
 	}
       }
     }
   }
 
-  if (new_clip.min_x >= new_clip.max_x || new_clip.min_y >= new_clip.max_y)
-  {
-    c->release_clip_mask (new_clip);
-    c->clip_stack.push (make_empty_clip (w, h));
-    return;
-  }
-
+  hb_raster_draw_recycle_image (rdr, mask_img);
   c->clip_stack.push (new_clip);
 }
 
@@ -492,8 +406,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_clip_t new_clip;
   new_clip.width = w;
   new_clip.height = h;
-  new_clip.mask = nullptr;
-  new_clip.mask_from_draw = false;
+  new_clip.stride = (w + 3u) & ~3u;
 
   if (is_axis_aligned && old_clip.is_rect)
   {
@@ -509,23 +422,17 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   {
     /* General case: rasterize transformed quad as alpha mask */
     new_clip.is_rect = false;
-    unsigned iy0 = (unsigned) hb_max (py0, (int) old_clip.min_y);
-    unsigned iy1 = (unsigned) hb_min (py1, (int) old_clip.max_y);
-    unsigned ix0 = (unsigned) hb_max (px0, (int) old_clip.min_x);
-    unsigned ix1 = (unsigned) hb_min (px1, (int) old_clip.max_x);
-    unsigned mw = (ix1 > ix0) ? (ix1 - ix0) : 0;
-    unsigned mh = (iy1 > iy0) ? (iy1 - iy0) : 0;
-    if (!mw || !mh)
+    if (unlikely (!new_clip.alpha.resize (new_clip.stride * h)))
     {
-      c->clip_stack.push (make_empty_clip (w, h));
+      new_clip.init_full (w, h);
+      new_clip.is_rect = true;
+      new_clip.rect_x0 = new_clip.rect_y0 = 0;
+      new_clip.rect_x1 = new_clip.rect_y1 = 0;
+      new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
+      c->clip_stack.push (new_clip);
       return;
     }
-    new_clip.mask = c->acquire_clip_mask ((int) ix0, (int) iy0, mw, mh);
-    if (unlikely (!new_clip.mask))
-    {
-      c->clip_stack.push (make_empty_clip (w, h));
-      return;
-    }
+    memset (new_clip.alpha.arrayZ, 0, new_clip.stride * h);
 
     /* Convert quad corners to pixel-relative coords */
     float qx[4], qy[4];
@@ -539,6 +446,10 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
     /* For each pixel in the bounding box, test if inside the quad
      * using cross-product edge tests (winding order). */
+    unsigned iy0 = (unsigned) hb_max (py0, (int) old_clip.min_y);
+    unsigned iy1 = (unsigned) hb_min (py1, (int) old_clip.max_y);
+    unsigned ix0 = (unsigned) hb_max (px0, (int) old_clip.min_x);
+    unsigned ix1 = (unsigned) hb_min (px1, (int) old_clip.max_x);
     new_clip.min_x = w; new_clip.min_y = h;
     new_clip.max_x = 0; new_clip.max_y = 0;
 
@@ -570,7 +481,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	      break;
 	    }
 	  uint8_t a = inside ? 255 : 0;
-	  new_clip.mask->buffer[(y - iy0) * new_clip.mask->extents.stride + (x - ix0)] = a;
+	  new_clip.alpha[y * new_clip.stride + x] = a;
 	  if (a)
 	  {
 	    new_clip.min_x = hb_min (new_clip.min_x, x);
@@ -584,9 +495,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     {
       for (unsigned y = iy0; y < iy1; y++)
       {
-	int old_x0 = old_clip.mask_x_origin ();
-	const uint8_t *old_row = old_clip.mask_row (y);
-	if (!old_row) continue;
+	const uint8_t *old_row = old_clip.alpha.arrayZ + y * old_clip.stride;
 	for (unsigned x = ix0; x < ix1; x++)
 	{
 	  float px_f = x + 0.5f, py_f = y + 0.5f;
@@ -598,8 +507,8 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	      inside = false;
 	      break;
 	    }
-	  uint8_t a = inside ? old_row[x - old_x0] : 0;
-	  new_clip.mask->buffer[(y - iy0) * new_clip.mask->extents.stride + (x - ix0)] = a;
+	  uint8_t a = inside ? old_row[x] : 0;
+	  new_clip.alpha[y * new_clip.stride + x] = a;
 	  if (a)
 	  {
 	    new_clip.min_x = hb_min (new_clip.min_x, x);
@@ -621,8 +530,6 @@ hb_raster_paint_pop_clip (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
-  if (c->clip_stack.length)
-    c->release_clip_mask (c->clip_stack.tail ());
   c->clip_stack.pop ();
 }
 
@@ -654,19 +561,7 @@ hb_raster_paint_pop_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
   hb_raster_image_t *dst = c->current_surface ();
 
   if (dst && src)
-  {
-    const hb_raster_clip_t &clip = c->current_clip ();
-    if (clip.is_rect &&
-	clip.rect_x0 <= 0 && clip.rect_y0 <= 0 &&
-	clip.rect_x1 >= (int) dst->extents.width &&
-	clip.rect_y1 >= (int) dst->extents.height)
-      hb_raster_composite_images (dst, src, mode);
-    else
-      hb_raster_composite_images_clipped (dst, src, mode,
-					  clip.is_rect ? nullptr : clip.mask,
-					  (int) clip.min_x, (int) clip.min_y,
-					  (int) clip.max_x, (int) clip.max_y);
-  }
+    hb_raster_composite_images (dst, src, mode);
 
   c->release_surface (src);
 }
@@ -711,15 +606,13 @@ hb_raster_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
   else
   {
-    int clip_x0 = clip.mask_x_origin ();
     for (unsigned y = clip.min_y; y < clip.max_y; y++)
     {
       uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + y * stride);
-      const uint8_t *clip_row = clip.mask_row (y);
-      if (!clip_row) continue;
+      const uint8_t *clip_row = clip.alpha.arrayZ + y * clip.stride;
       for (unsigned x = clip.min_x; x < clip.max_x; x++)
       {
-	uint8_t clip_alpha = clip_row[x - clip_x0];
+	uint8_t clip_alpha = clip_row[x];
 	if (clip_alpha == 0) continue;
 	uint32_t src = hb_raster_alpha_mul (premul, clip_alpha);
 	row[x] = hb_raster_src_over (src, row[x]);
@@ -804,15 +697,13 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
   else
   {
-    int clip_x0 = clip.mask_x_origin ();
     for (unsigned py = clip.min_y; py < clip.max_y; py++)
     {
       uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * surf_stride);
-      const uint8_t *clip_row = clip.mask_row (py);
-      if (!clip_row) continue;
+      const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
       for (unsigned px = clip.min_x; px < clip.max_x; px++)
       {
-	uint8_t clip_alpha = clip_row[px - clip_x0];
+	uint8_t clip_alpha = clip_row[px];
 	if (clip_alpha == 0) continue;
 
 	/* Map pixel to glyph space */
@@ -1074,15 +965,13 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
     else
     {
-      int clip_x0 = clip.mask_x_origin ();
       for (unsigned py = clip.min_y; py < clip.max_y; py++)
       {
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
-	const uint8_t *clip_row = clip.mask_row (py);
-	if (!clip_row) continue;
+	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
 	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
-	  uint8_t clip_alpha = clip_row[px - clip_x0];
+	  uint8_t clip_alpha = clip_row[px];
 	  if (clip_alpha == 0) continue;
 
 	  /* Pixel center -> glyph space */
@@ -1214,15 +1103,13 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
     else
     {
-      int clip_x0 = clip.mask_x_origin ();
       for (unsigned py = clip.min_y; py < clip.max_y; py++)
       {
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
-	const uint8_t *clip_row = clip.mask_row (py);
-	if (!clip_row) continue;
+	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
 	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
-	  uint8_t clip_alpha = clip_row[px - clip_x0];
+	  uint8_t clip_alpha = clip_row[px];
 	  if (clip_alpha == 0) continue;
 
 	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
@@ -1343,15 +1230,13 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
     else
     {
-      int clip_x0 = clip.mask_x_origin ();
       for (unsigned py = clip.min_y; py < clip.max_y; py++)
       {
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
-	const uint8_t *clip_row = clip.mask_row (py);
-	if (!clip_row) continue;
+	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
 	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
-	  uint8_t clip_alpha = clip_row[px - clip_x0];
+	  uint8_t clip_alpha = clip_row[px];
 	  if (clip_alpha == 0) continue;
 
 	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
@@ -1484,14 +1369,11 @@ void
 hb_raster_paint_destroy (hb_raster_paint_t *paint)
 {
   if (!hb_object_destroy (paint)) return;
-  paint->clear_clips ();
   hb_raster_draw_destroy (paint->clip_rdr);
   for (auto *s : paint->surface_stack)
     hb_raster_image_destroy (s);
   for (auto *s : paint->surface_cache)
     hb_raster_image_destroy (s);
-  for (auto *m : paint->clip_mask_cache)
-    hb_raster_image_destroy (m);
   hb_raster_image_destroy (paint->recycled_image);
   hb_free (paint);
 }
@@ -1734,7 +1616,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
       paint->release_surface (s);
     paint->surface_stack.resize (0);
     paint->transform_stack.resize (0);
-    paint->clear_clips ();
+    paint->clip_stack.resize (0);
     hb_raster_draw_reset (paint->clip_rdr);
     return nullptr;
   }
@@ -1753,7 +1635,7 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
 
   /* Clean up stacks and reset auto-extents for next glyph. */
   paint->transform_stack.resize (0);
-  paint->clear_clips ();
+  paint->clip_stack.resize (0);
   hb_raster_draw_reset (paint->clip_rdr);
   paint->has_fixed_extents = false;
   paint->fixed_extents = {};
@@ -1779,16 +1661,13 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
   paint->has_fixed_extents = false;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
   paint->transform_stack.resize (0);
-  paint->clear_clips ();
+  paint->clip_stack.resize (0);
   for (auto *s : paint->surface_stack)
     hb_raster_image_destroy (s);
   paint->surface_stack.resize (0);
   for (auto *s : paint->surface_cache)
     hb_raster_image_destroy (s);
   paint->surface_cache.resize (0);
-  for (auto *m : paint->clip_mask_cache)
-    hb_raster_image_destroy (m);
-  paint->clip_mask_cache.resize (0);
   hb_raster_image_destroy (paint->recycled_image);
   paint->recycled_image = nullptr;
 }
