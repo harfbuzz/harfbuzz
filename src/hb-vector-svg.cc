@@ -138,6 +138,20 @@ hb_svg_scale_precision (unsigned precision)
   return precision < 7 ? 7 : precision;
 }
 
+static inline bool
+hb_svg_buffer_contains (const hb_vector_t<char> &buf, const char *needle)
+{
+  unsigned nlen = (unsigned) strlen (needle);
+  if (!nlen || buf.length < nlen)
+    return false;
+
+  for (unsigned i = 0; i + nlen <= buf.length; i++)
+    if (buf.arrayZ[i] == needle[0] &&
+        !memcmp (buf.arrayZ + i, needle, nlen))
+      return true;
+  return false;
+}
+
 struct hb_svg_blob_meta_t
 {
   char *data;
@@ -379,6 +393,7 @@ struct hb_vector_paint_t
   hb_set_t *defined_clips = nullptr;
   hb_hashmap_t<uint64_t, unsigned> defined_color_glyphs;
   hb_blob_t *recycled_blob = nullptr;
+  bool current_color_glyph_has_svg_image = false;
 
   hb_vector_t<char> &current_body () { return group_stack.tail (); }
 
@@ -995,6 +1010,7 @@ hb_vector_paint_image (hb_paint_funcs_t *,
     return false;
 
   auto &body = paint->current_body ();
+  paint->current_color_glyph_has_svg_image = true;
   if (extents)
   {
     hb_svg_append_str (&body, "<g transform=\"translate(");
@@ -1747,9 +1763,11 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   }
 
   hb_vector_t<char> captured;
+  bool has_svg_image = false;
   if (can_cache)
   {
     paint->group_stack.push (hb_vector_t<char> {});
+    paint->current_color_glyph_has_svg_image = false;
   }
 
   if (can_cache)
@@ -1764,8 +1782,23 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     }
 
     captured = paint->group_stack.pop ();
+    has_svg_image = paint->current_color_glyph_has_svg_image ||
+		    hb_svg_buffer_contains (captured, "<svg");
     if (unlikely (!captured.length))
       return false;
+
+    if (has_svg_image)
+    {
+      hb_svg_append_str (&body, "<g transform=\"");
+      hb_svg_append_instance_transform (&body, paint->precision,
+                                        paint->x_scale_factor,
+                                        paint->y_scale_factor,
+                                        xx, yx, xy, yy, tx, ty);
+      hb_svg_append_str (&body, "\">\n");
+      hb_svg_append_len (&body, captured.arrayZ, captured.length);
+      hb_svg_append_str (&body, "</g>\n");
+      return true;
+    }
 
     unsigned def_id = paint->color_glyph_counter++;
     if (unlikely (!paint->defined_color_glyphs.set (cache_key, def_id)))
@@ -1885,6 +1918,7 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->clip_rect_counter = 0;
   paint->gradient_counter = 0;
   paint->color_glyph_counter = 0;
+  paint->current_color_glyph_has_svg_image = false;
   hb_set_clear (paint->defined_outlines);
   hb_set_clear (paint->defined_clips);
   paint->defined_color_glyphs.clear ();
