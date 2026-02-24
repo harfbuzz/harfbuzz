@@ -1935,6 +1935,51 @@ hb_raster_paint_get_funcs (void)
 }
 
 /**
+ * hb_raster_paint_glyph:
+ * @paint: a paint context
+ * @font: font to paint from
+ * @glyph: glyph ID to paint
+ * @pen_x: glyph origin x in font coordinates (pre-transform)
+ * @pen_y: glyph origin y in font coordinates (pre-transform)
+ * @palette: palette index
+ * @foreground: foreground color
+ *
+ * Convenience wrapper to paint one color glyph at (@pen_x, @pen_y) using
+ * the paint context's current transform. The pen coordinates are applied
+ * before minification and transformed by the current affine transform.
+ *
+ * Return value: `true` if painting succeeded, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_paint_glyph (hb_raster_paint_t *paint,
+		       hb_font_t        *font,
+		       hb_codepoint_t    glyph,
+		       float             pen_x,
+		       float             pen_y,
+		       unsigned           palette,
+		       hb_color_t         foreground)
+{
+  float xx = paint->base_transform.xx;
+  float yx = paint->base_transform.yx;
+  float xy = paint->base_transform.xy;
+  float yy = paint->base_transform.yy;
+  float dx = paint->base_transform.x0;
+  float dy = paint->base_transform.y0;
+
+  hb_raster_paint_set_transform (paint,
+				 xx, yx, xy, yy,
+				 dx + xx * pen_x + xy * pen_y,
+				 dy + yx * pen_x + yy * pen_y);
+  hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
+						hb_raster_paint_get_funcs (), paint,
+						palette, foreground);
+  hb_raster_paint_set_transform (paint, xx, yx, xy, yy, dx, dy);
+  return ret;
+}
+
+/**
  * hb_raster_paint_render:
  * @paint: a paint context
  *

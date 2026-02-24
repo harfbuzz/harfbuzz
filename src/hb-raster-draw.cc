@@ -910,6 +910,42 @@ hb_raster_draw_get_funcs (void)
   return static_raster_draw_funcs.get_unconst ();
 }
 
+/**
+ * hb_raster_draw_glyph:
+ * @draw: a rasterizer
+ * @font: font to draw from
+ * @glyph: glyph ID to draw
+ * @pen_x: glyph origin x in font coordinates (pre-transform)
+ * @pen_y: glyph origin y in font coordinates (pre-transform)
+ *
+ * Convenience wrapper to draw one glyph at (@pen_x, @pen_y) using the
+ * rasterizer's current transform. The pen coordinates are applied before
+ * minification and are transformed by the current affine transform.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_draw_glyph (hb_raster_draw_t *draw,
+		      hb_font_t       *font,
+		      hb_codepoint_t   glyph,
+		      float            pen_x,
+		      float            pen_y)
+{
+  float xx = draw->transform.xx;
+  float yx = draw->transform.yx;
+  float xy = draw->transform.xy;
+  float yy = draw->transform.yy;
+  float dx = draw->transform.x0;
+  float dy = draw->transform.y0;
+
+  hb_raster_draw_set_transform (draw,
+				xx, yx, xy, yy,
+				dx + xx * pen_x + xy * pen_y,
+				dy + yx * pen_x + yy * pen_y);
+  hb_font_draw_glyph (font, glyph, hb_raster_draw_get_funcs (), draw);
+  hb_raster_draw_set_transform (draw, xx, yx, xy, yy, dx, dy);
+}
+
 
 /*
  * Analytic coverage rasterizer
