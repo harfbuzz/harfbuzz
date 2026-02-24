@@ -1,0 +1,431 @@
+#!/bin/bash
+
+trap "exit" INT
+
+dirname=`dirname "$0"`
+
+# Parse options
+output_dir=
+font_file=
+face_index=0
+hb_info=hb-info
+hb_vector=hb-vector
+hb_svg_compare=$dirname/hb-svg-compare
+tolerance=0
+vector_precision=
+precision=
+font_size=upem
+features=
+variations=
+face_loader=ot
+font_funcs1=ot
+font_funcs2=fontations
+clear1=false
+clear2=false
+unicodes=
+glyphs=
+quiet=false
+help=false
+max_procs=
+while test $# -gt 0; do
+	case "$1" in
+		-o|--output-dir)
+			shift
+			output_dir=$1
+			shift
+			;;
+		--font-file)
+			shift
+			font_file=$1
+			shift
+			;;
+		--face-index)
+			shift
+			face_index=$1
+			shift
+			;;
+		--hb-vector)
+			shift
+			hb_vector=$1
+			shift
+			;;
+		--hb-info)
+			shift
+			hb_info=$1
+			shift
+			;;
+		--hb-svg-compare)
+			shift
+			hb_svg_compare=$1
+			shift
+			;;
+		--tolerance)
+			shift
+			tolerance=$1
+			shift
+			;;
+		--precision)
+			shift
+			precision=$1
+			shift
+			;;
+		--max-procs)
+			shift
+			max_procs=$1
+			shift
+			;;
+		--font-size)
+			shift
+			font_size=$1
+			shift
+			;;
+		--features)
+			shift
+			features=$1
+			shift
+			;;
+		--variations)
+			shift
+			variations=$1
+			shift
+			;;
+		--unicodes)
+			shift
+			unicodes=$1
+			shift
+			;;
+		--face-loader)
+			shift
+			face_loader=$1
+			shift
+			;;
+		--font-funcs1)
+			shift
+			font_funcs1=$1
+			shift
+			;;
+		--font-funcs2)
+			shift
+			font_funcs2=$1
+			shift
+			;;
+		--clear1)
+			shift
+			clear1=true
+			;;
+		--clear2)
+			shift
+			clear2=true
+			;;
+		--quiet)
+			quiet=true
+			shift
+			;;
+		--help)
+			help=true
+			shift
+			;;
+		*)
+			if test "x$font_file" == x; then
+				font_file=$1
+				shift
+			else
+				glyphs="$glyphs $1"
+				shift
+			fi
+			;;
+	esac
+done
+
+if $help; then
+	cmd=`basename "$0"`
+	echo "Usage: $cmd [OPTIONS] FONTFILE [GLYPH...]"
+	echo "Render a font with two font backends and compare the results."
+	echo
+	echo "Options:"
+	echo "  -o, --output-dir DIR: Output in DIR"
+	echo "  --font-file FONTFILE: Font file to render"
+	echo "  --hb-vector HB_VECTOR: Path to hb-vector; default $hb_vector"
+	echo "  --hb-info HB_INFO: Path to hb-info; default $hb_info"
+	echo "  --hb-svg-compare HB_SVG_COMPARE: Path to hb-svg-compare; default $hb_svg_compare"
+	echo "  --tolerance TOLERANCE: Tolerance for SVG comparison; default $tolerance"
+	echo "  --precision N: hb-vector precision override; default 5"
+	echo "  --max-procs N: Max parallel processes for render/compare; default auto"
+	echo "  --font-size SIZE: Font size; default $font_size"
+	echo "  --features FEATURES: Font features; default none"
+	echo "  --variations VARIATIONS: Font variations; default none"
+	echo "  --face-loader: Face loader; default $face_loader"
+	echo "  --font-funcs1 font_funcs: First font-funcs; default $font_funcs1"
+	echo "  --font-funcs2 font_funcs: Second font-funcs; default $font_funcs2"
+	echo "  --clear1: Clear first font backend output if exists"
+	echo "  --clear2: Clear second font backend output if exists"
+	echo "  --unicodes CODES: Unicodes to render"
+	echo "  --quiet: Quiet mode"
+	echo "  --help: Print help"
+	exit 0
+fi
+
+get_num_jobs() {
+	n=`getconf _NPROCESSORS_ONLN 2>/dev/null || true`
+	test "x$n" == x && n=`nproc 2>/dev/null || true`
+	test "x$n" == x && n=`sysctl -n hw.ncpu 2>/dev/null || true`
+	case "$n" in
+		''|*[!0-9]*) n=1 ;;
+	esac
+	test "$n" -lt 1 && n=1
+	echo "$n"
+}
+
+if test "x$max_procs" != x; then
+	echo "$max_procs" | grep -Eq '^[0-9]+$' || {
+		echo "Invalid max-procs '$max_procs'" >&2
+		exit 2
+	}
+	test "$max_procs" -gt 0 || {
+		echo "Invalid max-procs '$max_procs'" >&2
+		exit 2
+	}
+fi
+
+if test "x$font_file" == x; then
+	echo "No font file specified." >&2
+	exit 2
+fi
+if ! which "$hb_vector" 2>/dev/null >/dev/null; then
+	echo "'$hb_vector' not found" >&2
+	exit 2
+fi
+if ! which "$hb_info" 2>/dev/null >/dev/null; then
+	echo "'$hb_info' not found" >&2
+	exit 2
+fi
+if ! test -f "$font_file"; then
+	echo "Font file '$font_file' not found" >&2
+	exit 2
+fi
+
+# Sanity check Unicode values
+if test "x$unicodes" != x; then
+	echo "$unicodes" |
+	tr ' ' '\n' |
+	grep -v '^U[+][0-9a-fA-F]\+$' &&
+	{
+		echo "Invalid Unicode values" >&2
+		exit 2
+	}
+fi
+
+$quiet || echo "Comparing '$font_file' with '$font_funcs1' and '$font_funcs2' font backends. " >&2
+
+if test "x$output_dir" == x; then
+	output_dir=`mktemp -d`
+	echo "Output in '$output_dir'" >&2
+fi
+mkdir -p "$output_dir" || exit 1
+
+if test "x$precision" != x; then
+	echo "$precision" | grep -Eq '^[0-9]+$' || {
+		echo "Invalid precision '$precision'" >&2
+		exit 2
+	}
+	vector_precision="$precision"
+else
+	vector_precision=5
+fi
+$quiet || echo "Using precision=$vector_precision for tolerance=$tolerance." >&2
+
+# Populate glyphs file
+glyphs_file="$output_dir/glyphs"
+> "$glyphs_file"
+echo "$unicodes" |
+tr ' ' '\n' |
+sed 's/^U+//' |
+grep . |
+while read unicode; do
+	echo "uni$unicode"
+done >> "$glyphs_file"
+echo "$glyphs" |
+tr ' ' '\n' |
+grep . >> "$glyphs_file"
+if test "x$unicodes" == x -a "x$glyphs" == x; then
+	$quiet || echo "No unicodes or glyphs specified. Comparing all glyphs in the font." >&2
+	num_glyphs=`$hb_info --quiet --show-glyph-count "$font_file"`
+	$quiet || echo "Font has $num_glyphs glyphs." >&2
+	seq 0 $((num_glyphs - 1)) |
+	sed 's/^/gid/' >> "$glyphs_file"
+fi
+num_glyphs=`wc -l < "$glyphs_file" | tr -d '[:space:]'`
+if test "$num_glyphs" -lt 1; then
+	echo "No glyphs to compare." >&2
+	exit 2
+fi
+base_jobs=`get_num_jobs`
+if test "x$max_procs" != x; then
+	if test "$base_jobs" -gt "$max_procs"; then
+		base_jobs="$max_procs"
+	fi
+fi
+compare_jobs="$base_jobs"
+if test "$compare_jobs" -gt "$num_glyphs"; then
+	compare_jobs="$num_glyphs"
+fi
+$quiet || test "$base_jobs" -le 1 || echo "Using up to $base_jobs shards." >&2
+
+flavor=
+if test "$features" != ""; then
+	flavor="$flavor.features=$features"
+fi
+if test "$variations" != ""; then
+	flavor="$flavor.variations=$variations"
+fi
+
+# Render with both font backends
+if $clear1; then
+	funcs_prefix="$output_dir/$font_funcs1$flavor"
+	$quiet || echo "Clearing '$funcs_prefix'... " >&2
+	rm -rf "$funcs_prefix"
+fi
+if $clear2; then
+	funcs_prefix="$output_dir/$font_funcs2$flavor"
+	$quiet || echo "Clearing '$funcs_prefix'... " >&2
+	rm -rf "$funcs_prefix"
+fi
+for font_funcs in "$font_funcs1" "$font_funcs2"; do
+	test "x$font_funcs" == x && continue
+	$quiet || echo "Rendering with font backend '$font_funcs'..." >&2
+
+	funcs_prefix="$output_dir/$font_funcs$flavor"
+	mkdir -p "$funcs_prefix"
+	render_cmds="$output_dir/render-cmds.$font_funcs$flavor"
+	> "$render_cmds"
+	count=0
+	while read glyph; do
+		dir="$funcs_prefix"
+		svg="$dir/$glyph.svg"
+		if test -f "$svg"; then
+			continue
+		fi
+		count=$((count + 1))
+		if test $((count % 100)) == 0; then
+			$quiet || echo -n . >&2
+		fi
+		printf '%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n' \
+			"--font-file=$font_file" \
+			"--face-index=$face_index" \
+			"--glyphs" \
+			"--face-loader=$face_loader" \
+			"--font-funcs=$font_funcs" \
+			"--features=$features" \
+			"--variations=$variations" \
+			"--font-size=$font_size" \
+			"--precision=$vector_precision" \
+			"--output-file=$svg" \
+			"$glyph" >> "$render_cmds"
+	done < "$glyphs_file"
+
+	render_cmd_count=`wc -l < "$render_cmds" | tr -d '[:space:]'`
+	render_jobs="$base_jobs"
+	if test "$render_jobs" -gt "$render_cmd_count"; then
+		render_jobs="$render_cmd_count"
+	fi
+	if test "$render_cmd_count" -gt 0; then
+		render_shard_dir="$output_dir/render-shards.$font_funcs$flavor"
+		rm -rf "$render_shard_dir"
+		mkdir -p "$render_shard_dir" || exit 1
+		split -d -n l/"$render_jobs" "$render_cmds" "$render_shard_dir/cmds." || exit 1
+		pids=
+		for shard in "$render_shard_dir"/cmds.*; do
+			"$hb_vector" --batch < "$shard" > "$shard.out" &
+			pids="$pids $!"
+		done
+		for pid in $pids; do
+			wait "$pid" || exit 1
+		done
+		cat "$render_shard_dir"/cmds.*.out | grep -v '^success$' || true
+	fi
+		if test "$count" -ge 100; then
+			$quiet || echo >&2
+		fi
+done
+
+test "x$font_funcs1" == x || test "x$font_funcs2" == x && exit 0
+
+diff="$output_dir/diff$flavor"
+rm -f "$diff"
+> "$diff"
+test "x$flavor" == x || ln -f -s "diff$flavor" "$output_dir/diff"
+$quiet || echo "Comparing SVGs into '$diff'..." >&2
+funcs1_prefix="$output_dir/$font_funcs1$flavor"
+funcs2_prefix="$output_dir/$font_funcs2$flavor"
+pairs="$output_dir/pairs$flavor"
+> "$pairs"
+count=0
+while read glyph; do
+	count=$((count + 1))
+	if test $((count % 100)) == 0; then
+		$quiet || echo -n . >&2
+	fi
+
+	svg1="$funcs1_prefix/$glyph.svg"
+	svg2="$funcs2_prefix/$glyph.svg"
+
+	if ! test -f "$svg1" || ! test -f "$svg2"; then
+		echo -e "\n$glyph not rendered." >&2
+		exit 1
+	fi
+
+	echo -e "$svg1\t$svg2" >> "$pairs"
+done < "$glyphs_file"
+if test "$count" -ge 100; then
+	$quiet || echo >&2
+fi
+
+raw_diff="$output_dir/diff.raw$flavor"
+shard_dir="$output_dir/compare-shards$flavor"
+rm -rf "$shard_dir"
+mkdir -p "$shard_dir" || exit 1
+split -d -n l/"$compare_jobs" "$pairs" "$shard_dir/pairs." || exit 1
+pids=
+for shard in "$shard_dir"/pairs.*; do
+	"$hb_svg_compare" "$tolerance" < "$shard" > "$shard.out" &
+	pids="$pids $!"
+done
+for pid in $pids; do
+	wait "$pid" || exit 1
+done
+cat "$shard_dir"/pairs.*.out > "$raw_diff" || exit 1
+
+# Sort diff by error
+python3 - "$raw_diff" "$diff" <<'PY' || exit 1
+import math
+import sys
+
+src, dst = sys.argv[1], sys.argv[2]
+rows = []
+
+with open(src, encoding='utf-8') as f:
+  for idx, line in enumerate(f):
+    line = line.rstrip('\n')
+    first = line.split('\t', 1)[0]
+    try:
+      value = float(first)
+      key = (0, value, idx) if math.isfinite(value) else (1, float('inf'), idx)
+    except ValueError:
+      key = (1, float('inf'), idx)
+    rows.append((key, line))
+
+rows.sort(key=lambda row: row[0])
+
+with open(dst, 'w', encoding='utf-8') as f:
+  for _, line in rows:
+    f.write(line + '\n')
+PY
+
+if ! $quiet; then
+	while IFS= read -r line; do
+		echo "$line"
+	done < "$diff"
+fi
+# Count number of differences
+num_diffs=`cat "$diff" | wc -l`
+$quiet || echo -e "\nFound $num_diffs differences in $num_glyphs glyphs." >&2

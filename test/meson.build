@@ -4,5 +4,5 @@ subdir('threads')
 if not get_option('utilities').disabled()
 subdir('subset')
 subdir('shape')
-subdir('draw')
+subdir('vector')
 endif

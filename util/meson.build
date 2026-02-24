@@ -111,7 +111,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     )
   endif
 
-  hb_draw_all = executable('hb-draw-all', ['hb-draw-all.c'],
+  hb_vector_all = executable('hb-vector-all', ['hb-vector-all.c'],
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
     link_with: [libharfbuzz],
