@@ -188,6 +188,7 @@ struct hb_svg_blob_meta_t
   char *data;
   int allocated;
   bool transferred;
+  bool in_replace;
 };
 
 static hb_user_data_key_t hb_svg_blob_meta_user_data_key;
@@ -196,8 +197,18 @@ static void
 hb_svg_blob_meta_destroy (void *data)
 {
   auto *meta = (hb_svg_blob_meta_t *) data;
-  if (!meta->transferred)
+  if (!meta)
+    return;
+  if (!meta->transferred && meta->data)
     hb_free (meta->data);
+  meta->data = nullptr;
+  meta->allocated = 0;
+  meta->transferred = true;
+  if (meta->in_replace)
+  {
+    meta->in_replace = false;
+    return;
+  }
   hb_free (meta);
 }
 
@@ -211,51 +222,63 @@ hb_svg_blob_from_buffer (hb_blob_t **recycled_blob,
   if (!data)
     return nullptr;
 
-  auto *meta = (hb_svg_blob_meta_t *) hb_malloc (sizeof (hb_svg_blob_meta_t));
-  if (!meta)
-  {
-    hb_free (data);
-    return nullptr;
-  }
-  meta->data = data;
-  meta->allocated = allocated;
-  meta->transferred = false;
-
   hb_blob_t *blob = nullptr;
   if (*recycled_blob)
     blob = *recycled_blob;
+  bool reused_blob = blob && blob != hb_blob_get_empty ();
+  bool new_meta = false;
+  auto *meta = reused_blob
+             ? (hb_svg_blob_meta_t *) hb_blob_get_user_data (blob, &hb_svg_blob_meta_user_data_key)
+             : nullptr;
+  if (!meta)
+  {
+    meta = (hb_svg_blob_meta_t *) hb_malloc (sizeof (hb_svg_blob_meta_t));
+    if (!meta)
+    {
+      hb_free (data);
+      return nullptr;
+    }
+    meta->data = nullptr;
+    meta->allocated = 0;
+    meta->transferred = true;
+    meta->in_replace = false;
+    new_meta = true;
+  }
+
+  if (reused_blob)
+  {
+    meta->in_replace = true;
+    blob->replace_buffer (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_svg_blob_meta_destroy);
+    meta->in_replace = false;
+    meta->data = data;
+    meta->allocated = allocated;
+    meta->transferred = false;
+  }
   else
-    blob = hb_blob_create (data,
-			   len,
-			   HB_MEMORY_MODE_WRITABLE,
-			   meta,
-			   hb_svg_blob_meta_destroy);
+  {
+    meta->data = data;
+    meta->allocated = allocated;
+    meta->transferred = false;
+    blob = hb_blob_create (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_svg_blob_meta_destroy);
+  }
+
   if (unlikely (blob == hb_blob_get_empty ()))
   {
-    if (*recycled_blob)
-      hb_svg_blob_meta_destroy (meta);
+    if (new_meta)
+      hb_free (meta);
+    hb_free (data);
     return nullptr;
   }
 
-  if (*recycled_blob)
-  {
-    blob->replace_buffer (data,
-			  len,
-			  HB_MEMORY_MODE_WRITABLE,
-			  meta,
-			  hb_svg_blob_meta_destroy);
-  }
-
-  if (!hb_blob_set_user_data (blob,
+  if (new_meta &&
+      !hb_blob_set_user_data (blob,
 			      &hb_svg_blob_meta_user_data_key,
 			      meta,
 			      nullptr,
 			      true))
   {
-    if (!*recycled_blob)
+    if (!reused_blob)
       hb_blob_destroy (blob);
-    else
-      hb_svg_blob_meta_destroy (meta);
     return nullptr;
   }
 
