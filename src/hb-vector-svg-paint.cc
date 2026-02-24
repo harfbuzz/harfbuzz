@@ -643,74 +643,6 @@ hb_svg_append_image_instance_translate (hb_vector_t<char> *out,
 }
 
 
-static void
-hb_vector_draw_move_to (hb_draw_funcs_t *,
-                        void *draw_data,
-                        hb_draw_state_t *,
-                        float to_x, float to_y,
-                        void *)
-{
-  auto *d = (hb_vector_draw_t *) draw_data;
-  hb_svg_append_c (&d->path, 'M');
-  d->append_xy (to_x, to_y);
-}
-
-static void
-hb_vector_draw_line_to (hb_draw_funcs_t *,
-                        void *draw_data,
-                        hb_draw_state_t *,
-                        float to_x, float to_y,
-                        void *)
-{
-  auto *d = (hb_vector_draw_t *) draw_data;
-  hb_svg_append_c (&d->path, 'L');
-  d->append_xy (to_x, to_y);
-}
-
-static void
-hb_vector_draw_quadratic_to (hb_draw_funcs_t *,
-                             void *draw_data,
-                             hb_draw_state_t *,
-                             float cx, float cy,
-                             float to_x, float to_y,
-                             void *)
-{
-  auto *d = (hb_vector_draw_t *) draw_data;
-  hb_svg_append_c (&d->path, 'Q');
-  d->append_xy (cx, cy);
-  hb_svg_append_c (&d->path, ' ');
-  d->append_xy (to_x, to_y);
-}
-
-static void
-hb_vector_draw_cubic_to (hb_draw_funcs_t *,
-                         void *draw_data,
-                         hb_draw_state_t *,
-                         float c1x, float c1y,
-                         float c2x, float c2y,
-                         float to_x, float to_y,
-                         void *)
-{
-  auto *d = (hb_vector_draw_t *) draw_data;
-  hb_svg_append_c (&d->path, 'C');
-  d->append_xy (c1x, c1y);
-  hb_svg_append_c (&d->path, ' ');
-  d->append_xy (c2x, c2y);
-  hb_svg_append_c (&d->path, ' ');
-  d->append_xy (to_x, to_y);
-}
-
-static void
-hb_vector_draw_close_path (hb_draw_funcs_t *,
-                           void *draw_data,
-                           hb_draw_state_t *,
-                           void *)
-{
-  auto *d = (hb_vector_draw_t *) draw_data;
-  hb_svg_append_c (&d->path, 'Z');
-}
-
-
 struct hb_svg_path_sink_t
 {
   hb_vector_t<char> *path;
@@ -798,25 +730,7 @@ hb_svg_path_close_path (hb_draw_funcs_t *,
   hb_svg_append_c (s->path, 'Z');
 }
 
-static inline void free_static_vector_draw_funcs ();
 static inline void free_static_svg_path_draw_funcs ();
-
-static struct hb_vector_draw_funcs_lazy_loader_t
-  : hb_draw_funcs_lazy_loader_t<hb_vector_draw_funcs_lazy_loader_t>
-{
-  static hb_draw_funcs_t *create ()
-  {
-    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
-    hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) hb_vector_draw_move_to, nullptr, nullptr);
-    hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) hb_vector_draw_line_to, nullptr, nullptr);
-    hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) hb_vector_draw_quadratic_to, nullptr, nullptr);
-    hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) hb_vector_draw_cubic_to, nullptr, nullptr);
-    hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) hb_vector_draw_close_path, nullptr, nullptr);
-    hb_draw_funcs_make_immutable (funcs);
-    hb_atexit (free_static_vector_draw_funcs);
-    return funcs;
-  }
-} static_vector_draw_funcs;
 
 static struct hb_svg_path_draw_funcs_lazy_loader_t
   : hb_draw_funcs_lazy_loader_t<hb_svg_path_draw_funcs_lazy_loader_t>
@@ -836,25 +750,13 @@ static struct hb_svg_path_draw_funcs_lazy_loader_t
 } static_svg_path_draw_funcs;
 
 static inline void
-free_static_vector_draw_funcs ()
-{
-  static_vector_draw_funcs.free_instance ();
-}
-
-static inline void
 free_static_svg_path_draw_funcs ()
 {
   static_svg_path_draw_funcs.free_instance ();
 }
 
 static hb_draw_funcs_t *
-hb_vector_draw_funcs_singleton ()
-{
-  return static_vector_draw_funcs.get_unconst ();
-}
-
-static hb_draw_funcs_t *
-hb_svg_path_draw_funcs_singleton ()
+hb_svg_path_draw_funcs_get ()
 {
   return static_svg_path_draw_funcs.get_unconst ();
 }
@@ -1333,7 +1235,7 @@ free_static_vector_paint_funcs ()
 }
 
 static hb_paint_funcs_t *
-hb_vector_paint_funcs_singleton ()
+hb_vector_paint_funcs_get ()
 {
   return static_vector_paint_funcs.get_unconst ();
 }
@@ -1433,7 +1335,7 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
     hb_set_add (paint->defined_outlines, glyph);
     paint->path.clear ();
     hb_svg_path_sink_t sink = {&paint->path, paint->precision};
-    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_singleton (), &sink);
+    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_get (), &sink);
     hb_svg_append_str (&paint->defs, "<path id=\"p");
     hb_svg_append_unsigned (&paint->defs, glyph);
     hb_svg_append_str (&paint->defs, "\" d=\"");
@@ -1772,7 +1674,7 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
   paint->current_svg_image_glyph = glyph;
   paint->current_face = hb_font_get_face (font);
   hb_font_paint_glyph (font, glyph,
-                       hb_vector_paint_funcs_singleton (),
+                       hb_vector_paint_funcs_get (),
                        paint,
                        paint->palette,
                        paint->foreground);
@@ -1781,394 +1683,6 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
   return true;
 }
 
-
-hb_vector_draw_t *
-hb_vector_draw_create_or_fail (hb_vector_format_t format)
-{
-  if (format != HB_VECTOR_FORMAT_SVG)
-    return nullptr;
-
-  hb_vector_draw_t *draw = hb_object_create<hb_vector_draw_t> ();
-  if (unlikely (!draw))
-    return nullptr;
-  draw->format = format;
-  draw->defined_glyphs = hb_set_create ();
-  draw->defs.alloc (2048);
-  draw->body.alloc (8192);
-  draw->path.alloc (2048);
-  return draw;
-}
-
-hb_vector_draw_t *
-hb_vector_draw_reference (hb_vector_draw_t *draw)
-{
-  return hb_object_reference (draw);
-}
-
-void
-hb_vector_draw_destroy (hb_vector_draw_t *draw)
-{
-  if (!hb_object_destroy (draw)) return;
-  hb_blob_destroy (draw->recycled_blob);
-  hb_set_destroy (draw->defined_glyphs);
-  hb_free (draw);
-}
-
-hb_bool_t
-hb_vector_draw_set_user_data (hb_vector_draw_t   *draw,
-                              hb_user_data_key_t *key,
-                              void               *data,
-                              hb_destroy_func_t   destroy,
-                              hb_bool_t           replace)
-{
-  return hb_object_set_user_data (draw, key, data, destroy, replace);
-}
-
-void *
-hb_vector_draw_get_user_data (hb_vector_draw_t   *draw,
-                              hb_user_data_key_t *key)
-{
-  return hb_object_get_user_data (draw, key);
-}
-
-void
-hb_vector_draw_set_transform (hb_vector_draw_t *draw,
-                              float xx, float yx,
-                              float xy, float yy,
-                              float dx, float dy)
-{
-  draw->transform = {xx, yx, xy, yy, dx, dy};
-}
-
-/**
- * hb_vector_draw_get_transform:
- * @draw: a draw context.
- * @xx: (out) (nullable): transform xx component.
- * @yx: (out) (nullable): transform yx component.
- * @xy: (out) (nullable): transform xy component.
- * @yy: (out) (nullable): transform yy component.
- * @dx: (out) (nullable): transform x translation.
- * @dy: (out) (nullable): transform y translation.
- *
- * Gets the affine transform used when drawing glyphs.
- *
- * XSince: REPLACEME
- */
-void
-hb_vector_draw_get_transform (hb_vector_draw_t *draw,
-                              float *xx, float *yx,
-                              float *xy, float *yy,
-                              float *dx, float *dy)
-{
-  if (xx) *xx = draw->transform.xx;
-  if (yx) *yx = draw->transform.yx;
-  if (xy) *xy = draw->transform.xy;
-  if (yy) *yy = draw->transform.yy;
-  if (dx) *dx = draw->transform.x0;
-  if (dy) *dy = draw->transform.y0;
-}
-
-void
-hb_vector_draw_set_scale_factor (hb_vector_draw_t *draw,
-                                 float x_scale_factor,
-                                 float y_scale_factor)
-{
-  draw->x_scale_factor = x_scale_factor > 0.f ? x_scale_factor : 1.f;
-  draw->y_scale_factor = y_scale_factor > 0.f ? y_scale_factor : 1.f;
-}
-
-/**
- * hb_vector_draw_get_scale_factor:
- * @draw: a draw context.
- * @x_scale_factor: (out) (nullable): x scale factor.
- * @y_scale_factor: (out) (nullable): y scale factor.
- *
- * Gets additional output scaling factors.
- *
- * XSince: REPLACEME
- */
-void
-hb_vector_draw_get_scale_factor (hb_vector_draw_t *draw,
-                                 float *x_scale_factor,
-                                 float *y_scale_factor)
-{
-  if (x_scale_factor) *x_scale_factor = draw->x_scale_factor;
-  if (y_scale_factor) *y_scale_factor = draw->y_scale_factor;
-}
-
-void
-hb_vector_draw_set_extents (hb_vector_draw_t *draw,
-                            const hb_vector_extents_t *extents)
-{
-  if (!extents)
-  {
-    draw->extents = {0, 0, 0, 0};
-    draw->has_extents = false;
-    return;
-  }
-
-  if (!(extents->width > 0.f && extents->height > 0.f))
-    return;
-
-  if (draw->has_extents)
-  {
-    float x0 = hb_min (draw->extents.x, extents->x);
-    float y0 = hb_min (draw->extents.y, extents->y);
-    float x1 = hb_max (draw->extents.x + draw->extents.width,
-                       extents->x + extents->width);
-    float y1 = hb_max (draw->extents.y + draw->extents.height,
-                       extents->y + extents->height);
-    draw->extents = {x0, y0, x1 - x0, y1 - y0};
-  }
-  else
-  {
-    draw->extents = *extents;
-    draw->has_extents = true;
-  }
-}
-
-/**
- * hb_vector_draw_get_extents:
- * @draw: a draw context.
- * @extents: (out) (nullable): where to store current output extents.
- *
- * Gets current output extents from @draw.
- *
- * Return value: `true` if extents are set, `false` otherwise.
- *
- * XSince: REPLACEME
- */
-hb_bool_t
-hb_vector_draw_get_extents (hb_vector_draw_t *draw,
-                            hb_vector_extents_t *extents)
-{
-  if (!draw->has_extents)
-    return false;
-
-  if (extents)
-    *extents = draw->extents;
-  return true;
-}
-
-hb_bool_t
-hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
-                                  const hb_glyph_extents_t *glyph_extents)
-{
-  hb_bool_t has_extents = draw->has_extents;
-  hb_bool_t ret = hb_svg_set_glyph_extents_common (draw->transform,
-						   draw->x_scale_factor,
-						   draw->y_scale_factor,
-						   glyph_extents,
-						   &draw->extents,
-						   &has_extents);
-  draw->has_extents = has_extents;
-  return ret;
-}
-
-hb_draw_funcs_t *
-hb_vector_draw_get_funcs (void)
-{
-  return hb_vector_draw_funcs_singleton ();
-}
-
-hb_bool_t
-hb_vector_draw_glyph (hb_vector_draw_t *draw,
-                      hb_font_t *font,
-                      hb_codepoint_t glyph,
-                      float pen_x,
-                      float pen_y,
-                      hb_vector_extents_mode_t extents_mode)
-{
-  if (draw->format != HB_VECTOR_FORMAT_SVG)
-    return false;
-
-  if (extents_mode == HB_VECTOR_EXTENTS_MODE_EXPAND)
-  {
-    hb_glyph_extents_t ge;
-    if (hb_font_get_glyph_extents (font, glyph, &ge))
-    {
-      float xx = draw->transform.xx;
-      float yx = draw->transform.yx;
-      float xy = draw->transform.xy;
-      float yy = draw->transform.yy;
-      float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-      float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
-      hb_transform_t<> extents_transform = {xx, yx, -xy, -yy, tx, ty};
-
-      hb_bool_t has_extents = draw->has_extents;
-      hb_svg_set_glyph_extents_common (extents_transform,
-                                       draw->x_scale_factor,
-                                       draw->y_scale_factor,
-                                       &ge,
-                                       &draw->extents,
-                                       &has_extents);
-      draw->has_extents = has_extents;
-    }
-  }
-
-  bool needs_def = !draw->flat && !hb_set_has (draw->defined_glyphs, glyph);
-  if (needs_def)
-  {
-    draw->path.clear ();
-    hb_svg_path_sink_t sink = {&draw->path, draw->precision};
-    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_singleton (), &sink);
-    if (!draw->path.length)
-      return false;
-    hb_svg_append_str (&draw->defs, "<path id=\"p");
-    hb_svg_append_unsigned (&draw->defs, glyph);
-    hb_svg_append_str (&draw->defs, "\" d=\"");
-    hb_svg_append_len (&draw->defs, draw->path.arrayZ, draw->path.length);
-    hb_svg_append_str (&draw->defs, "\"/>\n");
-    hb_set_add (draw->defined_glyphs, glyph);
-  }
-
-  if (draw->flat)
-  {
-    draw->path.clear ();
-    hb_svg_path_sink_t sink = {&draw->path, draw->precision};
-    hb_font_draw_glyph (font, glyph, hb_svg_path_draw_funcs_singleton (), &sink);
-
-    if (!draw->path.length)
-      return false;
-
-    float xx = draw->transform.xx;
-    float yx = draw->transform.yx;
-    float xy = draw->transform.xy;
-    float yy = draw->transform.yy;
-    float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-    float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
-
-    hb_svg_append_str (&draw->body, "<path d=\"");
-    hb_svg_append_len (&draw->body, draw->path.arrayZ, draw->path.length);
-    hb_svg_append_str (&draw->body, "\" transform=\"");
-    hb_svg_append_instance_transform (&draw->body,
-                                      draw->precision,
-                                      draw->x_scale_factor,
-                                      draw->y_scale_factor,
-                                      xx, yx, xy, yy, tx, ty);
-    hb_svg_append_str (&draw->body, "\"/>\n");
-    return true;
-  }
-
-  float xx = draw->transform.xx;
-  float yx = draw->transform.yx;
-  float xy = draw->transform.xy;
-  float yy = draw->transform.yy;
-  float tx = draw->transform.x0 + xx * pen_x + xy * pen_y;
-  float ty = draw->transform.y0 + yx * pen_x + yy * pen_y;
-
-  hb_svg_append_str (&draw->body, "<use href=\"#p");
-  hb_svg_append_unsigned (&draw->body, glyph);
-  hb_svg_append_str (&draw->body, "\" transform=\"");
-  hb_svg_append_instance_transform (&draw->body,
-                                    draw->precision,
-                                    draw->x_scale_factor,
-                                    draw->y_scale_factor,
-                                    xx, yx, xy, yy, tx, ty);
-  hb_svg_append_str (&draw->body, "\"/>\n");
-  return true;
-}
-
-void
-hb_vector_svg_set_flat (hb_vector_draw_t *draw,
-                        hb_bool_t flat)
-{
-  draw->flat = !!flat;
-}
-
-void
-hb_vector_svg_set_precision (hb_vector_draw_t *draw,
-                             unsigned precision)
-{
-  draw->precision = hb_min (precision, 12u);
-}
-
-hb_blob_t *
-hb_vector_draw_render (hb_vector_draw_t *draw)
-{
-  if (draw->format != HB_VECTOR_FORMAT_SVG)
-    return nullptr;
-  if (!draw->has_extents)
-    return nullptr;
-
-  hb_vector_t<char> out;
-  hb_svg_recover_recycled_buffer (draw->recycled_blob, &out);
-  unsigned estimated = draw->defs.length +
-                       (draw->body.length ? draw->body.length : draw->path.length) +
-                       256;
-  out.alloc (estimated);
-  hb_svg_append_str (&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"");
-  hb_svg_append_num (&out, draw->extents.x, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, draw->extents.y, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, draw->extents.width, draw->precision);
-  hb_svg_append_c (&out, ' ');
-  hb_svg_append_num (&out, draw->extents.height, draw->precision);
-  hb_svg_append_str (&out, "\" width=\"");
-  hb_svg_append_num (&out, draw->extents.width, draw->precision);
-  hb_svg_append_str (&out, "\" height=\"");
-  hb_svg_append_num (&out, draw->extents.height, draw->precision);
-  hb_svg_append_str (&out, "\">\n");
-
-  if (draw->defs.length)
-  {
-    hb_svg_append_str (&out, "<defs>\n");
-    hb_svg_append_len (&out, draw->defs.arrayZ, draw->defs.length);
-    hb_svg_append_str (&out, "</defs>\n");
-  }
-
-  if (draw->body.length)
-  {
-    hb_svg_append_len (&out, draw->body.arrayZ, draw->body.length);
-  }
-  else if (draw->path.length)
-  {
-    hb_svg_append_str (&out, "<path d=\"");
-    hb_svg_append_len (&out, draw->path.arrayZ, draw->path.length);
-    hb_svg_append_str (&out, "\"/>\n");
-  }
-
-  hb_svg_append_str (&out, "</svg>\n");
-
-  hb_blob_t *blob = hb_svg_blob_from_buffer (&draw->recycled_blob, &out);
-
-  draw->path.clear ();
-  draw->defs.clear ();
-  draw->body.clear ();
-  hb_set_clear (draw->defined_glyphs);
-  draw->has_extents = false;
-  draw->extents = {0, 0, 0, 0};
-
-  return blob;
-}
-
-void
-hb_vector_draw_reset (hb_vector_draw_t *draw)
-{
-  draw->transform = {1, 0, 0, 1, 0, 0};
-  draw->x_scale_factor = 1.f;
-  draw->y_scale_factor = 1.f;
-  draw->extents = {0, 0, 0, 0};
-  draw->has_extents = false;
-  draw->precision = 2;
-  draw->flat = false;
-  draw->defs.clear ();
-  draw->body.clear ();
-  draw->path.clear ();
-  hb_set_clear (draw->defined_glyphs);
-}
-
-void
-hb_vector_draw_recycle_blob (hb_vector_draw_t *draw,
-                             hb_blob_t *blob)
-{
-  hb_blob_destroy (draw->recycled_blob);
-  draw->recycled_blob = nullptr;
-  if (!blob || blob == hb_blob_get_empty ())
-    return;
-  draw->recycled_blob = blob;
-}
 
 
 hb_vector_paint_t *
@@ -2377,7 +1891,7 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
 hb_paint_funcs_t *
 hb_vector_paint_get_funcs (void)
 {
-  return hb_vector_paint_funcs_singleton ();
+  return hb_vector_paint_funcs_get ();
 }
 
 hb_bool_t

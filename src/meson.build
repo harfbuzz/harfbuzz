@@ -715,7 +715,8 @@ hb_raster_headers = [
 
 hb_vector_sources = [
   'hb-vector.cc',
-  'hb-vector-svg.cc',
+  'hb-vector-svg-draw.cc',
+  'hb-vector-svg-paint.cc',
   'hb-vector-svg-subset.cc',
   'hb-vector-svg-subset.hh',
   'hb-static.cc',
