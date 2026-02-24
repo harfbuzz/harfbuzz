@@ -32,10 +32,6 @@
 #include "hb-map.hh"
 
 #include <algorithm>
-#include <locale.h>
-#ifdef HAVE_XLOCALE_H
-#include <xlocale.h>
-#endif
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
@@ -130,16 +126,16 @@ hb_svg_append_num (hb_vector_t<char> *buf,
   snprintf (out, sizeof (out), fmt, (double) v);
 
   const char *decimal_point = ".";
+#ifndef HB_NO_SETLOCALE
+#if defined(HAVE_XLOCALE_H)
   lconv *lc = nullptr;
-#if defined(HAVE_XLOCALE_H) && !defined(HB_NO_SETLOCALE)
   hb_locale_t current_locale = hb_uselocale ((hb_locale_t) 0);
   if (current_locale)
     lc = localeconv_l (current_locale);
-#endif
-  if (!lc)
-    lc = localeconv ();
   if (lc && lc->decimal_point && lc->decimal_point[0])
     decimal_point = lc->decimal_point;
+#endif
+#endif
 
   if (decimal_point[0] != '.' || decimal_point[1] != '\0')
   {
