@@ -705,7 +705,6 @@ hb_raster_sources = [
   'hb-raster-draw.cc',
   'hb-raster-paint.cc',
   'hb-raster.hh',
-  'hb-raster-paint.hh',
   'hb-static.cc',
 ]
 
