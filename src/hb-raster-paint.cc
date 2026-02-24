@@ -331,17 +331,28 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
     {
       const uint8_t *mask_row = mask_buf + y * mask_ext.stride;
       uint8_t *out_row = new_clip.alpha.arrayZ + y * new_clip.stride;
+      memcpy (out_row + ix0, mask_row + ix0, ix1 - ix0);
+
+      unsigned row_min = ix1;
+      unsigned row_max = ix0;
       for (unsigned x = ix0; x < ix1; x++)
-      {
-	uint8_t a = mask_row[x];
-	out_row[x] = a;
-	if (a)
+	if (mask_row[x])
 	{
-	  new_clip.min_x = hb_min (new_clip.min_x, x);
-	  new_clip.min_y = hb_min (new_clip.min_y, y);
-	  new_clip.max_x = hb_max (new_clip.max_x, x + 1);
-	  new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+	  row_min = x;
+	  break;
 	}
+      for (unsigned x = ix1; x > row_min; x--)
+	if (mask_row[x - 1])
+	{
+	  row_max = x;
+	  break;
+	}
+      if (row_min < row_max)
+      {
+	new_clip.min_x = hb_min (new_clip.min_x, row_min);
+	new_clip.min_y = hb_min (new_clip.min_y, y);
+	new_clip.max_x = hb_max (new_clip.max_x, row_max);
+	new_clip.max_y = hb_max (new_clip.max_y, y + 1);
       }
     }
   }
@@ -352,17 +363,24 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
       const uint8_t *old_row = old_clip.alpha.arrayZ + y * old_clip.stride;
       const uint8_t *mask_row = mask_buf + y * mask_ext.stride;
       uint8_t *out_row = new_clip.alpha.arrayZ + y * new_clip.stride;
+      unsigned row_min = ix1;
+      unsigned row_max = ix0;
       for (unsigned x = ix0; x < ix1; x++)
       {
 	uint8_t a = hb_raster_div255 (mask_row[x] * old_row[x]);
 	out_row[x] = a;
 	if (a)
 	{
-	  new_clip.min_x = hb_min (new_clip.min_x, x);
-	  new_clip.min_y = hb_min (new_clip.min_y, y);
-	  new_clip.max_x = hb_max (new_clip.max_x, x + 1);
-	  new_clip.max_y = hb_max (new_clip.max_y, y + 1);
+	  row_min = hb_min (row_min, x);
+	  row_max = x + 1;
 	}
+      }
+      if (row_min < row_max)
+      {
+	new_clip.min_x = hb_min (new_clip.min_x, row_min);
+	new_clip.min_y = hb_min (new_clip.min_y, y);
+	new_clip.max_x = hb_max (new_clip.max_x, row_max);
+	new_clip.max_y = hb_max (new_clip.max_y, y + 1);
       }
     }
   }
