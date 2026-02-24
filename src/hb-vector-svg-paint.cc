@@ -254,14 +254,26 @@ hb_svg_append_color (hb_vector_t<char> *buf,
                      hb_color_t color,
                      bool with_alpha)
 {
+  static const char hex[] = "0123456789ABCDEF";
   unsigned r = hb_color_get_red (color);
   unsigned g = hb_color_get_green (color);
   unsigned b = hb_color_get_blue (color);
   unsigned a = hb_color_get_alpha (color);
   hb_svg_append_c (buf, '#');
-  hb_svg_append_hex_byte (buf, r);
-  hb_svg_append_hex_byte (buf, g);
-  hb_svg_append_hex_byte (buf, b);
+  if (((r >> 4) == (r & 0xF)) &&
+      ((g >> 4) == (g & 0xF)) &&
+      ((b >> 4) == (b & 0xF)))
+  {
+    hb_svg_append_c (buf, hex[r & 0xF]);
+    hb_svg_append_c (buf, hex[g & 0xF]);
+    hb_svg_append_c (buf, hex[b & 0xF]);
+  }
+  else
+  {
+    hb_svg_append_hex_byte (buf, r);
+    hb_svg_append_hex_byte (buf, g);
+    hb_svg_append_hex_byte (buf, b);
+  }
   if (with_alpha && a != 255)
   {
     hb_svg_append_str (buf, "\" fill-opacity=\"");
