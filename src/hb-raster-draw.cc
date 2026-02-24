@@ -66,6 +66,8 @@ struct hb_raster_draw_t
 
   /* Configuration */
   hb_transform_t<>    transform         = {1, 0, 0, 1, 0, 0};
+  float               x_scale_factor    = 1.f;
+  float               y_scale_factor    = 1.f;
   hb_raster_extents_t fixed_extents     = {};
   bool                has_fixed_extents = false;
 
@@ -81,6 +83,17 @@ struct hb_raster_draw_t
   /* Recycled image for zero-malloc render */
   hb_raster_image_t *recycled_image = nullptr;
 };
+
+static HB_ALWAYS_INLINE void
+hb_raster_draw_transform_point (const hb_raster_draw_t *draw,
+				float x, float y,
+				float &tx, float &ty)
+{
+  tx = x; ty = y;
+  draw->transform.transform_point (tx, ty);
+  tx /= draw->x_scale_factor;
+  ty /= draw->y_scale_factor;
+}
 
 
 /* hb_raster_draw_t */
@@ -211,6 +224,45 @@ hb_raster_draw_set_transform (hb_raster_draw_t *draw,
 }
 
 /**
+ * hb_raster_draw_set_scale_factor:
+ * @draw: a rasterizer
+ * @x_scale_factor: x-axis minification factor
+ * @y_scale_factor: y-axis minification factor
+ *
+ * Sets post-transform minification factors applied during rasterization.
+ * Factors larger than 1 shrink the output in pixels. The default is 1.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_draw_set_scale_factor (hb_raster_draw_t *draw,
+				 float x_scale_factor,
+				 float y_scale_factor)
+{
+  draw->x_scale_factor = x_scale_factor > 0.f ? x_scale_factor : 1.f;
+  draw->y_scale_factor = y_scale_factor > 0.f ? y_scale_factor : 1.f;
+}
+
+/**
+ * hb_raster_draw_get_scale_factor:
+ * @draw: a rasterizer
+ * @x_scale_factor: (out) (optional): x-axis minification factor
+ * @y_scale_factor: (out) (optional): y-axis minification factor
+ *
+ * Fetches the current post-transform minification factors.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_draw_get_scale_factor (hb_raster_draw_t *draw,
+				 float *x_scale_factor,
+				 float *y_scale_factor)
+{
+  if (x_scale_factor) *x_scale_factor = draw->x_scale_factor;
+  if (y_scale_factor) *y_scale_factor = draw->y_scale_factor;
+}
+
+/**
  * hb_raster_draw_get_transform:
  * @draw: a rasterizer
  * @xx: (out) (optional): xx component of the transform matrix
@@ -291,18 +343,17 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
   float py[4] = {ymin, ymax, ymin, ymax};
 
   float tx, ty;
-  draw->transform.transform_point (px[0], py[0]);
-  tx = px[0]; ty = py[0];
+  hb_raster_draw_transform_point (draw, px[0], py[0], tx, ty);
   float tx_min = tx, tx_max = tx;
   float ty_min = ty, ty_max = ty;
 
   for (unsigned i = 1; i < 4; i++)
   {
-    draw->transform.transform_point (px[i], py[i]);
-    tx_min = hb_min (tx_min, px[i]);
-    tx_max = hb_max (tx_max, px[i]);
-    ty_min = hb_min (ty_min, py[i]);
-    ty_max = hb_max (ty_max, py[i]);
+    hb_raster_draw_transform_point (draw, px[i], py[i], tx, ty);
+    tx_min = hb_min (tx_min, tx);
+    tx_max = hb_max (tx_max, tx);
+    ty_min = hb_min (ty_min, ty);
+    ty_max = hb_max (ty_max, ty);
   }
 
   int ex0 = (int) floorf (tx_min);
@@ -341,6 +392,8 @@ void
 hb_raster_draw_reset (hb_raster_draw_t *draw)
 {
   draw->transform         = {1, 0, 0, 1, 0, 0};
+  draw->x_scale_factor    = 1.f;
+  draw->y_scale_factor    = 1.f;
   draw->fixed_extents     = {};
   draw->has_fixed_extents = false;
   draw->edges.resize (0);
@@ -384,8 +437,7 @@ transform_point (const hb_raster_draw_t *draw,
 		 float  x,  float  y,
 		 float &tx, float &ty)
 {
-  tx = x; ty = y;
-  draw->transform.transform_point (tx, ty);
+  hb_raster_draw_transform_point (draw, x, y, tx, ty);
 }
 
 static void
@@ -1108,6 +1160,7 @@ sweep_row_to_alpha (uint8_t *__restrict row_buf,
  * Typical usage:
  * ```
  * hb_raster_draw_t *draw = hb_raster_draw_create_or_fail ();
+ * hb_raster_draw_set_scale_factor (draw, 64.f, 64.f);
  * hb_raster_draw_set_glyph_extents (draw, &glyph_extents);
  * hb_font_draw_glyph (font, gid, hb_raster_draw_get_funcs (), draw);
  * hb_raster_image_t *img = hb_raster_draw_render (draw);

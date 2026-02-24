@@ -91,6 +91,8 @@ struct hb_raster_paint_t
 
   /* Configuration */
   hb_transform_t<>    base_transform     = {1, 0, 0, 1, 0, 0};
+  float               x_scale_factor     = 1.f;
+  float               y_scale_factor     = 1.f;
   hb_raster_extents_t fixed_extents      = {};
   bool                has_fixed_extents  = false;
   hb_color_t          foreground         = HB_COLOR (0, 0, 0, 255);
@@ -175,6 +177,23 @@ struct hb_raster_paint_t
   hb_transform_t<> &current_transform ()
   {
     return transform_stack.tail ();
+  }
+
+  void apply_scale_factor (hb_transform_t<> &t) const
+  {
+    t.xx /= x_scale_factor;
+    t.xy /= x_scale_factor;
+    t.x0 /= x_scale_factor;
+    t.yx /= y_scale_factor;
+    t.yy /= y_scale_factor;
+    t.y0 /= y_scale_factor;
+  }
+
+  hb_transform_t<> current_effective_transform ()
+  {
+    hb_transform_t<> t = current_transform ();
+    apply_scale_factor (t);
+    return t;
   }
 };
 
@@ -279,7 +298,7 @@ hb_raster_paint_push_clip_glyph (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   /* Rasterize glyph outline as A8 alpha mask using internal rasterizer */
   hb_raster_draw_t *rdr = c->clip_rdr;
-  const hb_transform_t<> &t = c->current_transform ();
+  hb_transform_t<> t = c->current_effective_transform ();
   hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
   /* Let draw-render choose tight glyph extents; we map by mask origin below. */
 
@@ -426,7 +445,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   if (!c->surface_stack.length) return;
 
-  const hb_transform_t<> &t = c->current_transform ();
+  hb_transform_t<> t = c->current_effective_transform ();
 
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return;
@@ -722,7 +741,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   if (!data || data_len < width * height * 4) return false;
 
   const hb_raster_clip_t &clip = c->current_clip ();
-  const hb_transform_t<> &t = c->current_transform ();
+  hb_transform_t<> t = c->current_effective_transform ();
 
   /* Compute inverse transform for sampling */
   float det = t.xx * t.yy - t.xy * t.yx;
@@ -1055,7 +1074,7 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   float gy1 = ly0 + mx * (ly1 - ly0);
 
   /* Inverse transform: pixel → glyph space */
-  const hb_transform_t<> &t = c->current_transform ();
+  hb_transform_t<> t = c->current_effective_transform ();
   float det = t.xx * t.yy - t.xy * t.yx;
   if (fabsf (det) < 1e-10f) goto done;
 
@@ -1205,7 +1224,7 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   float cr1 = r0 + mx * (r1 - r0);
 
   /* Inverse transform */
-  const hb_transform_t<> &t = c->current_transform ();
+  hb_transform_t<> t = c->current_effective_transform ();
   float det = t.xx * t.yy - t.xy * t.yx;
   if (fabsf (det) < 1e-10f) goto done;
 
@@ -1442,7 +1461,7 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
   float angle_range = a1 - a0;
 
   /* Inverse transform */
-  const hb_transform_t<> &t = c->current_transform ();
+  hb_transform_t<> t = c->current_effective_transform ();
   float det = t.xx * t.yy - t.xy * t.yx;
   if (fabsf (det) < 1e-10f || fabsf (angle_range) < 1e-10f) goto done;
 
@@ -1746,6 +1765,45 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 }
 
 /**
+ * hb_raster_paint_set_scale_factor:
+ * @paint: a paint context
+ * @x_scale_factor: x-axis minification factor
+ * @y_scale_factor: y-axis minification factor
+ *
+ * Sets post-transform minification factors applied during painting.
+ * Factors larger than 1 shrink the output in pixels. The default is 1.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
+				  float x_scale_factor,
+				  float y_scale_factor)
+{
+  paint->x_scale_factor = x_scale_factor > 0.f ? x_scale_factor : 1.f;
+  paint->y_scale_factor = y_scale_factor > 0.f ? y_scale_factor : 1.f;
+}
+
+/**
+ * hb_raster_paint_get_scale_factor:
+ * @paint: a paint context
+ * @x_scale_factor: (out) (optional): x-axis minification factor
+ * @y_scale_factor: (out) (optional): y-axis minification factor
+ *
+ * Fetches the current post-transform minification factors.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_paint_get_scale_factor (hb_raster_paint_t *paint,
+				  float *x_scale_factor,
+				  float *y_scale_factor)
+{
+  if (x_scale_factor) *x_scale_factor = paint->x_scale_factor;
+  if (y_scale_factor) *y_scale_factor = paint->y_scale_factor;
+}
+
+/**
  * hb_raster_paint_set_extents:
  * @paint: a paint context
  * @extents: the desired output extents
@@ -1805,15 +1863,18 @@ hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
   float px[4] = {xmin, xmin, xmax, xmax};
   float py[4] = {ymin, ymax, ymin, ymax};
 
+  hb_transform_t<> t = paint->base_transform;
+  paint->apply_scale_factor (t);
+
   float tx, ty;
-  paint->base_transform.transform_point (px[0], py[0]);
+  t.transform_point (px[0], py[0]);
   tx = px[0]; ty = py[0];
   float tx_min = tx, tx_max = tx;
   float ty_min = ty, ty_max = ty;
 
   for (unsigned i = 1; i < 4; i++)
   {
-    paint->base_transform.transform_point (px[i], py[i]);
+    t.transform_point (px[i], py[i]);
     tx_min = hb_min (tx_min, px[i]);
     tx_max = hb_max (tx_max, px[i]);
     ty_min = hb_min (ty_min, py[i]);
@@ -1890,6 +1951,7 @@ hb_raster_paint_get_funcs (void)
  * Typical usage:
  * ```
  * hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+ * hb_raster_paint_set_scale_factor (paint, 64.f, 64.f);
  * hb_raster_paint_set_foreground (paint, foreground);
  * hb_raster_paint_set_glyph_extents (paint, &glyph_extents);
  * hb_font_paint_glyph (font, gid, hb_raster_paint_get_funcs (), paint, 0, foreground);
@@ -1964,6 +2026,8 @@ void
 hb_raster_paint_reset (hb_raster_paint_t *paint)
 {
   paint->base_transform = {1, 0, 0, 1, 0, 0};
+  paint->x_scale_factor = 1.f;
+  paint->y_scale_factor = 1.f;
   paint->fixed_extents = {};
   paint->has_fixed_extents = false;
   paint->foreground = HB_COLOR (0, 0, 0, 255);

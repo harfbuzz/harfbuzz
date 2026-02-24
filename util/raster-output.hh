@@ -161,6 +161,11 @@ struct raster_output_t : output_options_t<true>
     /* pixels per font unit */
     float sx = scalbnf (1.f, -(int) subpixel_bits);
     float sy = scalbnf (1.f, -(int) subpixel_bits);
+    float scale_factor = scalbnf (1.f, (int) subpixel_bits);
+
+    hb_raster_draw_set_scale_factor (rdr, scale_factor, scale_factor);
+    if (pnt)
+      hb_raster_paint_set_scale_factor (pnt, scale_factor, scale_factor);
 
     /* line step in font units */
     hb_direction_t dir = direction;
@@ -193,9 +198,9 @@ struct raster_output_t : output_options_t<true>
 
 	  for (const auto &g : lines[li].glyphs)
 	  {
-	    float pen_x = (g.x + off_x) * sx;
-	    float pen_y = (g.y + off_y) * sy;
-	    hb_raster_draw_set_transform (rdr, sx, 0.f, 0.f, sy, pen_x, pen_y);
+	    float pen_x = g.x + off_x;
+	    float pen_y = g.y + off_y;
+	    hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
 	    hb_font_draw_glyph (font, g.gid, hb_raster_draw_get_funcs (), rdr);
 	  }
 	}
@@ -294,10 +299,10 @@ struct raster_output_t : output_options_t<true>
 
 	for (const auto &g : lines[li].glyphs)
 	{
-	  float pen_x = (g.x + off_x) * sx;
-	  float pen_y = (g.y + off_y) * sy;
+	  float pen_x = g.x + off_x;
+	  float pen_y = g.y + off_y;
 
-	  hb_raster_paint_set_transform (pnt, sx, 0.f, 0.f, sy, pen_x, pen_y);
+	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
 	  hb_raster_paint_set_extents (pnt, &ext);
 
 	  hb_font_paint_glyph (font, g.gid,

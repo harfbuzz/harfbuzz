@@ -158,6 +158,16 @@ hb_raster_draw_set_transform (hb_raster_draw_t *draw,
 			      float dx, float dy);
 
 HB_EXTERN void
+hb_raster_draw_set_scale_factor (hb_raster_draw_t *draw,
+				 float x_scale_factor,
+				 float y_scale_factor);
+
+HB_EXTERN void
+hb_raster_draw_get_scale_factor (hb_raster_draw_t *draw,
+				 float *x_scale_factor,
+				 float *y_scale_factor);
+
+HB_EXTERN void
 hb_raster_draw_get_transform (hb_raster_draw_t *draw,
 			      float *xx, float *yx,
 			      float *xy, float *yy,
@@ -224,6 +234,16 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 			       float xx, float yx,
 			       float xy, float yy,
 			       float dx, float dy);
+
+HB_EXTERN void
+hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
+				  float x_scale_factor,
+				  float y_scale_factor);
+
+HB_EXTERN void
+hb_raster_paint_get_scale_factor (hb_raster_paint_t *paint,
+				  float *x_scale_factor,
+				  float *y_scale_factor);
 
 HB_EXTERN void
 hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
