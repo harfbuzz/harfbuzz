@@ -246,8 +246,8 @@ hb_raster_draw_set_scale_factor (hb_raster_draw_t *draw,
 /**
  * hb_raster_draw_get_scale_factor:
  * @draw: a rasterizer
- * @x_scale_factor: (out) (optional): x-axis minification factor
- * @y_scale_factor: (out) (optional): y-axis minification factor
+ * @x_scale_factor: (out) (nullable): x-axis minification factor
+ * @y_scale_factor: (out) (nullable): y-axis minification factor
  *
  * Fetches the current post-transform minification factors.
  *
@@ -265,12 +265,12 @@ hb_raster_draw_get_scale_factor (hb_raster_draw_t *draw,
 /**
  * hb_raster_draw_get_transform:
  * @draw: a rasterizer
- * @xx: (out) (optional): xx component of the transform matrix
- * @yx: (out) (optional): yx component of the transform matrix
- * @xy: (out) (optional): xy component of the transform matrix
- * @yy: (out) (optional): yy component of the transform matrix
- * @dx: (out) (optional): x translation
- * @dy: (out) (optional): y translation
+ * @xx: (out) (nullable): xx component of the transform matrix
+ * @yx: (out) (nullable): yx component of the transform matrix
+ * @xy: (out) (nullable): xy component of the transform matrix
+ * @yy: (out) (nullable): yy component of the transform matrix
+ * @dx: (out) (nullable): x translation
+ * @dy: (out) (nullable): y translation
  *
  * Fetches the current affine transform of the rasterizer.
  *

@@ -1856,12 +1856,12 @@ hb_vector_draw_set_transform (hb_vector_draw_t *draw,
 /**
  * hb_vector_draw_get_transform:
  * @draw: a draw context.
- * @xx: (out) (optional): transform xx component.
- * @yx: (out) (optional): transform yx component.
- * @xy: (out) (optional): transform xy component.
- * @yy: (out) (optional): transform yy component.
- * @dx: (out) (optional): transform x translation.
- * @dy: (out) (optional): transform y translation.
+ * @xx: (out) (nullable): transform xx component.
+ * @yx: (out) (nullable): transform yx component.
+ * @xy: (out) (nullable): transform xy component.
+ * @yy: (out) (nullable): transform yy component.
+ * @dx: (out) (nullable): transform x translation.
+ * @dy: (out) (nullable): transform y translation.
  *
  * Gets the affine transform used when drawing glyphs.
  *
@@ -1893,8 +1893,8 @@ hb_vector_draw_set_scale_factor (hb_vector_draw_t *draw,
 /**
  * hb_vector_draw_get_scale_factor:
  * @draw: a draw context.
- * @x_scale_factor: (out) (optional): x scale factor.
- * @y_scale_factor: (out) (optional): y scale factor.
+ * @x_scale_factor: (out) (nullable): x scale factor.
+ * @y_scale_factor: (out) (nullable): y scale factor.
  *
  * Gets additional output scaling factors.
  *
@@ -2307,12 +2307,12 @@ hb_vector_paint_set_transform (hb_vector_paint_t *paint,
 /**
  * hb_vector_paint_get_transform:
  * @paint: a paint context.
- * @xx: (out) (optional): transform xx component.
- * @yx: (out) (optional): transform yx component.
- * @xy: (out) (optional): transform xy component.
- * @yy: (out) (optional): transform yy component.
- * @dx: (out) (optional): transform x translation.
- * @dy: (out) (optional): transform y translation.
+ * @xx: (out) (nullable): transform xx component.
+ * @yx: (out) (nullable): transform yx component.
+ * @xy: (out) (nullable): transform xy component.
+ * @yy: (out) (nullable): transform yy component.
+ * @dx: (out) (nullable): transform x translation.
+ * @dy: (out) (nullable): transform y translation.
  *
  * Gets the affine transform used when painting glyphs.
  *
@@ -2344,8 +2344,8 @@ hb_vector_paint_set_scale_factor (hb_vector_paint_t *paint,
 /**
  * hb_vector_paint_get_scale_factor:
  * @paint: a paint context.
- * @x_scale_factor: (out) (optional): x scale factor.
- * @y_scale_factor: (out) (optional): y scale factor.
+ * @x_scale_factor: (out) (nullable): x scale factor.
+ * @y_scale_factor: (out) (nullable): y scale factor.
  *
  * Gets additional output scaling factors.
  *

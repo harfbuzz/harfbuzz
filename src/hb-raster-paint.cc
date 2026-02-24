@@ -1759,6 +1759,34 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 }
 
 /**
+ * hb_raster_paint_get_transform:
+ * @paint: a paint context
+ * @xx: (out) (nullable): xx component of the transform matrix
+ * @yx: (out) (nullable): yx component of the transform matrix
+ * @xy: (out) (nullable): xy component of the transform matrix
+ * @yy: (out) (nullable): yy component of the transform matrix
+ * @dx: (out) (nullable): x translation
+ * @dy: (out) (nullable): y translation
+ *
+ * Gets the current base 2x3 affine transform.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_paint_get_transform (hb_raster_paint_t *paint,
+			       float *xx, float *yx,
+			       float *xy, float *yy,
+			       float *dx, float *dy)
+{
+  if (xx) *xx = paint->base_transform.xx;
+  if (yx) *yx = paint->base_transform.yx;
+  if (xy) *xy = paint->base_transform.xy;
+  if (yy) *yy = paint->base_transform.yy;
+  if (dx) *dx = paint->base_transform.x0;
+  if (dy) *dy = paint->base_transform.y0;
+}
+
+/**
  * hb_raster_paint_set_scale_factor:
  * @paint: a paint context
  * @x_scale_factor: x-axis minification factor
@@ -1781,8 +1809,8 @@ hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
 /**
  * hb_raster_paint_get_scale_factor:
  * @paint: a paint context
- * @x_scale_factor: (out) (optional): x-axis minification factor
- * @y_scale_factor: (out) (optional): y-axis minification factor
+ * @x_scale_factor: (out) (nullable): x-axis minification factor
+ * @y_scale_factor: (out) (nullable): y-axis minification factor
  *
  * Fetches the current post-transform minification factors.
  *
