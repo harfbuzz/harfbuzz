@@ -82,21 +82,60 @@ write_ppm (hb_raster_image_t *img, const char *dir, unsigned gid)
 int
 main (int argc, char **argv)
 {
-  if (argc < 2)
+  unsigned num_iterations = 1;
+  int argi = 1;
+  for (; argi < argc; argi++)
   {
-    fprintf (stderr, "Usage: %s font-file [font-size] [output-dir]\n", argv[0]);
+    const char *arg = argv[argi];
+    if (strcmp (arg, "--") == 0)
+    {
+      argi++;
+      break;
+    }
+    if (arg[0] != '-')
+      break;
+    if (strcmp (arg, "-h") == 0 || strcmp (arg, "--help") == 0)
+    {
+      fprintf (stderr, "Usage: %s [-n N|--num-iterations N] font-file [font-size] [output-dir]\n", argv[0]);
+      return 0;
+    }
+    if (strcmp (arg, "-n") == 0 || strcmp (arg, "--num-iterations") == 0)
+    {
+      if (++argi >= argc)
+      {
+	fprintf (stderr, "Missing value for %s\n", arg);
+	return 1;
+      }
+      char *end = nullptr;
+      long n = strtol (argv[argi], &end, 10);
+      if (!argv[argi][0] || end == argv[argi] || *end || n <= 0)
+      {
+	fprintf (stderr, "Invalid --num-iterations: %s\n", argv[argi]);
+	return 1;
+      }
+      num_iterations = (unsigned) n;
+      continue;
+    }
+
+    fprintf (stderr, "Unknown option: %s\n", arg);
     return 1;
   }
 
-  hb_face_t *face = hb_face_create_from_file_or_fail (argv[1], 0);
+  if (argc - argi < 1 || argc - argi > 3)
+  {
+    fprintf (stderr, "Usage: %s [-n N|--num-iterations N] font-file [font-size] [output-dir]\n", argv[0]);
+    return 1;
+  }
+
+  hb_face_t *face = hb_face_create_from_file_or_fail (argv[argi], 0);
   if (!face) { fprintf (stderr, "Failed to open font\n"); return 1; }
 
   unsigned upem = hb_face_get_upem (face);
 
-  int font_size = (argc > 2) ? atoi (argv[2]) : (int) upem;
+  int font_size = (argc - argi > 1) ? atoi (argv[argi + 1]) : (int) upem;
   if (font_size <= 0) font_size = (int) upem;
 
-  const char *outdir = (argc > 3) ? argv[3] : nullptr;
+  const char *outdir = (argc - argi > 2) ? argv[argi + 2] : nullptr;
 
   hb_font_t *font = hb_font_create (face);
   hb_font_set_scale (font, font_size, font_size);
@@ -110,43 +149,46 @@ main (int argc, char **argv)
 
   for (unsigned gid = 0; gid < glyph_count; gid++)
   {
-    hb_raster_image_t *img = nullptr;
-
-    if (pnt)
+    for (unsigned iter = 0; iter < num_iterations; iter++)
     {
-      hb_glyph_extents_t gext;
-      if (hb_font_get_glyph_extents (font, gid, &gext) &&
-	  hb_raster_paint_set_glyph_extents (pnt, &gext))
+      hb_raster_image_t *img = nullptr;
+
+      if (pnt)
       {
-	hb_bool_t painted = hb_font_paint_glyph_or_fail (font, gid,
-							  hb_raster_paint_get_funcs (), pnt,
-							  0, HB_COLOR (0, 0, 0, 255));
-	img = hb_raster_paint_render (pnt);
-	if (!painted && img)
+	hb_glyph_extents_t gext;
+	if (hb_font_get_glyph_extents (font, gid, &gext) &&
+	    hb_raster_paint_set_glyph_extents (pnt, &gext))
 	{
+	  hb_bool_t painted = hb_font_paint_glyph_or_fail (font, gid,
+							    hb_raster_paint_get_funcs (), pnt,
+							    0, HB_COLOR (0, 0, 0, 255));
+	  img = hb_raster_paint_render (pnt);
+	  if (!painted && img)
+	  {
+	    hb_raster_paint_recycle_image (pnt, img);
+	    img = nullptr;
+	  }
+	}
+
+	if (img)
+	{
+	  if (outdir && iter + 1 == num_iterations)
+	    write_ppm (img, outdir, gid);
 	  hb_raster_paint_recycle_image (pnt, img);
-	  img = nullptr;
+	  continue;
 	}
       }
 
+      if (!hb_font_draw_glyph_or_fail (font, gid, hb_raster_draw_get_funcs (), rdr))
+	break;
+
+      img = hb_raster_draw_render (rdr);
       if (img)
       {
-	if (outdir)
+	if (outdir && iter + 1 == num_iterations)
 	  write_ppm (img, outdir, gid);
-	hb_raster_paint_recycle_image (pnt, img);
-	continue;
+	hb_raster_draw_recycle_image (rdr, img);
       }
-    }
-
-    if (!hb_font_draw_glyph_or_fail (font, gid, hb_raster_draw_get_funcs (), rdr))
-      continue;
-
-    img = hb_raster_draw_render (rdr);
-    if (img)
-    {
-      if (outdir)
-	write_ppm (img, outdir, gid);
-      hb_raster_draw_recycle_image (rdr, img);
     }
   }
 

@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <vector>
 
 
@@ -78,24 +79,63 @@ write_ppm (const std::vector<uint8_t> &pixels,
 int
 main (int argc, char **argv)
 {
-  if (argc < 2)
+  unsigned num_iterations = 1;
+  int argi = 1;
+  for (; argi < argc; argi++)
   {
-    fprintf (stderr, "Usage: %s font-file [font-size] [output-dir]\n", argv[0]);
+    const char *arg = argv[argi];
+    if (strcmp (arg, "--") == 0)
+    {
+      argi++;
+      break;
+    }
+    if (arg[0] != '-')
+      break;
+    if (strcmp (arg, "-h") == 0 || strcmp (arg, "--help") == 0)
+    {
+      fprintf (stderr, "Usage: %s [-n N|--num-iterations N] font-file [font-size] [output-dir]\n", argv[0]);
+      return 0;
+    }
+    if (strcmp (arg, "-n") == 0 || strcmp (arg, "--num-iterations") == 0)
+    {
+      if (++argi >= argc)
+      {
+	fprintf (stderr, "Missing value for %s\n", arg);
+	return 1;
+      }
+      char *end = nullptr;
+      long n = strtol (argv[argi], &end, 10);
+      if (!argv[argi][0] || end == argv[argi] || *end || n <= 0)
+      {
+	fprintf (stderr, "Invalid --num-iterations: %s\n", argv[argi]);
+	return 1;
+      }
+      num_iterations = (unsigned) n;
+      continue;
+    }
+
+    fprintf (stderr, "Unknown option: %s\n", arg);
     return 1;
   }
 
-  hb_face_t *hb_face = hb_face_create_from_file_or_fail (argv[1], 0);
+  if (argc - argi < 1 || argc - argi > 3)
+  {
+    fprintf (stderr, "Usage: %s [-n N|--num-iterations N] font-file [font-size] [output-dir]\n", argv[0]);
+    return 1;
+  }
+
+  hb_face_t *hb_face = hb_face_create_from_file_or_fail (argv[argi], 0);
   if (!hb_face) { fprintf (stderr, "Failed to open font\n"); return 1; }
 
   unsigned upem = hb_face_get_upem (hb_face);
-  int font_size = (argc > 2) ? atoi (argv[2]) : (int) upem;
+  int font_size = (argc - argi > 1) ? atoi (argv[argi + 1]) : (int) upem;
   if (font_size <= 0) font_size = (int) upem;
-  const char *outdir = (argc > 3) ? argv[3] : nullptr;
+  const char *outdir = (argc - argi > 2) ? argv[argi + 2] : nullptr;
 
   FT_Library ft_lib = nullptr;
   FT_Face ft_face = nullptr;
   if (FT_Init_FreeType (&ft_lib) != 0 ||
-      FT_New_Face (ft_lib, argv[1], 0, &ft_face) != 0)
+      FT_New_Face (ft_lib, argv[argi], 0, &ft_face) != 0)
   {
     fprintf (stderr, "Failed to initialize FreeType face\n");
     hb_face_destroy (hb_face);
@@ -130,24 +170,34 @@ main (int argc, char **argv)
     unsigned stride = (width + 3u) & ~3u;
     std::vector<uint8_t> pixels (stride * height, 0);
 
-    FT_Outline_Translate (outline, -(FT_Pos) x0 * 64, -(FT_Pos) y0 * 64);
+    for (unsigned iter = 0; iter < num_iterations; iter++)
+    {
+      std::fill (pixels.begin (), pixels.end (), 0);
+      if (FT_Load_Glyph (ft_face, gid, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP) != 0)
+	break;
+      if (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE)
+	break;
 
-    FT_Bitmap bitmap;
-    FT_Bitmap_Init (&bitmap);
-    bitmap.rows       = height;
-    bitmap.width      = width;
-    bitmap.pitch      = (int) stride;
-    bitmap.buffer     = pixels.data ();
-    bitmap.pixel_mode = FT_PIXEL_MODE_GRAY;
-    bitmap.num_grays  = 256;
+      outline = &ft_face->glyph->outline;
+      FT_Outline_Translate (outline, -(FT_Pos) x0 * 64, -(FT_Pos) y0 * 64);
 
-    FT_Raster_Params params = {};
-    params.target = &bitmap;
-    params.flags  = FT_RASTER_FLAG_AA;
-    FT_Outline_Render (ft_lib, outline, &params);
+      FT_Bitmap bitmap;
+      FT_Bitmap_Init (&bitmap);
+      bitmap.rows       = height;
+      bitmap.width      = width;
+      bitmap.pitch      = (int) stride;
+      bitmap.buffer     = pixels.data ();
+      bitmap.pixel_mode = FT_PIXEL_MODE_GRAY;
+      bitmap.num_grays  = 256;
 
-    if (outdir)
-      write_ppm (pixels, width, height, stride, outdir, gid);
+      FT_Raster_Params params = {};
+      params.target = &bitmap;
+      params.flags  = FT_RASTER_FLAG_AA;
+      FT_Outline_Render (ft_lib, outline, &params);
+
+      if (outdir && iter + 1 == num_iterations)
+	write_ppm (pixels, width, height, stride, outdir, gid);
+    }
   }
 
   FT_Done_Face (ft_face);
