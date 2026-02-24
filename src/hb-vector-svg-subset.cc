@@ -409,6 +409,8 @@ struct hb_svg_open_elem_t
   bool is_defs;
 };
 
+static const unsigned HB_SVG_PARSE_MAX_DEPTH = 128;
+
 static bool
 hb_svg_parse_glyph_id_span (const hb_svg_id_span_t &id,
                             hb_codepoint_t *glyph)
@@ -435,8 +437,8 @@ hb_svg_parse_cache_entries_linear (const char *svg,
                                    hb_vector_t<hb_svg_defs_entry_t> *defs_entries,
                                    hb_hashmap_t<hb_codepoint_t, uint64_t> *glyph_spans)
 {
-  hb_vector_t<hb_svg_open_elem_t> stack;
-  stack.alloc (256);
+  hb_svg_open_elem_t stack[HB_SVG_PARSE_MAX_DEPTH];
+  unsigned depth = 0;
   defs_entries->alloc (256);
 
   unsigned defs_depth = 0;
@@ -509,13 +511,13 @@ hb_svg_parse_cache_entries_linear (const char *svg,
 
     if (closing)
     {
-      if (!stack.length)
+      if (!depth)
       {
         i = gt + 1;
         continue;
       }
 
-      hb_svg_open_elem_t e = stack.pop ();
+      hb_svg_open_elem_t e = stack[--depth];
       unsigned end = gt + 1;
 
       if (e.id.len)
@@ -573,10 +575,9 @@ hb_svg_parse_cache_entries_linear (const char *svg,
     }
     else
     {
-      auto *slot = stack.push ();
-      if (unlikely (!slot))
+      if (unlikely (depth >= HB_SVG_PARSE_MAX_DEPTH))
         return false;
-      *slot = e;
+      stack[depth++] = e;
       if (is_defs)
         defs_depth++;
     }
@@ -734,20 +735,10 @@ hb_svg_subset_glyph_image (hb_face_t *face,
   if (doc_cache)
   {
     uint64_t *span = nullptr;
-    if (doc_cache->glyph_spans.has (glyph, &span) && span)
-    {
-      glyph_start = (unsigned) (*span >> 32);
-      glyph_end = (unsigned) *span;
-    }
-    else
-    {
-      char glyph_id[48];
-      int gid_len = snprintf (glyph_id, sizeof (glyph_id), "glyph%u", glyph);
-      if (gid_len <= 0 || (unsigned) gid_len >= sizeof (glyph_id))
-        return false;
-      if (!hb_svg_find_element_by_id (svg, len, glyph_id, (unsigned) gid_len, &glyph_start, &glyph_end))
-        return false;
-    }
+    if (!doc_cache->glyph_spans.has (glyph, &span) || !span)
+      return false;
+    glyph_start = (unsigned) (*span >> 32);
+    glyph_end = (unsigned) *span;
   }
   else
   {
