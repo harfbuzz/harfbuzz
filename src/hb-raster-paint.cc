@@ -110,20 +110,12 @@ struct hb_raster_paint_t
   /* Internal rasterizer for clip-to-glyph */
   hb_raster_draw_t *clip_rdr = nullptr;
 
-  /* Recycled output image */
-  hb_raster_image_t *recycled_image = nullptr;
-
   /* Helpers */
 
   hb_raster_image_t *acquire_surface ()
   {
     hb_raster_image_t *img;
-    if (recycled_image)
-    {
-      img = recycled_image;
-      recycled_image = nullptr;
-    }
-    else if (surface_cache.length)
+    if (surface_cache.length)
       img = surface_cache.pop ();
     else
     {
@@ -1695,7 +1687,6 @@ hb_raster_paint_destroy (hb_raster_paint_t *paint)
     hb_raster_image_destroy (s);
   for (auto *s : paint->surface_cache)
     hb_raster_image_destroy (s);
-  hb_raster_image_destroy (paint->recycled_image);
   hb_free (paint);
 }
 
@@ -2046,6 +2037,5 @@ void
 hb_raster_paint_recycle_image (hb_raster_paint_t  *paint,
 			       hb_raster_image_t  *image)
 {
-  hb_raster_image_destroy (paint->recycled_image);
-  paint->recycled_image = image;
+  paint->release_surface (image);
 }
