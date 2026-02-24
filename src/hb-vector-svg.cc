@@ -1853,6 +1853,34 @@ hb_vector_draw_set_transform (hb_vector_draw_t *draw,
   draw->transform = {xx, yx, xy, yy, dx, dy};
 }
 
+/**
+ * hb_vector_draw_get_transform:
+ * @draw: a draw context.
+ * @xx: (out) (optional): transform xx component.
+ * @yx: (out) (optional): transform yx component.
+ * @xy: (out) (optional): transform xy component.
+ * @yy: (out) (optional): transform yy component.
+ * @dx: (out) (optional): transform x translation.
+ * @dy: (out) (optional): transform y translation.
+ *
+ * Gets the affine transform used when drawing glyphs.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_draw_get_transform (hb_vector_draw_t *draw,
+                              float *xx, float *yx,
+                              float *xy, float *yy,
+                              float *dx, float *dy)
+{
+  if (xx) *xx = draw->transform.xx;
+  if (yx) *yx = draw->transform.yx;
+  if (xy) *xy = draw->transform.xy;
+  if (yy) *yy = draw->transform.yy;
+  if (dx) *dx = draw->transform.x0;
+  if (dy) *dy = draw->transform.y0;
+}
+
 void
 hb_vector_draw_set_scale_factor (hb_vector_draw_t *draw,
                                  float x_scale_factor,
@@ -1860,6 +1888,25 @@ hb_vector_draw_set_scale_factor (hb_vector_draw_t *draw,
 {
   draw->x_scale_factor = x_scale_factor > 0.f ? x_scale_factor : 1.f;
   draw->y_scale_factor = y_scale_factor > 0.f ? y_scale_factor : 1.f;
+}
+
+/**
+ * hb_vector_draw_get_scale_factor:
+ * @draw: a draw context.
+ * @x_scale_factor: (out) (optional): x scale factor.
+ * @y_scale_factor: (out) (optional): y scale factor.
+ *
+ * Gets additional output scaling factors.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_draw_get_scale_factor (hb_vector_draw_t *draw,
+                                 float *x_scale_factor,
+                                 float *y_scale_factor)
+{
+  if (x_scale_factor) *x_scale_factor = draw->x_scale_factor;
+  if (y_scale_factor) *y_scale_factor = draw->y_scale_factor;
 }
 
 void
@@ -1893,6 +1940,17 @@ hb_vector_draw_set_extents (hb_vector_draw_t *draw,
   }
 }
 
+/**
+ * hb_vector_draw_get_extents:
+ * @draw: a draw context.
+ * @extents: (out) (nullable): where to store current output extents.
+ *
+ * Gets current output extents from @draw.
+ *
+ * Return value: `true` if extents are set, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
 hb_bool_t
 hb_vector_draw_get_extents (hb_vector_draw_t *draw,
                             hb_vector_extents_t *extents)
@@ -2246,6 +2304,34 @@ hb_vector_paint_set_transform (hb_vector_paint_t *paint,
   paint->transform = {xx, yx, xy, yy, dx, dy};
 }
 
+/**
+ * hb_vector_paint_get_transform:
+ * @paint: a paint context.
+ * @xx: (out) (optional): transform xx component.
+ * @yx: (out) (optional): transform yx component.
+ * @xy: (out) (optional): transform xy component.
+ * @yy: (out) (optional): transform yy component.
+ * @dx: (out) (optional): transform x translation.
+ * @dy: (out) (optional): transform y translation.
+ *
+ * Gets the affine transform used when painting glyphs.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_paint_get_transform (hb_vector_paint_t *paint,
+                               float *xx, float *yx,
+                               float *xy, float *yy,
+                               float *dx, float *dy)
+{
+  if (xx) *xx = paint->transform.xx;
+  if (yx) *yx = paint->transform.yx;
+  if (xy) *xy = paint->transform.xy;
+  if (yy) *yy = paint->transform.yy;
+  if (dx) *dx = paint->transform.x0;
+  if (dy) *dy = paint->transform.y0;
+}
+
 void
 hb_vector_paint_set_scale_factor (hb_vector_paint_t *paint,
                                   float x_scale_factor,
@@ -2253,6 +2339,25 @@ hb_vector_paint_set_scale_factor (hb_vector_paint_t *paint,
 {
   paint->x_scale_factor = x_scale_factor > 0.f ? x_scale_factor : 1.f;
   paint->y_scale_factor = y_scale_factor > 0.f ? y_scale_factor : 1.f;
+}
+
+/**
+ * hb_vector_paint_get_scale_factor:
+ * @paint: a paint context.
+ * @x_scale_factor: (out) (optional): x scale factor.
+ * @y_scale_factor: (out) (optional): y scale factor.
+ *
+ * Gets additional output scaling factors.
+ *
+ * XSince: REPLACEME
+ */
+void
+hb_vector_paint_get_scale_factor (hb_vector_paint_t *paint,
+                                  float *x_scale_factor,
+                                  float *y_scale_factor)
+{
+  if (x_scale_factor) *x_scale_factor = paint->x_scale_factor;
+  if (y_scale_factor) *y_scale_factor = paint->y_scale_factor;
 }
 
 void
@@ -2286,6 +2391,17 @@ hb_vector_paint_set_extents (hb_vector_paint_t *paint,
   }
 }
 
+/**
+ * hb_vector_paint_get_extents:
+ * @paint: a paint context.
+ * @extents: (out) (nullable): where to store current output extents.
+ *
+ * Gets current output extents from @paint.
+ *
+ * Return value: `true` if extents are set, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
 hb_bool_t
 hb_vector_paint_get_extents (hb_vector_paint_t *paint,
                              hb_vector_extents_t *extents)

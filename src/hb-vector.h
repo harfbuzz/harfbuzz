@@ -186,6 +186,12 @@ hb_vector_draw_set_transform (hb_vector_draw_t *draw,
                               float xy, float yy,
                               float dx, float dy);
 
+HB_EXTERN void
+hb_vector_draw_get_transform (hb_vector_draw_t *draw,
+                              float *xx, float *yx,
+                              float *xy, float *yy,
+                              float *dx, float *dy);
+
 /**
  * hb_vector_draw_set_scale_factor:
  * @draw: a draw context.
@@ -201,6 +207,11 @@ hb_vector_draw_set_scale_factor (hb_vector_draw_t *draw,
                                  float x_scale_factor,
                                  float y_scale_factor);
 
+HB_EXTERN void
+hb_vector_draw_get_scale_factor (hb_vector_draw_t *draw,
+                                 float *x_scale_factor,
+                                 float *y_scale_factor);
+
 /**
  * hb_vector_draw_set_extents:
  * @draw: a draw context.
@@ -214,17 +225,6 @@ HB_EXTERN void
 hb_vector_draw_set_extents (hb_vector_draw_t *draw,
                             const hb_vector_extents_t *extents);
 
-/**
- * hb_vector_draw_get_extents:
- * @draw: a draw context.
- * @extents: (out) (nullable): where to store current output extents.
- *
- * Gets current output extents from @draw.
- *
- * Return value: `true` if extents are set, `false` otherwise.
- *
- * XSince: REPLACEME
- */
 HB_EXTERN hb_bool_t
 hb_vector_draw_get_extents (hb_vector_draw_t *draw,
                             hb_vector_extents_t *extents);
@@ -438,6 +438,12 @@ hb_vector_paint_set_transform (hb_vector_paint_t *paint,
                                float xy, float yy,
                                float dx, float dy);
 
+HB_EXTERN void
+hb_vector_paint_get_transform (hb_vector_paint_t *paint,
+                               float *xx, float *yx,
+                               float *xy, float *yy,
+                               float *dx, float *dy);
+
 /**
  * hb_vector_paint_set_scale_factor:
  * @paint: a paint context.
@@ -453,6 +459,11 @@ hb_vector_paint_set_scale_factor (hb_vector_paint_t *paint,
                                   float x_scale_factor,
                                   float y_scale_factor);
 
+HB_EXTERN void
+hb_vector_paint_get_scale_factor (hb_vector_paint_t *paint,
+                                  float *x_scale_factor,
+                                  float *y_scale_factor);
+
 /**
  * hb_vector_paint_set_extents:
  * @paint: a paint context.
@@ -466,17 +477,6 @@ HB_EXTERN void
 hb_vector_paint_set_extents (hb_vector_paint_t *paint,
                              const hb_vector_extents_t *extents);
 
-/**
- * hb_vector_paint_get_extents:
- * @paint: a paint context.
- * @extents: (out) (nullable): where to store current output extents.
- *
- * Gets current output extents from @paint.
- *
- * Return value: `true` if extents are set, `false` otherwise.
- *
- * XSince: REPLACEME
- */
 HB_EXTERN hb_bool_t
 hb_vector_paint_get_extents (hb_vector_paint_t *paint,
                              hb_vector_extents_t *extents);
