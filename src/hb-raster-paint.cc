@@ -638,17 +638,36 @@ hb_raster_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
   }
 
   uint32_t premul = color_to_premul_pixel (color);
+  uint8_t premul_a = (uint8_t) (premul >> 24);
   const hb_raster_clip_t &clip = c->current_clip ();
 
   unsigned stride = surf->extents.stride;
+  if (clip.min_x >= clip.max_x || clip.min_y >= clip.max_y) return;
+  if (premul_a == 0) return;
 
-  if (clip.is_rect)
+  if (likely (!clip.is_rect))
   {
     for (unsigned y = clip.min_y; y < clip.max_y; y++)
     {
-      uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + y * stride);
+      uint32_t *__restrict row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + y * stride);
+      const uint8_t *__restrict clip_row = clip.alpha.arrayZ + y * clip.stride;
       for (unsigned x = clip.min_x; x < clip.max_x; x++)
-	row[x] = hb_raster_src_over (premul, row[x]);
+      {
+	uint8_t clip_alpha = clip_row[x];
+	if (clip_alpha == 0) continue;
+	if (clip_alpha == 255)
+	{
+	  if (premul_a == 255)
+	    row[x] = premul;
+	  else
+	    row[x] = hb_raster_src_over (premul, row[x]);
+	}
+	else
+	{
+	  uint32_t src = hb_raster_alpha_mul (premul, clip_alpha);
+	  row[x] = hb_raster_src_over (src, row[x]);
+	}
+      }
     }
   }
   else
@@ -656,14 +675,8 @@ hb_raster_paint_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
     for (unsigned y = clip.min_y; y < clip.max_y; y++)
     {
       uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + y * stride);
-      const uint8_t *clip_row = clip.alpha.arrayZ + y * clip.stride;
       for (unsigned x = clip.min_x; x < clip.max_x; x++)
-      {
-	uint8_t clip_alpha = clip_row[x];
-	if (clip_alpha == 0) continue;
-	uint32_t src = hb_raster_alpha_mul (premul, clip_alpha);
-	row[x] = hb_raster_src_over (src, row[x]);
-      }
+	row[x] = hb_raster_src_over (premul, row[x]);
     }
   }
 }
