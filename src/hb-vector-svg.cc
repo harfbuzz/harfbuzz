@@ -63,32 +63,66 @@ hb_svg_append_str (hb_vector_t<char> *buf, const char *s)
 }
 
 static bool
+hb_svg_append_unsigned (hb_vector_t<char> *buf, unsigned v)
+{
+  char tmp[10];
+  unsigned n = 0;
+  do {
+    tmp[n++] = (char) ('0' + (v % 10));
+    v /= 10;
+  } while (v);
+
+  unsigned old_len = buf->length;
+  if (unlikely (!buf->resize_dirty ((int) (old_len + n))))
+    return false;
+
+  for (unsigned i = 0; i < n; i++)
+    buf->arrayZ[old_len + i] = tmp[n - 1 - i];
+  return true;
+}
+
+static bool
+hb_svg_append_hex_byte (hb_vector_t<char> *buf, unsigned v)
+{
+  static const char hex[] = "0123456789ABCDEF";
+  char tmp[2] = {hex[(v >> 4) & 15], hex[v & 15]};
+  return hb_svg_append_len (buf, tmp, 2);
+}
+
+static bool
 hb_svg_append_printf (hb_vector_t<char> *buf, const char *fmt, ...)
 {
-  char stack[256];
-
-  va_list ap;
-  va_start (ap, fmt);
-  int n = vsnprintf (stack, sizeof (stack), fmt, ap);
-  va_end (ap);
-
-  if (n < 0)
+  unsigned old_len = buf->length;
+  if (unlikely (!buf->alloc (old_len + 64)))
     return false;
 
-  if ((unsigned) n < sizeof (stack))
-    return hb_svg_append_len (buf, stack, (unsigned) n);
+  while (true)
+  {
+    unsigned avail = (unsigned) (buf->allocated - (int) old_len);
+    if (avail < 2)
+    {
+      if (unlikely (!buf->alloc (old_len + 64)))
+        return false;
+      continue;
+    }
 
-  hb_vector_t<char> tmp;
-  if (unlikely (!tmp.resize_dirty (n + 1)))
-    return false;
+    va_list ap;
+    va_start (ap, fmt);
+    int n = vsnprintf (buf->arrayZ + old_len, avail, fmt, ap);
+    va_end (ap);
 
-  va_start (ap, fmt);
-  int n2 = vsnprintf (tmp.arrayZ, n + 1, fmt, ap);
-  va_end (ap);
-  if (n2 != n)
-    return false;
+    if (unlikely (n < 0))
+      return false;
 
-  return hb_svg_append_len (buf, tmp.arrayZ, (unsigned) n);
+    if ((unsigned) n < avail)
+    {
+      buf->length = old_len + (unsigned) n;
+      return true;
+    }
+
+    if (unlikely (!buf->alloc (old_len + (unsigned) n + 1, true)))
+      return false;
+  }
 }
 
 static void
@@ -326,7 +360,10 @@ hb_svg_append_color (hb_vector_t<char> *buf,
   unsigned g = hb_color_get_green (color);
   unsigned b = hb_color_get_blue (color);
   unsigned a = hb_color_get_alpha (color);
-  hb_svg_append_printf (buf, "#%02X%02X%02X", r, g, b);
+  hb_svg_append_c (buf, '#');
+  hb_svg_append_hex_byte (buf, r);
+  hb_svg_append_hex_byte (buf, g);
+  hb_svg_append_hex_byte (buf, b);
   if (with_alpha && a != 255)
   {
     hb_svg_append_str (buf, "\" fill-opacity=\"");
@@ -458,6 +495,7 @@ struct hb_vector_paint_t
   hb_set_t *defined_outlines = nullptr;
   hb_set_t *defined_clips = nullptr;
   hb_hashmap_t<uint64_t, uint64_t> defined_color_glyphs;
+  hb_vector_t<hb_color_stop_t> color_stops_scratch;
   hb_blob_t *recycled_blob = nullptr;
   bool current_color_glyph_has_svg_image = false;
   hb_codepoint_t current_svg_image_glyph = HB_CODEPOINT_INVALID;
@@ -828,7 +866,11 @@ hb_svg_emit_color_stops (hb_vector_paint_t *paint,
     hb_svg_append_str (buf, "<stop offset=\"");
     hb_svg_append_num (buf, stops->arrayZ[i].offset, 4);
     hb_svg_append_str (buf, "\" stop-color=\"rgb(");
-    hb_svg_append_printf (buf, "%u,%u,%u", hb_color_get_red (c), hb_color_get_green (c), hb_color_get_blue (c));
+    hb_svg_append_unsigned (buf, hb_color_get_red (c));
+    hb_svg_append_c (buf, ',');
+    hb_svg_append_unsigned (buf, hb_color_get_green (c));
+    hb_svg_append_c (buf, ',');
+    hb_svg_append_unsigned (buf, hb_color_get_blue (c));
     hb_svg_append_str (buf, ")\"");
     if (hb_color_get_alpha (c) != 255)
     {
