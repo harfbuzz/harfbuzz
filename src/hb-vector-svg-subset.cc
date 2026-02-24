@@ -28,6 +28,7 @@
 
 #include "hb-vector-svg-subset.hh"
 #include "hb-ot-color.h"
+#include "hb-map.hh"
 
 #include <stdio.h>
 #include <string.h>
@@ -403,6 +404,7 @@ hb_svg_doc_cache_destroy (hb_svg_doc_cache_t *doc)
 {
   if (!doc)
     return;
+  doc->defs_entries.fini ();
   hb_blob_destroy (doc->blob);
   hb_free (doc);
 }
@@ -415,6 +417,7 @@ hb_svg_face_cache_destroy (void *data)
     return;
   for (unsigned i = 0; i < face_cache->slots.length; i++)
     hb_svg_doc_cache_destroy (face_cache->slots.arrayZ[i].get_relaxed ());
+  face_cache->slots.fini ();
   hb_free (face_cache);
 }
 
@@ -423,9 +426,13 @@ hb_svg_make_doc_cache (hb_blob_t *image,
                        const char *svg,
                        unsigned len)
 {
-  auto *doc = (hb_svg_doc_cache_t *) hb_calloc (1, sizeof (hb_svg_doc_cache_t));
+  auto *doc = (hb_svg_doc_cache_t *) hb_malloc (sizeof (hb_svg_doc_cache_t));
   if (!doc)
     return nullptr;
+  doc->blob = nullptr;
+  doc->svg = nullptr;
+  doc->len = 0;
+  doc->defs_entries.init ();
 
   doc->blob = hb_blob_reference (image);
   doc->svg = svg;
@@ -490,7 +497,7 @@ hb_svg_get_or_make_doc_cache (hb_face_t *face,
   auto &slot = face_cache->slots.arrayZ[doc_index];
   auto *doc = slot.get_acquire ();
   if (doc)
-    return (doc->svg == svg && doc->len == len) ? doc : nullptr;
+    return doc;
 
   auto *fresh = hb_svg_make_doc_cache (image, svg, len);
   if (!fresh)
@@ -501,9 +508,7 @@ hb_svg_get_or_make_doc_cache (hb_face_t *face,
     return fresh;
 
   hb_svg_doc_cache_destroy (fresh);
-  if (expected && expected->svg == svg && expected->len == len)
-    return expected;
-  return nullptr;
+  return expected;
 }
 
 bool
@@ -527,13 +532,17 @@ hb_svg_subset_glyph_image (hb_face_t *face,
     return false;
 
   auto *doc_cache = hb_svg_get_or_make_doc_cache (face, image, svg, len, doc_index);
+  if (doc_cache)
+  {
+    svg = doc_cache->svg;
+    len = doc_cache->len;
+  }
 
+  unsigned glyph_start = 0, glyph_end = 0;
   char glyph_id[48];
   int gid_len = snprintf (glyph_id, sizeof (glyph_id), "glyph%u", glyph);
   if (gid_len <= 0 || (unsigned) gid_len >= sizeof (glyph_id))
     return false;
-
-  unsigned glyph_start = 0, glyph_end = 0;
   if (!hb_svg_find_element_by_id (svg, len, glyph_id, (unsigned) gid_len, &glyph_start, &glyph_end))
     return false;
 
