@@ -481,13 +481,13 @@ struct vector_output_t : output_options_t<>
     if (!end || end <= start)
       return false;
 
-    const char *defs_start = nullptr;
-    for (const char *p = start; p + 6 <= end; p++)
-      if (memcmp (p, "<defs>", 6) == 0)
-      {
-        defs_start = p;
-        break;
-      }
+    const char *defs_start = start;
+    while (defs_start < end &&
+           (*defs_start == ' ' || *defs_start == '\t' ||
+            *defs_start == '\r' || *defs_start == '\n'))
+      defs_start++;
+    if (!(defs_start + 6 <= end && memcmp (defs_start, "<defs>", 6) == 0))
+      defs_start = nullptr;
 
     const char *defs_end = nullptr;
     if (defs_start)

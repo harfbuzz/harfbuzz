@@ -394,6 +394,8 @@ struct hb_vector_paint_t
   hb_hashmap_t<uint64_t, unsigned> defined_color_glyphs;
   hb_blob_t *recycled_blob = nullptr;
   bool current_color_glyph_has_svg_image = false;
+  hb_codepoint_t current_svg_image_glyph = HB_CODEPOINT_INVALID;
+  unsigned svg_image_counter = 0;
 
   hb_vector_t<char> &current_body () { return group_stack.tail (); }
 
@@ -1009,8 +1011,370 @@ hb_vector_paint_image (hb_paint_funcs_t *,
   if (!svg || !len)
     return false;
 
+  struct hb_svg_id_span_t
+  {
+    const char *p;
+    unsigned len;
+  };
+
+  struct hb_svg_defs_entry_t
+  {
+    hb_svg_id_span_t id;
+    unsigned start;
+    unsigned end;
+  };
+
+  auto find_substr = [] (const char *s, unsigned n, unsigned from, const char *needle, unsigned needle_len) -> int
+  {
+    if (!needle_len || from >= n || needle_len > n)
+      return -1;
+    for (unsigned i = from; i + needle_len <= n; i++)
+      if (s[i] == needle[0] && !memcmp (s + i, needle, needle_len))
+        return (int) i;
+    return -1;
+  };
+
+  auto append_with_prefix = [] (hb_vector_t<char> *out,
+                                const char *s,
+                                unsigned n,
+                                const char *prefix,
+                                unsigned prefix_len) -> bool
+  {
+    unsigned i = 0;
+    while (i < n)
+    {
+      if (i + 4 <= n && !memcmp (s + i, "id=\"", 4))
+      {
+        if (!hb_svg_append_len (out, s + i, 4)) return false;
+        i += 4;
+        if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+        while (i < n && s[i] != '"')
+        {
+          if (!hb_svg_append_c (out, s[i])) return false;
+          i++;
+        }
+        continue;
+      }
+      if (i + 5 <= n && !memcmp (s + i, "id='", 4))
+      {
+        if (!hb_svg_append_len (out, s + i, 4)) return false;
+        i += 4;
+        if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+        while (i < n && s[i] != '\'')
+        {
+          if (!hb_svg_append_c (out, s[i])) return false;
+          i++;
+        }
+        continue;
+      }
+      if (i + 7 <= n && !memcmp (s + i, "href=\"#", 7))
+      {
+        if (!hb_svg_append_len (out, s + i, 7)) return false;
+        i += 7;
+        if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+        while (i < n && s[i] != '"')
+        {
+          if (!hb_svg_append_c (out, s[i])) return false;
+          i++;
+        }
+        continue;
+      }
+      if (i + 13 <= n && !memcmp (s + i, "xlink:href=\"#", 13))
+      {
+        if (!hb_svg_append_len (out, s + i, 13)) return false;
+        i += 13;
+        if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+        while (i < n && s[i] != '"')
+        {
+          if (!hb_svg_append_c (out, s[i])) return false;
+          i++;
+        }
+        continue;
+      }
+      if (i + 5 <= n && !memcmp (s + i, "url(#", 5))
+      {
+        if (!hb_svg_append_len (out, s + i, 5)) return false;
+        i += 5;
+        if (!hb_svg_append_len (out, prefix, prefix_len)) return false;
+        while (i < n && s[i] != ')')
+        {
+          if (!hb_svg_append_c (out, s[i])) return false;
+          i++;
+        }
+        continue;
+      }
+      if (!hb_svg_append_c (out, s[i]))
+        return false;
+      i++;
+    }
+    return true;
+  };
+
+  auto add_unique_id = [] (hb_vector_t<hb_svg_id_span_t> *v,
+                           const char *p,
+                           unsigned n) -> bool
+  {
+    if (!n) return false;
+    for (unsigned i = 0; i < v->length; i++)
+      if (v->arrayZ[i].len == n && !memcmp (v->arrayZ[i].p, p, n))
+        return false;
+    auto *slot = v->push ();
+    if (!slot) return false;
+    slot->p = p;
+    slot->len = n;
+    return true;
+  };
+
+  auto collect_refs = [&] (const char *s, unsigned n, hb_vector_t<hb_svg_id_span_t> *ids) -> bool
+  {
+    unsigned i = 0;
+    while (i < n)
+    {
+      if (i + 7 <= n && !memcmp (s + i, "href=\"#", 7))
+      {
+        i += 7;
+        unsigned b = i;
+        while (i < n && s[i] != '"' && s[i] != '\'' && s[i] != ' ' && s[i] != '>') i++;
+        if (i > b && unlikely (!add_unique_id (ids, s + b, i - b))) return false;
+        continue;
+      }
+      if (i + 13 <= n && !memcmp (s + i, "xlink:href=\"#", 13))
+      {
+        i += 13;
+        unsigned b = i;
+        while (i < n && s[i] != '"' && s[i] != '\'' && s[i] != ' ' && s[i] != '>') i++;
+        if (i > b && unlikely (!add_unique_id (ids, s + b, i - b))) return false;
+        continue;
+      }
+      if (i + 5 <= n && !memcmp (s + i, "url(#", 5))
+      {
+        i += 5;
+        unsigned b = i;
+        while (i < n && s[i] != ')') i++;
+        if (i > b && unlikely (!add_unique_id (ids, s + b, i - b))) return false;
+        continue;
+      }
+      i++;
+    }
+    return true;
+  };
+
+  auto find_element_bounds = [&] (unsigned elem_start, unsigned *elem_end) -> bool
+  {
+    int gt = find_substr (svg, len, elem_start, ">", 1);
+    if (gt < 0) return false;
+    unsigned open_end = (unsigned) gt;
+    if (open_end > elem_start && svg[open_end - 1] == '/')
+    {
+      *elem_end = open_end + 1;
+      return true;
+    }
+    unsigned depth = 1;
+    unsigned pos = open_end + 1;
+    while (pos < len)
+    {
+      int lt_i = find_substr (svg, len, pos, "<", 1);
+      if (lt_i < 0) return false;
+      unsigned lt = (unsigned) lt_i;
+      if (lt + 4 <= len && !memcmp (svg + lt, "<!--", 4))
+      {
+        int cend = find_substr (svg, len, lt + 4, "-->", 3);
+        if (cend < 0) return false;
+        pos = (unsigned) cend + 3;
+        continue;
+      }
+      if (lt + 9 <= len && !memcmp (svg + lt, "<![CDATA[", 9))
+      {
+        int cend = find_substr (svg, len, lt + 9, "]]>", 3);
+        if (cend < 0) return false;
+        pos = (unsigned) cend + 3;
+        continue;
+      }
+      int gt_i = find_substr (svg, len, lt, ">", 1);
+      if (gt_i < 0) return false;
+      unsigned gt2 = (unsigned) gt_i;
+      bool closing = (lt + 1 < len && svg[lt + 1] == '/');
+      bool self_closing = (gt2 > lt && svg[gt2 - 1] == '/');
+      if (!closing && !self_closing)
+        depth++;
+      else if (closing)
+      {
+        if (!depth) return false;
+        depth--;
+        if (!depth)
+        {
+          *elem_end = gt2 + 1;
+          return true;
+        }
+      }
+      pos = gt2 + 1;
+    }
+    return false;
+  };
+
+  auto parse_id_in_start_tag = [&] (unsigned tag_start, unsigned tag_end, hb_svg_id_span_t *id) -> bool
+  {
+    unsigned p = tag_start;
+    while (p + 4 <= tag_end)
+    {
+      if (!memcmp (svg + p, "id=\"", 4))
+      {
+        unsigned b = p + 4;
+        unsigned e = b;
+        while (e < tag_end && svg[e] != '"') e++;
+        if (e <= tag_end && e > b)
+        {
+          *id = {svg + b, e - b};
+          return true;
+        }
+      }
+      if (!memcmp (svg + p, "id='", 4))
+      {
+        unsigned b = p + 4;
+        unsigned e = b;
+        while (e < tag_end && svg[e] != '\'') e++;
+        if (e <= tag_end && e > b)
+        {
+          *id = {svg + b, e - b};
+          return true;
+        }
+      }
+      p++;
+    }
+    return false;
+  };
+
+  auto find_element_by_id = [&] (const char *id, unsigned id_len, unsigned *start, unsigned *end) -> bool
+  {
+    unsigned p = 0;
+    while (p < len)
+    {
+      int k = find_substr (svg, len, p, "id=\"", 4);
+      if (k < 0) break;
+      unsigned id_pos = (unsigned) k + 4;
+      if (id_pos + id_len <= len &&
+          !memcmp (svg + id_pos, id, id_len) &&
+          id_pos + id_len < len &&
+          svg[id_pos + id_len] == '"')
+      {
+        unsigned s = (unsigned) k;
+        while (s && svg[s] != '<')
+          s--;
+        if (svg[s] == '<' && find_element_bounds (s, end))
+        {
+          *start = s;
+          return true;
+        }
+      }
+      p = (unsigned) k + 1;
+    }
+    return false;
+  };
+
+  auto emit_subset_svg = [&] (hb_vector_t<char> *defs_dst,
+                              hb_vector_t<char> *body_dst) -> bool
+  {
+    if (paint->current_svg_image_glyph == HB_CODEPOINT_INVALID)
+      return false;
+
+    char glyph_id[48];
+    int gid_len = snprintf (glyph_id, sizeof (glyph_id), "glyph%u", paint->current_svg_image_glyph);
+    if (gid_len <= 0 || (unsigned) gid_len >= sizeof (glyph_id))
+      return false;
+
+    unsigned glyph_start = 0, glyph_end = 0;
+    if (!find_element_by_id (glyph_id, (unsigned) gid_len, &glyph_start, &glyph_end))
+      return false;
+
+    int defs_open_i = find_substr (svg, len, 0, "<defs", 5);
+    int defs_close_i = find_substr (svg, len, 0, "</defs>", 7);
+    hb_vector_t<hb_svg_defs_entry_t> defs_entries;
+    if (defs_open_i >= 0 && defs_close_i > defs_open_i)
+    {
+      int defs_gt = find_substr (svg, len, (unsigned) defs_open_i, ">", 1);
+      if (defs_gt > defs_open_i)
+      {
+        unsigned p = (unsigned) defs_gt + 1;
+        unsigned defs_end = (unsigned) defs_close_i;
+        while (p < defs_end)
+        {
+          int lt_i = find_substr (svg, len, p, "<", 1);
+          if (lt_i < 0 || (unsigned) lt_i >= defs_end)
+            break;
+          unsigned lt = (unsigned) lt_i;
+          if (lt + 2 <= len && svg[lt + 1] == '/')
+            break;
+          unsigned elem_end = 0;
+          if (!find_element_bounds (lt, &elem_end) || elem_end > defs_end)
+            break;
+          int gt_i = find_substr (svg, len, lt, ">", 1);
+          if (gt_i < 0 || (unsigned) gt_i >= elem_end)
+            break;
+          hb_svg_id_span_t id = {nullptr, 0};
+          if (parse_id_in_start_tag (lt, (unsigned) gt_i, &id))
+          {
+            auto *slot = defs_entries.push ();
+            if (unlikely (!slot))
+              return false;
+            slot->id = id;
+            slot->start = lt;
+            slot->end = elem_end;
+          }
+          p = elem_end;
+        }
+      }
+    }
+
+    hb_vector_t<hb_svg_id_span_t> needed_ids;
+    if (!collect_refs (svg + glyph_start, glyph_end - glyph_start, &needed_ids))
+      return false;
+
+    hb_vector_t<unsigned> chosen_defs;
+    for (unsigned qi = 0; qi < needed_ids.length; qi++)
+    {
+      const auto &need = needed_ids.arrayZ[qi];
+      for (unsigned i = 0; i < defs_entries.length; i++)
+      {
+        const auto &e = defs_entries.arrayZ[i];
+        if (e.id.len == need.len && !memcmp (e.id.p, need.p, need.len))
+        {
+          bool seen = false;
+          for (unsigned j = 0; j < chosen_defs.length; j++)
+            if (chosen_defs.arrayZ[j] == i) { seen = true; break; }
+          if (!seen)
+          {
+            if (unlikely (!chosen_defs.push (i)))
+              return false;
+            if (!collect_refs (svg + e.start, e.end - e.start, &needed_ids))
+              return false;
+          }
+          break;
+        }
+      }
+    }
+
+    char prefix[32];
+    int prefix_len = snprintf (prefix, sizeof (prefix), "hbimg%u_", paint->svg_image_counter++);
+    if (prefix_len <= 0 || (unsigned) prefix_len >= sizeof (prefix))
+      return false;
+
+    for (unsigned i = 0; i < chosen_defs.length; i++)
+    {
+      const auto &e = defs_entries.arrayZ[chosen_defs.arrayZ[i]];
+      if (!append_with_prefix (defs_dst, svg + e.start, e.end - e.start, prefix, (unsigned) prefix_len))
+        return false;
+      if (!hb_svg_append_c (defs_dst, '\n')) return false;
+    }
+
+    return append_with_prefix (body_dst, svg + glyph_start, glyph_end - glyph_start, prefix, (unsigned) prefix_len);
+  };
+
   auto &body = paint->current_body ();
   paint->current_color_glyph_has_svg_image = true;
+
+  hb_vector_t<char> subset_body;
+  bool subset_ok = emit_subset_svg (&paint->defs, &subset_body);
+
   if (extents)
   {
     hb_svg_append_str (&body, "<g transform=\"translate(");
@@ -1024,7 +1388,10 @@ hb_vector_paint_image (hb_paint_funcs_t *,
     hb_svg_append_str (&body, ")\">\n");
   }
 
-  hb_svg_append_len (&body, svg, len);
+  if (subset_ok)
+    hb_svg_append_len (&body, subset_body.arrayZ, subset_body.length);
+  else
+    hb_svg_append_len (&body, svg, len);
   hb_svg_append_c (&body, '\n');
 
   if (extents)
@@ -1188,11 +1555,14 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
   hb_vector_paint_ensure_initialized (paint);
+  hb_codepoint_t old_gid = paint->current_svg_image_glyph;
+  paint->current_svg_image_glyph = glyph;
   hb_font_paint_glyph (font, glyph,
                        hb_vector_paint_funcs_singleton (),
                        paint,
                        paint->palette,
                        paint->foreground);
+  paint->current_svg_image_glyph = old_gid;
   return true;
 }
 
@@ -1772,9 +2142,12 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 
   if (can_cache)
   {
+    hb_codepoint_t old_gid = paint->current_svg_image_glyph;
+    paint->current_svg_image_glyph = glyph;
     hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						  hb_vector_paint_get_funcs (), paint,
 						  palette, foreground);
+    paint->current_svg_image_glyph = old_gid;
     if (unlikely (!ret))
     {
       paint->group_stack.pop ();
@@ -1827,9 +2200,12 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 				    paint->y_scale_factor,
 				    xx, yx, xy, yy, tx, ty);
   hb_svg_append_str (&body, "\">\n");
+  hb_codepoint_t old_gid = paint->current_svg_image_glyph;
+  paint->current_svg_image_glyph = glyph;
   hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						hb_vector_paint_get_funcs (), paint,
 						palette, foreground);
+  paint->current_svg_image_glyph = old_gid;
   hb_svg_append_str (&body, "</g>\n");
   return ret;
 }
@@ -1919,6 +2295,8 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   paint->gradient_counter = 0;
   paint->color_glyph_counter = 0;
   paint->current_color_glyph_has_svg_image = false;
+  paint->current_svg_image_glyph = HB_CODEPOINT_INVALID;
+  paint->svg_image_counter = 0;
   hb_set_clear (paint->defined_outlines);
   hb_set_clear (paint->defined_clips);
   paint->defined_color_glyphs.clear ();
