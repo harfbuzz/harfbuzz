@@ -928,6 +928,322 @@ hb_svg_composite_mode_str (hb_paint_composite_mode_t mode)
   }
 }
 
+struct hb_svg_point_t { float x, y; };
+struct hb_svg_rgba_t { float r, g, b, a; };
+
+static inline float
+hb_svg_lerp (float a, float b, float t)
+{ return a + (b - a) * t; }
+
+static inline float
+hb_svg_clamp01 (float v)
+{
+  if (v < 0.f) return 0.f;
+  if (v > 1.f) return 1.f;
+  return v;
+}
+
+static inline hb_svg_rgba_t
+hb_svg_rgba_from_hb_color (hb_color_t c)
+{
+  return {(float) hb_color_get_red (c) / 255.f,
+          (float) hb_color_get_green (c) / 255.f,
+          (float) hb_color_get_blue (c) / 255.f,
+          (float) hb_color_get_alpha (c) / 255.f};
+}
+
+static inline hb_color_t
+hb_svg_hb_color_from_rgba (const hb_svg_rgba_t &c)
+{
+  unsigned r = (unsigned) roundf (hb_svg_clamp01 (c.r) * 255.f);
+  unsigned g = (unsigned) roundf (hb_svg_clamp01 (c.g) * 255.f);
+  unsigned b = (unsigned) roundf (hb_svg_clamp01 (c.b) * 255.f);
+  unsigned a = (unsigned) roundf (hb_svg_clamp01 (c.a) * 255.f);
+  return HB_COLOR (b, g, r, a);
+}
+
+static inline hb_svg_rgba_t
+hb_svg_lerp_rgba (const hb_svg_rgba_t &c0,
+                  const hb_svg_rgba_t &c1,
+                  float t)
+{
+  return {hb_svg_lerp (c0.r, c1.r, t),
+          hb_svg_lerp (c0.g, c1.g, t),
+          hb_svg_lerp (c0.b, c1.b, t),
+          hb_svg_lerp (c0.a, c1.a, t)};
+}
+
+static inline float hb_svg_dot (const hb_svg_point_t &p, const hb_svg_point_t &q) { return p.x * q.x + p.y * q.y; }
+static inline hb_svg_point_t hb_svg_add (const hb_svg_point_t &p, const hb_svg_point_t &q) { return {p.x + q.x, p.y + q.y}; }
+static inline hb_svg_point_t hb_svg_sub (const hb_svg_point_t &p, const hb_svg_point_t &q) { return {p.x - q.x, p.y - q.y}; }
+static inline hb_svg_point_t hb_svg_scale (const hb_svg_point_t &p, float f) { return {p.x * f, p.y * f}; }
+
+static inline hb_svg_point_t
+hb_svg_normalize (const hb_svg_point_t &p)
+{
+  float len = sqrtf (hb_svg_dot (p, p));
+  if (len == 0.f) return {0.f, 0.f};
+  return hb_svg_scale (p, 1.f / len);
+}
+
+static void
+hb_svg_add_sweep_patch (hb_vector_t<char> *body,
+                        unsigned precision,
+                        float cx, float cy, float radius,
+                        float a0, const hb_svg_rgba_t &c0_in,
+                        float a1, const hb_svg_rgba_t &c1_in)
+{
+  static const float max_angle = HB_PI / 16.f;
+  hb_svg_point_t center = {cx, cy};
+  int num_splits = (int) ceilf (fabsf (a1 - a0) / max_angle);
+  if (num_splits < 1) num_splits = 1;
+
+  hb_svg_point_t p0 = {cosf (a0), sinf (a0)};
+  hb_svg_rgba_t color0 = c0_in;
+
+  for (int a = 0; a < num_splits; a++)
+  {
+    float k = (a + 1.f) / num_splits;
+    float angle1 = hb_svg_lerp (a0, a1, k);
+    hb_svg_rgba_t color1 = hb_svg_lerp_rgba (c0_in, c1_in, k);
+
+    hb_svg_point_t p1 = {cosf (angle1), sinf (angle1)};
+    hb_svg_point_t sp0 = hb_svg_add (center, hb_svg_scale (p0, radius));
+    hb_svg_point_t sp1 = hb_svg_add (center, hb_svg_scale (p1, radius));
+
+    hb_svg_point_t A = hb_svg_normalize (hb_svg_add (p0, p1));
+    hb_svg_point_t U = {-A.y, A.x};
+    float up0 = hb_svg_dot (U, p0);
+    float up1 = hb_svg_dot (U, p1);
+    if (fabsf (up0) < 1e-6f || fabsf (up1) < 1e-6f)
+    {
+      p0 = p1;
+      color0 = color1;
+      continue;
+    }
+    hb_svg_point_t C0 = hb_svg_add (A, hb_svg_scale (U, hb_svg_dot (hb_svg_sub (p0, A), p0) / up0));
+    hb_svg_point_t C1 = hb_svg_add (A, hb_svg_scale (U, hb_svg_dot (hb_svg_sub (p1, A), p1) / up1));
+
+    hb_svg_point_t sc0 = hb_svg_add (center, hb_svg_scale (hb_svg_add (C0, hb_svg_scale (hb_svg_sub (C0, p0), 0.33333f)), radius));
+    hb_svg_point_t sc1 = hb_svg_add (center, hb_svg_scale (hb_svg_add (C1, hb_svg_scale (hb_svg_sub (C1, p1), 0.33333f)), radius));
+
+    hb_svg_rgba_t mid_color = hb_svg_lerp_rgba (color0, color1, 0.5f);
+    hb_color_t mid = hb_svg_hb_color_from_rgba (mid_color);
+
+    hb_svg_append_str (body, "<path d=\"M");
+    hb_svg_append_num (body, center.x, precision);
+    hb_svg_append_c (body, ',');
+    hb_svg_append_num (body, center.y, precision);
+    hb_svg_append_str (body, "L");
+    hb_svg_append_num (body, sp0.x, precision);
+    hb_svg_append_c (body, ',');
+    hb_svg_append_num (body, sp0.y, precision);
+    hb_svg_append_str (body, "C");
+    hb_svg_append_num (body, sc0.x, precision);
+    hb_svg_append_c (body, ',');
+    hb_svg_append_num (body, sc0.y, precision);
+    hb_svg_append_c (body, ' ');
+    hb_svg_append_num (body, sc1.x, precision);
+    hb_svg_append_c (body, ',');
+    hb_svg_append_num (body, sc1.y, precision);
+    hb_svg_append_c (body, ' ');
+    hb_svg_append_num (body, sp1.x, precision);
+    hb_svg_append_c (body, ',');
+    hb_svg_append_num (body, sp1.y, precision);
+    hb_svg_append_str (body, "Z\" fill=\"");
+    hb_svg_append_color (body, mid, true);
+    hb_svg_append_str (body, "\"/>\n");
+
+    p0 = p1;
+    color0 = color1;
+  }
+}
+
+static void
+hb_svg_add_sweep_gradient_patches (hb_vector_t<char> *body,
+                                   unsigned precision,
+                                   hb_color_stop_t *stops,
+                                   unsigned n_stops,
+                                   hb_paint_extend_t extend,
+                                   float cx, float cy, float radius,
+                                   float start_angle, float end_angle)
+{
+  if (!n_stops) return;
+
+  hb_svg_rgba_t colors_buf[16];
+  float angles_buf[16];
+  hb_svg_rgba_t *colors = colors_buf;
+  float *angles = angles_buf;
+  bool dynamic = false;
+
+  if (start_angle == end_angle)
+  {
+    if (extend == HB_PAINT_EXTEND_PAD)
+    {
+      if (start_angle > 0.f)
+      {
+        hb_svg_rgba_t c = hb_svg_rgba_from_hb_color (stops[0].color);
+        hb_svg_add_sweep_patch (body, precision, cx, cy, radius, 0.f, c, start_angle, c);
+      }
+      if (end_angle < HB_2_PI)
+      {
+        hb_svg_rgba_t c = hb_svg_rgba_from_hb_color (stops[n_stops - 1].color);
+        hb_svg_add_sweep_patch (body, precision, cx, cy, radius, end_angle, c, HB_2_PI, c);
+      }
+    }
+    return;
+  }
+
+  if (end_angle < start_angle)
+  {
+    float tmp = start_angle; start_angle = end_angle; end_angle = tmp;
+    for (unsigned i = 0; i < n_stops - 1 - i; i++)
+    {
+      hb_color_stop_t t = stops[i];
+      stops[i] = stops[n_stops - 1 - i];
+      stops[n_stops - 1 - i] = t;
+    }
+    for (unsigned i = 0; i < n_stops; i++)
+      stops[i].offset = 1.f - stops[i].offset;
+  }
+
+  if (n_stops > 16)
+  {
+    angles = (float *) hb_malloc (sizeof (float) * n_stops);
+    colors = (hb_svg_rgba_t *) hb_malloc (sizeof (hb_svg_rgba_t) * n_stops);
+    if (!angles || !colors)
+    {
+      hb_free (angles);
+      hb_free (colors);
+      return;
+    }
+    dynamic = true;
+  }
+
+  for (unsigned i = 0; i < n_stops; i++)
+  {
+    angles[i] = start_angle + stops[i].offset * (end_angle - start_angle);
+    colors[i] = hb_svg_rgba_from_hb_color (stops[i].color);
+  }
+
+  if (extend == HB_PAINT_EXTEND_PAD)
+  {
+    unsigned pos;
+    hb_svg_rgba_t color0 = colors[0];
+    for (pos = 0; pos < n_stops; pos++)
+    {
+      if (angles[pos] >= 0)
+      {
+        if (pos > 0)
+        {
+          float f = (0.f - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
+          color0 = hb_svg_lerp_rgba (colors[pos - 1], colors[pos], f);
+        }
+        break;
+      }
+    }
+    if (pos == n_stops)
+    {
+      color0 = colors[n_stops - 1];
+      hb_svg_add_sweep_patch (body, precision, cx, cy, radius, 0.f, color0, HB_2_PI, color0);
+      goto done;
+    }
+    hb_svg_add_sweep_patch (body, precision, cx, cy, radius, 0.f, color0, angles[pos], colors[pos]);
+    for (pos++; pos < n_stops; pos++)
+    {
+      if (angles[pos] <= HB_2_PI)
+        hb_svg_add_sweep_patch (body, precision, cx, cy, radius, angles[pos - 1], colors[pos - 1], angles[pos], colors[pos]);
+      else
+      {
+        float f = (HB_2_PI - angles[pos - 1]) / (angles[pos] - angles[pos - 1]);
+        hb_svg_rgba_t color1 = hb_svg_lerp_rgba (colors[pos - 1], colors[pos], f);
+        hb_svg_add_sweep_patch (body, precision, cx, cy, radius, angles[pos - 1], colors[pos - 1], HB_2_PI, color1);
+        break;
+      }
+    }
+    if (pos == n_stops)
+    {
+      color0 = colors[n_stops - 1];
+      hb_svg_add_sweep_patch (body, precision, cx, cy, radius, angles[n_stops - 1], color0, HB_2_PI, color0);
+      goto done;
+    }
+  }
+  else
+  {
+    float span = angles[n_stops - 1] - angles[0];
+    if (fabsf (span) < 1e-6f)
+      goto done;
+
+    int k = 0;
+    if (angles[0] >= 0)
+    {
+      float ss = angles[0];
+      while (ss > 0)
+      {
+        if (span > 0) { ss -= span; k--; }
+        else          { ss += span; k++; }
+      }
+    }
+    else
+    {
+      float ee = angles[n_stops - 1];
+      while (ee < 0)
+      {
+        if (span > 0) { ee += span; k++; }
+        else          { ee -= span; k--; }
+      }
+    }
+
+    span = fabsf (span);
+    for (int l = k; l < 1000; l++)
+    {
+      for (unsigned i = 1; i < n_stops; i++)
+      {
+        float a0_l, a1_l;
+        const hb_svg_rgba_t *col0, *col1;
+        if ((l % 2 != 0) && (extend == HB_PAINT_EXTEND_REFLECT))
+        {
+          a0_l = angles[0] + angles[n_stops - 1] - angles[n_stops - i] + l * span;
+          a1_l = angles[0] + angles[n_stops - 1] - angles[n_stops - 1 - i] + l * span;
+          col0 = &colors[n_stops - i];
+          col1 = &colors[n_stops - 1 - i];
+        }
+        else
+        {
+          a0_l = angles[i - 1] + l * span;
+          a1_l = angles[i] + l * span;
+          col0 = &colors[i - 1];
+          col1 = &colors[i];
+        }
+
+        if (a1_l < 0.f) continue;
+        if (a0_l < 0.f)
+        {
+          float f = (0.f - a0_l) / (a1_l - a0_l);
+          hb_svg_rgba_t c = hb_svg_lerp_rgba (*col0, *col1, f);
+          hb_svg_add_sweep_patch (body, precision, cx, cy, radius, 0.f, c, a1_l, *col1);
+        }
+        else if (a1_l >= HB_2_PI)
+        {
+          float f = (HB_2_PI - a0_l) / (a1_l - a0_l);
+          hb_svg_rgba_t c = hb_svg_lerp_rgba (*col0, *col1, f);
+          hb_svg_add_sweep_patch (body, precision, cx, cy, radius, a0_l, *col0, HB_2_PI, c);
+          goto done;
+        }
+        else
+          hb_svg_add_sweep_patch (body, precision, cx, cy, radius, a0_l, *col0, a1_l, *col1);
+      }
+    }
+  }
+
+done:
+  if (dynamic)
+  {
+    hb_free (angles);
+    hb_free (colors);
+  }
+}
+
 
 static void hb_vector_paint_push_transform (hb_paint_funcs_t *, void *,
                                             float, float, float, float, float, float,
@@ -1342,19 +1658,15 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
     return;
 
   qsort (stops.arrayZ, stops.length, sizeof (hb_color_stop_t), hb_svg_color_stop_cmp);
-
-  hb_color_t c = stops.arrayZ[stops.length - 1].color;
-  if (start_angle > end_angle)
-    c = stops.arrayZ[0].color;
-
-  auto &body = paint->current_body ();
-  hb_svg_append_str (&body, "<path d=\"M");
-  hb_svg_append_num (&body, cx, paint->precision);
-  hb_svg_append_c (&body, ',');
-  hb_svg_append_num (&body, cy, paint->precision);
-  hb_svg_append_str (&body, " m-32767,0 a32767,32767 0 1,0 65534,0 a32767,32767 0 1,0 -65534,0\" fill=\"");
-  hb_svg_append_color (&body, c, true);
-  hb_svg_append_str (&body, "\"/>\n");
+  hb_svg_add_sweep_gradient_patches (&paint->current_body (),
+                                     paint->precision,
+                                     stops.arrayZ,
+                                     stops.length,
+                                     hb_color_line_get_extend (color_line),
+                                     cx, cy,
+                                     32767.f,
+                                     start_angle,
+                                     end_angle);
 }
 
 static void
