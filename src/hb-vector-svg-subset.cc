@@ -53,7 +53,7 @@ struct hb_svg_doc_cache_t
   const char *svg = nullptr;
   unsigned len = 0;
   hb_vector_t<hb_svg_defs_entry_t> defs_entries;
-  hb_hashmap_t<hb_codepoint_t, uint64_t> glyph_spans;
+  hb_hashmap_t<hb_codepoint_t, hb_pair_t<uint32_t, uint32_t>> glyph_spans;
 };
 
 using hb_svg_doc_t = hb_atomic_t<hb_svg_doc_cache_t *>;
@@ -435,7 +435,7 @@ static bool
 hb_svg_parse_cache_entries_linear (const char *svg,
                                    unsigned len,
                                    hb_vector_t<hb_svg_defs_entry_t> *defs_entries,
-                                   hb_hashmap_t<hb_codepoint_t, uint64_t> *glyph_spans)
+                                   hb_hashmap_t<hb_codepoint_t, hb_pair_t<uint32_t, uint32_t>> *glyph_spans)
 {
   hb_svg_open_elem_t stack[HB_SVG_PARSE_MAX_DEPTH];
   unsigned depth = 0;
@@ -534,7 +534,8 @@ hb_svg_parse_cache_entries_linear (const char *svg,
 
         hb_codepoint_t gid;
         if (hb_svg_parse_glyph_id_span (e.id, &gid))
-          glyph_spans->set (gid, ((uint64_t) e.start << 32) | (uint64_t) end);
+          glyph_spans->set (gid, hb_pair_t<uint32_t, uint32_t> ((uint32_t) e.start,
+                                                                 (uint32_t) end));
       }
 
       if (e.is_defs && defs_depth)
@@ -570,7 +571,8 @@ hb_svg_parse_cache_entries_linear (const char *svg,
 
         hb_codepoint_t gid;
         if (hb_svg_parse_glyph_id_span (e.id, &gid))
-          glyph_spans->set (gid, ((uint64_t) e.start << 32) | (uint64_t) end);
+          glyph_spans->set (gid, hb_pair_t<uint32_t, uint32_t> ((uint32_t) e.start,
+                                                                 (uint32_t) end));
       }
     }
     else
@@ -734,11 +736,11 @@ hb_svg_subset_glyph_image (hb_face_t *face,
   unsigned glyph_start = 0, glyph_end = 0;
   if (doc_cache)
   {
-    uint64_t *span = nullptr;
+    hb_pair_t<uint32_t, uint32_t> *span = nullptr;
     if (!doc_cache->glyph_spans.has (glyph, &span) || !span)
       return false;
-    glyph_start = (unsigned) (*span >> 32);
-    glyph_end = (unsigned) *span;
+    glyph_start = span->first;
+    glyph_end = span->second;
   }
   else
   {
