@@ -697,21 +697,25 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
     for (unsigned py = clip.min_y; py < clip.max_y; py++)
     {
       uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * surf_stride);
+      float gx = inv_xx * (clip.min_x + ox) + inv_xy * (py + oy) + inv_x0;
+      float gy = inv_yx * (clip.min_x + ox) + inv_yy * (py + oy) + inv_y0;
       for (unsigned px = clip.min_x; px < clip.max_x; px++)
       {
-	/* Map pixel to glyph space */
-	float gx = inv_xx * (px + ox) + inv_xy * (py + oy) + inv_x0;
-	float gy = inv_yx * (px + ox) + inv_yy * (py + oy) + inv_y0;
-
 	/* Map glyph space to image texel */
 	int ix = (int) floorf ((gx - img_x) / img_sx);
 	int iy = (int) floorf ((gy - img_y) / img_sy);
 
 	if (ix < 0 || ix >= (int) width || iy < 0 || iy >= (int) height)
+	{
+	  gx += inv_xx;
+	  gy += inv_yx;
 	  continue;
+	}
 
 	uint32_t src_px = reinterpret_cast<const uint32_t *> (data)[iy * width + ix];
 	row[px] = hb_raster_src_over (src_px, row[px]);
+	gx += inv_xx;
+	gy += inv_yx;
       }
     }
   }
@@ -721,25 +725,34 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
     {
       uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * surf_stride);
       const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
+      float gx = inv_xx * (clip.min_x + ox) + inv_xy * (py + oy) + inv_x0;
+      float gy = inv_yx * (clip.min_x + ox) + inv_yy * (py + oy) + inv_y0;
       for (unsigned px = clip.min_x; px < clip.max_x; px++)
       {
 	uint8_t clip_alpha = clip_row[px];
-	if (clip_alpha == 0) continue;
-
-	/* Map pixel to glyph space */
-	float gx = inv_xx * (px + ox) + inv_xy * (py + oy) + inv_x0;
-	float gy = inv_yx * (px + ox) + inv_yy * (py + oy) + inv_y0;
+	if (clip_alpha == 0)
+	{
+	  gx += inv_xx;
+	  gy += inv_yx;
+	  continue;
+	}
 
 	/* Map glyph space to image texel */
 	int ix = (int) floorf ((gx - img_x) / img_sx);
 	int iy = (int) floorf ((gy - img_y) / img_sy);
 
 	if (ix < 0 || ix >= (int) width || iy < 0 || iy >= (int) height)
+	{
+	  gx += inv_xx;
+	  gy += inv_yx;
 	  continue;
+	}
 
 	uint32_t src_px = reinterpret_cast<const uint32_t *> (data)[iy * width + ix];
 	src_px = hb_raster_alpha_mul (src_px, clip_alpha);
 	row[px] = hb_raster_src_over (src_px, row[px]);
+	gx += inv_xx;
+	gy += inv_yx;
       }
     }
   }
@@ -969,17 +982,17 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
       for (unsigned py = clip.min_y; py < clip.max_y; py++)
       {
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
+	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
-	  /* Pixel center -> glyph space */
-	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
-	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-
 	  /* Project onto gradient axis: t = dot(p - p0, dir) / dot(dir, dir) */
 	  float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
 
 	  uint32_t src = evaluate_color_line (stops, len, proj_t, extend);
 	  row[px] = hb_raster_src_over (src, row[px]);
+	  gx += inv_xx;
+	  gy += inv_yx;
 	}
       }
     }
@@ -989,14 +1002,17 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
       {
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
 	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
+	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
 	  uint8_t clip_alpha = clip_row[px];
-	  if (clip_alpha == 0) continue;
-
-	  /* Pixel center -> glyph space */
-	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
-	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
+	  if (clip_alpha == 0)
+	  {
+	    gx += inv_xx;
+	    gy += inv_yx;
+	    continue;
+	  }
 
 	  /* Project onto gradient axis: t = dot(p - p0, dir) / dot(dir, dir) */
 	  float proj_t = ((gx - gx0) * dx + (gy - gy0) * dy) * inv_denom;
@@ -1004,6 +1020,8 @@ hb_raster_paint_linear_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	  uint32_t src = evaluate_color_line (stops, len, proj_t, extend);
 	  src = hb_raster_alpha_mul (src, clip_alpha);
 	  row[px] = hb_raster_src_over (src, row[px]);
+	  gx += inv_xx;
+	  gy += inv_yx;
 	}
       }
     }
@@ -1085,11 +1103,10 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
       for (unsigned py = clip.min_y; py < clip.max_y; py++)
       {
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
+	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
-	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
-	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-
 	  float dpx = gx - cx0, dpy = gy - cy0;
 	  float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
 	  float C = dpx * dpx + dpy * dpy - cr0 * cr0;
@@ -1118,6 +1135,8 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
 	  row[px] = hb_raster_src_over (src, row[px]);
+	  gx += inv_xx;
+	  gy += inv_yx;
 	}
       }
     }
@@ -1127,13 +1146,17 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
       {
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
 	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
+	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
 	  uint8_t clip_alpha = clip_row[px];
-	  if (clip_alpha == 0) continue;
-
-	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
-	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
+	  if (clip_alpha == 0)
+	  {
+	    gx += inv_xx;
+	    gy += inv_yx;
+	    continue;
+	  }
 
 	  float dpx = gx - cx0, dpy = gy - cy0;
 	  float B = -2.f * (dpx * cdx + dpy * cdy + cr0 * dr);
@@ -1164,6 +1187,8 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
 	  src = hb_raster_alpha_mul (src, clip_alpha);
 	  row[px] = hb_raster_src_over (src, row[px]);
+	  gx += inv_xx;
+	  gy += inv_yx;
 	}
       }
     }
@@ -1232,11 +1257,10 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
       for (unsigned py = clip.min_y; py < clip.max_y; py++)
       {
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
+	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
-	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
-	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
-
 	  float angle = atan2f (gy - cy, gx - cx);
 	  /* Normalize to [0, 2*pi) — matches OT spec seam at angle 0. */
 	  if (angle < 0) angle += (float) HB_2_PI;
@@ -1245,6 +1269,8 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
 	  row[px] = hb_raster_src_over (src, row[px]);
+	  gx += inv_xx;
+	  gy += inv_yx;
 	}
       }
     }
@@ -1254,13 +1280,17 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
       {
 	uint32_t *row = reinterpret_cast<uint32_t *> (surf->buffer.arrayZ + py * stride);
 	const uint8_t *clip_row = clip.alpha.arrayZ + py * clip.stride;
+	float gx = inv_xx * (clip.min_x + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
+	float gy = inv_yx * (clip.min_x + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
 	for (unsigned px = clip.min_x; px < clip.max_x; px++)
 	{
 	  uint8_t clip_alpha = clip_row[px];
-	  if (clip_alpha == 0) continue;
-
-	  float gx = inv_xx * (px + ox + 0.5f) + inv_xy * (py + oy + 0.5f) + inv_x0;
-	  float gy = inv_yx * (px + ox + 0.5f) + inv_yy * (py + oy + 0.5f) + inv_y0;
+	  if (clip_alpha == 0)
+	  {
+	    gx += inv_xx;
+	    gy += inv_yx;
+	    continue;
+	  }
 
 	  float angle = atan2f (gy - cy, gx - cx);
 	  /* Normalize to [0, 2*pi) — matches OT spec seam at angle 0. */
@@ -1271,6 +1301,8 @@ hb_raster_paint_sweep_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	  uint32_t src = evaluate_color_line (stops, len, grad_t, extend);
 	  src = hb_raster_alpha_mul (src, clip_alpha);
 	  row[px] = hb_raster_src_over (src, row[px]);
+	  gx += inv_xx;
+	  gy += inv_yx;
 	}
       }
     }
