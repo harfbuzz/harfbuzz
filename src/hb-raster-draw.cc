@@ -310,6 +310,29 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 }
 
 /**
+ * hb_raster_draw_get_extents:
+ * @draw: a rasterizer
+ * @extents: (out): where to write current extents
+ *
+ * Gets currently configured output extents.
+ *
+ * Return value: `true` if extents are set, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_draw_get_extents (hb_raster_draw_t    *draw,
+			    hb_raster_extents_t *extents)
+{
+  if (!draw->has_extents)
+    return false;
+
+  if (extents)
+    *extents = draw->fixed_extents;
+  return true;
+}
+
+/**
  * hb_raster_draw_set_glyph_extents:
  * @draw: a rasterizer
  * @glyph_extents: glyph extents from hb_font_get_glyph_extents()

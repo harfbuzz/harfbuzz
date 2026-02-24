@@ -1825,6 +1825,29 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 }
 
 /**
+ * hb_raster_paint_get_extents:
+ * @paint: a paint context
+ * @extents: (out): where to write current extents
+ *
+ * Gets currently configured output extents.
+ *
+ * Return value: `true` if extents are set, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_paint_get_extents (hb_raster_paint_t   *paint,
+			     hb_raster_extents_t *extents)
+{
+  if (!paint->has_extents)
+    return false;
+
+  if (extents)
+    *extents = paint->fixed_extents;
+  return true;
+}
+
+/**
  * hb_raster_paint_set_glyph_extents:
  * @paint: a paint context
  * @glyph_extents: glyph extents from hb_font_get_glyph_extents()

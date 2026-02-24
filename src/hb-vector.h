@@ -215,6 +215,21 @@ hb_vector_draw_set_extents (hb_vector_draw_t *draw,
                             const hb_vector_extents_t *extents);
 
 /**
+ * hb_vector_draw_get_extents:
+ * @draw: a draw context.
+ * @extents: (out): where to store current output extents.
+ *
+ * Gets current output extents from @draw.
+ *
+ * Return value: `true` if extents are set, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN hb_bool_t
+hb_vector_draw_get_extents (hb_vector_draw_t *draw,
+                            hb_vector_extents_t *extents);
+
+/**
  * hb_vector_draw_set_glyph_extents:
  * @draw: a draw context.
  * @glyph_extents: glyph extents in font units.
@@ -450,6 +465,21 @@ hb_vector_paint_set_scale_factor (hb_vector_paint_t *paint,
 HB_EXTERN void
 hb_vector_paint_set_extents (hb_vector_paint_t *paint,
                              const hb_vector_extents_t *extents);
+
+/**
+ * hb_vector_paint_get_extents:
+ * @paint: a paint context.
+ * @extents: (out): where to store current output extents.
+ *
+ * Gets current output extents from @paint.
+ *
+ * Return value: `true` if extents are set, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN hb_bool_t
+hb_vector_paint_get_extents (hb_vector_paint_t *paint,
+                             hb_vector_extents_t *extents);
 
 /**
  * hb_vector_paint_set_glyph_extents:

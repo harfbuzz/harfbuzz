@@ -1894,6 +1894,18 @@ hb_vector_draw_set_extents (hb_vector_draw_t *draw,
 }
 
 hb_bool_t
+hb_vector_draw_get_extents (hb_vector_draw_t *draw,
+                            hb_vector_extents_t *extents)
+{
+  if (!draw->has_extents)
+    return false;
+
+  if (extents)
+    *extents = draw->extents;
+  return true;
+}
+
+hb_bool_t
 hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
                                   const hb_glyph_extents_t *glyph_extents)
 {
@@ -2272,6 +2284,18 @@ hb_vector_paint_set_extents (hb_vector_paint_t *paint,
     paint->extents = *extents;
     paint->has_extents = true;
   }
+}
+
+hb_bool_t
+hb_vector_paint_get_extents (hb_vector_paint_t *paint,
+                             hb_vector_extents_t *extents)
+{
+  if (!paint->has_extents)
+    return false;
+
+  if (extents)
+    *extents = paint->extents;
+  return true;
 }
 
 hb_bool_t
