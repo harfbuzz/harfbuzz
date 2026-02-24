@@ -485,6 +485,20 @@ hb_svg_append_instance_transform (hb_vector_t<char> *out,
   }
 }
 
+static inline void
+hb_svg_append_image_instance_translate (hb_vector_t<char> *out,
+                                        unsigned precision,
+                                        float x_scale_factor,
+                                        float y_scale_factor,
+                                        float tx, float ty)
+{
+  hb_svg_append_str (out, "translate(");
+  hb_svg_append_num (out, tx / x_scale_factor, precision);
+  hb_svg_append_c (out, ',');
+  hb_svg_append_num (out, ty / y_scale_factor, precision);
+  hb_svg_append_c (out, ')');
+}
+
 
 static void
 hb_vector_draw_move_to (hb_draw_funcs_t *,
@@ -2163,10 +2177,10 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     if (has_svg_image)
     {
       hb_svg_append_str (&body, "<g transform=\"");
-      hb_svg_append_instance_transform (&body, paint->precision,
-                                        paint->x_scale_factor,
-                                        paint->y_scale_factor,
-                                        xx, yx, xy, yy, tx, ty);
+      hb_svg_append_image_instance_translate (&body, paint->precision,
+                                              paint->x_scale_factor,
+                                              paint->y_scale_factor,
+                                              tx, ty);
       hb_svg_append_str (&body, "\">\n");
       hb_svg_append_len (&body, captured.arrayZ, captured.length);
       hb_svg_append_str (&body, "</g>\n");
