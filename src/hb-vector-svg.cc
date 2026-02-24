@@ -91,16 +91,31 @@ hb_svg_append_printf (hb_vector_t<char> *buf, const char *fmt, ...)
 }
 
 static void
-hb_svg_append_num (hb_vector_t<char> *buf, float v, unsigned precision)
+hb_svg_append_num (hb_vector_t<char> *buf,
+                   float v,
+                   unsigned precision,
+                   bool keep_nonzero = false)
 {
+  unsigned effective_precision = precision;
+  if (keep_nonzero && v != 0.f)
+    while (effective_precision < 12)
+    {
+      float rounded_zero_threshold = 0.5f;
+      for (unsigned i = 0; i < effective_precision; i++)
+        rounded_zero_threshold *= 0.1f;
+      if (fabsf (v) >= rounded_zero_threshold)
+        break;
+      effective_precision++;
+    }
+
   float rounded_zero_threshold = 0.5f;
-  for (unsigned i = 0; i < precision; i++)
+  for (unsigned i = 0; i < effective_precision; i++)
     rounded_zero_threshold *= 0.1f;
   if (fabsf (v) < rounded_zero_threshold)
     v = 0.f;
 
   char fmt[20];
-  snprintf (fmt, sizeof (fmt), "%%.%uf", precision);
+  snprintf (fmt, sizeof (fmt), "%%.%uf", effective_precision);
   char out[128];
   snprintf (out, sizeof (out), fmt, (double) v);
 
@@ -115,6 +130,12 @@ hb_svg_append_num (hb_vector_t<char> *buf, float v, unsigned precision)
   }
 
   hb_svg_append_str (buf, out);
+}
+
+static inline unsigned
+hb_svg_scale_precision (unsigned precision)
+{
+  return precision < 7 ? 7 : precision;
 }
 
 struct hb_svg_blob_meta_t
@@ -369,14 +390,15 @@ struct hb_vector_paint_t
         x_scale_factor == 1.f && y_scale_factor == 1.f)
       return;
 
+    unsigned sprec = hb_svg_scale_precision (precision);
     hb_svg_append_str (buf, "<g transform=\"matrix(");
-    hb_svg_append_num (buf, transform.xx / x_scale_factor, precision);
+    hb_svg_append_num (buf, transform.xx / x_scale_factor, sprec, true);
     hb_svg_append_c (buf, ',');
-    hb_svg_append_num (buf, transform.yx / y_scale_factor, precision);
+    hb_svg_append_num (buf, transform.yx / y_scale_factor, sprec, true);
     hb_svg_append_c (buf, ',');
-    hb_svg_append_num (buf, transform.xy / x_scale_factor, precision);
+    hb_svg_append_num (buf, transform.xy / x_scale_factor, sprec, true);
     hb_svg_append_c (buf, ',');
-    hb_svg_append_num (buf, transform.yy / y_scale_factor, precision);
+    hb_svg_append_num (buf, transform.yy / y_scale_factor, sprec, true);
     hb_svg_append_c (buf, ',');
     hb_svg_append_num (buf, transform.x0 / x_scale_factor, precision);
     hb_svg_append_c (buf, ',');
@@ -413,6 +435,7 @@ hb_svg_append_instance_transform (hb_vector_t<char> *out,
                                   float xy, float yy,
                                   float tx, float ty)
 {
+  unsigned sprec = hb_svg_scale_precision (precision);
   if (xx == 1.f && yx == 0.f && xy == 0.f && yy == 1.f)
   {
     float sx = 1.f / x_scale_factor;
@@ -422,21 +445,21 @@ hb_svg_append_instance_transform (hb_vector_t<char> *out,
     hb_svg_append_c (out, ',');
     hb_svg_append_num (out, ty / y_scale_factor, precision);
     hb_svg_append_str (out, ") scale(");
-    hb_svg_append_num (out, sx, precision);
+    hb_svg_append_num (out, sx, sprec, true);
     hb_svg_append_c (out, ',');
-    hb_svg_append_num (out, -sy, precision);
+    hb_svg_append_num (out, -sy, sprec, true);
     hb_svg_append_c (out, ')');
   }
   else
   {
     hb_svg_append_str (out, "matrix(");
-    hb_svg_append_num (out, xx / x_scale_factor, precision);
+    hb_svg_append_num (out, xx / x_scale_factor, sprec, true);
     hb_svg_append_c (out, ',');
-    hb_svg_append_num (out, yx / y_scale_factor, precision);
+    hb_svg_append_num (out, yx / y_scale_factor, sprec, true);
     hb_svg_append_c (out, ',');
-    hb_svg_append_num (out, -xy / x_scale_factor, precision);
+    hb_svg_append_num (out, -xy / x_scale_factor, sprec, true);
     hb_svg_append_c (out, ',');
-    hb_svg_append_num (out, -yy / y_scale_factor, precision);
+    hb_svg_append_num (out, -yy / y_scale_factor, sprec, true);
     hb_svg_append_c (out, ',');
     hb_svg_append_num (out, tx / x_scale_factor, precision);
     hb_svg_append_c (out, ',');
@@ -822,14 +845,15 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
     return;
 
   auto &body = paint->current_body ();
+  unsigned sprec = hb_svg_scale_precision (paint->precision);
   hb_svg_append_str (&body, "<g transform=\"matrix(");
-  hb_svg_append_num (&body, xx, paint->precision);
+  hb_svg_append_num (&body, xx, sprec, true);
   hb_svg_append_c (&body, ',');
-  hb_svg_append_num (&body, yx, paint->precision);
+  hb_svg_append_num (&body, yx, sprec, true);
   hb_svg_append_c (&body, ',');
-  hb_svg_append_num (&body, xy, paint->precision);
+  hb_svg_append_num (&body, xy, sprec, true);
   hb_svg_append_c (&body, ',');
-  hb_svg_append_num (&body, yy, paint->precision);
+  hb_svg_append_num (&body, yy, sprec, true);
   hb_svg_append_c (&body, ',');
   hb_svg_append_num (&body, dx, paint->precision);
   hb_svg_append_c (&body, ',');
@@ -1349,26 +1373,28 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
     {
       float sx = 1.f / draw->x_scale_factor;
       float sy = 1.f / draw->y_scale_factor;
+      unsigned sprec = hb_svg_scale_precision (draw->precision);
       hb_svg_append_str (&draw->body, "translate(");
       hb_svg_append_num (&draw->body, tx, draw->precision);
       hb_svg_append_c (&draw->body, ',');
       hb_svg_append_num (&draw->body, ty, draw->precision);
       hb_svg_append_str (&draw->body, ") scale(");
-      hb_svg_append_num (&draw->body, sx, draw->precision);
+      hb_svg_append_num (&draw->body, sx, sprec, true);
       hb_svg_append_c (&draw->body, ',');
-      hb_svg_append_num (&draw->body, -sy, draw->precision);
+      hb_svg_append_num (&draw->body, -sy, sprec, true);
       hb_svg_append_c (&draw->body, ')');
     }
     else
     {
+      unsigned sprec = hb_svg_scale_precision (draw->precision);
       hb_svg_append_str (&draw->body, "matrix(");
-      hb_svg_append_num (&draw->body, xx, draw->precision);
+      hb_svg_append_num (&draw->body, xx, sprec, true);
       hb_svg_append_c (&draw->body, ',');
-      hb_svg_append_num (&draw->body, yx, draw->precision);
+      hb_svg_append_num (&draw->body, yx, sprec, true);
       hb_svg_append_c (&draw->body, ',');
-      hb_svg_append_num (&draw->body, -xy, draw->precision);
+      hb_svg_append_num (&draw->body, -xy, sprec, true);
       hb_svg_append_c (&draw->body, ',');
-      hb_svg_append_num (&draw->body, -yy, draw->precision);
+      hb_svg_append_num (&draw->body, -yy, sprec, true);
       hb_svg_append_c (&draw->body, ',');
       hb_svg_append_num (&draw->body, tx, draw->precision);
       hb_svg_append_c (&draw->body, ',');
@@ -1394,26 +1420,28 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
   {
     float sx = 1.f / draw->x_scale_factor;
     float sy = 1.f / draw->y_scale_factor;
+    unsigned sprec = hb_svg_scale_precision (draw->precision);
     hb_svg_append_str (&draw->body, "translate(");
     hb_svg_append_num (&draw->body, tx, draw->precision);
     hb_svg_append_c (&draw->body, ',');
     hb_svg_append_num (&draw->body, ty, draw->precision);
     hb_svg_append_str (&draw->body, ") scale(");
-    hb_svg_append_num (&draw->body, sx, draw->precision);
+    hb_svg_append_num (&draw->body, sx, sprec, true);
     hb_svg_append_c (&draw->body, ',');
-    hb_svg_append_num (&draw->body, -sy, draw->precision);
+    hb_svg_append_num (&draw->body, -sy, sprec, true);
     hb_svg_append_c (&draw->body, ')');
   }
   else
   {
+    unsigned sprec = hb_svg_scale_precision (draw->precision);
     hb_svg_append_str (&draw->body, "matrix(");
-    hb_svg_append_num (&draw->body, xx, draw->precision);
+    hb_svg_append_num (&draw->body, xx, sprec, true);
     hb_svg_append_c (&draw->body, ',');
-    hb_svg_append_num (&draw->body, yx, draw->precision);
+    hb_svg_append_num (&draw->body, yx, sprec, true);
     hb_svg_append_c (&draw->body, ',');
-    hb_svg_append_num (&draw->body, -xy, draw->precision);
+    hb_svg_append_num (&draw->body, -xy, sprec, true);
     hb_svg_append_c (&draw->body, ',');
-    hb_svg_append_num (&draw->body, -yy, draw->precision);
+    hb_svg_append_num (&draw->body, -yy, sprec, true);
     hb_svg_append_c (&draw->body, ',');
     hb_svg_append_num (&draw->body, tx, draw->precision);
     hb_svg_append_c (&draw->body, ',');
