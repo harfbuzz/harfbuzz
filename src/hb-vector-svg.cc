@@ -1339,11 +1339,15 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
 
 
 hb_vector_draw_t *
-hb_vector_draw_create_or_fail (void)
+hb_vector_draw_create_or_fail (hb_vector_format_t format)
 {
+  if (format != HB_VECTOR_FORMAT_SVG)
+    return nullptr;
+
   hb_vector_draw_t *draw = hb_object_create<hb_vector_draw_t> ();
   if (unlikely (!draw))
     return nullptr;
+  draw->format = format;
   draw->defined_glyphs = hb_set_create ();
   draw->defs.alloc (2048);
   draw->body.alloc (8192);
@@ -1381,13 +1385,6 @@ hb_vector_draw_get_user_data (hb_vector_draw_t   *draw,
                               hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (draw, key);
-}
-
-void
-hb_vector_draw_set_format (hb_vector_draw_t *draw,
-                           hb_vector_format_t format)
-{
-  draw->format = format;
 }
 
 void
@@ -1691,7 +1688,6 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
 void
 hb_vector_draw_reset (hb_vector_draw_t *draw)
 {
-  draw->format = HB_VECTOR_FORMAT_SVG;
   draw->transform = {1, 0, 0, 1, 0, 0};
   draw->x_scale_factor = 1.f;
   draw->y_scale_factor = 1.f;
@@ -1718,11 +1714,15 @@ hb_vector_draw_recycle_blob (hb_vector_draw_t *draw,
 
 
 hb_vector_paint_t *
-hb_vector_paint_create_or_fail (void)
+hb_vector_paint_create_or_fail (hb_vector_format_t format)
 {
+  if (format != HB_VECTOR_FORMAT_SVG)
+    return nullptr;
+
   hb_vector_paint_t *paint = hb_object_create<hb_vector_paint_t> ();
   if (unlikely (!paint))
     return nullptr;
+  paint->format = format;
 
   paint->defined_outlines = hb_set_create ();
   paint->defined_clips = hb_set_create ();
@@ -1767,13 +1767,6 @@ hb_vector_paint_get_user_data (hb_vector_paint_t  *paint,
                                hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (paint, key);
-}
-
-void
-hb_vector_paint_set_format (hb_vector_paint_t *paint,
-                            hb_vector_format_t format)
-{
-  paint->format = format;
 }
 
 void
@@ -2072,7 +2065,6 @@ hb_vector_paint_render (hb_vector_paint_t *paint)
 void
 hb_vector_paint_reset (hb_vector_paint_t *paint)
 {
-  paint->format = HB_VECTOR_FORMAT_SVG;
   paint->transform = {1, 0, 0, 1, 0, 0};
   paint->x_scale_factor = 1.f;
   paint->y_scale_factor = 1.f;

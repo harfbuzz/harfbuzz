@@ -80,7 +80,7 @@ typedef struct hb_vector_paint_t hb_vector_paint_t;
 /* hb_vector_draw_t */
 
 HB_EXTERN hb_vector_draw_t *
-hb_vector_draw_create_or_fail (void);
+hb_vector_draw_create_or_fail (hb_vector_format_t format);
 
 HB_EXTERN hb_vector_draw_t *
 hb_vector_draw_reference (hb_vector_draw_t *draw);
@@ -98,10 +98,6 @@ hb_vector_draw_set_user_data (hb_vector_draw_t   *draw,
 HB_EXTERN void *
 hb_vector_draw_get_user_data (hb_vector_draw_t   *draw,
                               hb_user_data_key_t *key);
-
-HB_EXTERN void
-hb_vector_draw_set_format (hb_vector_draw_t *draw,
-                           hb_vector_format_t format);
 
 HB_EXTERN void
 hb_vector_draw_set_transform (hb_vector_draw_t *draw,
@@ -155,7 +151,7 @@ hb_vector_draw_recycle_blob (hb_vector_draw_t *draw,
 /* hb_vector_paint_t */
 
 HB_EXTERN hb_vector_paint_t *
-hb_vector_paint_create_or_fail (void);
+hb_vector_paint_create_or_fail (hb_vector_format_t format);
 
 HB_EXTERN hb_vector_paint_t *
 hb_vector_paint_reference (hb_vector_paint_t *paint);
@@ -173,10 +169,6 @@ hb_vector_paint_set_user_data (hb_vector_paint_t  *paint,
 HB_EXTERN void *
 hb_vector_paint_get_user_data (hb_vector_paint_t  *paint,
                                hb_user_data_key_t *key);
-
-HB_EXTERN void
-hb_vector_paint_set_format (hb_vector_paint_t *paint,
-                            hb_vector_format_t format);
 
 HB_EXTERN void
 hb_vector_paint_set_transform (hb_vector_paint_t *paint,

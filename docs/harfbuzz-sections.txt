@@ -1052,7 +1052,6 @@ hb_vector_draw_reference
 hb_vector_draw_destroy
 hb_vector_draw_set_user_data
 hb_vector_draw_get_user_data
-hb_vector_draw_set_format
 hb_vector_draw_set_transform
 hb_vector_draw_set_scale_factor
 hb_vector_draw_set_extents
@@ -1070,7 +1069,6 @@ hb_vector_paint_reference
 hb_vector_paint_destroy
 hb_vector_paint_set_user_data
 hb_vector_paint_get_user_data
-hb_vector_paint_set_format
 hb_vector_paint_set_transform
 hb_vector_paint_set_scale_factor
 hb_vector_paint_set_extents

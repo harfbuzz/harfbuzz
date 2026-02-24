@@ -219,18 +219,16 @@ struct vector_output_t : output_options_t<>
       return;
     final_extents = extents;
 
-    hb_vector_draw_t *draw = hb_vector_draw_create_or_fail ();
-    hb_vector_paint_t *paint = hb_vector_paint_create_or_fail ();
+    hb_vector_draw_t *draw = hb_vector_draw_create_or_fail (HB_VECTOR_FORMAT_SVG);
+    hb_vector_paint_t *paint = hb_vector_paint_create_or_fail (HB_VECTOR_FORMAT_SVG);
 
     hb_vector_draw_set_scale_factor (draw, 1.f, 1.f);
     hb_vector_draw_set_extents (draw, &extents);
-    hb_vector_draw_set_format (draw, HB_VECTOR_FORMAT_SVG);
     hb_vector_svg_set_precision (draw, precision);
     hb_vector_svg_set_flat (draw, flat);
 
     hb_vector_paint_set_scale_factor (paint, 1.f, 1.f);
     hb_vector_paint_set_extents (paint, &extents);
-    hb_vector_paint_set_format (paint, HB_VECTOR_FORMAT_SVG);
     hb_vector_paint_set_foreground (paint, foreground);
     hb_vector_paint_set_palette (paint, palette);
     hb_vector_svg_paint_set_precision (paint, precision);
