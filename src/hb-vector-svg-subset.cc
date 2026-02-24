@@ -27,7 +27,7 @@
 #include "hb.hh"
 
 #include "hb-vector-svg-subset.hh"
-#include "hb-map.hh"
+#include "hb-ot-color.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -45,13 +45,19 @@ struct hb_svg_defs_entry_t
   unsigned end;
 };
 
-struct hb_svg_face_cache_t
+struct hb_svg_doc_cache_t
 {
   hb_blob_t *blob = nullptr;
   const char *svg = nullptr;
   unsigned len = 0;
   hb_vector_t<hb_svg_defs_entry_t> defs_entries;
-  hb_hashmap_t<hb_codepoint_t, uint64_t> glyph_spans;
+};
+
+using hb_svg_doc_t = hb_atomic_t<hb_svg_doc_cache_t *>;
+
+struct hb_svg_face_cache_t
+{
+  hb_vector_t<hb_svg_doc_t> slots;
 };
 
 static hb_user_data_key_t hb_svg_face_cache_user_data_key;
@@ -393,104 +399,111 @@ hb_svg_parse_defs_entries (const char *svg,
 }
 
 static void
-hb_svg_face_cache_destroy (void *data)
+hb_svg_doc_cache_destroy (hb_svg_doc_cache_t *doc)
 {
-  auto *cache = (hb_svg_face_cache_t *) data;
-  if (!cache)
+  if (!doc)
     return;
-  hb_blob_destroy (cache->blob);
-  hb_free (cache);
+  hb_blob_destroy (doc->blob);
+  hb_free (doc);
 }
 
-static bool
-hb_svg_parse_glyph_map (const char *svg,
-                        unsigned len,
-                        hb_hashmap_t<hb_codepoint_t, uint64_t> *glyph_spans)
+static void
+hb_svg_face_cache_destroy (void *data)
 {
-  unsigned pos = 0;
-  while (pos + 10 < len)
+  auto *face_cache = (hb_svg_face_cache_t *) data;
+  if (!face_cache)
+    return;
+  for (unsigned i = 0; i < face_cache->slots.length; i++)
+    hb_svg_doc_cache_destroy (face_cache->slots.arrayZ[i].get_relaxed ());
+  hb_free (face_cache);
+}
+
+static hb_svg_doc_cache_t *
+hb_svg_make_doc_cache (hb_blob_t *image,
+                       const char *svg,
+                       unsigned len)
+{
+  auto *doc = (hb_svg_doc_cache_t *) hb_calloc (1, sizeof (hb_svg_doc_cache_t));
+  if (!doc)
+    return nullptr;
+
+  doc->blob = hb_blob_reference (image);
+  doc->svg = svg;
+  doc->len = len;
+
+  if (!hb_svg_parse_defs_entries (svg, len, &doc->defs_entries))
   {
-    int k = hb_svg_find_substr (svg, len, pos, "id=\"glyph", 9);
-    unsigned quote_len = 1;
-    if (k < 0)
-    {
-      k = hb_svg_find_substr (svg, len, pos, "id='glyph", 9);
-      quote_len = 1;
-      if (k < 0)
-        break;
-    }
-    unsigned id_pos = (unsigned) k + 9;
-    unsigned p = id_pos;
-    hb_codepoint_t gid = 0;
-    bool got_digit = false;
-    while (p < len && svg[p] >= '0' && svg[p] <= '9')
-    {
-      got_digit = true;
-      gid = (hb_codepoint_t) (gid * 10 + (unsigned) (svg[p] - '0'));
-      p++;
-    }
-    if (got_digit && p < len && (svg[p] == '"' || svg[p] == '\''))
-    {
-      unsigned start = (unsigned) k;
-      while (start && svg[start] != '<')
-        start--;
-      if (svg[start] == '<')
-      {
-        unsigned end = 0;
-        if (hb_svg_find_element_bounds (svg, len, start, &end))
-          glyph_spans->set (gid, ((uint64_t) start << 32) | (uint64_t) end);
-      }
-    }
-    pos = (unsigned) k + 1 + quote_len;
+    hb_svg_doc_cache_destroy (doc);
+    return nullptr;
   }
-  return true;
+
+  return doc;
 }
 
 static hb_svg_face_cache_t *
-hb_svg_get_or_make_face_cache (hb_face_t *face,
-                               hb_blob_t *image,
-                               const char *svg,
-                               unsigned len)
+hb_svg_get_or_make_face_cache (hb_face_t *face)
 {
   if (!face)
     return nullptr;
 
-  auto *cache = (hb_svg_face_cache_t *) hb_face_get_user_data (face, &hb_svg_face_cache_user_data_key);
-  if (cache && cache->len == len && cache->svg == svg)
-    return cache;
+  auto *face_cache = (hb_svg_face_cache_t *) hb_face_get_user_data (face, &hb_svg_face_cache_user_data_key);
+  if (face_cache)
+    return face_cache;
 
-  if (cache)
+  face_cache = (hb_svg_face_cache_t *) hb_calloc (1, sizeof (hb_svg_face_cache_t));
+  if (!face_cache)
     return nullptr;
 
-  auto *fresh = (hb_svg_face_cache_t *) hb_calloc (1, sizeof (hb_svg_face_cache_t));
-  if (!fresh)
-    return nullptr;
-
-  fresh->blob = hb_blob_reference (image);
-  fresh->svg = svg;
-  fresh->len = len;
-
-  if (!hb_svg_parse_defs_entries (svg, len, &fresh->defs_entries) ||
-      !hb_svg_parse_glyph_map (svg, len, &fresh->glyph_spans))
+  unsigned doc_count = hb_ot_color_get_svg_document_count (face);
+  if (doc_count && !face_cache->slots.resize (doc_count))
   {
-    hb_svg_face_cache_destroy (fresh);
+    hb_free (face_cache);
     return nullptr;
   }
+  for (unsigned i = 0; i < doc_count; i++)
+    face_cache->slots.arrayZ[i].set_relaxed (nullptr);
 
   if (!hb_face_set_user_data (face,
                               &hb_svg_face_cache_user_data_key,
-                              fresh,
+                              face_cache,
                               hb_svg_face_cache_destroy,
                               false))
   {
-    hb_svg_face_cache_destroy (fresh);
-    cache = (hb_svg_face_cache_t *) hb_face_get_user_data (face, &hb_svg_face_cache_user_data_key);
-    if (cache && cache->len == len && cache->svg == svg)
-      return cache;
-    return nullptr;
+    hb_free (face_cache);
+    face_cache = (hb_svg_face_cache_t *) hb_face_get_user_data (face, &hb_svg_face_cache_user_data_key);
   }
 
-  return fresh;
+  return face_cache;
+}
+
+static hb_svg_doc_cache_t *
+hb_svg_get_or_make_doc_cache (hb_face_t *face,
+                              hb_blob_t *image,
+                              const char *svg,
+                              unsigned len,
+                              unsigned doc_index)
+{
+  auto *face_cache = hb_svg_get_or_make_face_cache (face);
+  if (!face_cache || doc_index >= face_cache->slots.length)
+    return nullptr;
+
+  auto &slot = face_cache->slots.arrayZ[doc_index];
+  auto *doc = slot.get_acquire ();
+  if (doc)
+    return (doc->svg == svg && doc->len == len) ? doc : nullptr;
+
+  auto *fresh = hb_svg_make_doc_cache (image, svg, len);
+  if (!fresh)
+    return nullptr;
+
+  auto *expected = (hb_svg_doc_cache_t *) nullptr;
+  if (slot.cmpexch (expected, fresh))
+    return fresh;
+
+  hb_svg_doc_cache_destroy (fresh);
+  if (expected && expected->svg == svg && expected->len == len)
+    return expected;
+  return nullptr;
 }
 
 bool
@@ -509,7 +522,11 @@ hb_svg_subset_glyph_image (hb_face_t *face,
   if (!svg || !len)
     return false;
 
-  auto *cache = hb_svg_get_or_make_face_cache (face, image, svg, len);
+  unsigned doc_index = 0;
+  if (!hb_ot_color_glyph_get_svg_document_index (face, glyph, &doc_index))
+    return false;
+
+  auto *doc_cache = hb_svg_get_or_make_doc_cache (face, image, svg, len, doc_index);
 
   char glyph_id[48];
   int gid_len = snprintf (glyph_id, sizeof (glyph_id), "glyph%u", glyph);
@@ -517,18 +534,12 @@ hb_svg_subset_glyph_image (hb_face_t *face,
     return false;
 
   unsigned glyph_start = 0, glyph_end = 0;
-  if (cache && cache->glyph_spans.has (glyph))
-  {
-    uint64_t span = cache->glyph_spans.get (glyph);
-    glyph_start = (unsigned) (span >> 32);
-    glyph_end = (unsigned) span;
-  }
-  else if (!hb_svg_find_element_by_id (svg, len, glyph_id, (unsigned) gid_len, &glyph_start, &glyph_end))
+  if (!hb_svg_find_element_by_id (svg, len, glyph_id, (unsigned) gid_len, &glyph_start, &glyph_end))
     return false;
 
-  hb_vector_t<hb_svg_defs_entry_t> local_defs_entries;
-  auto *defs_entries = cache ? &cache->defs_entries : &local_defs_entries;
-  if (!cache && !hb_svg_parse_defs_entries (svg, len, defs_entries))
+  hb_vector_t<hb_svg_defs_entry_t> defs_entries_local;
+  auto *defs_entries = doc_cache ? &doc_cache->defs_entries : &defs_entries_local;
+  if (!doc_cache && !hb_svg_parse_defs_entries (svg, len, defs_entries))
     return false;
 
   hb_vector_t<hb_svg_id_span_t> needed_ids;

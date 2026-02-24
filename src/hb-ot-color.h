@@ -136,6 +136,14 @@ hb_ot_color_glyph_has_paint (hb_face_t      *face,
 HB_EXTERN hb_bool_t
 hb_ot_color_has_svg (hb_face_t *face);
 
+HB_EXTERN unsigned int
+hb_ot_color_get_svg_document_count (hb_face_t *face);
+
+HB_EXTERN hb_bool_t
+hb_ot_color_glyph_get_svg_document_index (hb_face_t      *face,
+                                          hb_codepoint_t  glyph,
+                                          unsigned int   *svg_document_index /* OUT */);
+
 HB_EXTERN hb_blob_t *
 hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph);
 

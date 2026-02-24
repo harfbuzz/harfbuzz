@@ -92,6 +92,12 @@ struct SVG
 							       table->svgDocEntries);
     }
 
+    unsigned get_document_count () const
+    { return table->get_document_count (); }
+
+    bool get_glyph_document_index (hb_codepoint_t glyph_id, unsigned *index) const
+    { return table->get_glyph_document_index (glyph_id, index); }
+
     bool has_data () const { return table->has_data (); }
 
     bool paint_glyph (hb_font_t *font HB_UNUSED, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
@@ -124,6 +130,20 @@ struct SVG
 
   const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
   { return (this+svgDocEntries).bsearch (glyph_id); }
+
+  unsigned get_document_count () const
+  {
+    if (!has_data ())
+      return 0;
+    return (this + svgDocEntries).len;
+  }
+
+  bool get_glyph_document_index (hb_codepoint_t glyph_id, unsigned *index) const
+  {
+    if (!has_data ())
+      return false;
+    return (this + svgDocEntries).bfind (glyph_id, index);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

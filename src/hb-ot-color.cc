@@ -291,6 +291,46 @@ hb_ot_color_has_svg (hb_face_t *face)
 }
 
 /**
+ * hb_ot_color_get_svg_document_count:
+ * @face: #hb_face_t to work upon.
+ *
+ * Gets the number of SVG documents in the face `SVG` table.
+ *
+ * Return value: number of SVG documents in the face.
+ *
+ * Since: 12.1.0
+ */
+unsigned int
+hb_ot_color_get_svg_document_count (hb_face_t *face)
+{
+  return face->table.SVG->get_document_count ();
+}
+
+/**
+ * hb_ot_color_glyph_get_svg_document_index:
+ * @face: #hb_face_t to work upon.
+ * @glyph: glyph ID to query.
+ * @svg_document_index: (out) (nullable): output SVG document index.
+ *
+ * Gets the `SVG`-table document index associated with a glyph.
+ *
+ * Return value: `true` if @glyph maps to an SVG document, `false` otherwise.
+ *
+ * Since: 12.1.0
+ */
+hb_bool_t
+hb_ot_color_glyph_get_svg_document_index (hb_face_t      *face,
+                                          hb_codepoint_t  glyph,
+                                          unsigned int   *svg_document_index)
+{
+  unsigned doc_index = 0;
+  hb_bool_t ret = face->table.SVG->get_glyph_document_index (glyph, &doc_index);
+  if (ret && svg_document_index)
+    *svg_document_index = doc_index;
+  return ret;
+}
+
+/**
  * hb_ot_color_glyph_reference_svg:
  * @face: #hb_face_t to work upon
  * @glyph: a svg glyph index
