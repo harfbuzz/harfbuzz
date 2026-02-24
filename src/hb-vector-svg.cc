@@ -1388,6 +1388,8 @@ hb_vector_paint_image (hb_paint_funcs_t *,
 
   hb_vector_t<char> subset_body;
   bool subset_ok = emit_subset_svg (&paint->defs, &subset_body);
+  if (unlikely (!subset_ok))
+    return false;
 
   if (extents)
   {
@@ -1402,10 +1404,7 @@ hb_vector_paint_image (hb_paint_funcs_t *,
     hb_svg_append_str (&body, ")\">\n");
   }
 
-  if (subset_ok)
-    hb_svg_append_len (&body, subset_body.arrayZ, subset_body.length);
-  else
-    hb_svg_append_len (&body, svg, len);
+  hb_svg_append_len (&body, subset_body.arrayZ, subset_body.length);
   hb_svg_append_c (&body, '\n');
 
   if (extents)
