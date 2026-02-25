@@ -1794,7 +1794,7 @@ static void svg_render_element (hb_svg_render_context_t *ctx,
 				hb_svg_xml_parser_t &parser,
 				hb_svg_str_t inherited_fill,
 				float inherited_fill_opacity,
-                                hb_svg_str_t inherited_clip_path);
+				hb_svg_str_t inherited_clip_path);
 
 /* Parse a gradient <stop> element */
 static bool
@@ -2068,16 +2068,16 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
     }
 
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-	    {
-	      if (parser.tag_name.eq ("linearGradient"))
-	        svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_LINEAR);
-	      else if (parser.tag_name.eq ("radialGradient"))
-	        svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_RADIAL);
-	      else if (parser.tag_name.eq ("clipPath"))
-	        svg_process_clip_path_def (ctx, parser, tok);
-	      else
-	      {
-		/* Skip unknown defs children */
+    {
+      if (parser.tag_name.eq ("linearGradient"))
+	svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_LINEAR);
+      else if (parser.tag_name.eq ("radialGradient"))
+	svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_RADIAL);
+      else if (parser.tag_name.eq ("clipPath"))
+	svg_process_clip_path_def (ctx, parser, tok);
+      else
+      {
+	/* Skip unknown defs children */
 	if (tok == SVG_TOKEN_OPEN_TAG)
 	  depth++;
       }
@@ -2331,7 +2331,7 @@ svg_render_element (hb_svg_render_context_t *ctx,
 		    hb_svg_xml_parser_t &parser,
 		    hb_svg_str_t inherited_fill,
 		    float inherited_fill_opacity,
-                    hb_svg_str_t inherited_clip_path)
+		    hb_svg_str_t inherited_clip_path)
 {
   if (ctx->depth >= SVG_MAX_DEPTH) return;
 
