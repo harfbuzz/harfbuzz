@@ -39,6 +39,25 @@
 struct raster_output_t : output_options_t<true>
 {
   static const bool repeat_shape = false;
+  struct margin_t {
+    double t, r, b, l;
+  };
+
+  static gboolean
+  parse_margin (const char *name G_GNUC_UNUSED,
+                const char *arg,
+                gpointer    data,
+                GError    **error)
+  {
+    raster_output_t *opts = (raster_output_t *) data;
+    margin_t &m = opts->margin;
+    if (parse_1to4_doubles (arg, &m.t, &m.r, &m.b, &m.l))
+      return true;
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                 "%s argument should be one to four space-separated numbers",
+                 name);
+    return false;
+  }
 
   ~raster_output_t ()
   {
@@ -60,6 +79,7 @@ struct raster_output_t : output_options_t<true>
     {
       {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,	"Set background color (default: #FFFFFF)",	"rrggbb/rrggbbaa"},
       {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,	"Set foreground color (default: #000000)",	"rrggbb/rrggbbaa"},
+      {"margin",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: 0)",	"one to four numbers"},
       {nullptr}
     };
     parser->add_group (entries,
@@ -189,8 +209,16 @@ struct raster_output_t : output_options_t<true>
     }
     else
     {
+      hb_raster_extents_t ext;
+      if (!compute_extents (sx, sy, step, vertical, &ext))
+      {
+	cleanup ();
+	return;
+      }
+
       for (unsigned int iter = 0; iter < num_iterations; iter++)
       {
+	hb_raster_draw_set_extents (rdr, &ext);
 	for (unsigned li = 0; li < lines.size (); li++)
 	{
 	  float off_x = vertical ? -(step * (float) li) : 0.f;
@@ -215,11 +243,7 @@ struct raster_output_t : output_options_t<true>
       }
     }
 
-    hb_raster_draw_destroy (rdr);  rdr      = nullptr;
-    hb_raster_paint_destroy (pnt); pnt      = nullptr;
-    hb_font_destroy (font);        font      = nullptr;
-    lines.clear ();
-    direction = HB_DIRECTION_INVALID;
+    cleanup ();
   }
 
   private:
@@ -233,47 +257,13 @@ struct raster_output_t : output_options_t<true>
 
   void finish_paint (float sx, float sy, float step, bool vertical, unsigned int num_iterations)
   {
-    /* First pass: compute bounding box in pixel space */
-    float pmin_x = 1e30f, pmin_y = 1e30f;
-    float pmax_x = -1e30f, pmax_y = -1e30f;
-
-    for (unsigned li = 0; li < lines.size (); li++)
-    {
-      float off_x = vertical ? -(step * (float) li) : 0.f;
-      float off_y = vertical ?  0.f                 : -(step * (float) li);
-
-      for (const auto &g : lines[li].glyphs)
-      {
-	hb_glyph_extents_t gext;
-	if (!hb_font_get_glyph_extents (font, g.gid, &gext))
-	  continue;
-
-	float gx = (g.x + off_x) * sx;
-	float gy = (g.y + off_y) * sy;
-
-	float x0 = gx + gext.x_bearing * sx;
-	float y0 = gy + (gext.y_bearing + gext.height) * sy;
-	float x1 = gx + (gext.x_bearing + gext.width) * sx;
-	float y1 = gy + gext.y_bearing * sy;
-
-	pmin_x = hb_min (pmin_x, hb_min (x0, x1));
-	pmin_y = hb_min (pmin_y, hb_min (y0, y1));
-	pmax_x = hb_max (pmax_x, hb_max (x0, x1));
-	pmax_y = hb_max (pmax_y, hb_max (y0, y1));
-      }
-    }
-
-    if (pmin_x >= pmax_x || pmin_y >= pmax_y) return;
-
-    int ix0 = (int) floorf (pmin_x) - 1;
-    int iy0 = (int) floorf (pmin_y) - 1;
-    int ix1 = (int) ceilf (pmax_x) + 1;
-    int iy1 = (int) ceilf (pmax_y) + 1;
-    unsigned w = (unsigned) (ix1 - ix0);
-    unsigned h = (unsigned) (iy1 - iy0);
+    hb_raster_extents_t ext;
+    if (!compute_extents (sx, sy, step, vertical, &ext))
+      return;
+    unsigned w = ext.width;
+    unsigned h = ext.height;
     unsigned stride = w * 4;
-
-    hb_raster_extents_t ext = {ix0, iy0, w, h, stride};
+    ext.stride = stride;
     hb_raster_image_t *out_img = hb_raster_image_create_or_fail ();
     if (!out_img) return;
     if (!hb_raster_image_configure (out_img, HB_RASTER_FORMAT_BGRA32, &ext))
@@ -349,6 +339,68 @@ struct raster_output_t : output_options_t<true>
     hb_raster_image_destroy (out_img);
   }
 
+  void cleanup ()
+  {
+    hb_raster_draw_destroy (rdr);  rdr = nullptr;
+    hb_raster_paint_destroy (pnt); pnt = nullptr;
+    hb_font_destroy (font);        font = nullptr;
+    lines.clear ();
+    direction = HB_DIRECTION_INVALID;
+  }
+
+  bool compute_extents (float sx, float sy, float step, bool vertical, hb_raster_extents_t *ext)
+  {
+    /* Compute bounding box in pixel space from glyph extents. */
+    float pmin_x = 1e30f, pmin_y = 1e30f;
+    float pmax_x = -1e30f, pmax_y = -1e30f;
+    bool have_extents = false;
+
+    for (unsigned li = 0; li < lines.size (); li++)
+    {
+      float off_x = vertical ? -(step * (float) li) : 0.f;
+      float off_y = vertical ?  0.f                 : -(step * (float) li);
+
+      for (const auto &g : lines[li].glyphs)
+      {
+	hb_glyph_extents_t gext;
+	if (!hb_font_get_glyph_extents (font, g.gid, &gext))
+	  continue;
+
+	float gx = (g.x + off_x) * sx;
+	float gy = (g.y + off_y) * sy;
+
+	float x0 = gx + gext.x_bearing * sx;
+	float y0 = gy + (gext.y_bearing + gext.height) * sy;
+	float x1 = gx + (gext.x_bearing + gext.width) * sx;
+	float y1 = gy + gext.y_bearing * sy;
+
+	pmin_x = hb_min (pmin_x, hb_min (x0, x1));
+	pmin_y = hb_min (pmin_y, hb_min (y0, y1));
+	pmax_x = hb_max (pmax_x, hb_max (x0, x1));
+	pmax_y = hb_max (pmax_y, hb_max (y0, y1));
+	have_extents = true;
+      }
+    }
+
+    if (!have_extents || pmin_x >= pmax_x || pmin_y >= pmax_y)
+      return false;
+
+    /* Keep 1px safety pad used before AA rasterization and then apply margin. */
+    int ix0 = (int) floorf (pmin_x) - 1 - (int) floor (margin.l);
+    int iy0 = (int) floorf (pmin_y) - 1 - (int) floor (margin.b);
+    int ix1 = (int) ceilf  (pmax_x) + 1 + (int) ceil  (margin.r);
+    int iy1 = (int) ceilf  (pmax_y) + 1 + (int) ceil  (margin.t);
+    if (ix1 <= ix0 || iy1 <= iy0)
+      return false;
+
+    ext->x_origin = ix0;
+    ext->y_origin = iy0;
+    ext->width = (unsigned) (ix1 - ix0);
+    ext->height = (unsigned) (iy1 - iy0);
+    ext->stride = 0;
+    return true;
+  }
+
   /* Write an A8 alpha image as PPM; composited over fg/bg, Y-flipped. */
   void write_a8_as_ppm (hb_raster_image_t *img)
   {
@@ -408,6 +460,7 @@ struct raster_output_t : output_options_t<true>
 
   char              *fore      = nullptr;
   char              *back      = nullptr;
+  margin_t           margin    = {0., 0., 0., 0.};
   hb_color_t         fg_color  = HB_COLOR (0, 0, 0, 255);
   uint8_t            bg_r = 255, bg_g = 255, bg_b = 255, bg_a = 255;
   hb_raster_draw_t  *rdr       = nullptr;
