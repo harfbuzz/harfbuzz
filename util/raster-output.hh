@@ -60,6 +60,7 @@ struct raster_output_t : output_options_t<true>
     {
       {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,	"Set background color (default: #FFFFFF)",	"rrggbb/rrggbbaa"},
       {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,	"Set foreground color (default: #000000)",	"rrggbb/rrggbbaa"},
+      {"font-palette",	0, 0, G_OPTION_ARG_INT,		&this->palette,	"Set font palette (default: 0)",		"index"},
       {nullptr}
     };
     parser->add_group (entries,
@@ -319,7 +320,7 @@ struct raster_output_t : output_options_t<true>
 	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
 	  hb_raster_paint_set_extents (pnt, &ext);
 
-	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y, 0, fg_color);
+	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y, palette, fg_color);
 
 	  hb_raster_image_t *img = hb_raster_paint_render (pnt);
 	  if (img)
@@ -422,6 +423,7 @@ struct raster_output_t : output_options_t<true>
 
   char              *fore      = nullptr;
   char              *back      = nullptr;
+  int                palette   = 0;
   hb_color_t         fg_color  = HB_COLOR (0, 0, 0, 255);
   uint8_t            bg_r = 255, bg_g = 255, bg_b = 255, bg_a = 255;
   hb_raster_draw_t  *rdr       = nullptr;
