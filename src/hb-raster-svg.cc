@@ -1838,6 +1838,15 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
   return !grad.stops.in_error ();
 }
 
+static hb_svg_str_t
+svg_find_href_attr (const hb_svg_xml_parser_t &parser)
+{
+  hb_svg_str_t href = parser.find_attr ("href");
+  if (href.is_null ())
+    href = parser.find_attr ("xlink:href");
+  return href;
+}
+
 /* Parse gradient element attributes */
 static void
 svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
@@ -1879,10 +1888,7 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
     svg_parse_transform (transform_str, &grad.gradient_transform);
   }
 
-  /* xlink:href or href */
-  hb_svg_str_t href = parser.find_attr ("href");
-  if (href.is_null ())
-    href = parser.find_attr ("xlink:href");
+  hb_svg_str_t href = svg_find_href_attr (parser);
   if (href.len && href.data[0] == '#')
   {
     unsigned n = hb_min (href.len - 1, (unsigned) sizeof (grad.href_id) - 1);
@@ -2558,9 +2564,7 @@ svg_render_use_element (hb_svg_render_context_t *ctx,
 			hb_svg_str_t transform_str,
 			hb_svg_str_t clip_path_str)
 {
-  hb_svg_str_t href = parser.find_attr ("href");
-  if (href.is_null ())
-    href = parser.find_attr ("xlink:href");
+  hb_svg_str_t href = svg_find_href_attr (parser);
 
   char ref_id[64];
   if (!hb_svg_defs_t::parse_fragment_id (href, ref_id))
