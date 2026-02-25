@@ -251,7 +251,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	if (img)
 	{
 	  if (iter + 1 == num_iterations)
-	    write_a8_as_ppm (img);
+	    write_a8_as_ppm (img, sx, sy, step, vertical, ext);
 	  hb_raster_draw_recycle_image (rdr, img);
 	}
       }
@@ -263,6 +263,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
   private:
 
   struct glyph_instance_t { hb_codepoint_t gid; float x, y; };
+  struct rect_i_t { int x0, y0, x1, y1; };
   struct line_t
   {
     float advance_x = 0.f, advance_y = 0.f;
@@ -349,8 +350,16 @@ struct raster_output_t : output_options_t<true>, view_options_t
       }
 
       if (iter + 1 == num_iterations)
+      {
+	if (show_extents)
+	{
+	  std::vector<rect_i_t> rects;
+	  collect_ink_extents_rects (sx, sy, step, vertical, ext, rects);
+	  overlay_rects_bgra (out_buf, w, h, stride, rects);
+	}
 	/* Write as PPM (RGB, Y-flipped). */
 	write_ppm (out_buf, w, h, stride);
+      }
     }
     hb_raster_image_destroy (out_img);
   }
@@ -445,7 +454,15 @@ struct raster_output_t : output_options_t<true>, view_options_t
       }
 
       if (iter + 1 == num_iterations)
+      {
+	if (show_extents)
+	{
+	  std::vector<rect_i_t> rects;
+	  collect_ink_extents_rects (sx, sy, step, vertical, ext, rects);
+	  overlay_rects_bgra (out_buf, w, h, stride, rects);
+	}
 	write_ppm (out_buf, w, h, stride);
+      }
     }
 
     hb_raster_draw_reset (rdr);
@@ -559,32 +576,145 @@ struct raster_output_t : output_options_t<true>, view_options_t
     return fg_color;
   }
 
-  /* Write an A8 alpha image as PPM; composited over fg/bg, Y-flipped. */
-  void write_a8_as_ppm (hb_raster_image_t *img)
+  void collect_ink_extents_rects (float sx, float sy, float step, bool vertical,
+				  const hb_raster_extents_t &ext,
+				  std::vector<rect_i_t> &rects) const
   {
-    hb_raster_extents_t ext;
-    hb_raster_image_get_extents (img, &ext);
+    rects.clear ();
+    for (unsigned li = 0; li < lines.size (); li++)
+    {
+      float off_x = vertical ? -(step * (float) li) : 0.f;
+      float off_y = vertical ?  0.f                 : -(step * (float) li);
+
+      for (const auto &g : lines[li].glyphs)
+      {
+	hb_glyph_extents_t gext;
+	if (!hb_font_get_glyph_extents (font, g.gid, &gext))
+	  continue;
+
+	float gx = (g.x + off_x) * sx;
+	float gy = (g.y + off_y) * sy;
+	float x0 = gx + gext.x_bearing * sx;
+	float y0 = gy + (gext.y_bearing + gext.height) * sy;
+	float x1 = gx + (gext.x_bearing + gext.width) * sx;
+	float y1 = gy + gext.y_bearing * sy;
+
+	int ix0 = (int) floorf (hb_min (x0, x1)) - ext.x_origin;
+	int iy0 = (int) floorf (hb_min (y0, y1)) - ext.y_origin;
+	int ix1 = (int) ceilf  (hb_max (x0, x1)) - ext.x_origin;
+	int iy1 = (int) ceilf  (hb_max (y0, y1)) - ext.y_origin;
+	rects.push_back ({ix0, iy0, ix1, iy1});
+      }
+    }
+  }
+
+  static void overlay_rects_bgra (uint8_t *buf, unsigned w, unsigned h, unsigned stride,
+				  const std::vector<rect_i_t> &rects)
+  {
+    for (const auto &rc : rects)
+    {
+      int x0 = hb_max (0, hb_min ((int) w, rc.x0));
+      int x1 = hb_max (0, hb_min ((int) w, rc.x1));
+      int y0 = hb_max (0, hb_min ((int) h, rc.y0));
+      int y1 = hb_max (0, hb_min ((int) h, rc.y1));
+      if (x1 - x0 < 1 || y1 - y0 < 1) continue;
+
+      auto blend_at = [&] (int x, int y)
+      {
+	uint32_t d;
+	hb_memcpy (&d, buf + y * stride + x * 4, 4);
+	uint8_t db = (uint8_t) (d & 0xFF);
+	uint8_t dg = (uint8_t) ((d >> 8) & 0xFF);
+	uint8_t dr = (uint8_t) ((d >> 16) & 0xFF);
+	uint8_t da = (uint8_t) (d >> 24);
+	uint8_t ob = (uint8_t) ((db + 255) / 2);
+	uint8_t og = (uint8_t) (dg / 2);
+	uint8_t orr = (uint8_t) ((dr + 255) / 2);
+	uint8_t oa = hb_max (da, (uint8_t) 128);
+	uint32_t o = (uint32_t) ob | ((uint32_t) og << 8) | ((uint32_t) orr << 16) | ((uint32_t) oa << 24);
+	hb_memcpy (buf + y * stride + x * 4, &o, 4);
+      };
+
+      for (int x = x0; x < x1; x++)
+      {
+	blend_at (x, y0);
+	blend_at (x, y1 - 1);
+      }
+      for (int y = y0; y < y1; y++)
+      {
+	blend_at (x0, y);
+	blend_at (x1 - 1, y);
+      }
+    }
+  }
+
+  static void overlay_rects_rgb (std::vector<uint8_t> &buf, unsigned w, unsigned h,
+				 const std::vector<rect_i_t> &rects)
+  {
+    for (const auto &rc : rects)
+    {
+      int x0 = hb_max (0, hb_min ((int) w, rc.x0));
+      int x1 = hb_max (0, hb_min ((int) w, rc.x1));
+      int y0 = hb_max (0, hb_min ((int) h, rc.y0));
+      int y1 = hb_max (0, hb_min ((int) h, rc.y1));
+      if (x1 - x0 < 1 || y1 - y0 < 1) continue;
+
+      auto blend_at = [&] (int x, int y)
+      {
+	uint8_t *p = &buf[(y * w + x) * 3];
+	p[0] = (uint8_t) ((p[0] + 255) / 2);
+	p[1] = (uint8_t) (p[1] / 2);
+	p[2] = (uint8_t) ((p[2] + 255) / 2);
+      };
+
+      for (int x = x0; x < x1; x++)
+      {
+	blend_at (x, y0);
+	blend_at (x, y1 - 1);
+      }
+      for (int y = y0; y < y1; y++)
+      {
+	blend_at (x0, y);
+	blend_at (x1 - 1, y);
+      }
+    }
+  }
+
+  /* Write an A8 alpha image as PPM; composited over fg/bg, Y-flipped. */
+  void write_a8_as_ppm (hb_raster_image_t *img,
+			float sx, float sy, float step, bool vertical,
+			const hb_raster_extents_t &ext)
+  {
     if (!ext.width || !ext.height) return;
 
     uint8_t fg_r = hb_color_get_red (fg_color);
     uint8_t fg_g = hb_color_get_green (fg_color);
     uint8_t fg_b = hb_color_get_blue (fg_color);
 
-    const uint8_t *buf = hb_raster_image_get_buffer (img);
-    fprintf (out_fp, "P6\n%u %u\n255\n", ext.width, ext.height);
-    std::vector<uint8_t> row_buf (ext.width * 3);
-    for (unsigned row = 0; row < ext.height; row++)
-    {
-      const uint8_t *src = buf + (ext.height - 1 - row) * ext.stride;
+    const uint8_t *src = hb_raster_image_get_buffer (img);
+    std::vector<uint8_t> rgb (ext.width * ext.height * 3);
+    for (unsigned y = 0; y < ext.height; y++)
       for (unsigned x = 0; x < ext.width; x++)
       {
-	uint8_t a = src[x];
+	uint8_t a = src[y * ext.stride + x];
 	unsigned inv_a = 255 - a;
-	row_buf[x * 3 + 0] = (uint8_t) ((fg_r * a + bg_r * inv_a + 127) / 255);
-	row_buf[x * 3 + 1] = (uint8_t) ((fg_g * a + bg_g * inv_a + 127) / 255);
-	row_buf[x * 3 + 2] = (uint8_t) ((fg_b * a + bg_b * inv_a + 127) / 255);
+	rgb[(y * ext.width + x) * 3 + 0] = (uint8_t) ((fg_r * a + bg_r * inv_a + 127) / 255);
+	rgb[(y * ext.width + x) * 3 + 1] = (uint8_t) ((fg_g * a + bg_g * inv_a + 127) / 255);
+	rgb[(y * ext.width + x) * 3 + 2] = (uint8_t) ((fg_b * a + bg_b * inv_a + 127) / 255);
       }
-      fwrite (row_buf.data (), 1, ext.width * 3, out_fp);
+
+    if (show_extents)
+    {
+      std::vector<rect_i_t> rects;
+      collect_ink_extents_rects (sx, sy, step, vertical, ext, rects);
+      overlay_rects_rgb (rgb, ext.width, ext.height, rects);
+    }
+
+    fprintf (out_fp, "P6\n%u %u\n255\n", ext.width, ext.height);
+    for (unsigned row = 0; row < ext.height; row++)
+    {
+      const uint8_t *row_buf = &rgb[((ext.height - 1 - row) * ext.width) * 3];
+      fwrite (row_buf, 1, ext.width * 3, out_fp);
     }
   }
 
