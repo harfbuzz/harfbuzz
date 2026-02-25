@@ -192,9 +192,16 @@ struct raster_output_t : output_options_t<true>, view_options_t
     if (dir == HB_DIRECTION_INVALID) dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
-    hb_font_extents_t extents = {};
-    hb_font_get_extents_for_direction (font, dir, &extents);
-    float step = fabsf ((float) (extents.ascender - extents.descender + extents.line_gap));
+    float step = 0.f;
+    if (have_font_extents)
+      step = fabsf (scalbnf ((float) (font_extents.ascent + font_extents.descent + font_extents.line_gap),
+			     (int) subpixel_bits));
+    else
+    {
+      hb_font_extents_t extents = {};
+      hb_font_get_extents_for_direction (font, dir, &extents);
+      step = fabsf ((float) (extents.ascender - extents.descender + extents.line_gap));
+    }
     step += scalbnf ((float) line_space, (int) subpixel_bits);
     if (step < 0.f)
       step = 0.f;
