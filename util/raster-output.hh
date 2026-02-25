@@ -29,6 +29,7 @@
 
 #include "options.hh"
 #include "output-options.hh"
+#include "view-options.hh"
 #include "hb-raster.h"
 #include "hb-ot.h"
 
@@ -36,37 +37,15 @@
 #include <vector>
 
 
-struct raster_output_t : output_options_t<true>
+struct raster_output_t : output_options_t<true>, view_options_t
 {
   static const bool repeat_shape = false;
-  struct margin_t {
-    double t, r, b, l;
-  };
-
-  static gboolean
-  parse_margin (const char *name G_GNUC_UNUSED,
-                const char *arg,
-                gpointer    data,
-                GError    **error)
-  {
-    raster_output_t *opts = (raster_output_t *) data;
-    margin_t &m = opts->margin;
-    if (parse_1to4_doubles (arg, &m.t, &m.r, &m.b, &m.l))
-      return true;
-    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                 "%s argument should be one to four space-separated numbers",
-                 name);
-    return false;
-  }
 
   ~raster_output_t ()
   {
     hb_raster_draw_destroy (rdr);
     hb_raster_paint_destroy (pnt);
     hb_font_destroy (font);
-    g_free (fore);
-    g_free (back);
-    g_free (custom_palette);
   }
 
   void add_options (option_parser_t *parser)
@@ -75,21 +54,7 @@ struct raster_output_t : output_options_t<true>
     parser->set_description ("Renders shaped text as a PPM raster image.");
     refuse_tty = true;
     output_options_t::add_options (parser);
-
-    GOptionEntry entries[] =
-    {
-      {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,	"Set background color (default: #FFFFFF)",	"rrggbb/rrggbbaa"},
-      {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,	"Set foreground color (default: #000000)",	"rrggbb/rrggbbaa"},
-      {"font-palette",	0, 0, G_OPTION_ARG_INT,		&this->palette,	"Set font palette (default: 0)",		"index"},
-      {"custom-palette",	0, 0, G_OPTION_ARG_STRING,	&this->custom_palette,	"Custom palette",				"comma-separated colors"},
-      {"margin",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: 0)",	"one to four numbers"},
-      {nullptr}
-    };
-    parser->add_group (entries,
-		       "view",
-		       "View options:",
-		       "Options for output rendering",
-		       this);
+    view_options_t::add_options (parser);
   }
 
   template <typename app_t>
@@ -106,15 +71,23 @@ struct raster_output_t : output_options_t<true>
 		hb_ot_color_has_layers (face) ||
 		hb_ot_color_has_svg (face);
 
+    setup_foreground ();
+
     /* Parse foreground / background colors */
     {
-      const char *fg_spec = fore ? fore : "#000000";
       unsigned r, g, b, a;
-      if (parse_color (fg_spec, r, g, b, a))
+      const char *fg_spec = fore ? fore : DEFAULT_FORE;
+      if (foreground_use_palette && foreground_palette && foreground_palette->len)
+      {
+	auto &c = g_array_index (foreground_palette, rgba_color_t, 0);
+	r = c.r; g = c.g; b = c.b; a = c.a;
+	fg_color = HB_COLOR ((uint8_t) b, (uint8_t) g, (uint8_t) r, (uint8_t) a);
+      }
+      else if (parse_color (fg_spec, r, g, b, a))
 	fg_color = HB_COLOR ((uint8_t) b, (uint8_t) g, (uint8_t) r, (uint8_t) a);
     }
     {
-      const char *bg_spec = back ? back : "#FFFFFF";
+      const char *bg_spec = back ? back : DEFAULT_BACK;
       unsigned r, g, b, a;
       if (parse_color (bg_spec, r, g, b, a))
       {
@@ -487,11 +460,6 @@ struct raster_output_t : output_options_t<true>
     }
   }
 
-  char              *fore      = nullptr;
-  char              *back      = nullptr;
-  char              *custom_palette = nullptr;
-  int                palette   = 0;
-  margin_t           margin    = {0., 0., 0., 0.};
   hb_color_t         fg_color  = HB_COLOR (0, 0, 0, 255);
   uint8_t            bg_r = 255, bg_g = 255, bg_b = 255, bg_a = 255;
   hb_raster_draw_t  *rdr       = nullptr;
