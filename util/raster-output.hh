@@ -80,7 +80,8 @@ struct raster_output_t : output_options_t<true>
 
     hb_face_t *face = hb_font_get_face (font);
     has_color = hb_ot_color_has_paint (face) ||
-		hb_ot_color_has_layers (face);
+		hb_ot_color_has_layers (face) ||
+		hb_ot_color_has_svg (face);
 
     /* Parse foreground / background colors */
     {
@@ -247,6 +248,19 @@ struct raster_output_t : output_options_t<true>
 	hb_glyph_extents_t gext;
 	if (!hb_font_get_glyph_extents (font, g.gid, &gext))
 	  continue;
+
+	/* SVG glyphs may report zero extents; fall back to advance + font extents. */
+	if (!gext.width && !gext.height)
+	{
+	  hb_font_extents_t fext;
+	  hb_font_get_extents_for_direction (font, direction, &fext);
+	  hb_position_t adv_x, adv_y;
+	  hb_font_get_glyph_advance_for_direction (font, g.gid, direction, &adv_x, &adv_y);
+	  gext.x_bearing = 0;
+	  gext.y_bearing = fext.ascender;
+	  gext.width = adv_x ? adv_x : (hb_position_t) step;
+	  gext.height = -(hb_position_t) step;
+	}
 
 	float gx = (g.x + off_x) * sx;
 	float gy = (g.y + off_y) * sy;
