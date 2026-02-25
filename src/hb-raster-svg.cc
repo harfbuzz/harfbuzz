@@ -37,6 +37,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 
 /*
@@ -1965,6 +1966,78 @@ svg_process_gradient_def (hb_svg_render_context_t *ctx,
   }
 }
 
+static void
+svg_process_clip_path_def (hb_svg_render_context_t *ctx,
+			   hb_svg_xml_parser_t &parser,
+			   hb_svg_token_type_t tok)
+{
+  hb_svg_clip_path_def_t clip;
+  hb_svg_str_t id = parser.find_attr ("id");
+  hb_svg_str_t units = parser.find_attr ("clipPathUnits");
+  if (units.eq ("objectBoundingBox"))
+    clip.units_user_space = false;
+  else
+    clip.units_user_space = true;
+
+  hb_svg_str_t cp_transform = parser.find_attr ("transform");
+  if (cp_transform.len)
+  {
+    clip.has_clip_transform = true;
+    svg_parse_transform (cp_transform, &clip.clip_transform);
+  }
+
+  clip.first_shape = ctx->defs.clip_shapes.length;
+  clip.shape_count = 0;
+
+  if (tok == SVG_TOKEN_OPEN_TAG)
+  {
+    int cdepth = 1;
+    bool had_alloc_failure = false;
+    while (cdepth > 0)
+    {
+      hb_svg_token_type_t ct = parser.next ();
+      if (ct == SVG_TOKEN_EOF) break;
+      if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
+      if (ct == SVG_TOKEN_OPEN_TAG || ct == SVG_TOKEN_SELF_CLOSE_TAG)
+      {
+	if (cdepth == 1)
+	{
+	  hb_svg_shape_emit_data_t shape;
+	  if (svg_parse_shape_tag (parser, &shape))
+	  {
+	    hb_svg_clip_shape_t clip_shape;
+	    clip_shape.shape = shape;
+	    hb_svg_str_t sh_transform = parser.find_attr ("transform");
+	    if (sh_transform.len)
+	    {
+	      clip_shape.has_transform = true;
+	      svg_parse_transform (sh_transform, &clip_shape.transform);
+	    }
+	    ctx->defs.clip_shapes.push (clip_shape);
+	    if (likely (!ctx->defs.clip_shapes.in_error ()))
+	      clip.shape_count++;
+	    else
+	      had_alloc_failure = true;
+	  }
+	}
+	if (ct == SVG_TOKEN_OPEN_TAG)
+	  cdepth++;
+      }
+    }
+    if (had_alloc_failure)
+      id = {};
+  }
+
+  if (id.len && clip.shape_count)
+  {
+    char id_buf[64];
+    unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
+    memcpy (id_buf, id.data, n);
+    id_buf[n] = '\0';
+    (void) ctx->defs.add_clip_path (id_buf, clip);
+  }
+}
+
 /* Process <defs> children — gradients, clipPaths */
 static void
 svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
@@ -1983,80 +2056,16 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
     }
 
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-    {
-      if (parser.tag_name.eq ("linearGradient"))
-        svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_LINEAR);
-      else if (parser.tag_name.eq ("radialGradient"))
-        svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_RADIAL);
-      else if (parser.tag_name.eq ("clipPath"))
-      {
-        hb_svg_clip_path_def_t clip;
-        hb_svg_str_t id = parser.find_attr ("id");
-        hb_svg_str_t units = parser.find_attr ("clipPathUnits");
-        if (units.eq ("objectBoundingBox"))
-          clip.units_user_space = false;
-        else
-          clip.units_user_space = true;
-        hb_svg_str_t cp_transform = parser.find_attr ("transform");
-        if (cp_transform.len)
-        {
-          clip.has_clip_transform = true;
-          svg_parse_transform (cp_transform, &clip.clip_transform);
-        }
-        clip.first_shape = ctx->defs.clip_shapes.length;
-        clip.shape_count = 0;
-
-	        if (tok == SVG_TOKEN_OPEN_TAG)
-	        {
-	          int cdepth = 1;
-		  bool had_alloc_failure = false;
-	          while (cdepth > 0)
-	          {
-            hb_svg_token_type_t ct = parser.next ();
-            if (ct == SVG_TOKEN_EOF) break;
-            if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
-            if (ct == SVG_TOKEN_OPEN_TAG || ct == SVG_TOKEN_SELF_CLOSE_TAG)
-            {
-              if (cdepth == 1)
-              {
-                hb_svg_shape_emit_data_t shape;
-	                if (svg_parse_shape_tag (parser, &shape))
-	                {
-	                  hb_svg_clip_shape_t clip_shape;
-	                  clip_shape.shape = shape;
-                  hb_svg_str_t sh_transform = parser.find_attr ("transform");
-                  if (sh_transform.len)
-                  {
-	                    clip_shape.has_transform = true;
-	                    svg_parse_transform (sh_transform, &clip_shape.transform);
-	                  }
-	                  ctx->defs.clip_shapes.push (clip_shape);
-			  if (likely (!ctx->defs.clip_shapes.in_error ()))
-	                    clip.shape_count++;
-			  else
-			    had_alloc_failure = true;
-	                }
-	              }
-              if (ct == SVG_TOKEN_OPEN_TAG)
-                cdepth++;
-	            }
-	          }
-		  if (had_alloc_failure)
-		    id = {};
-	        }
-
-        if (id.len && clip.shape_count)
-        {
-          char id_buf[64];
-          unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-          memcpy (id_buf, id.data, n);
-          id_buf[n] = '\0';
-	          (void) ctx->defs.add_clip_path (id_buf, clip);
-	        }
-	      }
-      else
-      {
-	/* Skip unknown defs children */
+	    {
+	      if (parser.tag_name.eq ("linearGradient"))
+	        svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_LINEAR);
+	      else if (parser.tag_name.eq ("radialGradient"))
+	        svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_RADIAL);
+	      else if (parser.tag_name.eq ("clipPath"))
+	        svg_process_clip_path_def (ctx, parser, tok);
+	      else
+	      {
+		/* Skip unknown defs children */
 	if (tok == SVG_TOKEN_OPEN_TAG)
 	  depth++;
       }
@@ -2313,6 +2322,11 @@ svg_render_element (hb_svg_render_context_t *ctx,
                     hb_svg_str_t inherited_clip_path)
 {
   if (ctx->depth >= SVG_MAX_DEPTH) return;
+
+  const HB_UNUSED unsigned transform_depth = ctx->paint->transform_stack.length;
+  const HB_UNUSED unsigned clip_depth = ctx->paint->clip_stack.length;
+  const HB_UNUSED unsigned surface_depth = ctx->paint->surface_stack.length;
+
   ctx->depth++;
 
   hb_svg_str_t tag = parser.tag_name;
@@ -2578,6 +2592,10 @@ svg_render_element (hb_svg_render_context_t *ctx,
   }
 
   ctx->depth--;
+
+  assert (ctx->paint->transform_stack.length == transform_depth);
+  assert (ctx->paint->clip_stack.length == clip_depth);
+  assert (ctx->paint->surface_stack.length == surface_depth);
 }
 
 
