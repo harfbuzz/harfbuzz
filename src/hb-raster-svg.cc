@@ -1967,10 +1967,12 @@ svg_process_gradient_def (hb_svg_render_context_t *ctx,
 {
   hb_svg_gradient_t grad;
   grad.type = type;
+  /* Parse geometry and common gradient attrs from the opening tag. */
   svg_parse_gradient_geometry_attrs (parser, grad);
   svg_parse_gradient_attrs (parser, grad);
 
   hb_svg_str_t id = parser.find_attr ("id");
+  /* Child <stop> elements are only present for non-self-closing gradients. */
   if (tok == SVG_TOKEN_OPEN_TAG)
     svg_parse_gradient_children (ctx, parser, grad, &id);
 
@@ -2007,6 +2009,7 @@ svg_process_clip_path_def (hb_svg_render_context_t *ctx,
   clip.first_shape = ctx->defs.clip_shapes.length;
   clip.shape_count = 0;
 
+  /* Collect top-level geometry children of <clipPath>. */
   if (tok == SVG_TOKEN_OPEN_TAG)
   {
     int cdepth = 1;
@@ -2075,6 +2078,7 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
     {
+      /* Dispatch supported defs entries to focused helpers. */
       if (parser.tag_name.eq ("linearGradient"))
 	svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_LINEAR);
       else if (parser.tag_name.eq ("radialGradient"))
