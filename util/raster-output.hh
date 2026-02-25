@@ -71,8 +71,6 @@ struct raster_output_t : output_options_t<true>, view_options_t
 		hb_ot_color_has_layers (face) ||
 		hb_ot_color_has_svg (face);
 
-    setup_foreground ();
-
     /* Parse foreground / background colors */
     {
       unsigned r, g, b, a;

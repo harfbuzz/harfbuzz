@@ -51,7 +51,6 @@ struct view_cairo_t : view_options_t, output_options_t<>
   {
     lines = g_array_new (false, false, sizeof (helper_cairo_line_t));
     subpixel_bits = font_opts->subpixel_bits;
-    setup_foreground ();
   }
   void new_line () {}
   void consume_text (hb_buffer_t  *buffer,

@@ -49,6 +49,10 @@ struct view_options_t
 
   void add_options (option_parser_t *parser);
   void setup_foreground ();
+  void post_parse (GError **error G_GNUC_UNUSED)
+  {
+    setup_foreground ();
+  }
 
   struct rgba_color_t {
     unsigned r, g, b, a;
