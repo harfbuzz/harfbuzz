@@ -48,10 +48,129 @@ struct view_options_t
   }
 
   void add_options (option_parser_t *parser);
-  void setup_foreground ();
   void post_parse (GError **error G_GNUC_UNUSED)
   {
-    setup_foreground ();
+    stroke_enabled = false;
+    stroke_width = DEFAULT_STROKE_WIDTH;
+    if (!parse_color (DEFAULT_STROKE, stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a))
+      fail (false, "Failed parsing default stroke color `%s`", DEFAULT_STROKE);
+
+    const bool stroke_specified = stroke != nullptr;
+    if (stroke_specified)
+    {
+      stroke_enabled = true;
+      char *spec = g_strdup (stroke);
+      char *s = g_strstrip (spec);
+      if (*s)
+      {
+        char *plus = strchr (s, '+');
+        if (plus && strchr (plus + 1, '+'))
+          fail (false, "Failed parsing stroke spec `%s`", stroke);
+
+        char *color_spec = s;
+        char *width_spec = nullptr;
+        if (plus)
+        {
+          *plus = '\0';
+          width_spec = g_strstrip (plus + 1);
+        }
+        color_spec = g_strstrip (color_spec);
+
+        if (*color_spec)
+        {
+          if (!parse_color (color_spec, stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a))
+            fail (false, "Failed parsing stroke color `%s`", color_spec);
+        }
+
+        if (width_spec && *width_spec)
+        {
+          char *end = nullptr;
+          errno = 0;
+          double w = g_ascii_strtod (width_spec, &end);
+          if (!end || errno || *g_strstrip (end) || w <= 0)
+            fail (false, "Failed parsing stroke width `%s`", width_spec);
+          stroke_width = w;
+        }
+      }
+      g_free (spec);
+    }
+
+    foreground_use_palette = false;
+    if (foreground_palette)
+    {
+      g_array_unref (foreground_palette);
+      foreground_palette = nullptr;
+    }
+
+    const char *foreground = fore ? fore : DEFAULT_FORE;
+    if (!foreground)
+      return;
+
+    const bool use_rainbow =
+      foreground_use_rainbow ||
+      0 == g_ascii_strcasecmp (foreground, "rainbow") ||
+      0 == g_ascii_strcasecmp (foreground, "lgbtq");
+
+    if (use_rainbow)
+    {
+      static const char *rainbow[] =
+      {
+        "#DA0000BB",
+        "#FF6200BB",
+        "#D4B900BB",
+        "#005100BB",
+        "#000CFFBB",
+        "#42005BBB",
+        nullptr
+      };
+
+      foreground_palette = g_array_new (false, false, sizeof (rgba_color_t));
+      for (const char **entry = rainbow; *entry; entry++)
+      {
+        rgba_color_t color = {0, 0, 0, 255};
+        if (!parse_color (*entry, color.r, color.g, color.b, color.a))
+          fail (false, "Failed parsing foreground color `%s`", *entry);
+        g_array_append_val (foreground_palette, color);
+      }
+      foreground_use_palette = true;
+
+      if (!stroke_specified)
+        stroke_enabled = true;
+
+      return;
+    }
+
+    if (!strchr (foreground, ','))
+    {
+      rgba_color_t color = {0, 0, 0, 255};
+      if (!parse_color (foreground, color.r, color.g, color.b, color.a))
+        fail (false, "Failed parsing foreground color `%s`", foreground);
+      return;
+    }
+
+    foreground_palette = g_array_new (false, false, sizeof (rgba_color_t));
+    char **entries = g_strsplit (foreground, ",", -1);
+    for (unsigned i = 0; entries[i]; i++)
+    {
+      char *entry = g_strstrip (entries[i]);
+      if (!*entry)
+        continue;
+
+      rgba_color_t color = {0, 0, 0, 255};
+      if (!parse_color (entry, color.r, color.g, color.b, color.a))
+        fail (false, "Failed parsing foreground color `%s`", entry);
+      g_array_append_val (foreground_palette, color);
+    }
+    g_strfreev (entries);
+
+    if (!foreground_palette->len)
+    {
+      g_array_unref (foreground_palette);
+      foreground_palette = nullptr;
+      return;
+    }
+
+    foreground_use_palette = true;
   }
 
   struct rgba_color_t {
@@ -148,132 +267,6 @@ view_options_t::add_options (option_parser_t *parser)
 		     "View options:",
 		     "Options for output rendering",
 			     this);
-}
-
-inline void
-view_options_t::setup_foreground ()
-{
-  stroke_enabled = false;
-  stroke_width = DEFAULT_STROKE_WIDTH;
-  if (!parse_color (DEFAULT_STROKE, stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a))
-    fail (false, "Failed parsing default stroke color `%s`", DEFAULT_STROKE);
-
-  const bool stroke_specified = stroke != nullptr;
-  if (stroke_specified)
-  {
-    stroke_enabled = true;
-    char *spec = g_strdup (stroke);
-    char *s = g_strstrip (spec);
-    if (*s)
-    {
-      char *plus = strchr (s, '+');
-      if (plus && strchr (plus + 1, '+'))
-        fail (false, "Failed parsing stroke spec `%s`", stroke);
-
-      char *color_spec = s;
-      char *width_spec = nullptr;
-      if (plus)
-      {
-        *plus = '\0';
-        width_spec = g_strstrip (plus + 1);
-      }
-      color_spec = g_strstrip (color_spec);
-
-      if (*color_spec)
-      {
-        if (!parse_color (color_spec, stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a))
-          fail (false, "Failed parsing stroke color `%s`", color_spec);
-      }
-
-      if (width_spec && *width_spec)
-      {
-        char *end = nullptr;
-        errno = 0;
-        double w = g_ascii_strtod (width_spec, &end);
-        if (!end || errno || *g_strstrip (end) || w <= 0)
-          fail (false, "Failed parsing stroke width `%s`", width_spec);
-        stroke_width = w;
-      }
-    }
-    g_free (spec);
-  }
-
-  foreground_use_palette = false;
-  if (foreground_palette)
-  {
-    g_array_unref (foreground_palette);
-    foreground_palette = nullptr;
-  }
-
-  const char *foreground = fore ? fore : DEFAULT_FORE;
-  if (!foreground)
-    return;
-
-  const bool use_rainbow =
-    foreground_use_rainbow ||
-    0 == g_ascii_strcasecmp (foreground, "rainbow") ||
-    0 == g_ascii_strcasecmp (foreground, "lgbtq");
-
-  if (use_rainbow)
-  {
-    static const char *rainbow[] =
-    {
-      "#DA0000BB",
-      "#FF6200BB",
-      "#D4B900BB",
-      "#005100BB",
-      "#000CFFBB",
-      "#42005BBB",
-      nullptr
-    };
-
-    foreground_palette = g_array_new (false, false, sizeof (rgba_color_t));
-    for (const char **entry = rainbow; *entry; entry++)
-    {
-      rgba_color_t color = {0, 0, 0, 255};
-      if (!parse_color (*entry, color.r, color.g, color.b, color.a))
-        fail (false, "Failed parsing foreground color `%s`", *entry);
-      g_array_append_val (foreground_palette, color);
-    }
-    foreground_use_palette = true;
-
-    if (!stroke_specified)
-      stroke_enabled = true;
-
-    return;
-  }
-
-  if (!strchr (foreground, ','))
-  {
-    rgba_color_t color = {0, 0, 0, 255};
-    if (!parse_color (foreground, color.r, color.g, color.b, color.a))
-      fail (false, "Failed parsing foreground color `%s`", foreground);
-    return;
-  }
-
-  foreground_palette = g_array_new (false, false, sizeof (rgba_color_t));
-  char **entries = g_strsplit (foreground, ",", -1);
-  for (unsigned i = 0; entries[i]; i++)
-  {
-    char *entry = g_strstrip (entries[i]);
-    if (!*entry)
-      continue;
-
-    rgba_color_t color = {0, 0, 0, 255};
-    if (!parse_color (entry, color.r, color.g, color.b, color.a))
-      fail (false, "Failed parsing foreground color `%s`", entry);
-    g_array_append_val (foreground_palette, color);
-  }
-  g_strfreev (entries);
-
-  if (!foreground_palette->len)
-  {
-    g_array_unref (foreground_palette);
-    foreground_palette = nullptr;
-    return;
-  }
-
-  foreground_use_palette = true;
 }
 
 #endif
