@@ -1535,7 +1535,9 @@ svg_shape_path_emit (hb_draw_funcs_t *dfuncs, void *draw_data, void *user_data)
  */
 
 static void svg_render_element (hb_svg_render_context_t *ctx,
-				hb_svg_xml_parser_t &parser);
+				hb_svg_xml_parser_t &parser,
+				hb_svg_str_t inherited_fill,
+				float inherited_fill_opacity);
 
 /* Parse a gradient <stop> element */
 static void
@@ -1776,7 +1778,9 @@ svg_render_shape (hb_svg_render_context_t *ctx,
 /* Render one element (may be a container or shape) */
 static void
 svg_render_element (hb_svg_render_context_t *ctx,
-		    hb_svg_xml_parser_t &parser)
+		    hb_svg_xml_parser_t &parser,
+		    hb_svg_str_t inherited_fill,
+		    float inherited_fill_opacity)
 {
   if (ctx->depth >= SVG_MAX_DEPTH) return;
   ctx->depth++;
@@ -1785,12 +1789,13 @@ svg_render_element (hb_svg_render_context_t *ctx,
   bool self_closing = parser.self_closing;
 
   /* Extract common attributes */
-  hb_svg_str_t fill_str = parser.find_attr ("fill");
+  hb_svg_str_t fill_attr = parser.find_attr ("fill");
   hb_svg_str_t fill_opacity_str = parser.find_attr ("fill-opacity");
   hb_svg_str_t opacity_str = parser.find_attr ("opacity");
   hb_svg_str_t transform_str = parser.find_attr ("transform");
 
-  float fill_opacity = fill_opacity_str.len ? svg_parse_float (fill_opacity_str) : 1.f;
+  hb_svg_str_t fill_str = fill_attr.is_null () ? inherited_fill : fill_attr;
+  float fill_opacity = fill_opacity_str.len ? svg_parse_float (fill_opacity_str) : inherited_fill_opacity;
   float opacity = opacity_str.len ? svg_parse_float (opacity_str) : 1.f;
 
   if (tag.eq ("g") || tag.eq ("svg"))
@@ -1846,15 +1851,16 @@ svg_render_element (hb_svg_render_context_t *ctx,
 
 	if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
 	{
+	  hb_svg_str_t child_tag = parser.tag_name;
 	  if (parser.tag_name.eq ("defs"))
 	  {
 	    if (tok != SVG_TOKEN_SELF_CLOSE_TAG)
 	      svg_process_defs (ctx, parser);
 	    continue;
 	  }
-	  svg_render_element (ctx, parser);
-	  if (tok == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("g") &&
-	      !parser.tag_name.eq ("svg") && !parser.tag_name.eq ("use"))
+	  svg_render_element (ctx, parser, fill_str, fill_opacity);
+	  if (tok == SVG_TOKEN_OPEN_TAG && !child_tag.eq ("g") &&
+	      !child_tag.eq ("svg") && !child_tag.eq ("use"))
 	  {
 	    /* Skip children of non-container elements we don't handle */
 	    int skip_depth = 1;
@@ -2049,7 +2055,7 @@ svg_render_element (hb_svg_render_context_t *ctx,
 	hb_svg_xml_parser_t ref_parser (found, remaining);
 	hb_svg_token_type_t tok = ref_parser.next ();
 	if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-	  svg_render_element (ctx, ref_parser);
+	  svg_render_element (ctx, ref_parser, fill_str, fill_opacity);
       }
 
       if (has_translate)
@@ -2132,7 +2138,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 	  hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
 	  ctx.push_transform (1, 0, 0, -1, 0, 0);
 
-	  svg_render_element (&ctx, parser);
+	  svg_render_element (&ctx, parser, hb_svg_str_t (), 1.f);
 
 	  ctx.pop_transform ();
 	  hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
