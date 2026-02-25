@@ -389,5 +389,4 @@ parse_1to4_doubles (const char *arg,
   }
 }
 
-
 #endif

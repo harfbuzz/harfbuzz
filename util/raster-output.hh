@@ -179,8 +179,6 @@ struct raster_output_t : output_options_t<true>
     unsigned int num_iterations = app->num_iterations ? app->num_iterations : 1;
 
     /* pixels per font unit */
-    float sx = scalbnf (1.f, -(int) subpixel_bits);
-    float sy = scalbnf (1.f, -(int) subpixel_bits);
     float scale_factor = scalbnf (1.f, (int) subpixel_bits);
 
     hb_raster_draw_set_scale_factor (rdr, scale_factor, scale_factor);
@@ -205,12 +203,12 @@ struct raster_output_t : output_options_t<true>
 
     if (has_color && pnt)
     {
-      finish_paint (sx, sy, step, vertical, num_iterations);
+      finish_paint (step, vertical, num_iterations);
     }
     else
     {
-      hb_raster_extents_t ext;
-      if (!compute_extents (sx, sy, step, vertical, &ext))
+      hb_glyph_extents_t geom_extents;
+      if (!compute_geometry_extents (step, vertical, &geom_extents))
       {
 	cleanup ();
 	return;
@@ -218,6 +216,12 @@ struct raster_output_t : output_options_t<true>
 
       for (unsigned int iter = 0; iter < num_iterations; iter++)
       {
+	hb_raster_draw_set_transform (rdr, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+	if (!hb_raster_draw_set_glyph_extents (rdr, &geom_extents))
+	  continue;
+	hb_raster_extents_t ext;
+	hb_raster_draw_get_extents (rdr, &ext);
+	apply_margin_to_extents (&ext);
 	hb_raster_draw_set_extents (rdr, &ext);
 	for (unsigned li = 0; li < lines.size (); li++)
 	{
@@ -255,15 +259,26 @@ struct raster_output_t : output_options_t<true>
     std::vector<glyph_instance_t> glyphs;
   };
 
-  void finish_paint (float sx, float sy, float step, bool vertical, unsigned int num_iterations)
+  void finish_paint (float step, bool vertical, unsigned int num_iterations)
   {
-    hb_raster_extents_t ext;
-    if (!compute_extents (sx, sy, step, vertical, &ext))
+    hb_glyph_extents_t geom_extents;
+    if (!compute_geometry_extents (step, vertical, &geom_extents))
       return;
+
+    hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+    if (!hb_raster_paint_set_glyph_extents (pnt, &geom_extents))
+      return;
+
+    hb_raster_extents_t ext;
+    hb_raster_paint_get_extents (pnt, &ext);
+    apply_margin_to_extents (&ext);
+
     unsigned w = ext.width;
     unsigned h = ext.height;
     unsigned stride = w * 4;
     ext.stride = stride;
+    hb_raster_paint_set_extents (pnt, &ext);
+
     hb_raster_image_t *out_img = hb_raster_image_create_or_fail ();
     if (!out_img) return;
     if (!hb_raster_image_configure (out_img, HB_RASTER_FORMAT_BGRA32, &ext))
@@ -293,8 +308,6 @@ struct raster_output_t : output_options_t<true>
 	  float pen_y = g.y + off_y;
 
 	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-	  hb_raster_paint_set_extents (pnt, &ext);
-
 	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y, 0, fg_color);
 
 	  hb_raster_image_t *img = hb_raster_paint_render (pnt);
@@ -348,11 +361,10 @@ struct raster_output_t : output_options_t<true>
     direction = HB_DIRECTION_INVALID;
   }
 
-  bool compute_extents (float sx, float sy, float step, bool vertical, hb_raster_extents_t *ext)
+  bool compute_geometry_extents (float step, bool vertical, hb_glyph_extents_t *ext)
   {
-    /* Compute bounding box in pixel space from glyph extents. */
-    float pmin_x = 1e30f, pmin_y = 1e30f;
-    float pmax_x = -1e30f, pmax_y = -1e30f;
+    float min_x = 1e30f, min_y = 1e30f;
+    float max_x = -1e30f, max_y = -1e30f;
     bool have_extents = false;
 
     for (unsigned li = 0; li < lines.size (); li++)
@@ -366,39 +378,58 @@ struct raster_output_t : output_options_t<true>
 	if (!hb_font_get_glyph_extents (font, g.gid, &gext))
 	  continue;
 
-	float gx = (g.x + off_x) * sx;
-	float gy = (g.y + off_y) * sy;
+	float gx = g.x + off_x;
+	float gy = g.y + off_y;
+	float x0 = gx + gext.x_bearing;
+	float y0 = gy + gext.y_bearing;
+	float x1 = x0 + gext.width;
+	float y1 = y0 + gext.height;
 
-	float x0 = gx + gext.x_bearing * sx;
-	float y0 = gy + (gext.y_bearing + gext.height) * sy;
-	float x1 = gx + (gext.x_bearing + gext.width) * sx;
-	float y1 = gy + gext.y_bearing * sy;
-
-	pmin_x = hb_min (pmin_x, hb_min (x0, x1));
-	pmin_y = hb_min (pmin_y, hb_min (y0, y1));
-	pmax_x = hb_max (pmax_x, hb_max (x0, x1));
-	pmax_y = hb_max (pmax_y, hb_max (y0, y1));
+	min_x = hb_min (min_x, hb_min (x0, x1));
+	min_y = hb_min (min_y, hb_min (y0, y1));
+	max_x = hb_max (max_x, hb_max (x0, x1));
+	max_y = hb_max (max_y, hb_max (y0, y1));
 	have_extents = true;
       }
     }
 
-    if (!have_extents || pmin_x >= pmax_x || pmin_y >= pmax_y)
+    if (!have_extents || min_x >= max_x || min_y >= max_y)
       return false;
 
-    /* Keep 1px safety pad used before AA rasterization and then apply margin. */
-    int ix0 = (int) floorf (pmin_x) - 1 - (int) floor (margin.l);
-    int iy0 = (int) floorf (pmin_y) - 1 - (int) floor (margin.b);
-    int ix1 = (int) ceilf  (pmax_x) + 1 + (int) ceil  (margin.r);
-    int iy1 = (int) ceilf  (pmax_y) + 1 + (int) ceil  (margin.t);
-    if (ix1 <= ix0 || iy1 <= iy0)
+    int ex0 = (int) floorf (min_x);
+    int ey0 = (int) floorf (min_y);
+    int ex1 = (int) ceilf  (max_x);
+    int ey1 = (int) ceilf  (max_y);
+    if (ex1 <= ex0 || ey1 <= ey0)
       return false;
 
-    ext->x_origin = ix0;
-    ext->y_origin = iy0;
-    ext->width = (unsigned) (ix1 - ix0);
-    ext->height = (unsigned) (iy1 - iy0);
-    ext->stride = 0;
+    ext->x_bearing = ex0;
+    ext->y_bearing = ey0;
+    ext->width = ex1 - ex0;
+    ext->height = ey1 - ey0;
     return true;
+  }
+
+  void apply_margin_to_extents (hb_raster_extents_t *ext) const
+  {
+    int left = (int) floor (margin.l);
+    int right = (int) ceil (margin.r);
+    int bottom = (int) floor (margin.b);
+    int top = (int) ceil (margin.t);
+
+    int x0 = ext->x_origin - left;
+    int y0 = ext->y_origin - bottom;
+    int x1 = ext->x_origin + (int) ext->width + right;
+    int y1 = ext->y_origin + (int) ext->height + top;
+
+    if (x1 <= x0) x1 = x0 + 1;
+    if (y1 <= y0) y1 = y0 + 1;
+
+    ext->x_origin = x0;
+    ext->y_origin = y0;
+    ext->width = (unsigned) (x1 - x0);
+    ext->height = (unsigned) (y1 - y0);
+    ext->stride = 0;
   }
 
   /* Write an A8 alpha image as PPM; composited over fg/bg, Y-flipped. */
