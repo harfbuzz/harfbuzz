@@ -457,7 +457,11 @@ hexval (char c)
 /* Parse SVG color value; returns HB_COLOR with alpha = 255.
  * Sets *is_none if "none". */
 static hb_color_t
-svg_parse_color (hb_svg_str_t s, hb_color_t foreground, hb_face_t *face, bool *is_none)
+svg_parse_color (hb_svg_str_t s,
+		 hb_color_t foreground,
+		 hb_face_t *face,
+		 unsigned palette,
+		 bool *is_none)
 {
   *is_none = false;
   s = s.trim ();
@@ -488,7 +492,7 @@ svg_parse_color (hb_svg_str_t s, hb_color_t foreground, hb_face_t *face, bool *i
 
       hb_color_t palette_color;
       unsigned count = 1;
-      hb_ot_color_palette_get_colors (face, 0, color_index, &count, &palette_color);
+      hb_ot_color_palette_get_colors (face, palette, color_index, &count, &palette_color);
       if (count)
 	return palette_color;
     }
@@ -505,7 +509,7 @@ svg_parse_color (hb_svg_str_t s, hb_color_t foreground, hb_face_t *face, bool *i
       while (e > val_start && *(e - 1) != ')') e--;
       if (e > val_start) e--;
       hb_svg_str_t fallback = {val_start, (unsigned) (e - val_start)};
-      return svg_parse_color (fallback, foreground, face, is_none);
+      return svg_parse_color (fallback, foreground, face, palette, is_none);
     }
 
     return foreground;
@@ -1448,6 +1452,7 @@ struct hb_svg_render_context_t
   hb_raster_paint_t *paint;
   hb_paint_funcs_t *pfuncs;
   hb_font_t *font;
+  unsigned palette;
   hb_color_t foreground;
   hb_svg_defs_t defs;
   int depth = 0;
@@ -1610,7 +1615,11 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
   }
 
   /* Solid color */
-  hb_color_t color = svg_parse_color (fill_str, ctx->foreground, hb_font_get_face (ctx->font), &is_none);
+  hb_color_t color = svg_parse_color (fill_str,
+				      ctx->foreground,
+				      hb_font_get_face (ctx->font),
+				      ctx->palette,
+				      &is_none);
   if (is_none) return;
 
   if (fill_opacity < 1.f)
@@ -1759,7 +1768,8 @@ static void
 svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 			 hb_svg_gradient_t &grad,
 			 hb_color_t foreground,
-			 hb_face_t *face)
+			 hb_face_t *face,
+			 unsigned palette)
 {
   hb_svg_str_t offset_str = parser.find_attr ("offset");
   hb_svg_str_t color_str = parser.find_attr ("stop-color");
@@ -1777,7 +1787,7 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
   bool is_none = false;
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
   if (color_str.len)
-    color = svg_parse_color (color_str, foreground, face, &is_none);
+    color = svg_parse_color (color_str, foreground, face, palette, &is_none);
 
   if (opacity_str.len)
   {
@@ -1896,7 +1906,9 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 	    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
 	    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
 		parser.tag_name.eq ("stop"))
-	      svg_parse_gradient_stop (parser, grad, ctx->foreground, hb_font_get_face (ctx->font));
+	      svg_parse_gradient_stop (parser, grad,
+				       ctx->foreground, hb_font_get_face (ctx->font),
+				       ctx->palette);
 	    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
 	      gdepth++;
 	  }
@@ -1942,7 +1954,9 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 	    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
 	    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
 		parser.tag_name.eq ("stop"))
-	      svg_parse_gradient_stop (parser, grad, ctx->foreground, hb_font_get_face (ctx->font));
+	      svg_parse_gradient_stop (parser, grad,
+				       ctx->foreground, hb_font_get_face (ctx->font),
+				       ctx->palette);
 	    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
 	      gdepth++;
 	  }
@@ -2553,6 +2567,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 		      hb_blob_t *blob,
 		      hb_codepoint_t glyph,
 		      hb_font_t *font,
+		      unsigned palette,
 		      hb_color_t foreground)
 {
   unsigned data_len;
@@ -2580,6 +2595,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   ctx.paint = paint;
   ctx.pfuncs = pfuncs;
   ctx.font = font;
+  ctx.palette = palette;
   ctx.foreground = foreground;
   ctx.doc_start = data;
   ctx.doc_len = data_len;

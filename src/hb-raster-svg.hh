@@ -48,6 +48,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 		      hb_blob_t *blob,
 		      hb_codepoint_t glyph,
 		      hb_font_t *font,
+		      unsigned palette,
 		      hb_color_t foreground);
 
 

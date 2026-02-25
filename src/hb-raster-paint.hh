@@ -100,6 +100,7 @@ struct hb_raster_paint_t
   /* SVG rendering state */
   hb_codepoint_t      svg_glyph          = 0;
   hb_font_t          *svg_font           = nullptr;
+  unsigned            svg_palette        = 0;
 
   /* Stacks */
   hb_vector_t<hb_transform_t<>>     transform_stack;

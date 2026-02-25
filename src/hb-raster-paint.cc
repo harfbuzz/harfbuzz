@@ -709,7 +709,8 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   /* Handle SVG format */
   if (format == HB_PAINT_IMAGE_FORMAT_SVG)
-    return hb_raster_svg_render (c, blob, c->svg_glyph, c->svg_font, c->foreground);
+    return hb_raster_svg_render (c, blob, c->svg_glyph, c->svg_font,
+				 c->svg_palette, c->foreground);
 
   /* Only handle raw BGRA32 otherwise */
   if (format != HB_TAG ('B','G','R','A'))
@@ -2023,11 +2024,13 @@ hb_raster_paint_glyph (hb_raster_paint_t *paint,
   hb_raster_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
   paint->svg_glyph = glyph;
   paint->svg_font = font;
+  paint->svg_palette = palette;
   hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
 						hb_raster_paint_get_funcs (), paint,
 						palette, foreground);
   paint->svg_glyph = 0;
   paint->svg_font = nullptr;
+  paint->svg_palette = 0;
   hb_raster_paint_set_transform (paint, xx, yx, xy, yy, dx, dy);
   return ret;
 }
