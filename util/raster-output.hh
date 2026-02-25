@@ -350,11 +350,44 @@ struct raster_output_t : output_options_t<true>, view_options_t
 
   bool compute_extents (float sx, float sy, float step, bool vertical, hb_raster_extents_t *ext)
   {
-    /* Compute bounding box in pixel space from glyph extents. */
+    /* Compute bounding box in pixel space from logical and/or ink extents. */
+    const bool include_logical = logical || !ink;
+    const bool include_ink = ink || !logical;
+
     float pmin_x = 1e30f, pmin_y = 1e30f;
     float pmax_x = -1e30f, pmax_y = -1e30f;
     bool have_extents = false;
 
+    if (include_logical)
+    {
+      for (unsigned li = 0; li < lines.size (); li++)
+      {
+	float off_x = vertical ? -(step * (float) li) : 0.f;
+	float off_y = vertical ?  0.f                 : -(step * (float) li);
+
+	float x0 = off_x * sx;
+	float y0 = off_y * sy;
+	float x1 = (off_x + lines[li].advance_x) * sx;
+	float y1 = (off_y + lines[li].advance_y) * sy;
+	float line_w = step * sx;
+	float line_h = step * sy;
+	float lx0 = hb_min (x0, x1), ly0 = hb_min (y0, y1);
+	float lx1 = hb_max (x0, x1), ly1 = hb_max (y0, y1);
+	if (vertical)
+	  lx0 -= line_w;
+	else
+	  ly0 -= line_h;
+
+	pmin_x = hb_min (pmin_x, lx0);
+	pmin_y = hb_min (pmin_y, ly0);
+	pmax_x = hb_max (pmax_x, lx1);
+	pmax_y = hb_max (pmax_y, ly1);
+	have_extents = true;
+      }
+    }
+
+    if (include_ink)
+    {
     for (unsigned li = 0; li < lines.size (); li++)
     {
       float off_x = vertical ? -(step * (float) li) : 0.f;
@@ -380,6 +413,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
 	pmax_y = hb_max (pmax_y, hb_max (y0, y1));
 	have_extents = true;
       }
+    }
     }
 
     if (!have_extents || pmin_x >= pmax_x || pmin_y >= pmax_y)
