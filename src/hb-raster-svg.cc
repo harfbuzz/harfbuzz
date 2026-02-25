@@ -37,6 +37,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 
 /*
@@ -1306,10 +1307,13 @@ struct hb_svg_defs_t
   hb_vector_t<hb_svg_clip_path_def_t> clip_paths;
   hb_vector_t<hb_svg_def_t> defs;
 
-  void add_gradient (const char *id, const hb_svg_gradient_t &grad)
+  bool add_gradient (const char *id, const hb_svg_gradient_t &grad)
   {
     unsigned idx = gradients.length;
     gradients.push (grad);
+    if (unlikely (gradients.in_error ()))
+      return false;
+
     hb_svg_def_t def;
     unsigned n = hb_min (strlen (id), (size_t) sizeof (def.id) - 1);
     memcpy (def.id, id, n);
@@ -1317,6 +1321,12 @@ struct hb_svg_defs_t
     def.type = hb_svg_def_t::DEF_GRADIENT;
     def.index = idx;
     defs.push (def);
+    if (unlikely (defs.in_error ()))
+    {
+      gradients.pop ();
+      return false;
+    }
+    return true;
   }
 
   const hb_svg_gradient_t *find_gradient (const char *id) const
@@ -1328,10 +1338,13 @@ struct hb_svg_defs_t
     return nullptr;
   }
 
-  void add_clip_path (const char *id, const hb_svg_clip_path_def_t &clip)
+  bool add_clip_path (const char *id, const hb_svg_clip_path_def_t &clip)
   {
     unsigned idx = clip_paths.length;
     clip_paths.push (clip);
+    if (unlikely (clip_paths.in_error ()))
+      return false;
+
     hb_svg_def_t def;
     unsigned n = hb_min (strlen (id), (size_t) sizeof (def.id) - 1);
     memcpy (def.id, id, n);
@@ -1339,6 +1352,12 @@ struct hb_svg_defs_t
     def.type = hb_svg_def_t::DEF_CLIP_PATH;
     def.index = idx;
     defs.push (def);
+    if (unlikely (defs.in_error ()))
+    {
+      clip_paths.pop ();
+      return false;
+    }
+    return true;
   }
 
   const hb_svg_clip_path_def_t *find_clip_path (const char *id) const
@@ -1352,8 +1371,24 @@ struct hb_svg_defs_t
 
   const hb_svg_clip_path_def_t *find_clip_path_str (hb_svg_str_t s) const
   {
-    if (!s.starts_with ("url("))
+    char id[64];
+    if (!parse_paint_server_id (s, id))
       return nullptr;
+    return find_clip_path (id);
+  }
+
+  const hb_svg_gradient_t *find_gradient_str (hb_svg_str_t s) const
+  {
+    char id[64];
+    if (!parse_paint_server_id (s, id))
+      return nullptr;
+    return find_gradient (id);
+  }
+
+  static bool parse_paint_server_id (hb_svg_str_t s, char out[64])
+  {
+    if (!s.starts_with ("url("))
+      return false;
 
     const char *p = s.data + 4;
     const char *e = s.data + s.len;
@@ -1361,31 +1396,22 @@ struct hb_svg_defs_t
     if (p < e && *p == '#') p++;
     const char *start = p;
     while (p < e && *p != ')') p++;
-    char buf[64];
-    unsigned n = hb_min ((unsigned) (p - start), (unsigned) sizeof (buf) - 1);
-    memcpy (buf, start, n);
-    buf[n] = '\0';
-    return find_clip_path (buf);
+    unsigned n = hb_min ((unsigned) (p - start), (unsigned) 63);
+    memcpy (out, start, n);
+    out[n] = '\0';
+    return true;
   }
 
-  const hb_svg_gradient_t *find_gradient_str (hb_svg_str_t s) const
+  static bool parse_fragment_id (hb_svg_str_t s, char out[64])
   {
-    /* Handle url(#id) references */
-    if (s.starts_with ("url("))
-    {
-      const char *p = s.data + 4;
-      const char *e = s.data + s.len;
-      while (p < e && *p == ' ') p++;
-      if (p < e && *p == '#') p++;
-      const char *start = p;
-      while (p < e && *p != ')') p++;
-      char buf[64];
-      unsigned n = hb_min ((unsigned) (p - start), (unsigned) sizeof (buf) - 1);
-      memcpy (buf, start, n);
-      buf[n] = '\0';
-      return find_gradient (buf);
-    }
-    return nullptr;
+    s = s.trim ();
+    if (!s.len || s.data[0] != '#')
+      return false;
+
+    unsigned n = hb_min (s.len - 1, (unsigned) 63);
+    memcpy (out, s.data + 1, n);
+    out[n] = '\0';
+    return true;
   }
 };
 
@@ -1768,10 +1794,10 @@ static void svg_render_element (hb_svg_render_context_t *ctx,
 				hb_svg_xml_parser_t &parser,
 				hb_svg_str_t inherited_fill,
 				float inherited_fill_opacity,
-                                hb_svg_str_t inherited_clip_path);
+				hb_svg_str_t inherited_clip_path);
 
 /* Parse a gradient <stop> element */
-static void
+static bool
 svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 			 hb_svg_gradient_t &grad,
 			 hb_paint_funcs_t *pfuncs,
@@ -1809,6 +1835,16 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 
   hb_svg_gradient_stop_t stop = {offset, color};
   grad.stops.push (stop);
+  return !grad.stops.in_error ();
+}
+
+static hb_svg_str_t
+svg_find_href_attr (const hb_svg_xml_parser_t &parser)
+{
+  hb_svg_str_t href = parser.find_attr ("href");
+  if (href.is_null ())
+    href = parser.find_attr ("xlink:href");
+  return href;
 }
 
 /* Parse gradient element attributes */
@@ -1852,15 +1888,174 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
     svg_parse_transform (transform_str, &grad.gradient_transform);
   }
 
-  /* xlink:href or href */
-  hb_svg_str_t href = parser.find_attr ("href");
-  if (href.is_null ())
-    href = parser.find_attr ("xlink:href");
+  hb_svg_str_t href = svg_find_href_attr (parser);
   if (href.len && href.data[0] == '#')
   {
     unsigned n = hb_min (href.len - 1, (unsigned) sizeof (grad.href_id) - 1);
     memcpy (grad.href_id, href.data + 1, n);
     grad.href_id[n] = '\0';
+  }
+}
+
+static void
+svg_parse_gradient_geometry_attrs (hb_svg_xml_parser_t &parser,
+				   hb_svg_gradient_t &grad)
+{
+  if (grad.type == SVG_GRADIENT_LINEAR)
+  {
+    hb_svg_str_t x1_str = parser.find_attr ("x1");
+    hb_svg_str_t y1_str = parser.find_attr ("y1");
+    hb_svg_str_t x2_str = parser.find_attr ("x2");
+    hb_svg_str_t y2_str = parser.find_attr ("y2");
+    if (x1_str.len) { grad.x1 = svg_parse_float (x1_str); grad.has_x1 = true; }
+    if (y1_str.len) { grad.y1 = svg_parse_float (y1_str); grad.has_y1 = true; }
+    if (x2_str.len) { grad.x2 = svg_parse_float (x2_str); grad.has_x2 = true; }
+    if (y2_str.len) { grad.y2 = svg_parse_float (y2_str); grad.has_y2 = true; }
+
+    /* Default x2 to 1 if not explicitly set (objectBoundingBox default). */
+    if (!grad.has_x2)
+      grad.x2 = 1.f;
+  }
+  else /* SVG_GRADIENT_RADIAL */
+  {
+    hb_svg_str_t cx_str = parser.find_attr ("cx");
+    hb_svg_str_t cy_str = parser.find_attr ("cy");
+    hb_svg_str_t r_str = parser.find_attr ("r");
+    hb_svg_str_t fx_str = parser.find_attr ("fx");
+    hb_svg_str_t fy_str = parser.find_attr ("fy");
+
+    if (cx_str.len) { grad.cx = svg_parse_float (cx_str); grad.has_cx = true; }
+    if (cy_str.len) { grad.cy = svg_parse_float (cy_str); grad.has_cy = true; }
+    if (r_str.len) { grad.r = svg_parse_float (r_str); grad.has_r = true; }
+    if (fx_str.len) { grad.fx = svg_parse_float (fx_str); grad.has_fx = true; }
+    if (fy_str.len) { grad.fy = svg_parse_float (fy_str); grad.has_fy = true; }
+  }
+}
+
+static void
+svg_parse_gradient_children (hb_svg_render_context_t *ctx,
+			     hb_svg_xml_parser_t &parser,
+			     hb_svg_gradient_t &grad,
+			     hb_svg_str_t *id)
+{
+  int gdepth = 1;
+  bool had_alloc_failure = false;
+  while (gdepth > 0)
+  {
+    hb_svg_token_type_t gt = parser.next ();
+    if (gt == SVG_TOKEN_EOF) break;
+    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
+    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
+	parser.tag_name.eq ("stop"))
+      if (unlikely (!svg_parse_gradient_stop (parser, grad,
+					      ctx->pfuncs, ctx->paint,
+					      ctx->foreground, hb_font_get_face (ctx->font),
+					      ctx->palette)))
+	had_alloc_failure = true;
+    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
+      gdepth++;
+  }
+  if (had_alloc_failure)
+    *id = {};
+}
+
+static void
+svg_process_gradient_def (hb_svg_render_context_t *ctx,
+			  hb_svg_xml_parser_t &parser,
+			  hb_svg_token_type_t tok,
+			  hb_svg_gradient_type_t type)
+{
+  hb_svg_gradient_t grad;
+  grad.type = type;
+  /* Parse geometry and common gradient attrs from the opening tag. */
+  svg_parse_gradient_geometry_attrs (parser, grad);
+  svg_parse_gradient_attrs (parser, grad);
+
+  hb_svg_str_t id = parser.find_attr ("id");
+  /* Child <stop> elements are only present for non-self-closing gradients. */
+  if (tok == SVG_TOKEN_OPEN_TAG)
+    svg_parse_gradient_children (ctx, parser, grad, &id);
+
+  if (id.len)
+  {
+    char id_buf[64];
+    unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
+    memcpy (id_buf, id.data, n);
+    id_buf[n] = '\0';
+    (void) ctx->defs.add_gradient (id_buf, grad);
+  }
+}
+
+static void
+svg_process_clip_path_def (hb_svg_render_context_t *ctx,
+			   hb_svg_xml_parser_t &parser,
+			   hb_svg_token_type_t tok)
+{
+  hb_svg_clip_path_def_t clip;
+  hb_svg_str_t id = parser.find_attr ("id");
+  hb_svg_str_t units = parser.find_attr ("clipPathUnits");
+  if (units.eq ("objectBoundingBox"))
+    clip.units_user_space = false;
+  else
+    clip.units_user_space = true;
+
+  hb_svg_str_t cp_transform = parser.find_attr ("transform");
+  if (cp_transform.len)
+  {
+    clip.has_clip_transform = true;
+    svg_parse_transform (cp_transform, &clip.clip_transform);
+  }
+
+  clip.first_shape = ctx->defs.clip_shapes.length;
+  clip.shape_count = 0;
+
+  /* Collect top-level geometry children of <clipPath>. */
+  if (tok == SVG_TOKEN_OPEN_TAG)
+  {
+    int cdepth = 1;
+    bool had_alloc_failure = false;
+    while (cdepth > 0)
+    {
+      hb_svg_token_type_t ct = parser.next ();
+      if (ct == SVG_TOKEN_EOF) break;
+      if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
+      if (ct == SVG_TOKEN_OPEN_TAG || ct == SVG_TOKEN_SELF_CLOSE_TAG)
+      {
+	if (cdepth == 1)
+	{
+	  hb_svg_shape_emit_data_t shape;
+	  if (svg_parse_shape_tag (parser, &shape))
+	  {
+	    hb_svg_clip_shape_t clip_shape;
+	    clip_shape.shape = shape;
+	    hb_svg_str_t sh_transform = parser.find_attr ("transform");
+	    if (sh_transform.len)
+	    {
+	      clip_shape.has_transform = true;
+	      svg_parse_transform (sh_transform, &clip_shape.transform);
+	    }
+	    ctx->defs.clip_shapes.push (clip_shape);
+	    if (likely (!ctx->defs.clip_shapes.in_error ()))
+	      clip.shape_count++;
+	    else
+	      had_alloc_failure = true;
+	  }
+	}
+	if (ct == SVG_TOKEN_OPEN_TAG)
+	  cdepth++;
+      }
+    }
+    if (had_alloc_failure)
+      id = {};
+  }
+
+  if (id.len && clip.shape_count)
+  {
+    char id_buf[64];
+    unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
+    memcpy (id_buf, id.data, n);
+    id_buf[n] = '\0';
+    (void) ctx->defs.add_clip_path (id_buf, clip);
   }
 }
 
@@ -1883,165 +2078,13 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
     {
+      /* Dispatch supported defs entries to focused helpers. */
       if (parser.tag_name.eq ("linearGradient"))
-      {
-	hb_svg_gradient_t grad;
-	grad.type = SVG_GRADIENT_LINEAR;
-        hb_svg_str_t x1_str = parser.find_attr ("x1");
-        hb_svg_str_t y1_str = parser.find_attr ("y1");
-        hb_svg_str_t x2_str = parser.find_attr ("x2");
-        hb_svg_str_t y2_str = parser.find_attr ("y2");
-        if (x1_str.len) { grad.x1 = svg_parse_float (x1_str); grad.has_x1 = true; }
-        if (y1_str.len) { grad.y1 = svg_parse_float (y1_str); grad.has_y1 = true; }
-        if (x2_str.len) { grad.x2 = svg_parse_float (x2_str); grad.has_x2 = true; }
-        if (y2_str.len) { grad.y2 = svg_parse_float (y2_str); grad.has_y2 = true; }
-
-	/* Default x2 to 1 if not explicitly set (objectBoundingBox default) */
-	if (!grad.has_x2)
-	  grad.x2 = 1.f;
-
-	svg_parse_gradient_attrs (parser, grad);
-
-	hb_svg_str_t id = parser.find_attr ("id");
-
-	if (tok == SVG_TOKEN_OPEN_TAG)
-	{
-	  /* Parse child <stop> elements */
-	  int gdepth = 1;
-	  while (gdepth > 0)
-	  {
-	    hb_svg_token_type_t gt = parser.next ();
-	    if (gt == SVG_TOKEN_EOF) break;
-	    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
-	    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
-		parser.tag_name.eq ("stop"))
-	      svg_parse_gradient_stop (parser, grad,
-				       ctx->pfuncs, ctx->paint,
-				       ctx->foreground, hb_font_get_face (ctx->font),
-				       ctx->palette);
-	    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
-	      gdepth++;
-	  }
-	}
-
-	if (id.len)
-	{
-	  char id_buf[64];
-	  unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-	  memcpy (id_buf, id.data, n);
-	  id_buf[n] = '\0';
-	  ctx->defs.add_gradient (id_buf, grad);
-	}
-      }
+	svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_LINEAR);
       else if (parser.tag_name.eq ("radialGradient"))
-      {
-	hb_svg_gradient_t grad;
-	grad.type = SVG_GRADIENT_RADIAL;
-
-	hb_svg_str_t cx_str = parser.find_attr ("cx");
-	hb_svg_str_t cy_str = parser.find_attr ("cy");
-	hb_svg_str_t r_str = parser.find_attr ("r");
-	hb_svg_str_t fx_str = parser.find_attr ("fx");
-	hb_svg_str_t fy_str = parser.find_attr ("fy");
-
-	if (cx_str.len) { grad.cx = svg_parse_float (cx_str); grad.has_cx = true; }
-	if (cy_str.len) { grad.cy = svg_parse_float (cy_str); grad.has_cy = true; }
-	if (r_str.len) { grad.r = svg_parse_float (r_str); grad.has_r = true; }
-	if (fx_str.len) { grad.fx = svg_parse_float (fx_str); grad.has_fx = true; }
-	if (fy_str.len) { grad.fy = svg_parse_float (fy_str); grad.has_fy = true; }
-
-	svg_parse_gradient_attrs (parser, grad);
-
-	hb_svg_str_t id = parser.find_attr ("id");
-
-	if (tok == SVG_TOKEN_OPEN_TAG)
-	{
-	  int gdepth = 1;
-	  while (gdepth > 0)
-	  {
-	    hb_svg_token_type_t gt = parser.next ();
-	    if (gt == SVG_TOKEN_EOF) break;
-	    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
-	    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
-		parser.tag_name.eq ("stop"))
-	      svg_parse_gradient_stop (parser, grad,
-				       ctx->pfuncs, ctx->paint,
-				       ctx->foreground, hb_font_get_face (ctx->font),
-				       ctx->palette);
-	    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
-	      gdepth++;
-	  }
-	}
-
-	if (id.len)
-	{
-	  char id_buf[64];
-	  unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-	  memcpy (id_buf, id.data, n);
-	  id_buf[n] = '\0';
-	  ctx->defs.add_gradient (id_buf, grad);
-	}
-      }
+	svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_RADIAL);
       else if (parser.tag_name.eq ("clipPath"))
-      {
-        hb_svg_clip_path_def_t clip;
-        hb_svg_str_t id = parser.find_attr ("id");
-        hb_svg_str_t units = parser.find_attr ("clipPathUnits");
-        if (units.eq ("objectBoundingBox"))
-          clip.units_user_space = false;
-        else
-          clip.units_user_space = true;
-        hb_svg_str_t cp_transform = parser.find_attr ("transform");
-        if (cp_transform.len)
-        {
-          clip.has_clip_transform = true;
-          svg_parse_transform (cp_transform, &clip.clip_transform);
-        }
-        clip.first_shape = ctx->defs.clip_shapes.length;
-        clip.shape_count = 0;
-
-        if (tok == SVG_TOKEN_OPEN_TAG)
-        {
-          int cdepth = 1;
-          while (cdepth > 0)
-          {
-            hb_svg_token_type_t ct = parser.next ();
-            if (ct == SVG_TOKEN_EOF) break;
-            if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
-            if (ct == SVG_TOKEN_OPEN_TAG || ct == SVG_TOKEN_SELF_CLOSE_TAG)
-            {
-              if (cdepth == 1)
-              {
-                hb_svg_shape_emit_data_t shape;
-                if (svg_parse_shape_tag (parser, &shape))
-                {
-                  hb_svg_clip_shape_t clip_shape;
-                  clip_shape.shape = shape;
-                  hb_svg_str_t sh_transform = parser.find_attr ("transform");
-                  if (sh_transform.len)
-                  {
-                    clip_shape.has_transform = true;
-                    svg_parse_transform (sh_transform, &clip_shape.transform);
-                  }
-                  ctx->defs.clip_shapes.push (clip_shape);
-                  clip.shape_count++;
-                }
-              }
-              if (ct == SVG_TOKEN_OPEN_TAG)
-                cdepth++;
-            }
-          }
-        }
-
-        if (id.len && clip.shape_count)
-        {
-          char id_buf[64];
-          unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-          memcpy (id_buf, id.data, n);
-          id_buf[n] = '\0';
-          ctx->defs.add_clip_path (id_buf, clip);
-        }
-      }
+	svg_process_clip_path_def (ctx, parser, tok);
       else
       {
 	/* Skip unknown defs children */
@@ -2292,126 +2335,117 @@ svg_render_shape (hb_svg_render_context_t *ctx,
     ctx->pop_group (HB_PAINT_COMPOSITE_MODE_SRC_OVER);
 }
 
-/* Render one element (may be a container or shape) */
 static void
-svg_render_element (hb_svg_render_context_t *ctx,
-		    hb_svg_xml_parser_t &parser,
-		    hb_svg_str_t inherited_fill,
-		    float inherited_fill_opacity,
-                    hb_svg_str_t inherited_clip_path)
+svg_render_container_element (hb_svg_render_context_t *ctx,
+			      hb_svg_xml_parser_t &parser,
+			      hb_svg_str_t tag,
+			      bool self_closing,
+			      hb_svg_str_t fill_str,
+			      float fill_opacity,
+			      float opacity,
+			      hb_svg_str_t transform_str,
+			      hb_svg_str_t clip_path_str)
 {
-  if (ctx->depth >= SVG_MAX_DEPTH) return;
-  ctx->depth++;
+  bool has_transform = transform_str.len > 0;
+  bool has_opacity = opacity < 1.f;
+  bool has_clip = false;
+  bool has_viewbox = false;
+  float vb_x = 0, vb_y = 0, vb_w = 0, vb_h = 0;
 
-  hb_svg_str_t tag = parser.tag_name;
-  bool self_closing = parser.self_closing;
-
-  /* Extract common attributes */
-  hb_svg_str_t fill_attr = parser.find_attr ("fill");
-  hb_svg_str_t fill_opacity_str = parser.find_attr ("fill-opacity");
-  hb_svg_str_t opacity_str = parser.find_attr ("opacity");
-  hb_svg_str_t transform_str = parser.find_attr ("transform");
-  hb_svg_str_t clip_path_attr = parser.find_attr ("clip-path");
-
-  hb_svg_str_t fill_str = fill_attr.is_null () ? inherited_fill : fill_attr;
-  float fill_opacity = fill_opacity_str.len ? svg_parse_float (fill_opacity_str) : inherited_fill_opacity;
-  float opacity = opacity_str.len ? svg_parse_float (opacity_str) : 1.f;
-  hb_svg_str_t clip_path_str = clip_path_attr.is_null () ? inherited_clip_path : clip_path_attr;
-
-  if (tag.eq ("g") || tag.eq ("svg"))
+  if (tag.eq ("svg"))
   {
-    bool has_transform = transform_str.len > 0;
-    bool has_opacity = opacity < 1.f;
-    bool has_clip = false;
-    bool has_viewbox = false;
-    float vb_x = 0, vb_y = 0, vb_w = 0, vb_h = 0;
-
-    if (tag.eq ("svg"))
+    hb_svg_str_t viewbox_str = parser.find_attr ("viewBox");
+    if (viewbox_str.len)
     {
-      hb_svg_str_t viewbox_str = parser.find_attr ("viewBox");
-      if (viewbox_str.len)
+      has_viewbox = true;
+      hb_svg_float_parser_t vb_fp (viewbox_str);
+      vb_x = vb_fp.next_float ();
+      vb_y = vb_fp.next_float ();
+      vb_w = vb_fp.next_float ();
+      vb_h = vb_fp.next_float ();
+    }
+  }
+
+  if (has_opacity)
+    ctx->push_group ();
+
+  if (has_transform)
+  {
+    hb_svg_transform_t t;
+    svg_parse_transform (transform_str, &t);
+    ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
+  }
+
+  if (has_viewbox && vb_w > 0 && vb_h > 0)
+    ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
+
+  has_clip = svg_push_clip_path_ref (ctx, clip_path_str, nullptr);
+
+  if (!self_closing)
+  {
+    int depth = 1;
+    while (depth > 0)
+    {
+      hb_svg_token_type_t tok = parser.next ();
+      if (tok == SVG_TOKEN_EOF) break;
+
+      if (tok == SVG_TOKEN_CLOSE_TAG)
       {
-	has_viewbox = true;
-	hb_svg_float_parser_t vb_fp (viewbox_str);
-	vb_x = vb_fp.next_float ();
-	vb_y = vb_fp.next_float ();
-	vb_w = vb_fp.next_float ();
-	vb_h = vb_fp.next_float ();
+	depth--;
+	continue;
       }
-    }
 
-    if (has_opacity)
-      ctx->push_group ();
-
-    if (has_transform)
-    {
-      hb_svg_transform_t t;
-      svg_parse_transform (transform_str, &t);
-      ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
-    }
-
-    if (has_viewbox && vb_w > 0 && vb_h > 0)
-    {
-      ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
-    }
-
-    has_clip = svg_push_clip_path_ref (ctx, clip_path_str, nullptr);
-
-    /* Process children */
-    if (!self_closing)
-    {
-      int depth = 1;
-      while (depth > 0)
+      if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
       {
-	hb_svg_token_type_t tok = parser.next ();
-	if (tok == SVG_TOKEN_EOF) break;
-
-	if (tok == SVG_TOKEN_CLOSE_TAG)
+	hb_svg_str_t child_tag = parser.tag_name;
+	if (parser.tag_name.eq ("defs"))
 	{
-	  depth--;
+	  if (tok != SVG_TOKEN_SELF_CLOSE_TAG)
+	    svg_process_defs (ctx, parser);
 	  continue;
 	}
-
-	if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
+	svg_render_element (ctx, parser, fill_str, fill_opacity, clip_path_str);
+	if (tok == SVG_TOKEN_OPEN_TAG && !child_tag.eq ("g") &&
+	    !child_tag.eq ("svg") && !child_tag.eq ("use"))
 	{
-	  hb_svg_str_t child_tag = parser.tag_name;
-	  if (parser.tag_name.eq ("defs"))
+	  /* Skip children of non-container elements we don't handle. */
+	  int skip_depth = 1;
+	  while (skip_depth > 0)
 	  {
-	    if (tok != SVG_TOKEN_SELF_CLOSE_TAG)
-	      svg_process_defs (ctx, parser);
-	    continue;
-	  }
-	  svg_render_element (ctx, parser, fill_str, fill_opacity, clip_path_str);
-	  if (tok == SVG_TOKEN_OPEN_TAG && !child_tag.eq ("g") &&
-	      !child_tag.eq ("svg") && !child_tag.eq ("use"))
-	  {
-	    /* Skip children of non-container elements we don't handle */
-	    int skip_depth = 1;
-	    while (skip_depth > 0)
-	    {
-	      hb_svg_token_type_t st = parser.next ();
-	      if (st == SVG_TOKEN_EOF) break;
-	      if (st == SVG_TOKEN_CLOSE_TAG) skip_depth--;
-	      else if (st == SVG_TOKEN_OPEN_TAG) skip_depth++;
-	    }
+	    hb_svg_token_type_t st = parser.next ();
+	    if (st == SVG_TOKEN_EOF) break;
+	    if (st == SVG_TOKEN_CLOSE_TAG) skip_depth--;
+	    else if (st == SVG_TOKEN_OPEN_TAG) skip_depth++;
 	  }
 	}
       }
     }
-
-    if (has_viewbox && vb_w > 0 && vb_h > 0)
-      ctx->pop_transform ();
-
-    if (has_clip)
-      ctx->pop_clip ();
-
-    if (has_transform)
-      ctx->pop_transform ();
-
-    if (has_opacity)
-      ctx->pop_group (HB_PAINT_COMPOSITE_MODE_SRC_OVER);
   }
-  else if (tag.eq ("path"))
+
+  if (has_viewbox && vb_w > 0 && vb_h > 0)
+    ctx->pop_transform ();
+
+  if (has_clip)
+    ctx->pop_clip ();
+
+  if (has_transform)
+    ctx->pop_transform ();
+
+  if (has_opacity)
+    ctx->pop_group (HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+}
+
+static bool
+svg_render_primitive_shape_element (hb_svg_render_context_t *ctx,
+				    hb_svg_xml_parser_t &parser,
+				    hb_svg_str_t tag,
+				    hb_svg_str_t fill_str,
+				    float fill_opacity,
+				    float opacity,
+				    hb_svg_str_t transform_str,
+				    hb_svg_str_t clip_path_str)
+{
+  if (tag.eq ("path"))
   {
     hb_svg_str_t d = parser.find_attr ("d");
     if (d.len)
@@ -2421,8 +2455,9 @@ svg_render_element (hb_svg_render_context_t *ctx,
       shape.str_data = d;
       svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
     }
+    return true;
   }
-  else if (tag.eq ("rect"))
+  if (tag.eq ("rect"))
   {
     float x = svg_parse_float (parser.find_attr ("x"));
     float y = svg_parse_float (parser.find_attr ("y"));
@@ -2443,8 +2478,9 @@ svg_render_element (hb_svg_render_context_t *ctx,
       shape.params[5] = ry;
       svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
     }
+    return true;
   }
-  else if (tag.eq ("circle"))
+  if (tag.eq ("circle"))
   {
     float cx = svg_parse_float (parser.find_attr ("cx"));
     float cy = svg_parse_float (parser.find_attr ("cy"));
@@ -2459,8 +2495,9 @@ svg_render_element (hb_svg_render_context_t *ctx,
       shape.params[2] = r;
       svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
     }
+    return true;
   }
-  else if (tag.eq ("ellipse"))
+  if (tag.eq ("ellipse"))
   {
     float cx = svg_parse_float (parser.find_attr ("cx"));
     float cy = svg_parse_float (parser.find_attr ("cy"));
@@ -2477,8 +2514,9 @@ svg_render_element (hb_svg_render_context_t *ctx,
       shape.params[3] = ry;
       svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
     }
+    return true;
   }
-  else if (tag.eq ("line"))
+  if (tag.eq ("line"))
   {
     float x1 = svg_parse_float (parser.find_attr ("x1"));
     float y1 = svg_parse_float (parser.find_attr ("y1"));
@@ -2492,8 +2530,9 @@ svg_render_element (hb_svg_render_context_t *ctx,
     shape.params[2] = x2;
     shape.params[3] = y2;
     svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
+    return true;
   }
-  else if (tag.eq ("polyline"))
+  if (tag.eq ("polyline"))
   {
     hb_svg_str_t points = parser.find_attr ("points");
     if (points.len)
@@ -2503,8 +2542,9 @@ svg_render_element (hb_svg_render_context_t *ctx,
       shape.str_data = points;
       svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
     }
+    return true;
   }
-  else if (tag.eq ("polygon"))
+  if (tag.eq ("polygon"))
   {
     hb_svg_str_t points = parser.find_attr ("points");
     if (points.len)
@@ -2514,58 +2554,109 @@ svg_render_element (hb_svg_render_context_t *ctx,
       shape.str_data = points;
       svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
     }
+    return true;
   }
-  else if (tag.eq ("use"))
+
+  return false;
+}
+
+static void
+svg_render_use_element (hb_svg_render_context_t *ctx,
+			hb_svg_xml_parser_t &parser,
+			hb_svg_str_t fill_str,
+			float fill_opacity,
+			hb_svg_str_t transform_str,
+			hb_svg_str_t clip_path_str)
+{
+  hb_svg_str_t href = svg_find_href_attr (parser);
+
+  char ref_id[64];
+  if (!hb_svg_defs_t::parse_fragment_id (href, ref_id))
+    return;
+
+  float use_x = svg_parse_float (parser.find_attr ("x"));
+  float use_y = svg_parse_float (parser.find_attr ("y"));
+
+  bool has_translate = (use_x != 0.f || use_y != 0.f);
+  bool has_use_transform = transform_str.len > 0;
+
+  if (has_use_transform)
   {
-    hb_svg_str_t href = parser.find_attr ("href");
-    if (href.is_null ())
-      href = parser.find_attr ("xlink:href");
-
-    if (href.len && href.data[0] == '#')
-    {
-      /* Find referenced element in the document */
-      char ref_id[64];
-      unsigned n = hb_min (href.len - 1, (unsigned) sizeof (ref_id) - 1);
-      memcpy (ref_id, href.data + 1, n);
-      ref_id[n] = '\0';
-
-      float use_x = svg_parse_float (parser.find_attr ("x"));
-      float use_y = svg_parse_float (parser.find_attr ("y"));
-
-      bool has_translate = (use_x != 0.f || use_y != 0.f);
-      bool has_use_transform = transform_str.len > 0;
-
-      if (has_use_transform)
-      {
-	hb_svg_transform_t t;
-	svg_parse_transform (transform_str, &t);
-	ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
-      }
-
-      if (has_translate)
-	ctx->push_transform (1, 0, 0, 1, use_x, use_y);
-
-      const char *found = nullptr;
-      svg_find_element_by_id (ctx, ref_id, &found);
-
-      if (found)
-      {
-	unsigned remaining = ctx->doc_start + ctx->doc_len - found;
-	hb_svg_xml_parser_t ref_parser (found, remaining);
-	hb_svg_token_type_t tok = ref_parser.next ();
-	if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-	  svg_render_element (ctx, ref_parser, fill_str, fill_opacity, clip_path_str);
-      }
-
-      if (has_translate)
-	ctx->pop_transform ();
-
-      if (has_use_transform)
-	ctx->pop_transform ();
-    }
+    hb_svg_transform_t t;
+    svg_parse_transform (transform_str, &t);
+    ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
   }
+
+  if (has_translate)
+    ctx->push_transform (1, 0, 0, 1, use_x, use_y);
+
+  const char *found = nullptr;
+  svg_find_element_by_id (ctx, ref_id, &found);
+
+  if (found)
+  {
+    unsigned remaining = ctx->doc_start + ctx->doc_len - found;
+    hb_svg_xml_parser_t ref_parser (found, remaining);
+    hb_svg_token_type_t tok = ref_parser.next ();
+    if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
+      svg_render_element (ctx, ref_parser, fill_str, fill_opacity, clip_path_str);
+  }
+
+  if (has_translate)
+    ctx->pop_transform ();
+
+  if (has_use_transform)
+    ctx->pop_transform ();
+}
+
+/* Render one element (may be a container or shape) */
+static void
+svg_render_element (hb_svg_render_context_t *ctx,
+		    hb_svg_xml_parser_t &parser,
+		    hb_svg_str_t inherited_fill,
+		    float inherited_fill_opacity,
+		    hb_svg_str_t inherited_clip_path)
+{
+  if (ctx->depth >= SVG_MAX_DEPTH) return;
+
+  const HB_UNUSED unsigned transform_depth = ctx->paint->transform_stack.length;
+  const HB_UNUSED unsigned clip_depth = ctx->paint->clip_stack.length;
+  const HB_UNUSED unsigned surface_depth = ctx->paint->surface_stack.length;
+
+  ctx->depth++;
+
+  hb_svg_str_t tag = parser.tag_name;
+  bool self_closing = parser.self_closing;
+
+  /* Extract common attributes */
+  hb_svg_str_t fill_attr = parser.find_attr ("fill");
+  hb_svg_str_t fill_opacity_str = parser.find_attr ("fill-opacity");
+  hb_svg_str_t opacity_str = parser.find_attr ("opacity");
+  hb_svg_str_t transform_str = parser.find_attr ("transform");
+  hb_svg_str_t clip_path_attr = parser.find_attr ("clip-path");
+
+  hb_svg_str_t fill_str = fill_attr.is_null () ? inherited_fill : fill_attr;
+  float fill_opacity = fill_opacity_str.len ? svg_parse_float (fill_opacity_str) : inherited_fill_opacity;
+  float opacity = opacity_str.len ? svg_parse_float (opacity_str) : 1.f;
+  hb_svg_str_t clip_path_str = clip_path_attr.is_null () ? inherited_clip_path : clip_path_attr;
+
+  if (tag.eq ("g") || tag.eq ("svg"))
+    svg_render_container_element (ctx, parser, tag, self_closing,
+				  fill_str, fill_opacity, opacity,
+				  transform_str, clip_path_str);
+  else if (svg_render_primitive_shape_element (ctx, parser, tag,
+					       fill_str, fill_opacity, opacity,
+					       transform_str, clip_path_str))
+    ;
+  else if (tag.eq ("use"))
+    svg_render_use_element (ctx, parser, fill_str, fill_opacity,
+			    transform_str, clip_path_str);
 
   ctx->depth--;
+
+  assert (ctx->paint->transform_stack.length == transform_depth);
+  assert (ctx->paint->clip_stack.length == clip_depth);
+  assert (ctx->paint->surface_stack.length == surface_depth);
 }
 
 
