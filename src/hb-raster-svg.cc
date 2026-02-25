@@ -1370,8 +1370,24 @@ struct hb_svg_defs_t
 
   const hb_svg_clip_path_def_t *find_clip_path_str (hb_svg_str_t s) const
   {
-    if (!s.starts_with ("url("))
+    char id[64];
+    if (!parse_url_id (s, id))
       return nullptr;
+    return find_clip_path (id);
+  }
+
+  const hb_svg_gradient_t *find_gradient_str (hb_svg_str_t s) const
+  {
+    char id[64];
+    if (!parse_url_id (s, id))
+      return nullptr;
+    return find_gradient (id);
+  }
+
+  static bool parse_url_id (hb_svg_str_t s, char out[64])
+  {
+    if (!s.starts_with ("url("))
+      return false;
 
     const char *p = s.data + 4;
     const char *e = s.data + s.len;
@@ -1379,31 +1395,10 @@ struct hb_svg_defs_t
     if (p < e && *p == '#') p++;
     const char *start = p;
     while (p < e && *p != ')') p++;
-    char buf[64];
-    unsigned n = hb_min ((unsigned) (p - start), (unsigned) sizeof (buf) - 1);
-    memcpy (buf, start, n);
-    buf[n] = '\0';
-    return find_clip_path (buf);
-  }
-
-  const hb_svg_gradient_t *find_gradient_str (hb_svg_str_t s) const
-  {
-    /* Handle url(#id) references */
-    if (s.starts_with ("url("))
-    {
-      const char *p = s.data + 4;
-      const char *e = s.data + s.len;
-      while (p < e && *p == ' ') p++;
-      if (p < e && *p == '#') p++;
-      const char *start = p;
-      while (p < e && *p != ')') p++;
-      char buf[64];
-      unsigned n = hb_min ((unsigned) (p - start), (unsigned) sizeof (buf) - 1);
-      memcpy (buf, start, n);
-      buf[n] = '\0';
-      return find_gradient (buf);
-    }
-    return nullptr;
+    unsigned n = hb_min ((unsigned) (p - start), (unsigned) 63);
+    memcpy (out, start, n);
+    out[n] = '\0';
+    return true;
   }
 };
 
