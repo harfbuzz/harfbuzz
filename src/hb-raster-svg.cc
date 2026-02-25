@@ -2325,6 +2325,282 @@ svg_render_shape (hb_svg_render_context_t *ctx,
     ctx->pop_group (HB_PAINT_COMPOSITE_MODE_SRC_OVER);
 }
 
+static void
+svg_render_container_element (hb_svg_render_context_t *ctx,
+			      hb_svg_xml_parser_t &parser,
+			      hb_svg_str_t tag,
+			      bool self_closing,
+			      hb_svg_str_t fill_str,
+			      float fill_opacity,
+			      float opacity,
+			      hb_svg_str_t transform_str,
+			      hb_svg_str_t clip_path_str)
+{
+  bool has_transform = transform_str.len > 0;
+  bool has_opacity = opacity < 1.f;
+  bool has_clip = false;
+  bool has_viewbox = false;
+  float vb_x = 0, vb_y = 0, vb_w = 0, vb_h = 0;
+
+  if (tag.eq ("svg"))
+  {
+    hb_svg_str_t viewbox_str = parser.find_attr ("viewBox");
+    if (viewbox_str.len)
+    {
+      has_viewbox = true;
+      hb_svg_float_parser_t vb_fp (viewbox_str);
+      vb_x = vb_fp.next_float ();
+      vb_y = vb_fp.next_float ();
+      vb_w = vb_fp.next_float ();
+      vb_h = vb_fp.next_float ();
+    }
+  }
+
+  if (has_opacity)
+    ctx->push_group ();
+
+  if (has_transform)
+  {
+    hb_svg_transform_t t;
+    svg_parse_transform (transform_str, &t);
+    ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
+  }
+
+  if (has_viewbox && vb_w > 0 && vb_h > 0)
+    ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
+
+  has_clip = svg_push_clip_path_ref (ctx, clip_path_str, nullptr);
+
+  if (!self_closing)
+  {
+    int depth = 1;
+    while (depth > 0)
+    {
+      hb_svg_token_type_t tok = parser.next ();
+      if (tok == SVG_TOKEN_EOF) break;
+
+      if (tok == SVG_TOKEN_CLOSE_TAG)
+      {
+	depth--;
+	continue;
+      }
+
+      if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
+      {
+	hb_svg_str_t child_tag = parser.tag_name;
+	if (parser.tag_name.eq ("defs"))
+	{
+	  if (tok != SVG_TOKEN_SELF_CLOSE_TAG)
+	    svg_process_defs (ctx, parser);
+	  continue;
+	}
+	svg_render_element (ctx, parser, fill_str, fill_opacity, clip_path_str);
+	if (tok == SVG_TOKEN_OPEN_TAG && !child_tag.eq ("g") &&
+	    !child_tag.eq ("svg") && !child_tag.eq ("use"))
+	{
+	  /* Skip children of non-container elements we don't handle. */
+	  int skip_depth = 1;
+	  while (skip_depth > 0)
+	  {
+	    hb_svg_token_type_t st = parser.next ();
+	    if (st == SVG_TOKEN_EOF) break;
+	    if (st == SVG_TOKEN_CLOSE_TAG) skip_depth--;
+	    else if (st == SVG_TOKEN_OPEN_TAG) skip_depth++;
+	  }
+	}
+      }
+    }
+  }
+
+  if (has_viewbox && vb_w > 0 && vb_h > 0)
+    ctx->pop_transform ();
+
+  if (has_clip)
+    ctx->pop_clip ();
+
+  if (has_transform)
+    ctx->pop_transform ();
+
+  if (has_opacity)
+    ctx->pop_group (HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+}
+
+static bool
+svg_render_primitive_shape_element (hb_svg_render_context_t *ctx,
+				    hb_svg_xml_parser_t &parser,
+				    hb_svg_str_t tag,
+				    hb_svg_str_t fill_str,
+				    float fill_opacity,
+				    float opacity,
+				    hb_svg_str_t transform_str,
+				    hb_svg_str_t clip_path_str)
+{
+  if (tag.eq ("path"))
+  {
+    hb_svg_str_t d = parser.find_attr ("d");
+    if (d.len)
+    {
+      hb_svg_shape_emit_data_t shape;
+      shape.type = hb_svg_shape_emit_data_t::SHAPE_PATH;
+      shape.str_data = d;
+      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
+    }
+    return true;
+  }
+  if (tag.eq ("rect"))
+  {
+    float x = svg_parse_float (parser.find_attr ("x"));
+    float y = svg_parse_float (parser.find_attr ("y"));
+    float w = svg_parse_float (parser.find_attr ("width"));
+    float h = svg_parse_float (parser.find_attr ("height"));
+    float rx = svg_parse_float (parser.find_attr ("rx"));
+    float ry = svg_parse_float (parser.find_attr ("ry"));
+
+    if (w > 0 && h > 0)
+    {
+      hb_svg_shape_emit_data_t shape;
+      shape.type = hb_svg_shape_emit_data_t::SHAPE_RECT;
+      shape.params[0] = x;
+      shape.params[1] = y;
+      shape.params[2] = w;
+      shape.params[3] = h;
+      shape.params[4] = rx;
+      shape.params[5] = ry;
+      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
+    }
+    return true;
+  }
+  if (tag.eq ("circle"))
+  {
+    float cx = svg_parse_float (parser.find_attr ("cx"));
+    float cy = svg_parse_float (parser.find_attr ("cy"));
+    float r = svg_parse_float (parser.find_attr ("r"));
+
+    if (r > 0)
+    {
+      hb_svg_shape_emit_data_t shape;
+      shape.type = hb_svg_shape_emit_data_t::SHAPE_CIRCLE;
+      shape.params[0] = cx;
+      shape.params[1] = cy;
+      shape.params[2] = r;
+      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
+    }
+    return true;
+  }
+  if (tag.eq ("ellipse"))
+  {
+    float cx = svg_parse_float (parser.find_attr ("cx"));
+    float cy = svg_parse_float (parser.find_attr ("cy"));
+    float rx = svg_parse_float (parser.find_attr ("rx"));
+    float ry = svg_parse_float (parser.find_attr ("ry"));
+
+    if (rx > 0 && ry > 0)
+    {
+      hb_svg_shape_emit_data_t shape;
+      shape.type = hb_svg_shape_emit_data_t::SHAPE_ELLIPSE;
+      shape.params[0] = cx;
+      shape.params[1] = cy;
+      shape.params[2] = rx;
+      shape.params[3] = ry;
+      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
+    }
+    return true;
+  }
+  if (tag.eq ("line"))
+  {
+    float x1 = svg_parse_float (parser.find_attr ("x1"));
+    float y1 = svg_parse_float (parser.find_attr ("y1"));
+    float x2 = svg_parse_float (parser.find_attr ("x2"));
+    float y2 = svg_parse_float (parser.find_attr ("y2"));
+
+    hb_svg_shape_emit_data_t shape;
+    shape.type = hb_svg_shape_emit_data_t::SHAPE_LINE;
+    shape.params[0] = x1;
+    shape.params[1] = y1;
+    shape.params[2] = x2;
+    shape.params[3] = y2;
+    svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
+    return true;
+  }
+  if (tag.eq ("polyline"))
+  {
+    hb_svg_str_t points = parser.find_attr ("points");
+    if (points.len)
+    {
+      hb_svg_shape_emit_data_t shape;
+      shape.type = hb_svg_shape_emit_data_t::SHAPE_POLYLINE;
+      shape.str_data = points;
+      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
+    }
+    return true;
+  }
+  if (tag.eq ("polygon"))
+  {
+    hb_svg_str_t points = parser.find_attr ("points");
+    if (points.len)
+    {
+      hb_svg_shape_emit_data_t shape;
+      shape.type = hb_svg_shape_emit_data_t::SHAPE_POLYGON;
+      shape.str_data = points;
+      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
+    }
+    return true;
+  }
+
+  return false;
+}
+
+static void
+svg_render_use_element (hb_svg_render_context_t *ctx,
+			hb_svg_xml_parser_t &parser,
+			hb_svg_str_t fill_str,
+			float fill_opacity,
+			hb_svg_str_t transform_str,
+			hb_svg_str_t clip_path_str)
+{
+  hb_svg_str_t href = parser.find_attr ("href");
+  if (href.is_null ())
+    href = parser.find_attr ("xlink:href");
+
+  char ref_id[64];
+  if (!hb_svg_defs_t::parse_fragment_id (href, ref_id))
+    return;
+
+  float use_x = svg_parse_float (parser.find_attr ("x"));
+  float use_y = svg_parse_float (parser.find_attr ("y"));
+
+  bool has_translate = (use_x != 0.f || use_y != 0.f);
+  bool has_use_transform = transform_str.len > 0;
+
+  if (has_use_transform)
+  {
+    hb_svg_transform_t t;
+    svg_parse_transform (transform_str, &t);
+    ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
+  }
+
+  if (has_translate)
+    ctx->push_transform (1, 0, 0, 1, use_x, use_y);
+
+  const char *found = nullptr;
+  svg_find_element_by_id (ctx, ref_id, &found);
+
+  if (found)
+  {
+    unsigned remaining = ctx->doc_start + ctx->doc_len - found;
+    hb_svg_xml_parser_t ref_parser (found, remaining);
+    hb_svg_token_type_t tok = ref_parser.next ();
+    if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
+      svg_render_element (ctx, ref_parser, fill_str, fill_opacity, clip_path_str);
+  }
+
+  if (has_translate)
+    ctx->pop_transform ();
+
+  if (has_use_transform)
+    ctx->pop_transform ();
+}
+
 /* Render one element (may be a container or shape) */
 static void
 svg_render_element (hb_svg_render_context_t *ctx,
@@ -2357,247 +2633,16 @@ svg_render_element (hb_svg_render_context_t *ctx,
   hb_svg_str_t clip_path_str = clip_path_attr.is_null () ? inherited_clip_path : clip_path_attr;
 
   if (tag.eq ("g") || tag.eq ("svg"))
-  {
-    bool has_transform = transform_str.len > 0;
-    bool has_opacity = opacity < 1.f;
-    bool has_clip = false;
-    bool has_viewbox = false;
-    float vb_x = 0, vb_y = 0, vb_w = 0, vb_h = 0;
-
-    if (tag.eq ("svg"))
-    {
-      hb_svg_str_t viewbox_str = parser.find_attr ("viewBox");
-      if (viewbox_str.len)
-      {
-	has_viewbox = true;
-	hb_svg_float_parser_t vb_fp (viewbox_str);
-	vb_x = vb_fp.next_float ();
-	vb_y = vb_fp.next_float ();
-	vb_w = vb_fp.next_float ();
-	vb_h = vb_fp.next_float ();
-      }
-    }
-
-    if (has_opacity)
-      ctx->push_group ();
-
-    if (has_transform)
-    {
-      hb_svg_transform_t t;
-      svg_parse_transform (transform_str, &t);
-      ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
-    }
-
-    if (has_viewbox && vb_w > 0 && vb_h > 0)
-    {
-      ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
-    }
-
-    has_clip = svg_push_clip_path_ref (ctx, clip_path_str, nullptr);
-
-    /* Process children */
-    if (!self_closing)
-    {
-      int depth = 1;
-      while (depth > 0)
-      {
-	hb_svg_token_type_t tok = parser.next ();
-	if (tok == SVG_TOKEN_EOF) break;
-
-	if (tok == SVG_TOKEN_CLOSE_TAG)
-	{
-	  depth--;
-	  continue;
-	}
-
-	if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-	{
-	  hb_svg_str_t child_tag = parser.tag_name;
-	  if (parser.tag_name.eq ("defs"))
-	  {
-	    if (tok != SVG_TOKEN_SELF_CLOSE_TAG)
-	      svg_process_defs (ctx, parser);
-	    continue;
-	  }
-	  svg_render_element (ctx, parser, fill_str, fill_opacity, clip_path_str);
-	  if (tok == SVG_TOKEN_OPEN_TAG && !child_tag.eq ("g") &&
-	      !child_tag.eq ("svg") && !child_tag.eq ("use"))
-	  {
-	    /* Skip children of non-container elements we don't handle */
-	    int skip_depth = 1;
-	    while (skip_depth > 0)
-	    {
-	      hb_svg_token_type_t st = parser.next ();
-	      if (st == SVG_TOKEN_EOF) break;
-	      if (st == SVG_TOKEN_CLOSE_TAG) skip_depth--;
-	      else if (st == SVG_TOKEN_OPEN_TAG) skip_depth++;
-	    }
-	  }
-	}
-      }
-    }
-
-    if (has_viewbox && vb_w > 0 && vb_h > 0)
-      ctx->pop_transform ();
-
-    if (has_clip)
-      ctx->pop_clip ();
-
-    if (has_transform)
-      ctx->pop_transform ();
-
-    if (has_opacity)
-      ctx->pop_group (HB_PAINT_COMPOSITE_MODE_SRC_OVER);
-  }
-  else if (tag.eq ("path"))
-  {
-    hb_svg_str_t d = parser.find_attr ("d");
-    if (d.len)
-    {
-      hb_svg_shape_emit_data_t shape;
-      shape.type = hb_svg_shape_emit_data_t::SHAPE_PATH;
-      shape.str_data = d;
-      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
-    }
-  }
-  else if (tag.eq ("rect"))
-  {
-    float x = svg_parse_float (parser.find_attr ("x"));
-    float y = svg_parse_float (parser.find_attr ("y"));
-    float w = svg_parse_float (parser.find_attr ("width"));
-    float h = svg_parse_float (parser.find_attr ("height"));
-    float rx = svg_parse_float (parser.find_attr ("rx"));
-    float ry = svg_parse_float (parser.find_attr ("ry"));
-
-    if (w > 0 && h > 0)
-    {
-      hb_svg_shape_emit_data_t shape;
-      shape.type = hb_svg_shape_emit_data_t::SHAPE_RECT;
-      shape.params[0] = x;
-      shape.params[1] = y;
-      shape.params[2] = w;
-      shape.params[3] = h;
-      shape.params[4] = rx;
-      shape.params[5] = ry;
-      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
-    }
-  }
-  else if (tag.eq ("circle"))
-  {
-    float cx = svg_parse_float (parser.find_attr ("cx"));
-    float cy = svg_parse_float (parser.find_attr ("cy"));
-    float r = svg_parse_float (parser.find_attr ("r"));
-
-    if (r > 0)
-    {
-      hb_svg_shape_emit_data_t shape;
-      shape.type = hb_svg_shape_emit_data_t::SHAPE_CIRCLE;
-      shape.params[0] = cx;
-      shape.params[1] = cy;
-      shape.params[2] = r;
-      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
-    }
-  }
-  else if (tag.eq ("ellipse"))
-  {
-    float cx = svg_parse_float (parser.find_attr ("cx"));
-    float cy = svg_parse_float (parser.find_attr ("cy"));
-    float rx = svg_parse_float (parser.find_attr ("rx"));
-    float ry = svg_parse_float (parser.find_attr ("ry"));
-
-    if (rx > 0 && ry > 0)
-    {
-      hb_svg_shape_emit_data_t shape;
-      shape.type = hb_svg_shape_emit_data_t::SHAPE_ELLIPSE;
-      shape.params[0] = cx;
-      shape.params[1] = cy;
-      shape.params[2] = rx;
-      shape.params[3] = ry;
-      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
-    }
-  }
-  else if (tag.eq ("line"))
-  {
-    float x1 = svg_parse_float (parser.find_attr ("x1"));
-    float y1 = svg_parse_float (parser.find_attr ("y1"));
-    float x2 = svg_parse_float (parser.find_attr ("x2"));
-    float y2 = svg_parse_float (parser.find_attr ("y2"));
-
-    hb_svg_shape_emit_data_t shape;
-    shape.type = hb_svg_shape_emit_data_t::SHAPE_LINE;
-    shape.params[0] = x1;
-    shape.params[1] = y1;
-    shape.params[2] = x2;
-    shape.params[3] = y2;
-    svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
-  }
-  else if (tag.eq ("polyline"))
-  {
-    hb_svg_str_t points = parser.find_attr ("points");
-    if (points.len)
-    {
-      hb_svg_shape_emit_data_t shape;
-      shape.type = hb_svg_shape_emit_data_t::SHAPE_POLYLINE;
-      shape.str_data = points;
-      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
-    }
-  }
-  else if (tag.eq ("polygon"))
-  {
-    hb_svg_str_t points = parser.find_attr ("points");
-    if (points.len)
-    {
-      hb_svg_shape_emit_data_t shape;
-      shape.type = hb_svg_shape_emit_data_t::SHAPE_POLYGON;
-      shape.str_data = points;
-      svg_render_shape (ctx, shape, fill_str, fill_opacity, opacity, transform_str, clip_path_str);
-    }
-  }
+    svg_render_container_element (ctx, parser, tag, self_closing,
+				  fill_str, fill_opacity, opacity,
+				  transform_str, clip_path_str);
+  else if (svg_render_primitive_shape_element (ctx, parser, tag,
+					       fill_str, fill_opacity, opacity,
+					       transform_str, clip_path_str))
+    ;
   else if (tag.eq ("use"))
-  {
-    hb_svg_str_t href = parser.find_attr ("href");
-    if (href.is_null ())
-      href = parser.find_attr ("xlink:href");
-
-    char ref_id[64];
-    if (hb_svg_defs_t::parse_fragment_id (href, ref_id))
-    {
-      /* Find referenced element in the document */
-      float use_x = svg_parse_float (parser.find_attr ("x"));
-      float use_y = svg_parse_float (parser.find_attr ("y"));
-
-      bool has_translate = (use_x != 0.f || use_y != 0.f);
-      bool has_use_transform = transform_str.len > 0;
-
-      if (has_use_transform)
-      {
-	hb_svg_transform_t t;
-	svg_parse_transform (transform_str, &t);
-	ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
-      }
-
-      if (has_translate)
-	ctx->push_transform (1, 0, 0, 1, use_x, use_y);
-
-      const char *found = nullptr;
-      svg_find_element_by_id (ctx, ref_id, &found);
-
-      if (found)
-      {
-	unsigned remaining = ctx->doc_start + ctx->doc_len - found;
-	hb_svg_xml_parser_t ref_parser (found, remaining);
-	hb_svg_token_type_t tok = ref_parser.next ();
-	if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-	  svg_render_element (ctx, ref_parser, fill_str, fill_opacity, clip_path_str);
-      }
-
-      if (has_translate)
-	ctx->pop_transform ();
-
-      if (has_use_transform)
-	ctx->pop_transform ();
-    }
-  }
+    svg_render_use_element (ctx, parser, fill_str, fill_opacity,
+			    transform_str, clip_path_str);
 
   ctx->depth--;
 
