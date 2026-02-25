@@ -574,11 +574,10 @@ struct raster_output_t : output_options_t<true>, view_options_t
     if (!have_extents || pmin_x >= pmax_x || pmin_y >= pmax_y)
       return false;
 
-    /* Keep 1px safety pad used before AA rasterization and then apply margin. */
-    int ix0 = (int) floorf (pmin_x) - 1 - (int) floor (margin.l);
-    int iy0 = (int) floorf (pmin_y) - 1 - (int) floor (margin.b);
-    int ix1 = (int) ceilf  (pmax_x) + 1 + (int) ceil  (margin.r);
-    int iy1 = (int) ceilf  (pmax_y) + 1 + (int) ceil  (margin.t);
+    int ix0 = (int) floorf (pmin_x) - (int) floor (margin.l);
+    int iy0 = (int) floorf (pmin_y) - (int) floor (margin.b);
+    int ix1 = (int) ceilf  (pmax_x) + (int) ceil  (margin.r);
+    int iy1 = (int) ceilf  (pmax_y) + (int) ceil  (margin.t);
     if (ix1 <= ix0 || iy1 <= iy0)
       return false;
 
