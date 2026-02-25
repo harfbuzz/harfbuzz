@@ -1372,7 +1372,7 @@ struct hb_svg_defs_t
   const hb_svg_clip_path_def_t *find_clip_path_str (hb_svg_str_t s) const
   {
     char id[64];
-    if (!parse_url_id (s, id))
+    if (!parse_paint_server_id (s, id))
       return nullptr;
     return find_clip_path (id);
   }
@@ -1380,12 +1380,12 @@ struct hb_svg_defs_t
   const hb_svg_gradient_t *find_gradient_str (hb_svg_str_t s) const
   {
     char id[64];
-    if (!parse_url_id (s, id))
+    if (!parse_paint_server_id (s, id))
       return nullptr;
     return find_gradient (id);
   }
 
-  static bool parse_url_id (hb_svg_str_t s, char out[64])
+  static bool parse_paint_server_id (hb_svg_str_t s, char out[64])
   {
     if (!s.starts_with ("url("))
       return false;
@@ -1398,6 +1398,18 @@ struct hb_svg_defs_t
     while (p < e && *p != ')') p++;
     unsigned n = hb_min ((unsigned) (p - start), (unsigned) 63);
     memcpy (out, start, n);
+    out[n] = '\0';
+    return true;
+  }
+
+  static bool parse_fragment_id (hb_svg_str_t s, char out[64])
+  {
+    s = s.trim ();
+    if (!s.len || s.data[0] != '#')
+      return false;
+
+    unsigned n = hb_min (s.len - 1, (unsigned) 63);
+    memcpy (out, s.data + 1, n);
     out[n] = '\0';
     return true;
   }
@@ -2547,14 +2559,10 @@ svg_render_element (hb_svg_render_context_t *ctx,
     if (href.is_null ())
       href = parser.find_attr ("xlink:href");
 
-    if (href.len && href.data[0] == '#')
+    char ref_id[64];
+    if (hb_svg_defs_t::parse_fragment_id (href, ref_id))
     {
       /* Find referenced element in the document */
-      char ref_id[64];
-      unsigned n = hb_min (href.len - 1, (unsigned) sizeof (ref_id) - 1);
-      memcpy (ref_id, href.data + 1, n);
-      ref_id[n] = '\0';
-
       float use_x = svg_parse_float (parser.find_attr ("x"));
       float use_y = svg_parse_float (parser.find_attr ("y"));
 
