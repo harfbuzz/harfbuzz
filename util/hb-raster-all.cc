@@ -141,7 +141,8 @@ main (int argc, char **argv)
   hb_font_set_scale (font, font_size, font_size);
 
   bool has_color = hb_ot_color_has_paint (face) ||
-		   hb_ot_color_has_layers (face);
+		   hb_ot_color_has_layers (face) ||
+		   hb_ot_color_has_svg (face);
 
   hb_raster_draw_t  *rdr = hb_raster_draw_create_or_fail ();
   hb_raster_paint_t *pnt = has_color ? hb_raster_paint_create_or_fail () : nullptr;
