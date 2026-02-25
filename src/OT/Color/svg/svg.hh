@@ -84,13 +84,40 @@ struct SVG
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_SVG;
 
+  struct svg_id_span_t
+  {
+    const char *p;
+    unsigned len;
+
+    bool operator == (const svg_id_span_t &o) const
+    {
+      return len == o.len && !memcmp (p, o.p, len);
+    }
+
+    uint32_t hash () const
+    {
+      uint32_t h = hb_hash (len);
+      for (unsigned i = 0; i < len; i++)
+        h = h * 33u + (unsigned char) p[i];
+      return h;
+    }
+  };
+
+  struct svg_defs_entry_t
+  {
+    svg_id_span_t id;
+    unsigned start;
+    unsigned end;
+  };
+
+  struct svg_doc_cache_t;
+
   bool has_data () const { return svgDocEntries; }
 
   struct accelerator_t
   {
-    accelerator_t (hb_face_t *face)
-    { table = hb_sanitize_context_t ().reference_table<SVG> (face); }
-    ~accelerator_t () { table.destroy (); }
+    accelerator_t (hb_face_t *face);
+    ~accelerator_t ();
 
     hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {
@@ -110,6 +137,39 @@ struct SVG
     { return table->get_document_glyph_range (index, start_glyph, end_glyph); }
 
     bool has_data () const { return table->has_data (); }
+
+    const svg_doc_cache_t *
+    get_or_create_doc_cache (hb_blob_t *image,
+                             const char *svg,
+                             unsigned len,
+                             unsigned doc_index,
+                             hb_codepoint_t start_glyph,
+                             hb_codepoint_t end_glyph) const;
+
+    const char *
+    doc_cache_get_svg (const svg_doc_cache_t *doc,
+                       unsigned *len) const;
+
+    const hb_vector_t<svg_defs_entry_t> *
+    doc_cache_get_defs_entries (const svg_doc_cache_t *doc) const;
+
+    bool
+    doc_cache_get_glyph_span (const svg_doc_cache_t *doc,
+                              hb_codepoint_t glyph,
+                              unsigned *start,
+                              unsigned *end) const;
+
+    bool
+    doc_cache_find_id_span (const svg_doc_cache_t *doc,
+                            svg_id_span_t id,
+                            unsigned *start,
+                            unsigned *end) const;
+
+    bool
+    doc_cache_find_id_cstr (const svg_doc_cache_t *doc,
+                            const char *id,
+                            unsigned *start,
+                            unsigned *end) const;
 
     bool paint_glyph (hb_font_t *font HB_UNUSED, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
     {
@@ -134,9 +194,20 @@ struct SVG
     }
 
     private:
+    svg_doc_cache_t *
+    make_doc_cache (hb_blob_t *image,
+                    const char *svg,
+                    unsigned len,
+                    hb_codepoint_t start_glyph,
+                    hb_codepoint_t end_glyph) const;
+
+    static void destroy_doc_cache (svg_doc_cache_t *doc);
+
     hb_blob_ptr_t<SVG> table;
+    mutable hb_vector_t<hb_atomic_t<svg_doc_cache_t *>> doc_caches;
     public:
-    DEFINE_SIZE_STATIC (sizeof (hb_blob_ptr_t<SVG>));
+    DEFINE_SIZE_STATIC (sizeof (hb_blob_ptr_t<SVG>) +
+                        sizeof (hb_vector_t<hb_atomic_t<svg_doc_cache_t *>>));
   };
 
   const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const

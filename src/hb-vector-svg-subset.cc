@@ -26,8 +26,9 @@
 
 #include "hb.hh"
 
+#include "hb-face.hh"
 #include "hb-vector-svg-subset.hh"
-#include "hb-svg-cache.hh"
+#include "OT/Color/svg/svg.hh"
 #include "hb-vector-svg-utils.hh"
 #include "hb-map.hh"
 #include "hb-ot-color.h"
@@ -162,13 +163,13 @@ hb_svg_append_with_prefix (hb_vector_t<char> *out,
 }
 
 static bool
-hb_svg_add_unique_id (hb_vector_t<hb_svg_id_span_t> *v,
-                      hb_hashmap_t<hb_svg_id_span_t, hb_bool_t> *seen_ids,
+hb_svg_add_unique_id (hb_vector_t<OT::SVG::svg_id_span_t> *v,
+                      hb_hashmap_t<OT::SVG::svg_id_span_t, hb_bool_t> *seen_ids,
                       const char *p,
                       unsigned n)
 {
   if (!n) return false;
-  hb_svg_id_span_t key = {p, n};
+  OT::SVG::svg_id_span_t key = {p, n};
   if (seen_ids->has (key))
     return false;
   if (unlikely (!seen_ids->set (key, true)))
@@ -182,8 +183,8 @@ hb_svg_add_unique_id (hb_vector_t<hb_svg_id_span_t> *v,
 static bool
 hb_svg_collect_refs (const char *s,
                      unsigned n,
-                     hb_vector_t<hb_svg_id_span_t> *ids,
-                     hb_hashmap_t<hb_svg_id_span_t, hb_bool_t> *seen_ids)
+                     hb_vector_t<OT::SVG::svg_id_span_t> *ids,
+                     hb_hashmap_t<OT::SVG::svg_id_span_t, hb_bool_t> *seen_ids)
 {
   unsigned i = 0;
   while (i < n)
@@ -274,21 +275,21 @@ hb_svg_subset_glyph_image (hb_face_t *face,
   if (!hb_ot_color_get_svg_document_glyph_range (face, doc_index, &start_glyph, &end_glyph))
     return false;
 
-  auto *doc_cache = hb_svg_get_or_make_doc_cache (face, image, svg, len,
-                                                  doc_index, start_glyph, end_glyph);
+  auto *doc_cache = face->table.SVG->get_or_create_doc_cache (image, svg, len,
+                                                              doc_index, start_glyph, end_glyph);
   if (!doc_cache)
     return false;
-  svg = hb_svg_doc_cache_get_svg (doc_cache, &len);
+  svg = face->table.SVG->doc_cache_get_svg (doc_cache, &len);
 
   unsigned glyph_start = 0, glyph_end = 0;
-  if (!hb_svg_doc_cache_get_glyph_span (doc_cache, glyph, &glyph_start, &glyph_end))
+  if (!face->table.SVG->doc_cache_get_glyph_span (doc_cache, glyph, &glyph_start, &glyph_end))
     return false;
 
-  auto *defs_entries = hb_svg_doc_cache_get_defs_entries (doc_cache);
+  auto *defs_entries = face->table.SVG->doc_cache_get_defs_entries (doc_cache);
 
-  hb_vector_t<hb_svg_id_span_t> needed_ids;
+  hb_vector_t<OT::SVG::svg_id_span_t> needed_ids;
   needed_ids.alloc (16);
-  hb_hashmap_t<hb_svg_id_span_t, hb_bool_t> needed_ids_set;
+  hb_hashmap_t<OT::SVG::svg_id_span_t, hb_bool_t> needed_ids_set;
   if (!hb_svg_collect_refs (svg + glyph_start, glyph_end - glyph_start,
                             &needed_ids, &needed_ids_set))
     return false;

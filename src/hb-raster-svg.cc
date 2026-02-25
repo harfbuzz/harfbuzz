@@ -26,10 +26,11 @@
 
 #include "hb.hh"
 
+#include "hb-face.hh"
 #include "hb-raster.h"
 #include "hb-raster-paint.hh"
 #include "hb-raster-svg.hh"
-#include "hb-svg-cache.hh"
+#include "OT/Color/svg/svg.hh"
 #include "hb-draw.h"
 #include "hb-ot-color.h"
 
@@ -1454,7 +1455,8 @@ struct hb_svg_render_context_t
   /* The full SVG document for <use> resolution */
   const char *doc_start;
   unsigned doc_len;
-  const hb_svg_doc_cache_t *doc_cache = nullptr;
+  const OT::SVG::accelerator_t *svg_accel = nullptr;
+  const OT::SVG::svg_doc_cache_t *doc_cache = nullptr;
 
   void push_transform (float xx, float yx, float xy, float yy, float dx, float dy)
   {
@@ -2034,7 +2036,7 @@ svg_find_element_by_id (const hb_svg_render_context_t *ctx,
   if (ctx->doc_cache)
   {
     unsigned start = 0, end = 0;
-    if (hb_svg_doc_cache_find_id_cstr (ctx->doc_cache, id, &start, &end))
+    if (ctx->svg_accel->doc_cache_find_id_cstr (ctx->doc_cache, id, &start, &end))
     {
       if (start < ctx->doc_len && end <= ctx->doc_len && start < end)
       {
@@ -2558,7 +2560,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   if (!data || !data_len) return false;
 
   hb_face_t *face = hb_font_get_face (font);
-  const hb_svg_doc_cache_t *doc_cache = nullptr;
+  const OT::SVG::svg_doc_cache_t *doc_cache = nullptr;
   unsigned doc_index = 0;
   hb_codepoint_t start_glyph = HB_CODEPOINT_INVALID;
   hb_codepoint_t end_glyph = HB_CODEPOINT_INVALID;
@@ -2566,11 +2568,11 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   if (face &&
       hb_ot_color_glyph_get_svg_document_index (face, glyph, &doc_index) &&
       hb_ot_color_get_svg_document_glyph_range (face, doc_index, &start_glyph, &end_glyph))
-    doc_cache = hb_svg_get_or_make_doc_cache (face, blob, data, data_len,
-                                              doc_index, start_glyph, end_glyph);
+    doc_cache = face->table.SVG->get_or_create_doc_cache (blob, data, data_len,
+                                                          doc_index, start_glyph, end_glyph);
 
   if (doc_cache)
-    data = hb_svg_doc_cache_get_svg (doc_cache, &data_len);
+    data = face->table.SVG->doc_cache_get_svg (doc_cache, &data_len);
 
   hb_paint_funcs_t *pfuncs = hb_raster_paint_get_funcs ();
 
@@ -2581,6 +2583,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   ctx.foreground = foreground;
   ctx.doc_start = data;
   ctx.doc_len = data_len;
+  ctx.svg_accel = face ? face->table.SVG.get () : nullptr;
   ctx.doc_cache = doc_cache;
 
   /* First pass: collect defs (gradients, clip-paths) from the entire document */
@@ -2597,7 +2600,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 
   bool found_glyph = false;
   unsigned glyph_start = 0, glyph_end = 0;
-  if (doc_cache && hb_svg_doc_cache_get_glyph_span (doc_cache, glyph, &glyph_start, &glyph_end))
+  if (doc_cache && face->table.SVG->doc_cache_get_glyph_span (doc_cache, glyph, &glyph_start, &glyph_end))
   {
     hb_svg_xml_parser_t parser (data + glyph_start, glyph_end - glyph_start);
     hb_svg_token_type_t tok = parser.next ();
