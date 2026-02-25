@@ -1306,10 +1306,13 @@ struct hb_svg_defs_t
   hb_vector_t<hb_svg_clip_path_def_t> clip_paths;
   hb_vector_t<hb_svg_def_t> defs;
 
-  void add_gradient (const char *id, const hb_svg_gradient_t &grad)
+  bool add_gradient (const char *id, const hb_svg_gradient_t &grad)
   {
     unsigned idx = gradients.length;
     gradients.push (grad);
+    if (unlikely (gradients.in_error ()))
+      return false;
+
     hb_svg_def_t def;
     unsigned n = hb_min (strlen (id), (size_t) sizeof (def.id) - 1);
     memcpy (def.id, id, n);
@@ -1317,6 +1320,12 @@ struct hb_svg_defs_t
     def.type = hb_svg_def_t::DEF_GRADIENT;
     def.index = idx;
     defs.push (def);
+    if (unlikely (defs.in_error ()))
+    {
+      gradients.pop ();
+      return false;
+    }
+    return true;
   }
 
   const hb_svg_gradient_t *find_gradient (const char *id) const
@@ -1328,10 +1337,13 @@ struct hb_svg_defs_t
     return nullptr;
   }
 
-  void add_clip_path (const char *id, const hb_svg_clip_path_def_t &clip)
+  bool add_clip_path (const char *id, const hb_svg_clip_path_def_t &clip)
   {
     unsigned idx = clip_paths.length;
     clip_paths.push (clip);
+    if (unlikely (clip_paths.in_error ()))
+      return false;
+
     hb_svg_def_t def;
     unsigned n = hb_min (strlen (id), (size_t) sizeof (def.id) - 1);
     memcpy (def.id, id, n);
@@ -1339,6 +1351,12 @@ struct hb_svg_defs_t
     def.type = hb_svg_def_t::DEF_CLIP_PATH;
     def.index = idx;
     defs.push (def);
+    if (unlikely (defs.in_error ()))
+    {
+      clip_paths.pop ();
+      return false;
+    }
+    return true;
   }
 
   const hb_svg_clip_path_def_t *find_clip_path (const char *id) const
@@ -1771,7 +1789,7 @@ static void svg_render_element (hb_svg_render_context_t *ctx,
                                 hb_svg_str_t inherited_clip_path);
 
 /* Parse a gradient <stop> element */
-static void
+static bool
 svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 			 hb_svg_gradient_t &grad,
 			 hb_paint_funcs_t *pfuncs,
@@ -1809,6 +1827,7 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 
   hb_svg_gradient_stop_t stop = {offset, color};
   grad.stops.push (stop);
+  return !grad.stops.in_error ();
 }
 
 /* Parse gradient element attributes */
@@ -1904,25 +1923,29 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 
 	hb_svg_str_t id = parser.find_attr ("id");
 
-	if (tok == SVG_TOKEN_OPEN_TAG)
-	{
-	  /* Parse child <stop> elements */
-	  int gdepth = 1;
-	  while (gdepth > 0)
-	  {
-	    hb_svg_token_type_t gt = parser.next ();
-	    if (gt == SVG_TOKEN_EOF) break;
-	    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
-	    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
-		parser.tag_name.eq ("stop"))
-	      svg_parse_gradient_stop (parser, grad,
-				       ctx->pfuncs, ctx->paint,
-				       ctx->foreground, hb_font_get_face (ctx->font),
-				       ctx->palette);
-	    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
-	      gdepth++;
-	  }
-	}
+		if (tok == SVG_TOKEN_OPEN_TAG)
+		{
+		  /* Parse child <stop> elements */
+		  int gdepth = 1;
+		  bool had_alloc_failure = false;
+		  while (gdepth > 0)
+		  {
+		    hb_svg_token_type_t gt = parser.next ();
+		    if (gt == SVG_TOKEN_EOF) break;
+		    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
+		    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
+			parser.tag_name.eq ("stop"))
+		      if (unlikely (!svg_parse_gradient_stop (parser, grad,
+							      ctx->pfuncs, ctx->paint,
+							      ctx->foreground, hb_font_get_face (ctx->font),
+							      ctx->palette)))
+			had_alloc_failure = true;
+		    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
+		      gdepth++;
+		  }
+		  if (had_alloc_failure)
+		    id = {};
+		}
 
 	if (id.len)
 	{
@@ -1930,9 +1953,9 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 	  unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
 	  memcpy (id_buf, id.data, n);
 	  id_buf[n] = '\0';
-	  ctx->defs.add_gradient (id_buf, grad);
-	}
-      }
+		  (void) ctx->defs.add_gradient (id_buf, grad);
+		}
+	      }
       else if (parser.tag_name.eq ("radialGradient"))
       {
 	hb_svg_gradient_t grad;
@@ -1954,24 +1977,28 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 
 	hb_svg_str_t id = parser.find_attr ("id");
 
-	if (tok == SVG_TOKEN_OPEN_TAG)
-	{
-	  int gdepth = 1;
-	  while (gdepth > 0)
-	  {
-	    hb_svg_token_type_t gt = parser.next ();
-	    if (gt == SVG_TOKEN_EOF) break;
-	    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
-	    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
-		parser.tag_name.eq ("stop"))
-	      svg_parse_gradient_stop (parser, grad,
-				       ctx->pfuncs, ctx->paint,
-				       ctx->foreground, hb_font_get_face (ctx->font),
-				       ctx->palette);
-	    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
-	      gdepth++;
-	  }
-	}
+		if (tok == SVG_TOKEN_OPEN_TAG)
+		{
+		  int gdepth = 1;
+		  bool had_alloc_failure = false;
+		  while (gdepth > 0)
+		  {
+		    hb_svg_token_type_t gt = parser.next ();
+		    if (gt == SVG_TOKEN_EOF) break;
+		    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
+		    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
+			parser.tag_name.eq ("stop"))
+		      if (unlikely (!svg_parse_gradient_stop (parser, grad,
+							      ctx->pfuncs, ctx->paint,
+							      ctx->foreground, hb_font_get_face (ctx->font),
+							      ctx->palette)))
+			had_alloc_failure = true;
+		    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
+		      gdepth++;
+		  }
+		  if (had_alloc_failure)
+		    id = {};
+		}
 
 	if (id.len)
 	{
@@ -1979,9 +2006,9 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 	  unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
 	  memcpy (id_buf, id.data, n);
 	  id_buf[n] = '\0';
-	  ctx->defs.add_gradient (id_buf, grad);
-	}
-      }
+		  (void) ctx->defs.add_gradient (id_buf, grad);
+		}
+	      }
       else if (parser.tag_name.eq ("clipPath"))
       {
         hb_svg_clip_path_def_t clip;
@@ -2000,11 +2027,12 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
         clip.first_shape = ctx->defs.clip_shapes.length;
         clip.shape_count = 0;
 
-        if (tok == SVG_TOKEN_OPEN_TAG)
-        {
-          int cdepth = 1;
-          while (cdepth > 0)
-          {
+	        if (tok == SVG_TOKEN_OPEN_TAG)
+	        {
+	          int cdepth = 1;
+		  bool had_alloc_failure = false;
+	          while (cdepth > 0)
+	          {
             hb_svg_token_type_t ct = parser.next ();
             if (ct == SVG_TOKEN_EOF) break;
             if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
@@ -2013,25 +2041,30 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
               if (cdepth == 1)
               {
                 hb_svg_shape_emit_data_t shape;
-                if (svg_parse_shape_tag (parser, &shape))
-                {
-                  hb_svg_clip_shape_t clip_shape;
-                  clip_shape.shape = shape;
+	                if (svg_parse_shape_tag (parser, &shape))
+	                {
+	                  hb_svg_clip_shape_t clip_shape;
+	                  clip_shape.shape = shape;
                   hb_svg_str_t sh_transform = parser.find_attr ("transform");
                   if (sh_transform.len)
                   {
-                    clip_shape.has_transform = true;
-                    svg_parse_transform (sh_transform, &clip_shape.transform);
-                  }
-                  ctx->defs.clip_shapes.push (clip_shape);
-                  clip.shape_count++;
-                }
-              }
+	                    clip_shape.has_transform = true;
+	                    svg_parse_transform (sh_transform, &clip_shape.transform);
+	                  }
+	                  ctx->defs.clip_shapes.push (clip_shape);
+			  if (likely (!ctx->defs.clip_shapes.in_error ()))
+	                    clip.shape_count++;
+			  else
+			    had_alloc_failure = true;
+	                }
+	              }
               if (ct == SVG_TOKEN_OPEN_TAG)
                 cdepth++;
-            }
-          }
-        }
+	            }
+	          }
+		  if (had_alloc_failure)
+		    id = {};
+	        }
 
         if (id.len && clip.shape_count)
         {
@@ -2039,9 +2072,9 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
           unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
           memcpy (id_buf, id.data, n);
           id_buf[n] = '\0';
-          ctx->defs.add_clip_path (id_buf, clip);
-        }
-      }
+	          (void) ctx->defs.add_clip_path (id_buf, clip);
+	        }
+	      }
       else
       {
 	/* Skip unknown defs children */
