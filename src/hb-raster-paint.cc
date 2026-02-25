@@ -376,12 +376,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.is_rect = false;
     if (unlikely (!new_clip.alpha.resize (new_clip.stride * h)))
     {
-      new_clip.init_full (w, h);
-      new_clip.is_rect = true;
-      new_clip.rect_x0 = new_clip.rect_y0 = 0;
-      new_clip.rect_x1 = new_clip.rect_y1 = 0;
-      new_clip.min_x = new_clip.min_y = new_clip.max_x = new_clip.max_y = 0;
-      c->clip_stack.push (std::move (new_clip));
+      hb_raster_paint_push_empty_clip (c, w, h);
       return;
     }
     hb_memset (new_clip.alpha.arrayZ, 0, new_clip.stride * h);
