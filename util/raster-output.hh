@@ -683,8 +683,10 @@ struct raster_output_t : output_options_t<true>, view_options_t
   /* Write an A8 alpha image as PPM; composited over fg/bg, Y-flipped. */
   void write_a8_as_ppm (hb_raster_image_t *img,
 			float sx, float sy, float step, bool vertical,
-			const hb_raster_extents_t &ext)
+			const hb_raster_extents_t &fallback_ext)
   {
+    hb_raster_extents_t ext = fallback_ext;
+    hb_raster_image_get_extents (img, &ext);
     if (!ext.width || !ext.height) return;
 
     uint8_t fg_r = hb_color_get_red (fg_color);
