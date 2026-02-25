@@ -1559,11 +1559,17 @@ done:
 
 static hb_bool_t
 hb_raster_paint_custom_palette_color (hb_paint_funcs_t *funcs HB_UNUSED,
-				      void *paint_data HB_UNUSED,
-				      unsigned int color_index HB_UNUSED,
-				      hb_color_t *color HB_UNUSED,
+				      void *paint_data,
+				      unsigned int color_index,
+				      hb_color_t *color,
 				      void *user_data HB_UNUSED)
 {
+  hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
+  if (likely (c->custom_palette && hb_map_has (c->custom_palette, color_index)))
+  {
+    *color = hb_map_get (c->custom_palette, color_index);
+    return true;
+  }
   return false;
 }
 
@@ -1671,6 +1677,7 @@ void
 hb_raster_paint_destroy (hb_raster_paint_t *paint)
 {
   if (!hb_object_destroy (paint)) return;
+  hb_map_destroy (paint->custom_palette);
   hb_raster_draw_destroy (paint->clip_rdr);
   for (auto *s : paint->surface_stack)
     hb_raster_image_destroy (s);
@@ -1957,6 +1964,49 @@ hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
 }
 
 /**
+ * hb_raster_paint_clear_custom_palette_colors:
+ * @paint: a paint context
+ *
+ * Clears all custom palette color overrides.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_paint_clear_custom_palette_colors (hb_raster_paint_t *paint)
+{
+  if (paint->custom_palette)
+    hb_map_clear (paint->custom_palette);
+}
+
+/**
+ * hb_raster_paint_set_custom_palette_color:
+ * @paint: a paint context
+ * @color_index: palette color index to override
+ * @color: replacement color for @color_index
+ *
+ * Sets a custom palette color override. During paint operations,
+ * when the font requests @color_index from CPAL, @color is used.
+ *
+ * Return value: `true` if the override was set; `false` on allocation failure.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_paint_set_custom_palette_color (hb_raster_paint_t *paint,
+					  unsigned int       color_index,
+					  hb_color_t         color)
+{
+  if (unlikely (!paint->custom_palette))
+  {
+    paint->custom_palette = hb_map_create ();
+    if (unlikely (!paint->custom_palette))
+      return false;
+  }
+  hb_map_set (paint->custom_palette, color_index, color);
+  return hb_map_allocation_successful (paint->custom_palette);
+}
+
+/**
  * hb_raster_paint_get_funcs:
  *
  * Fetches the singleton #hb_paint_funcs_t that renders color glyphs
@@ -2117,6 +2167,7 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
   paint->fixed_extents = {};
   paint->has_extents = false;
   paint->foreground = HB_COLOR (0, 0, 0, 255);
+  hb_raster_paint_clear_custom_palette_colors (paint);
   paint->transform_stack.clear ();
   paint->release_all_clips ();
   for (auto *s : paint->surface_stack)

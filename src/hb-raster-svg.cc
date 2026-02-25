@@ -458,6 +458,8 @@ hexval (char c)
  * Sets *is_none if "none". */
 static hb_color_t
 svg_parse_color (hb_svg_str_t s,
+		 hb_paint_funcs_t *pfuncs,
+		 void *paint_data,
 		 hb_color_t foreground,
 		 hb_face_t *face,
 		 unsigned palette,
@@ -491,6 +493,9 @@ svg_parse_color (hb_svg_str_t s,
 	color_index = color_index * 10 + (*p++ - '0');
 
       hb_color_t palette_color;
+      if (hb_paint_custom_palette_color (pfuncs, paint_data, color_index, &palette_color))
+	return palette_color;
+
       unsigned count = 1;
       hb_ot_color_palette_get_colors (face, palette, color_index, &count, &palette_color);
       if (count)
@@ -509,7 +514,7 @@ svg_parse_color (hb_svg_str_t s,
       while (e > val_start && *(e - 1) != ')') e--;
       if (e > val_start) e--;
       hb_svg_str_t fallback = {val_start, (unsigned) (e - val_start)};
-      return svg_parse_color (fallback, foreground, face, palette, is_none);
+      return svg_parse_color (fallback, pfuncs, paint_data, foreground, face, palette, is_none);
     }
 
     return foreground;
@@ -1616,6 +1621,8 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
 
   /* Solid color */
   hb_color_t color = svg_parse_color (fill_str,
+				      ctx->pfuncs,
+				      ctx->paint,
 				      ctx->foreground,
 				      hb_font_get_face (ctx->font),
 				      ctx->palette,
@@ -1767,6 +1774,8 @@ static void svg_render_element (hb_svg_render_context_t *ctx,
 static void
 svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 			 hb_svg_gradient_t &grad,
+			 hb_paint_funcs_t *pfuncs,
+			 void *paint_data,
 			 hb_color_t foreground,
 			 hb_face_t *face,
 			 unsigned palette)
@@ -1787,7 +1796,7 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
   bool is_none = false;
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
   if (color_str.len)
-    color = svg_parse_color (color_str, foreground, face, palette, &is_none);
+    color = svg_parse_color (color_str, pfuncs, paint_data, foreground, face, palette, &is_none);
 
   if (opacity_str.len)
   {
@@ -1907,6 +1916,7 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 	    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
 		parser.tag_name.eq ("stop"))
 	      svg_parse_gradient_stop (parser, grad,
+				       ctx->pfuncs, ctx->paint,
 				       ctx->foreground, hb_font_get_face (ctx->font),
 				       ctx->palette);
 	    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
@@ -1955,6 +1965,7 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 	    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
 		parser.tag_name.eq ("stop"))
 	      svg_parse_gradient_stop (parser, grad,
+				       ctx->pfuncs, ctx->paint,
 				       ctx->foreground, hb_font_get_face (ctx->font),
 				       ctx->palette);
 	    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
