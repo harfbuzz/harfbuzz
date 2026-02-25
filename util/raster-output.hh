@@ -195,7 +195,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
     hb_font_extents_t extents = {};
     hb_font_get_extents_for_direction (font, dir, &extents);
     float step = fabsf ((float) (extents.ascender - extents.descender + extents.line_gap));
-    step += (float) line_space;
+    step += scalbnf ((float) line_space, (int) subpixel_bits);
     if (step < 0.f)
       step = 0.f;
     if (!(step > 0.f))
