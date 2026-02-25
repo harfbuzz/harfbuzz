@@ -29,6 +29,7 @@
 #include "hb-raster.h"
 #include "hb-raster-paint.hh"
 #include "hb-raster-svg.hh"
+#include "hb-draw.h"
 
 #include <math.h>
 #include <string.h>
@@ -1241,16 +1242,21 @@ struct hb_svg_gradient_t
 
   /* Common */
   hb_paint_extend_t spread = HB_PAINT_EXTEND_PAD;
+  bool has_spread = false;
   hb_svg_transform_t gradient_transform;
   bool has_gradient_transform = false;
   bool units_user_space = false; /* false = objectBoundingBox (default) */
+  bool has_units_user_space = false;
 
   /* Linear gradient: x1, y1, x2, y2 */
   float x1 = 0, y1 = 0, x2 = 1, y2 = 0;
+  bool has_x1 = false, has_y1 = false, has_x2 = false, has_y2 = false;
 
   /* Radial gradient: cx, cy, r, fx, fy */
   float cx = 0.5f, cy = 0.5f, r = 0.5f;
   float fx = -1.f, fy = -1.f; /* -1 = not set, use cx/cy */
+  bool has_cx = false, has_cy = false, has_r = false;
+  bool has_fx = false, has_fy = false;
 
   hb_vector_t<hb_svg_gradient_stop_t> stops;
 
@@ -1483,26 +1489,61 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
   const hb_svg_gradient_t *grad = ctx->defs.find_gradient_str (fill_str);
   if (grad)
   {
-    /* Resolve href chain */
-    const hb_svg_gradient_t *resolved = grad;
-    unsigned max_chain = 8;
-    while (resolved && resolved->stops.length == 0 && resolved->href_id[0] && max_chain--)
+    /* Resolve href chain and inherit unspecified attributes from references. */
+    const hb_svg_gradient_t *chain[8];
+    unsigned chain_len = 0;
+    const hb_svg_gradient_t *cur = grad;
+    while (cur && chain_len < ARRAY_LENGTH (chain))
     {
-      resolved = ctx->defs.find_gradient (resolved->href_id);
+      chain[chain_len++] = cur;
+      if (!cur->href_id[0]) break;
+      const hb_svg_gradient_t *next = ctx->defs.find_gradient (cur->href_id);
+      if (!next) break;
+      bool is_cycle = false;
+      for (unsigned i = 0; i < chain_len; i++)
+        if (chain[i] == next)
+        {
+          is_cycle = true;
+          break;
+        }
+      if (is_cycle) break;
+      cur = next;
     }
-    if (!resolved || resolved->stops.length == 0)
-    {
-      /* Empty gradient = transparent */
-      return;
-    }
+    if (!chain_len) return;
 
-    /* Merge attributes from referenced gradient if needed */
-    const hb_svg_gradient_t *attr_grad = grad;
-    const hb_svg_gradient_t *stop_grad = resolved;
+    hb_svg_gradient_t effective = *chain[chain_len - 1];
+    for (int i = (int) chain_len - 2; i >= 0; i--)
+    {
+      const hb_svg_gradient_t *g = chain[i];
+      effective.type = g->type;
+      if (g->stops.length) effective.stops = g->stops;
+      if (g->has_spread) { effective.spread = g->spread; effective.has_spread = true; }
+      if (g->has_units_user_space)
+      {
+        effective.units_user_space = g->units_user_space;
+        effective.has_units_user_space = true;
+      }
+      if (g->has_gradient_transform)
+      {
+        effective.gradient_transform = g->gradient_transform;
+        effective.has_gradient_transform = true;
+      }
+      if (g->has_x1) { effective.x1 = g->x1; effective.has_x1 = true; }
+      if (g->has_y1) { effective.y1 = g->y1; effective.has_y1 = true; }
+      if (g->has_x2) { effective.x2 = g->x2; effective.has_x2 = true; }
+      if (g->has_y2) { effective.y2 = g->y2; effective.has_y2 = true; }
+      if (g->has_cx) { effective.cx = g->cx; effective.has_cx = true; }
+      if (g->has_cy) { effective.cy = g->cy; effective.has_cy = true; }
+      if (g->has_r)  { effective.r  = g->r;  effective.has_r  = true; }
+      if (g->has_fx) { effective.fx = g->fx; effective.has_fx = true; }
+      if (g->has_fy) { effective.fy = g->fy; effective.has_fy = true; }
+    }
+    if (!effective.stops.length)
+      return;
 
     hb_svg_color_line_data_t cl_data;
-    cl_data.grad = stop_grad;
-    cl_data.extend = attr_grad->spread;
+    cl_data.grad = &effective;
+    cl_data.extend = effective.spread;
     cl_data.alpha_scale = hb_clamp (fill_opacity, 0.f, 1.f);
 
     hb_color_line_t cl = {
@@ -1511,7 +1552,7 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
       svg_color_line_get_extend, nullptr
     };
 
-    bool has_bbox_transform = !attr_grad->units_user_space && object_bbox && !object_bbox->is_empty ();
+    bool has_bbox_transform = !effective.units_user_space && object_bbox && !object_bbox->is_empty ();
     if (has_bbox_transform)
     {
       float w = object_bbox->xmax - object_bbox->xmin;
@@ -1522,33 +1563,33 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
         has_bbox_transform = false;
     }
 
-    if (attr_grad->has_gradient_transform)
-      ctx->push_transform (attr_grad->gradient_transform.xx,
-			    attr_grad->gradient_transform.yx,
-			    attr_grad->gradient_transform.xy,
-			    attr_grad->gradient_transform.yy,
-			    attr_grad->gradient_transform.dx,
-			    attr_grad->gradient_transform.dy);
+    if (effective.has_gradient_transform)
+      ctx->push_transform (effective.gradient_transform.xx,
+			    effective.gradient_transform.yx,
+			    effective.gradient_transform.xy,
+			    effective.gradient_transform.yy,
+			    effective.gradient_transform.dx,
+			    effective.gradient_transform.dy);
 
-    if (attr_grad->type == SVG_GRADIENT_LINEAR)
+    if (effective.type == SVG_GRADIENT_LINEAR)
     {
       hb_paint_linear_gradient (ctx->pfuncs, ctx->paint, &cl,
-				attr_grad->x1, attr_grad->y1,
-				attr_grad->x2, attr_grad->y2,
-				attr_grad->x2 - (attr_grad->y2 - attr_grad->y1),
-				attr_grad->y2 + (attr_grad->x2 - attr_grad->x1));
+				effective.x1, effective.y1,
+				effective.x2, effective.y2,
+				effective.x2 - (effective.y2 - effective.y1),
+				effective.y2 + (effective.x2 - effective.x1));
     }
     else /* SVG_GRADIENT_RADIAL */
     {
-      float fx = attr_grad->fx >= 0 ? attr_grad->fx : attr_grad->cx;
-      float fy = attr_grad->fy >= 0 ? attr_grad->fy : attr_grad->cy;
+      float fx = effective.has_fx ? effective.fx : effective.cx;
+      float fy = effective.has_fy ? effective.fy : effective.cy;
 
       hb_paint_radial_gradient (ctx->pfuncs, ctx->paint, &cl,
 				fx, fy, 0.f,
-				attr_grad->cx, attr_grad->cy, attr_grad->r);
+				effective.cx, effective.cy, effective.r);
     }
 
-    if (attr_grad->has_gradient_transform)
+    if (effective.has_gradient_transform)
       ctx->pop_transform ();
     if (has_bbox_transform)
       ctx->pop_transform ();
@@ -1746,13 +1787,32 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
 {
   hb_svg_str_t spread_str = parser.find_attr ("spreadMethod");
   if (spread_str.eq ("reflect"))
+  {
     grad.spread = HB_PAINT_EXTEND_REFLECT;
+    grad.has_spread = true;
+  }
   else if (spread_str.eq ("repeat"))
+  {
     grad.spread = HB_PAINT_EXTEND_REPEAT;
+    grad.has_spread = true;
+  }
+  else if (spread_str.eq ("pad"))
+  {
+    grad.spread = HB_PAINT_EXTEND_PAD;
+    grad.has_spread = true;
+  }
 
   hb_svg_str_t units_str = parser.find_attr ("gradientUnits");
   if (units_str.eq ("userSpaceOnUse"))
+  {
     grad.units_user_space = true;
+    grad.has_units_user_space = true;
+  }
+  else if (units_str.eq ("objectBoundingBox"))
+  {
+    grad.units_user_space = false;
+    grad.has_units_user_space = true;
+  }
 
   hb_svg_str_t transform_str = parser.find_attr ("gradientTransform");
   if (transform_str.len)
@@ -1796,13 +1856,17 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
       {
 	hb_svg_gradient_t grad;
 	grad.type = SVG_GRADIENT_LINEAR;
-	grad.x1 = svg_parse_float (parser.find_attr ("x1"));
-	grad.y1 = svg_parse_float (parser.find_attr ("y1"));
-	grad.x2 = svg_parse_float (parser.find_attr ("x2"));
-	grad.y2 = svg_parse_float (parser.find_attr ("y2"));
+        hb_svg_str_t x1_str = parser.find_attr ("x1");
+        hb_svg_str_t y1_str = parser.find_attr ("y1");
+        hb_svg_str_t x2_str = parser.find_attr ("x2");
+        hb_svg_str_t y2_str = parser.find_attr ("y2");
+        if (x1_str.len) { grad.x1 = svg_parse_float (x1_str); grad.has_x1 = true; }
+        if (y1_str.len) { grad.y1 = svg_parse_float (y1_str); grad.has_y1 = true; }
+        if (x2_str.len) { grad.x2 = svg_parse_float (x2_str); grad.has_x2 = true; }
+        if (y2_str.len) { grad.y2 = svg_parse_float (y2_str); grad.has_y2 = true; }
 
 	/* Default x2 to 1 if not explicitly set (objectBoundingBox default) */
-	if (parser.find_attr ("x2").is_null ())
+	if (!grad.has_x2)
 	  grad.x2 = 1.f;
 
 	svg_parse_gradient_attrs (parser, grad);
@@ -1846,11 +1910,11 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 	hb_svg_str_t fx_str = parser.find_attr ("fx");
 	hb_svg_str_t fy_str = parser.find_attr ("fy");
 
-	if (cx_str.len) grad.cx = svg_parse_float (cx_str);
-	if (cy_str.len) grad.cy = svg_parse_float (cy_str);
-	if (r_str.len) grad.r = svg_parse_float (r_str);
-	if (fx_str.len) grad.fx = svg_parse_float (fx_str);
-	if (fy_str.len) grad.fy = svg_parse_float (fy_str);
+	if (cx_str.len) { grad.cx = svg_parse_float (cx_str); grad.has_cx = true; }
+	if (cy_str.len) { grad.cy = svg_parse_float (cy_str); grad.has_cy = true; }
+	if (r_str.len) { grad.r = svg_parse_float (r_str); grad.has_r = true; }
+	if (fx_str.len) { grad.fx = svg_parse_float (fx_str); grad.has_fx = true; }
+	if (fy_str.len) { grad.fy = svg_parse_float (fy_str); grad.has_fy = true; }
 
 	svg_parse_gradient_attrs (parser, grad);
 
@@ -1994,42 +2058,77 @@ svg_push_clip_path_ref (hb_svg_render_context_t *ctx,
   return true;
 }
 
-static bool
-svg_compute_current_clip_bbox_user (hb_svg_render_context_t *ctx,
-                                    hb_extents_t<> *bbox)
+static void
+svg_bbox_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+                  void *draw_data,
+                  hb_draw_state_t *st HB_UNUSED,
+                  float to_x, float to_y,
+                  void *user_data HB_UNUSED)
 {
-  hb_raster_image_t *surf = ctx->paint->current_surface ();
-  if (!surf) return false;
+  ((hb_extents_t<> *) draw_data)->add_point (to_x, to_y);
+}
 
-  const hb_raster_clip_t &clip = ctx->paint->current_clip ();
-  if (clip.min_x >= clip.max_x || clip.min_y >= clip.max_y) return false;
+static void
+svg_bbox_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+                  void *draw_data,
+                  hb_draw_state_t *st HB_UNUSED,
+                  float to_x, float to_y,
+                  void *user_data HB_UNUSED)
+{
+  ((hb_extents_t<> *) draw_data)->add_point (to_x, to_y);
+}
 
-  hb_transform_t<> t = ctx->paint->current_effective_transform ();
-  float det = t.xx * t.yy - t.xy * t.yx;
-  if (fabsf (det) < 1e-10f) return false;
-  float inv_det = 1.f / det;
-  float inv_xx =  t.yy * inv_det;
-  float inv_xy = -t.xy * inv_det;
-  float inv_yx = -t.yx * inv_det;
-  float inv_yy =  t.xx * inv_det;
-  float inv_x0 = (t.xy * t.y0 - t.yy * t.x0) * inv_det;
-  float inv_y0 = (t.yx * t.x0 - t.xx * t.y0) * inv_det;
+static void
+svg_bbox_quadratic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+                       void *draw_data,
+                       hb_draw_state_t *st HB_UNUSED,
+                       float control_x, float control_y,
+                       float to_x, float to_y,
+                       void *user_data HB_UNUSED)
+{
+  hb_extents_t<> *ext = (hb_extents_t<> *) draw_data;
+  ext->add_point (control_x, control_y);
+  ext->add_point (to_x, to_y);
+}
 
-  float px0 = (float) surf->extents.x_origin + clip.min_x;
-  float py0 = (float) surf->extents.y_origin + clip.min_y;
-  float px1 = (float) surf->extents.x_origin + clip.max_x;
-  float py1 = (float) surf->extents.y_origin + clip.max_y;
+static void
+svg_bbox_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+                   void *draw_data,
+                   hb_draw_state_t *st HB_UNUSED,
+                   float control1_x, float control1_y,
+                   float control2_x, float control2_y,
+                   float to_x, float to_y,
+                   void *user_data HB_UNUSED)
+{
+  hb_extents_t<> *ext = (hb_extents_t<> *) draw_data;
+  ext->add_point (control1_x, control1_y);
+  ext->add_point (control2_x, control2_y);
+  ext->add_point (to_x, to_y);
+}
 
+static hb_draw_funcs_t *
+svg_bbox_draw_funcs ()
+{
+  static hb_draw_funcs_t *funcs = nullptr;
+  if (unlikely (!funcs))
+  {
+    funcs = hb_draw_funcs_create ();
+    hb_draw_funcs_set_move_to_func (funcs, svg_bbox_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (funcs, svg_bbox_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (funcs, svg_bbox_quadratic_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (funcs, svg_bbox_cubic_to, nullptr, nullptr);
+    hb_draw_funcs_make_immutable (funcs);
+  }
+  return funcs;
+}
+
+static bool
+svg_compute_shape_bbox (const hb_svg_shape_emit_data_t &shape,
+                        hb_extents_t<> *bbox)
+{
   hb_extents_t<> ext;
-  auto add_inv = [&] (float px, float py) {
-    float ux = inv_xx * px + inv_xy * py + inv_x0;
-    float uy = inv_yx * px + inv_yy * py + inv_y0;
-    ext.add_point (ux, uy);
-  };
-  add_inv (px0, py0);
-  add_inv (px0, py1);
-  add_inv (px1, py0);
-  add_inv (px1, py1);
+  hb_svg_shape_emit_data_t tmp = shape;
+  svg_shape_path_emit (svg_bbox_draw_funcs (), &ext, &tmp);
   if (ext.is_empty ()) return false;
   *bbox = ext;
   return true;
@@ -2066,7 +2165,7 @@ svg_render_shape (hb_svg_render_context_t *ctx,
   hb_raster_paint_push_clip_path (ctx->paint, svg_shape_path_emit, &shape);
 
   hb_extents_t<> bbox;
-  bool has_bbox = svg_compute_current_clip_bbox_user (ctx, &bbox);
+  bool has_bbox = svg_compute_shape_bbox (shape, &bbox);
 
   /* Default fill is black */
   if (fill_str.is_null ())
