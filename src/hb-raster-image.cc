@@ -582,7 +582,7 @@ hb_raster_image_get_buffer (hb_raster_image_t *image)
 /**
  * hb_raster_image_get_extents:
  * @image: a raster image
- * @extents: (out): the image extents
+ * @extents: (out) (nullable): the image extents
  *
  * Fetches the pixel-buffer extents of @image.
  *
@@ -592,7 +592,8 @@ void
 hb_raster_image_get_extents (hb_raster_image_t   *image,
 			     hb_raster_extents_t *extents)
 {
-  *extents = image->extents;
+  if (extents)
+    *extents = image->extents;
 }
 
 /**

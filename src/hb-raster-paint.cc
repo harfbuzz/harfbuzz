@@ -1759,6 +1759,34 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 }
 
 /**
+ * hb_raster_paint_get_transform:
+ * @paint: a paint context
+ * @xx: (out) (nullable): xx component of the transform matrix
+ * @yx: (out) (nullable): yx component of the transform matrix
+ * @xy: (out) (nullable): xy component of the transform matrix
+ * @yy: (out) (nullable): yy component of the transform matrix
+ * @dx: (out) (nullable): x translation
+ * @dy: (out) (nullable): y translation
+ *
+ * Gets the current base 2x3 affine transform.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_paint_get_transform (hb_raster_paint_t *paint,
+			       float *xx, float *yx,
+			       float *xy, float *yy,
+			       float *dx, float *dy)
+{
+  if (xx) *xx = paint->base_transform.xx;
+  if (yx) *yx = paint->base_transform.yx;
+  if (xy) *xy = paint->base_transform.xy;
+  if (yy) *yy = paint->base_transform.yy;
+  if (dx) *dx = paint->base_transform.x0;
+  if (dy) *dy = paint->base_transform.y0;
+}
+
+/**
  * hb_raster_paint_set_scale_factor:
  * @paint: a paint context
  * @x_scale_factor: x-axis minification factor
@@ -1781,8 +1809,8 @@ hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
 /**
  * hb_raster_paint_get_scale_factor:
  * @paint: a paint context
- * @x_scale_factor: (out) (optional): x-axis minification factor
- * @y_scale_factor: (out) (optional): y-axis minification factor
+ * @x_scale_factor: (out) (nullable): x-axis minification factor
+ * @y_scale_factor: (out) (nullable): y-axis minification factor
  *
  * Fetches the current post-transform minification factors.
  *
@@ -1822,6 +1850,29 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
   paint->has_extents = true;
   if (paint->fixed_extents.stride == 0)
     paint->fixed_extents.stride = paint->fixed_extents.width * 4;
+}
+
+/**
+ * hb_raster_paint_get_extents:
+ * @paint: a paint context
+ * @extents: (out) (nullable): where to write current extents
+ *
+ * Gets currently configured output extents.
+ *
+ * Return value: `true` if extents are set, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_paint_get_extents (hb_raster_paint_t   *paint,
+			     hb_raster_extents_t *extents)
+{
+  if (!paint->has_extents)
+    return false;
+
+  if (extents)
+    *extents = paint->fixed_extents;
+  return true;
 }
 
 /**
@@ -1932,6 +1983,61 @@ hb_paint_funcs_t *
 hb_raster_paint_get_funcs (void)
 {
   return static_raster_paint_funcs.get_unconst ();
+}
+
+/**
+ * hb_raster_paint_glyph:
+ * @paint: a paint context
+ * @font: font to paint from
+ * @glyph: glyph ID to paint
+ * @pen_x: glyph origin x in font coordinates (pre-transform)
+ * @pen_y: glyph origin y in font coordinates (pre-transform)
+ * @palette: palette index
+ * @foreground: foreground color
+ *
+ * Convenience wrapper to paint one color glyph at (@pen_x, @pen_y) using
+ * the paint context's current transform. The pen coordinates are applied
+ * before minification and transformed by the current affine transform.
+ *
+ * Return value: `true` if painting succeeded, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_paint_glyph (hb_raster_paint_t *paint,
+		       hb_font_t        *font,
+		       hb_codepoint_t    glyph,
+		       float             pen_x,
+		       float             pen_y,
+		       unsigned           palette,
+		       hb_color_t         foreground)
+{
+  float xx = paint->base_transform.xx;
+  float yx = paint->base_transform.yx;
+  float xy = paint->base_transform.xy;
+  float yy = paint->base_transform.yy;
+  float dx = paint->base_transform.x0;
+  float dy = paint->base_transform.y0;
+
+  float tx = dx + xx * pen_x + xy * pen_y;
+  float ty = dy + yx * pen_x + yy * pen_y;
+
+  if (!paint->has_extents)
+  {
+    hb_glyph_extents_t ge;
+    if (hb_font_get_glyph_extents (font, glyph, &ge))
+    {
+      hb_raster_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
+      hb_raster_paint_set_glyph_extents (paint, &ge);
+    }
+  }
+
+  hb_raster_paint_set_transform (paint, xx, yx, xy, yy, tx, ty);
+  hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
+						hb_raster_paint_get_funcs (), paint,
+						palette, foreground);
+  hb_raster_paint_set_transform (paint, xx, yx, xy, yy, dx, dy);
+  return ret;
 }
 
 /**

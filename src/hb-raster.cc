@@ -41,9 +41,9 @@
  * ```
  * hb_raster_draw_t *draw = hb_raster_draw_create_or_fail ();
  * hb_raster_draw_set_scale_factor (draw, 64.f, 64.f);
- * hb_raster_draw_set_transform (draw, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
+ * hb_raster_draw_set_transform (draw, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
  * hb_raster_draw_set_glyph_extents (draw, &glyph_extents);
- * hb_font_draw_glyph (font, gid, hb_raster_draw_get_funcs (), draw);
+ * hb_raster_draw_glyph (draw, font, gid, pen_x, pen_y);
  * hb_raster_image_t *mask = hb_raster_draw_render (draw);
  * ```
  *
@@ -52,12 +52,12 @@
  * ```
  * hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
  * hb_raster_paint_set_scale_factor (paint, 64.f, 64.f);
- * hb_raster_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, pen_x, pen_y);
+ * hb_raster_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
  * hb_raster_paint_set_foreground (paint, foreground);
  * hb_glyph_extents_t glyph_extents;
  * hb_font_get_glyph_extents (font, gid, &glyph_extents);
  * hb_raster_paint_set_glyph_extents (paint, &glyph_extents);
- * hb_font_paint_glyph (font, gid, hb_raster_paint_get_funcs (), paint, 0, foreground);
+ * hb_raster_paint_glyph (paint, font, gid, pen_x, pen_y, 0, foreground);
  * hb_raster_image_t *img = hb_raster_paint_render (paint);
  * ```
  *

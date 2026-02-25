@@ -246,8 +246,8 @@ hb_raster_draw_set_scale_factor (hb_raster_draw_t *draw,
 /**
  * hb_raster_draw_get_scale_factor:
  * @draw: a rasterizer
- * @x_scale_factor: (out) (optional): x-axis minification factor
- * @y_scale_factor: (out) (optional): y-axis minification factor
+ * @x_scale_factor: (out) (nullable): x-axis minification factor
+ * @y_scale_factor: (out) (nullable): y-axis minification factor
  *
  * Fetches the current post-transform minification factors.
  *
@@ -265,12 +265,12 @@ hb_raster_draw_get_scale_factor (hb_raster_draw_t *draw,
 /**
  * hb_raster_draw_get_transform:
  * @draw: a rasterizer
- * @xx: (out) (optional): xx component of the transform matrix
- * @yx: (out) (optional): yx component of the transform matrix
- * @xy: (out) (optional): xy component of the transform matrix
- * @yy: (out) (optional): yy component of the transform matrix
- * @dx: (out) (optional): x translation
- * @dy: (out) (optional): y translation
+ * @xx: (out) (nullable): xx component of the transform matrix
+ * @yx: (out) (nullable): yx component of the transform matrix
+ * @xy: (out) (nullable): xy component of the transform matrix
+ * @yy: (out) (nullable): yy component of the transform matrix
+ * @dx: (out) (nullable): x translation
+ * @dy: (out) (nullable): y translation
  *
  * Fetches the current affine transform of the rasterizer.
  *
@@ -307,6 +307,29 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 {
   draw->fixed_extents     = *extents;
   draw->has_extents = true;
+}
+
+/**
+ * hb_raster_draw_get_extents:
+ * @draw: a rasterizer
+ * @extents: (out) (nullable): where to write current extents
+ *
+ * Gets currently configured output extents.
+ *
+ * Return value: `true` if extents are set, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ **/
+hb_bool_t
+hb_raster_draw_get_extents (hb_raster_draw_t    *draw,
+			    hb_raster_extents_t *extents)
+{
+  if (!draw->has_extents)
+    return false;
+
+  if (extents)
+    *extents = draw->fixed_extents;
+  return true;
 }
 
 /**
@@ -908,6 +931,42 @@ hb_draw_funcs_t *
 hb_raster_draw_get_funcs (void)
 {
   return static_raster_draw_funcs.get_unconst ();
+}
+
+/**
+ * hb_raster_draw_glyph:
+ * @draw: a rasterizer
+ * @font: font to draw from
+ * @glyph: glyph ID to draw
+ * @pen_x: glyph origin x in font coordinates (pre-transform)
+ * @pen_y: glyph origin y in font coordinates (pre-transform)
+ *
+ * Convenience wrapper to draw one glyph at (@pen_x, @pen_y) using the
+ * rasterizer's current transform. The pen coordinates are applied before
+ * minification and are transformed by the current affine transform.
+ *
+ * XSince: REPLACEME
+ **/
+void
+hb_raster_draw_glyph (hb_raster_draw_t *draw,
+		      hb_font_t       *font,
+		      hb_codepoint_t   glyph,
+		      float            pen_x,
+		      float            pen_y)
+{
+  float xx = draw->transform.xx;
+  float yx = draw->transform.yx;
+  float xy = draw->transform.xy;
+  float yy = draw->transform.yy;
+  float dx = draw->transform.x0;
+  float dy = draw->transform.y0;
+
+  hb_raster_draw_set_transform (draw,
+				xx, yx, xy, yy,
+				dx + xx * pen_x + xy * pen_y,
+				dy + yx * pen_x + yy * pen_y);
+  hb_font_draw_glyph (font, glyph, hb_raster_draw_get_funcs (), draw);
+  hb_raster_draw_set_transform (draw, xx, yx, xy, yy, dx, dy);
 }
 
 

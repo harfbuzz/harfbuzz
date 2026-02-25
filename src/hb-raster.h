@@ -178,11 +178,22 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
 			    const hb_raster_extents_t *extents);
 
 HB_EXTERN hb_bool_t
+hb_raster_draw_get_extents (hb_raster_draw_t    *draw,
+			    hb_raster_extents_t *extents);
+
+HB_EXTERN hb_bool_t
 hb_raster_draw_set_glyph_extents (hb_raster_draw_t          *draw,
 				  const hb_glyph_extents_t  *glyph_extents);
 
 HB_EXTERN hb_draw_funcs_t *
 hb_raster_draw_get_funcs (void);
+
+HB_EXTERN void
+hb_raster_draw_glyph (hb_raster_draw_t *draw,
+		      hb_font_t       *font,
+		      hb_codepoint_t   glyph,
+		      float            pen_x,
+		      float            pen_y);
 
 HB_EXTERN hb_raster_image_t *
 hb_raster_draw_render (hb_raster_draw_t *draw);
@@ -236,6 +247,12 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
 			       float dx, float dy);
 
 HB_EXTERN void
+hb_raster_paint_get_transform (hb_raster_paint_t *paint,
+			       float *xx, float *yx,
+			       float *xy, float *yy,
+			       float *dx, float *dy);
+
+HB_EXTERN void
 hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
 				  float x_scale_factor,
 				  float y_scale_factor);
@@ -250,6 +267,10 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
 			     const hb_raster_extents_t *extents);
 
 HB_EXTERN hb_bool_t
+hb_raster_paint_get_extents (hb_raster_paint_t   *paint,
+			     hb_raster_extents_t *extents);
+
+HB_EXTERN hb_bool_t
 hb_raster_paint_set_glyph_extents (hb_raster_paint_t         *paint,
 				   const hb_glyph_extents_t  *glyph_extents);
 
@@ -259,6 +280,15 @@ hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
 
 HB_EXTERN hb_paint_funcs_t *
 hb_raster_paint_get_funcs (void);
+
+HB_EXTERN hb_bool_t
+hb_raster_paint_glyph (hb_raster_paint_t *paint,
+		       hb_font_t        *font,
+		       hb_codepoint_t    glyph,
+		       float             pen_x,
+		       float             pen_y,
+		       unsigned           palette,
+		       hb_color_t         foreground);
 
 HB_EXTERN hb_raster_image_t *
 hb_raster_paint_render (hb_raster_paint_t *paint);

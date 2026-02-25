@@ -109,17 +109,12 @@ parse_margin (const char *name G_GNUC_UNUSED,
 {
   view_options_t *view_opts = (view_options_t *) data;
   view_options_t::margin_t &m = view_opts->margin;
-  switch (sscanf (arg, "%lf%*[ ,]%lf%*[ ,]%lf%*[ ,]%lf", &m.t, &m.r, &m.b, &m.l)) {
-    case 1: m.r = m.t; HB_FALLTHROUGH;
-    case 2: m.b = m.t; HB_FALLTHROUGH;
-    case 3: m.l = m.r; HB_FALLTHROUGH;
-    case 4: return true;
-    default:
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one to four space-separated numbers",
-		   name);
-      return false;
-  }
+  if (parse_1to4_doubles (arg, &m.t, &m.r, &m.b, &m.l))
+    return true;
+  g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+	       "%s argument should be one to four space-separated numbers",
+	       name);
+  return false;
 }
 
 void

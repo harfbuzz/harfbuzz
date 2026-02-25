@@ -713,6 +713,23 @@ hb_raster_headers = [
   'hb-raster.h',
 ]
 
+hb_vector_sources = [
+  'hb-vector.cc',
+  'hb-vector-svg-draw.cc',
+  'hb-vector-svg-path.cc',
+  'hb-vector-svg-paint.cc',
+  'hb-vector-svg-path.hh',
+  'hb-vector-svg-subset.cc',
+  'hb-vector-svg-subset.hh',
+  'hb-vector-svg-utils.cc',
+  'hb-vector-svg-utils.hh',
+  'hb-static.cc',
+]
+
+hb_vector_headers = [
+  'hb-vector.h',
+]
+
 libharfbuzz_raster = library('harfbuzz-raster', hb_raster_sources,
   include_directories: incconfig,
   dependencies: [m_dep],
@@ -741,6 +758,39 @@ defs_list += [harfbuzz_raster_def]
 
 pkgmod.generate(libharfbuzz_raster,
   description: 'HarfBuzz CPU rasterizer',
+  requires: ['harfbuzz = @0@'.format(meson.project_version())],
+  subdirs: [meson.project_name()],
+  version: meson.project_version(),
+)
+
+libharfbuzz_vector = library('harfbuzz-vector', hb_vector_sources,
+  include_directories: incconfig,
+  dependencies: [m_dep],
+  link_with: [libharfbuzz],
+  cpp_args: cpp_args + extra_hb_cpp_args,
+  soversion: hb_so_version,
+  version: version,
+  install: true,
+  darwin_versions: darwin_versions,
+  link_language: chosen_linker,
+)
+
+install_headers(hb_vector_headers, subdir: meson.project_name())
+
+libharfbuzz_vector_dep = declare_dependency(
+  link_with: libharfbuzz_vector,
+  include_directories: incsrc,
+  dependencies: [libharfbuzz_dep])
+meson.override_dependency('harfbuzz-vector', libharfbuzz_vector_dep)
+
+harfbuzz_vector_def = custom_target('harfbuzz-vector.def',
+  command: gen_def_cmd,
+  input: hb_vector_headers,
+  output: 'harfbuzz-vector.def')
+defs_list += [harfbuzz_vector_def]
+
+pkgmod.generate(libharfbuzz_vector,
+  description: 'HarfBuzz vector converter',
   requires: ['harfbuzz = @0@'.format(meson.project_version())],
   subdirs: [meson.project_name()],
   version: meson.project_version(),
