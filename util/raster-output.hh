@@ -66,6 +66,7 @@ struct raster_output_t : output_options_t<true>
     hb_font_destroy (font);
     g_free (fore);
     g_free (back);
+    g_free (custom_palette);
   }
 
   void add_options (option_parser_t *parser)
@@ -79,6 +80,8 @@ struct raster_output_t : output_options_t<true>
     {
       {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,	"Set background color (default: #FFFFFF)",	"rrggbb/rrggbbaa"},
       {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,	"Set foreground color (default: #000000)",	"rrggbb/rrggbbaa"},
+      {"font-palette",	0, 0, G_OPTION_ARG_INT,		&this->palette,	"Set font palette (default: 0)",		"index"},
+      {"custom-palette",	0, 0, G_OPTION_ARG_STRING,	&this->custom_palette,	"Custom palette",				"comma-separated colors"},
       {"margin",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: 0)",	"one to four numbers"},
       {nullptr}
     };
@@ -100,7 +103,8 @@ struct raster_output_t : output_options_t<true>
 
     hb_face_t *face = hb_font_get_face (font);
     has_color = hb_ot_color_has_paint (face) ||
-		hb_ot_color_has_layers (face);
+		hb_ot_color_has_layers (face) ||
+		hb_ot_color_has_svg (face);
 
     /* Parse foreground / background colors */
     {
@@ -126,6 +130,31 @@ struct raster_output_t : output_options_t<true>
     {
       pnt = hb_raster_paint_create_or_fail ();
       hb_raster_paint_set_foreground (pnt, fg_color);
+      hb_raster_paint_clear_custom_palette_colors (pnt);
+      if (custom_palette)
+      {
+	char **entries = g_strsplit (custom_palette, ",", -1);
+	unsigned idx = 0;
+	for (unsigned i = 0; entries[i]; i++)
+	{
+	  char *entry = g_strstrip (entries[i]);
+	  const char *p = strchr (entry, '=');
+	  if (!p)
+	    p = entry;
+	  else
+	  {
+	    sscanf (entry, "%u", &idx);
+	    p++;
+	  }
+
+	  unsigned r = 0, g = 0, b = 0, a = 0;
+	  if (parse_color (p, r, g, b, a))
+	    hb_raster_paint_set_custom_palette_color (pnt, idx,
+						      HB_COLOR ((uint8_t) b, (uint8_t) g, (uint8_t) r, (uint8_t) a));
+	  idx++;
+	}
+	g_strfreev (entries);
+      }
     }
   }
 
@@ -295,7 +324,7 @@ struct raster_output_t : output_options_t<true>
 	  hb_raster_paint_set_transform (pnt, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
 	  hb_raster_paint_set_extents (pnt, &ext);
 
-	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y, 0, fg_color);
+	  hb_raster_paint_glyph (pnt, font, g.gid, pen_x, pen_y, palette, fg_color);
 
 	  hb_raster_image_t *img = hb_raster_paint_render (pnt);
 	  if (img)
@@ -460,6 +489,8 @@ struct raster_output_t : output_options_t<true>
 
   char              *fore      = nullptr;
   char              *back      = nullptr;
+  char              *custom_palette = nullptr;
+  int                palette   = 0;
   margin_t           margin    = {0., 0., 0., 0.};
   hb_color_t         fg_color  = HB_COLOR (0, 0, 0, 255);
   uint8_t            bg_r = 255, bg_g = 255, bg_b = 255, bg_a = 255;

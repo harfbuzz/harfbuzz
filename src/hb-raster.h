@@ -278,6 +278,14 @@ HB_EXTERN void
 hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
 				hb_color_t         foreground);
 
+HB_EXTERN void
+hb_raster_paint_clear_custom_palette_colors (hb_raster_paint_t *paint);
+
+HB_EXTERN hb_bool_t
+hb_raster_paint_set_custom_palette_color (hb_raster_paint_t *paint,
+					  unsigned int       color_index,
+					  hb_color_t         color);
+
 HB_EXTERN hb_paint_funcs_t *
 hb_raster_paint_get_funcs (void);
 
