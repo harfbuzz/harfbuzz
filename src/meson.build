@@ -709,6 +709,8 @@ hb_raster_sources = [
   'hb-raster-paint.hh',
   'hb-raster-svg.cc',
   'hb-raster-svg.hh',
+  'hb-svg-cache.cc',
+  'hb-svg-cache.hh',
   'hb-static.cc',
 ]
 
@@ -726,6 +728,8 @@ hb_vector_sources = [
   'hb-vector-svg-subset.hh',
   'hb-vector-svg-utils.cc',
   'hb-vector-svg-utils.hh',
+  'hb-svg-cache.cc',
+  'hb-svg-cache.hh',
   'hb-static.cc',
 ]
 

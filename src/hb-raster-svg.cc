@@ -29,7 +29,9 @@
 #include "hb-raster.h"
 #include "hb-raster-paint.hh"
 #include "hb-raster-svg.hh"
+#include "hb-svg-cache.hh"
 #include "hb-draw.h"
+#include "hb-ot-color.h"
 
 #include <math.h>
 #include <string.h>
@@ -1266,12 +1268,18 @@ struct hb_svg_gradient_t
 
 struct hb_svg_clip_path_def_t
 {
-  bool has_shape = false;
-  hb_svg_shape_emit_data_t shape;
+  unsigned first_shape = 0;
+  unsigned shape_count = 0;
   hb_svg_transform_t clip_transform;
-  hb_svg_transform_t shape_transform;
   bool has_clip_transform = false;
-  bool has_shape_transform = false;
+  bool units_user_space = true; /* default per SVG */
+};
+
+struct hb_svg_clip_shape_t
+{
+  hb_svg_shape_emit_data_t shape;
+  hb_svg_transform_t transform;
+  bool has_transform = false;
 };
 
 struct hb_svg_def_t
@@ -1284,6 +1292,7 @@ struct hb_svg_def_t
 struct hb_svg_defs_t
 {
   hb_vector_t<hb_svg_gradient_t> gradients;
+  hb_vector_t<hb_svg_clip_shape_t> clip_shapes;
   hb_vector_t<hb_svg_clip_path_def_t> clip_paths;
   hb_vector_t<hb_svg_def_t> defs;
 
@@ -1445,6 +1454,7 @@ struct hb_svg_render_context_t
   /* The full SVG document for <use> resolution */
   const char *doc_start;
   unsigned doc_len;
+  const hb_svg_doc_cache_t *doc_cache = nullptr;
 
   void push_transform (float xx, float yx, float xy, float yy, float dx, float dy)
   {
@@ -1949,12 +1959,19 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
       {
         hb_svg_clip_path_def_t clip;
         hb_svg_str_t id = parser.find_attr ("id");
+        hb_svg_str_t units = parser.find_attr ("clipPathUnits");
+        if (units.eq ("objectBoundingBox"))
+          clip.units_user_space = false;
+        else
+          clip.units_user_space = true;
         hb_svg_str_t cp_transform = parser.find_attr ("transform");
         if (cp_transform.len)
         {
           clip.has_clip_transform = true;
           svg_parse_transform (cp_transform, &clip.clip_transform);
         }
+        clip.first_shape = ctx->defs.clip_shapes.length;
+        clip.shape_count = 0;
 
         if (tok == SVG_TOKEN_OPEN_TAG)
         {
@@ -1966,19 +1983,21 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
             if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
             if (ct == SVG_TOKEN_OPEN_TAG || ct == SVG_TOKEN_SELF_CLOSE_TAG)
             {
-              if (cdepth == 1 && !clip.has_shape)
+              if (cdepth == 1)
               {
                 hb_svg_shape_emit_data_t shape;
                 if (svg_parse_shape_tag (parser, &shape))
                 {
-                  clip.has_shape = true;
-                  clip.shape = shape;
+                  hb_svg_clip_shape_t clip_shape;
+                  clip_shape.shape = shape;
                   hb_svg_str_t sh_transform = parser.find_attr ("transform");
                   if (sh_transform.len)
                   {
-                    clip.has_shape_transform = true;
-                    svg_parse_transform (sh_transform, &clip.shape_transform);
+                    clip_shape.has_transform = true;
+                    svg_parse_transform (sh_transform, &clip_shape.transform);
                   }
+                  ctx->defs.clip_shapes.push (clip_shape);
+                  clip.shape_count++;
                 }
               }
               if (ct == SVG_TOKEN_OPEN_TAG)
@@ -1987,7 +2006,7 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
           }
         }
 
-        if (id.len && clip.has_shape)
+        if (id.len && clip.shape_count)
         {
           char id_buf[64];
           unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
@@ -2012,6 +2031,19 @@ svg_find_element_by_id (const hb_svg_render_context_t *ctx,
                         const char **found)
 {
   *found = nullptr;
+  if (ctx->doc_cache)
+  {
+    unsigned start = 0, end = 0;
+    if (hb_svg_doc_cache_find_id_cstr (ctx->doc_cache, id, &start, &end))
+    {
+      if (start < ctx->doc_len && end <= ctx->doc_len && start < end)
+      {
+        *found = ctx->doc_start + start;
+        return true;
+      }
+    }
+  }
+
   hb_svg_xml_parser_t search (ctx->doc_start, ctx->doc_len);
   while (true)
   {
@@ -2028,33 +2060,78 @@ svg_find_element_by_id (const hb_svg_render_context_t *ctx,
   return false;
 }
 
+struct hb_svg_clip_emit_data_t
+{
+  const hb_svg_defs_t *defs;
+  const hb_svg_clip_path_def_t *clip;
+  hb_transform_t<> base_transform;
+  hb_transform_t<> bbox_transform;
+  bool has_bbox_transform = false;
+};
+
+static inline hb_transform_t<>
+svg_to_hb_transform (const hb_svg_transform_t &t)
+{
+  return hb_transform_t<> (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
+}
+
+static void
+svg_clip_path_emit (hb_draw_funcs_t *dfuncs,
+                    void *draw_data,
+                    void *user_data)
+{
+  hb_raster_draw_t *rdr = (hb_raster_draw_t *) draw_data;
+  hb_svg_clip_emit_data_t *ed = (hb_svg_clip_emit_data_t *) user_data;
+  const hb_svg_clip_path_def_t *clip = ed->clip;
+
+  for (unsigned i = 0; i < clip->shape_count; i++)
+  {
+    const hb_svg_clip_shape_t &s = ed->defs->clip_shapes[clip->first_shape + i];
+    hb_transform_t<> t = ed->base_transform;
+    if (ed->has_bbox_transform)
+      t.multiply (ed->bbox_transform);
+    if (clip->has_clip_transform)
+      t.multiply (svg_to_hb_transform (clip->clip_transform));
+    if (s.has_transform)
+      t.multiply (svg_to_hb_transform (s.transform));
+
+    hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
+
+    hb_svg_shape_emit_data_t shape = s.shape;
+    svg_shape_path_emit (dfuncs, draw_data, &shape);
+  }
+}
+
 static bool
 svg_push_clip_path_ref (hb_svg_render_context_t *ctx,
-                        hb_svg_str_t clip_path_str)
+                        hb_svg_str_t clip_path_str,
+                        const hb_extents_t<> *object_bbox)
 {
   if (clip_path_str.is_null ()) return false;
   hb_svg_str_t trimmed = clip_path_str.trim ();
   if (!trimmed.len || trimmed.eq ("none")) return false;
 
   const hb_svg_clip_path_def_t *clip = ctx->defs.find_clip_path_str (trimmed);
-  if (!clip || !clip->has_shape) return false;
+  if (!clip || !clip->shape_count) return false;
 
-  if (clip->has_clip_transform)
-    ctx->push_transform (clip->clip_transform.xx, clip->clip_transform.yx,
-                         clip->clip_transform.xy, clip->clip_transform.yy,
-                         clip->clip_transform.dx, clip->clip_transform.dy);
-  if (clip->has_shape_transform)
-    ctx->push_transform (clip->shape_transform.xx, clip->shape_transform.yx,
-                         clip->shape_transform.xy, clip->shape_transform.yy,
-                         clip->shape_transform.dx, clip->shape_transform.dy);
+  hb_svg_clip_emit_data_t ed;
+  ed.defs = &ctx->defs;
+  ed.clip = clip;
+  ed.base_transform = ctx->paint->current_effective_transform ();
 
-  hb_svg_shape_emit_data_t shape = clip->shape;
-  hb_raster_paint_push_clip_path (ctx->paint, svg_shape_path_emit, &shape);
+  if (!clip->units_user_space)
+  {
+    if (!object_bbox || object_bbox->is_empty ())
+      return false;
+    float w = object_bbox->xmax - object_bbox->xmin;
+    float h = object_bbox->ymax - object_bbox->ymin;
+    if (w <= 0 || h <= 0)
+      return false;
+    ed.has_bbox_transform = true;
+    ed.bbox_transform = hb_transform_t<> (w, 0, 0, h, object_bbox->xmin, object_bbox->ymin);
+  }
 
-  if (clip->has_shape_transform)
-    ctx->pop_transform ();
-  if (clip->has_clip_transform)
-    ctx->pop_transform ();
+  hb_raster_paint_push_clip_path (ctx->paint, svg_clip_path_emit, &ed);
   return true;
 }
 
@@ -2159,13 +2236,12 @@ svg_render_shape (hb_svg_render_context_t *ctx,
     ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
   }
 
-  has_clip_path = svg_push_clip_path_ref (ctx, clip_path_str);
+  hb_extents_t<> bbox;
+  bool has_bbox = svg_compute_shape_bbox (shape, &bbox);
+  has_clip_path = svg_push_clip_path_ref (ctx, clip_path_str, has_bbox ? &bbox : nullptr);
 
   /* Clip with shape path, then fill */
   hb_raster_paint_push_clip_path (ctx->paint, svg_shape_path_emit, &shape);
-
-  hb_extents_t<> bbox;
-  bool has_bbox = svg_compute_shape_bbox (shape, &bbox);
 
   /* Default fill is black */
   if (fill_str.is_null ())
@@ -2252,7 +2328,7 @@ svg_render_element (hb_svg_render_context_t *ctx,
       ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
     }
 
-    has_clip = svg_push_clip_path_ref (ctx, clip_path_str);
+    has_clip = svg_push_clip_path_ref (ctx, clip_path_str, nullptr);
 
     /* Process children */
     if (!self_closing)
@@ -2481,10 +2557,20 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   const char *data = hb_blob_get_data (blob, &data_len);
   if (!data || !data_len) return false;
 
-  /* The SVG document may contain multiple glyphs.
-   * We need to find the element with id="glyphN" where N is the glyph ID. */
-  char glyph_id_str[32];
-  snprintf (glyph_id_str, sizeof (glyph_id_str), "glyph%u", glyph);
+  hb_face_t *face = hb_font_get_face (font);
+  const hb_svg_doc_cache_t *doc_cache = nullptr;
+  unsigned doc_index = 0;
+  hb_codepoint_t start_glyph = HB_CODEPOINT_INVALID;
+  hb_codepoint_t end_glyph = HB_CODEPOINT_INVALID;
+
+  if (face &&
+      hb_ot_color_glyph_get_svg_document_index (face, glyph, &doc_index) &&
+      hb_ot_color_get_svg_document_glyph_range (face, doc_index, &start_glyph, &end_glyph))
+    doc_cache = hb_svg_get_or_make_doc_cache (face, blob, data, data_len,
+                                              doc_index, start_glyph, end_glyph);
+
+  if (doc_cache)
+    data = hb_svg_doc_cache_get_svg (doc_cache, &data_len);
 
   hb_paint_funcs_t *pfuncs = hb_raster_paint_get_funcs ();
 
@@ -2495,6 +2581,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   ctx.foreground = foreground;
   ctx.doc_start = data;
   ctx.doc_len = data_len;
+  ctx.doc_cache = doc_cache;
 
   /* First pass: collect defs (gradients, clip-paths) from the entire document */
   {
@@ -2508,39 +2595,54 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
     }
   }
 
-  /* Second pass: find and render the target glyph element */
-  hb_svg_xml_parser_t parser (data, data_len);
   bool found_glyph = false;
-
-  while (true)
+  unsigned glyph_start = 0, glyph_end = 0;
+  if (doc_cache && hb_svg_doc_cache_get_glyph_span (doc_cache, glyph, &glyph_start, &glyph_end))
   {
+    hb_svg_xml_parser_t parser (data + glyph_start, glyph_end - glyph_start);
     hb_svg_token_type_t tok = parser.next ();
-    if (tok == SVG_TOKEN_EOF) break;
-
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
     {
-      hb_svg_str_t id = parser.find_attr ("id");
-      if (id.len)
+      hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
+      ctx.push_transform (1, 0, 0, -1, 0, 0);
+      svg_render_element (&ctx, parser, hb_svg_str_t (), 1.f, hb_svg_str_t ());
+      ctx.pop_transform ();
+      hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
+      found_glyph = true;
+    }
+  }
+  else
+  {
+    /* Fallback for malformed/uncached docs: linear scan by glyph id. */
+    char glyph_id_str[32];
+    snprintf (glyph_id_str, sizeof (glyph_id_str), "glyph%u", glyph);
+    hb_svg_xml_parser_t parser (data, data_len);
+    while (true)
+    {
+      hb_svg_token_type_t tok = parser.next ();
+      if (tok == SVG_TOKEN_EOF) break;
+
+      if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
       {
-	char id_buf[64];
-	unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-	memcpy (id_buf, id.data, n);
-	id_buf[n] = '\0';
+        hb_svg_str_t id = parser.find_attr ("id");
+        if (id.len)
+        {
+          char id_buf[64];
+          unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
+          memcpy (id_buf, id.data, n);
+          id_buf[n] = '\0';
 
-	if (strcmp (id_buf, glyph_id_str) == 0)
-	{
-	  /* Push font transform (design units → scaled units) combined
-	   * with y-flip (SVG y-down → paint y-up). */
-	  hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
-	  ctx.push_transform (1, 0, 0, -1, 0, 0);
-
-	  svg_render_element (&ctx, parser, hb_svg_str_t (), 1.f, hb_svg_str_t ());
-
-	  ctx.pop_transform ();
-	  hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
-	  found_glyph = true;
-	  break;
-	}
+          if (strcmp (id_buf, glyph_id_str) == 0)
+          {
+            hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
+            ctx.push_transform (1, 0, 0, -1, 0, 0);
+            svg_render_element (&ctx, parser, hb_svg_str_t (), 1.f, hb_svg_str_t ());
+            ctx.pop_transform ();
+            hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
+            found_glyph = true;
+            break;
+          }
+        }
       }
     }
   }
