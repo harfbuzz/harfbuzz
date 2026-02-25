@@ -263,7 +263,6 @@ hb_base_sources = files(
   'hb-shaper-list.hh',
   'hb-shaper.cc',
   'hb-shaper.hh',
-  'hb-svg-cache.cc',
   'hb-static.cc',
   'hb-string-array.hh',
   'hb-style.cc',
