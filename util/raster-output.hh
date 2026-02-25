@@ -490,28 +490,53 @@ struct raster_output_t : output_options_t<true>, view_options_t
 
     if (include_logical)
     {
+      float asc = 0.f, desc = 0.f;
+      if (have_font_extents)
+      {
+	asc  = scalbnf ((float) font_extents.ascent, (int) subpixel_bits);
+	desc = -scalbnf ((float) font_extents.descent, (int) subpixel_bits);
+      }
+      else
+      {
+	hb_font_extents_t fext = {};
+	hb_font_get_extents_for_direction (font, direction, &fext);
+	asc = (float) fext.ascender;
+	desc = (float) fext.descender;
+      }
+
       for (unsigned li = 0; li < lines.size (); li++)
       {
 	float off_x = vertical ? -(step * (float) li) : 0.f;
 	float off_y = vertical ?  0.f                 : -(step * (float) li);
 
-	float x0 = off_x * sx;
-	float y0 = off_y * sy;
-	float x1 = (off_x + lines[li].advance_x) * sx;
-	float y1 = (off_y + lines[li].advance_y) * sy;
-	float line_w = step * sx;
-	float line_h = step * sy;
-	float lx0 = hb_min (x0, x1), ly0 = hb_min (y0, y1);
-	float lx1 = hb_max (x0, x1), ly1 = hb_max (y0, y1);
-	if (vertical)
-	  lx0 -= line_w;
-	else
-	  ly0 -= line_h;
+	float ax0 = off_x;
+	float ay0 = off_y;
+	float ax1 = off_x + lines[li].advance_x;
+	float ay1 = off_y + lines[li].advance_y;
 
-	pmin_x = hb_min (pmin_x, lx0);
-	pmin_y = hb_min (pmin_y, ly0);
-	pmax_x = hb_max (pmax_x, lx1);
-	pmax_y = hb_max (pmax_y, ly1);
+	float lx0, ly0, lx1, ly1;
+	if (vertical)
+	{
+	  lx0 = off_x + desc;
+	  lx1 = off_x + asc;
+	  ly0 = hb_min (ay0, ay1);
+	  ly1 = hb_max (ay0, ay1);
+	}
+	else
+	{
+	  lx0 = hb_min (ax0, ax1);
+	  lx1 = hb_max (ax0, ax1);
+	  ly0 = off_y + desc;
+	  ly1 = off_y + asc;
+	}
+
+	lx0 *= sx; lx1 *= sx;
+	ly0 *= sy; ly1 *= sy;
+
+	pmin_x = hb_min (pmin_x, hb_min (lx0, lx1));
+	pmin_y = hb_min (pmin_y, hb_min (ly0, ly1));
+	pmax_x = hb_max (pmax_x, hb_max (lx0, lx1));
+	pmax_y = hb_max (pmax_y, hb_max (ly0, ly1));
 	have_extents = true;
       }
     }
