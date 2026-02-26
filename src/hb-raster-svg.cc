@@ -34,6 +34,7 @@
 #include "hb-raster-svg-parse.hh"
 #include "hb-raster-svg-defs.hh"
 #include "hb-raster-svg-gradient.hh"
+#include "hb-raster-svg-clip.hh"
 #include "OT/Color/svg/svg.hh"
 #include "hb-draw.h"
 #include "hb-ot-color.h"
@@ -730,78 +731,7 @@ static void svg_render_element (hb_svg_render_context_t *ctx,
 
 /* Gradient def parsing lives in hb-raster-svg-gradient.* */
 
-static void
-svg_process_clip_path_def (hb_svg_render_context_t *ctx,
-			   hb_svg_xml_parser_t &parser,
-			   hb_svg_token_type_t tok)
-{
-  hb_svg_clip_path_def_t clip;
-  hb_svg_str_t id = parser.find_attr ("id");
-  hb_svg_str_t units = parser.find_attr ("clipPathUnits");
-  if (units.eq ("objectBoundingBox"))
-    clip.units_user_space = false;
-  else
-    clip.units_user_space = true;
-
-  hb_svg_str_t cp_transform = parser.find_attr ("transform");
-  if (cp_transform.len)
-  {
-    clip.has_clip_transform = true;
-    svg_parse_transform (cp_transform, &clip.clip_transform);
-  }
-
-  clip.first_shape = ctx->defs.clip_shapes.length;
-  clip.shape_count = 0;
-
-  /* Collect top-level geometry children of <clipPath>. */
-  if (tok == SVG_TOKEN_OPEN_TAG)
-  {
-    int cdepth = 1;
-    bool had_alloc_failure = false;
-    while (cdepth > 0)
-    {
-      hb_svg_token_type_t ct = parser.next ();
-      if (ct == SVG_TOKEN_EOF) break;
-      if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
-      if (ct == SVG_TOKEN_OPEN_TAG || ct == SVG_TOKEN_SELF_CLOSE_TAG)
-      {
-	if (cdepth == 1)
-	{
-	  hb_svg_shape_emit_data_t shape;
-	  if (svg_parse_shape_tag (parser, &shape))
-	  {
-	    hb_svg_clip_shape_t clip_shape;
-	    clip_shape.shape = shape;
-	    hb_svg_str_t sh_transform = parser.find_attr ("transform");
-	    if (sh_transform.len)
-	    {
-	      clip_shape.has_transform = true;
-	      svg_parse_transform (sh_transform, &clip_shape.transform);
-	    }
-	    ctx->defs.clip_shapes.push (clip_shape);
-	    if (likely (!ctx->defs.clip_shapes.in_error ()))
-	      clip.shape_count++;
-	    else
-	      had_alloc_failure = true;
-	  }
-	}
-	if (ct == SVG_TOKEN_OPEN_TAG)
-	  cdepth++;
-      }
-    }
-    if (had_alloc_failure)
-      id = {};
-  }
-
-  if (id.len && clip.shape_count)
-  {
-    char id_buf[64];
-    unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-    memcpy (id_buf, id.data, n);
-    id_buf[n] = '\0';
-    (void) ctx->defs.add_clip_path (id_buf, clip);
-  }
-}
+/* Clip-path defs and push helpers live in hb-raster-svg-clip.* */
 
 /* Process <defs> children — gradients, clipPaths */
 static void
@@ -822,7 +752,6 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
     {
-      /* Dispatch supported defs entries to focused helpers. */
       if (parser.tag_name.eq ("linearGradient"))
 	svg_process_gradient_def (&ctx->defs, parser, tok, SVG_GRADIENT_LINEAR,
 				  ctx->pfuncs, ctx->paint,
@@ -834,10 +763,9 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
 				  ctx->foreground, hb_font_get_face (ctx->font),
 				  ctx->palette);
       else if (parser.tag_name.eq ("clipPath"))
-	svg_process_clip_path_def (ctx, parser, tok);
+	svg_process_clip_path_def (&ctx->defs, parser, tok);
       else
       {
-	/* Skip unknown defs children */
 	if (tok == SVG_TOKEN_OPEN_TAG)
 	  depth++;
       }
@@ -878,84 +806,6 @@ svg_find_element_by_id (const hb_svg_render_context_t *ctx,
     }
   }
   return false;
-}
-
-struct hb_svg_clip_emit_data_t
-{
-  const hb_svg_defs_t *defs;
-  const hb_svg_clip_path_def_t *clip;
-  hb_transform_t<> base_transform;
-  hb_transform_t<> bbox_transform;
-  bool has_bbox_transform = false;
-};
-
-static inline hb_transform_t<>
-svg_to_hb_transform (const hb_svg_transform_t &t)
-{
-  return hb_transform_t<> (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
-}
-
-static void
-svg_clip_path_emit (hb_draw_funcs_t *dfuncs,
-                    void *draw_data,
-                    void *user_data)
-{
-  hb_raster_draw_t *rdr = (hb_raster_draw_t *) draw_data;
-  hb_svg_clip_emit_data_t *ed = (hb_svg_clip_emit_data_t *) user_data;
-  const hb_svg_clip_path_def_t *clip = ed->clip;
-
-  for (unsigned i = 0; i < clip->shape_count; i++)
-  {
-    const hb_svg_clip_shape_t &s = ed->defs->clip_shapes[clip->first_shape + i];
-    hb_transform_t<> t = ed->base_transform;
-    if (ed->has_bbox_transform)
-      t.multiply (ed->bbox_transform);
-    if (clip->has_clip_transform)
-      t.multiply (svg_to_hb_transform (clip->clip_transform));
-    if (s.has_transform)
-      t.multiply (svg_to_hb_transform (s.transform));
-
-    hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
-
-    hb_svg_shape_emit_data_t shape = s.shape;
-    svg_shape_path_emit (dfuncs, draw_data, &shape);
-  }
-}
-
-static bool
-svg_push_clip_path_ref (hb_svg_render_context_t *ctx,
-                        hb_svg_str_t clip_path_str,
-                        const hb_extents_t<> *object_bbox)
-{
-  if (clip_path_str.is_null ()) return false;
-  hb_svg_str_t trimmed = clip_path_str.trim ();
-  if (!trimmed.len || trimmed.eq ("none")) return false;
-
-  char clip_id[64];
-  if (!svg_parse_id_ref_with_fallback (trimmed, clip_id, nullptr, true))
-    return false;
-  const hb_svg_clip_path_def_t *clip = ctx->defs.find_clip_path (clip_id);
-  if (!clip || !clip->shape_count) return false;
-
-  hb_svg_clip_emit_data_t ed;
-  ed.defs = &ctx->defs;
-  ed.clip = clip;
-  ed.base_transform = ctx->paint->current_effective_transform ();
-
-  if (!clip->units_user_space)
-  {
-    if (!object_bbox || object_bbox->is_empty ())
-      return false;
-    float w = object_bbox->xmax - object_bbox->xmin;
-    float h = object_bbox->ymax - object_bbox->ymin;
-    if (w <= 0 || h <= 0)
-      return false;
-    ed.has_bbox_transform = true;
-    ed.bbox_transform = hb_transform_t<> (w, 0, 0, h, object_bbox->xmin, object_bbox->ymin);
-  }
-
-  hb_raster_paint_push_clip_path (ctx->paint, svg_clip_path_emit, &ed);
-  return true;
 }
 
 static void
@@ -1058,7 +908,8 @@ svg_render_shape (hb_svg_render_context_t *ctx,
 
   hb_extents_t<> bbox;
   bool has_bbox = svg_compute_shape_bbox (shape, &bbox);
-  has_clip_path = svg_push_clip_path_ref (ctx, state.clip_path, has_bbox ? &bbox : nullptr);
+  has_clip_path = svg_push_clip_path_ref (ctx->paint, &ctx->defs, state.clip_path,
+					  has_bbox ? &bbox : nullptr);
 
   /* Clip with shape path, then fill */
   hb_raster_paint_push_clip_path (ctx->paint, svg_shape_path_emit, &shape);
@@ -1127,7 +978,7 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
   if (has_viewbox && vb_w > 0 && vb_h > 0)
     ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
 
-  has_clip = svg_push_clip_path_ref (ctx, clip_path_str, nullptr);
+  has_clip = svg_push_clip_path_ref (ctx->paint, &ctx->defs, clip_path_str, nullptr);
 
   if (!self_closing)
   {
@@ -1534,7 +1385,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 				    ctx.foreground, hb_font_get_face (ctx.font),
 				    ctx.palette);
 	else if (defs_parser.tag_name.eq ("clipPath"))
-	  svg_process_clip_path_def (&ctx, defs_parser, tok);
+	  svg_process_clip_path_def (&ctx.defs, defs_parser, tok);
       }
     }
   }
