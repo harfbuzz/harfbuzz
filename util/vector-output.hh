@@ -643,6 +643,23 @@ struct vector_output_t : output_options_t<>, view_options_t
     return true;
   }
 
+  static inline const char *
+  skip_ascii_ws (const char *p, const char *end)
+  {
+    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+      p++;
+    return p;
+  }
+
+  static inline const char *
+  trim_ascii_ws_right (const char *begin, const char *end)
+  {
+    while (end > begin &&
+           (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\n' || end[-1] == '\r'))
+      end--;
+    return end;
+  }
+
   void write_slice_resolving_palette_vars (slice_t s)
   {
     if (!s.p || !s.len)
@@ -653,8 +670,8 @@ struct vector_output_t : output_options_t<>, view_options_t
     while (p < end)
     {
       const char *match = nullptr;
-      for (const char *q = p; q + 11 <= end; q++)
-        if (memcmp (q, "var(--color", 11) == 0)
+      for (const char *q = p; q + 4 <= end; q++)
+        if (memcmp (q, "var(", 4) == 0)
         {
           match = q;
           break;
@@ -669,24 +686,67 @@ struct vector_output_t : output_options_t<>, view_options_t
       if (match > p)
         fwrite (p, 1, (size_t) (match - p), out_fp);
 
-      const char *q = match + 11;
+      const char *expr_close = nullptr;
+      unsigned depth = 1;
+      for (const char *q = match + 4; q < end; q++)
+      {
+        if (*q == '(') depth++;
+        else if (*q == ')')
+        {
+          depth--;
+          if (!depth)
+          {
+            expr_close = q;
+            break;
+          }
+        }
+      }
+
+      if (!expr_close)
+      {
+        fwrite (match, 1, (size_t) (end - match), out_fp);
+        return;
+      }
+
+      const char *inside = match + 4;
+      const char *inside_end = expr_close;
+      const char *q = skip_ascii_ws (inside, inside_end);
       unsigned idx = 0;
       bool have_digits = false;
-      while (q < end && *q >= '0' && *q <= '9')
+      bool parse_ok = true;
+
+      if (!(q + 7 <= inside_end && memcmp (q, "--color", 7) == 0))
+        parse_ok = false;
+      if (parse_ok)
+        q += 7;
+
+      while (parse_ok && q < inside_end && *q >= '0' && *q <= '9')
       {
         have_digits = true;
         idx = idx * 10 + (unsigned) (*q - '0');
         q++;
       }
+      q = skip_ascii_ws (q, inside_end);
 
-      const char *expr_end = q;
-      while (expr_end < end && *expr_end != ')')
-        expr_end++;
-      if (expr_end < end)
-        expr_end++;
+      bool has_fallback = false;
+      const char *fallback_begin = nullptr;
+      const char *fallback_end = nullptr;
+      if (parse_ok && q < inside_end && *q == ',')
+      {
+        has_fallback = true;
+        q++;
+        fallback_begin = skip_ascii_ws (q, inside_end);
+        fallback_end = trim_ascii_ws_right (fallback_begin, inside_end);
+        q = inside_end;
+      }
+
+      if (parse_ok && q != inside_end)
+        parse_ok = false;
+
+      const char *expr_end = expr_close + 1;
 
       hb_color_t color;
-      if (have_digits && expr_end <= end && lookup_palette_color (idx, &color))
+      if (parse_ok && have_digits && lookup_palette_color (idx, &color))
       {
         unsigned r = hb_color_get_red (color);
         unsigned g = hb_color_get_green (color);
@@ -697,15 +757,16 @@ struct vector_output_t : output_options_t<>, view_options_t
         else
           fprintf (out_fp, "rgba(%u,%u,%u,%.6g)", r, g, b, (double) a / 255.);
       }
+      else if (has_fallback && fallback_begin && fallback_end >= fallback_begin)
+      {
+        fwrite (fallback_begin, 1, (size_t) (fallback_end - fallback_begin), out_fp);
+      }
       else
       {
-        if (expr_end <= end)
-          fwrite (match, 1, (size_t) (expr_end - match), out_fp);
-        else
-          fwrite (match, 1, (size_t) (end - match), out_fp);
+        fwrite (match, 1, (size_t) (expr_end - match), out_fp);
       }
 
-      p = expr_end <= end ? expr_end : end;
+      p = expr_end;
     }
   }
 
