@@ -162,7 +162,7 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
       p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), ",\"cl\":%u", info[i].cluster));
     }
 
-    if (!(flags & HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS))
+    if (pos && !(flags & HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS))
     {
       p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), ",\"dx\":%d,\"dy\":%d",
 		   x+pos[i].x_offset, y+pos[i].y_offset));
@@ -319,7 +319,7 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
       p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "=%u", info[i].cluster));
     }
 
-    if (!(flags & HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS))
+    if (pos && !(flags & HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS))
     {
       if (x+pos[i].x_offset || y+pos[i].y_offset)
         p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "@%d,%d", x+pos[i].x_offset, y+pos[i].y_offset));

@@ -1872,9 +1872,11 @@ struct cmap
       }
       else if (format == 14) c->copy (_, it, 14u, base, plan, &format14objidx);
     }
-    c->check_assign(this->encodingRecord.len,
-                    (c->length () - cmap::min_size)/EncodingRecord::static_size,
-                    HB_SERIALIZE_ERROR_INT_OVERFLOW);
+        unsigned length = c->length ();
+        unsigned available = length > cmap::min_size ? length - cmap::min_size : 0;
+        c->check_assign(this->encodingRecord.len,
+                        available / EncodingRecord::static_size,
+                        HB_SERIALIZE_ERROR_INT_OVERFLOW);
 
     // Fail if format 4 was dropped and there is no cmap12.
     return !drop_format_4 || format12objidx;

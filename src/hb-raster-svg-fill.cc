@@ -167,6 +167,11 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
       return;
     }
 
+    if (!chain.length) {
+      if (fallback_paint.len)
+        hb_raster_svg_emit_fill (ctx, fallback_paint, fill_opacity, object_bbox, current_color);
+      return;
+    }
     hb_svg_gradient_t effective = *chain.arrayZ[chain.length - 1];
     for (int i = (int) chain.length - 2; i >= 0; i--)
     {

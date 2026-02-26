@@ -63,7 +63,7 @@ struct hb_svg_xml_parser_t
   bool self_closing;
 
   hb_svg_xml_parser_t (const char *data, unsigned len)
-    : p (data), end (data + len) {}
+    : p (data), end (data + len), self_closing (false) {}
 
   void skip_ws ()
   {
