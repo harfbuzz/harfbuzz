@@ -214,6 +214,8 @@ svg_arc_endpoint_to_center (float x1, float y1, float x2, float y2,
   auto angle = [] (float ux, float uy, float vx, float vy) -> float {
     float dot = ux * vx + uy * vy;
     float len = sqrtf ((ux * ux + uy * uy) * (vx * vx + vy * vy));
+    if (!(len > 0.f) || !isfinite (len))
+      return 0.f;
     float a = acosf (hb_clamp (dot / len, -1.f, 1.f));
     if (ux * vy - uy * vx < 0.f) a = -a;
     return a;
