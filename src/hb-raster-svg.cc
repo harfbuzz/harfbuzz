@@ -32,6 +32,7 @@
 #include "hb-raster-svg.hh"
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-parse.hh"
+#include "hb-raster-svg-defs.hh"
 #include "OT/Color/svg/svg.hh"
 #include "hb-draw.h"
 #include "hb-ot-color.h"
@@ -365,226 +366,6 @@ svg_parse_paint_url_with_fallback (hb_svg_str_t s,
 				   char out_id[64],
 				   hb_svg_str_t *fallback);
 
-enum hb_svg_gradient_type_t
-{
-  SVG_GRADIENT_LINEAR,
-  SVG_GRADIENT_RADIAL
-};
-
-struct hb_svg_gradient_stop_t
-{
-  float offset;
-  hb_color_t color;
-  bool is_current_color = false;
-};
-
-struct hb_svg_gradient_t
-{
-  hb_svg_gradient_type_t type;
-
-  /* Common */
-  hb_paint_extend_t spread = HB_PAINT_EXTEND_PAD;
-  bool has_spread = false;
-  hb_svg_transform_t gradient_transform;
-  bool has_gradient_transform = false;
-  bool units_user_space = false; /* false = objectBoundingBox (default) */
-  bool has_units_user_space = false;
-
-  /* Linear gradient: x1, y1, x2, y2 */
-  float x1 = 0, y1 = 0, x2 = 1, y2 = 0;
-  bool has_x1 = false, has_y1 = false, has_x2 = false, has_y2 = false;
-
-  /* Radial gradient: cx, cy, r, fx, fy */
-  float cx = 0.5f, cy = 0.5f, r = 0.5f;
-  float fx = -1.f, fy = -1.f; /* -1 = not set, use cx/cy */
-  bool has_cx = false, has_cy = false, has_r = false;
-  bool has_fx = false, has_fy = false;
-
-  hb_vector_t<hb_svg_gradient_stop_t> stops;
-
-  /* href reference to another gradient */
-  char href_id[64] = {};
-};
-
-struct hb_svg_clip_path_def_t
-{
-  unsigned first_shape = 0;
-  unsigned shape_count = 0;
-  hb_svg_transform_t clip_transform;
-  bool has_clip_transform = false;
-  bool units_user_space = true; /* default per SVG */
-};
-
-struct hb_svg_clip_shape_t
-{
-  hb_svg_shape_emit_data_t shape;
-  hb_svg_transform_t transform;
-  bool has_transform = false;
-};
-
-struct hb_svg_def_t
-{
-  char id[64];
-  enum { DEF_GRADIENT, DEF_CLIP_PATH, DEF_ELEMENT } type;
-  unsigned index; /* index into respective array */
-};
-
-struct hb_svg_defs_t
-{
-  hb_vector_t<hb_svg_gradient_t> gradients;
-  hb_vector_t<hb_svg_clip_shape_t> clip_shapes;
-  hb_vector_t<hb_svg_clip_path_def_t> clip_paths;
-  hb_vector_t<hb_svg_def_t> defs;
-  hb_hashmap_t<hb_bytes_t, unsigned> gradient_by_id;
-  hb_hashmap_t<hb_bytes_t, unsigned> clip_path_by_id;
-  hb_vector_t<char *> owned_id_strings;
-
-  ~hb_svg_defs_t ()
-  {
-    for (unsigned i = 0; i < owned_id_strings.length; i++)
-      hb_free (owned_id_strings.arrayZ[i]);
-  }
-
-  bool add_id_mapping (hb_hashmap_t<hb_bytes_t, unsigned> *map,
-		       const char *id,
-		       unsigned idx)
-  {
-    hb_bytes_t key = hb_bytes_t (id, (unsigned) strlen (id));
-    if (map->has (key))
-      return true;
-
-    unsigned n = (unsigned) strlen (id);
-    char *owned = (char *) hb_malloc (n + 1);
-    if (unlikely (!owned))
-      return false;
-    hb_memcpy (owned, id, n + 1);
-    if (unlikely (!owned_id_strings.push (owned)))
-    {
-      hb_free (owned);
-      return false;
-    }
-
-    hb_bytes_t owned_key = hb_bytes_t (owned, n);
-    if (unlikely (!map->set (owned_key, idx)))
-      return false;
-    return true;
-  }
-
-  bool add_gradient (const char *id, const hb_svg_gradient_t &grad)
-  {
-    unsigned idx = gradients.length;
-    gradients.push (grad);
-    if (unlikely (gradients.in_error ()))
-      return false;
-
-    hb_svg_def_t def;
-    unsigned n = hb_min (strlen (id), (size_t) sizeof (def.id) - 1);
-    memcpy (def.id, id, n);
-    def.id[n] = '\0';
-    def.type = hb_svg_def_t::DEF_GRADIENT;
-    def.index = idx;
-    defs.push (def);
-    if (unlikely (defs.in_error ()))
-    {
-      gradients.pop ();
-      return false;
-    }
-    if (unlikely (!add_id_mapping (&gradient_by_id, def.id, idx)))
-    {
-      defs.pop ();
-      gradients.pop ();
-      return false;
-    }
-    return true;
-  }
-
-  const hb_svg_gradient_t *find_gradient (const char *id) const
-  {
-    unsigned *idx = nullptr;
-    if (id && gradient_by_id.has (hb_bytes_t (id, (unsigned) strlen (id)), &idx))
-      return &gradients[*idx];
-    for (unsigned i = 0; i < defs.length; i++)
-      if (defs[i].type == hb_svg_def_t::DEF_GRADIENT &&
-	  strcmp (defs[i].id, id) == 0)
-	return &gradients[defs[i].index];
-    return nullptr;
-  }
-
-  bool add_clip_path (const char *id, const hb_svg_clip_path_def_t &clip)
-  {
-    unsigned idx = clip_paths.length;
-    clip_paths.push (clip);
-    if (unlikely (clip_paths.in_error ()))
-      return false;
-
-    hb_svg_def_t def;
-    unsigned n = hb_min (strlen (id), (size_t) sizeof (def.id) - 1);
-    memcpy (def.id, id, n);
-    def.id[n] = '\0';
-    def.type = hb_svg_def_t::DEF_CLIP_PATH;
-    def.index = idx;
-    defs.push (def);
-    if (unlikely (defs.in_error ()))
-    {
-      clip_paths.pop ();
-      return false;
-    }
-    if (unlikely (!add_id_mapping (&clip_path_by_id, def.id, idx)))
-    {
-      defs.pop ();
-      clip_paths.pop ();
-      return false;
-    }
-    return true;
-  }
-
-  const hb_svg_clip_path_def_t *find_clip_path (const char *id) const
-  {
-    unsigned *idx = nullptr;
-    if (id && clip_path_by_id.has (hb_bytes_t (id, (unsigned) strlen (id)), &idx))
-      return &clip_paths[*idx];
-    for (unsigned i = 0; i < defs.length; i++)
-      if (defs[i].type == hb_svg_def_t::DEF_CLIP_PATH &&
-          strcmp (defs[i].id, id) == 0)
-        return &clip_paths[defs[i].index];
-    return nullptr;
-  }
-
-  const hb_svg_clip_path_def_t *find_clip_path_str (hb_svg_str_t s) const
-  {
-    char id[64];
-    if (!parse_paint_server_id (s, id))
-      return nullptr;
-    return find_clip_path (id);
-  }
-
-  const hb_svg_gradient_t *find_gradient_str (hb_svg_str_t s) const
-  {
-    char id[64];
-    if (!parse_paint_server_id (s, id))
-      return nullptr;
-    return find_gradient (id);
-  }
-
-  static bool parse_paint_server_id (hb_svg_str_t s, char out[64])
-  {
-    return svg_parse_paint_url_with_fallback (s, out, nullptr);
-  }
-
-  static bool parse_fragment_id (hb_svg_str_t s, char out[64])
-  {
-    s = s.trim ();
-    if (!s.len || s.data[0] != '#')
-      return false;
-
-    unsigned n = hb_min (s.len - 1, (unsigned) 63);
-    memcpy (out, s.data + 1, n);
-    out[n] = '\0';
-    return true;
-  }
-};
-
-
 /*
  * 10. Gradient handler — construct hb_color_line_t
  */
@@ -770,6 +551,18 @@ svg_parse_paint_url_with_fallback (hb_svg_str_t s,
   return true;
 }
 
+static bool
+svg_parse_fragment_id (hb_svg_str_t s, char out_id[64])
+{
+  s = s.trim ();
+  if (!s.len || s.data[0] != '#')
+    return false;
+  unsigned n = hb_min (s.len - 1, (unsigned) 63);
+  memcpy (out_id, s.data + 1, n);
+  out_id[n] = '\0';
+  return true;
+}
+
 
 /*
  * Emit fill (solid or gradient)
@@ -789,8 +582,7 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
   bool has_url_paint = svg_parse_paint_url_with_fallback (fill_str, url_id, &fallback_paint);
 
   /* Check for gradient reference */
-  const hb_svg_gradient_t *grad = has_url_paint ? ctx->defs.find_gradient (url_id)
-						: ctx->defs.find_gradient_str (fill_str);
+  const hb_svg_gradient_t *grad = has_url_paint ? ctx->defs.find_gradient (url_id) : nullptr;
   if (has_url_paint && !grad)
   {
     if (fallback_paint.len)
@@ -1326,7 +1118,10 @@ svg_push_clip_path_ref (hb_svg_render_context_t *ctx,
   hb_svg_str_t trimmed = clip_path_str.trim ();
   if (!trimmed.len || trimmed.eq ("none")) return false;
 
-  const hb_svg_clip_path_def_t *clip = ctx->defs.find_clip_path_str (trimmed);
+  char clip_id[64];
+  if (!svg_parse_paint_url_with_fallback (trimmed, clip_id, nullptr))
+    return false;
+  const hb_svg_clip_path_def_t *clip = ctx->defs.find_clip_path (clip_id);
   if (!clip || !clip->shape_count) return false;
 
   hb_svg_clip_emit_data_t ed;
@@ -1706,7 +1501,7 @@ svg_render_use_element (hb_svg_render_context_t *ctx,
   hb_svg_str_t href = svg_find_href_attr (parser);
 
   char ref_id[64];
-  if (!hb_svg_defs_t::parse_fragment_id (href, ref_id))
+  if (!svg_parse_fragment_id (href, ref_id))
     return;
 
   float use_x = svg_parse_float (parser.find_attr ("x"));
