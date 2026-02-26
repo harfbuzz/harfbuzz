@@ -1370,6 +1370,11 @@ struct hb_svg_shape_emit_data_t
   float params[6];           /* for rect/circle/ellipse/line */
 };
 
+static bool
+svg_parse_paint_url_with_fallback (hb_svg_str_t s,
+				   char out_id[64],
+				   hb_svg_str_t *fallback);
+
 
 /*
  * 9. Defs store
@@ -1526,30 +1531,7 @@ struct hb_svg_defs_t
 
   static bool parse_paint_server_id (hb_svg_str_t s, char out[64])
   {
-    s = s.trim ();
-    if (!svg_str_starts_with_ascii_ci (s, "url("))
-      return false;
-
-    const char *p = s.data + 4;
-    const char *e = s.data + s.len;
-    while (p < e && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
-    while (e > p && *(e - 1) != ')') e--;
-    if (e <= p) return false;
-    e--; /* drop ')' */
-    while (e > p && (*(e - 1) == ' ' || *(e - 1) == '\t' || *(e - 1) == '\n' || *(e - 1) == '\r')) e--;
-    if (e > p && ((*p == '\'' && *(e - 1) == '\'') || (*p == '"' && *(e - 1) == '"')))
-    {
-      p++;
-      e--;
-    }
-    while (p < e && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
-    while (e > p && (*(e - 1) == ' ' || *(e - 1) == '\t' || *(e - 1) == '\n' || *(e - 1) == '\r')) e--;
-    if (p < e && *p == '#') p++;
-    if (p >= e) return false;
-    unsigned n = hb_min ((unsigned) (e - p), (unsigned) 63);
-    memcpy (out, p, n);
-    out[n] = '\0';
-    return true;
+    return svg_parse_paint_url_with_fallback (s, out, nullptr);
   }
 
   static bool parse_fragment_id (hb_svg_str_t s, char out[64])
@@ -2579,12 +2561,12 @@ svg_render_shape (hb_svg_render_context_t *ctx,
 
 static void
 svg_render_container_element (hb_svg_render_context_t *ctx,
-				      hb_svg_xml_parser_t &parser,
-				      hb_svg_str_t tag,
-				      bool self_closing,
-				      const hb_svg_cascade_t &state,
-				      hb_svg_str_t transform_str,
-				      hb_svg_str_t clip_path_str)
+			      hb_svg_xml_parser_t &parser,
+			      hb_svg_str_t tag,
+			      bool self_closing,
+			      const hb_svg_cascade_t &state,
+			      hb_svg_str_t transform_str,
+			      hb_svg_str_t clip_path_str)
 {
   bool has_transform = transform_str.len > 0;
   bool has_opacity = state.opacity < 1.f;
@@ -2644,7 +2626,7 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 	    svg_process_defs (ctx, parser);
 	  continue;
 	}
-		svg_render_element (ctx, parser, state);
+	svg_render_element (ctx, parser, state);
 	if (tok == SVG_TOKEN_OPEN_TAG && !child_tag.eq ("g") &&
 	    !child_tag.eq ("svg") && !child_tag.eq ("use"))
 	{
@@ -2677,10 +2659,10 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 
 static bool
 svg_render_primitive_shape_element (hb_svg_render_context_t *ctx,
-					    hb_svg_xml_parser_t &parser,
-					    hb_svg_str_t tag,
-					    const hb_svg_cascade_t &state,
-					    hb_svg_str_t transform_str)
+				    hb_svg_xml_parser_t &parser,
+				    hb_svg_str_t tag,
+				    const hb_svg_cascade_t &state,
+				    hb_svg_str_t transform_str)
 {
   if (tag.eq ("path"))
   {
@@ -2799,9 +2781,9 @@ svg_render_primitive_shape_element (hb_svg_render_context_t *ctx,
 
 static void
 svg_render_use_element (hb_svg_render_context_t *ctx,
-				hb_svg_xml_parser_t &parser,
-				const hb_svg_cascade_t &state,
-				hb_svg_str_t transform_str)
+			hb_svg_xml_parser_t &parser,
+			const hb_svg_cascade_t &state,
+			hb_svg_str_t transform_str)
 {
   hb_svg_str_t href = svg_find_href_attr (parser);
 
