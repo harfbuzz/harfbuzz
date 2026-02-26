@@ -143,10 +143,25 @@ svg_str_starts_with_ascii_ci (hb_svg_str_t s, const char *lit)
   return true;
 }
 
-static hb_svg_str_t
-svg_style_find_property (hb_svg_str_t style, const char *name)
+struct hb_svg_style_props_t
 {
-  if (style.is_null ()) return {};
+  hb_svg_str_t fill;
+  hb_svg_str_t fill_opacity;
+  hb_svg_str_t opacity;
+  hb_svg_str_t transform;
+  hb_svg_str_t clip_path;
+  hb_svg_str_t display;
+  hb_svg_str_t color;
+  hb_svg_str_t visibility;
+  hb_svg_str_t offset;
+  hb_svg_str_t stop_color;
+  hb_svg_str_t stop_opacity;
+};
+
+static void
+svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out)
+{
+  if (style.is_null ()) return;
   const char *p = style.data;
   const char *end = style.data + style.len;
   while (p < end)
@@ -159,7 +174,7 @@ svg_style_find_property (hb_svg_str_t style, const char *name)
       p++;
     const char *name_end = p;
     while (name_end > name_start &&
-           (name_end[-1] == ' ' || name_end[-1] == '\t' || name_end[-1] == '\n' || name_end[-1] == '\r'))
+	   (name_end[-1] == ' ' || name_end[-1] == '\t' || name_end[-1] == '\n' || name_end[-1] == '\r'))
       name_end--;
     if (p >= end || *p != ':')
     {
@@ -172,17 +187,28 @@ svg_style_find_property (hb_svg_str_t style, const char *name)
       p++;
     const char *value_end = p;
     while (value_start < value_end &&
-           (*value_start == ' ' || *value_start == '\t' || *value_start == '\n' || *value_start == '\r'))
+	   (*value_start == ' ' || *value_start == '\t' || *value_start == '\n' || *value_start == '\r'))
       value_start++;
     while (value_end > value_start &&
-           (value_end[-1] == ' ' || value_end[-1] == '\t' || value_end[-1] == '\n' || value_end[-1] == '\r'))
+	   (value_end[-1] == ' ' || value_end[-1] == '\t' || value_end[-1] == '\n' || value_end[-1] == '\r'))
       value_end--;
+
     hb_svg_str_t prop_name = {name_start, (unsigned) (name_end - name_start)};
-    if (svg_str_eq_ascii_ci (prop_name, name))
-      return {value_start, (unsigned) (value_end - value_start)};
+    hb_svg_str_t prop_value = {value_start, (unsigned) (value_end - value_start)};
+    if (svg_str_eq_ascii_ci (prop_name, "fill")) out->fill = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "fill-opacity")) out->fill_opacity = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "opacity")) out->opacity = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "transform")) out->transform = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "clip-path")) out->clip_path = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "display")) out->display = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "color")) out->color = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "visibility")) out->visibility = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "offset")) out->offset = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "stop-color")) out->stop_color = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "stop-opacity")) out->stop_opacity = prop_value;
+
     if (p < end && *p == ';') p++;
   }
-  return {};
 }
 
 static float
@@ -389,15 +415,12 @@ struct hb_svg_xml_parser_t
   }
 };
 
-static hb_svg_str_t
-svg_attr_or_style (const hb_svg_xml_parser_t &parser,
-                   hb_svg_str_t style,
-                   const char *name)
+static inline hb_svg_str_t
+svg_pick_attr_or_style (const hb_svg_xml_parser_t &parser,
+			hb_svg_str_t style_value,
+			const char *attr_name)
 {
-  hb_svg_str_t styled = svg_style_find_property (style, name);
-  if (!styled.is_null ())
-    return styled;
-  return parser.find_attr (name);
+  return style_value.is_null () ? parser.find_attr (attr_name) : style_value;
 }
 
 
@@ -2031,9 +2054,11 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 			 unsigned palette)
 {
   hb_svg_str_t style = parser.find_attr ("style");
-  hb_svg_str_t offset_str = svg_attr_or_style (parser, style, "offset");
-  hb_svg_str_t color_str = svg_attr_or_style (parser, style, "stop-color");
-  hb_svg_str_t opacity_str = svg_attr_or_style (parser, style, "stop-opacity");
+  hb_svg_style_props_t style_props;
+  svg_parse_style_props (style, &style_props);
+  hb_svg_str_t offset_str = svg_pick_attr_or_style (parser, style_props.offset, "offset");
+  hb_svg_str_t color_str = svg_pick_attr_or_style (parser, style_props.stop_color, "stop-color");
+  hb_svg_str_t opacity_str = svg_pick_attr_or_style (parser, style_props.stop_opacity, "stop-opacity");
 
   float offset = 0;
   if (offset_str.len)
@@ -2858,14 +2883,16 @@ svg_render_element (hb_svg_render_context_t *ctx,
 
   /* Extract common attributes */
   hb_svg_str_t style = parser.find_attr ("style");
-  hb_svg_str_t fill_attr = svg_attr_or_style (parser, style, "fill");
-  hb_svg_str_t fill_opacity_str = svg_attr_or_style (parser, style, "fill-opacity");
-  hb_svg_str_t opacity_str = svg_attr_or_style (parser, style, "opacity");
-  hb_svg_str_t transform_str = svg_attr_or_style (parser, style, "transform");
-  hb_svg_str_t clip_path_attr = svg_attr_or_style (parser, style, "clip-path");
-  hb_svg_str_t display_str = svg_attr_or_style (parser, style, "display");
-  hb_svg_str_t color_str = svg_attr_or_style (parser, style, "color");
-  hb_svg_str_t visibility_str = svg_attr_or_style (parser, style, "visibility");
+  hb_svg_style_props_t style_props;
+  svg_parse_style_props (style, &style_props);
+  hb_svg_str_t fill_attr = svg_pick_attr_or_style (parser, style_props.fill, "fill");
+  hb_svg_str_t fill_opacity_str = svg_pick_attr_or_style (parser, style_props.fill_opacity, "fill-opacity");
+  hb_svg_str_t opacity_str = svg_pick_attr_or_style (parser, style_props.opacity, "opacity");
+  hb_svg_str_t transform_str = svg_pick_attr_or_style (parser, style_props.transform, "transform");
+  hb_svg_str_t clip_path_attr = svg_pick_attr_or_style (parser, style_props.clip_path, "clip-path");
+  hb_svg_str_t display_str = svg_pick_attr_or_style (parser, style_props.display, "display");
+  hb_svg_str_t color_str = svg_pick_attr_or_style (parser, style_props.color, "color");
+  hb_svg_str_t visibility_str = svg_pick_attr_or_style (parser, style_props.visibility, "visibility");
 
   hb_svg_cascade_t state = inherited;
   state.fill = (fill_attr.is_null () || svg_str_is_inherit (fill_attr)) ? inherited.fill : fill_attr;
