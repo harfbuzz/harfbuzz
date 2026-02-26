@@ -132,10 +132,13 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 
   if (tag.eq ("svg") || tag.eq ("symbol"))
   {
+    hb_svg_style_props_t geom_style_props;
+    svg_parse_style_props (parser.find_attr ("style"), &geom_style_props);
+
     if (tag.eq ("svg"))
     {
-      svg_x = svg_parse_float (parser.find_attr ("x"));
-      svg_y = svg_parse_float (parser.find_attr ("y"));
+      svg_x = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.x, "x"));
+      svg_y = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.y, "y"));
       has_svg_translate = (svg_x != 0.f || svg_y != 0.f);
     }
 
@@ -151,8 +154,8 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 
       if (tag.eq ("svg"))
       {
-        viewport_w = svg_parse_float (parser.find_attr ("width"));
-        viewport_h = svg_parse_float (parser.find_attr ("height"));
+        viewport_w = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.width, "width"));
+        viewport_h = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.height, "height"));
         if (!(viewport_w > 0.f && viewport_h > 0.f))
         {
           viewport_w = vb_w;

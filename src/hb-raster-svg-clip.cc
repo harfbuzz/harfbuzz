@@ -253,13 +253,15 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
     allow_symbol_once = false;
 
   hb_svg_transform_t effective = base_transform;
+  hb_svg_style_props_t geom_style_props;
+  svg_parse_style_props (parser.find_attr ("style"), &geom_style_props);
   hb_svg_transform_t local_t;
   if (svg_parse_element_transform (parser, &local_t))
     effective.multiply (local_t);
   if (parser.tag_name.eq ("svg"))
   {
-    float svg_x = svg_parse_float (parser.find_attr ("x"));
-    float svg_y = svg_parse_float (parser.find_attr ("y"));
+    float svg_x = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.x, "x"));
+    float svg_y = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.y, "y"));
     if (svg_x != 0.f || svg_y != 0.f)
     {
       hb_svg_transform_t tr;
@@ -271,14 +273,14 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
     if (!suppress_viewbox_once)
     {
       float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
-      if (hb_raster_svg_parse_viewbox (parser.find_attr ("viewBox"),
-                                       &vb_x, &vb_y, &vb_w, &vb_h))
+    if (hb_raster_svg_parse_viewbox (parser.find_attr ("viewBox"),
+                                     &vb_x, &vb_y, &vb_w, &vb_h))
+    {
+      float viewport_w = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.width, "width"));
+      float viewport_h = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.height, "height"));
+      if (!(viewport_w > 0.f && viewport_h > 0.f))
       {
-        float viewport_w = svg_parse_float (parser.find_attr ("width"));
-        float viewport_h = svg_parse_float (parser.find_attr ("height"));
-        if (!(viewport_w > 0.f && viewport_h > 0.f))
-        {
-          viewport_w = vb_w;
+        viewport_w = vb_w;
           viewport_h = vb_h;
         }
         hb_svg_transform_t vb_t;
