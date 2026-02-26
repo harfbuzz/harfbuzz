@@ -619,12 +619,44 @@ struct vector_output_t : output_options_t<>, view_options_t
              precision + 4, stroke_width);
   }
 
-  bool lookup_palette_color (unsigned idx, hb_color_t *color) const
+  bool lookup_palette_color (unsigned idx, hb_color_t *color)
   {
-    if (idx >= palette_cache_has_value.size () || !palette_cache_has_value[idx])
+    if (idx < custom_palette_has_value.size () && custom_palette_has_value[idx])
+    {
+      *color = custom_palette_values[idx];
+      return true;
+    }
+
+    if (!palette_lookup_enabled)
       return false;
-    *color = palette_cache_values[idx];
-    return true;
+
+    if (palette_cache_state.size () <= idx)
+    {
+      palette_cache_state.resize (idx + 1, 0);
+      palette_cache_values.resize (idx + 1, HB_COLOR (0, 0, 0, 255));
+    }
+
+    if (palette_cache_state[idx] == 1)
+    {
+      *color = palette_cache_values[idx];
+      return true;
+    }
+    if (palette_cache_state[idx] == 2)
+      return false;
+
+    hb_color_t fetched = HB_COLOR (0, 0, 0, 255);
+    unsigned n = 1;
+    if (hb_ot_color_palette_get_colors (palette_face, palette_lookup_index,
+                                        idx, &n, &fetched) && n)
+    {
+      palette_cache_values[idx] = fetched;
+      palette_cache_state[idx] = 1;
+      *color = fetched;
+      return true;
+    }
+
+    palette_cache_state[idx] = 2;
+    return false;
   }
 
   static inline const char *
@@ -903,55 +935,26 @@ struct vector_output_t : output_options_t<>, view_options_t
   void init_palette_color_cache ()
   {
     palette_cache_values.clear ();
-    palette_cache_has_value.clear ();
+    palette_cache_state.clear ();
+    palette_face = nullptr;
+    palette_lookup_index = 0;
+    palette_lookup_enabled = false;
 
     hb_face_t *face = hb_font_get_face (upem_font ? upem_font : font);
-    if (face)
-    {
-      unsigned palette_count = hb_ot_color_palette_get_count (face);
-      if (palette_count)
-      {
-        unsigned palette_index = palette >= 0 ? (unsigned) palette : 0u;
-        if (palette_index >= palette_count)
-          palette_index = 0;
+    if (!face)
+      return;
 
-        unsigned color_count = hb_ot_color_palette_get_colors (face, palette_index, 0,
-                                                                nullptr, nullptr);
-        if (color_count)
-        {
-          palette_cache_values.resize (color_count, HB_COLOR (0, 0, 0, 255));
-          palette_cache_has_value.resize (color_count, false);
-          unsigned n = color_count;
-          if (hb_ot_color_palette_get_colors (face, palette_index, 0, &n,
-                                              palette_cache_values.data ()) && n)
-          {
-            if (n < palette_cache_values.size ())
-              palette_cache_values.resize (n);
-            palette_cache_has_value.resize (palette_cache_values.size (), false);
-            std::fill (palette_cache_has_value.begin (),
-                       palette_cache_has_value.end (), true);
-          }
-          else
-          {
-            palette_cache_values.clear ();
-            palette_cache_has_value.clear ();
-          }
-        }
-      }
-    }
+    unsigned palette_count = hb_ot_color_palette_get_count (face);
+    if (!palette_count)
+      return;
 
-    for (unsigned idx = 0; idx < custom_palette_values.size (); idx++)
-    {
-      if (idx >= custom_palette_has_value.size () || !custom_palette_has_value[idx])
-        continue;
-      if (palette_cache_values.size () <= idx)
-      {
-        palette_cache_values.resize (idx + 1, HB_COLOR (0, 0, 0, 255));
-        palette_cache_has_value.resize (idx + 1, false);
-      }
-      palette_cache_values[idx] = custom_palette_values[idx];
-      palette_cache_has_value[idx] = true;
-    }
+    unsigned palette_index = palette >= 0 ? (unsigned) palette : 0u;
+    if (palette_index >= palette_count)
+      palette_index = 0;
+
+    palette_face = face;
+    palette_lookup_index = palette_index;
+    palette_lookup_enabled = true;
   }
 
   bool parse_custom_palette_overrides (GError **error)
@@ -1072,7 +1075,10 @@ struct vector_output_t : output_options_t<>, view_options_t
   std::vector<hb_color_t> custom_palette_values;
   std::vector<bool> custom_palette_has_value;
   std::vector<hb_color_t> palette_cache_values;
-  std::vector<bool> palette_cache_has_value;
+  std::vector<unsigned char> palette_cache_state;
+  hb_face_t *palette_face = nullptr;
+  unsigned palette_lookup_index = 0;
+  bool palette_lookup_enabled = false;
 };
 
 #endif
