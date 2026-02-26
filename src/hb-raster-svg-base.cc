@@ -29,34 +29,16 @@
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-parse.hh"
 
-static inline char
-svg_ascii_lower (char c)
-{
-  if (c >= 'A' && c <= 'Z')
-    return c + ('a' - 'A');
-  return c;
-}
-
 bool
 svg_str_eq_ascii_ci (hb_svg_str_t s, const char *lit)
 {
-  unsigned n = (unsigned) strlen (lit);
-  if (s.len != n) return false;
-  for (unsigned i = 0; i < n; i++)
-    if (svg_ascii_lower (s.data[i]) != svg_ascii_lower (lit[i]))
-      return false;
-  return true;
+  return s.eq_ascii_ci (lit);
 }
 
 bool
 svg_str_starts_with_ascii_ci (hb_svg_str_t s, const char *lit)
 {
-  unsigned n = (unsigned) strlen (lit);
-  if (s.len < n) return false;
-  for (unsigned i = 0; i < n; i++)
-    if (svg_ascii_lower (s.data[i]) != svg_ascii_lower (lit[i]))
-      return false;
-  return true;
+  return s.starts_with_ascii_ci (lit);
 }
 
 void

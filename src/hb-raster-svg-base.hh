@@ -34,6 +34,14 @@
 #include <string.h>
 #include <stdlib.h>
 
+static inline char
+hb_svg_ascii_lower (char c)
+{
+  if (c >= 'A' && c <= 'Z')
+    return c + ('a' - 'A');
+  return c;
+}
+
 struct hb_svg_str_t
 {
   const char *data;
@@ -54,6 +62,26 @@ struct hb_svg_str_t
   {
     unsigned plen = (unsigned) strlen (prefix);
     return len >= plen && memcmp (data, prefix, plen) == 0;
+  }
+
+  bool eq_ascii_ci (const char *lit) const
+  {
+    unsigned n = (unsigned) strlen (lit);
+    if (len != n) return false;
+    for (unsigned i = 0; i < n; i++)
+      if (hb_svg_ascii_lower (data[i]) != hb_svg_ascii_lower (lit[i]))
+        return false;
+    return true;
+  }
+
+  bool starts_with_ascii_ci (const char *lit) const
+  {
+    unsigned n = (unsigned) strlen (lit);
+    if (len < n) return false;
+    for (unsigned i = 0; i < n; i++)
+      if (hb_svg_ascii_lower (data[i]) != hb_svg_ascii_lower (lit[i]))
+        return false;
+    return true;
   }
 
   float to_float () const
