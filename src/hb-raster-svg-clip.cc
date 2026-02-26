@@ -99,15 +99,19 @@ svg_compute_viewbox_transform (float viewport_w,
 
   bool is_none = false;
   bool is_slice = false;
+  hb_svg_str_t align = par;
+  const char *p = par.data;
+  const char *end = par.data + par.len;
+  while (p < end && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r') p++;
+  align = hb_svg_str_t (par.data, (unsigned) (p - par.data)).trim ();
+
   if (svg_str_starts_with_ascii_ci (par, "none"))
     is_none = true;
-  else if (par.starts_with ("x"))
+  else if (align.starts_with ("x"))
   {
-    const char *p = par.data;
-    const char *end = par.data + par.len;
-    while (p < end && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r') p++;
-    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
-    if (p < end && svg_str_starts_with_ascii_ci (hb_svg_str_t (p, (unsigned) (end - p)), "slice"))
+    const char *mode = p;
+    while (mode < end && (*mode == ' ' || *mode == '\t' || *mode == '\n' || *mode == '\r')) mode++;
+    if (mode < end && svg_str_starts_with_ascii_ci (hb_svg_str_t (mode, (unsigned) (end - mode)), "slice"))
       is_slice = true;
   }
 
@@ -130,7 +134,6 @@ svg_compute_viewbox_transform (float viewport_w,
   float leftover_x = viewport_w - scaled_w;
   float leftover_y = viewport_h - scaled_h;
 
-  hb_svg_str_t align = par.trim ();
   if (!align.starts_with ("x"))
     align = hb_svg_str_t ("xMidYMid", 8);
 
