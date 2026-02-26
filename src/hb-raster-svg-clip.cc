@@ -46,7 +46,9 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
   else
     clip.units_user_space = true;
 
-  hb_svg_str_t cp_transform = parser.find_attr ("transform");
+  hb_svg_style_props_t root_style_props;
+  svg_parse_style_props (parser.find_attr ("style"), &root_style_props);
+  hb_svg_str_t cp_transform = svg_pick_attr_or_style (parser, root_style_props.transform, "transform");
   if (cp_transform.len)
   {
     clip.has_clip_transform = true;
@@ -76,7 +78,9 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
                                      ? inherited[cdepth]
                                      : hb_svg_transform_t ();
 
-        hb_svg_str_t sh_transform = parser.find_attr ("transform");
+        hb_svg_style_props_t style_props;
+        svg_parse_style_props (parser.find_attr ("style"), &style_props);
+        hb_svg_str_t sh_transform = svg_pick_attr_or_style (parser, style_props.transform, "transform");
         bool has_local_transform = sh_transform.len > 0;
         if (has_local_transform)
         {
