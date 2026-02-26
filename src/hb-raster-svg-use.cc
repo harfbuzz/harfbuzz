@@ -44,10 +44,12 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
   if (!hb_raster_svg_parse_local_id_ref (href, &ref_id, nullptr))
     return;
 
-  float use_x = svg_parse_float (parser.find_attr ("x"));
-  float use_y = svg_parse_float (parser.find_attr ("y"));
-  float use_w = svg_parse_float (parser.find_attr ("width"));
-  float use_h = svg_parse_float (parser.find_attr ("height"));
+  hb_svg_style_props_t style_props;
+  svg_parse_style_props (parser.find_attr ("style"), &style_props);
+  float use_x = svg_parse_float (svg_pick_attr_or_style (parser, style_props.x, "x"));
+  float use_y = svg_parse_float (svg_pick_attr_or_style (parser, style_props.y, "y"));
+  float use_w = svg_parse_float (svg_pick_attr_or_style (parser, style_props.width, "width"));
+  float use_h = svg_parse_float (svg_pick_attr_or_style (parser, style_props.height, "height"));
 
   bool has_translate = (use_x != 0.f || use_y != 0.f);
   bool has_use_transform = transform_str.len > 0;

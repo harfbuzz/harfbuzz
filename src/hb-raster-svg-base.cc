@@ -107,6 +107,10 @@ svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out)
     else if (svg_str_eq_ascii_ci (prop_name, "offset")) out->offset = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "stop-color")) out->stop_color = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "stop-opacity")) out->stop_opacity = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "x")) out->x = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "y")) out->y = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "width")) out->width = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "height")) out->height = prop_value;
 
     if (p < end && *p == ';') p++;
   }

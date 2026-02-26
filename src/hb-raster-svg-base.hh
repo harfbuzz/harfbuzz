@@ -118,6 +118,10 @@ struct hb_svg_style_props_t
   hb_svg_str_t offset;
   hb_svg_str_t stop_color;
   hb_svg_str_t stop_opacity;
+  hb_svg_str_t x;
+  hb_svg_str_t y;
+  hb_svg_str_t width;
+  hb_svg_str_t height;
 };
 
 struct hb_svg_xml_parser_t;

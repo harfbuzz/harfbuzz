@@ -157,10 +157,12 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
     return;
 
   hb_svg_transform_t effective = base_transform;
-  float use_x = svg_parse_float (use_parser.find_attr ("x"));
-  float use_y = svg_parse_float (use_parser.find_attr ("y"));
-  float use_w = svg_parse_float (use_parser.find_attr ("width"));
-  float use_h = svg_parse_float (use_parser.find_attr ("height"));
+  hb_svg_style_props_t use_style_props;
+  svg_parse_style_props (use_parser.find_attr ("style"), &use_style_props);
+  float use_x = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.x, "x"));
+  float use_y = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.y, "y"));
+  float use_w = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.width, "width"));
+  float use_h = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.height, "height"));
   if (use_x != 0.f || use_y != 0.f)
   {
     hb_svg_transform_t tr;
