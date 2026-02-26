@@ -129,31 +129,34 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
   }
   if (grad)
   {
-    const hb_svg_gradient_t *chain[8];
-    unsigned chain_len = 0;
+    hb_vector_t<const hb_svg_gradient_t *> chain;
     const hb_svg_gradient_t *cur = grad;
-    while (cur && chain_len < ARRAY_LENGTH (chain))
+    while (cur)
     {
-      chain[chain_len++] = cur;
-      if (!cur->href_id.length) break;
-      const hb_svg_gradient_t *next = ctx->defs->find_gradient (cur->href_id);
-      if (!next) break;
       bool is_cycle = false;
-      for (unsigned i = 0; i < chain_len; i++)
-        if (chain[i] == next)
+      for (unsigned i = 0; i < chain.length; i++)
+        if (chain.arrayZ[i] == cur)
         {
           is_cycle = true;
           break;
         }
-      if (is_cycle) break;
+      if (is_cycle)
+        break;
+      chain.push (cur);
+      if (unlikely (chain.in_error ()))
+        return;
+
+      if (!cur->href_id.length) break;
+      const hb_svg_gradient_t *next = ctx->defs->find_gradient (cur->href_id);
+      if (!next) break;
       cur = next;
     }
-    if (!chain_len) return;
+    if (!chain.length) return;
 
-    hb_svg_gradient_t effective = *chain[chain_len - 1];
-    for (int i = (int) chain_len - 2; i >= 0; i--)
+    hb_svg_gradient_t effective = *chain.arrayZ[chain.length - 1];
+    for (int i = (int) chain.length - 2; i >= 0; i--)
     {
-      const hb_svg_gradient_t *g = chain[i];
+      const hb_svg_gradient_t *g = chain.arrayZ[i];
       effective.type = g->type;
       if (g->stops.length) effective.stops = g->stops;
       if (g->has_spread) { effective.spread = g->spread; effective.has_spread = true; }
