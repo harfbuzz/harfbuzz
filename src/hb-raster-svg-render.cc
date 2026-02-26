@@ -392,10 +392,14 @@ svg_render_use_callback (void *render_user,
 {
   hb_svg_render_context_t *ctx = (hb_svg_render_context_t *) render_user;
   bool old_suppress = ctx->suppress_viewbox_once;
+  bool old_allow_symbol = ctx->allow_symbol_render_once;
   if (viewport_mapped)
     ctx->suppress_viewbox_once = true;
+  if (parser.tag_name.eq ("symbol"))
+    ctx->allow_symbol_render_once = true;
   svg_render_element (ctx, parser, *(const hb_svg_cascade_t *) state);
   ctx->suppress_viewbox_once = old_suppress;
+  ctx->allow_symbol_render_once = old_allow_symbol;
 }
 
 static void
@@ -486,6 +490,19 @@ svg_render_element (hb_svg_render_context_t *ctx,
     assert (ctx->paint->surface_stack.length == surface_depth);
     return;
   }
+
+  if (tag.eq ("symbol") && !ctx->allow_symbol_render_once)
+  {
+    if (!self_closing)
+      svg_skip_subtree (parser);
+    ctx->depth--;
+    assert (ctx->paint->transform_stack.length == transform_depth);
+    assert (ctx->paint->clip_stack.length == clip_depth);
+    assert (ctx->paint->surface_stack.length == surface_depth);
+    return;
+  }
+  if (tag.eq ("symbol"))
+    ctx->allow_symbol_render_once = false;
 
   if (tag.eq ("g") || tag.eq ("svg") || tag.eq ("symbol"))
     svg_render_container_element (ctx, parser, tag, self_closing,
