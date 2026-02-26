@@ -30,44 +30,6 @@
 
 #include "hb-raster-svg-base.hh"
 
-#include <string.h>
-
-static bool
-svg_find_element_by_id (const hb_svg_use_context_t *ctx,
-                        hb_svg_str_t id,
-                        const char **found)
-{
-  *found = nullptr;
-  if (ctx->doc_cache && ctx->svg_accel)
-  {
-    unsigned start = 0, end = 0;
-    OT::SVG::svg_id_span_t key = {id.data, id.len};
-    if (ctx->svg_accel->doc_cache_find_id_span (ctx->doc_cache, key, &start, &end))
-    {
-      if (start < ctx->doc_len && end <= ctx->doc_len && start < end)
-      {
-        *found = ctx->doc_start + start;
-        return true;
-      }
-    }
-  }
-
-  hb_svg_xml_parser_t search (ctx->doc_start, ctx->doc_len);
-  while (true)
-  {
-    hb_svg_token_type_t tok = search.next ();
-    if (tok == SVG_TOKEN_EOF) break;
-    if (tok != SVG_TOKEN_OPEN_TAG && tok != SVG_TOKEN_SELF_CLOSE_TAG) continue;
-    hb_svg_str_t attr_id = search.find_attr ("id");
-    if (attr_id.len == id.len && 0 == memcmp (attr_id.data, id.data, id.len))
-    {
-      *found = search.tag_start;
-      return true;
-    }
-  }
-  return false;
-}
-
 void
 hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
                         hb_svg_xml_parser_t &parser,
@@ -101,7 +63,8 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
     hb_paint_push_transform (ctx->pfuncs, ctx->paint, 1, 0, 0, 1, use_x, use_y);
 
   const char *found = nullptr;
-  svg_find_element_by_id (ctx, ref_id, &found);
+  hb_raster_svg_find_element_by_id (ctx->doc_start, ctx->doc_len, ctx->svg_accel, ctx->doc_cache,
+                                    ref_id, &found);
 
   if (found)
   {

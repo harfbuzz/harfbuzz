@@ -254,6 +254,48 @@ hb_raster_svg_parse_local_id_ref (hb_svg_str_t s,
 }
 
 bool
+hb_raster_svg_find_element_by_id (const char *doc_start,
+                                  unsigned doc_len,
+                                  const OT::SVG::accelerator_t *svg_accel,
+                                  const OT::SVG::svg_doc_cache_t *doc_cache,
+                                  hb_svg_str_t id,
+                                  const char **found)
+{
+  *found = nullptr;
+  if (!doc_start || !doc_len || !id.len)
+    return false;
+
+  if (doc_cache && svg_accel)
+  {
+    unsigned start = 0, end = 0;
+    OT::SVG::svg_id_span_t key = {id.data, id.len};
+    if (svg_accel->doc_cache_find_id_span (doc_cache, key, &start, &end))
+    {
+      if (start < doc_len && end <= doc_len && start < end)
+      {
+        *found = doc_start + start;
+        return true;
+      }
+    }
+  }
+
+  hb_svg_xml_parser_t search (doc_start, doc_len);
+  while (true)
+  {
+    hb_svg_token_type_t tok = search.next ();
+    if (tok == SVG_TOKEN_EOF) break;
+    if (tok != SVG_TOKEN_OPEN_TAG && tok != SVG_TOKEN_SELF_CLOSE_TAG) continue;
+    hb_svg_str_t attr_id = search.find_attr ("id");
+    if (attr_id.len == id.len && 0 == memcmp (attr_id.data, id.data, id.len))
+    {
+      *found = search.tag_start;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool
 hb_raster_svg_parse_viewbox (hb_svg_str_t viewbox_str,
                              float *x,
                              float *y,

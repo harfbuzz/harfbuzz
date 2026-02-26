@@ -35,7 +35,6 @@
 #include "hb-decycler.hh"
 
 #include <math.h>
-#include <string.h>
 
 static inline bool
 svg_transform_is_identity (const hb_svg_transform_t &t)
@@ -56,48 +55,6 @@ svg_parse_element_transform (hb_svg_xml_parser_t &parser,
     return false;
   hb_raster_svg_parse_transform (transform, out);
   return true;
-}
-
-static bool
-svg_find_element_by_id (const char *doc_start,
-                        unsigned doc_len,
-                        const OT::SVG::accelerator_t *svg_accel,
-                        const OT::SVG::svg_doc_cache_t *doc_cache,
-                        hb_svg_str_t id,
-                        const char **found)
-{
-  *found = nullptr;
-  if (!doc_start || !doc_len || !id.len)
-    return false;
-
-  if (doc_cache && svg_accel)
-  {
-    unsigned start = 0, end = 0;
-    OT::SVG::svg_id_span_t key = {id.data, id.len};
-    if (svg_accel->doc_cache_find_id_span (doc_cache, key, &start, &end))
-    {
-      if (start < doc_len && end <= doc_len && start < end)
-      {
-        *found = doc_start + start;
-        return true;
-      }
-    }
-  }
-
-  hb_svg_xml_parser_t search (doc_start, doc_len);
-  while (true)
-  {
-    hb_svg_token_type_t tok = search.next ();
-    if (tok == SVG_TOKEN_EOF) break;
-    if (tok != SVG_TOKEN_OPEN_TAG && tok != SVG_TOKEN_SELF_CLOSE_TAG) continue;
-    hb_svg_str_t attr_id = search.find_attr ("id");
-    if (attr_id.len == id.len && 0 == memcmp (attr_id.data, id.data, id.len))
-    {
-      *found = search.tag_start;
-      return true;
-    }
-  }
-  return false;
 }
 
 struct hb_svg_clip_collect_context_t
@@ -190,9 +147,9 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
     return;
 
   const char *found = nullptr;
-  if (!svg_find_element_by_id (ctx->doc_start, ctx->doc_len,
-                               ctx->svg_accel, ctx->doc_cache,
-                               ref_id, &found))
+  if (!hb_raster_svg_find_element_by_id (ctx->doc_start, ctx->doc_len,
+                                         ctx->svg_accel, ctx->doc_cache,
+                                         ref_id, &found))
     return;
 
   hb_decycler_node_t node (*ctx->use_decycler);

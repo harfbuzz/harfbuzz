@@ -28,6 +28,7 @@
 #define HB_RASTER_SVG_BASE_HH
 
 #include "hb.hh"
+#include "OT/Color/svg/svg.hh"
 
 #include <math.h>
 #include <string.h>
@@ -133,6 +134,12 @@ HB_INTERNAL bool hb_raster_svg_parse_id_ref (hb_svg_str_t s,
 HB_INTERNAL bool hb_raster_svg_parse_local_id_ref (hb_svg_str_t s,
                                                     hb_svg_str_t *out_id,
                                                     hb_svg_str_t *out_tail);
+HB_INTERNAL bool hb_raster_svg_find_element_by_id (const char *doc_start,
+                                                    unsigned doc_len,
+                                                    const OT::SVG::accelerator_t *svg_accel,
+                                                    const OT::SVG::svg_doc_cache_t *doc_cache,
+                                                    hb_svg_str_t id,
+                                                    const char **found);
 HB_INTERNAL bool hb_raster_svg_parse_viewbox (hb_svg_str_t viewbox_str,
                                                float *x,
                                                float *y,
