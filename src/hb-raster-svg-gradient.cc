@@ -89,30 +89,30 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
   hb_svg_style_props_t style_props;
   svg_parse_style_props (attrs.get ("style"), &style_props);
 
-  hb_svg_str_t spread_str = svg_pick_attr_or_style (parser, style_props.spread_method, "spreadMethod");
-  if (spread_str.eq ("reflect"))
+  hb_svg_str_t spread_str = svg_pick_attr_or_style (parser, style_props.spread_method, "spreadMethod").trim ();
+  if (svg_str_eq_ascii_ci (spread_str, "reflect"))
   {
     grad.spread = HB_PAINT_EXTEND_REFLECT;
     grad.has_spread = true;
   }
-  else if (spread_str.eq ("repeat"))
+  else if (svg_str_eq_ascii_ci (spread_str, "repeat"))
   {
     grad.spread = HB_PAINT_EXTEND_REPEAT;
     grad.has_spread = true;
   }
-  else if (spread_str.eq ("pad"))
+  else if (svg_str_eq_ascii_ci (spread_str, "pad"))
   {
     grad.spread = HB_PAINT_EXTEND_PAD;
     grad.has_spread = true;
   }
 
-  hb_svg_str_t units_str = svg_pick_attr_or_style (parser, style_props.gradient_units, "gradientUnits");
-  if (units_str.eq ("userSpaceOnUse"))
+  hb_svg_str_t units_str = svg_pick_attr_or_style (parser, style_props.gradient_units, "gradientUnits").trim ();
+  if (svg_str_eq_ascii_ci (units_str, "userSpaceOnUse"))
   {
     grad.units_user_space = true;
     grad.has_units_user_space = true;
   }
-  else if (units_str.eq ("objectBoundingBox"))
+  else if (svg_str_eq_ascii_ci (units_str, "objectBoundingBox"))
   {
     grad.units_user_space = false;
     grad.has_units_user_space = true;
