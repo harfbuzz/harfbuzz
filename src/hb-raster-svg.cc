@@ -206,6 +206,12 @@ svg_parse_number_or_percent (hb_svg_str_t s, bool *is_percent)
   return s.to_float ();
 }
 
+static bool
+svg_str_is_inherit (hb_svg_str_t s)
+{
+  return svg_str_eq_ascii_ci (s.trim (), "inherit");
+}
+
 
 /*
  * 2. Minimal XML tokenizer
@@ -1373,6 +1379,7 @@ struct hb_svg_gradient_stop_t
 {
   float offset;
   hb_color_t color;
+  bool is_current_color = false;
 };
 
 struct hb_svg_gradient_t
@@ -1562,6 +1569,7 @@ struct hb_svg_color_line_data_t
   const hb_svg_gradient_t *grad;
   hb_paint_extend_t extend;
   float alpha_scale;
+  hb_color_t current_color;
 };
 
 static unsigned
@@ -1581,9 +1589,18 @@ svg_color_line_get_stops (hb_color_line_t *color_line HB_UNUSED,
     unsigned n = hb_min (*count, total > start ? total - start : 0u);
     for (unsigned i = 0; i < n; i++)
     {
-      color_stops[i].offset = grad->stops[start + i].offset;
+      const hb_svg_gradient_stop_t &stop = grad->stops[start + i];
+      color_stops[i].offset = stop.offset;
       color_stops[i].is_foreground = false;
-      hb_color_t c = grad->stops[start + i].color;
+      hb_color_t c = stop.is_current_color ? cl->current_color : stop.color;
+      if (stop.is_current_color)
+      {
+        uint8_t a = (uint8_t) hb_raster_div255 (hb_color_get_alpha (c) * hb_color_get_alpha (stop.color));
+        c = HB_COLOR (hb_color_get_blue (c),
+                      hb_color_get_green (c),
+                      hb_color_get_red (c),
+                      a);
+      }
       if (cl->alpha_scale < 1.f)
       {
         uint8_t a = (uint8_t) hb_clamp ((int) (hb_color_get_alpha (c) * cl->alpha_scale + 0.5f), 0, 255);
@@ -1731,6 +1748,7 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
     cl_data.grad = &effective;
     cl_data.extend = effective.spread;
     cl_data.alpha_scale = hb_clamp (fill_opacity, 0.f, 1.f);
+    cl_data.current_color = current_color;
 
     hb_color_line_t cl = {
       &cl_data,
@@ -1957,8 +1975,12 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 
   bool is_none = false;
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
+  bool is_current_color = false;
   if (color_str.len)
+  {
+    is_current_color = svg_str_eq_ascii_ci (color_str.trim (), "currentColor");
     color = svg_parse_color (color_str, pfuncs, paint_data, foreground, face, palette, &is_none);
+  }
 
   if (opacity_str.len)
   {
@@ -1969,7 +1991,10 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 		      (uint8_t) (hb_color_get_alpha (color) * opacity + 0.5f));
   }
 
-  hb_svg_gradient_stop_t stop = {offset, color};
+  hb_svg_gradient_stop_t stop;
+  stop.offset = offset;
+  stop.color = color;
+  stop.is_current_color = is_current_color;
   grad.stops.push (stop);
   return !grad.stops.in_error ();
 }
@@ -2798,10 +2823,14 @@ svg_render_element (hb_svg_render_context_t *ctx,
   hb_svg_str_t color_str = svg_attr_or_style (parser, style, "color");
   hb_svg_str_t visibility_str = svg_attr_or_style (parser, style, "visibility");
 
-  hb_svg_str_t fill_str = fill_attr.is_null () ? inherited_fill : fill_attr;
-  float fill_opacity = fill_opacity_str.len ? svg_parse_float_clamped01 (fill_opacity_str) : inherited_fill_opacity;
+  hb_svg_str_t fill_str = (fill_attr.is_null () || svg_str_is_inherit (fill_attr)) ? inherited_fill : fill_attr;
+  float fill_opacity = (fill_opacity_str.len && !svg_str_is_inherit (fill_opacity_str))
+		       ? svg_parse_float_clamped01 (fill_opacity_str)
+		       : inherited_fill_opacity;
   float opacity = opacity_str.len ? svg_parse_float_clamped01 (opacity_str) : 1.f;
-  hb_svg_str_t clip_path_str = clip_path_attr.is_null () ? inherited_clip_path : clip_path_attr;
+  hb_svg_str_t clip_path_str = (clip_path_attr.is_null () || svg_str_is_inherit (clip_path_attr))
+			       ? inherited_clip_path
+			       : clip_path_attr;
   hb_color_t current_color = inherited_color;
   bool is_none = false;
   if (color_str.len && !svg_str_eq_ascii_ci (color_str.trim (), "inherit"))
