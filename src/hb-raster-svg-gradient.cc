@@ -96,9 +96,8 @@ static void
 svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
                           hb_svg_gradient_t &grad)
 {
-  hb_svg_attr_view_t attrs (parser);
   hb_svg_style_props_t style_props;
-  svg_parse_style_props (attrs.get ("style"), &style_props);
+  svg_parse_style_props (parser.find_attr ("style"), &style_props);
 
   hb_svg_str_t spread_str = svg_pick_attr_or_style (parser, style_props.spread_method, "spreadMethod").trim ();
   if (svg_str_eq_ascii_ci (spread_str, "reflect"))
