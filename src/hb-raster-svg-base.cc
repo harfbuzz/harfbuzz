@@ -305,6 +305,13 @@ hb_raster_svg_compute_viewbox_transform (float viewport_w,
     return false;
 
   hb_svg_str_t par = preserve_aspect_ratio.trim ();
+  if (svg_str_starts_with_ascii_ci (par, "defer"))
+  {
+    const char *p = par.data + 5;
+    const char *end = par.data + par.len;
+    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
+    par = hb_svg_str_t (p, (unsigned) (end - p));
+  }
   if (!par.len)
     par = hb_svg_str_t ("xMidYMid meet", 12);
 
