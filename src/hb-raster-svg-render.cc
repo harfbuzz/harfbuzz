@@ -263,10 +263,10 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 static bool
 svg_render_primitive_shape_element (hb_svg_render_context_t *ctx,
 				    hb_svg_xml_parser_t &parser,
-				    hb_svg_str_t tag,
 				    const hb_svg_cascade_t &state,
 				    hb_svg_str_t transform_str)
 {
+  hb_svg_str_t tag = parser.tag_name;
   if (!(tag.eq ("path") || tag.eq ("rect") || tag.eq ("circle") ||
         tag.eq ("ellipse") || tag.eq ("line") || tag.eq ("polyline") ||
         tag.eq ("polygon")))
@@ -401,7 +401,7 @@ svg_render_element (hb_svg_render_context_t *ctx,
   if (tag.eq ("g") || tag.eq ("svg") || tag.eq ("symbol"))
     svg_render_container_element (ctx, parser, tag, self_closing,
 				  state, transform_str, state.clip_path);
-  else if (svg_render_primitive_shape_element (ctx, parser, tag, state, transform_str))
+  else if (svg_render_primitive_shape_element (ctx, parser, state, transform_str))
     ;
   else if (tag.eq ("use"))
   {
