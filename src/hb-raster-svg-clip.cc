@@ -160,7 +160,8 @@ static void
 svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               hb_svg_xml_parser_t &parser,
                               const hb_svg_transform_t &base_transform,
-                              unsigned depth);
+                              unsigned depth,
+                              bool suppress_viewbox_once = false);
 
 static void
 svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
@@ -206,6 +207,7 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
   if (rt != SVG_TOKEN_OPEN_TAG && rt != SVG_TOKEN_SELF_CLOSE_TAG)
     return;
 
+  bool viewport_mapped = false;
   if (ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol"))
   {
     float viewport_w = use_w;
@@ -221,17 +223,21 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
         hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h, vb_x, vb_y, vb_w, vb_h,
                                                  ref_parser.find_attr ("preserveAspectRatio"),
                                                  &vb_t))
+    {
       effective.multiply (vb_t);
+      viewport_mapped = true;
+    }
   }
 
-  svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1);
+  svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1, viewport_mapped);
 }
 
 static void
 svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               hb_svg_xml_parser_t &parser,
                               const hb_svg_transform_t &base_transform,
-                              unsigned depth)
+                              unsigned depth,
+                              bool suppress_viewbox_once)
 {
   const unsigned SVG_MAX_CLIP_REF_DEPTH = 64;
   if (depth >= SVG_MAX_CLIP_REF_DEPTH)
@@ -272,23 +278,27 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
       effective.multiply (tr);
     }
 
-    float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
-    if (hb_raster_svg_parse_viewbox (parser.find_attr ("viewBox"),
-                                     &vb_x, &vb_y, &vb_w, &vb_h))
+    if (!suppress_viewbox_once)
     {
-      float viewport_w = svg_parse_float (parser.find_attr ("width"));
-      float viewport_h = svg_parse_float (parser.find_attr ("height"));
-      if (!(viewport_w > 0.f && viewport_h > 0.f))
+      float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
+      if (hb_raster_svg_parse_viewbox (parser.find_attr ("viewBox"),
+                                       &vb_x, &vb_y, &vb_w, &vb_h))
       {
-        viewport_w = vb_w;
-        viewport_h = vb_h;
+        float viewport_w = svg_parse_float (parser.find_attr ("width"));
+        float viewport_h = svg_parse_float (parser.find_attr ("height"));
+        if (!(viewport_w > 0.f && viewport_h > 0.f))
+        {
+          viewport_w = vb_w;
+          viewport_h = vb_h;
+        }
+        hb_svg_transform_t vb_t;
+        if (hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h,
+                                                     vb_x, vb_y, vb_w, vb_h,
+                                                     parser.find_attr ("preserveAspectRatio"),
+                                                     &vb_t))
+          effective.multiply (vb_t);
       }
-      hb_svg_transform_t vb_t;
-      if (hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h,
-                                                   vb_x, vb_y, vb_w, vb_h,
-                                                   parser.find_attr ("preserveAspectRatio"),
-                                                   &vb_t))
-        effective.multiply (vb_t);
+      suppress_viewbox_once = false;
     }
   }
 
