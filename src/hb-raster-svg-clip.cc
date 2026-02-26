@@ -159,8 +159,8 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
   hb_svg_transform_t effective = base_transform;
   hb_svg_style_props_t use_style_props;
   svg_parse_style_props (use_parser.find_attr ("style"), &use_style_props);
-  float use_x = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.x, "x"));
-  float use_y = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.y, "y"));
+  float use_x = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.x, "x"));
+  float use_y = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.y, "y"));
   float use_w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.width, "width"));
   float use_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.height, "height"));
   if (use_x != 0.f || use_y != 0.f)
@@ -262,8 +262,8 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
     effective.multiply (local_t);
   if (parser.tag_name.eq ("svg"))
   {
-    float svg_x = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.x, "x"));
-    float svg_y = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.y, "y"));
+    float svg_x = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.x, "x"));
+    float svg_y = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.y, "y"));
     if (svg_x != 0.f || svg_y != 0.f)
     {
       hb_svg_transform_t tr;

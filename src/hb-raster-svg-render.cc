@@ -137,8 +137,8 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 
     if (tag.eq ("svg"))
     {
-      svg_x = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.x, "x"));
-      svg_y = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.y, "y"));
+      svg_x = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.x, "x"));
+      svg_y = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.y, "y"));
       has_svg_translate = (svg_x != 0.f || svg_y != 0.f);
     }
 
