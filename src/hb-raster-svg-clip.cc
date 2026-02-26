@@ -287,6 +287,7 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
   }
 
   bool is_container = parser.tag_name.eq ("g") ||
+                      parser.tag_name.eq ("a") ||
                       parser.tag_name.eq ("svg") ||
                       parser.tag_name.eq ("symbol");
   if (!is_container || parser.self_closing)
