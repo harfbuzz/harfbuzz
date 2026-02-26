@@ -260,6 +260,18 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
   hb_svg_transform_t local_t;
   if (svg_parse_element_transform (parser, &local_t))
     effective.multiply (local_t);
+  if (parser.tag_name.eq ("svg"))
+  {
+    float svg_x = svg_parse_float (parser.find_attr ("x"));
+    float svg_y = svg_parse_float (parser.find_attr ("y"));
+    if (svg_x != 0.f || svg_y != 0.f)
+    {
+      hb_svg_transform_t tr;
+      tr.dx = svg_x;
+      tr.dy = svg_y;
+      effective.multiply (tr);
+    }
+  }
 
   hb_svg_shape_emit_data_t shape;
   if (hb_raster_svg_parse_shape_tag (parser, &shape))
