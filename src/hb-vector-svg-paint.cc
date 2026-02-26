@@ -385,6 +385,7 @@ struct hb_vector_paint_t
 
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
   int palette = 0;
+  hb_hashmap_t<unsigned, hb_color_t> custom_palette_colors;
   unsigned precision = 2;
   bool flat = false;
 
@@ -969,6 +970,7 @@ static void hb_vector_paint_sweep_gradient (hb_paint_funcs_t *, void *, hb_color
 static void hb_vector_paint_push_group (hb_paint_funcs_t *, void *, void *);
 static void hb_vector_paint_pop_group (hb_paint_funcs_t *, void *, hb_paint_composite_mode_t, void *);
 static hb_bool_t hb_vector_paint_color_glyph (hb_paint_funcs_t *, void *, hb_codepoint_t, hb_font_t *, void *);
+static hb_bool_t hb_vector_paint_custom_palette_color (hb_paint_funcs_t *, void *, unsigned, hb_color_t *, void *);
 
 static inline void free_static_vector_paint_funcs ();
 static struct hb_vector_paint_funcs_lazy_loader_t
@@ -990,6 +992,7 @@ static struct hb_vector_paint_funcs_lazy_loader_t
     hb_paint_funcs_set_push_group_func (funcs, (hb_paint_push_group_func_t) hb_vector_paint_push_group, nullptr, nullptr);
     hb_paint_funcs_set_pop_group_func (funcs, (hb_paint_pop_group_func_t) hb_vector_paint_pop_group, nullptr, nullptr);
     hb_paint_funcs_set_color_glyph_func (funcs, (hb_paint_color_glyph_func_t) hb_vector_paint_color_glyph, nullptr, nullptr);
+    hb_paint_funcs_set_custom_palette_color_func (funcs, (hb_paint_custom_palette_color_func_t) hb_vector_paint_custom_palette_color, nullptr, nullptr);
     hb_paint_funcs_make_immutable (funcs);
     hb_atexit (free_static_vector_paint_funcs);
     return funcs;
@@ -1656,10 +1659,42 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
   paint->palette = palette;
 }
 
+void
+hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
+                                          unsigned color_index,
+                                          hb_color_t color)
+{
+  paint->custom_palette_colors.set (color_index, color);
+}
+
+void
+hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
+{
+  paint->custom_palette_colors.clear ();
+}
+
 hb_paint_funcs_t *
 hb_vector_paint_get_funcs (void)
 {
   return hb_vector_paint_funcs_get ();
+}
+
+static hb_bool_t
+hb_vector_paint_custom_palette_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
+                                      void *paint_data,
+                                      unsigned color_index,
+                                      hb_color_t *color,
+                                      void *user_data HB_UNUSED)
+{
+  hb_vector_paint_t *paint = (hb_vector_paint_t *) paint_data;
+  if (!paint || !color)
+    return false;
+
+  hb_color_t *value = nullptr;
+  if (!paint->custom_palette_colors.has (color_index, &value) || !value)
+    return false;
+  *color = *value;
+  return true;
 }
 
 hb_bool_t

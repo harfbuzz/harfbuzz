@@ -1855,9 +1855,12 @@ hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
 
 /**
  * hb_raster_paint_clear_custom_palette_colors:
- * @paint: a paint context
+ * @paint: a paint context.
  *
- * Clears all custom palette color overrides.
+ * Clears all custom palette color overrides previously set on @paint.
+ *
+ * After this call, palette lookups use the selected font palette without
+ * custom override entries.
  *
  * XSince: REPLACEME
  **/
@@ -1870,12 +1873,13 @@ hb_raster_paint_clear_custom_palette_colors (hb_raster_paint_t *paint)
 
 /**
  * hb_raster_paint_set_custom_palette_color:
- * @paint: a paint context
- * @color_index: palette color index to override
- * @color: replacement color for @color_index
+ * @paint: a paint context.
+ * @color_index: color index to override.
+ * @color: replacement color.
  *
- * Sets a custom palette color override. During paint operations,
- * when the font requests @color_index from CPAL, @color is used.
+ * Overrides one font palette color entry for subsequent paint operations.
+ * Overrides are keyed by @color_index and persist on @paint until cleared
+ * (or replaced for the same index).
  *
  * Return value: `true` if the override was set; `false` on allocation failure.
  *

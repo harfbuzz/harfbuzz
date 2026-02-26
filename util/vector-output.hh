@@ -25,51 +25,25 @@
 #ifndef HB_VECTOR_OUTPUT_HH
 #define HB_VECTOR_OUTPUT_HH
 
+#include <algorithm>
 #include <math.h>
 #include <string>
 #include <vector>
 
 #include "output-options.hh"
+#include "view-options.hh"
 #include "hb-vector.h"
 #include "hb-ot.h"
 
 
-struct vector_output_t : output_options_t<>
+struct vector_output_t : output_options_t<>, view_options_t
 {
   static const bool repeat_shape = false;
-  struct margin_t {
-    float t, r, b, l;
-  };
-
-  static gboolean
-  parse_margin (const char *name G_GNUC_UNUSED,
-                const char *arg,
-                gpointer    data,
-                GError    **error)
-  {
-    vector_output_t *opts = (vector_output_t *) data;
-    margin_t &m = opts->margin;
-    double t, r, b, l;
-    if (parse_1to4_doubles (arg, &t, &r, &b, &l))
-    {
-      m.t = (float) t;
-      m.r = (float) r;
-      m.b = (float) b;
-      m.l = (float) l;
-      return true;
-    }
-    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                 "%s argument should be one to four space-separated numbers",
-                 name);
-    return false;
-  }
 
   ~vector_output_t ()
   {
-    g_free (background_str);
     hb_font_destroy (font);
     hb_font_destroy (upem_font);
-    g_free (foreground_str);
   }
 
   void add_options (option_parser_t *parser)
@@ -78,17 +52,12 @@ struct vector_output_t : output_options_t<>
     parser->set_description ("Shows shaped glyph outlines as SVG.");
 
     output_options_t::add_options (parser);
+    view_options_t::add_options (parser);
 
     GOptionEntry entries[] =
     {
-      {"logical",    0, 0, G_OPTION_ARG_NONE,   &this->logical,       "Use logical extents for bounding box (default)", nullptr},
-      {"ink",        0, 0, G_OPTION_ARG_NONE,   &this->ink,           "Use ink extents for bounding box",               nullptr},
       {"flat",       0, 0, G_OPTION_ARG_NONE,   &this->flat,          "Flatten geometry and disable reuse", nullptr},
       {"precision",  0, 0, G_OPTION_ARG_INT,    &this->precision,     "Decimal precision (default: 2)",     "N"},
-      {"palette",    0, 0, G_OPTION_ARG_INT,    &this->palette,       "Color palette index (default: 0)",   "N"},
-      {"background", 0, 0, G_OPTION_ARG_STRING, &this->background_str,"Background color",                    "rrggbb[aa]"},
-      {"margin",     0, 0, G_OPTION_ARG_CALLBACK,(gpointer) &parse_margin, "Margin around output (default: 0)","one to four numbers"},
-      {"foreground", 0, 0, G_OPTION_ARG_STRING, &this->foreground_str,"Foreground color (default: 000000)", "rrggbb[aa]"},
       {nullptr}
     };
     parser->add_group (entries,
@@ -100,6 +69,10 @@ struct vector_output_t : output_options_t<>
 
   void post_parse (GError **error)
   {
+    view_options_t::post_parse (error);
+    if (error && *error)
+      return;
+
     if (precision < 0)
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -107,30 +80,36 @@ struct vector_output_t : output_options_t<>
       return;
     }
 
-    if (foreground_str)
+    foreground = HB_COLOR (0, 0, 0, 255);
+    if (foreground_use_palette && foreground_palette && foreground_palette->len)
+    {
+      const rgba_color_t &c = g_array_index (foreground_palette, rgba_color_t, 0);
+      foreground = HB_COLOR (c.b, c.g, c.r, c.a);
+    }
+    else if (fore && *fore)
     {
       unsigned r, g, b, a;
-      if (!parse_color (foreground_str, r, g, b, a))
-      {
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Invalid foreground color: %s", foreground_str);
+      if (!parse_color (fore, r, g, b, a))
         return;
-      }
       foreground = HB_COLOR (b, g, r, a);
     }
 
-    if (background_str)
+    has_background = false;
+    if (back && *back)
     {
       unsigned r, g, b, a;
-      if (!parse_color (background_str, r, g, b, a))
+      if (!parse_color (back, r, g, b, a))
       {
         g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Invalid background color: %s", background_str);
+                     "Invalid background color: %s", back);
         return;
       }
       background = HB_COLOR (b, g, r, a);
       has_background = true;
     }
+
+    if (!parse_custom_palette_overrides (error))
+      return;
   }
 
   template <typename app_t>
@@ -230,7 +209,9 @@ struct vector_output_t : output_options_t<>
     hb_vector_paint_set_scale_factor (paint, 1.f, 1.f);
     hb_vector_paint_set_extents (paint, &extents);
     hb_vector_paint_set_foreground (paint, foreground);
-    hb_vector_paint_set_palette (paint, palette);
+    hb_vector_paint_set_palette (paint, this->palette);
+    apply_custom_palette (paint);
+    init_palette_color_cache ();
     hb_vector_svg_paint_set_precision (paint, precision);
     hb_vector_svg_paint_set_flat (paint, flat);
 
@@ -238,15 +219,18 @@ struct vector_output_t : output_options_t<>
     bool had_paint = false;
     hb_vector_extents_mode_t extents_mode = ink ? HB_VECTOR_EXTENTS_MODE_EXPAND
                                                 : HB_VECTOR_EXTENTS_MODE_NONE;
+    const bool use_foreground_palette =
+      foreground_use_palette && foreground_palette && foreground_palette->len;
+    unsigned palette_glyph_index = 0;
 
     hb_direction_t dir = direction;
     if (dir == HB_DIRECTION_INVALID)
       dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
-    hb_font_extents_t fext = {0, 0, 0};
-    hb_font_get_extents_for_direction (upem_font, dir, &fext);
-    float step = fabsf ((float) (fext.ascender - fext.descender + fext.line_gap));
+    float asc = 0.f, desc = 0.f, gap = 0.f;
+    get_line_metrics (dir, &asc, &desc, &gap);
+    float step = fabsf (asc - desc + gap + (float) line_space);
     if (!(step > 0.f))
       step = (float) upem;
 
@@ -259,6 +243,14 @@ struct vector_output_t : output_options_t<>
       {
         float pen_x = g.x + off_x;
         float pen_y = g.y + off_y;
+
+        if (use_foreground_palette)
+        {
+          const rgba_color_t &c =
+            g_array_index (foreground_palette, rgba_color_t,
+                           palette_glyph_index++ % foreground_palette->len);
+          hb_vector_paint_set_foreground (paint, HB_COLOR (c.b, c.g, c.r, c.a));
+        }
 
         hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
         if (hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
@@ -287,6 +279,9 @@ struct vector_output_t : output_options_t<>
       write_blob (paint_blob, false);
     else if (draw_blob && draw_blob != hb_blob_get_empty ())
       write_blob (draw_blob, true);
+
+    if (show_extents)
+      emit_extents_overlay (dir, step);
 
     hb_blob_destroy (draw_blob);
     hb_blob_destroy (paint_blob);
@@ -340,10 +335,9 @@ struct vector_output_t : output_options_t<>
       dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
-    hb_font_extents_t fext = {0, 0, 0};
-    hb_font_get_extents_for_direction (upem_font, dir, &fext);
-
-    float step = fabsf ((float) (fext.ascender - fext.descender + fext.line_gap));
+    float asc = 0.f, desc = 0.f, gap = 0.f;
+    get_line_metrics (dir, &asc, &desc, &gap);
+    float step = fabsf (asc - desc + gap + (float) line_space);
     if (!(step > 0.f))
       step = (float) upem;
 
@@ -377,8 +371,8 @@ struct vector_output_t : output_options_t<>
 
       if (include_logical)
       {
-        float log_min = hb_min ((float) fext.descender, (float) fext.ascender);
-        float log_max = hb_max ((float) fext.descender, (float) fext.ascender);
+        float log_min = hb_min (desc, asc);
+        float log_max = hb_max (desc, asc);
         if (vertical)
         {
           include_point (off_x + log_min, hb_min (0.f, line.advance_y));
@@ -518,25 +512,306 @@ struct vector_output_t : output_options_t<>
 
   void emit_fill_group_open ()
   {
-    if (!foreground_str)
+    const bool has_fill_override = fore || foreground_use_palette;
+    const bool has_stroke = stroke_enabled && stroke_width > 0.;
+    if (!has_fill_override && !has_stroke)
       return;
 
-    unsigned r = hb_color_get_red (foreground);
-    unsigned g = hb_color_get_green (foreground);
-    unsigned b = hb_color_get_blue (foreground);
-    unsigned a = hb_color_get_alpha (foreground);
+    fputs ("<g", out_fp);
 
-    fprintf (out_fp, "<g fill=\"#%02X%02X%02X\"", r, g, b);
-    if (a != 255)
-      fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
+    if (has_fill_override)
+    {
+      unsigned r = hb_color_get_red (foreground);
+      unsigned g = hb_color_get_green (foreground);
+      unsigned b = hb_color_get_blue (foreground);
+      unsigned a = hb_color_get_alpha (foreground);
+      fprintf (out_fp, " fill=\"#%02X%02X%02X\"", r, g, b);
+      if (a != 255)
+        fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
+    }
+    else
+      fputs (" fill=\"none\"", out_fp);
+
+    if (has_stroke)
+      emit_stroke_attrs ();
+
     fprintf (out_fp, ">\n");
   }
 
   void emit_fill_group_close ()
   {
-    if (!foreground_str)
+    if (!(fore || foreground_use_palette || (stroke_enabled && stroke_width > 0.)))
       return;
     fputs ("</g>\n", out_fp);
+  }
+
+  void emit_fill_stroke_attrs_for_color (hb_color_t color)
+  {
+    unsigned r = hb_color_get_red (color);
+    unsigned g = hb_color_get_green (color);
+    unsigned b = hb_color_get_blue (color);
+    unsigned a = hb_color_get_alpha (color);
+    fprintf (out_fp, " fill=\"#%02X%02X%02X\"", r, g, b);
+    if (a != 255)
+      fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
+
+  }
+
+  void emit_draw_body_with_palette (slice_t body)
+  {
+    if (!foreground_palette || !foreground_palette->len || !body.p || !body.len)
+      return;
+
+    const char *p = body.p;
+    const char *end = body.p + body.len;
+    unsigned palette_i = 0;
+    const bool has_stroke = stroke_enabled && stroke_width > 0.;
+    if (has_stroke)
+    {
+      fputs ("<g", out_fp);
+      emit_stroke_attrs ();
+      fputs (">\n", out_fp);
+    }
+    while (p < end)
+    {
+      const char *line_end = (const char *) memchr (p, '\n', (size_t) (end - p));
+      if (!line_end)
+        line_end = end;
+
+      const char *s = p;
+      while (s < line_end && (*s == ' ' || *s == '\t' || *s == '\r'))
+        s++;
+      bool is_elem = s < line_end && *s == '<' && (s + 1 < line_end && s[1] != '/');
+
+      if (is_elem)
+      {
+        const rgba_color_t &c =
+          g_array_index (foreground_palette, rgba_color_t,
+                         palette_i++ % foreground_palette->len);
+        hb_color_t col = HB_COLOR (c.b, c.g, c.r, c.a);
+        fputs ("<g", out_fp);
+        emit_fill_stroke_attrs_for_color (col);
+        fputs (">", out_fp);
+        fwrite (p, 1, (size_t) (line_end - p), out_fp);
+        fputs ("</g>\n", out_fp);
+      }
+      else
+      {
+        fwrite (p, 1, (size_t) (line_end - p), out_fp);
+        fputc ('\n', out_fp);
+      }
+
+      p = line_end;
+      if (p < end && *p == '\n')
+        p++;
+    }
+    if (has_stroke)
+      fputs ("</g>\n", out_fp);
+  }
+
+  void emit_stroke_attrs ()
+  {
+    fprintf (out_fp, " stroke=\"#%02X%02X%02X\"",
+             stroke_color.r, stroke_color.g, stroke_color.b);
+    if (stroke_color.a != 255)
+      fprintf (out_fp, " stroke-opacity=\"%.3f\"", (double) stroke_color.a / 255.);
+    fprintf (out_fp, " stroke-width=\"%.*g\" stroke-linecap=\"round\" stroke-linejoin=\"round\"",
+             precision + 4, stroke_width);
+  }
+
+  bool lookup_palette_color (unsigned idx, hb_color_t *color) const
+  {
+    if (idx < custom_palette_has_value.size () && custom_palette_has_value[idx])
+    {
+      *color = custom_palette_values[idx];
+      return true;
+    }
+
+    if (!palette_lookup_enabled)
+      return false;
+
+    if (palette_cache_state.size () <= idx)
+    {
+      palette_cache_state.resize (idx + 1, 0);
+      palette_cache_values.resize (idx + 1, HB_COLOR (0, 0, 0, 255));
+    }
+
+    if (palette_cache_state[idx] == 1)
+    {
+      *color = palette_cache_values[idx];
+      return true;
+    }
+    if (palette_cache_state[idx] == 2)
+      return false;
+
+    hb_color_t fetched = HB_COLOR (0, 0, 0, 255);
+    unsigned n = 1;
+    if (hb_ot_color_palette_get_colors (palette_face, palette_lookup_index,
+                                        idx, &n, &fetched) && n)
+    {
+      palette_cache_values[idx] = fetched;
+      palette_cache_state[idx] = 1;
+      *color = fetched;
+      return true;
+    }
+
+    palette_cache_state[idx] = 2;
+    return false;
+  }
+
+  static inline const char *
+  skip_ascii_ws (const char *p, const char *end)
+  {
+    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+      p++;
+    return p;
+  }
+
+  static inline const char *
+  trim_ascii_ws_right (const char *begin, const char *end)
+  {
+    while (end > begin &&
+           (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\n' || end[-1] == '\r'))
+      end--;
+    return end;
+  }
+
+  struct parsed_var_color_expr_t
+  {
+    const char *expr_end = nullptr;
+    const char *fallback_begin = nullptr;
+    const char *fallback_end = nullptr;
+    unsigned idx = 0;
+    bool parse_ok = false;
+    bool have_digits = false;
+    bool has_fallback = false;
+  };
+
+  static inline const char *
+  find_next_var_expr (const char *p, const char *end)
+  {
+    for (const char *q = p; q + 4 <= end; q++)
+      if (memcmp (q, "var(", 4) == 0)
+        return q;
+    return nullptr;
+  }
+
+  static inline const char *
+  find_matching_paren (const char *inside, const char *end)
+  {
+    unsigned depth = 1;
+    for (const char *q = inside; q < end; q++)
+    {
+      if (*q == '(') depth++;
+      else if (*q == ')')
+      {
+        depth--;
+        if (!depth)
+          return q;
+      }
+    }
+    return nullptr;
+  }
+
+  static inline parsed_var_color_expr_t
+  parse_var_color_expr (const char *match, const char *end)
+  {
+    parsed_var_color_expr_t parsed;
+    const char *expr_close = find_matching_paren (match + 4, end);
+    if (!expr_close)
+      return parsed;
+
+    parsed.expr_end = expr_close + 1;
+    const char *inside = match + 4;
+    const char *inside_end = expr_close;
+    const char *q = skip_ascii_ws (inside, inside_end);
+    parsed.parse_ok = true;
+
+    if (!(q + 7 <= inside_end && memcmp (q, "--color", 7) == 0))
+      parsed.parse_ok = false;
+    if (parsed.parse_ok)
+      q += 7;
+
+    while (parsed.parse_ok && q < inside_end && *q >= '0' && *q <= '9')
+    {
+      parsed.have_digits = true;
+      parsed.idx = parsed.idx * 10 + (unsigned) (*q - '0');
+      q++;
+    }
+    q = skip_ascii_ws (q, inside_end);
+
+    if (parsed.parse_ok && q < inside_end && *q == ',')
+    {
+      parsed.has_fallback = true;
+      q++;
+      parsed.fallback_begin = skip_ascii_ws (q, inside_end);
+      parsed.fallback_end = trim_ascii_ws_right (parsed.fallback_begin, inside_end);
+      q = inside_end;
+    }
+
+    if (parsed.parse_ok && q != inside_end)
+      parsed.parse_ok = false;
+
+    return parsed;
+  }
+
+  void emit_css_color (hb_color_t color)
+  {
+    unsigned r = hb_color_get_red (color);
+    unsigned g = hb_color_get_green (color);
+    unsigned b = hb_color_get_blue (color);
+    unsigned a = hb_color_get_alpha (color);
+    if (a == 255)
+      fprintf (out_fp, "#%02X%02X%02X", r, g, b);
+    else
+      fprintf (out_fp, "rgba(%u,%u,%u,%.6g)", r, g, b, (double) a / 255.);
+  }
+
+  void write_slice_resolving_palette_vars (slice_t s)
+  {
+    if (!s.p || !s.len)
+      return;
+
+    const char *p = s.p;
+    const char *end = s.p + s.len;
+    while (p < end)
+    {
+      const char *match = find_next_var_expr (p, end);
+
+      if (!match)
+      {
+        fwrite (p, 1, (size_t) (end - p), out_fp);
+        return;
+      }
+
+      if (match > p)
+        fwrite (p, 1, (size_t) (match - p), out_fp);
+
+      parsed_var_color_expr_t parsed = parse_var_color_expr (match, end);
+      if (!parsed.expr_end)
+      {
+        fwrite (match, 1, (size_t) (end - match), out_fp);
+        return;
+      }
+
+      hb_color_t color;
+      if (parsed.parse_ok && parsed.have_digits && lookup_palette_color (parsed.idx, &color))
+      {
+        emit_css_color (color);
+      }
+      else if (parsed.has_fallback && parsed.fallback_begin &&
+               parsed.fallback_end >= parsed.fallback_begin)
+      {
+        fwrite (parsed.fallback_begin, 1,
+                (size_t) (parsed.fallback_end - parsed.fallback_begin), out_fp);
+      }
+      else
+      {
+        fwrite (match, 1, (size_t) (parsed.expr_end - match), out_fp);
+      }
+
+      p = parsed.expr_end;
+    }
   }
 
   void write_blob (hb_blob_t *blob,
@@ -561,19 +836,21 @@ struct vector_output_t : output_options_t<>
     if (defs.len)
     {
       fputs ("<defs>\n", out_fp);
-      fwrite (defs.p, 1, defs.len, out_fp);
+      write_slice_resolving_palette_vars (defs);
       fputs ("</defs>\n", out_fp);
     }
 
     emit_background_rect ();
 
-    if (is_draw_blob)
+    if (is_draw_blob && foreground_use_palette && foreground_palette && foreground_palette->len)
+      emit_draw_body_with_palette (body);
+    else if (is_draw_blob)
       emit_fill_group_open ();
 
-    if (body.len)
-      fwrite (body.p, 1, body.len, out_fp);
+    if (body.len && !(is_draw_blob && foreground_use_palette && foreground_palette && foreground_palette->len))
+      write_slice_resolving_palette_vars (body);
 
-    if (is_draw_blob)
+    if (is_draw_blob && !(foreground_use_palette && foreground_palette && foreground_palette->len))
       emit_fill_group_close ();
 
     fputs ("</svg>\n", out_fp);
@@ -605,20 +882,25 @@ struct vector_output_t : output_options_t<>
     {
       fputs ("<defs>\n", out_fp);
       if (draw_defs.len)
-        fwrite (draw_defs.p, 1, draw_defs.len, out_fp);
+        write_slice_resolving_palette_vars (draw_defs);
       if (paint_defs.len)
-        fwrite (paint_defs.p, 1, paint_defs.len, out_fp);
+        write_slice_resolving_palette_vars (paint_defs);
       fputs ("</defs>\n", out_fp);
     }
 
     emit_background_rect ();
 
-    emit_fill_group_open ();
-    if (draw_body.len)
-      fwrite (draw_body.p, 1, draw_body.len, out_fp);
-    emit_fill_group_close ();
+    if (foreground_use_palette && foreground_palette && foreground_palette->len)
+      emit_draw_body_with_palette (draw_body);
+    else
+    {
+      emit_fill_group_open ();
+      if (draw_body.len)
+        fwrite (draw_body.p, 1, draw_body.len, out_fp);
+      emit_fill_group_close ();
+    }
     if (paint_body.len)
-      fwrite (paint_body.p, 1, paint_body.len, out_fp);
+      write_slice_resolving_palette_vars (paint_body);
 
     fputs ("</svg>\n", out_fp);
   }
@@ -642,14 +924,140 @@ struct vector_output_t : output_options_t<>
     fputs ("/>\n", out_fp);
   }
 
+  void apply_custom_palette (hb_vector_paint_t *paint)
+  {
+    hb_vector_paint_clear_custom_palette_colors (paint);
+    for (unsigned idx = 0; idx < custom_palette_values.size (); idx++)
+      if (idx < custom_palette_has_value.size () && custom_palette_has_value[idx])
+        hb_vector_paint_set_custom_palette_color (paint, idx, custom_palette_values[idx]);
+  }
+
+  void init_palette_color_cache ()
+  {
+    palette_cache_values.clear ();
+    palette_cache_state.clear ();
+    palette_face = nullptr;
+    palette_lookup_index = 0;
+    palette_lookup_enabled = false;
+
+    hb_face_t *face = hb_font_get_face (upem_font ? upem_font : font);
+    if (!face)
+      return;
+
+    unsigned palette_count = hb_ot_color_palette_get_count (face);
+    if (!palette_count)
+      return;
+
+    unsigned palette_index = palette >= 0 ? (unsigned) palette : 0u;
+    if (palette_index >= palette_count)
+      palette_index = 0;
+
+    palette_face = face;
+    palette_lookup_index = palette_index;
+    palette_lookup_enabled = true;
+  }
+
+  bool parse_custom_palette_overrides (GError **error)
+  {
+    custom_palette_values.clear ();
+    custom_palette_has_value.clear ();
+    if (!custom_palette || !*custom_palette)
+      return true;
+
+    char **entries = g_strsplit (custom_palette, ",", -1);
+    for (unsigned idx = 0; entries && entries[idx]; idx++)
+    {
+      char *entry = g_strstrip (entries[idx]);
+      if (!*entry)
+        continue;
+
+      unsigned r = 0, g = 0, b = 0, a = 255;
+      if (!parse_color (entry, r, g, b, a))
+      {
+        g_strfreev (entries);
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Invalid --custom-palette entry; expected rrggbb or rrggbbaa");
+        return false;
+      }
+
+      if (custom_palette_values.size () <= idx)
+      {
+        custom_palette_values.resize (idx + 1, HB_COLOR (0, 0, 0, 255));
+        custom_palette_has_value.resize (idx + 1, false);
+      }
+      custom_palette_values[idx] = HB_COLOR (b, g, r, a);
+      custom_palette_has_value[idx] = true;
+    }
+    g_strfreev (entries);
+    return true;
+  }
+
+  void emit_extents_overlay (hb_direction_t dir, float step)
+  {
+    const bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
+    const float dot_r = hb_max (1.f, step * 0.01f);
+    fputs ("<g fill=\"#FF000080\" stroke=\"none\">\n", out_fp);
+    for (unsigned li = 0; li < lines.size (); li++)
+    {
+      float off_x = vertical ? -(step * (float) li) : 0.f;
+      float off_y = vertical ?  0.f                  : -(step * (float) li);
+      const line_t &line = lines[li];
+      for (const auto &g : line.glyphs)
+      {
+        fprintf (out_fp, "<circle cx=\"%.*g\" cy=\"%.*g\" r=\"%.*g\"/>\n",
+                 precision + 4, (double) (g.x + off_x),
+                 precision + 4, (double) (-(g.y + off_y)),
+                 precision + 4, (double) dot_r);
+      }
+    }
+    fputs ("</g>\n", out_fp);
+
+    fputs ("<g fill=\"none\" stroke=\"#FF00FF80\" stroke-width=\"1\">\n", out_fp);
+    for (unsigned li = 0; li < lines.size (); li++)
+    {
+      float off_x = vertical ? -(step * (float) li) : 0.f;
+      float off_y = vertical ?  0.f                  : -(step * (float) li);
+      const line_t &line = lines[li];
+      for (const auto &g : line.glyphs)
+      {
+        hb_glyph_extents_t ge;
+        if (!hb_font_get_glyph_extents (upem_font, g.gid, &ge))
+          continue;
+        float x = g.x + off_x + ge.x_bearing;
+        float y = g.y + off_y + ge.y_bearing;
+        float w = ge.width;
+        float h = ge.height;
+        if (!w || !h)
+          continue;
+        fprintf (out_fp, "<rect x=\"%.*g\" y=\"%.*g\" width=\"%.*g\" height=\"%.*g\"/>\n",
+                 precision + 4, (double) x,
+                 precision + 4, (double) (-y),
+                 precision + 4, (double) w,
+                 precision + 4, (double) (-h));
+      }
+    }
+    fputs ("</g>\n", out_fp);
+  }
+
+  void get_line_metrics (hb_direction_t dir, float *asc, float *desc, float *gap) const
+  {
+    if (have_font_extents)
+    {
+      if (asc) *asc = (float) font_extents.ascent;
+      if (desc) *desc = (float) (-font_extents.descent);
+      if (gap) *gap = (float) font_extents.line_gap;
+      return;
+    }
+
+    hb_font_extents_t fext = {0, 0, 0};
+    hb_font_get_extents_for_direction (upem_font, dir, &fext);
+    if (asc) *asc = (float) fext.ascender;
+    if (desc) *desc = (float) fext.descender;
+    if (gap) *gap = (float) fext.line_gap;
+  }
+
   hb_bool_t flat = false;
-  hb_bool_t logical = false;
-  hb_bool_t ink = false;
   int precision = 2;
-  int palette = 0;
-  margin_t margin = {0.f, 0.f, 0.f, 0.f};
-  char *background_str = nullptr;
-  char *foreground_str = nullptr;
   hb_color_t background = HB_COLOR (255, 255, 255, 255);
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
   hb_bool_t has_background = false;
@@ -664,6 +1072,13 @@ struct vector_output_t : output_options_t<>
   unsigned upem = 0;
   unsigned subpixel_bits = 0;
   hb_vector_extents_t final_extents = {0, 0, 1, 1};
+  std::vector<hb_color_t> custom_palette_values;
+  std::vector<bool> custom_palette_has_value;
+  mutable std::vector<hb_color_t> palette_cache_values;
+  mutable std::vector<unsigned char> palette_cache_state;
+  hb_face_t *palette_face = nullptr;
+  unsigned palette_lookup_index = 0;
+  bool palette_lookup_enabled = false;
 };
 
 #endif
