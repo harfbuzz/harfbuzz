@@ -120,6 +120,7 @@ struct hb_svg_style_props_t
 };
 
 struct hb_svg_xml_parser_t;
+struct hb_svg_transform_t;
 
 HB_INTERNAL bool svg_str_eq_ascii_ci (hb_svg_str_t s, const char *lit);
 HB_INTERNAL bool svg_str_starts_with_ascii_ci (hb_svg_str_t s, const char *lit);
@@ -132,6 +133,19 @@ HB_INTERNAL bool hb_raster_svg_parse_id_ref (hb_svg_str_t s,
 HB_INTERNAL bool hb_raster_svg_parse_local_id_ref (hb_svg_str_t s,
                                                     hb_svg_str_t *out_id,
                                                     hb_svg_str_t *out_tail);
+HB_INTERNAL bool hb_raster_svg_parse_viewbox (hb_svg_str_t viewbox_str,
+                                               float *x,
+                                               float *y,
+                                               float *w,
+                                               float *h);
+HB_INTERNAL bool hb_raster_svg_compute_viewbox_transform (float viewport_w,
+                                                           float viewport_h,
+                                                           float vb_x,
+                                                           float vb_y,
+                                                           float vb_w,
+                                                           float vb_h,
+                                                           hb_svg_str_t preserve_aspect_ratio,
+                                                           hb_svg_transform_t *out);
 static inline float
 svg_parse_float_clamped01 (hb_svg_str_t s)
 {
