@@ -71,67 +71,67 @@ svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out)
       switch (hb_svg_ascii_lower (prop_name.data[0]))
       {
       case 'c':
-        if (prop_name.eq_ascii_ci ("clip-path")) out->clip_path = prop_value;
-        else if (prop_name.eq_ascii_ci ("color")) out->color = prop_value;
-        else if (prop_name.eq_ascii_ci ("cx")) out->cx = prop_value;
-        else if (prop_name.eq_ascii_ci ("cy")) out->cy = prop_value;
+        if (prop_name.len == 9 && prop_name.eq_ascii_ci ("clip-path")) out->clip_path = prop_value;
+        else if (prop_name.len == 5 && prop_name.eq_ascii_ci ("color")) out->color = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("cx")) out->cx = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("cy")) out->cy = prop_value;
         break;
       case 'd':
-        if (prop_name.eq_ascii_ci ("display")) out->display = prop_value;
-        else if (prop_name.eq_ascii_ci ("d")) out->d = prop_value;
+        if (prop_name.len == 7 && prop_name.eq_ascii_ci ("display")) out->display = prop_value;
+        else if (prop_name.len == 1 && prop_name.eq_ascii_ci ("d")) out->d = prop_value;
         break;
       case 'f':
-        if (prop_name.eq_ascii_ci ("fill")) out->fill = prop_value;
-        else if (prop_name.eq_ascii_ci ("fill-opacity")) out->fill_opacity = prop_value;
-        else if (prop_name.eq_ascii_ci ("fx")) out->fx = prop_value;
-        else if (prop_name.eq_ascii_ci ("fy")) out->fy = prop_value;
-        else if (prop_name.eq_ascii_ci ("fr")) out->fr = prop_value;
+        if (prop_name.len == 4 && prop_name.eq_ascii_ci ("fill")) out->fill = prop_value;
+        else if (prop_name.len == 12 && prop_name.eq_ascii_ci ("fill-opacity")) out->fill_opacity = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("fx")) out->fx = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("fy")) out->fy = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("fr")) out->fr = prop_value;
         break;
       case 'g':
-        if (prop_name.eq_ascii_ci ("gradientunits") ||
-            prop_name.eq_ascii_ci ("gradient-units")) out->gradient_units = prop_value;
-        else if (prop_name.eq_ascii_ci ("gradienttransform") ||
-                 prop_name.eq_ascii_ci ("gradient-transform")) out->gradient_transform = prop_value;
+        if ((prop_name.len == 13 && prop_name.eq_ascii_ci ("gradientunits")) ||
+            (prop_name.len == 14 && prop_name.eq_ascii_ci ("gradient-units"))) out->gradient_units = prop_value;
+        else if ((prop_name.len == 17 && prop_name.eq_ascii_ci ("gradienttransform")) ||
+                 (prop_name.len == 18 && prop_name.eq_ascii_ci ("gradient-transform"))) out->gradient_transform = prop_value;
         break;
       case 'h':
-        if (prop_name.eq_ascii_ci ("height")) out->height = prop_value;
+        if (prop_name.len == 6 && prop_name.eq_ascii_ci ("height")) out->height = prop_value;
         break;
       case 'o':
-        if (prop_name.eq_ascii_ci ("opacity")) out->opacity = prop_value;
-        else if (prop_name.eq_ascii_ci ("offset")) out->offset = prop_value;
+        if (prop_name.len == 7 && prop_name.eq_ascii_ci ("opacity")) out->opacity = prop_value;
+        else if (prop_name.len == 6 && prop_name.eq_ascii_ci ("offset")) out->offset = prop_value;
         break;
       case 'p':
-        if (prop_name.eq_ascii_ci ("points")) out->points = prop_value;
+        if (prop_name.len == 6 && prop_name.eq_ascii_ci ("points")) out->points = prop_value;
         break;
       case 'r':
-        if (prop_name.eq_ascii_ci ("r")) out->r = prop_value;
-        else if (prop_name.eq_ascii_ci ("rx")) out->rx = prop_value;
-        else if (prop_name.eq_ascii_ci ("ry")) out->ry = prop_value;
+        if (prop_name.len == 1 && prop_name.eq_ascii_ci ("r")) out->r = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("rx")) out->rx = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("ry")) out->ry = prop_value;
         break;
       case 's':
-        if (prop_name.eq_ascii_ci ("stop-color")) out->stop_color = prop_value;
-        else if (prop_name.eq_ascii_ci ("stop-opacity")) out->stop_opacity = prop_value;
-        else if (prop_name.eq_ascii_ci ("spreadmethod") ||
-                 prop_name.eq_ascii_ci ("spread-method")) out->spread_method = prop_value;
+        if (prop_name.len == 10 && prop_name.eq_ascii_ci ("stop-color")) out->stop_color = prop_value;
+        else if (prop_name.len == 12 && prop_name.eq_ascii_ci ("stop-opacity")) out->stop_opacity = prop_value;
+        else if ((prop_name.len == 12 && prop_name.eq_ascii_ci ("spreadmethod")) ||
+                 (prop_name.len == 13 && prop_name.eq_ascii_ci ("spread-method"))) out->spread_method = prop_value;
         break;
       case 't':
-        if (prop_name.eq_ascii_ci ("transform")) out->transform = prop_value;
+        if (prop_name.len == 9 && prop_name.eq_ascii_ci ("transform")) out->transform = prop_value;
         break;
       case 'v':
-        if (prop_name.eq_ascii_ci ("visibility")) out->visibility = prop_value;
+        if (prop_name.len == 10 && prop_name.eq_ascii_ci ("visibility")) out->visibility = prop_value;
         break;
       case 'w':
-        if (prop_name.eq_ascii_ci ("width")) out->width = prop_value;
+        if (prop_name.len == 5 && prop_name.eq_ascii_ci ("width")) out->width = prop_value;
         break;
       case 'x':
-        if (prop_name.eq_ascii_ci ("x")) out->x = prop_value;
-        else if (prop_name.eq_ascii_ci ("x1")) out->x1 = prop_value;
-        else if (prop_name.eq_ascii_ci ("x2")) out->x2 = prop_value;
+        if (prop_name.len == 1 && prop_name.eq_ascii_ci ("x")) out->x = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("x1")) out->x1 = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("x2")) out->x2 = prop_value;
         break;
       case 'y':
-        if (prop_name.eq_ascii_ci ("y")) out->y = prop_value;
-        else if (prop_name.eq_ascii_ci ("y1")) out->y1 = prop_value;
-        else if (prop_name.eq_ascii_ci ("y2")) out->y2 = prop_value;
+        if (prop_name.len == 1 && prop_name.eq_ascii_ci ("y")) out->y = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("y1")) out->y1 = prop_value;
+        else if (prop_name.len == 2 && prop_name.eq_ascii_ci ("y2")) out->y2 = prop_value;
         break;
       default:
         break;
