@@ -106,6 +106,9 @@ struct vector_output_t : output_options_t<>, view_options_t
       background = HB_COLOR (b, g, r, a);
       has_background = true;
     }
+
+    if (!parse_custom_palette_overrides (error))
+      return;
   }
 
   template <typename app_t>
@@ -614,6 +617,58 @@ struct vector_output_t : output_options_t<>, view_options_t
              precision + 4, stroke_width);
   }
 
+  void emit_palette_css_vars ()
+  {
+    hb_face_t *face = hb_font_get_face (upem_font ? upem_font : font);
+    if (!face)
+      return;
+
+    unsigned palette_count = hb_ot_color_palette_get_count (face);
+    if (!palette_count && custom_palette_values.empty ())
+      return;
+
+    unsigned palette_index = palette >= 0 ? (unsigned) palette : 0u;
+    if (palette_count && palette_index >= palette_count)
+      palette_index = 0;
+
+    unsigned color_count = palette_count
+      ? hb_ot_color_palette_get_colors (face, palette_index, 0, nullptr, nullptr)
+      : 0u;
+    unsigned max_colors = hb_max (color_count, (unsigned) custom_palette_values.size ());
+    if (!max_colors)
+      return;
+
+    fputs ("<style>:root{", out_fp);
+    for (unsigned i = 0; i < max_colors; i++)
+    {
+      hb_color_t color = HB_COLOR (0, 0, 0, 255);
+      bool have = false;
+
+      if (i < custom_palette_has_value.size () && custom_palette_has_value[i])
+      {
+        color = custom_palette_values[i];
+        have = true;
+      }
+      else if (i < color_count)
+      {
+        unsigned n = 1;
+        if (hb_ot_color_palette_get_colors (face, palette_index, i, &n, &color) && n)
+          have = true;
+      }
+
+      if (!have)
+        continue;
+
+      unsigned r = hb_color_get_red (color);
+      unsigned g = hb_color_get_green (color);
+      unsigned b = hb_color_get_blue (color);
+      unsigned a = hb_color_get_alpha (color);
+      fprintf (out_fp, "--color%u:rgba(%u,%u,%u,%.6g);",
+               i, r, g, b, (double) a / 255.);
+    }
+    fputs ("}</style>\n", out_fp);
+  }
+
   void write_blob (hb_blob_t *blob,
                    hb_bool_t is_draw_blob)
   {
@@ -641,6 +696,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     }
 
     emit_background_rect ();
+    emit_palette_css_vars ();
 
     if (is_draw_blob && foreground_use_palette && foreground_palette && foreground_palette->len)
       emit_draw_body_with_palette (body);
@@ -689,6 +745,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     }
 
     emit_background_rect ();
+    emit_palette_css_vars ();
 
     if (foreground_use_palette && foreground_palette && foreground_palette->len)
       emit_draw_body_with_palette (draw_body);
@@ -727,8 +784,17 @@ struct vector_output_t : output_options_t<>, view_options_t
   void apply_custom_palette (hb_vector_paint_t *paint)
   {
     hb_vector_paint_clear_custom_palette_colors (paint);
-    if (!custom_palette)
-      return;
+    for (unsigned idx = 0; idx < custom_palette_values.size (); idx++)
+      if (idx < custom_palette_has_value.size () && custom_palette_has_value[idx])
+        hb_vector_paint_set_custom_palette_color (paint, idx, custom_palette_values[idx]);
+  }
+
+  bool parse_custom_palette_overrides (GError **error)
+  {
+    custom_palette_values.clear ();
+    custom_palette_has_value.clear ();
+    if (!custom_palette || !*custom_palette)
+      return true;
 
     char **entries = g_strsplit (custom_palette, ",", -1);
     for (unsigned idx = 0; entries && entries[idx]; idx++)
@@ -740,12 +806,22 @@ struct vector_output_t : output_options_t<>, view_options_t
       unsigned r = 0, g = 0, b = 0, a = 255;
       if (!parse_color (entry, r, g, b, a))
       {
-        error ("Invalid --custom-palette entry; expected rrggbb or rrggbbaa");
-        continue;
+        g_strfreev (entries);
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Invalid --custom-palette entry; expected rrggbb or rrggbbaa");
+        return false;
       }
-      hb_vector_paint_set_custom_palette_color (paint, idx, HB_COLOR (b, g, r, a));
+
+      if (custom_palette_values.size () <= idx)
+      {
+        custom_palette_values.resize (idx + 1, HB_COLOR (0, 0, 0, 255));
+        custom_palette_has_value.resize (idx + 1, false);
+      }
+      custom_palette_values[idx] = HB_COLOR (b, g, r, a);
+      custom_palette_has_value[idx] = true;
     }
     g_strfreev (entries);
+    return true;
   }
 
   void emit_extents_overlay (hb_direction_t dir, float step)
@@ -828,6 +904,8 @@ struct vector_output_t : output_options_t<>, view_options_t
   unsigned upem = 0;
   unsigned subpixel_bits = 0;
   hb_vector_extents_t final_extents = {0, 0, 1, 1};
+  std::vector<hb_color_t> custom_palette_values;
+  std::vector<bool> custom_palette_has_value;
 };
 
 #endif
