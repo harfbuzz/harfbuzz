@@ -213,15 +213,18 @@ struct vector_output_t : output_options_t<>, view_options_t
     bool had_paint = false;
     hb_vector_extents_mode_t extents_mode = ink ? HB_VECTOR_EXTENTS_MODE_EXPAND
                                                 : HB_VECTOR_EXTENTS_MODE_NONE;
+    const bool use_foreground_palette =
+      foreground_use_palette && foreground_palette && foreground_palette->len;
+    unsigned palette_glyph_index = 0;
 
     hb_direction_t dir = direction;
     if (dir == HB_DIRECTION_INVALID)
       dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
-    hb_font_extents_t fext = {0, 0, 0};
-    hb_font_get_extents_for_direction (upem_font, dir, &fext);
-    float step = fabsf ((float) (fext.ascender - fext.descender + fext.line_gap));
+    float asc = 0.f, desc = 0.f, gap = 0.f;
+    get_line_metrics (dir, &asc, &desc, &gap);
+    float step = fabsf (asc - desc + gap + (float) line_space);
     if (!(step > 0.f))
       step = (float) upem;
 
@@ -234,6 +237,14 @@ struct vector_output_t : output_options_t<>, view_options_t
       {
         float pen_x = g.x + off_x;
         float pen_y = g.y + off_y;
+
+        if (use_foreground_palette)
+        {
+          const rgba_color_t &c =
+            g_array_index (foreground_palette, rgba_color_t,
+                           palette_glyph_index++ % foreground_palette->len);
+          hb_vector_paint_set_foreground (paint, HB_COLOR (c.b, c.g, c.r, c.a));
+        }
 
         hb_vector_paint_set_transform (paint, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f);
         if (hb_vector_paint_glyph (paint, upem_font, g.gid, pen_x, pen_y,
@@ -262,6 +273,9 @@ struct vector_output_t : output_options_t<>, view_options_t
       write_blob (paint_blob, false);
     else if (draw_blob && draw_blob != hb_blob_get_empty ())
       write_blob (draw_blob, true);
+
+    if (show_extents)
+      emit_extents_overlay (dir, step);
 
     hb_blob_destroy (draw_blob);
     hb_blob_destroy (paint_blob);
@@ -315,10 +329,9 @@ struct vector_output_t : output_options_t<>, view_options_t
       dir = HB_DIRECTION_LTR;
     bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
 
-    hb_font_extents_t fext = {0, 0, 0};
-    hb_font_get_extents_for_direction (upem_font, dir, &fext);
-
-    float step = fabsf ((float) (fext.ascender - fext.descender + fext.line_gap));
+    float asc = 0.f, desc = 0.f, gap = 0.f;
+    get_line_metrics (dir, &asc, &desc, &gap);
+    float step = fabsf (asc - desc + gap + (float) line_space);
     if (!(step > 0.f))
       step = (float) upem;
 
@@ -352,8 +365,8 @@ struct vector_output_t : output_options_t<>, view_options_t
 
       if (include_logical)
       {
-        float log_min = hb_min ((float) fext.descender, (float) fext.ascender);
-        float log_max = hb_max ((float) fext.descender, (float) fext.ascender);
+        float log_min = hb_min (desc, asc);
+        float log_max = hb_max (desc, asc);
         if (vertical)
         {
           include_point (off_x + log_min, hb_min (0.f, line.advance_y));
@@ -493,23 +506,42 @@ struct vector_output_t : output_options_t<>, view_options_t
 
   void emit_fill_group_open ()
   {
-    if (!fore && !foreground_use_palette)
+    const bool has_fill_override = fore || foreground_use_palette;
+    const bool has_stroke = stroke_enabled && stroke_width > 0.;
+    if (!has_fill_override && !has_stroke)
       return;
 
-    unsigned r = hb_color_get_red (foreground);
-    unsigned g = hb_color_get_green (foreground);
-    unsigned b = hb_color_get_blue (foreground);
-    unsigned a = hb_color_get_alpha (foreground);
+    fputs ("<g", out_fp);
 
-    fprintf (out_fp, "<g fill=\"#%02X%02X%02X\"", r, g, b);
-    if (a != 255)
-      fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
+    if (has_fill_override)
+    {
+      unsigned r = hb_color_get_red (foreground);
+      unsigned g = hb_color_get_green (foreground);
+      unsigned b = hb_color_get_blue (foreground);
+      unsigned a = hb_color_get_alpha (foreground);
+      fprintf (out_fp, " fill=\"#%02X%02X%02X\"", r, g, b);
+      if (a != 255)
+        fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
+    }
+    else
+      fputs (" fill=\"none\"", out_fp);
+
+    if (has_stroke)
+    {
+      fprintf (out_fp, " stroke=\"#%02X%02X%02X\"",
+               stroke_color.r, stroke_color.g, stroke_color.b);
+      if (stroke_color.a != 255)
+        fprintf (out_fp, " stroke-opacity=\"%.3f\"", (double) stroke_color.a / 255.);
+      fprintf (out_fp, " stroke-width=\"%.*g\" stroke-linecap=\"round\" stroke-linejoin=\"round\"",
+               precision + 4, stroke_width);
+    }
+
     fprintf (out_fp, ">\n");
   }
 
   void emit_fill_group_close ()
   {
-    if (!fore && !foreground_use_palette)
+    if (!(fore || foreground_use_palette || (stroke_enabled && stroke_width > 0.)))
       return;
     fputs ("</g>\n", out_fp);
   }
@@ -615,6 +647,70 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (a != 255)
       fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
     fputs ("/>\n", out_fp);
+  }
+
+  void emit_extents_overlay (hb_direction_t dir, float step)
+  {
+    const bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
+    const float dot_r = hb_max (1.f, step * 0.01f);
+    fputs ("<g fill=\"#FF000080\" stroke=\"none\">\n", out_fp);
+    for (unsigned li = 0; li < lines.size (); li++)
+    {
+      float off_x = vertical ? -(step * (float) li) : 0.f;
+      float off_y = vertical ?  0.f                  : -(step * (float) li);
+      const line_t &line = lines[li];
+      for (const auto &g : line.glyphs)
+      {
+        fprintf (out_fp, "<circle cx=\"%.*g\" cy=\"%.*g\" r=\"%.*g\"/>\n",
+                 precision + 4, (double) (g.x + off_x),
+                 precision + 4, (double) (-(g.y + off_y)),
+                 precision + 4, (double) dot_r);
+      }
+    }
+    fputs ("</g>\n", out_fp);
+
+    fputs ("<g fill=\"none\" stroke=\"#FF00FF80\" stroke-width=\"1\">\n", out_fp);
+    for (unsigned li = 0; li < lines.size (); li++)
+    {
+      float off_x = vertical ? -(step * (float) li) : 0.f;
+      float off_y = vertical ?  0.f                  : -(step * (float) li);
+      const line_t &line = lines[li];
+      for (const auto &g : line.glyphs)
+      {
+        hb_glyph_extents_t ge;
+        if (!hb_font_get_glyph_extents (upem_font, g.gid, &ge))
+          continue;
+        float x = g.x + off_x + ge.x_bearing;
+        float y = g.y + off_y + ge.y_bearing;
+        float w = ge.width;
+        float h = ge.height;
+        if (!w || !h)
+          continue;
+        fprintf (out_fp, "<rect x=\"%.*g\" y=\"%.*g\" width=\"%.*g\" height=\"%.*g\"/>\n",
+                 precision + 4, (double) x,
+                 precision + 4, (double) (-y),
+                 precision + 4, (double) w,
+                 precision + 4, (double) (-h));
+      }
+    }
+    fputs ("</g>\n", out_fp);
+  }
+
+  void get_line_metrics (hb_direction_t dir, float *asc, float *desc, float *gap) const
+  {
+    if (have_font_extents)
+    {
+      if (asc) *asc = (float) font_extents.ascent;
+      if (desc) *desc = (float) (-font_extents.descent);
+      if (gap) *gap = (float) font_extents.line_gap;
+      return;
+    }
+
+    hb_font_extents_t fext = {0, 0, 0};
+    hb_font_get_extents_for_direction (upem_font, dir, &fext);
+    if (asc) *asc = (float) fext.ascender;
+    if (desc) *desc = (float) fext.descender;
+    if (gap) *gap = (float) fext.line_gap;
   }
 
   hb_bool_t flat = false;
