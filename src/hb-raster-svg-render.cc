@@ -41,6 +41,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#ifndef HB_NO_RASTER_SVG
 
 #define SVG_MAX_DEPTH 32
 
@@ -528,3 +529,5 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 
   return found_glyph;
 }
+
+#endif /* !HB_NO_RASTER_SVG */

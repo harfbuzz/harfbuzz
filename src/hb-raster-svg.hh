@@ -43,6 +43,7 @@ hb_raster_paint_push_clip_path (hb_raster_paint_t *c,
 				void *user_data);
 
 /* Render SVG document for a specific glyph */
+#ifndef HB_NO_RASTER_SVG
 HB_INTERNAL hb_bool_t
 hb_raster_svg_render (hb_raster_paint_t *paint,
 		      hb_blob_t *blob,
@@ -50,6 +51,18 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 		      hb_font_t *font,
 		      unsigned palette,
 		      hb_color_t foreground);
+#else
+static inline hb_bool_t
+hb_raster_svg_render (hb_raster_paint_t *paint HB_UNUSED,
+		      hb_blob_t *blob HB_UNUSED,
+		      hb_codepoint_t glyph HB_UNUSED,
+		      hb_font_t *font HB_UNUSED,
+		      unsigned palette HB_UNUSED,
+		      hb_color_t foreground HB_UNUSED)
+{
+  return false;
+}
+#endif
 
 
 #endif /* HB_RASTER_SVG_HH */
