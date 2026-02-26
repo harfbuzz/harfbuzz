@@ -188,7 +188,8 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 	}
 	svg_render_element (ctx, parser, state);
 	if (tok == SVG_TOKEN_OPEN_TAG && !child_tag.eq ("g") &&
-	    !child_tag.eq ("svg") && !child_tag.eq ("use"))
+	    !child_tag.eq ("svg") && !child_tag.eq ("symbol") &&
+	    !child_tag.eq ("use"))
 	{
 	  /* Skip children of non-container elements we don't handle. */
 	  int skip_depth = 1;
