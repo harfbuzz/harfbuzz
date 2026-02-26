@@ -445,7 +445,8 @@ svg_render_element (hb_svg_render_context_t *ctx,
   {
     hb_svg_use_context_t use_ctx = {ctx->paint, ctx->pfuncs,
 				    ctx->doc_start, ctx->doc_len,
-				    ctx->svg_accel, ctx->doc_cache};
+				    ctx->svg_accel, ctx->doc_cache,
+				    &ctx->use_decycler};
     hb_raster_svg_render_use_element (&use_ctx, parser, &state, transform_str,
 			    svg_render_use_callback, ctx);
   }

@@ -171,6 +171,10 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
 
   if (found)
   {
+    hb_decycler_node_t node (*ctx->use_decycler);
+    if (unlikely (!node.visit ((uintptr_t) found)))
+      return;
+
     unsigned remaining = ctx->doc_start + ctx->doc_len - found;
     hb_svg_xml_parser_t ref_parser (found, remaining);
     hb_svg_token_type_t tok = ref_parser.next ();

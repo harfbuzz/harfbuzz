@@ -30,6 +30,7 @@
 #include "hb.hh"
 
 #include "OT/Color/svg/svg.hh"
+#include "hb-decycler.hh"
 #include "hb-raster-paint.hh"
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-defs.hh"
@@ -52,6 +53,7 @@ struct hb_svg_use_context_t
   unsigned doc_len;
   const OT::SVG::accelerator_t *svg_accel;
   const OT::SVG::svg_doc_cache_t *doc_cache;
+  hb_decycler_t *use_decycler;
 };
 
 struct hb_svg_render_context_t
@@ -68,6 +70,7 @@ struct hb_svg_render_context_t
   unsigned doc_len;
   const OT::SVG::accelerator_t *svg_accel = nullptr;
   const OT::SVG::svg_doc_cache_t *doc_cache = nullptr;
+  hb_decycler_t use_decycler;
 
   void push_transform (float xx, float yx, float xy, float yy, float dx, float dy)
   {
