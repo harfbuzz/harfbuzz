@@ -30,6 +30,7 @@
 
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-color.hh"
+#include "hb-decycler.hh"
 
 #include <math.h>
 
@@ -132,18 +133,14 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
   if (grad)
   {
     hb_vector_t<const hb_svg_gradient_t *> chain;
+    hb_decycler_t decycler;
     const hb_svg_gradient_t *cur = grad;
     while (cur)
     {
-      bool is_cycle = false;
-      for (unsigned i = 0; i < chain.length; i++)
-        if (chain.arrayZ[i] == cur)
-        {
-          is_cycle = true;
-          break;
-        }
-      if (is_cycle)
+      hb_decycler_node_t node (decycler);
+      if (unlikely (!node.visit ((uintptr_t) cur)))
         break;
+
       chain.push (cur);
       if (unlikely (chain.in_error ()))
       {
