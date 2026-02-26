@@ -117,10 +117,16 @@ struct hb_svg_style_props_t
   hb_svg_str_t stop_opacity;
 };
 
+struct hb_svg_xml_parser_t;
+
 HB_INTERNAL bool svg_str_eq_ascii_ci (hb_svg_str_t s, const char *lit);
 HB_INTERNAL bool svg_str_starts_with_ascii_ci (hb_svg_str_t s, const char *lit);
 HB_INTERNAL void svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out);
 HB_INTERNAL float svg_parse_number_or_percent (hb_svg_str_t s, bool *is_percent);
+HB_INTERNAL hb_svg_str_t hb_raster_svg_find_href_attr (const hb_svg_xml_parser_t &parser);
+HB_INTERNAL bool hb_raster_svg_parse_id_ref (hb_svg_str_t s,
+                                              hb_svg_str_t *out_id,
+                                              hb_svg_str_t *out_tail);
 static inline float
 svg_parse_float_clamped01 (hb_svg_str_t s)
 {

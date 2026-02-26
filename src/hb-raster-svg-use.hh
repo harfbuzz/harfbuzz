@@ -36,9 +36,6 @@ typedef void (*hb_svg_use_render_cb_t) (void *render_user,
                                         hb_svg_xml_parser_t &parser,
                                         const void *state);
 
-HB_INTERNAL hb_svg_str_t
-hb_raster_svg_find_href_attr (const hb_svg_xml_parser_t &parser);
-
 HB_INTERNAL void
 hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
                         hb_svg_xml_parser_t &parser,

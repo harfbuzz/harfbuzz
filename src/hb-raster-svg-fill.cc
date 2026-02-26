@@ -31,8 +31,6 @@
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-color.hh"
 
-#include <string.h>
-
 struct hb_svg_color_line_data_t
 {
   const hb_svg_gradient_t *grad;
@@ -99,60 +97,16 @@ svg_parse_paint_url_with_fallback (hb_svg_str_t s,
                                    char out_id[64],
                                    hb_svg_str_t *fallback)
 {
-  if (fallback) *fallback = {};
-  s = s.trim ();
-  if (!svg_str_starts_with_ascii_ci (s, "url("))
+  hb_svg_str_t id;
+  if (!hb_raster_svg_parse_id_ref (s, &id, fallback))
+    return false;
+  if (!svg_str_starts_with_ascii_ci (s.trim (), "url("))
     return false;
 
-  const char *p = s.data + 4;
-  const char *end = s.data + s.len;
-  while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
-
-  const char *q = p;
-  char quote = 0;
-  while (q < end)
-  {
-    char c = *q;
-    if (quote)
-    {
-      if (c == quote) quote = 0;
-    }
-    else
-    {
-      if (c == '"' || c == '\'') quote = c;
-      else if (c == ')') break;
-    }
-    q++;
-  }
-  if (q >= end || *q != ')')
-    return false;
-
-  const char *id_b = p;
-  const char *id_e = q;
-  while (id_b < id_e && (*id_b == ' ' || *id_b == '\t' || *id_b == '\n' || *id_b == '\r')) id_b++;
-  while (id_e > id_b && (*(id_e - 1) == ' ' || *(id_e - 1) == '\t' || *(id_e - 1) == '\n' || *(id_e - 1) == '\r')) id_e--;
-  if (id_e > id_b && ((*id_b == '\'' && *(id_e - 1) == '\'') || (*id_b == '"' && *(id_e - 1) == '"')))
-  {
-    id_b++;
-    id_e--;
-  }
-  while (id_b < id_e && (*id_b == ' ' || *id_b == '\t' || *id_b == '\n' || *id_b == '\r')) id_b++;
-  while (id_e > id_b && (*(id_e - 1) == ' ' || *(id_e - 1) == '\t' || *(id_e - 1) == '\n' || *(id_e - 1) == '\r')) id_e--;
-  if (id_b < id_e && *id_b == '#') id_b++;
-  if (id_b >= id_e)
-    return false;
-
-  unsigned n = hb_min ((unsigned) (id_e - id_b), (unsigned) 63);
-  memcpy (out_id, id_b, n);
+  unsigned n = hb_min (id.len, (unsigned) 63);
+  hb_memcpy (out_id, id.data, n);
   out_id[n] = '\0';
-
-  if (fallback)
-  {
-    const char *f = q + 1;
-    while (f < end && (*f == ' ' || *f == '\t' || *f == '\n' || *f == '\r')) f++;
-    if (f < end) *fallback = {f, (unsigned) (end - f)};
-  }
-  return true;
+  return n > 0;
 }
 
 void

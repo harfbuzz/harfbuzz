@@ -30,8 +30,6 @@
 
 #include "hb-raster-svg-base.hh"
 
-#include <string.h>
-
 static bool
 svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
                          hb_svg_gradient_t &grad,
@@ -83,27 +81,6 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
   return !grad.stops.in_error ();
 }
 
-static hb_svg_str_t
-hb_raster_svg_find_href_attr (const hb_svg_xml_parser_t &parser)
-{
-  hb_svg_str_t href = parser.find_attr ("href");
-  if (href.is_null ())
-    href = parser.find_attr ("xlink:href");
-  return href;
-}
-
-static bool
-svg_parse_fragment_id (hb_svg_str_t s, char out_id[64])
-{
-  s = s.trim ();
-  if (!s.len || s.data[0] != '#')
-    return false;
-  unsigned n = hb_min (s.len - 1, (unsigned) 63);
-  memcpy (out_id, s.data + 1, n);
-  out_id[n] = '\0';
-  return n > 0;
-}
-
 static void
 svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
                           hb_svg_gradient_t &grad)
@@ -147,7 +124,15 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
 
   hb_svg_str_t href = hb_raster_svg_find_href_attr (parser);
   if (href.len)
-    (void) svg_parse_fragment_id (href, grad.href_id);
+  {
+    hb_svg_str_t href_id;
+    if (hb_raster_svg_parse_id_ref (href, &href_id, nullptr))
+    {
+      unsigned n = hb_min (href_id.len, (unsigned) sizeof (grad.href_id) - 1);
+      hb_memcpy (grad.href_id, href_id.data, n);
+      grad.href_id[n] = '\0';
+    }
+  }
 }
 
 static void

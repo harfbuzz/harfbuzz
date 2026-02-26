@@ -27,6 +27,7 @@
 #include "hb.hh"
 
 #include "hb-raster-svg-base.hh"
+#include "hb-raster-svg-parse.hh"
 
 static inline char
 svg_ascii_lower (char c)
@@ -124,4 +125,87 @@ svg_parse_number_or_percent (hb_svg_str_t s, bool *is_percent)
     return n.to_float () / 100.f;
   }
   return s.to_float ();
+}
+
+hb_svg_str_t
+hb_raster_svg_find_href_attr (const hb_svg_xml_parser_t &parser)
+{
+  hb_svg_str_t href = parser.find_attr ("href");
+  if (href.is_null ())
+    href = parser.find_attr ("xlink:href");
+  return href;
+}
+
+bool
+hb_raster_svg_parse_id_ref (hb_svg_str_t s,
+                            hb_svg_str_t *out_id,
+                            hb_svg_str_t *out_tail)
+{
+  if (out_id) *out_id = {};
+  if (out_tail) *out_tail = {};
+  s = s.trim ();
+
+  if (s.len && s.data[0] == '#')
+  {
+    hb_svg_str_t id = {s.data + 1, s.len - 1};
+    id = id.trim ();
+    if (!id.len)
+      return false;
+    if (out_id) *out_id = id;
+    return true;
+  }
+
+  if (!svg_str_starts_with_ascii_ci (s, "url("))
+    return false;
+
+  const char *p = s.data + 4;
+  const char *end = s.data + s.len;
+  while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
+
+  const char *q = p;
+  char quote = 0;
+  while (q < end)
+  {
+    char c = *q;
+    if (quote)
+    {
+      if (c == quote) quote = 0;
+    }
+    else
+    {
+      if (c == '"' || c == '\'') quote = c;
+      else if (c == ')') break;
+    }
+    q++;
+  }
+  if (q >= end || *q != ')')
+    return false;
+
+  hb_svg_str_t id = {(const char *) p, (unsigned) (q - p)};
+  id = id.trim ();
+  if (id.len >= 2 &&
+      ((id.data[0] == '\'' && id.data[id.len - 1] == '\'') ||
+       (id.data[0] == '"' && id.data[id.len - 1] == '"')))
+  {
+    id.data++;
+    id.len -= 2;
+  }
+  id = id.trim ();
+  if (id.len && id.data[0] == '#')
+  {
+    id.data++;
+    id.len--;
+  }
+  id = id.trim ();
+  if (!id.len)
+    return false;
+
+  if (out_id) *out_id = id;
+  if (out_tail)
+  {
+    const char *tail = q + 1;
+    while (tail < end && (*tail == ' ' || *tail == '\t' || *tail == '\n' || *tail == '\r')) tail++;
+    *out_tail = {(const char *) tail, (unsigned) (end - tail)};
+  }
+  return true;
 }

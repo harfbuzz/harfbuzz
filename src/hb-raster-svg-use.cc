@@ -32,25 +32,17 @@
 
 #include <string.h>
 
-hb_svg_str_t
-hb_raster_svg_find_href_attr (const hb_svg_xml_parser_t &parser)
-{
-  hb_svg_str_t href = parser.find_attr ("href");
-  if (href.is_null ())
-    href = parser.find_attr ("xlink:href");
-  return href;
-}
-
 static bool
 svg_find_element_by_id (const hb_svg_use_context_t *ctx,
-                        const char *id,
+                        hb_svg_str_t id,
                         const char **found)
 {
   *found = nullptr;
   if (ctx->doc_cache)
   {
     unsigned start = 0, end = 0;
-    if (ctx->svg_accel->doc_cache_find_id_cstr (ctx->doc_cache, id, &start, &end))
+    OT::SVG::svg_id_span_t key = {id.data, id.len};
+    if (ctx->svg_accel->doc_cache_find_id_span (ctx->doc_cache, key, &start, &end))
     {
       if (start < ctx->doc_len && end <= ctx->doc_len && start < end)
       {
@@ -67,73 +59,13 @@ svg_find_element_by_id (const hb_svg_use_context_t *ctx,
     if (tok == SVG_TOKEN_EOF) break;
     if (tok != SVG_TOKEN_OPEN_TAG && tok != SVG_TOKEN_SELF_CLOSE_TAG) continue;
     hb_svg_str_t attr_id = search.find_attr ("id");
-    if (attr_id.len && attr_id.eq_cstr (id))
+    if (attr_id.len == id.len && 0 == memcmp (attr_id.data, id.data, id.len))
     {
       *found = search.tag_start;
       return true;
     }
   }
   return false;
-}
-
-static bool
-svg_parse_id_ref (hb_svg_str_t s, char out_id[64])
-{
-  s = s.trim ();
-
-  if (s.len && s.data[0] == '#')
-  {
-    unsigned n = hb_min (s.len - 1, (unsigned) 63);
-    memcpy (out_id, s.data + 1, n);
-    out_id[n] = '\0';
-    return n > 0;
-  }
-
-  if (!svg_str_starts_with_ascii_ci (s, "url("))
-    return false;
-
-  const char *p = s.data + 4;
-  const char *end = s.data + s.len;
-  while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
-
-  const char *q = p;
-  char quote = 0;
-  while (q < end)
-  {
-    char c = *q;
-    if (quote)
-    {
-      if (c == quote) quote = 0;
-    }
-    else
-    {
-      if (c == '"' || c == '\'') quote = c;
-      else if (c == ')') break;
-    }
-    q++;
-  }
-  if (q >= end || *q != ')')
-    return false;
-
-  const char *id_b = p;
-  const char *id_e = q;
-  while (id_b < id_e && (*id_b == ' ' || *id_b == '\t' || *id_b == '\n' || *id_b == '\r')) id_b++;
-  while (id_e > id_b && (*(id_e - 1) == ' ' || *(id_e - 1) == '\t' || *(id_e - 1) == '\n' || *(id_e - 1) == '\r')) id_e--;
-  if (id_e > id_b && ((*id_b == '\'' && *(id_e - 1) == '\'') || (*id_b == '"' && *(id_e - 1) == '"')))
-  {
-    id_b++;
-    id_e--;
-  }
-  while (id_b < id_e && (*id_b == ' ' || *id_b == '\t' || *id_b == '\n' || *id_b == '\r')) id_b++;
-  while (id_e > id_b && (*(id_e - 1) == ' ' || *(id_e - 1) == '\t' || *(id_e - 1) == '\n' || *(id_e - 1) == '\r')) id_e--;
-  if (id_b < id_e && *id_b == '#') id_b++;
-  if (id_b >= id_e)
-    return false;
-
-  unsigned n = hb_min ((unsigned) (id_e - id_b), (unsigned) 63);
-  memcpy (out_id, id_b, n);
-  out_id[n] = '\0';
-  return true;
 }
 
 void
@@ -146,8 +78,8 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
 {
   hb_svg_str_t href = hb_raster_svg_find_href_attr (parser);
 
-  char ref_id[64];
-  if (!svg_parse_id_ref (href, ref_id))
+  hb_svg_str_t ref_id;
+  if (!hb_raster_svg_parse_id_ref (href, &ref_id, nullptr))
     return;
 
   float use_x = svg_parse_float (parser.find_attr ("x"));
