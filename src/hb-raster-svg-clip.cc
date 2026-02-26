@@ -145,15 +145,24 @@ svg_skip_subtree (hb_svg_xml_parser_t &parser)
 }
 
 static inline bool
-svg_is_hidden_element (hb_svg_xml_parser_t &parser)
+svg_resolve_element_visibility (hb_svg_xml_parser_t &parser,
+                                bool parent_visible)
 {
   hb_svg_style_props_t style_props;
   svg_parse_style_props (parser.find_attr ("style"), &style_props);
   hb_svg_str_t display_str = svg_pick_attr_or_style (parser, style_props.display, "display");
   hb_svg_str_t visibility_str = svg_pick_attr_or_style (parser, style_props.visibility, "visibility");
-  return svg_str_eq_ascii_ci (display_str.trim (), "none") ||
-         svg_str_eq_ascii_ci (visibility_str.trim (), "hidden") ||
-         svg_str_eq_ascii_ci (visibility_str.trim (), "collapse");
+  if (svg_str_eq_ascii_ci (display_str.trim (), "none"))
+    return false;
+  hb_svg_str_t vis_trim = visibility_str.trim ();
+  if (!vis_trim.len || svg_str_eq_ascii_ci (vis_trim, "inherit"))
+    return parent_visible;
+  if (svg_str_eq_ascii_ci (vis_trim, "hidden") ||
+      svg_str_eq_ascii_ci (vis_trim, "collapse"))
+    return false;
+  if (svg_str_eq_ascii_ci (vis_trim, "visible"))
+    return true;
+  return parent_visible;
 }
 
 static void
@@ -161,7 +170,8 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               hb_svg_xml_parser_t &parser,
                               const hb_svg_transform_t &base_transform,
                               unsigned depth,
-                              bool suppress_viewbox_once = false);
+                              bool suppress_viewbox_once = false,
+                              bool parent_visible = true);
 
 static void
 svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
@@ -229,7 +239,7 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
     }
   }
 
-  svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1, viewport_mapped);
+  svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1, viewport_mapped, true);
 }
 
 static void
@@ -237,7 +247,8 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               hb_svg_xml_parser_t &parser,
                               const hb_svg_transform_t &base_transform,
                               unsigned depth,
-                              bool suppress_viewbox_once)
+                              bool suppress_viewbox_once,
+                              bool parent_visible)
 {
   const unsigned SVG_MAX_CLIP_REF_DEPTH = 64;
   if (depth >= SVG_MAX_CLIP_REF_DEPTH)
@@ -247,7 +258,8 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
     return;
   }
 
-  if (svg_is_hidden_element (parser))
+  bool is_visible = svg_resolve_element_visibility (parser, parent_visible);
+  if (!is_visible)
   {
     if (!parser.self_closing)
       svg_skip_subtree (parser);
@@ -340,7 +352,7 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
       continue;
     }
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-      svg_clip_collect_ref_element (ctx, parser, effective, depth + 1);
+      svg_clip_collect_ref_element (ctx, parser, effective, depth + 1, false, is_visible);
   }
 }
 
