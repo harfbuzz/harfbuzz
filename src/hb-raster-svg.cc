@@ -364,7 +364,8 @@ svg_parse_color (hb_svg_str_t s,
 static bool
 svg_parse_id_ref_with_fallback (hb_svg_str_t s,
 				char out_id[64],
-				hb_svg_str_t *fallback);
+				hb_svg_str_t *fallback,
+				bool allow_fragment_direct);
 
 /*
  * 10. Gradient handler — construct hb_color_line_t
@@ -493,12 +494,13 @@ struct hb_svg_cascade_t
 static bool
 svg_parse_id_ref_with_fallback (hb_svg_str_t s,
 				char out_id[64],
-				hb_svg_str_t *fallback)
+				hb_svg_str_t *fallback,
+				bool allow_fragment_direct)
 {
   if (fallback) *fallback = {};
   s = s.trim ();
 
-  if (s.len && s.data[0] == '#')
+  if (allow_fragment_direct && s.len && s.data[0] == '#')
   {
     unsigned n = hb_min (s.len - 1, (unsigned) 63);
     memcpy (out_id, s.data + 1, n);
@@ -576,7 +578,7 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
 
   char url_id[64];
   hb_svg_str_t fallback_paint;
-  bool has_url_paint = svg_parse_id_ref_with_fallback (fill_str, url_id, &fallback_paint);
+  bool has_url_paint = svg_parse_id_ref_with_fallback (fill_str, url_id, &fallback_paint, false);
 
   /* Check for gradient reference */
   const hb_svg_gradient_t *grad = has_url_paint ? ctx->defs.find_gradient (url_id) : nullptr;
@@ -830,7 +832,7 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
 
   hb_svg_str_t href = svg_find_href_attr (parser);
   if (href.len)
-    (void) svg_parse_id_ref_with_fallback (href, grad.href_id, nullptr);
+    (void) svg_parse_id_ref_with_fallback (href, grad.href_id, nullptr, true);
 }
 
 static void
@@ -1119,7 +1121,7 @@ svg_push_clip_path_ref (hb_svg_render_context_t *ctx,
   if (!trimmed.len || trimmed.eq ("none")) return false;
 
   char clip_id[64];
-  if (!svg_parse_id_ref_with_fallback (trimmed, clip_id, nullptr))
+  if (!svg_parse_id_ref_with_fallback (trimmed, clip_id, nullptr, true))
     return false;
   const hb_svg_clip_path_def_t *clip = ctx->defs.find_clip_path (clip_id);
   if (!clip || !clip->shape_count) return false;
@@ -1501,7 +1503,7 @@ svg_render_use_element (hb_svg_render_context_t *ctx,
   hb_svg_str_t href = svg_find_href_attr (parser);
 
   char ref_id[64];
-  if (!svg_parse_id_ref_with_fallback (href, ref_id, nullptr))
+  if (!svg_parse_id_ref_with_fallback (href, ref_id, nullptr, true))
     return;
 
   float use_x = svg_parse_float (parser.find_attr ("x"));
