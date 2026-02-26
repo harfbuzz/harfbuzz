@@ -113,6 +113,99 @@ struct hb_svg_str_t
   }
 };
 
+static inline char
+svg_ascii_lower (char c)
+{
+  if (c >= 'A' && c <= 'Z')
+    return c + ('a' - 'A');
+  return c;
+}
+
+static bool
+svg_str_eq_ascii_ci (hb_svg_str_t s, const char *lit)
+{
+  unsigned n = (unsigned) strlen (lit);
+  if (s.len != n) return false;
+  for (unsigned i = 0; i < n; i++)
+    if (svg_ascii_lower (s.data[i]) != svg_ascii_lower (lit[i]))
+      return false;
+  return true;
+}
+
+static bool
+svg_str_starts_with_ascii_ci (hb_svg_str_t s, const char *lit)
+{
+  unsigned n = (unsigned) strlen (lit);
+  if (s.len < n) return false;
+  for (unsigned i = 0; i < n; i++)
+    if (svg_ascii_lower (s.data[i]) != svg_ascii_lower (lit[i]))
+      return false;
+  return true;
+}
+
+static hb_svg_str_t
+svg_style_find_property (hb_svg_str_t style, const char *name)
+{
+  if (style.is_null ()) return {};
+  const char *p = style.data;
+  const char *end = style.data + style.len;
+  while (p < end)
+  {
+    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r' || *p == ';'))
+      p++;
+    if (p >= end) break;
+    const char *name_start = p;
+    while (p < end && *p != ':' && *p != ';')
+      p++;
+    const char *name_end = p;
+    while (name_end > name_start &&
+           (name_end[-1] == ' ' || name_end[-1] == '\t' || name_end[-1] == '\n' || name_end[-1] == '\r'))
+      name_end--;
+    if (p >= end || *p != ':')
+    {
+      while (p < end && *p != ';') p++;
+      continue;
+    }
+    p++; /* skip ':' */
+    const char *value_start = p;
+    while (p < end && *p != ';')
+      p++;
+    const char *value_end = p;
+    while (value_start < value_end &&
+           (*value_start == ' ' || *value_start == '\t' || *value_start == '\n' || *value_start == '\r'))
+      value_start++;
+    while (value_end > value_start &&
+           (value_end[-1] == ' ' || value_end[-1] == '\t' || value_end[-1] == '\n' || value_end[-1] == '\r'))
+      value_end--;
+    hb_svg_str_t prop_name = {name_start, (unsigned) (name_end - name_start)};
+    if (svg_str_eq_ascii_ci (prop_name, name))
+      return {value_start, (unsigned) (value_end - value_start)};
+    if (p < end && *p == ';') p++;
+  }
+  return {};
+}
+
+static float
+svg_parse_float_clamped01 (hb_svg_str_t s)
+{
+  return hb_clamp (s.to_float (), 0.f, 1.f);
+}
+
+static float
+svg_parse_number_or_percent (hb_svg_str_t s, bool *is_percent)
+{
+  if (is_percent) *is_percent = false;
+  s = s.trim ();
+  if (!s.len) return 0.f;
+  if (s.data[s.len - 1] == '%')
+  {
+    if (is_percent) *is_percent = true;
+    hb_svg_str_t n = {s.data, s.len - 1};
+    return n.to_float () / 100.f;
+  }
+  return s.to_float ();
+}
+
 
 /*
  * 2. Minimal XML tokenizer
@@ -283,6 +376,17 @@ struct hb_svg_xml_parser_t
     return {};
   }
 };
+
+static hb_svg_str_t
+svg_attr_or_style (const hb_svg_xml_parser_t &parser,
+                   hb_svg_str_t style,
+                   const char *name)
+{
+  hb_svg_str_t styled = svg_style_find_property (style, name);
+  if (!styled.is_null ())
+    return styled;
+  return parser.find_attr (name);
+}
 
 
 /*
@@ -470,17 +574,17 @@ svg_parse_color (hb_svg_str_t s,
   s = s.trim ();
   if (!s.len) { *is_none = true; return HB_COLOR (0, 0, 0, 0); }
 
-  if (s.eq ("none") || s.eq ("transparent"))
+  if (svg_str_eq_ascii_ci (s, "none") || svg_str_eq_ascii_ci (s, "transparent"))
   {
     *is_none = true;
     return HB_COLOR (0, 0, 0, 0);
   }
 
-  if (s.eq ("currentColor"))
+  if (svg_str_eq_ascii_ci (s, "currentColor"))
     return foreground;
 
   /* var(--colorN) → CPAL palette color */
-  if (s.starts_with ("var("))
+  if (svg_str_starts_with_ascii_ci (s, "var("))
   {
     const char *p = s.data + 4;
     const char *e = s.data + s.len;
@@ -614,25 +718,47 @@ struct hb_svg_float_parser_t
   {
     skip_ws_comma ();
     if (p >= end) return 0.f;
+    const char *start = p;
     char buf[64];
     unsigned n = 0;
+    bool has_digit = false;
     if (p < end && (*p == '-' || *p == '+'))
       buf[n++] = *p++;
     while (p < end && n < sizeof (buf) - 1 && *p >= '0' && *p <= '9')
+    {
       buf[n++] = *p++;
+      has_digit = true;
+    }
     if (p < end && n < sizeof (buf) - 1 && *p == '.')
     {
       buf[n++] = *p++;
       while (p < end && n < sizeof (buf) - 1 && *p >= '0' && *p <= '9')
+      {
 	buf[n++] = *p++;
+        has_digit = true;
+      }
     }
     if (p < end && n < sizeof (buf) - 1 && (*p == 'e' || *p == 'E'))
     {
       buf[n++] = *p++;
       if (p < end && n < sizeof (buf) - 1 && (*p == '+' || *p == '-'))
 	buf[n++] = *p++;
+      bool has_exp_digit = false;
       while (p < end && n < sizeof (buf) - 1 && *p >= '0' && *p <= '9')
+      {
 	buf[n++] = *p++;
+        has_exp_digit = true;
+      }
+      if (!has_exp_digit)
+      {
+        p = start;
+        has_digit = false;
+      }
+    }
+    if (!has_digit)
+    {
+      if (p < end) p++;
+      return 0.f;
     }
     buf[n] = '\0';
     return strtof (buf, nullptr);
@@ -1387,17 +1513,28 @@ struct hb_svg_defs_t
 
   static bool parse_paint_server_id (hb_svg_str_t s, char out[64])
   {
-    if (!s.starts_with ("url("))
+    s = s.trim ();
+    if (!svg_str_starts_with_ascii_ci (s, "url("))
       return false;
 
     const char *p = s.data + 4;
     const char *e = s.data + s.len;
-    while (p < e && *p == ' ') p++;
+    while (p < e && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
+    while (e > p && *(e - 1) != ')') e--;
+    if (e <= p) return false;
+    e--; /* drop ')' */
+    while (e > p && (*(e - 1) == ' ' || *(e - 1) == '\t' || *(e - 1) == '\n' || *(e - 1) == '\r')) e--;
+    if (e > p && ((*p == '\'' && *(e - 1) == '\'') || (*p == '"' && *(e - 1) == '"')))
+    {
+      p++;
+      e--;
+    }
+    while (p < e && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
+    while (e > p && (*(e - 1) == ' ' || *(e - 1) == '\t' || *(e - 1) == '\n' || *(e - 1) == '\r')) e--;
     if (p < e && *p == '#') p++;
-    const char *start = p;
-    while (p < e && *p != ')') p++;
-    unsigned n = hb_min ((unsigned) (p - start), (unsigned) 63);
-    memcpy (out, start, n);
+    if (p >= e) return false;
+    unsigned n = hb_min ((unsigned) (e - p), (unsigned) 63);
+    memcpy (out, p, n);
     out[n] = '\0';
     return true;
   }
@@ -1806,18 +1943,14 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 			 hb_face_t *face,
 			 unsigned palette)
 {
-  hb_svg_str_t offset_str = parser.find_attr ("offset");
-  hb_svg_str_t color_str = parser.find_attr ("stop-color");
-  hb_svg_str_t opacity_str = parser.find_attr ("stop-opacity");
+  hb_svg_str_t style = parser.find_attr ("style");
+  hb_svg_str_t offset_str = svg_attr_or_style (parser, style, "offset");
+  hb_svg_str_t color_str = svg_attr_or_style (parser, style, "stop-color");
+  hb_svg_str_t opacity_str = svg_attr_or_style (parser, style, "stop-opacity");
 
   float offset = 0;
   if (offset_str.len)
-  {
-    offset = svg_parse_float (offset_str);
-    /* Check for percentage */
-    if (offset_str.len && offset_str.data[offset_str.len - 1] == '%')
-      offset /= 100.f;
-  }
+    offset = hb_clamp (svg_parse_number_or_percent (offset_str, nullptr), 0.f, 1.f);
 
   bool is_none = false;
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
@@ -1826,7 +1959,7 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 
   if (opacity_str.len)
   {
-    float opacity = svg_parse_float (opacity_str);
+    float opacity = svg_parse_float_clamped01 (opacity_str);
     color = HB_COLOR (hb_color_get_blue (color),
 		      hb_color_get_green (color),
 		      hb_color_get_red (color),
@@ -1899,7 +2032,7 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
 
 static void
 svg_parse_gradient_geometry_attrs (hb_svg_xml_parser_t &parser,
-				   hb_svg_gradient_t &grad)
+					   hb_svg_gradient_t &grad)
 {
   if (grad.type == SVG_GRADIENT_LINEAR)
   {
@@ -1907,10 +2040,10 @@ svg_parse_gradient_geometry_attrs (hb_svg_xml_parser_t &parser,
     hb_svg_str_t y1_str = parser.find_attr ("y1");
     hb_svg_str_t x2_str = parser.find_attr ("x2");
     hb_svg_str_t y2_str = parser.find_attr ("y2");
-    if (x1_str.len) { grad.x1 = svg_parse_float (x1_str); grad.has_x1 = true; }
-    if (y1_str.len) { grad.y1 = svg_parse_float (y1_str); grad.has_y1 = true; }
-    if (x2_str.len) { grad.x2 = svg_parse_float (x2_str); grad.has_x2 = true; }
-    if (y2_str.len) { grad.y2 = svg_parse_float (y2_str); grad.has_y2 = true; }
+    if (x1_str.len) { grad.x1 = svg_parse_number_or_percent (x1_str, nullptr); grad.has_x1 = true; }
+    if (y1_str.len) { grad.y1 = svg_parse_number_or_percent (y1_str, nullptr); grad.has_y1 = true; }
+    if (x2_str.len) { grad.x2 = svg_parse_number_or_percent (x2_str, nullptr); grad.has_x2 = true; }
+    if (y2_str.len) { grad.y2 = svg_parse_number_or_percent (y2_str, nullptr); grad.has_y2 = true; }
 
     /* Default x2 to 1 if not explicitly set (objectBoundingBox default). */
     if (!grad.has_x2)
@@ -1924,11 +2057,11 @@ svg_parse_gradient_geometry_attrs (hb_svg_xml_parser_t &parser,
     hb_svg_str_t fx_str = parser.find_attr ("fx");
     hb_svg_str_t fy_str = parser.find_attr ("fy");
 
-    if (cx_str.len) { grad.cx = svg_parse_float (cx_str); grad.has_cx = true; }
-    if (cy_str.len) { grad.cy = svg_parse_float (cy_str); grad.has_cy = true; }
-    if (r_str.len) { grad.r = svg_parse_float (r_str); grad.has_r = true; }
-    if (fx_str.len) { grad.fx = svg_parse_float (fx_str); grad.has_fx = true; }
-    if (fy_str.len) { grad.fy = svg_parse_float (fy_str); grad.has_fy = true; }
+    if (cx_str.len) { grad.cx = svg_parse_number_or_percent (cx_str, nullptr); grad.has_cx = true; }
+    if (cy_str.len) { grad.cy = svg_parse_number_or_percent (cy_str, nullptr); grad.has_cy = true; }
+    if (r_str.len) { grad.r = svg_parse_number_or_percent (r_str, nullptr); grad.has_r = true; }
+    if (fx_str.len) { grad.fx = svg_parse_number_or_percent (fx_str, nullptr); grad.has_fx = true; }
+    if (fy_str.len) { grad.fy = svg_parse_number_or_percent (fy_str, nullptr); grad.has_fy = true; }
   }
 }
 
@@ -2609,6 +2742,19 @@ svg_render_use_element (hb_svg_render_context_t *ctx,
     ctx->pop_transform ();
 }
 
+static void
+svg_skip_subtree (hb_svg_xml_parser_t &parser)
+{
+  int depth = 1;
+  while (depth > 0)
+  {
+    hb_svg_token_type_t tok = parser.next ();
+    if (tok == SVG_TOKEN_EOF) break;
+    if (tok == SVG_TOKEN_CLOSE_TAG) depth--;
+    else if (tok == SVG_TOKEN_OPEN_TAG) depth++;
+  }
+}
+
 /* Render one element (may be a container or shape) */
 static void
 svg_render_element (hb_svg_render_context_t *ctx,
@@ -2629,16 +2775,29 @@ svg_render_element (hb_svg_render_context_t *ctx,
   bool self_closing = parser.self_closing;
 
   /* Extract common attributes */
-  hb_svg_str_t fill_attr = parser.find_attr ("fill");
-  hb_svg_str_t fill_opacity_str = parser.find_attr ("fill-opacity");
-  hb_svg_str_t opacity_str = parser.find_attr ("opacity");
-  hb_svg_str_t transform_str = parser.find_attr ("transform");
-  hb_svg_str_t clip_path_attr = parser.find_attr ("clip-path");
+  hb_svg_str_t style = parser.find_attr ("style");
+  hb_svg_str_t fill_attr = svg_attr_or_style (parser, style, "fill");
+  hb_svg_str_t fill_opacity_str = svg_attr_or_style (parser, style, "fill-opacity");
+  hb_svg_str_t opacity_str = svg_attr_or_style (parser, style, "opacity");
+  hb_svg_str_t transform_str = svg_attr_or_style (parser, style, "transform");
+  hb_svg_str_t clip_path_attr = svg_attr_or_style (parser, style, "clip-path");
+  hb_svg_str_t display_str = svg_attr_or_style (parser, style, "display");
 
   hb_svg_str_t fill_str = fill_attr.is_null () ? inherited_fill : fill_attr;
-  float fill_opacity = fill_opacity_str.len ? svg_parse_float (fill_opacity_str) : inherited_fill_opacity;
-  float opacity = opacity_str.len ? svg_parse_float (opacity_str) : 1.f;
+  float fill_opacity = fill_opacity_str.len ? svg_parse_float_clamped01 (fill_opacity_str) : inherited_fill_opacity;
+  float opacity = opacity_str.len ? svg_parse_float_clamped01 (opacity_str) : 1.f;
   hb_svg_str_t clip_path_str = clip_path_attr.is_null () ? inherited_clip_path : clip_path_attr;
+
+  if (svg_str_eq_ascii_ci (display_str.trim (), "none"))
+  {
+    if (!self_closing)
+      svg_skip_subtree (parser);
+    ctx->depth--;
+    assert (ctx->paint->transform_stack.length == transform_depth);
+    assert (ctx->paint->clip_stack.length == clip_depth);
+    assert (ctx->paint->surface_stack.length == surface_depth);
+    return;
+  }
 
   if (tag.eq ("g") || tag.eq ("svg"))
     svg_render_container_element (ctx, parser, tag, self_closing,
