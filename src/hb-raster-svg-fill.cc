@@ -242,9 +242,23 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
     }
     else
     {
+      if (!isfinite (effective.r) || effective.r < 0.f)
+      {
+        if (effective.has_gradient_transform)
+          hb_paint_pop_transform (ctx->pfuncs, ctx->paint);
+        if (has_bbox_transform)
+          hb_paint_pop_transform (ctx->pfuncs, ctx->paint);
+        if (fallback_paint.len)
+          hb_raster_svg_emit_fill (ctx, fallback_paint, fill_opacity, object_bbox, current_color);
+        return;
+      }
+
       float fx = effective.has_fx ? effective.fx : effective.cx;
       float fy = effective.has_fy ? effective.fy : effective.cy;
       float fr = effective.has_fr ? effective.fr : 0.f;
+      if (!isfinite (fr) || fr < 0.f)
+        fr = 0.f;
+      fr = hb_min (fr, effective.r);
 
       hb_paint_radial_gradient (ctx->pfuncs, ctx->paint, &cl,
                                 fx, fy, fr,
