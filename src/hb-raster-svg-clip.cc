@@ -271,6 +271,25 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
       tr.dy = svg_y;
       effective.multiply (tr);
     }
+
+    float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
+    if (hb_raster_svg_parse_viewbox (parser.find_attr ("viewBox"),
+                                     &vb_x, &vb_y, &vb_w, &vb_h))
+    {
+      float viewport_w = svg_parse_float (parser.find_attr ("width"));
+      float viewport_h = svg_parse_float (parser.find_attr ("height"));
+      if (!(viewport_w > 0.f && viewport_h > 0.f))
+      {
+        viewport_w = vb_w;
+        viewport_h = vb_h;
+      }
+      hb_svg_transform_t vb_t;
+      if (hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h,
+                                                   vb_x, vb_y, vb_w, vb_h,
+                                                   parser.find_attr ("preserveAspectRatio"),
+                                                   &vb_t))
+        effective.multiply (vb_t);
+    }
   }
 
   hb_svg_shape_emit_data_t shape;
