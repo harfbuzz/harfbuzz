@@ -619,7 +619,7 @@ struct vector_output_t : output_options_t<>, view_options_t
              precision + 4, stroke_width);
   }
 
-  bool lookup_palette_color (unsigned idx, hb_color_t *color)
+  bool lookup_palette_color (unsigned idx, hb_color_t *color) const
   {
     if (idx < custom_palette_has_value.size () && custom_palette_has_value[idx])
     {
@@ -1074,8 +1074,8 @@ struct vector_output_t : output_options_t<>, view_options_t
   hb_vector_extents_t final_extents = {0, 0, 1, 1};
   std::vector<hb_color_t> custom_palette_values;
   std::vector<bool> custom_palette_has_value;
-  std::vector<hb_color_t> palette_cache_values;
-  std::vector<unsigned char> palette_cache_state;
+  mutable std::vector<hb_color_t> palette_cache_values;
+  mutable std::vector<unsigned char> palette_cache_state;
   hb_face_t *palette_face = nullptr;
   unsigned palette_lookup_index = 0;
   bool palette_lookup_enabled = false;
