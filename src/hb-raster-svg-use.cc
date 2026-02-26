@@ -99,7 +99,7 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
   hb_svg_str_t href = hb_raster_svg_find_href_attr (parser);
 
   hb_svg_str_t ref_id;
-  if (!hb_raster_svg_parse_id_ref (href, &ref_id, nullptr))
+  if (!hb_raster_svg_parse_local_id_ref (href, &ref_id, nullptr))
     return;
 
   float use_x = svg_parse_float (parser.find_attr ("x"));

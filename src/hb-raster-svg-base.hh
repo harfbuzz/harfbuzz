@@ -129,6 +129,9 @@ HB_INTERNAL hb_svg_str_t hb_raster_svg_find_href_attr (const hb_svg_xml_parser_t
 HB_INTERNAL bool hb_raster_svg_parse_id_ref (hb_svg_str_t s,
                                               hb_svg_str_t *out_id,
                                               hb_svg_str_t *out_tail);
+HB_INTERNAL bool hb_raster_svg_parse_local_id_ref (hb_svg_str_t s,
+                                                    hb_svg_str_t *out_id,
+                                                    hb_svg_str_t *out_tail);
 static inline float
 svg_parse_float_clamped01 (hb_svg_str_t s)
 {

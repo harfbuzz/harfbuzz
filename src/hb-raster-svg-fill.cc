@@ -99,7 +99,7 @@ svg_parse_paint_url_with_fallback (hb_svg_str_t s,
 {
   if (out_id) *out_id = {};
   hb_svg_str_t id;
-  if (!hb_raster_svg_parse_id_ref (s, &id, fallback))
+  if (!hb_raster_svg_parse_local_id_ref (s, &id, fallback))
     return false;
   if (!svg_str_starts_with_ascii_ci (s.trim (), "url("))
     return false;

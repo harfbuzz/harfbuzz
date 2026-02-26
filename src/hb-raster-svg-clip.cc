@@ -152,10 +152,7 @@ hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
   if (!trimmed.len || trimmed.eq ("none")) return false;
 
   hb_svg_str_t clip_id;
-  if (!hb_raster_svg_parse_id_ref (trimmed, &clip_id, nullptr))
-    return false;
-  if (svg_str_starts_with_ascii_ci (trimmed, "url(") &&
-      !svg_str_starts_with_ascii_ci (trimmed, "url(#"))
+  if (!hb_raster_svg_parse_local_id_ref (trimmed, &clip_id, nullptr))
     return false;
 
   const hb_svg_clip_path_def_t *clip = defs->find_clip_path (hb_bytes_t (clip_id.data, clip_id.len));

@@ -209,3 +209,46 @@ hb_raster_svg_parse_id_ref (hb_svg_str_t s,
   }
   return true;
 }
+
+bool
+hb_raster_svg_parse_local_id_ref (hb_svg_str_t s,
+                                  hb_svg_str_t *out_id,
+                                  hb_svg_str_t *out_tail)
+{
+  if (out_id) *out_id = {};
+  if (out_tail) *out_tail = {};
+  s = s.trim ();
+
+  if (s.len && s.data[0] == '#')
+  {
+    hb_svg_str_t id = {s.data + 1, s.len - 1};
+    id = id.trim ();
+    if (!id.len)
+      return false;
+    if (out_id) *out_id = id;
+    return true;
+  }
+
+  if (!svg_str_starts_with_ascii_ci (s, "url("))
+    return false;
+
+  hb_svg_str_t id;
+  if (!hb_raster_svg_parse_id_ref (s, &id, out_tail))
+    return false;
+
+  const char *p = s.data + 4;
+  const char *end = s.data + s.len;
+  while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
+  if (p < end && (*p == '\'' || *p == '"'))
+  {
+    p++;
+    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
+    if (p >= end || *p != '#')
+      return false;
+  }
+  else if (p >= end || *p != '#')
+    return false;
+
+  if (out_id) *out_id = id;
+  return true;
+}

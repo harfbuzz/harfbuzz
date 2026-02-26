@@ -126,7 +126,7 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
   if (href.len)
   {
     hb_svg_str_t href_id;
-    if (hb_raster_svg_parse_id_ref (href, &href_id, nullptr))
+    if (hb_raster_svg_parse_local_id_ref (href, &href_id, nullptr))
       grad.href_id = hb_bytes_t (href_id.data, href_id.len);
   }
 }
