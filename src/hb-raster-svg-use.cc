@@ -38,7 +38,7 @@ svg_find_element_by_id (const hb_svg_use_context_t *ctx,
                         const char **found)
 {
   *found = nullptr;
-  if (ctx->doc_cache)
+  if (ctx->doc_cache && ctx->svg_accel)
   {
     unsigned start = 0, end = 0;
     OT::SVG::svg_id_span_t key = {id.data, id.len};
