@@ -408,6 +408,22 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
       if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
       if (ct == SVG_TOKEN_OPEN_TAG || ct == SVG_TOKEN_SELF_CLOSE_TAG)
       {
+        if (parser.tag_name.eq ("symbol"))
+        {
+          if (ct == SVG_TOKEN_OPEN_TAG)
+          {
+            int skip_depth = 1;
+            while (skip_depth > 0)
+            {
+              hb_svg_token_type_t st = parser.next ();
+              if (st == SVG_TOKEN_EOF) break;
+              if (st == SVG_TOKEN_CLOSE_TAG) skip_depth--;
+              else if (st == SVG_TOKEN_OPEN_TAG) skip_depth++;
+            }
+          }
+          continue;
+        }
+
         if (parser.tag_name.eq ("defs"))
         {
           if (ct == SVG_TOKEN_OPEN_TAG)
