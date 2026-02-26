@@ -617,56 +617,96 @@ struct vector_output_t : output_options_t<>, view_options_t
              precision + 4, stroke_width);
   }
 
-  void emit_palette_css_vars ()
+  bool lookup_palette_color (unsigned idx, hb_color_t *color) const
   {
+    if (idx < custom_palette_has_value.size () && custom_palette_has_value[idx])
+    {
+      *color = custom_palette_values[idx];
+      return true;
+    }
+
     hb_face_t *face = hb_font_get_face (upem_font ? upem_font : font);
     if (!face)
-      return;
+      return false;
 
     unsigned palette_count = hb_ot_color_palette_get_count (face);
-    if (!palette_count && custom_palette_values.empty ())
-      return;
+    if (!palette_count)
+      return false;
 
     unsigned palette_index = palette >= 0 ? (unsigned) palette : 0u;
-    if (palette_count && palette_index >= palette_count)
+    if (palette_index >= palette_count)
       palette_index = 0;
 
-    unsigned color_count = palette_count
-      ? hb_ot_color_palette_get_colors (face, palette_index, 0, nullptr, nullptr)
-      : 0u;
-    unsigned max_colors = hb_max (color_count, (unsigned) custom_palette_values.size ());
-    if (!max_colors)
+    unsigned n = 1;
+    if (!hb_ot_color_palette_get_colors (face, palette_index, idx, &n, color) || !n)
+      return false;
+    return true;
+  }
+
+  void write_slice_resolving_palette_vars (slice_t s)
+  {
+    if (!s.p || !s.len)
       return;
 
-    fputs ("<style>:root{", out_fp);
-    for (unsigned i = 0; i < max_colors; i++)
+    const char *p = s.p;
+    const char *end = s.p + s.len;
+    while (p < end)
     {
-      hb_color_t color = HB_COLOR (0, 0, 0, 255);
-      bool have = false;
+      const char *match = nullptr;
+      for (const char *q = p; q + 11 <= end; q++)
+        if (memcmp (q, "var(--color", 11) == 0)
+        {
+          match = q;
+          break;
+        }
 
-      if (i < custom_palette_has_value.size () && custom_palette_has_value[i])
+      if (!match)
       {
-        color = custom_palette_values[i];
-        have = true;
+        fwrite (p, 1, (size_t) (end - p), out_fp);
+        return;
       }
-      else if (i < color_count)
+
+      if (match > p)
+        fwrite (p, 1, (size_t) (match - p), out_fp);
+
+      const char *q = match + 11;
+      unsigned idx = 0;
+      bool have_digits = false;
+      while (q < end && *q >= '0' && *q <= '9')
       {
-        unsigned n = 1;
-        if (hb_ot_color_palette_get_colors (face, palette_index, i, &n, &color) && n)
-          have = true;
+        have_digits = true;
+        idx = idx * 10 + (unsigned) (*q - '0');
+        q++;
       }
 
-      if (!have)
-        continue;
+      const char *expr_end = q;
+      while (expr_end < end && *expr_end != ')')
+        expr_end++;
+      if (expr_end < end)
+        expr_end++;
 
-      unsigned r = hb_color_get_red (color);
-      unsigned g = hb_color_get_green (color);
-      unsigned b = hb_color_get_blue (color);
-      unsigned a = hb_color_get_alpha (color);
-      fprintf (out_fp, "--color%u:rgba(%u,%u,%u,%.6g);",
-               i, r, g, b, (double) a / 255.);
+      hb_color_t color;
+      if (have_digits && expr_end <= end && lookup_palette_color (idx, &color))
+      {
+        unsigned r = hb_color_get_red (color);
+        unsigned g = hb_color_get_green (color);
+        unsigned b = hb_color_get_blue (color);
+        unsigned a = hb_color_get_alpha (color);
+        if (a == 255)
+          fprintf (out_fp, "#%02X%02X%02X", r, g, b);
+        else
+          fprintf (out_fp, "rgba(%u,%u,%u,%.6g)", r, g, b, (double) a / 255.);
+      }
+      else
+      {
+        if (expr_end <= end)
+          fwrite (match, 1, (size_t) (expr_end - match), out_fp);
+        else
+          fwrite (match, 1, (size_t) (end - match), out_fp);
+      }
+
+      p = expr_end <= end ? expr_end : end;
     }
-    fputs ("}</style>\n", out_fp);
   }
 
   void write_blob (hb_blob_t *blob,
@@ -691,12 +731,11 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (defs.len)
     {
       fputs ("<defs>\n", out_fp);
-      fwrite (defs.p, 1, defs.len, out_fp);
+      write_slice_resolving_palette_vars (defs);
       fputs ("</defs>\n", out_fp);
     }
 
     emit_background_rect ();
-    emit_palette_css_vars ();
 
     if (is_draw_blob && foreground_use_palette && foreground_palette && foreground_palette->len)
       emit_draw_body_with_palette (body);
@@ -704,7 +743,7 @@ struct vector_output_t : output_options_t<>, view_options_t
       emit_fill_group_open ();
 
     if (body.len && !(is_draw_blob && foreground_use_palette && foreground_palette && foreground_palette->len))
-      fwrite (body.p, 1, body.len, out_fp);
+      write_slice_resolving_palette_vars (body);
 
     if (is_draw_blob && !(foreground_use_palette && foreground_palette && foreground_palette->len))
       emit_fill_group_close ();
@@ -738,14 +777,13 @@ struct vector_output_t : output_options_t<>, view_options_t
     {
       fputs ("<defs>\n", out_fp);
       if (draw_defs.len)
-        fwrite (draw_defs.p, 1, draw_defs.len, out_fp);
+        write_slice_resolving_palette_vars (draw_defs);
       if (paint_defs.len)
-        fwrite (paint_defs.p, 1, paint_defs.len, out_fp);
+        write_slice_resolving_palette_vars (paint_defs);
       fputs ("</defs>\n", out_fp);
     }
 
     emit_background_rect ();
-    emit_palette_css_vars ();
 
     if (foreground_use_palette && foreground_palette && foreground_palette->len)
       emit_draw_body_with_palette (draw_body);
@@ -757,7 +795,7 @@ struct vector_output_t : output_options_t<>, view_options_t
       emit_fill_group_close ();
     }
     if (paint_body.len)
-      fwrite (paint_body.p, 1, paint_body.len, out_fp);
+      write_slice_resolving_palette_vars (paint_body);
 
     fputs ("</svg>\n", out_fp);
   }
