@@ -83,35 +83,12 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
       if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
       {
         bool has_viewport_scale = false;
-      if (ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol"))
-      {
-        float viewport_w = use_w;
-        float viewport_h = use_h;
-        hb_svg_style_props_t target_style_props;
-        svg_parse_style_props (ref_parser.find_attr ("style"), &target_style_props);
-        if (viewport_w <= 0.f)
-          viewport_w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (ref_parser, target_style_props.width, "width"));
-        if (viewport_h <= 0.f)
-          viewport_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (ref_parser, target_style_props.height, "height"));
-
-        float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
         hb_svg_transform_t t;
-        if (hb_raster_svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h))
+        if (hb_raster_svg_compute_use_target_viewbox_transform (ref_parser, use_w, use_h, &t))
         {
-          if (!(viewport_w > 0.f && viewport_h > 0.f))
-          {
-            viewport_w = vb_w;
-            viewport_h = vb_h;
-          }
-          if (hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h, vb_x, vb_y, vb_w, vb_h,
-                                                         ref_parser.find_attr ("preserveAspectRatio"),
-                                                         &t))
-          {
-            hb_paint_push_transform (ctx->pfuncs, ctx->paint, t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
-            has_viewport_scale = true;
-          }
+          hb_paint_push_transform (ctx->pfuncs, ctx->paint, t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
+          has_viewport_scale = true;
         }
-      }
         render_cb (render_user, ref_parser, state, has_viewport_scale);
         if (has_viewport_scale)
           hb_paint_pop_transform (ctx->pfuncs, ctx->paint);

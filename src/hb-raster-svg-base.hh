@@ -168,6 +168,10 @@ HB_INTERNAL bool hb_raster_svg_compute_viewbox_transform (float viewport_w,
                                                            float vb_h,
                                                            hb_svg_str_t preserve_aspect_ratio,
                                                            hb_svg_transform_t *out);
+HB_INTERNAL bool hb_raster_svg_compute_use_target_viewbox_transform (hb_svg_xml_parser_t &target_parser,
+                                                                      float use_w,
+                                                                      float use_h,
+                                                                      hb_svg_transform_t *out);
 HB_INTERNAL float hb_raster_svg_parse_non_percent_length (hb_svg_str_t s);
 static inline float
 svg_parse_float_clamped01 (hb_svg_str_t s)

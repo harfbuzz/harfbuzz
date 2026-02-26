@@ -420,6 +420,39 @@ hb_raster_svg_compute_viewbox_transform (float viewport_w,
   return true;
 }
 
+bool
+hb_raster_svg_compute_use_target_viewbox_transform (hb_svg_xml_parser_t &target_parser,
+                                                     float use_w,
+                                                     float use_h,
+                                                     hb_svg_transform_t *out)
+{
+  if (!(target_parser.tag_name.eq ("svg") || target_parser.tag_name.eq ("symbol")))
+    return false;
+
+  float viewport_w = use_w;
+  float viewport_h = use_h;
+  hb_svg_style_props_t target_style_props;
+  svg_parse_style_props (target_parser.find_attr ("style"), &target_style_props);
+  if (viewport_w <= 0.f)
+    viewport_w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (target_parser, target_style_props.width, "width"));
+  if (viewport_h <= 0.f)
+    viewport_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (target_parser, target_style_props.height, "height"));
+
+  float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
+  if (!hb_raster_svg_parse_viewbox (target_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h))
+    return false;
+
+  if (!(viewport_w > 0.f && viewport_h > 0.f))
+  {
+    viewport_w = vb_w;
+    viewport_h = vb_h;
+  }
+
+  return hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h, vb_x, vb_y, vb_w, vb_h,
+                                                   target_parser.find_attr ("preserveAspectRatio"),
+                                                   out);
+}
+
 float
 hb_raster_svg_parse_non_percent_length (hb_svg_str_t s)
 {
