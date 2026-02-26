@@ -56,12 +56,6 @@ struct hb_svg_str_t
     return len >= plen && memcmp (data, prefix, plen) == 0;
   }
 
-  bool eq_cstr (const char *s) const
-  {
-    unsigned slen = (unsigned) strlen (s);
-    return len == slen && memcmp (data, s, len) == 0;
-  }
-
   float to_float () const
   {
     if (!data || !len) return 0.f;
@@ -71,16 +65,6 @@ struct hb_svg_str_t
     buf[n] = '\0';
     float v = strtof (buf, nullptr);
     return isfinite (v) ? v : 0.f;
-  }
-
-  int to_int () const
-  {
-    if (!data || !len) return 0;
-    char buf[32];
-    unsigned n = hb_min (len, (unsigned) sizeof (buf) - 1);
-    memcpy (buf, data, n);
-    buf[n] = '\0';
-    return atoi (buf);
   }
 
   hb_svg_str_t trim_left () const
