@@ -719,6 +719,7 @@ hb_raster_sources = [
   'hb-raster-svg-fill.hh',
   'hb-raster-svg-use.cc',
   'hb-raster-svg-use.hh',
+  'hb-raster-svg-render.cc',
   'hb-raster-svg-parse.cc',
   'hb-raster-svg-parse.hh',
   'hb-raster-paint.cc',
