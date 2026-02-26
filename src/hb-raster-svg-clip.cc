@@ -182,10 +182,12 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
   {
     float viewport_w = use_w;
     float viewport_h = use_h;
+    hb_svg_style_props_t target_style_props;
+    svg_parse_style_props (ref_parser.find_attr ("style"), &target_style_props);
     if (viewport_w <= 0.f)
-      viewport_w = svg_parse_float (ref_parser.find_attr ("width"));
+      viewport_w = svg_parse_float (svg_pick_attr_or_style (ref_parser, target_style_props.width, "width"));
     if (viewport_h <= 0.f)
-      viewport_h = svg_parse_float (ref_parser.find_attr ("height"));
+      viewport_h = svg_parse_float (svg_pick_attr_or_style (ref_parser, target_style_props.height, "height"));
 
     float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
     hb_svg_transform_t vb_t;
