@@ -143,14 +143,9 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
     }
 
     hb_svg_str_t viewbox_str = parser.find_attr ("viewBox");
-    if (viewbox_str.len)
+    if (hb_raster_svg_parse_viewbox (viewbox_str, &vb_x, &vb_y, &vb_w, &vb_h))
     {
       has_viewbox = true;
-      hb_svg_float_parser_t vb_fp (viewbox_str);
-      vb_x = vb_fp.next_float ();
-      vb_y = vb_fp.next_float ();
-      vb_w = vb_fp.next_float ();
-      vb_h = vb_fp.next_float ();
 
       if (tag.eq ("svg"))
       {
