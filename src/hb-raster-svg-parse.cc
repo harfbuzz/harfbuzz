@@ -405,6 +405,8 @@ svg_rect_to_path (float x, float y, float w, float h, float rx, float ry,
                   hb_draw_funcs_t *dfuncs, void *draw_data)
 {
   hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+  if (rx < 0.f || ry < 0.f)
+    return;
 
   if (rx <= 0 && ry <= 0)
   {
@@ -594,13 +596,16 @@ hb_raster_svg_parse_shape_tag (hb_svg_xml_parser_t &parser,
     float w = svg_parse_float (svg_pick_attr_or_style (parser, style_props.width, "width"));
     float h = svg_parse_float (svg_pick_attr_or_style (parser, style_props.height, "height"));
     if (w <= 0 || h <= 0) return false;
+    float rx = svg_parse_float (svg_pick_attr_or_style (parser, style_props.rx, "rx"));
+    float ry = svg_parse_float (svg_pick_attr_or_style (parser, style_props.ry, "ry"));
+    if (rx < 0.f || ry < 0.f) return false;
     shape->type = hb_svg_shape_emit_data_t::SHAPE_RECT;
     shape->params[0] = svg_parse_float (svg_pick_attr_or_style (parser, style_props.x, "x"));
     shape->params[1] = svg_parse_float (svg_pick_attr_or_style (parser, style_props.y, "y"));
     shape->params[2] = w;
     shape->params[3] = h;
-    shape->params[4] = svg_parse_float (svg_pick_attr_or_style (parser, style_props.rx, "rx"));
-    shape->params[5] = svg_parse_float (svg_pick_attr_or_style (parser, style_props.ry, "ry"));
+    shape->params[4] = rx;
+    shape->params[5] = ry;
     return true;
   }
   if (tag.eq ("circle"))
