@@ -422,27 +422,10 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
           continue;
         }
 
-        hb_svg_style_props_t visibility_style_props;
-        svg_parse_style_props (parser.find_attr ("style"), &visibility_style_props);
-        hb_svg_str_t display_str = svg_pick_attr_or_style (parser, visibility_style_props.display, "display");
-        hb_svg_str_t visibility_str = svg_pick_attr_or_style (parser, visibility_style_props.visibility, "visibility");
         bool parent_visible = (unsigned) cdepth < SVG_MAX_CLIP_DEPTH
                             ? inherited_visibility[cdepth]
                             : true;
-        bool is_visible = parent_visible;
-        if (svg_str_eq_ascii_ci (display_str.trim (), "none"))
-          is_visible = false;
-        hb_svg_str_t vis_trim = visibility_str.trim ();
-        if (vis_trim.len)
-        {
-          if (svg_str_eq_ascii_ci (vis_trim, "inherit"))
-            is_visible = parent_visible;
-          else if (svg_str_eq_ascii_ci (vis_trim, "hidden") ||
-                   svg_str_eq_ascii_ci (vis_trim, "collapse"))
-            is_visible = false;
-          else if (svg_str_eq_ascii_ci (vis_trim, "visible"))
-            is_visible = true;
-        }
+        bool is_visible = svg_resolve_element_visibility (parser, parent_visible);
         bool is_hidden = !is_visible;
         if (is_hidden)
         {
