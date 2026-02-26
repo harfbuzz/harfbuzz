@@ -157,12 +157,8 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
     return;
 
   hb_svg_transform_t effective = base_transform;
-  hb_svg_style_props_t use_style_props;
-  svg_parse_style_props (use_parser.find_attr ("style"), &use_style_props);
-  float use_x = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.x, "x"));
-  float use_y = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.y, "y"));
-  float use_w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.width, "width"));
-  float use_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.height, "height"));
+  float use_x = 0.f, use_y = 0.f, use_w = 0.f, use_h = 0.f;
+  hb_raster_svg_parse_use_geometry (use_parser, &use_x, &use_y, &use_w, &use_h);
   if (use_x != 0.f || use_y != 0.f)
   {
     hb_svg_transform_t tr;

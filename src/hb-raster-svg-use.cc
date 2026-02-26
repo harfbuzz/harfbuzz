@@ -44,12 +44,8 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
   if (!hb_raster_svg_parse_local_id_ref (href, &ref_id, nullptr))
     return;
 
-  hb_svg_style_props_t style_props;
-  svg_parse_style_props (parser.find_attr ("style"), &style_props);
-  float use_x = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, style_props.x, "x"));
-  float use_y = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, style_props.y, "y"));
-  float use_w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, style_props.width, "width"));
-  float use_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, style_props.height, "height"));
+  float use_x = 0.f, use_y = 0.f, use_w = 0.f, use_h = 0.f;
+  hb_raster_svg_parse_use_geometry (parser, &use_x, &use_y, &use_w, &use_h);
 
   bool has_translate = (use_x != 0.f || use_y != 0.f);
   bool has_use_transform = transform_str.len > 0;

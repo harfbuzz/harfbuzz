@@ -453,6 +453,22 @@ hb_raster_svg_compute_use_target_viewbox_transform (hb_svg_xml_parser_t &target_
                                                    out);
 }
 
+void
+hb_raster_svg_parse_use_geometry (hb_svg_xml_parser_t &parser,
+                                  float *x,
+                                  float *y,
+                                  float *w,
+                                  float *h)
+{
+  hb_svg_style_props_t style_props;
+  svg_parse_style_props (parser.find_attr ("style"), &style_props);
+
+  if (x) *x = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, style_props.x, "x"));
+  if (y) *y = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, style_props.y, "y"));
+  if (w) *w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, style_props.width, "width"));
+  if (h) *h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, style_props.height, "height"));
+}
+
 float
 hb_raster_svg_parse_non_percent_length (hb_svg_str_t s)
 {
