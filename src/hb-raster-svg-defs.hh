@@ -88,7 +88,7 @@ struct hb_svg_clip_shape_t
 struct hb_svg_def_t
 {
   char id[64];
-  enum { DEF_GRADIENT, DEF_CLIP_PATH, DEF_ELEMENT } type;
+  enum { DEF_GRADIENT, DEF_CLIP_PATH } type;
   unsigned index;
 };
 
