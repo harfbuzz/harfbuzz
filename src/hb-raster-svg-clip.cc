@@ -95,7 +95,7 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
       id = {};
   }
 
-  if (id.len && clip.shape_count)
+  if (id.len)
     (void) defs->add_clip_path (hb_bytes_t (id.data, id.len), clip);
 }
 
@@ -156,7 +156,7 @@ hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
     return false;
 
   const hb_svg_clip_path_def_t *clip = defs->find_clip_path (hb_bytes_t (clip_id.data, clip_id.len));
-  if (!clip || !clip->shape_count) return false;
+  if (!clip) return false;
 
   hb_svg_clip_emit_data_t ed;
   ed.defs = defs;
