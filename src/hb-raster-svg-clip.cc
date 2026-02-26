@@ -32,6 +32,7 @@
 #include "hb-raster-paint.hh"
 #include "hb-raster-svg.hh"
 #include "hb-raster-svg-base.hh"
+#include "hb-decycler.hh"
 
 #include <string.h>
 
@@ -98,6 +99,87 @@ svg_find_element_by_id (const char *doc_start,
   return false;
 }
 
+static inline void
+svg_clip_append_shape (hb_svg_defs_t *defs,
+                       hb_svg_clip_path_def_t *clip,
+                       const hb_svg_shape_emit_data_t &shape,
+                       const hb_svg_transform_t &transform,
+                       bool *had_alloc_failure)
+{
+  hb_svg_clip_shape_t clip_shape;
+  clip_shape.shape = shape;
+  if (!svg_transform_is_identity (transform))
+  {
+    clip_shape.has_transform = true;
+    clip_shape.transform = transform;
+  }
+  defs->clip_shapes.push (clip_shape);
+  if (likely (!defs->clip_shapes.in_error ()))
+    clip->shape_count++;
+  else if (had_alloc_failure)
+    *had_alloc_failure = true;
+}
+
+static void
+svg_clip_collect_use_target (hb_svg_defs_t *defs,
+                             hb_svg_clip_path_def_t *clip,
+                             hb_svg_xml_parser_t &use_parser,
+                             const hb_svg_transform_t &base_transform,
+                             const char *doc_start,
+                             unsigned doc_len,
+                             const OT::SVG::accelerator_t *svg_accel,
+                             const OT::SVG::svg_doc_cache_t *doc_cache,
+                             hb_decycler_t &use_decycler,
+                             unsigned depth,
+                             bool *had_alloc_failure)
+{
+  const unsigned SVG_MAX_CLIP_USE_DEPTH = 64;
+  if (depth >= SVG_MAX_CLIP_USE_DEPTH)
+    return;
+
+  hb_svg_str_t href = hb_raster_svg_find_href_attr (use_parser);
+  hb_svg_str_t ref_id;
+  if (!hb_raster_svg_parse_local_id_ref (href, &ref_id, nullptr))
+    return;
+
+  const char *found = nullptr;
+  if (!svg_find_element_by_id (doc_start, doc_len, svg_accel, doc_cache, ref_id, &found))
+    return;
+
+  hb_decycler_node_t node (use_decycler);
+  if (unlikely (!node.visit ((uintptr_t) found)))
+    return;
+
+  hb_svg_transform_t effective = base_transform;
+  float use_x = svg_parse_float (use_parser.find_attr ("x"));
+  float use_y = svg_parse_float (use_parser.find_attr ("y"));
+  if (use_x != 0.f || use_y != 0.f)
+  {
+    hb_svg_transform_t tr;
+    tr.dx = use_x;
+    tr.dy = use_y;
+    effective.multiply (tr);
+  }
+
+  unsigned remaining = doc_len - (unsigned) (found - doc_start);
+  hb_svg_xml_parser_t ref_parser (found, remaining);
+  hb_svg_token_type_t rt = ref_parser.next ();
+  if (rt != SVG_TOKEN_OPEN_TAG && rt != SVG_TOKEN_SELF_CLOSE_TAG)
+    return;
+
+  hb_svg_transform_t ref_t;
+  if (svg_parse_element_transform (ref_parser, &ref_t))
+    effective.multiply (ref_t);
+
+  hb_svg_shape_emit_data_t ref_shape;
+  if (hb_raster_svg_parse_shape_tag (ref_parser, &ref_shape))
+    svg_clip_append_shape (defs, clip, ref_shape, effective, had_alloc_failure);
+  else if (ref_parser.tag_name.eq ("use"))
+    svg_clip_collect_use_target (defs, clip, ref_parser, effective,
+                                 doc_start, doc_len, svg_accel, doc_cache,
+                                 use_decycler, depth + 1, had_alloc_failure);
+}
+
 void
 hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
                            hb_svg_xml_parser_t &parser,
@@ -131,6 +213,7 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
     hb_svg_transform_t inherited[SVG_MAX_CLIP_DEPTH];
     inherited[0] = hb_svg_transform_t ();
     inherited[1] = hb_svg_transform_t ();
+    hb_decycler_t use_decycler;
 
     int cdepth = 1;
     bool had_alloc_failure = false;
@@ -177,71 +260,15 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
 
         if (parser.tag_name.eq ("use"))
         {
-          hb_svg_str_t href = hb_raster_svg_find_href_attr (parser);
-          hb_svg_str_t ref_id;
-          if (hb_raster_svg_parse_local_id_ref (href, &ref_id, nullptr))
-          {
-            const char *found = nullptr;
-            if (svg_find_element_by_id (doc_start, doc_len, svg_accel, doc_cache,
-                                        ref_id, &found))
-            {
-              unsigned remaining = doc_len - (unsigned) (found - doc_start);
-              hb_svg_xml_parser_t ref_parser (found, remaining);
-              hb_svg_token_type_t rt = ref_parser.next ();
-              if (rt == SVG_TOKEN_OPEN_TAG || rt == SVG_TOKEN_SELF_CLOSE_TAG)
-              {
-                hb_svg_shape_emit_data_t ref_shape;
-                if (hb_raster_svg_parse_shape_tag (ref_parser, &ref_shape))
-                {
-                  hb_svg_transform_t use_t = effective;
-                  float use_x = svg_parse_float (parser.find_attr ("x"));
-                  float use_y = svg_parse_float (parser.find_attr ("y"));
-                  if (use_x != 0.f || use_y != 0.f)
-                  {
-                    hb_svg_transform_t tr;
-                    tr.dx = use_x;
-                    tr.dy = use_y;
-                    use_t.multiply (tr);
-                  }
-                  hb_svg_transform_t ref_t;
-                  if (svg_parse_element_transform (ref_parser, &ref_t))
-                    use_t.multiply (ref_t);
-
-                  hb_svg_clip_shape_t clip_shape;
-                  clip_shape.shape = ref_shape;
-                  if (!svg_transform_is_identity (use_t))
-                  {
-                    clip_shape.has_transform = true;
-                    clip_shape.transform = use_t;
-                  }
-                  defs->clip_shapes.push (clip_shape);
-                  if (likely (!defs->clip_shapes.in_error ()))
-                    clip.shape_count++;
-                  else
-                    had_alloc_failure = true;
-                }
-              }
-            }
-          }
+          svg_clip_collect_use_target (defs, &clip, parser, effective,
+                                       doc_start, doc_len, svg_accel, doc_cache,
+                                       use_decycler, 0, &had_alloc_failure);
         }
         else
         {
           hb_svg_shape_emit_data_t shape;
           if (hb_raster_svg_parse_shape_tag (parser, &shape))
-          {
-            hb_svg_clip_shape_t clip_shape;
-            clip_shape.shape = shape;
-            if (!svg_transform_is_identity (effective))
-            {
-              clip_shape.has_transform = true;
-              clip_shape.transform = effective;
-            }
-            defs->clip_shapes.push (clip_shape);
-            if (likely (!defs->clip_shapes.in_error ()))
-              clip.shape_count++;
-            else
-              had_alloc_failure = true;
-          }
+            svg_clip_append_shape (defs, &clip, shape, effective, &had_alloc_failure);
         }
 
         if (ct == SVG_TOKEN_OPEN_TAG)
