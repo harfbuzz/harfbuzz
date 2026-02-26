@@ -362,9 +362,9 @@ svg_parse_color (hb_svg_str_t s,
  */
 
 static bool
-svg_parse_paint_url_with_fallback (hb_svg_str_t s,
-				   char out_id[64],
-				   hb_svg_str_t *fallback);
+svg_parse_id_ref_with_fallback (hb_svg_str_t s,
+				char out_id[64],
+				hb_svg_str_t *fallback);
 
 /*
  * 10. Gradient handler — construct hb_color_line_t
@@ -491,12 +491,21 @@ struct hb_svg_cascade_t
 };
 
 static bool
-svg_parse_paint_url_with_fallback (hb_svg_str_t s,
-				   char out_id[64],
-				   hb_svg_str_t *fallback)
+svg_parse_id_ref_with_fallback (hb_svg_str_t s,
+				char out_id[64],
+				hb_svg_str_t *fallback)
 {
   if (fallback) *fallback = {};
   s = s.trim ();
+
+  if (s.len && s.data[0] == '#')
+  {
+    unsigned n = hb_min (s.len - 1, (unsigned) 63);
+    memcpy (out_id, s.data + 1, n);
+    out_id[n] = '\0';
+    return n > 0;
+  }
+
   if (!svg_str_starts_with_ascii_ci (s, "url("))
     return false;
 
@@ -551,18 +560,6 @@ svg_parse_paint_url_with_fallback (hb_svg_str_t s,
   return true;
 }
 
-static bool
-svg_parse_fragment_id (hb_svg_str_t s, char out_id[64])
-{
-  s = s.trim ();
-  if (!s.len || s.data[0] != '#')
-    return false;
-  unsigned n = hb_min (s.len - 1, (unsigned) 63);
-  memcpy (out_id, s.data + 1, n);
-  out_id[n] = '\0';
-  return true;
-}
-
 
 /*
  * Emit fill (solid or gradient)
@@ -579,7 +576,7 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
 
   char url_id[64];
   hb_svg_str_t fallback_paint;
-  bool has_url_paint = svg_parse_paint_url_with_fallback (fill_str, url_id, &fallback_paint);
+  bool has_url_paint = svg_parse_id_ref_with_fallback (fill_str, url_id, &fallback_paint);
 
   /* Check for gradient reference */
   const hb_svg_gradient_t *grad = has_url_paint ? ctx->defs.find_gradient (url_id) : nullptr;
@@ -828,12 +825,8 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
   }
 
   hb_svg_str_t href = svg_find_href_attr (parser);
-  if (href.len && href.data[0] == '#')
-  {
-    unsigned n = hb_min (href.len - 1, (unsigned) sizeof (grad.href_id) - 1);
-    memcpy (grad.href_id, href.data + 1, n);
-    grad.href_id[n] = '\0';
-  }
+  if (href.len)
+    (void) svg_parse_id_ref_with_fallback (href, grad.href_id, nullptr);
 }
 
 static void
@@ -1122,7 +1115,7 @@ svg_push_clip_path_ref (hb_svg_render_context_t *ctx,
   if (!trimmed.len || trimmed.eq ("none")) return false;
 
   char clip_id[64];
-  if (!svg_parse_paint_url_with_fallback (trimmed, clip_id, nullptr))
+  if (!svg_parse_id_ref_with_fallback (trimmed, clip_id, nullptr))
     return false;
   const hb_svg_clip_path_def_t *clip = ctx->defs.find_clip_path (clip_id);
   if (!clip || !clip->shape_count) return false;
@@ -1504,7 +1497,7 @@ svg_render_use_element (hb_svg_render_context_t *ctx,
   hb_svg_str_t href = svg_find_href_attr (parser);
 
   char ref_id[64];
-  if (!svg_parse_fragment_id (href, ref_id))
+  if (!svg_parse_id_ref_with_fallback (href, ref_id, nullptr))
     return;
 
   float use_x = svg_parse_float (parser.find_attr ("x"));
