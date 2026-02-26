@@ -531,6 +531,11 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
  * @color: replacement color.
  *
  * Overrides one font palette color entry for subsequent paint operations.
+ * Overrides are keyed by @color_index and persist on @paint until cleared
+ * (or replaced for the same index).
+ *
+ * These overrides are consulted by paint operations that resolve CPAL
+ * entries, including SVG glyph content using `var(--colorN)`.
  *
  * XSince: REPLACEME
  */
@@ -543,7 +548,10 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
  * hb_vector_paint_clear_custom_palette_colors:
  * @paint: a paint context.
  *
- * Clears all custom palette color overrides.
+ * Clears all custom palette color overrides previously set on @paint.
+ *
+ * After this call, palette lookups use the selected font palette without
+ * custom override entries.
  *
  * XSince: REPLACEME
  */
