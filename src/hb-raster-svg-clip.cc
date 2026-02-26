@@ -58,6 +58,11 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
 
   if (tok == SVG_TOKEN_OPEN_TAG)
   {
+    const unsigned SVG_MAX_CLIP_DEPTH = 64;
+    hb_svg_transform_t inherited[SVG_MAX_CLIP_DEPTH];
+    inherited[0] = hb_svg_transform_t ();
+    inherited[1] = hb_svg_transform_t ();
+
     int cdepth = 1;
     bool had_alloc_failure = false;
     while (cdepth > 0)
@@ -67,28 +72,51 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
       if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
       if (ct == SVG_TOKEN_OPEN_TAG || ct == SVG_TOKEN_SELF_CLOSE_TAG)
       {
-        if (cdepth == 1)
+        hb_svg_transform_t effective = (unsigned) cdepth < SVG_MAX_CLIP_DEPTH
+                                     ? inherited[cdepth]
+                                     : hb_svg_transform_t ();
+
+        hb_svg_str_t sh_transform = parser.find_attr ("transform");
+        bool has_local_transform = sh_transform.len > 0;
+        if (has_local_transform)
         {
-          hb_svg_shape_emit_data_t shape;
-          if (hb_raster_svg_parse_shape_tag (parser, &shape))
-          {
-            hb_svg_clip_shape_t clip_shape;
-            clip_shape.shape = shape;
-            hb_svg_str_t sh_transform = parser.find_attr ("transform");
-            if (sh_transform.len)
-            {
-              clip_shape.has_transform = true;
-              hb_raster_svg_parse_transform (sh_transform, &clip_shape.transform);
-            }
-            defs->clip_shapes.push (clip_shape);
-            if (likely (!defs->clip_shapes.in_error ()))
-              clip.shape_count++;
-            else
-              had_alloc_failure = true;
-          }
+          hb_svg_transform_t local;
+          hb_raster_svg_parse_transform (sh_transform, &local);
+          effective.multiply (local);
         }
+
+        hb_svg_shape_emit_data_t shape;
+        if (hb_raster_svg_parse_shape_tag (parser, &shape))
+        {
+          hb_svg_clip_shape_t clip_shape;
+          clip_shape.shape = shape;
+          bool has_effective_transform = has_local_transform;
+          if ((unsigned) cdepth < SVG_MAX_CLIP_DEPTH && cdepth > 1)
+          {
+            const hb_svg_transform_t &parent = inherited[cdepth];
+            has_effective_transform = has_effective_transform ||
+                                      parent.xx != 1.f || parent.yx != 0.f ||
+                                      parent.xy != 0.f || parent.yy != 1.f ||
+                                      parent.dx != 0.f || parent.dy != 0.f;
+          }
+          if (has_effective_transform)
+          {
+            clip_shape.has_transform = true;
+            clip_shape.transform = effective;
+          }
+          defs->clip_shapes.push (clip_shape);
+          if (likely (!defs->clip_shapes.in_error ()))
+            clip.shape_count++;
+          else
+            had_alloc_failure = true;
+        }
+
         if (ct == SVG_TOKEN_OPEN_TAG)
+        {
+          if ((unsigned) (cdepth + 1) < SVG_MAX_CLIP_DEPTH)
+            inherited[cdepth + 1] = effective;
           cdepth++;
+        }
       }
     }
     if (had_alloc_failure)
