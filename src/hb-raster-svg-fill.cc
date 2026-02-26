@@ -132,11 +132,15 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
   }
   if (grad)
   {
+    const unsigned SVG_MAX_GRADIENT_REF_DEPTH = 1024;
     hb_vector_t<const hb_svg_gradient_t *> chain;
     hb_decycler_t decycler;
     const hb_svg_gradient_t *cur = grad;
     while (cur)
     {
+      if (chain.length >= SVG_MAX_GRADIENT_REF_DEPTH)
+        break;
+
       hb_decycler_node_t node (decycler);
       if (unlikely (!node.visit ((uintptr_t) cur)))
         break;
