@@ -507,7 +507,7 @@ hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
 {
   if (clip_path_str.is_null ()) return false;
   hb_svg_str_t trimmed = clip_path_str.trim ();
-  if (!trimmed.len || trimmed.eq ("none")) return false;
+  if (!trimmed.len || svg_str_eq_ascii_ci (trimmed, "none")) return false;
 
   hb_svg_str_t clip_id;
   if (!hb_raster_svg_parse_local_id_ref (trimmed, &clip_id, nullptr))
