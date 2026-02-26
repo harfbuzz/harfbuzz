@@ -738,7 +738,8 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 			 hb_face_t *face,
 			 unsigned palette)
 {
-  hb_svg_str_t style = parser.find_attr ("style");
+  hb_svg_attr_view_t attrs (parser);
+  hb_svg_str_t style = attrs.get ("style");
   hb_svg_style_props_t style_props;
   svg_parse_style_props (style, &style_props);
   hb_svg_str_t offset_str = svg_pick_attr_or_style (parser, style_props.offset, "offset");
@@ -789,7 +790,8 @@ static void
 svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
 			  hb_svg_gradient_t &grad)
 {
-  hb_svg_str_t spread_str = parser.find_attr ("spreadMethod");
+  hb_svg_attr_view_t attrs (parser);
+  hb_svg_str_t spread_str = attrs.get ("spreadMethod");
   if (spread_str.eq ("reflect"))
   {
     grad.spread = HB_PAINT_EXTEND_REFLECT;
@@ -806,7 +808,7 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
     grad.has_spread = true;
   }
 
-  hb_svg_str_t units_str = parser.find_attr ("gradientUnits");
+  hb_svg_str_t units_str = attrs.get ("gradientUnits");
   if (units_str.eq ("userSpaceOnUse"))
   {
     grad.units_user_space = true;
@@ -818,7 +820,7 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
     grad.has_units_user_space = true;
   }
 
-  hb_svg_str_t transform_str = parser.find_attr ("gradientTransform");
+  hb_svg_str_t transform_str = attrs.get ("gradientTransform");
   if (transform_str.len)
   {
     grad.has_gradient_transform = true;
@@ -838,12 +840,13 @@ static void
 svg_parse_gradient_geometry_attrs (hb_svg_xml_parser_t &parser,
 					   hb_svg_gradient_t &grad)
 {
+  hb_svg_attr_view_t attrs (parser);
   if (grad.type == SVG_GRADIENT_LINEAR)
   {
-    hb_svg_str_t x1_str = parser.find_attr ("x1");
-    hb_svg_str_t y1_str = parser.find_attr ("y1");
-    hb_svg_str_t x2_str = parser.find_attr ("x2");
-    hb_svg_str_t y2_str = parser.find_attr ("y2");
+    hb_svg_str_t x1_str = attrs.get ("x1");
+    hb_svg_str_t y1_str = attrs.get ("y1");
+    hb_svg_str_t x2_str = attrs.get ("x2");
+    hb_svg_str_t y2_str = attrs.get ("y2");
     if (x1_str.len) { grad.x1 = svg_parse_number_or_percent (x1_str, nullptr); grad.has_x1 = true; }
     if (y1_str.len) { grad.y1 = svg_parse_number_or_percent (y1_str, nullptr); grad.has_y1 = true; }
     if (x2_str.len) { grad.x2 = svg_parse_number_or_percent (x2_str, nullptr); grad.has_x2 = true; }
@@ -855,11 +858,11 @@ svg_parse_gradient_geometry_attrs (hb_svg_xml_parser_t &parser,
   }
   else /* SVG_GRADIENT_RADIAL */
   {
-    hb_svg_str_t cx_str = parser.find_attr ("cx");
-    hb_svg_str_t cy_str = parser.find_attr ("cy");
-    hb_svg_str_t r_str = parser.find_attr ("r");
-    hb_svg_str_t fx_str = parser.find_attr ("fx");
-    hb_svg_str_t fy_str = parser.find_attr ("fy");
+    hb_svg_str_t cx_str = attrs.get ("cx");
+    hb_svg_str_t cy_str = attrs.get ("cy");
+    hb_svg_str_t r_str = attrs.get ("r");
+    hb_svg_str_t fx_str = attrs.get ("fx");
+    hb_svg_str_t fy_str = attrs.get ("fy");
 
     if (cx_str.len) { grad.cx = svg_parse_number_or_percent (cx_str, nullptr); grad.has_cx = true; }
     if (cy_str.len) { grad.cy = svg_parse_number_or_percent (cy_str, nullptr); grad.has_cy = true; }

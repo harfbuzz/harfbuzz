@@ -33,6 +33,7 @@
 #include "hb-draw.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 enum hb_svg_token_type_t
 {
@@ -200,6 +201,37 @@ svg_pick_attr_or_style (const hb_svg_xml_parser_t &parser,
 {
   return style_value.is_null () ? parser.find_attr (attr_name) : style_value;
 }
+
+struct hb_svg_attr_view_t
+{
+  const hb_svg_xml_parser_t &parser;
+  enum { CACHE_SIZE = 16 };
+  struct entry_t
+  {
+    const char *name = nullptr;
+    hb_svg_str_t value;
+  };
+  entry_t cache[CACHE_SIZE];
+  unsigned cache_len = 0;
+
+  hb_svg_attr_view_t (const hb_svg_xml_parser_t &p) : parser (p) {}
+
+  hb_svg_str_t get (const char *name)
+  {
+    for (unsigned i = 0; i < cache_len; i++)
+      if (strcmp (cache[i].name, name) == 0)
+        return cache[i].value;
+
+    hb_svg_str_t value = parser.find_attr (name);
+    if (cache_len < CACHE_SIZE)
+    {
+      cache[cache_len].name = name;
+      cache[cache_len].value = value;
+      cache_len++;
+    }
+    return value;
+  }
+};
 
 struct hb_svg_transform_t
 {

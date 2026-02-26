@@ -577,10 +577,11 @@ bool
 svg_parse_shape_tag (hb_svg_xml_parser_t &parser,
                      hb_svg_shape_emit_data_t *shape)
 {
+  hb_svg_attr_view_t attrs (parser);
   hb_svg_str_t tag = parser.tag_name;
   if (tag.eq ("path"))
   {
-    hb_svg_str_t d = parser.find_attr ("d");
+    hb_svg_str_t d = attrs.get ("d");
     if (!d.len) return false;
     shape->type = hb_svg_shape_emit_data_t::SHAPE_PATH;
     shape->str_data = d;
@@ -588,36 +589,36 @@ svg_parse_shape_tag (hb_svg_xml_parser_t &parser,
   }
   if (tag.eq ("rect"))
   {
-    float w = svg_parse_float (parser.find_attr ("width"));
-    float h = svg_parse_float (parser.find_attr ("height"));
+    float w = svg_parse_float (attrs.get ("width"));
+    float h = svg_parse_float (attrs.get ("height"));
     if (w <= 0 || h <= 0) return false;
     shape->type = hb_svg_shape_emit_data_t::SHAPE_RECT;
-    shape->params[0] = svg_parse_float (parser.find_attr ("x"));
-    shape->params[1] = svg_parse_float (parser.find_attr ("y"));
+    shape->params[0] = svg_parse_float (attrs.get ("x"));
+    shape->params[1] = svg_parse_float (attrs.get ("y"));
     shape->params[2] = w;
     shape->params[3] = h;
-    shape->params[4] = svg_parse_float (parser.find_attr ("rx"));
-    shape->params[5] = svg_parse_float (parser.find_attr ("ry"));
+    shape->params[4] = svg_parse_float (attrs.get ("rx"));
+    shape->params[5] = svg_parse_float (attrs.get ("ry"));
     return true;
   }
   if (tag.eq ("circle"))
   {
-    float r = svg_parse_float (parser.find_attr ("r"));
+    float r = svg_parse_float (attrs.get ("r"));
     if (r <= 0) return false;
     shape->type = hb_svg_shape_emit_data_t::SHAPE_CIRCLE;
-    shape->params[0] = svg_parse_float (parser.find_attr ("cx"));
-    shape->params[1] = svg_parse_float (parser.find_attr ("cy"));
+    shape->params[0] = svg_parse_float (attrs.get ("cx"));
+    shape->params[1] = svg_parse_float (attrs.get ("cy"));
     shape->params[2] = r;
     return true;
   }
   if (tag.eq ("ellipse"))
   {
-    float rx = svg_parse_float (parser.find_attr ("rx"));
-    float ry = svg_parse_float (parser.find_attr ("ry"));
+    float rx = svg_parse_float (attrs.get ("rx"));
+    float ry = svg_parse_float (attrs.get ("ry"));
     if (rx <= 0 || ry <= 0) return false;
     shape->type = hb_svg_shape_emit_data_t::SHAPE_ELLIPSE;
-    shape->params[0] = svg_parse_float (parser.find_attr ("cx"));
-    shape->params[1] = svg_parse_float (parser.find_attr ("cy"));
+    shape->params[0] = svg_parse_float (attrs.get ("cx"));
+    shape->params[1] = svg_parse_float (attrs.get ("cy"));
     shape->params[2] = rx;
     shape->params[3] = ry;
     return true;
@@ -625,15 +626,15 @@ svg_parse_shape_tag (hb_svg_xml_parser_t &parser,
   if (tag.eq ("line"))
   {
     shape->type = hb_svg_shape_emit_data_t::SHAPE_LINE;
-    shape->params[0] = svg_parse_float (parser.find_attr ("x1"));
-    shape->params[1] = svg_parse_float (parser.find_attr ("y1"));
-    shape->params[2] = svg_parse_float (parser.find_attr ("x2"));
-    shape->params[3] = svg_parse_float (parser.find_attr ("y2"));
+    shape->params[0] = svg_parse_float (attrs.get ("x1"));
+    shape->params[1] = svg_parse_float (attrs.get ("y1"));
+    shape->params[2] = svg_parse_float (attrs.get ("x2"));
+    shape->params[3] = svg_parse_float (attrs.get ("y2"));
     return true;
   }
   if (tag.eq ("polyline"))
   {
-    hb_svg_str_t points = parser.find_attr ("points");
+    hb_svg_str_t points = attrs.get ("points");
     if (!points.len) return false;
     shape->type = hb_svg_shape_emit_data_t::SHAPE_POLYLINE;
     shape->str_data = points;
@@ -641,7 +642,7 @@ svg_parse_shape_tag (hb_svg_xml_parser_t &parser,
   }
   if (tag.eq ("polygon"))
   {
-    hb_svg_str_t points = parser.find_attr ("points");
+    hb_svg_str_t points = attrs.get ("points");
     if (!points.len) return false;
     shape->type = hb_svg_shape_emit_data_t::SHAPE_POLYGON;
     shape->str_data = points;
