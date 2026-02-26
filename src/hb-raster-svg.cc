@@ -2030,7 +2030,8 @@ static void svg_render_element (hb_svg_render_context_t *ctx,
 				float inherited_fill_opacity,
 				hb_svg_str_t inherited_clip_path,
 				hb_color_t inherited_color,
-				bool inherited_visibility);
+				bool inherited_visibility,
+				float inherited_opacity);
 
 /* Parse a gradient <stop> element */
 static bool
@@ -2054,13 +2055,13 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
   bool is_none = false;
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
   bool is_current_color = false;
-  if (color_str.len)
+  if (color_str.len && !svg_str_is_inherit (color_str))
   {
     is_current_color = svg_str_eq_ascii_ci (color_str.trim (), "currentColor");
     color = svg_parse_color (color_str, pfuncs, paint_data, foreground, face, palette, &is_none);
   }
 
-  if (opacity_str.len)
+  if (opacity_str.len && !svg_str_is_inherit (opacity_str))
   {
     float opacity = svg_parse_float_clamped01 (opacity_str);
     color = HB_COLOR (hb_color_get_blue (color),
@@ -2586,7 +2587,8 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 				      hb_svg_str_t transform_str,
 				      hb_svg_str_t clip_path_str,
 				      hb_color_t current_color,
-				      bool current_visibility)
+				      bool current_visibility,
+				      float inherited_opacity)
 {
   bool has_transform = transform_str.len > 0;
   bool has_opacity = opacity < 1.f;
@@ -2647,7 +2649,7 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 	  continue;
 	}
 		svg_render_element (ctx, parser, fill_str, fill_opacity, clip_path_str,
-				    current_color, current_visibility);
+				    current_color, current_visibility, opacity);
 	if (tok == SVG_TOKEN_OPEN_TAG && !child_tag.eq ("g") &&
 	    !child_tag.eq ("svg") && !child_tag.eq ("use"))
 	{
@@ -2812,7 +2814,8 @@ svg_render_use_element (hb_svg_render_context_t *ctx,
 				hb_svg_str_t transform_str,
 				hb_svg_str_t clip_path_str,
 				hb_color_t current_color,
-				bool current_visibility)
+				bool current_visibility,
+				float inherited_opacity)
 {
   hb_svg_str_t href = svg_find_href_attr (parser);
 
@@ -2846,7 +2849,7 @@ svg_render_use_element (hb_svg_render_context_t *ctx,
     hb_svg_token_type_t tok = ref_parser.next ();
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
       svg_render_element (ctx, ref_parser, fill_str, fill_opacity, clip_path_str,
-			  current_color, current_visibility);
+			  current_color, current_visibility, inherited_opacity);
   }
 
   if (has_translate)
@@ -2877,7 +2880,8 @@ svg_render_element (hb_svg_render_context_t *ctx,
 		    float inherited_fill_opacity,
 		    hb_svg_str_t inherited_clip_path,
 		    hb_color_t inherited_color,
-		    bool inherited_visibility)
+		    bool inherited_visibility,
+		    float inherited_opacity)
 {
   if (ctx->depth >= SVG_MAX_DEPTH) return;
 
@@ -2907,7 +2911,7 @@ svg_render_element (hb_svg_render_context_t *ctx,
 		       : inherited_fill_opacity;
   float opacity = (opacity_str.len && !svg_str_is_inherit (opacity_str) && !svg_str_is_none (opacity_str))
 		  ? svg_parse_float_clamped01 (opacity_str)
-		  : 1.f;
+		  : (svg_str_is_inherit (opacity_str) ? inherited_opacity : 1.f);
   hb_svg_str_t clip_path_str = (clip_path_attr.is_null () || svg_str_is_inherit (clip_path_attr))
 			       ? inherited_clip_path
 			       : clip_path_attr;
@@ -2950,7 +2954,8 @@ svg_render_element (hb_svg_render_context_t *ctx,
     svg_render_container_element (ctx, parser, tag, self_closing,
 				  fill_str, fill_opacity, opacity,
 				  transform_str, clip_path_str,
-				  current_color, current_visibility);
+				  current_color, current_visibility,
+				  inherited_opacity);
   else if (svg_render_primitive_shape_element (ctx, parser, tag,
 						       fill_str, fill_opacity, opacity,
 						       transform_str, clip_path_str,
@@ -2959,7 +2964,8 @@ svg_render_element (hb_svg_render_context_t *ctx,
   else if (tag.eq ("use"))
     svg_render_use_element (ctx, parser, fill_str, fill_opacity,
 				    transform_str, clip_path_str,
-				    current_color, current_visibility);
+				    current_color, current_visibility,
+				    inherited_opacity);
 
   ctx->depth--;
 
@@ -3044,7 +3050,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
       hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
       ctx.push_transform (1, 0, 0, -1, 0, 0);
 	      svg_render_element (&ctx, parser, hb_svg_str_t (), 1.f, hb_svg_str_t (),
-				  foreground, true);
+				  foreground, true, 1.f);
       ctx.pop_transform ();
       hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
       found_glyph = true;
@@ -3076,7 +3082,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
             hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
             ctx.push_transform (1, 0, 0, -1, 0, 0);
 	            svg_render_element (&ctx, parser, hb_svg_str_t (), 1.f, hb_svg_str_t (),
-					foreground, true);
+					foreground, true, 1.f);
             ctx.pop_transform ();
             hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
             found_glyph = true;
