@@ -528,14 +528,7 @@ struct vector_output_t : output_options_t<>, view_options_t
       fputs (" fill=\"none\"", out_fp);
 
     if (has_stroke)
-    {
-      fprintf (out_fp, " stroke=\"#%02X%02X%02X\"",
-               stroke_color.r, stroke_color.g, stroke_color.b);
-      if (stroke_color.a != 255)
-        fprintf (out_fp, " stroke-opacity=\"%.3f\"", (double) stroke_color.a / 255.);
-      fprintf (out_fp, " stroke-width=\"%.*g\" stroke-linecap=\"round\" stroke-linejoin=\"round\"",
-               precision + 4, stroke_width);
-    }
+      emit_stroke_attrs ();
 
     fprintf (out_fp, ">\n");
   }
@@ -557,16 +550,6 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (a != 255)
       fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
 
-    const bool has_stroke = stroke_enabled && stroke_width > 0.;
-    if (has_stroke)
-    {
-      fprintf (out_fp, " stroke=\"#%02X%02X%02X\"",
-               stroke_color.r, stroke_color.g, stroke_color.b);
-      if (stroke_color.a != 255)
-        fprintf (out_fp, " stroke-opacity=\"%.3f\"", (double) stroke_color.a / 255.);
-      fprintf (out_fp, " stroke-width=\"%.*g\" stroke-linecap=\"round\" stroke-linejoin=\"round\"",
-               precision + 4, stroke_width);
-    }
   }
 
   void emit_draw_body_with_palette (slice_t body)
@@ -577,6 +560,13 @@ struct vector_output_t : output_options_t<>, view_options_t
     const char *p = body.p;
     const char *end = body.p + body.len;
     unsigned palette_i = 0;
+    const bool has_stroke = stroke_enabled && stroke_width > 0.;
+    if (has_stroke)
+    {
+      fputs ("<g", out_fp);
+      emit_stroke_attrs ();
+      fputs (">\n", out_fp);
+    }
     while (p < end)
     {
       const char *line_end = (const char *) memchr (p, '\n', (size_t) (end - p));
@@ -610,6 +600,18 @@ struct vector_output_t : output_options_t<>, view_options_t
       if (p < end && *p == '\n')
         p++;
     }
+    if (has_stroke)
+      fputs ("</g>\n", out_fp);
+  }
+
+  void emit_stroke_attrs ()
+  {
+    fprintf (out_fp, " stroke=\"#%02X%02X%02X\"",
+             stroke_color.r, stroke_color.g, stroke_color.b);
+    if (stroke_color.a != 255)
+      fprintf (out_fp, " stroke-opacity=\"%.3f\"", (double) stroke_color.a / 255.);
+    fprintf (out_fp, " stroke-width=\"%.*g\" stroke-linecap=\"round\" stroke-linejoin=\"round\"",
+             precision + 4, stroke_width);
   }
 
   void write_blob (hb_blob_t *blob,
