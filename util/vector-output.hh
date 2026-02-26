@@ -25,6 +25,7 @@
 #ifndef HB_VECTOR_OUTPUT_HH
 #define HB_VECTOR_OUTPUT_HH
 
+#include <algorithm>
 #include <math.h>
 #include <string>
 #include <vector>
@@ -210,6 +211,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     hb_vector_paint_set_foreground (paint, foreground);
     hb_vector_paint_set_palette (paint, this->palette);
     apply_custom_palette (paint);
+    init_palette_color_cache ();
     hb_vector_svg_paint_set_precision (paint, precision);
     hb_vector_svg_paint_set_flat (paint, flat);
 
@@ -619,27 +621,9 @@ struct vector_output_t : output_options_t<>, view_options_t
 
   bool lookup_palette_color (unsigned idx, hb_color_t *color) const
   {
-    if (idx < custom_palette_has_value.size () && custom_palette_has_value[idx])
-    {
-      *color = custom_palette_values[idx];
-      return true;
-    }
-
-    hb_face_t *face = hb_font_get_face (upem_font ? upem_font : font);
-    if (!face)
+    if (idx >= palette_cache_has_value.size () || !palette_cache_has_value[idx])
       return false;
-
-    unsigned palette_count = hb_ot_color_palette_get_count (face);
-    if (!palette_count)
-      return false;
-
-    unsigned palette_index = palette >= 0 ? (unsigned) palette : 0u;
-    if (palette_index >= palette_count)
-      palette_index = 0;
-
-    unsigned n = 1;
-    if (!hb_ot_color_palette_get_colors (face, palette_index, idx, &n, color) || !n)
-      return false;
+    *color = palette_cache_values[idx];
     return true;
   }
 
@@ -888,6 +872,60 @@ struct vector_output_t : output_options_t<>, view_options_t
         hb_vector_paint_set_custom_palette_color (paint, idx, custom_palette_values[idx]);
   }
 
+  void init_palette_color_cache ()
+  {
+    palette_cache_values.clear ();
+    palette_cache_has_value.clear ();
+
+    hb_face_t *face = hb_font_get_face (upem_font ? upem_font : font);
+    if (face)
+    {
+      unsigned palette_count = hb_ot_color_palette_get_count (face);
+      if (palette_count)
+      {
+        unsigned palette_index = palette >= 0 ? (unsigned) palette : 0u;
+        if (palette_index >= palette_count)
+          palette_index = 0;
+
+        unsigned color_count = hb_ot_color_palette_get_colors (face, palette_index, 0,
+                                                                nullptr, nullptr);
+        if (color_count)
+        {
+          palette_cache_values.resize (color_count, HB_COLOR (0, 0, 0, 255));
+          palette_cache_has_value.resize (color_count, false);
+          unsigned n = color_count;
+          if (hb_ot_color_palette_get_colors (face, palette_index, 0, &n,
+                                              palette_cache_values.data ()) && n)
+          {
+            if (n < palette_cache_values.size ())
+              palette_cache_values.resize (n);
+            palette_cache_has_value.resize (palette_cache_values.size (), false);
+            std::fill (palette_cache_has_value.begin (),
+                       palette_cache_has_value.end (), true);
+          }
+          else
+          {
+            palette_cache_values.clear ();
+            palette_cache_has_value.clear ();
+          }
+        }
+      }
+    }
+
+    for (unsigned idx = 0; idx < custom_palette_values.size (); idx++)
+    {
+      if (idx >= custom_palette_has_value.size () || !custom_palette_has_value[idx])
+        continue;
+      if (palette_cache_values.size () <= idx)
+      {
+        palette_cache_values.resize (idx + 1, HB_COLOR (0, 0, 0, 255));
+        palette_cache_has_value.resize (idx + 1, false);
+      }
+      palette_cache_values[idx] = custom_palette_values[idx];
+      palette_cache_has_value[idx] = true;
+    }
+  }
+
   bool parse_custom_palette_overrides (GError **error)
   {
     custom_palette_values.clear ();
@@ -1005,6 +1043,8 @@ struct vector_output_t : output_options_t<>, view_options_t
   hb_vector_extents_t final_extents = {0, 0, 1, 1};
   std::vector<hb_color_t> custom_palette_values;
   std::vector<bool> custom_palette_has_value;
+  std::vector<hb_color_t> palette_cache_values;
+  std::vector<bool> palette_cache_has_value;
 };
 
 #endif
