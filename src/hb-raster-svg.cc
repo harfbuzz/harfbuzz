@@ -35,6 +35,7 @@
 #include "hb-raster-svg-defs.hh"
 #include "hb-raster-svg-gradient.hh"
 #include "hb-raster-svg-clip.hh"
+#include "hb-raster-svg-bbox.hh"
 #include "OT/Color/svg/svg.hh"
 #include "hb-draw.h"
 #include "hb-ot-color.h"
@@ -807,83 +808,6 @@ svg_find_element_by_id (const hb_svg_render_context_t *ctx,
   }
   return false;
 }
-
-static void
-svg_bbox_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
-                  void *draw_data,
-                  hb_draw_state_t *st HB_UNUSED,
-                  float to_x, float to_y,
-                  void *user_data HB_UNUSED)
-{
-  ((hb_extents_t<> *) draw_data)->add_point (to_x, to_y);
-}
-
-static void
-svg_bbox_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
-                  void *draw_data,
-                  hb_draw_state_t *st HB_UNUSED,
-                  float to_x, float to_y,
-                  void *user_data HB_UNUSED)
-{
-  ((hb_extents_t<> *) draw_data)->add_point (to_x, to_y);
-}
-
-static void
-svg_bbox_quadratic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
-                       void *draw_data,
-                       hb_draw_state_t *st HB_UNUSED,
-                       float control_x, float control_y,
-                       float to_x, float to_y,
-                       void *user_data HB_UNUSED)
-{
-  hb_extents_t<> *ext = (hb_extents_t<> *) draw_data;
-  ext->add_point (control_x, control_y);
-  ext->add_point (to_x, to_y);
-}
-
-static void
-svg_bbox_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
-                   void *draw_data,
-                   hb_draw_state_t *st HB_UNUSED,
-                   float control1_x, float control1_y,
-                   float control2_x, float control2_y,
-                   float to_x, float to_y,
-                   void *user_data HB_UNUSED)
-{
-  hb_extents_t<> *ext = (hb_extents_t<> *) draw_data;
-  ext->add_point (control1_x, control1_y);
-  ext->add_point (control2_x, control2_y);
-  ext->add_point (to_x, to_y);
-}
-
-static hb_draw_funcs_t *
-svg_bbox_draw_funcs ()
-{
-  static hb_draw_funcs_t *funcs = nullptr;
-  if (unlikely (!funcs))
-  {
-    funcs = hb_draw_funcs_create ();
-    hb_draw_funcs_set_move_to_func (funcs, svg_bbox_move_to, nullptr, nullptr);
-    hb_draw_funcs_set_line_to_func (funcs, svg_bbox_line_to, nullptr, nullptr);
-    hb_draw_funcs_set_quadratic_to_func (funcs, svg_bbox_quadratic_to, nullptr, nullptr);
-    hb_draw_funcs_set_cubic_to_func (funcs, svg_bbox_cubic_to, nullptr, nullptr);
-    hb_draw_funcs_make_immutable (funcs);
-  }
-  return funcs;
-}
-
-static bool
-svg_compute_shape_bbox (const hb_svg_shape_emit_data_t &shape,
-                        hb_extents_t<> *bbox)
-{
-  hb_extents_t<> ext;
-  hb_svg_shape_emit_data_t tmp = shape;
-  svg_shape_path_emit (svg_bbox_draw_funcs (), &ext, &tmp);
-  if (ext.is_empty ()) return false;
-  *bbox = ext;
-  return true;
-}
-
 
 /* Render a single shape element */
 static void
