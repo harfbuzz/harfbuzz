@@ -88,6 +88,86 @@ svg_parse_viewbox (hb_svg_str_t viewbox_str,
   return true;
 }
 
+static inline float
+svg_align_offset (hb_svg_str_t align,
+                  float leftover,
+                  char axis)
+{
+  if (leftover <= 0.f) return 0.f;
+  if ((axis == 'x' && align.starts_with ("xMin")) ||
+      (axis == 'y' && (align.eq ("xMinYMin") || align.eq ("xMidYMin") || align.eq ("xMaxYMin"))))
+    return 0.f;
+  if ((axis == 'x' && align.starts_with ("xMax")) ||
+      (axis == 'y' && (align.eq ("xMinYMax") || align.eq ("xMidYMax") || align.eq ("xMaxYMax"))))
+    return leftover;
+  return leftover * 0.5f;
+}
+
+static bool
+svg_compute_viewbox_transform (float viewport_w,
+                               float viewport_h,
+                               float vb_x,
+                               float vb_y,
+                               float vb_w,
+                               float vb_h,
+                               hb_svg_str_t preserve_aspect_ratio,
+                               hb_svg_transform_t *out)
+{
+  if (!(viewport_w > 0.f && viewport_h > 0.f && vb_w > 0.f && vb_h > 0.f))
+    return false;
+
+  hb_svg_str_t par = preserve_aspect_ratio.trim ();
+  if (!par.len)
+    par = hb_svg_str_t ("xMidYMid meet", 12);
+
+  bool is_none = false;
+  bool is_slice = false;
+  if (svg_str_starts_with_ascii_ci (par, "none"))
+    is_none = true;
+  else if (par.len >= 5)
+  {
+    if (svg_str_starts_with_ascii_ci (par.trim (), "x"))
+    {
+      const char *p = par.data;
+      const char *end = par.data + par.len;
+      while (p < end && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r') p++;
+      while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
+      if (p < end && svg_str_starts_with_ascii_ci (hb_svg_str_t (p, (unsigned) (end - p)), "slice"))
+        is_slice = true;
+    }
+  }
+
+  hb_svg_transform_t t;
+  if (is_none)
+  {
+    t.xx = viewport_w / vb_w;
+    t.yy = viewport_h / vb_h;
+    t.dx = -vb_x * t.xx;
+    t.dy = -vb_y * t.yy;
+    *out = t;
+    return true;
+  }
+
+  float sx = viewport_w / vb_w;
+  float sy = viewport_h / vb_h;
+  float s = is_slice ? hb_max (sx, sy) : hb_min (sx, sy);
+  float scaled_w = vb_w * s;
+  float scaled_h = vb_h * s;
+  float leftover_x = viewport_w - scaled_w;
+  float leftover_y = viewport_h - scaled_h;
+
+  hb_svg_str_t align = par.trim ();
+  if (!align.starts_with ("x"))
+    align = hb_svg_str_t ("xMidYMid", 8);
+
+  t.xx = s;
+  t.yy = s;
+  t.dx = svg_align_offset (align, leftover_x, 'x') - vb_x * s;
+  t.dy = svg_align_offset (align, leftover_y, 'y') - vb_y * s;
+  *out = t;
+  return true;
+}
+
 void
 hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
                         hb_svg_xml_parser_t &parser,
@@ -138,10 +218,14 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
       if ((ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol")) &&
           use_w > 0.f && use_h > 0.f)
       {
-        float vb_w = 0.f, vb_h = 0.f;
-        if (svg_parse_viewbox (ref_parser.find_attr ("viewBox"), nullptr, nullptr, &vb_w, &vb_h))
+        float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
+        hb_svg_transform_t t;
+        if (svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h) &&
+            svg_compute_viewbox_transform (use_w, use_h, vb_x, vb_y, vb_w, vb_h,
+                                           ref_parser.find_attr ("preserveAspectRatio"),
+                                           &t))
         {
-          hb_paint_push_transform (ctx->pfuncs, ctx->paint, use_w / vb_w, 0, 0, use_h / vb_h, 0, 0);
+          hb_paint_push_transform (ctx->pfuncs, ctx->paint, t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
           has_viewport_scale = true;
         }
       }
