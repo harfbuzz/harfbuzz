@@ -123,8 +123,11 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
   bool has_opacity = state.opacity < 1.f;
   bool has_clip = false;
   bool has_viewbox = false;
+  bool has_viewbox_transform = false;
   bool has_svg_translate = false;
   float svg_x = 0.f, svg_y = 0.f;
+  float viewport_w = 0.f, viewport_h = 0.f;
+  hb_svg_transform_t viewbox_t;
   float vb_x = 0, vb_y = 0, vb_w = 0, vb_h = 0;
 
   if (tag.eq ("svg") || tag.eq ("symbol"))
@@ -145,6 +148,22 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
       vb_y = vb_fp.next_float ();
       vb_w = vb_fp.next_float ();
       vb_h = vb_fp.next_float ();
+
+      if (tag.eq ("svg"))
+      {
+        viewport_w = svg_parse_float (parser.find_attr ("width"));
+        viewport_h = svg_parse_float (parser.find_attr ("height"));
+        if (!(viewport_w > 0.f && viewport_h > 0.f))
+        {
+          viewport_w = vb_w;
+          viewport_h = vb_h;
+        }
+        has_viewbox_transform =
+          hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h,
+                                                   vb_x, vb_y, vb_w, vb_h,
+                                                   parser.find_attr ("preserveAspectRatio"),
+                                                   &viewbox_t);
+      }
     }
   }
 
@@ -161,7 +180,10 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
   if (has_svg_translate)
     ctx->push_transform (1, 0, 0, 1, svg_x, svg_y);
 
-  if (has_viewbox && vb_w > 0 && vb_h > 0)
+  if (has_viewbox_transform)
+    ctx->push_transform (viewbox_t.xx, viewbox_t.yx, viewbox_t.xy, viewbox_t.yy,
+                         viewbox_t.dx, viewbox_t.dy);
+  else if (has_viewbox && vb_w > 0 && vb_h > 0)
     ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
 
   has_clip = hb_raster_svg_push_clip_path_ref (ctx->paint, &ctx->defs, clip_path_str, nullptr);
@@ -217,7 +239,7 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
     }
   }
 
-  if (has_viewbox && vb_w > 0 && vb_h > 0)
+  if (has_viewbox_transform || (has_viewbox && vb_w > 0 && vb_h > 0))
     ctx->pop_transform ();
 
   if (has_svg_translate)
