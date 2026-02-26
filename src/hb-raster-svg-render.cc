@@ -226,10 +226,8 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 	  continue;
 	}
 	svg_render_element (ctx, parser, state);
-	if (tok == SVG_TOKEN_OPEN_TAG && !child_tag.eq ("g") &&
-	    !child_tag.eq ("a") &&
-	    !child_tag.eq ("svg") && !child_tag.eq ("symbol") &&
-	    !child_tag.eq ("use"))
+	if (tok == SVG_TOKEN_OPEN_TAG &&
+	    !hb_raster_svg_tag_is_container_or_use (child_tag))
 	{
 	  /* Skip children of non-container elements we don't handle. */
 	  int skip_depth = 1;
@@ -399,7 +397,7 @@ svg_render_element (hb_svg_render_context_t *ctx,
   if (tag.eq ("symbol"))
     ctx->allow_symbol_render_once = false;
 
-  if (tag.eq ("g") || tag.eq ("a") || tag.eq ("svg") || tag.eq ("symbol"))
+  if (hb_raster_svg_tag_is_container (tag))
     svg_render_container_element (ctx, parser, tag, self_closing,
 				  state, transform_str, state.clip_path);
   else if (svg_render_primitive_shape_element (ctx, parser, state, transform_str))

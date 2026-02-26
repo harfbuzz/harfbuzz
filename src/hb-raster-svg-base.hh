@@ -180,4 +180,16 @@ svg_str_is_none (hb_svg_str_t s)
   return svg_str_eq_ascii_ci (s.trim (), "none");
 }
 
+static inline bool
+hb_raster_svg_tag_is_container (hb_svg_str_t tag)
+{
+  return tag.eq ("g") || tag.eq ("a") || tag.eq ("svg") || tag.eq ("symbol");
+}
+
+static inline bool
+hb_raster_svg_tag_is_container_or_use (hb_svg_str_t tag)
+{
+  return hb_raster_svg_tag_is_container (tag) || tag.eq ("use");
+}
+
 #endif /* HB_RASTER_SVG_BASE_HH */

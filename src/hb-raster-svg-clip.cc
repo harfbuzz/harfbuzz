@@ -286,10 +286,7 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
     return;
   }
 
-  bool is_container = parser.tag_name.eq ("g") ||
-                      parser.tag_name.eq ("a") ||
-                      parser.tag_name.eq ("svg") ||
-                      parser.tag_name.eq ("symbol");
+  bool is_container = hb_raster_svg_tag_is_container (parser.tag_name);
   if (!is_container || parser.self_closing)
   {
     if (!parser.self_closing)
