@@ -50,10 +50,21 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
   hb_svg_str_t offset_str = svg_pick_attr_or_style (parser, style_props.offset, "offset");
   hb_svg_str_t color_str = svg_pick_attr_or_style (parser, style_props.stop_color, "stop-color");
   hb_svg_str_t opacity_str = svg_pick_attr_or_style (parser, style_props.stop_opacity, "stop-opacity");
+  hb_svg_str_t display_str = svg_pick_attr_or_style (parser, style_props.display, "display");
+  hb_svg_str_t visibility_str = svg_pick_attr_or_style (parser, style_props.visibility, "visibility");
+
+  if (svg_str_eq_ascii_ci (display_str.trim (), "none"))
+    return true;
+  hb_svg_str_t visibility_trim = visibility_str.trim ();
+  if (svg_str_eq_ascii_ci (visibility_trim, "hidden") ||
+      svg_str_eq_ascii_ci (visibility_trim, "collapse"))
+    return true;
 
   float offset = 0;
   if (offset_str.len)
     offset = hb_clamp (svg_parse_number_or_percent (offset_str, nullptr), 0.f, 1.f);
+  if (grad.stops.length)
+    offset = hb_max (offset, grad.stops.arrayZ[grad.stops.length - 1].offset);
 
   bool is_none = false;
   hb_color_t color = HB_COLOR (0, 0, 0, 255);
