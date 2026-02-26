@@ -39,11 +39,6 @@ struct vector_output_t : output_options_t<>, view_options_t
 {
   static const bool repeat_shape = false;
 
-  vector_output_t ()
-  {
-    margin = {0., 0., 0., 0.};
-  }
-
   ~vector_output_t ()
   {
     hb_font_destroy (font);

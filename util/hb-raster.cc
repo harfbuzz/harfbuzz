@@ -31,7 +31,7 @@
 #include "shape-consumer.hh"
 #include "text-options.hh"
 
-const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
+const unsigned DEFAULT_FONT_SIZE = 256;
 const unsigned SUBPIXEL_BITS = 6;
 
 int

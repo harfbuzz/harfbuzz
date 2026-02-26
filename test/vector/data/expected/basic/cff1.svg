@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -984 1513 1257" width="1513" height="1257">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -1000 1545 1289" width="1545" height="1289">
 <defs>
 
 <path id="p1" d="M194,-12C255,-12 309,20 355,58L358,58L365,0L433,0L433,298C433,419 383,498 264,498C186,498 118,464 73,435L105,378C143,404 194,430 250,430C330,430 350,370 350,308C143,285 52,232 52,126C52,39 113,-12 194,-12ZM218,54C170,54 132,77 132,132C132,194 188,234 350,254L350,119C303,77 265,54 218,54Z"/>
@@ -7,6 +7,6 @@
 </defs>
 
 <use href="#p1" transform="translate(0,0) scale(1,-1)"/>
-<use href="#p2" transform="translate(504,0) scale(1,-1)"/>
-<use href="#p3" transform="translate(1057,0) scale(1,-1)"/>
+<use href="#p2" transform="translate(504.03,0) scale(1,-1)"/>
+<use href="#p3" transform="translate(1057.01,0) scale(1,-1)"/>
 </svg>
