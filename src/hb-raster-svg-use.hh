@@ -29,20 +29,8 @@
 
 #include "hb.hh"
 
-#include "OT/Color/svg/svg.hh"
+#include "hb-raster-svg-context.hh"
 #include "hb-raster-svg-parse.hh"
-#include "hb-raster-paint.hh"
-
-struct hb_svg_use_context_t
-{
-  hb_raster_paint_t *paint;
-  hb_paint_funcs_t *pfuncs;
-
-  const char *doc_start;
-  unsigned doc_len;
-  const OT::SVG::accelerator_t *svg_accel;
-  const OT::SVG::svg_doc_cache_t *doc_cache;
-};
 
 typedef void (*hb_svg_use_render_cb_t) (void *render_user,
                                         hb_svg_xml_parser_t &parser,

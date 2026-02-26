@@ -33,6 +33,7 @@
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-parse.hh"
 #include "hb-raster-svg-defs.hh"
+#include "hb-raster-svg-context.hh"
 #include "hb-raster-svg-gradient.hh"
 #include "hb-raster-svg-clip.hh"
 #include "hb-raster-svg-bbox.hh"
@@ -46,63 +47,7 @@
 #include <stdio.h>
 
 
-/*
- * 10. SVG rendering context
- */
-
 #define SVG_MAX_DEPTH 32
-
-struct hb_svg_render_context_t
-{
-  hb_raster_paint_t *paint;
-  hb_paint_funcs_t *pfuncs;
-  hb_font_t *font;
-  unsigned palette;
-  hb_color_t foreground;
-  hb_svg_defs_t defs;
-  int depth = 0;
-
-  /* The full SVG document for <use> resolution */
-  const char *doc_start;
-  unsigned doc_len;
-  const OT::SVG::accelerator_t *svg_accel = nullptr;
-  const OT::SVG::svg_doc_cache_t *doc_cache = nullptr;
-
-  void push_transform (float xx, float yx, float xy, float yy, float dx, float dy)
-  {
-    hb_paint_push_transform (pfuncs, paint, xx, yx, xy, yy, dx, dy);
-  }
-  void pop_transform ()
-  {
-    hb_paint_pop_transform (pfuncs, paint);
-  }
-  void push_group ()
-  {
-    hb_paint_push_group (pfuncs, paint);
-  }
-  void pop_group (hb_paint_composite_mode_t mode)
-  {
-    hb_paint_pop_group (pfuncs, paint, mode);
-  }
-  void paint_color (hb_color_t color)
-  {
-    hb_paint_color (pfuncs, paint, false, color);
-  }
-  void pop_clip ()
-  {
-    hb_paint_pop_clip (pfuncs, paint);
-  }
-};
-
-struct hb_svg_cascade_t
-{
-  hb_svg_str_t fill;
-  float fill_opacity = 1.f;
-  hb_svg_str_t clip_path;
-  hb_color_t color = HB_COLOR (0, 0, 0, 255);
-  bool visibility = true;
-  float opacity = 1.f;
-};
 
 /*
  * 11. Element renderer — recursive SVG rendering

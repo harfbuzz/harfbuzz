@@ -29,19 +29,7 @@
 
 #include "hb.hh"
 
-#include "hb-face.hh"
-#include "hb-raster.h"
-#include "hb-raster-paint.hh"
-#include "hb-raster-svg-defs.hh"
-
-struct hb_svg_fill_context_t
-{
-  hb_raster_paint_t *paint;
-  hb_paint_funcs_t *pfuncs;
-  hb_font_t *font;
-  unsigned palette;
-  hb_svg_defs_t *defs;
-};
+#include "hb-raster-svg-context.hh"
 
 HB_INTERNAL void
 svg_emit_fill (const hb_svg_fill_context_t *ctx,
