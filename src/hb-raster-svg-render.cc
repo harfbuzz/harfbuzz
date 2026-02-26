@@ -123,10 +123,19 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
   bool has_opacity = state.opacity < 1.f;
   bool has_clip = false;
   bool has_viewbox = false;
+  bool has_svg_translate = false;
+  float svg_x = 0.f, svg_y = 0.f;
   float vb_x = 0, vb_y = 0, vb_w = 0, vb_h = 0;
 
   if (tag.eq ("svg") || tag.eq ("symbol"))
   {
+    if (tag.eq ("svg"))
+    {
+      svg_x = svg_parse_float (parser.find_attr ("x"));
+      svg_y = svg_parse_float (parser.find_attr ("y"));
+      has_svg_translate = (svg_x != 0.f || svg_y != 0.f);
+    }
+
     hb_svg_str_t viewbox_str = parser.find_attr ("viewBox");
     if (viewbox_str.len)
     {
@@ -148,6 +157,9 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
     hb_raster_svg_parse_transform (transform_str, &t);
     ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
   }
+
+  if (has_svg_translate)
+    ctx->push_transform (1, 0, 0, 1, svg_x, svg_y);
 
   if (has_viewbox && vb_w > 0 && vb_h > 0)
     ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
@@ -206,6 +218,9 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
   }
 
   if (has_viewbox && vb_w > 0 && vb_h > 0)
+    ctx->pop_transform ();
+
+  if (has_svg_translate)
     ctx->pop_transform ();
 
   if (has_clip)
