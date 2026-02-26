@@ -320,8 +320,11 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
   {
     const unsigned SVG_MAX_CLIP_DEPTH = 64;
     hb_svg_transform_t inherited[SVG_MAX_CLIP_DEPTH];
+    bool inherited_visibility[SVG_MAX_CLIP_DEPTH];
     inherited[0] = hb_svg_transform_t ();
     inherited[1] = hb_svg_transform_t ();
+    inherited_visibility[0] = true;
+    inherited_visibility[1] = true;
     hb_decycler_t use_decycler;
 
     int cdepth = 1;
@@ -337,9 +340,24 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
         svg_parse_style_props (parser.find_attr ("style"), &visibility_style_props);
         hb_svg_str_t display_str = svg_pick_attr_or_style (parser, visibility_style_props.display, "display");
         hb_svg_str_t visibility_str = svg_pick_attr_or_style (parser, visibility_style_props.visibility, "visibility");
-        bool is_hidden = svg_str_eq_ascii_ci (display_str.trim (), "none") ||
-                         svg_str_eq_ascii_ci (visibility_str.trim (), "hidden") ||
-                         svg_str_eq_ascii_ci (visibility_str.trim (), "collapse");
+        bool parent_visible = (unsigned) cdepth < SVG_MAX_CLIP_DEPTH
+                            ? inherited_visibility[cdepth]
+                            : true;
+        bool is_visible = parent_visible;
+        if (svg_str_eq_ascii_ci (display_str.trim (), "none"))
+          is_visible = false;
+        hb_svg_str_t vis_trim = visibility_str.trim ();
+        if (vis_trim.len)
+        {
+          if (svg_str_eq_ascii_ci (vis_trim, "inherit"))
+            is_visible = parent_visible;
+          else if (svg_str_eq_ascii_ci (vis_trim, "hidden") ||
+                   svg_str_eq_ascii_ci (vis_trim, "collapse"))
+            is_visible = false;
+          else if (svg_str_eq_ascii_ci (vis_trim, "visible"))
+            is_visible = true;
+        }
+        bool is_hidden = !is_visible;
         if (is_hidden)
         {
           if (ct == SVG_TOKEN_OPEN_TAG)
@@ -383,7 +401,10 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
         if (ct == SVG_TOKEN_OPEN_TAG)
         {
           if ((unsigned) (cdepth + 1) < SVG_MAX_CLIP_DEPTH)
+          {
             inherited[cdepth + 1] = effective;
+            inherited_visibility[cdepth + 1] = is_visible;
+          }
           cdepth++;
         }
       }
