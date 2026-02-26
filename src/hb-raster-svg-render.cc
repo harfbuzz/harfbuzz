@@ -125,7 +125,7 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
   bool has_viewbox = false;
   float vb_x = 0, vb_y = 0, vb_w = 0, vb_h = 0;
 
-  if (tag.eq ("svg"))
+  if (tag.eq ("svg") || tag.eq ("symbol"))
   {
     hb_svg_str_t viewbox_str = parser.find_attr ("viewBox");
     if (viewbox_str.len)
@@ -436,7 +436,7 @@ svg_render_element (hb_svg_render_context_t *ctx,
     return;
   }
 
-  if (tag.eq ("g") || tag.eq ("svg"))
+  if (tag.eq ("g") || tag.eq ("svg") || tag.eq ("symbol"))
     svg_render_container_element (ctx, parser, tag, self_closing,
 				  state, transform_str, state.clip_path);
   else if (svg_render_primitive_shape_element (ctx, parser, tag, state, transform_str))

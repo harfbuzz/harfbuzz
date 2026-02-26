@@ -68,6 +68,26 @@ svg_find_element_by_id (const hb_svg_use_context_t *ctx,
   return false;
 }
 
+static inline bool
+svg_parse_viewbox (hb_svg_str_t viewbox_str,
+                   float *x, float *y, float *w, float *h)
+{
+  if (!viewbox_str.len)
+    return false;
+  hb_svg_float_parser_t vb_fp (viewbox_str);
+  float vb_x = vb_fp.next_float ();
+  float vb_y = vb_fp.next_float ();
+  float vb_w = vb_fp.next_float ();
+  float vb_h = vb_fp.next_float ();
+  if (vb_w <= 0.f || vb_h <= 0.f)
+    return false;
+  if (x) *x = vb_x;
+  if (y) *y = vb_y;
+  if (w) *w = vb_w;
+  if (h) *h = vb_h;
+  return true;
+}
+
 void
 hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
                         hb_svg_xml_parser_t &parser,
@@ -84,6 +104,8 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
 
   float use_x = svg_parse_float (parser.find_attr ("x"));
   float use_y = svg_parse_float (parser.find_attr ("y"));
+  float use_w = svg_parse_float (parser.find_attr ("width"));
+  float use_h = svg_parse_float (parser.find_attr ("height"));
 
   bool has_translate = (use_x != 0.f || use_y != 0.f);
   bool has_use_transform = transform_str.len > 0;
@@ -111,7 +133,22 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
     hb_svg_xml_parser_t ref_parser (found, remaining);
     hb_svg_token_type_t tok = ref_parser.next ();
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
+    {
+      bool has_viewport_scale = false;
+      if ((ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol")) &&
+          use_w > 0.f && use_h > 0.f)
+      {
+        float vb_w = 0.f, vb_h = 0.f;
+        if (svg_parse_viewbox (ref_parser.find_attr ("viewBox"), nullptr, nullptr, &vb_w, &vb_h))
+        {
+          hb_paint_push_transform (ctx->pfuncs, ctx->paint, use_w / vb_w, 0, 0, use_h / vb_h, 0, 0);
+          has_viewport_scale = true;
+        }
+      }
       render_cb (render_user, ref_parser, state);
+      if (has_viewport_scale)
+        hb_paint_pop_transform (ctx->pfuncs, ctx->paint);
+    }
   }
 
   if (has_translate)
