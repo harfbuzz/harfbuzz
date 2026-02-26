@@ -37,6 +37,7 @@
 #include "hb-raster-svg-clip.hh"
 #include "hb-raster-svg-bbox.hh"
 #include "hb-raster-svg-fill.hh"
+#include "hb-raster-svg-use.hh"
 #include "OT/Color/svg/svg.hh"
 #include "hb-draw.h"
 #include "hb-ot-color.h"
@@ -362,16 +363,6 @@ svg_parse_color (hb_svg_str_t s,
 
 
 /*
- * 9. Defs store
- */
-
-static bool
-svg_parse_id_ref_with_fallback (hb_svg_str_t s,
-				char out_id[64],
-				hb_svg_str_t *fallback,
-				bool allow_fragment_direct);
-
-/*
  * 10. SVG rendering context
  */
 
@@ -429,82 +420,6 @@ struct hb_svg_cascade_t
   float opacity = 1.f;
 };
 
-static bool
-svg_parse_id_ref_with_fallback (hb_svg_str_t s,
-				char out_id[64],
-				hb_svg_str_t *fallback,
-				bool allow_fragment_direct)
-{
-  if (fallback) *fallback = {};
-  s = s.trim ();
-
-  if (allow_fragment_direct && s.len && s.data[0] == '#')
-  {
-    unsigned n = hb_min (s.len - 1, (unsigned) 63);
-    memcpy (out_id, s.data + 1, n);
-    out_id[n] = '\0';
-    return n > 0;
-  }
-
-  if (!svg_str_starts_with_ascii_ci (s, "url("))
-    return false;
-
-  const char *p = s.data + 4;
-  const char *end = s.data + s.len;
-  while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
-
-  const char *q = p;
-  char quote = 0;
-  while (q < end)
-  {
-    char c = *q;
-    if (quote)
-    {
-      if (c == quote) quote = 0;
-    }
-    else
-    {
-      if (c == '"' || c == '\'') quote = c;
-      else if (c == ')') break;
-    }
-    q++;
-  }
-  if (q >= end || *q != ')')
-    return false;
-
-  const char *id_b = p;
-  const char *id_e = q;
-  while (id_b < id_e && (*id_b == ' ' || *id_b == '\t' || *id_b == '\n' || *id_b == '\r')) id_b++;
-  while (id_e > id_b && (*(id_e - 1) == ' ' || *(id_e - 1) == '\t' || *(id_e - 1) == '\n' || *(id_e - 1) == '\r')) id_e--;
-  if (id_e > id_b && ((*id_b == '\'' && *(id_e - 1) == '\'') || (*id_b == '"' && *(id_e - 1) == '"')))
-  {
-    id_b++;
-    id_e--;
-  }
-  while (id_b < id_e && (*id_b == ' ' || *id_b == '\t' || *id_b == '\n' || *id_b == '\r')) id_b++;
-  while (id_e > id_b && (*(id_e - 1) == ' ' || *(id_e - 1) == '\t' || *(id_e - 1) == '\n' || *(id_e - 1) == '\r')) id_e--;
-  if (id_b < id_e && *id_b == '#') id_b++;
-  if (id_b >= id_e)
-    return false;
-
-  unsigned n = hb_min ((unsigned) (id_e - id_b), (unsigned) 63);
-  memcpy (out_id, id_b, n);
-  out_id[n] = '\0';
-
-  if (fallback)
-  {
-    const char *f = q + 1;
-    while (f < end && (*f == ' ' || *f == '\t' || *f == '\n' || *f == '\r')) f++;
-    if (f < end) *fallback = {f, (unsigned) (end - f)};
-  }
-  return true;
-}
-
-
-/*
- * Emit fill (solid or gradient)
- */
-
 /*
  * 11. Element renderer — recursive SVG rendering
  */
@@ -555,41 +470,6 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
       }
     }
   }
-}
-
-static bool
-svg_find_element_by_id (const hb_svg_render_context_t *ctx,
-                        const char *id,
-                        const char **found)
-{
-  *found = nullptr;
-  if (ctx->doc_cache)
-  {
-    unsigned start = 0, end = 0;
-    if (ctx->svg_accel->doc_cache_find_id_cstr (ctx->doc_cache, id, &start, &end))
-    {
-      if (start < ctx->doc_len && end <= ctx->doc_len && start < end)
-      {
-        *found = ctx->doc_start + start;
-        return true;
-      }
-    }
-  }
-
-  hb_svg_xml_parser_t search (ctx->doc_start, ctx->doc_len);
-  while (true)
-  {
-    hb_svg_token_type_t tok = search.next ();
-    if (tok == SVG_TOKEN_EOF) break;
-    if (tok != SVG_TOKEN_OPEN_TAG && tok != SVG_TOKEN_SELF_CLOSE_TAG) continue;
-    hb_svg_str_t attr_id = search.find_attr ("id");
-    if (attr_id.len && attr_id.eq_cstr (id))
-    {
-      *found = search.tag_start;
-      return true;
-    }
-  }
-  return false;
 }
 
 /* Render a single shape element */
@@ -866,60 +746,14 @@ svg_render_primitive_shape_element (hb_svg_render_context_t *ctx,
   return false;
 }
 
-static hb_svg_str_t
-svg_find_href_attr (const hb_svg_xml_parser_t &parser)
-{
-  hb_svg_str_t href = parser.find_attr ("href");
-  if (href.is_null ())
-    href = parser.find_attr ("xlink:href");
-  return href;
-}
-
 static void
-svg_render_use_element (hb_svg_render_context_t *ctx,
-			hb_svg_xml_parser_t &parser,
-			const hb_svg_cascade_t &state,
-			hb_svg_str_t transform_str)
+svg_render_use_callback (void *render_user,
+			 hb_svg_xml_parser_t &parser,
+			 const void *state)
 {
-  hb_svg_str_t href = svg_find_href_attr (parser);
-
-  char ref_id[64];
-  if (!svg_parse_id_ref_with_fallback (href, ref_id, nullptr, true))
-    return;
-
-  float use_x = svg_parse_float (parser.find_attr ("x"));
-  float use_y = svg_parse_float (parser.find_attr ("y"));
-
-  bool has_translate = (use_x != 0.f || use_y != 0.f);
-  bool has_use_transform = transform_str.len > 0;
-
-  if (has_use_transform)
-  {
-    hb_svg_transform_t t;
-    svg_parse_transform (transform_str, &t);
-    ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
-  }
-
-  if (has_translate)
-    ctx->push_transform (1, 0, 0, 1, use_x, use_y);
-
-  const char *found = nullptr;
-  svg_find_element_by_id (ctx, ref_id, &found);
-
-  if (found)
-  {
-    unsigned remaining = ctx->doc_start + ctx->doc_len - found;
-    hb_svg_xml_parser_t ref_parser (found, remaining);
-    hb_svg_token_type_t tok = ref_parser.next ();
-    if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-      svg_render_element (ctx, ref_parser, state);
-  }
-
-  if (has_translate)
-    ctx->pop_transform ();
-
-  if (has_use_transform)
-    ctx->pop_transform ();
+  svg_render_element ((hb_svg_render_context_t *) render_user,
+		      parser,
+		      *(const hb_svg_cascade_t *) state);
 }
 
 static void
@@ -1017,7 +851,13 @@ svg_render_element (hb_svg_render_context_t *ctx,
   else if (svg_render_primitive_shape_element (ctx, parser, tag, state, transform_str))
     ;
   else if (tag.eq ("use"))
-    svg_render_use_element (ctx, parser, state, transform_str);
+  {
+    hb_svg_use_context_t use_ctx = {ctx->paint, ctx->pfuncs,
+				    ctx->doc_start, ctx->doc_len,
+				    ctx->svg_accel, ctx->doc_cache};
+    svg_render_use_element (&use_ctx, parser, &state, transform_str,
+			    svg_render_use_callback, ctx);
+  }
 
   ctx->depth--;
 
