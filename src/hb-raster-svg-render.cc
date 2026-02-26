@@ -497,7 +497,9 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   {
     /* Fallback for malformed/uncached docs: linear scan by glyph id. */
     char glyph_id_str[32];
-    snprintf (glyph_id_str, sizeof (glyph_id_str), "glyph%u", glyph);
+    int glyph_id_len = snprintf (glyph_id_str, sizeof (glyph_id_str), "glyph%u", glyph);
+    if (glyph_id_len <= 0 || (unsigned) glyph_id_len >= sizeof (glyph_id_str))
+      return false;
     hb_svg_xml_parser_t parser (data, data_len);
     while (true)
     {
@@ -509,12 +511,8 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
         hb_svg_str_t id = parser.find_attr ("id");
         if (id.len)
         {
-          char id_buf[64];
-          unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-          memcpy (id_buf, id.data, n);
-          id_buf[n] = '\0';
-
-          if (strcmp (id_buf, glyph_id_str) == 0)
+          if (id.len == (unsigned) glyph_id_len &&
+              0 == memcmp (id.data, glyph_id_str, (unsigned) glyph_id_len))
           {
             hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
             ctx.push_transform (1, 0, 0, -1, 0, 0);
