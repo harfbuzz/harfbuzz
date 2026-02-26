@@ -229,13 +229,20 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
 
     float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
     hb_svg_transform_t vb_t;
-    if (hb_raster_svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h) &&
-        hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h, vb_x, vb_y, vb_w, vb_h,
-                                                 ref_parser.find_attr ("preserveAspectRatio"),
-                                                 &vb_t))
+    if (hb_raster_svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h))
     {
-      effective.multiply (vb_t);
-      viewport_mapped = true;
+      if (!(viewport_w > 0.f && viewport_h > 0.f))
+      {
+        viewport_w = vb_w;
+        viewport_h = vb_h;
+      }
+      if (hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h, vb_x, vb_y, vb_w, vb_h,
+                                                   ref_parser.find_attr ("preserveAspectRatio"),
+                                                   &vb_t))
+      {
+        effective.multiply (vb_t);
+        viewport_mapped = true;
+      }
     }
   }
 

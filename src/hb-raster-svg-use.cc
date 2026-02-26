@@ -129,15 +129,22 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
 
         float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
         hb_svg_transform_t t;
-          if (hb_raster_svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h) &&
-              hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h, vb_x, vb_y, vb_w, vb_h,
-                                                       ref_parser.find_attr ("preserveAspectRatio"),
-                                                       &t))
+        if (hb_raster_svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h))
         {
+          if (!(viewport_w > 0.f && viewport_h > 0.f))
+          {
+            viewport_w = vb_w;
+            viewport_h = vb_h;
+          }
+          if (hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h, vb_x, vb_y, vb_w, vb_h,
+                                                         ref_parser.find_attr ("preserveAspectRatio"),
+                                                         &t))
+          {
             hb_paint_push_transform (ctx->pfuncs, ctx->paint, t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
             has_viewport_scale = true;
           }
         }
+      }
         render_cb (render_user, ref_parser, state, has_viewport_scale);
         if (has_viewport_scale)
           hb_paint_pop_transform (ctx->pfuncs, ctx->paint);
