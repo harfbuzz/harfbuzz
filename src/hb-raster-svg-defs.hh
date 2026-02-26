@@ -60,9 +60,9 @@ struct hb_svg_gradient_t
   bool has_x1 = false, has_y1 = false, has_x2 = false, has_y2 = false;
 
   float cx = 0.5f, cy = 0.5f, r = 0.5f;
-  float fx = -1.f, fy = -1.f;
+  float fx = -1.f, fy = -1.f, fr = 0.f;
   bool has_cx = false, has_cy = false, has_r = false;
-  bool has_fx = false, has_fy = false;
+  bool has_fx = false, has_fy = false, has_fr = false;
 
   hb_vector_t<hb_svg_gradient_stop_t> stops;
 

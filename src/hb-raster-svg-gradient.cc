@@ -161,12 +161,14 @@ svg_parse_gradient_geometry_attrs (hb_svg_xml_parser_t &parser,
     hb_svg_str_t r_str = svg_pick_attr_or_style (parser, style_props.r, "r");
     hb_svg_str_t fx_str = svg_pick_attr_or_style (parser, style_props.fx, "fx");
     hb_svg_str_t fy_str = svg_pick_attr_or_style (parser, style_props.fy, "fy");
+    hb_svg_str_t fr_str = svg_pick_attr_or_style (parser, style_props.fr, "fr");
 
     if (cx_str.len) { grad.cx = svg_parse_number_or_percent (cx_str, nullptr); grad.has_cx = true; }
     if (cy_str.len) { grad.cy = svg_parse_number_or_percent (cy_str, nullptr); grad.has_cy = true; }
     if (r_str.len) { grad.r = svg_parse_number_or_percent (r_str, nullptr); grad.has_r = true; }
     if (fx_str.len) { grad.fx = svg_parse_number_or_percent (fx_str, nullptr); grad.has_fx = true; }
     if (fy_str.len) { grad.fy = svg_parse_number_or_percent (fy_str, nullptr); grad.has_fy = true; }
+    if (fr_str.len) { grad.fr = svg_parse_number_or_percent (fr_str, nullptr); grad.has_fr = true; }
   }
 }
 

@@ -122,6 +122,7 @@ svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out)
     else if (svg_str_eq_ascii_ci (prop_name, "r")) out->r = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "fx")) out->fx = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "fy")) out->fy = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "fr")) out->fr = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "rx")) out->rx = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "ry")) out->ry = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "x1")) out->x1 = prop_value;

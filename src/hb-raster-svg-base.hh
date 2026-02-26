@@ -114,6 +114,7 @@ struct hb_svg_style_props_t
   hb_svg_str_t r;
   hb_svg_str_t fx;
   hb_svg_str_t fy;
+  hb_svg_str_t fr;
   hb_svg_str_t rx;
   hb_svg_str_t ry;
   hb_svg_str_t x1;

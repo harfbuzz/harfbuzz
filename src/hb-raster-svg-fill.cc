@@ -187,6 +187,7 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
       if (g->has_r)  { effective.r  = g->r;  effective.has_r  = true; }
       if (g->has_fx) { effective.fx = g->fx; effective.has_fx = true; }
       if (g->has_fy) { effective.fy = g->fy; effective.has_fy = true; }
+      if (g->has_fr) { effective.fr = g->fr; effective.has_fr = true; }
     }
     if (!effective.stops.length)
     {
@@ -239,9 +240,10 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
     {
       float fx = effective.has_fx ? effective.fx : effective.cx;
       float fy = effective.has_fy ? effective.fy : effective.cy;
+      float fr = effective.has_fr ? effective.fr : 0.f;
 
       hb_paint_radial_gradient (ctx->pfuncs, ctx->paint, &cl,
-                                fx, fy, 0.f,
+                                fx, fy, fr,
                                 effective.cx, effective.cy, effective.r);
     }
 
