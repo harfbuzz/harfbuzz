@@ -52,6 +52,8 @@ struct hb_svg_attr_t
 
 struct hb_svg_xml_parser_t
 {
+  enum { SVG_MAX_ATTRS_PER_TAG = 256 };
+
   const char *p;
   const char *end;
   const char *tag_start = nullptr;
@@ -107,13 +109,19 @@ struct hb_svg_xml_parser_t
         p++;
         skip_ws ();
         hb_svg_str_t val = read_attr_value ();
-        hb_svg_attr_t attr = {name, val};
-        attrs.push (attr);
+        if (attrs.length < SVG_MAX_ATTRS_PER_TAG)
+        {
+          hb_svg_attr_t attr = {name, val};
+          attrs.push (attr);
+        }
       }
       else
       {
-        hb_svg_attr_t attr = {name, {}};
-        attrs.push (attr);
+        if (attrs.length < SVG_MAX_ATTRS_PER_TAG)
+        {
+          hb_svg_attr_t attr = {name, {}};
+          attrs.push (attr);
+        }
       }
     }
   }

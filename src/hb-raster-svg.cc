@@ -735,6 +735,10 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 			 hb_face_t *face,
 			 unsigned palette)
 {
+  const unsigned SVG_MAX_GRADIENT_STOPS = 1024;
+  if (grad.stops.length >= SVG_MAX_GRADIENT_STOPS)
+    return true;
+
   hb_svg_attr_view_t attrs (parser);
   hb_svg_str_t style = attrs.get ("style");
   hb_svg_style_props_t style_props;
