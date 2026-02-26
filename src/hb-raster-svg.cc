@@ -1473,6 +1473,40 @@ struct hb_svg_defs_t
   hb_vector_t<hb_svg_clip_shape_t> clip_shapes;
   hb_vector_t<hb_svg_clip_path_def_t> clip_paths;
   hb_vector_t<hb_svg_def_t> defs;
+  hb_hashmap_t<hb_bytes_t, unsigned> gradient_by_id;
+  hb_hashmap_t<hb_bytes_t, unsigned> clip_path_by_id;
+  hb_vector_t<char *> owned_id_strings;
+
+  ~hb_svg_defs_t ()
+  {
+    for (unsigned i = 0; i < owned_id_strings.length; i++)
+      hb_free (owned_id_strings.arrayZ[i]);
+  }
+
+  bool add_id_mapping (hb_hashmap_t<hb_bytes_t, unsigned> *map,
+		       const char *id,
+		       unsigned idx)
+  {
+    hb_bytes_t key = hb_bytes_t (id, (unsigned) strlen (id));
+    if (map->has (key))
+      return true;
+
+    unsigned n = (unsigned) strlen (id);
+    char *owned = (char *) hb_malloc (n + 1);
+    if (unlikely (!owned))
+      return false;
+    hb_memcpy (owned, id, n + 1);
+    if (unlikely (!owned_id_strings.push (owned)))
+    {
+      hb_free (owned);
+      return false;
+    }
+
+    hb_bytes_t owned_key = hb_bytes_t (owned, n);
+    if (unlikely (!map->set (owned_key, idx)))
+      return false;
+    return true;
+  }
 
   bool add_gradient (const char *id, const hb_svg_gradient_t &grad)
   {
@@ -1493,11 +1527,20 @@ struct hb_svg_defs_t
       gradients.pop ();
       return false;
     }
+    if (unlikely (!add_id_mapping (&gradient_by_id, def.id, idx)))
+    {
+      defs.pop ();
+      gradients.pop ();
+      return false;
+    }
     return true;
   }
 
   const hb_svg_gradient_t *find_gradient (const char *id) const
   {
+    unsigned *idx = nullptr;
+    if (id && gradient_by_id.has (hb_bytes_t (id, (unsigned) strlen (id)), &idx))
+      return &gradients[*idx];
     for (unsigned i = 0; i < defs.length; i++)
       if (defs[i].type == hb_svg_def_t::DEF_GRADIENT &&
 	  strcmp (defs[i].id, id) == 0)
@@ -1524,11 +1567,20 @@ struct hb_svg_defs_t
       clip_paths.pop ();
       return false;
     }
+    if (unlikely (!add_id_mapping (&clip_path_by_id, def.id, idx)))
+    {
+      defs.pop ();
+      clip_paths.pop ();
+      return false;
+    }
     return true;
   }
 
   const hb_svg_clip_path_def_t *find_clip_path (const char *id) const
   {
+    unsigned *idx = nullptr;
+    if (id && clip_path_by_id.has (hb_bytes_t (id, (unsigned) strlen (id)), &idx))
+      return &clip_paths[*idx];
     for (unsigned i = 0; i < defs.length; i++)
       if (defs[i].type == hb_svg_def_t::DEF_CLIP_PATH &&
           strcmp (defs[i].id, id) == 0)
