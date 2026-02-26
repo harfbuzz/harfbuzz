@@ -1,0 +1,142 @@
+/*
+ * Copyright © 2026  Behdad Esfahbod
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Author(s): Behdad Esfahbod
+ */
+
+#ifndef HB_RASTER_SVG_BASE_HH
+#define HB_RASTER_SVG_BASE_HH
+
+#include "hb.hh"
+
+#include <string.h>
+#include <stdlib.h>
+
+struct hb_svg_str_t
+{
+  const char *data;
+  unsigned len;
+
+  hb_svg_str_t () : data (nullptr), len (0) {}
+  hb_svg_str_t (const char *d, unsigned l) : data (d), len (l) {}
+
+  bool is_null () const { return !data; }
+
+  bool eq (const char *s) const
+  {
+    unsigned slen = (unsigned) strlen (s);
+    return len == slen && memcmp (data, s, len) == 0;
+  }
+
+  bool starts_with (const char *prefix) const
+  {
+    unsigned plen = (unsigned) strlen (prefix);
+    return len >= plen && memcmp (data, prefix, plen) == 0;
+  }
+
+  bool eq_cstr (const char *s) const
+  {
+    unsigned slen = (unsigned) strlen (s);
+    return len == slen && memcmp (data, s, len) == 0;
+  }
+
+  float to_float () const
+  {
+    if (!data || !len) return 0.f;
+    char buf[64];
+    unsigned n = hb_min (len, (unsigned) sizeof (buf) - 1);
+    memcpy (buf, data, n);
+    buf[n] = '\0';
+    return strtof (buf, nullptr);
+  }
+
+  int to_int () const
+  {
+    if (!data || !len) return 0;
+    char buf[32];
+    unsigned n = hb_min (len, (unsigned) sizeof (buf) - 1);
+    memcpy (buf, data, n);
+    buf[n] = '\0';
+    return atoi (buf);
+  }
+
+  hb_svg_str_t trim_left () const
+  {
+    const char *p = data;
+    unsigned l = len;
+    while (l && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+    {
+      p++;
+      l--;
+    }
+    return {p, l};
+  }
+
+  hb_svg_str_t trim () const
+  {
+    hb_svg_str_t s = trim_left ();
+    while (s.len && (s.data[s.len - 1] == ' ' || s.data[s.len - 1] == '\t' ||
+                     s.data[s.len - 1] == '\n' || s.data[s.len - 1] == '\r'))
+      s.len--;
+    return s;
+  }
+};
+
+struct hb_svg_style_props_t
+{
+  hb_svg_str_t fill;
+  hb_svg_str_t fill_opacity;
+  hb_svg_str_t opacity;
+  hb_svg_str_t transform;
+  hb_svg_str_t clip_path;
+  hb_svg_str_t display;
+  hb_svg_str_t color;
+  hb_svg_str_t visibility;
+  hb_svg_str_t offset;
+  hb_svg_str_t stop_color;
+  hb_svg_str_t stop_opacity;
+};
+
+HB_INTERNAL bool svg_str_eq_ascii_ci (hb_svg_str_t s, const char *lit);
+HB_INTERNAL bool svg_str_starts_with_ascii_ci (hb_svg_str_t s, const char *lit);
+HB_INTERNAL void svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out);
+HB_INTERNAL float svg_parse_number_or_percent (hb_svg_str_t s, bool *is_percent);
+static inline float
+svg_parse_float_clamped01 (hb_svg_str_t s)
+{
+  return hb_clamp (s.to_float (), 0.f, 1.f);
+}
+
+static inline bool
+svg_str_is_inherit (hb_svg_str_t s)
+{
+  return svg_str_eq_ascii_ci (s.trim (), "inherit");
+}
+
+static inline bool
+svg_str_is_none (hb_svg_str_t s)
+{
+  return svg_str_eq_ascii_ci (s.trim (), "none");
+}
+
+#endif /* HB_RASTER_SVG_BASE_HH */
