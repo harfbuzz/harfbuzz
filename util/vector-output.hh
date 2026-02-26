@@ -644,6 +644,97 @@ struct vector_output_t : output_options_t<>, view_options_t
     return end;
   }
 
+  struct parsed_var_color_expr_t
+  {
+    const char *expr_end = nullptr;
+    const char *fallback_begin = nullptr;
+    const char *fallback_end = nullptr;
+    unsigned idx = 0;
+    bool parse_ok = false;
+    bool have_digits = false;
+    bool has_fallback = false;
+  };
+
+  static inline const char *
+  find_next_var_expr (const char *p, const char *end)
+  {
+    for (const char *q = p; q + 4 <= end; q++)
+      if (memcmp (q, "var(", 4) == 0)
+        return q;
+    return nullptr;
+  }
+
+  static inline const char *
+  find_matching_paren (const char *inside, const char *end)
+  {
+    unsigned depth = 1;
+    for (const char *q = inside; q < end; q++)
+    {
+      if (*q == '(') depth++;
+      else if (*q == ')')
+      {
+        depth--;
+        if (!depth)
+          return q;
+      }
+    }
+    return nullptr;
+  }
+
+  static inline parsed_var_color_expr_t
+  parse_var_color_expr (const char *match, const char *end)
+  {
+    parsed_var_color_expr_t parsed;
+    const char *expr_close = find_matching_paren (match + 4, end);
+    if (!expr_close)
+      return parsed;
+
+    parsed.expr_end = expr_close + 1;
+    const char *inside = match + 4;
+    const char *inside_end = expr_close;
+    const char *q = skip_ascii_ws (inside, inside_end);
+    parsed.parse_ok = true;
+
+    if (!(q + 7 <= inside_end && memcmp (q, "--color", 7) == 0))
+      parsed.parse_ok = false;
+    if (parsed.parse_ok)
+      q += 7;
+
+    while (parsed.parse_ok && q < inside_end && *q >= '0' && *q <= '9')
+    {
+      parsed.have_digits = true;
+      parsed.idx = parsed.idx * 10 + (unsigned) (*q - '0');
+      q++;
+    }
+    q = skip_ascii_ws (q, inside_end);
+
+    if (parsed.parse_ok && q < inside_end && *q == ',')
+    {
+      parsed.has_fallback = true;
+      q++;
+      parsed.fallback_begin = skip_ascii_ws (q, inside_end);
+      parsed.fallback_end = trim_ascii_ws_right (parsed.fallback_begin, inside_end);
+      q = inside_end;
+    }
+
+    if (parsed.parse_ok && q != inside_end)
+      parsed.parse_ok = false;
+
+    return parsed;
+  }
+
+  void emit_css_color (hb_color_t color)
+  {
+    unsigned r = hb_color_get_red (color);
+    unsigned g = hb_color_get_green (color);
+    unsigned b = hb_color_get_blue (color);
+    unsigned a = hb_color_get_alpha (color);
+    if (a == 255)
+      fprintf (out_fp, "#%02X%02X%02X", r, g, b);
+    else
+      fprintf (out_fp, "rgba(%u,%u,%u,%.6g)", r, g, b, (double) a / 255.);
+  }
+
   void write_slice_resolving_palette_vars (slice_t s)
   {
     if (!s.p || !s.len)
@@ -653,13 +744,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     const char *end = s.p + s.len;
     while (p < end)
     {
-      const char *match = nullptr;
-      for (const char *q = p; q + 4 <= end; q++)
-        if (memcmp (q, "var(", 4) == 0)
-        {
-          match = q;
-          break;
-        }
+      const char *match = find_next_var_expr (p, end);
 
       if (!match)
       {
@@ -670,87 +755,30 @@ struct vector_output_t : output_options_t<>, view_options_t
       if (match > p)
         fwrite (p, 1, (size_t) (match - p), out_fp);
 
-      const char *expr_close = nullptr;
-      unsigned depth = 1;
-      for (const char *q = match + 4; q < end; q++)
-      {
-        if (*q == '(') depth++;
-        else if (*q == ')')
-        {
-          depth--;
-          if (!depth)
-          {
-            expr_close = q;
-            break;
-          }
-        }
-      }
-
-      if (!expr_close)
+      parsed_var_color_expr_t parsed = parse_var_color_expr (match, end);
+      if (!parsed.expr_end)
       {
         fwrite (match, 1, (size_t) (end - match), out_fp);
         return;
       }
 
-      const char *inside = match + 4;
-      const char *inside_end = expr_close;
-      const char *q = skip_ascii_ws (inside, inside_end);
-      unsigned idx = 0;
-      bool have_digits = false;
-      bool parse_ok = true;
-
-      if (!(q + 7 <= inside_end && memcmp (q, "--color", 7) == 0))
-        parse_ok = false;
-      if (parse_ok)
-        q += 7;
-
-      while (parse_ok && q < inside_end && *q >= '0' && *q <= '9')
-      {
-        have_digits = true;
-        idx = idx * 10 + (unsigned) (*q - '0');
-        q++;
-      }
-      q = skip_ascii_ws (q, inside_end);
-
-      bool has_fallback = false;
-      const char *fallback_begin = nullptr;
-      const char *fallback_end = nullptr;
-      if (parse_ok && q < inside_end && *q == ',')
-      {
-        has_fallback = true;
-        q++;
-        fallback_begin = skip_ascii_ws (q, inside_end);
-        fallback_end = trim_ascii_ws_right (fallback_begin, inside_end);
-        q = inside_end;
-      }
-
-      if (parse_ok && q != inside_end)
-        parse_ok = false;
-
-      const char *expr_end = expr_close + 1;
-
       hb_color_t color;
-      if (parse_ok && have_digits && lookup_palette_color (idx, &color))
+      if (parsed.parse_ok && parsed.have_digits && lookup_palette_color (parsed.idx, &color))
       {
-        unsigned r = hb_color_get_red (color);
-        unsigned g = hb_color_get_green (color);
-        unsigned b = hb_color_get_blue (color);
-        unsigned a = hb_color_get_alpha (color);
-        if (a == 255)
-          fprintf (out_fp, "#%02X%02X%02X", r, g, b);
-        else
-          fprintf (out_fp, "rgba(%u,%u,%u,%.6g)", r, g, b, (double) a / 255.);
+        emit_css_color (color);
       }
-      else if (has_fallback && fallback_begin && fallback_end >= fallback_begin)
+      else if (parsed.has_fallback && parsed.fallback_begin &&
+               parsed.fallback_end >= parsed.fallback_begin)
       {
-        fwrite (fallback_begin, 1, (size_t) (fallback_end - fallback_begin), out_fp);
+        fwrite (parsed.fallback_begin, 1,
+                (size_t) (parsed.fallback_end - parsed.fallback_begin), out_fp);
       }
       else
       {
-        fwrite (match, 1, (size_t) (expr_end - match), out_fp);
+        fwrite (match, 1, (size_t) (parsed.expr_end - match), out_fp);
       }
 
-      p = expr_end;
+      p = parsed.expr_end;
     }
   }
 
