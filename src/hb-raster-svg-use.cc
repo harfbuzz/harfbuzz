@@ -33,7 +33,7 @@
 #include <string.h>
 
 hb_svg_str_t
-svg_find_href_attr (const hb_svg_xml_parser_t &parser)
+hb_raster_svg_find_href_attr (const hb_svg_xml_parser_t &parser)
 {
   hb_svg_str_t href = parser.find_attr ("href");
   if (href.is_null ())
@@ -137,14 +137,14 @@ svg_parse_id_ref (hb_svg_str_t s, char out_id[64])
 }
 
 void
-svg_render_use_element (const hb_svg_use_context_t *ctx,
+hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
                         hb_svg_xml_parser_t &parser,
                         const void *state,
                         hb_svg_str_t transform_str,
                         hb_svg_use_render_cb_t render_cb,
                         void *render_user)
 {
-  hb_svg_str_t href = svg_find_href_attr (parser);
+  hb_svg_str_t href = hb_raster_svg_find_href_attr (parser);
 
   char ref_id[64];
   if (!svg_parse_id_ref (href, ref_id))
@@ -159,7 +159,7 @@ svg_render_use_element (const hb_svg_use_context_t *ctx,
   if (has_use_transform)
   {
     hb_svg_transform_t t;
-    svg_parse_transform (transform_str, &t);
+    hb_raster_svg_parse_transform (transform_str, &t);
     hb_paint_push_transform (ctx->pfuncs, ctx->paint, t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
   }
 

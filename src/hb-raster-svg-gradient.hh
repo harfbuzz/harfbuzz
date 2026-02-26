@@ -34,7 +34,7 @@
 #include "hb-raster-svg-defs.hh"
 
 HB_INTERNAL void
-svg_process_gradient_def (hb_svg_defs_t *defs,
+hb_raster_svg_process_gradient_def (hb_svg_defs_t *defs,
                           hb_svg_xml_parser_t &parser,
                           hb_svg_token_type_t tok,
                           hb_svg_gradient_type_t type,

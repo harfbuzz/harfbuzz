@@ -346,9 +346,9 @@ struct hb_svg_shape_emit_data_t
   float params[6];
 };
 
-HB_INTERNAL bool svg_parse_transform (hb_svg_str_t s, hb_svg_transform_t *out);
-HB_INTERNAL void svg_parse_path_data (hb_svg_str_t d, hb_draw_funcs_t *dfuncs, void *draw_data);
-HB_INTERNAL void svg_shape_path_emit (hb_draw_funcs_t *dfuncs, void *draw_data, void *user_data);
-HB_INTERNAL bool svg_parse_shape_tag (hb_svg_xml_parser_t &parser, hb_svg_shape_emit_data_t *shape);
+HB_INTERNAL bool hb_raster_svg_parse_transform (hb_svg_str_t s, hb_svg_transform_t *out);
+HB_INTERNAL void hb_raster_svg_parse_path_data (hb_svg_str_t d, hb_draw_funcs_t *dfuncs, void *draw_data);
+HB_INTERNAL void hb_raster_svg_shape_path_emit (hb_draw_funcs_t *dfuncs, void *draw_data, void *user_data);
+HB_INTERNAL bool hb_raster_svg_parse_shape_tag (hb_svg_xml_parser_t &parser, hb_svg_shape_emit_data_t *shape);
 
 #endif /* HB_RASTER_SVG_PARSE_HH */

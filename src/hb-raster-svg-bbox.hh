@@ -33,7 +33,7 @@
 #include "hb-raster-svg-parse.hh"
 
 HB_INTERNAL bool
-svg_compute_shape_bbox (const hb_svg_shape_emit_data_t &shape,
+hb_raster_svg_compute_shape_bbox (const hb_svg_shape_emit_data_t &shape,
                         hb_extents_t<> *bbox);
 
 #endif /* HB_RASTER_SVG_BBOX_HH */

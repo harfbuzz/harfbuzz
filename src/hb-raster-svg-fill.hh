@@ -32,7 +32,7 @@
 #include "hb-raster-svg-context.hh"
 
 HB_INTERNAL void
-svg_emit_fill (const hb_svg_fill_context_t *ctx,
+hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
                hb_svg_str_t fill_str,
                float fill_opacity,
                const hb_extents_t<> *object_bbox,

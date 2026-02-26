@@ -81,17 +81,17 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
     {
       if (parser.tag_name.eq ("linearGradient"))
-	svg_process_gradient_def (&ctx->defs, parser, tok, SVG_GRADIENT_LINEAR,
+	hb_raster_svg_process_gradient_def (&ctx->defs, parser, tok, SVG_GRADIENT_LINEAR,
 				  ctx->pfuncs, ctx->paint,
 				  ctx->foreground, hb_font_get_face (ctx->font),
 				  ctx->palette);
       else if (parser.tag_name.eq ("radialGradient"))
-	svg_process_gradient_def (&ctx->defs, parser, tok, SVG_GRADIENT_RADIAL,
+	hb_raster_svg_process_gradient_def (&ctx->defs, parser, tok, SVG_GRADIENT_RADIAL,
 				  ctx->pfuncs, ctx->paint,
 				  ctx->foreground, hb_font_get_face (ctx->font),
 				  ctx->palette);
       else if (parser.tag_name.eq ("clipPath"))
-	svg_process_clip_path_def (&ctx->defs, parser, tok);
+	hb_raster_svg_process_clip_path_def (&ctx->defs, parser, tok);
       else
       {
 	if (tok == SVG_TOKEN_OPEN_TAG)
@@ -118,17 +118,17 @@ svg_render_shape (hb_svg_render_context_t *ctx,
   if (has_transform)
   {
     hb_svg_transform_t t;
-    svg_parse_transform (transform_str, &t);
+    hb_raster_svg_parse_transform (transform_str, &t);
     ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
   }
 
   hb_extents_t<> bbox;
-  bool has_bbox = svg_compute_shape_bbox (shape, &bbox);
-  has_clip_path = svg_push_clip_path_ref (ctx->paint, &ctx->defs, state.clip_path,
+  bool has_bbox = hb_raster_svg_compute_shape_bbox (shape, &bbox);
+  has_clip_path = hb_raster_svg_push_clip_path_ref (ctx->paint, &ctx->defs, state.clip_path,
 					  has_bbox ? &bbox : nullptr);
 
   /* Clip with shape path, then fill */
-  hb_raster_paint_push_clip_path (ctx->paint, svg_shape_path_emit, &shape);
+  hb_raster_paint_push_clip_path (ctx->paint, hb_raster_svg_shape_path_emit, &shape);
 
   /* Default fill is black */
   if (state.fill.is_null ())
@@ -141,7 +141,7 @@ svg_render_shape (hb_svg_render_context_t *ctx,
   else
   {
     hb_svg_fill_context_t fill_ctx = {ctx->paint, ctx->pfuncs, ctx->font, ctx->palette, &ctx->defs};
-    svg_emit_fill (&fill_ctx, state.fill, state.fill_opacity, has_bbox ? &bbox : nullptr, state.color);
+    hb_raster_svg_emit_fill (&fill_ctx, state.fill, state.fill_opacity, has_bbox ? &bbox : nullptr, state.color);
   }
 
   ctx->pop_clip ();
@@ -190,14 +190,14 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
   if (has_transform)
   {
     hb_svg_transform_t t;
-    svg_parse_transform (transform_str, &t);
+    hb_raster_svg_parse_transform (transform_str, &t);
     ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
   }
 
   if (has_viewbox && vb_w > 0 && vb_h > 0)
     ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
 
-  has_clip = svg_push_clip_path_ref (ctx->paint, &ctx->defs, clip_path_str, nullptr);
+  has_clip = hb_raster_svg_push_clip_path_ref (ctx->paint, &ctx->defs, clip_path_str, nullptr);
 
   if (!self_closing)
   {
@@ -444,7 +444,7 @@ svg_render_element (hb_svg_render_context_t *ctx,
   state.color = inherited.color;
   bool is_none = false;
   if (color_str.len && !svg_str_eq_ascii_ci (color_str.trim (), "inherit"))
-    state.color = svg_parse_color (color_str, ctx->pfuncs, ctx->paint,
+    state.color = hb_raster_svg_parse_color (color_str, ctx->pfuncs, ctx->paint,
 				   inherited.color, hb_font_get_face (ctx->font),
 				   ctx->palette, &is_none);
   state.visibility = inherited.visibility;
@@ -484,7 +484,7 @@ svg_render_element (hb_svg_render_context_t *ctx,
     hb_svg_use_context_t use_ctx = {ctx->paint, ctx->pfuncs,
 				    ctx->doc_start, ctx->doc_len,
 				    ctx->svg_accel, ctx->doc_cache};
-    svg_render_use_element (&use_ctx, parser, &state, transform_str,
+    hb_raster_svg_render_use_element (&use_ctx, parser, &state, transform_str,
 			    svg_render_use_callback, ctx);
   }
 
@@ -554,17 +554,17 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
       if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
       {
 	if (defs_parser.tag_name.eq ("linearGradient"))
-	  svg_process_gradient_def (&ctx.defs, defs_parser, tok, SVG_GRADIENT_LINEAR,
+	  hb_raster_svg_process_gradient_def (&ctx.defs, defs_parser, tok, SVG_GRADIENT_LINEAR,
 				    ctx.pfuncs, ctx.paint,
 				    ctx.foreground, hb_font_get_face (ctx.font),
 				    ctx.palette);
 	else if (defs_parser.tag_name.eq ("radialGradient"))
-	  svg_process_gradient_def (&ctx.defs, defs_parser, tok, SVG_GRADIENT_RADIAL,
+	  hb_raster_svg_process_gradient_def (&ctx.defs, defs_parser, tok, SVG_GRADIENT_RADIAL,
 				    ctx.pfuncs, ctx.paint,
 				    ctx.foreground, hb_font_get_face (ctx.font),
 				    ctx.palette);
 	else if (defs_parser.tag_name.eq ("clipPath"))
-	  svg_process_clip_path_def (&ctx.defs, defs_parser, tok);
+	  hb_raster_svg_process_clip_path_def (&ctx.defs, defs_parser, tok);
       }
     }
   }

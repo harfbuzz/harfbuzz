@@ -30,7 +30,7 @@
 
 #include <math.h>
 bool
-svg_parse_transform (hb_svg_str_t s, hb_svg_transform_t *out)
+hb_raster_svg_parse_transform (hb_svg_str_t s, hb_svg_transform_t *out)
 {
   hb_svg_float_parser_t fp (s);
 
@@ -232,7 +232,7 @@ svg_arc_endpoint_to_center (float x1, float y1, float x2, float y2,
 }
 
 void
-svg_parse_path_data (hb_svg_str_t d, hb_draw_funcs_t *dfuncs, void *draw_data)
+hb_raster_svg_parse_path_data (hb_svg_str_t d, hb_draw_funcs_t *dfuncs, void *draw_data)
 {
   hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
   hb_svg_float_parser_t fp (d);
@@ -536,13 +536,13 @@ svg_polygon_to_path (hb_svg_str_t points, bool close,
 }
 
 void
-svg_shape_path_emit (hb_draw_funcs_t *dfuncs, void *draw_data, void *user_data)
+hb_raster_svg_shape_path_emit (hb_draw_funcs_t *dfuncs, void *draw_data, void *user_data)
 {
   hb_svg_shape_emit_data_t *shape = (hb_svg_shape_emit_data_t *) user_data;
   switch (shape->type)
   {
   case hb_svg_shape_emit_data_t::SHAPE_PATH:
-    svg_parse_path_data (shape->str_data, dfuncs, draw_data);
+    hb_raster_svg_parse_path_data (shape->str_data, dfuncs, draw_data);
     break;
   case hb_svg_shape_emit_data_t::SHAPE_RECT:
     svg_rect_to_path (shape->params[0], shape->params[1],
@@ -574,7 +574,7 @@ svg_shape_path_emit (hb_draw_funcs_t *dfuncs, void *draw_data, void *user_data)
 }
 
 bool
-svg_parse_shape_tag (hb_svg_xml_parser_t &parser,
+hb_raster_svg_parse_shape_tag (hb_svg_xml_parser_t &parser,
                      hb_svg_shape_emit_data_t *shape)
 {
   hb_svg_attr_view_t attrs (parser);

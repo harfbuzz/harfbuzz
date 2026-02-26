@@ -63,7 +63,7 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
   if (color_str.len && !svg_str_is_inherit (color_str))
   {
     is_current_color = svg_str_eq_ascii_ci (color_str.trim (), "currentColor");
-    color = svg_parse_color (color_str, pfuncs, paint_data, foreground, face, palette, &is_none);
+    color = hb_raster_svg_parse_color (color_str, pfuncs, paint_data, foreground, face, palette, &is_none);
   }
 
   if (opacity_str.len && !svg_str_is_inherit (opacity_str))
@@ -84,7 +84,7 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
 }
 
 static hb_svg_str_t
-svg_find_href_attr (const hb_svg_xml_parser_t &parser)
+hb_raster_svg_find_href_attr (const hb_svg_xml_parser_t &parser)
 {
   hb_svg_str_t href = parser.find_attr ("href");
   if (href.is_null ())
@@ -142,10 +142,10 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
   if (transform_str.len)
   {
     grad.has_gradient_transform = true;
-    svg_parse_transform (transform_str, &grad.gradient_transform);
+    hb_raster_svg_parse_transform (transform_str, &grad.gradient_transform);
   }
 
-  hb_svg_str_t href = svg_find_href_attr (parser);
+  hb_svg_str_t href = hb_raster_svg_find_href_attr (parser);
   if (href.len)
     (void) svg_parse_fragment_id (href, grad.href_id);
 }
@@ -218,7 +218,7 @@ svg_parse_gradient_children (hb_svg_defs_t *defs,
 }
 
 void
-svg_process_gradient_def (hb_svg_defs_t *defs,
+hb_raster_svg_process_gradient_def (hb_svg_defs_t *defs,
                           hb_svg_xml_parser_t &parser,
                           hb_svg_token_type_t tok,
                           hb_svg_gradient_type_t type,

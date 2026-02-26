@@ -36,7 +36,7 @@
 #include <string.h>
 
 void
-svg_process_clip_path_def (hb_svg_defs_t *defs,
+hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
                            hb_svg_xml_parser_t &parser,
                            hb_svg_token_type_t tok)
 {
@@ -52,7 +52,7 @@ svg_process_clip_path_def (hb_svg_defs_t *defs,
   if (cp_transform.len)
   {
     clip.has_clip_transform = true;
-    svg_parse_transform (cp_transform, &clip.clip_transform);
+    hb_raster_svg_parse_transform (cp_transform, &clip.clip_transform);
   }
 
   clip.first_shape = defs->clip_shapes.length;
@@ -72,7 +72,7 @@ svg_process_clip_path_def (hb_svg_defs_t *defs,
         if (cdepth == 1)
         {
           hb_svg_shape_emit_data_t shape;
-          if (svg_parse_shape_tag (parser, &shape))
+          if (hb_raster_svg_parse_shape_tag (parser, &shape))
           {
             hb_svg_clip_shape_t clip_shape;
             clip_shape.shape = shape;
@@ -80,7 +80,7 @@ svg_process_clip_path_def (hb_svg_defs_t *defs,
             if (sh_transform.len)
             {
               clip_shape.has_transform = true;
-              svg_parse_transform (sh_transform, &clip_shape.transform);
+              hb_raster_svg_parse_transform (sh_transform, &clip_shape.transform);
             }
             defs->clip_shapes.push (clip_shape);
             if (likely (!defs->clip_shapes.in_error ()))
@@ -145,7 +145,7 @@ svg_clip_path_emit (hb_draw_funcs_t *dfuncs,
     hb_raster_draw_set_transform (rdr, t.xx, t.yx, t.xy, t.yy, t.x0, t.y0);
 
     hb_svg_shape_emit_data_t shape = s.shape;
-    svg_shape_path_emit (dfuncs, draw_data, &shape);
+    hb_raster_svg_shape_path_emit (dfuncs, draw_data, &shape);
   }
 }
 
@@ -210,7 +210,7 @@ svg_parse_clip_path_id_ref (hb_svg_str_t s, char out_id[64])
 }
 
 bool
-svg_push_clip_path_ref (hb_raster_paint_t *paint,
+hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
                         hb_svg_defs_t *defs,
                         hb_svg_str_t clip_path_str,
                         const hb_extents_t<> *object_bbox)

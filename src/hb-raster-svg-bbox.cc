@@ -93,12 +93,12 @@ svg_bbox_draw_funcs ()
 }
 
 bool
-svg_compute_shape_bbox (const hb_svg_shape_emit_data_t &shape,
+hb_raster_svg_compute_shape_bbox (const hb_svg_shape_emit_data_t &shape,
                         hb_extents_t<> *bbox)
 {
   hb_extents_t<> ext;
   hb_svg_shape_emit_data_t tmp = shape;
-  svg_shape_path_emit (svg_bbox_draw_funcs (), &ext, &tmp);
+  hb_raster_svg_shape_path_emit (svg_bbox_draw_funcs (), &ext, &tmp);
   if (ext.is_empty ()) return false;
   *bbox = ext;
   return true;

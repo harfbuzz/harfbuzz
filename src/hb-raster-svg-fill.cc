@@ -156,7 +156,7 @@ svg_parse_paint_url_with_fallback (hb_svg_str_t s,
 }
 
 void
-svg_emit_fill (const hb_svg_fill_context_t *ctx,
+hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
                hb_svg_str_t fill_str,
                float fill_opacity,
                const hb_extents_t<> *object_bbox,
@@ -172,7 +172,7 @@ svg_emit_fill (const hb_svg_fill_context_t *ctx,
   if (has_url_paint && !grad)
   {
     if (fallback_paint.len)
-      svg_emit_fill (ctx, fallback_paint, fill_opacity, object_bbox, current_color);
+      hb_raster_svg_emit_fill (ctx, fallback_paint, fill_opacity, object_bbox, current_color);
     return;
   }
   if (grad)
@@ -286,7 +286,7 @@ svg_emit_fill (const hb_svg_fill_context_t *ctx,
     return;
   }
 
-  hb_color_t color = svg_parse_color (fill_str,
+  hb_color_t color = hb_raster_svg_parse_color (fill_str,
                                       ctx->pfuncs,
                                       ctx->paint,
                                       current_color,

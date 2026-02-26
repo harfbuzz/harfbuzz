@@ -35,12 +35,12 @@
 struct hb_raster_paint_t;
 
 HB_INTERNAL void
-svg_process_clip_path_def (hb_svg_defs_t *defs,
+hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
                            hb_svg_xml_parser_t &parser,
                            hb_svg_token_type_t tok);
 
 HB_INTERNAL bool
-svg_push_clip_path_ref (hb_raster_paint_t *paint,
+hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
                         hb_svg_defs_t *defs,
                         hb_svg_str_t clip_path_str,
                         const hb_extents_t<> *object_bbox);

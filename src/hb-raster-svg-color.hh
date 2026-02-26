@@ -33,7 +33,7 @@
 #include "hb-raster-svg-base.hh"
 
 HB_INTERNAL hb_color_t
-svg_parse_color (hb_svg_str_t s,
+hb_raster_svg_parse_color (hb_svg_str_t s,
                  hb_paint_funcs_t *pfuncs,
                  void *paint_data,
                  hb_color_t foreground,

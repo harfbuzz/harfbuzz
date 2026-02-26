@@ -204,7 +204,7 @@ hexval (char c)
 /* Parse SVG color value; returns HB_COLOR with alpha = 255.
  * Sets *is_none if "none". */
 hb_color_t
-svg_parse_color (hb_svg_str_t s,
+hb_raster_svg_parse_color (hb_svg_str_t s,
 		 hb_paint_funcs_t *pfuncs,
 		 void *paint_data,
 		 hb_color_t foreground,
@@ -261,7 +261,7 @@ svg_parse_color (hb_svg_str_t s,
       while (e > val_start && *(e - 1) != ')') e--;
       if (e > val_start) e--;
       hb_svg_str_t fallback = {val_start, (unsigned) (e - val_start)};
-      return svg_parse_color (fallback, pfuncs, paint_data, foreground, face, palette, is_none);
+      return hb_raster_svg_parse_color (fallback, pfuncs, paint_data, foreground, face, palette, is_none);
     }
 
     return foreground;
