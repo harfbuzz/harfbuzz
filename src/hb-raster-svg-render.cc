@@ -178,7 +178,9 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 	    hb_svg_defs_scan_context_t scan_ctx = {
 	      &ctx->defs, ctx->pfuncs, ctx->paint,
 	      ctx->foreground, hb_font_get_face (ctx->font),
-	      ctx->palette
+	      ctx->palette,
+	      ctx->doc_start, ctx->doc_len,
+	      ctx->svg_accel, ctx->doc_cache
 	    };
 	    hb_raster_svg_process_defs_element (&scan_ctx, parser);
 	  }
@@ -509,7 +511,9 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   hb_svg_defs_scan_context_t scan_ctx = {
     &ctx.defs, ctx.pfuncs, ctx.paint,
     ctx.foreground, hb_font_get_face (ctx.font),
-    ctx.palette
+    ctx.palette,
+    ctx.doc_start, ctx.doc_len,
+    ctx.svg_accel, ctx.doc_cache
   };
   hb_raster_svg_collect_defs (&scan_ctx, data, data_len);
 

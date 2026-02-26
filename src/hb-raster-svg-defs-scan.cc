@@ -54,7 +54,9 @@ hb_raster_svg_process_defs_child_tag (const hb_svg_defs_scan_context_t *ctx,
   }
   if (parser.tag_name.eq ("clipPath"))
   {
-    hb_raster_svg_process_clip_path_def (ctx->defs, parser, tok);
+    hb_raster_svg_process_clip_path_def (ctx->defs, parser, tok,
+                                         ctx->doc_start, ctx->doc_len,
+                                         ctx->svg_accel, ctx->doc_cache);
     return true;
   }
   return false;

@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 
+#include "OT/Color/svg/svg.hh"
 #include "hb-raster-svg-defs.hh"
 
 struct hb_svg_defs_scan_context_t
@@ -39,6 +40,10 @@ struct hb_svg_defs_scan_context_t
   hb_color_t foreground;
   hb_face_t *face;
   unsigned palette;
+  const char *doc_start;
+  unsigned doc_len;
+  const OT::SVG::accelerator_t *svg_accel;
+  const OT::SVG::svg_doc_cache_t *doc_cache;
 };
 
 HB_INTERNAL void

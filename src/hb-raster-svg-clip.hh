@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 
+#include "OT/Color/svg/svg.hh"
 #include "hb-paint.hh"
 #include "hb-raster-svg-defs.hh"
 
@@ -37,7 +38,11 @@ struct hb_raster_paint_t;
 HB_INTERNAL void
 hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
                            hb_svg_xml_parser_t &parser,
-                           hb_svg_token_type_t tok);
+                           hb_svg_token_type_t tok,
+                           const char *doc_start,
+                           unsigned doc_len,
+                           const OT::SVG::accelerator_t *svg_accel,
+                           const OT::SVG::svg_doc_cache_t *doc_cache);
 
 HB_INTERNAL bool
 hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
