@@ -351,6 +351,14 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
     return;
   }
 
+  /* Definitions are not directly renderable clip geometry. */
+  if (parser.tag_name.eq ("defs"))
+  {
+    if (!parser.self_closing)
+      svg_skip_subtree (parser);
+    return;
+  }
+
   hb_svg_transform_t effective = base_transform;
   hb_svg_transform_t local_t;
   if (svg_parse_element_transform (parser, &local_t))
@@ -450,6 +458,22 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
       if (ct == SVG_TOKEN_CLOSE_TAG) { cdepth--; continue; }
       if (ct == SVG_TOKEN_OPEN_TAG || ct == SVG_TOKEN_SELF_CLOSE_TAG)
       {
+        if (parser.tag_name.eq ("defs"))
+        {
+          if (ct == SVG_TOKEN_OPEN_TAG)
+          {
+            int skip_depth = 1;
+            while (skip_depth > 0)
+            {
+              hb_svg_token_type_t st = parser.next ();
+              if (st == SVG_TOKEN_EOF) break;
+              if (st == SVG_TOKEN_CLOSE_TAG) skip_depth--;
+              else if (st == SVG_TOKEN_OPEN_TAG) skip_depth++;
+            }
+          }
+          continue;
+        }
+
         hb_svg_style_props_t visibility_style_props;
         svg_parse_style_props (parser.find_attr ("style"), &visibility_style_props);
         hb_svg_str_t display_str = svg_pick_attr_or_style (parser, visibility_style_props.display, "display");
