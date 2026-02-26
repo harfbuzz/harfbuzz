@@ -212,6 +212,12 @@ svg_str_is_inherit (hb_svg_str_t s)
   return svg_str_eq_ascii_ci (s.trim (), "inherit");
 }
 
+static bool
+svg_str_is_none (hb_svg_str_t s)
+{
+  return svg_str_eq_ascii_ci (s.trim (), "none");
+}
+
 
 /*
  * 2. Minimal XML tokenizer
@@ -1674,6 +1680,67 @@ struct hb_svg_render_context_t
   }
 };
 
+static bool
+svg_parse_paint_url_with_fallback (hb_svg_str_t s,
+				   char out_id[64],
+				   hb_svg_str_t *fallback)
+{
+  if (fallback) *fallback = {};
+  s = s.trim ();
+  if (!svg_str_starts_with_ascii_ci (s, "url("))
+    return false;
+
+  const char *p = s.data + 4;
+  const char *end = s.data + s.len;
+  while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
+
+  const char *q = p;
+  char quote = 0;
+  while (q < end)
+  {
+    char c = *q;
+    if (quote)
+    {
+      if (c == quote) quote = 0;
+    }
+    else
+    {
+      if (c == '"' || c == '\'') quote = c;
+      else if (c == ')') break;
+    }
+    q++;
+  }
+  if (q >= end || *q != ')')
+    return false;
+
+  const char *id_b = p;
+  const char *id_e = q;
+  while (id_b < id_e && (*id_b == ' ' || *id_b == '\t' || *id_b == '\n' || *id_b == '\r')) id_b++;
+  while (id_e > id_b && (*(id_e - 1) == ' ' || *(id_e - 1) == '\t' || *(id_e - 1) == '\n' || *(id_e - 1) == '\r')) id_e--;
+  if (id_e > id_b && ((*id_b == '\'' && *(id_e - 1) == '\'') || (*id_b == '"' && *(id_e - 1) == '"')))
+  {
+    id_b++;
+    id_e--;
+  }
+  while (id_b < id_e && (*id_b == ' ' || *id_b == '\t' || *id_b == '\n' || *id_b == '\r')) id_b++;
+  while (id_e > id_b && (*(id_e - 1) == ' ' || *(id_e - 1) == '\t' || *(id_e - 1) == '\n' || *(id_e - 1) == '\r')) id_e--;
+  if (id_b < id_e && *id_b == '#') id_b++;
+  if (id_b >= id_e)
+    return false;
+
+  unsigned n = hb_min ((unsigned) (id_e - id_b), (unsigned) 63);
+  memcpy (out_id, id_b, n);
+  out_id[n] = '\0';
+
+  if (fallback)
+  {
+    const char *f = q + 1;
+    while (f < end && (*f == ' ' || *f == '\t' || *f == '\n' || *f == '\r')) f++;
+    if (f < end) *fallback = {f, (unsigned) (end - f)};
+  }
+  return true;
+}
+
 
 /*
  * Emit fill (solid or gradient)
@@ -1688,8 +1755,19 @@ svg_emit_fill (hb_svg_render_context_t *ctx,
 {
   bool is_none = false;
 
+  char url_id[64];
+  hb_svg_str_t fallback_paint;
+  bool has_url_paint = svg_parse_paint_url_with_fallback (fill_str, url_id, &fallback_paint);
+
   /* Check for gradient reference */
-  const hb_svg_gradient_t *grad = ctx->defs.find_gradient_str (fill_str);
+  const hb_svg_gradient_t *grad = has_url_paint ? ctx->defs.find_gradient (url_id)
+						: ctx->defs.find_gradient_str (fill_str);
+  if (has_url_paint && !grad)
+  {
+    if (fallback_paint.len)
+      svg_emit_fill (ctx, fallback_paint, fill_opacity, object_bbox, current_color);
+    return;
+  }
   if (grad)
   {
     /* Resolve href chain and inherit unspecified attributes from references. */
@@ -2827,10 +2905,14 @@ svg_render_element (hb_svg_render_context_t *ctx,
   float fill_opacity = (fill_opacity_str.len && !svg_str_is_inherit (fill_opacity_str))
 		       ? svg_parse_float_clamped01 (fill_opacity_str)
 		       : inherited_fill_opacity;
-  float opacity = opacity_str.len ? svg_parse_float_clamped01 (opacity_str) : 1.f;
+  float opacity = (opacity_str.len && !svg_str_is_inherit (opacity_str) && !svg_str_is_none (opacity_str))
+		  ? svg_parse_float_clamped01 (opacity_str)
+		  : 1.f;
   hb_svg_str_t clip_path_str = (clip_path_attr.is_null () || svg_str_is_inherit (clip_path_attr))
 			       ? inherited_clip_path
 			       : clip_path_attr;
+  if (svg_str_is_inherit (transform_str) || svg_str_is_none (transform_str))
+    transform_str = {};
   hb_color_t current_color = inherited_color;
   bool is_none = false;
   if (color_str.len && !svg_str_eq_ascii_ci (color_str.trim (), "inherit"))
