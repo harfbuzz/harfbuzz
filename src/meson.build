@@ -720,11 +720,12 @@ hb_raster_sources = [
   'hb-raster-svg-use.cc',
   'hb-raster-svg-use.hh',
   'hb-raster-svg-render.cc',
+  'hb-raster-svg-color.cc',
+  'hb-raster-svg-color.hh',
   'hb-raster-svg-parse.cc',
   'hb-raster-svg-parse.hh',
   'hb-raster-paint.cc',
   'hb-raster-paint.hh',
-  'hb-raster-svg.cc',
   'hb-raster-svg.hh',
   'hb-static.cc',
 ]

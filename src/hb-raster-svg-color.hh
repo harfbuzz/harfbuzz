@@ -24,24 +24,21 @@
  * Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_RASTER_SVG_GRADIENT_HH
-#define HB_RASTER_SVG_GRADIENT_HH
+#ifndef HB_RASTER_SVG_COLOR_HH
+#define HB_RASTER_SVG_COLOR_HH
 
 #include "hb.hh"
 
 #include "hb-face.hh"
-#include "hb-raster-svg-color.hh"
-#include "hb-raster-svg-defs.hh"
+#include "hb-raster-svg-base.hh"
 
-HB_INTERNAL void
-svg_process_gradient_def (hb_svg_defs_t *defs,
-                          hb_svg_xml_parser_t &parser,
-                          hb_svg_token_type_t tok,
-                          hb_svg_gradient_type_t type,
-                          hb_paint_funcs_t *pfuncs,
-                          void *paint_data,
-                          hb_color_t foreground,
-                          hb_face_t *face,
-                          unsigned palette);
+HB_INTERNAL hb_color_t
+svg_parse_color (hb_svg_str_t s,
+                 hb_paint_funcs_t *pfuncs,
+                 void *paint_data,
+                 hb_color_t foreground,
+                 hb_face_t *face,
+                 unsigned palette,
+                 bool *is_none);
 
-#endif /* HB_RASTER_SVG_GRADIENT_HH */
+#endif /* HB_RASTER_SVG_COLOR_HH */
