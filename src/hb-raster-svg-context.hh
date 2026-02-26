@@ -71,6 +71,7 @@ struct hb_svg_render_context_t
   const OT::SVG::accelerator_t *svg_accel = nullptr;
   const OT::SVG::svg_doc_cache_t *doc_cache = nullptr;
   hb_decycler_t use_decycler;
+  bool suppress_viewbox_once = false;
 
   void push_transform (float xx, float yx, float xy, float yy, float dx, float dy)
   {

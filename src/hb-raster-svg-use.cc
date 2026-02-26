@@ -117,7 +117,7 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
       hb_svg_token_type_t tok = ref_parser.next ();
       if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
       {
-      bool has_viewport_scale = false;
+        bool has_viewport_scale = false;
       if (ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol"))
       {
         float viewport_w = use_w;
@@ -138,7 +138,7 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
             has_viewport_scale = true;
           }
         }
-        render_cb (render_user, ref_parser, state);
+        render_cb (render_user, ref_parser, state, has_viewport_scale);
         if (has_viewport_scale)
           hb_paint_pop_transform (ctx->pfuncs, ctx->paint);
       }

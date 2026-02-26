@@ -167,6 +167,13 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
     }
   }
 
+  if (ctx->suppress_viewbox_once)
+  {
+    has_viewbox = false;
+    has_viewbox_transform = false;
+    ctx->suppress_viewbox_once = false;
+  }
+
   if (has_opacity)
     ctx->push_group ();
 
@@ -380,11 +387,15 @@ svg_render_primitive_shape_element (hb_svg_render_context_t *ctx,
 static void
 svg_render_use_callback (void *render_user,
 			 hb_svg_xml_parser_t &parser,
-			 const void *state)
+			 const void *state,
+			 bool viewport_mapped)
 {
-  svg_render_element ((hb_svg_render_context_t *) render_user,
-		      parser,
-		      *(const hb_svg_cascade_t *) state);
+  hb_svg_render_context_t *ctx = (hb_svg_render_context_t *) render_user;
+  bool old_suppress = ctx->suppress_viewbox_once;
+  if (viewport_mapped)
+    ctx->suppress_viewbox_once = true;
+  svg_render_element (ctx, parser, *(const hb_svg_cascade_t *) state);
+  ctx->suppress_viewbox_once = old_suppress;
 }
 
 static void
