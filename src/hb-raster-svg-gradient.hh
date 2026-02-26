@@ -29,7 +29,6 @@
 
 #include "hb.hh"
 
-#include "hb-face.hh"
 #include "hb-raster-svg-color.hh"
 #include "hb-raster-svg-defs.hh"
 

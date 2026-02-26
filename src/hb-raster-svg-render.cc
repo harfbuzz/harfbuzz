@@ -27,21 +27,15 @@
 #include "hb.hh"
 
 #include "hb-face.hh"
-#include "hb-raster.h"
-#include "hb-raster-paint.hh"
 #include "hb-raster-svg.hh"
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-parse.hh"
-#include "hb-raster-svg-defs.hh"
 #include "hb-raster-svg-context.hh"
 #include "hb-raster-svg-gradient.hh"
 #include "hb-raster-svg-clip.hh"
 #include "hb-raster-svg-bbox.hh"
 #include "hb-raster-svg-fill.hh"
 #include "hb-raster-svg-use.hh"
-#include "OT/Color/svg/svg.hh"
-#include "hb-draw.h"
-#include "hb-ot-color.h"
 
 #include <assert.h>
 #include <stdio.h>

@@ -29,7 +29,7 @@
 #include "hb-raster-svg-fill.hh"
 
 #include "hb-raster-svg-base.hh"
-#include "hb-raster-svg-gradient.hh"
+#include "hb-raster-svg-color.hh"
 
 #include <string.h>
 
