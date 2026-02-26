@@ -216,17 +216,17 @@ hb_raster_svg_parse_color (hb_svg_str_t s,
   s = s.trim ();
   if (!s.len) { *is_none = true; return HB_COLOR (0, 0, 0, 0); }
 
-  if (svg_str_eq_ascii_ci (s, "none") || svg_str_eq_ascii_ci (s, "transparent"))
+  if (s.eq_ascii_ci ("none") || s.eq_ascii_ci ("transparent"))
   {
     *is_none = true;
     return HB_COLOR (0, 0, 0, 0);
   }
 
-  if (svg_str_eq_ascii_ci (s, "currentColor"))
+  if (s.eq_ascii_ci ("currentColor"))
     return foreground;
 
   /* var(--colorN) → CPAL palette color */
-  if (svg_str_starts_with_ascii_ci (s, "var("))
+  if (s.starts_with_ascii_ci ("var("))
   {
     const char *p = s.data + 4;
     const char *e = s.data + s.len;

@@ -353,17 +353,17 @@ svg_render_element (hb_svg_render_context_t *ctx,
     transform_str = {};
   state.color = inherited.color;
   bool is_none = false;
-  if (color_str.len && !svg_str_eq_ascii_ci (color_str.trim (), "inherit"))
+  if (color_str.len && !color_str.trim ().eq_ascii_ci ("inherit"))
     state.color = hb_raster_svg_parse_color (color_str, ctx->pfuncs, ctx->paint,
 				   inherited.color, hb_font_get_face (ctx->font),
 				   ctx->palette, &is_none);
   state.visibility = inherited.visibility;
   hb_svg_str_t visibility_trim = visibility_str.trim ();
-  if (visibility_trim.len && !svg_str_eq_ascii_ci (visibility_trim, "inherit"))
-    state.visibility = !(svg_str_eq_ascii_ci (visibility_trim, "hidden") ||
-			 svg_str_eq_ascii_ci (visibility_trim, "collapse"));
+  if (visibility_trim.len && !visibility_trim.eq_ascii_ci ("inherit"))
+    state.visibility = !(visibility_trim.eq_ascii_ci ("hidden") ||
+			 visibility_trim.eq_ascii_ci ("collapse"));
 
-  if (svg_str_eq_ascii_ci (display_str.trim (), "none"))
+  if (display_str.trim ().eq_ascii_ci ("none"))
   {
     if (!self_closing)
       svg_skip_subtree (parser);

@@ -156,8 +156,6 @@ struct hb_svg_style_props_t
 struct hb_svg_xml_parser_t;
 struct hb_svg_transform_t;
 
-HB_INTERNAL bool svg_str_eq_ascii_ci (hb_svg_str_t s, const char *lit);
-HB_INTERNAL bool svg_str_starts_with_ascii_ci (hb_svg_str_t s, const char *lit);
 HB_INTERNAL void svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out);
 HB_INTERNAL float svg_parse_number_or_percent (hb_svg_str_t s, bool *is_percent);
 HB_INTERNAL hb_svg_str_t hb_raster_svg_find_href_attr (const hb_svg_xml_parser_t &parser);
@@ -205,13 +203,13 @@ svg_parse_float_clamped01 (hb_svg_str_t s)
 static inline bool
 svg_str_is_inherit (hb_svg_str_t s)
 {
-  return svg_str_eq_ascii_ci (s.trim (), "inherit");
+  return s.trim ().eq_ascii_ci ("inherit");
 }
 
 static inline bool
 svg_str_is_none (hb_svg_str_t s)
 {
-  return svg_str_eq_ascii_ci (s.trim (), "none");
+  return s.trim ().eq_ascii_ci ("none");
 }
 
 static inline bool

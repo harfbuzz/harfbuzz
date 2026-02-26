@@ -29,18 +29,6 @@
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-parse.hh"
 
-bool
-svg_str_eq_ascii_ci (hb_svg_str_t s, const char *lit)
-{
-  return s.eq_ascii_ci (lit);
-}
-
-bool
-svg_str_starts_with_ascii_ci (hb_svg_str_t s, const char *lit)
-{
-  return s.starts_with_ascii_ci (lit);
-}
-
 void
 svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out)
 {
@@ -78,41 +66,41 @@ svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out)
 
     hb_svg_str_t prop_name = {name_start, (unsigned) (name_end - name_start)};
     hb_svg_str_t prop_value = {value_start, (unsigned) (value_end - value_start)};
-    if (svg_str_eq_ascii_ci (prop_name, "fill")) out->fill = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "fill-opacity")) out->fill_opacity = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "opacity")) out->opacity = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "transform")) out->transform = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "clip-path")) out->clip_path = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "display")) out->display = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "color")) out->color = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "visibility")) out->visibility = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "offset")) out->offset = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "stop-color")) out->stop_color = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "stop-opacity")) out->stop_opacity = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "spreadmethod") ||
-             svg_str_eq_ascii_ci (prop_name, "spread-method")) out->spread_method = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "gradientunits") ||
-             svg_str_eq_ascii_ci (prop_name, "gradient-units")) out->gradient_units = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "gradienttransform") ||
-             svg_str_eq_ascii_ci (prop_name, "gradient-transform")) out->gradient_transform = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "x")) out->x = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "y")) out->y = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "width")) out->width = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "height")) out->height = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "cx")) out->cx = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "cy")) out->cy = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "r")) out->r = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "fx")) out->fx = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "fy")) out->fy = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "fr")) out->fr = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "rx")) out->rx = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "ry")) out->ry = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "x1")) out->x1 = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "y1")) out->y1 = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "x2")) out->x2 = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "y2")) out->y2 = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "points")) out->points = prop_value;
-    else if (svg_str_eq_ascii_ci (prop_name, "d")) out->d = prop_value;
+    if (prop_name.eq_ascii_ci ("fill")) out->fill = prop_value;
+    else if (prop_name.eq_ascii_ci ("fill-opacity")) out->fill_opacity = prop_value;
+    else if (prop_name.eq_ascii_ci ("opacity")) out->opacity = prop_value;
+    else if (prop_name.eq_ascii_ci ("transform")) out->transform = prop_value;
+    else if (prop_name.eq_ascii_ci ("clip-path")) out->clip_path = prop_value;
+    else if (prop_name.eq_ascii_ci ("display")) out->display = prop_value;
+    else if (prop_name.eq_ascii_ci ("color")) out->color = prop_value;
+    else if (prop_name.eq_ascii_ci ("visibility")) out->visibility = prop_value;
+    else if (prop_name.eq_ascii_ci ("offset")) out->offset = prop_value;
+    else if (prop_name.eq_ascii_ci ("stop-color")) out->stop_color = prop_value;
+    else if (prop_name.eq_ascii_ci ("stop-opacity")) out->stop_opacity = prop_value;
+    else if (prop_name.eq_ascii_ci ("spreadmethod") ||
+             prop_name.eq_ascii_ci ("spread-method")) out->spread_method = prop_value;
+    else if (prop_name.eq_ascii_ci ("gradientunits") ||
+             prop_name.eq_ascii_ci ("gradient-units")) out->gradient_units = prop_value;
+    else if (prop_name.eq_ascii_ci ("gradienttransform") ||
+             prop_name.eq_ascii_ci ("gradient-transform")) out->gradient_transform = prop_value;
+    else if (prop_name.eq_ascii_ci ("x")) out->x = prop_value;
+    else if (prop_name.eq_ascii_ci ("y")) out->y = prop_value;
+    else if (prop_name.eq_ascii_ci ("width")) out->width = prop_value;
+    else if (prop_name.eq_ascii_ci ("height")) out->height = prop_value;
+    else if (prop_name.eq_ascii_ci ("cx")) out->cx = prop_value;
+    else if (prop_name.eq_ascii_ci ("cy")) out->cy = prop_value;
+    else if (prop_name.eq_ascii_ci ("r")) out->r = prop_value;
+    else if (prop_name.eq_ascii_ci ("fx")) out->fx = prop_value;
+    else if (prop_name.eq_ascii_ci ("fy")) out->fy = prop_value;
+    else if (prop_name.eq_ascii_ci ("fr")) out->fr = prop_value;
+    else if (prop_name.eq_ascii_ci ("rx")) out->rx = prop_value;
+    else if (prop_name.eq_ascii_ci ("ry")) out->ry = prop_value;
+    else if (prop_name.eq_ascii_ci ("x1")) out->x1 = prop_value;
+    else if (prop_name.eq_ascii_ci ("y1")) out->y1 = prop_value;
+    else if (prop_name.eq_ascii_ci ("x2")) out->x2 = prop_value;
+    else if (prop_name.eq_ascii_ci ("y2")) out->y2 = prop_value;
+    else if (prop_name.eq_ascii_ci ("points")) out->points = prop_value;
+    else if (prop_name.eq_ascii_ci ("d")) out->d = prop_value;
 
     if (p < end && *p == ';') p++;
   }
@@ -161,7 +149,7 @@ hb_raster_svg_parse_id_ref (hb_svg_str_t s,
     return true;
   }
 
-  if (!svg_str_starts_with_ascii_ci (s, "url("))
+  if (!s.starts_with_ascii_ci ("url("))
     return false;
 
   const char *p = s.data + 4;
@@ -235,7 +223,7 @@ hb_raster_svg_parse_local_id_ref (hb_svg_str_t s,
     return true;
   }
 
-  if (!svg_str_starts_with_ascii_ci (s, "url("))
+  if (!s.starts_with_ascii_ci ("url("))
     return false;
 
   hb_svg_str_t id;
@@ -330,15 +318,15 @@ svg_align_offset (hb_svg_str_t align,
                   char axis)
 {
   if (leftover <= 0.f) return 0.f;
-  if ((axis == 'x' && svg_str_starts_with_ascii_ci (align, "xMin")) ||
-      (axis == 'y' && (svg_str_eq_ascii_ci (align, "xMinYMin") ||
-                       svg_str_eq_ascii_ci (align, "xMidYMin") ||
-                       svg_str_eq_ascii_ci (align, "xMaxYMin"))))
+  if ((axis == 'x' && align.starts_with_ascii_ci ("xMin")) ||
+      (axis == 'y' && (align.eq_ascii_ci ("xMinYMin") ||
+                       align.eq_ascii_ci ("xMidYMin") ||
+                       align.eq_ascii_ci ("xMaxYMin"))))
     return 0.f;
-  if ((axis == 'x' && svg_str_starts_with_ascii_ci (align, "xMax")) ||
-      (axis == 'y' && (svg_str_eq_ascii_ci (align, "xMinYMax") ||
-                       svg_str_eq_ascii_ci (align, "xMidYMax") ||
-                       svg_str_eq_ascii_ci (align, "xMaxYMax"))))
+  if ((axis == 'x' && align.starts_with_ascii_ci ("xMax")) ||
+      (axis == 'y' && (align.eq_ascii_ci ("xMinYMax") ||
+                       align.eq_ascii_ci ("xMidYMax") ||
+                       align.eq_ascii_ci ("xMaxYMax"))))
     return leftover;
   return leftover * 0.5f;
 }
@@ -357,7 +345,7 @@ hb_raster_svg_compute_viewbox_transform (float viewport_w,
     return false;
 
   hb_svg_str_t par = preserve_aspect_ratio.trim ();
-  if (svg_str_starts_with_ascii_ci (par, "defer"))
+  if (par.starts_with_ascii_ci ("defer"))
   {
     const char *p = par.data + 5;
     const char *end = par.data + par.len;
@@ -375,13 +363,13 @@ hb_raster_svg_compute_viewbox_transform (float viewport_w,
   while (p < end && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r') p++;
   align = hb_svg_str_t (par.data, (unsigned) (p - par.data)).trim ();
 
-  if (svg_str_starts_with_ascii_ci (par, "none"))
+  if (par.starts_with_ascii_ci ("none"))
     is_none = true;
-  else if (svg_str_starts_with_ascii_ci (align, "x"))
+  else if (align.starts_with_ascii_ci ("x"))
   {
     const char *mode = p;
     while (mode < end && (*mode == ' ' || *mode == '\t' || *mode == '\n' || *mode == '\r')) mode++;
-    if (mode < end && svg_str_starts_with_ascii_ci (hb_svg_str_t (mode, (unsigned) (end - mode)), "slice"))
+    if (mode < end && hb_svg_str_t (mode, (unsigned) (end - mode)).starts_with_ascii_ci ("slice"))
       is_slice = true;
   }
 
@@ -404,7 +392,7 @@ hb_raster_svg_compute_viewbox_transform (float viewport_w,
   float leftover_x = viewport_w - scaled_w;
   float leftover_y = viewport_h - scaled_h;
 
-  if (!svg_str_starts_with_ascii_ci (align, "x"))
+  if (!align.starts_with_ascii_ci ("x"))
     align = hb_svg_str_t ("xMidYMid", 8);
 
   t.xx = s;

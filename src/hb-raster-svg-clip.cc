@@ -109,15 +109,15 @@ svg_resolve_element_visibility (hb_svg_xml_parser_t &parser,
   svg_parse_style_props (parser.find_attr ("style"), &style_props);
   hb_svg_str_t display_str = svg_pick_attr_or_style (parser, style_props.display, "display");
   hb_svg_str_t visibility_str = svg_pick_attr_or_style (parser, style_props.visibility, "visibility");
-  if (svg_str_eq_ascii_ci (display_str.trim (), "none"))
+  if (display_str.trim ().eq_ascii_ci ("none"))
     return false;
   hb_svg_str_t vis_trim = visibility_str.trim ();
-  if (!vis_trim.len || svg_str_eq_ascii_ci (vis_trim, "inherit"))
+  if (!vis_trim.len || vis_trim.eq_ascii_ci ("inherit"))
     return parent_visible;
-  if (svg_str_eq_ascii_ci (vis_trim, "hidden") ||
-      svg_str_eq_ascii_ci (vis_trim, "collapse"))
+  if (vis_trim.eq_ascii_ci ("hidden") ||
+      vis_trim.eq_ascii_ci ("collapse"))
     return false;
-  if (svg_str_eq_ascii_ci (vis_trim, "visible"))
+  if (vis_trim.eq_ascii_ci ("visible"))
     return true;
   return parent_visible;
 }
@@ -321,9 +321,9 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
   hb_svg_clip_path_def_t clip;
   hb_svg_str_t id = parser.find_attr ("id");
   hb_svg_str_t units = parser.find_attr ("clipPathUnits").trim ();
-  if (svg_str_eq_ascii_ci (units, "objectBoundingBox"))
+  if (units.eq_ascii_ci ("objectBoundingBox"))
     clip.units_user_space = false;
-  else if (svg_str_eq_ascii_ci (units, "userSpaceOnUse"))
+  else if (units.eq_ascii_ci ("userSpaceOnUse"))
     clip.units_user_space = true;
   else
     clip.units_user_space = true;
@@ -507,7 +507,7 @@ hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
 {
   if (clip_path_str.is_null ()) return false;
   hb_svg_str_t trimmed = clip_path_str.trim ();
-  if (!trimmed.len || svg_str_eq_ascii_ci (trimmed, "none")) return false;
+  if (!trimmed.len || trimmed.eq_ascii_ci ("none")) return false;
 
   hb_svg_str_t clip_id;
   if (!hb_raster_svg_parse_local_id_ref (trimmed, &clip_id, nullptr))
