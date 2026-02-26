@@ -257,15 +257,13 @@ static void
 svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               hb_svg_xml_parser_t &parser,
                               const hb_svg_transform_t &base_transform,
-                              unsigned depth,
-                              bool local_decycler_only = false);
+                              unsigned depth);
 
 static void
 svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
                              hb_svg_xml_parser_t &use_parser,
                              const hb_svg_transform_t &base_transform,
-                             unsigned depth,
-                             bool local_decycler_only = false)
+                             unsigned depth)
 {
   const unsigned SVG_MAX_CLIP_USE_DEPTH = 64;
   if (depth >= SVG_MAX_CLIP_USE_DEPTH)
@@ -282,19 +280,9 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
                                ref_id, &found))
     return;
 
-  if (!local_decycler_only)
-  {
-    hb_decycler_node_t node (*ctx->use_decycler);
-    if (unlikely (!node.visit ((uintptr_t) found)))
-      return;
-  }
-  else
-  {
-    hb_decycler_t local_decycler;
-    hb_decycler_node_t node (local_decycler);
-    if (unlikely (!node.visit ((uintptr_t) found)))
-      return;
-  }
+  hb_decycler_node_t node (*ctx->use_decycler);
+  if (unlikely (!node.visit ((uintptr_t) found)))
+    return;
 
   hb_svg_transform_t effective = base_transform;
   float use_x = svg_parse_float (use_parser.find_attr ("x"));
@@ -333,15 +321,14 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
       effective.multiply (vb_t);
   }
 
-  svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1, local_decycler_only);
+  svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1);
 }
 
 static void
 svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               hb_svg_xml_parser_t &parser,
                               const hb_svg_transform_t &base_transform,
-                              unsigned depth,
-                              bool local_decycler_only)
+                              unsigned depth)
 {
   const unsigned SVG_MAX_CLIP_REF_DEPTH = 64;
   if (depth >= SVG_MAX_CLIP_REF_DEPTH)
@@ -382,7 +369,7 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
 
   if (parser.tag_name.eq ("use"))
   {
-    svg_clip_collect_use_target (ctx, parser, effective, depth + 1, local_decycler_only);
+    svg_clip_collect_use_target (ctx, parser, effective, depth + 1);
     if (!parser.self_closing)
       svg_skip_subtree (parser);
     return;
@@ -409,7 +396,7 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
       continue;
     }
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-      svg_clip_collect_ref_element (ctx, parser, effective, depth + 1, local_decycler_only);
+      svg_clip_collect_ref_element (ctx, parser, effective, depth + 1);
   }
 }
 
