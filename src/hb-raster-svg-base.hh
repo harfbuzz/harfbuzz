@@ -122,6 +122,17 @@ struct hb_svg_style_props_t
   hb_svg_str_t y;
   hb_svg_str_t width;
   hb_svg_str_t height;
+  hb_svg_str_t cx;
+  hb_svg_str_t cy;
+  hb_svg_str_t r;
+  hb_svg_str_t rx;
+  hb_svg_str_t ry;
+  hb_svg_str_t x1;
+  hb_svg_str_t y1;
+  hb_svg_str_t x2;
+  hb_svg_str_t y2;
+  hb_svg_str_t points;
+  hb_svg_str_t d;
 };
 
 struct hb_svg_xml_parser_t;

@@ -111,6 +111,17 @@ svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out)
     else if (svg_str_eq_ascii_ci (prop_name, "y")) out->y = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "width")) out->width = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "height")) out->height = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "cx")) out->cx = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "cy")) out->cy = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "r")) out->r = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "rx")) out->rx = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "ry")) out->ry = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "x1")) out->x1 = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "y1")) out->y1 = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "x2")) out->x2 = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "y2")) out->y2 = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "points")) out->points = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "d")) out->d = prop_value;
 
     if (p < end && *p == ';') p++;
   }
