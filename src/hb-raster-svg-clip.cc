@@ -44,6 +44,103 @@ svg_transform_is_identity (const hb_svg_transform_t &t)
          t.dx == 0.f && t.dy == 0.f;
 }
 
+static inline bool
+svg_parse_viewbox (hb_svg_str_t viewbox_str,
+                   float *x, float *y, float *w, float *h)
+{
+  if (!viewbox_str.len)
+    return false;
+  hb_svg_float_parser_t vb_fp (viewbox_str);
+  float vb_x = vb_fp.next_float ();
+  float vb_y = vb_fp.next_float ();
+  float vb_w = vb_fp.next_float ();
+  float vb_h = vb_fp.next_float ();
+  if (vb_w <= 0.f || vb_h <= 0.f)
+    return false;
+  if (x) *x = vb_x;
+  if (y) *y = vb_y;
+  if (w) *w = vb_w;
+  if (h) *h = vb_h;
+  return true;
+}
+
+static inline float
+svg_align_offset (hb_svg_str_t align,
+                  float leftover,
+                  char axis)
+{
+  if (leftover <= 0.f) return 0.f;
+  if ((axis == 'x' && align.starts_with ("xMin")) ||
+      (axis == 'y' && (align.eq ("xMinYMin") || align.eq ("xMidYMin") || align.eq ("xMaxYMin"))))
+    return 0.f;
+  if ((axis == 'x' && align.starts_with ("xMax")) ||
+      (axis == 'y' && (align.eq ("xMinYMax") || align.eq ("xMidYMax") || align.eq ("xMaxYMax"))))
+    return leftover;
+  return leftover * 0.5f;
+}
+
+static bool
+svg_compute_viewbox_transform (float viewport_w,
+                               float viewport_h,
+                               float vb_x,
+                               float vb_y,
+                               float vb_w,
+                               float vb_h,
+                               hb_svg_str_t preserve_aspect_ratio,
+                               hb_svg_transform_t *out)
+{
+  if (!(viewport_w > 0.f && viewport_h > 0.f && vb_w > 0.f && vb_h > 0.f))
+    return false;
+
+  hb_svg_str_t par = preserve_aspect_ratio.trim ();
+  if (!par.len)
+    par = hb_svg_str_t ("xMidYMid meet", 12);
+
+  bool is_none = false;
+  bool is_slice = false;
+  if (svg_str_starts_with_ascii_ci (par, "none"))
+    is_none = true;
+  else if (par.starts_with ("x"))
+  {
+    const char *p = par.data;
+    const char *end = par.data + par.len;
+    while (p < end && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r') p++;
+    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) p++;
+    if (p < end && svg_str_starts_with_ascii_ci (hb_svg_str_t (p, (unsigned) (end - p)), "slice"))
+      is_slice = true;
+  }
+
+  hb_svg_transform_t t;
+  if (is_none)
+  {
+    t.xx = viewport_w / vb_w;
+    t.yy = viewport_h / vb_h;
+    t.dx = -vb_x * t.xx;
+    t.dy = -vb_y * t.yy;
+    *out = t;
+    return true;
+  }
+
+  float sx = viewport_w / vb_w;
+  float sy = viewport_h / vb_h;
+  float s = is_slice ? hb_max (sx, sy) : hb_min (sx, sy);
+  float scaled_w = vb_w * s;
+  float scaled_h = vb_h * s;
+  float leftover_x = viewport_w - scaled_w;
+  float leftover_y = viewport_h - scaled_h;
+
+  hb_svg_str_t align = par.trim ();
+  if (!align.starts_with ("x"))
+    align = hb_svg_str_t ("xMidYMid", 8);
+
+  t.xx = s;
+  t.yy = s;
+  t.dx = svg_align_offset (align, leftover_x, 'x') - vb_x * s;
+  t.dy = svg_align_offset (align, leftover_y, 'y') - vb_y * s;
+  *out = t;
+  return true;
+}
+
 static bool
 svg_parse_element_transform (hb_svg_xml_parser_t &parser,
                              hb_svg_transform_t *out)
@@ -201,6 +298,8 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
   hb_svg_transform_t effective = base_transform;
   float use_x = svg_parse_float (use_parser.find_attr ("x"));
   float use_y = svg_parse_float (use_parser.find_attr ("y"));
+  float use_w = svg_parse_float (use_parser.find_attr ("width"));
+  float use_h = svg_parse_float (use_parser.find_attr ("height"));
   if (use_x != 0.f || use_y != 0.f)
   {
     hb_svg_transform_t tr;
@@ -214,6 +313,18 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
   hb_svg_token_type_t rt = ref_parser.next ();
   if (rt != SVG_TOKEN_OPEN_TAG && rt != SVG_TOKEN_SELF_CLOSE_TAG)
     return;
+
+  if ((ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol")) &&
+      use_w > 0.f && use_h > 0.f)
+  {
+    float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
+    hb_svg_transform_t vb_t;
+    if (svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h) &&
+        svg_compute_viewbox_transform (use_w, use_h, vb_x, vb_y, vb_w, vb_h,
+                                       ref_parser.find_attr ("preserveAspectRatio"),
+                                       &vb_t))
+      effective.multiply (vb_t);
+  }
 
   svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1, local_decycler_only);
 }
