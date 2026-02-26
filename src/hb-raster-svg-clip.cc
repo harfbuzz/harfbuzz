@@ -121,6 +121,44 @@ svg_clip_append_shape (hb_svg_defs_t *defs,
 }
 
 static void
+svg_skip_subtree (hb_svg_xml_parser_t &parser)
+{
+  int depth = 1;
+  while (depth > 0)
+  {
+    hb_svg_token_type_t tok = parser.next ();
+    if (tok == SVG_TOKEN_EOF) break;
+    if (tok == SVG_TOKEN_CLOSE_TAG) depth--;
+    else if (tok == SVG_TOKEN_OPEN_TAG) depth++;
+  }
+}
+
+static inline bool
+svg_is_hidden_element (hb_svg_xml_parser_t &parser)
+{
+  hb_svg_style_props_t style_props;
+  svg_parse_style_props (parser.find_attr ("style"), &style_props);
+  hb_svg_str_t display_str = svg_pick_attr_or_style (parser, style_props.display, "display");
+  hb_svg_str_t visibility_str = svg_pick_attr_or_style (parser, style_props.visibility, "visibility");
+  return svg_str_eq_ascii_ci (display_str.trim (), "none") ||
+         svg_str_eq_ascii_ci (visibility_str.trim (), "hidden") ||
+         svg_str_eq_ascii_ci (visibility_str.trim (), "collapse");
+}
+
+static void
+svg_clip_collect_ref_element (hb_svg_defs_t *defs,
+                              hb_svg_clip_path_def_t *clip,
+                              hb_svg_xml_parser_t &parser,
+                              const hb_svg_transform_t &base_transform,
+                              const char *doc_start,
+                              unsigned doc_len,
+                              const OT::SVG::accelerator_t *svg_accel,
+                              const OT::SVG::svg_doc_cache_t *doc_cache,
+                              hb_decycler_t &use_decycler,
+                              unsigned depth,
+                              bool *had_alloc_failure);
+
+static void
 svg_clip_collect_use_target (hb_svg_defs_t *defs,
                              hb_svg_clip_path_def_t *clip,
                              hb_svg_xml_parser_t &use_parser,
@@ -167,17 +205,88 @@ svg_clip_collect_use_target (hb_svg_defs_t *defs,
   if (rt != SVG_TOKEN_OPEN_TAG && rt != SVG_TOKEN_SELF_CLOSE_TAG)
     return;
 
-  hb_svg_transform_t ref_t;
-  if (svg_parse_element_transform (ref_parser, &ref_t))
-    effective.multiply (ref_t);
+  svg_clip_collect_ref_element (defs, clip, ref_parser, effective,
+                                doc_start, doc_len, svg_accel, doc_cache,
+                                use_decycler, depth + 1, had_alloc_failure);
+}
 
-  hb_svg_shape_emit_data_t ref_shape;
-  if (hb_raster_svg_parse_shape_tag (ref_parser, &ref_shape))
-    svg_clip_append_shape (defs, clip, ref_shape, effective, had_alloc_failure);
-  else if (ref_parser.tag_name.eq ("use"))
-    svg_clip_collect_use_target (defs, clip, ref_parser, effective,
+static void
+svg_clip_collect_ref_element (hb_svg_defs_t *defs,
+                              hb_svg_clip_path_def_t *clip,
+                              hb_svg_xml_parser_t &parser,
+                              const hb_svg_transform_t &base_transform,
+                              const char *doc_start,
+                              unsigned doc_len,
+                              const OT::SVG::accelerator_t *svg_accel,
+                              const OT::SVG::svg_doc_cache_t *doc_cache,
+                              hb_decycler_t &use_decycler,
+                              unsigned depth,
+                              bool *had_alloc_failure)
+{
+  const unsigned SVG_MAX_CLIP_REF_DEPTH = 64;
+  if (depth >= SVG_MAX_CLIP_REF_DEPTH)
+  {
+    if (!parser.self_closing)
+      svg_skip_subtree (parser);
+    return;
+  }
+
+  if (svg_is_hidden_element (parser))
+  {
+    if (!parser.self_closing)
+      svg_skip_subtree (parser);
+    return;
+  }
+
+  hb_svg_transform_t effective = base_transform;
+  hb_svg_transform_t local_t;
+  if (svg_parse_element_transform (parser, &local_t))
+    effective.multiply (local_t);
+
+  hb_svg_shape_emit_data_t shape;
+  if (hb_raster_svg_parse_shape_tag (parser, &shape))
+  {
+    svg_clip_append_shape (defs, clip, shape, effective, had_alloc_failure);
+    if (!parser.self_closing)
+      svg_skip_subtree (parser);
+    return;
+  }
+
+  if (parser.tag_name.eq ("use"))
+  {
+    svg_clip_collect_use_target (defs, clip, parser, effective,
                                  doc_start, doc_len, svg_accel, doc_cache,
                                  use_decycler, depth + 1, had_alloc_failure);
+    if (!parser.self_closing)
+      svg_skip_subtree (parser);
+    return;
+  }
+
+  bool is_container = parser.tag_name.eq ("g") ||
+                      parser.tag_name.eq ("svg") ||
+                      parser.tag_name.eq ("symbol");
+  if (!is_container || parser.self_closing)
+  {
+    if (!parser.self_closing)
+      svg_skip_subtree (parser);
+    return;
+  }
+
+  int inner_depth = 1;
+  while (inner_depth > 0)
+  {
+    hb_svg_token_type_t tok = parser.next ();
+    if (tok == SVG_TOKEN_EOF) break;
+    if (tok == SVG_TOKEN_CLOSE_TAG)
+    {
+      inner_depth--;
+      continue;
+    }
+    if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
+      svg_clip_collect_ref_element (defs, clip, parser, effective,
+                                    doc_start, doc_len, svg_accel, doc_cache,
+                                    use_decycler, depth + 1, had_alloc_failure);
+  }
 }
 
 void
