@@ -171,7 +171,8 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               const hb_svg_transform_t &base_transform,
                               unsigned depth,
                               bool suppress_viewbox_once = false,
-                              bool parent_visible = true);
+                              bool parent_visible = true,
+                              bool allow_symbol_once = false);
 
 static void
 svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
@@ -246,7 +247,9 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
     }
   }
 
-  svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1, viewport_mapped, true);
+  bool allow_symbol = ref_parser.tag_name.eq ("symbol");
+  svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1,
+                                viewport_mapped, true, allow_symbol);
 }
 
 static void
@@ -255,7 +258,8 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               const hb_svg_transform_t &base_transform,
                               unsigned depth,
                               bool suppress_viewbox_once,
-                              bool parent_visible)
+                              bool parent_visible,
+                              bool allow_symbol_once)
 {
   const unsigned SVG_MAX_CLIP_REF_DEPTH = 64;
   if (depth >= SVG_MAX_CLIP_REF_DEPTH)
@@ -280,6 +284,14 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
       svg_skip_subtree (parser);
     return;
   }
+  if (parser.tag_name.eq ("symbol") && !allow_symbol_once)
+  {
+    if (!parser.self_closing)
+      svg_skip_subtree (parser);
+    return;
+  }
+  if (parser.tag_name.eq ("symbol"))
+    allow_symbol_once = false;
 
   hb_svg_transform_t effective = base_transform;
   hb_svg_transform_t local_t;
@@ -359,7 +371,7 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
       continue;
     }
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-      svg_clip_collect_ref_element (ctx, parser, effective, depth + 1, false, is_visible);
+      svg_clip_collect_ref_element (ctx, parser, effective, depth + 1, false, is_visible, false);
   }
 }
 
