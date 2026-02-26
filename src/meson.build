@@ -709,6 +709,8 @@ hb_raster_sources = [
   'hb-raster-svg-base.hh',
   'hb-raster-svg-defs.cc',
   'hb-raster-svg-defs.hh',
+  'hb-raster-svg-gradient.cc',
+  'hb-raster-svg-gradient.hh',
   'hb-raster-svg-parse.cc',
   'hb-raster-svg-parse.hh',
   'hb-raster-paint.cc',

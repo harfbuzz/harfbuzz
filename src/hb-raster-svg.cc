@@ -33,6 +33,7 @@
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-parse.hh"
 #include "hb-raster-svg-defs.hh"
+#include "hb-raster-svg-gradient.hh"
 #include "OT/Color/svg/svg.hh"
 #include "hb-draw.h"
 #include "hb-ot-color.h"
@@ -224,7 +225,7 @@ hexval (char c)
 
 /* Parse SVG color value; returns HB_COLOR with alpha = 255.
  * Sets *is_none if "none". */
-static hb_color_t
+hb_color_t
 svg_parse_color (hb_svg_str_t s,
 		 hb_paint_funcs_t *pfuncs,
 		 void *paint_data,
@@ -727,203 +728,7 @@ static void svg_render_element (hb_svg_render_context_t *ctx,
 				hb_svg_xml_parser_t &parser,
 				const struct hb_svg_cascade_t &inherited);
 
-/* Parse a gradient <stop> element */
-static bool
-svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
-			 hb_svg_gradient_t &grad,
-			 hb_paint_funcs_t *pfuncs,
-			 void *paint_data,
-			 hb_color_t foreground,
-			 hb_face_t *face,
-			 unsigned palette)
-{
-  const unsigned SVG_MAX_GRADIENT_STOPS = 1024;
-  if (grad.stops.length >= SVG_MAX_GRADIENT_STOPS)
-    return true;
-
-  hb_svg_attr_view_t attrs (parser);
-  hb_svg_str_t style = attrs.get ("style");
-  hb_svg_style_props_t style_props;
-  svg_parse_style_props (style, &style_props);
-  hb_svg_str_t offset_str = svg_pick_attr_or_style (parser, style_props.offset, "offset");
-  hb_svg_str_t color_str = svg_pick_attr_or_style (parser, style_props.stop_color, "stop-color");
-  hb_svg_str_t opacity_str = svg_pick_attr_or_style (parser, style_props.stop_opacity, "stop-opacity");
-
-  float offset = 0;
-  if (offset_str.len)
-    offset = hb_clamp (svg_parse_number_or_percent (offset_str, nullptr), 0.f, 1.f);
-
-  bool is_none = false;
-  hb_color_t color = HB_COLOR (0, 0, 0, 255);
-  bool is_current_color = false;
-  if (color_str.len && !svg_str_is_inherit (color_str))
-  {
-    is_current_color = svg_str_eq_ascii_ci (color_str.trim (), "currentColor");
-    color = svg_parse_color (color_str, pfuncs, paint_data, foreground, face, palette, &is_none);
-  }
-
-  if (opacity_str.len && !svg_str_is_inherit (opacity_str))
-  {
-    float opacity = svg_parse_float_clamped01 (opacity_str);
-    color = HB_COLOR (hb_color_get_blue (color),
-		      hb_color_get_green (color),
-		      hb_color_get_red (color),
-		      (uint8_t) (hb_color_get_alpha (color) * opacity + 0.5f));
-  }
-
-  hb_svg_gradient_stop_t stop;
-  stop.offset = offset;
-  stop.color = color;
-  stop.is_current_color = is_current_color;
-  grad.stops.push (stop);
-  return !grad.stops.in_error ();
-}
-
-static hb_svg_str_t
-svg_find_href_attr (const hb_svg_xml_parser_t &parser)
-{
-  hb_svg_str_t href = parser.find_attr ("href");
-  if (href.is_null ())
-    href = parser.find_attr ("xlink:href");
-  return href;
-}
-
-/* Parse gradient element attributes */
-static void
-svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
-			  hb_svg_gradient_t &grad)
-{
-  hb_svg_attr_view_t attrs (parser);
-  hb_svg_str_t spread_str = attrs.get ("spreadMethod");
-  if (spread_str.eq ("reflect"))
-  {
-    grad.spread = HB_PAINT_EXTEND_REFLECT;
-    grad.has_spread = true;
-  }
-  else if (spread_str.eq ("repeat"))
-  {
-    grad.spread = HB_PAINT_EXTEND_REPEAT;
-    grad.has_spread = true;
-  }
-  else if (spread_str.eq ("pad"))
-  {
-    grad.spread = HB_PAINT_EXTEND_PAD;
-    grad.has_spread = true;
-  }
-
-  hb_svg_str_t units_str = attrs.get ("gradientUnits");
-  if (units_str.eq ("userSpaceOnUse"))
-  {
-    grad.units_user_space = true;
-    grad.has_units_user_space = true;
-  }
-  else if (units_str.eq ("objectBoundingBox"))
-  {
-    grad.units_user_space = false;
-    grad.has_units_user_space = true;
-  }
-
-  hb_svg_str_t transform_str = attrs.get ("gradientTransform");
-  if (transform_str.len)
-  {
-    grad.has_gradient_transform = true;
-    svg_parse_transform (transform_str, &grad.gradient_transform);
-  }
-
-  hb_svg_str_t href = svg_find_href_attr (parser);
-  if (href.len)
-    (void) svg_parse_id_ref_with_fallback (href, grad.href_id, nullptr, true);
-}
-
-static void
-svg_parse_gradient_geometry_attrs (hb_svg_xml_parser_t &parser,
-					   hb_svg_gradient_t &grad)
-{
-  hb_svg_attr_view_t attrs (parser);
-  if (grad.type == SVG_GRADIENT_LINEAR)
-  {
-    hb_svg_str_t x1_str = attrs.get ("x1");
-    hb_svg_str_t y1_str = attrs.get ("y1");
-    hb_svg_str_t x2_str = attrs.get ("x2");
-    hb_svg_str_t y2_str = attrs.get ("y2");
-    if (x1_str.len) { grad.x1 = svg_parse_number_or_percent (x1_str, nullptr); grad.has_x1 = true; }
-    if (y1_str.len) { grad.y1 = svg_parse_number_or_percent (y1_str, nullptr); grad.has_y1 = true; }
-    if (x2_str.len) { grad.x2 = svg_parse_number_or_percent (x2_str, nullptr); grad.has_x2 = true; }
-    if (y2_str.len) { grad.y2 = svg_parse_number_or_percent (y2_str, nullptr); grad.has_y2 = true; }
-
-    /* Default x2 to 1 if not explicitly set (objectBoundingBox default). */
-    if (!grad.has_x2)
-      grad.x2 = 1.f;
-  }
-  else /* SVG_GRADIENT_RADIAL */
-  {
-    hb_svg_str_t cx_str = attrs.get ("cx");
-    hb_svg_str_t cy_str = attrs.get ("cy");
-    hb_svg_str_t r_str = attrs.get ("r");
-    hb_svg_str_t fx_str = attrs.get ("fx");
-    hb_svg_str_t fy_str = attrs.get ("fy");
-
-    if (cx_str.len) { grad.cx = svg_parse_number_or_percent (cx_str, nullptr); grad.has_cx = true; }
-    if (cy_str.len) { grad.cy = svg_parse_number_or_percent (cy_str, nullptr); grad.has_cy = true; }
-    if (r_str.len) { grad.r = svg_parse_number_or_percent (r_str, nullptr); grad.has_r = true; }
-    if (fx_str.len) { grad.fx = svg_parse_number_or_percent (fx_str, nullptr); grad.has_fx = true; }
-    if (fy_str.len) { grad.fy = svg_parse_number_or_percent (fy_str, nullptr); grad.has_fy = true; }
-  }
-}
-
-static void
-svg_parse_gradient_children (hb_svg_render_context_t *ctx,
-			     hb_svg_xml_parser_t &parser,
-			     hb_svg_gradient_t &grad,
-			     hb_svg_str_t *id)
-{
-  int gdepth = 1;
-  bool had_alloc_failure = false;
-  while (gdepth > 0)
-  {
-    hb_svg_token_type_t gt = parser.next ();
-    if (gt == SVG_TOKEN_EOF) break;
-    if (gt == SVG_TOKEN_CLOSE_TAG) { gdepth--; continue; }
-    if ((gt == SVG_TOKEN_OPEN_TAG || gt == SVG_TOKEN_SELF_CLOSE_TAG) &&
-	parser.tag_name.eq ("stop"))
-      if (unlikely (!svg_parse_gradient_stop (parser, grad,
-					      ctx->pfuncs, ctx->paint,
-					      ctx->foreground, hb_font_get_face (ctx->font),
-					      ctx->palette)))
-	had_alloc_failure = true;
-    if (gt == SVG_TOKEN_OPEN_TAG && !parser.tag_name.eq ("stop"))
-      gdepth++;
-  }
-  if (had_alloc_failure)
-    *id = {};
-}
-
-static void
-svg_process_gradient_def (hb_svg_render_context_t *ctx,
-			  hb_svg_xml_parser_t &parser,
-			  hb_svg_token_type_t tok,
-			  hb_svg_gradient_type_t type)
-{
-  hb_svg_gradient_t grad;
-  grad.type = type;
-  /* Parse geometry and common gradient attrs from the opening tag. */
-  svg_parse_gradient_geometry_attrs (parser, grad);
-  svg_parse_gradient_attrs (parser, grad);
-
-  hb_svg_str_t id = parser.find_attr ("id");
-  /* Child <stop> elements are only present for non-self-closing gradients. */
-  if (tok == SVG_TOKEN_OPEN_TAG)
-    svg_parse_gradient_children (ctx, parser, grad, &id);
-
-  if (id.len)
-  {
-    char id_buf[64];
-    unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-    memcpy (id_buf, id.data, n);
-    id_buf[n] = '\0';
-    (void) ctx->defs.add_gradient (id_buf, grad);
-  }
-}
+/* Gradient def parsing lives in hb-raster-svg-gradient.* */
 
 static void
 svg_process_clip_path_def (hb_svg_render_context_t *ctx,
@@ -1019,9 +824,15 @@ svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
     {
       /* Dispatch supported defs entries to focused helpers. */
       if (parser.tag_name.eq ("linearGradient"))
-	svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_LINEAR);
+	svg_process_gradient_def (&ctx->defs, parser, tok, SVG_GRADIENT_LINEAR,
+				  ctx->pfuncs, ctx->paint,
+				  ctx->foreground, hb_font_get_face (ctx->font),
+				  ctx->palette);
       else if (parser.tag_name.eq ("radialGradient"))
-	svg_process_gradient_def (ctx, parser, tok, SVG_GRADIENT_RADIAL);
+	svg_process_gradient_def (&ctx->defs, parser, tok, SVG_GRADIENT_RADIAL,
+				  ctx->pfuncs, ctx->paint,
+				  ctx->foreground, hb_font_get_face (ctx->font),
+				  ctx->palette);
       else if (parser.tag_name.eq ("clipPath"))
 	svg_process_clip_path_def (ctx, parser, tok);
       else
@@ -1494,6 +1305,15 @@ svg_render_primitive_shape_element (hb_svg_render_context_t *ctx,
   return false;
 }
 
+static hb_svg_str_t
+svg_find_href_attr (const hb_svg_xml_parser_t &parser)
+{
+  hb_svg_str_t href = parser.find_attr ("href");
+  if (href.is_null ())
+    href = parser.find_attr ("xlink:href");
+  return href;
+}
+
 static void
 svg_render_use_element (hb_svg_render_context_t *ctx,
 			hb_svg_xml_parser_t &parser,
@@ -1704,9 +1524,15 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
       if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
       {
 	if (defs_parser.tag_name.eq ("linearGradient"))
-	  svg_process_gradient_def (&ctx, defs_parser, tok, SVG_GRADIENT_LINEAR);
+	  svg_process_gradient_def (&ctx.defs, defs_parser, tok, SVG_GRADIENT_LINEAR,
+				    ctx.pfuncs, ctx.paint,
+				    ctx.foreground, hb_font_get_face (ctx.font),
+				    ctx.palette);
 	else if (defs_parser.tag_name.eq ("radialGradient"))
-	  svg_process_gradient_def (&ctx, defs_parser, tok, SVG_GRADIENT_RADIAL);
+	  svg_process_gradient_def (&ctx.defs, defs_parser, tok, SVG_GRADIENT_RADIAL,
+				    ctx.pfuncs, ctx.paint,
+				    ctx.foreground, hb_font_get_face (ctx.font),
+				    ctx.palette);
 	else if (defs_parser.tag_name.eq ("clipPath"))
 	  svg_process_clip_path_def (&ctx, defs_parser, tok);
       }
