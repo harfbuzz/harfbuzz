@@ -206,6 +206,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     hb_vector_paint_set_extents (paint, &extents);
     hb_vector_paint_set_foreground (paint, foreground);
     hb_vector_paint_set_palette (paint, this->palette);
+    apply_custom_palette (paint);
     hb_vector_svg_paint_set_precision (paint, precision);
     hb_vector_svg_paint_set_flat (paint, flat);
 
@@ -647,6 +648,30 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (a != 255)
       fprintf (out_fp, " fill-opacity=\"%.3f\"", (double) a / 255.);
     fputs ("/>\n", out_fp);
+  }
+
+  void apply_custom_palette (hb_vector_paint_t *paint)
+  {
+    hb_vector_paint_clear_custom_palette_colors (paint);
+    if (!custom_palette)
+      return;
+
+    char **entries = g_strsplit (custom_palette, ",", -1);
+    for (unsigned idx = 0; entries && entries[idx]; idx++)
+    {
+      char *entry = g_strstrip (entries[idx]);
+      if (!*entry)
+        continue;
+
+      unsigned r = 0, g = 0, b = 0, a = 255;
+      if (!parse_color (entry, r, g, b, a))
+      {
+        error ("Invalid --custom-palette entry; expected rrggbb or rrggbbaa");
+        continue;
+      }
+      hb_vector_paint_set_custom_palette_color (paint, idx, HB_COLOR (b, g, r, a));
+    }
+    g_strfreev (entries);
   }
 
   void emit_extents_overlay (hb_direction_t dir, float step)

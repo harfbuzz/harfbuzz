@@ -525,6 +525,32 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
                              int palette);
 
 /**
+ * hb_vector_paint_set_custom_palette_color:
+ * @paint: a paint context.
+ * @color_index: color index to override.
+ * @color: replacement color.
+ *
+ * Overrides one font palette color entry for subsequent paint operations.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN void
+hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
+                                          unsigned color_index,
+                                          hb_color_t color);
+
+/**
+ * hb_vector_paint_clear_custom_palette_colors:
+ * @paint: a paint context.
+ *
+ * Clears all custom palette color overrides.
+ *
+ * XSince: REPLACEME
+ */
+HB_EXTERN void
+hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint);
+
+/**
  * hb_vector_paint_get_funcs:
  *
  * Gets paint callbacks implemented by the vector paint backend.
