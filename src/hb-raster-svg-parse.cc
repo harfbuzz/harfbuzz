@@ -52,7 +52,7 @@ hb_raster_svg_parse_transform (hb_svg_str_t s, hb_svg_transform_t *out)
 
     hb_svg_transform_t t;
 
-    if (func_name.eq ("matrix"))
+    if (svg_str_eq_ascii_ci (func_name, "matrix"))
     {
       t.xx = fp.next_float ();
       t.yx = fp.next_float ();
@@ -61,14 +61,14 @@ hb_raster_svg_parse_transform (hb_svg_str_t s, hb_svg_transform_t *out)
       t.dx = fp.next_float ();
       t.dy = fp.next_float ();
     }
-    else if (func_name.eq ("translate"))
+    else if (svg_str_eq_ascii_ci (func_name, "translate"))
     {
       t.dx = fp.next_float ();
       fp.skip_ws_comma ();
       if (fp.p < fp.end && *fp.p != ')')
         t.dy = fp.next_float ();
     }
-    else if (func_name.eq ("scale"))
+    else if (svg_str_eq_ascii_ci (func_name, "scale"))
     {
       t.xx = fp.next_float ();
       fp.skip_ws_comma ();
@@ -77,7 +77,7 @@ hb_raster_svg_parse_transform (hb_svg_str_t s, hb_svg_transform_t *out)
       else
         t.yy = t.xx;
     }
-    else if (func_name.eq ("rotate"))
+    else if (svg_str_eq_ascii_ci (func_name, "rotate"))
     {
       float angle = fp.next_float () * (float) M_PI / 180.f;
       float cs = cosf (angle), sn = sinf (angle);
@@ -97,12 +97,12 @@ hb_raster_svg_parse_transform (hb_svg_str_t s, hb_svg_transform_t *out)
         t.xy = -sn; t.yy = cs;
       }
     }
-    else if (func_name.eq ("skewX"))
+    else if (svg_str_eq_ascii_ci (func_name, "skewX"))
     {
       float angle = fp.next_float () * (float) M_PI / 180.f;
       t.xy = tanf (angle);
     }
-    else if (func_name.eq ("skewY"))
+    else if (svg_str_eq_ascii_ci (func_name, "skewY"))
     {
       float angle = fp.next_float () * (float) M_PI / 180.f;
       t.yx = tanf (angle);
