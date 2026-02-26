@@ -24,6 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
+#ifndef HB_NO_RASTER_SVG
+
 #include "hb.hh"
 
 #include "hb-raster-svg-use.hh"
@@ -98,3 +100,5 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
   if (has_use_transform)
     hb_paint_pop_transform (ctx->pfuncs, ctx->paint);
 }
+
+#endif /* !HB_NO_RASTER_SVG */

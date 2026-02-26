@@ -24,6 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
+#ifndef HB_NO_RASTER_SVG
+
 #include "hb.hh"
 
 #include "hb-raster-svg-gradient.hh"
@@ -240,3 +242,5 @@ hb_raster_svg_process_gradient_def (hb_svg_defs_t *defs,
   if (id.len)
     (void) defs->add_gradient (hb_bytes_t (id.data, id.len), grad);
 }
+
+#endif /* !HB_NO_RASTER_SVG */
