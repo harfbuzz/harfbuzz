@@ -30,46 +30,19 @@
 #include <vector>
 
 #include "output-options.hh"
+#include "view-options.hh"
 #include "hb-vector.h"
 #include "hb-ot.h"
 
 
-struct vector_output_t : output_options_t<>
+struct vector_output_t : output_options_t<>, view_options_t
 {
   static const bool repeat_shape = false;
-  struct margin_t {
-    float t, r, b, l;
-  };
-
-  static gboolean
-  parse_margin (const char *name G_GNUC_UNUSED,
-                const char *arg,
-                gpointer    data,
-                GError    **error)
-  {
-    vector_output_t *opts = (vector_output_t *) data;
-    margin_t &m = opts->margin;
-    double t, r, b, l;
-    if (parse_1to4_doubles (arg, &t, &r, &b, &l))
-    {
-      m.t = (float) t;
-      m.r = (float) r;
-      m.b = (float) b;
-      m.l = (float) l;
-      return true;
-    }
-    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                 "%s argument should be one to four space-separated numbers",
-                 name);
-    return false;
-  }
 
   ~vector_output_t ()
   {
-    g_free (background_str);
     hb_font_destroy (font);
     hb_font_destroy (upem_font);
-    g_free (foreground_str);
   }
 
   void add_options (option_parser_t *parser)
@@ -78,17 +51,12 @@ struct vector_output_t : output_options_t<>
     parser->set_description ("Shows shaped glyph outlines as SVG.");
 
     output_options_t::add_options (parser);
+    view_options_t::add_options (parser);
 
     GOptionEntry entries[] =
     {
-      {"logical",    0, 0, G_OPTION_ARG_NONE,   &this->logical,       "Use logical extents for bounding box (default)", nullptr},
-      {"ink",        0, 0, G_OPTION_ARG_NONE,   &this->ink,           "Use ink extents for bounding box",               nullptr},
       {"flat",       0, 0, G_OPTION_ARG_NONE,   &this->flat,          "Flatten geometry and disable reuse", nullptr},
       {"precision",  0, 0, G_OPTION_ARG_INT,    &this->precision,     "Decimal precision (default: 2)",     "N"},
-      {"palette",    0, 0, G_OPTION_ARG_INT,    &this->palette,       "Color palette index (default: 0)",   "N"},
-      {"background", 0, 0, G_OPTION_ARG_STRING, &this->background_str,"Background color",                    "rrggbb[aa]"},
-      {"margin",     0, 0, G_OPTION_ARG_CALLBACK,(gpointer) &parse_margin, "Margin around output (default: 0)","one to four numbers"},
-      {"foreground", 0, 0, G_OPTION_ARG_STRING, &this->foreground_str,"Foreground color (default: 000000)", "rrggbb[aa]"},
       {nullptr}
     };
     parser->add_group (entries,
@@ -100,6 +68,10 @@ struct vector_output_t : output_options_t<>
 
   void post_parse (GError **error)
   {
+    view_options_t::post_parse (error);
+    if (error && *error)
+      return;
+
     if (precision < 0)
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -107,25 +79,28 @@ struct vector_output_t : output_options_t<>
       return;
     }
 
-    if (foreground_str)
+    foreground = HB_COLOR (0, 0, 0, 255);
+    if (foreground_use_palette && foreground_palette && foreground_palette->len)
+    {
+      const rgba_color_t &c = g_array_index (foreground_palette, rgba_color_t, 0);
+      foreground = HB_COLOR (c.b, c.g, c.r, c.a);
+    }
+    else if (fore && *fore)
     {
       unsigned r, g, b, a;
-      if (!parse_color (foreground_str, r, g, b, a))
-      {
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Invalid foreground color: %s", foreground_str);
+      if (!parse_color (fore, r, g, b, a))
         return;
-      }
       foreground = HB_COLOR (b, g, r, a);
     }
 
-    if (background_str)
+    has_background = false;
+    if (back && *back)
     {
       unsigned r, g, b, a;
-      if (!parse_color (background_str, r, g, b, a))
+      if (!parse_color (back, r, g, b, a))
       {
         g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Invalid background color: %s", background_str);
+                     "Invalid background color: %s", back);
         return;
       }
       background = HB_COLOR (b, g, r, a);
@@ -230,7 +205,7 @@ struct vector_output_t : output_options_t<>
     hb_vector_paint_set_scale_factor (paint, 1.f, 1.f);
     hb_vector_paint_set_extents (paint, &extents);
     hb_vector_paint_set_foreground (paint, foreground);
-    hb_vector_paint_set_palette (paint, palette);
+    hb_vector_paint_set_palette (paint, this->palette);
     hb_vector_svg_paint_set_precision (paint, precision);
     hb_vector_svg_paint_set_flat (paint, flat);
 
@@ -518,7 +493,7 @@ struct vector_output_t : output_options_t<>
 
   void emit_fill_group_open ()
   {
-    if (!foreground_str)
+    if (!fore && !foreground_use_palette)
       return;
 
     unsigned r = hb_color_get_red (foreground);
@@ -534,7 +509,7 @@ struct vector_output_t : output_options_t<>
 
   void emit_fill_group_close ()
   {
-    if (!foreground_str)
+    if (!fore && !foreground_use_palette)
       return;
     fputs ("</g>\n", out_fp);
   }
@@ -643,13 +618,7 @@ struct vector_output_t : output_options_t<>
   }
 
   hb_bool_t flat = false;
-  hb_bool_t logical = false;
-  hb_bool_t ink = false;
   int precision = 2;
-  int palette = 0;
-  margin_t margin = {0.f, 0.f, 0.f, 0.f};
-  char *background_str = nullptr;
-  char *foreground_str = nullptr;
   hb_color_t background = HB_COLOR (255, 255, 255, 255);
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
   hb_bool_t has_background = false;
