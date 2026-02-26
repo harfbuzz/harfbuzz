@@ -149,8 +149,8 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 
       if (tag.eq ("svg"))
       {
-        viewport_w = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.width, "width"));
-        viewport_h = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.height, "height"));
+        viewport_w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.width, "width"));
+        viewport_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.height, "height"));
         if (!(viewport_w > 0.f && viewport_h > 0.f))
         {
           viewport_w = vb_w;

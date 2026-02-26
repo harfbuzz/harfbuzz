@@ -419,3 +419,11 @@ hb_raster_svg_compute_viewbox_transform (float viewport_w,
   *out = t;
   return true;
 }
+
+float
+hb_raster_svg_parse_non_percent_length (hb_svg_str_t s)
+{
+  bool is_percent = false;
+  float v = svg_parse_number_or_percent (s, &is_percent);
+  return is_percent ? 0.f : v;
+}

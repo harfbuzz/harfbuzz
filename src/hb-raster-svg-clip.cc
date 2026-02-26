@@ -161,8 +161,8 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
   svg_parse_style_props (use_parser.find_attr ("style"), &use_style_props);
   float use_x = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.x, "x"));
   float use_y = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.y, "y"));
-  float use_w = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.width, "width"));
-  float use_h = svg_parse_float (svg_pick_attr_or_style (use_parser, use_style_props.height, "height"));
+  float use_w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.width, "width"));
+  float use_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (use_parser, use_style_props.height, "height"));
   if (use_x != 0.f || use_y != 0.f)
   {
     hb_svg_transform_t tr;
@@ -185,9 +185,9 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
     hb_svg_style_props_t target_style_props;
     svg_parse_style_props (ref_parser.find_attr ("style"), &target_style_props);
     if (viewport_w <= 0.f)
-      viewport_w = svg_parse_float (svg_pick_attr_or_style (ref_parser, target_style_props.width, "width"));
+      viewport_w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (ref_parser, target_style_props.width, "width"));
     if (viewport_h <= 0.f)
-      viewport_h = svg_parse_float (svg_pick_attr_or_style (ref_parser, target_style_props.height, "height"));
+      viewport_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (ref_parser, target_style_props.height, "height"));
 
     float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
     hb_svg_transform_t vb_t;
@@ -278,8 +278,8 @@ svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
     if (hb_raster_svg_parse_viewbox (parser.find_attr ("viewBox"),
                                      &vb_x, &vb_y, &vb_w, &vb_h))
     {
-      float viewport_w = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.width, "width"));
-      float viewport_h = svg_parse_float (svg_pick_attr_or_style (parser, geom_style_props.height, "height"));
+      float viewport_w = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.width, "width"));
+      float viewport_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.height, "height"));
       if (!(viewport_w > 0.f && viewport_h > 0.f))
       {
         viewport_w = vb_w;
