@@ -94,19 +94,17 @@ svg_color_line_get_extend (hb_color_line_t *color_line HB_UNUSED,
 
 static bool
 svg_parse_paint_url_with_fallback (hb_svg_str_t s,
-                                   char out_id[64],
+                                   hb_svg_str_t *out_id,
                                    hb_svg_str_t *fallback)
 {
+  if (out_id) *out_id = {};
   hb_svg_str_t id;
   if (!hb_raster_svg_parse_id_ref (s, &id, fallback))
     return false;
   if (!svg_str_starts_with_ascii_ci (s.trim (), "url("))
     return false;
-
-  unsigned n = hb_min (id.len, (unsigned) 63);
-  hb_memcpy (out_id, id.data, n);
-  out_id[n] = '\0';
-  return n > 0;
+  if (out_id) *out_id = id;
+  return id.len > 0;
 }
 
 void
@@ -118,11 +116,11 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
 {
   bool is_none = false;
 
-  char url_id[64];
+  hb_svg_str_t url_id;
   hb_svg_str_t fallback_paint;
-  bool has_url_paint = svg_parse_paint_url_with_fallback (fill_str, url_id, &fallback_paint);
+  bool has_url_paint = svg_parse_paint_url_with_fallback (fill_str, &url_id, &fallback_paint);
 
-  const hb_svg_gradient_t *grad = has_url_paint ? ctx->defs->find_gradient (url_id) : nullptr;
+  const hb_svg_gradient_t *grad = has_url_paint ? ctx->defs->find_gradient (hb_bytes_t (url_id.data, url_id.len)) : nullptr;
   if (has_url_paint && !grad)
   {
     if (fallback_paint.len)
@@ -137,7 +135,7 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
     while (cur && chain_len < ARRAY_LENGTH (chain))
     {
       chain[chain_len++] = cur;
-      if (!cur->href_id[0]) break;
+      if (!cur->href_id.length) break;
       const hb_svg_gradient_t *next = ctx->defs->find_gradient (cur->href_id);
       if (!next) break;
       bool is_cycle = false;

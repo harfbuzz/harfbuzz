@@ -66,7 +66,7 @@ struct hb_svg_gradient_t
 
   hb_vector_t<hb_svg_gradient_stop_t> stops;
 
-  char href_id[64] = {};
+  hb_bytes_t href_id = {};
 };
 
 struct hb_svg_clip_path_def_t
@@ -85,19 +85,11 @@ struct hb_svg_clip_shape_t
   bool has_transform = false;
 };
 
-struct hb_svg_def_t
-{
-  char id[64];
-  enum { DEF_GRADIENT, DEF_CLIP_PATH } type;
-  unsigned index;
-};
-
 struct hb_svg_defs_t
 {
   hb_vector_t<hb_svg_gradient_t> gradients;
   hb_vector_t<hb_svg_clip_shape_t> clip_shapes;
   hb_vector_t<hb_svg_clip_path_def_t> clip_paths;
-  hb_vector_t<hb_svg_def_t> defs;
   hb_hashmap_t<hb_bytes_t, unsigned> gradient_by_id;
   hb_hashmap_t<hb_bytes_t, unsigned> clip_path_by_id;
   hb_vector_t<char *> owned_id_strings;
@@ -105,12 +97,12 @@ struct hb_svg_defs_t
   ~hb_svg_defs_t ();
 
   bool add_id_mapping (hb_hashmap_t<hb_bytes_t, unsigned> *map,
-                       const char *id,
+                       hb_bytes_t id,
                        unsigned idx);
-  bool add_gradient (const char *id, const hb_svg_gradient_t &grad);
-  const hb_svg_gradient_t *find_gradient (const char *id) const;
-  bool add_clip_path (const char *id, const hb_svg_clip_path_def_t &clip);
-  const hb_svg_clip_path_def_t *find_clip_path (const char *id) const;
+  bool add_gradient (hb_bytes_t id, const hb_svg_gradient_t &grad);
+  const hb_svg_gradient_t *find_gradient (hb_bytes_t id) const;
+  bool add_clip_path (hb_bytes_t id, const hb_svg_clip_path_def_t &clip);
+  const hb_svg_clip_path_def_t *find_clip_path (hb_bytes_t id) const;
 };
 
 #endif /* HB_RASTER_SVG_DEFS_HH */

@@ -96,13 +96,7 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
   }
 
   if (id.len && clip.shape_count)
-  {
-    char id_buf[64];
-    unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-    memcpy (id_buf, id.data, n);
-    id_buf[n] = '\0';
-    (void) defs->add_clip_path (id_buf, clip);
-  }
+    (void) defs->add_clip_path (hb_bytes_t (id.data, id.len), clip);
 }
 
 struct hb_svg_clip_emit_data_t
@@ -164,11 +158,7 @@ hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
       !svg_str_starts_with_ascii_ci (trimmed, "url(#"))
     return false;
 
-  char clip_id_buf[64];
-  unsigned clip_id_len = hb_min (clip_id.len, (unsigned) sizeof (clip_id_buf) - 1);
-  hb_memcpy (clip_id_buf, clip_id.data, clip_id_len);
-  clip_id_buf[clip_id_len] = '\0';
-  const hb_svg_clip_path_def_t *clip = defs->find_clip_path (clip_id_buf);
+  const hb_svg_clip_path_def_t *clip = defs->find_clip_path (hb_bytes_t (clip_id.data, clip_id.len));
   if (!clip || !clip->shape_count) return false;
 
   hb_svg_clip_emit_data_t ed;

@@ -127,11 +127,7 @@ svg_parse_gradient_attrs (hb_svg_xml_parser_t &parser,
   {
     hb_svg_str_t href_id;
     if (hb_raster_svg_parse_id_ref (href, &href_id, nullptr))
-    {
-      unsigned n = hb_min (href_id.len, (unsigned) sizeof (grad.href_id) - 1);
-      hb_memcpy (grad.href_id, href_id.data, n);
-      grad.href_id[n] = '\0';
-    }
+      grad.href_id = hb_bytes_t (href_id.data, href_id.len);
   }
 }
 
@@ -226,11 +222,5 @@ hb_raster_svg_process_gradient_def (hb_svg_defs_t *defs,
                                  palette);
 
   if (id.len)
-  {
-    char id_buf[64];
-    unsigned n = hb_min (id.len, (unsigned) sizeof (id_buf) - 1);
-    memcpy (id_buf, id.data, n);
-    id_buf[n] = '\0';
-    (void) defs->add_gradient (id_buf, grad);
-  }
+    (void) defs->add_gradient (hb_bytes_t (id.data, id.len), grad);
 }

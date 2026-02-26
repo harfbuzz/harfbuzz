@@ -38,18 +38,20 @@ hb_svg_defs_t::~hb_svg_defs_t ()
 
 bool
 hb_svg_defs_t::add_id_mapping (hb_hashmap_t<hb_bytes_t, unsigned> *map,
-                               const char *id,
+                               hb_bytes_t id,
                                unsigned idx)
 {
-  hb_bytes_t key = hb_bytes_t (id, (unsigned) strlen (id));
-  if (map->has (key))
+  if (!id.length)
+    return false;
+  if (map->has (id))
     return true;
 
-  unsigned n = (unsigned) strlen (id);
+  unsigned n = (unsigned) id.length;
   char *owned = (char *) hb_malloc (n + 1);
   if (unlikely (!owned))
     return false;
-  hb_memcpy (owned, id, n + 1);
+  hb_memcpy (owned, id.arrayZ, n);
+  owned[n] = '\0';
   if (unlikely (!owned_id_strings.push (owned)))
   {
     hb_free (owned);
@@ -63,28 +65,15 @@ hb_svg_defs_t::add_id_mapping (hb_hashmap_t<hb_bytes_t, unsigned> *map,
 }
 
 bool
-hb_svg_defs_t::add_gradient (const char *id, const hb_svg_gradient_t &grad)
+hb_svg_defs_t::add_gradient (hb_bytes_t id, const hb_svg_gradient_t &grad)
 {
   unsigned idx = gradients.length;
   gradients.push (grad);
   if (unlikely (gradients.in_error ()))
     return false;
 
-  hb_svg_def_t def;
-  unsigned n = hb_min (strlen (id), (size_t) sizeof (def.id) - 1);
-  memcpy (def.id, id, n);
-  def.id[n] = '\0';
-  def.type = hb_svg_def_t::DEF_GRADIENT;
-  def.index = idx;
-  defs.push (def);
-  if (unlikely (defs.in_error ()))
+  if (unlikely (!add_id_mapping (&gradient_by_id, id, idx)))
   {
-    gradients.pop ();
-    return false;
-  }
-  if (unlikely (!add_id_mapping (&gradient_by_id, def.id, idx)))
-  {
-    defs.pop ();
     gradients.pop ();
     return false;
   }
@@ -92,41 +81,25 @@ hb_svg_defs_t::add_gradient (const char *id, const hb_svg_gradient_t &grad)
 }
 
 const hb_svg_gradient_t *
-hb_svg_defs_t::find_gradient (const char *id) const
+hb_svg_defs_t::find_gradient (hb_bytes_t id) const
 {
+  if (!id.length) return nullptr;
   unsigned *idx = nullptr;
-  if (id && gradient_by_id.has (hb_bytes_t (id, (unsigned) strlen (id)), &idx))
+  if (gradient_by_id.has (id, &idx))
     return &gradients[*idx];
-  for (unsigned i = 0; i < defs.length; i++)
-    if (defs[i].type == hb_svg_def_t::DEF_GRADIENT &&
-        strcmp (defs[i].id, id) == 0)
-      return &gradients[defs[i].index];
   return nullptr;
 }
 
 bool
-hb_svg_defs_t::add_clip_path (const char *id, const hb_svg_clip_path_def_t &clip)
+hb_svg_defs_t::add_clip_path (hb_bytes_t id, const hb_svg_clip_path_def_t &clip)
 {
   unsigned idx = clip_paths.length;
   clip_paths.push (clip);
   if (unlikely (clip_paths.in_error ()))
     return false;
 
-  hb_svg_def_t def;
-  unsigned n = hb_min (strlen (id), (size_t) sizeof (def.id) - 1);
-  memcpy (def.id, id, n);
-  def.id[n] = '\0';
-  def.type = hb_svg_def_t::DEF_CLIP_PATH;
-  def.index = idx;
-  defs.push (def);
-  if (unlikely (defs.in_error ()))
+  if (unlikely (!add_id_mapping (&clip_path_by_id, id, idx)))
   {
-    clip_paths.pop ();
-    return false;
-  }
-  if (unlikely (!add_id_mapping (&clip_path_by_id, def.id, idx)))
-  {
-    defs.pop ();
     clip_paths.pop ();
     return false;
   }
@@ -134,14 +107,11 @@ hb_svg_defs_t::add_clip_path (const char *id, const hb_svg_clip_path_def_t &clip
 }
 
 const hb_svg_clip_path_def_t *
-hb_svg_defs_t::find_clip_path (const char *id) const
+hb_svg_defs_t::find_clip_path (hb_bytes_t id) const
 {
+  if (!id.length) return nullptr;
   unsigned *idx = nullptr;
-  if (id && clip_path_by_id.has (hb_bytes_t (id, (unsigned) strlen (id)), &idx))
+  if (clip_path_by_id.has (id, &idx))
     return &clip_paths[*idx];
-  for (unsigned i = 0; i < defs.length; i++)
-    if (defs[i].type == hb_svg_def_t::DEF_CLIP_PATH &&
-        strcmp (defs[i].id, id) == 0)
-      return &clip_paths[defs[i].index];
   return nullptr;
 }
