@@ -24,6 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
+#ifndef HB_NO_RASTER_SVG
+
 #include "hb.hh"
 
 #include "hb-raster-svg-color.hh"
@@ -334,3 +336,5 @@ hb_raster_svg_parse_color (hb_svg_str_t s,
 
   return HB_COLOR (0, 0, 0, 255);
 }
+
+#endif /* !HB_NO_RASTER_SVG */

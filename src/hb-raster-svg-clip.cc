@@ -24,6 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
+#ifndef HB_NO_RASTER_SVG
+
 #include "hb.hh"
 
 #include "hb-raster-svg-clip.hh"
@@ -536,3 +538,5 @@ hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
   hb_raster_paint_push_clip_path (paint, svg_clip_path_emit, &ed);
   return true;
 }
+
+#endif /* !HB_NO_RASTER_SVG */

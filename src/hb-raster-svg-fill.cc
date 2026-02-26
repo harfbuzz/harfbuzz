@@ -24,6 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
+#ifndef HB_NO_RASTER_SVG
+
 #include "hb.hh"
 
 #include "hb-raster-svg-fill.hh"
@@ -290,3 +292,5 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
 
   hb_paint_color (ctx->pfuncs, ctx->paint, false, color);
 }
+
+#endif /* !HB_NO_RASTER_SVG */

@@ -24,6 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
+#ifndef HB_NO_RASTER_SVG
+
 #include "hb.hh"
 
 #include "hb-raster-svg-defs-scan.hh"
@@ -102,3 +104,5 @@ hb_raster_svg_collect_defs (const hb_svg_defs_scan_context_t *ctx,
       hb_raster_svg_process_defs_child_tag (ctx, parser, tok);
   }
 }
+
+#endif /* !HB_NO_RASTER_SVG */
