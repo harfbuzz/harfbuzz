@@ -217,17 +217,23 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
       hb_svg_token_type_t tok = ref_parser.next ();
       if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
       {
-        bool has_viewport_scale = false;
-        if ((ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol")) &&
-            use_w > 0.f && use_h > 0.f)
+      bool has_viewport_scale = false;
+      if (ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol"))
+      {
+        float viewport_w = use_w;
+        float viewport_h = use_h;
+        if (viewport_w <= 0.f)
+          viewport_w = svg_parse_float (ref_parser.find_attr ("width"));
+        if (viewport_h <= 0.f)
+          viewport_h = svg_parse_float (ref_parser.find_attr ("height"));
+
+        float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
+        hb_svg_transform_t t;
+        if (svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h) &&
+            svg_compute_viewbox_transform (viewport_w, viewport_h, vb_x, vb_y, vb_w, vb_h,
+                                           ref_parser.find_attr ("preserveAspectRatio"),
+                                           &t))
         {
-          float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
-          hb_svg_transform_t t;
-          if (svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h) &&
-              svg_compute_viewbox_transform (use_w, use_h, vb_x, vb_y, vb_w, vb_h,
-                                             ref_parser.find_attr ("preserveAspectRatio"),
-                                             &t))
-          {
             hb_paint_push_transform (ctx->pfuncs, ctx->paint, t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
             has_viewport_scale = true;
           }

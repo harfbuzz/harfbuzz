@@ -315,13 +315,19 @@ svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
   if (rt != SVG_TOKEN_OPEN_TAG && rt != SVG_TOKEN_SELF_CLOSE_TAG)
     return;
 
-  if ((ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol")) &&
-      use_w > 0.f && use_h > 0.f)
+  if (ref_parser.tag_name.eq ("svg") || ref_parser.tag_name.eq ("symbol"))
   {
+    float viewport_w = use_w;
+    float viewport_h = use_h;
+    if (viewport_w <= 0.f)
+      viewport_w = svg_parse_float (ref_parser.find_attr ("width"));
+    if (viewport_h <= 0.f)
+      viewport_h = svg_parse_float (ref_parser.find_attr ("height"));
+
     float vb_x = 0.f, vb_y = 0.f, vb_w = 0.f, vb_h = 0.f;
     hb_svg_transform_t vb_t;
     if (svg_parse_viewbox (ref_parser.find_attr ("viewBox"), &vb_x, &vb_y, &vb_w, &vb_h) &&
-        svg_compute_viewbox_transform (use_w, use_h, vb_x, vb_y, vb_w, vb_h,
+        svg_compute_viewbox_transform (viewport_w, viewport_h, vb_x, vb_y, vb_w, vb_h,
                                        ref_parser.find_attr ("preserveAspectRatio"),
                                        &vb_t))
       effective.multiply (vb_t);
