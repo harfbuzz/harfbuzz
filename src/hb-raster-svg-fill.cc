@@ -31,6 +31,8 @@
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-color.hh"
 
+#include <math.h>
+
 struct hb_svg_color_line_data_t
 {
   const hb_svg_gradient_t *grad;
@@ -200,7 +202,7 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
     {
       float w = object_bbox->xmax - object_bbox->xmin;
       float h = object_bbox->ymax - object_bbox->ymin;
-      if (w > 0 && h > 0)
+      if (isfinite (w) && isfinite (h) && w > 0.f && h > 0.f)
         hb_paint_push_transform (ctx->pfuncs, ctx->paint, w, 0, 0, h, object_bbox->xmin, object_bbox->ymin);
       else
         has_bbox_transform = false;
