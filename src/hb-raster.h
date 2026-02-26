@@ -278,34 +278,9 @@ HB_EXTERN void
 hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
 				hb_color_t         foreground);
 
-/**
- * hb_raster_paint_clear_custom_palette_colors:
- * @paint: a paint context.
- *
- * Clears all custom palette color overrides previously set on @paint.
- *
- * After this call, palette lookups use the selected font palette without
- * custom override entries.
- *
- * XSince: REPLACEME
- */
 HB_EXTERN void
 hb_raster_paint_clear_custom_palette_colors (hb_raster_paint_t *paint);
 
-/**
- * hb_raster_paint_set_custom_palette_color:
- * @paint: a paint context.
- * @color_index: color index to override.
- * @color: replacement color.
- *
- * Overrides one font palette color entry for subsequent paint operations.
- * Overrides are keyed by @color_index and persist on @paint until cleared
- * (or replaced for the same index).
- *
- * Return value: `true` if the override was set; `false` on allocation failure.
- *
- * XSince: REPLACEME
- */
 HB_EXTERN hb_bool_t
 hb_raster_paint_set_custom_palette_color (hb_raster_paint_t *paint,
 					  unsigned int       color_index,
