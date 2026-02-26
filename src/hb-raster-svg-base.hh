@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -67,7 +68,8 @@ struct hb_svg_str_t
     unsigned n = hb_min (len, (unsigned) sizeof (buf) - 1);
     memcpy (buf, data, n);
     buf[n] = '\0';
-    return strtof (buf, nullptr);
+    float v = strtof (buf, nullptr);
+    return isfinite (v) ? v : 0.f;
   }
 
   int to_int () const

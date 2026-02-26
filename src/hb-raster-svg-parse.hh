@@ -319,7 +319,8 @@ struct hb_svg_float_parser_t
       return 0.f;
     }
     buf[n] = '\0';
-    return strtof (buf, nullptr);
+    float v = strtof (buf, nullptr);
+    return isfinite (v) ? v : 0.f;
   }
 
   bool next_flag ()
