@@ -31,6 +31,7 @@
 #include "hb-raster-svg-base.hh"
 #include "hb-raster-svg-parse.hh"
 #include "hb-raster-svg-context.hh"
+#include "hb-raster-svg-defs-scan.hh"
 #include "hb-raster-svg-gradient.hh"
 #include "hb-raster-svg-clip.hh"
 #include "hb-raster-svg-bbox.hh"
@@ -54,46 +55,6 @@ static void svg_render_element (hb_svg_render_context_t *ctx,
 /* Gradient def parsing lives in hb-raster-svg-gradient.* */
 
 /* Clip-path defs and push helpers live in hb-raster-svg-clip.* */
-
-/* Process <defs> children — gradients, clipPaths */
-static void
-svg_process_defs (hb_svg_render_context_t *ctx, hb_svg_xml_parser_t &parser)
-{
-  int depth = 1;
-
-  while (depth > 0)
-  {
-    hb_svg_token_type_t tok = parser.next ();
-    if (tok == SVG_TOKEN_EOF) break;
-
-    if (tok == SVG_TOKEN_CLOSE_TAG)
-    {
-      depth--;
-      continue;
-    }
-
-    if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-    {
-      if (parser.tag_name.eq ("linearGradient"))
-	hb_raster_svg_process_gradient_def (&ctx->defs, parser, tok, SVG_GRADIENT_LINEAR,
-				  ctx->pfuncs, ctx->paint,
-				  ctx->foreground, hb_font_get_face (ctx->font),
-				  ctx->palette);
-      else if (parser.tag_name.eq ("radialGradient"))
-	hb_raster_svg_process_gradient_def (&ctx->defs, parser, tok, SVG_GRADIENT_RADIAL,
-				  ctx->pfuncs, ctx->paint,
-				  ctx->foreground, hb_font_get_face (ctx->font),
-				  ctx->palette);
-      else if (parser.tag_name.eq ("clipPath"))
-	hb_raster_svg_process_clip_path_def (&ctx->defs, parser, tok);
-      else
-      {
-	if (tok == SVG_TOKEN_OPEN_TAG)
-	  depth++;
-      }
-    }
-  }
-}
 
 /* Render a single shape element */
 static void
@@ -213,7 +174,14 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
 	if (parser.tag_name.eq ("defs"))
 	{
 	  if (tok != SVG_TOKEN_SELF_CLOSE_TAG)
-	    svg_process_defs (ctx, parser);
+	  {
+	    hb_svg_defs_scan_context_t scan_ctx = {
+	      &ctx->defs, ctx->pfuncs, ctx->paint,
+	      ctx->foreground, hb_font_get_face (ctx->font),
+	      ctx->palette
+	    };
+	    hb_raster_svg_process_defs_element (&scan_ctx, parser);
+	  }
 	  continue;
 	}
 	svg_render_element (ctx, parser, state);
@@ -537,31 +505,12 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   hb_svg_cascade_t initial_state;
   initial_state.color = foreground;
 
-  /* First pass: collect defs (gradients, clip-paths) from the entire document,
-   * including entries that are authored outside <defs>. */
-  {
-    hb_svg_xml_parser_t defs_parser (data, data_len);
-    while (true)
-    {
-      hb_svg_token_type_t tok = defs_parser.next ();
-      if (tok == SVG_TOKEN_EOF) break;
-      if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-      {
-	if (defs_parser.tag_name.eq ("linearGradient"))
-	  hb_raster_svg_process_gradient_def (&ctx.defs, defs_parser, tok, SVG_GRADIENT_LINEAR,
-				    ctx.pfuncs, ctx.paint,
-				    ctx.foreground, hb_font_get_face (ctx.font),
-				    ctx.palette);
-	else if (defs_parser.tag_name.eq ("radialGradient"))
-	  hb_raster_svg_process_gradient_def (&ctx.defs, defs_parser, tok, SVG_GRADIENT_RADIAL,
-				    ctx.pfuncs, ctx.paint,
-				    ctx.foreground, hb_font_get_face (ctx.font),
-				    ctx.palette);
-	else if (defs_parser.tag_name.eq ("clipPath"))
-	  hb_raster_svg_process_clip_path_def (&ctx.defs, defs_parser, tok);
-      }
-    }
-  }
+  hb_svg_defs_scan_context_t scan_ctx = {
+    &ctx.defs, ctx.pfuncs, ctx.paint,
+    ctx.foreground, hb_font_get_face (ctx.font),
+    ctx.palette
+  };
+  hb_raster_svg_collect_defs (&scan_ctx, data, data_len);
 
   bool found_glyph = false;
   unsigned glyph_start = 0, glyph_end = 0;
