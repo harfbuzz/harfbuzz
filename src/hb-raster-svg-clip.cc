@@ -99,12 +99,22 @@ svg_find_element_by_id (const char *doc_start,
   return false;
 }
 
+struct hb_svg_clip_collect_context_t
+{
+  hb_svg_defs_t *defs;
+  hb_svg_clip_path_def_t *clip;
+  const char *doc_start;
+  unsigned doc_len;
+  const OT::SVG::accelerator_t *svg_accel;
+  const OT::SVG::svg_doc_cache_t *doc_cache;
+  hb_decycler_t *use_decycler;
+  bool *had_alloc_failure;
+};
+
 static inline void
-svg_clip_append_shape (hb_svg_defs_t *defs,
-                       hb_svg_clip_path_def_t *clip,
+svg_clip_append_shape (hb_svg_clip_collect_context_t *ctx,
                        const hb_svg_shape_emit_data_t &shape,
-                       const hb_svg_transform_t &transform,
-                       bool *had_alloc_failure)
+                       const hb_svg_transform_t &transform)
 {
   hb_svg_clip_shape_t clip_shape;
   clip_shape.shape = shape;
@@ -113,11 +123,11 @@ svg_clip_append_shape (hb_svg_defs_t *defs,
     clip_shape.has_transform = true;
     clip_shape.transform = transform;
   }
-  defs->clip_shapes.push (clip_shape);
-  if (likely (!defs->clip_shapes.in_error ()))
-    clip->shape_count++;
-  else if (had_alloc_failure)
-    *had_alloc_failure = true;
+  ctx->defs->clip_shapes.push (clip_shape);
+  if (likely (!ctx->defs->clip_shapes.in_error ()))
+    ctx->clip->shape_count++;
+  else if (ctx->had_alloc_failure)
+    *ctx->had_alloc_failure = true;
 }
 
 static void
@@ -146,30 +156,18 @@ svg_is_hidden_element (hb_svg_xml_parser_t &parser)
 }
 
 static void
-svg_clip_collect_ref_element (hb_svg_defs_t *defs,
-                              hb_svg_clip_path_def_t *clip,
+svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               hb_svg_xml_parser_t &parser,
                               const hb_svg_transform_t &base_transform,
-                              const char *doc_start,
-                              unsigned doc_len,
-                              const OT::SVG::accelerator_t *svg_accel,
-                              const OT::SVG::svg_doc_cache_t *doc_cache,
-                              hb_decycler_t &use_decycler,
                               unsigned depth,
-                              bool *had_alloc_failure);
+                              bool local_decycler_only = false);
 
 static void
-svg_clip_collect_use_target (hb_svg_defs_t *defs,
-                             hb_svg_clip_path_def_t *clip,
+svg_clip_collect_use_target (hb_svg_clip_collect_context_t *ctx,
                              hb_svg_xml_parser_t &use_parser,
                              const hb_svg_transform_t &base_transform,
-                             const char *doc_start,
-                             unsigned doc_len,
-                             const OT::SVG::accelerator_t *svg_accel,
-                             const OT::SVG::svg_doc_cache_t *doc_cache,
-                             hb_decycler_t &use_decycler,
                              unsigned depth,
-                             bool *had_alloc_failure)
+                             bool local_decycler_only = false)
 {
   const unsigned SVG_MAX_CLIP_USE_DEPTH = 64;
   if (depth >= SVG_MAX_CLIP_USE_DEPTH)
@@ -181,12 +179,24 @@ svg_clip_collect_use_target (hb_svg_defs_t *defs,
     return;
 
   const char *found = nullptr;
-  if (!svg_find_element_by_id (doc_start, doc_len, svg_accel, doc_cache, ref_id, &found))
+  if (!svg_find_element_by_id (ctx->doc_start, ctx->doc_len,
+                               ctx->svg_accel, ctx->doc_cache,
+                               ref_id, &found))
     return;
 
-  hb_decycler_node_t node (use_decycler);
-  if (unlikely (!node.visit ((uintptr_t) found)))
-    return;
+  if (!local_decycler_only)
+  {
+    hb_decycler_node_t node (*ctx->use_decycler);
+    if (unlikely (!node.visit ((uintptr_t) found)))
+      return;
+  }
+  else
+  {
+    hb_decycler_t local_decycler;
+    hb_decycler_node_t node (local_decycler);
+    if (unlikely (!node.visit ((uintptr_t) found)))
+      return;
+  }
 
   hb_svg_transform_t effective = base_transform;
   float use_x = svg_parse_float (use_parser.find_attr ("x"));
@@ -199,29 +209,21 @@ svg_clip_collect_use_target (hb_svg_defs_t *defs,
     effective.multiply (tr);
   }
 
-  unsigned remaining = doc_len - (unsigned) (found - doc_start);
+  unsigned remaining = ctx->doc_len - (unsigned) (found - ctx->doc_start);
   hb_svg_xml_parser_t ref_parser (found, remaining);
   hb_svg_token_type_t rt = ref_parser.next ();
   if (rt != SVG_TOKEN_OPEN_TAG && rt != SVG_TOKEN_SELF_CLOSE_TAG)
     return;
 
-  svg_clip_collect_ref_element (defs, clip, ref_parser, effective,
-                                doc_start, doc_len, svg_accel, doc_cache,
-                                use_decycler, depth + 1, had_alloc_failure);
+  svg_clip_collect_ref_element (ctx, ref_parser, effective, depth + 1, local_decycler_only);
 }
 
 static void
-svg_clip_collect_ref_element (hb_svg_defs_t *defs,
-                              hb_svg_clip_path_def_t *clip,
+svg_clip_collect_ref_element (hb_svg_clip_collect_context_t *ctx,
                               hb_svg_xml_parser_t &parser,
                               const hb_svg_transform_t &base_transform,
-                              const char *doc_start,
-                              unsigned doc_len,
-                              const OT::SVG::accelerator_t *svg_accel,
-                              const OT::SVG::svg_doc_cache_t *doc_cache,
-                              hb_decycler_t &use_decycler,
                               unsigned depth,
-                              bool *had_alloc_failure)
+                              bool local_decycler_only)
 {
   const unsigned SVG_MAX_CLIP_REF_DEPTH = 64;
   if (depth >= SVG_MAX_CLIP_REF_DEPTH)
@@ -246,7 +248,7 @@ svg_clip_collect_ref_element (hb_svg_defs_t *defs,
   hb_svg_shape_emit_data_t shape;
   if (hb_raster_svg_parse_shape_tag (parser, &shape))
   {
-    svg_clip_append_shape (defs, clip, shape, effective, had_alloc_failure);
+    svg_clip_append_shape (ctx, shape, effective);
     if (!parser.self_closing)
       svg_skip_subtree (parser);
     return;
@@ -254,9 +256,7 @@ svg_clip_collect_ref_element (hb_svg_defs_t *defs,
 
   if (parser.tag_name.eq ("use"))
   {
-    svg_clip_collect_use_target (defs, clip, parser, effective,
-                                 doc_start, doc_len, svg_accel, doc_cache,
-                                 use_decycler, depth + 1, had_alloc_failure);
+    svg_clip_collect_use_target (ctx, parser, effective, depth + 1, local_decycler_only);
     if (!parser.self_closing)
       svg_skip_subtree (parser);
     return;
@@ -283,9 +283,7 @@ svg_clip_collect_ref_element (hb_svg_defs_t *defs,
       continue;
     }
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
-      svg_clip_collect_ref_element (defs, clip, parser, effective,
-                                    doc_start, doc_len, svg_accel, doc_cache,
-                                    use_decycler, depth + 1, had_alloc_failure);
+      svg_clip_collect_ref_element (ctx, parser, effective, depth + 1, local_decycler_only);
   }
 }
 
@@ -329,6 +327,11 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
 
     int cdepth = 1;
     bool had_alloc_failure = false;
+    hb_svg_clip_collect_context_t collect_ctx = {
+      defs, &clip,
+      doc_start, doc_len, svg_accel, doc_cache,
+      &use_decycler, &had_alloc_failure
+    };
     while (cdepth > 0)
     {
       hb_svg_token_type_t ct = parser.next ();
@@ -387,15 +390,13 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
 
         if (parser.tag_name.eq ("use"))
         {
-          svg_clip_collect_use_target (defs, &clip, parser, effective,
-                                       doc_start, doc_len, svg_accel, doc_cache,
-                                       use_decycler, 0, &had_alloc_failure);
+          svg_clip_collect_use_target (&collect_ctx, parser, effective, 0);
         }
         else
         {
           hb_svg_shape_emit_data_t shape;
           if (hb_raster_svg_parse_shape_tag (parser, &shape))
-            svg_clip_append_shape (defs, &clip, shape, effective, &had_alloc_failure);
+            svg_clip_append_shape (&collect_ctx, shape, effective);
         }
 
         if (ct == SVG_TOKEN_OPEN_TAG)
