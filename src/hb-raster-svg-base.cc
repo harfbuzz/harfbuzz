@@ -347,11 +347,15 @@ svg_align_offset (hb_svg_str_t align,
                   char axis)
 {
   if (leftover <= 0.f) return 0.f;
-  if ((axis == 'x' && align.starts_with ("xMin")) ||
-      (axis == 'y' && (align.eq ("xMinYMin") || align.eq ("xMidYMin") || align.eq ("xMaxYMin"))))
+  if ((axis == 'x' && svg_str_starts_with_ascii_ci (align, "xMin")) ||
+      (axis == 'y' && (svg_str_eq_ascii_ci (align, "xMinYMin") ||
+                       svg_str_eq_ascii_ci (align, "xMidYMin") ||
+                       svg_str_eq_ascii_ci (align, "xMaxYMin"))))
     return 0.f;
-  if ((axis == 'x' && align.starts_with ("xMax")) ||
-      (axis == 'y' && (align.eq ("xMinYMax") || align.eq ("xMidYMax") || align.eq ("xMaxYMax"))))
+  if ((axis == 'x' && svg_str_starts_with_ascii_ci (align, "xMax")) ||
+      (axis == 'y' && (svg_str_eq_ascii_ci (align, "xMinYMax") ||
+                       svg_str_eq_ascii_ci (align, "xMidYMax") ||
+                       svg_str_eq_ascii_ci (align, "xMaxYMax"))))
     return leftover;
   return leftover * 0.5f;
 }
@@ -390,7 +394,7 @@ hb_raster_svg_compute_viewbox_transform (float viewport_w,
 
   if (svg_str_starts_with_ascii_ci (par, "none"))
     is_none = true;
-  else if (align.starts_with ("x"))
+  else if (svg_str_starts_with_ascii_ci (align, "x"))
   {
     const char *mode = p;
     while (mode < end && (*mode == ' ' || *mode == '\t' || *mode == '\n' || *mode == '\r')) mode++;
@@ -417,7 +421,7 @@ hb_raster_svg_compute_viewbox_transform (float viewport_w,
   float leftover_x = viewport_w - scaled_w;
   float leftover_y = viewport_h - scaled_h;
 
-  if (!align.starts_with ("x"))
+  if (!svg_str_starts_with_ascii_ci (align, "x"))
     align = hb_svg_str_t ("xMidYMid", 8);
 
   t.xx = s;
