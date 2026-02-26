@@ -146,14 +146,23 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
         break;
       chain.push (cur);
       if (unlikely (chain.in_error ()))
+      {
+        if (fallback_paint.len)
+          hb_raster_svg_emit_fill (ctx, fallback_paint, fill_opacity, object_bbox, current_color);
         return;
+      }
 
       if (!cur->href_id.length) break;
       const hb_svg_gradient_t *next = ctx->defs->find_gradient (cur->href_id);
       if (!next) break;
       cur = next;
     }
-    if (!chain.length) return;
+    if (!chain.length)
+    {
+      if (fallback_paint.len)
+        hb_raster_svg_emit_fill (ctx, fallback_paint, fill_opacity, object_bbox, current_color);
+      return;
+    }
 
     hb_svg_gradient_t effective = *chain.arrayZ[chain.length - 1];
     for (int i = (int) chain.length - 2; i >= 0; i--)
@@ -183,7 +192,11 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
       if (g->has_fy) { effective.fy = g->fy; effective.has_fy = true; }
     }
     if (!effective.stops.length)
+    {
+      if (fallback_paint.len)
+        hb_raster_svg_emit_fill (ctx, fallback_paint, fill_opacity, object_bbox, current_color);
       return;
+    }
 
     hb_svg_color_line_data_t cl_data;
     cl_data.grad = &effective;
