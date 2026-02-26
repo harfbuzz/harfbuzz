@@ -102,6 +102,9 @@ struct hb_svg_style_props_t
   hb_svg_str_t offset;
   hb_svg_str_t stop_color;
   hb_svg_str_t stop_opacity;
+  hb_svg_str_t spread_method;
+  hb_svg_str_t gradient_units;
+  hb_svg_str_t gradient_transform;
   hb_svg_str_t x;
   hb_svg_str_t y;
   hb_svg_str_t width;
@@ -109,6 +112,8 @@ struct hb_svg_style_props_t
   hb_svg_str_t cx;
   hb_svg_str_t cy;
   hb_svg_str_t r;
+  hb_svg_str_t fx;
+  hb_svg_str_t fy;
   hb_svg_str_t rx;
   hb_svg_str_t ry;
   hb_svg_str_t x1;

@@ -107,6 +107,12 @@ svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out)
     else if (svg_str_eq_ascii_ci (prop_name, "offset")) out->offset = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "stop-color")) out->stop_color = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "stop-opacity")) out->stop_opacity = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "spreadmethod") ||
+             svg_str_eq_ascii_ci (prop_name, "spread-method")) out->spread_method = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "gradientunits") ||
+             svg_str_eq_ascii_ci (prop_name, "gradient-units")) out->gradient_units = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "gradienttransform") ||
+             svg_str_eq_ascii_ci (prop_name, "gradient-transform")) out->gradient_transform = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "x")) out->x = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "y")) out->y = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "width")) out->width = prop_value;
@@ -114,6 +120,8 @@ svg_parse_style_props (hb_svg_str_t style, hb_svg_style_props_t *out)
     else if (svg_str_eq_ascii_ci (prop_name, "cx")) out->cx = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "cy")) out->cy = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "r")) out->r = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "fx")) out->fx = prop_value;
+    else if (svg_str_eq_ascii_ci (prop_name, "fy")) out->fy = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "rx")) out->rx = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "ry")) out->ry = prop_value;
     else if (svg_str_eq_ascii_ci (prop_name, "x1")) out->x1 = prop_value;
