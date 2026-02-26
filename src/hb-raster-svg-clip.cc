@@ -320,9 +320,11 @@ hb_raster_svg_process_clip_path_def (hb_svg_defs_t *defs,
 {
   hb_svg_clip_path_def_t clip;
   hb_svg_str_t id = parser.find_attr ("id");
-  hb_svg_str_t units = parser.find_attr ("clipPathUnits");
-  if (units.eq ("objectBoundingBox"))
+  hb_svg_str_t units = parser.find_attr ("clipPathUnits").trim ();
+  if (svg_str_eq_ascii_ci (units, "objectBoundingBox"))
     clip.units_user_space = false;
+  else if (svg_str_eq_ascii_ci (units, "userSpaceOnUse"))
+    clip.units_user_space = true;
   else
     clip.units_user_space = true;
 
