@@ -1881,6 +1881,9 @@ hb_raster_paint_clear_custom_palette_colors (hb_raster_paint_t *paint)
  * Overrides are keyed by @color_index and persist on @paint until cleared
  * (or replaced for the same index).
  *
+ * These overrides are consulted by paint operations that resolve CPAL
+ * entries.
+ *
  * Return value: `true` if the override was set; `false` on allocation failure.
  *
  * XSince: REPLACEME
