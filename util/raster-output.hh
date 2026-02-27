@@ -71,30 +71,14 @@ struct raster_output_t : output_options_t<true>, view_options_t
 		hb_ot_color_has_layers (face) ||
 		hb_ot_color_has_svg (face);
 
-    /* Parse foreground / background colors */
-    {
-      unsigned r, g, b, a;
-      const char *fg_spec = fore ? fore : DEFAULT_FORE;
-      if (foreground_use_palette && foreground_palette && foreground_palette->len)
-      {
-	auto &c = g_array_index (foreground_palette, rgba_color_t, 0);
-	r = c.r; g = c.g; b = c.b; a = c.a;
-	fg_color = HB_COLOR ((uint8_t) b, (uint8_t) g, (uint8_t) r, (uint8_t) a);
-      }
-      else if (parse_color (fg_spec, r, g, b, a))
-	fg_color = HB_COLOR ((uint8_t) b, (uint8_t) g, (uint8_t) r, (uint8_t) a);
-    }
-    {
-      const char *bg_spec = back ? back : DEFAULT_BACK;
-      unsigned r, g, b, a;
-      if (parse_color (bg_spec, r, g, b, a))
-      {
-	bg_r = (uint8_t) r;
-	bg_g = (uint8_t) g;
-	bg_b = (uint8_t) b;
-	bg_a = (uint8_t) a;
-      }
-    }
+    fg_color = HB_COLOR ((uint8_t) foreground_color.b,
+			 (uint8_t) foreground_color.g,
+			 (uint8_t) foreground_color.r,
+			 (uint8_t) foreground_color.a);
+    bg_r = (uint8_t) background_color.r;
+    bg_g = (uint8_t) background_color.g;
+    bg_b = (uint8_t) background_color.b;
+    bg_a = (uint8_t) background_color.a;
 
     rdr = hb_raster_draw_create_or_fail ();
     if (has_color)

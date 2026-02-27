@@ -80,33 +80,14 @@ struct vector_output_t : output_options_t<>, view_options_t
       return;
     }
 
-    foreground = HB_COLOR (0, 0, 0, 255);
-    if (foreground_use_palette && foreground_palette && foreground_palette->len)
-    {
-      const rgba_color_t &c = g_array_index (foreground_palette, rgba_color_t, 0);
-      foreground = HB_COLOR (c.b, c.g, c.r, c.a);
-    }
-    else if (fore && *fore)
-    {
-      unsigned r, g, b, a;
-      if (!parse_color (fore, r, g, b, a))
-        return;
-      foreground = HB_COLOR (b, g, r, a);
-    }
-
-    has_background = false;
-    if (back && *back)
-    {
-      unsigned r, g, b, a;
-      if (!parse_color (back, r, g, b, a))
-      {
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Invalid background color: %s", back);
-        return;
-      }
-      background = HB_COLOR (b, g, r, a);
-      has_background = true;
-    }
+    foreground = HB_COLOR (foreground_color.b,
+                           foreground_color.g,
+                           foreground_color.r,
+                           foreground_color.a);
+    background = HB_COLOR (background_color.b,
+                           background_color.g,
+                           background_color.r,
+                           background_color.a);
 
     load_custom_palette_overrides_from_view ();
   }
@@ -1049,7 +1030,6 @@ struct vector_output_t : output_options_t<>, view_options_t
   int precision = 2;
   hb_color_t background = HB_COLOR (255, 255, 255, 255);
   hb_color_t foreground = HB_COLOR (0, 0, 0, 255);
-  hb_bool_t has_background = false;
 
   hb_font_t *font = nullptr;
   hb_font_t *upem_font = nullptr;

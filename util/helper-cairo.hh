@@ -540,11 +540,14 @@ helper_cairo_create_context (double w, double h,
 
 
   unsigned int fr, fg, fb, fa, br, bg, bb, ba;
-  const char *color;
-  br = bg = bb = ba = 255;
-  color = view_opts->back ? view_opts->back : DEFAULT_BACK;
-  parse_color (color, br, bg, bb, ba);
-  fr = fg = fb = 0; fa = 255;
+  br = view_opts->background_color.r;
+  bg = view_opts->background_color.g;
+  bb = view_opts->background_color.b;
+  ba = view_opts->background_color.a;
+  fr = view_opts->foreground_color.r;
+  fg = view_opts->foreground_color.g;
+  fb = view_opts->foreground_color.b;
+  fa = view_opts->foreground_color.a;
   bool foreground_has_color = false;
   bool foreground_has_alpha = false;
   bool stroke_has_color = false;
@@ -572,8 +575,6 @@ helper_cairo_create_context (double w, double h,
   }
   else
   {
-    color = view_opts->fore ? view_opts->fore : DEFAULT_FORE;
-    parse_color (color, fr, fg, fb, fa);
     foreground_has_color = fr != fg || fg != fb;
     foreground_has_alpha = fa != 255;
   }

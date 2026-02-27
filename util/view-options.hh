@@ -100,6 +100,24 @@ struct view_options_t
     if (!parse_custom_palette_entries (error))
       return;
 
+    if (!parse_color (DEFAULT_BACK,
+		      background_color.r, background_color.g,
+		      background_color.b, background_color.a))
+      fail (false, "Failed parsing default background color `%s`", DEFAULT_BACK);
+    has_background = false;
+    if (back && *back)
+    {
+      if (!parse_color (back,
+			background_color.r, background_color.g,
+			background_color.b, background_color.a))
+      {
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Invalid background color `%s`", back);
+	return;
+      }
+      has_background = true;
+    }
+
     foreground_use_palette = false;
     if (foreground_palette)
     {
@@ -110,6 +128,11 @@ struct view_options_t
     const char *foreground = fore ? fore : DEFAULT_FORE;
     if (!foreground)
       return;
+
+    if (!parse_color (DEFAULT_FORE,
+		      foreground_color.r, foreground_color.g,
+		      foreground_color.b, foreground_color.a))
+      fail (false, "Failed parsing default foreground color `%s`", DEFAULT_FORE);
 
     const bool use_rainbow =
       foreground_use_rainbow ||
@@ -137,6 +160,9 @@ struct view_options_t
           fail (false, "Failed parsing foreground color `%s`", *entry);
         g_array_append_val (foreground_palette, color);
       }
+      if (foreground_palette->len)
+	foreground_color =
+	  g_array_index (foreground_palette, rgba_color_t, 0);
       foreground_use_palette = true;
 
       if (!stroke_specified)
@@ -150,6 +176,7 @@ struct view_options_t
       rgba_color_t color = {0, 0, 0, 255};
       if (!parse_color (foreground, color.r, color.g, color.b, color.a))
         fail (false, "Failed parsing foreground color `%s`", foreground);
+      foreground_color = color;
       return;
     }
 
@@ -175,6 +202,7 @@ struct view_options_t
       return;
     }
 
+    foreground_color = g_array_index (foreground_palette, rgba_color_t, 0);
     foreground_use_palette = true;
   }
 
@@ -198,6 +226,9 @@ struct view_options_t
   hb_bool_t stroke_enabled = false;
   rgba_color_t stroke_color = {0, 0, 0, 255};
   double stroke_width = DEFAULT_STROKE_WIDTH;
+  rgba_color_t foreground_color = {0, 0, 0, 255};
+  rgba_color_t background_color = {255, 255, 255, 255};
+  hb_bool_t has_background = false;
   double line_space = 0;
   bool have_font_extents = false;
   struct font_extents_t {
