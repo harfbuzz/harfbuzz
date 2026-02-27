@@ -122,29 +122,19 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
   cairo_font_options_set_color_palette (font_options, view_opts->palette);
 #endif
 #ifdef HAVE_CAIRO_FONT_OPTIONS_GET_CUSTOM_PALETTE_COLOR
-  if (view_opts->custom_palette)
+  if (view_opts->custom_palette_entries)
   {
-    char **entries = g_strsplit (view_opts->custom_palette, ",", -1);
-    unsigned idx = 0;
-    for (unsigned i = 0; entries[i]; i++)
+    for (unsigned i = 0; i < view_opts->custom_palette_entries->len; i++)
     {
-      const char *p = strchr (entries[i], '=');
-      if (!p)
-        p = entries[i];
-      else
-      {
-	sscanf (entries[i], "%u", &idx);
-        p++;
-      }
-
-      unsigned fr, fg, fb, fa;
-      fr = fg = fb = fa = 0;
-      if (parse_color (p, fr, fg,fb, fa))
-	cairo_font_options_set_custom_palette_color (font_options, idx, fr / 255., fg / 255., fb / 255., fa / 255.);
-
-      idx++;
+      auto &entry =
+        g_array_index (view_opts->custom_palette_entries,
+                       typename view_options_t::custom_palette_entry_t, i);
+      cairo_font_options_set_custom_palette_color (font_options, entry.index,
+                                                   entry.color.r / 255.,
+                                                   entry.color.g / 255.,
+                                                   entry.color.b / 255.,
+                                                   entry.color.a / 255.);
     }
-    g_strfreev (entries);
   }
 #endif
 

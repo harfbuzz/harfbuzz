@@ -45,6 +45,8 @@ struct view_options_t
     g_free (custom_palette);
     if (foreground_palette)
       g_array_unref (foreground_palette);
+    if (custom_palette_entries)
+      g_array_unref (custom_palette_entries);
   }
 
   void add_options (option_parser_t *parser);
@@ -94,6 +96,9 @@ struct view_options_t
       }
       g_free (spec);
     }
+
+    if (!parse_custom_palette_entries (error))
+      return;
 
     foreground_use_palette = false;
     if (foreground_palette)
@@ -176,12 +181,17 @@ struct view_options_t
   struct rgba_color_t {
     unsigned r, g, b, a;
   };
+  struct custom_palette_entry_t {
+    unsigned index;
+    rgba_color_t color;
+  };
 
   char *fore = nullptr;
   char *stroke = nullptr;
   char *back = nullptr;
   unsigned int palette = 0;
   char *custom_palette = nullptr;
+  GArray *custom_palette_entries = nullptr;
   GArray *foreground_palette = nullptr;
   hb_bool_t foreground_use_palette = false;
   hb_bool_t foreground_use_rainbow = false;
@@ -199,6 +209,78 @@ struct view_options_t
   hb_bool_t logical = false;
   hb_bool_t ink = false;
   hb_bool_t show_extents = false;
+
+  bool parse_custom_palette_entries (GError **error)
+  {
+    if (custom_palette_entries)
+    {
+      g_array_unref (custom_palette_entries);
+      custom_palette_entries = nullptr;
+    }
+    if (!custom_palette || !*custom_palette)
+      return true;
+
+    custom_palette_entries = g_array_new (false, false, sizeof (custom_palette_entry_t));
+    char **entries = g_strsplit (custom_palette, ",", -1);
+    unsigned next_index = 0;
+    for (unsigned i = 0; entries && entries[i]; i++)
+    {
+      char *entry = g_strstrip (entries[i]);
+      if (!*entry)
+        continue;
+
+      unsigned idx = next_index;
+      char *color_spec = entry;
+      char *eq = strchr (entry, '=');
+      if (eq)
+      {
+        *eq = '\0';
+        char *idx_spec = g_strstrip (entry);
+        color_spec = g_strstrip (eq + 1);
+        if (!*idx_spec || !*color_spec)
+        {
+          g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                       "Invalid --custom-palette entry");
+          g_strfreev (entries);
+          return false;
+        }
+        char *end = nullptr;
+        errno = 0;
+        unsigned long parsed = strtoul (idx_spec, &end, 10);
+        if (errno || !end || *g_strstrip (end))
+        {
+          g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                       "Invalid --custom-palette index `%s`", idx_spec);
+          g_strfreev (entries);
+          return false;
+        }
+        idx = (unsigned) parsed;
+        next_index = idx + 1;
+      }
+
+      rgba_color_t color = {0, 0, 0, 255};
+      if (!parse_color (color_spec, color.r, color.g, color.b, color.a))
+      {
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Invalid --custom-palette color `%s`", color_spec);
+        g_strfreev (entries);
+        return false;
+      }
+
+      custom_palette_entry_t parsed = {idx, color};
+      g_array_append_val (custom_palette_entries, parsed);
+      if (!eq)
+        next_index++;
+    }
+    g_strfreev (entries);
+
+    if (!custom_palette_entries->len)
+    {
+      g_array_unref (custom_palette_entries);
+      custom_palette_entries = nullptr;
+    }
+    return true;
+  }
 };
 
 

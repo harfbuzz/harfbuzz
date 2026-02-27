@@ -102,29 +102,19 @@ struct raster_output_t : output_options_t<true>, view_options_t
       pnt = hb_raster_paint_create_or_fail ();
       hb_raster_paint_set_foreground (pnt, fg_color);
       hb_raster_paint_clear_custom_palette_colors (pnt);
-      if (custom_palette)
+      if (custom_palette_entries)
       {
-	char **entries = g_strsplit (custom_palette, ",", -1);
-	unsigned idx = 0;
-	for (unsigned i = 0; entries[i]; i++)
+	for (unsigned i = 0; i < custom_palette_entries->len; i++)
 	{
-	  char *entry = g_strstrip (entries[i]);
-	  const char *p = strchr (entry, '=');
-	  if (!p)
-	    p = entry;
-	  else
-	  {
-	    sscanf (entry, "%u", &idx);
-	    p++;
-	  }
-
-	  unsigned r = 0, g = 0, b = 0, a = 0;
-	  if (parse_color (p, r, g, b, a))
-	    hb_raster_paint_set_custom_palette_color (pnt, idx,
-						      HB_COLOR ((uint8_t) b, (uint8_t) g, (uint8_t) r, (uint8_t) a));
-	  idx++;
+	  auto &entry =
+	    g_array_index (custom_palette_entries,
+			   typename view_options_t::custom_palette_entry_t, i);
+	  hb_raster_paint_set_custom_palette_color (pnt, entry.index,
+						    HB_COLOR ((uint8_t) entry.color.b,
+							      (uint8_t) entry.color.g,
+							      (uint8_t) entry.color.r,
+							      (uint8_t) entry.color.a));
 	}
-	g_strfreev (entries);
       }
     }
   }

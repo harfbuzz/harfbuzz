@@ -108,8 +108,7 @@ struct vector_output_t : output_options_t<>, view_options_t
       has_background = true;
     }
 
-    if (!parse_custom_palette_overrides (error))
-      return;
+    load_custom_palette_overrides_from_view ();
   }
 
   template <typename app_t>
@@ -957,39 +956,29 @@ struct vector_output_t : output_options_t<>, view_options_t
     palette_lookup_enabled = true;
   }
 
-  bool parse_custom_palette_overrides (GError **error)
+  void load_custom_palette_overrides_from_view ()
   {
     custom_palette_values.clear ();
     custom_palette_has_value.clear ();
-    if (!custom_palette || !*custom_palette)
-      return true;
+    if (!custom_palette_entries)
+      return;
 
-    char **entries = g_strsplit (custom_palette, ",", -1);
-    for (unsigned idx = 0; entries && entries[idx]; idx++)
+    for (unsigned i = 0; i < custom_palette_entries->len; i++)
     {
-      char *entry = g_strstrip (entries[idx]);
-      if (!*entry)
-        continue;
-
-      unsigned r = 0, g = 0, b = 0, a = 255;
-      if (!parse_color (entry, r, g, b, a))
-      {
-        g_strfreev (entries);
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Invalid --custom-palette entry; expected rrggbb or rrggbbaa");
-        return false;
-      }
-
+      const custom_palette_entry_t &entry =
+        g_array_index (custom_palette_entries, custom_palette_entry_t, i);
+      unsigned idx = entry.index;
       if (custom_palette_values.size () <= idx)
       {
         custom_palette_values.resize (idx + 1, HB_COLOR (0, 0, 0, 255));
         custom_palette_has_value.resize (idx + 1, false);
       }
-      custom_palette_values[idx] = HB_COLOR (b, g, r, a);
+      custom_palette_values[idx] = HB_COLOR (entry.color.b,
+                                             entry.color.g,
+                                             entry.color.r,
+                                             entry.color.a);
       custom_palette_has_value[idx] = true;
     }
-    g_strfreev (entries);
-    return true;
   }
 
   void emit_extents_overlay (hb_direction_t dir, float step)
