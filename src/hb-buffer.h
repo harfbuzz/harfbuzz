@@ -870,6 +870,9 @@ hb_buffer_set_message_func (hb_buffer_t *buffer,
 			    hb_buffer_message_func_t func,
 			    void *user_data, hb_destroy_func_t destroy);
 
+HB_EXTERN void
+hb_buffer_changed (hb_buffer_t *buffer);
+
 
 HB_END_DECLS
 
