@@ -250,6 +250,10 @@ if get_option('experimental_api')
   conf.set('HB_EXPERIMENTAL_API', 1)
 endif
 
+if get_option('depend_api')
+  conf.set('HB_DEPEND_API', 1)
+endif
+
 if freetype_dep.found()
   conf.set('HAVE_FREETYPE', 1)
   check_freetype_funcs = [

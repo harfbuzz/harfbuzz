@@ -92,6 +92,9 @@ for soname in [
         suspicious_symbols = [
             x for x in EXPORTED_SYMBOLS if not re.match(r"^%s(_|$)" % prefix, x)
         ]
+        # libharfbuzz-subset also exports hb_depend_* when depend_api is enabled
+        if soname == "harfbuzz-subset":
+            suspicious_symbols = [x for x in suspicious_symbols if not re.match(r"^%shb_depend_" % symprefix, x)]
         if suspicious_symbols:
             print("Ouch, internal symbols exposed:", suspicious_symbols)
             stat = 1

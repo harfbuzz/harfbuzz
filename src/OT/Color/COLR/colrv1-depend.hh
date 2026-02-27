@@ -1,6 +1,5 @@
 /*
- * Copyright © 2018  Ebrahim Byagowi
- * Copyright © 2020  Google, Inc.
+ * Copyright © 2025  Skef Iterum
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -24,8 +23,8 @@
  *
  */
 
-#ifndef OT_COLOR_COLR_COLRV1_CLOSURE_HH
-#define OT_COLOR_COLR_COLRV1_CLOSURE_HH
+#ifndef OT_COLOR_COLR_COLRV1_DEPEND_HH
+#define OT_COLOR_COLR_COLRV1_DEPEND_HH
 
 #include "../../../hb-open-type.hh"
 #include "COLR.hh"
@@ -36,9 +35,10 @@
  */
 namespace OT {
 
-HB_INTERNAL void PaintColrLayers::closurev1 (hb_colrv1_closure_context_t* c) const
+#ifdef HB_DEPEND_API
+
+HB_INTERNAL void PaintColrLayers::dependv1 (hb_colrv1_depend_context_t* c) const
 {
-  c->add_layer_indices (firstLayerIndex, numLayers);
   const LayerList &paint_offset_lists = c->get_colr_table ()->get_layerList ();
   for (unsigned i = firstLayerIndex; i < firstLayerIndex + numLayers; i++)
   {
@@ -47,91 +47,89 @@ HB_INTERNAL void PaintColrLayers::closurev1 (hb_colrv1_closure_context_t* c) con
   }
 }
 
-HB_INTERNAL void PaintGlyph::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintGlyph::dependv1 (hb_colrv1_depend_context_t* c) const
 {
-  c->add_glyph (gid);
+  // PaintGlyph (Format 10) references glyph outlines (from glyf/CFF), not paint graphs.
+  // Self-reference is valid per OpenType spec: a base glyph can reference its own
+  // outline as geometry to fill. This is not a dependency in the traditional sense
+  // since the outline is part of the same glyph data, so we skip it.
+  if (gid != c->source_gid)
+    c->depend_data->add_depend(c->source_gid, HB_OT_TAG_COLR, gid);
   (this+paint).dispatch (c);
 }
 
-HB_INTERNAL void PaintColrGlyph::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintColrGlyph::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   const COLR *colr_table = c->get_colr_table ();
   const BaseGlyphPaintRecord* baseglyph_paintrecord = colr_table->get_base_glyph_paintrecord (gid);
   if (!baseglyph_paintrecord) return;
-  c->add_glyph (gid);
+  c->depend_data->add_depend(c->source_gid, HB_OT_TAG_COLR, gid);
 
   const BaseGlyphList &baseglyph_list = colr_table->get_baseglyphList ();
   (&baseglyph_list+baseglyph_paintrecord->paint).dispatch (c);
 }
 
 template <template<typename> class Var>
-HB_INTERNAL void PaintTransform<Var>::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintTransform<Var>::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  (this+transform).closurev1 (c);
+  (this+transform).dependv1 (c);
 }
 
-HB_INTERNAL void PaintTranslate::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintTranslate::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  c->num_var_idxes = 2;
 }
 
-HB_INTERNAL void PaintScale::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintScale::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  c->num_var_idxes = 2;
 }
 
-HB_INTERNAL void PaintScaleAroundCenter::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintScaleAroundCenter::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  c->num_var_idxes = 4;
 }
 
-HB_INTERNAL void PaintScaleUniform::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintScaleUniform::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  c->num_var_idxes = 1;
 }
 
-HB_INTERNAL void PaintScaleUniformAroundCenter::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintScaleUniformAroundCenter::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  c->num_var_idxes = 3;
 }
 
-HB_INTERNAL void PaintRotate::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintRotate::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  c->num_var_idxes = 1;
 }
 
-HB_INTERNAL void PaintRotateAroundCenter::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintRotateAroundCenter::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  c->num_var_idxes = 3;
 }
 
-HB_INTERNAL void PaintSkew::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintSkew::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  c->num_var_idxes = 2;
 }
 
-HB_INTERNAL void PaintSkewAroundCenter::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintSkewAroundCenter::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
-  c->num_var_idxes = 4;
 }
 
-HB_INTERNAL void PaintComposite::closurev1 (hb_colrv1_closure_context_t* c) const
+HB_INTERNAL void PaintComposite::dependv1 (hb_colrv1_depend_context_t* c) const
 {
   (this+src).dispatch (c);
   (this+backdrop).dispatch (c);
 }
 
+#endif
+
 } /* namespace OT */
 
 
-#endif /* OT_COLOR_COLR_COLRV1_CLOSURE_HH */
+#endif /* OT_COLOR_COLR_COLRV1_DEPEND_HH */
