@@ -286,7 +286,7 @@ _subset_table (hb_subset_plan_t *plan,
   case HB_TAG('c','v','t',' '):
 #ifndef HB_NO_VAR
     if (_is_table_present (plan->source, HB_TAG('c','v','a','r')) &&
-        plan->normalized_coords && !plan->pinned_at_default)
+        plan->normalized_coords && !plan->pinned_at_default && !plan->has_avar2)
     {
       auto &cvar = *plan->source->table.cvar;
       return OT::cvar::add_cvt_and_apply_deltas (plan, cvar.get_tuple_var_data (), &cvar);
