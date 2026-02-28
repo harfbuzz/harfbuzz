@@ -195,7 +195,7 @@ struct SinglePosFormat2 : ValueBase
     ;
 
     unsigned new_format = compute_effective_format (c->plan->source, it,
-                                                    bool (c->plan->normalized_coords),
+                                                    bool (c->plan->normalized_coords) && !c->plan->has_avar2,
                                                     bool (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING),
                                                     c->plan->has_gdef_varstore,
                                                     &c->plan->layout_variation_idx_delta_map);
