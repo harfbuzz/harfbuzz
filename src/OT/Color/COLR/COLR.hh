@@ -2427,7 +2427,7 @@ struct COLR
       return_trace (true);
 
     const ItemVariationStore& var_store = this+varStore;
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
     {
       item_variations_t item_vars;
       /* turn off varstore optimization when varIdxMap is null, so we maintain
@@ -2577,9 +2577,9 @@ struct COLR
      * after instancing */
     if (!subset_varstore (c, colr_prime)) return_trace (false);
 
-    ItemVarStoreInstancer instancer (get_var_store_ptr (),
-				     get_delta_set_index_map_ptr (),
-				     c->plan->normalized_coords.as_array ());
+    ItemVarStoreInstancer instancer (c->plan->has_avar2 ? nullptr : get_var_store_ptr (),
+				     c->plan->has_avar2 ? nullptr : get_delta_set_index_map_ptr (),
+				     c->plan->has_avar2 ? hb_array<const int> () : c->plan->normalized_coords.as_array ());
 
     if (!colr_prime->baseGlyphList.serialize_subset (c, baseGlyphList, this, instancer))
       return_trace (false);
