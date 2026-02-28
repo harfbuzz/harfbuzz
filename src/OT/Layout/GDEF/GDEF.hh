@@ -678,7 +678,7 @@ struct GDEFVersion1_2
       if (unlikely (!c->serializer->embed (varStore))) return_trace (false);
       if (c->plan->all_axes_pinned)
         out->varStore = 0;
-      else if (c->plan->normalized_coords)
+      else if (c->plan->normalized_coords && !c->plan->has_avar2)
       {
         if (varStore)
         {
