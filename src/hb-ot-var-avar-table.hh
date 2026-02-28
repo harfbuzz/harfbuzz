@@ -413,6 +413,21 @@ struct avar
 
   bool has_v2_data () const { return version.major > 1; }
 
+  /* Apply avar v1 segment maps only, deliberately omitting avar v2 processing.
+   * Used during avar2 partial instancing to compute intermediate-space coords. */
+  bool map_coords_v1_only (float *coords, unsigned int coords_length) const
+  {
+    unsigned int count = hb_min (coords_length, axisCount);
+    const SegmentMaps *map = &firstAxisSegmentMaps;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      int v = roundf (map->map_float (coords[i]) * 16384.f);
+      coords[i] = v / 16384.f;
+      map = &StructAfter<SegmentMaps> (*map);
+    }
+    return true;
+  }
+
   // axis normalization is done in 2.14 here
   // TODO: deprecate this API once fonttools is updated to use 16.16 normalization
   bool map_coords_2_14 (float *coords, unsigned int coords_length) const
