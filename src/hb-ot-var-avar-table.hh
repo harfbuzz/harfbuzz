@@ -607,7 +607,10 @@ struct avar
     for (unsigned i = 0; i < axisCount; i++)
       new_varidx_mapping[i] = varidx_map.map (i);
 
-    /* 6. Add offset compensation tuples */
+    /* 6. Add offset compensation tuples.
+     * Track processed (outer,inner) pairs to avoid adding duplicate biases
+     * when multiple axes share the same varIdx. */
+    hb_set_t processed_varidxes;
     for (unsigned i = 0; i < axisCount; i++)
     {
       hb_tag_t *axis_tag_ptr;
@@ -686,10 +689,15 @@ struct avar
       else
       {
         /* Free or private axis — not being restricted.
-         * If it has a non-zero default delta, add it back as a bias. */
+         * If it has a non-zero default delta, add it back as a bias.
+         * Skip if this (outer,inner) was already processed (shared varIdx). */
         uint32_t varidx = new_varidx_mapping[i];
         if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
           continue;
+
+        if (processed_varidxes.has (varidx))
+          continue;
+        processed_varidxes.add (varidx);
 
         unsigned outer = varidx >> 16;
         unsigned inner = varidx & 0xFFFF;
@@ -731,28 +739,44 @@ struct avar
     /* Serialize DeltaSetIndexMap (push a new object) */
     hb_serialize_context_t::objidx_t packed_map;
     {
-      /* Compute width and inner_bit_count for the mapping */
+      /* Compute width and inner_bit_count for the mapping.
+       * If any entry is NO_VARIATION_INDEX (0xFFFFFFFF), we need full
+       * 4-byte width to represent it. */
+      bool has_no_variation = false;
       unsigned max_outer = 0, max_inner = 0;
       for (unsigned i = 0; i < axisCount; i++)
       {
         uint32_t varidx = new_varidx_mapping[i];
         if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+        {
+          has_no_variation = true;
           continue;
+        }
         unsigned o = varidx >> 16;
         unsigned in = varidx & 0xFFFF;
         if (o > max_outer) max_outer = o;
         if (in > max_inner) max_inner = in;
       }
 
-      unsigned inner_bit_count = hb_max (1u, hb_bit_storage (max_inner));
-      unsigned outer_bit_count = hb_max (1u, hb_bit_storage (max_outer));
-      unsigned width = (inner_bit_count + outer_bit_count + 7) / 8;
-      width = hb_max (width, 1u);
-      width = hb_min (width, 4u);
+      unsigned inner_bit_count, width;
+      if (has_no_variation)
+      {
+        /* Need 4 bytes to encode NO_VARIATION_INDEX = 0xFFFFFFFF */
+        width = 4;
+        inner_bit_count = 16;
+      }
+      else
+      {
+        inner_bit_count = hb_max (1u, hb_bit_storage (max_inner));
+        unsigned outer_bit_count = hb_max (1u, hb_bit_storage (max_outer));
+        width = (inner_bit_count + outer_bit_count + 7) / 8;
+        width = hb_max (width, 1u);
+        width = hb_min (width, 4u);
 
-      /* Recalculate inner_bit_count based on width */
-      if (inner_bit_count + outer_bit_count > width * 8)
-        inner_bit_count = width * 8 - outer_bit_count;
+        /* Recalculate inner_bit_count based on width */
+        if (inner_bit_count + outer_bit_count > width * 8)
+          inner_bit_count = width * 8 - outer_bit_count;
+      }
 
       /* Serialize DeltaSetIndexMap format 0 (HBUINT16 mapCount) */
       c->serializer->push ();
