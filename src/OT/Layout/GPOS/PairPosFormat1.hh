@@ -156,7 +156,7 @@ struct PairPosFormat1_3
 
     hb_pair_t<unsigned, unsigned> newFormats = hb_pair (valueFormat[0], valueFormat[1]);
 
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
     {
       /* all device flags will be dropped when full instancing, no need to strip
        * hints, also do not strip emtpy cause we don't compute the new default
