@@ -365,7 +365,7 @@ struct HVARVVAR
     out->version.major = 1;
     out->version.minor = 0;
 
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
     {
       item_variations_t item_vars;
       if (!item_vars.instantiate (this+varStore, c->plan,

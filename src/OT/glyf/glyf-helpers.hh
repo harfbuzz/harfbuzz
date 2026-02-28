@@ -64,7 +64,7 @@ _add_head_and_set_loca_version (hb_subset_plan_t *plan, bool use_short_loca)
 
   head *head_prime = (head *) hb_blob_get_data_writable (head_prime_blob, nullptr);
   head_prime->indexToLocFormat = use_short_loca ? 0 : 1;
-  if (plan->normalized_coords)
+  if (plan->normalized_coords && !plan->has_avar2)
   {
     head_prime->xMin = plan->head_maxp_info.xMin;
     head_prime->xMax = plan->head_maxp_info.xMax;

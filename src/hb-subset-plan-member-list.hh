@@ -133,6 +133,9 @@ HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, TripleDistances>), axes_triple_
 //retained old axis index -> new axis index mapping in fvar axis array
 HB_SUBSET_PLAN_MEMBER (hb_map_t, axes_index_map)
 
+//old intermediate coords (post-fvar, post-avar-v1, pre-avar-v2) at new min/default/max
+HB_SUBSET_PLAN_MEMBER (hb_hashmap_t E(<hb_tag_t, Triple>), old_intermediates)
+
 //axis_index->axis_tag mapping in fvar axis array
 HB_SUBSET_PLAN_MEMBER (hb_map_t, axes_old_index_tag_map)
 //vector of retained axis tags in the order of axes given in the 'fvar' table

@@ -413,6 +413,21 @@ struct avar
 
   bool has_v2_data () const { return version.major > 1; }
 
+  /* Apply avar v1 segment maps only, deliberately omitting avar v2 processing.
+   * Used during avar2 partial instancing to compute intermediate-space coords. */
+  bool map_coords_v1_only (float *coords, unsigned int coords_length) const
+  {
+    unsigned int count = hb_min (coords_length, axisCount);
+    const SegmentMaps *map = &firstAxisSegmentMaps;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      int v = roundf (map->map_float (coords[i]) * 16384.f);
+      coords[i] = v / 16384.f;
+      map = &StructAfter<SegmentMaps> (*map);
+    }
+    return true;
+  }
+
   // axis normalization is done in 2.14 here
   // TODO: deprecate this API once fonttools is updated to use 16.16 normalization
   bool map_coords_2_14 (float *coords, unsigned int coords_length) const
@@ -471,7 +486,7 @@ struct avar
     avar *out = c->serializer->allocate_min<avar> ();
     if (unlikely (!out)) return_trace (false);
 
-    out->version.major = 1;
+    out->version.major = c->plan->has_avar2 ? 2 : 1;
     out->version.minor = 0;
     if (!c->serializer->check_assign (out->axisCount, retained_axis_count, HB_SERIALIZE_ERROR_INT_OVERFLOW))
       return_trace (false);
@@ -486,13 +501,349 @@ struct avar
         hb_tag_t *axis_tag;
         if (!c->plan->axes_old_index_tag_map.has (i, &axis_tag))
           return_trace (false);
-        if (!map->subset (c, *axis_tag))
-          return_trace (false);
+
+        if (c->plan->has_avar2 &&
+            c->plan->user_axes_location.has (*axis_tag) &&
+            c->plan->user_axes_location.get (*axis_tag).is_point ())
+        {
+          /* Pinned axis in avar2 mode: serialize identity segment map
+           * {-1->-1, 0->0, 1->1}. The axis is kept in fvar as hidden,
+           * so avar needs a segment map entry for it. */
+          auto *identity_map = c->serializer->start_embed<SegmentMaps> ();
+          if (unlikely (!c->serializer->extend_min (identity_map)))
+            return_trace (false);
+          AxisValueMap m;
+          m.set_mapping (-1.f, -1.f);
+          if (!m.serialize (c->serializer)) return_trace (false);
+          m.set_mapping (0.f, 0.f);
+          if (!m.serialize (c->serializer)) return_trace (false);
+          m.set_mapping (1.f, 1.f);
+          if (!m.serialize (c->serializer)) return_trace (false);
+          if (!c->serializer->check_assign (identity_map->len, 3u,
+                                            HB_SERIALIZE_ERROR_INT_OVERFLOW))
+            return_trace (false);
+        }
+        else
+        {
+          /* Restricted or free axis: use standard SegmentMaps::subset() */
+          if (!map->subset (c, *axis_tag))
+            return_trace (false);
+        }
       }
       map = &StructAfter<SegmentMaps> (*map);
     }
+
+    if (c->plan->has_avar2)
+      return_trace (_subset_avar2 (c, out));
+
     return_trace (true);
   }
+
+  private:
+  bool _subset_avar2 (hb_subset_context_t *c, avar *out) const
+  {
+#ifdef HB_NO_AVAR2
+    return false;
+#endif
+
+    /* 1. Locate original avar2 data */
+    const SegmentMaps *map = &firstAxisSegmentMaps;
+    for (unsigned i = 0; i < axisCount; i++)
+      map = &StructAfter<SegmentMaps> (*map);
+
+    const auto &v2 = * (const avarV2Tail *) map;
+    const auto &varidx_map = this+v2.varIdxMap;
+    const auto &var_store = this+v2.varStore;
+
+    /* 2. Compute default deltas by evaluating VarStore at old defaults */
+    hb_vector_t<int> default_coords;
+    if (!default_coords.resize (axisCount)) return false;
+    for (unsigned i = 0; i < axisCount; i++)
+    {
+      hb_tag_t *axis_tag;
+      if (c->plan->axes_old_index_tag_map.has (i, &axis_tag) &&
+          c->plan->old_intermediates.has (*axis_tag))
+      {
+        float d_i = (float) c->plan->old_intermediates.get (*axis_tag).middle;
+        default_coords[i] = roundf (d_i * 16384.f);
+      }
+      else
+        default_coords[i] = 0;
+    }
+
+    auto *store_cache = var_store.create_cache ();
+    hb_vector_t<float> default_deltas;
+    if (!default_deltas.resize (axisCount)) {
+      ItemVariationStore::destroy_cache (store_cache);
+      return false;
+    }
+    for (unsigned i = 0; i < axisCount; i++)
+    {
+      uint32_t varidx = varidx_map.map (i);
+      if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+        default_deltas[i] = 0.f;
+      else
+        default_deltas[i] = var_store.get_delta (varidx, default_coords.arrayZ,
+                                                  default_coords.length, store_cache);
+    }
+    ItemVariationStore::destroy_cache (store_cache);
+
+    /* 3. Rebase IVS regions */
+    item_variations_t item_vars;
+    if (!item_vars.create_from_item_varstore (var_store, c->plan->axes_old_index_tag_map))
+      return false;
+    if (!item_vars.instantiate_tuple_vars_no_region_build (c->plan->axes_location,
+                                                           c->plan->axes_triple_distances))
+      return false;
+
+    /* 4. Detect self-contained pinned axes.
+     * A pinned axis is self-contained if after IVS rebasing, no remaining
+     * TupleVariation has a non-zero delta at that axis's inner position. */
+    /* (For now, skip self-contained detection -- all pinned axes kept as hidden) */
+
+    /* 5. Build per-axis varIdx mapping (may create new VarDatas) */
+    hb_vector_t<uint32_t> new_varidx_mapping;
+    if (!new_varidx_mapping.resize (axisCount)) return false;
+    for (unsigned i = 0; i < axisCount; i++)
+      new_varidx_mapping[i] = varidx_map.map (i);
+
+    /* 6. Add offset compensation tuples.
+     * Track processed (outer,inner) pairs to avoid adding duplicate biases
+     * when multiple axes share the same varIdx. */
+    hb_set_t processed_varidxes;
+    for (unsigned i = 0; i < axisCount; i++)
+    {
+      hb_tag_t *axis_tag_ptr;
+      if (!c->plan->axes_old_index_tag_map.has (i, &axis_tag_ptr))
+        continue;
+      hb_tag_t axis_tag = *axis_tag_ptr;
+
+      if (c->plan->user_axes_location.has (axis_tag))
+      {
+        /* This axis is being restricted or pinned */
+        Triple *old_int;
+        if (!c->plan->old_intermediates.has (axis_tag, &old_int))
+          continue;
+
+        float a_i = (float) old_int->minimum;
+        float d_i = (float) old_int->middle;
+        float b_i = (float) old_int->maximum;
+
+        int a_int = roundf (a_i * 16384.f);
+        int d_int = roundf (d_i * 16384.f);
+        int b_int = roundf (b_i * 16384.f);
+
+        bool is_pinned = c->plan->user_axes_location.get (axis_tag).is_point ();
+
+        uint32_t varidx = new_varidx_mapping[i];
+        unsigned outer, inner, item_count;
+
+        if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+        {
+          /* No existing avar2 mapping. Create new VarData. */
+          outer = item_vars.add_vardata (1);
+          inner = 0;
+          item_count = 1;
+          new_varidx_mapping[i] = (outer << 16) | inner;
+          default_deltas[i] = 0.f; /* no prior default delta */
+        }
+        else
+        {
+          outer = varidx >> 16;
+          inner = varidx & 0xFFFF;
+          item_count = item_vars.get_item_count (outer);
+        }
+
+        /* Empty-region bias: d_int + round(defaultDelta) */
+        int bias = d_int + (int) roundf (default_deltas[i]);
+        if (bias != 0)
+        {
+          hb_hashmap_t<hb_tag_t, Triple> empty_region;
+          item_vars.add_tuple (outer, std::move (empty_region),
+                               inner, bias, item_count);
+        }
+
+        if (!is_pinned)
+        {
+          /* Tent (-1, -1, 0): delta = a_int + (1<<14) - d_int */
+          int neg_delta = a_int + (1 << 14) - d_int;
+          if (neg_delta != 0)
+          {
+            hb_hashmap_t<hb_tag_t, Triple> neg_region;
+            neg_region.set (axis_tag, Triple (-1., -1., 0.));
+            item_vars.add_tuple (outer, std::move (neg_region),
+                                 inner, neg_delta, item_count);
+          }
+
+          /* Tent (0, +1, +1): delta = b_int - (1<<14) - d_int */
+          int pos_delta = b_int - (1 << 14) - d_int;
+          if (pos_delta != 0)
+          {
+            hb_hashmap_t<hb_tag_t, Triple> pos_region;
+            pos_region.set (axis_tag, Triple (0., 1., 1.));
+            item_vars.add_tuple (outer, std::move (pos_region),
+                                 inner, pos_delta, item_count);
+          }
+        }
+      }
+      else
+      {
+        /* Free or private axis — not being restricted.
+         * If it has a non-zero default delta, add it back as a bias.
+         * Skip if this (outer,inner) was already processed (shared varIdx). */
+        uint32_t varidx = new_varidx_mapping[i];
+        if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+          continue;
+
+        if (processed_varidxes.has (varidx))
+          continue;
+        processed_varidxes.add (varidx);
+
+        unsigned outer = varidx >> 16;
+        unsigned inner = varidx & 0xFFFF;
+        int dd = (int) roundf (default_deltas[i]);
+        if (dd != 0)
+        {
+          unsigned item_count = item_vars.get_item_count (outer);
+          hb_hashmap_t<hb_tag_t, Triple> empty_region;
+          item_vars.add_tuple (outer, std::move (empty_region),
+                               inner, dd, item_count);
+        }
+      }
+    }
+
+    /* 7. Finalize: build region list + convert to varstore */
+    if (!item_vars.build_region_list ()) return false;
+    if (!item_vars.as_item_varstore (true /* optimize */,
+                                     false /* use_no_variation_idx */))
+      return false;
+
+    /* 8. Apply varidx_map optimization remapping */
+    const auto &opt_varidx_map = item_vars.get_varidx_map ();
+    for (unsigned i = 0; i < axisCount; i++)
+    {
+      uint32_t varidx = new_varidx_mapping[i];
+      if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+        continue;
+      uint32_t *new_idx;
+      if (opt_varidx_map.has (varidx, &new_idx))
+        new_varidx_mapping[i] = *new_idx;
+    }
+
+    /* 9. Serialize avarV2Tail */
+    /* The avarV2Tail has two Offset32 fields (varIdxMap and varStore)
+     * whose offsets are relative to the beginning of the avar table.
+     * We serialize each sub-object via push/pop_pack, write the tail
+     * struct inline, and link offsets to the avar table start. */
+
+    /* Serialize DeltaSetIndexMap (push a new object) */
+    hb_serialize_context_t::objidx_t packed_map;
+    {
+      /* Compute width and inner_bit_count for the mapping.
+       * If any entry is NO_VARIATION_INDEX (0xFFFFFFFF), we need full
+       * 4-byte width to represent it. */
+      bool has_no_variation = false;
+      unsigned max_outer = 0, max_inner = 0;
+      for (unsigned i = 0; i < axisCount; i++)
+      {
+        uint32_t varidx = new_varidx_mapping[i];
+        if (varidx == HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+        {
+          has_no_variation = true;
+          continue;
+        }
+        unsigned o = varidx >> 16;
+        unsigned in = varidx & 0xFFFF;
+        if (o > max_outer) max_outer = o;
+        if (in > max_inner) max_inner = in;
+      }
+
+      unsigned inner_bit_count, width;
+      if (has_no_variation)
+      {
+        /* Need 4 bytes to encode NO_VARIATION_INDEX = 0xFFFFFFFF */
+        width = 4;
+        inner_bit_count = 16;
+      }
+      else
+      {
+        inner_bit_count = hb_max (1u, hb_bit_storage (max_inner));
+        unsigned outer_bit_count = hb_max (1u, hb_bit_storage (max_outer));
+        width = (inner_bit_count + outer_bit_count + 7) / 8;
+        width = hb_max (width, 1u);
+        width = hb_min (width, 4u);
+
+        /* Recalculate inner_bit_count based on width */
+        if (inner_bit_count + outer_bit_count > width * 8)
+          inner_bit_count = width * 8 - outer_bit_count;
+      }
+
+      /* Serialize DeltaSetIndexMap format 0 (HBUINT16 mapCount) */
+      c->serializer->push ();
+      auto *fmt = c->serializer->allocate_size<HBUINT8> (1);
+      if (unlikely (!fmt)) { c->serializer->pop_discard (); return false; }
+      *fmt = 0; /* format 0 */
+
+      auto *entry_format = c->serializer->allocate_size<HBUINT8> (1);
+      if (unlikely (!entry_format)) { c->serializer->pop_discard (); return false; }
+      *entry_format = ((width - 1) << 4) | (inner_bit_count - 1);
+
+      auto *map_count_field = c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size);
+      if (unlikely (!map_count_field)) { c->serializer->pop_discard (); return false; }
+      *map_count_field = axisCount;
+
+      HBUINT8 *p = c->serializer->allocate_size<HBUINT8> (width * axisCount);
+      if (unlikely (!p)) { c->serializer->pop_discard (); return false; }
+
+      for (unsigned i = 0; i < axisCount; i++)
+      {
+        uint32_t varidx = new_varidx_mapping[i];
+        unsigned o = varidx >> 16;
+        unsigned in = varidx & 0xFFFF;
+        unsigned u = (o << inner_bit_count) | in;
+        for (unsigned w = width; w > 0;)
+        {
+          p[--w] = u;
+          u >>= 8;
+        }
+        p += width;
+      }
+
+      packed_map = c->serializer->pop_pack ();
+    }
+
+    /* Serialize ItemVariationStore (push a new object) */
+    hb_serialize_context_t::objidx_t packed_store;
+    {
+      c->serializer->push ();
+      auto *ivs = c->serializer->start_embed<ItemVariationStore> ();
+      if (!ivs->serialize (c->serializer,
+                           item_vars.has_long_word (),
+                           c->plan->axis_tags,
+                           item_vars.get_region_list (),
+                           item_vars.get_vardata_encodings ()))
+      {
+        c->serializer->pop_discard ();
+        return false;
+      }
+      packed_store = c->serializer->pop_pack ();
+    }
+
+    /* Write the avarV2Tail struct inline in the avar table */
+    auto *tail = c->serializer->allocate_size<avarV2Tail> (avarV2Tail::static_size);
+    if (unlikely (!tail)) return false;
+
+    /* Link offsets relative to the avar table start */
+    unsigned bias = c->serializer->to_bias (out);
+    c->serializer->add_link (tail->varIdxMap, packed_map,
+                              hb_serialize_context_t::Head, bias);
+    c->serializer->add_link (tail->varStore, packed_store,
+                              hb_serialize_context_t::Head, bias);
+
+    return true;
+  }
+
+  public:
 
   protected:
   FixedVersion<>version;	/* Version of the avar table

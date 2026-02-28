@@ -233,7 +233,7 @@ struct OS2
     if (unlikely (!os2_prime)) return_trace (false);
 
 #ifndef HB_NO_VAR
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
     {
       auto &MVAR = *c->plan->source->table.MVAR;
       auto *table = os2_prime;

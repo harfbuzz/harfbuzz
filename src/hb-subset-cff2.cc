@@ -486,7 +486,7 @@ struct cff2_subset_plan
     orig_fdcount = acc.fdArray->count;
 
     drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
-    pinned = (bool) plan->normalized_coords;
+    pinned = (bool) plan->normalized_coords && !plan->has_avar2;
     normalized_coords = plan->normalized_coords;
     head_maxp_info = plan->head_maxp_info;
     hmtx_map = &plan->hmtx_map;

@@ -312,7 +312,7 @@ struct PairPosFormat2_4 : ValueBase
 
     hb_pair_t<unsigned, unsigned> newFormats = hb_pair (valueFormat1, valueFormat2);
 
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
     {
       /* in case of full instancing, all var device flags will be dropped so no
        * need to strip hints here */
