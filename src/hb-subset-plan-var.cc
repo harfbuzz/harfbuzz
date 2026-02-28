@@ -251,34 +251,82 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
   if (has_avar)
   {
     const OT::avar* avar_table = face->table.avar;
+    unsigned coords_len = last_idx + 1;
+
     if (avar_table->has_v2_data () && !plan->all_axes_pinned)
     {
-      DEBUG_MSG (SUBSET, nullptr, "Partial-instancing avar2 table is not supported.");
-      return false;
-    }
+      /* avar2 partial instancing: use v1-only mapping to get intermediate-space
+       * coords. These are used for IVS rebasing and offset compensation. */
+      plan->has_avar2 = true;
 
-    unsigned coords_len = last_idx + 1;
-    if (!plan->check_success (avar_table->map_coords_2_14 (normalized_mins.arrayZ, coords_len)) ||
-        !plan->check_success (avar_table->map_coords_2_14 (normalized_defaults.arrayZ, coords_len)) ||
-        !plan->check_success (avar_table->map_coords_2_14 (normalized_maxs.arrayZ, coords_len)))
-      return false;
+      if (!plan->check_success (avar_table->map_coords_v1_only (normalized_mins.arrayZ, coords_len)) ||
+          !plan->check_success (avar_table->map_coords_v1_only (normalized_defaults.arrayZ, coords_len)) ||
+          !plan->check_success (avar_table->map_coords_v1_only (normalized_maxs.arrayZ, coords_len)))
+        return false;
 
-    for (const auto& _ : + hb_enumerate (axes))
-    {
-      unsigned i = _.first;
-      hb_tag_t axis_tag = _.second.get_axis_tag ();
-      if (plan->user_axes_location.has (axis_tag))
+      for (const auto& _ : + hb_enumerate (axes))
       {
-        plan->axes_location.set (axis_tag, Triple ((double) normalized_mins[i],
-                                                   (double) normalized_defaults[i],
-                                                   (double) normalized_maxs[i]));
-        float normalized_default = normalized_defaults[i];
-        if (normalized_default == -0.f)
-          normalized_default = 0.f; // Normalize -0 to 0
-        if (normalized_default != 0.f)
-          plan->pinned_at_default = false;
+        unsigned i = _.first;
+        hb_tag_t axis_tag = _.second.get_axis_tag ();
+        if (plan->user_axes_location.has (axis_tag))
+        {
+          /* Store intermediate-space coords for offset compensation */
+          plan->old_intermediates.set (axis_tag, Triple ((double) normalized_mins[i],
+                                                         (double) normalized_defaults[i],
+                                                         (double) normalized_maxs[i]));
+          /* axes_location is also in intermediate space for avar2 */
+          plan->axes_location.set (axis_tag, Triple ((double) normalized_mins[i],
+                                                     (double) normalized_defaults[i],
+                                                     (double) normalized_maxs[i]));
 
-        plan->normalized_coords[i] = roundf (normalized_default * 16384.f);
+          float normalized_default = normalized_defaults[i];
+          if (normalized_default == -0.f)
+            normalized_default = 0.f;
+          if (normalized_default != 0.f)
+            plan->pinned_at_default = false;
+
+          plan->normalized_coords[i] = roundf (normalized_default * 16384.f);
+        }
+      }
+
+      /* For avar2, keep ALL axes in axes_index_map (including pinned ones),
+       * so pinned axes remain in fvar as hidden. */
+      plan->axes_index_map.reset ();
+      plan->axis_tags.reset ();
+      for (const auto& _ : + hb_enumerate (axes))
+      {
+        unsigned i = _.first;
+        hb_tag_t axis_tag = _.second.get_axis_tag ();
+        plan->axes_index_map.set (i, (unsigned) _.first);
+        plan->axis_tags.push (axis_tag);
+      }
+      plan->all_axes_pinned = false;
+    }
+    else
+    {
+      /* Standard avar v1 (or v1+v2 with all axes pinned) */
+      if (!plan->check_success (avar_table->map_coords_2_14 (normalized_mins.arrayZ, coords_len)) ||
+          !plan->check_success (avar_table->map_coords_2_14 (normalized_defaults.arrayZ, coords_len)) ||
+          !plan->check_success (avar_table->map_coords_2_14 (normalized_maxs.arrayZ, coords_len)))
+        return false;
+
+      for (const auto& _ : + hb_enumerate (axes))
+      {
+        unsigned i = _.first;
+        hb_tag_t axis_tag = _.second.get_axis_tag ();
+        if (plan->user_axes_location.has (axis_tag))
+        {
+          plan->axes_location.set (axis_tag, Triple ((double) normalized_mins[i],
+                                                     (double) normalized_defaults[i],
+                                                     (double) normalized_maxs[i]));
+          float normalized_default = normalized_defaults[i];
+          if (normalized_default == -0.f)
+            normalized_default = 0.f;
+          if (normalized_default != 0.f)
+            plan->pinned_at_default = false;
+
+          plan->normalized_coords[i] = roundf (normalized_default * 16384.f);
+        }
       }
     }
   }
