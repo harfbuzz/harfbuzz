@@ -379,7 +379,8 @@ static inline uint8_t hb_use_b4 (const uint8_t* a, unsigned i)
 }
 static inline uint8_t hb_use_get_category (unsigned u)
 {
-  return u<921600 ? (uint8_t)(hb_use_u8[2953u+((hb_use_u8[625u+hb_use_u16[((hb_use_u8[113u+((hb_use_b4(hb_use_u8,((((((((u)>>1))>>3))>>3))>>5)))<<5)+((((((((u)>>1))>>3))>>3))&31)])<<3)+((((((u)>>1))>>3))&7)]+((((u)>>1))&7)])<<1)+((u)&1)]) : O;
+  /* packtab: [2^4,2^5,2^3,2^3,2^1] */
+  return u<921600u ? (uint8_t)(hb_use_u8[2953u+((hb_use_u8[625u+hb_use_u16[((hb_use_u8[113u+((hb_use_b4(hb_use_u8,((((((((u)>>1))>>3))>>3))>>5)))<<5)+((((((((u)>>1))>>3))>>3))&31)])<<3)+((((((u)>>1))>>3))&7)]+((((u)>>1))&7)])<<1)+((u)&1)]) : O;
 }
 
 
@@ -660,7 +661,8 @@ static inline uint8_t hb_use_b4 (const uint8_t* a, unsigned i)
 }
 static inline uint8_t hb_use_get_category (unsigned u)
 {
-  return u<921600 ? (uint8_t)(hb_use_u8[3273u+((hb_use_u8[945u+hb_use_u16[((hb_use_u8[369u+((hb_use_u8[113u+((hb_use_b4(hb_use_u8,((((((((((u)>>1))>>3))>>1))>>3))>>4)))<<4)+((((((((((u)>>1))>>3))>>1))>>3))&15)])<<3)+((((((((u)>>1))>>3))>>1))&7)])<<1)+((((((u)>>1))>>3))&1)]+((((u)>>1))&7)])<<1)+((u)&1)]) : O;
+  /* packtab: [2^4,2^4,2^3,2^1,2^3,2^1] */
+  return u<921600u ? (uint8_t)(hb_use_u8[3273u+((hb_use_u8[945u+hb_use_u16[((hb_use_u8[369u+((hb_use_u8[113u+((hb_use_b4(hb_use_u8,((((((((((u)>>1))>>3))>>1))>>3))>>4)))<<4)+((((((((((u)>>1))>>3))>>1))>>3))&15)])<<3)+((((((((u)>>1))>>3))>>1))&7)])<<1)+((((((u)>>1))>>3))&1)]+((((u)>>1))&7)])<<1)+((u)&1)]) : O;
 }
 
 

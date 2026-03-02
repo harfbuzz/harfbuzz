@@ -100,10 +100,12 @@ static inline uint8_t _hb_arabic_pua_b4 (const uint8_t* a, unsigned i)
 }
 static inline uint16_t _hb_arabic_pua_simp_map (unsigned u)
 {
+  /* packtab: [2^2,2^4,2^4,2^3] */
   return u<65277u ? (uint16_t)(_hb_arabic_pua_u16[((_hb_arabic_pua_u8[31u+((_hb_arabic_pua_b4(_hb_arabic_pua_u8,((((13835058055282164225ULL>>((((((((u)>>3))>>4))>>4))<<1))&3))<<4)+((((((u)>>3))>>4))&15)))<<4)+((((u)>>3))&15)])<<3)+((u)&7)]) : 0;
 }
 static inline uint16_t _hb_arabic_pua_trad_map (unsigned u)
 {
+  /* packtab: [2^4,2^4,2^4,2^2] */
   return u<65277u ? (uint16_t)(_hb_arabic_pua_u16[317u+((_hb_arabic_pua_u8[197u+((_hb_arabic_pua_b4(_hb_arabic_pua_u8+159u,((_hb_arabic_pua_b4(_hb_arabic_pua_u8+127u,((((((u)>>2))>>4))>>4)))<<4)+((((((u)>>2))>>4))&15)))<<4)+((((u)>>2))&15)])<<2)+((u)&3)]) : 0;
 }
 
