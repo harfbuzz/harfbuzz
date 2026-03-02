@@ -80,7 +80,7 @@ def print_joining_table(f):
 			value = "JOINING_TYPE_" + fields[2]
 		values[u] = value
 
-	code = packTab.Code ('_hb_arabic')
+	code = packTab.Code ('_hb_arabic_joining')
 	data = {u: JOINING_CODE[v] for u, v in values.items ()}
 	sol = packTab.pack_table (data, default=JOINING_CODE['JOINING_TYPE_X'], compression=9)
 	sol.genCode (code, 'joining_type', language='c', private=True)
@@ -92,7 +92,7 @@ def print_joining_table(f):
 	print ("static unsigned int")
 	print ("joining_type (hb_codepoint_t u)")
 	print ("{")
-	print ("  return _hb_arabic_joining_type (u);")
+	print ("  return _hb_arabic_joining_joining_type (u);")
 	print ("}")
 	print ()
 

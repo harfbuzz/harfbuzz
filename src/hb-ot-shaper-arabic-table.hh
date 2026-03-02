@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-static const uint8_t _hb_arabic_u8[737]=
+static const uint8_t _hb_arabic_joining_u8[737]=
 {
     0, 16,  2,  0,  0,  0,  3,  0,  4,  0,  0,  0,  0,  0,  0,  0,
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -71,19 +71,19 @@ static const uint8_t _hb_arabic_u8[737]=
   119,
 };
 
-static inline uint8_t _hb_arabic_b4 (const uint8_t* a, unsigned i)
+static inline uint8_t _hb_arabic_joining_b4 (const uint8_t* a, unsigned i)
 {
   return (a[i>>1]>>((i&1)<<2))&15;
 }
-static inline uint8_t _hb_arabic_joining_type (unsigned u)
+static inline uint8_t _hb_arabic_joining_joining_type (unsigned u)
 {
-  return u<125260u ? (uint8_t)(_hb_arabic_b4(_hb_arabic_u8+441u,((_hb_arabic_u8[209u+_hb_arabic_u8[123u+((_hb_arabic_b4(_hb_arabic_u8,((((((u)>>3))>>3))>>3)))<<3)+((((((u)>>3))>>3))&7)]+((((u)>>3))&7)])<<3)+((u)&7))) : 7;
+  return u<125260u ? (uint8_t)(_hb_arabic_joining_b4(_hb_arabic_joining_u8+441u,((_hb_arabic_joining_u8[209u+_hb_arabic_joining_u8[123u+((_hb_arabic_joining_b4(_hb_arabic_joining_u8,((((((u)>>3))>>3))>>3)))<<3)+((((((u)>>3))>>3))&7)]+((((u)>>3))&7)])<<3)+((u)&7))) : 7;
 }
 
 static unsigned int
 joining_type (hb_codepoint_t u)
 {
-  return _hb_arabic_joining_type (u);
+  return _hb_arabic_joining_joining_type (u);
 }
 
 
