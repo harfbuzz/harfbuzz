@@ -228,6 +228,7 @@ static inline uint8_t _hb_indic_b4 (const uint8_t* a, unsigned i)
 }
 static inline uint8_t _hb_indic_get_categories_index (unsigned u)
 {
+  /* packtab: [2^4,2^3,2^3,2^2,2^1] */
   return u<71396u ? (uint8_t)(_hb_indic_u8[996u+_hb_indic_u8[488u+((_hb_indic_u8[186u+((_hb_indic_u8[70u+((_hb_indic_b4(_hb_indic_u8,((((((((u)>>1))>>2))>>3))>>3)))<<3)+((((((((u)>>1))>>2))>>3))&7)])<<3)+((((((u)>>1))>>2))&7)])<<2)+((((u)>>1))&3)]+((u)&1)]) : 37;
 }
 

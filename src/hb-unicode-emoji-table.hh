@@ -78,7 +78,8 @@ static inline uint8_t _hb_emoji_b1 (const uint8_t* a, unsigned i)
 }
 static inline uint8_t _hb_emoji_is_Extended_Pictographic (unsigned u)
 {
-  return u<131070 ? (uint8_t)(_hb_emoji_b1(_hb_emoji_u8+224u,((_hb_emoji_u8[64u+((_hb_emoji_b4(_hb_emoji_u8,((((u)>>6))>>4)))<<4)+((((u)>>6))&15)])<<6)+((u)&63))) : 0;
+  /* packtab: [2^4,2^4,2^6] */
+  return u<131070u ? (uint8_t)(_hb_emoji_b1(_hb_emoji_u8+224u,((_hb_emoji_u8[64u+((_hb_emoji_b4(_hb_emoji_u8,((((u)>>6))>>4)))<<4)+((((u)>>6))&15)])<<6)+((u)&63))) : 0;
 }
 
 
