@@ -10,6 +10,8 @@ Input files:
 
 import sys
 
+import packTab
+
 if len (sys.argv) != 4:
 	sys.exit (__doc__)
 
@@ -596,94 +598,29 @@ print ("#define _(S,M) INDIC_COMBINE_CATEGORIES (%s_##S, %s_##M)" % tuple(what_s
 print ()
 print ()
 
-total = 0
-used = 0
-last_block = None
-def print_block (block, start, end, data):
-	global total, used, last_block
-	if block and block != last_block:
-		print ()
-		print ()
-		print ("  /* %s */" % block)
-	num = 0
-	assert start % 8 == 0
-	assert (end+1) % 8 == 0
-	for u in range (start, end+1):
-		if u % 8 == 0:
-			print ()
-			print ("  /* %04X */" % u, end="")
-		if u in data:
-			num += 1
-		d = data.get (u, defaults)
-		print ("%9s" % ("_(%s,%s)," % (short[0][d[0]], short[1][d[1]])), end="")
+default_value = "_(%s,%s)" % (short[0][defaults[0]], short[1][defaults[1]])
+pack_data = {
+	u: "_(%s,%s)" % (short[0][d[0]], short[1][d[1]])
+	for u, d in indic_data.items ()
+}
+pack_data.update ({
+	u: "_(%s,%s)" % (short[0][d[0]], short[1][d[1]])
+	for u, d in singles.items ()
+})
 
-	total += end - start + 1
-	used += num
-	if block:
-		last_block = block
+unique_values = sorted (set (pack_data.values ()) | {default_value})
+mapping = {v: i for i, v in enumerate (unique_values)}
 
-uu = sorted (indic_data)
-
-last = -100000
-num = 0
-offset = 0
-starts = []
-ends = []
-print ("static const uint16_t indic_table[] = {")
-for u in uu:
-	if u <= last:
-		continue
-	block = indic_data[u][2]
-
-	start = u//8*8
-	end = start+1
-	while end in uu and block == indic_data[end][2]:
-		end += 1
-	end = (end-1)//8*8 + 7
-
-	if start != last + 1:
-		if start - last <= 1+16*2:
-			print_block (None, last+1, start-1, indic_data)
-		else:
-			if last >= 0:
-				ends.append (last + 1)
-				offset += ends[-1] - starts[-1]
-			print ()
-			print ()
-			print ("#define indic_offset_0x%04xu %d" % (start, offset))
-			starts.append (start)
-
-	print_block (block, start, end, indic_data)
-	last = end
-ends.append (last + 1)
-offset += ends[-1] - starts[-1]
-print ()
-print ()
-occupancy = used * 100. / total
-page_bits = 12
-print ("}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy))
+code = packTab.Code ('_hb_indic')
+indic_values, _ = code.addArray ('uint16_t', 'values', unique_values)
+sol = packTab.pack_table (pack_data, default=default_value, mapping=mapping, compression=9)
+sol.genCode (code, 'get_categories_index', language='c', private=True)
+code.print_code (language='c', private=True)
 print ()
 print ("uint16_t")
 print ("hb_indic_get_categories (hb_codepoint_t u)")
 print ("{")
-print ("  switch (u >> %d)" % page_bits)
-print ("  {")
-pages = set ([u>>page_bits for u in starts+ends+list (singles.keys ())])
-for p in sorted(pages):
-	print ("    case 0x%0Xu:" % p)
-	for u,d in singles.items ():
-		if p != u>>page_bits: continue
-		print ("      if (unlikely (u == 0x%04Xu)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]]))
-	for (start,end) in zip (starts, ends):
-		if p not in [start>>page_bits, end>>page_bits]: continue
-		offset = "indic_offset_0x%04xu" % start
-		print ("      if (hb_in_range<hb_codepoint_t> (u, 0x%04Xu, 0x%04Xu)) return indic_table[u - 0x%04Xu + %s];" % (start, end-1, start, offset))
-	print ("      break;")
-	print ("")
-print ("    default:")
-print ("      break;")
-print ("  }")
-print ("  return _(X,X);")
+print ("  return %s[_hb_indic_get_categories_index (u)];" % indic_values)
 print ("}")
 print ()
 print ("#undef _")
@@ -698,7 +635,3 @@ print ()
 print ('#endif')
 print ()
 print ("/* == End of generated table == */")
-
-# Maintain at least 50% occupancy in the table */
-if occupancy < 50:
-	raise Exception ("Table too sparse, please investigate: ", occupancy)
