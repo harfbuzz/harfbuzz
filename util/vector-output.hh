@@ -102,6 +102,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     subpixel_bits = font_opts->subpixel_bits;
     hb_font_get_scale (font, &x_scale, &y_scale);
     upem = hb_face_get_upem (hb_font_get_face (font));
+    normalized_stroke_width = get_normalized_stroke_width ();
 
     upem_font = hb_font_create (hb_font_get_face (font));
     hb_font_set_scale (upem_font, upem, upem);
@@ -212,6 +213,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     float step = fabsf (asc - desc + gap + (float) line_space);
     if (!(step > 0.f))
       step = (float) upem;
+    line_step = step;
 
     for (unsigned li = 0; li < lines.size (); li++)
     {
@@ -255,9 +257,6 @@ struct vector_output_t : output_options_t<>, view_options_t
       write_blob (paint_blob, false);
     else if (draw_blob && draw_blob != hb_blob_get_empty ())
       write_blob (draw_blob, true);
-
-    if (show_extents)
-      emit_extents_overlay (dir, step);
 
     hb_blob_destroy (draw_blob);
     hb_blob_destroy (paint_blob);
@@ -592,7 +591,20 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (stroke_color.a != 255)
       fprintf (out_fp, " stroke-opacity=\"%.3f\"", (double) stroke_color.a / 255.);
     fprintf (out_fp, " stroke-width=\"%.*g\" stroke-linecap=\"round\" stroke-linejoin=\"round\"",
-             precision + 4, stroke_width);
+             precision + 4, normalized_stroke_width);
+  }
+
+  double get_normalized_stroke_width () const
+  {
+    if (!stroke_enabled || stroke_width <= 0. || !upem || !x_scale || !y_scale)
+      return stroke_width;
+
+    /* hb-vector emits geometry in upem space; convert user stroke width
+     * from the requested font scale back into that normalized coordinate system.
+     */
+    double norm_x = stroke_width * scalbn ((double) upem, (int) subpixel_bits) / fabs ((double) x_scale);
+    double norm_y = stroke_width * scalbn ((double) upem, (int) subpixel_bits) / fabs ((double) y_scale);
+    return 0.5 * (norm_x + norm_y);
   }
 
   bool lookup_palette_color (unsigned idx, hb_color_t *color) const
@@ -829,6 +841,9 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (is_draw_blob && !(foreground_use_palette && foreground_palette && foreground_palette->len))
       emit_fill_group_close ();
 
+    if (show_extents)
+      emit_extents_overlay (direction == HB_DIRECTION_INVALID ? HB_DIRECTION_LTR : direction, line_step);
+
     fputs ("</svg>\n", out_fp);
   }
 
@@ -877,6 +892,9 @@ struct vector_output_t : output_options_t<>, view_options_t
     }
     if (paint_body.len)
       write_slice_resolving_palette_vars (paint_body);
+
+    if (show_extents)
+      emit_extents_overlay (direction == HB_DIRECTION_INVALID ? HB_DIRECTION_LTR : direction, line_step);
 
     fputs ("</svg>\n", out_fp);
   }
@@ -978,7 +996,8 @@ struct vector_output_t : output_options_t<>, view_options_t
     }
     fputs ("</g>\n", out_fp);
 
-    fputs ("<g fill=\"none\" stroke=\"#FF00FF80\" stroke-width=\"1\">\n", out_fp);
+    fprintf (out_fp, "<g fill=\"none\" stroke=\"#FF00FF80\" stroke-width=\"%.*g\">\n",
+             precision + 4, normalized_stroke_width);
     for (unsigned li = 0; li < lines.size (); li++)
     {
       float off_x = vertical ? -(step * (float) li) : 0.f;
@@ -1036,6 +1055,8 @@ struct vector_output_t : output_options_t<>, view_options_t
   int y_scale = 0;
   unsigned upem = 0;
   unsigned subpixel_bits = 0;
+  double normalized_stroke_width = DEFAULT_STROKE_WIDTH;
+  float line_step = 0.f;
   hb_vector_extents_t final_extents = {0, 0, 1, 1};
   std::vector<hb_color_t> custom_palette_values;
   std::vector<bool> custom_palette_has_value;
