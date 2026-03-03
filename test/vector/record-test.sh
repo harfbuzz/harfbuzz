@@ -172,6 +172,9 @@ for arg in "$@"; do
   have_text=true
 done
 
+options_len=${#options[@]}
+shape_view_options_len=${#shape_view_options[@]}
+
 if ! $have_text; then
   text=$(cat)
 fi
@@ -195,17 +198,21 @@ fi
 unicodes=$(/usr/bin/env python3 -c 'import sys; s=sys.argv[1]; print(",".join(f"U+{ord(c):04X}" for c in s))' "$text")
 
 options_str=
-for arg in "${options[@]}"; do
-  options_str="${options_str}${options_str:+ }${arg}"
-done
+if [ "$options_len" -gt 0 ]; then
+  for arg in "${options[@]}"; do
+    options_str="${options_str}${options_str:+ }${arg}"
+  done
+fi
 
 ext=svg
-for arg in "${options[@]}"; do
-  if [ "x$arg" = "x-q" ] || [ "x$arg" = "x--quiet" ]; then
-    ext=txt
-    break
-  fi
-done
+if [ "$options_len" -gt 0 ]; then
+  for arg in "${options[@]}"; do
+    if [ "x$arg" = "x-q" ] || [ "x$arg" = "x--quiet" ]; then
+      ext=txt
+      break
+    fi
+  done
+fi
 
 if [ "$out" = "/dev/stdout" ] || [ "$out" = "-" ]; then
   out_dir=$PWD
@@ -217,10 +224,17 @@ fi
 tmpdir=$(mktemp -d)
 
 # Collect gids from shaping result and subset.
-glyph_ids=$(
-  printf '%s\n' "$text" | "$hb_shape" "${shape_view_options[@]}" --no-glyph-names --no-clusters --no-positions "$fontfile" |
-  sed 's/[][]//g; s/|/,/g'
-)
+if [ "$shape_view_options_len" -gt 0 ]; then
+  glyph_ids=$(
+    printf '%s\n' "$text" | "$hb_shape" "${shape_view_options[@]}" --no-glyph-names --no-clusters --no-positions "$fontfile" |
+    sed 's/[][]//g; s/|/,/g'
+  )
+else
+  glyph_ids=$(
+    printf '%s\n' "$text" | "$hb_shape" --no-glyph-names --no-clusters --no-positions "$fontfile" |
+    sed 's/[][]//g; s/|/,/g'
+  )
+fi
 cp "$fontfile" "$tmpdir/font.ttf"
 "$hb_subset" \
   --glyph-names \
@@ -236,8 +250,13 @@ if ! test -s "$tmpdir/font.subset.ttf"; then
 fi
 
 # Verify visual parity via hb-view.
-printf '%s\n' "$text" | "$hb_view" "${shape_view_options[@]}" "$fontfile" --output-format=png --output-file="$tmpdir/orig.png"
-printf '%s\n' "$text" | "$hb_view" "${shape_view_options[@]}" "$tmpdir/font.subset.ttf" --output-format=png --output-file="$tmpdir/subset.png"
+if [ "$shape_view_options_len" -gt 0 ]; then
+  printf '%s\n' "$text" | "$hb_view" "${shape_view_options[@]}" "$fontfile" --output-format=png --output-file="$tmpdir/orig.png"
+  printf '%s\n' "$text" | "$hb_view" "${shape_view_options[@]}" "$tmpdir/font.subset.ttf" --output-format=png --output-file="$tmpdir/subset.png"
+else
+  printf '%s\n' "$text" | "$hb_view" "$fontfile" --output-format=png --output-file="$tmpdir/orig.png"
+  printf '%s\n' "$text" | "$hb_view" "$tmpdir/font.subset.ttf" --output-format=png --output-file="$tmpdir/subset.png"
+fi
 if ! cmp -s "$tmpdir/orig.png" "$tmpdir/subset.png"; then
   echo "Subset font produced different rendering. Please inspect $tmpdir/orig.png and $tmpdir/subset.png." >&2
   exit 2
@@ -279,7 +298,11 @@ else
 fi
 
 mkdir -p "$(dirname "$expected_path")"
-"$hb_vector" "${options[@]}" "$subset_path" "$text" > "$expected_path"
+if [ "$options_len" -gt 0 ]; then
+  "$hb_vector" "${options[@]}" "$subset_path" "$text" > "$expected_path"
+else
+  "$hb_vector" "$subset_path" "$text" > "$expected_path"
+fi
 
 if [ "$out" = "/dev/stdout" ] || [ "$out" = "-" ]; then
   font_field=$(/usr/bin/env python3 -c 'import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$subset_path" "$PWD")
