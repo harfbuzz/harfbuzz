@@ -197,8 +197,7 @@ struct vector_output_t : output_options_t<>, view_options_t
 
     bool had_draw = false;
     bool had_paint = false;
-    hb_vector_extents_mode_t extents_mode = ink ? HB_VECTOR_EXTENTS_MODE_EXPAND
-                                                : HB_VECTOR_EXTENTS_MODE_NONE;
+    hb_vector_extents_mode_t extents_mode = HB_VECTOR_EXTENTS_MODE_NONE;
     const bool use_foreground_palette =
       foreground_use_palette && foreground_palette && foreground_palette->len;
     unsigned palette_glyph_index = 0;
@@ -320,8 +319,8 @@ struct vector_output_t : output_options_t<>, view_options_t
 
     bool valid = false;
     float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-    bool include_logical = logical || (!logical && !ink);
-    bool include_ink = ink;
+    bool include_logical = include_logical_extents ();
+    bool include_ink = include_ink_extents ();
 
     auto include_point = [&] (float x, float y)
     {

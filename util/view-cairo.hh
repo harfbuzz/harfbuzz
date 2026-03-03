@@ -239,8 +239,8 @@ view_cairo_t::render (const font_options_t *font_opts)
 
   double surface_w = logical_w, surface_h = logical_h;
   double surface_shift_x = 0, surface_shift_y = 0;
-  bool include_logical = logical || !ink;
-  bool include_ink = ink || !logical;
+  bool include_logical = include_logical_extents ();
+  bool include_ink = include_ink_extents ();
   if (include_ink)
   {
     cairo_surface_t *ink_surface = cairo_recording_surface_create (content, nullptr);

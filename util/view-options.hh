@@ -50,6 +50,8 @@ struct view_options_t
   }
 
   void add_options (option_parser_t *parser);
+  bool include_logical_extents () const { return logical || !ink; }
+  bool include_ink_extents () const { return ink || !logical; }
   void post_parse (GError **error G_GNUC_UNUSED)
   {
     stroke_enabled = false;

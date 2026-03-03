@@ -455,8 +455,8 @@ struct raster_output_t : output_options_t<true>, view_options_t
   bool compute_extents (float sx, float sy, float step, bool vertical, hb_raster_extents_t *ext)
   {
     /* Compute bounding box in pixel space from logical and/or ink extents. */
-    const bool include_logical = logical || !ink;
-    const bool include_ink = ink || !logical;
+    const bool include_logical = include_logical_extents ();
+    const bool include_ink = include_ink_extents ();
 
     float pmin_x = 1e30f, pmin_y = 1e30f;
     float pmax_x = -1e30f, pmax_y = -1e30f;
