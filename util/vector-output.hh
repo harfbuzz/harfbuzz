@@ -980,7 +980,7 @@ struct vector_output_t : output_options_t<>, view_options_t
   {
     const bool vertical = HB_DIRECTION_IS_VERTICAL (dir);
     const float dot_r = hb_max (1.f, step * 0.01f);
-    fputs ("<g fill=\"#FF000080\" stroke=\"none\">\n", out_fp);
+    fputs ("<g fill=\"#FF0000\" fill-opacity=\"0.502\" stroke=\"none\">\n", out_fp);
     for (unsigned li = 0; li < lines.size (); li++)
     {
       float off_x = vertical ? -(step * (float) li) : 0.f;
@@ -996,7 +996,7 @@ struct vector_output_t : output_options_t<>, view_options_t
     }
     fputs ("</g>\n", out_fp);
 
-    fprintf (out_fp, "<g fill=\"none\" stroke=\"#FF00FF80\" stroke-width=\"%.*g\">\n",
+    fprintf (out_fp, "<g fill=\"none\" stroke=\"#FF00FF\" stroke-opacity=\"0.502\" stroke-width=\"%.*g\">\n",
              precision + 4, normalized_stroke_width);
     for (unsigned li = 0; li < lines.size (); li++)
     {
