@@ -111,6 +111,11 @@
         <xi:include href="xml/hb-subset.xml"/>
       </chapter>
 
+      <chapter id="depend-api">
+        <title>Depend API</title>
+        <xi:include href="xml/hb-depend.xml"/>
+      </chapter>
+
 
       <!--chapter id="object-tree">
         <title>Object Hierarchy</title>
