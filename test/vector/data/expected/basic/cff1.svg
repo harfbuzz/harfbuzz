@@ -7,6 +7,6 @@
 </defs>
 
 <use href="#p1" transform="translate(0,0) scale(1,-1)"/>
-<use href="#p2" transform="translate(504.03,0) scale(1,-1)"/>
-<use href="#p3" transform="translate(1057.01,0) scale(1,-1)"/>
+<use href="#p2" transform="translate(504,0) scale(1,-1)"/>
+<use href="#p3" transform="translate(1057,0) scale(1,-1)"/>
 </svg>
