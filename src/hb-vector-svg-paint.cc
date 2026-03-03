@@ -492,7 +492,7 @@ hb_svg_append_instance_transform (hb_vector_t<char> *out,
     hb_svg_append_str (out, "translate(");
     hb_svg_append_num (out, tx / x_scale_factor, precision);
     hb_svg_append_c (out, ',');
-    hb_svg_append_num (out, ty / y_scale_factor, precision);
+    hb_svg_append_num (out, -ty / y_scale_factor, precision);
     hb_svg_append_str (out, ") scale(");
     hb_svg_append_num (out, sx, sprec, true);
     hb_svg_append_c (out, ',');
@@ -512,7 +512,7 @@ hb_svg_append_instance_transform (hb_vector_t<char> *out,
     hb_svg_append_c (out, ',');
     hb_svg_append_num (out, tx / x_scale_factor, precision);
     hb_svg_append_c (out, ',');
-    hb_svg_append_num (out, ty / y_scale_factor, precision);
+    hb_svg_append_num (out, -ty / y_scale_factor, precision);
     hb_svg_append_c (out, ')');
   }
 }
@@ -527,7 +527,7 @@ hb_svg_append_image_instance_translate (hb_vector_t<char> *out,
   hb_svg_append_str (out, "translate(");
   hb_svg_append_num (out, tx / x_scale_factor, precision);
   hb_svg_append_c (out, ',');
-  hb_svg_append_num (out, ty / y_scale_factor, precision);
+  hb_svg_append_num (out, -ty / y_scale_factor, precision);
   hb_svg_append_c (out, ')');
 }
 
