@@ -26,6 +26,7 @@ from hb_fuzzing_tools import (
     emit_set_ranges,
     emit_text,
     fail,
+    format_leading_comment,
     main_with_user_errors,
     parse_decimal_ranges,
     parse_hex_ranges,
@@ -330,7 +331,7 @@ def record_subset_main(argv: list[str]) -> int:
     for text_arg in positionals:
         emit_text(ops, HB_FUZZING_OP_TEXT_ADD, parse_text_codepoints(text_arg))
 
-    print_recorded_seed_path(write_seed_file(font_file, out, ops))
+    print_recorded_seed_path(write_seed_file(font_file, out, ops, leading_comment=format_leading_comment(args)))
     return 0
 
 

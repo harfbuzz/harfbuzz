@@ -11,6 +11,7 @@
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
+  _fuzzing_skip_leading_comment (&data, &size);
   alloc_state = _fuzzing_alloc_state (data, size);
 
   hb_blob_t *blob = hb_blob_create ((const char *)data, size,

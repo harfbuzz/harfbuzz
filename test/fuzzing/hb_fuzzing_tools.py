@@ -2,6 +2,7 @@
 
 import hashlib
 import os
+import shlex
 import struct
 import sys
 
@@ -278,8 +279,15 @@ def resolve_seed_output_path(font_path: str, font_bytes: bytes, out_path: str, d
 
     return out_path, abs_out_path
 
+def format_leading_comment(argv: list[str]) -> bytes:
+    return ("$ " + " ".join(shlex.quote(arg) for arg in argv) + "\n").encode("utf-8")
 
-def write_seed_file(font_file: str, out_path: str, ops: bytearray, default_suffix: str = ".susbset-seed") -> str:
+
+def write_seed_file(font_file: str,
+                    out_path: str,
+                    ops: bytearray,
+                    default_suffix: str = ".susbset-seed",
+                    leading_comment: bytes = b"") -> str:
     font_path = os.path.abspath(font_file)
     if not os.path.isfile(font_path):
         fail(f"Font file not found: '{font_path}'.")
@@ -293,6 +301,7 @@ def write_seed_file(font_file: str, out_path: str, ops: bytearray, default_suffi
         os.makedirs(parent, exist_ok=True)
 
     with open(seed_path, "wb") as fp:
+        fp.write(leading_comment)
         fp.write(font_bytes)
         fp.write(ops)
         fp.write(pack_u32(len(ops)))

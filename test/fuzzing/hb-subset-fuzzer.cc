@@ -345,6 +345,7 @@ try_legacy_input (const uint8_t *data, size_t size)
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
+  _fuzzing_skip_leading_comment (&data, &size);
   alloc_state = _fuzzing_alloc_state (data, size);
 
   if (try_extended_input (data, size))
