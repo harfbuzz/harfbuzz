@@ -470,6 +470,11 @@ build_summary = {
      'HarfRust': conf.get('HAVE_HARFRUST', 0) == 1,
      'kbts': conf.get('HAVE_KBTS', 0) == 1,
     },
+  'Additional libraries':
+    {'Subset': not get_option('subset').disabled(),
+     'Raster': not get_option('raster').disabled(),
+     'Vector': not get_option('vector').disabled(),
+    },
   'Other features':
     {'Utilities': not get_option('utilities').disabled(),
      'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,
