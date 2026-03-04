@@ -255,22 +255,28 @@ def read_range_file(path: str, parser) -> list[tuple[int, int]]:
     return ranges
 
 
-def resolve_seed_output_path(font_path: str, font_bytes: bytes, out_path: str, default_suffix: str) -> str:
+def resolve_seed_output_path(font_path: str, font_bytes: bytes, out_path: str, default_suffix: str) -> tuple[str, str]:
     digest = hashlib.sha1(font_bytes).hexdigest()
     default_name = digest + default_suffix
     default_dir = os.path.join(os.path.dirname(__file__), "fonts")
 
     if not out_path:
-        return os.path.abspath(os.path.join(default_dir, default_name))
+        display_path = os.path.join(default_dir, default_name)
+        return display_path, os.path.abspath(display_path)
 
     if out_path.endswith(os.sep):
-        return os.path.abspath(os.path.join(out_path, default_name))
+        display_path = os.path.join(out_path, default_name)
+        return display_path, os.path.abspath(display_path)
 
     abs_out_path = os.path.abspath(out_path)
     if os.path.isdir(abs_out_path):
-        return os.path.join(abs_out_path, default_name)
+        if os.path.isabs(out_path):
+            display_path = os.path.join(out_path, default_name)
+        else:
+            display_path = os.path.join(out_path, default_name)
+        return display_path, os.path.join(abs_out_path, default_name)
 
-    return abs_out_path
+    return out_path, abs_out_path
 
 
 def write_seed_file(font_file: str, out_path: str, ops: bytearray, default_suffix: str = ".susbset-seed") -> str:
@@ -281,7 +287,7 @@ def write_seed_file(font_file: str, out_path: str, ops: bytearray, default_suffi
     with open(font_path, "rb") as fp:
         font_bytes = fp.read()
 
-    seed_path = resolve_seed_output_path(font_path, font_bytes, out_path, default_suffix)
+    display_path, seed_path = resolve_seed_output_path(font_path, font_bytes, out_path, default_suffix)
     parent = os.path.dirname(seed_path)
     if parent:
         os.makedirs(parent, exist_ok=True)
@@ -292,11 +298,11 @@ def write_seed_file(font_file: str, out_path: str, ops: bytearray, default_suffi
         fp.write(pack_u32(len(ops)))
         fp.write(HB_FUZZING_EXTENDED_MAGIC)
 
-    return seed_path
+    return display_path
 
 
 def print_recorded_seed_path(seed_path: str) -> None:
-    print(os.path.basename(seed_path))
+    print(seed_path)
 
 
 def main_with_user_errors(main_fn, argv: list[str]) -> int:
