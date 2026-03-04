@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import hashlib
+import math
 import os
 import shlex
 import struct
@@ -193,6 +194,53 @@ def parse_tag_value(tag_text: str, kind: str) -> int:
         return int.from_bytes(tag_text.ljust(4, " ").encode("ascii"), byteorder="big")
     except UnicodeEncodeError:
         fail(f"{kind} '{tag_text}' is not ASCII.")
+
+
+def parse_axis_number(text: str) -> float:
+    try:
+        return float(text)
+    except ValueError:
+        fail(f"Failed parsing axis value '{text}'.")
+
+
+def parse_axis_range(value: str) -> tuple[int, float, float, float]:
+    if value == "drop":
+        return HB_FUZZING_AXIS_PIN_TO_DEFAULT, 0.0, 0.0, 0.0
+
+    parts = value.split(":")
+    if len(parts) == 1:
+        v = parse_axis_number(parts[0])
+        return HB_FUZZING_AXIS_SET_RANGE, v, v, v
+    if len(parts) == 2:
+        minimum = math.nan if parts[0] == "" else parse_axis_number(parts[0])
+        maximum = math.nan if parts[1] == "" else parse_axis_number(parts[1])
+        return HB_FUZZING_AXIS_SET_RANGE, minimum, math.nan, maximum
+    if len(parts) == 3:
+        minimum = math.nan if parts[0] == "" else parse_axis_number(parts[0])
+        middle = math.nan if parts[1] == "" else parse_axis_number(parts[1])
+        maximum = math.nan if parts[2] == "" else parse_axis_number(parts[2])
+        return HB_FUZZING_AXIS_SET_RANGE, minimum, middle, maximum
+    fail(f"Failed parsing axis range '{value}'.")
+
+
+def parse_variations(value: str) -> tuple[bool, list[tuple[int, int, float, float, float]]]:
+    pin_all = False
+    records: list[tuple[int, int, float, float, float]] = []
+    for item in value.replace(" ", ",").split(","):
+        if not item:
+            continue
+        if "=" not in item:
+            fail(f"Unsupported variation item '{item}'. Expected tag=value.")
+        tag_text, axis_value_text = item.split("=", 1)
+        if tag_text == "*":
+            if axis_value_text != "drop":
+                fail("Only *=drop is supported for wildcard axis pinning.")
+            pin_all = True
+            continue
+        tag = parse_tag_value(tag_text, "Axis tag")
+        mode, minimum, middle, maximum = parse_axis_range(axis_value_text)
+        records.append((tag, mode, minimum, middle, maximum))
+    return pin_all, records
 
 
 def add_set_option(ops: bytearray, set_type: int, modifier: str, value: str, parser) -> None:
