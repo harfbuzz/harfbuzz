@@ -26,19 +26,21 @@ foreach source : benchmarks
   ), workdir: meson.current_source_dir() / '..', timeout: 100)
 endforeach
 
-benchmarks_subset = [
-  'benchmark-subset.cc',
-]
+if not get_option('subset').disabled()
+  benchmarks_subset = [
+    'benchmark-subset.cc',
+  ]
 
-foreach source : benchmarks_subset
-  benchmark_name = source.split('.')[0]
-  benchmark(benchmark_name, executable(benchmark_name, source,
-    dependencies: [
-      google_benchmark_dep, libharfbuzz_dep, libharfbuzz_subset_dep
-    ],
-    cpp_args: [],
-    include_directories: [incconfig, incsrc],
-    install: false,
-  ), workdir: meson.current_source_dir() / '..', timeout: 100)
-endforeach
+  foreach source : benchmarks_subset
+    benchmark_name = source.split('.')[0]
+    benchmark(benchmark_name, executable(benchmark_name, source,
+      dependencies: [
+        google_benchmark_dep, libharfbuzz_dep, libharfbuzz_subset_dep
+      ],
+      cpp_args: [],
+      include_directories: [incconfig, incsrc],
+      install: false,
+    ), workdir: meson.current_source_dir() / '..', timeout: 100)
+  endforeach
+endif
 
