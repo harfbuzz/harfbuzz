@@ -25,11 +25,20 @@ foreach file_name : tests
     extra_cpp_args += '-DHB_EXPERIMENTAL_API'
   endif
 
+  if (test_name.contains('subset') or test_name.contains('repacker')) and get_option('subset').disabled()
+    continue
+  endif
+
+  link_with_libs = [libharfbuzz]
+  if not get_option('subset').disabled()
+    link_with_libs += [libharfbuzz_subset]
+  endif
+
   exe = executable(test_name, sources,
     cpp_args: cpp_args + extra_cpp_args,
     include_directories: [incconfig, incsrc],
     link_args: fuzzer_ldflags,
-    link_with: [libharfbuzz, libharfbuzz_subset],
+    link_with: link_with_libs,
     install: false,
   )
   set_variable('@0@_exe'.format(test_name.underscorify()), exe)
@@ -87,29 +96,33 @@ foreach chunk : fonts_glob_chunks
   i += 1
 endforeach
 
-i = 0
-foreach chunk : fonts_glob_chunks + subset_fonts_glob_chunks
-  test('subset-fuzzer-chunk-@0@'.format(i),
-    hb_subset_fuzzer_exe,
-    args: chunk,
-    workdir: meson.current_build_dir() / '..' / '..',
-    protocol: 'tap',
-    suite: ['fuzzing'],
-  )
-  i += 1
-endforeach
+if not get_option('subset').disabled()
+  i = 0
+  foreach chunk : fonts_glob_chunks + subset_fonts_glob_chunks
+    test('subset-fuzzer-chunk-@0@'.format(i),
+      hb_subset_fuzzer_exe,
+      args: chunk,
+      workdir: meson.current_build_dir() / '..' / '..',
+      protocol: 'tap',
+      suite: ['fuzzing'],
+    )
+    i += 1
+  endforeach
+endif
 
-i = 0
-foreach chunk : graphs_glob_chunks
-  test('repacker-fuzzer-chunk-@0@'.format(i),
-    hb_repacker_fuzzer_exe,
-    args: chunk,
-    workdir: meson.current_build_dir() / '..' / '..',
-    protocol: 'tap',
-    suite: ['fuzzing'],
-  )
-  i += 1
-endforeach
+if not get_option('subset').disabled()
+  i = 0
+  foreach chunk : graphs_glob_chunks
+    test('repacker-fuzzer-chunk-@0@'.format(i),
+      hb_repacker_fuzzer_exe,
+      args: chunk,
+      workdir: meson.current_build_dir() / '..' / '..',
+      protocol: 'tap',
+      suite: ['fuzzing'],
+    )
+    i += 1
+  endforeach
+endif
 
 i = 0
 foreach chunk : sets_glob_chunks

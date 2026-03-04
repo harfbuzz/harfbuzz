@@ -108,6 +108,9 @@ foreach source : tests
           libharfbuzz_icu_dep]
   suite = ['api']
   if test_name.contains('-subset') or test_name.contains('-instance')
+    if get_option('subset').disabled()
+      continue
+    endif
     deps += libharfbuzz_subset_dep
     suite += 'subset'
   endif

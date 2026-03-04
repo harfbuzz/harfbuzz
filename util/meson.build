@@ -158,14 +158,18 @@ if conf.get('HAVE_GLIB', 0) == 1
   )
   meson.override_find_program('hb-info', hb_info)
 
-  hb_subset = executable('hb-subset', hb_subset_cli_sources,
-    cpp_args: cpp_args,
-    include_directories: [incconfig, incsrc],
-    dependencies: util_deps,
-    link_with: [libharfbuzz, libharfbuzz_subset],
-    install: true,
-  )
-  meson.override_find_program('hb-subset', hb_subset)
+  if not get_option('subset').disabled()
+    hb_subset = executable('hb-subset', hb_subset_cli_sources,
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: util_deps,
+      link_with: [libharfbuzz, libharfbuzz_subset],
+      install: true,
+    )
+    meson.override_find_program('hb-subset', hb_subset)
+  else
+    hb_subset = disabler()
+  endif
 
   if help2man.found()
     foreach binary: [hb_shape, hb_vector, hb_info, hb_subset]
@@ -183,18 +187,20 @@ if conf.get('HAVE_GLIB', 0) == 1
   endif
 
   if get_option('experimental_api')
-    test('test-hb-subset-parsing',
-      executable('test-hb-subset-parsing',
-        ['test-hb-subset-parsing.c'],
-        cpp_args: cpp_args,
-        c_args: ['-DHB_EXPERIMENTAL_API'],
-        include_directories: [incconfig, incsrc],
-        dependencies: util_deps,
-        link_with: [libharfbuzz, libharfbuzz_subset],
-        install: false,
-    ),
-    workdir : meson.current_source_dir(),
-    suite: ['util'])
+    if not get_option('subset').disabled()
+      test('test-hb-subset-parsing',
+        executable('test-hb-subset-parsing',
+          ['test-hb-subset-parsing.c'],
+          cpp_args: cpp_args,
+          c_args: ['-DHB_EXPERIMENTAL_API'],
+          include_directories: [incconfig, incsrc],
+          dependencies: util_deps,
+          link_with: [libharfbuzz, libharfbuzz_subset],
+          install: false,
+      ),
+      workdir : meson.current_source_dir(),
+      suite: ['util'])
+    endif
   endif
 else
   # Disable tests that use this

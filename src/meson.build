@@ -667,37 +667,40 @@ libharfbuzz_dep = declare_dependency(
 meson.override_dependency('harfbuzz', libharfbuzz_dep)
 
 # harfbuzz-subset
-harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
-    command: gen_def_cmd,
-    input: hb_subset_headers,
-    output: 'harfbuzz-subset.def')
-defs_list += [harfbuzz_subset_def]
+libharfbuzz_subset_dep = null_dep
+if not get_option('subset').disabled()
+  harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
+      command: gen_def_cmd,
+      input: hb_subset_headers,
+      output: 'harfbuzz-subset.def')
+  defs_list += [harfbuzz_subset_def]
 
-libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
-  include_directories: incconfig,
-  dependencies: [m_dep],
-  link_with: [libharfbuzz],
-  cpp_args: cpp_args + extra_hb_cpp_args,
-  soversion: hb_so_version,
-  version: version,
-  install: true,
-  darwin_versions: darwin_versions,
-  link_language: chosen_linker,
-)
+  libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
+    include_directories: incconfig,
+    dependencies: [m_dep],
+    link_with: [libharfbuzz],
+    cpp_args: cpp_args + extra_hb_cpp_args,
+    soversion: hb_so_version,
+    version: version,
+    install: true,
+    darwin_versions: darwin_versions,
+    link_language: chosen_linker,
+  )
 
-custom_target('harfbuzz-subset.cc',
-  build_by_default: true,
-  output: 'harfbuzz-subset.cc',
-  input: hb_base_sources + hb_subset_sources,
-  command: [find_program('gen-harfbuzzcc.py'),
-            '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
-)
+  custom_target('harfbuzz-subset.cc',
+    build_by_default: true,
+    output: 'harfbuzz-subset.cc',
+    input: hb_base_sources + hb_subset_sources,
+    command: [find_program('gen-harfbuzzcc.py'),
+              '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
+  )
 
-libharfbuzz_subset_dep = declare_dependency(
-  link_with: libharfbuzz_subset,
-  include_directories: incsrc,
-  dependencies: [m_dep])
-meson.override_dependency('harfbuzz-subset', libharfbuzz_subset_dep)
+  libharfbuzz_subset_dep = declare_dependency(
+    link_with: libharfbuzz_subset,
+    include_directories: incsrc,
+    dependencies: [m_dep])
+  meson.override_dependency('harfbuzz-subset', libharfbuzz_subset_dep)
+endif
 
 hb_raster_sources = [
   'hb-raster.cc',
@@ -945,12 +948,14 @@ pkgmod.generate(libharfbuzz,
   version: meson.project_version(),
 )
 
-pkgmod.generate(libharfbuzz_subset,
-  description: 'HarfBuzz font subsetter',
-  requires: ['harfbuzz = @0@'.format(meson.project_version())],
-  subdirs: [meson.project_name()],
-  version: meson.project_version(),
-)
+if not get_option('subset').disabled()
+  pkgmod.generate(libharfbuzz_subset,
+    description: 'HarfBuzz font subsetter',
+    requires: ['harfbuzz = @0@'.format(meson.project_version())],
+    subdirs: [meson.project_name()],
+    version: meson.project_version(),
+  )
+endif
 
 libharfbuzz_icu_dep = null_dep
 if have_icu and not have_icu_builtin
@@ -1240,4 +1245,7 @@ if get_option('tests').enabled()
   )
 endif
 
-install_headers(hb_headers + hb_subset_headers, subdir: meson.project_name())
+install_headers(hb_headers, subdir: meson.project_name())
+if not get_option('subset').disabled()
+  install_headers(hb_subset_headers, subdir: meson.project_name())
+endif

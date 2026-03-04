@@ -33,6 +33,8 @@ option('raster', type: 'feature', value: 'enabled',
   description: 'Enable HarfBuzz glyph rasterization library')
 option('vector', type: 'feature', value: 'enabled',
   description: 'Enable HarfBuzz glyph vector drawing library')
+option('subset', type: 'feature', value: 'enabled',
+  description: 'Enable HarfBuzz font subsetting and instancing library')
 
 # Common feature options
 option('tests', type: 'feature', value: 'enabled', yield: true,
