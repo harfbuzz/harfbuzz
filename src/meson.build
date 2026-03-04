@@ -481,7 +481,8 @@ incsrc = include_directories('.')
 hb_sources = hb_base_sources + hb_base_ragel_generated_sources
 hb_headers = hb_base_headers
 
-harfbuzz_deps = [thread_dep, m_dep] + harfbuzz_extra_deps
+common_harfbuzz_deps = [thread_dep, m_dep]
+harfbuzz_deps = common_harfbuzz_deps + harfbuzz_extra_deps
 
 if get_option('with_libstdcxx')
   chosen_linker = 'cpp'
@@ -677,7 +678,7 @@ if not get_option('subset').disabled()
 
   libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
     include_directories: incconfig,
-    dependencies: [m_dep],
+    dependencies: common_harfbuzz_deps,
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
