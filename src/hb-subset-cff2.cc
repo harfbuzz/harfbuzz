@@ -218,6 +218,22 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
   static void flush_hintmask (op_code_t op, cff2_cs_interp_env_t<blend_arg_t> &env, flatten_param_t& param)
   {
     SUPER::flush_hintmask (op, env, param);
+    /* Preserve hintmask payload in captured commands for specializer re-encoding. */
+    if (param.commands && !param.drop_hints && param.commands->length > 0)
+    {
+      auto &cmd = param.commands->tail ();
+      if (cmd.op == op)
+      {
+        cmd.mask_bytes.resize (env.hintmask_size);
+        if (unlikely (cmd.mask_bytes.in_error ()))
+        {
+          env.set_error ();
+          return;
+        }
+        for (unsigned int i = 0; i < env.hintmask_size; i++)
+          cmd.mask_bytes[i] = env.str_ref[i];
+      }
+    }
     if (!param.drop_hints)
     {
       str_encoder_t  encoder (param.flatStr);

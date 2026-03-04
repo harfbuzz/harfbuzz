@@ -325,6 +325,7 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
 struct cs_command_t
 {
   hb_vector_t<number_t> args;
+  hb_vector_t<unsigned char> mask_bytes; /* For hintmask/cntrmask payload bytes. */
   op_code_t op;
 
   cs_command_t () : op (OpCode_Invalid) {}
