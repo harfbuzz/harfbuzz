@@ -31,6 +31,8 @@ option('wasm', type: 'feature', value: 'disabled',
   description: 'Enable WebAssembly shaper backend (experimental)')
 option('raster', type: 'feature', value: 'enabled',
   description: 'Enable HarfBuzz glyph rasterization library')
+option('vector', type: 'feature', value: 'enabled',
+  description: 'Enable HarfBuzz glyph vector drawing library')
 
 # Common feature options
 option('tests', type: 'feature', value: 'enabled', yield: true,

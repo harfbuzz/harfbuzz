@@ -790,38 +790,41 @@ if not get_option('raster').disabled()
   )
 endif
 
-libharfbuzz_vector = library('harfbuzz-vector', hb_vector_sources,
-  include_directories: incconfig,
-  dependencies: [m_dep],
-  link_with: [libharfbuzz],
-  cpp_args: cpp_args + extra_hb_cpp_args,
-  soversion: hb_so_version,
-  version: version,
-  install: true,
-  darwin_versions: darwin_versions,
-  link_language: chosen_linker,
-)
+libharfbuzz_vector_dep = null_dep
+if not get_option('vector').disabled()
+  libharfbuzz_vector = library('harfbuzz-vector', hb_vector_sources,
+    include_directories: incconfig,
+    dependencies: [m_dep],
+    link_with: [libharfbuzz],
+    cpp_args: cpp_args + extra_hb_cpp_args,
+    soversion: hb_so_version,
+    version: version,
+    install: true,
+    darwin_versions: darwin_versions,
+    link_language: chosen_linker,
+  )
 
-install_headers(hb_vector_headers, subdir: meson.project_name())
+  install_headers(hb_vector_headers, subdir: meson.project_name())
 
-libharfbuzz_vector_dep = declare_dependency(
-  link_with: libharfbuzz_vector,
-  include_directories: incsrc,
-  dependencies: [libharfbuzz_dep])
-meson.override_dependency('harfbuzz-vector', libharfbuzz_vector_dep)
+  libharfbuzz_vector_dep = declare_dependency(
+    link_with: libharfbuzz_vector,
+    include_directories: incsrc,
+    dependencies: [libharfbuzz_dep])
+  meson.override_dependency('harfbuzz-vector', libharfbuzz_vector_dep)
 
-harfbuzz_vector_def = custom_target('harfbuzz-vector.def',
-  command: gen_def_cmd,
-  input: hb_vector_headers,
-  output: 'harfbuzz-vector.def')
-defs_list += [harfbuzz_vector_def]
+  harfbuzz_vector_def = custom_target('harfbuzz-vector.def',
+    command: gen_def_cmd,
+    input: hb_vector_headers,
+    output: 'harfbuzz-vector.def')
+  defs_list += [harfbuzz_vector_def]
 
-pkgmod.generate(libharfbuzz_vector,
-  description: 'HarfBuzz vector converter',
-  requires: ['harfbuzz = @0@'.format(meson.project_version())],
-  subdirs: [meson.project_name()],
-  version: meson.project_version(),
-)
+  pkgmod.generate(libharfbuzz_vector,
+    description: 'HarfBuzz vector converter',
+    requires: ['harfbuzz = @0@'.format(meson.project_version())],
+    subdirs: [meson.project_name()],
+    version: meson.project_version(),
+  )
+endif
 
 libharfbuzz_cairo_dep = null_dep
 if conf.get('HAVE_CAIRO', 0) == 1
