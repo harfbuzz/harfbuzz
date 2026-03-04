@@ -29,6 +29,8 @@ option('kbts', type: 'feature', value: 'disabled',
   description: 'Enable kb_text_shape backend')
 option('wasm', type: 'feature', value: 'disabled',
   description: 'Enable WebAssembly shaper backend (experimental)')
+option('raster', type: 'feature', value: 'enabled',
+  description: 'Enable HarfBuzz glyph rasterization library')
 
 # Common feature options
 option('tests', type: 'feature', value: 'enabled', yield: true,
