@@ -76,14 +76,18 @@ if conf.get('HAVE_GLIB', 0) == 1
   )
   meson.override_find_program('hb-shape', hb_shape)
 
-  hb_vector = executable('hb-vector', hb_draw_sources,
-    cpp_args: cpp_args,
-    include_directories: [incconfig, incsrc],
-    dependencies: [util_deps],
-    link_with: [libharfbuzz, libharfbuzz_vector],
-    install: true,
-  )
-  meson.override_find_program('hb-vector', hb_vector)
+  if not get_option('vector').disabled()
+    hb_vector = executable('hb-vector', hb_draw_sources,
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: [util_deps],
+      link_with: [libharfbuzz, libharfbuzz_vector],
+      install: true,
+    )
+    meson.override_find_program('hb-vector', hb_vector)
+  else
+    hb_vector = disabler()
+  endif
 
   if not get_option('raster').disabled()
     hb_raster_util = executable('hb-raster', hb_raster_sources,
@@ -120,12 +124,14 @@ if conf.get('HAVE_GLIB', 0) == 1
     install: false,
   )
 
-  hb_vector_svg_all = executable('hb-vector-svg-all', ['hb-vector-svg-all.c'],
-    cpp_args: cpp_args,
-    include_directories: [incconfig, incsrc],
-    link_with: [libharfbuzz, libharfbuzz_vector],
-    install: false,
-  )
+  if not get_option('vector').disabled()
+    hb_vector_svg_all = executable('hb-vector-svg-all', ['hb-vector-svg-all.c'],
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      link_with: [libharfbuzz, libharfbuzz_vector],
+      install: false,
+    )
+  endif
 
   hb_paint_all = executable('hb-paint-all', ['hb-paint-all.c'],
     cpp_args: cpp_args,
