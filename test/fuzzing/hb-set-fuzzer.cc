@@ -38,6 +38,7 @@ static hb_set_t *create_set (const uint32_t *value_array, int count)
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
+  _fuzzing_skip_leading_comment (&data, &size);
   alloc_state = _fuzzing_alloc_state (data, size);
 
   if (size < sizeof (instructions_t))
