@@ -1456,6 +1456,16 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
 
 
 
+/**
+ * hb_vector_paint_create_or_fail:
+ * @format: output format.
+ *
+ * Creates a new paint context for vector output.
+ *
+ * Return value: (nullable): a newly allocated #hb_vector_paint_t, or `NULL` on failure.
+ *
+ * XSince: REPLACEME
+ */
 hb_vector_paint_t *
 hb_vector_paint_create_or_fail (hb_vector_format_t format)
 {
@@ -1478,12 +1488,30 @@ hb_vector_paint_create_or_fail (hb_vector_format_t format)
   return paint;
 }
 
+/**
+ * hb_vector_paint_reference:
+ * @paint: a paint context.
+ *
+ * Increases the reference count of @paint.
+ *
+ * Return value: (transfer full): referenced @paint.
+ *
+ * XSince: REPLACEME
+ */
 hb_vector_paint_t *
 hb_vector_paint_reference (hb_vector_paint_t *paint)
 {
   return hb_object_reference (paint);
 }
 
+/**
+ * hb_vector_paint_destroy:
+ * @paint: a paint context.
+ *
+ * Decreases the reference count of @paint and destroys it when it reaches zero.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_destroy (hb_vector_paint_t *paint)
 {
@@ -1494,6 +1522,20 @@ hb_vector_paint_destroy (hb_vector_paint_t *paint)
   hb_free (paint);
 }
 
+/**
+ * hb_vector_paint_set_user_data:
+ * @paint: a paint context.
+ * @key: user-data key.
+ * @data: user-data value.
+ * @destroy: (nullable): destroy callback for @data.
+ * @replace: whether to replace an existing value for @key.
+ *
+ * Attaches user data to @paint.
+ *
+ * Return value: `true` on success, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
 hb_bool_t
 hb_vector_paint_set_user_data (hb_vector_paint_t  *paint,
                                hb_user_data_key_t *key,
@@ -1504,6 +1546,17 @@ hb_vector_paint_set_user_data (hb_vector_paint_t  *paint,
   return hb_object_set_user_data (paint, key, data, destroy, replace);
 }
 
+/**
+ * hb_vector_paint_get_user_data:
+ * @paint: a paint context.
+ * @key: user-data key.
+ *
+ * Gets previously attached user data from @paint.
+ *
+ * Return value: (nullable): user-data value associated with @key.
+ *
+ * XSince: REPLACEME
+ */
 void *
 hb_vector_paint_get_user_data (hb_vector_paint_t  *paint,
                                hb_user_data_key_t *key)
@@ -1511,6 +1564,20 @@ hb_vector_paint_get_user_data (hb_vector_paint_t  *paint,
   return hb_object_get_user_data (paint, key);
 }
 
+/**
+ * hb_vector_paint_set_transform:
+ * @paint: a paint context.
+ * @xx: transform xx component.
+ * @yx: transform yx component.
+ * @xy: transform xy component.
+ * @yy: transform yy component.
+ * @dx: transform x translation.
+ * @dy: transform y translation.
+ *
+ * Sets the affine transform used when painting glyphs.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_set_transform (hb_vector_paint_t *paint,
                                float xx, float yx,
@@ -1548,6 +1615,16 @@ hb_vector_paint_get_transform (hb_vector_paint_t *paint,
   if (dy) *dy = paint->transform.y0;
 }
 
+/**
+ * hb_vector_paint_set_scale_factor:
+ * @paint: a paint context.
+ * @x_scale_factor: x scale factor.
+ * @y_scale_factor: y scale factor.
+ *
+ * Sets additional output scaling factors.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_set_scale_factor (hb_vector_paint_t *paint,
                                   float x_scale_factor,
@@ -1576,6 +1653,15 @@ hb_vector_paint_get_scale_factor (hb_vector_paint_t *paint,
   if (y_scale_factor) *y_scale_factor = paint->y_scale_factor;
 }
 
+/**
+ * hb_vector_paint_set_extents:
+ * @paint: a paint context.
+ * @extents: (nullable): output extents to set or expand.
+ *
+ * Sets or expands output extents on @paint. Passing `NULL` clears extents.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_set_extents (hb_vector_paint_t *paint,
                              const hb_vector_extents_t *extents)
@@ -1630,6 +1716,17 @@ hb_vector_paint_get_extents (hb_vector_paint_t *paint,
   return true;
 }
 
+/**
+ * hb_vector_paint_set_glyph_extents:
+ * @paint: a paint context.
+ * @glyph_extents: glyph extents in font units.
+ *
+ * Expands @paint extents using @glyph_extents under the current transform.
+ *
+ * Return value: `true` on success, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
 hb_bool_t
 hb_vector_paint_set_glyph_extents (hb_vector_paint_t *paint,
                                    const hb_glyph_extents_t *glyph_extents)
@@ -1645,6 +1742,15 @@ hb_vector_paint_set_glyph_extents (hb_vector_paint_t *paint,
   return ret;
 }
 
+/**
+ * hb_vector_paint_set_foreground:
+ * @paint: a paint context.
+ * @foreground: foreground color used for COLR foreground paints.
+ *
+ * Sets fallback foreground color used by paint operations.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
                                 hb_color_t foreground)
@@ -1652,6 +1758,15 @@ hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
   paint->foreground = foreground;
 }
 
+/**
+ * hb_vector_paint_set_palette:
+ * @paint: a paint context.
+ * @palette: palette index for color glyph painting.
+ *
+ * Sets the color palette index used by paint operations.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_set_palette (hb_vector_paint_t *paint,
                              int palette)
@@ -1659,6 +1774,21 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
   paint->palette = palette;
 }
 
+/**
+ * hb_vector_paint_set_custom_palette_color:
+ * @paint: a paint context.
+ * @color_index: color index to override.
+ * @color: replacement color.
+ *
+ * Overrides one font palette color entry for subsequent paint operations.
+ * Overrides are keyed by @color_index and persist on @paint until cleared
+ * (or replaced for the same index).
+ *
+ * These overrides are consulted by paint operations that resolve CPAL
+ * entries, including SVG glyph content using `var(--colorN)`.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
                                           unsigned color_index,
@@ -1667,12 +1797,32 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
   paint->custom_palette_colors.set (color_index, color);
 }
 
+/**
+ * hb_vector_paint_clear_custom_palette_colors:
+ * @paint: a paint context.
+ *
+ * Clears all custom palette color overrides previously set on @paint.
+ *
+ * After this call, palette lookups use the selected font palette without
+ * custom override entries.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
 {
   paint->custom_palette_colors.clear ();
 }
 
+/**
+ * hb_vector_paint_get_funcs:
+ *
+ * Gets paint callbacks implemented by the vector paint backend.
+ *
+ * Return value: (transfer none): immutable #hb_paint_funcs_t singleton.
+ *
+ * XSince: REPLACEME
+ */
 hb_paint_funcs_t *
 hb_vector_paint_get_funcs (void)
 {
@@ -1697,6 +1847,21 @@ hb_vector_paint_custom_palette_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
   return true;
 }
 
+/**
+ * hb_vector_paint_glyph:
+ * @paint: a paint context.
+ * @font: font object.
+ * @glyph: glyph ID.
+ * @pen_x: glyph x origin before context transform.
+ * @pen_y: glyph y origin before context transform.
+ * @extents_mode: extents update mode.
+ *
+ * Paints one color glyph into @paint.
+ *
+ * Return value: `true` if glyph paint data was emitted, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
 hb_bool_t
 hb_vector_paint_glyph (hb_vector_paint_t *paint,
 		       hb_font_t         *font,
@@ -1845,6 +2010,15 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   return ret;
 }
 
+/**
+ * hb_vector_svg_paint_set_flat:
+ * @paint: a paint context.
+ * @flat: whether to flatten paint output and disable glyph-group reuse.
+ *
+ * Enables or disables SVG paint flattening.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_svg_paint_set_flat (hb_vector_paint_t *paint,
                               hb_bool_t flat)
@@ -1852,6 +2026,15 @@ hb_vector_svg_paint_set_flat (hb_vector_paint_t *paint,
   paint->flat = !!flat;
 }
 
+/**
+ * hb_vector_svg_paint_set_precision:
+ * @paint: a paint context.
+ * @precision: decimal precision.
+ *
+ * Sets numeric output precision for SVG paint output.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_svg_paint_set_precision (hb_vector_paint_t *paint,
                                    unsigned precision)
@@ -1886,6 +2069,16 @@ hb_vector_paint_clear_render_state (hb_vector_paint_t *paint)
   paint->captured_scratch.clear ();
 }
 
+/**
+ * hb_vector_paint_render:
+ * @paint: a paint context.
+ *
+ * Renders accumulated paint content to an SVG blob.
+ *
+ * Return value: (transfer full) (nullable): output blob, or `NULL` if rendering cannot proceed.
+ *
+ * XSince: REPLACEME
+ */
 hb_blob_t *
 hb_vector_paint_render (hb_vector_paint_t *paint)
 {
@@ -1936,6 +2129,14 @@ hb_vector_paint_render (hb_vector_paint_t *paint)
   return blob;
 }
 
+/**
+ * hb_vector_paint_reset:
+ * @paint: a paint context.
+ *
+ * Resets @paint state and clears accumulated content.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_reset (hb_vector_paint_t *paint)
 {
@@ -1949,6 +2150,15 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
   hb_vector_paint_clear_render_state (paint);
 }
 
+/**
+ * hb_vector_paint_recycle_blob:
+ * @paint: a paint context.
+ * @blob: (nullable): previously rendered blob to recycle.
+ *
+ * Provides a blob for internal buffer reuse by later render calls.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_paint_recycle_blob (hb_vector_paint_t *paint,
                               hb_blob_t *blob)

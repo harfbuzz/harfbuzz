@@ -544,6 +544,16 @@ hb_vector_draw_funcs_get ()
   return static_vector_draw_funcs.get_unconst ();
 }
 
+/**
+ * hb_vector_draw_create_or_fail:
+ * @format: output format.
+ *
+ * Creates a new draw context for vector output.
+ *
+ * Return value: (nullable): a newly allocated #hb_vector_draw_t, or `NULL` on failure.
+ *
+ * XSince: REPLACEME
+ */
 hb_vector_draw_t *
 hb_vector_draw_create_or_fail (hb_vector_format_t format)
 {
@@ -561,12 +571,30 @@ hb_vector_draw_create_or_fail (hb_vector_format_t format)
   return draw;
 }
 
+/**
+ * hb_vector_draw_reference:
+ * @draw: a draw context.
+ *
+ * Increases the reference count of @draw.
+ *
+ * Return value: (transfer full): referenced @draw.
+ *
+ * XSince: REPLACEME
+ */
 hb_vector_draw_t *
 hb_vector_draw_reference (hb_vector_draw_t *draw)
 {
   return hb_object_reference (draw);
 }
 
+/**
+ * hb_vector_draw_destroy:
+ * @draw: a draw context.
+ *
+ * Decreases the reference count of @draw and destroys it when it reaches zero.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_draw_destroy (hb_vector_draw_t *draw)
 {
@@ -576,6 +604,20 @@ hb_vector_draw_destroy (hb_vector_draw_t *draw)
   hb_free (draw);
 }
 
+/**
+ * hb_vector_draw_set_user_data:
+ * @draw: a draw context.
+ * @key: user-data key.
+ * @data: user-data value.
+ * @destroy: (nullable): destroy callback for @data.
+ * @replace: whether to replace an existing value for @key.
+ *
+ * Attaches user data to @draw.
+ *
+ * Return value: `true` on success, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
 hb_bool_t
 hb_vector_draw_set_user_data (hb_vector_draw_t   *draw,
                               hb_user_data_key_t *key,
@@ -586,6 +628,17 @@ hb_vector_draw_set_user_data (hb_vector_draw_t   *draw,
   return hb_object_set_user_data (draw, key, data, destroy, replace);
 }
 
+/**
+ * hb_vector_draw_get_user_data:
+ * @draw: a draw context.
+ * @key: user-data key.
+ *
+ * Gets previously attached user data from @draw.
+ *
+ * Return value: (nullable): user-data value associated with @key.
+ *
+ * XSince: REPLACEME
+ */
 void *
 hb_vector_draw_get_user_data (hb_vector_draw_t   *draw,
                               hb_user_data_key_t *key)
@@ -593,6 +646,20 @@ hb_vector_draw_get_user_data (hb_vector_draw_t   *draw,
   return hb_object_get_user_data (draw, key);
 }
 
+/**
+ * hb_vector_draw_set_transform:
+ * @draw: a draw context.
+ * @xx: transform xx component.
+ * @yx: transform yx component.
+ * @xy: transform xy component.
+ * @yy: transform yy component.
+ * @dx: transform x translation.
+ * @dy: transform y translation.
+ *
+ * Sets the affine transform used when drawing glyphs.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_draw_set_transform (hb_vector_draw_t *draw,
                               float xx, float yx,
@@ -630,6 +697,16 @@ hb_vector_draw_get_transform (hb_vector_draw_t *draw,
   if (dy) *dy = draw->transform.y0;
 }
 
+/**
+ * hb_vector_draw_set_scale_factor:
+ * @draw: a draw context.
+ * @x_scale_factor: x scale factor.
+ * @y_scale_factor: y scale factor.
+ *
+ * Sets additional output scaling factors.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_draw_set_scale_factor (hb_vector_draw_t *draw,
                                  float x_scale_factor,
@@ -658,6 +735,15 @@ hb_vector_draw_get_scale_factor (hb_vector_draw_t *draw,
   if (y_scale_factor) *y_scale_factor = draw->y_scale_factor;
 }
 
+/**
+ * hb_vector_draw_set_extents:
+ * @draw: a draw context.
+ * @extents: (nullable): output extents to set or expand.
+ *
+ * Sets or expands output extents on @draw. Passing `NULL` clears extents.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_draw_set_extents (hb_vector_draw_t *draw,
                             const hb_vector_extents_t *extents)
@@ -712,6 +798,17 @@ hb_vector_draw_get_extents (hb_vector_draw_t *draw,
   return true;
 }
 
+/**
+ * hb_vector_draw_set_glyph_extents:
+ * @draw: a draw context.
+ * @glyph_extents: glyph extents in font units.
+ *
+ * Expands @draw extents using @glyph_extents under the current transform.
+ *
+ * Return value: `true` on success, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
 hb_bool_t
 hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
                                   const hb_glyph_extents_t *glyph_extents)
@@ -727,12 +824,36 @@ hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
   return ret;
 }
 
+/**
+ * hb_vector_draw_get_funcs:
+ *
+ * Gets draw callbacks implemented by the vector draw backend.
+ *
+ * Return value: (transfer none): immutable #hb_draw_funcs_t singleton.
+ *
+ * XSince: REPLACEME
+ */
 hb_draw_funcs_t *
 hb_vector_draw_get_funcs (void)
 {
   return hb_vector_draw_funcs_get ();
 }
 
+/**
+ * hb_vector_draw_glyph:
+ * @draw: a draw context.
+ * @font: font object.
+ * @glyph: glyph ID.
+ * @pen_x: glyph x origin before context transform.
+ * @pen_y: glyph y origin before context transform.
+ * @extents_mode: extents update mode.
+ *
+ * Draws one glyph into @draw.
+ *
+ * Return value: `true` if glyph data was emitted, `false` otherwise.
+ *
+ * XSince: REPLACEME
+ */
 hb_bool_t
 hb_vector_draw_glyph (hb_vector_draw_t *draw,
                       hb_font_t *font,
@@ -831,6 +952,15 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
   return true;
 }
 
+/**
+ * hb_vector_svg_set_flat:
+ * @draw: a draw context.
+ * @flat: whether to flatten geometry and disable reuse.
+ *
+ * Enables or disables SVG draw flattening.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_svg_set_flat (hb_vector_draw_t *draw,
                         hb_bool_t flat)
@@ -838,6 +968,15 @@ hb_vector_svg_set_flat (hb_vector_draw_t *draw,
   draw->flat = !!flat;
 }
 
+/**
+ * hb_vector_svg_set_precision:
+ * @draw: a draw context.
+ * @precision: decimal precision.
+ *
+ * Sets numeric output precision for SVG draw output.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_svg_set_precision (hb_vector_draw_t *draw,
                              unsigned precision)
@@ -845,6 +984,16 @@ hb_vector_svg_set_precision (hb_vector_draw_t *draw,
   draw->precision = hb_min (precision, 12u);
 }
 
+/**
+ * hb_vector_draw_render:
+ * @draw: a draw context.
+ *
+ * Renders accumulated draw content to an SVG blob.
+ *
+ * Return value: (transfer full) (nullable): output blob, or `NULL` if rendering cannot proceed.
+ *
+ * XSince: REPLACEME
+ */
 hb_blob_t *
 hb_vector_draw_render (hb_vector_draw_t *draw)
 {
@@ -905,6 +1054,14 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
   return blob;
 }
 
+/**
+ * hb_vector_draw_reset:
+ * @draw: a draw context.
+ *
+ * Resets @draw state and clears accumulated content.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_draw_reset (hb_vector_draw_t *draw)
 {
@@ -921,6 +1078,15 @@ hb_vector_draw_reset (hb_vector_draw_t *draw)
   hb_set_clear (draw->defined_glyphs);
 }
 
+/**
+ * hb_vector_draw_recycle_blob:
+ * @draw: a draw context.
+ * @blob: (nullable): previously rendered blob to recycle.
+ *
+ * Provides a blob for internal buffer reuse by later render calls.
+ *
+ * XSince: REPLACEME
+ */
 void
 hb_vector_draw_recycle_blob (hb_vector_draw_t *draw,
                              hb_blob_t *blob)
