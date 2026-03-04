@@ -18,7 +18,7 @@ Wednesday, March 4, 2026
 - New subset flag `HB_SUBSET_FLAGS_DOWNGRADE_CFF2` to convert instantiated
   `CFF2` table to `CFF `. This options will desubroutinize `CFF2` table and
   convert it to CID-keyed `CFF` table. This is useful for compatibility with
-  older renderers that do not support `CFF2` table, including embedded
+  older renderers that do not support `CFF2` table, including embedding
   instantiated fonts in PDF documents.
 
 - The `hb-view` command-line utility got a few bells and whistles as well,
