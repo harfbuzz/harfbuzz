@@ -426,7 +426,7 @@ hb_raster_image_composite (hb_raster_image_t *dst,
  * transferred for reuse with hb_raster_draw_recycle_image() or
  * hb_raster_paint_recycle_image().
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_raster_image_t *
 hb_raster_image_create_or_fail (void)
@@ -446,7 +446,7 @@ hb_raster_image_create_or_fail (void)
  * Return value: (transfer full):
  * The referenced #hb_raster_image_t.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_raster_image_t *
 hb_raster_image_reference (hb_raster_image_t *image)
@@ -462,7 +462,7 @@ hb_raster_image_reference (hb_raster_image_t *image)
  * reference count reaches zero, the image and its pixel buffer
  * are freed.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_image_destroy (hb_raster_image_t *image)
@@ -483,7 +483,7 @@ hb_raster_image_destroy (hb_raster_image_t *image)
  *
  * Return value: `true` if success, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_image_set_user_data (hb_raster_image_t  *image,
@@ -506,7 +506,7 @@ hb_raster_image_set_user_data (hb_raster_image_t  *image,
  * Return value: (transfer none):
  * A pointer to the user data
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void *
 hb_raster_image_get_user_data (hb_raster_image_t  *image,
@@ -530,7 +530,7 @@ hb_raster_image_get_user_data (hb_raster_image_t  *image,
  * Return value: `true` if configuration succeeds, `false` on allocation
  * failure
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_image_configure (hb_raster_image_t         *image,
@@ -552,7 +552,7 @@ hb_raster_image_configure (hb_raster_image_t         *image,
  *
  * Clears @image pixels to zero while keeping current extents and format.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_image_clear (hb_raster_image_t *image)
@@ -571,7 +571,7 @@ hb_raster_image_clear (hb_raster_image_t *image)
  * Return value: (transfer none) (array):
  * The pixel buffer, or `NULL`
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 const uint8_t *
 hb_raster_image_get_buffer (hb_raster_image_t *image)
@@ -586,7 +586,7 @@ hb_raster_image_get_buffer (hb_raster_image_t *image)
  *
  * Fetches the pixel-buffer extents of @image.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_image_get_extents (hb_raster_image_t   *image,
@@ -605,7 +605,7 @@ hb_raster_image_get_extents (hb_raster_image_t   *image,
  * Return value:
  * The #hb_raster_format_t of the image
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_raster_format_t
 hb_raster_image_get_format (hb_raster_image_t *image)

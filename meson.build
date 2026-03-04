@@ -1,6 +1,6 @@
 project('harfbuzz', ['c', 'cpp'],
   meson_version: '>= 0.60.0',
-  version: '12.3.2',
+  version: '13.0.0',
   default_options: [
     'cpp_eh=none',          # Just to support msvc, we are passing -fno-exceptions also anyway
     # 'cpp_rtti=false',     # Do NOT enable, wraps inherit it and ICU needs RTTI
@@ -472,8 +472,8 @@ build_summary = {
     },
   'Additional libraries':
     {'Subset': not get_option('subset').disabled(),
-     'Raster': not get_option('raster').disabled(),
-     'Vector': not get_option('vector').disabled(),
+     'Raster (experimental)': not get_option('raster').disabled(),
+     'Vector (experimental)': not get_option('vector').disabled(),
     },
   'Other features':
     {'Utilities': not get_option('utilities').disabled(),

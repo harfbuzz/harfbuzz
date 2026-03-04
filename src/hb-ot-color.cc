@@ -341,7 +341,7 @@ hb_ot_color_glyph_get_svg_document_index (hb_face_t      *face,
  *
  * Return value: `true` if @svg_document_index is valid, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_bool_t
 hb_ot_color_get_svg_document_glyph_range (hb_face_t      *face,

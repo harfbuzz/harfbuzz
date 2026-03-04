@@ -109,7 +109,7 @@ hb_raster_draw_transform_point (const hb_raster_draw_t *draw,
  * when you are done using the #hb_raster_draw_t, or `NULL` on
  * allocation failure.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_raster_draw_t *
 hb_raster_draw_create_or_fail (void)
@@ -130,7 +130,7 @@ hb_raster_draw_create_or_fail (void)
  * Return value: (transfer full):
  * The referenced #hb_raster_draw_t.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_raster_draw_t *
 hb_raster_draw_reference (hb_raster_draw_t *draw)
@@ -145,7 +145,7 @@ hb_raster_draw_reference (hb_raster_draw_t *draw)
  * Decreases the reference count on @draw by one. When the
  * reference count reaches zero, the rasterizer is freed.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_draw_destroy (hb_raster_draw_t *draw)
@@ -167,7 +167,7 @@ hb_raster_draw_destroy (hb_raster_draw_t *draw)
  *
  * Return value: `true` if success, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_draw_set_user_data (hb_raster_draw_t   *draw,
@@ -190,7 +190,7 @@ hb_raster_draw_set_user_data (hb_raster_draw_t   *draw,
  * Return value: (transfer none):
  * A pointer to the user data
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void *
 hb_raster_draw_get_user_data (hb_raster_draw_t   *draw,
@@ -212,7 +212,7 @@ hb_raster_draw_get_user_data (hb_raster_draw_t   *draw,
  * Sets a 2×3 affine transform applied to all incoming draw
  * coordinates before rasterization.  The default is the identity.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_draw_set_transform (hb_raster_draw_t *draw,
@@ -232,7 +232,7 @@ hb_raster_draw_set_transform (hb_raster_draw_t *draw,
  * Sets post-transform minification factors applied during rasterization.
  * Factors larger than 1 shrink the output in pixels. The default is 1.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_draw_set_scale_factor (hb_raster_draw_t *draw,
@@ -251,7 +251,7 @@ hb_raster_draw_set_scale_factor (hb_raster_draw_t *draw,
  *
  * Fetches the current post-transform minification factors.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_draw_get_scale_factor (hb_raster_draw_t *draw,
@@ -274,7 +274,7 @@ hb_raster_draw_get_scale_factor (hb_raster_draw_t *draw,
  *
  * Fetches the current affine transform of the rasterizer.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_draw_get_transform (hb_raster_draw_t *draw,
@@ -299,7 +299,7 @@ hb_raster_draw_get_transform (hb_raster_draw_t *draw,
  * hb_raster_draw_render() uses the given extents instead of
  * auto-computing them from the accumulated geometry.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
@@ -318,7 +318,7 @@ hb_raster_draw_set_extents (hb_raster_draw_t          *draw,
  *
  * Return value: `true` if extents are set, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_draw_get_extents (hb_raster_draw_t    *draw,
@@ -346,7 +346,7 @@ hb_raster_draw_get_extents (hb_raster_draw_t    *draw,
  * Return value: `true` if transformed extents are non-empty and set;
  * `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
@@ -412,7 +412,7 @@ hb_raster_draw_set_glyph_extents (hb_raster_draw_t         *draw,
  * Internal scratch buffers and recycled image cache are preserved for
  * reuse across subsequent renders.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_draw_reset (hb_raster_draw_t *draw)
@@ -438,7 +438,7 @@ hb_raster_draw_reset (hb_raster_draw_t *draw)
  * If @draw already holds a recycled image, the previously recycled
  * image is destroyed.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
@@ -925,7 +925,7 @@ free_static_raster_draw_funcs ()
  * Return value: (transfer none):
  * The rasterizer draw functions
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_draw_funcs_t *
 hb_raster_draw_get_funcs (void)
@@ -945,7 +945,7 @@ hb_raster_draw_get_funcs (void)
  * rasterizer's current transform. The pen coordinates are applied before
  * minification and are transformed by the current affine transform.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_draw_glyph (hb_raster_draw_t *draw,
@@ -1219,7 +1219,7 @@ sweep_row_to_alpha (uint8_t *__restrict row_buf,
  * A rendered #hb_raster_image_t. Returns `NULL` on allocation/configuration
  * failure. If no geometry was accumulated, returns an empty image.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_raster_image_t *
 hb_raster_draw_render (hb_raster_draw_t *draw)

@@ -2344,7 +2344,7 @@ hb_buffer_set_message_func (hb_buffer_t *buffer,
  *
  * If not called from inside a message callback, does nothing.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_buffer_changed (hb_buffer_t *buffer)

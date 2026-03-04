@@ -1464,7 +1464,7 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
  *
  * Return value: (nullable): a newly allocated #hb_vector_paint_t, or `NULL` on failure.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_vector_paint_t *
 hb_vector_paint_create_or_fail (hb_vector_format_t format)
@@ -1496,7 +1496,7 @@ hb_vector_paint_create_or_fail (hb_vector_format_t format)
  *
  * Return value: (transfer full): referenced @paint.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_vector_paint_t *
 hb_vector_paint_reference (hb_vector_paint_t *paint)
@@ -1510,7 +1510,7 @@ hb_vector_paint_reference (hb_vector_paint_t *paint)
  *
  * Decreases the reference count of @paint and destroys it when it reaches zero.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_destroy (hb_vector_paint_t *paint)
@@ -1534,7 +1534,7 @@ hb_vector_paint_destroy (hb_vector_paint_t *paint)
  *
  * Return value: `true` on success, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_bool_t
 hb_vector_paint_set_user_data (hb_vector_paint_t  *paint,
@@ -1555,7 +1555,7 @@ hb_vector_paint_set_user_data (hb_vector_paint_t  *paint,
  *
  * Return value: (nullable): user-data value associated with @key.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void *
 hb_vector_paint_get_user_data (hb_vector_paint_t  *paint,
@@ -1576,7 +1576,7 @@ hb_vector_paint_get_user_data (hb_vector_paint_t  *paint,
  *
  * Sets the affine transform used when painting glyphs.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_set_transform (hb_vector_paint_t *paint,
@@ -1599,7 +1599,7 @@ hb_vector_paint_set_transform (hb_vector_paint_t *paint,
  *
  * Gets the affine transform used when painting glyphs.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_get_transform (hb_vector_paint_t *paint,
@@ -1623,7 +1623,7 @@ hb_vector_paint_get_transform (hb_vector_paint_t *paint,
  *
  * Sets additional output scaling factors.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_set_scale_factor (hb_vector_paint_t *paint,
@@ -1642,7 +1642,7 @@ hb_vector_paint_set_scale_factor (hb_vector_paint_t *paint,
  *
  * Gets additional output scaling factors.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_get_scale_factor (hb_vector_paint_t *paint,
@@ -1660,7 +1660,7 @@ hb_vector_paint_get_scale_factor (hb_vector_paint_t *paint,
  *
  * Sets or expands output extents on @paint. Passing `NULL` clears extents.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_set_extents (hb_vector_paint_t *paint,
@@ -1702,7 +1702,7 @@ hb_vector_paint_set_extents (hb_vector_paint_t *paint,
  *
  * Return value: `true` if extents are set, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_bool_t
 hb_vector_paint_get_extents (hb_vector_paint_t *paint,
@@ -1725,7 +1725,7 @@ hb_vector_paint_get_extents (hb_vector_paint_t *paint,
  *
  * Return value: `true` on success, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_bool_t
 hb_vector_paint_set_glyph_extents (hb_vector_paint_t *paint,
@@ -1749,7 +1749,7 @@ hb_vector_paint_set_glyph_extents (hb_vector_paint_t *paint,
  *
  * Sets fallback foreground color used by paint operations.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
@@ -1765,7 +1765,7 @@ hb_vector_paint_set_foreground (hb_vector_paint_t *paint,
  *
  * Sets the color palette index used by paint operations.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_set_palette (hb_vector_paint_t *paint,
@@ -1787,7 +1787,7 @@ hb_vector_paint_set_palette (hb_vector_paint_t *paint,
  * These overrides are consulted by paint operations that resolve CPAL
  * entries, including SVG glyph content using `var(--colorN)`.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
@@ -1806,7 +1806,7 @@ hb_vector_paint_set_custom_palette_color (hb_vector_paint_t *paint,
  * After this call, palette lookups use the selected font palette without
  * custom override entries.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
@@ -1821,7 +1821,7 @@ hb_vector_paint_clear_custom_palette_colors (hb_vector_paint_t *paint)
  *
  * Return value: (transfer none): immutable #hb_paint_funcs_t singleton.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_paint_funcs_t *
 hb_vector_paint_get_funcs (void)
@@ -1860,7 +1860,7 @@ hb_vector_paint_custom_palette_color (hb_paint_funcs_t *pfuncs HB_UNUSED,
  *
  * Return value: `true` if glyph paint data was emitted, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_bool_t
 hb_vector_paint_glyph (hb_vector_paint_t *paint,
@@ -2017,7 +2017,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
  *
  * Enables or disables SVG paint flattening.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_svg_paint_set_flat (hb_vector_paint_t *paint,
@@ -2033,7 +2033,7 @@ hb_vector_svg_paint_set_flat (hb_vector_paint_t *paint,
  *
  * Sets numeric output precision for SVG paint output.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_svg_paint_set_precision (hb_vector_paint_t *paint,
@@ -2077,7 +2077,7 @@ hb_vector_paint_clear_render_state (hb_vector_paint_t *paint)
  *
  * Return value: (transfer full) (nullable): output blob, or `NULL` if rendering cannot proceed.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_blob_t *
 hb_vector_paint_render (hb_vector_paint_t *paint)
@@ -2135,7 +2135,7 @@ hb_vector_paint_render (hb_vector_paint_t *paint)
  *
  * Resets @paint state and clears accumulated content.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_reset (hb_vector_paint_t *paint)
@@ -2157,7 +2157,7 @@ hb_vector_paint_reset (hb_vector_paint_t *paint)
  *
  * Provides a blob for internal buffer reuse by later render calls.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_paint_recycle_blob (hb_vector_paint_t *paint,

@@ -40,7 +40,7 @@ HB_BEGIN_DECLS
  *
  * Pixel format for raster images.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 typedef enum {
   HB_RASTER_FORMAT_A8     = 0,
@@ -57,7 +57,7 @@ typedef enum {
  *
  * Pixel-buffer extents for raster operations.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 typedef struct hb_raster_extents_t {
   int      x_origin, y_origin;
@@ -75,7 +75,7 @@ typedef struct hb_raster_extents_t {
  * hb_raster_draw_render().  Use hb_raster_image_get_buffer() and
  * hb_raster_image_get_extents() to access the pixels.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 typedef struct hb_raster_image_t hb_raster_image_t;
 
@@ -127,7 +127,7 @@ hb_raster_image_get_format (hb_raster_image_t *image);
  * via #hb_draw_funcs_t callbacks obtained from hb_raster_draw_get_funcs(),
  * then produces an #hb_raster_image_t with hb_raster_draw_render().
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 typedef struct hb_raster_draw_t hb_raster_draw_t;
 
@@ -216,7 +216,7 @@ hb_raster_draw_recycle_image (hb_raster_draw_t  *draw,
  * callbacks that render COLRv0/v1 color glyphs into a BGRA32
  * #hb_raster_image_t.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 typedef struct hb_raster_paint_t hb_raster_paint_t;
 

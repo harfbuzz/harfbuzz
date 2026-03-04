@@ -1518,7 +1518,7 @@ free_static_raster_paint_funcs ()
  * Return value: (transfer full):
  * A newly allocated #hb_raster_paint_t, or `NULL` on allocation failure.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_raster_paint_t *
 hb_raster_paint_create_or_fail (void)
@@ -1546,7 +1546,7 @@ hb_raster_paint_create_or_fail (void)
  * Return value: (transfer full):
  * The referenced #hb_raster_paint_t.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_raster_paint_t *
 hb_raster_paint_reference (hb_raster_paint_t *paint)
@@ -1561,7 +1561,7 @@ hb_raster_paint_reference (hb_raster_paint_t *paint)
  * Decreases the reference count on @paint by one. When the
  * reference count reaches zero, the paint context is freed.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_destroy (hb_raster_paint_t *paint)
@@ -1588,7 +1588,7 @@ hb_raster_paint_destroy (hb_raster_paint_t *paint)
  *
  * Return value: `true` if success, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_paint_set_user_data (hb_raster_paint_t  *paint,
@@ -1611,7 +1611,7 @@ hb_raster_paint_set_user_data (hb_raster_paint_t  *paint,
  * Return value: (transfer none):
  * A pointer to the user data
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void *
 hb_raster_paint_get_user_data (hb_raster_paint_t  *paint,
@@ -1633,7 +1633,7 @@ hb_raster_paint_get_user_data (hb_raster_paint_t  *paint,
  * Sets the base 2×3 affine transform that maps from glyph-space
  * coordinates to pixel-space coordinates.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_set_transform (hb_raster_paint_t *paint,
@@ -1656,7 +1656,7 @@ hb_raster_paint_set_transform (hb_raster_paint_t *paint,
  *
  * Gets the current base 2x3 affine transform.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_get_transform (hb_raster_paint_t *paint,
@@ -1681,7 +1681,7 @@ hb_raster_paint_get_transform (hb_raster_paint_t *paint,
  * Sets post-transform minification factors applied during painting.
  * Factors larger than 1 shrink the output in pixels. The default is 1.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
@@ -1700,7 +1700,7 @@ hb_raster_paint_set_scale_factor (hb_raster_paint_t *paint,
  *
  * Fetches the current post-transform minification factors.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_get_scale_factor (hb_raster_paint_t *paint,
@@ -1726,7 +1726,7 @@ hb_raster_paint_get_scale_factor (hb_raster_paint_t *paint,
  *   hb_raster_paint_set_glyph_extents (paint, &gext);
  * ```
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
@@ -1747,7 +1747,7 @@ hb_raster_paint_set_extents (hb_raster_paint_t         *paint,
  *
  * Return value: `true` if extents are set, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_paint_get_extents (hb_raster_paint_t   *paint,
@@ -1775,7 +1775,7 @@ hb_raster_paint_get_extents (hb_raster_paint_t   *paint,
  * Return value: `true` if transformed extents are non-empty and set;
  * `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
@@ -1844,7 +1844,7 @@ hb_raster_paint_set_glyph_extents (hb_raster_paint_t        *paint,
  * Sets the foreground color used when paint callbacks request it
  * (e.g. `is_foreground` in color stops or solid fills).
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
@@ -1862,7 +1862,7 @@ hb_raster_paint_set_foreground (hb_raster_paint_t *paint,
  * After this call, palette lookups use the selected font palette without
  * custom override entries.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_clear_custom_palette_colors (hb_raster_paint_t *paint)
@@ -1886,7 +1886,7 @@ hb_raster_paint_clear_custom_palette_colors (hb_raster_paint_t *paint)
  *
  * Return value: `true` if the override was set; `false` on allocation failure.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_paint_set_custom_palette_color (hb_raster_paint_t *paint,
@@ -1913,7 +1913,7 @@ hb_raster_paint_set_custom_palette_color (hb_raster_paint_t *paint,
  * Return value: (transfer none):
  * The rasterizer paint functions
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_paint_funcs_t *
 hb_raster_paint_get_funcs (void)
@@ -1937,7 +1937,7 @@ hb_raster_paint_get_funcs (void)
  *
  * Return value: `true` if painting succeeded, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_bool_t
 hb_raster_paint_glyph (hb_raster_paint_t *paint,
@@ -2002,7 +2002,7 @@ hb_raster_paint_glyph (hb_raster_paint_t *paint,
  * or if allocation/configuration fails. If extents were set but nothing
  * was painted, returns an empty image.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 hb_raster_image_t *
 hb_raster_paint_render (hb_raster_paint_t *paint)
@@ -2053,7 +2053,7 @@ fail:
  * Resets the paint context to its initial state, clearing all
  * configuration while preserving internal image caches.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_reset (hb_raster_paint_t *paint)
@@ -2080,7 +2080,7 @@ hb_raster_paint_reset (hb_raster_paint_t *paint)
  * Recycles @image for reuse by subsequent render calls.
  * The caller transfers ownership of @image to @paint.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  **/
 void
 hb_raster_paint_recycle_image (hb_raster_paint_t  *paint,

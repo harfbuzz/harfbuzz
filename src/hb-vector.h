@@ -38,7 +38,7 @@ HB_BEGIN_DECLS
  *
  * Output format for vector conversion.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 typedef enum {
   HB_VECTOR_FORMAT_INVALID = HB_TAG_NONE,
@@ -54,7 +54,7 @@ typedef enum {
  *
  * Vector output extents, mapped to SVG viewBox.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 typedef struct hb_vector_extents_t {
   float x, y;
@@ -68,7 +68,7 @@ typedef struct hb_vector_extents_t {
  *
  * Controls whether convenience glyph APIs update context extents.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 typedef enum {
   HB_VECTOR_EXTENTS_MODE_NONE = 0,
@@ -80,7 +80,7 @@ typedef enum {
  *
  * Opaque draw context for vector outline conversion.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 typedef struct hb_vector_draw_t hb_vector_draw_t;
 
@@ -89,7 +89,7 @@ typedef struct hb_vector_draw_t hb_vector_draw_t;
  *
  * Opaque paint context for vector color-glyph conversion.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 typedef struct hb_vector_paint_t hb_vector_paint_t;
 

@@ -552,7 +552,7 @@ hb_vector_draw_funcs_get ()
  *
  * Return value: (nullable): a newly allocated #hb_vector_draw_t, or `NULL` on failure.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_vector_draw_t *
 hb_vector_draw_create_or_fail (hb_vector_format_t format)
@@ -579,7 +579,7 @@ hb_vector_draw_create_or_fail (hb_vector_format_t format)
  *
  * Return value: (transfer full): referenced @draw.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_vector_draw_t *
 hb_vector_draw_reference (hb_vector_draw_t *draw)
@@ -593,7 +593,7 @@ hb_vector_draw_reference (hb_vector_draw_t *draw)
  *
  * Decreases the reference count of @draw and destroys it when it reaches zero.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_draw_destroy (hb_vector_draw_t *draw)
@@ -616,7 +616,7 @@ hb_vector_draw_destroy (hb_vector_draw_t *draw)
  *
  * Return value: `true` on success, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_bool_t
 hb_vector_draw_set_user_data (hb_vector_draw_t   *draw,
@@ -637,7 +637,7 @@ hb_vector_draw_set_user_data (hb_vector_draw_t   *draw,
  *
  * Return value: (nullable): user-data value associated with @key.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void *
 hb_vector_draw_get_user_data (hb_vector_draw_t   *draw,
@@ -658,7 +658,7 @@ hb_vector_draw_get_user_data (hb_vector_draw_t   *draw,
  *
  * Sets the affine transform used when drawing glyphs.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_draw_set_transform (hb_vector_draw_t *draw,
@@ -681,7 +681,7 @@ hb_vector_draw_set_transform (hb_vector_draw_t *draw,
  *
  * Gets the affine transform used when drawing glyphs.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_draw_get_transform (hb_vector_draw_t *draw,
@@ -705,7 +705,7 @@ hb_vector_draw_get_transform (hb_vector_draw_t *draw,
  *
  * Sets additional output scaling factors.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_draw_set_scale_factor (hb_vector_draw_t *draw,
@@ -724,7 +724,7 @@ hb_vector_draw_set_scale_factor (hb_vector_draw_t *draw,
  *
  * Gets additional output scaling factors.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_draw_get_scale_factor (hb_vector_draw_t *draw,
@@ -742,7 +742,7 @@ hb_vector_draw_get_scale_factor (hb_vector_draw_t *draw,
  *
  * Sets or expands output extents on @draw. Passing `NULL` clears extents.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_draw_set_extents (hb_vector_draw_t *draw,
@@ -784,7 +784,7 @@ hb_vector_draw_set_extents (hb_vector_draw_t *draw,
  *
  * Return value: `true` if extents are set, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_bool_t
 hb_vector_draw_get_extents (hb_vector_draw_t *draw,
@@ -807,7 +807,7 @@ hb_vector_draw_get_extents (hb_vector_draw_t *draw,
  *
  * Return value: `true` on success, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_bool_t
 hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
@@ -831,7 +831,7 @@ hb_vector_draw_set_glyph_extents (hb_vector_draw_t *draw,
  *
  * Return value: (transfer none): immutable #hb_draw_funcs_t singleton.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_draw_funcs_t *
 hb_vector_draw_get_funcs (void)
@@ -852,7 +852,7 @@ hb_vector_draw_get_funcs (void)
  *
  * Return value: `true` if glyph data was emitted, `false` otherwise.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_bool_t
 hb_vector_draw_glyph (hb_vector_draw_t *draw,
@@ -959,7 +959,7 @@ hb_vector_draw_glyph (hb_vector_draw_t *draw,
  *
  * Enables or disables SVG draw flattening.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_svg_set_flat (hb_vector_draw_t *draw,
@@ -975,7 +975,7 @@ hb_vector_svg_set_flat (hb_vector_draw_t *draw,
  *
  * Sets numeric output precision for SVG draw output.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_svg_set_precision (hb_vector_draw_t *draw,
@@ -992,7 +992,7 @@ hb_vector_svg_set_precision (hb_vector_draw_t *draw,
  *
  * Return value: (transfer full) (nullable): output blob, or `NULL` if rendering cannot proceed.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 hb_blob_t *
 hb_vector_draw_render (hb_vector_draw_t *draw)
@@ -1060,7 +1060,7 @@ hb_vector_draw_render (hb_vector_draw_t *draw)
  *
  * Resets @draw state and clears accumulated content.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_draw_reset (hb_vector_draw_t *draw)
@@ -1085,7 +1085,7 @@ hb_vector_draw_reset (hb_vector_draw_t *draw)
  *
  * Provides a blob for internal buffer reuse by later render calls.
  *
- * XSince: REPLACEME
+ * Since: 13.0.0
  */
 void
 hb_vector_draw_recycle_blob (hb_vector_draw_t *draw,
