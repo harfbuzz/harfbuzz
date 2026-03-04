@@ -254,6 +254,13 @@ encode_commands (const hb_vector_t<cs_command_t> &commands,
     if (cmd.op != OpCode_Invalid)
       encoder.encode_op (cmd.op);
 
+    /* hintmask/cntrmask are followed by raw mask bytes. */
+    if (cmd.op == OpCode_hintmask || cmd.op == OpCode_cntrmask)
+    {
+      for (const auto &byte : cmd.mask_bytes)
+        encoder.encode_byte (byte);
+    }
+
     if (encoder.in_error ())
       return false;
   }
