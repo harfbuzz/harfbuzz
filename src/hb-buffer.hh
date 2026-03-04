@@ -130,9 +130,13 @@ struct hb_buffer_t
    */
 
 #ifndef HB_NO_BUFFER_MESSAGE
+  typedef void (*changed_func_t) (hb_buffer_t *buffer, void *user_data);
+
   hb_buffer_message_func_t message_func;
   void *message_data;
   hb_destroy_func_t message_destroy;
+  changed_func_t changed_func;
+  void *changed_data;
   unsigned message_depth; /* How deeply are we inside a message callback? */
 #else
   static constexpr unsigned message_depth = 0u;
@@ -637,6 +641,7 @@ struct hb_buffer_t
 #endif
   }
   HB_INTERNAL bool message_impl (hb_font_t *font, const char *fmt, va_list ap) HB_PRINTF_FUNC(3, 0);
+  HB_INTERNAL void changed ();
 
   static void
   set_cluster (hb_glyph_info_t &inf, unsigned int cluster, unsigned int mask = 0)

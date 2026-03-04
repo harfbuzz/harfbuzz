@@ -105,6 +105,7 @@ hb_segment_properties_overlay
 hb_buffer_diff
 hb_buffer_message_func_t
 hb_buffer_set_message_func
+hb_buffer_changed
 HB_SEGMENT_PROPERTIES_DEFAULT
 HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT
 hb_buffer_t
