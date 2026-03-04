@@ -754,38 +754,41 @@ hb_vector_headers = [
   'hb-vector.h',
 ]
 
-libharfbuzz_raster = library('harfbuzz-raster', hb_raster_sources,
-  include_directories: incconfig,
-  dependencies: [m_dep],
-  link_with: [libharfbuzz],
-  cpp_args: cpp_args + extra_hb_cpp_args,
-  soversion: hb_so_version,
-  version: version,
-  install: true,
-  darwin_versions: darwin_versions,
-  link_language: chosen_linker,
-)
+libharfbuzz_raster_dep = null_dep
+if not get_option('raster').disabled()
+  libharfbuzz_raster = library('harfbuzz-raster', hb_raster_sources,
+    include_directories: incconfig,
+    dependencies: [m_dep],
+    link_with: [libharfbuzz],
+    cpp_args: cpp_args + extra_hb_cpp_args,
+    soversion: hb_so_version,
+    version: version,
+    install: true,
+    darwin_versions: darwin_versions,
+    link_language: chosen_linker,
+  )
 
-install_headers(hb_raster_headers, subdir: meson.project_name())
+  install_headers(hb_raster_headers, subdir: meson.project_name())
 
-libharfbuzz_raster_dep = declare_dependency(
-  link_with: libharfbuzz_raster,
-  include_directories: incsrc,
-  dependencies: [libharfbuzz_dep])
-meson.override_dependency('harfbuzz-raster', libharfbuzz_raster_dep)
+  libharfbuzz_raster_dep = declare_dependency(
+    link_with: libharfbuzz_raster,
+    include_directories: incsrc,
+    dependencies: [libharfbuzz_dep])
+  meson.override_dependency('harfbuzz-raster', libharfbuzz_raster_dep)
 
-harfbuzz_raster_def = custom_target('harfbuzz-raster.def',
-  command: gen_def_cmd,
-  input: hb_raster_headers,
-  output: 'harfbuzz-raster.def')
-defs_list += [harfbuzz_raster_def]
+  harfbuzz_raster_def = custom_target('harfbuzz-raster.def',
+    command: gen_def_cmd,
+    input: hb_raster_headers,
+    output: 'harfbuzz-raster.def')
+  defs_list += [harfbuzz_raster_def]
 
-pkgmod.generate(libharfbuzz_raster,
-  description: 'HarfBuzz CPU rasterizer',
-  requires: ['harfbuzz = @0@'.format(meson.project_version())],
-  subdirs: [meson.project_name()],
-  version: meson.project_version(),
-)
+  pkgmod.generate(libharfbuzz_raster,
+    description: 'HarfBuzz CPU rasterizer',
+    requires: ['harfbuzz = @0@'.format(meson.project_version())],
+    subdirs: [meson.project_name()],
+    version: meson.project_version(),
+  )
+endif
 
 libharfbuzz_vector = library('harfbuzz-vector', hb_vector_sources,
   include_directories: incconfig,
