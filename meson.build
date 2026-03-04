@@ -423,6 +423,12 @@ libs = [libharfbuzz]
 if not get_option('subset').disabled()
   libs += [libharfbuzz_subset]
 endif
+if not get_option('raster').disabled()
+  libs += [libharfbuzz_raster]
+endif
+if not get_option('vector').disabled()
+  libs += [libharfbuzz_vector]
+endif
 alias_target('libs', libs)
 
 # Re glib, see https://github.com/harfbuzz/harfbuzz/issues/4153#issuecomment-2646347531
