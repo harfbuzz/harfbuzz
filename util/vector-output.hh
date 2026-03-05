@@ -394,10 +394,10 @@ struct vector_output_t : output_options_t<>, view_options_t
     if (y2 <= y1)
       y2 = y1 + 1;
 
-    x1 -= margin.l;
-    y1 -= margin.t;
-    x2 += margin.r;
-    y2 += margin.b;
+    x1 -= (float) margin.l;
+    y1 -= (float) margin.t;
+    x2 += (float) margin.r;
+    y2 += (float) margin.b;
 
     extents->x = x1;
     extents->y = y1;
