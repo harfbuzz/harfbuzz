@@ -7,25 +7,29 @@ namespace OT {
 namespace Layout {
 namespace GPOS_impl {
 
+template <typename Types>
+struct CursivePosFormat1_2;
+
+template <typename Types>
 struct EntryExitRecord
 {
-  friend struct CursivePosFormat1;
+  template <typename Types2> friend struct CursivePosFormat1_2;
 
-  bool sanitize (hb_sanitize_context_t *c, const struct CursivePosFormat1 *base) const
+  bool sanitize (hb_sanitize_context_t *c, const struct CursivePosFormat1_2<Types> *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (entryAnchor.sanitize (c, base) && exitAnchor.sanitize (c, base));
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
-                                  const struct CursivePosFormat1 *src_base) const
+                                  const struct CursivePosFormat1_2<Types> *src_base) const
   {
     (src_base+entryAnchor).collect_variation_indices (c);
     (src_base+exitAnchor).collect_variation_indices (c);
   }
 
   bool subset (hb_subset_context_t *c,
-	       const struct CursivePosFormat1 *src_base) const
+	       const struct CursivePosFormat1_2<Types> *src_base) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->serializer->embed (this);
@@ -38,16 +42,16 @@ struct EntryExitRecord
   }
 
   protected:
-  Offset16To<Anchor, struct CursivePosFormat1>
+  typename Types::template OffsetTo<Anchor, struct CursivePosFormat1_2<Types>>
                 entryAnchor;            /* Offset to EntryAnchor table--from
                                          * beginning of CursivePos
                                          * subtable--may be NULL */
-  Offset16To<Anchor, struct CursivePosFormat1>
+  typename Types::template OffsetTo<Anchor, struct CursivePosFormat1_2<Types>>
                 exitAnchor;             /* Offset to ExitAnchor table--from
                                          * beginning of CursivePos
                                          * subtable--may be NULL */
   public:
-  DEFINE_SIZE_STATIC (4);
+  DEFINE_SIZE_STATIC (2 * Types::size);
 };
 
 static inline void
@@ -77,18 +81,19 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direc
 }
 
 
-struct CursivePosFormat1
+template <typename Types>
+struct CursivePosFormat1_2
 {
+
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
-  Offset16To<Coverage>
-                coverage;               /* Offset to Coverage table--from
-                                         * beginning of subtable */
-  Array16Of<EntryExitRecord>
+  typename Types::template LOffsetTo<Coverage>
+                coverage;               /* Offset to Coverage table--from beginning of subtable */
+  typename Types::template ArrayOf<EntryExitRecord<Types>>
                 entryExitRecord;        /* Array of EntryExit records--in
                                          * Coverage Index order */
   public:
-  DEFINE_SIZE_ARRAY (6, entryExitRecord);
+  DEFINE_SIZE_ARRAY (2 + Types::LOffset::static_size + Types::HBUINT::static_size, entryExitRecord);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -112,7 +117,7 @@ struct CursivePosFormat1
     + hb_zip (this+coverage, entryExitRecord)
     | hb_filter (c->glyph_set, hb_first)
     | hb_map (hb_second)
-    | hb_apply ([&] (const EntryExitRecord& record) { record.collect_variation_indices (c, this); })
+    | hb_apply ([&] (const EntryExitRecord<Types>& record) { record.collect_variation_indices (c, this); })
     ;
   }
 
@@ -126,7 +131,7 @@ struct CursivePosFormat1
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
 
-    const EntryExitRecord &this_record = entryExitRecord[(this+coverage).get_coverage  (buffer->cur().codepoint)];
+    const EntryExitRecord<Types> &this_record = entryExitRecord[(this+coverage).get_coverage  (buffer->cur().codepoint)];
     if (!this_record.entryAnchor ||
 	unlikely (!this_record.entryAnchor.sanitize (&c->sanitizer, this))) return_trace (false);
     hb_barrier ();
@@ -140,7 +145,7 @@ struct CursivePosFormat1
       return_trace (false);
     }
 
-    const EntryExitRecord &prev_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
+    const EntryExitRecord<Types> &prev_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
     if (!prev_record.exitAnchor ||
 	unlikely (!prev_record.exitAnchor.sanitize (&c->sanitizer, this)))
     {
@@ -271,14 +276,14 @@ struct CursivePosFormat1
             hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_subset_context_t *c,
                   Iterator it,
-                  const struct CursivePosFormat1 *src_base)
+                  const struct CursivePosFormat1_2<Types> *src_base)
   {
     if (unlikely (!c->serializer->extend_min ((*this)))) return;
     this->format = 1;
     this->entryExitRecord.len = it.len ();
 
-    for (const EntryExitRecord& entry_record : + it
-                                               | hb_map (hb_second))
+    for (const EntryExitRecord<Types>& entry_record : + it
+                                                      | hb_map (hb_second))
       entry_record.subset (c, src_base);
 
     auto glyphs =
@@ -297,12 +302,13 @@ struct CursivePosFormat1
 
     auto *out = c->serializer->start_embed (*this);
 
-    auto it =
-    + hb_zip (this+coverage, entryExitRecord)
-    | hb_filter (glyphset, hb_first)
-    | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const EntryExitRecord&> p) -> hb_pair_t<hb_codepoint_t, const EntryExitRecord&>
-                              { return hb_pair (glyph_map[p.first], p.second);})
-    ;
+  auto it =
+  + hb_zip (this+coverage, entryExitRecord)
+  | hb_filter (glyphset, hb_first)
+  | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const EntryExitRecord<Types>&> p)
+                            -> hb_pair_t<hb_codepoint_t, const EntryExitRecord<Types>&>
+                            { return hb_pair (glyph_map[p.first], p.second);})
+  ;
 
     bool ret = bool (it);
     out->serialize (c, it, this);
