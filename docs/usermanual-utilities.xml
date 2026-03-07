@@ -42,11 +42,7 @@
 	internal state to the output that is sent to the terminal. The
 	general format is
       </para>
-      <programlisting>
-	<command>hb-shape</command> <optional>[OPTIONS]</optional>
-      <parameter>path/to/font/file.ttf</parameter>
-      <parameter>yourinputtext</parameter>
-      </programlisting>
+      <programlisting><command>hb-shape</command> <optional>OPTIONS</optional> <parameter>path/to/font/file.ttf</parameter> <parameter>yourinputtext</parameter></programlisting>
       <para>
 	The default output format is plain text (although JSON output
 	can be selected instead by specifying the option
@@ -71,9 +67,7 @@
       <para>
 	For a complete explanation of the options available, run
       </para>
-      <programlisting>
-	<command>hb-shape</command> <parameter>--help</parameter>
-      </programlisting>  
+      <programlisting><command>hb-shape</command> <parameter>--help</parameter></programlisting>  
     </section>
     
     <section id="utilities-command-line-hbview">
@@ -85,11 +79,7 @@
 	<command>hb-view</command> takes a font file and a text string
 	as its arguments:
       </para>
-      <programlisting>
-	<command>hb-view</command> <optional>[OPTIONS]</optional>
-	<parameter>path/to/font/file.ttf</parameter>
-	<parameter>yourinputtext</parameter>
-      </programlisting>
+      <programlisting><command>hb-view</command> <optional>OPTIONS</optional> <parameter>path/to/font/file.ttf</parameter> <parameter>yourinputtext</parameter></programlisting>
       <para>
 	By default, <command>hb-view</command> renders the shaped
 	text in ASCII block-character images as terminal output. By
@@ -134,20 +124,12 @@
 	generate a font that covers the input text exactly like the
 	input font does, but includes no other characters or features.
       </para>
-      <programlisting>
-	<command>hb-subset</command> <optional>[OPTIONS]</optional>
-	<parameter>path/to/font/file.ttf</parameter>
-	<parameter>yourinputtext</parameter>
-      </programlisting>
+      <programlisting><command>hb-subset</command> <optional>OPTIONS</optional> <parameter>path/to/font/file.ttf</parameter> <parameter>yourinputtext</parameter></programlisting>
       <para>
 	For example, to create a subset of Noto Serif that just includes the
 	numerals and the lowercase Latin alphabet, you could run
       </para>
-      <programlisting>
-	<command>hb-subset</command> <optional>[OPTIONS]</optional>
-	<parameter>NotoSerif-Regular.ttf</parameter>
-	<parameter>0123456789abcdefghijklmnopqrstuvwxyz</parameter>
-      </programlisting>
+      <programlisting><command>hb-subset</command> <optional>OPTIONS</optional> <parameter>NotoSerif-Regular.ttf</parameter> <parameter>0123456789abcdefghijklmnopqrstuvwxyz</parameter></programlisting>
       <para>
 	There are options available to remove hinting from the
 	subsetted font and to specify a list of variation-axis settings.

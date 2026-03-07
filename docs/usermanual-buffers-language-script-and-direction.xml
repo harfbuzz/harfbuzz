@@ -34,11 +34,11 @@
       creates, so you don't have to. When you have finished working on 
       a buffer, you can call <function>hb_buffer_destroy()</function>:
     </para>
-    <programlisting language="C">
-      hb_buffer_t *buf = hb_buffer_create();
-      ...
-      hb_buffer_destroy(buf);
-    </programlisting>
+<programlisting language="C">
+hb_buffer_t *buf = hb_buffer_create();
+...
+hb_buffer_destroy(buf);
+</programlisting>
     <para>
       This will destroy the object and free its associated memory -
       unless some other part of the program holds a reference to this
@@ -46,18 +46,18 @@
       and want to ensure that it is not garbage collected by someone
       else destroying it, you should increase its reference count:
     </para>
-    <programlisting language="C">
-      void somefunc(hb_buffer_t *buf) {
-      buf = hb_buffer_reference(buf);
-      ...
-    </programlisting>
+<programlisting language="C">
+void somefunc(hb_buffer_t *buf) {
+  buf = hb_buffer_reference(buf);
+  ...
+</programlisting>
     <para>
       And then decrease it once you're done with it:
     </para>
-    <programlisting language="C">
-      hb_buffer_destroy(buf);
-      }
-    </programlisting>
+<programlisting language="C">
+  hb_buffer_destroy(buf);
+}
+</programlisting>
     <para>
       While we are on the subject of reference-counting buffers, it is
       worth noting that an individual buffer can only meaningfully be
@@ -90,19 +90,19 @@
       the array's length, an offset into the array for the first
       character to add, and the length of the segment to add:
     </para>
-    <programlisting language="C">
-    hb_buffer_add_utf8 (hb_buffer_t *buf,
-                    const char *text,
-                    int text_length,
-                    unsigned int item_offset,
-                    int item_length)
-    </programlisting>
+<programlisting language="C">
+hb_buffer_add_utf8 (hb_buffer_t *buf,
+                const char *text,
+                int text_length,
+                unsigned int item_offset,
+                int item_length)
+</programlisting>
     <para>
       So, in practice, you can say:
     </para>
-    <programlisting language="C">
-      hb_buffer_add_utf8(buf, text, strlen(text), 0, strlen(text));
-    </programlisting>
+<programlisting language="C">
+hb_buffer_add_utf8(buf, text, strlen(text), 0, strlen(text));
+</programlisting>
     <para>
       This will append your new characters to
       <parameter>buf</parameter>, not replace its existing
@@ -178,9 +178,9 @@
       <function>hb_buffer_get_content_type(buffer)</function>. If
       necessary you can set the content type with
     </para>
-    <programlisting language="C">
-      hb_buffer_set_content_type(buf, HB_BUFFER_CONTENT_TYPE_UNICODE);
-    </programlisting>
+<programlisting language="C">
+hb_buffer_set_content_type(buf, HB_BUFFER_CONTENT_TYPE_UNICODE);
+</programlisting>
     <para>
       to prepare for shaping.
     </para>
@@ -189,22 +189,22 @@
       language, and text direction of their contents. You can set
       these properties individually:
     </para>
-    <programlisting language="C">
-      hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
-      hb_buffer_set_script(buf, HB_SCRIPT_LATIN);
-      hb_buffer_set_language(buf, hb_language_from_string("en", -1));
-    </programlisting>
+<programlisting language="C">
+hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
+hb_buffer_set_script(buf, HB_SCRIPT_LATIN);
+hb_buffer_set_language(buf, hb_language_from_string("en", -1));
+</programlisting>
     <para>
       However, since these properties are often repeated for
       multiple text runs, you can also save them in a
       <literal>hb_segment_properties_t</literal> for reuse:
     </para>
-    <programlisting language="C">
-      hb_segment_properties_t *savedprops;
-      hb_buffer_get_segment_properties (buf, savedprops);
-      ...
-      hb_buffer_set_segment_properties (buf2, savedprops);
-    </programlisting>
+<programlisting language="C">
+hb_segment_properties_t *savedprops;
+hb_buffer_get_segment_properties (buf, savedprops);
+...
+hb_buffer_set_segment_properties (buf2, savedprops);
+</programlisting>
     <para>
       HarfBuzz also provides getter functions to retrieve a buffer's
       direction, script, and language properties individually.
@@ -233,9 +233,9 @@
       is the Unicode <literal>REPLACEMENT CHARACTER</literal> code
       point, <literal>U+FFFD</literal> "&#xFFFD;". You can change this with
     </para>
-    <programlisting language="C">
-      hb_buffer_set_replacement_codepoint(buf, replacement);
-    </programlisting>
+<programlisting language="C">
+hb_buffer_set_replacement_codepoint(buf, replacement);
+</programlisting>
     <para>
       passing in the replacement Unicode code point as the
       <parameter>replacement</parameter> parameter.
@@ -247,9 +247,9 @@
       example, when using a font that provides script-specific
       spaces) with 
     </para>
-    <programlisting language="C">
-      hb_buffer_set_invisible_glyph(buf, replacement_glyph);
-    </programlisting>
+<programlisting language="C">
+hb_buffer_set_invisible_glyph(buf, replacement_glyph);
+</programlisting>
     <para>
       Do note that in the <parameter>replacement_glyph</parameter>
       parameter, you must provide the glyph ID of the replacement you
@@ -342,10 +342,10 @@
       You can retrieve the Unicode-functions configuration for
       your buffer by calling <function>hb_buffer_get_unicode_funcs()</function>:
     </para>
-    <programlisting language="C">
-      hb_unicode_funcs_t *ufunctions;
-      ufunctions = hb_buffer_get_unicode_funcs(buf);
-    </programlisting>
+<programlisting language="C">
+hb_unicode_funcs_t *ufunctions;
+ufunctions = hb_buffer_get_unicode_funcs(buf);
+</programlisting>
     <para>
       The current version of <literal>unicode_funcs</literal> uses six functions:
     </para>
@@ -397,9 +397,9 @@
       to replace
       <function>hb_unicode_general_category_func_t</function>, you can call
     </para>
-    <programlisting language="C">
-      hb_unicode_funcs_set_general_category_func (*ufuncs, func, *user_data, destroy)	    
-    </programlisting>
+<programlisting language="C">
+hb_unicode_funcs_set_general_category_func (*ufuncs, func, *user_data, destroy)	    
+</programlisting>
     <para>
       Virtualizing this set of Unicode functions is primarily intended
       to improve portability. There is no need for every client
