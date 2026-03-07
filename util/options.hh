@@ -193,7 +193,7 @@ struct option_parser_t
 
       // See also
       g_string_append_printf (s, "\n\n*See also*\n");
-      g_string_append_printf (s, "  hb-view(1), hb-shape(1), hb-subset(1), hb-info(1)");
+      g_string_append_printf (s, "  hb-view(1), hb-shape(1), hb-raster(1), hb-vector(1), hb-subset(1), hb-info(1)");
     }
 
     // Footer
