@@ -403,15 +403,22 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     /* Precompute edge normals for point-in-quad test.
      * Edge i goes from corner i to corner (i+1)%4.
      * Normal = (dy, -dx); inside test: dot(normal, p-corner) >= 0 */
-    float enx[4], eny[4], ed[4];
-    for (unsigned i = 0; i < 4; i++)
-    {
-      unsigned j = (i + 1) & 3;
-      float edx = qx[j] - qx[i], edy = qy[j] - qy[i];
-      enx[i] = edy;       /* normal x */
-      eny[i] = -edx;      /* normal y */
-      ed[i] = enx[i] * qx[i] + eny[i] * qy[i]; /* distance threshold */
-    }
+	    float enx[4], eny[4], ed[4];
+	    for (unsigned i = 0; i < 4; i++)
+	    {
+	      unsigned j = (i + 1) & 3;
+	      float edx = qx[j] - qx[i], edy = qy[j] - qy[i];
+	      enx[i] = edy;       /* normal x */
+	      eny[i] = -edx;      /* normal y */
+	      ed[i] = enx[i] * qx[i] + eny[i] * qy[i]; /* distance threshold */
+	    }
+	    float area2 = 0.f;
+	    for (unsigned i = 0; i < 4; i++)
+	    {
+	      unsigned j = (i + 1) & 3;
+	      area2 += qx[i] * qy[j] - qx[j] * qy[i];
+	    }
+	    bool ccw = area2 >= 0.f;
 
     if (old_clip.is_rect)
     {
@@ -420,13 +427,16 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	{
 	  float px_f = x + 0.5f, py_f = y + 0.5f;
 	  /* Test if pixel center is inside the quad */
-	  bool inside = true;
-	  for (unsigned i = 0; i < 4; i++)
-	    if (enx[i] * px_f + eny[i] * py_f < ed[i])
-	    {
-	      inside = false;
-	      break;
-	    }
+		  bool inside = true;
+		  for (unsigned i = 0; i < 4; i++)
+		  {
+		    float d = enx[i] * px_f + eny[i] * py_f;
+		    if (ccw ? d < ed[i] : d > ed[i])
+		    {
+		      inside = false;
+		      break;
+		    }
+		  }
 	  uint8_t a = inside ? 255 : 0;
 	  new_clip.alpha[y * new_clip.stride + x] = a;
 	  if (a)
@@ -447,13 +457,16 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	{
 	  float px_f = x + 0.5f, py_f = y + 0.5f;
 	  /* Test if pixel center is inside the quad */
-	  bool inside = true;
-	  for (unsigned i = 0; i < 4; i++)
-	    if (enx[i] * px_f + eny[i] * py_f < ed[i])
-	    {
-	      inside = false;
-	      break;
-	    }
+		  bool inside = true;
+		  for (unsigned i = 0; i < 4; i++)
+		  {
+		    float d = enx[i] * px_f + eny[i] * py_f;
+		    if (ccw ? d < ed[i] : d > ed[i])
+		    {
+		      inside = false;
+		      break;
+		    }
+		  }
 	  uint8_t a = inside ? old_row[x] : 0;
 	  new_clip.alpha[y * new_clip.stride + x] = a;
 	  if (a)
