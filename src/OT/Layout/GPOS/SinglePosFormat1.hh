@@ -149,7 +149,7 @@ struct SinglePosFormat1 : ValueBase
 
     unsigned new_format = valueFormat;
 
-    if (c->plan->normalized_coords)
+    if (c->plan->normalized_coords && !c->plan->has_avar2)
     {
       new_format = valueFormat.get_effective_format (values.arrayZ, false, false, this, &c->plan->layout_variation_idx_delta_map);
     }

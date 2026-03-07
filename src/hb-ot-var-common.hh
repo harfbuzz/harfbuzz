@@ -1758,6 +1758,68 @@ struct item_variations_t
     return true;
   }
 
+  /* Like instantiate_tuple_vars but does NOT call build_region_list().
+   * Caller can add more tuples between this call and build_region_list(). */
+  bool instantiate_tuple_vars_no_region_build (
+      const hb_hashmap_t<hb_tag_t, Triple>& axes_location,
+      const hb_hashmap_t<hb_tag_t, TripleDistances>& axes_triple_distances)
+  {
+    optimize_scratch_t scratch;
+    for (tuple_variations_t& tuple_vars : vars)
+      if (!tuple_vars.instantiate (axes_location, axes_triple_distances, scratch))
+        return false;
+    return true;
+  }
+
+  /* Add a new VarData subtable. Returns outer index. */
+  unsigned add_vardata (unsigned item_count)
+  {
+    vars.push (tuple_variations_t ());
+    var_data_num_rows.push (item_count);
+    return vars.length - 1;
+  }
+
+  /* Get item count for a VarData subtable. */
+  unsigned get_item_count (unsigned outer) const
+  { return outer < var_data_num_rows.length ? var_data_num_rows[outer] : 0; }
+
+  /* Get number of VarData subtables. */
+  unsigned get_vardata_count () const
+  { return vars.length; }
+
+  /* Check if any tuple in a VarData has a non-zero delta at a given inner position. */
+  bool has_nonzero_delta (unsigned outer, unsigned inner) const
+  {
+    if (outer >= vars.length) return false;
+    for (const tuple_delta_t& tuple : vars[outer].tuple_vars)
+    {
+      if (inner < tuple.deltas_x.length &&
+          roundf (tuple.deltas_x[inner]) != 0.f)
+        return true;
+    }
+    return false;
+  }
+
+  /* Add a tuple with a single non-zero delta at position inner.
+   * axis_tuples defines the region (empty map = constant/bias tuple). */
+  void add_tuple (unsigned outer,
+                  hb_hashmap_t<hb_tag_t, Triple>&& axis_tuples,
+                  unsigned inner, int delta, unsigned item_count)
+  {
+    if (outer >= vars.length) return;
+    tuple_delta_t tuple;
+    tuple.axis_tuples = std::move (axis_tuples);
+    if (!tuple.indices.resize (item_count) ||
+        !tuple.deltas_x.resize (item_count)) return;
+    for (unsigned i = 0; i < item_count; i++)
+    {
+      tuple.indices.arrayZ[i] = true;
+      tuple.deltas_x.arrayZ[i] = 0.f;
+    }
+    tuple.deltas_x[inner] = (float) delta;
+    vars[outer].tuple_vars.push (std::move (tuple));
+  }
+
   bool build_region_list ()
   {
     /* scan all tuples and collect all unique regions, prune unused regions */
