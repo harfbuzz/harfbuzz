@@ -399,7 +399,7 @@ hb_raster_image_t::composite_from (const hb_raster_image_t *src,
     hb_packed_t<uint32_t> *dp = (hb_packed_t<uint32_t> *) (buffer.arrayZ + y * stride);
     const hb_packed_t<uint32_t> *sp = (const hb_packed_t<uint32_t> *) (src->buffer.arrayZ + y * stride);
     for (unsigned x = 0; x < w; x++)
-      dp[x].v = composite_pixel (sp[x].v, dp[x].v, mode);
+      dp[x] = hb_packed_t<uint32_t> (composite_pixel ((uint32_t) sp[x], (uint32_t) dp[x], mode));
   }
 }
 

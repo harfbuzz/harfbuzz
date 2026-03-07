@@ -89,7 +89,16 @@ static inline constexpr uint32_t hb_uint32_swap (uint32_t v)
 { return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
 template <typename Type>
-struct __attribute__((packed)) hb_packed_t { Type v; };
+struct __attribute__((packed)) hb_packed_t
+{
+  hb_packed_t () = default;
+  constexpr hb_packed_t (Type V) : v (V) {}
+  operator Type () const { return v; }
+  hb_packed_t & operator = (Type V) { v = V; return *this; }
+
+  private:
+  Type v;
+};
 
 #ifndef HB_FAST_NUM_ACCESS
 
@@ -134,9 +143,9 @@ struct HBInt<BE, Type, 2>
 #if HB_FAST_NUM_ACCESS
   {
     if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
-      ((hb_packed_t<uint16_t> *) v)->v = V;
+      *((hb_packed_t<uint16_t> *) v) = V;
     else
-      ((hb_packed_t<uint16_t> *) v)->v = __builtin_bswap16 (V);
+      *((hb_packed_t<uint16_t> *) v) = __builtin_bswap16 (V);
   }
 #else
     : v {BE ? uint8_t ((V >>  8) & 0xFF) : uint8_t ((V      ) & 0xFF),
@@ -147,9 +156,9 @@ struct HBInt<BE, Type, 2>
   {
 #if HB_FAST_NUM_ACCESS
     return (BE == (__BYTE_ORDER == __BIG_ENDIAN)) ?
-      ((const hb_packed_t<uint16_t> *) v)->v
+      (uint16_t) *((const hb_packed_t<uint16_t> *) v)
     :
-      __builtin_bswap16 (((const hb_packed_t<uint16_t> *) v)->v)
+      __builtin_bswap16 ((uint16_t) *((const hb_packed_t<uint16_t> *) v))
     ;
 #else
     return (BE ? (v[0] <<  8) : (v[0]      ))
@@ -186,9 +195,9 @@ struct HBInt<BE, Type, 4>
 #if HB_FAST_NUM_ACCESS
   {
     if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
-      ((hb_packed_t<uint32_t> *) v)->v = V;
+      *((hb_packed_t<uint32_t> *) v) = V;
     else
-      ((hb_packed_t<uint32_t> *) v)->v = __builtin_bswap32 (V);
+      *((hb_packed_t<uint32_t> *) v) = __builtin_bswap32 (V);
   }
 #else
     : v {BE ? uint8_t ((V >> 24) & 0xFF) : uint8_t ((V      ) & 0xFF),
@@ -200,9 +209,9 @@ struct HBInt<BE, Type, 4>
   constexpr operator Type () const {
 #if HB_FAST_NUM_ACCESS
     return (BE == (__BYTE_ORDER == __BIG_ENDIAN)) ?
-      ((const hb_packed_t<uint32_t> *) v)->v
+      (uint32_t) *((const hb_packed_t<uint32_t> *) v)
     :
-      __builtin_bswap32 (((const hb_packed_t<uint32_t> *) v)->v)
+      __builtin_bswap32 ((uint32_t) *((const hb_packed_t<uint32_t> *) v))
     ;
 #else
     return (BE ? (v[0] << 24) : (v[0]      ))
@@ -226,9 +235,9 @@ struct HBInt<BE, Type, 8>
 #if HB_FAST_NUM_ACCESS
   {
     if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
-      ((hb_packed_t<uint64_t> *) v)->v = V;
+      *((hb_packed_t<uint64_t> *) v) = V;
     else
-      ((hb_packed_t<uint64_t> *) v)->v = __builtin_bswap64 (V);
+      *((hb_packed_t<uint64_t> *) v) = __builtin_bswap64 (V);
   }
 #else
     : v {BE ? uint8_t ((V >> 56) & 0xFF) : uint8_t ((V      ) & 0xFF),
@@ -244,9 +253,9 @@ struct HBInt<BE, Type, 8>
   constexpr operator Type () const {
 #if HB_FAST_NUM_ACCESS
     return (BE == (__BYTE_ORDER == __BIG_ENDIAN)) ?
-      ((const hb_packed_t<uint64_t> *) v)->v
+      (uint64_t) *((const hb_packed_t<uint64_t> *) v)
     :
-      __builtin_bswap64 (((const hb_packed_t<uint64_t> *) v)->v)
+      __builtin_bswap64 ((uint64_t) *((const hb_packed_t<uint64_t> *) v))
     ;
 #else
     return (BE ? (uint64_t (v[0]) << 56) : (uint64_t (v[0])      ))
@@ -276,12 +285,12 @@ struct HBFloat
   {
 #if HB_FAST_NUM_ACCESS
     {
-      if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
-      {
-        ((hb_packed_t<Type> *) v)->v = V;
-        return;
-      }
-    }
+	      if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
+	      {
+	        *((hb_packed_t<Type> *) v) = V;
+	        return;
+	      }
+	    }
 #endif
 
     union {
@@ -289,7 +298,7 @@ struct HBFloat
       hb_packed_t<IntType> i;
     } u = {{V}};
 
-    const HBInt<BE, IntType> I = u.i.v;
+    const HBInt<BE, IntType> I = (IntType) u.i;
     for (unsigned i = 0; i < Bytes; i++)
       v[i] = I.v[i];
   }
@@ -297,10 +306,10 @@ struct HBFloat
   /* c++14 constexpr */ operator Type () const
   {
 #if HB_FAST_NUM_ACCESS
-    {
-      if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
-	return ((const hb_packed_t<Type> *) v)->v;
-    }
+	    {
+	      if (BE == (__BYTE_ORDER == __BIG_ENDIAN))
+		return (Type) *((const hb_packed_t<Type> *) v);
+	    }
 #endif
 
     HBInt<BE, IntType> I;
@@ -312,7 +321,7 @@ struct HBFloat
       hb_packed_t<Type> f;
     } u = {{I}};
 
-    return u.f.v;
+    return (Type) u.f;
   }
   private: uint8_t v[Bytes];
 };
