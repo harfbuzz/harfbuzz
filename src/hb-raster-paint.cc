@@ -2104,6 +2104,9 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
 fail:
   paint->transform_stack.clear ();
   paint->release_all_clips ();
+  for (auto *s : paint->surface_stack)
+    paint->release_surface (s);
+  paint->surface_stack.clear ();
   hb_raster_draw_reset (paint->clip_rdr);
   paint->has_extents = false;
   paint->fixed_extents = {};
