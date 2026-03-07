@@ -53,17 +53,19 @@ static struct hb_svg_decimal_point_lazy_loader_t
     p->value[1] = '\0';
 
 #ifndef HB_NO_SETLOCALE
-#if defined(HAVE_XLOCALE_H)
     lconv *lc = nullptr;
+#ifdef HAVE_LOCALECONV_L
     hb_locale_t current_locale = hb_uselocale ((hb_locale_t) 0);
     if (current_locale)
       lc = localeconv_l (current_locale);
+#endif
+    if (!lc)
+      lc = localeconv ();
     if (lc && lc->decimal_point && lc->decimal_point[0])
     {
       strncpy (p->value, lc->decimal_point, sizeof (p->value) - 1);
       p->value[sizeof (p->value) - 1] = '\0';
     }
-#endif
 #endif
 
     hb_atexit (free_static_svg_decimal_point);
