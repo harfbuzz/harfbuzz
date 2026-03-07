@@ -112,13 +112,13 @@
       You can attach this Unicode-functions structure to your buffer,
       and it will be ready for use with GLib:
     </para>
-    <programlisting language="C">
-      #include &lt;hb-glib.h&gt;
-      ...
-      hb_unicode_funcs_t *glibufunctions;
-      glibufunctions = hb_glib_get_unicode_funcs();
-      hb_buffer_set_unicode_funcs(buf, glibufunctions);
-    </programlisting>
+<programlisting language="C">
+#include &lt;hb-glib.h&gt;
+...
+hb_unicode_funcs_t *glibufunctions;
+glibufunctions = hb_glib_get_unicode_funcs();
+hb_buffer_set_unicode_funcs(buf, glibufunctions);
+</programlisting>
     <para>
       For script information, GLib uses the
       <type>GUnicodeScript</type> type. Like HarfBuzz's own
@@ -202,13 +202,13 @@
       an <type>hb_font_t</type> is defined as an instance of an
       <type>hb_face_t</type> with size specified.
     </para>
-    <programlisting language="C">
-      #include &lt;hb-ft.h&gt;
-      ...
-      FT_New_Face(ft_library, font_path, index, &amp;face);
-      FT_Set_Char_Size(face, 0, 1000, 0, 0);
-      hb_font_t *font = hb_ft_font_create(face);
-    </programlisting>
+<programlisting language="C">
+#include &lt;hb-ft.h&gt;
+...
+FT_New_Face(ft_library, font_path, index, &amp;face);
+FT_Set_Char_Size(face, 0, 1000, 0, 0);
+hb_font_t *font = hb_ft_font_create(face);
+</programlisting>
     <para>
       <function>hb_ft_font_create_referenced()</function> is
       the recommended function for creating an <type>hb_face_t</type> face
@@ -265,9 +265,9 @@
     <para>
       All you need to do is call
     </para>
-    <programlisting language="C">
-      hb_ft_font_set_funcs(font);
-    </programlisting>
+<programlisting language="C">
+hb_ft_font_set_funcs(font);
+</programlisting>
     <para>
       and HarfBuzz will use FreeType for the font-functions in
       <literal>font</literal>. 
@@ -561,11 +561,11 @@
       each included method. Subsequently, you can attach the
       Unicode-functions structure to your buffer:
     </para>
-    <programlisting language="C">
-      hb_unicode_funcs_t *icufunctions;
-      icufunctions = hb_icu_get_unicode_funcs();
-      hb_buffer_set_unicode_funcs(buf, icufunctions);
-    </programlisting>
+<programlisting language="C">
+hb_unicode_funcs_t *icufunctions;
+icufunctions = hb_icu_get_unicode_funcs();
+hb_buffer_set_unicode_funcs(buf, icufunctions);
+</programlisting>
     <para>
       and ICU will be used for Unicode-data access.
     </para>
@@ -616,9 +616,9 @@
       <literal>HarfBuzz</literal> from
       <literal>gi.repository</literal>: 
     </para>
-    <programlisting language="Python">
-      from gi.repository import HarfBuzz
-    </programlisting>
+<programlisting language="Python">
+from gi.repository import HarfBuzz
+</programlisting>
     <para>
       and you can call HarfBuzz functions from Python. Sample code can
       be found in the <filename>sample.py</filename> script in the

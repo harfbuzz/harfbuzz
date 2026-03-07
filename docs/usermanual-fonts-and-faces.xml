@@ -45,11 +45,11 @@
       single face, however, so most of the time you would pass in
       <literal>0</literal> as the index when you create a face:
     </para>
-    <programlisting language="C">
-      hb_blob_t* blob = hb_blob_create_from_file(file);
-      ...
-      hb_face_t* face = hb_face_create(blob, 0);
-    </programlisting>
+<programlisting language="C">
+hb_blob_t* blob = hb_blob_create_from_file(file);
+...
+hb_face_t* face = hb_face_create(blob, 0);
+</programlisting>
     <para>
       On its own, a face object is not quite ready to use for
       shaping. The typeface must be set to a specific point size in
@@ -76,9 +76,9 @@
     <para>
       You can create a font object from a face object:
     </para>
-    <programlisting language="C">
-      hb_font_t* hb_font = hb_font_create(hb_face);
-    </programlisting>
+<programlisting language="C">
+hb_font_t* hb_font = hb_font_create(hb_face);
+</programlisting>
     <para>
       After creating a font, there are a few properties you should
       set. Many fonts enable and disable hints based on the size it
@@ -100,9 +100,9 @@
       There may be times when you are handed a font object and need to
       access the face object that it comes from. For that, you can call
     </para>
-    <programlisting language="C">
-      hb_face = hb_font_get_face(hb_font);
-    </programlisting>
+<programlisting language="C">
+hb_face = hb_font_get_face(hb_font);
+</programlisting>
     <para>
       You can also create a font object from an existing font object
       using the <function>hb_font_create_sub_font()</function>
@@ -275,10 +275,10 @@
       You can create new font-functions by calling
       <function>hb_font_funcs_create()</function>:
     </para>
-    <programlisting language="C">
-      hb_font_funcs_t *ffunctions = hb_font_funcs_create ();
-      hb_font_set_funcs (font, ffunctions, font_data, destroy);
-    </programlisting>
+<programlisting language="C">
+hb_font_funcs_t *ffunctions = hb_font_funcs_create ();
+hb_font_set_funcs (font, ffunctions, font_data, destroy);
+</programlisting>
     <para>
       The individual methods can each be set with their own setter
       function, such as
@@ -310,13 +310,13 @@
       that were explicitly set. The following code will override only the
       <function>hb_font_get_nominal_glyph_func_t</function> for the sub-font:
     </para>
-    <programlisting language="C">
-      hb_font_t *subfont = hb_font_create_sub_font (font)
-      hb_font_funcs_t *ffunctions = hb_font_funcs_create ();
-      hb_font_funcs_set_nominal_glyph_func (ffunctions, func, user_data, destroy);
-      hb_font_set_funcs (subfont, ffunctions, font_data, destroy);
-      hb_font_funcs_destroy (ffunctions);
-    </programlisting>
+<programlisting language="C">
+hb_font_t *subfont = hb_font_create_sub_font (font)
+hb_font_funcs_t *ffunctions = hb_font_funcs_create ();
+hb_font_funcs_set_nominal_glyph_func (ffunctions, func, user_data, destroy);
+hb_font_set_funcs (subfont, ffunctions, font_data, destroy);
+hb_font_funcs_destroy (ffunctions);
+</programlisting>
   </section>
 
   <section id="fonts-and-faces-native-opentype">
@@ -351,9 +351,9 @@
       provides some higher-level functions for fetching information
       like extents and advances for a glyph. If you call
     </para>
-    <programlisting language="C">
-      hb_font_get_glyph_advance_for_direction(font, direction, extents);
-    </programlisting>
+<programlisting language="C">
+hb_font_get_glyph_advance_for_direction(font, direction, extents);
+</programlisting>
     <para>
       then you can provide any <type>hb_direction_t</type> as the
       <parameter>direction</parameter> parameter, and HarfBuzz will
@@ -408,11 +408,11 @@
       <function>hb_ot_var_get_axis_infos()</function> to collect the 
       axis structures:
     </para>
-    <programlisting language="C">
-      axes = hb_ot_var_get_axis_count(face);
-      ...
-      hb_ot_var_get_axis_infos(face, 0, axes, axes_array);
-    </programlisting>
+<programlisting language="C">
+axes = hb_ot_var_get_axis_count(face);
+...
+hb_ot_var_get_axis_infos(face, 0, axes, axes_array);
+</programlisting>
     <para>
       For each axis returned in the array, you can can access the
       identifier in its <property>tag</property>. HarfBuzz also has
@@ -431,16 +431,16 @@
       say our font has weight and width axes. We need to specify each
       of the axes by tag and assign a value on the axis:
     </para>
-    <programlisting language="C">
-      unsigned int variation_count = 2;
-      hb_variation_t variation_data[variation_count];
-      variation_data[0].tag = HB_OT_TAG_VAR_AXIS_WIDTH;
-      variation_data[1].tag = HB_OT_TAG_VAR_AXIS_WEIGHT;
-      variation_data[0].value = 80;
-      variation_data[1].value = 750;
-      ...
-      hb_font_set_variations(font, variation_data, variation_count);
-    </programlisting>
+<programlisting language="C">
+unsigned int variation_count = 2;
+hb_variation_t variation_data[variation_count];
+variation_data[0].tag = HB_OT_TAG_VAR_AXIS_WIDTH;
+variation_data[1].tag = HB_OT_TAG_VAR_AXIS_WEIGHT;
+variation_data[0].value = 80;
+variation_data[1].value = 750;
+...
+hb_font_set_variations(font, variation_data, variation_count);
+</programlisting>
     <para>
       That should give us a slightly condensed font ("normal" on the
       <literal>wdth</literal> axis is 100) at a noticeably bolder

@@ -363,15 +363,11 @@
           other words, the user will hit the keys in the following
           sequence:
         </para>
-        <programlisting>
-	  A B C [space] ג ב א [space] D E F
-        </programlisting>
+        <programlisting>A B C [space] ג ב א [space] D E F</programlisting>
         <para>
           but will expect to see in the output:
         </para>
-        <programlisting>
-	  ABC אבג DEF
-        </programlisting>
+        <programlisting>ABC אבג DEF</programlisting>
         <para>
           This reordering is called <emphasis>bidi processing</emphasis>
           (&quot;bidi&quot; is short for bidirectional), and there's an

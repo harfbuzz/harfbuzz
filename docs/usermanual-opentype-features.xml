@@ -81,10 +81,10 @@
       that it contains shaped output, rather than input text. You can
       now extract the glyph information and positioning arrays:
     </para>
-    <programlisting language="C">
-      hb_glyph_info_t *glyph_info    = hb_buffer_get_glyph_infos(buf, &amp;glyph_count);
-      hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &amp;glyph_count);
-    </programlisting>
+<programlisting language="C">
+hb_glyph_info_t *glyph_info    = hb_buffer_get_glyph_infos(buf, &amp;glyph_count);
+hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &amp;glyph_count);
+</programlisting>
     <para>
       The glyph information array holds a <type>hb_glyph_info_t</type>
       for each output glyph, which has two fields:
@@ -198,13 +198,13 @@
       enable the <literal>dlig</literal> feature, which turns on any
       "discretionary" ligatures in the font:
     </para>
-    <programlisting language="C">
-      hb_feature_t userfeatures[1];
-      userfeatures[0].tag = HB_TAG('d','l','i','g');
-      userfeatures[0].value = 1;
-      userfeatures[0].start = HB_FEATURE_GLOBAL_START;
-      userfeatures[0].end = HB_FEATURE_GLOBAL_END;
-    </programlisting>
+<programlisting language="C">
+hb_feature_t userfeatures[1];
+userfeatures[0].tag = HB_TAG('d','l','i','g');
+userfeatures[0].value = 1;
+userfeatures[0].start = HB_FEATURE_GLOBAL_START;
+userfeatures[0].end = HB_FEATURE_GLOBAL_END;
+</programlisting>
     <para>
       <literal>HB_FEATURE_GLOBAL_END</literal> and
       <literal>HB_FEATURE_GLOBAL_END</literal> are macros we can use
@@ -219,9 +219,9 @@
       substitutions from our font that match the text in our buffer
       will get performed:
     </para>
-    <programlisting language="C">
-      hb_shape(font, buf, userfeatures, num_features);
-    </programlisting>
+<programlisting language="C">
+hb_shape(font, buf, userfeatures, num_features);
+</programlisting>
     <para>
       Just like we enabled the <literal>dlig</literal> feature by
       setting its <parameter>value</parameter> to
@@ -258,11 +258,11 @@
       you might move the AAT shaper to the end of your list of
       preferences and call <function>hb_shape_full()</function>
     </para>
-    <programlisting language="C">
-      char *shaperprefs[3] = {"ot", "default", "aat"};
-      ...
-      hb_shape_full(font, buf, userfeatures, num_features, shaperprefs);
-    </programlisting>
+<programlisting language="C">
+char *shaperprefs[3] = {"ot", "default", "aat"};
+...
+hb_shape_full(font, buf, userfeatures, num_features, shaperprefs);
+</programlisting>
     <para>
       to get results you are happier with.
     </para>

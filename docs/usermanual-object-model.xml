@@ -247,9 +247,9 @@
       callbacks. If you allocated the memory for the data using
       <function>malloc()</function>, you would create the blob using
     </para>
-    <programlisting language="C">
-      hb_blob_create (data, length, HB_MEMORY_MODE_WRITABLE, data, free)
-    </programlisting>
+<programlisting language="C">
+hb_blob_create (data, length, HB_MEMORY_MODE_WRITABLE, data, free)
+</programlisting>
     <para>
       That way, HarfBuzz will call <function>free()</function> on the
       allocated memory whenever the blob drops its last reference and
