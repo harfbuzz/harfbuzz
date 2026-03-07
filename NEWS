@@ -1,3 +1,10 @@
+Overview of changes leading to 13.0.1
+Saturday, March 7, 2026
+=====================================
+- Bug fixes in rendering `COLR` v1 fonts.
+- Various build fixes.
+
+
 Overview of changes leading to 13.0.0
 Wednesday, March 4, 2026
 =====================================
