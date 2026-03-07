@@ -212,8 +212,6 @@
 	<para>
           Create a buffer and put your text in it.
 	</para>
-      </listitem>
-    </orderedlist>
 <programlisting language="C">
 #include &lt;hb.h&gt;
 
@@ -221,13 +219,13 @@ hb_buffer_t *buf;
 buf = hb_buffer_create();
 hb_buffer_add_utf8(buf, text, -1, 0, -1);
 </programlisting>
+      </listitem>
+    </orderedlist>
     <orderedlist numeration="arabic">
       <listitem override="2">
 	<para>
           Set the script, language and direction of the buffer.
 	</para>
-      </listitem>
-    </orderedlist>
 <programlisting language="C">
 // If you know the direction, script, and language
 hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
@@ -237,47 +235,47 @@ hb_buffer_set_language(buf, hb_language_from_string("en", -1));
 // If you don't know the direction, script, and language
 hb_buffer_guess_segment_properties(buf);
 </programlisting>
+      </listitem>
+    </orderedlist>
     <orderedlist numeration="arabic">
       <listitem override="3">
 	<para>
           Create a face and a font from a font file.
 	</para>
-      </listitem>
-    </orderedlist>
 <programlisting language="C">
 hb_blob_t *blob = hb_blob_create_from_file(filename); /* or hb_blob_create_from_file_or_fail() */
 hb_face_t *face = hb_face_create(blob, 0);
 hb_font_t *font = hb_font_create(face);
 </programlisting>
+      </listitem>
+    </orderedlist>
     <orderedlist numeration="arabic">
       <listitem override="4">
 	<para>
           Shape!
 	</para>
-      </listitem>
-    </orderedlist>
 <programlisting>
 hb_shape(font, buf, NULL, 0);
 </programlisting>
+      </listitem>
+    </orderedlist>
     <orderedlist numeration="arabic">
       <listitem override="5">
 	<para>
           Get the glyph and position information.
 	</para>
-      </listitem>
-    </orderedlist>
 <programlisting language="C">
 unsigned int glyph_count;
 hb_glyph_info_t *glyph_info    = hb_buffer_get_glyph_infos(buf, &amp;glyph_count);
 hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &amp;glyph_count);
 </programlisting>
+      </listitem>
+    </orderedlist>
     <orderedlist numeration="arabic">
       <listitem override="6">
 	<para>
           Iterate over each glyph.
 	</para>
-      </listitem>
-    </orderedlist>
 <programlisting language="C">
 hb_position_t cursor_x = 0;
 hb_position_t cursor_y = 0;
@@ -292,20 +290,21 @@ for (unsigned int i = 0; i &lt; glyph_count; i++) {
     cursor_y += y_advance;
 }
 </programlisting>
+      </listitem>
+    </orderedlist>
     <orderedlist numeration="arabic">
       <listitem override="7">
 	<para>
           Tidy up.
 	</para>
-      </listitem>
-    </orderedlist>
 <programlisting language="C">
 hb_buffer_destroy(buf);
 hb_font_destroy(font);
 hb_face_destroy(face);
 hb_blob_destroy(blob);
 </programlisting>
-    
+      </listitem>
+    </orderedlist>
     <para>
       This example shows enough to get us started using HarfBuzz. In
       the sections that follow, we will use the remainder of
