@@ -606,13 +606,24 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   if (format != HB_TAG ('B','G','R','A'))
     return false;
 
+  if (width == 0 || height == 0)
+    return false;
+  if (width > (unsigned) INT_MAX || height > (unsigned) INT_MAX)
+    return false;
+
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return false;
   if (!extents) return false;
 
   unsigned data_len;
   const uint8_t *data = (const uint8_t *) hb_blob_get_data (blob, &data_len);
-  if (!data || data_len < width * height * 4) return false;
+  size_t pixel_count = (size_t) width * (size_t) height;
+  if (width && pixel_count / width != height)
+    return false;
+  if (pixel_count > (size_t) -1 / 4u)
+    return false;
+  size_t required_size = pixel_count * 4u;
+  if (!data || (size_t) data_len < required_size) return false;
 
   const hb_raster_clip_t &clip = c->current_clip ();
   hb_transform_t<> t = c->current_effective_transform ();
