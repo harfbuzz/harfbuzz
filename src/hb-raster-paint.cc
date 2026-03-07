@@ -1785,11 +1785,11 @@ hb_raster_paint_get_scale_factor (hb_raster_paint_t *paint,
  *
  * Call this before hb_font_paint_glyph() for each render.
  * A common pattern is:
- * ```
+ * |[<!-- language="plain" -->
  * hb_glyph_extents_t gext;
  * if (hb_font_get_glyph_extents (font, gid, &gext))
  *   hb_raster_paint_set_glyph_extents (paint, &gext);
- * ```
+ * ]|
  *
  * Since: 13.0.0
  **/
