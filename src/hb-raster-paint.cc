@@ -1147,7 +1147,12 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    if (fabsf (A) > 1e-10f)
 	    {
 	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f) continue;
+	      if (disc < 0.f)
+	      {
+		gx += inv_xx;
+		gy += inv_yx;
+		continue;
+	      }
 	      float sq = sqrtf (disc);
 	      /* Pick the larger root (t closer to 1 = outer circle) */
 	      float t1 = (-B + sq) / (2.f * A);
@@ -1161,7 +1166,12 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    else
 	    {
 	      /* Linear case: Bt + C = 0 */
-	      if (fabsf (B) < 1e-10f) continue;
+	      if (fabsf (B) < 1e-10f)
+	      {
+		gx += inv_xx;
+		gy += inv_yx;
+		continue;
+	      }
 	      grad_t = -C / B;
 	    }
 
@@ -1183,7 +1193,12 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    if (fabsf (A) > 1e-10f)
 	    {
 	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f) continue;
+	      if (disc < 0.f)
+	      {
+		gx += inv_xx;
+		gy += inv_yx;
+		continue;
+	      }
 	      float sq = sqrtf (disc);
 	      float t1 = (-B + sq) / (2.f * A);
 	      float t2 = (-B - sq) / (2.f * A);
@@ -1191,7 +1206,12 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    }
 	    else
 	    {
-	      if (fabsf (B) < 1e-10f) continue;
+	      if (fabsf (B) < 1e-10f)
+	      {
+		gx += inv_xx;
+		gy += inv_yx;
+		continue;
+	      }
 	      grad_t = -C / B;
 	    }
 
@@ -1230,7 +1250,12 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    if (fabsf (A) > 1e-10f)
 	    {
 	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f) continue;
+	      if (disc < 0.f)
+	      {
+		gx += inv_xx;
+		gy += inv_yx;
+		continue;
+	      }
 	      float sq = sqrtf (disc);
 	      float t1 = (-B + sq) / (2.f * A);
 	      float t2 = (-B - sq) / (2.f * A);
@@ -1238,7 +1263,12 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    }
 	    else
 	    {
-	      if (fabsf (B) < 1e-10f) continue;
+	      if (fabsf (B) < 1e-10f)
+	      {
+		gx += inv_xx;
+		gy += inv_yx;
+		continue;
+	      }
 	      grad_t = -C / B;
 	    }
 
@@ -1268,7 +1298,12 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    if (fabsf (A) > 1e-10f)
 	    {
 	      float disc = B * B - 4.f * A * C;
-	      if (disc < 0.f) continue;
+	      if (disc < 0.f)
+	      {
+		gx += inv_xx;
+		gy += inv_yx;
+		continue;
+	      }
 	      float sq = sqrtf (disc);
 	      float t1 = (-B + sq) / (2.f * A);
 	      float t2 = (-B - sq) / (2.f * A);
@@ -1276,7 +1311,12 @@ hb_raster_paint_radial_gradient (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	    }
 	    else
 	    {
-	      if (fabsf (B) < 1e-10f) continue;
+	      if (fabsf (B) < 1e-10f)
+	      {
+		gx += inv_xx;
+		gy += inv_yx;
+		continue;
+	      }
 	      grad_t = -C / B;
 	    }
 
