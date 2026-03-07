@@ -90,13 +90,16 @@ if conf.get('HAVE_GLIB', 0) == 1
   endif
 
   if not get_option('raster').disabled()
-    hb_raster_util = executable('hb-raster', hb_raster_sources,
+    hb_raster = executable('hb-raster', hb_raster_sources,
       cpp_args: cpp_args,
       include_directories: [incconfig, incsrc],
       dependencies: [util_deps],
       link_with: [libharfbuzz, libharfbuzz_raster],
-      install: false,
+      install: true,
     )
+    meson.override_find_program('hb-raster', hb_raster)
+  else
+    hb_raster = disabler()
   endif
 
   if conf.get('HAVE_FREETYPE', 0) == 1
@@ -172,7 +175,7 @@ if conf.get('HAVE_GLIB', 0) == 1
   endif
 
   if help2man.found()
-    foreach binary: [hb_shape, hb_vector, hb_info, hb_subset]
+    foreach binary: [hb_shape, hb_raster, hb_vector, hb_info, hb_subset]
       target = binary.name() + '.1'
       manpage = custom_target(target,
         input: binary,
