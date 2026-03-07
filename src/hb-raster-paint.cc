@@ -403,15 +403,22 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     /* Precompute edge normals for point-in-quad test.
      * Edge i goes from corner i to corner (i+1)%4.
      * Normal = (dy, -dx); inside test: dot(normal, p-corner) >= 0 */
-    float enx[4], eny[4], ed[4];
-    for (unsigned i = 0; i < 4; i++)
-    {
-      unsigned j = (i + 1) & 3;
-      float edx = qx[j] - qx[i], edy = qy[j] - qy[i];
-      enx[i] = edy;       /* normal x */
-      eny[i] = -edx;      /* normal y */
-      ed[i] = enx[i] * qx[i] + eny[i] * qy[i]; /* distance threshold */
-    }
+	    float enx[4], eny[4], ed[4];
+	    for (unsigned i = 0; i < 4; i++)
+	    {
+	      unsigned j = (i + 1) & 3;
+	      float edx = qx[j] - qx[i], edy = qy[j] - qy[i];
+	      enx[i] = edy;       /* normal x */
+	      eny[i] = -edx;      /* normal y */
+	      ed[i] = enx[i] * qx[i] + eny[i] * qy[i]; /* distance threshold */
+	    }
+	    float area2 = 0.f;
+	    for (unsigned i = 0; i < 4; i++)
+	    {
+	      unsigned j = (i + 1) & 3;
+	      area2 += qx[i] * qy[j] - qx[j] * qy[i];
+	    }
+	    bool ccw = area2 >= 0.f;
 
     if (old_clip.is_rect)
     {
@@ -420,13 +427,16 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	{
 	  float px_f = x + 0.5f, py_f = y + 0.5f;
 	  /* Test if pixel center is inside the quad */
-	  bool inside = true;
-	  for (unsigned i = 0; i < 4; i++)
-	    if (enx[i] * px_f + eny[i] * py_f < ed[i])
-	    {
-	      inside = false;
-	      break;
-	    }
+		  bool inside = true;
+		  for (unsigned i = 0; i < 4; i++)
+		  {
+		    float d = enx[i] * px_f + eny[i] * py_f;
+		    if (ccw ? d < ed[i] : d > ed[i])
+		    {
+		      inside = false;
+		      break;
+		    }
+		  }
 	  uint8_t a = inside ? 255 : 0;
 	  new_clip.alpha[y * new_clip.stride + x] = a;
 	  if (a)
@@ -447,13 +457,16 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	{
 	  float px_f = x + 0.5f, py_f = y + 0.5f;
 	  /* Test if pixel center is inside the quad */
-	  bool inside = true;
-	  for (unsigned i = 0; i < 4; i++)
-	    if (enx[i] * px_f + eny[i] * py_f < ed[i])
-	    {
-	      inside = false;
-	      break;
-	    }
+		  bool inside = true;
+		  for (unsigned i = 0; i < 4; i++)
+		  {
+		    float d = enx[i] * px_f + eny[i] * py_f;
+		    if (ccw ? d < ed[i] : d > ed[i])
+		    {
+		      inside = false;
+		      break;
+		    }
+		  }
 	  uint8_t a = inside ? old_row[x] : 0;
 	  new_clip.alpha[y * new_clip.stride + x] = a;
 	  if (a)
@@ -606,13 +619,24 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   if (format != HB_TAG ('B','G','R','A'))
     return false;
 
+  if (width == 0 || height == 0)
+    return false;
+  if (width > (unsigned) INT_MAX || height > (unsigned) INT_MAX)
+    return false;
+
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return false;
   if (!extents) return false;
 
   unsigned data_len;
   const uint8_t *data = (const uint8_t *) hb_blob_get_data (blob, &data_len);
-  if (!data || data_len < width * height * 4) return false;
+  size_t pixel_count = (size_t) width * (size_t) height;
+  if (width && pixel_count / width != height)
+    return false;
+  if (pixel_count > (size_t) -1 / 4u)
+    return false;
+  size_t required_size = pixel_count * 4u;
+  if (!data || (size_t) data_len < required_size) return false;
 
   const hb_raster_clip_t &clip = c->current_clip ();
   hb_transform_t<> t = c->current_effective_transform ();
@@ -2080,6 +2104,9 @@ hb_raster_paint_render (hb_raster_paint_t *paint)
 fail:
   paint->transform_stack.clear ();
   paint->release_all_clips ();
+  for (auto *s : paint->surface_stack)
+    paint->release_surface (s);
+  paint->surface_stack.clear ();
   hb_raster_draw_reset (paint->clip_rdr);
   paint->has_extents = false;
   paint->fixed_extents = {};
