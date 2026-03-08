@@ -159,6 +159,7 @@ if not get_option('cairo').disabled()
 endif
 
 chafa_dep = dependency('chafa', version: chafa_min_version, required: get_option('chafa'))
+png_dep = dependency('libpng', required: false)
 
 fontations_dep_found = false
 if get_option('fontations').enabled()
@@ -216,6 +217,10 @@ endif
 
 if chafa_dep.found()
   conf.set('HAVE_CHAFA', 1)
+endif
+
+if png_dep.found()
+  conf.set('HAVE_PNG', 1)
 endif
 
 if fontations_dep_found

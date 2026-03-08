@@ -733,6 +733,7 @@ hb_raster_sources = [
   'hb-raster-svg-parse.hh',
   'hb-raster-paint.cc',
   'hb-raster-paint.hh',
+  'hb-raster-png.hh',
   'hb-raster-svg.hh',
   'hb-static.cc',
 ]
@@ -760,9 +761,14 @@ hb_vector_headers = [
 
 libharfbuzz_raster_dep = null_dep
 if not get_option('raster').disabled()
+  raster_deps = [m_dep]
+  if png_dep.found()
+    raster_deps += [png_dep]
+  endif
+
   libharfbuzz_raster = library('harfbuzz-raster', hb_raster_sources,
     include_directories: incconfig,
-    dependencies: [m_dep],
+    dependencies: raster_deps,
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
