@@ -27,6 +27,7 @@
 #include "hb.hh"
 
 #include "hb-raster-paint.hh"
+#include "hb-raster-png.hh"
 #include "hb-raster-svg.hh"
 #include "hb-machinery.hh"
 
@@ -615,28 +616,47 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
     return hb_raster_svg_render (c, blob, c->svg_glyph, c->svg_font,
 				 c->svg_palette, c->foreground);
 
-  /* Only handle raw BGRA32 otherwise */
-  if (format != HB_TAG ('B','G','R','A'))
-    return false;
+  unsigned src_width = width;
+  unsigned src_height = height;
+  const hb_packed_t<uint32_t> *src_data = nullptr;
+  hb_vector_t<uint32_t> decoded_png;
 
-  if (width == 0 || height == 0)
+  if (format == HB_PAINT_IMAGE_FORMAT_BGRA)
+  {
+    if (src_width == 0 || src_height == 0)
+      return false;
+    if (src_width > (unsigned) INT_MAX || src_height > (unsigned) INT_MAX)
+      return false;
+
+    unsigned data_len;
+    const uint8_t *data = (const uint8_t *) hb_blob_get_data (blob, &data_len);
+    size_t pixel_count = (size_t) src_width * (size_t) src_height;
+    if (src_width && pixel_count / src_width != src_height)
+      return false;
+    if (pixel_count > (size_t) -1 / 4u)
+      return false;
+    size_t required_size = pixel_count * 4u;
+    if (!data || (size_t) data_len < required_size)
+      return false;
+
+    src_data = (const hb_packed_t<uint32_t> *) data;
+  }
+  else if (format == HB_PAINT_IMAGE_FORMAT_PNG)
+  {
+#ifdef HAVE_PNG
+    if (!hb_raster_paint_decode_png (blob, &src_width, &src_height, decoded_png))
+      return false;
+    src_data = (const hb_packed_t<uint32_t> *) decoded_png.arrayZ;
+#else
     return false;
-  if (width > (unsigned) INT_MAX || height > (unsigned) INT_MAX)
+#endif
+  }
+  else
     return false;
 
   hb_raster_image_t *surf = c->current_surface ();
   if (unlikely (!surf)) return false;
   if (!extents) return false;
-
-  unsigned data_len;
-  const uint8_t *data = (const uint8_t *) hb_blob_get_data (blob, &data_len);
-  size_t pixel_count = (size_t) width * (size_t) height;
-  if (width && pixel_count / width != height)
-    return false;
-  if (pixel_count > (size_t) -1 / 4u)
-    return false;
-  size_t required_size = pixel_count * 4u;
-  if (!data || (size_t) data_len < required_size) return false;
 
   const hb_raster_clip_t &clip = c->current_clip ();
   hb_transform_t<> t = c->current_effective_transform ();
@@ -653,15 +673,16 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   float inv_y0 = (t.yx * t.x0 - t.xx * t.y0) * inv_det;
 
   unsigned surf_stride = surf->extents.stride;
-  const hb_packed_t<uint32_t> *src_data = (const hb_packed_t<uint32_t> *) data;
   int ox = surf->extents.x_origin;
   int oy = surf->extents.y_origin;
 
   /* Image source rectangle in glyph space */
   float img_x = extents->x_bearing;
-  float img_y = extents->y_bearing + extents->height; /* bottom-left in glyph space */
-  float img_sx = (float) extents->width / width;
-  float img_sy = (float) -extents->height / height; /* flip Y */
+  float img_y = extents->y_bearing;
+  float img_sx = (float) extents->width / src_width;
+  float img_sy = (float) extents->height / src_height;
+  if (fabsf (img_sx) < 1e-10f || fabsf (img_sy) < 1e-10f)
+    return false;
 
   if (clip.is_rect)
   {
@@ -676,14 +697,14 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	int ix = (int) floorf ((gx - img_x) / img_sx);
 	int iy = (int) floorf ((gy - img_y) / img_sy);
 
-	if (ix < 0 || ix >= (int) width || iy < 0 || iy >= (int) height)
+	if (ix < 0 || ix >= (int) src_width || iy < 0 || iy >= (int) src_height)
 	{
 	  gx += inv_xx;
 	  gy += inv_yx;
 	  continue;
 	}
 
-	uint32_t src_px = ((uint32_t) src_data[iy * width + ix]);
+	uint32_t src_px = ((uint32_t) src_data[iy * src_width + ix]);
 	row[px] = hb_packed_t<uint32_t> (hb_raster_src_over (src_px, (uint32_t) row[px]));
 	gx += inv_xx;
 	gy += inv_yx;
@@ -712,14 +733,14 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	int ix = (int) floorf ((gx - img_x) / img_sx);
 	int iy = (int) floorf ((gy - img_y) / img_sy);
 
-	if (ix < 0 || ix >= (int) width || iy < 0 || iy >= (int) height)
+	if (ix < 0 || ix >= (int) src_width || iy < 0 || iy >= (int) src_height)
 	{
 	  gx += inv_xx;
 	  gy += inv_yx;
 	  continue;
 	}
 
-	uint32_t src_px = ((uint32_t) src_data[iy * width + ix]);
+	uint32_t src_px = ((uint32_t) src_data[iy * src_width + ix]);
 	src_px = hb_raster_alpha_mul (src_px, clip_alpha);
 	row[px] = hb_packed_t<uint32_t> (hb_raster_src_over (src_px, (uint32_t) row[px]));
 	gx += inv_xx;
