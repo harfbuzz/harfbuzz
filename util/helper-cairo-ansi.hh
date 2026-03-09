@@ -136,34 +136,13 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride, in
 #endif /* HAVE_CHAFA */
 
 static inline cairo_status_t
-helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
-					   cairo_write_func_t	write_func,
-					   void			*closure)
+helper_image_write_to_ansi_stream_rgb24 (const uint32_t       *data,
+					 unsigned int          width,
+					 unsigned int          height,
+					 unsigned int          stride,
+					 cairo_write_func_t    write_func,
+					 void                 *closure)
 {
-  unsigned int width = cairo_image_surface_get_width (surface);
-  unsigned int height = cairo_image_surface_get_height (surface);
-  if (cairo_image_surface_get_format (surface) != CAIRO_FORMAT_RGB24) {
-    cairo_surface_t *new_surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, height);
-    cairo_t *cr = cairo_create (new_surface);
-    if (cairo_image_surface_get_format (surface) == CAIRO_FORMAT_A8) {
-      cairo_set_source_rgb (cr, 0., 0., 0.);
-      cairo_paint (cr);
-      cairo_set_source_rgb (cr, 1., 1., 1.);
-      cairo_mask_surface (cr, surface, 0, 0);
-    } else {
-      cairo_set_source_rgb (cr, 1., 1., 1.);
-      cairo_paint (cr);
-      cairo_set_source_surface (cr, surface, 0, 0);
-      cairo_paint (cr);
-    }
-    cairo_destroy (cr);
-    surface = new_surface;
-  } else
-    cairo_surface_reference (surface);
-
-  unsigned int stride = cairo_image_surface_get_stride (surface);
-  const uint32_t *data = (uint32_t *) (void *) cairo_image_surface_get_data (surface);
-
   /* We don't have rows to spare on the terminal window...
    * Find the tight image top/bottom and only print in between. */
 
@@ -221,8 +200,42 @@ helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
 			      write_func, closure);
   }
 
-  cairo_surface_destroy (surface);
   return CAIRO_STATUS_SUCCESS;
+}
+
+static inline cairo_status_t
+helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
+					   cairo_write_func_t	write_func,
+					   void			*closure)
+{
+  unsigned int width = cairo_image_surface_get_width (surface);
+  unsigned int height = cairo_image_surface_get_height (surface);
+  if (cairo_image_surface_get_format (surface) != CAIRO_FORMAT_RGB24) {
+    cairo_surface_t *new_surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, height);
+    cairo_t *cr = cairo_create (new_surface);
+    if (cairo_image_surface_get_format (surface) == CAIRO_FORMAT_A8) {
+      cairo_set_source_rgb (cr, 0., 0., 0.);
+      cairo_paint (cr);
+      cairo_set_source_rgb (cr, 1., 1., 1.);
+      cairo_mask_surface (cr, surface, 0, 0);
+    } else {
+      cairo_set_source_rgb (cr, 1., 1., 1.);
+      cairo_paint (cr);
+      cairo_set_source_surface (cr, surface, 0, 0);
+      cairo_paint (cr);
+    }
+    cairo_destroy (cr);
+    surface = new_surface;
+  } else
+    cairo_surface_reference (surface);
+
+  unsigned int stride = cairo_image_surface_get_stride (surface);
+  const uint32_t *data = (uint32_t *) (void *) cairo_image_surface_get_data (surface);
+  cairo_status_t status = helper_image_write_to_ansi_stream_rgb24 (data, width, height, stride,
+								   write_func, closure);
+
+  cairo_surface_destroy (surface);
+  return status;
 }
 
 

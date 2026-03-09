@@ -29,6 +29,7 @@
 
 #include "view-options.hh"
 #include "output-options.hh"
+#include "helper-image-output.hh"
 #ifdef HAVE_CAIRO_FT
 #  include "helper-cairo-ft.hh"
 #endif
@@ -178,19 +179,12 @@ helper_cairo_scaled_font_has_color (cairo_scaled_font_t *scaled_font)
          hb_ot_color_has_paint (face);
 }
 
-
-enum class image_protocol_t {
-  NONE = 0,
-  ITERM2,
-  KITTY,
-};
-
 struct finalize_closure_t {
   void (*callback)(finalize_closure_t *);
   cairo_surface_t *surface;
   cairo_write_func_t write_func;
   void *closure;
-  image_protocol_t protocol;
+  helper_image_protocol_t protocol;
 };
 static cairo_user_data_key_t finalize_closure_key;
 
@@ -213,7 +207,7 @@ _cairo_ansi_surface_create_for_stream (cairo_write_func_t write_func,
 				       double width,
 				       double height,
 				       cairo_content_t content,
-				       image_protocol_t protocol HB_UNUSED)
+				       helper_image_protocol_t protocol HB_UNUSED)
 {
   cairo_surface_t *surface;
   int w = ceil (width);
@@ -268,11 +262,8 @@ finalize_png (finalize_closure_t *closure)
 {
   cairo_status_t status;
   GByteArray *bytes = nullptr;
-  GString *string;
-  gchar *base64;
-  size_t base64_len;
 
-  if (closure->protocol == image_protocol_t::NONE)
+  if (closure->protocol == helper_image_protocol_t::NONE)
   {
     status = cairo_surface_write_to_png_stream (closure->surface,
 						closure->write_func,
@@ -290,54 +281,13 @@ finalize_png (finalize_closure_t *closure)
     fail (false, "Failed to write output: %s",
 	  cairo_status_to_string (status));
 
-  if (closure->protocol == image_protocol_t::NONE)
+  if (closure->protocol == helper_image_protocol_t::NONE)
     return;
-
-  base64 = g_base64_encode (bytes->data, bytes->len);
-  base64_len = strlen (base64);
-
-  string = g_string_new (NULL);
-  if (closure->protocol == image_protocol_t::ITERM2)
-  {
-    /* https://iterm2.com/documentation-images.html */
-    g_string_printf (string, "\033]1337;File=inline=1;size=%zu:%s\a\n",
-		     base64_len, base64);
-  }
-  else if (closure->protocol == image_protocol_t::KITTY)
-  {
-#define CHUNK_SIZE 4096
-    /* https://sw.kovidgoyal.net/kitty/graphics-protocol.html */
-    for (size_t pos = 0; pos < base64_len; pos += CHUNK_SIZE)
-    {
-      size_t len = base64_len - pos;
-
-      if (pos == 0)
-	g_string_append (string, "\033_Ga=T,f=100,m=");
-      else
-	g_string_append (string, "\033_Gm=");
-
-      if (len > CHUNK_SIZE)
-      {
-	g_string_append (string, "1;");
-	g_string_append_len (string, base64 + pos, CHUNK_SIZE);
-      }
-      else
-      {
-	g_string_append (string, "0;");
-	g_string_append_len (string, base64 + pos, len);
-      }
-
-      g_string_append (string, "\033\\");
-    }
-    g_string_append (string, "\n");
-#undef CHUNK_SIZE
-  }
-
-  closure->write_func (closure->closure, (unsigned char *) string->str, string->len);
+  helper_image_write_png_data (bytes->data, bytes->len,
+			       closure->write_func, closure->closure,
+			       closure->protocol);
 
   g_byte_array_unref (bytes);
-  g_free (base64);
-  g_string_free (string, TRUE);
 }
 
 static cairo_surface_t *
@@ -346,7 +296,7 @@ _cairo_png_surface_create_for_stream (cairo_write_func_t write_func,
 				      double width,
 				      double height,
 				      cairo_content_t content,
-				      image_protocol_t protocol)
+				      helper_image_protocol_t protocol)
 {
   cairo_surface_t *surface;
   int w = ceil (width);
@@ -395,7 +345,7 @@ _cairo_script_surface_create_for_stream (cairo_write_func_t write_func,
 				         double width,
 				         double height,
 				         cairo_content_t content,
-				         image_protocol_t protocol HB_UNUSED)
+				         helper_image_protocol_t protocol HB_UNUSED)
 {
   cairo_device_t *script = cairo_script_create_for_stream (write_func, closure);
   cairo_surface_t *surface = cairo_script_surface_create (script, content, width, height);
@@ -404,24 +354,6 @@ _cairo_script_surface_create_for_stream (cairo_write_func_t write_func,
 }
 
 #endif
-
-static cairo_status_t
-stdio_write_func (void                *closure,
-		  const unsigned char *data,
-		  unsigned int         size)
-{
-  FILE *fp = (FILE *) closure;
-
-  while (size) {
-    size_t ret = fwrite (data, 1, size, fp);
-    size -= ret;
-    data += ret;
-    if (size && ferror (fp))
-      fail (false, "Failed to write output: %s", strerror (errno));
-  }
-
-  return CAIRO_STATUS_SUCCESS;
-}
 
 static const char *helper_cairo_supported_formats[] =
 {
@@ -464,51 +396,18 @@ helper_cairo_create_context (double w, double h,
 				    double width,
 				    double height,
 				    cairo_content_t content,
-				    image_protocol_t protocol) = nullptr;
+				    helper_image_protocol_t protocol) = nullptr;
 
-  image_protocol_t protocol = image_protocol_t::NONE;
+  helper_image_protocol_t protocol = helper_image_protocol_t::NONE;
   const char *extension = out_opts->output_format;
-  if (!extension) {
-#if HAVE_ISATTY
-    if (isatty (fileno (out_opts->out_fp)))
-    {
+  if (!extension)
+    extension = helper_image_get_implicit_output_format (out_opts->out_fp,
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
-      const char *name;
-      /* https://gitlab.com/gnachman/iterm2/-/issues/7154 */
-      if ((name = getenv ("LC_TERMINAL")) != nullptr &&
-	  0 == g_ascii_strcasecmp (name, "iTerm2"))
-      {
-	extension = "png";
-	protocol = image_protocol_t::ITERM2;
-      }
-      else if ((name = getenv ("TERM_PROGRAM")) != nullptr &&
-	  0 == g_ascii_strcasecmp (name, "WezTerm"))
-      {
-	extension = "png";
-	protocol = image_protocol_t::ITERM2;
-      }
-      else if ((name = getenv ("TERM")) != nullptr &&
-	       0 == g_ascii_strcasecmp (name, "xterm-kitty"))
-      {
-	extension = "png";
-	protocol = image_protocol_t::KITTY;
-      }
-      else
-	extension = "ansi";
+							 "png",
 #else
-      extension = "ansi";
+							 "ansi",
 #endif
-    }
-    else
-#endif
-    {
-#ifdef CAIRO_HAS_PNG_FUNCTIONS
-      extension = "png";
-#else
-      extension = "ansi";
-#endif
-    }
-  }
+							 &protocol);
   if (0)
     ;
     else if (0 == g_ascii_strcasecmp (extension, "ansi"))
@@ -600,9 +499,9 @@ helper_cairo_create_context (double w, double h,
   cairo_surface_t *surface;
   FILE *f = out_opts->out_fp;
   if (constructor)
-    surface = constructor (stdio_write_func, f, w, h);
+    surface = constructor (helper_image_stdio_write_func, f, w, h);
   else if (constructor2)
-    surface = constructor2 (stdio_write_func, f, w, h, content, protocol);
+    surface = constructor2 (helper_image_stdio_write_func, f, w, h, content, protocol);
   else
     fail (false, "Unknown output format `%s'; supported formats are: %s%s",
 	  extension,
