@@ -92,7 +92,7 @@ struct hb_svg_str_t
     memcpy (buf, data, n);
     buf[n] = '\0';
     float v = strtof (buf, nullptr);
-    return isfinite (v) ? v : 0.f;
+    return std::isfinite (v) ? v : 0.f;
   }
 
   hb_svg_str_t trim_left () const

@@ -80,7 +80,7 @@ hb_svg_append_num (hb_vector_t<char> *buf,
   if (fabsf (v) < rounded_zero_threshold)
     v = 0.f;
 
-  if (!(v == v) || !isfinite (v))
+  if (!(v == v) || !std::isfinite (v))
   {
     hb_svg_append_c (buf, '0');
     return;

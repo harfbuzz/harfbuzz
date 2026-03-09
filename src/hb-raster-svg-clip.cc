@@ -529,7 +529,7 @@ hb_raster_svg_push_clip_path_ref (hb_raster_paint_t *paint,
       return false;
     float w = object_bbox->xmax - object_bbox->xmin;
     float h = object_bbox->ymax - object_bbox->ymin;
-    if (!(isfinite (w) && isfinite (h)) || w <= 0.f || h <= 0.f)
+    if (!(std::isfinite (w) && std::isfinite (h)) || w <= 0.f || h <= 0.f)
       return false;
     ed.has_bbox_transform = true;
     ed.bbox_transform = hb_transform_t<> (w, 0, 0, h, object_bbox->xmin, object_bbox->ymin);

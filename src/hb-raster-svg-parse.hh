@@ -320,7 +320,7 @@ struct hb_svg_float_parser_t
     }
     buf[n] = '\0';
     float v = strtof (buf, nullptr);
-    return isfinite (v) ? v : 0.f;
+    return std::isfinite (v) ? v : 0.f;
   }
 
   bool next_flag ()
