@@ -102,3 +102,11 @@ If you modify Rust-side HarfRust integration and Meson does not notice the chang
 - Do not silently change Meson options or feature defaults unless the task requires it.
 - Do not assume untracked fonts, images, or generated outputs are disposable.
 - Do not disable tests to get a green run without documenting the reason.
+
+## Wisdom
+
+- **Surgical Precision:** HarfBuzz is at the bottom of the stack for millions of users. A single-line change can have massive ripple effects. Prioritize minimal, targeted diffs over broad refactors.
+- **Empirical Validation:** Never assume a fix works until you've reproduced the failure with a test case and then seen it pass with your changes.
+- **Historical Context:** If a piece of code looks unnecessarily complex, it likely handles a specific edge case for a legacy font or a broken shaper implementation. Use `git blame` and check `NEWS` before "simplifying" it.
+- **Cross-Platform Mindset:** HarfBuzz runs on everything from embedded systems to web browsers. Avoid platform-specific assumptions and stick to the established portability patterns in the codebase.
+- **Leave it Better:** If you discover a nuance about the build system or a specific sub-directory that wasn't documented here, update this file.
