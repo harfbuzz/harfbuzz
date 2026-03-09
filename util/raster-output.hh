@@ -30,6 +30,8 @@
 #include "options.hh"
 #include "output-options.hh"
 #include "view-options.hh"
+#include "helper-cairo-ansi.hh"
+#include "helper-image-output.hh"
 #include "hb-raster.h"
 #include "hb-ot.h"
 
@@ -37,6 +39,7 @@
 #include <vector>
 
 static const char *raster_supported_formats[] = {
+  "ansi",
   "ppm",
 #ifdef HAVE_PNG
   "png",
@@ -59,7 +62,6 @@ struct raster_output_t : output_options_t<true>, view_options_t
   {
     parser->set_summary ("Rasterize text with given font.");
     parser->set_description ("Renders shaped text as a raster image.");
-    refuse_tty = true;
     output_options_t::add_options (parser, raster_supported_formats);
     view_options_t::add_options (parser);
   }
@@ -88,9 +90,9 @@ struct raster_output_t : output_options_t<true>, view_options_t
     bg_b = (uint8_t) background_color.b;
     bg_a = (uint8_t) background_color.a;
 
-    if (!output_format)
-      output_format = g_strdup ("ppm");
-    else if (0 != g_ascii_strcasecmp (output_format, "ppm")
+    if (output_format &&
+	0 != g_ascii_strcasecmp (output_format, "ansi") &&
+	0 != g_ascii_strcasecmp (output_format, "ppm")
 #ifdef HAVE_PNG
 	     && 0 != g_ascii_strcasecmp (output_format, "png")
 #endif
@@ -696,23 +698,74 @@ struct raster_output_t : output_options_t<true>, view_options_t
     }
   }
 
+  const char *get_output_format (helper_image_protocol_t *protocol)
+  {
+    if (output_format)
+    {
+      *protocol = helper_image_protocol_t::NONE;
+      return output_format;
+    }
+
+    return helper_image_get_implicit_output_format (out_fp, "ppm", protocol);
+  }
+
   void write_blob (hb_blob_t *blob)
   {
     if (!blob) return;
     unsigned len = 0;
     const char *data = hb_blob_get_data (blob, &len);
     if (data && len)
-      fwrite (data, 1, len, out_fp);
+      helper_image_stdio_write_func (out_fp, (const unsigned char *) data, len);
     hb_blob_destroy (blob);
   }
 
-  void write_png (hb_raster_image_t *img)
+  void write_png (hb_raster_image_t *img, helper_image_protocol_t protocol)
   {
 #ifdef HAVE_PNG
-    write_blob (hb_raster_image_serialize_to_png_or_fail (img));
+    hb_blob_t *blob = hb_raster_image_serialize_to_png_or_fail (img);
+    if (!blob) return;
+
+    unsigned len = 0;
+    const char *data = hb_blob_get_data (blob, &len);
+    if (data && len)
+      helper_image_write_png_data ((const unsigned char *) data, len,
+				   helper_image_stdio_write_func, out_fp, protocol);
+    hb_blob_destroy (blob);
 #else
     HB_UNUSED (img);
+    HB_UNUSED (protocol);
 #endif
+  }
+
+  void write_ansi (hb_raster_image_t *img)
+  {
+    hb_raster_extents_t ext;
+    hb_raster_image_get_extents (img, &ext);
+    const uint8_t *src = hb_raster_image_get_buffer (img);
+    if (!src || !ext.width || !ext.height) return;
+
+    std::vector<uint32_t> rgb (ext.width * ext.height);
+    for (unsigned y = 0; y < ext.height; y++)
+    {
+      const uint8_t *row = src + (size_t) (ext.height - 1 - y) * ext.stride;
+      for (unsigned x = 0; x < ext.width; x++)
+      {
+	uint32_t px;
+	hb_memcpy (&px, row + x * 4, 4);
+	uint8_t b = (uint8_t) (px & 0xFF);
+	uint8_t g = (uint8_t) ((px >> 8) & 0xFF);
+	uint8_t r = (uint8_t) ((px >> 16) & 0xFF);
+	uint8_t a = (uint8_t) (px >> 24);
+	unsigned inv_a = 255 - a;
+	r = (uint8_t) (r + ((bg_r * inv_a + 128 + ((bg_r * inv_a + 128) >> 8)) >> 8));
+	g = (uint8_t) (g + ((bg_g * inv_a + 128 + ((bg_g * inv_a + 128) >> 8)) >> 8));
+	b = (uint8_t) (b + ((bg_b * inv_a + 128 + ((bg_b * inv_a + 128) >> 8)) >> 8));
+	rgb[y * ext.width + x] = (uint32_t) b | ((uint32_t) g << 8) | ((uint32_t) r << 16);
+      }
+    }
+
+    helper_image_write_to_ansi_stream_rgb24 (rgb.data (), ext.width, ext.height, ext.width * 4,
+					     helper_image_stdio_write_func, out_fp);
   }
 
   void write_bgra_image (hb_raster_image_t *img)
@@ -721,8 +774,13 @@ struct raster_output_t : output_options_t<true>, view_options_t
     hb_raster_image_get_extents (img, &ext);
     const uint8_t *buf = hb_raster_image_get_buffer (img);
 
-    if (0 == g_ascii_strcasecmp (output_format, "png"))
-      write_png (img);
+    helper_image_protocol_t protocol;
+    const char *format = get_output_format (&protocol);
+
+    if (0 == g_ascii_strcasecmp (format, "ansi"))
+      write_ansi (img);
+    else if (0 == g_ascii_strcasecmp (format, "png"))
+      write_png (img, protocol);
     else
       write_ppm (buf, ext.width, ext.height, ext.stride);
   }
