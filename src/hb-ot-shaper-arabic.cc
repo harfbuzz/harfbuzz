@@ -584,7 +584,10 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
       if (step == MEASURE)
       {
-	extra_glyphs_needed += n_copies * n_repeating;
+	unsigned int added_glyphs = 0;
+	if (unlikely (hb_unsigned_mul_overflows (n_copies, n_repeating, &added_glyphs) ||
+		      hb_unsigned_add_overflows (extra_glyphs_needed, added_glyphs, &extra_glyphs_needed)))
+	  break;
 	DEBUG_MSG (ARABIC, nullptr, "will add extra %d copies of repeating tiles", n_copies);
       }
       else
@@ -629,7 +632,9 @@ apply_stch (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
     if (step == MEASURE)
     {
-      if (unlikely (!buffer->ensure (count + extra_glyphs_needed)))
+      unsigned int total_glyphs = 0;
+      if (unlikely (hb_unsigned_add_overflows (count, extra_glyphs_needed, &total_glyphs) ||
+		    !buffer->ensure (total_glyphs)))
 	break;
     }
     else

@@ -1200,6 +1200,21 @@ hb_unsigned_mul_overflows (unsigned int count, unsigned int size, unsigned *resu
   return (size > 0) && (count >= ((unsigned int) -1) / size);
 }
 
+static inline bool
+hb_unsigned_add_overflows (unsigned int a, unsigned int b, unsigned *result = nullptr)
+{
+#if hb_has_builtin(__builtin_add_overflow)
+  unsigned stack_result;
+  if (!result)
+    result = &stack_result;
+  return __builtin_add_overflow (a, b, result);
+#endif
+
+  if (result)
+    *result = a + b;
+  return b > (unsigned int) -1 - a;
+}
+
 
 /*
  * Sort and search.
