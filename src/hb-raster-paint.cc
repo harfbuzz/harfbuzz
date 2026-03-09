@@ -27,7 +27,6 @@
 #include "hb.hh"
 
 #include "hb-raster-paint.hh"
-#include "hb-raster-png.hh"
 #include "hb-raster-svg.hh"
 #include "hb-machinery.hh"
 
@@ -664,7 +663,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   unsigned src_width = width;
   unsigned src_height = height;
   const hb_packed_t<uint32_t> *src_data = nullptr;
-  hb_vector_t<uint32_t> decoded_png;
+  hb_raster_image_t decoded_png;
 
   if (format == HB_PAINT_IMAGE_FORMAT_BGRA)
   {
@@ -689,9 +688,11 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
   else if (format == HB_PAINT_IMAGE_FORMAT_PNG)
   {
 #ifdef HAVE_PNG
-    if (!hb_raster_paint_decode_png (blob, &src_width, &src_height, decoded_png))
+    if (!decoded_png.deserialize_from_png (blob))
       return false;
-    src_data = (const hb_packed_t<uint32_t> *) decoded_png.arrayZ;
+    src_width = decoded_png.extents.width;
+    src_height = decoded_png.extents.height;
+    src_data = (const hb_packed_t<uint32_t> *) decoded_png.buffer.arrayZ;
 #else
     return false;
 #endif
@@ -740,7 +741,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
       {
 	/* Map glyph space to image texel; bilinear reconstruction. */
 	float ix = (gx - img_x) / img_sx;
-	float iy = (gy - img_y) / img_sy;
+	float iy = (float) (src_height - 1) - (gy - img_y) / img_sy;
 
 	if (ix < 0.f || iy < 0.f ||
 	    ix > (float) (src_width - 1) || iy > (float) (src_height - 1))
@@ -778,7 +779,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
 	/* Map glyph space to image texel; bilinear reconstruction. */
 	float ix = (gx - img_x) / img_sx;
-	float iy = (gy - img_y) / img_sy;
+	float iy = (float) (src_height - 1) - (gy - img_y) / img_sy;
 
 	if (ix < 0.f || iy < 0.f ||
 	    ix > (float) (src_width - 1) || iy > (float) (src_height - 1))

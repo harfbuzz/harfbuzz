@@ -45,6 +45,8 @@ struct hb_raster_image_t
 
   static unsigned bytes_per_pixel (hb_raster_format_t format);
   bool configure (hb_raster_format_t format, hb_raster_extents_t extents);
+  bool deserialize_from_png (hb_blob_t *png);
+  hb_blob_t *serialize_to_png_or_fail () const;
   void clear ();
   const uint8_t *get_buffer () const;
   void composite_from (const hb_raster_image_t *src,
