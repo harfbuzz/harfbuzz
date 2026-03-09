@@ -461,10 +461,6 @@ build_summary = {
      'FreeType': conf.get('HAVE_FREETYPE', 0) == 1,
      'Fontations': conf.get('HAVE_FONTATIONS', 0) == 1,
     },
-  'Dependencies used for command-line utilities':
-    {'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
-     'Chafa': conf.get('HAVE_CHAFA', 0) == 1,
-    },
   'Additional shapers':
     {'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
      'WebAssembly (experimental)': conf.get('HAVE_WASM', 0) == 1,
@@ -481,6 +477,9 @@ build_summary = {
      'Raster (experimental)': not get_option('raster').disabled(),
      'Vector (experimental)': not get_option('vector').disabled(),
     },
+  'Dependencies used by additional libraries':
+    {'PNG': conf.get('HAVE_PNG', 0) == 1,
+    },
   'Other features':
     {'Utilities': not get_option('utilities').disabled(),
      'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,
@@ -488,6 +487,10 @@ build_summary = {
      'Cairo integration': conf.get('HAVE_CAIRO', 0) == 1,
      'Introspection': conf.get('HAVE_INTROSPECTION', 0) == 1,
      'Experimental APIs': conf.get('HB_EXPERIMENTAL_API', 0) == 1,
+    },
+  'Dependencies used by command-line utilities':
+    {'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
+     'Chafa': conf.get('HAVE_CHAFA', 0) == 1,
     },
   'Testing':
     {'Tests': get_option('tests').enabled(),
