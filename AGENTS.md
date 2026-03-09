@@ -15,14 +15,22 @@ Start with these files before making non-trivial changes:
 ## Repository map
 
 - `src/`: core library implementation.
-- `src/OT/`: OpenType shaping/layout internals.
-- `src/graph/`: graph helpers.
-- `src/rust/`: Rust integration, including HarfRust support.
-- `src/wasm/`: WebAssembly-related code.
-- `util/`: command-line tools such as `hb-shape`, `hb-view`, `hb-info`, `hb-subset`, and raster/vector utilities.
-- `test/`: API, shaping, subset, vector, thread, and fuzzing tests.
-- `perf/`: benchmark programs, including `benchmark-shape`.
-- `docs/`: documentation build inputs.
+  - `src/OT/`: OpenType shaping/layout internals (`Color/`, `glyf/`, `Layout/`, `name/`, `Var/`).
+  - `src/graph/`: graph helpers for subsetting (GSUBGPOS repacking).
+  - `src/ms-use/`: Microsoft Universal Shaping Engine data files.
+  - `src/rust/`: Rust integration—HarfRust shaper and fontations/skrifa font backend. Requires Rust >= 1.87.0.
+  - `src/wasm/`: WebAssembly shaper (experimental); includes sample code.
+- `util/`: command-line tools: `hb-shape`, `hb-view`, `hb-info`, `hb-subset`, `hb-vector`, `hb-raster`, `hb-ft-raster`, `hb-fc`.
+- `test/`: organized into subdirectories:
+  - `test/api/`: C/C++ API unit tests.
+  - `test/shape/`: shaping regression tests (per-script and per-font).
+  - `test/subset/`: subsetting and instancing tests.
+  - `test/vector/`: vector drawing tests.
+  - `test/threads/`: thread-safety tests.
+  - `test/fuzzing/`: fuzzer entry points and corpora (see `test/fuzzing/README.md`).
+- `perf/`: benchmarks using Google Benchmark (`benchmark-shape`, `benchmark-font`, `benchmark-subset`, etc.). See `perf/README.md`.
+- `subprojects/`: Meson wrap files for optional dependencies (Cairo, FreeType, GLib, ICU, Graphite2, Google Benchmark, etc.).
+- `docs/`: documentation build inputs (gtk-doc).
 
 ## Working style
 
@@ -54,9 +62,11 @@ meson test -C build
 Useful variants:
 
 - Run one test under GDB: `meson test -C build --gdb <testname>`
+- Run one test suite: `meson test -C build -v --suite vector`
 - Reconfigure with debug logging: `CPPFLAGS=-DHB_DEBUG_SUBSET=100 meson setup build --reconfigure`
 - ASan build: `meson setup build -Db_sanitize=address --reconfigure && meson compile -C build && meson test -C build`
-- Vector suite example: `meson test -C build -v --suite vector`
+
+Available `HB_DEBUG_*` flags (defined in `src/hb-debug.hh`): `APPLY`, `ARABIC`, `BLOB`, `CORETEXT`, `DIRECTWRITE`, `DISPATCH`, `FT`, `JUSTIFY`, `KBTS`, `OBJECT`, `PAINT`, `SANITIZE`, `SERIALIZE`, `SHAPE_PLAN`, `SUBSET`, `SUBSET_REPACK`, `UNISCRIBE`, `WASM`. Set to a level (e.g. `100`) via `CPPFLAGS=-DHB_DEBUG_<FLAG>=100`.
 
 ## Verification guidance
 
@@ -82,19 +92,34 @@ build/perf/benchmark-shape --benchmark_filter='(ot|harfrust)'
 
 If you modify Rust-side HarfRust integration and Meson does not notice the change, touching `src/rust/shaper.rs` is a known way to force a rebuild of that part of the tree.
 
+The fontations font backend can be tested similarly:
+
+```sh
+meson setup build -Dfontations=enabled -Dbuildtype=release --reconfigure
+meson compile -C build
+meson test -C build
+```
+
 ## Dependencies and options
 
-- Meson is the primary build system. CMake exists, but prefer Meson unless the task is explicitly about CMake.
-- Tests and utilities depend on optional libraries such as GLib, Cairo, and FreeType. Do not assume every local build has every feature enabled.
-- Relevant Meson options live in `meson_options.txt`; common ones include `tests`, `utilities`, `benchmark`, `subset`, `raster`, `vector`, `harfrust`, and `fontations`.
-- Size-sensitive builds use compile-time configuration in `src/hb-config.hh` and the guidance in `CONFIG.md`.
+- Meson (>= 0.60.0) is the primary build system. CMake exists, but prefer Meson unless the task is explicitly about CMake.
+- There is also an amalgamated source (`src/harfbuzz.cc`) for embedding HarfBuzz without a build system: `c++ -c src/harfbuzz.cc`.
+- The CLI tools require GLib; `hb-view` additionally requires Cairo. Most tests require GLib.
+- Relevant Meson options live in `meson_options.txt`. Key feature options (all `feature` type—`auto`/`enabled`/`disabled`):
+  - Always on by default: `raster`, `vector`, `subset`, `tests`, `utilities`.
+  - Off by default: `harfrust`, `fontations`, `benchmark`, `graphite2`, `wasm`, `kbts`.
+  - Auto-detected: `glib`, `gobject`, `cairo`, `chafa`, `freetype`, `icu`, `introspection`, `docs`.
+  - Platform-specific (off by default): `coretext`, `directwrite`, `gdi`.
+- Size-sensitive builds use compile-time configuration in `src/hb-config.hh` and the guidance in `CONFIG.md`. Pre-defined profiles: `HB_MINI`, `HB_LEAN`, `HB_TINY`.
 
 ## Change-specific advice
 
-- Shaping changes: check nearby script- or font-specific tests under `test/shape/`.
+- Shaping changes: check nearby script- or font-specific tests under `test/shape/`. Run at least `meson test -C build --suite shape`.
+- Subsetting changes: run `meson test -C build --suite subset`. The `src/graph/` code is part of the subsetter's table repacking.
 - Raster/vector work: inspect the matching utilities in `util/` and feature toggles in `meson_options.txt`.
+- API changes: run `meson test -C build --suite api`. Public API lives in `src/hb-*.h` headers (no `.hh`). ABI is tracked; do not remove or change signatures of public symbols.
 - Benchmark work: keep correctness first, then compare `ot` versus alternate backends using `perf/benchmark-shape`.
-- Rust integration work: inspect `src/rust/meson.build` and related Cargo files before changing build glue.
+- Rust integration work: inspect `src/rust/meson.build` and `src/rust/Cargo.toml` before changing build glue. The Rust crate defines two optional features: `font` (fontations/skrifa backend) and `shape` (HarfRust backend).
 
 ## Avoid
 
@@ -108,5 +133,6 @@ If you modify Rust-side HarfRust integration and Meson does not notice the chang
 - **Surgical Precision:** HarfBuzz is at the bottom of the stack for millions of users. A single-line change can have massive ripple effects. Prioritize minimal, targeted diffs over broad refactors.
 - **Empirical Validation:** Never assume a fix works until you've reproduced the failure with a test case and then seen it pass with your changes.
 - **Historical Context:** If a piece of code looks unnecessarily complex, it likely handles a specific edge case for a legacy font or a broken shaper implementation. Use `git blame` and check `NEWS` before "simplifying" it.
-- **Cross-Platform Mindset:** HarfBuzz runs on everything from embedded systems to web browsers. Avoid platform-specific assumptions and stick to the established portability patterns in the codebase.
+- **Cross-Platform Mindset:** HarfBuzz runs on everything from embedded systems to web browsers. The project builds with C++11 and avoids platform-specific assumptions. Stick to the established portability patterns in the codebase.
+- **Feature Guards:** Many code paths are conditionally compiled. Check `#ifdef`/`#ifndef` guards and Meson feature options before assuming a function or code path is always available.
 - **Leave it Better:** If you discover a nuance about the build system or a specific sub-directory that wasn't documented here, update this file.
