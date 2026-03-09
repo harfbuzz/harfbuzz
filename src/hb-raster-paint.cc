@@ -49,6 +49,51 @@ color_to_premul_pixel (hb_color_t color)
   return (uint32_t) b | ((uint32_t) g << 8) | ((uint32_t) r << 16) | ((uint32_t) a << 24);
 }
 
+/* Bilinear sample from a premultiplied BGRA32 image. */
+static inline uint32_t
+hb_raster_sample_bilinear_premul (const hb_packed_t<uint32_t> *src,
+				  unsigned width,
+				  unsigned height,
+				  float x,
+				  float y)
+{
+  int x0 = (int) floorf (x);
+  int y0 = (int) floorf (y);
+  int x1 = x0 + 1;
+  int y1 = y0 + 1;
+  if (x1 >= (int) width) x1 = (int) width - 1;
+  if (y1 >= (int) height) y1 = (int) height - 1;
+
+  float tx = x - x0;
+  float ty = y - y0;
+  float omtx = 1.f - tx;
+  float omty = 1.f - ty;
+
+  uint32_t p00 = (uint32_t) src[(size_t) y0 * width + (size_t) x0];
+  uint32_t p10 = (uint32_t) src[(size_t) y0 * width + (size_t) x1];
+  uint32_t p01 = (uint32_t) src[(size_t) y1 * width + (size_t) x0];
+  uint32_t p11 = (uint32_t) src[(size_t) y1 * width + (size_t) x1];
+
+  float w00 = omtx * omty;
+  float w10 = tx * omty;
+  float w01 = omtx * ty;
+  float w11 = tx * ty;
+
+  float b = ((p00 >>  0) & 0xff) * w00 + ((p10 >>  0) & 0xff) * w10 +
+	    ((p01 >>  0) & 0xff) * w01 + ((p11 >>  0) & 0xff) * w11;
+  float g = ((p00 >>  8) & 0xff) * w00 + ((p10 >>  8) & 0xff) * w10 +
+	    ((p01 >>  8) & 0xff) * w01 + ((p11 >>  8) & 0xff) * w11;
+  float r = ((p00 >> 16) & 0xff) * w00 + ((p10 >> 16) & 0xff) * w10 +
+	    ((p01 >> 16) & 0xff) * w01 + ((p11 >> 16) & 0xff) * w11;
+  float a = ((p00 >> 24) & 0xff) * w00 + ((p10 >> 24) & 0xff) * w10 +
+	    ((p01 >> 24) & 0xff) * w01 + ((p11 >> 24) & 0xff) * w11;
+
+  return (uint32_t) (b + 0.5f)
+       | ((uint32_t) (g + 0.5f) << 8)
+       | ((uint32_t) (r + 0.5f) << 16)
+       | ((uint32_t) (a + 0.5f) << 24);
+}
+
 
 /*
  * Paint callbacks
@@ -693,18 +738,20 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
       float gy = inv_yx * (float) ((int) clip.min_x + ox) + inv_yy * (float) ((int) py + oy) + inv_y0;
       for (unsigned px = clip.min_x; px < clip.max_x; px++)
       {
-	/* Map glyph space to image texel */
-	int ix = (int) floorf ((gx - img_x) / img_sx);
-	int iy = (int) floorf ((gy - img_y) / img_sy);
+	/* Map glyph space to image texel; bilinear reconstruction. */
+	float ix = (gx - img_x) / img_sx;
+	float iy = (gy - img_y) / img_sy;
 
-	if (ix < 0 || ix >= (int) src_width || iy < 0 || iy >= (int) src_height)
+	if (ix < 0.f || iy < 0.f ||
+	    ix > (float) (src_width - 1) || iy > (float) (src_height - 1))
 	{
 	  gx += inv_xx;
 	  gy += inv_yx;
 	  continue;
 	}
 
-	uint32_t src_px = ((uint32_t) src_data[iy * src_width + ix]);
+	uint32_t src_px = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
+							     ix, iy);
 	row[px] = hb_packed_t<uint32_t> (hb_raster_src_over (src_px, (uint32_t) row[px]));
 	gx += inv_xx;
 	gy += inv_yx;
@@ -729,18 +776,20 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 	  continue;
 	}
 
-	/* Map glyph space to image texel */
-	int ix = (int) floorf ((gx - img_x) / img_sx);
-	int iy = (int) floorf ((gy - img_y) / img_sy);
+	/* Map glyph space to image texel; bilinear reconstruction. */
+	float ix = (gx - img_x) / img_sx;
+	float iy = (gy - img_y) / img_sy;
 
-	if (ix < 0 || ix >= (int) src_width || iy < 0 || iy >= (int) src_height)
+	if (ix < 0.f || iy < 0.f ||
+	    ix > (float) (src_width - 1) || iy > (float) (src_height - 1))
 	{
 	  gx += inv_xx;
 	  gy += inv_yx;
 	  continue;
 	}
 
-	uint32_t src_px = ((uint32_t) src_data[iy * src_width + ix]);
+	uint32_t src_px = hb_raster_sample_bilinear_premul (src_data, src_width, src_height,
+							     ix, iy);
 	src_px = hb_raster_alpha_mul (src_px, clip_alpha);
 	row[px] = hb_packed_t<uint32_t> (hb_raster_src_over (src_px, (uint32_t) row[px]));
 	gx += inv_xx;
