@@ -48,7 +48,9 @@ struct output_options_t
     if (supported_formats)
     {
       char *items = g_strjoinv ("/", const_cast<char **> (supported_formats));
-      text = g_strdup_printf ("Set output format\n\n    Supported output formats are: %s", items);
+      text = g_strdup_printf ("Set output format (default: %s)\n\n    Supported output formats are: %s",
+			      supported_formats[0],
+			      items);
       g_free (items);
       parser->free_later ((char *) text);
     }
