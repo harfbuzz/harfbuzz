@@ -36,18 +36,6 @@
 
  #ifndef HB_NO_VAR
 
-static inline bool
-_is_valid_normalized_axis_range (const Triple &range)
-{
-  if (range.is_point ())
-    return true;
-
-  return -1.0 <= range.minimum &&
-         range.minimum <= range.middle &&
-         range.middle <= range.maximum &&
-         range.maximum <= +1.0;
-}
-
  void
  generate_varstore_inner_maps (const hb_set_t& varidx_set,
                                unsigned subtable_count,
@@ -244,12 +232,9 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
       }
       else
       {
-        Triple normalized_range ((double) normalized_min,
-                                 (double) normalized_default,
-                                 (double) normalized_max);
-        if (unlikely (!_is_valid_normalized_axis_range (normalized_range)))
-          return false;
-        plan->axes_location.set (axis_tag, normalized_range);
+        plan->axes_location.set (axis_tag, Triple ((double) normalized_min,
+                                                   (double) normalized_default,
+                                                   (double) normalized_max));
         if (normalized_default == -0.f)
           normalized_default = 0.f; // Normalize -0 to 0
         if (normalized_default != 0.f)
@@ -284,12 +269,9 @@ normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
       hb_tag_t axis_tag = _.second.get_axis_tag ();
       if (plan->user_axes_location.has (axis_tag))
       {
-        Triple normalized_range ((double) normalized_mins[i],
-                                 (double) normalized_defaults[i],
-                                 (double) normalized_maxs[i]);
-        if (unlikely (!_is_valid_normalized_axis_range (normalized_range)))
-          return false;
-        plan->axes_location.set (axis_tag, normalized_range);
+        plan->axes_location.set (axis_tag, Triple ((double) normalized_mins[i],
+                                                   (double) normalized_defaults[i],
+                                                   (double) normalized_maxs[i]));
         float normalized_default = normalized_defaults[i];
         if (normalized_default == -0.f)
           normalized_default = 0.f; // Normalize -0 to 0

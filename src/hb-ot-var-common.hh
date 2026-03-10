@@ -409,6 +409,13 @@ struct tuple_delta_t
       return;
     }
 
+    if (!axis_limit.is_point () &&
+        !(-1.0 <= axis_limit.minimum &&
+          axis_limit.minimum <= axis_limit.middle &&
+          axis_limit.middle <= axis_limit.maximum &&
+          axis_limit.maximum <= +1.0))
+      return;
+
     rebase_tent_result_t &solutions = scratch.first;
     rebase_tent (*tent, axis_limit, axis_triple_distances, solutions, scratch.second);
     for (unsigned i = 0; i < solutions.length; i++)
