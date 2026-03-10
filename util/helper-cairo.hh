@@ -357,10 +357,9 @@ _cairo_script_surface_create_for_stream (cairo_write_func_t write_func,
 
 static const char *helper_cairo_supported_formats[] =
 {
-  "ansi",
-  #ifdef CAIRO_HAS_PNG_FUNCTIONS
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
   "png",
-  #endif
+#endif
   #ifdef CAIRO_HAS_SVG_SURFACE
   "svg",
   #endif
@@ -376,6 +375,7 @@ static const char *helper_cairo_supported_formats[] =
   #ifdef CAIRO_HAS_SCRIPT_SURFACE
   "script",
   #endif
+  "ansi",
   nullptr
 };
 

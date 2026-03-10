@@ -39,13 +39,19 @@
 #include <vector>
 
 static const char *raster_supported_formats[] = {
-  "ansi",
-  "ppm",
 #ifdef HAVE_PNG
   "png",
 #endif
+  "ppm",
+  "ansi",
   nullptr
 };
+
+#ifdef HAVE_PNG
+#define HB_RASTER_DEFAULT_OUTPUT_FORMAT "png"
+#else
+#define HB_RASTER_DEFAULT_OUTPUT_FORMAT "ppm"
+#endif
 
 struct raster_output_t : output_options_t<true>, view_options_t
 {
@@ -770,7 +776,15 @@ struct raster_output_t : output_options_t<true>, view_options_t
       return output_format;
     }
 
-    return helper_image_get_implicit_output_format (out_fp, "ppm", protocol);
+#ifdef HAVE_PNG
+    return helper_image_get_implicit_output_format (out_fp,
+						    HB_RASTER_DEFAULT_OUTPUT_FORMAT,
+						    protocol);
+#else
+    return helper_image_get_implicit_output_format (out_fp,
+						    HB_RASTER_DEFAULT_OUTPUT_FORMAT,
+						    protocol);
+#endif
   }
 
   void write_blob (hb_blob_t *blob)
@@ -950,5 +964,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
   hb_direction_t     direction     = HB_DIRECTION_INVALID;
   std::vector<line_t> lines;
 };
+
+#undef HB_RASTER_DEFAULT_OUTPUT_FORMAT
 
 #endif
