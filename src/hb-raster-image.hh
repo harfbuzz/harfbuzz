@@ -43,14 +43,14 @@ struct hb_raster_image_t
   hb_raster_extents_t  extents     = {};
   hb_raster_format_t   format      = HB_RASTER_FORMAT_A8;
 
-  static unsigned bytes_per_pixel (hb_raster_format_t format);
-  bool configure (hb_raster_format_t format, hb_raster_extents_t extents);
-  bool deserialize_from_png (hb_blob_t *png);
-  hb_blob_t *serialize_to_png_or_fail () const;
-  void clear ();
-  const uint8_t *get_buffer () const;
-  void composite_from (const hb_raster_image_t *src,
-		       hb_paint_composite_mode_t mode);
+  HB_INTERNAL static unsigned bytes_per_pixel (hb_raster_format_t format);
+  HB_INTERNAL bool configure (hb_raster_format_t format, hb_raster_extents_t extents);
+  HB_INTERNAL bool deserialize_from_png (hb_blob_t *png);
+  HB_INTERNAL hb_blob_t *serialize_to_png_or_fail () const;
+  HB_INTERNAL void clear ();
+  HB_INTERNAL const uint8_t *get_buffer () const;
+  HB_INTERNAL void composite_from (const hb_raster_image_t *src,
+				   hb_paint_composite_mode_t mode);
 };
 
 /* Composite src image onto dst. */

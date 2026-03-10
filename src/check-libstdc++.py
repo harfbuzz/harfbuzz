@@ -5,6 +5,8 @@ import shutil
 import subprocess
 import sys
 
+from check_helpers import CHECK_LIBSTDCXX_LIBS
+
 srcdir = sys.argv[1]
 base_srcdir = sys.argv[2]
 builddir = sys.argv[3]
@@ -23,8 +25,7 @@ if not ldd:
 stat = 0
 tested = False
 
-# harfbuzz-icu links to libstdc++ because icu does.
-for soname in ["harfbuzz", "harfbuzz-subset", "harfbuzz-gobject", "harfbuzz-cairo"]:
+for soname in CHECK_LIBSTDCXX_LIBS:
     for suffix in ["so", "dylib"]:
         so = os.path.join(builddir, "lib%s.%s" % (soname, suffix))
         if not os.path.exists(so):

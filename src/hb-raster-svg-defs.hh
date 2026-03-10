@@ -94,15 +94,15 @@ struct hb_svg_defs_t
   hb_hashmap_t<hb_bytes_t, unsigned> clip_path_by_id;
   hb_vector_t<char *> owned_id_strings;
 
-  ~hb_svg_defs_t ();
+  HB_INTERNAL ~hb_svg_defs_t ();
 
-  bool add_id_mapping (hb_hashmap_t<hb_bytes_t, unsigned> *map,
-                       hb_bytes_t id,
-                       unsigned idx);
-  bool add_gradient (hb_bytes_t id, const hb_svg_gradient_t &grad);
-  const hb_svg_gradient_t *find_gradient (hb_bytes_t id) const;
-  bool add_clip_path (hb_bytes_t id, const hb_svg_clip_path_def_t &clip);
-  const hb_svg_clip_path_def_t *find_clip_path (hb_bytes_t id) const;
+  HB_INTERNAL bool add_id_mapping (hb_hashmap_t<hb_bytes_t, unsigned> *map,
+                                   hb_bytes_t id,
+                                   unsigned idx);
+  HB_INTERNAL bool add_gradient (hb_bytes_t id, const hb_svg_gradient_t &grad);
+  HB_INTERNAL const hb_svg_gradient_t *find_gradient (hb_bytes_t id) const;
+  HB_INTERNAL bool add_clip_path (hb_bytes_t id, const hb_svg_clip_path_def_t &clip);
+  HB_INTERNAL const hb_svg_clip_path_def_t *find_clip_path (hb_bytes_t id) const;
 };
 
 #endif /* HB_RASTER_SVG_DEFS_HH */
