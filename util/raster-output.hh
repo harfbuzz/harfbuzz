@@ -698,6 +698,70 @@ struct raster_output_t : output_options_t<true>, view_options_t
     }
   }
 
+  static uint8_t mul8 (uint8_t a, uint8_t b)
+  {
+    unsigned t = (unsigned) a * b + 128;
+    return (uint8_t) ((t + (t >> 8)) >> 8);
+  }
+
+  static uint32_t premul_pixel (uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+  {
+    return (uint32_t) mul8 (b, a)
+	 | ((uint32_t) mul8 (g, a) << 8)
+	 | ((uint32_t) mul8 (r, a) << 16)
+	 | ((uint32_t) a << 24);
+  }
+
+  static uint32_t src_over_premul (uint32_t src, uint32_t dst)
+  {
+    uint8_t sa = (uint8_t) (src >> 24);
+    if (sa == 255) return src;
+    if (!sa) return dst;
+
+    unsigned inv_sa = 255 - sa;
+    uint8_t b = (uint8_t) (src & 0xFF) +
+		mul8 ((uint8_t) (dst & 0xFF), inv_sa);
+    uint8_t g = (uint8_t) ((src >> 8) & 0xFF) +
+		mul8 ((uint8_t) ((dst >> 8) & 0xFF), inv_sa);
+    uint8_t r = (uint8_t) ((src >> 16) & 0xFF) +
+		mul8 ((uint8_t) ((dst >> 16) & 0xFF), inv_sa);
+    uint8_t a = sa + mul8 ((uint8_t) (dst >> 24), inv_sa);
+    return (uint32_t) b | ((uint32_t) g << 8) | ((uint32_t) r << 16) | ((uint32_t) a << 24);
+  }
+
+  uint32_t background_premul_pixel () const
+  {
+    return premul_pixel (bg_r, bg_g, bg_b, bg_a);
+  }
+
+  hb_raster_image_t *composite_background (hb_raster_image_t *img)
+  {
+    hb_raster_extents_t ext;
+    hb_raster_image_get_extents (img, &ext);
+
+    hb_raster_image_t *out = hb_raster_image_create_or_fail ();
+    if (!out) return nullptr;
+    if (!hb_raster_image_configure (out, HB_RASTER_FORMAT_BGRA32, &ext))
+    {
+      hb_raster_image_destroy (out);
+      return nullptr;
+    }
+
+    const uint8_t *src = hb_raster_image_get_buffer (img);
+    uint8_t *dst = const_cast<uint8_t *> (hb_raster_image_get_buffer (out));
+    uint32_t bg = background_premul_pixel ();
+    for (unsigned y = 0; y < ext.height; y++)
+      for (unsigned x = 0; x < ext.width; x++)
+      {
+	uint32_t s;
+	hb_memcpy (&s, src + y * ext.stride + x * 4, 4);
+	uint32_t d = src_over_premul (s, bg);
+	hb_memcpy (dst + y * ext.stride + x * 4, &d, 4);
+      }
+
+    return out;
+  }
+
   const char *get_output_format (helper_image_protocol_t *protocol)
   {
     if (output_format)
@@ -722,8 +786,20 @@ struct raster_output_t : output_options_t<true>, view_options_t
   void write_png (hb_raster_image_t *img, helper_image_protocol_t protocol)
   {
 #ifdef HAVE_PNG
-    hb_blob_t *blob = hb_raster_image_serialize_to_png_or_fail (img);
-    if (!blob) return;
+    hb_raster_image_t *png_img = img;
+    if (bg_a)
+    {
+      png_img = composite_background (img);
+      if (!png_img) return;
+    }
+
+    hb_blob_t *blob = hb_raster_image_serialize_to_png_or_fail (png_img);
+    if (!blob)
+    {
+      if (png_img != img)
+	hb_raster_image_destroy (png_img);
+      return;
+    }
 
     unsigned len = 0;
     const char *data = hb_blob_get_data (blob, &len);
@@ -731,6 +807,8 @@ struct raster_output_t : output_options_t<true>, view_options_t
       helper_image_write_png_data ((const unsigned char *) data, len,
 				   helper_image_stdio_write_func, out_fp, protocol);
     hb_blob_destroy (blob);
+    if (png_img != img)
+      hb_raster_image_destroy (png_img);
 #else
     HB_UNUSED (img);
     HB_UNUSED (protocol);
@@ -796,6 +874,8 @@ struct raster_output_t : output_options_t<true>, view_options_t
     uint8_t fg_r = hb_color_get_red (fg_color);
     uint8_t fg_g = hb_color_get_green (fg_color);
     uint8_t fg_b = hb_color_get_blue (fg_color);
+    uint8_t fg_a = hb_color_get_alpha (fg_color);
+    uint32_t bg_px = background_premul_pixel ();
 
     const uint8_t *src = hb_raster_image_get_buffer (img);
     hb_raster_image_t *bgra = hb_raster_image_create_or_fail ();
@@ -815,11 +895,9 @@ struct raster_output_t : output_options_t<true>, view_options_t
       for (unsigned x = 0; x < ext.width; x++)
       {
 	uint8_t a = src[y * ext.stride + x];
-	unsigned inv_a = 255 - a;
-	uint8_t r = (uint8_t) ((fg_r * a + bg_r * inv_a + 127) / 255);
-	uint8_t g = (uint8_t) ((fg_g * a + bg_g * inv_a + 127) / 255);
-	uint8_t b = (uint8_t) ((fg_b * a + bg_b * inv_a + 127) / 255);
-	uint32_t px = (uint32_t) b | ((uint32_t) g << 8) | ((uint32_t) r << 16) | 0xFF000000u;
+	uint8_t sa = mul8 (a, fg_a);
+	uint32_t fg_px = premul_pixel (fg_r, fg_g, fg_b, sa);
+	uint32_t px = src_over_premul (fg_px, bg_px);
 	hb_memcpy (dst + y * bgra_actual_ext.stride + x * 4, &px, 4);
       }
 
