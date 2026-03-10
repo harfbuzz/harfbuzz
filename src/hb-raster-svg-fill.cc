@@ -147,8 +147,7 @@ hb_raster_svg_emit_fill (const hb_svg_fill_context_t *ctx,
       if (unlikely (!node.visit ((uintptr_t) cur)))
         break;
 
-      chain.push (cur);
-      if (unlikely (chain.in_error ()))
+      if (unlikely (!chain.push_or_fail (cur)))
       {
         if (fallback_paint.len)
           hb_raster_svg_emit_fill (ctx, fallback_paint, fill_opacity, object_bbox, current_color);

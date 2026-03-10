@@ -90,8 +90,7 @@ svg_parse_gradient_stop (hb_svg_xml_parser_t &parser,
   stop.offset = offset;
   stop.color = color;
   stop.is_current_color = is_current_color;
-  grad.stops.push (stop);
-  return !grad.stops.in_error ();
+  return grad.stops.push_or_fail (stop);
 }
 
 static void
