@@ -203,7 +203,9 @@ hb_svg_blob_from_buffer (hb_blob_t **recycled_blob,
   else
   {
     hb_svg_blob_meta_set_buffer (meta, data, allocated);
-    blob = hb_blob_create (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_svg_blob_meta_destroy);
+    blob = hb_blob_create_or_fail (data, len, HB_MEMORY_MODE_WRITABLE, meta, hb_svg_blob_meta_destroy);
+    if (unlikely (!blob))
+      return nullptr;
   }
 
   if (unlikely (blob == hb_blob_get_empty ()))
@@ -1011,14 +1013,15 @@ hb_vector_paint_funcs_get ()
   return static_vector_paint_funcs.get_unconst ();
 }
 
-static void
+static hb_bool_t
 hb_vector_paint_ensure_initialized (hb_vector_paint_t *paint)
 {
   if (paint->group_stack.length)
-    return;
-  auto *root = paint->group_stack.push ();
-  if (likely (root))
-    root->alloc (4096);
+    return true;
+  if (unlikely (!paint->group_stack.push_or_fail ()))
+    return false;
+  paint->group_stack.tail ().alloc (4096);
+  return !paint->group_stack.in_error ();
 }
 
 static void
@@ -1030,7 +1033,8 @@ hb_vector_paint_push_transform (hb_paint_funcs_t *,
                                 void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
 
   if (unlikely (paint->transform_group_overflow_depth))
   {
@@ -1076,7 +1080,8 @@ hb_vector_paint_pop_transform (hb_paint_funcs_t *,
                                void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
   if (unlikely (paint->transform_group_overflow_depth))
   {
     paint->transform_group_overflow_depth--;
@@ -1099,7 +1104,8 @@ hb_vector_paint_push_clip_glyph (hb_paint_funcs_t *,
                                  void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
 
   if (!hb_set_has (paint->defined_outlines, glyph))
   {
@@ -1137,7 +1143,8 @@ hb_vector_paint_push_clip_rectangle (hb_paint_funcs_t *,
                                      void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
 
   unsigned clip_id = paint->clip_rect_counter++;
   hb_svg_append_str (&paint->defs, "<clipPath id=\"c");
@@ -1163,7 +1170,8 @@ hb_vector_paint_pop_clip (hb_paint_funcs_t *,
                           void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
   hb_svg_append_str (&paint->current_body (), "</g>\n");
 }
 
@@ -1175,7 +1183,8 @@ hb_vector_paint_color (hb_paint_funcs_t *,
                        void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
 
   hb_color_t c = color;
   if (is_foreground)
@@ -1202,7 +1211,8 @@ hb_vector_paint_image (hb_paint_funcs_t *,
                        void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return false;
 
   auto &body = paint->current_body ();
   if (format == HB_TAG ('s','v','g',' '))
@@ -1287,7 +1297,8 @@ hb_vector_paint_linear_gradient (hb_paint_funcs_t *,
                                  void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
   if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
@@ -1328,7 +1339,8 @@ hb_vector_paint_radial_gradient (hb_paint_funcs_t *,
                                  void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
   if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
@@ -1376,7 +1388,8 @@ hb_vector_paint_sweep_gradient (hb_paint_funcs_t *,
                                 void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
 
   hb_vector_t<hb_color_stop_t> &stops = paint->color_stops_scratch;
   if (!hb_svg_get_color_stops (paint, color_line, &stops) || !stops.length)
@@ -1400,8 +1413,9 @@ hb_vector_paint_push_group (hb_paint_funcs_t *,
                             void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
-  paint->group_stack.push (hb_vector_t<char> {});
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
+  paint->group_stack.push_or_fail (hb_vector_t<char> {});
 }
 
 static void
@@ -1411,7 +1425,8 @@ hb_vector_paint_pop_group (hb_paint_funcs_t *,
                            void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return;
   if (paint->group_stack.length < 2)
     return;
 
@@ -1439,7 +1454,8 @@ hb_vector_paint_color_glyph (hb_paint_funcs_t *,
                              void *)
 {
   auto *paint = (hb_vector_paint_t *) paint_data;
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return false;
   hb_codepoint_t old_gid = paint->current_svg_image_glyph;
   hb_face_t *old_face = paint->current_face;
   paint->current_svg_image_glyph = glyph;
@@ -1898,7 +1914,8 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     }
   }
 
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return false;
 
   bool can_cache = !paint->flat;
   hb_svg_color_glyph_cache_key_t cache_key = hb_svg_color_glyph_cache_key (glyph,
@@ -1933,7 +1950,8 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   bool has_svg_image = false;
   if (can_cache)
   {
-    paint->group_stack.push (hb_vector_t<char> {});
+    if (unlikely (!paint->group_stack.push_or_fail (hb_vector_t<char> {})))
+      return false;
     paint->current_color_glyph_has_svg_image = false;
   }
 
@@ -2090,7 +2108,8 @@ hb_vector_paint_render (hb_vector_paint_t *paint)
   if (!paint->has_extents)
     return nullptr;
 
-  hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
+    return nullptr;
 
   hb_vector_t<char> out;
   hb_svg_recover_recycled_buffer (paint->recycled_blob, &out);

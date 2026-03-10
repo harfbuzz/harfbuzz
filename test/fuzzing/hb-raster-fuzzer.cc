@@ -56,6 +56,13 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 
   hb_raster_draw_t *draw = hb_raster_draw_create_or_fail ();
   hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  if (!draw || !paint)
+  {
+    hb_raster_draw_destroy (draw);
+    hb_raster_paint_destroy (paint);
+    hb_buffer_destroy (buffer);
+    return 0;
+  }
   hb_raster_paint_set_foreground (paint, HB_COLOR (0, 0, 0, 255));
 
   draw_shaped_text (input.font, buffer, draw, paint);
@@ -101,4 +108,3 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   hb_buffer_destroy (buffer);
   return counter ? 0 : 0;
 }
-

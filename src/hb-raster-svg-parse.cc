@@ -246,9 +246,12 @@ hb_raster_svg_parse_path_data (hb_svg_str_t d, hb_draw_funcs_t *dfuncs, void *dr
   float last_cx = 0, last_cy = 0;
   char last_cmd = 0;
   char cmd = 0;
+  unsigned segments = 0;
 
   while (fp.p < fp.end)
   {
+    if (unlikely (segments++ >= HB_SVG_MAX_PATH_SEGMENTS))
+      break;
     fp.skip_ws_comma ();
     if (fp.p >= fp.end) break;
 

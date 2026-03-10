@@ -395,8 +395,6 @@ composite_pixel (uint32_t src, uint32_t dst,
 
 /* hb_raster_image_t */
 
-#define HB_RASTER_IMAGE_MAX_BUFFER_SIZE ((size_t) 1 << 30)
-
 unsigned
 hb_raster_image_t::bytes_per_pixel (hb_raster_format_t format)
 {
@@ -423,7 +421,7 @@ hb_raster_image_t::configure (hb_raster_format_t format,
     return false;
 
   size_t buf_size = (size_t) extents.stride * extents.height;
-  if (buf_size > HB_RASTER_IMAGE_MAX_BUFFER_SIZE)
+  if (buf_size > HB_RASTER_MAX_BUFFER_SIZE)
     return false;
   if (unlikely (!buffer.resize_dirty (buf_size)))
     return false;
