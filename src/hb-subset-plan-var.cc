@@ -39,6 +39,9 @@
 static inline bool
 _is_valid_normalized_axis_range (const Triple &range)
 {
+  if (range.is_point ())
+    return true;
+
   return -1.0 <= range.minimum &&
          range.minimum <= range.middle &&
          range.middle <= range.maximum &&
