@@ -7,6 +7,7 @@ This repository is HarfBuzz, a text shaping engine with stable public API and AB
 - Prefer minimal diffs. Do not rename, reorder, or reformat unrelated code.
 - Preserve existing behavior unless the task explicitly requires a change.
 - Prefer incremental changes over large rewrites. This repository frequently lands feature work as a series of narrowly-scoped helper extraction, refactoring, and follow-up fix commits.
+- Scope work to one subsystem or concern at a time where possible. Across the full history, HarfBuzz changes are usually organized as small, well-labeled steps inside a single area.
 - Treat public API and ABI stability as a hard constraint.
 - Do not add new public API unless the task explicitly asks for it.
 - Never change or remove existing public API/ABI unless explicitly requested.
@@ -80,6 +81,7 @@ Available `HB_DEBUG_*` flags, defined in `src/hb-debug.hh`: `APPLY`, `ARABIC`, `
 - For `util/` changes, at minimum rebuild the relevant tool and exercise its CLI on a small sample.
 - For `test/subset/` or subset-related library changes, run the full test suite unless the task is explicitly isolated.
 - When fixing a bug or hardening a parser, add or update the nearest regression test, fuzz target, fuzz seed, or expected output whenever practical. Recent history strongly favors reproducible regressions over fix-only commits.
+- Treat portability regressions as first-class bugs. The full history includes repeated fixes for GCC/Clang/MSVC, old toolchains, 32/64-bit issues, and optional-dependency builds.
 
 For performance-sensitive shaping changes, prefer a release-style benchmark build:
 
@@ -129,6 +131,7 @@ meson test -C build
 - Raster/vector/SVG work: prefer extracting shared helpers and splitting oversized files by responsibility rather than adding more branching to one large translation unit. Many recent changes moved code into `*-parse`, `*-defs`, `*-clip`, `*-fill`, `*-gradient`, and similar helpers.
 - Fuzzing and parser-hardening work: check `test/fuzzing/`, existing fuzzers, and nearby guardrail code first. The project routinely turns crash fixes into durable fuzz coverage.
 - Build-system work: keep Meson summaries, feature options, installed utilities, and dependent test/util targets in sync. If the change affects cross-build or packaging behavior, inspect CMake too.
+- Build-system work: preserve support for optional dependencies and reduced-feature builds. History shows frequent fixes for builds without GLib, Cairo, FreeType, ICU, Graphite2, HarfRust, raster, vector, or subset enabled.
 - Generated data work: prefer updating the generator or makefile flow, then regenerate outputs. Commits in Unicode, Arabic, Indic, emoji, and tag data usually touch both generator inputs and generated tables together.
 - Benchmark work: keep correctness first, then compare `ot` versus alternate backends using `perf/benchmark-shape`.
 - Rust integration work: inspect `src/rust/meson.build` and `src/rust/Cargo.toml` before changing build glue. The Rust crate defines two optional features: `font` for the fontations/skrifa backend and `shape` for HarfRust.
@@ -140,6 +143,7 @@ For API work:
 - ABI is tracked. Do not remove or change signatures of public symbols.
 - If new API is explicitly requested, document it in `NEWS`, add an `XSince: REPLACEME` annotation in the public header docs, and hook it up in `docs/harfbuzz-sections.txt` and `docs/harfbuzz-docs.xml` when needed.
 - If new functionality is exposed through utilities or libraries, update the relevant docs, manpage/user manual entries, Meson install/build wiring, and build summaries in the same change when applicable.
+- Keep documentation placement consistent with project practice: public API docs may live in source files when that is the local convention, while generated section indexes stay in `docs/`.
 
 ## Avoid
 
@@ -158,5 +162,6 @@ For API work:
 - **Cross-platform mindset:** HarfBuzz runs on everything from embedded systems to web browsers. Stick to established portability patterns and C++11 constraints.
 - **Feature guards:** Check `#ifdef` and Meson feature options before assuming a code path is always present.
 - **Share before you duplicate:** A recurring pattern in recent commits is to centralize parsing, caching, view options, and destruction helpers once duplication starts to spread.
-- **Commit hygiene:** Write descriptive commit messages that explain the root cause, the chosen fix, and how the change was tested.
+- **Commit hygiene:** Write descriptive commit messages that explain the root cause, the chosen fix, and how the change was tested. Prefer consistent bracketed subsystem prefixes in subjects, such as `[subset]`, `[raster]`, `[util]`, or `[meson]`.
+- **Commit trailers:** When relevant, link the change to issues or PRs in the commit body using trailers such as `Fixes:`. Always include an `Assisted-by:` trailer on commits you write.
 - **Leave it better:** If you learn a repo-specific nuance that is not captured here, update this file.
