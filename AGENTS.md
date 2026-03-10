@@ -91,7 +91,8 @@ For API work:
 ## Commit guidance
 
 - Use descriptive commit messages with consistent bracketed subsystem prefixes such as `[subset]`, `[raster]`, `[util]`, or `[meson]`.
-- Explain root cause, fix, and testing in the commit body.
+- Wrap commit message bodies to about 70 columns.
+- Explain root cause, fix, and testing in the commit body when testing was actually performed or is relevant.
 - When relevant, link issues or PRs with trailers such as `Fixes:`.
 - Always include an `Assisted-by:` trailer on commits you write through the agent.
 
