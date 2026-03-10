@@ -22,9 +22,14 @@ responsible for the changes they submit.
 - Respect licensing and attribution requirements. Do not submit AI-generated
   content that may have unclear provenance or incompatible licensing.
 
+## Attribution
+
+- When AI tools contributed meaningfully to a change, add an `Assisted-by:`
+  trailer to the commit message (e.g. `Assisted-by: Claude`). Routine use of
+  autocompletion or spelling correction does not require attribution.
+
 ## Pull requests
 
-- Disclose significant AI assistance in the pull request description.
 - Describe what was verified locally, including the exact build or test commands
   you ran.
 - Call out uncertainty, skipped validation, or areas that need extra review.
