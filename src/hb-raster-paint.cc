@@ -1719,11 +1719,7 @@ hb_raster_paint_reference (hb_raster_paint_t *paint)
 void
 hb_raster_paint_destroy (hb_raster_paint_t *paint)
 {
-  hb_object_trace (paint, HB_FUNC);
-  if (unlikely (!paint || paint->header.is_inert ()))
-    return;
-  assert (hb_object_is_valid (paint));
-  if (paint->header.ref_count.dec () != 1)
+  if (!hb_object_should_destroy (paint))
     return;
 
   hb_map_destroy (paint->custom_palette);
@@ -1732,8 +1728,7 @@ hb_raster_paint_destroy (hb_raster_paint_t *paint)
     hb_raster_image_destroy (s);
   for (auto *s : paint->surface_cache)
     hb_raster_image_destroy (s);
-  hb_object_fini (paint);
-  paint->~hb_raster_paint_t ();
+  hb_object_actually_destroy (paint);
   hb_free (paint);
 }
 

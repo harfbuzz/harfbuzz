@@ -150,16 +150,11 @@ hb_raster_draw_reference (hb_raster_draw_t *draw)
 void
 hb_raster_draw_destroy (hb_raster_draw_t *draw)
 {
-  hb_object_trace (draw, HB_FUNC);
-  if (unlikely (!draw || draw->header.is_inert ()))
-    return;
-  assert (hb_object_is_valid (draw));
-  if (draw->header.ref_count.dec () != 1)
+  if (!hb_object_should_destroy (draw))
     return;
 
   hb_raster_image_destroy (draw->recycled_image);
-  hb_object_fini (draw);
-  draw->~hb_raster_draw_t ();
+  hb_object_actually_destroy (draw);
   hb_free (draw);
 }
 
