@@ -8,7 +8,7 @@ ninja -Cfuzzbuild
 
 Then, run the fuzzer like this:
 
-fuzzbuild/test/fuzzing/hb-{shape,draw,subset,set}-fuzzer [-max_len=2048] [CORPUS_DIR]
+fuzzbuild/test/fuzzing/hb-{shape,raster,vector,subset,set}-fuzzer [-max_len=2048] [CORPUS_DIR]
 
 Where max_len specifies the maximal length of font files to handle.
 The smaller the faster.
