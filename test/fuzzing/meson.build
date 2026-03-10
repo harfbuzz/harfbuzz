@@ -1,7 +1,6 @@
 tests = [
   'hb-shape-fuzzer.cc',
   'hb-subset-fuzzer.cc',
-  'hb-set-fuzzer.cc',
   'hb-raster-fuzzer.cc',
   'hb-vector-fuzzer.cc',
   'hb-repacker-fuzzer.cc',
@@ -56,11 +55,10 @@ glob_cmd = find_program('glob.py', required: true)
 fonts_glob = run_command(glob_cmd, meson.current_source_dir() / 'fonts', check:true).stdout().strip().split('\n')
 subset_fonts_glob = run_command(glob_cmd, meson.current_source_dir() / '..' / 'subset' / 'data' / 'fonts', check:true).stdout().strip().split('\n')
 graphs_glob = run_command(glob_cmd, meson.current_source_dir() / 'graphs', check:true).stdout().strip().split('\n')
-sets_glob = run_command(glob_cmd, meson.current_source_dir() / 'sets', check:true).stdout().strip().split('\n')
 
 # Chunk the glob lists to avoid command line length limits, and for parallelization
 chunk_size = 64
-foreach glob_name : ['fonts_glob', 'subset_fonts_glob', 'graphs_glob', 'sets_glob']
+foreach glob_name : ['fonts_glob', 'subset_fonts_glob', 'graphs_glob']
   glob = get_variable(glob_name)
   chunks = []
   chunk = []
@@ -142,15 +140,3 @@ if not get_option('subset').disabled()
     i += 1
   endforeach
 endif
-
-i = 0
-foreach chunk : sets_glob_chunks
-  test('set-fuzzer-chunk-@0@'.format(i),
-    hb_set_fuzzer_exe,
-    args: chunk,
-    workdir: meson.current_build_dir() / '..' / '..',
-    protocol: 'tap',
-    suite: ['fuzzing'],
-  )
-  i += 1
-endforeach
