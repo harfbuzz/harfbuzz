@@ -2093,6 +2093,8 @@ hb_vector_paint_render (hb_vector_paint_t *paint)
     return nullptr;
 
   hb_vector_paint_ensure_initialized (paint);
+  if (unlikely (!paint->group_stack.length))
+    return nullptr;
 
   hb_vector_t<char> out;
   hb_svg_recover_recycled_buffer (paint->recycled_blob, &out);
