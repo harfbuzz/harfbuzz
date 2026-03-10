@@ -6,6 +6,7 @@ This repository is HarfBuzz, a text shaping engine with stable public API and AB
 
 - Prefer minimal diffs. Do not rename, reorder, or reformat unrelated code.
 - Preserve existing behavior unless the task explicitly requires a change.
+- Prefer incremental changes over large rewrites. This repository frequently lands feature work as a series of narrowly-scoped helper extraction, refactoring, and follow-up fix commits.
 - Treat public API and ABI stability as a hard constraint.
 - Do not add new public API unless the task explicitly asks for it.
 - Never change or remove existing public API/ABI unless explicitly requested.
@@ -78,6 +79,7 @@ Available `HB_DEBUG_*` flags, defined in `src/hb-debug.hh`: `APPLY`, `ARABIC`, `
 - For changes under `src/` that affect shaping, run `meson test -C build`.
 - For `util/` changes, at minimum rebuild the relevant tool and exercise its CLI on a small sample.
 - For `test/subset/` or subset-related library changes, run the full test suite unless the task is explicitly isolated.
+- When fixing a bug or hardening a parser, add or update the nearest regression test, fuzz target, fuzz seed, or expected output whenever practical. Recent history strongly favors reproducible regressions over fix-only commits.
 
 For performance-sensitive shaping changes, prefer a release-style benchmark build:
 
@@ -124,6 +126,10 @@ meson test -C build
 - Shaping changes: check nearby script- or font-specific tests under `test/shape/`. Run at least `meson test -C build --suite shape`.
 - Subsetting changes: run `meson test -C build --suite subset`. The `src/graph/` code is part of the subsetter's table repacking.
 - Raster/vector work: inspect the matching utilities in `util/` and the relevant feature toggles in `meson_options.txt`.
+- Raster/vector/SVG work: prefer extracting shared helpers and splitting oversized files by responsibility rather than adding more branching to one large translation unit. Many recent changes moved code into `*-parse`, `*-defs`, `*-clip`, `*-fill`, `*-gradient`, and similar helpers.
+- Fuzzing and parser-hardening work: check `test/fuzzing/`, existing fuzzers, and nearby guardrail code first. The project routinely turns crash fixes into durable fuzz coverage.
+- Build-system work: keep Meson summaries, feature options, installed utilities, and dependent test/util targets in sync. If the change affects cross-build or packaging behavior, inspect CMake too.
+- Generated data work: prefer updating the generator or makefile flow, then regenerate outputs. Commits in Unicode, Arabic, Indic, emoji, and tag data usually touch both generator inputs and generated tables together.
 - Benchmark work: keep correctness first, then compare `ot` versus alternate backends using `perf/benchmark-shape`.
 - Rust integration work: inspect `src/rust/meson.build` and `src/rust/Cargo.toml` before changing build glue. The Rust crate defines two optional features: `font` for the fontations/skrifa backend and `shape` for HarfRust.
 
@@ -133,6 +139,7 @@ For API work:
 - Run `meson test -C build --suite api`.
 - ABI is tracked. Do not remove or change signatures of public symbols.
 - If new API is explicitly requested, document it in `NEWS`, add an `XSince: REPLACEME` annotation in the public header docs, and hook it up in `docs/harfbuzz-sections.txt` and `docs/harfbuzz-docs.xml` when needed.
+- If new functionality is exposed through utilities or libraries, update the relevant docs, manpage/user manual entries, Meson install/build wiring, and build summaries in the same change when applicable.
 
 ## Avoid
 
@@ -146,8 +153,10 @@ For API work:
 - **Surgical precision:** HarfBuzz is at the bottom of the stack for millions of users. A one-line change can have wide impact.
 - **Empirical validation:** Reproduce the issue first, then verify the fix with a test or direct repro.
 - **Root cause first:** Understand the bug or request clearly before writing code. If the root cause is unclear or multiple interpretations are plausible, ask instead of guessing.
+- **Expect reversions:** The recent history contains many targeted reverts of changes that were correct in isolation but wrong for the wider codebase. If a simplification or optimization changes semantics, validate it from multiple angles before landing it.
 - **Historical context:** If code looks unusually complex, it probably handles a real edge case. Use `git blame` and check `NEWS` before simplifying it.
 - **Cross-platform mindset:** HarfBuzz runs on everything from embedded systems to web browsers. Stick to established portability patterns and C++11 constraints.
 - **Feature guards:** Check `#ifdef` and Meson feature options before assuming a code path is always present.
+- **Share before you duplicate:** A recurring pattern in recent commits is to centralize parsing, caching, view options, and destruction helpers once duplication starts to spread.
 - **Commit hygiene:** Write descriptive commit messages that explain the root cause, the chosen fix, and how the change was tested.
 - **Leave it better:** If you learn a repo-specific nuance that is not captured here, update this file.
