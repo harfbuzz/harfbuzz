@@ -2,6 +2,20 @@
 
 This repository is HarfBuzz, a text shaping engine with stable public API and ABI expectations. Keep changes narrow, preserve existing behavior unless the task explicitly requires a change, and avoid style-only churn.
 
+## Core rules
+
+- Prefer minimal diffs. Do not rename, reorder, or reformat unrelated code.
+- Preserve existing behavior unless the task explicitly requires a change.
+- Treat public API and ABI stability as a hard constraint.
+- Do not add new public API unless the task explicitly asks for it.
+- Never change or remove existing public API/ABI unless explicitly requested.
+- Follow existing local conventions in the touched file instead of applying a new style.
+- Preserve optional-feature behavior. Many code paths are gated by Meson options or compile-time defines.
+- Keep out-of-memory behavior in mind. New code should fail safely and fit HarfBuzz's existing allocation and error-handling patterns.
+- Prefer HarfBuzz's established `likely`/`unlikely` conventions where they improve clarity and match surrounding code.
+- Prefer minimizing error-handling branching, using HarfBuzz's nil-object/null-pattern conventions where appropriate.
+- Leave unrelated untracked files and user changes alone. This tree is often used with local test artifacts.
+
 ## First read
 
 Start with these files before making non-trivial changes:
@@ -10,42 +24,28 @@ Start with these files before making non-trivial changes:
 - `BUILD.md`: standard Meson build flow and dependencies.
 - `TESTING.md`: common test and debug commands.
 - `CONFIG.md`: feature flags and size-sensitive build options.
-- `RELEASING.md`: release-related expectations; note that some generated version files can change after tests.
+- `RELEASING.md`: release-related expectations; some generated version files can change after tests.
 
 ## Repository map
 
 - `src/`: core library implementation.
-  - `src/OT/`: OpenType shaping/layout internals (`Color/`, `glyf/`, `Layout/`, `name/`, `Var/`).
-  - `src/graph/`: graph helpers for subsetting (GSUBGPOS repacking).
-  - `src/ms-use/`: Microsoft Universal Shaping Engine data files.
-  - `src/rust/`: Rust integration—HarfRust shaper and fontations/skrifa font backend. Requires Rust >= 1.87.0.
-  - `src/wasm/`: WebAssembly shaper (experimental); includes sample code.
+- `src/OT/`: OpenType shaping/layout internals (`Color/`, `glyf/`, `Layout/`, `name/`, `Var/`).
+- `src/graph/`: graph helpers for subsetting (GSUB/GPOS repacking).
+- `src/ms-use/`: Microsoft Universal Shaping Engine data files.
+- `src/rust/`: Rust integration for the HarfRust shaper and fontations/skrifa backend. Requires Rust >= 1.87.0.
+- `src/wasm/`: experimental WebAssembly shaper and sample code.
 - `util/`: installed command-line tools: `hb-shape`, `hb-view`, `hb-info`, `hb-subset`, `hb-vector`, `hb-raster`.
-- `test/`: organized into subdirectories:
-  - `test/api/`: C/C++ API unit tests.
-  - `test/shape/`: shaping regression tests (per-script and per-font).
-  - `test/subset/`: subsetting and instancing tests.
-  - `test/vector/`: vector drawing tests.
-  - `test/threads/`: thread-safety tests.
-  - `test/fuzzing/`: fuzzer entry points and corpora (see `test/fuzzing/README.md`).
-- `perf/`: benchmarks using Google Benchmark (`benchmark-shape`, `benchmark-font`, `benchmark-subset`, etc.). See `perf/README.md`.
-- `subprojects/`: Meson wrap files for optional dependencies (Cairo, FreeType, GLib, ICU, Graphite2, Google Benchmark, etc.).
-- `docs/`: documentation build inputs (gtk-doc).
+- `test/api/`: C/C++ API unit tests.
+- `test/shape/`: shaping regression tests, organized by script and font.
+- `test/subset/`: subsetting and instancing tests.
+- `test/vector/`: vector drawing tests.
+- `test/threads/`: thread-safety tests.
+- `test/fuzzing/`: fuzzer entry points and corpora. See `test/fuzzing/README.md`.
+- `perf/`: Google Benchmark-based performance tests such as `benchmark-shape`, `benchmark-font`, and `benchmark-subset`. See `perf/README.md`.
+- `subprojects/`: Meson wrap files for optional dependencies such as Cairo, FreeType, GLib, ICU, Graphite2, and Google Benchmark.
+- `docs/`: gtk-doc documentation inputs.
 
-## Working style
-
-- Prefer minimal diffs. Do not rename, reorder, or reformat unrelated code.
-- Treat public API and ABI stability as a hard constraint.
-- Do not add new public API unless the task explicitly asks for it. Never change or remove existing public API/ABI unless explicitly requested.
-- Follow existing local conventions in the touched file instead of applying a new style.
-- When editing generated or table-like files, confirm whether the source generator should be changed instead.
-- Preserve optional-feature behavior. Many code paths are gated by Meson options or compile-time defines.
-- Keep out-of-memory behavior in mind. New code should fail safely and fit HarfBuzz's existing allocation/error patterns.
-- Prefer HarfBuzz's established `likely`/`unlikely` conventions where they improve clarity and match surrounding code.
-- Prefer minimizing error-handling branching, using HarfBuzz's nil-object/null-pattern conventions where appropriate.
-- Leave unrelated untracked files and user changes alone. This tree is often used with local test artifacts.
-
-## Build and test
+## Build flow
 
 Default development flow:
 
@@ -70,15 +70,16 @@ Useful variants:
 - Reconfigure with debug logging: `CPPFLAGS=-DHB_DEBUG_SUBSET=100 meson setup build --reconfigure`
 - ASan build: `meson setup build -Db_sanitize=address --reconfigure && meson compile -C build && meson test -C build`
 
-Available `HB_DEBUG_*` flags (defined in `src/hb-debug.hh`): `APPLY`, `ARABIC`, `BLOB`, `CORETEXT`, `DIRECTWRITE`, `DISPATCH`, `FT`, `JUSTIFY`, `KBTS`, `OBJECT`, `PAINT`, `SANITIZE`, `SERIALIZE`, `SHAPE_PLAN`, `SUBSET`, `SUBSET_REPACK`, `UNISCRIBE`, `WASM`. Set to a level (e.g. `100`) via `CPPFLAGS=-DHB_DEBUG_<FLAG>=100`.
+Available `HB_DEBUG_*` flags, defined in `src/hb-debug.hh`: `APPLY`, `ARABIC`, `BLOB`, `CORETEXT`, `DIRECTWRITE`, `DISPATCH`, `FT`, `JUSTIFY`, `KBTS`, `OBJECT`, `PAINT`, `SANITIZE`, `SERIALIZE`, `SHAPE_PLAN`, `SUBSET`, `SUBSET_REPACK`, `UNISCRIBE`, `WASM`. Set a level with `CPPFLAGS=-DHB_DEBUG_<FLAG>=100`.
 
-## Verification guidance
+## Verification
 
 - For any code change, rebuild and make sure the touched targets compile without new warnings before considering the work done.
 - For changes under `src/` that affect shaping, run `meson test -C build`.
 - For `util/` changes, at minimum rebuild the relevant tool and exercise its CLI on a small sample.
 - For `test/subset/` or subset-related library changes, run the full test suite unless the task is explicitly isolated.
-- For performance-sensitive shaping changes, prefer a release-style benchmark build:
+
+For performance-sensitive shaping changes, prefer a release-style benchmark build:
 
 ```sh
 meson setup build -Dbenchmark=enabled -Dbuildtype=release --reconfigure
@@ -86,7 +87,7 @@ meson compile -C build
 build/perf/benchmark-shape --benchmark_filter='(ot|harfrust)'
 ```
 
-- For HarfRust comparison work, enable the HarfRust backend explicitly:
+For HarfRust comparison work, enable the HarfRust backend explicitly:
 
 ```sh
 meson setup build -Dbenchmark=enabled -Dharfrust=enabled -Dbuildtype=release --reconfigure
@@ -97,7 +98,7 @@ build/perf/benchmark-shape --benchmark_filter='(ot|harfrust)'
 
 If you modify Rust-side HarfRust integration and Meson does not notice the change, touching `src/rust/shaper.rs` is a known way to force a rebuild of that part of the tree.
 
-The fontations font backend can be tested similarly:
+The fontations backend can be tested similarly:
 
 ```sh
 meson setup build -Dfontations=enabled -Dbuildtype=release --reconfigure
@@ -108,24 +109,30 @@ meson test -C build
 ## Dependencies and options
 
 - Meson (>= 0.60.0) is the primary build system. CMake exists, but prefer Meson unless the task is explicitly about CMake.
-- There is also an amalgamated source (`src/harfbuzz.cc`) for embedding HarfBuzz without a build system: `c++ -c src/harfbuzz.cc`.
-- The CLI tools require GLib; `hb-view` additionally requires Cairo. Most tests require GLib.
-- Relevant Meson options live in `meson_options.txt`. Key feature options (all `feature` type—`auto`/`enabled`/`disabled`):
-  - Always on by default: `raster`, `vector`, `subset`, `tests`, `utilities`.
-  - Off by default: `harfrust`, `fontations`, `benchmark`, `graphite2`, `wasm`, `kbts`.
-  - Auto-detected: `glib`, `gobject`, `cairo`, `chafa`, `freetype`, `icu`, `introspection`, `docs`.
-  - Platform-specific (off by default): `coretext`, `directwrite`, `gdi`.
-- Size-sensitive builds use compile-time configuration in `src/hb-config.hh` and the guidance in `CONFIG.md`. Pre-defined profiles: `HB_MINI`, `HB_LEAN`, `HB_TINY`.
+- There is also an amalgamated source for embedding HarfBuzz without a build system: `c++ -c src/harfbuzz.cc`.
+- The CLI tools require GLib. `hb-view` also requires Cairo. Most tests require GLib.
+- Relevant Meson options live in `meson_options.txt`.
+- Key feature options are `feature`-typed and use `auto`, `enabled`, or `disabled`.
+- Enabled by default: `raster`, `vector`, `subset`, `tests`, `utilities`.
+- Disabled by default: `harfrust`, `fontations`, `benchmark`, `graphite2`, `wasm`, `kbts`.
+- Auto-detected: `glib`, `gobject`, `cairo`, `chafa`, `freetype`, `icu`, `introspection`, `docs`.
+- Platform-specific and off by default: `coretext`, `directwrite`, `gdi`.
+- Size-sensitive builds use compile-time configuration in `src/hb-config.hh`. See `CONFIG.md` for guidance and the predefined profiles `HB_MINI`, `HB_LEAN`, and `HB_TINY`.
 
-## Change-specific advice
+## Change-specific guidance
 
 - Shaping changes: check nearby script- or font-specific tests under `test/shape/`. Run at least `meson test -C build --suite shape`.
 - Subsetting changes: run `meson test -C build --suite subset`. The `src/graph/` code is part of the subsetter's table repacking.
-- Raster/vector work: inspect the matching utilities in `util/` and feature toggles in `meson_options.txt`.
-- API changes: run `meson test -C build --suite api`. Public API lives in `src/hb-*.h` headers (no `.hh`). ABI is tracked; do not remove or change signatures of public symbols.
-- New API, when explicitly requested: document it in `NEWS`, add an `XSince: REPLACEME` annotation in the public header docs, and hook it up in `docs/harfbuzz-sections.txt` (and `docs/harfbuzz-docs.xml` when needed).
+- Raster/vector work: inspect the matching utilities in `util/` and the relevant feature toggles in `meson_options.txt`.
 - Benchmark work: keep correctness first, then compare `ot` versus alternate backends using `perf/benchmark-shape`.
-- Rust integration work: inspect `src/rust/meson.build` and `src/rust/Cargo.toml` before changing build glue. The Rust crate defines two optional features: `font` (fontations/skrifa backend) and `shape` (HarfRust backend).
+- Rust integration work: inspect `src/rust/meson.build` and `src/rust/Cargo.toml` before changing build glue. The Rust crate defines two optional features: `font` for the fontations/skrifa backend and `shape` for HarfRust.
+
+For API work:
+
+- Public API lives in `src/hb-*.h` headers, not `.hh`.
+- Run `meson test -C build --suite api`.
+- ABI is tracked. Do not remove or change signatures of public symbols.
+- If new API is explicitly requested, document it in `NEWS`, add an `XSince: REPLACEME` annotation in the public header docs, and hook it up in `docs/harfbuzz-sections.txt` and `docs/harfbuzz-docs.xml` when needed.
 
 ## Avoid
 
@@ -134,13 +141,13 @@ meson test -C build
 - Do not assume untracked fonts, images, or generated outputs are disposable.
 - Do not disable tests to get a green run without documenting the reason.
 
-## Wisdom
+## Working mindset
 
-- **Surgical Precision:** HarfBuzz is at the bottom of the stack for millions of users. A single-line change can have massive ripple effects. Prioritize minimal, targeted diffs over broad refactors.
-- **Empirical Validation:** Never assume a fix works until you've reproduced the failure with a test case and then seen it pass with your changes.
-- **Root Cause First:** Understand the bug or request clearly before writing code. If the root cause is still unclear or multiple interpretations are plausible, ask instead of guessing.
-- **Historical Context:** If a piece of code looks unnecessarily complex, it likely handles a specific edge case for a legacy font or a broken shaper implementation. Use `git blame` and check `NEWS` before "simplifying" it.
-- **Cross-Platform Mindset:** HarfBuzz runs on everything from embedded systems to web browsers. The project builds with C++11 and avoids platform-specific assumptions. Stick to the established portability patterns in the codebase.
-- **Feature Guards:** Many code paths are conditionally compiled. Check `#ifdef`/`#ifndef` guards and Meson feature options before assuming a function or code path is always available.
-- **Commit Hygiene:** Write descriptive commit messages that explain the root cause, the chosen fix, and how the change was tested.
-- **Leave it Better:** If you discover a nuance about the build system or a specific sub-directory that wasn't documented here, update this file.
+- **Surgical precision:** HarfBuzz is at the bottom of the stack for millions of users. A one-line change can have wide impact.
+- **Empirical validation:** Reproduce the issue first, then verify the fix with a test or direct repro.
+- **Root cause first:** Understand the bug or request clearly before writing code. If the root cause is unclear or multiple interpretations are plausible, ask instead of guessing.
+- **Historical context:** If code looks unusually complex, it probably handles a real edge case. Use `git blame` and check `NEWS` before simplifying it.
+- **Cross-platform mindset:** HarfBuzz runs on everything from embedded systems to web browsers. Stick to established portability patterns and C++11 constraints.
+- **Feature guards:** Check `#ifdef` and Meson feature options before assuming a code path is always present.
+- **Commit hygiene:** Write descriptive commit messages that explain the root cause, the chosen fix, and how the change was tested.
+- **Leave it better:** If you learn a repo-specific nuance that is not captured here, update this file.
