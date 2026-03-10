@@ -20,7 +20,7 @@ Start with these files before making non-trivial changes:
   - `src/ms-use/`: Microsoft Universal Shaping Engine data files.
   - `src/rust/`: Rust integration—HarfRust shaper and fontations/skrifa font backend. Requires Rust >= 1.87.0.
   - `src/wasm/`: WebAssembly shaper (experimental); includes sample code.
-- `util/`: command-line tools: `hb-shape`, `hb-view`, `hb-info`, `hb-subset`, `hb-vector`, `hb-raster`, `hb-ft-raster`, `hb-fc`.
+- `util/`: installed command-line tools: `hb-shape`, `hb-view`, `hb-info`, `hb-subset`, `hb-vector`, `hb-raster`.
 - `test/`: organized into subdirectories:
   - `test/api/`: C/C++ API unit tests.
   - `test/shape/`: shaping regression tests (per-script and per-font).
@@ -36,9 +36,13 @@ Start with these files before making non-trivial changes:
 
 - Prefer minimal diffs. Do not rename, reorder, or reformat unrelated code.
 - Treat public API and ABI stability as a hard constraint.
+- Do not add new public API unless the task explicitly asks for it. Never change or remove existing public API/ABI unless explicitly requested.
 - Follow existing local conventions in the touched file instead of applying a new style.
 - When editing generated or table-like files, confirm whether the source generator should be changed instead.
 - Preserve optional-feature behavior. Many code paths are gated by Meson options or compile-time defines.
+- Keep out-of-memory behavior in mind. New code should fail safely and fit HarfBuzz's existing allocation/error patterns.
+- Prefer HarfBuzz's established `likely`/`unlikely` conventions where they improve clarity and match surrounding code.
+- Prefer minimizing error-handling branching, using HarfBuzz's nil-object/null-pattern conventions where appropriate.
 - Leave unrelated untracked files and user changes alone. This tree is often used with local test artifacts.
 
 ## Build and test
@@ -70,6 +74,7 @@ Available `HB_DEBUG_*` flags (defined in `src/hb-debug.hh`): `APPLY`, `ARABIC`, 
 
 ## Verification guidance
 
+- For any code change, rebuild and make sure the touched targets compile without new warnings before considering the work done.
 - For changes under `src/` that affect shaping, run `meson test -C build`.
 - For `util/` changes, at minimum rebuild the relevant tool and exercise its CLI on a small sample.
 - For `test/subset/` or subset-related library changes, run the full test suite unless the task is explicitly isolated.
@@ -118,6 +123,7 @@ meson test -C build
 - Subsetting changes: run `meson test -C build --suite subset`. The `src/graph/` code is part of the subsetter's table repacking.
 - Raster/vector work: inspect the matching utilities in `util/` and feature toggles in `meson_options.txt`.
 - API changes: run `meson test -C build --suite api`. Public API lives in `src/hb-*.h` headers (no `.hh`). ABI is tracked; do not remove or change signatures of public symbols.
+- New API, when explicitly requested: document it in `NEWS`, add an `XSince: REPLACEME` annotation in the public header docs, and hook it up in `docs/harfbuzz-sections.txt` (and `docs/harfbuzz-docs.xml` when needed).
 - Benchmark work: keep correctness first, then compare `ot` versus alternate backends using `perf/benchmark-shape`.
 - Rust integration work: inspect `src/rust/meson.build` and `src/rust/Cargo.toml` before changing build glue. The Rust crate defines two optional features: `font` (fontations/skrifa backend) and `shape` (HarfRust backend).
 
@@ -132,7 +138,9 @@ meson test -C build
 
 - **Surgical Precision:** HarfBuzz is at the bottom of the stack for millions of users. A single-line change can have massive ripple effects. Prioritize minimal, targeted diffs over broad refactors.
 - **Empirical Validation:** Never assume a fix works until you've reproduced the failure with a test case and then seen it pass with your changes.
+- **Root Cause First:** Understand the bug or request clearly before writing code. If the root cause is still unclear or multiple interpretations are plausible, ask instead of guessing.
 - **Historical Context:** If a piece of code looks unnecessarily complex, it likely handles a specific edge case for a legacy font or a broken shaper implementation. Use `git blame` and check `NEWS` before "simplifying" it.
 - **Cross-Platform Mindset:** HarfBuzz runs on everything from embedded systems to web browsers. The project builds with C++11 and avoids platform-specific assumptions. Stick to the established portability patterns in the codebase.
 - **Feature Guards:** Many code paths are conditionally compiled. Check `#ifdef`/`#ifndef` guards and Meson feature options before assuming a function or code path is always available.
+- **Commit Hygiene:** Write descriptive commit messages that explain the root cause, the chosen fix, and how the change was tested.
 - **Leave it Better:** If you discover a nuance about the build system or a specific sub-directory that wasn't documented here, update this file.
