@@ -84,7 +84,9 @@ struct raster_output_t : output_options_t<true>, view_options_t
     hb_face_t *face = hb_font_get_face (font);
     has_color = hb_ot_color_has_paint (face) ||
 		hb_ot_color_has_layers (face) ||
+#ifndef HB_NO_SVG
 		hb_ot_color_has_svg (face) ||
+#endif
 		hb_ot_color_has_png (face);
 
     fg_color = HB_COLOR ((uint8_t) foreground_color.b,

@@ -437,8 +437,9 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   const char *data = hb_blob_get_data (blob, &data_len);
   if (!data || !data_len) return false;
 
-  hb_face_t *face = hb_font_get_face (font);
+  hb_face_t *face HB_UNUSED = hb_font_get_face (font);
   const OT::SVG::svg_doc_cache_t *doc_cache = nullptr;
+#ifndef HB_NO_SVG
   unsigned doc_index = 0;
   hb_codepoint_t start_glyph = HB_CODEPOINT_INVALID;
   hb_codepoint_t end_glyph = HB_CODEPOINT_INVALID;
@@ -451,6 +452,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 
   if (doc_cache)
     data = face->table.SVG->doc_cache_get_svg (doc_cache, &data_len);
+#endif
 
   hb_paint_funcs_t *pfuncs = hb_raster_paint_get_funcs ();
 
@@ -462,7 +464,9 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   ctx.foreground = foreground;
   ctx.doc_start = data;
   ctx.doc_len = data_len;
+#ifndef HB_NO_SVG
   ctx.svg_accel = face ? face->table.SVG.get () : nullptr;
+#endif
   ctx.doc_cache = doc_cache;
 
   hb_svg_cascade_t initial_state;
@@ -478,6 +482,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   hb_raster_svg_collect_defs (&scan_ctx, data, data_len);
 
   bool found_glyph = false;
+#ifndef HB_NO_SVG
   unsigned glyph_start = 0, glyph_end = 0;
   if (doc_cache && face->table.SVG->doc_cache_get_glyph_span (doc_cache, glyph, &glyph_start, &glyph_end))
   {
@@ -493,7 +498,8 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
       found_glyph = true;
     }
   }
-  else
+#endif
+  if (!found_glyph)
   {
     /* Fallback for malformed/uncached docs: linear scan by glyph id. */
     char glyph_id_str[32];

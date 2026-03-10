@@ -43,6 +43,7 @@
 #endif
 
 #if !defined(HB_NO_COLOR) && !defined(HB_NO_DRAW)
+#ifndef HB_NO_SVG
 static void
 svg_dump (hb_face_t *face, unsigned face_index)
 {
@@ -72,6 +73,7 @@ svg_dump (hb_face_t *face, unsigned face_index)
     hb_blob_destroy (blob);
   }
 }
+#endif
 
 /* _png API is so easy to use unlike the below code, don't get confused */
 static void
@@ -327,9 +329,11 @@ dump_glyphs (hb_blob_t *blob, const char *font_name)
       printf ("Dumping png (CBDT/sbix)...\n");
     png_dump (face, face_index);
 
+#ifndef HB_NO_SVG
     if (hb_ot_color_has_svg (face))
       printf ("Dumping svg (SVG )...\n");
     svg_dump (face, face_index);
+#endif
 
     if (hb_ot_color_has_layers (face) && hb_ot_color_has_palettes (face))
       printf ("Dumping layered color glyphs (COLR/CPAL)...\n");

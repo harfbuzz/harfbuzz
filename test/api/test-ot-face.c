@@ -70,8 +70,10 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_color_palette_get_colors (face, cp, 0, NULL, NULL);
   hb_ot_color_has_layers (face);
   hb_ot_color_glyph_get_layers (face, cp, 0, NULL, NULL);
+#ifndef HB_NO_SVG
   hb_ot_color_has_svg (face);
   hb_blob_destroy (hb_ot_color_glyph_reference_svg (face, cp));
+#endif
   hb_ot_color_has_png (face);
   hb_blob_destroy (hb_ot_color_glyph_reference_png (font, cp));
 
