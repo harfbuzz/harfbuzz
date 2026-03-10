@@ -366,6 +366,7 @@ test_hb_ot_color_has_data (void)
   g_assert_true (hb_ot_color_has_palettes (svg) == FALSE);
   g_assert_true (hb_ot_color_has_palettes (colrv1) == TRUE);
 
+#ifndef HB_NO_SVG
   g_assert_true (hb_ot_color_has_svg (empty) == FALSE);
   g_assert_true (hb_ot_color_has_svg (cpal_v0) == FALSE);
   g_assert_true (hb_ot_color_has_svg (cpal_v1) == FALSE);
@@ -374,6 +375,7 @@ test_hb_ot_color_has_data (void)
   g_assert_true (hb_ot_color_has_svg (sbix) == FALSE);
   g_assert_true (hb_ot_color_has_svg (svg) == TRUE);
   g_assert_true (hb_ot_color_has_svg (colrv1) == FALSE);
+#endif
 
   g_assert_true (hb_ot_color_has_png (empty) == FALSE);
   g_assert_true (hb_ot_color_has_png (cpal_v0) == FALSE);
@@ -405,6 +407,7 @@ test_hb_ot_color_glyph_has_paint (void)
 static void
 test_hb_ot_color_svg (void)
 {
+#ifndef HB_NO_SVG
   hb_blob_t *blob;
   unsigned int length;
   const char *data;
@@ -421,6 +424,7 @@ test_hb_ot_color_svg (void)
 
   blob = hb_ot_color_glyph_reference_svg (empty, 0);
   g_assert_true (hb_blob_get_length (blob) == 0);
+#endif
 }
 
 
@@ -502,7 +506,9 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_glyph_get_layers);
   hb_test_add (test_hb_ot_color_has_data);
   hb_test_add (test_hb_ot_color_png);
+#ifndef HB_NO_SVG
   hb_test_add (test_hb_ot_color_svg);
+#endif
   hb_test_add (test_hb_ot_color_glyph_has_paint);
 
   status = hb_test_run();

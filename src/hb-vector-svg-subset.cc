@@ -28,7 +28,9 @@
 
 #include "hb-face.hh"
 #include "hb-vector-svg-subset.hh"
+#ifndef HB_NO_SVG
 #include "OT/Color/svg/svg.hh"
+#endif
 #include "hb-vector-svg-utils.hh"
 #include "hb-map.hh"
 #include "hb-ot-color.h"
@@ -37,6 +39,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef HB_NO_SVG
 static bool
 hb_svg_append_with_prefix (hb_vector_t<char> *out,
                            const char *s,
@@ -343,3 +346,15 @@ hb_svg_subset_glyph_image (hb_face_t *face,
                                     prefix,
                                     (unsigned) prefix_len);
 }
+#else
+bool
+hb_svg_subset_glyph_image (hb_face_t *face HB_UNUSED,
+                           hb_blob_t *image HB_UNUSED,
+                           hb_codepoint_t glyph HB_UNUSED,
+                           unsigned *image_counter HB_UNUSED,
+                           hb_vector_t<char> *defs_dst HB_UNUSED,
+                           hb_vector_t<char> *body_dst HB_UNUSED)
+{
+  return false;
+}
+#endif

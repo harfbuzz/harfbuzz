@@ -35,7 +35,9 @@
 #include "OT/Color/COLR/COLR.hh"
 #include "OT/Color/CPAL/CPAL.hh"
 #include "OT/Color/sbix/sbix.hh"
+#ifndef HB_NO_SVG
 #include "OT/Color/svg/svg.hh"
+#endif
 
 
 /**
@@ -274,6 +276,7 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
  * SVG
  */
 
+#ifndef HB_NO_SVG
 /**
  * hb_ot_color_has_svg:
  * @face: #hb_face_t to work upon.
@@ -372,6 +375,7 @@ hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
 {
   return face->table.SVG->reference_blob_for_glyph (glyph);
 }
+#endif
 
 
 /*
