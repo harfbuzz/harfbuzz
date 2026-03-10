@@ -598,9 +598,12 @@ hb_vector_draw_reference (hb_vector_draw_t *draw)
 void
 hb_vector_draw_destroy (hb_vector_draw_t *draw)
 {
-  if (!hb_object_destroy (draw)) return;
+  if (!hb_object_should_destroy (draw))
+    return;
+
   hb_blob_destroy (draw->recycled_blob);
   hb_set_destroy (draw->defined_glyphs);
+  hb_object_actually_destroy (draw);
   hb_free (draw);
 }
 

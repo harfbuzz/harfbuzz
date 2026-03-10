@@ -2,7 +2,8 @@ tests = [
   'hb-shape-fuzzer.cc',
   'hb-subset-fuzzer.cc',
   'hb-set-fuzzer.cc',
-  'hb-draw-fuzzer.cc',
+  'hb-raster-fuzzer.cc',
+  'hb-vector-fuzzer.cc',
   'hb-repacker-fuzzer.cc',
 ]
 
@@ -32,6 +33,12 @@ foreach file_name : tests
   link_with_libs = [libharfbuzz]
   if not get_option('subset').disabled()
     link_with_libs += [libharfbuzz_subset]
+  endif
+  if test_name.contains('raster')
+    link_with_libs += [libharfbuzz_raster]
+  endif
+  if test_name.contains('vector')
+    link_with_libs += [libharfbuzz_vector]
   endif
 
   exe = executable(test_name, sources,
@@ -86,8 +93,20 @@ endforeach
 
 i = 0
 foreach chunk : fonts_glob_chunks
-  test('draw-fuzzer-chunk-@0@'.format(i),
-    hb_draw_fuzzer_exe,
+  test('raster-fuzzer-chunk-@0@'.format(i),
+    hb_raster_fuzzer_exe,
+    args: chunk,
+    workdir: meson.current_build_dir() / '..' / '..',
+    protocol: 'tap',
+    suite: ['fuzzing'],
+  )
+  i += 1
+endforeach
+
+i = 0
+foreach chunk : fonts_glob_chunks
+  test('vector-fuzzer-chunk-@0@'.format(i),
+    hb_vector_fuzzer_exe,
     args: chunk,
     workdir: meson.current_build_dir() / '..' / '..',
     protocol: 'tap',

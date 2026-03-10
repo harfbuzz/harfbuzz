@@ -1515,10 +1515,13 @@ hb_vector_paint_reference (hb_vector_paint_t *paint)
 void
 hb_vector_paint_destroy (hb_vector_paint_t *paint)
 {
-  if (!hb_object_destroy (paint)) return;
+  if (!hb_object_should_destroy (paint))
+    return;
+
   hb_blob_destroy (paint->recycled_blob);
   hb_set_destroy (paint->defined_outlines);
   hb_set_destroy (paint->defined_clips);
+  hb_object_actually_destroy (paint);
   hb_free (paint);
 }
 

@@ -43,6 +43,18 @@ struct hb_raster_png_read_blob_t
 };
 
 static void
+hb_raster_png_error (png_structp png,
+		     png_const_charp msg HB_UNUSED)
+{
+  png_longjmp (png, 1);
+}
+
+static void
+hb_raster_png_warning (png_structp png HB_UNUSED,
+		       png_const_charp msg HB_UNUSED)
+{}
+
+static void
 hb_raster_png_read_blob (png_structp png, png_bytep out, png_size_t length)
 {
   hb_raster_png_read_blob_t *r = (hb_raster_png_read_blob_t *) png_get_io_ptr (png);
@@ -435,7 +447,9 @@ hb_raster_image_t::deserialize_from_png (hb_blob_t *blob)
   if (!blob_data || !blob_len)
     return false;
 
-  png_structp png = png_create_read_struct (PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+  png_structp png = png_create_read_struct (PNG_LIBPNG_VER_STRING, nullptr,
+					    hb_raster_png_error,
+					    hb_raster_png_warning);
   if (!png)
     return false;
 
@@ -450,9 +464,13 @@ hb_raster_image_t::deserialize_from_png (hb_blob_t *blob)
   reader.data = blob_data;
   reader.size = (size_t) blob_len;
   reader.offset = 0;
+  hb_vector_t<uint8_t> rgba;
+  hb_vector_t<png_bytep> rows;
   if (setjmp (png_jmpbuf (png)))
   {
     png_destroy_read_struct (&png, &info, nullptr);
+    rgba.fini ();
+    rows.fini ();
     return false;
   }
 
@@ -510,14 +528,12 @@ hb_raster_image_t::deserialize_from_png (hb_blob_t *blob)
     return false;
   }
 
-  hb_vector_t<uint8_t> rgba;
   if (!rgba.resize (rgba_size))
   {
     png_destroy_read_struct (&png, &info, nullptr);
     return false;
   }
 
-  hb_vector_t<png_bytep> rows;
   if (!rows.resize ((unsigned) h))
   {
     png_destroy_read_struct (&png, &info, nullptr);
@@ -569,7 +585,9 @@ hb_raster_image_t::serialize_to_png_or_fail () const
   if (format != HB_RASTER_FORMAT_BGRA32 || !extents.width || !extents.height)
     return nullptr;
 
-  png_structp png = png_create_write_struct (PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+  png_structp png = png_create_write_struct (PNG_LIBPNG_VER_STRING, nullptr,
+					     hb_raster_png_error,
+					     hb_raster_png_warning);
   if (!png)
     return nullptr;
 
@@ -581,9 +599,14 @@ hb_raster_image_t::serialize_to_png_or_fail () const
   }
 
   hb_raster_png_write_blob_t writer;
+  hb_vector_t<uint8_t> rgba;
+  hb_vector_t<png_bytep> rows;
   if (setjmp (png_jmpbuf (png)))
   {
     png_destroy_write_struct (&png, &info);
+    writer.data.fini ();
+    rgba.fini ();
+    rows.fini ();
     return nullptr;
   }
 
@@ -596,7 +619,6 @@ hb_raster_image_t::serialize_to_png_or_fail () const
 		PNG_FILTER_TYPE_DEFAULT);
   png_write_info (png, info);
 
-  hb_vector_t<uint8_t> rgba;
   size_t rowbytes = (size_t) extents.width * 4u;
   size_t rgba_size = rowbytes * (size_t) extents.height;
   if (extents.height && rgba_size / (size_t) extents.height != rowbytes)
@@ -611,7 +633,6 @@ hb_raster_image_t::serialize_to_png_or_fail () const
     return nullptr;
   }
 
-  hb_vector_t<png_bytep> rows;
   if (!rows.resize (extents.height))
   {
     png_destroy_write_struct (&png, &info);

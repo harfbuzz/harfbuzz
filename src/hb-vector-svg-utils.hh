@@ -51,7 +51,7 @@ hb_svg_append_len (hb_vector_t<char> *buf,
 static inline bool
 hb_svg_append_c (hb_vector_t<char> *buf, char c)
 {
-  return !!buf->push (c);
+  return buf->push_or_fail (c);
 }
 
 static inline void

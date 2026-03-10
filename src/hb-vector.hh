@@ -318,6 +318,12 @@ struct hb_vector_t
   }
   template <typename... Args>
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
+  bool push_or_fail (Args&&... args)
+  {
+    return push (std::forward<Args> (args)...) != std::addressof (Crap (Type));
+  }
+  template <typename... Args>
+  HB_ALWAYS_INLINE_VECTOR_ALLOCS
   Type *push_has_room (Args&&... args)
   {
     /* Emplace. */

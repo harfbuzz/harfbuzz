@@ -311,7 +311,7 @@ hb_svg_subset_glyph_image (hb_face_t *face,
         if (!chosen_def_marks.arrayZ[i])
         {
           chosen_def_marks.arrayZ[i] = 1;
-          if (unlikely (!chosen_defs.push (i)))
+          if (unlikely (!chosen_defs.push_or_fail (i)))
             return false;
           if (!hb_svg_collect_refs (svg + e.start, e.end - e.start,
                                     &needed_ids, &needed_ids_set))
