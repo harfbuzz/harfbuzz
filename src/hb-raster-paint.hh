@@ -140,7 +140,7 @@ struct hb_raster_paint_t
 
   void release_surface (hb_raster_image_t *img)
   {
-    if (!surface_cache.push (img))
+    if (!surface_cache.push_or_fail (img))
       hb_raster_image_destroy (img);
   }
 

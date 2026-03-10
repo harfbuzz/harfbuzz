@@ -686,7 +686,7 @@ _serialize_cff1_charstrings (hb_serialize_context_t *c,
         (cff1_charstrings[i].tail () != 0x0e && cff1_charstrings[i].tail () != 0x0b))
     {
       // Append endchar operator
-      if (unlikely (!cff1_charstrings[i].push (0x0e)))
+      if (unlikely (!cff1_charstrings[i].push_or_fail (0x0e)))
       {
         c->pop_discard ();
         return false;

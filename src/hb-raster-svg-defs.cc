@@ -54,7 +54,7 @@ hb_svg_defs_t::add_id_mapping (hb_hashmap_t<hb_bytes_t, unsigned> *map,
     return false;
   hb_memcpy (owned, id.arrayZ, n);
   owned[n] = '\0';
-  if (unlikely (!owned_id_strings.push (owned)))
+  if (unlikely (!owned_id_strings.push_or_fail (owned)))
   {
     hb_free (owned);
     return false;

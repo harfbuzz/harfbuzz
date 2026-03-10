@@ -110,14 +110,14 @@ ensure_initialized (hb_raster_paint_t *c)
   /* Root surface */
   hb_raster_image_t *root = c->acquire_surface ();
   if (unlikely (!root)) return;
-  if (unlikely (!c->surface_stack.push (root)))
+  if (unlikely (!c->surface_stack.push_or_fail (root)))
   {
     c->release_surface (root);
     return;
   }
 
   /* Initial transform */
-  if (unlikely (!c->transform_stack.push (c->base_transform)))
+  if (unlikely (!c->transform_stack.push_or_fail (c->base_transform)))
   {
     c->release_surface (c->surface_stack.pop ());
     return;
@@ -126,7 +126,7 @@ ensure_initialized (hb_raster_paint_t *c)
   /* Initial clip: full coverage rectangle */
   hb_raster_clip_t clip;
   clip.init_full (c->fixed_extents.width, c->fixed_extents.height);
-  if (unlikely (!c->clip_stack.push (std::move (clip))))
+  if (unlikely (!c->clip_stack.push_or_fail (std::move (clip))))
   {
     c->transform_stack.pop ();
     c->release_surface (c->surface_stack.pop ());
@@ -312,7 +312,7 @@ hb_raster_paint_push_clip_from_emitter (hb_raster_paint_t *c,
   }
 
   hb_raster_draw_recycle_image (rdr, mask_img);
-  if (unlikely (!c->clip_stack.push (std::move (new_clip))))
+  if (unlikely (!c->clip_stack.push_or_fail (std::move (new_clip))))
     hb_raster_paint_push_empty_clip (c, w, h);
 }
 
@@ -541,7 +541,7 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     }
   }
 
-  if (unlikely (!c->clip_stack.push (std::move (new_clip))))
+  if (unlikely (!c->clip_stack.push_or_fail (std::move (new_clip))))
     hb_raster_paint_push_empty_clip (c, surf->extents.width, surf->extents.height);
 }
 
@@ -566,7 +566,7 @@ hb_raster_paint_push_group (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   hb_raster_image_t *new_surf = c->acquire_surface ();
   if (unlikely (!new_surf)) return;
-  if (unlikely (!c->surface_stack.push (new_surf)))
+  if (unlikely (!c->surface_stack.push_or_fail (new_surf)))
     c->release_surface (new_surf);
 }
 
