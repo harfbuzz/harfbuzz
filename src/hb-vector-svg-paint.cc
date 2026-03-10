@@ -1016,9 +1016,9 @@ hb_vector_paint_ensure_initialized (hb_vector_paint_t *paint)
 {
   if (paint->group_stack.length)
     return;
-  auto *root = paint->group_stack.push ();
-  if (likely (root))
-    root->alloc (4096);
+  if (unlikely (!paint->group_stack.push_or_fail ()))
+    return;
+  paint->group_stack.tail ().alloc (4096);
 }
 
 static void
