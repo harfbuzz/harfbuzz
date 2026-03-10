@@ -1,7 +1,9 @@
 # Code of AI Conduct
 
-This project accepts AI-assisted contributions, but contributors remain fully
-responsible for the changes they submit.
+This project accepts AI-assisted contributions. Before review, a human
+contributor is expected to take full responsibility for the changes they
+submit. If a maintainer chooses to accept a machine-originated change directly,
+that maintainer takes the same responsibility for it.
 
 ## Requirements
 
