@@ -213,7 +213,9 @@ hb_raster_paint_push_clip_from_emitter (hb_raster_paint_t *c,
   }
 
   /* Allocate alpha buffer and intersect with previous clip */
-  if (unlikely (!new_clip.alpha.resize (new_clip.stride * h)))
+  size_t clip_size = (size_t) new_clip.stride * h;
+  if (unlikely (clip_size > HB_RASTER_MAX_BUFFER_SIZE ||
+                !new_clip.alpha.resize ((unsigned) clip_size)))
   {
     hb_raster_draw_recycle_image (rdr, mask_img);
     hb_raster_paint_push_empty_clip (c, w, h);
@@ -434,12 +436,14 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
   {
     /* General case: rasterize transformed quad as alpha mask */
     new_clip.is_rect = false;
-    if (unlikely (!new_clip.alpha.resize (new_clip.stride * h)))
+    size_t clip_size = (size_t) new_clip.stride * h;
+    if (unlikely (clip_size > HB_RASTER_MAX_BUFFER_SIZE ||
+                  !new_clip.alpha.resize ((unsigned) clip_size)))
     {
       hb_raster_paint_push_empty_clip (c, w, h);
       return;
     }
-    hb_memset (new_clip.alpha.arrayZ, 0, new_clip.stride * h);
+    hb_memset (new_clip.alpha.arrayZ, 0, (unsigned) clip_size);
 
     /* Convert quad corners to pixel-relative coords */
     float qx[4], qy[4];
