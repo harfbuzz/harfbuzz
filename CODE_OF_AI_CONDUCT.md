@@ -5,6 +5,9 @@ contributor is expected to take full responsibility for the changes they
 submit. If a maintainer chooses to accept a machine-originated change directly,
 that maintainer takes the same responsibility for it.
 
+For discussion, concerns, and motivation behind this policy, see
+[#5790](https://github.com/harfbuzz/harfbuzz/issues/5790).
+
 ## Requirements
 
 - Use AI as a tool, not as an authority. Verify behavior, correctness, and
