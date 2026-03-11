@@ -764,6 +764,9 @@ if not get_option('raster').disabled()
   if png_dep.found()
     raster_deps += [png_dep]
   endif
+  if zlib_dep.found()
+    raster_deps += [zlib_dep]
+  endif
 
   libharfbuzz_raster = library('harfbuzz-raster', hb_raster_sources,
     include_directories: incconfig,

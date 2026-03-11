@@ -112,6 +112,10 @@
 #define HB_SVG_MAX_PATH_SEGMENTS 262144
 #endif
 
+#ifndef HB_SVG_MAX_DOCUMENT_SIZE
+#define HB_SVG_MAX_DOCUMENT_SIZE ((size_t) 16 << 20)
+#endif
+
 #ifndef HB_RASTER_MAX_BUFFER_SIZE
 #define HB_RASTER_MAX_BUFFER_SIZE ((size_t) 1 << 24)
 #endif

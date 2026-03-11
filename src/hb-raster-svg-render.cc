@@ -40,10 +40,123 @@
 
 #include <assert.h>
 #include <stdio.h>
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
 
 #ifndef HB_NO_RASTER_SVG
 
 #define SVG_MAX_DEPTH 32
+
+static inline bool
+hb_raster_svg_blob_is_gzip (const char *data,
+			    unsigned    data_len)
+{
+  return data_len >= 3 &&
+	 (unsigned char) data[0] == 0x1Fu &&
+	 (unsigned char) data[1] == 0x8Bu &&
+	 (unsigned char) data[2] == 0x08u;
+}
+
+static inline bool
+hb_raster_svg_gzip_get_uncompressed_size (const char *data,
+					  unsigned    data_len,
+					  uint32_t   *size)
+{
+  if (data_len < 4)
+    return false;
+
+  const unsigned char *trailer = (const unsigned char *) data + data_len - 4;
+  if (size)
+    *size = (uint32_t) trailer[0] |
+	    ((uint32_t) trailer[1] << 8) |
+	    ((uint32_t) trailer[2] << 16) |
+	    ((uint32_t) trailer[3] << 24);
+  return true;
+}
+
+#ifdef HAVE_ZLIB
+static hb_blob_t *
+hb_raster_svg_decompress_blob (hb_blob_t *blob)
+{
+  unsigned compressed_len = 0;
+  const uint8_t *compressed = (const uint8_t *) hb_blob_get_data (blob, &compressed_len);
+  if (!compressed || !compressed_len)
+    return nullptr;
+
+  z_stream stream = {};
+  stream.next_in = (Bytef *) compressed;
+  stream.avail_in = compressed_len;
+
+  if (inflateInit2 (&stream, 16 + MAX_WBITS) != Z_OK)
+    return nullptr;
+
+  uint32_t expected_size = 0;
+  hb_raster_svg_gzip_get_uncompressed_size ((const char *) compressed,
+					    compressed_len,
+					    &expected_size);
+
+  size_t allocated = hb_min ((size_t) hb_max (expected_size, 4096u),
+			     (size_t) HB_SVG_MAX_DOCUMENT_SIZE);
+  char *output = (char *) hb_malloc (allocated);
+  if (!output)
+  {
+    inflateEnd (&stream);
+    return nullptr;
+  }
+
+  int status = Z_OK;
+  while (true)
+  {
+    size_t produced = (size_t) stream.total_out;
+    if (unlikely (produced >= (size_t) HB_SVG_MAX_DOCUMENT_SIZE))
+      goto fail;
+
+    if (produced == allocated)
+    {
+      size_t new_allocated = hb_min (allocated * 2, (size_t) HB_SVG_MAX_DOCUMENT_SIZE);
+      if (unlikely (new_allocated <= allocated))
+	goto fail;
+
+      char *new_output = (char *) hb_realloc (output, new_allocated);
+      if (unlikely (!new_output))
+	goto fail;
+
+      output = new_output;
+      allocated = new_allocated;
+    }
+
+    stream.next_out = (Bytef *) output + stream.total_out;
+    stream.avail_out = (uInt) (allocated - (size_t) stream.total_out);
+
+    status = inflate (&stream, Z_FINISH);
+    if (status == Z_STREAM_END)
+      break;
+
+    if ((status == Z_OK || status == Z_BUF_ERROR) && stream.avail_out == 0)
+      continue;
+
+    goto fail;
+  }
+
+  inflateEnd (&stream);
+
+  if (unlikely ((size_t) stream.total_out > (size_t) HB_SVG_MAX_DOCUMENT_SIZE))
+    goto fail_free;
+
+  return hb_blob_create_or_fail (output,
+				 (unsigned) stream.total_out,
+				 HB_MEMORY_MODE_WRITABLE,
+				 output,
+				 hb_free);
+
+fail:
+  inflateEnd (&stream);
+fail_free:
+  hb_free (output);
+  return nullptr;
+}
+#endif
 
 /*
  * 11. Element renderer — recursive SVG rendering
@@ -433,9 +546,55 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 		      unsigned palette,
 		      hb_color_t foreground)
 {
-  unsigned data_len;
-  const char *data = hb_blob_get_data (blob, &data_len);
-  if (!data || !data_len) return false;
+  hb_blob_t *render_blob = hb_blob_reference (blob);
+  if (!render_blob)
+    return false;
+
+  unsigned data_len = 0;
+  const char *data = hb_blob_get_data (render_blob, &data_len);
+  if (!data || !data_len)
+  {
+    hb_blob_destroy (render_blob);
+    return false;
+  }
+
+  if (hb_raster_svg_blob_is_gzip (data, data_len))
+  {
+    uint32_t expected_size = 0;
+    if (hb_raster_svg_gzip_get_uncompressed_size (data, data_len, &expected_size) &&
+	unlikely ((size_t) expected_size > (size_t) HB_SVG_MAX_DOCUMENT_SIZE))
+    {
+      hb_blob_destroy (render_blob);
+      return false;
+    }
+
+#ifdef HAVE_ZLIB
+    hb_blob_t *uncompressed = hb_raster_svg_decompress_blob (render_blob);
+    if (!uncompressed)
+    {
+      hb_blob_destroy (render_blob);
+      return false;
+    }
+
+    hb_blob_destroy (render_blob);
+    render_blob = uncompressed;
+    data = hb_blob_get_data (render_blob, &data_len);
+    if (!data || !data_len)
+    {
+      hb_blob_destroy (render_blob);
+      return false;
+    }
+#else
+    hb_blob_destroy (render_blob);
+    return false;
+#endif
+  }
+
+  if (unlikely ((size_t) data_len > (size_t) HB_SVG_MAX_DOCUMENT_SIZE))
+  {
+    hb_blob_destroy (render_blob);
+    return false;
+  }
 
   hb_face_t *face HB_UNUSED = hb_font_get_face (font);
   const OT::SVG::svg_doc_cache_t *doc_cache = nullptr;
@@ -447,7 +606,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   if (face &&
       hb_ot_color_glyph_get_svg_document_index (face, glyph, &doc_index) &&
       hb_ot_color_get_svg_document_glyph_range (face, doc_index, &start_glyph, &end_glyph))
-    doc_cache = face->table.SVG->get_or_create_doc_cache (blob, data, data_len,
+    doc_cache = face->table.SVG->get_or_create_doc_cache (render_blob, data, data_len,
                                                           doc_index, start_glyph, end_glyph);
 
   if (doc_cache)
@@ -518,7 +677,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
         if (id.len)
         {
           if (id.len == (unsigned) glyph_id_len &&
-              0 == memcmp (id.data, glyph_id_str, (unsigned) glyph_id_len))
+              0 == hb_memcmp (id.data, glyph_id_str, (unsigned) glyph_id_len))
           {
             hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
             ctx.push_transform (1, 0, 0, -1, 0, 0);
@@ -533,6 +692,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
     }
   }
 
+  hb_blob_destroy (render_blob);
   return found_glyph;
 }
 
