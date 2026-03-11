@@ -1,3 +1,20 @@
+Overview of changes leading to 13.1.0
+Wednesday, March 11, 2026
+=====================================
+- The `harfbuzz-raster` library can now render bitmap color glyph formats
+  (`CBDT` and `sbix`). It now also has an API to serialize / deserialize images
+  to and from PNGs. This new functionality requires `libpng`, and will not be
+  available if HarfBuzz is built without `libpng`.
+- Install `hb-raster` command line utility.
+- Fix overflow when applying `stch` feature with malicious fonts.
+- Fix memory leaks in `harfbuzz-raster` and `harfbuzz-vector` in error
+  conditions, as well as more robust handling of allocation failures.
+- Various documentation improvements and build fixes.
+- New API:
+  +hb_raster_image_serialize_to_png_or_fail()
+  +hb_raster_image_deserialize_from_png_or_fail()
+
+
 Overview of changes leading to 13.0.1
 Saturday, March 7, 2026
 =====================================

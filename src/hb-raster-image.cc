@@ -938,7 +938,7 @@ hb_raster_image_get_format (hb_raster_image_t *image)
  *
  * Return value: `true` if deserialization succeeded, `false` otherwise
  *
- * XSince: REPLACEME
+ * Since: 13.1.0
  **/
 hb_bool_t
 hb_raster_image_deserialize_from_png_or_fail (hb_raster_image_t *image,
@@ -958,7 +958,7 @@ hb_raster_image_deserialize_from_png_or_fail (hb_raster_image_t *image,
  * Return value: (transfer full):
  * A newly allocated PNG #hb_blob_t, or `NULL` on failure
  *
- * XSince: REPLACEME
+ * Since: 13.1.0
  **/
 hb_blob_t *
 hb_raster_image_serialize_to_png_or_fail (hb_raster_image_t *image)
