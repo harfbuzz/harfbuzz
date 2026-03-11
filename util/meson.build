@@ -93,7 +93,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     hb_raster = executable('hb-raster', hb_raster_sources,
       cpp_args: cpp_args,
       include_directories: [incconfig, incsrc],
-      dependencies: [util_deps],
+      dependencies: [util_deps, chafa_dep],
       link_with: [libharfbuzz, libharfbuzz_raster],
       install: true,
     )
