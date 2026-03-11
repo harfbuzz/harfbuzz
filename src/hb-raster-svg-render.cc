@@ -155,8 +155,17 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
         viewport_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.height, "height"));
         if (!(viewport_w > 0.f && viewport_h > 0.f))
         {
-          viewport_w = vb_w;
-          viewport_h = vb_h;
+          if (ctx->depth == 1)
+          {
+            unsigned upem = hb_font_get_face (ctx->font)->get_upem ();
+            viewport_w = (float) upem;
+            viewport_h = (float) upem;
+          }
+          else
+          {
+            viewport_w = vb_w;
+            viewport_h = vb_h;
+          }
         }
         has_viewbox_transform =
           hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h,

@@ -30,6 +30,7 @@
 #include "hb-vector-svg-subset.hh"
 #ifndef HB_NO_SVG
 #include "OT/Color/svg/svg.hh"
+#include "hb-raster-svg-parse.hh"
 #endif
 #include "hb-vector-svg-utils.hh"
 #include "hb-map.hh"
@@ -40,6 +41,33 @@
 #include <string.h>
 
 #ifndef HB_NO_SVG
+static bool
+hb_svg_append_str (hb_vector_t<char> *out,
+                   const char *s)
+{
+  return hb_svg_append_len (out, s, (unsigned) strlen (s));
+}
+
+static bool
+hb_svg_append_unsigned (hb_vector_t<char> *out,
+                        unsigned v)
+{
+  char tmp[10];
+  unsigned n = 0;
+  do {
+    tmp[n++] = (char) ('0' + (v % 10));
+    v /= 10;
+  } while (v);
+
+  unsigned old_len = out->length;
+  if (unlikely (!out->resize_dirty ((int) (old_len + n))))
+    return false;
+
+  for (unsigned i = 0; i < n; i++)
+    out->arrayZ[old_len + i] = tmp[n - 1 - i];
+  return true;
+}
+
 static bool
 hb_svg_append_with_prefix (hb_vector_t<char> *out,
                            const char *s,
@@ -254,6 +282,30 @@ hb_svg_collect_refs (const char *s,
   return true;
 }
 
+static bool
+hb_svg_find_root_open_tag (const char *svg,
+                           unsigned len,
+                           unsigned *root_open_len,
+                           bool *missing_viewport)
+{
+  hb_svg_xml_parser_t parser (svg, len);
+  hb_svg_token_type_t tok = parser.next ();
+  if (!((tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG) &&
+        parser.tag_name.eq ("svg")))
+    return false;
+
+  if (missing_viewport)
+  {
+    *missing_viewport =
+      parser.find_attr ("width").is_null () ||
+      parser.find_attr ("height").is_null ();
+  }
+
+  if (root_open_len)
+    *root_open_len = (unsigned) (parser.p - parser.tag_start);
+  return true;
+}
+
 bool
 hb_svg_subset_glyph_image (hb_face_t *face,
                            hb_blob_t *image,
@@ -276,6 +328,9 @@ hb_svg_subset_glyph_image (hb_face_t *face,
   hb_hashmap_t<OT::SVG::svg_id_span_t, hb_bool_t> needed_ids_set;
   hb_vector_t<unsigned> chosen_defs;
   hb_vector_t<uint8_t> chosen_def_marks;
+  unsigned root_open_len = 0;
+  bool glyph_is_root_svg = false;
+  bool root_missing_viewport = false;
   char prefix[32];
   int prefix_len = 0;
 
@@ -302,6 +357,9 @@ hb_svg_subset_glyph_image (hb_face_t *face,
     goto done;
 
   defs_entries = face->table.SVG->doc_cache_get_defs_entries (doc_cache);
+  if (!hb_svg_find_root_open_tag (svg, len, &root_open_len, &root_missing_viewport))
+    goto done;
+  glyph_is_root_svg = glyph_start == 0;
 
   needed_ids.alloc (16);
   if (!hb_svg_collect_refs (svg + glyph_start, glyph_end - glyph_start,
@@ -338,7 +396,7 @@ hb_svg_subset_glyph_image (hb_face_t *face,
   if (prefix_len <= 0 || (unsigned) prefix_len >= sizeof (prefix))
     goto done;
 
-  body_dst->alloc (body_dst->length + (glyph_end - glyph_start) + (unsigned) prefix_len + 32);
+  body_dst->alloc (body_dst->length + (glyph_end - glyph_start) + 64);
 
   for (unsigned i = 0; i < chosen_defs.length; i++)
   {
@@ -349,11 +407,39 @@ hb_svg_subset_glyph_image (hb_face_t *face,
       goto done;
   }
 
-  ret = hb_svg_append_with_prefix (body_dst,
-                                   svg + glyph_start,
-                                   glyph_end - glyph_start,
-                                   prefix,
-                                   (unsigned) prefix_len);
+  if (glyph_is_root_svg && root_missing_viewport && root_open_len > 1)
+  {
+    unsigned upem = face->get_upem ();
+    if (!hb_svg_append_with_prefix (body_dst,
+                                    svg + glyph_start,
+                                    root_open_len - 1,
+                                    prefix,
+                                    (unsigned) prefix_len))
+      goto done;
+    if (!hb_svg_append_str (body_dst, " width=\""))
+      goto done;
+    if (!hb_svg_append_unsigned (body_dst, upem))
+      goto done;
+    if (!hb_svg_append_str (body_dst, "\" height=\""))
+      goto done;
+    if (!hb_svg_append_unsigned (body_dst, upem))
+      goto done;
+    if (!hb_svg_append_c (body_dst, '"'))
+      goto done;
+    if (!hb_svg_append_c (body_dst, '>'))
+      goto done;
+    ret = hb_svg_append_with_prefix (body_dst,
+                                     svg + glyph_start + root_open_len,
+                                     glyph_end - glyph_start - root_open_len,
+                                     prefix,
+                                     (unsigned) prefix_len);
+  }
+  else
+    ret = hb_svg_append_with_prefix (body_dst,
+                                     svg + glyph_start,
+                                     glyph_end - glyph_start,
+                                     prefix,
+                                     (unsigned) prefix_len);
 
 done:
   hb_blob_destroy (normalized_image);
