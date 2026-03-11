@@ -13,3 +13,5 @@
 ../../../api/fonts/AdobeVFPrototype.abc.otf;--variations=wght=900,CNTR=100;U+0061,U+0062,U+0063;../expected/basic/cff2-var-cntr.svg
 ../../../api/fonts/SourceSerifVariable-Roman-VVAR.abc.ttf;--direction=ttb --variations=wght=900;U+0061,U+0062,U+0063;../expected/basic/glyf-vvar-ttb-wght900.svg
 ../fonts/2db082c6c462d5056544e56e7ea13bf58c33a832.ttf;--logical;U+0646,U+0633,U+062A,U+0639,U+0644,U+06CC,U+0642;../expected/basic/iran-nastaliq-y-offsets.svg
+../../../fuzzing/fonts/noto_handwriting-untouchedsvg.ttf;;U+270D;../expected/basic/handwriting-svg.svg
+../../../fuzzing/fonts/noto_handwriting-untouchedsvgz.ttf;;U+270D;../expected/basic/handwriting-svg.svg

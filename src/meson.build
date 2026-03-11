@@ -273,6 +273,7 @@ hb_base_sources = files(
   'hb-unicode.hh',
   'hb-utf.hh',
   'hb-vector.hh',
+  'hb-zlib.hh',
   'hb.hh',
 )
 
@@ -804,9 +805,14 @@ endif
 
 libharfbuzz_vector_dep = null_dep
 if not get_option('vector').disabled()
+  vector_deps = [m_dep]
+  if zlib_dep.found()
+    vector_deps += [zlib_dep]
+  endif
+
   libharfbuzz_vector = library('harfbuzz-vector', hb_vector_sources,
     include_directories: incconfig,
-    dependencies: [m_dep],
+    dependencies: vector_deps,
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
