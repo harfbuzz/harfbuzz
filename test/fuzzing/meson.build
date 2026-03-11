@@ -29,8 +29,16 @@ foreach file_name : tests
     continue
   endif
 
+  if test_name.contains('raster') and get_option('raster').disabled()
+    continue
+  endif
+
+  if test_name.contains('vector') and get_option('vector').disabled()
+    continue
+  endif
+
   link_with_libs = [libharfbuzz]
-  if not get_option('subset').disabled()
+  if test_name.contains('subset') or test_name.contains('repacker')
     link_with_libs += [libharfbuzz_subset]
   endif
   if test_name.contains('raster')
@@ -89,29 +97,33 @@ foreach chunk : fonts_glob_chunks
   i += 1
 endforeach
 
-i = 0
-foreach chunk : fonts_glob_chunks
-  test('raster-fuzzer-chunk-@0@'.format(i),
-    hb_raster_fuzzer_exe,
-    args: chunk,
-    workdir: meson.current_build_dir() / '..' / '..',
-    protocol: 'tap',
-    suite: ['fuzzing'],
-  )
-  i += 1
-endforeach
+if not get_option('raster').disabled()
+  i = 0
+  foreach chunk : fonts_glob_chunks
+    test('raster-fuzzer-chunk-@0@'.format(i),
+      hb_raster_fuzzer_exe,
+      args: chunk,
+      workdir: meson.current_build_dir() / '..' / '..',
+      protocol: 'tap',
+      suite: ['fuzzing'],
+    )
+    i += 1
+  endforeach
+endif
 
-i = 0
-foreach chunk : fonts_glob_chunks
-  test('vector-fuzzer-chunk-@0@'.format(i),
-    hb_vector_fuzzer_exe,
-    args: chunk,
-    workdir: meson.current_build_dir() / '..' / '..',
-    protocol: 'tap',
-    suite: ['fuzzing'],
-  )
-  i += 1
-endforeach
+if not get_option('vector').disabled()
+  i = 0
+  foreach chunk : fonts_glob_chunks
+    test('vector-fuzzer-chunk-@0@'.format(i),
+      hb_vector_fuzzer_exe,
+      args: chunk,
+      workdir: meson.current_build_dir() / '..' / '..',
+      protocol: 'tap',
+      suite: ['fuzzing'],
+    )
+    i += 1
+  endforeach
+endif
 
 if not get_option('subset').disabled()
   i = 0
