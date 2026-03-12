@@ -17,3 +17,7 @@
 ../../../fuzzing/fonts/noto_handwriting-untouchedsvgz.ttf;;U+270D;../expected/basic/handwriting-svg.svg
 ../../../fuzzing/fonts/noto_handwriting-picosvg.ttf;;U+270D;../expected/basic/handwriting-picosvg.svg
 ../../../fuzzing/fonts/noto_handwriting-picosvgz.ttf;;U+270D;../expected/basic/handwriting-picosvg.svg
+../../../fuzzing/fonts/noto_handwriting-sbix.ttf;;U+270D;../expected/basic/handwriting-sbix.svg
+../../../fuzzing/fonts/noto_handwriting-glyf_colr_1.ttf;;U+270D;../expected/basic/handwriting-glyf-colr-1.svg
+../../../fuzzing/fonts/noto_handwriting-cff_colr_1.otf;;U+270D;../expected/basic/handwriting-cff-colr-1.svg
+../../../fuzzing/fonts/noto_handwriting-cff2_colr_1.otf;;U+270D;../expected/basic/handwriting-cff-colr-1.svg
