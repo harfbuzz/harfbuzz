@@ -107,6 +107,13 @@ HB_BEGIN_DECLS
 #mesondefine HB_HAS_RASTER
 
 /**
+ * HB_HAS_SUBSET:
+ *
+ * Defined if Harfbuzz has been built with the subset library.
+ */
+#mesondefine HB_HAS_SUBSET
+
+/**
  * HB_HAS_UNISCRIBE:
  *
  * Defined if Harfbuzz has been built with Uniscribe support.

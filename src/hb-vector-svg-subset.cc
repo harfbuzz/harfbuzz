@@ -41,32 +41,7 @@
 #include <string.h>
 
 #ifndef HB_NO_SVG
-static bool
-hb_svg_append_str (hb_vector_t<char> *out,
-                   const char *s)
-{
-  return hb_svg_append_len (out, s, (unsigned) strlen (s));
-}
-
-static bool
-hb_svg_append_unsigned (hb_vector_t<char> *out,
-                        unsigned v)
-{
-  char tmp[10];
-  unsigned n = 0;
-  do {
-    tmp[n++] = (char) ('0' + (v % 10));
-    v /= 10;
-  } while (v);
-
-  unsigned old_len = out->length;
-  if (unlikely (!out->resize_dirty ((int) (old_len + n))))
-    return false;
-
-  for (unsigned i = 0; i < n; i++)
-    out->arrayZ[old_len + i] = tmp[n - 1 - i];
-  return true;
-}
+#include "hb-vector-svg.hh"
 
 static bool
 hb_svg_append_with_prefix (hb_vector_t<char> *out,
