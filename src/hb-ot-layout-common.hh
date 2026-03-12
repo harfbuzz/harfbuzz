@@ -2971,7 +2971,9 @@ struct VarData
     }
 
     if (unlikely (!c->extend_min (this))) return_trace (false);
-    itemCount = row_count;
+    if (unlikely (!c->check_assign (itemCount, row_count,
+                                    HB_SERIALIZE_ERROR_INT_OVERFLOW)))
+      return_trace (false);
 
     int min_threshold = has_long ? -65536 : -128;
     int max_threshold = has_long ? +65535 : +127;
