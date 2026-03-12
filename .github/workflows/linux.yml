@@ -29,6 +29,7 @@ jobs:
           gobject-introspection \
           gtk-doc-tools \
           libcairo2-dev \
+          libchafa-dev \
           libfreetype6-dev \
           libgirepository1.0-dev \
           libglib2.0-dev \
@@ -49,7 +50,6 @@ jobs:
         ccache --version
         meson setup build \
           -Dauto_features=enabled \
-          -Dchafa=disabled \
           -Dgraphite=enabled \
           -Dkbts=enabled \
           -Doptimization=2 \
