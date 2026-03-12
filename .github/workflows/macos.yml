@@ -27,6 +27,7 @@ jobs:
         brew rm -f pkg-config@0.29.2
         brew install \
           cairo \
+          chafa \
           freetype \
           glib \
           gobject-introspection \
@@ -50,7 +51,6 @@ jobs:
         meson setup build \
           -Dauto_features=enabled \
           -Ddocs=disabled \
-          -Dchafa=disabled \
           -Dcoretext=enabled \
           -Dgraphite=enabled \
           -Doptimization=2 \
