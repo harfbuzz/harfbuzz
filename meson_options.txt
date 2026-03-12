@@ -7,6 +7,10 @@ option('cairo', type: 'feature', value: 'auto',
   description: 'Use Cairo graphics library')
 option('chafa', type: 'feature', value: 'auto',
   description: 'Use Chafa terminal graphics library')
+option('png', type: 'feature', value: 'auto',
+  description: 'Use PNG library')
+option('zlib', type: 'feature', value: 'auto',
+  description: 'Use zlib library')
 option('icu', type: 'feature', value: 'auto',
   description: 'Enable ICU library unicode functions')
 option('graphite', type: 'feature', value: 'disabled',

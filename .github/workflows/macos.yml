@@ -33,6 +33,7 @@ jobs:
           gobject-introspection \
           graphite2 \
           icu4c \
+          libpng \
           meson \
           ninja \
           pkgconf
