@@ -599,6 +599,8 @@ foreach feature : features
   hb_enabled_features.set(key, conf.get('HAVE_@0@'.format(feature), false))
   hb_supported_features.set(key, 1)
 endforeach
+hb_enabled_features.set('HB_HAS_SUBSET', not get_option('subset').disabled())
+hb_supported_features.set('HB_HAS_SUBSET', 1)
 
 # The enabled features. This file is installed.
 hb_features_h = configure_file(input: 'hb-features.h.in',
@@ -1013,6 +1015,84 @@ if have_icu and not have_icu_builtin
 
   install_headers(hb_icu_headers, subdir: meson.project_name())
 endif
+
+hb_everything_subset_sources = []
+foreach f : hb_subset_sources
+  if not hb_base_sources.contains(f)
+    hb_everything_subset_sources += f
+  endif
+endforeach
+
+hb_everything_raster_sources = []
+foreach f : hb_raster_sources
+  if f != 'hb-static.cc'
+    hb_everything_raster_sources += f
+  endif
+endforeach
+hb_everything_raster_inputs = []
+foreach f : hb_everything_raster_sources
+  hb_everything_raster_inputs += meson.current_source_dir() / f
+endforeach
+
+hb_everything_vector_sources = []
+foreach f : hb_vector_sources
+  if f != 'hb-static.cc'
+    hb_everything_vector_sources += f
+  endif
+endforeach
+hb_everything_vector_inputs = []
+foreach f : hb_everything_vector_sources
+  hb_everything_vector_inputs += meson.current_source_dir() / f
+endforeach
+
+hb_everything_cairo_sources = [
+  'hb-cairo.cc',
+  'hb-cairo-utils.cc',
+]
+hb_everything_cairo_inputs = []
+foreach f : hb_everything_cairo_sources
+  hb_everything_cairo_inputs += meson.current_source_dir() / f
+endforeach
+
+# Deliberately excludes harfbuzz-gobject, which needs generated enum sources.
+custom_target('harfbuzz-one-with-everything.cc',
+  build_by_default: true,
+  output: 'harfbuzz-one-with-everything.cc',
+  input: files('harfbuzz.cc') + hb_everything_subset_sources +
+         hb_everything_raster_inputs + hb_everything_vector_inputs +
+         hb_everything_cairo_inputs + hb_icu_sources,
+  command: [
+    find_program('gen-harfbuzzcc.py'),
+    '@OUTPUT@', meson.current_source_dir(),
+    '--include-features-h',
+    '--feature-define=HB_HAS_CORETEXT:HAVE_CORETEXT',
+    '--feature-define=HB_HAS_DIRECTWRITE:HAVE_DIRECTWRITE',
+    '--feature-define=HB_HAS_FREETYPE:HAVE_FREETYPE',
+    '--feature-define=HB_HAS_GDI:HAVE_GDI',
+    '--feature-define=HB_HAS_GLIB:HAVE_GLIB',
+    '--feature-define=HB_HAS_GRAPHITE:HAVE_GRAPHITE2',
+    '--feature-define=HB_HAS_UNISCRIBE:HAVE_UNISCRIBE',
+    '--feature-define=HB_HAS_WASM:HAVE_WASM',
+    '--feature-define=HB_HAS_CAIRO:HAVE_CAIRO',
+    '--feature-define=HB_HAS_ICU:HAVE_ICU',
+    meson.current_source_dir() / 'harfbuzz.cc',
+    '--guard=defined(HB_HAS_SUBSET)',
+    hb_everything_subset_sources,
+    '--end-guard',
+    '--guard=defined(HB_HAS_RASTER)',
+    hb_everything_raster_inputs,
+    '--end-guard',
+    '--guard=defined(HB_HAS_VECTOR)',
+    hb_everything_vector_inputs,
+    '--end-guard',
+    '--guard=defined(HB_HAS_CAIRO)',
+    hb_everything_cairo_inputs,
+    '--end-guard',
+    '--guard=defined(HB_HAS_ICU)',
+    hb_icu_sources,
+    '--end-guard',
+  ],
+)
 
 have_gobject = conf.get('HAVE_GOBJECT', 0) == 1
 

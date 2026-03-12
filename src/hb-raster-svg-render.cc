@@ -306,19 +306,6 @@ svg_render_use_callback (void *render_user,
   ctx->allow_symbol_render_once = old_allow_symbol;
 }
 
-static void
-svg_skip_subtree (hb_svg_xml_parser_t &parser)
-{
-  int depth = 1;
-  while (depth > 0)
-  {
-    hb_svg_token_type_t tok = parser.next ();
-    if (tok == SVG_TOKEN_EOF) break;
-    if (tok == SVG_TOKEN_CLOSE_TAG) depth--;
-    else if (tok == SVG_TOKEN_OPEN_TAG) depth++;
-  }
-}
-
 /* Render one element (may be a container or shape) */
 static void
 svg_render_element (hb_svg_render_context_t *ctx,
