@@ -798,7 +798,7 @@ struct raster_output_t : output_options_t<true>, view_options_t
     hb_blob_destroy (blob);
   }
 
-  void write_png (hb_raster_image_t *img, helper_image_protocol_t protocol)
+  void write_png (hb_raster_image_t *img HB_UNUSED, helper_image_protocol_t protocol HB_UNUSED)
   {
 #ifdef HAVE_PNG
     hb_raster_image_t *png_img = img;
@@ -824,9 +824,6 @@ struct raster_output_t : output_options_t<true>, view_options_t
     hb_blob_destroy (blob);
     if (png_img != img)
       hb_raster_image_destroy (png_img);
-#else
-    HB_UNUSED (img);
-    HB_UNUSED (protocol);
 #endif
   }
 
