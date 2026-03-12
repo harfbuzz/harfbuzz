@@ -586,7 +586,9 @@ features = [
   'GOBJECT',
   'GRAPHITE',
   'ICU',
+  'RASTER',
   'UNISCRIBE',
+  'VECTOR',
   'WASM',
 ]
 
