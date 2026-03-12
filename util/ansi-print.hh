@@ -29,8 +29,6 @@
 
 #include "hb.hh"
 
-#include <cairo.h>
-
 #include <assert.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -375,8 +373,8 @@ ansi_print_image_rgb24 (const uint32_t *data,
 			unsigned int width,
 			unsigned int height,
 			unsigned int stride,
-		        cairo_write_func_t	write_func,
-		        void			*closure)
+		        helper_image_write_func_t write_func,
+		        void		     *closure)
 {
   image_t image (width, height, data, stride);
 

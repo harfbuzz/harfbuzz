@@ -30,7 +30,6 @@
 #include "options.hh"
 #include "output-options.hh"
 #include "view-options.hh"
-#include "helper-cairo-ansi.hh"
 #include "helper-image-output.hh"
 #include "hb-raster.h"
 #include "hb-ot.h"

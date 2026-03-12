@@ -29,7 +29,23 @@
 
 #include "hb.hh"
 
+#ifdef HAVE_CAIRO
 #include <cairo.h>
+#endif
+
+#ifdef HAVE_CAIRO
+using helper_image_status_t = cairo_status_t;
+using helper_image_write_func_t = cairo_write_func_t;
+#define HELPER_IMAGE_STATUS_SUCCESS CAIRO_STATUS_SUCCESS
+#else
+using helper_image_status_t = int;
+using helper_image_write_func_t = helper_image_status_t (*) (void                *closure,
+							     const unsigned char *data,
+							     unsigned int         size);
+#define HELPER_IMAGE_STATUS_SUCCESS 0
+#endif
+
+#include "ansi-print.hh"
 
 enum class helper_image_protocol_t {
   NONE = 0,
@@ -37,7 +53,7 @@ enum class helper_image_protocol_t {
   KITTY,
 };
 
-static inline cairo_status_t
+static inline helper_image_status_t
 helper_image_stdio_write_func (void                *closure,
 			       const unsigned char *data,
 			       unsigned int         size)
@@ -53,7 +69,7 @@ helper_image_stdio_write_func (void                *closure,
       fail (false, "Failed to write output: %s", strerror (errno));
   }
 
-  return CAIRO_STATUS_SUCCESS;
+  return HELPER_IMAGE_STATUS_SUCCESS;
 }
 
 static inline const char *
@@ -98,7 +114,7 @@ helper_image_get_implicit_output_format (FILE                    *fp,
 static inline void
 helper_image_write_png_data (const unsigned char   *data,
 			     unsigned int           length,
-			     cairo_write_func_t     write_func,
+			     helper_image_write_func_t write_func,
 			     void                  *closure,
 			     helper_image_protocol_t protocol)
 {
@@ -152,6 +168,164 @@ helper_image_write_png_data (const unsigned char   *data,
 
   g_free (base64);
   g_string_free (string, TRUE);
+}
+
+#ifdef HAVE_CHAFA
+# include <chafa.h>
+
+/* Similar to ansi-print.cc */
+# define CELL_W 8
+# define CELL_H (2 * CELL_W)
+
+static void
+chafa_print_image_rgb24 (const void *data, int width, int height, int stride, int level,
+			 helper_image_write_func_t write_func,
+			 void		     *closure)
+{
+  ChafaTermInfo *term_info;
+  ChafaSymbolMap *symbol_map;
+  ChafaCanvasConfig *config;
+  ChafaCanvas *canvas;
+  GString *gs;
+  unsigned int cols = (width +  CELL_W - 1) / CELL_W;
+  unsigned int rows = (height + CELL_H - 1) / CELL_H;
+  gchar **environ;
+  ChafaCanvasMode mode;
+  ChafaPixelMode pixel_mode;
+
+  /* Adapt to terminal; use sixels if available, and fall back to symbols
+   * with as many colors as are supported */
+
+  chafa_set_n_threads (1); // https://github.com/hpjansson/chafa/issues/125#issuecomment-1397475217
+
+  environ = g_get_environ ();
+  term_info = chafa_term_db_detect (chafa_term_db_get_default (),
+                                    environ);
+
+  pixel_mode = CHAFA_PIXEL_MODE_SYMBOLS;
+
+  if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_BEGIN_SIXELS))
+  {
+    pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
+    mode = CHAFA_CANVAS_MODE_TRUECOLOR;
+  }
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_DIRECT))
+    mode = CHAFA_CANVAS_MODE_TRUECOLOR;
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_256))
+    mode = CHAFA_CANVAS_MODE_INDEXED_240;
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_16))
+    mode = CHAFA_CANVAS_MODE_INDEXED_16;
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_INVERT_COLORS))
+    mode = CHAFA_CANVAS_MODE_FGBG_BGFG;
+  else
+    mode = CHAFA_CANVAS_MODE_FGBG;
+
+  symbol_map = chafa_symbol_map_new ();
+  chafa_symbol_map_add_by_tags (symbol_map,
+                                (ChafaSymbolTags) (CHAFA_SYMBOL_TAG_BLOCK
+                                                   | CHAFA_SYMBOL_TAG_SPACE
+						   | (level >= 2 ? CHAFA_SYMBOL_TAG_WEDGE : 0)
+						   | (level >= 3 ? CHAFA_SYMBOL_TAG_ALL : 0)
+				));
+
+  config = chafa_canvas_config_new ();
+  chafa_canvas_config_set_canvas_mode (config, mode);
+  chafa_canvas_config_set_pixel_mode (config, pixel_mode);
+  chafa_canvas_config_set_cell_geometry (config, CELL_W, CELL_H);
+  chafa_canvas_config_set_geometry (config, cols, rows);
+  chafa_canvas_config_set_symbol_map (config, symbol_map);
+  chafa_canvas_config_set_color_extractor (config, CHAFA_COLOR_EXTRACTOR_MEDIAN);
+  chafa_canvas_config_set_work_factor (config, 1.0f);
+
+  canvas = chafa_canvas_new (config);
+  chafa_canvas_draw_all_pixels (canvas,
+                                G_BYTE_ORDER == G_LITTLE_ENDIAN
+                                  ? CHAFA_PIXEL_BGRA8_PREMULTIPLIED
+                                  : CHAFA_PIXEL_ARGB8_PREMULTIPLIED,
+                                (const guint8 *) data,
+                                width,
+                                height,
+                                stride);
+  gs = chafa_canvas_print (canvas, term_info);
+
+  write_func (closure, (const unsigned char *) gs->str, gs->len);
+
+  if (pixel_mode != CHAFA_PIXEL_MODE_SIXELS)
+    write_func (closure, (const unsigned char *) "\n", 1);
+
+  g_string_free (gs, TRUE);
+  chafa_canvas_unref (canvas);
+  chafa_canvas_config_unref (config);
+  chafa_symbol_map_unref (symbol_map);
+  chafa_term_info_unref (term_info);
+  g_strfreev (environ);
+}
+
+#endif /* HAVE_CHAFA */
+
+static inline helper_image_status_t
+helper_image_write_to_ansi_stream_rgb24 (const uint32_t        *data,
+					 unsigned int           width,
+					 unsigned int           height,
+					 unsigned int           stride,
+					 helper_image_write_func_t write_func,
+					 void                  *closure)
+{
+  /* We don't have rows to spare on the terminal window...
+   * Find the tight image top/bottom and only print in between. */
+
+  uint32_t bg_color = data ? * (uint32_t *) data : 0;
+
+  auto orig_data = data;
+  while (height)
+  {
+    unsigned int i;
+    for (i = 0; i < width; i++)
+      if (data[i] != bg_color)
+	break;
+    if (i < width)
+      break;
+    data += stride / 4;
+    height--;
+  }
+  if (orig_data < data)
+  {
+    data -= stride / 4;
+    height++;
+  }
+
+  auto orig_height = height;
+  while (height)
+  {
+    const uint32_t *row = data + (height - 1) * stride / 4;
+    unsigned int i;
+    for (i = 0; i < width; i++)
+      if (row[i] != bg_color)
+	break;
+    if (i < width)
+      break;
+    height--;
+  }
+  if (height < orig_height)
+    height++;
+
+  if (width && height)
+  {
+#ifdef HAVE_CHAFA
+    const char *env = getenv ("HB_CHAFA");
+    int chafa_level = 1;
+    if (env)
+      chafa_level = atoi (env);
+    if (chafa_level)
+      chafa_print_image_rgb24 (data, width, height, stride, chafa_level,
+			       write_func, closure);
+    else
+#endif
+      ansi_print_image_rgb24 (data, width, height, stride / 4,
+			      write_func, closure);
+  }
+
+  return HELPER_IMAGE_STATUS_SUCCESS;
 }
 
 #endif
