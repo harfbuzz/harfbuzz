@@ -40,7 +40,9 @@ jobs:
           libglib2.0-dev \
           libgraphite2-dev \
           libicu-dev \
+          libpng-dev \
           pkg-config \
+          zlib1g-dev \
           bindgen
     - name: Setup Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
