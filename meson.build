@@ -160,6 +160,7 @@ endif
 
 chafa_dep = dependency('chafa', version: chafa_min_version, required: get_option('chafa'))
 png_dep = dependency('libpng', required: false)
+zlib_dep = dependency('zlib', required: false)
 
 fontations_dep_found = false
 if get_option('fontations').enabled()
@@ -221,6 +222,10 @@ endif
 
 if png_dep.found()
   conf.set('HAVE_PNG', 1)
+endif
+
+if zlib_dep.found()
+  conf.set('HAVE_ZLIB', 1)
 endif
 
 if fontations_dep_found
@@ -487,6 +492,7 @@ build_summary = {
     },
   'Dependencies used by additional libraries':
     {'PNG': conf.get('HAVE_PNG', 0) == 1,
+     'Zlib': conf.get('HAVE_ZLIB', 0) == 1,
     },
   'Other features':
     {'Utilities': not get_option('utilities').disabled(),

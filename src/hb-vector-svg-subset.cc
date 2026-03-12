@@ -30,6 +30,7 @@
 #include "hb-vector-svg-subset.hh"
 #ifndef HB_NO_SVG
 #include "OT/Color/svg/svg.hh"
+#include "hb-raster-svg-parse.hh"
 #endif
 #include "hb-vector-svg-utils.hh"
 #include "hb-map.hh"
@@ -40,6 +41,33 @@
 #include <string.h>
 
 #ifndef HB_NO_SVG
+static bool
+hb_svg_append_str (hb_vector_t<char> *out,
+                   const char *s)
+{
+  return hb_svg_append_len (out, s, (unsigned) strlen (s));
+}
+
+static bool
+hb_svg_append_unsigned (hb_vector_t<char> *out,
+                        unsigned v)
+{
+  char tmp[10];
+  unsigned n = 0;
+  do {
+    tmp[n++] = (char) ('0' + (v % 10));
+    v /= 10;
+  } while (v);
+
+  unsigned old_len = out->length;
+  if (unlikely (!out->resize_dirty ((int) (old_len + n))))
+    return false;
+
+  for (unsigned i = 0; i < n; i++)
+    out->arrayZ[old_len + i] = tmp[n - 1 - i];
+  return true;
+}
+
 static bool
 hb_svg_append_with_prefix (hb_vector_t<char> *out,
                            const char *s,
@@ -171,10 +199,10 @@ hb_svg_add_unique_id (hb_vector_t<OT::SVG::svg_id_span_t> *v,
                       const char *p,
                       unsigned n)
 {
-  if (!n) return false;
+  if (!n) return true;
   OT::SVG::svg_id_span_t key = {p, n};
   if (seen_ids->has (key))
-    return false;
+    return true;
   if (unlikely (!seen_ids->set (key, true)))
     return false;
   auto *slot = v->push ();
@@ -254,6 +282,30 @@ hb_svg_collect_refs (const char *s,
   return true;
 }
 
+static bool
+hb_svg_find_root_open_tag (const char *svg,
+                           unsigned len,
+                           unsigned *root_open_len,
+                           bool *missing_viewport)
+{
+  hb_svg_xml_parser_t parser (svg, len);
+  hb_svg_token_type_t tok = parser.next ();
+  if (!((tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG) &&
+        parser.tag_name.eq ("svg")))
+    return false;
+
+  if (missing_viewport)
+  {
+    *missing_viewport =
+      parser.find_attr ("width").is_null () ||
+      parser.find_attr ("height").is_null ();
+  }
+
+  if (root_open_len)
+    *root_open_len = (unsigned) (parser.p - parser.tag_start);
+  return true;
+}
+
 bool
 hb_svg_subset_glyph_image (hb_face_t *face,
                            hb_blob_t *image,
@@ -262,47 +314,61 @@ hb_svg_subset_glyph_image (hb_face_t *face,
                            hb_vector_t<char> *defs_dst,
                            hb_vector_t<char> *body_dst)
 {
-  if (glyph == HB_CODEPOINT_INVALID || !image_counter || !defs_dst || !body_dst)
-    return false;
-
-  unsigned len;
-  const char *svg = hb_blob_get_data (image, &len);
-  if (!svg || !len)
-    return false;
-
+  bool ret = false;
+  hb_blob_t *normalized_image = nullptr;
+  unsigned len = 0;
+  const char *svg = nullptr;
   unsigned doc_index = 0;
-  if (!hb_ot_color_glyph_get_svg_document_index (face, glyph, &doc_index))
-    return false;
-
   hb_codepoint_t start_glyph = HB_CODEPOINT_INVALID;
   hb_codepoint_t end_glyph = HB_CODEPOINT_INVALID;
-  if (!hb_ot_color_get_svg_document_glyph_range (face, doc_index, &start_glyph, &end_glyph))
-    return false;
+  const OT::SVG::svg_doc_cache_t *doc_cache = nullptr;
+  unsigned glyph_start = 0, glyph_end = 0;
+  const hb_vector_t<OT::SVG::svg_defs_entry_t> *defs_entries = nullptr;
+  hb_vector_t<OT::SVG::svg_id_span_t> needed_ids;
+  hb_hashmap_t<OT::SVG::svg_id_span_t, hb_bool_t> needed_ids_set;
+  hb_vector_t<unsigned> chosen_defs;
+  hb_vector_t<uint8_t> chosen_def_marks;
+  unsigned root_open_len = 0;
+  bool glyph_is_root_svg = false;
+  bool root_missing_viewport = false;
+  char prefix[32];
+  int prefix_len = 0;
 
-  auto *doc_cache = face->table.SVG->get_or_create_doc_cache (image, svg, len,
-                                                              doc_index, start_glyph, end_glyph);
+  if (glyph == HB_CODEPOINT_INVALID || !image_counter || !defs_dst || !body_dst)
+    goto done;
+
+  normalized_image = OT::hb_ot_svg_reference_normalized_blob (image, &svg, &len);
+  if (!normalized_image || !svg || !len)
+    goto done;
+
+  if (!hb_ot_color_glyph_get_svg_document_index (face, glyph, &doc_index))
+    goto done;
+
+  if (!hb_ot_color_get_svg_document_glyph_range (face, doc_index, &start_glyph, &end_glyph))
+    goto done;
+
+  doc_cache = face->table.SVG->get_or_create_doc_cache (normalized_image, svg, len,
+                                                        doc_index, start_glyph, end_glyph);
   if (!doc_cache)
-    return false;
+    goto done;
   svg = face->table.SVG->doc_cache_get_svg (doc_cache, &len);
 
-  unsigned glyph_start = 0, glyph_end = 0;
   if (!face->table.SVG->doc_cache_get_glyph_span (doc_cache, glyph, &glyph_start, &glyph_end))
-    return false;
+    goto done;
 
-  auto *defs_entries = face->table.SVG->doc_cache_get_defs_entries (doc_cache);
+  defs_entries = face->table.SVG->doc_cache_get_defs_entries (doc_cache);
+  if (!hb_svg_find_root_open_tag (svg, len, &root_open_len, &root_missing_viewport))
+    goto done;
+  glyph_is_root_svg = glyph_start == 0;
 
-  hb_vector_t<OT::SVG::svg_id_span_t> needed_ids;
   needed_ids.alloc (16);
-  hb_hashmap_t<OT::SVG::svg_id_span_t, hb_bool_t> needed_ids_set;
   if (!hb_svg_collect_refs (svg + glyph_start, glyph_end - glyph_start,
                             &needed_ids, &needed_ids_set))
-    return false;
+    goto done;
 
-  hb_vector_t<unsigned> chosen_defs;
   chosen_defs.alloc (16);
-  hb_vector_t<uint8_t> chosen_def_marks;
   if (unlikely (!chosen_def_marks.resize ((int) defs_entries->length)))
-    return false;
+    goto done;
   hb_memset (chosen_def_marks.arrayZ, 0, defs_entries->length);
   for (unsigned qi = 0; qi < needed_ids.length; qi++)
   {
@@ -316,36 +382,88 @@ hb_svg_subset_glyph_image (hb_face_t *face,
         {
           chosen_def_marks.arrayZ[i] = 1;
           if (unlikely (!chosen_defs.push_or_fail (i)))
-            return false;
+            goto done;
           if (!hb_svg_collect_refs (svg + e.start, e.end - e.start,
                                     &needed_ids, &needed_ids_set))
-            return false;
+            goto done;
         }
         break;
       }
     }
   }
 
-  char prefix[32];
-  int prefix_len = snprintf (prefix, sizeof (prefix), "hbimg%u_", (*image_counter)++);
+  prefix_len = snprintf (prefix, sizeof (prefix), "hbimg%u_", (*image_counter)++);
   if (prefix_len <= 0 || (unsigned) prefix_len >= sizeof (prefix))
-    return false;
+    goto done;
 
-  body_dst->alloc (body_dst->length + (glyph_end - glyph_start) + (unsigned) prefix_len + 32);
+  body_dst->alloc (body_dst->length + (glyph_end - glyph_start) + 64);
 
   for (unsigned i = 0; i < chosen_defs.length; i++)
   {
     const auto &e = defs_entries->arrayZ[chosen_defs.arrayZ[i]];
     if (!hb_svg_append_with_prefix (defs_dst, svg + e.start, e.end - e.start, prefix, (unsigned) prefix_len))
-      return false;
-    if (!hb_svg_append_c (defs_dst, '\n')) return false;
+      goto done;
+    if (!hb_svg_append_c (defs_dst, '\n'))
+      goto done;
   }
 
-  return hb_svg_append_with_prefix (body_dst,
+  if (glyph_is_root_svg && root_missing_viewport && root_open_len > 1)
+  {
+    unsigned upem = face->get_upem ();
+    if (!hb_svg_append_with_prefix (body_dst,
                                     svg + glyph_start,
-                                    glyph_end - glyph_start,
+                                    root_open_len - 1,
                                     prefix,
-                                    (unsigned) prefix_len);
+                                    (unsigned) prefix_len))
+      goto done;
+    if (!hb_svg_append_str (body_dst, " width=\""))
+      goto done;
+    if (!hb_svg_append_unsigned (body_dst, upem))
+      goto done;
+    if (!hb_svg_append_str (body_dst, "\" height=\""))
+      goto done;
+    if (!hb_svg_append_unsigned (body_dst, upem))
+      goto done;
+    if (!hb_svg_append_str (body_dst, "\" overflow=\"visible"))
+      goto done;
+    if (!hb_svg_append_c (body_dst, '"'))
+      goto done;
+    if (!hb_svg_append_c (body_dst, '>'))
+      goto done;
+    ret = hb_svg_append_with_prefix (body_dst,
+                                     svg + glyph_start + root_open_len,
+                                     glyph_end - glyph_start - root_open_len,
+                                     prefix,
+                                     (unsigned) prefix_len);
+  }
+  else if (glyph_is_root_svg && root_open_len > 1)
+  {
+    if (!hb_svg_append_with_prefix (body_dst,
+                                    svg + glyph_start,
+                                    root_open_len - 1,
+                                    prefix,
+                                    (unsigned) prefix_len))
+      goto done;
+    if (!hb_svg_append_str (body_dst, " overflow=\"visible\""))
+      goto done;
+    if (!hb_svg_append_c (body_dst, '>'))
+      goto done;
+    ret = hb_svg_append_with_prefix (body_dst,
+                                     svg + glyph_start + root_open_len,
+                                     glyph_end - glyph_start - root_open_len,
+                                     prefix,
+                                     (unsigned) prefix_len);
+  }
+  else
+    ret = hb_svg_append_with_prefix (body_dst,
+                                     svg + glyph_start,
+                                     glyph_end - glyph_start,
+                                     prefix,
+                                     (unsigned) prefix_len);
+
+done:
+  hb_blob_destroy (normalized_image);
+  return ret;
 }
 #else
 bool

@@ -706,6 +706,8 @@ if not get_option('subset').disabled()
 endif
 
 hb_raster_sources = [
+  'hb-zlib.cc',
+  'hb-zlib.hh',
   'hb-raster.cc',
   'hb-raster-image.cc',
   'hb-raster-image.hh',
@@ -744,6 +746,8 @@ hb_raster_headers = [
 ]
 
 hb_vector_sources = [
+  'hb-zlib.cc',
+  'hb-zlib.hh',
   'hb-vector.cc',
   'hb-vector-svg-draw.cc',
   'hb-vector-svg-path.cc',
@@ -765,6 +769,9 @@ if not get_option('raster').disabled()
   raster_deps = [m_dep]
   if png_dep.found()
     raster_deps += [png_dep]
+  endif
+  if zlib_dep.found()
+    raster_deps += [zlib_dep]
   endif
 
   libharfbuzz_raster = library('harfbuzz-raster', hb_raster_sources,
@@ -803,9 +810,14 @@ endif
 
 libharfbuzz_vector_dep = null_dep
 if not get_option('vector').disabled()
+  vector_deps = [m_dep]
+  if zlib_dep.found()
+    vector_deps += [zlib_dep]
+  endif
+
   libharfbuzz_vector = library('harfbuzz-vector', hb_vector_sources,
     include_directories: incconfig,
-    dependencies: [m_dep],
+    dependencies: vector_deps,
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,

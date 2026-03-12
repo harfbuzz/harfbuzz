@@ -27,8 +27,10 @@
 
 #include "../../../hb-open-type.hh"
 #include "../../../hb-blob.hh"
+#include "../../../hb-limits.hh"
 #include "../../../hb-map.hh"
 #include "../../../hb-paint.hh"
+#include "../../../hb-zlib.hh"
 #include <ctype.h>
 #include <string.h>
 
@@ -42,6 +44,50 @@
 
 namespace OT {
 
+static inline hb_blob_t *
+hb_ot_svg_reference_normalized_blob (hb_blob_t *image,
+                                     const char **svg,
+                                     unsigned *len)
+{
+  hb_blob_t *blob = hb_blob_reference (image);
+  unsigned data_len = 0;
+  const char *data = hb_blob_get_data (blob, &data_len);
+
+  if (!data || !data_len)
+    goto fail;
+
+  if (hb_blob_is_gzip (data, data_len))
+  {
+    uint32_t expected_size = 0;
+    if (hb_gzip_get_uncompressed_size (data, data_len, &expected_size) &&
+        unlikely ((size_t) expected_size > (size_t) HB_SVG_MAX_DOCUMENT_SIZE))
+      goto fail;
+
+    hb_blob_t *uncompressed = hb_blob_decompress_gzip (blob,
+                                                       HB_SVG_MAX_DOCUMENT_SIZE);
+    if (!uncompressed)
+      goto fail;
+
+    hb_blob_destroy (blob);
+    blob = uncompressed;
+    data = hb_blob_get_data (blob, &data_len);
+    if (!data || !data_len)
+      goto fail;
+  }
+
+  if (unlikely ((size_t) data_len > (size_t) HB_SVG_MAX_DOCUMENT_SIZE))
+    goto fail;
+
+  if (svg) *svg = data;
+  if (len) *len = data_len;
+  return blob;
+
+fail:
+  hb_blob_destroy (blob);
+  if (svg) *svg = nullptr;
+  if (len) *len = 0;
+  return nullptr;
+}
 
 struct SVGDocumentIndexEntry
 {

@@ -37,6 +37,7 @@
 #include "hb-raster-svg-bbox.hh"
 #include "hb-raster-svg-fill.hh"
 #include "hb-raster-svg-use.hh"
+#include "OT/Color/svg/svg.hh"
 
 #include <assert.h>
 #include <stdio.h>
@@ -154,8 +155,17 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
         viewport_h = hb_raster_svg_parse_non_percent_length (svg_pick_attr_or_style (parser, geom_style_props.height, "height"));
         if (!(viewport_w > 0.f && viewport_h > 0.f))
         {
-          viewport_w = vb_w;
-          viewport_h = vb_h;
+          if (ctx->depth == 1)
+          {
+            unsigned upem = hb_font_get_face (ctx->font)->get_upem ();
+            viewport_w = (float) upem;
+            viewport_h = (float) upem;
+          }
+          else
+          {
+            viewport_w = vb_w;
+            viewport_h = vb_h;
+          }
         }
         has_viewbox_transform =
           hb_raster_svg_compute_viewbox_transform (viewport_w, viewport_h,
@@ -433,30 +443,41 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 		      unsigned palette,
 		      hb_color_t foreground)
 {
-  unsigned data_len;
-  const char *data = hb_blob_get_data (blob, &data_len);
-  if (!data || !data_len) return false;
-
+  bool ret = false;
+  hb_blob_t *render_blob = nullptr;
   hb_face_t *face HB_UNUSED = hb_font_get_face (font);
   const OT::SVG::svg_doc_cache_t *doc_cache = nullptr;
 #ifndef HB_NO_SVG
   unsigned doc_index = 0;
   hb_codepoint_t start_glyph = HB_CODEPOINT_INVALID;
   hb_codepoint_t end_glyph = HB_CODEPOINT_INVALID;
+#endif
+  hb_paint_funcs_t *pfuncs = hb_raster_paint_get_funcs ();
+  hb_svg_render_context_t ctx;
+  hb_svg_cascade_t initial_state;
+  hb_svg_defs_scan_context_t scan_ctx;
+  bool found_glyph = false;
+#ifndef HB_NO_SVG
+  unsigned glyph_start = 0, glyph_end = 0;
+#endif
 
+  unsigned data_len = 0;
+  const char *data = nullptr;
+  render_blob = OT::hb_ot_svg_reference_normalized_blob (blob, &data, &data_len);
+  if (!render_blob || !data_len)
+    goto done;
+
+#ifndef HB_NO_SVG
   if (face &&
       hb_ot_color_glyph_get_svg_document_index (face, glyph, &doc_index) &&
       hb_ot_color_get_svg_document_glyph_range (face, doc_index, &start_glyph, &end_glyph))
-    doc_cache = face->table.SVG->get_or_create_doc_cache (blob, data, data_len,
+    doc_cache = face->table.SVG->get_or_create_doc_cache (render_blob, data, data_len,
                                                           doc_index, start_glyph, end_glyph);
 
   if (doc_cache)
     data = face->table.SVG->doc_cache_get_svg (doc_cache, &data_len);
 #endif
 
-  hb_paint_funcs_t *pfuncs = hb_raster_paint_get_funcs ();
-
-  hb_svg_render_context_t ctx;
   ctx.paint = paint;
   ctx.pfuncs = pfuncs;
   ctx.font = font;
@@ -469,10 +490,9 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
 #endif
   ctx.doc_cache = doc_cache;
 
-  hb_svg_cascade_t initial_state;
   initial_state.color = foreground;
 
-  hb_svg_defs_scan_context_t scan_ctx = {
+  scan_ctx = {
     &ctx.defs, ctx.pfuncs, ctx.paint,
     ctx.foreground, hb_font_get_face (ctx.font),
     ctx.palette,
@@ -481,9 +501,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
   };
   hb_raster_svg_collect_defs (&scan_ctx, data, data_len);
 
-  bool found_glyph = false;
 #ifndef HB_NO_SVG
-  unsigned glyph_start = 0, glyph_end = 0;
   if (doc_cache && face->table.SVG->doc_cache_get_glyph_span (doc_cache, glyph, &glyph_start, &glyph_end))
   {
     hb_svg_xml_parser_t parser (data + glyph_start, glyph_end - glyph_start);
@@ -518,7 +536,7 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
         if (id.len)
         {
           if (id.len == (unsigned) glyph_id_len &&
-              0 == memcmp (id.data, glyph_id_str, (unsigned) glyph_id_len))
+              0 == hb_memcmp (id.data, glyph_id_str, (unsigned) glyph_id_len))
           {
             hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
             ctx.push_transform (1, 0, 0, -1, 0, 0);
@@ -533,7 +551,11 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
     }
   }
 
-  return found_glyph;
+  ret = found_glyph;
+
+done:
+  hb_blob_destroy (render_blob);
+  return ret;
 }
 
 #endif /* !HB_NO_RASTER_SVG */
