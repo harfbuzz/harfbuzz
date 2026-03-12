@@ -1275,7 +1275,7 @@ struct CFFIndex
     if (unlikely (!serialize_header (c, +it, data_size, min_off_size))) return_trace (false);
     unsigned char *ret = c->allocate_size<unsigned char> (data_size, false);
     if (unlikely (!ret)) return_trace (false);
-    unsigned total_bytes = 0;
+    unsigned remaining = data_size;
     for (const auto &_ : +it)
     {
       unsigned len = _.length;
@@ -1283,12 +1283,13 @@ struct CFFIndex
       if (!len)
 	continue;
 
-      total_bytes += len;
-
-      if (unlikely (total_bytes > data_size))
+      if (unlikely (len > remaining)) {
         // We have more bytes to write then the computed data size, so the size calculation
         // must have encountered overflow.
         return_trace (c->check_success (false, HB_SERIALIZE_ERROR_INT_OVERFLOW));
+      }
+
+      remaining -= len;
 
       if (len <= 1)
       {
