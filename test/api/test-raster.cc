@@ -63,6 +63,7 @@ pixel_at (hb_raster_image_t *img, int x, int y)
   return hb_raster_image_get_buffer (img)[row * ext.stride + col];
 }
 
+#if !defined (HB_NO_SVG) && defined (HAVE_ZLIB)
 static hb_raster_image_t *
 render_svg_glyph (hb_face_t      *face,
 		  hb_codepoint_t  glyph)
@@ -88,6 +89,7 @@ render_svg_glyph (hb_face_t      *face,
   hb_font_destroy (font);
   return img;
 }
+#endif
 
 
 /* ── Test 1: rectangle geometry ──────────────────────────────────── */
