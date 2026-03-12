@@ -59,8 +59,79 @@ test_item_variations ()
   hb_always_assert (item_vars.get_region_list().length == 8);
 }
 
+static void
+test_item_variations_overflow ()
+{
+  hb_vector_t<hb_vector_t<int>> row_storage;
+  hb_hashmap_t<unsigned, const hb_vector_t<int>*> front_mapping;
+  OT::item_variations_t item_vars;
+  unsigned old_varidx = 0;
+  const unsigned total_count = 0xFFFFu * 2u;
+
+  const unsigned counts[] = {
+    128u,                 /* 0..127: 1-byte deltas */
+    32768u - 128u,        /* 128..32767: 2-byte deltas */
+    0xFFFFu * 2u - 32768u /* 32768..131069: 4-byte deltas */
+  };
+  const int starts[] = {
+    0,
+    128,
+    32768
+  };
+
+  hb_always_assert (row_storage.alloc (total_count));
+
+  for (unsigned bucket = 0; bucket < 3; bucket++)
+  {
+    hb_vector_t<const hb_vector_t<int>*> rows;
+    hb_always_assert (rows.alloc (counts[bucket]));
+
+    for (unsigned i = 0; i < counts[bucket]; i++)
+    {
+      hb_vector_t<int> row;
+      hb_always_assert (row.resize (1));
+      row[0] = starts[bucket] + i;
+      row_storage.push (std::move (row));
+    }
+
+    hb_always_assert (!row_storage.in_error ());
+
+    unsigned base = row_storage.length - counts[bucket];
+    for (unsigned i = 0; i < counts[bucket]; i++)
+    {
+      const hb_vector_t<int> *row = &row_storage.arrayZ[base + i];
+      rows.push (row);
+      front_mapping.set (old_varidx++, row);
+    }
+
+    hb_always_assert (!rows.in_error ());
+    hb_always_assert (item_vars.add_vardata_encoding_for_testing (std::move (rows), 1));
+  }
+
+  hb_always_assert (!front_mapping.in_error ());
+  hb_always_assert (item_vars.compile_varidx_map_for_testing (front_mapping));
+
+  const auto& encodings = item_vars.get_vardata_encodings ();
+  hb_always_assert (encodings.length == 4);
+  hb_always_assert (encodings[0].items.length == 128u);
+  hb_always_assert (encodings[1].items.length == 32768u - 128u);
+  hb_always_assert (encodings[2].items.length == 0xFFFFu);
+  hb_always_assert (encodings[3].items.length == 32767u);
+
+  const hb_map_t& varidx_map = item_vars.get_varidx_map ();
+  hb_always_assert (varidx_map.get (0) == 0);
+  hb_always_assert (varidx_map.get (127) == 127);
+  hb_always_assert (varidx_map.get (128) == 0x00010000u);
+  hb_always_assert (varidx_map.get (32767) == 0x00017F7Fu);
+  hb_always_assert (varidx_map.get (32768) == 0x00020000u);
+  hb_always_assert (varidx_map.get (98302) == 0x0002FFFEu);
+  hb_always_assert (varidx_map.get (98303) == 0x00030000u);
+  hb_always_assert (varidx_map.get (131069) == 0x00037FFEu);
+}
+
 int
 main (int argc, char **argv)
 {
   test_item_variations ();
+  test_item_variations_overflow ();
 }
