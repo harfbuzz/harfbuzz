@@ -424,7 +424,27 @@ hb_svg_subset_glyph_image (hb_face_t *face,
       goto done;
     if (!hb_svg_append_unsigned (body_dst, upem))
       goto done;
+    if (!hb_svg_append_str (body_dst, "\" overflow=\"visible"))
+      goto done;
     if (!hb_svg_append_c (body_dst, '"'))
+      goto done;
+    if (!hb_svg_append_c (body_dst, '>'))
+      goto done;
+    ret = hb_svg_append_with_prefix (body_dst,
+                                     svg + glyph_start + root_open_len,
+                                     glyph_end - glyph_start - root_open_len,
+                                     prefix,
+                                     (unsigned) prefix_len);
+  }
+  else if (glyph_is_root_svg && root_open_len > 1)
+  {
+    if (!hb_svg_append_with_prefix (body_dst,
+                                    svg + glyph_start,
+                                    root_open_len - 1,
+                                    prefix,
+                                    (unsigned) prefix_len))
+      goto done;
+    if (!hb_svg_append_str (body_dst, " overflow=\"visible\""))
       goto done;
     if (!hb_svg_append_c (body_dst, '>'))
       goto done;
