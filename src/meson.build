@@ -587,6 +587,7 @@ features = [
   'GRAPHITE',
   'ICU',
   'RASTER',
+  'SUBSET',
   'UNISCRIBE',
   'VECTOR',
   'WASM',
