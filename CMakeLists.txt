@@ -51,6 +51,11 @@ if (HB_BUILD_UTILS)
 endif ()
 
 option(HB_BUILD_SUBSET "Build harfbuzz-subset" ON)
+option(HB_BUILD_RASTER "Build harfbuzz-raster" ON)
+option(HB_BUILD_VECTOR "Build harfbuzz-vector" ON)
+set(HB_HAVE_SUBSET ${HB_BUILD_SUBSET})
+set(HB_HAVE_RASTER ${HB_BUILD_RASTER})
+set(HB_HAVE_VECTOR ${HB_BUILD_VECTOR})
 
 option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
 if (HB_HAVE_GOBJECT)
@@ -233,6 +238,61 @@ set (subset_project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-subset.h
      ${PROJECT_SOURCE_DIR}/src/hb-subset-serialize.h
 )
+set (raster_project_sources
+     ${PROJECT_SOURCE_DIR}/src/hb-zlib.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-zlib.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-image.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-image.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-utils.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-draw.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-base.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-base.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-defs.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-defs.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-defs-scan.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-defs-scan.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-gradient.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-gradient.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-clip.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-clip.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-bbox.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-bbox.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-fill.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-fill.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-context.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-use.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-use.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-render.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-color.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-color.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-parse.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg-parse.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-paint.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-paint.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-raster-svg.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-static.cc
+)
+set (raster_project_headers
+     ${PROJECT_SOURCE_DIR}/src/hb-raster.h
+)
+set (vector_project_sources
+     ${PROJECT_SOURCE_DIR}/src/hb-zlib.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-zlib.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-vector.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-draw.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-path.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-paint.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-path.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-subset.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-subset.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-utils.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-vector-svg-utils.hh
+     ${PROJECT_SOURCE_DIR}/src/hb-static.cc
+)
+set (vector_project_headers
+     ${PROJECT_SOURCE_DIR}/src/hb-vector.h
+)
 
 ## Find and include needed header folders and libraries
 if (HB_HAVE_FREETYPE AND NOT TARGET freetype)
@@ -394,6 +454,26 @@ if (HB_HAVE_CAIRO)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-cairo.h)
   list(APPEND THIRD_PARTY_LIBS ${CAIRO_LIBRARIESNAMES})
 endif()
+
+if (HB_BUILD_RASTER)
+  find_package(PNG QUIET)
+  if (PNG_FOUND)
+    add_compile_definitions(HAVE_PNG=1)
+    list(APPEND HB_RASTER_THIRD_PARTY_LIBS PNG::PNG)
+    list(APPEND PC_REQUIRES_PRIV_RASTER png)
+  endif ()
+endif ()
+
+if (HB_BUILD_RASTER OR HB_BUILD_VECTOR)
+  find_package(ZLIB QUIET)
+  if (ZLIB_FOUND)
+    add_compile_definitions(HAVE_ZLIB=1)
+    list(APPEND HB_RASTER_THIRD_PARTY_LIBS ZLIB::ZLIB)
+    list(APPEND HB_VECTOR_THIRD_PARTY_LIBS ZLIB::ZLIB)
+    list(APPEND PC_REQUIRES_PRIV_RASTER zlib)
+    list(APPEND PC_REQUIRES_PRIV_VECTOR zlib)
+  endif ()
+endif ()
 
 if (HB_HAVE_GOBJECT)
   add_compile_definitions(HAVE_GOBJECT)
@@ -572,6 +652,64 @@ if (HB_BUILD_SUBSET)
   endif ()
 endif ()
 
+if (HB_BUILD_RASTER)
+  add_library(harfbuzz-raster ${raster_project_sources} ${raster_project_headers})
+  add_dependencies(harfbuzz-raster harfbuzz)
+  target_link_libraries(harfbuzz-raster harfbuzz ${HB_RASTER_THIRD_PARTY_LIBS})
+  set_target_properties(harfbuzz-raster PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+  if (MINGW)
+    target_compile_options(harfbuzz-raster PRIVATE "-Wa,-mbig-obj")
+  endif()
+
+  if (BUILD_SHARED_LIBS)
+    if (BUILD_FRAMEWORK)
+      list(APPEND project_headers ${raster_project_headers})
+      set_target_properties(harfbuzz-raster PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-raster"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-raster"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-raster"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
+  endif ()
+endif ()
+
+if (HB_BUILD_VECTOR)
+  add_library(harfbuzz-vector ${vector_project_sources} ${vector_project_headers})
+  add_dependencies(harfbuzz-vector harfbuzz)
+  target_link_libraries(harfbuzz-vector harfbuzz ${HB_VECTOR_THIRD_PARTY_LIBS})
+  set_target_properties(harfbuzz-vector PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+  if (MINGW)
+    target_compile_options(harfbuzz-vector PRIVATE "-Wa,-mbig-obj")
+  endif()
+
+  if (BUILD_SHARED_LIBS)
+    if (BUILD_FRAMEWORK)
+      list(APPEND project_headers ${vector_project_headers})
+      set_target_properties(harfbuzz-vector PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-vector"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-vector"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-vector"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
+  endif ()
+endif ()
+
 if (UNIX OR MINGW OR VITA)
   # Make symbols link locally
   include (CheckCXXCompilerFlag)
@@ -590,6 +728,12 @@ if (UNIX OR MINGW OR VITA)
     set_target_properties(harfbuzz PROPERTIES LINKER_LANGUAGE C)
     if (HB_BUILD_SUBSET)
       set_target_properties(harfbuzz-subset PROPERTIES LINKER_LANGUAGE C)
+    endif ()
+    if (HB_BUILD_RASTER)
+      set_target_properties(harfbuzz-raster PROPERTIES LINKER_LANGUAGE C)
+    endif ()
+    if (HB_BUILD_VECTOR)
+      set_target_properties(harfbuzz-vector PROPERTIES LINKER_LANGUAGE C)
     endif ()
 
     # No threadsafe statics as we do it ourselves
@@ -879,6 +1023,12 @@ include (GNUInstallDirs)
 
 if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
   install(FILES ${project_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
+  if (HB_BUILD_RASTER)
+    install(FILES ${raster_project_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
+  endif ()
+  if (HB_BUILD_VECTOR)
+    install(FILES ${vector_project_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
+  endif ()
   if (HB_HAVE_GOBJECT)
     install(FILES ${hb_gobject_headers} ${hb_gobject_gen_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
   endif ()
@@ -893,6 +1043,8 @@ string(REPLACE ";" " " PC_LIBS_PRIV "${PC_LIBS_PRIV}")
 # Macro to write pkg-config .pc configuration files
 macro ( make_pkgconfig_pc_file name )
   file(READ "${PROJECT_SOURCE_DIR}/src/${name}.pc.in" FSTR)
+  set(_pc_requires_private_extra "")
+  set(_pc_libs_private_extra "")
 
   string(REPLACE "%prefix%" "${CMAKE_INSTALL_PREFIX}" FSTR ${FSTR})
   string(REPLACE "%exec_prefix%" "\${prefix}" FSTR ${FSTR})
@@ -912,6 +1064,14 @@ macro ( make_pkgconfig_pc_file name )
   string(REPLACE "%VERSION%" "${HB_VERSION}" FSTR ${FSTR})
   string(REPLACE "%requires_private%" "${PC_REQUIRES_PRIV}" FSTR ${FSTR})
   string(REPLACE "%libs_private%" "${PC_LIBS_PRIV}" FSTR ${FSTR})
+  if (ARGC GREATER 1)
+    set(_pc_requires_private_extra "${ARGV1}")
+  endif ()
+  if (ARGC GREATER 2)
+    set(_pc_libs_private_extra "${ARGV2}")
+  endif ()
+  string(REPLACE "%requires_private_extra%" "${_pc_requires_private_extra}" FSTR ${FSTR})
+  string(REPLACE "%libs_private_extra%" "${_pc_libs_private_extra}" FSTR ${FSTR})
 
   file(WRITE "${PROJECT_BINARY_DIR}/${name}.pc" ${FSTR})
 
@@ -925,7 +1085,7 @@ endmacro ( make_pkgconfig_pc_file )
 # Generate hb-features.h with the features we enabled
 macro (make_hb_features_h)
   file(READ "${PROJECT_SOURCE_DIR}/src/hb-features.h.in" feature_h_in)
-  foreach(arg cairo coretext directwrite freetype gdi glib gobject graphite icu uniscribe wasm)
+  foreach(arg cairo coretext directwrite freetype gdi glib gobject graphite icu raster subset uniscribe vector wasm)
     string(TOUPPER ${arg} feature_caps)
     set(feature_instring "#mesondefine HB_HAS_${feature_caps}")
     if (HB_HAVE_${feature_caps})
@@ -959,6 +1119,18 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   if (HB_BUILD_SUBSET)
     list(APPEND hb_install_targets harfbuzz-subset)
     make_pkgconfig_pc_file("harfbuzz-subset")
+  endif ()
+  if (HB_BUILD_RASTER)
+    list(REMOVE_DUPLICATES PC_REQUIRES_PRIV_RASTER)
+    string(REPLACE ";" ", " PC_REQUIRES_PRIV_RASTER "${PC_REQUIRES_PRIV_RASTER}")
+    list(APPEND hb_install_targets harfbuzz-raster)
+    make_pkgconfig_pc_file("harfbuzz-raster" "${PC_REQUIRES_PRIV_RASTER}")
+  endif ()
+  if (HB_BUILD_VECTOR)
+    list(REMOVE_DUPLICATES PC_REQUIRES_PRIV_VECTOR)
+    string(REPLACE ";" ", " PC_REQUIRES_PRIV_VECTOR "${PC_REQUIRES_PRIV_VECTOR}")
+    list(APPEND hb_install_targets harfbuzz-vector)
+    make_pkgconfig_pc_file("harfbuzz-vector" "${PC_REQUIRES_PRIV_VECTOR}")
   endif ()
   if (HB_BUILD_UTILS)
     if (WIN32 AND BUILD_SHARED_LIBS)
