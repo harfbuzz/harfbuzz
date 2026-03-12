@@ -199,10 +199,10 @@ hb_svg_add_unique_id (hb_vector_t<OT::SVG::svg_id_span_t> *v,
                       const char *p,
                       unsigned n)
 {
-  if (!n) return false;
+  if (!n) return true;
   OT::SVG::svg_id_span_t key = {p, n};
   if (seen_ids->has (key))
-    return false;
+    return true;
   if (unlikely (!seen_ids->set (key, true)))
     return false;
   auto *slot = v->push ();

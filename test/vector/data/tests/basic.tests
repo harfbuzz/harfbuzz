@@ -15,3 +15,5 @@
 ../fonts/2db082c6c462d5056544e56e7ea13bf58c33a832.ttf;--logical;U+0646,U+0633,U+062A,U+0639,U+0644,U+06CC,U+0642;../expected/basic/iran-nastaliq-y-offsets.svg
 ../../../fuzzing/fonts/noto_handwriting-untouchedsvg.ttf;;U+270D;../expected/basic/handwriting-svg.svg
 ../../../fuzzing/fonts/noto_handwriting-untouchedsvgz.ttf;;U+270D;../expected/basic/handwriting-svg.svg
+../../../fuzzing/fonts/noto_handwriting-picosvg.ttf;;U+270D;../expected/basic/handwriting-picosvg.svg
+../../../fuzzing/fonts/noto_handwriting-picosvgz.ttf;;U+270D;../expected/basic/handwriting-picosvg.svg
