@@ -100,11 +100,25 @@ HB_BEGIN_DECLS
 #mesondefine HB_HAS_ICU
 
 /**
+ * HB_HAS_RASTER:
+ *
+ * Defined if Harfbuzz has been built with the raster library.
+ */
+#mesondefine HB_HAS_RASTER
+
+/**
  * HB_HAS_UNISCRIBE:
  *
  * Defined if Harfbuzz has been built with Uniscribe support.
  */
 #mesondefine HB_HAS_UNISCRIBE
+
+/**
+ * HB_HAS_VECTOR:
+ *
+ * Defined if Harfbuzz has been built with the vector library.
+ */
+#mesondefine HB_HAS_VECTOR
 
 /**
  * HB_HAS_WASM:
