@@ -273,7 +273,6 @@ hb_base_sources = files(
   'hb-unicode.hh',
   'hb-utf.hh',
   'hb-vector.hh',
-  'hb-zlib.hh',
   'hb.hh',
 )
 
@@ -705,6 +704,8 @@ if not get_option('subset').disabled()
 endif
 
 hb_raster_sources = [
+  'hb-zlib.cc',
+  'hb-zlib.hh',
   'hb-raster.cc',
   'hb-raster-image.cc',
   'hb-raster-image.hh',
@@ -743,6 +744,8 @@ hb_raster_headers = [
 ]
 
 hb_vector_sources = [
+  'hb-zlib.cc',
+  'hb-zlib.hh',
   'hb-vector.cc',
   'hb-vector-svg-draw.cc',
   'hb-vector-svg-path.cc',
