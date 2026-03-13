@@ -1,3 +1,22 @@
+Overview of changes leading to 13.1.1
+Friday, March 13, 2026
+=====================================
+- Support gzip-compressed `SVG` glyphs in `harfbuzz-raster` and
+  `harfbuzz-vector` libraries. This new functionality requires `zlib`, and will
+   not be available if HarfBuzz is built without `zlib`.
+- Improve handling of `SVG` glyphs in `harfbuzz-raster` and
+  `harfbuzz-vector` libraries.
+- Further harden application of `stch` feature against malicious fonts.
+- Various fuzzing fixes.
+- Various build fixes:
+  * Add missing `chafa` dependency to `hb-raster` utility, and remove
+    accidental `cairo` dependency.
+  * Don’t build raster and vector fuzzers if the library is disabled.
+  * Add meson options for enabling / disabling `libpng` and `zlib`.
+  * Support building `harfbuzz-raster` and `harfbuzz-vector` libraries with
+    CMake.
+
+
 Overview of changes leading to 13.1.0
 Wednesday, March 11, 2026
 =====================================
