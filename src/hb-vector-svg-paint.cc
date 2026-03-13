@@ -1647,13 +1647,12 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
     return true;
   }
 
-  auto &body = paint->current_body ();
-  hb_svg_append_str (&body, "<g transform=\"");
-  hb_svg_append_instance_transform (&body, paint->precision,
+  hb_svg_append_str (&paint->current_body (), "<g transform=\"");
+  hb_svg_append_instance_transform (&paint->current_body (), paint->precision,
 				    paint->x_scale_factor,
 				    paint->y_scale_factor,
 				    xx, yx, xy, yy, tx, ty);
-  hb_svg_append_str (&body, "\">\n");
+  hb_svg_append_str (&paint->current_body (), "\">\n");
   hb_codepoint_t old_gid = paint->current_svg_image_glyph;
   hb_face_t *old_face = paint->current_face;
   paint->current_svg_image_glyph = glyph;
@@ -1664,7 +1663,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 						paint->foreground);
   paint->current_svg_image_glyph = old_gid;
   paint->current_face = old_face;
-  hb_svg_append_str (&body, "</g>\n");
+  hb_svg_append_str (&paint->current_body (), "</g>\n");
   return ret;
 }
 
