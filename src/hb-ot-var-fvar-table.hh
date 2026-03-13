@@ -107,8 +107,8 @@ struct InstanceRecord
         if (!axis_coord_pinned_or_within_axis_range (coords, i, *axis_limit))
           return_trace (false);
 
-        //skip pinned axis
-        if (axis_limit->is_point ())
+        //skip pinned axis (but not for avar2, where pinned axes stay in fvar)
+        if (axis_limit->is_point () && !c->plan->has_avar2)
           continue;
       }
 
@@ -235,9 +235,21 @@ struct AxisRecord
     Triple *axis_limit;
     if (user_axes_location.has (axisTag, &axis_limit))
     {
-      out->minValue.set_float (axis_limit->minimum);
-      out->defaultValue.set_float (axis_limit->middle);
-      out->maxValue.set_float (axis_limit->maximum);
+      if (c->plan->has_avar2 && axis_limit->is_point ())
+      {
+        /* Pinned axis in avar2 mode: keep in fvar as hidden with
+         * min=default=max=pinned_value. */
+        out->minValue.set_float (axis_limit->middle);
+        out->defaultValue.set_float (axis_limit->middle);
+        out->maxValue.set_float (axis_limit->middle);
+        out->flags = out->flags | (HBUINT16) AXIS_FLAG_HIDDEN;
+      }
+      else
+      {
+        out->minValue.set_float (axis_limit->minimum);
+        out->defaultValue.set_float (axis_limit->middle);
+        out->maxValue.set_float (axis_limit->maximum);
+      }
     }
     return_trace (true);
   }
