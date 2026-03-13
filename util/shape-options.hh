@@ -93,7 +93,7 @@ struct shape_options_t
 				    font,
 				    HB_BUFFER_SERIALIZE_FORMAT_TEXT);
 
-      if (!strchr (glyphs_text, '+'))
+      if (!strchr (glyphs_text, '+') && !strchr (glyphs_text, '@'))
       {
         scale_advances = false;
         unsigned count;
