@@ -68,15 +68,17 @@ svg_render_shape (hb_svg_render_context_t *ctx,
   bool has_transform = transform_str.len > 0;
   bool has_opacity = state.opacity < 1.f;
   bool has_clip_path = false;
+  bool pushed_transform = false;
+  bool pushed_opacity_group = false;
 
   if (has_opacity)
-    ctx->push_group ();
+    pushed_opacity_group = ctx->push_group ();
 
   if (has_transform)
   {
     hb_svg_transform_t t;
     hb_raster_svg_parse_transform (transform_str, &t);
-    ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
+    pushed_transform = ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
   }
 
   hb_extents_t<> bbox;
@@ -105,10 +107,10 @@ svg_render_shape (hb_svg_render_context_t *ctx,
   if (has_clip_path)
     ctx->pop_clip ();
 
-  if (has_transform)
+  if (pushed_transform)
     ctx->pop_transform ();
 
-  if (has_opacity)
+  if (pushed_opacity_group)
     ctx->pop_group (HB_PAINT_COMPOSITE_MODE_SRC_OVER);
 }
 
@@ -131,6 +133,10 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
   float viewport_w = 0.f, viewport_h = 0.f;
   hb_svg_transform_t viewbox_t;
   float vb_x = 0, vb_y = 0, vb_w = 0, vb_h = 0;
+  bool pushed_opacity_group = false;
+  bool pushed_transform = false;
+  bool pushed_svg_translate = false;
+  bool pushed_viewbox_transform = false;
 
   if (tag.eq ("svg") || tag.eq ("symbol"))
   {
@@ -184,23 +190,23 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
   }
 
   if (has_opacity)
-    ctx->push_group ();
+    pushed_opacity_group = ctx->push_group ();
 
   if (has_transform)
   {
     hb_svg_transform_t t;
     hb_raster_svg_parse_transform (transform_str, &t);
-    ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
+    pushed_transform = ctx->push_transform (t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
   }
 
   if (has_svg_translate)
-    ctx->push_transform (1, 0, 0, 1, svg_x, svg_y);
+    pushed_svg_translate = ctx->push_transform (1, 0, 0, 1, svg_x, svg_y);
 
   if (has_viewbox_transform)
-    ctx->push_transform (viewbox_t.xx, viewbox_t.yx, viewbox_t.xy, viewbox_t.yy,
-                         viewbox_t.dx, viewbox_t.dy);
+    pushed_viewbox_transform = ctx->push_transform (viewbox_t.xx, viewbox_t.yx, viewbox_t.xy, viewbox_t.yy,
+                                                    viewbox_t.dx, viewbox_t.dy);
   else if (has_viewbox && vb_w > 0 && vb_h > 0)
-    ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
+    pushed_viewbox_transform = ctx->push_transform (1, 0, 0, 1, -vb_x, -vb_y);
 
   has_clip = hb_raster_svg_push_clip_path_ref (ctx->paint, &ctx->defs, clip_path_str, nullptr);
 
@@ -254,19 +260,19 @@ svg_render_container_element (hb_svg_render_context_t *ctx,
     }
   }
 
-  if (has_viewbox_transform || (has_viewbox && vb_w > 0 && vb_h > 0))
+  if (pushed_viewbox_transform)
     ctx->pop_transform ();
 
-  if (has_svg_translate)
+  if (pushed_svg_translate)
     ctx->pop_transform ();
 
   if (has_clip)
     ctx->pop_clip ();
 
-  if (has_transform)
+  if (pushed_transform)
     ctx->pop_transform ();
 
-  if (has_opacity)
+  if (pushed_opacity_group)
     ctx->pop_group (HB_PAINT_COMPOSITE_MODE_SRC_OVER);
 }
 
@@ -495,11 +501,13 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
     hb_svg_token_type_t tok = parser.next ();
     if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
     {
-      hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
-      ctx.push_transform (1, 0, 0, -1, 0, 0);
+      bool pushed_font_transform = hb_raster_svg_push_font_transform (ctx.pfuncs, ctx.paint, font);
+      bool pushed_flip_transform = ctx.push_transform (1, 0, 0, -1, 0, 0);
 	      svg_render_element (&ctx, parser, initial_state);
-      ctx.pop_transform ();
-      hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
+      if (pushed_flip_transform)
+        ctx.pop_transform ();
+      if (pushed_font_transform)
+        hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
       found_glyph = true;
     }
   }
@@ -525,11 +533,13 @@ hb_raster_svg_render (hb_raster_paint_t *paint,
           if (id.len == (unsigned) glyph_id_len &&
               0 == hb_memcmp (id.data, glyph_id_str, (unsigned) glyph_id_len))
           {
-            hb_paint_push_font_transform (ctx.pfuncs, ctx.paint, font);
-            ctx.push_transform (1, 0, 0, -1, 0, 0);
+            bool pushed_font_transform = hb_raster_svg_push_font_transform (ctx.pfuncs, ctx.paint, font);
+            bool pushed_flip_transform = ctx.push_transform (1, 0, 0, -1, 0, 0);
 	            svg_render_element (&ctx, parser, initial_state);
-            ctx.pop_transform ();
-            hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
+            if (pushed_flip_transform)
+              ctx.pop_transform ();
+            if (pushed_font_transform)
+              hb_paint_pop_transform (ctx.pfuncs, ctx.paint);
             found_glyph = true;
             break;
           }

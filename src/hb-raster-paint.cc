@@ -158,7 +158,8 @@ hb_raster_paint_pop_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			       void *user_data HB_UNUSED)
 {
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
-  c->transform_stack.pop ();
+  if (c->transform_stack.length > 1)
+    c->transform_stack.pop ();
 }
 
 static hb_bool_t
@@ -431,6 +432,38 @@ hb_raster_paint_push_clip_rectangle (hb_paint_funcs_t *pfuncs HB_UNUSED,
     new_clip.rect_x1 = hb_min (px1, old_clip.rect_x1);
     new_clip.rect_y1 = hb_min (py1, old_clip.rect_y1);
     new_clip.update_bounds_from_rect ();
+  }
+  else if (is_axis_aligned)
+  {
+    /* Fast path: intersect an axis-aligned rect with an existing alpha clip. */
+    new_clip.is_rect = false;
+    size_t clip_size = (size_t) new_clip.stride * h;
+    if (unlikely (clip_size > HB_RASTER_MAX_BUFFER_SIZE ||
+                  !new_clip.alpha.resize ((unsigned) clip_size)))
+    {
+      hb_raster_paint_push_empty_clip (c, w, h);
+      return;
+    }
+    hb_memset (new_clip.alpha.arrayZ, 0, (unsigned) clip_size);
+
+    unsigned iy0 = (unsigned) hb_max (py0, (int) old_clip.min_y);
+    unsigned iy1 = (unsigned) hb_min (py1, (int) old_clip.max_y);
+    unsigned ix0 = (unsigned) hb_max (px0, (int) old_clip.min_x);
+    unsigned ix1 = (unsigned) hb_min (px1, (int) old_clip.max_x);
+
+    if (ix0 < ix1 && iy0 < iy1)
+    {
+      for (unsigned y = iy0; y < iy1; y++)
+      {
+        const uint8_t *old_row = old_clip.alpha.arrayZ + y * old_clip.stride;
+        uint8_t *new_row = new_clip.alpha.arrayZ + y * new_clip.stride;
+        hb_memcpy (new_row + ix0, old_row + ix0, ix1 - ix0);
+      }
+      new_clip.min_x = ix0;
+      new_clip.min_y = iy0;
+      new_clip.max_x = ix1;
+      new_clip.max_y = iy1;
+    }
   }
   else
   {
@@ -849,6 +882,8 @@ get_color_stops (hb_raster_paint_t *c,
 		 hb_color_stop_t **stops)
 {
   unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  if (unlikely (!len))
+    return false;
   if (len > *count)
   {
     if (unlikely (!c->scratch_color_stops.resize (len)))

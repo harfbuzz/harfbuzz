@@ -74,17 +74,21 @@ struct hb_svg_render_context_t
   bool suppress_viewbox_once = false;
   bool allow_symbol_render_once = false;
 
-  void push_transform (float xx, float yx, float xy, float yy, float dx, float dy)
+  bool push_transform (float xx, float yx, float xy, float yy, float dx, float dy)
   {
+    unsigned depth = paint->transform_stack.length;
     hb_paint_push_transform (pfuncs, paint, xx, yx, xy, yy, dx, dy);
+    return paint->transform_stack.length > depth;
   }
   void pop_transform ()
   {
     hb_paint_pop_transform (pfuncs, paint);
   }
-  void push_group ()
+  bool push_group ()
   {
+    unsigned depth = paint->surface_stack.length;
     hb_paint_push_group (pfuncs, paint);
+    return paint->surface_stack.length > depth;
   }
   void pop_group (hb_paint_composite_mode_t mode)
   {
@@ -99,6 +103,27 @@ struct hb_svg_render_context_t
     hb_paint_pop_clip (pfuncs, paint);
   }
 };
+
+static inline bool
+hb_raster_svg_push_font_transform (hb_paint_funcs_t *pfuncs,
+                                   hb_raster_paint_t *paint,
+                                   const hb_font_t *font)
+{
+  unsigned depth = paint->transform_stack.length;
+  hb_paint_push_font_transform (pfuncs, paint, font);
+  return paint->transform_stack.length > depth;
+}
+
+static inline bool
+hb_raster_svg_push_transform (hb_paint_funcs_t *pfuncs,
+                              hb_raster_paint_t *paint,
+                              float xx, float yx, float xy, float yy,
+                              float dx, float dy)
+{
+  unsigned depth = paint->transform_stack.length;
+  hb_paint_push_transform (pfuncs, paint, xx, yx, xy, yy, dx, dy);
+  return paint->transform_stack.length > depth;
+}
 
 struct hb_svg_cascade_t
 {

@@ -51,16 +51,20 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
 
   bool has_translate = (use_x != 0.f || use_y != 0.f);
   bool has_use_transform = transform_str.len > 0;
+  bool pushed_use_transform = false;
+  bool pushed_translate = false;
 
   if (has_use_transform)
   {
     hb_svg_transform_t t;
     hb_raster_svg_parse_transform (transform_str, &t);
-    hb_paint_push_transform (ctx->pfuncs, ctx->paint, t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
+    pushed_use_transform = hb_raster_svg_push_transform (ctx->pfuncs, ctx->paint,
+							 t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
   }
 
   if (has_translate)
-    hb_paint_push_transform (ctx->pfuncs, ctx->paint, 1, 0, 0, 1, use_x, use_y);
+    pushed_translate = hb_raster_svg_push_transform (ctx->pfuncs, ctx->paint,
+						     1, 0, 0, 1, use_x, use_y);
 
   const char *found = nullptr;
   hb_raster_svg_find_element_by_id (ctx->doc_start, ctx->doc_len, ctx->svg_accel, ctx->doc_cache,
@@ -80,24 +84,24 @@ hb_raster_svg_render_use_element (const hb_svg_use_context_t *ctx,
       hb_svg_token_type_t tok = ref_parser.next ();
       if (tok == SVG_TOKEN_OPEN_TAG || tok == SVG_TOKEN_SELF_CLOSE_TAG)
       {
-        bool has_viewport_scale = false;
+        bool pushed_viewport_scale = false;
         hb_svg_transform_t t;
         if (hb_raster_svg_compute_use_target_viewbox_transform (ref_parser, use_w, use_h, &t))
         {
-          hb_paint_push_transform (ctx->pfuncs, ctx->paint, t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
-          has_viewport_scale = true;
+          pushed_viewport_scale = hb_raster_svg_push_transform (ctx->pfuncs, ctx->paint,
+								t.xx, t.yx, t.xy, t.yy, t.dx, t.dy);
         }
-        render_cb (render_user, ref_parser, state, has_viewport_scale);
-        if (has_viewport_scale)
+        render_cb (render_user, ref_parser, state, pushed_viewport_scale);
+        if (pushed_viewport_scale)
           hb_paint_pop_transform (ctx->pfuncs, ctx->paint);
       }
     }
   }
 
-  if (has_translate)
+  if (pushed_translate)
     hb_paint_pop_transform (ctx->pfuncs, ctx->paint);
 
-  if (has_use_transform)
+  if (pushed_use_transform)
     hb_paint_pop_transform (ctx->pfuncs, ctx->paint);
 }
 
