@@ -849,6 +849,8 @@ get_color_stops (hb_raster_paint_t *c,
 		 hb_color_stop_t **stops)
 {
   unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  if (unlikely (!len))
+    return false;
   if (len > *count)
   {
     if (unlikely (!c->scratch_color_stops.resize (len)))
