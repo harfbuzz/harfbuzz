@@ -482,7 +482,7 @@ emit_segment (hb_raster_draw_t *draw,
   } else {
     e.xL = X1; e.yL = Y1; e.xH = X0; e.yH = Y0; e.wind = -1;
   }
-  e.slope = ((int64_t) (e.xH - e.xL) << 16) / (e.yH - e.yL);
+  e.slope = ((int64_t) (e.xH - e.xL) * (int64_t) (1 << 16)) / (e.yH - e.yL);
 
   draw->edges.push (e);
 }
