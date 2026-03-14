@@ -158,7 +158,8 @@ hb_raster_paint_pop_transform (hb_paint_funcs_t *pfuncs HB_UNUSED,
 			       void *user_data HB_UNUSED)
 {
   hb_raster_paint_t *c = (hb_raster_paint_t *) paint_data;
-  c->transform_stack.pop ();
+  if (c->transform_stack.length > 1)
+    c->transform_stack.pop ();
 }
 
 static hb_bool_t
