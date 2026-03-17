@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include "hb-subset.h"
+#include "hb-ot-cmap-table.hh"
 
 #include <random>
 #include <vector>
@@ -733,7 +734,8 @@ process_edges_for_tables (hb_depend_t *depend,
                           bool skip_gsub,
                           hb_set_t *active_features,
                           bool *hit_flagged_edge,
-                          std::mt19937 *injection_rng)
+                          std::mt19937 *injection_rng,
+                          const hb_map_t *vs_to_gid)
 {
   bool added_any = false;
 
@@ -770,6 +772,16 @@ process_edges_for_tables (hb_depend_t *depend,
       if (dependent == debug_gid || gid == debug_gid)
         DEBUG_MSG_DEPEND("Edge: %u -> %u (table=%c%c%c%c, ligset=%u)",
                    gid, dependent, HB_UNTAG(table_tag), ligature_set);
+
+      /* Skip all cmap edges - UVS closure is now handled directly via cmap accelerator.
+       * This ensures proper filtering by both base unicode and variation selector. */
+      if (table_tag == HB_TAG('c','m','a','p'))
+      {
+        if (dependent == debug_gid)
+          DEBUG_MSG_DEPEND("Skipping cmap edge %u -> %u: UVS handled via cmap accelerator",
+                     gid, dependent);
+        continue;
+      }
 
       /* Skip GSUB dependencies if requested (to match subset behavior) */
       if (skip_gsub && table_tag == HB_OT_TAG_GSUB)
@@ -879,9 +891,10 @@ process_edges_for_tables (hb_depend_t *depend,
  * hit_flagged_edge: if non-NULL, set to true if any edge with FROM_CONTEXT_POSITION flag is traversed
  * injection_rng: if non-NULL, use for error injection */
 static void
-compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
+compute_depend_closure (hb_face_t *face, hb_depend_t *depend, hb_set_t *glyphs,
+                        const hb_set_t *input_unicodes, bool skip_gsub,
                         hb_set_t *active_features, bool *hit_flagged_edge,
-                        std::mt19937 *injection_rng)
+                        std::mt19937 *injection_rng, const hb_map_t *vs_to_gid)
 {
   if (debug_gid != HB_CODEPOINT_INVALID)
   {
@@ -903,10 +916,11 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
   std::vector<deferred_ligature_t> deferred_ligatures;
 
   /* Process edges in stages matching subset's table order:
-   * 1. GSUB (iterate internally until stable - handles context dependencies)
-   * 2. MATH (on glyphs from GSUB)
-   * 3. COLR (on glyphs from GSUB+MATH)
-   * 4. glyf/CFF (on glyphs from GSUB+MATH+COLR)
+   * 1. cmap (follows UVS edges - must be BEFORE GSUB so UVS glyphs get GSUB processed)
+   * 2. GSUB (iterate internally until stable - handles context dependencies)
+   * 3. MATH (on glyphs from cmap+GSUB)
+   * 4. COLR (on glyphs from cmap+GSUB+MATH)
+   * 5. glyf/CFF (on glyphs from cmap+GSUB+MATH+COLR)
    *
    * No loop back to GSUB after glyf/CFF - glyf components are rendering
    * implementation details, not shaping inputs. Subset doesn't loop back either. */
@@ -914,8 +928,60 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
   /* Helper set for ligature processing (used in GSUB stage) */
   hb_set_t *ligature_set_glyphs = hb_set_create ();
 
+  /* Stage 1: UVS closure (using query API, not depend edges)
+   * Process BEFORE GSUB to match subset's order.
+   * For each (base_unicode, variation_selector) pair in input_unicodes,
+   * query the variant glyph and add it to the closure. */
+  if (input_unicodes)
   {
-    /* Stage 1: GSUB closure - iterate until stable (like subset does internally)
+    /* Get all variation selectors in the font */
+    hb_set_t *all_vs = hb_set_create ();
+    hb_face_collect_variation_selectors (face, all_vs);
+
+    /* Filter to only VSs present in input unicodes */
+    hb_set_intersect (all_vs, input_unicodes);
+
+    if (!hb_set_is_empty (all_vs))
+    {
+      hb_font_t *font = hb_font_create (face);
+
+      /* For each variation selector in input */
+      hb_codepoint_t vs = HB_SET_VALUE_INVALID;
+      while (hb_set_next (all_vs, &vs))
+      {
+        /* For each base unicode in input */
+        hb_codepoint_t base = HB_SET_VALUE_INVALID;
+        while (hb_set_next (input_unicodes, &base))
+        {
+          /* Skip if base is itself a variation selector */
+          if (hb_set_has (all_vs, base))
+            continue;
+
+          /* Query variation glyph */
+          hb_codepoint_t variant_glyph;
+          if (hb_font_get_variation_glyph (font, base, vs, &variant_glyph))
+          {
+            hb_set_add (glyphs, variant_glyph);
+
+            if (trace_closure && variant_glyph == debug_gid)
+              DEBUG_MSG_DEPEND("UVS: Added glyph %u via U+%04X+U+%04X",
+                         variant_glyph, base, vs);
+          }
+        }
+      }
+
+      hb_font_destroy (font);
+    }
+
+    hb_set_destroy (all_vs);
+
+    if (trace_closure)
+      DEBUG_MSG_DEPEND("After UVS (cmap format 14): closure has %u glyphs",
+                 hb_set_get_population (glyphs));
+  }
+
+  {
+    /* Stage 2: GSUB closure - iterate until stable (like subset does internally)
      * Ligatures are processed HERE as part of GSUB, not after glyf/CFF.
      * This matches subset behavior where GSUB closure completes before glyf. */
     if (!skip_gsub)
@@ -931,7 +997,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
       /* Process non-ligature GSUB edges */
       hb_set_union (to_process, glyphs);
       process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                                gsub_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng);
+                                gsub_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng, vs_to_gid);
 
       /* Process deferred ligatures (GSUB ligatures only)
        * Only add a ligature when ALL glyphs in its ligature set are in closure.
@@ -1008,14 +1074,14 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
                  iteration, hb_set_get_population (glyphs));
   }
 
-  /* Stage 2: MATH closure */
+  /* Stage 3: MATH closure */
   {
     hb_set_t *math_filter = hb_set_create ();
     hb_set_add (math_filter, HB_OT_TAG_MATH);
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                              math_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng);
+                              math_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng, vs_to_gid);
     hb_set_destroy (math_filter);
 
     if (trace_closure)
@@ -1023,14 +1089,14 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
                  hb_set_get_population (glyphs));
   }
 
-  /* Stage 3: COLR closure */
+  /* Stage 4: COLR closure */
   {
     hb_set_t *colr_filter = hb_set_create ();
     hb_set_add (colr_filter, HB_TAG('C','O','L','R'));
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                              colr_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng);
+                              colr_filter, skip_gsub, active_features, hit_flagged_edge, injection_rng, vs_to_gid);
     hb_set_destroy (colr_filter);
 
     if (trace_closure)
@@ -1038,10 +1104,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
                  hb_set_get_population (glyphs));
   }
 
-  /* Stage 4: glyf/CFF closure
-   * Note: cmap edges (UVS) are NOT included here because:
-   * 1. Subset doesn't follow UVS for glyph-based closure
-   * 2. UVS is about Unicode→glyph mapping, not glyph→glyph rendering deps */
+  /* Stage 5: glyf/CFF closure */
   {
     hb_set_t *glyf_filter = hb_set_create ();
     hb_set_add (glyf_filter, HB_TAG('g','l','y','f'));
@@ -1049,7 +1112,7 @@ compute_depend_closure (hb_depend_t *depend, hb_set_t *glyphs, bool skip_gsub,
 
     hb_set_union (to_process, glyphs);
     process_edges_for_tables (depend, glyphs, to_process, &deferred_ligatures,
-                              glyf_filter, skip_gsub, active_features, NULL, injection_rng);
+                              glyf_filter, skip_gsub, active_features, NULL, injection_rng, vs_to_gid);
     hb_set_destroy (glyf_filter);
 
     if (trace_closure)
@@ -1294,9 +1357,48 @@ compare_closures (hb_face_t *face, hb_depend_t *depend,
     injection_rng = &injection_rng_storage;
   }
 
+  /* Build unicodes set for UVS closure.
+   * For GSUB tests: Use input codepoints.
+   * For non-GSUB tests: Find ALL unicodes for starting glyphs (reverse cmap lookup). */
+  hb_set_t *uvs_unicodes = hb_set_create ();
+  if (is_gsub && codepoints && !hb_set_is_empty (codepoints))
+  {
+    /* GSUB test: use input codepoints directly */
+    hb_set_union (uvs_unicodes, codepoints);
+  }
+  else
+  {
+    /* Non-GSUB test: find all unicodes that map to starting glyphs.
+     * This matches subset's behavior at hb-subset-plan.cc:310-319
+     * Use forward cmap and filter by starting glyphs. */
+
+    /* Get forward cmap (unicode → glyph) */
+    hb_map_t *unicode_to_glyph = hb_map_create ();
+    hb_face_collect_nominal_glyph_mapping (face, unicode_to_glyph, NULL);
+
+    /* Iterate forward map, add unicodes whose glyphs are in starting set */
+    int idx = -1;
+    hb_codepoint_t unicode, glyph;
+    while (hb_map_next (unicode_to_glyph, &idx, &unicode, &glyph))
+    {
+      if (hb_set_has (actual_start_glyphs, glyph))
+      {
+        hb_set_add (uvs_unicodes, unicode);
+      }
+    }
+
+    hb_map_destroy (unicode_to_glyph);
+  }
+
+  /* Build map of variation selectors to their glyph IDs (kept for potential future use) */
+  hb_map_t *vs_to_gid = hb_map_create ();
+
   bool hit_flagged_edge = false;
-  compute_depend_closure (depend, depend_closure, skip_gsub,
-                          skip_gsub ? NULL : active_features, &hit_flagged_edge, injection_rng);
+  compute_depend_closure (face, depend, depend_closure, uvs_unicodes, skip_gsub,
+                          skip_gsub ? NULL : active_features, &hit_flagged_edge, injection_rng, vs_to_gid);
+
+  hb_set_destroy (uvs_unicodes);
+  hb_map_destroy (vs_to_gid);
 
   hb_set_destroy (actual_start_glyphs);
 
@@ -1599,8 +1701,9 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 
     for (unsigned i = 0; i < T; i++)
     {
-      /* Generate pseudo-random 64-bit test seed */
-      uint64_t test_seed = ((uint64_t)uint32_dist (test_rng) << 32) | (uint64_t)uint32_dist (test_rng);
+      /* Generate pseudo-random 64-bit test seed
+       * Keep high bit clear for gint64 compatibility with -t parameter */
+      uint64_t test_seed = (((uint64_t)uint32_dist (test_rng) << 32) | (uint64_t)uint32_dist (test_rng)) & 0x7FFFFFFFFFFFFFFFULL;
 
       /* Generate test parameters from seed */
       test_params params = generate_test_from_seed (test_seed, face, font);
