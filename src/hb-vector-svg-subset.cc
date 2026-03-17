@@ -44,6 +44,14 @@
 #include "hb-vector-svg.hh"
 
 static bool
+hb_svg_range_is_valid (unsigned start,
+                       unsigned end,
+                       unsigned len)
+{
+  return start <= end && end <= len;
+}
+
+static bool
 hb_svg_append_with_prefix (hb_vector_t<char> *out,
                            const char *s,
                            unsigned n,
@@ -330,6 +338,8 @@ hb_svg_subset_glyph_image (hb_face_t *face,
 
   if (!face->table.SVG->doc_cache_get_glyph_span (doc_cache, glyph, &glyph_start, &glyph_end))
     goto done;
+  if (unlikely (!hb_svg_range_is_valid (glyph_start, glyph_end, len)))
+    goto done;
 
   defs_entries = face->table.SVG->doc_cache_get_defs_entries (doc_cache);
   if (!hb_svg_find_root_open_tag (svg, len, &root_open_len, &root_missing_viewport))
@@ -358,6 +368,8 @@ hb_svg_subset_glyph_image (hb_face_t *face,
           chosen_def_marks.arrayZ[i] = 1;
           if (unlikely (!chosen_defs.push_or_fail (i)))
             goto done;
+          if (unlikely (!hb_svg_range_is_valid (e.start, e.end, len)))
+            goto done;
           if (!hb_svg_collect_refs (svg + e.start, e.end - e.start,
                                     &needed_ids, &needed_ids_set))
             goto done;
@@ -376,6 +388,8 @@ hb_svg_subset_glyph_image (hb_face_t *face,
   for (unsigned i = 0; i < chosen_defs.length; i++)
   {
     const auto &e = defs_entries->arrayZ[chosen_defs.arrayZ[i]];
+    if (unlikely (!hb_svg_range_is_valid (e.start, e.end, len)))
+      goto done;
     if (!hb_svg_append_with_prefix (defs_dst, svg + e.start, e.end - e.start, prefix, (unsigned) prefix_len))
       goto done;
     if (!hb_svg_append_c (defs_dst, '\n'))
@@ -384,6 +398,8 @@ hb_svg_subset_glyph_image (hb_face_t *face,
 
   if (glyph_is_root_svg && root_missing_viewport && root_open_len > 1)
   {
+    if (unlikely (root_open_len > glyph_end - glyph_start))
+      goto done;
     unsigned upem = face->get_upem ();
     if (!hb_svg_append_with_prefix (body_dst,
                                     svg + glyph_start,
@@ -413,6 +429,8 @@ hb_svg_subset_glyph_image (hb_face_t *face,
   }
   else if (glyph_is_root_svg && root_open_len > 1)
   {
+    if (unlikely (root_open_len > glyph_end - glyph_start))
+      goto done;
     if (!hb_svg_append_with_prefix (body_dst,
                                     svg + glyph_start,
                                     root_open_len - 1,
