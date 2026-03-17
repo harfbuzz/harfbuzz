@@ -525,7 +525,13 @@ struct ColorLine
 
   hb_paint_extend_t get_extend () const
   {
-    return (hb_paint_extend_t) (unsigned int) extend;
+    switch ((unsigned int) extend)
+    {
+      case Extend::EXTEND_REPEAT:  return HB_PAINT_EXTEND_REPEAT;
+      case Extend::EXTEND_REFLECT: return HB_PAINT_EXTEND_REFLECT;
+      case Extend::EXTEND_PAD:
+      default:                     return HB_PAINT_EXTEND_PAD;
+    }
   }
 
   HB_INTERNAL static hb_paint_extend_t static_get_extend (hb_color_line_t *color_line,
