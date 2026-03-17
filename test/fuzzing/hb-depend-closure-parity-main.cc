@@ -103,7 +103,8 @@ print_usage (const char *prog)
 int main (int argc, char **argv)
 {
   unsigned seed = 0;
-  gint64 single_test = 0;  /* Use gint64 for glib */
+  const char *single_test_str = NULL;  /* Parse as string to support full uint64 range */
+  uint64_t single_test = 0;
   unsigned num_tests = 1024;
   gboolean verbose = FALSE;
   gboolean report_over_approximation = FALSE;
@@ -125,7 +126,7 @@ int main (int argc, char **argv)
   /* Define glib option entries */
   GOptionEntry test_mode_entries[] =
   {
-    {"test", 't', 0, G_OPTION_ARG_INT64, &single_test,
+    {"test", 't', 0, G_OPTION_ARG_STRING, &single_test_str,
      "Run only specific test (64-bit hex with 0x prefix)", "0xHEXSEED"},
     {"unicodes", 0, 0, G_OPTION_ARG_STRING, &explicit_unicodes,
      "Run explicit test with given unicodes (U+XXXX or decimal)", "LIST"},
@@ -200,6 +201,19 @@ int main (int argc, char **argv)
   /* Derive seed_specified from whether seed was explicitly set */
   /* Note: glib doesn't directly tell us if an option was set, so we check if seed != 0 */
   seed_specified = (seed != 0);
+
+  /* Parse test seed if specified */
+  if (single_test_str)
+  {
+    char *endptr;
+    single_test = strtoull (single_test_str, &endptr, 0);  /* Base 0 auto-detects 0x */
+    if (*endptr != '\0')
+    {
+      fprintf (stderr, "Error: Invalid test seed value: %s\n\n", single_test_str);
+      print_usage (argv[0]);
+      return 1;
+    }
+  }
 
   /* Derive explicit_test from whether --unicodes or --gids was specified */
   explicit_test = (explicit_unicodes != NULL || explicit_gids != NULL);
