@@ -482,7 +482,8 @@ emit_segment (hb_raster_draw_t *draw,
   } else {
     e.xL = X1; e.yL = Y1; e.xH = X0; e.yH = Y0; e.wind = -1;
   }
-  e.slope = ((int64_t) (e.xH - e.xL) * (int64_t) (1 << 16)) / (e.yH - e.yL);
+  e.slope = (((int64_t) e.xH - (int64_t) e.xL) * (int64_t) 65536) /
+	    ((int64_t) e.yH - (int64_t) e.yL);
 
   draw->edges.push (e);
 }
@@ -1066,7 +1067,8 @@ edge_sweep_row (int32_t                *area,
   if (total_dx > 0)
   {
     /* Left-to-right edge. */
-    int32_t x_b  = (cx0 + 1) << HB_RASTER_PIXEL_BITS;
+    int32_t x_b = (int32_t) hb_clamp (((int64_t) cx0 + 1) * HB_RASTER_ONE_PIXEL,
+				      (int64_t) INT32_MIN, (int64_t) INT32_MAX);
     int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
     cell_add (area, cover, width, cx0 - x_org, fx0, fy0, HB_RASTER_ONE_PIXEL, fy_b, wind, x_min, x_max);
 
@@ -1083,7 +1085,8 @@ edge_sweep_row (int32_t                *area,
   else
   {
     /* Right-to-left edge. */
-    int32_t x_b  = cx0 << HB_RASTER_PIXEL_BITS;
+    int32_t x_b = (int32_t) hb_clamp ((int64_t) cx0 * HB_RASTER_ONE_PIXEL,
+				      (int64_t) INT32_MIN, (int64_t) INT32_MAX);
     int32_t fy_b = fy0 + (int32_t) ((int64_t) (x_b - x0) * total_dy / total_dx);
     cell_add (area, cover, width, cx0 - x_org, fx0, fy0, 0, fy_b, wind, x_min, x_max);
 
