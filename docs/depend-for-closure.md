@@ -9,13 +9,15 @@ reference implementation.
 
 To compute a closure using the depend graph:
 
-1. **Map input codepoints to starting glyphs** using the cmap table
-2. **Initialize the reachable set** with these starting glyphs
-3. **Expand through dependencies** by following edges in the depend graph
-4. **Filter by active features** to only follow edges for enabled GSUB features
-5. **Handle ligatures correctly** - only add ligature outputs when all component
+1. **Map input codepoints to starting glyphs** using `hb_font_get_nominal_glyph()`
+2. **Handle Unicode Variation Sequences** using `hb_font_get_variation_glyph()` for
+   UVS-based glyph expansion (not in depend graph)
+3. **Initialize the reachable set** with these starting glyphs
+4. **Expand through dependencies** by following edges in the depend graph
+5. **Filter by active features** to only follow edges for enabled GSUB features
+6. **Handle ligatures correctly** - only add ligature outputs when all component
    glyphs are present
-6. **Check context requirements** - only follow edges when positional requirements
+7. **Check context requirements** - only follow edges when positional requirements
    (backtrack/lookahead) are satisfied
 
 ### Context Set Filtering
@@ -43,7 +45,8 @@ function demonstrates proper handling of:
 - Feature filtering (only following edges for active GSUB features)
 - Ligature sets (only adding ligature outputs when all components present)
 - Context sets (only following edges when positional requirements satisfied)
-- Non-GSUB dependencies (cmap, glyf, CFF, COLR, MATH)
+- Non-GSUB dependencies (glyf, CFF, COLR, MATH)
+- UVS handling (via `hb_font_get_variation_glyph()`, separate from depend graph)
 
 Key aspects of the implementation:
 
@@ -159,12 +162,14 @@ that can be compared before and after modifications.
 ### Non-GSUB Dependencies
 
 Dependencies from non-GSUB tables do not require context filtering:
-- **Character mapping (cmap)**: Direct Unicode to glyph mappings
 - **Composite glyphs (glyf, CFF)**: Structural component relationships
 - **Color layers (COLR)**: Layer composition
 - **Math variants (MATH)**: Size variant relationships
 
 These dependencies should always be followed during closure computation.
+
+**Note**: Unicode Variation Sequences (UVS) are handled separately via
+`hb_font_get_variation_glyph()` and are not part of the depend graph.
 
 ### Feature Filtering
 

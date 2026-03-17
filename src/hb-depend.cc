@@ -75,8 +75,9 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
   }
   successful = true;
 
-  /* Extract dependencies from all relevant OpenType tables */
-  get_cmap_dependencies();
+  /* Extract dependencies from all relevant OpenType tables
+   * Note: cmap (UVS) dependencies are not extracted - UVS closure is handled
+   * separately via hb_font_get_variation_glyph() query API during closure computation. */
   get_gsub_dependencies();
   get_math_dependencies();
   get_colr_dependencies();
@@ -91,21 +92,6 @@ hb_depend_t::hb_depend_t (hb_face_t *f)
   for (auto &fs : data.lookup_features)
     fs.fini();
   data.lookup_features.fini();
-}
-
-/*
- * Algorithm: Character Map (cmap) Dependencies
- *
- * Collects nominal glyph mappings (Unicode codepoint -> glyph ID) and
- * Unicode Variation Sequence mappings (codepoint + selector -> glyph ID).
- * These form the base layer of dependencies showing which glyphs are directly
- * reachable from character input.
- */
-void hb_depend_t::get_cmap_dependencies() {
-  hb_face_collect_nominal_glyph_mapping(face, &data.nominal_glyphs, &data.unicodes);
-
-  OT::cmap_accelerator_t cmap (face);
-  cmap.table->depend(&data);
 }
 
 /*
@@ -286,8 +272,9 @@ hb_depend_t::~hb_depend_t ()
  * @face: font face to collect dependencies from
  *
  * Calculates the dependencies between glyphs in the supplied face.
- * Extracts dependency information from cmap, GSUB, glyf, CFF, COLR,
- * and MATH tables.
+ * Extracts dependency information from GSUB, glyf, CFF, COLR,
+ * and MATH tables. UVS (Unicode Variation Sequence) dependencies
+ * are not included; handle those via hb_font_get_variation_glyph().
  *
  * Example:
  * ```c
@@ -329,8 +316,7 @@ hb_depend_from_face_or_fail (hb_face_t *face)
  * @table_tag: (out): Returns the tag of the table associated with the entry
  * @dependent: (out): Returns the GID of the dependent glyph
  * @layout_tag: (out): Returns the layout tag associated with the dependency
- * (when table_tag is GSUB) or the UVS codepoint (when table_tag is cmap).
- * Otherwise is HB_CODEPOINT_INVALID
+ * (when table_tag is GSUB), otherwise HB_CODEPOINT_INVALID
  * @ligature_set: (out): Returns the index of the ligature set for this entry, or
  * HB_CODEPOINT_INVALID if there is no such set
  * @context_set: (out): Returns the index of the context set for this entry, or
@@ -410,8 +396,8 @@ hb_depend_get_set_from_index(hb_depend_t *depend, hb_codepoint_t index,
  *
  * Prints the dependency graph to standard output for debugging purposes.
  * For each glyph that has dependencies, prints the glyph ID followed by
- * its dependent glyphs, including the source table (cmap, GSUB, glyf,
- * COLR, MATH) and any relevant feature tags or variant information.
+ * its dependent glyphs, including the source table (GSUB, glyf, CFF,
+ * COLR, MATH) and any relevant feature tags.
  *
  * Note: This function is primarily for debugging and testing. The output
  * format is not stable and may change in future versions. For programmatic

@@ -77,7 +77,6 @@ struct hb_depend_t
     return data.get_set_from_index(index, out);
   }
 
-  HB_INTERNAL void get_cmap_dependencies ();
   HB_INTERNAL void get_gsub_dependencies ();
   HB_INTERNAL void get_math_dependencies ();
   HB_INTERNAL void get_colr_dependencies ();
