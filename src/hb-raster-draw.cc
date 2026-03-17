@@ -1328,7 +1328,8 @@ hb_raster_draw_render (hb_raster_draw_t *draw)
 
     for (unsigned row = 0; row < ext.height; row++)
     {
-      int32_t y_top = (ext.y_origin + (int) row) << HB_RASTER_PIXEL_BITS;
+      int64_t y_top_64 = ((int64_t) ext.y_origin + (int64_t) row) * HB_RASTER_ONE_PIXEL;
+      int32_t y_top = (int32_t) hb_clamp (y_top_64, (int64_t) INT32_MIN, (int64_t) INT32_MAX);
 
       /* Add new edges from this row's bucket. */
       draw->active_edges.extend (draw->edge_buckets.arrayZ[row]);
