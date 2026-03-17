@@ -1210,20 +1210,6 @@ struct NonDefaultUVS : SortedArray32Of<UVSMapping>
     ;
   }
 
-#ifdef HB_DEPEND_API
-  void depend (hb_depend_data_t *depend_data, hb_codepoint_t sel) const
-  {
-    for (const auto& a : as_array ())
-    {
-       hb_codepoint_t target = depend_data->get_nominal_glyph(a.unicodeValue);
-       if (target == HB_MAP_VALUE_INVALID)
-         continue;
-       depend_data->add_depend_layout(target, HB_OT_TAG_cmap,
-                                      static_cast<hb_tag_t>(sel), a.glyphID);
-    }
-  }
-#endif
-
   NonDefaultUVS* copy (hb_serialize_context_t *c,
 		       const hb_set_t *unicodes,
 		       const hb_set_t *glyphs_requested,
@@ -1289,15 +1275,6 @@ struct VariationSelectorRecord
     offset = other.nonDefaultUVS;
     nonDefaultUVS = offset;
   }
-
-#ifdef HB_DEPEND_API
-  void depend (hb_depend_data_t *depend_data, const void *base) const
-  {
-    if (!nonDefaultUVS)
-      return;
-    (base+nonDefaultUVS).depend(depend_data, varSelector);
-  }
-#endif
 
   void collect_unicodes (hb_set_t *out, const void *base) const
   {
@@ -1484,14 +1461,6 @@ struct CmapSubtableFormat14
     | hb_apply ([=] (const NonDefaultUVS& _) { _.closure_glyphs (unicodes, glyphset); })
     ;
   }
-
-#ifdef HB_DEPEND_API
-  void depend (hb_depend_data_t *depend_data) const
-  {
-    for (const VariationSelectorRecord& _ : record)
-      _.depend (depend_data, this);
-  }
-#endif
 
   void collect_unicodes (hb_set_t *out) const
   {
@@ -1979,18 +1948,6 @@ struct cmap
     | hb_apply ([=] (const CmapSubtable& _) { _.u.format14.closure_glyphs (unicodes, glyphset); })
     ;
   }
-
-#ifdef HB_DEPEND_API
-  void depend (hb_depend_data_t *depend_data) const
-  {
-    + hb_iter (encodingRecord)
-    | hb_map (&EncodingRecord::subtable)
-    | hb_map (hb_add (this))
-    | hb_filter ([&] (const CmapSubtable& _) { return _.u.format.v == 14; })
-    | hb_apply ([=] (const CmapSubtable& _) { _.u.format14.depend (depend_data); })
-    ;
-  }
-#endif
 
   bool subset (hb_subset_context_t *c) const
   {

@@ -361,7 +361,7 @@ This keeps related code together and makes it easier to maintain consistency.
 
 ## Future Considerations
 
-The depend API currently focuses on GSUB, glyf, cmap, COLR, and MATH tables. Future extensions could include:
+The depend API currently focuses on GSUB, glyf, CFF, COLR, and MATH tables. Future extensions could include:
 
 - **GPOS dependencies**: Some GPOS rules reference glyphs (e.g., mark-to-base positioning)
 - **MORX dependencies**: Apple Advanced Typography morph tables

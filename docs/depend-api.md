@@ -8,14 +8,15 @@ The dependency API provides access to a glyph dependency graph that represents
 how glyphs in an OpenType font reference or produce other glyphs. The graph
 maps input glyphs to output glyphs through various OpenType mechanisms:
 
-- **Character mapping (cmap)**: Maps Unicode codepoints to glyphs, including
-  Unicode Variation Sequences (UVS)
 - **Glyph substitution (GSUB)**: Tracks which glyphs can be substituted for
   other glyphs through OpenType Layout features
 - **Composite glyphs (glyf, CFF)**: Records component glyphs used in composite
   glyph construction (TrueType glyf composites and CFF1 SEAC)
 - **Color layers (COLR)**: Identifies glyphs used as color layers
 - **Math variants (MATH)**: Tracks mathematical variant glyphs
+
+**Note**: Unicode Variation Sequences (UVS) are not included in the dependency
+graph. Handle UVS separately using `hb_font_get_variation_glyph()`.
 
 The dependency graph enables finding the transitive closure of all glyphs
 reachable from a given input set, which is useful for font subsetting,
@@ -123,11 +124,8 @@ while (hb_depend_get_glyph_entry(depend, gid, index,
     // GSUB dependency: layout_tag contains feature tag
     printf("GID %u -> %u via GSUB feature '%c%c%c%c'\n",
            gid, dependent, HB_UNTAG(layout_tag));
-  } else if (table_tag == HB_TAG('c','m','a','p')) {
-    // cmap dependency: layout_tag contains UVS codepoint if applicable
-    printf("GID %u -> %u via cmap\n", gid, dependent);
   } else {
-    // Other dependencies (glyf, COLR, MATH)
+    // Other dependencies (glyf, CFF, COLR, MATH)
     printf("GID %u -> %u via %c%c%c%c\n",
            gid, dependent, HB_UNTAG(table_tag));
   }
@@ -329,13 +327,12 @@ For a complete implementation of context-aware closure computation, see the
 
 Each dependency entry returned by `hb_depend_get_glyph_entry()` contains:
 
-- **table_tag**: Source table (e.g., `HB_OT_TAG_GSUB`, `HB_TAG('c','m','a','p')`,
+- **table_tag**: Source table (e.g., `HB_OT_TAG_GSUB`,
   `HB_TAG('g','l','y','f')`, `HB_TAG('C','F','F',' ')`, `HB_TAG('C','O','L','R')`,
   `HB_TAG('M','A','T','H')`)
 - **dependent**: The dependent glyph ID
 - **layout_tag**:
   - For GSUB: the feature tag (e.g., `HB_TAG('l','i','g','a')`)
-  - For cmap with UVS: the variation selector codepoint
   - Otherwise: `HB_CODEPOINT_INVALID`
 - **ligature_set**: For ligatures, identifies which ligature set; otherwise
   `HB_CODEPOINT_INVALID`
