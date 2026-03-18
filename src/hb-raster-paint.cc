@@ -891,6 +891,8 @@ get_color_stops (hb_raster_paint_t *c,
     *stops = c->scratch_color_stops.arrayZ;
   }
   hb_color_line_get_color_stops (color_line, 0, &len, *stops);
+  if (unlikely (!len))
+    return false;
   for (unsigned i = 0; i < len; i++)
     if ((*stops)[i].is_foreground)
       (*stops)[i].color = HB_COLOR (hb_color_get_blue (c->foreground),
@@ -908,6 +910,12 @@ normalize_color_line (hb_color_stop_t *stops,
 		      unsigned len,
 		      float *omin, float *omax)
 {
+  if (unlikely (!len))
+  {
+    *omin = *omax = 0.f;
+    return;
+  }
+
   hb_qsort (stops, len, sizeof (hb_color_stop_t), cmp_color_stop);
 
   float mn = stops[0].offset, mx = stops[0].offset;
@@ -929,6 +937,13 @@ static uint32_t
 evaluate_color_line (const hb_color_stop_t *stops, unsigned len, float t,
 		     hb_paint_extend_t extend)
 {
+  if (unlikely (!len))
+    return 0;
+  if (unlikely (len == 1))
+    return color_to_premul_pixel (stops[0].color);
+  if (unlikely (!std::isfinite (t)))
+    t = 0.f;
+
   /* Apply extend mode */
   if (extend == HB_PAINT_EXTEND_PAD)
   {
@@ -990,6 +1005,9 @@ evaluate_color_line (const hb_color_stop_t *stops, unsigned len, float t,
 static HB_ALWAYS_INLINE float
 normalize_gradient_t (float t, hb_paint_extend_t extend)
 {
+  if (unlikely (!std::isfinite (t)))
+    return 0.f;
+
   if (extend == HB_PAINT_EXTEND_PAD)
     return hb_clamp (t, 0.f, 1.f);
   if (extend == HB_PAINT_EXTEND_REPEAT)

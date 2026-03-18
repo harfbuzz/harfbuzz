@@ -178,9 +178,17 @@ hb_svg_get_color_stops (hb_vector_paint_t *paint,
                         hb_vector_t<hb_color_stop_t> *stops)
 {
   unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  if (unlikely (!len))
+  {
+    stops->length = 0;
+    return false;
+  }
   if (unlikely (!stops->resize (len)))
     return false;
   hb_color_line_get_color_stops (color_line, 0, &len, stops->arrayZ);
+  stops->length = len;
+  if (unlikely (!len))
+    return false;
 
   for (unsigned i = 0; i < len; i++)
     if (stops->arrayZ[i].is_foreground)
