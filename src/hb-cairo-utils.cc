@@ -278,13 +278,26 @@ _hb_cairo_get_color_stops (hb_cairo_context_t *c,
 			   hb_color_stop_t **stops)
 {
   unsigned len = hb_color_line_get_color_stops (color_line, 0, nullptr, nullptr);
+  bool allocated = false;
+  if (unlikely (!len))
+    return false;
   if (len > *count)
   {
     *stops = (hb_color_stop_t *) hb_malloc (len * sizeof (hb_color_stop_t));
-    if (unlikely (!stops))
+    if (unlikely (!*stops))
       return false;
+    allocated = true;
   }
   hb_color_line_get_color_stops (color_line, 0, &len, *stops);
+  if (unlikely (!len))
+  {
+    if (allocated)
+    {
+      hb_free (*stops);
+      *stops = nullptr;
+    }
+    return false;
+  }
   for (unsigned i = 0; i < len; i++)
     if ((*stops)[i].is_foreground)
     {
