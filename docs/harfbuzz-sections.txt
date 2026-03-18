@@ -786,6 +786,8 @@ hb_ot_metrics_tag_t
 
 <SECTION>
 <FILE>hb-ot-shape</FILE>
+HB_OT_SHAPE_BUFFER_FORMAT_SERIAL
+hb_ot_shape_get_buffer_format_serial
 hb_ot_shape_glyphs_closure
 </SECTION>
 
