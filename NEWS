@@ -1,3 +1,16 @@
+Overview of changes leading to 13.2.0
+Thursday, March 19, 2026
+=====================================
+- Fix `hb-view` glyph positioning with `--glyphs` input from `hb-shape --ned`.
+- Various fuzzing fixes for `harfbuzz-subset`, `harfbuzz-raster` and
+  `harfbuzz-vector` libraries.
+- Various improvements to tracing messages.
+- Various documentation improvements.
+- New API:
+  + HB_OT_SHAPE_BUFFER_FORMAT_SERIAL
+  + hb_ot_shape_get_buffer_format_serial()
+
+
 Overview of changes leading to 13.1.1
 Friday, March 13, 2026
 =====================================

@@ -1336,7 +1336,7 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
  *
  * Return value: The current buffer-format serial number.
  *
- * XSince: REPLACEME
+ * Since: 13.2.0
  **/
 unsigned int
 hb_ot_shape_get_buffer_format_serial (void)

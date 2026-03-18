@@ -62,7 +62,7 @@ hb_ot_shape_plan_get_feature_tags (hb_shape_plan_t *shape_plan,
  * The serial number will increase when internal #hb_glyph_info_t and
  * #hb_glyph_position_t members change their format.
  *
- * XSince: REPLACEME
+ * Since: 13.2.0
  */
 #define HB_OT_SHAPE_BUFFER_FORMAT_SERIAL 1
 
