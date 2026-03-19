@@ -664,10 +664,16 @@ static hb_bool_t
 hb_vector_paint_ensure_initialized (hb_vector_paint_t *paint)
 {
   if (paint->group_stack.length)
-    return true;
+    return !paint->group_stack.in_error () &&
+           !paint->group_stack.tail ().in_error ();
   if (unlikely (!paint->group_stack.push_or_fail ()))
     return false;
   paint->group_stack.tail ().alloc (4096);
+  if (unlikely (paint->group_stack.tail ().in_error ()))
+  {
+    paint->group_stack.pop ();
+    return false;
+  }
   return !paint->group_stack.in_error ();
 }
 
@@ -1062,7 +1068,8 @@ hb_vector_paint_push_group (hb_paint_funcs_t *,
   auto *paint = (hb_vector_paint_t *) paint_data;
   if (unlikely (!hb_vector_paint_ensure_initialized (paint)))
     return;
-  paint->group_stack.push_or_fail (hb_vector_t<char> {});
+  if (unlikely (!paint->group_stack.push_or_fail (hb_vector_t<char> {})))
+    return;
 }
 
 static void
@@ -1602,7 +1609,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
                                           paint->y_scale_factor,
                                           xx, yx, xy, yy, tx, ty);
       hb_svg_append_str (&body, "\"/>\n");
-      return true;
+      return !body.in_error ();
     }
   }
 
@@ -1634,7 +1641,8 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
 
     paint->captured_scratch = paint->group_stack.pop ();
     has_svg_image = paint->current_color_glyph_has_svg_image;
-    if (unlikely (!paint->captured_scratch.length))
+    if (unlikely (paint->captured_scratch.in_error () ||
+                  !paint->captured_scratch.length))
       return false;
 
     unsigned def_id = paint->color_glyph_counter++;
@@ -1666,7 +1674,7 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
                                         paint->y_scale_factor,
                                         xx, yx, xy, yy, tx, ty);
     hb_svg_append_str (&body, "\"/>\n");
-    return true;
+    return !paint->defs.in_error () && !body.in_error ();
   }
 
   hb_svg_append_str (&paint->current_body (), "<g transform=\"");
@@ -1686,7 +1694,9 @@ hb_vector_paint_glyph (hb_vector_paint_t *paint,
   paint->current_svg_image_glyph = old_gid;
   paint->current_face = old_face;
   hb_svg_append_str (&paint->current_body (), "</g>\n");
-  return ret;
+  return ret &&
+	 !paint->defs.in_error () &&
+	 !paint->current_body ().in_error ();
 }
 
 /**
