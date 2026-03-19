@@ -1,3 +1,9 @@
+Overview of changes leading to 13.2.1
+Thursday, March 19, 2026
+=====================================
+- Fix regression in tracing messages from previous release.
+
+
 Overview of changes leading to 13.2.0
 Thursday, March 19, 2026
 =====================================
