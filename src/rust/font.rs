@@ -50,6 +50,43 @@ struct FontationsData<'a> {
 }
 
 impl FontationsData<'_> {
+    fn location_from_design_coords(&self, coords: &[f32]) -> Option<Location> {
+        if coords.is_empty() || coords.iter().any(|coord| !coord.is_finite()) {
+            return None;
+        }
+
+        let axes = self.font_ref.axes();
+        let mut location = Location::new(axes.len());
+        axes.location_to_slice(
+            axes.iter().zip(coords.iter()).map(|(axis, coord)| (axis.tag(), *coord)),
+            location.coords_mut(),
+        );
+
+        if location
+            .coords()
+            .iter()
+            .all(|coord| *coord == NormalizedCoord::ZERO)
+        {
+            Some(Location::default())
+        } else {
+            Some(location)
+        }
+    }
+
+    fn location_from_normalized_coords(&self, coords: &[i32]) -> Location {
+        if coords.iter().all(|&coord| coord == 0) {
+            Location::default()
+        } else {
+            let mut location = Location::new(coords.len());
+            let coords_mut = location.coords_mut();
+            coords_mut
+                .iter_mut()
+                .zip(coords.iter().map(|coord| NormalizedCoord::from_bits(*coord as i16)))
+                .for_each(|(dest, source)| *dest = source);
+            location
+        }
+    }
+
     unsafe fn from_hb_font(font: *mut hb_font_t) -> Option<Self> {
         let face_index = hb_face_get_index(hb_font_get_face(font));
         let face_blob = hb_face_reference_blob(hb_font_get_face(font));
@@ -122,27 +159,23 @@ impl FontationsData<'_> {
         self.y_mult = y_scale as f32 / upem as f32;
 
         let mut num_coords: u32 = 0;
-        let coords = hb_font_get_var_coords_normalized(self.font, &mut num_coords);
-        let coords = if coords.is_null() {
+        let design_coords = hb_font_get_var_coords_design(self.font, &mut num_coords);
+        let design_coords = if design_coords.is_null() {
             &[]
         } else {
-            std::slice::from_raw_parts(coords, num_coords as usize)
+            std::slice::from_raw_parts(design_coords, num_coords as usize)
         };
-        let all_zeros = coords.iter().all(|&x| x == 0);
-        // if all zeros, use Location::default()
-        // otherwise, use the provided coords.
-        // This currently doesn't seem to have a perf effect on fontations, but it's a good idea to
-        // check if the coords are all zeros before creating a Location.
-        self.location = if all_zeros {
-            Location::default()
-        } else {
-            let mut location = Location::new(num_coords as usize);
-            let coords_mut = location.coords_mut();
-            coords_mut
-                .iter_mut()
-                .zip(coords.iter().map(|v| NormalizedCoord::from_bits(*v as i16)))
-                .for_each(|(dest, source)| *dest = source);
+
+        self.location = if let Some(location) = self.location_from_design_coords(design_coords) {
             location
+        } else {
+            let coords = hb_font_get_var_coords_normalized(self.font, &mut num_coords);
+            let coords = if coords.is_null() {
+                &[]
+            } else {
+                std::slice::from_raw_parts(coords, num_coords as usize)
+            };
+            self.location_from_normalized_coords(coords)
         };
 
         let location = transmute::<&Location, &Location>(&self.location);
