@@ -406,14 +406,15 @@ hb_font_get_glyph_h_origins_default (hb_font_t *font HB_UNUSED,
 {
   if (font->has_glyph_h_origin_func_set ())
   {
+    hb_bool_t ret = true;
     for (unsigned int i = 0; i < count; i++)
     {
-      font->get_glyph_h_origin (*first_glyph, first_x, first_y, false);
+      ret &= font->get_glyph_h_origin (*first_glyph, first_x, first_y, false);
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
       first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
     }
-    return true;
+    return ret;
   }
 
   hb_bool_t ret = font->parent->get_glyph_h_origins (count,
@@ -448,14 +449,15 @@ hb_font_get_glyph_v_origins_default (hb_font_t *font HB_UNUSED,
 {
   if (font->has_glyph_v_origin_func_set ())
   {
+    hb_bool_t ret = true;
     for (unsigned int i = 0; i < count; i++)
     {
-      font->get_glyph_v_origin (*first_glyph, first_x, first_y, false);
+      ret &= font->get_glyph_v_origin (*first_glyph, first_x, first_y, false);
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_x = &StructAtOffsetUnaligned<hb_position_t> (first_x, x_stride);
       first_y = &StructAtOffsetUnaligned<hb_position_t> (first_y, y_stride);
     }
-    return true;
+    return ret;
   }
 
   hb_bool_t ret = font->parent->get_glyph_v_origins (count,
