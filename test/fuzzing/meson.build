@@ -4,6 +4,7 @@ tests = [
   'hb-raster-fuzzer.cc',
   'hb-vector-fuzzer.cc',
   'hb-repacker-fuzzer.cc',
+  'hb-intoverflow-fuzzer.cc',
 ]
 
 # Build the binaries
@@ -25,7 +26,7 @@ foreach file_name : tests
     extra_cpp_args += '-DHB_EXPERIMENTAL_API'
   endif
 
-  if (test_name.contains('subset') or test_name.contains('repacker')) and get_option('subset').disabled()
+  if (test_name.contains('subset') or test_name.contains('repacker') or test_name.contains('intoverflow')) and get_option('subset').disabled()
     continue
   endif
 
@@ -38,10 +39,10 @@ foreach file_name : tests
   endif
 
   link_with_libs = [libharfbuzz]
-  if test_name.contains('subset') or test_name.contains('repacker')
+  if test_name.contains('subset') or test_name.contains('repacker') or test_name.contains('intoverflow')
     link_with_libs += [libharfbuzz_subset]
   endif
-  if test_name.contains('raster')
+  if (test_name.contains('raster') or test_name.contains('intoverflow')) and not get_option('raster').disabled()
     link_with_libs += [libharfbuzz_raster]
   endif
   if test_name.contains('vector')
@@ -144,6 +145,20 @@ if not get_option('subset').disabled()
   foreach chunk : graphs_glob_chunks
     test('repacker-fuzzer-chunk-@0@'.format(i),
       hb_repacker_fuzzer_exe,
+      args: chunk,
+      workdir: meson.current_build_dir() / '..' / '..',
+      protocol: 'tap',
+      suite: ['fuzzing'],
+    )
+    i += 1
+  endforeach
+endif
+
+if not get_option('subset').disabled()
+  i = 0
+  foreach chunk : fonts_glob_chunks + subset_fonts_glob_chunks
+    test('intoverflow-fuzzer-chunk-@0@'.format(i),
+      hb_intoverflow_fuzzer_exe,
       args: chunk,
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',
