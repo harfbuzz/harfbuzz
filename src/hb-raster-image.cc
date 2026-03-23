@@ -46,7 +46,9 @@ static void
 hb_raster_png_error (png_structp png,
 		     png_const_charp msg HB_UNUSED)
 {
-  png_longjmp (png, 1);
+#ifdef PNG_SETJMP_SUPPORTED
+  longjmp (png_jmpbuf (png), 1);
+#endif
 }
 
 static void
