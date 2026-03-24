@@ -172,13 +172,13 @@ struct hb_font_t
   /* Convert from parent-font user-space to our user-space */
   hb_position_t parent_scale_x_distance (hb_position_t v)
   {
-    if (unlikely (parent && parent->x_scale != x_scale))
+    if (unlikely (parent && parent->x_scale && parent->x_scale != x_scale))
       return (hb_position_t) (v * (int64_t) this->x_scale / this->parent->x_scale);
     return v;
   }
   hb_position_t parent_scale_y_distance (hb_position_t v)
   {
-    if (unlikely (parent && parent->y_scale != y_scale))
+    if (unlikely (parent && parent->y_scale && parent->y_scale != y_scale))
       return (hb_position_t) (v * (int64_t) this->y_scale / this->parent->y_scale);
     return v;
   }
