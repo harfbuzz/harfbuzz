@@ -577,7 +577,8 @@ struct hb_vector_t
   HB_ALWAYS_INLINE_VECTOR_ALLOCS
   void clear ()
   {
-    resize (0);
+    if (!resize (0))
+      length = 0; /* If resize fails (e.g. vector in error state), still clear length. */
   }
 
   template <typename allocator_t>
