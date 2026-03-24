@@ -2416,6 +2416,10 @@ hb_font_set_parent (hb_font_t *font,
   if (!parent)
     parent = hb_font_get_empty ();
 
+  for (hb_font_t *p = parent; p && p != hb_font_get_empty(); p = p->parent)
+    if (p == font)
+      return; /* Would create a cycle - reject */
+
   hb_font_t *old = font->parent;
 
   font->parent = hb_font_reference (parent);
