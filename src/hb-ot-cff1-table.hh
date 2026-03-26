@@ -262,7 +262,7 @@ struct Encoding
 
   void get_supplement_codes (hb_codepoint_t sid, hb_vector_t<hb_codepoint_t> &codes) const
   {
-    codes.resize (0);
+    codes.clear ();
     if (has_supplement ())
       suppEncData().get_codes (sid, codes);
   }

@@ -55,7 +55,7 @@ struct blend_arg_t : number_t
   void reset_blends ()
   {
     numValues = valueIndex = 0;
-    deltas.shrink (0);
+    deltas.clear ();
   }
 
   unsigned int numValues;
