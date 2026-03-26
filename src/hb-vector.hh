@@ -578,7 +578,7 @@ struct hb_vector_t
   void clear ()
   {
     if (!resize (0))
-      length = 0; /* If resize fails (e.g. vector in error state), still clear length. */
+      shrink_vector (0); /* If resize fails (e.g. vector in error state), still destruct items and clear length. */
   }
 
   template <typename allocator_t>
