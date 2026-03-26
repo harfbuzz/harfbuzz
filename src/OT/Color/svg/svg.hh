@@ -605,7 +605,7 @@ SVG::accelerator_t::accelerator_t (hb_face_t *face)
   doc_caches.init ();
   unsigned doc_count = table->get_document_count ();
   if (doc_count && unlikely (!doc_caches.resize (doc_count)))
-    doc_caches.resize (0);
+    doc_caches.clear ();
   for (unsigned i = 0; i < doc_caches.length; i++)
     doc_caches.arrayZ[i].set_relaxed (nullptr);
 }
