@@ -711,8 +711,12 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 
   /* Handle SVG format */
   if (format == HB_PAINT_IMAGE_FORMAT_SVG)
+  {
+    if (unlikely (!c->svg_font))
+      return false;
     return hb_raster_svg_render (c, blob, c->svg_glyph, c->svg_font,
 				 c->svg_palette, c->foreground);
+  }
 
   unsigned src_width = width;
   unsigned src_height = height;

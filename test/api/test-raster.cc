@@ -89,6 +89,35 @@ render_svg_glyph (hb_face_t      *face,
   hb_font_destroy (font);
   return img;
 }
+
+static hb_bool_t
+paint_svg_glyph_direct_or_fail (hb_face_t      *face,
+			        hb_codepoint_t  glyph)
+{
+  g_assert_nonnull (face);
+
+  hb_font_t *font = hb_font_create (face);
+  g_assert_nonnull (font);
+  hb_font_set_scale (font, 128, 128);
+
+  hb_raster_paint_t *paint = hb_raster_paint_create_or_fail ();
+  g_assert_nonnull (paint);
+  hb_raster_paint_set_foreground (paint, HB_COLOR (0, 0, 0, 255));
+
+  hb_raster_extents_t extents = {-32, -192, 256, 256, 0};
+  hb_raster_paint_set_extents (paint, &extents);
+
+  hb_bool_t ret = hb_font_paint_glyph_or_fail (font, glyph,
+					       hb_raster_paint_get_funcs (), paint,
+					       0, HB_COLOR (0, 0, 0, 255));
+  hb_raster_image_t *img = hb_raster_paint_render (paint);
+  g_assert_nonnull (img);
+
+  hb_raster_image_destroy (img);
+  hb_raster_paint_destroy (paint);
+  hb_font_destroy (font);
+  return ret;
+}
 #endif
 
 
@@ -291,6 +320,17 @@ test_svgz_render_matches_svg (void)
 #endif
 }
 
+static void
+test_direct_svg_paint_fails_cleanly (void)
+{
+#if !defined (HB_NO_SVG) && defined (HAVE_ZLIB)
+  hb_face_t *svg_face = hb_test_open_font_file ("../fuzzing/fonts/noto_handwriting-untouchedsvg.ttf");
+
+  g_assert_false (paint_svg_glyph_direct_or_fail (svg_face, 7));
+  hb_face_destroy (svg_face);
+#endif
+}
+
 
 /* ── main ────────────────────────────────────────────────────────── */
 
@@ -305,6 +345,7 @@ main (int argc, char **argv)
   hb_test_add (test_transform);
   hb_test_add (test_set_glyph_extents_with_transform);
   hb_test_add (test_svgz_render_matches_svg);
+  hb_test_add (test_direct_svg_paint_fails_cleanly);
 
   return hb_test_run ();
 }
