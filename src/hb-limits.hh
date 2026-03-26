@@ -117,7 +117,7 @@
 #endif
 
 #ifndef HB_RASTER_MAX_BUFFER_SIZE
-#define HB_RASTER_MAX_BUFFER_SIZE ((size_t) 1 << 24)
+#define HB_RASTER_MAX_BUFFER_SIZE ((size_t) 1 << 30)
 #endif
 
 
