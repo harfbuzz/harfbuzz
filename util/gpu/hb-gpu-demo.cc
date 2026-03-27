@@ -245,7 +245,7 @@ main (int argc, char** argv)
     else
       text = default_text;
   }
-  if (!text || !font_path)
+  if (!text)
   {
     show_usage(argv[0]);
     return 1;
@@ -297,7 +297,21 @@ main (int argc, char** argv)
   demo_view_print_help (vu);
   warn_about_vsync_override ();
 
-  hb_blob_t *blob = hb_blob_create_from_file_or_fail (font_path);
+  hb_blob_t *blob = NULL;
+  if (font_path)
+  {
+    blob = hb_blob_create_from_file_or_fail (font_path);
+  }
+  else
+  {
+#ifdef _WIN32
+    blob = hb_blob_create_from_file_or_fail ("C:\\Windows\\Fonts\\calibri.ttf");
+#else
+    #include "default-font.h"
+    blob = hb_blob_create ((const char *) default_font, sizeof (default_font),
+			   HB_MEMORY_MODE_READONLY, NULL, NULL);
+#endif
+  }
   if (!blob)
     die ("Failed to open font file");
 

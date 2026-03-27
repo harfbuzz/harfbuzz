@@ -44,6 +44,14 @@ glew_dep = dependency('glew', required: true)
 glfw_dep = dependency('glfw3', required: true)
 gl_dep = dependency('gl', required: true)
 
+hexify = find_program('hexify')
+
+gpu_demo_shader_sources += custom_target('default font',
+  input: 'default-font.ttf',
+  output: 'default-font.h',
+  capture: true,
+  command: [ hexify, 'static const char default_font[]', '@INPUT@' ])
+
 hb_gpu_demo = executable('hb-gpu', gpu_demo_sources + gpu_demo_shader_sources,
   cpp_args: cpp_args,
   include_directories: [incconfig, incsrc],
