@@ -869,7 +869,7 @@ hb_raster_paint_image (hb_paint_funcs_t *pfuncs HB_UNUSED,
 #define GRADIENT_LUT_SIZE 256
 #define GRADIENT_LUT_MIN_PIXELS (64u * 64u)
 
-static int
+static inline int
 cmp_color_stop (const void *p1, const void *p2)
 {
   const hb_color_stop_t *c1 = (const hb_color_stop_t *) p1;

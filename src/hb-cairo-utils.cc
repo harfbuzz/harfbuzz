@@ -229,9 +229,8 @@ _hb_cairo_reduce_anchors (float x0, float y0,
   *yy1 = y1 - k * q2y;
 }
 
-static int
-_hb_cairo_cmp_color_stop (const void *p1,
-			  const void *p2)
+static inline int
+_hb_cairo_cmp_color_stop (const void *p1, const void *p2)
 {
   const hb_color_stop_t *c1 = (const hb_color_stop_t *) p1;
   const hb_color_stop_t *c2 = (const hb_color_stop_t *) p2;

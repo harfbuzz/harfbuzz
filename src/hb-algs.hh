@@ -1450,27 +1450,7 @@ hb_qsort (void *base, size_t nel, size_t width,
   sort_r_simple (base, nel, width, compar);
 }
 
-static inline void
-hb_qsort (void *base, size_t nel, size_t width,
-	  int (*compar)(const void *_a, const void *_b))
-{
-#if defined(__OPTIMIZE_SIZE__) && !defined(HB_USE_INTERNAL_QSORT)
-  qsort (base, nel, width, compar);
-#else
-  sort_r_simple (base, nel, width, compar);
-#endif
-}
 
-static inline void
-hb_qsort (void *base, size_t nel, size_t width,
-	  int (*compar)(const void *_a, const void *_b, void *_arg),
-	  void *arg)
-{
-  hb_qsort (base, nel, width,
-	    [compar, arg] (const void *a, const void *b) {
-	      return compar (a, b, arg);
-	    });
-}
 
 
 template <typename T, typename T2, typename T3 = int> static inline void

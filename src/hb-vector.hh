@@ -705,13 +705,11 @@ struct hb_vector_t
 
 
   /* Sorting API. */
-  void qsort (int (*cmp)(const void*, const void*))
-  { as_array ().qsort (cmp); }
   template <typename Compar>
   void qsort (Compar compar)
   { as_array ().qsort (compar); }
   void qsort ()
-  { as_array ().qsort (Type::cmp); }
+  { as_array ().qsort (); }
 
   /* Unsorted search API. */
   template <typename T>

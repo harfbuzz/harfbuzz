@@ -194,7 +194,12 @@ struct post
 
 	for (unsigned int i = 0; i < count; i++)
 	  gids[i] = i;
-	hb_qsort (gids, count, sizeof (gids[0]), cmp_gids, (void *) this);
+	hb_qsort (gids, count, sizeof (gids[0]),
+		  [this] (const void *pa, const void *pb) -> int {
+		    uint16_t a = * (const uint16_t *) pa;
+		    uint16_t b = * (const uint16_t *) pb;
+		    return find_glyph_name (b).cmp (find_glyph_name (a));
+		  });
 
 	if (unlikely (!gids_sorted_by_name.cmpexch (nullptr, gids)))
 	{
@@ -233,14 +238,6 @@ struct post
       }
 
       return 0;
-    }
-
-    static int cmp_gids (const void *pa, const void *pb, void *arg)
-    {
-      const accelerator_t *thiz = (const accelerator_t *) arg;
-      uint16_t a = * (const uint16_t *) pa;
-      uint16_t b = * (const uint16_t *) pb;
-      return thiz->find_glyph_name (b).cmp (thiz->find_glyph_name (a));
     }
 
     static int cmp_key (const void *pk, const void *po, void *arg)
