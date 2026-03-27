@@ -196,7 +196,8 @@ struct post
 	  gids[i] = i;
 	hb_array_t<uint16_t> (gids, count)
 	  .qsort ([this] (const uint16_t &a, const uint16_t &b) {
-	    return find_glyph_name (b).cmp (find_glyph_name (a)) > 0;
+	    int c = find_glyph_name (b).cmp (find_glyph_name (a));
+	    return c ? c > 0 : a < b;
 	  });
 
 	if (unlikely (!gids_sorted_by_name.cmpexch (nullptr, gids)))
