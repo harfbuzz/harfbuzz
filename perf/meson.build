@@ -26,6 +26,17 @@ foreach source : benchmarks
   ), workdir: meson.current_source_dir() / '..', timeout: 100)
 endforeach
 
+if not get_option('gpu').disabled()
+  benchmark('benchmark-gpu', executable('benchmark-gpu', 'benchmark-gpu.cc',
+    dependencies: [
+      google_benchmark_dep, libharfbuzz_dep, libharfbuzz_gpu_dep
+    ],
+    cpp_args: [],
+    include_directories: [incconfig, incsrc],
+    install: false,
+  ), workdir: meson.current_source_dir() / '..', timeout: 100)
+endif
+
 if not get_option('subset').disabled()
   benchmarks_subset = [
     'benchmark-subset.cc',
