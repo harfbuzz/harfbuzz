@@ -33,7 +33,6 @@
 
 #include <cmath>
 
-
 /* ---- Accumulator ---- */
 
 static void
