@@ -820,7 +820,7 @@ hb_gpu_draw_reset (hb_gpu_draw_t *draw)
   draw->need_moveto = true;
   draw->num_curves = 0;
   draw->success = true;
-  draw->curves.shrink (0);
+  draw->curves.clear ();
 
   draw->ext_min_x =  HUGE_VAL;
   draw->ext_min_y =  HUGE_VAL;
