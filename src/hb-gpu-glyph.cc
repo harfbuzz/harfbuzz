@@ -452,21 +452,13 @@ hb_gpu_glyph_encode_impl (hb_gpu_glyph_t *glyph)
       !quantize_fits_i16 (max_y))
     return nullptr;
 
-  /* Allocate or reuse encode buffer */
+  /* Allocate encode buffer */
   unsigned needed_bytes = total_len * sizeof (hb_gpu_texel_t);
-  if (glyph->encode_buf_capacity < needed_bytes)
-  {
-    hb_free (glyph->encode_buf);
-    glyph->encode_buf = (char *) hb_malloc (needed_bytes);
-    if (unlikely (!glyph->encode_buf))
-    {
-      glyph->encode_buf_capacity = 0;
-      return nullptr;
-    }
-    glyph->encode_buf_capacity = needed_bytes;
-  }
+  char *encode_buf = (char *) hb_malloc (needed_bytes);
+  if (unlikely (!encode_buf))
+    return nullptr;
 
-  hb_gpu_texel_t *blob = (hb_gpu_texel_t *) glyph->encode_buf;
+  hb_gpu_texel_t *blob = (hb_gpu_texel_t *) encode_buf;
 
   unsigned curve_data_offset = header_len + band_headers_len + total_curve_indices;
 
@@ -622,9 +614,9 @@ hb_gpu_glyph_encode_impl (hb_gpu_glyph_t *glyph)
     blob[hdr].a = vband_split;
   }
 
-  return hb_blob_create (glyph->encode_buf, needed_bytes,
-			 HB_MEMORY_MODE_DUPLICATE,
-			 nullptr, nullptr);
+  return hb_blob_create (encode_buf, needed_bytes,
+			 HB_MEMORY_MODE_WRITABLE,
+			 encode_buf, free);
 }
 
 
@@ -676,8 +668,6 @@ void
 hb_gpu_glyph_destroy (hb_gpu_glyph_t *glyph)
 {
   if (!hb_object_destroy (glyph)) return;
-  glyph->curves.fini ();
-  hb_free (glyph->encode_buf);
   hb_free (glyph);
 }
 

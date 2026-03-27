@@ -64,9 +64,6 @@ struct hb_gpu_glyph_t
   double ext_max_x = -INFINITY;
   double ext_max_y = -INFINITY;
 
-  /* Encode buffer (reused across encode calls) */
-  char *encode_buf = nullptr;
-  unsigned encode_buf_capacity = 0;
 
   /* Internal accumulation methods */
   HB_INTERNAL void acc_move_to (double x, double y);
