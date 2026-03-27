@@ -286,7 +286,11 @@ int main (int argc, char **argv)
   {
     file_count++;
     hb_blob_t *blob = hb_blob_create_from_file_or_fail (argv[i]);
-    assert (blob);
+    if (!blob)
+    {
+      fprintf (stderr, "Error: Could not load font file: %s\n", argv[i]);
+      return 1;
+    }
 
     unsigned len = 0;
     const char *font_data = hb_blob_get_data (blob, &len);
