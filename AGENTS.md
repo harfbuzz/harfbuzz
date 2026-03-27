@@ -99,7 +99,7 @@ For API work:
 - For multi-line commit messages, write the message from a file or editor-backed input. Do not pass escaped `\n` sequences via shell `-m` arguments.
 - Explain root cause, fix, and testing in the commit body when testing was actually performed or is relevant.
 - When relevant, link issues or PRs with trailers such as `Fixes:`.
-- Always include an `Assisted-by:` trailer on commits you write through the agent.
+- Always include an `Assisted-by:` or `Co-Authored-By` trailer on commits you write through the agent.
 
 ## Wisdom
 
