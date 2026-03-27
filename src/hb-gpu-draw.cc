@@ -119,6 +119,23 @@ hb_gpu_draw_t::acc_cubic_to (double c1x, double c1y,
       c2x == x && c2y == y)
     return;
 
+  /* Degenerate cubic: all control points are collinear.
+   * Emit as a line instead of running cu2qu subdivision. */
+  double dx = x - c0x, dy = y - c0y;
+  double len_sq = dx * dx + dy * dy;
+  if (len_sq > 0.)
+  {
+    double inv = 1.0 / len_sq;
+    double cross1 = (c1x - c0x) * dy - (c1y - c0y) * dx;
+    double cross2 = (c2x - c0x) * dy - (c2y - c0y) * dx;
+    if (cross1 * cross1 * inv <= HB_GPU_CU2QU_TOLERANCE * HB_GPU_CU2QU_TOLERANCE &&
+	cross2 * cross2 * inv <= HB_GPU_CU2QU_TOLERANCE * HB_GPU_CU2QU_TOLERANCE)
+    {
+      acc_line_to (x, y);
+      return;
+    }
+  }
+
   hb_gpu_cubic_to_quadratics (this,
 			      {c0x, c0y}, {c1x, c1y},
 			      {c2x, c2y}, {x, y},
