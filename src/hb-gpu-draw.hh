@@ -59,10 +59,10 @@ struct hb_gpu_draw_t
   hb_vector_t<hb_gpu_curve_t> curves;
 
   /* Extents tracking (updated during accumulation) */
-  double ext_min_x =  INFINITY;
-  double ext_min_y =  INFINITY;
-  double ext_max_x = -INFINITY;
-  double ext_max_y = -INFINITY;
+  double ext_min_x =  HUGE_VAL;
+  double ext_min_y =  HUGE_VAL;
+  double ext_max_x = -HUGE_VAL;
+  double ext_max_y = -HUGE_VAL;
 
 
   /* Internal accumulation methods */

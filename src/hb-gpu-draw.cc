@@ -781,7 +781,7 @@ void
 hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
 			   hb_glyph_extents_t *extents)
 {
-  if (draw->num_curves == 0 || std::isinf (draw->ext_min_x))
+  if (draw->num_curves == 0 || draw->ext_min_x == HUGE_VAL)
   {
     extents->x_bearing = 0;
     extents->y_bearing = 0;
@@ -817,10 +817,10 @@ hb_gpu_draw_reset (hb_gpu_draw_t *draw)
   draw->success = true;
   draw->curves.shrink (0);
 
-  draw->ext_min_x =  INFINITY;
-  draw->ext_min_y =  INFINITY;
-  draw->ext_max_x = -INFINITY;
-  draw->ext_max_y = -INFINITY;
+  draw->ext_min_x =  HUGE_VAL;
+  draw->ext_min_y =  HUGE_VAL;
+  draw->ext_max_x = -HUGE_VAL;
+  draw->ext_max_y = -HUGE_VAL;
 }
 
 /**
