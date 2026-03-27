@@ -471,21 +471,21 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 
   /* Allocate encode buffer */
   unsigned needed_bytes = total_len * sizeof (hb_gpu_texel_t);
-  hb_gpu_texel_t *blob = (hb_gpu_texel_t *) hb_malloc (needed_bytes);
-  if (unlikely (!blob))
+  hb_gpu_texel_t *buf = (hb_gpu_texel_t *) hb_malloc (needed_bytes);
+  if (unlikely (!buf))
     return nullptr;
 
   unsigned curve_data_offset = header_len + band_headers_len + total_curve_indices;
 
-  /* Pack blob header */
-  blob[0].r = quantize (min_x);
-  blob[0].g = quantize (min_y);
-  blob[0].b = quantize (max_x);
-  blob[0].a = quantize (max_y);
-  blob[1].r = (int16_t) num_hbands;
-  blob[1].g = (int16_t) num_vbands;
-  blob[1].b = 0;
-  blob[1].a = 0;
+  /* Pack header */
+  buf[0].r = quantize (min_x);
+  buf[0].g = quantize (min_y);
+  buf[0].b = quantize (max_x);
+  buf[0].a = quantize (max_y);
+  buf[1].r = (int16_t) num_hbands;
+  buf[1].g = (int16_t) num_vbands;
+  buf[1].b = 0;
+  buf[1].a = 0;
 
   /* Pack curve data with shared endpoints */
   hb_vector_t<unsigned> curve_texel_offset;
@@ -500,10 +500,10 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 
     if (contour_start) {
       curve_texel_offset[i] = texel;
-      blob[texel].r = quantize (curves[i].p1x);
-      blob[texel].g = quantize (curves[i].p1y);
-      blob[texel].b = quantize (curves[i].p2x);
-      blob[texel].a = quantize (curves[i].p2y);
+      buf[texel].r = quantize (curves[i].p1x);
+      buf[texel].g = quantize (curves[i].p1y);
+      buf[texel].b = quantize (curves[i].p2x);
+      buf[texel].a = quantize (curves[i].p2y);
       texel++;
     } else {
       curve_texel_offset[i] = texel - 1;
@@ -513,14 +513,14 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 		     curves[i].p3x == curves[i + 1].p1x &&
 		     curves[i].p3y == curves[i + 1].p1y);
 
-    blob[texel].r = quantize (curves[i].p3x);
-    blob[texel].g = quantize (curves[i].p3y);
+    buf[texel].r = quantize (curves[i].p3x);
+    buf[texel].g = quantize (curves[i].p3y);
     if (has_next) {
-      blob[texel].b = quantize (curves[i + 1].p2x);
-      blob[texel].a = quantize (curves[i + 1].p2y);
+      buf[texel].b = quantize (curves[i + 1].p2x);
+      buf[texel].a = quantize (curves[i + 1].p2y);
     } else {
-      blob[texel].b = 0;
-      blob[texel].a = 0;
+      buf[texel].b = 0;
+      buf[texel].a = 0;
     }
     texel++;
   }
@@ -555,27 +555,27 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     unsigned desc_off = index_offset;
 
     for (unsigned ci = 0; ci < hband_curve_counts[b]; ci++) {
-      blob[index_offset].r = (int16_t) curve_texel_offset[hband_curves[hband_offsets[b] + ci]];
-      blob[index_offset].g = 0;
-      blob[index_offset].b = 0;
-      blob[index_offset].a = 0;
+      buf[index_offset].r = (int16_t) curve_texel_offset[hband_curves[hband_offsets[b] + ci]];
+      buf[index_offset].g = 0;
+      buf[index_offset].b = 0;
+      buf[index_offset].a = 0;
       index_offset++;
     }
 
     unsigned asc_off = index_offset;
 
     for (unsigned ci = 0; ci < hband_curve_counts[b]; ci++) {
-      blob[index_offset].r = (int16_t) curve_texel_offset[hband_curves_asc[hband_offsets[b] + ci]];
-      blob[index_offset].g = 0;
-      blob[index_offset].b = 0;
-      blob[index_offset].a = 0;
+      buf[index_offset].r = (int16_t) curve_texel_offset[hband_curves_asc[hband_offsets[b] + ci]];
+      buf[index_offset].g = 0;
+      buf[index_offset].b = 0;
+      buf[index_offset].a = 0;
       index_offset++;
     }
 
-    blob[hdr].r = (int16_t) hband_curve_counts[b];
-    blob[hdr].g = (int16_t) desc_off;
-    blob[hdr].b = (int16_t) asc_off;
-    blob[hdr].a = hband_split;
+    buf[hdr].r = (int16_t) hband_curve_counts[b];
+    buf[hdr].g = (int16_t) desc_off;
+    buf[hdr].b = (int16_t) asc_off;
+    buf[hdr].a = hband_split;
   }
 
   for (unsigned b = 0; b < num_vbands; b++)
@@ -606,32 +606,32 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     unsigned desc_off = index_offset;
 
     for (unsigned ci = 0; ci < vband_curve_counts[b]; ci++) {
-      blob[index_offset].r = (int16_t) curve_texel_offset[vband_curves[vband_offsets[b] + ci]];
-      blob[index_offset].g = 0;
-      blob[index_offset].b = 0;
-      blob[index_offset].a = 0;
+      buf[index_offset].r = (int16_t) curve_texel_offset[vband_curves[vband_offsets[b] + ci]];
+      buf[index_offset].g = 0;
+      buf[index_offset].b = 0;
+      buf[index_offset].a = 0;
       index_offset++;
     }
 
     unsigned asc_off = index_offset;
 
     for (unsigned ci = 0; ci < vband_curve_counts[b]; ci++) {
-      blob[index_offset].r = (int16_t) curve_texel_offset[vband_curves_asc[vband_offsets[b] + ci]];
-      blob[index_offset].g = 0;
-      blob[index_offset].b = 0;
-      blob[index_offset].a = 0;
+      buf[index_offset].r = (int16_t) curve_texel_offset[vband_curves_asc[vband_offsets[b] + ci]];
+      buf[index_offset].g = 0;
+      buf[index_offset].b = 0;
+      buf[index_offset].a = 0;
       index_offset++;
     }
 
-    blob[hdr].r = (int16_t) vband_curve_counts[b];
-    blob[hdr].g = (int16_t) desc_off;
-    blob[hdr].b = (int16_t) asc_off;
-    blob[hdr].a = vband_split;
+    buf[hdr].r = (int16_t) vband_curve_counts[b];
+    buf[hdr].g = (int16_t) desc_off;
+    buf[hdr].b = (int16_t) asc_off;
+    buf[hdr].a = vband_split;
   }
 
-  return hb_blob_create ((const char *) blob, needed_bytes,
+  return hb_blob_create ((const char *) buf, needed_bytes,
 			 HB_MEMORY_MODE_WRITABLE,
-			 blob, free);
+			 buf, free);
 }
 
 
