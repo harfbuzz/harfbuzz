@@ -97,7 +97,7 @@ _demo_font_upload_glyph (demo_font_t  *font,
   font->num_glyphs++;
   font->sum_bytes += len;
 
-  hb_blob_destroy (blob);
+  hb_gpu_draw_recycle_blob (font->g, blob);
 }
 
 void

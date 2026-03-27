@@ -56,7 +56,8 @@ struct hb_blob_t
 		       void             *new_user_data,
 		       hb_destroy_func_t new_destroy)
   {
-    destroy_user_data ();
+    if (new_data != data)
+      destroy_user_data ();
     data = new_data;
     length = new_length;
     mode = new_mode;

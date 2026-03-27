@@ -69,7 +69,7 @@ static void BM_GpuEncode (benchmark::State &state,
       hb_gpu_draw_reset (draw);
       hb_gpu_draw_glyph (draw, font, gid);
       hb_blob_t *blob = hb_gpu_draw_encode (draw);
-      hb_blob_destroy (blob);
+      hb_gpu_draw_recycle_blob (draw, blob);
     }
 
   hb_gpu_draw_destroy (draw);

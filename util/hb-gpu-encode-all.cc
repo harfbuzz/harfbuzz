@@ -100,7 +100,7 @@ main (int argc, char **argv)
       num_encoded++;
 
     total_bytes += len;
-    hb_blob_destroy (encoded);
+    hb_gpu_draw_recycle_blob (draw, encoded);
   }
 
   printf ("font:     %s\n", font_path);
