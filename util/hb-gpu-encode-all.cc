@@ -109,11 +109,10 @@ main (int argc, char **argv)
   printf ("empty:    %u\n", num_empty);
   if (num_failed)
     printf ("FAILED:   %u\n", num_failed);
-  printf ("total:    %" PRIu64 " bytes (%.2f KiB)\n",
-	  total_bytes, total_bytes / 1024.);
+  printf ("total:    %.2f KiB\n", total_bytes / 1024.);
   if (num_encoded)
-    printf ("avg:      %.0f bytes/glyph (non-empty)\n",
-	    (double) total_bytes / num_encoded);
+    printf ("avg:      %.2f KiB/glyph (non-empty)\n",
+	    total_bytes / 1024. / num_encoded);
 
   hb_gpu_draw_destroy (draw);
   hb_font_destroy (font);
