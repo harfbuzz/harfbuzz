@@ -31,9 +31,7 @@
 #include "hb-gpu-cu2qu.hh"
 #include "hb-machinery.hh"
 
-#include <cstdint>
 #include <cmath>
-#include <limits>
 #include <algorithm>
 
 
@@ -42,10 +40,10 @@
 static void
 acc_update_extents (hb_gpu_draw_t *g, double x, double y)
 {
-  g->ext_min_x = std::min (g->ext_min_x, x);
-  g->ext_min_y = std::min (g->ext_min_y, y);
-  g->ext_max_x = std::max (g->ext_max_x, x);
-  g->ext_max_y = std::max (g->ext_max_y, y);
+  g->ext_min_x = hb_min (g->ext_min_x, x);
+  g->ext_min_y = hb_min (g->ext_min_y, y);
+  g->ext_max_x = hb_max (g->ext_max_x, x);
+  g->ext_max_y = hb_max (g->ext_max_y, y);
 }
 
 static void
@@ -239,8 +237,8 @@ static bool
 quantize_fits_i16 (double v)
 {
   double q = round (v * HB_GPU_UNITS_PER_EM);
-  return q >= std::numeric_limits<int16_t>::min () &&
-	 q <= std::numeric_limits<int16_t>::max ();
+  return q >= INT16_MIN &&
+	 q <= INT16_MAX;
 }
 
 typedef struct
@@ -257,10 +255,10 @@ encode_curve_info (const hb_gpu_curve_t *c)
 {
   encode_curve_info_t info;
 
-  info.min_x = std::min (std::min (c->p1x, c->p2x), c->p3x);
-  info.max_x = std::max (std::max (c->p1x, c->p2x), c->p3x);
-  info.min_y = std::min (std::min (c->p1y, c->p2y), c->p3y);
-  info.max_y = std::max (std::max (c->p1y, c->p2y), c->p3y);
+  info.min_x = hb_min (hb_min (c->p1x, c->p2x), c->p3x);
+  info.max_x = hb_max (hb_max (c->p1x, c->p2x), c->p3x);
+  info.min_y = hb_min (hb_min (c->p1y, c->p2y), c->p3y);
+  info.max_y = hb_max (hb_max (c->p1y, c->p2y), c->p3y);
   info.is_horizontal = c->p1y == c->p2y && c->p2y == c->p3y;
   info.is_vertical   = c->p1x == c->p2x && c->p2x == c->p3x;
   info.hband_lo = 0;
@@ -310,10 +308,10 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     curve_infos[i] = encode_curve_info (&curves[i]);
 
   /* Choose number of bands (capped at 16 per Slug paper) */
-  unsigned num_hbands = std::min (num_curves, 16u);
-  unsigned num_vbands = std::min (num_curves, 16u);
-  num_hbands = std::max (num_hbands, 1u);
-  num_vbands = std::max (num_vbands, 1u);
+  unsigned num_hbands = hb_min (num_curves, 16u);
+  unsigned num_vbands = hb_min (num_curves, 16u);
+  num_hbands = hb_max (num_hbands, 1u);
+  num_vbands = hb_max (num_vbands, 1u);
 
   double height = max_y - min_y;
   double width  = max_x - min_x;
@@ -340,8 +338,8 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
       if (height > 0) {
 	info.hband_lo = (int) floor ((info.min_y - min_y) / hband_size);
 	info.hband_hi = (int) floor ((info.max_y - min_y) / hband_size);
-	info.hband_lo = std::max (info.hband_lo, 0);
-	info.hband_hi = std::min (info.hband_hi, (int) num_hbands - 1);
+	info.hband_lo = hb_max (info.hband_lo, 0);
+	info.hband_hi = hb_min (info.hband_hi, (int) num_hbands - 1);
 	for (int b = info.hband_lo; b <= info.hband_hi; b++)
 	  hband_curve_counts[b]++;
       } else {
@@ -356,8 +354,8 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
       if (width > 0) {
 	info.vband_lo = (int) floor ((info.min_x - min_x) / vband_size);
 	info.vband_hi = (int) floor ((info.max_x - min_x) / vband_size);
-	info.vband_lo = std::max (info.vband_lo, 0);
-	info.vband_hi = std::min (info.vband_hi, (int) num_vbands - 1);
+	info.vband_lo = hb_max (info.vband_lo, 0);
+	info.vband_hi = hb_min (info.vband_hi, (int) num_vbands - 1);
 	for (int b = info.vband_lo; b <= info.vband_hi; b++)
 	  vband_curve_counts[b]++;
       } else {
@@ -460,7 +458,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   unsigned total_len = header_len + band_headers_len + total_curve_indices + curve_data_len;
 
   /* Validate fits in int16 offsets */
-  if (total_len - 1 > (unsigned) std::numeric_limits<int16_t>::max ())
+  if (total_len - 1 > (unsigned) INT16_MAX)
     return nullptr;
 
   if (!quantize_fits_i16 (min_x) ||
@@ -543,7 +541,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 	while (left_count &&
 	       curve_infos[hband_curves_asc[off + left_count - 1]].min_x > split)
 	  left_count--;
-	unsigned worst = std::max (right_count, left_count);
+	unsigned worst = hb_max (right_count, left_count);
 	if (worst < best_worst) {
 	  best_worst = worst;
 	  best_split = split;
@@ -593,7 +591,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 	while (left_count &&
 	       curve_infos[vband_curves_asc[off + left_count - 1]].min_y > split)
 	  left_count--;
-	unsigned worst = std::max (right_count, left_count);
+	unsigned worst = hb_max (right_count, left_count);
 	if (worst < best_worst) {
 	  best_worst = worst;
 	  best_split = split;
