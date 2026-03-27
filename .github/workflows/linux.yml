@@ -36,6 +36,9 @@ jobs:
           libgraphite2-dev \
           libicu-dev \
           libpng-dev \
+          libglew-dev \
+          libglfw3-dev \
+          libgl-dev \
           pkg-config \
           zlib1g-dev \
           help2man

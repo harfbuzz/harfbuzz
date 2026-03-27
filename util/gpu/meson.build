@@ -48,6 +48,7 @@ gpu_demo_generated += custom_target('default font',
   capture: true,
   command: [ hexify, 'static const char default_font[]', '@INPUT@' ])
 
-glew_dep = dependency('glew', required: true)
-glfw_dep = dependency('glfw3', required: true)
-gl_dep = dependency('gl', required: true)
+glew_dep = dependency('glew', required: false)
+glfw_dep = dependency('glfw3', required: false)
+gl_dep = dependency('gl', required: false)
+have_gpu_demo_deps = glew_dep.found() and glfw_dep.found() and gl_dep.found()

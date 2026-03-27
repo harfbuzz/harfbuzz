@@ -217,12 +217,14 @@ endif
 if not get_option('gpu').disabled()
   subdir('gpu')
 
-  hb_gpu_util = executable('hb-gpu',
-    gpu_demo_sources + gpu_demo_generated,
-    cpp_args: cpp_args,
-    include_directories: [incconfig, incsrc],
-    dependencies: [gl_dep, glew_dep, glfw_dep],
-    link_with: [libharfbuzz, libharfbuzz_gpu],
-    install: false,
-  )
+  if have_gpu_demo_deps
+    hb_gpu_util = executable('hb-gpu',
+      gpu_demo_sources + gpu_demo_generated,
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: [gl_dep, glew_dep, glfw_dep],
+      link_with: [libharfbuzz, libharfbuzz_gpu],
+      install: false,
+    )
+  endif
 endif
