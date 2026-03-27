@@ -480,7 +480,7 @@ demo_view_print_help (demo_view_t *vu)
 {
   (void) vu;
 
-  LOGI ("hb-gpu demo controls\n");
+  LOGI ("hb-gpu-demo controls\n");
   LOGI ("Keyboard:\n");
   LOGI ("  Esc, q                    Quit\n");
   LOGI ("  ?                         This help\n");
