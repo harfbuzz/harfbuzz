@@ -35,5 +35,23 @@
  * @include: hb-gpu.h
  *
  * Functions for encoding glyph outlines into compact blobs
- * for GPU rendering.
+ * for GPU rendering.  The encoded blob is an array of RGBA16I
+ * texels suitable for upload to a GPU texture buffer object.
+ *
+ * Typical flow:
+ *
+ * |[<!-- language="plain" -->
+ * hb_gpu_draw_t *draw = hb_gpu_draw_create_or_fail ();
+ * hb_gpu_draw_glyph (draw, font, gid);
+ * hb_blob_t *blob = hb_gpu_draw_encode (draw);
+ * // upload hb_blob_get_data(blob) to GPU
+ * hb_gpu_draw_recycle_blob (draw, blob);
+ * hb_gpu_draw_reset (draw);
+ * // repeat for more glyphs...
+ * hb_gpu_draw_destroy (draw);
+ * ]|
+ *
+ * The companion GLSL shaders returned by
+ * hb_gpu_shader_fragment_sources() and hb_gpu_shader_vertex_sources()
+ * render the encoded blobs on the GPU.
  **/

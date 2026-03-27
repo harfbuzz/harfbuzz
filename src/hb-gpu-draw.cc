@@ -299,7 +299,7 @@ encode_curve_info (const hb_gpu_curve_t *c)
  * hb_gpu_draw_encode:
  * @draw: a GPU shape encoder
  *
- * Encodes the accumulated glyph outlines into a compact blob
+ * Encodes the accumulated outlines into a compact blob
  * suitable for GPU rendering.  The blob data is an array of
  * RGBA16I texels (8 bytes each) to be uploaded to a texture
  * buffer object.
@@ -307,7 +307,7 @@ encode_curve_info (const hb_gpu_curve_t *c)
  * The returned blob owns its own copy of the data.
  *
  * Return value: (transfer full):
- * An #hb_blob_t containing the encoded glyph data, or
+ * An #hb_blob_t containing the encoded data, or
  * `NULL` if encoding fails.
  *
  * XSince: REPLACEME
@@ -814,12 +814,12 @@ hb_gpu_draw_get_user_data (hb_gpu_draw_t     *draw,
 /**
  * hb_gpu_draw_get_funcs:
  *
- * Fetches the singleton #hb_draw_funcs_t that feeds glyph outline
- * data into an #hb_gpu_draw_t.  Pass the #hb_gpu_draw_t as the
+ * Fetches the singleton #hb_draw_funcs_t that feeds outline data
+ * into an #hb_gpu_draw_t.  Pass the #hb_gpu_draw_t as the
  * @draw_data argument when calling the draw functions.
  *
  * Return value: (transfer none):
- * The GPU glyph draw functions
+ * The GPU draw functions
  *
  * XSince: REPLACEME
  **/
@@ -855,7 +855,7 @@ hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
  * @draw: a GPU shape encoder
  * @extents: (out): glyph extents
  *
- * Fetches the extents of the accumulated glyph outlines.
+ * Fetches the extents of the accumulated outlines.
  *
  * XSince: REPLACEME
  **/
