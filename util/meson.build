@@ -213,3 +213,7 @@ else
   hb_info = disabler()
   hb_subset = disabler()
 endif
+
+if not get_option('gpu').disabled()
+  subdir('gpu')
+endif
