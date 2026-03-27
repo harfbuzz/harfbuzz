@@ -1,4 +1,4 @@
-gpu_demo_sources = [
+gpu_demo_sources = files(
   'demo-atlas.h',
   'demo-atlas.cc',
   'demo-buffer.h',
@@ -17,7 +17,7 @@ gpu_demo_sources = [
   'matrix4x4.c',
   'trackball.h',
   'trackball.c',
-]
+)
 
 gpu_demo_shaders = [
   [ 'demo-fragment.glsl', 'demo-fragment-glsl.h', 'demo_fragment_glsl' ],
@@ -27,35 +27,27 @@ gpu_demo_shaders = [
 
 gpu_stringize = find_program('../../src/stringize')
 
-gpu_demo_shader_sources = []
+gpu_demo_generated = []
 
 foreach p: gpu_demo_shaders
   glsl = p.get(0)
   header = p.get(1)
   decl = p.get(2)
-  gpu_demo_shader_sources += custom_target('@0@ shader'.format(glsl),
+  gpu_demo_generated += custom_target('@0@ shader'.format(glsl),
     input: glsl,
     output: header,
     capture: true,
     command: [ gpu_stringize, 'static const char *' + decl, '@INPUT@' ])
 endforeach
 
-glew_dep = dependency('glew', required: true)
-glfw_dep = dependency('glfw3', required: true)
-gl_dep = dependency('gl', required: true)
-
 hexify = find_program('hexify')
 
-gpu_demo_shader_sources += custom_target('default font',
+gpu_demo_generated += custom_target('default font',
   input: 'default-font.ttf',
   output: 'default-font.h',
   capture: true,
   command: [ hexify, 'static const char default_font[]', '@INPUT@' ])
 
-hb_gpu_demo = executable('hb-gpu', gpu_demo_sources + gpu_demo_shader_sources,
-  cpp_args: cpp_args,
-  include_directories: [incconfig, incsrc],
-  dependencies: [gl_dep, glew_dep, glfw_dep],
-  link_with: [libharfbuzz, libharfbuzz_gpu],
-  install: false,
-)
+glew_dep = dependency('glew', required: true)
+glfw_dep = dependency('glfw3', required: true)
+gl_dep = dependency('gl', required: true)
