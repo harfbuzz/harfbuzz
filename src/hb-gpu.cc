@@ -202,7 +202,7 @@
  * float hb_gpu_render (vec2 renderCoord, uint glyphLoc);
  * ]|
  *
- * It requires a `uniform isamplerBuffer u_atlas` to be bound to
+ * It requires a `uniform isamplerBuffer hb_gpu_atlas` to be bound to
  * the texture buffer containing the encoded glyph data.
  *
  * Parameters:

@@ -37,7 +37,7 @@
 #define HB_GPU_INV_UNITS float(1.0 / float(HB_GPU_UNITS_PER_EM))
 
 
-uniform isamplerBuffer u_atlas;
+uniform isamplerBuffer hb_gpu_atlas;
 
 
 uint _hb_gpu_calc_root_code (float y1, float y2, float y3)
@@ -99,10 +99,10 @@ float _hb_gpu_calc_coverage (float xcov, float ycov, float xwgt, float ywgt)
 
 /* Render a glyph and return its coverage in [0, 1].
  *
- * Requires the u_atlas uniform to be bound to the glyph atlas buffer.
+ * Requires the hb_gpu_atlas uniform to be bound to the glyph atlas buffer.
  *
  * renderCoord:  em-space sample position (interpolated from vertex shader)
- * glyphLoc:     offset into u_atlas for this glyph's encoded blob
+ * glyphLoc:     offset into hb_gpu_atlas for this glyph's encoded blob
  */
 float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 {
@@ -112,8 +112,8 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   int glyphLoc = int (glyphLoc_);
 
   /* Read blob header */
-  ivec4 header0 = texelFetch (u_atlas, glyphLoc);
-  ivec4 header1 = texelFetch (u_atlas, glyphLoc + 1);
+  ivec4 header0 = texelFetch (hb_gpu_atlas, glyphLoc);
+  ivec4 header1 = texelFetch (hb_gpu_atlas, glyphLoc + 1);
   vec4 ext = vec4 (header0) * HB_GPU_INV_UNITS; /* min_x, min_y, max_x, max_y */
   int numHBands = header1.r;
   int numVBands = header1.g;
@@ -133,7 +133,7 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   float xcov = 0.0;
   float xwgt = 0.0;
 
-  ivec4 hbandData = texelFetch (u_atlas, bandBase + bandIndex.y);
+  ivec4 hbandData = texelFetch (hb_gpu_atlas, bandBase + bandIndex.y);
   int hCurveCount = hbandData.r;
   /* Symmetric: choose rightward (desc) or leftward (asc) sort */
   float hSplit = float (hbandData.a) * HB_GPU_INV_UNITS;
@@ -142,10 +142,10 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 
   for (int ci = 0; ci < hCurveCount; ci++)
   {
-    int curveOffset = texelFetch (u_atlas, glyphLoc + hDataOffset + ci).r + 32768;
+    int curveOffset = texelFetch (hb_gpu_atlas, glyphLoc + hDataOffset + ci).r + 32768;
 
-    ivec4 raw12 = texelFetch (u_atlas, glyphLoc + curveOffset);
-    ivec4 raw3 = texelFetch (u_atlas, glyphLoc + curveOffset + 1);
+    ivec4 raw12 = texelFetch (hb_gpu_atlas, glyphLoc + curveOffset);
+    ivec4 raw3 = texelFetch (hb_gpu_atlas, glyphLoc + curveOffset + 1);
 
     vec4 p12 = vec4 (raw12) * HB_GPU_INV_UNITS - vec4 (renderCoord, renderCoord);
     vec2 p3 = vec2 (raw3.rg) * HB_GPU_INV_UNITS - renderCoord;
@@ -181,7 +181,7 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   float ycov = 0.0;
   float ywgt = 0.0;
 
-  ivec4 vbandData = texelFetch (u_atlas, bandBase + numHBands + bandIndex.x);
+  ivec4 vbandData = texelFetch (hb_gpu_atlas, bandBase + numHBands + bandIndex.x);
   int vCurveCount = vbandData.r;
   float vSplit = float (vbandData.a) * HB_GPU_INV_UNITS;
   bool vLeftRay = (renderCoord.y < vSplit);
@@ -189,10 +189,10 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
 
   for (int ci = 0; ci < vCurveCount; ci++)
   {
-    int curveOffset = texelFetch (u_atlas, glyphLoc + vDataOffset + ci).r + 32768;
+    int curveOffset = texelFetch (hb_gpu_atlas, glyphLoc + vDataOffset + ci).r + 32768;
 
-    ivec4 raw12 = texelFetch (u_atlas, glyphLoc + curveOffset);
-    ivec4 raw3 = texelFetch (u_atlas, glyphLoc + curveOffset + 1);
+    ivec4 raw12 = texelFetch (hb_gpu_atlas, glyphLoc + curveOffset);
+    ivec4 raw3 = texelFetch (hb_gpu_atlas, glyphLoc + curveOffset + 1);
 
     vec4 p12 = vec4 (raw12) * HB_GPU_INV_UNITS - vec4 (renderCoord, renderCoord);
     vec2 p3 = vec2 (raw3.rg) * HB_GPU_INV_UNITS - renderCoord;

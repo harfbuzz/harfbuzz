@@ -72,7 +72,7 @@ demo_atlas_set_uniforms (demo_atlas_t *at)
   GLuint program;
   glGetIntegerv (GL_CURRENT_PROGRAM, (GLint *) &program);
 
-  glUniform1i (glGetUniformLocation (program, "u_atlas"), at->tex_unit - GL_TEXTURE0);
+  glUniform1i (glGetUniformLocation (program, "hb_gpu_atlas"), at->tex_unit - GL_TEXTURE0);
 }
 
 unsigned int
