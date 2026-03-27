@@ -227,4 +227,12 @@ if not get_option('gpu').disabled()
       install: false,
     )
   endif
+
+  hb_gpu_encode_all = executable('hb-gpu-encode-all',
+    'hb-gpu-encode-all.cc',
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    link_with: [libharfbuzz, libharfbuzz_gpu],
+    install: false,
+  )
 endif
