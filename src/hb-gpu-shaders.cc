@@ -50,7 +50,7 @@ static const char * const vertex_sources_330[]   = { hb_gpu_vertex_glsl };
  * Return value: (transfer none) (array length=count):
  * An array of source strings, or `NULL` if @lang is unsupported.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 const char * const *
 hb_gpu_shader_fragment_sources (hb_gpu_shader_lang_t  lang,
@@ -78,7 +78,7 @@ hb_gpu_shader_fragment_sources (hb_gpu_shader_lang_t  lang,
  * Return value: (transfer none) (array length=count):
  * An array of source strings, or `NULL` if @lang is unsupported.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 const char * const *
 hb_gpu_shader_vertex_sources (hb_gpu_shader_lang_t  lang,

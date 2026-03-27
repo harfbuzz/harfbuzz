@@ -286,7 +286,7 @@ encode_curve_info (const hb_gpu_curve_t *c)
  * An #hb_blob_t containing the encoded glyph data, or
  * `NULL` if encoding fails.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_blob_t *
 hb_gpu_draw_encode (hb_gpu_draw_t *draw)
@@ -645,7 +645,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
  * Return value: (transfer full):
  * A newly allocated #hb_gpu_draw_t, or `NULL` on allocation failure.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_gpu_draw_t *
 hb_gpu_draw_create_or_fail (void)
@@ -662,7 +662,7 @@ hb_gpu_draw_create_or_fail (void)
  * Return value: (transfer full):
  * The referenced #hb_gpu_draw_t.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_gpu_draw_t *
 hb_gpu_draw_reference (hb_gpu_draw_t *draw)
@@ -677,7 +677,7 @@ hb_gpu_draw_reference (hb_gpu_draw_t *draw)
  * Decreases the reference count on @draw by one. When the
  * reference count reaches zero, the glyph encoder is freed.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_gpu_draw_destroy (hb_gpu_draw_t *draw)
@@ -698,7 +698,7 @@ hb_gpu_draw_destroy (hb_gpu_draw_t *draw)
  *
  * Return value: `true` if success, `false` otherwise
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_bool_t
 hb_gpu_draw_set_user_data (hb_gpu_draw_t     *draw,
@@ -720,7 +720,7 @@ hb_gpu_draw_set_user_data (hb_gpu_draw_t     *draw,
  * Return value: (transfer none):
  * A pointer to the user data
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void *
 hb_gpu_draw_get_user_data (hb_gpu_draw_t     *draw,
@@ -739,7 +739,7 @@ hb_gpu_draw_get_user_data (hb_gpu_draw_t     *draw,
  * Return value: (transfer none):
  * The GPU glyph draw functions
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 hb_draw_funcs_t *
 hb_gpu_draw_get_funcs (void)
@@ -756,7 +756,7 @@ hb_gpu_draw_get_funcs (void)
  * Convenience wrapper that draws a single glyph outline into the
  * encoder using hb_font_draw_glyph().
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
@@ -775,7 +775,7 @@ hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
  *
  * Fetches the extents of the accumulated glyph outlines.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
@@ -805,7 +805,7 @@ hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
  * Resets the glyph encoder, discarding all accumulated outlines.
  * The internal encode buffer is kept for reuse.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_gpu_draw_reset (hb_gpu_draw_t *draw)
@@ -835,7 +835,7 @@ hb_gpu_draw_reset (hb_gpu_draw_t *draw)
  * may reclaim the underlying buffer to avoid allocation on the
  * next hb_gpu_draw_encode() call.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  **/
 void
 hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw HB_UNUSED,

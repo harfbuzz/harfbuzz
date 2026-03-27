@@ -38,7 +38,7 @@ HB_BEGIN_DECLS
  *
  * Shader language variant.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef enum {
   HB_GPU_SHADER_GLSL_330,
@@ -60,7 +60,7 @@ hb_gpu_shader_vertex_sources (hb_gpu_shader_lang_t  lang,
  * draw callbacks, then encodes them into a compact blob for GPU
  * rendering.
  *
- * Since: REPLACEME
+ * XSince: REPLACEME
  */
 typedef struct hb_gpu_draw_t hb_gpu_draw_t;
 
