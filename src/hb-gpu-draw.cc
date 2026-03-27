@@ -418,36 +418,28 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   {
     unsigned off = hband_offsets[b];
     unsigned count = hband_curve_counts[b];
-    hb_qsort (hband_curves.arrayZ + off, count, sizeof (unsigned),
-	      [infos] (const void *a, const void *b) -> int {
-		double va = infos[*(const unsigned *)a].max_x;
-		double vb = infos[*(const unsigned *)b].max_x;
-		return (va > vb) ? -1 : (va < vb) ? 1 : 0;
-	      });
-    hb_qsort (hband_curves_asc.arrayZ + off, count, sizeof (unsigned),
-	      [infos] (const void *a, const void *b) -> int {
-		double va = infos[*(const unsigned *)a].min_x;
-		double vb = infos[*(const unsigned *)b].min_x;
-		return (va < vb) ? -1 : (va > vb) ? 1 : 0;
-	      });
+    hband_curves.as_array ().sub_array (off, count)
+      .qsort ([infos] (const unsigned &a, const unsigned &b) {
+	return infos[a].max_x > infos[b].max_x;
+      });
+    hband_curves_asc.as_array ().sub_array (off, count)
+      .qsort ([infos] (const unsigned &a, const unsigned &b) {
+	return infos[a].min_x < infos[b].min_x;
+      });
   }
 
   for (unsigned b = 0; b < num_vbands; b++)
   {
     unsigned off = vband_offsets[b];
     unsigned count = vband_curve_counts[b];
-    hb_qsort (vband_curves.arrayZ + off, count, sizeof (unsigned),
-	      [infos] (const void *a, const void *b) -> int {
-		double va = infos[*(const unsigned *)a].max_y;
-		double vb = infos[*(const unsigned *)b].max_y;
-		return (va > vb) ? -1 : (va < vb) ? 1 : 0;
-	      });
-    hb_qsort (vband_curves_asc.arrayZ + off, count, sizeof (unsigned),
-	      [infos] (const void *a, const void *b) -> int {
-		double va = infos[*(const unsigned *)a].min_y;
-		double vb = infos[*(const unsigned *)b].min_y;
-		return (va < vb) ? -1 : (va > vb) ? 1 : 0;
-	      });
+    vband_curves.as_array ().sub_array (off, count)
+      .qsort ([infos] (const unsigned &a, const unsigned &b) {
+	return infos[a].max_y > infos[b].max_y;
+      });
+    vband_curves_asc.as_array ().sub_array (off, count)
+      .qsort ([infos] (const unsigned &a, const unsigned &b) {
+	return infos[a].min_y < infos[b].min_y;
+      });
   }
 
   /* Compute sizes */

@@ -229,20 +229,6 @@ _hb_cairo_reduce_anchors (float x0, float y0,
   *yy1 = y1 - k * q2y;
 }
 
-static inline int
-_hb_cairo_cmp_color_stop (const void *p1, const void *p2)
-{
-  const hb_color_stop_t *c1 = (const hb_color_stop_t *) p1;
-  const hb_color_stop_t *c2 = (const hb_color_stop_t *) p2;
-
-  if (c1->offset < c2->offset)
-    return -1;
-  else if (c1->offset > c2->offset)
-    return 1;
-  else
-    return 0;
-}
-
 static void
 _hb_cairo_normalize_color_line (hb_color_stop_t *stops,
 				unsigned int len,
@@ -251,7 +237,10 @@ _hb_cairo_normalize_color_line (hb_color_stop_t *stops,
 {
   float min, max;
 
-  hb_qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
+  hb_array_t<hb_color_stop_t> (stops, len)
+    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
+      return a.offset < b.offset;
+    });
 
   min = max = stops[0].offset;
   for (unsigned int i = 0; i < len; i++)
@@ -856,7 +845,10 @@ _hb_cairo_paint_sweep_gradient (hb_cairo_context_t *c,
   if (unlikely (!_hb_cairo_get_color_stops (c, color_line, &len, &stops)))
     return;
 
-  hb_qsort (stops, len, sizeof (hb_color_stop_t), _hb_cairo_cmp_color_stop);
+  hb_array_t<hb_color_stop_t> (stops, len)
+    .qsort ([] (const hb_color_stop_t &a, const hb_color_stop_t &b) {
+      return a.offset < b.offset;
+    });
 
   cairo_clip_extents (cr, &x1, &y1, &x2, &y2);
   max_x = (float) hb_max ((x1 - (double) cx) * (x1 - (double) cx), (x2 - (double) cx) * (x2 - (double) cx));

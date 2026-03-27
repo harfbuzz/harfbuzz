@@ -32,6 +32,8 @@
 #include "hb-iter.hh"
 #include "hb-null.hh"
 
+#include <algorithm>
+
 
 template <typename Type>
 struct hb_sorted_array_t;
@@ -219,16 +221,36 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     return false;
   }
 
+  hb_sorted_array_t<Type> qsort (int (*cmp)(const void*, const void*))
+  {
+    if (likely (length))
+      hb_qsort (arrayZ, length, this->get_item_size (), cmp);
+    return hb_sorted_array_t<Type> (*this);
+  }
   template <typename Compar>
   hb_sorted_array_t<Type> qsort (Compar compar)
   {
     if (likely (length))
-      hb_qsort (arrayZ, length, this->get_item_size (), compar);
+      std::sort (arrayZ, arrayZ + length, compar);
     return hb_sorted_array_t<Type> (*this);
   }
-  hb_sorted_array_t<Type> qsort ()
+
+  private:
+  template <typename T = Type,
+	    hb_enable_if (std::is_move_assignable<T>::value)>
+  hb_sorted_array_t<Type> _qsort (hb_priority<1>)
+  {
+    return qsort ([] (const Type &a, const Type &b) { return Type::cmp (&a, &b) < 0; });
+  }
+  hb_sorted_array_t<Type> _qsort (hb_priority<0>)
   {
     return qsort ((int(*)(const void*, const void*)) Type::cmp);
+  }
+  public:
+
+  hb_sorted_array_t<Type> qsort ()
+  {
+    return _qsort (hb_prioritize);
   }
 
   /*

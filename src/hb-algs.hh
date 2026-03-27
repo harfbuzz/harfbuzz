@@ -1442,12 +1442,11 @@ static inline void sort_r_simple(void *base, size_t nel, size_t w,
   }
 }
 
-template <typename Compar>
 static inline void
 hb_qsort (void *base, size_t nel, size_t width,
-	  Compar compar)
+	  int (*compar)(const void *_a, const void *_b))
 {
-  sort_r_simple (base, nel, width, compar);
+  qsort (base, nel, width, compar);
 }
 
 
