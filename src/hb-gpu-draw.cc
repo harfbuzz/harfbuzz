@@ -471,11 +471,9 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 
   /* Allocate encode buffer */
   unsigned needed_bytes = total_len * sizeof (hb_gpu_texel_t);
-  char *encode_buf = (char *) hb_malloc (needed_bytes);
-  if (unlikely (!encode_buf))
+  hb_gpu_texel_t *blob = (hb_gpu_texel_t *) hb_malloc (needed_bytes);
+  if (unlikely (!blob))
     return nullptr;
-
-  hb_gpu_texel_t *blob = (hb_gpu_texel_t *) encode_buf;
 
   unsigned curve_data_offset = header_len + band_headers_len + total_curve_indices;
 
@@ -631,9 +629,9 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     blob[hdr].a = vband_split;
   }
 
-  return hb_blob_create (encode_buf, needed_bytes,
+  return hb_blob_create ((const char *) blob, needed_bytes,
 			 HB_MEMORY_MODE_WRITABLE,
-			 encode_buf, free);
+			 blob, free);
 }
 
 
