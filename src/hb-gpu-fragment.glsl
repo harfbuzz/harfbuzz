@@ -138,11 +138,11 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   /* Symmetric: choose rightward (desc) or leftward (asc) sort */
   float hSplit = float (hbandData.a) * HB_GPU_INV_UNITS;
   bool hLeftRay = (renderCoord.x < hSplit);
-  int hDataOffset = hLeftRay ? hbandData.b : hbandData.g;
+  int hDataOffset = (hLeftRay ? hbandData.b : hbandData.g) + 32768;
 
   for (int ci = 0; ci < hCurveCount; ci++)
   {
-    int curveOffset = texelFetch (u_atlas, glyphLoc + hDataOffset + ci).r;
+    int curveOffset = texelFetch (u_atlas, glyphLoc + hDataOffset + ci).r + 32768;
 
     ivec4 raw12 = texelFetch (u_atlas, glyphLoc + curveOffset);
     ivec4 raw3 = texelFetch (u_atlas, glyphLoc + curveOffset + 1);
@@ -185,11 +185,11 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   int vCurveCount = vbandData.r;
   float vSplit = float (vbandData.a) * HB_GPU_INV_UNITS;
   bool vLeftRay = (renderCoord.y < vSplit);
-  int vDataOffset = vLeftRay ? vbandData.b : vbandData.g;
+  int vDataOffset = (vLeftRay ? vbandData.b : vbandData.g) + 32768;
 
   for (int ci = 0; ci < vCurveCount; ci++)
   {
-    int curveOffset = texelFetch (u_atlas, glyphLoc + vDataOffset + ci).r;
+    int curveOffset = texelFetch (u_atlas, glyphLoc + vDataOffset + ci).r + 32768;
 
     ivec4 raw12 = texelFetch (u_atlas, glyphLoc + curveOffset);
     ivec4 raw3 = texelFetch (u_atlas, glyphLoc + curveOffset + 1);

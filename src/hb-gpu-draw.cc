@@ -256,6 +256,12 @@ quantize_fits_i16 (double v)
 	 q <= INT16_MAX;
 }
 
+static int16_t
+encode_offset (unsigned offset)
+{
+  return (int16_t) (offset - 32768u);
+}
+
 static hb_gpu_encode_curve_info_t
 encode_curve_info (const hb_gpu_curve_t *c)
 {
@@ -459,8 +465,8 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   unsigned band_headers_len = num_hbands + num_vbands;
   unsigned total_len = header_len + band_headers_len + total_curve_indices + curve_data_len;
 
-  /* Validate fits in int16 offsets */
-  if (total_len - 1 > (unsigned) INT16_MAX)
+  /* Validate fits in uint16 offsets (stored as int16 with bias) */
+  if (total_len - 1 > (unsigned) UINT16_MAX)
     return nullptr;
 
   if (!quantize_fits_i16 (min_x) ||
@@ -554,7 +560,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     unsigned desc_off = index_offset;
 
     for (unsigned ci = 0; ci < s.hband_curve_counts.arrayZ[b]; ci++) {
-      buf[index_offset].r = (int16_t) s.curve_texel_offset.arrayZ[s.hband_curves.arrayZ[s.hband_offsets.arrayZ[b] + ci]];
+      buf[index_offset].r = encode_offset (s.curve_texel_offset.arrayZ[s.hband_curves.arrayZ[s.hband_offsets.arrayZ[b] + ci]]);
       buf[index_offset].g = 0;
       buf[index_offset].b = 0;
       buf[index_offset].a = 0;
@@ -564,7 +570,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     unsigned asc_off = index_offset;
 
     for (unsigned ci = 0; ci < s.hband_curve_counts.arrayZ[b]; ci++) {
-      buf[index_offset].r = (int16_t) s.curve_texel_offset.arrayZ[s.hband_curves_asc.arrayZ[s.hband_offsets.arrayZ[b] + ci]];
+      buf[index_offset].r = encode_offset (s.curve_texel_offset.arrayZ[s.hband_curves_asc.arrayZ[s.hband_offsets.arrayZ[b] + ci]]);
       buf[index_offset].g = 0;
       buf[index_offset].b = 0;
       buf[index_offset].a = 0;
@@ -572,8 +578,8 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     }
 
     buf[hdr].r = (int16_t) s.hband_curve_counts.arrayZ[b];
-    buf[hdr].g = (int16_t) desc_off;
-    buf[hdr].b = (int16_t) asc_off;
+    buf[hdr].g = encode_offset (desc_off);
+    buf[hdr].b = encode_offset (asc_off);
     buf[hdr].a = hband_split;
   }
 
@@ -605,7 +611,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     unsigned desc_off = index_offset;
 
     for (unsigned ci = 0; ci < s.vband_curve_counts.arrayZ[b]; ci++) {
-      buf[index_offset].r = (int16_t) s.curve_texel_offset.arrayZ[s.vband_curves.arrayZ[s.vband_offsets.arrayZ[b] + ci]];
+      buf[index_offset].r = encode_offset (s.curve_texel_offset.arrayZ[s.vband_curves.arrayZ[s.vband_offsets.arrayZ[b] + ci]]);
       buf[index_offset].g = 0;
       buf[index_offset].b = 0;
       buf[index_offset].a = 0;
@@ -615,7 +621,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     unsigned asc_off = index_offset;
 
     for (unsigned ci = 0; ci < s.vband_curve_counts.arrayZ[b]; ci++) {
-      buf[index_offset].r = (int16_t) s.curve_texel_offset.arrayZ[s.vband_curves_asc.arrayZ[s.vband_offsets.arrayZ[b] + ci]];
+      buf[index_offset].r = encode_offset (s.curve_texel_offset.arrayZ[s.vband_curves_asc.arrayZ[s.vband_offsets.arrayZ[b] + ci]]);
       buf[index_offset].g = 0;
       buf[index_offset].b = 0;
       buf[index_offset].a = 0;
@@ -623,8 +629,8 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
     }
 
     buf[hdr].r = (int16_t) s.vband_curve_counts.arrayZ[b];
-    buf[hdr].g = (int16_t) desc_off;
-    buf[hdr].b = (int16_t) asc_off;
+    buf[hdr].g = encode_offset (desc_off);
+    buf[hdr].b = encode_offset (asc_off);
     buf[hdr].a = vband_split;
   }
 
