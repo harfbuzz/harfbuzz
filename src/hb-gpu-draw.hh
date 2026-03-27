@@ -45,6 +45,47 @@ struct hb_gpu_curve_t
   double p3x, p3y;
 };
 
+struct hb_gpu_encode_curve_info_t
+{
+  double min_x, max_x, min_y, max_y;
+  bool is_horizontal;
+  bool is_vertical;
+  int hband_lo, hband_hi;
+  int vband_lo, vband_hi;
+};
+
+struct hb_gpu_encode_scratch_t
+{
+  hb_vector_t<hb_gpu_encode_curve_info_t> curve_infos;
+  hb_vector_t<unsigned> hband_curve_counts;
+  hb_vector_t<unsigned> vband_curve_counts;
+  hb_vector_t<unsigned> hband_offsets;
+  hb_vector_t<unsigned> vband_offsets;
+  hb_vector_t<unsigned> hband_curves;
+  hb_vector_t<unsigned> hband_curves_asc;
+  hb_vector_t<unsigned> vband_curves;
+  hb_vector_t<unsigned> vband_curves_asc;
+  hb_vector_t<unsigned> hband_cursors;
+  hb_vector_t<unsigned> vband_cursors;
+  hb_vector_t<unsigned> curve_texel_offset;
+
+  void clear ()
+  {
+    curve_infos.clear ();
+    hband_curve_counts.clear ();
+    vband_curve_counts.clear ();
+    hband_offsets.clear ();
+    vband_offsets.clear ();
+    hband_curves.clear ();
+    hband_curves_asc.clear ();
+    vband_curves.clear ();
+    vband_curves_asc.clear ();
+    hband_cursors.clear ();
+    vband_cursors.clear ();
+    curve_texel_offset.clear ();
+  }
+};
+
 struct hb_gpu_draw_t
 {
   hb_object_header_t header;
@@ -64,6 +105,8 @@ struct hb_gpu_draw_t
   double ext_max_x = -HUGE_VAL;
   double ext_max_y = -HUGE_VAL;
 
+  /* Encode scratch (reused across calls) */
+  hb_gpu_encode_scratch_t scratch;
 
   /* Internal accumulation methods */
   HB_INTERNAL void acc_move_to (double x, double y);
