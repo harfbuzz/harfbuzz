@@ -32,64 +32,52 @@
 #include "hb-gpu-vertex-glsl.h"
 
 
-static const char * const fragment_sources_330[] = { hb_gpu_fragment_glsl };
-static const char * const vertex_sources_330[]   = { hb_gpu_vertex_glsl };
-
 /**
- * hb_gpu_shader_fragment_sources:
+ * hb_gpu_shader_fragment_source:
  * @lang: shader language variant
- * @count: (out): number of source strings returned
  *
- * Returns the fragment shader source strings for the specified
- * shader language.  The returned array and strings are static and
- * must not be freed.
+ * Returns the fragment shader source for the specified shader
+ * language.  The returned string is static and must not be freed.
  *
- * The caller should pass all @count strings to `glShaderSource()`
- * (or the equivalent) when compiling the fragment shader.
+ * The caller should prepend a `#version` directive and append
+ * their own `main()` function, then pass the combined sources
+ * to `glShaderSource()`.
  *
- * Return value: (transfer none) (array length=count):
- * An array of source strings, or `NULL` if @lang is unsupported.
+ * Return value: (transfer none):
+ * A shader source string, or `NULL` if @lang is unsupported.
  *
  * XSince: REPLACEME
  **/
-const char * const *
-hb_gpu_shader_fragment_sources (hb_gpu_shader_lang_t  lang,
-				unsigned int         *count)
+const char *
+hb_gpu_shader_fragment_source (hb_gpu_shader_lang_t lang)
 {
   switch (lang) {
   case HB_GPU_SHADER_GLSL_330:
-    *count = 1;
-    return fragment_sources_330;
+    return hb_gpu_fragment_glsl;
   default:
-    *count = 0;
     return nullptr;
   }
 }
 
 /**
- * hb_gpu_shader_vertex_sources:
+ * hb_gpu_shader_vertex_source:
  * @lang: shader language variant
- * @count: (out): number of source strings returned
  *
- * Returns the vertex shader source strings for the specified
- * shader language.  The returned array and strings are static and
- * must not be freed.
+ * Returns the vertex shader source for the specified shader
+ * language.  The returned string is static and must not be freed.
  *
- * Return value: (transfer none) (array length=count):
- * An array of source strings, or `NULL` if @lang is unsupported.
+ * Return value: (transfer none):
+ * A shader source string, or `NULL` if @lang is unsupported.
  *
  * XSince: REPLACEME
  **/
-const char * const *
-hb_gpu_shader_vertex_sources (hb_gpu_shader_lang_t  lang,
-			      unsigned int         *count)
+const char *
+hb_gpu_shader_vertex_source (hb_gpu_shader_lang_t lang)
 {
   switch (lang) {
   case HB_GPU_SHADER_GLSL_330:
-    *count = 1;
-    return vertex_sources_330;
+    return hb_gpu_vertex_glsl;
   default:
-    *count = 0;
     return nullptr;
   }
 }

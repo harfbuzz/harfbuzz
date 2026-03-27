@@ -44,13 +44,11 @@ typedef enum {
   HB_GPU_SHADER_GLSL_330,
 } hb_gpu_shader_lang_t;
 
-HB_EXTERN const char * const *
-hb_gpu_shader_fragment_sources (hb_gpu_shader_lang_t  lang,
-				unsigned int         *count);
+HB_EXTERN const char *
+hb_gpu_shader_fragment_source (hb_gpu_shader_lang_t lang);
 
-HB_EXTERN const char * const *
-hb_gpu_shader_vertex_sources (hb_gpu_shader_lang_t  lang,
-			      unsigned int         *count);
+HB_EXTERN const char *
+hb_gpu_shader_vertex_source (hb_gpu_shader_lang_t lang);
 
 
 /**

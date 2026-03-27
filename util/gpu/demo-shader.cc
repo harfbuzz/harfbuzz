@@ -131,31 +131,19 @@ demo_shader_create_program (void)
 {
   GLuint vertex_shader, fragment_shader, program;
 
-  unsigned int vert_count, frag_count;
-  const char * const *vert_lib = hb_gpu_shader_vertex_sources (HB_GPU_SHADER_GLSL_330, &vert_count);
-  const char * const *frag_lib = hb_gpu_shader_fragment_sources (HB_GPU_SHADER_GLSL_330, &frag_count);
-
-  /* vertex: version + library sources + demo shader */
-  std::vector<const GLchar *> vert_sources;
-  vert_sources.push_back ("#version 330\n");
-  for (unsigned i = 0; i < vert_count; i++)
-    vert_sources.push_back (vert_lib[i]);
-  vert_sources.push_back (demo_vertex_glsl);
-
+  const GLchar *vert_sources[] = {"#version 330\n",
+				  hb_gpu_shader_vertex_source (HB_GPU_SHADER_GLSL_330),
+				  demo_vertex_glsl};
   vertex_shader = compile_shader (GL_VERTEX_SHADER,
-				  vert_sources.size (),
-				  vert_sources.data ());
+				  ARRAY_LEN (vert_sources),
+				  vert_sources);
 
-  /* fragment: version + library sources + demo shader */
-  std::vector<const GLchar *> frag_sources;
-  frag_sources.push_back ("#version 330\n");
-  for (unsigned i = 0; i < frag_count; i++)
-    frag_sources.push_back (frag_lib[i]);
-  frag_sources.push_back (demo_fragment_glsl);
-
+  const GLchar *frag_sources[] = {"#version 330\n",
+				  hb_gpu_shader_fragment_source (HB_GPU_SHADER_GLSL_330),
+				  demo_fragment_glsl};
   fragment_shader = compile_shader (GL_FRAGMENT_SHADER,
-				    frag_sources.size (),
-				    frag_sources.data ());
+				    ARRAY_LEN (frag_sources),
+				    frag_sources);
 
   program = link_program (vertex_shader, fragment_shader);
   return program;

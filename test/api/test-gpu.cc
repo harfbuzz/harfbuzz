@@ -153,20 +153,8 @@ test_draw_funcs (void)
 static void
 test_shader_sources (void)
 {
-  unsigned count = 0;
-  const char * const *sources;
-
-  sources = hb_gpu_shader_fragment_sources (HB_GPU_SHADER_GLSL_330, &count);
-  g_assert_nonnull (sources);
-  g_assert_cmpuint (count, >, 0);
-  for (unsigned i = 0; i < count; i++)
-    g_assert_nonnull (sources[i]);
-
-  sources = hb_gpu_shader_vertex_sources (HB_GPU_SHADER_GLSL_330, &count);
-  g_assert_nonnull (sources);
-  g_assert_cmpuint (count, >, 0);
-  for (unsigned i = 0; i < count; i++)
-    g_assert_nonnull (sources[i]);
+  g_assert_nonnull (hb_gpu_shader_fragment_source (HB_GPU_SHADER_GLSL_330));
+  g_assert_nonnull (hb_gpu_shader_vertex_source (HB_GPU_SHADER_GLSL_330));
 }
 
 static void

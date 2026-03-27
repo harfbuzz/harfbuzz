@@ -1111,8 +1111,8 @@ hb_vector_paint_recycle_blob
 <SECTION>
 <FILE>hb-gpu</FILE>
 hb_gpu_shader_lang_t
-hb_gpu_shader_fragment_sources
-hb_gpu_shader_vertex_sources
+hb_gpu_shader_fragment_source
+hb_gpu_shader_vertex_source
 hb_gpu_draw_t
 hb_gpu_draw_create_or_fail
 hb_gpu_draw_reference

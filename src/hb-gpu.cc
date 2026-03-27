@@ -104,16 +104,13 @@
  * const char * const *frag_lib = hb_gpu_shader_fragment_sources (
  *     HB_GPU_SHADER_GLSL_330, &frag_count);
  *
- * // Build vertex shader source array: version + library + your main
- * const char **vert_sources = alloca ((1 + vert_count + 1) * sizeof (char *));
- * unsigned n = 0;
- * vert_sources[n++] = "#version 330\n";
- * for (unsigned i = 0; i < vert_count; i++)
- *   vert_sources[n++] = vert_lib[i];
- * vert_sources[n++] = your_vertex_main;
- * glShaderSource (vert_shader, n, vert_sources, NULL);
- *
- * // Same for fragment shader
+ * const char *vert_sources[] = {
+ *     "#version 330\n",
+ *     hb_gpu_shader_vertex_source (HB_GPU_SHADER_GLSL_330),
+ *     your_vertex_main
+ * };
+ * glShaderSource (vert_shader, 3, vert_sources, NULL);
+ * // Same pattern for the fragment shader.
  * ]|
  *
  * # Vertex shader
