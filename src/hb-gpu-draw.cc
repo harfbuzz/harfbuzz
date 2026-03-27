@@ -273,7 +273,7 @@ encode_curve_info (const hb_gpu_curve_t *c)
 
 /**
  * hb_gpu_draw_encode:
- * @draw: a GPU draw encoder
+ * @draw: a GPU shape encoder
  *
  * Encodes the accumulated glyph outlines into a compact blob
  * suitable for GPU rendering.  The blob data is an array of
@@ -640,7 +640,7 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 /**
  * hb_gpu_draw_create_or_fail:
  *
- * Creates a new GPU glyph encoder.
+ * Creates a new GPU shape encoder.
  *
  * Return value: (transfer full):
  * A newly allocated #hb_gpu_draw_t, or `NULL` on allocation failure.
@@ -655,7 +655,7 @@ hb_gpu_draw_create_or_fail (void)
 
 /**
  * hb_gpu_draw_reference: (skip)
- * @draw: a GPU glyph encoder
+ * @draw: a GPU shape encoder
  *
  * Increases the reference count on @draw by one.
  *
@@ -672,10 +672,10 @@ hb_gpu_draw_reference (hb_gpu_draw_t *draw)
 
 /**
  * hb_gpu_draw_destroy: (skip)
- * @draw: a GPU glyph encoder
+ * @draw: a GPU shape encoder
  *
  * Decreases the reference count on @draw by one. When the
- * reference count reaches zero, the glyph encoder is freed.
+ * reference count reaches zero, the encoder is freed.
  *
  * XSince: REPLACEME
  **/
@@ -688,7 +688,7 @@ hb_gpu_draw_destroy (hb_gpu_draw_t *draw)
 
 /**
  * hb_gpu_draw_set_user_data: (skip)
- * @draw: a GPU glyph encoder
+ * @draw: a GPU shape encoder
  * @key: the user-data key
  * @data: a pointer to the user data
  * @destroy: (nullable): a callback to call when @data is not needed anymore
@@ -712,7 +712,7 @@ hb_gpu_draw_set_user_data (hb_gpu_draw_t     *draw,
 
 /**
  * hb_gpu_draw_get_user_data: (skip)
- * @draw: a GPU glyph encoder
+ * @draw: a GPU shape encoder
  * @key: the user-data key
  *
  * Fetches the user-data associated with the specified key.
@@ -749,7 +749,7 @@ hb_gpu_draw_get_funcs (void)
 
 /**
  * hb_gpu_draw_glyph:
- * @draw: a GPU glyph encoder
+ * @draw: a GPU shape encoder
  * @font: font to draw from
  * @codepoint: glyph ID to draw
  *
@@ -770,7 +770,7 @@ hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
 
 /**
  * hb_gpu_draw_get_extents:
- * @draw: a GPU glyph encoder
+ * @draw: a GPU shape encoder
  * @extents: (out): glyph extents
  *
  * Fetches the extents of the accumulated glyph outlines.
@@ -800,9 +800,9 @@ hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
 
 /**
  * hb_gpu_draw_reset:
- * @draw: a GPU glyph encoder
+ * @draw: a GPU shape encoder
  *
- * Resets the glyph encoder, discarding all accumulated outlines.
+ * Resets the encoder, discarding all accumulated outlines.
  * The internal encode buffer is kept for reuse.
  *
  * XSince: REPLACEME
@@ -825,10 +825,10 @@ hb_gpu_draw_reset (hb_gpu_draw_t *draw)
 
 /**
  * hb_gpu_draw_recycle_blob:
- * @draw: a GPU glyph encoder
+ * @draw: a GPU shape encoder
  * @blob: (transfer full): a blob previously returned by hb_gpu_draw_encode()
  *
- * Returns a blob to the glyph encoder for potential reuse.
+ * Returns a blob to the encoder for potential reuse.
  * The caller transfers ownership of @blob.
  *
  * Currently this simply destroys the blob.  A future version

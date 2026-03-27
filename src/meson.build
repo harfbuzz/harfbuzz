@@ -913,7 +913,7 @@ if not get_option('gpu').disabled()
   defs_list += [harfbuzz_gpu_def]
 
   pkgmod.generate(libharfbuzz_gpu,
-    description: 'HarfBuzz GPU glyph encoding library',
+    description: 'HarfBuzz GPU rasterization library',
     requires: ['harfbuzz = @0@'.format(meson.project_version())],
     subdirs: [meson.project_name()],
     version: meson.project_version(),

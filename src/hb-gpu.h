@@ -56,8 +56,8 @@ hb_gpu_shader_vertex_sources (hb_gpu_shader_lang_t  lang,
 /**
  * hb_gpu_draw_t:
  *
- * An opaque GPU glyph encoder.  Accumulates glyph outlines via
- * draw callbacks, then encodes them into a compact blob for GPU
+ * An opaque GPU shape encoder.  Accumulates outlines via draw
+ * callbacks, then encodes them into a compact blob for GPU
  * rendering.
  *
  * XSince: REPLACEME
