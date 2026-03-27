@@ -226,6 +226,13 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
       hb_qsort (arrayZ, length, this->get_item_size (), cmp_);
     return hb_sorted_array_t<Type> (*this);
   }
+  hb_sorted_array_t<Type> qsort (int (*cmp_)(const void*, const void*, void *), void *arg)
+  {
+    //static_assert (hb_enable_if (hb_is_trivially_copy_assignable(Type)), "");
+    if (likely (length))
+      hb_qsort (arrayZ, length, this->get_item_size (), cmp_, arg);
+    return hb_sorted_array_t<Type> (*this);
+  }
   hb_sorted_array_t<Type> qsort ()
   {
     //static_assert (hb_enable_if (hb_is_trivially_copy_assignable(Type)), "");

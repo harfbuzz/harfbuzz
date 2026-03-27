@@ -707,6 +707,8 @@ struct hb_vector_t
   /* Sorting API. */
   void qsort (int (*cmp)(const void*, const void*) = Type::cmp)
   { as_array ().qsort (cmp); }
+  void qsort (int (*cmp)(const void*, const void*, void *), void *arg)
+  { as_array ().qsort (cmp, arg); }
 
   /* Unsorted search API. */
   template <typename T>

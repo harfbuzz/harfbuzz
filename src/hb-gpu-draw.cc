@@ -32,7 +32,6 @@
 #include "hb-machinery.hh"
 
 #include <cmath>
-#include <algorithm>
 
 
 /* ---- Accumulator ---- */
@@ -414,32 +413,49 @@ hb_gpu_draw_encode (hb_gpu_draw_t *draw)
   }
 
   /* Sort: descending by max, ascending by min */
+  auto cmp_max_x_desc = [] (const void *a, const void *b, void *arg) -> int {
+    auto *infos = (const encode_curve_info_t *) arg;
+    double va = infos[*(const unsigned *)a].max_x;
+    double vb = infos[*(const unsigned *)b].max_x;
+    return (va > vb) ? -1 : (va < vb) ? 1 : 0;
+  };
+  auto cmp_min_x_asc = [] (const void *a, const void *b, void *arg) -> int {
+    auto *infos = (const encode_curve_info_t *) arg;
+    double va = infos[*(const unsigned *)a].min_x;
+    double vb = infos[*(const unsigned *)b].min_x;
+    return (va < vb) ? -1 : (va > vb) ? 1 : 0;
+  };
+  auto cmp_max_y_desc = [] (const void *a, const void *b, void *arg) -> int {
+    auto *infos = (const encode_curve_info_t *) arg;
+    double va = infos[*(const unsigned *)a].max_y;
+    double vb = infos[*(const unsigned *)b].max_y;
+    return (va > vb) ? -1 : (va < vb) ? 1 : 0;
+  };
+  auto cmp_min_y_asc = [] (const void *a, const void *b, void *arg) -> int {
+    auto *infos = (const encode_curve_info_t *) arg;
+    double va = infos[*(const unsigned *)a].min_y;
+    double vb = infos[*(const unsigned *)b].min_y;
+    return (va < vb) ? -1 : (va > vb) ? 1 : 0;
+  };
+
   for (unsigned b = 0; b < num_hbands; b++)
   {
     unsigned off = hband_offsets[b];
     unsigned count = hband_curve_counts[b];
-    std::sort (hband_curves.arrayZ + off, hband_curves.arrayZ + off + count,
-	       [&] (unsigned a, unsigned b) {
-		 return curve_infos[a].max_x > curve_infos[b].max_x;
-	       });
-    std::sort (hband_curves_asc.arrayZ + off, hband_curves_asc.arrayZ + off + count,
-	       [&] (unsigned a, unsigned b) {
-		 return curve_infos[a].min_x < curve_infos[b].min_x;
-	       });
+    hb_qsort (hband_curves.arrayZ + off, count, sizeof (unsigned),
+	      cmp_max_x_desc, (void *) curve_infos.arrayZ);
+    hb_qsort (hband_curves_asc.arrayZ + off, count, sizeof (unsigned),
+	      cmp_min_x_asc, (void *) curve_infos.arrayZ);
   }
 
   for (unsigned b = 0; b < num_vbands; b++)
   {
     unsigned off = vband_offsets[b];
     unsigned count = vband_curve_counts[b];
-    std::sort (vband_curves.arrayZ + off, vband_curves.arrayZ + off + count,
-	       [&] (unsigned a, unsigned b) {
-		 return curve_infos[a].max_y > curve_infos[b].max_y;
-	       });
-    std::sort (vband_curves_asc.arrayZ + off, vband_curves_asc.arrayZ + off + count,
-	       [&] (unsigned a, unsigned b) {
-		 return curve_infos[a].min_y < curve_infos[b].min_y;
-	       });
+    hb_qsort (vband_curves.arrayZ + off, count, sizeof (unsigned),
+	      cmp_max_y_desc, (void *) curve_infos.arrayZ);
+    hb_qsort (vband_curves_asc.arrayZ + off, count, sizeof (unsigned),
+	      cmp_min_y_asc, (void *) curve_infos.arrayZ);
   }
 
   /* Compute sizes */
