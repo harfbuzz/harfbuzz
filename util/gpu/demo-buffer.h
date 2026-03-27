@@ -39,6 +39,19 @@ demo_buffer_add_text (demo_buffer_t *buffer,
 		      double         font_size);
 
 void
+demo_buffer_add_glyph (demo_buffer_t      *buffer,
+		       demo_font_t        *font,
+		       double              font_size,
+		       unsigned int        glyph_index,
+		       double              x_offset,
+		       double              y_offset,
+		       double              x_advance);
+
+void
+demo_buffer_current_line (demo_buffer_t *buffer,
+			  double         font_size);
+
+void
 demo_buffer_draw (demo_buffer_t *buffer);
 
 

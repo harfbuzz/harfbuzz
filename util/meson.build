@@ -217,12 +217,12 @@ endif
 if not get_option('gpu').disabled()
   subdir('gpu')
 
-  if have_gpu_demo_deps
+  if have_gpu_demo_deps and conf.get('HAVE_GLIB', 0) == 1
     hb_gpu_util = executable('hb-gpu-demo',
-      gpu_demo_sources + gpu_demo_generated,
+      ['hb-gpu-demo.cc'] + gpu_demo_sources + gpu_demo_generated,
       cpp_args: cpp_args,
       include_directories: [incconfig, incsrc],
-      dependencies: [gl_dep, glew_dep, glfw_dep],
+      dependencies: [util_deps, gl_dep, glew_dep, glfw_dep],
       link_with: [libharfbuzz, libharfbuzz_gpu],
       install: false,
     )

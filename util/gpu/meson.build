@@ -12,7 +12,6 @@ gpu_demo_sources = files(
   'demo-shader.cc',
   'demo-view.h',
   'demo-view.cc',
-  'hb-gpu-demo.cc',
   'matrix4x4.h',
   'matrix4x4.c',
   'trackball.h',

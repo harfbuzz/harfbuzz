@@ -34,7 +34,7 @@ struct text_options_t
   text_options_t ()
   : gs (g_string_new (nullptr))
   {}
-  ~text_options_t ()
+  virtual ~text_options_t ()
   {
     g_free (text);
     g_free (text_file);
@@ -46,10 +46,18 @@ struct text_options_t
 
   void add_options (option_parser_t *parser);
 
+  virtual const char *default_text () { return nullptr; }
+
   void post_parse (GError **error G_GNUC_UNUSED)
   {
     if (!text && !text_file)
-      text_file = g_strdup ("-");
+    {
+      const char *dt = default_text ();
+      if (dt)
+	text = g_strdup (dt);
+      else
+	text_file = g_strdup ("-");
+    }
 
     if (text && text_file)
     {

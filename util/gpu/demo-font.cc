@@ -20,13 +20,13 @@ struct demo_font_t {
 };
 
 demo_font_t *
-demo_font_create (hb_face_t    *face,
+demo_font_create (hb_font_t    *hb_font,
 		  demo_atlas_t *atlas)
 {
   demo_font_t *font = (demo_font_t *) calloc (1, sizeof (demo_font_t));
 
-  font->face = hb_face_reference (face);
-  font->font = hb_font_create (face);
+  font->face = hb_face_reference (hb_font_get_face (hb_font));
+  font->font = hb_font_reference (hb_font);
   font->glyph_cache = new glyph_cache_t ();
   font->atlas = demo_atlas_reference (atlas);
   font->g = hb_gpu_draw_create_or_fail ();
@@ -86,7 +86,9 @@ _demo_font_upload_glyph (demo_font_t  *font,
   glyph_info->extents.max_y = hb_ext.y_bearing;
   glyph_info->extents.min_y = hb_ext.y_bearing + hb_ext.height;
   glyph_info->advance = hb_font_get_glyph_h_advance (font->font, glyph_index);
-  glyph_info->upem = hb_face_get_upem (font->face);
+  int x_scale, y_scale;
+  hb_font_get_scale (font->font, &x_scale, &y_scale);
+  glyph_info->upem = y_scale;
   glyph_info->is_empty = (len == 0);
 
   if (!glyph_info->is_empty)

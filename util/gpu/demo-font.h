@@ -20,7 +20,7 @@ typedef struct {
 typedef struct demo_font_t demo_font_t;
 
 demo_font_t *
-demo_font_create (hb_face_t    *face,
+demo_font_create (hb_font_t    *font,
 		  demo_atlas_t *atlas);
 
 void

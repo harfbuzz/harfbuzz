@@ -133,6 +133,47 @@ demo_buffer_add_text (demo_buffer_t *buffer,
 }
 
 void
+demo_buffer_current_line (demo_buffer_t *buffer,
+			  double         font_size)
+{
+  buffer->cursor.x = 0;
+  buffer->cursor.y += font_size;
+}
+
+void
+demo_buffer_add_glyph (demo_buffer_t      *buffer,
+		       demo_font_t        *font,
+		       double              font_size,
+		       unsigned int        glyph_index,
+		       double              x_offset,
+		       double              y_offset,
+		       double              x_advance)
+{
+  glyph_info_t gi;
+  demo_font_lookup_glyph (font, glyph_index, &gi);
+
+  double scale = font_size / gi.upem;
+
+  demo_extents_t ink_extents;
+  demo_point_t position = buffer->cursor;
+  position.x += scale * x_offset;
+  position.y -= scale * y_offset;
+  demo_shader_add_glyph_vertices (position, font_size, &gi, buffer->vertices, &ink_extents);
+  demo_extents_extend (&buffer->ink_extents, &ink_extents);
+
+  demo_point_t corner;
+  corner.x = buffer->cursor.x;
+  corner.y = buffer->cursor.y - font_size;
+  demo_extents_add (&buffer->logical_extents, &corner);
+  corner.x = buffer->cursor.x + scale * gi.advance;
+  corner.y = buffer->cursor.y;
+  demo_extents_add (&buffer->logical_extents, &corner);
+
+  buffer->cursor.x += scale * x_advance;
+  buffer->dirty = true;
+}
+
+void
 demo_buffer_draw (demo_buffer_t *buffer)
 {
   GLint program;
