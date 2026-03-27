@@ -194,10 +194,10 @@ struct post
 
 	for (unsigned int i = 0; i < count; i++)
 	  gids[i] = i;
+	auto thiz = this;
 	hb_array_t<uint16_t> (gids, count)
-	  .qsort ([this] (const uint16_t &a, const uint16_t &b) {
-	    int c = find_glyph_name (b).cmp (find_glyph_name (a));
-	    return c ? c > 0 : a < b;
+	  .qsort ([thiz] (const uint16_t &a, const uint16_t &b) {
+	    return thiz->find_glyph_name (a).cmp (thiz->find_glyph_name (b)) > 0;
 	  });
 
 	if (unlikely (!gids_sorted_by_name.cmpexch (nullptr, gids)))
