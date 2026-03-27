@@ -54,7 +54,7 @@ hb_gpu_shader_vertex_sources (hb_gpu_shader_lang_t  lang,
 
 
 /**
- * hb_gpu_glyph_t:
+ * hb_gpu_draw_t:
  *
  * An opaque GPU glyph encoder.  Accumulates glyph outlines via
  * draw callbacks, then encodes them into a compact blob for GPU
@@ -62,36 +62,36 @@ hb_gpu_shader_vertex_sources (hb_gpu_shader_lang_t  lang,
  *
  * Since: REPLACEME
  */
-typedef struct hb_gpu_glyph_t hb_gpu_glyph_t;
+typedef struct hb_gpu_draw_t hb_gpu_draw_t;
 
-HB_EXTERN hb_gpu_glyph_t *
-hb_gpu_glyph_create_or_fail (void);
+HB_EXTERN hb_gpu_draw_t *
+hb_gpu_draw_create_or_fail (void);
 
-HB_EXTERN hb_gpu_glyph_t *
-hb_gpu_glyph_reference (hb_gpu_glyph_t *glyph);
+HB_EXTERN hb_gpu_draw_t *
+hb_gpu_draw_reference (hb_gpu_draw_t *glyph);
 
 HB_EXTERN void
-hb_gpu_glyph_destroy (hb_gpu_glyph_t *glyph);
+hb_gpu_draw_destroy (hb_gpu_draw_t *glyph);
 
 HB_EXTERN hb_bool_t
-hb_gpu_glyph_set_user_data (hb_gpu_glyph_t     *glyph,
+hb_gpu_draw_set_user_data (hb_gpu_draw_t     *glyph,
 			     hb_user_data_key_t *key,
 			     void               *data,
 			     hb_destroy_func_t   destroy,
 			     hb_bool_t           replace);
 
 HB_EXTERN void *
-hb_gpu_glyph_get_user_data (hb_gpu_glyph_t     *glyph,
+hb_gpu_draw_get_user_data (hb_gpu_draw_t     *glyph,
 			     hb_user_data_key_t *key);
 
 
 /* Draw */
 
 HB_EXTERN hb_draw_funcs_t *
-hb_gpu_glyph_get_draw_funcs (void);
+hb_gpu_draw_get_funcs (void);
 
 HB_EXTERN void
-hb_gpu_glyph_draw_glyph (hb_gpu_glyph_t *glyph,
+hb_gpu_draw_glyph (hb_gpu_draw_t *glyph,
 			  hb_font_t      *font,
 			  hb_codepoint_t  codepoint);
 
@@ -99,17 +99,17 @@ hb_gpu_glyph_draw_glyph (hb_gpu_glyph_t *glyph,
 /* Encode */
 
 HB_EXTERN hb_blob_t *
-hb_gpu_glyph_encode (hb_gpu_glyph_t *glyph);
+hb_gpu_draw_encode (hb_gpu_draw_t *glyph);
 
 HB_EXTERN void
-hb_gpu_glyph_get_extents (hb_gpu_glyph_t     *glyph,
+hb_gpu_draw_get_extents (hb_gpu_draw_t     *glyph,
 			   hb_glyph_extents_t *extents);
 
 HB_EXTERN void
-hb_gpu_glyph_reset (hb_gpu_glyph_t *glyph);
+hb_gpu_draw_reset (hb_gpu_draw_t *glyph);
 
 HB_EXTERN void
-hb_gpu_glyph_recycle_blob (hb_gpu_glyph_t *glyph,
+hb_gpu_draw_recycle_blob (hb_gpu_draw_t *glyph,
 			    hb_blob_t      *blob);
 
 

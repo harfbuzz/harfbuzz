@@ -31,7 +31,7 @@
 #ifndef HB_GPU_CU2QU_HH
 #define HB_GPU_CU2QU_HH
 
-#include "hb-gpu-glyph.hh"
+#include "hb-gpu-draw.hh"
 
 #include <cmath>
 
@@ -163,7 +163,7 @@ hb_gpu_split_cubic_half (hb_gpu_cu2qu_point_t c0,
  * Recursively convert a cubic into quadratic segments.
  */
 static void
-hb_gpu_cubic_to_quadratics (hb_gpu_glyph_t *g,
+hb_gpu_cubic_to_quadratics (hb_gpu_draw_t *g,
 			    hb_gpu_cu2qu_point_t c0,
 			    hb_gpu_cu2qu_point_t c1,
 			    hb_gpu_cu2qu_point_t c2,

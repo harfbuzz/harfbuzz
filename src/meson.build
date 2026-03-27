@@ -870,8 +870,8 @@ foreach p: hb_gpu_shaders
 endforeach
 
 hb_gpu_sources = [
-  'hb-gpu-glyph.cc',
-  'hb-gpu-glyph.hh',
+  'hb-gpu-draw.cc',
+  'hb-gpu-draw.hh',
   'hb-gpu-cu2qu.hh',
   'hb-gpu-shaders.cc',
   'hb-static.cc',

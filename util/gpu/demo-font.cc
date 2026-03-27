@@ -13,7 +13,7 @@ struct demo_font_t {
   hb_font_t       *font;
   glyph_cache_t   *glyph_cache;
   demo_atlas_t    *atlas;
-  hb_gpu_glyph_t  *g;
+  hb_gpu_draw_t  *g;
 
   unsigned int num_glyphs;
   unsigned int sum_bytes;
@@ -29,7 +29,7 @@ demo_font_create (hb_face_t    *face,
   font->font = hb_font_create (face);
   font->glyph_cache = new glyph_cache_t ();
   font->atlas = demo_atlas_reference (atlas);
-  font->g = hb_gpu_glyph_create_or_fail ();
+  font->g = hb_gpu_draw_create_or_fail ();
 
   return font;
 }
@@ -40,7 +40,7 @@ demo_font_destroy (demo_font_t *font)
   if (!font)
     return;
 
-  hb_gpu_glyph_destroy (font->g);
+  hb_gpu_draw_destroy (font->g);
   demo_atlas_destroy (font->atlas);
   delete font->glyph_cache;
   hb_font_destroy (font->font);
@@ -67,11 +67,11 @@ _demo_font_upload_glyph (demo_font_t  *font,
 			 unsigned int  glyph_index,
 			 glyph_info_t *glyph_info)
 {
-  hb_gpu_glyph_reset (font->g);
+  hb_gpu_draw_reset (font->g);
 
-  hb_gpu_glyph_draw_glyph (font->g, font->font, glyph_index);
+  hb_gpu_draw_glyph (font->g, font->font, glyph_index);
 
-  hb_blob_t *blob = hb_gpu_glyph_encode (font->g);
+  hb_blob_t *blob = hb_gpu_draw_encode (font->g);
   if (!blob)
     die ("Failed encoding glyph");
 
@@ -79,7 +79,7 @@ _demo_font_upload_glyph (demo_font_t  *font,
 
   /* Get extents in font design units */
   hb_glyph_extents_t hb_ext;
-  hb_gpu_glyph_get_extents (font->g, &hb_ext);
+  hb_gpu_draw_get_extents (font->g, &hb_ext);
 
   glyph_info->extents.min_x = hb_ext.x_bearing;
   glyph_info->extents.max_x = hb_ext.x_bearing + hb_ext.width;

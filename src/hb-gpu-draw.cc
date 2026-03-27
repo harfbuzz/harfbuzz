@@ -27,7 +27,7 @@
 #include "hb.hh"
 
 #include "hb-gpu.h"
-#include "hb-gpu-glyph.hh"
+#include "hb-gpu-draw.hh"
 #include "hb-gpu-cu2qu.hh"
 #include "hb-machinery.hh"
 
@@ -40,7 +40,7 @@
 /* ---- Accumulator ---- */
 
 static void
-acc_update_extents (hb_gpu_glyph_t *g, double x, double y)
+acc_update_extents (hb_gpu_draw_t *g, double x, double y)
 {
   g->ext_min_x = std::min (g->ext_min_x, x);
   g->ext_min_y = std::min (g->ext_min_y, y);
@@ -49,7 +49,7 @@ acc_update_extents (hb_gpu_glyph_t *g, double x, double y)
 }
 
 static void
-acc_emit (hb_gpu_glyph_t *g,
+acc_emit (hb_gpu_draw_t *g,
 	  double p1x, double p1y,
 	  double p2x, double p2y,
 	  double p3x, double p3y)
@@ -66,7 +66,7 @@ acc_emit (hb_gpu_glyph_t *g,
 }
 
 static void
-acc_emit_conic (hb_gpu_glyph_t *g,
+acc_emit_conic (hb_gpu_draw_t *g,
 		double cx, double cy,
 		double x, double y)
 {
@@ -83,7 +83,7 @@ acc_emit_conic (hb_gpu_glyph_t *g,
 }
 
 void
-hb_gpu_glyph_t::acc_move_to (double x, double y)
+hb_gpu_draw_t::acc_move_to (double x, double y)
 {
   need_moveto = true;
   current_x = x;
@@ -91,19 +91,19 @@ hb_gpu_glyph_t::acc_move_to (double x, double y)
 }
 
 void
-hb_gpu_glyph_t::acc_line_to (double x, double y)
+hb_gpu_draw_t::acc_line_to (double x, double y)
 {
   acc_emit_conic (this, current_x, current_y, x, y);
 }
 
 void
-hb_gpu_glyph_t::acc_conic_to (double cx, double cy, double x, double y)
+hb_gpu_draw_t::acc_conic_to (double cx, double cy, double x, double y)
 {
   acc_emit_conic (this, cx, cy, x, y);
 }
 
 void
-hb_gpu_glyph_t::acc_close_path ()
+hb_gpu_draw_t::acc_close_path ()
 {
   if (!need_moveto &&
       (current_x != start_x || current_y != start_y))
@@ -112,7 +112,7 @@ hb_gpu_glyph_t::acc_close_path ()
 
 
 void
-hb_gpu_glyph_t::acc_cubic_to (double c1x, double c1y,
+hb_gpu_draw_t::acc_cubic_to (double c1x, double c1y,
 			       double c2x, double c2y,
 			       double x, double y)
 {
@@ -139,7 +139,7 @@ hb_gpu_draw_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		     float to_x, float to_y,
 		     void *user_data HB_UNUSED)
 {
-  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  hb_gpu_draw_t *g = (hb_gpu_draw_t *) data;
   g->acc_close_path ();
   g->acc_move_to ((double) to_x, (double) to_y);
 }
@@ -151,7 +151,7 @@ hb_gpu_draw_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		     float to_x, float to_y,
 		     void *user_data HB_UNUSED)
 {
-  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  hb_gpu_draw_t *g = (hb_gpu_draw_t *) data;
   g->acc_line_to ((double) to_x, (double) to_y);
 }
 
@@ -163,7 +163,7 @@ hb_gpu_draw_quadratic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 			  float to_x, float to_y,
 			  void *user_data HB_UNUSED)
 {
-  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  hb_gpu_draw_t *g = (hb_gpu_draw_t *) data;
   g->acc_conic_to ((double) control_x, (double) control_y,
 		   (double) to_x, (double) to_y);
 }
@@ -177,7 +177,7 @@ hb_gpu_draw_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
 		      float to_x, float to_y,
 		      void *user_data HB_UNUSED)
 {
-  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  hb_gpu_draw_t *g = (hb_gpu_draw_t *) data;
   g->acc_cubic_to ((double) control1_x, (double) control1_y,
 		   (double) control2_x, (double) control2_y,
 		   (double) to_x, (double) to_y);
@@ -189,7 +189,7 @@ hb_gpu_draw_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
 			hb_draw_state_t *st HB_UNUSED,
 			void *user_data HB_UNUSED)
 {
-  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  hb_gpu_draw_t *g = (hb_gpu_draw_t *) data;
   g->acc_close_path ();
 }
 
@@ -272,7 +272,7 @@ encode_curve_info (const hb_gpu_curve_t *c)
 }
 
 static hb_blob_t *
-hb_gpu_glyph_encode_impl (hb_gpu_glyph_t *glyph)
+hb_gpu_draw_encode_impl (hb_gpu_draw_t *glyph)
 {
   const hb_gpu_curve_t *curves = glyph->curves.arrayZ;
   unsigned num_curves = glyph->curves.length;
@@ -623,40 +623,40 @@ hb_gpu_glyph_encode_impl (hb_gpu_glyph_t *glyph)
 /* ---- Public API ---- */
 
 /**
- * hb_gpu_glyph_create_or_fail:
+ * hb_gpu_draw_create_or_fail:
  *
  * Creates a new GPU glyph encoder.
  *
  * Return value: (transfer full):
- * A newly allocated #hb_gpu_glyph_t, or `NULL` on allocation failure.
+ * A newly allocated #hb_gpu_draw_t, or `NULL` on allocation failure.
  *
  * Since: REPLACEME
  **/
-hb_gpu_glyph_t *
-hb_gpu_glyph_create_or_fail (void)
+hb_gpu_draw_t *
+hb_gpu_draw_create_or_fail (void)
 {
-  return hb_object_create<hb_gpu_glyph_t> ();
+  return hb_object_create<hb_gpu_draw_t> ();
 }
 
 /**
- * hb_gpu_glyph_reference: (skip)
+ * hb_gpu_draw_reference: (skip)
  * @glyph: a GPU glyph encoder
  *
  * Increases the reference count on @glyph by one.
  *
  * Return value: (transfer full):
- * The referenced #hb_gpu_glyph_t.
+ * The referenced #hb_gpu_draw_t.
  *
  * Since: REPLACEME
  **/
-hb_gpu_glyph_t *
-hb_gpu_glyph_reference (hb_gpu_glyph_t *glyph)
+hb_gpu_draw_t *
+hb_gpu_draw_reference (hb_gpu_draw_t *glyph)
 {
   return hb_object_reference (glyph);
 }
 
 /**
- * hb_gpu_glyph_destroy: (skip)
+ * hb_gpu_draw_destroy: (skip)
  * @glyph: a GPU glyph encoder
  *
  * Decreases the reference count on @glyph by one. When the
@@ -665,14 +665,14 @@ hb_gpu_glyph_reference (hb_gpu_glyph_t *glyph)
  * Since: REPLACEME
  **/
 void
-hb_gpu_glyph_destroy (hb_gpu_glyph_t *glyph)
+hb_gpu_draw_destroy (hb_gpu_draw_t *glyph)
 {
   if (!hb_object_destroy (glyph)) return;
   hb_free (glyph);
 }
 
 /**
- * hb_gpu_glyph_set_user_data: (skip)
+ * hb_gpu_draw_set_user_data: (skip)
  * @glyph: a GPU glyph encoder
  * @key: the user-data key
  * @data: a pointer to the user data
@@ -686,7 +686,7 @@ hb_gpu_glyph_destroy (hb_gpu_glyph_t *glyph)
  * Since: REPLACEME
  **/
 hb_bool_t
-hb_gpu_glyph_set_user_data (hb_gpu_glyph_t     *glyph,
+hb_gpu_draw_set_user_data (hb_gpu_draw_t     *glyph,
 			     hb_user_data_key_t *key,
 			     void               *data,
 			     hb_destroy_func_t   destroy,
@@ -696,7 +696,7 @@ hb_gpu_glyph_set_user_data (hb_gpu_glyph_t     *glyph,
 }
 
 /**
- * hb_gpu_glyph_get_user_data: (skip)
+ * hb_gpu_draw_get_user_data: (skip)
  * @glyph: a GPU glyph encoder
  * @key: the user-data key
  *
@@ -708,17 +708,17 @@ hb_gpu_glyph_set_user_data (hb_gpu_glyph_t     *glyph,
  * Since: REPLACEME
  **/
 void *
-hb_gpu_glyph_get_user_data (hb_gpu_glyph_t     *glyph,
+hb_gpu_draw_get_user_data (hb_gpu_draw_t     *glyph,
 			     hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (glyph, key);
 }
 
 /**
- * hb_gpu_glyph_get_draw_funcs:
+ * hb_gpu_draw_get_funcs:
  *
  * Fetches the singleton #hb_draw_funcs_t that feeds glyph outline
- * data into an #hb_gpu_glyph_t.  Pass the #hb_gpu_glyph_t as the
+ * data into an #hb_gpu_draw_t.  Pass the #hb_gpu_draw_t as the
  * @draw_data argument when calling the draw functions.
  *
  * Return value: (transfer none):
@@ -727,13 +727,13 @@ hb_gpu_glyph_get_user_data (hb_gpu_glyph_t     *glyph,
  * Since: REPLACEME
  **/
 hb_draw_funcs_t *
-hb_gpu_glyph_get_draw_funcs (void)
+hb_gpu_draw_get_funcs (void)
 {
   return static_gpu_draw_funcs.get_unconst ();
 }
 
 /**
- * hb_gpu_glyph_draw_glyph:
+ * hb_gpu_draw_glyph:
  * @glyph: a GPU glyph encoder
  * @font: font to draw from
  * @codepoint: glyph ID to draw
@@ -744,17 +744,17 @@ hb_gpu_glyph_get_draw_funcs (void)
  * Since: REPLACEME
  **/
 void
-hb_gpu_glyph_draw_glyph (hb_gpu_glyph_t *glyph,
+hb_gpu_draw_glyph (hb_gpu_draw_t *glyph,
 			  hb_font_t      *font,
 			  hb_codepoint_t  codepoint)
 {
   hb_font_draw_glyph (font, codepoint,
-		       hb_gpu_glyph_get_draw_funcs (),
+		       hb_gpu_draw_get_funcs (),
 		       glyph);
 }
 
 /**
- * hb_gpu_glyph_encode:
+ * hb_gpu_draw_encode:
  * @glyph: a GPU glyph encoder
  *
  * Encodes the accumulated glyph outlines into a compact blob
@@ -771,13 +771,13 @@ hb_gpu_glyph_draw_glyph (hb_gpu_glyph_t *glyph,
  * Since: REPLACEME
  **/
 hb_blob_t *
-hb_gpu_glyph_encode (hb_gpu_glyph_t *glyph)
+hb_gpu_draw_encode (hb_gpu_draw_t *glyph)
 {
-  return hb_gpu_glyph_encode_impl (glyph);
+  return hb_gpu_draw_encode_impl (glyph);
 }
 
 /**
- * hb_gpu_glyph_get_extents:
+ * hb_gpu_draw_get_extents:
  * @glyph: a GPU glyph encoder
  * @extents: (out): glyph extents
  *
@@ -786,7 +786,7 @@ hb_gpu_glyph_encode (hb_gpu_glyph_t *glyph)
  * Since: REPLACEME
  **/
 void
-hb_gpu_glyph_get_extents (hb_gpu_glyph_t     *glyph,
+hb_gpu_draw_get_extents (hb_gpu_draw_t     *glyph,
 			   hb_glyph_extents_t *extents)
 {
   if (glyph->num_curves == 0 || std::isinf (glyph->ext_min_x))
@@ -807,7 +807,7 @@ hb_gpu_glyph_get_extents (hb_gpu_glyph_t     *glyph,
 }
 
 /**
- * hb_gpu_glyph_reset:
+ * hb_gpu_draw_reset:
  * @glyph: a GPU glyph encoder
  *
  * Resets the glyph encoder, discarding all accumulated outlines.
@@ -816,7 +816,7 @@ hb_gpu_glyph_get_extents (hb_gpu_glyph_t     *glyph,
  * Since: REPLACEME
  **/
 void
-hb_gpu_glyph_reset (hb_gpu_glyph_t *glyph)
+hb_gpu_draw_reset (hb_gpu_draw_t *glyph)
 {
   glyph->start_x = glyph->start_y = 0;
   glyph->current_x = glyph->current_y = 0;
@@ -832,21 +832,21 @@ hb_gpu_glyph_reset (hb_gpu_glyph_t *glyph)
 }
 
 /**
- * hb_gpu_glyph_recycle_blob:
+ * hb_gpu_draw_recycle_blob:
  * @glyph: a GPU glyph encoder
- * @blob: (transfer full): a blob previously returned by hb_gpu_glyph_encode()
+ * @blob: (transfer full): a blob previously returned by hb_gpu_draw_encode()
  *
  * Returns a blob to the glyph encoder for potential reuse.
  * The caller transfers ownership of @blob.
  *
  * Currently this simply destroys the blob.  A future version
  * may reclaim the underlying buffer to avoid allocation on the
- * next hb_gpu_glyph_encode() call.
+ * next hb_gpu_draw_encode() call.
  *
  * Since: REPLACEME
  **/
 void
-hb_gpu_glyph_recycle_blob (hb_gpu_glyph_t *glyph HB_UNUSED,
+hb_gpu_draw_recycle_blob (hb_gpu_draw_t *glyph HB_UNUSED,
 			    hb_blob_t      *blob)
 {
   hb_blob_destroy (blob);

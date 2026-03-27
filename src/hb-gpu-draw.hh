@@ -24,8 +24,8 @@
  * Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_GPU_GLYPH_HH
-#define HB_GPU_GLYPH_HH
+#ifndef HB_GPU_DRAW_HH
+#define HB_GPU_DRAW_HH
 
 #include "hb.hh"
 #include "hb-gpu.h"
@@ -45,7 +45,7 @@ struct hb_gpu_curve_t
   double p3x, p3y;
 };
 
-struct hb_gpu_glyph_t
+struct hb_gpu_draw_t
 {
   hb_object_header_t header;
 
@@ -76,4 +76,4 @@ struct hb_gpu_glyph_t
 };
 
 
-#endif /* HB_GPU_GLYPH_HH */
+#endif /* HB_GPU_DRAW_HH */
