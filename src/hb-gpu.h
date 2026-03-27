@@ -68,10 +68,10 @@ HB_EXTERN hb_gpu_draw_t *
 hb_gpu_draw_create_or_fail (void);
 
 HB_EXTERN hb_gpu_draw_t *
-hb_gpu_draw_reference (hb_gpu_draw_t *glyph);
+hb_gpu_draw_reference (hb_gpu_draw_t *draw);
 
 HB_EXTERN void
-hb_gpu_draw_destroy (hb_gpu_draw_t *glyph);
+hb_gpu_draw_destroy (hb_gpu_draw_t *draw);
 
 HB_EXTERN hb_bool_t
 hb_gpu_draw_set_user_data (hb_gpu_draw_t     *glyph,
@@ -91,7 +91,7 @@ HB_EXTERN hb_draw_funcs_t *
 hb_gpu_draw_get_funcs (void);
 
 HB_EXTERN void
-hb_gpu_draw_glyph (hb_gpu_draw_t *glyph,
+hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
 			  hb_font_t      *font,
 			  hb_codepoint_t  codepoint);
 
@@ -99,17 +99,17 @@ hb_gpu_draw_glyph (hb_gpu_draw_t *glyph,
 /* Encode */
 
 HB_EXTERN hb_blob_t *
-hb_gpu_draw_encode (hb_gpu_draw_t *glyph);
+hb_gpu_draw_encode (hb_gpu_draw_t *draw);
 
 HB_EXTERN void
 hb_gpu_draw_get_extents (hb_gpu_draw_t     *glyph,
 			   hb_glyph_extents_t *extents);
 
 HB_EXTERN void
-hb_gpu_draw_reset (hb_gpu_draw_t *glyph);
+hb_gpu_draw_reset (hb_gpu_draw_t *draw);
 
 HB_EXTERN void
-hb_gpu_draw_recycle_blob (hb_gpu_draw_t *glyph,
+hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw,
 			    hb_blob_t      *blob);
 
 

@@ -271,11 +271,28 @@ encode_curve_info (const hb_gpu_curve_t *c)
   return info;
 }
 
-static hb_blob_t *
-hb_gpu_draw_encode_impl (hb_gpu_draw_t *glyph)
+/**
+ * hb_gpu_draw_encode:
+ * @draw: a GPU draw encoder
+ *
+ * Encodes the accumulated glyph outlines into a compact blob
+ * suitable for GPU rendering.  The blob data is an array of
+ * RGBA16I texels (8 bytes each) to be uploaded to a texture
+ * buffer object.
+ *
+ * The returned blob owns its own copy of the data.
+ *
+ * Return value: (transfer full):
+ * An #hb_blob_t containing the encoded glyph data, or
+ * `NULL` if encoding fails.
+ *
+ * Since: REPLACEME
+ **/
+hb_blob_t *
+hb_gpu_draw_encode (hb_gpu_draw_t *draw)
 {
-  const hb_gpu_curve_t *curves = glyph->curves.arrayZ;
-  unsigned num_curves = glyph->curves.length;
+  const hb_gpu_curve_t *curves = draw->curves.arrayZ;
+  unsigned num_curves = draw->curves.length;
 
   if (num_curves == 0)
     return hb_blob_get_empty ();
@@ -284,10 +301,10 @@ hb_gpu_draw_encode_impl (hb_gpu_draw_t *glyph)
   hb_vector_t<encode_curve_info_t> curve_infos;
   curve_infos.resize (num_curves);
 
-  double min_x = glyph->ext_min_x;
-  double min_y = glyph->ext_min_y;
-  double max_x = glyph->ext_max_x;
-  double max_y = glyph->ext_max_y;
+  double min_x = draw->ext_min_x;
+  double min_y = draw->ext_min_y;
+  double max_x = draw->ext_max_x;
+  double max_y = draw->ext_max_y;
 
   for (unsigned i = 0; i < num_curves; i++)
     curve_infos[i] = encode_curve_info (&curves[i]);
@@ -640,9 +657,9 @@ hb_gpu_draw_create_or_fail (void)
 
 /**
  * hb_gpu_draw_reference: (skip)
- * @glyph: a GPU glyph encoder
+ * @draw: a GPU glyph encoder
  *
- * Increases the reference count on @glyph by one.
+ * Increases the reference count on @draw by one.
  *
  * Return value: (transfer full):
  * The referenced #hb_gpu_draw_t.
@@ -650,54 +667,54 @@ hb_gpu_draw_create_or_fail (void)
  * Since: REPLACEME
  **/
 hb_gpu_draw_t *
-hb_gpu_draw_reference (hb_gpu_draw_t *glyph)
+hb_gpu_draw_reference (hb_gpu_draw_t *draw)
 {
-  return hb_object_reference (glyph);
+  return hb_object_reference (draw);
 }
 
 /**
  * hb_gpu_draw_destroy: (skip)
- * @glyph: a GPU glyph encoder
+ * @draw: a GPU glyph encoder
  *
- * Decreases the reference count on @glyph by one. When the
+ * Decreases the reference count on @draw by one. When the
  * reference count reaches zero, the glyph encoder is freed.
  *
  * Since: REPLACEME
  **/
 void
-hb_gpu_draw_destroy (hb_gpu_draw_t *glyph)
+hb_gpu_draw_destroy (hb_gpu_draw_t *draw)
 {
-  if (!hb_object_destroy (glyph)) return;
-  hb_free (glyph);
+  if (!hb_object_destroy (draw)) return;
+  hb_free (draw);
 }
 
 /**
  * hb_gpu_draw_set_user_data: (skip)
- * @glyph: a GPU glyph encoder
+ * @draw: a GPU glyph encoder
  * @key: the user-data key
  * @data: a pointer to the user data
  * @destroy: (nullable): a callback to call when @data is not needed anymore
  * @replace: whether to replace an existing data with the same key
  *
- * Attaches user data to @glyph.
+ * Attaches user data to @draw.
  *
  * Return value: `true` if success, `false` otherwise
  *
  * Since: REPLACEME
  **/
 hb_bool_t
-hb_gpu_draw_set_user_data (hb_gpu_draw_t     *glyph,
+hb_gpu_draw_set_user_data (hb_gpu_draw_t     *draw,
 			     hb_user_data_key_t *key,
 			     void               *data,
 			     hb_destroy_func_t   destroy,
 			     hb_bool_t           replace)
 {
-  return hb_object_set_user_data (glyph, key, data, destroy, replace);
+  return hb_object_set_user_data (draw, key, data, destroy, replace);
 }
 
 /**
  * hb_gpu_draw_get_user_data: (skip)
- * @glyph: a GPU glyph encoder
+ * @draw: a GPU glyph encoder
  * @key: the user-data key
  *
  * Fetches the user-data associated with the specified key.
@@ -708,10 +725,10 @@ hb_gpu_draw_set_user_data (hb_gpu_draw_t     *glyph,
  * Since: REPLACEME
  **/
 void *
-hb_gpu_draw_get_user_data (hb_gpu_draw_t     *glyph,
+hb_gpu_draw_get_user_data (hb_gpu_draw_t     *draw,
 			     hb_user_data_key_t *key)
 {
-  return hb_object_get_user_data (glyph, key);
+  return hb_object_get_user_data (draw, key);
 }
 
 /**
@@ -734,7 +751,7 @@ hb_gpu_draw_get_funcs (void)
 
 /**
  * hb_gpu_draw_glyph:
- * @glyph: a GPU glyph encoder
+ * @draw: a GPU glyph encoder
  * @font: font to draw from
  * @codepoint: glyph ID to draw
  *
@@ -744,41 +761,18 @@ hb_gpu_draw_get_funcs (void)
  * Since: REPLACEME
  **/
 void
-hb_gpu_draw_glyph (hb_gpu_draw_t *glyph,
+hb_gpu_draw_glyph (hb_gpu_draw_t *draw,
 			  hb_font_t      *font,
 			  hb_codepoint_t  codepoint)
 {
   hb_font_draw_glyph (font, codepoint,
 		       hb_gpu_draw_get_funcs (),
-		       glyph);
-}
-
-/**
- * hb_gpu_draw_encode:
- * @glyph: a GPU glyph encoder
- *
- * Encodes the accumulated glyph outlines into a compact blob
- * suitable for GPU rendering.  The blob data is an array of
- * RGBA16I texels (8 bytes each) to be uploaded to a texture
- * buffer object.
- *
- * The returned blob owns its own copy of the data.
- *
- * Return value: (transfer full):
- * An #hb_blob_t containing the encoded glyph data, or
- * `NULL` if encoding fails.
- *
- * Since: REPLACEME
- **/
-hb_blob_t *
-hb_gpu_draw_encode (hb_gpu_draw_t *glyph)
-{
-  return hb_gpu_draw_encode_impl (glyph);
+		       draw);
 }
 
 /**
  * hb_gpu_draw_get_extents:
- * @glyph: a GPU glyph encoder
+ * @draw: a GPU glyph encoder
  * @extents: (out): glyph extents
  *
  * Fetches the extents of the accumulated glyph outlines.
@@ -786,10 +780,10 @@ hb_gpu_draw_encode (hb_gpu_draw_t *glyph)
  * Since: REPLACEME
  **/
 void
-hb_gpu_draw_get_extents (hb_gpu_draw_t     *glyph,
+hb_gpu_draw_get_extents (hb_gpu_draw_t     *draw,
 			   hb_glyph_extents_t *extents)
 {
-  if (glyph->num_curves == 0 || std::isinf (glyph->ext_min_x))
+  if (draw->num_curves == 0 || std::isinf (draw->ext_min_x))
   {
     extents->x_bearing = 0;
     extents->y_bearing = 0;
@@ -798,17 +792,17 @@ hb_gpu_draw_get_extents (hb_gpu_draw_t     *glyph,
     return;
   }
 
-  extents->x_bearing = (hb_position_t) floor (glyph->ext_min_x);
-  extents->y_bearing = (hb_position_t) ceil  (glyph->ext_max_y);
-  extents->width     = (hb_position_t) ceil  (glyph->ext_max_x) -
-		       (hb_position_t) floor (glyph->ext_min_x);
-  extents->height    = (hb_position_t) floor (glyph->ext_min_y) -
-		       (hb_position_t) ceil  (glyph->ext_max_y);
+  extents->x_bearing = (hb_position_t) floor (draw->ext_min_x);
+  extents->y_bearing = (hb_position_t) ceil  (draw->ext_max_y);
+  extents->width     = (hb_position_t) ceil  (draw->ext_max_x) -
+		       (hb_position_t) floor (draw->ext_min_x);
+  extents->height    = (hb_position_t) floor (draw->ext_min_y) -
+		       (hb_position_t) ceil  (draw->ext_max_y);
 }
 
 /**
  * hb_gpu_draw_reset:
- * @glyph: a GPU glyph encoder
+ * @draw: a GPU glyph encoder
  *
  * Resets the glyph encoder, discarding all accumulated outlines.
  * The internal encode buffer is kept for reuse.
@@ -816,24 +810,24 @@ hb_gpu_draw_get_extents (hb_gpu_draw_t     *glyph,
  * Since: REPLACEME
  **/
 void
-hb_gpu_draw_reset (hb_gpu_draw_t *glyph)
+hb_gpu_draw_reset (hb_gpu_draw_t *draw)
 {
-  glyph->start_x = glyph->start_y = 0;
-  glyph->current_x = glyph->current_y = 0;
-  glyph->need_moveto = true;
-  glyph->num_curves = 0;
-  glyph->success = true;
-  glyph->curves.shrink (0);
+  draw->start_x = draw->start_y = 0;
+  draw->current_x = draw->current_y = 0;
+  draw->need_moveto = true;
+  draw->num_curves = 0;
+  draw->success = true;
+  draw->curves.shrink (0);
 
-  glyph->ext_min_x =  INFINITY;
-  glyph->ext_min_y =  INFINITY;
-  glyph->ext_max_x = -INFINITY;
-  glyph->ext_max_y = -INFINITY;
+  draw->ext_min_x =  INFINITY;
+  draw->ext_min_y =  INFINITY;
+  draw->ext_max_x = -INFINITY;
+  draw->ext_max_y = -INFINITY;
 }
 
 /**
  * hb_gpu_draw_recycle_blob:
- * @glyph: a GPU glyph encoder
+ * @draw: a GPU glyph encoder
  * @blob: (transfer full): a blob previously returned by hb_gpu_draw_encode()
  *
  * Returns a blob to the glyph encoder for potential reuse.
@@ -846,7 +840,7 @@ hb_gpu_draw_reset (hb_gpu_draw_t *glyph)
  * Since: REPLACEME
  **/
 void
-hb_gpu_draw_recycle_blob (hb_gpu_draw_t *glyph HB_UNUSED,
+hb_gpu_draw_recycle_blob (hb_gpu_draw_t *draw HB_UNUSED,
 			    hb_blob_t      *blob)
 {
   hb_blob_destroy (blob);
