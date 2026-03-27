@@ -1,0 +1,864 @@
+/*
+ * Copyright (C) 2026  Behdad Esfahbod
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Author(s): Behdad Esfahbod
+ */
+
+#include "hb.hh"
+
+#include "hb-gpu.h"
+#include "hb-gpu-glyph.hh"
+#include "hb-gpu-cu2qu.hh"
+#include "hb-machinery.hh"
+
+#include <cstdint>
+#include <cmath>
+#include <limits>
+#include <algorithm>
+
+
+/* ---- Accumulator ---- */
+
+static void
+acc_update_extents (hb_gpu_glyph_t *g, double x, double y)
+{
+  g->ext_min_x = std::min (g->ext_min_x, x);
+  g->ext_min_y = std::min (g->ext_min_y, y);
+  g->ext_max_x = std::max (g->ext_max_x, x);
+  g->ext_max_y = std::max (g->ext_max_y, y);
+}
+
+static void
+acc_emit (hb_gpu_glyph_t *g,
+	  double p1x, double p1y,
+	  double p2x, double p2y,
+	  double p3x, double p3y)
+{
+  hb_gpu_curve_t c = {p1x, p1y, p2x, p2y, p3x, p3y};
+  g->curves.push (c);
+  g->num_curves++;
+  g->current_x = p3x;
+  g->current_y = p3y;
+
+  acc_update_extents (g, p1x, p1y);
+  acc_update_extents (g, p2x, p2y);
+  acc_update_extents (g, p3x, p3y);
+}
+
+static void
+acc_emit_conic (hb_gpu_glyph_t *g,
+		double cx, double cy,
+		double x, double y)
+{
+  if (g->current_x == x && g->current_y == y)
+    return;
+
+  if (g->need_moveto) {
+    g->start_x = g->current_x;
+    g->start_y = g->current_y;
+    g->need_moveto = false;
+  }
+
+  acc_emit (g, g->current_x, g->current_y, cx, cy, x, y);
+}
+
+void
+hb_gpu_glyph_t::acc_move_to (double x, double y)
+{
+  need_moveto = true;
+  current_x = x;
+  current_y = y;
+}
+
+void
+hb_gpu_glyph_t::acc_line_to (double x, double y)
+{
+  acc_emit_conic (this, current_x, current_y, x, y);
+}
+
+void
+hb_gpu_glyph_t::acc_conic_to (double cx, double cy, double x, double y)
+{
+  acc_emit_conic (this, cx, cy, x, y);
+}
+
+void
+hb_gpu_glyph_t::acc_close_path ()
+{
+  if (!need_moveto &&
+      (current_x != start_x || current_y != start_y))
+    acc_line_to (start_x, start_y);
+}
+
+
+void
+hb_gpu_glyph_t::acc_cubic_to (double c1x, double c1y,
+			       double c2x, double c2y,
+			       double x, double y)
+{
+  double c0x = current_x, c0y = current_y;
+
+  if (c0x == x && c0y == y &&
+      c1x == x && c1y == y &&
+      c2x == x && c2y == y)
+    return;
+
+  hb_gpu_cubic_to_quadratics (this,
+			      {c0x, c0y}, {c1x, c1y},
+			      {c2x, c2y}, {x, y},
+			      HB_GPU_CU2QU_TOLERANCE, 0);
+}
+
+
+/* ---- Draw funcs ---- */
+
+static void
+hb_gpu_draw_move_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+		     void *data,
+		     hb_draw_state_t *st HB_UNUSED,
+		     float to_x, float to_y,
+		     void *user_data HB_UNUSED)
+{
+  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  g->acc_close_path ();
+  g->acc_move_to ((double) to_x, (double) to_y);
+}
+
+static void
+hb_gpu_draw_line_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+		     void *data,
+		     hb_draw_state_t *st HB_UNUSED,
+		     float to_x, float to_y,
+		     void *user_data HB_UNUSED)
+{
+  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  g->acc_line_to ((double) to_x, (double) to_y);
+}
+
+static void
+hb_gpu_draw_quadratic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			  void *data,
+			  hb_draw_state_t *st HB_UNUSED,
+			  float control_x, float control_y,
+			  float to_x, float to_y,
+			  void *user_data HB_UNUSED)
+{
+  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  g->acc_conic_to ((double) control_x, (double) control_y,
+		   (double) to_x, (double) to_y);
+}
+
+static void
+hb_gpu_draw_cubic_to (hb_draw_funcs_t *dfuncs HB_UNUSED,
+		      void *data,
+		      hb_draw_state_t *st HB_UNUSED,
+		      float control1_x, float control1_y,
+		      float control2_x, float control2_y,
+		      float to_x, float to_y,
+		      void *user_data HB_UNUSED)
+{
+  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  g->acc_cubic_to ((double) control1_x, (double) control1_y,
+		   (double) control2_x, (double) control2_y,
+		   (double) to_x, (double) to_y);
+}
+
+static void
+hb_gpu_draw_close_path (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			void *data,
+			hb_draw_state_t *st HB_UNUSED,
+			void *user_data HB_UNUSED)
+{
+  hb_gpu_glyph_t *g = (hb_gpu_glyph_t *) data;
+  g->acc_close_path ();
+}
+
+static inline void free_static_gpu_draw_funcs ();
+
+static struct hb_gpu_draw_funcs_lazy_loader_t : hb_draw_funcs_lazy_loader_t<hb_gpu_draw_funcs_lazy_loader_t>
+{
+  static hb_draw_funcs_t *create ()
+  {
+    hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+
+    hb_draw_funcs_set_move_to_func      (funcs, hb_gpu_draw_move_to,      nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func      (funcs, hb_gpu_draw_line_to,      nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (funcs, hb_gpu_draw_quadratic_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func     (funcs, hb_gpu_draw_cubic_to,     nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func   (funcs, hb_gpu_draw_close_path,   nullptr, nullptr);
+
+    hb_draw_funcs_make_immutable (funcs);
+
+    hb_atexit (free_static_gpu_draw_funcs);
+
+    return funcs;
+  }
+} static_gpu_draw_funcs;
+
+static inline void
+free_static_gpu_draw_funcs ()
+{
+  static_gpu_draw_funcs.free_instance ();
+}
+
+
+/* ---- Encode ---- */
+
+struct hb_gpu_texel_t
+{
+  int16_t r, g, b, a;
+};
+
+static int16_t
+quantize (double v)
+{
+  return (int16_t) round (v * HB_GPU_UNITS_PER_EM);
+}
+
+static bool
+quantize_fits_i16 (double v)
+{
+  double q = round (v * HB_GPU_UNITS_PER_EM);
+  return q >= std::numeric_limits<int16_t>::min () &&
+	 q <= std::numeric_limits<int16_t>::max ();
+}
+
+typedef struct
+{
+  double min_x, max_x, min_y, max_y;
+  bool is_horizontal;
+  bool is_vertical;
+  int hband_lo, hband_hi;
+  int vband_lo, vband_hi;
+} encode_curve_info_t;
+
+static encode_curve_info_t
+encode_curve_info (const hb_gpu_curve_t *c)
+{
+  encode_curve_info_t info;
+
+  info.min_x = std::min (std::min (c->p1x, c->p2x), c->p3x);
+  info.max_x = std::max (std::max (c->p1x, c->p2x), c->p3x);
+  info.min_y = std::min (std::min (c->p1y, c->p2y), c->p3y);
+  info.max_y = std::max (std::max (c->p1y, c->p2y), c->p3y);
+  info.is_horizontal = c->p1y == c->p2y && c->p2y == c->p3y;
+  info.is_vertical   = c->p1x == c->p2x && c->p2x == c->p3x;
+  info.hband_lo = 0;
+  info.hband_hi = -1;
+  info.vband_lo = 0;
+  info.vband_hi = -1;
+
+  return info;
+}
+
+static hb_blob_t *
+hb_gpu_glyph_encode_impl (hb_gpu_glyph_t *glyph)
+{
+  const hb_gpu_curve_t *curves = glyph->curves.arrayZ;
+  unsigned num_curves = glyph->curves.length;
+
+  if (num_curves == 0)
+    return hb_blob_get_empty ();
+
+  /* Compute per-curve info and extents */
+  hb_vector_t<encode_curve_info_t> curve_infos;
+  curve_infos.resize (num_curves);
+
+  double min_x = glyph->ext_min_x;
+  double min_y = glyph->ext_min_y;
+  double max_x = glyph->ext_max_x;
+  double max_y = glyph->ext_max_y;
+
+  for (unsigned i = 0; i < num_curves; i++)
+    curve_infos[i] = encode_curve_info (&curves[i]);
+
+  /* Choose number of bands (capped at 16 per Slug paper) */
+  unsigned num_hbands = std::min (num_curves, 16u);
+  unsigned num_vbands = std::min (num_curves, 16u);
+  num_hbands = std::max (num_hbands, 1u);
+  num_vbands = std::max (num_vbands, 1u);
+
+  double height = max_y - min_y;
+  double width  = max_x - min_x;
+
+  if (height <= 0) num_hbands = 1;
+  if (width  <= 0) num_vbands = 1;
+
+  double hband_size = height / num_hbands;
+  double vband_size = width  / num_vbands;
+
+  hb_vector_t<unsigned> hband_curve_counts;
+  hb_vector_t<unsigned> vband_curve_counts;
+  hband_curve_counts.resize (num_hbands);
+  vband_curve_counts.resize (num_vbands);
+  for (unsigned b = 0; b < num_hbands; b++) hband_curve_counts[b] = 0;
+  for (unsigned b = 0; b < num_vbands; b++) vband_curve_counts[b] = 0;
+
+  for (unsigned i = 0; i < num_curves; i++)
+  {
+    encode_curve_info_t &info = curve_infos[i];
+
+    if (!info.is_horizontal)
+    {
+      if (height > 0) {
+	info.hband_lo = (int) floor ((info.min_y - min_y) / hband_size);
+	info.hband_hi = (int) floor ((info.max_y - min_y) / hband_size);
+	info.hband_lo = std::max (info.hband_lo, 0);
+	info.hband_hi = std::min (info.hband_hi, (int) num_hbands - 1);
+	for (int b = info.hband_lo; b <= info.hband_hi; b++)
+	  hband_curve_counts[b]++;
+      } else {
+	info.hband_lo = 0;
+	info.hband_hi = 0;
+	hband_curve_counts[0]++;
+      }
+    }
+
+    if (!info.is_vertical)
+    {
+      if (width > 0) {
+	info.vband_lo = (int) floor ((info.min_x - min_x) / vband_size);
+	info.vband_hi = (int) floor ((info.max_x - min_x) / vband_size);
+	info.vband_lo = std::max (info.vband_lo, 0);
+	info.vband_hi = std::min (info.vband_hi, (int) num_vbands - 1);
+	for (int b = info.vband_lo; b <= info.vband_hi; b++)
+	  vband_curve_counts[b]++;
+      } else {
+	info.vband_lo = 0;
+	info.vband_hi = 0;
+	vband_curve_counts[0]++;
+      }
+    }
+  }
+
+  hb_vector_t<unsigned> hband_offsets;
+  hb_vector_t<unsigned> vband_offsets;
+  hband_offsets.resize (num_hbands);
+  vband_offsets.resize (num_vbands);
+  unsigned total_hband_indices = 0;
+  unsigned total_vband_indices = 0;
+
+  for (unsigned b = 0; b < num_hbands; b++) {
+    hband_offsets[b] = total_hband_indices;
+    total_hband_indices += hband_curve_counts[b];
+  }
+
+  for (unsigned b = 0; b < num_vbands; b++) {
+    vband_offsets[b] = total_vband_indices;
+    total_vband_indices += vband_curve_counts[b];
+  }
+
+  /* Assign curves to bands */
+  hb_vector_t<unsigned> hband_curves, hband_curves_asc;
+  hb_vector_t<unsigned> vband_curves, vband_curves_asc;
+  hb_vector_t<unsigned> hband_cursors, vband_cursors;
+  hband_curves.resize (total_hband_indices);
+  hband_curves_asc.resize (total_hband_indices);
+  vband_curves.resize (total_vband_indices);
+  vband_curves_asc.resize (total_vband_indices);
+  hband_cursors.resize (num_hbands);
+  vband_cursors.resize (num_vbands);
+  for (unsigned b = 0; b < num_hbands; b++) hband_cursors[b] = hband_offsets[b];
+  for (unsigned b = 0; b < num_vbands; b++) vband_cursors[b] = vband_offsets[b];
+
+  for (unsigned i = 0; i < num_curves; i++)
+  {
+    const encode_curve_info_t &info = curve_infos[i];
+
+    for (int b = info.hband_lo; b <= info.hband_hi; b++) {
+      unsigned idx = hband_cursors[b]++;
+      hband_curves[idx] = i;
+      hband_curves_asc[idx] = i;
+    }
+
+    for (int b = info.vband_lo; b <= info.vband_hi; b++) {
+      unsigned idx = vband_cursors[b]++;
+      vband_curves[idx] = i;
+      vband_curves_asc[idx] = i;
+    }
+  }
+
+  /* Sort: descending by max, ascending by min */
+  for (unsigned b = 0; b < num_hbands; b++)
+  {
+    unsigned off = hband_offsets[b];
+    unsigned count = hband_curve_counts[b];
+    std::sort (hband_curves.arrayZ + off, hband_curves.arrayZ + off + count,
+	       [&] (unsigned a, unsigned b) {
+		 return curve_infos[a].max_x > curve_infos[b].max_x;
+	       });
+    std::sort (hband_curves_asc.arrayZ + off, hband_curves_asc.arrayZ + off + count,
+	       [&] (unsigned a, unsigned b) {
+		 return curve_infos[a].min_x < curve_infos[b].min_x;
+	       });
+  }
+
+  for (unsigned b = 0; b < num_vbands; b++)
+  {
+    unsigned off = vband_offsets[b];
+    unsigned count = vband_curve_counts[b];
+    std::sort (vband_curves.arrayZ + off, vband_curves.arrayZ + off + count,
+	       [&] (unsigned a, unsigned b) {
+		 return curve_infos[a].max_y > curve_infos[b].max_y;
+	       });
+    std::sort (vband_curves_asc.arrayZ + off, vband_curves_asc.arrayZ + off + count,
+	       [&] (unsigned a, unsigned b) {
+		 return curve_infos[a].min_y < curve_infos[b].min_y;
+	       });
+  }
+
+  /* Compute sizes */
+  unsigned total_curve_indices = (total_hband_indices + total_vband_indices) * 2;
+
+  unsigned header_len = 2;
+
+  unsigned num_contour_breaks = 0;
+  for (unsigned i = 0; i + 1 < num_curves; i++)
+    if (curves[i].p3x != curves[i + 1].p1x ||
+	curves[i].p3y != curves[i + 1].p1y)
+      num_contour_breaks++;
+
+  unsigned curve_data_len = num_curves + num_contour_breaks + 1;
+  unsigned band_headers_len = num_hbands + num_vbands;
+  unsigned total_len = header_len + band_headers_len + total_curve_indices + curve_data_len;
+
+  /* Validate fits in int16 offsets */
+  if (total_len - 1 > (unsigned) std::numeric_limits<int16_t>::max ())
+    return nullptr;
+
+  if (!quantize_fits_i16 (min_x) ||
+      !quantize_fits_i16 (min_y) ||
+      !quantize_fits_i16 (max_x) ||
+      !quantize_fits_i16 (max_y))
+    return nullptr;
+
+  /* Allocate or reuse encode buffer */
+  unsigned needed_bytes = total_len * sizeof (hb_gpu_texel_t);
+  if (glyph->encode_buf_capacity < needed_bytes)
+  {
+    hb_free (glyph->encode_buf);
+    glyph->encode_buf = (char *) hb_malloc (needed_bytes);
+    if (unlikely (!glyph->encode_buf))
+    {
+      glyph->encode_buf_capacity = 0;
+      return nullptr;
+    }
+    glyph->encode_buf_capacity = needed_bytes;
+  }
+
+  hb_gpu_texel_t *blob = (hb_gpu_texel_t *) glyph->encode_buf;
+
+  unsigned curve_data_offset = header_len + band_headers_len + total_curve_indices;
+
+  /* Pack blob header */
+  blob[0].r = quantize (min_x);
+  blob[0].g = quantize (min_y);
+  blob[0].b = quantize (max_x);
+  blob[0].a = quantize (max_y);
+  blob[1].r = (int16_t) num_hbands;
+  blob[1].g = (int16_t) num_vbands;
+  blob[1].b = 0;
+  blob[1].a = 0;
+
+  /* Pack curve data with shared endpoints */
+  hb_vector_t<unsigned> curve_texel_offset;
+  curve_texel_offset.resize (num_curves);
+  unsigned texel = curve_data_offset;
+
+  for (unsigned i = 0; i < num_curves; i++)
+  {
+    bool contour_start = (i == 0 ||
+			  curves[i - 1].p3x != curves[i].p1x ||
+			  curves[i - 1].p3y != curves[i].p1y);
+
+    if (contour_start) {
+      curve_texel_offset[i] = texel;
+      blob[texel].r = quantize (curves[i].p1x);
+      blob[texel].g = quantize (curves[i].p1y);
+      blob[texel].b = quantize (curves[i].p2x);
+      blob[texel].a = quantize (curves[i].p2y);
+      texel++;
+    } else {
+      curve_texel_offset[i] = texel - 1;
+    }
+
+    bool has_next = (i + 1 < num_curves &&
+		     curves[i].p3x == curves[i + 1].p1x &&
+		     curves[i].p3y == curves[i + 1].p1y);
+
+    blob[texel].r = quantize (curves[i].p3x);
+    blob[texel].g = quantize (curves[i].p3y);
+    if (has_next) {
+      blob[texel].b = quantize (curves[i + 1].p2x);
+      blob[texel].a = quantize (curves[i + 1].p2y);
+    } else {
+      blob[texel].b = 0;
+      blob[texel].a = 0;
+    }
+    texel++;
+  }
+
+  /* Pack band headers and curve indices */
+  unsigned index_offset = header_len + band_headers_len;
+
+  for (unsigned b = 0; b < num_hbands; b++)
+  {
+    int16_t hband_split;
+    {
+      unsigned off = hband_offsets[b];
+      unsigned n = hband_curve_counts[b];
+      unsigned best_worst = n;
+      double best_split = (min_x + max_x) * 0.5;
+      unsigned left_count = n;
+      for (unsigned ci = 0; ci < n; ci++) {
+	double split = curve_infos[hband_curves[off + ci]].max_x;
+	unsigned right_count = ci + 1;
+	while (left_count &&
+	       curve_infos[hband_curves_asc[off + left_count - 1]].min_x > split)
+	  left_count--;
+	unsigned worst = std::max (right_count, left_count);
+	if (worst < best_worst) {
+	  best_worst = worst;
+	  best_split = split;
+	}
+      }
+      hband_split = quantize (best_split);
+    }
+    unsigned hdr = header_len + b;
+    unsigned desc_off = index_offset;
+
+    for (unsigned ci = 0; ci < hband_curve_counts[b]; ci++) {
+      blob[index_offset].r = (int16_t) curve_texel_offset[hband_curves[hband_offsets[b] + ci]];
+      blob[index_offset].g = 0;
+      blob[index_offset].b = 0;
+      blob[index_offset].a = 0;
+      index_offset++;
+    }
+
+    unsigned asc_off = index_offset;
+
+    for (unsigned ci = 0; ci < hband_curve_counts[b]; ci++) {
+      blob[index_offset].r = (int16_t) curve_texel_offset[hband_curves_asc[hband_offsets[b] + ci]];
+      blob[index_offset].g = 0;
+      blob[index_offset].b = 0;
+      blob[index_offset].a = 0;
+      index_offset++;
+    }
+
+    blob[hdr].r = (int16_t) hband_curve_counts[b];
+    blob[hdr].g = (int16_t) desc_off;
+    blob[hdr].b = (int16_t) asc_off;
+    blob[hdr].a = hband_split;
+  }
+
+  for (unsigned b = 0; b < num_vbands; b++)
+  {
+    int16_t vband_split;
+    {
+      unsigned off = vband_offsets[b];
+      unsigned n = vband_curve_counts[b];
+      unsigned best_worst = n;
+      double best_split = (min_y + max_y) * 0.5;
+      unsigned left_count = n;
+      for (unsigned ci = 0; ci < n; ci++) {
+	double split = curve_infos[vband_curves[off + ci]].max_y;
+	unsigned right_count = ci + 1;
+	while (left_count &&
+	       curve_infos[vband_curves_asc[off + left_count - 1]].min_y > split)
+	  left_count--;
+	unsigned worst = std::max (right_count, left_count);
+	if (worst < best_worst) {
+	  best_worst = worst;
+	  best_split = split;
+	}
+      }
+      vband_split = quantize (best_split);
+    }
+
+    unsigned hdr = header_len + num_hbands + b;
+    unsigned desc_off = index_offset;
+
+    for (unsigned ci = 0; ci < vband_curve_counts[b]; ci++) {
+      blob[index_offset].r = (int16_t) curve_texel_offset[vband_curves[vband_offsets[b] + ci]];
+      blob[index_offset].g = 0;
+      blob[index_offset].b = 0;
+      blob[index_offset].a = 0;
+      index_offset++;
+    }
+
+    unsigned asc_off = index_offset;
+
+    for (unsigned ci = 0; ci < vband_curve_counts[b]; ci++) {
+      blob[index_offset].r = (int16_t) curve_texel_offset[vband_curves_asc[vband_offsets[b] + ci]];
+      blob[index_offset].g = 0;
+      blob[index_offset].b = 0;
+      blob[index_offset].a = 0;
+      index_offset++;
+    }
+
+    blob[hdr].r = (int16_t) vband_curve_counts[b];
+    blob[hdr].g = (int16_t) desc_off;
+    blob[hdr].b = (int16_t) asc_off;
+    blob[hdr].a = vband_split;
+  }
+
+  return hb_blob_create (glyph->encode_buf, needed_bytes,
+			 HB_MEMORY_MODE_DUPLICATE,
+			 nullptr, nullptr);
+}
+
+
+/* ---- Public API ---- */
+
+/**
+ * hb_gpu_glyph_create_or_fail:
+ *
+ * Creates a new GPU glyph encoder.
+ *
+ * Return value: (transfer full):
+ * A newly allocated #hb_gpu_glyph_t, or `NULL` on allocation failure.
+ *
+ * Since: REPLACEME
+ **/
+hb_gpu_glyph_t *
+hb_gpu_glyph_create_or_fail (void)
+{
+  return hb_object_create<hb_gpu_glyph_t> ();
+}
+
+/**
+ * hb_gpu_glyph_reference: (skip)
+ * @glyph: a GPU glyph encoder
+ *
+ * Increases the reference count on @glyph by one.
+ *
+ * Return value: (transfer full):
+ * The referenced #hb_gpu_glyph_t.
+ *
+ * Since: REPLACEME
+ **/
+hb_gpu_glyph_t *
+hb_gpu_glyph_reference (hb_gpu_glyph_t *glyph)
+{
+  return hb_object_reference (glyph);
+}
+
+/**
+ * hb_gpu_glyph_destroy: (skip)
+ * @glyph: a GPU glyph encoder
+ *
+ * Decreases the reference count on @glyph by one. When the
+ * reference count reaches zero, the glyph encoder is freed.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_gpu_glyph_destroy (hb_gpu_glyph_t *glyph)
+{
+  if (!hb_object_destroy (glyph)) return;
+  glyph->curves.fini ();
+  hb_free (glyph->encode_buf);
+  hb_free (glyph);
+}
+
+/**
+ * hb_gpu_glyph_set_user_data: (skip)
+ * @glyph: a GPU glyph encoder
+ * @key: the user-data key
+ * @data: a pointer to the user data
+ * @destroy: (nullable): a callback to call when @data is not needed anymore
+ * @replace: whether to replace an existing data with the same key
+ *
+ * Attaches user data to @glyph.
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_gpu_glyph_set_user_data (hb_gpu_glyph_t     *glyph,
+			     hb_user_data_key_t *key,
+			     void               *data,
+			     hb_destroy_func_t   destroy,
+			     hb_bool_t           replace)
+{
+  return hb_object_set_user_data (glyph, key, data, destroy, replace);
+}
+
+/**
+ * hb_gpu_glyph_get_user_data: (skip)
+ * @glyph: a GPU glyph encoder
+ * @key: the user-data key
+ *
+ * Fetches the user-data associated with the specified key.
+ *
+ * Return value: (transfer none):
+ * A pointer to the user data
+ *
+ * Since: REPLACEME
+ **/
+void *
+hb_gpu_glyph_get_user_data (hb_gpu_glyph_t     *glyph,
+			     hb_user_data_key_t *key)
+{
+  return hb_object_get_user_data (glyph, key);
+}
+
+/**
+ * hb_gpu_glyph_get_draw_funcs:
+ *
+ * Fetches the singleton #hb_draw_funcs_t that feeds glyph outline
+ * data into an #hb_gpu_glyph_t.  Pass the #hb_gpu_glyph_t as the
+ * @draw_data argument when calling the draw functions.
+ *
+ * Return value: (transfer none):
+ * The GPU glyph draw functions
+ *
+ * Since: REPLACEME
+ **/
+hb_draw_funcs_t *
+hb_gpu_glyph_get_draw_funcs (void)
+{
+  return static_gpu_draw_funcs.get_unconst ();
+}
+
+/**
+ * hb_gpu_glyph_draw_glyph:
+ * @glyph: a GPU glyph encoder
+ * @font: font to draw from
+ * @codepoint: glyph ID to draw
+ *
+ * Convenience wrapper that draws a single glyph outline into the
+ * encoder using hb_font_draw_glyph().
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_gpu_glyph_draw_glyph (hb_gpu_glyph_t *glyph,
+			  hb_font_t      *font,
+			  hb_codepoint_t  codepoint)
+{
+  hb_font_draw_glyph (font, codepoint,
+		       hb_gpu_glyph_get_draw_funcs (),
+		       glyph);
+}
+
+/**
+ * hb_gpu_glyph_encode:
+ * @glyph: a GPU glyph encoder
+ *
+ * Encodes the accumulated glyph outlines into a compact blob
+ * suitable for GPU rendering.  The blob data is an array of
+ * RGBA16I texels (8 bytes each) to be uploaded to a texture
+ * buffer object.
+ *
+ * The returned blob owns its own copy of the data.
+ *
+ * Return value: (transfer full):
+ * An #hb_blob_t containing the encoded glyph data, or
+ * `NULL` if encoding fails.
+ *
+ * Since: REPLACEME
+ **/
+hb_blob_t *
+hb_gpu_glyph_encode (hb_gpu_glyph_t *glyph)
+{
+  return hb_gpu_glyph_encode_impl (glyph);
+}
+
+/**
+ * hb_gpu_glyph_get_extents:
+ * @glyph: a GPU glyph encoder
+ * @extents: (out): glyph extents
+ *
+ * Fetches the extents of the accumulated glyph outlines.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_gpu_glyph_get_extents (hb_gpu_glyph_t     *glyph,
+			   hb_glyph_extents_t *extents)
+{
+  if (glyph->num_curves == 0 || std::isinf (glyph->ext_min_x))
+  {
+    extents->x_bearing = 0;
+    extents->y_bearing = 0;
+    extents->width = 0;
+    extents->height = 0;
+    return;
+  }
+
+  extents->x_bearing = (hb_position_t) floor (glyph->ext_min_x);
+  extents->y_bearing = (hb_position_t) ceil  (glyph->ext_max_y);
+  extents->width     = (hb_position_t) ceil  (glyph->ext_max_x) -
+		       (hb_position_t) floor (glyph->ext_min_x);
+  extents->height    = (hb_position_t) floor (glyph->ext_min_y) -
+		       (hb_position_t) ceil  (glyph->ext_max_y);
+}
+
+/**
+ * hb_gpu_glyph_reset:
+ * @glyph: a GPU glyph encoder
+ *
+ * Resets the glyph encoder, discarding all accumulated outlines.
+ * The internal encode buffer is kept for reuse.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_gpu_glyph_reset (hb_gpu_glyph_t *glyph)
+{
+  glyph->start_x = glyph->start_y = 0;
+  glyph->current_x = glyph->current_y = 0;
+  glyph->need_moveto = true;
+  glyph->num_curves = 0;
+  glyph->success = true;
+  glyph->curves.shrink (0);
+
+  glyph->ext_min_x =  INFINITY;
+  glyph->ext_min_y =  INFINITY;
+  glyph->ext_max_x = -INFINITY;
+  glyph->ext_max_y = -INFINITY;
+}
+
+/**
+ * hb_gpu_glyph_recycle_blob:
+ * @glyph: a GPU glyph encoder
+ * @blob: (transfer full): a blob previously returned by hb_gpu_glyph_encode()
+ *
+ * Returns a blob to the glyph encoder for potential reuse.
+ * The caller transfers ownership of @blob.
+ *
+ * Currently this simply destroys the blob.  A future version
+ * may reclaim the underlying buffer to avoid allocation on the
+ * next hb_gpu_glyph_encode() call.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_gpu_glyph_recycle_blob (hb_gpu_glyph_t *glyph HB_UNUSED,
+			    hb_blob_t      *blob)
+{
+  hb_blob_destroy (blob);
+}
+

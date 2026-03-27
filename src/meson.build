@@ -850,6 +850,76 @@ if not get_option('vector').disabled()
   )
 endif
 
+hb_gpu_shaders = [
+  [ 'hb-gpu-fragment.glsl', 'hb-gpu-fragment-glsl.h', 'hb_gpu_fragment_glsl' ],
+  [ 'hb-gpu-vertex.glsl', 'hb-gpu-vertex-glsl.h', 'hb_gpu_vertex_glsl' ],
+]
+
+hb_gpu_stringize = find_program('stringize')
+
+hb_gpu_shader_sources = []
+foreach p: hb_gpu_shaders
+  glsl = p.get(0)
+  header = p.get(1)
+  decl = p.get(2)
+  hb_gpu_shader_sources += custom_target('@0@ shader'.format(glsl),
+    input: glsl,
+    output: header,
+    capture: true,
+    command: [ hb_gpu_stringize, 'static const char *' + decl, '@INPUT@' ])
+endforeach
+
+hb_gpu_sources = [
+  'hb-gpu-glyph.cc',
+  'hb-gpu-glyph.hh',
+  'hb-gpu-cu2qu.hh',
+  'hb-gpu-shaders.cc',
+  'hb-static.cc',
+]
+
+hb_gpu_headers = [
+  'hb-gpu.h',
+]
+
+libharfbuzz_gpu_dep = null_dep
+if not get_option('gpu').disabled()
+  gpu_deps = [m_dep]
+
+  libharfbuzz_gpu = library('harfbuzz-gpu',
+    hb_gpu_sources + hb_gpu_shader_sources,
+    include_directories: incconfig,
+    dependencies: gpu_deps,
+    link_with: [libharfbuzz],
+    cpp_args: cpp_args + extra_hb_cpp_args,
+    soversion: hb_so_version,
+    version: version,
+    install: true,
+    darwin_versions: darwin_versions,
+    link_language: chosen_linker,
+  )
+
+  install_headers(hb_gpu_headers, subdir: meson.project_name())
+
+  libharfbuzz_gpu_dep = declare_dependency(
+    link_with: libharfbuzz_gpu,
+    include_directories: incsrc,
+    dependencies: [libharfbuzz_dep])
+  meson.override_dependency('harfbuzz-gpu', libharfbuzz_gpu_dep)
+
+  harfbuzz_gpu_def = custom_target('harfbuzz-gpu.def',
+    command: gen_def_cmd,
+    input: hb_gpu_headers,
+    output: 'harfbuzz-gpu.def')
+  defs_list += [harfbuzz_gpu_def]
+
+  pkgmod.generate(libharfbuzz_gpu,
+    description: 'HarfBuzz GPU glyph encoding library',
+    requires: ['harfbuzz = @0@'.format(meson.project_version())],
+    subdirs: [meson.project_name()],
+    version: meson.project_version(),
+  )
+endif
+
 libharfbuzz_cairo_dep = null_dep
 if conf.get('HAVE_CAIRO', 0) == 1
   hb_cairo_sources = [

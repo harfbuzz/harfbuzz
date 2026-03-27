@@ -493,6 +493,7 @@ build_summary = {
     {'Subset': not get_option('subset').disabled(),
      'Raster (experimental)': not get_option('raster').disabled(),
      'Vector (experimental)': not get_option('vector').disabled(),
+     'GPU (experimental)': not get_option('gpu').disabled(),
     },
   'Dependencies used by additional libraries':
     {'PNG': conf.get('HAVE_PNG', 0) == 1,
