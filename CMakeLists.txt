@@ -299,7 +299,6 @@ set (gpu_project_sources
      ${PROJECT_SOURCE_DIR}/src/hb-gpu.cc
      ${PROJECT_SOURCE_DIR}/src/hb-gpu-draw.cc
      ${PROJECT_SOURCE_DIR}/src/hb-gpu-shaders.cc
-     ${PROJECT_SOURCE_DIR}/src/hb-static.cc
 )
 set (gpu_project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-gpu.h
@@ -1058,6 +1057,26 @@ if (HB_BUILD_UTILS)
     )
     target_link_libraries(hb-info harfbuzz-gobject harfbuzz)
   endif()
+
+  if (HB_BUILD_GPU)
+    find_package(OpenGL QUIET)
+    find_package(GLEW QUIET)
+    find_package(glfw3 QUIET)
+    if (OpenGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
+      add_executable(hb-gpu-demo
+          ${PROJECT_SOURCE_DIR}/util/hb-gpu-demo.cc
+          ${PROJECT_SOURCE_DIR}/util/gpu-output.hh
+          ${PROJECT_SOURCE_DIR}/util/gpu/demo-atlas.cc
+          ${PROJECT_SOURCE_DIR}/util/gpu/demo-buffer.cc
+          ${PROJECT_SOURCE_DIR}/util/gpu/demo-font.cc
+          ${PROJECT_SOURCE_DIR}/util/gpu/demo-glstate.cc
+          ${PROJECT_SOURCE_DIR}/util/gpu/demo-shader.cc
+          ${PROJECT_SOURCE_DIR}/util/gpu/demo-view.cc
+      )
+      target_link_libraries(hb-gpu-demo harfbuzz-gpu harfbuzz
+                            OpenGL::GL GLEW::GLEW glfw)
+    endif ()
+  endif ()
 endif ()
 
 
@@ -1131,7 +1150,7 @@ endmacro ( make_pkgconfig_pc_file )
 # Generate hb-features.h with the features we enabled
 macro (make_hb_features_h)
   file(READ "${PROJECT_SOURCE_DIR}/src/hb-features.h.in" feature_h_in)
-  foreach(arg cairo coretext directwrite freetype gdi glib gobject graphite icu raster subset uniscribe vector wasm)
+  foreach(arg cairo coretext directwrite freetype gdi glib gobject graphite gpu icu raster subset uniscribe vector wasm)
     string(TOUPPER ${arg} feature_caps)
     set(feature_instring "#mesondefine HB_HAS_${feature_caps}")
     if (HB_HAVE_${feature_caps})
