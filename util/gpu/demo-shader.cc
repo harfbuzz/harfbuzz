@@ -132,14 +132,14 @@ demo_shader_create_program (void)
   GLuint vertex_shader, fragment_shader, program;
 
   const GLchar *vert_sources[] = {"#version 330\n",
-				  hb_gpu_shader_vertex_source (HB_GPU_SHADER_GLSL_330),
+				  hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_GLSL),
 				  demo_vertex_glsl};
   vertex_shader = compile_shader (GL_VERTEX_SHADER,
 				  ARRAY_LEN (vert_sources),
 				  vert_sources);
 
   const GLchar *frag_sources[] = {"#version 330\n",
-				  hb_gpu_shader_fragment_source (HB_GPU_SHADER_GLSL_330),
+				  hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_GLSL),
 				  demo_fragment_glsl};
   fragment_shader = compile_shader (GL_FRAGMENT_SHADER,
 				    ARRAY_LEN (frag_sources),

@@ -100,13 +100,13 @@
  * |[<!-- language="C" -->
  * unsigned vert_count, frag_count;
  * const char * const *vert_lib = hb_gpu_shader_vertex_sources (
- *     HB_GPU_SHADER_GLSL_330, &vert_count);
+ *     HB_GPU_SHADER_LANG_GLSL, &vert_count);
  * const char * const *frag_lib = hb_gpu_shader_fragment_sources (
- *     HB_GPU_SHADER_GLSL_330, &frag_count);
+ *     HB_GPU_SHADER_LANG_GLSL, &frag_count);
  *
  * const char *vert_sources[] = {
  *     "#version 330\n",
- *     hb_gpu_shader_vertex_source (HB_GPU_SHADER_GLSL_330),
+ *     hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_GLSL),
  *     your_vertex_main
  * };
  * glShaderSource (vert_shader, 3, vert_sources, NULL);

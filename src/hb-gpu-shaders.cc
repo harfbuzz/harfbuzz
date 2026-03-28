@@ -52,7 +52,7 @@ const char *
 hb_gpu_shader_fragment_source (hb_gpu_shader_lang_t lang)
 {
   switch (lang) {
-  case HB_GPU_SHADER_GLSL_330:
+  case HB_GPU_SHADER_LANG_GLSL:
     return hb_gpu_fragment_glsl;
   default:
     return nullptr;
@@ -75,7 +75,7 @@ const char *
 hb_gpu_shader_vertex_source (hb_gpu_shader_lang_t lang)
 {
   switch (lang) {
-  case HB_GPU_SHADER_GLSL_330:
+  case HB_GPU_SHADER_LANG_GLSL:
     return hb_gpu_vertex_glsl;
   default:
     return nullptr;

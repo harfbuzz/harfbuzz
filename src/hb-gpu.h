@@ -34,14 +34,14 @@ HB_BEGIN_DECLS
 
 /**
  * hb_gpu_shader_lang_t:
- * @HB_GPU_SHADER_GLSL_330: Desktop OpenGL, GLSL 3.30
+ * @HB_GPU_SHADER_LANG_GLSL: GLSL (compatible with GLSL 3.30 and GLSL ES 3.00)
  *
  * Shader language variant.
  *
  * XSince: REPLACEME
  */
 typedef enum {
-  HB_GPU_SHADER_GLSL_330,
+  HB_GPU_SHADER_LANG_GLSL,
 } hb_gpu_shader_lang_t;
 
 HB_EXTERN const char *
