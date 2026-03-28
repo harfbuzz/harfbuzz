@@ -29,5 +29,8 @@ demo_glstate_get_atlas (demo_glstate_t *st);
 void
 demo_glstate_set_matrix (demo_glstate_t *st, float mat[16]);
 
+void
+demo_glstate_set_gamma (demo_glstate_t *st, float gamma);
+
 
 #endif /* DEMO_GLSTATE_H */

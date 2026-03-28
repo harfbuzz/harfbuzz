@@ -16,8 +16,8 @@ struct demo_view_t {
 
   /* Output */
   GLint vsync;
-  hb_bool_t srgb;
   hb_bool_t fullscreen;
+  enum { GAMMA_SRGB, GAMMA_2_2, GAMMA_NONE } gamma_mode;
 
   /* Mouse handling */
   int buttons;
@@ -194,33 +194,45 @@ demo_view_toggle_vsync (demo_view_t *vu)
 }
 
 static void
-demo_view_toggle_srgb (demo_view_t *vu)
+demo_view_set_gamma_mode (demo_view_t *vu, int mode)
 {
-  hb_bool_t srgb = !vu->srgb;
+  /* Disable previous sRGB if any. */
 #if defined(GL_FRAMEBUFFER_SRGB)
+  glDisable (GL_FRAMEBUFFER_SRGB);
   while (glGetError () != GL_NO_ERROR)
     ;
+#endif
 
-  if (srgb)
-    glEnable (GL_FRAMEBUFFER_SRGB);
-  else
-    glDisable (GL_FRAMEBUFFER_SRGB);
-
-  if (glGetError () == GL_NO_ERROR) {
-    vu->srgb = srgb;
-    LOGI ("Setting sRGB framebuffer %s.\n", vu->srgb ? "on" : "off");
-  } else {
-    if (vu->srgb)
-      glEnable (GL_FRAMEBUFFER_SRGB);
-    else
-      glDisable (GL_FRAMEBUFFER_SRGB);
+  if (mode == demo_view_t::GAMMA_SRGB)
+  {
+#if defined(GL_FRAMEBUFFER_SRGB)
     while (glGetError () != GL_NO_ERROR)
       ;
-    LOGW ("Failed to set sRGB framebuffer state\n");
-  }
+    glEnable (GL_FRAMEBUFFER_SRGB);
+    if (glGetError () != GL_NO_ERROR)
+    {
+      LOGW ("sRGB framebuffer not available.\n");
+      mode = demo_view_t::GAMMA_2_2;
+    }
 #else
-  LOGW ("No sRGB framebuffer extension found; failed to set sRGB framebuffer\n");
+    mode = demo_view_t::GAMMA_2_2;
 #endif
+  }
+
+  vu->gamma_mode = (decltype(vu->gamma_mode)) mode;
+  float gamma = mode == demo_view_t::GAMMA_2_2 ? 2.2f : 1.f;
+  demo_glstate_set_gamma (vu->st, gamma);
+
+  const char *names[] = {"sRGB", "gamma 2.2", "none"};
+  LOGI ("Gamma correction: %s.\n", names[mode]);
+  vu->needs_redraw = true;
+}
+
+static void
+demo_view_cycle_gamma (demo_view_t *vu)
+{
+  int next = (vu->gamma_mode + 1) % 3;
+  demo_view_set_gamma_mode (vu, next);
 }
 
 static void
@@ -322,8 +334,8 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
       if (mods & GLFW_MOD_SHIFT)
 	demo_view_print_help (vu);
       break;
-    case GLFW_KEY_S:
-      demo_view_toggle_srgb (vu);
+    case GLFW_KEY_G:
+      demo_view_cycle_gamma (vu);
       break;
     case GLFW_KEY_V:
       demo_view_toggle_vsync (vu);
@@ -582,9 +594,8 @@ demo_view_setup (demo_view_t *vu)
 {
   if (!vu->vsync)
     demo_view_toggle_vsync (vu);
-  if (!vu->srgb)
-    demo_view_toggle_srgb (vu);
   demo_glstate_setup (vu->st);
+  demo_view_set_gamma_mode (vu, demo_view_t::GAMMA_SRGB);
 }
 
 bool

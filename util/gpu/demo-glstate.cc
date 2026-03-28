@@ -38,6 +38,7 @@ demo_glstate_setup (demo_glstate_t *st)
   glUseProgram (st->program);
 
   demo_atlas_set_uniforms (st->atlas);
+  demo_glstate_set_gamma (st, 1.f);
 
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -58,4 +59,10 @@ demo_glstate_set_matrix (demo_glstate_t *st, float mat[16])
   glGetIntegerv (GL_VIEWPORT, viewport);
   glUniform2f (glGetUniformLocation (st->program, "u_viewport"),
 	       (float) viewport[2], (float) viewport[3]);
+}
+
+void
+demo_glstate_set_gamma (demo_glstate_t *st, float gamma)
+{
+  glUniform1f (glGetUniformLocation (st->program, "u_gamma"), gamma);
 }
