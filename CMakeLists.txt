@@ -53,9 +53,11 @@ endif ()
 option(HB_BUILD_SUBSET "Build harfbuzz-subset" ON)
 option(HB_BUILD_RASTER "Build harfbuzz-raster" ON)
 option(HB_BUILD_VECTOR "Build harfbuzz-vector" ON)
+option(HB_BUILD_GPU "Build harfbuzz-gpu" ON)
 set(HB_HAVE_SUBSET ${HB_BUILD_SUBSET})
 set(HB_HAVE_RASTER ${HB_BUILD_RASTER})
 set(HB_HAVE_VECTOR ${HB_BUILD_VECTOR})
+set(HB_HAVE_GPU ${HB_BUILD_GPU})
 
 option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
 if (HB_HAVE_GOBJECT)
@@ -292,6 +294,15 @@ set (vector_project_sources
 )
 set (vector_project_headers
      ${PROJECT_SOURCE_DIR}/src/hb-vector.h
+)
+set (gpu_project_sources
+     ${PROJECT_SOURCE_DIR}/src/hb-gpu.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-gpu-draw.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-gpu-shaders.cc
+     ${PROJECT_SOURCE_DIR}/src/hb-static.cc
+)
+set (gpu_project_headers
+     ${PROJECT_SOURCE_DIR}/src/hb-gpu.h
 )
 
 ## Find and include needed header folders and libraries
@@ -710,6 +721,35 @@ if (HB_BUILD_VECTOR)
   endif ()
 endif ()
 
+if (HB_BUILD_GPU)
+  add_library(harfbuzz-gpu ${gpu_project_sources} ${gpu_project_headers})
+  add_dependencies(harfbuzz-gpu harfbuzz)
+  target_link_libraries(harfbuzz-gpu harfbuzz)
+  set_target_properties(harfbuzz-gpu PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+
+  if (MINGW)
+    target_compile_options(harfbuzz-gpu PRIVATE "-Wa,-mbig-obj")
+  endif()
+
+  if (BUILD_SHARED_LIBS)
+    if (BUILD_FRAMEWORK)
+      list(APPEND project_headers ${gpu_project_headers})
+      set_target_properties(harfbuzz-gpu PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "${HB_VERSION}"
+        PUBLIC_HEADER "${project_headers}"
+        PRODUCT_BUNDLE_IDENTIFIER "harfbuzz.harfbuzz-gpu"
+        XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+        OUTPUT_NAME "harfbuzz-gpu"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+        MACOSX_FRAMEWORK_IDENTIFIER "harfbuzz-gpu"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${HB_VERSION}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${HB_VERSION}"
+      )
+    endif ()
+  endif ()
+endif ()
+
 if (UNIX OR MINGW OR VITA)
   # Make symbols link locally
   include (CheckCXXCompilerFlag)
@@ -734,6 +774,9 @@ if (UNIX OR MINGW OR VITA)
     endif ()
     if (HB_BUILD_VECTOR)
       set_target_properties(harfbuzz-vector PROPERTIES LINKER_LANGUAGE C)
+    endif ()
+    if (HB_BUILD_GPU)
+      set_target_properties(harfbuzz-gpu PROPERTIES LINKER_LANGUAGE C)
     endif ()
 
     # No threadsafe statics as we do it ourselves
@@ -1029,6 +1072,9 @@ if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
   if (HB_BUILD_VECTOR)
     install(FILES ${vector_project_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
   endif ()
+  if (HB_BUILD_GPU)
+    install(FILES ${gpu_project_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
+  endif ()
   if (HB_HAVE_GOBJECT)
     install(FILES ${hb_gobject_headers} ${hb_gobject_gen_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz)
   endif ()
@@ -1131,6 +1177,10 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     string(REPLACE ";" ", " PC_REQUIRES_PRIV_VECTOR "${PC_REQUIRES_PRIV_VECTOR}")
     list(APPEND hb_install_targets harfbuzz-vector)
     make_pkgconfig_pc_file("harfbuzz-vector" "${PC_REQUIRES_PRIV_VECTOR}")
+  endif ()
+  if (HB_BUILD_GPU)
+    list(APPEND hb_install_targets harfbuzz-gpu)
+    make_pkgconfig_pc_file("harfbuzz-gpu")
   endif ()
   if (HB_BUILD_UTILS)
     if (WIN32 AND BUILD_SHARED_LIBS)
