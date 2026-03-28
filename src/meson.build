@@ -850,23 +850,21 @@ if not get_option('vector').disabled()
   )
 endif
 
-hb_gpu_shaders = [
-  [ 'hb-gpu-fragment.glsl', 'hb-gpu-fragment-glsl.h', 'hb_gpu_fragment_glsl' ],
-  [ 'hb-gpu-vertex.glsl', 'hb-gpu-vertex-glsl.h', 'hb_gpu_vertex_glsl' ],
+hb_gpu_glsl_sources = [
+  [ 'hb-gpu-fragment.glsl', 'hb-gpu-fragment-glsl.hh', 'hb_gpu_fragment_glsl' ],
+  [ 'hb-gpu-vertex.glsl', 'hb-gpu-vertex-glsl.hh', 'hb_gpu_vertex_glsl' ],
 ]
 
-hb_gpu_stringize = find_program('stringize')
-
-hb_gpu_shader_sources = []
-foreach p: hb_gpu_shaders
+hb_gpu_shader_helper = find_program('gen-gpu-shader-artifacts.py')
+foreach p: hb_gpu_glsl_sources
   glsl = p.get(0)
-  header = p.get(1)
-  decl = p.get(2)
-  hb_gpu_shader_sources += custom_target('@0@ shader'.format(glsl),
+  hh = p.get(1)
+  custom_target('@0@'.format(hh),
+    build_by_default: true,
     input: glsl,
-    output: header,
-    capture: true,
-    command: [ hb_gpu_stringize, 'static const char *' + decl, '@INPUT@' ])
+    output: hh,
+    command: [ hb_gpu_shader_helper, '@OUTPUT@',
+	       meson.current_source_dir(), '@INPUT@' ])
 endforeach
 
 hb_gpu_sources = [
@@ -875,6 +873,8 @@ hb_gpu_sources = [
   'hb-gpu-draw.hh',
   'hb-gpu-cu2qu.hh',
   'hb-gpu-shaders.cc',
+  'hb-gpu-fragment-glsl.hh',
+  'hb-gpu-vertex-glsl.hh',
   'hb-static.cc',
 ]
 
@@ -887,7 +887,7 @@ if not get_option('gpu').disabled()
   gpu_deps = [m_dep]
 
   libharfbuzz_gpu = library('harfbuzz-gpu',
-    hb_gpu_sources + hb_gpu_shader_sources,
+    hb_gpu_sources,
     include_directories: incconfig,
     dependencies: gpu_deps,
     link_with: [libharfbuzz],

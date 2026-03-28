@@ -24,7 +24,7 @@ gpu_demo_shaders = [
   [ 'default-text.txt', 'default-text.h', 'default_text' ],
 ]
 
-gpu_stringize = find_program('../../src/stringize')
+gpu_stringize = find_program('stringize')
 
 gpu_demo_generated = []
 

@@ -28,8 +28,8 @@
 
 #include "hb-gpu.h"
 
-#include "hb-gpu-fragment-glsl.h"
-#include "hb-gpu-vertex-glsl.h"
+#include "hb-gpu-fragment-glsl.hh"
+#include "hb-gpu-vertex-glsl.hh"
 
 
 /**
