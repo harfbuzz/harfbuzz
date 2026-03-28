@@ -22,8 +22,6 @@ gpu_demo_sources = files(
   'trackball.c',
 )
 
-gpu_demo_generated = []
-
 glew_dep = dependency('glew', required: false)
 glfw_dep = dependency('glfw3', required: false)
 gl_dep = dependency('gl', required: false)

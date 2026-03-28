@@ -219,7 +219,7 @@ if not get_option('gpu').disabled()
 
   if have_gpu_demo_deps and conf.get('HAVE_GLIB', 0) == 1
     hb_gpu_util = executable('hb-gpu-demo',
-      ['hb-gpu-demo.cc'] + gpu_demo_sources + gpu_demo_generated,
+      ['hb-gpu-demo.cc'] + gpu_demo_sources,
       cpp_args: cpp_args,
       include_directories: [incconfig, incsrc],
       dependencies: [util_deps, gl_dep, glew_dep, glfw_dep],
