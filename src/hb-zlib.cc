@@ -1,3 +1,6 @@
+#ifndef HB_ZLIB_CC
+#define HB_ZLIB_CC
+
 #include "hb.hh"
 
 #include "hb-zlib.hh"
@@ -91,3 +94,5 @@ fail_free:
   return nullptr;
 #endif
 }
+
+#endif /* HB_ZLIB_CC */

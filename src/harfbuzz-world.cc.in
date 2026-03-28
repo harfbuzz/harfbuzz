@@ -1,0 +1,29 @@
+#ifdef HB_FEATURES_H
+#include HB_FEATURES_H
+#endif
+
+#ifdef HB_HAS_SUBSET
+%%HARFBUZZ_SUBSET_SOURCES%%
+#else
+%%HARFBUZZ_SOURCES%%
+#endif
+
+#ifdef HB_HAS_ICU
+%%ICU_SOURCES%%
+#endif
+
+#ifdef HB_HAS_CAIRO
+%%CAIRO_SOURCES%%
+#endif
+
+#ifdef HB_HAS_RASTER
+%%RASTER_SOURCES%%
+#endif
+
+#ifdef HB_HAS_VECTOR
+%%VECTOR_SOURCES%%
+#endif
+
+#ifdef HB_HAS_GPU
+%%GPU_SOURCES%%
+#endif

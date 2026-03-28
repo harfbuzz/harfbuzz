@@ -476,6 +476,7 @@ custom_target('harfbuzz.cc',
             '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
 )
 
+
 incsrc = include_directories('.')
 
 hb_sources = hb_base_sources + hb_base_ragel_generated_sources
@@ -870,11 +871,7 @@ endforeach
 hb_gpu_sources = [
   'hb-gpu.cc',
   'hb-gpu-draw.cc',
-  'hb-gpu-draw.hh',
-  'hb-gpu-cu2qu.hh',
   'hb-gpu-shaders.cc',
-  'hb-gpu-fragment-glsl.hh',
-  'hb-gpu-vertex-glsl.hh',
   'hb-static.cc',
 ]
 
@@ -921,18 +918,19 @@ if not get_option('gpu').disabled()
   )
 endif
 
+hb_cairo_sources = [
+  'hb-cairo.cc',
+  'hb-cairo-utils.cc',
+  'hb-cairo-utils.hh',
+  'hb-static.cc'
+]
+
+hb_cairo_headers = [
+  'hb-cairo.h',
+]
+
 libharfbuzz_cairo_dep = null_dep
 if conf.get('HAVE_CAIRO', 0) == 1
-  hb_cairo_sources = [
-    'hb-cairo.cc',
-    'hb-cairo-utils.cc',
-    'hb-cairo-utils.hh',
-    'hb-static.cc'
-  ]
-
-  hb_cairo_headers = [
-    'hb-cairo.h',
-  ]
 
   cairo_dep = dependency('cairo')
 
@@ -1341,3 +1339,22 @@ install_headers(hb_headers, subdir: meson.project_name())
 if not get_option('subset').disabled()
   install_headers(hb_subset_headers, subdir: meson.project_name())
 endif
+
+custom_target('harfbuzz-world.cc',
+  build_by_default: true,
+  output: 'harfbuzz-world.cc',
+  input: ['harfbuzz-world.cc.in'],
+  command: [find_program('gen-harfbuzz-world.py'),
+            '@OUTPUT@', meson.current_source_dir(), '@INPUT@',
+            '--HARFBUZZ_SOURCES'] + hb_base_sources + hb_glib_sources + hb_ft_sources +
+            hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
+            hb_directwrite_sources + hb_coretext_sources + hb_wasm_sources +
+           ['--HARFBUZZ_SUBSET_SOURCES'] + hb_base_sources + hb_subset_sources + hb_glib_sources + hb_ft_sources +
+            hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
+            hb_directwrite_sources + hb_coretext_sources + hb_wasm_sources +
+           ['--ICU_SOURCES'] + hb_icu_sources +
+           ['--CAIRO_SOURCES'] + hb_cairo_sources +
+           ['--RASTER_SOURCES'] + hb_raster_sources +
+           ['--VECTOR_SOURCES'] + hb_vector_sources +
+           ['--GPU_SOURCES'] + hb_gpu_sources,
+)
