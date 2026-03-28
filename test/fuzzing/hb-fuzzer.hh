@@ -36,21 +36,6 @@ _fuzzing_alloc_state (const uint8_t *data, size_t size)
   return size;
 }
 
-static inline void
-_fuzzing_skip_leading_comment (const uint8_t **data, size_t *size)
-{
-  if (!*size || **data != '$')
-    return;
-
-  const uint8_t *newline = (const uint8_t *) memchr (*data, '\n', *size);
-  if (!newline)
-    return;
-
-  size_t skipped = (size_t) (newline + 1 - *data);
-  *data += skipped;
-  *size -= skipped;
-}
-
 static const uint8_t _fuzzing_extended_magic[] = {'H', 'B', 'S', 'U', 'B', 'F', 'Z', '2'};
 
 enum _fuzzing_extended_op_t

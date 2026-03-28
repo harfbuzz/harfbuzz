@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if test "$#" = 0; then
+	echo "Usage: $0 DECL-SPEC FILE..."
+	exit 1
+fi
+decl="$1"
+shift
+
+echo "$decl = {";
+hexdump -v -e '"x" 1/1 "%02X" " "' $1 | fmt | sed 's/ *x/\\x/g;s/^/"/;s/$/"/';
+echo '};';

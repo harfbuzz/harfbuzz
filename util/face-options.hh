@@ -31,7 +31,7 @@
 
 struct face_options_t
 {
-  ~face_options_t ()
+  virtual ~face_options_t ()
   {
     g_free (font_file);
     g_free (face_loader);
@@ -47,6 +47,8 @@ struct face_options_t
   void add_options (option_parser_t *parser);
 
   void post_parse (GError **error);
+
+  virtual hb_face_t *default_face () { return nullptr; }
 
   static struct cache_t
   {
@@ -78,6 +80,13 @@ face_options_t::post_parse (GError **error)
 {
   if (!font_file)
   {
+    hb_face_t *default_face_ = default_face ();
+    if (default_face_)
+    {
+      set_face (default_face_);
+      hb_face_destroy (default_face_);
+      return;
+    }
     g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
 		 "No font file set");
     return;

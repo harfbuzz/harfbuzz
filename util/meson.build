@@ -213,3 +213,26 @@ else
   hb_info = disabler()
   hb_subset = disabler()
 endif
+
+if not get_option('gpu').disabled()
+  subdir('gpu')
+
+  if have_gpu_demo_deps and conf.get('HAVE_GLIB', 0) == 1
+    hb_gpu_util = executable('hb-gpu-demo',
+      ['hb-gpu-demo.cc'] + gpu_demo_sources,
+      cpp_args: cpp_args,
+      include_directories: [incconfig, incsrc],
+      dependencies: [util_deps, gl_dep, glew_dep, glfw_dep],
+      link_with: [libharfbuzz, libharfbuzz_gpu],
+      install: false,
+    )
+  endif
+
+  hb_gpu_encode_all = executable('hb-gpu-encode-all',
+    'hb-gpu-encode-all.cc',
+    cpp_args: cpp_args,
+    include_directories: [incconfig, incsrc],
+    link_with: [libharfbuzz, libharfbuzz_gpu],
+    install: false,
+  )
+endif

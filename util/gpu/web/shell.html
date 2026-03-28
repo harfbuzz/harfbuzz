@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>HarfBuzz GPU Demo</title>
+<style>
+  body { margin: 0; background: #222; overflow: hidden; touch-action: none; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  #fps { position: fixed; top: 8px; right: 12px; color: #999;
+         font: 14px monospace; pointer-events: none; z-index: 1; }
+</style>
+</head>
+<body>
+<div id="fps"></div>
+<canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+<script>
+  var canvas = document.getElementById('canvas');
+  function resizeCanvas () {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(canvas.clientWidth * dpr);
+    canvas.height = Math.round(canvas.clientHeight * dpr);
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  var fpsEl = document.getElementById('fps');
+  var frames = 0, lastTime = performance.now();
+  (function fpsLoop () {
+    requestAnimationFrame(fpsLoop);
+    frames++;
+    var now = performance.now();
+    if (now - lastTime >= 1000) {
+      fpsEl.textContent = Math.round(frames * 1000 / (now - lastTime)) + ' fps';
+      frames = 0;
+      lastTime = now;
+    }
+  })();
+
+  /* Pinch-to-zoom: translate two-finger pinch to wheel events. */
+  var pinchDist = 0;
+  canvas.addEventListener('touchstart', function (e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      var t = e.touches;
+      pinchDist = Math.hypot(t[1].clientX - t[0].clientX,
+                             t[1].clientY - t[0].clientY);
+    }
+  }, {passive: false});
+  canvas.addEventListener('touchmove', function (e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      var t = e.touches;
+      var dist = Math.hypot(t[1].clientX - t[0].clientX,
+                            t[1].clientY - t[0].clientY);
+      var change = dist - pinchDist;
+      /* Dead zone: ignore jitter below 2 pixels. */
+      if (Math.abs(change) < 2) return;
+      pinchDist = dist;
+      /* Scale relative to finger distance for consistent feel. */
+      var delta = change / dist * 5;
+      canvas.dispatchEvent(new WheelEvent('wheel', {
+        deltaY: -delta * 120,
+        clientX: (t[0].clientX + t[1].clientX) / 2,
+        clientY: (t[0].clientY + t[1].clientY) / 2
+      }));
+    }
+  }, {passive: false});
+
+  var Module = {
+    canvas: canvas,
+    onRuntimeInitialized: function () {
+      console.log('HarfBuzz GPU Demo loaded');
+    }
+  };
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

@@ -3,6 +3,7 @@ tests = [
   'hb-subset-fuzzer.cc',
   'hb-raster-fuzzer.cc',
   'hb-vector-fuzzer.cc',
+  'hb-gpu-fuzzer.cc',
   'hb-repacker-fuzzer.cc',
 ]
 
@@ -37,6 +38,10 @@ foreach file_name : tests
     continue
   endif
 
+  if test_name.contains('gpu') and get_option('gpu').disabled()
+    continue
+  endif
+
   link_with_libs = [libharfbuzz]
   if test_name.contains('subset') or test_name.contains('repacker')
     link_with_libs += [libharfbuzz_subset]
@@ -46,6 +51,9 @@ foreach file_name : tests
   endif
   if test_name.contains('vector')
     link_with_libs += [libharfbuzz_vector]
+  endif
+  if test_name.contains('gpu')
+    link_with_libs += [libharfbuzz_gpu]
   endif
 
   exe = executable(test_name, sources,
@@ -116,6 +124,20 @@ if not get_option('vector').disabled()
   foreach chunk : fonts_glob_chunks
     test('vector-fuzzer-chunk-@0@'.format(i),
       hb_vector_fuzzer_exe,
+      args: chunk,
+      workdir: meson.current_build_dir() / '..' / '..',
+      protocol: 'tap',
+      suite: ['fuzzing'],
+    )
+    i += 1
+  endforeach
+endif
+
+if not get_option('gpu').disabled()
+  i = 0
+  foreach chunk : fonts_glob_chunks
+    test('gpu-fuzzer-chunk-@0@'.format(i),
+      hb_gpu_fuzzer_exe,
       args: chunk,
       workdir: meson.current_build_dir() / '..' / '..',
       protocol: 'tap',

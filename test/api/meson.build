@@ -141,3 +141,15 @@ if not get_option('raster').disabled()
     env: env,
     suite: ['api', 'raster'])
 endif
+
+if not get_option('gpu').disabled()
+  test('test-gpu',
+    executable('test-gpu', 'test-gpu.cc',
+      include_directories: [incconfig],
+      dependencies: [libharfbuzz_gpu_dep],
+      install: false,
+    ),
+    protocol: 'tap',
+    env: env,
+    suite: ['api', 'gpu'])
+endif

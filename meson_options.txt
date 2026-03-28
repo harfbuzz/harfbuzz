@@ -37,6 +37,8 @@ option('raster', type: 'feature', value: 'enabled',
   description: 'Enable HarfBuzz glyph rasterization library')
 option('vector', type: 'feature', value: 'enabled',
   description: 'Enable HarfBuzz glyph vector drawing library')
+option('gpu', type: 'feature', value: 'enabled',
+  description: 'Enable HarfBuzz GPU rasterization library')
 option('subset', type: 'feature', value: 'enabled',
   description: 'Enable HarfBuzz font subsetting and instancing library')
 

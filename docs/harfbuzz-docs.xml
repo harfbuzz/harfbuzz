@@ -99,6 +99,7 @@
         <title>Rendering API</title>
         <xi:include href="xml/hb-raster.xml"/>
         <xi:include href="xml/hb-vector.xml"/>
+        <xi:include href="xml/hb-gpu.xml"/>
       </chapter>
 
       <chapter id="integration-api">

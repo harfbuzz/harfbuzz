@@ -23,5 +23,12 @@ ret = subprocess.Popen (ragel.split() + ['-e', '-F1', '-o', hh, rl], cwd=outdir)
 if ret:
     sys.exit (ret)
 
-# copy it also to src/
-shutil.copyfile (os.path.join (outdir, hh), os.path.join (CURRENT_SOURCE_DIR, hh))
+# copy it also to src/; if read-only, verify committed copy matches.
+generated = os.path.join (outdir, hh)
+src_copy = os.path.join (CURRENT_SOURCE_DIR, hh)
+try:
+    shutil.copyfile (generated, src_copy)
+except OSError:
+    import filecmp
+    if not filecmp.cmp (generated, src_copy, shallow=False):
+        sys.exit (f'{src_copy} is out of date; regenerate with a writable source tree')

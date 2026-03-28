@@ -1,0 +1,26 @@
+#! /usr/bin/env python3
+
+import sys
+
+try:
+    decl = sys.argv[1]
+except IndexError:
+    sys.stderr.write("hb-gpu-stringize: missing declaration: {}\n".format(sys.argv))
+    sys.exit(1)
+
+try:
+    filename = sys.argv[2]
+except IndexError:
+    sys.stderr.write("hb-gpu-stringize: missing filename: {}\n".format(sys.argv))
+    sys.exit(1)
+
+file = open(filename, 'r')
+
+print(f'{decl} =')
+text = file.read(-1)
+lines = text.splitlines()
+for line in lines:
+    line = line.replace(r'\\', r'\\\\')
+    line = line.replace(r'"', r'\"')
+    print(f'"{line}\\n"')
+print(';')
