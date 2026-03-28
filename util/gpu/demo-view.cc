@@ -426,7 +426,16 @@ demo_view_motion_func (demo_view_t *vu, double x, double y)
   if (!vu->buttons)
     return;
 
-  vu->dragged = true;
+  /* Only count as dragged if moved more than a few pixels (helps touch). */
+  if (!vu->dragged)
+  {
+    double dx = x - vu->beginx;
+    double dy = y - vu->beginy;
+    if (dx * dx + dy * dy > 25)
+      vu->dragged = true;
+    else
+      return;
+  }
 
   int width, height;
   glfwGetWindowSize (vu->window, &width, &height);
