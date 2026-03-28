@@ -142,8 +142,6 @@ struct gpu_output_t
 		       unsigned text_len HB_UNUSED,
 		       hb_bool_t utf8_clusters HB_UNUSED)
   {
-    unsigned vert_start = demo_buffer_get_vertex_count (buf);
-
     unsigned count = hb_buffer_get_length (buffer);
     hb_glyph_info_t *infos = hb_buffer_get_glyph_infos (buffer, nullptr);
     hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, nullptr);
@@ -155,11 +153,6 @@ struct gpu_output_t
 			     pos[i].x_offset,
 			     pos[i].y_offset,
 			     pos[i].x_advance);
-
-    unsigned vert_end = demo_buffer_get_vertex_count (buf);
-
-    if (hb_buffer_get_direction (buffer) == HB_DIRECTION_RTL && vert_end > vert_start)
-      rtl_lines.push_back ({vert_start, vert_end});
   }
 
   void error (const char *message)
@@ -170,31 +163,6 @@ struct gpu_output_t
   template <typename app_t>
   void finish (hb_buffer_t *buffer_ HB_UNUSED, const app_t *app HB_UNUSED)
   {
-    /* Right-align RTL lines to the logical extents width. */
-    if (!rtl_lines.empty ())
-    {
-      /* Compute average line width across RTL lines. */
-      float sum_max_x = 0;
-      for (auto &lr : rtl_lines)
-      {
-	float line_max_x = 0;
-	for (unsigned i = lr.start; i < lr.end; i++)
-	{
-	  float x = demo_buffer_get_vertex_x (buf, i);
-	  if (x > line_max_x)
-	    line_max_x = x;
-	}
-	lr.max_x = line_max_x;
-	sum_max_x += line_max_x;
-      }
-      float avg_width = sum_max_x / rtl_lines.size ();
-
-      /* Right-align each RTL line to the average width. */
-      for (auto &lr : rtl_lines)
-	demo_buffer_shift_vertices (buf, lr.start, lr.end,
-				    avg_width - lr.max_x);
-    }
-
     demo_font_print_stats (demo_font_);
     demo_view_print_help (vu);
     demo_view_setup (vu);
@@ -223,12 +191,9 @@ struct gpu_output_t
 
   private:
 
-  struct line_range_t { unsigned start, end; float max_x; };
-
   double font_size = 1;
   hb_font_t *font = nullptr;
   hb_face_t *face = nullptr;
-  std::vector<line_range_t> rtl_lines;
 
   GLFWwindow *window = nullptr;
   demo_glstate_t *st = nullptr;

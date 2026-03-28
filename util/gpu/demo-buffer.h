@@ -51,18 +51,6 @@ void
 demo_buffer_current_line (demo_buffer_t *buffer,
 			  double         font_size);
 
-unsigned
-demo_buffer_get_vertex_count (demo_buffer_t *buffer);
-
-float
-demo_buffer_get_vertex_x (demo_buffer_t *buffer, unsigned index);
-
-void
-demo_buffer_shift_vertices (demo_buffer_t *buffer,
-			    unsigned       start,
-			    unsigned       end,
-			    float          dx);
-
 void
 demo_buffer_draw (demo_buffer_t *buffer);
 

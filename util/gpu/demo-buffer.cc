@@ -173,29 +173,6 @@ demo_buffer_add_glyph (demo_buffer_t      *buffer,
   buffer->dirty = true;
 }
 
-unsigned
-demo_buffer_get_vertex_count (demo_buffer_t *buffer)
-{
-  return buffer->vertices->size ();
-}
-
-float
-demo_buffer_get_vertex_x (demo_buffer_t *buffer, unsigned index)
-{
-  return (*buffer->vertices)[index].x;
-}
-
-void
-demo_buffer_shift_vertices (demo_buffer_t *buffer,
-			    unsigned       start,
-			    unsigned       end,
-			    float          dx)
-{
-  for (unsigned i = start; i < end && i < buffer->vertices->size (); i++)
-    (*buffer->vertices)[i].x += dx;
-  buffer->dirty = true;
-}
-
 void
 demo_buffer_draw (demo_buffer_t *buffer)
 {
