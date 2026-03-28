@@ -23,5 +23,9 @@ gpu_demo_sources = files(
 
 glew_dep = dependency('glew', required: false)
 glfw_dep = dependency('glfw3', required: false)
-gl_dep = dependency('gl', required: false)
+if host_machine.system() == 'darwin'
+  gl_dep = dependency('appleframeworks', modules: ['OpenGL'], required: false)
+else
+  gl_dep = dependency('gl', required: false)
+endif
 have_gpu_demo_deps = glew_dep.found() and glfw_dep.found() and gl_dep.found()
