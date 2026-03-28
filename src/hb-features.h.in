@@ -134,6 +134,13 @@ HB_BEGIN_DECLS
  */
 #mesondefine HB_HAS_WASM
 
+/**
+ * HB_HAS_GPU:
+ *
+ * Defined if Harfbuzz has been built with the GPU library.
+ */
+#mesondefine HB_HAS_GPU
+
 
 HB_END_DECLS
 

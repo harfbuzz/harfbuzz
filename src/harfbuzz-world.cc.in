@@ -2,28 +2,72 @@
 #include HB_FEATURES_H
 #endif
 
-#ifdef HB_HAS_SUBSET
-%%HARFBUZZ_SUBSET_SOURCES%%
-#else
-%%HARFBUZZ_SOURCES%%
+/* Core library. */
+%%BASE_SOURCES%%
+
+#ifdef HB_HAS_CAIRO
+%%CAIRO_SOURCES%%
+#endif
+
+#ifdef HB_HAS_CORETEXT
+#define HAVE_CORETEXT 1
+%%CORETEXT_SOURCES%%
+#endif
+
+#ifdef HB_HAS_DIRECTWRITE
+#define HAVE_DIRECTWRITE 1
+%%DIRECTWRITE_SOURCES%%
+#endif
+
+#ifdef HB_HAS_FREETYPE
+#define HAVE_FREETYPE 1
+%%FREETYPE_SOURCES%%
+#endif
+
+#ifdef HB_HAS_GDI
+#ifndef HAVE_GDI
+#define HAVE_GDI 1
+%%GDI_SOURCES%%
+#endif
+#endif
+
+#ifdef HB_HAS_GLIB
+#define HAVE_GLIB 1
+%%GLIB_SOURCES%%
+#endif
+
+#ifdef HB_HAS_GRAPHITE
+#define HAVE_GRAPHITE 1
+%%GRAPHITE_SOURCES%%
+#endif
+
+#ifdef HB_HAS_GPU
+%%GPU_SOURCES%%
 #endif
 
 #ifdef HB_HAS_ICU
 %%ICU_SOURCES%%
 #endif
 
-#ifdef HB_HAS_CAIRO
-%%CAIRO_SOURCES%%
-#endif
-
 #ifdef HB_HAS_RASTER
 %%RASTER_SOURCES%%
+#endif
+
+#ifdef HB_HAS_SUBSET
+%%SUBSET_SOURCES%%
+#endif
+
+#ifdef HB_HAS_UNISCRIBE
+#define HAVE_UNISCRIBE 1
+#define HAVE_GDI 1
+%%UNISCRIBE_SOURCES%%
 #endif
 
 #ifdef HB_HAS_VECTOR
 %%VECTOR_SOURCES%%
 #endif
 
-#ifdef HB_HAS_GPU
-%%GPU_SOURCES%%
+#ifdef HB_HAS_WASM
+#define HAVE_WASM 1
+%%WASM_SOURCES%%
 #endif

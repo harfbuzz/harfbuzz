@@ -2,9 +2,8 @@
 #include HB_FEATURES_H
 #endif
 
-#ifdef HB_HAS_SUBSET
+/* Core library. */
 #include "OT/Var/VARC/VARC.cc"
-#include "graph/gsubgpos-context.cc"
 #include "hb-aat-layout.cc"
 #include "hb-aat-map.cc"
 #include "hb-blob.cc"
@@ -12,21 +11,11 @@
 #include "hb-buffer-verify.cc"
 #include "hb-buffer.cc"
 #include "hb-common.cc"
-#include "hb-coretext-font.cc"
-#include "hb-coretext-shape.cc"
-#include "hb-coretext.cc"
-#include "hb-directwrite-font.cc"
-#include "hb-directwrite-shape.cc"
-#include "hb-directwrite.cc"
 #include "hb-draw.cc"
 #include "hb-face-builder.cc"
 #include "hb-face.cc"
 #include "hb-fallback-shape.cc"
 #include "hb-font.cc"
-#include "hb-ft.cc"
-#include "hb-gdi.cc"
-#include "hb-glib.cc"
-#include "hb-graphite2.cc"
 #include "hb-map.cc"
 #include "hb-number.cc"
 #include "hb-ot-cff1-table.cc"
@@ -67,6 +56,88 @@
 #include "hb-shaper.cc"
 #include "hb-static.cc"
 #include "hb-style.cc"
+#include "hb-ucd.cc"
+#include "hb-unicode.cc"
+
+#ifdef HB_HAS_CAIRO
+#include "hb-cairo-utils.cc"
+#include "hb-cairo.cc"
+#include "hb-static.cc"
+#endif
+
+#ifdef HB_HAS_CORETEXT
+#define HAVE_CORETEXT 1
+#include "hb-coretext-font.cc"
+#include "hb-coretext-shape.cc"
+#include "hb-coretext.cc"
+#endif
+
+#ifdef HB_HAS_DIRECTWRITE
+#define HAVE_DIRECTWRITE 1
+#include "hb-directwrite-font.cc"
+#include "hb-directwrite-shape.cc"
+#include "hb-directwrite.cc"
+#endif
+
+#ifdef HB_HAS_FREETYPE
+#define HAVE_FREETYPE 1
+#include "hb-ft.cc"
+#endif
+
+#ifdef HB_HAS_GDI
+#ifndef HAVE_GDI
+#define HAVE_GDI 1
+#include "hb-gdi.cc"
+#endif
+#endif
+
+#ifdef HB_HAS_GLIB
+#define HAVE_GLIB 1
+#include "hb-glib.cc"
+#endif
+
+#ifdef HB_HAS_GRAPHITE
+#define HAVE_GRAPHITE 1
+#include "hb-graphite2.cc"
+#endif
+
+#ifdef HB_HAS_GPU
+#include "hb-gpu-draw.cc"
+#include "hb-gpu-shaders.cc"
+#include "hb-gpu.cc"
+#include "hb-static.cc"
+#endif
+
+#ifdef HB_HAS_ICU
+#include "hb-icu.cc"
+#endif
+
+#ifdef HB_HAS_RASTER
+#include "hb-raster-draw.cc"
+#include "hb-raster-image.cc"
+#include "hb-raster-paint.cc"
+#include "hb-raster-svg-base.cc"
+#include "hb-raster-svg-bbox.cc"
+#include "hb-raster-svg-clip.cc"
+#include "hb-raster-svg-color.cc"
+#include "hb-raster-svg-defs-scan.cc"
+#include "hb-raster-svg-defs.cc"
+#include "hb-raster-svg-fill.cc"
+#include "hb-raster-svg-gradient.cc"
+#include "hb-raster-svg-parse.cc"
+#include "hb-raster-svg-render.cc"
+#include "hb-raster-svg-use.cc"
+#include "hb-raster.cc"
+#include "hb-static.cc"
+#include "hb-zlib.cc"
+#endif
+
+#ifdef HB_HAS_SUBSET
+#include "graph/gsubgpos-context.cc"
+#include "hb-number.cc"
+#include "hb-ot-cff1-table.cc"
+#include "hb-ot-cff2-table.cc"
+#include "hb-static.cc"
 #include "hb-subset-cff-common.cc"
 #include "hb-subset-cff1.cc"
 #include "hb-subset-cff2-to-cff1.cc"
@@ -84,133 +155,27 @@
 #include "hb-subset-table-other.cc"
 #include "hb-subset-table-var.cc"
 #include "hb-subset.cc"
-#include "hb-ucd.cc"
-#include "hb-unicode.cc"
+#endif
+
+#ifdef HB_HAS_UNISCRIBE
+#define HAVE_UNISCRIBE 1
+#define HAVE_GDI 1
 #include "hb-uniscribe.cc"
-#include "hb-wasm-api.cc"
-#include "hb-wasm-shape.cc"
-
-#else
-#include "OT/Var/VARC/VARC.cc"
-#include "hb-aat-layout.cc"
-#include "hb-aat-map.cc"
-#include "hb-blob.cc"
-#include "hb-buffer-serialize.cc"
-#include "hb-buffer-verify.cc"
-#include "hb-buffer.cc"
-#include "hb-common.cc"
-#include "hb-coretext-font.cc"
-#include "hb-coretext-shape.cc"
-#include "hb-coretext.cc"
-#include "hb-directwrite-font.cc"
-#include "hb-directwrite-shape.cc"
-#include "hb-directwrite.cc"
-#include "hb-draw.cc"
-#include "hb-face-builder.cc"
-#include "hb-face.cc"
-#include "hb-fallback-shape.cc"
-#include "hb-font.cc"
-#include "hb-ft.cc"
-#include "hb-gdi.cc"
-#include "hb-glib.cc"
-#include "hb-graphite2.cc"
-#include "hb-map.cc"
-#include "hb-number.cc"
-#include "hb-ot-cff1-table.cc"
-#include "hb-ot-cff2-table.cc"
-#include "hb-ot-color.cc"
-#include "hb-ot-face.cc"
-#include "hb-ot-font.cc"
-#include "hb-ot-layout.cc"
-#include "hb-ot-map.cc"
-#include "hb-ot-math.cc"
-#include "hb-ot-meta.cc"
-#include "hb-ot-metrics.cc"
-#include "hb-ot-name.cc"
-#include "hb-ot-shape-fallback.cc"
-#include "hb-ot-shape-normalize.cc"
-#include "hb-ot-shape.cc"
-#include "hb-ot-shaper-arabic.cc"
-#include "hb-ot-shaper-default.cc"
-#include "hb-ot-shaper-hangul.cc"
-#include "hb-ot-shaper-hebrew.cc"
-#include "hb-ot-shaper-indic-table.cc"
-#include "hb-ot-shaper-indic.cc"
-#include "hb-ot-shaper-khmer.cc"
-#include "hb-ot-shaper-myanmar.cc"
-#include "hb-ot-shaper-syllabic.cc"
-#include "hb-ot-shaper-thai.cc"
-#include "hb-ot-shaper-use.cc"
-#include "hb-ot-shaper-vowel-constraints.cc"
-#include "hb-ot-tag.cc"
-#include "hb-ot-var.cc"
-#include "hb-outline.cc"
-#include "hb-paint-bounded.cc"
-#include "hb-paint-extents.cc"
-#include "hb-paint.cc"
-#include "hb-set.cc"
-#include "hb-shape-plan.cc"
-#include "hb-shape.cc"
-#include "hb-shaper.cc"
-#include "hb-static.cc"
-#include "hb-style.cc"
-#include "hb-ucd.cc"
-#include "hb-unicode.cc"
-#include "hb-uniscribe.cc"
-#include "hb-wasm-api.cc"
-#include "hb-wasm-shape.cc"
-
-#endif
-
-#ifdef HB_HAS_ICU
-#include "hb-icu.cc"
-
-#endif
-
-#ifdef HB_HAS_CAIRO
-#include "../builddir/hb-cairo-utils.cc"
-#include "../builddir/hb-cairo.cc"
-#include "../builddir/hb-static.cc"
-
-#endif
-
-#ifdef HB_HAS_RASTER
-#include "../builddir/hb-raster-draw.cc"
-#include "../builddir/hb-raster-image.cc"
-#include "../builddir/hb-raster-paint.cc"
-#include "../builddir/hb-raster-svg-base.cc"
-#include "../builddir/hb-raster-svg-bbox.cc"
-#include "../builddir/hb-raster-svg-clip.cc"
-#include "../builddir/hb-raster-svg-color.cc"
-#include "../builddir/hb-raster-svg-defs-scan.cc"
-#include "../builddir/hb-raster-svg-defs.cc"
-#include "../builddir/hb-raster-svg-fill.cc"
-#include "../builddir/hb-raster-svg-gradient.cc"
-#include "../builddir/hb-raster-svg-parse.cc"
-#include "../builddir/hb-raster-svg-render.cc"
-#include "../builddir/hb-raster-svg-use.cc"
-#include "../builddir/hb-raster.cc"
-#include "../builddir/hb-static.cc"
-#include "../builddir/hb-zlib.cc"
-
 #endif
 
 #ifdef HB_HAS_VECTOR
-#include "../builddir/hb-static.cc"
-#include "../builddir/hb-vector-svg-draw.cc"
-#include "../builddir/hb-vector-svg-paint.cc"
-#include "../builddir/hb-vector-svg-path.cc"
-#include "../builddir/hb-vector-svg-subset.cc"
-#include "../builddir/hb-vector-svg-utils.cc"
-#include "../builddir/hb-vector.cc"
-#include "../builddir/hb-zlib.cc"
-
+#include "hb-static.cc"
+#include "hb-vector-svg-draw.cc"
+#include "hb-vector-svg-paint.cc"
+#include "hb-vector-svg-path.cc"
+#include "hb-vector-svg-subset.cc"
+#include "hb-vector-svg-utils.cc"
+#include "hb-vector.cc"
+#include "hb-zlib.cc"
 #endif
 
-#ifdef HB_HAS_GPU
-#include "../builddir/hb-gpu-draw.cc"
-#include "../builddir/hb-gpu-shaders.cc"
-#include "../builddir/hb-gpu.cc"
-#include "../builddir/hb-static.cc"
-
+#ifdef HB_HAS_WASM
+#define HAVE_WASM 1
+#include "hb-wasm-api.cc"
+#include "hb-wasm-shape.cc"
 #endif

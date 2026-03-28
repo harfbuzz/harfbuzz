@@ -10,7 +10,7 @@ OUTDIR="$(dirname "$0")/out"
 
 mkdir -p "$OUTDIR"
 
-COMMON_FLAGS="-O2 -I$SRCDIR/src -DHB_NO_MT -DHAVE_ROUND -DHB_GPU_ATLAS_2D"
+COMMON_FLAGS="-O2 -I$SRCDIR/src -DHB_NO_MT -DHAVE_ROUND -DHB_GPU_ATLAS_2D -DHB_HAS_GPU"
 
 # Compile C files
 emcc $COMMON_FLAGS -c "$SRCDIR/util/gpu/matrix4x4.c" -o "$OUTDIR/matrix4x4.o"
@@ -20,10 +20,7 @@ emcc $COMMON_FLAGS -c "$SRCDIR/util/gpu/trackball.c" -o "$OUTDIR/trackball.o"
 em++ \
   -std=c++17 \
   $COMMON_FLAGS \
-  "$SRCDIR/src/harfbuzz.cc" \
-  "$SRCDIR/src/hb-gpu.cc" \
-  "$SRCDIR/src/hb-gpu-draw.cc" \
-  "$SRCDIR/src/hb-gpu-shaders.cc" \
+  "$SRCDIR/src/harfbuzz-world.cc" \
   "$SRCDIR/util/gpu/demo-atlas.cc" \
   "$SRCDIR/util/gpu/demo-buffer.cc" \
   "$SRCDIR/util/gpu/demo-font.cc" \

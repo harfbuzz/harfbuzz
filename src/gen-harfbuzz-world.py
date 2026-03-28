@@ -38,8 +38,8 @@ def make_includes(files):
         rel = pathlib.Path(os.path.relpath(os.path.abspath(f), CURRENT_SOURCE_DIR)).as_posix()
         if rel not in seen:
             seen.add(rel)
-            lines.append('#include "{}"\n'.format(rel))
-    return ''.join(lines)
+            lines.append('#include "{}"'.format(rel))
+    return '\n'.join(lines)
 
 # Read template and substitute
 with open(TEMPLATE, 'r') as f:

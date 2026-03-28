@@ -1,5 +1,6 @@
 #ifndef HB_ZLIB_CC
 #define HB_ZLIB_CC
+#ifdef HB_ZLIB_CC /* Pacify -Wunused-macros. */
 
 #include "hb.hh"
 
@@ -95,4 +96,5 @@ fail_free:
 #endif
 }
 
-#endif /* HB_ZLIB_CC */
+#endif /* HB_ZLIB_CC pacify */
+#endif /* HB_ZLIB_CC guard */

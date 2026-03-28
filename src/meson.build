@@ -592,6 +592,7 @@ features = [
   'UNISCRIBE',
   'VECTOR',
   'WASM',
+  'GPU',
 ]
 
 hb_enabled_features = configuration_data()
@@ -707,7 +708,7 @@ if not get_option('subset').disabled()
   meson.override_dependency('harfbuzz-subset', libharfbuzz_subset_dep)
 endif
 
-hb_raster_sources = [
+hb_raster_sources = files(
   'hb-zlib.cc',
   'hb-zlib.hh',
   'hb-raster.cc',
@@ -741,13 +742,13 @@ hb_raster_sources = [
   'hb-raster-paint.hh',
   'hb-raster-svg.hh',
   'hb-static.cc',
-]
+)
 
 hb_raster_headers = [
   'hb-raster.h',
 ]
 
-hb_vector_sources = [
+hb_vector_sources = files(
   'hb-zlib.cc',
   'hb-zlib.hh',
   'hb-vector.cc',
@@ -760,7 +761,7 @@ hb_vector_sources = [
   'hb-vector-svg-utils.cc',
   'hb-vector-svg-utils.hh',
   'hb-static.cc',
-]
+)
 
 hb_vector_headers = [
   'hb-vector.h',
@@ -868,12 +869,12 @@ foreach p: hb_gpu_glsl_sources
 	       meson.current_source_dir(), '@INPUT@' ])
 endforeach
 
-hb_gpu_sources = [
+hb_gpu_sources = files(
   'hb-gpu.cc',
   'hb-gpu-draw.cc',
   'hb-gpu-shaders.cc',
   'hb-static.cc',
-]
+)
 
 hb_gpu_headers = [
   'hb-gpu.h',
@@ -918,12 +919,12 @@ if not get_option('gpu').disabled()
   )
 endif
 
-hb_cairo_sources = [
+hb_cairo_sources = files(
   'hb-cairo.cc',
   'hb-cairo-utils.cc',
   'hb-cairo-utils.hh',
   'hb-static.cc'
-]
+)
 
 hb_cairo_headers = [
   'hb-cairo.h',
@@ -1346,12 +1347,16 @@ custom_target('harfbuzz-world.cc',
   input: ['harfbuzz-world.cc.in'],
   command: [find_program('gen-harfbuzz-world.py'),
             '@OUTPUT@', meson.current_source_dir(), '@INPUT@',
-            '--HARFBUZZ_SOURCES'] + hb_base_sources + hb_glib_sources + hb_ft_sources +
-            hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
-            hb_directwrite_sources + hb_coretext_sources + hb_wasm_sources +
-           ['--HARFBUZZ_SUBSET_SOURCES'] + hb_base_sources + hb_subset_sources + hb_glib_sources + hb_ft_sources +
-            hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
-            hb_directwrite_sources + hb_coretext_sources + hb_wasm_sources +
+            '--BASE_SOURCES'] + hb_base_sources +
+           ['--FREETYPE_SOURCES'] + hb_ft_sources +
+           ['--GLIB_SOURCES'] + hb_glib_sources +
+           ['--GRAPHITE_SOURCES'] + hb_graphite2_sources +
+           ['--UNISCRIBE_SOURCES'] + hb_uniscribe_sources +
+           ['--GDI_SOURCES'] + hb_gdi_sources +
+           ['--DIRECTWRITE_SOURCES'] + hb_directwrite_sources +
+           ['--CORETEXT_SOURCES'] + hb_coretext_sources +
+           ['--WASM_SOURCES'] + hb_wasm_sources +
+           ['--SUBSET_SOURCES'] + hb_subset_sources +
            ['--ICU_SOURCES'] + hb_icu_sources +
            ['--CAIRO_SOURCES'] + hb_cairo_sources +
            ['--RASTER_SOURCES'] + hb_raster_sources +
