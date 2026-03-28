@@ -49,8 +49,7 @@
 #include "../demo-glstate.h"
 #include "../demo-view.h"
 
-#include "../default-text-en.hh"
-#include "../default-text-fa.hh"
+#include "../default-text-combined.hh"
 #include "../default-font.hh"
 
 static demo_glstate_t *st;
@@ -143,8 +142,7 @@ main ()
   buffer = demo_buffer_create ();
   demo_point_t top_left = {0, 0};
   demo_buffer_move_to (buffer, &top_left);
-  demo_buffer_add_text (buffer, default_text_en, demo_font, 1);
-  demo_buffer_add_text (buffer, default_text_fa, demo_font, 1);
+  demo_buffer_add_text (buffer, default_text_combined, demo_font, 1);
 
   demo_font_print_stats (demo_font);
 

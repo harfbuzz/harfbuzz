@@ -38,13 +38,30 @@ def stringize(varname, text):
     parts.append(';\n')
     return ''.join(parts)
 
+MAX_TOTAL_LINES = 70
+
+all_wrapped = []
 for filename, varname, width in texts:
     path = os.path.join(PERFDIR, filename)
     with open(path, 'r') as f:
         text = f.read().strip()
     wrapped = wrap_at_width(text, width)
+    all_wrapped.append((varname, wrapped))
     hh = stringize(varname, wrapped)
     outpath = os.path.join(SRCDIR, varname.replace('default_text_', 'default-text-') + '.hh')
     with open(outpath, 'w') as f:
         f.write(hh)
     print('Generated: {}'.format(outpath))
+
+# Generate combined text cropped to MAX_TOTAL_LINES / num_texts per text.
+lines_per = MAX_TOTAL_LINES // len(all_wrapped)
+combined_lines = []
+for varname, wrapped in all_wrapped:
+    lines = wrapped.split('\n')[:lines_per]
+    combined_lines.extend(lines)
+combined = '\n'.join(combined_lines)
+hh = stringize('default_text_combined', combined)
+outpath = os.path.join(SRCDIR, 'default-text-combined.hh')
+with open(outpath, 'w') as f:
+    f.write(hh)
+print('Generated: {}'.format(outpath))
