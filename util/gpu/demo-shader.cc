@@ -131,14 +131,20 @@ demo_shader_create_program (void)
 {
   GLuint vertex_shader, fragment_shader, program;
 
-  const GLchar *vert_sources[] = {"#version 330\n",
+#ifdef HB_GPU_ATLAS_2D
+  const GLchar *preamble = "#version 300 es\nprecision highp float;\nprecision highp int;\n#define HB_GPU_ATLAS_2D\n";
+#else
+  const GLchar *preamble = "#version 330\n";
+#endif
+
+  const GLchar *vert_sources[] = {preamble,
 				  hb_gpu_shader_vertex_source (HB_GPU_SHADER_LANG_GLSL),
 				  demo_vertex_glsl};
   vertex_shader = compile_shader (GL_VERTEX_SHADER,
 				  ARRAY_LEN (vert_sources),
 				  vert_sources);
 
-  const GLchar *frag_sources[] = {"#version 330\n",
+  const GLchar *frag_sources[] = {preamble,
 				  hb_gpu_shader_fragment_source (HB_GPU_SHADER_LANG_GLSL),
 				  demo_fragment_glsl};
   fragment_shader = compile_shader (GL_FRAGMENT_SHADER,

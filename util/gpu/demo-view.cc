@@ -366,10 +366,15 @@ demo_view_mouse_func (demo_view_t *vu, int button, int action, int mods)
     vu->buttons &= ~(1 << button);
   vu->modifiers = mods;
 
+  glfwGetCursorPos (vu->window, &vu->cursorx, &vu->cursory);
   double x = vu->cursorx, y = vu->cursory;
 
   switch (button)
   {
+    case GLFW_MOUSE_BUTTON_LEFT:
+      if (action == GLFW_RELEASE && !vu->dragged && !vu->click_handled)
+	demo_view_toggle_animation (vu);
+      break;
     case GLFW_MOUSE_BUTTON_RIGHT:
       switch (action) {
 	case GLFW_PRESS:
@@ -501,7 +506,7 @@ demo_view_print_help (demo_view_t *vu)
   LOGI ("  Right drag                Rotate\n");
   LOGI ("  Shift + right drag        Adjust perspective\n");
   LOGI ("  Right drag and release    Spin animation\n");
-  LOGI ("  Right click               Toggle animation\n");
+  LOGI ("  Click / tap               Toggle animation\n");
   LOGI ("\n");
 }
 

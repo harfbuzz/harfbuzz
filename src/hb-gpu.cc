@@ -73,7 +73,7 @@
  * backed by a GL_RGBA16I format buffer.  Each glyph occupies a
  * contiguous range of texels at a known offset:
  *
- * |[<!-- language="C" -->
+ * |[<!-- language="plain" -->
  * GLuint buf, tex;
  * glGenBuffers (1, &buf);
  * glGenTextures (1, &tex);
@@ -97,7 +97,7 @@
  * function and a fragment rendering function.  Prepend a #version
  * directive and append your own main():
  *
- * |[<!-- language="C" -->
+ * |[<!-- language="plain" -->
  * unsigned vert_count, frag_count;
  * const char * const *vert_lib = hb_gpu_shader_vertex_sources (
  *     HB_GPU_SHADER_LANG_GLSL, &vert_count);
@@ -117,7 +117,7 @@
  *
  * The vertex library provides one function:
  *
- * |[<!-- language="GLSL" -->
+ * |[<!-- language="plain" -->
  * void hb_gpu_dilate (inout vec2 position, inout vec2 texcoord,
  *                     vec2 normal, vec4 jac,
  *                     mat4 m, vec2 viewport);
@@ -163,7 +163,7 @@
  *
  * A typical vertex main:
  *
- * |[<!-- language="GLSL" -->
+ * |[<!-- language="plain" -->
  * uniform mat4 u_matViewProjection;
  * uniform vec2 u_viewport;
  *
@@ -198,7 +198,7 @@
  *
  * The fragment library provides one function:
  *
- * |[<!-- language="GLSL" -->
+ * |[<!-- language="plain" -->
  * float hb_gpu_render (vec2 renderCoord, uint glyphLoc);
  * ]|
  *
@@ -225,7 +225,7 @@
  *
  * A typical fragment main:
  *
- * |[<!-- language="GLSL" -->
+ * |[<!-- language="plain" -->
  * in vec2 v_texcoord;
  * flat in uint v_glyphLoc;
  * out vec4 fragColor;
