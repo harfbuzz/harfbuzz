@@ -87,7 +87,7 @@ demo_view_destroy (demo_view_t *vu)
 void
 demo_view_reset (demo_view_t *vu)
 {
-  vu->perspective = 4;
+  vu->perspective = 16;
   vu->scalex = vu->scaley = 1;
   vu->translate.x = vu->translate.y = 0;
   trackball (vu->quat , 0.0, 0.0, 0.0, 0.0);
