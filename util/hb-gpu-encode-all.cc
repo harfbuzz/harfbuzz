@@ -36,15 +36,30 @@
 int
 main (int argc, char **argv)
 {
-  if (argc < 2 || !strcmp (argv[1], "-h") || !strcmp (argv[1], "--help"))
+  const char *font_path = nullptr;
+  unsigned num_iters = 1;
+
+  for (int i = 1; i < argc; i++)
   {
-    fprintf (stderr, "Usage: %s FONTFILE\n\n"
-		     "Encode all glyphs and report failures and sizes.\n",
-	     argv[0]);
-    return argc < 2 ? 1 : 0;
+    if (!strcmp (argv[i], "-h") || !strcmp (argv[i], "--help"))
+    {
+      fprintf (stderr, "Usage: %s [-n iterations] FONTFILE\n", argv[0]);
+      return 0;
+    }
+    if (!strcmp (argv[i], "-n") && i + 1 < argc)
+    {
+      num_iters = atoi (argv[++i]);
+      if (!num_iters) num_iters = 1;
+      continue;
+    }
+    font_path = argv[i];
   }
 
-  const char *font_path = argv[1];
+  if (!font_path)
+  {
+    fprintf (stderr, "Usage: %s [-n iterations] FONTFILE\n", argv[0]);
+    return 1;
+  }
 
   hb_blob_t *blob = hb_blob_create_from_file_or_fail (font_path);
   if (!blob)
@@ -88,6 +103,7 @@ main (int argc, char **argv)
   typedef std::chrono::steady_clock clock;
   clock::time_point wall_start = clock::now ();
 
+  for (unsigned iter = 0; iter < num_iters; iter++)
   for (unsigned gid = 0; gid < glyph_count; gid++)
   {
     hb_gpu_draw_reset (draw);
@@ -104,25 +120,30 @@ main (int argc, char **argv)
 
     if (!encoded)
     {
-      fprintf (stderr, "gid %u: encode failed\n", gid);
-      num_failed++;
+      if (iter == 0)
+      {
+	fprintf (stderr, "gid %u: encode failed\n", gid);
+	num_failed++;
+      }
       continue;
     }
 
-    unsigned len = hb_blob_get_length (encoded);
-    if (len == 0)
-      num_empty++;
-    else
+    if (iter == 0)
     {
-      num_encoded++;
-      if (len > max_bytes)
+      unsigned len = hb_blob_get_length (encoded);
+      if (len == 0)
+	num_empty++;
+      else
       {
-	max_bytes = len;
-	max_gid = gid;
+	num_encoded++;
+	if (len > max_bytes)
+	{
+	  max_bytes = len;
+	  max_gid = gid;
+	}
       }
+      total_bytes += len;
     }
-
-    total_bytes += len;
     hb_gpu_draw_recycle_blob (draw, encoded);
   }
 
@@ -142,15 +163,16 @@ main (int argc, char **argv)
     printf ("max:      %.2f KiB (gid %u)\n",
 	    max_bytes / 1024., max_gid);
   }
+  uint64_t total_glyphs = (uint64_t) glyph_count * num_iters;
   printf ("outline:  %.3fms (%.1fus/glyph)\n",
-	  outline_ns / 1e6,
-	  glyph_count ? outline_ns / 1e3 / glyph_count : 0.);
+	  outline_ns / 1e6 / num_iters,
+	  total_glyphs ? outline_ns / 1e3 / total_glyphs : 0.);
   printf ("encode:   %.3fms (%.1fus/glyph)\n",
-	  encode_ns / 1e6,
-	  glyph_count ? encode_ns / 1e3 / glyph_count : 0.);
+	  encode_ns / 1e6 / num_iters,
+	  total_glyphs ? encode_ns / 1e3 / total_glyphs : 0.);
   printf ("wall:     %.3fms (%.0f glyphs/s)\n",
-	  wall_ns / 1e6,
-	  wall_ns ? glyph_count * 1e9 / wall_ns : 0.);
+	  wall_ns / 1e6 / num_iters,
+	  wall_ns ? total_glyphs * 1e9 / wall_ns : 0.);
 
   hb_gpu_draw_destroy (draw);
   hb_font_destroy (font);
