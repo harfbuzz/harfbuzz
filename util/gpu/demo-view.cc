@@ -510,12 +510,12 @@ demo_view_print_help (demo_view_t *vu)
   LOGI ("  ?                         This help\n");
   LOGI ("  Space                     Toggle animation\n");
   LOGI ("  f                         Toggle fullscreen\n");
-  LOGI ("  s                         Toggle sRGB framebuffer\n");
+  LOGI ("  g                         Cycle gamma (sRGB/2.2/none)\n");
   LOGI ("  v                         Toggle vsync\n");
   LOGI ("  =, -                      Zoom in/out\n");
   LOGI ("  [, ]                      Stretch/shrink horizontally\n");
   LOGI ("  {, }                      Stretch/shrink vertically\n");
-  LOGI ("  h, j, k, l               Pan (vim-style)\n");
+  LOGI ("  h, j, k, l                Pan (vim-style)\n");
   LOGI ("  Arrow keys                Pan\n");
   LOGI ("  r                         Reset view\n");
   LOGI ("  <N><key>                  Repeat key N times (e.g. 30=)\n");
