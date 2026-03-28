@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cinttypes>
+#include <chrono>
 
 int
 main (int argc, char **argv)
@@ -79,13 +80,28 @@ main (int argc, char **argv)
   unsigned num_empty = 0;
   unsigned num_failed = 0;
   uint64_t total_bytes = 0;
+  unsigned max_bytes = 0;
+  unsigned max_gid = 0;
+  uint64_t outline_ns = 0;
+  uint64_t encode_ns = 0;
+
+  typedef std::chrono::steady_clock clock;
+  clock::time_point wall_start = clock::now ();
 
   for (unsigned gid = 0; gid < glyph_count; gid++)
   {
     hb_gpu_draw_reset (draw);
+
+    clock::time_point t0 = clock::now ();
     hb_gpu_draw_glyph (draw, font, gid);
+    clock::time_point t1 = clock::now ();
 
     hb_blob_t *encoded = hb_gpu_draw_encode (draw);
+    clock::time_point t2 = clock::now ();
+
+    outline_ns += std::chrono::duration_cast<std::chrono::nanoseconds> (t1 - t0).count ();
+    encode_ns  += std::chrono::duration_cast<std::chrono::nanoseconds> (t2 - t1).count ();
+
     if (!encoded)
     {
       fprintf (stderr, "gid %u: encode failed\n", gid);
@@ -97,11 +113,20 @@ main (int argc, char **argv)
     if (len == 0)
       num_empty++;
     else
+    {
       num_encoded++;
+      if (len > max_bytes)
+      {
+	max_bytes = len;
+	max_gid = gid;
+      }
+    }
 
     total_bytes += len;
     hb_gpu_draw_recycle_blob (draw, encoded);
   }
+
+  uint64_t wall_ns = std::chrono::duration_cast<std::chrono::nanoseconds> (clock::now () - wall_start).count ();
 
   printf ("font:     %s\n", font_path);
   printf ("glyphs:   %u\n", glyph_count);
@@ -111,8 +136,21 @@ main (int argc, char **argv)
     printf ("FAILED:   %u\n", num_failed);
   printf ("total:    %.2f KiB\n", total_bytes / 1024.);
   if (num_encoded)
+  {
     printf ("avg:      %.2f KiB/glyph (non-empty)\n",
 	    total_bytes / 1024. / num_encoded);
+    printf ("max:      %.2f KiB (gid %u)\n",
+	    max_bytes / 1024., max_gid);
+  }
+  printf ("outline:  %.3fms (%.1fus/glyph)\n",
+	  outline_ns / 1e6,
+	  glyph_count ? outline_ns / 1e3 / glyph_count : 0.);
+  printf ("encode:   %.3fms (%.1fus/glyph)\n",
+	  encode_ns / 1e6,
+	  glyph_count ? encode_ns / 1e3 / glyph_count : 0.);
+  printf ("wall:     %.3fms (%.0f glyphs/s)\n",
+	  wall_ns / 1e6,
+	  wall_ns ? glyph_count * 1e9 / wall_ns : 0.);
 
   hb_gpu_draw_destroy (draw);
   hb_font_destroy (font);
