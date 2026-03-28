@@ -37,6 +37,36 @@
     }
   })();
 
+  /* Pinch-to-zoom: translate two-finger pinch to wheel events. */
+  var pinchDist = 0;
+  canvas.addEventListener('touchstart', function (e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      var t = e.touches;
+      pinchDist = Math.hypot(t[1].clientX - t[0].clientX,
+                             t[1].clientY - t[0].clientY);
+    }
+  }, {passive: false});
+  canvas.addEventListener('touchmove', function (e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      var t = e.touches;
+      var dist = Math.hypot(t[1].clientX - t[0].clientX,
+                            t[1].clientY - t[0].clientY);
+      var change = dist - pinchDist;
+      /* Dead zone: ignore jitter below 2 pixels. */
+      if (Math.abs(change) < 2) return;
+      pinchDist = dist;
+      /* Scale relative to finger distance for consistent feel. */
+      var delta = change / dist * 5;
+      canvas.dispatchEvent(new WheelEvent('wheel', {
+        deltaY: -delta * 120,
+        clientX: (t[0].clientX + t[1].clientX) / 2,
+        clientY: (t[0].clientY + t[1].clientY) / 2
+      }));
+    }
+  }, {passive: false});
+
   var Module = {
     canvas: canvas,
     onRuntimeInitialized: function () {

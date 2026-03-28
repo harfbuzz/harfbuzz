@@ -410,10 +410,8 @@ demo_view_mouse_func (demo_view_t *vu, int button, int action, int mods)
 void
 demo_view_scroll_func (demo_view_t *vu, double xoffset, double yoffset)
 {
-  if (yoffset > 0)
-    demo_view_scale (vu, STEP, STEP);
-  else if (yoffset < 0)
-    demo_view_scale (vu, 1. / STEP, 1. / STEP);
+  double factor = pow (STEP, yoffset);
+  demo_view_scale (vu, factor, factor);
   vu->needs_redraw = true;
 }
 
