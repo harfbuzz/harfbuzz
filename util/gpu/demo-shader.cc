@@ -4,8 +4,8 @@
 
 #include "demo-shader.h"
 
-#include "demo-vertex-glsl.h"
-#include "demo-fragment-glsl.h"
+#include "demo-vertex-glsl.hh"
+#include "demo-fragment-glsl.hh"
 
 
 void

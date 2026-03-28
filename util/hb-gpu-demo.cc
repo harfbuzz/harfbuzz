@@ -33,7 +33,7 @@
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
 const unsigned SUBPIXEL_BITS = 0;
 
-#include "gpu/default-text.h"
+#include "gpu/default-text.hh"
 
 struct gpu_text_options_t : shape_text_options_t
 {
@@ -50,7 +50,7 @@ struct gpu_font_options_t : font_options_t
 #ifdef _WIN32
     return nullptr; /* Will fail; user must provide font on Windows. */
 #else
-    #include "gpu/default-font.h"
+    #include "gpu/default-font.hh"
     hb_blob_t *blob = hb_blob_create ((const char *) default_font,
 				      sizeof (default_font),
 				      HB_MEMORY_MODE_READONLY,
