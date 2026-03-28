@@ -202,8 +202,14 @@
  * float hb_gpu_render (vec2 renderCoord, uint glyphLoc);
  * ]|
  *
- * It requires a `uniform isamplerBuffer hb_gpu_atlas` to be bound to
- * the texture buffer containing the encoded glyph data.
+ * It requires the `hb_gpu_atlas` uniform to be bound to the
+ * texture containing the encoded glyph data.  By default this
+ * is an `isamplerBuffer` (GL_TEXTURE_BUFFER).  For platforms
+ * without texture buffers (e.g. WebGL2), define
+ * `HB_GPU_ATLAS_2D` before including the shader source; the
+ * atlas then becomes an `isampler2D` and a
+ * `uniform int hb_gpu_atlas_width` must also be set to the
+ * texture width.
  *
  * Parameters:
  *

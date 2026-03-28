@@ -28,7 +28,7 @@ static const char *hb_gpu_vertex_glsl =
 " */\n"
 "\n"
 "\n"
-"/* Requires GLSL 3.30 */\n"
+"/* Requires GLSL 3.30 or GLSL ES 3.00. */\n"
 "\n"
 "\n"
 "/* Dilate a glyph vertex by half a pixel on screen.\n"

@@ -27,7 +27,7 @@
  */
 
 
-/* Requires GLSL 3.30 */
+/* Requires GLSL 3.30 or GLSL ES 3.00. */
 
 
 /* Dilate a glyph vertex by half a pixel on screen.
