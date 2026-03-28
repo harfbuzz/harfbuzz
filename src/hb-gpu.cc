@@ -131,35 +131,39 @@
  * Per-vertex attributes for each glyph quad (2 triangles, 6
  * vertices, 4 unique corners):
  *
- * - **position** (vec2): object-space vertex position, computed from
+ * - position (vec2): object-space vertex position, computed from
  *   the glyph's bounding box.  For corner (cx, cy) where cx,cy
  *   are 0 or 1:
- *   `pos.x = pen_x + scale * lerp(extent_min_x, extent_max_x, cx)`
- *   `pos.y = pen_y - scale * lerp(extent_min_y, extent_max_y, cy)`
+ *   |[<!-- language="plain" -->
+ *   pos.x = pen_x + scale * lerp(extent_min_x, extent_max_x, cx)
+ *   pos.y = pen_y - scale * lerp(extent_min_y, extent_max_y, cy)
+ *   ]|
  *   where scale = font_size / upem.
  *
- * - **texcoord** (vec2): em-space texture coordinates, equal to the
+ * - texcoord (vec2): em-space texture coordinates, equal to the
  *   raw extent values: `(ex, ey)` where ex/ey are the glyph's
  *   bounding box corners in font design units.  The fragment shader
  *   samples the encoded blob in this coordinate space.
  *
- * - **normal** (vec2): outward normal at each corner.
+ * - normal (vec2): outward normal at each corner.
  *   `(-1, +1)` for (0,0), `(+1, +1)` for (1,0),
  *   `(-1, -1)` for (0,1), `(+1, -1)` for (1,1).
  *   Note: y is negated relative to cx,cy because the common
  *   em-to-object transform flips y.
  *
- * - **jac** (vec4): maps object-space displacements back to
+ * - jac (vec4): maps object-space displacements back to
  *   em-space after dilation, stored row-major as
  *   (j00, j01, j10, j11).  For the common case of uniform
  *   scaling with y-flip:
- *   `jac = vec4(emPerPos, 0.0, 0.0, -emPerPos)`
+ *   |[<!-- language="plain" -->
+ *   jac = vec4(emPerPos, 0.0, 0.0, -emPerPos)
+ *   ]|
  *   where emPerPos = upem / font_size.  For non-trivial
  *   transforms, see the hb_gpu_dilate source.
  *
- * - **m** (mat4): the model-view-projection matrix (uniform).
+ * - m (mat4): the model-view-projection matrix (uniform).
  *
- * - **viewport** (vec2): the viewport size in pixels (uniform).
+ * - viewport (vec2): the viewport size in pixels (uniform).
  *
  * A typical vertex main:
  *
@@ -213,10 +217,10 @@
  *
  * Parameters:
  *
- * - **renderCoord**: the interpolated em-space coordinate from
+ * - renderCoord: the interpolated em-space coordinate from
  *   the vertex shader (v_texcoord).
  *
- * - **glyphLoc**: the texel offset of this glyph's encoded blob
+ * - glyphLoc: the texel offset of this glyph's encoded blob
  *   in the atlas buffer.  Passed as a flat varying from the
  *   vertex shader.
  *
