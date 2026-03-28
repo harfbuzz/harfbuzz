@@ -66,37 +66,52 @@ append_lines (GString *s, const char *text, unsigned max_lines)
   }
 }
 
-#define MAX_LINES_PER_SCRIPT 35
+#define MAX_TOTAL_LINES 70
+
+static bool
+font_has_script (hb_face_t *face, hb_script_t script)
+{
+  hb_tag_t script_tags[2];
+  unsigned num_tags = 2;
+  hb_ot_tags_from_script_and_language (script, HB_LANGUAGE_INVALID,
+				       &num_tags, script_tags, nullptr, nullptr);
+  for (unsigned t = 0; t < num_tags; t++)
+  {
+    unsigned script_index;
+    if (hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB,
+					script_tags[t],
+					&script_index))
+      return true;
+  }
+  return false;
+}
 
 static char *
 build_default_text (hb_face_t *face)
 {
+  /* Count how many scripts the font supports. */
+  unsigned num_supported = 0;
+  for (unsigned i = 0; i < G_N_ELEMENTS (demo_texts); i++)
+    if (font_has_script (face, demo_texts[i].script))
+      num_supported++;
+
+  if (!num_supported)
+    num_supported = 1; /* fallback */
+
+  unsigned lines_per = MAX_TOTAL_LINES / num_supported;
+
   GString *s = g_string_new (nullptr);
 
   for (unsigned i = 0; i < G_N_ELEMENTS (demo_texts); i++)
   {
-    hb_tag_t script_tags[2];
-    unsigned num_tags = 2;
-    hb_ot_tags_from_script_and_language (demo_texts[i].script, HB_LANGUAGE_INVALID,
-					 &num_tags, script_tags, nullptr, nullptr);
-
-    bool found = false;
-    for (unsigned t = 0; t < num_tags && !found; t++)
-    {
-      unsigned script_index;
-      found = hb_ot_layout_table_find_script (face, HB_OT_TAG_GSUB,
-					      script_tags[t],
-					      &script_index);
-    }
-    if (!found)
+    if (!font_has_script (face, demo_texts[i].script))
       continue;
-
-    append_lines (s, demo_texts[i].text, MAX_LINES_PER_SCRIPT);
+    append_lines (s, demo_texts[i].text, lines_per);
   }
 
   /* Fallback to English if nothing matched. */
   if (!s->len)
-    append_lines (s, default_text_en, MAX_LINES_PER_SCRIPT * 2);
+    append_lines (s, default_text_en, MAX_TOTAL_LINES);
 
   return g_string_free (s, FALSE);
 }
