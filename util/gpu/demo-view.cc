@@ -15,6 +15,7 @@ struct demo_view_t {
   /* Output */
   GLint vsync;
   hb_bool_t fullscreen;
+  hb_bool_t dark_mode;
   enum { GAMMA_SRGB, GAMMA_2_2, GAMMA_NONE } gamma_mode;
 
   /* Mouse handling */
@@ -218,7 +219,7 @@ demo_view_set_gamma_mode (demo_view_t *vu, int mode)
   }
 
   vu->gamma_mode = (decltype(vu->gamma_mode)) mode;
-  float gamma = mode == demo_view_t::GAMMA_2_2 ? 2.2f : 1.f;
+  float gamma = mode == demo_view_t::GAMMA_2_2 ? (vu->dark_mode ? 1.f/2.2f : 2.2f) : 1.f;
   demo_glstate_set_gamma (vu->st, gamma);
 
   const char *names[] = {"sRGB", "gamma 2.2", "none"};
@@ -231,6 +232,23 @@ demo_view_cycle_gamma (demo_view_t *vu)
 {
   int next = (vu->gamma_mode + 1) % 3;
   demo_view_set_gamma_mode (vu, next);
+}
+
+#define LIGHT_FG 0.f, 0.f, 0.f, 1.f
+#define LIGHT_BG 1.f, 1.f, 1.f, 1.f
+#define DARK_FG  1.f, 1.f, 1.f, 1.f
+#define DARK_BG  0.f, 0.f, 0.f, 1.f
+
+static void
+demo_view_toggle_dark (demo_view_t *vu)
+{
+  vu->dark_mode = !vu->dark_mode;
+  if (vu->dark_mode)
+    demo_glstate_set_foreground (vu->st, DARK_FG);
+  else
+    demo_glstate_set_foreground (vu->st, LIGHT_FG);
+  demo_view_set_gamma_mode (vu, vu->gamma_mode);
+  vu->needs_redraw = true;
 }
 
 static void
@@ -334,6 +352,9 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
       break;
     case GLFW_KEY_G:
       demo_view_cycle_gamma (vu);
+      break;
+    case GLFW_KEY_B:
+      demo_view_toggle_dark (vu);
       break;
     case GLFW_KEY_V:
       demo_view_toggle_vsync (vu);
@@ -508,6 +529,7 @@ demo_view_print_help (demo_view_t *vu)
   LOGI ("  ?                         This help\n");
   LOGI ("  Space                     Toggle animation\n");
   LOGI ("  f                         Toggle fullscreen\n");
+  LOGI ("  b                         Toggle dark mode\n");
   LOGI ("  g                         Cycle gamma (sRGB/2.2/none)\n");
   LOGI ("  v                         Toggle vsync\n");
   LOGI ("  =, -                      Zoom in/out\n");
@@ -578,7 +600,10 @@ demo_view_display (demo_view_t *vu, demo_buffer_t *buffer)
 
   demo_glstate_set_matrix (vu->st, mat);
 
-  glClearColor (1, 1, 1, 1);
+  if (vu->dark_mode)
+    glClearColor (DARK_BG);
+  else
+    glClearColor (LIGHT_BG);
   glClear (GL_COLOR_BUFFER_BIT);
 
   demo_buffer_draw (buffer);

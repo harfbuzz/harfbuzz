@@ -39,6 +39,7 @@ demo_glstate_setup (demo_glstate_t *st)
 
   demo_atlas_set_uniforms (st->atlas);
   demo_glstate_set_gamma (st, 1.f);
+  demo_glstate_set_foreground (st, 0.f, 0.f, 0.f, 1.f);
 
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -65,4 +66,11 @@ void
 demo_glstate_set_gamma (demo_glstate_t *st, float gamma)
 {
   glUniform1f (glGetUniformLocation (st->program, "u_gamma"), gamma);
+}
+
+void
+demo_glstate_set_foreground (demo_glstate_t *st,
+			     float r, float g, float b, float a)
+{
+  glUniform4f (glGetUniformLocation (st->program, "u_foreground"), r, g, b, a);
 }

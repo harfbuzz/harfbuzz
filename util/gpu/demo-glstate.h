@@ -32,5 +32,9 @@ demo_glstate_set_matrix (demo_glstate_t *st, float mat[16]);
 void
 demo_glstate_set_gamma (demo_glstate_t *st, float gamma);
 
+void
+demo_glstate_set_foreground (demo_glstate_t *st,
+			     float r, float g, float b, float a);
+
 
 #endif /* DEMO_GLSTATE_H */

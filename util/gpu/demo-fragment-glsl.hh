@@ -1,5 +1,6 @@
 static const char *demo_fragment_glsl =
 "uniform float u_gamma;\n"
+"uniform vec4 u_foreground;\n"
 "\n"
 "in vec2 v_texcoord;\n"
 "flat in uint v_glyphLoc;\n"
@@ -13,6 +14,6 @@ static const char *demo_fragment_glsl =
 "  if (u_gamma != 1.0)\n"
 "    coverage = pow (coverage, u_gamma);\n"
 "\n"
-"  fragColor = vec4 (0.0, 0.0, 0.0, coverage);\n"
+"  fragColor = vec4 (u_foreground.rgb, u_foreground.a * coverage);\n"
 "}\n"
 ;
