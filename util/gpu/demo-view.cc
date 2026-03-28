@@ -5,10 +5,8 @@
 
 #include "demo-view.h"
 
-extern "C" {
-#include "trackball.h"
-#include "matrix4x4.h"
-}
+#include "trackball.hh"
+#include "matrix4x4.hh"
 
 struct demo_view_t {
   demo_glstate_t *st;

@@ -16,10 +16,8 @@ gpu_demo_sources = files(
   'demo-vertex-glsl.hh',
   'default-text.hh',
   'default-font.hh',
-  'matrix4x4.h',
-  'matrix4x4.c',
-  'trackball.h',
-  'trackball.c',
+  'matrix4x4.hh',
+  'trackball.hh',
 )
 
 glew_dep = dependency('glew', required: false)

@@ -1,3 +1,9 @@
+#ifndef MATRIX4X4_HH
+#define MATRIX4X4_HH
+
+#include <cmath>
+#include <cstring>
+
 /*
  * Copyright (c) 2009, Mozilla Corp
  * Copyright (c) 2012, Google, Inc.
@@ -48,15 +54,14 @@
  * The C version lives at http://code.google.com/p/matrix4x4-c/
  */
 
-#include "matrix4x4.h"
-#include <math.h>
+
 
 /*
  * A simple 4x4 matrix utility implementation
  */
 
 
-float *
+static inline float *
 m4LoadIdentity (float *mat) {
   unsigned int i;
   for (i = 0; i < 16; i++)
@@ -69,7 +74,7 @@ m4LoadIdentity (float *mat) {
 }
 
 /* Copies other matrix into mat */
-float *
+static inline float *
 m4Copy (float *mat, const float *other) {
   unsigned int i;
   for (i = 0; i < 16; i++) {
@@ -78,7 +83,7 @@ m4Copy (float *mat, const float *other) {
   return mat;
 }
 
-float *
+static inline float *
 m4Multiply (float *mat, const float *right) {
   float tmp[16];
   unsigned int i;
@@ -112,18 +117,18 @@ m4Multiply (float *mat, const float *right) {
   return m4Copy (mat, tmp);
 }
 
-float
+static inline float
 m4Get (float *mat, unsigned int row, unsigned int col) {
   return mat[4*row+col];
 }
 
-float *
+static inline float *
 m4MultMatrix (float *mat, const float *left) {
   float tmp[16];
   return m4Copy (mat, m4Multiply (m4Copy (tmp, left), mat));
 }
 
-float *
+static inline float *
 m4Scale (float *mat, float sx, float sy, float sz) {
   mat[0*4+0] *= sx;
   mat[0*4+1] *= sx;
@@ -143,7 +148,7 @@ m4Scale (float *mat, float sx, float sy, float sz) {
   return mat;
 }
 
-float *
+static inline float *
 m4Translate (float *mat, float tx, float ty, float tz) {
   mat[3*4+0] += mat[0*4+0] * tx + mat[1*4+0] * ty + mat[2*4+0] * tz;
   mat[3*4+1] += mat[0*4+1] * tx + mat[1*4+1] * ty + mat[2*4+1] * tz;
@@ -153,7 +158,7 @@ m4Translate (float *mat, float tx, float ty, float tz) {
   return mat;
 }
 
-float *
+static inline float *
 m4Rotate (float *mat, float angle, float x, float y, float z) {
   float mag = sqrt(x*x + y*y + z*z);
   float sinAngle = sin(angle * M_PI / 180.0);
@@ -207,7 +212,7 @@ m4Rotate (float *mat, float angle, float x, float y, float z) {
   return m4Copy (mat, m4Multiply (rotMat, mat));
 }
 
-float *
+static inline float *
 m4Frustum (float *mat, float left, float right, float bottom, float top, float nearZ, float farZ) {
   float deltaX = right - left;
   float deltaY = top - bottom;
@@ -238,7 +243,7 @@ m4Frustum (float *mat, float left, float right, float bottom, float top, float n
   return m4Copy (mat, m4Multiply (frust, mat));
 }
 
-float *
+static inline float *
 m4Perspective (float *mat, float fovy, float aspect, float nearZ, float farZ) {
   float frustumH = tan(fovy / 360.0 * M_PI) * nearZ;
   float frustumW = frustumH * aspect;
@@ -246,7 +251,7 @@ m4Perspective (float *mat, float fovy, float aspect, float nearZ, float farZ) {
   return m4Frustum(mat, -frustumW, frustumW, -frustumH, frustumH, nearZ, farZ);
 }
 
-float *
+static inline float *
 m4Ortho (float *mat, float left, float right, float bottom, float top, float nearZ, float farZ) {
   float deltaX = right - left;
   float deltaY = top - bottom;
@@ -270,7 +275,7 @@ m4Ortho (float *mat, float left, float right, float bottom, float top, float nea
 }
 
 /* In-place inversion */
-float *
+static inline float *
 m4Invert (float *mat) {
   float tmp_0 = m4Get(mat,2,2) * m4Get(mat,3,3);
   float tmp_1 = m4Get(mat,3,2) * m4Get(mat,2,3);
@@ -360,7 +365,7 @@ m4Invert (float *mat) {
 }
 
 /* Puts the inverse of other matrix into mat */
-float *
+static inline float *
 m4Inverse (float *mat, const float *other) {
   m4Copy (mat, other);
   m4Invert (mat);
@@ -368,7 +373,7 @@ m4Inverse (float *mat, const float *other) {
 }
 
 /* In-place transpose */
-float *
+static inline float *
 m4Transpose (float *mat) {
   float tmp = mat[0*4+1];
   mat[0*4+1] = mat[1*4+0];
@@ -396,3 +401,5 @@ m4Transpose (float *mat) {
 
   return mat;
 }
+
+#endif /* MATRIX4X4_HH */

@@ -1,4 +1,8 @@
-#include <stdio.h>
+#ifndef TRACKBALL_HH
+#define TRACKBALL_HH
+
+#include <cmath>
+
 /*
  * (c) Copyright 1993, 1994, Silicon Graphics, Inc.
  * ALL RIGHTS RESERVED
@@ -53,8 +57,7 @@
 #if defined(_WIN32)
 #pragma warning (disable:4244)          /* disable bogus conversion warnings */
 #endif
-#include <math.h>
-#include "trackball.h"
+
 
 /*
  * This size should really be based on the distance from the center of
@@ -65,13 +68,13 @@
  */
 #define TRACKBALLSIZE  (0.5f)
 
-/*
- * Local function prototypes (not defined in trackball.h)
- */
-static float tb_project_to_sphere(float, float, float);
-static void normalize_quat(float [4]);
+static inline float tb_project_to_sphere(float, float, float);
+static inline void normalize_quat(float [4]);
 
-void
+/*
+ */
+
+static inline void
 vzero(float *v)
 {
     v[0] = 0.0;
@@ -79,7 +82,7 @@ vzero(float *v)
     v[2] = 0.0;
 }
 
-void
+static inline void
 vset(float *v, float x, float y, float z)
 {
     v[0] = x;
@@ -87,7 +90,7 @@ vset(float *v, float x, float y, float z)
     v[2] = z;
 }
 
-void
+static inline void
 vsub(const float *src1, const float *src2, float *dst)
 {
     dst[0] = src1[0] - src2[0];
@@ -95,15 +98,15 @@ vsub(const float *src1, const float *src2, float *dst)
     dst[2] = src1[2] - src2[2];
 }
 
-void
+static inline void
 vcopy(const float *v1, float *v2)
 {
-    register int i;
+    int i;
     for (i = 0 ; i < 3 ; i++)
         v2[i] = v1[i];
 }
 
-void
+static inline void
 vcross(const float *v1, const float *v2, float *cross)
 {
     float temp[3];
@@ -114,13 +117,13 @@ vcross(const float *v1, const float *v2, float *cross)
     vcopy(temp, cross);
 }
 
-float
+static inline float
 vlength(const float *v)
 {
     return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
 
-void
+static inline void
 vscale(float *v, float div)
 {
     v[0] *= div;
@@ -128,24 +131,55 @@ vscale(float *v, float div)
     v[2] *= div;
 }
 
-void
+static inline void
 vnormal(float *v)
 {
     vscale(v,1.0/vlength(v));
 }
 
-float
+static inline float
 vdot(const float *v1, const float *v2)
 {
     return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
 }
 
-void
+static inline void
 vadd(const float *src1, const float *src2, float *dst)
 {
     dst[0] = src1[0] + src2[0];
     dst[1] = src1[1] + src2[1];
     dst[2] = src1[2] + src2[2];
+}
+
+/*
+ *  Given an axis and angle, compute quaternion.
+ */
+static inline void
+axis_to_quat(float a[3], float phi, float q[4])
+{
+    vcopy(a,q);
+    vnormal(q);
+    vscale(q,sin(phi/2.0));
+    q[3] = cos(phi/2.0);
+}
+
+/*
+ * Project an x,y pair onto a sphere of radius r OR a hyperbolic sheet
+ * if we are away from the center of the sphere.
+ */
+static inline float
+tb_project_to_sphere(float r, float x, float y)
+{
+    float d, t, z;
+
+    d = sqrt(x*x + y*y);
+    if (d < r * 0.70710678118654752440) {    /* Inside sphere */
+        z = sqrt(r*r - d*d);
+    } else {           /* On hyperbola */
+        t = r / 1.41421356237309504880;
+        z = t*t / d;
+    }
+    return z;
 }
 
 /*
@@ -160,7 +194,7 @@ vadd(const float *src1, const float *src2, float *dst)
  * It is assumed that the arguments to this routine are in the range
  * (-1.0 ... 1.0)
  */
-void
+static inline void
 trackball(float q[4], float p1x, float p1y, float p2x, float p2y)
 {
     float a[3]; /* Axis of rotation */
@@ -204,37 +238,6 @@ trackball(float q[4], float p1x, float p1y, float p2x, float p2y)
 }
 
 /*
- *  Given an axis and angle, compute quaternion.
- */
-void
-axis_to_quat(float a[3], float phi, float q[4])
-{
-    vcopy(a,q);
-    vnormal(q);
-    vscale(q,sin(phi/2.0));
-    q[3] = cos(phi/2.0);
-}
-
-/*
- * Project an x,y pair onto a sphere of radius r OR a hyperbolic sheet
- * if we are away from the center of the sphere.
- */
-static float
-tb_project_to_sphere(float r, float x, float y)
-{
-    float d, t, z;
-
-    d = sqrt(x*x + y*y);
-    if (d < r * 0.70710678118654752440) {    /* Inside sphere */
-        z = sqrt(r*r - d*d);
-    } else {           /* On hyperbola */
-        t = r / 1.41421356237309504880;
-        z = t*t / d;
-    }
-    return z;
-}
-
-/*
  * Given two rotations, e1 and e2, expressed as quaternion rotations,
  * figure out the equivalent single rotation and stuff it into dest.
  *
@@ -247,7 +250,7 @@ tb_project_to_sphere(float r, float x, float y)
 
 #define RENORMCOUNT 97
 
-void
+static inline void
 add_quats(float q1[4], float q2[4], float dest[4])
 {
     static int count=0;
@@ -297,7 +300,7 @@ printf("tf = %f %f %f %f\n", tf[0], tf[1], tf[2], tf[3]);
  * - Pletinckx, D., Quaternion calculus as a basic tool in computer
  *   graphics, The Visual Computer 5, 2-13, 1989.
  */
-static void
+static inline void
 normalize_quat(float q[4])
 {
     int i;
@@ -311,7 +314,7 @@ normalize_quat(float q[4])
  * Build a rotation matrix, given a quaternion rotation.
  *
  */
-void
+static inline void
 build_rotmatrix(float m[4][4], float q[4])
 {
     m[0][0] = 1.0 - 2.0 * (q[1] * q[1] + q[2] * q[2]);
@@ -335,3 +338,5 @@ build_rotmatrix(float m[4][4], float q[4])
     m[3][3] = 1.0;
 }
 
+
+#endif /* TRACKBALL_HH */
