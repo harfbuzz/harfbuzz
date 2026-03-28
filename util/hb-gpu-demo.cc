@@ -66,7 +66,7 @@ append_lines (GString *s, const char *text, unsigned max_lines)
   }
 }
 
-#define MAX_TOTAL_LINES 70
+#define MAX_TOTAL_LINES 60
 
 static bool
 font_has_script (hb_face_t *face, hb_script_t script)

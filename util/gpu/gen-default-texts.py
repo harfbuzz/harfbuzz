@@ -38,7 +38,7 @@ def stringize(varname, text):
     parts.append(';\n')
     return ''.join(parts)
 
-MAX_TOTAL_LINES = 70
+MAX_TOTAL_LINES = 60
 
 all_wrapped = []
 for filename, varname, width in texts:
