@@ -12,7 +12,7 @@ mkdir -p "$OUTDIR"
 
 em++ \
   -std=c++17 \
-  -O2 \
+  -Os -flto \
   -I"$SRCDIR/src" \
   -DHB_NO_MT \
   -DHAVE_ROUND \
