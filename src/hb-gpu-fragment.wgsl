@@ -103,12 +103,11 @@ fn _hb_gpu_calc_coverage (xcov: f32, ycov: f32, xwgt: f32, ywgt: f32) -> f32
  * renderCoord:  em-space sample position (interpolated from vertex shader)
  * glyphLoc:     offset into hb_gpu_atlas for this glyph's encoded blob
  * hb_gpu_atlas: storage buffer with the glyph atlas data
- * emsPerPixel:  screen-space derivatives of renderCoord (fwidth equivalent)
  */
 fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
-                  hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
-                  emsPerPixel: vec2f) -> f32
+                  hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
+  let emsPerPixel = fwidth (renderCoord);
   let pixelsPerEm = 1.0 / emsPerPixel;
 
   let glyphLoc = i32 (glyphLoc_);
