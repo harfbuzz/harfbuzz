@@ -10,10 +10,6 @@ struct demo_buffer_t {
   std::vector<glyph_vertex_t> *vertices;
   demo_extents_t ink_extents;
   demo_extents_t logical_extents;
-  bool dirty;
-  bool has_gl;
-  GLuint vao_name;
-  GLuint buf_name;
 };
 
 demo_buffer_t *
@@ -22,14 +18,6 @@ demo_buffer_create (void)
   demo_buffer_t *buffer = (demo_buffer_t *) calloc (1, sizeof (demo_buffer_t));
 
   buffer->vertices = new std::vector<glyph_vertex_t>;
-
-  /* Only create GL objects if a GL context is available. */
-  if (glfwGetCurrentContext ())
-  {
-    glGenVertexArrays (1, &buffer->vao_name);
-    glGenBuffers (1, &buffer->buf_name);
-    buffer->has_gl = true;
-  }
 
   demo_buffer_clear (buffer);
 
@@ -42,11 +30,6 @@ demo_buffer_destroy (demo_buffer_t *buffer)
   if (!buffer)
     return;
 
-  if (buffer->has_gl)
-  {
-    glDeleteVertexArrays (1, &buffer->vao_name);
-    glDeleteBuffers (1, &buffer->buf_name);
-  }
   delete buffer->vertices;
   free (buffer);
 }
@@ -58,7 +41,6 @@ demo_buffer_clear (demo_buffer_t *buffer)
   buffer->vertices->clear ();
   demo_extents_clear (&buffer->ink_extents);
   demo_extents_clear (&buffer->logical_extents);
-  buffer->dirty = true;
 }
 
 void
@@ -134,12 +116,11 @@ demo_buffer_add_text (demo_buffer_t *buffer,
       buffer->cursor.x = top_left.x;
       utf8 = end + 1;
     }
-      else
+    else
       utf8 = NULL;
   }
 
   hb_buffer_destroy (hb_buffer);
-  buffer->dirty = true;
 }
 
 void
@@ -180,59 +161,6 @@ demo_buffer_add_glyph (demo_buffer_t      *buffer,
   demo_extents_add (&buffer->logical_extents, &corner);
 
   buffer->cursor.x += scale * x_advance;
-  buffer->dirty = true;
-}
-
-void
-demo_buffer_draw (demo_buffer_t *buffer)
-{
-  GLint program;
-  glGetIntegerv (GL_CURRENT_PROGRAM, &program);
-
-  glBindVertexArray (buffer->vao_name);
-  glBindBuffer (GL_ARRAY_BUFFER, buffer->buf_name);
-  if (buffer->dirty) {
-    glBufferData (GL_ARRAY_BUFFER,
-		  sizeof (glyph_vertex_t) * buffer->vertices->size (),
-		  (const char *) &(*buffer->vertices)[0], GL_STATIC_DRAW);
-    buffer->dirty = false;
-  }
-
-  GLsizei stride = sizeof (glyph_vertex_t);
-
-  GLint loc_pos = glGetAttribLocation (program, "a_position");
-  glEnableVertexAttribArray (loc_pos);
-  glVertexAttribPointer (loc_pos, 2, GL_FLOAT, GL_FALSE, stride,
-			 (const void *) offsetof (glyph_vertex_t, x));
-
-  GLint loc_tex = glGetAttribLocation (program, "a_texcoord");
-  glEnableVertexAttribArray (loc_tex);
-  glVertexAttribPointer (loc_tex, 2, GL_FLOAT, GL_FALSE, stride,
-			 (const void *) offsetof (glyph_vertex_t, tx));
-
-  GLint loc_normal = glGetAttribLocation (program, "a_normal");
-  glEnableVertexAttribArray (loc_normal);
-  glVertexAttribPointer (loc_normal, 2, GL_FLOAT, GL_FALSE, stride,
-			 (const void *) offsetof (glyph_vertex_t, nx));
-
-  GLint loc_epp = glGetAttribLocation (program, "a_emPerPos");
-  glEnableVertexAttribArray (loc_epp);
-  glVertexAttribPointer (loc_epp, 1, GL_FLOAT, GL_FALSE, stride,
-			 (const void *) offsetof (glyph_vertex_t, emPerPos));
-
-  GLint loc_glyph = glGetAttribLocation (program, "a_glyphLoc");
-  glEnableVertexAttribArray (loc_glyph);
-  glVertexAttribIPointer (loc_glyph, 1, GL_UNSIGNED_INT, stride,
-			  (const void *) offsetof (glyph_vertex_t, atlas_offset));
-
-  glDrawArrays (GL_TRIANGLES, 0, buffer->vertices->size ());
-
-  glDisableVertexAttribArray (loc_pos);
-  glDisableVertexAttribArray (loc_tex);
-  glDisableVertexAttribArray (loc_normal);
-  glDisableVertexAttribArray (loc_epp);
-  glDisableVertexAttribArray (loc_glyph);
-  glBindVertexArray (0);
 }
 
 glyph_vertex_t *

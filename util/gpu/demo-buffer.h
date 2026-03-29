@@ -51,9 +51,6 @@ void
 demo_buffer_current_line (demo_buffer_t *buffer,
 			  double         font_size);
 
-void
-demo_buffer_draw (demo_buffer_t *buffer);
-
 glyph_vertex_t *
 demo_buffer_get_vertices (demo_buffer_t *buffer,
 			  unsigned int  *count);
