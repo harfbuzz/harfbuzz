@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>HarfBuzz GPU Demo</title>
+<script>
+if (location.pathname.indexOf('webgpu') !== -1)
+  document.title = 'HarfBuzz GPU WebGPU Demo';
+else
+  document.title = 'HarfBuzz GPU WebGL Demo';
+</script>
 <style>
   body { margin: 0; background: #fff; overflow: hidden; touch-action: none; }
   #loading { position: fixed; inset: 0; z-index: 100;
@@ -95,13 +101,33 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
   window.addEventListener('resize', resizeCanvas);
 
   /* Backend selector */
+  var isWebGPU = location.pathname.indexOf('webgpu') !== -1;
   var backendSel = document.getElementById('backend-sel');
-  if (location.pathname.indexOf('webgpu') !== -1)
+  if (isWebGPU)
     backendSel.value = 'webgpu.html';
   backendSel.addEventListener('change', function () {
     backendSel.blur();
     location.href = backendSel.value;
   });
+
+  /* Early WebGPU availability check */
+  if (isWebGPU && !navigator.gpu) {
+    var el = document.getElementById('loading');
+    var html = 'WebGPU not available in this browser.<br><br>' +
+               'See <a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
+               'style="color:#88f">browser support</a>.';
+    if (navigator.userAgent.indexOf('Linux') !== -1 &&
+        navigator.userAgent.indexOf('Chrome') !== -1)
+      html += '<br><br>On Linux Chrome, try restarting with:<br>' +
+              '<code style="font-size:13px">google-chrome --enable-unsafe-webgpu --ozone-platform=x11 ' +
+              '--use-angle=vulkan --enable-features=Vulkan,VulkanFromANGLE</code>';
+    el.innerHTML = html;
+    el.style.fontSize = '16px';
+    el.style.padding = '40px';
+    el.style.color = '#666';
+    el.style.textAlign = 'center';
+    window._webgpuError = true;
+  }
 
   var fpsEl = document.getElementById('fps');
   var frames = 0, lastTime = performance.now();
@@ -161,8 +187,10 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
   var Module = {
     canvas: canvas,
     onRuntimeInitialized: function () {
-      document.getElementById('loading').style.display = 'none';
-      document.body.style.background = '#222';
+      if (!window._webgpuError) {
+        document.getElementById('loading').style.display = 'none';
+        document.body.style.background = '#222';
+      }
       console.log('HarfBuzz GPU Demo loaded');
 
       /* Font file input */

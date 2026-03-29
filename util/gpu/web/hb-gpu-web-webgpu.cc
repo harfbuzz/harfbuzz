@@ -717,15 +717,15 @@ on_adapter (WGPURequestAdapterStatus status,
     EM_ASM ({
       var el = document.getElementById ('loading');
       if (el) {
-        var msg = 'WebGPU not available.\n\n' +
-                 'See browser support:\nhttps://github.com/gpuweb/gpuweb/wiki/Implementation-Status';
+        var html = 'WebGPU adapter not available.<br><br>' +
+                 'See <a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
+                 'style="color:#88f">browser support</a>.';
         if (navigator.userAgent.indexOf ('Linux') !== -1 &&
             navigator.userAgent.indexOf ('Chrome') !== -1)
-          msg += '\n\nOn Linux Chrome, try restarting with:\n' +
-                 'google-chrome --enable-unsafe-webgpu --ozone-platform=x11 ' +
-                 '--use-angle=vulkan --enable-features=Vulkan,VulkanFromANGLE';
-        el.textContent = msg;
-        el.style.whiteSpace = 'pre-wrap';
+          html += '<br><br>On Linux Chrome, try restarting with:<br>' +
+                 '<code style="font-size:13px">google-chrome --enable-unsafe-webgpu --ozone-platform=x11 ' +
+                 '--use-angle=vulkan --enable-features=Vulkan,VulkanFromANGLE</code>';
+        el.innerHTML = html;
         el.style.fontSize = '16px';
         el.style.padding = '40px';
         el.style.color = '#666';
