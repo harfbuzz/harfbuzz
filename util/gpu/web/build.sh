@@ -30,6 +30,7 @@ em++ \
   -sUSE_WEBGL2=1 \
   -sFULL_ES3=1 \
   -sALLOW_MEMORY_GROWTH=1 \
+  -sEXPORTED_FUNCTIONS='["_main","_web_load_font","_malloc","_free"]' \
   --shell-file "$SRCDIR/util/gpu/web/shell.html" \
   -o "$OUTDIR/index.html"
 

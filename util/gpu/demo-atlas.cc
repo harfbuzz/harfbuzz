@@ -149,3 +149,9 @@ demo_atlas_get_used (demo_atlas_t *at)
 {
   return at->cursor;
 }
+
+void
+demo_atlas_clear (demo_atlas_t *at)
+{
+  at->cursor = 0;
+}

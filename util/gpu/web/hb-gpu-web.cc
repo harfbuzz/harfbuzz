@@ -50,11 +50,58 @@
 #include "../demo-view.h"
 
 #include "../default-text-combined.hh"
+#include "../default-text-en.hh"
 #include "../default-font.hh"
 
 static demo_glstate_t *st;
 static demo_view_t *vu;
 static demo_buffer_t *buffer;
+static demo_font_t *current_demo_font;
+static hb_blob_t *current_blob;
+static hb_face_t *current_face;
+static hb_font_t *current_font;
+
+static void
+rebuild_buffer (const char *text)
+{
+  demo_buffer_clear (buffer);
+  demo_point_t top_left = {0, 0};
+  demo_buffer_move_to (buffer, &top_left);
+  demo_buffer_add_text (buffer, text, current_demo_font, 1);
+  demo_view_reset (vu);
+  demo_view_display (vu, buffer);
+}
+
+extern "C" {
+
+EMSCRIPTEN_KEEPALIVE void
+web_load_font (const char *data, int len)
+{
+  hb_blob_t *blob = hb_blob_create (data, len,
+				     HB_MEMORY_MODE_DUPLICATE,
+				     NULL, NULL);
+  hb_face_t *face = hb_face_create (blob, 0);
+  hb_font_t *font = hb_font_create (face);
+
+  /* Flush old state */
+  demo_font_destroy (current_demo_font);
+  demo_atlas_clear (demo_glstate_get_atlas (st));
+
+  current_demo_font = demo_font_create (font, demo_glstate_get_atlas (st));
+
+  hb_blob_destroy (current_blob);
+  hb_face_destroy (current_face);
+  hb_font_destroy (current_font);
+
+  current_blob = blob;
+  current_face = face;
+  current_font = font;
+
+  rebuild_buffer (default_text_en);
+  demo_font_print_stats (current_demo_font);
+}
+
+} /* extern "C" */
 
 static void
 main_loop_iter ()
@@ -131,20 +178,20 @@ main ()
   st = demo_glstate_create ();
   vu = demo_view_create (st, window);
 
-  hb_blob_t *blob = hb_blob_create ((const char *) default_font,
-				    sizeof (default_font),
-				    HB_MEMORY_MODE_READONLY,
-				    NULL, NULL);
-  hb_face_t *face = hb_face_create (blob, 0);
-  hb_font_t *font = hb_font_create (face);
-  demo_font_t *demo_font = demo_font_create (font, demo_glstate_get_atlas (st));
+  current_blob = hb_blob_create ((const char *) default_font,
+				 sizeof (default_font),
+				 HB_MEMORY_MODE_READONLY,
+				 NULL, NULL);
+  current_face = hb_face_create (current_blob, 0);
+  current_font = hb_font_create (current_face);
+  current_demo_font = demo_font_create (current_font, demo_glstate_get_atlas (st));
 
   buffer = demo_buffer_create ();
   demo_point_t top_left = {0, 0};
   demo_buffer_move_to (buffer, &top_left);
-  demo_buffer_add_text (buffer, default_text_combined, demo_font, 1);
+  demo_buffer_add_text (buffer, default_text_combined, current_demo_font, 1);
 
-  demo_font_print_stats (demo_font);
+  demo_font_print_stats (current_demo_font);
 
   demo_view_setup (vu);
   demo_view_display (vu, buffer);

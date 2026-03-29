@@ -30,6 +30,9 @@ unsigned int
 demo_atlas_get_used (demo_atlas_t *at);
 
 void
+demo_atlas_clear (demo_atlas_t *at);
+
+void
 demo_atlas_set_uniforms (demo_atlas_t *at);
 
 
