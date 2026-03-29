@@ -191,6 +191,11 @@ struct demo_renderer_metal_t : demo_renderer_t
     bg[0] = r; bg[1] = g; bg[2] = b; bg[3] = a;
   }
 
+  void set_debug (bool enabled [[maybe_unused]]) override
+  {
+    /* TODO: Metal debug visualization */
+  }
+
   bool set_srgb (bool enabled [[maybe_unused]]) override
   {
     /* Metal uses MTLPixelFormatBGRA8Unorm_sRGB; sRGB is always on. */

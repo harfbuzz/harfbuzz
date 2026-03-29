@@ -67,7 +67,7 @@ demo_shader_add_glyph_vertices (const demo_point_t              &p,
   if (extents) {
     demo_extents_clear (extents);
     for (int i = 0; i < 4; i++) {
-      demo_point_t pt = {v[i].x, v[i].y};
+      demo_point_t pt = {(double) v[i].x, (double) v[i].y};
       demo_extents_add (extents, &pt);
     }
   }
