@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>HarfBuzz GPU Demo</title>
 <style>
-  body { margin: 0; background: #222; overflow: hidden; touch-action: none; }
+  body { margin: 0; background: #fff; overflow: hidden; touch-action: none; }
+  #loading { position: fixed; inset: 0; z-index: 100;
+             display: flex; justify-content: center; align-items: center;
+             background: #fff; color: #999; font: 32px monospace; }
   canvas { display: block; width: 100vw; height: 100vh; }
   #fps { position: fixed; top: 8px; right: 12px; color: #999;
          font: 14px monospace; pointer-events: none; z-index: 1; }
@@ -51,6 +54,7 @@
 </style>
 </head>
 <body>
+<div id="loading">loading</div>
 <div id="fps"></div>
 <div id="controls">
   <label>font <input type="file" id="font-input" accept=".ttf,.otf"></label>
@@ -140,6 +144,8 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
   var Module = {
     canvas: canvas,
     onRuntimeInitialized: function () {
+      document.getElementById('loading').style.display = 'none';
+      document.body.style.background = '#222';
       console.log('HarfBuzz GPU Demo loaded');
 
       /* Font file input */
