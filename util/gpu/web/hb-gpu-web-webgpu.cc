@@ -200,7 +200,7 @@ static int canvas_w, canvas_h;
 static int css_w, css_h;
 static bool needs_redraw = true;
 static bool dark_mode = false;
-static float gamma_val = 1.0f;
+static int gamma_mode = 0; /* 0=2.2, 1=none */
 static bool animate = false;
 
 /* View state */
@@ -211,6 +211,14 @@ static double perspective = 16;
 static float quat[4];
 static float rot_axis[3] = {0, 0, 1};
 static double rot_speed = 1.0;
+
+static float
+compute_gamma ()
+{
+  if (gamma_mode == 0)
+    return dark_mode ? 1.f / 2.2f : 2.2f;
+  return 1.f; /* none */
+}
 
 static bool dragging = false;
 static bool right_dragging = false;
@@ -296,7 +304,7 @@ render_frame ()
   compute_mvp (u.mvp);
   u.viewport[0] = (float) canvas_w;
   u.viewport[1] = (float) canvas_h;
-  u.gamma = gamma_val;
+  u.gamma = compute_gamma ();
   u._pad = 0;
   if (dark_mode)
   {
@@ -467,13 +475,14 @@ on_keydown (int type, const EmscriptenKeyboardEvent *e, void *ud)
   if (strcmp (e->key, "b") == 0)
   {
     dark_mode = !dark_mode;
+    printf ("Dark mode: %s\n", dark_mode ? "on" : "off");
     needs_redraw = true;
   }
   else if (strcmp (e->key, "g") == 0)
   {
-    if (gamma_val == 1.0f) gamma_val = 1.8f;
-    else if (gamma_val == 1.8f) gamma_val = 0.6f;
-    else gamma_val = 1.0f;
+    gamma_mode = (gamma_mode + 1) % 2;
+    const char *names[] = {"gamma 2.2", "none"};
+    printf ("Gamma correction: %s\n", names[gamma_mode]);
     needs_redraw = true;
   }
   else if (strcmp (e->key, "r") == 0)

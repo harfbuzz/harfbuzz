@@ -99,6 +99,7 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
   if (location.pathname.indexOf('webgpu') !== -1)
     backendSel.value = 'webgpu.html';
   backendSel.addEventListener('change', function () {
+    backendSel.blur();
     location.href = backendSel.value;
   });
 
