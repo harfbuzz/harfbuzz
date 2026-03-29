@@ -87,7 +87,7 @@ else
 <div id="help">
 <span id="help-desktop">drag: pan · scroll: zoom · click: animate · right-drag: rotate<br>
 space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
-<span id="help-mobile">drag: pan · pinch: zoom · tap: animate</span>
+<span id="help-mobile">drag: pan · pinch: zoom · 3-finger: rotate · tap: animate</span>
 </div>
 <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
 <script>
@@ -142,17 +142,38 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
     }
   })();
 
-  /* Pinch-to-zoom: translate two-finger pinch to wheel events. */
+  /* Multi-touch: 2-finger pinch → zoom, 3-finger drag → 3D rotate. */
   var pinchDist = 0;
+  var threeFingerActive = false;
   canvas.addEventListener('touchstart', function (e) {
     if (e.touches.length === 2) {
       e.preventDefault();
       var t = e.touches;
       pinchDist = Math.hypot(t[1].clientX - t[0].clientX,
                              t[1].clientY - t[0].clientY);
+    } else if (e.touches.length >= 3) {
+      e.preventDefault();
+      threeFingerActive = true;
+      var t = e.touches;
+      var cx = (t[0].clientX + t[1].clientX + t[2].clientX) / 3;
+      var cy = (t[0].clientY + t[1].clientY + t[2].clientY) / 3;
+      /* Synthesize right-button press at centroid */
+      canvas.dispatchEvent(new MouseEvent('mousedown', {
+        button: 2, clientX: cx, clientY: cy
+      }));
     }
   }, {passive: false});
   canvas.addEventListener('touchmove', function (e) {
+    if (e.touches.length >= 3 && threeFingerActive) {
+      e.preventDefault();
+      var t = e.touches;
+      var cx = (t[0].clientX + t[1].clientX + t[2].clientX) / 3;
+      var cy = (t[0].clientY + t[1].clientY + t[2].clientY) / 3;
+      canvas.dispatchEvent(new MouseEvent('mousemove', {
+        clientX: cx, clientY: cy
+      }));
+      return;
+    }
     if (e.touches.length === 2) {
       e.preventDefault();
       var t = e.touches;
@@ -169,6 +190,12 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
         clientX: (t[0].clientX + t[1].clientX) / 2,
         clientY: (t[0].clientY + t[1].clientY) / 2
       }));
+    }
+  }, {passive: false});
+  canvas.addEventListener('touchend', function (e) {
+    if (threeFingerActive && e.touches.length < 3) {
+      threeFingerActive = false;
+      canvas.dispatchEvent(new MouseEvent('mouseup', { button: 2 }));
     }
   }, {passive: false});
 

@@ -469,6 +469,7 @@ on_keydown (int type, const EmscriptenKeyboardEvent *e, void *ud)
 
 /* Touch handling */
 static double pinch_dist;
+static bool three_finger_active;
 
 static EM_BOOL
 on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
@@ -485,13 +486,28 @@ on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
     double dy = e->touches[1].targetY - e->touches[0].targetY;
     pinch_dist = sqrt (dx * dx + dy * dy);
   }
+  else if (e->numTouches >= 3)
+  {
+    demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
+    three_finger_active = true;
+    double cx = (e->touches[0].targetX + e->touches[1].targetX + e->touches[2].targetX) / 3.0;
+    double cy = (e->touches[0].targetY + e->touches[1].targetY + e->touches[2].targetY) / 3.0;
+    demo_view_motion_func (vu, cx, cy);
+    demo_view_mouse_func (vu, BUTTON_RIGHT, ACTION_PRESS, 0);
+  }
   return EM_TRUE;
 }
 
 static EM_BOOL
 on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
 {
-  if (e->numTouches == 1)
+  if (e->numTouches >= 3 && three_finger_active)
+  {
+    double cx = (e->touches[0].targetX + e->touches[1].targetX + e->touches[2].targetX) / 3.0;
+    double cy = (e->touches[0].targetY + e->touches[1].targetY + e->touches[2].targetY) / 3.0;
+    demo_view_motion_func (vu, cx, cy);
+  }
+  else if (e->numTouches == 1)
   {
     demo_view_motion_func (vu, e->touches[0].targetX, e->touches[0].targetY);
   }
@@ -510,7 +526,13 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
 static EM_BOOL
 on_touchend (int type, const EmscriptenTouchEvent *e, void *ud)
 {
-  demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
+  if (three_finger_active && e->numTouches < 3)
+  {
+    three_finger_active = false;
+    demo_view_mouse_func (vu, BUTTON_RIGHT, ACTION_RELEASE, 0);
+  }
+  else
+    demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
   return EM_TRUE;
 }
 
