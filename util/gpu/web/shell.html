@@ -113,7 +113,7 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
   /* Early WebGPU availability check */
   if (isWebGPU && !navigator.gpu) {
     var el = document.getElementById('loading');
-    var html = 'WebGPU not available in this browser. ' +
+    var html = 'WebGPU not available in this browser.<br>' +
                '<a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
                'style="color:#88f">Browser support status</a>';
     if (navigator.userAgent.indexOf('Linux') !== -1 &&
@@ -122,10 +122,10 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
               '<code style="font-size:13px">google-chrome --enable-unsafe-webgpu --ozone-platform=x11 ' +
               '--use-angle=vulkan --enable-features=Vulkan,VulkanFromANGLE</code>';
     el.innerHTML = html;
-    el.style.fontSize = '16px';
-    el.style.padding = '40px';
+    el.style.font = '18px sans-serif';
     el.style.color = '#666';
     el.style.textAlign = 'center';
+    el.style.flexDirection = 'column';
     window._webgpuError = true;
   }
 

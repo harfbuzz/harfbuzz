@@ -717,7 +717,7 @@ on_adapter (WGPURequestAdapterStatus status,
     EM_ASM ({
       var el = document.getElementById ('loading');
       if (el) {
-        var html = 'WebGPU adapter not available. ' +
+        var html = 'WebGPU adapter not available.<br>' +
                  '<a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
                  'style="color:#88f">Browser support status</a>';
         if (navigator.userAgent.indexOf ('Linux') !== -1 &&
