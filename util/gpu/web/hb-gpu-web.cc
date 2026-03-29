@@ -194,7 +194,6 @@ main ()
   demo_font_print_stats (current_demo_font);
 
   demo_view_setup (vu);
-  demo_view_display (vu, buffer);
 
   emscripten_set_main_loop (main_loop_iter, 0, 1);
 
