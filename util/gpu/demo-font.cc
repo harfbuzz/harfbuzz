@@ -115,6 +115,14 @@ demo_font_lookup_glyph (demo_font_t  *font,
 }
 
 void
+demo_font_clear_cache (demo_font_t *font)
+{
+  font->glyph_cache->clear ();
+  font->num_glyphs = 0;
+  font->sum_bytes = 0;
+}
+
+void
 demo_font_print_stats (demo_font_t *font)
 {
   double atlas_used_kb = demo_atlas_get_used (font->atlas) * 8 / 1024.;

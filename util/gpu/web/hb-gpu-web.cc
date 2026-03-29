@@ -60,10 +60,18 @@ static demo_font_t *current_demo_font;
 static hb_blob_t *current_blob;
 static hb_face_t *current_face;
 static hb_font_t *current_font;
+static char *current_text;
+static bool custom_text;
 
 static void
 rebuild_buffer (const char *text)
 {
+  free (current_text);
+  current_text = strdup (text);
+
+  demo_font_clear_cache (current_demo_font);
+  demo_atlas_clear (demo_glstate_get_atlas (st));
+
   demo_buffer_clear (buffer);
   demo_point_t top_left = {0, 0};
   demo_buffer_move_to (buffer, &top_left);
@@ -83,12 +91,6 @@ web_load_font (const char *data, int len)
   hb_face_t *face = hb_face_create (blob, 0);
   hb_font_t *font = hb_font_create (face);
 
-  /* Flush old state */
-  demo_font_destroy (current_demo_font);
-  demo_atlas_clear (demo_glstate_get_atlas (st));
-
-  current_demo_font = demo_font_create (font, demo_glstate_get_atlas (st));
-
   hb_blob_destroy (current_blob);
   hb_face_destroy (current_face);
   hb_font_destroy (current_font);
@@ -97,8 +99,25 @@ web_load_font (const char *data, int len)
   current_face = face;
   current_font = font;
 
-  rebuild_buffer (default_text_en);
+  /* Flush old font state */
+  demo_font_destroy (current_demo_font);
+  current_demo_font = demo_font_create (font, demo_glstate_get_atlas (st));
+
+  rebuild_buffer (custom_text ? current_text : default_text_en);
   demo_font_print_stats (current_demo_font);
+}
+
+EMSCRIPTEN_KEEPALIVE void
+web_set_text (const char *utf8)
+{
+  custom_text = true;
+  rebuild_buffer (utf8);
+}
+
+EMSCRIPTEN_KEEPALIVE const char *
+web_get_text ()
+{
+  return current_text;
 }
 
 } /* extern "C" */
@@ -186,10 +205,12 @@ main ()
   current_font = hb_font_create (current_face);
   current_demo_font = demo_font_create (current_font, demo_glstate_get_atlas (st));
 
+  current_text = strdup (default_text_combined);
+
   buffer = demo_buffer_create ();
   demo_point_t top_left = {0, 0};
   demo_buffer_move_to (buffer, &top_left);
-  demo_buffer_add_text (buffer, default_text_combined, current_demo_font, 1);
+  demo_buffer_add_text (buffer, current_text, current_demo_font, 1);
 
   demo_font_print_stats (current_demo_font);
 

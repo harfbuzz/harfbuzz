@@ -12,25 +12,57 @@
   #help { position: fixed; bottom: 12px; left: 12px; color: #999;
           font: 12px monospace; pointer-events: none; z-index: 1;
           line-height: 1.6; }
-  #controls { position: fixed; top: 8px; left: 12px; z-index: 1; }
+  #controls { position: fixed; top: 8px; left: 12px; z-index: 1;
+              display: flex; gap: 6px; }
   #controls label { color: #fff; font: 12px monospace; cursor: pointer;
                     padding: 4px 8px; border: 1px solid #888; border-radius: 4px;
                     background: rgba(128,128,128,0.5);
                     text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
   #controls label:hover { border-color: #ccc; background: rgba(128,128,128,0.7); }
   #controls input[type=file] { display: none; }
+  #controls button { color: #fff; font: 12px monospace; cursor: pointer;
+                     padding: 4px 8px; border: 1px solid #888; border-radius: 4px;
+                     background: rgba(128,128,128,0.5);
+                     text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+  #controls button:hover { border-color: #ccc; background: rgba(128,128,128,0.7); }
   #drop-overlay { display: none; position: fixed; inset: 0; z-index: 10;
                   background: rgba(0,0,0,0.6); color: #fff;
                   font: 24px monospace; justify-content: center;
                   align-items: center; }
+  #text-modal { display: none; position: fixed; inset: 0; z-index: 20;
+                background: rgba(0,0,0,0.7); justify-content: center;
+                align-items: center; }
+  #text-modal-inner { background: #333; border: 1px solid #666; border-radius: 8px;
+                      padding: 16px; width: 90vw; max-width: 1600px; }
+  #text-modal textarea { width: 100%; height: 70vh; background: #222; color: #ccc;
+                         border: 1px solid #555; border-radius: 4px;
+                         font: 14px monospace; padding: 8px; resize: vertical;
+                         outline: none; box-sizing: border-box; }
+  #text-modal textarea:focus { border-color: #999; }
+  #text-modal-buttons { margin-top: 10px; text-align: right; }
+  #text-modal-buttons button { color: #fff; font: 13px monospace; cursor: pointer;
+                               padding: 6px 16px; border: 1px solid #888;
+                               border-radius: 4px; background: rgba(128,128,128,0.5);
+                               margin-left: 8px; }
+  #text-modal-buttons button:hover { border-color: #ccc; background: rgba(128,128,128,0.7); }
 </style>
 </head>
 <body>
 <div id="fps"></div>
 <div id="controls">
   <label>font <input type="file" id="font-input" accept=".ttf,.otf"></label>
+  <button id="text-btn">text</button>
 </div>
 <div id="drop-overlay">drop font file</div>
+<div id="text-modal">
+  <div id="text-modal-inner">
+    <textarea id="text-area"></textarea>
+    <div id="text-modal-buttons">
+      <button id="text-cancel">cancel</button>
+      <button id="text-apply">apply</button>
+    </div>
+  </div>
+</div>
 <div id="help">
 drag: pan · scroll/pinch: zoom · click/tap: animate · right-drag: rotate<br>
 space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom
@@ -89,6 +121,18 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom
     }
   }, {passive: false});
 
+  /* Block Emscripten/GLFW from eating key events while the text modal is open.
+   * Registered before Module so it runs before Emscripten's capture-phase handlers. */
+  var textModalEl = document.getElementById('text-modal');
+  function blockKeysIfModal(e) {
+    if (textModalEl.style.display !== 'flex') return;
+    if (e.key === 'Escape') { textModalEl.style.display = 'none'; e.stopImmediatePropagation(); return; }
+    e.stopImmediatePropagation();
+  }
+  window.addEventListener('keydown', blockKeysIfModal, true);
+  window.addEventListener('keyup', blockKeysIfModal, true);
+  window.addEventListener('keypress', blockKeysIfModal, true);
+
   var Module = {
     canvas: canvas,
     onRuntimeInitialized: function () {
@@ -117,6 +161,38 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom
         if (e.dataTransfer.files.length)
           loadFontFile(e.dataTransfer.files[0]);
       });
+
+      /* Text editor modal */
+      var textModal = document.getElementById('text-modal');
+      var textArea = document.getElementById('text-area');
+      var textBtn = document.getElementById('text-btn');
+
+      textBtn.addEventListener('click', function () {
+        var ptr = _web_get_text();
+        textArea.value = UTF8ToString(ptr);
+        textModal.style.display = 'flex';
+        textArea.focus();
+      });
+
+      document.getElementById('text-cancel').addEventListener('click', function () {
+        textModal.style.display = 'none';
+      });
+
+      document.getElementById('text-apply').addEventListener('click', function () {
+        var text = textArea.value;
+        var len = lengthBytesUTF8(text) + 1;
+        var buf = _malloc(len);
+        stringToUTF8(text, buf, len);
+        _web_set_text(buf);
+        _free(buf);
+        textModal.style.display = 'none';
+      });
+
+
+      /* Prevent mouse events on the modal from reaching the canvas/GLFW. */
+      textModal.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+      textModal.addEventListener('mouseup', function (e) { e.stopPropagation(); });
+      textModal.addEventListener('click', function (e) { e.stopPropagation(); });
 
       function loadFontFile(file) {
         var reader = new FileReader();

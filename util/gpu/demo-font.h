@@ -40,6 +40,9 @@ demo_font_lookup_glyph (demo_font_t  *font,
 			glyph_info_t *glyph_info);
 
 void
+demo_font_clear_cache (demo_font_t *font);
+
+void
 demo_font_print_stats (demo_font_t *font);
 
 
