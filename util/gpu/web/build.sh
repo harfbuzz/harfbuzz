@@ -23,6 +23,7 @@ em++ \
   "$SRCDIR/util/gpu/demo-buffer.cc" \
   "$SRCDIR/util/gpu/demo-font.cc" \
   "$SRCDIR/util/gpu/demo-glstate.cc" \
+  "$SRCDIR/util/gpu/demo-renderer-gl.cc" \
   "$SRCDIR/util/gpu/demo-shader.cc" \
   "$SRCDIR/util/gpu/demo-view.cc" \
   "$SRCDIR/util/gpu/web/hb-gpu-web.cc" \
