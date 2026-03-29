@@ -101,6 +101,11 @@ struct demo_renderer_gl_t : demo_renderer_t
     glClearColor (r, g, b, a);
   }
 
+  void set_debug (bool enabled) override
+  {
+    demo_glstate_set_debug (st, enabled);
+  }
+
   bool set_srgb (bool enabled) override
   {
 #if defined(GL_FRAMEBUFFER_SRGB)

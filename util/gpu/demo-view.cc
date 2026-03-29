@@ -26,6 +26,7 @@ struct demo_view_t {
   bool vsync;
   bool fullscreen;
   bool dark_mode;
+  bool debug;
   enum { GAMMA_SRGB, GAMMA_2_2, GAMMA_NONE } gamma_mode;
 
   /* Mouse handling */
@@ -385,6 +386,11 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
       break;
     case GLFW_KEY_B:
       demo_view_toggle_dark (vu);
+      break;
+    case GLFW_KEY_D:
+      vu->debug = !vu->debug;
+      vu->renderer->set_debug (vu->debug);
+      LOGI ("Debug mode: %s.\n", vu->debug ? "on" : "off");
       break;
     case GLFW_KEY_V:
       demo_view_toggle_vsync (vu);

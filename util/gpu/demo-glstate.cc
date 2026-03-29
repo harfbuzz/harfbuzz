@@ -74,3 +74,9 @@ demo_glstate_set_foreground (demo_glstate_t *st,
 {
   glUniform4f (glGetUniformLocation (st->program, "u_foreground"), r, g, b, a);
 }
+
+void
+demo_glstate_set_debug (demo_glstate_t *st, bool enabled)
+{
+  glUniform1f (glGetUniformLocation (st->program, "u_debug"), enabled ? 1.f : 0.f);
+}

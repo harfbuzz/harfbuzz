@@ -114,6 +114,48 @@ float _hb_gpu_calc_coverage (float xcov, float ycov, float xwgt, float ywgt)
   return clamp (coverage, 0.0, 1.0);
 }
 
+/* Decoded glyph band info for a pixel position. */
+struct _hb_gpu_glyph_info
+{
+  int glyphLoc;
+  int bandBase;
+  ivec2 bandIndex;
+  int numHBands;
+  int numVBands;
+};
+
+_hb_gpu_glyph_info _hb_gpu_decode_glyph (vec2 renderCoord, uint glyphLoc_)
+{
+  _hb_gpu_glyph_info gi;
+  gi.glyphLoc = int (glyphLoc_);
+
+  ivec4 header0 = _hb_gpu_fetch (gi.glyphLoc);
+  ivec4 header1 = _hb_gpu_fetch (gi.glyphLoc + 1);
+  vec4 ext = vec4 (header0) * HB_GPU_INV_UNITS;
+  gi.numHBands = header1.r;
+  gi.numVBands = header1.g;
+
+  vec2 extSize = ext.zw - ext.xy;
+  vec2 bandScale = vec2 (float (gi.numVBands), float (gi.numHBands)) / max (extSize, vec2 (1.0 / 65536.0));
+  vec2 bandOffset = -ext.xy * bandScale;
+
+  gi.bandIndex = clamp (ivec2 (renderCoord * bandScale + bandOffset),
+			ivec2 (0, 0),
+			ivec2 (gi.numVBands - 1, gi.numHBands - 1));
+
+  gi.bandBase = gi.glyphLoc + 2;
+  return gi;
+}
+
+/* Return per-pixel curve counts: (horizontal, vertical). */
+ivec2 _hb_gpu_curve_counts (vec2 renderCoord, uint glyphLoc_)
+{
+  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
+  int hCount = _hb_gpu_fetch (gi.bandBase + gi.bandIndex.y).r;
+  int vCount = _hb_gpu_fetch (gi.bandBase + gi.numHBands + gi.bandIndex.x).r;
+  return ivec2 (hCount, vCount);
+}
+
 /* Render a glyph and return its coverage in [0, 1].
  *
  * Requires the hb_gpu_atlas uniform to be bound to the glyph atlas buffer.
@@ -126,31 +168,15 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   vec2 emsPerPixel = fwidth (renderCoord);
   vec2 pixelsPerEm = 1.0 / emsPerPixel;
 
-  int glyphLoc = int (glyphLoc_);
-
-  /* Read blob header */
-  ivec4 header0 = _hb_gpu_fetch (glyphLoc);
-  ivec4 header1 = _hb_gpu_fetch (glyphLoc + 1);
-  vec4 ext = vec4 (header0) * HB_GPU_INV_UNITS; /* min_x, min_y, max_x, max_y */
-  int numHBands = header1.r;
-  int numVBands = header1.g;
-
-  /* Compute band transform from extents */
-  vec2 extSize = ext.zw - ext.xy; /* (width, height) */
-  vec2 bandScale = vec2 (float (numVBands), float (numHBands)) / max (extSize, vec2 (1.0 / 65536.0));
-  vec2 bandOffset = -ext.xy * bandScale;
-
-  ivec2 bandIndex = clamp (ivec2 (renderCoord * bandScale + bandOffset),
-			   ivec2 (0, 0),
-			   ivec2 (numVBands - 1, numHBands - 1));
-
-  /* Skip past header (2 texels) */
-  int bandBase = glyphLoc + 2;
+  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_);
+  int glyphLoc = gi.glyphLoc;
+  int bandBase = gi.bandBase;
+  int numHBands = gi.numHBands;
 
   float xcov = 0.0;
   float xwgt = 0.0;
 
-  ivec4 hbandData = _hb_gpu_fetch (bandBase + bandIndex.y);
+  ivec4 hbandData = _hb_gpu_fetch (bandBase + gi.bandIndex.y);
   int hCurveCount = hbandData.r;
   /* Symmetric: choose rightward (desc) or leftward (asc) sort */
   float hSplit = float (hbandData.a) * HB_GPU_INV_UNITS;
@@ -203,7 +229,7 @@ float hb_gpu_render (vec2 renderCoord, uint glyphLoc_)
   float ycov = 0.0;
   float ywgt = 0.0;
 
-  ivec4 vbandData = _hb_gpu_fetch (bandBase + numHBands + bandIndex.x);
+  ivec4 vbandData = _hb_gpu_fetch (bandBase + numHBands + gi.bandIndex.x);
   int vCurveCount = vbandData.r;
   float vSplit = float (vbandData.a) * HB_GPU_INV_UNITS;
   bool vLeftRay = (renderCoord.y < vSplit);

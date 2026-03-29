@@ -76,6 +76,7 @@ typedef void GLFWwindow;
 #define GLFW_KEY_9           57
 #define GLFW_KEY_A           65
 #define GLFW_KEY_B           66
+#define GLFW_KEY_D           68
 #define GLFW_KEY_F           70
 #define GLFW_KEY_G           71
 #define GLFW_KEY_Q           81

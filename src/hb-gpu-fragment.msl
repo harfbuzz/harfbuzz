@@ -96,45 +96,66 @@ float _hb_gpu_calc_coverage (float xcov, float ycov, float xwgt, float ywgt)
   return clamp (coverage, 0.0, 1.0);
 }
 
-/* Render a glyph and return its coverage in [0, 1].
- *
- * Requires hb_gpu_atlas to point to the glyph atlas buffer.
- *
- * renderCoord:  em-space sample position (interpolated from vertex shader)
- * glyphLoc:     offset into hb_gpu_atlas for this glyph's encoded blob
- * hb_gpu_atlas: device pointer to the glyph atlas buffer
- */
+/* Decoded glyph band info for a pixel position. */
+struct _hb_gpu_glyph_info
+{
+  int glyphLoc;
+  int bandBase;
+  int2 bandIndex;
+  int numHBands;
+  int numVBands;
+};
+
+_hb_gpu_glyph_info _hb_gpu_decode_glyph (float2 renderCoord, uint glyphLoc_,
+					  device const short4* hb_gpu_atlas)
+{
+  _hb_gpu_glyph_info gi;
+  gi.glyphLoc = int (glyphLoc_);
+
+  int4 header0 = _hb_gpu_fetch (hb_gpu_atlas, gi.glyphLoc);
+  int4 header1 = _hb_gpu_fetch (hb_gpu_atlas, gi.glyphLoc + 1);
+  float4 ext = float4 (header0) * HB_GPU_INV_UNITS;
+  gi.numHBands = header1.r;
+  gi.numVBands = header1.g;
+
+  float2 extSize = ext.zw - ext.xy;
+  float2 bandScale = float2 (float (gi.numVBands), float (gi.numHBands)) / max (extSize, float2 (1.0 / 65536.0));
+  float2 bandOffset = -ext.xy * bandScale;
+
+  gi.bandIndex = clamp (int2 (renderCoord * bandScale + bandOffset),
+			int2 (0, 0),
+			int2 (gi.numVBands - 1, gi.numHBands - 1));
+
+  gi.bandBase = gi.glyphLoc + 2;
+  return gi;
+}
+
+/* Return per-pixel curve counts: (horizontal, vertical). */
+int2 _hb_gpu_curve_counts (float2 renderCoord, uint glyphLoc_,
+			   device const short4* hb_gpu_atlas)
+{
+  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
+  int hCount = _hb_gpu_fetch (hb_gpu_atlas, gi.bandBase + gi.bandIndex.y).r;
+  int vCount = _hb_gpu_fetch (hb_gpu_atlas, gi.bandBase + gi.numHBands + gi.bandIndex.x).r;
+  return int2 (hCount, vCount);
+}
+
+/* Render a glyph and return its coverage in [0, 1]. */
 float hb_gpu_render (float2 renderCoord, uint glyphLoc_,
 		     device const short4* hb_gpu_atlas)
 {
   float2 emsPerPixel = fwidth (renderCoord);
   float2 pixelsPerEm = 1.0 / emsPerPixel;
 
-  int glyphLoc = int (glyphLoc_);
-
-  /* Read blob header */
-  int4 header0 = _hb_gpu_fetch (hb_gpu_atlas, glyphLoc);
-  int4 header1 = _hb_gpu_fetch (hb_gpu_atlas, glyphLoc + 1);
-  float4 ext = float4 (header0) * HB_GPU_INV_UNITS; /* min_x, min_y, max_x, max_y */
-  int numHBands = header1.r;
-  int numVBands = header1.g;
-
-  /* Compute band transform from extents */
-  float2 extSize = ext.zw - ext.xy; /* (width, height) */
-  float2 bandScale = float2 (float (numVBands), float (numHBands)) / max (extSize, float2 (1.0 / 65536.0));
-  float2 bandOffset = -ext.xy * bandScale;
-
-  int2 bandIndex = clamp (int2 (renderCoord * bandScale + bandOffset),
-			  int2 (0, 0),
-			  int2 (numVBands - 1, numHBands - 1));
-
-  /* Skip past header (2 texels) */
-  int bandBase = glyphLoc + 2;
+  _hb_gpu_glyph_info gi = _hb_gpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
+  int glyphLoc = gi.glyphLoc;
+  int bandBase = gi.bandBase;
+  int numHBands = gi.numHBands;
 
   float xcov = 0.0;
   float xwgt = 0.0;
 
-  int4 hbandData = _hb_gpu_fetch (hb_gpu_atlas, bandBase + bandIndex.y);
+  int4 hbandData = _hb_gpu_fetch (hb_gpu_atlas, bandBase + gi.bandIndex.y);
   int hCurveCount = hbandData.r;
   /* Symmetric: choose rightward (desc) or leftward (asc) sort */
   float hSplit = float (hbandData.a) * HB_GPU_INV_UNITS;
@@ -187,7 +208,7 @@ float hb_gpu_render (float2 renderCoord, uint glyphLoc_,
   float ycov = 0.0;
   float ywgt = 0.0;
 
-  int4 vbandData = _hb_gpu_fetch (hb_gpu_atlas, bandBase + numHBands + bandIndex.x);
+  int4 vbandData = _hb_gpu_fetch (hb_gpu_atlas, bandBase + numHBands + gi.bandIndex.x);
   int vCurveCount = vbandData.r;
   float vSplit = float (vbandData.a) * HB_GPU_INV_UNITS;
   bool vLeftRay = (renderCoord.y < vSplit);

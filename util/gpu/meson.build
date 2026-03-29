@@ -1,3 +1,18 @@
+gpu_demo_shader_sources = [
+  ['demo-fragment.glsl', 'demo-fragment-glsl.hh', 'demo_fragment_glsl'],
+  ['demo-vertex.glsl', 'demo-vertex-glsl.hh', 'demo_vertex_glsl'],
+]
+
+gpu_demo_shader_headers = []
+foreach s : gpu_demo_shader_sources
+  gpu_demo_shader_headers += custom_target('gpu-demo-@0@'.format(s[1]),
+    input: s[0],
+    output: s[1],
+    command: [find_program('python3'), meson.project_source_root() / 'src' / 'gen-gpu-shader-artifacts.py',
+              '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
+  )
+endforeach
+
 gpu_demo_sources = files(
   'demo-atlas.h',
   'demo-atlas.cc',
@@ -14,8 +29,6 @@ gpu_demo_sources = files(
   'demo-shader.cc',
   'demo-view.h',
   'demo-view.cc',
-  'demo-fragment-glsl.hh',
-  'demo-vertex-glsl.hh',
   'default-text-en.hh',
   'default-text-fa.hh',
   'default-font.hh',

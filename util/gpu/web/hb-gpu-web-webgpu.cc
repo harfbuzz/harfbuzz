@@ -65,7 +65,7 @@ static const char *wgsl_demo_shader =
 "  mvp: mat4x4f,\n"
 "  viewport: vec2f,\n"
 "  gamma: f32,\n"
-"  _pad: f32,\n"
+"  debug: f32,\n"
 "  foreground: vec4f,\n"
 "};\n"
 "\n"
@@ -102,12 +102,17 @@ static const char *wgsl_demo_shader =
 "}\n"
 "\n"
 "@fragment fn fs_main (in: VertexOutput) -> @location(0) vec4f {\n"
-"  let coverage = hb_gpu_render (in.texcoord, in.glyphLoc, &hb_gpu_atlas);\n"
-"  var c = coverage;\n"
+"  var coverage = hb_gpu_render (in.texcoord, in.glyphLoc, &hb_gpu_atlas);\n"
 "  if (u.gamma != 1.0) {\n"
-"    c = pow (c, u.gamma);\n"
+"    coverage = pow (coverage, u.gamma);\n"
 "  }\n"
-"  return vec4f (u.foreground.rgb, u.foreground.a * c);\n"
+"  if (u.debug > 0.0) {\n"
+"    let counts = _hb_gpu_curve_counts (in.texcoord, in.glyphLoc, &hb_gpu_atlas);\n"
+"    let r = clamp (f32 (counts.x) / 8.0, 0.0, 1.0);\n"
+"    let g = clamp (f32 (counts.y) / 8.0, 0.0, 1.0);\n"
+"    return vec4f (r, g, coverage, 1.0);\n"
+"  }\n"
+"  return vec4f (u.foreground.rgb, u.foreground.a * coverage);\n"
 "}\n";
 
 
@@ -117,7 +122,7 @@ struct Uniforms {
   float mvp[16];
   float viewport[2];
   float gamma;
-  float _pad;
+  float debug;
   float foreground[4];
 };
 
@@ -216,6 +221,9 @@ struct demo_renderer_webgpu_t : demo_renderer_t
   void set_background (float r, float g, float b, float a) override
   { bg_r = r; bg_g = g; bg_b = b; bg_a = a; }
 
+  void set_debug (bool enabled) override { debug_mode = enabled; }
+  bool debug_mode = false;
+
   bool set_srgb (bool enabled) override { return false; /* no sRGB framebuffer */ }
 
   void toggle_vsync (bool &vsync) override { /* always vsync in browser */ }
@@ -237,7 +245,7 @@ struct demo_renderer_webgpu_t : demo_renderer_t
     u.viewport[0] = (float) width;
     u.viewport[1] = (float) height;
     u.gamma = gamma;
-    u._pad = 0;
+    u.debug = debug_mode ? 1.f : 0.f;
     u.foreground[0] = fg_r; u.foreground[1] = fg_g;
     u.foreground[2] = fg_b; u.foreground[3] = fg_a;
     wgpuQueueWriteBuffer (g_queue, g_uniform_buf, 0, &u, sizeof (u));

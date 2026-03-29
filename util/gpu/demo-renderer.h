@@ -25,6 +25,7 @@ struct demo_renderer_t
   virtual void set_gamma (float gamma) = 0;
   virtual void set_foreground (float r, float g, float b, float a) = 0;
   virtual void set_background (float r, float g, float b, float a) = 0;
+  virtual void set_debug (bool enabled) = 0;
 
   /* sRGB framebuffer control; returns false if unsupported. */
   virtual bool set_srgb (bool enabled) = 0;

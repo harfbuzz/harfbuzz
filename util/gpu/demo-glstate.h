@@ -36,5 +36,8 @@ void
 demo_glstate_set_foreground (demo_glstate_t *st,
 			     float r, float g, float b, float a);
 
+void
+demo_glstate_set_debug (demo_glstate_t *st, bool enabled);
+
 
 #endif /* DEMO_GLSTATE_H */
