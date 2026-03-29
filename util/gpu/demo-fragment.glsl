@@ -20,7 +20,7 @@ void main ()
     float r = clamp (float (counts.x) / 8.0, 0.0, 1.0);
     float g = clamp (float (counts.y) / 8.0, 0.0, 1.0);
     /* Blue text on black, then add R/G heatmap */
-    fragColor = vec4 (r, g, coverage, 1.0);
+    fragColor = vec4 (r, g, coverage, max (max (r, g), coverage));
     return;
   }
 

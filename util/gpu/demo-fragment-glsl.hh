@@ -21,7 +21,7 @@ static const char *demo_fragment_glsl =
 "    float r = clamp (float (counts.x) / 8.0, 0.0, 1.0);\n"
 "    float g = clamp (float (counts.y) / 8.0, 0.0, 1.0);\n"
 "    /* Blue text on black, then add R/G heatmap */\n"
-"    fragColor = vec4 (r, g, coverage, 1.0);\n"
+"    fragColor = vec4 (r, g, coverage, max (max (r, g), coverage));\n"
 "    return;\n"
 "  }\n"
 "\n"
