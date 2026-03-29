@@ -6,9 +6,9 @@
 <title>HarfBuzz GPU Demo</title>
 <script>
 if (location.pathname.indexOf('webgpu') !== -1)
-  document.title = 'HarfBuzz GPU WebGPU Demo';
+  document.title = 'HarfBuzz WebGPU Demo';
 else
-  document.title = 'HarfBuzz GPU WebGL Demo';
+  document.title = 'HarfBuzz WebGL Demo';
 </script>
 <style>
   body { margin: 0; background: #fff; overflow: hidden; touch-action: none; }
@@ -113,8 +113,9 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
   /* Early WebGPU availability check */
   if (isWebGPU && !navigator.gpu) {
     var el = document.getElementById('loading');
-    var html = 'WebGPU not available in this browser.<br><br>See <a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
-               'style="color:#88f">browser support</a>.';
+    var html = 'WebGPU not available in this browser. ' +
+               '<a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
+               'style="color:#88f">Browser support status</a>';
     if (navigator.userAgent.indexOf('Linux') !== -1 &&
         navigator.userAgent.indexOf('Chrome') !== -1)
       html += '<br><br>On Linux Chrome, try restarting with:<br>' +
