@@ -78,7 +78,14 @@ struct demo_renderer_metal_t : demo_renderer_t
   id<MTLDevice> device;
   id<MTLCommandQueue> commandQueue;
   id<MTLRenderPipelineState> pipelineState;
+  id<MTLRenderPipelineState> blitPipelineState;
   CAMetalLayer *metalLayer;
+
+  /* Offscreen render target for vsync-off mode */
+  id<MTLTexture> offscreenTexture;
+  int offscreen_w, offscreen_h;
+  bool vsync_on;
+  double last_present_time;
 
   /* Atlas (CPU shadow + GPU buffer) */
   demo_atlas_t *atlas;
@@ -87,6 +94,11 @@ struct demo_renderer_metal_t : demo_renderer_t
   unsigned int atlas_cursor;    /* in texels */
   id<MTLBuffer> atlasBuffer;
   bool atlas_dirty;
+
+  /* Cached vertex buffer */
+  id<MTLBuffer> vertexBuffer;
+  glyph_vertex_t *uploaded_ptr;
+  unsigned int uploaded_count;
 
   /* Clear color */
   float bg[4];
@@ -103,6 +115,11 @@ struct demo_renderer_metal_t : demo_renderer_t
 
   demo_renderer_metal_t (GLFWwindow *window_) : window (window_)
   {
+    uploaded_ptr = nullptr;
+    uploaded_count = 0;
+    offscreen_w = offscreen_h = 0;
+    vsync_on = true;
+    last_present_time = 0;
     bg[0] = bg[1] = bg[2] = bg[3] = 1.0f;
     memset (&uniforms, 0, sizeof (uniforms));
     uniforms.gamma = 1.0f;
@@ -183,7 +200,24 @@ struct demo_renderer_metal_t : demo_renderer_t
   void toggle_vsync (bool &vsync) override
   {
     vsync = !vsync;
+    vsync_on = vsync;
     metalLayer.displaySyncEnabled = vsync;
+  }
+
+  void ensure_offscreen (int width, int height)
+  {
+    if (offscreenTexture && offscreen_w == width && offscreen_h == height)
+      return;
+    MTLTextureDescriptor *desc =
+      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm_sRGB
+							width:width
+						       height:height
+						    mipmapped:NO];
+    desc.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+    desc.storageMode = MTLStorageModePrivate;
+    offscreenTexture = [device newTextureWithDescriptor:desc];
+    offscreen_w = width;
+    offscreen_h = height;
   }
 
 
@@ -211,45 +245,106 @@ struct demo_renderer_metal_t : demo_renderer_t
       atlas_dirty = false;
     }
 
-    /* Get drawable */
-    id<CAMetalDrawable> drawable = [metalLayer nextDrawable];
-    if (!drawable)
-      return;
-
-    /* Render pass */
-    MTLRenderPassDescriptor *passDesc = [MTLRenderPassDescriptor renderPassDescriptor];
-    passDesc.colorAttachments[0].texture = drawable.texture;
-    passDesc.colorAttachments[0].loadAction = MTLLoadActionClear;
-    passDesc.colorAttachments[0].storeAction = MTLStoreActionStore;
-    passDesc.colorAttachments[0].clearColor = MTLClearColorMake (bg[0], bg[1], bg[2], bg[3]);
-
-    id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
-    id<MTLRenderCommandEncoder> encoder =
-      [commandBuffer renderCommandEncoderWithDescriptor:passDesc];
-
-    [encoder setViewport:(MTLViewport){0, 0, (double) width, (double) height, 0, 1}];
-    [encoder setRenderPipelineState:pipelineState];
-
-    if (count > 0)
+    /* Only re-upload vertices if data changed. */
+    if (count > 0 && (vertices != uploaded_ptr || count != uploaded_count))
     {
-      id<MTLBuffer> vertexBuffer =
-	[device newBufferWithBytes:vertices
-			    length:count * sizeof (glyph_vertex_t)
-			   options:MTLResourceStorageModeShared];
-
-      [encoder setVertexBuffer:vertexBuffer offset:0 atIndex:0];
-      [encoder setVertexBytes:&uniforms length:sizeof (uniforms) atIndex:1];
-      [encoder setFragmentBuffer:atlasBuffer offset:0 atIndex:0];
-      [encoder setFragmentBytes:&uniforms length:sizeof (uniforms) atIndex:1];
-
-      [encoder drawPrimitives:MTLPrimitiveTypeTriangle
-		  vertexStart:0
-		  vertexCount:count];
+      vertexBuffer = [device newBufferWithBytes:vertices
+					length:count * sizeof (glyph_vertex_t)
+				       options:MTLResourceStorageModeShared];
+      uploaded_ptr = vertices;
+      uploaded_count = count;
     }
 
-    [encoder endEncoding];
-    [commandBuffer presentDrawable:drawable];
-    [commandBuffer commit];
+    /*
+     * When vsync is off, render to an offscreen texture (no blocking)
+     * and blit to a drawable only when one is immediately available.
+     * This decouples the render loop from the display refresh rate.
+     */
+    if (!vsync_on)
+    {
+      ensure_offscreen (width, height);
+
+      /* Render to offscreen */
+      MTLRenderPassDescriptor *passDesc = [MTLRenderPassDescriptor renderPassDescriptor];
+      passDesc.colorAttachments[0].texture = offscreenTexture;
+      passDesc.colorAttachments[0].loadAction = MTLLoadActionClear;
+      passDesc.colorAttachments[0].storeAction = MTLStoreActionStore;
+      passDesc.colorAttachments[0].clearColor = MTLClearColorMake (bg[0], bg[1], bg[2], bg[3]);
+
+      id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
+      id<MTLRenderCommandEncoder> encoder =
+	[commandBuffer renderCommandEncoderWithDescriptor:passDesc];
+
+      [encoder setViewport:(MTLViewport){0, 0, (double) width, (double) height, 0, 1}];
+      [encoder setRenderPipelineState:pipelineState];
+
+      if (count > 0)
+      {
+	[encoder setVertexBuffer:vertexBuffer offset:0 atIndex:0];
+	[encoder setVertexBytes:&uniforms length:sizeof (uniforms) atIndex:1];
+	[encoder setFragmentBuffer:atlasBuffer offset:0 atIndex:0];
+	[encoder setFragmentBytes:&uniforms length:sizeof (uniforms) atIndex:1];
+
+	[encoder drawPrimitives:MTLPrimitiveTypeTriangle
+		    vertexStart:0
+		    vertexCount:count];
+      }
+
+      [encoder endEncoding];
+
+      /* Present at most ~120 times/sec so the display stays live. */
+      double now = glfwGetTime ();
+      if (now - last_present_time > 1.0 / 120.0)
+      {
+	id<CAMetalDrawable> drawable = [metalLayer nextDrawable];
+	if (drawable)
+	{
+	  id<MTLBlitCommandEncoder> blit = [commandBuffer blitCommandEncoder];
+	  [blit copyFromTexture:offscreenTexture toTexture:drawable.texture];
+	  [blit endEncoding];
+	  [commandBuffer presentDrawable:drawable];
+	  last_present_time = now;
+	}
+      }
+
+      [commandBuffer commit];
+    }
+    else
+    {
+      /* Vsync on: render directly to drawable. */
+      id<CAMetalDrawable> drawable = [metalLayer nextDrawable];
+      if (!drawable)
+	return;
+
+      MTLRenderPassDescriptor *passDesc = [MTLRenderPassDescriptor renderPassDescriptor];
+      passDesc.colorAttachments[0].texture = drawable.texture;
+      passDesc.colorAttachments[0].loadAction = MTLLoadActionClear;
+      passDesc.colorAttachments[0].storeAction = MTLStoreActionStore;
+      passDesc.colorAttachments[0].clearColor = MTLClearColorMake (bg[0], bg[1], bg[2], bg[3]);
+
+      id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
+      id<MTLRenderCommandEncoder> encoder =
+	[commandBuffer renderCommandEncoderWithDescriptor:passDesc];
+
+      [encoder setViewport:(MTLViewport){0, 0, (double) width, (double) height, 0, 1}];
+      [encoder setRenderPipelineState:pipelineState];
+
+      if (count > 0)
+      {
+	[encoder setVertexBuffer:vertexBuffer offset:0 atIndex:0];
+	[encoder setVertexBytes:&uniforms length:sizeof (uniforms) atIndex:1];
+	[encoder setFragmentBuffer:atlasBuffer offset:0 atIndex:0];
+	[encoder setFragmentBytes:&uniforms length:sizeof (uniforms) atIndex:1];
+
+	[encoder drawPrimitives:MTLPrimitiveTypeTriangle
+		    vertexStart:0
+		    vertexCount:count];
+      }
+
+      [encoder endEncoding];
+      [commandBuffer presentDrawable:drawable];
+      [commandBuffer commit];
+    }
 
     } /* @autoreleasepool */
   }

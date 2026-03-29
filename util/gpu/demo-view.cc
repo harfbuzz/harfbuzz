@@ -164,7 +164,7 @@ start_animation (demo_view_t *vu)
 {
   vu->num_frames = 0;
   vu->last_frame_time = vu->fps_start_time = current_time ();
-  vu->fps_timer_interval = 5.0;
+  vu->fps_timer_interval = 2.0;
   vu->fps_timer_last = current_time ();
   vu->has_fps_timer = true;
 }

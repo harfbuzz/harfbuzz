@@ -13,8 +13,13 @@ struct demo_renderer_gl_t : demo_renderer_t
   demo_glstate_t *st;
   GLuint vao_name;
   GLuint buf_name;
+  bool vao_ready;
+  unsigned int uploaded_count;
+  glyph_vertex_t *uploaded_ptr;
 
-  demo_renderer_gl_t (GLFWwindow *window_) : window (window_)
+  demo_renderer_gl_t (GLFWwindow *window_)
+    : window (window_), vao_ready (false),
+      uploaded_count (0), uploaded_ptr (nullptr)
   {
     st = demo_glstate_create ();
     glGenVertexArrays (1, &vao_name);
@@ -26,6 +31,49 @@ struct demo_renderer_gl_t : demo_renderer_t
     glDeleteVertexArrays (1, &vao_name);
     glDeleteBuffers (1, &buf_name);
     demo_glstate_destroy (st);
+  }
+
+  void setup_vao ()
+  {
+    if (vao_ready)
+      return;
+    vao_ready = true;
+
+    GLint program;
+    glGetIntegerv (GL_CURRENT_PROGRAM, &program);
+
+    glBindVertexArray (vao_name);
+    glBindBuffer (GL_ARRAY_BUFFER, buf_name);
+
+    GLsizei stride = sizeof (glyph_vertex_t);
+
+    GLint loc;
+    loc = glGetAttribLocation (program, "a_position");
+    glEnableVertexAttribArray (loc);
+    glVertexAttribPointer (loc, 2, GL_FLOAT, GL_FALSE, stride,
+			   (const void *) offsetof (glyph_vertex_t, x));
+
+    loc = glGetAttribLocation (program, "a_texcoord");
+    glEnableVertexAttribArray (loc);
+    glVertexAttribPointer (loc, 2, GL_FLOAT, GL_FALSE, stride,
+			   (const void *) offsetof (glyph_vertex_t, tx));
+
+    loc = glGetAttribLocation (program, "a_normal");
+    glEnableVertexAttribArray (loc);
+    glVertexAttribPointer (loc, 2, GL_FLOAT, GL_FALSE, stride,
+			   (const void *) offsetof (glyph_vertex_t, nx));
+
+    loc = glGetAttribLocation (program, "a_emPerPos");
+    glEnableVertexAttribArray (loc);
+    glVertexAttribPointer (loc, 1, GL_FLOAT, GL_FALSE, stride,
+			   (const void *) offsetof (glyph_vertex_t, emPerPos));
+
+    loc = glGetAttribLocation (program, "a_glyphLoc");
+    glEnableVertexAttribArray (loc);
+    glVertexAttribIPointer (loc, 1, GL_UNSIGNED_INT, stride,
+			    (const void *) offsetof (glyph_vertex_t, atlas_offset));
+
+    glBindVertexArray (0);
   }
 
   demo_atlas_t *get_atlas () override
@@ -88,49 +136,23 @@ struct demo_renderer_gl_t : demo_renderer_t
 
     if (count > 0)
     {
-      GLint program;
-      glGetIntegerv (GL_CURRENT_PROGRAM, &program);
+      setup_vao ();
 
       glBindVertexArray (vao_name);
-      glBindBuffer (GL_ARRAY_BUFFER, buf_name);
-      glBufferData (GL_ARRAY_BUFFER,
-		    sizeof (glyph_vertex_t) * count,
-		    (const char *) vertices, GL_STATIC_DRAW);
 
-      GLsizei stride = sizeof (glyph_vertex_t);
-
-      GLint loc_pos = glGetAttribLocation (program, "a_position");
-      glEnableVertexAttribArray (loc_pos);
-      glVertexAttribPointer (loc_pos, 2, GL_FLOAT, GL_FALSE, stride,
-			     (const void *) offsetof (glyph_vertex_t, x));
-
-      GLint loc_tex = glGetAttribLocation (program, "a_texcoord");
-      glEnableVertexAttribArray (loc_tex);
-      glVertexAttribPointer (loc_tex, 2, GL_FLOAT, GL_FALSE, stride,
-			     (const void *) offsetof (glyph_vertex_t, tx));
-
-      GLint loc_normal = glGetAttribLocation (program, "a_normal");
-      glEnableVertexAttribArray (loc_normal);
-      glVertexAttribPointer (loc_normal, 2, GL_FLOAT, GL_FALSE, stride,
-			     (const void *) offsetof (glyph_vertex_t, nx));
-
-      GLint loc_epp = glGetAttribLocation (program, "a_emPerPos");
-      glEnableVertexAttribArray (loc_epp);
-      glVertexAttribPointer (loc_epp, 1, GL_FLOAT, GL_FALSE, stride,
-			     (const void *) offsetof (glyph_vertex_t, emPerPos));
-
-      GLint loc_glyph = glGetAttribLocation (program, "a_glyphLoc");
-      glEnableVertexAttribArray (loc_glyph);
-      glVertexAttribIPointer (loc_glyph, 1, GL_UNSIGNED_INT, stride,
-			      (const void *) offsetof (glyph_vertex_t, atlas_offset));
+      /* Only re-upload if data changed. */
+      if (vertices != uploaded_ptr || count != uploaded_count)
+      {
+	glBindBuffer (GL_ARRAY_BUFFER, buf_name);
+	glBufferData (GL_ARRAY_BUFFER,
+		      sizeof (glyph_vertex_t) * count,
+		      (const char *) vertices, GL_STATIC_DRAW);
+	uploaded_ptr = vertices;
+	uploaded_count = count;
+      }
 
       glDrawArrays (GL_TRIANGLES, 0, count);
 
-      glDisableVertexAttribArray (loc_pos);
-      glDisableVertexAttribArray (loc_tex);
-      glDisableVertexAttribArray (loc_normal);
-      glDisableVertexAttribArray (loc_epp);
-      glDisableVertexAttribArray (loc_glyph);
       glBindVertexArray (0);
     }
 
