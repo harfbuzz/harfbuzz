@@ -84,7 +84,7 @@ vec2 _hb_gpu_solve_horiz_poly (vec4 p12, vec2 p3)
   float t1 = (b.y - d) * ra;
   float t2 = (b.y + d) * ra;
 
-  if (abs (a.y) < 1.0 / 65536.0)
+  if (abs (a.y) < 1.0 / 16384.0)
     t1 = t2 = p12.y * rb;
 
   return vec2 ((a.x * t1 - b.x * 2.0) * t1 + p12.x,
@@ -102,7 +102,7 @@ vec2 _hb_gpu_solve_vert_poly (vec4 p12, vec2 p3)
   float t1 = (b.x - d) * ra;
   float t2 = (b.x + d) * ra;
 
-  if (abs (a.x) < 1.0 / 65536.0)
+  if (abs (a.x) < 1.0 / 16384.0)
     t1 = t2 = p12.x * rb;
 
   return vec2 ((a.y * t1 - b.y * 2.0) * t1 + p12.y,
