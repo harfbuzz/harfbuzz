@@ -113,8 +113,7 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
   /* Early WebGPU availability check */
   if (isWebGPU && !navigator.gpu) {
     var el = document.getElementById('loading');
-    var html = 'WebGPU not available in this browser.<br><br>' +
-               'See <a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
+    var html = 'WebGPU not available in this browser.<br><br>See <a href="https://github.com/gpuweb/gpuweb/wiki/Implementation-Status" ' +
                'style="color:#88f">browser support</a>.';
     if (navigator.userAgent.indexOf('Linux') !== -1 &&
         navigator.userAgent.indexOf('Chrome') !== -1)
