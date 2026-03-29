@@ -34,14 +34,14 @@ const HB_GPU_UNITS_PER_EM: f32 = 4.0;
 const HB_GPU_INV_UNITS: f32 = 1.0 / 4.0;
 
 
-fn hbgpu_fetch (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
+fn hb_gpu_fetch (hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>,
                   offset: i32) -> vec4<i32>
 {
   return (*hb_gpu_atlas)[offset];
 }
 
 
-fn hbgpu_calc_root_code (y1: f32, y2: f32, y3: f32) -> u32
+fn hb_gpu__calc_root_code (y1: f32, y2: f32, y3: f32) -> u32
 {
   let i1 = bitcast<u32> (y1) >> 31u;
   let i2 = bitcast<u32> (y2) >> 30u;
@@ -53,7 +53,7 @@ fn hbgpu_calc_root_code (y1: f32, y2: f32, y3: f32) -> u32
   return (0x2E74u >> shift) & 0x0101u;
 }
 
-fn hbgpu_solve_horiz_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
+fn hb_gpu__solve_horiz_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
 {
   let ra = 1.0 / a.y;
   let rb = 0.5 / b.y;
@@ -71,7 +71,7 @@ fn hbgpu_solve_horiz_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
                 (a.x * t2 - b.x * 2.0) * t2 + p1.x);
 }
 
-fn hbgpu_solve_vert_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
+fn hb_gpu__solve_vert_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
 {
   let ra = 1.0 / a.x;
   let rb = 0.5 / b.x;
@@ -89,7 +89,7 @@ fn hbgpu_solve_vert_poly (a: vec2f, b: vec2f, p1: vec2f) -> vec2f
                 (a.y * t2 - b.y * 2.0) * t2 + p1.y);
 }
 
-fn hbgpu_calc_coverage (xcov: f32, ycov: f32, xwgt: f32, ywgt: f32) -> f32
+fn hb_gpu__calc_coverage (xcov: f32, ycov: f32, xwgt: f32, ywgt: f32) -> f32
 {
   let coverage = max (abs (xcov * xwgt + ycov * ywgt) /
                       max (xwgt + ywgt, 1.0 / 65536.0),
@@ -98,66 +98,43 @@ fn hbgpu_calc_coverage (xcov: f32, ycov: f32, xwgt: f32, ywgt: f32) -> f32
   return clamp (coverage, 0.0, 1.0);
 }
 
-/* Decoded glyph band info for a pixel position. */
-struct HbGpuGlyphInfo
-{
-  glyphLoc: i32,
-  bandBase: i32,
-  bandIndex: vec2<i32>,
-  numHBands: i32,
-  numVBands: i32,
-}
-
-fn hbgpu_decode_glyph (renderCoord: vec2f, glyphLoc_: u32,
-                          hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> HbGpuGlyphInfo
-{
-  var gi: HbGpuGlyphInfo;
-  gi.glyphLoc = i32 (glyphLoc_);
-
-  let header0 = hbgpu_fetch (hb_gpu_atlas, gi.glyphLoc);
-  let header1 = hbgpu_fetch (hb_gpu_atlas, gi.glyphLoc + 1);
-  let ext = vec4f (header0) * HB_GPU_INV_UNITS;
-  gi.numHBands = header1.r;
-  gi.numVBands = header1.g;
-
-  let extSize = ext.zw - ext.xy;
-  let bandScale = vec2f (f32 (gi.numVBands), f32 (gi.numHBands)) / max (extSize, vec2f (1.0 / 65536.0));
-  let bandOffset = -ext.xy * bandScale;
-
-  gi.bandIndex = clamp (vec2<i32> (renderCoord * bandScale + bandOffset),
-                        vec2<i32> (0, 0),
-                        vec2<i32> (gi.numVBands - 1, gi.numHBands - 1));
-
-  gi.bandBase = gi.glyphLoc + 2;
-  return gi;
-}
-
-/* Return per-pixel curve counts: (horizontal, vertical). */
-fn hbgpu_curve_counts (renderCoord: vec2f, glyphLoc_: u32,
-                         hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> vec2<i32>
-{
-  let gi = hbgpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
-  let hCount = hbgpu_fetch (hb_gpu_atlas, gi.bandBase + gi.bandIndex.y).r;
-  let vCount = hbgpu_fetch (hb_gpu_atlas, gi.bandBase + gi.numHBands + gi.bandIndex.x).r;
-  return vec2<i32> (hCount, vCount);
-}
-
-/* Render a glyph and return its coverage in [0, 1]. */
+/* Render a glyph and return its coverage in [0, 1].
+ *
+ * renderCoord:  em-space sample position (interpolated from vertex shader)
+ * glyphLoc:     offset into hb_gpu_atlas for this glyph's encoded blob
+ * hb_gpu_atlas: storage buffer with the glyph atlas data
+ */
 fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
                   hb_gpu_atlas: ptr<storage, array<vec4<i32>>, read>) -> f32
 {
   let emsPerPixel = fwidth (renderCoord);
   let pixelsPerEm = 1.0 / emsPerPixel;
 
-  let gi = hbgpu_decode_glyph (renderCoord, glyphLoc_, hb_gpu_atlas);
-  let glyphLoc = gi.glyphLoc;
-  let bandBase = gi.bandBase;
-  let numHBands = gi.numHBands;
+  let glyphLoc = i32 (glyphLoc_);
+
+  /* Read blob header */
+  let header0 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc);
+  let header1 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + 1);
+  let ext = vec4f (header0) * HB_GPU_INV_UNITS; /* min_x, min_y, max_x, max_y */
+  let numHBands = header1.r;
+  let numVBands = header1.g;
+
+  /* Compute band transform from extents */
+  let extSize = ext.zw - ext.xy; /* (width, height) */
+  let bandScale = vec2f (f32 (numVBands), f32 (numHBands)) / max (extSize, vec2f (1.0 / 65536.0));
+  let bandOffset = -ext.xy * bandScale;
+
+  let bandIndex = clamp (vec2<i32> (renderCoord * bandScale + bandOffset),
+                         vec2<i32> (0, 0),
+                         vec2<i32> (numVBands - 1, numHBands - 1));
+
+  /* Skip past header (2 texels) */
+  let bandBase = glyphLoc + 2;
 
   var xcov: f32 = 0.0;
   var xwgt: f32 = 0.0;
 
-  let hbandData = hbgpu_fetch (hb_gpu_atlas, bandBase + bandIndex.y);
+  let hbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + bandIndex.y);
   let hCurveCount = hbandData.r;
   /* Symmetric: choose rightward (desc) or leftward (asc) sort */
   let hSplit = f32 (hbandData.a) * HB_GPU_INV_UNITS;
@@ -168,10 +145,10 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
 
   for (var ci: i32 = 0; ci < hCurveCount; ci++)
   {
-    let curveOffset = hbgpu_fetch (hb_gpu_atlas, glyphLoc + hDataOffset + ci).r + 32768;
+    let curveOffset = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + hDataOffset + ci).r + 32768;
 
-    let raw12 = hbgpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset);
-    let raw3 = hbgpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset + 1);
+    let raw12 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset);
+    let raw3 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset + 1);
 
     let q12 = vec4f (raw12) * HB_GPU_INV_UNITS;
     let q3 = vec2f (vec2<i32> (raw3.r, raw3.g)) * HB_GPU_INV_UNITS;
@@ -185,12 +162,12 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
       if (max (max (p12.x, p12.z), p3.x) * pixelsPerEm.x < -0.5) { break; }
     }
 
-    let code = hbgpu_calc_root_code (p12.y, p12.w, p3.y);
+    let code = hb_gpu__calc_root_code (p12.y, p12.w, p3.y);
     if (code != 0u)
     {
       let a = q12.xy - q12.zw * 2.0 + q3;
       let b = q12.xy - q12.zw;
-      let r = hbgpu_solve_horiz_poly (a, b, p12.xy) * pixelsPerEm.x;
+      let r = hb_gpu__solve_horiz_poly (a, b, p12.xy) * pixelsPerEm.x;
       /* For leftward ray: saturate(0.5 - r) counts coverage from the left */
       var cov: vec2f;
       if (hLeftRay) { cov = clamp (vec2f (0.5) - r, vec2f (0.0), vec2f (1.0)); }
@@ -213,7 +190,7 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
   var ycov: f32 = 0.0;
   var ywgt: f32 = 0.0;
 
-  let vbandData = hbgpu_fetch (hb_gpu_atlas, bandBase + numHBands + gi.bandIndex.x);
+  let vbandData = hb_gpu_fetch (hb_gpu_atlas, bandBase + numHBands + bandIndex.x);
   let vCurveCount = vbandData.r;
   let vSplit = f32 (vbandData.a) * HB_GPU_INV_UNITS;
   let vLeftRay = (renderCoord.y < vSplit);
@@ -223,10 +200,10 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
 
   for (var ci: i32 = 0; ci < vCurveCount; ci++)
   {
-    let curveOffset = hbgpu_fetch (hb_gpu_atlas, glyphLoc + vDataOffset + ci).r + 32768;
+    let curveOffset = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + vDataOffset + ci).r + 32768;
 
-    let raw12 = hbgpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset);
-    let raw3 = hbgpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset + 1);
+    let raw12 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset);
+    let raw3 = hb_gpu_fetch (hb_gpu_atlas, glyphLoc + curveOffset + 1);
 
     let q12 = vec4f (raw12) * HB_GPU_INV_UNITS;
     let q3 = vec2f (vec2<i32> (raw3.r, raw3.g)) * HB_GPU_INV_UNITS;
@@ -240,12 +217,12 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
       if (max (max (p12.y, p12.w), p3.y) * pixelsPerEm.y < -0.5) { break; }
     }
 
-    let code = hbgpu_calc_root_code (p12.x, p12.z, p3.x);
+    let code = hb_gpu__calc_root_code (p12.x, p12.z, p3.x);
     if (code != 0u)
     {
       let a = q12.xy - q12.zw * 2.0 + q3;
       let b = q12.xy - q12.zw;
-      let r = hbgpu_solve_vert_poly (a, b, p12.xy) * pixelsPerEm.y;
+      let r = hb_gpu__solve_vert_poly (a, b, p12.xy) * pixelsPerEm.y;
       var cov: vec2f;
       if (vLeftRay) { cov = clamp (vec2f (0.5) - r, vec2f (0.0), vec2f (1.0)); }
       else          { cov = clamp (r + vec2f (0.5), vec2f (0.0), vec2f (1.0)); }
@@ -264,5 +241,5 @@ fn hb_gpu_render (renderCoord: vec2f, glyphLoc_: u32,
     }
   }
 
-  return hbgpu_calc_coverage (xcov, ycov, xwgt, ywgt);
+  return hb_gpu__calc_coverage (xcov, ycov, xwgt, ywgt);
 }
