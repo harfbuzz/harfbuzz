@@ -535,7 +535,8 @@ demo_view_motion_func (demo_view_t *vu, double x, double y)
       if (vu->dt) {
 	vcopy (dquat, vu->rot_axis);
 	vnormal (vu->rot_axis);
-	vu->rot_speed = 2 * acos (dquat[3]) / vu->dt;
+	double w = clamp ((double) dquat[3], -1.0, 1.0);
+	vu->rot_speed = 2 * acos (w) / vu->dt;
       }
     }
   }
