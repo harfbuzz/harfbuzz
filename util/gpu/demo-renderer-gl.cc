@@ -140,7 +140,6 @@ struct demo_renderer_gl_t : demo_renderer_t
 
       glBindVertexArray (vao_name);
 
-      /* Only re-upload if data changed. */
       if (vertices != uploaded_ptr || count != uploaded_count)
       {
 	glBindBuffer (GL_ARRAY_BUFFER, buf_name);
