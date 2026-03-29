@@ -30,7 +30,7 @@
 #include "gpu/demo-common.h"
 #include "gpu/demo-buffer.h"
 #include "gpu/demo-font.h"
-#include "gpu/demo-glstate.h"
+#include "gpu/demo-renderer.h"
 #include "gpu/demo-view.h"
 
 #include "options.hh"
@@ -45,6 +45,8 @@ struct gpu_output_t
 
   void add_options (option_parser_t *parser HB_UNUSED) {}
 
+  bool use_metal = false;
+
   template <typename app_t>
   void init (hb_buffer_t *buffer_ HB_UNUSED, const app_t *app)
   {
@@ -55,13 +57,55 @@ struct gpu_output_t
     hb_font_get_scale (font, &x_scale, &y_scale);
     font_size = (double) y_scale;
 
-    /* Setup GL */
     glfwSetErrorCallback ([] (int error, const char *desc) {
       fprintf (stderr, "GLFW error %d: %s\n", error, desc);
     });
     if (!glfwInit ())
       fail (false, "Failed to initialize GLFW");
 
+    if (use_metal)
+      init_metal ();
+    else
+      init_gl ();
+
+    vu = demo_view_create (renderer, window);
+
+    glfwSetWindowUserPointer (window, this);
+    glfwSetFramebufferSizeCallback (window, [] (GLFWwindow *w, int width, int height) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_reshape_func (self->vu, width, height);
+    });
+    glfwSetKeyCallback (window, [] (GLFWwindow *w, int key, int scancode, int action, int mods) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_key_func (self->vu, key, scancode, action, mods);
+    });
+    glfwSetCharCallback (window, [] (GLFWwindow *w, unsigned int cp) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_char_func (self->vu, cp);
+    });
+    glfwSetMouseButtonCallback (window, [] (GLFWwindow *w, int button, int action, int mods) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_mouse_func (self->vu, button, action, mods);
+    });
+    glfwSetScrollCallback (window, [] (GLFWwindow *w, double xoff, double yoff) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_scroll_func (self->vu, xoff, yoff);
+    });
+    glfwSetCursorPosCallback (window, [] (GLFWwindow *w, double x, double y) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_motion_func (self->vu, x, y);
+    });
+
+    demo_font_ = demo_font_create (font, renderer->get_atlas ());
+    buf = demo_buffer_create ();
+
+    demo_point_t top_left = {0, 0};
+    demo_buffer_move_to (buf, &top_left);
+    demo_buffer_current_line (buf, font_size);
+  }
+
+  void init_gl ()
+  {
     glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -90,41 +134,28 @@ struct gpu_output_t
       glViewport (0, 0, fb_width, fb_height);
     }
 
-    st = demo_glstate_create ();
-    vu = demo_view_create (st, window);
+    renderer = demo_renderer_create_gl (window);
+  }
 
-    glfwSetWindowUserPointer (window, this);
-    glfwSetFramebufferSizeCallback (window, [] (GLFWwindow *w, int width, int height) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_reshape_func (self->vu, width, height);
-    });
-    glfwSetKeyCallback (window, [] (GLFWwindow *w, int key, int scancode, int action, int mods) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_key_func (self->vu, key, scancode, action, mods);
-    });
-    glfwSetCharCallback (window, [] (GLFWwindow *w, unsigned int cp) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_char_func (self->vu, cp);
-    });
-    glfwSetMouseButtonCallback (window, [] (GLFWwindow *w, int button, int action, int mods) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_mouse_func (self->vu, button, action, mods);
-    });
-    glfwSetScrollCallback (window, [] (GLFWwindow *w, double xoff, double yoff) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_scroll_func (self->vu, xoff, yoff);
-    });
-    glfwSetCursorPosCallback (window, [] (GLFWwindow *w, double x, double y) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_motion_func (self->vu, x, y);
-    });
+  void init_metal ()
+  {
+#ifdef __APPLE__
+    glfwWindowHint (GLFW_CLIENT_API, GLFW_NO_API);
 
-    demo_font_ = demo_font_create (font, demo_glstate_get_atlas (st));
-    buf = demo_buffer_create ();
+    window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU Demo (Metal)", NULL, NULL);
+    if (!window) {
+      glfwTerminate ();
+      fail (false, "Failed to create GLFW window");
+    }
 
-    demo_point_t top_left = {0, 0};
-    demo_buffer_move_to (buf, &top_left);
-    demo_buffer_current_line (buf, font_size);
+    renderer = demo_renderer_create_metal (window);
+    if (!renderer) {
+      glfwTerminate ();
+      fail (false, "Failed to initialize Metal");
+    }
+#else
+    fail (false, "Metal is only available on macOS");
+#endif
   }
 
   void new_line ()
@@ -183,7 +214,7 @@ struct gpu_output_t
     demo_buffer_destroy (buf);
     demo_font_destroy (demo_font_);
     demo_view_destroy (vu);
-    demo_glstate_destroy (st);
+    delete renderer;
 
     glfwDestroyWindow (window);
     glfwTerminate ();
@@ -196,7 +227,7 @@ struct gpu_output_t
   hb_face_t *face = nullptr;
 
   GLFWwindow *window = nullptr;
-  demo_glstate_t *st = nullptr;
+  demo_renderer_t *renderer = nullptr;
   demo_view_t *vu = nullptr;
   demo_font_t *demo_font_ = nullptr;
   demo_buffer_t *buf = nullptr;

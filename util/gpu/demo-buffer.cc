@@ -11,6 +11,7 @@ struct demo_buffer_t {
   demo_extents_t ink_extents;
   demo_extents_t logical_extents;
   bool dirty;
+  bool has_gl;
   GLuint vao_name;
   GLuint buf_name;
 };
@@ -21,8 +22,14 @@ demo_buffer_create (void)
   demo_buffer_t *buffer = (demo_buffer_t *) calloc (1, sizeof (demo_buffer_t));
 
   buffer->vertices = new std::vector<glyph_vertex_t>;
-  glGenVertexArrays (1, &buffer->vao_name);
-  glGenBuffers (1, &buffer->buf_name);
+
+  /* Only create GL objects if a GL context is available. */
+  if (glfwGetCurrentContext ())
+  {
+    glGenVertexArrays (1, &buffer->vao_name);
+    glGenBuffers (1, &buffer->buf_name);
+    buffer->has_gl = true;
+  }
 
   demo_buffer_clear (buffer);
 
@@ -35,8 +42,11 @@ demo_buffer_destroy (demo_buffer_t *buffer)
   if (!buffer)
     return;
 
-  glDeleteVertexArrays (1, &buffer->vao_name);
-  glDeleteBuffers (1, &buffer->buf_name);
+  if (buffer->has_gl)
+  {
+    glDeleteVertexArrays (1, &buffer->vao_name);
+    glDeleteBuffers (1, &buffer->buf_name);
+  }
   delete buffer->vertices;
   free (buffer);
 }
@@ -223,4 +233,15 @@ demo_buffer_draw (demo_buffer_t *buffer)
   glDisableVertexAttribArray (loc_epp);
   glDisableVertexAttribArray (loc_glyph);
   glBindVertexArray (0);
+}
+
+glyph_vertex_t *
+demo_buffer_get_vertices (demo_buffer_t *buffer,
+			  unsigned int  *count)
+{
+  if (count)
+    *count = buffer->vertices->size ();
+  if (buffer->vertices->empty ())
+    return nullptr;
+  return &(*buffer->vertices)[0];
 }

@@ -156,6 +156,18 @@ struct gpu_main_t : base_t
     add_options ();
     add_exit_code (RETURN_VALUE_OPERATION_FAILED, "Operation failed.");
 
+    /* Check for --metal before GLib eats the options. */
+    for (int i = 1; i < argc; i++)
+      if (!strcmp (argv[i], "--metal"))
+      {
+	this->output.use_metal = true;
+	/* Remove from argv so GLib doesn't complain. */
+	for (int j = i; j < argc - 1; j++)
+	  argv[j] = argv[j + 1];
+	argc--;
+	i--;
+      }
+
     parse (&argc, &argv);
 
     /* If no text was provided, build from font's supported scripts. */

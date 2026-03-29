@@ -36,4 +36,16 @@ void
 demo_atlas_set_uniforms (demo_atlas_t *at);
 
 
+/* Create an atlas backed by external callbacks (for Metal, etc.) */
+typedef struct {
+  void *ctx;
+  unsigned int (*alloc) (void *ctx, const char *data, unsigned int len_bytes);
+  unsigned int (*get_used) (void *ctx);
+  void (*clear) (void *ctx);
+} demo_atlas_backend_t;
+
+demo_atlas_t *
+demo_atlas_create_external (const demo_atlas_backend_t *backend);
+
+
 #endif /* DEMO_ATLAS_H */
