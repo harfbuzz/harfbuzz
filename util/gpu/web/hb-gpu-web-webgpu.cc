@@ -394,10 +394,13 @@ web_get_text ()
 #define ACTION_RELEASE 0
 #define ACTION_PRESS 1
 
+static int active_buttons;
+
 static EM_BOOL
 on_mousedown (int type, const EmscriptenMouseEvent *e, void *ud)
 {
   int button = (e->button == 2) ? BUTTON_RIGHT : BUTTON_LEFT;
+  active_buttons |= (1 << button);
   demo_view_motion_func (vu, e->targetX, e->targetY);
   demo_view_mouse_func (vu, button, ACTION_PRESS, 0);
   return EM_TRUE;
@@ -407,7 +410,12 @@ static EM_BOOL
 on_mouseup (int type, const EmscriptenMouseEvent *e, void *ud)
 {
   int button = (e->button == 2) ? BUTTON_RIGHT : BUTTON_LEFT;
-  demo_view_motion_func (vu, e->targetX, e->targetY);
+  if (!(active_buttons & (1 << button)))
+    return EM_FALSE; /* Not our drag — ignore (e.g. UI button click) */
+  active_buttons &= ~(1 << button);
+  /* Don't call motion_func here — it would zero dx/dy needed for
+   * drag-release velocity detection.  Cursor is already up to date
+   * from the last mousemove event. */
   demo_view_mouse_func (vu, button, ACTION_RELEASE, 0);
   return EM_TRUE;
 }
@@ -753,6 +761,8 @@ init_demo ()
   /* Register input handlers */
   emscripten_set_mousedown_callback ("#canvas", NULL, EM_TRUE, on_mousedown);
   emscripten_set_mouseup_callback ("#canvas", NULL, EM_TRUE, on_mouseup);
+  /* Catch mouseup outside canvas for drag-release; filtered by active_buttons */
+  emscripten_set_mouseup_callback (EMSCRIPTEN_EVENT_TARGET_DOCUMENT, NULL, EM_TRUE, on_mouseup);
   emscripten_set_mousemove_callback ("#canvas", NULL, EM_TRUE, on_mousemove);
   emscripten_set_wheel_callback ("#canvas", NULL, EM_TRUE, on_wheel);
   emscripten_set_keydown_callback (EMSCRIPTEN_EVENT_TARGET_DOCUMENT, NULL, EM_TRUE, on_keydown);
