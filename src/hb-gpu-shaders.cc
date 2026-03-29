@@ -30,6 +30,8 @@
 
 #include "hb-gpu-fragment-glsl.hh"
 #include "hb-gpu-vertex-glsl.hh"
+#include "hb-gpu-fragment-msl.hh"
+#include "hb-gpu-vertex-msl.hh"
 
 
 /**
@@ -54,6 +56,8 @@ hb_gpu_shader_fragment_source (hb_gpu_shader_lang_t lang)
   switch (lang) {
   case HB_GPU_SHADER_LANG_GLSL:
     return hb_gpu_fragment_glsl;
+  case HB_GPU_SHADER_LANG_MSL:
+    return hb_gpu_fragment_msl;
   default:
     return nullptr;
   }
@@ -77,6 +81,8 @@ hb_gpu_shader_vertex_source (hb_gpu_shader_lang_t lang)
   switch (lang) {
   case HB_GPU_SHADER_LANG_GLSL:
     return hb_gpu_vertex_glsl;
+  case HB_GPU_SHADER_LANG_MSL:
+    return hb_gpu_vertex_msl;
   default:
     return nullptr;
   }

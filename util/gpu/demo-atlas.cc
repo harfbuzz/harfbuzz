@@ -13,6 +13,9 @@
 struct demo_atlas_t {
   unsigned int refcount;
 
+  /* External backend (when set, GL fields are unused) */
+  demo_atlas_backend_t ext;
+
   GLuint tex_unit;
   GLuint tex_name;
 #ifndef HB_GPU_ATLAS_2D
@@ -63,16 +66,28 @@ demo_atlas_reference (demo_atlas_t *at)
   return at;
 }
 
+demo_atlas_t *
+demo_atlas_create_external (const demo_atlas_backend_t *backend)
+{
+  demo_atlas_t *at = (demo_atlas_t *) calloc (1, sizeof (demo_atlas_t));
+  at->refcount = 1;
+  at->ext = *backend;
+  return at;
+}
+
 void
 demo_atlas_destroy (demo_atlas_t *at)
 {
   if (!at || --at->refcount)
     return;
 
-  glDeleteTextures (1, &at->tex_name);
+  if (!at->ext.ctx)
+  {
+    glDeleteTextures (1, &at->tex_name);
 #ifndef HB_GPU_ATLAS_2D
-  glDeleteBuffers (1, &at->buf_name);
+    glDeleteBuffers (1, &at->buf_name);
 #endif
+  }
   free (at);
 }
 
@@ -90,6 +105,9 @@ demo_atlas_bind_texture (demo_atlas_t *at)
 void
 demo_atlas_set_uniforms (demo_atlas_t *at)
 {
+  if (at->ext.ctx)
+    return; /* External backend handles uniforms separately */
+
   GLuint program;
   glGetIntegerv (GL_CURRENT_PROGRAM, (GLint *) &program);
 
@@ -104,6 +122,9 @@ demo_atlas_alloc (demo_atlas_t *at,
 		  const char   *data,
 		  unsigned int  len_bytes)
 {
+  if (at->ext.ctx)
+    return at->ext.alloc (at->ext.ctx, data, len_bytes);
+
   unsigned int len_texels = len_bytes / TEXEL_SIZE;
 
   if (at->cursor + len_texels > at->capacity)
@@ -147,11 +168,18 @@ demo_atlas_alloc (demo_atlas_t *at,
 unsigned int
 demo_atlas_get_used (demo_atlas_t *at)
 {
+  if (at->ext.ctx)
+    return at->ext.get_used (at->ext.ctx);
   return at->cursor;
 }
 
 void
 demo_atlas_clear (demo_atlas_t *at)
 {
+  if (at->ext.ctx)
+  {
+    at->ext.clear (at->ext.ctx);
+    return;
+  }
   at->cursor = 0;
 }

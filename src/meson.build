@@ -857,6 +857,11 @@ hb_gpu_glsl_sources = [
   [ 'hb-gpu-vertex.glsl', 'hb-gpu-vertex-glsl.hh', 'hb_gpu_vertex_glsl' ],
 ]
 
+hb_gpu_msl_sources = [
+  [ 'hb-gpu-fragment.msl', 'hb-gpu-fragment-msl.hh', 'hb_gpu_fragment_msl' ],
+  [ 'hb-gpu-vertex.msl', 'hb-gpu-vertex-msl.hh', 'hb_gpu_vertex_msl' ],
+]
+
 hb_gpu_shader_helper = find_program('gen-gpu-shader-artifacts.py')
 foreach p: hb_gpu_glsl_sources
   glsl = p.get(0)
@@ -864,6 +869,17 @@ foreach p: hb_gpu_glsl_sources
   custom_target('@0@'.format(hh),
     build_by_default: true,
     input: glsl,
+    output: hh,
+    command: [ hb_gpu_shader_helper, '@OUTPUT@',
+	       meson.current_source_dir(), '@INPUT@' ])
+endforeach
+
+foreach p: hb_gpu_msl_sources
+  msl = p.get(0)
+  hh = p.get(1)
+  custom_target('@0@'.format(hh),
+    build_by_default: true,
+    input: msl,
     output: hh,
     command: [ hb_gpu_shader_helper, '@OUTPUT@',
 	       meson.current_source_dir(), '@INPUT@' ])

@@ -15,6 +15,8 @@ hh = os.path.basename(OUTPUT)
 decl_map = {
     'hb-gpu-fragment-glsl.hh': 'hb_gpu_fragment_glsl',
     'hb-gpu-vertex-glsl.hh': 'hb_gpu_vertex_glsl',
+    'hb-gpu-fragment-msl.hh': 'hb_gpu_fragment_msl',
+    'hb-gpu-vertex-msl.hh': 'hb_gpu_vertex_msl',
 }
 
 decl = decl_map.get(hh)

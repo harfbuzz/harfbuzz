@@ -32,6 +32,7 @@
 #include "gpu/demo-font.h"
 #include "gpu/demo-glstate.h"
 #include "gpu/demo-view.h"
+#include "gpu/demo-metal.h"
 
 #include "options.hh"
 #include "font-options.hh"
@@ -45,6 +46,8 @@ struct gpu_output_t
 
   void add_options (option_parser_t *parser HB_UNUSED) {}
 
+  bool use_metal = false;
+
   template <typename app_t>
   void init (hb_buffer_t *buffer_ HB_UNUSED, const app_t *app)
   {
@@ -55,13 +58,77 @@ struct gpu_output_t
     hb_font_get_scale (font, &x_scale, &y_scale);
     font_size = (double) y_scale;
 
-    /* Setup GL */
     glfwSetErrorCallback ([] (int error, const char *desc) {
       fprintf (stderr, "GLFW error %d: %s\n", error, desc);
     });
     if (!glfwInit ())
       fail (false, "Failed to initialize GLFW");
 
+    if (use_metal)
+      init_metal ();
+    else
+      init_gl ();
+
+    glfwSetWindowUserPointer (window, this);
+    glfwSetFramebufferSizeCallback (window, [] (GLFWwindow *w, int width, int height) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_reshape_func (self->vu, width, height);
+    });
+    glfwSetKeyCallback (window, [] (GLFWwindow *w, int key, int scancode, int action, int mods) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_key_func (self->vu, key, scancode, action, mods);
+    });
+    glfwSetCharCallback (window, [] (GLFWwindow *w, unsigned int cp) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_char_func (self->vu, cp);
+    });
+    glfwSetMouseButtonCallback (window, [] (GLFWwindow *w, int button, int action, int mods) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_mouse_func (self->vu, button, action, mods);
+    });
+    glfwSetScrollCallback (window, [] (GLFWwindow *w, double xoff, double yoff) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_scroll_func (self->vu, xoff, yoff);
+    });
+    glfwSetCursorPosCallback (window, [] (GLFWwindow *w, double x, double y) {
+      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
+      demo_view_motion_func (self->vu, x, y);
+    });
+
+    demo_atlas_t *atlas;
+    if (metal)
+    {
+      static demo_atlas_backend_t metal_backend = {
+	nullptr,
+	[] (void *ctx, const char *data, unsigned int len) -> unsigned int {
+	  return demo_metal_atlas_alloc ((demo_metal_t *) ctx, data, len);
+	},
+	[] (void *ctx) -> unsigned int {
+	  return demo_metal_atlas_get_used ((demo_metal_t *) ctx);
+	},
+	[] (void *ctx) {
+	  demo_metal_atlas_clear ((demo_metal_t *) ctx);
+	},
+      };
+      metal_backend.ctx = metal;
+      atlas = demo_atlas_create_external (&metal_backend);
+    }
+    else
+      atlas = demo_glstate_get_atlas (st);
+
+    demo_font_ = demo_font_create (font, atlas);
+    if (metal)
+      demo_atlas_destroy (atlas); /* font holds a ref */
+
+    buf = demo_buffer_create ();
+
+    demo_point_t top_left = {0, 0};
+    demo_buffer_move_to (buf, &top_left);
+    demo_buffer_current_line (buf, font_size);
+  }
+
+  void init_gl ()
+  {
     glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -92,39 +159,28 @@ struct gpu_output_t
 
     st = demo_glstate_create ();
     vu = demo_view_create (st, window);
+  }
 
-    glfwSetWindowUserPointer (window, this);
-    glfwSetFramebufferSizeCallback (window, [] (GLFWwindow *w, int width, int height) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_reshape_func (self->vu, width, height);
-    });
-    glfwSetKeyCallback (window, [] (GLFWwindow *w, int key, int scancode, int action, int mods) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_key_func (self->vu, key, scancode, action, mods);
-    });
-    glfwSetCharCallback (window, [] (GLFWwindow *w, unsigned int cp) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_char_func (self->vu, cp);
-    });
-    glfwSetMouseButtonCallback (window, [] (GLFWwindow *w, int button, int action, int mods) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_mouse_func (self->vu, button, action, mods);
-    });
-    glfwSetScrollCallback (window, [] (GLFWwindow *w, double xoff, double yoff) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_scroll_func (self->vu, xoff, yoff);
-    });
-    glfwSetCursorPosCallback (window, [] (GLFWwindow *w, double x, double y) {
-      auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
-      demo_view_motion_func (self->vu, x, y);
-    });
+  void init_metal ()
+  {
+#ifdef __APPLE__
+    glfwWindowHint (GLFW_CLIENT_API, GLFW_NO_API);
 
-    demo_font_ = demo_font_create (font, demo_glstate_get_atlas (st));
-    buf = demo_buffer_create ();
+    window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU Demo (Metal)", NULL, NULL);
+    if (!window) {
+      glfwTerminate ();
+      fail (false, "Failed to create GLFW window");
+    }
 
-    demo_point_t top_left = {0, 0};
-    demo_buffer_move_to (buf, &top_left);
-    demo_buffer_current_line (buf, font_size);
+    metal = demo_metal_create (window, 1024 * 1024);
+    if (!metal) {
+      glfwTerminate ();
+      fail (false, "Failed to initialize Metal");
+    }
+    vu = demo_view_create_metal (metal, window);
+#else
+    fail (false, "Metal is only available on macOS");
+#endif
   }
 
   void new_line ()
@@ -183,7 +239,8 @@ struct gpu_output_t
     demo_buffer_destroy (buf);
     demo_font_destroy (demo_font_);
     demo_view_destroy (vu);
-    demo_glstate_destroy (st);
+    if (st) demo_glstate_destroy (st);
+    if (metal) demo_metal_destroy (metal);
 
     glfwDestroyWindow (window);
     glfwTerminate ();
@@ -197,6 +254,7 @@ struct gpu_output_t
 
   GLFWwindow *window = nullptr;
   demo_glstate_t *st = nullptr;
+  demo_metal_t *metal = nullptr;
   demo_view_t *vu = nullptr;
   demo_font_t *demo_font_ = nullptr;
   demo_buffer_t *buf = nullptr;

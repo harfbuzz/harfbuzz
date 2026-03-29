@@ -11,10 +11,14 @@
 #include "demo-buffer.h"
 #include "demo-glstate.h"
 
+typedef struct demo_metal_t demo_metal_t;
 typedef struct demo_view_t demo_view_t;
 
 demo_view_t *
 demo_view_create (demo_glstate_t *st, GLFWwindow *window);
+
+demo_view_t *
+demo_view_create_metal (demo_metal_t *mt, GLFWwindow *window);
 
 void
 demo_view_destroy (demo_view_t *vu);
