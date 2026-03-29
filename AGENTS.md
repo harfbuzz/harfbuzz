@@ -94,6 +94,7 @@ For API work:
 
 - Before any commit, run the entire test suite with `meson test -C build`.
 - Exception: simple documentation-only or CI-only changes may be committed without running tests if they do not affect code, build logic, generated outputs, or test inputs.
+- Never push to the remote repository. The user handles pushing.
 - Use descriptive commit messages with consistent bracketed subsystem prefixes such as `[subset]`, `[raster]`, `[util]`, or `[meson]`.
 - Wrap commit message bodies to about 70 columns.
 - For multi-line commit messages, write the message from a file or editor-backed input. Do not pass escaped `\n` sequences via shell `-m` arguments.
