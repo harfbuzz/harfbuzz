@@ -695,6 +695,10 @@ on_device (WGPURequestDeviceStatus status,
   if (status != WGPURequestDeviceStatus_Success)
   {
     fprintf (stderr, "Failed to get WebGPU device\n");
+    EM_ASM ({
+      var el = document.getElementById ('loading');
+      if (el) { el.textContent = 'Failed to create WebGPU device.'; el.style.color = '#666'; }
+    });
     return;
   }
   device = dev;
@@ -710,6 +714,23 @@ on_adapter (WGPURequestAdapterStatus status,
   if (status != WGPURequestAdapterStatus_Success)
   {
     fprintf (stderr, "Failed to get WebGPU adapter\n");
+    EM_ASM ({
+      var el = document.getElementById ('loading');
+      if (el) {
+        var msg = 'WebGPU not available.\n\n' +
+                 'See browser support:\nhttps://github.com/gpuweb/gpuweb/wiki/Implementation-Status';
+        if (navigator.userAgent.indexOf ('Linux') !== -1 &&
+            navigator.userAgent.indexOf ('Chrome') !== -1)
+          msg += '\n\nOn Linux Chrome, try restarting with:\n' +
+                 'google-chrome --enable-unsafe-webgpu --ozone-platform=x11 ' +
+                 '--use-angle=vulkan --enable-features=Vulkan,VulkanFromANGLE';
+        el.textContent = msg;
+        el.style.whiteSpace = 'pre-wrap';
+        el.style.fontSize = '16px';
+        el.style.padding = '40px';
+        el.style.color = '#666';
+      }
+    });
     return;
   }
 
