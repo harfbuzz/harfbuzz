@@ -17,6 +17,8 @@ decl_map = {
     'hb-gpu-vertex-glsl.hh': 'hb_gpu_vertex_glsl',
     'hb-gpu-fragment-msl.hh': 'hb_gpu_fragment_msl',
     'hb-gpu-vertex-msl.hh': 'hb_gpu_vertex_msl',
+    'hb-gpu-fragment-wgsl.hh': 'hb_gpu_fragment_wgsl',
+    'hb-gpu-vertex-wgsl.hh': 'hb_gpu_vertex_wgsl',
 }
 
 decl = decl_map.get(hh)
