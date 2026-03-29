@@ -14,7 +14,9 @@
           line-height: 1.6; }
   #controls { position: fixed; top: 8px; left: 12px; z-index: 1;
               display: flex; gap: 6px; }
-  @media (hover: none) { #controls { display: none; } }
+  @media (hover: none) { #controls { display: none; }
+                         #help-desktop { display: none; } }
+  @media (hover: hover)  { #help-mobile { display: none; } }
   #controls label { color: #fff; font: 12px monospace; cursor: pointer;
                     padding: 4px 8px; border: 1px solid #888; border-radius: 4px;
                     background: rgba(128,128,128,0.5);
@@ -65,8 +67,9 @@
   </div>
 </div>
 <div id="help">
-drag: pan · scroll/pinch: zoom · click/tap: animate · right-drag: rotate<br>
-space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom
+<span id="help-desktop">drag: pan · scroll/pinch: zoom · click/tap: animate · right-drag: rotate<br>
+space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom</span>
+<span id="help-mobile">drag: pan · pinch: zoom · tap: animate</span>
 </div>
 <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
 <script>
