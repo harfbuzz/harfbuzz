@@ -106,12 +106,6 @@ static const char *wgsl_demo_shader =
 "  if (u.gamma != 1.0) {\n"
 "    coverage = pow (coverage, u.gamma);\n"
 "  }\n"
-"  if (u.debug > 0.0) {\n"
-"    let counts = _hb_gpu_curve_counts (in.texcoord, in.glyphLoc, &hb_gpu_atlas);\n"
-"    let r = clamp (f32 (counts.x) / 8.0, 0.0, 1.0);\n"
-"    let g = clamp (f32 (counts.y) / 8.0, 0.0, 1.0);\n"
-"    return vec4f (r, g, coverage, max (max (r, g), coverage));\n"
-"  }\n"
 "  return vec4f (u.foreground.rgb, u.foreground.a * coverage);\n"
 "}\n";
 
