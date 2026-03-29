@@ -30,9 +30,8 @@
 #include "gpu/demo-common.h"
 #include "gpu/demo-buffer.h"
 #include "gpu/demo-font.h"
-#include "gpu/demo-glstate.h"
+#include "gpu/demo-renderer.h"
 #include "gpu/demo-view.h"
-#include "gpu/demo-metal.h"
 
 #include "options.hh"
 #include "font-options.hh"
@@ -69,6 +68,8 @@ struct gpu_output_t
     else
       init_gl ();
 
+    vu = demo_view_create (renderer, window);
+
     glfwSetWindowUserPointer (window, this);
     glfwSetFramebufferSizeCallback (window, [] (GLFWwindow *w, int width, int height) {
       auto *self = (gpu_output_t *) glfwGetWindowUserPointer (w);
@@ -95,31 +96,7 @@ struct gpu_output_t
       demo_view_motion_func (self->vu, x, y);
     });
 
-    demo_atlas_t *atlas;
-    if (metal)
-    {
-      static demo_atlas_backend_t metal_backend = {
-	nullptr,
-	[] (void *ctx, const char *data, unsigned int len) -> unsigned int {
-	  return demo_metal_atlas_alloc ((demo_metal_t *) ctx, data, len);
-	},
-	[] (void *ctx) -> unsigned int {
-	  return demo_metal_atlas_get_used ((demo_metal_t *) ctx);
-	},
-	[] (void *ctx) {
-	  demo_metal_atlas_clear ((demo_metal_t *) ctx);
-	},
-      };
-      metal_backend.ctx = metal;
-      atlas = demo_atlas_create_external (&metal_backend);
-    }
-    else
-      atlas = demo_glstate_get_atlas (st);
-
-    demo_font_ = demo_font_create (font, atlas);
-    if (metal)
-      demo_atlas_destroy (atlas); /* font holds a ref */
-
+    demo_font_ = demo_font_create (font, renderer->get_atlas ());
     buf = demo_buffer_create ();
 
     demo_point_t top_left = {0, 0};
@@ -157,8 +134,7 @@ struct gpu_output_t
       glViewport (0, 0, fb_width, fb_height);
     }
 
-    st = demo_glstate_create ();
-    vu = demo_view_create (st, window);
+    renderer = demo_renderer_create_gl (window);
   }
 
   void init_metal ()
@@ -172,12 +148,11 @@ struct gpu_output_t
       fail (false, "Failed to create GLFW window");
     }
 
-    metal = demo_metal_create (window, 1024 * 1024);
-    if (!metal) {
+    renderer = demo_renderer_create_metal (window);
+    if (!renderer) {
       glfwTerminate ();
       fail (false, "Failed to initialize Metal");
     }
-    vu = demo_view_create_metal (metal, window);
 #else
     fail (false, "Metal is only available on macOS");
 #endif
@@ -239,8 +214,7 @@ struct gpu_output_t
     demo_buffer_destroy (buf);
     demo_font_destroy (demo_font_);
     demo_view_destroy (vu);
-    if (st) demo_glstate_destroy (st);
-    if (metal) demo_metal_destroy (metal);
+    delete renderer;
 
     glfwDestroyWindow (window);
     glfwTerminate ();
@@ -253,8 +227,7 @@ struct gpu_output_t
   hb_face_t *face = nullptr;
 
   GLFWwindow *window = nullptr;
-  demo_glstate_t *st = nullptr;
-  demo_metal_t *metal = nullptr;
+  demo_renderer_t *renderer = nullptr;
   demo_view_t *vu = nullptr;
   demo_font_t *demo_font_ = nullptr;
   demo_buffer_t *buf = nullptr;

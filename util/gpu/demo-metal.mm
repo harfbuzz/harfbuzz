@@ -4,7 +4,8 @@
 
 #ifdef __APPLE__
 
-#include "demo-metal.h"
+#include "demo-renderer.h"
+#include "demo-atlas.h"
 #include <hb-gpu.h>
 
 #import <Metal/Metal.h>
@@ -69,7 +70,8 @@ fragment float4 fragment_main(VertexOut in [[stage_in]],
 )msl";
 
 
-struct demo_metal_t {
+struct demo_renderer_metal_t : demo_renderer_t
+{
   GLFWwindow *window;
 
   /* Metal objects */
@@ -78,12 +80,16 @@ struct demo_metal_t {
   id<MTLRenderPipelineState> pipelineState;
   CAMetalLayer *metalLayer;
 
-  /* Atlas (CPU + GPU buffer) */
+  /* Atlas (CPU shadow + GPU buffer) */
+  demo_atlas_t *atlas;
   char *atlas_data;
   unsigned int atlas_capacity;  /* in texels */
   unsigned int atlas_cursor;    /* in texels */
   id<MTLBuffer> atlasBuffer;
   bool atlas_dirty;
+
+  /* Clear color */
+  float bg[4];
 
   /* Uniforms */
   struct {
@@ -93,33 +99,186 @@ struct demo_metal_t {
     float _pad1;
     float foreground[4];
   } uniforms;
+
+
+  demo_renderer_metal_t (GLFWwindow *window_) : window (window_)
+  {
+    bg[0] = bg[1] = bg[2] = bg[3] = 1.0f;
+    memset (&uniforms, 0, sizeof (uniforms));
+    uniforms.gamma = 1.0f;
+    uniforms.foreground[3] = 1.0f;
+  }
+
+  ~demo_renderer_metal_t () override
+  {
+    demo_atlas_destroy (atlas);
+    free (atlas_data);
+  }
+
+
+  /* -- Atlas -- */
+
+  static unsigned int
+  atlas_alloc_cb (void *ctx, const char *data, unsigned int len_bytes)
+  {
+    auto *self = (demo_renderer_metal_t *) ctx;
+    unsigned int len_texels = len_bytes / TEXEL_SIZE;
+    if (self->atlas_cursor + len_texels > self->atlas_capacity)
+      die ("Ran out of atlas memory");
+    unsigned int offset = self->atlas_cursor;
+    self->atlas_cursor += len_texels;
+    memcpy (self->atlas_data + offset * TEXEL_SIZE, data, len_bytes);
+    self->atlas_dirty = true;
+    return offset;
+  }
+
+  static unsigned int
+  atlas_get_used_cb (void *ctx)
+  {
+    return ((demo_renderer_metal_t *) ctx)->atlas_cursor;
+  }
+
+  static void
+  atlas_clear_cb (void *ctx)
+  {
+    auto *self = (demo_renderer_metal_t *) ctx;
+    self->atlas_cursor = 0;
+    self->atlas_dirty = true;
+  }
+
+  demo_atlas_t *get_atlas () override
+  {
+    return atlas;
+  }
+
+
+  /* -- State -- */
+
+  void setup () override {}
+
+  void set_gamma (float gamma) override
+  {
+    uniforms.gamma = gamma;
+  }
+
+  void set_foreground (float r, float g, float b, float a) override
+  {
+    uniforms.foreground[0] = r;
+    uniforms.foreground[1] = g;
+    uniforms.foreground[2] = b;
+    uniforms.foreground[3] = a;
+  }
+
+  void set_background (float r, float g, float b, float a) override
+  {
+    bg[0] = r; bg[1] = g; bg[2] = b; bg[3] = a;
+  }
+
+  bool set_srgb (bool enabled [[maybe_unused]]) override
+  {
+    /* Metal uses MTLPixelFormatBGRA8Unorm_sRGB; sRGB is always on. */
+    return true;
+  }
+
+  void toggle_vsync (bool &vsync) override
+  {
+    vsync = !vsync;
+    metalLayer.displaySyncEnabled = vsync;
+  }
+
+
+  /* -- Frame -- */
+
+  void display (glyph_vertex_t *vertices, unsigned int count,
+		int width, int height, float mat[16]) override
+  {
+    @autoreleasepool {
+
+    /* Update layer size */
+    CGSize size = { (CGFloat) width, (CGFloat) height };
+    metalLayer.drawableSize = size;
+
+    /* Update uniforms */
+    memcpy (uniforms.matViewProjection, mat, 16 * sizeof (float));
+    uniforms.viewport[0] = (float) width;
+    uniforms.viewport[1] = (float) height;
+
+    /* Sync atlas if dirty */
+    if (atlas_dirty)
+    {
+      memcpy (atlasBuffer.contents, atlas_data,
+	      atlas_cursor * TEXEL_SIZE);
+      atlas_dirty = false;
+    }
+
+    /* Get drawable */
+    id<CAMetalDrawable> drawable = [metalLayer nextDrawable];
+    if (!drawable)
+      return;
+
+    /* Render pass */
+    MTLRenderPassDescriptor *passDesc = [MTLRenderPassDescriptor renderPassDescriptor];
+    passDesc.colorAttachments[0].texture = drawable.texture;
+    passDesc.colorAttachments[0].loadAction = MTLLoadActionClear;
+    passDesc.colorAttachments[0].storeAction = MTLStoreActionStore;
+    passDesc.colorAttachments[0].clearColor = MTLClearColorMake (bg[0], bg[1], bg[2], bg[3]);
+
+    id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
+    id<MTLRenderCommandEncoder> encoder =
+      [commandBuffer renderCommandEncoderWithDescriptor:passDesc];
+
+    [encoder setViewport:(MTLViewport){0, 0, (double) width, (double) height, 0, 1}];
+    [encoder setRenderPipelineState:pipelineState];
+
+    if (count > 0)
+    {
+      id<MTLBuffer> vertexBuffer =
+	[device newBufferWithBytes:vertices
+			    length:count * sizeof (glyph_vertex_t)
+			   options:MTLResourceStorageModeShared];
+
+      [encoder setVertexBuffer:vertexBuffer offset:0 atIndex:0];
+      [encoder setVertexBytes:&uniforms length:sizeof (uniforms) atIndex:1];
+      [encoder setFragmentBuffer:atlasBuffer offset:0 atIndex:0];
+      [encoder setFragmentBytes:&uniforms length:sizeof (uniforms) atIndex:1];
+
+      [encoder drawPrimitives:MTLPrimitiveTypeTriangle
+		  vertexStart:0
+		  vertexCount:count];
+    }
+
+    [encoder endEncoding];
+    [commandBuffer presentDrawable:drawable];
+    [commandBuffer commit];
+
+    } /* @autoreleasepool */
+  }
 };
 
 
-demo_metal_t *
-demo_metal_create (GLFWwindow *window, unsigned int atlas_capacity)
+demo_renderer_t *
+demo_renderer_create_metal (GLFWwindow *window)
 {
   @autoreleasepool {
 
-  demo_metal_t *mt = (demo_metal_t *) calloc (1, sizeof (demo_metal_t));
-  mt->window = window;
+  auto *r = new demo_renderer_metal_t (window);
 
   /* Get Metal device */
-  mt->device = MTLCreateSystemDefaultDevice ();
-  if (!mt->device)
+  r->device = MTLCreateSystemDefaultDevice ();
+  if (!r->device)
   {
-    free (mt);
-    return NULL;
+    delete r;
+    return nullptr;
   }
 
-  mt->commandQueue = [mt->device newCommandQueue];
+  r->commandQueue = [r->device newCommandQueue];
 
   /* Set up CAMetalLayer on the GLFW window */
   NSWindow *nswindow = glfwGetCocoaWindow (window);
-  mt->metalLayer = [CAMetalLayer layer];
-  mt->metalLayer.device = mt->device;
-  mt->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
-  nswindow.contentView.layer = mt->metalLayer;
+  r->metalLayer = [CAMetalLayer layer];
+  r->metalLayer.device = r->device;
+  r->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+  nswindow.contentView.layer = r->metalLayer;
   nswindow.contentView.wantsLayer = YES;
 
   /* Compile shaders */
@@ -131,15 +290,15 @@ demo_metal_create (GLFWwindow *window, unsigned int atlas_capacity)
 		      preamble, vert_src, frag_src, demo_metal_shader_source];
 
   NSError *error = nil;
-  id<MTLLibrary> library = [mt->device newLibraryWithSource:source
-						    options:nil
-						      error:&error];
+  id<MTLLibrary> library = [r->device newLibraryWithSource:source
+						   options:nil
+						     error:&error];
   if (!library)
   {
     fprintf (stderr, "Metal shader compilation failed: %s\n",
 	     [[error localizedDescription] UTF8String]);
-    free (mt);
-    return NULL;
+    delete r;
+    return nullptr;
   }
 
   id<MTLFunction> vertexFunc = [library newFunctionWithName:@"vertex_main"];
@@ -147,27 +306,21 @@ demo_metal_create (GLFWwindow *window, unsigned int atlas_capacity)
 
   /* Create vertex descriptor matching glyph_vertex_t layout */
   MTLVertexDescriptor *vertexDesc = [MTLVertexDescriptor vertexDescriptor];
-  /* position: float2 at offset 0 */
   vertexDesc.attributes[0].format = MTLVertexFormatFloat2;
   vertexDesc.attributes[0].offset = 0;
   vertexDesc.attributes[0].bufferIndex = 0;
-  /* texcoord: float2 at offset 8 */
   vertexDesc.attributes[1].format = MTLVertexFormatFloat2;
   vertexDesc.attributes[1].offset = 8;
   vertexDesc.attributes[1].bufferIndex = 0;
-  /* normal: float2 at offset 16 */
   vertexDesc.attributes[2].format = MTLVertexFormatFloat2;
   vertexDesc.attributes[2].offset = 16;
   vertexDesc.attributes[2].bufferIndex = 0;
-  /* emPerPos: float at offset 24 */
   vertexDesc.attributes[3].format = MTLVertexFormatFloat;
   vertexDesc.attributes[3].offset = 24;
   vertexDesc.attributes[3].bufferIndex = 0;
-  /* glyphLoc: uint at offset 28 */
   vertexDesc.attributes[4].format = MTLVertexFormatUInt;
   vertexDesc.attributes[4].offset = 28;
   vertexDesc.attributes[4].bufferIndex = 0;
-  /* stride = sizeof(glyph_vertex_t) = 32 */
   vertexDesc.layouts[0].stride = 32;
 
   /* Create pipeline */
@@ -176,7 +329,6 @@ demo_metal_create (GLFWwindow *window, unsigned int atlas_capacity)
   pipelineDesc.fragmentFunction = fragmentFunc;
   pipelineDesc.vertexDescriptor = vertexDesc;
   pipelineDesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
-  /* Alpha blending: SRC_ALPHA, ONE_MINUS_SRC_ALPHA */
   pipelineDesc.colorAttachments[0].blendingEnabled = YES;
   pipelineDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
   pipelineDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
@@ -184,163 +336,35 @@ demo_metal_create (GLFWwindow *window, unsigned int atlas_capacity)
   pipelineDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 
   error = nil;
-  mt->pipelineState = [mt->device newRenderPipelineStateWithDescriptor:pipelineDesc
-							         error:&error];
-  if (!mt->pipelineState)
+  r->pipelineState = [r->device newRenderPipelineStateWithDescriptor:pipelineDesc
+							       error:&error];
+  if (!r->pipelineState)
   {
     fprintf (stderr, "Metal pipeline creation failed: %s\n",
 	     [[error localizedDescription] UTF8String]);
-    free (mt);
-    return NULL;
+    delete r;
+    return nullptr;
   }
 
   /* Atlas */
-  mt->atlas_capacity = atlas_capacity;
-  mt->atlas_cursor = 0;
-  mt->atlas_data = (char *) calloc (atlas_capacity, TEXEL_SIZE);
-  mt->atlasBuffer = [mt->device newBufferWithLength:atlas_capacity * TEXEL_SIZE
-					    options:MTLResourceStorageModeShared];
-  mt->atlas_dirty = false;
+  unsigned int atlas_capacity = 1024 * 1024;
+  r->atlas_capacity = atlas_capacity;
+  r->atlas_cursor = 0;
+  r->atlas_data = (char *) calloc (atlas_capacity, TEXEL_SIZE);
+  r->atlasBuffer = [r->device newBufferWithLength:atlas_capacity * TEXEL_SIZE
+					  options:MTLResourceStorageModeShared];
+  r->atlas_dirty = false;
 
-  /* Default uniforms */
-  mt->uniforms.gamma = 1.0f;
-  mt->uniforms.foreground[0] = 0.0f;
-  mt->uniforms.foreground[1] = 0.0f;
-  mt->uniforms.foreground[2] = 0.0f;
-  mt->uniforms.foreground[3] = 1.0f;
+  /* Create atlas wrapper for demo_font_t */
+  demo_atlas_backend_t backend = {
+    r,
+    demo_renderer_metal_t::atlas_alloc_cb,
+    demo_renderer_metal_t::atlas_get_used_cb,
+    demo_renderer_metal_t::atlas_clear_cb,
+  };
+  r->atlas = demo_atlas_create_external (&backend);
 
-  return mt;
-
-  } /* @autoreleasepool */
-}
-
-void
-demo_metal_destroy (demo_metal_t *mt)
-{
-  if (!mt)
-    return;
-
-  free (mt->atlas_data);
-  free (mt);
-}
-
-
-unsigned int
-demo_metal_atlas_alloc (demo_metal_t *mt,
-			const char   *data,
-			unsigned int  len_bytes)
-{
-  unsigned int len_texels = len_bytes / TEXEL_SIZE;
-
-  if (mt->atlas_cursor + len_texels > mt->atlas_capacity)
-    die ("Ran out of atlas memory");
-
-  unsigned int offset = mt->atlas_cursor;
-  mt->atlas_cursor += len_texels;
-
-  memcpy (mt->atlas_data + offset * TEXEL_SIZE, data, len_bytes);
-  mt->atlas_dirty = true;
-
-  return offset;
-}
-
-unsigned int
-demo_metal_atlas_get_used (demo_metal_t *mt)
-{
-  return mt->atlas_cursor;
-}
-
-void
-demo_metal_atlas_clear (demo_metal_t *mt)
-{
-  mt->atlas_cursor = 0;
-  mt->atlas_dirty = true;
-}
-
-
-void
-demo_metal_set_gamma (demo_metal_t *mt, float gamma)
-{
-  mt->uniforms.gamma = gamma;
-}
-
-void
-demo_metal_set_foreground (demo_metal_t *mt,
-			   float r, float g, float b, float a)
-{
-  mt->uniforms.foreground[0] = r;
-  mt->uniforms.foreground[1] = g;
-  mt->uniforms.foreground[2] = b;
-  mt->uniforms.foreground[3] = a;
-}
-
-
-void
-demo_metal_display (demo_metal_t    *mt,
-		    glyph_vertex_t  *vertices,
-		    unsigned int     vertex_count,
-		    int              width,
-		    int              height,
-		    float             mat[16])
-{
-  @autoreleasepool {
-
-  /* Update layer size */
-  CGSize size = { (CGFloat) width, (CGFloat) height };
-  mt->metalLayer.drawableSize = size;
-
-  /* Update uniforms */
-  memcpy (mt->uniforms.matViewProjection, mat, 16 * sizeof (float));
-  mt->uniforms.viewport[0] = (float) width;
-  mt->uniforms.viewport[1] = (float) height;
-
-  /* Sync atlas if dirty */
-  if (mt->atlas_dirty)
-  {
-    memcpy (mt->atlasBuffer.contents, mt->atlas_data,
-	    mt->atlas_cursor * TEXEL_SIZE);
-    mt->atlas_dirty = false;
-  }
-
-  /* Get drawable */
-  id<CAMetalDrawable> drawable = [mt->metalLayer nextDrawable];
-  if (!drawable)
-    return;
-
-  /* Render pass */
-  MTLRenderPassDescriptor *passDesc = [MTLRenderPassDescriptor renderPassDescriptor];
-  passDesc.colorAttachments[0].texture = drawable.texture;
-  passDesc.colorAttachments[0].loadAction = MTLLoadActionClear;
-  passDesc.colorAttachments[0].storeAction = MTLStoreActionStore;
-  passDesc.colorAttachments[0].clearColor = MTLClearColorMake (1.0, 1.0, 1.0, 1.0);
-
-  id<MTLCommandBuffer> commandBuffer = [mt->commandQueue commandBuffer];
-  id<MTLRenderCommandEncoder> encoder =
-    [commandBuffer renderCommandEncoderWithDescriptor:passDesc];
-
-  [encoder setViewport:(MTLViewport){0, 0, (double) width, (double) height, 0, 1}];
-  [encoder setRenderPipelineState:mt->pipelineState];
-
-  if (vertex_count > 0)
-  {
-    id<MTLBuffer> vertexBuffer =
-      [mt->device newBufferWithBytes:vertices
-			      length:vertex_count * sizeof (glyph_vertex_t)
-			     options:MTLResourceStorageModeShared];
-
-    [encoder setVertexBuffer:vertexBuffer offset:0 atIndex:0];
-    [encoder setVertexBytes:&mt->uniforms length:sizeof (mt->uniforms) atIndex:1];
-    [encoder setFragmentBuffer:mt->atlasBuffer offset:0 atIndex:0];
-    [encoder setFragmentBytes:&mt->uniforms length:sizeof (mt->uniforms) atIndex:1];
-
-    [encoder drawPrimitives:MTLPrimitiveTypeTriangle
-		vertexStart:0
-		vertexCount:vertex_count];
-  }
-
-  [encoder endEncoding];
-  [commandBuffer presentDrawable:drawable];
-  [commandBuffer commit];
+  return r;
 
   } /* @autoreleasepool */
 }

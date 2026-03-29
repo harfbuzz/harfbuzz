@@ -8,6 +8,8 @@ gpu_demo_sources = files(
   'demo-font.cc',
   'demo-glstate.h',
   'demo-glstate.cc',
+  'demo-renderer.h',
+  'demo-renderer-gl.cc',
   'demo-shader.h',
   'demo-shader.cc',
   'demo-view.h',
@@ -23,7 +25,6 @@ gpu_demo_sources = files(
 
 if host_machine.system() == 'darwin'
   gpu_demo_sources += files(
-    'demo-metal.h',
     'demo-metal.mm',
   )
 endif

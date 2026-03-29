@@ -4,20 +4,18 @@
  */
 
 #include "demo-view.h"
-#include "demo-metal.h"
 
 #include "trackball.hh"
 #include "matrix4x4.hh"
 
 struct demo_view_t {
-  demo_glstate_t *st;
-  demo_metal_t *metal;
+  demo_renderer_t *renderer;
   GLFWwindow *window;
 
   /* Output */
-  GLint vsync;
-  hb_bool_t fullscreen;
-  hb_bool_t dark_mode;
+  bool vsync;
+  bool fullscreen;
+  bool dark_mode;
   enum { GAMMA_SRGB, GAMMA_2_2, GAMMA_NONE } gamma_mode;
 
   /* Mouse handling */
@@ -62,24 +60,11 @@ struct demo_view_t {
 };
 
 demo_view_t *
-demo_view_create (demo_glstate_t *st, GLFWwindow *window)
+demo_view_create (demo_renderer_t *renderer, GLFWwindow *window)
 {
   demo_view_t *vu = (demo_view_t *) calloc (1, sizeof (demo_view_t));
 
-  vu->st = st;
-  vu->window = window;
-  vu->needs_redraw = true;
-  demo_view_reset (vu);
-
-  return vu;
-}
-
-demo_view_t *
-demo_view_create_metal (demo_metal_t *mt, GLFWwindow *window)
-{
-  demo_view_t *vu = (demo_view_t *) calloc (1, sizeof (demo_view_t));
-
-  vu->metal = mt;
+  vu->renderer = renderer;
   vu->window = window;
   vu->needs_redraw = true;
   demo_view_reset (vu);
@@ -197,53 +182,24 @@ demo_view_toggle_animation (demo_view_t *vu)
 static void
 demo_view_toggle_vsync (demo_view_t *vu)
 {
-  GLint vsync = !vu->vsync;
-  glfwSwapInterval (vsync);
-  vu->vsync = vsync;
+  vu->renderer->toggle_vsync (vu->vsync);
   LOGI ("Setting vsync %s.\n", vu->vsync ? "on" : "off");
 }
 
 static void
 demo_view_set_gamma_mode (demo_view_t *vu, int mode)
 {
-  if (vu->metal)
-  {
-    /* Metal uses sRGB framebuffer; gamma in shader for mode 2.2 */
-    if (mode == demo_view_t::GAMMA_SRGB)
-      mode = demo_view_t::GAMMA_NONE; /* sRGB is automatic with MTLPixelFormatBGRA8Unorm_sRGB */
-    vu->gamma_mode = (decltype(vu->gamma_mode)) mode;
-    float gamma = mode == demo_view_t::GAMMA_2_2 ? (vu->dark_mode ? 1.f/2.2f : 2.2f) : 1.f;
-    demo_metal_set_gamma (vu->metal, gamma);
-  }
-  else
-  {
-    /* Disable previous sRGB if any. */
-#if defined(GL_FRAMEBUFFER_SRGB)
-    glDisable (GL_FRAMEBUFFER_SRGB);
-    while (glGetError () != GL_NO_ERROR)
-      ;
-#endif
+  vu->renderer->set_srgb (false);
 
-    if (mode == demo_view_t::GAMMA_SRGB)
-    {
-#if defined(GL_FRAMEBUFFER_SRGB)
-      while (glGetError () != GL_NO_ERROR)
-	;
-      glEnable (GL_FRAMEBUFFER_SRGB);
-      if (glGetError () != GL_NO_ERROR)
-      {
-	LOGW ("sRGB framebuffer not available.\n");
-	mode = demo_view_t::GAMMA_2_2;
-      }
-#else
+  if (mode == demo_view_t::GAMMA_SRGB)
+  {
+    if (!vu->renderer->set_srgb (true))
       mode = demo_view_t::GAMMA_2_2;
-#endif
-    }
-
-    vu->gamma_mode = (decltype(vu->gamma_mode)) mode;
-    float gamma = mode == demo_view_t::GAMMA_2_2 ? (vu->dark_mode ? 1.f/2.2f : 2.2f) : 1.f;
-    demo_glstate_set_gamma (vu->st, gamma);
   }
+
+  vu->gamma_mode = (decltype(vu->gamma_mode)) mode;
+  float gamma = mode == demo_view_t::GAMMA_2_2 ? (vu->dark_mode ? 1.f/2.2f : 2.2f) : 1.f;
+  vu->renderer->set_gamma (gamma);
 
   const char *names[] = {"sRGB", "gamma 2.2", "none"};
   LOGI ("Gamma correction: %s.\n", names[mode]);
@@ -266,10 +222,17 @@ static void
 demo_view_toggle_dark (demo_view_t *vu)
 {
   vu->dark_mode = !vu->dark_mode;
+  LOGI ("Setting %s mode.\n", vu->dark_mode ? "dark" : "light");
   if (vu->dark_mode)
-    demo_glstate_set_foreground (vu->st, DARK_FG);
+  {
+    vu->renderer->set_foreground (DARK_FG);
+    vu->renderer->set_background (DARK_BG);
+  }
   else
-    demo_glstate_set_foreground (vu->st, LIGHT_FG);
+  {
+    vu->renderer->set_foreground (LIGHT_FG);
+    vu->renderer->set_background (LIGHT_BG);
+  }
   demo_view_set_gamma_mode (vu, vu->gamma_mode);
   vu->needs_redraw = true;
 }
@@ -619,42 +582,21 @@ demo_view_display (demo_view_t *vu, demo_buffer_t *buffer)
 	       -(extents.max_x + extents.min_x) / 2.,
 	       -(extents.max_y + extents.min_y) / 2., 0);
 
-  if (vu->metal)
-  {
-    unsigned int count;
-    glyph_vertex_t *verts = demo_buffer_get_vertices (buffer, &count);
-    demo_metal_display (vu->metal, verts, count, width, height, mat);
-  }
-  else
-  {
-    glViewport (0, 0, width, height);
-    demo_glstate_set_matrix (vu->st, mat);
+  unsigned int count;
+  glyph_vertex_t *verts = demo_buffer_get_vertices (buffer, &count);
+  vu->renderer->display (verts, count, width, height, mat);
 
-    if (vu->dark_mode)
-      glClearColor (DARK_BG);
-    else
-      glClearColor (LIGHT_BG);
-    glClear (GL_COLOR_BUFFER_BIT);
-
-    demo_buffer_draw (buffer);
-
-    glfwSwapBuffers (vu->window);
-  }
   vu->needs_redraw = false;
 }
 
 void
 demo_view_setup (demo_view_t *vu)
 {
-  if (vu->metal)
-  {
-    demo_metal_set_gamma (vu->metal, 1.f);
-    demo_metal_set_foreground (vu->metal, 0.f, 0.f, 0.f, 1.f);
-    return;
-  }
   if (!vu->vsync)
     demo_view_toggle_vsync (vu);
-  demo_glstate_setup (vu->st);
+  vu->renderer->setup ();
+  vu->renderer->set_foreground (LIGHT_FG);
+  vu->renderer->set_background (LIGHT_BG);
   demo_view_set_gamma_mode (vu, demo_view_t::GAMMA_SRGB);
 }
 
