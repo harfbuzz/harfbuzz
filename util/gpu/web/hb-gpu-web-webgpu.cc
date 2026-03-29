@@ -175,6 +175,7 @@ atlas_clear (void *ctx)
 
 /* ---- WebGPU state ---- */
 
+static WGPUAdapter adapter;
 static WGPUDevice device;
 static WGPUQueue queue;
 static WGPUSurface surface;
@@ -196,15 +197,21 @@ static char *current_text;
 static bool custom_text;
 
 static int canvas_w, canvas_h;
+static int css_w, css_h;
 static bool needs_redraw = true;
-static bool dark_mode = true;
+static bool dark_mode = false;
 static float gamma_val = 1.0f;
 static bool animate = false;
 
 /* View state */
-static float pan_x, pan_y;
-static float zoom = 1.0f;
-static float rotate_angle = 0.0f;
+/* View state matching demo_view_t */
+static double translate_x, translate_y;
+static double scalex = 1, scaley = 1;
+static double perspective = 16;
+static float quat[4];
+static float rot_axis[3] = {0, 0, 1};
+static double rot_speed = 1.0;
+
 static bool dragging = false;
 static bool right_dragging = false;
 static double last_mouse_x, last_mouse_y;
@@ -224,34 +231,38 @@ static void create_bind_group ();
 static void
 compute_mvp (float mat[16])
 {
-  /* Get buffer extents to center content */
-  demo_extents_t ink, logical;
-  demo_buffer_extents (buffer, &ink, &logical);
+  int width = canvas_w, height = canvas_h;
 
-  float cx = (float) (logical.min_x + logical.max_x) * 0.5f;
-  float cy = (float) (logical.min_y + logical.max_y) * 0.5f;
+  m4LoadIdentity (mat);
 
-  float aspect = (float) canvas_w / (float) canvas_h;
-  float content_w = (float) (logical.max_x - logical.min_x);
-  float content_h = (float) (logical.max_y - logical.min_y);
-  if (content_w <= 0) content_w = 1;
-  if (content_h <= 0) content_h = 1;
+  /* Apply view transform — matches demo_view_apply_transform exactly */
+  m4Scale (mat, scalex, scaley, 1);
+  m4Translate (mat, translate_x, translate_y, 0);
 
-  float scale = 1.8f / fmaxf (content_w / aspect, content_h);
-  scale *= zoom;
+  {
+    double d = std::max (width, height);
+    double near = d / perspective;
+    double far = near + d;
+    double factor = near / (2 * near + d);
+    m4Frustum (mat, -width * factor, width * factor, -height * factor, height * factor, near, far);
+    m4Translate (mat, 0, 0, -(near + d * .5));
+  }
 
-  /* Orthographic projection centered on content */
-  memset (mat, 0, 16 * sizeof (float));
-  float c = cosf (rotate_angle);
-  float s = sinf (rotate_angle);
-  mat[0]  =  c * scale / aspect;
-  mat[1]  =  s * scale;
-  mat[4]  = -s * scale / aspect;
-  mat[5]  =  c * scale;
-  mat[10] = 1.0f;
-  mat[12] = (-cx * scale * c + cy * scale * s) / aspect + pan_x;
-  mat[13] = (-cx * scale * s - cy * scale * c) + pan_y;
-  mat[15] = 1.0f;
+  float m[4][4];
+  build_rotmatrix (m, quat);
+  m4MultMatrix (mat, &m[0][0]);
+
+  m4Scale (mat, 1, -1, 1);
+
+  /* Content centering — matches demo_view_display */
+  demo_extents_t extents;
+  demo_buffer_extents (buffer, NULL, &extents);
+  double content_scale = .9 * std::min (width  / (extents.max_x - extents.min_x),
+					height / (extents.max_y - extents.min_y));
+  m4Scale (mat, content_scale, content_scale, 1);
+  m4Translate (mat,
+	       -(extents.max_x + extents.min_x) / 2.,
+	       -(extents.max_y + extents.min_y) / 2., 0);
 }
 
 
@@ -331,6 +342,7 @@ render_frame ()
 
   WGPURenderPassColorAttachment colorAtt = {};
   colorAtt.view = view;
+  colorAtt.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
   colorAtt.loadOp = WGPULoadOp_Clear;
   colorAtt.storeOp = WGPUStoreOp_Store;
   colorAtt.clearValue = {bg_r, bg_g, bg_b, 1.0};
@@ -363,7 +375,7 @@ render_frame ()
   wgpuTextureViewRelease (view);
   wgpuTextureRelease (surfTex.texture);
 
-  wgpuSurfacePresent (surface);
+  /* Browser auto-presents; wgpuSurfacePresent is not supported in Emscripten. */
 }
 
 
@@ -402,8 +414,8 @@ on_mouseup (int type, const EmscriptenMouseEvent *e, void *ud)
 static EM_BOOL
 on_mousemove (int type, const EmscriptenMouseEvent *e, void *ud)
 {
-  double dx = e->targetX - last_mouse_x;
-  double dy = e->targetY - last_mouse_y;
+  double prev_x = last_mouse_x;
+  double prev_y = last_mouse_y;
   last_mouse_x = e->targetX;
   last_mouse_y = e->targetY;
 
@@ -416,13 +428,21 @@ on_mousemove (int type, const EmscriptenMouseEvent *e, void *ud)
 
   if (dragging && drag_started)
   {
-    pan_x += (float) (2.0 * dx / canvas_w);
-    pan_y -= (float) (2.0 * dy / canvas_h);
+    double dx = last_mouse_x - prev_x;
+    double dy = last_mouse_y - prev_y;
+    translate_x += 2.0 * dx / css_w / scalex;
+    translate_y -= 2.0 * dy / css_h / scaley;
     needs_redraw = true;
   }
   else if (right_dragging)
   {
-    rotate_angle += (float) (dx * 0.01);
+    float dquat[4];
+    trackball (dquat,
+	       (2.0 * prev_x - css_w) / css_w,
+	       (css_h - 2.0 * prev_y) / css_h,
+	       (2.0 * last_mouse_x - css_w) / css_w,
+	       (css_h - 2.0 * last_mouse_y) / css_h);
+    add_quats (dquat, quat, quat);
     needs_redraw = true;
   }
   return EM_TRUE;
@@ -434,9 +454,9 @@ on_wheel (int type, const EmscriptenWheelEvent *e, void *ud)
   float delta = (float) -e->deltaY;
   if (e->deltaMode == DOM_DELTA_LINE)
     delta *= 40.0f;
-  zoom *= powf (1.001f, delta);
-  if (zoom < 0.01f) zoom = 0.01f;
-  if (zoom > 1000.0f) zoom = 1000.0f;
+  double factor = pow (1.001, delta);
+  scalex *= factor;
+  scaley *= factor;
   needs_redraw = true;
   return EM_TRUE;
 }
@@ -458,9 +478,10 @@ on_keydown (int type, const EmscriptenKeyboardEvent *e, void *ud)
   }
   else if (strcmp (e->key, "r") == 0)
   {
-    pan_x = pan_y = 0;
-    zoom = 1.0f;
-    rotate_angle = 0;
+    perspective = 16;
+    scalex = scaley = 1;
+    translate_x = translate_y = 0;
+    trackball (quat, 0., 0., 0., 0.);
     needs_redraw = true;
   }
   else if (strcmp (e->key, " ") == 0)
@@ -470,12 +491,14 @@ on_keydown (int type, const EmscriptenKeyboardEvent *e, void *ud)
   }
   else if (strcmp (e->key, "=") == 0 || strcmp (e->key, "+") == 0)
   {
-    zoom *= 1.2f;
+    scalex *= 1.2;
+    scaley *= 1.2;
     needs_redraw = true;
   }
   else if (strcmp (e->key, "-") == 0)
   {
-    zoom /= 1.2f;
+    scalex /= 1.2;
+    scaley /= 1.2;
     needs_redraw = true;
   }
   return EM_FALSE; /* let text modal handler see it too */
@@ -522,8 +545,8 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
 
     if (drag_started)
     {
-      pan_x += (float) (2.0 * dx / canvas_w);
-      pan_y -= (float) (2.0 * dy / canvas_h);
+      translate_x += 2.0 * dx / css_w / scalex;
+      translate_y -= 2.0 * dy / css_h / scaley;
       needs_redraw = true;
     }
   }
@@ -534,9 +557,9 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
     double dist = sqrt (dx * dx + dy * dy);
     if (pinch_dist > 0)
     {
-      zoom *= (float) (dist / pinch_dist);
-      if (zoom < 0.01f) zoom = 0.01f;
-      if (zoom > 1000.0f) zoom = 1000.0f;
+      double factor = dist / pinch_dist;
+      scalex *= factor;
+      scaley *= factor;
       needs_redraw = true;
     }
     pinch_dist = dist;
@@ -636,11 +659,14 @@ main_loop_iter ()
 {
   if (animate)
   {
-    rotate_angle += 0.005f;
+    float dquat[4];
+    float axis[3] = {rot_axis[0], rot_axis[1], rot_axis[2]};
+    axis_to_quat (axis, (float) (rot_speed * 0.02), dquat);
+    add_quats (dquat, quat, quat);
     needs_redraw = true;
   }
 
-  if (needs_redraw)
+  if (needs_redraw && pipeline)
   {
     render_frame ();
     needs_redraw = false;
@@ -670,13 +696,15 @@ on_device (WGPURequestDeviceStatus status,
 
 static void
 on_adapter (WGPURequestAdapterStatus status,
-	    WGPUAdapter adapter, WGPUStringView msg, void *ud1, void *ud2)
+	    WGPUAdapter adpt, WGPUStringView msg, void *ud1, void *ud2)
 {
   if (status != WGPURequestAdapterStatus_Success)
   {
     fprintf (stderr, "Failed to get WebGPU adapter\n");
     return;
   }
+
+  adapter = adpt;
 
   WGPUDeviceDescriptor devDesc = {};
   WGPURequestDeviceCallbackInfo cbInfo = {};
@@ -797,7 +825,9 @@ static void
 init_demo ()
 {
   /* Configure surface */
-  surface_format = WGPUTextureFormat_BGRA8Unorm;
+  WGPUSurfaceCapabilities caps = {};
+  wgpuSurfaceGetCapabilities (surface, adapter, &caps);
+  surface_format = caps.formats[0]; /* preferred format */
 
   WGPUSurfaceConfiguration config = {};
   config.device = device;
@@ -861,6 +891,9 @@ init_demo ()
   /* Create bind group */
   create_bind_group ();
 
+  /* Initialize trackball */
+  trackball (quat, 0., 0., 0., 0.);
+
   /* Register input handlers */
   emscripten_set_mousedown_callback ("#canvas", NULL, EM_TRUE, on_mousedown);
   emscripten_set_mouseup_callback ("#canvas", NULL, EM_TRUE, on_mouseup);
@@ -874,11 +907,14 @@ init_demo ()
   /* Start render loop */
   emscripten_set_main_loop (main_loop_iter, 0, 0);
 
-  /* Signal JS that we're ready */
+  /* Hide loading screen */
   EM_ASM ({
-    if (typeof Module.onRuntimeInitialized_webgpu === 'function')
-      Module.onRuntimeInitialized_webgpu ();
+    var el = document.getElementById ('loading');
+    if (el) el.style.display = 'none';
+    document.body.style.background = '#222';
   });
+
+  printf ("WebGPU demo initialized: %u atlas texels\n", atlas.cursor);
 }
 
 
@@ -887,6 +923,10 @@ main ()
 {
   /* Get canvas size */
   emscripten_get_canvas_element_size ("#canvas", &canvas_w, &canvas_h);
+  double css_w_d, css_h_d;
+  emscripten_get_element_css_size ("#canvas", &css_w_d, &css_h_d);
+  css_w = (int) css_w_d;
+  css_h = (int) css_h_d;
 
   /* Create WebGPU surface from canvas */
   WGPUInstanceDescriptor instDesc = {};
@@ -902,6 +942,7 @@ main ()
 
   /* Request adapter → device → init_demo */
   WGPURequestAdapterOptions opts = {};
+  opts.compatibleSurface = surface;
   opts.powerPreference = WGPUPowerPreference_HighPerformance;
 
   WGPURequestAdapterCallbackInfo cbInfo = {};
