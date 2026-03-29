@@ -397,6 +397,7 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
 #endif
 
     case GLFW_KEY_R:
+    case GLFW_KEY_BACKSPACE:
       demo_view_reset (vu);
       break;
 
@@ -576,7 +577,7 @@ demo_view_print_help (demo_view_t *vu)
   LOGI ("  {, }                      Stretch/shrink vertically\n");
   LOGI ("  h, j, k, l                Pan (vim-style)\n");
   LOGI ("  Arrow keys                Pan\n");
-  LOGI ("  r                         Reset view\n");
+  LOGI ("  r, Backspace              Reset view\n");
   LOGI ("  <N><key>                  Repeat key N times (e.g. 30=)\n");
   LOGI ("Mouse:\n");
   LOGI ("  Left drag                 Pan\n");

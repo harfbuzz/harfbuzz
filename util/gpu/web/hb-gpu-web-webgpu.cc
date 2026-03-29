@@ -443,6 +443,7 @@ dom_key_to_glfw (const char *key)
 {
   if (!strcmp (key, " "))         return 32;  /* GLFW_KEY_SPACE */
   if (!strcmp (key, "Escape"))    return 256; /* GLFW_KEY_ESCAPE */
+  if (!strcmp (key, "Backspace")) return 259; /* GLFW_KEY_BACKSPACE */
   if (!strcmp (key, "ArrowUp"))   return 265; /* GLFW_KEY_UP */
   if (!strcmp (key, "ArrowDown")) return 264; /* GLFW_KEY_DOWN */
   if (!strcmp (key, "ArrowLeft")) return 263; /* GLFW_KEY_LEFT */
