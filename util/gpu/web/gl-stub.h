@@ -52,4 +52,39 @@ static inline GLint glGetUniformLocation (GLuint, const GLchar *) { return 0; }
 static inline void glUniform1i (GLint, GLint) {}
 static inline GLenum glGetError () { return 0; }
 
+/* GLFW type and constant stubs */
+typedef void GLFWwindow;
+
+#define GLFW_RELEASE 0
+#define GLFW_PRESS   1
+#define GLFW_REPEAT  2
+#define GLFW_TRUE    1
+#define GLFW_FALSE   0
+
+#define GLFW_MOD_SHIFT   0x0001
+
+#define GLFW_MOUSE_BUTTON_1     0
+#define GLFW_MOUSE_BUTTON_2     1
+#define GLFW_MOUSE_BUTTON_3     2
+#define GLFW_MOUSE_BUTTON_LEFT  0
+#define GLFW_MOUSE_BUTTON_RIGHT 1
+#define GLFW_MOUSE_BUTTON_MIDDLE 2
+
+#define GLFW_KEY_SPACE       32
+#define GLFW_KEY_SLASH       47
+#define GLFW_KEY_0           48
+#define GLFW_KEY_9           57
+#define GLFW_KEY_A           65
+#define GLFW_KEY_B           66
+#define GLFW_KEY_F           70
+#define GLFW_KEY_G           71
+#define GLFW_KEY_Q           81
+#define GLFW_KEY_R           82
+#define GLFW_KEY_V           86
+#define GLFW_KEY_ESCAPE      256
+#define GLFW_KEY_RIGHT       262
+#define GLFW_KEY_LEFT        263
+#define GLFW_KEY_DOWN        264
+#define GLFW_KEY_UP          265
+
 #endif /* GL_STUB_H */

@@ -38,12 +38,14 @@ struct demo_renderer_t
 };
 
 
+#ifndef HB_GPU_NO_GLFW
 demo_renderer_t *
 demo_renderer_create_gl (GLFWwindow *window);
 
 #ifdef __APPLE__
 demo_renderer_t *
 demo_renderer_create_metal (GLFWwindow *window);
+#endif
 #endif
 
 

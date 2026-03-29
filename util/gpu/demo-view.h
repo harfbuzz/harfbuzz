@@ -13,8 +13,15 @@
 
 typedef struct demo_view_t demo_view_t;
 
+#ifndef HB_GPU_NO_GLFW
 demo_view_t *
 demo_view_create (demo_renderer_t *renderer, GLFWwindow *window);
+#endif
+
+demo_view_t *
+demo_view_create_headless (demo_renderer_t *renderer,
+			   int fb_width, int fb_height,
+			   int win_width, int win_height);
 
 void
 demo_view_destroy (demo_view_t *vu);

@@ -18,11 +18,13 @@ em++ \
   -DHB_NO_MT \
   -DHAVE_ROUND \
   -DHB_HAS_GPU \
+  -DHB_GPU_NO_GLFW \
   -include gl-stub.h \
   "$SRCDIR/src/harfbuzz-world.cc" \
   "$SRCDIR/util/gpu/demo-atlas.cc" \
   "$SRCDIR/util/gpu/demo-buffer.cc" \
   "$SRCDIR/util/gpu/demo-font.cc" \
+  "$SRCDIR/util/gpu/demo-view.cc" \
   "$SRCDIR/util/gpu/web/hb-gpu-web-webgpu.cc" \
   --use-port=emdawnwebgpu \
   -sALLOW_MEMORY_GROWTH=1 \

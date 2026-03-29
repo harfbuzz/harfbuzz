@@ -5,12 +5,22 @@
 
 #include "demo-view.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "trackball.hh"
 #include "matrix4x4.hh"
 
 struct demo_view_t {
   demo_renderer_t *renderer;
+#ifndef HB_GPU_NO_GLFW
   GLFWwindow *window;
+#endif
+
+  /* Cached window/framebuffer dimensions */
+  int fb_width, fb_height;
+  int win_width, win_height;
 
   /* Output */
   bool vsync;
@@ -59,6 +69,7 @@ struct demo_view_t {
   int height;
 };
 
+#ifndef HB_GPU_NO_GLFW
 demo_view_t *
 demo_view_create (demo_renderer_t *renderer, GLFWwindow *window)
 {
@@ -66,6 +77,25 @@ demo_view_create (demo_renderer_t *renderer, GLFWwindow *window)
 
   vu->renderer = renderer;
   vu->window = window;
+  vu->needs_redraw = true;
+  demo_view_reset (vu);
+
+  return vu;
+}
+#endif
+
+demo_view_t *
+demo_view_create_headless (demo_renderer_t *renderer,
+			   int fb_width, int fb_height,
+			   int win_width, int win_height)
+{
+  demo_view_t *vu = (demo_view_t *) calloc (1, sizeof (demo_view_t));
+
+  vu->renderer = renderer;
+  vu->fb_width = fb_width;
+  vu->fb_height = fb_height;
+  vu->win_width = win_width;
+  vu->win_height = win_height;
   vu->needs_redraw = true;
   demo_view_reset (vu);
 
@@ -156,7 +186,11 @@ demo_view_apply_transform (demo_view_t *vu, float *mat, int width, int height)
 static double
 current_time (void)
 {
+#ifdef __EMSCRIPTEN__
+  return emscripten_get_now () / 1000.0;
+#else
   return glfwGetTime ();
+#endif
 }
 
 static void
@@ -237,9 +271,11 @@ demo_view_toggle_dark (demo_view_t *vu)
   vu->needs_redraw = true;
 }
 
+#ifndef HB_GPU_NO_GLFW
 static void
 demo_view_toggle_fullscreen (demo_view_t *vu)
 {
+  if (!vu->window) return;
   vu->fullscreen = !vu->fullscreen;
   if (vu->fullscreen) {
     glfwGetWindowPos (vu->window, &vu->x, &vu->y);
@@ -251,12 +287,17 @@ demo_view_toggle_fullscreen (demo_view_t *vu)
     glfwSetWindowMonitor (vu->window, NULL, vu->x, vu->y, vu->width, vu->height, 0);
   }
 }
+#endif
 
 
 
 void
 demo_view_reshape_func (demo_view_t *vu, int width, int height)
 {
+  vu->fb_width = width;
+  vu->fb_height = height;
+  vu->win_width = width;
+  vu->win_height = height;
   vu->needs_redraw = true;
 }
 
@@ -326,7 +367,10 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
   {
     case GLFW_KEY_ESCAPE:
     case GLFW_KEY_Q:
-      glfwSetWindowShouldClose (vu->window, GLFW_TRUE);
+#ifndef HB_GPU_NO_GLFW
+      if (vu->window)
+	glfwSetWindowShouldClose (vu->window, GLFW_TRUE);
+#endif
       break;
 
     case GLFW_KEY_SPACE:
@@ -346,9 +390,11 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
       demo_view_toggle_vsync (vu);
       break;
 
+#ifndef HB_GPU_NO_GLFW
     case GLFW_KEY_F:
       demo_view_toggle_fullscreen (vu);
       break;
+#endif
 
     case GLFW_KEY_R:
       demo_view_reset (vu);
@@ -383,7 +429,10 @@ demo_view_mouse_func (demo_view_t *vu, int button, int action, int mods)
     vu->buttons &= ~(1 << button);
   vu->modifiers = mods;
 
-  glfwGetCursorPos (vu->window, &vu->cursorx, &vu->cursory);
+#ifndef HB_GPU_NO_GLFW
+  if (vu->window)
+    glfwGetCursorPos (vu->window, &vu->cursorx, &vu->cursory);
+#endif
   double x = vu->cursorx, y = vu->cursory;
 
   switch (button)
@@ -452,8 +501,11 @@ demo_view_motion_func (demo_view_t *vu, double x, double y)
       return;
   }
 
-  int width, height;
-  glfwGetWindowSize (vu->window, &width, &height);
+  int width = vu->win_width, height = vu->win_height;
+#ifndef HB_GPU_NO_GLFW
+  if (vu->window)
+    glfwGetWindowSize (vu->window, &width, &height);
+#endif
 
   if (vu->buttons & (1 << GLFW_MOUSE_BUTTON_LEFT))
   {
@@ -564,8 +616,11 @@ demo_view_display (demo_view_t *vu, demo_buffer_t *buffer)
     }
   }
 
-  int width, height;
-  glfwGetFramebufferSize (vu->window, &width, &height);
+  int width = vu->fb_width, height = vu->fb_height;
+#ifndef HB_GPU_NO_GLFW
+  if (vu->window)
+    glfwGetFramebufferSize (vu->window, &width, &height);
+#endif
 
   float mat[16];
 
