@@ -12,10 +12,25 @@
   #help { position: fixed; bottom: 12px; left: 12px; color: #999;
           font: 12px monospace; pointer-events: none; z-index: 1;
           line-height: 1.6; }
+  #controls { position: fixed; top: 8px; left: 12px; z-index: 1; }
+  #controls label { color: #fff; font: 12px monospace; cursor: pointer;
+                    padding: 4px 8px; border: 1px solid #888; border-radius: 4px;
+                    background: rgba(128,128,128,0.5);
+                    text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+  #controls label:hover { border-color: #ccc; background: rgba(128,128,128,0.7); }
+  #controls input[type=file] { display: none; }
+  #drop-overlay { display: none; position: fixed; inset: 0; z-index: 10;
+                  background: rgba(0,0,0,0.6); color: #fff;
+                  font: 24px monospace; justify-content: center;
+                  align-items: center; }
 </style>
 </head>
 <body>
 <div id="fps"></div>
+<div id="controls">
+  <label>font <input type="file" id="font-input" accept=".ttf,.otf"></label>
+</div>
+<div id="drop-overlay">drop font file</div>
 <div id="help">
 drag: pan · scroll/pinch: zoom · click/tap: animate · right-drag: rotate<br>
 space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom
@@ -78,6 +93,42 @@ space: animate · b: dark mode · g: gamma · r: reset · =/-: zoom
     canvas: canvas,
     onRuntimeInitialized: function () {
       console.log('HarfBuzz GPU Demo loaded');
+
+      /* Font file input */
+      var fontInput = document.getElementById('font-input');
+      fontInput.addEventListener('change', function () {
+        if (fontInput.files.length)
+          loadFontFile(fontInput.files[0]);
+      });
+
+      /* Drag and drop */
+      var overlay = document.getElementById('drop-overlay');
+      document.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        overlay.style.display = 'flex';
+      });
+      document.addEventListener('dragleave', function (e) {
+        if (e.relatedTarget === null)
+          overlay.style.display = 'none';
+      });
+      document.addEventListener('drop', function (e) {
+        e.preventDefault();
+        overlay.style.display = 'none';
+        if (e.dataTransfer.files.length)
+          loadFontFile(e.dataTransfer.files[0]);
+      });
+
+      function loadFontFile(file) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var data = new Uint8Array(reader.result);
+          var buf = _malloc(data.length);
+          HEAPU8.set(data, buf);
+          _web_load_font(buf, data.length);
+          _free(buf);
+        };
+        reader.readAsArrayBuffer(file);
+      }
     }
   };
 </script>
