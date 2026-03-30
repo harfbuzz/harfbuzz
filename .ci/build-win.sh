@@ -33,6 +33,7 @@ meson setup \
 	-Dchafa=disabled \
 	-Dgdi=enabled \
 	-Ddirectwrite=enabled \
+	-Dgpu_demo=enabled \
 	${BUILD} \
 	"$@"
 
