@@ -24,6 +24,7 @@ struct Uniforms {
   float gamma;
   float stem_darkening;
   float4 foreground;
+  float debug;
 };
 
 struct VertexIn {
@@ -74,6 +75,13 @@ fragment float4 fragment_main(VertexOut in [[stage_in]],
   if (uniforms.gamma != 1.0)
     coverage = pow(coverage, uniforms.gamma);
 
+  if (uniforms.debug > 0.0) {
+    int2 counts = _hb_gpu_curve_counts(in.texcoord, in.glyphLoc, atlas);
+    float r = clamp(float(counts.x) / 8.0, 0.0, 1.0);
+    float g = clamp(float(counts.y) / 8.0, 0.0, 1.0);
+    return float4(r, g, coverage, max(max(r, g), coverage));
+  }
+
   return float4(uniforms.foreground.xyz, uniforms.foreground.w * coverage);
 }
 
@@ -120,6 +128,8 @@ struct demo_renderer_metal_t : demo_renderer_t
     float gamma;
     float stem_darkening;
     float foreground[4];
+    float debug;
+    float _pad[3];
   } uniforms;
 
 
@@ -202,7 +212,10 @@ struct demo_renderer_metal_t : demo_renderer_t
     bg[0] = r; bg[1] = g; bg[2] = b; bg[3] = a;
   }
 
-  void set_debug (bool) override {}
+  void set_debug (bool enabled) override
+  {
+    uniforms.debug = enabled ? 1.f : 0.f;
+  }
 
   void set_stem_darkening (bool enabled) override
   {
