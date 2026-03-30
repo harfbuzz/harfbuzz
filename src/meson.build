@@ -852,67 +852,23 @@ if not get_option('vector').disabled()
   )
 endif
 
-hb_gpu_glsl_sources = [
-  [ 'hb-gpu-fragment.glsl', 'hb-gpu-fragment-glsl.hh', 'hb_gpu_fragment_glsl' ],
-  [ 'hb-gpu-vertex.glsl', 'hb-gpu-vertex-glsl.hh', 'hb_gpu_vertex_glsl' ],
-]
-
-hb_gpu_msl_sources = [
-  [ 'hb-gpu-fragment.msl', 'hb-gpu-fragment-msl.hh', 'hb_gpu_fragment_msl' ],
-  [ 'hb-gpu-vertex.msl', 'hb-gpu-vertex-msl.hh', 'hb_gpu_vertex_msl' ],
-]
-
-hb_gpu_wgsl_sources = [
-  [ 'hb-gpu-fragment.wgsl', 'hb-gpu-fragment-wgsl.hh', 'hb_gpu_fragment_wgsl' ],
-  [ 'hb-gpu-vertex.wgsl', 'hb-gpu-vertex-wgsl.hh', 'hb_gpu_vertex_wgsl' ],
-]
-
-hb_gpu_hlsl_sources = [
-  [ 'hb-gpu-fragment.hlsl', 'hb-gpu-fragment-hlsl.hh', 'hb_gpu_fragment_hlsl' ],
-  [ 'hb-gpu-vertex.hlsl', 'hb-gpu-vertex-hlsl.hh', 'hb_gpu_vertex_hlsl' ],
+hb_gpu_shader_sources = [
+  [ 'hb-gpu-fragment.glsl', 'hb-gpu-fragment-glsl.hh' ],
+  [ 'hb-gpu-vertex.glsl', 'hb-gpu-vertex-glsl.hh' ],
+  [ 'hb-gpu-fragment.wgsl', 'hb-gpu-fragment-wgsl.hh' ],
+  [ 'hb-gpu-vertex.wgsl', 'hb-gpu-vertex-wgsl.hh' ],
+  [ 'hb-gpu-fragment.msl', 'hb-gpu-fragment-msl.hh' ],
+  [ 'hb-gpu-vertex.msl', 'hb-gpu-vertex-msl.hh' ],
+  [ 'hb-gpu-fragment.hlsl', 'hb-gpu-fragment-hlsl.hh' ],
+  [ 'hb-gpu-vertex.hlsl', 'hb-gpu-vertex-hlsl.hh' ],
 ]
 
 hb_gpu_shader_helper = find_program('gen-gpu-shader-artifacts.py')
-foreach p: hb_gpu_glsl_sources
-  glsl = p.get(0)
-  hh = p.get(1)
-  custom_target('@0@'.format(hh),
+foreach p: hb_gpu_shader_sources
+  custom_target('@0@'.format(p.get(1)),
     build_by_default: true,
-    input: glsl,
-    output: hh,
-    command: [ hb_gpu_shader_helper, '@OUTPUT@',
-	       meson.current_source_dir(), '@INPUT@' ])
-endforeach
-
-foreach p: hb_gpu_msl_sources
-  msl = p.get(0)
-  hh = p.get(1)
-  custom_target('@0@'.format(hh),
-    build_by_default: true,
-    input: msl,
-    output: hh,
-    command: [ hb_gpu_shader_helper, '@OUTPUT@',
-	       meson.current_source_dir(), '@INPUT@' ])
-endforeach
-
-foreach p: hb_gpu_wgsl_sources
-  wgsl = p.get(0)
-  hh = p.get(1)
-  custom_target('@0@'.format(hh),
-    build_by_default: true,
-    input: wgsl,
-    output: hh,
-    command: [ hb_gpu_shader_helper, '@OUTPUT@',
-	       meson.current_source_dir(), '@INPUT@' ])
-endforeach
-
-foreach p: hb_gpu_hlsl_sources
-  hlsl = p.get(0)
-  hh = p.get(1)
-  custom_target('@0@'.format(hh),
-    build_by_default: true,
-    input: hlsl,
-    output: hh,
+    input: p.get(0),
+    output: p.get(1),
     command: [ hb_gpu_shader_helper, '@OUTPUT@',
 	       meson.current_source_dir(), '@INPUT@' ])
 endforeach
