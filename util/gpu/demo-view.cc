@@ -31,7 +31,6 @@ struct demo_view_t {
   bool debug;
   bool stem_darkening = true;
   double screen_angle; /* 2D screen-space rotation from pinch */
-  bool trail;
   enum { GAMMA_SRGB, GAMMA_2_2, GAMMA_NONE } gamma_mode;
 
   /* Mouse handling */
@@ -408,11 +407,6 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
       vu->stem_darkening = !vu->stem_darkening;
       vu->renderer->set_stem_darkening (vu->stem_darkening);
       LOGI ("Stem darkening: %s.\n", vu->stem_darkening ? "on" : "off");
-      break;
-    case GLFW_KEY_P:
-      vu->trail = !vu->trail;
-      vu->renderer->set_trail (vu->trail);
-      LOGI ("Trail mode: %s.\n", vu->trail ? "on" : "off");
       break;
     case GLFW_KEY_V:
       demo_view_toggle_vsync (vu);
