@@ -217,6 +217,17 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset</s
   var textModalEl = document.getElementById('text-modal');
   function blockKeysIfModal(e) {
     if (textModalEl.style.display !== 'flex') {
+      if (e.key === '/' || e.key === '?') {
+        var h = document.getElementById('help');
+        var f = document.getElementById('fps');
+        var c = document.getElementById('controls');
+        var hidden = h.style.display === 'none';
+        h.style.display = hidden ? '' : 'none';
+        f.style.display = hidden ? '' : 'none';
+        if (c) c.style.display = hidden ? '' : 'none';
+        e.stopImmediatePropagation();
+        return;
+      }
       if (e.key === 'R') {
         location.reload();
         return;

@@ -387,8 +387,7 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
       demo_view_toggle_animation (vu);
       break;
     case GLFW_KEY_SLASH:
-      if (mods & GLFW_MOD_SHIFT)
-	demo_view_print_help (vu);
+      demo_view_print_help (vu);
       break;
     case GLFW_KEY_G:
       demo_view_cycle_gamma (vu);
