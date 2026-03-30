@@ -4,8 +4,64 @@
 
 #include "demo-shader.h"
 
-#include "demo-vertex-glsl.hh"
-#include "demo-fragment-glsl.hh"
+static const char *demo_vertex_glsl = R"glsl(
+uniform mat4 u_matViewProjection;
+uniform vec2 u_viewport;
+
+in vec2 a_position;
+in vec2 a_texcoord;
+in vec2 a_normal;
+in float a_emPerPos;
+in uint a_glyphLoc;
+
+out vec2 v_texcoord;
+flat out uint v_glyphLoc;
+
+void main ()
+{
+  vec2 pos = a_position;
+  vec2 tex = a_texcoord;
+
+  vec4 jac = vec4 (a_emPerPos, 0.0, 0.0, -a_emPerPos);
+
+  hb_gpu_dilate (pos, tex, a_normal, jac,
+		 u_matViewProjection, u_viewport);
+
+  gl_Position = u_matViewProjection * vec4 (pos, 0.0, 1.0);
+  v_texcoord = tex;
+  v_glyphLoc = a_glyphLoc;
+}
+)glsl";
+
+static const char *demo_fragment_glsl = R"glsl(
+uniform float u_gamma;
+uniform float u_debug;
+uniform vec4 u_foreground;
+
+in vec2 v_texcoord;
+flat in uint v_glyphLoc;
+
+out vec4 fragColor;
+
+void main ()
+{
+  float coverage = hb_gpu_render (v_texcoord, v_glyphLoc);
+
+  if (u_gamma != 1.0)
+    coverage = pow (coverage, u_gamma);
+
+  if (u_debug > 0.0)
+  {
+    ivec2 counts = _hb_gpu_curve_counts (v_texcoord, v_glyphLoc);
+    float r = clamp (float (counts.x) / 8.0, 0.0, 1.0);
+    float g = clamp (float (counts.y) / 8.0, 0.0, 1.0);
+    fragColor = vec4 (r, g, coverage, max (max (r, g), coverage));
+    return;
+  }
+
+  fragColor = vec4 (u_foreground.rgb, u_foreground.a * coverage);
+}
+)glsl";
 
 
 

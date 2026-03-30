@@ -226,7 +226,7 @@ if not get_option('gpu').disabled()
       gpu_demo_deps += metal_dep
     endif
     hb_gpu_util = executable('hb-gpu-demo',
-      ['hb-gpu-demo.cc'] + gpu_demo_sources + gpu_demo_shader_headers,
+      ['hb-gpu-demo.cc'] + gpu_demo_sources,
       cpp_args: cpp_args,
       include_directories: [incconfig, incsrc],
       dependencies: gpu_demo_deps,
