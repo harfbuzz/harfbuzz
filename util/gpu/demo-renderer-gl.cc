@@ -106,6 +106,11 @@ struct demo_renderer_gl_t : demo_renderer_t
     demo_glstate_set_debug (st, enabled);
   }
 
+  void set_stem_darkening (bool enabled) override
+  {
+    demo_glstate_set_stem_darkening (st, enabled);
+  }
+
   bool set_srgb (bool enabled) override
   {
 #if defined(GL_FRAMEBUFFER_SRGB)

@@ -36,6 +36,7 @@ void main ()
 static const char *demo_fragment_glsl = R"glsl(
 uniform float u_gamma;
 uniform float u_debug;
+uniform float u_stem_darkening;
 uniform vec4 u_foreground;
 
 in vec2 v_texcoord;
@@ -46,6 +47,20 @@ out vec4 fragColor;
 void main ()
 {
   float coverage = hb_gpu_render (v_texcoord, v_glyphLoc);
+
+  /* Stem darkening / thinning at small sizes.
+   * Light text on dark: stems get too fat → thin them (exponent > 1).
+   * Dark text on light: stems get too thin → darken them (exponent < 1).
+   * The foreground brightness tells us which mode we're in. */
+  if (u_stem_darkening > 0.0)
+  {
+    float ppem = 1.0 / max (fwidth (v_texcoord).x, fwidth (v_texcoord).y);
+    float size_factor = smoothstep (8.0, 48.0, ppem);
+    bool light_on_dark = dot (u_foreground.rgb, vec3 (1.0)) > 1.5;
+    float stem_exp = light_on_dark ? mix (1.4, 1.0, size_factor)
+				   : mix (0.7, 1.0, size_factor);
+    coverage = pow (coverage, stem_exp);
+  }
 
   if (u_gamma != 1.0)
     coverage = pow (coverage, u_gamma);

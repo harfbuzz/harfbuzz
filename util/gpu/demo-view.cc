@@ -27,6 +27,7 @@ struct demo_view_t {
   bool fullscreen;
   bool dark_mode;
   bool debug;
+  bool stem_darkening = true;
   enum { GAMMA_SRGB, GAMMA_2_2, GAMMA_NONE } gamma_mode;
 
   /* Mouse handling */
@@ -392,6 +393,11 @@ demo_view_key_func (demo_view_t *vu, int key, int scancode, int action, int mods
       vu->renderer->set_debug (vu->debug);
       LOGI ("Debug mode: %s.\n", vu->debug ? "on" : "off");
       break;
+    case GLFW_KEY_S:
+      vu->stem_darkening = !vu->stem_darkening;
+      vu->renderer->set_stem_darkening (vu->stem_darkening);
+      LOGI ("Stem darkening: %s.\n", vu->stem_darkening ? "on" : "off");
+      break;
     case GLFW_KEY_V:
       demo_view_toggle_vsync (vu);
       break;
@@ -666,6 +672,8 @@ demo_view_setup (demo_view_t *vu)
   vu->renderer->set_foreground (LIGHT_FG);
   vu->renderer->set_background (LIGHT_BG);
   demo_view_set_gamma_mode (vu, demo_view_t::GAMMA_SRGB);
+  vu->stem_darkening = true;
+  vu->renderer->set_stem_darkening (true);
 }
 
 bool

@@ -81,6 +81,7 @@ typedef void GLFWwindow;
 #define GLFW_KEY_G           71
 #define GLFW_KEY_Q           81
 #define GLFW_KEY_R           82
+#define GLFW_KEY_S           83
 #define GLFW_KEY_V           86
 #define GLFW_KEY_ESCAPE      256
 #define GLFW_KEY_BACKSPACE   259
