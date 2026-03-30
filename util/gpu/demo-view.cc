@@ -30,6 +30,7 @@ struct demo_view_t {
   bool dark_mode;
   bool debug;
   bool stem_darkening = true;
+  double screen_angle; /* 2D screen-space rotation from pinch */
   enum { GAMMA_SRGB, GAMMA_2_2, GAMMA_NONE } gamma_mode;
 
   /* Mouse handling */
@@ -123,6 +124,7 @@ demo_view_reset (demo_view_t *vu)
   vu->perspective = 16;
   vu->scalex = vu->scaley = 1;
   vu->translate.x = vu->translate.y = 0;
+  vu->screen_angle = 0;
   trackball (vu->quat , 0.0, 0.0, 0.0, 0.0);
   vset (vu->rot_axis, 0., 0., 1.);
   vu->rot_speed = ANIMATION_SPEED;
@@ -532,19 +534,45 @@ demo_view_rotate_z_around (demo_view_t *vu, double angle,
 			   double cx, double cy,
 			   int width, int height)
 {
-  /* Normalized screen coords [-1, 1] */
-  double nx =  (2.0 * cx / width  - 1.0) / vu->scalex;
-  double ny = -(2.0 * cy / height - 1.0) / vu->scaley;
+  demo_view_rotate_z (vu, angle);
+}
 
-  /* Translate so center is at origin, rotate, translate back */
-  double c = cos (angle), s = sin (angle);
-  vu->translate.x += nx - (nx * c - ny * s);
-  vu->translate.y += ny - (nx * s + ny * c);
+void
+demo_view_pinch (demo_view_t *vu,
+		 double pan_dx, double pan_dy,
+		 double zoom_factor,
+		 double angle_delta,
+		 double cx, double cy,
+		 int width, int height)
+{
+  /* Pan from centroid movement */
+  demo_view_translate (vu,
+		       +2. * pan_dx / width,
+		       -2. * pan_dy / height);
 
-  float dquat[4];
-  float axis[3] = {0, 0, 1};
-  axis_to_quat (axis, (float) angle, dquat);
-  add_quats (dquat, vu->quat, vu->quat);
+  /* Zoom around centroid (same math as middle-drag) */
+  if (zoom_factor != 1.0)
+  {
+    demo_view_scale (vu, zoom_factor, zoom_factor);
+    demo_view_translate (vu,
+			 +(2. * cx / width  - 1) * (1 - zoom_factor),
+			 -(2. * cy / height - 1) * (1 - zoom_factor));
+  }
+
+  /* Screen-space Z rotation around centroid.
+   * Since screen_angle is in the same space as scale/translate,
+   * centering works the same way as zoom. */
+  if (angle_delta != 0.0)
+  {
+    vu->screen_angle += angle_delta;
+    double c = cos (-angle_delta), s = sin (-angle_delta);
+    double px = +(2. * cx / width  - 1);
+    double py = -(2. * cy / height - 1);
+    demo_view_translate (vu,
+			 px * (1 - c) + py * s,
+			 -(px * s - py * (1 - c)));
+  }
+
   vu->needs_redraw = true;
 }
 
@@ -698,6 +726,15 @@ demo_view_display (demo_view_t *vu, demo_buffer_t *buffer)
   m4LoadIdentity (mat);
 
   demo_view_apply_transform (vu, mat, width, height);
+
+  /* Apply 2D screen-space rotation from pinch (left-multiply). */
+  if (vu->screen_angle != 0.0)
+  {
+    float rot[16];
+    m4LoadIdentity (rot);
+    m4Rotate (rot, (float) (-vu->screen_angle * 180.0 / M_PI), 0, 0, 1);
+    m4MultMatrix (mat, rot);
+  }
 
   demo_extents_t extents;
   demo_buffer_extents (buffer, NULL, &extents);

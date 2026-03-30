@@ -502,6 +502,7 @@ on_keydown (int type, const EmscriptenKeyboardEvent *e, void *ud)
 /* Touch handling */
 static double pinch_dist;
 static double pinch_angle;
+static double pinch_cx, pinch_cy;
 static bool three_finger_active;
 
 static EM_BOOL
@@ -519,6 +520,8 @@ on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
     double dy = e->touches[1].targetY - e->touches[0].targetY;
     pinch_dist = sqrt (dx * dx + dy * dy);
     pinch_angle = atan2 (dy, dx);
+    pinch_cx = (e->touches[0].targetX + e->touches[1].targetX) / 2.0;
+    pinch_cy = (e->touches[0].targetY + e->touches[1].targetY) / 2.0;
   }
   else if (e->numTouches >= 3)
   {
@@ -551,23 +554,18 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
     double dy = e->touches[1].targetY - e->touches[0].targetY;
     double dist = sqrt (dx * dx + dy * dy);
     double angle = atan2 (dy, dx);
-    if (pinch_dist > 0)
-    {
-      double mx = (e->touches[0].targetX + e->touches[1].targetX) / 2.0;
-      double my = (e->touches[0].targetY + e->touches[1].targetY) / 2.0;
-      demo_view_zoom_around (vu, dist / pinch_dist, mx, my, css_w, css_h);
-    }
+    double cx = (e->touches[0].targetX + e->touches[1].targetX) / 2.0;
+    double cy = (e->touches[0].targetY + e->touches[1].targetY) / 2.0;
     double dAngle = angle - pinch_angle;
     if (dAngle > M_PI) dAngle -= 2 * M_PI;
     if (dAngle < -M_PI) dAngle += 2 * M_PI;
-    if (fabs (dAngle) > 0.01)
-    {
-      double mx = (e->touches[0].targetX + e->touches[1].targetX) / 2.0;
-      double my = (e->touches[0].targetY + e->touches[1].targetY) / 2.0;
-      demo_view_rotate_z_around (vu, dAngle, mx, my, css_w, css_h);
-    }
+    double factor = pinch_dist > 0 ? dist / pinch_dist : 1.0;
+    demo_view_pinch (vu, cx - pinch_cx, cy - pinch_cy,
+		     factor, dAngle, cx, cy, css_w, css_h);
     pinch_dist = dist;
     pinch_angle = angle;
+    pinch_cx = cx;
+    pinch_cy = cy;
   }
   return EM_TRUE;
 }

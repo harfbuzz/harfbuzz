@@ -185,6 +185,7 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset ·
   /* Multi-touch: 2-finger pinch → zoom, 3-finger drag → 3D rotate. */
   var pinchDist = 0;
   var pinchAngle = 0;
+  var pinchCX = 0, pinchCY = 0;
   var threeFingerActive = false;
   canvas.addEventListener('touchstart', function (e) {
     if (e.touches.length === 2) {
@@ -194,6 +195,8 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset ·
                              t[1].clientY - t[0].clientY);
       pinchAngle = Math.atan2(t[1].clientY - t[0].clientY,
                               t[1].clientX - t[0].clientX);
+      pinchCX = (t[0].clientX + t[1].clientX) / 2;
+      pinchCY = (t[0].clientY + t[1].clientY) / 2;
     } else if (e.touches.length >= 3) {
       e.preventDefault();
       threeFingerActive = true;
@@ -220,37 +223,28 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset ·
     if (e.touches.length === 2) {
       e.preventDefault();
       var t = e.touches;
+      var cx = (t[0].clientX + t[1].clientX) / 2;
+      var cy = (t[0].clientY + t[1].clientY) / 2;
       var dist = Math.hypot(t[1].clientX - t[0].clientX,
                             t[1].clientY - t[0].clientY);
       var angle = Math.atan2(t[1].clientY - t[0].clientY,
                              t[1].clientX - t[0].clientX);
-      /* Zoom from distance change */
-      var change = dist - pinchDist;
-      if (Math.abs(change) >= 2) {
-        var factor = dist / pinchDist;
-        pinchDist = dist;
-        var mx = (t[0].clientX + t[1].clientX) / 2;
-        var my = (t[0].clientY + t[1].clientY) / 2;
-        if (typeof _web_zoom_around === 'function')
-          _web_zoom_around(factor, mx, my, canvas.clientWidth, canvas.clientHeight);
-        else {
-          /* Fallback to wheel event */
-          var delta = (factor - 1) * 5;
-          canvas.dispatchEvent(new WheelEvent('wheel', { deltaY: -delta * 120 }));
-        }
-      }
-      /* Rotate from angle change */
       var dAngle = angle - pinchAngle;
       if (dAngle > Math.PI) dAngle -= 2 * Math.PI;
       if (dAngle < -Math.PI) dAngle += 2 * Math.PI;
-      if (Math.abs(dAngle) > 0.01) {
-        pinchAngle = angle;
-        if (typeof _web_rotate_z === 'function') {
-          var mx = (t[0].clientX + t[1].clientX) / 2;
-          var my = (t[0].clientY + t[1].clientY) / 2;
-          _web_rotate_z(dAngle, mx, my, canvas.clientWidth, canvas.clientHeight);
-        }
+      var factor = pinchDist > 0 ? dist / pinchDist : 1;
+      if (typeof _web_pinch === 'function')
+        _web_pinch(cx - pinchCX, cy - pinchCY,
+                   factor, dAngle,
+                   cx, cy, canvas.clientWidth, canvas.clientHeight);
+      else {
+        /* Fallback: zoom only via wheel */
+        var delta = (factor - 1) * 5;
+        canvas.dispatchEvent(new WheelEvent('wheel', { deltaY: -delta * 120 }));
       }
+      pinchDist = dist;
+      pinchAngle = angle;
+      pinchCX = cx; pinchCY = cy;
     }
   }, {passive: false});
   canvas.addEventListener('touchend', function (e) {

@@ -121,15 +121,11 @@ web_get_text ()
 }
 
 EMSCRIPTEN_KEEPALIVE void
-web_zoom_around (float factor, float cx, float cy, int w, int h)
+web_pinch (float pan_dx, float pan_dy,
+	   float zoom_factor, float angle_delta,
+	   float cx, float cy, int w, int h)
 {
-  demo_view_zoom_around (vu, factor, cx, cy, w, h);
-}
-
-EMSCRIPTEN_KEEPALIVE void
-web_rotate_z (float angle, float cx, float cy, int w, int h)
-{
-  demo_view_rotate_z_around (vu, angle, cx, cy, w, h);
+  demo_view_pinch (vu, pan_dx, pan_dy, zoom_factor, angle_delta, cx, cy, w, h);
 }
 
 } /* extern "C" */

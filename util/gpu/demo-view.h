@@ -59,6 +59,14 @@ demo_view_rotate_z_around (demo_view_t *vu, double angle,
 			   int width, int height);
 
 void
+demo_view_pinch (demo_view_t *vu,
+		 double pan_dx, double pan_dy,
+		 double zoom_factor,
+		 double angle_delta,
+		 double cx, double cy,
+		 int width, int height);
+
+void
 demo_view_motion_func (demo_view_t *vu, double x, double y);
 
 void
