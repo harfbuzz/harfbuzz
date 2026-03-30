@@ -20,10 +20,10 @@ jobs:
         include:
           - name: win32
             ARCH: 32
-            PACKAGES: g++-mingw-w64-i686 wine wine32
+            PACKAGES: g++-mingw-w64-i686 wine wine32 libglew-mingw-w64-dev
           - name: win64
             ARCH: 64
-            PACKAGES: g++-mingw-w64-x86-64 wine wine64 wine32:i386
+            PACKAGES: g++-mingw-w64-x86-64 wine wine64 wine32:i386 libglew-mingw-w64-dev
 
     steps:
     - name: Checkout
