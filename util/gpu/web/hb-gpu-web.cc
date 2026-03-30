@@ -120,6 +120,12 @@ web_get_text ()
   return current_text;
 }
 
+EMSCRIPTEN_KEEPALIVE void
+web_rotate_z (float angle)
+{
+  demo_view_rotate_z (vu, angle);
+}
+
 } /* extern "C" */
 
 static void

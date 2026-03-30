@@ -501,6 +501,7 @@ on_keydown (int type, const EmscriptenKeyboardEvent *e, void *ud)
 
 /* Touch handling */
 static double pinch_dist;
+static double pinch_angle;
 static bool three_finger_active;
 
 static EM_BOOL
@@ -517,6 +518,7 @@ on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
     double dx = e->touches[1].targetX - e->touches[0].targetX;
     double dy = e->touches[1].targetY - e->touches[0].targetY;
     pinch_dist = sqrt (dx * dx + dy * dy);
+    pinch_angle = atan2 (dy, dx);
   }
   else if (e->numTouches >= 3)
   {
@@ -548,9 +550,16 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
     double dx = e->touches[1].targetX - e->touches[0].targetX;
     double dy = e->touches[1].targetY - e->touches[0].targetY;
     double dist = sqrt (dx * dx + dy * dy);
+    double angle = atan2 (dy, dx);
     if (pinch_dist > 0)
       demo_view_scroll_func (vu, 0, (dist - pinch_dist) * 0.05);
+    double dAngle = angle - pinch_angle;
+    if (dAngle > M_PI) dAngle -= 2 * M_PI;
+    if (dAngle < -M_PI) dAngle += 2 * M_PI;
+    if (fabs (dAngle) > 0.01)
+      demo_view_rotate_z (vu, dAngle);
     pinch_dist = dist;
+    pinch_angle = angle;
   }
   return EM_TRUE;
 }

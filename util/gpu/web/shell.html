@@ -114,7 +114,7 @@ Shortcuts:                       Text editor:
 <div id="help">
 <span id="help-desktop">drag: pan · scroll: zoom · click: animate · right-drag: rotate<br>
 space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset · ?: help</span>
-<span id="help-mobile">drag: pan · pinch: zoom · 3-finger: rotate · tap: animate</span>
+<span id="help-mobile">drag: pan · pinch: zoom/rotate · 3-finger: 3D rotate · tap: animate</span>
 </div>
 <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
 <script>
@@ -184,6 +184,7 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset ·
 
   /* Multi-touch: 2-finger pinch → zoom, 3-finger drag → 3D rotate. */
   var pinchDist = 0;
+  var pinchAngle = 0;
   var threeFingerActive = false;
   canvas.addEventListener('touchstart', function (e) {
     if (e.touches.length === 2) {
@@ -191,6 +192,8 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset ·
       var t = e.touches;
       pinchDist = Math.hypot(t[1].clientX - t[0].clientX,
                              t[1].clientY - t[0].clientY);
+      pinchAngle = Math.atan2(t[1].clientY - t[0].clientY,
+                              t[1].clientX - t[0].clientX);
     } else if (e.touches.length >= 3) {
       e.preventDefault();
       threeFingerActive = true;
@@ -219,17 +222,28 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset ·
       var t = e.touches;
       var dist = Math.hypot(t[1].clientX - t[0].clientX,
                             t[1].clientY - t[0].clientY);
+      var angle = Math.atan2(t[1].clientY - t[0].clientY,
+                             t[1].clientX - t[0].clientX);
+      /* Zoom from distance change */
       var change = dist - pinchDist;
-      /* Dead zone: ignore jitter below 2 pixels. */
-      if (Math.abs(change) < 2) return;
-      pinchDist = dist;
-      /* Scale relative to finger distance for consistent feel. */
-      var delta = change / dist * 5;
-      canvas.dispatchEvent(new WheelEvent('wheel', {
-        deltaY: -delta * 120,
-        clientX: (t[0].clientX + t[1].clientX) / 2,
-        clientY: (t[0].clientY + t[1].clientY) / 2
-      }));
+      if (Math.abs(change) >= 2) {
+        pinchDist = dist;
+        var delta = change / dist * 5;
+        canvas.dispatchEvent(new WheelEvent('wheel', {
+          deltaY: -delta * 120,
+          clientX: (t[0].clientX + t[1].clientX) / 2,
+          clientY: (t[0].clientY + t[1].clientY) / 2
+        }));
+      }
+      /* Rotate from angle change */
+      var dAngle = angle - pinchAngle;
+      if (dAngle > Math.PI) dAngle -= 2 * Math.PI;
+      if (dAngle < -Math.PI) dAngle += 2 * Math.PI;
+      if (Math.abs(dAngle) > 0.01) {
+        pinchAngle = angle;
+        if (typeof _web_rotate_z === 'function')
+          _web_rotate_z(dAngle);
+      }
     }
   }, {passive: false});
   canvas.addEventListener('touchend', function (e) {

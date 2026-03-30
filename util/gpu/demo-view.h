@@ -46,6 +46,9 @@ void
 demo_view_scroll_func (demo_view_t *vu, double xoffset, double yoffset);
 
 void
+demo_view_rotate_z (demo_view_t *vu, double angle);
+
+void
 demo_view_motion_func (demo_view_t *vu, double x, double y);
 
 void

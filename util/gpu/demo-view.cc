@@ -506,6 +506,16 @@ demo_view_scroll_func (demo_view_t *vu, double xoffset, double yoffset)
 }
 
 void
+demo_view_rotate_z (demo_view_t *vu, double angle)
+{
+  float dquat[4];
+  float axis[3] = {0, 0, 1};
+  axis_to_quat (axis, (float) angle, dquat);
+  add_quats (dquat, vu->quat, vu->quat);
+  vu->needs_redraw = true;
+}
+
+void
 demo_view_motion_func (demo_view_t *vu, double x, double y)
 {
   vu->cursorx = x;
