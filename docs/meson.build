@@ -31,6 +31,7 @@ content_files = [
 ]
 
 html_images = [
+  'favicon.ico',
   'HarfBuzz.png',
   'HarfBuzz.svg',
 ]
