@@ -17,6 +17,16 @@
       the font, correctly ordered and positioned, and with any of the
       optional font features applied.
     </para>
+
+    <figure>
+      <title>Order of feature application</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="feature-order-application.png" format="png"/> 
+          </imageobject>
+        </mediaobject>
+    </figure>
+    
     <para>
       In addition to holding the pre-shaping input (the Unicode
       codepoints that comprise the input string) and the post-shaping
