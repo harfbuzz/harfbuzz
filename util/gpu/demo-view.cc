@@ -490,7 +490,19 @@ demo_view_mouse_func (demo_view_t *vu, int button, int action, int mods)
 	  if (!vu->animate)
 	    {
 	      if (!vu->dragged && !vu->click_handled)
-		demo_view_toggle_animation (vu);
+	      {
+		double now = current_time ();
+		if (now - vu->last_click_time < 0.3)
+		{
+		  demo_view_reset (vu);
+		  vu->last_click_time = 0;
+		}
+		else
+		{
+		  demo_view_toggle_animation (vu);
+		  vu->last_click_time = now;
+		}
+	      }
 	      else if (vu->dt) {
 		double speed = hypot (vu->dx, vu->dy) / vu->dt;
 		if (speed > 0.1)
