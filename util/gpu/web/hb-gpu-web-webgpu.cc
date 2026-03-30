@@ -434,9 +434,11 @@ static EM_BOOL
 on_wheel (int type, const EmscriptenWheelEvent *e, void *ud)
 {
   double delta = -e->deltaY;
-  if (e->deltaMode == DOM_DELTA_LINE)
-    delta *= 40.0;
-  demo_view_scroll_func (vu, 0, delta / 120.0);
+  if (e->deltaMode == DOM_DELTA_PIXEL)
+    delta /= 100.0;
+  else if (e->deltaMode == DOM_DELTA_LINE)
+    delta *= 3.0;
+  demo_view_scroll_func (vu, 0, delta);
   return EM_TRUE;
 }
 
