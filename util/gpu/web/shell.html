@@ -61,6 +61,12 @@ else
                                border-radius: 4px; background: rgba(128,128,128,0.5);
                                margin-left: 8px; }
   #text-modal-buttons button:hover { border-color: #ccc; background: rgba(128,128,128,0.7); }
+  #help-modal { display: none; position: fixed; inset: 0; z-index: 20;
+                background: rgba(0,0,0,0.7); justify-content: center;
+                align-items: center; }
+  #help-modal pre { background: #333; color: #ccc; font: 14px monospace;
+                    padding: 24px 32px; border-radius: 8px; border: 1px solid #666;
+                    line-height: 1.8; }
 </style>
 </head>
 <body>
@@ -84,6 +90,28 @@ else
     </div>
   </div>
 </div>
+<div id="help-modal"><pre>
+Mouse:                            Keyboard:
+  drag          pan                 space     toggle animation
+  scroll        zoom                b         dark mode
+  right-drag    rotate              g         gamma (2.2/none)
+  click         toggle animation    s         stem darkening
+  middle-click  reset view          d         debug heatmap
+  middle-drag   zoom                r         reset view
+                                    v         vsync
+Touch:                              =/-       zoom in/out
+  drag          pan                 [/]       stretch horiz
+  pinch         zoom                {/}       stretch vert
+  3-finger      rotate              arrows    pan
+  tap           animate             hjkl      pan (vim)
+
+Text editor:                      Shortcuts:
+  Ctrl+Enter    apply               t         edit text
+  Esc           cancel              f         load font
+                                    w         switch WebGL/WebGPU
+                                    R         reload page
+                                    ?         this help
+</pre></div>
 <div id="help">
 <span id="help-desktop">drag: pan · scroll: zoom · click: animate · right-drag: rotate<br>
 space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset</span>
@@ -218,15 +246,19 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset</s
   function blockKeysIfModal(e) {
     if (textModalEl.style.display !== 'flex') {
       if (e.key === '/' || e.key === '?') {
-        var h = document.getElementById('help');
-        var f = document.getElementById('fps');
-        var c = document.getElementById('controls');
-        var hidden = h.style.display === 'none';
-        h.style.display = hidden ? '' : 'none';
-        f.style.display = hidden ? '' : 'none';
-        if (c) c.style.display = hidden ? '' : 'none';
+        var hm = document.getElementById('help-modal');
+        hm.style.display = hm.style.display === 'flex' ? 'none' : 'flex';
+        e.preventDefault();
         e.stopImmediatePropagation();
         return;
+      }
+      if (e.key === 'Escape') {
+        var hm = document.getElementById('help-modal');
+        if (hm.style.display === 'flex') {
+          hm.style.display = 'none';
+          e.stopImmediatePropagation();
+          return;
+        }
       }
       if (e.key === 'R') {
         location.reload();
