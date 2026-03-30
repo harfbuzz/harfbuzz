@@ -111,6 +111,9 @@ struct demo_renderer_gl_t : demo_renderer_t
     demo_glstate_set_stem_darkening (st, enabled);
   }
 
+  bool trail_mode = false;
+  void set_trail (bool enabled) override { trail_mode = enabled; }
+
   bool set_srgb (bool enabled) override
   {
 #if defined(GL_FRAMEBUFFER_SRGB)
@@ -142,7 +145,8 @@ struct demo_renderer_gl_t : demo_renderer_t
     glViewport (0, 0, width, height);
     demo_glstate_set_matrix (st, mat);
 
-    glClear (GL_COLOR_BUFFER_BIT);
+    if (!trail_mode)
+      glClear (GL_COLOR_BUFFER_BIT);
 
     if (count > 0)
     {
