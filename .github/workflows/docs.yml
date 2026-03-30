@@ -53,7 +53,8 @@ jobs:
         meson setup build \
           -Dauto_features=enabled \
           -Doptimization=2 \
-          -Dgpu_demo=disabled
+          -Dgpu_demo=disabled \
+          -Dchafa=disabled
         meson compile -Cbuild
     - name: Generate Documentation
       run: ninja -Cbuild harfbuzz-doc
