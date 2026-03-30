@@ -44,15 +44,19 @@ struct gpu_output_t
   static constexpr bool repeat_shape = false;
 
   hb_bool_t use_metal = false;
+  hb_bool_t use_d3d11 = false;
   hb_bool_t demo = false;
 
   void add_options (option_parser_t *parser)
   {
     GOptionEntry entries[] =
     {
-      {"demo",	0, 0, G_OPTION_ARG_NONE,	&this->demo,		"Use built-in demo font and text",	nullptr},
+      {"demo",		0, 0, G_OPTION_ARG_NONE,	&this->demo,		"Use built-in demo font and text",	nullptr},
 #ifdef __APPLE__
-      {"metal",	0, 0, G_OPTION_ARG_NONE,	&this->use_metal,	"Use Metal renderer",			nullptr},
+      {"metal",		0, 0, G_OPTION_ARG_NONE,	&this->use_metal,	"Use Metal renderer",			nullptr},
+#endif
+#ifdef _WIN32
+      {"direct3d",	0, 0, G_OPTION_ARG_NONE,	&this->use_d3d11,	"Use Direct3D 11 renderer",		nullptr},
 #endif
       {nullptr}
     };
@@ -82,6 +86,10 @@ struct gpu_output_t
 
     if (use_metal)
       init_metal ();
+#ifdef _WIN32
+    else if (use_d3d11)
+      init_d3d11 ();
+#endif
     else
       init_gl ();
 
@@ -172,6 +180,27 @@ struct gpu_output_t
     }
 #else
     fail (false, "Metal is only available on macOS");
+#endif
+  }
+
+  void init_d3d11 ()
+  {
+#ifdef _WIN32
+    glfwWindowHint (GLFW_CLIENT_API, GLFW_NO_API);
+
+    window = glfwCreateWindow (WINDOW_W, WINDOW_H, "HarfBuzz GPU (Direct3D)", NULL, NULL);
+    if (!window) {
+      glfwTerminate ();
+      fail (false, "Failed to create GLFW window");
+    }
+
+    renderer = demo_renderer_create_d3d11 (window);
+    if (!renderer) {
+      glfwTerminate ();
+      fail (false, "Failed to initialize Direct3D 11");
+    }
+#else
+    fail (false, "Direct3D is only available on Windows");
 #endif
   }
 

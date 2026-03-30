@@ -9,6 +9,7 @@
 
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <string>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
