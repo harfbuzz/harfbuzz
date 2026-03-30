@@ -545,33 +545,44 @@ demo_view_pinch (demo_view_t *vu,
 		 double cx, double cy,
 		 int width, int height)
 {
-  /* Pan from centroid movement */
-  demo_view_translate (vu,
-		       +2. * pan_dx / width,
-		       -2. * pan_dy / height);
+  /* A natural pinch maps the previous finger frame to the current one:
+   *
+   *   x' = current_center + A * (x - previous_center)
+   *
+   * where A combines the scale and rotation deltas.  So scale / rotate
+   * around the previous centroid first, then apply the centroid drift
+   * as pan.  Using the current centroid as the pivot makes the content
+   * visibly orbit during pinch-rotate. */
+  double anchor_cx = cx - pan_dx;
+  double anchor_cy = cy - pan_dy;
 
-  /* Zoom around centroid (same math as middle-drag) */
+  /* Zoom around the previous centroid. */
   if (zoom_factor != 1.0)
   {
     demo_view_scale (vu, zoom_factor, zoom_factor);
     demo_view_translate (vu,
-			 +(2. * cx / width  - 1) * (1 - zoom_factor),
-			 -(2. * cy / height - 1) * (1 - zoom_factor));
+			 +(2. * anchor_cx / width  - 1) * (1 - zoom_factor),
+			 -(2. * anchor_cy / height - 1) * (1 - zoom_factor));
   }
 
-  /* Screen-space Z rotation around centroid.
+  /* Screen-space Z rotation around the previous centroid.
    * Since screen_angle is in the same space as scale/translate,
    * centering works the same way as zoom. */
   if (angle_delta != 0.0)
   {
     vu->screen_angle += angle_delta;
     double c = cos (-angle_delta), s = sin (-angle_delta);
-    double px = +(2. * cx / width  - 1);
-    double py = -(2. * cy / height - 1);
+    double px = +(2. * anchor_cx / width  - 1);
+    double py = -(2. * anchor_cy / height - 1);
     demo_view_translate (vu,
 			 px * (1 - c) + py * s,
 			 -(px * s - py * (1 - c)));
   }
+
+  /* Pan from centroid movement after applying the pinch transform. */
+  demo_view_translate (vu,
+		       +2. * pan_dx / width,
+		       -2. * pan_dy / height);
 
   vu->needs_redraw = true;
 }
