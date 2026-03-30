@@ -243,10 +243,24 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset ·
   var textModalEl = document.getElementById('text-modal');
   function blockKeysIfModal(e) {
     if (textModalEl.style.display !== 'flex') {
-      if (e.key === '/' || e.key === '?') {
+      if (e.key === '?') {
         if (e.type === 'keydown') {
           var hm = document.getElementById('help-modal');
           hm.style.display = hm.style.display === 'flex' ? 'none' : 'flex';
+        }
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+      if (e.key === '/') {
+        if (e.type === 'keydown') {
+          var h = document.getElementById('help');
+          var fp = document.getElementById('fps');
+          var c = document.getElementById('controls');
+          var hidden = h.style.display === 'none';
+          h.style.display = hidden ? '' : 'none';
+          fp.style.display = hidden ? '' : 'none';
+          if (c) c.style.display = hidden ? '' : 'none';
         }
         e.preventDefault();
         e.stopImmediatePropagation();
