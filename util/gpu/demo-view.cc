@@ -471,6 +471,10 @@ demo_view_mouse_func (demo_view_t *vu, int button, int action, int mods)
 	  break;
       }
       break;
+    case GLFW_MOUSE_BUTTON_MIDDLE:
+      if (action == GLFW_RELEASE && !vu->dragged)
+	demo_view_reset (vu);
+      break;
   }
 
   vu->beginx = vu->lastx = x;
