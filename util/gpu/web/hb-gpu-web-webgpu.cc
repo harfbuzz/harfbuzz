@@ -65,7 +65,7 @@ struct Uniforms {
   mvp: mat4x4f,
   viewport: vec2f,
   gamma: f32,
-  debug: f32,
+  stem_darkening: f32,
   foreground: vec4f,
 };
 
@@ -103,6 +103,17 @@ struct VertexOutput {
 
 @fragment fn fs_main (in: VertexOutput) -> @location(0) vec4f {
   var coverage = hb_gpu_render (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
+
+  if (u.stem_darkening > 0.0) {
+    let ppem = 1.0 / max (fwidth (in.texcoord).x, fwidth (in.texcoord).y);
+    let size_factor = smoothstep (8.0, 48.0, ppem);
+    let light_on_dark = dot (u.foreground.rgb, vec3f (1.0)) > 1.5;
+    var stem_exp: f32;
+    if (light_on_dark) { stem_exp = mix (1.4, 1.0, size_factor); }
+    else               { stem_exp = mix (0.7, 1.0, size_factor); }
+    coverage = pow (coverage, stem_exp);
+  }
+
   if (u.gamma != 1.0) {
     coverage = pow (coverage, u.gamma);
   }
@@ -117,7 +128,7 @@ struct Uniforms {
   float mvp[16];
   float viewport[2];
   float gamma;
-  float debug;
+  float stem_darkening;
   float foreground[4];
 };
 
@@ -217,7 +228,9 @@ struct demo_renderer_webgpu_t : demo_renderer_t
   { bg_r = r; bg_g = g; bg_b = b; bg_a = a; }
 
   void set_debug (bool enabled) override { debug_mode = enabled; }
+  void set_stem_darkening (bool enabled) override { stem_mode = enabled; }
   bool debug_mode = false;
+  bool stem_mode = true;
 
   bool set_srgb (bool enabled) override { return false; /* no sRGB framebuffer */ }
 
@@ -240,7 +253,7 @@ struct demo_renderer_webgpu_t : demo_renderer_t
     u.viewport[0] = (float) width;
     u.viewport[1] = (float) height;
     u.gamma = gamma;
-    u.debug = debug_mode ? 1.f : 0.f;
+    u.stem_darkening = stem_mode ? 1.f : 0.f;
     u.foreground[0] = fg_r; u.foreground[1] = fg_g;
     u.foreground[2] = fg_b; u.foreground[3] = fg_a;
     wgpuQueueWriteBuffer (g_queue, g_uniform_buf, 0, &u, sizeof (u));
