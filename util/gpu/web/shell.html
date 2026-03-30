@@ -211,28 +211,35 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   var skipNextPinchMove = false;
   var longPressTimer = null;
   var longPressFired = false;
-  var lastTapTime = 0;
+  var pendingTapTimer = null;
+  var singleTouchActive = false;
+  var singleTouchMoved = false;
   var doubleTapZoom = false;
   var doubleTapY = 0;
   function swallowTouch (e) {
     e.preventDefault();
     e.stopImmediatePropagation();
   }
+  function clearPendingTapTimer () {
+    if (!pendingTapTimer)
+      return;
+    clearTimeout(pendingTapTimer);
+    pendingTapTimer = null;
+  }
   if (!isWebGPU) canvas.addEventListener('touchstart', function (e) {
     if (e.touches.length === 1) {
-      var now = performance.now();
-      if (now - lastTapTime < 300) {
-        /* Double-tap: start zoom drag.
-         * Undo animation toggle from first tap. */
-        e.preventDefault();
-        if (typeof _web_toggle_animation === 'function')
-          _web_toggle_animation();
+      if (pendingTapTimer) {
+        /* A second tap claims double-tap zoom before the first tap commits. */
+        clearPendingTapTimer();
+        swallowTouch(e);
         doubleTapZoom = true;
         doubleTapY = e.touches[0].clientY;
-        lastTapTime = 0;
+        singleTouchActive = false;
+        singleTouchMoved = false;
         if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
       } else {
-        lastTapTime = now;
+        singleTouchActive = true;
+        singleTouchMoved = false;
         longPressX = e.touches[0].clientX;
         longPressY = e.touches[0].clientY;
         longPressTimer = setTimeout(function () {
@@ -241,9 +248,14 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
           if (typeof _web_reset === 'function') _web_reset();
         }, 500);
       }
-    } else if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      longPressTimer = null;
+    } else {
+      clearPendingTapTimer();
+      singleTouchActive = false;
+      singleTouchMoved = false;
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
     }
     if (e.touches.length === 2) {
       swallowTouch(e);
@@ -284,10 +296,13 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   }, {passive: false, capture: true});
   var longPressX = 0, longPressY = 0;
   if (!isWebGPU) canvas.addEventListener('touchmove', function (e) {
-    if (longPressTimer && e.touches.length === 1) {
+    if (e.touches.length === 1 && singleTouchActive) {
       var dx = e.touches[0].clientX - longPressX;
       var dy = e.touches[0].clientY - longPressY;
-      if (dx*dx + dy*dy > 100) { clearTimeout(longPressTimer); longPressTimer = null; }
+      var dist2 = dx*dx + dy*dy;
+      if (dist2 > 25)
+        singleTouchMoved = true;
+      if (longPressTimer && dist2 > 100) { clearTimeout(longPressTimer); longPressTimer = null; }
     }
     if (doubleTapZoom && e.touches.length === 1) {
       swallowTouch(e);
@@ -355,11 +370,26 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     if (threeFingerActive || skipNextPinchMove || e.touches.length >= 2 || doubleTapZoom)
       swallowTouch(e);
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    var cleanTap = singleTouchActive && !singleTouchMoved &&
+                   !longPressFired && !doubleTapZoom &&
+                   e.touches.length === 0;
+    if (cleanTap && typeof _web_cancel_gesture === 'function')
+      _web_cancel_gesture();
     if (longPressFired) {
       longPressFired = false;
       e.preventDefault(); /* Don't let GLFW see this as a click */
     }
+    singleTouchActive = false;
+    singleTouchMoved = false;
     doubleTapZoom = false;
+    if (cleanTap) {
+      clearPendingTapTimer();
+      pendingTapTimer = setTimeout(function () {
+        pendingTapTimer = null;
+        if (typeof _web_toggle_animation === 'function')
+          _web_toggle_animation();
+      }, 300);
+    }
     if (threeFingerActive && e.touches.length < 3) {
       threeFingerActive = false;
       var releaseX = gestureX, releaseY = gestureY;
@@ -393,8 +423,11 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
                          e.touches.length >= 2 || doubleTapZoom;
     if (handledGesture)
       swallowTouch(e);
+    clearPendingTapTimer();
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     longPressFired = false;
+    singleTouchActive = false;
+    singleTouchMoved = false;
     doubleTapZoom = false;
     skipNextPinchMove = false;
     if (threeFingerActive) {
