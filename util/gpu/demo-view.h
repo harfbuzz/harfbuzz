@@ -78,6 +78,9 @@ demo_view_display (demo_view_t *vu, demo_buffer_t *buffer);
 void
 demo_view_setup (demo_view_t *vu);
 
+void
+demo_view_request_redraw (demo_view_t *vu);
+
 bool
 demo_view_should_redraw (demo_view_t *vu);
 

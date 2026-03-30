@@ -776,6 +776,12 @@ demo_view_setup (demo_view_t *vu)
   vu->renderer->set_stem_darkening (true);
 }
 
+void
+demo_view_request_redraw (demo_view_t *vu)
+{
+  vu->needs_redraw = true;
+}
+
 bool
 demo_view_should_redraw (demo_view_t *vu)
 {

@@ -133,6 +133,12 @@ web_reset ()
 }
 
 EMSCRIPTEN_KEEPALIVE void
+web_request_redraw ()
+{
+  demo_view_request_redraw (vu);
+}
+
+EMSCRIPTEN_KEEPALIVE void
 web_pinch (float pan_dx, float pan_dy,
 	   float zoom_factor, float angle_delta,
 	   float cx, float cy, int w, int h)

@@ -122,13 +122,30 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   var canvas = document.getElementById('canvas');
   function resizeCanvas () {
     var dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(canvas.clientWidth * dpr);
-    canvas.height = Math.round(canvas.clientHeight * dpr);
+    var width = Math.round(canvas.clientWidth * dpr);
+    var height = Math.round(canvas.clientHeight * dpr);
+    if (canvas.width !== width)
+      canvas.width = width;
+    if (canvas.height !== height)
+      canvas.height = height;
+  }
+  function requestRedraw () {
+    if (typeof _web_request_redraw === 'function')
+      _web_request_redraw();
+  }
+  function handleResume () {
+    resizeCanvas();
+    requestRedraw();
   }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
-  document.addEventListener('visibilitychange', resizeCanvas);
-  canvas.addEventListener('webglcontextrestored', resizeCanvas);
+  window.addEventListener('focus', handleResume);
+  window.addEventListener('pageshow', handleResume);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden)
+      handleResume();
+  });
+  canvas.addEventListener('webglcontextrestored', handleResume);
 
   /* Backend selector */
   var isWebGPU = location.pathname.indexOf('webgpu') !== -1;

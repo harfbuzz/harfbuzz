@@ -381,6 +381,12 @@ web_reset ()
 }
 
 EMSCRIPTEN_KEEPALIVE void
+web_request_redraw ()
+{
+  demo_view_request_redraw (vu);
+}
+
+EMSCRIPTEN_KEEPALIVE void
 web_load_font (const char *data, int len)
 {
   hb_blob_t *blob = hb_blob_create (data, len,
