@@ -22,7 +22,7 @@ struct Uniforms {
   float4x4 matViewProjection;
   float2 viewport;
   float gamma;
-  float _pad1;
+  float stem_darkening;
   float4 foreground;
 };
 
@@ -60,6 +60,16 @@ fragment float4 fragment_main(VertexOut in [[stage_in]],
                               constant Uniforms& uniforms [[buffer(1)]],
                               device const short4* atlas [[buffer(0)]]) {
   float coverage = hb_gpu_render(in.texcoord, in.glyphLoc, atlas);
+
+  /* Stem darkening / thinning at small sizes. */
+  if (uniforms.stem_darkening > 0.0) {
+    float ppem = 1.0 / max(fwidth(in.texcoord).x, fwidth(in.texcoord).y);
+    float size_factor = smoothstep(8.0, 48.0, ppem);
+    bool light_on_dark = dot(uniforms.foreground.rgb, float3(1.0)) > 1.5;
+    float stem_exp = light_on_dark ? mix(1.4, 1.0, size_factor)
+                                   : mix(0.7, 1.0, size_factor);
+    coverage = pow(coverage, stem_exp);
+  }
 
   if (uniforms.gamma != 1.0)
     coverage = pow(coverage, uniforms.gamma);
@@ -103,12 +113,12 @@ struct demo_renderer_metal_t : demo_renderer_t
   /* Clear color */
   float bg[4];
 
-  /* Uniforms */
+  /* Uniforms — must match MSL Uniforms struct layout */
   struct {
     float matViewProjection[16];
     float viewport[2];
     float gamma;
-    float _pad1;
+    float stem_darkening;
     float foreground[4];
   } uniforms;
 
@@ -124,6 +134,7 @@ struct demo_renderer_metal_t : demo_renderer_t
     memset (&uniforms, 0, sizeof (uniforms));
     uniforms.gamma = 1.0f;
     uniforms.foreground[3] = 1.0f;
+    uniforms.stem_darkening = 1.0f;
   }
 
   ~demo_renderer_metal_t () override
@@ -191,9 +202,11 @@ struct demo_renderer_metal_t : demo_renderer_t
     bg[0] = r; bg[1] = g; bg[2] = b; bg[3] = a;
   }
 
-  void set_debug (bool enabled [[maybe_unused]]) override
+  void set_debug (bool) override {}
+
+  void set_stem_darkening (bool enabled) override
   {
-    /* TODO: Metal debug visualization */
+    uniforms.stem_darkening = enabled ? 1.f : 0.f;
   }
 
   bool set_srgb (bool enabled [[maybe_unused]]) override
