@@ -17,10 +17,6 @@ struct demo_renderer_gl_t : demo_renderer_t
   unsigned int uploaded_count;
   glyph_vertex_t *uploaded_ptr;
 
-  GLuint fade_program;
-  GLuint fade_vao;
-  GLint fade_color_loc;
-
   demo_renderer_gl_t (GLFWwindow *window_)
     : window (window_), vao_ready (false),
       uploaded_count (0), uploaded_ptr (nullptr)
@@ -28,30 +24,6 @@ struct demo_renderer_gl_t : demo_renderer_t
     st = demo_glstate_create ();
     glGenVertexArrays (1, &vao_name);
     glGenBuffers (1, &buf_name);
-
-    /* Tiny shader for trail fade overlay */
-    const char *fade_vs =
-      "#version 330\n"
-      "void main () { vec2 p = vec2 (gl_VertexID & 1, gl_VertexID >> 1) * 4.0 - 1.0;"
-      " gl_Position = vec4 (p, 0, 1); }\n";
-    const char *fade_fs =
-      "#version 330\n"
-      "uniform vec4 u_color; out vec4 c;"
-      "void main () { c = u_color; }\n";
-    GLuint vs = glCreateShader (GL_VERTEX_SHADER);
-    glShaderSource (vs, 1, &fade_vs, nullptr);
-    glCompileShader (vs);
-    GLuint fs = glCreateShader (GL_FRAGMENT_SHADER);
-    glShaderSource (fs, 1, &fade_fs, nullptr);
-    glCompileShader (fs);
-    fade_program = glCreateProgram ();
-    glAttachShader (fade_program, vs);
-    glAttachShader (fade_program, fs);
-    glLinkProgram (fade_program);
-    glDeleteShader (vs);
-    glDeleteShader (fs);
-    fade_color_loc = glGetUniformLocation (fade_program, "u_color");
-    glGenVertexArrays (1, &fade_vao);
   }
 
   ~demo_renderer_gl_t () override
@@ -124,10 +96,8 @@ struct demo_renderer_gl_t : demo_renderer_t
     demo_glstate_set_foreground (st, r, g, b, a);
   }
 
-  float bg_r = 1, bg_g = 1, bg_b = 1;
   void set_background (float r, float g, float b, float a) override
   {
-    bg_r = r; bg_g = g; bg_b = b;
     glClearColor (r, g, b, a);
   }
 
@@ -175,17 +145,7 @@ struct demo_renderer_gl_t : demo_renderer_t
     glViewport (0, 0, width, height);
     demo_glstate_set_matrix (st, mat);
 
-    if (trail_mode)
-    {
-      /* Draw semi-transparent background to fade previous frames */
-      glUseProgram (fade_program);
-      glUniform4f (fade_color_loc, bg_r, bg_g, bg_b, 0.05f);
-      glBindVertexArray (fade_vao);
-      glDrawArrays (GL_TRIANGLES, 0, 3);
-      glBindVertexArray (0);
-      demo_glstate_setup (st); /* restore glyph shader state */
-    }
-    else
+    if (!trail_mode)
       glClear (GL_COLOR_BUFFER_BIT);
 
     if (count > 0)
