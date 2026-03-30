@@ -217,6 +217,10 @@ space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset</s
   var textModalEl = document.getElementById('text-modal');
   function blockKeysIfModal(e) {
     if (textModalEl.style.display !== 'flex') {
+      if (e.key === 'R') {
+        location.reload();
+        return;
+      }
       if (e.key === 't') {
         e.preventDefault();
         if (e.type === 'keydown')
