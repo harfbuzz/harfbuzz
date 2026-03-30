@@ -67,6 +67,7 @@ struct Uniforms {
   gamma: f32,
   stem_darkening: f32,
   foreground: vec4f,
+  debug: f32,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -117,6 +118,14 @@ struct VertexOutput {
   if (u.gamma != 1.0) {
     coverage = pow (coverage, u.gamma);
   }
+
+  if (u.debug > 0.0) {
+    let counts = _hb_gpu_curve_counts (in.texcoord, in.glyphLoc, &hb_gpu_atlas);
+    let r = clamp (f32 (counts.x) / 8.0, 0.0, 1.0);
+    let g = clamp (f32 (counts.y) / 8.0, 0.0, 1.0);
+    return vec4f (r, g, coverage, max (max (r, g), coverage));
+  }
+
   return vec4f (u.foreground.rgb, u.foreground.a * coverage);
 }
 )wgsl";
@@ -130,6 +139,8 @@ struct Uniforms {
   float gamma;
   float stem_darkening;
   float foreground[4];
+  float debug;
+  float _pad[3];
 };
 
 
@@ -256,6 +267,7 @@ struct demo_renderer_webgpu_t : demo_renderer_t
     u.stem_darkening = stem_mode ? 1.f : 0.f;
     u.foreground[0] = fg_r; u.foreground[1] = fg_g;
     u.foreground[2] = fg_b; u.foreground[3] = fg_a;
+    u.debug = debug_mode ? 1.f : 0.f;
     wgpuQueueWriteBuffer (g_queue, g_uniform_buf, 0, &u, sizeof (u));
 
     /* Upload atlas if dirty */
