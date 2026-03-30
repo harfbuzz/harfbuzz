@@ -39,6 +39,8 @@ option('vector', type: 'feature', value: 'enabled',
   description: 'Enable HarfBuzz glyph vector drawing library')
 option('gpu', type: 'feature', value: 'enabled',
   description: 'Enable HarfBuzz GPU rasterization library')
+option('gpu_demo', type: 'feature', value: 'auto',
+  description: 'Build hb-gpu demo tool (needs GLEW, GLFW, GL)')
 option('subset', type: 'feature', value: 'enabled',
   description: 'Enable HarfBuzz font subsetting and instancing library')
 

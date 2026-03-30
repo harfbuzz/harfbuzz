@@ -53,7 +53,8 @@ jobs:
             -Dglib=enabled `
             -Dfreetype=enabled `
             -Dgdi=enabled `
-            -Ddirectwrite=enabled
+            -Ddirectwrite=enabled `
+            -Dgpu_demo=disabled
     - name: Build
       run: meson compile -Cbuild
     - name: Test
