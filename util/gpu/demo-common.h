@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <vector>
 
+#ifndef HB_GPU_NO_GLFW
 #include <GL/glew.h>
 
 #ifdef __APPLE__
@@ -27,6 +28,7 @@
 #endif
 
 #include <GLFW/glfw3.h>
+#endif
 
 
 #define LOGI(...) ((void) fprintf (stdout, __VA_ARGS__))

@@ -7,6 +7,8 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#elif defined(_WIN32)
+#include <windows.h>
 #endif
 
 #include "trackball.hh"
@@ -170,11 +172,11 @@ demo_view_apply_transform (demo_view_t *vu, float *mat, int width, int height)
 
   {
     double d = std::max (width, height);
-    double near = d / vu->perspective;
-    double far = near + d;
-    double factor = near / (2 * near + d);
-    m4Frustum (mat, -width * factor, width * factor, -height * factor, height * factor, near, far);
-    m4Translate (mat, 0, 0, -(near + d * .5));
+    double znear = d / vu->perspective;
+    double zfar = znear + d;
+    double factor = znear / (2 * znear + d);
+    m4Frustum (mat, -width * factor, width * factor, -height * factor, height * factor, znear, zfar);
+    m4Translate (mat, 0, 0, -(znear + d * .5));
   }
 
   float m[4][4];
@@ -190,6 +192,12 @@ current_time (void)
 {
 #ifdef __EMSCRIPTEN__
   return emscripten_get_now () / 1000.0;
+#elif defined(_WIN32)
+  static LARGE_INTEGER freq;
+  if (!freq.QuadPart) QueryPerformanceFrequency (&freq);
+  LARGE_INTEGER t;
+  QueryPerformanceCounter (&t);
+  return (double) t.QuadPart / (double) freq.QuadPart;
 #else
   return glfwGetTime ();
 #endif
