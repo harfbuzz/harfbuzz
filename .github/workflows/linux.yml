@@ -66,14 +66,6 @@ jobs:
       run: |
         git reset --hard HEAD # ragel may have modified the source tree
         meson dist --no-tests -Cbuild
-    - name: Generate Documentations
-      run: ninja -Cbuild harfbuzz-doc
-    - name: Deploy Documentations
-      if: github.ref_type == 'tag'
-      run: .ci/deploy-docs.sh
-      env:
-        GH_TOKEN: ${{ secrets.DOCS_PUSH_TOKEN }}
-        REVISION: ${{ github.sha }}
     - name: Archive artifacts
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
