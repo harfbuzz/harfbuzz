@@ -121,6 +121,12 @@ web_get_text ()
 }
 
 EMSCRIPTEN_KEEPALIVE void
+web_reset ()
+{
+  demo_view_reset (vu);
+}
+
+EMSCRIPTEN_KEEPALIVE void
 web_pinch (float pan_dx, float pan_dy,
 	   float zoom_factor, float angle_delta,
 	   float cx, float cy, int w, int h)

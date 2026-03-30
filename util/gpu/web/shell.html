@@ -115,7 +115,7 @@ Shortcuts:                       Text editor:
 <span id="help-desktop">drag: pan · scroll: zoom · click: animate · right-drag: rotate<br>
 space: animate · b: dark mode · g: gamma · s: stem · d: debug · r: reset · ?: help</span>
 <span id="help-mobile">drag: pan · pinch: zoom/rotate · 3-finger: 3D rotate<br>
-tap: animate · double-tap+drag: zoom · long-press: reset</span>
+tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
 </div>
 <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
 <script>
@@ -205,7 +205,7 @@ tap: animate · double-tap+drag: zoom · long-press: reset</span>
         lastTapTime = now;
         longPressTimer = setTimeout(function () {
           longPressTimer = null;
-          canvas.dispatchEvent(new KeyboardEvent('keydown', {key: 'r', bubbles: true}));
+          if (typeof _web_reset === 'function') _web_reset();
         }, 500);
       }
     } else if (longPressTimer) {
