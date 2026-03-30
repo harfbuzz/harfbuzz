@@ -521,6 +521,7 @@ on_keydown (int type, const EmscriptenKeyboardEvent *e, void *ud)
 static double pinch_dist;
 static double pinch_angle;
 static double pinch_cx, pinch_cy;
+static double gesture_x, gesture_y;
 static bool three_finger_active;
 static bool skip_next_pinch_move;
 
@@ -542,6 +543,8 @@ on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
     pinch_angle = atan2 (dy, dx);
     pinch_cx = (e->touches[0].targetX + e->touches[1].targetX) / 2.0;
     pinch_cy = (e->touches[0].targetY + e->touches[1].targetY) / 2.0;
+    gesture_x = pinch_cx;
+    gesture_y = pinch_cy;
     skip_next_pinch_move = false;
   }
   else if (e->numTouches >= 3)
@@ -552,6 +555,8 @@ on_touchstart (int type, const EmscriptenTouchEvent *e, void *ud)
     skip_next_pinch_move = false;
     double cx = (e->touches[0].targetX + e->touches[1].targetX + e->touches[2].targetX) / 3.0;
     double cy = (e->touches[0].targetY + e->touches[1].targetY + e->touches[2].targetY) / 3.0;
+    gesture_x = cx;
+    gesture_y = cy;
     demo_view_motion_func (vu, cx, cy);
     demo_view_mouse_func (vu, BUTTON_RIGHT, ACTION_PRESS, 0);
   }
@@ -565,6 +570,8 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
   {
     double cx = (e->touches[0].targetX + e->touches[1].targetX + e->touches[2].targetX) / 3.0;
     double cy = (e->touches[0].targetY + e->touches[1].targetY + e->touches[2].targetY) / 3.0;
+    gesture_x = cx;
+    gesture_y = cy;
     demo_view_motion_func (vu, cx, cy);
   }
   else if (e->numTouches == 1)
@@ -585,6 +592,8 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
       pinch_angle = angle;
       pinch_cx = cx;
       pinch_cy = cy;
+      gesture_x = cx;
+      gesture_y = cy;
       skip_next_pinch_move = false;
       return EM_TRUE;
     }
@@ -598,6 +607,8 @@ on_touchmove (int type, const EmscriptenTouchEvent *e, void *ud)
     pinch_angle = angle;
     pinch_cx = cx;
     pinch_cy = cy;
+    gesture_x = cx;
+    gesture_y = cy;
   }
   return EM_TRUE;
 }
@@ -608,7 +619,7 @@ on_touchend (int type, const EmscriptenTouchEvent *e, void *ud)
   if (three_finger_active && e->numTouches < 3)
   {
     three_finger_active = false;
-    double release_x = pinch_cx, release_y = pinch_cy;
+    double release_x = gesture_x, release_y = gesture_y;
     if (e->numTouches == 2)
     {
       release_x = (e->touches[0].targetX + e->touches[1].targetX) / 2.0;
@@ -626,6 +637,8 @@ on_touchend (int type, const EmscriptenTouchEvent *e, void *ud)
       pinch_angle = atan2 (dy, dx);
       pinch_cx = release_x;
       pinch_cy = release_y;
+      gesture_x = release_x;
+      gesture_y = release_y;
       skip_next_pinch_move = true;
     }
     else
@@ -636,6 +649,26 @@ on_touchend (int type, const EmscriptenTouchEvent *e, void *ud)
     skip_next_pinch_move = false;
     demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
   }
+  return EM_TRUE;
+}
+
+static EM_BOOL
+on_touchcancel (int type, const EmscriptenTouchEvent *e, void *ud)
+{
+  if (three_finger_active)
+  {
+    three_finger_active = false;
+    demo_view_motion_func (vu, gesture_x, gesture_y);
+    demo_view_cancel_gesture (vu);
+    demo_view_mouse_func (vu, BUTTON_RIGHT, ACTION_RELEASE, 0);
+  }
+  else
+  {
+    demo_view_cancel_gesture (vu);
+    demo_view_mouse_func (vu, BUTTON_LEFT, ACTION_RELEASE, 0);
+  }
+
+  skip_next_pinch_move = false;
   return EM_TRUE;
 }
 
@@ -924,6 +957,7 @@ init_demo ()
   emscripten_set_touchstart_callback ("#canvas", NULL, EM_TRUE, on_touchstart);
   emscripten_set_touchmove_callback ("#canvas", NULL, EM_TRUE, on_touchmove);
   emscripten_set_touchend_callback ("#canvas", NULL, EM_TRUE, on_touchend);
+  emscripten_set_touchcancel_callback ("#canvas", NULL, EM_TRUE, on_touchcancel);
 
   /* Hide loading screen */
   EM_ASM ({

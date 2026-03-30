@@ -206,6 +206,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
   var pinchDist = 0;
   var pinchAngle = 0;
   var pinchCX = 0, pinchCY = 0;
+  var gestureX = 0, gestureY = 0;
   var threeFingerActive = false;
   var skipNextPinchMove = false;
   var longPressTimer = null;
@@ -253,6 +254,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
                               t[1].clientX - t[0].clientX);
       pinchCX = (t[0].clientX + t[1].clientX) / 2;
       pinchCY = (t[0].clientY + t[1].clientY) / 2;
+      gestureX = pinchCX;
+      gestureY = pinchCY;
       if (typeof _web_cancel_gesture === 'function')
         _web_cancel_gesture();
       canvas.dispatchEvent(new MouseEvent('mouseup', {
@@ -266,6 +269,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       var t = e.touches;
       var cx = (t[0].clientX + t[1].clientX + t[2].clientX) / 3;
       var cy = (t[0].clientY + t[1].clientY + t[2].clientY) / 3;
+      gestureX = cx;
+      gestureY = cy;
       if (typeof _web_cancel_gesture === 'function')
         _web_cancel_gesture();
       canvas.dispatchEvent(new MouseEvent('mouseup', {
@@ -300,6 +305,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       var t = e.touches;
       var cx = (t[0].clientX + t[1].clientX + t[2].clientX) / 3;
       var cy = (t[0].clientY + t[1].clientY + t[2].clientY) / 3;
+      gestureX = cx;
+      gestureY = cy;
       canvas.dispatchEvent(new MouseEvent('mousemove', {
         clientX: cx, clientY: cy
       }));
@@ -319,6 +326,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
         pinchAngle = angle;
         pinchCX = cx;
         pinchCY = cy;
+        gestureX = cx;
+        gestureY = cy;
         skipNextPinchMove = false;
         return;
       }
@@ -338,6 +347,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       pinchDist = dist;
       pinchAngle = angle;
       pinchCX = cx; pinchCY = cy;
+      gestureX = cx;
+      gestureY = cy;
     }
   }, {passive: false, capture: true});
   if (!isWebGPU) canvas.addEventListener('touchend', function (e) {
@@ -351,7 +362,7 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
     doubleTapZoom = false;
     if (threeFingerActive && e.touches.length < 3) {
       threeFingerActive = false;
-      var releaseX = pinchCX, releaseY = pinchCY;
+      var releaseX = gestureX, releaseY = gestureY;
       if (e.touches.length === 2) {
         var t = e.touches;
         releaseX = (t[0].clientX + t[1].clientX) / 2;
@@ -362,6 +373,8 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
                                 t[1].clientX - t[0].clientX);
         pinchCX = releaseX;
         pinchCY = releaseY;
+        gestureX = releaseX;
+        gestureY = releaseY;
         skipNextPinchMove = true;
       } else {
         skipNextPinchMove = false;
@@ -373,6 +386,24 @@ tap: animate · dbl-tap+drag: zoom · long-press: reset</span>
       }));
     } else if (e.touches.length < 2) {
       skipNextPinchMove = false;
+    }
+  }, {passive: false, capture: true});
+  if (!isWebGPU) canvas.addEventListener('touchcancel', function (e) {
+    var handledGesture = threeFingerActive || skipNextPinchMove ||
+                         e.touches.length >= 2 || doubleTapZoom;
+    if (handledGesture)
+      swallowTouch(e);
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    longPressFired = false;
+    doubleTapZoom = false;
+    skipNextPinchMove = false;
+    if (threeFingerActive) {
+      threeFingerActive = false;
+      if (typeof _web_cancel_gesture === 'function')
+        _web_cancel_gesture();
+      canvas.dispatchEvent(new MouseEvent('mouseup', {
+        button: 2, clientX: gestureX, clientY: gestureY
+      }));
     }
   }, {passive: false, capture: true});
 
